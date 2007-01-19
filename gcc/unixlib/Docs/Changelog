@@ -1,3 +1,7 @@
+Fri Jan 19 15:56:39 2007  Lee Noar  <leenoar@ntlworld.com>
+	* source/sys/_syslib.s: Undo changes made Thu Jan 18.
+	* source/unix/unix.c: Change comment about _main.
+
 Thu Jan 18 21:59:26 2007  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/errno.h: Change EDEADLK value for TCPIPLibs

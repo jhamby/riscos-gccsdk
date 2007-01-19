@@ -343,8 +343,7 @@ void __unixinit (void)
 #ifndef __ELF__
 
 /* We can't call main (which is located in the executable) from the shared
-   library. The solution is to move _main to crti-riscos.asm, however,
-   it'll have to be done in ARM code rather than C. */
+   library. */
 int _main (void)
 {
   /* Enter the user's program. For compatibility with Unix systems,
