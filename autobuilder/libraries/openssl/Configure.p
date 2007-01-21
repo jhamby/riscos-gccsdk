@@ -11,7 +11,7 @@
  "qnx6",	"cc:-DL_ENDIAN -DTERMIOS::(unknown)::-lsocket:${x86_gcc_des} ${x86_gcc_opts}:",
  
 +# RISC OS on ARM
-+"riscos-aof-arm","gcc:-DL_ENDIAN -DTERMIOS -DNO_SYS_UN_H -O3 -fomit-frame-pointer -Wall::-D_REENTRANT:::BN_LLONG DES_RISC1:::::::::::::::echo",
++"riscos-aof-arm","arm-unknown-riscos-gcc:-DL_ENDIAN -DTERMIOS -DNO_SYS_UN_H -O3 -fomit-frame-pointer -Wall::-D_REENTRANT:::BN_LLONG DES_RISC1:::::::::::::::echo",
 +
  #### SCO/Caldera targets.
  #
@@ -20,7 +20,7 @@
  $IsMK1MF=1 if ($target eq "mingw" && $^O ne "cygwin");
  
  $exe_ext=".exe" if ($target eq "Cygwin" || $target eq "DJGPP" || $target eq "mingw");
-+$exe_ext=",ff8" if ($target eq "riscos-aof-arm");
++$exe_ext=",e1f" if ($target eq "riscos-aof-arm");
  $exe_ext=".pm"  if ($target =~ /vos/);
  $openssldir="/usr/local/ssl" if ($openssldir eq "" and $prefix eq "");
  $prefix=$openssldir if $prefix eq "";
