@@ -1,0 +1,54 @@
+;
+;  Originally MimeMap header file; now modified to test CMunge
+;  Copyright (C) 1998-2001, Justin Fletcher
+
+initialisation-code:    Mod_Init
+
+module-is-c-plus-plus:
+
+#include "test"
+
+#define Module_Date_CMHG 10 Sep 2001
+
+#define COUNT ((0) + 1)
+
+#ifdef DUMMY
+wibble
+#endif
+;woo - uncomment for a bug
+title-string:           MimeMap
+help-string:            Mime_Mappings 0.10 © Justin Fletcher (Freeware, release 5)
+date-string: Module_Date_CMHG
+swi-chunk-base-number:  ( ( 0x050b00 ))
+international-help-file: "Resources:$.Resources.MimeMap.Messages"
+swi-handler-code:	Mod_SWI
+swi-decoding-table:     MimeMap,Translate,Wobble/SWI_Wobble
+finalisation-code:      Mod_Final
+command-keyword-table:	Mod_Commands
+  ReadMimeMap(min-args:0, max-args:0, international:,
+              help-text: "HRDMMAP:*ReadMimeMap rereads the MIME mappings file."),
+  MimeMap(min-args:0, max-args:1, add-syntax:, handler: Mod_MimeMap,
+    	  help-text: "Returns information on the file type specified.\n",
+  	  invalid-syntax: "*MimeMap [&xxx | .ext | mime/type | Filetype]"),
+  Inet_ServiceByPort(min-args: 1, max-args: COUNT),
+  Inet_ServiceByName(min-args: 1, max-args: 1),
+  Inet_DecodeError(min-args: 1, max-args: 1)
+
+; 'irq-handlers' will generate a warning on later versions of cmhg
+; you may use 'vector-handlers' which should be correct
+irq-handlers:           Upcall_Entry/Upcall_Handler,
+    			CallBack_Entry/CallBack_Handler
+error-base:		&1240 + 7
+error-identifiers:	err_Hello("There"),err_Wibble("Wobble"),
+      			err_Thingy(&1e6,"Something's up")
+
+vector-traps:           Trap_Entry/Trap_Handler
+
+generic-veneers:        generic_entry/generic_handler(private-word: r1),
+                        second_entry/second_handler(carry-capable:)
+
+; Look - two event-handlers
+event-handler: Event_Entry/Event_Handler 1 2 3 4 5 6
+event-handler: SecondEvent_Entry/SecondEvent_Handler 25 22 11 7
+
+vector-handlers:        VectorTest(error-capable:)
