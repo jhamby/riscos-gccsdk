@@ -64,7 +64,7 @@
 	AREA	|C$$data|, DATA
 
 |__feature_imagefs_is_file_internal|
-	DCD	0
+	DCD	1
 	DECLARE_OBJECT __feature_imagefs_is_file_internal
 
 	END

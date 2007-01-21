@@ -1,3 +1,8 @@
+Sun Jan 21 15:21:56 2007  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/features.h, source/common/_exist.s: Change default
+	value of __feature_imagefs_is_file to 1.
+
 Fri Jan 19 15:56:39 2007  Lee Noar  <leenoar@ntlworld.com>
 	* source/sys/_syslib.s: Undo changes made Thu Jan 18.
 	* source/unix/unix.c: Change comment about _main.

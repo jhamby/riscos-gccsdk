@@ -166,7 +166,7 @@ itself.
 
 2. __feature_imagefs_is_file
 
-Header file: <features.h>, default value 0.
+Header file: <features.h>, default value 1.
 When non zero, files with filetypes recognized by an active ImageFS will
 be considered as regular files and not as directories.
 

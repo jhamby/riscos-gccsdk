@@ -335,7 +335,7 @@ extern int __feature_imagefs_is_file; /* Note: this is a weak symbol.  */
 /* Gets the __feature_imagefs_is_file value which can be defined by
    the global variable __feature_imagefs_is_file in the user program.
    Returns a copy of __feature_imagefs_is_file_internal (its default
-   value is 0) when __feature_imagefs_is_file is not defined.  */
+   value is 1) when __feature_imagefs_is_file is not defined.  */
 extern int __get_feature_imagefs_is_file (void);
 #if 0
 /* Currently the code __set_feature_imagefs_is_file commented out because
