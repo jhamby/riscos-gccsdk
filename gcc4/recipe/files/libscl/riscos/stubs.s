@@ -1,6 +1,6 @@
 @ Provides an Object Format file for linking with the SharedCLibrary
 @ Copyright (c) 1997-2005 Nick Burrett
-@ Copyright (c) 2005-2006 UnixLib Developers
+@ Copyright (c) 2005-2007 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -484,11 +484,11 @@ stksiz:	.word	__root_stack_size
 rwbase:	.word	Image$$RW$$Base
 zibase:	.word	Image$$ZI$$Base
 
-@@.global	_Lib$Reloc$Off$DP
+.global	_Lib$Reloc$Off$DP
 	@ XXX This feels bogus to me, but with CMunge, it converts to
 	@ the constant 540 when adjusting the SL register in the module
 	@ initialisation and command interface code.
-@@_Lib$Reloc$Off$DP, &f87
+.set	_Lib$Reloc$Off$DP, 0xf87
 
 @@.global _Mod$Reloc$Off
 @@_Mod$Reloc$Off        EQU &218

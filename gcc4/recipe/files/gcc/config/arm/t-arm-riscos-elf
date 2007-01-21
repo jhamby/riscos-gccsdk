@@ -31,6 +31,9 @@ dp-bit.c: $(srcdir)/config/fp-bit.c
 
 MULTILIB_OPTIONS = mhard-float/msoft-float
 MULTILIB_DIRNAMES = fpu soft
+# Trick to make sure that -mlibscl option results in hard-float multilib
+# version of libgcc/crti-riscos/crtn-riscos/etc. being taken.
+MULTILIB_MATCHES = mhard-float=mlibscl mhard-float=mfloat-abi?hard msoft-float=mfloat-abi?soft
 
 EXTRA_MULTILIB_PARTS = crti-riscos.o crtn-riscos.o libpic.a
 

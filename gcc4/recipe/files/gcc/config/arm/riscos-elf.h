@@ -43,14 +43,23 @@
 #undef ARM_DEFAULT_ABI
 #define ARM_DEFAULT_ABI ARM_ABI_APCS32
 
+/* When -mlibscl we switch to hard-float whatever the other float related
+   options were.  We assume option clash checking has been done upfront.  */
+#undef  SUBTARGET_ASM_FLOAT_SPEC
+#define SUBTARGET_ASM_FLOAT_SPEC "\
+%{mapcs-float:-mfloat} \
+%{mlibscl:-mfloat-abi=hard; !mhard-float:%{!mfloat-abi=*:-mfloat-abi=soft}} \
+"
+
 #define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p %{!static:%{!fpic:-fPIC}} -L/DSOLib:lib %{fpic:-fpic}"
 
 #undef  MULTILIB_DEFAULTS
 #define MULTILIB_DEFAULTS { "msoft-float" }
 
 #undef SUBTARGET_CPP_SPEC
-#define SUBTARGET_CPP_SPEC "%{mlibscl:-D__TARGET_SCL__}%{!mlibscl:-D__TARGET_UNIXLIB__}" \
-			   " %{mlibscl:-icrossdirafter /libscl}%{!mlibscl:-icrossdirafter /libunixlib}"
+#define SUBTARGET_CPP_SPEC "\
+%{mlibscl:-D__TARGET_SCL__ -icrossdirafter /libscl -mfloat-abi=hard; :-D__TARGET_UNIXLIB__ -icrossdirafter /libunixlib} \
+"
 
 /* The GNU C++ standard library requires that these macros be defined.  */
 #undef CPLUSPLUS_CPP_SPEC
@@ -69,7 +78,7 @@
    Otherwise, we can end up missing chunks of potentially interesting
    frame data.  */
 #undef  STARTFILE_SPEC
-#define STARTFILE_SPEC "crti-riscos.o%s"
+#define STARTFILE_SPEC "%{!mmodule:crti-riscos.o}%s"
 
 #undef  ENDFILE_SPEC
 #define ENDFILE_SPEC "crtn-riscos.o%s"
