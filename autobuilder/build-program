@@ -286,6 +286,8 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  fi
 
  cd $D
+ # strip binaries
+ find -type f | grep ,e1f | $GCCSDK_INSTALL_ENV/ro-path xargs arm-unknown-riscos-strip
 
  # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
  if [ -e $AB_ZIP ] ; then
