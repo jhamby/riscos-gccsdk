@@ -12,8 +12,8 @@ AB_ROVERSION=svn.`date +%G%m%d-%H%M`
 ab_package() {
   echo S=$S
   echo D=$D
-  EXECUTABLES="$S/psftp$AB_EXEEXT $S/plink,ff8 $S/pscp,ff8 $S/puttygen,ff8"
-  # $S/puttytel$AB_EXEEXT $S/pterm,ff8
+  EXECUTABLES="$S/psftp$AB_EXEEXT $S/plink$AB_EXEEXT $S/pscp$AB_EXEEXT $S/puttygen$AB_EXEEXT"
+  # $S/puttytel$AB_EXEEXT $S/pterm$AB_EXEEXT
   DOCS="$S/../README.txt $S/../LICENCE"
   cp -av $H/\!PuTTY $D
   cp -av $S/putty$AB_EXEEXT $D/\!PuTTY

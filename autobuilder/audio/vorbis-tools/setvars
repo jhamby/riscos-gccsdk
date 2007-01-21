@@ -6,7 +6,7 @@ AB_MANPAGE="ogg123/ogg123.1 oggenc/man/oggenc.1 oggdec/oggdec.1 \
                 vorbiscomment/vorbiscomment.1"
 
 ab_package() {
-  cp $S/ogg123/ogg123$AB_EXEEXT $S/oggenc/oggenc,ff8 $S/oggdec/oggdec,ff8 \
-     $S/ogginfo/ogginfo$AB_EXEEXT $S/vcut/vcut,ff8 \
+  cp $S/ogg123/ogg123$AB_EXEEXT $S/oggenc/oggenc$AB_EXEEXT $S/oggdec/oggdec$AB_EXEEXT \
+     $S/ogginfo/ogginfo$AB_EXEEXT $S/vcut/vcut$AB_EXEEXT \
      $S/vorbiscomment/vorbiscomment$AB_EXEEXT COPYING $D
 }

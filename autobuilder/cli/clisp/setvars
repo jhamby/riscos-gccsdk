@@ -22,19 +22,19 @@ ab_package() {
 	test -d $D/obey || mkdir -p $D/obey
 	gcc $H/txt_dummy.c -o txt
 	make README
-	mv $S/src/txt$AB_EXEEXT $D/obey/README.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/README.x$AB_EXEEXT
 	gcc $H/txt_dummy.c -o txt
 	make README.de
-	mv $S/src/txt$AB_EXEEXT $D/obey/README.de.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/README.de.x$AB_EXEEXT
 	gcc $H/txt_dummy.c -o txt
 	make README.es
-	mv $S/src/txt$AB_EXEEXT $D/obey/README.es.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/README.es.x$AB_EXEEXT
 	gcc $H/txt_dummy.c -o txt
 	make clisp.1
-	mv $S/src/txt$AB_EXEEXT $D/obey/clisp.1.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/clisp.1.x$AB_EXEEXT
 	gcc $H/txt_dummy.c -o txt
 	make clisp.html
-	mv $S/src/txt$AB_EXEEXT $D/obey/clisp.html.x,ff8
+	mv $S/src/txt$AB_EXEEXT $D/obey/clisp.html.x$AB_EXEEXT
 	make manual
 	rm README
 	rm README.de
