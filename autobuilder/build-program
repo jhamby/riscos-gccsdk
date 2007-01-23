@@ -8,8 +8,7 @@ fi
 
 set -e
 
-# Reset vars for each package
-
+# Reset vars for each package with default values:
 AB_MANPAGE=
 AB_ROVERSION=1
 AB_PRECONF=
@@ -22,7 +21,12 @@ AB_COPYSOURCE=
 AB_DISTCLEAN=
 AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
 AB_SHORTDESC=
+AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
+export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
+export AB_INSTALLTARGET=install
 
+# Use ChoX11 (libCX11) as X library instead of cross-compiled one (libX11)
+# Only needed for GCCSDK 3.4 AOF builds.
 export TLINK_CX11=
 
 H=$AB_HOME/$AB_PACKAGEDIR
@@ -47,8 +51,6 @@ ab_make() {
 }
 
 
-AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
-export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 
 if [ "$AB_PACKONLY" == "yes" ] ; then
 
@@ -173,13 +175,8 @@ else
  echo "Autobuilder: Calling setvars"
  . $AB_HOME/$AB_PACKAGEDIR/setvars
  
- if [ -z "$AB_INSTALLTARGET" ] ; then
-   AB_INSTALLTARGET=install
- fi
- 
- export AB_INSTALLTARGET
  export AB_DIR
- 
+
  if [ -e Imakefile ] ; then
    echo "Autobuilder: Calling xmkmf"
    $GCCSDK_INSTALL_ENV/ro-path $GCCSDK_INSTALL_ENV/bin/xmkmf -a
@@ -286,8 +283,10 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  fi
 
  cd $D
- # strip binaries
- find -type f | grep ,e1f | $GCCSDK_INSTALL_ENV/ro-path xargs arm-unknown-riscos-strip
+ if [ "$AB_ELFBUILD" == "yes" ] ; then
+   # strip binaries
+   find -type f -wholename "*,e1f" | $GCCSDK_INSTALL_ENV/ro-path xargs arm-unknown-riscos-strip
+ fi
 
  # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
  if [ -e $AB_ZIP ] ; then
