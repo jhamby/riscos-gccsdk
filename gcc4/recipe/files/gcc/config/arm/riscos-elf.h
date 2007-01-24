@@ -43,12 +43,14 @@
 #undef ARM_DEFAULT_ABI
 #define ARM_DEFAULT_ABI ARM_ABI_APCS32
 
-/* When -mlibscl we switch to hard-float whatever the other float related
-   options were.  We assume option clash checking has been done upfront.  */
+/* When -mlibscl or -mmodule we switch to hard-float whatever the other float
+   related options were.  The check for -mmodule is necessary as the assembler
+   can be launched directly from the gcc frontend without having triggered our
+   libscl && module check in arm.c.  */
 #undef  SUBTARGET_ASM_FLOAT_SPEC
 #define SUBTARGET_ASM_FLOAT_SPEC "\
 %{mapcs-float:-mfloat} \
-%{mlibscl:-mfloat-abi=hard; !mhard-float:%{!mfloat-abi=*:-mfloat-abi=soft}} \
+%{mlibscl:-mfloat-abi=hard; mmodule:-mfloat-abi=hard; !mhard-float:%{!mfloat-abi=*:-mfloat-abi=soft}} \
 "
 
 #define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p %{!static:%{!fpic:-fPIC}} -L/DSOLib:lib %{fpic:-fpic}"
@@ -68,7 +70,7 @@
 /* Now we define the strings used to build the spec file.  */
 #undef  LIB_SPEC
 #define LIB_SPEC \
-  "%{!nostdlib:%{!mlibscl:-lunixlib}%{mlibscl:-lscl} %{shared:-lpic}}"
+  "%{!nostdlib:%{mmodule:-lscl; mlibscl:-lscl; :-lunixlib } %{shared:-lpic}}"
 
 #define LIBGCC_SPEC "-lgcc"
 
