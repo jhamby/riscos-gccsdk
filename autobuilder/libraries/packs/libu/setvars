@@ -10,6 +10,9 @@ AB_CATEGORY=libraries
 
 AB_MAKE=":"
 
+# List of libraries for webinfo
+libulist=""
+
 ab_package() {
   cp -av $H/\!LibU $D
 
@@ -26,8 +29,10 @@ ab_package() {
      echo "Full path found $FULLPATH"
      unzip $FULLPATH
      if [ -e abshortdesc ] ; then
-       cat abshortdesc >> $D/\!LibU/\!Help
+       shortdesc=$(cat abshortdesc)
+       echo $shortdesc >> $D/\!LibU/\!Help
        rm -f abshortdesc
+       libulist="$libulist <li>$shortdesc</li>\n"
      fi
   done
 
@@ -39,4 +44,11 @@ ab_package() {
   done
 
   rm -f alllibraries
+}
+
+# Override ab_webinfo so we can add list of libraries
+# to the description
+ab_webinfo() {
+  . $AB_HOME/build-webinfo
+  echo -e " <ul>\n$libulist </ul>\n" >> $AB_OUTPUTPACK/webinfo/$AB_ZIPNAME-$AB_ROVERSION
 }

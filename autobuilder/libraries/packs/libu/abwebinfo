@@ -1,0 +1,10 @@
+Description: Autobuilt libraries for use on RISC OS.
+ This is a RISC OS application that acts as a container
+  for some commonly used C libaries that have been built
+  by the autobuilder.
+ .
+ It allows you to use the libraries in RISC OS compilations
+  by using the LibU path variable. See the !Help file for
+  details.
+ .
+ The libraries included are:
