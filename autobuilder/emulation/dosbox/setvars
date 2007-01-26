@@ -1,6 +1,6 @@
 
 AB_CATEGORY=emulation
-
+AB_COPYSOURCE=yes
 AB_MANPAGE=docs/dosbox.1
 
 ab_package() {
@@ -8,8 +8,4 @@ ab_package() {
   cp -av $S/AUTHORS $S/COPYING $S/INSTALL $S/NEWS $S/THANKS $S/src/dosbox$AB_EXEEXT \
          $D/\!DosBox
   cp -av $S/README $D/\!DosBox/\!Help
-  $AB_MAKE distclean
-  rm -f $S/\!RunImage$AB_EXEEXT
-  rm -f $S/man3
-  $GCCSDK_INSTALL_CROSSBIN/zip -r $D/\!DosBox/src.zip * 
 }
