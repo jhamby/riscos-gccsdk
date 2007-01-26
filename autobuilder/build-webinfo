@@ -1,0 +1,56 @@
+#!/bin/bash
+# Helper script to build a webinfo record
+
+echo "Autobuilder: Entering build-webinfo"
+
+mkdir -p $AB_OUTPUTPACK/webinfo
+
+zipleaf=$(echo $AB_ZIP | sed -r -e s#"$AB_DIR/"## -e s#".zip"##)
+program=$(echo $zipleaf | sed -r -e s#-[0-9\.]+.*\$##)
+
+if echo "$zipleaf" | grep "-" > /dev/null ; then
+   version=$(echo $zipleaf | sed -e s#"$program-"##)
+else
+   version="unknown"
+fi
+
+zipfile=$AB_OUTPUTPACK/$AB_CATEGORY/$zipleaf.zip
+zipsrcfile=$AB_OUTPUTPACK/$AB_CATEGORY/$zipleaf-src.zip
+
+webinfo=$AB_OUTPUTPACK/webinfo/$zipleaf
+
+size=$(wc -c $zipfile | sed s#"$zipfile"##)
+
+thumbs=$(find $H -maxdepth 1 | grep -- -thumb) || true
+screenshot=""
+
+if [ ! -z "$thumbs" ] ; then
+   mkdir -p $AB_OUTPUTPACK/webinfo/screens
+   for thumb in $thumbs ; do
+     leaf=$(echo $thumb | sed s#"$H/"##)
+     cp $thumb $AB_OUTPUTPACK/webinfo/screens/$leaf
+     if [ ! -z "$screenshot" ] ; then
+        screenshot="$screenshot,"
+     fi
+     screenshot="$screenshot $leaf"
+   done
+fi
+
+echo "Package: $program" > $webinfo
+echo "Version: $version" >> $webinfo
+echo "Section: $AB_CATEGORY" >> $webinfo
+echo "Size: $size" >> $webinfo
+
+if [ -f $zipsrcfile ] ; then
+  size=$(wc -c $zipsrcfile | sed s#"$zipsrcfile"##)
+  echo "Source: $zipleaf-src" >> $webinfo
+  echo "SourceSize: $size" >> $webinfo
+fi
+
+if [ ! -z "$screenshot" ] ; then
+  echo "Screenshot: $screenshot" >> $webinfo
+fi
+
+cat $H/abwebinfo >> $webinfo
+    
+echo "Autobuilder: Exiting build-webinfo"
