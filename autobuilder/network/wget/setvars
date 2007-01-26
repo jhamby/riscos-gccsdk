@@ -3,6 +3,7 @@ AB_CATEGORY=cli
 
 AB_CONFLAGS=--without-ssl
 AB_MANPAGE=doc/wget.1
+AB_COPYSOURCE=yes
 
 ab_package() {
  cp -av $S/src/wget$AB_EXEEXT COPYING $D 
