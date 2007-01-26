@@ -1,5 +1,5 @@
---- Makefile.orig	2004-06-24 18:25:50.000000000 +0100
-+++ Makefile	2004-06-24 19:29:30.000000000 +0100
+--- Makefile.orig	2006-12-22 14:32:28.859375000 +0000
++++ Makefile	2006-12-22 14:34:27.265625000 +0000
 @@ -8,7 +8,8 @@
  endif
  
@@ -10,7 +10,7 @@
  endif
  
  ifndef mandir
-@@ -16,15 +17,16 @@
+@@ -16,21 +17,22 @@
  endif
  
  ifndef highscoredir
@@ -29,3 +29,10 @@
  
  SRC=icebreaker.c cursor.c grid.c laundry.c line.c penguin.c sound.c \
      level.c intro.c text.c status.c transition.c hiscore.c dialog.c \
+     options.c fullscreen.c
+ 
+-SDL_MIXER=-lSDL_mixer
++SDL_MIXER=-lSDL_mixer -logg -lvorbisfile -lvorbis
+ SDL_LIB=$(SDL_LDFLAGS) $(SDL_MIXER) 
+ SDL_CFLAGS := $(shell $(SDLCONFIG) --cflags)
+ SDL_LDFLAGS := $(shell $(SDLCONFIG) --libs)

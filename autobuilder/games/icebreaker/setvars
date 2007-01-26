@@ -1,3 +1,17 @@
-
+AB_CATEGORY=games
+AB_COPYSOURCE=yes
+AB_DISTCLEAN="$AB_MAKE clean"
 
 AB_PRECONF=:
+
+ab_package() {
+  cp -av $H/\!IceBreaker $D
+  cp -av $H/\!IceBreaker/\!* $D/\!IceBreaker
+  cp -av icebreaker,ff8 $D/\!IceBreaker
+  cat $S/README >> $D/\!IceBreaker/\!Help
+
+  cp -av $S/ChangeLog $S/LICENSE $S/TODO $S/README $D/\!IceBreaker
+
+  mkdir -p $D/\!IceBreaker/data
+  cp -r $S/*.wav $S/*.bmp $D/\!IceBreaker/data
+}
