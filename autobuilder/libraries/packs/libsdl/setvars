@@ -8,7 +8,14 @@ AB_NOREMOTE=yes
 AB_ZIPNAME=sdl-0.1
 AB_CATEGORY=libraries
 
+# Note: Source zip file is created when the libraries
+# are extracted and added to the package
+
 AB_MAKE=":"
+
+# List of libraries for webinfo
+sdlliblist=""
+
 
 ab_package() {
   cp -av $H/\!SDL $D
@@ -17,7 +24,7 @@ ab_package() {
 
   # Need output dir for sources
   mkdir -p $AB_OUTPUTPACK/$AB_CATEGORY
-  AB_SRCZIP=$AB_OUTPUTPACK/$AB_CATEGORY/$AB_ZIPNAME-src.zip
+  AB_SRCZIP=$AB_OUTPUTPACK/$AB_CATEGORY/$AB_ZIPNAME-$AB_ROVERSION-src.zip
   addzip -j $AB_SRCZIP $H/ReadMeSrc
 
   cd $D/\!SDL
@@ -30,8 +37,10 @@ ab_package() {
      echo "Adding $FILE, zip file name $FULLPATH"
      unzip $FULLPATH
      if [ -e abshortdesc ] ; then
-       cat abshortdesc >> $D/\!SDL/\!Help
+       shortdesc=$(cat abshortdesc)
+       echo $shortdesc >> $D/\!SDL/\!Help
        rm -f abshortdesc
+       sdlliblist="$sdlliblist <li>$shortdesc</li>\n"
      fi
      if [ -d sources ] ; then
         addzip -j $AB_SRCZIP sources/*
@@ -46,4 +55,11 @@ ab_package() {
   done
 
   rm -f alllibraries
+}
+
+# Override ab_webinfo so we can add list of libraries
+# to the description
+ab_webinfo() {
+  . $AB_HOME/build-webinfo
+  echo -e " <ul>\n$sdlliblist </ul>\n" >> $AB_OUTPUTPACK/webinfo/$AB_ZIPNAME-$AB_ROVERSION
 }
