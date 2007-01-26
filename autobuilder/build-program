@@ -50,7 +50,38 @@ ab_make() {
   return
 }
 
+# Default function to package the source code
+# Only used on if AB_COPYSOURCE=yes and object
+# has been packaged.
+ab_package_source() {
+  AB_SRCDIR=$S
+  cd $S
+  if [ -z "$AB_DISTCLEAN" ] ; then
+    AB_DISTCLEAN="$AB_MAKE distclean"
+  fi
 
+  eval $AB_DISTCLEAN
+
+  # Ensure no RISC OS executable left behind
+  find . -name "*,ff8" -type f -print0 | xargs -0 rm -f
+
+  # Remove man3 link
+  rm -f $S/man3
+
+  mkdir -p $S/riscos
+  cp $H/*.p $S/riscos || true
+  cp $H/setvars $S/riscos
+}
+
+# Default function for creating webinfo
+ab_webinfo() {
+  if [ -e $H/abwebinfo ] ; then
+    . $AB_HOME/build-webinfo
+  fi
+}
+
+AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
+export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 
 if [ "$AB_PACKONLY" == "yes" ] ; then
 
@@ -323,6 +354,30 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
  mv $AB_ZIP $AB_OUTPUTPACK/$AB_CATEGORY
  ls -l  $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP)
+
+ # Package source if required
+ if [ "$AB_COPYSOURCE" == "yes" ] && [ "$AB_DEBUG" != "yes" ] ; then
+   echo "Autobuilder: Packaging source"
+   ab_package_source
+   if [ -z $AB_SRCRDIR ] && [ -d $AB_SRCDIR ] ; then
+     AB_SRCZIP=$(echo "$AB_ZIP" | sed s#".zip"#"-src.zip"#)
+     if [ -e $AB_SRCZIP ] ; then
+       rm $AB_SRCZIP
+     fi
+
+     cd $AB_SRCDIR
+     $GCCSDK_INSTALL_CROSSBIN/zip -r $AB_SRCZIP * -x "*/CVS/*" -x "*/\.svn/*"
+     mv $AB_SRCZIP $AB_OUTPUTPACK/$AB_CATEGORY
+     cd $D
+   else
+     echo "Autobuilder: Warning! Source directory for source package missing '$AB_SRCDIR'"
+   fi
+ fi
+
+ # Create web info here so we can get the size of the zip file
+ if [ "$AB_PACKONLY" != "yes" ] ; then
+   ab_webinfo
+ fi
 fi
 
 cd $AB_DIR/..
