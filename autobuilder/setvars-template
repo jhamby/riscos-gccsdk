@@ -80,8 +80,11 @@
 # Don't forget to escape '!' in bash.
 #AB_README=ReadMe,fff
 
-# Copy sources into library packages "yes" or "no"
+# Copy sources into library packages or produce a source zip
+# file for other packages "yes" or "no"
 # If left blank it will copy the sources if the file COPYING exists
+# for libraries, other packages will do nothing unless it is set to
+# "yes".
 #AB_COPYSOURCE=
 
 # Command to clean the distribution before packaging up the source
@@ -115,6 +118,35 @@
 #   :
 # }
 
+# Source package function
+#
+# If AB_COPYSOURCE=yes this function will be called to package
+# the source. The default version does uses AB_DISTCLEAN and
+# then zips up the result.
+# Override it if this is not sufficient for a package
+#
+# ab_package_source() {
+#   (see build-program script for default)
+# )
+
+# Create webinfo function
+#
+# This function is used to create a record in the webinfo directory
+# of the packages destination with a description and other details
+# about the built package. It is only called if packageing has been
+# successful. These details can then be used to create web pages.
+#
+# The default version checks for the file abwebinfo in the package
+# directory and then runs the script build-webinfo which will
+# combine the Description from the provided abwebinfo with the
+# other fields required, which are calculated from the zip file
+# name and other data from the build process.
+#
+# ab_webinfo() {
+#  if [ -e $H/abwebinfo ] ; then
+#    . $AB_HOME/build-webinfo
+#  fi
+# }
 
 
 # Finally, as this file is executed as a bash script, you can place other
