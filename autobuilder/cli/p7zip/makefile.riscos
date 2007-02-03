@@ -1,0 +1,19 @@
+#
+# makefile for Linux (x86, PPC, alpha ...)
+# LITTLE_ENDIAN and BIG_ENDIAN are already defined by the system headers
+#
+
+OPTFLAGS=-O
+
+ALLFLAGS=${OPTFLAGS} \
+    	-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE \
+	-DDEBUG -D_REENTRANT -DENV_UNIX \
+	$(LOCAL_FLAGS)
+
+CXX=/home/riscos/cross/bin/g++ $(ALLFLAGS)
+CC=/home/riscos/cross/bin/gcc $(ALLFLAGS)
+LINK_SHARED=-static
+
+LOCAL_LIBS=-lpthread 
+LOCAL_LIBS_DLL=$(LOCAL_LIBS) 
+
