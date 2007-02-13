@@ -53,7 +53,11 @@
 %{mlibscl:-mfloat-abi=hard; mmodule:-mfloat-abi=hard; !mhard-float:%{!mfloat-abi=*:-mfloat-abi=soft}} \
 "
 
-#define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p %{!static:%{!fpic:-fPIC}} -L/DSOLib:lib %{fpic:-fpic}"
+#ifdef __riscos__
+#  define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p %{!static:%{!fpic:-fPIC}} -L/DSOLib:lib %{fpic:-fpic}"
+#else
+#  define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p %{!static:%{!fpic:-fPIC}} %{fpic:-fpic}"
+#endif
 
 #undef  MULTILIB_DEFAULTS
 #define MULTILIB_DEFAULTS { "msoft-float" }
