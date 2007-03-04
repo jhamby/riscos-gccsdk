@@ -1087,7 +1087,7 @@ static void read_runnable(const char *s, FILE *file)
        unwise. I've spent pretty much all day working on this and trying to
        get my head around a way to do the whole thing safely. The simple
        answer is that it's impossible to do properly under the current
-       implementation of RISCOS without some collusion over the taskhandles
+       implementation of RISC OS without some collusion over the taskhandles
        which I'm unwilling to incorporate because it means that some
        knowledge of the environment is required and it /still/ won't cope
        with a multiply threaded single-tasked module. There are a number of

@@ -42,7 +42,7 @@
 int our_system(const char *cmdtxt)
 {
   int rc;
-#if defined(__riscos__) && defined(__TARGET_LIBSCL__)
+#if defined(__riscos__) && defined(__TARGET_SCL__)
 
 #ifndef DDEUtils_SetCLSize
 #define DDEUtils_SetCLSize (0x42581)

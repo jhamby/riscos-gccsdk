@@ -41,7 +41,7 @@ static int finalise_imported = 0;
 static void output_ADD_Lib_Reloc(void)
 {
   if (opt.toolchain == tc_gcc)
-    fputs("\t@ This is equivalent of 'ADD r10, r10, #_Lib$Reloc$Off$DP'\n"
+    fputs("\t@ This is equivalent of 'ADD r10, r10, #0' + _Lib$Reloc$Off$DP\n"
           "\t.word\t_Lib$Reloc$Off$DP + 0xE28AA000\n", file);
   else
     fputs("\t; This is equivalent of 'ADD r10, r10, #0' + |_Lib$Reloc$Off$DP|\n"
@@ -51,7 +51,7 @@ static void output_ADD_Lib_Reloc(void)
 static void output_SUB_Lib_Reloc(void)
 {
   if (opt.toolchain == tc_gcc)
-    fputs("\t@ This is equivalent of 'SUB r10, r10, #_Lib$Reloc$Off$DP'\n"
+    fputs("\t@ This is equivalent of 'SUB r10, r10, #0' + _Lib$Reloc$Off$DP\n"
           "\t.word\t_Lib$Reloc$Off$DP + 0xE24AA000\n", file);
   else
     fputs("\t; This is equivalent of 'SUB r10, r10, #0' + |_Lib$Reloc$Off$DP|\n"
@@ -61,7 +61,7 @@ static void output_SUB_Lib_Reloc(void)
 static void output_SUB_Lib_Reloc_S(void)
 {
   if (opt.toolchain == tc_gcc)
-    fputs("\t@ This is equivalent of 'SUBS r10, r10, #_Lib$Reloc$Off$DP'\n"
+    fputs("\t@ This is equivalent of 'SUBS r10, r10, #0' + _Lib$Reloc$Off$DP\n"
           "\t.word\t_Lib$Reloc$Off$DP + 0xE25AA000\n", file);
   else
     fputs("\t; This is equivalent of 'SUBS r10, r10, #0' + |_Lib$Reloc$Off$DP|\n"
@@ -2049,8 +2049,19 @@ void WriteFile(void)
   generics();
   errors();
 
+  /* FIXME: The following is a workaround by providing an empty __gccmain
+     routine as C++ support is currently not supported in GCCSDK 4 for
+     module code.  */
+  if (opt.toolchain == tc_gcc)
+    fputs("\n\
+\t.text\n\
+\t.global\t__gccmain\n\
+\t.type\t__gccmain, %function\n\
+__gccmain:\n\
+\tMOV\tpc, r14\n\
+", file);
+
   trailer();
 
   file_close(file);
 }
-
