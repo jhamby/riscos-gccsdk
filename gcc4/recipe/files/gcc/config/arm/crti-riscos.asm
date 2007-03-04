@@ -48,6 +48,13 @@
 	.global	_start
 	.type	_start, %function
 _start:
+	@ a1 is set by the dynamic loader to the start of free memory after it
+	@ has claimed what it requires. Generally, these values are only used
+	@ when dynamic linking and the runtime library is free to ignore them.
+	LDR	a2, =__executable_start
+	LDR	a3, =__data_start
+	LDR	a4, =main
+	
 	@ On RISC OS the main entry point to the run-time library is
 	@ always called __main.
 	B	__main
