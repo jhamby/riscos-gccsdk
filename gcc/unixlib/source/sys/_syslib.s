@@ -83,13 +83,15 @@ SUL_MIN_VERSION	EQU	107
 
 	ENTRY
 |__main|
-	; The dynamic loader passes, in r0, the address where free memory starts
-	; after it has grabbed what it needs. r1 & r2 come from crt1.o which is
+	; The dynamic loader passes, in a1, the address where free memory starts
+	; after it has grabbed what it needs. a2 & a3 come from crt1.o which is
 	; linked into the executable. They contain MEM_ROBASE and MEM_RWBASE
-	; respectively.
- PICEQ "MOV	v1, r0"
- PICEQ "MOV	v2, r1"
- PICEQ "MOV	v3, r2"
+	; respectively. a4 contains a pointer to main() which the shared library
+	; can jump to when ready to call the user's code.
+ PICEQ "MOV	v1, a1"
+ PICEQ "MOV	v2, a2"
+ PICEQ "MOV	v3, a3"
+ PICEQ "MOV	v5, a4"
 
  PICEQ "MOV	r0, lr"	; Preserve the return address
  PICEQ "BL	__rt_load_pic"
@@ -121,6 +123,9 @@ SUL_MIN_VERSION	EQU	107
  PICEQ "STR	v2, [fp, #MEM_ROBASE]"
  PICEQ "STR	v1, [fp, #MEM_RWLOMEM]"
  PICEQ "STR	v3, [fp, #MEM_RWBASE]"
+
+	; Also store the pointer to the program's main function for calling later.
+ PICEQ "STR	v5, [ip, #GBL_MAIN]"
 
 	LDMIA	a3, {a1, a2}			; Get time
 	STR	a1, [ip, #GBL_TIME_LOW]		; __time (low word)
@@ -1249,6 +1254,12 @@ dynamic_area_name_end
 	EXPORT	|__signalhandler_sl|
 	EXPORT	|__signalhandler_sp|
 
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	EXPORT	|main|
+	]
+	]
+
 	; This variable refers to the base address of the UnixLib
 	; global structure.
 	EXPORT	|__ul_global|
@@ -1321,6 +1332,15 @@ dynamic_area_name_end
 
 	DCD	0	; __mutex		offset = 92
 	DCD	0	; malloc_state		offset = 96
+	
+	[ __UNIXLIB_ELF > 0
+	[ PIC > 0
+	; A pointer used by the shared library to call the program's main function.
+|main|
+	DCD	0	; main			offset = 100
+	]
+	]
+
 	DECLARE_OBJECT __ul_global
 
 

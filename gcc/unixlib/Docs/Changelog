@@ -1,3 +1,17 @@
+Sun Mar 04 14:55:23 2007  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/unix/unix.c: Remove the dependency on the main symbol
+	from the shared library by declaring and accessing it as a
+	function pointer.
+	* source/clib/unixlib/unix.h: Add main function pointer to
+	__ul_global structure (shared library only).
+	* source/clib/unixlib/asm_dec.s: Add main function pointer to
+	GBL_* structure (shared library only).
+	* source/sys/_syslib.s: In the shared library, initialise the
+	main function pointer from the arguments passed to it in
+	crti-riscos.asm and add main function pointer to the
+	__ul_global structure.
+
 Sun Jan 21 15:21:56 2007  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/clib/features.h, source/common/_exist.s: Change default

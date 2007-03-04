@@ -167,6 +167,10 @@ struct ul_global
 
   /* The global malloc state (opaque type).  */
   void *malloc_state;
+
+#if defined(__ELF__) && defined(PIC)
+  int (*main) (int, char *[], char **);
+#endif
 };
 
 /* This structure must be kept in perfect synchronisation with:

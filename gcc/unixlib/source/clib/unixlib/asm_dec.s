@@ -358,6 +358,7 @@ GBL_SIGNALHANDLER_SP			EQU	88
 
 GBL_MUTEX				EQU	92
 GBL_MALLOC_GBL				EQU	96
+GBL_MAIN				EQU	100
 
 	; Entries in the __ul_memory table.  Must be kept in sync with
 	; sys/_syslib.s and incl-local/internal/{aof,elf}-macros.s
