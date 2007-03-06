@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.h.orig	2006-10-09 00:37:26.000000000 +0200
-+++ gcc/config/arm/arm.h	2006-10-09 01:01:03.000000000 +0200
+--- gcc/config/arm/arm.h.orig	2007-03-04 03:50:32.000000000 +0100
++++ gcc/config/arm/arm.h	2007-02-19 23:49:32.000000000 +0100
 @@ -190,7 +190,7 @@
  				         : TARGET_TPCS_FRAME)
  #define TARGET_LDRD			(arm_arch5e && ARM_DOUBLEWORD_ALIGN)
@@ -24,7 +24,7 @@
        call_used_regs[PIC_OFFSET_TABLE_REGNUM] = 1;		\
      }								\
 -  else if (TARGET_APCS_STACK)					\
-+  else if (TARGET_APCS_STACK || arm_abi == ARM_ABI_APCS32)	\
++  if (TARGET_APCS_STACK || arm_abi == ARM_ABI_APCS32)		\
      {								\
 +      /* For APCS-32, we preserve SL because we need to		\
 +	 interwork with functions that have stack checking.  */	\

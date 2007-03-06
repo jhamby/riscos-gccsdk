@@ -1,4 +1,4 @@
-@ Provides an Object Format file for linking with the SharedCLibrary
+@ Stub routines for linking with the SharedCLibrary
 @ Copyright (c) 1997-2005 Nick Burrett
 @ Copyright (c) 2005-2007 UnixLib Developers
 @ All rights reserved.
@@ -19,11 +19,14 @@
 @ OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
 @ IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT,
 @ INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
-@ NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES@ LOSS OF USE,
-@ DATA, OR PROFITS@ OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+@ NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 @ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 @ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
-@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
+@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@ Only suited for APCS-32 linking (SharedCLibrary 5) with code compiled
+@ with GCCSDK 4.x.
 
 .set	OS_GenerateError, 0x2B
 .set	OS_Exit, 0x11
@@ -32,1107 +35,1147 @@
 
 .set	X_Bit, 0x20000
 
-.set	SharedCLibrary_LibInitAPCS_R, 0x80681
-.set	SharedCLibrary_LibInitModule, 0x80682
 .set	SharedCLibrary_LibInitAPCS_32, 0x80683
 .set	SharedCLibrary_LibInitModuleAPCS_32, 0x80684
 
-.weak	__root_stack_size
-.weak	main
-
-.global	_kernel_init
-.global	_kernel_exit
-.global	_kernel_setreturncode
-.global	_kernel_exittraphandler
-.global	_kernel_unwind
-.global	_kernel_procname
-.global	_kernel_language
-.global	_kernel_command_string
-.global	_kernel_hostos
-.global	_kernel_swi
-.global	_kernel_osbyte
-.global	_kernel_osrdch
-.global	_kernel_oswrch
-.global	_kernel_osbget
-.global	_kernel_osbput
-.global	_kernel_osgbpb
-.global	_kernel_osword
-.global	_kernel_osfind
-.global	_kernel_osfile
-.global	_kernel_osargs
-.global	_kernel_oscli
-.global	_kernel_last_oserror
-.global	_kernel_system
-.global	_kernel_getenv
-.global	_kernel_setenv
-.global	_kernel_register_allocs
-.global	_kernel_alloc
-.global	_kernel_stkovf_split_0frame
-.global	_kernel_stkovf_split
-.global	_kernel_stkovf_copyargs
-.global	_kernel_stkovf_copy0args
-.global	_kernel_udiv
-.global	__rt_udiv
-.global	_kernel_urem
-.global	_kernel_udiv10
-.global	__rt_udiv10
-.global	_kernel_sdiv
-.global	__rt_sdiv
-.global	_kernel_srem
-.global	_kernel_sdiv10
-.global	__rt_sdiv10
-.global	_kernel_fpavailable
-.global	_kernel_moduleinit
-.global	_kernel_irqs_on
-.global	_kernel_irqs_off
-.global	_kernel_irqs_disabled
-.global	_kernel_entermodule
-.global	_kernel_escape_seen
-.global	_kernel_current_stack_chunk
-.global	_kernel_swi_c
-.global	_kernel_register_slotextend
-.global	_kernel_raise_error
-
-.global	TrapHandler
-.global	UncaughtTrapHandler
-.global	EventHandler
-.global	UnhandledEventHandler
-.global	x$stack_overflow
-.global	__rt_stkovf_split_small
-.global	x$stack_overflow_1
-.global	__rt_stkovf_split_big
-.global	x$udivide
-.global	x$uremainder
-.global	x$divide
-.global	x$divtest
-.global	__rt_divtest
-.global	x$remainder
-.global	x$multiply
-.global	_rd1chk
-.global	_rd2chk
-.global	_rd4chk
-.global	_wr1chk
-.global	_wr2chk
-.global	_wr4chk
-.global	_main
-.global	_exit
-.global	_clib_initialise
-.global	_backtrace
-.global	_count
-.global	_count1
-.global	_stfp
-.global	_ldfp
-.global	_printf
-.global	_fprintf
-.global	_sprintf
-.global	clock
-.global	difftime
-.global	mktime
-.global	time
-.global	asctime
-.global	ctime
-.global	gmtime
-.global	localtime
-.global	strftime
-.global	memcpy
-.global	memmove
-.global	strcpy
-.global	strncpy
-.global	strcat
-.global	strncat
-.global	memcmp
-.global	strcmp
-.global	strncmp
-.global	memchr
-.global	strchr
-.global	strcspn
-.global	strpbrk
-.global	strrchr
-.global	strspn
-.global	strstr
-.global	strtok
-.global	memset
-.global	strerror
-.global	strlen
-.global	atof
-.global	atoi
-.global	atol
-.global	strtod
-.global	strtol
-.global	strtoul
-.global	rand
-.global	srand
-.global	calloc
-.global	free
-.global	malloc
-.global	realloc
-.global	abort
-.global	atexit
-.global	exit
-.global	getenv
-.global	system
-.global	bsearch
-.global	qsort
-.global	abs
-.global	div
-.global	labs
-.global	ldiv
-.global	remove
-.global	rename
-.global	tmpfile
-.global	__old_tmpnam
-.global	fclose
-.global	fflush
-.global	fopen
-.global	freopen
-.global	setbuf
-.global	setvbuf
-.global	printf
-.global	fprintf
-.global	sprintf
-.global	scanf
-.global	fscanf
-.global	sscanf
-.global	vprintf
-.global	__gcc_vprintf
-.global	vfprintf
-.global	__gcc_vfprintf
-.global	vsprintf
-.global	__gcc_vsprintf
-.global	_vfprintf
-.global	fgetc
-.global	fgets
-.global	fputc
-.global	fputs
-.global	__filbuf
-.global	getc
-.global	getchar
-.global	gets
-.global	__flsbuf
-.global	putc
-.global	putchar
-.global	puts
-.global	ungetc
-.global	fread
-.global	fwrite
-.global	fgetpos
-.global	fseek
-.global	fsetpos
-.global	ftell
-.global	rewind
-.global	clearerr
-.global	feof
-.global	ferror
-.global	perror
-.global	__SIG_IGN
-.global	__ignore_signal_handler
-.global	__SIG_ERR
-.global	__default_signal_handler
-.global	__SIG_DFL
-.global	__error_signal_marker
-.global	signal
-.global	raise
-.global	setjmp
-.global	longjmp
-.global	acos
-.global	asin
-.global	atan
-.global	atan2
-.global	cos
-.global	sin
-.global	tan
-.global	cosh
-.global	sinh
-.global	tanh
-.global	exp
-.global	frexp
-.global	ldexp
-.global	log
-.global	log10
-.global	modf
-.global	pow
-.global	sqrt
-.global	ceil
-.global	fabs
-.global	floor
-.global	fmod
-.global	setlocale
-.global	isalnum
-.global	isalpha
-.global	iscntrl
-.global	isdigit
-.global	isgraph
-.global	islower
-.global	isprint
-.global	ispunct
-.global	isspace
-.global	isupper
-.global	isxdigit
-.global	tolower
-.global	toupper
-.global	__assert
-.global	_memcpy
-.global	_memset
-.global	localeconv
-.global	mblen
-.global	mbtowc
-.global	wctomb
-.global	mbstowcs
-.global	wcstombs
-.global	strxfrm
-.global	strcoll
-.global	_clib_finalisemodule
-.global	_clib_version
-.global	_clib_finalise @ RISC OS PRMs say 'Finalise' but that'll clash
-.global	_Clib_Finalise @ StubsG calls it this instead
-.global	tmpnam
-.global	_swi
-.global	_swix
-.global  disable_stack_extension
-.global	__errno
-.global	errno
-.global	__iob
-.global	_interrupts_off
-.global	__ctype
-.global	__huge_val
-
-        @@EXPORT __fpclassifyf
-.global __fpclassifyd
-.global __signbitf
-.global __signbitd
-.global copysign
-        @@EXPORT copysignf
-.global nan
-.global nanf
-.global nextafter
-        @@EXPORT nextafterf
-.global fdim
-        @@EXPORT fdimf
-.global fmax
-        @@EXPORT fmaxf
-.global fmin
-        @@EXPORT fminf
-        @@EXPORT fabsf
-.global hypot
-.global hypotf
-.global feclearexcept
-.global fegetexceptflag
-.global feraiseexcept
-.global fesetexceptflag
-.global fetestexcept
-.global fegetround
-.global fesetround
-.global fegetenv
-.global feholdexcept
-.global fesetenv
-.global feupdateenv
-.global _snprintf
-.global snprintf
-.global __gcc_vsnprintf
-.global vsnprintf
-.global vfscanf
-.global vscanf
-.global vsscanf
-        @@EXPORT ceilf
-        @@EXPORT floorf
-.global nearbyint
-        @@EXPORT nearbyintf
-.global rint
-        @@EXPORT rintf
-.global lrint
-        @@EXPORT lrintf
-.global round
-        @@EXPORT roundf
-.global lround
-        @@EXPORT lroundf
-.global trunc
-        @@EXPORT truncf
-.global remainder
-        @@EXPORT remainderf
-.global llabs
-.global lldiv
-.global atoll
-.global strtoll
-.global strtoull
-.global imaxabs
-.global imaxdiv
-.global strtoimax
-.global strtoumax
-.global __assert2
-.global _Exit
-        @@EXPORT acosf
-        @@EXPORT asinf
-        @@EXPORT atanf
-        @@EXPORT atan2f
-        @@EXPORT cosf
-        @@EXPORT sinf
-        @@EXPORT tanf
-.global acosh
-        @@EXPORT acoshf
-.global asinh
-        @@EXPORT asinhf
-.global atanh
-        @@EXPORT atanhf
-        @@EXPORT expf
-.global exp2
-        @@EXPORT exp2f
-.global expm1
-        @@EXPORT expm1f
-        @@EXPORT frexpf
-.global ilogb
-        @@EXPORT ilogbf
-        @@EXPORT ldexpf
-        @@EXPORT logf
-        @@EXPORT log10f
-.global log1p
-        @@EXPORT log1pf
-.global log2
-        @@EXPORT log2f
-.global logb
-        @@EXPORT logbf
-        @@EXPORT modff
-        @@EXPORT fmodf
-.global scalbn
-        @@EXPORT scalbnf
-.global scalbln
-        @@EXPORT scalblnf
-.global cbrt
-        @@EXPORT cbrtf
-        @@EXPORT powf
-        @@EXPORT sqrtf
-.global erf
-        @@EXPORT erff
-.global erfc
-        @@EXPORT erfcf
-.global lgamma
-        @@EXPORT lgammaf
-.global tgamma
-        @@EXPORT tgammaf
-.global nexttoward
-        @@EXPORT nexttowardf
-
 	.text
 	.global	__main
+	.type	__main, %function
 __main:
 	SWI	OS_GetEnv
-	MOV	r2, r1			@ workspace limit
-	ADR	r0, stubs		@ list of stubs
-	LDR	r1, rwlimit		@ workspace start
-	MOV	r3, #-1			@ "-1"
-	MOV	r4, #0			@ "0"
-	MOV	r5, #-1			@ "-1"
+	MOV	R2, R1			@ workspace limit
+	ADR	R0, stubs		@ list of stubs
+	LDR	R1, rwlimit		@ workspace start
+	MOV	R3, #-1			@ "-1"
+	MOV	R4, #0			@ "0"
+	MOV	R5, #-1			@ "-1"
 
 	@ check for __root_stack_size. If it doesn't exist, then
 	@ make our own up.
-	LDR	r6, stksiz
-	TEQ	r6, #0
-	LDRNE	r6, [r6]		@ use __root_stack_size
-	MOVEQ	r6, #4<<16		@ 4KB (single chunk) stack, then.
-	MOVNE	r6, r6, asr #10 	@ convert bytes to KB
-	MOVNE	r6, r6, lsl #16 	@ put in upper 16bits
+	LDR	R6, stksiz
+	TEQ	R6, #0
+	LDRNE	R6, [R6]		@ use __root_stack_size
+	MOVEQ	R6, #4<<16		@ 4KB (single chunk) stack, then.
+	MOVNE	R6, R6, ASR#10		@ convert bytes to KB
+	MOVNE	R6, R6, LSL#16		@ put in upper 16bits
 
-	TEQ	r0, r0			@ Set Z flag
-	TEQ	pc, pc			@ EQ if in 32-bit mode
-	ORREQ	r6, r6, #1
+	TEQ	R0, R0			@ Set Z flag
+	TEQ	PC, PC			@ EQ if running in 32-bit mode
+	ORREQ	R6, R6, #1
 
-#ifdef SUPPORT_SCL26BIT
-	SWI	SharedCLibrary_LibInitAPCS_R
-	MOV	r6, r6, lsl #16 	@ safety catch for ancient Shared C Lib modules
-	CMP	r6, #(5<<16)		@ check library version number
-#else
 	SWI	SharedCLibrary_LibInitAPCS_32
-	MOV	r6, r6, lsl #16 	@ safety catch for ancient Shared C Lib modules
-	CMP	r6, #(6<<16)		@ check library version number (32bit)
-#endif
+	MOV	R6, R6, LSL#16		@ safety catch for ancient Shared C Lib modules
+	CMP	R6, #6<<16		@ check library version number (32bit)
 
-	MOVGE	r4, r0			@ end of workspace
-	ADRGE	r0, kernel_init_block
-	MOVGE	r3, #0			@ we're an application
+	MOVGE	R4, R0			@ end of workspace
+	ADRGE	R0, kernel_init_block
+	MOVGE	R3, #0			@ we're an application
 	BGE	_kernel_init		@ off we go!
 
-	ADR	r0, error
+	ADR	R0, out_of_date_error
 	SWI	OS_GenerateError
-error:
-	.word	0
+out_of_date_error:
+	.word	0x800e91
 	.asciz	"Shared C Library not loaded or out of date"
 	.align
 
 stubs:
 	.word	1			@ lib chunk id : kernel
-	.word	kernel_vectors_begin
-	.word	kernel_vectors_end
-	.word	kernel_statics_begin
-	.word	kernel_statics_end
+	.word	kernel_vectors_begin(GOTOFF)
+	.word	kernel_vectors_end(GOTOFF)
+	.word	kernel_statics_begin(GOTOFF)
+	.word	kernel_statics_end(GOTOFF)
 	.word	2			@ lib chunk id : CLib
-	.word	clib_vectors_begin
-	.word	clib_vectors_end
-	.word	clib_statics_begin
-	.word	clib_statics_end
+	.word	clib_vectors_begin(GOTOFF)
+	.word	clib_vectors_end(GOTOFF)
+	.word	clib_statics_begin(GOTOFF)
+	.word	clib_statics_end(GOTOFF)
 	.word	5                       @ lib chunk id : Clib extra functions
-	.word	extra_vectors_begin
-	.word	extra_vectors_end
+	.word	extra_vectors_begin(GOTOFF)
+	.word	extra_vectors_end(GOTOFF)
 	.word	0
 	.word	0
 	.word	-1			@ end of list
 
 kernel_init_block:
-	.word	Image$$RO$$Base	@ image base
-	.word	RTSK$$Data$$Base	@ start of lang blocks
-	.word	RTSK$$Data$$Limit	@ end of lang blocks
-rwlimit:	.word	Image$$RW$$Limit
-stksiz:	.word	__root_stack_size
-rwbase:	.word	Image$$RW$$Base
-zibase:	.word	Image$$ZI$$Base
+	.word	Image$$RO$$Base(GOTOFF)		@ image base
+	.word	RTSK$$Data$$Base(GOTOFF)	@ start of lang blocks
+	.word	RTSK$$Data$$Limit(GOTOFF)	@ end of lang blocks
 
-.global	_Lib$Reloc$Off$DP
-	@ XXX This feels bogus to me, but with CMunge, it converts to
-	@ the constant 540 when adjusting the SL register in the module
-	@ initialisation and command interface code.
+rwlimit:
+	.word	Image$$RW$$Limit(GOTOFF)
+stksiz:
+	.weak	__root_stack_size
+	.word	__root_stack_size
+rwbase:
+	.word	Image$$RW$$Base(GOTOFF)
+zibase:
+	.word	Image$$ZI$$Base(GOTOFF)
+
+	.global	_Mod$Reloc$Off
+.set	_Mod$Reloc$Off, 0x218
+	.global	_Lib$Reloc$Off
+.set	_Lib$Reloc$Off, 0x21c
+	@ With CMunge, it converts to the constant 540 when adjusting the SL
+	@ register in the module initialisation and command interface code.
+	.global	_Lib$Reloc$Off$DP
 .set	_Lib$Reloc$Off$DP, 0xf87
-
-@@.global _Mod$Reloc$Off
-@@_Mod$Reloc$Off        EQU &218
-
-	.weak	__RelocCode
-reloccode:
-	.word	__RelocCode
 
 	@ RMA module entry point, called from the module initialisation
 	@ code.
-	@ On entry:	 r0 = 1, then allocate image space
-	@		 r0 = 0, just allocate 12 bytes for SCL
-.global	_clib_initialisemodule
+	@ On entry:
+	@	R0 = 1, then allocate image space incl. 12 bytes for SCL
+	@	   = 0, just allocate 12 bytes for SCL
+	@ On exit:
+	@	R0 = RMA module workspace ptr
+	@	SL = base SVC + 560
+	@ May return with VS set and R0 pointing to RISC OS error block.
+	.global	_clib_initialisemodule
+	.type	_clib_initialisemodule, %function
 _clib_initialisemodule:
-	str	r14, [sp, #-4]!
-	mov	r9, r0
+	STR	R14, [SP, #-4]!
+	MOV	R9, R0		@ R9 => our module private word
 
-	@ Relocate module.  Check weak link exists (and therefore function
-	@ is defined) before calling it.
-	ldr	r0, reloccode
-	teq	r0, #0
-	blne	__RelocCode
+	BL	__RelocCode	@ Relocate module code.
+
+	@ Module RMA workspace:
+	@   + 0 : size workspace (not really used)
+	@   + 4 : SCL static relocation offset
+	@   + 8 : client static relocation offset
+	@   +12 : copy of Image$$RW$$Base -> Image$$ZI$$Base area followed by
+	@         Image$$RW$$Limit - Image$$ZI$$Base number of zero bytes.
 
 	@ Claim RMA space for module data
-	mov	r0, #6
-	mov	r4, #0
-	mov	r5, #0
-	cmp	r9, #0
-	moveq	r3, #12	@ reserve 12 bytes for scl statics
-	ldrne	r4, rwbase		@ Image$$RW$$Base
-	ldrne	r5, rwlimit		@ Image$$RW$$Limit
-	subne	r3, r5, r4
-	addne	r3, r3, #12	@ 12 bytes for scl statics
-	swi	OS_Module + X_Bit
-	@ On exit:	 r2 = pointer to claimed block
-	@		 r3 = preserved (i.e. requested block size)
-	ldrvs	pc, [sp], #4
+	MOV	R0, #6
+	MOV	R4, #0
+	MOV	R5, #0
+	TEQ	R9, #0
+	MOVEQ	R3, #12		@ Reserve 12 bytes for SCL statics
+	LDRNE	R4, rwbase	@ Image$$RW$$Base
+	LDRNE	R5, rwlimit	@ Image$$RW$$Limit
+	SUBNE	R3, R5, R4
+	ADDNE	R3, R3, #12	@ 12 bytes for SCL statics
+	SWI	OS_Module + X_Bit
+	@ On exit:	 R2 = pointer to claimed block
+	@		 R3 = preserved (i.e. requested block size)
+	LDRVS	PC, [SP], #4
 
-	mov	r9, r12		@ hold workspace pointer
+	MOV	R9, R12		@ hold workspace pointer
 	@ Set module private word to point to this new allocation
-	str	r2, [r12, #0]
+	STR	R2, [R12, #0]
 
-	mov	r12, r2
+	MOV	R12, R2
 	@ First word of private word is size of allocated block
-	str	r3, [r12, #0]
+	STR	R3, [R12, #0]
 
-	adr	r0, stubs	@ list of stub descriptions
-	add	r1, r12, #12	@ pointer to workspace start
-	add	r2, r12, r3	@ pointer to workspace limit
-	ldr	r3, zibase	@ Image$$ZI$$base
-	ldr	r6, stksiz
-	teq	r6, #0
-	ldrne	r6, [r6]	@ use __root_stack_size
-	moveq	r6, #4<<16	@ otherwise default to 4K for root stack chunk
-	movne	r6, r6, asr #10	@ convert bytes to KB
-	movne	r6, r6, lsl #16 @ put in upper 16 bits
-#ifdef SUPPORT_SCL26BIT
-	swi	SharedCLibrary_LibInitModule + X_Bit
-#else
-	swi	SharedCLibrary_LibInitModuleAPCS_32 + X_Bit
-#endif
-	bvc	modscl_init
+	ADR	R0, stubs	@ R0 => list of stub descriptions
+	ADD	R1, R12, #12	@ R1 => RMA workspace start
+	ADD	R2, R12, R3
+	LDR	R3, zibase	@ R3 = Image$$ZI$$base
+				@ R4 = Image$$RW$$Base
+				@ R5 = Image$$RW$$Limit
+	LDR	R6, stksiz
+	TEQ	R6, #0
+	LDRNE	R6, [R6]	@ use __root_stack_size
+	MOVEQ	R6, #4<<16	@ otherwise default to 4K for root stack chunk
+	MOVNE	R6, R6, ASR#10	@ convert bytes to KB
+	MOVNE	R6, R6, LSL#16	@ put in upper 16 bits
 
-	@ An error occurred
-	mov	r1, r0		@ preserve error pointer
-	mov	r0, #7		@ free claimed workspace
-	ldr	r2, [r9, #0]
-	swi	OS_Module + X_Bit
-	mov	r0, #0		@ set private word pointer
-	str	r0, [r9, #0]
-	mov	r0, r1		@ restore error pointer
-	ldr	pc, [sp], #4	@ exit
+	TEQ	R0, R0		@ Set Z flag
+	TEQ	PC, PC		@ EQ if running in 32-bit mode
+	ORREQ	R6, R6, #1
 
+	SWI	SharedCLibrary_LibInitModuleAPCS_32 + X_Bit
+	BVS	_clib_initialisemodule_error
 
-modscl_init:
-	@ Store the static data offsets for SCL and client use in the
-	@ first 12 bytes of module workspace.  The cmgh/cmunge module
+	@ R1 = stack base (preserve until the end !)
+	@ R6 = library version number
+
+	MOV	R6, R6, LSL#16
+	CMP	R6, #6<<16
+	ADRLT	R0, out_of_date_error
+	BLT	_clib_initialisemodule_error
+
+	@ Store the static relocation data offsets for SCL and client use in
+	@ the first 12 bytes of module workspace.  The CMGH/CMunge module
 	@ header interface assumes the position of these words.
+	@ The client static relocation data offset becomes the value that we
+	@ reference through SL[-536] for accessing global variables.
+	LDR	R7, [R1, #20]	@ SCL static relocation data offset
+	LDR	R8, [R1, #24]	@ Client static relocation data offset
+	STR	R7, [R12, #4]	@ Store in private workspace
+	STR	R8, [R12, #8]
 
-	@ The client static data offset becomes the value that we
-	@ reference through sl[-536] for accessing global variables.
-	ldr	r7, [r1, #20]	@ scl static data offset
-	ldr	r8, [r1, #24]	@ client static data offset
+	MOV	R4, R0		@ End of workspace (FIXME: really needed ?)
 
-	str	r7, [r12, #4]	@ store in private workspace
-	str	r8, [r12, #8]
+	@ Do additional relocation of RW data words pointing to other RW data
+	@ words.  After this data relocation, those should point into our module
+	@ RMA workspace instead of module code (or beyond that for .bss data).
+	MOV	R0, R8		@ R0 = client static relocation data offset
+	LDR	R2, rwbase	@ R2 = Image$$RW$$Base
+	BL	__RelocData
 
-	mov	r4, r0			@ end of workspace
-	adr	r0, kernel_init_block
-	adr	lr, clibinit
-	str	lr, [sp, #-4]!
+	ADR	R0, kernel_init_block
+	ADR	LR, _clib_initialisemodule_initclib
+	STR	LR, [SP, #-4]!
 	@ _kernel_moduleinit pops the return address off the stack
-	b	_kernel_moduleinit
-clibinit:
-	str	r9, [sp, #-4]!	@ save workspace pointer
-	bl	_clib_initialise
-	ldr	r0, [sp], #4
-	ldr	pc, [sp], #4
+	B	_kernel_moduleinit
+_clib_initialisemodule_initclib:
+	STR	R9, [SP, #-4]!	@ Save workspace pointer
+	BL	_clib_initialise
+	ADDS	R0, R0, #0	@ Clear V flag
+	LDMIA	SP!, {R0, PC}
 
-.global	_clib_entermodule
-_clib_entermodule:
-	adr	r0, kernel_init_block
-	mov	r8, r12
-	mvn	r12, #0
+_clib_initialisemodule_error:
+	@ An error occurred:
+	@  R0 => RISC OS error block
+	@  R9 => module private word holding ptr to RMA memory block
+	MOV	R1, R0		@ Preserve error pointer
 
-	@ Set stack size according to __root_stack_size, or 4K if it
-	@ does not exist.
-	ldr	r6, stksiz
-	cmp	r6, #0
-	moveq	r6, #4 * 1024
-	ldrne	r6, [r6, #0]
-	b	_kernel_entermodule
+	MOV	R0, #7		@ Free claimed workspace
+	LDR	R2, [R9, #0]
+	SWI	OS_Module + X_Bit
+	MOV	R0, #0		@ Set private word pointer
+	STR	R0, [R9, #0]
 
-	@@ Area: RTSK$$Data
-	.data
-RTSK$$Data$$Base:
-	.word	40			@ RTSK$$Data$$Limit - RTSK$$Data$$Base
-	.word	Image$$RO$$Base		@ C$$code$$Base	@ gcc is not nicely compatible with SCL
-	.word	Image$$RO$$Limit	@ C$$code$$Limit	@ because it makes C$$CodeX areas @-(
-	.word	language_name		@ must be "C"
-	.word	__sclmain		@ our PROC-returning InitProc
-	.word	0			@ finaliser
-	@ these are the "optionals"...
-	.word	TrapHandler		@ SharedCLib's own trap handler...
-	.word	UncaughtTrapHandler	@ ...and uncaught trap proc
-	.word	EventHandler		@ ...and event proc
-	.word	UnhandledEventHandler	@ ...and unhandled event proc!
-	@ no fast event proc
-	@ no unwind proc
-	@ no name proc
-RTSK$$Data$$Limit:
+	MOV	R0, R1		@ Restore error pointer
+
+	CMP	R0, #1<<31	@ Make sure V flag is set
+	CMNVC	R0, #1<<31
+	LDR	PC, [SP], #4	@ Exit
 
 	.text
+	@ Called by CMunge module start code.
+	.global	_clib_entermodule
+	.type	_clib_entermodule, %function
+_clib_entermodule:
+	ADR	R0, kernel_init_block
+	@ Set stack size according to __root_stack_size, or 4K if it
+	@ does not exist.
+	LDR	R6, stksiz
+	TEQ	R6, #0
+	MOVEQ	R6, #4 * 1024
+	LDRNE	R6, [R6, #0]
+	MOV	R8, R12
+	MOV	R12, #-1
+	B	_kernel_entermodule
+
+	@@ Area: RTSK$$Data
+	.text
+RTSK$$Data$$Base:
+	.word	RTSK$$Data$$Limit - RTSK$$Data$$Base
+	.word	Image$$RO$$Base(GOTOFF)		@ C$$code$$Base
+	.word	Image$$RO$$Limit(GOTOFF)	@ C$$code$$Limit
+	.word	language_name(GOTOFF)		@ Must be "C"
+	.word	__sclmain(GOTOFF)		@ Our PROC-returning InitProc
+	.word	0				@ Finaliser
+	@ These are the "optionals"...
+	.word	TrapHandler(GOTOFF)		@ SCL's own trap handler...
+	.word	UncaughtTrapHandler(GOTOFF)	@ ...and uncaught trap proc
+	.word	EventHandler(GOTOFF)		@ ...and event proc
+	.word	UnhandledEventHandler(GOTOFF)	@ ...and unhandled event proc!
+	@ No fast event proc
+	@ No unwind proc
+	@ No name proc
+RTSK$$Data$$Limit:
+
 language_name:
 	.asciz	"C"
 	.align
 
+	.text
+	.type	__sclmain, %function
 __sclmain:
-	MOV	r0, #1
-	LDR	r1, stub_data
-	STRB	r0, [r1, #_stub_kallocExtendsWS - kernel_statics_begin]
+	@ FIXME: vvv what's this magic ?
+	LDR	R0, kallocextendsws_data
+	LDR	R1, [SL, #- _Mod$Reloc$Off]
+	MOV	R2, #1
+	STRB	R2, [R0, R1]
 
-	MOV	r0, sp			@ (historical??)
-	STMFD	sp!, {lr}
-	LDR	r1, rtsk_data
-	LDMIB	r1, {r1, r2}		@ fetch code start/end (historical??)
+	MOV	R0, SP
+	STR	LR, [SP, #-4]!
+	LDR	R1, rtsk_data
+	LDMIB	R1, {R1, R2}		@ fetch code start/end
 	BL	_clib_initialise
-	LDR	r0, c_run		@ get our main()
-	CMP	r0, #0			@ was there one?
-	ADRNE	r0, c_next		@ yup, so point to hook to it
 
-	@ For 26-bit SharedCLibrary (in which case, we're using a 26-bit OS)
-	@ we still need to restore flags on exit.  For 32-bit SCL on 26-bit
-	@ we restore them anyway, as this makes no difference.
+	LDR	R0, c_run		@ get our main()
+	TEQ	R0, #0			@ was there one?
+	ADRNE	R0, c_next		@ yup, so point to hook to it
+	LDR	PC, [R13], #4
 
-	TEQ     r0, r0                  @ Set Z flag
-	TEQ     pc, pc                  @ EQ if in 32-bit mode
+kallocextendsws_data:			@ Ptr into .data, so needs static relocation data offset
+	.word	_stub_kallocExtendsWS(GOTOFF)
+rtsk_data:				@ Ptr into .text
+	.word	RTSK$$Data$$Base(GOTOFF)
+c_run:					@ Ptr into .text
+	.weak	main
+	.word	main(GOTOFF)
 
-	LDMEQFD sp!, {pc}
-	LDMFD   sp!, {pc}^
-
-	@ This is called when all RTL blocks have been initialised via their InitProc
+	@ This is called when all RTL blocks have been initialised via their
+	@ InitProc
 	.asciz	"___init"
 	.align
 	.word	0xff000008
+	.type	c_next, %function
 c_next:
-	MOV	ip, sp
-	STMFD	sp!, {fp, ip, lr, pc}
-	SUB	fp, ip, #4
-	BL	_kernel_command_string	@ get r0=command string
-	LDR	r1, c_run		@ get ptr to main() function
-	BL	_main			@ call clib to enter it.  SHOULD never return from here.
-	LDMFD   fp, {fp, sp, pc}
+	MOV	IP, SP
+	STMFD	SP!, {FP, IP, LR, PC}
+	SUB	FP, IP, #4
+	BL	_kernel_command_string	@ Get R0 = command string
+	LDR	R1, c_run		@ Get ptr to main() function
+	BL	_main			@ Call clib to enter it.  SHOULD never return from here.
+	LDMDB	FP, {FP, SP, PC}
 
-stub_data:
-	.word	Stub$$Data$$Base
-
-rtsk_data:
-	.word	RTSK$$Data$$Base
-
-c_run:
-	.word	main
 
 	.text
 kernel_vectors_begin:
 
-_kernel_init:			MOV	pc, #0
-_kernel_exit:			MOV	pc, #0
-_kernel_setreturncode:		MOV	pc, #0
-_kernel_exittraphandler:	MOV	pc, #0
-_kernel_unwind:			MOV	pc, #0
-_kernel_procname:		MOV	pc, #0
-_kernel_language:		MOV	pc, #0
-_kernel_command_string:		MOV	pc, #0
-_kernel_hostos:			MOV	pc, #0
-_kernel_swi:			MOV	pc, #0
-_kernel_osbyte:			MOV	pc, #0
-_kernel_osrdch:			MOV	pc, #0
-_kernel_oswrch:			MOV	pc, #0
-_kernel_osbget:			MOV	pc, #0
-_kernel_osbput:			MOV	pc, #0
-_kernel_osgbpb:			MOV	pc, #0
-_kernel_osword:			MOV	pc, #0
-_kernel_osfind:			MOV	pc, #0
-_kernel_osfile:			MOV	pc, #0
-_kernel_osargs:			MOV	pc, #0
-_kernel_oscli:			MOV	pc, #0
-_kernel_last_oserror:		MOV	pc, #0
-_kernel_system:			MOV	pc, #0
-_kernel_getenv:			MOV	pc, #0
-_kernel_setenv:			MOV	pc, #0
-_kernel_register_allocs:	MOV	pc, #0
-_kernel_alloc:			MOV	pc, #0
-_kernel_stkovf_split_0frame:	MOV	pc, #0
-_kernel_stkovf_split:		MOV	pc, #0
-_kernel_stkovf_copyargs:	MOV	pc, #0
-_kernel_stkovf_copy0args:	MOV	pc, #0
-__rt_udiv:
-_kernel_udiv:			MOV	pc, #0
-_kernel_urem:			MOV	pc, #0
+	.global	_kernel_init
+_kernel_init:			MOV	PC, #0
+	.global	_kernel_exit
+_kernel_exit:			MOV	PC, #0
+	.global	_kernel_setreturncode
+_kernel_setreturncode:		MOV	PC, #0
+	.global	_kernel_exittraphandler
+_kernel_exittraphandler:	MOV	PC, #0
+	.global	_kernel_unwind
+_kernel_unwind:			MOV	PC, #0
+	.global	_kernel_procname
+_kernel_procname:		MOV	PC, #0
+	.global	_kernel_language
+_kernel_language:		MOV	PC, #0
+	.global	_kernel_command_string
+_kernel_command_string:		MOV	PC, #0
+	.global	_kernel_hostos
+_kernel_hostos:			MOV	PC, #0
+	.global	_kernel_swi
+_kernel_swi:			MOV	PC, #0
+	.global	_kernel_osbyte
+_kernel_osbyte:			MOV	PC, #0
+	.global	_kernel_osrdch
+_kernel_osrdch:			MOV	PC, #0
+	.global	_kernel_oswrch
+_kernel_oswrch:			MOV	PC, #0
+	.global	_kernel_osbget
+_kernel_osbget:			MOV	PC, #0
+	.global	_kernel_osbput
+_kernel_osbput:			MOV	PC, #0
+	.global	_kernel_osgbpb
+_kernel_osgbpb:			MOV	PC, #0
+	.global	_kernel_osword
+_kernel_osword:			MOV	PC, #0
+	.global	_kernel_osfind
+_kernel_osfind:			MOV	PC, #0
+	.global	_kernel_osfile
+_kernel_osfile:			MOV	PC, #0
+	.global	_kernel_osargs
+_kernel_osargs:			MOV	PC, #0
+	.global	_kernel_oscli
+_kernel_oscli:			MOV	PC, #0
+	.global	_kernel_last_oserror
+_kernel_last_oserror:		MOV	PC, #0
+	.global	_kernel_system
+_kernel_system:			MOV	PC, #0
+	.global	_kernel_getenv
+_kernel_getenv:			MOV	PC, #0
+	.global	_kernel_setenv
+_kernel_setenv:			MOV	PC, #0
+	.global	_kernel_register_allocs
+_kernel_register_allocs:	MOV	PC, #0
+	.global	_kernel_alloc
+_kernel_alloc:			MOV	PC, #0
+	.global	_kernel_stkovf_split_0frame
+_kernel_stkovf_split_0frame:	MOV	PC, #0
+	.global	_kernel_stkovf_split
+_kernel_stkovf_split:		MOV	PC, #0
+	.global	_kernel_stkovf_copyargs
+_kernel_stkovf_copyargs:	MOV	PC, #0
+	.global	_kernel_stkovf_copy0args
+_kernel_stkovf_copy0args:	MOV	PC, #0
+	.global	_kernel_udiv
+_kernel_udiv:			MOV	PC, #0
+	.global	_kernel_urem
+_kernel_urem:			MOV	PC, #0
+	.global	__rt_udiv10
 __rt_udiv10:
-_kernel_udiv10:			MOV	pc, #0
-__rt_sdiv:
-_kernel_sdiv:			MOV	pc, #0
-_kernel_srem:			MOV	pc, #0
+	.global	_kernel_udiv10
+_kernel_udiv10:			MOV	PC, #0
+	.global	_kernel_sdiv
+_kernel_sdiv:			MOV	PC, #0
+	.global	_kernel_srem
+_kernel_srem:			MOV	PC, #0
+	.global	__rt_sdiv10
 __rt_sdiv10:
-_kernel_sdiv10:			MOV	pc, #0
-_kernel_fpavailable:		MOV	pc, #0
-_kernel_moduleinit:		MOV	pc, #0
-_kernel_irqs_on:		MOV	pc, #0
-_kernel_irqs_off:		MOV	pc, #0
-_kernel_irqs_disabled:		MOV	pc, #0
-_kernel_entermodule:		MOV	pc, #0
-_kernel_escape_seen:		MOV	pc, #0
-_kernel_current_stack_chunk:	MOV	pc, #0
-_kernel_swi_c:			MOV	pc, #0
-_kernel_register_slotextend:	MOV	pc, #0
-_kernel_raise_error:		MOV	pc, #0
-
+	.global	_kernel_sdiv10
+_kernel_sdiv10:			MOV	PC, #0
+	.global	_kernel_fpavailable
+_kernel_fpavailable:		MOV	PC, #0
+	.global	_kernel_moduleinit
+_kernel_moduleinit:		MOV	PC, #0
+	.global	_kernel_irqs_on
+_kernel_irqs_on:		MOV	PC, #0
+	.global	_kernel_irqs_off
+_kernel_irqs_off:		MOV	PC, #0
+	.global	_kernel_irqs_disabled
+_kernel_irqs_disabled:		MOV	PC, #0
+	.global	_kernel_entermodule
+_kernel_entermodule:		MOV	PC, #0
+	.global	_kernel_escape_seen
+_kernel_escape_seen:		MOV	PC, #0
+	.global	_kernel_current_stack_chunk
+_kernel_current_stack_chunk:	MOV	PC, #0
+	.global	_kernel_swi_c
+_kernel_swi_c:			MOV	PC, #0
+	.global	_kernel_register_slotextend
+_kernel_register_slotextend:	MOV	PC, #0
+	.global	_kernel_raise_error
+_kernel_raise_error:		MOV	PC, #0
+kernel_vectors_mid:
+	.space			kernel_vectors_mid - kernel_vectors_begin
 kernel_vectors_end:
 
 clib_vectors_begin:
 
-TrapHandler:			MOV	pc, #0
-UncaughtTrapHandler:		MOV	pc, #0
-EventHandler:			MOV	pc, #0
-UnhandledEventHandler:		MOV	pc, #0
+	.global	TrapHandler
+TrapHandler:			MOV	PC, #0
+	.global	UncaughtTrapHandler
+UncaughtTrapHandler:		MOV	PC, #0
+	.global	EventHandler
+EventHandler:			MOV	PC, #0
+	.global	UnhandledEventHandler
+UnhandledEventHandler:		MOV	PC, #0
+	.global	__rt_stkovf_split_small
+	.global	x$stack_overflow
 __rt_stkovf_split_small:
-x$stack_overflow:		MOV	pc, #0
+x$stack_overflow:		MOV	PC, #0
+	.global	__rt_stkovf_split_big
+	.global	x$stack_overflow_1
 __rt_stkovf_split_big:
-x$stack_overflow_1:		MOV	pc, #0
-x$udivide:			MOV	pc, #0
-x$uremainder:			MOV	pc, #0
-x$divide:			MOV	pc, #0
+x$stack_overflow_1:		MOV	PC, #0
+	.global	__rt_udiv
+	.global	x$udivide
+__rt_udiv:
+x$udivide:			MOV	PC, #0
+	.global	x$uremainder
+x$uremainder:			MOV	PC, #0
+	.global	__rt_sdiv
+	.global	x$divide
+__rt_sdiv:
+x$divide:			MOV	PC, #0
+	.global	__rt_divtest
+	.global	x$divtest
 __rt_divtest:
-x$divtest:			MOV	pc, #0
-x$remainder:			MOV	pc, #0
-x$multiply:			MOV	pc, #0
-_rd1chk:			MOV	pc, #0
-_rd2chk:			MOV	pc, #0
-_rd4chk:			MOV	pc, #0
-_wr1chk:			MOV	pc, #0
-_wr2chk:			MOV	pc, #0
-_wr4chk:			MOV	pc, #0
-_main:				MOV	pc, #0
-_exit:				MOV	pc, #0
-_clib_initialise:		MOV	pc, #0
-_backtrace:			MOV	pc, #0
-_count:				MOV	pc, #0
-_count1:			MOV	pc, #0
-_stfp:				MOV	pc, #0
-_ldfp:				MOV	pc, #0
-_printf:			MOV	pc, #0
-_fprintf:			MOV	pc, #0
-_sprintf:			MOV	pc, #0
-clock:				MOV	pc, #0
-difftime:			MOV	pc, #0
-mktime:				MOV	pc, #0
-time:				MOV	pc, #0
-asctime:			MOV	pc, #0
-ctime:				MOV	pc, #0
-gmtime:				MOV	pc, #0
-localtime:			MOV	pc, #0
-strftime:			MOV	pc, #0
-memcpy:				MOV	pc, #0
-memmove:			MOV	pc, #0
-strcpy:				MOV	pc, #0
-strncpy:			MOV	pc, #0
-strcat:				MOV	pc, #0
-strncat:			MOV	pc, #0
-memcmp:				MOV	pc, #0
-strcmp:				MOV	pc, #0
-strncmp:			MOV	pc, #0
-memchr:				MOV	pc, #0
-strchr:				MOV	pc, #0
-strcspn:			MOV	pc, #0
-strpbrk:			MOV	pc, #0
-strrchr:			MOV	pc, #0
-strspn:				MOV	pc, #0
-strstr:				MOV	pc, #0
-strtok:				MOV	pc, #0
-memset:				MOV	pc, #0
-strerror:			MOV	pc, #0
-strlen:				MOV	pc, #0
-atof:				MOV	pc, #0
-atoi:				MOV	pc, #0
-atol:				MOV	pc, #0
-strtod:				MOV	pc, #0
-strtol:				MOV	pc, #0
-strtoul:			MOV	pc, #0
-rand:				MOV	pc, #0
-srand:				MOV	pc, #0
-calloc:				MOV	pc, #0
-free:				MOV	pc, #0
-malloc:				MOV	pc, #0
-realloc:			MOV	pc, #0
-abort:				MOV	pc, #0
-atexit:				MOV	pc, #0
-exit:				MOV	pc, #0
-getenv:				MOV	pc, #0
-system:				MOV	pc, #0
-bsearch:			MOV	pc, #0
-qsort:				MOV	pc, #0
-abs:				MOV	pc, #0
-div:				MOV	pc, #0
-labs:				MOV	pc, #0
-ldiv:				MOV	pc, #0
-remove:				MOV	pc, #0
-rename:				MOV	pc, #0
-tmpfile:			MOV	pc, #0
-__old_tmpnam:			MOV	pc, #0
-fclose:				MOV	pc, #0
-fflush:				MOV	pc, #0
-fopen :				MOV	pc, #0
-freopen:			MOV	pc, #0
-setbuf:				MOV	pc, #0
-setvbuf:			MOV	pc, #0
-printf:				MOV	pc, #0
-fprintf:			MOV	pc, #0
-sprintf:			MOV	pc, #0
-scanf:				MOV	pc, #0
-fscanf:				MOV	pc, #0
-sscanf:				MOV	pc, #0
+x$divtest:			MOV	PC, #0
+	.global	x$remainder
+x$remainder:			MOV	PC, #0
+	.global	x$multiply
+x$multiply:			MOV	PC, #0
+	.global	__rt_rd1chk
+	.global	_rd1chk
+__rt_rd1chk:
+_rd1chk:			MOV	PC, #0
+	.global	__rt_rd2chk
+	.global	_rd2chk
+__rt_rd2chk:
+_rd2chk:			MOV	PC, #0
+	.global	__rt_rd4chk
+	.global	_rd4chk
+__rt_rd4chk:
+_rd4chk:			MOV	PC, #0
+	.global	__rt_wR1chk
+	.global	_wR1chk
+__rt_wR1chk:
+_wR1chk:			MOV	PC, #0
+	.global	__rt_wR2chk
+	.global	_wR2chk
+__rt_wR2chk:
+_wR2chk:			MOV	PC, #0
+	.global	__rt_wR4chk
+	.global	_wR4chk
+__rt_wR4chk:
+_wR4chk:			MOV	PC, #0
+	.global	_main
+_main:				MOV	PC, #0
+	.global	_exit
+_exit:				MOV	PC, #0
+	.global	_clib_initialise
+_clib_initialise:		MOV	PC, #0
+	.global	_backtrace
+_backtrace:			MOV	PC, #0
+	.global	_count
+_count:				MOV	PC, #0
+	.global	_count1
+_count1:			MOV	PC, #0
+	.global	_stfp
+_stfp:				MOV	PC, #0
+	.global	_ldfp
+_ldfp:				MOV	PC, #0
+	.global	_printf
+_printf:			MOV	PC, #0
+	.global	_fprintf
+_fprintf:			MOV	PC, #0
+	.global	_sprintf
+_sprintf:			MOV	PC, #0
+	.global	clock
+clock:				MOV	PC, #0
+	.global	difftime
+difftime:			MOV	PC, #0
+	.global	mktime
+mktime:				MOV	PC, #0
+	.global	time
+time:				MOV	PC, #0
+	.global	asctime
+asctime:			MOV	PC, #0
+	.global	ctime
+ctime:				MOV	PC, #0
+	.global	gmtime
+gmtime:				MOV	PC, #0
+	.global	localtime
+localtime:			MOV	PC, #0
+	.global	strftime
+strftime:			MOV	PC, #0
+	.global	memcpy
+memcpy:				MOV	PC, #0
+	.global	memmove
+memmove:			MOV	PC, #0
+	.global	strcpy
+strcpy:				MOV	PC, #0
+	.global	strncpy
+strncpy:			MOV	PC, #0
+	.global	strcat
+strcat:				MOV	PC, #0
+	.global	strncat
+strncat:			MOV	PC, #0
+	.global	memcmp
+memcmp:				MOV	PC, #0
+	.global	strcmp
+strcmp:				MOV	PC, #0
+	.global	strncmp
+strncmp:			MOV	PC, #0
+	.global	memchr
+memchr:				MOV	PC, #0
+	.global	strchr
+strchr:				MOV	PC, #0
+	.global	strcspn
+strcspn:			MOV	PC, #0
+	.global	strpbrk
+strpbrk:			MOV	PC, #0
+	.global	strrchr
+strrchr:			MOV	PC, #0
+	.global	strspn
+strspn:				MOV	PC, #0
+	.global	strstr
+strstr:				MOV	PC, #0
+	.global	strtok
+strtok:				MOV	PC, #0
+	.global	memset
+memset:				MOV	PC, #0
+	.global	strerror
+strerror:			MOV	PC, #0
+	.global	strlen
+strlen:				MOV	PC, #0
+	.global	atof
+atof:				MOV	PC, #0
+	.global	atoi
+atoi:				MOV	PC, #0
+	.global	atol
+atol:				MOV	PC, #0
+	.global	strtod
+strtod:				MOV	PC, #0
+	.global	strtol
+strtol:				MOV	PC, #0
+	.global	strtoul
+strtoul:			MOV	PC, #0
+	.global	rand
+rand:				MOV	PC, #0
+	.global	srand
+srand:				MOV	PC, #0
+	.global	calloc
+calloc:				MOV	PC, #0
+	.global	free
+free:				MOV	PC, #0
+	.global	malloc
+malloc:				MOV	PC, #0
+	.global	realloc
+realloc:			MOV	PC, #0
+	.global	abort
+abort:				MOV	PC, #0
+	.global	atexit
+atexit:				MOV	PC, #0
+	.global	exit
+exit:				MOV	PC, #0
+	.global	getenv
+getenv:				MOV	PC, #0
+	.global	system
+system:				MOV	PC, #0
+	.global	bsearch
+bsearch:			MOV	PC, #0
+	.global	qsort
+qsort:				MOV	PC, #0
+	.global	abs
+abs:				MOV	PC, #0
+	.global	div
+div:				MOV	PC, #0
+	.global	labs
+labs:				MOV	PC, #0
+	.global	ldiv
+ldiv:				MOV	PC, #0
+	.global	remove
+remove:				MOV	PC, #0
+	.global	rename
+rename:				MOV	PC, #0
+	.global	tmpfile
+tmpfile:			MOV	PC, #0
+	.global	__old_tmpnam
+__old_tmpnam:			MOV	PC, #0
+	.global	fclose
+fclose:				MOV	PC, #0
+	.global	fflush
+fflush:				MOV	PC, #0
+	.global	fopen
+fopen:				MOV	PC, #0
+	.global	freopen
+freopen:			MOV	PC, #0
+	.global	setbuf
+setbuf:				MOV	PC, #0
+	.global	setvbuf
+setvbuf:			MOV	PC, #0
+	.global	printf
+printf:				MOV	PC, #0
+	.global	fprintf
+fprintf:			MOV	PC, #0
+	.global	sprintf
+sprintf:			MOV	PC, #0
+	.global	scanf
+scanf:				MOV	PC, #0
+	.global	fscanf
+fscanf:				MOV	PC, #0
+	.global	sscanf
+sscanf:				MOV	PC, #0
+	.global	__gcc_vprintf
+	.global	vprintf
 __gcc_vprintf:
-vprintf:	 		MOV	pc, #0
+vprintf:			MOV	PC, #0
+	.global	__gcc_vfprintf
+	.global	vfprintf
 __gcc_vfprintf:
-vfprintf:			MOV	pc, #0
+vfprintf:			MOV	PC, #0
+	.global	__gcc_vsprintf
+	.global	vsprintf
 __gcc_vsprintf:
-vsprintf:			MOV	pc, #0
-_vfprintf:			MOV	pc, #0
-fgetc:				MOV	pc, #0
-fgets:				MOV	pc, #0
-fputc:				MOV	pc, #0
-fputs:				MOV	pc, #0
-__filbuf:			MOV	pc, #0
-getc:				MOV	pc, #0
-getchar:			MOV	pc, #0
-gets:				MOV	pc, #0
-__flsbuf:			MOV	pc, #0
-putc:				MOV	pc, #0
-putchar:			MOV	pc, #0
-puts:				MOV	pc, #0
-ungetc:				MOV	pc, #0
-fread:				MOV	pc, #0
-fwrite:				MOV	pc, #0
-fgetpos:			MOV	pc, #0
-fseek:				MOV	pc, #0
-fsetpos:			MOV	pc, #0
-ftell:				MOV	pc, #0
-rewind:				MOV	pc, #0
-clearerr:			MOV	pc, #0
-feof:				MOV	pc, #0
-ferror:				MOV	pc, #0
-perror:				MOV	pc, #0
-__SIG_IGN:
-__ignore_signal_handler:	MOV	pc, #0
-__SIG_ERR:
-__error_signal_marker:		MOV	pc, #0
-__SIG_DFL:
-__default_signal_handler:	MOV	pc, #0
-signal:				MOV	pc, #0
-raise:				MOV	pc, #0
-setjmp:				MOV	pc, #0
-longjmp:			MOV	pc, #0
-acos:				MOV	pc, #0
-asin:				MOV	pc, #0
-atan:				MOV	pc, #0
-atan2:				MOV	pc, #0
-cos:				MOV	pc, #0
-sin:				MOV	pc, #0
-tan:				MOV	pc, #0
-cosh:				MOV	pc, #0
-sinh:				MOV	pc, #0
-tanh:				MOV	pc, #0
-exp:				MOV	pc, #0
-frexp:				MOV	pc, #0
-ldexp:				MOV	pc, #0
-log:				MOV	pc, #0
-log10:				MOV	pc, #0
-modf:				MOV	pc, #0
-pow:				MOV	pc, #0
-sqrt:				MOV	pc, #0
-ceil:				MOV	pc, #0
-fabs:				MOV	pc, #0
-floor:				MOV	pc, #0
-fmod:				MOV	pc, #0
-setlocale:			MOV	pc, #0
-isalnum:			MOV	pc, #0
-isalpha:			MOV	pc, #0
-iscntrl:			MOV	pc, #0
-isdigit:			MOV	pc, #0
-isgraph:			MOV	pc, #0
-islower:			MOV	pc, #0
-isprint:			MOV	pc, #0
-ispunct:			MOV	pc, #0
-isspace:			MOV	pc, #0
-isupper:			MOV	pc, #0
-isxdigit:			MOV	pc, #0
-tolower:			MOV	pc, #0
-toupper:			MOV	pc, #0
-__assert:			MOV	pc, #0
-_memcpy:			MOV	pc, #0
-_memset:			MOV	pc, #0
-localeconv:			MOV	pc, #0
-mblen :				MOV	pc, #0
-mbtowc:				MOV	pc, #0
-wctomb:				MOV	pc, #0
-mbstowcs:			MOV	pc, #0
-wcstombs:			MOV	pc, #0
-strxfrm:			MOV	pc, #0
-strcoll:			MOV	pc, #0
-_clib_finalisemodule:		MOV	pc, #0
-_clib_version:			MOV	pc, #0
-_Clib_Finalise:
-_clib_finalise:			MOV	pc, #0
-tmpnam:				MOV	pc, #0
-_swi:				MOV	pc, #0
-_swix:				MOV	pc, #0
-
+vsprintf:			MOV	PC, #0
+	.global	_vfprintf
+_vfprintf:			MOV	PC, #0
+	.global	fgetc
+fgetc:				MOV	PC, #0
+	.global	fgets
+fgets:				MOV	PC, #0
+	.global	fputc
+fputc:				MOV	PC, #0
+	.global	fputs
+fputs:				MOV	PC, #0
+	.global	__filbuf
+__filbuf:			MOV	PC, #0
+	.global	getc
+getc:				MOV	PC, #0
+	.global	getchar
+getchar:			MOV	PC, #0
+	.global	gets
+gets:				MOV	PC, #0
+	.global	__flsbuf
+__flsbuf:			MOV	PC, #0
+	.global	putc
+putc:				MOV	PC, #0
+	.global	putchar
+putchar:			MOV	PC, #0
+	.global	puts
+puts:				MOV	PC, #0
+	.global	ungetc
+ungetc:				MOV	PC, #0
+	.global	fread
+fread:				MOV	PC, #0
+	.global	fwrite
+fwrite:				MOV	PC, #0
+	.global	fgetpos
+fgetpos:			MOV	PC, #0
+	.global	fseek
+fseek:				MOV	PC, #0
+	.global	fsetpos
+fsetpos:			MOV	PC, #0
+	.global	ftell
+ftell:				MOV	PC, #0
+	.global	rewind
+rewind:				MOV	PC, #0
+	.global	clearerr
+clearerr:			MOV	PC, #0
+	.global	feof
+feof:				MOV	PC, #0
+	.global	ferror
+ferror:				MOV	PC, #0
+	.global	perror
+perror:				MOV	PC, #0
+	.global	__ignore_signal_handler
+__ignore_signal_handler:	MOV	PC, #0
+	.global	__error_signal_marker
+__error_signal_marker:		MOV	PC, #0
+	.global	__default_signal_handler
+__default_signal_handler:	MOV	PC, #0
+	.global	signal
+signal:				MOV	PC, #0
+	.global	raise
+raise:				MOV	PC, #0
+	.global	setjmp
+setjmp:				MOV	PC, #0
+	.global	longjmp
+longjmp:			MOV	PC, #0
+	.global	acos
+acos:				MOV	PC, #0
+	.global	asin
+asin:				MOV	PC, #0
+	.global	atan
+atan:				MOV	PC, #0
+	.global	atan2
+atan2:				MOV	PC, #0
+	.global	cos
+cos:				MOV	PC, #0
+	.global	sin
+sin:				MOV	PC, #0
+	.global	tan
+tan:				MOV	PC, #0
+	.global	cosh
+cosh:				MOV	PC, #0
+	.global	sinh
+sinh:				MOV	PC, #0
+	.global	tanh
+tanh:				MOV	PC, #0
+	.global	exp
+exp:				MOV	PC, #0
+	.global	frexp
+frexp:				MOV	PC, #0
+	.global	ldexp
+ldexp:				MOV	PC, #0
+	.global	log
+log:				MOV	PC, #0
+	.global	log10
+log10:				MOV	PC, #0
+	.global	modf
+modf:				MOV	PC, #0
+	.global	pow
+pow:				MOV	PC, #0
+	.global	sqrt
+sqrt:				MOV	PC, #0
+	.global	ceil
+ceil:				MOV	PC, #0
+	.global	fabs
+fabs:				MOV	PC, #0
+	.global	floor
+floor:				MOV	PC, #0
+	.global	fmod
+fmod:				MOV	PC, #0
+	.global	setlocale
+setlocale:			MOV	PC, #0
+	.global	isalnum
+isalnum:			MOV	PC, #0
+	.global	isalpha
+isalpha:			MOV	PC, #0
+	.global	iscntrl
+iscntrl:			MOV	PC, #0
+	.global	isdigit
+isdigit:			MOV	PC, #0
+	.global	isgraph
+isgraph:			MOV	PC, #0
+	.global	islower
+islower:			MOV	PC, #0
+	.global	isprint
+isprint:			MOV	PC, #0
+	.global	ispunct
+ispunct:			MOV	PC, #0
+	.global	isspace
+isspace:			MOV	PC, #0
+	.global	isupper
+isupper:			MOV	PC, #0
+	.global	isxdigit
+isxdigit:			MOV	PC, #0
+	.global	tolower
+tolower:			MOV	PC, #0
+	.global	toupper
+toupper:			MOV	PC, #0
+	.global	__assert
+__assert:			MOV	PC, #0
+	.global	_memcpy
+_memcpy:			MOV	PC, #0
+	.global	_memset
+_memset:			MOV	PC, #0
+	.global	localeconv
+localeconv:			MOV	PC, #0
+	.global	mblen
+mblen :				MOV	PC, #0
+	.global	mbtowc
+mbtowc:				MOV	PC, #0
+	.global	wctomb
+wctomb:				MOV	PC, #0
+	.global	mbstowcs
+mbstowcs:			MOV	PC, #0
+	.global	wcstombs
+wcstombs:			MOV	PC, #0
+	.global	strxfrm
+strxfrm:			MOV	PC, #0
+	.global	strcoll
+strcoll:			MOV	PC, #0
+	.global	_clib_finalisemodule
+_clib_finalisemodule:		MOV	PC, #0
+	.global	_clib_version
+_clib_version:			MOV	PC, #0
+	.global	_Clib_Finalise
+_Clib_Finalise:			MOV	PC, #0
+	.global	tmpnam
+tmpnam:				MOV	PC, #0
+	.global	_swi
+_swi:				MOV	PC, #0
+	.global	_swix
+_swix:				MOV	PC, #0
+clib_vectors_mid:
+	.space			clib_vectors_mid - clib_vectors_begin
 clib_vectors_end:
+
+	.global	__SIG_IGN
+.set	__SIG_IGN, 0xfffffffd
+	.global	__SIG_ERR
+.set	__SIG_ERR, 0xfffffffe
+	.global	__SIG_DFL
+.set	__SIG_DFL, 0xffffffff
 
 extra_vectors_begin:
 
-__fpclassifyf_FIXME_float_arg:  MOV	pc, #0
-__fpclassifyd:			MOV	pc, #0
-__signbitf:			MOV	pc, #0
-__signbitd:			MOV	pc, #0
-copysign:			MOV	pc, #0
-copysignf_not_used:		MOV	pc, #0
-nan:				MOV	pc, #0
-nanf:				MOV	pc, #0
-nextafter:			MOV	pc, #0
-nextafterf_FIXME_float_arg:	MOV	pc, #0
-fdim:				MOV	pc, #0
-fdimf_FIXME_float_arg:		MOV	pc, #0
-fmax:				MOV	pc, #0
-fmaxf_FIXME_float_arg:		MOV	pc, #0
-fmin:				MOV	pc, #0
-fminf_FIXME_float_arg:		MOV	pc, #0
-fabsf_not_used:			MOV	pc, #0
-hypot:				MOV	pc, #0
-hypotf:				MOV	pc, #0
-feclearexcept:			MOV	pc, #0
-fegetexceptflag:		MOV	pc, #0
-feraiseexcept:			MOV	pc, #0
-fesetexceptflag:		MOV	pc, #0
-fetestexcept:			MOV	pc, #0
-fegetround:			MOV	pc, #0
-fesetround:			MOV	pc, #0
-fegetenv:			MOV	pc, #0
-feholdexcept:			MOV	pc, #0
-fesetenv:			MOV	pc, #0
-feupdateenv:			MOV	pc, #0
-_snprintf:			MOV	pc, #0
-snprintf:			MOV	pc, #0
+	@.global	__fpclassifyf
+__fpclassifyf_FIXME_float_arg:  MOV	PC, #0
+	.global	__fpclassifyd
+__fpclassifyd:			MOV	PC, #0
+	.global	__signbitf
+__signbitf:			MOV	PC, #0
+	.global	__signbitd
+__signbitd:			MOV	PC, #0
+	.global	copysign
+copysign:			MOV	PC, #0
+	@.global	copysignf
+copysignf_not_used:		MOV	PC, #0
+	.global	nan
+nan:				MOV	PC, #0
+	.global	nanf
+nanf:				MOV	PC, #0
+	.global	nextafter
+nextafter:			MOV	PC, #0
+	@.global	nextafterf
+nextafterf_FIXME_float_arg:	MOV	PC, #0
+	.global	fdim
+fdim:				MOV	PC, #0
+	@.global	fdimf
+fdimf_FIXME_float_arg:		MOV	PC, #0
+	.global	fmax
+fmax:				MOV	PC, #0
+	@.global	fmaxf
+fmaxf_FIXME_float_arg:		MOV	PC, #0
+	.global	fmin
+fmin:				MOV	PC, #0
+	@.global	fminf
+fminf_FIXME_float_arg:		MOV	PC, #0
+	@.global	fabsf
+fabsf_not_used:			MOV	PC, #0
+	.global	hypot
+hypot:				MOV	PC, #0
+	.global	hypotf
+hypotf:				MOV	PC, #0
+	.global	feclearexcept
+feclearexcept:			MOV	PC, #0
+	.global	fegetexceptflag
+fegetexceptflag:		MOV	PC, #0
+	.global	feraiseexcept
+feraiseexcept:			MOV	PC, #0
+	.global	fesetexceptflag
+fesetexceptflag:		MOV	PC, #0
+	.global	fetestexcept
+fetestexcept:			MOV	PC, #0
+	.global	fegetround
+fegetround:			MOV	PC, #0
+	.global	fesetround
+fesetround:			MOV	PC, #0
+	.global	fegetenv
+fegetenv:			MOV	PC, #0
+	.global	feholdexcept
+feholdexcept:			MOV	PC, #0
+	.global	fesetenv
+fesetenv:			MOV	PC, #0
+	.global	feupdateenv
+feupdateenv:			MOV	PC, #0
+	.global	_snprintf
+_snprintf:			MOV	PC, #0
+	.global	snprintf
+snprintf:			MOV	PC, #0
+	.global	__gcc_vsnprintf
+	.global	vsnprintf
 __gcc_vsnprintf:
-vsnprintf:			MOV	pc, #0
-vfscanf:			MOV	pc, #0
-vscanf:				MOV	pc, #0
-vsscanf:			MOV	pc, #0
-ceilf_not_used:			MOV	pc, #0
-floorf_not_used:		MOV	pc, #0
-nearbyint:			MOV	pc, #0
-nearbyintf_FIXME_float_arg:	MOV	pc, #0
-rint:				MOV	pc, #0
-rintf_FIXME_float_arg:		MOV	pc, #0
-lrint:				MOV	pc, #0
-lrintf_FIXME_float_arg:		MOV	pc, #0
-round:				MOV	pc, #0
-roundf_FIXME_float_arg:		MOV	pc, #0
-lround:				MOV	pc, #0
-lroundf_FIXME_float_arg:	MOV	pc, #0
-trunc:				MOV	pc, #0
-truncf_FIXME_float_arg:		MOV	pc, #0
-remainder:			MOV	pc, #0
-remainderf_FIXME_float_arg:	MOV	pc, #0
-llabs:				MOV	pc, #0
-lldiv:				MOV	pc, #0
-atoll:				MOV	pc, #0
-strtoll:			MOV	pc, #0
-strtoull:			MOV	pc, #0
-imaxabs:			MOV	pc, #0
-imaxdiv:			MOV	pc, #0
-strtoimax:			MOV	pc, #0
-strtoumax:			MOV	pc, #0
-__assert2:			MOV	pc, #0
-_Exit:				MOV	pc, #0
-acosf_not_used:			MOV	pc, #0
-asinf_not_used:			MOV	pc, #0
-atanf_not_used:			MOV	pc, #0
-atan2f_not_used:		MOV	pc, #0
-cosf_not_used:			MOV	pc, #0
-sinf_not_used:			MOV	pc, #0
-tanf_not_used:			MOV	pc, #0
-acosh:				MOV	pc, #0
-acoshf_FIXME_float_arg:		MOV	pc, #0
-asinh:				MOV	pc, #0
-asinhf_FIXME_float_arg:		MOV	pc, #0
-atanh:				MOV	pc, #0
-atanhf_FIXME_float_arg:		MOV	pc, #0
-expf_not_used:			MOV	pc, #0
-exp2:				MOV	pc, #0
-exp2f_FIXME_float_arg:		MOV	pc, #0
-expm1:				MOV	pc, #0
-expm1f_FIXME_float_arg:		MOV	pc, #0
-frexpf_FIXME_float_arg:		MOV	pc, #0
-ilogb:				MOV	pc, #0
-ilogbf_FIXME_float_arg:		MOV	pc, #0
-ldexpf_FIXME_float_arg:		MOV	pc, #0
-logf_not_used:			MOV	pc, #0
-log10f_FIXME_float_arg:		MOV	pc, #0
-log1p:				MOV	pc, #0
-log1pf_FIXME_float_arg:		MOV	pc, #0
-log2:				MOV	pc, #0
-log2f_FIXME_float_arg:		MOV	pc, #0
-logb:				MOV	pc, #0
-logbf_FIXME_float_arg:		MOV	pc, #0
-modff_not_used:			MOV	pc, #0
-fmodf_FIXME_float_arg:		MOV	pc, #0
-scalbn:				MOV	pc, #0
-scalbnf_FIXME_float_arg:	MOV	pc, #0
-scalbln:			MOV	pc, #0
-scalblnf_FIXME_float_arg:	MOV	pc, #0
-cbrt:				MOV	pc, #0
-cbrtf_FIXME_float_arg:		MOV	pc, #0
-powf_not_used:			MOV	pc, #0
-sqrtf_FIXME_float_arg:		MOV	pc, #0
-erf:				MOV	pc, #0
-erff_FIXME_float_arg:		MOV	pc, #0
-erfc:				MOV	pc, #0
-erfcf_FIXME_float_arg:		MOV	pc, #0
-lgamma:				MOV	pc, #0
-lgammaf_FIXME_float_arg:	MOV	pc, #0
-tgamma:				MOV	pc, #0
-tgammaf_FIXME_float_arg:	MOV	pc, #0
-nexttoward:			MOV	pc, #0
-nexttowardf_FIXME_float_arg:	MOV	pc, #0
-
+vsnprintf:			MOV	PC, #0
+	.global	vfscanf
+vfscanf:			MOV	PC, #0
+	.global	vscanf
+vscanf:				MOV	PC, #0
+	.global	vsscanf
+vsscanf:			MOV	PC, #0
+	@.global	ceilf
+ceilf_not_used:			MOV	PC, #0
+	@.global	floorf
+floorf_not_used:		MOV	PC, #0
+	.global	nearbyint
+nearbyint:			MOV	PC, #0
+	@.global	nearbyintf
+nearbyintf_FIXME_float_arg:	MOV	PC, #0
+	.global	rint
+rint:				MOV	PC, #0
+	@.global	rintf
+rintf_FIXME_float_arg:		MOV	PC, #0
+	.global	lrint
+lrint:				MOV	PC, #0
+	@.global	lrintf
+lrintf_FIXME_float_arg:		MOV	PC, #0
+	.global	round
+round:				MOV	PC, #0
+	@.global	roundf
+roundf_FIXME_float_arg:		MOV	PC, #0
+	.global	lround
+lround:				MOV	PC, #0
+	@.global	lroundf
+lroundf_FIXME_float_arg:	MOV	PC, #0
+	.global	trunc
+trunc:				MOV	PC, #0
+	@.global	truncf
+truncf_FIXME_float_arg:		MOV	PC, #0
+	.global	remainder
+remainder:			MOV	PC, #0
+	@.global	remainderf
+remainderf_FIXME_float_arg:	MOV	PC, #0
+	.global	llabs
+llabs:				MOV	PC, #0
+	.global	lldiv
+lldiv:				MOV	PC, #0
+	.global	atoll
+atoll:				MOV	PC, #0
+	.global	strtoll
+strtoll:			MOV	PC, #0
+	.global	strtoull
+strtoull:			MOV	PC, #0
+	.global	imaxabs
+imaxabs:			MOV	PC, #0
+	.global	imaxdiv
+imaxdiv:			MOV	PC, #0
+	.global	strtoimax
+strtoimax:			MOV	PC, #0
+	.global	strtoumax
+strtoumax:			MOV	PC, #0
+	.global	__assert2
+__assert2:			MOV	PC, #0
+	.global	_Exit
+_Exit:				MOV	PC, #0
+	@.global	acosf
+acosf_not_used:			MOV	PC, #0
+	@.global	asinf
+asinf_not_used:			MOV	PC, #0
+	@.global	atanf
+atanf_not_used:			MOV	PC, #0
+	@.global	atan2f
+atan2f_not_used:		MOV	PC, #0
+	@.global	cosf
+cosf_not_used:			MOV	PC, #0
+	@.global	sinf
+sinf_not_used:			MOV	PC, #0
+	@.global	tanf
+tanf_not_used:			MOV	PC, #0
+	.global	acosh
+acosh:				MOV	PC, #0
+	@.global	acoshf
+acoshf_FIXME_float_arg:		MOV	PC, #0
+	.global	asinh
+asinh:				MOV	PC, #0
+	@.global	asinhf
+asinhf_FIXME_float_arg:		MOV	PC, #0
+	.global	atanh
+atanh:				MOV	PC, #0
+	@.global	atanhf
+atanhf_FIXME_float_arg:		MOV	PC, #0
+	@.global	expf
+expf_not_used:			MOV	PC, #0
+	.global	exp2
+exp2:				MOV	PC, #0
+	@.global	exp2f
+exp2f_FIXME_float_arg:		MOV	PC, #0
+	.global	expm1
+expm1:				MOV	PC, #0
+	@.global	expm1f
+expm1f_FIXME_float_arg:		MOV	PC, #0
+	@.global	frexpf
+frexpf_FIXME_float_arg:		MOV	PC, #0
+	.global	ilogb
+ilogb:				MOV	PC, #0
+	@.global	ilogbf
+ilogbf_FIXME_float_arg:		MOV	PC, #0
+	@.global	ldexpf
+ldexpf_FIXME_float_arg:		MOV	PC, #0
+	@.global	logf
+logf_not_used:			MOV	PC, #0
+	@.global	log10f
+log10f_FIXME_float_arg:		MOV	PC, #0
+	.global	log1p
+log1p:				MOV	PC, #0
+	@.global	log1pf
+log1pf_FIXME_float_arg:		MOV	PC, #0
+	.global	log2
+log2:				MOV	PC, #0
+	@.global	log2f
+log2f_FIXME_float_arg:		MOV	PC, #0
+	.global	logb
+logb:				MOV	PC, #0
+	@.global	logbf
+logbf_FIXME_float_arg:		MOV	PC, #0
+	@.global	modff
+modff_not_used:			MOV	PC, #0
+	@.global	fmodf
+fmodf_FIXME_float_arg:		MOV	PC, #0
+	.global	scalbn
+scalbn:				MOV	PC, #0
+	@.global	scalbnf
+scalbnf_FIXME_float_arg:	MOV	PC, #0
+	.global	scalbln
+scalbln:			MOV	PC, #0
+	@.global	scalblnf
+scalblnf_FIXME_float_arg:	MOV	PC, #0
+	.global	cbrt
+cbrt:				MOV	PC, #0
+	@.global	cbrtf
+cbrtf_FIXME_float_arg:		MOV	PC, #0
+	@.global	powf
+powf_not_used:			MOV	PC, #0
+	@.global	sqrtf
+sqrtf_FIXME_float_arg:		MOV	PC, #0
+	.global	erf
+erf:				MOV	PC, #0
+	@.global	erff
+erff_FIXME_float_arg:		MOV	PC, #0
+	.global	erfc
+erfc:				MOV	PC, #0
+	@.global	erfcf
+erfcf_FIXME_float_arg:		MOV	PC, #0
+	.global	lgamma
+lgamma:				MOV	PC, #0
+	@.global	lgammaf
+lgammaf_FIXME_float_arg:	MOV	PC, #0
+	.global	tgamma
+tgamma:				MOV	PC, #0
+	@.global	tgammaf
+tgammaf_FIXME_float_arg:	MOV	PC, #0
+	.global	nexttoward
+nexttoward:			MOV	PC, #0
+	@.global	nexttowardf
+nexttowardf_FIXME_float_arg:	MOV	PC, #0
+	.global	fmaf
+fmaf:				MOV	PC, #0
+extra_vectors_mid:
+	.space			extra_vectors_mid - extra_vectors_begin
 extra_vectors_end:
 
 
 	.section ".bss"
 Stub$$Data$$Base:
+
 kernel_statics_begin:
 	.space	0x31c
 kernel_statics_end:
-
-.set	_stub_imageBase, kernel_statics_begin + 0x000
-.set	_stub_rtsDataBase, kernel_statics_begin + 0x004
-.set	_stub_rtsDataLimit, kernel_statics_begin + 0x008
-.set	_stub_errorR12, kernel_statics_begin + 0x00c
-.set	_stub_errorBuffer, kernel_statics_begin + 0x010
-.set	_stub_errorNumber, kernel_statics_begin + 0x014
-.set	_stub_errorString, kernel_statics_begin + 0x018
-.set	_stub_registerDump, kernel_statics_begin + 0x07c
-.set	_stub_oldAbortHandlers, kernel_statics_begin + 0x0bc
-.set	_stub_oldExitHandler, kernel_statics_begin + 0x0cc
-.set	_stub_oldMemoryLimit, kernel_statics_begin + 0x0d4
-.set	_stub_oldErrorHandler, kernel_statics_begin + 0x0d8
-.set	_stub_oldErrorR0, kernel_statics_begin + 0x0dc
-.set	_stub_oldErrorBuffer, kernel_statics_begin + 0x0e0
-.set	_stub_oldCallBackHandler, kernel_statics_begin + 0x0e4
-.set	_stub_oldEscapeHandler, kernel_statics_begin + 0x0f0
-.set	_stub_oldEventHandler, kernel_statics_begin + 0x0f8
-.set	_stub_oldUpCallHandler, kernel_statics_begin + 0x100
-.set	_stub_languageEnvSave, kernel_statics_begin + 0x108
-.set	_stub_hadEscape, kernel_statics_begin + 0x114
-.set	_stub_kallocExtendsWS, kernel_statics_begin + 0x115
-.set	_stub_inTrapHandler, kernel_statics_begin + 0x116
-.set	_stub_beingDebugged, kernel_statics_begin + 0x117
-.set	_stub_fpPresent, kernel_statics_begin + 0x118
-.set	_stub_initialised, kernel_statics_begin + 0x119
-.set	_stub_callbackInactive, kernel_statics_begin + 0x11a
-.set	_stub_unused_byte_2, kernel_statics_begin + 0x11b
-.set	_stub_IIHandlerInData, kernel_statics_begin + 0x11c
-.set	_stub_PAHandlerInData, kernel_statics_begin + 0x128
-.set	_stub_DAHandlerInData, kernel_statics_begin + 0x134
-.set	_stub_AEHandlerInData, kernel_statics_begin + 0x140
-.set	_stub_eventCode, kernel_statics_begin + 0x14c
-.set	_stub_eventUserR13, kernel_statics_begin + 0x150
-.set	_stub_eventRegisters, kernel_statics_begin + 0x154
-.set	_stub_fastEventStack, kernel_statics_begin + 0x184
-.set	_stub_fastEventStackEnd, kernel_statics_begin + 0x284
-.set	_stub_heapTop, kernel_statics_begin + 0x284
-.set	_stub_heapLimit, kernel_statics_begin + 0x288
-.set	_stub_allocProc, kernel_statics_begin + 0x28c
-.set	_stub_freeProc, kernel_statics_begin + 0x290
-.set	_stub_returnCode, kernel_statics_begin + 0x294
-.set	_stub_moduleDataWord, kernel_statics_begin + 0x298
-.set	_stub_APCS_A_Client, kernel_statics_begin + 0x29c
-.set	_stub_escapeSeen, kernel_statics_begin + 0x29d
-.set	_stub_unwinding, kernel_statics_begin + 0x29e
-.set	_stub_underDesktop, kernel_statics_begin + 0x29f
-.set	_stub_heapBase, kernel_statics_begin + 0x2a0
-.set	_stub_ArgString, kernel_statics_begin + 0x2a4
-.set	_stub_heapExtender, kernel_statics_begin + 0x2a8
-.set	_stub_knownSlotSize, kernel_statics_begin + 0x2ac
-.set	_stub_initSlotSize, kernel_statics_begin + 0x2b0
-.set	_stub_lk_RestoreOSHandlers, kernel_statics_begin + 0x2b4
-.set	_stub_extendChunk, kernel_statics_begin + 0x2b8
-.set	_stub_rootStackChunk, kernel_statics_begin + 0x2bc
-.set	_stub_pc_hex_buff, kernel_statics_begin + 0x2c0
-.set	_stub_returnCodeLimit, kernel_statics_begin + 0x2c0
-.set	_stub_reg_hex_buff, kernel_statics_begin + 0x2cc
-.set	disable_stack_extension, kernel_statics_begin + 0x2d8
-.set	_stub_unused, kernel_statics_begin + 0x2dc
+.set	_stub_imageBase, kernel_statics_begin + 0x0000
+.set	_stub_rtsDataBase, kernel_statics_begin + 0x0004
+.set	_stub_rtsDataLimit, kernel_statics_begin + 0x0008
+.set	_stub_IIHandlerInData, kernel_statics_begin + 0x000c
+.set	_stub_PAHandlerInData, kernel_statics_begin + 0x001c
+.set	_stub_DAHandlerInData, kernel_statics_begin + 0x002c
+.set	_stub_AEHandlerInData, kernel_statics_begin + 0x003c
+.set	_stub_undStack, kernel_statics_begin + 0x004c
+.set	_stub_svcStack, kernel_statics_begin + 0x0050
+.set	_stub_unused4, kernel_statics_begin + 0x0054
+.set	_stub_registerDump, kernel_statics_begin + 0x0078
+.set	_stub_oldAbortHandlers, kernel_statics_begin + 0x00bc
+.set	_stub_oldExitHandler, kernel_statics_begin + 0x00cc
+.set	_stub_oldMemoryLimit, kernel_statics_begin + 0x00d4
+.set	_stub_oldErrorHandler, kernel_statics_begin + 0x00d8
+.set	_stub_oldErrorR0, kernel_statics_begin + 0x00dc
+.set	_stub_oldErrorBuffer, kernel_statics_begin + 0x00e0
+.set	_stub_oldCallBackHandler, kernel_statics_begin + 0x00e4
+.set	_stub_oldEscapeHandler, kernel_statics_begin + 0x00f0
+.set	_stub_oldEventHandler, kernel_statics_begin + 0x00f8
+.set	_stub_oldUpCallHandler, kernel_statics_begin + 0x0100
+.set	_stub_languageEnvSave, kernel_statics_begin + 0x0108
+.set	_stub_hadEscape, kernel_statics_begin + 0x0114
+.set	_stub_kallocExtendsWS, kernel_statics_begin + 0x0115
+.set	_stub_inTrapHandler, kernel_statics_begin + 0x0116
+.set	_stub_beingDebugged, kernel_statics_begin + 0x0117
+.set	_stub_fpPresent, kernel_statics_begin + 0x0118
+.set	_stub_initialised, kernel_statics_begin + 0x0119
+.set	_stub_callbackInactive, kernel_statics_begin + 0x011a
+.set	_stub_unused_byte_2, kernel_statics_begin + 0x011b
+.set	_stub_errorBuffer, kernel_statics_begin + 0x011c
+.set	_stub_errorNumber, kernel_statics_begin + 0x0120
+.set	_stub_errorString, kernel_statics_begin + 0x0124
+.set	_stub_FatalErrorBuffer, kernel_statics_begin + 0x0220
+.set	_stub_eventCode, kernel_statics_begin + 0x0220
+.set	_stub_eventUserR13, kernel_statics_begin + 0x0224
+.set	_stub_eventRegisters, kernel_statics_begin + 0x0228
+.set	_stub_unused2, kernel_statics_begin + 0x0258
+.set	_stub_heapTop, kernel_statics_begin + 0x0284
+.set	_stub_heapLimit, kernel_statics_begin + 0x0288
+.set	_stub_allocProc, kernel_statics_begin + 0x028c
+.set	_stub_freeProc, kernel_statics_begin + 0x0290
+.set	_stub_returnCode, kernel_statics_begin + 0x0294
+.set	_stub_moduleDataWord, kernel_statics_begin + 0x0298
+.set	_stub_ClientFlags, kernel_statics_begin + 0x029c
+.set	_stub_escapeSeen, kernel_statics_begin + 0x029d
+.set	_stub_unwinding, kernel_statics_begin + 0x029e
+.set	_stub_underDesktop, kernel_statics_begin + 0x029f
+.set	_stub_heapBase, kernel_statics_begin + 0x02a0
+.set	_stub_ArgString, kernel_statics_begin + 0x02a4
+.set	_stub_heapExtender, kernel_statics_begin + 0x02a8
+.set	_stub_knownSlotSize, kernel_statics_begin + 0x02ac
+.set	_stub_initSlotSize, kernel_statics_begin + 0x02b0
+.set	_stub_lk_RestoreOSHandlers, kernel_statics_begin + 0x02b4
+.set	_stub_extendChunk, kernel_statics_begin + 0x02b8
+.set	_stub_rootStackChunk, kernel_statics_begin + 0x02bc
+.set	_stub_pc_hex_buff, kernel_statics_begin + 0x02c0
+.set	_stub_returnCodeLimit, kernel_statics_begin + 0x02c0
+.set	_stub_reg_hex_buff, kernel_statics_begin + 0x02cc
+	.global	disable_stack_extension
+.set	disable_stack_extension, kernel_statics_begin + 0x02d8
+.set	_stub_unused, kernel_statics_begin + 0x02dc
 
 clib_statics_begin:
 	.space 0xb48
 clib_statics_end:
+	.global	errno
+.set	errno, clib_statics_begin + 0x0000
+	.global	__errno
+.set	__errno, clib_statics_begin + 0x0000
+	@ stdin  at clib_statics_begin + 0x0004
+	@ stdout at clib_statics_begin + 0x002c
+	@ stderr at clib_statics_begin + 0x0054
+	.global	__iob
+.set	__iob, clib_statics_begin + 0x0004
+	.global	_interrupts_off
+.set	_interrupts_off, clib_statics_begin + 0x0284
+.set	_stub__saved_interrupt, clib_statics_begin + 0x0288
+.set	_stub_ctype_eof, clib_statics_begin + 0x028c
+	.global	__ctype
+.set	__ctype, clib_statics_begin + 0x0290
+	.global	__huge_val
+.set	__huge_val, clib_statics_begin + 0x0390
+.set	_stub_app_space_end, clib_statics_begin + 0x0398
+.set	_stub_stack_o_flag, clib_statics_begin + 0x069c
+.set	_stub_inSignalHandler, clib_statics_begin + 0x039d
+.set	_stub_dummybyte, clib_statics_begin + 0x039e
+.set	_stub_, clib_statics_begin + 0x039f
+.set	_stub_ClibSpace, clib_statics_begin + 0x03a0
 
-.set	errno, clib_statics_begin + 0
-.set	__errno, clib_statics_begin + 0
-.set	__iob, clib_statics_begin + 4
-.set	_interrupts_off, clib_statics_begin + 0x284
-.set	_stub__saved_interrupt, clib_statics_begin + 0x288
-.set	_stub_ctype_eof, clib_statics_begin + 0x28C
-.set	__ctype, clib_statics_begin + 0x290
-.set	__huge_val, clib_statics_begin + 0x390
-
-.set	_stub_app_space_end, clib_statics_begin + 0x6b4
-.set	_stub_stack_o_flag, clib_statics_begin + 0x6b8
-.set	_stub_inSignalHandler, clib_statics_begin + 0x6b9
-.set	_stub_dummybyte, clib_statics_begin + 0x6ba
-.set	_stub_, clib_statics_begin + 0x6bb
-.set	_stub_ClibSpace, clib_statics_begin + 0x6bc
 Stub$$Data$$Limit:

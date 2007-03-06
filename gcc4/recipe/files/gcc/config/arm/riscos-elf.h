@@ -43,6 +43,11 @@
 #undef ARM_DEFAULT_ABI
 #define ARM_DEFAULT_ABI ARM_ABI_APCS32
 
+/* For PIC code we need to explicitly specify (PLT) and (GOT) relocs. (PLT) is
+   not needed for module code.  */
+#define NEED_PLT_RELOC	(!TARGET_MODULE && flag_pic)
+#define NEED_GOT_RELOC	flag_pic
+
 /* When -mlibscl or -mmodule we switch to hard-float whatever the other float
    related options were.  The check for -mmodule is necessary as the assembler
    can be launched directly from the gcc frontend without having triggered our
@@ -53,10 +58,18 @@
 %{mlibscl:-mfloat-abi=hard; mmodule:-mfloat-abi=hard; !mhard-float:%{!mfloat-abi=*:-mfloat-abi=soft}} \
 "
 
-#ifdef __riscos__
-#  define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p %{!static:%{!fpic:-fPIC}} -L/DSOLib:lib %{fpic:-fpic}"
+#undef SUBTARGET_EXTRA_LINK_SPEC
+#ifdef CROSS_COMPILE
+#  define SUBTARGET_EXTRA_LINK_SPEC \
+     "-m armelf_riscos -p %{!static:%{!fpic:-fPIC}} " \
+     "%{fpic:-fpic} %{mmodule:--ro-module-reloc} "
 #else
-#  define SUBTARGET_EXTRA_LINK_SPEC " -m armelf_riscos -p %{!static:%{!fpic:-fPIC}} %{fpic:-fpic}"
+/* When building the native RISC OS compiler, we add an extra library path
+   DSOLib:lib  */
+#  define SUBTARGET_EXTRA_LINK_SPEC \
+     "-m armelf_riscos -p %{!static:%{!fpic:-fPIC}} " \
+     "-L/DSOLib:lib " \
+     "%{fpic:-fpic} %{mmodule:--ro-module-reloc} "
 #endif
 
 #undef  MULTILIB_DEFAULTS
@@ -250,13 +263,14 @@ extern const char *riscos_convert_filename (void *obstack,
 
 /* Character constant used in separating components in paths.  */
 #undef PATH_SEPARATOR
-#define PATH_SEPARATOR ':'
+#define PATH_SEPARATOR ','
 
 /* Directory name separator.  */
 #undef DIR_SEPARATOR
 #define DIR_SEPARATOR '/'
 
-/* Maths operation domain error number, EDOM.  For CLib it is 1.  */
-#define TARGET_EDOM 33
-
 #endif /* ! CROSS_COMPILE */
+
+/* Maths operation domain error number, EDOM.  For CLib it is 1, for UnixLib
+   is is 33.  */
+#define TARGET_EDOM ((TARGET_UNIXLIB) ? 33 : 1)

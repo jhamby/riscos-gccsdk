@@ -1,6 +1,6 @@
 /* stdio.h standard header for the RISC OS SharedCLibrary.
    Copyright (c) 1997-2005 Nick Burrett
-   Copyright (c) 2006 UnixLib Developers
+   Copyright (c) 2006-2007 UnixLib Developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@
 extern "C" {
 #endif
 
-#define __LIB_VERSION 300
+#define __LIB_VERSION 500
 
 typedef struct __fpos_t_struct
 {
