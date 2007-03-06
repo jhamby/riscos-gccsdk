@@ -170,6 +170,8 @@ struct ul_global
 
 #if defined(__ELF__) && defined(PIC)
   int (*main) (int, char *[], char **);
+#else
+  void *__pad1; /* To remain unused */
 #endif
 };
 

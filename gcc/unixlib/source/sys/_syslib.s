@@ -1337,9 +1337,9 @@ dynamic_area_name_end
 	[ PIC > 0
 	; A pointer used by the shared library to call the program's main function.
 |main|
+	]
+	]
 	DCD	0	; main			offset = 100
-	]
-	]
 
 	DECLARE_OBJECT __ul_global
 

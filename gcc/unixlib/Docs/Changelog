@@ -1,3 +1,12 @@
+Tue Mar 06 21:03:02 2007  Lee Noar  <leenoar@ntlworld.com>
+
+	* source/clib/unixlib/unix.h: When not compiling for the
+	shared library, use padding in place of the main function
+	pointer to maintain structure offsets.
+	* source/sys/_syslib.s: Always define the word that stores
+	the main function pointer to maintain structure offsets,
+	but only name it in the shared library.
+
 Sun Mar 04 14:55:23 2007  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/unix/unix.c: Remove the dependency on the main symbol
