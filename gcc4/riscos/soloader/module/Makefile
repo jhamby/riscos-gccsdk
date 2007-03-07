@@ -9,7 +9,7 @@ OBJDIR = $(BUILDDIR)/module
 $(OBJDIR)/%.o: %.s
 	$(CC) -c $< -o $@
 
-MODULE_ELF	= $(OBJDIR)/SoManager
+MODULE_ELF	= $(OBJDIR)/SoManagerELF,e1f
 
 MODULE_BIN	= $(OBJDIR)/SoManager,ffa
 

@@ -9,7 +9,7 @@ OBJDIR = $(BUILDDIR)/static
 $(OBJDIR)/%.o: %.s
 	$(CC) -c $< -o $@
 
-LOADER_ELF	= $(OBJDIR)/loader
+LOADER_ELF	= $(OBJDIR)/loaderELF,e1f
 
 LOADER_BIN	= $(OBJDIR)/loader,ff8
 
