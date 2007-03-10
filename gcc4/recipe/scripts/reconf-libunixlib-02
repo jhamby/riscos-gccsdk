@@ -1,0 +1,10 @@
+#!/bin/bash
+# Auto-generate libunixlib
+# Copyright (c) 2007 GCCSDK Developers
+
+if [ -z "$GCCSDK_SRCDIR" ] ; then
+  echo "\$GCCSDK_SRCDIR needs to be defined"
+  exit 1
+fi
+
+( cd $GCCSDK_SRCDIR/libunixlib && aclocal-1.9 -I ./ && autoheader && automake-1.9 -a && autoconf )

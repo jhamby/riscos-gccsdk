@@ -20,13 +20,6 @@ else
   PREFIX=$GCCSDK_ROOT/cross
 fi
 
-# Where to find AOF based unixlib:
-export GCCSDK_AOFUNIXLIB=$GCCSDK_ROOT/../gcc/unixlib
-if [ ! -d $GCCSDK_AOFUNIXLIB ] ; then
-  echo \$GCCSDK_AOFUNIXLIB is wrongly defined \(being \'$GCCSDK_AOFUNIXLIB\'\)
-  return 1
-fi
-
 # GCCSDK_GCCORIG : directory containing the original & unchanged gcc sources
 # Either contents of a gcc tarball (without subdir), either a svn checkout
 # e.g.:

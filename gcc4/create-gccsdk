@@ -33,7 +33,7 @@ for dir in `find . -type d | grep -v "\.svn" ` ; do mkdir -p $GCCSDK_SRCDIR/$dir
 for file in `find . -type f | grep -v "\.svn" ` ; do cp -p $file $GCCSDK_SRCDIR/$file ; done
 popd > /dev/null
 
-# 3. Run scripts:
-for s in `ls $GCCSDK_RECIPE_SCRIPTS/*` ; do
-  . $s
+# 3. Run scripts in alphabetical order:
+for s in `ls $GCCSDK_RECIPE_SCRIPTS | sort` ; do
+  $GCCSDK_RECIPE_SCRIPTS/$s
 done

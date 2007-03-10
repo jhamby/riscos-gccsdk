@@ -24,26 +24,16 @@ leading to odd build failures):
 1. Checking out
 ~~~~~~~~~~~~~~~
 
-During this stage of the development of GCCSDK 4.x we need a modified version
-of GCCSDK 3.4.6 R2 release for building.  The latter is stored in SVN
-gccsdk/trunk/gcc.  The GCCSDK 4.x code itself is stored in SVN in
-gccsdk/trunk/gcc4.
-
-So to check out:
+To check out GCCSDK 4 build code:
 
   $ mkdir gccsdk4
   $ cd gccsdk4
-  $ svn co svn://svn.riscos.info/gccsdk/trunk/gcc
   $ svn co svn://svn.riscos.info/gccsdk/trunk/gcc4
 
-We have now in 'gcc' the modified GCCSDK 3.4.6 R2 and in 'gcc4' the GCCSDK 4.x
-code.
+We have now in 'gcc4' the GCCSDK 4.x code.
 
 2. Build steps
 ~~~~~~~~~~~~~~
-
-[ Aside: at the moment it is not necessary yet to build the modified GCCSDK
-  3.4.6 R2 which is in the 'gcc' subdirectory. ]
 
 1. Build cross-compiler with target arm-unknown-riscos (static ELF target only
    at the moment).
@@ -155,9 +145,7 @@ changes have been made to the cross-compiler, UnixLib and/or the soloader source
 GCCSDK specific changes for the original gcc/binutils sources are done via
 patches (recipe/patches directory), copying full source files (recipe/files)
 or via scripts (recipe/scripts).  Easy patch (re)creation can be done using the
-./create-patch script.  Currently UnixLib 5.0 is copied into $GCCSDK_SRCDIR
-using a conversion of an AOF based UnixLib in the GCCSDK 3.4.6 tree to
-an ELF one.
+./create-patch script.
 
 4. Testing
 ~~~~~~~~~~
@@ -227,5 +215,5 @@ Lee Noar contributed his RISC OS ELF loader work together with the necessary
 dynamic ELF changes for RISC OS (originally developed for GCCSDK 3.4)
 (Oct 2006).
 
-Copyright (c) 2005, 2006 GCCSDK Developers
+Copyright (c) 2005, 2006, 2007 GCCSDK Developers
 http://gccsdk.riscos.info/
