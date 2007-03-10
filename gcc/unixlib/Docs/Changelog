@@ -27,13 +27,9 @@ Sun Jan 21 15:21:56 2007  Alex Waugh  <alex@alexwaugh.com>
 	value of __feature_imagefs_is_file to 1.
 
 Fri Jan 19 15:56:39 2007  Lee Noar  <leenoar@ntlworld.com>
+
 	* source/sys/_syslib.s: Undo changes made Thu Jan 18.
 	* source/unix/unix.c: Change comment about _main.
-
-Thu Jan 18 21:59:26 2007  Alex Waugh  <alex@alexwaugh.com>
-
-	* source/clib/errno.h: Change EDEADLK value for TCPIPLibs
-	compatibility and add ENOTSUP.
 
 Thu Jan 18 19:39:06 2007  Lee Noar  <leenoar@ntlworld.com>
 
@@ -44,11 +40,6 @@ Thu Jan 18 19:39:06 2007  Lee Noar  <leenoar@ntlworld.com>
 	* source/unix/unix.c: Don't compile _main() for the ELF build.
 	It is moved to crti-riscos.asm so that it can call main() in the
 	executable.
-
-Sun Jan 14 16:38:22 2007  Alex Waugh  <alex@alexwaugh.com>
-
-	* source/clib/errno.h: Change EAGAIN value to the same as
-	EWOULDBLOCK, to match TCPIPLibs and Linux.
 
 Sat Jan 13 19:06:23 2007  Lee Noar  <leenoar@ntlworld.com>
 
@@ -114,12 +105,6 @@ Mon Dec 25 17:03:19 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* elf/convert-unixlib.pl: Link libpic.a into libunixlib.so and add
 	version info to libunixlib.so and libm.so.
-
-Sun Dec 24 15:01:25 PST 2006  Peter Naulls <peter@chocky.org>
-
-	* source/sys/exec.c: Add to the hack that checks whether we use
-	 argv[0] or not - canonicalise RISC OS versions of the filenames before
-	 comparing.
 
 Wed Dec 20 20:47:17 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -288,12 +273,6 @@ Wed Dec 06 19:19:42 2006  Lee Noar  <leenoar@ntlworld.com>
 	* source/incl-local/internal/elf-macros.s: As above, also add PIC instructions
 	to __set_errno and __get_errno macros for ELF DSO.
 
-Mon Dec 04 01:59:39 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
-
-	* source/string/strnicmp.c: Compare lowercased versions of strings
-	rather than uppercase. This matches the manpage (and what stricmp
-	does).
-
 Sun Dec 03 16:36:08 2006  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/pthread/_context.s: Add PIC instructions and declare
@@ -363,11 +342,6 @@ Wed Nov 22 19:33:04 2006  Lee Noar  <leenoar@ntlworld.com>
 	* source/common/_exist.s: Add PIC instructions and declare
 	functions and objects for ELF DSO.
 	* source/common/_riscosify.s: Likewise.
-
-Tue Nov 21 21:45:22 2006  Alex Waugh  <alex@alexwaugh.com>
-
-	* source/unix/sync.c (fsync): Don't error on files open with 
-	  O_RDWR
 
 Tue Nov 21 20:34:20 2006  Lee Noar  <leenoar@ntlworld.com>
 
@@ -470,10 +444,37 @@ Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 -----------------------------------------------------------------------
 [ vvv Here ends UnixLib 4.5/4.6 vvv ]
 
+Thu Jan 18 21:59:26 2007  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/errno.h: Change EDEADLK value for TCPIPLibs
+	compatibility and add ENOTSUP.
+
+Sun Jan 14 16:38:22 2007  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/clib/errno.h: Change EAGAIN value to the same as
+	EWOULDBLOCK, to match TCPIPLibs and Linux.
+
 Thu Jan 11 21:48:46 CET 2007  Martin Wuerthner  <martin@mw-software.com>
 
 	* source/common/riscosify.c (__riscosify_scl): Incorrect program name
 	  determination for programs run as "*Run MyLibrary:myprog".
+
+Sun Dec 24 15:01:25 PST 2006  Peter Naulls <peter@chocky.org>
+
+	* source/sys/exec.c: Add to the hack that checks whether we use
+	 argv[0] or not - canonicalise RISC OS versions of the filenames before
+	 comparing.
+
+Mon Dec 04 01:59:39 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/string/strnicmp.c: Compare lowercased versions of strings
+	rather than uppercase. This matches the manpage (and what stricmp
+	does).
+
+Tue Nov 21 21:45:22 2006  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/unix/sync.c (fsync): Don't error on files open with 
+	  O_RDWR
 
 Sat Oct 21 22:38:13 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
