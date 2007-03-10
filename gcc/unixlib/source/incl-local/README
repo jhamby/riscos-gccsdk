@@ -1,9 +1,0 @@
-This directory contains include files that contain common
-data, shared by more than one source directory.
-
-It is hoped that all of the internal data that is currently
-held in system headers can be moved into here.
-
-Language visible headers should *never* reference headers in
-this directory, as it will not be distributed as part of the
-library.

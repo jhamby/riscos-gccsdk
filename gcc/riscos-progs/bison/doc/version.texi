@@ -1,4 +1,0 @@
-@set UPDATED 28 December 2002
-@set UPDATED-MONTH December 2002
-@set EDITION 1.875
-@set VERSION 1.875

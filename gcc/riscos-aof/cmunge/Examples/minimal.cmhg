@@ -1,3 +1,0 @@
-title-string: Test
-help-string:  Test 0.01
-error-identifiers: err_Num(&1e6,"Hello")
