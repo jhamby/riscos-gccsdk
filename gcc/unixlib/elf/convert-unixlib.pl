@@ -540,7 +540,7 @@ EOF
 close MAKE;
 
 
-foreach $dir ("math", "stdio", "stdlib", "string", "strings") {
+foreach $dir ("assert", "dirent", "math", "pthread", "stdio", "stdlib", "string", "strings") {
     mkdir "$elfsourcetree/test/$dir" if (! -d "$elfsourcetree/test/$dir");
     open (MAKE, "> $elfsourcetree/test/$dir/Makefile.am");
     print MAKE "# Testsuite automake-style infrastructure\n\n";
