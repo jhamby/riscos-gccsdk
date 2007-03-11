@@ -1,5 +1,5 @@
 @ Global definitions used by all assembler files.
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers.
 
 @ Bits that control which bits are compiled into UnixLib. Note, this must be
 @ kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
@@ -7,19 +7,13 @@
 	@ Include the UnixLib build options.
 #include "unixlib/buildoptions.h"
 
-@ The offset of various members of the __pthread_thread structure
-@ This should be kept in sync with pthread.h, lib1aof.s, and stubs.s
+	@ The offset of various members of the __pthread_thread structure
+	@ This should be kept in sync with pthread.h.
 .set	__PTHREAD_MAGIC_OFFSET, 0
 .set	__PTHREAD_CONTEXT_OFFSET, 4
 .set	__PTHREAD_ALLOCA_OFFSET, 8
 .set	__PTHREAD_ERRNO_OFFSET, 20
 .set	__PTHREAD_ERRBUF_OFFSET, 24
-
-@ registers
-
-
-
-
 
 .set	USR_Mode, 0x0
 .set	FIQ_Mode, 0x1
@@ -45,8 +39,6 @@
 .set	IFlag32, 0x00000080
 
 	@ Import the assembler helper macros.
-	@ The script that translates AOF to ELF, will convert this line
-	@ to refer to 'elf-macros.s' instead.
 #include "internal/elf-macros.s"
 
 .set	EXIT_SUCCESS, 0
@@ -261,9 +253,6 @@
 .set	XInternet_GetHostByName, Internet_GetHostByName + X_Bit
 .set	XInternet_GetHostByAddr, Internet_GetHostByAddr + X_Bit
 
-.set	XSharedCLibrary_LibInitAPCS_R, 0x080681 + X_Bit
-.set	XSharedCLibrary_LibInitModule, 0x080682 + X_Bit
-
 .set	XMessageTrans_ErrorLookup, 0x041506 + X_Bit
 
 .set	XTaskWindow_TaskInfo, 0x043380 + X_Bit
@@ -287,7 +276,7 @@
 .set	XSOM_GOTFromAddr, 0x5858a + X_Bit
 
 	@ Entries into the __ul_global structure.  Must be kept in sync with
-	@ sys/_syslib.s and incl-local/internal/{aof,elf}-macros.s.
+	@ sys/_syslib.s.
 .set	GBL_UNIXLIB_CLI, 0
 
 .set	GBL_TIME_LOW, 4
@@ -321,7 +310,7 @@
 .set	GBL_MAIN, 100
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
-	@ sys/_syslib.s and incl-local/internal/{aof,elf}-macros.s
+	@ sys/_syslib.s.
 .set	MEM_APPSPACE_HIMEM, 4
 .set	MEM_UNIXLIB_STACK, 8
 
@@ -342,12 +331,11 @@
 	@ Entries in the struct __stack_chunk.  Must be kept in sync with
 	@ unix.h definition.
 	@ First 20 bytes equals SCL's _kernel_stack_chunk structure :
-.set	CHUNK_MAGIC, 0	@ Magic number to help detect if someone overwrites the stack
-.set	CHUNK_NEXT, 4	@ Ptr to next chunk
-.set	CHUNK_PREV, 8	@ Ptr to previous chunk
-.set	CHUNK_SIZE, 12	@ Size of chunk, including header
+.set	CHUNK_MAGIC, 0		@ Magic number to help detect if someone overwrites the stack
+.set	CHUNK_NEXT, 4		@ Ptr to next chunk
+.set	CHUNK_PREV, 8		@ Ptr to previous chunk
+.set	CHUNK_SIZE, 12		@ Size of chunk, including header
 .set	CHUNK_DEALLOC, 16	@ Function to call to free the chunk
 .set	CHUNK_RETURN, 20	@ Return address after freeing this chunk
 
 .set	CHUNK_OVERHEAD, 24	@ Size of chunk header
-

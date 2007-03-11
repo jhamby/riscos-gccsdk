@@ -19,19 +19,19 @@
 @ (see PRMs, 4-239 and Appendix C)
 @
 @  ______
-@ 	  +0
-@ Header
-@ 	 
-@ ______
-@ 	  +24
-@ 	 
-@ 	  +536 <- sl
-@ 	 
-@ 	 
+@ |	 | +0
+@ |Header|
+@ |	 |
+@ |______|
+@ |	 | +24
+@ |	 |
+@ |	 | +536 <- sl
+@ |	 |
+@ |	 |
 @ ________/
 @/
-@ 	 
-@ ______
+@ |	 |
+@ |______|
 @	  +4096 * n  <- sp (initially)
 
 .set	MAX_DA_NAME_SIZE, 32
@@ -1298,11 +1298,25 @@ main:
 	@ In the shared library, these values cannot refer to any absolute
 	@ addresses. They are set to zero at compile time and initialised
 	@ at runtime where required.
-	@ Because of the different permutations (ie, static AOF, static ELF,
-	@ dynamic ELF), it's neater to use a macro to define the layout of
-	@ __ul_memory. See incl-local/internal/{aof,elf}-macros.s.
 	.global	__ul_memory
 __ul_memory:
-	UL_MEMORY_LAYOUT
+	.word	0			@ mutex			offset = 0
+	.word	0			@ appspace_himem	offset = 4
+	.word	0			@ unixlib_stack		offset = 8
+#if PIC
+	.word	0			@ robase		offset = 12
+	.word	0			@ rwlomem		offset = 16
+	.word	0			@ rwbase		offset = 20
+#else
+	.word	Image$$RO$$Base		@ robase		offset = 12
+	.word	Image$$RW$$Limit	@ rwlomem		offset = 16
+	.word	Image$$RW$$Base		@ rwbase		offset = 20
+#endif
+	.word	0			@ rwbreak		offset = 24
+	.word	0			@ unixlib_stack_limit	offset = 28
+	.word	0			@ dalomem		offset = 32
+	.word	0			@ dabreak		offset = 36
+	.word	0			@ dalimit		offset = 40
+	.word	0			@ appspace_limit	offset = 44
+	.word	0			@ old_himem		offset = 48
 	DECLARE_OBJECT __ul_memory
-

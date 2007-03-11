@@ -1,3 +1,9 @@
+Sun Mar 11 18:34:50 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/elf-macros.s(UL_MEMORY_LAYOUT): Moving back to...
+	* sys/_syslib.s: ...here.  Restored our stack ASCII art.
+	* include/unixlib/asm_dec.s: Updated comments.
+
 Sun Mar 11 16:54:44 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/aof-macros.s: Removed, no longer used.

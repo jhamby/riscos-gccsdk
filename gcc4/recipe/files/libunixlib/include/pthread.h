@@ -129,10 +129,9 @@ struct __pthread_thread
   } errbuf; /* Last RISC OS error from error handler */
 
   /* WARNING: Various assembly files refer to this structure, using
-     offsets defined in asm_dec.s
+     offsets defined in asm_dec.s.
      If you change the ordering of any of the elements above this
      comment then make sure the offsets are kept in sync. */
-
 
   struct __pthread_thread *next; /* Linked list of all threads */
   enum __pthread_state state; /* Running/blocked/idle/etc. */
