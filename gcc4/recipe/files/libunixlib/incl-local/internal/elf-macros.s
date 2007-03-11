@@ -1,11 +1,5 @@
-@ UnixLib assembler helper macros (ELF version)
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
-@
-@ This file and aof-macros.s must be kept in sync with each other
-
-#ifndef __SOFTFP__
-#define __SOFTFP__ 0
-#endif
+@ UnixLib assembler helper macros
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
 
 	@ Turn on macro extensions, allowing the use of LOCAL.
 @	.altmacro
@@ -32,7 +26,7 @@
 	@   Rerrno destroyed
 
 	.macro	__set_errno	val, Rerrno
-	.if __UNIXLIB_ERRNO_THREADED > 0
+#if __UNIXLIB_ERRNO_THREADED
 	ldr	\Rerrno, 0f	@=__pthread_running_thread
  PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
 	ldr	\Rerrno, [\Rerrno]
@@ -40,14 +34,14 @@
 	B	1f
 0:
 	WORD	__pthread_running_thread
-	.else
+#else
 	ldr	\Rerrno, 0f	@=errno
  PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
 	str	\val, [\Rerrno]
 	B	1f
 0:
 	WORD	errno
-	.endif
+#endif
 1:
 	mov	\val, #-1
 	.endm
@@ -55,7 +49,7 @@
 
 	@ if compiling for shared library, v4 must be valid as the PIC register
 	.macro	__get_errno	val, Rerrno
-	.if __UNIXLIB_ERRNO_THREADED > 0
+#if __UNIXLIB_ERRNO_THREADED
 	ldr	\Rerrno, 0f	@=__pthread_running_thread
  PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
 	ldr	\Rerrno, [\Rerrno]
@@ -63,14 +57,14 @@
 	B	1f
 0:
 	WORD	__pthread_running_thread
-	.else
+#else
 	ldr	\Rerrno, 0f	@=errno
  PICEQ "ldr	\Rerrno, [v4, \Rerrno]"
 	ldr	\val, [\Rerrno]
 	B	1f
 0:
 	WORD	errno
-	.endif
+#endif
 1:
 	.endm
 

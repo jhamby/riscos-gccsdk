@@ -37,12 +37,3 @@
 /* applications rely on 'errno' being a real variable rather than a */
 /* macro.  GCC's builtin math functions also rely on this.  */
 #define __UNIXLIB_ERRNO_THREADED	0
-
-/* Here mainly as a placeholder to reduce the porting requirements */
-/* between AOF and ELF variants of the library.  Throughout */
-/* the C sources, we stick to __ELF__, but we can't explicitly */
-/* define that here, because that would class with GCC's  */
-/* definition.  */
-
-/* Set to 1 if we are building for ELF.  */
-#define __UNIXLIB_ELF			0

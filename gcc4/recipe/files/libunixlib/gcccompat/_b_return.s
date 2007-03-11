@@ -1,11 +1,7 @@
 @ __builtin_return_address
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
-
-#ifdef __ELF__
-	@ BEWARE: this looks like GAS syntax but isn't, the labels don't
-	@ have a colon.
 
 	.text
 
@@ -56,7 +52,5 @@ __builtin_return_address_alloca_resolved:
 .L2:
 	WORD	__free_stack_chunk
 	DECLARE_FUNCTION __builtin_return_address
-
-#endif
 
 	.end

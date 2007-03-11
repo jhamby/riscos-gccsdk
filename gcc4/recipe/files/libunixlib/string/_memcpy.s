@@ -1,5 +1,5 @@
 @ Fast memcpy and memmove
-@ Copyright (c) 2005-2006 UnixLib Devlopers
+@ Copyright (c) 2005, 2006, 2007 UnixLib Devlopers
 @ Written by Adrian Lees
 
 	.text
@@ -705,10 +705,8 @@ dcp1sh3:
 	LDR	v1,[sp],#4
 	LDR	pc,[sp],#4
 
-#ifdef __ELF__
 	.weak	memcpy
 	.weak	memmove
 	.weak	bcopy
-#endif
 
 	.end

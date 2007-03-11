@@ -1,5 +1,5 @@
 @ Signal exception handling
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
 
 @ This file handles all the hairy exceptions that can occur when a
 @ program runs. This includes hardware exceptions like data abort and
@@ -948,10 +948,8 @@ __setup_signalhandler_stack:
 	WORD	__ul_global
 	DECLARE_FUNCTION __setup_signalhandler_stack
 
-#ifdef __ELF__
 #if PIC
 	.data
-#endif
 #endif
 
 	@ User registers are preserved in here for the callback execution.
@@ -974,10 +972,8 @@ __cba1:
 	.word	0
 	DECLARE_OBJECT __cba1
 
-#ifdef __ELF__
 #if PIC
 	.text
-#endif
 #endif
 
 @ Exit handler
@@ -1068,10 +1064,8 @@ __h_sigalrm_init:
 	LDMFD	sp!, {a1, a2, pc} @  return without restoring PSR
 	DECLARE_FUNCTION __h_sigalrm_init
 
-#ifdef __ELF__
 #if PIC
 	.data
-#endif
 #endif
 
 	@ Set to one to prevent multiple CallEverys being set up.
@@ -1080,10 +1074,8 @@ __h_sigalrm_sema:
 	.word	0
 	DECLARE_OBJECT __h_sigalrm_sema
 
-#ifdef __ELF__
 #if PIC
 	.text
-#endif
 #endif
 
 @ Interval timer handler for ITIMER_VIRTUAL
@@ -1141,10 +1133,8 @@ __h_sigvtalrm_init:
 	LDMFD	sp!, {a1, a2, pc} @  return without restoring PSR
 	DECLARE_FUNCTION __h_sigvtalrm_init
 
-#ifdef __ELF__
 #if PIC
 	.data
-#endif
 #endif
 
 	@ Set to one to prevent multiple CallEverys being set up.
@@ -1154,10 +1144,8 @@ __h_sigvtalrm_sema:
 	.word	0
 	DECLARE_OBJECT __h_sigvtalrm_sema
 
-#ifdef __ELF__
 #if PIC
 	.text
-#endif
 #endif
 
 @ Interval timer handler for ITIMER_PROF
@@ -1215,10 +1203,8 @@ __h_sigprof_init:
 	LDMFD	sp!, {a1, a2, pc} @  return without restoring PSR
 	DECLARE_FUNCTION __h_sigprof_init
 
-#ifdef __ELF__
 #if PIC
 	.data
-#endif
 #endif
 
 	@ Set to one to prevent multiple CallEverys being set up.

@@ -1,6 +1,6 @@
 @ Fast memset
+@ Copyright (c) 2005, 2006, 2007 UnixLib Developers
 @ Written by Adrian Lees
-@ Copyright (c) 2005-2006 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
@@ -103,9 +103,7 @@ mset_unaligned:
 	MOVEQ	pc,lr
 	B	mset_aligned
 
-#ifdef __ELF__
 	.weak	memset
 	.weak	bzero
-#endif
 
 	.end

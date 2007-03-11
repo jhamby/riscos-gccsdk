@@ -1,3 +1,43 @@
+Sun Mar 11 16:54:44 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/aof-macros.s: Removed, no longer used.
+	* incl-local/internal/elf-macros.s(__UNIXLIB_ERRNO_THREADED): changed
+	from assembler test to preprocessor test; (__SOFTFP__) no longer
+	defined as 0 when it is not defined.
+	* include/unixlib/buildoptions.h(__UNIXLIB_ELF): Removed, no longer
+	used.
+	* unix/features.c : Removed tests on __ELF__, this is always 'true'
+	from now on.
+	* unix/unix.c: Likewise.
+	* pthread/_exit.s: Likewise.
+	* signal/_signal.s: Likewise.
+	* include/features.h: Likewise.
+	* include/unixlib/unix.h: Likewise.
+	* include/sys/cdefs.h: Likewise.
+	* gcccompat/_b_return.s: Likewise.
+	* gcccompat/_galloca.s: Likewise.
+	* gcccompat/galloca.c: Likewise.
+	* gcccompat/_b_frame.s: Likewise.
+	* string/_memcpy.s: Likewise.
+	* string/_memset.s: Likewise.
+	* sys/_syslib.s: Likewise.
+	* sys/mman.c: Likewise.
+	* include: Removed svn:ignore property.  No longer relevant.
+	* include/unixlib: Updated svn:ignore property, buildoptions.s is no
+	longer used nor exists.
+	* include/endian.h: Typo fix.
+	* pthread/_context.s (__SOFTFP__): Test on existance and not on its
+	value.
+	* sys/_jmp.s: Likewise.
+	* sys/_syslib.s: Likewise.
+	* README: Documented __program_name.
+	* sys/_alloca.s: Removed, no longer needed.
+
+Sat Mar 10 21:21:23 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Used convert-unixlib.pl for the last time and stored its ELF
+	result in SVN as trunk/gcc4/recipe/files/libunixlib.
+
 Tue Mar 06 21:03:02 2007  Lee Noar  <leenoar@ntlworld.com>
 
 	* source/clib/unixlib/unix.h: When not compiling for the

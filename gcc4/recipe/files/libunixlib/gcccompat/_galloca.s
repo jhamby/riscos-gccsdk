@@ -1,13 +1,10 @@
 @ UnixLib GCC 4 alloca function interface.
 @ These functions tie-in directly with both UnixLib and the GCC compiler.
 @ Change one, change the other.
-@ Copyright (c) 2005, 2006 UnixLib Developers
+@ Copyright (c) 2005, 2006, 2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
-#ifdef __ELF__
-	@ BEWARE: this looks like GAS syntax but isn't, the labels don't
-	@ have a colon.
 	.text
 
 	.global	__gcc_alloca_free
@@ -22,7 +19,5 @@ __gcc_alloca_free:
 	mov	ip, a1
 	ldmfd	sp!, {a1, a2}
 	mov	pc, ip
-
-#endif
 
 	.end

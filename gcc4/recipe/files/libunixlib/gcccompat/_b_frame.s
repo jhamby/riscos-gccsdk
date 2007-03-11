@@ -1,11 +1,7 @@
 @ __builtin_frame_address
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
-
-#ifdef __ELF__
-	@ BEWARE: this looks like GAS syntax but isn't, the labels don't
-	@ have a colon.
 
 	.text
 
@@ -124,7 +120,5 @@ __builtin_frame_address_loop_end:
 	LDRLT	a1, [a1, #-12]
 	LDMEA	fp, {v1, v2, fp, sp, pc}	@ a1 => fp
 	DECLARE_FUNCTION __builtin_frame_address
-
-#endif
 
 	.end

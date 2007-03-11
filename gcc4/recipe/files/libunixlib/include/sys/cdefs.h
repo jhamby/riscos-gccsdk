@@ -248,22 +248,14 @@
 
 #ifdef __UNIXLIB_INTERNALS
 
-#ifdef __GNUC__
-/* The GCC compiler for RISC OS comes in two variants, an AOF compiler
-   and an ELF compiler.  */
-
-/* Both AOF and ELF variants support the aliasing of symbols.  */
 #define strong_alias(name, aliasname) _strong_alias(name, aliasname)
 #define _strong_alias(name, aliasname) \
   extern __typeof (name) aliasname __attribute__ ((alias (#name)));
 
-#ifdef __ELF__
-/* The GCC/ELF compiler has support for everything.  */
-
 /* This comes between the return type and function name in
    a function definition to make that definition weak.  */
-# define weak_function __attribute__ ((weak))
-# define weak_const_function __attribute__ ((weak, __const__))
+#define weak_function __attribute__ ((weak))
+#define weak_const_function __attribute__ ((weak, __const__))
 
 #define weak_alias(name, aliasname) _weak_alias(name, aliasname)
 #define _weak_alias(name, aliasname) \
@@ -271,32 +263,10 @@
 
 /* For the future, we may want to support ELF symbol visibility which will
    help to reduce the symbol tables of dynamic libraries and speed up
-   dynamic linking.  */
+   dynamic linking. FIXME */
 #define hidden_def(name) /**/
 #define libm_hidden_def(name) /**/
 #define INTDEF(name) /**/
-
-#else /* ! __ELF__ */
-
-/* The GCC/AOF compiler does have a concept of weak symbols, but their
-   application is a little more restricted and harder to work with
-   naturally in the compiler.  We therefore only support weak symbols
-   in hand-crafted assembler.  */
-
-# define weak_function /**/
-# define weak_const_function /**/
-
-/* This is more of a compatibility feature for AOF/GCC so that we can build
-   the same source files as ELF/GCC.  */
-#define weak_alias(name, aliasname) strong_alias(name, aliasname)
-
-#define hidden_def(name) /**/
-#define libm_hidden_def(name) /**/
-#define INTDEF(name) /**/
-
-#endif /* ! __ELF__ */
-
-#endif /* __GNUC__ */
 
 /* On some platforms we can make internal function calls (i.e., calls of
    functions not exported) a bit faster by using a different calling

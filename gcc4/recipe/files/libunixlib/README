@@ -164,6 +164,15 @@ that routine is used by UnixLib to convert (nearly) all Unix filenames
 to RISC OS filenames before those filenames are passed on to RISC OS
 itself.
 
+2. __program_name
+
+Header file: <features.h>.
+
+extern const char * const __program_name __attribute__ ((__weak__));
+
+When defined, specifies the <program name> part of the UnixLib OS
+variables.  Otherwise, the leaf filename part of main()'s argv[0] is used.
+
 2. __feature_imagefs_is_file
 
 Header file: <features.h>, default value 1.
@@ -173,6 +182,9 @@ be considered as regular files and not as directories.
 3. __dynamic_no_da
 
 Header file: <features.h>.
+
+extern int __dynamic_no_da __attribute__ ((__weak__));
+
 When defined (value is unimportant), no dynamic area will be created
 for the memory pool, even on RISC OS versions supporting dynamic areas.
 
@@ -180,7 +192,7 @@ for the memory pool, even on RISC OS versions supporting dynamic areas.
 
 Header file: <features.h>.
 
-Declaraction: extern const char * const __dynamic_da_name __attribute_weak__;
+extern const char * const __dynamic_da_name __attribute__ ((__weak__));
 
 Specifies the dynamic area name when there is one created for keeping
 the memory pool.  When __dynamic_da_name is not defined, the dynamic
@@ -189,6 +201,9 @@ area name will be <program name> + "$Heap".
 5. __dynamic_da_max_size
 
 Header file: <features.h>.
+
+extern int __dynamic_da_max_size __attribute__ ((__weak__));
+
 Specifies the maximum size to use when creating a dynamic area for
 the heap. When not defined, it defaults to 32MB. Can be overridden by
 the <program name>$HeapMax variable.

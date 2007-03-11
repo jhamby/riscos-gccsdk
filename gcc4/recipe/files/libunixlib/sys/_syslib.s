@@ -377,7 +377,7 @@ no_dynamic_area:
 	SWI	XOS_ReadMemMapInfo
 	STR	a1, [ip, #GBL_UL_PAGESIZE]	@ __ul_pagesize
 
-#if __SOFTFP__ == 0
+#ifndef __SOFTFP__
 	@ Recognise the Floating Point facility by determining whether
 	@ the SWI FPEmulator_Version actually exists (and works).
 	@ We insist on having at least version 4.00.
@@ -427,14 +427,6 @@ no_dynamic_area:
 	WORD	rmensure3
 	DECLARE_FUNCTION __main
 
-	@ Weak symbols.  We need only export these symbols for AOF/GCC
-	@ compatibility.  For ELF, we don't need to export at all.
-#ifndef __ELF__
-	.global	___program_name
-	.global	___dynamic_da_name
-	.global	___dynamic_da_max_size
-	.global	___dynamic_no_da
-#endif
 ___program_name:
 	WORD	__program_name
 	DECLARE_OBJECT ___program_name
@@ -472,10 +464,8 @@ __exit_with_error_block:
 	DECLARE_FUNCTION __exit_with_error_num
 	DECLARE_FUNCTION __exit_with_error_block
 
-#ifdef __ELF__
 #if PIC
 	.data
-#endif
 #endif
 
 	@ Make sure there are no absolute addresses in shared library by placing error_table
@@ -494,10 +484,8 @@ error_table:
 error_table_end:
 	DECLARE_OBJECT error_table
 
-#ifdef __ELF__
 #if PIC
 	.text
-#endif
 #endif
 
 error_no_callaswi:
@@ -514,7 +502,7 @@ error_no_sharedunixlib:
 	.asciz	"1.07 of the SharedUnixLibrary module"
 	.align
 error_no_fpe:
-#if __SOFTFP__ == 0
+#ifndef __SOFTFP__
 	.word	SharedUnixLibrary_Error_NoFPE
 	.ascii	"This application requires version 4.00 "
 	.asciz	"or later of the FPEmulator module"
@@ -671,10 +659,8 @@ t06:
  PICEQ "WORD	handlers"
 	DECLARE_FUNCTION __env_unixlib
 
-#ifdef __ELF__
 #if PIC
 	.data
-#endif
 #endif
 
 	@ In the shared library, we can't have absolute addresses in the read only
@@ -699,10 +685,8 @@ handlers:
 	.word	0		@ Currently active object
 	.word	0		@ UpCall
 
-#ifdef __ELF__
 #if PIC
 	.text
-#endif
 #endif
 
 	@ Same as the SCL's magic number, for compatibility in libgcc
@@ -1134,7 +1118,7 @@ __unixlib_fatal_got_msg:
 
 	.global	__unixlib_get_fpstatus
 __unixlib_get_fpstatus:
-#if __SOFTFP__ == 0
+#ifndef __SOFTFP__
 	rfs	r0
 #else
 	mov	r0, #0
@@ -1144,7 +1128,7 @@ __unixlib_get_fpstatus:
 
 	.global	__unixlib_set_fpstatus
 __unixlib_set_fpstatus:
-#if __SOFTFP__ == 0
+#ifndef __SOFTFP__
 	wfs	r0
 #endif
 	mov	pc, lr
@@ -1225,10 +1209,8 @@ dynamic_area_name_end:
 	.global	__signalhandler_sl
 	.global	__signalhandler_sp
 
-#ifdef __ELF__
 #if PIC
 	.global	main
-#endif
 #endif
 
 	@ This variable refers to the base address of the UnixLib
@@ -1304,11 +1286,9 @@ __signalhandler_sp:
 	.word	0	@ __mutex		offset = 92
 	.word	0	@ malloc_state		offset = 96
 	
-#ifdef __ELF__
 #if PIC
 	@ A pointer used by the shared library to call the program's main function.
 main:
-#endif
 #endif
 	.word	0	@ main			offset = 100
 

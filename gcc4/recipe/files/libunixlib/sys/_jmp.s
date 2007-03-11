@@ -43,7 +43,7 @@ setjmp:
 	LDR	a4, [a4]
 	STR	a4, [a1], #4
 
-#if __SOFTFP__ == 0
+#ifndef __SOFTFP__
 	SFM	f4, 4, [a1], #4*12
 #else
 	ADD	a1, a1, #4*12
@@ -117,7 +117,7 @@ __longjmp_l3:
 	LDR	lr, [v1], #4
 	STR	lr, [a1]
 
-#if __SOFTFP__ == 0
+#ifndef __SOFTFP__
 	LFM	f4, 4, [v1], #4*12
 #else
 	ADD	v1, v1, #4*12

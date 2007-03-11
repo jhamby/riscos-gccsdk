@@ -314,7 +314,7 @@ __pthread_callback:
 	@ from user mode
 	CHGMODE	a3, USR_Mode
 
-#if __SOFTFP__ == 0
+#ifndef __SOFTFP__
 	@ Save floating point regs
 	SFM	f0, 4, [a1], #48
 	SFM	f4, 4, [a1], #48
@@ -331,7 +331,7 @@ __pthread_callback:
 	LDR	a1, [a1]
 	LDR	a2, [a1, #__PTHREAD_CONTEXT_OFFSET]	@ __pthread_running_thread->saved_context
 
-#if __SOFTFP__ == 0
+#ifndef __SOFTFP__
 	ADD	a2, a2, #17*4
 	LFM	f0, 4, [a2], #48
 	LFM	f4, 4, [a2], #48
@@ -407,7 +407,7 @@ skip_contextswitch:
 @   R0 = save area
 	NAME	__pthread_init_save_area
 __pthread_init_save_area:
-#if __SOFTFP__ == 0
+#ifndef __SOFTFP__
 	ADD	a2, a1, #17*4
 	SFM	f0, 4, [a2], #48
 	SFM	f4, 4, [a2], #48

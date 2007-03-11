@@ -1,5 +1,5 @@
 /* Define byte-sex for the host system.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
 
 #ifndef	__ENDIAN_H
 #define	__ENDIAN_H	1
@@ -30,7 +30,7 @@
 /* Define the floating-point compatibility macros.  */
 
 #ifdef __SOFTFP__
-/* Software floating point, utilises big-endial words.  */
+/* Software floating point, utilises big-endian words.  */
 #define __FLOAT_BIT_ORDER __BIG_ENDIAN
 #define __FLOAT_WORD_ORDER __BIG_ENDIAN
 #else

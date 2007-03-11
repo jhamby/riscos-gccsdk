@@ -53,7 +53,7 @@ static void __badr (void) __attribute__ ((__noreturn__));
    so to prevent possible compiler errors from sources that
    might include <unixlib/unix.h> we will have the main()
    declaration here.  */
-#if defined(__ELF__) && defined(PIC)
+#if defined(PIC)
 extern int (*main) (int, char *[], char **);
 #else
 extern int main (int, char *[], char **);
@@ -352,7 +352,7 @@ int _main (void)
      This copy of the environment will not get updated by getenv
      or setenv */
 
-#if defined(__ELF__) && defined(PIC)
+#if defined(PIC)
   /* Validate the main function pointer (shared library only) */
   if (main == NULL)
     __unixlib_fatal ("Pointer to main function is NULL");

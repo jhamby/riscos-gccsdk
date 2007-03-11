@@ -346,57 +346,38 @@ extern int __get_feature_imagefs_is_file (void);
 extern void __set_feature_imagefs_is_file (int __value);
 #endif
 
-#ifndef __ELF__
-
-/* NULL if user didn't specify __program_name; non-NULL otherwise and then
-   its value equals __program_name.
-
-   These symbols are only required for compatibility with AOF/GCC.  */
-extern const char * const * const ___program_name;
-extern const char * const * const ___dynamic_da_name;
-#endif
-
 #endif  /* __UNIXLIB_INTERNALS */
-
-/* Note that AOF/GCC will ignore the WEAK attribute
-   here.  ELF/GCC will correctly handle it and do the right thing.  */
-#ifdef __ELF__
-#define __attribute_weak__ __attribute__ ((__weak__))
-#else
-#define __attribute_weak__ /**/
-#endif
 
 #ifdef __STRICT_ANSI__
 #define inline __inline__
 #endif
 
 /* When defined, specifies the <program name> part of the UnixLib OS
-   variables.  Otherwise, the leaf filename part of argv[0] is used.
+   variables.  Otherwise, the leaf filename part of main()'s argv[0] is
+   used.
 
    Note: this is a weak symbol.  */
-extern const char * const __program_name __attribute_weak__;
+extern const char * const __program_name __attribute__ ((__weak__));
 
 /* When defined, the memory pool will be created in the WimpSlot area
    instead of a dynamic area (on RISC OS versions supporting dynamic
    areas). Its value is unimportant.
 
    Note: this is a weak symbol.  */
-extern int __dynamic_no_da __attribute_weak__;
+extern int __dynamic_no_da __attribute__ ((__weak__));
 
 /* When a dynamic area is created as memory pool, __dynamic_da_name can
    be used to specify its name.  When this variable is not defined, the
    dynamic area name will be <program name> + "$Heap".
 
    Note: this is a weak symbol.  */
-extern const char * const __dynamic_da_name __attribute_weak__;
+extern const char * const __dynamic_da_name __attribute__ ((__weak__));
 
 /* When defined, indicates the maximum size in bytes of the dynamic area
    used for the heap. If undefined, UnixLib defaults to 32MB.
 
    Note: this is a weak symbol.  */
-extern int __dynamic_da_max_size __attribute_weak__;
-
-#undef __attribute_weak__
+extern int __dynamic_da_max_size __attribute__ ((__weak__));
 
 #ifndef __SYS_CDEFS_H
 # include <sys/cdefs.h>

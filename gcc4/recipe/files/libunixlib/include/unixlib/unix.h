@@ -168,7 +168,7 @@ struct ul_global
   /* The global malloc state (opaque type).  */
   void *malloc_state;
 
-#if defined(__ELF__) && defined(PIC)
+#if defined(PIC)
   int (*main) (int, char *[], char **);
 #else
   void *__pad1; /* To remain unused */

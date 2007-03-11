@@ -1,9 +1,7 @@
 /* Implementation of all alloca related functions for GCC 4
-   Copyright (c) 2005, 2006 UnixLib Developers
+   Copyright (c) 2005, 2006, 2007 UnixLib Developers
    Written by Nick Burrett <nick@sqrt.co.uk>
    Reworked by John Tytgat <John.Tytgat@aaug.net>  */
-
-#ifdef __ELF__
 
 /* At the moment, the assert tests are enabled.  Just to be sure we got
    it right during the development.  */
@@ -288,5 +286,3 @@ unsigned int __gcc_alloca_return_address (unsigned int fp)
 
   return chunk->lr;
 }
-
-#endif /* __ELF__ */

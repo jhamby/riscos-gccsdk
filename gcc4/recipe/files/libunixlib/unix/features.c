@@ -1,5 +1,5 @@
 /* Set UnixLib run-time features based on environment variables.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers.  */
 
 /* #define DEBUG 1 */
 
@@ -19,23 +19,12 @@ char *__get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len
     return NULL;
 
   /* Did the user specify the program name ?  */
-#ifdef __ELF__
-  /* With ELF/GCC we can use the weak symbol directly.  */
   if (&__program_name)
     {
       strncpy (fname_buf, __program_name, fname_buf_len);
       fname_buf[fname_buf_len - 1] = '\0';
       return fname_buf;
     }
-#else
-  /* With AOF, we have to access it indirectly.  */
-  if (___program_name)
-    {
-      strncpy (fname_buf, *___program_name, fname_buf_len);
-      fname_buf[fname_buf_len - 1] = '\0';
-      return fname_buf;
-    }
-#endif
   /* Skip any initial whitespace.  */
   while (*cli == ' ')
     cli++;

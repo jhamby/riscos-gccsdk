@@ -1,5 +1,5 @@
 /* Map or unmap memory.
-   Copyright (c) 1996, 1997, 2005 UnixLib Developers.  */
+   Copyright (c) 1996, 1997, 2005, 2006, 2007 UnixLib Developers.  */
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
 /* sys/mman.c: Written by Peter Burwood, 1 November 1996, June 1997  */
@@ -148,15 +148,8 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   {
     char namebuf[128];
 
-#ifdef __ELF__
-    /* With ELF/GCC, we can use the weak symbol directly.  */
     if (&__dynamic_da_name)
       regs[8] = (int) __dynamic_da_name;
-#else
-    /* With AOF, we have to indirectly access the weak symbol.  */
-    if (___dynamic_da_name)
-      regs[8] = (int) *___dynamic_da_name;
-#endif
     else
       {
 	regs[8] = (int)__get_program_name (__u->argv[0], namebuf,
