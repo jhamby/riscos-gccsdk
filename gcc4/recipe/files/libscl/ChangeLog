@@ -1,3 +1,25 @@
+Mon Mar 12 00:04:06 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos/stubs.s: workaround for a problem in prerelease Select 4
+	26-bit SCL as this needs the processor mode in the return value on
+	the stack before calling _kernel_moduleinit.
+
+Tue Mar 06 00:33:25 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos/stubs.s: significant number of changes resulting in a proper
+	ELF stub for SCL based modules.
+	* include/stdio.h: __LIB_VERSION is now 500 as we're targeting SCL 5.
+
+Sun Jan 21 21:28:01 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos/stubs.s: enabled the _Lib$Reloc$Off$DP definition for module
+	use (needed by CMunge assembler code).
+
+Thu Jan 18 02:02:30 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am: install libscl headers in
+	$prefix/arm-unknown-riscos/include/libscl.
+
 Sun Jan  7 20:20:55 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Start of v2.0 development for GCCSDK 4: made copy of GCCSDK 3.4.6

@@ -29,7 +29,6 @@
 @ with GCCSDK 4.x.
 
 .set	OS_GenerateError, 0x2B
-.set	OS_Exit, 0x11
 .set	OS_GetEnv, 0x10
 .set	OS_Module, 0x1E
 
@@ -216,15 +215,20 @@ _clib_initialisemodule:
 	BL	__RelocData
 
 	ADR	R0, kernel_init_block
-	ADR	LR, _clib_initialisemodule_initclib
-	STR	LR, [SP, #-4]!
-	@ _kernel_moduleinit pops the return address off the stack
-	B	_kernel_moduleinit
-_clib_initialisemodule_initclib:
+	BL	_kernel_moduleinit_stub
 	STR	R9, [SP, #-4]!	@ Save workspace pointer
 	BL	_clib_initialise
 	ADDS	R0, R0, #0	@ Clear V flag
 	LDMIA	SP!, {R0, PC}
+
+	@ This stub ensures that apart from the return address the processor
+	@ mode is saved on the SP stack as well when being in SVC26 mode as
+	@ this avoids a problem in some of the prerelease Select 4 SCL
+	@ versions.
+_kernel_moduleinit_stub:
+	@ _kernel_moduleinit pops the return address off the stack
+	STR	R14, [SP, #-4]!
+	B	_kernel_moduleinit	
 
 _clib_initialisemodule_error:
 	@ An error occurred:
