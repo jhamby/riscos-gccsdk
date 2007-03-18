@@ -1,5 +1,5 @@
---- bfd/elf32-arm.c.orig	2007-03-05 22:48:20.000000000 +0100
-+++ bfd/elf32-arm.c	2007-03-05 22:46:23.000000000 +0100
+--- bfd/elf32-arm.c.orig	2007-03-18 12:59:32.000000000 +0100
++++ bfd/elf32-arm.c	2007-03-18 02:11:54.000000000 +0100
 @@ -1470,7 +1470,7 @@
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -339,7 +339,7 @@
  
    /* elf32_arm_merge_private_bfd_data will already have merged the
       object attributes.  Remove the input sections from the link, and set
-@@ -4255,7 +4531,74 @@
+@@ -4255,7 +4531,76 @@
  	  /* Skip this section later on.  */
  	  o->map_head.link_order = NULL;
  	}
@@ -394,18 +394,20 @@
 +
 +      if (hash == NULL)
 +        (*_bfd_error_handler) (_("Unable to find Image$$RO$$Base"));
-+      globals->ro_module_image_ro_base = hash->root.u.def.value
-+	+ hash->root.u.def.section->output_section->vma
-+	+ hash->root.u.def.section->output_offset;
++      else
++        globals->ro_module_image_ro_base = hash->root.u.def.value
++	  + hash->root.u.def.section->output_section->vma
++	  + hash->root.u.def.section->output_offset;
 +
 +      hash = elf_link_hash_lookup
 +        (&(hash_table)->root, "Image$$RW$$Base", FALSE, FALSE, TRUE);
 +
 +      if (hash == NULL)
 +        (*_bfd_error_handler) (_("Unable to find Image$$RW$$Base"));
-+      globals->ro_module_image_rw_base = hash->root.u.def.value
-+	+ hash->root.u.def.section->output_section->vma
-+	+ hash->root.u.def.section->output_offset;
++      else
++        globals->ro_module_image_rw_base = hash->root.u.def.value
++	  + hash->root.u.def.section->output_section->vma
++	  + hash->root.u.def.section->output_offset;
 +
 +      BFD_ASSERT (ro_module_reloccode_section != NULL);
 +      BFD_ASSERT (ro_module_relocdata_section != NULL);
@@ -414,7 +416,7 @@
    /* Invoke the ELF linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
      return FALSE;
-@@ -4269,6 +4612,58 @@
+@@ -4269,6 +4614,58 @@
        bfd_set_section_contents (abfd, attr_section, contents, 0, size);
        free (contents);
      }
@@ -473,7 +475,7 @@
    return TRUE;
  }
  
-@@ -5767,6 +6162,23 @@
+@@ -5767,6 +6164,23 @@
  
        eh = (struct elf32_arm_link_hash_entry *) h;
  
@@ -497,7 +499,7 @@
        switch (r_type)
          {
  	  case R_ARM_GOT32:
-@@ -6930,7 +7342,10 @@
+@@ -6930,7 +7344,10 @@
  	     in all the symbols for which we are making plt entries.  The
  	     first three entries in .got.plt are reserved; after that
  	     symbols appear in the same order as in .plt.  */
@@ -509,7 +511,7 @@
  
  	  /* Calculate the address of the GOT entry.  */
  	  got_address = (sgot->output_section->vma
-@@ -7012,22 +7427,47 @@
+@@ -7012,22 +7429,47 @@
  			      splt->contents + h->plt.offset - 2);
  		}
  
@@ -571,7 +573,7 @@
  	    }
  
  	  /* Fill in the entry in the global offset table.  */
-@@ -7350,21 +7790,30 @@
+@@ -7350,21 +7792,30 @@
  	    }
  	  else
  	    {
