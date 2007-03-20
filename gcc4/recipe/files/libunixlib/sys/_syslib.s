@@ -1288,6 +1288,7 @@ __signalhandler_sp:
 	
 #if PIC
 	@ A pointer used by the shared library to call the program's main function.
+.hidden main
 main:
 #endif
 	.word	0	@ main			offset = 100
