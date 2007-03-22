@@ -470,6 +470,15 @@ _exit (int return_code)
   __dynamic_area_exit ();
   __env_riscos ();
 
+#ifdef PIC
+  {
+    /* Tell the Shared Object Manager that the current client has exited */
+    int regs[10];
+
+    (void) __os_swi(SOM_DeregisterClient, regs);
+  }
+#endif
+
 #ifdef DEBUG
   debug_printf ("__exit(): Calling sul_exit with return code=%d\n", status);
 #endif
