@@ -164,6 +164,7 @@ struct elf_resolve * _dl_load_shared_library(int secure,
     goto goof;
 
   pnt = libname = full_libname;
+#ifndef __riscos
   while (*pnt) {
     if(*pnt == '.') libname = pnt+1;
     pnt++;
@@ -176,6 +177,7 @@ struct elf_resolve * _dl_load_shared_library(int secure,
       return tpnt1;
     goto goof;
   }
+#endif
 
   /*
    * The ABI specifies that RPATH is searched before LD_*_PATH or
@@ -262,7 +264,7 @@ struct elf_resolve * _dl_load_shared_library(int secure,
   pnt1 = "/usr/i486-sysv4/lib/";
 #else
 /*  pnt1 = "/usr/lib/";*/
-  pnt1 = "DSOLib:lib.";
+  pnt1 = "DSOLib:lib/";
 #endif
   pnt = mylibname;
   while(*pnt1) *pnt++ = *pnt1++;
@@ -323,16 +325,28 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
 
   unsigned int handle;
   struct object_info objinfo;
+  char ro_libname[2048];
 
-#ifdef __riscos
-  /* convert suffix separator */
+  /* Very simple filename translation. Convert all '.' to '/' and
+     visa versa. Avoid altering the original string */
   {
-  int l = _dl_strlen(libname);
+  char *s = libname, *d = ro_libname;
 
-    if (_dl_strcmp(libname + l - 3,".so") == 0)
-      libname[l - 3] = '/';
+    while (*s != '\0')
+    {
+      if (*s == '.')
+        *d = '/';
+      else if (*s == '/')
+        *d = '.';
+      else
+        *d = *s;
+      d++;
+      s++;
+    }
+    *d = '\0';
+
+    libname = ro_libname;
   }
-#endif
 
   /* If this file is already loaded for the current client , skip this step */
   tpnt = _dl_check_hashed_files(libname);
