@@ -38,6 +38,7 @@
 	
 	.file		"crti-riscos.asm"
 
+#ifndef __TARGET_MODULE__
 	.section ".init","x"
 	@ This function appears in the .init section to ensure it appears
 	@ at the start of the ELF executable.  Though not strictly necessary
@@ -48,12 +49,14 @@
 	.global	_start
 	.type	_start, %function
 _start:
+#ifndef __TARGET_SCL__
 	@ a1 is set by the dynamic loader to the start of free memory after it
 	@ has claimed what it requires. Generally, these values are only used
 	@ when dynamic linking and the runtime library is free to ignore them.
 	LDR	a2, =__executable_start
 	LDR	a3, =__data_start
 	LDR	a4, =main
+#endif
 	
 	@ On RISC OS the main entry point to the run-time library is
 	@ always called __main.
@@ -66,7 +69,10 @@ _start:
 	.type	main, %function
 	B	main
 	.size	_start, . - _start
+#endif
 
+#ifndef __TARGET_MODULE__
+	@ FIXME: currently disabled as we're no yet supporting C++ & module.
 	.section ".ctors","aw",%progbits
 	.global	__CTOR_LIST__
 	.type	__CTOR_LIST__, %object
@@ -78,7 +84,8 @@ __CTOR_LIST__:
 	.type	__DTOR_LIST__, %object
 __DTOR_LIST__:
 	.word	-1
-	
+#endif
+
 	.section ".eh_frame","aw",%progbits
 	.global	__EH_FRAME_BEGIN__
 	.type	__EH_FRAME_BEGIN__, %object

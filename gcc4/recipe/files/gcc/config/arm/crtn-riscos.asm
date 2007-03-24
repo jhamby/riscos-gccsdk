@@ -36,6 +36,8 @@
 # function.
 
 	.file	"crtn.asm"
+#ifndef __TARGET_MODULE__
+	@ FIXME: currently disabled as we're no yet supporting C++ & module.
 	.section ".ctors","aw",%progbits
 	.word	0
 
@@ -47,5 +49,6 @@
 	@ that the last value in the .eh_frame section is 0.
 	.section ".eh_frame","aw",%progbits
 	.word	0
-	
+#endif
+
 # end of crtn-riscos.asm

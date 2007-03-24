@@ -48,16 +48,6 @@
 #define NEED_PLT_RELOC	(!TARGET_MODULE && flag_pic)
 #define NEED_GOT_RELOC	flag_pic
 
-/* When -mlibscl or -mmodule we switch to hard-float whatever the other float
-   related options were.  The check for -mmodule is necessary as the assembler
-   can be launched directly from the gcc frontend without having triggered our
-   libscl && module check in arm.c.  */
-#undef  SUBTARGET_ASM_FLOAT_SPEC
-#define SUBTARGET_ASM_FLOAT_SPEC "\
-%{mapcs-float:-mfloat} \
-%{mlibscl:-mfloat-abi=hard; mmodule:-mfloat-abi=hard; !mhard-float:%{!mfloat-abi=*:-mfloat-abi=soft}} \
-"
-
 #undef SUBTARGET_EXTRA_LINK_SPEC
 #ifdef CROSS_COMPILE
 #  define SUBTARGET_EXTRA_LINK_SPEC \
@@ -72,12 +62,21 @@
      "%{fpic:-fpic} %{mmodule:--ro-module-reloc} "
 #endif
 
+/* libscl means hard-float only.  Module support means libscl and
+   hard-float.  */
+#define SUBTARGET_OPTION_TRANSLATE_TABLE            \
+  { "-mlibscl", "-mlibscl -mhard-float" },          \
+  { "-mmodule", "-mmodule -mlibscl -mhard-float" }
+
+/* Default multilib is UnixLib, hard-float (and no module support) */
 #undef  MULTILIB_DEFAULTS
-#define MULTILIB_DEFAULTS { "msoft-float" }
+#define MULTILIB_DEFAULTS { "" }
 
 #undef SUBTARGET_CPP_SPEC
 #define SUBTARGET_CPP_SPEC "\
-%{mlibscl:-D__TARGET_SCL__ -icrossdirafter /libscl -mfloat-abi=hard; :-D__TARGET_UNIXLIB__ -icrossdirafter /libunixlib} \
+%{mmodule:-D__TARGET_SCL__ -D__TARGET_MODULE__ -icrossdirafter /libscl; \
+  mlibscl:-D__TARGET_SCL__ -icrossdirafter /libscl; \
+  :-D__TARGET_UNIXLIB__ -icrossdirafter /libunixlib} \
 "
 
 /* The GNU C++ standard library requires that these macros be defined.  */
@@ -87,7 +86,7 @@
 /* Now we define the strings used to build the spec file.  */
 #undef  LIB_SPEC
 #define LIB_SPEC \
-  "%{!nostdlib:%{mmodule:-lscl; mlibscl:-lscl; :-lunixlib } %{shared:-lpic}}"
+  "%{!nostdlib:%{mlibscl:-lscl; :-lunixlib } %{shared:-lpic}}"
 
 #define LIBGCC_SPEC "-lgcc"
 
@@ -97,7 +96,7 @@
    Otherwise, we can end up missing chunks of potentially interesting
    frame data.  */
 #undef  STARTFILE_SPEC
-#define STARTFILE_SPEC "%{!mmodule:crti-riscos.o}%s"
+#define STARTFILE_SPEC "crti-riscos.o%s"
 
 #undef  ENDFILE_SPEC
 #define ENDFILE_SPEC "crtn-riscos.o%s"
