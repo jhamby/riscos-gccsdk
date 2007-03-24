@@ -1,0 +1,7 @@
+Sat Mar 24 18:01:09 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Made it buildable with GCCSDK 4.
+
+Tue Nov 28 04:00:37 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Start C based SOManager code v2

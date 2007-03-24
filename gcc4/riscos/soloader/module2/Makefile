@@ -1,10 +1,10 @@
 # Makefile for Shared Object Manager module v2
-# Copyright 2006 GCCSDK Developers
+# Copyright 2006, 2007 GCCSDK Developers
 
-# Currently we need GCCSDK 3.4.6 cross-compiler.  We can't use GCCSDK 4.x
-# for module building yet.
-CC = arm-riscos-aof-gcc
-CFLAGS = -mlibscl -mmodule
+CC = arm-unknown-riscos-gcc
+CFLAGS = -O3 -mmodule
+
+OBJCOPY = arm-unknown-riscos-objcopy
 
 CMUNGE = cmunge
 CMUNGEFLAGS = -tgcc -32bit -p
@@ -17,7 +17,9 @@ clean:
 	-rm somanager.o somanager.h SOManager,ffa
 
 SOManager,ffa: $(SRCS) somanager.h somanager.o
-	$(CC) $(CFLAGS) -o $@ $(SRCS) somanager.h somanager.o
+	$(CC) $(CFLAGS) -o SOManager,e1f $(SRCS) somanager.o
+	$(OBJCOPY) -O binary SOManager,e1f $@
+	rm SOManager,e1f
 
 # CMunge invocation:
 somanager.h somanager.o: somanager.cmhg
