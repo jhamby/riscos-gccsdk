@@ -37,7 +37,19 @@
 .set	SharedCLibrary_LibInitAPCS_32, 0x80683
 .set	SharedCLibrary_LibInitModuleAPCS_32, 0x80684
 
+	.macro	MakePtr ptrname
+#ifdef __TARGET_MODULE__
+	.word	\ptrname(GOTOFF)
+#else
+	.word	\ptrname
+#endif
+	.endm
+
 	.text
+
+#ifndef __TARGET_MODULE__
+	@ For application code only.
+
 	.global	__main
 	.type	__main, %function
 __main:
@@ -73,6 +85,8 @@ __main:
 
 	ADR	R0, out_of_date_error
 	SWI	OS_GenerateError
+#endif
+	@ Used by application and module code.
 out_of_date_error:
 	.word	0x800e91
 	.asciz	"Shared C Library not loaded or out of date"
@@ -80,36 +94,35 @@ out_of_date_error:
 
 stubs:
 	.word	1			@ lib chunk id : kernel
-	.word	kernel_vectors_begin(GOTOFF)
-	.word	kernel_vectors_end(GOTOFF)
-	.word	kernel_statics_begin(GOTOFF)
-	.word	kernel_statics_end(GOTOFF)
+	MakePtr	kernel_vectors_begin
+	MakePtr	kernel_vectors_end
+	MakePtr	kernel_statics_begin
+	MakePtr	kernel_statics_end
 	.word	2			@ lib chunk id : CLib
-	.word	clib_vectors_begin(GOTOFF)
-	.word	clib_vectors_end(GOTOFF)
-	.word	clib_statics_begin(GOTOFF)
-	.word	clib_statics_end(GOTOFF)
+	MakePtr	clib_vectors_begin
+	MakePtr	clib_vectors_end
+	MakePtr	clib_statics_begin
+	MakePtr	clib_statics_end
 	.word	5                       @ lib chunk id : Clib extra functions
-	.word	extra_vectors_begin(GOTOFF)
-	.word	extra_vectors_end(GOTOFF)
+	MakePtr	extra_vectors_begin
+	MakePtr	extra_vectors_end
 	.word	0
 	.word	0
 	.word	-1			@ end of list
 
 kernel_init_block:
-	.word	Image$$RO$$Base(GOTOFF)		@ image base
-	.word	RTSK$$Data$$Base(GOTOFF)	@ start of lang blocks
-	.word	RTSK$$Data$$Limit(GOTOFF)	@ end of lang blocks
+	MakePtr	Image$$RO$$Base		@ image base
+	MakePtr	RTSK$$Data$$Base	@ start of lang blocks
+	MakePtr	RTSK$$Data$$Limit	@ end of lang blocks
 
 rwlimit:
-	.word	Image$$RW$$Limit(GOTOFF)
+	MakePtr	Image$$RW$$Limit
 stksiz:
 	.weak	__root_stack_size
 	.word	__root_stack_size
-rwbase:
-	.word	Image$$RW$$Base(GOTOFF)
-zibase:
-	.word	Image$$ZI$$Base(GOTOFF)
+
+#ifdef __TARGET_MODULE__
+	@ For module code.
 
 	.global	_Mod$Reloc$Off
 .set	_Mod$Reloc$Off, 0x218
@@ -119,6 +132,11 @@ zibase:
 	@ register in the module initialisation and command interface code.
 	.global	_Lib$Reloc$Off$DP
 .set	_Lib$Reloc$Off$DP, 0xf87
+
+rwbase:
+	MakePtr	Image$$RW$$Base
+zibase:
+	MakePtr	Image$$ZI$$Base
 
 	@ RMA module entry point, called from the module initialisation
 	@ code.
@@ -228,7 +246,7 @@ _clib_initialisemodule:
 _kernel_moduleinit_stub:
 	@ _kernel_moduleinit pops the return address off the stack
 	STR	R14, [SP, #-4]!
-	B	_kernel_moduleinit	
+	B	_kernel_moduleinit
 
 _clib_initialisemodule_error:
 	@ An error occurred:
@@ -263,21 +281,23 @@ _clib_entermodule:
 	MOV	R8, R12
 	MOV	R12, #-1
 	B	_kernel_entermodule
+	.size	_clib_entermodule, . - _clib_entermodule
+#endif
 
 	@@ Area: RTSK$$Data
 	.text
 RTSK$$Data$$Base:
 	.word	RTSK$$Data$$Limit - RTSK$$Data$$Base
-	.word	Image$$RO$$Base(GOTOFF)		@ C$$code$$Base
-	.word	Image$$RO$$Limit(GOTOFF)	@ C$$code$$Limit
-	.word	language_name(GOTOFF)		@ Must be "C"
-	.word	__sclmain(GOTOFF)		@ Our PROC-returning InitProc
+	MakePtr	Image$$RO$$Base		@ C$$code$$Base
+	MakePtr	Image$$RO$$Limit	@ C$$code$$Limit
+	MakePtr	language_name		@ Must be "C"
+	MakePtr	__sclmain		@ Our PROC-returning InitProc
 	.word	0				@ Finaliser
 	@ These are the "optionals"...
-	.word	TrapHandler(GOTOFF)		@ SCL's own trap handler...
-	.word	UncaughtTrapHandler(GOTOFF)	@ ...and uncaught trap proc
-	.word	EventHandler(GOTOFF)		@ ...and event proc
-	.word	UnhandledEventHandler(GOTOFF)	@ ...and unhandled event proc!
+	MakePtr	TrapHandler		@ SCL's own trap handler...
+	MakePtr	UncaughtTrapHandler	@ ...and uncaught trap proc
+	MakePtr	EventHandler		@ ...and event proc
+	MakePtr	UnhandledEventHandler	@ ...and unhandled event proc!
 	@ No fast event proc
 	@ No unwind proc
 	@ No name proc
@@ -292,9 +312,14 @@ language_name:
 __sclmain:
 	@ FIXME: vvv what's this magic ?
 	LDR	R0, kallocextendsws_data
+#ifdef __TARGET_MODULE__
 	LDR	R1, [SL, #- _Mod$Reloc$Off]
 	MOV	R2, #1
 	STRB	R2, [R0, R1]
+#else
+	MOV	R1, #1
+	STRB	R1, [R0, #0]
+#endif
 
 	MOV	R0, SP
 	STR	LR, [SP, #-4]!
@@ -302,18 +327,28 @@ __sclmain:
 	LDMIB	R1, {R1, R2}		@ fetch code start/end
 	BL	_clib_initialise
 
-	LDR	R0, c_run		@ get our main()
+	@ Modules can have a main(), application always do have a main()
+#ifdef __TARGET_MODULE__
+	LDR	R0, c_run_weak		@ get our main()
 	TEQ	R0, #0			@ was there one?
-	ADRNE	R0, c_next		@ yup, so point to hook to it
+	ADRNE	R0, ___init		@ yup, so point to hook to it
+#else
+	ADR	R0, ___init
+#endif
 	LDR	PC, [R13], #4
 
 kallocextendsws_data:			@ Ptr into .data, so needs static relocation data offset
-	.word	_stub_kallocExtendsWS(GOTOFF)
+	MakePtr	_stub_kallocExtendsWS
 rtsk_data:				@ Ptr into .text
-	.word	RTSK$$Data$$Base(GOTOFF)
-c_run:					@ Ptr into .text
+	MakePtr	RTSK$$Data$$Base
+#ifdef __TARGET_MODULE__
+c_run_weak:				@ Ptr into .text
 	.weak	main
-	.word	main(GOTOFF)
+	.word	main			@ *NO* GOTOFF as it breaks .weak test
+#endif
+c_run:					@ Ptr into .text
+	MakePtr	main
+	.size	__sclmain, . - __sclmain
 
 	@ This is called when all RTL blocks have been initialised via their
 	@ InitProc
@@ -321,7 +356,7 @@ c_run:					@ Ptr into .text
 	.align
 	.word	0xff000008
 	.type	c_next, %function
-c_next:
+___init:
 	MOV	IP, SP
 	STMFD	SP!, {FP, IP, LR, PC}
 	SUB	FP, IP, #4
@@ -329,6 +364,7 @@ c_next:
 	LDR	R1, c_run		@ Get ptr to main() function
 	BL	_main			@ Call clib to enter it.  SHOULD never return from here.
 	LDMDB	FP, {FP, SP, PC}
+	.size	___init, . - ___init
 
 
 	.text

@@ -1,3 +1,8 @@
+Sat Mar 24 16:58:41 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos/stubs.s: test on __TARGET_MODULE__ in order to exclude non
+	relevant code and relocation directives.  Renamed c_next to ___init.
+
 Mon Mar 12 00:04:06 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/stubs.s: workaround for a problem in prerelease Select 4
