@@ -90,7 +90,7 @@
 	@ error happened.
 	.macro	NetSWI0	swiname
 	swi	\swiname
-	movvc	a1, #-
+	movvc	a1, #0
 	blvs	__net_error
 	.endm
 
