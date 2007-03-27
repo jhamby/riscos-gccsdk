@@ -1,6 +1,6 @@
 @ ffsll
 @ Written by John Tytgat
-@ Copyright (c) 2004-2006 UnixLib Developers
+@ Copyright (c) 2004-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
@@ -18,7 +18,7 @@ ffsll:
 	MOVEQS	a2, a1
 	MOVEQ	pc, r14
 
-#if __UNIXLIB_CLZ_SUPPORTED
+#if __ARM_ARCH__ >= 5
 	CLZ	a1, a2
 	ADD	a3, a3, #32
 	SUB	a1, a3, a1

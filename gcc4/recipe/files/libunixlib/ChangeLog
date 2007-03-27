@@ -1,3 +1,18 @@
+Tue Mar 27 02:11:36 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/unixlib/asm_dec.s: include internal/defines.h; removed define
+	TRUE/FALSE as it was not used.
+	* include/unixlib/buildoptions.h(__UNIXLIB_CLZ_SUPPORTED): Removed,
+	using __ARM_ARCH__ #define value instead.
+	* string/_ffsll.s: Likewise.
+	* string/_ffs.s: Likewise.
+	* incl-local/internal/defines.h(__ARM_ARCH__,__ARM_ARCH_STR__): New
+	file.
+	* sys/_syslib.s: Reenabled runtime minimal ARM architecture check, was
+	previously on XSCALE only, now based on __ARM_ARCH__ build and
+	__get_cpu_arch runtime result.
+	* README: updated with GCCSDK 4 build info.
+
 Sat Mar 24 16:51:41 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/elf-macros.s (NetSWI0): Fixed odd typo.
@@ -499,6 +514,15 @@ Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 [ ^^^ Here starts UnixLib 5.0 ^^^ ]
 -----------------------------------------------------------------------
 [ vvv Here ends UnixLib 4.5/4.6 vvv ]
+
+Tue Mar 27 01:48:55 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/clib/unixlib/unix.h(__get_cpu_arch): Declare.  Gives rough
+	indication which ARM architecture we're running on.
+	* source/sys/_getcpuarch.s(__get_cpu_arch): New file.
+	* unix/uname.c(uname): changed utsname.sysname from "riscos" into
+	"RISC OS" and utsname.machine from "arm-acorn" into "armvxl" with 'x'
+	the major ARM architecture digit.
 
 Thu Jan 18 21:59:26 2007  Alex Waugh  <alex@alexwaugh.com>
 

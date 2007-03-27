@@ -1,5 +1,5 @@
 /* uname ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -8,6 +8,7 @@
 #include <sys/param.h>
 #include <unistd.h>
 #include <unixlib/os.h>
+#include <unixlib/unix.h>
 #include <swis.h>
 
 /* Try and extract the help version from the module help string.  */
@@ -51,6 +52,7 @@ uname (struct utsname *name)
 {
   int save;
   int regs[10];
+  unsigned int arch;
 
   if (name == NULL)
     return __set_errno (EINVAL);
@@ -67,10 +69,16 @@ uname (struct utsname *name)
     }
 
   /* The name of the operating system in use.  */
-  strcpy (name->sysname, "riscos");
+  strcpy (name->sysname, "RISC OS");
 
   /* Type of hardware that is in use.  */
-  strcpy (name->machine, "arm-acorn");
+  if ((arch = __get_cpu_arch ()) == 0)
+    strcpy (name->machine, "arm");
+  else
+    {
+      strcpy (name->machine, "armvxl");
+      name->machine[4] = '0' + arch;
+    }
 
   /* Get the operating system version number.  We do this by
      extracting the version from the help string for the UtilityModule.

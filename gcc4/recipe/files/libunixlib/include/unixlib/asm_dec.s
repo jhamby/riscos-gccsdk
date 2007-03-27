@@ -38,14 +38,13 @@
 
 .set	IFlag32, 0x00000080
 
+	@ Import handy preprocessor definitions based on build settings
+#include "internal/defines.h"
 	@ Import the assembler helper macros.
 #include "internal/elf-macros.s"
 
 .set	EXIT_SUCCESS, 0
 .set	EXIT_FAILURE, 1
-
-.set	TRUE, 1
-.set	FALSE, 0
 
 	@Keep the signal list in sync with <signal.h> contents.
 .set	SIGHUP, 1	@   hangup
@@ -98,6 +97,7 @@
 .set	SharedUnixLibrary_Error_StillActive, SharedUnixLibrary_ErrorChunk + 0x02
 .set	SharedUnixLibrary_Error_TooOld, SharedUnixLibrary_ErrorChunk + 0x03
 @ ...
+.set	SharedUnixLibrary_Error_TooLowCPUArch, SharedUnixLibrary_ErrorChunk + 0x3A
 .set	SharedUnixLibrary_Error_FatalError, SharedUnixLibrary_ErrorChunk + 0x3B
 .set	SharedUnixLibrary_Error_NoFPE, SharedUnixLibrary_ErrorChunk + 0x3C
 .set	SharedUnixLibrary_Error_NotRecentEnough, SharedUnixLibrary_ErrorChunk + 0x3D

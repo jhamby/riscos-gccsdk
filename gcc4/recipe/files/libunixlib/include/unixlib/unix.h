@@ -420,6 +420,8 @@ extern int _main (void);
 extern pid_t __fork_post (pid_t pid, int isfork);
 extern int __fork_pre (int isfork, void **sul_fork, pid_t *pid);
 
+extern unsigned int __get_cpu_arch (void);
+
 #endif  /* __UNIXLIB_INTERNALS */
 
 __END_DECLS

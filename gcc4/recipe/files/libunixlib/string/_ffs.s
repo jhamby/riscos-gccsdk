@@ -1,6 +1,6 @@
 @ ffs, ffsl
 @ Written by John Tytgat
-@ Copyright (c) 2004-2006 UnixLib Developers
+@ Copyright (c) 2004-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
@@ -15,7 +15,7 @@
 	NAME	ffs
 ffs:
 ffsl:
-#if __UNIXLIB_CLZ_SUPPORTED
+#if __ARM_ARCH__ >= 5
 	CLZ	a1, a1
 	RSB	a1, a1, #32
 	MOV	pc, r14

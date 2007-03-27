@@ -9,7 +9,7 @@
 .set	ERR_NO_SUL, 2
 .set	ERR_NO_FPE, 3
 .set	ERR_UNRECOVERABLE, 4
-.set	ERR_NO_XSCALE, 5
+.set	ERR_TOO_LOW_CPU_ARCH, 5
 
 @ Constants for field offsets within a stack chunk
 @ The stack is allocated in chunks, each chunk is a multiple of 4KB, and
@@ -86,9 +86,9 @@ __main:
 	@ struct_base is the start of our memory environment variables
 	@ See the end of this file.  For the initialisation here, we
 	@ will always use ip as the base register.
-	LDR	ip, .L0	@=__ul_global
+	LDR	ip, .L0			@=__ul_global
  PICEQ "LDR	ip, [v6, ip]"
-	LDR	fp, .L0+4	@=__ul_memory
+	LDR	fp, .L0+4		@=__ul_memory
  PICEQ "LDR	fp, [v6, fp]"
 
 	@ __unixlib_cli = pointer to command line
@@ -201,28 +201,15 @@ __main:
 	TEQ	a1, #0
 	BNE	no_dynamic_area
 
-@ FIXME: following temporary disabled because convert-unixlib.pl does not
-@ support this.
-@	[ TARGET_CPU = "XSCALE"
-@	;Check that we really do have an XScale
-@	MRS	a2, CPSR
-@	SWI	XOS_EnterOS
-@	MOVVS	a1, #ERR_UNRECOVERABLE  ; paranoia
-@	BVS	__exit_with_error_num
-@	MRC	p15, 0, a1, c0, c0, 0
-@	MSR	CPSR_c, a2
-@	ANDS	a2, a1, #0x0000F000  ; ARM <= 7?
-@	TEQNE	a2, #7
-@	MOVEQ	a1, #ERR_NO_XSCALE
-@	BEQ	__exit_with_error_num
-@	AND	a2, a1, #0x000F0000
-@	AND	a1, a1, #0xFF000000
-@	TEQ	a2, #0x00050000	 ; ARMv5TE
-@	TEQNE	a2, #0x00060000	 ; ARMv5TEJ (optimistic overkill)
-@	TEQEQ	a1, #0x69000000	 ; Intel
-@	MOVNE	a1, #ERR_NO_XSCALE
-@	BNE	__exit_with_error_num
-@	]
+	@ Checks for minimum ARM CPU architecture.  When it is an unknown CPU
+	@ architecture, we continue without error.
+	BL	__get_cpu_arch
+	TEQ	a1, #0
+	BEQ	unknown_cpu_arch
+	CMP	a1, #__ARM_ARCH__
+	MOVCC	a1, #ERR_TOO_LOW_CPU_ARCH
+	BCC	__exit_with_error_num
+unknown_cpu_arch:
 
 	@ Check OS version for RISC OS 3.5 or more recent.
 	MOV	a1, #129
@@ -468,19 +455,15 @@ __exit_with_error_block:
 	.data
 #endif
 
-	@ Make sure there are no absolute addresses in shared library by placing error_table
-	@ in read/write segment and addressing via GOT.
+	@ Make sure there are no absolute addresses in shared library by
+	@ placing error_table in read/write segment and addressing via GOT.
 error_table:
 	.word	error_no_memory
 	.word	error_no_callaswi
 	.word	error_no_sharedunixlib
 	.word	error_no_fpe
 	.word	error_unrecoverable_loop
-@ FIXME: following temporary disabled because convert-unixlib.pl does not
-@ support this.
-@	[ TARGET_CPU = "XSCALE"
-@	.word	error_no_xscale
-@	]
+	.word	error_too_low_cpu_arch
 error_table_end:
 	DECLARE_OBJECT error_table
 
@@ -512,14 +495,12 @@ error_unrecoverable_loop:
 	.word	SharedUnixLibrary_Error_FatalError
 	.asciz	"Unrecoverable fatal error detected"
 	.align
-@ FIXME: following temporary disabled because convert-unixlib.pl does not
-@ support this.
-@	[ TARGET_CPU = "XSCALE"
-@error_no_xscale
-@	.word	SharedUnixLibrary_Error_FatalError
-@	.asciz	"This program has been build with XScale only instructions"
-@	ALIGN
-@	]
+error_too_low_cpu_arch:
+	.word	SharedUnixLibrary_Error_TooLowCPUArch
+	.ascii	"Build settings used to create this program require at least "
+	.ascii	"an ARM Architecture " __ARM_ARCH_STR__ " CPU "
+	.asciz	"at runtime."
+	.align
 
 	.global	__dynamic_area_exit
 	NAME	__dynamic_area_exit
@@ -528,7 +509,7 @@ __dynamic_area_exit:
  PICEQ "STMFD	sp!, {v4, lr}"
  PICEQ "BL	__rt_load_pic"
 
-	LDR	a1, .L1	@=__dynamic_area_refcount
+	LDR	a1, .L1			@=__dynamic_area_refcount
  PICEQ "LDR	a1, [v4, a1]"
 	LDR	a2, [a1]
 	SUBS	a2, a2, #1		@ Decrement __dynamic_area_refcount,
