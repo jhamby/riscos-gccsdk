@@ -1,3 +1,24 @@
+Fri Mar 30 19:16:19 2007  Lee Noar  <leenoar@ntlworld.com>
+
+	* vscript: New file. A linker file containing a list of symbols that
+	are global within the DSO, but should not be visible outside the library
+	as they are not part of its API. This has the same effect as declaring
+	each symbol as hidden. The file is actually a version script, hence the
+	name, but version information is not used in this case.
+
+	There are a number of advantages to hiding such symbols:
+	a) The API/public interface of the library is cleaner and hides the
+	   internal workings.
+	b) Library initialisation is quicker as there are fewer relocations at
+	   runtime (the static linker is able to resolve more symbols at build
+	   time).
+	c) Functions that are only ever called from within the library and are
+	   hidden are called directly and not via the PLT making the library
+	   more efficient.
+
+	More symbols may be added to the list in the future as it becomes clearer
+	which qualify for inclusion.
+
 Tue Mar 27 02:11:36 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/unixlib/asm_dec.s: include internal/defines.h; removed define
