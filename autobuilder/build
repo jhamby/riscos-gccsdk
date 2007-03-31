@@ -91,53 +91,14 @@ find_program() {
 # Check for presence of required dependencies on the host system.
 # Exits with a user-friendly error message if not satisfied.
 check_dependencies() {
-  find_program "cvs"
-  if [ $? -ne 0 ]; then
-    echo "Autobuilder: cvs not found; is it installed on your path?"
-    exit 1;
-  fi
-
-  find_program "svn"
-  if [ $? -ne 0 ]; then
-    echo "Autobuilder: svn not found; is it installed on your path?"
-    exit 1;
-  fi
-
-  find_program "autoconf"
-  if [ $? -ne 0 ]; then
-    echo "Autobuilder: autoconf not found; is it installed on your path?"
-    exit 1;
-  fi
-
-  find_program "automake"
-  if [ $? -ne 0 ]; then
-    echo "Autobuilder: automake not found; is it installed on your path?"
-    exit 1;
-  fi
-
-  find_program "wget"
-  if [ $? -ne 0 ]; then
-    echo "Autobuilder: wget not found; is it installed on your path?"
-    exit 1;
-  fi
-
-  find_program "rman"
-  if [ $? -ne 0 ]; then
-    echo "Autobuilder: rman not found; is it installed on your path?"
-    exit 1;
-  fi
-
-  find_program "realpath"
-  if [ $? -ne 0 ]; then
-    echo "Autobuilder: realpath not found; is it installed on your path?"
-    exit 1;
-  fi
-
-  find_program "pkg-config"
-  if [ $? -ne 0 ]; then
-    echo "Autobuilder: pkg-config not found; is it installed on your path?"
-    exit 1;
-  fi
+  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen ; do
+echo checkign $build_prog
+    find_program $build_prog
+    if [ $? -ne 0 ]; then
+      echo "Autobuilder: $build_prog not found; is it installed on your path?"
+      exit 1;
+    fi
+  done
 }
 
 guess_path_separator
