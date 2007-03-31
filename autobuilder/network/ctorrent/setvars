@@ -1,0 +1,13 @@
+AB_URL=http://www.rahul.net/dholmes/ctorrent/ctorrent-1.3.4-dnh2.2.tar.gz
+
+AB_CATEGORY=network
+
+#AB_CONFLAGS=
+#AB_MANPAGE=doc/wget.1
+#AB_COPYSOURCE=yes
+
+ab_package() {
+ cp -av $S/ctorrent$AB_EXEEXT README-DNH.TXT UserGuide ChangeLog COPYING $D 
+}
+
+

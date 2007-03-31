@@ -1,0 +1,27 @@
+Description:  BitTorrent is a scaleable and efficient system for
+ distributing files over the Internet. It does this by downloading pieces of
+ the file from many different sources (peers) simultaneously and puts the
+ pieces back together into the original file. Since it shares the load
+ between many peers, there is no need for a central server with massive
+ resources, unlike older solutions such as the File Transfer Protocol (FTP).
+ This method for sharing files is commonly known as Peer-To-Peer (P2P)
+ filesharing. Like most things, P2P too has some "downsides", since you are
+ one of the peers, you will also have to share (or else it wouldn't work!).
+ This is not necessarily a bad thing, but many users feel that they
+ shouldn't have to share in order to download. BitTorrent will share
+ whatever pieces of the file you've already downloaded as long as you are
+ downloading yourself. All clients created for the BitTorrent network work
+ in this fashion, CTorrent is no exception.
+ .
+ CTorrent is a BitTorrent client written in the C++ programming language. 
+ It is built as a console program, which means that it doesn't require any
+ graphical components (such as an X server) on the machine you are running
+ it on, you can even run it remotely through a terminal if you wish.  While
+ a lot of people prefer a GUI (Graphical User Interface) for this kind of
+ applications, there are quite a few people who run "console only" servers
+ and want to use them to download files in the background. CTorrent can help
+ you do exactly this, assuming you are downloading from the BitTorrent
+ network.
+ .
+ This is a port of Enhanced CTorrent, which has several bug fixes and
+ improvements over the original CTorrent. 
