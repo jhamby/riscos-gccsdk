@@ -92,7 +92,6 @@ find_program() {
 # Exits with a user-friendly error message if not satisfied.
 check_dependencies() {
   for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen ; do
-echo checkign $build_prog
     find_program $build_prog
     if [ $? -ne 0 ]; then
       echo "Autobuilder: $build_prog not found; is it installed on your path?"
