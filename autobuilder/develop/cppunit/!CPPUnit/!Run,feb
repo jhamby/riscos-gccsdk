@@ -1,0 +1,3 @@
+Set CPPUnit$Dir <Obey$Dir>
+Set CPPUnit$Path <Obey$Dir>.
+

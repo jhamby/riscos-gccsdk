@@ -1,0 +1,46 @@
+# Configuration file for CPPUnit under autobuilder
+#
+
+AB_CATEGORY=develop
+
+# Sources are fetched from sourceforge
+#AB#_URL=http://kent.dl.sourceforge.net/sourceforge/cppunit/cppunit-1.12.0.tar.gz
+
+# RISC OS Version of the package
+AB_ROVERSION=1
+
+# Flags to pass to configure in addition to those added by the configure
+# wrapper.
+AB_CONFLAGS="--prefix=`pwd`/cppunit --disable-test-plugin"
+
+# Run "make install" (in fact: make $AB_INSTALLTARGET) after build
+AB_INSTALL=yes
+
+# Use this target as make target to install after build
+AB_INSTALLTARGET=install
+
+# Package function
+#
+# You will need to define this to do your packaging.  Its job
+# is simply to copy files from the source directory ($S) or package
+# script directory ($H) to the destination directory ($D)
+#
+ab_package () {
+  cp -r $H/\!CPPUnit $D
+  cp -r $S/doc/html $D/\!CPPUnit
+  cp -r $S/include/cppunit $D/\!CPPUnit
+  find $D/\!CPPUnit/cppunit -name "Makefile*" -exec rm {} \;
+  find $D/\!CPPUnit/cppunit -noleaf -type d -not -name "h" -exec mkdir {}/h \;
+  find $D/\!CPPUnit/cppunit -exec rename 's/(.+)\/(.+)\.(.+)/$1\/$3\/$2/' {} \;
+  mkdir -p $D/\!CPPUnit/a
+  cp `pwd`/cppunit/lib/libcppunit.a $D/\!CPPUnit/a/libcppunit
+}
+
+# Finally, as this file is executed as a bash script, you can place other
+# commands in here.  These will be executed after unpack of the source
+# and application of any patches, but before any configuration or build.
+
+mkdir -p $D/include/cppunit/extensions $D/include/cppunit/plugin $D/include/cppunit/config
+mkdir -p $D/include/cppunit/tools $D/include/cppunit/portability
+mkdir -p $D/include/cppunit/ui/text $D/include/cppunit/ui/mfc $D/include/cppunit/ui/qt
+

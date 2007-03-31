@@ -1,0 +1,3 @@
+If "<CPPUnit$Dir>"="" Then Set CPPUnit$Dir <Obey$Dir>
+If "<CPPUnit$Dir>"="<Obey$Dir>" And "<CPPUnit$Path>"="" Then Set CPPUnit$Path <Obey$Dir>.
+
