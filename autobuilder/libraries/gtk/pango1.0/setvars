@@ -13,3 +13,4 @@ autoconf
 mkdir -p $D/include/pango-1.0/pango/
 mkdir -p $D/lib/pango/1.4.0/modules/
 mkdir -p $D/lib/pango/1.5.0/modules/
+mkdir -p $D/lib/pango/1.6.0/modules/
