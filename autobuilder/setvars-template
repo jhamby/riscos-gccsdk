@@ -15,7 +15,11 @@
 #     Note: consider defining "AB_ZIPNAME=xxx-cvs-$(date +%Y%m%d)" as well.
 #
 #  2. Either via SVN:
+#     For both AOF or ELF based builds:
 #AB_SVN=
+#     For AOF builds needing another branch (if this is not defined AB_SVN is
+#     used instead):
+#AB_SVN_AOF=
 #     Note: consider defining "AB_ZIPNAME=xxx-svn-$(date +%Y%m%d)" as well.
 #
 #  3. Either via an URL:

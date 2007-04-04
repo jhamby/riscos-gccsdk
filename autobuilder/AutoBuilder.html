@@ -1,6 +1,6 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
-<head><title>Unix Porting Project - Autobuilder Manual</title></head>
+<head><title>GCCSDK Project - Autobuilder Manual</title></head>
 <body>
 
 
@@ -8,8 +8,8 @@
 
 <h2>Autobuilder Manual</h2>
 
-<p>Copyright 2003-2006, GCCSDK Developers</a>.</p>
-<p>Last updated - 13 Aug 2006</p>
+<p>Copyright 2003-2007, GCCSDK Developers</a>.</p>
+<p>Last updated - 04 Apr 2007</p>
 
 <hr>
 
@@ -111,6 +111,11 @@ is successful.  If not, the directory will remain for you to examine the build f
 </pre>
 
 <p>This file will be included every time the autobuilder is run from that directory to set these values automatically.  GCCSDK_INSTALL_CROSSBIN in this case points to the location of a GCCSDK that is targetted at XScale.  GCCSDK_INSTALL_ENV points to the 'env' dir where the include, library and other generated files are placed.</p>
+
+<p>Currently Autobuilder supports both AOF based builds (using stable GCCSDK 3.4.6) and an ELF based build (using the experimental GCCSDK 4).  For Autobuilder
+itself the toolchain used isn't making a difference but for some Autobuilder projects (usually the ones with assembler support) a different source should be used.
+This difference can be made based on the environment variable AB_ELFBUILD set to "yes" for ELF based builds. Other values or when AB_ELFBUILD is not defined
+mean AOF based builds.</p>
 
 <p>Finally, AB_TARGET is a suffix added to the names of build logs and generated archives to differentiate it from builds with other toolchains.  This is optional if you only have one toolchain, but if you have several, it is essential for depenedencies to work correctly.</p>
 
