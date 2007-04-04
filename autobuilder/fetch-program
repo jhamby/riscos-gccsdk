@@ -83,7 +83,9 @@ else
     targetname=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
     origname=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut --bytes 3-)
 
-    if [ "$targetname" != "$origname" ] ; then
+    # Have to check that targetname is not already a directory
+    # to stop problems on case insensitive systems like cygwin.
+    if [ "$targetname" != "$origname" && ! -d $targetname ] ; then
       mv $origname $targetname
     fi
 
