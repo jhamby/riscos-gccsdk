@@ -1,7 +1,11 @@
---- imdct_l_arm.S.old	2001-03-25 21:03:34.000000000 +0100
-+++ imdct_l_arm.S	2004-09-07 21:42:57.000000000 +0100
-@@ -201,53 +201,50 @@
- @*****************************************************************************
+--- imdct_l_arm.S.old	2007-04-02 14:36:40.000000000 +0100
++++ imdct_l_arm.S	2007-04-02 14:34:54.000000000 +0100
+@@ -198,189 +198,186 @@
+ #define WL17 0x0ffc19fd
+ 
+ 
+-@*****************************************************************************
++;*****************************************************************************
  
  
 -    .text
@@ -81,9 +85,10 @@
 -    stmdb   sp!, { r2, r3, r10, lr }    @ stack ct04_h, ct04_l, ct06_h, ct06_l
 +    stmdb   sp!, { r2, r3, r10, lr }    ; stack ct04_h, ct04_l, ct06_h, ct06_l
  
-     @----
+-    @----
++    ;----
  
-@@ -255,132 +252,132 @@
+     ldr     r7, [r0, #X0]
      ldr     r8, [r0, #X11]
      ldr     r9, [r0, #X12]
      sub     r7, r7, r8
@@ -140,7 +145,8 @@
 +    adc     r10, r10, lr, lsl #4        ; r10 = bits[59..28] of r10..lr
 +    str     r10, [r1, #x4]              ; store result x4
  
-     @----
+-    @----
++    ;----
  
 -    ldmia   sp, { r2, r3, r4, r5 }      @ r2..r3 = ct06, r4..r5 = ct04 (dont update sp)
 +    ldmia   sp, { r2, r3, r4, r5 }      ; r2..r3 = ct06, r4..r5 = ct04 (dont update sp)
@@ -212,7 +218,8 @@
 +    adc     r4, r4, r5, lsl #4          ; r4 = bits[59..28] of r4..r5
 +    str     r4, [r1, #x1]               ; store result x1
  
-     @----
+-    @----
++    ;----
  
 -    ldmia   sp, { r2, r3, r4, r5 }      @ r2..r3 = ct06, r4..r5 = ct04 (dont update sp)
 +    ldmia   sp, { r2, r3, r4, r5 }      ; r2..r3 = ct06, r4..r5 = ct04 (dont update sp)
@@ -278,7 +285,8 @@
 +    adc     r2, r2, r3, lsl #4          ; r2 = bits[59..28] of r2..r3
 +    str     r2, [r1, #x19]              ; store result x19
  
-     @----
+-    @----
++    ;----
  
 -    ldr     r2, [sp, #16]               @ r2 = ct01_l
 -    ldr     r3, [sp, #20]               @ r3 = ct01_h
@@ -425,7 +433,8 @@
 +    stmdb   sp!, { r2 - r7 }            ; stack -ct07_h, -ct07_l, ct07_h, ct07_l, ct02_h, ct02_l
  
  
-     @----
+-    @----
++    ;----
  
 -    add     r2, pc, #(imdct36_long_karray-.-8)  @ r2 = base address of Knn array (PIC safe ?)
 +    add     r2, pc, #(imdct36_long_karray-.-8)  ; r2 = base address of Knn array (PIC safe ?)
@@ -516,6 +525,31 @@
 -    .word  -K06, -K01,  K13,  K04,  K17, -K11, -K10, -K16, -K05,  K12,  K00,  K07, 0x00185c00
 -    .word  -K04, -K11, -K01,  K16,  K06,  K12,  K13, -K07, -K17, -K00, -K10, -K05, 0x00006000
 -    .word  -K00, -K04, -K06, -K10, -K12, -K16, -K17, -K13, -K11, -K07, -K05, -K01, 0x00206801
+-
+-
+-    @----
+-    @-------------------------------------------------------------------------
+-    @----
+-
+-imdct_l_windowing:
+-
+-    ldr     r11, [sp, #80]              @ fetch function parameter 3 from out of the stack
+-    ldmia   r1!, { r0, r2 - r9 }        @ load 9 words from x0, update pointer
+-
+-    @ r0     = x0
+-    @ r1     = &x[9]
+-    @ r2     = x1
+-    @ r3     = x2
+-    @ r4     = x3
+-    @ r5     = x4
+-    @ r6     = x5
+-    @ r7     = x6
+-    @ r8     = x7
+-    @ r9     = x8
+-    @ r10    = .
+-    @ r11    = window mode: (0 == normal), (1 == start block), (3 == stop block)
+-    @ r12    = .
+-    @ lr     = .
 +    movs    r8, r8, lsl #8              ; push result location index off the top end
 +    beq     loop                        ; loop back if completion flag not set
 +    b       imdct_l_windowing           ; branch to windowing stage if looping finished
@@ -534,34 +568,17 @@
 +    DCD  -K06, -K01,  K13,  K04,  K17, -K11, -K10, -K16, -K05,  K12,  K00,  K07, 0x00185c00
 +    DCD  -K04, -K11, -K01,  K16,  K06,  K12,  K13, -K07, -K17, -K00, -K10, -K05, 0x00006000
 +    DCD  -K00, -K04, -K06, -K10, -K12, -K16, -K17, -K13, -K11, -K07, -K05, -K01, 0x00206801
- 
- 
-     @----
-     @-------------------------------------------------------------------------
-     @----
- 
--imdct_l_windowing:
++
++
++    ;----
++    ;-------------------------------------------------------------------------
++    ;----
++
 +imdct_l_windowing
- 
--    ldr     r11, [sp, #80]              @ fetch function parameter 3 from out of the stack
--    ldmia   r1!, { r0, r2 - r9 }        @ load 9 words from x0, update pointer
++
 +    ldr     r11, [sp, #80]              ; fetch function parameter 3 from out of the stack
 +    ldmia   r1!, { r0, r2 - r9 }        ; load 9 words from x0, update pointer
- 
--    @ r0     = x0
--    @ r1     = &x[9]
--    @ r2     = x1
--    @ r3     = x2
--    @ r4     = x3
--    @ r5     = x4
--    @ r6     = x5
--    @ r7     = x6
--    @ r8     = x7
--    @ r9     = x8
--    @ r10    = .
--    @ r11    = window mode: (0 == normal), (1 == start block), (3 == stop block)
--    @ r12    = .
--    @ lr     = .
++
 +    ; r0     = x0
 +    ; r1     = &x[9]
 +    ; r2     = x1
@@ -993,17 +1010,20 @@
 -    stmia   r1, { r0, r2 - r9 }         @ store windowed x[18] .. x[26]
 +    stmia   r1, { r0, r2 - r9 }         ; store windowed x[18] .. x[26]
  
-     @----
+-    @----
 -    @ NB there are 2 possible exits from this function - this is only one of them
+-    @----
++    ;----
 +    ; NB there are 2 possible exits from this function - this is only one of them
-     @----
++    ;----
  
 -    add     sp, sp, #(21*4)             @ return stack frame
 -    ldmia   sp!, { r4 - r11, pc }       @ restore callee saved regs, and return
 +    add     sp, sp, #(21*4)             ; return stack frame
 +    ldmia   sp!, { r4 - r11, pc }       ; restore callee saved regs, and return
  
-     @----
+-    @----
++    ;----
  
  
 -stop_block_x0_to_x17:
@@ -1147,7 +1167,7 @@
  
      ldr     r5, =0x00
      ldr     r6, =0x00
-@@ -915,7 +912,7 @@
+@@ -915,86 +912,86 @@
      ldr     r3, =0x00
      ldr     r4, =0x00
  
@@ -1156,8 +1176,9 @@
  
      b       normal_block_x18_to_x35
  
-@@ -923,76 +920,76 @@
-     @----
+ 
+-    @----
++    ;----
  
  
 -start_block_x18_to_x35:
@@ -1261,15 +1282,24 @@
 -    stmia   r1!, { r5 - r10 }           @ store windowed x[30] .. x[35]
 +    stmia   r1!, { r5 - r10 }           ; store windowed x[30] .. x[35]
  
-     @----
+-    @----
 -    @ NB there are 2 possible exits from this function - this is only one of them
-+    ; NB there are 2 possible exits from this function - this is only one of them
-     @----
- 
+-    @----
+-
 -    add     sp, sp, #(21*4)             @ return stack frame
 -    ldmia   sp!, { r4 - r11, pc }       @ restore callee saved regs, and return
+-
+-    @----
+-    @END
+-    @----
++    ;----
++    ; NB there are 2 possible exits from this function - this is only one of them
++    ;----
++
 +    add     sp, sp, #(21*4)             ; return stack frame
 +    ldmia   sp!, { r4 - r11, pc }       ; restore callee saved regs, and return
++
++    ;----
++    ;END
++    ;----
  
-     @----
-     @END
