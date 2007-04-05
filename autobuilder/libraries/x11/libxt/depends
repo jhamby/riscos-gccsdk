@@ -1,1 +1,3 @@
 libsm
+libx11
+x11proto-kb
