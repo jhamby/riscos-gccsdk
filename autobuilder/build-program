@@ -25,9 +25,11 @@ AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
 export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 export AB_INSTALLTARGET=install
 
-# Use ChoX11 (libCX11) as X library instead of cross-compiled one (libX11)
-# Only needed for GCCSDK 3.4 AOF builds.
-export TLINK_CX11=
+if [ "$AB_VERBOSE" == "yes" ] ; then
+  # Use ChoX11 (libCX11) as X library instead of cross-compiled one (libX11)
+  # Only needed for GCCSDK 3.4 AOF builds.
+  export TLINK_CX11=
+fi
 
 H=$AB_HOME/$AB_PACKAGEDIR
 
