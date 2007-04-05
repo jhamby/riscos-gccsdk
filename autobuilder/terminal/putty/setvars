@@ -14,7 +14,7 @@ ab_package() {
   echo D=$D
   EXECUTABLES="$S/psftp$AB_EXEEXT $S/plink$AB_EXEEXT $S/pscp$AB_EXEEXT $S/puttygen$AB_EXEEXT"
   # $S/puttytel$AB_EXEEXT $S/pterm$AB_EXEEXT
-  DOCS="$S/../README.txt $S/../LICENCE"
+  DOCS="$S/../README $S/../LICENCE"
   cp -av $H/\!PuTTY $D
   cp -av $S/putty$AB_EXEEXT $D/\!PuTTY
   cp $EXECUTABLES $DOCS $D

@@ -1,7 +1,5 @@
-Index: unix/uxpty.c
-===================================================================
---- unix/uxpty.c	(revision 7047)
-+++ unix/uxpty.c	(working copy)
+--- unix/uxpty.c.orig	2007-04-03 11:47:53.000000000 +0100
++++ unix/uxpty.c	2007-04-03 12:00:42.000000000 +0100
 @@ -13,7 +13,7 @@
  #include <fcntl.h>
  #include <termios.h>
@@ -38,7 +36,7 @@ Index: unix/uxpty.c
      chmod(pty->name, 0600);
  #else
      pty->master_fd = open("/dev/ptmx", O_RDWR);
-@@ -628,8 +630,9 @@
+@@ -630,8 +632,9 @@
  	int ipid;
  	int status;
  	char c[1];
@@ -49,12 +47,12 @@ Index: unix/uxpty.c
  
  	do {
  	    pid = waitpid(-1, &status, WNOHANG);
-@@ -773,7 +776,7 @@
- 	dup2(slavefd, 2);
+@@ -775,7 +778,7 @@
+ 	close(slavefd);
  	setsid();
  #ifdef TIOCSCTTY
--	ioctl(slavefd, TIOCSCTTY, 1);
-+	ioctl(slavefd, TIOCSCTTY, (void *)1);
+-	ioctl(0, TIOCSCTTY, 1);
++	ioctl(0, TIOCSCTTY, (void *)1);
  #endif
  	pgrp = getpid();
- 	tcsetpgrp(slavefd, pgrp);
+ 	tcsetpgrp(0, pgrp);
