@@ -1,4 +1,4 @@
-AB_SVN=svn://libsdl.org/tags/SDL/release-1.2.11
+AB_SVN=http://svn.libsdl.org/tags/SDL/release-1.2.11
 AB_ZIPNAME=libsdl1.2-1.2.11
 
 AB_INSTALLDOCS="COPYING README README.RISCOS README-SDL.txt WhatsNew"
