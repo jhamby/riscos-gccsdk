@@ -7,7 +7,7 @@ AB_CATEGORY=develop
 #AB#_URL=http://kent.dl.sourceforge.net/sourceforge/cppunit/cppunit-1.12.0.tar.gz
 
 # RISC OS Version of the package
-AB_ROVERSION=1
+AB_ROVERSION=1.0
 
 # Flags to pass to configure in addition to those added by the configure
 # wrapper.
@@ -26,14 +26,25 @@ AB_INSTALLTARGET=install
 # script directory ($H) to the destination directory ($D)
 #
 ab_package () {
-  cp -r $H/\!CPPUnit $D
-  cp -r $S/doc/html $D/\!CPPUnit
-  cp -r $S/include/cppunit $D/\!CPPUnit
-  find $D/\!CPPUnit/cppunit -name "Makefile*" -exec rm {} \;
-  find $D/\!CPPUnit/cppunit -noleaf -type d -not -name "h" -exec mkdir {}/h \;
-  find $D/\!CPPUnit/cppunit -exec rename 's/(.+)\/(.+)\.(.+)/$1\/$3\/$2/' {} \;
-  mkdir -p $D/\!CPPUnit/a
-  cp `pwd`/cppunit/lib/libcppunit.a $D/\!CPPUnit/a/libcppunit
+  cp -r $H/\!CppUnit $D
+  cp -r $S/doc/html $D/\!CppUnit
+  cp -r $S/include/cppunit $D/\!CppUnit
+  find $D/\!CppUnit/cppunit -name "Makefile*" -exec rm {} \;
+  find $D/\!CppUnit/cppunit -noleaf -type d -not -name "h" -exec mkdir {}/h \;
+  find $D/\!CppUnit/cppunit -exec rename 's/(.+)\/(.+)\.(.+)/$1\/$3\/$2/' {} \;
+  mkdir -p $D/\!CppUnit/a
+  cp `pwd`/cppunit/lib/libcppunit.a $D/\!CppUnit/a/libcppunit
+
+  mkdir -p $D/RiscPkg
+  #cpp -P -DROVERSION=$AB_ROVERSION $H/RiscPkg/Control $D/RiscPkg/Control
+  #cpp -P -DAUTHORS="`cat $S/AUTHORS`" $H/RiscPkg/Copyright $D/RiscPkg/Copyright
+  cat $H/RiscPkg/Control | sed s/ROVERSION/$AB_ROVERSION/ > $D/RiscPkg/Control
+  echo sed "/AUTHORS/ {r $S/AUTHORS d}"
+  cat $H/RiscPkg/Copyright | sed "/AUTHORS/ {
+                                             r $S/AUTHORS
+                                             d
+                                            }" > $D/RiscPkg/Copyright
+  cat $S/COPYING >> $D/RiscPkg/Copyright
 }
 
 # Finally, as this file is executed as a bash script, you can place other
