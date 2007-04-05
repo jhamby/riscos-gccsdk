@@ -1,2 +1,0 @@
-tar xfj coreutils-*.tar.bz2
-mv coreutils-*/* .

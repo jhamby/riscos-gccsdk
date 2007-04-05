@@ -1,6 +1,9 @@
 
 AB_CATEGORY=cli
 
+AB_URL=http://www.mirror.ac.uk/mirror/ftp.gnu.org/gnu/coreutils/coreutils-5.2.1.tar.bz2
+#ab_url=http://www.mirror.ac.uk/mirror/ftp.gnu.org/gnu/coreutils/coreutils-6.9.tar.bz2
+
 #AB_MANPAGE=
 
 ab_package() {
