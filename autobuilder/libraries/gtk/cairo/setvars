@@ -1,5 +1,5 @@
-AB_URL=http://cairographics.org/releases/cairo-1.2.4.tar.gz
-AB_ZIPNAME=cairo-1.2.4
+AB_URL=http://cairographics.org/releases/cairo-1.2.6.tar.gz
+AB_ZIPNAME=cairo-1.2.6
 
 AB_INSTALL=yes
 
