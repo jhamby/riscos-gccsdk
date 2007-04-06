@@ -1,12 +1,10 @@
 /* perror ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
-
-__STDIOLIB__
 
 void
 perror (const char *string)

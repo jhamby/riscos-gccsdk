@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.9: Input/Output <stdio.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #ifndef __STDIO_H
@@ -131,14 +131,12 @@ extern FILE *__stream_init (int __fd, FILE *__stream)
 /* Dissect the given mode string into an __io_mode.  */
 extern __io_mode __getmode (const char *__mode) __THROW __nonnull ((1));
 
-extern void __stdioinit (void);	/* initialise stdin,stdout & stderr */
-extern void __stdioexit (void);	/* close streams & delete tmpfile() */
+extern void __stdioinit (void);	/* Initialise stdin, stdout & stderr.  */
+extern void __stdioexit (void);	/* Close streams & delete tmpfile().  */
 
 /* Return the next character in the input buffer, keeping it in
    the input buffer.  If the buffer is empty, then fill it.  */
 extern int __peek_char (FILE *__stream) __THROW;
-
-#define __STDIOLIB__ static void (*__stdiolib)(void) = __stdioinit;
 
 /* All streams are in a linked list.
    This is the head of the list.  */

@@ -1,3 +1,13 @@
+Fri Apr  6 18:37:14 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/stdio.h(__STDIOLIB__): Removed static __stdiolib function
+	pointer to __stdioinit (). It wasn't needed anymore for quite some
+	time.
+	* stdio/{freopen.c,fputs.c,fgets.c,perror.c,putc.c,flsbuf.c,getc.c
+	stdio.c,ungetc.c,setbuf.c,puts.c,putw.c,fwrite.c,tmpfile.c,gets.c
+	getw.c,filbuf.c,fopen.c,fpos.c,fclose.c,popen.c,fread.c,fflush.c}:
+	Removed __STDIOLIB__.
+
 Fri Mar 30 19:16:19 2007  Lee Noar  <leenoar@ntlworld.com>
 
 	* vscript: New file. A linker file containing a list of symbols that

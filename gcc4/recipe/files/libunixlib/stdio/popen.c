@@ -1,5 +1,5 @@
 /* UnixLib popen() and pclose() implementation.
-   Copyright 2001-2006 UnixLib Developers.  */
+   Copyright 2001-2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -14,8 +14,6 @@
 #ifdef DEBUG
 #include <unixlib/os.h>
 #endif
-
-__STDIOLIB__
 
 /* FIXME, hang this off the FILE structure.  */
 struct pwr

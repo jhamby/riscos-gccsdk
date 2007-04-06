@@ -1,6 +1,6 @@
 /* UnixLib fgetpos(), fsetpos(), fseek(), fseeko(), ftell(), ftello(),
    rewind() implementation.
-   Copyright 2001-2006 UnixLib Developers.  */
+   Copyright 2001-2007 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -13,8 +13,6 @@
 #ifdef DEBUG
 #include <unixlib/os.h>
 #endif
-
-__STDIOLIB__
 
 int
 fgetpos (FILE * stream, fpos_t * pos)

@@ -1,11 +1,9 @@
 /* UnixLib fputc(), fputc_unlocked(), putc() and putchar() implementation.
-   Copyright 2002-2006 UnixLib Developers.  */
+   Copyright 2002-2007 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
-
-__STDIOLIB__
 
 int
 fputc (int c, FILE *stream)

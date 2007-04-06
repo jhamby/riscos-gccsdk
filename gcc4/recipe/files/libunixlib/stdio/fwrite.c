@@ -1,5 +1,5 @@
 /* UnixLib fwrite() implementation.
-   Copyright 2001-2006 UnixLib Developers.  */
+   Copyright 2001-2007 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -14,10 +14,7 @@
 #include <unixlib/os.h>
 #endif
 
-__STDIOLIB__
-
 /* Return number of objects written.  */
-
 size_t
 fwrite (const void *data, size_t size, size_t count, FILE *stream)
 {

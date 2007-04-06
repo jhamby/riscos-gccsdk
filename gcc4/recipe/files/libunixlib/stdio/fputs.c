@@ -1,13 +1,11 @@
 /* fputs ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
-
-__STDIOLIB__
 
 int
 fputs (const char *s, FILE * stream)

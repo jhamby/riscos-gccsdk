@@ -1,5 +1,5 @@
 /* __flsbuf ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -13,10 +13,7 @@
 #  include <unixlib/os.h>
 #endif
 
-__STDIOLIB__
-
 /* __flsbuf(EOF, f) flushes output without adding c */
-
 int
 __flsbuf (int c, FILE *stream)
 {

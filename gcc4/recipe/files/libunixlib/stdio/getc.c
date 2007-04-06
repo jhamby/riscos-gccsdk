@@ -1,11 +1,9 @@
 /* UnixLib fgetc(), getc() and getchar() implementation.
-   Copyright 2000-2006 UnixLib Developers.  */
+   Copyright 2000-2007 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
-
-__STDIOLIB__
 
 int
 fgetc (FILE * stream)

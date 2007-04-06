@@ -1,5 +1,5 @@
 /* UnixLib fclose() implementation.
-   Copyright 2001-2006 UnixLib Developers.  */
+   Copyright 2001-2007 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -14,8 +14,6 @@
 
 #include <fcntl.h>
 #include <pthread.h>
-
-__STDIOLIB__
 
 int
 fclose (FILE * stream)

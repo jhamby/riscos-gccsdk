@@ -1,5 +1,5 @@
 /* tmpfile (), tmpnam (), tmpnam_r (), mktemp (), mkstemp (), tempnam ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <string.h>
@@ -14,8 +14,6 @@
 #include <unixlib/local.h>
 #include <unixlib/unix.h>
 #include <pthread.h>
-
-__STDIOLIB__
 
 /* These are the characters used in temporary filenames. Increasing
    this string will exceed the maximum unsigned integer size. */

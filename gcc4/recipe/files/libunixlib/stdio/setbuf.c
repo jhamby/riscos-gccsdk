@@ -1,13 +1,10 @@
 /* UnixLib setbuffer(), setlinebuf(), setbuf() and setvbuf() implementation.
-   Copyright 2000-2006 UnixLib Developers.  */
+   Copyright 2000-2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
-
-__STDIOLIB__
-
 
 /* If buf is null, this makes stream unbuffered.
    Otherwise it makes stream fully buffered using buf

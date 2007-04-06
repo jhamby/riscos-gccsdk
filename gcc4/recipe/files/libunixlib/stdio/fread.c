@@ -1,5 +1,5 @@
 /* UnixLib fread() implementation.
-   Copyright 2000-2006 UnixLib Developers.  */
+   Copyright 2000-2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -9,10 +9,7 @@
 #include <sys/types.h>
 #include <pthread.h>
 
-__STDIOLIB__
-
 /* Return number of objects read.  */
-
 size_t
 fread (void *data, size_t size, size_t count, FILE *stream)
 {

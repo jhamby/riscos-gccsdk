@@ -1,5 +1,5 @@
 /* UnixLib buffer stream handling.
-   Copyright 2000-2006 UnixLib Developers.  */
+   Copyright 2000-2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -7,8 +7,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
-
-__STDIOLIB__
 
 /* Check the stream for validity and errors.  */
 static int check_stream (FILE *stream)
