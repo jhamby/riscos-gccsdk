@@ -37,6 +37,7 @@
 #include <string.h>
 #include <malloc.h>
 #include <pthread.h>
+#include <stdint.h>
 
 #define HAVE_MMAP 1
 #define HAVE_MREMAP 1
@@ -3801,8 +3802,14 @@ static void *int_calloc (mstate av, size_t n_elements, size_t elem_size)
   CHUNK_SIZE_T  clearsize;
   CHUNK_SIZE_T  nclears;
   INTERNAL_SIZE_T* d;
+  uint64_t total_size;
 
-  void *mem = malloc_unlocked (av, n_elements * elem_size);
+  /* Check for size_t overflow.  */
+  total_size = (uint64_t)n_elements * elem_size;
+  if (total_size > SIZE_MAX)
+    return NULL;
+
+  void *mem = malloc_unlocked (av, total_size);
   if (mem != 0) {
     p = mem2chunk(mem);
 

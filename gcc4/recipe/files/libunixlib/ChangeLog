@@ -1,3 +1,9 @@
+Sat Apr  7 16:06:43 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdlib/alloc.c(calloc): Detect size_t overflow for total size
+	calculation as this might result in a non-NULL return value letting
+	the caller believe it has a memory block that big.
+
 Fri Apr  6 18:37:14 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/stdio.h(__STDIOLIB__): Removed static __stdiolib function
