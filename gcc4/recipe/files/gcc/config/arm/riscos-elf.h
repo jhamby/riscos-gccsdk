@@ -164,7 +164,7 @@
   emit_insn (gen_rtx_CLOBBER (VOIDmode, gen_rtx_REG (SImode, LR_REGNUM)))
 
 #undef  CC1_SPEC
-#define CC1_SPEC "%{profile:-p}"
+#define CC1_SPEC "%{profile:-p} %{fPIC:-fPIC -fcall-used-v5}"
 
 #define LINK_GCC_C_SEQUENCE_SPEC \
   "%{static:--start-group} %G %L %{static:--end-group}%{!static:%G}"
