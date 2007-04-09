@@ -118,7 +118,7 @@ struct __pthread_thread
   /* Space for registers on the context switch */
   struct __pthread_saved_context *saved_context;
 
-  void *alloca[3]; /* Storage for alloca */
+  void *alloca; /* Storage for alloca_chunk linked list */
 
   int thread_errno; /* Value of errno for this thread */
 

@@ -1,5 +1,5 @@
 /* Internal thread node creation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 2002-2007 UnixLib Developers.
    Written by Martin Piper and Alex Waugh.  */
 
 #include <stdlib.h>
@@ -53,9 +53,7 @@ __pthread_new_node (pthread_t node)
 
   /* Ensure the magic number is invalid until the thread is ready to run.  */
   node->magic = 0;
-  node->alloca[0] = 0;
-  node->alloca[1] = 0;
-  node->alloca[2] = 0;
+  node->alloca = NULL;
   node->thread_errno = 0;
   node->errbuf.errnum = 0;
   node->errbuf.errmess[0] = '\0';
@@ -104,4 +102,3 @@ __pthread_new_stack (void)
 
   return stack;
 }
-

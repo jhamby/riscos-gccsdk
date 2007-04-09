@@ -15,22 +15,22 @@ __stackchunk_magic_number:
 	@ SharedCLibrary:
 	@   typedef struct __exception_stack_chunk
 	@   {
-	@     unsigned long sc_mark@   == 0xf60690ff
-	@     struct __exception_stack_chunk *sc_next, *sc_prev@
-	@     unsigned long sc_size@
-	@     int (*sc_deallocate)(void *)@
-	@   } _exception_stack_chunk@
+	@     unsigned long sc_mark;		/* == 0xf60690ff */
+	@     struct __exception_stack_chunk *sc_next, *sc_prev;
+	@     unsigned long sc_size;
+	@     int (*sc_deallocate)(void *);
+	@   } _exception_stack_chunk;
 	@
 	@ UnixLib:
 	@   struct __stack_chunk
 	@   {
-	@     unsigned int magic@            /* CHUNK_MAGIC */
-	@     struct __stack_chunk *next@    /* CHUNK_NEXT */
-	@     struct __stack_chunk *prev@    /* CHUNK_PREV */
-	@     unsigned int size@             /* CHUNK_SIZE */
-	@     void (*dealloc) (void *)@      /* CHUNK_DEALLOC */
-	@     void (*returnaddr) (void)@     /* CHUNK_RETURN */
-	@   }@
+	@     unsigned int magic;		/* CHUNK_MAGIC */
+	@     struct __stack_chunk *next;	/* CHUNK_NEXT */
+	@     struct __stack_chunk *prev;	/* CHUNK_PREV */
+	@     unsigned int size;		/* CHUNK_SIZE */
+	@     void (*dealloc) (void *);		/* CHUNK_DEALLOC */
+	@     void (*returnaddr) (void);	/* CHUNK_RETURN */
+	@   };
 	@
 	@ A UnixLib chunked stack is the same as above, but with an additional
 	@ word at the end holding the return address after the chunk is freed.

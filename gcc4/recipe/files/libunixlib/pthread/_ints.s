@@ -112,10 +112,6 @@ __pthread_protect_unsafe:
 	LDR	a1, [fp, #-4]	@ Load calling function's return address
 	STR	a1, [a4, #GBL_PTH_RETURN_ADDRESS]
 	ADR	a2, __pthread_unprotect_unsafe
-	TEQ	a1, a1
-	TEQ	pc, pc
-	ANDNE	a1, a1, #0xfc000003	@ Make sure the flags and mode bits of
-	ORRNE	a2, a1, a2		@ pc are preserved when in 26bit mode
 	@ Alter calling function's return address to point
 	@ to __pthread_unprotect_unsafe
 	STR	a2, [fp, #-4]

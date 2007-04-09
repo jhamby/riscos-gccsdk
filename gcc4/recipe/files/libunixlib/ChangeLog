@@ -1,3 +1,34 @@
+Mon Apr  9 21:16:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	Removed the last pre-UnixLib 5 only alloca implementation remains:
+	* include/pthread.h(struct __pthread_thread): reduced alloca entry
+	array of 3 pointers to just one pointer. The other array entries
+	were not used.
+	* pthread/newnode.c: following above change in struct
+	__pthread_thread.
+	* include/unixlib/asm_dec.s: likewise.
+	* gcccompat/galloca.c: likewise.
+	Enabled asserts for __UNIXLIB_PARANOID enabled builds.  Listen to
+	__UNIXLIB_ALLOCA_FATAL to determine what to do if alloca() fails due
+	to memory failure.
+	(__gcc_alloca_thread_free_all): added, restores the alloca chunk list
+	at longjmp() time.
+	* sys/_jmp.s(setjmp,longjmp): alloca_list no longer exists so no
+	longer (re)storing this weak value. longjmp() calls
+	__gcc_alloca_thread_free_all() when the alloca chunk list is different
+	than that setjmp() time. Soft-float builds are no longer storing
+	the floating point registers.
+	* include/setjmp.h(jmp_buf): following above change in struct
+	jmp_buf.
+	* gcccompat/_b_frame.s: fixed comments which got incorrectly changed
+	by the aof2elf assembler conversion.
+	* pthread/_ints.s(__pthread_protect_unsafe): don't resore pc flags in
+	__pthread_unprotect_unsafe value when running on 26 bit systems (not
+	needed for APCS-32).
+	* sys/_syslib.s(use_existing_chunk): don't restore pc flags in
+	__free_stack_chunk value when running on 26 bit systems (not needed
+	for APCS-32).
+
 Mon Apr  9 01:57:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* signal/_signal.s(unrecoverable_error): don't test for FPU exception

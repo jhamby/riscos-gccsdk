@@ -792,11 +792,6 @@ use_existing_chunk:
 	STR	a2, [a1, #CHUNK_RETURN]	@ Remember it
 
 	ADR	a3, __free_stack_chunk
-	TEQ	a1, a1
-	TEQ	pc, pc
-	ANDNE	a2, a2, #0xfc000003	@ Preserve flags if in 26bit mode
-	BICNE	a3, a3, #0xfc000003
-	ORRNE	a3, a2, a3
 	STR	a3, [fp, #-4]	@ Replace it with our chunk free procedure
 
  PICNE "LDMFD	v3, {a1, a2, a3, a4, v1, v2, v3, pc}"
@@ -947,20 +942,23 @@ __check_chunk_l1:
 __check_chunk_l2:
 	MOV	pc, lr
 	DECLARE_FUNCTION __check_stack
-#endif @ __UNIXLIB_EXTREMELY_PARANOID > 0
+#endif @ __UNIXLIB_EXTREMELY_PARANOID
 
 
+	@ Remove any unused stack chunks
 	.global	__trim_stack
-__trim_stack: @ Remove any unused stack chunks
-	SUB	a2, sl, #512+CHUNK_OVERHEAD	@ Find bottom of chunk
+__trim_stack:
+	SUB	a2, sl, #512 + CHUNK_OVERHEAD	@ Find bottom of chunk
 	LDR	a1, [a2, #CHUNK_NEXT]
-	CMP	a1, #0
-	MOVNE	a3, #0
-	STRNE	a3, [a2, #CHUNK_NEXT]
-	MOVEQ	pc, lr	@ Falls through to __free_stack_chain if required
+	TEQ	a1, #0
+	MOVEQ	pc, lr
+	MOV	a3, #0
+	STR	a3, [a2, #CHUNK_NEXT]
+	@ Falls through to __free_stack_chain
 
+	@ Free a chain of stack chunks pointer to by a1
 	.global	__free_stack_chain
-__free_stack_chain: @ free a chain of stack chunks pointer to by a1
+__free_stack_chain:
 	STMFD	sp!, {v1, lr}
 __free_stack_chain_l1:
 	@ Spare chunk is too small, so free it and alloc another one

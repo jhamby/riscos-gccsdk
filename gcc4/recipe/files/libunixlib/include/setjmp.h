@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.6: Non-Local Jumps <setjmp.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #ifndef __SETJMP_H
@@ -16,16 +16,10 @@
 
 __BEGIN_DECLS
 
-/* Warning: if __JMP_BUF_SIZE is updated then lib1aof.s
-   and riscos-{aof/elf}.h in gcc/config/arm/ will also need changing.  */
-#ifdef __JMP_BUF_SIZE
-#if __JMP_BUF_SIZE < 25
-#undef __JMP_BUF_SIZE
-#endif
-#endif
-
-#ifndef __JMP_BUF_SIZE
-#define __JMP_BUF_SIZE 25
+#ifdef __SOFTFP__
+#  define __JMP_BUF_SIZE 13
+#else
+#  define __JMP_BUF_SIZE 25
 #endif
 
 __BEGIN_NAMESPACE_STD
