@@ -122,10 +122,10 @@ E.g. :
   *Set my_program$Heap ""
 
 <program name>$HeapMax
-Specifies the maximum size (in MB) to use when creating a dynamic area for
-the heap. When not defined, it defaults to 32MB or the value specified
-by the __dynamic_da_max_size weak variable. A maximum of 32 characters are
-taken for <program name>.
+Integer variable specifying the maximum size (in MB) to use when creating a
+dynamic area for the heap. When not defined, it defaults to 32MB or the value
+specified by the __dynamic_da_max_size weak variable when this is defined in
+the executable. A maximum of 32 characters are taken for <program name>.
 
 E.g. :
   *SetEval my_program$HeapMax 64
@@ -204,9 +204,9 @@ Header file: <features.h>.
 
 extern int __dynamic_da_max_size __attribute__ ((__weak__));
 
-Specifies the maximum size to use when creating a dynamic area for
-the heap. When not defined, it defaults to 32MB. Can be overridden by
-the <program name>$HeapMax variable.
+Specifies the maximum size to use in bytes when creating a dynamic area for
+the heap. When not defined, it defaults to 32MB. Can always be overridden by
+the <program name>$HeapMax integer variable (in MB).
 
 
 Compile-time features

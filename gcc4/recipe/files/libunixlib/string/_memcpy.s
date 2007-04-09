@@ -6,6 +6,12 @@
 
 #include "unixlib/asm_dec.s"
 
+	@ Always select ARM v6 architecture as this avoids the assembler error
+	@ "selected processor does not support `PLD xxx`" when there is an
+	@ explicit -march/cpu specified which predates armv6.  Here we're only
+	@ using PLD which doesn't do anything on pre-armv6 architectures.
+.arch	armv6
+
 	.global	memcpy
 	.global	memmove
 	.global	bcopy

@@ -1,9 +1,10 @@
 @ SharedUnixLibrary
-@ Copyright (c) 2002-2006 UnixLib Developers
+@ Copyright (c) 2002-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
 	.text
+	.fpu fpa
 
 @ Structure for clients written for SUL 1.04 and earlier
 @ These clients call SharedUnixLibrary_RegisterUpCall to initialise, while

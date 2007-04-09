@@ -15,8 +15,6 @@
 
 	.text
 
-
-
 @-----------------------------------------------------------------------
 @ static void __raise (int signo)
 @
@@ -534,6 +532,7 @@ __h_error:
 unrecoverable_error:
 	@ Bit 31-was set, therefore it was a hardware error.
 
+#ifndef __SOFTFP__
 	@ Test the type of hardware error.  We currently aren't doing
 	@ much other than saying it was a Floating Point Exception
 	@ or something else.
@@ -570,6 +569,7 @@ unrecoverable_error:
 	MOV	a2, #SIGFPE	@  A floating point exception
 
 non_fp_exception:
+#endif
 	MOV	a1, #0
 
 	BL	__unixlib_raise_signal
