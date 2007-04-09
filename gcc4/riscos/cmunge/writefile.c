@@ -2049,18 +2049,6 @@ void WriteFile(void)
   generics();
   errors();
 
-  /* FIXME: The following is a workaround by providing an empty __gccmain
-     routine as C++ support is currently not supported in GCCSDK 4 for
-     module code.  */
-  if (opt.toolchain == tc_gcc)
-    fputs("\n\
-\t.text\n\
-\t.global\t__gccmain\n\
-\t.type\t__gccmain, %function\n\
-__gccmain:\n\
-\tMOV\tpc, r14\n\
-", file);
-
   trailer();
 
   file_close(file);
