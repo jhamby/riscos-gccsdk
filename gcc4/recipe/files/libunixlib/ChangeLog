@@ -1,3 +1,14 @@
+Mon Apr  9 01:57:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* signal/_signal.s(unrecoverable_error): don't test for FPU exception
+	in soft-float build.
+	* module/sul.s: explicit fpu specification as "fpa" as we're using
+	FP instructions even in a soft-float build.
+	* string/_memcpy.s: explicit arch specification as "armv6" to allow
+	PLD instructions even if we're building with another -march compiler
+	option.
+	* README(<program name>$HeapMax): clarified it a little bit more.
+
 Sat Apr  7 16:06:43 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/alloc.c(calloc): Detect size_t overflow for total size
