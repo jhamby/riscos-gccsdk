@@ -48,6 +48,15 @@
 #define NEED_PLT_RELOC	(!TARGET_MODULE && flag_pic)
 #define NEED_GOT_RELOC	flag_pic
 
+/* We explicitly specify an -mfpu value when there isn't one specified as
+   otherwise selecting an -march makes the assembler choose an 'appropriate'
+   default fpu value which either clashes with -mfloat-abi option (resulting
+   in e.g. "hard-float conflicts with specified fpu" assembler errors), either
+   result in linker errors when VFP fpu is taken as default fpu not matching
+   -mfloat-abi=soft.  */
+#undef SUBTARGET_EXTRA_ASM_SPEC
+#define SUBTARGET_EXTRA_ASM_SPEC "%{!mfpu:%{mhard-float|mfloat-abi=hard:-mfpu=fpa; :-mfpu=softfpa}}"
+
 #undef SUBTARGET_EXTRA_LINK_SPEC
 #ifdef CROSS_COMPILE
 #  define SUBTARGET_EXTRA_LINK_SPEC \

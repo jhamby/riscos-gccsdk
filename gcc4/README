@@ -130,6 +130,13 @@ cross-compiler will be installed).
      $ make
      $ make install
 
+   When you want specific compiler options for target libraries, you can
+   specify them like (e.g. taking the options "-O3 -march=armv4"):
+
+     $ cd $GCCSDK_ROOT/arm-unknown-riscos
+     $ make CFLAGS_FOR_TARGET="-O3 -march=armv4" CXXFLAGS_FOR_TARGET="-O3 -march=armv4"
+     $ make install
+
 2.2. Build RISC OS ELF loader
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
