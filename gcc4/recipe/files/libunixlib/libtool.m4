@@ -696,7 +696,7 @@ AC_MSG_CHECKING([for $compiler option to produce PIC])
       esac
       ;;
     *riscos)
-      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC -fcall-used-v5'
+      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC'
       _LT_AC_TAGVAR(lt_prog_compiler_static, $1)='-static'
       _LT_AC_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
       ;;
@@ -910,7 +910,7 @@ AC_MSG_CHECKING([for $compiler option to produce PIC])
       vxworks*)
 	;;
       *riscos)
-        _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC -fcall-used-v5'
+        _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC'
         _LT_AC_TAGVAR(lt_prog_compiler_static, $1)='-static'
         _LT_AC_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
         ;;
@@ -989,7 +989,7 @@ AC_MSG_CHECKING([for $compiler option to produce PIC])
       ;;
 
     *riscos)
-      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC -fcall-used-v5'
+      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC'
       _LT_AC_TAGVAR(lt_prog_compiler_static, $1)='-static'
       _LT_AC_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
       ;;
@@ -1129,7 +1129,7 @@ AC_MSG_CHECKING([for $compiler option to produce PIC])
       ;;
 
     *riscos)
-      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC -fcall-used-v5'
+      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fPIC'
       _LT_AC_TAGVAR(lt_prog_compiler_static, $1)='-static'
       _LT_AC_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
       ;;

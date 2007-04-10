@@ -1,3 +1,8 @@
+Tue Apr 10 19:10:01 2007  Lee Noar  <leenoar@ntlworld.com>
+
+	* libtool.m4: Remove occurrences of -fcall-used-v5 as it's now implied
+	by -fPIC.
+
 Mon Apr  9 21:16:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	Removed the last pre-UnixLib 5 only alloca implementation remains:
