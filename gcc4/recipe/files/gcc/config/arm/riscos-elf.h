@@ -173,7 +173,7 @@
   emit_insn (gen_rtx_CLOBBER (VOIDmode, gen_rtx_REG (SImode, LR_REGNUM)))
 
 #undef  CC1_SPEC
-#define CC1_SPEC "%{profile:-p} %{fPIC:-fPIC -fcall-used-v5}"
+#define CC1_SPEC "%{profile:-p}"
 
 #define LINK_GCC_C_SEQUENCE_SPEC \
   "%{static:--start-group} %G %L %{static:--end-group}%{!static:%G}"
@@ -245,6 +245,15 @@
 
 /* When UnixLib is used, we claim to support all C99 functions.  */
 #define TARGET_C99_FUNCTIONS TARGET_UNIXLIB
+
+#define PIC_PLT_SCRATCH_REGNUM	8
+
+#undef SUBTARGET_CONDITIONAL_REGISTER_USAGE
+#define SUBTARGET_CONDITIONAL_REGISTER_USAGE	\
+ if (flag_pic == 2)				\
+   {						\
+     call_used_regs[PIC_PLT_SCRATCH_REGNUM] = 1;\
+   }
 
 #ifndef CROSS_COMPILE
 /* This section defines all the specific features for GCC when running
