@@ -30,4 +30,4 @@
 # define __NO_MATH_INLINES
 #endif
 
-#include "libm-test.c"
+#include "libm-test.h"

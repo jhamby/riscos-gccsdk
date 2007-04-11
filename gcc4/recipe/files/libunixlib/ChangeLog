@@ -1,3 +1,17 @@
+Wed Apr 11 03:21:40 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* string/{_ffs.s,_ffsll.s}: the armv5 implemenation didn't work at
+	all; replaced the non-armv5 implementation by a faster algorithm from
+	David Seal.
+	* pthread/_ints.s: DCB -> .asciz
+	* gen-auto: moved from GCCSDK recipe/files/scripts/reconf-libunixlib-01
+	to here; updated it so that the configure.ac is generated from
+	configure.template filling in the AC_OUTPUT parameters; updated it
+	to create TESTS for each test subdirectories.
+	* test: reorganised the test files.
+	* gcccompat/galloca.c: fixed wrong test on __UNIXLIB_PARANOID to
+	determine if asserts need to be enabled or not.
+
 Tue Apr 10 19:10:01 2007  Lee Noar  <leenoar@ntlworld.com>
 
 	* libtool.m4: Remove occurrences of -fcall-used-v5 as it's now implied
@@ -16,11 +30,11 @@ Mon Apr  9 21:16:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	Enabled asserts for __UNIXLIB_PARANOID enabled builds.  Listen to
 	__UNIXLIB_ALLOCA_FATAL to determine what to do if alloca() fails due
 	to memory failure.
-	(__gcc_alloca_thread_free_all): added, restores the alloca chunk list
+	(__gcc_alloca_longjmp_free): added, restores the alloca chunk list
 	at longjmp() time.
 	* sys/_jmp.s(setjmp,longjmp): alloca_list no longer exists so no
 	longer (re)storing this weak value. longjmp() calls
-	__gcc_alloca_thread_free_all() when the alloca chunk list is different
+	__gcc_alloca_longjmp_free() when the alloca chunk list is different
 	than that setjmp() time. Soft-float builds are no longer storing
 	the floating point registers.
 	* include/setjmp.h(jmp_buf): following above change in struct

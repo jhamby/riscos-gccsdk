@@ -161,12 +161,5 @@ fi
 
 #AC_CONFIG_FILES
 
-AC_OUTPUT(Makefile test/Makefile \
-  test/assert/Makefile \
-  test/dirent/Makefile \
-  test/math/Makefile \
-  test/pthread/Makefile \
-  test/stdio/Makefile \
-  test/stdlib/Makefile \
-  test/string/Makefile \
-  test/strings/Makefile)
+# The parameters for AC_OUTPUT will be filled in by 'gen-auto.pl'.
+AC_OUTPUT()

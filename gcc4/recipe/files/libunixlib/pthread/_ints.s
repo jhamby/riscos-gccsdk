@@ -1,13 +1,12 @@
 @ Enable and disable the callevery interrupt from causing context switches
 @ disable_ints can be called multiple times, provided enable_ints is
 @ subsequently called an equal number of times
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+@ Copyright (c) 2002-2007 UnixLib Developers
 @ Written by Martin Piper and Alex Waugh
 
 #include "unixlib/asm_dec.s"
 
 	.text
-
 
 	.global	__pthread_disable_ints
 	.global	__pthread_enable_ints
@@ -122,7 +121,7 @@ __pthread_protect_unsafe:
 
 #if __UNIXLIB_PARANOID
 noframe:
-	DCB "__pthread_protect_unsafe called without an APCS-32 stack frame" , 0
+	.asciz	"__pthread_protect_unsafe called without an APCS-32 stack frame"
 	.align
 return_notempty:
 	.asciz	"Return address is not empty in __pthread_protect_unsafe"

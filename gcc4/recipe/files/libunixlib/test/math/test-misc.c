@@ -1,5 +1,5 @@
 /* Miscellaneous tests which don't fit anywhere else.
-   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -52,8 +52,14 @@ main (void)
     int e;
     int i;
 
-#  if LDBL_MANT_DIG == 64
+#  if LDBL_MANT_DIG == 53
+    m = 0x1.ffffffffffffep-1L;
+#  elif LDBL_MANT_DIG == 64
     m = 0xf.fffffffffffffffp-4L;
+#  elif LDBL_MANT_DIG == 106
+    /* This has to match the mantissa of LDBL_MAX which actually does have a
+       missing bit in the middle.  */
+    m = 0x1.fffffffffffff7ffffffffffff8p-1L;
 #  elif LDBL_MANT_DIG == 113
     m = 0x1.ffffffffffffffffffffffffffffp-1L;
 #  else
@@ -394,7 +400,6 @@ main (void)
 	result = 1;
       }
 
-#if 0
     if (nexttowardf (0.0f, INFINITY) != nexttowardf (0.0f, 1.0f)
         || nexttowardf (-0.0f, INFINITY) != nexttowardf (-0.0f, 1.0f)
         || nexttowardf (0.0f, -INFINITY) != nexttowardf (0.0f, -1.0f)
@@ -403,7 +408,6 @@ main (void)
 	printf ("nexttowardf (+-0, +-Inf) != nexttowardf (+-0, +-1)\n");
 	result = 1;
       }
-#endif
   }
 
   {
@@ -710,7 +714,6 @@ main (void)
 	result = 1;
       }
 
-#if 0
     if (nexttoward (0.0, INFINITY) != nexttoward (0.0, 1.0)
         || nexttoward (-0.0, INFINITY) != nexttoward (-0.0, 1.0)
         || nexttoward (0.0, -INFINITY) != nexttoward (0.0, -1.0)
@@ -719,7 +722,6 @@ main (void)
 	printf ("nexttoward (+-0, +-Inf) != nexttoward (+-0, +-1)\n");
 	result = 1;
       }
-#endif
   }
 
 #ifndef NO_LONG_DOUBLE
@@ -1141,6 +1143,46 @@ main (void)
 	result = 1;
       }
   }
+#endif
+
+  /* The tests here are very similar to tests earlier in this file,
+     the important difference is just that there are no intervening
+     union variables that cause some GCC versions to hide possible
+     bugs in nextafter* implementation.  */
+  if (nextafterf (nextafterf (FLT_MIN, FLT_MIN / 2.0), FLT_MIN) != FLT_MIN)
+    {
+      puts ("nextafterf FLT_MIN test failed");
+      result = 1;
+    }
+  if (nextafterf (nextafterf (-FLT_MIN, -FLT_MIN / 2.0), -FLT_MIN)
+      != -FLT_MIN)
+    {
+      puts ("nextafterf -FLT_MIN test failed");
+      result = 1;
+    }
+  if (nextafter (nextafter (DBL_MIN, DBL_MIN / 2.0), DBL_MIN) != DBL_MIN)
+    {
+      puts ("nextafter DBL_MIN test failed");
+      result = 1;
+    }
+  if (nextafter (nextafter (-DBL_MIN, -DBL_MIN / 2.0), -DBL_MIN) != -DBL_MIN)
+    {
+      puts ("nextafter -DBL_MIN test failed");
+      result = 1;
+    }
+#ifndef NO_LONG_DOUBLE
+  if (nextafterl (nextafterl (LDBL_MIN, LDBL_MIN / 2.0), LDBL_MIN)
+      != LDBL_MIN)
+    {
+      puts ("nextafterl LDBL_MIN test failed");
+      result = 1;
+    }
+  if (nextafterl (nextafterl (-LDBL_MIN, -LDBL_MIN / 2.0), -LDBL_MIN)
+      != -LDBL_MIN)
+    {
+      puts ("nextafterl -LDBL_MIN test failed");
+      result = 1;
+    }
 #endif
 
   return result;

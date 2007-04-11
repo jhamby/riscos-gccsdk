@@ -14,7 +14,7 @@
 #  include <unixlib/unix.h>
 #endif
 
-#if __UNIXLIB_PARANOID
+#if __UNIXLIB_PARANOID == 0
 #  define NDEBUG 1 /* Define this to disable asserts. */
 #endif
 #include <assert.h>
