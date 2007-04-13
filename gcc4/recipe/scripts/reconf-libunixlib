@@ -7,4 +7,13 @@ if [ -z "$GCCSDK_SRCDIR" ] ; then
   exit 1
 fi
 
+if [ ! -d $GCCSDK_SRCDIR/libunixlib ] ; then
+  echo "$GCCSDK_SRCDIR/libunixlib is not a directory"
+  exit 1
+fi
+
+# Generate the Makefile.am files:
+$GCCSDK_SRCDIR/libunixlib/gen-auto.pl
+
+# Run the autotools:
 ( cd $GCCSDK_SRCDIR/libunixlib && aclocal-1.9 -I ./ && autoheader && automake-1.9 -a && autoconf )
