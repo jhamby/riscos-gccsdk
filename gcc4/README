@@ -21,6 +21,19 @@ leading to odd build failures):
 
   $ export GCCSDK_NOE1F=xxx
 
+0. Required build tools
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following is a non exhaustive list of programs which are needed to compile
+and work with GCCSDK on top of a typical recent standard Unix distribution.
+
+- svn v1.2 or later (only to be used to checkout GCCSDK source code)
+- gcc v3.4.x or v4.x (other versions might work too)
+- make v3.81 (other versions might work too)
+- libtool v1.5.22 (other versions might work too)
+- automake v1.9 (no other version !)
+- autogen v5.8.8 (other versions might work too)
+
 1. Checking out
 ~~~~~~~~~~~~~~~
 
