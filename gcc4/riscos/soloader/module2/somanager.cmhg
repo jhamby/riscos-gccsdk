@@ -51,4 +51,17 @@ swi-decoding-table: SOM, Prologue, Resolver, Alloc, Free, AllocLib, RegisterObje
 
 error-chunk-base-number: 0x81DC00
 
-;error-identifiers:
+error-identifiers: somerr_no_client_memory ("Unable to register client, out of memory"),
+  somerr_no_object_memory("Unable to register shared object, out of memory"),
+  somerr_client_not_found("Unable to register shared object, client not found"),
+  somerr_bad_arg("Could not query library, bad argument"),
+  somerr_already_reg("Client already registered"),
+  somerr_failed_reg("Client registration failed"),
+  somerr_bad_reason("Bad reason code"),
+  somerr_unknown_client("Client not registered"),
+  somerr_object_not_found("Object not found"),
+  somerr_no_memory("Shared Object Manager failed to allocate memory"),
+  somerr_in_use("There are still clients using SOManager."),
+  somerr_bad_param("Bad parameter")
+
+generic-veneers: som_call_every som_callback
