@@ -129,7 +129,7 @@ unsigned int allocator;
       err = RMA_free(b);
   }
   else
-    return NULL; /* Don't return an error in this case */
+    err = NULL; /* Don't return an error in this case */
 
-  return heap_release(global.data_da.base_addr, b);
+  return err;
 }
