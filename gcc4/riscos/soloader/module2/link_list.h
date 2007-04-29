@@ -6,9 +6,7 @@
 #ifndef LINKLIST_H
 #define LINKLIST_H
 
-#ifndef __STDDEF_H
 #include <stddef.h>
-#endif
 
 /* A link_hdr must be the first member in a struct so that it shares the
  * same base address as the object it belongs to.
