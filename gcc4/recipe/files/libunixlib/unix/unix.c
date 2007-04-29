@@ -840,6 +840,8 @@ verify_redirection (const char *redir)
 static const char *
 find_redirection_type (const char *cmdline, char redirection_type)
 {
+  const char * const org_cmdline = cmdline;
+
   while (1)
     {
       /* Look for redirection operator `redirection_type'.  */
@@ -876,17 +878,15 @@ find_redirection_type (const char *cmdline, char redirection_type)
       if (*cmdline == '\0')
 	/* Operator `redirection_type' doesn't exist.  */
 	return NULL;
-      else
-	{
-	  /* Cope with "2> foobar" */
-	  while (isdigit (cmdline[-1]))
-	    cmdline --;
 
-	  if (verify_redirection (cmdline))
-	    return cmdline;
-	  /* Skip a character otherwise we loop on <foo$bar>.  */
-	  cmdline ++;
-	}
+      /* Cope with "2> foobar" */
+      while (cmdline != org_cmdline && isdigit (cmdline[-1]))
+	cmdline --;
+
+      if (verify_redirection (cmdline))
+	return cmdline;
+      /* Skip a character otherwise we loop on <foo$bar>.  */
+      cmdline ++;
     }
 }
 
