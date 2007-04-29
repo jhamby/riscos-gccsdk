@@ -18,10 +18,10 @@ clean:
 	-rm somanager.o somanager.h SOManager,ffa
 
 SOManager,ffa: $(SRCS) somanager.h somanager.o
-	$(CC) $(CFLAGS) -Wl,--ro-module-reloc -o SOManager,e1f $(SRCS) somanager.o
+	$(CC) $(CFLAGS) -mmodule -o SOManager,e1f $(SRCS) somanager.o
 	$(OBJCOPY) -O binary SOManager,e1f $@
 	rm SOManager,e1f
 
 # CMunge invocation:
 somanager.h somanager.o: somanager.cmhg
-	$(CMUNGE) $(CMUNGEFLAGS) somanager.cmhg -o somanager.o -d somanager.h -s somanager.s
+	$(CMUNGE) $(CMUNGEFLAGS) somanager.cmhg -o somanager.o -d somanager.h
