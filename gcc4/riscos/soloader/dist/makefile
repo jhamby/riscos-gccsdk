@@ -1,7 +1,7 @@
 include		../config.mk
 
 zip:
-	$(ZIP) -,r9 ../loaders-bin.zip !DSO-libs
+	$(ZIP) -,r9 ../loaders-bin.zip !DSO-libs -x *svn*
 
 clean:
 	rm -frv !DSO-libs/SoManager,ffa
