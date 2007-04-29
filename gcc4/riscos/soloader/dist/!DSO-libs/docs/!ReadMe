@@ -1,0 +1,344 @@
+V1.03
+
+This package contains three of the components required for dynamic linking
+under RISC OS:
+
+Dynamic loader/linker (ld-riscos/so/1)
+---------------------
+This is currently based on V1.9.9 of the Linux dynamic loader (the version, I
+believe, before it was merged into GLIBC). This version was chosen over the
+latest, due to its relative simplicity.
+
+SOManager (Shared Object Manager)
+---------
+This is a RISC OS module which provides object and memory management for the
+dynamic loader. Although the dynamic loader does manage objects itself, this
+is only on a per client basis as it has no knowledge of other clients using
+the same libraries. It therefor relies on SOManager for information
+regarding the state of any libraries in the system.
+
+*SOMStatus gives the state of the system, showing any clients and
+libraries currently registered. Note that it is normal for libraries to
+remain present after clients have deregistered. Libraries are allowed to
+remain idle (i.e. unused by any client) for a set period of time before being
+removed. This improves system performance when, for example, command line tools
+that use the same libraries are run in quick succession.
+
+Static loader
+-------------
+This is a RISC OS absolute program that is first called when an ELF program
+is executed. It is responsible for making the initial decision as to whether
+the program is dynamically or statically linked. In the latter case the static
+loader calls the ELF program's entry point directly, in the former case it
+passes control to the dynamic loader so that dynamic linking can take place.
+
+
+Other components required are:
+
+libUnixLib/so	- shared version of UnixLib, this will be supplied in a
+separate package.
+
+libgcc/so	- shared version of libgcc also supplied separately.
+
+libstdc++/so	- shared version of C++ library for use with C++ programs.
+
+Brief description of how it works
+---------------------------------
+This is the second implementation of the dynamic linking system. The first as
+described by myself on the GCCSDK mailing list on 13th March, 2005 had
+several flaws, the main one being that functions called through a pointer
+were not correctly set up for global data access. This meant that functions
+accessed through libdl would not work as well as a lot of C++ functionality
+which relies on function pointers.
+To recap, the old system used a PLT that looked like this:
+
+ @ r8 corrupted across function calls, must use -fcall-used-v5
+	@ 1st entry calls resolver
+	stmfd	sp!,{r0-r4,r9,fp,lr}
+
+ @ entry: r8 = &GOT[n+3] (ptr to function)
+ @ exit: r0 = &GOT[n+3] (ptr to function)
+ @       r1 = ptr to library ID word
+ @       r2 = ptr to GOT of dynamic linker
+ @       r8 = &GOT[0]
+	swi	"XSOM_Resolver"
+
+	@ call resolver function in dynamic linker,
+ @ r8 updated to point to &GOT[2]
+	ldr	pc,[r8,#8]!
+	
+
+	@ subsequent entries
+	adr	r8,.LC0		@; r8 = address of library ID
+	str	r0,[sp,#-4]!
+	mov	r0,r10   @; pass stack limit to SWI
+
+ @ entry: r0 = sl, r8 = ptr to library ID
+ @ exit: r8 = caller GOT ptr, callee GOT ptr at [sl,#-&218]
+	swi	"XSOM_Prologue"
+	add	r8, r8, #0x000XX000
+	ldr	r0,[sp],#4
+	ldr	pc,[r8, #0x00000XXX]! @ Call target function
+.LC0:
+	.word	0 @; ID of library containing target function
+
+The thing to remember is that there are two GOTs involved when calling a
+function through the PLT. The callers GOT that contains the address of the
+function being called and the callees GOT that contains offsets to the data
+being accessed by the called function. These GOTs can be in the same or
+different libraries.
+In the above case, it's the job of SOM_Prologue to find both GOTs, one of
+which was stored on the stack. As mentioned above, the major flaw in the
+system is the fact that functions called via a pointer bypass the PLT and
+therefor do not have a correctly set PIC register. Other weak points
+include the reliance on the stack which may not always be available and
+the use of a library ID which may limit the systems flexibility.
+
+The new implementation uses a PLT like this:
+
+	@; r8 corrupted across function calls, must use -fcall-used-v5
+	@; 1st entry calls resolver
+	STMFD	sp!, {r0-r4,r7,ip,lr}
+	SWI	"XSOM_Resolver"		@ retrieve caller GOT in r8
+	LDR	pc, [r8,#8]!		@ call resolver function, r8 updated to point to &GOT[2]
+
+	@; subsequent entries
+	@; r8 points to same address in caller for every entry
+	SUB	r8, pc, #0x0000XX00
+	SUB	r8, r8, #0x000000XX	@ allows for approx 3200 entries in PLT
+	@; entry: r8 = ptr to PLT of caller library
+	SWI	"XSOM_Prologue"
+	@; exit: r8 = ptr to private GOT of caller library
+	ADD	r8, r8, #0x000XX000	@ GOT can be up to 1MB in size
+	LDR	pc,[r8, #0x00000XXX]!	@ r8 updated to point to &GOT[n+3] (pointer to function) -
+					@ used by resolver
+
+The use of the stack and ID word has been eliminated. The job of SOM_Prologue
+has been reduced to finding only the callers GOT. The job of finding the
+callee's GOT has been moved to a new function, __rt_load_pic(), a call to
+which is generated automatically by the compiler in any function that requires
+access to global data. To speed up GOT searches in these two routines, the
+last GOT found is cached and reused next time if possible. Therefor a
+possible optimisation when writing dynamically linked code is to group
+together function calls to the same shared library.
+
+Compiling code for shared libraries
+-----------------------------------
+When compiling code for a shared library, it is necessary to inform GCC that
+global data must be treated differently. This is done by using the flag -fPIC
+on the GCC command line. Note that -fpic is not the same as -fPIC. It is also
+necessary to use the flag -fcall-used-v5 for all code that is to be a part
+of the library. This prevents GCC from using r8 as a work register which is
+corrupted across function calls, although GCC is still free to use it as
+a temporary register.
+
+Linking code for shared libraries
+---------------------------------
+As of V3.4.6R1 of RISC OS ELF GCC, it is no longer necessary to specifiy -fPIC
+when linking a shared library as it is the default behaviour. You should however
+specify the -shared flag as is normal on most platforms.
+
+It is advisable when linking a shared library to give it a soname using the
+linker flag -soname=lib<name>/so/<major version>
+(-Wl,-soname=lib<name>/so/<major version> if using gcc to perform the linking).
+The major version number is optional. You should use the RISC OS naming
+convention e.g. libname/so/1 rather than libname.so.1 as the dynamic loader
+will use this name when searching for dependant libraries. The only filename
+conversion performed by the dynamic loader is to change filenames ending with
+.so to /so .
+
+Shared library naming
+---------------------
+In linux there is a scheme which most libraries adhere to when it comes
+to naming (although it is not essential). This scheme is also used under
+RISC OS in an effort to keep the same flexibility and to allow future
+support for multiple versions of the same library. In order to implement
+the Linux naming convention a simple symbolic linking system is employed
+in a similar manner to Linux. This allows the same file to be referenced
+by more than one name and is achieved by using a special link file which
+is given the filetype &1C8 (Symlink).
+
+Every shared library has three references, the shared library itself,
+the runtime link and the compiler link:
+
+The shared library:		lib<name>/so/X/Y/Z
+
+The runtime link:		lib<name>/so/X
+				(a symlink to lib<name>/so/X/Y/Z)
+
+The compiler link:		lib<name>/so
+				(a symlink to lib<name>/so/X/Y/Z)
+
+The dynamic loader uses the soname given to a library at build time by
+the static linker to find the library - this is the runtime link.
+When the static linker (ld) is given a library on its command line,
+e.g. -lUnixLib, it uses the compiler link to find the library.
+
+The symlinks are not an OS wide solution, but merely extra functionality
+added to Unixlib and the static/dynamic loaders. A utility to create these
+symlinks is supplied.
+
+Note that it is not mandatory to use the naming convention described above,
+libraries can simply be called lib<name>/so and placed in !DSO-libs.lib,
+however, this is not very flexible.
+
+Compiling code for dynamically linked executable
+------------------------------------------------
+When compiling code for an executable, it is important to use -fcall-used-v5 for
+the same reason as above. However, -fPIC should *never* be used.
+
+Linking code for dynamically linked executable
+----------------------------------------------
+Again, as of V3.4.6R1 of RISC OS ELF GCC, it is no longer necessary to specifiy
+-fPIC when linking an executable as it is the default behaviour.
+
+!DSO-libs must have been run before shared libraries can be linked by GCC.
+
+Note that to generate statically linked executables, the -static switch should
+be used on the link command line.
+
+C++ code
+--------
+Compiling C++ code for dynamic linking is as above, although it is important
+to use the g++ compiler driver for linking as this adds the necessary options
+for linking against libstdc++. Global object construction should work correctly.
+The order of execution is:
+
+1) UnixLib initialisation
+
+2) Shared library global object initialisation
+
+3) Executable global object initialisation
+
+4) main() called
+
+UnixLib is initialised before global objects which means that UnixLib
+resources can be used in their constructors.
+
+Running ELF executables
+-----------------------
+ELF executables have the filetype &E1F. When such a binary is run, RISC OS uses
+this filetype to determine that the static loader (!DSO-libs.loader) should be
+called to deal with it. The static loader examines the ELF binary to see if it
+is statically or dynamically linked. If the former, then it can pass control
+directly to the ELF binary. If on the other hand it is dynamically linked, the
+static loader passes control to the dynamic loader which ensures that any
+libraries that are required are present. It then performs the dynamic linking
+before finally passing control to the binary.
+
+The environment of the dynamic loader is controlled by the RISC OS system
+variable LD$Env. This can contain a space separated list of variables that
+the dynamic loader will use, e.g.,
+
+set LD$Env "LD_WARN=1 LD_LIBRARY_PATH=ram:$.test"
+
+The following variables are recognised:
+
+LD_WARN
+	Not for general use - used by ldd (which is not yet supported).
+
+LD_LIBRARY_PATH
+	A colon separated list of paths for finding shared libraries
+	other than the standard place (which must be in RISC OS format).
+
+LD_BIND_NOW
+	Forces the dynamic loader to resolve *all* dynamic links before
+	running the binary. This is the opposite of lazy binding where
+	only the functions used are resolved.
+
+LD_TRACE_LOADED_OBJECTS
+	Forces the dynamic loader to display the dependencies of the
+	binary rather than run it. Also used by ldd.
+
+The support module SOManager provides two useful SWIs:
+
+SOMStatus
+	List the shared libraries that are present in memory and any
+	clients that are using them.
+
+SOMAddress <Address in hexadecimal>
+	Given an address, report the library that contains it and also
+	the offset from the start of the library file where the address
+	lies.
+
+Errors
+------
+Shared Object Manager module is not loaded
+	This error is generated when the SOManager module has not been loaded,
+	generally because the !DSO-libs application directory has not been run.
+
+Problems
+--------
+ldconfig is supplied in the bin directory. This is a utility used in Linux
+to generate the cache used by the dynamic loader and to generate library
+symlinks. Under RISC OS it can be used to generate the cache, but it does
+not yet generate the symlinks. A ready built cache is supplied, but it is
+still uncertain whether RISC OS benefits from the cache and ldconfig.
+ldconfig may be improved in the future to make it more useful, but for now
+it is supplied for interest only.
+
+Due to moving to an ELF tool chain, module generation is not supported.
+It is advisable to use an AOF version of GCC for this.
+
+Dynamic linking to the SharedCLibrary is not supported due to technical
+difficulties, however, static linking does work.
+
+Compiling and linking a dynamically linked executable in one step is not
+possible as the -fPIC option is required during linking but not during
+compilation.
+
+To do list
+----------
+Use a dynamic area for storing library code on a 32 bit system.
+
+Move to a newer version of the dynamic loader.
+
+Improve debugging possibilities of SOManager, eg, store details of last 5
+clients after they have deregistered so that addresses can be traced to a
+specific library. Currently, this can be done with *SOMaddress, but only
+before the client has deregistered.
+
+Glossary
+--------
+ELF - Executable and Linking Format
+
+Client - Program or application that is dynamically linked and registered
+with the Shared Object Manager.
+
+Shared library - A collection of routines and associated data that is shared
+between several clients and registered with the Shared Object Manager.
+
+Static linker - The program used to perform the last stage (usually) of
+generating an executable or library at build time. Under RISC OS, it is
+called ld and is part of GCC.
+
+Dynamic loader - A special shared library that can dynamically link itself
+before doing the same to the client and the libraries the client requires.
+
+Dynamic linking - The process by which symbols in a library are connected
+to another library or executable at runtime.
+
+Object - A client or shared library.
+
+Public R/W segment - The global data used by a library. It is part of the
+library, but partitioned off into a separate section. This data is never used
+directly by an object. Instead it is used to initialise a client's own
+private copy when ever required.
+
+Private R/W segment - A section of memory created at runtime which is copied
+from a library's public R/W segment. Each client has its own copy of the
+global data for every library it uses.
+
+PLT (Procedure Linkage Table) - A table of code entries, one for each
+dynamically linked function used by an object. The first entry always calls
+the dynamic resolver.
+
+GOT (Global Offset Table) - A table of values that allow shared code to
+access global data.
+
+Dynamic Resolver - A routine contained within the dynamic loader that is
+responsible for dynamically linking functions at runtime when they are
+first called.
+
+
+Lee Noar
