@@ -8,13 +8,8 @@
 #ifndef SOM_OS_SWIS_H
 #define SOM_OS_SWIS_H
 
-#ifndef __SWIS_H
 #include <swis.h>
-#endif
-
-#ifndef __STDLIB_H
 #include <stdlib.h>
-#endif
 
 /* Dynamic Area SWIs */
 enum {

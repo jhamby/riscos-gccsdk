@@ -6,9 +6,7 @@
 #ifndef SOM_ALLOC_H
 #define SOM_ALLOC_H
 
-#ifndef __KERNEL_H
 #include <kernel.h>
-#endif
 
 /* Allocate memory from the data only dynamic area. */
 _kernel_oserror *som_alloc(int size, void **block_ret);

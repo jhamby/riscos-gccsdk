@@ -2,7 +2,7 @@
 # Copyright 2006, 2007 GCCSDK Developers
 
 CC = arm-unknown-riscos-gcc
-CFLAGS = -O3 -mmodule -Wall -fno-strict-aliasing
+CFLAGS = -O3 -mmodule -Wall
 
 OBJCOPY = arm-unknown-riscos-objcopy
 
@@ -18,7 +18,7 @@ clean:
 	-rm somanager.o somanager.h SOManager,ffa
 
 SOManager,ffa: $(SRCS) somanager.h somanager.o
-	$(CC) $(CFLAGS) -mmodule -o SOManager,e1f $(SRCS) somanager.o
+	$(CC) $(CFLAGS) -o SOManager,e1f $(SRCS) somanager.o
 	$(OBJCOPY) -O binary SOManager,e1f $@
 	rm SOManager,e1f
 

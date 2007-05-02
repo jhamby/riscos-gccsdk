@@ -6,9 +6,7 @@
 #ifndef SOM_UTILSWIS_H
 #define SOM_UTILSWIS_H
 
-#ifndef __KERNEL_H
 #include <kernel.h>
-#endif
 
 /* SWI "SOM_QueryObject"
  *

@@ -28,7 +28,7 @@ _kernel_oserror *err = NULL;
   object->expire_time = 0;
   if (objinfo->name)
   {
-    if ((err = som_alloc(strlen(objinfo->name) + 1, (void **)&object->name)) != NULL)
+    if ((err = som_alloc(strlen(objinfo->name) + 1, (void **)(void *)&object->name)) != NULL)
       return err;
     strcpy(object->name, objinfo->name);
   }
@@ -88,7 +88,7 @@ som_client *client = NULL;
 som_object *object = NULL;
 unsigned int ID;
 
-  if ((err = som_alloc(sizeof(som_client), (void **)&client)) != NULL)
+  if ((err = som_alloc(sizeof(som_client), (void **)(void *)&client)) != NULL)
     goto error;
 
  /* Find a unique ID that hasn't already been used. There is a danger that if
@@ -118,7 +118,7 @@ unsigned int ID;
 
   linklist_init_list(&client->object_list);
 
-  if ((err = som_alloc(strlen(objinfo->name) + 1, (void **)&client->name)) != NULL)
+  if ((err = som_alloc(strlen(objinfo->name) + 1, (void **)(void *)&client->name)) != NULL)
     goto error;
   strcpy(client->name, objinfo->name);
 
@@ -131,7 +131,7 @@ unsigned int ID;
   /* Allocate an object struct to record the details of the client in its
      object list. This object is not in the global list - only library objects
      exist in the global list. */
-  if ((err = som_alloc(sizeof(som_object), (void **)&object)) != NULL)
+  if ((err = som_alloc(sizeof(som_object), (void **)(void *)&object)) != NULL)
     goto error;
 
   object->handle = handle;
@@ -203,7 +203,7 @@ som_object *client_obj = NULL;
 
   if (obj == NULL)
   {
-    if ((err = som_alloc(sizeof(som_object), (void **)&obj)) != NULL)
+    if ((err = som_alloc(sizeof(som_object), (void **)(void *)&obj)) != NULL)
       goto error;
 
     if ((err = init_object(obj, objinfo)) != NULL)
@@ -215,7 +215,7 @@ som_object *client_obj = NULL;
   }
 
   /* Make a copy of the object for the client's list. */
-  if ((err = som_alloc(sizeof(som_object), (void **)&client_obj)) != NULL)
+  if ((err = som_alloc(sizeof(som_object), (void **)(void *)&client_obj)) != NULL)
     goto error;
 
   obj->usage_count++;

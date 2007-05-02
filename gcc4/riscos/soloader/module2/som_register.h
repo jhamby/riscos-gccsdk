@@ -6,9 +6,7 @@
 #ifndef SOM_REGISTER_H
 #define SOM_REGISTER_H
 
-#ifndef __KERNEL_H
 #include <kernel.h>
-#endif
 
 /* SWI "SOM_RegisterObject"
  *
