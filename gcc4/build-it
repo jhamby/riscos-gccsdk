@@ -1,6 +1,6 @@
 #!/bin/bash
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2006 GCCSDK Developers
+# Copyright (c) 2006-2007 GCCSDK Developers
 
 set -e
 
@@ -20,14 +20,18 @@ if [ ! -d $PREFIX ] ; then
 fi
 
 cd $GCCSDK_BUILDDIR
-# Note: the --disable-libssp is needed to avoid a 4.1.1 regression bug, see
-#       http://gcc.gnu.org/bugzilla/show_bug.cgi?id=25035 to track its status.
+# Notes:
+#   1) The --disable-libssp is needed to avoid a 4.1.1 regression bug, see
+#      http://gcc.gnu.org/bugzilla/show_bug.cgi?id=25035 to track its status.
+#   2) --with-cross-host is needed to correctly find the target libraries in
+#      .../cross/arm-unknown-riscos/lib instead of .../cross/lib.
 $GCCSDK_SRCDIR/configure --prefix=$PREFIX --enable-threads=posix \
 	--disable-nls \
 	--target=$TARGET --enable-sjlj-exceptions=no \
 	--disable-c-mbchar --enable-languages=c,c++ \
 	--enable-checking=no --disable-libstdcxx-pch \
 	--enable-c99 --enable-cmath \
+	--with-cross-host \
 	--without-pic --enable-shared=libunixlib,libgcc --without-x --enable-libgcj \
 	--enable-maintainer-mode
 
