@@ -1,3 +1,9 @@
+Wed May 16 20:12:00 2007  Lee Noar  <leenoar@sky.com>
+
+	* include/sys/elf.h: Standard header file defining structures and
+	values used in the ELF file format.
+	* Makefile.am: Add above file to list of those to install.
+
 Tue Apr 10 19:19:05 2007  Lee Noar  <leenoar@ntlworld.com>
 
 	* gcc-compat/gcc_alloca.c: New file defining __gcc_alloca as a

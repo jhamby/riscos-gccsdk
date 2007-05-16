@@ -43,6 +43,7 @@ libc_headers = 	\
 	stdlib.h \
 	strings.h \
  \
+	sys/elf.h \
 	sys/os.h \
 	sys/stat.h \
 	sys/times.h \
