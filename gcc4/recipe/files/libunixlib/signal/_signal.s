@@ -601,20 +601,23 @@ non_fp_exception:
 	NAME	__h_sigint
 __h_sigint:
  PICEQ "STR	r0, [sp, #-4]!"
+
+ PICEQ "MOV	r1, ip"
+
 	@ Entered in IRQ mode. Be quick by just clearing the escape
 	@ flag and setting a callback.
 	TST	r11, #64		@ bit 6
 	MOVNE	ip, #SIGINT
 
  PICEQ "LDRNE	r0, .L5"		@__cba1
- PICEQ "LDRNE	r0, [r12, r0]"
+ PICEQ "LDRNE	r0, [r1, r0]"
  PICEQ "STRNE	ip, [r0, #0]"		@ store __cba1 (shared library)
 
  PICNE "STRNE	ip, __cba1"		@ store __cba1 (static library)
 
 	@ Set the escape condition flag
  PICEQ "LDR	r0, .L5+4"		@__cbflg
- PICEQ "LDR	r0, [r12, r0]"
+ PICEQ "LDR	r0, [r1, r0]"
  PICEQ "LDR	ip, [r0, #0]"
  PICNE "LDR	ip, __cbflg"
 	ORRNE	ip, ip, #1		@ set CallBack

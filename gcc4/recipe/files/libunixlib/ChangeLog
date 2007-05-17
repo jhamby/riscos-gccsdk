@@ -1,3 +1,8 @@
+Wed May 16 21:34:47 2007  Lee Noar  <leenoar@sky.com>
+
+	* signal/_signal.s(__h_sigint): Fixed bug in DSO where r12 was assumed
+	to be GOT pointer, but was actually reused for something else.
+
 Wed Apr 11 03:21:40 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* string/{_ffs.s,_ffsll.s}: the armv5 implemenation didn't work at
