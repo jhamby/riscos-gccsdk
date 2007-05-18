@@ -7,22 +7,12 @@
 #define SOM_H
 
 #define LIBRARIES_IN_DA
+#define USE_SYMLINKS
 
-#ifndef LINK_LIST_H
 #include "link_list.h"
-#endif
-
-#ifndef _CMUNGE_SOManager_H_
 #include "somanager.h"
-#endif
-
-#ifndef SOM_OS_SWIS_H
 #include "som_os_swis.h"
-#endif
-
-#ifndef SOM_WORKSPACE_H
 #include "som_workspace.h"
-#endif
 
 #define SOM_MAX_DA_SIZE			1024 * 1024 		/* 1Mb */
 #define SOM_INIT_DA_SIZE		4 * 1024 		/* 4Kb (multiple of 4Kb) */
@@ -52,6 +42,13 @@ enum
   reason_code_SOM_REGISTER_CLIENT,
   reason_code_SOM_REGISTER_LIBRARY
 };
+
+enum
+{
+  flag_QUERY_GLOBAL_LIST,
+  flag_QUERY_CLIENT_LIST
+};
+#define mask_QUERY_LIST	1
 
 enum
 {
@@ -174,7 +171,7 @@ struct _som_objinfo
   /* Size in bytes of the bss area */
   int			bss_size;
 
-  /* Offset in bytes of dynamic segemtn into R/W segment */
+  /* Offset in bytes of dynamic segment into R/W segment */
   int			dyn_offset;
 
   /* Size in bytes of dynamic segment */
@@ -242,6 +239,11 @@ static inline som_client *FIND_CLIENT(void)
     return global.cached_client_ptr;
 
   return som_find_client(rt_workspace_get(rt_workspace_CLIENT_ID));
+}
+
+static inline som_PTR word_align(som_PTR addr)
+{
+  return (som_PTR)(((unsigned int)addr + 3) & ~3);
 }
 
 #endif
