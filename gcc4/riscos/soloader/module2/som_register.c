@@ -81,7 +81,7 @@ som_object *list_obj = linklist_first_som_object(list);
     linklist_add_to_end(list, &insert_obj->link);
 }
 
-static _kernel_oserror *som_register_client(som_handle handle, som_objinfo *objinfo)
+_kernel_oserror *som_register_client(som_handle handle, som_objinfo *objinfo)
 {
 _kernel_oserror *err = NULL;
 som_client *client = NULL;
@@ -143,6 +143,8 @@ unsigned int ID;
   /* Use the same copy of the client's name for it and its object. */
   object->name = client->name;
 
+  object->flags.type = object_flag_type_CLIENT;
+
   linklist_add_to_end(&global.client_list, &client->link);
 
   /* The object list is ordered by base addr. */
@@ -179,7 +181,7 @@ error:
    allocated and placed in the global list. Then regardless of whether the
    library was in the global list or not, its OBJECT_* structure is cloned
    and placed in the client's list. */
-static _kernel_oserror *som_register_sharedobject(som_handle handle, som_objinfo *objinfo, som_object **object_ret)
+_kernel_oserror *som_register_sharedobject(som_handle handle, som_objinfo *objinfo, som_object **object_ret)
 {
 som_client *client;
 
@@ -227,7 +229,8 @@ som_object *client_obj = NULL;
 
   som_add_sharedobject(&client->object_list, client_obj);
 
-  *object_ret = client_obj;
+  if (object_ret)
+    *object_ret = client_obj;
 
   return NULL;
 
@@ -272,7 +275,6 @@ som_object *object = NULL;
     break;
 
   case reason_code_SOM_REGISTER_CLIENT:
-    objinfo->flags.type = object_flag_type_CLIENT;
     err = som_register_client(handle, objinfo);
     break;
 
@@ -340,7 +342,7 @@ som_object *global_obj = linklist_first_som_object(&global.object_list);
   return NULL;
 }
 
-_kernel_oserror *som_deregister_client(_kernel_swi_regs *regs)
+_kernel_oserror *som_deregister_client(void)
 {
 som_client *client = FIND_CLIENT();
 

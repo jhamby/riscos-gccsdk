@@ -10,35 +10,15 @@
 
 /* Retrieve information about the library whose handle is
  * given. The data is placed in a user supplied buffer.
- *
- * entry:
- *  r0 = handle of library
- *  r1 = pointer to buffer to return library information in
- *   r1 + 0 = base address
- *   r1 + 4 = pointer to library's read/write segment
- *   r1 + 8 = pointer to client copy of read/write segment (if applicable)
- *   r1 + 12 = size of read/write segment
- *   r1 + 16 = offset of GOT from start of read/write segment
- *   r1 + 20 = offset of bss area from start of read/write segment
- *   r1 + 24 = size of bss area
- *   r1 + 28 = pointer to name (Read only)
- *   r1 + 32 = flags
- *  r2 = flags
- *   bit 0 - set to search current client object list
- *           clear to search global object list
- * exit:
- *  all registers preserved if object found and no error, or r0 = pointer to error block
  */
-_kernel_oserror *som_query_object(_kernel_swi_regs *regs)
+_kernel_oserror *som_query_object(som_handle handle, som_objinfo *objinfo, unsigned int flags)
 {
-unsigned int handle = (unsigned int)regs->r[0];
-som_objinfo *objinfo = (som_objinfo *)regs->r[1];
 som_object *object;
 
   if (handle == 0 || objinfo == NULL)
     return somerr_bad_param;
 
-  if ((regs->r[2] & 1) == 1)
+  if ((flags & mask_QUERY_LIST) == flag_QUERY_CLIENT_LIST)
   {
   som_client *client = FIND_CLIENT();
 
@@ -244,10 +224,9 @@ _kernel_oserror *err;
  * exit:
  *  r0 = handle or 0 for failure
  */
-_kernel_oserror *som_handle_from_name(_kernel_swi_regs *regs)
+som_handle som_handle_from_name(const char *name)
 {
 som_object *object;
-const char *name = (const char *)regs->r[0];
 som_handle handle = 0;
 
   /* Search global list, not current client. */
@@ -263,9 +242,7 @@ som_handle handle = 0;
     object = linklist_next_som_object(object);
   }
 
-  regs->r[0] = (unsigned int)handle;
-
-  return NULL;
+  return handle;
 }
 
 /* entry:

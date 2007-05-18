@@ -9,6 +9,7 @@
 #include "somanager.h"
 #include "som.h"
 #include "som_os_swis.h"
+#include "som_alloc.h"
 
 _kernel_oserror *
 module_finalisation(int fatal, int podule_base, void *pw)
@@ -31,7 +32,7 @@ module_finalisation(int fatal, int podule_base, void *pw)
     while (object)
     {
       if (object->flags.type != object_flag_type_CLIENT && object->base_addr)
-	RMA_free(object->base_addr - 4);
+	som_free(object->base_addr);
 
       object = linklist_next_som_object(object);
     }

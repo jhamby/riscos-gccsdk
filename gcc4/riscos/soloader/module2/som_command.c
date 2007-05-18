@@ -5,8 +5,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "somanager.h"
 #include "som.h"
+#include "som_alloc.h"
+#include <sys/elf.h>
+
+extern _kernel_oserror *command_run(const char *, int);
 
 static void command_status(void)
 {
@@ -163,6 +168,8 @@ static void command_expire(const char *arg_string, int argc)
 _kernel_oserror *
 module_command(const char *arg_string, int argc, int number, void *pw)
 {
+_kernel_oserror *err = NULL;
+
   switch (number)
   {
   case CMD_SOMStatus:
@@ -180,8 +187,12 @@ module_command(const char *arg_string, int argc, int number, void *pw)
   case CMD_SOMAllowQuit:
     global.flags.no_client_check = true;
     break;
+
+  case CMD_SOMRun:
+    err = command_run(arg_string, argc);
+    break;
   }
 
-  return NULL;
+  return err;
 }
 

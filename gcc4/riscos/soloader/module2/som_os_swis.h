@@ -10,6 +10,7 @@
 
 #include <swis.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* Dynamic Area SWIs */
 enum {
@@ -47,7 +48,7 @@ _kernel_oserror *err;
   return err;
 }
 
-static _kernel_oserror *dynamic_area_extend(unsigned int da_number, int by)
+static inline _kernel_oserror *dynamic_area_extend(unsigned int da_number, int by)
 {
 _kernel_oserror *err;
 
@@ -193,6 +194,62 @@ _kernel_oserror *err;
   return err;
 }
 
+/* DDEUtils */
+
+static inline unsigned int ddeutils_is_present(void)
+{
+static const char ddeutil_swi_name[] = "DDEUtils_GetCl";
+unsigned int res;
+
+  asm volatile ("MOV	r1, %[name];\n\t"
+		"SWI	%[os_swi_number_from_string];\n\t"
+		"MOVVS	%[res], #0;\n\t"
+		"MOVVC	%[res], #1;\n\t"
+		: [res] "=r" (res)
+		: [name] "r" (ddeutil_swi_name), [os_swi_number_from_string] "i" (XOS_Bit | OS_SWINumberFromString)
+		: "r0", "r1", "lr", "cc");
+  return res;
+}
+
+static inline int ddeutils_get_cl_size(void)
+{
+int res;
+
+  /* According to Desktop Tools P.192, doesn't return any errors. */
+  asm volatile ("SWI	%[ddeutils_get_cl_size];\n\t"
+		"MOVVC	%[res], r0;\n\t"
+		"MOVVS	%[res], #0;\n\t"
+		: [res] "=r" (res)
+		: [ddeutils_get_cl_size] "i" (XOS_Bit | DDEUtils_GetCLSize)
+		: "r0", "lr", "cc");
+  return res;
+}
+
+static inline void ddeutils_get_cl(char *buffer)
+{
+  asm volatile ("MOV	r0, %[buffer];\n\t"
+		"SWI	%[ddeutils_get_cl];\n\t"
+		:
+		: [buffer] "r" (buffer), [ddeutils_get_cl] "i" (XOS_Bit | DDEUtils_GetCl)
+		: "r0", "lr", "cc");
+}
+
+/* Automatically calls SWI "DDEUtils_SetCLSize" first. */
+static inline void ddeutils_set_cl(const char *tail)
+{
+int len = strlen(tail) + 1;
+
+  asm volatile ("MOV	r0, %[len];\n\t"
+		"SWI	%[ddeutils_set_cl_size];\n\t"
+		"MOV	r0, %[tail];\n\t"
+		"SWI	%[ddeutils_set_cl];\n\t"
+		: /* no outputs */
+		: [len] "r" (len), [tail] "r" (tail),
+		  [ddeutils_set_cl_size] "i" (XOS_Bit | DDEUtils_SetCLSize),
+		  [ddeutils_set_cl] "i" (XOS_Bit | DDEUtils_SetCL)
+		: "r0", "lr", "cc");
+}
+
 /* General SWIs */
 
 static inline unsigned int os_read_monotonic_time(void)
@@ -264,14 +321,86 @@ static inline unsigned int os_read_unsigned(const char **s, int base)
 unsigned int res;
 
   asm volatile ("MOV	r0, %[base];\n\t"
-		"LDR	r1, [%[s], #0];\n\t"
+		"LDR	r1, %[s];\n\t"
 		"SWI	%[os_read_unsigned];\n\t"
-		"STR	r1, [%[s], #0];\n\t"
+		"STR	r1, %[s];\n\t"
 		"MOV	%[res], r2;\n\t"
 		: [res] "=r" (res)
-		: [base] "r" (base), [s] "r" (s), [os_read_unsigned] "i" (XOS_Bit | OS_ReadUnsigned)
+		: [base] "r" (base), [s] "m" (*s), [os_read_unsigned] "i" (XOS_Bit | OS_ReadUnsigned)
 		: "r0", "r1", "r2", "lr", "cc", "memory");
   return res;
+}
+
+/* Inform RISC OS that a new app is starting by calling OS_FSControl,2 */
+static inline _kernel_oserror *os_start_app(const char *com_tail, void *cao, const char *com_name)
+{
+_kernel_oserror *err;
+
+  asm volatile ("MOV	r0, #2;\n\t"
+		"MOV	r1, %[tail];\n\t"
+		"MOV	r2, %[cao];\n\t"
+		"MOV	r3, %[name];\n\t"
+		"SWI	%[os_fscontrol];\n\t"
+		"MOVVS	%[err], r0;\n\t"
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [tail] "r" (com_tail), [cao] "r" (cao), [name] "r" (com_name), [os_fscontrol] "i" (XOS_Bit | OS_FSControl)
+		: "r0", "r1", "r2", "r3", "lr", "cc");
+  return err;
+}
+
+typedef struct os_env_block
+{
+  char *	command;
+  unsigned int	ram_limit;
+  char *	time;
+
+} os_env_block;
+
+static inline void os_get_env(os_env_block *block)
+{
+  asm volatile ("SWI	%[os_getenv];\n\t"
+		"STR	r0, %[block0];\n\t"
+		"STR	r1, %[block4];\n\t"
+		"STR	r2, %[block8];\n\t"
+		: [block0] "=m" (block->command), [block4] "=m" (block->ram_limit), [block8] "=m" (block->time)
+		: [os_getenv] "i" (XOS_Bit | OS_GetEnv)
+		: "r0", "r1", "r2", "lr", "cc", "memory");
+}
+
+static inline int os_read_var_val_size(const char *var_name)
+{
+int size;
+
+  asm volatile ("MOV	r0, %[name];\n\t"
+		"MOV	r1, #0;\n\t"
+		"MOV	r2, #-1;\n\t"
+		"MOV	r3, #0;\n\t"
+		"MOV	r4, #0;\n\t"
+		"SWI	%[os_read_var_val];\n\t"
+		"CMP	r2, #0;\n\t"
+		"MOVEQ	%[size], #1;\n\t"
+		"RSBNE	%[size], r2, #0;\n\t"
+		: [size] "=r" (size)
+		: [name] "r" (var_name), [os_read_var_val] "i" (XOS_Bit | OS_ReadVarVal)
+		: "r0", "r1", "r2", "r3", "r4", "lr", "cc");
+  return size;
+}
+
+static inline void os_read_var_val(const char *var_name, char *buffer, int buf_size)
+{
+  asm volatile ("MOV	r0, %[name];\n\t"
+		"MOV	r1, %[buffer];\n\t"
+		"MOV	r2, %[buf_size];\n\t"
+		"MOV	r3, #0;\n\t"
+		"MOV	r4, #0;\n\t"
+		"SWI	%[os_read_var_val];\n\t"
+		"MOVVC	r0, #0;\n\t"
+		"STRVCB	r0, [r1, r2];\n\t"
+		: /* No outputs */
+		: [name] "r" (var_name), [buffer] "r" (buffer), [buf_size] "r" (buf_size),
+		  [os_read_var_val] "i" (XOS_Bit | OS_ReadVarVal)
+		: "r0", "r1", "r2", "r3", "r4", "lr", "cc", "memory");
 }
 
 #endif

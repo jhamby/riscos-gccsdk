@@ -9,6 +9,7 @@
 #include "som_register.h"
 #include "som_alloc.h"
 #include "som_utilswis.h"
+#include "som_symlinks.h"
 
 _kernel_oserror *
 module_swihandler(int number, _kernel_swi_regs *r, void *pw)
@@ -59,7 +60,7 @@ _kernel_oserror *err = NULL;
     break;
 
   case (SOM_DeregisterClient - SOM_00):
-    err = som_deregister_client(r);
+    err = som_deregister_client();
     break;
 
   case (SOM_DeregisterSharedObject - SOM_00):
@@ -67,7 +68,28 @@ _kernel_oserror *err = NULL;
     break;
 
   case (SOM_QueryObject - SOM_00):
-    err = som_query_object(r);
+    /* Retrieve information about the library whose handle is
+     * given. The data is placed in a user supplied buffer.
+     *
+     * entry:
+     *  r0 = handle of library
+     *  r1 = pointer to buffer to return library information in
+     *   r1 + 0 = base address
+     *   r1 + 4 = pointer to library's read/write segment
+     *   r1 + 8 = pointer to client copy of read/write segment (if applicable)
+     *   r1 + 12 = size of read/write segment
+     *   r1 + 16 = offset of GOT from start of read/write segment
+     *   r1 + 20 = offset of bss area from start of read/write segment
+     *   r1 + 24 = size of bss area
+     *   r1 + 28 = pointer to name (Read only)
+     *   r1 + 32 = flags
+     *  r2 = flags
+     *   bit 0 - set to search current client object list
+     *           clear to search global object list
+     * exit:
+     *  all registers preserved if object found and no error, or r0 = pointer to error block
+     */
+    err = som_query_object((som_handle)r->r[0], (som_objinfo *)r->r[1], (unsigned int)r->r[2]);
     break;
 
   case (SOM_IterateObjects - SOM_00):
@@ -83,7 +105,31 @@ _kernel_oserror *err = NULL;
     break;
 
   case (SOM_HandleFromName - SOM_00):
-    err = som_handle_from_name(r);
+    /* SWI "SOM_HandleFromName"
+     *
+     * Given ptr to library name, return handle of library from global list.
+     * entry:
+     *  r0 = ptr to name (Read Only)
+     * exit:
+     *  r0 = handle or 0 for failure
+     */
+    r->r[0] = som_handle_from_name((char *)r->r[0]);
+    break;
+
+  case (SOM_ResolveSymlinks - SOM_00):
+    {
+      /* Return allocated buffer containing resolved filename.
+       * Result can be freed with SWI "SOM_Free"
+       * entry:
+       *  r0 = ptr to symlink filename
+       * exit:
+       *  if error, r0 = ptr to error block otherwise r0 = ptr to allocated buffer
+       */
+    char *filename_ret;
+
+      if ((err = som_resolve_links((char *)r->r[1], &filename_ret)) != NULL)
+	r->r[1] = (int)filename_ret;
+    }
     break;
 
   case (SOM_AddrToOffset - SOM_00):

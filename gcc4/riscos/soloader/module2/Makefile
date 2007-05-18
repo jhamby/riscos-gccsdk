@@ -10,7 +10,7 @@ CMUNGE = cmunge
 CMUNGEFLAGS = -tgcc -32bit -p
 
 SRCS = som_init.c som_final.c som_command.c som_swihandler.c som_main.c som_os_swis.c som_alloc.c \
-som_register.c link_list.c som_utilswis.c
+som_register.c link_list.c som_utilswis.c som_symlinks.c som_elf.c som_runcom.c som_startapp.s
 
 all: SOManager,ffa
 
@@ -18,7 +18,7 @@ clean:
 	-rm somanager.o somanager.h SOManager,ffa
 
 SOManager,ffa: $(SRCS) somanager.h somanager.o
-	$(CC) $(CFLAGS) -o SOManager,e1f $(SRCS) somanager.o
+	$(CC) $(CFLAGS) -o SOManager,e1f $(SRCS) somanager.o -static
 	$(OBJCOPY) -O binary SOManager,e1f $@
 	rm SOManager,e1f
 

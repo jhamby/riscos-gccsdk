@@ -7,31 +7,12 @@
 #define SOM_UTILSWIS_H
 
 #include <kernel.h>
+#include "som.h"
 
-/* SWI "SOM_QueryObject"
- *
- * Retrieve information about the library whose handle is
+/* Retrieve information about the library whose handle is
  * given. The data is placed in a user supplied buffer.
- *
- * entry:
- *  r0 = handle of library
- *  r1 = pointer to buffer to return library information in
- *   r1 + 0 = base address
- *   r1 + 4 = pointer to library's read/write segment
- *   r1 + 8 = pointer to client copy of read/write segment (if applicable)
- *   r1 + 12 = size of read/write segment
- *   r1 + 16 = offset of GOT from start of read/write segment
- *   r1 + 20 = offset of bss area from start of read/write segment
- *   r1 + 24 = size of bss area
- *   r1 + 28 = pointer to name (Read only)
- *   r1 + 32 = flags
- *  r2 = flags
- *   bit 0 - set to search current client object list
- *           clear to search global object list
- * exit:
- *  all registers preserved if object found and no error, or r0 = pointer to error block
  */
-extern _kernel_oserror *som_query_object(_kernel_swi_regs *regs);
+extern _kernel_oserror *som_query_object(som_handle handle, som_objinfo *buffer, unsigned int flags);
 
 /* SWI "SOM_IterateObjects"
  *
@@ -80,7 +61,7 @@ extern _kernel_oserror *som_handle_from_addr(_kernel_swi_regs *regs);
  * exit:
  *  r0 = handle or 0 for failure
  */
-extern _kernel_oserror *som_handle_from_name(_kernel_swi_regs *regs);
+extern som_handle som_handle_from_name(const char *name);
 
 /* SWI "SOM_AddrToOffset"
  *
