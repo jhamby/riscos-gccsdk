@@ -39,6 +39,7 @@ char *resolved_filename = NULL;
 
 #ifdef USE_SYMLINKS
   som_free(resolved_filename);
+  resolved_filename = NULL;
 #endif
 
   /* Read the main ELF header at the beginning of the file */
