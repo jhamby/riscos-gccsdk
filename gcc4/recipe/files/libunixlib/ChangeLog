@@ -1,3 +1,7 @@
+Wed May 23 20:31:26 2007  Alex Waugh  <alex@alexwaugh.com>
+
+	* include/unixlib/types.h: Fix typo in typedef.
+
 Wed May 16 21:34:47 2007  Lee Noar  <leenoar@sky.com>
 
 	* signal/_signal.s(__h_sigint): Fixed bug in DSO where r12 was assumed

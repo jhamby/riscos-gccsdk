@@ -66,7 +66,7 @@ typedef signed int __int32_t;
 typedef unsigned int __uint32_t;
 #ifdef __GNUC__
 __extension__
-typedef signed long long int __inot64_t;
+typedef signed long long int __int64_t;
 __extension__
 typedef unsigned long long int __uint64_t;
 #else
