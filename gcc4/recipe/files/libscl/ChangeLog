@@ -1,3 +1,9 @@
+Sun May 27 18:10:24 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos/stubs.s: Exported __gcc_vfscanf,__gcc_vscanf and
+	__gcc_vsscanf as aliases for vfscanf, vscanf and vsscanf.
+	Problem reported by Rob Kendrick.
+
 Wed May 16 20:12:00 2007  Lee Noar  <leenoar@sky.com>
 
 	* include/sys/elf.h: Standard header file defining structures and

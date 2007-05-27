@@ -955,11 +955,17 @@ snprintf:			MOV	PC, #0
 	.global	vsnprintf
 __gcc_vsnprintf:
 vsnprintf:			MOV	PC, #0
+	.global	__gcc_vfscanf
 	.global	vfscanf
+__gcc_vfscanf:
 vfscanf:			MOV	PC, #0
+	.global	__gcc_vscanf
 	.global	vscanf
+__gcc_vscanf:
 vscanf:				MOV	PC, #0
+	.global	__gcc_vsscanf
 	.global	vsscanf
+__gcc_vsscanf:
 vsscanf:			MOV	PC, #0
 	@.global	ceilf
 ceilf_not_used:			MOV	PC, #0
