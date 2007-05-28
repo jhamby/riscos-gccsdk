@@ -178,6 +178,7 @@ kernel_statics_end:
 .set	_stub_oldUpCallHandler, kernel_statics_begin + 0x0100
 .set	_stub_languageEnvSave, kernel_statics_begin + 0x0108
 .set	_stub_hadEscape, kernel_statics_begin + 0x0114
+	.global	_stub_kallocExtendsWS
 .set	_stub_kallocExtendsWS, kernel_statics_begin + 0x0115
 .set	_stub_inTrapHandler, kernel_statics_begin + 0x0116
 .set	_stub_beingDebugged, kernel_statics_begin + 0x0117
