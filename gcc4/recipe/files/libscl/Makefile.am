@@ -27,7 +27,9 @@ AM_CFLAGS = -std=c99
 AM_CCASFLAGS = -xassembler-with-cpp -isystem $(top_srcdir)/include
 
 includedir = $(prefix)
-riscos_src = 	riscos/stubs.s gcc-compat/b_return.c gcc-compat/gcc_alloca.c
+riscos_src = \
+	riscos/chunkid01.s riscos/chunkid02.s riscos/chunkid05.s riscos/chunkstub.s riscos/stubs.s \
+	gcc-compat/b_return.c gcc-compat/gcc_alloca.c
 
 # All files in the 'include' directory.
 libc_headers = 	\

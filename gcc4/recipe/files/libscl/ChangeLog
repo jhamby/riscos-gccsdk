@@ -1,3 +1,12 @@
+Mon May 28 03:33:46 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos/stubs.s: moved chunks to...
+	* riscos/chunkstub.s,riscos/chunkid01.s,riscos/chunkid02,
+	riscos/chunkid05.s: ...here.
+	* Makefile.am: Follow riscos/stubs.s split.
+	* README: Added C++ & float argument in va_args list as known
+	problems.
+
 Sun May 27 18:10:24 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/stubs.s: Exported __gcc_vfscanf,__gcc_vscanf and

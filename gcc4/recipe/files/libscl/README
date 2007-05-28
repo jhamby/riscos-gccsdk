@@ -45,8 +45,19 @@ See the GCC and UnixLib documentation for instructions on how to use the
 filename translation code, especially the fancy options.
 
 
-Known problems with the filename translation code
--------------------------------------------------
+Known problems
+--------------
+
+1. The filename translation code
 
 If you use command-line redirection of stdin and stdout, the filenames used
 for redirection are not translated. If this is important, use UnixLib.
+
+2. C++
+
+libscl usage by C++ programs is currently not supported in GCCSDK 4 (it was
+in GCCSDK 3.4).
+
+3. float argument passing in va_args structure
+
+-EOF-
