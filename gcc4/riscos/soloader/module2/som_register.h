@@ -1,6 +1,7 @@
 /* som_register.h
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #ifndef SOM_REGISTER_H

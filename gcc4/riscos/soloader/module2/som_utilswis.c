@@ -1,6 +1,7 @@
 /* som_utilswis.c
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #include "som_utilswis.h"

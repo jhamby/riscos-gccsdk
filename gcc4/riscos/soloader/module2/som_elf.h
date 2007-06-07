@@ -1,6 +1,7 @@
 /* som_elf.h
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #ifndef SOM_ELF_H

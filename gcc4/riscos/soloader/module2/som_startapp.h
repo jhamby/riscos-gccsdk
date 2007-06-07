@@ -1,6 +1,7 @@
 /* som_startapp.h
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #ifndef SOM_STARTAPP_H

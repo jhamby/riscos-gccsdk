@@ -1,6 +1,7 @@
 /* som_alloc.c
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #include "som_alloc.h"
@@ -130,6 +131,90 @@ unsigned int allocator;
   }
   else
     err = NULL; /* Don't return an error in this case */
+
+  return err;
+}
+
+static _kernel_oserror *DA_extend(dynamic_area_block *da, int by, void **block)
+{
+bool heap_extended = false;
+_kernel_oserror *err = NULL;
+
+  while (true)
+  {
+    /* If this fails, then assume heap is full and attempt to extend it
+     * (only for +ve extends though). The failure could be due to a corrupted heap
+     * or invalid heap pointer, but we can't distinguish here. */
+    err = heap_extend_block(da->base_addr, block, by);
+
+    /* If an error occurs, then block is not changed, ie it will not be NULL. */
+    if (err)
+    {
+      if (heap_extended)
+      {
+	/* If we've already extended the heap and it still fails, then don't try again,
+	   return the error. */
+	if (!err)
+	  err = somerr_no_memory;
+
+	return err;
+      }
+
+      /* Attempt to increase heap size and try again.
+       * Extend by the size of the block as well as the extra in case the block needs to be
+       * moved.
+       */
+    int heap_inc;
+
+      if ((err = heap_block_size(da->base_addr, block, &heap_inc)) != NULL)
+	return err;
+
+      /* Add on the extra and round to 4KB. */
+      heap_inc = ((heap_inc + by) + 0xfff) & ~0xfff;
+
+      if ((err = dynamic_area_extend(da->number, heap_inc)) != NULL)
+        return err;
+
+      /* Extend heap by same amount */
+      if ((err = heap_extend(da->base_addr, heap_inc)) != NULL)
+        return err;
+
+      heap_extended = true;
+    }
+    else
+      break;
+  }
+
+  return NULL;
+}
+
+_kernel_oserror *som_extend(void **block, int by)
+{
+unsigned int *b = (unsigned int *)(*block);
+_kernel_oserror *err = NULL;
+unsigned int allocator;
+
+  allocator = *(--b);
+
+  /* Only do extensions for SOMX allocations - other types aren't vary
+   * useful, but could be done.
+   */
+  if (allocator != SOM_ALLOCATOR_SOMX)
+    return NULL;
+
+  /* Clear the ID word incase the block moves. */
+  *b = 0;
+
+  /* Attempt to extend the heap block. */
+  err = DA_extend(&global.data_da, by, (void **)(void *)&b);
+
+  /* Reinstate allocator ID. If an error occured above, then this puts the allocator ID
+   * back in the old block.
+   */
+  *b = allocator;
+
+  /* Return ptr to address after ID word */
+  (*block) = b + 1;
 
   return err;
 }

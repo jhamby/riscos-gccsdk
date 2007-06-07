@@ -3,6 +3,7 @@
  * Inline assembler versions of some common OS SWIs.
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #ifndef SOM_OS_SWIS_H
@@ -147,6 +148,44 @@ _kernel_oserror *err;
 		  [os_heap] "i" (XOS_Bit | OS_Heap), [reason] "I" (reason_code_HEAP_CHANGE_HEAP_SIZE)
 		: "r0", "r1", "r2", "r3", "r14", "cc");
   return err;
+}
+
+static inline _kernel_oserror *heap_extend_block(void *base_addr, void **block, int by)
+{
+_kernel_oserror *err;
+
+  asm volatile ("MOV	r0, %[reason];\n\t"
+		"MOV	r1, %[base_addr];\n\t"
+		"LDR	r2, %[block];\n\t"
+		"MOV	r3, %[by];\n\t"
+		"SWI	%[os_heap];\n\t"
+		"MOVVS	%[err], r0;\n\t"
+		"MOVVC	%[err], #0;\n\t"
+		"STRVC	r2, %[block];\n\t"
+		: [err] "=r" (err), [block] "+m" (*block)
+		: [base_addr] "r" (base_addr), [by] "rI" (by),
+		  [os_heap] "i" (XOS_Bit | OS_Heap), [reason] "I" (reason_code_HEAP_CHANGE_BLOCK_SIZE)
+		: "r0", "r1", "r2", "r3", "r14", "cc", "memory");
+  return err;
+}
+
+static inline _kernel_oserror *heap_block_size(void *base_addr, void *block, int *size)
+{
+_kernel_oserror *err;
+
+  asm volatile ("MOV	r0, %[reason];\n\t"
+		"MOV	r1, %[base_addr];\n\t"
+		"MOV	r2, %[block];\n\t"
+		"SWI	%[os_heap];\n\t"
+		"MOVVS	%[err], r0;\n\t"
+		"MOVVC	%[err], #0;\n\t"
+		"STRVC	r3, %[size];\n\t"
+		: [err] "=r" (err), [size] "=m" (*size)
+		: [base_addr] "r" (base_addr), [block] "r" (block),
+		  [os_heap] "i" (XOS_Bit | OS_Heap), [reason] "I" (reason_code_HEAP_READ_BLOCK_SIZE)
+		: "r0", "r1", "r2", "r3", "r14", "cc", "memory");
+  return err;
+
 }
 
 /* OS_Module SWIs */
