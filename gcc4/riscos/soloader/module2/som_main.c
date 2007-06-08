@@ -1,6 +1,7 @@
 /* som_main.c
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #include "som.h"
@@ -55,6 +56,9 @@ som_client *client = FIND_CLIENT();
     regs->r[8] = SOM_BAD_VALUE;
     return somerr_unknown_client;
   }
+
+  global.cached_client_ID = client->unique_ID;
+  global.cached_client_ptr = client;
 
 som_object *object = linklist_first_som_object(&client->object_list);
   while (object)
@@ -112,6 +116,8 @@ som_object *object = linklist_first_som_object(&global.object_list);
 
     /* If we get here, object has expired, remove from global list. */
     linklist_remove(&global.object_list, &object->link);
+
+    global.object_array.object_base[object->index] = NULL;
 
     som_free(object->name);
     som_free(object->base_addr);

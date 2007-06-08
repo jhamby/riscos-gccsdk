@@ -1,6 +1,7 @@
 /* som_workspace.h
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #ifndef SOM_WORKSPACE_H
@@ -10,6 +11,13 @@
 
 enum
 {
+  /* An array of GOT pointers used by the current client. */
+  rt_workspace_GOT_PTR_ARRAY,
+
+  /* Pointer to the current client structure. */
+  rt_workspace_CLIENT_STRUCT_PTR,
+
+  /* The ID of the current client. */
   rt_workspace_CLIENT_ID,
 
   /* This is the client's object list. It remains constant for the life
@@ -33,9 +41,10 @@ enum
   rt_workspace_CACHED_PLT,
   rt_workspace_CACHED_PLTGOT,
 
-  rt_workspace_RESERVED1,
+
+  rt_workspace_RESERVED1/*,
   rt_workspace_RESERVED2,
-  rt_workspace_RESERVED3
+  rt_workspace_RESERVED3*/
 };
 
 static inline void rt_workspace_set(int pos, unsigned int value)

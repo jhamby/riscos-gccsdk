@@ -1,6 +1,7 @@
 /* som_register.c
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #include <kernel.h>
@@ -9,6 +10,7 @@
 #include "som.h"
 #include "som_alloc.h"
 #include "som_workspace.h"
+#include "som_array.h"
 
 static _kernel_oserror *init_object(som_object *object, som_objinfo *objinfo)
 {
@@ -26,6 +28,7 @@ _kernel_oserror *err = NULL;
   object->flags = objinfo->flags;
   object->usage_count = 0;
   object->expire_time = 0;
+  object->index = 0;
   if (objinfo->name)
   {
     if ((err = som_alloc(strlen(objinfo->name) + 1, (void **)(void *)&object->name)) != NULL)
@@ -50,6 +53,7 @@ static void copy_object(som_object *new_obj, som_object *old_obj)
   new_obj->dynamic_size = old_obj->dynamic_size;
   new_obj->name = old_obj->name;
   new_obj->flags = old_obj->flags;
+  new_obj->index = old_obj->index;
 
   new_obj->usage_count = 0;
   new_obj->expire_time = 0;
@@ -109,6 +113,8 @@ unsigned int ID;
   }
 
   client->unique_ID = ID;
+
+  rt_workspace_set(rt_workspace_CLIENT_STRUCT_PTR, (unsigned int)client);
   rt_workspace_set(rt_workspace_CLIENT_ID, ID);
   rt_workspace_set(rt_workspace_CACHED_PLT, 0);
   rt_workspace_set(rt_workspace_CACHED_PLTGOT, 0);
@@ -149,6 +155,14 @@ unsigned int ID;
 
   /* The object list is ordered by base addr. */
   som_add_sharedobject(&client->object_list, object);
+
+  /* Store the object index in the GOT. */
+  *((unsigned int *)object->got_addr + SOM_OBJECT_INDEX_OFFSET) = object->index;
+
+  /* Store the location of the client GOT ptr array in the GOT. */
+  *((unsigned int *)object->got_addr + SOM_GOT_PTR_ARRAY_OFFSET) = 0x80D4;
+
+  somarray_init(&client->got_ptr_array, 0);
 
   /* Although the list is kept ordered, the app object should always be the first,
      and so this value should never change throughout the life of the client. */
@@ -209,6 +223,10 @@ som_object *client_obj = NULL;
       goto error;
 
     if ((err = init_object(obj, objinfo)) != NULL)
+      goto error;
+
+    /* If it's new to the global list, then add to the array of objects. */
+    if ((err = somarray_add_object(&global.object_array, obj)) != NULL)
       goto error;
 
     obj->handle = handle;

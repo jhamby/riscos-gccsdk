@@ -1,6 +1,7 @@
 /* som_init.c
  *
  * Copyright 2006, 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #include <stdlib.h>
@@ -10,6 +11,8 @@
 #include "som.h"
 #include "swis.h"
 #include "som_os_swis.h"
+#include "som_alloc.h"
+#include "som_array.h"
 
 static bool is_host_32bit(void)
 {
@@ -55,6 +58,9 @@ _kernel_oserror *err;
       goto error;
   }
 #endif
+
+  if ((err = somarray_init(&global.object_array, 1)) != NULL)
+    goto error;
 
   som_start_call_every(pw);
 

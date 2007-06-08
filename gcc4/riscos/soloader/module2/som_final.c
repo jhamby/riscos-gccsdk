@@ -1,6 +1,7 @@
 /* som_final.c
  *
  * Copyright 2006, 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #include <stdlib.h>
@@ -18,6 +19,8 @@ module_finalisation(int fatal, int podule_base, void *pw)
       return somerr_in_use;
 
   som_stop_call_every(pw);
+
+  somarray_fini(&global.object_array);
 
 #ifdef LIBRARIES_IN_DA
   /* Don't bother individually freeing library memory on 32bit OS

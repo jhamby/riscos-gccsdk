@@ -1,6 +1,7 @@
 /* som_command.c
  *
  * Copyright 2006, 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #include <stdlib.h>
@@ -25,6 +26,7 @@ som_object *object;
   while (object)
   {
     printf("               Library name: %s\n", object->name);
+    printf("                      index: %d\n", object->index);
     printf("              Address space: 0x%p -> 0x%p (size: 0x%lX)\n",
 	object->base_addr, object->end_addr, object->end_addr - object->base_addr);
     printf("       R/W segment (public): 0x%p -> 0x%p (size: 0x%X)\n",
@@ -64,7 +66,7 @@ som_client *client = linklist_first_som_client(&global.client_list);
     object = linklist_first_som_object(&client->object_list);
     printf(" R/W segment (private): 0x%p -> 0x%p (size: %X)\n",
 	object->private_rw_ptr, object->private_rw_ptr + object->rw_size, object->rw_size);
-    printf("     GOT ptr (private): 0x%p\n", object->private_got_ptr);
+    printf("     GOT ptr (private): 0x%p\n\n", object->private_got_ptr);
 
     /*
      * Display details of libraries each client is using

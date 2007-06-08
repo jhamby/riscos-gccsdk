@@ -10,7 +10,8 @@ CMUNGE = cmunge
 CMUNGEFLAGS = -tgcc -32bit -p
 
 SRCS = som_init.c som_final.c som_command.c som_swihandler.c som_main.c som_os_swis.c som_alloc.c \
-som_register.c link_list.c som_utilswis.c som_symlinks.c som_elf.c som_runcom.c som_startapp.s
+som_register.c link_list.c som_utilswis.c som_symlinks.c som_elf.c som_runcom.c som_startapp.s \
+som_array.c
 
 all: SOManager,ffa
 

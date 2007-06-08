@@ -1,6 +1,7 @@
 /* som_runcom.c
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #include <string.h>
@@ -208,7 +209,10 @@ int phnum = state->elf_prog.elf_header.e_phnum;
 
       for (dt = (unsigned int *)phdr->p_vaddr; *dt != DT_NULL; dt += 2)
 	if (*dt == DT_PLTGOT)
+	{
 	  objinfo.got_offset = (som_PTR)*(dt + 1) - objinfo.public_rw_ptr;
+	  break;
+	}
     }
 
     phdr++;
@@ -526,6 +530,9 @@ int dde_cl_len = ddeutils_get_cl_size();
       goto error;
 
     if ((err = register_dynamic_loader(state)) != NULL)
+      goto error;
+
+    if ((err = som_generate_got_array()) != NULL)
       goto error;
 
     /* The order that these are called in is important to ensure the arrays are constructed in the

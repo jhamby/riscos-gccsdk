@@ -1,6 +1,7 @@
 /* som_swihandler.c
  *
  * Copyright 2006, 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #include <stdlib.h>
@@ -10,6 +11,7 @@
 #include "som_alloc.h"
 #include "som_utilswis.h"
 #include "som_symlinks.h"
+#include "som_array.h"
 
 _kernel_oserror *
 module_swihandler(int number, _kernel_swi_regs *r, void *pw)
@@ -134,6 +136,10 @@ _kernel_oserror *err = NULL;
 
   case (SOM_AddrToOffset - SOM_00):
     err = som_addr_to_offset(r);
+    break;
+
+  case (SOM_GenerateGOTArray - SOM_00):
+    err = som_generate_got_array();
     break;
 
   default:

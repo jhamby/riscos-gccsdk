@@ -1,6 +1,7 @@
 /* som.h
  *
  * Copyright 2007 GCCSDK Developers
+ * Written by Lee Noar
  */
 
 #ifndef SOM_H
@@ -13,6 +14,8 @@
 #include "somanager.h"
 #include "som_os_swis.h"
 #include "som_workspace.h"
+#include "som_array.h"
+#include "som_types.h"
 
 #define SOM_MAX_DA_SIZE			1024 * 1024 		/* 1Mb */
 #define SOM_INIT_DA_SIZE		4 * 1024 		/* 4Kb (multiple of 4Kb) */
@@ -28,13 +31,11 @@
 #define SOM_ALLOCATOR_SOMD		0x444D4F53		/* SOMD */
 #define SOM_ALLOCATOR_SOML		0x4C4D4F53		/* SOML */
 
-typedef unsigned int bool;
-#define true 1
-#define false 0
-
-typedef unsigned int som_client_ID;
-typedef unsigned int som_handle;
-typedef char *som_PTR;
+/* The offset, in words, from the start of the GOT where the object index will
+ * be stored.
+ */
+#define SOM_OBJECT_INDEX_OFFSET	1			/* in words */
+#define SOM_GOT_PTR_ARRAY_OFFSET 2
 
 enum
 {
@@ -80,6 +81,8 @@ struct _som_client
   /* Ordered (by base addr) linked list of libraries used by this client.
      First object is for the client itself. */
   link_list		object_list;
+
+  som_array		got_ptr_array;
 };
 
 LINKLIST_ACCESS_FUNCTIONS(som_client)
@@ -98,6 +101,9 @@ struct _som_object
 
   /* Handle of object (currently base address of object, 0x8000 for app, 0 = invalid) */
   som_handle		handle;
+
+  /* Index of this object in the object/GOT array. */
+  int			index;
 
   /* Pointer to start of library's address space */
   som_PTR		base_addr;
@@ -189,14 +195,19 @@ struct _som_globals
   /* Dynamic area for general data allocations (not library code) */
   dynamic_area_block	data_da;
 
+#ifdef LIBRARIES_IN_DA
   /* Dynamic area for library code (32bit OS only) */
   dynamic_area_block	library_da;
+#endif
 
   /* List of clients known to system */
   link_list		client_list;
 
   /* List of libraries loaded by system */
   link_list		object_list;
+
+  /* Array of som_object pointers. */
+  som_array		object_array;
 
   /* The last client struct ptr that was found when searching the list */
   som_client *		cached_client_ptr;
@@ -231,14 +242,10 @@ extern _kernel_oserror *som_resolver(_kernel_swi_regs *);
 extern _kernel_oserror *som_start_call_every(void *pw);
 extern _kernel_oserror *som_stop_call_every(void *pw);
 
-/* Return the client object whose ID is given by using cached values for speed,
-   fall back on som_find_client() if that fails. */
+/* Return the current client's structure. */
 static inline som_client *FIND_CLIENT(void)
 {
-  if (rt_workspace_get(rt_workspace_CLIENT_ID) == global.cached_client_ID)
-    return global.cached_client_ptr;
-
-  return som_find_client(rt_workspace_get(rt_workspace_CLIENT_ID));
+  return (som_client *)rt_workspace_get(rt_workspace_CLIENT_STRUCT_PTR);
 }
 
 static inline som_PTR word_align(som_PTR addr)
