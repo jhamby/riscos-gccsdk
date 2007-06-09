@@ -138,8 +138,12 @@ _kernel_oserror *err = NULL;
       }
 
       fseek(file->handle, phdr->p_offset, SEEK_SET);
-      if (fread((void *)phdr->p_vaddr, phdr->p_filesz, 1, file->handle) != 1)
-	goto error;
+
+      /* It's possible to have a data segment that has zero size in file, but none
+	 zero size in memory, ie, the entire r/w segment comprises of .bss section.*/
+      if (phdr->p_filesz != 0)
+        if (fread((void *)phdr->p_vaddr, phdr->p_filesz, 1, file->handle) != 1)
+	  goto error;
 
       /* Keep track of where free memory starts. */
       *free_memory = word_align((som_PTR)(phdr->p_vaddr + phdr->p_memsz));
