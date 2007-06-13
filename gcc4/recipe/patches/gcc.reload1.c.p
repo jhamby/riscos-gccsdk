@@ -4,7 +4,7 @@
    /* Does this function require a frame pointer?  */
  
    frame_pointer_needed = (! flag_omit_frame_pointer
-+#ifndef TARGET_RISCOSAOF
++#ifndef TARGET_RISCOSELF
  			  /* ?? If EXIT_IGNORE_STACK is set, we will not save
  			     and restore sp for alloca.  So we can't eliminate
  			     the frame pointer in that case.  At some point,

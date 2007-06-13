@@ -222,7 +222,6 @@
 #define HAVE_BUILTIN_FRAME_ADDR_FUNC (TARGET_APCS_STACK)
 
 #define TARGET_RISCOSELF
-#define TARGET_RISCOSAOF
 
 /* Override configure checks for mmap() compatibility.  Our C library
    partly provides these features, but they do not work in a way

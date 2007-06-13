@@ -81,14 +81,14 @@
    (((REGNUM) >= FIRST_IWMMXT_GR_REGNUM) && ((REGNUM) <= LAST_IWMMXT_GR_REGNUM))
  
  /* Base register for access to local variables of the function.  */
-+#ifdef TARGET_RISCOSAOF
++#ifdef TARGET_RISCOSELF
 +#define FRAME_POINTER_REGNUM	9
 +#else
  #define FRAME_POINTER_REGNUM	25
 +#endif
  
  /* Base register for access to arguments of the function.  */
-+#ifdef TARGET_RISCOSAOF
++#ifdef TARGET_RISCOSELF
 +#define ARG_POINTER_REGNUM	ARM_HARD_FRAME_POINTER_REGNUM
 +#else
  #define ARG_POINTER_REGNUM	26
@@ -135,7 +135,7 @@
  
     On the ARM regs are UNITS_PER_WORD bits wide; FPA regs can hold any FP
     mode.  */
-+#ifdef TARGET_RISCOSAOF
++#ifdef TARGET_RISCOSELF
 +#define HARD_REGNO_NREGS(REGNO, MODE)  	\
 +  ((TARGET_ARM 				\
 +    && REGNO >= FIRST_FPA_REGNUM)	\
@@ -227,7 +227,7 @@
     pointer.  Note we have to use {ARM|THUMB}_HARD_FRAME_POINTER_REGNUM
     because the definition of HARD_FRAME_POINTER_REGNUM is not a constant.  */
  
-+#ifdef TARGET_RISCOSAOF
++#ifdef TARGET_RISCOSELF
 +#define ELIMINABLE_REGS                                         \
 +{{ ARG_POINTER_REGNUM,        STACK_POINTER_REGNUM            },\
 + { FRAME_POINTER_REGNUM,      STACK_POINTER_REGNUM            }}

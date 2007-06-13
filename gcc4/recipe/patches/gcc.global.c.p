@@ -4,7 +4,7 @@
  #endif
    int need_fp
      = (! flag_omit_frame_pointer
-+#ifndef TARGET_RISCOSAOF
++#ifndef TARGET_RISCOSELF
         || (current_function_calls_alloca && EXIT_IGNORE_STACK)
 +#endif
         || FRAME_POINTER_REQUIRED);
