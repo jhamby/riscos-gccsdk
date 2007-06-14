@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.h.orig	2007-03-24 16:53:54.000000000 +0100
-+++ gcc/config/arm/arm.h	2007-03-24 15:12:06.000000000 +0100
+--- gcc/config/arm/arm.h.orig	2007-06-14 02:20:52.000000000 +0200
++++ gcc/config/arm/arm.h	2007-06-14 02:28:04.000000000 +0200
 @@ -167,6 +167,12 @@
  #define SUBTARGET_CPP_SPEC      ""
  #endif
@@ -182,18 +182,16 @@
  }
  arm_stack_offsets;
  
-@@ -1519,6 +1558,10 @@
+@@ -1519,6 +1558,8 @@
    /* Records if sibcalls are blocked because an argument
       register is needed to preserve stack alignment.  */
    int sibcall_blocked;
 +  /* Non-zero if this is a leaf function.  */
 +  int leaf;
-+  /* Non-zero if this function calls __builtin_apply.  */
-+  int apply_args;
    /* Labels for per-function Thumb call-via stubs.  One per potential calling
       register.  We can never call via LR or PC.  We can call via SP if a
       trampoline happens to be on the top of the stack.  */
-@@ -1539,6 +1582,8 @@
+@@ -1539,6 +1580,8 @@
    int nregs;
    /* This is the number of iWMMXt register arguments scanned so far.  */
    int iwmmxt_nregs;
@@ -202,7 +200,7 @@
    int named_count;
    int nargs;
    /* One of CALL_NORMAL, CALL_LONG or CALL_SHORT.  */
-@@ -1593,6 +1638,9 @@
+@@ -1593,6 +1636,9 @@
    if (arm_vector_mode_supported_p (MODE)	       	\
        && (CUM).named_count > (CUM).nargs)		\
      (CUM).iwmmxt_nregs += 1;				\
@@ -212,7 +210,7 @@
    else							\
      (CUM).nregs += ARM_NUM_REGS2 (MODE, TYPE)
  
-@@ -1607,9 +1655,7 @@
+@@ -1607,9 +1653,7 @@
  /* 1 if N is a possible register number for function argument passing.
     On the ARM, r0-r3 are used to pass args.  */
  #define FUNCTION_ARG_REGNO_P(REGNO)	\
@@ -223,7 +221,7 @@
  
  
  /* If your target environment doesn't prefix user functions with an
-@@ -1695,6 +1741,11 @@
+@@ -1695,6 +1739,11 @@
     pointer.  Note we have to use {ARM|THUMB}_HARD_FRAME_POINTER_REGNUM
     because the definition of HARD_FRAME_POINTER_REGNUM is not a constant.  */
  
@@ -235,7 +233,7 @@
  #define ELIMINABLE_REGS						\
  {{ ARG_POINTER_REGNUM,        STACK_POINTER_REGNUM            },\
   { ARG_POINTER_REGNUM,        FRAME_POINTER_REGNUM            },\
-@@ -1703,21 +1754,11 @@
+@@ -1703,21 +1752,11 @@
   { FRAME_POINTER_REGNUM,      STACK_POINTER_REGNUM            },\
   { FRAME_POINTER_REGNUM,      ARM_HARD_FRAME_POINTER_REGNUM   },\
   { FRAME_POINTER_REGNUM,      THUMB_HARD_FRAME_POINTER_REGNUM }}
@@ -260,7 +258,7 @@
  
  /* Define the offset between two registers, one to be eliminated, and the
     other its replacement, at the start of a routine.  */
-@@ -1834,8 +1875,8 @@
+@@ -1834,8 +1873,8 @@
  /*   On the ARM, don't allow the pc to be used.  */
  #define ARM_REGNO_OK_FOR_BASE_P(REGNO)			\
    (TEST_REGNO (REGNO, <, PC_REGNUM)			\
@@ -271,7 +269,7 @@
  
  #define THUMB_REGNO_MODE_OK_FOR_BASE_P(REGNO, MODE)		\
    (TEST_REGNO (REGNO, <=, LAST_LO_REGNUM)			\
-@@ -2012,8 +2053,8 @@
+@@ -2012,8 +2051,8 @@
  #define ARM_REG_OK_FOR_BASE_P(X)		\
    (REGNO (X) <= LAST_ARM_REGNUM			\
     || REGNO (X) >= FIRST_PSEUDO_REGISTER	\
@@ -282,7 +280,7 @@
  
  #define THUMB_REG_MODE_OK_FOR_BASE_P(X, MODE)	\
    (REGNO (X) <= LAST_LO_REGNUM			\
-@@ -2530,7 +2571,7 @@
+@@ -2530,7 +2569,7 @@
       in 26 bit mode, the condition codes must be masked out of the	\
       return address.  This does not apply to ARM6 and later processors	\
       when running in 32 bit mode.  */					\
@@ -291,7 +289,7 @@
     ? (gen_int_mode ((unsigned long)0xffffffff, Pmode))			\
     : arm_gen_return_addr_mask ())
  
-@@ -2699,6 +2740,8 @@
+@@ -2699,6 +2738,8 @@
  
    ARM_BUILTIN_THREAD_POINTER,
  

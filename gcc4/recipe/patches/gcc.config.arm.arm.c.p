@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.c.orig	2007-06-13 03:17:04.000000000 +0200
-+++ gcc/config/arm/arm.c	2007-06-13 03:07:32.000000000 +0200
+--- gcc/config/arm/arm.c.orig	2007-06-14 02:20:49.000000000 +0200
++++ gcc/config/arm/arm.c	2007-06-14 01:27:46.000000000 +0200
 @@ -52,6 +52,7 @@
  #include "target-def.h"
  #include "debug.h"
@@ -16,15 +16,7 @@
  static void arm_output_function_epilogue (FILE *, HOST_WIDE_INT);
  static void arm_output_function_prologue (FILE *, HOST_WIDE_INT);
  static void thumb_output_function_prologue (FILE *, HOST_WIDE_INT);
-@@ -160,6 +162,7 @@
- static void aof_dump_pic_table (FILE *);
- static void aof_file_start (void);
- static void aof_file_end (void);
-+static void arm_aof_asm_named_section (const char *, unsigned int);
- #endif
- static rtx arm_struct_value_rtx (tree, int);
- static void arm_setup_incoming_varargs (CUMULATIVE_ARGS *, enum machine_mode,
-@@ -695,7 +698,8 @@
+@@ -695,7 +697,8 @@
    {"atpcs",   ARM_ABI_ATPCS},
    {"aapcs",   ARM_ABI_AAPCS},
    {"iwmmxt",  ARM_ABI_IWMMXT},
@@ -34,7 +26,7 @@
  };
  
  /* Supported TLS relocations.  */
-@@ -1070,6 +1074,16 @@
+@@ -1070,6 +1073,16 @@
    if (TARGET_POKE_FUNCTION_NAME)
      target_flags |= MASK_APCS_FRAME;
  
@@ -51,7 +43,7 @@
    if (TARGET_APCS_REENT && flag_pic)
      error ("-fpic and -mapcs-reent are incompatible");
  
-@@ -1087,10 +1101,18 @@
+@@ -1087,10 +1100,18 @@
    /* If stack checking is disabled, we can use r10 as the PIC register,
       which keeps r9 available.  */
    if (flag_pic)
@@ -70,7 +62,7 @@
  
    /* Initialize boolean versions of the flags, for use in the arm.md file.  */
    arm_arch3m = (insn_flags & FL_ARCH3M) != 0;
-@@ -1223,6 +1245,17 @@
+@@ -1223,6 +1244,17 @@
    if (TARGET_IWMMXT && !TARGET_SOFT_FLOAT)
      sorry ("iWMMXt and hardware floating point");
  
@@ -88,7 +80,7 @@
    /* If soft-float is specified then don't use FPU.  */
    if (TARGET_SOFT_FLOAT)
      arm_fpu_arch = FPUTYPE_NONE;
-@@ -1472,11 +1505,14 @@
+@@ -1472,11 +1504,14 @@
      return 0;
  
    /* So do interrupt functions that use the frame pointer.  */
@@ -105,7 +97,7 @@
  
    /* As do variadic functions.  */
    if (current_function_pretend_args_size
-@@ -1484,10 +1520,11 @@
+@@ -1484,10 +1519,11 @@
        /* Or if the function calls __builtin_eh_return () */
        || current_function_calls_eh_return
        /* Or if the function calls alloca */
@@ -119,7 +111,7 @@
      return 0;
  
    saved_int_regs = arm_compute_save_reg_mask ();
-@@ -2657,6 +2694,7 @@
+@@ -2657,6 +2693,7 @@
    /* On the ARM, the offset starts at 0.  */
    pcum->nregs = ((fntype && aggregate_value_p (TREE_TYPE (fntype), fntype)) ? 1 : 0);
    pcum->iwmmxt_nregs = 0;
@@ -127,7 +119,7 @@
    pcum->can_split = true;
  
    pcum->call_cookie = CALL_NORMAL;
-@@ -2737,6 +2775,18 @@
+@@ -2737,6 +2774,18 @@
  	}
      }
  
@@ -146,7 +138,7 @@
    /* Put doubleword aligned quantities in even register pairs.  */
    if (pcum->nregs & 1
        && ARM_DOUBLEWORD_ALIGN
-@@ -2770,6 +2820,10 @@
+@@ -2770,6 +2819,10 @@
    if (arm_vector_mode_supported_p (mode))
      return 0;
  
@@ -157,7 +149,7 @@
    if (NUM_ARG_REGS > nregs
        && (NUM_ARG_REGS < nregs + ARM_NUM_REGS2 (mode, type))
        && pcum->can_split)
-@@ -2778,6 +2832,26 @@
+@@ -2778,6 +2831,26 @@
    return 0;
  }
  
@@ -184,7 +176,7 @@
  /* Variable sized types are passed by reference.  This is a GCC
     extension to the ARM ABI.  */
  
-@@ -3136,7 +3210,8 @@
+@@ -3136,7 +3209,8 @@
      return false;
  
    /* Never tailcall something for which we have no decl, or if we
@@ -194,7 +186,7 @@
    if (decl == NULL || TARGET_THUMB)
      return false;
  
-@@ -3162,6 +3237,15 @@
+@@ -3162,6 +3236,15 @@
    if (IS_INTERRUPT (arm_current_func_type ()))
      return false;
  
@@ -210,7 +202,7 @@
    /* Everything else is ok.  */
    return true;
  }
-@@ -3205,11 +3289,42 @@
+@@ -3205,11 +3288,42 @@
  	  subregs = 1;
  	}
  
@@ -258,7 +250,7 @@
        if (subregs)
  	address = gen_reg_rtx (Pmode);
        else
-@@ -3220,12 +3335,14 @@
+@@ -3220,12 +3334,14 @@
        else
  	emit_insn (gen_pic_load_addr_thumb (address, orig));
  
@@ -273,7 +265,7 @@
  	{
  	  pic_ref = gen_const_mem (Pmode,
  				   gen_rtx_PLUS (Pmode, pic_offset_table_rtx,
-@@ -3233,8 +3350,8 @@
+@@ -3233,8 +3349,8 @@
  	}
  
        insn = emit_move_insn (reg, pic_ref);
@@ -283,7 +275,7 @@
        /* Put a REG_EQUAL note on this insn, so that it can be optimized
  	 by loop.  */
        REG_NOTES (insn) = gen_rtx_EXPR_LIST (REG_EQUAL, orig,
-@@ -3357,14 +3474,26 @@
+@@ -3357,14 +3473,26 @@
  arm_load_pic_register (unsigned long saved_regs ATTRIBUTE_UNUSED)
  {
  #ifndef AOF_ASSEMBLER
@@ -313,7 +305,7 @@
    /* We use an UNSPEC rather than a LABEL_REF because this label never appears
       in the code stream.  */
  
-@@ -3386,9 +3515,20 @@
+@@ -3386,9 +3514,20 @@
  
    if (TARGET_ARM)
      {
@@ -336,7 +328,7 @@
      }
    else
      {
-@@ -3410,6 +3550,7 @@
+@@ -3410,6 +3549,7 @@
    /* Need to emit this whether or not we obey regdecls,
       since setjmp/longjmp can cause life info to screw up.  */
    emit_insn (gen_rtx_USE (VOIDmode, pic_offset_table_rtx));
@@ -344,7 +336,7 @@
  #endif /* AOF_ASSEMBLER */
  }
  
-@@ -9197,7 +9338,7 @@
+@@ -9197,7 +9337,7 @@
  
        /* Handle the frame pointer as a special case.  */
        if (! TARGET_APCS_FRAME
@@ -353,7 +345,7 @@
  	  && regs_ever_live[HARD_FRAME_POINTER_REGNUM]
  	  && ! call_used_regs[HARD_FRAME_POINTER_REGNUM])
  	save_reg_mask |= 1 << HARD_FRAME_POINTER_REGNUM;
-@@ -9243,7 +9384,7 @@
+@@ -9243,7 +9383,7 @@
  
    /* If we are creating a stack frame, then we must save the frame pointer,
       IP (which will hold the old stack pointer), LR and the PC.  */
@@ -362,7 +354,7 @@
      save_reg_mask |=
        (1 << ARM_HARD_FRAME_POINTER_REGNUM)
        | (1 << IP_REGNUM)
-@@ -9273,6 +9414,13 @@
+@@ -9273,6 +9413,13 @@
  	      && !current_function_calls_eh_return))
      save_reg_mask |= 1 << LR_REGNUM;
  
@@ -376,7 +368,7 @@
    if (cfun->machine->lr_save_eliminated)
      save_reg_mask &= ~ (1 << LR_REGNUM);
  
-@@ -9327,7 +9475,7 @@
+@@ -9327,7 +9474,7 @@
      mask |= 1 << PIC_OFFSET_TABLE_REGNUM;
  
    /* See if we might need r11 for calls to _interwork_r11_call_via_rN().  */
@@ -385,7 +377,7 @@
      mask |= 1 << ARM_HARD_FRAME_POINTER_REGNUM;
  
    /* LR will also be pushed if any lo regs are pushed.  */
-@@ -9463,7 +9611,7 @@
+@@ -9463,7 +9610,7 @@
  	     corrupted it, or 3) it was saved to align the stack on
  	     iWMMXt.  In case 1, restore IP into SP, otherwise just
  	     restore IP.  */
@@ -394,7 +386,7 @@
  	    {
  	      live_regs_mask &= ~ (1 << IP_REGNUM);
  	      live_regs_mask |=   (1 << SP_REGNUM);
-@@ -9498,27 +9646,39 @@
+@@ -9498,27 +9645,39 @@
  	     registers.  Note we can get here, even if
  	     frame_pointer_needed is true, but only if sp already
  	     points to the base of the saved core registers.  */
@@ -451,7 +443,7 @@
  
  	  p = instr + strlen (instr);
  
-@@ -9685,12 +9845,13 @@
+@@ -9685,12 +9844,13 @@
    if (IS_NESTED (func_type))
      asm_fprintf (f, "\t%@ Nested: function declared inside another function.\n");
  
@@ -468,7 +460,7 @@
  	       cfun->machine->uses_anonymous_args);
  
    if (cfun->machine->lr_save_eliminated)
-@@ -9762,7 +9923,7 @@
+@@ -9762,7 +9922,7 @@
      if (saved_regs_mask & (1 << reg))
        floats_offset += 4;
  
@@ -477,7 +469,7 @@
      {
        /* This variable is for the Virtual Frame Pointer, not VFP regs.  */
        int vfp_offset = offsets->frame;
-@@ -9886,20 +10047,27 @@
+@@ -9886,20 +10046,27 @@
        else
  	saved_regs_mask &= ~ (1 << PC_REGNUM);
  
@@ -519,7 +511,7 @@
  
        if (IS_INTERRUPT (func_type))
  	/* Interrupt handlers will have pushed the
-@@ -9909,12 +10077,21 @@
+@@ -9909,12 +10076,21 @@
    else
      {
        /* Restore stack pointer if necessary.  */
@@ -542,7 +534,7 @@
  
        if (arm_fpu_arch == FPUTYPE_FPA_EMU2)
  	{
-@@ -10091,8 +10268,12 @@
+@@ -10091,8 +10267,12 @@
  
        gcc_assert (!use_return_insn (FALSE, NULL)
  		  || !return_used_this_function
@@ -557,7 +549,7 @@
  
        /* Reset the ARM-specific per-function variables.  */
        after_arm_reorg = 0;
-@@ -10310,6 +10491,47 @@
+@@ -10310,6 +10490,47 @@
  }
  
  
@@ -605,7 +597,7 @@
  /* Compute the distance from register FROM to register TO.
     These can be the arg pointer (26), the soft frame pointer (25),
     the stack pointer (13) or the hard frame pointer (11).
-@@ -10369,7 +10591,6 @@
+@@ -10369,7 +10590,6 @@
    unsigned long func_type;
    int leaf;
    int saved;
@@ -613,7 +605,7 @@
  
    offsets = &cfun->machine->stack_offsets;
  
-@@ -10388,14 +10609,14 @@
+@@ -10388,14 +10608,14 @@
  
    /* Initially this is the size of the local variables.  It will translated
       into an offset once we have determined the size of preceding data.  */
@@ -621,7 +613,7 @@
 +  offsets->frame_size = ROUND_UP_WORD (get_frame_size ());
  
 -  leaf = leaf_function_p ();
-+  leaf = arm_leaf_function_p (); /* NAB++ */
++  leaf = arm_leaf_function_p ();
  
    /* Space for variadic functions.  */
    offsets->saved_args = current_function_pretend_args_size;
@@ -631,7 +623,7 @@
  
    if (TARGET_ARM)
      {
-@@ -10440,9 +10661,10 @@
+@@ -10440,9 +10660,10 @@
    /* Saved registers include the stack frame.  */
    offsets->saved_regs = offsets->saved_args + saved;
    offsets->soft_frame = offsets->saved_regs + CALLER_INTERWORKING_SLOT_SIZE;
@@ -643,7 +635,7 @@
      {
        offsets->outgoing_args = offsets->soft_frame;
        return offsets;
-@@ -10453,7 +10675,10 @@
+@@ -10453,7 +10674,10 @@
        && (offsets->soft_frame & 7))
      offsets->soft_frame += 4;
  
@@ -655,7 +647,7 @@
    offsets->outgoing_args = (offsets->locals_base
  			    + current_function_outgoing_args_size);
  
-@@ -10464,7 +10689,6 @@
+@@ -10464,7 +10688,6 @@
  	offsets->outgoing_args += 4;
        gcc_assert (!(offsets->outgoing_args & 7));
      }
@@ -663,7 +655,7 @@
    return offsets;
  }
  
-@@ -10475,9 +10699,30 @@
+@@ -10475,9 +10698,30 @@
  HOST_WIDE_INT
  arm_compute_initial_elimination_offset (unsigned int from, unsigned int to)
  {
@@ -696,7 +688,7 @@
  
    /* OK, now we have enough information to compute the distances.
       There must be an entry in these switch tables for each pair
-@@ -10502,7 +10747,7 @@
+@@ -10502,7 +10746,7 @@
  	  if (offsets->frame == offsets->saved_regs)
  	    return 0;
  	  /* FIXME:  Not sure about this.  Maybe we should always return 0 ?  */
@@ -705,7 +697,7 @@
  		  && cfun->static_chain_decl != NULL
  		  && ! cfun->machine->uses_anonymous_args) ? 4 : 0;
  
-@@ -10548,15 +10793,76 @@
+@@ -10548,15 +10792,76 @@
      }
  }
  
@@ -785,20 +777,18 @@
    unsigned long live_regs_mask;
    unsigned long func_type;
    int fp_offset = 0;
-@@ -10578,8 +10884,11 @@
+@@ -10578,8 +10883,9 @@
    live_regs_mask = arm_compute_save_reg_mask ();
  
    ip_rtx = gen_rtx_REG (SImode, IP_REGNUM);
-+  /* NAB++ */
 +  fp_rtx = gen_rtx_REG (SImode, FP_REGNUM);
-+  /* NAB -- */
  
 -  if (frame_pointer_needed)
 +  if (arm_apcs_frame_needed ())
      {
        if (IS_INTERRUPT (func_type))
  	{
-@@ -10699,7 +11008,7 @@
+@@ -10699,7 +11005,7 @@
       can be done with a single instruction.  */
    if ((func_type == ARM_FT_ISR || func_type == ARM_FT_FIQ)
        && (live_regs_mask & (1 << LR_REGNUM)) != 0
@@ -807,19 +797,17 @@
      emit_insn (gen_rtx_SET (SImode,
  			    gen_rtx_REG (SImode, LR_REGNUM),
  			    gen_rtx_PLUS (SImode,
-@@ -10800,13 +11109,64 @@
+@@ -10800,13 +11106,62 @@
  	}
      }
  
 -  if (frame_pointer_needed)
 -    {
-+  /* NAB++ */
 +  offsets = arm_get_frame_offsets ();
 +  if (arm_abi == ARM_ABI_APCS32)
 +    frame_size = - offsets->frame_size - offsets->outgoing_args;
 +  else
 +    frame_size = offsets->saved_args + saved_regs - offsets->outgoing_args;
-+  /* NAB-- */
 +
 +  if (arm_apcs_frame_needed ())
 +    {      
@@ -875,7 +863,7 @@
        if (IS_NESTED (func_type))
  	{
  	  /* Recover the static chain register.  */
-@@ -10815,8 +11175,11 @@
+@@ -10815,8 +11170,11 @@
  	    insn = gen_rtx_REG (SImode, 3);
  	  else /* if (current_function_pretend_args_size == 0) */
  	    {
@@ -889,7 +877,7 @@
  	      insn = gen_frame_mem (SImode, insn);
  	    }
  
-@@ -10826,18 +11189,14 @@
+@@ -10826,18 +11184,14 @@
  	}
      }
  
@@ -910,7 +898,7 @@
        do
  	{
  	  last = last ? NEXT_INSN (last) : get_insns ();
-@@ -10848,11 +11207,21 @@
+@@ -10848,9 +11202,15 @@
        /* If the frame pointer is needed, emit a special barrier that
  	 will prevent the scheduler from moving stores to the frame
  	 before the stack adjustment.  */
@@ -918,23 +906,16 @@
 +      if (arm_apcs_frame_needed ())
  	insn = emit_insn (gen_stack_tie (stack_pointer_rtx,
  					 hard_frame_pointer_rtx));
--    }
- 
-+      /* NAB: FIXME.  Hack for __builtin_apply_args. */
-+      if (arm_abi == ARM_ABI_APCS32)
++
++       if (arm_abi == ARM_ABI_APCS32 && !optimize)
 +	{
-+	  if (cfun->machine->apply_args || ! optimize)
-+	    {
-+	      insn = emit_insn (gen_movsi (frame_pointer_rtx,
-+					   stack_pointer_rtx));
-+	      RTX_FRAME_RELATED_P (insn) = 1;
-+	    }
++	  insn = emit_insn (gen_movsi (frame_pointer_rtx, stack_pointer_rtx));
++	  RTX_FRAME_RELATED_P (insn) = 1;
 +	}
-+    }
+     }
  
-   if (flag_pic)
-     arm_load_pic_register (0UL);
-@@ -10873,6 +11242,7 @@
+ 
+@@ -10873,6 +11233,7 @@
        emit_insn (gen_prologue_use (gen_rtx_REG (SImode, LR_REGNUM)));
        cfun->machine->lr_save_eliminated = 1;
      }
@@ -942,17 +923,17 @@
  }
  
  /* If CODE is 'd', then the X is a condition operand and the instruction
-@@ -11252,14 +11622,20 @@
+@@ -11252,14 +11613,20 @@
        if (NEED_GOT_RELOC && flag_pic && making_const_table &&
  	  (GET_CODE (x) == SYMBOL_REF || GET_CODE (x) == LABEL_REF))
  	{
 -	  if (GET_CODE (x) == SYMBOL_REF
 -	      && (CONSTANT_POOL_ADDRESS_P (x)
 -		  || SYMBOL_REF_LOCAL_P (x)))
--	    fputs ("(GOTOFF)", asm_out_file);
--	  else if (GET_CODE (x) == LABEL_REF)
 +	  if (TARGET_MODULE) /* -mmodule */
  	    fputs ("(GOTOFF)", asm_out_file);
+-	  else if (GET_CODE (x) == LABEL_REF)
+-	    fputs ("(GOTOFF)", asm_out_file);
 -	  else
 +	  else if (flag_pic == 2) /* -fPIC */
  	    fputs ("(GOT)", asm_out_file);
@@ -969,7 +950,7 @@
  	}
        fputc ('\n', asm_out_file);
        return true;
-@@ -11947,7 +12323,7 @@
+@@ -11947,7 +12314,7 @@
  
    /* If we are using the stack pointer to point at the
       argument, then an offset of 0 is correct.  */
@@ -978,7 +959,7 @@
        && REGNO (addr) == SP_REGNUM)
      return 0;
  
-@@ -12714,7 +13090,7 @@
+@@ -12714,7 +13081,7 @@
      case ARM_BUILTIN_WSHUFH:
        icode = CODE_FOR_iwmmxt_wshufh;
        arg0 = TREE_VALUE (arglist);
@@ -987,12 +968,11 @@
        op0 = expand_expr (arg0, NULL_RTX, VOIDmode, 0);
        op1 = expand_expr (arg1, NULL_RTX, VOIDmode, 0);
        tmode = insn_data[icode].operand[0].mode;
-@@ -13503,17 +13879,34 @@
+@@ -13503,17 +13870,33 @@
  #if ARM_FT_UNKNOWN != 0
    machine->func_type = ARM_FT_UNKNOWN;
  #endif
-+  machine->leaf = -1; /* NAB */
-+  machine->apply_args = 0;
++  machine->leaf = -1;
    return machine;
  }
  
@@ -1023,7 +1003,7 @@
    return get_hard_reg_initial_val (Pmode, LR_REGNUM);
  }
  
-@@ -13619,7 +14012,7 @@
+@@ -13619,7 +14002,7 @@
    if (flag_pic)
      arm_load_pic_register (live_regs_mask);
  
@@ -1032,7 +1012,7 @@
      emit_move_insn (gen_rtx_REG (Pmode, ARM_HARD_FRAME_POINTER_REGNUM),
  		    stack_pointer_rtx);
  
-@@ -13653,7 +14046,7 @@
+@@ -13653,7 +14036,7 @@
  	     it now.  */
  	  for (regno = LAST_ARG_REGNUM + 1; regno <= LAST_LO_REGNUM; regno++)
  	    if (live_regs_mask & (1 << regno)
@@ -1041,7 +1021,7 @@
  		     && (regno == THUMB_HARD_FRAME_POINTER_REGNUM)))
  	      break;
  
-@@ -13711,7 +14104,7 @@
+@@ -13711,7 +14094,7 @@
  	}
      }
  
@@ -1050,7 +1030,7 @@
      {
        amount = offsets->outgoing_args - offsets->locals_base;
  
-@@ -13768,7 +14161,7 @@
+@@ -13768,7 +14151,7 @@
    offsets = arm_get_frame_offsets ();
    amount = offsets->outgoing_args - offsets->saved_regs;
  
@@ -1059,109 +1039,7 @@
      {
        emit_insn (gen_movsi (stack_pointer_rtx, hard_frame_pointer_rtx));
        amount = offsets->locals_base - offsets->saved_regs;
-@@ -14457,6 +14850,30 @@
-   return buf;
- }
- 
-+/* NAB ++ */
-+static int arm_rodata_section_count = 1;
-+
-+char *
-+aof_rodata_section ()
-+{
-+  static char buf[100];
-+  sprintf (buf, "\tAREA |C$$rodata%d|, DATA, READONLY",
-+           arm_rodata_section_count++);
-+  return buf;
-+}
-+
-+static int arm_bss_section_count = 1;
-+
-+char *
-+aof_bss_section ()
-+{
-+  static char buf[100];
-+  sprintf (buf, "\tAREA |C$$bss%d|, DATA, NOINIT",
-+           arm_data_section_count++);
-+  return buf;
-+}
-+/* NAB -- */
-+
- /* The AOF assembler is religiously strict about declarations of
-    imported and exported symbols, so that it is impossible to declare
-    a function as imported near the beginning of the file, and then to
-@@ -14541,31 +14958,8 @@
- static void
- aof_file_start (void)
- {
--  fputs ("__r0\tRN\t0\n", asm_out_file);
--  fputs ("__a1\tRN\t0\n", asm_out_file);
--  fputs ("__a2\tRN\t1\n", asm_out_file);
--  fputs ("__a3\tRN\t2\n", asm_out_file);
--  fputs ("__a4\tRN\t3\n", asm_out_file);
--  fputs ("__v1\tRN\t4\n", asm_out_file);
--  fputs ("__v2\tRN\t5\n", asm_out_file);
--  fputs ("__v3\tRN\t6\n", asm_out_file);
--  fputs ("__v4\tRN\t7\n", asm_out_file);
--  fputs ("__v5\tRN\t8\n", asm_out_file);
--  fputs ("__v6\tRN\t9\n", asm_out_file);
--  fputs ("__sl\tRN\t10\n", asm_out_file);
--  fputs ("__fp\tRN\t11\n", asm_out_file);
--  fputs ("__ip\tRN\t12\n", asm_out_file);
--  fputs ("__sp\tRN\t13\n", asm_out_file);
--  fputs ("__lr\tRN\t14\n", asm_out_file);
--  fputs ("__pc\tRN\t15\n", asm_out_file);
--  fputs ("__f0\tFN\t0\n", asm_out_file);
--  fputs ("__f1\tFN\t1\n", asm_out_file);
--  fputs ("__f2\tFN\t2\n", asm_out_file);
--  fputs ("__f3\tFN\t3\n", asm_out_file);
--  fputs ("__f4\tFN\t4\n", asm_out_file);
--  fputs ("__f5\tFN\t5\n", asm_out_file);
--  fputs ("__f6\tFN\t6\n", asm_out_file);
--  fputs ("__f7\tFN\t7\n", asm_out_file);
-+  fprintf (asm_out_file, "%s Generated by gcc %s for ARM/%s\n",
-+           ASM_COMMENT_START, version_string, ARM_OS_NAME);
-   text_section ();
- }
- 
-@@ -14578,6 +14972,36 @@
-   aof_dump_imports (asm_out_file);
-   fputs ("\tEND\n", asm_out_file);
- }
-+
-+/* Switch to an arbitrary section NAME with attributes as specified
-+   by FLAGS.  ALIGN specifies any known alignment requirements for
-+   the section; 0 if the default should be used.
-+
-+   Differs from the default elf version only in the prefix character
-+   used before the section type.  */
-+
-+static void
-+arm_aof_asm_named_section (const char *name, unsigned int flags)
-+{
-+  char flagchars[10], *f = flagchars;
-+
-+  fprintf (asm_out_file, "\tAREA\t|C$$%s|", name);
-+
-+  if (flags & SECTION_DEBUG)
-+    fprintf (asm_out_file, ", DEBUG");
-+  if (!(flags & SECTION_WRITE))
-+    fprintf (asm_out_file, ", READONLY");
-+  if (flags & SECTION_CODE)
-+    fprintf (asm_out_file, ", CODE");
-+  else
-+    fprintf (asm_out_file, ", DATA");
-+  if (flags & SECTION_BSS)
-+    fprintf (asm_out_file, ", NOINIT");
-+  if (flags & SECTION_LINKONCE)
-+    fprintf (asm_out_file, ", COMDEF, LINKONCE");
-+
-+  putc ('\n', asm_out_file);
-+}
- #endif /* AOF_ASSEMBLER */
- 
- #ifndef ARM_PE
-@@ -15057,7 +15481,7 @@
+@@ -15057,7 +15440,7 @@
      emit_move_insn (gen_rtx_REG (Pmode, LR_REGNUM), source);
    else
      {
@@ -1170,7 +1048,7 @@
  	addr = plus_constant(hard_frame_pointer_rtx, -4);
        else
  	{
-@@ -15100,7 +15524,7 @@
+@@ -15100,7 +15483,7 @@
        offsets = arm_get_frame_offsets ();
  
        /* Find the saved regs.  */
@@ -1179,7 +1057,7 @@
  	{
  	  delta = offsets->soft_frame - offsets->saved_args;
  	  reg = THUMB_HARD_FRAME_POINTER_REGNUM;
-@@ -15157,13 +15581,91 @@
+@@ -15157,13 +15540,91 @@
    return mode == SImode ? 255 : 0;
  }
  
@@ -1272,7 +1150,7 @@
      return regno;
  
    /* TODO: Legacy targets output FPA regs as registers 16-23 for backwards
-@@ -15171,9 +15673,12 @@
+@@ -15171,9 +15632,12 @@
    if (IS_FPA_REGNUM (regno))
      return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
  
