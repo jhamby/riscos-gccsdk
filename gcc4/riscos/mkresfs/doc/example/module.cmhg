@@ -1,0 +1,7 @@
+
+help-string: mkresfsExample 0.00
+
+title-string: mkresfsExample
+
+initialisation-code: ex_initialise
+finalisation-code: ex_finalise
