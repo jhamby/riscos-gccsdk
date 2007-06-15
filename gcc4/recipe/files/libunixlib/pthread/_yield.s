@@ -14,10 +14,17 @@
 pthread_yield:
 	@ Setup an APCS-32 stack frame so this will appear in a backtrace
 	MOV	ip, sp
- PICEQ "STMFD	sp!, {v4, fp, ip, lr, pc}"
- PICEQ "BL	__rt_load_pic"
  PICNE "STMFD	sp!, {fp, ip, lr, pc}"
+ PICEQ "STMFD	sp!, {v4, fp, ip, lr, pc}"
+
 	SUB	fp, ip, #4
+
+ PICEQ "LDR	v4, .L0+8"
+.LPIC0:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
+ PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v4 = GOT (private)
 
 	@ If the thread system isn't running then yielding is pointless
 	LDR	a2, .L0	@=__ul_global
@@ -58,6 +65,7 @@ __pthread_yield_return:
 .L0:
 	WORD	__ul_global
 	WORD	__cbreg
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 
 failmessage:
 	.asciz	"pthread_yield called with context switching disabled"

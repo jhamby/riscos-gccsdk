@@ -1,3 +1,27 @@
+Fri Jun 15 17:41:54 2007  Lee Noar  <leenoar@sky.com>
+
+	* pthread/_context.s: Use new PIC register loading scheme.
+	* pthread/_yields.s: Likewise.
+	* pthread/_ints.s: Likewise.
+	* common/_exist.s: Likewise.
+	* common/_riscosify.s: Likewise.
+	* gcccompat/_b_return.s: Likewise.
+	* sys/_jmp.s: Likewise.
+	* sys/_vfork.s: Likewise.
+	* signal/_demangle.s: Likewise.
+	* signal/_signal.s: Use new PIC register loading scheme.
+	(__h_cback_common): Fix bug in DSO; when copying registers, start
+	from the correct position in __cbreg.
+	* sys/_syslib.s: Use new PIC register loading scheme.
+	(__main): Retrieve values passed by crt1-riscos.o from the stack
+	rather than from registers and store them as required. Register
+	the program's _fini function with atexit() and call its _init
+	function after library initialisation, but before main() is
+	called. This replaces the call to __gccmain(). This is necessary
+	as eventually, we'll also want to call the _init functions of all
+	the shared libraries here too. Where the PIC register (v4) is used
+	for non-PIC code, replace with v6.
+
 Wed May 23 20:31:26 2007  Alex Waugh  <alex@alexwaugh.com>
 
 	* include/unixlib/types.h: Fix typo in typedef.

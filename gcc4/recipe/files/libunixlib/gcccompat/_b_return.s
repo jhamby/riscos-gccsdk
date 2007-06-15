@@ -17,11 +17,21 @@
 	@ or calls to alloca.
 	.global	__builtin_return_address
 __builtin_return_address:
-	STMFD	sp!, {lr}
+ PICNE "STMFD	sp!, {lr}"
+ PICEQ "STMFD	sp!, {v4, lr}"
+ @ Setup GOT for function call via PLT.
+ PICEQ "LDR	v4, .L2+4"
+.LPIC0:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = Library public GOT
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v4 = GOT table location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT table
+ PICEQ "LDR	v4, [v5, v4, ASL#2]"	@ v4 = Library private GOT
+
 	BL	__builtin_frame_address
 
 	MOVS	a2, a1
-	LDMEQFD	sp!, {pc}
+ PICNE "LDMEQFD	sp!, {pc}"
+ PICEQ "LDMEQFD	sp!, {v4, pc}"
 
 	LDR	a1, [a2, #-4]		@ Load return address from the stack frame.
 	TEQ	a1, a1			@ 32bit mode check
@@ -46,11 +56,13 @@ __builtin_return_address_alloca_resolved:
 	TEQ	a1, lr
 	LDREQ	a1, [a2, #CHUNK_RETURN]
 
-	LDMFD	sp!, {pc}
+ PICNE "LDMFD	sp!, {pc}"
+ PICEQ "LDMFD	sp!, {v4, pc}"
 .L1:
 	WORD	__gcc_alloca_free
 .L2:
 	WORD	__free_stack_chunk
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __builtin_return_address
 
 	.end

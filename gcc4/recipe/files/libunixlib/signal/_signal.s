@@ -93,14 +93,21 @@ __ul_seterr:
 	MOVEQ	pc, lr
 
 	STMFD	sp!, {v1-v5, lr}	@ Stack working registers
- PICEQ "BL	__rt_load_pic"
+
+ PICEQ "LDR	v4, .L1+4"
+.LPIC8:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
+ PICEQ "LDR	v4, [v5, v4, ASL#2]"	@ v4 = GOT (private)
+
 	CMP	a2, #0
 	BEQ	seterr01		@ user requested not to set errno
 	MOV	a3, #EOPSYS
 	__set_errno	a3, a2		@ Set errno = EOPSYS
 
 seterr01:
-	LDR	a2, .L1	@=__pthread_running_thread
+	LDR	a2, .L1			@=__pthread_running_thread
  PICEQ "LDR	a2, [v4, a2]"
 	LDR	a2, [a2]
         @ If __pthread_running_thread == NULL then something has gone
@@ -142,6 +149,7 @@ seterr_fatal:
 	.align
 .L1:
 	WORD	__pthread_running_thread
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC8+4)"
 	DECLARE_FUNCTION __ul_seterr
 
 @-----------------------------------------------------------------------
@@ -161,16 +169,22 @@ seterr_fatal:
 	.global	_kernel_last_oserror
 	NAME	_kernel_last_oserror
 _kernel_last_oserror:
- PICEQ "STMFD	sp!, {v4, lr}"
- PICEQ "BL	__rt_load_pic"
-	LDR	a1, .L1	@=__pthread_running_thread
- PICEQ "LDR	a1, [v4, a1]"
+ PICEQ "LDR	a2, .L15"		@ _GLOBAL_OFFET_TABLE_+4
+.LPIC9:
+ PICEQ "ADD	a2, pc, a2"
+ PICEQ "LDMIA	a2, {a2, a3}"
+ PICEQ "LDR	a3, [a3, #0]"
+ PICEQ "LDR	a2, [a3, a2, ASL#2]"
+
+	LDR	a1, .L1			@=__pthread_running_thread
+ PICEQ "LDR	a1, [a2, a1]"
 	LDR	a1, [a1, #0]
 	LDR	a2, [a1, #__PTHREAD_ERRBUF_OFFSET]!
 	TEQ	a2, #0
 	MOVEQ	a1, #0
- PICEQ "LDMFD	sp!, {v4, lr}"
 	MOV	pc, lr
+.L15:
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC9+4)"
 	DECLARE_FUNCTION _kernel_last_oserror
 
 	@ The following code is in a writable area because we need access to
@@ -211,19 +225,26 @@ _kernel_last_oserror:
 __h_sigill:
 	SUB	lr, lr, #4
 
- PICEQ "STMFD	sp!, {r0-r2}"		@ Store work registers
- PICEQ "MOV	r2, lr"			@ Save lr somewhere else so we can call SWI
- PICEQ "ADR	r0, __h_sigill"		@ Use routine address for GOT ID
- PICEQ "SWI	XSOM_GOTFromAddr"	@ Find the GOT pointer (returned in r0)
- PICEQ "LDR	r1, .L2+4"		@__cba1
- PICEQ "LDR	r1, [r0, r1]"
- PICEQ "MOV	lr, #SIGILL"
- PICEQ "STR	lr, [r1, #0]"
- PICEQ "LDR	r1, .L2"		@__cbreg
- PICEQ "LDR	r1, [r0, r1]"
- PICEQ "STR	r2, [r1, #(15 * 4)]"	@ Store original lr
- PICEQ "MOV	lr, r1"			@ lr = __cbreg
- PICEQ "LDMFD	sp!, {r0-r2}"		@ Restore work registers
+ PICEQ "STMFD	sp!, {r7, r8}"
+
+ PICEQ "LDR	r7, .L2+8"
+.LPIC0:
+ PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
+ PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
+ PICEQ "LDR	r7, [r8, r7, ASL#2]"	@ r7 = GOT (private)
+
+ PICEQ "LDR	r8, .L2"		@__cbreg
+ PICEQ "LDR	r8, [r7, r8]"
+ PICEQ "STR	lr, [r8, #(15 * 4)]"
+ PICEQ "MOV	lr, r8"
+
+ PICEQ "LDR	r8, .L2+4"		@__cba1
+ PICEQ "LDR	r7, [r7, r8]"
+ PICEQ "MOV	r8, #SIGILL"
+ PICEQ "STR	r8, [r7, #0]"
+
+ PICEQ "LDMFD	sp!, {r7, r8}"
 
  PICNE "STR	lr, __cbreg + 15*4"
  PICNE "ADRL	lr, __cbreg"
@@ -244,6 +265,7 @@ __h_sigill:
 .L2:
  PICEQ "WORD	__cbreg"
  PICEQ "WORD	__cba1"
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __h_sigill
 
 @-----------------------------------------------------------------------
@@ -257,19 +279,26 @@ __h_sigill:
 __h_sigbus:
 	SUB	lr, lr, #4
 
- PICEQ "STMFD	sp!, {r0-r2}"		@ Store work registers
- PICEQ "MOV	r2, lr"			@ Save lr somewhere else so we can call SWI
- PICEQ "ADR	r0, __h_sigbus"		@ Use routine address for GOT ID
- PICEQ "SWI	XSOM_GOTFromAddr"	@ Find the GOT pointer (returned in r0)
- PICEQ "LDR	r1, .L2+4"		@__cba1
- PICEQ "LDR	r1, [r0, r1]"
- PICEQ "MOV	lr, #SIGBUS"
- PICEQ "STR	lr, [r1, #0]"
- PICEQ "LDR	r1, .L2"		@__cbreg
- PICEQ "LDR	r1, [r0, r1]"
- PICEQ "STR	r2, [r1, #(15 * 4)]"	@ Store original lr
- PICEQ "MOV	lr, r1"			@ lr = __cbreg
- PICEQ "LDMFD	sp!, {r0-r2}"		@ Restore work registers
+ PICEQ "STMFD	sp!, {r7, r8}"
+
+ PICEQ "LDR	r7, .L3+8"
+.LPIC1:
+ PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
+ PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
+ PICEQ "LDR	r7, [r8, r7, ASL#2]"	@ r7 = GOT (private)
+
+ PICEQ "LDR	r8, .L3"		@__cbreg
+ PICEQ "LDR	r8, [r7, r8]"
+ PICEQ "STR	lr, [r8, #(15 * 4)]"
+ PICEQ "MOV	lr, r8"
+
+ PICEQ "LDR	r8, .L3+4"		@__cba1
+ PICEQ "LDR	r7, [r7, r8]"
+ PICEQ "MOV	r8, #SIGBUS"
+ PICEQ "STR	r8, [r7, #0]"
+
+ PICEQ "LDMFD	sp!, {r7, r8}"
 
  PICNE "STR	lr, __cbreg + 15*4"
  PICNE "ADRL	lr, __cbreg"
@@ -285,6 +314,10 @@ __h_sigbus:
  PICNE "MOV	a1, #SIGBUS"
  PICNE "STR	a1, __cba1"
 	B	__h_cback_common
+.L3:
+ PICEQ "WORD	__cbreg"
+ PICEQ "WORD	__cba1"
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 	DECLARE_FUNCTION __h_sigbus
 
 @-----------------------------------------------------------------------
@@ -298,19 +331,26 @@ __h_sigbus:
 __h_sigsegv0:
 	SUB	lr, lr, #4
 
- PICEQ "STMFD	sp!, {r0-r2}"		@ Store work registers
- PICEQ "MOV	r2, lr"			@ Save lr somewhere else so we can call SWI
- PICEQ "ADR	r0, __h_sigsegv0"		@ Use routine address for GOT ID
- PICEQ "SWI	XSOM_GOTFromAddr"	@ Find the GOT pointer (returned in r0)
- PICEQ "LDR	r1, .L2+4"		@__cba1
- PICEQ "LDR	r1, [r0, r1]"
- PICEQ "MOV	lr, #SIGBUS"
- PICEQ "STR	lr, [r1, #0]"
- PICEQ "LDR	r1, .L2"		@__cbreg
- PICEQ "LDR	r1, [r0, r1]"
- PICEQ "STR	r2, [r1, #(15 * 4)]"	@ Store original lr
- PICEQ "MOV	lr, r1"			@ lr = __cbreg
- PICEQ "LDMFD	sp!, {r0-r2}"		@ Restore work registers
+ PICEQ "STMFD	sp!, {r7, r8}"
+
+ PICEQ "LDR	r7, .L4+8"
+.LPIC2:
+ PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
+ PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
+ PICEQ "LDR	r7, [r8, r7, ASL#2]"	@ r7 = GOT (private)
+
+ PICEQ "LDR	r8, .L4"		@__cbreg
+ PICEQ "LDR	r8, [r7, r8]"
+ PICEQ "STR	lr, [r8, #(15 * 4)]"
+ PICEQ "MOV	lr, r8"
+
+ PICEQ "LDR	r8, .L4+4"		@__cba1
+ PICEQ "LDR	r7, [r7, r8]"
+ PICEQ "MOV	r8, #SIGSEGV"
+ PICEQ "STR	r8, [r7, #0]"
+
+ PICEQ "LDMFD	sp!, {r7, r8}"
 
  PICNE "STR	lr, __cbreg + 15*4"
  PICNE "ADR	lr, __cbreg"
@@ -328,6 +368,10 @@ __h_sigsegv0:
  PICNE "MOV	a1, #SIGSEGV"
  PICNE "STR	a1, __cba1"
 	B	__h_cback_common
+.L4:
+ PICEQ "WORD	__cbreg"
+ PICEQ "WORD	__cba1"
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC2+4)"
 	DECLARE_FUNCTION __h_sigsegv0
 
 @-----------------------------------------------------------------------
@@ -368,19 +412,26 @@ __h_sigsegv0:
 __h_sigsegv1:
 	SUB	lr, lr, #8
 
- PICEQ "STMFD	sp!, {r0-r2}"		@ Store work registers
- PICEQ "MOV	r2, lr"			@ Save lr somewhere else so we can call SWI
- PICEQ "ADR	r0, __h_sigsegv1"		@ Use routine address for GOT ID
- PICEQ "SWI	XSOM_GOTFromAddr"	@ Find the GOT pointer (returned in r0)
- PICEQ "LDR	r1, .L3+4"		@__cba1
- PICEQ "LDR	r1, [r0, r1]"
- PICEQ "MOV	lr, #SIGBUS"
- PICEQ "STR	lr, [r1, #0]"
- PICEQ "LDR	r1, .L3"		@__cbreg
- PICEQ "LDR	r1, [r0, r1]"
- PICEQ "STR	r2, [r1, #(15 * 4)]"	@ Store original lr
- PICEQ "MOV	lr, r1"			@ lr = __cbreg
- PICEQ "LDMFD	sp!, {r0-r2}"		@ Restore work registers
+ PICEQ "STMFD	sp!, {r7, r8}"
+
+ PICEQ "LDR	r7, .L5+8"
+.LPIC3:
+ PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
+ PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
+ PICEQ "LDR	r7, [r8, r7, ASL#2]"	@ r7 = GOT (private)
+
+ PICEQ "LDR	r8, .L5"		@__cbreg
+ PICEQ "LDR	r8, [r7, r8]"
+ PICEQ "STR	lr, [r8, #(15 * 4)]"
+ PICEQ "MOV	lr, r8"
+
+ PICEQ "LDR	r8, .L5+4"		@__cba1
+ PICEQ "LDR	r7, [r7, r8]"
+ PICEQ "MOV	r8, #SIGSEGV"
+ PICEQ "STR	r8, [r7, #0]"
+
+ PICEQ "LDMFD	sp!, {r7, r8}"
 
  PICNE "STR	lr, __cbreg + 15*4"
  PICNE "ADR	lr, __cbreg"
@@ -398,9 +449,10 @@ __h_sigsegv1:
  PICNE "MOV	a1, #SIGSEGV"
  PICNE "STR	a1, __cba1"
 	B	__h_cback_common
-.L3:
+.L5:
  PICEQ "WORD	__cbreg"
  PICEQ "WORD	__cba1"
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC3+4)"
 	DECLARE_FUNCTION __h_sigsegv1
 
 @-----------------------------------------------------------------------
@@ -462,7 +514,7 @@ __h_error:
 	@ callbacks while we are setting up the stack
 	SWI	XOS_EnterOS
 
-	LDR	a1, .L4	@=__ul_global
+	LDR	a1, .L6	@=__ul_global
  PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
@@ -478,7 +530,7 @@ __h_error:
 					@ case anything goes horribly wrong.
  PICEQ "MOV	v4, ip"		@ Restore PIC register
 
-	LDR	v1, .L4+4	@=__ul_callbackfp
+	LDR	v1, .L6+4	@=__ul_callbackfp
  PICEQ "LDR	v1, [v4, v1]"		@ We don't have a r0-r15, CPSR
 	MOV	a1, #0			@ snapshot on our sp stack.
 	STR	a1, [v1]
@@ -488,24 +540,24 @@ __h_error:
 	__set_errno	a2, a1
 
 	@ Copy error buffer into thread specific storage
-	LDR	a1, .L4+20	@=__pthread_running_thread
+	LDR	a1, .L6+20	@=__pthread_running_thread
  PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1]
 	ADD	a1, a1, #__PTHREAD_ERRBUF_OFFSET
-	LDR	a2, .L4+8	@=__ul_errbuf_errblock
+	LDR	a2, .L6+8	@=__ul_errbuf_errblock
  PICEQ "LDR	a2, [v4, a2]"
 	MOV	a3, #__ul_errbuf__size
 	BL	memcpy
 
 	@ Mark the error buffer as valid.
-	LDR	a1, .L4+12	@=__ul_errbuf_valid
+	LDR	a1, .L6+12	@=__ul_errbuf_valid
  PICEQ "LDR	a1, [v4, a1]"
 	MOV	a2, #1
 	STR	a2, [a1]
 
 	@ Check the error number. Its value will determine the
 	@ appropriate signal to call.
-	LDR	a2, .L4+8	@=__ul_errbuf_errblock
+	LDR	a2, .L6+8	@=__ul_errbuf_errblock
  PICEQ "LDR	a2, [v4, a2]"
 	LDR	a3, [a2, #0]
 
@@ -521,7 +573,7 @@ __h_error:
 
 	MOV	a1, #EXIT_FAILURE
 	B	exit	@ There is nowhere to go if the signal handler returns
-.L4:
+.L6:
 	WORD	__ul_global
 	WORD	__ul_callbackfp
 	WORD	__ul_errbuf_errblock
@@ -546,7 +598,7 @@ unrecoverable_error:
 	BNE	non_fp_exception
 
 	@ Store FP registers.
-	LDR	a1, .L4+16	@=__ul_fp_registers
+	LDR	a1, .L6+16	@=__ul_fp_registers
  PICEQ "LDR	a1, [v4, a1]"
 	RFS	a2		@ Read FP status register
 	STR	a2, [a1], #4
@@ -609,14 +661,14 @@ __h_sigint:
 	TST	r11, #64		@ bit 6
 	MOVNE	ip, #SIGINT
 
- PICEQ "LDRNE	r0, .L5"		@__cba1
+ PICEQ "LDRNE	r0, .L7"		@__cba1
  PICEQ "LDRNE	r0, [r1, r0]"
  PICEQ "STRNE	ip, [r0, #0]"		@ store __cba1 (shared library)
 
  PICNE "STRNE	ip, __cba1"		@ store __cba1 (static library)
 
 	@ Set the escape condition flag
- PICEQ "LDR	r0, .L5+4"		@__cbflg
+ PICEQ "LDR	r0, .L7+4"		@__cbflg
  PICEQ "LDR	r0, [r1, r0]"
  PICEQ "LDR	ip, [r0, #0]"
  PICNE "LDR	ip, __cbflg"
@@ -630,7 +682,7 @@ __h_sigint:
 	MOVNE	ip, #1
  PICEQ "LDR	r0, [sp], #4"
 	MOV	pc, lr
-.L5:
+.L7:
  PICEQ "WORD	__cba1"
  PICEQ "WORD	__cbflg"
 	DECLARE_FUNCTION __h_sigint
@@ -669,7 +721,7 @@ __h_event:
 
  PICEQ "MOV	a2, ip"		@ Move GOT pointer away from ip
 	@ Set the internet event flag
- PICEQ "LDR	a1, .L5+4"	@__cbflg
+ PICEQ "LDR	a1, .L7+4"	@__cbflg
  PICEQ "LDR	a1, [a2, a1]"
  PICEQ "LDR	ip, [a1, #0]"
 
@@ -681,7 +733,7 @@ __h_event:
  PICNE "STR	ip, __cbflg"	@ store __cbflg (static library)
 
 	MOV	ip, #SIGURG
- PICEQ "LDR	a1, .L5"	@__cba1
+ PICEQ "LDR	a1, .L7"	@__cba1
  PICEQ "LDR	a1, [a2, a1]"
  PICEQ "STR	ip, [a1, #0]"	@ store __cba1 (shared library)
  PICNE "STR	ip, __cba1"	@ store __cba1 (static library)
@@ -712,7 +764,7 @@ __h_event:
 	.global	__h_sigsys
 	NAME	__h_sigsys
 __h_sigsys:
- PICEQ "LDR	a1, .L6+4"		@__cbreg
+ PICEQ "LDR	a1, .L8+4"		@__cbreg
  PICEQ "LDR	a1, [ip, a1]"
  PICEQ "STR	lr, [a1, #15*4]"
  PICEQ "MOV	lr, a1"			@ lr = __cbreg
@@ -726,14 +778,14 @@ __h_sigsys:
 	STR	a1, [lr, #4*3]
 
 	MOV	a1, #SIGSYS
- PICEQ "LDR	lr, .L6"		@__cba1
+ PICEQ "LDR	lr, .L8"		@__cba1
  PICEQ "LDR	lr, [ip, lr]"
  PICEQ "STR	a1, [lr, #0]"		@ store __cba1 (shared library)
 
  PICNE "STR	a1, __cba1"		@ store __cba1 (static library)
 
 	B	__h_cback_common
-.L6:
+.L8:
  PICEQ "WORD	__cbreg"
  PICEQ "WORD	__cba1"
 	DECLARE_FUNCTION __h_sigsys
@@ -769,14 +821,14 @@ __h_cback:
 	@ Check that the return PC value is within our wimpslot.
 	@ If it isn't, then we don't want to do a context switch
 	@ so return straight away.
- PICEQ "LDR	a1, .L7+12"		@__cbreg
+ PICEQ "LDR	a1, .L9+12"		@__cbreg
  PICEQ "LDR	a1, [ip, a1]"
  PICEQ "LDR	a1, [a1, #15*4]"	@ retrieve PC (shared library)
  PICNE "LDR	a1, __cbreg + 15*4"	@ retrieve PC (static library)
 	TEQ	pc, pc
 	BICNE	a1, a1, #0xfc000003
 
-	LDR	a3, .L7		@=__ul_memory
+	LDR	a3, .L9		@=__ul_memory
  PICEQ "LDR	a3, [ip, a3]"
 	LDR	a2, [a3, #MEM_ROBASE]
 	CMP	a1, a2
@@ -788,14 +840,14 @@ __h_cback:
  PICNE "CMP	a1, a2"
  PICNE "BHI	return_quickly"
 
- PICEQ "LDR	a1, .L7+16"		@ __cbflg
+ PICEQ "LDR	a1, .L9+16"		@ __cbflg
  PICEQ "LDR	a1, [ip, a1]"
  PICEQ "LDR	a1, [a1, #0]"
  PICNE "LDR	a1, __cbflg"
 	TST	a1, #3			@ Check escape and internet flags
 	BNE	__h_cback_common
 
-	LDR	a3, .L7+4		@ __ul_global
+	LDR	a3, .L9+4		@ __ul_global
  PICEQ "LDR	a3, [ip, a3]"
 	LDR	a1, [a3, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
@@ -803,7 +855,7 @@ __h_cback:
 	B	__h_cback_common
 
 return_quickly:
- PICEQ "LDR	lr, .L7+12"		@ __cbreg
+ PICEQ "LDR	lr, .L9+12"		@ __cbreg
  PICEQ "LDR	lr, [ip, lr]"
  PICNE "ADR	lr, __cbreg"
 	LDR	a1, [lr, #16*4]
@@ -812,7 +864,7 @@ return_quickly:
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]
 	MOVS	pc, lr
-.L7:
+.L9:
 	WORD	__ul_memory
 	WORD	__ul_global
 	WORD	__ul_callbackfp
@@ -823,11 +875,14 @@ return_quickly:
 	@ This is the common entry point for many of the RISC OS exception
 	@ handlers.  On entry, assume that all registers are corrupted.
 __h_cback_common:
- PICEQ "ADR	r0, __h_cback_common"	@ Use routine address for GOT ID
- PICEQ "SWI	XSOM_GOTFromAddr"	@ Find UnixLib GOT pointer
- PICEQ "MOV	v4, r0"			@ Set up PIC register
+ PICEQ "LDR	v4, .L10"
+.LPIC4:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
+ PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v4 = GOT (private)
 
-	LDR	a3, .L7+4		@=__ul_global
+	LDR	a3, .L9+4		@=__ul_global
  PICEQ "LDR	a3, [v4, a3]"
 	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
 	ADD	a1, a1, #1
@@ -841,8 +896,9 @@ __h_cback_common:
 	@ The USR mode registers r0-r15 and CPSR are extracted from the
 	@ callback register block while IRQs are disabled. The registers
 	@ are then saved on the USR mode signal handler stack.
- PICEQ "LDR	a1, .L7+12"		@ __cbreg
+ PICEQ "LDR	a1, .L9+12"		@ __cbreg
  PICEQ "LDR	a1, [v4, a1]"
+ PICEQ "ADD	a1, a1, #(8*4)"
  PICNE "ADR	a1, __cbreg + 8*4"	@ Copy R8-R15, R0-R7
  PICEQ "MOV	v6, v4"			@ Save PIC register
 	LDMIA	a1, {a2, a3, a4, v1, v2, v3, v4, v5}
@@ -854,7 +910,7 @@ __h_cback_common:
 	STMFD	sp!, {a2}
 
 	@ Check for an escape condition
- PICEQ "LDR	a1, .L7+16"		@ __cbflg
+ PICEQ "LDR	a1, .L9+16"		@ __cbflg
  PICEQ "LDR	a2, [v4, a1]"
  PICEQ "LDR	a1, [a2, #0]"
 
@@ -875,12 +931,12 @@ __h_cback_common:
 	STMFD	sp!, {a1, a2, a3, a4}	@ create signal frame
 	ADD	fp, sp, #4*3
 
-	LDR	v1, .L7+8	@=__ul_callbackfp	; Save callback FP backtrace
+	LDR	v1, .L9+8	@=__ul_callbackfp	; Save callback FP backtrace
  PICEQ "LDR	v1, [v4, v1]"
 	STR	a1, [v1]
 
 	MOV	a1, #0
- PICEQ "LDR	a2, .L7+20"		@ __cba1
+ PICEQ "LDR	a2, .L9+20"		@ __cba1
  PICEQ "LDR	a2, [v4, a2]"
  PICEQ "LDR	a2, [a2, #0]"
  PICNE "LDR	a2, __cba1"
@@ -890,7 +946,7 @@ __h_cback_common:
 	@ Disable IRQs again while updating semaphores
 	SWI	XOS_IntOff
 
-	LDR	a3, .L7+4	@=__ul_global
+	LDR	a3, .L9+4	@=__ul_global
  PICEQ "LDR	a3, [v4, a3]"
 	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
 	SUB	a1, a1, #1
@@ -913,6 +969,8 @@ __h_cback_common:
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]	@ Load the old PC value
 	MOVS	pc, lr		@ Return (Valid for 26 and 32bit modes)
+.L10:
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC4+4)"
 	DECLARE_FUNCTION __h_cback
 
 
@@ -924,7 +982,7 @@ __h_cback_common:
 	@  v4 = UnixLib GOT pointer in shared library
 	.global	__setup_signalhandler_stack
 __setup_signalhandler_stack:
-	LDR	a3, .L8	@=__ul_global
+	LDR	a3, .L11	@=__ul_global
  PICEQ "LDR	a3, [v4, a3]"
 	LDR	a1, [a3, #GBL_EXECUTING_SIGNALHANDLER]
 	TEQ	a1, #0
@@ -947,7 +1005,7 @@ __setup_signalhandler_stack:
 	LDMNEIA	a1, {sp}^	@ Not USR mode, set USR sp
 	LDREQ	sp, [a1, #0]	@ USR mode
 	MOV	pc, lr
-.L8:
+.L11:
 	WORD	__ul_global
 	DECLARE_FUNCTION __setup_signalhandler_stack
 
@@ -1016,15 +1074,18 @@ __h_sigalrm:
  PICEQ "STMFD	sp!, {a1, a2, a3, v4, lr}"
  PICNE "STMFD	sp!, {a1, a2, a3, lr}"
 
- PICEQ "ADR	r0, __h_sigalrm"	@ Use routine name for GOT ID
- PICEQ "SWI	XSOM_GOTFromAddr"	@ Find UnixLib GOT pointer
- PICEQ "MOV	v4, r0"			@ Set up PIC register
+ PICEQ "LDR	a1, .L12+4"
+.LPIC5:
+ PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
+ PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
+ PICEQ "LDR	v4, [a2, a1, ASL#2]"	@ v4 = GOT (private)
 
 	@ Raise the SIGALRM signal
 	MOV	a1, #SIGALRM
 	BL	__raise
 	@ Have we previously setup a CallEvery handler
- PICEQ "LDR	a1, .L9"		@__h_sigalrm_sema
+ PICEQ "LDR	a1, .L12"		@__h_sigalrm_sema
  PICEQ "LDR	v4, [v4, a1]"
  PICEQ "LDR	a1, [v4, #0]"
  PICNE "LDR	a1, __h_sigalrm_sema"
@@ -1052,8 +1113,9 @@ __h_sigalrm:
 
  PICEQ "LDMFD	sp!, {a1, a2, a3, v4, pc}"
  PICNE "LDMFD	sp!, {a1, a2, a3, pc}"
-.L9:
+.L12:
  PICEQ "WORD	__h_sigalrm_sema"
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC5+4)"
 	DECLARE_FUNCTION __h_sigalrm
 
 @ Called in SVC mode with IRQs disabled.
@@ -1091,13 +1153,16 @@ __h_sigvtalrm:
  PICEQ "STMFD	sp!, {a1, a2, a3, v4, lr}"
  PICNE "STMFD	sp!, {a1, a2, a3, lr}"
 
- PICEQ "ADR	r0, __h_sigvtalrm"	@ Use routine name for GOT ID
- PICEQ "SWI	XSOM_GOTFromAddr"	@ Find UnixLib GOT pointer
- PICEQ "MOV	v4, r0"			@ Set up PIC register
+ PICEQ "LDR	a1, .L13+4"
+.LPIC6:
+ PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
+ PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
+ PICEQ "LDR	v4, [a2, a1, ASL#2]"	@ v4 = GOT (private)
 
 	MOV	a1, #SIGVTALRM	@  No access to banked registers
 	BL	__raise
- PICEQ "LDR	a1, .L10"		@__h_sigvtalrm_sema
+ PICEQ "LDR	a1, .L13"		@__h_sigvtalrm_sema
  PICEQ "LDR	v4, [v4, a1]"
  PICEQ "LDR	a1, [v4, #0]"
  PICNE "LDR	a1, __h_sigvtalrm_sema"
@@ -1121,8 +1186,9 @@ __h_sigvtalrm:
 
  PICEQ "LDMFD	sp!, {a1, a2, a3, v4, pc}"
  PICNE "LDMFD	sp!, {a1, a2, a3, pc}"
-.L10:
+.L13:
  PICEQ "WORD	__h_sigvtalrm_sema"
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC6+4)"
 	DECLARE_FUNCTION __h_sigvtalrm
 
 @ Called in SVC mode with IRQs disabled.
@@ -1161,13 +1227,16 @@ __h_sigprof:
  PICEQ "STMFD	sp!, {a1, a2, a3, v4, lr}"
  PICNE "STMFD	sp!, {a1, a2, a3, lr}"
 
- PICEQ "ADR	r0, __h_sigvtalrm"	@ Use routine name for GOT ID
- PICEQ "SWI	XSOM_GOTFromAddr"	@ Find UnixLib GOT pointer
- PICEQ "MOV	v4, r0"			@ Set up PIC register
+ PICEQ "LDR	a1, .L14+4"
+.LPIC7:
+ PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
+ PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
+ PICEQ "LDR	v4, [a2, a1, ASL#2]"	@ v4 = GOT (private)
 
 	MOV	a1, #SIGPROF	@ No access to banked registers
 	BL	__raise
- PICEQ "LDR	a1, .L11"		@__h_sigprof_sema
+ PICEQ "LDR	a1, .L14"		@__h_sigprof_sema
  PICEQ "LDR	v4, [v4, a1]"
  PICEQ "LDR	a1, [v4, #0]"
  PICNE "LDR	a1, __h_sigprof_sema"
@@ -1191,8 +1260,9 @@ __h_sigprof:
 
  PICEQ "LDMFD	sp!, {a1, a2, a3, v4, pc}"
  PICNE "LDMFD	sp!, {a1, a2, a3, pc}"
-.L11:
+.L14:
  PICEQ "WORD	__h_sigprof_sema"
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC7+4)"
 	DECLARE_FUNCTION __h_sigprof
 
 @ Called in SVC mode with IRQs disabled.

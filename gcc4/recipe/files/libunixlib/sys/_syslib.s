@@ -61,20 +61,24 @@ rmensure3:
 	NAME	__main
 
 __main:
-	@ The dynamic loader passes, in a1, the address where free memory starts
-	@ after it has grabbed what it needs. a2 & a3 come from crt1.o which is
-	@ linked into the executable. They contain MEM_ROBASE and MEM_RWBASE
-	@ respectively. a4 contains a pointer to main() which the shared library
-	@ can jump to when ready to call the user's code.
- PICEQ "MOV	v1, a1"
- PICEQ "MOV	v2, a2"
- PICEQ "MOV	v3, a3"
- PICEQ "MOV	v5, a4"
+	@ riscos-crt1.o passes several values on the stack that Unixlib can retrieve
+	@ in order to setup the environment correctly. Care needs to be taken to keep
+	@ these in synch. Currently the values stored, in the order Unixlib should
+	@ retrieve them, are:
+	@
+	@ sp+0  _fini function ptr
+	@ sp+4  _init function ptr
+	@ sp+8  __executable_start
+	@ sp+12  free memory start (from the dynamic loader)
+	@ sp+16 __data_start
+	@ sp+20 main function ptr
 
- PICEQ "MOV	r0, lr"	@ Preserve the return address
- PICEQ "BL	__rt_load_pic"
-	@ v4 is already in use below, so use v6 as the PIC register
- PICEQ "MOV	v6, v4"
+ PICEQ "LDR	v4, .L0+32"
+.LPIC0:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v4, {v4, ip}"		@ v4 = Object index, ip = GOT ptr array location
+ PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
+ PICEQ "LDR	v4, [ip, v4, LSL#2]"	@ v4 = GOT ptr
 
 	@ Read environment parameters
 	@ On exit:
@@ -87,23 +91,39 @@ __main:
 	@ See the end of this file.  For the initialisation here, we
 	@ will always use ip as the base register.
 	LDR	ip, .L0			@=__ul_global
- PICEQ "LDR	ip, [v6, ip]"
+ PICEQ "LDR	ip, [v4, ip]"
 	LDR	fp, .L0+4		@=__ul_memory
- PICEQ "LDR	fp, [v6, fp]"
+ PICEQ "LDR	fp, [v4, fp]"
 
 	@ __unixlib_cli = pointer to command line
 	STR	a1, [ip, #GBL_UNIXLIB_CLI]
 	@ __image_rw_himem = permitted RAM limit
 	STR	a2, [fp, #MEM_APPSPACE_HIMEM]
 
-	@ For the shared library, fill in the linker generated values that
-	@ are passed in by crt1.o. These are only known at runtime.
- PICEQ "STR	v2, [fp, #MEM_ROBASE]"
- PICEQ "STR	v1, [fp, #MEM_RWLOMEM]"
- PICEQ "STR	v3, [fp, #MEM_RWBASE]"
+	@ Store the pointer to the programs _init & _fini functions for
+	@ calling later. This applies to both static and shared libs.
+	LDR	a1, [sp], #4
+	LDR	a2, .L0+28			@ exec_fini
+ PICEQ "LDR	a2, [v4, a2]"
+	STR	a1, [a2, #0]
 
-	@ Also store the pointer to the program's main function for calling later.
- PICEQ "STR	v5, [ip, #GBL_MAIN]"
+	LDR	a1, [sp], #4
+	LDR	a2, .L0+24			@ exec_init
+ PICEQ "LDR	a2, [v4, a2]"
+	STR	a1, [a2, #0]
+
+	@ For the shared library, fill in the linker generated values that
+	@ are passed on the stack in by crt1.o. These are only known at runtime.
+ PICEQ "LDR	a1, [sp], #4"
+ PICEQ "STR	a1, [fp, #MEM_ROBASE]"		@ __executable_start
+ PICEQ "LDR	a1, [sp], #4"
+ PICEQ "STR	a1, [fp, #MEM_RWLOMEM]"
+ PICEQ "LDR	a1, [sp], #4"
+ PICEQ "STR	a1, [fp, #MEM_RWBASE]"		@ __data_start
+
+	@ Also store the pointer to the programs main function for calling later.
+ PICEQ "LDR	a1, [sp], #4"
+ PICEQ "STR	a1, [ip, #GBL_MAIN]"
 
 	LDMIA	a3, {a1, a2}			@ Get time
 	STR	a1, [ip, #GBL_TIME_LOW]		@ __time (low word)
@@ -184,20 +204,20 @@ __main:
 	MOV	ip, v1		@ Restore ip.
 
 	LDR	a1, .L0+12	@=rmensure1	; If no SUL or not recent enough, ...
- PICEQ "LDR	a1, [v6, a1]"
+ PICEQ "LDR	a1, [v4, a1]"
 	SWI	XOS_CLI			@ load it.
 	LDR	a1, .L0+16	@=rmensure2	; Try a second location.
- PICEQ "LDR	a1, [v6, a1]"
+ PICEQ "LDR	a1, [v4, a1]"
 	SWI	XOS_CLI			@
 	LDRVC	a1, .L0+20	@=rmensure3	; If still not recent enough, ...
- PICEQ "LDRVC	a1, [v6, a1]"
+ PICEQ "LDRVC	a1, [v4, a1]"
 	SWIVC	XOS_CLI			@ complain.
 	MOVVS	a1, #ERR_NO_SUL
 	BVS	__exit_with_error_num
 
 	@ Use of DAs explicitly overridden if __dynamic_no_da is declared
 	LDR	a1, ___dynamic_no_da
- PICEQ "LDR	a1, [v6, a1]"
+ PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	BNE	no_dynamic_area
 
@@ -223,7 +243,7 @@ unknown_cpu_arch:
 	@ Area name is <program name> + "$Heap".  Figure now out what
 	@ <program name> is.
 	LDR	a1, ___program_name
- PICEQ "LDR	a1, [v6, a1]"
+ PICEQ "LDR	a1, [v4, a1]"
 	TEQ	a1, #0
 	LDREQ	a1, [ip, #GBL_UNIXLIB_CLI]	@ __cli
 	LDRNE	a1, [a1, #0]	@ __program_name
@@ -242,22 +262,22 @@ t01:
 	@ Use a maximum of (dynamic_area_name_end - dynamic_area_name_begin)
 	@ characters from the program name
 	LDR	v1, .L0+8	@=dynamic_area_name_end
- PICEQ "LDR	v1, [v6, v1]"
+ PICEQ "LDR	v1, [v4, v1]"
 	MOV	a3, #0
 	STRB	a3, [v1, #5]	@ Terminate the $Heap
 
 	SUB	a4, a1, a2
 	CMP	a4, #MAX_DA_NAME_SIZE
-	SUBCS	v4, v1, #MAX_DA_NAME_SIZE
-	SUBCC	v4, v1, a4
+	SUBCS	v6, v1, #MAX_DA_NAME_SIZE
+	SUBCC	v6, v1, a4
 
-	MOV	a3, v4
+	MOV	a3, v6
 t02:
 	LDRB	a4, [a2], #1
 	STRB	a4, [a3], #1
 	CMP	a3, v1
 	BCC	t02
-	@ v4 => OS variable to check if Heap or DA needs to be used.
+	@ v6 => OS variable to check if Heap or DA needs to be used.
 
 	@ Allow the user the option of setting their own name for the
 	@ dynamic area used as a heap.	 If the variable __dynamic_da_name
@@ -269,20 +289,20 @@ t02:
 	@ e.g.:  const char * const __dynamic_da_name = "Nettle Heap";
 
 	LDR	v5, ___dynamic_da_name
- PICEQ "LDR	v5, [v6, v5]"
+ PICEQ "LDR	v5, [v4, v5]"
 	TEQ	v5, #0
 	LDRNE	v5, [v5, #0]	@ get the actual string referred to
 	BNE	t07
 
 	@ Check environment variable for creating a DA
-	MOV	a1, v4
+	MOV	a1, v6
 	MOV	a3, #-1
 	MOV	a4, #0
 	MOV	v1, #0
 	SWI	XOS_ReadVarVal
 	CMP	a3, #0
 	BGE	no_dynamic_area
-	MOV	v5, v4
+	MOV	v5, v6
 
 	@ v5 => DA area name
 t07:
@@ -290,16 +310,16 @@ t07:
 	MOV	v2, #32*1024*1024
 	@ If __dynamic_da_max_size is defined, use its value as the max size
 	LDR	v1, ___dynamic_da_max_size
- PICEQ "LDR	v1, [v6, v1]"
+ PICEQ "LDR	v1, [v4, v1]"
 	TEQ	v1, #0
 	LDRNE	v2, [v1]
 
 	LDR	a1, .L0+8	@=dynamic_area_name_end
- PICEQ "LDR	a1, [v6, a1]"
+ PICEQ "LDR	a1, [v4, a1]"
 	MOV	a3, #'M'
 	STRB	a3, [a1, #5]	@ Change back to $HeapMax
 
-	MOV	a1, v4
+	MOV	a1, v6
 	MOV	a3, #4
 	SUB	sp, sp, a3
 	MOV	a2, sp
@@ -313,10 +333,11 @@ t07:
 	@ v2 = size of DA area
 t08:
 	LDR	a1, .L0+8	@=dynamic_area_name_end
- PICEQ "LDR	a1, [v6, a1]"
+ PICEQ "LDR	a1, [v4, a1]"
 	MOV	a3, #0
 	STRB	a3, [a1, #5]	@ Change back to $Heap
 
+ PICEQ "MOV	v6, v4"		@ Save PIC register
 	@ Create dynamic area
 	MOV	a1, #0
 	MOV	a2, #-1
@@ -331,6 +352,7 @@ t08:
 	BVS	__exit_with_error_block	@ no DA, report and exit
 	MOV	v1, a3				@ setup for deletion at exit
 	STR	a2, [ip, #GBL_DYNAMIC_NUM]	@ __dynamic_num
+ PICEQ "MOV	v4, v6"		@ Restore PIC register
 
 	@ v1 is size left in area, a4 is start offset
 	ADD	a1, v1, a4
@@ -402,6 +424,19 @@ no_dynamic_area:
 	@ calling this function.
 	BL	__unixinit
 
+	@ Make sure the _fini function of the executable is called at program
+	@ exit.
+	LDR	a1, .L0+28		@ exec_fini
+ PICEQ "LDR	a1, [v4, a1]"
+	LDR	a1, [a1, #0]
+	BL	atexit
+
+	@ Call the programs _init function.
+	LDR	a1, .L0+24
+ PICEQ "LDR	a1, [v4, a1]"
+	MOV	lr, pc
+	LDR	pc, [a1, #0]
+
 	BL	_main
 	@ C programs always terminate by calling exit.
 	B	exit
@@ -412,6 +447,9 @@ no_dynamic_area:
 	WORD	rmensure1
 	WORD	rmensure2
 	WORD	rmensure3
+	WORD	exec_init
+	WORD	exec_fini
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __main
 
 ___program_name:
@@ -435,7 +473,14 @@ ___dynamic_no_da:
 	@ a1 contains an index to the error to print.
 	NAME	__exit_with_error_num
 __exit_with_error_num:
- PICEQ "BL	__rt_load_pic"
+
+ PICEQ "LDR	a2, .L7+4"
+.LPIC1:
+ PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
+ PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
+ PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
+
  PICEQ "LDR	a2, .L7"		@ error_table
  PICEQ "LDR	a2, [v4, a2]"
 
@@ -448,6 +493,7 @@ __exit_with_error_block:
 	SWI	OS_GenerateError
 .L7:
 	WORD	error_table
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 	DECLARE_FUNCTION __exit_with_error_num
 	DECLARE_FUNCTION __exit_with_error_block
 
@@ -507,7 +553,13 @@ error_too_low_cpu_arch:
 __dynamic_area_exit:
  PICNE "STMFD	sp!, {lr}"
  PICEQ "STMFD	sp!, {v4, lr}"
- PICEQ "BL	__rt_load_pic"
+
+ PICEQ "LDR	a2, .L1+8"
+.LPIC2:
+ PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
+ PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
+ PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
 
 	LDR	a1, .L1			@=__dynamic_area_refcount
  PICEQ "LDR	a1, [v4, a1]"
@@ -519,7 +571,7 @@ __dynamic_area_exit:
 
 	BL	__munmap_all
 
-	LDR	a2, .L1+4	@=__ul_global
+	LDR	a2, .L1+4		@=__ul_global
  PICEQ "LDR	a2, [v4, a2]"
 	LDR	a2, [a2, #GBL_DYNAMIC_NUM]
 	MOV	a1, #1
@@ -530,6 +582,7 @@ __dynamic_area_exit:
 .L1:
 	WORD	__dynamic_area_refcount
 	WORD	__ul_global
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC2+4)"
 	DECLARE_FUNCTION __dynamic_area_exit
 
 	@ Restore original RISC OS environment handlers
@@ -538,11 +591,17 @@ __dynamic_area_exit:
 __env_riscos:
  PICNE "STMFD	sp!, {v1, v2, lr}"
  PICEQ "STMFD	sp!, {v1, v2, v4, lr}"
- PICEQ "BL	__rt_load_pic"
+
+ PICEQ "LDR	a2, .L2+4"
+.LPIC3:
+ PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
+ PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
+ PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
 
 	SWI	XOS_IntOff
 	MOV	v1, #0
-	LDR	v2, .L2	@=__calling_environment
+	LDR	v2, .L2			@=__calling_environment
  PICEQ "LDR	v2, [v4, v2]"
 t04:
 	MOV	a1, v1
@@ -558,6 +617,7 @@ t04:
  PICEQ "LDMFD	sp!, {v1, v2, v4, pc}"
 .L2:
 	WORD	__calling_environment
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC3+4)"
 	DECLARE_FUNCTION __env_riscos
 
 	@ Get current environment handler setup
@@ -565,10 +625,15 @@ t04:
 __env_read:
  PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}"
  PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, lr}"
- PICEQ "BL	__rt_load_pic"
+ PICEQ "LDR	a2, .L8+4"
+.LPIC4:
+ PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
+ PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
+ PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
 
 	MOV	v1, #0
-	LDR	v2, .L2	@=__calling_environment
+	LDR	v2, .L8			@=__calling_environment
  PICEQ "LDR	v2, [v4, v2]"
 t05:
 	MOV	a1, v1
@@ -582,6 +647,9 @@ t05:
 	BCC	t05
  PICEQ "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, pc}"
  PICNE "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}"
+.L8:
+	WORD	__calling_environment
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC4+4)"
 	DECLARE_FUNCTION __env_read
 
 	@ Install the UnixLib environment handlers
@@ -590,7 +658,13 @@ t05:
 __env_unixlib:
  PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, lr}"
  PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}"
- PICEQ "BL	__rt_load_pic"
+
+ PICEQ "LDR	a2, .L3+16"
+.LPIC5:
+ PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
+ PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
+ PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
 
 	SWI	XOS_IntOff
 
@@ -612,7 +686,7 @@ t06:
 
 	MOV	a4, #0
 	TEQ	v1, #6		@ Error handler ?
-	LDREQ	a4, .L3	@=__ul_errbuf
+	LDREQ	a4, .L3		@=__ul_errbuf
  PICEQ "LDREQ	a4, [v4, a4]"
 	TEQ	v1, #7		@ CallBack handler ?
 	LDREQ	a4, .L3+4	@=__cbreg
@@ -638,6 +712,7 @@ t06:
 	WORD	__cbreg
 	WORD	__ul_global
  PICEQ "WORD	handlers"
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC5+4)"
 	DECLARE_FUNCTION __env_unixlib
 
 #if PIC
@@ -715,10 +790,15 @@ __rt_stkovf_split_big:
 	@ Thread-safe, other than the __stackalloc/free calls
 	@ v1 = extra size needed.
 stack_overflow_common:
- PICEQ "BL	__rt_load_pic"
+ PICEQ "LDR	a1, .L4+8"
+.LPIC6:
+ PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a1, {a1, v4}"		@ a1 = Object index, v4 = GOT ptr array location
+ PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
+ PICEQ "LDR	v4, [v4, a1, LSL#2]"	@ v4 = GOT ptr
 
 	@ The signal handler stack chunk can't be extended.
-	LDR	a1, .L4	@=__ul_global
+	LDR	a1, .L4			@=__ul_global
  PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1, #GBL_EXECUTING_SIGNALHANDLER]
 	TEQ	a1, #0
@@ -799,6 +879,8 @@ use_existing_chunk:
 .L4:
 	WORD	__ul_global
 	WORD	__stackfree
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC6+4)"
+
 raise_sigstak:
 	@ The 256 bytes left on the stack aren't enough for the signal
 	@ handler so setup a larger stack
@@ -1034,16 +1116,15 @@ __unixlib_fatal:
 	@ We don't want to assume anything about the stack as the stack
 	@ corruption detection routines will call this routine in case
 	@ something is wrong.
+ PICEQ "LDR	fp, .L6+4"
+.LPIC7:
+ PICEQ "ADD	fp, pc, fp"		@ fp = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	fp, {fp, ip}"		@ fp = Object index, ip = GOT ptr array location
+ PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
+ PICEQ "LDR	ip, [ip, fp, LSL#2]"	@ ip = GOT ptr
 
-	@ For shared library, preserve v4 & lr without using stack
- PICEQ "MOV	fp, v4"
- PICEQ "MOV	ip, lr"
- PICEQ "BL	__rt_load_pic"
- PICEQ "MOV	lr, ip"
-
-	LDR	a4, .L6	@=__ul_global
- PICEQ "LDR	a4, [v4, a4]"
- PICEQ "MOV	v4, fp"
+	LDR	a4, .L6			@=__ul_global
+ PICEQ "LDR	a4, [ip, a4]"
 	LDR	sp, [a4, #GBL_SIGNALHANDLER_SP]
 	MOV	fp, #0
 	LDR	sl, [a4, #GBL_SIGNALHANDLER_SL]
@@ -1051,7 +1132,13 @@ __unixlib_fatal:
 	MOV	ip, sp
  PICNE "STMDB	sp!, {v1, fp, ip, lr, pc}"
  PICEQ "STMDB	sp!, {v1, v4, fp, ip, lr, pc}"
- PICEQ "BL	__rt_load_pic"
+
+ PICEQ "LDR	v4, .L6+8"
+.LPIC8:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT ptr array location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT ptr array
+ PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v4 = GOT ptr
 
 	SUB	fp, ip, #4
 
@@ -1093,6 +1180,8 @@ __unixlib_fatal_got_msg:
  PICEQ "LDMDB	fp, {v1, v4, fp, sp, pc}"
 .L6:
 	WORD	__ul_global
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC7+4)"
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC8+4)"
 	DECLARE_FUNCTION __unixlib_fatal
 
 	.global	__unixlib_get_fpstatus
@@ -1135,6 +1224,12 @@ __valid_address:
 __calling_environment:
 	.space	204
 	DECLARE_OBJECT __calling_environment
+
+	@ Pointers to the _init & _fini functions of the executable.
+exec_init:
+	.space	4
+exec_fini:
+	.space	4
 
 	.data
 

@@ -38,10 +38,17 @@
 @
 	NAME	__pthread_start_ticker
 __pthread_start_ticker:
- PICEQ "STMFD	sp!, {v1-v2, v4, lr}"
- PICEQ "BL	__rt_load_pic"
  PICNE "STMFD	sp!, {v1-v2, lr}"
-	LDR	a2, .L0	@=__ul_global
+ PICEQ "STMFD	sp!, {v1-v2, v4, lr}"
+
+ PICEQ "LDR	v4, .L0+12"
+.LPIC0:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
+ PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v4 = GOT (private)
+
+	LDR	a2, .L0			@=__ul_global
  PICEQ "LDR	a2, [v4, a2]"
 
 	@ Don't start until the thread system has been setup
@@ -108,6 +115,7 @@ start_ticker_core:
 	WORD	__ul_global
 	WORD	ticker_started
 	WORD	filter_installed
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 
 filter_name:
 	.asciz	"pthread filter"
@@ -166,9 +174,16 @@ stop_call_every:
 @
 	NAME	__pthread_stop_ticker
 __pthread_stop_ticker:
- PICEQ "STMFD	sp!, {v1, v2, v4, lr}"
- PICEQ "BL	__rt_load_pic"
  PICNE "STMFD	sp!, {v1, v2, lr}"
+ PICEQ "STMFD	sp!, {v1, v2, v4, lr}"
+
+ PICEQ "LDR	v4, .L1+8"
+.LPIC1:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
+ PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v4 = GOT (private)
+
 	@ Don't bother if thread system is not running
 	LDR	a2, .L1	@=__ul_global
  PICEQ "LDR	a2, [v4, a2]"
@@ -212,6 +227,7 @@ stop_ticker_core:
 .L1:
 	WORD	__ul_global
 	WORD	filter_installed
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 	DECLARE_FUNCTION __pthread_stop_ticker
 
 @ The ticker calls this every clock tick, note that it is every *two*

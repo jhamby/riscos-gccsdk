@@ -31,30 +31,32 @@
 	.global	setjmp
 	NAME	setjmp
 setjmp:
- PICEQ "STMFD	sp!, {v4, lr}"
- PICEQ "BL	__rt_load_pic"
+ PICEQ "LDR	a4, .L0+12"
+.LPIC0:
+ PICEQ "ADD	a4, pc, a4"		@ a4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a4, {a4, ip}"		@ a4 = Object index, ip = GOT ptr array location
+ PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
+ PICEQ "LDR	ip, [ip, a4, LSL#2]"	@ ip = GOT ptr
 
-	LDR	a4, .L0 + 0	@ =__pthread_running_thread
- PICEQ "LDR	a4, [v4, a4]"
+	LDR	a4, .L0 + 0		@ =__pthread_running_thread
+ PICEQ "LDR	a4, [ip, a4]"
 	LDR	a4, [a4]
 	LDR	a4, [a4, #__PTHREAD_ALLOCA_OFFSET]
 	STR	a4, [a1], #4
 
-	LDR	a4, .L0 + 4	@ =__executing_signalhandler
- PICEQ "LDR	a4, [v4, a4]"
+	LDR	a4, .L0 + 4		@ =__executing_signalhandler
+ PICEQ "LDR	a4, [ip, a4]"
 	LDR	a4, [a4]
 	STR	a4, [a1], #4
 
-	LDR	a4, .L0 + 8	@ =__pthread_worksemaphore
- PICEQ "LDR	a4, [v4, a4]"
+	LDR	a4, .L0 + 8		@ =__pthread_worksemaphore
+ PICEQ "LDR	a4, [ip, a4]"
 	LDR	a4, [a4]
 	STR	a4, [a1], #4
 
 #ifndef __SOFTFP__
 	SFM	f4, 4, [a1], #4*12
 #endif
- PICEQ "LDMFD	sp!, {v4, lr}"
-
 	STMIA	a1, {v1, v2, v3, v4, v5, v6, sl, fp, sp, lr}
 
 	MOV	a1, #0
@@ -63,14 +65,18 @@ setjmp:
 	WORD	__pthread_running_thread
 	WORD	__executing_signalhandler
 	WORD	__pthread_worksemaphore
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION setjmp
 
 	.global	longjmp
 	NAME	longjmp
 longjmp:
-	@ No need to save lr or PIC register as they are overwritten
-	@ later on anyway.
- PICEQ "BL	__rt_load_pic"	@ Sets up v4
+ PICEQ "LDR	v1, .L1"
+.LPIC1:
+ PICEQ "ADD	v1, pc, v1"		@ v1 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v1, {v1, v4}"		@ v1 = Object index, v4 = GOT ptr array location
+ PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
+ PICEQ "LDR	v4, [v4, v1, LSL#2]"	@ v4 = GOT ptr
 
 	@ We should be able to safely use v1-v6, since if a recursive
 	@ call to longjmp does occur, then the v1-v6 are going to be
@@ -117,6 +123,8 @@ longjmp:
 	@ Technically there is a problem here if we should be
 	@ moving to a higher processor mode, such as USR -> SVC
 	LDMIA	v1, {v1, v2, v3, v4, v5, v6, sl, fp, sp, pc}
+.L1:
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 	DECLARE_FUNCTION longjmp
 
 	.end

@@ -36,19 +36,24 @@ fork_common:
 
 	LDMFD	sp!, {a1-a3,lr}
  PICEQ "STR	v4, [sp, #-4]!"
- PICEQ "STR	lr, [sp, #-4]!"
- PICEQ "BL	__rt_load_pic"
- PICEQ "LDR	lr, [sp], #4"
+
+ PICEQ "LDR	v4, .L0+12"
+.LPIC0:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT ptr array location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT ptr array
+ PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v5 = GOT ptr
+
 	MOV	ip, a2
 	@ Save lr as we can't use the stack as it may be corrupted
 	@ by the time we return as the parent
-	LDR	a2, .L0	@=__saved_lr
+	LDR	a2, .L0			@=__saved_lr
  PICEQ "LDR	a2, [v4, a2]"
 	STMIA	a2, {a3, lr}
-	LDR	a2, .L0+4	@=__proc
+	LDR	a2, .L0+4		@=__proc
  PICEQ "LDR	a2, [v4, a2]"
 	TEQ	a3, #0
-	LDRNE	a3, .L0+8	@=__ul_memory
+	LDRNE	a3, .L0+8		@=__ul_memory
  PICEQ "LDRNE	a3, [v4, a3]"
 	LDRNE	a4, [a3, #MEM_UNIXLIB_STACK]
 	LDRNE	a3, [a3, #MEM_UNIXLIB_STACK_LIMIT]
@@ -62,7 +67,7 @@ fork_common:
 	@ child process.
 
 	@ Tail-call __fork_post to do the remaining work
-	LDR	lr, .L0	@=__saved_lr
+	LDR	lr, .L0			@=__saved_lr
  PICEQ "LDR	lr, [v4, lr]"
 	LDMIA	lr, {a2, lr}
  PICEQ "LDR	v4, [sp], #4"
@@ -71,6 +76,7 @@ fork_common:
 	WORD	__saved_lr
 	WORD	__proc
 	WORD	__ul_memory
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION vfork
 	DECLARE_FUNCTION fork
 

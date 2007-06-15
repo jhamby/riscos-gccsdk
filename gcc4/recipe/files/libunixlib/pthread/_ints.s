@@ -16,27 +16,25 @@
 @ May be called from USR or SVC mode
 	NAME	__pthread_disable_ints
 __pthread_disable_ints:
-	@ For the shared library, if in SVC mode, assume v4 set by caller,
-	@ otherwise call library function to find GOT pointer.
- PICEQ "STMFD	sp!, {v4, lr}"
- PICEQ "TEQ	a1, a1"
- PICEQ "TEQ	pc, pc"
- PICEQ "MRSEQ	a1, CPSR"
- PICEQ "ANDNE	a1, pc, #3"
- PICEQ "CMP	a1, #0"
- PICEQ "BLEQ	__rt_load_pic"
-	LDR	a1, .L0	@=__ul_global
- PICEQ "LDR	a1, [v4, a1]"
+ PICEQ "LDR	a1, .L0+4"
+.LPIC0:
+ PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
+ PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
+ PICEQ "LDR	a2, [a2, a1, LSL#2]"	@ a2 = GOT ptr
+
+	LDR	a1, .L0			@=__ul_global
+ PICEQ "LDR	a1, [a2, a1]"
 	ADD	a1, a1, #GBL_PTH_WORKSEMAPHORE
 	MOV	a3, #1
 	SWP	a2, a3, [a1]
 	@ From this point onwards we will not be interrupted by the callback
 	ADD	a2, a2, #1
 	STR	a2, [a1]
- PICEQ "LDMFD	sp!, {v4, lr}"
 	MOV	pc, lr
 .L0:
 	WORD	__ul_global
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __pthread_disable_ints
 
 
@@ -44,19 +42,16 @@ __pthread_disable_ints:
 @ May be called from USR or SVC mode
 	NAME	__pthread_enable_ints
 __pthread_enable_ints:
-	@ For the shared library, if in SVC mode, assume v4 set by caller,
-	@ otherwise call library function to find GOT pointer.
- PICEQ "STMFD	sp!, {v4, lr}"
- PICEQ "TEQ	a1, a1"
- PICEQ "TEQ	pc, pc"
- PICEQ "MRSEQ	a1, CPSR"
- PICEQ "ANDNE	a1, pc, #3"
- PICEQ "CMP	a1, #0"
- PICEQ "BLEQ	__rt_load_pic"
-	LDR	a2, .L0	@=__ul_global
- PICEQ "LDR	a2, [v4, a2]"
+ PICEQ "LDR	a1, .L1+4"
+.LPIC1:
+ PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
+ PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
+ PICEQ "LDR	a1, [a2, a1, LSL#2]"	@ a1 = GOT ptr
+
+	LDR	a2, .L1			@=__ul_global
+ PICEQ "LDR	a2, [a1, a2]"
 	LDR	a1, [a2, #GBL_PTH_WORKSEMAPHORE]
- PICEQ "LDMFD	sp!, {v4, lr}"
 #if __UNIXLIB_PARANOID
 	CMP	a1, #0
 	ADRLE	a1, semazero
@@ -65,7 +60,9 @@ __pthread_enable_ints:
 	SUB	a1, a1, #1
 	STR	a1, [a2, #GBL_PTH_WORKSEMAPHORE]
 	MOV	pc, lr
-
+.L1:
+	WORD	__ul_global
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 #if __UNIXLIB_PARANOID
 semazero:
 	.asciz	"__pthread_enable_ints called with semaphore already 0"
@@ -85,12 +82,15 @@ __pthread_protect_unsafe:
 	BEQ	__pthread_fatal_error
 #endif
 
- PICEQ "STMFD	sp!, {v4, lr}"
- PICEQ "BL	__rt_load_pic"
+ PICEQ "LDR	a1, .L2+4"
+.LPIC2:
+ PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
+ PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
+ PICEQ "LDR	a1, [a2, a1, LSL#2]"	@ a1 = GOT ptr
 
-	LDR	a4, .L1	@=__ul_global
- PICEQ "LDR	a4, [v4, a4]"
- PICEQ "LDMFD	sp!, {v4, lr}"
+	LDR	a4, .L2			@=__ul_global
+ PICEQ "LDR	a4, [a1, a4]"
 	ADD	a1, a4, #GBL_PTH_WORKSEMAPHORE
 	MOV	a2, #1
 	SWP	a3, a2, [a1]
@@ -116,8 +116,9 @@ __pthread_protect_unsafe:
 	STR	a2, [fp, #-4]
 
 	MOV	pc, lr
-.L1:
+.L2:
 	WORD	__ul_global
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC2+4)"
 
 #if __UNIXLIB_PARANOID
 noframe:
@@ -133,12 +134,15 @@ return_notempty:
 @ Can corrupt a3-a4,ip,lr but NOT a1 or a2
 	NAME	__pthread_unprotect_unsafe
 __pthread_unprotect_unsafe:
- PICEQ "MOV	a3, v4"		@ Save v4
- PICEQ "BL	__rt_load_pic"
+ PICEQ "LDR	a3, .L3+4"
+.LPIC3:
+ PICEQ "ADD	a3, pc, a3"		@ a3 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a3, {a3, a4}"		@ a3 = Object index, a4 = GOT ptr array location
+ PICEQ "LDR	a4, [a4, #0]"		@ a4 = GOT ptr array
+ PICEQ "LDR	a3, [a4, a3, LSL#2]"	@ a3 = GOT ptr
 
-	LDR	ip, .L1	@=__ul_global
- PICEQ "LDR	ip, [v4, ip]"
- PICEQ "MOV	v4, a3"		@ Restore v4
+	LDR	ip, .L3			@=__ul_global
+ PICEQ "LDR	ip, [a3, ip]"
 	LDR	lr, [ip, #GBL_PTH_RETURN_ADDRESS]
 #if __UNIXLIB_PARANOID
 	CMP	lr, #0
@@ -171,6 +175,9 @@ __pthread_unprotect_unsafe:
 	STMFD	sp!, {a1, a2, lr}
 	BL	pthread_yield
 	LDMFD	sp!, {a1, a2, pc}
+.L3:
+	WORD	__ul_global
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC3+4)"
 
 #if __UNIXLIB_PARANOID
 bad_semaphore:
