@@ -1,5 +1,5 @@
 @ rt_workspace.h for RISC OS
-@ Copyright (c) 2006 GCCSDK Developers
+@ Copyright (c) 2006, 2007 GCCSDK Developers
 
 @===================================================================
 @ A structure that defines the layout of runtime data at the
@@ -9,6 +9,11 @@
 @===================================================================
 				.struct	0
 				.skip	0xD4	@ skip ELF header
+RT_WORKSPACE_LIBRARY_INDEX_TABLE:.skip	4
+
+/* Pointer to the current client structure. */
+RT_WORKSPACE_CLIENT_STRUCT_PTR:	.skip	4
+
 RT_WORKSPACE_CLIENT_ID:		.skip	4
 
 @ This is the client's object list. It remains constant for the life
@@ -32,5 +37,5 @@ RT_WORKSPACE_LD_GOT:		.skip	4
 RT_WORKSPACE_CACHED_PLT:	.skip	4
 RT_WORKSPACE_CACHED_PLTGOT:	.skip	4
 
-@ Reserve 3 words of space, there are 10 words altogether.
-RT_WORKSPACE_RESERVED:		.skip	12
+@ Reserve 1 word of space, there are 10 words altogether.
+RT_WORKSPACE_RESERVED:		.skip	4

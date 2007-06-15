@@ -99,16 +99,23 @@
 
 #define LIBGCC_SPEC "-lgcc"
 
-/* Specify an item that is to appear at the very beginning of the command
-   given to the linker.  We're declaring __EH_FRAME_BEGIN__ as early as
-   possible to ensure it appears at the start of the '.eh_frame' section.
-   Otherwise, we can end up missing chunks of potentially interesting
-   frame data.  */
-#undef  STARTFILE_SPEC
-#define STARTFILE_SPEC "crti-riscos.o%s"
+/* Provide a STARTFILE_SPEC appropriate for GNU/Linux.  Here we add
+   the GNU/Linux magical crtbegin.o file (see crtstuff.c) which
+   provides part of the support for getting C++ file-scope static
+   object constructed before entering `main'.  */
+#undef STARTFILE_SPEC
+#define STARTFILE_SPEC  "%{!mlibscl:crti.o%s} \
+			 %{!shared:crt1-riscos.o%s %{!mlibscl:crtbegin.o%s}} \
+			 %{!mlibscl:%{shared:crtbeginS.o%s}}"
 
-#undef  ENDFILE_SPEC
-#define ENDFILE_SPEC "crtn-riscos.o%s"
+/* Provide a ENDFILE_SPEC appropriate for GNU/Linux.  Here we tack on
+   the GNU/Linux magical crtend.o file (see crtstuff.c) which
+   provides part of the support for getting C++ file-scope static
+   object constructed before entering `main', followed by a normal
+   GNU/Linux "finalizer" file, `crtn.o'.  */
+#undef ENDFILE_SPEC
+#define ENDFILE_SPEC	"%{!mlibscl:%{!shared:crtend.o%s}} \
+			 %{!mlibscl:%{shared:crtendS.o%s} crtn.o%s}"
 
 #undef  LINK_SPEC
 #define LINK_SPEC "%{h*} %{version:-v} \
@@ -128,13 +135,22 @@
    entry point.  You must define both, or neither.  */
 #define NAME__MAIN "__gccmain"
 #define SYMBOL__MAIN __gccmain
+#ifdef __TARGET_SCL__
 #define INVOKE__main
+#else
+#undef INVOKE__main
+#endif
 
-/* We can't use these until the ELFloader properly sets the stack
-   register before passing control to the user-land app.  */
+/* On svr4, we *do* have support for the .init and .fini sections, and we
+   can put stuff in there to be executed before and after `main'.  We let
+   crtstuff.c and other files know this by defining the following symbols.
+   The definitions say how to change sections to the .init and .fini
+   sections.  This is the same for all known svr4 assemblers.  */
 #undef INIT_SECTION_ASM_OP
+#define INIT_SECTION_ASM_OP	".section\t.init"
 #undef FINI_SECTION_ASM_OP
-#undef HAVE_INIT_SECTION
+#define FINI_SECTION_ASM_OP	".section\t.fini"
+#define HAVE_INIT_SECTION
 
 #define TARGET_OS_CPP_BUILTINS()		\
   do						\

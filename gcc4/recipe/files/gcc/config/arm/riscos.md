@@ -117,13 +117,8 @@
  (set_attr "length" "8")])
 
 (define_insn "rt_loadpic"
-  [(unspec:SI [(match_operand 0 "" "")] UNSPEC_STK)
-   (clobber (reg:SI 7))
-   (clobber (reg:SI 8))
-   (clobber (reg:SI IP_REGNUM))
-   (clobber (reg:SI LR_REGNUM))
-   (clobber (reg:CC CC_REGNUM))]
+  [(unspec:SI [(match_operand:SI 0 "s_register_operand" "r")
+               (match_operand:SI 1 "s_register_operand" "r")] UNSPEC_PIC_BASE)]
   ""
-  "bl\\t%a0"
-[(set_attr "conds" "clob")
- (set_attr "length" "4")])
+  "ldmia\\t%0, {%0, %1}\\n\\tldr\\t%1, [%1, #0]\\n\\tldr\\t%0, [%1, %0, lsl#2]"
+[(set_attr "length" "12")])
