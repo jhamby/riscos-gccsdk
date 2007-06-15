@@ -19,7 +19,7 @@ OBJS += $(OBJDIR)/resolve.o $(OBJDIR)/elfinterp.o $(OBJDIR)/stkovf.o $(OBJDIR)/d
 
 DLINKER = $(OBJDIR)/ld-1.9.9.so,e1f
 
-ELF_LDFLAGS=--shared -fPIC -Wl,--no-undefined -lpic -nostdlib # using GNU ld
+ELF_LDFLAGS=--shared -fPIC -Wl,--no-undefined -nostdlib # using GNU ld
 
 .PHONY: $(DIRS)
 .PHONY: libdl

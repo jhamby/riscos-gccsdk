@@ -12,6 +12,8 @@
 #define XSOM_ITERATE_OBJECTS	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0x9)
 #define XSOM_HANDLE_FROM_ADDR	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xB)
 #define XSOM_HANDLE_FROM_NAME	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xC)
+#define XSOM_RESOLVE_SYMLINKS	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xD)
+#define XSOM_GENERATE_GOT_ARRAY	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xE)
 
 #define SOM_REGISTER_LOADER		0
 #define SOM_REGISTER_CLIENT		1
@@ -178,6 +180,19 @@ unsigned int res;
 		: [arg_in] "r" (name), [swi_name] "i" (XSOM_HANDLE_FROM_NAME)
 		: "a1", "cc");
   return res;
+}
+
+extern inline unsigned int _dl_generate_got_array(void)
+{
+unsigned int err_flag;
+
+  asm volatile( "swi	%[swi_name];\n\t"
+		"movvc	%[err_flag], #0;\n\t"
+		"movvs	%[err_flag], #1;\n\t"
+		: [err_flag] "=r" (err_flag)
+		: [swi_name] "i" (XSOM_GENERATE_GOT_ARRAY)
+		: "a1", "cc");
+  return err_flag;
 }
 
 /*

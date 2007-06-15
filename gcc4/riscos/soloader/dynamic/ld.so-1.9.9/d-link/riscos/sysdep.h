@@ -42,8 +42,8 @@
  */
 #define INIT_GOT(GOT_BASE,MODULE) \
 {				\
-  GOT_BASE[2] = (int) _dl_riscos_resolve; \
-  GOT_BASE[1] = (int) MODULE; \
+  GOT_BASE[4] = (int) _dl_riscos_resolve; \
+  GOT_BASE[3] = (int) MODULE; \
 }
 
 /*

@@ -189,6 +189,9 @@ void * _dlopen(const char * libname, int flag)
 	  goto oops;
 	}
 
+	if (_dl_generate_got_array())
+	  goto oops;
+
 #ifndef __riscos__
 	dl_brk = (void (*)()) _dl_debug_addr->r_brk;
 	if( dl_brk != NULL )
@@ -347,7 +350,9 @@ static int do_dlclose(void * vhandle, int need_fini)
 	int (*dl_elf_fini)(void);
 	void (*dl_brk)(void);
 	struct dyn_elf * handle;
+#ifndef __riscos__
 	unsigned int end;
+#endif
 	int i = 0;
 
 	handle = (struct dyn_elf *) vhandle;

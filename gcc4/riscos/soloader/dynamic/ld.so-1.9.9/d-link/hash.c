@@ -294,16 +294,21 @@ char * _dl_find_hash(char * name, struct dyn_elf * rpnt1,
 	      ELF32_ST_TYPE(symtab[si].st_info) == STT_NOTYPE ||
 	      ELF32_ST_TYPE(symtab[si].st_info) == STT_OBJECT) &&
 	     symtab[si].st_value != 0)
-	   {
+	    {
 	    /* Here we make sure that we find a module where the symbol is
 	     * actually defined.
 	     */
-
 	    if(f_tpnt) {
 	      if(!first_def) first_def = tpnt;
 	      if(first_def == f_tpnt && symtab[si].st_shndx == 0)
 		continue;
 	    }
+
+	    /* Don't resolve a function against a PLT entry. The code
+	       above doesn't always catch this. */
+	    if (ELF32_ST_TYPE(symtab[si].st_info) == STT_FUNC &&
+	       symtab[si].st_shndx == 0)
+		continue;
 
 	    switch(ELF32_ST_BIND(symtab[si].st_info))
 	    {

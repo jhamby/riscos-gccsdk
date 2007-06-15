@@ -860,6 +860,9 @@ void _dl_boot(int args)
      function call. */
   ((void (*)(void))debug_addr->r_brk)();
 
+  if (_dl_generate_got_array())
+    _dl_exit(1);
+
   /* OK we are done here.  Turn out the lights, and lock up. */
   _dl_elf_main = (int (*)(int, char**, char**)) dl_data[AT_ENTRY];
 

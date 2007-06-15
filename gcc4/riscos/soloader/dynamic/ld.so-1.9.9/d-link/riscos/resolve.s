@@ -1,30 +1,3 @@
-	.macro PRINT_TEXT string
-
-	swi	0x1
-	.ascii	"\string\0"
-	.align
-
-	.endm
-
-	.macro PRINT_HEX int
-	stmfd	sp!,{r0-r12,r14}
-	mov	r12,\int
-	b	9f
-8:
-	.word	0,0,0,0,0
-9:
-	mov	r0,r12
-	adr	r1,8b
-	mov	r2,#20
-	swi	0xd4
-	mov	r2,#0
-	strb	r2,[r1,#0]
-	swi	0x2
-	swi	0x10a
-	swi	0x10d
-
-	ldmfd	sp!,{r0-r12,r14}
-	.endm
 #if 0
 #include <sysdep.h>
 #endif
@@ -43,48 +16,61 @@
 #define RESOLVER _dl_riscos_resolver
 #endif
 
-@; This code is adapted from the loader supplied with version 2.3.2
-@; of glibc which supports ARM
+@ This code is adapted from the loader supplied with version 2.3.2
+@ of glibc which supports ARM
 
 	.text
 
 .globl RESOLVE
 	.type	RESOLVE,%function
 RESOLVE:
-	@; we get called with
-	@;	r0 contains &GOT[n+3] (pointer to function)
-	@;	r8 points to &GOT[2]
+	@ we get called with
+	@	r8 contains &GOT[n+5] (pointer to function - private GOT)
+	@	lr points to &GOT[4] (public GOT)
 
-	@; prepare to call fixup()
-	@; change &GOT[n+3] into 8*n        NOTE: reloc are 8 bytes each
-	sub	r1, r0, r8
+	@ We have to be careful which registers we use here. We can't use
+	@ any that the stack extension routines may require to be preserved
+	@ (eg, sl, fp, ip).
+
+	@ lr is already on the stack
+	stmfd	sp!, {r0-r3, ip}
+
+	@ Find the private GOT of the object
+	ldr	r2, [lr, #-12]		@ r2 = Object index
+	ldr	r3, [lr, #-8]		@ r3 = GOT array location
+	ldr	r3, [r3, #0]		@ r3 = GOT array
+	ldr	lr, [r3, r2, lsl#2]	@ lr = GOT
+	add	lr, lr, #16		@ lr = &GOT[4] (private GOT)
+
+	@ prepare to call fixup()
+	@ change &GOT[n+5] into 8*n        NOTE: reloc are 8 bytes each
+	sub	r1, r8, lr
 	sub	r1, r1, #4
 	add	r1, r1, r1
 
-	@; get pointer to linker struct
-	ldr	r0, [r8, #-4]
+	@ Get pointer to linker struct
+	ldr	r0, [lr, #-4]
 
-	@; call fixup routine
-	ldr	r4, 0f
-	add	r4, pc, r4
+	@ Call fixup routine
+	ldr	r3, 0f
+	add	r3, pc, r3
 1:
-	ldr	r3, 2f
-
+	ldr	r2, 2f
 	mov	lr, pc
-	add	pc, r4, r3
+	add	pc, r3, r2
 	b	3f
 0:
 	.word	_GLOBAL_OFFSET_TABLE_ - 1b - 4
 2:
 	.word	RESOLVER(GOTOFF)
 3:
-	@; save the return
+	@ Save the return
 	mov	r8, r0
 
-	@; restore the stack
-	ldmfd	sp!,{r0-r4,r7,ip,lr}
+	@ Restore the stack
+	ldmfd	sp!, {r0-r3, ip, lr}
 
-	@; jump to the newly found address
+	@ Jump to the newly found address
 	mov	pc, r8
 .LFE2:
 	.size RESOLVE,.LFE2-RESOLVE

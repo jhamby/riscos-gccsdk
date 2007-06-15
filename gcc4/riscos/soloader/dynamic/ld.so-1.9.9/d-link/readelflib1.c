@@ -555,41 +555,40 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
     char *got;
 
       /*
-        We can't rely on DT_PLTGOT to give us a pointer to the GOT and we can't
-        rely on _GLOBAL_OFFSET_TABLE_ being exported by the library, so we have
-        to be a bit more clever.
+       * We can't rely on DT_PLTGOT to give us a pointer to the GOT and we can't
+       * rely on _GLOBAL_OFFSET_TABLE_ being exported by the library, so we use
+       * our own symbol.
        */
-      got_fn = (unsigned int(*)())_dl_find_hash_in_lib("__rt_public_got",tpnt);
-      if (!got_fn)
+      got = (char *)_dl_find_hash_in_lib("__som_got__",tpnt);
+      if (!got)
       {
         _dl_internal_error_number = DL_NO_SYMBOL;
-        _dl_fdprintf(2, "%s: '%s' is missing the __rt_public_got symbol\n", _dl_progname, libname);
+        _dl_fdprintf(2, "%s: '%s' is missing the __som_got__ symbol\n", _dl_progname, libname);
         return NULL;
       }
 
-      /* __rt_public_got returns the position of the dynamic segment as an offset
-       * from the GOT. As we now know the dynamic segment address, we can use this to
-       * find the public GOT.
-       */
-      got = (char *)(dynamic_addr - got_fn());
-
       objinfo.got_offset = (got - objinfo.public_rw_ptr);
 
-      /*
-        Allocate the memory for the client's own copy of the r/w segment and copy
-        the contents over. Note that the relocation code uses the data in the
-        public copy to correctly relocate the same data in the private copy.
-      */
+      /* Allocate the memory for the client's own copy of the r/w segment. Note that
+       * the relocation code uses the data in the public copy to correctly relocate
+       * the same data in the private copy.
+       */
       objinfo.private_rw_ptr = _dl_malloc(objinfo.rw_size);
+
+      /* Register the library with the support module. During registration an object index
+       * is written into the GOT. This index needs to be copied into the private version
+       * along with the rest of the GOT contents. It's therefore important that registration
+       * occurs before the copying takes place.
+       */
+      objinfo.name = libname;
+      _dl_register_lib(handle,&objinfo);
+
+      /*  Copy the r/w segment. */
       _dl_memcpy(objinfo.private_rw_ptr, objinfo.public_rw_ptr, objinfo.rw_size);
 
       /* zero the bss area */
       for (i = 0; i < objinfo.bss_size; i++)
         objinfo.private_rw_ptr[objinfo.bss_offset + i] = 0;
-
-      /* register the library with the support module */
-      objinfo.name = libname;
-      _dl_register_lib(handle,&objinfo);
     }
   }
 
@@ -607,7 +606,12 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
 
   if (lpnt)
   {
-/*    lpnt = (int *) (dynamic_info[DT_PLTGOT] + ((int) libaddr));*/
+    /* It's OK to write the dynamic linker address into the public GOT as it's
+     * the same for all libraries.
+     */
+    lpnt = (int *) (dynamic_info[DT_PLTGOT] + ((int) libaddr));
+    lpnt[4] = (int) _dl_riscos_resolve;
+
     lpnt = (int *) (objinfo.private_rw_ptr + objinfo.got_offset);
     INIT_GOT(lpnt, tpnt);
   }
