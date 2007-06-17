@@ -27,7 +27,16 @@
 #include <stdio.h>
 #include <errno.h>
 
-FILE *fdopen (int fd, const char *mode)
+
+int fileno (FILE *__stream)
 {
-  return &__iob[fd];
+  int i;
+  for (i = 0; i < _SYS_OPEN; i++)
+    {
+      if (__stream == &__iob[i])
+        return i;
+    }
+
+  return EINVAL;
 }
+

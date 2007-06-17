@@ -460,7 +460,6 @@ extern void __set_riscosify_control (int __riscosify_flags);
 
 /* Return the system file descriptor for stream.  */
 extern int fileno (FILE *__stream);
-#define fileno(f) ((int)(f))
 
 /* Create a new stream that refers to an existing system file descriptor.  */
 extern FILE *fdopen (int __fd, const char *__modes);
