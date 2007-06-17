@@ -209,12 +209,6 @@ struct _som_globals
   /* Array of som_object pointers. */
   som_array		object_array;
 
-  /* The last client struct ptr that was found when searching the list */
-  som_client *		cached_client_ptr;
-
-  /* The ID of the last client found when searching the list */
-  som_client_ID		cached_client_ID;
-
   /* Number of centiseconds a library is idle in memory before being removed. */
   unsigned int		max_idle_time;
 
@@ -235,9 +229,6 @@ extern som_globals global;
 
 /* Return the client object whose ID is given. */
 extern som_client *som_find_client(som_handle ID);
-
-extern _kernel_oserror *som_prologue(_kernel_swi_regs *);
-extern _kernel_oserror *som_resolver(_kernel_swi_regs *);
 
 extern _kernel_oserror *som_start_call_every(void *pw);
 extern _kernel_oserror *som_stop_call_every(void *pw);

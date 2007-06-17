@@ -115,12 +115,6 @@ unsigned int ID;
   client->unique_ID = ID;
 
   rt_workspace_set(rt_workspace_CLIENT_STRUCT_PTR, (unsigned int)client);
-  rt_workspace_set(rt_workspace_CLIENT_ID, ID);
-  rt_workspace_set(rt_workspace_CACHED_PLT, 0);
-  rt_workspace_set(rt_workspace_CACHED_PLTGOT, 0);
-
-  global.cached_client_ID = ID;
-  global.cached_client_ptr = client;
 
   linklist_init_list(&client->object_list);
 
@@ -163,10 +157,6 @@ unsigned int ID;
   *((unsigned int *)object->got_addr + SOM_GOT_PTR_ARRAY_OFFSET) = 0x80D4;
 
   somarray_init(&client->got_ptr_array, 0);
-
-  /* Although the list is kept ordered, the app object should always be the first,
-     and so this value should never change throughout the life of the client. */
-  rt_workspace_set(rt_workspace_OBJECT_LIST, (unsigned int)object);
 
   return NULL;
 
@@ -288,8 +278,7 @@ som_object *object = NULL;
   {
   case reason_code_SOM_REGISTER_LOADER:
     objinfo->flags.type = object_flag_type_LOADER;
-    if ((err = som_register_sharedobject(handle, objinfo, &object)) == NULL)
-      rt_workspace_set(rt_workspace_LD_GOT, (unsigned int)object->private_got_ptr);
+    err = som_register_sharedobject(handle, objinfo, &object);
     break;
 
   case reason_code_SOM_REGISTER_CLIENT:
@@ -397,11 +386,6 @@ _kernel_oserror *err = NULL;
 
     object = next_obj;
   }
-
-  /* Invalidate the cached values. This must be done after any calls to
-     other functions that may reset them to other values. */
-  global.cached_client_ID = 0;
-  global.cached_client_ptr = NULL;
 
   /* Unlink from the list of clients. */
   linklist_remove(&global.client_list, &client->link);

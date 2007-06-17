@@ -20,14 +20,6 @@ _kernel_oserror *err = NULL;
 
   switch (number)
   {
-  case (SOM_Prologue - SOM_00):
-    err = som_prologue(r);
-    break;
-
-  case (SOM_Resolver - SOM_00):
-    err = som_resolver(r);
-    break;
-
   case (SOM_Alloc - SOM_00):
     /* On entry: r0 = size required */
     {

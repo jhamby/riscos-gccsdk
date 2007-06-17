@@ -47,7 +47,7 @@ swi-chunk-base-number: 0x58580
 
 swi-handler-code: module_swihandler
 
-swi-decoding-table: SOM, Prologue, Resolver, Alloc, Free, AllocLib, RegisterObject,
+swi-decoding-table: SOM, Alloc, Free, AllocLib, RegisterObject,
   DeregisterClient, DeregisterSharedObject, QueryObject,
   IterateObjects, GOTFromAddr, HandleFromAddr, HandleFromName,
   ResolveSymlinks, GenerateGOTArray, AddrToOffset

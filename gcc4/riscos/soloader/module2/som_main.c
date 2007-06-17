@@ -19,76 +19,10 @@ som_client *client;
   while (client)
   {
     if (client->unique_ID == ID)
-    {
-      global.cached_client_ptr = client;
-      global.cached_client_ID = ID;
-
       return client;
-    }
 
     client = linklist_next_som_client(client);
   }
-
-  return NULL;
-}
-
-/* SWI "SOM_Prologue"
- * entry:
- *  r8 = PLT address
- * exit:
- *  r8 = private GOT ptr
- */
-_kernel_oserror *som_prologue(_kernel_swi_regs *regs)
-{
-  /* Fast case, check the cached values. */
-  if (rt_workspace_get(rt_workspace_CLIENT_ID) == global.cached_client_ID)
-  {
-    if (rt_workspace_get(rt_workspace_CACHED_PLT) == regs->r[8])
-    {
-      regs->r[8] = rt_workspace_get(rt_workspace_CACHED_PLTGOT);
-      return NULL;
-    }
-  }
-
-som_client *client = FIND_CLIENT();
-  if (!client)
-  {
-    regs->r[8] = SOM_BAD_VALUE;
-    return somerr_unknown_client;
-  }
-
-  global.cached_client_ID = client->unique_ID;
-  global.cached_client_ptr = client;
-
-som_object *object = linklist_first_som_object(&client->object_list);
-  while (object)
-  {
-    if (regs->r[8] <= (unsigned int)object->end_addr)
-    {
-      rt_workspace_set(rt_workspace_CACHED_PLT, regs->r[8]);
-      regs->r[8] = (unsigned int)object->private_got_ptr;
-      rt_workspace_set(rt_workspace_CACHED_PLTGOT, regs->r[8]);
-      return NULL;
-    }
-
-    object = linklist_next_som_object(object);
-  }
-
-  regs->r[8] = SOM_BAD_VALUE;
-  return somerr_object_not_found;
-}
-
-/* SWI "SOM_Resolver"
- * entry:
- *  r8 = &GOT[n+3] (pointer to function)
- * exit:
- *  r0 = &GOT[n+3] (pointer to function)
- *  r8 = &GOT[0]
- */
-_kernel_oserror *som_resolver(_kernel_swi_regs *regs)
-{
-  regs->r[0] = regs->r[8];
-  regs->r[8] = rt_workspace_get(rt_workspace_CACHED_PLTGOT);
 
   return NULL;
 }

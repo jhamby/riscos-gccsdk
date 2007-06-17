@@ -160,7 +160,6 @@ _kernel_oserror *err = NULL;
 som_object *object;
   if ((err = som_register_sharedobject(state->elf_loader_handle, &objinfo, &object)) != NULL)
     goto error;
-  rt_workspace_set(rt_workspace_LD_GOT, (unsigned int)object->private_got_ptr);
 
   /* Copy the R/W segment from the public copy to the private copy. */
   memcpy(objinfo.private_rw_ptr, objinfo.public_rw_ptr, objinfo.rw_size);
