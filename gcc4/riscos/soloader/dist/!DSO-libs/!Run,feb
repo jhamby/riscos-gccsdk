@@ -4,8 +4,8 @@ If "<DSOLib$Path>" = "" Then Set Run$Path <Run$Path>,DSOLib:bin.
 
 Run <Obey$Dir>.!Boot
 
-RMEnsure SoManager	1.00 RMLoad <Obey$Dir>.SoManager
-RMEnsure SoManager	1.00 Error Need at least V1.00 of Shared Object Manager (SoManager)
+RMEnsure SoManager	2.00 RMLoad <Obey$Dir>.SoManager
+RMEnsure SoManager	2.00 Error Need at least V2.00 of Shared Object Manager (SoManager)
 
 | Environment setting
 Set LD$Env "LD_WARN=1"

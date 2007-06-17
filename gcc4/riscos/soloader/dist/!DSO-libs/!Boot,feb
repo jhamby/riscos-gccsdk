@@ -6,6 +6,6 @@ Set DSOLib$Dir <Obey$Dir>
 IconSprites <Obey$Dir>.!Sprites
 
 Set file$Type_E1F Elf
-Set Alias$@RunType_E1F <Obey$Dir>.loader %*0
+Set Alias$@RunType_E1F SOMRun %*0
 
 Set file$Type_1C8 Symlink
