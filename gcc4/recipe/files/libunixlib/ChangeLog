@@ -1,3 +1,8 @@
+Sun Jun 17 14:30:21 2007  Lee Noar  <leenoar@sky.com>
+
+	* gen-auto.pl: Remove -lpic from linker flags as it is no
+	longer required.
+
 Fri Jun 15 17:41:54 2007  Lee Noar  <leenoar@sky.com>
 
 	* pthread/_context.s: Use new PIC register loading scheme.

@@ -194,7 +194,7 @@ foreach $m (@makevars) {
 
 print MAKE "\n\n";
 
-print MAKE "libunixlib_la_LDFLAGS = -Wc,-lpic -Wc,-lgcc_s -Wc,-nostdlib -version-info 5:0:0 -Wl,--version-script -Wl,\$(top_srcdir)/vscript\n\n";
+print MAKE "libunixlib_la_LDFLAGS = -Wc,-lgcc_s -Wc,-nostdlib -version-info 5:0:0 -Wl,--version-script -Wl,\$(top_srcdir)/vscript\n\n";
 
 print MAKE "libm_la_LDFLAGS = -Wc,-nostdlib -version-info 1:0:0\n\n";
 
