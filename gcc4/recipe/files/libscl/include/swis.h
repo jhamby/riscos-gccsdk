@@ -147,6 +147,7 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define OS_SynchroniseCodeAreas	       0x00006e
 #define OS_CallASWI		       0x00006f
 #define OS_CallASWIR12		       0x000071
+#define OS_HeapSort32                  0x00007f
 #define OS_ConvertStandardDateAndTime  0x0000c0
 #define OS_ConvertDateAndTime          0x0000c1
 #define OS_ConvertHex1                 0x0000d0
@@ -666,5 +667,37 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define OmniNFS_OmniOp                 0x04a480
 
 #define MimeMap_Translate              0x050b00
+
+#define PDriver_Info                   0x080140
+#define PDriver_SetInfo                0x080141
+#define PDriver_CheckFeatures          0x080142
+#define PDriver_PageSize               0x080143
+#define PDriver_SetPageSize            0x080144
+#define PDriver_SelectJob              0x080145
+#define PDriver_CurrentJob             0x080146
+#define PDriver_FontSWI                0x080147
+#define PDriver_EndJob                 0x080148
+#define PDriver_AbortJob               0x080149
+#define PDriver_Reset                  0x08014a
+#define PDriver_GiveRectangle          0x08014b
+#define PDriver_DrawPage               0x08014c
+#define PDriver_GetRectangle           0x08014d
+#define PDriver_CancelJob              0x08014e
+#define PDriver_ScreenDump             0x08014f
+#define PDriver_EnumerateJobs          0x080150
+#define PDriver_SetPrinter             0x080151
+#define PDriver_CancelJobWithError     0x080152
+#define PDriver_SelectIllustration     0x080153
+#define PDriver_InsertIllustration     0x080154
+#define PDriver_DeclareFont            0x080155
+#define PDriver_DeclareDriver          0x080156
+#define PDriver_RemoveDriver           0x080157
+#define PDriver_SelectDriver           0x080158
+#define PDriver_EnumerateDrivers       0x080159
+#define PDriver_MiscOp                 0x08015a
+#define PDriver_MiscOpForDriver        0x08015b
+#define PDriver_SetDriver              0x08015c
+#define PDriver_JPEGSWI                0x08015d
+
 
 #endif
