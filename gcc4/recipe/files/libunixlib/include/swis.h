@@ -721,6 +721,6 @@ __END_DECLS
 #define Iconv_Iconv                    0x057541
 #define Iconv_Close                    0x057542
 
-#define SOM_DeregisterClient           0x058586
+#define SOM_DeregisterClient           0x058584
 
 #endif

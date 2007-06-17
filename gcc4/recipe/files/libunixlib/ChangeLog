@@ -1,3 +1,10 @@
+Sun Jun 17 16:23:01 2007  Lee Noar  <leenoar@sky.com>
+
+	* include/unixlib/asm_dec.s: Remove XSOM_GOTFromAddr from the
+	list of SWIs. The new PIC scheme makes it redundant.
+	* include/swis.h: Change SWI number for SOM_DeregisterClient
+	to account for the removal of SOM_Prologue and SOM_Resolver.
+
 Sun Jun 17 14:30:21 2007  Lee Noar  <leenoar@sky.com>
 
 	* gen-auto.pl: Remove -lpic from linker flags as it is no

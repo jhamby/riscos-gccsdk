@@ -273,8 +273,6 @@
 .set	XSharedUnixLibrary_Count, 0x55c83 + X_Bit
 .set	XSharedUnixLibrary_Initialise, 0x55c84 + X_Bit
 
-.set	XSOM_GOTFromAddr, 0x5858a + X_Bit
-
 	@ Entries into the __ul_global structure.  Must be kept in sync with
 	@ sys/_syslib.s.
 .set	GBL_UNIXLIB_CLI, 0
