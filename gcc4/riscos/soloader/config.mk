@@ -1,9 +1,9 @@
-CC = ~/riscos/cross/bin/gcc
+CC = arm-unknown-riscos-gcc
 
-OBJCOPY = ~/riscos/cross/bin/objcopy
+OBJCOPY = arm-unknown-riscos-objcopy
 
-AR = ~/riscos/cross/bin/ar
+AR = arm-unknown-riscos-ar
 
 BUILDDIR = ../build
 
-ZIP = ~/riscos/cross/bin/zip
+ZIP = /home/riscos/cross/bin/zip
