@@ -61,19 +61,14 @@ rmensure3:
 	NAME	__main
 
 __main:
-	@ riscos-crt1.o passes several values on the stack that Unixlib can retrieve
-	@ in order to setup the environment correctly. Care needs to be taken to keep
-	@ these in synch. Currently the values stored, in the order Unixlib should
-	@ retrieve them, are:
+	@ crt1-riscos.o passes several values in registers as follows:
 	@
-	@ sp+0  __executable_start
-	@ sp+4  free memory start (from the dynamic loader)
-	@ sp+8 __data_start
-	@ sp+12 main function ptr
-	@
-	@ Also a1 & a2 are the _init/_fini function ptrs for the executable, these
-	@ can't be passed on the stack as a statically linked binary may not have a
-	@ valid stack pointer.
+	@ a1 = _init
+	@ a2 = _fini
+	@ a3 = free memory
+	@ a4 = main
+	@ v1 = __data_start
+	@ v2 = __executable_start
 
  PICEQ "LDR	v4, .L0+32"
 .LPIC0:
@@ -91,6 +86,8 @@ __main:
 	LDR	ip, .L0+28			@ exec_fini
  PICEQ "LDR	ip, [v4, ip]"
 	STR	a2, [ip, #0]
+
+ PICEQ "MOV	v3, a3"
 
 	@ Read environment parameters
 	@ On exit:
@@ -114,16 +111,12 @@ __main:
 
 	@ For the shared library, fill in the linker generated values that
 	@ are passed in on the stack by crt1.o. These are only known at runtime.
- PICEQ "LDR	a1, [sp], #4"
- PICEQ "STR	a1, [fp, #MEM_ROBASE]"		@ __executable_start
- PICEQ "LDR	a1, [sp], #4"
- PICEQ "STR	a1, [fp, #MEM_RWLOMEM]"
- PICEQ "LDR	a1, [sp], #4"
- PICEQ "STR	a1, [fp, #MEM_RWBASE]"		@ __data_start
+ PICEQ "STR	v2, [fp, #MEM_ROBASE]"		@ __executable_start
+ PICEQ "STR	v3, [fp, #MEM_RWLOMEM]"
+ PICEQ "STR	v1, [fp, #MEM_RWBASE]"		@ __data_start
 
 	@ Also store the pointer to the programs main function for calling later.
- PICEQ "LDR	a1, [sp], #4"
- PICEQ "STR	a1, [ip, #GBL_MAIN]"
+ PICEQ "STR	a4, [ip, #GBL_MAIN]"
 
 	LDMIA	a3, {a1, a2}			@ Get time
 	STR	a1, [ip, #GBL_TIME_LOW]		@ __time (low word)
