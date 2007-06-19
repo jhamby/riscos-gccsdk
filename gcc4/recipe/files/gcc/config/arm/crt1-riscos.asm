@@ -50,10 +50,12 @@
 	.type	_start, %function
 _start:
 #ifndef __TARGET_SCL__
-	@ a1 is set by the dynamic loader to the start of free memory after it
-	@ has claimed what it requires. Use the stack instead of registers to
-	@ pass information to the runtime library as it's easier to extend if
-	@ required.
+	@ On entry to _start, a1 is set by the dynamic loader to the start of
+	@ free memory after it has claimed what it requires. This along with
+	@ any other values required for dynamic linking are passed on the stack
+	@ to the runtime library. The _init/_fini function pointers are passed
+	@ in a1 & a2 because these are also required by statically linked
+	@ programs which will not have a valid stack.
 	LDR	a2, =main
 	STR	a2, [sp, #-4]!
 
@@ -65,13 +67,10 @@ _start:
 	LDR	a2, =__executable_start
 	STR	a2, [sp, #-4]!
 
-	@ Place _init & _fini on the stack last so that the runtime library can
-	@ pull them first and ignore the rest.
-	LDR	a2, =_init
-	STR	a2, [sp, #-4]!
-
+	@ Pass _init/_fini function ptrs in registers because static binaries
+	@ may not have a valid stack on entry.
+	LDR	a1, =_init
 	LDR	a2, =_fini
-	STR	a2, [sp, #-4]!
 #endif
 	
 	@ On RISC OS the main entry point to the run-time library is
