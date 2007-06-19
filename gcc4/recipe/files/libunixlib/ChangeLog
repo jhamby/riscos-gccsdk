@@ -1,3 +1,9 @@
+Tue Jun 19 19:18:29 2007  Lee Noar  <leenoar@sky.com>
+
+	* sys/_syslib.s(__main): Receive the _init/_fini function ptrs
+	via registers as statically linked binaries may not have a
+	valid stack pointer.
+
 Sun Jun 17 16:23:01 2007  Lee Noar  <leenoar@sky.com>
 
 	* include/unixlib/asm_dec.s: Remove XSOM_GOTFromAddr from the

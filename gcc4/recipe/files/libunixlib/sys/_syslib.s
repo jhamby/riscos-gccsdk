@@ -66,12 +66,14 @@ __main:
 	@ these in synch. Currently the values stored, in the order Unixlib should
 	@ retrieve them, are:
 	@
-	@ sp+0  _fini function ptr
-	@ sp+4  _init function ptr
-	@ sp+8  __executable_start
-	@ sp+12  free memory start (from the dynamic loader)
-	@ sp+16 __data_start
-	@ sp+20 main function ptr
+	@ sp+0  __executable_start
+	@ sp+4  free memory start (from the dynamic loader)
+	@ sp+8 __data_start
+	@ sp+12 main function ptr
+	@
+	@ Also a1 & a2 are the _init/_fini function ptrs for the executable, these
+	@ can't be passed on the stack as a statically linked binary may not have a
+	@ valid stack pointer.
 
  PICEQ "LDR	v4, .L0+32"
 .LPIC0:
@@ -79,6 +81,16 @@ __main:
  PICEQ "LDMIA	v4, {v4, ip}"		@ v4 = Object index, ip = GOT ptr array location
  PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
  PICEQ "LDR	v4, [ip, v4, LSL#2]"	@ v4 = GOT ptr
+
+	@ Store the pointer to the programs _init & _fini functions for
+	@ calling later. This applies to both static and shared libs.
+	LDR	ip, .L0+24			@ exec_init
+ PICEQ "LDR	ip, [v4, ip]"
+	STR	a1, [ip, #0]
+
+	LDR	ip, .L0+28			@ exec_fini
+ PICEQ "LDR	ip, [v4, ip]"
+	STR	a2, [ip, #0]
 
 	@ Read environment parameters
 	@ On exit:
@@ -100,20 +112,8 @@ __main:
 	@ __image_rw_himem = permitted RAM limit
 	STR	a2, [fp, #MEM_APPSPACE_HIMEM]
 
-	@ Store the pointer to the programs _init & _fini functions for
-	@ calling later. This applies to both static and shared libs.
-	LDR	a1, [sp], #4
-	LDR	a2, .L0+28			@ exec_fini
- PICEQ "LDR	a2, [v4, a2]"
-	STR	a1, [a2, #0]
-
-	LDR	a1, [sp], #4
-	LDR	a2, .L0+24			@ exec_init
- PICEQ "LDR	a2, [v4, a2]"
-	STR	a1, [a2, #0]
-
 	@ For the shared library, fill in the linker generated values that
-	@ are passed on the stack in by crt1.o. These are only known at runtime.
+	@ are passed in on the stack by crt1.o. These are only known at runtime.
  PICEQ "LDR	a1, [sp], #4"
  PICEQ "STR	a1, [fp, #MEM_ROBASE]"		@ __executable_start
  PICEQ "LDR	a1, [sp], #4"
