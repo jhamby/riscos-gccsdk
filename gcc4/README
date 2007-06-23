@@ -235,5 +235,16 @@ Lee Noar contributed his RISC OS ELF loader work together with the necessary
 dynamic ELF changes for RISC OS (originally developed for GCCSDK 3.4)
 (Oct 2006).
 
+Peter Naulls wrote the Autobuilder and Porting tools, and contributed
+most of the ports in the Autobuilder.
+
+The riscos.info Wiki is run by Peter Naulls and John Tygat, and credit for
+additional GCCSDK information also goes to Theo Markettos and Adam Richardson.
+
+All of the work in GCC 4.1 for RISC OS would never have been possible without
+important contributions from many people in the original GCC 3.x GCCSDK;
+in particular, endless improvements to UnixLib which made it practical to
+run a wide range of software on RISC OS.  See those versions for full details.
+
 Copyright (c) 2005, 2006, 2007 GCCSDK Developers
 http://gccsdk.riscos.info/
