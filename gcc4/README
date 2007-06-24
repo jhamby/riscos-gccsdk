@@ -238,7 +238,7 @@ dynamic ELF changes for RISC OS (originally developed for GCCSDK 3.4)
 Peter Naulls wrote the Autobuilder and Porting tools, and contributed
 most of the ports in the Autobuilder.
 
-The riscos.info Wiki is run by Peter Naulls and John Tygat, and credit for
+The riscos.info Wiki is run by Peter Naulls and John Tytgat, and credit for
 additional GCCSDK information also goes to Theo Markettos and Adam Richardson.
 
 All of the work in GCC 4.1 for RISC OS would never have been possible without

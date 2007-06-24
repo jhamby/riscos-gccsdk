@@ -35,5 +35,10 @@ $GCCSDK_SRCDIR/configure --prefix=$PREFIX --enable-threads=posix \
 	--without-pic --enable-shared=libunixlib,libgcc --without-x --enable-libgcj \
 	--enable-maintainer-mode
 
+# When you want the host binaries with debug information:
+#   make CFLAGS='-O0 -g' LIBCFLAGS='-O0 -g' LIBCXXFLAGS='-O0 -g' all
+# When you want to have optimized ARM libraries:
+#   make CFLAGS_FOR_TARGET="-O3 -march=armv5" CXXFLAGS_FOR_TARGET="-O3 -march=armv5" all
+
 make all
 make install
