@@ -30,8 +30,8 @@ dp-bit.c: $(srcdir)/config/fp-bit.c
 	echo '#endif' >> dp-bit.c
 
 # The following multilib configurations are defined:
-#   . : unixlib, soft-float
-#   ./fpu : unixlib, hard-float
+#   . : unixlib, soft-float, application
+#   ./fpu : unixlib, hard-float, application
 #   ./scl/fpu : scl, hard-float, application
 #   ./scl/fpu/module : scl, hard-float, module
 MULTILIB_OPTIONS = mlibscl mhard-float mmodule
