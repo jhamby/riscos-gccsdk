@@ -61,14 +61,18 @@ rmensure3:
 	NAME	__main
 
 __main:
-	@ crt1-riscos.o passes several values in registers as follows:
+	@ crt1-riscos.o passes several values in memory addressed as an offset
+	@ from a1. The first two are used by both the static and DSO library, the
+	@ others are used by the DSO only.
 	@
-	@ a1 = _init
-	@ a2 = _fini
-	@ a3 = free memory
-	@ a4 = main
-	@ v1 = __data_start
-	@ v2 = __executable_start
+	@ a1+0  = _init
+	@ a1+4  = _fini
+	@ a1+8  = __executable_start
+	@ a1+12 = start of free memory
+	@ a1+16 = __data_start
+	@ a1+20 = main
+
+	MOV	v1, a1
 
  PICEQ "LDR	v4, .L0+32"
 .LPIC0:
@@ -76,18 +80,6 @@ __main:
  PICEQ "LDMIA	v4, {v4, ip}"		@ v4 = Object index, ip = GOT ptr array location
  PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
  PICEQ "LDR	v4, [ip, v4, LSL#2]"	@ v4 = GOT ptr
-
-	@ Store the pointer to the programs _init & _fini functions for
-	@ calling later. This applies to both static and shared libs.
-	LDR	ip, .L0+24			@ exec_init
- PICEQ "LDR	ip, [v4, ip]"
-	STR	a1, [ip, #0]
-
-	LDR	ip, .L0+28			@ exec_fini
- PICEQ "LDR	ip, [v4, ip]"
-	STR	a2, [ip, #0]
-
- PICEQ "MOV	v3, a3"
 
 	@ Read environment parameters
 	@ On exit:
@@ -109,18 +101,30 @@ __main:
 	@ __image_rw_himem = permitted RAM limit
 	STR	a2, [fp, #MEM_APPSPACE_HIMEM]
 
-	@ For the shared library, fill in the linker generated values that
-	@ are passed in on the stack by crt1.o. These are only known at runtime.
- PICEQ "STR	v2, [fp, #MEM_ROBASE]"		@ __executable_start
- PICEQ "STR	v3, [fp, #MEM_RWLOMEM]"
- PICEQ "STR	v1, [fp, #MEM_RWBASE]"		@ __data_start
-
-	@ Also store the pointer to the programs main function for calling later.
- PICEQ "STR	a4, [ip, #GBL_MAIN]"
-
 	LDMIA	a3, {a1, a2}			@ Get time
 	STR	a1, [ip, #GBL_TIME_LOW]		@ __time (low word)
 	STR	a2, [ip, #GBL_TIME_HIGH]	@ __time (high word)
+
+	@ Store the pointer to the programs _init & _fini functions for
+	@ calling later. This applies to both static and shared libs.
+	LDMIA	v1!, {a1, a2}
+	LDR	a3, .L0+24			@ exec_init
+ PICEQ "LDR	a3, [v4, a3]"
+	STR	a1, [a3, #0]
+
+	LDR	a3, .L0+28			@ exec_fini
+ PICEQ "LDR	a3, [v4, a3]"
+	STR	a2, [a3, #0]
+
+	@ For the shared library, fill in the linker generated values that
+	@ are passed in on the stack by crt1.o. These are only known at runtime.
+ PICEQ "LDMIA	v1, {a1-a4}"
+ PICEQ "STR	a1, [fp, #MEM_ROBASE]"		@ __executable_start
+ PICEQ "STR	a2, [fp, #MEM_RWLOMEM]"
+ PICEQ "STR	a3, [fp, #MEM_RWBASE]"		@ __data_start
+
+	@ Also store the pointer to the programs main function for calling later.
+ PICEQ "STR	a4, [ip, #GBL_MAIN]"
 
 	MVNS	a1, #0			@ ensure a flag is set
 	TEQ	pc, pc			@ EQ if in 32-bit mode, NE if 26-bit
