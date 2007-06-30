@@ -51,13 +51,11 @@
 _start:
 #ifndef __TARGET_SCL__
 	@ On entry to _start, a1 is set by the dynamic loader to the start of
-	@ free memory after it has claimed what it requires.
-	MOV	a3, a1
-	LDR	a1, =_init
-	LDR	a2, =_fini
-	LDR	a4, =main
-	LDR	v1, =__data_start
-	LDR	v2, =__executable_start
+	@ free memory after it has claimed what it requires. This value is stored
+	@ in the data block which is then passed to the runtime library.
+	LDR	a2, =rt_data
+	STR	a1, [a2, #12]
+	MOV	a1, a2
 #endif
 	
 	@ On RISC OS the main entry point to the run-time library is
@@ -93,6 +91,18 @@ __DTOR_LIST__:
 	.global	__EH_FRAME_BEGIN__
 	.type	__EH_FRAME_BEGIN__, %object
 __EH_FRAME_BEGIN__:
+#endif
+
+#ifndef __TARGET_SCL__
+	.data
+
+rt_data:
+	.word	_init
+	.word	_fini
+	.word	__executable_start
+	.word	0
+	.word	__data_start
+	.word	main
 #endif
 
 # end of crt1-riscos.asm
