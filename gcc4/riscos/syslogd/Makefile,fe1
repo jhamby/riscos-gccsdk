@@ -1,0 +1,58 @@
+# Project: SysLog Daemon
+# Written by John Tytgat / BASS
+
+# Toolflags :
+CCflags = -c -zM -depend !Depend -IC: -ISocketLib: -throwback
+Linkflags = -rmf -c++ -o $@
+CC = cc
+
+All:	SysLogD
+
+# System libraries :
+#  - "o.syslog" comes from !SysLog distribution
+#  - "o.inetlibzm" & "o.socklibzm" comes from Acorn's SocketLib distribution
+LDLIBS = o.syslog SocketLib:o.inetlibzm SocketLib:o.socklibzm c:o.Stubs
+
+# SysLogD objects
+SYSLOGDOBJS = o.modheader o.main
+
+# Final targets:
+SysLogD:	$(SYSLOGDOBJS) $(LDLIBS) $(USRLIBS)
+        link $(linkflags) $(SYSLOGDOBJS) $(LDLIBS) $(USRLIBS)
+
+.SUFFIXES: .o .c
+.c.o:;  	$(CC) $(CCflags) -o $@ $<
+#.cmhg.o:;	cmhg $< $@
+
+# Static dependencies:
+h.modheader:	o.modheader
+o.modheader:	cmhg.modheader
+	cmunge -s s.modheader -o o.modheader -d h.modheader -throwback cmhg.modheader
+
+# Dynamic dependencies:
+o.main:	c.main
+o.main:	C:h.swis
+o.main:	C:h.kernel
+o.main:	SocketLib:h.inetlib
+o.main:	SocketLib:sys.h.types
+o.main:	SocketLib:netinet.h.in
+o.main:	SocketLib:h.socklib
+o.main:	SocketLib:sys.h.types
+o.main:	SocketLib:sys.h.socket
+o.main:	SocketLib:sys.h.stat
+o.main:	SocketLib:sys.h.time
+o.main:	SocketLib:sys.h.time
+o.main:	SocketLib:sys.h.uio
+o.main:	C:h.kernel
+o.main:	SocketLib:h.netdb
+o.main:	SocketLib:sys.h.ioctl
+o.main:	SocketLib:sys.h.ttychars
+o.main:	SocketLib:sys.h.ttydev
+o.main:	SocketLib:sys.h.types
+o.main:	SocketLib:sys.h.socket
+o.main:	SocketLib:netinet.h.in
+o.main:	SocketLib:sys.h.ioctl
+o.main:	h.syslog
+o.main:	C:h.kernel
+o.main:	h.modheader
+o.main:	C:h.kernel

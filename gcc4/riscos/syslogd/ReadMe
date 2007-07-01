@@ -1,0 +1,62 @@
+====================================================================
+SysLogD Documentation
+--------------------------------------------------------------------
+Version: v0.02
+Author:  John Tytgat / BASS
+
+What ?
+------
+
+SysLogD is a small RISC OS module which listens to the UDP 514 port
+and logs incoming syslog messages using DoggySoft's !Syslog
+application.
+
+It should work with RISC OS 3.1 up to RISC OS 4.  It has only been
+tested with the Acorn Internet 5 stack.
+
+Install
+-------
+
+Copy SysLogD into the Boot:Choices.Boot.PreDesk directory and make sure
+that the !SysLog application gets Filer_Run'ed.  The log file is
+written at <SysLog$LogDir>.SysLogD.
+
+History
+-------
+
+v0.01 : first version released only to a couple of people.
+v0.02 : using CMunge instead of Acorn's CMHG (generates cooler code
+        for RISC OS 4) + cleaned up code a bit.
+
+Recompiling
+-----------
+
+C source code is provided for those who are interested in it.  Please
+report any problems and bugfixes to the source code to the author
+<URL:mailto:John.Tytgat@aaug.net>.
+
+You need the following for its recompilation :
+
+- Acorn C compiler version 5.
+- The o.inetlibzm and o.socklibzm object files and their
+  accompagning header files which are available from Acorn's
+  SocketLib distribution.  You can find a copy in the archives
+  of the Acorn FTP site (e.g. CDROM archives) and/or the
+  RISCOS Ltd. website : <URL:http://www.riscos.com/>
+- CMunge : a free alternative to CMHG written by Robin Watts
+  <URL:mailto:Robin@wss.co.uk> and Justin Fletcher
+  <URL:justin@riscos.com>.
+
+Copyright
+---------
+
+You are free to use any part of the provided SysLogD binary and/or
+source code in your own software distribution (freeware or commercial) 
+on the condition you acknowledge this act in its user documentation.
+
+!SysLog application is written by Jon Ribbens <jon@doggysoft.co.uk>
+and its use & distribution should be according to the rules
+mentioned in its !SysLog.!Help file.
+
+John Tytgat / BASS
+Oct 1999
