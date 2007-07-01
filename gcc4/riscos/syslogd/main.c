@@ -130,7 +130,9 @@ static const CODE facilitynames[] = {
 static const char *syslog_getfacility(int p);
 
 /* Initialisation routine */
-_kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
+        _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
+/*      ==============================================================================
+ */
 {
   struct servent *servptr;
   struct sockaddr_in name;
@@ -147,39 +149,41 @@ else
 
 /* Claim event */
 if ((e = claim_eventv(pw)) != NULL)
-  return(e);
+  return e;
 if ((e = enable_eventv()) != NULL)
   {
   disable_eventv();
-  return(e);
+  return e;
   }
 
 name.sin_family = AF_INET;
-name.sin_addr.s_addr = INADDR_ANY;
+name.sin_addr.s_addr = htonl(INADDR_ANY);
 name.sin_port = htons(port);
 
 /* Create socket */
 if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
   {
   disable_release_eventv(pw);
-  return(&socket_failed_to_create);
+  return &socket_failed_to_create;
   }
 /* Make socket async & nonblocking and bind it */
 if (socketioctl(sock, FIOASYNC, &on) < 0
     || socketioctl(sock, FIONBIO, &on) < 0
-    || bind(sock, (struct sockaddr *)&name, sizeof(name)))
+    || bind(sock, (struct sockaddr *)&name, sizeof(name)) < 0)
   {
   socketclose(sock);
   sock = -1;
   disable_release_eventv(pw);
-  return(&socket_failed_to_nonblock);
+  return &socket_failed_to_nonblock;
   }
 
-return(NULL);
+return NULL;
 }
 
 /* Finalisation routine */
-_kernel_oserror *SysLogD_Final(int fatal, int podule, void *pw)
+        _kernel_oserror *SysLogD_Final(int fatal, int podule, void *pw)
+/*      ===============================================================
+ */
 {
 (void)xsyslogf(kLogName, kLogPrio, "SysLogD ends...");
 
@@ -203,7 +207,7 @@ if (sock >= 0)
 /* Disable the Internet Event handling */
 disable_release_eventv(pw);
 
-return(NULL);
+return NULL;
 }
 
 /* Event routines */
@@ -213,35 +217,43 @@ return(NULL);
 #define Internet_Event 19
 #define Socket_Async_Event 1
 
-static _kernel_oserror *claim_eventv(void *pw)
+static  _kernel_oserror *claim_eventv(void *pw)
+/*      =======================================
+ */
 {
   _kernel_swi_regs r;
 
 r.r[0] = EventV;
 r.r[1] = (int)eventv_handler_entry;
 r.r[2] = (int)pw;
-return(_kernel_swi(XOS_Bit | OS_Claim, &r, &r));
+return _kernel_swi(XOS_Bit | OS_Claim, &r, &r);
 }
 
-static _kernel_oserror *enable_eventv(void)
+static  _kernel_oserror *enable_eventv(void)
+/*      ====================================
+ */
 {
   _kernel_swi_regs r;
 
 r.r[0] = Event_Enable;
 r.r[1] = Internet_Event;
-return(_kernel_swi(XOS_Bit | OS_Byte, &r, &r));
+return _kernel_swi(XOS_Bit | OS_Byte, &r, &r);
 }
 
-static _kernel_oserror *disable_eventv(void)
+static  _kernel_oserror *disable_eventv(void)
+/*      =====================================
+ */
 {
   _kernel_swi_regs r;
 
 r.r[0] = Event_Disable;
 r.r[1] = Internet_Event;
-return(_kernel_swi(XOS_Bit | OS_Byte, &r, &r));
+return _kernel_swi(XOS_Bit | OS_Byte, &r, &r);
 }
 
-static _kernel_oserror *disable_release_eventv(void *pw)
+static  _kernel_oserror *disable_release_eventv(void *pw)
+/*      =================================================
+ */
 {
   _kernel_swi_regs r;
 
@@ -250,11 +262,13 @@ disable_eventv();
 r.r[0] = EventV;
 r.r[1] = (int)eventv_handler_entry;
 r.r[2] = (int)pw;
-return(_kernel_swi(XOS_Bit | OS_Release, &r, &r));
+return _kernel_swi(XOS_Bit | OS_Release, &r, &r);
 }
 
 /* 0 to claim event, non-0 if not to claim the event */
-int eventv_handler(_kernel_swi_regs *r, void *pw)
+        int eventv_handler(_kernel_swi_regs *r, void *pw)
+/*      =================================================
+ */
 {
   int irqs_disabled;
 
@@ -262,7 +276,7 @@ int eventv_handler(_kernel_swi_regs *r, void *pw)
 if (r->r[0] != Internet_Event
     || r->r[1] != Socket_Async_Event
     || r->r[2] != sock)
-  return(1);
+  return 1;
 
 /* Don't know if IRQs are enabled or disabled here.  We play it extremely
  * save here.
@@ -284,13 +298,15 @@ if (irqs_disabled == 0)
   _kernel_irqs_on();
 
 /* Claim the event, it was for us */
-return(0);
+return 0;
 }
 
 /* 0 to claim event, non-0 if not to claim the event */
 #define kBufPart1Size ((kBufSize/2) + 32)
 #define kBufPart2Size (kBufSize - kBufPart1Size)
-int callback_handler(_kernel_swi_regs *r, void *pw)
+        int callback_handler(_kernel_swi_regs *r, void *pw)
+/*      ===================================================
+ */
 {
   int bytesread;
 
@@ -343,19 +359,21 @@ while ((bytesread = socketread(sock, buf + kBufPart1Size, kBufPart2Size - 1)) > 
 
 callback_queue = 0;
 /* Never claim the callback handler, wild things might happen */
-return(1);
+return 1;
 }
 
 /* syslog facility retrieving code */
-static const char *syslog_getfacility(int p)
+static  const char *syslog_getfacility(int p)
+/*      =====================================
+ */
 {
   int facility = LOG_FAC(p), i;
 
 for (i = 0; i < sizeof(facilitynames) / sizeof(CODE); i++)
 {
   if (facility == (facilitynames[i].c_val >> 3))
-    return(facilitynames[i].c_name);
+    return facilitynames[i].c_name;
 }
 
-return("unknown");
+return "unknown";
 }

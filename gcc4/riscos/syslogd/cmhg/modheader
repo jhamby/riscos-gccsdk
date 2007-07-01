@@ -1,8 +1,8 @@
 ;modheader.cmhg
 ;Written by John Tytgat / BASS
-;<URL:mailto:John.Tytgat@village.uunet.be>
+;<URL:mailto:John.Tytgat@aaug.net>
 
-help-string:  SysLogD 0.02 (c) 1999 John Tytgat / BASS
+help-string:  SysLogD 0.03 (c) 1999-2003 John Tytgat / BASS
 
 title-string: SysLogD
 

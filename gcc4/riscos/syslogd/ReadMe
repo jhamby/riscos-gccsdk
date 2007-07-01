@@ -1,7 +1,7 @@
 ====================================================================
 SysLogD Documentation
 --------------------------------------------------------------------
-Version: v0.02
+Version: v0.03
 Author:  John Tytgat / BASS
 
 What ?
@@ -9,24 +9,38 @@ What ?
 
 SysLogD is a small RISC OS module which listens to the UDP 514 port
 and logs incoming syslog messages using DoggySoft's !Syslog
-application.
+application or using RISC OS Select's built in Syslog module.
 
-It should work with RISC OS 3.1 up to RISC OS 4.  It has only been
+It should work with RISC OS 3.1 up to RISC OS 5.  It has only been
 tested with the Acorn Internet 5 stack.
 
 Install
 -------
 
-Copy SysLogD into the Boot:Choices.Boot.PreDesk directory and make sure
-that the !SysLog application gets Filer_Run'ed.  The log file is
-written at <SysLog$LogDir>.SysLogD.
+Copy SysLogD into the Boot:Choices.Boot.PreDesk directory and for
+RISC OS 3, RISC OS 4 and RISC OS 5 users make sure that the
+DoggySoft's !SysLog application gets Filer_Run'ed (the log file is
+written at <SysLog$LogDir>.SysLogD).  RISC OS Select users should
+not use DoggySoft's !SysLog but use the standard built in Syslog
+module.
+
+From version 0.03 onwards, pre RISC OS 5 users should install
+the 32 bit versions of system resources (especially the
+SharedCLibrary).  You can find this at
+<URL:http://www.iyonix.com/32bit/system.shtml>.
 
 History
 -------
 
-v0.01 : first version released only to a couple of people.
-v0.02 : using CMunge instead of Acorn's CMHG (generates cooler code
-        for RISC OS 4) + cleaned up code a bit.
+v0.01 :
+  - First version released only to a couple of people.
+v0.02 (16 Oct 1999) :
+  - Using CMunge instead of Acorn's CMHG (generates cooler code
+    for RISC OS 4) + cleaned up code a bit.
+v0.03 (22 Jan 2003) :
+  - Compiling for APCS-32 so resulting module should be 32-bit /
+    26-bit compatible.
+  - Used Acorn's CMHG again as CMunge is not yet 32-bit compatible.
 
 Recompiling
 -----------
@@ -43,9 +57,12 @@ You need the following for its recompilation :
   SocketLib distribution.  You can find a copy in the archives
   of the Acorn FTP site (e.g. CDROM archives) and/or the
   RISCOS Ltd. website : <URL:http://www.riscos.com/>
-- CMunge : a free alternative to CMHG written by Robin Watts
-  <URL:mailto:Robin@wss.co.uk> and Justin Fletcher
-  <URL:justin@riscos.com>.
+  You can also find a copy in Castle's 26/32bit Acorn C/C++
+  Tools <URL:http://www.castle.uk.co/castle/software.htm>.
+- Version 0.02 only :
+    - CMunge : a free alternative to CMHG written by Robin Watts
+      <URL:mailto:Robin@wss.co.uk> and Justin Fletcher
+      <URL:justin@riscos.com>.
 
 Copyright
 ---------
@@ -59,4 +76,4 @@ and its use & distribution should be according to the rules
 mentioned in its !SysLog.!Help file.
 
 John Tytgat / BASS
-Oct 1999
+Jan 2003
