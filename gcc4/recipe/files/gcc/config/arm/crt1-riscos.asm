@@ -71,28 +71,6 @@ _start:
 	.size	_start, . - _start
 #endif
 
-#if !defined(__TARGET_MODULE__) && defined(__TARGET_SCL__)
-	@ FIXME: currently disabled as we're no yet supporting C++ & module.
-	.section ".ctors","aw",%progbits
-	.global	__CTOR_LIST__
-	.type	__CTOR_LIST__, %object
-__CTOR_LIST__:
-	.word	-1
-
-	.section ".dtors","aw",%progbits
-	.global	__DTOR_LIST__
-	.type	__DTOR_LIST__, %object
-__DTOR_LIST__:
-	.word	-1
-#endif
-
-#ifdef __TARGET_SCL__
-	.section ".eh_frame","aw",%progbits
-	.global	__EH_FRAME_BEGIN__
-	.type	__EH_FRAME_BEGIN__, %object
-__EH_FRAME_BEGIN__:
-#endif
-
 #ifndef __TARGET_SCL__
 	.data
 
