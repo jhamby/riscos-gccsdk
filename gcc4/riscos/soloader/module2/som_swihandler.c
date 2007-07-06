@@ -130,8 +130,8 @@ _kernel_oserror *err = NULL;
     err = som_addr_to_offset(r);
     break;
 
-  case (SOM_GenerateGOTArray - SOM_00):
-    err = som_generate_got_array();
+  case (SOM_GenerateRuntimeArray - SOM_00):
+    err = som_generate_runtime_array();
     break;
 
   default:

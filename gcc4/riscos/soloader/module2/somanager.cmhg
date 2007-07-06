@@ -50,7 +50,7 @@ swi-handler-code: module_swihandler
 swi-decoding-table: SOM, Alloc, Free, AllocLib, RegisterObject,
   DeregisterClient, DeregisterSharedObject, QueryObject,
   IterateObjects, GOTFromAddr, HandleFromAddr, HandleFromName,
-  ResolveSymlinks, GenerateGOTArray, AddrToOffset
+  ResolveSymlinks, GenerateRuntimeArray, AddrToOffset
 
 error-chunk-base-number: 0x81DC00
 

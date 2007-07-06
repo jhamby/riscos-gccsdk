@@ -153,10 +153,10 @@ unsigned int ID;
   /* Store the object index in the GOT. */
   *((unsigned int *)object->got_addr + SOM_OBJECT_INDEX_OFFSET) = object->index;
 
-  /* Store the location of the client GOT ptr array in the GOT. */
-  *((unsigned int *)object->got_addr + SOM_GOT_PTR_ARRAY_OFFSET) = 0x80D4;
+  /* Store the location of the client runtime array in the GOT. */
+  *((unsigned int *)object->got_addr + SOM_RUNTIME_ARRAY_OFFSET) = 0x80D4;
 
-  somarray_init(&client->got_ptr_array, 0);
+  somarray_init(&client->runtime_array, sizeof(som_rt_elem), 0);
 
   return NULL;
 

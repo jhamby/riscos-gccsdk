@@ -34,8 +34,8 @@
 /* The offset, in words, from the start of the GOT where the object index will
  * be stored.
  */
-#define SOM_OBJECT_INDEX_OFFSET	1			/* in words */
-#define SOM_GOT_PTR_ARRAY_OFFSET 2
+#define SOM_OBJECT_INDEX_OFFSET		1			/* in words */
+#define SOM_RUNTIME_ARRAY_OFFSET	2
 
 enum
 {
@@ -82,7 +82,7 @@ struct _som_client
      First object is for the client itself. */
   link_list		object_list;
 
-  som_array		got_ptr_array;
+  som_array		runtime_array;
 };
 
 LINKLIST_ACCESS_FUNCTIONS(som_client)

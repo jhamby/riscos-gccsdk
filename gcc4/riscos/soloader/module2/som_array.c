@@ -11,21 +11,22 @@
 #include <sys/elf.h>
 #include <string.h>
 
-_kernel_oserror *somarray_init(som_array *array, int size)
+_kernel_oserror *somarray_init(som_array *array, int elem_size, int elem_count)
 {
 _kernel_oserror *err;
 
-  if (size == 0)
+  if (elem_count == 0)
     array->base = NULL;
   else
   {
-    if ((err = som_alloc(size * sizeof(void *), (void **)(void *)&array->base)) != NULL)
+    if ((err = som_alloc(elem_size * elem_count, (void **)(void *)&array->base)) != NULL)
       return err;
 
-    memset(array->base, 0, size * sizeof(void *));
+    memset(array->base, 0, elem_size * elem_count);
   }
 
-  array->size = size;
+  array->elem_size = elem_size;
+  array->elem_count = elem_count;
 
   return NULL;
 }
@@ -39,47 +40,60 @@ _kernel_oserror *somarray_add_object(som_array *array, som_object *object)
 {
 _kernel_oserror *err;
 
-  if ((err = som_extend((void **)(void *)&array->base, sizeof(som_object *))) != NULL)
+  if ((err = som_extend((void **)(void *)&array->object_base, sizeof(som_object *))) != NULL)
     return err;
 
-  object->index = array->size;
+  object->index = array->elem_count;
 
-  array->object_base[array->size++] = object;
+  array->object_base[array->elem_count++] = object;
 
   /* Store the object index in the library public GOT. */
   *((unsigned int *)object->got_addr + SOM_OBJECT_INDEX_OFFSET) = object->index;
 
-  /* Store the location of the client GOT ptr array in the public GOT. */
-  *((unsigned int *)object->got_addr + SOM_GOT_PTR_ARRAY_OFFSET) = 0x80D4;
+  /* Store the location of the client runtime array in the public GOT. */
+  *((unsigned int *)object->got_addr + SOM_RUNTIME_ARRAY_OFFSET) = 0x80D4;
 
   return NULL;
 }
 
-_kernel_oserror *som_generate_got_array(void)
+static void rt_elem_set(som_rt_elem *rt_elem, som_object *object)
+{
+  rt_elem->private_GOT_ptr = object->private_got_ptr;
+  rt_elem->public_RW_ptr = object->rw_addr;
+  rt_elem->private_RW_ptr = object->private_rw_ptr;
+  rt_elem->RW_size = object->rw_size;
+}
+
+static void rt_elem_clear(som_rt_elem *rt_elem)
+{
+  memset(rt_elem, 0, sizeof(som_rt_elem));
+}
+
+_kernel_oserror *som_generate_runtime_array(void)
 {
 som_array *object_array = &global.object_array;
 _kernel_oserror *err;
 som_client *client = FIND_CLIENT();
 
-  if (client->got_ptr_array.got_base)
-    som_free(client->got_ptr_array.got_base);
+  if (client->runtime_array.rt_base)
+    som_free(client->runtime_array.rt_base);
 
-  if ((err = somarray_init(&client->got_ptr_array, object_array->size)) != NULL)
+  if ((err = somarray_init(&client->runtime_array, sizeof(som_rt_elem), object_array->elem_count)) != NULL)
     return err;
 
 int i;
 
   /* First object is always the client. */
-  client->got_ptr_array.got_base[0] = linklist_first_som_object(&client->object_list)->got_addr;
+  rt_elem_set(&client->runtime_array.rt_base[0], linklist_first_som_object(&client->object_list));
 
-  for (i = 1; i < object_array->size; i++)
+  for (i = 1; i < object_array->elem_count; i++)
   {
     if (object_array->object_base[i] == NULL)
     {
       /* A NULL object in the array suggests an object that was used by a
        * different client and has since expired.
        */
-      client->got_ptr_array.got_base[i] = NULL;
+      rt_elem_clear(&client->runtime_array.rt_base[i]);
     }
     else
     {
@@ -95,13 +109,13 @@ int i;
       }
 
       if (object)
-	client->got_ptr_array.got_base[i] = object->private_got_ptr;
+	rt_elem_set(&client->runtime_array.rt_base[i], object);
       else
-	client->got_ptr_array.got_base[i] = NULL;
+	rt_elem_clear(&client->runtime_array.rt_base[i]);
     }
   }
 
-  rt_workspace_set(rt_workspace_GOT_PTR_ARRAY, (unsigned int)client->got_ptr_array.got_base);
+  rt_workspace_set(rt_workspace_RUNTIME_ARRAY, (unsigned int)client->runtime_array.rt_base);
 
   return NULL;
 }

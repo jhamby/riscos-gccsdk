@@ -11,8 +11,8 @@
 
 enum
 {
-  /* An array of GOT pointers used by the current client. */
-  rt_workspace_GOT_PTR_ARRAY,
+  /* An array used at runtime by the current client. */
+  rt_workspace_RUNTIME_ARRAY,
 
   /* Pointer to the current client structure. */
   rt_workspace_CLIENT_STRUCT_PTR,

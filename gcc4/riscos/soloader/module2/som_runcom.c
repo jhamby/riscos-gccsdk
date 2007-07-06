@@ -531,7 +531,7 @@ int dde_cl_len = ddeutils_get_cl_size();
     if ((err = register_dynamic_loader(state)) != NULL)
       goto error;
 
-    if ((err = som_generate_got_array()) != NULL)
+    if ((err = som_generate_runtime_array()) != NULL)
       goto error;
 
     /* The order that these are called in is important to ensure the arrays are constructed in the

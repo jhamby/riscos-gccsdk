@@ -9,21 +9,33 @@
 
 #include "som_types.h"
 
+typedef struct _som_rt_elem
+{
+  /* The GOT pointer must be the first member so that the PIC code will work. */
+  som_PTR			private_GOT_ptr;
+  som_PTR			public_RW_ptr;
+  som_PTR			private_RW_ptr;
+  unsigned int			RW_size;
+
+} som_rt_elem;
+
 typedef struct _som_array
 {
-  int 				size;
+  int 				elem_size;
+
+  int				elem_count;
 
   union
   {
     void **			base;
-    som_PTR *			got_base; /* An array of som_PTRs. */
+    som_rt_elem *		rt_base; /* An array of runtime elements. */
     struct _som_object **	object_base; /* An array of som_object pointers. */
   };
 
 } som_array;
 
 /* Allocate memory for the array using the given size as the starting size. */
-extern _kernel_oserror *somarray_init(som_array *array, int size);
+extern _kernel_oserror *somarray_init(som_array *array, int elem_size, int elem_count);
 
 /* Free resources used by the array. */
 extern void somarray_fini(som_array *array);
@@ -37,6 +49,6 @@ extern _kernel_oserror *somarray_add_object(som_array *array, struct _som_object
  * is entered in order to pick up any libraries that were loaded. If dl_open() is used,
  * it must be called again to regenerate the array.
  */
-extern _kernel_oserror *som_generate_got_array(void);
+extern _kernel_oserror *som_generate_runtime_array(void);
 
 #endif

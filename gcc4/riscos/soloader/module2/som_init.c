@@ -59,7 +59,7 @@ _kernel_oserror *err;
   }
 #endif
 
-  if ((err = somarray_init(&global.object_array, 1)) != NULL)
+  if ((err = somarray_init(&global.object_array, sizeof(som_object *), 1)) != NULL)
     goto error;
 
   som_start_call_every(pw);
