@@ -120,5 +120,5 @@
   [(unspec:SI [(match_operand:SI 0 "s_register_operand" "r")
                (match_operand:SI 1 "s_register_operand" "r")] UNSPEC_PIC_BASE)]
   ""
-  "ldmia\\t%0, {%0, %1}\\n\\tldr\\t%1, [%1, #0]\\n\\tldr\\t%0, [%1, %0, lsl#2]"
+  "ldmia\\t%0, {%0, %1}\\n\\tldr\\t%1, [%1, #0]\\n\\tldr\\t%0, [%1, %0, lsl#4]"
 [(set_attr "length" "12")])
