@@ -121,8 +121,8 @@ _kernel_oserror *err = NULL;
        */
     char *filename_ret;
 
-      if ((err = som_resolve_links((char *)r->r[1], &filename_ret)) != NULL)
-	r->r[1] = (int)filename_ret;
+      if ((err = som_resolve_links((char *)r->r[0], &filename_ret)) != NULL)
+	r->r[0] = (int)filename_ret;
     }
     break;
 
