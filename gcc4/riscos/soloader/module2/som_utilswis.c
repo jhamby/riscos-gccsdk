@@ -10,13 +10,17 @@
 #include "somanager.h"
 
 /* Retrieve information about the library whose handle is
- * given. The data is placed in a user supplied buffer.
+ * given. The data is placed in a user supplied buffer, which
+ * can be NULL, in which case don't return an error unless the
+ * object couldn't be found. This allows the existence of an
+ * object in the system to be tested without having to allocate
+ * a buffer.
  */
 _kernel_oserror *som_query_object(som_handle handle, som_objinfo *objinfo, unsigned int flags)
 {
 som_object *object;
 
-  if (handle == 0 || objinfo == NULL)
+  if (handle == 0)
     return somerr_bad_param;
 
   if ((flags & mask_QUERY_LIST) == flag_QUERY_CLIENT_LIST)
@@ -38,6 +42,9 @@ som_object *object;
 
   if (!object)
     return somerr_object_not_found;
+
+  if (!objinfo)
+    return NULL;
 
   objinfo->base_addr = object->base_addr;
   objinfo->public_rw_ptr = object->rw_addr;
