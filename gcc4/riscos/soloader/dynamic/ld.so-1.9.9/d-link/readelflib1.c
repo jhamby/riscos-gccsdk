@@ -542,16 +542,12 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
     tpnt->n_phent = epnt->e_phnum;
 
 
-  {
-  struct object_info objtest;
-
     /*
      * If the client has already seen and registered the library, then don't do it
      * again
      */
-    if (_dl_query_object_client(handle,&objtest) < 0)
+    if (_dl_query_object_client(handle, NULL) < 0)
     {
-    unsigned int (*got_fn)(void);
     char *got;
 
       /*
@@ -590,7 +586,6 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
       for (i = 0; i < objinfo.bss_size; i++)
         objinfo.private_rw_ptr[objinfo.bss_offset + i] = 0;
     }
-  }
 
   /*
    * OK, the next thing we need to do is to insert the dynamic linker into
