@@ -79,7 +79,7 @@ __main:
  PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v4, {v4, ip}"		@ v4 = Object index, ip = GOT ptr array location
  PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
- PICEQ "LDR	v4, [ip, v4, LSL#2]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, [ip, v4, LSL#4]"	@ v4 = GOT ptr
 
 	@ Read environment parameters
 	@ On exit:
@@ -476,7 +476,7 @@ __exit_with_error_num:
  PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
  PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
 
  PICEQ "LDR	a2, .L7"		@ error_table
  PICEQ "LDR	a2, [v4, a2]"
@@ -556,7 +556,7 @@ __dynamic_area_exit:
  PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
  PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
 
 	LDR	a1, .L1			@=__dynamic_area_refcount
  PICEQ "LDR	a1, [v4, a1]"
@@ -594,7 +594,7 @@ __env_riscos:
  PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
  PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
 
 	SWI	XOS_IntOff
 	MOV	v1, #0
@@ -627,7 +627,7 @@ __env_read:
  PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
  PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
 
 	MOV	v1, #0
 	LDR	v2, .L8			@=__calling_environment
@@ -661,7 +661,7 @@ __env_unixlib:
  PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
  PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#2]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
 
 	SWI	XOS_IntOff
 
@@ -792,7 +792,7 @@ stack_overflow_common:
  PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a1, {a1, v4}"		@ a1 = Object index, v4 = GOT ptr array location
  PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a1, LSL#2]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, [v4, a1, LSL#4]"	@ v4 = GOT ptr
 
 	@ The signal handler stack chunk can't be extended.
 	LDR	a1, .L4			@=__ul_global
@@ -1118,7 +1118,7 @@ __unixlib_fatal:
  PICEQ "ADD	fp, pc, fp"		@ fp = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	fp, {fp, ip}"		@ fp = Object index, ip = GOT ptr array location
  PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
- PICEQ "LDR	ip, [ip, fp, LSL#2]"	@ ip = GOT ptr
+ PICEQ "LDR	ip, [ip, fp, LSL#4]"	@ ip = GOT ptr
 
 	LDR	a4, .L6			@=__ul_global
  PICEQ "LDR	a4, [ip, a4]"
@@ -1135,7 +1135,7 @@ __unixlib_fatal:
  PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT ptr array location
  PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT ptr array
- PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT ptr
 
 	SUB	fp, ip, #4
 

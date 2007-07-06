@@ -36,7 +36,7 @@ setjmp:
  PICEQ "ADD	a4, pc, a4"		@ a4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a4, {a4, ip}"		@ a4 = Object index, ip = GOT ptr array location
  PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
- PICEQ "LDR	ip, [ip, a4, LSL#2]"	@ ip = GOT ptr
+ PICEQ "LDR	ip, [ip, a4, LSL#4]"	@ ip = GOT ptr
 
 	LDR	a4, .L0 + 0		@ =__pthread_running_thread
  PICEQ "LDR	a4, [ip, a4]"
@@ -76,7 +76,7 @@ longjmp:
  PICEQ "ADD	v1, pc, v1"		@ v1 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v1, {v1, v4}"		@ v1 = Object index, v4 = GOT ptr array location
  PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, v1, LSL#2]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, [v4, v1, LSL#4]"	@ v4 = GOT ptr
 
 	@ We should be able to safely use v1-v6, since if a recursive
 	@ call to longjmp does occur, then the v1-v6 are going to be

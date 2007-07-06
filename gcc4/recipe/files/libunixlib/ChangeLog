@@ -1,3 +1,18 @@
+Fri Jul 6 14:16:12 2007  Lee Noar  <leenoar@sky.com>
+
+	* pthread/_context.s: Change PIC code to load PIC register from
+	16 byte array instead of 4 byte array.
+	* pthread/_yield.s: Likewise.
+	* pthread/_ints.s: Likewise.
+	* signal/_demangle.s: Likewise.
+	* signal/_signal.s: Likewise.
+	* common/_exist.s: Likewise.
+	* common/_riscosify.s: Likewise.
+	* gcccompat/_b_return.s: Likewise.
+	* sys/_jmp.s: Likewise.
+	* sys/_vfork.s: Likewise.
+	* sys/_syslib.s: Likewise.
+
 Sat Jun 30 11:55:12 2007  Lee Noar  <leenoar@sky.com>
 
 	* sys/_syslib.s(__main): Using registers to receive data from

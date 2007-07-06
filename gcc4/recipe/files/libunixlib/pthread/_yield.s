@@ -24,7 +24,7 @@ pthread_yield:
  PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
  PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
- PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT (private)
 
 	@ If the thread system isn't running then yielding is pointless
 	LDR	a2, .L0	@=__ul_global

@@ -99,7 +99,7 @@ __ul_seterr:
  PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
  PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
- PICEQ "LDR	v4, [v5, v4, ASL#2]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT (private)
 
 	CMP	a2, #0
 	BEQ	seterr01		@ user requested not to set errno
@@ -174,7 +174,7 @@ _kernel_last_oserror:
  PICEQ "ADD	a2, pc, a2"
  PICEQ "LDMIA	a2, {a2, a3}"
  PICEQ "LDR	a3, [a3, #0]"
- PICEQ "LDR	a2, [a3, a2, ASL#2]"
+ PICEQ "LDR	a2, [a3, a2, LSL#4]"
 
 	LDR	a1, .L1			@=__pthread_running_thread
  PICEQ "LDR	a1, [a2, a1]"
@@ -232,7 +232,7 @@ __h_sigill:
  PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
  PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
- PICEQ "LDR	r7, [r8, r7, ASL#2]"	@ r7 = GOT (private)
+ PICEQ "LDR	r7, [r8, r7, LSL#4]"	@ r7 = GOT (private)
 
  PICEQ "LDR	r8, .L2"		@__cbreg
  PICEQ "LDR	r8, [r7, r8]"
@@ -286,7 +286,7 @@ __h_sigbus:
  PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
  PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
- PICEQ "LDR	r7, [r8, r7, ASL#2]"	@ r7 = GOT (private)
+ PICEQ "LDR	r7, [r8, r7, LSL#4]"	@ r7 = GOT (private)
 
  PICEQ "LDR	r8, .L3"		@__cbreg
  PICEQ "LDR	r8, [r7, r8]"
@@ -338,7 +338,7 @@ __h_sigsegv0:
  PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
  PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
- PICEQ "LDR	r7, [r8, r7, ASL#2]"	@ r7 = GOT (private)
+ PICEQ "LDR	r7, [r8, r7, LSL#4]"	@ r7 = GOT (private)
 
  PICEQ "LDR	r8, .L4"		@__cbreg
  PICEQ "LDR	r8, [r7, r8]"
@@ -419,7 +419,7 @@ __h_sigsegv1:
  PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
  PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
- PICEQ "LDR	r7, [r8, r7, ASL#2]"	@ r7 = GOT (private)
+ PICEQ "LDR	r7, [r8, r7, LSL#4]"	@ r7 = GOT (private)
 
  PICEQ "LDR	r8, .L5"		@__cbreg
  PICEQ "LDR	r8, [r7, r8]"
@@ -880,7 +880,7 @@ __h_cback_common:
  PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
  PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
- PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT (private)
 
 	LDR	a3, .L9+4		@=__ul_global
  PICEQ "LDR	a3, [v4, a3]"
@@ -1079,7 +1079,7 @@ __h_sigalrm:
  PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
  PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	v4, [a2, a1, ASL#2]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, [a2, a1, LSL#4]"	@ v4 = GOT (private)
 
 	@ Raise the SIGALRM signal
 	MOV	a1, #SIGALRM
@@ -1158,7 +1158,7 @@ __h_sigvtalrm:
  PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
  PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	v4, [a2, a1, ASL#2]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, [a2, a1, LSL#4]"	@ v4 = GOT (private)
 
 	MOV	a1, #SIGVTALRM	@  No access to banked registers
 	BL	__raise
@@ -1232,7 +1232,7 @@ __h_sigprof:
  PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
  PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	v4, [a2, a1, ASL#2]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, [a2, a1, LSL#4]"	@ v4 = GOT (private)
 
 	MOV	a1, #SIGPROF	@ No access to banked registers
 	BL	__raise

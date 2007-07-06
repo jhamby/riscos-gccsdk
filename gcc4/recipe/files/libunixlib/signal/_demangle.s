@@ -19,7 +19,7 @@ __unixlib_cxa_demangle:
  PICEQ "ADD	v5, pc, v5"		@ v5 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v5, {v5, ip}"		@ v5 = Object index, ip = GOT ptr array location
  PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
- PICEQ "LDR	v5, [ip, v5, LSL#2]"	@ v5 = GOT ptr
+ PICEQ "LDR	v5, [ip, v5, LSL#4]"	@ v5 = GOT ptr
 
 	LDR	ip, .L0			@=__cxa_demangle
  PICEQ "LDR	ip, [v5, ip]"

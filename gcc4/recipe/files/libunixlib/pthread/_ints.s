@@ -21,7 +21,7 @@ __pthread_disable_ints:
  PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
  PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	a2, [a2, a1, LSL#2]"	@ a2 = GOT ptr
+ PICEQ "LDR	a2, [a2, a1, LSL#4]"	@ a2 = GOT ptr
 
 	LDR	a1, .L0			@=__ul_global
  PICEQ "LDR	a1, [a2, a1]"
@@ -47,7 +47,7 @@ __pthread_enable_ints:
  PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
  PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	a1, [a2, a1, LSL#2]"	@ a1 = GOT ptr
+ PICEQ "LDR	a1, [a2, a1, LSL#4]"	@ a1 = GOT ptr
 
 	LDR	a2, .L1			@=__ul_global
  PICEQ "LDR	a2, [a1, a2]"
@@ -87,7 +87,7 @@ __pthread_protect_unsafe:
  PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
  PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	a1, [a2, a1, LSL#2]"	@ a1 = GOT ptr
+ PICEQ "LDR	a1, [a2, a1, LSL#4]"	@ a1 = GOT ptr
 
 	LDR	a4, .L2			@=__ul_global
  PICEQ "LDR	a4, [a1, a4]"
@@ -139,7 +139,7 @@ __pthread_unprotect_unsafe:
  PICEQ "ADD	a3, pc, a3"		@ a3 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a3, {a3, a4}"		@ a3 = Object index, a4 = GOT ptr array location
  PICEQ "LDR	a4, [a4, #0]"		@ a4 = GOT ptr array
- PICEQ "LDR	a3, [a4, a3, LSL#2]"	@ a3 = GOT ptr
+ PICEQ "LDR	a3, [a4, a3, LSL#4]"	@ a3 = GOT ptr
 
 	LDR	ip, .L3			@=__ul_global
  PICEQ "LDR	ip, [a3, ip]"

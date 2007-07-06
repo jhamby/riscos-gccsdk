@@ -25,7 +25,7 @@ __builtin_return_address:
  PICEQ "ADD	v4, pc, v4"		@ v4 = Library public GOT
  PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v4 = GOT table location
  PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT table
- PICEQ "LDR	v4, [v5, v4, ASL#2]"	@ v4 = Library private GOT
+ PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = Library private GOT
 
 	BL	__builtin_frame_address
 

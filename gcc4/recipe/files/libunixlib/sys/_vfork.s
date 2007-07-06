@@ -42,7 +42,7 @@ fork_common:
  PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT ptr array location
  PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT ptr array
- PICEQ "LDR	v4, [v5, v4, LSL#2]"	@ v5 = GOT ptr
+ PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v5 = GOT ptr
 
 	MOV	ip, a2
 	@ Save lr as we can't use the stack as it may be corrupted
