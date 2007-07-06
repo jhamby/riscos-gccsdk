@@ -178,6 +178,9 @@ void * _dlopen(const char * libname, int flag)
 	    } while(tcurr);
 	  }
 
+	if (_dl_generate_runtime_array())
+	  goto oops;
+
 	/*
 	 * OK, now attach the entire chain at the end
 	 */
@@ -188,9 +191,6 @@ void * _dlopen(const char * libname, int flag)
 	  _dl_error_number = DL_NO_SYMBOL;
 	  goto oops;
 	}
-
-	if (_dl_generate_got_array())
-	  goto oops;
 
 #ifndef __riscos__
 	dl_brk = (void (*)()) _dl_debug_addr->r_brk;

@@ -8,10 +8,11 @@
 #define XSOM_DEREGISTER_OBJECT	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0x5)
 #define XSOM_QUERY_OBJECT	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0x6)
 #define XSOM_ITERATE_OBJECTS	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0x7)
+#define XSOM_GOT_FROM_ADDR	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0x8)
 #define XSOM_HANDLE_FROM_ADDR	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0x9)
 #define XSOM_HANDLE_FROM_NAME	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xA)
 #define XSOM_RESOLVE_SYMLINKS	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xB)
-#define XSOM_GENERATE_GOT_ARRAY	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xC)
+#define XSOM_GENERATE_RUNTIME_ARRAY	(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0xC)
 
 #define SOM_REGISTER_LOADER		0
 #define SOM_REGISTER_CLIENT		1
@@ -24,6 +25,14 @@
 #define SOM_ITERATE_REASON_NEXT		1
 #define SOM_ITERATE_REASON_PREV		2
 #define SOM_ITERATE_REASON_LAST		3
+
+struct som_rt_elem
+{
+  int	private_got_ptr;
+  char *public_rw_ptr;
+  char *private_rw_ptr;
+  int	rw_size;
+};
 
 extern inline void _dl_exit(int status);
 extern inline void _dl_close(int fd);
@@ -180,7 +189,7 @@ unsigned int res;
   return res;
 }
 
-extern inline unsigned int _dl_generate_got_array(void)
+extern inline unsigned int _dl_generate_runtime_array(void)
 {
 unsigned int err_flag;
 
@@ -188,7 +197,7 @@ unsigned int err_flag;
 		"movvc	%[err_flag], #0;\n\t"
 		"movvs	%[err_flag], #1;\n\t"
 		: [err_flag] "=r" (err_flag)
-		: [swi_name] "i" (XSOM_GENERATE_GOT_ARRAY)
+		: [swi_name] "i" (XSOM_GENERATE_RUNTIME_ARRAY)
 		: "a1", "cc");
   return err_flag;
 }
@@ -239,6 +248,19 @@ unsigned int res;
 		: [arg] "r" (addr), [swi_name] "i" (XSOM_HANDLE_FROM_ADDR)
 		: "a1", "cc");
   return res;
+}
+
+extern inline unsigned int *_dl_got_from_addr(void *addr)
+{
+unsigned int *got;
+
+  asm volatile ("mov	r0,%[arg];\n\t"
+		"swi	%[swi_name];\n\t"
+		"mov	%[got],r0;\n\t"
+		: [got] "=r" (got)
+		: [arg] "r" (addr), [swi_name] "i" (XSOM_GOT_FROM_ADDR)
+		: "a1", "cc");
+  return got;
 }
 
 extern inline void _dl_exit(int status)

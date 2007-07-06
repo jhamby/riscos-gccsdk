@@ -39,7 +39,7 @@ RESOLVE:
 	ldr	r2, [lr, #-12]		@ r2 = Object index
 	ldr	r3, [lr, #-8]		@ r3 = GOT array location
 	ldr	r3, [r3, #0]		@ r3 = GOT array
-	ldr	lr, [r3, r2, lsl#2]	@ lr = GOT
+	ldr	lr, [r3, r2, lsl#4]	@ lr = GOT
 	add	lr, lr, #16		@ lr = &GOT[4] (private GOT)
 
 	@ prepare to call fixup()

@@ -36,7 +36,7 @@ _dl_stkovf_split_small:
 	ADD	r7, pc, r7			@ r7 = Library public GOT
 	LDMIA	r7, {r7, r8}			@ r7 = Object index, r8 = GOT ptr array location
 	LDR	r8, [r8, #0]			@ r8 = GOT ptr array
-	LDR	r7, [r8, r7, ASL#2]		@ r7 = Library private GOT
+	LDR	r7, [r8, r7, LSL#4]		@ r7 = Library private GOT
 
 	LDR	r8, .L0
 	LDR	r8, [r7, r8]
@@ -61,7 +61,7 @@ _dl_stkovf_split_big:
 	ADD	r7, pc, r7			@ r7 = Library public GOT
 	LDMIA	r7, {r7, r8}			@ r7 = Object index, r8 = GOT ptr array location
 	LDR	r8, [r8, #0]			@ r8 = GOT ptr array
-	LDR	r7, [r8, r7, ASL#2]		@ r7 = Library private GOT
+	LDR	r7, [r8, r7, LSL#4]		@ r7 = Library private GOT
 
 	LDR	r8, .L1
 	LDR	r8, [r7, r8]

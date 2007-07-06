@@ -219,9 +219,7 @@ void _dl_boot(int args)
   int indx;
   int _dl_secure;
 
-#ifdef __riscos
-  struct object_info objinfo;
-#endif
+  struct som_rt_elem *objinfo;
 
   /* First obtain the information on the stack that tells us more about
      what binary is loaded, where it is loaded, etc, etc */
@@ -318,8 +316,8 @@ void _dl_boot(int args)
   /* OK, now do the relocations.  We do not do a lazy binding here, so
    that once we are done, we have considerably more flexibility. */
 
-  /* I'm cheating here as I'm assuming that the load address is the handle */
-  _dl_query_object_client(load_addr,&objinfo);
+  /* Find the runtime array element for the dynamic loader. */
+  objinfo = *((struct som_rt_elem **)got[2]) + got[1];
 
   goof = 0;
   for(indx=0; indx < 2; indx++)
@@ -385,16 +383,16 @@ void _dl_boot(int args)
           unsigned int *client_reloc_addr,symbol_offset;
 
 	    client_reloc_addr = (unsigned int *)(((unsigned int)reloc_addr -
-		(unsigned int)objinfo.public_rw_ptr) + (unsigned int)objinfo.private_rw_ptr);
+		(unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr);
 
-	    symbol_offset = symbol_addr - (unsigned int)objinfo.public_rw_ptr;
+	    symbol_offset = symbol_addr - (unsigned int)objinfo->public_rw_ptr;
 
 	    /*
 	     * If the symbol exists in the library's R/W segment, then relocate to client's
 	     * copy.
 	     */
-	    if (symbol_offset >= 0 && symbol_offset < objinfo.rw_size)
-	      symbol_addr = (unsigned int)objinfo.private_rw_ptr + symbol_offset;
+	    if (symbol_offset >= 0 && symbol_offset < objinfo->rw_size)
+	      symbol_addr = (unsigned int)objinfo->private_rw_ptr + symbol_offset;
 
 	    *client_reloc_addr = symbol_addr;
           }
@@ -404,14 +402,14 @@ void _dl_boot(int args)
 	  unsigned int *client_reloc_addr;
 
 	    client_reloc_addr = (unsigned int *)(((unsigned int)reloc_addr -
-		(unsigned int)objinfo.public_rw_ptr) + (unsigned int)objinfo.private_rw_ptr);
-	    if (*reloc_addr < (objinfo.public_rw_ptr - objinfo.base_addr))
+		(unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr);
+	    if (*reloc_addr < (objinfo->public_rw_ptr - load_addr))
 	    {
 	      /*
 	       * If the relocated address is in the R/O segment, then keep it there - don't
 	       * relocate in to the client's private R/W segment
 	       */
-	       *client_reloc_addr = (unsigned int)objinfo.base_addr + *reloc_addr;
+	       *client_reloc_addr = load_addr + *reloc_addr;
 	     }
 	     else
 	     {
@@ -422,8 +420,8 @@ void _dl_boot(int args)
 	        * library's public R/W segment. Finally, use this offset to find absolute address in
 	        * client's private R/W segment.
 	        */
-	        client_reloc = (((*reloc_addr) + (unsigned int)objinfo.base_addr) -
-		     (unsigned int)objinfo.public_rw_ptr) + (unsigned int)objinfo.private_rw_ptr;
+	        client_reloc = (((*reloc_addr) + load_addr) -
+		     (unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr;
 	        *client_reloc_addr = client_reloc;
 	     }
 	     break;
@@ -449,7 +447,7 @@ void _dl_boot(int args)
    since the dynamic resolver is not yet ready. */
 
 /*  lpnt = (int *) (tpnt->dynamic_info[DT_PLTGOT] + load_addr);*/
-  lpnt = (int *) (objinfo.private_rw_ptr + objinfo.got_offset);
+  lpnt = (int *) got;
   INIT_GOT(lpnt, tpnt);
 
   /* OK, this was a big step, now we need to scan all of the user images
@@ -489,11 +487,6 @@ void _dl_boot(int args)
   {
     Elf32_Phdr * ppnt;
     int i;
-
-    /* Base address of app is set to 0 rather than 0x8000 as jump relocations
-    expect it */
-    objinfo.base_addr = (char *)0;
-    objinfo.flags = 0;
 
     ppnt = (Elf32_Phdr *) dl_data[AT_PHDR];
     for(i=0; i<dl_data[AT_PHNUM]; i++, ppnt++)
@@ -769,6 +762,9 @@ void _dl_boot(int args)
   _dl_unmap_cache();
 #endif
 
+  if (_dl_generate_runtime_array())
+    _dl_exit(1);
+
   /* ldd uses uses this.  I am not sure how you pick up the other flags */
   if(_dl_trace_loaded_objects)
     {
@@ -859,9 +855,6 @@ void _dl_boot(int args)
   /* This is written in this funny way to keep gcc from inlining the
      function call. */
   ((void (*)(void))debug_addr->r_brk)();
-
-  if (_dl_generate_got_array())
-    _dl_exit(1);
 
   /* OK we are done here.  Turn out the lights, and lock up. */
   _dl_elf_main = (int (*)(int, char**, char**)) dl_data[AT_ENTRY];
