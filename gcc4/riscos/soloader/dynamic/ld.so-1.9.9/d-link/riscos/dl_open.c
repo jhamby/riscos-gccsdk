@@ -1,5 +1,4 @@
 #include "syscall.h"
-#include <sys/param.h>
 #include "../config.h"
 
 int _dl_open(char * filename, unsigned int flags)
@@ -7,9 +6,9 @@ int _dl_open(char * filename, unsigned int flags)
 int zfileno;
 
 #if LD_USE_SYMLINKS > 0
-char final_name[MAXPATHLEN];
+char *final_name;
 
-  if (resolve_links(filename, final_name, MAXPATHLEN) < 0)
+  if ((final_name = _dl_resolve_symlinks(filename)) == 0)
     return -1;
 #endif
 
@@ -29,5 +28,10 @@ char final_name[MAXPATHLEN];
 		: "r" (filename)
 #endif
 		: "a1", "a2", "cc");
+
+#if LD_USE_SYMLINKS > 0
+  _dl_som_free(final_name);
+#endif
+
   return zfileno;
 }

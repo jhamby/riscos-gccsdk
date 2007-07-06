@@ -50,7 +50,6 @@ extern inline int _dl_write(int fd, const char * buf, int len);
 extern inline int _dl_read(int fd, const char * buf, int len);
 extern inline int _dl_mprotect(const char * addr, int size, int prot);
 #ifdef __riscos
-extern int resolve_links(const char *in, char *out, int out_len);
 #include <sys/stat.h>
 #else
 #define new_stat stat
@@ -263,6 +262,29 @@ unsigned int *got;
   return got;
 }
 
+extern inline char *_dl_resolve_symlinks(const char *filename)
+{
+char *res;
+
+  asm volatile ("mov	r0, %[filename];\n\t"
+		"swi	%[swi_name];\n\t"
+		"movvc	%[res], r0;\n\t"
+		"movvs	%[res], #0;\n\t"
+		: [res] "=r" (res)
+		: [filename] "r" (filename), [swi_name] "i" (XSOM_RESOLVE_SYMLINKS)
+		: "a1", "cc");
+  return res;
+}
+
+extern inline void _dl_som_free(void *addr)
+{
+  asm volatile ("mov	r0, %[addr];\n\t"
+		"swi	%[swi_name];\n\t"
+		: /* no outputs */
+		: [addr] "r" (addr), [swi_name] "i" (XSOM_FREE)
+		: "a1", "cc");
+}
+
 extern inline void _dl_exit(int status)
 {
   asm volatile ("swi	%[swi_name];\n\t"	/* SWI "XSOM_DeregisterClient" */
@@ -343,7 +365,7 @@ extern inline void _dl_deregister_lib(unsigned int handle)
 }
 
 /*
-  Fill buffer with information about the object whose elf_resolve struct pointer is given.
+  Fill buffer with information about the object whose handle is given.
   Returns -1 if error occured (including not finding the object) or 0 for success.
 */
 extern inline int _dl_query_object_global(unsigned int handle,struct object_info *buffer)
@@ -363,7 +385,7 @@ int result;
 }
 
 /*
-  Fill buffer with information about the object whose elf_resolve struct pointer is given.
+  Fill buffer with information about the object whose handle is given.
   Returns -1 if error occured (including not finding the object) or 0 for success.
 */
 extern inline int _dl_query_object_client(unsigned int handle,struct object_info *buffer)
@@ -409,30 +431,7 @@ int addr = 0;
 
   return addr;
 }
-#if 0
-extern inline int _dl_open(char * addr, unsigned int flags)
-{
-  int zfileno;
 
-/*  print_text(addr);
-  print_text("\r\n");*/
-
-  /* assume files are always read only */
-
-  asm volatile ("mov	a2,%1;\n\t"
-		"mov	a1,#0x43;\n\t"	/* open existing file for read access only, no errors generated */
-		"swi	0x2000d;\n\t"	/* XOS_Find,0x43 */
-		"movvc	%0,r0;\n\t"
-		"movvs	%0,#-1;\n\t"
-		"teq	r0,#0;\n\t"
-		"moveq	%0,#-1;\n\t"
-		: "=r" (zfileno)
-		: "r" (addr), "r" (flags)
-		: "a1", "a2", "cc");
-
-  return zfileno;
-}
-#endif
 extern inline int _dl_write(int fd, const char * buf, int len)
 {
   int status;
@@ -469,13 +468,7 @@ extern inline int _dl_write(int fd, const char * buf, int len)
 extern inline int _dl_read(int fd, const char * buf, int len)
 {
   int status;
-/*print_text("Reading ");
-print_dec(len);
-print_text(" bytes for fd ");
-print_dec(fd);
-print_text(" to address 0x");
-print_hex((unsigned int)buf);
-print_nl();*/
+
   asm volatile ("cmp	%1,#-1;\n\t"
 		"movmi	%0,#-1;\n\t"
 		"bmi	0f;\t\n\t"
@@ -509,42 +502,7 @@ int status;
 		: "a1", "a2", "a3", "cc");
   return status;
 }
-#if 0
-extern inline int _dl_mprotect(const char * addr, int size, int prot)
-{
-  int status = 0;
 
-  return status;
-}
-#endif
-#if 0
-extern inline int _dl_stat(char * filename, struct stat *st)
-{
-  int ret;
-/* print_text("stat: ");
- print_text(filename);
- print_text("\r\n");*/
-
-  /* Only st_size is filled in */
-  asm volatile ("mov	r1,%1;\n\t"
-		"mov	r0,#17;\n\t"
-		"swi	0x20008;\n\t"	/* SWI "XOS_File", 17 */
-		"movvs	%0,#-1;\n\t"
-		"bvs	0f;\n\t"
-		"teq	r0,#1;\n\t"
-		"movne	%0,#-1;\n\t"
-		"bne	0f;\n\t"
-		"teq	%2,#0;\n\t"
-		"strne	v1,[%2,#28];\n\t"	/* st->st_size = r4 */
-		"mov	%0,#0;\n"
-		"0:\n"
-		: "=r" (ret)
-		: "r" (filename), "r" (st)
-		: "a1", "a2", "a3", "a4", "v1", "v2", "cc", "memory");
-
-  return ret;
-}
-#endif
 extern inline int _dl_munmap(char * addr, int size)
 {
 int ret;

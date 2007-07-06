@@ -16,7 +16,7 @@ $(OBJDIR)/%.o: %.c
 	$(OBJCOPY) --redefine-sym __rt_stkovf_split_small=_dl_stkovf_split_small --redefine-sym __rt_stkovf_split_big=_dl_stkovf_split_big $@
 
 SRC1S = resolve.s stkovf.s
-SRC2S = elfinterp.c dl_open.c dl_stat.c links.c
+SRC2S = elfinterp.c dl_open.c dl_stat.c
 
 SRCS	= $(SRC1S) $(SRC2S)
 OBJ1S	= $(SRC1S:.s=.o)

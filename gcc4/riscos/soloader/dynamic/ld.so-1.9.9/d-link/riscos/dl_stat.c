@@ -1,5 +1,4 @@
 #include "syscall.h"
-#include <sys/param.h>
 #include "../config.h"
 
 extern int _dl_stat(char * filename, struct stat *st)
@@ -7,9 +6,9 @@ extern int _dl_stat(char * filename, struct stat *st)
 int ret;
 
 #if LD_USE_SYMLINKS > 0
-char final_name[MAXPATHLEN];
+char *final_name;
 
-  if (resolve_links(filename, final_name, MAXPATHLEN) < 0)
+  if ((final_name = _dl_resolve_symlinks(filename)) == 0)
     return -1;
 #endif
 
@@ -33,6 +32,10 @@ char final_name[MAXPATHLEN];
 		: "r" (filename), "r" (st)
 #endif
 		: "a1", "a2", "a3", "a4", "v1", "v2", "cc", "memory");
+
+#if LD_USE_SYMLINKS > 0
+  _dl_som_free(final_name);
+#endif
 
   return ret;
 }

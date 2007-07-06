@@ -15,7 +15,7 @@ DLINK_OBJS = $(OBJDIR)/boot1.o $(OBJDIR)/hash.o $(OBJDIR)/readelflib1.o $(OBJDIR
 
 OBJS	= $(DLINK_OBJS)
 
-OBJS += $(OBJDIR)/resolve.o $(OBJDIR)/elfinterp.o $(OBJDIR)/stkovf.o $(OBJDIR)/dl_open.o $(OBJDIR)/dl_stat.o $(OBJDIR)/links.o
+OBJS += $(OBJDIR)/resolve.o $(OBJDIR)/elfinterp.o $(OBJDIR)/stkovf.o $(OBJDIR)/dl_open.o $(OBJDIR)/dl_stat.o
 
 DLINKER = $(OBJDIR)/ld-1.9.9.so,e1f
 
