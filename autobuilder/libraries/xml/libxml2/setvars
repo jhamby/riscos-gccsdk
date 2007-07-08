@@ -3,6 +3,6 @@ AB_INSTALL=yes
 AB_CONFLAGS=--enable-ipv6=no
 
 # Makefile.am got patched
-automake-1.9
+aclocal && autoheader && automake -a && autoconf -f
 
 mkdir -p $D/include/libxml2/libxml
