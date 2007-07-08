@@ -32,7 +32,7 @@ $GCCSDK_SRCDIR/configure --prefix=$PREFIX --enable-threads=posix \
 	--enable-checking=no --disable-libstdcxx-pch \
 	--enable-c99 --enable-cmath \
 	--with-cross-host \
-	--without-pic --enable-shared=libunixlib,libgcc --without-x --enable-libgcj \
+	--without-pic --enable-shared=libunixlib,libgcc,libstdc++ --without-x --enable-libgcj \
 	--enable-maintainer-mode
 
 # When you want the host binaries with debug information:
