@@ -1,5 +1,5 @@
 @ Provide program entry and initialise the UnixLib world
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
@@ -376,6 +376,7 @@ no_dynamic_area:
 	TEQ	a1, #0
 	MOVNE	a1, #5		@ When desktop mode, get the taskhandle
 	SWINE	XWimp_ReadSysInfo
+	MOVVS	a1, #0
 	STR	a1, [ip, #GBL_TASKHANDLE]	@ __taskhandle
 
 	@ Cache the system page size as this call can be slow.

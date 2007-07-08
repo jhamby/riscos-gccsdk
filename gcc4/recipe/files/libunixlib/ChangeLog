@@ -68,10 +68,6 @@ Fri Jun 15 17:41:54 2007  Lee Noar  <leenoar@sky.com>
 	the shared libraries here too. Where the PIC register (v4) is used
 	for non-PIC code, replace with v6.
 
-Wed May 23 20:31:26 2007  Alex Waugh  <alex@alexwaugh.com>
-
-	* include/unixlib/types.h: Fix typo in typedef.
-
 Wed May 16 21:34:47 2007  Lee Noar  <leenoar@sky.com>
 
 	* signal/_signal.s(__h_sigint): Fixed bug in DSO where r12 was assumed
@@ -691,6 +687,25 @@ Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 [ ^^^ Here starts UnixLib 5.0 ^^^ ]
 -----------------------------------------------------------------------
 [ vvv Here ends UnixLib 4.x vvv ]
+
+Sun Jul  8 19:14:58 CEST 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+                               John Tytgat  <John.Tytgat@aaug.net>
+
+	* source/pthread/_context.s: enabled pthread Wimp filter code after
+	fixing following:
+	(start_call_every,stop_call_every) full register + processor flag
+	preserve.
+	(__pthread_start_ticker, __pthread_stop_ticker) post filter mask was
+	inverted.
+	(__pthread_start_ticker) recheck if we're not yet a task since last
+	check.
+	* source/sys/_syslib.s: don't write bogus GBL_TASKHANDLE when
+	Wimp_ReadSysInfo fails.
+	* source/test/pthread/create-join.c: new pthread test case.
+
+Wed May 23 20:31:26 2007  Alex Waugh  <alex@alexwaugh.com>
+
+	* source/include/unixlib/types.h: Fix typo in typedef.
 
 Sun Apr 29 17:55:43 CEST 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
