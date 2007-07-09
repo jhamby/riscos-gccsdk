@@ -1,3 +1,14 @@
+Tue Jul 10 00:53:25 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/sys/cdefs.h(__REDIRECT, __REDIRECT_NTH): Define.
+	* include/sys/stat.h(struct stat): Define struct stat equal to the
+	already existing struct stat64 and avoid the #define stat stat64 hack.
+	Update function declaration of fstat64 and lstat64.
+	* unix/lstat.c(lstat64): Use struct stat64 iso struct stat.
+	* unix/fstat.c(fstat64): Likewise.
+	* unix/stat.c(stat64): Likewise.
+	* common/riscosify.c(translate_or_null): Avoid cast.
+
 Fri Jul 6 14:16:12 2007  Lee Noar  <leenoar@sky.com>
 
 	* pthread/_context.s: Change PIC code to load PIC register from

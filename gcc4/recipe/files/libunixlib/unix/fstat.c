@@ -1,5 +1,5 @@
 /* fstat (), fstat64 ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -38,7 +38,8 @@ fstat (int fd, struct stat *buf)
 }
 
 int
-fstat64 (int fd, struct stat *buf)
+fstat64 (int fd, struct stat64 *buf)
 {
-  return fstat(fd, buf);
+  /* struct stat64 is currently the same as struct stat.  */
+  return fstat (fd, (struct stat *)buf);
 }

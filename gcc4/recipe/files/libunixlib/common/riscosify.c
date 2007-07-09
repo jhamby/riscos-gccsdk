@@ -506,7 +506,7 @@ translate_or_null (int create_dir, int flags,
       /* Avoid _kernel_swi if possible because it can corrupt errno and
          _kernel_last_oserror if the mimemap translation fails.
          __os_swi is not available in the SCL. */
-      if (! __os_swi (MimeMap_Translate, (int *)&regs))
+      if (! __os_swi (MimeMap_Translate, regs.r))
 #endif
         *filetype = regs.r[3];
 

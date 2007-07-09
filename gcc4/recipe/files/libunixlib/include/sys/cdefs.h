@@ -127,6 +127,38 @@
 # endif
 #endif /* __GNUC__ */
 
+
+/* __asm__ ("xyz") is used throughout the headers to rename functions
+   at the assembly language level.  This is wrapped by the __REDIRECT
+   macro, in order to support compilers that can do this some other
+   way.  When compilers don't support asm-names at all, we have to do
+   preprocessor tricks instead (which don't have exactly the right
+   semantics, but it's the best we can do).
+
+   Example:
+   int __REDIRECT(setpgrp, (__pid_t pid, __pid_t pgrp), setpgid); */
+
+#if defined __GNUC__ && __GNUC__ >= 2
+
+# define __REDIRECT(name, proto, alias) name proto __asm__ (__ASMNAME (#alias))
+# ifdef __cplusplus
+#  define __REDIRECT_NTH(name, proto, alias) \
+     name proto __THROW __asm__ (__ASMNAME (#alias))
+# else
+#  define __REDIRECT_NTH(name, proto, alias) \
+     name proto __asm__ (__ASMNAME (#alias)) __THROW
+# endif
+# define __ASMNAME(cname)  __ASMNAME2 (__USER_LABEL_PREFIX__, cname)
+# define __ASMNAME2(prefix, cname) __STRING (prefix) cname
+
+/*
+#elif __SOME_OTHER_COMPILER__
+
+# define __REDIRECT(name, proto, alias) name proto; \
+	_Pragma("let " #name " = " #alias)
+*/
+#endif
+
 /* GCC has various useful declarations that can be made with the
    `__attribute__' syntax.  All of the ways we use this do fine if
    they are omitted for compilers that don't understand it. */

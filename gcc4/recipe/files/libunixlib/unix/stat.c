@@ -1,5 +1,5 @@
 /* UnixLib stat()/stat64() implementation.
-   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2000-2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -32,12 +32,4 @@ stat (const char *filename, struct stat *buf)
 
   /* Perform the device specific open operation.  */
   return dev_funcall (buf->st_dev, stat, (filename, buf));
-}
-
-#undef stat
-
-int
-stat (const char *filename, struct stat64 *buf)
-{
-  return stat64 (filename, buf);
 }

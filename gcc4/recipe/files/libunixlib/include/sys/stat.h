@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 5.6: File Characteristics <sys/stat.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #ifndef __SYS_STAT_H
@@ -66,29 +66,32 @@ typedef __blksize_t blksize_t;
 
 __BEGIN_DECLS
 
-struct stat64
-{
-  __dev_t 	st_dev; /* Device containing the file.  */
-  __ino_t 	st_ino; /* File serial number.  */
-  __mode_t 	st_mode; /* File mode.  */
-  __nlink_t	st_nlink; /* Link count.  */
-  __uid_t	st_uid; /* User ID of the file's owner.  */
-  __gid_t	st_gid; /* Group ID of the file's group. */
-  __dev_t 	st_rdev; /* Device number, if device.  */
-  __off_t 	st_size; /* Size of file, in bytes.  */
-  __time_t	st_atime; /* Time of last access.  */
-  unsigned long int st_atime_usec;
-  __time_t	st_mtime; /* Time of last modification.  */
-  unsigned long int st_mtime_usec;
-  __time_t	st_ctime; /* Time of last status change.  */
-  unsigned long int st_ctime_usec;
-  __blksize_t	st_blksize; /* Optimal block size for I/O.  */
-#define _STATBUF_ST_BLKSIZE /* Tell code we have this member. */
-/*  unsigned long int st_nblocks; / * Number of 512-byte blocks allocated.  */
-  __blkcnt_t	st_blocks; /* Number of 512-byte blocks allocated.  */
-};
+/* Currently struct stat/stat64 are the same.  */
+#define __DEFINE_STAT(stattype) \
+  struct stattype \
+  { \
+    __dev_t 	st_dev;			/* Device containing the file.  */ \
+    __ino_t 	st_ino;			/* File serial number.  */ \
+    __mode_t 	st_mode;		/* File mode.  */ \
+    __nlink_t	st_nlink;		/* Link count.  */ \
+    __uid_t	st_uid;			/* User ID of the file's owner.  */ \
+    __gid_t	st_gid;			/* Group ID of the file's group. */ \
+    __dev_t 	st_rdev;		/* Device number, if device.  */ \
+    __off_t 	st_size;		/* Size of file, in bytes.  */ \
+    __time_t	st_atime;		/* Time of last access.  */ \
+    unsigned long int st_atime_usec; \
+    __time_t	st_mtime;		/* Time of last modification.  */ \
+    unsigned long int st_mtime_usec; \
+    __time_t	st_ctime;		/* Time of last status change.  */ \
+    unsigned long int st_ctime_usec; \
+    __blksize_t	st_blksize;		/* Optimal block size for I/O.  */ \
+  /*  unsigned long int st_nblocks; / * Number of 512-byte blocks allocated.  */ \
+    __blkcnt_t	st_blocks;		/* Number of 512-byte blocks allocated.  */ \
+  }
+#define _STATBUF_ST_BLKSIZE /* Tell code we have this stat member. */
 
-#define stat stat64
+__DEFINE_STAT(stat);
+__DEFINE_STAT(stat64);
 
 /* Bit masks.  */
 
@@ -166,22 +169,51 @@ struct stat64
 /* Return nonzero if the file is a socket.  */
 #define S_ISSOCK(x) (((x) & S_IFSOCK) == S_IFSOCK)
 
+#ifndef __USE_FILE_OFFSET64
 extern int stat (const char *__restrict __filename,
 		 struct stat *__restrict __buf)
      __THROW __nonnull ((1, 2));
 
 extern int fstat (int __fd, struct stat *__buf)
      __THROW __nonnull ((2));
-
-extern int fstat64 (int __fd, struct stat *__buf)
+#else
+# ifdef __REDIRECT_NTH
+extern int __REDIRECT_NTH (stat, (__const char *__restrict __file,
+                                  struct stat *__restrict __buf), stat64)
+     __nonnull ((1, 2));
+extern int __REDIRECT_NTH (fstat, (int __fd, struct stat *__buf), fstat64)
+     __nonnull ((2));
+# else
+#  define stat stat64
+#  define fstat fstat64
+# endif
+#endif
+#ifdef __USE_LARGEFILE64
+extern int stat64 (const char *__restrict __filename,
+		   struct stat64 *__restrict __buf)
+     __THROW __nonnull ((1, 2));
+extern int fstat64 (int __fd, struct stat64 *__buf)
      __THROW __nonnull ((2));
+#endif
 
 #if defined __USE_BSD || defined __USE_XOPEN_EXTENDED
+# ifndef __USE_FILE_OFFSET64
 extern int lstat (const char *__filename, struct stat *__buf)
      __THROW __nonnull ((1, 2));
-
+# else
+#  ifdef __REDIRECT_NTH
+extern int __REDIRECT_NTH (lstat,
+                           (__const char *__restrict __file,
+                            struct stat *__restrict __buf), lstat64)
+     __nonnull ((1, 2));
+#  else
+#   define lstat lstat64
+#  endif
+# endif
+# ifdef __USE_LARGEFILE64
 extern int lstat64 (const char *__filename,
-		    struct stat *__buf) __THROW __nonnull ((1, 2));
+		    struct stat64 *__buf) __THROW __nonnull ((1, 2));
+# endif
 #endif
 
 #ifdef __UNIXLIB_INTERNALS

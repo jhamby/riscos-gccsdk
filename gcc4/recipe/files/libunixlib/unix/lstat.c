@@ -1,17 +1,21 @@
 /* lstat (), lstat64 ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <sys/stat.h>
 
+/* Difference between stat and lstat(64) is the support for symbolic
+   links but seen that we don't have this on RISC OS, we can simply make
+   lstat(64) call stat.  */
 int
-lstat (const char *fname, struct stat *buf)
+lstat (const char *filename, struct stat *buf)
 {
-  return stat (fname, buf);
+  return stat (filename, buf);
 }
 
 int
-lstat64 (const char *fname, struct stat *buf)
+lstat64 (const char *filename, struct stat64 *buf)
 {
-  return stat (fname, buf);
+  /* struct stat64 is currently the same as struct stat.  */
+  return stat (filename, (struct buf *)buf);
 }
