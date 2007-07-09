@@ -21,9 +21,7 @@ fi
 
 cd $GCCSDK_BUILDDIR
 # Notes:
-#   1) The --disable-libssp is needed to avoid a 4.1.1 regression bug, see
-#      http://gcc.gnu.org/bugzilla/show_bug.cgi?id=25035 to track its status.
-#   2) --with-cross-host is needed to correctly find the target libraries in
+#   1) --with-cross-host is needed to correctly find the target libraries in
 #      .../cross/arm-unknown-riscos/lib instead of .../cross/lib.
 $GCCSDK_SRCDIR/configure --prefix=$PREFIX --enable-threads=posix \
 	--disable-nls \
@@ -39,6 +37,7 @@ $GCCSDK_SRCDIR/configure --prefix=$PREFIX --enable-threads=posix \
 #   make CFLAGS='-O0 -g' LIBCFLAGS='-O0 -g' LIBCXXFLAGS='-O0 -g' all
 # When you want to have optimized ARM libraries:
 #   make CFLAGS_FOR_TARGET="-O3 -march=armv5" CXXFLAGS_FOR_TARGET="-O3 -march=armv5" all
-
+# When you have a multicore or multicpu machine, you might want to specify '-jx' with 'x'
+# a suitable number (see 'man make') to speed up compilations.
 make all
 make install

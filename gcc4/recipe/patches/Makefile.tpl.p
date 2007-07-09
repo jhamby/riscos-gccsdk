@@ -1,5 +1,5 @@
---- Makefile.tpl.orig	2006-09-29 02:08:18.000000000 +0100
-+++ Makefile.tpl	2006-09-29 01:52:34.000000000 +0100
+--- Makefile.tpl.orig	2007-07-09 03:04:22.000000000 +0200
++++ Makefile.tpl	2007-07-09 02:26:26.000000000 +0200
 @@ -161,6 +161,7 @@
  	GCC_FOR_TARGET="$(GCC_FOR_TARGET)"; export GCC_FOR_TARGET; \
  	LD_FOR_TARGET="$(LD_FOR_TARGET)"; export LD_FOR_TARGET; \
@@ -32,3 +32,12 @@
  	'OBJDUMP=$$(OBJDUMP_FOR_TARGET)' \
  	'RANLIB=$$(RANLIB_FOR_TARGET)' \
  	'WINDRES=$$(WINDRES_FOR_TARGET)'
+@@ -1407,7 +1411,7 @@
+ [+ ENDFOR target_modules +]
+ 
+ [+ FOR lang_env_dependencies +]
+-configure-target-[+module+]: maybe-all-target-newlib maybe-all-target-libgloss
++configure-target-[+module+]: maybe-all-target-libunixlib maybe-all-target-libscl maybe-all-target-newlib maybe-all-target-libgloss
+ [+ IF cxx +]configure-target-[+module+]: maybe-all-target-libstdc++-v3
+ [+ ENDIF cxx +][+ ENDFOR lang_env_dependencies +]
+ 

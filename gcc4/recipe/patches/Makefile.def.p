@@ -1,5 +1,5 @@
---- Makefile.def.orig	2007-01-07 19:13:41.000000000 +0100
-+++ Makefile.def	2007-01-07 18:06:16.000000000 +0100
+--- Makefile.def.orig	2007-07-09 03:04:18.000000000 +0200
++++ Makefile.def	2007-07-09 02:45:06.000000000 +0200
 @@ -113,6 +113,8 @@
  host_modules= { module= utils; no_check=true; };
  host_modules= { module= gnattools; };
@@ -17,20 +17,12 @@
  flags_to_pass = { flag= OBJDUMP_FOR_TARGET ; };
  flags_to_pass = { flag= RANLIB_FOR_TARGET ; };
  flags_to_pass = { flag= STRIP_FOR_TARGET ; };
-@@ -406,6 +409,8 @@
- 
- // Target modules.  These can also have dependencies on the language
- // environment (e.g. on libstdc++).
-+lang_env_dependencies = { module=libunixlib; };
-+lang_env_dependencies = { module=libscl; };
- lang_env_dependencies = { module=boehm-gc; };
- lang_env_dependencies = { module=gperf; cxx=true; };
- lang_env_dependencies = { module=libada; };
-@@ -433,6 +438,7 @@
+@@ -433,6 +436,8 @@
  dependencies = { module=all-target-libjava; on=all-target-libffi; };
  dependencies = { module=all-target-libobjc; on=all-target-libiberty; };
  dependencies = { module=all-target-libstdc++-v3; on=all-target-libiberty; };
-+dependencies = { module=all-target-libiberty; on=all-target-libunixlib; };
++dependencies = { module=configure-target-libiberty; on=all-target-libunixlib; };
++dependencies = { module=configure-target-libiberty; on=all-target-libscl; };
  
  // Target modules in the 'src' repository.
  lang_env_dependencies = { module=examples; };
