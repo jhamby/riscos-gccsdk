@@ -1,5 +1,7 @@
+; Specific options for the RISC OS ARM port of the compiler.
+
 mthrowback
-Target Report RejectNegative Condition(!defined(CROSS_COMPILE)) Mask(THROWBACK)
+Target Report RejectNegative Condition(__riscos__) Mask(THROWBACK)
 Send errors to a DDEUtils compatible text editor
 
 mlibscl

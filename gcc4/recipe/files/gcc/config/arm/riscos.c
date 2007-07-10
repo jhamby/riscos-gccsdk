@@ -29,9 +29,8 @@ Boston, MA 02111-1307, USA.  */
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <unixlib/os.h>
-#include <unixlib/local.h>
 #include <swis.h>
+#include <kernel.h>
 #include <obstack.h>
 
 /* The DDEUtils module throwback error category codes.  */
@@ -44,9 +43,6 @@ Boston, MA 02111-1307, USA.  */
 #define THROWBACK_REASON_PROCESSING    0
 #define THROWBACK_REASON_ERROR_DETAILS 1
 #define THROWBACK_REASON_INFO_DETAILS  2
-
-/* Set a 1Mb stack limit.  */
-int __root_stack_size = 1024*1024;
 
 /* The full canonicalised pathname of the current error file.  */
 static char *arm_error_file = NULL;
@@ -63,15 +59,14 @@ static int arm_error_file_ref = -1;
  */
 static int arm_throwback_started = 0;
 
-void arm_throwback_finish (void);
+static void arm_throwback_finish (void);
 
 /* Initialise the DDEUtils module for throwback.  */
 static void
 arm_throwback_start (void)
 {
-  int regs[10];
-  _kernel_oserror *err = __os_swi (DDEUtils_ThrowbackStart, regs);
-  if (err)
+  _kernel_swi_regs rin, rout;
+  if (_kernel_swi (DDEUtils_ThrowbackStart, &rin, &rout))
     {
       /*printf ("-- failed to initialise throwback: '%s'\n", err);*/
       arm_throwback_started = 1;
@@ -89,11 +84,11 @@ arm_throwback_start (void)
 static void
 arm_throwback_new_file (const char *fname)
 {
-  int regs[10];
+  _kernel_swi_regs rin, rout;
 
-  regs[0] = THROWBACK_REASON_PROCESSING;
-  regs[2] = (int)fname;
-  if (__os_swi (DDEUtils_ThrowbackSend, regs))
+  rin.r[0] = THROWBACK_REASON_PROCESSING;
+  rin.r[2] = (int)fname;
+  if (_kernel_swi (DDEUtils_ThrowbackSend, &rin, &rout))
     arm_throwback_started = -1;
 }
 
@@ -103,30 +98,30 @@ static void
 arm_throwback_error (const char *fname, int level,
 		     int line_number, const char *error)
 {
-  int regs[10];
+  _kernel_swi_regs rin, rout;
 
   /* printf ("ate: '%s'\n", error); */
 
-  regs[0] = (level == THROWBACK_INFORMATION)
-	     ? THROWBACK_REASON_INFO_DETAILS
-	     : THROWBACK_REASON_ERROR_DETAILS;
-  regs[1] = 0;
-  regs[2] = (int)fname;
-  regs[3] = line_number;
-  regs[4] = (level == THROWBACK_INFORMATION) ? 0 : level;
-  regs[5] = (int)error;
-  if (__os_swi (DDEUtils_ThrowbackSend, regs))
+  rin.r[0] = (level == THROWBACK_INFORMATION)
+	      ? THROWBACK_REASON_INFO_DETAILS
+	      : THROWBACK_REASON_ERROR_DETAILS;
+  rin.r[1] = 0;
+  rin.r[2] = (int)fname;
+  rin.r[3] = line_number;
+  rin.r[4] = (level == THROWBACK_INFORMATION) ? 0 : level;
+  rin.r[5] = (int)error;
+  if (_kernel_swi (DDEUtils_ThrowbackSend, &rin, &rout))
     arm_throwback_started = -1;
 }
 
 /* Tell DDEUtils that we have finished throwing errors.  */
-void
+static void
 arm_throwback_finish (void)
 {
-  int regs[10];
+  _kernel_swi_regs rin, rout;
 
   if (arm_throwback_started > 0)
-    __os_swi (DDEUtils_ThrowbackEnd, regs);
+    _kernel_swi (DDEUtils_ThrowbackEnd, &rin, &rout);
   arm_throwback_started = 0;
 }
 
@@ -137,7 +132,7 @@ static char *
 riscos_canonicalise_filename (const char *sname)
 {
   char *s;
-  int  regs[10];
+  _kernel_swi_regs rin, rout;
   char filename[1024];
 
   /* It's possible that the filename will be in Unix format.
@@ -149,24 +144,24 @@ riscos_canonicalise_filename (const char *sname)
 
   /* The first call will calculate the size of buffer needed to
      store the canonicalised filename.  */
-  regs[0] = 37;
-  regs[1] = (int)filename;
-  regs[2] = 0;
-  regs[3] = 0;
-  regs[4] = 0;
-  regs[5] = 0;
-  if (!__os_swi (OS_FSControl, regs) && regs[5] < 0)
+  rin.r[0] = 37;
+  rin.r[1] = (int)filename;
+  rin.r[2] = 0;
+  rin.r[3] = 0;
+  rin.r[4] = 0;
+  rin.r[5] = 0;
+  if (!_kernel_swi (OS_FSControl, &rin, &rout) && rout.r[5] < 0)
     {
-      if ((arm_error_file = realloc (arm_error_file, 1 - regs[5])) != NULL)
+      if ((arm_error_file = realloc (arm_error_file, 1 - rout.r[5])) != NULL)
         {
           /* Now perform the canonicalisation and store in a buffer
              which we know is large enough.  */
-          regs[1] = (int)filename;
-          regs[2] = (int)arm_error_file;
-          regs[3] = 0;
-          regs[4] = 0;
-          regs[5] = 1 - regs[5];
-          if (!__os_swi (OS_FSControl, regs) && regs[5] == 1)
+          rin.r[1] = (int)filename;
+          rin.r[2] = (int)arm_error_file;
+          rin.r[3] = 0;
+          rin.r[4] = 0;
+          rin.r[5] = 1 - rout.r[5];
+          if (!_kernel_swi (OS_FSControl, &rin, &rout) && rout.r[5] == 1)
             return arm_error_file;
         }
     }
@@ -282,16 +277,21 @@ void riscos_host_initialisation (void)
 {
   /* Perform a simple memory check.  Notify the user that there is
      not enough space in the `next' slot for a task and die.  */
-  int current, next, regs[10];
-  
-  regs[0] = -1;
-  regs[1] = -1;
-  __os_swi (Wimp_SlotSize, regs);
-  if (regs[0] < (4000 * 1024))
+  _kernel_swi_regs rin, rout;
+
+  rin.r[0] = -1;
+  rin.r[1] = -1;
+  if (_kernel_swi (Wimp_SlotSize, &rin, &rout))
+    {
+      fprintf (stderr,
+	       "Failed to determine available memory for application.\n");
+      exit (EXIT_FAILURE);
+    }
+  if (rout.r[0] < (4000 * 1024))
     {
       fprintf (stderr,
 	       "Application requires a minimum of 4000K to run.\n");
-      exit (1);
+      exit (EXIT_FAILURE);
     }
 }
 
@@ -303,6 +303,7 @@ const char *riscos_convert_filename (void *obstack, const char *name, int do_exe
   char tmp[1024];
   extern char *riscos_to_unix (const char *, char *);
   riscos_to_unix (name, tmp);
+  /* printf("riscos_convert_filename(%s, %d, %d) -> <%s>\n", name, do_exe, do_obj, tmp); */
   return obstack_copy0 (obs, tmp, strlen (tmp));
 }
 #endif
