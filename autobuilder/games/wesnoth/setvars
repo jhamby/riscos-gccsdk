@@ -1,0 +1,22 @@
+AB_CATEGORY=games
+AB_COPYSOURCE=yes
+
+ab_package() {
+  cp -av $H/\!Wesnoth $D
+  cp -av $H/\!Wesnoth/\!* $D/\!Wesnoth
+  cp -av src/wesnoth,ff8 $D/\!Wesnoth/wesnoth,ff8
+
+  mkdir -p $D/\!Wesnoth/docs
+  cp -av $S/changelog $S/copying $S/COPYRIGHT \
+    MANUAL README \
+    $D/\!Wesnoth/docs
+  cp -av $H/\!Wesnoth/docs/RISCOS $D/\!Wesnoth/docs
+
+  cp -r $S/data $D/\!wesnoth
+  cp -r $S/fonts $D/\!wesnoth
+  cp -r $S/images $D/\!wesnoth
+  cp -r $S/sounds $D/\!wesnoth
+  cp -r $S/music $D/\!wesnoth
+}
+
+export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile -lintl"

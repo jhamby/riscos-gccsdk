@@ -1,0 +1,13 @@
+WimpSlot -min 12000k -max 12000k
+
+Set SDL$wesnoth$Backbuffer 2
+
+Set Wesnoth$Path <Obey$Dir>.
+
+
+| Use Dynamic area on Machines before the Iyonix
+RMEnsure UtilityModule 5.00 Set wesnoth$Heap ""
+RMEnsure UtilityModule 5.00 SetEval wesnoth$HeapMax 64
+
+<Obey$Dir>.wesnoth ><Obey$Dir>.stdout 2><Obey$Dir>.stderr -w 
+
