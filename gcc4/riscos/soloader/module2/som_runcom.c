@@ -472,7 +472,17 @@ int dde_cl_len = ddeutils_get_cl_size();
 
   os_get_env(&state->env);
 
-  if ((err = elffile_load(&state->elf_prog, state->env.ram_limit - SOM_RUN_STACK_SIZE, &state->free_memory)) != NULL)
+  /* Work out where free memory starts. */
+  state->free_memory = state->elf_prog.base_addr + state->elf_prog.memory_size;
+
+  /* Check that loading the executable won't overwrite the stack. */
+  if (state->free_memory >= (som_PTR)(state->env.ram_limit - SOM_RUN_STACK_SIZE))
+  {
+    err = somerr_wimpslot_too_small;
+    goto error;
+  }
+
+  if ((err = elffile_load(&state->elf_prog, NULL)) != NULL)
     goto error;
 
   /* If the DDEUtils module is loaded, then pass the arguments via the DDEUtils
