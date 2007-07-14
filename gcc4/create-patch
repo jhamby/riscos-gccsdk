@@ -1,6 +1,6 @@
 #!/bin/bash
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2006 GCCSDK Developers
+# Copyright (c) 2006, 2007 GCCSDK Developers
 
 # Arguments:
 #  $1: file to patch (relative to $GCCSDK_SRCDIR)
@@ -43,7 +43,7 @@ if [ -f $GCCSDK_PATCHFORFILE_ABS.orig ] ; then
     echo Creating new patch $GCCSDK_PATCHFILENAME
   fi
   ( cd $GCCSDK_SRCDIR && diff -u $GCCSDK_PATCHFORFILE_REL.orig $GCCSDK_PATCHFORFILE_REL > $GCCSDK_PATCHFILENAME )
-  echo "Patch $GCCSDK_PATCHFILENAME made."
+  echo "Patch $GCCSDK_PATCHFILENAME is (re)made."
   exit 0
 fi
 
