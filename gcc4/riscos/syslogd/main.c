@@ -25,9 +25,9 @@
 
 /* Function prototypes */
 static _kernel_oserror *claim_eventv(void *pw);
+static _kernel_oserror *release_eventv(void *pw);
 static _kernel_oserror *enable_eventv(void);
 static _kernel_oserror *disable_eventv(void);
-static _kernel_oserror *disable_release_eventv(void *pw);
 
 int sock = -1; /* Socket number we're listening too */
 int callback_queue = 0;
@@ -165,33 +165,22 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
   _kernel_oserror *e;
   FILE *file;
 
-  (void)xsyslogf(kLogName, kLogPrio, "SysLogD begins...");
-  
+  xsyslog_logmessage(kLogName, "SysLogD begins...", kLogPrio);
+
   servptr = getservbyname("syslog", "udp");
   if (servptr == NULL)
     port = 514;
   else
     port = servptr->s_port;
-  
-  /* Claim event */
-  if ((e = claim_eventv(pw)) != NULL)
-    return e;
-  if ((e = enable_eventv()) != NULL)
-    {
-      disable_eventv();
-      return e;
-    }
-  
+
   name.sin_family = AF_INET;
   name.sin_addr.s_addr = htons(INADDR_ANY);
   name.sin_port = htons(port);
   
   /* Create socket */
   if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-    {
-      disable_release_eventv(pw);
-      return &socket_failed_to_create;
-    }
+    return &socket_failed_to_create;
+
   /* Make socket async & nonblocking and bind it */
   if (socketioctl(sock, FIOASYNC, &on) < 0
       || socketioctl(sock, FIONBIO, &on) < 0
@@ -199,7 +188,6 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
     {
       socketclose(sock);
       sock = -1;
-      disable_release_eventv(pw);
       return &socket_failed_to_nonblock;
     }
 
@@ -217,6 +205,7 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
           if (mapping == NULL)
             {
               fclose(file);
+              socketclose(sock);
               return &alloc_failure;
             }
 
@@ -240,6 +229,7 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
             {
               free(mapping);
               fclose(file);
+              socketclose(sock);
               return &alloc_failure;
             }
 
@@ -250,6 +240,7 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
               free(mapping->ro);
               free(mapping);
               fclose(file);
+              socketclose(sock);
               return &alloc_failure;
             }
 
@@ -261,6 +252,19 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
 
   fclose(file);
 
+  /* Claim event */
+  if ((e = claim_eventv(pw)) != NULL)
+    {
+      socketclose(sock);
+      return e;
+    }
+  if ((e = enable_eventv()) != NULL)
+    {
+      release_eventv(pw);
+      socketclose(sock);
+      return e;
+    }
+
   return NULL;
 }
 
@@ -269,9 +273,13 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
 /*      ===============================================================
  */
 {
-  (void)xsyslogf(kLogName, kLogPrio, "SysLogD ends...");
-  
-  /* Remove pending AddCallBack request, if necessairy */
+  xsyslog_logmessage(kLogName, "SysLogD ends...", kLogPrio);
+
+  /* Disable the Internet Event handling */
+  disable_eventv();
+  release_eventv(pw);
+
+  /* Remove pending AddCallBack request, if necessary */
   if (callback_queue)
     {
       _kernel_swi_regs r;
@@ -287,9 +295,6 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
       socketclose(sock);
       sock = -1;
     }
-  
-  /* Disable the Internet Event handling */
-  disable_release_eventv(pw);
 
   /* Free the mappings list */
   while (mappings)
@@ -324,6 +329,18 @@ static  _kernel_oserror *claim_eventv(void *pw)
   return _kernel_swi(XOS_Bit | OS_Claim, &r, &r);
 }
 
+static  _kernel_oserror *release_eventv(void *pw)
+/*      =======================================
+ */
+{
+  _kernel_swi_regs r;
+
+  r.r[0] = EventV;
+  r.r[1] = (int)eventv_handler_entry;
+  r.r[2] = (int)pw;
+  return _kernel_swi(XOS_Bit | OS_Release, &r, &r);
+}
+
 static  _kernel_oserror *enable_eventv(void)
 /*      ====================================
  */
@@ -344,20 +361,6 @@ static  _kernel_oserror *disable_eventv(void)
   r.r[0] = Event_Disable;
   r.r[1] = Internet_Event;
   return _kernel_swi(XOS_Bit | OS_Byte, &r, &r);
-}
-
-static  _kernel_oserror *disable_release_eventv(void *pw)
-/*      =================================================
- */
-{
-  _kernel_swi_regs r;
-
-  disable_eventv();
-  
-  r.r[0] = EventV;
-  r.r[1] = (int)eventv_handler_entry;
-  r.r[2] = (int)pw;
-  return _kernel_swi(XOS_Bit | OS_Release, &r, &r);
 }
 
 /* 0 to claim event, non-0 if not to claim the event */
