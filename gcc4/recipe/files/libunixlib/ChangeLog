@@ -697,7 +697,12 @@ Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 [ ^^^ Here starts UnixLib 5.0 ^^^ ]
 -----------------------------------------------------------------------
-[ vvv Here ends UnixLib 4.x vvv ]
+[ vvv Here ends UnixLib 4.6 vvv ]
+
+Sun Jul 15 13:52:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* !Help: Update version to 4.6.
+	* source/clib/features.h (__ULIBC_MINOR__): Bump minor version to 6.
 
 Sun Jul  8 19:14:58 CEST 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
                                John Tytgat  <John.Tytgat@aaug.net>
