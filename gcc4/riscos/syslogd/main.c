@@ -11,6 +11,7 @@
 
 #include <inetlib.h> /* connect() */
 #include <socklib.h> /* socket() */
+#include <unixlib.h> /* strdup() */
 
 #include <netdb.h> /* struct servent */
 #include <sys/ioctl.h> /* socketioctl() */
@@ -35,11 +36,22 @@ int callback_queue = 0;
 char logbuffer[1024+32];
 char readbuffer[1024+1];
 
+struct filenamemapping {
+  char *ro;
+  size_t rolen;
+  char *unix;
+  size_t unixlen;
+  struct filenamemapping *next;
+};
+
+struct filenamemapping *mappings = NULL;
+
 #define kLogName "SysLogD"
 #define kLogPrio 32
 
 static _kernel_oserror socket_failed_to_create = { 0, "Can not open datagram socket"};
 static _kernel_oserror socket_failed_to_nonblock = { 0, "Can not make socket non blocking"};
+static _kernel_oserror alloc_failure = { 0, "Unable to allocate memory"};
 
 /* Nicked from syslog.h @ BSD 4.3 */
 #define	LOG_EMERG	0	/* system is unusable */
@@ -151,6 +163,7 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
   struct sockaddr_in name;
   int port, on = 1;
   _kernel_oserror *e;
+  FILE *file;
 
   (void)xsyslogf(kLogName, kLogPrio, "SysLogD begins...");
   
@@ -189,7 +202,65 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
       disable_release_eventv(pw);
       return &socket_failed_to_nonblock;
     }
-  
+
+  /* Read mappings list and create linked list of the filename mappings */
+  file = fopen("Choices:syslogd.mappings", "r");
+  if (file)
+    {
+      while (fgets(readbuffer, sizeof(readbuffer), file))
+        {
+          struct filenamemapping *mapping;
+          char *rofilename;
+          char *ch;
+
+          mapping = malloc(sizeof(struct filenamemapping));
+          if (mapping == NULL)
+            {
+              fclose(file);
+              return &alloc_failure;
+            }
+
+          ch = readbuffer;
+          while (*ch && *ch != ' ' && *ch != '\n')
+            ch++;
+
+          if (*ch)
+            *ch++ = '\0';
+
+          rofilename = ch;
+          while (*ch && *ch != ' ' && *ch != '\n')
+            ch++;
+
+          if (*ch)
+            *ch = '\0';
+
+          mapping->rolen = ch - rofilename;
+          mapping->ro = strdup(rofilename);
+          if (mapping->ro == NULL)
+            {
+              free(mapping);
+              fclose(file);
+              return &alloc_failure;
+            }
+
+          mapping->unixlen = (rofilename - readbuffer) - 1;
+          mapping->unix = strdup(readbuffer);
+          if (mapping->unix == NULL)
+            {
+              free(mapping->ro);
+              free(mapping);
+              fclose(file);
+              return &alloc_failure;
+            }
+
+          /* Add on to linked list */
+          mapping->next = mappings;
+          mappings = mapping;
+        }
+    }
+
+  fclose(file);
+
   return NULL;
 }
 
@@ -219,7 +290,18 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
   
   /* Disable the Internet Event handling */
   disable_release_eventv(pw);
-  
+
+  /* Free the mappings list */
+  while (mappings)
+    {
+      struct filenamemapping *next = mappings->next;
+
+      free(mappings->ro);
+      free(mappings->unix);
+      free(mappings);
+      mappings = next;
+    }
+
   return NULL;
 }
 
@@ -362,6 +444,7 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
           char *linenum;
           char *msg;
           int seriousness;
+          struct filenamemapping *mapping = mappings;
 
           /* Extract the filename, line number and message */
           while (isspace(*filename))
@@ -383,6 +466,51 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
 
           while (isspace(*msg))
             msg++;
+
+          if (filename[0] == '/')
+            {
+              /* Absolute unix path */
+              while (mapping)
+                {
+                  /* Search through the mappings to find a match for the unix format pathname */
+                  if (strncmp(filename, mapping->unix, mapping->unixlen) == 0)
+                    {
+                      static char newfilename[1024];
+                      char *oldfilename = filename + mapping->unixlen;
+    
+                      memcpy(newfilename, mapping->ro, mapping->rolen);
+                      filename = newfilename + mapping->rolen;
+    
+                      /* Translate the rest of the unix pathname to RISC OS format */
+                      while (*oldfilename && (filename < newfilename + sizeof(newfilename) - 1))
+                        {
+                          switch (*oldfilename)
+                            {
+                              case '.':
+                                *filename++ = '/';
+                                break;
+                              case '/':
+                                *filename++ = '.';
+                                break;
+                              default:
+                                *filename++ = *oldfilename;
+                            }
+                          oldfilename++;
+                        }
+    
+                      *filename = '\0';
+                      filename = newfilename;
+                      break;
+                    }
+    
+                  mapping = mapping->next;
+                }
+            }
+          else
+            {
+              /* A relative path */
+              /* Need to add translation and suffix swapping code */
+            }
 
           if (_swix(DDEUtils_ThrowbackStart, 0))
             break;
