@@ -4,6 +4,7 @@
  */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <swis.h>
@@ -18,13 +19,8 @@
 #include <netinet/in.h>
 #include <sys/ioctl.h>
 
-/* #include "modheader.h" */
 #include "syslog.h"
 #include "modheader.h"
-#if 0
-extern int callback_handler_entry(_kernel_swi_regs *r, void *pw);
-extern int eventv_handler_entry(_kernel_swi_regs *r, void *pw);
-#endif
 
 /* Function prototypes */
 static _kernel_oserror *claim_eventv(void *pw);
@@ -34,8 +30,10 @@ static _kernel_oserror *disable_release_eventv(void *pw);
 
 int sock = -1; /* Socket number we're listening too */
 int callback_queue = 0;
-#define kBufSize 1024
-char buf[kBufSize];
+
+/* Buffers for reading from the socket, and preparing the log message. */
+char logbuffer[1024+32];
+char readbuffer[1024+1];
 
 #define kLogName "SysLogD"
 #define kLogPrio 32
@@ -129,9 +127,24 @@ static const CODE facilitynames[] = {
 
 static const char *syslog_getfacility(int p);
 
+/* The DDEUtils module throwback error category codes.  */
+#define THROWBACK_INFORMATION         -1
+#define THROWBACK_WARNING              0
+#define THROWBACK_ERROR                1
+#define THROWBACK_SERIOUS_ERROR        2
+
+/* The DDEUtils module throwback reason codes.  */
+#define THROWBACK_REASON_PROCESSING    0
+#define THROWBACK_REASON_ERROR_DETAILS 1
+#define THROWBACK_REASON_INFO_DETAILS  2
+
+#define DDEUtils_ThrowbackStart 0x42587
+#define DDEUtils_ThrowbackSend  0x42588
+#define DDEUtils_ThrowbackEnd   0x42589
+
 /* Initialisation routine */
-        _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
-/*      ==============================================================================
+_kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
+/* ===========================================================================
  */
 {
   struct servent *servptr;
@@ -157,7 +170,7 @@ static const char *syslog_getfacility(int p);
     }
   
   name.sin_family = AF_INET;
-  name.sin_addr.s_addr = htonl(INADDR_ANY);
+  name.sin_addr.s_addr = htons(INADDR_ANY);
   name.sin_port = htons(port);
   
   /* Create socket */
@@ -302,62 +315,96 @@ static  _kernel_oserror *disable_release_eventv(void *pw)
 }
 
 /* 0 to claim event, non-0 if not to claim the event */
-#define kBufPart1Size ((kBufSize/2) + 32)
-#define kBufPart2Size (kBufSize - kBufPart1Size)
-        int callback_handler(_kernel_swi_regs *r, void *pw)
-/*      ===================================================
+int callback_handler(_kernel_swi_regs *r, void *pw)
+/* ================================================
  */
 {
   int bytesread;
 
-  while ((bytesread = socketread(sock, buf + kBufPart1Size, kBufPart2Size - 1)) > 0)
+  while ((bytesread = socketread(sock, readbuffer, sizeof(readbuffer) - 1)) > 0)
     {
-      int from = kBufPart1Size, to = 0, priority = kLogPrio;
-  
+      int from = 0;
+      int to = 0;
+      int priority = kLogPrio;
+      int facility = LOG_KERN;
+      char *tag;
+
+      readbuffer[bytesread] = '\0';
+
       /* Detect if the strings begins with "<number>" and if so, extract
        * the priority & facility from it.
        */
-      if (buf[from] == '<')
+      if (readbuffer[from] == '<')
         {
           int i;
-    
-          for (i = from + 1;
-               i < bytesread + kBufPart1Size && isdigit(buf[i]);
-               i++)
+
+          for (i = from + 1; (i < bytesread) && isdigit(readbuffer[i]); i++)
             /* no body */;
 
-          if (i < bytesread + kBufPart1Size && buf[i] == '>')
+          if ((i < bytesread) && (readbuffer[i] == '>'))
             {
               /* priority & facility detected */
-              buf[i] = '\0';
-              priority = atoi(buf + from + 1);
+              readbuffer[i] = '\0';
+              priority = atoi(readbuffer + from + 1);
               from = i + 1;
-        
-              buf[to++] = '(';
-              strcpy(buf + to, prioritynames[LOG_PRI(priority)]);
-              to += strlen(buf + to);
-              buf[to++] = ',';
-              buf[to++] = ' ';
-              strcpy(buf + to, syslog_getfacility(priority));
-              to += strlen(buf + to);
-              buf[to++] = ')';
-              buf[to++] = ' ';
-        
+
+              to = snprintf(logbuffer, sizeof(logbuffer), "(%s, %s) ", prioritynames[LOG_PRI(priority)], syslog_getfacility(priority));
+
+              facility = LOG_FAC(priority);
               priority = LOG_PRI(priority);
             }
         }
-  
-      /* Double the '%' found in the msg */
-      for (/* nothing */; from < bytesread + kBufPart1Size; from++)
+
+      tag = strstr(readbuffer + from, "throwback ");
+      if ((facility == LOG_FAC(LOG_USER)) && (tag != NULL))
         {
-          if ((buf[to++] = buf[from]) == '%')
-            buf[to++] = '%';
+          char *filename = tag + sizeof("throwback");
+          char *linenum;
+          char *msg;
+          int seriousness;
+
+          /* Extract the filename, line number and message */
+          while (isspace(*filename))
+            filename++;
+
+          linenum = filename;
+          while ((*linenum != '\0') && (*linenum != ':'))
+            linenum++;
+
+          if (*linenum)
+            *linenum++ = '\0';
+
+          msg = linenum;
+          while ((*msg != '\0') && (*msg != ':'))
+            msg++;
+
+          if (*msg)
+            *msg++ = '\0';
+
+          while (isspace(*msg))
+            msg++;
+
+          if (_swix(DDEUtils_ThrowbackStart, 0))
+            break;
+
+          if (_swix(DDEUtils_ThrowbackSend, _IN(0) | _IN(2), THROWBACK_REASON_PROCESSING, filename))
+            break;
+
+          seriousness = (priority == LOG_ERR) ? THROWBACK_ERROR : THROWBACK_WARNING;
+          if (_swix(DDEUtils_ThrowbackSend, _IN(0) | _INR(2,5), THROWBACK_REASON_ERROR_DETAILS, filename, atoi(linenum), seriousness, msg))
+            break;
+
+          if (_swix(DDEUtils_ThrowbackEnd, 0))
+            break;
         }
-      buf[to] = '\0';
-    
-      (void)xsyslogf(kLogName, priority, buf);
+      else
+        {
+          snprintf(logbuffer + to, sizeof(logbuffer) - to, "%s", readbuffer + from);
+
+          xsyslog_logmessage(kLogName, logbuffer, priority);
+        }
     }
-  
+
   callback_queue = 0;
   /* Never claim the callback handler, wild things might happen */
   return 1;
