@@ -139,45 +139,45 @@ static const char *syslog_getfacility(int p);
   int port, on = 1;
   _kernel_oserror *e;
 
-(void)xsyslogf(kLogName, kLogPrio, "SysLogD begins...");
-
-servptr = getservbyname("syslog", "udp");
-if (servptr == NULL)
-  port = 514;
-else
-  port = servptr->s_port;
-
-/* Claim event */
-if ((e = claim_eventv(pw)) != NULL)
-  return e;
-if ((e = enable_eventv()) != NULL)
-  {
-  disable_eventv();
-  return e;
-  }
-
-name.sin_family = AF_INET;
-name.sin_addr.s_addr = htonl(INADDR_ANY);
-name.sin_port = htons(port);
-
-/* Create socket */
-if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-  {
-  disable_release_eventv(pw);
-  return &socket_failed_to_create;
-  }
-/* Make socket async & nonblocking and bind it */
-if (socketioctl(sock, FIOASYNC, &on) < 0
-    || socketioctl(sock, FIONBIO, &on) < 0
-    || bind(sock, (struct sockaddr *)&name, sizeof(name)) < 0)
-  {
-  socketclose(sock);
-  sock = -1;
-  disable_release_eventv(pw);
-  return &socket_failed_to_nonblock;
-  }
-
-return NULL;
+  (void)xsyslogf(kLogName, kLogPrio, "SysLogD begins...");
+  
+  servptr = getservbyname("syslog", "udp");
+  if (servptr == NULL)
+    port = 514;
+  else
+    port = servptr->s_port;
+  
+  /* Claim event */
+  if ((e = claim_eventv(pw)) != NULL)
+    return e;
+  if ((e = enable_eventv()) != NULL)
+    {
+      disable_eventv();
+      return e;
+    }
+  
+  name.sin_family = AF_INET;
+  name.sin_addr.s_addr = htonl(INADDR_ANY);
+  name.sin_port = htons(port);
+  
+  /* Create socket */
+  if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+    {
+      disable_release_eventv(pw);
+      return &socket_failed_to_create;
+    }
+  /* Make socket async & nonblocking and bind it */
+  if (socketioctl(sock, FIOASYNC, &on) < 0
+      || socketioctl(sock, FIONBIO, &on) < 0
+      || bind(sock, (struct sockaddr *)&name, sizeof(name)) < 0)
+    {
+      socketclose(sock);
+      sock = -1;
+      disable_release_eventv(pw);
+      return &socket_failed_to_nonblock;
+    }
+  
+  return NULL;
 }
 
 /* Finalisation routine */
@@ -185,29 +185,29 @@ return NULL;
 /*      ===============================================================
  */
 {
-(void)xsyslogf(kLogName, kLogPrio, "SysLogD ends...");
-
-/* Remove pending AddCallBack request, if necessairy */
-if (callback_queue)
-  {
-    _kernel_swi_regs r;
-
-  r.r[0] = (int)callback_handler_entry;
-  r.r[1] = (int)pw;
-  (void)_kernel_swi(XOS_Bit | OS_RemoveCallBack, &r, &r);
-  }
-
-/* Close the socket we've asked */
-if (sock >= 0)
-  {
-  socketclose(sock);
-  sock = -1;
-  }
-
-/* Disable the Internet Event handling */
-disable_release_eventv(pw);
-
-return NULL;
+  (void)xsyslogf(kLogName, kLogPrio, "SysLogD ends...");
+  
+  /* Remove pending AddCallBack request, if necessairy */
+  if (callback_queue)
+    {
+      _kernel_swi_regs r;
+  
+      r.r[0] = (int)callback_handler_entry;
+      r.r[1] = (int)pw;
+      (void)_kernel_swi(XOS_Bit | OS_RemoveCallBack, &r, &r);
+    }
+  
+  /* Close the socket we've asked */
+  if (sock >= 0)
+    {
+      socketclose(sock);
+      sock = -1;
+    }
+  
+  /* Disable the Internet Event handling */
+  disable_release_eventv(pw);
+  
+  return NULL;
 }
 
 /* Event routines */
@@ -223,10 +223,10 @@ static  _kernel_oserror *claim_eventv(void *pw)
 {
   _kernel_swi_regs r;
 
-r.r[0] = EventV;
-r.r[1] = (int)eventv_handler_entry;
-r.r[2] = (int)pw;
-return _kernel_swi(XOS_Bit | OS_Claim, &r, &r);
+  r.r[0] = EventV;
+  r.r[1] = (int)eventv_handler_entry;
+  r.r[2] = (int)pw;
+  return _kernel_swi(XOS_Bit | OS_Claim, &r, &r);
 }
 
 static  _kernel_oserror *enable_eventv(void)
@@ -235,9 +235,9 @@ static  _kernel_oserror *enable_eventv(void)
 {
   _kernel_swi_regs r;
 
-r.r[0] = Event_Enable;
-r.r[1] = Internet_Event;
-return _kernel_swi(XOS_Bit | OS_Byte, &r, &r);
+  r.r[0] = Event_Enable;
+  r.r[1] = Internet_Event;
+  return _kernel_swi(XOS_Bit | OS_Byte, &r, &r);
 }
 
 static  _kernel_oserror *disable_eventv(void)
@@ -246,9 +246,9 @@ static  _kernel_oserror *disable_eventv(void)
 {
   _kernel_swi_regs r;
 
-r.r[0] = Event_Disable;
-r.r[1] = Internet_Event;
-return _kernel_swi(XOS_Bit | OS_Byte, &r, &r);
+  r.r[0] = Event_Disable;
+  r.r[1] = Internet_Event;
+  return _kernel_swi(XOS_Bit | OS_Byte, &r, &r);
 }
 
 static  _kernel_oserror *disable_release_eventv(void *pw)
@@ -257,12 +257,12 @@ static  _kernel_oserror *disable_release_eventv(void *pw)
 {
   _kernel_swi_regs r;
 
-disable_eventv();
-
-r.r[0] = EventV;
-r.r[1] = (int)eventv_handler_entry;
-r.r[2] = (int)pw;
-return _kernel_swi(XOS_Bit | OS_Release, &r, &r);
+  disable_eventv();
+  
+  r.r[0] = EventV;
+  r.r[1] = (int)eventv_handler_entry;
+  r.r[2] = (int)pw;
+  return _kernel_swi(XOS_Bit | OS_Release, &r, &r);
 }
 
 /* 0 to claim event, non-0 if not to claim the event */
@@ -272,33 +272,33 @@ return _kernel_swi(XOS_Bit | OS_Release, &r, &r);
 {
   int irqs_disabled;
 
-/* Check for Internet Event & our socket has input, if not, pass it on */
-if (r->r[0] != Internet_Event
-    || r->r[1] != Socket_Async_Event
-    || r->r[2] != sock)
-  return 1;
-
-/* Don't know if IRQs are enabled or disabled here.  We play it extremely
- * save here.
- */
-irqs_disabled = _kernel_irqs_disabled();
-if (irqs_disabled == 0)
-  _kernel_irqs_off();
-if (callback_queue == 0)
-  {
-    _kernel_swi_regs r;
-
-  r.r[0] = (int)callback_handler_entry;
-  r.r[1] = (int)pw;
-  (void)_kernel_swi(XOS_Bit | OS_AddCallBack, &r, &r);
-
-  callback_queue = 1;
-  }
-if (irqs_disabled == 0)
-  _kernel_irqs_on();
-
-/* Claim the event, it was for us */
-return 0;
+  /* Check for Internet Event & our socket has input, if not, pass it on */
+  if (r->r[0] != Internet_Event
+      || r->r[1] != Socket_Async_Event
+      || r->r[2] != sock)
+    return 1;
+  
+  /* Don't know if IRQs are enabled or disabled here.  We play it extremely
+   * save here.
+   */
+  irqs_disabled = _kernel_irqs_disabled();
+  if (irqs_disabled == 0)
+    _kernel_irqs_off();
+  if (callback_queue == 0)
+    {
+      _kernel_swi_regs r;
+  
+      r.r[0] = (int)callback_handler_entry;
+      r.r[1] = (int)pw;
+      (void)_kernel_swi(XOS_Bit | OS_AddCallBack, &r, &r);
+    
+      callback_queue = 1;
+    }
+  if (irqs_disabled == 0)
+    _kernel_irqs_on();
+  
+  /* Claim the event, it was for us */
+  return 0;
 }
 
 /* 0 to claim event, non-0 if not to claim the event */
@@ -310,56 +310,57 @@ return 0;
 {
   int bytesread;
 
-while ((bytesread = socketread(sock, buf + kBufPart1Size, kBufPart2Size - 1)) > 0)
-  {
-    int from = kBufPart1Size, to = 0, priority = kLogPrio;
-
-  /* Detect if the strings begins with "<number>" and if so, extract
-   * the priority & facility from it.
-   */
-  if (buf[from] == '<')
+  while ((bytesread = socketread(sock, buf + kBufPart1Size, kBufPart2Size - 1)) > 0)
     {
-      int i;
+      int from = kBufPart1Size, to = 0, priority = kLogPrio;
+  
+      /* Detect if the strings begins with "<number>" and if so, extract
+       * the priority & facility from it.
+       */
+      if (buf[from] == '<')
+        {
+          int i;
+    
+          for (i = from + 1;
+               i < bytesread + kBufPart1Size && isdigit(buf[i]);
+               i++)
+            /* no body */;
 
-    for (i = from + 1;
-         i < bytesread + kBufPart1Size && isdigit(buf[i]);
-         i++)
-      /* no body */;
-    if (i < bytesread + kBufPart1Size && buf[i] == '>')
-      {
-      /* priority & facility detected */
-      buf[i] = '\0';
-      priority = atoi(buf + from + 1);
-      from = i + 1;
-
-      buf[to++] = '(';
-      strcpy(buf + to, prioritynames[LOG_PRI(priority)]);
-      to += strlen(buf + to);
-      buf[to++] = ',';
-      buf[to++] = ' ';
-      strcpy(buf + to, syslog_getfacility(priority));
-      to += strlen(buf + to);
-      buf[to++] = ')';
-      buf[to++] = ' ';
-
-      priority = LOG_PRI(priority);
-      }
+          if (i < bytesread + kBufPart1Size && buf[i] == '>')
+            {
+              /* priority & facility detected */
+              buf[i] = '\0';
+              priority = atoi(buf + from + 1);
+              from = i + 1;
+        
+              buf[to++] = '(';
+              strcpy(buf + to, prioritynames[LOG_PRI(priority)]);
+              to += strlen(buf + to);
+              buf[to++] = ',';
+              buf[to++] = ' ';
+              strcpy(buf + to, syslog_getfacility(priority));
+              to += strlen(buf + to);
+              buf[to++] = ')';
+              buf[to++] = ' ';
+        
+              priority = LOG_PRI(priority);
+            }
+        }
+  
+      /* Double the '%' found in the msg */
+      for (/* nothing */; from < bytesread + kBufPart1Size; from++)
+        {
+          if ((buf[to++] = buf[from]) == '%')
+            buf[to++] = '%';
+        }
+      buf[to] = '\0';
+    
+      (void)xsyslogf(kLogName, priority, buf);
     }
-
-  /* Double the '%' found in the msg */
-  for (/* nothing */; from < bytesread + kBufPart1Size; from++)
-    {
-    if ((buf[to++] = buf[from]) == '%')
-      buf[to++] = '%';
-    }
-  buf[to] = '\0';
-
-  (void)xsyslogf(kLogName, priority, buf);
-  }
-
-callback_queue = 0;
-/* Never claim the callback handler, wild things might happen */
-return 1;
+  
+  callback_queue = 0;
+  /* Never claim the callback handler, wild things might happen */
+  return 1;
 }
 
 /* syslog facility retrieving code */
@@ -369,11 +370,11 @@ static  const char *syslog_getfacility(int p)
 {
   int facility = LOG_FAC(p), i;
 
-for (i = 0; i < sizeof(facilitynames) / sizeof(CODE); i++)
-{
-  if (facility == (facilitynames[i].c_val >> 3))
-    return facilitynames[i].c_name;
-}
-
-return "unknown";
+  for (i = 0; i < sizeof(facilitynames) / sizeof(CODE); i++)
+    {
+      if (facility == (facilitynames[i].c_val >> 3))
+        return facilitynames[i].c_name;
+    }
+  
+  return "unknown";
 }
