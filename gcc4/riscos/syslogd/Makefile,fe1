@@ -2,7 +2,7 @@
 # Written by John Tytgat / BASS
 
 # Toolflags :
-CCflags = -c -zM -depend !Depend -IC: -ITCPIPLibs: -throwback -APCS 3/32bit/fpe3
+CCflags = -c -zM -depend !Depend -IC: -ITCPIPLibs: -throwback -APCS 3/32bit/fpe3 -Wp
 Linkflags = -rmf -c++ -o $@
 CC = cc
 
@@ -11,7 +11,7 @@ All:	SysLogD
 # System libraries :
 #  - "o.syslog" comes from !SysLog distribution
 #  - "o.inetlibzm" & "o.socklibzm" comes from Acorn's SocketLib distribution
-LDLIBS = o.syslog32 TCPIPLibs:o.inetlibzm TCPIPLibs:o.socklibzm c:o.Stubs
+LDLIBS = o.syslog32 TCPIPLibs:o.inetlibzm TCPIPLibs:o.socklibzm TCPIPLibs:o.unixlibzm c:o.Stubs
 
 # SysLogD objects
 SYSLOGDOBJS = o.modheader o.main
@@ -22,11 +22,9 @@ SysLogD:	$(SYSLOGDOBJS) $(LDLIBS) $(USRLIBS)
 
 .SUFFIXES: .o .c
 .c.o:;  	$(CC) $(CCflags) -o $@ $<
-.cmhg.o:;	cmhg $< $@
+.cmhg.o:;	cmhg $< $@ -d modheader.h
 
 # Static dependencies:
-#h.modheader:	o.modheader
-#o.modheader:	cmhg.modheader
-#	cmunge -s s.modheader -o o.modheader -d h.modheader -throwback cmhg.modheader
+modheader.h:	modheader.o
 
 # Dynamic dependencies:
