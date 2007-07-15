@@ -399,6 +399,28 @@ static  _kernel_oserror *disable_eventv(void)
   return 0;
 }
 
+static void translate(char *dst, char *src, int len)
+/*     =============================================
+ */
+{
+  while (len--)
+    {
+      switch (*src)
+        {
+          case '.':
+            *dst++ = '/';
+            break;
+          case '/':
+            *dst++ = '.';
+            break;
+          default:
+            *dst++ = *src;
+        }
+      src++;
+    }
+  *dst = '\0';
+}
+
 /* 0 to claim event, non-0 if not to claim the event */
 int callback_handler(_kernel_swi_regs *r, void *pw)
 /* ================================================
@@ -448,6 +470,7 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
           char *msg;
           int seriousness;
           struct filenamemapping *mapping = mappings;
+          static char newfilename[1024];
 
           /* Extract the filename, line number and message */
           while (isspace(*filename))
@@ -478,31 +501,19 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
                   /* Search through the mappings to find a match for the unix format pathname */
                   if (strncmp(filename, mapping->unix, mapping->unixlen) == 0)
                     {
-                      static char newfilename[1024];
                       char *oldfilename = filename + mapping->unixlen;
-    
-                      memcpy(newfilename, mapping->ro, mapping->rolen);
-                      filename = newfilename + mapping->rolen;
-    
-                      /* Translate the rest of the unix pathname to RISC OS format */
-                      while (*oldfilename && (filename < newfilename + sizeof(newfilename) - 1))
+                      int oldlen = strlen(oldfilename);
+
+                      if (oldlen + mapping->rolen < sizeof(newfilename))
                         {
-                          switch (*oldfilename)
-                            {
-                              case '.':
-                                *filename++ = '/';
-                                break;
-                              case '/':
-                                *filename++ = '.';
-                                break;
-                              default:
-                                *filename++ = *oldfilename;
-                            }
-                          oldfilename++;
-                        }
+                          memcpy(newfilename, mapping->ro, mapping->rolen);
+                          filename = newfilename + mapping->rolen;
     
-                      *filename = '\0';
-                      filename = newfilename;
+                          /* Translate the rest of the unix pathname to RISC OS format */
+                          translate(filename, oldfilename, oldlen);
+    
+                          filename = newfilename;
+                        }
                       break;
                     }
     
@@ -512,7 +523,47 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
           else
             {
               /* A relative path */
-              /* Need to add translation and suffix swapping code */
+              char *dot = strrchr(filename, '.');
+              char *slash = strrchr(filename, '/');
+              char *suffixes = getenv("UnixEnv$gcc$sfix");
+              char *dst;
+
+              /* Translate everything up to the last slash */
+              if (slash)
+                {
+                  translate(newfilename, filename, (slash + 1) - filename);
+                  dst = newfilename + ((slash + 1) - filename);
+                  filename = slash + 1;
+                }
+              else
+                {
+                  dst = newfilename;
+                }
+
+              if (dot && suffixes)
+                {
+                  char *suffix;
+                  suffixes = strdup(suffixes);
+
+                  /* Search suffix list for a match */
+                  suffix = strtok(suffixes, ":");
+                  while (suffix)
+                    {
+                      if (strcmp(suffix, dot + 1) == 0)
+                        {
+                          *dot++ = '\0';
+                          strcpy(dst, dot);
+                          dst += strlen(dot);
+                          *dst++ = '.';
+                          break;
+                        }
+                      suffix = strtok(NULL, ":");
+                    }
+                }
+
+              /* Translate whatever is left */
+              translate(dst, filename, strlen(filename));
+              filename = newfilename;
             }
 
           if (_swix(DDEUtils_ThrowbackStart, 0))
