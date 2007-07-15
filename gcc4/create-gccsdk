@@ -9,6 +9,11 @@ GCCSDK_ROOT=`pwd`
 popd > /dev/null
 source $GCCSDK_ROOT/setup-gccsdk-params
 
+if [ "x"$1 != "x" ] ; then
+  echo "Syntax: create-gccsdk"
+  exit 1
+fi
+
 if [ -d $GCCSDK_SRCDIR ] ; then
   rm -rf $GCCSDK_SRCDIR
 fi

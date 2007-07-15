@@ -1,5 +1,5 @@
---- gcc/gcc.c.orig	2007-01-18 00:47:26.000000000 +0100
-+++ gcc/gcc.c	2007-01-18 00:47:19.000000000 +0100
+--- gcc/gcc.c.orig	2007-07-03 00:58:30.000000000 +0200
++++ gcc/gcc.c	2007-06-28 01:13:39.000000000 +0200
 @@ -343,7 +343,7 @@
  static void init_gcc_specs (struct obstack *, const char *, const char *,
  			    const char *);
@@ -17,18 +17,6 @@
     {"--include-directory", "-I", "aj"},
     {"--include-directory-after", "-idirafter", "a"},
     {"--include-prefix", "-iprefix", "a"},
-@@ -1708,7 +1709,11 @@
- 	    init_gcc_specs (&obstack,
- 			    "-lgcc_s"
- #ifdef USE_LIBUNWIND_EXCEPTIONS
-+# ifdef HAVE_LD_STATIC_DYNAMIC
-+			    " %{!static:-Bstatic} -lunwind %{!static:-Bdynamic}"
-+# else
- 			    " -lunwind"
-+# endif
- #endif
- 			    ,
- 			    "-lgcc",
 @@ -2978,7 +2983,7 @@
  
  const char **outfiles;
@@ -56,28 +44,7 @@
  }
  #endif
  
-@@ -3241,6 +3250,10 @@
-      see if we can create it from the pathname specified in argv[0].  */
- 
-   gcc_libexec_prefix = standard_libexec_prefix;
-+
-+  /* NAB++ */
-+#if 0
-+  /* NAB-- */
- #ifndef VMS
-   /* FIXME: make_relative_prefix doesn't yet work for VMS.  */
-   if (!gcc_exec_prefix)
-@@ -3259,6 +3272,9 @@
- 					       standard_libexec_prefix);
- #else
- #endif
-+  /* NAB++ */
-+#endif
-+  /* NAB-- */
- 
-   if (gcc_exec_prefix)
-     {
-@@ -3734,7 +3750,7 @@
+@@ -3734,7 +3744,7 @@
  		    }
  		}
  #endif
@@ -86,7 +53,7 @@
  	      if (p[1] == 0)
  		argv[i + 1] = convert_filename (argv[i + 1], ! have_c, 0);
  	      else
-@@ -4084,7 +4100,7 @@
+@@ -4084,7 +4094,7 @@
  	}
        else
  	{
@@ -95,21 +62,3 @@
  	  argv[i] = convert_filename (argv[i], 0, access (argv[i], F_OK));
  #endif
  
-@@ -6626,10 +6642,17 @@
- 	  if (s == NULL)
- 	    linker_name_spec = "ld";
- 	}
-+
-+/* NAB++ */
-+#ifndef __riscos__
-+/* NAB-- */
-       /* Rebuild the COMPILER_PATH and LIBRARY_PATH environment variables
- 	 for collect.  */
-       putenv_from_prefixes (&exec_prefixes, "COMPILER_PATH");
-       putenv_from_prefixes (&startfile_prefixes, LIBRARY_PATH_ENV);
-+/* NAB++ */
-+#endif
-+/* NAB-- */
- 
-       value = do_spec (link_command_spec);
-       if (value < 0)

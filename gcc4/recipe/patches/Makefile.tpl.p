@@ -1,5 +1,20 @@
 --- Makefile.tpl.orig	2007-07-09 03:04:22.000000000 +0200
 +++ Makefile.tpl	2007-07-09 02:26:26.000000000 +0200
+@@ -28,11 +28,11 @@
+ # -------------------------------
+ VPATH=@srcdir@
+ 
+-build_alias=@build_alias@
++build_alias=@build_noncanonical@
+ build=@build@
+-host_alias=@host_alias@
++host_alias=@host_noncanonical@
+ host=@host@
+-target_alias=@target_alias@
++target_alias=@target_noncanonical@
+ target=@target@
+ 
+ program_transform_name = @program_transform_name@
 @@ -161,6 +161,7 @@
  	GCC_FOR_TARGET="$(GCC_FOR_TARGET)"; export GCC_FOR_TARGET; \
  	LD_FOR_TARGET="$(LD_FOR_TARGET)"; export LD_FOR_TARGET; \

@@ -7,18 +7,28 @@ fi
 # gcc/binutils sources ready to start compiling.
 export GCCSDK_SRCDIR=$GCCSDK_ROOT/srcdir
 
-# Where to install the cross-compiler.  If GCCSDK_INSTALL_CROSSBIN is defined
-# we use it.
+# Where to install the cross-compiler and native RISC OS compiler.
+# For determining the install directory of the cross-compiler, if
+# GCCSDK_INSTALL_CROSSBIN is defined we use its value.
 if [ ! -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
-  PREFIX=$GCCSDK_INSTALL_CROSSBIN/..
+  GCCSDK_CROSS_PREFIX=$GCCSDK_INSTALL_CROSSBIN/..
   # Shorten path:
-  test ! -d $PREFIX && mkdir -p $PREFIX
-  pushd $PREFIX > /dev/null
-  PREFIX=`pwd`
+  test ! -d $GCCSDK_CROSS_PREFIX && mkdir -p $GCCSDK_CROSS_PREFIX
+  pushd $GCCSDK_CROSS_PREFIX > /dev/null
+  GCCSDK_CROSS_PREFIX=`pwd`
   popd > /dev/null
 else
-  PREFIX=$GCCSDK_ROOT/cross
+  echo Warning: \$GCCSDK_INSTALL_CROSSBIN is not defined, using \$GCCSDK_ROOT/cross/bin instead.
+  GCCSDK_CROSS_PREFIX=$GCCSDK_ROOT/cross
 fi
+GCCSDK_RISCOS_PREFIX=$GCCSDK_ROOT/install-riscos
+
+# Where are we building:
+GCCSDK_CROSS_BUILDDIR=$GCCSDK_ROOT/builddir-cross
+GCCSDK_RISCOS_BUILDDIR=$GCCSDK_ROOT/builddir-riscos
+
+# This is the name of the target we're interested in:
+GCCSDK_TARGET_NAME=arm-unknown-riscos
 
 # GCCSDK_GCCORIG : directory containing the original & unchanged gcc sources
 # Either contents of a gcc tarball (without subdir), either a svn checkout

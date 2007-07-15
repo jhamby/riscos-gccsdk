@@ -51,13 +51,7 @@ We have now in 'gcc4' the GCCSDK 4.x code.
 1. Build cross-compiler with target arm-unknown-riscos (static ELF target only
    at the moment).
 2. Build RISC OS ELF loader (in development at the moment).
-
-[ Not developed yet: 3. Build the native RISC OS compiler ]
-
-Make sure GCCSDK_ROOT is defined at the directory path where GCCSDK 4.x
-code is located :
-
-  $ export GCCSDK_ROOT=`pwd`/gcc4
+3. Build the native RISC OS compiler.
 
 Prerequisites for building GCC can be found at
 <URL:http://gcc.gnu.org/install/prerequisites.html>.
@@ -73,9 +67,9 @@ installed during 'make install' (note: $GCCSDK_INSTALL_CROSSBIN actually
 specifies the pathname 'bin' subdirectory of the directory where the complete
 cross-compiler will be installed).
 
-1. Use the definitions in the setup-gccsdk-params file :
+1. Use the definitions in the setup-gccsdk-params file (only needed when
+   doing steps 2 and 3):
 
-   $ cd $GCCSDK_ROOT
    $ source setup-gccsdk-params
 
 2. Place an unchanged GCC 4.x release in $GCCSDK_GCCORIG (either tarball, either
@@ -122,7 +116,6 @@ cross-compiler will be installed).
    $GCCSDK_SRCDIR and apply the necessary patches for arm-unknown-riscos
    target by running:
 
-     $ cd $GCCSDK_ROOT
      $ ./create-gccsdk
 
    At this point the source tree at $GCCSDK_SRCDIR is used to do the real build.
@@ -131,33 +124,45 @@ cross-compiler will be installed).
    either full file copy needs to be made in the correct subdirector under
    $GCCSDK_RECIPE_FILES.
 
-5. Build and install the cross-compiler into $PREFIX:
+5. Build and install the cross-compiler into $GCCSDK_CROSS_PREFIX:
 
-     $ cd $GCCSDK_ROOT
      $ ./build-it > build-output.txt 2>&1
+
+   Note that build-it can take some options, use -h option to have an option
+   list.
 
    When the configuration part has been successfully done during ./build-it,
    you can restart the build by:
 
-     $ cd $GCCSDK_ROOT/arm-unknown-riscos
+     $ cd builddir-cross
      $ make
      $ make install
 
    When you want specific compiler options for target libraries, you can
    specify them like (e.g. taking the options "-O3 -march=armv4"):
 
-     $ cd $GCCSDK_ROOT/arm-unknown-riscos
+     $ cd builddir-cross
      $ make CFLAGS_FOR_TARGET="-O3 -march=armv4" CXXFLAGS_FOR_TARGET="-O3 -march=armv4"
      $ make install
 
 2.2. Build RISC OS ELF loader
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This is at the moment not fully buildable because not all RISC OS ELF related
-changes have been made to the cross-compiler, UnixLib and/or the soloader sources.
-
    $ cd riscos/soloader
    $ ./build-it > build-output.txt 2>&1
+
+2.3. Build the native RISC OS compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The native RISC OS compiler is built with the cross-compiler.  It is using
+the same build-it script with "riscos" as argument given.
+
+   $ ./build-it riscos > build-output.txt 2>&1
+
+Note that build-it can take some options, use -h option to have an option
+list.
+
+[ FIXME: Packaging the RISC OS compiler needs to be done. ]
 
 3. Developing
 ~~~~~~~~~~~~~
@@ -178,7 +183,7 @@ together allow you to run unmodified ELF RISC OS binaries under Linux.
 The GCC testsuite requires the installation of at least DejaGnu, Tcl and Expect
 and can be started using:
 
-  $ cd $GCCSDK_ROOT/arm-unknown-riscos/gcc
+  $ cd builddir-cross/gcc
   $ make check
 
 More information on running GCC testsuite can be found at
