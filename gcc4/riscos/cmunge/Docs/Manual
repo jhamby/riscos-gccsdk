@@ -454,7 +454,7 @@ every occurrence of _kernel_oserror is replaced by os_error.
          claimed and for an error to be returned in R0 with the V flag set.
          All other registers will be as returned in the parameter block.
 
-    So, for 'vector-handlers: irq1' the following function is expected:
+    So, for 'vector-handlers: wrch' the following function is expected:
     
     int wrch_handler(_kernel_swi_regs *r, void *pw);
 
