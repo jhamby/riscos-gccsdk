@@ -36,8 +36,8 @@ typedef struct runcom_state
   /* Hold information about executable including program headers. */
   elf_file		elf_prog;
 
-  /* Base address of Dynamic Loader. */
-  som_PTR		elf_loader_base;
+  /* Hold information about dynamic loader file. */
+  elf_file		elf_loader;
 
   /* Shared Object Manager handle of Dynamic Loader. */
   som_handle		elf_loader_handle;
@@ -74,8 +74,7 @@ static void runcom_init_state(runcom_state *state)
   state->elf_prog_name = NULL;
   state->elf_prog_args = NULL;
   elffile_init(&state->elf_prog);
-
-  state->elf_loader_base = NULL;
+  elffile_init(&state->elf_loader);
 
   state->ddeutils_is_present = ddeutils_is_present();
   state->client_is_registered = false;
@@ -97,11 +96,10 @@ _kernel_oserror *err = NULL;
   }
   else
   {
-  const Elf32_Ehdr *ehdr = (Elf32_Ehdr *)state->elf_loader_base;
-  Elf32_Phdr *phdr = (Elf32_Phdr *)(state->elf_loader_base + ehdr->e_phoff);
-  int phnum = ehdr->e_phnum;
+  Elf32_Phdr *phdr = state->elf_loader.prog_headers;
+  int phnum = state->elf_loader.elf_header.e_phnum;
 
-    objinfo.base_addr = state->elf_loader_base;
+    objinfo.base_addr = state->elf_loader.base_addr;
 
     /* Go through the program headers extracting the info we need. */
     while (phnum--)
@@ -110,7 +108,7 @@ _kernel_oserror *err = NULL;
       { /* A writable, loadable segment is a data segment. */
 	if ((phdr->p_flags & PF_W) != 0)
 	{
-	  objinfo.public_rw_ptr = state->elf_loader_base + phdr->p_vaddr;
+	  objinfo.public_rw_ptr = state->elf_loader.base_addr + phdr->p_vaddr;
 	  objinfo.rw_size = phdr->p_memsz;
 	  objinfo.bss_offset = phdr->p_filesz;
 	  objinfo.bss_size = phdr->p_memsz - phdr->p_filesz;
@@ -118,16 +116,16 @@ _kernel_oserror *err = NULL;
       }
       else if (phdr->p_type == PT_DYNAMIC)
       {
-	objinfo.dyn_offset = (phdr->p_vaddr + state->elf_loader_base) - objinfo.public_rw_ptr;
+	objinfo.dyn_offset = (phdr->p_vaddr + state->elf_loader.base_addr) - objinfo.public_rw_ptr;
 	objinfo.dyn_size = phdr->p_memsz;
 
 	/* Find the GOT of the loader. */
       unsigned int *dt;
 
-	for (dt = (unsigned int *)(state->elf_loader_base + phdr->p_vaddr); *dt != DT_NULL; dt += 2)
+	for (dt = (unsigned int *)(state->elf_loader.base_addr + phdr->p_vaddr); *dt != DT_NULL; dt += 2)
 	  if (*dt == DT_PLTGOT)
 	  {
-	    objinfo.got_offset = (*(dt + 1) + state->elf_loader_base) - objinfo.public_rw_ptr;
+	    objinfo.got_offset = (*(dt + 1) + state->elf_loader.base_addr) - objinfo.public_rw_ptr;
 	    break;
 	  }
 
@@ -231,16 +229,13 @@ static noinline _kernel_oserror *load_dynamic_loader(runcom_state *state)
 {
 _kernel_oserror *err;
 char *filename = NULL;
-elf_file loader;
-
-  elffile_init(&loader);
 
   if ((err = som_alloc(strlen(loader_path) + strlen(state->elf_prog.interp_name) + 1, (void **)(void *)&filename)) != NULL)
     return err;
   strcpy(filename, loader_path);
   strcat(filename, state->elf_prog.interp_name);
 
-  if ((err = elffile_open(filename, &loader)) != NULL)
+  if ((err = elffile_open(filename, &state->elf_loader)) != NULL)
     goto error;
 
   /* Don't need the filename anymore. */
@@ -248,28 +243,11 @@ elf_file loader;
   filename = NULL;
 
   /* Allocate enough memory to store all of the PT_LOAD segments. */
-  if ((err = som_alloc_lib(elffile_memory_size(&loader), (void **)(void *)&state->elf_loader_base)) == NULL)
-  {
-  Elf32_Phdr *phdr = loader.prog_headers;
-  int phnum = loader.elf_header.e_phnum;
+  if ((err = som_alloc_lib(state->elf_loader.memory_size, (void **)(void *)&state->elf_loader.base_addr)) == NULL)
+    err = elffile_load(&state->elf_loader, state->elf_loader.base_addr, false);
 
-    /* Load all loadable segments of the Dynamic Loader. */
-    while (phnum--)
-    {
-      if (phdr->p_type == PT_LOAD)
-      {
-	fseek(loader.handle, phdr->p_offset, SEEK_SET);
-	if (fread(phdr->p_vaddr + state->elf_loader_base, phdr->p_filesz, 1, loader.handle) != 1)
-	  goto error;
-      }
-
-      phdr++;
-    }
-  }
-  else
+  if (err)
     goto error;
-
-  elffile_close(&loader);
 
   return NULL;
 
@@ -281,13 +259,13 @@ error:
   if (filename)
     som_free(filename);
 
-  if (state->elf_loader_base)
+  if (state->elf_loader.base_addr)
   {
-    som_free(state->elf_loader_base);
-    state->elf_loader_base = NULL;
+    som_free(state->elf_loader.base_addr);
+    state->elf_loader.base_addr = NULL;
   }
 
-  elffile_close(&loader);
+  elffile_close(&state->elf_loader);
 
   return err;
 }
@@ -351,7 +329,7 @@ unsigned int *array = (unsigned int *)state->env.ram_limit;
   *--array = AT_ENTRY;
 
   /* Store base address of dynamic loader. */
-  *--array = (unsigned int)state->elf_loader_base;
+  *--array = (unsigned int)state->elf_loader.base_addr;
   *--array = AT_BASE;
 
   /* Store the number of program headers in the ELF program. */
@@ -482,7 +460,7 @@ int dde_cl_len = ddeutils_get_cl_size();
     goto error;
   }
 
-  if ((err = elffile_load(&state->elf_prog, NULL)) != NULL)
+  if ((err = elffile_load(&state->elf_prog, NULL, true)) != NULL)
     goto error;
 
   /* If the DDEUtils module is loaded, then pass the arguments via the DDEUtils
@@ -492,21 +470,12 @@ int dde_cl_len = ddeutils_get_cl_size();
   if (state->ddeutils_is_present)
     ddeutils_set_cl(state->elf_prog_args);
 
+som_PTR entry_point;
+
   if (state->elf_prog.dynamic_seg == NULL)
   {
     /* No dynamic segment, so assume statically linked. */
-  som_PTR entry_point = (som_PTR)state->elf_prog.elf_header.e_entry;
-  unsigned int ram_limit = state->env.ram_limit;
-
-    elffile_close(&state->elf_prog);
-
-    /* Finished with command line. */
-    som_free(state->elf_prog_name);
-    state->elf_prog_name = NULL;
-
-    som_free(state);
-
-    som_start_app(entry_point, ram_limit, SOM_RUN_STACK_SIZE);
+    entry_point = elffile_entry_point(&state->elf_prog);
   }
   else
   {
@@ -524,11 +493,11 @@ int dde_cl_len = ddeutils_get_cl_size();
     {
     som_objinfo objinfo;
 
-      /* The loader is already present in the system, we just need the address that
-       * it's loaded at. */
+      /* The loader is already present in the system, we need to fill in the elf_file
+	 structure manually. */
       dl_already_loaded = true;
-      err = som_query_object(state->elf_loader_handle, &objinfo, flag_QUERY_GLOBAL_LIST);
-      state->elf_loader_base = objinfo.base_addr;
+      if ((err = som_query_object(state->elf_loader_handle, &objinfo, flag_QUERY_GLOBAL_LIST)) == NULL)
+        err = elffile_from_memory(&state->elf_loader, objinfo.base_addr);
     }
 
     if (err)
@@ -551,25 +520,27 @@ int dde_cl_len = ddeutils_get_cl_size();
 	(err = setup_argv_array(state)) != NULL)
       goto error;
 
-    elffile_close(&state->elf_prog);
-
     /* Now that we've finished allocating from the free memory pool, we can fill in the auxillary
      * data array with a pointer to where it starts.
      */
     if (state->aux_free_mem_slot)
       *state->aux_free_mem_slot = (unsigned int)state->free_memory;
 
-    /* Finished with command line. */
-    som_free(state->elf_prog_name);
-    state->elf_prog_name = NULL;
+    entry_point = elffile_entry_point(&state->elf_loader);
 
-  const Elf32_Ehdr *ehdr = (Elf32_Ehdr *)state->elf_loader_base;
-  unsigned int ram_limit = state->env.ram_limit;
-
-    som_free(state);
-
-    som_start_app((som_PTR)ehdr + ehdr->e_entry, ram_limit, SOM_RUN_STACK_SIZE);
+    elffile_close(&state->elf_loader);
   }
+
+unsigned int ram_limit = state->env.ram_limit;
+
+  elffile_close(&state->elf_prog);
+
+  /* Finished with command line. */
+  som_free(state->elf_prog_name);
+
+  som_free(state);
+
+  som_start_app(entry_point, ram_limit, SOM_RUN_STACK_SIZE);
 
   /* Should never get to here. */
 
@@ -584,8 +555,8 @@ error:
      * it will be lost. Note that the module finalisation routine will not free it as the
      * DL is not linked into the list.
      */
-    if (dl_already_loaded == false && state->elf_loader_base != NULL)
-      som_free(state->elf_loader_base);
+    if (dl_already_loaded == false && state->elf_loader.base_addr != NULL)
+      som_free(state->elf_loader.base_addr);
 
     if (state->client_is_registered)
       som_deregister_client();
@@ -594,6 +565,7 @@ error:
       som_free(state->elf_prog_name);
 
     elffile_close(&state->elf_prog);
+    elffile_close(&state->elf_loader);
 
     som_free(state);
   }

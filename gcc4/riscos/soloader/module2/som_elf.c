@@ -130,8 +130,9 @@ void elffile_close(elf_file *file)
 }
 
 /* For an ELF object with a NULL p_vaddr for its first loadable segment, load_offset
-   defines the load address. For an executable, load_offset should be NULL. */
-_kernel_oserror *elffile_load(elf_file *file, som_PTR load_offset)
+   defines the load address. For an executable, load_offset should be NULL.
+ */
+_kernel_oserror *elffile_load(elf_file *file, som_PTR load_offset, bool init_bss)
 {
 Elf32_Phdr *phdr = file->prog_headers;
 int phnum = file->elf_header.e_phnum;
@@ -149,11 +150,14 @@ _kernel_oserror *err = NULL;
         if (fread((void *)(load_offset + phdr->p_vaddr), phdr->p_filesz, 1, file->handle) != 1)
 	  goto error;
 
-   int bss_size = phdr->p_memsz - phdr->p_filesz;
-      /* If there's a difference between memory size and file size, then this indicates the
-	 bss area which needs zeroing. */
-      if (bss_size != 0)
-        memset((void *)(load_offset + phdr->p_vaddr + phdr->p_filesz), 0, bss_size);
+      if (init_bss)
+      {
+      int bss_size = phdr->p_memsz - phdr->p_filesz;
+        /* If there's a difference between memory size and file size, then this indicates the
+	   bss area which needs zeroing. */
+	if (bss_size != 0)
+	  memset((void *)(load_offset + phdr->p_vaddr + phdr->p_filesz), 0, bss_size);
+      }
     }
 
     phdr++;
@@ -167,6 +171,45 @@ error:
       err = somerr_file_error;
 
   return err;
+}
+
+/* Fill in an elf_file structure from an image already in memory. */
+_kernel_oserror *elffile_from_memory(elf_file *loader, som_PTR base_addr)
+{
+_kernel_oserror *err;
+
+  loader->base_addr = base_addr;
+  memcpy(&loader->elf_header, base_addr, sizeof(Elf32_Ehdr));
+
+  /* Allocate space for program headers and copy them from the image */
+  if ((err = som_alloc(loader->elf_header.e_phentsize * loader->elf_header.e_phnum,
+		(void **)(void *)&loader->prog_headers)) != NULL)
+    return err;
+
+  memcpy(loader->prog_headers, base_addr + loader->elf_header.e_phoff,
+		loader->elf_header.e_phentsize * loader->elf_header.e_phnum);
+
+Elf32_Phdr *phdr = loader->prog_headers;
+int phnum = loader->elf_header.e_phnum;
+
+  while (phnum--)
+  {
+    switch (phdr->p_type)
+    {
+    case PT_DYNAMIC:
+      /* Return the address of the dynamic segment program header if any. */
+      loader->dynamic_seg = phdr;
+      break;
+
+    case PT_LOAD:
+      loader->memory_size += phdr->p_memsz;
+      break;
+    }
+
+    phdr++;
+  }
+
+  return NULL;
 }
 
 /* Return the amount of memory required to hold all loadable segments in the file. */
