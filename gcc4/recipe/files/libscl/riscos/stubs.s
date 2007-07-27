@@ -294,7 +294,8 @@ language_name:
 	.text
 	.type	__sclmain, %function
 __sclmain:
-	@ FIXME: vvv what's this magic ?
+	@ Allow malloc() to grow the WimpSlot in Absolute and Module
+	@ applications.
 	LDR	R0, kallocextendsws_data
 #ifdef __TARGET_MODULE__
 	LDR	R1, [SL, #- _Mod$Reloc$Off]

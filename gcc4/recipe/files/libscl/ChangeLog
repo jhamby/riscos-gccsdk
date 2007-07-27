@@ -1,3 +1,19 @@
+Fri Jul 27 03:10:01 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos/stubs.s: Added explanation from Ben Avison on
+	kallocExtendsWS.
+
+Mon Jun 18 00:52:00 2007  Peter Naulls  <peter@chocky.org>
+
+	* include/swis.h: Added OS_HeapSort32 and PDriver_ SWIs.
+
+Sun Jun 17 21:51:28 2007  Alex Waugh  <alex@alexwaugh.com>
+
+	* stdio/fdopen.c (fdopen): Implement function.
+	* stdio.h: Remove incorrect fileno macro
+	* stdio/fileno.c: New file to implement fileno. This allows c++
+	fstreams to work.
+
 Mon May 28 08:15:56 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/chunkid01.s: Make _stub_kallocExtendsWS .global.
