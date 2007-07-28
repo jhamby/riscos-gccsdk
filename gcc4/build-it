@@ -2,6 +2,9 @@
 # Written by John Tytgat <John.Tytgat@aaug.net>
 # Copyright (c) 2006-2007 GCCSDK Developers
 #
+# Builds either the cross-compiler, either the native RISC OS compiler by
+# first configuring it, then doing the compiling and finally the installing.
+#
 # Syntax:
 #   "build-it <options>"
 #   "build-it <options> cross"
@@ -116,7 +119,8 @@ fi
 cd $GCCSDK_BUILDDIR
 # Notes:
 #   1) --with-cross-host is needed to correctly find the target libraries in
-#      .../cross/arm-unknown-riscos/lib instead of .../cross/lib.
+#      $GCCSDK_{CROSS|RISCOS}_PREFIX/arm-unknown-riscos/lib instead of
+#      $GCCSDK_{CROSS|RISCOS}_PREFIX/lib.
 $GCCSDK_SRCDIR/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS \
 	--enable-threads=posix \
 	--disable-nls --enable-sjlj-exceptions=no \

@@ -2,7 +2,7 @@ The RISC OS Software Development Kit [GCCSDK 4.x Release y]
 ===========================================================
 
 This is a lightweight build environment which combines a GCC 4.1.1 release,
-binutils 2.17 release and UnixLib 5.0 into one directory which can
+binutils 2.17 release, UnixLib 5.0 and libscl 2.0 into one directory which can
 be used to build a RISC OS cross-compiler with target arm-unknown-riscos.
 
 We expect that the current set of GCCSDK patches for GCC and binutils can
@@ -43,14 +43,13 @@ To check out GCCSDK 4 build code:
   $ cd gccsdk4
   $ svn co svn://svn.riscos.info/gccsdk/trunk/gcc4
 
-We have now in 'gcc4' the GCCSDK 4.x code.
+We have now in 'gcc4' directory the GCCSDK 4.x code.
 
 2. Build steps
 ~~~~~~~~~~~~~~
 
-1. Build cross-compiler with target arm-unknown-riscos (static ELF target only
-   at the moment).
-2. Build RISC OS ELF loader (in development at the moment).
+1. Build cross-compiler.
+2. Build RISC OS ELF loader.
 3. Build the native RISC OS compiler.
 
 Prerequisites for building GCC can be found at
@@ -67,69 +66,39 @@ installed during 'make install' (note: $GCCSDK_INSTALL_CROSSBIN actually
 specifies the pathname 'bin' subdirectory of the directory where the complete
 cross-compiler will be installed).
 
-1. Use the definitions in the setup-gccsdk-params file (only needed when
-   doing steps 2 and 3):
+1. Place an official GCC 4.1 release in 'orig.gcc' directory and official
+   binutils 2.17 release in 'orig.binutils' by running:
 
-   $ source setup-gccsdk-params
+     $ ./download-gcc-binutils
 
-2. Place an unchanged GCC 4.x release in $GCCSDK_GCCORIG (either tarball, either
-   result of SVN checkout).
+   You only need to do this once as the contents of 'orig.gcc' and
+   'orig.binutils' is considered read-only from now on and used in the scripts
+   'create-srcdir' (see step 3) and 'create-patch' (to update or create
+   patches).
 
-   Tarball:
+2. Combine the contents of 'orig.gcc', parts of 'orig.binutils', UnixLib 5.0
+   and libscl 2.0 support into 'srcdir' directory, do the configuration and
+   apply the necessary patches for the arm-unknown-riscos target by running:
 
-     Fetch GCC 4.x.y tarball (at {http|ftp}://ftp.gnu.org/gnu/gcc or using one
-     of the GNU mirrors) and extract its gcc-4.x.y/gcc directory as
-     $GCCSDK_GCCORIG.
+     $ ./create-srcdir
 
-   SVN checkout:
+   At this point the source tree at 'srcdir' is used to do the real build.
 
-     $ svn co svn://gcc.gnu.org/svn/gcc/branches/gcc-4_1-branch $GCCSDK_GCCORIG
+   Developer changes can and should be done in 'srcdir' and when those changes
+   are ready to be commited, either patches need to be created, either full
+   file copy needs to be made in the correct subdirector in 'recipe' directory.
+   This can easily done by:
 
-   Note that the contents of $GCCSDK_GCCORIG is considered read-only from
-   now on and used in the scripts 'create-gccsdk' (see step 3) and
-   'create-patch' (to update or create patches).
+     $ cd srcdir
+     $ ../create-patch <file to patch or file to copy>
 
-3. Place a binutils 2.17 release in $GCCSDK_BINUTILSORIG (either tarball,
-   either result of CVS checkout).
-
-   Tarball:
-
-     Fetch binutils 2-17 tarball (at {http|ftp}://ftp.gnu.org/gnu/binutils/binutils-2.17.tar.bz2
-     or using one of the GNU mirrors) and extract its binutils-2.17/binutils
-     directory as $GCCSDK_BINUTILSORIG.
-
-   CVS checkout:
-
-     $ cvs -z9 -d:pserver:anoncvs@sourceware.org:/cvs/src login
-       -> password: anoncvs
-     $ cd `dirname $GCCSDK_BINUTILSORIG`
-     $ cvs -z9 -d:pserver:anoncvs@sourceware.org:/cvs/src co -RPN -d tmp.binutils binutils
-     $ mv tmp.binutils/src `basename $GCCSDK_BINUTILSORIG`
-     $ rm -rf tmp.binutils
-
-   Note that the contents of $GCCSDK_BINUTILSORIG is considered read-only from
-   now on and used in the scripts 'create-gccsdk' (see step 4) and
-   'create-patch' (to update or create patches).
-
-4. Combine the contents of $GCCSDK_GCCORIG, $GCCSDK_BINUTILSORIG and
-   UnixLib 5.0 (GAS assembler syntax and ELF configuration) into
-   $GCCSDK_SRCDIR and apply the necessary patches for arm-unknown-riscos
-   target by running:
-
-     $ ./create-gccsdk
-
-   At this point the source tree at $GCCSDK_SRCDIR is used to do the real build.
-   Developer changes can and should be done here and when those changes are
-   ready to be commited, either patches need to be created (using create-patch),
-   either full file copy needs to be made in the correct subdirector under
-   $GCCSDK_RECIPE_FILES.
-
-5. Build and install the cross-compiler into $GCCSDK_CROSS_PREFIX:
+3. Build and install the cross-compiler into $GCCSDK_INSTALL_CROSSBIN/..
+   directory:
 
      $ ./build-it > build-output.txt 2>&1
 
-   Note that build-it can take some options, use -h option to have an option
-   list.
+   Note that 'build-it' can take some useful options, use -h option to have an
+   option list.
 
    When the configuration part has been successfully done during ./build-it,
    you can restart the build by:
@@ -159,8 +128,8 @@ the same build-it script with "riscos" as argument given.
 
    $ ./build-it riscos > build-output.txt 2>&1
 
-Note that build-it can take some options, use -h option to have an option
-list.
+Note that 'build-it' can take some useful options, use -h option to have an
+option list.
 
 [ FIXME: Packaging the RISC OS compiler needs to be done. ]
 
@@ -170,31 +139,32 @@ list.
 GCCSDK specific changes for the original gcc/binutils sources are done via
 patches (recipe/patches directory), copying full source files (recipe/files)
 or via scripts (recipe/scripts).  Easy patch (re)creation can be done using the
-./create-patch script.
+'create-patch' script.
 
 4. Testing
 ~~~~~~~~~~
 
 After building the cross-compiler you can run the GCC testsuite.  This can be
-easily done under Linux using its binfmt_misc kernel module and QEMU containing
-RISC OS specific changes (cfr http://www.riscos.info/index.php/QEMU) as those
-together allow you to run unmodified ELF RISC OS binaries under Linux.
+easily done under Linux using its binfmt_misc kernel module and QEMU
+containing RISC OS specific changes
+(cfr. <URL:http://www.riscos.info/index.php/QEMU>) as those together allow
+you to run unmodified ELF RISC OS binaries under Linux.
 
-The GCC testsuite requires the installation of at least DejaGnu, Tcl and Expect
-and can be started using:
+The GCC testsuite requires the installation of at least DejaGnu, Tcl and
+Expect and can be started using:
 
   $ cd builddir-cross/gcc
   $ make check
 
 More information on running GCC testsuite can be found at
-http://gcc.gnu.org/install/test.html.
+<URL:http://gcc.gnu.org/install/test.html>.
 
 5. Porting tools
 ~~~~~~~~~~~~~~~~
 
 The files in the subdirectory 'porting-scripts' can help you to easily use the
-cross-compiler for porting of existing programs.  More information can be found
-in the 'PortingTools.html' file how this works.
+cross-compiler for porting of existing programs.  More information can be
+found in the 'PortingTools.html' file how this works.
 
 To install those scripts:
 
@@ -211,7 +181,8 @@ To install those scripts:
        $ ./install-env
 
 Note that the GCCSDK Autobuilder framework will use these porting-scripts in
-order to do its job (cfr http://www.riscos.info/index.php/Using_GCCSDK).
+order to do its job, cfr. <URL:http://www.riscos.info/index.php/Using_GCCSDK>
+for more information.
 
 Some GCCSDK Autobuilder projects still have AOF based assembler and currently
 the best way to handle these (and remain GCCSDK 3.4.6 compatible until GCCSDK
@@ -252,4 +223,4 @@ in particular, endless improvements to UnixLib which made it practical to
 run a wide range of software on RISC OS.  See those versions for full details.
 
 Copyright (c) 2005, 2006, 2007 GCCSDK Developers
-http://gccsdk.riscos.info/
+<URL:http://gccsdk.riscos.info/>

@@ -21,27 +21,29 @@ else
   echo Warning: \$GCCSDK_INSTALL_CROSSBIN is not defined, using \$GCCSDK_ROOT/cross/bin instead.
   GCCSDK_CROSS_PREFIX=$GCCSDK_ROOT/cross
 fi
-GCCSDK_RISCOS_PREFIX=$GCCSDK_ROOT/install-riscos
+# The install directory of the native RISC OS compiler is a
+# subdirectory of our release directory.
+GCCSDK_RELEASE_AREA=$GCCSDK_ROOT/release-area
+GCCSDK_RISCOS_PREFIX=$GCCSDK_RELEASE_AREA/\!GCC
 
-# Where are we building:
+# Where are we building (not in $GCCSDK_SRCDIR !):
 GCCSDK_CROSS_BUILDDIR=$GCCSDK_ROOT/builddir-cross
 GCCSDK_RISCOS_BUILDDIR=$GCCSDK_ROOT/builddir-riscos
+
+# Currently supported versions of gcc and binutils:
+GCCSDK_SUPPORTED_GCC_RELEASE=4.1.1
+GCCSDK_SUPPORTED_BINUTILS_RELEASE=2.17
 
 # This is the name of the target we're interested in:
 GCCSDK_TARGET_NAME=arm-unknown-riscos
 
 # GCCSDK_GCCORIG : directory containing the original & unchanged gcc sources
-# Either contents of a gcc tarball (without subdir), either a svn checkout
-# e.g.:
-#   svn co svn://gcc.gnu.org/svn/gcc/branches/gcc-4_1-branch $GCCSDK_GCCORIG
 GCCSDK_GCCORIG=$GCCSDK_ROOT/orig.gcc
 # GCCSDK_BINUTILSORIG : directory containing the original & unchanged binutils
-# Either contents of a binutils tarball (without subdir), either a cvs checkout
-# e.g.:
-#   cvs -z 9 -d :pserver:anoncvs@sourceware.org:/cvs/src login
-#     {enter "anoncvs" as the password}
-#   cvs -z 9 -d :pserver:anoncvs@sourceware.org:/cvs/src co -d $GCCSDK_BINUTILSORIG binutils
 GCCSDK_BINUTILSORIG=$GCCSDK_ROOT/orig.binutils
+
+# GCCSDK_RISCOS : directory containing RISC OS related sources (cmunge, soloader, etc)
+GCCSDK_RISCOS=$GCCSDK_ROOT/riscos
 
 # GCCSDK_RECIPE_PATCHES : patches of gcc/binutils
 GCCSDK_RECIPE_PATCHES=$GCCSDK_ROOT/recipe/patches

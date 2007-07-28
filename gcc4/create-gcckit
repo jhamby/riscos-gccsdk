@@ -1,0 +1,125 @@
+#!/bin/bash
+# Written by John Tytgat <John.Tytgat@aaug.net>
+# Copyright (c) 2007 GCCSDK Developers
+#
+# Creates the RISC OS GCCSDK kits
+
+set -e
+
+pushd `dirname $0` > /dev/null
+GCCSDK_ROOT=`pwd`
+popd > /dev/null
+source $GCCSDK_ROOT/setup-gccsdk-params
+
+if [ "x"$1 != "x" ] ; then
+  echo "Syntax: create-gcckit"
+  exit 1
+fi
+
+# We have the following binary kits and source kits (the latter containing the sources of the former ones):
+BKIT_GCC_NAME=$GCCSDK_RELEASE_AREA/gcc-bin-$GCCSDK_SUPPORTED_GCC_RELEASE.zip
+BKIT_SYSTEM_NAME=$GCCSDK_RELEASE_AREA/system.zip
+SKIT_GCC_NAME=$GCCSDK_RELEASE_AREA/gcc-src-$GCCSDK_SUPPORTED_GCC_RELEASE.tar.bz2
+
+# Where is the data found for above mentioned kits:
+BKIT_GCC_SRC=$GCCSDK_RELEASE_AREA/\!GCC
+BKIT_SYSTEM_SRC=$GCCSDK_RELEASE_AREA/\!System
+
+# FIXME: missing cmunge, drenderer, elf2aif, mkresfs, soloader, syslogd
+
+# Do a sanity check to see if the native RISC OS compiler has been built.
+if [ ! -d $BKIT_GCC_SRC/bin ] ; then
+  echo The native RISC OS compiler doesn\'t seem to have been built at $BKIT_GCC_SRC.
+  echo Use \'./build-cross riscos\' for doing this.
+  exit 1
+fi
+
+# Remove the target prefixed binaries.  We don't need them as we have the
+# non-target prefixed binaries as well.
+cd $BKIT_GCC_SRC/bin
+find . -name "$GCCSDK_TARGET_NAME-*" -exec rm {} \;
+# Remove gcc bug submit script (won't work under RISC OS):
+test -f gccbug && rm gccbug
+
+# Remove the softfloat libscl.  This is useless and a fallout of the multilib
+# configuration madness.
+test -f $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/lib/libscl.a && rm $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/lib/libscl.a
+
+# Move SharedUnixLibrary module to !System:
+test -f $BKIT_GCC_SRC/bin/sul && mkdir -p $BKIT_SYSTEM_SRC/310/Modules && mv $BKIT_GCC_SRC/bin/sul $BKIT_SYSTEM_SRC/310/Modules/SharedULib,ffa
+
+# Documentation: we remove the info & man pages as they are not really useful
+# on RISC OS but create HTML versions and use those.
+test -d $BKIT_GCC_SRC/share && rm -rf $BKIT_GCC_SRC/share
+if [ ! -f $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/ld/ld.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE ] ; then
+  # Build the HTML documentation:
+  cd $GCCSDK_RISCOS_BUILDDIR && make html
+fi
+# Copy documentation:
+mkdir -p $BKIT_GCC_SRC/docs/libiberty && cp -r $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html $BKIT_GCC_SRC/docs/libiberty
+mkdir -p $BKIT_GCC_SRC/docs/binutils && cp -r $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html/* $BKIT_GCC_SRC/docs/binutils
+mkdir -p $BKIT_GCC_SRC/docs/as && cp -r $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html/* $BKIT_GCC_SRC/docs/as
+mkdir -p $BKIT_GCC_SRC/docs/ld && cp -r $GCCSDK_RISCOS_BUILDDIR/ld/ld.html/* $BKIT_GCC_SRC/docs/ld
+mkdir -p $BKIT_GCC_SRC/docs/gprof && cp -r $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html/* $BKIT_GCC_SRC/docs/gprof
+mkdir -p $BKIT_GCC_SRC/docs/gcc && cp -r $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE/* $BKIT_GCC_SRC/docs/gcc
+# Some parts of the documentation are not useful for RISC OS developers:
+test -d $BKIT_GCC_SRC/docs/gcc/cppinternals && rm -rf $BKIT_GCC_SRC/docs/gcc/cppinternals
+test -d $BKIT_GCC_SRC/docs/gcc/gccinstall && rm -rf $BKIT_GCC_SRC/docs/gcc/gccinstall
+test -d $BKIT_GCC_SRC/docs/gcc/gccint && rm -rf $BKIT_GCC_SRC/docs/gcc/gccint
+
+# Strip the RISC OS binaries.  We won't need the debug info nor the symbols.
+cd $BKIT_GCC_SRC
+for bindir in bin $GCCSDK_TARGET_NAME/bin libexec/gcc/arm-unknown-riscos/$GCCSDK_SUPPORTED_GCC_RELEASE ; do
+  for f in `find $bindir -maxdepth 1 -type f` ; do
+    if file $f | grep -q ARM ; then
+      $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip $f
+      # Take the opportunity to add ,e1f suffix:
+      if ! echo $f | grep -q ",e1f" ; then
+        mv $f $f,e1f
+      fi
+    fi
+  done
+done
+
+## FIXME: need to do the stripping for .so files as well ?
+### Do the stripping for all .so files (don't do this for .a files):
+##cd $BKIT_GCC_SRC
+##find . -type f -name "*.a" -exec $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip {} \;
+
+# Do suffix swapping of all the .h/.o files (don't do this for .so/.a/.la):
+cd $BKIT_GCC_SRC
+for suffix in h o ; do
+  for dir in `find . -type f -name "*.$suffix" -exec dirname {} \; | sort | uniq` ; do
+    mkdir -p $dir/$suffix
+    find $dir -maxdepth 1 -type f -name "*.$suffix" -exec rename -f 's/(.+)\/(.+)\.(.+)/$1\/$3\/$2/' {} \;
+  done
+done
+
+# Copy !GCC skeleton:
+svn export -q --force $GCCSDK_RISCOS/dist/\!GCC $BKIT_GCC_SRC
+# Copy !System skeleton:
+svn export -q --force $GCCSDK_RISCOS/dist/\!System $BKIT_SYSTEM_SRC
+
+# Package the binary kits:
+# 1. Binary kit:
+if [ -f $GCCSDK_CROSS_PREFIX/bin/zip ] ; then
+  # Create $BKIT_GCC_NAME
+  test -f $BKIT_GCC_NAME && rm $BKIT_GCC_NAME
+  cd $BKIT_GCC_SRC/..
+  $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq $BKIT_GCC_NAME \!GCC \!System
+  echo Created $BKIT_GCC_NAME
+
+  # Create $BKIT_SYSTEM_NAME 
+  test -f $BKIT_SYSTEM_NAME && rm $BKIT_SYSTEM_NAME
+  cd $BKIT_SYSTEM_SRC/..
+  $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq $BKIT_SYSTEM_NAME \!System
+  echo Created $BKIT_SYSTEM_NAME
+else
+  echo Unable to create $BKIT_GCC_NAME because of missing zip executable.
+  echo Unable to create $BKIT_SYSTEM_NAME because of missing zip executable.
+fi
+
+# 2. Source kit:
+##cd $GCCSDK_SRCDIR
+##tar cjf $SKIT_GCC_NAME .
+##echo Created $SKIT_GCC_NAME
