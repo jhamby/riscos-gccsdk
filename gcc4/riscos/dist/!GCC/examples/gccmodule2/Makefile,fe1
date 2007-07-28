@@ -1,0 +1,98 @@
+# Copyright (C) 2005-2006 GCCSDK Developers
+#
+# This is an example of a Makefile which can be used on RISC OS by GCCSDK
+# and Acorn C/C++ suite (Norcroft) for creating modules.  It is not suited
+# for cross-compiling.
+#
+# When you have the following defined, double clicking on the Makefile Filer
+# icon will build 'gccmodule2'.
+#   GCCSDK:
+#     Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
+#   Norcroft:
+#     Set Alias$@RunType_FE1 TaskWindow "amu -desktop -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
+#
+# TOOLCHAIN can have the following values:
+#   - norcroft : Use the Norcroft tools (CC, LINK, CMHG)
+#   - gcc : Use the GCCSDK tools (GCC, CMUNGE)
+TOOLCHAIN=gcc
+# Enable unit-at-a-time in GCC (yes/no) ?
+UNITATATIME=no
+
+# When using OSLib, DeskLib, TCPIPLibs, etc, you have to specify their
+# header include directories.  E.g. -IOSLib: -ITCPIPLibs:
+INCLUDE    = -IOSLib:
+
+ifeq ($(TOOLCHAIN),gcc)
+## GCC:
+CC          = gcc
+CC_FLAGS    = -mthrowback -mmodule -O3 -std=c99 -mlibscl $(INCLUDE)
+ASM         = $(CC)
+ASM_FLAGS   = $(CC_FLAGS)
+LINK        = gcc
+LINK_FLAGS  = -mmodule -mlibscl
+CMHG        = cmunge
+CMHG_FLAGS  = -throwback -p -zbase -tgcc -apcs 3/32
+else
+## Norcroft:
+CC          = cc
+CC_FLAGS    = -throwback -zM -zps0 -ffa -apcs 3/32bit/fpe3 -IC: $(INCLUDE)
+ASM         = objasm
+ASM_FLAGS   = -apcs 3/32bit
+LINK        = link
+LINK_FLAGS  = -rmf C:o.Stubs
+CMHG        = cmhg
+CMHG_FLAGS  = -throwback -p -32bit
+
+UNITATATIME = no
+endif
+MKDIR       = cdir
+
+# Here you need to specify extra libraries if you use them, like:
+# TCPIPLibs:o.inetlibzm TCPIPLibs:o.unixlibzm TCPIPLibs:o.socklib5zm \
+# OSLib:o.OSLib32
+LIBS = OSLib:o.OSLib32
+
+# Add here all your C files :
+MODCSRCS   = gccmodule.c
+# Add here all your ASM files :
+MODSSRCS   = 
+# Add here your CMHG file :
+MODCMHGSRC = module.cmhg
+
+# Sometimes you need the start of the module as variable in your code
+# (e.g. when implementing a filing system).  CMunge can create such
+# a variable when its option -zbase is specified.  CMHG can not and
+# therefore you need an explicit assembler file doing this.
+ifneq ($(TOOLCHAIN),gcc)
+MODSSRCS += ro_base.s
+endif
+
+all: gccmodule2
+
+.INIT:
+	@$(MKDIR) o
+
+.PHONY: all
+
+.SUFFIXES: .o .c .s .cmhg .h
+
+.c.o:;	$(CC) $(CC_FLAGS) -c -o $@ $<
+.s.o:;	$(ASM) $(ASM_FLAGS) -c -o $@ $<
+.cmhg.h:;	$(CMHG) $(CMHG_FLAGS) -d $@ $<
+.cmhg.o:;	$(CMHG) $(CMHG_FLAGS) -o $@ $<
+
+# Static dependencies:
+
+$(MODCSRCS): $(MODCMHGSRC:.cmhg=.h)
+
+ifeq ($(UNITATATIME),yes)
+# One big compilation (GCC only):
+gccmodule2: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o)
+	$(CC) $(CC_FLAGS) -o $@ $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
+else
+# Object-per-object compilation:
+gccmodule2: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o)
+	$(LINK) $(LINK_FLAGS) -o $@ $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
+endif
+
+# Dynamic dependencies:

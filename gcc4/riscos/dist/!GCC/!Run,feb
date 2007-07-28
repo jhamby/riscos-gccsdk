@@ -1,0 +1,73 @@
+| !Run file for the GCCSDK 4
+| Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
+| Copyright (c) GCCSDK Developers 2002, 2003, 2004, 2005, 2006, 2007
+
+Set GCC$Dir <Obey$Dir>
+
+| Search path used for the compiler binaries
+If "<GCCbin$Path>" = "" Then Set Run$Path <Run$Path>,GCCbin:
+Set GCCbin$Path <GCC$Dir>.bin.
+
+| Set the return code limit. UnixLib encodes information within this range
+Set Sys$RCLimit 65536
+
+| Place to store temporary files.  Only needed if you really want it to
+| be different than <Wimp$ScrapDir> (which is the UnixLib default for /tmp
+| files).
+| Set UnixFS$/tmp <Wimp$ScrapDir>
+
+| Ensure correct filename translation for a variety of prefixes
+Set UnixEnv$gcc$sfix "f:for:F:fpp:cc:cxx:cpp:c++:C:i:ii:rpo:c:m:h:hh:s:S:xrb:xrs:l:o:y:tcc:cmhg"
+Set UnixEnv$cc1$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$collect2$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$cpp$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$g++$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$cc1plus$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$c++filt$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$addr2line$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$ar$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$as$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$ld$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$nm$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$objcopy$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$objdump$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$ranlib$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$readelf$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$size$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$strings$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$strip$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
+Set UnixEnv$gprof$sfix <UnixEnv$gcc$sfix>
+
+| Set system variables for controlling UnixLib heap for dynamic areas.
+| See the documentation about UnixLib and dynamic areas.
+| Comment these out if you do *NOT* wish to use dynamic areas.
+
+| For C
+Set gcc$heap ""
+Set cc1$heap ""
+Set collect2$heap ""
+Set cpp$heap ""
+| For C++
+Set g++$heap ""
+Set cc1plus$heap ""
+Set c++filt$heap ""
+| Binutils
+Set addr2line$heap ""
+Set ar$heap ""
+Set as$heap ""
+Set ld$heap ""
+Set nm$heap ""
+Set objcopy$heap ""
+Set objdump$heap ""
+Set ranlib$heap ""
+Set readelf$heap ""
+Set size$heap ""
+Set strings$heap ""
+Set strip$heap ""
+| Various
+Set gcov$heap ""
+Set gprof$heap ""
+
+| Used for extended command lines
+RMEnsure DDEUtils 0.02 RMLoad System:Modules.DDEUtils

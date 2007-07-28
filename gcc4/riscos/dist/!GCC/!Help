@@ -1,0 +1,77 @@
+            Welcome to GCCSDK GCC 4.1.1 Release 1 for RISC OS
+                     http://gccsdk.riscos.info/
+
+                        *** EXPERIMENTAL ***
+
+This document covers important notes for new users and existing users alike.
+GCC and UnixLib have undergone many changes, so it's important that you read
+this document fully.
+
+If you're new to GCC:
+
+ - The !GCC application contains everything you need to get started
+   programming in RISC OS.  Although it possible to mix and match,
+   in particular with Acorn's C/C++, this is not recommended for beginners.
+
+   To get started using GCC, read !GCC.docs.Intro
+
+
+If you've used GCC before:
+
+- GCCSDK 4 produces ELF object files, libraries and binaries while in GCCSDK
+  3 this was AOF/AIF based.  Currently there is no support to mix AOF object
+  or library files with ELF object files.
+
+- The file !GCC.Changes lists major changes from the last version.
+  !GCC.docs.UnixLib.Changes has a comprehensive list of changes to UnixLib.
+
+
+License:
+
+  GCCSDK release made by the GCCSDK Developers consists of several binaries
+  and sources which have different licenses.  The following overview can
+  help to identify those licenses but is in no way an authoritative statement
+  on behalf of the GCCSDK Developers:
+
+  - gcc (and all its associated files) : See !GCC.docs.gcc
+  - binutils (and all its associated files) : See !GCC.docs.binutils
+  - cmunge : See !GCC.docs.CMunge.Copyright
+  - mkresfs : See !GCC.docs.mkresfs.COPYING
+  - libscl : See !GCC.docs.SCL.COPYING
+  - UnixLib : See !GCC.docs.UnixLib.Copyright
+
+
+Credits:
+
+  Primary Developers today :
+
+  - John Tytgat - Release management, allround GCCSDK hacking.
+  - Lee Noar - Shared library development.
+  - Peter Naulls - UnixLib (all areas, especially glibc compatibility).
+  - Alex Waugh - UnixLib (especially signals, pthreads, file handling).
+
+  An enormous amount of porting and testing work was done by Nick Burrett.
+  Without his contribution GCCSDK wouldn't exist.
+
+  The following people have also made contributions over the last four years
+  (in alphabetic order) :
+
+    Ben Avison, John-Mark Bell, Stefan Bellon, Alan Buckley, James Bursa,
+    Steve Ellacott, Rich Hudson, Rob Kendrick, Jeffrey Lee, Christian Ludlam,
+    Alex Macfarlane Smith, Theo Markettos, David Marston, Philip Pemberton,
+    Graham Shaw, Tony van der Hoff, Simon Wilson, Martin Wuerthner.
+
+  Special thanks to the following people having written programs which are
+  used in the GCCSDK project :
+
+  - Justin Fletcher and Robin Watts for 'CMunge', a free alternative to CMHG.
+  - Rob Kendrick for his 'mkresgen', a C code generator to add/remove files
+    to/from ResourceFS.
+  - All UnixLib Developers for providing a run-time library which is
+    essential for GCCSDK and ported programs using GCCSDK.
+
+  Thanks also to all the testers and bug reporters.
+
+  And last but not least, all the GCC and binutils contributers.
+
+GCCSDK Developers, 2007

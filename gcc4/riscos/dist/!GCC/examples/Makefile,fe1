@@ -1,0 +1,32 @@
+CXXFLAGS = -lstdc++
+
+all: hellow hellowscl helloworld helloworldscl \
+	ackermann dhry \
+	exception template \
+	gccmodule1
+
+# These require OSLib, so not built by default
+extra: gccmodule2 gccmodule3
+
+# hellow, ackermann: Makes use of implict rules
+
+
+# hellow, and helloworld with libscl
+hellowscl:
+	$(CC) -mlibscl -o $@ hellow.c
+
+helloworldscl:
+	$(CXX) -mlibscl -o $@ helloworld.cc
+
+
+# dhry: Specify just the object files required to create it
+
+dhry: dhry_1.o dhry_2.o
+
+
+# Modules examples, change directory and make
+# .PHONY targets used to ensure the target is always 'made'
+
+.PHONY: gccmodule1 gccmodule2 gccmodule3
+gccmodule1 gccmodule2 gccmodule3:
+	$(MAKE) -C $@

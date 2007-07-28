@@ -1,0 +1,13 @@
+; Copyright (C) 2005 GCCSDK Developers
+
+; Assembler function to give RM base address to C program
+; This is sometimes needed like e.g. when creating a FS.  CMunge can already
+; define this symbol via its -zbase option so in that case you don't have
+; to use this file.
+
+        IMPORT  |Image$$RO$$Base|
+        EXPORT  Image__RO_Base
+
+        AREA    Code_Description, DATA, REL
+Image__RO_Base   DCD     |Image$$RO$$Base|
+        END

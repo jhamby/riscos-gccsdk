@@ -1,0 +1,146 @@
+RISC OS GCC example applications
+================================
+
+The following example programs are designed to demonstrate the basics
+of the C and C++ languages and help the user understand the GCC compilers.
+
+For each program, there is a list of the necessary command lines for how
+to compile, link and run the program.
+
+
+hellow
+------
+
+The standard C program.
+
+Source: 	c.hellow
+Compile using: 	gcc hellow.c -o hellow
+Run using: 	hellow
+
+
+ackermann
+---------
+
+A benchmark program, used to indicate the coding efficiency of procedures.
+Also illustrates how to receive arguments passed on the command line.
+
+Source:		c.ackermann
+Compile using:	gcc ackermann.c -o ackermann
+Run using:	ackermann 3 4
+
+Try using different numbers instead of 3 and 4.
+
+
+Dhrystone 2.1
+-------------
+
+Used as the standard integer benchmark. This program consists of two
+source files which will need linking together. The best solution is to
+compile each file separately, for which the resultant Acorn Object Format
+files will be placed in the 'o' directory, and then link with the necessary
+libraries to create an executable.
+
+Source:		c.dhry_1, c.dhry_2, h.dhry_2
+
+Compile using:	gcc -c dhry_1.c
+		gcc -c dhry_2.c
+
+Link using:	gcc -o dhry dhry_1.o dhry_2.o
+
+Run using:	dhry
+
+When prompted for the number of iterations, use any number in the range
+10000 to 200000.  It might be worth adding the command line option '-O2'
+when compiling to measure the difference achieved between no optimisation
+and full optimisation.
+
+
+helloworld
+----------
+
+The standard C++ program.  We use the g++ driver to build and link C++
+applications.  This does nothing more than adding -lstdc++ to the linker
+command line.
+
+Source: 	cc.helloworld
+Compile using: 	g++ helloworld.cc -o helloworld
+Run using: 	helloworld
+
+
+exception
+---------
+
+A demonstration of basic exception handling.  The application
+calls a function that throws a string as an exception which will
+be caught by the calling function.
+
+Source:         cc.exception
+Compile using:  g++ exception.cc -o exception
+Run using:      exception
+
+
+template
+--------
+
+Demonstrates the instantiation of templates.
+
+Source: 	cc.template
+Compile using: 	g++ template.cc -o template
+Run using: 	template
+
+
+gccmodule1
+----------
+
+Example of RISC OS module generation using GCC.
+
+Source:		gccmodule1.c.gccmodule gccmodule1.cmhg.module
+Compile using:	cmunge -tgcc -32bit module.cmhg -o module.o -d module.h
+                gcc -mmodule -mlibscl -c gccmodule.c
+                gcc -mmodule -mlibscl module.o gccmodule.o -o gccmodule
+Run using:	gccmodule
+
+
+gccmodule2
+----------
+
+Example of RISC OS FS module generation using GCC and an example of
+a Makefile.  The Makefile and source code is also Acorn C/C++
+compatible.  Note this example needs to presence of OSLib library
+which can be found at <URL:http://ro-oslib.sourceforge.net/>.
+
+Source:		gccmodule2.Makefile gccmodule2.c.gccmodule
+		gccmodule2.h.gccmodule_config gccmodule2.cmhg.module
+Compile using:
+  - In TaskWindow:
+      make
+  - When the Makefile filetype FE1 has a RunType defined, like:
+      Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
+    You can just double click on the Makefile Filer icon and the
+    compilation then happens in a separate TaskWindow.
+Run using:	gccmodule
+
+
+gccmodule3
+----------
+
+Example of RISC OS FS module generation using GCC, example of
+a Makefile and how to use resgen.  The Makefile and source code
+is also Acorn C/C++ compatible.  Note this example needs to
+presence of OSLib library which can be found at
+<URL:http://ro-oslib.sourceforge.net/>.
+
+Source:		gccmodule3.Makefile gccmodule3.c.gccmodule
+		gccmodule3.cmhg.module gccmodule3.dat.ObeyFile
+		gccmodule3.dat.TextFile
+Compile using:
+  - In TaskWindow:
+      make
+  - When the Makefile filetype FE1 has a RunType defined, like:
+      Set Alias$@RunType_FE1 TaskWindow "make -f %%0 %%*1" -display -quit -wimpslot 8000k -name "Makefile"
+    You can just double click on the Makefile Filer icon and the
+    compilation then happens in a separate TaskWindow.
+Run using:	gccmodule
+
+
+-EOF-
