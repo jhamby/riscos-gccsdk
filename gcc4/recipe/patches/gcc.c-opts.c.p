@@ -1,5 +1,5 @@
---- gcc/c-opts.c.orig	2007-01-18 00:24:42.000000000 +0100
-+++ gcc/c-opts.c	2007-01-17 23:22:57.000000000 +0100
+--- gcc/c-opts.c.orig	2007-07-16 02:38:43.000000000 +0200
++++ gcc/c-opts.c	2007-07-16 02:39:28.000000000 +0200
 @@ -158,6 +158,7 @@
  
      case OPT_F:
@@ -8,25 +8,37 @@
      case OPT_idirafter:
      case OPT_isysroot:
      case OPT_isystem:
-@@ -811,6 +812,24 @@
+@@ -811,6 +812,36 @@
        add_path (xstrdup (arg), AFTER, 0, true);
        break;
  
 +    case OPT_icrossdirafter:
 +      {
 +	char *path;
-+	const char *prefix;
 +	const char *suffix = arg;
-+	size_t prefix_len, suffix_len;
 +
-+	suffix_len = strlen (suffix);
-+	prefix     = cpp_CROSS_INCLUDE_DIR;
-+	prefix_len = cpp_CROSS_INCLUDE_DIR_len;
++	/* We assume the crossdirafter option comes *after* iprefix option.
++	   Here we translate the standard prefix of first part of
++	   CROSS_INCLUDE_DIR with iprefix value.  */
++	if (iprefix != NULL
++	    && !strncmp (cpp_CROSS_INCLUDE_DIR, cpp_GCC_INCLUDE_DIR, cpp_GCC_INCLUDE_DIR_len))
++	  {
++	    path = concat (iprefix, cpp_CROSS_INCLUDE_DIR + cpp_GCC_INCLUDE_DIR_len, suffix, NULL);
++	  }
++	else
++	  {
++	    const char *prefix;
++	    size_t prefix_len, suffix_len;
 +
-+	path = xmalloc (prefix_len + suffix_len + 1);
-+	strcpy (path, prefix);
-+	strcat (path, suffix);
-+	add_path (path, AFTER, 0, true);
++	    prefix     = cpp_CROSS_INCLUDE_DIR;
++	    prefix_len = cpp_CROSS_INCLUDE_DIR_len;
++
++	    suffix_len = strlen (suffix);
++	    path = xmalloc (prefix_len + suffix_len + 1);
++	    strcpy (path, prefix);
++	    strcat (path, suffix);
++	  }
++	add_path (path, AFTER, 0 /* cxx_aware */, true);
 +      }
 +      break;
 +
