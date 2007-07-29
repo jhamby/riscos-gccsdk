@@ -1,0 +1,19 @@
+The official CMunge v0.76 contains nearly all the changes needed for usage
+in the GCCSDK 3.4 project.  For GCCSDK 4 we had to made additional changes
+for ELF, instead of AOF, object format support and this only affects the
+operation of the -tgcc option.
+
+Overview of the changes made so far:
+
+  - GCCSDK specific build structure changes.
+  - hiding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
+  - marked "[GCCSDK 4]" via the CMunge printf() in main()
+  - -tgcc option supports ELF object format and no longer AOF object format.
+
+The GCCSDK-DIFF file contains those changes in diff format and are submitted
+back to the CMunge authors for possible inclusion in future versions.  It is
+generated using:
+
+  $ svn diff svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/cmunge svn://svn.riscos.info/gccsdk/trunk/gcc4/riscos/cmunge
+
+-EOF-
