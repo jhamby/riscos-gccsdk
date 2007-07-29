@@ -300,13 +300,14 @@ it, or protect it with a mutex.
 
 Multitasking
 
-Running a threaded program in a taskwindow or a threaded Wimp program is
-possible without any extra code but note that context switching may not
-occur very often.
+Running a threaded program in a taskwindow is possible without any extra
+code.  Likewise for threaded Wimp programs but this on condition that its
+Wimp_Initialise SWI call gets done before its first thread creation.
 
-Therefore for threaded Wimp programs you may find it beneficial to put a
-pthread_yield() call somewhere inside the Wimp_Poll loop, to ensure other
-threads get a better chance of running.
+Note that for those two kinds of multitasking programs, context switching may
+not occur very often.  Therefore for threaded Wimp programs you may find it
+beneficial to put a pthread_yield() call somewhere inside the Wimp_Poll loop,
+to ensure other threads get a better chance of running.
 
 In addition, you may find it appropriate to disable threads during Wimp
 redraw loops.
