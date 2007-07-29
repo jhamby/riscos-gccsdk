@@ -1,7 +1,7 @@
 mkrefs - A tool for generating code to register and deregister
          data from ResourceFS
          
-         Copyright 2006 - 2007, Rob Kendrick <rjek@rjek>
+         Copyright 2006 - 2007, Rob Kendrick <rjek@rjek.com>
          
 Purpose
 -------
