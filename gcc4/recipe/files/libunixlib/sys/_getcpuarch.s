@@ -63,7 +63,7 @@ cpu_is_pre_arm7:
 	LDR	a2, =0x41560300
 	TEQ	a1, a2
 	MOVEQ	a1, #2			@ ARM3, architecture 2
-	LDMFD	R13!, {PC}
+	LDMEQFD	R13!, {PC}
 	LDR	a2, =0x41560600		@ ARM600, architecture 3
 	TEQ	a1, a2
 	LDRNE	a2, =0x41560610		@ ARM610, architecture 3

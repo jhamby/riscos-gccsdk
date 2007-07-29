@@ -697,6 +697,12 @@ Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 [ ^^^ Here starts UnixLib 5.0 ^^^ ]
 -----------------------------------------------------------------------
+Sun Jul 29 15:00:17 CEST 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+
+	* source/sys/__getcpuarch.s(__get_cpu_arch): wrong result for ARM
+	architecture 3 processors.
+
+-----------------------------------------------------------------------
 [ vvv Here ends UnixLib 4.6 vvv ]
 
 Sun Jul 15 13:52:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
