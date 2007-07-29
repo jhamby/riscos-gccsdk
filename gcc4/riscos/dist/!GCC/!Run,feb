@@ -69,5 +69,8 @@ Set strip$heap ""
 Set gcov$heap ""
 Set gprof$heap ""
 
+Set Alias$cc gcc %%*0
+Set Alias$c++ g++ %%*0
+
 | Used for extended command lines
 RMEnsure DDEUtils 0.02 RMLoad System:Modules.DDEUtils

@@ -22,13 +22,27 @@
 
 <p>XXX FIXME
 
+<p>GNU GCC/binutils documentation:
 <ul>
   <li><a href="gcc/gcc/index.html">GNU C/C++ compiler</a>
   <li><a href="gcc/cpp/index.html">GNU C preprocessor</a>
   <li><a href="as/index.html">GNU assembler as</a>
-  <li><a href="ld/index.html">GNU linkder ld</a>
+  <li><a href="ld/index.html">GNU linker ld</a>
   <li><a href="binutils/index.html">BNU Binary Utilities</a>: a large set of utilities for creating, inspecting and modifying binary object files.
   <li><a href="libiberty/libiberty.html">GNU libiberty</a>: a collection of subroutines used by various GNU programs. It is available under the Library General Public License.
+</ul>
+
+<p>Runtime documentation:
+<ul>
+  <li><a href="libunixlib">UnixLib</a>: the default runtime library used when compiling programs with GCC. The UnixLib's intend is to provide, as much as possible, a fully POSIX-compatible runtime library for RISC OS in order to compile and run most (but not all) POSIX-compatible code that avoids OS specific code.
+  <li><a href="libscl">SharedCLibrary</a>: this is an alternative runtime library which is using the SharedCLibrary RISC OS module.  It has the advantage that those applications are usually smaller in size but does not have a rich API as UnixLib. When building modules, this is the only runtime library you can use.
+</ul>
+
+<p>RISC OS related documentation:
+<ul>
+  <li><a href="cmunge">CMunge</a>: a tool to generates a suitable veneer to allow RISC OS modules to be developed in C or C++.
+  <li><a href="elf2aif">elf2aif</a>: a tool to convert static ELF binaries into AIF Absolute files avoiding the need for ELF loader at runtime.
+  <li><a href="mkresfs">mkresfs</a>: a tool to generate C code that creates and removes files from ResourceFS in your RISC OS modules.
 </ul>
 
 </body>
