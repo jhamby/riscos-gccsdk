@@ -1,4 +1,4 @@
-            Welcome to GCCSDK GCC 4.1.1 Release 1 for RISC OS
+           Welcome to GCCSDK GCC 4.1.1 Prerelease 1 for RISC OS
                      http://gccsdk.riscos.info/
 
                         *** EXPERIMENTAL ***
@@ -10,8 +10,7 @@ this document fully.
 If you're new to GCC:
 
  - The !GCC application contains everything you need to get started
-   programming in RISC OS.  Although it possible to mix and match,
-   in particular with Acorn's C/C++, this is not recommended for beginners.
+   programming in RISC OS.
 
    To get started using GCC, read !GCC.docs.Intro
 
@@ -35,10 +34,11 @@ License:
 
   - gcc (and all its associated files) : See !GCC.docs.gcc
   - binutils (and all its associated files) : See !GCC.docs.binutils
-  - cmunge : See !GCC.docs.CMunge.Copyright
+  - cmunge : See !GCC.docs.cmunge.Copyright
+  - elf2aif : See !GCC.docs.elf2aif.COPYING
+  - libscl : See !GCC.docs.libscl.COPYING
+  - UnixLib : See !GCC.docs.libunixlib.COPYING
   - mkresfs : See !GCC.docs.mkresfs.COPYING
-  - libscl : See !GCC.docs.SCL.COPYING
-  - UnixLib : See !GCC.docs.UnixLib.Copyright
 
 
 Credits:

@@ -1,5 +1,5 @@
-The RISC OS Software Development Kit [GCCSDK 4.x Release y]
-===========================================================
+The RISC OS Software Development Kit [GCCSDK GCC 4.1.1 Prerelease 1 ]
+====================================
 
 This is a lightweight build environment which combines a GCC 4.1.1 release,
 binutils 2.17 release, UnixLib 5.0 and libscl 2.0 into one directory which can
