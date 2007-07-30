@@ -132,7 +132,7 @@ svn export -q --force $GCCSDK_RISCOS/dist/\!System $BKIT_SYSTEM_SRC
 test -d $BKIT_GCC_SRC/share && rm -rf $BKIT_GCC_SRC/share
 if [ ! -f $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/ld/ld.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE ] ; then
   # Build the HTML documentation:
-  cd $GCCSDK_RISCOS_BUILDDIR && make html
+  cd $GCCSDK_RISCOS_BUILDDIR && PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make html
 fi
 # Copy documentation:
 mkdir -p $BKIT_GCC_SRC/docs/libiberty && cp -r $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html $BKIT_GCC_SRC/docs/libiberty
