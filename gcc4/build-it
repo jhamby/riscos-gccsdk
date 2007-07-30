@@ -138,3 +138,6 @@ $GCCSDK_SRCDIR/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS \
 #   make CFLAGS_FOR_TARGET="-O3 -march=armv5" CXXFLAGS_FOR_TARGET="-O3 -march=armv5" all
 make $GCCSDK_MAKE_ARGS all
 make $GCCSDK_MAKE_ARGS install
+
+# Build the relevant RISC OS specific binaries:
+cd $GCCSDK_ROOT/riscos && ./build-it $GCCSDK_BUILD_ACTION

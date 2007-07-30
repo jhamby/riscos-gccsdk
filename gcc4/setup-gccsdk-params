@@ -34,6 +34,9 @@ GCCSDK_RISCOS_BUILDDIR=$GCCSDK_ROOT/builddir-riscos
 GCCSDK_SUPPORTED_GCC_RELEASE=4.1.1
 GCCSDK_SUPPORTED_BINUTILS_RELEASE=2.17
 
+# Release name:
+GCCSDK_RELEASE_NAME=$GCCSDK_SUPPORTED_GCC_RELEASE-pre-r1
+
 # This is the name of the target we're interested in:
 GCCSDK_TARGET_NAME=arm-unknown-riscos
 

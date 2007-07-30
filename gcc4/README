@@ -3,7 +3,8 @@ The RISC OS Software Development Kit [GCCSDK 4.x Release y]
 
 This is a lightweight build environment which combines a GCC 4.1.1 release,
 binutils 2.17 release, UnixLib 5.0 and libscl 2.0 into one directory which can
-be used to build a RISC OS cross-compiler with target arm-unknown-riscos.
+be used to build a RISC OS cross-compiler and native RISC OS compiler with
+target arm-unknown-riscos.
 
 We expect that the current set of GCCSDK patches for GCC and binutils can
 be applied to later versions than GCC 4.1.1 and binutils 2.17 as is, or at
@@ -34,6 +35,9 @@ and work with GCCSDK on top of a typical recent standard Unix distribution.
 - automake v1.9 (no other version !)
 - autogen v5.8.8 (other versions might work too)
 
+Prerequisites for building GCC can be found at
+<URL:http://gcc.gnu.org/install/prerequisites.html>.
+
 1. Checking out
 ~~~~~~~~~~~~~~~
 
@@ -43,17 +47,22 @@ To check out GCCSDK 4 build code:
   $ cd gccsdk4
   $ svn co svn://svn.riscos.info/gccsdk/trunk/gcc4
 
-We have now in 'gcc4' directory the GCCSDK 4.x code.
+We have now in 'gcc4' directory the GCCSDK 4 code.
 
 2. Build steps
 ~~~~~~~~~~~~~~
 
+The build steps are the following:
+
 1. Build cross-compiler.
 2. Build RISC OS ELF loader.
-3. Build the native RISC OS compiler.
+3. Build the native RISC OS compiler and GCCSDK kit creation.
 
-Prerequisites for building GCC can be found at
-<URL:http://gcc.gnu.org/install/prerequisites.html>.
+However, people only interested in having the cross-compiler only need to
+do step 1 and they might also be interested in "5. Porting tools" section
+mentioned below.
+
+Build steps 2 and 3 are only of interest for the GCCSDK developer.
 
 2.1. Build cross-compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -131,7 +140,15 @@ the same build-it script with "riscos" as argument given.
 Note that 'build-it' can take some useful options, use -h option to have an
 option list.
 
-[ FIXME: Packaging the RISC OS compiler needs to be done. ]
+The RISC OS GCC release consists of several kits.  These are prepared using:
+
+   $ ./create-gcckit
+
+And you can find the result in the 'release-area' subdirectory.  The directory
+and file structure there are exactly what will be packaged in a couple of zip
+files.  This packaging in zip files happens by:
+
+   $ ./create-gcckit -pkg
 
 3. Developing
 ~~~~~~~~~~~~~
@@ -184,6 +201,7 @@ Note that the GCCSDK Autobuilder framework will use these porting-scripts in
 order to do its job, cfr. <URL:http://www.riscos.info/index.php/Using_GCCSDK>
 for more information.
 
+[ vvv Only temporary vvv ]
 Some GCCSDK Autobuilder projects still have AOF based assembler and currently
 the best way to handle these (and remain GCCSDK 3.4.6 compatible until GCCSDK
 4.x is completely selfhosting) is to temporary use GCCSDK 3.4.6 and instructing
@@ -199,6 +217,7 @@ its assembler to write ELF output instead of AOF.  This requires:
        ASFLAGS = -Wa,-elf,-ILibraries,-I$(@D) -c
 
      It is advised to do this only when AB_ELFBUILD is defined as "yes".
+[ ^^^ Only temporary ^^^ ]
 
 6. Credits
 ~~~~~~~~~~
