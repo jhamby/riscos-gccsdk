@@ -1,0 +1,6 @@
+Description: Airstrike is a 2d dogfight game in the tradition of the Intellivision and
+ Amiga games 'Biplanes' and 'BIP'. It features a robust physics engine and
+ several other extensions of the original games. It is currently 0-2 player
+ only, but will hopefully have network play and some more advanced computer
+ controlled enemies in the future. The graphics have been created using the
+ Povray raytracer, and should be easy to extend and modify.
