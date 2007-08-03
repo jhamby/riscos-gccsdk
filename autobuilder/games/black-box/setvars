@@ -1,0 +1,18 @@
+AB_CATEGORY=games
+
+AB_COPYSOURCE=yes
+
+# Extra libraries needed by static build of SDL_Mixer
+export LIBS="-logg -lvorbis -lvorbisfile"
+
+ab_package() {
+
+  mkdir -p $D/\!Blackbox
+  cp -av $H/\!Blackbox/\!* $D/\!Blackbox
+  cp -av $S/src/black-box,ff8 $D/\!Blackbox/blackbox,ff8
+
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/README $D/\!Blackbox
+
+  mkdir -p $D/\!Blackbox/data
+  cp -r $S/data/gfx $S/data/sound $D/\!Blackbox/data
+}
