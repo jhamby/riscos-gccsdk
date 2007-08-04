@@ -78,7 +78,8 @@ cross-compiler will be installed).
 1. Place an official GCC 4.1 release in 'orig.gcc' directory and official
    binutils 2.17 release in 'orig.binutils' by running:
 
-     $ ./download-gcc-binutils
+     $ ./download-gcc-binutils gcc
+     $ ./download-gcc-binutils binutils
 
    You only need to do this once as the contents of 'orig.gcc' and
    'orig.binutils' is considered read-only from now on and used in the scripts

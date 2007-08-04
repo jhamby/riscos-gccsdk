@@ -31,7 +31,7 @@ if [ "x"$1 = "xgcc" ] ; then
   fi
   # Download gcc
   echo +++ Downloading gcc $GCCSDK_SUPPORTED_GCC_RELEASE
-  wget -q -O $GCCSDK_GCCORIG-$GCCSDK_SUPPORTED_GCC_RELEASE.tar.bz2 http://ftp.gnu.org/gnu/gcc/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE.tar.bz2 || echo "Failed to download" && exit 1
+  wget -q -O $GCCSDK_GCCORIG-$GCCSDK_SUPPORTED_GCC_RELEASE.tar.bz2 http://ftp.gnu.org/gnu/gcc/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE.tar.bz2 || (echo "Failed to download" && exit 1) || exit 1
   echo +++ Unpacking gcc $GCCSDK_SUPPORTED_GCC_RELEASE
   tar xjf $GCCSDK_GCCORIG-$GCCSDK_SUPPORTED_GCC_RELEASE.tar.bz2
   mv gcc-$GCCSDK_SUPPORTED_GCC_RELEASE $GCCSDK_GCCORIG
@@ -45,7 +45,7 @@ else
   fi
   # Download binutils
   echo +++ Downloading binutils $GCCSDK_SUPPORTED_BINUTILS_RELEASE
-  wget -q -O $GCCSDK_BINUTILSORIG-$GCCSDK_SUPPORTED_BINUTILS_RELEASE.tar.bz2 http://ftp.gnu.org/gnu/binutils/binutils-$GCCSDK_SUPPORTED_BINUTILS_RELEASE.tar.bz2 || echo "Failed to download" && exit 1
+  wget -q -O $GCCSDK_BINUTILSORIG-$GCCSDK_SUPPORTED_BINUTILS_RELEASE.tar.bz2 http://ftp.gnu.org/gnu/binutils/binutils-$GCCSDK_SUPPORTED_BINUTILS_RELEASE.tar.bz2 || (echo "Failed to download" && exit 1) || exit 1
   echo +++ Unpacking binutils $GCCSDK_SUPPORTED_BINUTILS_RELEASE
   tar xjf $GCCSDK_BINUTILSORIG-$GCCSDK_SUPPORTED_BINUTILS_RELEASE.tar.bz2
   mv binutils-$GCCSDK_SUPPORTED_BINUTILS_RELEASE $GCCSDK_BINUTILSORIG
