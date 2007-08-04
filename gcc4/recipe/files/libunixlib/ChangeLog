@@ -1,3 +1,9 @@
+Sat Aug 4 17:39:01 2007  Lee Noar  <leenoar@sky.com>
+
+	* vscript: Remove __pthread_cleanup_pop & __pthread_cleanup_push to
+	make them visible from outside the DSO, as they could be called from
+	a user program.
+
 Sat Aug 4 14:40:20 2007  Lee Noar  <leenoar@sky.com>
 
 	* vscript: Remove __pthread_start_ticker & __pthread_stop_ticker to

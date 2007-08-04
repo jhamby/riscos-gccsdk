@@ -153,8 +153,6 @@ VERSION {
      __pthread_exit;
      __pthread_protect_unsafe;
      __pthread_callback;
-     __pthread_cleanup_pop;
-     __pthread_cleanup_push;
 
      __gcc_alloca_free_1;
 };
