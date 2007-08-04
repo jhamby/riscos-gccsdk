@@ -155,6 +155,6 @@ VERSION {
      __pthread_callback;
      __pthread_cleanup_pop;
      __pthread_cleanup_push;
-     __pthread_start_ticker;
-     __pthread_stop_ticker;
+
+     __gcc_alloca_free_1;
 };

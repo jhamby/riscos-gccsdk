@@ -1,3 +1,11 @@
+Sat Aug 4 14:40:20 2007  Lee Noar  <leenoar@sky.com>
+
+	* vscript: Remove __pthread_start_ticker & __pthread_stop_ticker to
+	make them visible from outside the DSO. Add __gcc_alloca_free_1 as
+	it's only called by __gcc_alloca_free. Hiding it means a direct call
+	instead of via the PLT and __gcc_alloca_free doesn't need to load
+	the PIC register.
+
 Tue Jul 10 00:53:25 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/sys/cdefs.h(__REDIRECT, __REDIRECT_NTH): Define.
