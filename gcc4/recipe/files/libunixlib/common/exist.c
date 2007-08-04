@@ -16,7 +16,18 @@ __isdir (const char *ux_dir)
       || filetype != __RISCOSIFY_FILETYPE_NOTFOUND)
     return 0;
 
+#if __UNIXLIB_SYMLINKS > 0
+  {
+  char target[_POSIX_PATH_MAX];
+
+    if (__resolve_symlinks (dir, target, _POSIX_PATH_MAX) != 0)
+      return 0;
+
+    return __isdir_raw (target);
+  }
+#else
   return __isdir_raw (dir);
+#endif
 }
 
 /* Return nonzero if FILE exists.  */
@@ -30,5 +41,16 @@ __object_exists (const char *ux_file)
       || filetype != __RISCOSIFY_FILETYPE_NOTFOUND)
     return 0;
 
+#if __UNIXLIB_SYMLINKS > 0
+  {
+  char target[_POSIX_PATH_MAX];
+
+    if (__resolve_symlinks (file, target, _POSIX_PATH_MAX) != 0)
+      return 0;
+
+    return __object_exists_raw (target);
+  }
+#else
   return __object_exists_raw (file);
+#endif
 }

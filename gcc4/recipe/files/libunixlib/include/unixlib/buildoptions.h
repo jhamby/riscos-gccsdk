@@ -28,3 +28,6 @@
 /* applications rely on 'errno' being a real variable rather than a */
 /* macro.  GCC's builtin math functions also rely on this.  */
 #define __UNIXLIB_ERRNO_THREADED	0
+
+/* Set to 1 if we want to support symlinks */
+#define __UNIXLIB_SYMLINKS		1

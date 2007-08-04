@@ -422,6 +422,12 @@ extern int __fork_pre (int isfork, void **sul_fork, pid_t *pid);
 
 extern unsigned int __get_cpu_arch (void);
 
+#if __UNIXLIB_SYMLINKS > 0
+
+extern __resolve_symlinks(const char *filename_in, char *filename_out, size_t fn_out_size);
+
+#endif
+
 #endif  /* __UNIXLIB_INTERNALS */
 
 __END_DECLS

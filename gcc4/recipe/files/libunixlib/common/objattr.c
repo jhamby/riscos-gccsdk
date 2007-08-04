@@ -32,8 +32,27 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
                     buffer, buf_len, &sftype))
     return __set_errno (ENAMETOOLONG);
 
+#if __UNIXLIB_SYMLINKS > 0
+  {
+  char *target;
+
+    if ((target = malloc(buf_len)) == NULL)
+      return __set_errno (ENOMEM);
+
+    if (__resolve_symlinks(buffer, target, buf_len) != 0)
+      {
+        free(target);
+        return -1;
+      }
+
+    err = __os_file (OSFILE_READCATINFO_NOPATH, target, regs);
+
+    free (target);
+  }
+#else
   /* Get catalogue information.  */
   err = __os_file (OSFILE_READCATINFO_NOPATH, buffer, regs);
+#endif
   if (err)
     {
       __ul_seterr (err, 0);
@@ -84,12 +103,28 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
 {
   _kernel_oserror *err;
   int regs[10], sftype;
+#if __UNIXLIB_SYMLINKS > 0
+  char *target;
+#endif
 
   if (ux_file == NULL)
     return __set_errno (EINVAL);
 
   if (!__riscosify_std (ux_file, 0, buffer, buf_len, &sftype))
     return __set_errno (ENAMETOOLONG);
+
+#if __UNIXLIB_SYMLINKS > 0
+  if ((target = malloc (buf_len)) == NULL)
+    return __set_errno (ENOMEM);
+
+  if (__resolve_symlinks (buffer, target, buf_len) != 0)
+    {
+      free(target);
+      return -1;
+    }
+
+    buffer = target;
+#endif
 
   /* Set catalogue information.  */
   if (ftype != __ATTR_NOTSPECIFIED)
@@ -98,6 +133,9 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
       err = __os_file (OSFILE_WRITECATINFO_FILETYPE, buffer, regs);
       if (err)
         {
+#if __UNIXLIB_SYMLINKS > 0
+          free(target);
+#endif
           __ul_seterr (err, 0);
           return __set_errno (EIO);
         }
@@ -109,10 +147,17 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
       err = __os_file (OSFILE_WRITECATINFO_ATTR, buffer, regs);
       if (err)
         {
+#if __UNIXLIB_SYMLINKS > 0
+          free(target);
+#endif
           __ul_seterr (err, 0);
           return __set_errno (EIO);
         }
     }
+
+#if __UNIXLIB_SYMLINK > 0
+  free(target);
+#endif
 
   return 0;
 }
