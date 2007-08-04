@@ -97,7 +97,9 @@
 #define LIB_SPEC \
   "%{!nostdlib:%{mlibscl:-lscl; :-lunixlib }}"
 
-#define LIBGCC_SPEC "-lgcc"
+#define LIBGCC_SPEC	"%{static:-lgcc} \
+			%{!static:%{!shared:-lgcc_s}} \
+			%{shared:-lgcc_s}"
 
 /* Provide a STARTFILE_SPEC appropriate for GNU/Linux.  Here we add
    the GNU/Linux magical crtbegin.o file (see crtstuff.c) which
@@ -261,7 +263,7 @@
 
 #undef SUBTARGET_CONDITIONAL_REGISTER_USAGE
 #define SUBTARGET_CONDITIONAL_REGISTER_USAGE	\
- if (flag_pic == 2)				\
+ if (flag_pic == 2 || TARGET_UNIXLIB)		\
    {						\
      call_used_regs[PIC_PLT_SCRATCH_REGNUM] = 1;\
    }
