@@ -136,8 +136,8 @@ if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
     ./build/ln/host/ln -s -f system.libunixlib/5/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libunixlib.so.5,1c8
     ./build/ln/host/ln -s -f system.libunixlib/5/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libunixlib.so,1c8
   fi
-  if [ -f $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib/libgcc_s.so.1 ] ; then
-    cp $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib//libgcc_s.so.1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libgcc_s.so.1,e1f
+  if [ -f $GCCSDK_RISCOS_PREFIX/lib/libgcc_s.so.1 ] ; then
+    cp $GCCSDK_RISCOS_PREFIX/lib//libgcc_s.so.1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libgcc_s.so.1,e1f
     ./build/ln/host/ln -s -f system.libgcc_s/so/1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libgcc_s.so.1,1c8
     ./build/ln/host/ln -s -f system.libgcc_s/so/1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libgcc_s.so,1c8
   fi
