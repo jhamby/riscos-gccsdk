@@ -7,7 +7,7 @@
 +  # Avoid -mmodule/-fPIC combination. This doesn't stop the build, it just stops
 +  # -fPIC being added to the command line. We end up with a DSO that wasn't
 +  # compiled with -fPIC, but it's not a library that will ever be used anyway.
-+  if [[ $flags == *mmodule* ]]; then
++  if echo $flags | grep -q -- "-mmodule" ; then
 +    fpic=
 +  else
 +    fpic=-fPIC
