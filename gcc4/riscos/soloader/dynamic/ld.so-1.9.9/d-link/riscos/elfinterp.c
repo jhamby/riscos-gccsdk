@@ -456,7 +456,7 @@ int _dl_parse_copy_information(struct dyn_elf * xpnt, int rel_addr,
       }
       else
       {
-      unsigned int *got = (unsigned int *)(tpnt->dynamic_info[DT_PLTGOT] + tpnt->loadaddr);
+      unsigned int *got = (unsigned int *)(lib->dynamic_info[DT_PLTGOT] + lib->loadaddr);
       struct som_rt_elem *objinfo = *((struct som_rt_elem **)got[2]) + got[1];
 
         /*
