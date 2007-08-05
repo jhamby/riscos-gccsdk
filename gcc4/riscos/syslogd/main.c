@@ -1,6 +1,6 @@
 /* Gateway for syslog msg via Inet to !Syslog
- * Written by John Tytgat / BASS
- * <URL:mailto:John.Tytgat@aaug.net>
+ * Written by John Tytgat / BASS <URL:mailto:John.Tytgat@aaug.net>
+ * Contributions by Alex Waugh.
  */
 
 #include <stdlib.h>

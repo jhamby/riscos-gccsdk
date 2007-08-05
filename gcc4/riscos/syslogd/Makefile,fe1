@@ -9,7 +9,7 @@ CC = cc
 All:	SysLogD
 
 # System libraries :
-#  - "o.syslog" comes from !SysLog distribution
+#  - "o.syslog32" comes from !SysLog distribution
 #  - "o.inetlibzm" & "o.socklibzm" comes from Acorn's SocketLib distribution
 LDLIBS = o.syslog32 TCPIPLibs:o.inetlibzm TCPIPLibs:o.socklibzm TCPIPLibs:o.unixlibzm c:o.Stubs
 
@@ -22,9 +22,10 @@ SysLogD:	$(SYSLOGDOBJS) $(LDLIBS) $(USRLIBS)
 
 .SUFFIXES: .o .c
 .c.o:;  	$(CC) $(CCflags) -o $@ $<
-.cmhg.o:;	cmhg $< $@ -d modheader.h
 
 # Static dependencies:
-modheader.h:	modheader.o
+main.o: modheader.h
+modheader.h modheader.o:
+	cmhg modheader.cmhg modheader.o -d modheader.h
 
 # Dynamic dependencies:
