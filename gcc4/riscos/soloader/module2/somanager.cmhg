@@ -70,6 +70,7 @@ error-identifiers: somerr_no_client_memory ("Unable to register client, out of m
   somerr_wimpslot_too_small("Wimpslot not big enough to run ELF program."),
   somerr_dl_no_got("Unable to locate GOT of dynamic loader."),
   somerr_symlink_bad_ID("Symlink typed file does not contain correct ID."),
-  somerr_symlink_overflow("Shared Object Manager symlink overflow.")
+  somerr_symlink_overflow("Shared Object Manager symlink overflow."),
+  somerr_no_exec("ELF file is not an executable.")
 
 generic-veneers: som_call_every som_callback

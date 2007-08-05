@@ -438,6 +438,13 @@ int dde_cl_len = ddeutils_get_cl_size();
 
   if ((err = elffile_open(state->elf_prog_name, &state->elf_prog)) != NULL)
     goto error;
+
+  if (state->elf_prog.elf_header.e_type != ET_EXEC)
+  {
+    err = somerr_no_exec;
+    goto error;
+  }
+
   /* Don't close the file until we're sure that we've finished with all info in the
    * elf_file structure, eg, program headers. */
 
