@@ -1,0 +1,63 @@
+
+--------------------------------< BumpRace >------------------------------------
+
+BumpRace is a simple arcade game. I'd like to receive a lot of comments and
+suggestions. You can get the newest version of BumpRace at:
+    http://members.linuxstart.com/~karlb/
+And you can reach me via e-mail:
+    karlb@gmx.net
+	
+Keys:
+	PLAYER 1
+	<arrow keys> 			  moving
+	<right control>                   special ability
+
+	PLAYER 2
+	<a>     	                  left
+	<d>				  right
+	<w>				  thrust
+	<left control>			  special ability	
+
+-----------------------------< RACER ABILITIES >--------------------------------
+
+UFO-Racer:  slows down automatically
+V-Shaped-Racer:  has 10% extra time
+Rocket-Racer:  press control for extra speed
+Last Racer:  press control to stick to walls
+
+--------------------------------< PARAMETER >-----------------------------------
+
+"--nosound"      "-s"      guess
+"--notfinal"     "-n"      no title screen (nice for develolopers)
+"--noparticles"  "-t"      turns of paticles. good for slow computers.
+"--precision [value]"      sets the precison of the collisions (default=10) 
+                           using this is not recommended
+
+---------------------------------< LICENSE >------------------------------------
+
+This game is available under the GNU General Public License version 2.
+See COPYING for details.
+
+-----------------------------< RISC OS VERSION >--------------------------------
+
+Ported by Alan Buckley
+August 2003 and Autobuilder version August 2007
+
+This program is 32 bit compatible and requires RISCOS 3.6+.
+Screen display 800x600 x 32K (colours) (or 16M if started in 16M colour mode)
+
+This version created by the GCCSDK Autobuilder
+for details see:
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+This program requires:
+
+SharedUnixLibrary module available from:
+
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
+
+!UnixHome application available from:
+
+http://www.riscos.info/unix/downloads/support/UnixHome-1.03.zip
+
+Contact: alan_baa@hotmail.com or the GCCSDK list

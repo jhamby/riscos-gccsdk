@@ -1,0 +1,7 @@
+| Run file for BumpRace
+
+Wimpslot -min 10560K -max 10560K
+
+Set BumpRace$Dir <Obey$Dir>
+
+Run <BumpRace$Dir>.!RunImage >null: 2>null:

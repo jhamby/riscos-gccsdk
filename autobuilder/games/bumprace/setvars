@@ -1,0 +1,20 @@
+AB_CATEGORY=games
+AB_COPYSOURCE=yes
+
+ab_package() {
+  cp -av $H/\!BumpRace $D
+  cp -av $H/\!BumpRace/\!* $D/\!BumpRace
+  cp -av src/bumprace,ff8 $D/\!BumpRace/\!RunImage,ff8
+
+  cp -av AUTHORS $ChangeLog COPYING FAQ README \
+    $D/\!BumpRace
+
+  mkdir -p $D/\!BumpRace/data
+  mkdir -p $D/\!BumpRace/data/bumprace
+  cp -r data/gfx $D/\!BumpRace/data/bumprace
+  cp -r data/sound $D/\!BumpRace/data/bumprace
+}
+
+export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile -lintl"
+AB_CONFLAGS=\''--datadir=/\<BumpRace\$$Dir\>/data'\'
+
