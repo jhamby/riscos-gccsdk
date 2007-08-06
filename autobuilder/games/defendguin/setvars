@@ -1,0 +1,20 @@
+AB_CATEGORY=games
+AB_COPYSOURCE=yes
+AB_DISTCLEAN="make clean"
+
+ab_package() {
+  cp -av $H/\!Defenguin $D
+  cp -av $H/\!Defenguin/\!* $D/\!Defenguin
+  cp -av defendguin,ff8 $D/\!Defenguin/\!RunImage,ff8
+  cat docs/README.txt $H/RISCOSNotes >$D/\!Defenguin/\!Help
+
+  cp -av docs/AUTHORS.txt $D/\!Defenguin/AUTHORS
+  cp -av docs/CHANGES.txt $D/\!Defenguin/CHANGES
+  cp -av docs/COPYING.txt $D/\!Defenguin/COPYING
+
+  mkdir -p $D/\!Defenguin/data
+  mkdir -p $D/\!Defenguin/data
+  cp -r data/images $D/\!Defenguin/data
+  cp -r data/music $D/\!Defenguin/data
+  cp -r data/sounds $D/\!Defenguin/data
+}
