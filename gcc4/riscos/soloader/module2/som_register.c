@@ -390,6 +390,8 @@ _kernel_oserror *err = NULL;
   /* Unlink from the list of clients. */
   linklist_remove(&global.client_list, &client->link);
 
+  somarray_fini(&client->runtime_array);
+
   if (client->name)
     som_free(client->name);
 
