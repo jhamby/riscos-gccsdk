@@ -39,13 +39,28 @@ void somarray_fini(som_array *array)
 _kernel_oserror *somarray_add_object(som_array *array, som_object *object)
 {
 _kernel_oserror *err;
+int index = 0, i;
 
-  if ((err = som_extend((void **)(void *)&array->object_base, sizeof(som_object *))) != NULL)
-    return err;
+  /* Check for unused elements that can be recycled, index 0 is always the client. */
+  for (i = 1; i < array->elem_count; i++)
+    if (array->object_base[i] == NULL)
+    {
+      index = i;
+      break;
+    }
 
-  object->index = array->elem_count;
+  if (index == 0)
+  {
+    /* There are no elements that can be recycled, so extend the array. */
+    if ((err = som_extend((void **)(void *)&array->object_base, sizeof(som_object *))) != NULL)
+      return err;
 
-  array->object_base[array->elem_count++] = object;
+    object->index = array->elem_count++;
+  }
+  else
+    object->index = index;
+
+  array->object_base[object->index] = object;
 
   /* Store the object index in the library public GOT. */
   *((unsigned int *)object->got_addr + SOM_OBJECT_INDEX_OFFSET) = object->index;
