@@ -1,0 +1,10 @@
+Tue Aug  7 22:06:56 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ln.c: indent according GNU style; output error messages via stderr
+	instead of stdout.
+
+Fri Jul 13 21:10:00 CEST 2007  Lee Noar  <leenoar@sky.com>
+
+	* ln.c: Small utility to create the symlink files used by the dynamic
+	linking system. Built for host and RISC OS as the build system
+	needs it to create symlink files.
