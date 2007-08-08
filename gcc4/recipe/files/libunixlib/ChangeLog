@@ -1,3 +1,9 @@
+Wed Aug 8 19:03:03 2007  Lee Noar  <leenoar@sky.com>
+
+	* common/symlinks.c: Don't use C based file access functions,
+	because we may be called from one. Instead use low level OS
+	functions.
+
 Sat Aug 4 18:53:54 2007  Lee Noar  <leenoar@sky.com>
 
 	* unix/dev.c: Add support for symlink files.

@@ -9,11 +9,11 @@
  */
 
 #include <kernel.h>
-#include <stdio.h>
 #include <swis.h>
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <unixlib/os.h>
 
 /* Offically allocated filetype. */
 #define	LINK_FILETYPE		0x1C8
@@ -47,9 +47,9 @@ static int read_link_file_info(const char *filename, int *filetype, int *type)
 int __resolve_symlinks(const char *filename_in, char *filename_out, size_t fn_out_size)
 {
   int link_count = 0;
-  int size, type, filetype;
+  int size, type, filetype, fd = -1;
   char *buffer = NULL;
-  FILE *file = NULL;
+  int regs[10];
 
   if (strlen(filename_in) + 1 > fn_out_size)
     return __set_errno(ENAMETOOLONG);
@@ -70,13 +70,13 @@ int __resolve_symlinks(const char *filename_in, char *filename_out, size_t fn_ou
 	  goto error;
 	}
 
-      if ((file = fopen(filename_out, "r")) == NULL)
+      if (__os_fopen(0x4F, filename_out, &fd) != NULL)
 	{
 	  __set_errno(ENOENT);
 	  goto error;
 	}
 
-      if (fread(buffer, 4, 1, file) != 1)
+      if (__os_fread(fd, buffer, 4, regs) != NULL)
 	{
 	  __set_errno(EIO);
 	  goto error;
@@ -88,20 +88,20 @@ int __resolve_symlinks(const char *filename_in, char *filename_out, size_t fn_ou
 	  goto error;
 	}
 
-       if (fread(&size, 4, 1, file) != 1)
+      if (__os_fread(fd, &size, 4, regs) != NULL)
 	{
 	  __set_errno(EIO);
 	  goto error;
 	}
 
-      if (fread(buffer, 1, size, file) != size)
+      if (__os_fread(fd, buffer, size, regs) != NULL)
 	{
 	  __set_errno(EIO);
 	  goto error;
 	}
 
-      fclose(file);
-      file = NULL;
+      __os_fclose(fd);
+      fd = -1;
 
       buffer[size] = '\0';
 
@@ -152,8 +152,8 @@ error:
   if (buffer)
     free(buffer);
 
-  if (file)
-    fclose(file);
+  if (fd != -1)
+    __os_fclose(fd);
 
   return -1;
 }
