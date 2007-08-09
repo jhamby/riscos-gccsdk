@@ -1,0 +1,17 @@
+AB_CATEGORY=games
+AB_COPYSOURCE=yes
+AB_DISTCLEAN="make clean"
+
+ab_package() {
+  cp -av $H/\!GemDropX $D
+  cp -av $H/\!GemDropX/\!* $D/\!GemDropX
+  cp -av gemdropx,ff8 $D/\!GemDropX/\!RunImage,ff8
+  cat README.txt $H/RISCOSNotes >$D/\!GemDropX/\!Help
+
+  cp -av AUTHORS.txt CHANGES.txt COPYING.txt ICON.txt \
+    $D/\!GemDropX
+
+  mkdir -p $D/\!GemDropX/data
+  cp -r data/images $D/\!GemDropX/data
+  cp -r data/sounds $D/\!GemDropX/data
+}
