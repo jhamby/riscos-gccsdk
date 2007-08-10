@@ -1,0 +1,48 @@
+PipeNightDreams
+---------------
+by Waldemar A. Baraldi
+Version 0.10.0
+For full details please refer to www.libsdl.org/projects/pipenightdreams
+
+Ported to RISC OS by Alan Buckley
+
+Description
+-----------
+
+PipeNightDreams is a PipeDream style game. The objective of the game is to carry liquid from some point to the exit using different kinds of pipes. On each level there is a minimum number of required pipes that should be at least reached for it to be completed.
+
+The score is increased by using as many pipes as possible and by collecting various bonus tokens by making the liquid pass through their pipes. There are also life bonuses.
+
+Keys
+----
+
+Press RETURN to start.
+Press ESC to exit. ESC at the start screen exits the program.
+
+Move the cursor to position the pipe sections with the arrow keys.
+Press SPACE to loop through the pipe sections until you get the one required.
+Press RETURN to speed up flow of liquid. Useful when all your pipes are laid.
+
+Bonus Types
+-----------
+
+The various types of bonus tokens are the following:
+
+LIFE BONUS  - The purple one with a "L" on it.
+SUPER BONUS - The red one with a "B" on it.
+ULTRA BONUS - The blue one.
+HYPER BONUS - The green one.
+
+Command Line options
+--------------------
+
+Add --fullscreen to the Run line in the !Run file to start up fullscreen.
+
+
+RISC OS notes
+-------------
+Minimum requirements:
+RISC OS 3.6 or better.
+Long file names.
+640 x 480 x 32 thousand colours or better screen display to show the window.
+(will run with fewer display colours, but the window may not be as clear)

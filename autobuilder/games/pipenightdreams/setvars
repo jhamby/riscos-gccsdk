@@ -1,0 +1,20 @@
+AB_CATEGORY=games
+AB_COPYSOURCE=yes
+
+ab_package() {
+  mkdir -p $D/\!PipeNight
+  cp -av $H/\!PipeNight/\!* $D/\!PipeNight
+  cp -av src/pipenightdreams,ff8 $D/\!PipeNight/\!RunImage,ff8
+
+  cp -av AUTHORS ChangeLog COPYING README \
+    $D/\!PipeNight
+
+  mkdir -p $D/\!PipeNight/games
+  mkdir -p $D/\!PipeNight/games/pipenightdreams
+  cp -r images $D/\!PipeNight/games/pipenightdreams
+  cp -r levels $D/\!PipeNight/games/pipenightdreams
+}
+
+export LIBS="-lSDL_image -ljpeg -lpng -ltiff -lz"
+AB_CONFLAGS=\''--datadir=/\<PipeNight\$Dir\>'\'
+
