@@ -1,0 +1,16 @@
+AB_CATEGORY=games
+AB_COPYSOURCE=yes
+AB_DISTCLEAN="make clean"
+
+ab_package() {
+  mkdir -p $D/\!komi
+  cp -av $H/\!komi/\!* $D/\!komi
+  cp -av komi,ff8 $D/\!komi
+  cat README.txt $H/RISCOSNotes >$D/\!komi/\!Help
+
+  cp -av CHANGELOG.txt $D/\!komi/CHANGES
+  cp -av COPYING.txt $D/\!komi/COPYING
+  cp -av TROUBLESHOOTING.txt $D/\!komi/TROUBLESHOOTING
+
+  cp -r komidata $D/\!komi
+}

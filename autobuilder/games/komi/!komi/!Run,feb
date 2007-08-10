@@ -1,0 +1,11 @@
+| Run file for komi
+
+| Try to load the sound
+| If the load fails the game should continue with no sound
+RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
+
+Set komi$dir <Obey$dir>
+
+Wimpslot -min 4096K -max 4096K
+
+<komi$dir>.komi --fullscreen --nosound
