@@ -22,12 +22,14 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #ifdef CROSS_COMPILE
-#include <kernel.h>
+#  include <kernel.h>
 #endif
 
 #define	LINK_FILETYPE	0x1C8
+#define	VERSION		"1.02"
 
 static const char const LINK[] = "LINK";
 
@@ -48,30 +50,41 @@ settype (const char *file)
 #endif
 }
 
-/* Return 1 if objects exists otherwise 0.  */
+/* Return 1 if object exists as file, otherwise 0.  */
 static int
-exists (const char *file)
+exists_as_file (const char *file)
 {
-  FILE *f;
-  int res = 0;
+  struct stat buf;
 
-  if ((f = fopen (file, "r")) != NULL)
-    {
-      res = 1;
-      fclose (f);
-    }
+  if (stat (file, &buf) == 0)
+    return S_ISREG (buf.st_mode);
 
-  return res;
+  return 0;
+}
+
+/* Return 1 if object exists as directory, otherwise 0.  */
+static int
+exists_as_dir (const char *dir)
+{
+  struct stat buf;
+
+  if (stat (dir, &buf) == 0)
+    return S_ISDIR (buf.st_mode);
+
+  return 0;
 }
 
 static void
 help (void)
 {
-  printf ("Usage: ln [OPTION]... TARGET [LINK_NAME]\n"
-	  "Create a link to the specified TARGET with optional LINK_NAME.\n"
-	  "If LINK_NAME is omitted, a link with the same basename as the TARGET is\n"
-	  "created in the current directory. Create hard links by default, symbolic\n"
-	  "links with --symbolic. When creating hard links, TARGET must exist.\n"
+  printf ("Usage: ln [OPTION]... TARGET LINK_NAME        (1st form)\n"
+	  "  or:  ln [OPTION]... TARGET                  (2nd form)\n"
+	  "  or:  ln [OPTION]... TARGET... DIRECTORY     (3rd form)\n"
+	  "In the 1st form, create a link to TARGET with the name LINK_NAME.\n"
+	  "In the 2nd form, create a link to TARGET in the current directory.\n"
+	  "In the 3rd form, create links to each TARGET in DIRECTORY.\n"
+	  "Create hard links by default, symbolic links with --symbolic.\n"
+	  "When creating hard links, TARGET must exist.\n"
 	  "\n"
 	  "  -f, --force                 remove existing destination files\n"
 	  "  -s, --symbolic              make symbolic links instead of hard links\n"
@@ -83,7 +96,10 @@ help (void)
 static void
 version (void)
 {
-  printf ("ln v1.01\n" "Written by Lee Noar\n");
+  printf ("ln " VERSION "\n"
+	  "Copyright (C) 2007 GCCSDK Developers\n"
+	  "\n"
+	  "Written by Lee Noar.\n");
 }
 
 static void
@@ -156,9 +172,13 @@ main (int argc, char *argv[])
     {
       char *sep;
 
+#ifdef CROSS_COMPILE
       sep = strrchr (target, '.');
       if (!sep)
 	sep = strrchr (target, ':');
+#else
+      sep = strrchr (target, '/');
+#endif
       if (sep)
 	sep++;
       else
@@ -173,8 +193,12 @@ main (int argc, char *argv[])
 	  goto err;
 	}
 
+#ifdef CROSS_COMPILE
       /* Make sure riscosify knows that this is a RISC OS name.  */
       strcpy (link_name, "@.");
+#else
+      strcpy (link_name, "./");
+#endif
       strcat (link_name, sep);
       link_arg = link_name + 2;
     }
@@ -193,13 +217,35 @@ main (int argc, char *argv[])
       goto err;
     }
 
-  if (!symbolic && !exists (target))
+  if (!symbolic && !exists_as_file (target) && !exists_as_dir (target))
     {
       fprintf (stderr, "ln: '%s': No such file or directory\n", target);
       goto err;
     }
 
-  if (exists (link_name))
+  if (exists_as_dir (link_name))
+    {
+      char *new_link_name = malloc (strlen (link_name) + 1 + strlen (target) + 1);
+      if (new_link_name == NULL)
+        {
+	  fprintf (stderr, "ln: Out of memory\n");
+	  goto err;
+        }
+      strcpy (new_link_name, link_name);
+#ifdef CROSS_COMPILE
+      strcat (new_link_name, ".");
+#else
+      strcat (new_link_name, "/");
+#endif
+      strcat (new_link_name, target);
+      free (link_name);
+      if (link_name == link_arg)
+        link_arg = link_name = new_link_name;
+      else
+        link_arg = (link_name = new_link_name) + 2;
+    }
+
+  if (exists_as_file (link_name))
     {
       if (!force)
 	{
@@ -214,19 +260,22 @@ main (int argc, char *argv[])
 	}
     }
 
-  link_file = fopen (link_name, "wb");
-  if (!link_file)
+  target_len = strlen (target);
+  link_file = fopen (link_name, "w");
+  if (link_file == NULL
+      || fwrite (LINK, 4, 1, link_file) != 1
+      || fputc ((target_len >>  0) & 0xFF, link_file) == EOF
+      || fputc ((target_len >>  8) & 0xFF, link_file) == EOF
+      || fputc ((target_len >> 16) & 0xFF, link_file) == EOF
+      || fputc ((target_len >> 24) & 0xFF, link_file) == EOF
+      || fwrite (target, target_len, 1, link_file) != 1)
     {
       fprintf (stderr, "ln: Unable to create link '%s'\n", link_arg);
       goto err;
     }
 
-  fwrite (LINK, 1, 4, link_file);
-
-  target_len = strlen (target);
-  fwrite (&target_len, 4, 1, link_file);
-  fwrite (target, 1, target_len, link_file);
   fclose (link_file);
+  link_file = NULL;
 
   settype (link_name);
 
@@ -235,8 +284,7 @@ main (int argc, char *argv[])
   return EXIT_SUCCESS;
 
 err:
-  if (link_name)
-    free (link_name);
+  free (link_name);
   if (link_file)
     fclose (link_file);
 

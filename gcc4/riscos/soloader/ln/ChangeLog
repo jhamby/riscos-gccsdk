@@ -1,3 +1,9 @@
+Sat Aug 11 11:16:26 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ln.c: support of creating link in a given directory; fixed stripping
+	of basename from dirname and current directory specification on
+	non-RISC OS host; support big-endian hosts.
+
 Tue Aug  7 22:06:56 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* ln.c: indent according GNU style; output error messages via stderr
