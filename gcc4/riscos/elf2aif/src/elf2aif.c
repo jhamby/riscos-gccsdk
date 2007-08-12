@@ -36,10 +36,10 @@
                    "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 
 typedef struct phdr_list_s
-  {
-    struct phdr_list_s *nextP; /* Needs to be first */
-    Elf32_External_Phdr phdr;
-  } phdr_list_t;
+{
+  struct phdr_list_s *nextP;	/* Needs to be first */
+  Elf32_External_Phdr phdr;
+} phdr_list_t;
 
 /* Entries marked with (*) need to be updated after copying data at
    'aifcode'.  */
@@ -59,8 +59,8 @@ typedef struct
   uint8_t workspace[4];		/* Relocatable image workspace size */
   uint8_t amode[4];		/* 26/32 bit address mode and flags */
   uint8_t data[4];		/* Address of image data base */
-  uint8_t reserv[4*2];		/* Reserved */
-  uint8_t zicode[4*16];		/* zero init code */
+  uint8_t reserv[4 * 2];	/* Reserved */
+  uint8_t zicode[4 * 16];	/* zero init code */
 } aifheader_t;
 
 static int opt_verbose = 0;
@@ -68,60 +68,62 @@ static int opt_verbose = 0;
 static Elf32_External_Ehdr elf_ehdr;
 static phdr_list_t *elf_phdrlistP;
 
-static const unsigned int aifcode[] =
-{
-  0xE1A00000,		/* NOP (BL decompress)      */
-  0xE1A00000,		/* NOP (BL self-relocate)   */
-  0xEB00000C,		/* BL zero-init             */
-  0xEB000000,		/* BL entrypoint (*)        */
-  0xEF000011,		/* SWI OS_Exit              */
-  0x00000000,		/* Image R/O size (*)       */
-  0x00000000,		/* Image R/W size (*)       */
-  0x00000000,		/* Image debug size         */
-  0x00000000,		/* Image zero-init size (*) */
-  0x00000000,		/* Image debug type         */
-  0x00000000,		/* Image base (*)           */
-  0x00000000,		/* Workspace size           */
-  0x00000020,		/* 32-bit addressing        */
-  0x00000000,		/* Data base                */
-  0x00000000,		/* Reserved                 */
-  0x00000000,		/* Reserved                 */
-  0xE1A00000,		/* MOV   R0, R0             */
-  0xE04EC00F,		/* SUB   R12, R14, PC       */
-  0xE08FC00C,		/* ADD   R12, PC, R12       */
-  0xE99C0017,		/* LDMIB R12, {R0-R2, R4}   */
-  0xE24CC010,		/* SUB   R12, R12, #0x10    */
-  0xE08CC000,		/* ADD   R12, R12, R0       */
-  0xE08CC001,		/* ADD   R12, R12, R1       */
-  0xE3A00000,		/* MOV   R0, #0             */
-  0xE3A01000,		/* MOV   R1, #0             */
-  0xE3A02000,		/* MOV   R2, #0             */
-  0xE3A03000,		/* MOV   R3, #0             */
-  0xE3540000,		/* CMP   R4, #0             */
+static const unsigned int aifcode[] = {
+  0xE1A00000,			/* NOP (BL decompress)      */
+  0xE1A00000,			/* NOP (BL self-relocate)   */
+  0xEB00000C,			/* BL zero-init             */
+  0xEB000000,			/* BL entrypoint (*)        */
+  0xEF000011,			/* SWI OS_Exit              */
+  0x00000000,			/* Image R/O size (*)       */
+  0x00000000,			/* Image R/W size (*)       */
+  0x00000000,			/* Image debug size         */
+  0x00000000,			/* Image zero-init size (*) */
+  0x00000000,			/* Image debug type         */
+  0x00000000,			/* Image base (*)           */
+  0x00000000,			/* Workspace size           */
+  0x00000020,			/* 32-bit addressing        */
+  0x00000000,			/* Data base                */
+  0x00000000,			/* Reserved                 */
+  0x00000000,			/* Reserved                 */
+  0xE1A00000,			/* MOV   R0, R0             */
+  0xE04EC00F,			/* SUB   R12, R14, PC       */
+  0xE08FC00C,			/* ADD   R12, PC, R12       */
+  0xE99C0017,			/* LDMIB R12, {R0-R2, R4}   */
+  0xE24CC010,			/* SUB   R12, R12, #0x10    */
+  0xE08CC000,			/* ADD   R12, R12, R0       */
+  0xE08CC001,			/* ADD   R12, R12, R1       */
+  0xE3A00000,			/* MOV   R0, #0             */
+  0xE3A01000,			/* MOV   R1, #0             */
+  0xE3A02000,			/* MOV   R2, #0             */
+  0xE3A03000,			/* MOV   R3, #0             */
+  0xE3540000,			/* CMP   R4, #0             */
 /* zeroloop: */
-  0xD1A0F00E,		/* MOVLE PC, R14            */
-  0xE8AC000F,		/* STMIA R12!, {R0-R3}      */
-  0xE2544010,		/* SUBS  R4, R4, #16        */
-  0xEAFFFFFB		/* B     zeroloop           */
+  0xD1A0F00E,			/* MOVLE PC, R14            */
+  0xE8AC000F,			/* STMIA R12!, {R0-R3}      */
+  0xE2544010,			/* SUBS  R4, R4, #16        */
+  0xEAFFFFFB			/* B     zeroloop           */
 };
 
 /* Read a little-endian 'short' value.  */
-static uint16_t RdShort(const uint8_t sh[2])
+static uint16_t
+RdShort (const uint8_t sh[2])
 {
-  return sh[0] | (sh[1]<<8);
+  return sh[0] | (sh[1] << 8);
 }
 
 /* Read a little-endian 'long' value.  */
-static uint32_t RdLong(const uint8_t lg[4])
+static uint32_t
+RdLong (const uint8_t lg[4])
 {
-  return lg[0] | (lg[1]<<8) | (lg[2]<<16) | (lg[3]<<24);
+  return lg[0] | (lg[1] << 8) | (lg[2] << 16) | (lg[3] << 24);
 }
 
 /* Write little-endian 'long' value.  */
-static void WrLong(uint8_t lg[4], uint32_t val)
+static void
+WrLong (uint8_t lg[4], uint32_t val)
 {
-  lg[0] = (val >>  0) & 0xFF;
-  lg[1] = (val >>  8) & 0xFF;
+  lg[0] = (val >> 0) & 0xFF;
+  lg[1] = (val >> 8) & 0xFF;
   lg[2] = (val >> 16) & 0xFF;
   lg[3] = (val >> 24) & 0xFF;
 }
@@ -129,26 +131,25 @@ static void WrLong(uint8_t lg[4], uint32_t val)
 static void
 e2a_givehelp (void)
 {
-  fprintf (stderr, "Usage: elf2aif [options] [<ELF file> <AIF file>]\n"
-                   "Options:\n"
-                   "  -h       Give help output\n"
-                   "  -v       Verbose\n"
-                   "  -version Give version\n"
-          );
+  fprintf (stderr, "Usage: elf2aif [options] <ELF file> [<AIF file>]\n"
+	   "Convert static ARM ELF binary to AIF (Acorn Image Format) binary.\n"
+	   "Options:\n"
+	   "  -v, --verbose	prints informational messages during processing\n"
+	   "      --help	display this help and exit\n"
+	   "      --version	output version information and exit\n");
 }
 
 static void
 e2a_giveversion (void)
 {
   fprintf (stderr, PACKAGE_STRING "\n"
-                   COPYRIGHT "\n"
-                   DISCLAIMER "\n"
-          );
+	   COPYRIGHT "\n"
+	   DISCLAIMER "\n");
 }
 
 /* Fills in & validates 'elf_ehdr'.  */
 static int
-e2a_readehdr (FILE *elfhandle)
+e2a_readehdr (FILE * elfhandle)
 {
   if (fread (&elf_ehdr, sizeof (Elf32_External_Ehdr), 1, elfhandle) != 1)
     {
@@ -187,7 +188,8 @@ e2a_readehdr (FILE *elfhandle)
 
   if (elf_ehdr.e_ident[EI_VERSION] != 1)
     {
-      fprintf (stderr, "ELF file has unsupported version %d\n", elf_ehdr.e_ident[EI_VERSION]);
+      fprintf (stderr, "ELF file has unsupported version %d\n",
+	       elf_ehdr.e_ident[EI_VERSION]);
       return EXIT_FAILURE;
     }
 
@@ -207,13 +209,15 @@ e2a_readehdr (FILE *elfhandle)
 
   if (RdShort (elf_ehdr.e_machine) != EM_ARM)
     {
-      fprintf (stderr, "ELF file is not suited for ARM machine architecture\n");
+      fprintf (stderr,
+	       "ELF file is not suited for ARM machine architecture\n");
       return EXIT_FAILURE;
     }
 
   if (RdShort (elf_ehdr.e_version) != EV_CURRENT)
     {
-      fprintf (stderr, "ELF file has unsupported version %d\n", elf_ehdr.e_ident[EI_VERSION]);
+      fprintf (stderr, "ELF file has unsupported version %d\n",
+	       elf_ehdr.e_ident[EI_VERSION]);
       return EXIT_FAILURE;
     }
 
@@ -221,39 +225,43 @@ e2a_readehdr (FILE *elfhandle)
 }
 
 static int
-e2a_loadphentry (FILE *elfhandle, const Elf32_External_Phdr *phentryP)
+e2a_loadphentry (FILE * elfhandle, const Elf32_External_Phdr * phentryP)
 {
-  phdr_list_t *phdr_prevP = (phdr_list_t *)&elf_phdrlistP;
+  phdr_list_t *phdr_prevP = (phdr_list_t *) & elf_phdrlistP;
   phdr_list_t *phdr_curP, *phdr_nextP;
   uint32_t paddr, pmemsize, pfilesize;
 
   /* Don't support virtual and physical addresses to be different.  */
   if (RdLong (phentryP->p_vaddr) != (paddr = RdLong (phentryP->p_paddr)))
     {
-      fprintf (stderr, "ELF file has program header entry with different physical and virtual addresses\n");
+      fprintf (stderr,
+	       "ELF file has program header entry with different physical and virtual addresses\n");
       return EXIT_FAILURE;
     }
-  if ((pmemsize = RdLong (phentryP->p_memsz)) < (pfilesize = RdLong (phentryP->p_filesz)))
+  if ((pmemsize = RdLong (phentryP->p_memsz)) < (pfilesize =
+						 RdLong (phentryP->p_filesz)))
     {
-      fprintf (stderr, "More data in file than need to be loaded in memory ?\n");
+      fprintf (stderr,
+	       "More data in file than need to be loaded in memory ?\n");
       return EXIT_FAILURE;
     }
 
   /* Search insert point.  */
-  for (phdr_nextP = phdr_prevP->nextP; phdr_nextP != NULL; phdr_prevP = phdr_nextP, phdr_nextP = phdr_nextP->nextP)
+  for (phdr_nextP = phdr_prevP->nextP; phdr_nextP != NULL;
+       phdr_prevP = phdr_nextP, phdr_nextP = phdr_nextP->nextP)
     {
       if (paddr <= RdLong (phdr_nextP->phdr.p_paddr))
-        break;
+	break;
     }
   if (phdr_nextP != NULL)
     {
       /* Do some sanity check concerning overlap.  */
       /* FIXME: We don't check here for uint32_t overflows.  */
       if (paddr + pmemsize >= RdLong (phdr_nextP->phdr.p_paddr))
-        {
-          fprintf (stderr, "Overlapping program header entries\n");
-          return EXIT_FAILURE;
-        }
+	{
+	  fprintf (stderr, "Overlapping program header entries\n");
+	  return EXIT_FAILURE;
+	}
     }
   /* Insert.  */
   if ((phdr_curP = malloc (sizeof (phdr_list_t))) == NULL)
@@ -269,7 +277,7 @@ e2a_loadphentry (FILE *elfhandle, const Elf32_External_Phdr *phentryP)
 }
 
 static int
-e2a_readphdr (FILE *elfhandle)
+e2a_readphdr (FILE * elfhandle)
 {
   uint32_t phoffset, phentrysize, phentrycount;
 
@@ -281,7 +289,8 @@ e2a_readphdr (FILE *elfhandle)
       return EXIT_FAILURE;
     }
 
-  if ((phentrysize = RdShort (elf_ehdr.e_phentsize)) < sizeof (Elf32_External_Phdr))
+  if ((phentrysize =
+       RdShort (elf_ehdr.e_phentsize)) < sizeof (Elf32_External_Phdr))
     {
       fprintf (stderr, "Size program header entry is too small\n");
       return EXIT_FAILURE;
@@ -294,25 +303,27 @@ e2a_readphdr (FILE *elfhandle)
       uint32_t phtype;
 
       if (fseek (elfhandle, phoffset, SEEK_SET) != 0
-          || fread (&phentry, sizeof (Elf32_External_Phdr), 1, elfhandle) != 1)
-        {
-          fprintf (stderr, "Failed to read program header entry\n");
-          return EXIT_FAILURE;
-        }
+	  || fread (&phentry, sizeof (Elf32_External_Phdr), 1,
+		    elfhandle) != 1)
+	{
+	  fprintf (stderr, "Failed to read program header entry\n");
+	  return EXIT_FAILURE;
+	}
       phtype = RdLong (phentry.p_type);
       if (opt_verbose)
-        printf ("Processing program header entry with type %d\n", phtype);
+	printf ("Processing program header entry with type %d\n", phtype);
       switch (phtype)
-        {
-          case PT_LOAD:
-            if (e2a_loadphentry (elfhandle, &phentry) != EXIT_SUCCESS)
-              return EXIT_FAILURE;
-            break;
+	{
+	case PT_LOAD:
+	  if (e2a_loadphentry (elfhandle, &phentry) != EXIT_SUCCESS)
+	    return EXIT_FAILURE;
+	  break;
 
-          case PT_DYNAMIC:
-            fprintf (stderr, "This ELF file contains non-static program data which makes it unconvertable to AIF\n");
-            return EXIT_FAILURE;
-        }
+	case PT_DYNAMIC:
+	  fprintf (stderr,
+		   "This ELF file contains non-static program data which makes it unconvertable to AIF\n");
+	  return EXIT_FAILURE;
+	}
 
       phoffset += phentrysize;
       --phentrycount;
@@ -322,7 +333,7 @@ e2a_readphdr (FILE *elfhandle)
 }
 
 static int
-e2a_copy (FILE *elfhandle, FILE *aifhandle)
+e2a_copy (FILE * elfhandle, FILE * aifhandle)
 {
   const phdr_list_t *phdrP;
   uint32_t load_addr, prev_addr, exec_addr, flags;
@@ -342,7 +353,8 @@ e2a_copy (FILE *elfhandle, FILE *aifhandle)
   exec_addr = RdLong (elf_ehdr.e_entry);
   flags = RdLong (elf_phdrlistP->phdr.p_flags);
   if (prev_addr != load_addr
-      && (exec_addr < prev_addr || exec_addr >= prev_addr + RdLong (phdrP->phdr.p_filesz))
+      && (exec_addr < prev_addr
+	  || exec_addr >= prev_addr + RdLong (phdrP->phdr.p_filesz))
       && (flags & (PF_R | PF_W | PF_X) == (PF_R | PF_X)))
     {
       fprintf (stderr, "Unsupported case of entry address\n");
@@ -357,7 +369,7 @@ e2a_copy (FILE *elfhandle, FILE *aifhandle)
     }
   robase = prev_addr;
   rwbase = zibase = zilimit = 0;
-  for (phdrP =  elf_phdrlistP; phdrP != NULL; phdrP = phdrP->nextP)
+  for (phdrP = elf_phdrlistP; phdrP != NULL; phdrP = phdrP->nextP)
     {
       uint32_t cur_addr, cur_flags;
       uint32_t foffset, fsize, msize;
@@ -365,76 +377,82 @@ e2a_copy (FILE *elfhandle, FILE *aifhandle)
 
       cur_addr = RdLong (phdrP->phdr.p_paddr);
       if (prev_addr != cur_addr)
-        {
-          assert (prev_addr < cur_addr);
+	{
+	  assert (prev_addr < cur_addr);
 
-          if (zibase == 0)
-            {
-              /* We're not yet at zi area, so we have to write it explicitly.  */
-              char zeros[32*1024];
+	  if (zibase == 0)
+	    {
+	      /* We're not yet at zi area, so we have to write it explicitly.  */
+	      char zeros[32 * 1024];
 
-              if (opt_verbose)
-                printf ("Adding %d bytes of zero.\n", cur_addr - prev_addr);
-              memset (zeros, 0, sizeof (zeros));
-              while (prev_addr < cur_addr)
-                {
-                  const uint32_t chunk = (cur_addr - prev_addr > sizeof (zeros)) ? sizeof (zeros) : cur_addr - prev_addr;
-                  if (fwrite (zeros, chunk, 1, aifhandle) != 1)
-                    {
-                      fprintf (stderr, "Failed to write program segment\n");
-                      return EXIT_FAILURE;
-                    }
-                  prev_addr += chunk;
-                }
-            }
-        }
+	      if (opt_verbose)
+		printf ("Adding %d bytes of zero.\n", cur_addr - prev_addr);
+	      memset (zeros, 0, sizeof (zeros));
+	      while (prev_addr < cur_addr)
+		{
+		  const uint32_t chunk =
+		    (cur_addr - prev_addr >
+		     sizeof (zeros)) ? sizeof (zeros) : cur_addr - prev_addr;
+		  if (fwrite (zeros, chunk, 1, aifhandle) != 1)
+		    {
+		      fprintf (stderr, "Failed to write program segment\n");
+		      return EXIT_FAILURE;
+		    }
+		  prev_addr += chunk;
+		}
+	    }
+	}
 
       fsize = RdLong (phdrP->phdr.p_filesz);
       msize = RdLong (phdrP->phdr.p_memsz);
 
       cur_flags = RdLong (phdrP->phdr.p_flags);
       if (rwbase == 0 && (cur_flags & (PF_R | PF_W)) == (PF_R | PF_W))
-        rwbase = cur_addr;
+	rwbase = cur_addr;
       if (rwbase != 0)
-        {
-          if ((cur_flags & (PF_R | PF_W)) != (PF_R | PF_W))
-            {
-              fprintf (stderr, "Wrong order of read-only / read-write segments : not supported\n");
-              return EXIT_FAILURE;
-            }
-          if (zibase != 0 && fsize != 0)
-            {
-              fprintf (stderr, "Need to load non-zero data from file in zi area : not supported\n");
-              return EXIT_FAILURE;
-            }
-          if (fsize != msize)
-            {
-              if (zibase == 0)
-                zibase = zilimit = cur_addr + fsize;
-              zilimit += msize - fsize;
-            }
-        }
+	{
+	  if ((cur_flags & (PF_R | PF_W)) != (PF_R | PF_W))
+	    {
+	      fprintf (stderr,
+		       "Wrong order of read-only / read-write segments : not supported\n");
+	      return EXIT_FAILURE;
+	    }
+	  if (zibase != 0 && fsize != 0)
+	    {
+	      fprintf (stderr,
+		       "Need to load non-zero data from file in zi area : not supported\n");
+	      return EXIT_FAILURE;
+	    }
+	  if (fsize != msize)
+	    {
+	      if (zibase == 0)
+		zibase = zilimit = cur_addr + fsize;
+	      zilimit += msize - fsize;
+	    }
+	}
 
       ptr = malloc (fsize);
       if (ptr == NULL)
-        {
-          fprintf (stderr, "Out of memory\n");
-          return EXIT_FAILURE;
-        }
+	{
+	  fprintf (stderr, "Out of memory\n");
+	  return EXIT_FAILURE;
+	}
       foffset = RdLong (phdrP->phdr.p_offset);
       if (opt_verbose)
-        printf ("Reading ELF program segment from file offset 0x%x, size 0x%x\n", foffset, fsize);
+	printf
+	  ("Reading ELF program segment from file offset 0x%x, size 0x%x\n",
+	   foffset, fsize);
       if (fseek (elfhandle, foffset, SEEK_SET) != 0
-          || fread (ptr, fsize, 1, elfhandle) != 1)
-        {
-          fprintf (stderr, "Failed to read program segment\n");
-          return EXIT_FAILURE;
-        }
+	  || fread (ptr, fsize, 1, elfhandle) != 1)
+	{
+	  fprintf (stderr, "Failed to read program segment\n");
+	  return EXIT_FAILURE;
+	}
       if (fwrite (ptr, fsize, 1, aifhandle) != 1)
-        {
-          fprintf (stderr, "Failed to write program segment\n");
-          return EXIT_FAILURE;
-        }
+	{
+	  fprintf (stderr, "Failed to write program segment\n");
+	  return EXIT_FAILURE;
+	}
       free (ptr);
       prev_addr = cur_addr + msize;
     }
@@ -444,10 +462,11 @@ e2a_copy (FILE *elfhandle, FILE *aifhandle)
   zisize = zilimit - zibase;
   if (opt_verbose)
     printf ("Load address 0x%x\n"
-            "Entry address 0x%x\n"
-            "RO size: %d bytes\n"
-            "RW size: %d bytes\n"
-            "ZI size: %d bytes\n", load_addr, exec_addr, rosize, rwsize, zisize);
+	    "Entry address 0x%x\n"
+	    "RO size: %d bytes\n"
+	    "RW size: %d bytes\n"
+	    "ZI size: %d bytes\n", load_addr, exec_addr, rosize, rwsize,
+	    zisize);
 
   assert (sizeof (aifheader_t) == sizeof (aifcode));
   /* Write AIF header */
@@ -459,7 +478,10 @@ e2a_copy (FILE *elfhandle, FILE *aifhandle)
     }
 
   memcpy (&aifhdr, aifcode, sizeof (aifcode));
-  WrLong (aifhdr.entrypoint, RdLong (aifhdr.entrypoint) + ((exec_addr - load_addr - (offsetof (aifheader_t, entrypoint) + 8)) >> 2));
+  WrLong (aifhdr.entrypoint,
+	  RdLong (aifhdr.entrypoint) +
+	  ((exec_addr - load_addr -
+	    (offsetof (aifheader_t, entrypoint) + 8)) >> 2));
   WrLong (aifhdr.rosize, rosize);
   WrLong (aifhdr.rwsize, rwsize);
   WrLong (aifhdr.zisize, zisize);
@@ -474,17 +496,39 @@ e2a_copy (FILE *elfhandle, FILE *aifhandle)
   return EXIT_SUCCESS;
 }
 
+/* When aiffilename is NULL, write the AIF file with filename elffilename.  */
 static int
 e2a_convert (const char *elffilename, const char *aiffilename)
 {
   FILE *elfhandle, *aifhandle;
   int status;
+  const char *temp_aiffilename;
 
   aifhandle = elfhandle = NULL;
   status = EXIT_FAILURE;
 
-  if (opt_verbose)
-    printf ("Converting '%s' to '%s'.\n", elffilename, aiffilename);
+  if (aiffilename != NULL)
+    {
+      temp_aiffilename = NULL;
+      if (opt_verbose)
+	printf ("Converting '%s' to '%s'.\n", elffilename, aiffilename);
+    }
+  else
+    {
+      char *temp_filename;
+      if ((temp_filename =
+	   malloc (strlen (elffilename) + sizeof ("_tmp") - 1 + 1)) == NULL)
+	{
+	  fprintf (stderr, "Out of memory\n");
+	  return EXIT_FAILURE;
+	}
+      strcpy (temp_filename, elffilename);
+      strcat (temp_filename, "_tmp");
+      aiffilename = temp_filename;
+      temp_aiffilename = temp_filename;
+      if (opt_verbose)
+	printf ("Converting '%s'.\n", elffilename);
+    }
 
   if ((elfhandle = fopen (elffilename, "r")) == NULL)
     {
@@ -492,20 +536,18 @@ e2a_convert (const char *elffilename, const char *aiffilename)
       goto convert_end;
     }
 
-  if (e2a_readehdr (elfhandle) != EXIT_SUCCESS
-      || e2a_readphdr (elfhandle) != EXIT_SUCCESS)
-    goto convert_end;
-
   if ((aifhandle = fopen (aiffilename, "w")) == NULL)
     {
       fprintf (stderr, "Failed to open file '%s' for writing\n", aiffilename);
       goto convert_end;
     }
 
-  if (e2a_copy (elfhandle, aifhandle) != EXIT_SUCCESS)
+  if (e2a_readehdr (elfhandle) != EXIT_SUCCESS
+      || e2a_readphdr (elfhandle) != EXIT_SUCCESS)
     goto convert_end;
 
-  status = EXIT_SUCCESS;
+  status = e2a_copy (elfhandle, aifhandle);
+
 convert_end:
   if (elfhandle != NULL && fclose (elfhandle))
     {
@@ -520,7 +562,24 @@ convert_end:
     }
   /* Remove output file, if there is one written.  */
   if (status != EXIT_SUCCESS)
-    remove (aiffilename);
+    {
+      if (remove (aiffilename))
+	fprintf (stderr, "Failed to delete file '%s'\n", aiffilename);
+    }
+  else if (temp_aiffilename != NULL)
+    {
+      if (rename (temp_aiffilename, elffilename))
+	{
+	  fprintf (stderr, "Failed to rename file '%s' to '%s'\n",
+		   temp_aiffilename, elffilename);
+	  status = EXIT_FAILURE;
+	  if (remove (temp_aiffilename))
+	    fprintf (stderr, "Failed to delete file '%s'\n",
+		     temp_aiffilename);
+	}
+    }
+
+  free ((void *) temp_aiffilename);
 
   if (opt_verbose)
     printf ("Done.\n");
@@ -529,48 +588,49 @@ convert_end:
 }
 
 int
-main (int argc, char *argv [])
+main (int argc, char *argv[])
 {
   int i;
 
   for (i = 1; i < argc; ++i)
     {
       if (argv[i][0] != '-')
-        break; /* no options anymore */
+	break;			/* no options anymore */
 
-      if (!strcmp (&argv[i][1], "h"))
-        {
-          e2a_givehelp ();
-          if (i + 1 != argc)
-            fprintf (stderr, "Extra options/arguments ignored\n");
-          return EXIT_SUCCESS;
-        }
-      else if (!strcmp (&argv[i][1], "v"))
-        ++opt_verbose;
-      else if (!strcmp (&argv[i][1], "version"))
-        {
-          e2a_giveversion ();
-          if (i + 1 != argc)
-            fprintf (stderr, "Extra options/arguments ignored\n");
-          return EXIT_SUCCESS;
-        }
+      if (!strcmp (&argv[i][1], "-help"))
+	{
+	  e2a_givehelp ();
+	  if (i + 1 != argc)
+	    fprintf (stderr, "Warning: extra options/arguments ignored\n");
+	  return EXIT_SUCCESS;
+	}
+      else if (!strcmp (&argv[i][1], "-verbose")
+	       || !strcmp (&argv[i][1], "v"))
+	++opt_verbose;
+      else if (!strcmp (&argv[i][1], "-version"))
+	{
+	  e2a_giveversion ();
+	  if (i + 1 != argc)
+	    fprintf (stderr, "Warning: extra options/arguments ignored\n");
+	  return EXIT_SUCCESS;
+	}
       else
-        {
-          fprintf (stderr, "Unknown option '%s'\n", argv[i]);
-          return EXIT_FAILURE;
-        }
+	{
+	  fprintf (stderr, "Error: unknown option '%s'\n", argv[i]);
+	  return EXIT_FAILURE;
+	}
     }
 
   if (i == argc)
     {
-      fprintf (stderr, "Nothing to do\n");
+      fprintf (stderr, "Error: nothing to do\n");
       return EXIT_FAILURE;
     }
-  else if (i != argc - 2)
+  else if (i != argc - 1 && i != argc - 2)
     {
-      fprintf (stderr, "Wrong number of filenames specified\n");
+      fprintf (stderr, "Error: wrong number of filenames specified\n");
       return EXIT_FAILURE;
     }
 
-  return e2a_convert(argv[i], argv[i+1]);
+  return e2a_convert (argv[i], argv[i + 1]);
 }
