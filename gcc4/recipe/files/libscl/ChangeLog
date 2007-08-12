@@ -1,3 +1,13 @@
+Sun Aug 12 19:12:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos/chunkid01.s: rename .bss section into
+	.bss.riscos.libscl.chunkstub.id01 so that in ld's elf.sc and
+	armelf_riscos.sh script we can sort by section name as the
+	SharedCLibrary seems to want having the chunk's static data
+	blocks in the same order (and without gaps) as the chunk order
+	defined by R0 on entry of SWI SharedCLibrary_LibInitAPCS_32.
+	* riscos/chunkid02.s: Likewise.
+
 Fri Jul 27 03:10:01 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/stubs.s: Added explanation from Ben Avison on

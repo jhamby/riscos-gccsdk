@@ -1,5 +1,5 @@
---- ld/scripttempl/elf.sc.orig	2007-05-19 15:17:58.000000000 +0100
-+++ ld/scripttempl/elf.sc	2007-05-27 19:18:00.000000000 +0100
+--- ld/scripttempl/elf.sc.orig	2007-08-12 19:11:22.000000000 +0200
++++ ld/scripttempl/elf.sc	2007-08-12 19:08:24.000000000 +0200
 @@ -236,6 +236,21 @@
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
@@ -64,14 +64,17 @@
    ${DATA_GOT+${RELRO_NOW+${GOT}}}
    ${DATA_GOT+${RELRO_NOW+${GOTPLT}}}
    ${DATA_GOT+${RELRO_NOW-${SEPARATE_GOTPLT+${GOT}}}}
-@@ -437,6 +463,7 @@
+@@ -437,8 +463,9 @@
    ${BSS_PLT+${PLT}}
    .bss          ${RELOCATING-0} :
    {
 +   ${RELOCATING+${CREATE_SHLIB-${RISCOS_ZIBASE}}}
     *(.dynbss)
-    *(.bss${RELOCATING+ .bss.* .gnu.linkonce.b.*})
+-   *(.bss${RELOCATING+ .bss.* .gnu.linkonce.b.*})
++   *(.bss${RELOCATING+ SORT(.bss.*) .gnu.linkonce.b.*})
     *(COMMON)
+    /* Align here to ensure that the .bss section occupies space up to
+       _end.  Align after .bss to ensure correct alignment even if the
 @@ -446,6 +473,7 @@
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */

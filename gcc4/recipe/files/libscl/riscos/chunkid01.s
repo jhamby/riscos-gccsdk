@@ -151,7 +151,7 @@ kernel_vectors_mid:
 	.space			kernel_vectors_mid - kernel_vectors_begin
 kernel_vectors_end:
 
-	.bss
+	.section .bss.riscos.libscl.chunkstub.id01,"w",%nobits
 kernel_statics_begin:
 	.space	0x31c
 kernel_statics_end:
