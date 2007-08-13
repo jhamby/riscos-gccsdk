@@ -1,3 +1,8 @@
+Mon Aug 13 19:33:59 2007  Lee Noar  <leenoar@sky.com>
+
+	* riscos/stubs.s: Call static global constructors and
+	destructors for non-module code.
+
 Sun Aug 12 19:12:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/chunkid01.s: rename .bss section into

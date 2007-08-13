@@ -332,7 +332,11 @@ c_run_weak:				@ Ptr into .text
 	.word	main			@ *NO* GOTOFF as it breaks .weak test
 #endif
 c_run:					@ Ptr into .text
+#ifdef __TARGET_MODULE__
 	MakePtr	main
+#else
+	MakePtr	___main
+#endif
 	.size	__sclmain, . - __sclmain
 
 	@ This is called when all RTL blocks have been initialised via their
@@ -350,5 +354,25 @@ ___init:
 	BL	_main			@ Call clib to enter it.  SHOULD never return from here.
 	LDMDB	FP, {FP, SP, PC}
 	.size	___init, . - ___init
+
+#ifndef __TARGET_MODULE__
+	.asciz	"___main"
+	.align
+	.word	0xff000008
+	.type	___main, %function
+___main:
+	MOV	IP, SP
+	STMFD	SP!, {R0-R3, FP, IP, LR, PC}
+	SUB	FP, IP, #4
+
+	@ R0-R3 are saved on the stack to prevent the arguments to main() from being corrupted.
+	LDR	R0, =_fini
+	BL	atexit			@ Register static global destructors for calling on exit.
+	BL	_init			@ Call static global constructors.
+
+	LDMDB	FP, {R0-R3, FP, SP, LR}
+	B	main
+	.size	___main, . - ___main
+#endif
 
 	.end
