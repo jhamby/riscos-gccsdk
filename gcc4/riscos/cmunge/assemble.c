@@ -24,8 +24,10 @@ void AssembleFile(void) {
     int throwback;
 #ifdef __riscos__
     throwback = opt.throwback;
+#  define GCC_BINARY_NAME "gcc"
 #else
     throwback = 0;
+#  define GCC_BINARY_NAME "arm-unknown-riscos-gcc"
 #endif
 
     switch (opt.toolchain)
@@ -44,7 +46,7 @@ void AssembleFile(void) {
         break;
       case tc_gcc:
       case tc_lcc:
-        sprintf(buf, "arm-unknown-riscos-gcc -xassembler -mmodule %s %s -c %s -o %s",
+        sprintf(buf, GCC_BINARY_NAME " -xassembler -mmodule %s %s -c %s -o %s",
                           (CODE32) ? "-apcs32 -apcsfpv3" : "",
                           throwback ? "-mthrowback" : "",
                           opt.sfile, opt.ofile);

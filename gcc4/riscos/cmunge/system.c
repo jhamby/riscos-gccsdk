@@ -75,7 +75,7 @@ int our_system(const char *cmdtxt)
     ErrorFatal("Cannot set Extended CLI (%s); aborting\n",err->errmess);
   }
 
-  dprintf("Starting command '%s'\n", cmd);
+  dprintf("Starting command '%s' with DDEUtils CL '%s'\n", cmd, cmdtxt);
   /* The Pace SharedCLibrary is broken with regard to command line invocation.
      Apparently, it explicitly clears the DDEUtils command line before
      invocation of the command with system(). This means that we cannot set
@@ -86,6 +86,13 @@ int our_system(const char *cmdtxt)
    */
   rc = _kernel_system(cmd, 0);
   dprintf("  got return code %i\n", rc);
+  /* Clear DDEUtils' command line buffer as this seems not to happen when the
+     command can not be found.  */
+  if (rc != EXIT_SUCCESS
+      && (err = _swix(DDEUtils_SetCLSize, _IN(0), 0)) != NULL)
+  {
+    ErrorFatal("Cannot reset Extended CLI size (%s); aborting\n",err->errmess);
+  }
   free(cmd);
 #else
   int need_quotes =0;
