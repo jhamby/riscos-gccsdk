@@ -448,13 +448,6 @@ int dde_cl_len = ddeutils_get_cl_size();
   /* Don't close the file until we're sure that we've finished with all info in the
    * elf_file structure, eg, program headers. */
 
-  /* If the DDEUtils module is loaded, then we use that for the arguments and just pass the ELF
-   * file name to the OS. */
-  if ((err = os_start_app(state->ddeutils_is_present ? "" : state->elf_prog_args,
-			  elffile_entry_point(&state->elf_prog),
-			  state->elf_prog_name)) != NULL)
-    goto error;
-
   os_get_env(&state->env);
 
   /* Work out where free memory starts. */
@@ -541,6 +534,18 @@ som_PTR entry_point;
 unsigned int ram_limit = state->env.ram_limit;
 
   elffile_close(&state->elf_prog);
+
+  /* If the DDEUtils module is loaded, then we use that for the arguments and
+     just pass the ELF file name to the OS.  */
+  if ((err = os_start_app(state->ddeutils_is_present ? "" : state->elf_prog_args,
+			  elffile_entry_point(&state->elf_prog),
+			  state->elf_prog_name)) != NULL)
+    goto error;
+
+  /* Make sure that after calling os_start_app() succesfully, we call
+     som_start_app() and don't return from this routine anymore (even for an
+     error message) as otherwise we get "Not a heap block: FileSwitch FreeArea"
+     error (RO 6.06).  */
 
   /* Finished with command line. */
   som_free(state->elf_prog_name);

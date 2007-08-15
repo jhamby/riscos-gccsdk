@@ -1,3 +1,9 @@
+Wed Aug 15 20:45:46 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_runcom.c(command_run): we can't return from this routine with an
+	error after having called os_start_app() as otherwise the error "Not a
+	heap block: FileSwitch FreeArea" is given instead (on RO 6.06).
+
 Sat Mar 24 18:01:09 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Made it buildable with GCCSDK 4.
