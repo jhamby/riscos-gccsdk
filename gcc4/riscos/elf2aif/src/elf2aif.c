@@ -23,6 +23,12 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+
+#ifdef __riscos__
+#  include <kernel.h>
+#  include <swis.h>
+#endif
 
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
@@ -67,6 +73,7 @@ static int opt_verbose = 0;
 
 static Elf32_External_Ehdr elf_ehdr;
 static phdr_list_t *elf_phdrlistP;
+static const char *elf_filename;
 
 static const unsigned int aifcode[] = {
   0xE1A00000,			/* NOP (BL decompress)      */
@@ -142,9 +149,7 @@ e2a_givehelp (void)
 static void
 e2a_giveversion (void)
 {
-  fprintf (stderr, PACKAGE_STRING "\n"
-	   COPYRIGHT "\n"
-	   DISCLAIMER "\n");
+  fprintf (stderr, PACKAGE_STRING "\n" COPYRIGHT "\n" DISCLAIMER "\n");
 }
 
 /* Fills in & validates 'elf_ehdr'.  */
@@ -170,32 +175,33 @@ e2a_readehdr (FILE * elfhandle)
       || elf_ehdr.e_ident[EI_MAG2] != ELFMAG2
       || elf_ehdr.e_ident[EI_MAG3] != ELFMAG3)
     {
-      fprintf (stderr, "Not an ELF file\n");
+      fprintf (stderr, "'%s' is not an ELF file\n", elf_filename);
       return EXIT_FAILURE;
     }
 
   if (elf_ehdr.e_ident[EI_CLASS] != ELFCLASS32)
     {
-      fprintf (stderr, "ELF file is not a 32-bit object file\n");
+      fprintf (stderr, "ELF file '%s' is not a 32-bit object file\n",
+	       elf_filename);
       return EXIT_FAILURE;
     }
 
   if (elf_ehdr.e_ident[EI_DATA] != ELFDATA2LSB)
     {
-      fprintf (stderr, "ELF file is not little-endian\n");
+      fprintf (stderr, "ELF file '%s' is not little-endian\n", elf_filename);
       return EXIT_FAILURE;
     }
 
   if (elf_ehdr.e_ident[EI_VERSION] != 1)
     {
-      fprintf (stderr, "ELF file has unsupported version %d\n",
-	       elf_ehdr.e_ident[EI_VERSION]);
+      fprintf (stderr, "ELF file '%s' has unsupported version %d\n",
+	       elf_filename, elf_ehdr.e_ident[EI_VERSION]);
       return EXIT_FAILURE;
     }
 
   if (elf_ehdr.e_ident[EI_OSABI] != ELFOSABI_ARM)
     {
-      fprintf (stderr, "ELF file is not for ARM\n");
+      fprintf (stderr, "ELF file '%s' is not for ARM\n", elf_filename);
       return EXIT_FAILURE;
     }
 
@@ -203,21 +209,23 @@ e2a_readehdr (FILE * elfhandle)
      a valid AIF file.  */
   if (RdShort (elf_ehdr.e_type) != ET_EXEC)
     {
-      fprintf (stderr, "ELF file is not a executable file\n");
+      fprintf (stderr, "ELF file '%s' is not a executable file\n",
+	       elf_filename);
       return EXIT_FAILURE;
     }
 
   if (RdShort (elf_ehdr.e_machine) != EM_ARM)
     {
       fprintf (stderr,
-	       "ELF file is not suited for ARM machine architecture\n");
+	       "ELF file '%s' is not suited for ARM machine architecture\n",
+	       elf_filename);
       return EXIT_FAILURE;
     }
 
   if (RdShort (elf_ehdr.e_version) != EV_CURRENT)
     {
-      fprintf (stderr, "ELF file has unsupported version %d\n",
-	       elf_ehdr.e_ident[EI_VERSION]);
+      fprintf (stderr, "ELF file '%s' has unsupported version %d\n",
+	       elf_filename, elf_ehdr.e_ident[EI_VERSION]);
       return EXIT_FAILURE;
     }
 
@@ -235,7 +243,8 @@ e2a_loadphentry (FILE * elfhandle, const Elf32_External_Phdr * phentryP)
   if (RdLong (phentryP->p_vaddr) != (paddr = RdLong (phentryP->p_paddr)))
     {
       fprintf (stderr,
-	       "ELF file has program header entry with different physical and virtual addresses\n");
+	       "ELF file '%s' has program header entry with different physical and virtual addresses\n",
+	       elf_filename);
       return EXIT_FAILURE;
     }
   if ((pmemsize = RdLong (phentryP->p_memsz)) < (pfilesize =
@@ -285,7 +294,8 @@ e2a_readphdr (FILE * elfhandle)
   if ((phoffset = RdLong (elf_ehdr.e_phoff)) == 0
       || (phentrycount = RdShort (elf_ehdr.e_phnum)) == 0)
     {
-      fprintf (stderr, "ELF file does not have program headers\n");
+      fprintf (stderr, "ELF file '%s' does not have program headers\n",
+	       elf_filename);
       return EXIT_FAILURE;
     }
 
@@ -311,7 +321,9 @@ e2a_readphdr (FILE * elfhandle)
 	}
       phtype = RdLong (phentry.p_type);
       if (opt_verbose)
-	printf ("Processing program header entry with type %d\n", phtype);
+	printf
+	  ("Processing program header entry at offset 0x%x with type %d\n",
+	   phoffset, phtype);
       switch (phtype)
 	{
 	case PT_LOAD:
@@ -321,7 +333,8 @@ e2a_readphdr (FILE * elfhandle)
 
 	case PT_DYNAMIC:
 	  fprintf (stderr,
-		   "This ELF file contains non-static program data which makes it unconvertable to AIF\n");
+		   "ELF file '%s' contains non-static program data which makes it unconvertable to AIF\n",
+		   elf_filename);
 	  return EXIT_FAILURE;
 	}
 
@@ -503,6 +516,7 @@ e2a_convert (const char *elffilename, const char *aiffilename)
   FILE *elfhandle, *aifhandle;
   int status;
   const char *temp_aiffilename;
+  bool aiffile_exists = false;
 
   aifhandle = elfhandle = NULL;
   status = EXIT_FAILURE;
@@ -541,34 +555,75 @@ e2a_convert (const char *elffilename, const char *aiffilename)
       fprintf (stderr, "Failed to open file '%s' for writing\n", aiffilename);
       goto convert_end;
     }
+  aiffile_exists = true;
 
-  if (e2a_readehdr (elfhandle) != EXIT_SUCCESS
-      || e2a_readphdr (elfhandle) != EXIT_SUCCESS)
-    goto convert_end;
+  elf_filename = elffilename;
 
-  status = e2a_copy (elfhandle, aifhandle);
+  if (e2a_readehdr (elfhandle) == EXIT_SUCCESS
+      && e2a_readphdr (elfhandle) == EXIT_SUCCESS
+      && e2a_copy (elfhandle, aifhandle) == EXIT_SUCCESS)
+    status = EXIT_SUCCESS;
+
+#ifdef __riscos__
+  if (status == EXIT_SUCCESS)
+    {
+      _kernel_swi_regs regs;
+      _kernel_oserror *swierror;
+
+      /* Set filetype to 0xFF8. */
+      regs.r[0] = 0x12;		/* Set file type.  */
+      regs.r[1] = (int) aiffilename;
+      regs.r[2] = 0xFF8;	/* Absolute.  */
+      if ((swierror = _kernel_swi (OS_File, &regs, &regs)) != NULL)
+	{
+	  fprintf (stderr, "Cannot set filetype of '%s' (%s)", aiffilename,
+		   swierror->errmess);
+	  status = EXIT_FAILURE;
+	}
+    }
+#endif
 
 convert_end:
-  if (elfhandle != NULL && fclose (elfhandle))
+  if (elfhandle != NULL)
     {
-      fprintf (stderr, "Failed to close file '%s'\n", elffilename);
-      status = EXIT_FAILURE;
+      if (fclose (elfhandle))
+	{
+	  fprintf (stderr, "Failed to close file '%s'\n", elffilename);
+	  status = EXIT_FAILURE;
+	}
+      elfhandle = NULL;
     }
-  elfhandle = NULL;
-  if (aifhandle != NULL && fclose (aifhandle))
+  if (aifhandle != NULL)
     {
-      fprintf (stderr, "Failed to close file '%s'\n", aiffilename);
-      status = EXIT_FAILURE;
+      if (fclose (aifhandle))
+	{
+	  fprintf (stderr, "Failed to close file '%s'\n", aiffilename);
+	  status = EXIT_FAILURE;
+	}
+      aifhandle = NULL;
     }
   /* Remove output file, if there is one written.  */
   if (status != EXIT_SUCCESS)
     {
-      if (remove (aiffilename))
-	fprintf (stderr, "Failed to delete file '%s'\n", aiffilename);
+      if (aiffile_exists)
+	{
+	  if (remove (aiffilename))
+	    {
+	      fprintf (stderr, "Failed to delete file '%s'\n", aiffilename);
+	      status = EXIT_FAILURE;
+	    }
+	  aiffile_exists = false;
+	}
     }
   else if (temp_aiffilename != NULL)
     {
+      /* rename () from libscl with existing destination (which is the case
+         here), fails.  Therefore delete the destination file first.  */
+#ifdef __TARGET_SCL__
+      if (remove (elffilename) || rename (temp_aiffilename, elffilename))
+#else
       if (rename (temp_aiffilename, elffilename))
+#endif
 	{
 	  fprintf (stderr, "Failed to rename file '%s' to '%s'\n",
 		   temp_aiffilename, elffilename);
@@ -582,7 +637,7 @@ convert_end:
   free ((void *) temp_aiffilename);
 
   if (opt_verbose)
-    printf ("Done.\n");
+    printf ((status == EXIT_SUCCESS) ? "Done.\n" : "Failed.\n");
 
   return status;
 }
