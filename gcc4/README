@@ -16,12 +16,6 @@ Currently it might be necessary to define LTCONFIG_VERSION as:
 
   $ export LTCONFIG_VERSION=1.4a-GCC3.0
 
-And GCCSDK_NOE1F to some value (otherwise all executables, even the onces
-temporary made using building and configuration will have ,e1f extensions
-leading to odd build failures):
-
-  $ export GCCSDK_NOE1F=xxx
-
 0. Required build tools
 ~~~~~~~~~~~~~~~~~~~~~~~
 

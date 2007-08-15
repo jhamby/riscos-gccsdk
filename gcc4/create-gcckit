@@ -91,18 +91,29 @@ test -d $BKIT_GCC_SRC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELE
 # configuration madness.
 test -f $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/lib/libscl.a && rm $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/lib/libscl.a
 
+# Remove the shared libgcc_so.so for each of the libscl configurations:
+test -f $BKIT_GCC_SRC/lib/scl/fpu/libgcc_s.so && rm $BKIT_GCC_SRC/lib/scl/fpu/libgcc_s.so
+test -f $BKIT_GCC_SRC/lib/scl/fpu/module/libgcc_s.so && rm $BKIT_GCC_SRC/lib/scl/fpu/module/libgcc_s.so
+
 # Move SharedUnixLibrary module to !System:
 test -f $BKIT_GCC_SRC/bin/sul && mkdir -p $BKIT_SYSTEM_SRC/310/Modules && mv $BKIT_GCC_SRC/bin/sul $BKIT_SYSTEM_SRC/310/Modules/SharedULib,ffa
 
 # Strip the RISC OS binaries.  We won't need the debug info nor the symbols.
+# We don't process arm-unknown-riscos/bin as the binaries there are hard-linked to bin ones.
 cd $BKIT_GCC_SRC
 for bindir in bin $GCCSDK_TARGET_NAME/bin libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE ; do
   for f in `find $bindir -maxdepth 1 -type f` ; do
-    if file $f | grep -q ARM ; then
+    filetype=`file $f`
+    if echo $filetype | grep -q ARM ; then
       $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip $f
-      # Take the opportunity to add ,e1f suffix:
+      # Take the opportunity to add ,e1f suffix to ELF binaries:
       if ! echo $f | grep -q ",e1f" ; then
         mv $f $f,e1f
+      fi
+    elif echo $filetype | grep -q "RISC OS AIF" ; then
+      # Add ,ff8 suffix to AIF binaries:
+      if ! echo $f | grep -q ",ff8" ; then
+        mv $f $f,ff8
       fi
     fi
   done

@@ -72,21 +72,21 @@
 #endif
 
 /* libscl means hard-float only.  Module support means libscl and
-   hard-float.  */
-#define SUBTARGET_OPTION_TRANSLATE_TABLE            \
-  { "-mlibscl", "-mlibscl -mhard-float" },          \
-  { "-mmodule", "-mmodule -mlibscl -mhard-float" }
+   hard-float.  libscl and module support go for static libgcc
+   library.  */
+#define SUBTARGET_OPTION_TRANSLATE_TABLE		    \
+  { "-mlibscl", "-mlibscl -mhard-float -static" },	    \
+  { "-mmodule", "-mmodule -mlibscl -mhard-float -static" }
 
 /* Default multilib is UnixLib, hard-float (and no module support) */
 #undef  MULTILIB_DEFAULTS
 #define MULTILIB_DEFAULTS { "" }
 
 #undef SUBTARGET_CPP_SPEC
-#define SUBTARGET_CPP_SPEC "\
-%{mmodule:-D__TARGET_SCL__ -D__TARGET_MODULE__ -icrossdirafter /libscl; \
-  mlibscl:-D__TARGET_SCL__ -icrossdirafter /libscl; \
-  :-D__TARGET_UNIXLIB__ -icrossdirafter /libunixlib} \
-"
+#define SUBTARGET_CPP_SPEC \
+  "%{mmodule:-D__TARGET_SCL__ -D__TARGET_MODULE__ -icrossdirafter /libscl; " \
+  "mlibscl:-D__TARGET_SCL__ -icrossdirafter /libscl; " \
+  ":-D__TARGET_UNIXLIB__ -icrossdirafter /libunixlib} "
 
 /* The GNU C++ standard library requires that these macros be defined.  */
 #undef CPLUSPLUS_CPP_SPEC
@@ -281,14 +281,15 @@ extern const char *riscos_convert_filename (void *obstack,
                         const char *name, int do_exe, int do_obj);
 
 /* Defines for the implementation of throwbacks.  */
-#define ERROR_THROWBACK(FILE,LINE,PREFIX,S)        \
-{                                                  \
-  if (TARGET_THROWBACK)                            \
-    arm_error_throwback (FILE, LINE, PREFIX, S);  \
-}
-
+#define ERROR_THROWBACK(FILE,LINE,PREFIX,S)         \
+  do {                                              \
+    if (TARGET_THROWBACK)                           \
+      arm_error_throwback (FILE, LINE, PREFIX, S);  \
+  } while (0)
 #define ERROR_THROWBACK_FINALISE arm_throwback_finish ()
-#define GCC_DRIVER_HOST_INITIALIZATION riscos_host_initialisation ()
+
+#define GCC_DRIVER_HOST_INITIALIZATION \
+  riscos_host_initialisation ()
 #define TARGET_CONVERT_FILENAME(a,b,c,d) return riscos_convert_filename (a,b,c,d)
 
 /* Character constant used in separating components in paths.  */
