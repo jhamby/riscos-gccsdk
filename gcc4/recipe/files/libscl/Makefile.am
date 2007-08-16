@@ -3,6 +3,9 @@
 # Written by John Tytgat <John.Tytgat@aaug.net> based on the work done for
 # UnixLib.
 
+# Directory where headers will be installed.
+tooldir = $(exec_prefix)/$(target_alias)
+
 # Multilib support
 MAKEOVERRIDES=
 

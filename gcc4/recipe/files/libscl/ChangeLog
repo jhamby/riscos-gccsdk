@@ -1,3 +1,8 @@
+Thu Aug 16 23:43:34 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (tooldir): Define, so that partial build (or
+	out-of-tree) of libscl works.
+
 Mon Aug 13 19:33:59 2007  Lee Noar  <leenoar@sky.com>
 
 	* riscos/stubs.s: Call static global constructors and
