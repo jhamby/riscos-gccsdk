@@ -1,3 +1,8 @@
+Thu Aug 16 23:40:21 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gen-auto.pl: Define tooldir in produced Makefile.am so that partial
+	build (or out-of-tree) of UnixLib works.
+
 Wed Aug 8 19:03:03 2007  Lee Noar  <leenoar@sky.com>
 
 	* common/symlinks.c: Don't use C based file access functions,

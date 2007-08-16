@@ -91,6 +91,9 @@ print MAKE<<EOF;
 # Copyright (c) 2005, 2006, 2007 UnixLib developers
 # Written by Nick Burrett <nick\@sqrt.co.uk>
 
+# Directory where headers will be installed.
+tooldir = $(exec_prefix)/$(target_alias)
+
 # Multilib support
 MAKEOVERRIDES=
 
