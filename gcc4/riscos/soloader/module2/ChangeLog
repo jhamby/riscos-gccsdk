@@ -1,3 +1,9 @@
+Fri Aug 17 23:08:28 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_register.c(som_deregister_client): set client's
+	rt_workspace_CLIENT_STRUCT_PTR to 0 to indicate succesful
+	deregistration.
+
 Wed Aug 15 20:45:46 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_runcom.c(command_run): we can't return from this routine with an

@@ -251,9 +251,7 @@ error:
   }
 
   if (client_obj)
-  {
     som_free(client_obj);
-  }
 
   return err;
 }
@@ -386,6 +384,8 @@ _kernel_oserror *err = NULL;
 
     object = next_obj;
   }
+
+  rt_workspace_set(rt_workspace_CLIENT_STRUCT_PTR, 0);
 
   /* Unlink from the list of clients. */
   linklist_remove(&global.client_list, &client->link);
