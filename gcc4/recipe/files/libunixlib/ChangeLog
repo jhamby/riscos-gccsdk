@@ -1,3 +1,7 @@
+Fri Aug 17 23:49:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* sys/exec.c(execve): support __UNIXLIB_SYMLINKS.
+
 Thu Aug 16 23:40:21 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-auto.pl: Define tooldir in produced Makefile.am so that partial

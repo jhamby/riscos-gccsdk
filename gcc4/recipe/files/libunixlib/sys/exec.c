@@ -1,5 +1,5 @@
 /* Execute a new program.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -71,16 +71,19 @@ execve (const char *execname, char *const argv[], char *const envp[])
   char *command_line;
   char *cli;
   char pathname[MAXPATHLEN];
+#if __UNIXLIB_SYMLINKS
+  char respathname[MAXPATHLEN];
+#endif
   int nasty_hack;
   char *null_list = NULL;
   int scenario;
   char **newenviron = NULL;
   int envlen = 0;
 
-  if (! execname)
+  if (!execname)
     return __set_errno (EINVAL);
 
-  if (! argv)
+  if (!argv)
     argv = &null_list;
 
 #ifdef DEBUG
@@ -95,12 +98,11 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __debug ("-- execve: process structure");
 #endif
 
-  if (execname[0] == '*' && execname[1] == '\0'
-      && argv[1] != NULL)
+  /* scenario : number of arguments which we're going to skip.  */
+  if (execname[0] == '*' && execname[1] == '\0' && argv[1] != NULL)
     scenario = 1;
   else if (!strcmp (execname, "/bin/sh")
-	   && argv[1] != NULL && !strcmp (argv[1], "-c")
-	   && argv[2] != NULL)
+	   && argv[1] != NULL && !strcmp (argv[1], "-c") && argv[2] != NULL)
     scenario = 2;
   else
     scenario = 0;
@@ -110,52 +112,59 @@ execve (const char *execname, char *const argv[], char *const envp[])
       nasty_hack = 0;
 
       /* If the first argument is the same as the execname then make sure we
-         don't end up with it twice on the command line */
+         don't end up with it twice on the command line.  */
 
-      if (argv[0] && strcmp(argv[0], execname) == 0)
-        scenario = 1;
+      if (argv[0] && strcmp (argv[0], execname) == 0)
+	scenario = 1;
 
       /* Convert the program name into a RISC OS format filename.  */
       program_name = __riscosify_std (execname, 0, pathname,
 				      sizeof (pathname), NULL);
       if (program_name == NULL)
-        return __set_errno (E2BIG);
+	return __set_errno (E2BIG);
 
-      program_name = pathname;		/* This is copied into cli + 1 */
-
+#if __UNIXLIB_SYMLINKS
+      if (__resolve_symlinks (pathname, respathname, sizeof (respathname)) !=
+	  0)
+	return -1;
+      program_name = respathname;	/* This is copied into cli + 1 */
+#else
+      program_name = pathname;	/* This is copied into cli + 1 */
+#endif
       if (!scenario)
-        {
-          char canon_exec[MAXPATHLEN];
-          char ro_arg[MAXPATHLEN];
-          char canon_arg[MAXPATHLEN];
-          int regs[10];
-          _kernel_oserror *err;
+	{
+	  char canon_exec[MAXPATHLEN];
+	  char ro_arg[MAXPATHLEN];
+	  char canon_arg[MAXPATHLEN];
+	  int regs[10];
+	  _kernel_oserror *err;
 
-          /* Canonicalise the program name  */
-          regs[0] = 37;
-          regs[1] = (int)program_name;
-          regs[2] = (int)canon_exec;
-          regs[3] = 0;
-          regs[4] = 0;
-          regs[5] = sizeof(canon_exec);
-          err = __os_swi (OS_FSControl, regs);
+	  /* Canonicalise the program name  */
+	  regs[0] = 37;
+	  regs[1] = (int) program_name;
+	  regs[2] = (int) canon_exec;
+	  regs[3] = 0;
+	  regs[4] = 0;
+	  regs[5] = sizeof (canon_exec);
+	  err = __os_swi (OS_FSControl, regs);
 
-          if (!err)
-            {
-              __riscosify_std(argv[0], 0, ro_arg, sizeof(ro_arg), NULL);
+	  if (!err)
+	    {
+	      __riscosify_std (argv[0], 0, ro_arg, sizeof (ro_arg), NULL);
 
-              /* Canonicalise argv[0]  */
-              regs[0] = 37;
-              regs[1] = (int)ro_arg;
-              regs[2] = (int)canon_arg;
-              regs[3] = 0;
-              regs[4] = 0;
-              regs[5] = sizeof(canon_arg);
-              err = __os_swi (OS_FSControl, regs);
+	      /* Canonicalise argv[0]  */
+	      regs[0] = 37;
+	      regs[1] = (int) ro_arg;
+	      regs[2] = (int) canon_arg;
+	      regs[3] = 0;
+	      regs[4] = 0;
+	      regs[5] = sizeof (canon_arg);
+	      err = __os_swi (OS_FSControl, regs);
 
-              if (!err && strcmp(canon_exec, canon_arg) == 0) scenario = 1;
-            }
-        }
+	      if (!err && strcmp (canon_exec, canon_arg) == 0)
+		scenario = 1;
+	    }
+	}
     }
   else
     {
@@ -164,47 +173,52 @@ execve (const char *execname, char *const argv[], char *const envp[])
       int x;
 
       /* scenario 1 : We've arrived here from a user call to system(),
-	 with execname == "*" because on RISC OS the '*' is equivalent
-	 to the SHELL of /bin/bash on Unix. If this is the case, then
-	 we'll probably find the real program name in argv[1].
-	 scenario 2 : "/bin/sh -c xyz" is called and we will execute this
-	 as "xyz" (i.e. argv[2]).  */
+         with execname == "*" because on RISC OS the '*' is equivalent
+         to the SHELL of /bin/bash on Unix. If this is the case, then
+         we'll probably find the real program name in argv[1].
+         scenario 2 : "/bin/sh -c xyz" is called and we will execute this
+         as "xyz" (i.e. argv[2]).  */
       p = argv[scenario];
 
       while (*p == ' ')
 	p++;
-      for (x = 0; x < sizeof(temp) && *p && *p != ' '; /* */)
+      for (x = 0; x < sizeof (temp) && *p && *p != ' '; /* */ )
 	temp[x++] = *p++;
-      if (x == sizeof(temp))
+      if (x == sizeof (temp))
 	return __set_errno (E2BIG);
       temp[x] = '\0';
 
       /* Ah. The nasty hack.  Comes into everything somewhere.
-	 Since argv[1] contains our program name and all arguments,
-	 we need to stop the command line builder sticking quotes
-	 around everything and also not include the program name
-	 twice in the argument vector.
-	 So nasty_hack contains the length of the program name
-	 held within argv[1].  We then know (when non-zero) how
-	 many characters to skip, if at all.  */
+         Since argv[1] contains our program name and all arguments,
+         we need to stop the command line builder sticking quotes
+         around everything and also not include the program name
+         twice in the argument vector.
+         So nasty_hack contains the length of the program name
+         held within argv[1].  We then know (when non-zero) how
+         many characters to skip, if at all.  */
       nasty_hack = x;
 
 #ifdef DEBUG
       debug_printf ("execve: pathname: '%s'\n", temp);
 #endif
 
-       program_name = __riscosify_std (temp, 0, pathname,
-				       sizeof (pathname), NULL);
-       if (program_name == NULL)
-	 return __set_errno (E2BIG);
-       program_name = pathname;
+      program_name = __riscosify_std (temp, 0, pathname,
+				      sizeof (pathname), NULL);
+      if (program_name == NULL)
+	return __set_errno (E2BIG);
+
+#if __UNIXLIB_SYMLINKS
+      if (__resolve_symlinks (pathname, respathname, sizeof (respathname)) !=
+	  0)
+	return -1;
+      program_name = respathname;	/* This is copied into cli + 1 */
+#else
+      program_name = pathname;
+#endif
     }
 
 #ifdef DEBUG
   debug_printf ("execve: program_name: %s\n", program_name);
-#endif
-
-#ifdef DEBUG
   debug_printf ("execve: building command line\n");
 #endif
 
@@ -221,30 +235,30 @@ execve (const char *execname, char *const argv[], char *const envp[])
       p = argv[x];
       if (nasty_hack && x == scenario)
 	p += nasty_hack;
-      for (/* */; *p; ++p)
-        {
-          if (isspace (*p))
-            space = 1;
+      for ( /* */ ; *p; ++p)
+	{
+	  if (isspace (*p))
+	    space = 1;
 	  if ((!nasty_hack || x != scenario) && (*p == '\"' || *p == '\''))
-            cli_length ++;
-          if (*p == 127 || *p < 32)
-            cli_length +=3;
-          cli_length ++;
-        }
+	    cli_length++;
+	  if (*p == 127 || *p < 32)
+	    cli_length += 3;
+	  cli_length++;
+	}
 
       /* Account for quotes around argument but only if our hack isn't
          in place.  */
-      if (space && ! nasty_hack)
-        cli_length += 2;
+      if (space && !nasty_hack)
+	cli_length += 2;
 
-      cli_length ++;
+      cli_length++;
     }
 
 #ifdef DEBUG
   debug_printf ("execve: cli_length = %d\n", cli_length);
 #endif
 
-  /* SUL will free cli for us when we call sul_exec */
+  /* SUL will free cli for us when we call sul_exec.  */
   cli = __proc->sul_malloc (__proc->pid, cli_length + 1);
   if (cli == NULL)
     return __set_errno (ENOMEM);
@@ -253,10 +267,10 @@ execve (const char *execname, char *const argv[], char *const envp[])
      Should trim leading space between '*' and command in name.  */
   command_line = cli;
   while (*program_name == '*' || *program_name == ' ')
-    program_name ++;
+    program_name++;
 
   command_line = stpcpy (command_line, program_name);
-  *command_line ++ = ' ';
+  *command_line++ = ' ';
 
   /* Copy the rest of the arguments into the cli.  */
   if (argv[0])
@@ -270,26 +284,27 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	  if (nasty_hack && x == scenario)
 	    p += nasty_hack;
 
-	  while (*p != '\0' && ! isspace (*p))
+	  while (*p != '\0' && !isspace (*p))
 	    p++;
 
 	  /* Don't enclose arguments in additional quotes if our nasty hack
 	     is in place.  */
-	  if (! nasty_hack && *p)
+	  if (!nasty_hack && *p)
 	    contains_space = 1;
 
 	  /* Add quotes, if argument contains a space.  */
 	  if (contains_space)
-	    *command_line ++ = '\"';
+	    *command_line++ = '\"';
 
 	  p = argv[x];
 	  if (nasty_hack && x == scenario)
 	    p += nasty_hack;
-	  for (/* */; *p; ++p)
+	  for ( /* */ ; *p; ++p)
 	    {
 	      /* If character is a " or a ' then preceed with a backslash.  */
-	      if ((!nasty_hack || x != scenario) && (*p == '\"' || *p == '\''))
-		*command_line ++ = '\\';
+	      if ((!nasty_hack || x != scenario)
+		  && (*p == '\"' || *p == '\''))
+		*command_line++ = '\\';
 
 	      if (*p == 127 || *p < 32)
 		{
@@ -297,11 +312,11 @@ execve (const char *execname, char *const argv[], char *const envp[])
 		  command_line += 4;
 		}
 	      else
-		*command_line ++ = *p;
+		*command_line++ = *p;
 	    }
 	  if (contains_space)
-	    *command_line ++ = '\"';
-	  *command_line ++ = ' ';
+	    *command_line++ = '\"';
+	  *command_line++ = ' ';
 	}
     }
   command_line[-1] = '\0';
@@ -310,7 +325,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
   debug_printf ("execve: cli: %s\n", cli);
 #endif
 
-  /* If the cli is >= MAXPATHLEN, we will need the aid of DDEUtils.  */
+  /* If the cli is >= MAXPATHLEN, we will need the aid of DDEUtils. When this
+     is done, cli will only contain the program name.  */
   if (cli_length >= MAXPATHLEN && set_dde_cli (cli) < 0)
     {
       __proc->sul_free (__proc->pid, cli);
@@ -326,31 +342,30 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
       /* Count new environment variable vector length.  */
       for (x = 0; envp[x] != NULL; x++)
-        envlen += sizeof (char *) + strlen (envp[x]) + 1;
+	envlen += sizeof (char *) + strlen (envp[x]) + 1;
 
       enventries = x;
 
       /* The length must be word aligned */
       envlen = (envlen + 3) & ~3;
 
-      newenviron =  __proc->sul_malloc (__proc->pid, envlen);
+      newenviron = __proc->sul_malloc (__proc->pid, envlen);
       if (newenviron == NULL)
-        {
-          __proc->sul_free (__proc->pid, cli);
-          return __set_errno (ENOMEM);
-        }
+	{
+	  __proc->sul_free (__proc->pid, cli);
+	  return __set_errno (ENOMEM);
+	}
 
       /* Copy the environment */
-      offset = (char *)(newenviron + enventries + 1);
+      offset = (char *) (newenviron + enventries + 1);
       for (x = 0; x < enventries; x++)
-        {
-          int len = strlen (envp[x]) + 1;
-          newenviron[x] = offset;
-          memcpy (offset, envp[x], len);
-          offset += len;
-        }
+	{
+	  int len = strlen (envp[x]) + 1;
+	  newenviron[x] = offset;
+	  memcpy (offset, envp[x], len);
+	  offset += len;
+	}
       newenviron[enventries] = NULL;
-
     }
 
   /* From this point onwards we cannot return an error */
@@ -374,7 +389,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
     {
       /* This process doesn't have a parent. Technically, all file descriptors
          that don't have FD_CLOEXEC set should remain open, but if we are
-         calling a non-unixlib program then it won't know about them and so
+         calling a non-UnixLib program then it won't know about them and so
          they will never get closed. */
       __free_process (__proc);
     }
@@ -385,11 +400,11 @@ execve (const char *execname, char *const argv[], char *const envp[])
          in the new process image, unless they have the 'FD_CLOEXEC'
          flag set.  O_EXECCL is an alias for FD_CLOEXEC.  */
       for (x = 0; x < __proc->maxfd; x++)
-        if (getfd (x)->devicehandle && (getfd (x)->dflag & O_EXECCL))
-          close (x);
+	if (getfd (x)->devicehandle && (getfd (x)->dflag & O_EXECCL))
+	  close (x);
 
       if (__proc->environ)
-        __proc->sul_free (__proc->pid, __proc->environ);
+	__proc->sul_free (__proc->pid, __proc->environ);
     }
 
   __proc->environ = newenviron;
@@ -420,5 +435,3 @@ execve (const char *execname, char *const argv[], char *const envp[])
   /* This is never reached.  */
   return 0;
 }
-
-
