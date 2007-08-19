@@ -1,0 +1,15 @@
+AC_PREREQ(2.59)
+AC_INIT([ln],[1.03],[http://gccsdk.riscos.info/])
+
+# AC_CANONICAL_TARGET will make sure that when having host != target the ln
+# binary gets installed as <target>-ln instead avoiding it being picked up
+# when building the native RISC OS compiler (otherwise we have build
+# problems).
+AC_CANONICAL_TARGET
+
+AC_PROG_CC
+
+AM_INIT_AUTOMAKE([-Wall -Werror foreign])
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT

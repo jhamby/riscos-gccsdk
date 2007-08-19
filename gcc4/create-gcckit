@@ -70,19 +70,16 @@ fi
 # Remove the target prefixed binaries.  We don't need them as we have the
 # non-target prefixed binaries as well.
 cd $BKIT_GCC_SRC/bin
+test -f $GCCSDK_TARGET_NAME-ln && mv $GCCSDK_TARGET_NAME-ln ln
 find . -name "$GCCSDK_TARGET_NAME-*" -exec rm {} \;
 # Remove gcc bug submit script (won't work under RISC OS):
 test -f gccbug && rm gccbug
-# Remove target specific binaries which can all be launced via gcc frontend
-# or which are copies:
-for f in as c++ ld ; do
-  test -f $f && rm $f
-done
-# Remove target specific binaries which are in the general bin directory as
-# well:
+# Remove c++ as it is same as g++:
+test -f c++ && rm c++
+# Use links:
 cd $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/bin
-for f in ar nm objdump ranlib strip ; do
-  test -f $f && rm $f
+for f in `ls` ; do
+  test -f $BKIT_GCC_SRC/bin/$f && $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-ln -s -f ^.^.bin.$f $f,1c8 && rm $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/bin/$f
 done
 # Remove install-tools which is useless on RISC OS
 test -d $BKIT_GCC_SRC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools && rm -rf $BKIT_GCC_SRC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools

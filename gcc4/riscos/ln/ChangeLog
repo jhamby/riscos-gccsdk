@@ -1,3 +1,9 @@
+  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac, Makefile.am, README, AUTHORS: new, used for GNU
+	autotools building.
+	* ln.c (VERSION):
+
 Sat Aug 11 11:16:26 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* ln.c: support of creating link in a given directory; fixed stripping

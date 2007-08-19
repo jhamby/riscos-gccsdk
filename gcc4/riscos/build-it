@@ -72,87 +72,73 @@ else
   exit 1
 fi
 
-# cmunge
-if [ ! -f $GCCSDK_PREFIX/bin/cmunge -a ! -f $GCCSDK_PREFIX/bin/cmunge,ff8 ] ; then
-  echo +++ Building cmunge
-  test ! -f $GCCSDK_RISCOS/cmunge/configure && cd $GCCSDK_RISCOS/cmunge && autoreconf --install && test -d $GCCSDK_BUILDDIR/cmunge && rm -rf $GCCSDK_BUILDDIR/cmunge
-  mkdir -p $GCCSDK_BUILDDIR/cmunge
-  cd $GCCSDK_BUILDDIR/cmunge
-  if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
-    export CFLAGS="-O3 -mlibscl"
-  else
+# Build the programs which we use for cross-compiling and for native RISC OS compiling:
+for roapp in cmunge elf2aif mkresfs ln ; do
+  if [ ! -f $GCCSDK_PREFIX/bin/$roapp -a ! -f $GCCSDK_PREFIX/bin/$roapp,ff8 -a ! -f $GCCSDK_PREFIX/bin/$roapp,e1f ] ; then
+    echo +++ Building $roapp
+    test ! -f $GCCSDK_RISCOS/$roapp/configure && cd $GCCSDK_RISCOS/$roapp && autoreconf --install && test -d $GCCSDK_BUILDDIR/$roapp && rm -rf $GCCSDK_BUILDDIR/$roapp
+    mkdir -p $GCCSDK_BUILDDIR/$roapp
+    cd $GCCSDK_BUILDDIR/$roapp
     export CFLAGS=""
+    if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
+      # These apps are using SCL as runtime library:
+      case $roapp in
+        cmunge | elf2aif)
+          export CFLAGS="-O3 -mlibscl"
+          ;;
+      esac
+    fi
+    $GCCSDK_RISCOS/$roapp/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS
+    make $GCCSDK_MAKE_ARGS install
   fi
-  $GCCSDK_RISCOS/cmunge/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS
-  make $GCCSDK_MAKE_ARGS install
-fi
+done
 
-# elf2aif
-if [ ! -f $GCCSDK_PREFIX/bin/elf2aif -a ! -f $GCCSDK_PREFIX/bin/elf2aif,ff8 ] ; then
-  echo +++ Building elf2aif
-  test ! -f $GCCSDK_RISCOS/elf2aif/configure && cd $GCCSDK_RISCOS/elf2aif && autoreconf --install && test -d $GCCSDK_BUILDDIR/elf2aif && rm -rf $GCCSDK_BUILDDIR/elf2aif
-  mkdir -p $GCCSDK_BUILDDIR/elf2aif
-  cd $GCCSDK_BUILDDIR/elf2aif
-  if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
-    export CFLAGS="-O3 -mlibscl"
-  else
-    export CFLAGS=""
-  fi
-  $GCCSDK_RISCOS/elf2aif/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS
-  make $GCCSDK_MAKE_ARGS install
-fi
+if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
+  # dynamic loader
+  echo +++ Building dl
+  cd $GCCSDK_RISCOS/soloader
+  make install-cross LIBDIR=$GCCSDK_PREFIX/$GCCSDK_TARGET_NAME/lib
 
-# mkresfs
-if [ ! -f $GCCSDK_PREFIX/bin/mkresfs -a ! -f $GCCSDK_PREFIX/bin/mkresfs,ff8 ] ; then
-  echo +++ Building mkresfs
-  test ! -f $GCCSDK_RISCOS/mkresfs/configure && cd $GCCSDK_RISCOS/mkresfs && autoreconf --install && test -d $GCCSDK_BUILDDIR/mkresfs && rm -rf $GCCSDK_BUILDDIR/mkresfs
-  mkdir -p $GCCSDK_BUILDDIR/mkresfs
-  cd $GCCSDK_BUILDDIR/mkresfs
-  export CFLAGS=""
-  $GCCSDK_RISCOS/mkresfs/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS
-  make $GCCSDK_MAKE_ARGS install
-fi
-
-if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
+elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # These make only sense in the native RISC OS build:
   # FIXME: drenderer (we can not build this yet)
 
-  # soloader
-  # FIXME: this is a bit hacked together and probably should be done better.
-  echo +++ Building soloader
+  # SOManager module:
+  if [ ! -f $GCCSDK_RELEASE_AREA/\!DSO-libs/SOManager,ffa ] ; then
+    echo +++ Building SOManager
+    test ! -f $GCCSDK_RISCOS/soloader/module2/configure && cd $GCCSDK_RISCOS/soloader/module2 && autoreconf --install && test -d $GCCSDK_BUILDDIR/somanager && rm -rf $GCCSDK_BUILDDIR/somanager
+    mkdir -p $GCCSDK_BUILDDIR/somanager
+    cd $GCCSDK_BUILDDIR/somanager
+    export CFLAGS=""
+    $GCCSDK_RISCOS/soloader/module2/configure --prefix=$GCCSDK_RELEASE_AREA/\!DSO-libs --bindir=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS
+    make $GCCSDK_MAKE_ARGS install
+  fi
+
+  # dynamic loader
+  echo +++ Building dl
   cd $GCCSDK_RISCOS/soloader
-  make CC=arm-unknown-riscos-gcc LD=arm-unknown-riscos-ld OBJCOPY=arm-unknown-riscos-objcopy AR=arm-unknown-riscos-ar BUILDDIR=../build
-  test -d $GCCSDK_RELEASE_AREA/\!DSO-libs && rm -rf $GCCSDK_RELEASE_AREA/\!DSO-libs
+  make install-riscos LIBDIR=$GCCSDK_RELEASE_AREA/\!DSO-libs/lib
   svn export -q --force dist/\!DSO-libs $GCCSDK_RELEASE_AREA/\!DSO-libs
-  cp build/module2/SoManager,ffa $GCCSDK_RELEASE_AREA/\!DSO-libs/SoManager,ffa
-  mkdir -p $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system
-  cp build/dynamic/ld-1.9.9.so,e1f $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/ld-1.9.9.so,e1f
-  ./build/ln/host/ln -s -f system.ld-1/9/9/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/ld-riscos.so.1,1c8
-  cp build/dynamic/libdl.1.9.9.so,e1f $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libdl.1.9.9.so,e1f
-  ./build/ln/host/ln -s -f system.libdl/1/9/9/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libdl.1.so,1c8
-  ./build/ln/host/ln -s -f system.libdl/1/9/9/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libdl.so,1c8
   if [ -f $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib/libunixlib.5.0.0.so ] ; then
     cp $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib/libunixlib.5.0.0.so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libunixlib.5.0.0.so,e1f
-    ./build/ln/host/ln -s -f system.libunixlib/5/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libunixlib.so.5,1c8
-    ./build/ln/host/ln -s -f system.libunixlib/5/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libunixlib.so,1c8
+    arm-unknown-riscos-ln -s -f system.libunixlib/5/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libunixlib.so.5,1c8
+    arm-unknown-riscos-ln -s -f system.libunixlib/5/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libunixlib.so,1c8
   fi
   if [ -f $GCCSDK_RISCOS_PREFIX/lib/libgcc_s.so.1 ] ; then
-    cp $GCCSDK_RISCOS_PREFIX/lib//libgcc_s.so.1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libgcc_s.so.1,e1f
-    ./build/ln/host/ln -s -f system.libgcc_s/so/1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libgcc_s.so.1,1c8
-    ./build/ln/host/ln -s -f system.libgcc_s/so/1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libgcc_s.so,1c8
+    cp $GCCSDK_RISCOS_PREFIX/lib/libgcc_s.so.1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libgcc_s.so.1,e1f
+    arm-unknown-riscos-ln -s -f system.libgcc_s/so/1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libgcc_s.so.1,1c8
+    arm-unknown-riscos-ln -s -f system.libgcc_s/so/1 $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libgcc_s.so,1c8
   fi
   if [ -f $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib/libm.1.0.0.so ] ; then
-    cp $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib//libm.1.0.0.so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libm.1.0.0.so,e1f
-    ./build/ln/host/ln -s -f system.libm/1/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libm.so.1,1c8
-    ./build/ln/host/ln -s -f system.libm/1/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libm.so,1c8
+    cp $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib/libm.1.0.0.so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libm.1.0.0.so,e1f
+    arm-unknown-riscos-ln -s -f system.libm/1/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libm.so.1,1c8
+    arm-unknown-riscos-ln -s -f system.libm/1/0/0/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libm.so,1c8
   fi
   if [ -f $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib/libstdc++.6.0.8.so ] ; then
-    cp $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib//libstdc++.6.0.8.so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libstdc++.6.0.8.so,e1f
-    ./build/ln/host/ln -s -f system.libstdc++/6/0/8/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libstdc++.so.6,1c8
-    ./build/ln/host/ln -s -f system.libstdc++/6/0/8/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libstdc++.so,1c8
+    cp $GCCSDK_RISCOS_PREFIX/$GCCSDK_TARGET_NAME/lib/libstdc++.6.0.8.so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/system/libstdc++.6.0.8.so,e1f
+    arm-unknown-riscos-ln -s -f system.libstdc++/6/0/8/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libstdc++.so.6,1c8
+    arm-unknown-riscos-ln -s -f system.libstdc++/6/0/8/so $GCCSDK_RELEASE_AREA/\!DSO-libs/lib/libstdc++.so,1c8
   fi
-  mkdir -p $GCCSDK_RELEASE_AREA/\!DSO-libs/bin
-  cp build/ln/cross/ln,e1f $GCCSDK_RELEASE_AREA/\!DSO-libs/bin/ln,e1f
 
   # FIXME: syslogd (we can not build this yet)
 fi

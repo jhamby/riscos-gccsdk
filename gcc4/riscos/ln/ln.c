@@ -29,7 +29,6 @@
 #endif
 
 #define	LINK_FILETYPE	0x1C8
-#define	VERSION		"1.02"
 
 static const char const LINK[] = "LINK";
 

@@ -1,6 +1,6 @@
 CC = arm-unknown-riscos-gcc
 
-HOST_CC = gcc
+LD = arm-unknown-riscos-ld 
 
 OBJCOPY = arm-unknown-riscos-objcopy
 
@@ -10,4 +10,4 @@ BUILDDIR = ../build
 
 ZIP = /home/riscos/cross/bin/zip
 
-LN = build/ln/host/ln
+LN = arm-unknown-riscos-ln
