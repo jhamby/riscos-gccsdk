@@ -92,7 +92,7 @@ print MAKE<<EOF;
 # Written by Nick Burrett <nick\@sqrt.co.uk>
 
 # Directory where headers will be installed.
-tooldir = $(exec_prefix)/$(target_alias)
+tooldir = \$(exec_prefix)/\$(target_alias)
 
 # Multilib support
 MAKEOVERRIDES=
