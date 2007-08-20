@@ -110,7 +110,7 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
     mkdir -p $GCCSDK_BUILDDIR/somanager
     cd $GCCSDK_BUILDDIR/somanager
     export CFLAGS=""
-    $GCCSDK_RISCOS/soloader/module2/configure --prefix=$GCCSDK_RELEASE_AREA/\!DSO-libs --bindir=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS
+    $GCCSDK_RISCOS/soloader/module2/configure --prefix=$GCCSDK_RELEASE_AREA/\!DSO-libs --bindir=$GCCSDK_RELEASE_AREA/\!DSO-libs $GCCSDK_CONFIGURE_ARGS
     make $GCCSDK_MAKE_ARGS install
   fi
 
