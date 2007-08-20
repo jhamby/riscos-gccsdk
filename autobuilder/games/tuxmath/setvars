@@ -1,0 +1,20 @@
+AB_CATEGORY=games
+AB_COPYSOURCE=yes
+
+ab_package() {
+  cp -av $H/\!TuxMath $D
+  cp -av $H/\!TuxMath/\!* $D/\!TuxMath
+  cp -av src/tuxmath,ff8 $D/\!TuxMath/tuxmath,ff8
+  cat docs/README.txt $H/RISCOSNotes >$D/\!TuxMath/\!Help
+
+  cp -r docs $D/\!TuxMath
+
+  mkdir -p $D/\!TuxMath/data
+  mkdir -p $D/\!TuxMath/data/tuxmath
+  cp -r data/* $D/\!TuxMath/data/tuxmath
+}
+
+export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile"
+AB_CONFLAGS=\''--datadir=/\<TuxMath\$$Dir\>/data'\'
+
+./autogen.sh
