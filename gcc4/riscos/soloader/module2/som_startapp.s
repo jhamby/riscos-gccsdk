@@ -23,8 +23,8 @@ som_start_app:
 	MOV	r6, r2
 
 	@ Flatten the SVC stack.
-	@ Should test for OS_TaskControl here and use it if present, but can't
-	@ find what the SWI number is.
+	@ Should test for OS_TaskControl here and use it if present, but
+	@ can't find what the SWI number is.
 	MOV	r0, #6
 	MOV	r1, #0
 	MOV	r2, #16

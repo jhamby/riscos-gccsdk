@@ -1,3 +1,12 @@
+Tue Aug 21 02:24:37 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* link_list.c, link_list.h, som_alloc.c, som_alloc.h, som_array.c,
+	som_array.h, som_command.c, som_elf.c, som_elf.h, som_final.c,
+	som.h, som_init.c, som_main.c, som_os_swis.c, som_os_swis.h,
+	som_register.c, som_register.h, som_runcom.c, som_startapp.h,
+	som_swihandler.c, som_symlinks.c, som_symlinks.h, som_types.h,
+	som_utilswis.c, som_utilswis.h, som_workspace.h: GNU indentation.
+
 Sun Aug 19 12:20:02 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	Using autotools to do the building.

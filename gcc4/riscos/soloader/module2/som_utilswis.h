@@ -11,9 +11,10 @@
 #include "som.h"
 
 /* Retrieve information about the library whose handle is
- * given. The data is placed in a user supplied buffer.
- */
-extern _kernel_oserror *som_query_object(som_handle handle, som_objinfo *buffer, unsigned int flags);
+   given. The data is placed in a user supplied buffer.  */
+extern _kernel_oserror *som_query_object (som_handle handle,
+					  som_objinfo * buffer,
+					  unsigned int flags);
 
 /* SWI "SOM_IterateObjects"
  *
@@ -27,22 +28,24 @@ extern _kernel_oserror *som_query_object(som_handle handle, som_objinfo *buffer,
  *  r1 = for r0 = 1 or r0 = 2 - internal handle as returned in r1
  * exit:
  *  r0 = handle of requested object (NULL if there is no object to return)
- *  r1 = internal handle of requested object for use as input in subsequent calls
- *	(NULL if there is no object to return)
+ *  r1 = internal handle of requested object for use as input in subsequent
+ *	 calls
+ *	 (NULL if there is no object to return)
  *
  * (Note: internal handle is actually address of som_object structure)
  */
-extern _kernel_oserror *som_iterate_objects(_kernel_swi_regs *regs);
+extern _kernel_oserror *som_iterate_objects (_kernel_swi_regs * regs);
 
 /* SWI "SOM_GOTFromAddr"
  *
- * Given an address return the client's private GOT of the library that contains it.
+ * Given an address return the client's private GOT of the library that
+ * contains it.
  * entry:
  *  r0 = address
  * exit:
  *  r0 = ptr to GOT or 0 if failed
  */
-extern _kernel_oserror *som_got_from_addr(_kernel_swi_regs *regs);
+extern _kernel_oserror *som_got_from_addr (_kernel_swi_regs * regs);
 
 /* SWI "SOM_HandleFromAddr"
  *
@@ -52,7 +55,7 @@ extern _kernel_oserror *som_got_from_addr(_kernel_swi_regs *regs);
  * exit:
  *  r0 = handle
  */
-extern _kernel_oserror *som_handle_from_addr(_kernel_swi_regs *regs);
+extern _kernel_oserror *som_handle_from_addr (_kernel_swi_regs * regs);
 
 /* SWI "SOM_HandleFromName"
  *
@@ -62,19 +65,19 @@ extern _kernel_oserror *som_handle_from_addr(_kernel_swi_regs *regs);
  * exit:
  *  r0 = handle or 0 for failure
  */
-extern som_handle som_handle_from_name(const char *name);
+extern som_handle som_handle_from_name (const char *name);
 
 /* SWI "SOM_AddrToOffset"
  *
  * This SWI is not particularly useful in its current state and its presence
- * is due to historical reasons. It may be expanded in future to be of more use
- * or it may be removed altogether.
+ * is due to historical reasons. It may be expanded in future to be of more
+ * use or it may be removed altogether.
  *
  * entry:
  *  r0 = address
  * exit:
  *  r0 = offset
  */
-extern _kernel_oserror *som_addr_to_offset(_kernel_swi_regs *regs);
+extern _kernel_oserror *som_addr_to_offset (_kernel_swi_regs * regs);
 
 #endif

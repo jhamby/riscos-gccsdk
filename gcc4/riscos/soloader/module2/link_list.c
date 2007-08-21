@@ -6,9 +6,10 @@
 #include "link_list.h"
 #include <stddef.h>
 
-void linklist_add_to_end(link_list *list, link_hdr *link)
+void
+linklist_add_to_end (link_list * list, link_hdr * link)
 {
-link_hdr *oldlast;
+  link_hdr *oldlast;
 
   oldlast = list->last;
   link->next = NULL;
@@ -23,9 +24,10 @@ link_hdr *oldlast;
   list->count++;
 }
 
-void linklist_add_to_front(link_list *list, link_hdr *link)
+void
+linklist_add_to_front (link_list * list, link_hdr * link)
 {
-link_hdr *oldfirst;
+  link_hdr *oldfirst;
 
   oldfirst = list->first;
   link->next = oldfirst;
@@ -40,32 +42,34 @@ link_hdr *oldfirst;
   list->count++;
 }
 
-void linklist_add_before(link_list *list, link_hdr *at, link_hdr *link)
+void
+linklist_add_before (link_list * list, link_hdr * at, link_hdr * link)
 {
-link_hdr *oldprev;
+  link_hdr *oldprev;
 
   if (at == NULL)
-  {
-    linklist_add_to_end(list, link);
-    return;
-  }
+    {
+      linklist_add_to_end (list, link);
+      return;
+    }
 
   oldprev = at->prev;
   if (oldprev == NULL)
-    linklist_add_to_front(list, link);
+    linklist_add_to_front (list, link);
   else
-  {
-    oldprev->next = link;
-    link->prev = oldprev;
-    at->prev = link;
-    link->next = at;
-    list->count++;
-  }
+    {
+      oldprev->next = link;
+      link->prev = oldprev;
+      at->prev = link;
+      link->next = at;
+      list->count++;
+    }
 }
 
-void linklist_remove(link_list *list, link_hdr *link)
+void
+linklist_remove (link_list * list, link_hdr * link)
 {
-link_hdr *prev, *next;
+  link_hdr *prev, *next;
 
   next = link->next;
   prev = link->prev;

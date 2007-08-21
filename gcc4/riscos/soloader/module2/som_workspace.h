@@ -11,21 +11,23 @@
 
 enum
 {
-  /* An array used at runtime by the current client. */
+  /* An array used at runtime by the current client.  */
   rt_workspace_RUNTIME_ARRAY,
 
-  /* Pointer to the current client structure. */
+  /* Pointer to the current client structure.  */
   rt_workspace_CLIENT_STRUCT_PTR,
 };
 
-static inline void rt_workspace_set(int pos, unsigned int value)
+static inline void
+rt_workspace_set (int pos, unsigned int value)
 {
-  *((unsigned int *)(0x8000 + RT_WORKSPACE_START) + pos) = value;
+  *((unsigned int *) (0x8000 + RT_WORKSPACE_START) + pos) = value;
 }
 
-static inline unsigned int rt_workspace_get(int pos)
+static inline unsigned int
+rt_workspace_get (int pos)
 {
-  return *((unsigned int *)(0x8000 + RT_WORKSPACE_START) + pos);
+  return *((unsigned int *) (0x8000 + RT_WORKSPACE_START) + pos);
 }
 
 #endif

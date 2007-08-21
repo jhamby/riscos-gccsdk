@@ -13,36 +13,36 @@
 #include "som_alloc.h"
 
 _kernel_oserror *
-module_finalisation(int fatal, int podule_base, void *pw)
+module_finalisation (int fatal, int podule_base, void *pw)
 {
   if (!global.flags.no_client_check && global.client_list.count != 0)
-      return somerr_in_use;
+    return somerr_in_use;
 
-  som_stop_call_every(pw);
+  som_stop_call_every (pw);
 
-  somarray_fini(&global.object_array);
+  somarray_fini (&global.object_array);
 
 #ifdef LIBRARIES_IN_DA
   /* Don't bother individually freeing library memory on 32bit OS
-     as deleting the DA will free them all in one go anyway. */
+     as deleting the DA will free them all in one go anyway.  */
   if (global.flags.host_32bit)
-    dynamic_area_remove(global.library_da.number);
+    dynamic_area_remove (global.library_da.number);
   else
 #endif
-  {
-  som_object *object = linklist_first_som_object(&global.object_list);
-
-    while (object)
     {
-      if (object->flags.type != object_flag_type_CLIENT && object->base_addr)
-	som_free(object->base_addr);
+      som_object *object = linklist_first_som_object (&global.object_list);
 
-      object = linklist_next_som_object(object);
+      while (object)
+	{
+	  if (object->flags.type != object_flag_type_CLIENT
+	      && object->base_addr)
+	    som_free (object->base_addr);
+
+	  object = linklist_next_som_object (object);
+	}
     }
-  }
 
-  dynamic_area_remove(global.data_da.number);
+  dynamic_area_remove (global.data_da.number);
 
   return NULL;
 }
-
