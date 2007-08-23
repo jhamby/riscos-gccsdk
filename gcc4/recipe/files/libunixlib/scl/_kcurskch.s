@@ -1,5 +1,5 @@
 @ _kernel_current_stack_chunk
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
@@ -9,9 +9,9 @@
 	.global	_kernel_current_stack_chunk
 	NAME	_kernel_current_stack_chunk
 _kernel_current_stack_chunk:
-	SUB	a1, sl, #560
+	SUB	a1, sl, #512 + CHUNK_OVERHEAD
 	LDR	a2, =0xF60690FF
-	LDR	a3, [a1, #0]
+	LDR	a3, [a1, #CHUNK_MAGIC]
 	TEQ	a2, a3
 	MOVNE	a1, #0
 	MOV	pc, lr

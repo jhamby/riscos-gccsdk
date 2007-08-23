@@ -202,22 +202,16 @@ print MAKE "libunixlib_la_LDFLAGS = -Wc,-lgcc_s -Wc,-nostdlib -version-info 5:0:
 print MAKE "libm_la_LDFLAGS = -Wc,-nostdlib -version-info 1:0:0\n\n";
 
 print MAKE "# Build the SharedUnixLibrary module\n";
-print MAKE "bin_PROGRAMS = sul\n\n";
-print MAKE "sul.o: module/sul.s\n";
-print MAKE "\t\$(CCASCOMPILE) -o sul.o -c \`test -f \'module/sul.s\' || echo \'\$(srcdir)/\'\`module/sul.s\n\n";
+print MAKE "bin_PROGRAMS = sul\n";
+print MAKE "sul_SOURCES = \$(module_src)\n";
+print MAKE "sul_CFLAGS = -mmodule\n";
+print MAKE "sul_LDFLAGS = -mmodule\n\n";
 
-print MAKE "# The ARM linker cannot change output formats during the link\n";
-print MAKE "# stage.  We must use objcopy to convert the ELF binary into\n";
-print MAKE "# a raw binary\n";
-print MAKE "sul\$(EXEEXT): sul.o\n";
-print MAKE "\t\$(OBJCOPY) -O binary sul.o sul\$(EXEEXT)\n";
-print MAKE "\n";
 print MAKE "# These rules are copied direct from a generated Makefile.\n";
 print MAKE "# The only difference is that stack checking is turned off\n";
 print MAKE "# for these targets.\n";
 print MAKE "# Automake doesn't seem to provide a per-object file flag\n";
 print MAKE "# setting function.\n";
-
 @nostackfiles = ("sys/brk", "sys/stackalloc", "debug/dvsprintf");
 foreach $f (@nostackfiles) {
     my $leaf = $f;
@@ -231,6 +225,7 @@ foreach $f (@nostackfiles) {
 }
 
 print MAKE "install-data-local: install-headers\n\n";
+
 print MAKE "install-headers:\n";
 print MAKE "\t\$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include/libunixlib\n";
 print MAKE "\tfor dir in arpa bits net netinet resolv rpc string sys unixlib; do \\\n";
@@ -238,7 +233,6 @@ print MAKE "\t  \$(mkinstalldirs) \$(DESTDIR)\${tooldir}/include/libunixlib/\$\$
 print MAKE "\tfor file in \${libc_headers}; do \\\n";
 print MAKE "\t  \$(INSTALL_DATA) \$(srcdir)/include/\$\${file} \$(DESTDIR)\${tooldir}/include/libunixlib/\$\${file} ; done\n";
 
-print MAKE "\n";
 close MAKE;
 
 # We purposely ignore any tests that are not in sub-directories as

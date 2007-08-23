@@ -174,7 +174,7 @@ qsort (void *v, size_t n, size_t z,
   __z = z;
   __c = c;
 
-#if __UNIXLIB_PARANOID > 0
+#if __UNIXLIB_PARANOID
   /* check function pointer */
   __funcall ((*c), (v, v));
 #endif

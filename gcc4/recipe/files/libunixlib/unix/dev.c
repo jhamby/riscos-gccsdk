@@ -1,5 +1,5 @@
 /* Low-level device handling.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -23,51 +23,50 @@
 
 #define IGNORE(x) {(void) x;}
 
-const struct dev __dev[NDEV] =
-{
+const struct dev __dev[NDEV] = {
   /* DEV_RISCOS */
   {__fsopen, __fsclose, __fsread, __fswrite,
-    __fslseek, __nullioctl, __nullselect, __fsstat, __fsfstat },
+   __fslseek, __nullioctl, __nullselect, __fsstat, __fsfstat},
 
   /* DEV_TTY */
   {__ttyopen, __ttyclose, __ttyread, __ttywrite,
-    __nulllseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat },
+   __nulllseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat},
 
   /* DEV_PIPE */
   {__pipeopen, __pipeclose, __piperead, __pipewrite,
-    __nulllseek, __nullioctl, __pipeselect, __nullstat, __nullfstat },
+   __nulllseek, __nullioctl, __pipeselect, __nullstat, __nullfstat},
 
   /* DEV_NULL */
   {__nullopen, __nullclose, __nullread, __nullwrite,
-    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+   __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat},
 
   /* DEV_SOCKET */
   /* Socket select is a special case.  */
   {__sockopen, __sockclose, __sockread, __sockwrite,
-    __nulllseek, __sockioctl, __sockselect, __nullstat, __nullfstat },
+   __nulllseek, __sockioctl, __sockselect, __nullstat, __nullfstat},
 
   /* DEV_ZERO */
   {__nullopen, __nullclose, __zeroread, __nullwrite,
-    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+   __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat},
 
   /* DEV_RANDOM */
   {__randomopen, __nullclose, __randomread, __nullwrite,
-    __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat },
+   __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat},
 
   /* DEV_DSP */
   {__dspopen, __dspclose, __nullread, __dspwrite,
-    __dsplseek, __dspioctl, __nullselect, __nullstat, __nullfstat },
+   __dsplseek, __dspioctl, __nullselect, __nullstat, __nullfstat},
 
   /* DEV_CUSTOM */
   {__customopen, __customclose, __customread, __customwrite,
-    __customlseek, __customioctl, __customselect, __customstat, __customfstat }
+   __customlseek, __customioctl, __customselect, __customstat, __customfstat}
 };
 
 /* Map of special device names to device types.  */
 struct sfile
 {
-  const char *name; /* The 'xxx' in /dev/xxx (if defined)  */
-  const dev_t dev; /* Allocated device number, see DEV_* definitions  */
+  const char *name;		/* The 'xxx' in /dev/xxx (if defined)  */
+  const dev_t dev;		/* Allocated device number, see DEV_* definitions  */
 };
 
 /* Map of RISC OS FS to device types.  */
@@ -77,8 +76,7 @@ struct rofs2dev
   const dev_t dev;
 };
 
-static const struct sfile __sfile[] =
-{
+static const struct sfile __sfile[] = {
   {"tty", DEV_TTY},
   {"console", DEV_TTY},
   {"rs423", DEV_TTY},
@@ -91,14 +89,13 @@ static const struct sfile __sfile[] =
   {"custom", DEV_CUSTOM},
 /*   {"pipe", DEV_PIPE}, does open on /dev/pipe make sense ?  */
 /*   {"socket", DEV_SOCKET}, does open on /dev/socket make sense ?  */
-  {NULL, DEV_RISCOS} /* table terminator */
+  {NULL, DEV_RISCOS}		/* table terminator */
 };
 
-static const struct rofs2dev __rofs2dev[] =
-{
+static const struct rofs2dev __rofs2dev[] = {
   {"null:", DEV_NULL},
 /*   {"pipe:", DEV_PIPE}, makes sense ? What about filename mapping ?  */
-  {NULL, DEV_RISCOS} /* table terminator */
+  {NULL, DEV_RISCOS}		/* table terminator */
 };
 
 dev_t
@@ -110,11 +107,11 @@ __getdevtype (const char *filename, int ro_control)
       const struct rofs2dev *rofs2dev;
 
       for (rofs2dev = __rofs2dev; rofs2dev->rofsname != NULL; ++rofs2dev)
-        {
-          if (strncmp (rofs2dev->rofsname, filename,
-                       strlen(rofs2dev->rofsname)) == 0)
-            return rofs2dev->dev;
-        }
+	{
+	  if (strncmp (rofs2dev->rofsname, filename,
+		       strlen (rofs2dev->rofsname)) == 0)
+	    return rofs2dev->dev;
+	}
     }
 
   if (filename[0] == '/' && filename[1] == 'd' && filename[2] == 'e' &&
@@ -123,11 +120,11 @@ __getdevtype (const char *filename, int ro_control)
       const struct sfile *special = __sfile;
 
       while (special->name != NULL)
-        {
-          if (strcmp (special->name, filename + sizeof ("/dev/") - 1) == 0)
-            break;
-          special++;
-        }
+	{
+	  if (strcmp (special->name, filename + sizeof ("/dev/") - 1) == 0)
+	    break;
+	  special++;
+	}
 
       return special->dev;
     }
@@ -139,10 +136,10 @@ void *
 __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 {
   int regs[10], fd, sftype, fflag = file_desc->fflag;
-  char file[MAXPATHLEN + 2]; /* Want two chars for ".^" below.  */
+  char file[MAXPATHLEN + 2];	/* Want two chars for ".^" below.  */
   __mode_t access_mode;
   _kernel_oserror *err;
-  char *end_of_filename; /* Location useful for CREAT failure tests.  */
+  char *end_of_filename;	/* Location useful for CREAT failure tests.  */
 
   end_of_filename = __riscosify_std (filename,
 				     fflag & (O_CREAT | O_WRONLY | O_RDWR),
@@ -150,12 +147,12 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
   if (end_of_filename == NULL)
     return (void *) __set_errno (ENAMETOOLONG);
 
-#if __UNIXLIB_SYMLINKS > 0
+#if __UNIXLIB_SYMLINKS
   {
-  char target[MAXPATHLEN + 2];
+    char target[MAXPATHLEN + 2];
 
     if (__resolve_symlinks (file, target, MAXPATHLEN) != 0)
-      return (void *)-1;
+      return (void *) -1;
 
     /* Pass through __riscosify() again to get the true end_of_filename and at the
        same time copy the resolved filename back to file[]. */
@@ -180,8 +177,8 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	return (void *) __set_errno (EEXIST);
 
       /* Check for permission to access the file in the mode we
-	 requested.  */
-      if (regs[0] == 2 || (regs[0] == 3 && ! __get_feature_imagefs_is_file ()))
+         requested.  */
+      if (regs[0] == 2 || (regs[0] == 3 && !__get_feature_imagefs_is_file ()))
 	{
 	  /* Directory or image file.  Set errno if the user
 	     specified write access.  */
@@ -209,11 +206,11 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
          by canonicalising the filename if possible, otherwise checking
          for pipe: anyway.
          NOTE: This is an ugly hack to make opening non-existent files
-	 for reading on PipeFS work.  We should handle PipeFS though
+         for reading on PipeFS work.  We should handle PipeFS though
          a proper device ioctl.  */
 
       /* We don't need the full filename, just need to check that the first
-	 few characters begin with 'pipe'.  */
+         few characters begin with 'pipe'.  */
       char temp[16];
 
       regs[0] = 37;
@@ -224,26 +221,25 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       regs[5] = sizeof (temp);
       __os_swi (OS_FSControl, regs);
 
-      if (! (tolower (temp[0]) == 'p'
-	     && tolower (temp[1]) == 'i'
-	     && tolower (temp[2]) == 'p'
-	     && tolower (temp[3]) == 'e'
-	     && temp[4] == ':'))
-        {
-          /* If no file exists and O_CREAT was not specified,
+      if (!(tolower (temp[0]) == 'p'
+	    && tolower (temp[1]) == 'i'
+	    && tolower (temp[2]) == 'p'
+	    && tolower (temp[3]) == 'e' && temp[4] == ':'))
+	{
+	  /* If no file exists and O_CREAT was not specified,
 	     return ENOENT.  */
-          if (!(fflag & O_CREAT))
+	  if (!(fflag & O_CREAT))
 	    {
 	      return (void *) __set_errno (ENOENT);
 	    }
-        }
+	}
     }
 
   if (fflag & O_CREAT)
     {
       /* If the O_CREAT flag has been set, then create an
-	 empty file. Strict POSIX says that there is no
-	 difference between text and binary files. */
+         empty file. Strict POSIX says that there is no
+         difference between text and binary files. */
       regs[2] = (sftype == __RISCOSIFY_FILETYPE_NOTFOUND) ? 0xfff : sftype;
       regs[4] = regs[5] = 0;
       if ((err = __os_file (OSFILE_CREATEEMPTYFILE_FILETYPE, file, regs)))
@@ -264,17 +260,17 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	  if (!leafonly)
 	    {
 	      /* There was a '.' or ':' present, so check for parent
-		 directory.  end_of_filename points to the terminating
-		 '\0' in the riscosified filename.  If that filename ends
-		 ':' (eg "parallel:") append '^' else append '.^'.  Need to
-		 check for leafname only, as "!Run.^" gives an error.  */
+	         directory.  end_of_filename points to the terminating
+	         '\0' in the riscosified filename.  If that filename ends
+	         ':' (eg "parallel:") append '^' else append '.^'.  Need to
+	         check for leafname only, as "!Run.^" gives an error.  */
 	      if (end_of_filename[-1] != ':')
 		*end_of_filename++ = '.';
 	      *end_of_filename = ':';
 
 	      if (!__isdir_raw (file))
 		return (void *) __set_errno (ENOENT);
-		/* No parent directory - throw Unix error.  */
+	      /* No parent directory - throw Unix error.  */
 	    }
 	  /* Parent directory exists - implies OS problem creating
 	     file.  */
@@ -290,28 +286,29 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       err = __os_fopen (openmode = OSFILE_OPENOUT, file, &fd);
     else
       {
-        switch (fflag & O_ACCMODE)
-          {
-          case O_RDWR:
-          case O_WRONLY:
+	switch (fflag & O_ACCMODE)
+	  {
+	  case O_RDWR:
+	  case O_WRONLY:
 	    err = __os_fopen (openmode = OSFILE_OPENUP, file, &fd);
 	    break;
-          case O_RDONLY:
+	  case O_RDONLY:
 	    if (file_desc->dflag & FILE_ISDIR)
 	      {
-	        DIR *dir;
+		DIR *dir;
 #ifdef DEBUG
-	        __os_print ("-- open directory (read only): file=");
-	        __os_print (file); __os_nl ();
+		__os_print ("-- open directory (read only): file=");
+		__os_print (file);
+		__os_nl ();
 #endif
 
-	        dir = opendir (file);
-	        return (dir == NULL) ? (void *) -1 : (void *) dir;
+		dir = opendir (file);
+		return (dir == NULL) ? (void *) -1 : (void *) dir;
 	      }
 	    else
 	      err = __os_fopen (openmode = OSFILE_OPENIN, file, &fd);
 	    break;
-          default:
+	  default:
 	    return (void *) __set_errno (EINVAL);
 	  }
       }
@@ -327,27 +324,27 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
     if (fflag & O_CREAT)
       {
-        mode &= ~(__proc->umask & 0777);
-        regs[5] = __set_protection (mode);
+	mode &= ~(__proc->umask & 0777);
+	regs[5] = __set_protection (mode);
 
-        /* Write the object attributes.  */
-        if (__os_file (OSFILE_WRITECATINFO_ATTR, file, regs))
-          {
-            /* Now try closing it first if that failed */
-            __os_fclose(fd);
+	/* Write the object attributes.  */
+	if (__os_file (OSFILE_WRITECATINFO_ATTR, file, regs))
+	  {
+	    /* Now try closing it first if that failed */
+	    __os_fclose (fd);
 
-            regs[5] = __set_protection (mode);
-            if ((err = __os_file (OSFILE_WRITECATINFO_ATTR, file, regs)))
-              goto os_err;
+	    regs[5] = __set_protection (mode);
+	    if ((err = __os_file (OSFILE_WRITECATINFO_ATTR, file, regs)))
+	      goto os_err;
 
-            if ((err = __os_fopen(openmode, file, &fd)))
-              goto os_err;
-          }
+	    if ((err = __os_fopen (openmode, file, &fd)))
+	      goto os_err;
+	  }
       }
   }
 
   regs[0] = 254;
-  regs[1] = (int)fd;
+  regs[1] = (int) fd;
   __os_swi (OS_Args, regs);
   /* Check the 'stream is unallocated' bit.  Probably caused
      by us trying to open a file that is already open.  */
@@ -382,13 +379,13 @@ __fsclose (struct __unixlib_fd *file_desc)
 
 #ifdef DEBUG
   __os_print ("Closing file ");
-  __os_prhex ((int)file_desc->devicehandle->handle);
+  __os_prhex ((int) file_desc->devicehandle->handle);
   if (buffer)
     {
       __os_print (": ");
       __os_print (buffer);
     }
-  __os_nl();
+  __os_nl ();
 #endif
 
   /* Close file.  */
@@ -398,11 +395,11 @@ __fsclose (struct __unixlib_fd *file_desc)
       int regs[10];
       err = __os_file (OSFILE_DELETENAMEDOBJECT, buffer, regs);
       /* Delete the suffix swap dir if it is now empty */
-      __unlinksuffix (buffer); /* buffer is corrupted by this call */
+      __unlinksuffix (buffer);	/* buffer is corrupted by this call */
     }
 
   free (buffer);
-  return (! err) ? 0 : (__ul_seterr (err, 1), -1);
+  return (!err) ? 0 : (__ul_seterr (err, 1), -1);
 }
 
 int
@@ -418,11 +415,11 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
       if (readdir_r ((DIR *) file_desc->devicehandle->handle, &entry, &result))
 	return -1;
       if (!result)
-        return -1;
+	return -1;
       memcpy (data, entry.d_name,
 	      (nbyte < entry.d_namlen) ? nbyte : entry.d_namlen);
       /* FIXME: If the buffer is too small then we will lose the
-	 rest of the filename */
+         rest of the filename */
       return entry.d_namlen;
     }
   else
@@ -430,7 +427,7 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
       _kernel_oserror *err;
       int regs[5];
 
-      if ((err = __os_fread ((int)file_desc->devicehandle->handle,
+      if ((err = __os_fread ((int) file_desc->devicehandle->handle,
 			     data, nbyte, regs)))
 	{
 	  __ul_seterr (err, 1);
@@ -448,11 +445,14 @@ __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
   int regs[5];
 
 #ifdef DEBUG
-  __os_print ("__fswrite("); __os_prdec ((int)file_desc->devicehandle->handle);
-  __os_print (", nbyte="); __os_prdec (nbyte); __os_print (")\r\n");
+  __os_print ("__fswrite(");
+  __os_prdec ((int) file_desc->devicehandle->handle);
+  __os_print (", nbyte=");
+  __os_prdec (nbyte);
+  __os_print (")\r\n");
 #endif
 
-  if ((err = __os_fwrite ((int)file_desc->devicehandle->handle,
+  if ((err = __os_fwrite ((int) file_desc->devicehandle->handle,
 			  data, nbyte, regs)))
     {
       __ul_seterr (err, 1);
@@ -463,14 +463,14 @@ __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 }
 
 __off_t
-__fslseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
+__fslseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
 {
   _kernel_oserror *err = NULL;
   int regs[3];
   int handle = (int) file_desc->devicehandle->handle;
 
   if (file_desc->dflag & FILE_ISDIR)
-    return 0; /* Should we call seekdir()? */
+    return 0;			/* Should we call seekdir()? */
 
   if (whence == SEEK_SET)
     err = __os_args (1, handle, (int) lpos, regs);
@@ -478,22 +478,22 @@ __fslseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
     {
       err = __os_args (0, (int) handle, 0, regs);
       /* For lseek (f, 0, SEEK_CUR) don't need the second SWI, as effectively
-	 being called to return file position without changing it
-	 Testing lpos == 0 is quick, and lpos == 0 frequent
-	 (eg all calls to fopen() that are not "a")  */
-      if (! err && lpos)
-        err = __os_args (1, (int) handle, regs[2] + (int) lpos, regs);
+         being called to return file position without changing it
+         Testing lpos == 0 is quick, and lpos == 0 frequent
+         (eg all calls to fopen() that are not "a")  */
+      if (!err && lpos)
+	err = __os_args (1, (int) handle, regs[2] + (int) lpos, regs);
     }
   else if (whence == SEEK_END)
     {
       err = __os_args (2, (int) handle, 0, regs);
-      if (! err)
-        err = __os_args (1, (int) handle, regs[2] + (int) lpos, regs);
+      if (!err)
+	err = __os_args (1, (int) handle, regs[2] + (int) lpos, regs);
     }
   else
     return __set_errno (EINVAL);
 
-  return (! err) ? ((__off_t) regs[2]) : (__ul_seterr (err, 1), -1);
+  return (!err) ? ((__off_t) regs[2]) : (__ul_seterr (err, 1), -1);
 }
 
 int
@@ -519,8 +519,9 @@ __fsstat (const char *ux_filename, struct stat *buf)
   else
     dir_suffix_check = 0;
 
-  rtrn_get_attrs = __object_get_attrs (ux_filename, filename, sizeof (filename),
-                                       &objtype, NULL, &load, &exec, &length, &attr);
+  rtrn_get_attrs =
+    __object_get_attrs (ux_filename, filename, sizeof (filename), &objtype,
+			NULL, &load, &exec, &length, &attr);
 
   if (dir_suffix_check)
     {
@@ -530,10 +531,11 @@ __fsstat (const char *ux_filename, struct stat *buf)
 
   if (rtrn_get_attrs)
     {
-    if (dir_suffix_check == 0
-        || __object_get_attrs (ux_filename, filename, sizeof (filename),
-                               &objtype, NULL, &load, &exec, &length, &attr))
-      return -1;
+      if (dir_suffix_check == 0
+	  || __object_get_attrs (ux_filename, filename, sizeof (filename),
+				 &objtype, NULL, &load, &exec, &length,
+				 &attr))
+	return -1;
     }
 
   buf->st_ino = __get_file_ino (NULL, filename);
@@ -555,7 +557,7 @@ __fsfstat (int fd, struct stat *buf)
   file_desc = getfd (fd);
 
   if (file_desc->dflag & FILE_ISDIR)
-    buffer = strdup(((DIR *) file_desc->devicehandle->handle)->dd_name_can);
+    buffer = strdup (((DIR *) file_desc->devicehandle->handle)->dd_name_can);
   else
     buffer = __fd_to_name ((int) file_desc->devicehandle->handle, NULL, 0);
 
@@ -579,10 +581,10 @@ __fsfstat (int fd, struct stat *buf)
          but we want the current extent of the file */
       err = __os_args (2, (int) file_desc->devicehandle->handle, 0, argsregs);
       if (err)
-        {
-          __ul_seterr (err, 0);
-          return __set_errno (EIO);
-        }
+	{
+	  __ul_seterr (err, 0);
+	  return __set_errno (EIO);
+	}
       regs[4] = argsregs[2];
     }
 
@@ -616,26 +618,26 @@ __pipewrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 
   handle = (int) file_desc->devicehandle->handle;
   /* Read current file position.  */
-  if (! __os_args (0, handle, 0, regs))
+  if (!__os_args (0, handle, 0, regs))
     {
       int offset = regs[2];
       /* Read extent && Set file pointer to end of file.  */
-      if (! __os_args (2, handle, 0, regs)
-	  && ! __os_args (1, handle, regs[2], regs))
-	  {
-	    /* Write some more data to the "pipe" at the end of the file.  */
-	    int write_err = __fswrite (file_desc, data, nbyte);
-	    /* Restore the pointer to where we found it.  */
-	    if (! __os_args (1, handle, offset, regs))
-	      return write_err;
-	  }
+      if (!__os_args (2, handle, 0, regs)
+	  && !__os_args (1, handle, regs[2], regs))
+	{
+	  /* Write some more data to the "pipe" at the end of the file.  */
+	  int write_err = __fswrite (file_desc, data, nbyte);
+	  /* Restore the pointer to where we found it.  */
+	  if (!__os_args (1, handle, offset, regs))
+	    return write_err;
+	}
     }
   return __set_errno (EPIPE);
 }
 
 int
 __pipeselect (struct __unixlib_fd *file_desc, int fd,
-		__fd_set *pread, __fd_set *pwrite, __fd_set *except)
+	      __fd_set * pread, __fd_set * pwrite, __fd_set * except)
 {
   /* Return ready to write, no exceptional conditions.  Ready to read is a
      little more tricky.  Bascially, work out if there is any data ready.
@@ -647,25 +649,25 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
       int regs[3];
       int pos;
       /* Read current file position.  */
-      if (! __os_args (0, (int)file_desc->devicehandle->handle, 0, regs))
-        {
-          pos = regs[2];
-          /* Read extent.  */
-          if (! __os_args (2, (int)file_desc->devicehandle->handle, 0, regs))
-            if (pos != regs[2])
-              to_read = 1;
-          /* If file pointer != extent then there is still data to read.  */
-        }
+      if (!__os_args (0, (int) file_desc->devicehandle->handle, 0, regs))
+	{
+	  pos = regs[2];
+	  /* Read extent.  */
+	  if (!__os_args (2, (int) file_desc->devicehandle->handle, 0, regs))
+	    if (pos != regs[2])
+	      to_read = 1;
+	  /* If file pointer != extent then there is still data to read.  */
+	}
 
       /* If this is the only fd left open on the pipe then there is EOF
          to read */
       if (file_desc->devicehandle->refcount < 2)
-        to_read = 1;
+	to_read = 1;
 
       if (to_read)
-        FD_SET(fd, pread);
+	FD_SET (fd, pread);
       else
-        FD_CLR (fd, pread);
+	FD_CLR (fd, pread);
     }
 
   if (pwrite)
@@ -711,7 +713,7 @@ __nullwrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 }
 
 __off_t
-__nulllseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
+__nulllseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
 {
   IGNORE (lpos);
   IGNORE (whence);
@@ -720,8 +722,7 @@ __nulllseek (struct __unixlib_fd *file_desc, __off_t lpos, int whence)
 }
 
 int
-__nullioctl (struct __unixlib_fd *file_desc, unsigned long request,
-               void *arg)
+__nullioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
 {
   IGNORE (request);
   IGNORE (arg);
@@ -739,12 +740,12 @@ __nullioctl (struct __unixlib_fd *file_desc, unsigned long request,
 
 int
 __nullselect (struct __unixlib_fd *file_desc, int fd,
-		__fd_set *cread, __fd_set *cwrite, __fd_set *except)
+	      __fd_set * cread, __fd_set * cwrite, __fd_set * except)
 {
   /* Return ready to read, ready to write, no execptional conditions.  */
   IGNORE (file_desc);
   if (cread)
-    FD_SET(fd, cread);
+    FD_SET (fd, cread);
   if (cwrite)
     FD_SET (fd, cwrite);
   if (except)
@@ -761,11 +762,11 @@ __nullstat (const char *filename, struct stat *buf)
 
   buf->st_ino = 0;
 
-   __stat (0, 0, 0, 0, 0, buf);
+  __stat (0, 0, 0, 0, 0, buf);
 
-   buf->st_mode = S_IRUSR | S_IWUSR;
+  buf->st_mode = S_IRUSR | S_IWUSR;
 
-   return 0;
+  return 0;
 }
 
 int
@@ -807,37 +808,36 @@ __sockopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 int
 __sockclose (struct __unixlib_fd *file_desc)
 {
-  return _sclose ((int)file_desc->devicehandle->handle);
+  return _sclose ((int) file_desc->devicehandle->handle);
 }
 
 int
 __sockread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 {
-  return _sread ((int)file_desc->devicehandle->handle, data, nbyte);
+  return _sread ((int) file_desc->devicehandle->handle, data, nbyte);
 }
 
 int
 __sockwrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 {
-  return _swrite ((int)file_desc->devicehandle->handle, data, nbyte);
+  return _swrite ((int) file_desc->devicehandle->handle, data, nbyte);
 }
 
 int
-__sockioctl (struct __unixlib_fd *file_desc, unsigned long request,
-             void *arg)
+__sockioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
 {
-  return _sioctl ((int)file_desc->devicehandle->handle, request, arg);
+  return _sioctl ((int) file_desc->devicehandle->handle, request, arg);
 }
 
 int
 __sockselect (struct __unixlib_fd *file_descriptor, int fd,
-		__fd_set *sread, __fd_set *swrite, __fd_set *except)
+	      __fd_set * sread, __fd_set * swrite, __fd_set * except)
 {
   /* Return 1,1,1 so that merge routine will copy in this socket's
      results.  */
   IGNORE (file_descriptor);
   if (sread)
-    FD_SET(fd, sread);
+    FD_SET (fd, sread);
   if (swrite)
     FD_SET (fd, swrite);
   if (except)
@@ -869,22 +869,22 @@ __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
   IGNORE (file_desc);
 
   /* Test for the existance of the CryptRandom module */
-  if (__os_swi(CryptRandom_Stir, regs))
+  if (__os_swi (CryptRandom_Stir, regs))
     {
       _kernel_oserror *err;
 
       /* Try to load the module. Ignore any errors */
-      if ((err = __os_cli("RMEnsure CryptRandom 0.12 RMLoad System:Modules.CryptRand")) != NULL
-          || (err = __os_cli("RMEnsure CryptRandom 0.12 Error 16_10F /dev/random support requires CryptRand 0.12 or newer")) != NULL)
-        {
-          __ul_seterr (err, 1);
-          return (void *)-1;
-        }
+      if ((err = __os_cli ("RMEnsure CryptRandom 0.12 RMLoad System:Modules.CryptRand")) != NULL
+	  || (err = __os_cli ("RMEnsure CryptRandom 0.12 Error 16_10F /dev/random support requires CryptRand 0.12 or newer")) != NULL)
+	{
+	  __ul_seterr (err, 1);
+	  return (void *) -1;
+	}
 
-     /* If still not available, then the open must fail */
-     if (__os_swi(CryptRandom_Stir, regs))
-       return (void *) __set_errno (ENOENT);
-   }
+      /* If still not available, then the open must fail */
+      if (__os_swi (CryptRandom_Stir, regs))
+	return (void *) __set_errno (ENOENT);
+    }
 
   return (void *) 1;
 }
@@ -897,9 +897,9 @@ __randomread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 
   IGNORE (file_desc);
 
-  regs[0] = (int)data;
+  regs[0] = (int) data;
   regs[1] = nbyte;
-  err = __os_swi(CryptRandom_Block, regs);
+  err = __os_swi (CryptRandom_Block, regs);
   if (err)
     {
       __ul_seterr (err, 1);

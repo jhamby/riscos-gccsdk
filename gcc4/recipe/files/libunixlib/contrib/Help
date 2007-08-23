@@ -49,7 +49,7 @@ first official version supporting ELF static & shared object format.
 
 UnixLib is covered with various licenses, the most significant of which
 is the Lesser GNU Public License. For more details see the file
-!UnixLib.Docs.Copyright
+COPYRIGHT.
 
 
 Running and distributing UnixLib based programs
@@ -63,6 +63,7 @@ Otherwise, we advise to ship together with your product the following
 directory tree !System.310.Modules containing a copy of the
 "SharedUnixLibrary" module as file "SharedULib".  Users can use the
 !System merger to make sure they have the latest version of this module.
+
 Please don't distribute any development version of SharedUnixLib without
 permission from developers, as you may cause version confusion and the
 potential exists to distribute unstable or untested code.
@@ -74,6 +75,6 @@ the users to <URL:http://www.iyonix.com/32bit/CallASWI.shtml> for the
 latest known version and approved installation program.
 
 Note you might need other modules used by UnixLib when you're using
-specific functionaly.  See separate document for more information.
+specific functionaly.  See separate document README for more information.
 
 -EOF-

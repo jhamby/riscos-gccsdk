@@ -1,5 +1,5 @@
 /* execvp ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <unistd.h>
@@ -10,7 +10,7 @@
 #include <pthread.h>
 #endif
 
-/* Execute file, searching in the 'path' environment variable if it
+/* Execute file, searching in the 'PATH' environment variable if it
    contains no slashes, with arguments argv and environment from
    'environ'.  */
 int

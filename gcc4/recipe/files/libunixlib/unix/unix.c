@@ -113,7 +113,8 @@ __hexstrtochar (const char *nptr)
 }
 
 /* Free any remaining memory and file descriptors associated with a process */
-void __free_process(struct __sul_process *process)
+void
+__free_process(struct __sul_process *process)
 {
   struct __sul_process *child = process->children;
   struct __sul_process *next_child;
@@ -186,7 +187,8 @@ void __free_process(struct __sul_process *process)
 
    No calls to 'brk', 'sbrk' or 'malloc' should occur before calling
    this function.  */
-void __unixinit (void)
+void
+__unixinit (void)
 {
   int __cli_size, cli_size, regs[10];
   char *cli;
@@ -269,7 +271,7 @@ void __unixinit (void)
 	}
       while (call);
 
-      /* Terminate the list and shrink it to the exact size needed */
+      /* Terminate the list and shrink it to the exact size needed.  */
       environ = realloc (environ, (environentries + 1) * sizeof (char *));
       if (environ == NULL)
 	__unixlib_fatal ("Cannot allocate memory for environ");
@@ -344,13 +346,14 @@ void __unixinit (void)
 #endif
 }
 
-int _main (void)
+int
+_main (void)
 {
   /* Enter the user's program. For compatibility with Unix systems,
      pass the 'environ' variable as a third argument.
 
      This copy of the environment will not get updated by getenv
-     or setenv */
+     or setenv.  */
 
 #if defined(PIC)
   /* Validate the main function pointer (shared library only) */
@@ -379,7 +382,8 @@ exit (int status)
 
 /* ISOC99: Terminate the program with `status' without calling any of
    the functions registered with `atexit'.  */
-void _Exit (int status)
+void
+_Exit (int status)
 {
   /* Close all open streams, write out buffered output data and
      delete tmpfile() temporary files.  */
@@ -643,7 +647,8 @@ find_terminator (const char *s)
 }
 
 
-static void check_io_redir (const char *p, int fd, int mode)
+static void
+check_io_redir (const char *p, int fd, int mode)
 {
   char fn[256];
   char *ptr = fn;
@@ -696,7 +701,8 @@ static void check_io_redir (const char *p, int fd, int mode)
     }
 }
 
-static void get_io_redir (const char *cli)
+static void
+get_io_redir (const char *cli)
 {
   const char *p = cli;
   int mode;

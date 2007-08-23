@@ -286,7 +286,7 @@ extern struct ul_global __ul_global;
 
 
 extern int __funcall_error (const char *, int, unsigned int);
-#if __UNIXLIB_PARANOID > 0
+#if __UNIXLIB_PARANOID
 #define __funcall(f, p) \
   ((((unsigned int)(f) >= __ul_memory.robase) && !((unsigned int)(f) & 3) && (unsigned int)(f) < __ul_memory.appspace_himem \
    ? 0 : __funcall_error(__FILE__, __LINE__, (unsigned int)(f))), (f)p)
@@ -422,9 +422,10 @@ extern int __fork_pre (int isfork, void **sul_fork, pid_t *pid);
 
 extern unsigned int __get_cpu_arch (void);
 
-#if __UNIXLIB_SYMLINKS > 0
+#if __UNIXLIB_SYMLINKS
 
-extern __resolve_symlinks(const char *filename_in, char *filename_out, size_t fn_out_size);
+extern int __resolve_symlinks (const char *filename_in, char *filename_out,
+			       size_t fn_out_size);
 
 #endif
 

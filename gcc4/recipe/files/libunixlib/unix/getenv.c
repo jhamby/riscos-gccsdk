@@ -25,7 +25,8 @@ char **__last_environ = NULL;
    as necessary, otherwise BUFLEN is length of supplied buffer.
    If buf is NULL and call is not NULL then an enumeration is taking place,
    so only return variables that are prefixed by UnixEnv$ or have no $ in
-   their name. */
+   their name.  You should continue enumerating until *call is NULL on exit
+   and ignore NULL results during this enumeration loop.  */
 char *
 __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
 {

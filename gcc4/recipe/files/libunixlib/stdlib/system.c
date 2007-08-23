@@ -62,7 +62,7 @@ system (const char *line)
   pid = vfork ();
   if (pid == (pid_t) 0)
     {
-      char *shell, *path;
+      char *path;
 
       /* Restore the signals.  */
       sigaction (SIGINT, &intr, (struct sigaction *) NULL);
@@ -77,16 +77,19 @@ system (const char *line)
 	    execl (line, 0);
 	  else
 	    execl ("*", "", line, 0);
-	  _exit (1);
 	}
-
-      shell = strrchr (path, '/');
-      if (shell)
-	shell++;
       else
-	shell = path;
-      execl (path, shell, "-c", line, 0);
-      _exit (1);
+	{
+	  char *shell;
+
+	  shell = strrchr (path, '/');
+	  if (shell)
+	    shell++;
+	  else
+	    shell = path;
+	  execl (path, shell, "-c", line, 0);
+	}
+      _exit (EXIT_FAILURE);
     }
   else if (pid < (pid_t) 0)
     /* The fork failed.  */

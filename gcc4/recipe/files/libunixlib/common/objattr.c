@@ -1,13 +1,15 @@
 /* __object_get_attrs ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
+#include <stdlib.h>
 
 #include <swis.h>
 
 #include <unixlib/os.h>
 #include <unixlib/local.h>
+#include <unixlib/unix.h>
 #include <internal/swiparams.h>
 
 /* Get an object's filetype, object type, etc and do some common checks.
@@ -15,8 +17,8 @@
    in __buffer. objtype, ftype, etc may be NULL if not needed. */
 int
 __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
-                    int *objtype, int *ftype, int *loadaddr, int *execaddr,
-                    int *length, int *attr)
+		    int *objtype, int *ftype, int *loadaddr, int *execaddr,
+		    int *length, int *attr)
 {
   _kernel_oserror *err;
   int regs[10], sftype, aftype;
@@ -28,21 +30,21 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
      based on the extension, as this may cause the filetype check later on
      to fail. */
   if (!__riscosify (ux_file, 0,
-                    __get_riscosify_control () | __RISCOSIFY_FILETYPE_NOT_SET,
-                    buffer, buf_len, &sftype))
+		    __get_riscosify_control () | __RISCOSIFY_FILETYPE_NOT_SET,
+		    buffer, buf_len, &sftype))
     return __set_errno (ENAMETOOLONG);
 
-#if __UNIXLIB_SYMLINKS > 0
+#if __UNIXLIB_SYMLINKS
   {
-  char *target;
+    char *target;
 
-    if ((target = malloc(buf_len)) == NULL)
+    if ((target = malloc (buf_len)) == NULL)
       return __set_errno (ENOMEM);
 
-    if (__resolve_symlinks(buffer, target, buf_len) != 0)
+    if (__resolve_symlinks (buffer, target, buf_len) != 0)
       {
-        free(target);
-        return -1;
+	free (target);
+	return -1;
       }
 
     err = __os_file (OSFILE_READCATINFO_NOPATH, target, regs);
@@ -87,8 +89,8 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
 
   /* Fail if file doesn't exist or (if specified) filetype is different.  */
   if (regs[0] == 0 ||
-    ((regs[0] == 1 || (regs[0] == 3 && __get_feature_imagefs_is_file ())) &&
-      sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
+      ((regs[0] == 1 || (regs[0] == 3 && __get_feature_imagefs_is_file ())) &&
+       sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
     return __set_errno (ENOENT);
 
   return 0;
@@ -99,11 +101,11 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
    Returns nonzero and sets errno on error.  */
 int
 __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
-                    int ftype, int attr)
+		    int ftype, int attr)
 {
   _kernel_oserror *err;
   int regs[10], sftype;
-#if __UNIXLIB_SYMLINKS > 0
+#if __UNIXLIB_SYMLINKS
   char *target;
 #endif
 
@@ -113,17 +115,17 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
   if (!__riscosify_std (ux_file, 0, buffer, buf_len, &sftype))
     return __set_errno (ENAMETOOLONG);
 
-#if __UNIXLIB_SYMLINKS > 0
+#if __UNIXLIB_SYMLINKS
   if ((target = malloc (buf_len)) == NULL)
     return __set_errno (ENOMEM);
 
   if (__resolve_symlinks (buffer, target, buf_len) != 0)
     {
-      free(target);
+      free (target);
       return -1;
     }
 
-    buffer = target;
+  buffer = target;
 #endif
 
   /* Set catalogue information.  */
@@ -132,13 +134,13 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
       regs[2] = ftype;
       err = __os_file (OSFILE_WRITECATINFO_FILETYPE, buffer, regs);
       if (err)
-        {
-#if __UNIXLIB_SYMLINKS > 0
-          free(target);
+	{
+#if __UNIXLIB_SYMLINKS
+	  free (target);
 #endif
-          __ul_seterr (err, 0);
-          return __set_errno (EIO);
-        }
+	  __ul_seterr (err, 0);
+	  return __set_errno (EIO);
+	}
     }
 
   if (attr != __ATTR_NOTSPECIFIED)
@@ -146,19 +148,18 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
       regs[5] = attr;
       err = __os_file (OSFILE_WRITECATINFO_ATTR, buffer, regs);
       if (err)
-        {
-#if __UNIXLIB_SYMLINKS > 0
-          free(target);
+	{
+#if __UNIXLIB_SYMLINKS
+	  free (target);
 #endif
-          __ul_seterr (err, 0);
-          return __set_errno (EIO);
-        }
+	  __ul_seterr (err, 0);
+	  return __set_errno (EIO);
+	}
     }
 
-#if __UNIXLIB_SYMLINK > 0
-  free(target);
+#if __UNIXLIB_SYMLINK
+  free (target);
 #endif
 
   return 0;
 }
-

@@ -1,3 +1,32 @@
+Fri Aug 24 01:38:30 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdlib/system.c(system): whitespace changes; use EXIT_FAILURE for
+	_exit.
+	* common/objattr.c: Whitespace changes.
+	* common/symlinks.c: Likewise.
+	* common/exist.c: Likewise.
+	* sys/_syslib.s: Likewise.
+	* unix/dev.c: Likewise.
+	* unix/unix.c: Likewise.
+	* stdlib/qsort.c(__UNIXLIB_PARANOID): use non-0 testing iso a strict
+	positive test.
+	* unix/dev.c(__UNIXLIB_SYMLINKS): Likewise.
+	* common/objattr.c(__UNIXLIB_SYMLINKS): Likewise.
+	* common/exist.c(__UNIXLIB_SYMLINKS): Likewise.
+	* include/unixlib/unix.h(__UNIXLIB_PARANOID,__UNIXLIB_SYMLINKS):
+	Likewise.
+	* unix/getenv.c(__getenv_from_os): Updated comment on its API.
+	* scl/_kcurskch.s(_kernel_current_stack_chunk): _kernel_chunk_stack
+	was wrongly located and always returned NULL.
+	* test/scl/test-kernel_current_stack_chunk.c: Added.
+	* include/unixlib/asm_dec.s: Updated comment on CHUNK_* values.
+	* include/kernel.h(__rt_allocauto): removed prototypes as it is no
+	longer implemented.
+	(__rt_freeauto): Likewise.
+	* contrib/Help: Updated pointer to other documents.
+	* sys/execlp.c: Updated comments.
+	* sys/execvp.c: Likewise.
+
 Mon Aug 20 22:41:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-auto.pl: forgot to escape special chararacters in previous

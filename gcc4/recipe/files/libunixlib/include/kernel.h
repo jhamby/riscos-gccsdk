@@ -161,11 +161,6 @@ extern int _kernel_sdiv10 (int __dividend)
 /* Return a pointer to the current stack chunk.  */
 extern _kernel_stack_chunk *_kernel_current_stack_chunk (void) __THROW;
 
-/* Allocate and free blocks of memory for automatic storage, i.e.
-   associated with the current stack frame.  */
-extern void *__rt_allocauto (unsigned int __size);
-extern void __rt_freeauto (void *__autostorage);
-
 __END_DECLS
 
 #endif

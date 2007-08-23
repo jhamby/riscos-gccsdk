@@ -1022,7 +1022,7 @@ __check_chunk_l1:
 __check_chunk_l2:
 	MOV	pc, lr
 	DECLARE_FUNCTION __check_stack
-#endif @ __UNIXLIB_EXTREMELY_PARANOID
+#endif
 
 
 	@ Remove any unused stack chunks
@@ -1292,7 +1292,7 @@ __ul_global:
 
 	@ Altering this structure will require fixing __main.
 __unixlib_cli:		.word	0				@ offset = 0
-__time:		.word	0, 0	@ low word, high byte	; offset = 4
+__time:			.word	0, 0	@ low word, high byte	@ offset = 4
 __notused1:		.word	0				@ offset = 12
 
 __taskwindow:		.word	0				@ offset = 16
@@ -1305,7 +1305,7 @@ __32bit:		.word	0				@ offset = 32
 
 __panic_mode:		.word	0				@ offset = 36
 
-__proc:		.word	0				@ offset = 40
+__proc:			.word	0				@ offset = 40
 __ul_pagesize:		.word	0				@ offset = 44
 __upcall_handler_addr:	.word	0				@ offset = 48
 __upcall_handler_r12:	.word	0				@ offset = 52
@@ -1355,15 +1355,15 @@ __signalhandler_sp:
 	.word	0						@ offset = 88
 	DECLARE_OBJECT __signalhandler_sp
 
-	.word	0	@ __mutex		offset = 92
-	.word	0	@ malloc_state		offset = 96
+	.word	0			@ __mutex		@ offset = 92
+	.word	0			@ malloc_state		@ offset = 96
 	
 #if PIC
 	@ A pointer used by the shared library to call the program's main function.
 .hidden main
 main:
 #endif
-	.word	0	@ main			offset = 100
+	.word	0			@ main			@ offset = 100
 
 	DECLARE_OBJECT __ul_global
 

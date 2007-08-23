@@ -1,5 +1,5 @@
 /* execlp ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <stdarg.h>
@@ -8,7 +8,7 @@
 #include <sys/param.h>
 #include <stdlib.h>
 
-/* Execute file, searching in the 'path' environment variable if
+/* Execute file, searching in the 'PATH' environment variable if
    it contains no slashes, with all arguments after file until a
    NULL pointer and environment from 'environ'.  */
 int

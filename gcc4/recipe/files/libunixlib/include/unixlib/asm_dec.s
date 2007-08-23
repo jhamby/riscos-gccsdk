@@ -328,7 +328,8 @@
 
 	@ Entries in the struct __stack_chunk.  Must be kept in sync with
 	@ unix.h definition.
-	@ First 20 bytes equals SCL's _kernel_stack_chunk structure :
+	@ First 20 bytes equals SCL's _kernel_stack_chunk structure declared
+	@ in kernel.h.
 .set	CHUNK_MAGIC, 0		@ Magic number to help detect if someone overwrites the stack
 .set	CHUNK_NEXT, 4		@ Ptr to next chunk
 .set	CHUNK_PREV, 8		@ Ptr to previous chunk
