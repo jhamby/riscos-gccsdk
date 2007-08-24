@@ -1,3 +1,8 @@
+Fri Aug 24 23:53:23 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_startapp.s(som_start_app): make use of OS_TaskControl when
+	available to flatten the SVC stack.
+
 Tue Aug 21 02:24:37 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* link_list.c, link_list.h, som_alloc.c, som_alloc.h, som_array.c,
