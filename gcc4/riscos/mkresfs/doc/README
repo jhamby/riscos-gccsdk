@@ -2,7 +2,7 @@ mkrefs - A tool for generating code to register and deregister
          data from ResourceFS
 
          Copyright 2006 - 2007, Rob Kendrick <rjek@rjek.com>
-         Copyright 2007, GCCSDK Developers
+         Copyright 2007, GCCSDK Developers <http://gccsdk.riscos.info/>
 
 Purpose
 -------
@@ -11,8 +11,9 @@ Purpose
        from modules etc, such as Templates and Messages files, and other such
        data.
 
-       It creates two functions, one called when you want to register files
-       with it, and one which removes them again.  It creates the data by
+       It creates three functions, one called when you want to register files
+       with it, one which removes them again and one to re-register the files
+       when the ResourceFS module gets restarted.  It creates the data by
        scanning a directory that you pass it.  You should read the PRM
        sections on ResourceFS to get a clearer idea of the type of data this
        program generates before attempting to use it. (Page 2-407).
@@ -119,11 +120,10 @@ Working example project
 
 License
 -------
+       mkresfs has been written by Rob Kendrick <rjek@rjek.com> and is now
+       part of GCCSDK <URL:http://gccsdk.riscos.info>. Bug fixes and
+       enhancements are made by the GCCSDK developers.
 
-mkresfs has been written by Rob Kendrick <rjek@rjek.com> and is now part
-of GCCSDK <URL:http://gccsdk.riscos.info>. Bug fixes and enhancements are made
-by the GCCSDK developers.
-
-The license for this software can be found in the file COPYING.
+       The license for this software can be found in the file COPYING.
 
 -EOF-

@@ -1,3 +1,8 @@
+Thu Aug 30 01:47:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* doc/README: Purpose paragraph still talked about two functions
+	being created; Reindent the License section.
+
 Tue Aug 28 00:32:02 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac: version is v1.03.
