@@ -9,14 +9,6 @@
  target_modules = { module= libstdc++-v3; lib_path=.libs; raw_cxx=true; };
  target_modules = { module= libmudflap; lib_path=.libs; };
  target_modules = { module= libssp; lib_path=.libs; };
-@@ -228,6 +230,7 @@
- flags_to_pass = { flag= LIBCFLAGS_FOR_TARGET ; };
- flags_to_pass = { flag= LIBCXXFLAGS_FOR_TARGET ; };
- flags_to_pass = { flag= NM_FOR_TARGET ; };
-+flags_to_pass = { flag= OBJCOPY_FOR_TARGET ; };
- flags_to_pass = { flag= OBJDUMP_FOR_TARGET ; };
- flags_to_pass = { flag= RANLIB_FOR_TARGET ; };
- flags_to_pass = { flag= STRIP_FOR_TARGET ; };
 @@ -433,6 +436,8 @@
  dependencies = { module=all-target-libjava; on=all-target-libffi; };
  dependencies = { module=all-target-libobjc; on=all-target-libiberty; };

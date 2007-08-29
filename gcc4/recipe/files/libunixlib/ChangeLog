@@ -1,3 +1,10 @@
+Thu Aug 30 01:36:41 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gen-auto.pl(sul): Reverted previous (unwanted and undocumented)
+	change as it required libscl to be present; use STRIP iso OBJCOPY
+	to extract binary blob out of ELF file which has the advantage that
+	this is already defined in GCC build system.
+
 Fri Aug 24 01:38:30 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/system.c(system): whitespace changes; use EXIT_FAILURE for
