@@ -44,13 +44,12 @@ dynamic_area_remove (unsigned int da_number)
 		"MOV	r1, %[da_number];\n\t"
 		"SWI	%[os_dynamic_area];\n\t"
 		"MOVVS	%[err], r0;\n\t"
-		"MOVVC	%[err], #0;\n\t":[err]
-		"=r" (err):[da_number] "r" (da_number),
-		[os_dynamic_area] "i" (XOS_Bit |
-				       OS_DynamicArea),
-		[reason]
-		"I" (reason_code_DYNAMIC_AREA_REMOVE):"r0",
-		"r1", "r14", "cc");
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [da_number] "r" (da_number),
+		  [os_dynamic_area] "i" (XOS_Bit | OS_DynamicArea),
+		  [reason] "I" (reason_code_DYNAMIC_AREA_REMOVE)
+		: "r0", "r1", "r14", "cc");
   return err;
 }
 
@@ -63,12 +62,12 @@ dynamic_area_extend (unsigned int da_number, int by)
 		"MOV	r1, %[by];\n\t"
 		"SWI	%[os_change_dynamic_area];\n\t"
 		"MOVVS	%[err], r0;\n\t"
-		"MOVVC	%[err], #0;\n\t":[err]
-		"=r" (err):[da_number] "r" (da_number),
-		[by] "r" (by),
-		[os_change_dynamic_area] "i" (XOS_Bit |
-					      OS_ChangeDynamicArea):"r0",
-		"r1", "lr", "cc");
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [da_number] "r" (da_number),
+		  [by] "r" (by),
+		  [os_change_dynamic_area] "i" (XOS_Bit | OS_ChangeDynamicArea)
+		: "r0", "r1", "lr", "cc");
   return err;
 }
 
@@ -94,12 +93,13 @@ heap_init (void *base_addr, int size)
 		"MOV	r3, %[size];\n\t"
 		"SWI	%[os_heap];\n\t"
 		"MOVVS	%[err], r0;\n\t"
-		"MOVVC	%[err], #0;\n\t":[err]
-		"=r" (err):[base_addr] "r" (base_addr),
-		[size] "rI" (size),
-		[os_heap] "i" (XOS_Bit | OS_Heap),
-		[reason] "I" (reason_code_HEAP_INIT):"r0",
-		"r1", "r2", "r14", "cc");
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [base_addr] "r" (base_addr),
+		  [size] "rI" (size),
+		  [os_heap] "i" (XOS_Bit | OS_Heap),
+		  [reason] "I" (reason_code_HEAP_INIT)
+		: "r0", "r1", "r2", "r14", "cc");
   return err;
 }
 
@@ -116,14 +116,13 @@ heap_claim (void *base_addr, int size, void **block_ret)
 		"MOVVS	%[err], r0;\n\t"
 		"MOVVC	%[err], #0;\n\t"
 		"MOVVS	%[block], #0;\n\t"
-		"MOVVC	%[block], r2;\n\t":[err]
-		"=r" (err),
-		[block] "=r" (block):[base_addr]
-		"r" (base_addr),[size] "rI" (size),
-		[os_heap] "i" (XOS_Bit | OS_Heap),
-		[reason]
-		"I" (reason_code_HEAP_CLAIM):"r0", "r1",
-		"r2", "r3", "r14", "cc");
+		"MOVVC	%[block], r2;\n\t"
+		: [err] "=r" (err), [block] "=r" (block)
+		: [base_addr] "r" (base_addr),
+		  [size] "rI" (size),
+		  [os_heap] "i" (XOS_Bit | OS_Heap),
+		  [reason] "I" (reason_code_HEAP_CLAIM)
+		: "r0", "r1", "r2", "r3", "r14", "cc");
 
   if (block_ret)
     *block_ret = block;
@@ -141,12 +140,13 @@ heap_release (void *base_addr, void *block)
 		"MOV	r2, %[block];\n\t"
 		"SWI	%[os_heap];\n\t"
 		"MOVVS	%[err], r0;\n\t"
-		"MOVVC	%[err], #0;\n\t":[err]
-		"=r" (err):[base_addr] "r" (base_addr),
-		[block] "r" (block),
-		[os_heap] "i" (XOS_Bit | OS_Heap),
-		[reason] "I" (reason_code_HEAP_RELEASE):"r0",
-		"r1", "r2", "r14", "cc");
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [base_addr] "r" (base_addr),
+		  [block] "r" (block),
+		  [os_heap] "i" (XOS_Bit | OS_Heap),
+		  [reason] "I" (reason_code_HEAP_RELEASE)
+		: "r0", "r1", "r2", "r14", "cc");
   return err;
 }
 
@@ -160,13 +160,13 @@ heap_extend (void *base_addr, int by)
 		"MOV	r3, %[by];\n\t"
 		"SWI	%[os_heap];\n\t"
 		"MOVVS	%[err], r0;\n\t"
-		"MOVVC	%[err], #0;\n\t":[err]
-		"=r" (err):[base_addr] "r" (base_addr),
-		[by] "rI" (by),
-		[os_heap] "i" (XOS_Bit | OS_Heap),
-		[reason]
-		"I" (reason_code_HEAP_CHANGE_HEAP_SIZE):"r0",
-		"r1", "r2", "r3", "r14", "cc");
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [base_addr] "r" (base_addr),
+		  [by] "rI" (by),
+		  [os_heap] "i" (XOS_Bit | OS_Heap),
+		  [reason] "I" (reason_code_HEAP_CHANGE_HEAP_SIZE)
+		: "r0", "r1", "r2", "r3", "r14", "cc");
   return err;
 }
 
@@ -182,14 +182,14 @@ heap_extend_block (void *base_addr, void **block, int by)
 		"SWI	%[os_heap];\n\t"
 		"MOVVS	%[err], r0;\n\t"
 		"MOVVC	%[err], #0;\n\t"
-		"STRVC	r2, %[block];\n\t":[err] "=r" (err),
-		[block] "+m" (*block):[base_addr]
-		"r" (base_addr),[by] "rI" (by),
-		[os_heap] "i" (XOS_Bit | OS_Heap),
-		[reason]
-		"I"
-		(reason_code_HEAP_CHANGE_BLOCK_SIZE):"r0",
-		"r1", "r2", "r3", "r14", "cc", "memory");
+		"STRVC	r2, %[block];\n\t"
+		: [err] "=r" (err),
+		  [block] "+m" (*block)
+		: [base_addr] "r" (base_addr),
+		  [by] "rI" (by),
+		  [os_heap] "i" (XOS_Bit | OS_Heap),
+		  [reason] "I" (reason_code_HEAP_CHANGE_BLOCK_SIZE)
+		: "r0", "r1", "r2", "r3", "r14", "cc", "memory");
   return err;
 }
 
@@ -204,13 +204,14 @@ heap_block_size (void *base_addr, void *block, int *size)
 		"SWI	%[os_heap];\n\t"
 		"MOVVS	%[err], r0;\n\t"
 		"MOVVC	%[err], #0;\n\t"
-		"STRVC	r3, %[size];\n\t":[err] "=r" (err),
-		[size] "=m" (*size):[base_addr] "r" (base_addr),
-		[block] "r" (block),
-		[os_heap] "i" (XOS_Bit | OS_Heap),
-		[reason]
-		"I" (reason_code_HEAP_READ_BLOCK_SIZE):"r0",
-		"r1", "r2", "r3", "r14", "cc", "memory");
+		"STRVC	r3, %[size];\n\t"
+		: [err] "=r" (err),
+		  [size] "=m" (*size)
+		: [base_addr] "r" (base_addr),
+		  [block] "r" (block),
+		  [os_heap] "i" (XOS_Bit | OS_Heap),
+		  [reason] "I" (reason_code_HEAP_READ_BLOCK_SIZE)
+		: "r0", "r1", "r2", "r3", "r14", "cc", "memory");
   return err;
 
 }
@@ -235,13 +236,13 @@ RMA_claim (int size, void **block_ret)
 		"MOVVS	%[err], r0;\n\t"
 		"MOVVC	%[err], #0;\n\t"
 		"MOVVS	%[block], #0;\n\t"
-		"MOVVC	%[block], r2;\n\t":[err]
-		"=r" (err),
-		[block] "=r" (block):[size] "r" (size),
-		[os_module] "i" (XOS_Bit | OS_Module),
-		[reason]
-		"I" (reason_code_OSMODULE_CLAIM):"r0",
-		"r1", "r2", "r3", "lr", "cc");
+		"MOVVC	%[block], r2;\n\t"
+		: [err] "=r" (err),
+		  [block] "=r" (block)
+		: [size] "r" (size),
+		  [os_module] "i" (XOS_Bit | OS_Module),
+		  [reason] "I" (reason_code_OSMODULE_CLAIM)
+		: "r0", "r1", "r2", "r3", "lr", "cc");
 
   if (block_ret)
     *block_ret = block;
@@ -258,11 +259,12 @@ RMA_free (void *block)
 		"MOV	r2, %[block];\n\t"
 		"SWI	%[os_module];\n\t"
 		"MOVVS	%[err], r0;\n\t"
-		"MOVVC	%[err], #0;\n\t":[err]
-		"=r" (err):[block] "r" (block),
-		[os_module] "i" (XOS_Bit | OS_Module),
-		[reason] "I" (reason_code_OSMODULE_FREE):"r0",
-		"r1", "r2", "lr", "cc");
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [block] "r" (block),
+		  [os_module] "i" (XOS_Bit | OS_Module),
+		  [reason] "I" (reason_code_OSMODULE_FREE)
+		: "r0", "r1", "r2", "lr", "cc");
   return err;
 }
 
@@ -277,11 +279,11 @@ ddeutils_is_present (void)
   asm volatile ("MOV	r1, %[name];\n\t"
 		"SWI	%[os_swi_number_from_string];\n\t"
 		"MOVVS	%[res], #0;\n\t"
-		"MOVVC	%[res], #1;\n\t":[res] "=r" (res):[name]
-		"r" (ddeutil_swi_name),
-		[os_swi_number_from_string] "i" (XOS_Bit |
-						 OS_SWINumberFromString):"r0",
-		"r1", "lr", "cc");
+		"MOVVC	%[res], #1;\n\t"
+		: [res] "=r" (res)
+		: [name] "r" (ddeutil_swi_name),
+		  [os_swi_number_from_string] "i" (XOS_Bit | OS_SWINumberFromString)
+		: "r0", "r1", "lr", "cc");
   return res;
 }
 
@@ -293,10 +295,10 @@ ddeutils_get_cl_size (void)
   /* According to Desktop Tools P.192, doesn't return any errors.  */
   asm volatile ("SWI	%[ddeutils_get_cl_size];\n\t"
 		"MOVVC	%[res], r0;\n\t"
-		"MOVVS	%[res], #0;\n\t":[res]
-		"=r" (res):[ddeutils_get_cl_size] "i" (XOS_Bit |
-						       DDEUtils_GetCLSize):"r0",
-		"lr", "cc");
+		"MOVVS	%[res], #0;\n\t"
+		: [res] "=r" (res)
+		: [ddeutils_get_cl_size] "i" (XOS_Bit | DDEUtils_GetCLSize)
+		: "r0", "lr", "cc");
   return res;
 }
 
@@ -304,10 +306,11 @@ static inline void
 ddeutils_get_cl (char *buffer)
 {
   asm volatile ("MOV	r0, %[buffer];\n\t"
-		"SWI	%[ddeutils_get_cl];\n\t"::[buffer]
-		"r" (buffer),
-		[ddeutils_get_cl] "i" (XOS_Bit |
-				       DDEUtils_GetCl):"r0", "lr", "cc");
+		"SWI	%[ddeutils_get_cl];\n\t"
+		:	/* no outputs */
+		: [buffer] "r" (buffer),
+		  [ddeutils_get_cl] "i" (XOS_Bit | DDEUtils_GetCl)
+		: "r0", "lr", "cc");
 }
 
 /* Automatically calls SWI "DDEUtils_SetCLSize" first.  */
@@ -316,11 +319,16 @@ ddeutils_set_cl (const char *tail)
 {
   int len = strlen (tail) + 1;
 
-  asm volatile ("MOV	r0, %[len];\n\t" "SWI	%[ddeutils_set_cl_size];\n\t" "MOV	r0, %[tail];\n\t" "SWI	%[ddeutils_set_cl];\n\t":	/* no outputs */
-		:[len] "r" (len),[tail] "r" (tail),
-		[ddeutils_set_cl_size] "i" (XOS_Bit | DDEUtils_SetCLSize),
-		[ddeutils_set_cl] "i" (XOS_Bit | DDEUtils_SetCL):"r0", "lr",
-		"cc");
+  asm volatile ("MOV	r0, %[len];\n\t"
+		"SWI	%[ddeutils_set_cl_size];\n\t"
+		"MOV	r0, %[tail];\n\t"
+		"SWI	%[ddeutils_set_cl];\n\t"
+		:	/* no outputs */
+		: [len] "r" (len),
+		  [tail] "r" (tail),
+		  [ddeutils_set_cl_size] "i" (XOS_Bit | DDEUtils_SetCLSize),
+		  [ddeutils_set_cl] "i" (XOS_Bit | DDEUtils_SetCL)
+		: "r0", "lr", "cc");
 }
 
 /* General SWIs.  */
@@ -331,10 +339,10 @@ os_read_monotonic_time (void)
   unsigned int t;
 
   asm volatile ("SWI	%[os_read_monotonic_time];\n\t"
-		"MOV	%[t], r0;\n\t":[t]
-		"=r" (t):[os_read_monotonic_time] "i" (XOS_Bit |
-						       OS_ReadMonotonicTime):"r0",
-		"lr", "cc");
+		"MOV	%[t], r0;\n\t"
+		: [t] "=r" (t)
+		: [os_read_monotonic_time] "i" (XOS_Bit | OS_ReadMonotonicTime)
+		: "r0", "lr", "cc");
   return t;
 }
 
@@ -348,12 +356,13 @@ os_call_every (unsigned int t, void (*handler) (void), void *pw)
 		"MOV	r2, %[pw];\n\t"
 		"SWI	%[os_callevery];\n\t"
 		"MOVVS	%[err], r0;\n\t"
-		"MOVVC	%[err], #0;\n\t":[err]
-		"=r" (err):[time] "r" (t),
-		[handler] "r" (handler),[pw] "r" (pw),
-		[os_callevery] "i" (XOS_Bit |
-				    OS_CallEvery):"r0", "r1",
-		"r2", "r14", "cc");
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [time] "r" (t),
+		  [handler] "r" (handler),
+		  [pw] "r" (pw),
+		  [os_callevery] "i" (XOS_Bit | OS_CallEvery)
+		: "r0", "r1", "r2", "r14", "cc");
   return err;
 }
 
@@ -366,12 +375,12 @@ os_remove_ticker_event (void (*handler) (void), void *pw)
 		"MOV	r1, %[pw];\n\t"
 		"SWI	%[os_removetickerevent];\n\t"
 		"MOVVS	%[err], r0;\n\t"
-		"MOVVC	%[err], #0;\n\t":[err]
-		"=r" (err):[handler] "r" (handler),
-		[pw] "r" (pw),
-		[os_removetickerevent] "i" (XOS_Bit |
-					    OS_RemoveTickerEvent):"r0",
-		"r1", "r14", "cc");
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [handler] "r" (handler),
+		  [pw] "r" (pw),
+		  [os_removetickerevent] "i" (XOS_Bit | OS_RemoveTickerEvent)
+		: "r0", "r1", "r14", "cc");
   return err;
 }
 
@@ -380,11 +389,12 @@ os_add_callback (void (*handler) (void), void *pw)
 {
   asm volatile ("MOV	r0, %[handler];\n\t"
 		"MOV	r1, %[pw];\n\t"
-		"SWI	%[os_add_callback];\n\t"::[handler]
-		"r" (handler),[pw] "r" (pw),
-		[os_add_callback] "i" (XOS_Bit |
-				       OS_AddCallBack):"r0", "r1",
-		"r14", "cc");
+		"SWI	%[os_add_callback];\n\t"
+		:	/* no outputs */
+		: [handler] "r" (handler),
+		  [pw] "r" (pw),
+		  [os_add_callback] "i" (XOS_Bit | OS_AddCallBack)
+		: "r0", "r1", "r14", "cc");
 }
 
 static inline void
@@ -392,11 +402,12 @@ os_remove_callback (void (*handler) (void), void *pw)
 {
   asm volatile ("MOV	r0, %[handler];\n\t"
 		"MOV	r1, %[pw];\n\t"
-		"SWI	%[os_remove_callback];\n\t"::[handler]
-		"r" (handler),[pw] "r" (pw),
-		[os_remove_callback] "i" (XOS_Bit |
-					  OS_RemoveCallBack):"r0",
-		"r1", "r14", "cc");
+		"SWI	%[os_remove_callback];\n\t"
+		:	/* no outputs */
+		: [handler] "r" (handler),
+		  [pw] "r" (pw),
+		  [os_remove_callback] "i" (XOS_Bit | OS_RemoveCallBack)
+		: "r0", "r1", "r14", "cc");
 }
 
 /* s updated to point to terminating character.  */
@@ -409,11 +420,12 @@ os_read_unsigned (const char **s, int base)
 		"LDR	r1, %[s];\n\t"
 		"SWI	%[os_read_unsigned];\n\t"
 		"STR	r1, %[s];\n\t"
-		"MOV	%[res], r2;\n\t":[res] "=r" (res):[base]
-		"r" (base),[s] "m" (*s),
-		[os_read_unsigned] "i" (XOS_Bit |
-					OS_ReadUnsigned):"r0",
-		"r1", "r2", "lr", "cc", "memory");
+		"MOV	%[res], r2;\n\t"
+		: [res] "=r" (res)
+		: [base] "r" (base),
+		  [s] "m" (*s),
+		  [os_read_unsigned] "i" (XOS_Bit | OS_ReadUnsigned)
+		: "r0", "r1", "r2", "lr", "cc", "memory");
   return res;
 }
 
@@ -429,12 +441,13 @@ os_start_app (const char *com_tail, void *cao, const char *com_name)
 		"MOV	r3, %[name];\n\t"
 		"SWI	%[os_fscontrol];\n\t"
 		"MOVVS	%[err], r0;\n\t"
-		"MOVVC	%[err], #0;\n\t":[err]
-		"=r" (err):[tail] "r" (com_tail),
-		[cao] "r" (cao),[name] "r" (com_name),
-		[os_fscontrol] "i" (XOS_Bit |
-				    OS_FSControl):"r0", "r1",
-		"r2", "r3", "lr", "cc");
+		"MOVVC	%[err], #0;\n\t"
+		: [err] "=r" (err)
+		: [tail] "r" (com_tail),
+		  [cao] "r" (cao),
+		  [name] "r" (com_name),
+		  [os_fscontrol] "i" (XOS_Bit | OS_FSControl)
+		: "r0", "r1", "r2", "r3", "lr", "cc");
   return err;
 }
 
@@ -452,14 +465,12 @@ os_get_env (os_env_block * block)
   asm volatile ("SWI	%[os_getenv];\n\t"
 		"STR	r0, %[block0];\n\t"
 		"STR	r1, %[block4];\n\t"
-		"STR	r2, %[block8];\n\t":[block0]
-		"=m" (block->command),
-		[block4] "=m" (block->ram_limit),
-		[block8] "=m" (block->
-			       time):[os_getenv] "i" (XOS_Bit
-						      |
-						      OS_GetEnv):"r0",
-		"r1", "r2", "lr", "cc", "memory");
+		"STR	r2, %[block8];\n\t"
+		: [block0] "=m" (block->command),
+		  [block4] "=m" (block->ram_limit),
+		  [block8] "=m" (block->time)
+		: [os_getenv] "i" (XOS_Bit | OS_GetEnv)
+		: "r0", "r1", "r2", "lr", "cc", "memory");
 }
 
 static inline int
@@ -475,24 +486,31 @@ os_read_var_val_size (const char *var_name)
 		"SWI	%[os_read_var_val];\n\t"
 		"CMP	r2, #0;\n\t"
 		"MOVEQ	%[size], #1;\n\t"
-		"RSBNE	%[size], r2, #0;\n\t":
-		[size]
-		"=r" (size):[name]
-		"r" (var_name),
-		[os_read_var_val]
-		"i" (XOS_Bit |
-		     OS_ReadVarVal):"r0", "r1", "r2", "r3", "r4", "lr", "cc");
+		"RSBNE	%[size], r2, #0;\n\t"
+		: [size] "=r" (size)
+		: [name] "r" (var_name),
+		  [os_read_var_val] "i" (XOS_Bit | OS_ReadVarVal)
+		: "r0", "r1", "r2", "r3", "r4", "lr", "cc");
   return size;
 }
 
 static inline void
 os_read_var_val (const char *var_name, char *buffer, int buf_size)
 {
-  asm volatile ("MOV	r0, %[name];\n\t" "MOV	r1, %[buffer];\n\t" "MOV	r2, %[buf_size];\n\t" "MOV	r3, #0;\n\t" "MOV	r4, #0;\n\t" "SWI	%[os_read_var_val];\n\t" "MOVVC	r0, #0;\n\t" "STRVCB	r0, [r1, r2];\n\t":	/* No outputs */
-		:[name] "r" (var_name),[buffer] "r" (buffer),
-		[buf_size] "r" (buf_size),
-		[os_read_var_val] "i" (XOS_Bit | OS_ReadVarVal):"r0", "r1",
-		"r2", "r3", "r4", "lr", "cc", "memory");
+  asm volatile ("MOV	r0, %[name];\n\t"
+		"MOV	r1, %[buffer];\n\t"
+		"MOV	r2, %[buf_size];\n\t"
+		"MOV	r3, #0;\n\t"
+		"MOV	r4, #0;\n\t"
+		"SWI	%[os_read_var_val];\n\t"
+		"MOVVC	r0, #0;\n\t"
+		"STRVCB	r0, [r1, r2];\n\t"
+		:	/* No outputs */
+		: [name] "r" (var_name),
+		  [buffer] "r" (buffer),
+		  [buf_size] "r" (buf_size),
+		  [os_read_var_val] "i" (XOS_Bit | OS_ReadVarVal)
+		: "r0", "r1", "r2", "r3", "r4", "lr", "cc", "memory");
 }
 
 #endif

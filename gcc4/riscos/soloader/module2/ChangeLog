@@ -1,3 +1,8 @@
+Thu Aug 30 01:45:19 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_os_swis.h: cleaned up the reidentation mess of the inline
+	assembler code.
+
 Fri Aug 24 23:53:23 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_startapp.s(som_start_app): make use of OS_TaskControl when
