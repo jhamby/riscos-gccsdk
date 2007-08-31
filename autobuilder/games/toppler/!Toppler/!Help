@@ -443,13 +443,13 @@ Webpage: toppler.sf.net
 Email  : roever@users.sf.net
 
 
-RISCOS Notes
-------------
+RISC OS Notes
+-------------
 
 Autobuilder port Alan Buckley August 2007
 Original port by Alan Buckley September 2003
 
-This program is 32 bit compatible and requires RISCOS 3.6+.
+This program is 32 bit compatible and requires RISC OS 3.6+.
 
 This program requires at least 14MB memory.
 The screen display is 640x480x32K colours.

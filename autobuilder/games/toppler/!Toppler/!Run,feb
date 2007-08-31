@@ -2,9 +2,6 @@
 
 Wimpslot -min 14208K -max 14208K
 
-| If following fails to load the game will play without sound
-RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
-
 Set Toppler$Dir <Obey$Dir>
 
 | Note -f option gives fullscreen
