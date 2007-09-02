@@ -116,6 +116,8 @@ if [ ! -d $GCCSDK_PREFIX ] ; then
   mkdir -p $GCCSDK_PREFIX
 fi
 
+test ! -f $GCCSDK_SRCDIR/configure && echo "No $GCCSDK_SRCDIR/configure found, need to execute ./create-srcdir first ?" && exit 1
+
 cd $GCCSDK_BUILDDIR
 # Notes:
 #   1) --with-cross-host is needed to correctly find the target libraries in
