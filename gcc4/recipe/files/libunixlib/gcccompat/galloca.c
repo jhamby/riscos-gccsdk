@@ -8,10 +8,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <pthread.h>
-#include <unixlib/local.h>
-#ifndef NDEBUG
+#if __TARGET_UNIXLIB__
+#  include <pthread.h>
+#  include <unixlib/local.h>
 #  include <unixlib/unix.h>
+#elif __TARGET_SCL__
+#  include <kernel.h>
 #endif
 
 #if __UNIXLIB_PARANOID == 0
@@ -34,20 +36,51 @@ struct alloca_chunk
    but they are never referenced directly, so they aren't going to appear
    in any header file.  */
 
-/* These routines are exported from UnixLib and can be referenced from gcc
-   generated code directly.  */
+/* These routines are exported from UnixLib and libscl and can be referenced
+   from gcc generated code directly.  */
 extern unsigned int __gcc_alloca_save (void);
 extern void __gcc_alloca_restore (unsigned int fp, unsigned int block);
 extern void __gcc_alloca_free (void);
 extern void *__gcc_alloca (size_t size);
 
-/* These routines are helper routines and internal to UnixLib.  */
+/* These routines are helper routines and internal to UnixLib and libscl.  */
 extern unsigned int __gcc_alloca_free_1 (void);
 extern void __gcc_alloca_thread_free_all (void);
 extern void __gcc_alloca_longjmp_free (struct alloca_chunk *new_chunk, struct alloca_chunk *cur_chunk);
 extern unsigned int __gcc_alloca_return_address (unsigned int fp);
 
-/* FIXME: when thread context switching is happening during these routines, we have a big problem.  We need some synchronisation code.  */
+/* The chunk storage allocation and release routines to call.  */
+#if __TARGET_UNIXLIB__
+static inline void *
+chunk_alloc (size_t size)
+{
+  return malloc (size);
+}
+
+static inline void
+chunk_free (void *chunk)
+{
+  free (chunk);
+}
+#elif __TARGET_SCL__
+static inline void *
+chunk_alloc (size_t size)
+{
+  return __rt_allocauto (size);
+}
+
+static inline void
+chunk_free (void *chunk)
+{
+  __rt_freeauto (chunk);
+}
+#else
+#  error "Unsupported run-time library."
+#endif
+
+/* FIXME: for UnixLib: when thread context switching is happening during
+   these routines, we have a big problem.  We need some synchronisation
+   code.  */
 
 /* Called by GCC in the middle of a function, denoting the start of a
    block.  i.e.
@@ -67,28 +100,68 @@ extern unsigned int __gcc_alloca_return_address (unsigned int fp);
    }
 */
 
-/* Return head node.  Multi-threaded applications store the head node
+#if __TARGET_UNIXLIB__
+/* Return head node.  Multi-threaded UnixLib applications store the head node
    in a private structure.  */
-static inline
-struct alloca_chunk *chunk_head (void)
+static inline struct alloca_chunk *
+get_chunk_head (void)
 {
   return (struct alloca_chunk *) __pthread_running_thread->alloca;
 }
 
+static inline void
+set_chunk_head (struct alloca_chunk *head)
+{
+  __pthread_running_thread->alloca = head;
+}
+#elif __TARGET_SCL__
+/* Return head node.  SharedCLibrary applications store the head node in
+   static variable.  */
+struct alloca_chunk *__libscl_chunk_head;
+
+static inline struct alloca_chunk *
+get_chunk_head (void)
+{
+  return __libscl_chunk_head;
+}
+
+static inline void
+set_chunk_head (struct alloca_chunk *head)
+{
+  __libscl_chunk_head = head;
+}
+#else
+#  error "Unsupported run-time library."
+#endif
+
 
 /* Converts a PC value to memory address.  When running in 26 bit
    mode this means nuking the processor flags in pc.  */
-static inline
-unsigned int pc_to_address (unsigned int pc)
+static inline unsigned int
+pc_to_address (unsigned int pc)
 {
-  return (__32bit) ? pc : (pc & 0x3FFFFFFC);
+#if 0
+  return (__32bit) ? pc : (pc & 0x03FFFFFC);
+#else
+  unsigned int result;
+  unsigned int unused;
+
+  __asm__ volatile ("TEQ	%2, %2\n\t"
+		    "TEQ	pc, pc\n\t"
+		    "BICNE	%0, %1, #0xFC000003\n\t"
+		    : "=r" (result)
+		    : "0" (pc), "r" (unused)
+		    : "cc");
+
+  return result;
+#endif
 }
 
 
 unsigned int
 __gcc_alloca_save (void)
 {
-  struct alloca_chunk *list = chunk_head ();
+  struct alloca_chunk *list = get_chunk_head ();
 #ifdef DEBUG_LOG
   printf ("__gcc_alloca_save: returning block=%d\n", (list == NULL) ? 1 : list->block + 1);
 #endif
@@ -108,7 +181,7 @@ __gcc_alloca_restore (unsigned int fp, unsigned int block)
   printf ("__gcc_alloca_restore: fp=%08x, callee fp=%08x, block=%u\n", fp, callee_fp, block);
 #endif
   /* Run over the chunk list until we find block. */
-  chunk = chunk_head ();
+  chunk = get_chunk_head ();
   while (chunk != NULL && chunk->block > block)
     {
       struct alloca_chunk *next_chunk = chunk->next;
@@ -128,8 +201,8 @@ __gcc_alloca_restore (unsigned int fp, unsigned int block)
 #ifdef DEBUG_LOG
   printf("  ** free (step 1): block %u, ptr %p, callee_fp %08x\n", chunk->block, chunk->data, chunk->fp);
 #endif
-  free (chunk);
-  __pthread_running_thread->alloca = next_chunk;
+  chunk_free (chunk);
+  set_chunk_head (next_chunk);
 
   if (return_address)
     {
@@ -161,7 +234,7 @@ __gcc_alloca (size_t size)
   if (size == 0)
     return NULL;
 
-  chunk = (struct alloca_chunk *) malloc (offsetof (struct alloca_chunk, data) + size);
+  chunk = (struct alloca_chunk *) chunk_alloc (offsetof (struct alloca_chunk, data) + size);
   if (chunk == NULL)
 #if __UNIXLIB_ALLOCA_FATAL
     abort ();
@@ -169,7 +242,7 @@ __gcc_alloca (size_t size)
     return NULL;
 #endif
 
-  list = chunk_head ();
+  list = get_chunk_head ();
 #ifdef DEBUG_LOG
   printf ("__gcc_alloca: list=%08x chunk=%08x size=%d fp=%p callee_fp=%p callee of callee fp=%p\n",
 	  list, chunk, size, fp, callee_fp, callee_fp[-3]);
@@ -209,8 +282,8 @@ __gcc_alloca (size_t size)
   }
 
   /* Add alloca chunk to the head of the linked list.  */
-  chunk->next = (struct alloca_chunk *) __pthread_running_thread->alloca;
-  __pthread_running_thread->alloca = chunk;
+  chunk->next = get_chunk_head ();
+  set_chunk_head (chunk);
 
 #ifdef DEBUG_LOG
   printf ("__gcc_alloca: fp=%08x, size=%08x, ptr=%08x, block=%d, lr=%08x\n",
@@ -240,14 +313,14 @@ __gcc_alloca_free_1 (void)
   /* Run over the chunk list.  We expect to find at least one chunk holding the
      given fp value and of all chunks holding that fp value, only the last one
      should have a non-zero lr value.  */
-  chunk = chunk_head ();
+  chunk = get_chunk_head ();
   while (chunk != NULL && chunk->fp != fp)
     {
       struct alloca_chunk *next_chunk = chunk->next;
 #ifdef DEBUG_LOG
       printf("  ** free (step 1): block %u, ptr %p, callee fp %08x\n", chunk->block, chunk->data, chunk->fp);
 #endif
-      free (chunk);
+      chunk_free (chunk);
       chunk = next_chunk;
     }
   assert (chunk != NULL);
@@ -262,11 +335,11 @@ __gcc_alloca_free_1 (void)
 #ifdef DEBUG_LOG
       printf("  ** free (step 2): block %u, ptr %p, callee fp %08x\n", chunk->block, chunk->data, chunk->fp);
 #endif
-      free (chunk);
+      chunk_free (chunk);
       chunk = next_chunk;
     }
   assert (return_address != 0);
-  __pthread_running_thread->alloca = chunk;
+  set_chunk_head (chunk);
 
   /* This is the link return address that we will be restoring the program
      counter to.  The wrapper function, __gcc_alloca_free, will perform
@@ -280,17 +353,18 @@ __gcc_alloca_free_1 (void)
 void
 __gcc_alloca_thread_free_all (void)
 {
-  struct alloca_chunk *list = chunk_head ();
+  struct alloca_chunk *list = get_chunk_head ();
   while (list)
     {
       struct alloca_chunk *next_list = list->next;
-      free (list);
+      chunk_free (list);
       list = next_list;
     }
+  set_chunk_head (NULL);
 }
 
 
-/* Called exclusively by longjmp () when __pthread_running_thread->alloca at
+/* Called exclusively by longjmp () when get_chunk_head () at
    longjmp () time is different than at setjmp () time.  */
 void
 __gcc_alloca_longjmp_free (struct alloca_chunk *new_chunk, struct alloca_chunk *cur_chunk)
@@ -307,7 +381,7 @@ __gcc_alloca_longjmp_free (struct alloca_chunk *new_chunk, struct alloca_chunk *
   printf ("__gcc_alloca_longjmp_free: from alloca chunk %p to %p, fp where setjmp() is called is %p, parent fp is %p\n", cur_chunk, new_chunk, callee_fp, (unsigned int *)callee_of_callee_fp);
 #endif
   assert (new_chunk != cur_chunk);
-  assert (cur_chunk == chunk_head ());
+  assert (cur_chunk == get_chunk_head ());
 
   /* Delete all chunks from 'cur_chunk' to the one before 'new_chunk', i.e.
      free all alloca() blocks except the one done just after setjmp() we're
@@ -317,7 +391,7 @@ __gcc_alloca_longjmp_free (struct alloca_chunk *new_chunk, struct alloca_chunk *
 #ifdef DEBUG_LOG
       printf("  ** free (step 1): block %u, ptr %p, callee fp %08x\n", cur_chunk->block, cur_chunk->data, cur_chunk->fp);
 #endif
-      free (cur_chunk);
+      chunk_free (cur_chunk);
       cur_chunk = before_new_chunk;
     }
 
@@ -336,9 +410,9 @@ __gcc_alloca_longjmp_free (struct alloca_chunk *new_chunk, struct alloca_chunk *
 #ifdef DEBUG_LOG
   printf("  ** free (step 2): block %u, ptr %p, callee fp %08x\n", cur_chunk->block, cur_chunk->data, cur_chunk->fp);
 #endif
-  free (cur_chunk);
+  chunk_free (cur_chunk);
 
-  __pthread_running_thread->alloca = new_chunk;
+  set_chunk_head (new_chunk);
 }
 
 
@@ -348,22 +422,24 @@ __gcc_alloca_return_address (unsigned int fp)
   unsigned int callee_fp = ((unsigned int *) fp)[-3];
   unsigned int old_return_address = ((unsigned int *) fp)[-1];
   struct alloca_chunk *chunk;
+  unsigned int return_addr;
 
 #ifdef DEBUG_LOG
   printf ("__gcc_alloca_return_address: fp=%08x, callee fp=%08x, rtrn addr=%08x\n", fp, callee_fp, old_return_address);
 #endif
 
   assert (pc_to_address (old_return_address) == (unsigned int) &__gcc_alloca_free);
-  for (chunk = chunk_head (); chunk != NULL && chunk->fp != callee_fp; chunk = chunk->next)
+  for (chunk = get_chunk_head (); chunk != NULL && chunk->fp != callee_fp; chunk = chunk->next)
     /* */;
   assert (chunk != NULL);
   for ( ; chunk->fp == callee_fp && chunk->next != NULL; chunk = chunk->next)
     assert ((chunk->lr == 0) ^ (chunk->next->fp != callee_fp));
   assert (chunk->lr != 0);
 
+  return_addr = pc_to_address (chunk->lr);
 #ifdef DEBUG_LOG
-  printf ("  ** rtrn addr=%08x\n", chunk->lr);
+  printf ("  ** rtrn addr=%08x\n", return_addr);
 #endif
 
-  return chunk->lr;
+  return return_addr;
 }

@@ -1,3 +1,12 @@
+Sun Sep  2 02:19:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gcccompat/_b_return.s: Made code usable for libscl.
+	* gcccompat/_galloca.s: Likewise.
+	* gcccompat/galloca.c: Likewise.
+	(__gcc_alloca_return_address): strip off the PC flags of return value
+	when running in 26-bit mode.
+	* gcccompat/_b_frame.s: Likewise.
+
 Thu Aug 30 01:36:41 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-auto.pl(sul): Reverted previous (unwanted and undocumented)

@@ -1,7 +1,14 @@
 @ __builtin_return_address
+@ This source is used by SCL and UnixLib libraries.
 @ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#if __TARGET_UNIXLIB__
+#  include "unixlib/asm_dec.s"
+#elif __TARGET_SCL__
+#  include "internal/asm_dec.s"
+#else
+#  error "Unsupported runtime"
+#endif
 
 	.text
 
@@ -38,30 +45,32 @@ __builtin_return_address:
 	TEQ	pc, pc
 	BICNE	a1, a1, #0xfc000003	@ If running 26bit, clear PSR bits.
 
-	@ If the return address in the frame points to the '__gcc_alloca_free'
-	@ function, then we have outstanding alloca blocks so the return
-	@ address needs to be found in one of the 'struct alloca_chunk' blocks.
+	@ If the return address in the frame points to the
+	@ '__gcc_alloca_free' function, then we have outstanding alloca
+	@ blocks so the return address needs to be found in one of the
+	@ 'struct alloca_chunk' blocks.
 	LDR	lr, .L1
 	TEQ	a1, lr
-	BNE	__builtin_return_address_alloca_resolved
+	MOVEQ	a1, a2
+	BLEQ	__gcc_alloca_return_address
 
-	MOV	a1, a2
-	BL	__gcc_alloca_return_address
-
-__builtin_return_address_alloca_resolved:
-	@ If the return address in the frame points to the '__free_stack_chunk'
-	@ function, then the real return address has to be found
-	@ at sl[CHUNK_RETURN].
+#if __TARGET_UNIXLIB__
+	@ If the return address in the frame points to the
+	@ '__free_stack_chunk' function, then the real return address has
+	@ to be found at sl[CHUNK_RETURN].
 	LDR	lr, .L2
 	TEQ	a1, lr
 	LDREQ	a1, [a2, #CHUNK_RETURN]
+#endif
 
  PICNE "LDMFD	sp!, {pc}"
  PICEQ "LDMFD	sp!, {v4, pc}"
 .L1:
 	WORD	__gcc_alloca_free
+#if __TARGET_UNIXLIB__
 .L2:
 	WORD	__free_stack_chunk
+#endif
  PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __builtin_return_address
 

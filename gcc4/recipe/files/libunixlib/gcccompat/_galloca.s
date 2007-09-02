@@ -1,9 +1,16 @@
-@ UnixLib GCC 4 alloca function interface.
-@ These functions tie-in directly with both UnixLib and the GCC compiler.
+@ UnixLib and SCL GCC 4 alloca function interface.
+@ These functions tie-in directly with both UnixLib/SCL and the GCC compiler.
 @ Change one, change the other.
+@ This source is used by SCL and UnixLib libraries.
 @ Copyright (c) 2005, 2006, 2007 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#if __TARGET_UNIXLIB__
+#  include "unixlib/asm_dec.s"
+#elif __TARGET_SCL__
+#  include "internal/asm_dec.s"
+#else
+#  error "Unsupported runtime"
+#endif
 
 	.text
 
@@ -19,5 +26,6 @@ __gcc_alloca_free:
 	mov	ip, a1
 	ldmfd	sp!, {a1, a2}
 	mov	pc, ip
+	DECLARE_FUNCTION __gcc_alloca_free
 
 	.end

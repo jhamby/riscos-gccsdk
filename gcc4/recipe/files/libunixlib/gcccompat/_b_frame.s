@@ -1,7 +1,14 @@
 @ __builtin_frame_address
+@ This source is used by SCL and UnixLib libraries.
 @ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#if __TARGET_UNIXLIB__
+#  include "unixlib/asm_dec.s"
+#elif __TARGET_SCL__
+#  include "internal/asm_dec.s"
+#else
+#  error "Unsupported runtime"
+#endif
 
 	.text
 
@@ -59,12 +66,13 @@ __builtin_frame_address:
 	@ occuring within a program.
 	LDR	v2, __stackchunk_magic_number
 	@ Make 'a2' point to the current stack chunk.
-	SUB	a2, sl, #536	@ Check for UnixLib chunked stack
-	LDR	v1, [a2, #CHUNK_MAGIC]
-	TEQ	v1, v2
-	@ If not a UnixLib chunked stack, then it must be a
-	@ SharedCLibrary chunked stack or it is not chunked.
-	SUBNE	a2, sl, #560
+#if __TARGET_UNIXLIB__
+	SUB	a2, sl, #512 + CHUNK_OVERHEAD
+#elif __TARGET_SCL__
+	SUB	a2, sl, #560
+#else
+#  error "Unsupported runtime"
+#endif
 
 	MOV	a3, #0
 __builtin_frame_address_loop:
