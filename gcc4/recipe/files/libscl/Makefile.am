@@ -21,21 +21,27 @@ WARNINGS = -pedantic -Wall -Wundef -Wpointer-arith \
 # rather than trying to compile the library with the system headers.
 # Header files that provide additional defintions only required for the
 # building of libscl should be held in the source directories.
-AM_CPPFLAGS = -isystem $(top_srcdir)/include
+AM_CPPFLAGS = -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
 
-AM_CFLAGS = -std=c99
+AM_CFLAGS = -std=c99 -mlibscl
 
 # Assembler files rely heavily on the C preprocessor to keep structures
 # referred to by both languages in sync.
-AM_CCASFLAGS = -xassembler-with-cpp -isystem $(top_srcdir)/include
+AM_CCASFLAGS = -xassembler-with-cpp -mlibscl -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
 
 includedir = $(prefix)
+
+gcccompat_src = \
+	gcccompat/_b_frame.s gcccompat/_b_return.s gcccompat/galloca.c \
+	gcccompat/_galloca.s
 riscos_src = \
-	riscos/chunkid01.s riscos/chunkid02.s riscos/chunkid05.s riscos/chunkstub.s riscos/stubs.s \
-	gcc-compat/b_return.c gcc-compat/gcc_alloca.c
+	riscos/chunkid01.s riscos/chunkid02.s riscos/chunkid04.s \
+	riscos/chunkid05.s riscos/chunkstub.s riscos/stubs.s \
+	riscos/redirect_setjmp.s
 
 # All files in the 'include' directory.
 libc_headers = 	\
+	alloca.h \
 	assert.h \
 	endian.h \
 	fcntl.h \
@@ -70,7 +76,7 @@ libc_headers = 	\
 	varargs.h
 
 toolexeclib_LIBRARIES = libscl.a
-libscl_a_SOURCES = $(riscos_src)
+libscl_a_SOURCES = $(gcccompat_src) $(riscos_src)
 
 install-data-local: install-headers
 

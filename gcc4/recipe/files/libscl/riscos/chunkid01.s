@@ -38,7 +38,7 @@
 
 	.section .riscos.libscl.chunkstub.id01,"ax",%progbits
 	@ Chunk 1 is a requirement and always needed.
-	.word	1			@ lib chunk id : kernel
+	.word	1			@ Kernel
 	MakePtr	kernel_vectors_begin
 	MakePtr	kernel_vectors_end
 	MakePtr	kernel_statics_begin

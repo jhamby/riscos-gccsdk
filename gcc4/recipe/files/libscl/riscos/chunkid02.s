@@ -38,7 +38,7 @@
 
 	.section .riscos.libscl.chunkstub.id02,"ax",%progbits
 	@ Chunk 2 is a requirement and always needed.
-	.word	2			@ lib chunk id : CLib
+	.word	2			@ CLib
 	MakePtr	clib_vectors_begin
 	MakePtr	clib_vectors_end
 	MakePtr	clib_statics_begin
@@ -335,10 +335,19 @@ __default_signal_handler:	MOV	PC, #0
 signal:				MOV	PC, #0
 	.global	raise
 raise:				MOV	PC, #0
-	.global	setjmp
-setjmp:				MOV	PC, #0
-	.global	longjmp
-longjmp:			MOV	PC, #0
+
+	@ Entry
+	@ int setjmp (jmp_buf __state);
+	.global	__libscl_redirected_setjmp
+__libscl_redirected_setjmp:
+	MOV	PC, #0
+
+	@ Entry
+	@ void longjmp (jmp_buf __state, int __value);
+	.global	__libscl_redirected_longjmp
+__libscl_redirected_longjmp:
+	MOV	PC, #0
+
 	.global	acos
 acos:				MOV	PC, #0
 	.global	asin
@@ -435,16 +444,33 @@ strxfrm:			MOV	PC, #0
 strcoll:			MOV	PC, #0
 	.global	_clib_finalisemodule
 _clib_finalisemodule:		MOV	PC, #0
+
+	@ Entry 180
+	@ const char *_clib_version(void);
 	.global	_clib_version
-_clib_version:			MOV	PC, #0
+_clib_version:
+	MOV	PC, #0
+
 	.global	_Clib_Finalise
-_Clib_Finalise:			MOV	PC, #0
+_Clib_Finalise:
+	MOV	PC, #0
+
 	.global	tmpnam
-tmpnam:				MOV	PC, #0
+tmpnam:
+	MOV	PC, #0
+
+	@ Entry 183
+	@ int _swi(int swi_number, unsigned int flags, ...);
 	.global	_swi
-_swi:				MOV	PC, #0
+_swi:
+	MOV	PC, #0
+
+	@ Entry 184
+	@ _kernel_oserror *_swix(int swi_number, unsigned int mask, ...);
 	.global	_swix
-_swix:				MOV	PC, #0
+_swix:
+	MOV	PC, #0
+
 clib_vectors_mid:
 	.space			clib_vectors_mid - clib_vectors_begin
 clib_vectors_end:

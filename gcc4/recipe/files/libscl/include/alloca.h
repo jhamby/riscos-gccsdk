@@ -1,5 +1,5 @@
-/* Compatibility functions for the libscl.
-   Copyright (c) 1997-2005 UnixLib Developers
+/* alloca.h header for the RISC OS SharedCLibrary.
+   Copyright (c) 2007 UnixLib Developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without
@@ -24,13 +24,35 @@
    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
    THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. */
 
-#include <stdio.h>
-#include <stdlib.h>
+#ifndef __ALLOCA_H
+#define __ALLOCA_H
 
-void * __builtin_return_address (unsigned int level)
-{
-  printf("Not implemented: __builtin_return_address()\n");
-  abort();
+/* Unsigned type of sizeof something.  */
+#ifndef __size_t
+#define __size_t 1
+#endif
+#ifndef __SIZE_TYPE__
+#define __SIZE_TYPE__ unsigned int
+#endif
+#ifndef size_t
+typedef __SIZE_TYPE__ size_t;
+#endif
 
-  return NULL;
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#undef alloca
+
+/* Allocate a block that will be freed when the calling function exits.  */
+extern void *alloca (size_t __size);
+
+#ifdef __GNUC__
+#  define alloca(size) __builtin_alloca (size)
+#endif
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif

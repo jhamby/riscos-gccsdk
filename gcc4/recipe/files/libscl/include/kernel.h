@@ -1,5 +1,6 @@
 /* kernel.h standard header for the RISC OS SharedCLibrary.
    Copyright (c) 1997-2005 Nick Burrett
+   Copyright (c) 2007 UnixLib Developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without
@@ -29,6 +30,17 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+/* Unsigned type of sizeof something.  */
+#ifndef __size_t
+#define __size_t 1
+#endif
+#ifndef __SIZE_TYPE__
+#define __SIZE_TYPE__ unsigned int
+#endif
+#ifndef size_t
+typedef __SIZE_TYPE__ size_t;
 #endif
 
 /* GCC has various useful declarations that can be made with the
@@ -260,6 +272,20 @@ _kernel_srem (int __divisor, int __dividend) __attribute__ ((__const__));
    Returns the remainder in R1. */
 extern int
 _kernel_sdiv10 (int __dividend) __attribute__ ((__const__));
+
+/* Allocates a block of memory of the size specified for a Variable Length
+   Array. The current implementation will not be automatically freed on return
+   from the calling function. Clients using longjmp should take care to retain
+   their own lists of allocated storage as it is not guaranteed to be tracked
+   by the implementation. Returns a pointer to the allocated space.  */
+extern void *
+__rt_allocauto (size_t size);
+
+/* Frees a block of memory allocated by the __rt_allocauto function. This call
+   will be automatically added by the compiler as automatically allocated
+   storage goes out of scope.  */
+extern void
+__rt_freeauto (void *);
 
 #ifdef __cplusplus
 }

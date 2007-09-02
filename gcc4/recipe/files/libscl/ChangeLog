@@ -1,3 +1,44 @@
+Sun Sep  2 02:19:43 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/alloca.h: New.
+	* include/setjmp.h(__JMP_BUF_SIZE): Define it one word bigger than
+	what SCL requires so we can track head of alloca chain.
+	* include/stdint.h: Fixed wrong (c) statement.
+	* include/kernel.h(__rt_allocauto,__rt_freeauto): Add prototype.
+	* gcc-compat/b_return.c: Removed.
+	* gcc-compat/divdi3.s: Likewise.
+	* gcc-compat/gcc_alloca.c: Likewise.
+	* gcc-compat/moddi3.s: Likewise.
+	* gcc-compat/udivdi3.s: Likewise.
+	* gcc-compat/umoddi3.s: Likewise.
+	* gcc-compat: Renamed to...
+	* gcccompat: ...this.
+	* gcccompat/_b_frame.s: New file which just includes the equivalent
+	file from UnixLib.
+	* gcccompat/_b_return.s: Likewise.
+	* gcccompat/galloca.c: Likewise.
+	* gcccompat/_galloca.s: Likewise.
+	* riscos/redirect_setjmp.s(setjmp,longjmp): wrappers for
+	__libscl_redirected_setjmp and __libscl_redirected_longjmp setting
+	and restoring the head of alloca chain.
+	* riscos/chunkid01.s: Updated comment.
+	* riscos/chunkid02.s: Updated comment; renamed setjmp/longjmp to
+	__libscl_redirected_setjmp and __libscl_redirected_longjmp.
+	* riscos/chunkid04.s: New file based on info found at
+	<URL:http://select.riscos.com/prm/programmer/c99lowlevel.html>.
+	* riscos/chunkid05.s: Updated comments based on info found at
+	<URL:http://select.riscos.com/prm/programmer/c99support.html>.
+	* Makefile.am(AM_CPPFLAGS): Look in incl-local directory for include
+	files.
+	(AM_CFLAGS): Add -mlibscl
+	(AM_CCASFLAGS): Look in incl-local directory for include files; add
+	-mlibscl.
+	Added new assembler files.
+	* incl-local/internal/elf-macros.s: New file which includes the
+	equivalent file from UnixLib.
+	* incl-local/internal/asm_dec.s: New file defining SCL stack chunk
+	fields.
+
 Thu Aug 16 23:43:34 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am (tooldir): Define, so that partial build (or

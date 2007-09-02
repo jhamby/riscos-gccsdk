@@ -1,5 +1,5 @@
 /* stdint.h header for the RISC OS SharedCLibrary.
-   Copyright (c) 2005 GCCSDK Developers
+   Copyright (c) 2005 UnixLib Developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without

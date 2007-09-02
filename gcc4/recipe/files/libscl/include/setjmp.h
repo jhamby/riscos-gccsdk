@@ -33,6 +33,10 @@ extern "C" {
 
 /* Objects of type jmp_buf hold the state information to be
    restored by a non-local exit.  */
+/* SCL needs 22 words, the libscl stubs require one word extra to properly
+   unroll alloca() memory blocks.  */
+#undef __JMP_BUF_SIZE
+#define __JMP_BUF_SIZE 23
 #ifdef __JMP_BUF_SIZE
 typedef int jmp_buf[__JMP_BUF_SIZE];
 #else
