@@ -19,14 +19,17 @@ if [ "x"$1 != "x" ] ; then
 fi
 
 if [ -d $GCCSDK_SRCDIR ] ; then
+  echo "Deleting old $GCCSDK_SRCDIR"
   rm -rf $GCCSDK_SRCDIR
 fi
 mkdir $GCCSDK_SRCDIR
 
 # Copy original GCC:
+echo "Copying original GCC"
 cp -r $GCCSDK_GCCORIG/* $GCCSDK_SRCDIR
 
 # Copy a selection of binutils' directories:
+echo "Copying original binutils"
 cp -r $GCCSDK_BINUTILSORIG/{etc,include,bfd,binutils,cpu,gas,opcodes,ld,gprof,gettext.m4} $GCCSDK_SRCDIR
 
 # 1. Patch it:
@@ -37,6 +40,7 @@ done
 popd > /dev/null
 
 # 2. Copy full files excluding the .svn directories:
+echo "Copying files"
 pushd $GCCSDK_RECIPE_FILES > /dev/null
 for dir in `find . -type d | grep -v "\.svn" ` ; do mkdir -p $GCCSDK_SRCDIR/$dir ; done
 for file in `find . -type f | grep -v "\.svn" ` ; do cp -p $file $GCCSDK_SRCDIR/$file ; done
@@ -44,5 +48,6 @@ popd > /dev/null
 
 # 3. Run scripts in alphabetical order:
 for s in `ls $GCCSDK_RECIPE_SCRIPTS | sort` ; do
+  echo "$GCCSDK_RECIPE_SCRIPTS/$s"
   $GCCSDK_RECIPE_SCRIPTS/$s
 done
