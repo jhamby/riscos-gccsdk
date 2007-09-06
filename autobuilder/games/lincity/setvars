@@ -1,6 +1,6 @@
 
 AB_CATEGORY=games
-
+AB_COPYSOURCE=yes
 AB_CONFLAGS=--with-x
 
 AB_MAKE="$AB_MAKE all xlincity$AB_EXEEXT"
