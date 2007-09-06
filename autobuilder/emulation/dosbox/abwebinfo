@@ -3,3 +3,6 @@ Description: A x86 emulator with Tandy/Herc/CGA/EGA/VGA graphics, sound and DOS.
  The folowing legacy sound devices are emulated: PC Speaker, Creative CMS/Gameblaster, Tandy 3 voice, Adlib, Sound Blaster Pro, Disney Soundsource and a Gravis Ultrasound. MPU-401 is forwarded to the host. 
  .
  Homepage: http://dosbox.sourceforge.net/ 
+ .
+ Warning: Versions from 0.71 need more than 28MB of memory so they will only
+ run on an Iyonix.

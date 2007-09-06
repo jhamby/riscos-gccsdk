@@ -1,27 +1,27 @@
 --- README.orig	2006-03-29 13:54:41.000000000 +0100
 +++ README	2006-10-27 16:14:35.656250000 +0100
 @@ -1,5 +1,6 @@
- DOSBox v0.65
+ DOSBox v0.71
  
 +See end of this file for notes specific to RISC OS.
  
  =====
  NOTE: 
 @@ -33,6 +34,7 @@
- 11. Building your own version of DOSBox
- 12. Special thanks
- 13. Contact
-+14. RISC OS notes
+ 13. Building your own version of DOSBox
+ 14. Special thanks
+ 15. Contact
++16. RISC OS notes
  
  
  ==============
-@@ -815,3 +817,72 @@
+@@ -1152,3 +1154,73 @@
  See the site: 
  http://dosbox.sourceforge.net
  for an email address (The Crew-page).
 +
 +=================
-+14. RISC OS Notes
++16. RISC OS Notes
 +=================
 +
 +This file is a copy of the README file from within the application
@@ -29,9 +29,10 @@
 +
 +Ported to RISC OS by Alan Buckley March 2004.
 +Version 0.62 ported October 2004.
-+Version 0.65 ported November 2006
++Version 0.65 ported November 2006.
++Version 0.71 ported August 2007.
 +
-+This program is 32 bit compatible and requires RISCOS 3.6+.
++This program is 32 bit compatible and requires RISC OS 3.6+.
 +
 +It requires 48MB of memory (as it emulates a DOS machine with 16MB
 +of ram).

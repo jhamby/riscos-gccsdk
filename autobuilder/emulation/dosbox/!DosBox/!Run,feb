@@ -1,13 +1,10 @@
 | Run file for dosbox
 
-WimpSlot -min 28640K -max 28640K
+WimpSlot -min 32116K -max 32116K
 
-| Use dynamic heap size on less than Iyonix
-RMEnsure UtilityModule 5.00 Set dosbox$Heap ""
-
-| Try to load the sound
-| If the load fails dosbox will continue with no sound
-RMEnsure DigitalRenderer 0.51 RMLoad System:modules.DRenderer
+| We need a wimpslot of more then 28M so this will
+| only run on an Iyonix
+RMEnsure UtilityModule 5.00 Error This application needs an Iyonix to run
 
 Set DosBox$Dir <Obey$Dir>
 
