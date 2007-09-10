@@ -1,0 +1,18 @@
+AB_URL=http://www.bigorno.net/xrick/xrick-021212.tgz
+AB_CATEGORY=games
+
+AB_COPYSOURCE=yes
+AB_DISTCLEAN="$AB_MAKE clean"
+
+ab_package() {
+ 
+  mkdir -p $D/\!XRick
+  cp $H/\!XRick/\!* $D/\!XRick
+  cp xrick,ff8 $D/\!XRick/\!RunImage,ff8
+  # Copy zip file as data to stop it being used as an image file system
+  cp data.zip $D/\!XRick/data.zip,ffd
+  cat README $H/RISCOSNotes > $D/\!XRick/\!Help
+}
+
+
+
