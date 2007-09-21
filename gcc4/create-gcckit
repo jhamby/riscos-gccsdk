@@ -83,6 +83,7 @@ for f in `ls` ; do
 done
 # Remove install-tools which is useless on RISC OS
 test -d $BKIT_GCC_SRC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools && rm -rf $BKIT_GCC_SRC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
+test -d $BKIT_GCC_SRC/lib/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools && rm -rf $BKIT_GCC_SRC/lib/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
 
 # Remove the softfloat libscl.  This is useless and a fallout of the multilib
 # configuration madness.
@@ -163,11 +164,11 @@ cp $GCCSDK_RISCOS/cmunge/GCCSDK-CHANGES $BKIT_GCC_SRC/docs/cmunge
 # 1.2. Copy elf2aif documentation:
 test -d $BKIT_GCC_SRC/docs/elf2aif && rm -rf $BKIT_GCC_SRC/docs/elf2aif
 mkdir -p $BKIT_GCC_SRC/docs/elf2aif
-cp $GCCSDK_RISCOS/elf2aif/{AUTHORS,COPYING,README} $BKIT_GCC_SRC/docs/elf2aif
+cp $GCCSDK_RISCOS/elf2aif/{ChangeLog,AUTHORS,COPYING,README} $BKIT_GCC_SRC/docs/elf2aif
 # 1.3. Copy mkresfs documentation:
 test -d $BKIT_GCC_SRC/docs/mkresfs && rm -rf $BKIT_GCC_SRC/docs/mkresfs
 svn export -q --force $GCCSDK_RISCOS/mkresfs/doc $BKIT_GCC_SRC/docs/mkresfs
-cp $GCCSDK_RISCOS/mkresfs/{AUTHORS,COPYING} $BKIT_GCC_SRC/docs/mkresfs
+cp $GCCSDK_RISCOS/mkresfs/{ChangeLog,AUTHORS,COPYING} $BKIT_GCC_SRC/docs/mkresfs
 # 1.4. Copy UnixLib documentation:
 test -d $BKIT_GCC_SRC/docs/libunixlib && rm -rf $BKIT_GCC_SRC/docs/libunixlib
 mkdir -p $BKIT_GCC_SRC/docs/libunixlib

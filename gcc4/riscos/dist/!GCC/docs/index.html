@@ -1,8 +1,11 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
 <html lang="en">
 <head>
 <title>GCCSDK Documentation</title>
 <meta http-equiv="Content-Type" content="text/html">
-<meta name="description" content="Untitled">
+<meta name="description" content="GCCSDK Documentation">
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8">
 <meta http-equiv="Content-Style-Type" content="text/css">
 <style type="text/css"><!--
   pre.display { font-family:inherit }
@@ -18,9 +21,261 @@
 </head>
 <body>
 
-<h2>GCCSDK Documentation</h2>
+<h2>Welcome to GCCSDK GCC 4.1.1 Prerelease 1 for RISC OS</h2>
+<p>
+<b>*** EXPERIMENTAL ***</b>
 
-<p>XXX FIXME
+<p>If you have received this copy of GCC from a CD of fetched your copy from the Internet yourself some time ago, then it is likely there is a more up-to-date version obtainable from <a href="http://gccsdk.riscos.info/">http://gccsdk.riscos.info/</a> which is also the homepage of this RISC OS GCC port.
+
+<h3>1. Introduction</h3>
+
+<p>This is the RISC OS port of <a href="http://gcc.gnu.org/">GCC (GNU Compiler Collection)</a> and supporting binaries allowing you to start developing RISC OS applications and modules straight away. So you get a compiler for one or more languages, an linker, an assembler, a RISC OS module header and veneer generator, the UnixLib C runtime library and headers and stubs for the SharedCLibrary module (as found in the RISC OS ROMs).
+
+<p>This GCC port itself and the code produced using this GCC version is targeted and tested for RISC OS 4 (26-bit and 32-bit version), RISC OS 5 (32-bit version) and RISC OS 6 (32-bit version).
+
+<p>The RISC OS GNU Compiler Collection consists of a generic front end program `gcc' that provides a consistent interface to the compilers themselves. Currently compilers are supported for the C and C++ languages. Later releases of GCCSDK might have support for Ada, Fortran, Java, Pascal and/or Objective C/C++ but this will be largely dependant on available GCCSDK developer resources, interest and of course that all technical issues can be reasonably solved.
+
+<p>The following is a short introduction to GCC. It does not provide an introduction to programming, for that you will have to get a text book on the language you are interested in.
+
+<h4>1.1. Installation</h4>
+
+<p>To install GCC, copy the contents of !GCC onto your hard disc. Other compilers can be installed by copying the contents of their archives into the same directory as where you install GCC - RISC OS will automatically combine the !GCC directories together. Running !GCC will setup Run$Path to automatically search for the compiler tools.
+
+<p>As compilers are installed, sub-directories named according to the language they support will be placed within !GCC.docs. These sub-directories will contain specific information for the language compiler, including its usage and environment requirements.
+
+<p>This completes installation, and GCC may be used simply by typing 'gcc' at the CLI prompt. In order to verify which version of 'gcc' you are using, specify the --version switch:
+<pre>
+   *gcc --version
+</pre>
+
+<h4>1.2. Simple compilations</h4>
+
+<p>The instructions below are generic and the ideas presented can be applied to all GNU compilers. The usage of C source files is merely for example purposes.
+
+<p>Source files are stored in the standard ASCII text format and kept in a directory that is relevant for the language of your program. For example, C programs are stored in directory 'c', C++ programs are stored in 'cc', assembler files in 's' and CMunge/CMHG files in 'cmhg'.
+
+<p>For simple use, all that is needed is to set up a command line prompt and ensure there is enough free memory to run the compiler (details of memory requirements vary between compilers and can be found in the specific compiler documentation).
+
+<p>To compile a C program just type:
+<pre>
+   *gcc hellow.c
+</pre>
+
+<p>This will compile, assemble and link the source 'c.hellow' to produce an executable called '!RunImage', which can be run immediately.
+
+<p>Adding the switch '-o' to the command line, it's possible to specify a place to store the resultant file:
+<pre>
+   *gcc hellow.c -o hellow
+</pre>
+
+<p>This will compile, assemble and link the source 'hellow.c' to produce an executable called 'hellow', which can be run immediately.
+
+<p>It is possible to compile several sources at one go, mixing C sources in the same program, using a command line of:
+<pre>
+   *gcc file1.c file2.c file3.c file4.c
+</pre>
+
+<p>Again, this will compile, assemble and link all the sources to produce the '!RunImage' executable.
+
+<p>To compile to the object form, use the -c switch. i.e.
+<pre>
+   *gcc -c file.c
+</pre>
+<p>will compile and assemble 'file.c' to 'file.o'.
+
+<p>To compile the same files but using the SharedCLibrary as the target run-time library instead of UnixLib, add the switch '-mlibscl' to the command line. For example:
+<pre>
+   *gcc hellow.c -mlibscl
+</pre>
+<p>will compile and link the hellow.c source file, using header files from the SharedCLibrary, and linking against the SharedCLibrary stubs which will result in using the RISC OS SharedCLibrary module routines at runtime. The output file will still be called '!RunImage' and can be run in the same way.
+
+<p>Support has been provided for both RISC OS and UNIX format filenames. GCC will translate any UNIX filenames into their RISC OS equivalent. For example:
+<pre>
+   ../include/stdio.h	is translated to	^.include.h.stdio
+   /work/gcc/hello.c	is translated to	$.work.gcc.c.hello
+   stdlib.h		is translated to	h.stdlib
+</pre>
+<p>but
+<pre>
+   tree.def		is translated to	tree/def
+</pre>
+
+<p>For further examples of compilation procedures, please look at <a href="../Examples">`Examples' inside !GCC</a>.
+
+<h4>1.3. Switches</h4>
+
+<p>This is a list of the simpler, standard switches for GCC. Full details can be obtained from the <a href="gcc/gcc/index.html">GNU C/C++ manual</a>. Please see below for the ARM specific switches since these have altered from the original GCC version.
+
+<h5>1.3.1. General switches</h5>
+
+<p>The switches described below are useable with any GNU compiler.
+
+<dl>
+<dt>-c
+  <dd>Compile and assemble the source to the object file
+<dt>-S
+  <dd>Compile the source to assembler code
+<dt>-E
+  <dd>Preprocess the source file
+<dt>-o &lt;file&gt;
+  <dd>Put the resulting output into &lt;file&gt;
+<dt>-O
+  <dd>Apply some optimisations to the output
+<dt>-O2
+  <dd>Apply full optimisation.
+<dt>-O3
+  <dd>Full optimisation and inline small functions as well.
+</dl>
+
+<h5>1.3.2. ARM specific switches</h5>
+
+<p>The ARM specific switches are documented in <a href="gcc/gcc/index.html">GNU C/C++ manual</a>, section "ARM Options".  The most important ones are:
+
+<dl>
+<dt>-mpoke-function-name
+<dd>Place the name of the current function before the start of the function to allow the post mortem debugger to print a readable backtrace.
+    <p>This option is disabled by default.
+    <p>Turning this option on can increase code size by about 3.5% for C programs and as much as 10% for C++. However, it should be noted that the performance of the generated application will not be slower. It is useful to turn this option on when developing applications as it can lead to a clear indication of where a program is failing when a backtrace is generated.
+<dt>-msoft-float (default for when UnixLib runtime library is used)
+<dd>Select soft-float routines to be used and generated when floating point operations are needed. Unless you have hardware FP support in your ARM processor, soft-float routines result in faster executables.
+<dt>-mhard-float (default and not changeable when SharedCLibrary runtime library is used)
+<dd>Makes that floating point (FP) ARM instructions will be used in the generated code.
+</dl>
+
+<p>In the RISC OS port, options -msoft-float and -mhard-float are mutually exclusive.
+
+<p>Note that APCS-R mode (option -mapcs-26) is deprecated and is no longer working nor supported in this version of GCCSDK.
+
+<h5>1.3.3. RISC OS specific switches</h5>
+
+<dl>
+<dt>-mthrowback
+<dd>Send errors to a text editor capable of receiving 'throwbacks'. Error throwbacks will only occur when the DDEUtils module has previously been loaded.
+<dt>-munixlib (default)
+<dd>Builds and links source code against the UnixLib headers and library files. Note that when used, this needs to be specified during compiling and linking. This defines the preprocessor define __TARGET_UNIXLIB__.
+<dt>-mlibscl
+<dd>Builds and links source code against the SharedCLibrary headers and library files. Note that when used, this needs to be specified during compiling and linking. This defines the preprocessor define __TARGET_SCL__.
+    <p>Switch -mmodule will implicitly select -mlibscl as well.
+<dt>-mamu [ *** NOT YET IMPLEMENTED IN GCCSDK 4 *** ]
+<dd>Generates the file !Depend which contains a list of all the source files that the produced object depends on. This is intended for use with Acorn's Make Utility (AMU), which edits the makefile to include these after the '# Dynamic Dependencies' line.
+<dt>-mmodule
+<dd>Generates code suitable for a RISC OS module.  This will implicitly select -mlibscl.  This also defines the preprocessor define __TARGET_MODULE__.
+<dt>-mclient-static-data-offset (default) [ *** NOT YET IMPLEMENTED IN GCCSDK 4 *** ]
+<dd>Only relevant when compiling a RISC OS module (option -mmodule set). This specifies to use the client static data offset (at sl-536) instead of the library static data offset (sl-540).
+<dt>-mlibrary-static-data-offset [ *** NOT YET IMPLEMENTED IN GCCSDK 4 *** ]
+<dd>Only relevant when compiling a RISC OS module (option -mmodule set). This specifies to use the library static data offset (at sl-540) instead of the client static data offset (sl-536).  This is only to be used in very rare cases.
+</dl>
+
+<p>The following switches are mutually exclusive:
+<ul>
+  <li>-munixlib and -mlibscl. -munixlib is the default.
+  <li>-mclient-static-data-offset and -mlibrary-static-data-offset.  -mclient-static-data-offset is the default.
+</ul>
+
+<h4>1.4. Predefines</h4>
+
+<p>This is a short list of the most interesting and useful predefines set:
+
+<dl>
+<dt>__arm
+<dt>__arm__
+<dd>Always defined in the RISC OS port and can be used to make a difference between ARM specific vs non-ARM code.
+<dt>__riscos
+<dt>__riscos__
+<dd>Always defined in the RISC OS port and can be used to make a difference between RISC OS specific vs non-RISC OS code.
+<dt>__ELF__
+<dd>Always defined as GCCSDK 4 is now ELF based.
+<dt>__SOFTFP__
+<dd>Defined when soft-float routines are used in the to be generated code in contrast with using floating point (FP) instructions. FP instructions will be used when the SharedCLibrary runtime library is selected (switch -mlibscl and/or -mmodule is selected).  When UnixLib runtime library is used, by default soft-float routins are used unless you have -mhard-float specified.
+<dt>__TARGET_SCL__
+<dd>Defined when targeting the SharedCLibrary runtime library, i.e. when -mlibscl or -mmodule switches are supplied.
+<dt>__TARGET_MODULE__
+<dd>Defined when module code is being generated, i.e. when -mmodule switch is supplied.
+<dt>__TARGET_UNIXLIB__
+<dd>Defined when targeting the UnixLib runtime library, i.e. when -mlibscl nor -mmodule switchs are supplied (as -munixlib is default switch).
+</dl>
+
+<p>GCCSDK 3 defines the predefine __aof__ which is no longer the case in GCCSDK 4 as it is now fully ELF based. So this can be used to distingues between AOF and ELF compilations.
+
+<p>More common predefines are documented in the section "Common Predefined Macros" of the <a href="gcc/cpp/index.html">GNU C preprocessor manual</a>.
+
+<p>Note that these predefines can also be used in handwritten assembler code when making sure that the preprocessor is firstly invoked before the assembling faze:
+<pre>
+   *gcc -xassembler-with-cpp -o file.o -c file.s
+</pre>
+<p>with e.g. file.s:
+<pre>
+	@ Returns 1 when running with UnixLib, 0 when running with SharedCLibrary.
+	.global	using_unixlib
+	.type	using_unixlib, %function
+using_unixlib:
+#ifdef __TARGET_UNIXLIB__
+	MOV	r0, #1
+#else
+	MOV	r0, #0
+#endif
+	MOV	pc, r14
+	.size	using_unixlib, . - using_unixlib
+</pre>
+
+<h4>1.5. Troubleshooting</h4>
+
+<p>Here are described some common problems users have with gcc and the GNU compilers. Possible solutions are provided for the known problems.
+
+<ul>
+<li>The compiler fails to compile anything but no error message is reported.
+    <p>This is usually caused by a lack of memory. To see how far through compilation a file has gone, try compiling with the '-v' switch. '-v' gives verbose output and will show the programs gcc is executing.
+
+    <p>A lack of memory will be shown up by an almost instantaneous return from any program executed. If this happens, try increasing the wimpslot, using *wimpslot -min 4000K.
+
+    <p>When the compiler runs out of memory during compilation, an error 'virtual memory exhausted' is usually reported.
+
+<li>The error 'No writable memory at this address' is returned.
+    <p>This is caused by insufficient memory memory and can be fixed by increasing the wimpslot to similar values as above.
+</ul>
+
+<h4>1.6. RISC OS module support</h4>
+
+<p>Module code must be compiled and linked with the SharedCLibrary as UnixLib is not suitable for this purpose. The switch -mmodule needs to be specified to make sure that global data can be properly relocated at runtime.  Specifying -mmodule implicitly specifies -mlibscl so it is not really necessary to specify it yourself however if you want your build script (or Makefile) reasonably backwards compatible with GCCSDK 3.4 you better specify it as it was not the case before.
+
+<pre>
+   *gcc -mlibscl -mmodule -c module.c -O2
+   *gcc -mlibscl -mmodule module.o header.o -o mymodule
+</pre>
+
+<p>Each RISC OS module needs a module header which can be created using CMunge. See <a href="cmunge">CMunge documentation</a> for more information.  CMunge can also be used to create veneer code acting as glue code for RISC OS callbacks into your C/C++ coded module.
+
+<p>Modules often have their data (Messages, Sprites, etc) stored in ResourceFS. <a href="mkresfs">mkresfs</a> can be used to create a C file representing the intended ResourceFS data allowing easy (de)registration with ResourceFS. In GCCSDK 3.4 this functionality was covered with the 'resgen' program but as its code was very thightly AOF based, a new program (and approach) was chosen.
+
+<h3>2. Known issues</h3>
+
+<p>List of known problems or missing features compared to GCCSDK 3.4.6:
+<ul>
+  <li>native RISC OS build: using cmunge without -s option always results in an error.  Temporary workaround is to specify the -s option.
+  <li>native RISC OS build: not all RISC OS specific option are implemented yet, like -mamu, -mlibrary-static-data-offset, -mclient-static-data-offset.
+  <li>native RISC OS build: not all recent GCCSDK 3.4.6 bug fixes concerning -mthrowback and RISC OS file path handling have been merged through.
+  <li>native RISC OS build: option -mpoke-function-name is default set while it in GCCSDK 3.4 it was by default unset.
+  <li>native RISC OS build: the linker can not be found on RISC OS 4 and RISC OS 6 (don't know if this problem is also there on RISC OS 5).  This requires a bug fix in SharedUnixLibrary.
+  <li>libscl: the GCCSDK support code in libscl is not yet fully enabled as it requires some cleanup first.
+  <li>libscl: no C++ support
+</ul>
+
+<h3>3. Changes</h3>
+
+<p>GCCSDK 4 produces ELF object files, libraries and binaries while in GCCSDK 3 this was AOF/AIF based.  Currently there is no support to mix AOF object or library files with ELF object files.
+
+<p>For each GCCSDK release an overview of the most important changes are made in its <a href="Changes">Changes</a> file.
+
+<p>More details on the changes made in particular areas can be found in:
+<ul>
+  <li><a href="libunixlib/ChangeLog">UnixLib ChangeLog</a>
+  <li><a href="libscl/ChangeLog">SharedCLibrary ChangeLog</a>
+  <li><a href="cmunge/History">CMunge official history</a> and its <a href="cmunge/GCCSDK-CHANGES">specific GCCSDK changes</a> which haven't made in an official release yet.
+  <li><a href="elf2aif/ChangeLog">elf2aif ChangeLog</a>
+  <li><a href="mkresfs/ChangeLog">mkresfs ChangeLog</a>
+</ul>
+
+<h3>4. Further documentation</h3>
 
 <p>GNU GCC/binutils documentation:
 <ul>
@@ -44,6 +299,60 @@
   <li><a href="elf2aif">elf2aif</a>: a tool to convert static ELF binaries into AIF Absolute files avoiding the need for ELF loader at runtime.
   <li><a href="mkresfs">mkresfs</a>: a tool to generate C code that creates and removes files from ResourceFS in your RISC OS modules.
 </ul>
+
+<h3>5. GCCSDK website, bug reporting &amp; mailing list</h3>
+
+<p>The <a href="http://gccsdk.riscos.info/">GCCSDK website</a> contains more information like how you can log bugs, addressing the GCCSDK development itself and related RISC OS development aspects. Currently the GCCSDK website is Wiki based so your input in the form of changes and/or additional input is greatly appreciated.
+
+<p>Most importantly, you can also find details how you can join the GCCSDK mailing which has been setup for discussions on GCCSDK, including its development work. We strongly recommend to join this mailing list.
+
+<h3>6. Licenses and warranty</h3>
+
+<p>This port of GCC is:
+<pre>
+Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
+Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 GCCSDK Developers
+</pre>
+
+<p>The GCCSDK releases made by the GCCSDK Developers consists of several binaries and sources which do not necessary have the same licenses.  The following overview can help to identify those licenses more easily but is in no way an authoritative statement on behalf of the GCCSDK Developers:
+<ul>
+  <li>gcc (and all its associated files) : See <a href="gcc/gcc/index.html">its manual</a>.
+  <li>binutils (and all its associated files) : See <a href="binutils/index.html">its manual</a>.
+  <li>libscl : See <a href="libscl/COPYING">!GCC.docs.libscl.COPYING</a>.
+  <li>UnixLib : See <a href="libunixlib/COPYING">!GCC.docs.libunixlib.COPYING</a>.
+  <li>cmunge : See <a href="cmunge/Copyright">!GCC.docs.cmunge.Copyright</a>.
+  <li>elf2aif : See <a href="elf2aif/COPYING">!GCC.docs.elf2aif.COPYING</a>.
+  <li>mkresfs : See <a href="mkresfs/COPYING">!GCC.docs.mkresfs.COPYING</a>.
+</ul>
+
+<p>As with all GNU programs, THERE IS NO WARRANTY OF ANY SORT.
+
+<h3>7. Credits</h3>
+
+<p>Primary GCCSDK Developers today are:
+<ul>
+  <li>John Tytgat - Release management, allround GCCSDK hacking.
+  <li>Lee Noar - Shared library development.
+  <li>Peter Naulls - UnixLib (all areas, especially glibc compatibility).
+  <li>Alex Waugh - UnixLib (especially signals, pthreads, file handling).
+</ul>
+
+<p>An enormous amount of porting and testing work was done by Nick Burrett. Without his past contribution GCCSDK wouldn't exist.
+
+<p>The following people have also made contributions over the last four years (in alphabetic order) :
+
+<p>Ben Avison, John-Mark Bell, Stefan Bellon, Alan Buckley, James Bursa, Steve Ellacott, Rich Hudson, Rob Kendrick, Jeffrey Lee, Christian Ludlam, Alex Macfarlane Smith, Theo Markettos, David Marston, Philip Pemberton, Graham Shaw, Tony van der Hoff, Simon Wilson, Martin Wuerthner.
+
+<p>Special thanks to the following people having written programs which are used in the GCCSDK project :
+<ul>
+  <li>Justin Fletcher and Robin Watts for 'CMunge', a free alternative to CMHG.
+  <li>Rob Kendrick for his 'mkresgen', a C code generator to add/remove files to/from ResourceFS.
+  <li>All UnixLib Developers for providing a run-time library which is essential for GCCSDK and ported programs using GCCSDK.
+</ul>
+
+<p>Thanks also to all the testers and bug reporters.
+
+<p>And last but not least, all the GCC and binutils contributers.
 
 </body>
 </html>

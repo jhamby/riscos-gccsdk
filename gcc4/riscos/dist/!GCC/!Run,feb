@@ -1,8 +1,8 @@
-| !Run file for the GCCSDK 4
+| !Run file for GCCSDK 4
 | Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
 | Copyright (c) GCCSDK Developers 2002, 2003, 2004, 2005, 2006, 2007
 
-Set GCC$Dir <Obey$Dir>
+Run <Obey$Dir>.!Boot
 
 | Search path used for the compiler binaries
 If "<GCCbin$Path>" = "" Then Set Run$Path <Run$Path>,GCCbin:
