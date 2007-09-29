@@ -15,10 +15,13 @@
 _kernel_oserror *
 module_finalisation (int fatal, int podule_base, void *pw)
 {
+  _kernel_oserror *err;
+
   if (!global.flags.no_client_check && global.client_list.count != 0)
     return somerr_in_use;
 
-  som_stop_call_every (pw);
+  if ((err = som_stop_call_every (pw)) != NULL)
+    return err;
 
   somarray_fini (&global.object_array);
 

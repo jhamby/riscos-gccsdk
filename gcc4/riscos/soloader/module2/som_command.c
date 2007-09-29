@@ -7,25 +7,22 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/elf.h>
 #include "somanager.h"
 #include "som.h"
-#include "som_alloc.h"
-#include <sys/elf.h>
-
-extern _kernel_oserror *command_run (const char *, int);
+#include "som_runcom.h"
 
 static void
 command_status (void)
 {
-  som_object *object;
-
   printf ("Shared Object Manager Status\n");
   printf ("----------------------------\n");
+
   printf (" Number of libraries loaded by system: %d\n",
 	  global.object_list.count);
-
-  object = linklist_first_som_object (&global.object_list);
-  while (object)
+  for (som_object *object = linklist_first_som_object (&global.object_list);
+       object != NULL;
+       object = linklist_next_som_object (object))
     {
       printf ("               Library name: %s\n", object->name);
       printf ("                      index: %d\n", object->index);
@@ -53,21 +50,18 @@ command_status (void)
 	      printf ("%dm\n\n", (((t / 100) / 60) % 60));
 	    }
 	}
-
-      object = linklist_next_som_object (object);
     }
 
   printf (" Number of clients registered: %d\n", global.client_list.count);
-
-  som_client *client = linklist_first_som_client (&global.client_list);
-
-  while (client)
+  for (som_client *client = linklist_first_som_client (&global.client_list);
+       client != NULL;
+       client = linklist_next_som_client (client))
     {
       printf ("           Client name: %s\n", client->name);
       printf ("                    ID: %X\n", client->unique_ID);
 
       /* The 1st object in the client list is the client itself.  */
-      object = linklist_first_som_object (&client->object_list);
+      som_object *object = linklist_first_som_object (&client->object_list);
       printf (" R/W segment (private): 0x%p -> 0x%p (size: %X)\n",
 	      object->private_rw_ptr,
 	      object->private_rw_ptr + object->rw_size, object->rw_size);
@@ -92,33 +86,27 @@ command_status (void)
 
 	  object = linklist_next_som_object (object);
 	}
-
-      client = linklist_next_som_client (client);
     }
 }
 
 static void
 command_address (const char *arg_string, int argc)
 {
-  som_PTR addr;
+  som_PTR addr = (som_PTR) strtoul (arg_string, 0, 0);
 
-  addr = (som_PTR) strtoul (arg_string, 0, 0);
-
-  som_object *object = linklist_first_som_object (&global.object_list);
-
-  while (object)
+  som_object *object;
+  for (object = linklist_first_som_object (&global.object_list);
+       object != NULL;
+       object = linklist_next_som_object (object))
     {
       if (addr >= object->base_addr && addr < object->end_addr)
-	{
-	  printf ("Address given is at offset 0x%lX of library %s\n",
-		  addr - object->base_addr, object->name);
-	  break;
-	}
-
-      object = linklist_next_som_object (object);
+        break;
     }
 
-  if (!object)
+  if (object != NULL)
+    printf ("Address given is at offset 0x%lX of library %s\n",
+	    addr - object->base_addr, object->name);
+  else
     printf ("Address given is not known to the Shared Object Manager\n");
 }
 

@@ -16,22 +16,18 @@ som_find_client (som_handle ID)
 {
   som_client *client;
 
-  client = linklist_first_som_client (&global.client_list);
-  while (client)
-    {
-      if (client->unique_ID == ID)
-	return client;
+  for (client = linklist_first_som_client (&global.client_list);
+       client != NULL && client->unique_ID != ID;
+       client = linklist_next_som_client (client))
+    /* */;
 
-      client = linklist_next_som_client (client);
-    }
-
-  return NULL;
+  return client;
 }
 
 /* A callback handler that checks for unused objects that have expired and
    which can be removed from memory.  */
 _kernel_oserror *
-som_callback_handler (_kernel_swi_regs * r, void *pw)
+som_callback_handler (_kernel_swi_regs *r, void *pw)
 {
   global.flags.callback_pending = false;
 
@@ -68,7 +64,7 @@ som_callback_handler (_kernel_swi_regs * r, void *pw)
 
 /* A handler that is called regularly to set the (above) callback.  */
 _kernel_oserror *
-som_call_every_handler (_kernel_swi_regs * r, void *pw)
+som_call_every_handler (_kernel_swi_regs *r, void *pw)
 {
   os_add_callback (som_callback, pw);
 
@@ -85,10 +81,9 @@ som_start_call_every (void *pw)
   if (global.flags.call_every_enabled)
     return NULL;
 
-  _kernel_oserror *err =
-    os_call_every (global.call_every_cs_delay, som_call_every, pw);
-
-  if (!err)
+  _kernel_oserror *err;
+  if ((err = os_call_every (global.call_every_cs_delay,
+			    som_call_every, pw)) == NULL)
     global.flags.call_every_enabled = true;
 
   return err;
@@ -102,9 +97,8 @@ som_stop_call_every (void *pw)
   if (!global.flags.call_every_enabled)
     return NULL;
 
-  _kernel_oserror *err = os_remove_ticker_event (som_call_every, pw);
-
-  if (!err)
+  _kernel_oserror *err;
+  if ((err = os_remove_ticker_event (som_call_every, pw)) == NULL)
     global.flags.call_every_enabled = false;
 
   /* Ensure a callback doesn't occur after the module has gone.  */

@@ -13,10 +13,8 @@
 #include "som_array.h"
 
 static _kernel_oserror *
-init_object (som_object * object, som_objinfo * objinfo)
+init_object (som_object *object, const som_objinfo *objinfo)
 {
-  _kernel_oserror *err = NULL;
-
   object->base_addr = objinfo->base_addr;
   object->rw_addr = object->private_rw_ptr = objinfo->public_rw_ptr;
   object->rw_size = objinfo->rw_size;
@@ -33,9 +31,10 @@ init_object (som_object * object, som_objinfo * objinfo)
   object->index = 0;
   if (objinfo->name)
     {
-      if ((err =
-	   som_alloc (strlen (objinfo->name) + 1,
-		      (void **) (void *) &object->name)) != NULL)
+      _kernel_oserror *err;
+
+      if ((err = som_alloc (strlen (objinfo->name) + 1,
+			    (void **) (void *) &object->name)) != NULL)
 	return err;
       strcpy (object->name, objinfo->name);
     }
@@ -44,7 +43,7 @@ init_object (som_object * object, som_objinfo * objinfo)
 }
 
 static void
-copy_object (som_object * new_obj, som_object * old_obj)
+copy_object (som_object *new_obj, som_object *old_obj)
 {
   new_obj->handle = old_obj->handle;
   new_obj->base_addr = old_obj->base_addr;
@@ -71,36 +70,33 @@ copy_object (som_object * new_obj, som_object * old_obj)
 /* Add a shared object to a linked list so that the list is ordered by
    increasing load address of library.  */
 static void
-som_add_sharedobject (link_list * list, som_object * insert_obj)
+som_add_sharedobject (link_list *list, som_object *insert_obj)
 {
-  som_object *list_obj = linklist_first_som_object (list);
+  som_object *list_obj;
 
-  while (list_obj)
-    {
-      if (insert_obj->base_addr < list_obj->base_addr)
-	{
-	  linklist_add_before (list, &list_obj->link, &insert_obj->link);
-	  break;
-	}
-      list_obj = linklist_next_som_object (list_obj);
-    }
+  for (list_obj = linklist_first_som_object (list);
+       list_obj != NULL && insert_obj->base_addr >= list_obj->base_addr;
+       list_obj = linklist_next_som_object (list_obj))
+    /* */;
 
   /* This catches the cases where the list is empty or the object should
      be linked to the end of the list.  */
   if (list_obj == NULL)
     linklist_add_to_end (list, &insert_obj->link);
+  else
+    linklist_add_before (list, &list_obj->link, &insert_obj->link);
 }
 
 _kernel_oserror *
-som_register_client (som_handle handle, som_objinfo * objinfo)
+som_register_client (som_handle handle, som_objinfo *objinfo)
 {
-  _kernel_oserror *err = NULL;
+  _kernel_oserror *err;
   som_client *client = NULL;
   som_object *object = NULL;
   unsigned int ID;
 
-  if ((err =
-       som_alloc (sizeof (som_client), (void **) (void *) &client)) != NULL)
+  if ((err = som_alloc (sizeof (som_client),
+			(void **) (void *) &client)) != NULL)
     goto error;
 
   /* Find a unique ID that hasn't already been used. There is a danger that
@@ -126,9 +122,8 @@ som_register_client (som_handle handle, som_objinfo * objinfo)
 
   linklist_init_list (&client->object_list);
 
-  if ((err =
-       som_alloc (strlen (objinfo->name) + 1,
-		  (void **) (void *) &client->name)) != NULL)
+  if ((err = som_alloc (strlen (objinfo->name) + 1,
+			(void **) (void *) &client->name)) != NULL)
     goto error;
   strcpy (client->name, objinfo->name);
 
@@ -141,8 +136,8 @@ som_register_client (som_handle handle, som_objinfo * objinfo)
   /* Allocate an object struct to record the details of the client in its
      object list. This object is not in the global list - only library
      objects exist in the global list.  */
-  if ((err =
-       som_alloc (sizeof (som_object), (void **) (void *) &object)) != NULL)
+  if ((err = som_alloc (sizeof (som_object),
+		        (void **) (void *) &object)) != NULL)
     goto error;
 
   object->handle = handle;
@@ -198,33 +193,29 @@ error:
    library was in the global list or not, its OBJECT_* structure is cloned
    and placed in the client's list.  */
 _kernel_oserror *
-som_register_sharedobject (som_handle handle, som_objinfo * objinfo,
-			   som_object ** object_ret)
+som_register_sharedobject (som_handle handle, som_objinfo *objinfo,
+			   som_object **object_ret)
 {
   som_client *client;
 
   if ((client = FIND_CLIENT ()) == NULL)
     return somerr_client_not_found;
 
-  som_object *obj = linklist_first_som_object (&global.object_list);
+  som_object *obj;
 
   /* See if the library is already registered in the global list.  */
-  while (obj)
-    {
-      /* Use the handle as the key.  */
-      if (obj->handle == handle)
-	break;
-
-      obj = linklist_next_som_object (obj);
-    }
+  for (obj = linklist_first_som_object (&global.object_list);
+       obj != NULL && obj->handle != handle; /* Use the handle as the key.  */
+       obj = linklist_next_som_object (obj))
+    /* */;
 
   _kernel_oserror *err;
   som_object *client_obj = NULL;
 
   if (obj == NULL)
     {
-      if ((err =
-	   som_alloc (sizeof (som_object), (void **) (void *) &obj)) != NULL)
+      if ((err = som_alloc (sizeof (som_object),
+			    (void **) (void *) &obj)) != NULL)
 	goto error;
 
       if ((err = init_object (obj, objinfo)) != NULL)
@@ -241,9 +232,8 @@ som_register_sharedobject (som_handle handle, som_objinfo * objinfo,
     }
 
   /* Make a copy of the object for the client's list.  */
-  if ((err =
-       som_alloc (sizeof (som_object),
-		  (void **) (void *) &client_obj)) != NULL)
+  if ((err = som_alloc (sizeof (som_object),
+			(void **) (void *) &client_obj)) != NULL)
     goto error;
 
   obj->usage_count++;
@@ -285,7 +275,7 @@ error:
  *  otherwise r0 = ptr to error block
  */
 _kernel_oserror *
-som_register_object (_kernel_swi_regs * regs)
+som_register_object (_kernel_swi_regs *regs)
 {
   unsigned int handle = (unsigned int) regs->r[1];
   som_objinfo *objinfo = (som_objinfo *) regs->r[2];
@@ -315,35 +305,27 @@ som_register_object (_kernel_swi_regs * regs)
 static _kernel_oserror *
 deregister_shared_object (unsigned int handle)
 {
-  som_client *client = FIND_CLIENT ();
+  som_client *client;
 
-  if (!client)
+  if ((client = FIND_CLIENT ()) == NULL)
     return somerr_unknown_client;
 
-  som_object *client_obj = linklist_first_som_object (&client->object_list);
-
   /* First find the object in the client's list.  */
-  while (client_obj)
-    {
-      if (client_obj->handle == handle)
-	break;
-
-      client_obj = linklist_next_som_object (client_obj);
-    }
+  som_object *client_obj;
+  for (client_obj = linklist_first_som_object (&client->object_list);
+       client_obj != NULL && client_obj->handle != handle;
+       client_obj = linklist_next_som_object (client_obj))
+    /* */;
 
   if (client_obj == NULL)
     return somerr_object_not_found;
 
-  som_object *global_obj = linklist_first_som_object (&global.object_list);
-
   /* Next find the object in the global list.  */
-  while (global_obj)
-    {
-      if (global_obj->handle == handle)
-	break;
-
-      global_obj = linklist_next_som_object (global_obj);
-    }
+  som_object *global_obj;
+  for (global_obj = linklist_first_som_object (&global.object_list);
+       global_obj != NULL && global_obj->handle != handle;
+       global_obj = linklist_next_som_object (global_obj))
+    /* */;
 
   if (global_obj == NULL)
     return somerr_object_not_found;
@@ -371,17 +353,16 @@ deregister_shared_object (unsigned int handle)
 _kernel_oserror *
 som_deregister_client (void)
 {
-  som_client *client = FIND_CLIENT ();
+  som_client *client;
 
-  if (!client)
+  if ((client = FIND_CLIENT ()) == NULL)
     return somerr_unknown_client;
 
   /* The first link in the client's object list should be the application
      itself. This is treated differently as it is not a shared object as
      such (ie. it doesn't exist in the global list). This means that it
      should not be deregistered like normal objects.  */
-  som_object *object =
-    linklist_first_som_object (&client->object_list), *next_obj;
+  som_object *object = linklist_first_som_object (&client->object_list), *next_obj;
   _kernel_oserror *err = NULL;
 
   if (object->flags.type == object_flag_type_CLIENT)
@@ -426,7 +407,7 @@ som_deregister_client (void)
 }
 
 _kernel_oserror *
-som_deregister_shared_object (_kernel_swi_regs * regs)
+som_deregister_shared_object (_kernel_swi_regs *regs)
 {
   return deregister_shared_object (regs->r[0]);
 }

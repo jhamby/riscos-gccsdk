@@ -3,7 +3,7 @@ Diagram showing memory layout when loading dynamically linked executable.
 V2.00 Module with intergrated static loader command
 
 0x8000	---------------------------------
-	| Elf program			|
+	| ELF program			|
 	|-------------------------------|
 	| Dynamic loader R/W segment	|
 	|-------------------------------|

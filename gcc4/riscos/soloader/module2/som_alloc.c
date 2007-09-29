@@ -8,7 +8,7 @@
 #include "som.h"
 
 static _kernel_oserror *
-DA_alloc (dynamic_area_block * da, int size, void **block_ret)
+DA_alloc (dynamic_area_block *da, int size, void **block_ret)
 {
   bool heap_extended = false;
   _kernel_oserror *err = NULL;
@@ -61,7 +61,7 @@ som_alloc (int size, void **block_ret)
 
   /* Add 4 bytes to allocation so we can add an identifier.  */
   if ((err = DA_alloc (&global.data_da, size + 4, block_ret)) != NULL)
-      return err;
+    return err;
 
   if (*block_ret == NULL)
     return somerr_no_memory;
@@ -71,7 +71,7 @@ som_alloc (int size, void **block_ret)
   *((unsigned int *) (*block_ret)) = SOM_ALLOCATOR_SOMX;
 
   /* Return ptr to address after ID word.  */
-  (*block_ret) += 4;
+  *block_ret += 4;
 
   return NULL;
 }
@@ -79,7 +79,7 @@ som_alloc (int size, void **block_ret)
 _kernel_oserror *
 som_alloc_lib (int size, void **block_ret)
 {
-  _kernel_oserror *err = NULL;
+  _kernel_oserror *err;
 
   *block_ret = NULL;
 
@@ -102,7 +102,7 @@ som_alloc_lib (int size, void **block_ret)
   *((unsigned int *) (*block_ret)) = SOM_ALLOCATOR_SOML;
 
   /* Return ptr to address after ID word.  */
-  (*block_ret) += 4;
+  *block_ret += 4;
 
   return NULL;
 }
@@ -114,11 +114,10 @@ som_free (void *block)
     return NULL;
 
   unsigned int *b = (unsigned int *) block;
-  _kernel_oserror *err = NULL;
-  unsigned int allocator;
+  _kernel_oserror *err;
 
   /* Find the real start of the block and the allocator ID.  */
-  allocator = *(--b);
+  unsigned int allocator = *(--b);
 
   /* Clear the ID word.  */
   *b = 0;
@@ -143,7 +142,7 @@ som_free (void *block)
 }
 
 static _kernel_oserror *
-DA_extend (dynamic_area_block * da, int by, void **block)
+DA_extend (dynamic_area_block *da, int by, void **block)
 {
   bool heap_extended = false;
   _kernel_oserror *err = NULL;
@@ -175,8 +174,8 @@ DA_extend (dynamic_area_block * da, int by, void **block)
 	     the block needs to be moved.  */
 	  int heap_inc;
 
-	  if ((err =
-	       heap_block_size (da->base_addr, block, &heap_inc)) != NULL)
+	  if ((err = heap_block_size (da->base_addr, block,
+				      &heap_inc)) != NULL)
 	    return err;
 
 	  /* Add on the extra and round to 4KB.  */
@@ -198,14 +197,14 @@ DA_extend (dynamic_area_block * da, int by, void **block)
   return NULL;
 }
 
+/* FIXME: som_extend on NULL ptr does not work.  Needed ? Intended ? */
 _kernel_oserror *
 som_extend (void **block, int by)
 {
   unsigned int *b = (unsigned int *) (*block);
-  _kernel_oserror *err = NULL;
-  unsigned int allocator;
+  _kernel_oserror *err;
 
-  allocator = *(--b);
+  unsigned int allocator = *(--b);
 
   /* Only do extensions for SOMX allocations - other types aren't vary
      useful, but could be done.  */
@@ -223,7 +222,7 @@ som_extend (void **block, int by)
   *b = allocator;
 
   /* Return ptr to address after ID word.  */
-  (*block) = b + 1;
+  *block = b + 1;
 
   return err;
 }

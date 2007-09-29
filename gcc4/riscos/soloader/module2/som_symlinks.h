@@ -21,6 +21,7 @@
  * The resulting filename is passed back in a block of memory allocated by
  * SWI "SOM_Alloc" and can be freed with SWI "SOM_Free" when finished with.
  */
-_kernel_oserror *som_resolve_links (const char *file_in, char **filename_ret);
+extern _kernel_oserror *som_resolve_links (const char *file_in,
+					   char **filename_ret);
 
 #endif

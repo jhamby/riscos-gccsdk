@@ -29,11 +29,11 @@ typedef struct dynamic_area_block
   unsigned int number;
   void *base_addr;
   int max_size;
-
 } dynamic_area_block;
 
-_kernel_oserror *dynamic_area_create (const char *name, int init_size,
-				      int max_size, dynamic_area_block * ret);
+extern _kernel_oserror *dynamic_area_create (const char *name, int init_size,
+					     int max_size,
+					     dynamic_area_block *ret);
 
 static inline _kernel_oserror *
 dynamic_area_remove (unsigned int da_number)
@@ -456,23 +456,31 @@ typedef struct os_env_block
   char *command;
   unsigned int ram_limit;
   char *time;
-
 } os_env_block;
 
-static inline void
-os_get_env (os_env_block * block)
+static inline _kernel_oserror *
+os_get_env (os_env_block *block)
 {
+  _kernel_oserror *err;
+
   asm volatile ("SWI	%[os_getenv];\n\t"
-		"STR	r0, %[block0];\n\t"
-		"STR	r1, %[block4];\n\t"
-		"STR	r2, %[block8];\n\t"
-		: [block0] "=m" (block->command),
+		"STRVC	r0, %[block0];\n\t"
+		"STRVC	r1, %[block4];\n\t"
+		"STRVC	r2, %[block8];\n\t"
+		"MOVVC	%[err], #0;\n\t"
+		"MOVVS	%[err], r0;\n\t"
+		: [err] "=r" (err),
+		  [block0] "=m" (block->command),
 		  [block4] "=m" (block->ram_limit),
 		  [block8] "=m" (block->time)
 		: [os_getenv] "i" (XOS_Bit | OS_GetEnv)
 		: "r0", "r1", "r2", "lr", "cc", "memory");
+  return err;
 }
 
+/* Return the buffer size needed to the contents of the system variable
+   'var_name' including the terminating character. When the system variable
+   can not be found, size 1 is returned.  */
 static inline int
 os_read_var_val_size (const char *var_name)
 {
@@ -494,23 +502,29 @@ os_read_var_val_size (const char *var_name)
   return size;
 }
 
-static inline void
+static inline _kernel_oserror *
 os_read_var_val (const char *var_name, char *buffer, int buf_size)
 {
+  _kernel_oserror *err;
+
   asm volatile ("MOV	r0, %[name];\n\t"
 		"MOV	r1, %[buffer];\n\t"
 		"MOV	r2, %[buf_size];\n\t"
 		"MOV	r3, #0;\n\t"
 		"MOV	r4, #0;\n\t"
 		"SWI	%[os_read_var_val];\n\t"
-		"MOVVC	r0, #0;\n\t"
+		"MOVVC	r0, #0;\n\t" /* Terminate the contents of variable.  */
 		"STRVCB	r0, [r1, r2];\n\t"
-		:	/* No outputs */
+		"MOVVC	%[err], #0;\n\t"
+		"MOVVS	%[err], r0;\n\t"
+		: [err] "=r" (err)
 		: [name] "r" (var_name),
 		  [buffer] "r" (buffer),
 		  [buf_size] "r" (buf_size),
 		  [os_read_var_val] "i" (XOS_Bit | OS_ReadVarVal)
 		: "r0", "r1", "r2", "r3", "r4", "lr", "cc", "memory");
+
+  return err;
 }
 
 #endif

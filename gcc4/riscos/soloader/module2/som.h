@@ -88,7 +88,6 @@ LINKLIST_ACCESS_FUNCTIONS (som_client)
 typedef struct som_object_flags
 {
   unsigned int type:4;
-
 } som_object_flags;
 
 /* A link in the list of libraries that are currently loaded.  */
@@ -220,7 +219,6 @@ struct _som_globals
      bool host_32bit:1;
      bool callback_pending:1;
      bool call_every_enabled:1;
-
   } flags;
 };
 

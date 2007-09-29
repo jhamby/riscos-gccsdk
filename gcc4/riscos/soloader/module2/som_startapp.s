@@ -41,6 +41,7 @@ som_start_app_altflat:
 	MOV	r1, #0
 	MOV	r2, #16
 	SWI	XOS_ReadSysInfo
+	BVS	som_start_app_fatalexit
 	MOV	r13, r2
 
 som_start_app_gousr:
@@ -68,6 +69,7 @@ som_start_app_gousr:
 	MOV	pc, r4
 
 	@ In case the user program returns.
+som_start_app_fatalexit:
 	SWI	OS_Exit
 
 	.end

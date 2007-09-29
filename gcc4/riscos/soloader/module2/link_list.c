@@ -3,11 +3,11 @@
  * Copyright 2007 GCCSDK Developers
  */
 
-#include "link_list.h"
 #include <stddef.h>
+#include "link_list.h"
 
 void
-linklist_add_to_end (link_list * list, link_hdr * link)
+linklist_add_to_end (link_list *list, link_hdr *link)
 {
   link_hdr *oldlast;
 
@@ -25,7 +25,7 @@ linklist_add_to_end (link_list * list, link_hdr * link)
 }
 
 void
-linklist_add_to_front (link_list * list, link_hdr * link)
+linklist_add_to_front (link_list *list, link_hdr *link)
 {
   link_hdr *oldfirst;
 
@@ -43,7 +43,7 @@ linklist_add_to_front (link_list * list, link_hdr * link)
 }
 
 void
-linklist_add_before (link_list * list, link_hdr * at, link_hdr * link)
+linklist_add_before (link_list *list, link_hdr *at, link_hdr *link)
 {
   link_hdr *oldprev;
 
@@ -67,7 +67,7 @@ linklist_add_before (link_list * list, link_hdr * at, link_hdr * link)
 }
 
 void
-linklist_remove (link_list * list, link_hdr * link)
+linklist_remove (link_list *list, link_hdr *link)
 {
   link_hdr *prev, *next;
 

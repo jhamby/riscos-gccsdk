@@ -10,8 +10,8 @@ SOManager_SOURCES=link_list.c som_array.c som_elf.c som_init.c som_os_swis.c \
 	som_utilswis.c \
 	somanager.cmhg
 BUILT_SOURCES=somanager.h
-SOManager_CFLAGS=-O3 -mmodule
-SOManager_CCASFLAGS=-O3 -mmodule
+SOManager_CFLAGS=-O3 -mmodule -Wall -std=gnu99
+SOManager_CCASFLAGS=-O3 -mmodule -Wall -std=gnu99
 
 # CMunge invocation:
 SUFFIXES=.cmhg

@@ -17,7 +17,6 @@ typedef struct _som_rt_elem
   som_PTR public_RW_ptr;
   som_PTR private_RW_ptr;
   unsigned int RW_size;
-
 } som_rt_elem;
 
 typedef struct _som_array
@@ -32,19 +31,18 @@ typedef struct _som_array
     som_rt_elem *rt_base;	/* An array of runtime elements.  */
     struct _som_object **object_base;	/* An array of som_object pointers.  */
   };
-
 } som_array;
 
 /* Allocate memory for the array using the given size as the starting
    size.  */
-extern _kernel_oserror *somarray_init (som_array * array, int elem_size,
+extern _kernel_oserror *somarray_init (som_array *array, int elem_size,
 				       int elem_count);
 
 /* Free resources used by the array.  */
-extern void somarray_fini (som_array * array);
+extern void somarray_fini (som_array *array);
 
 /* Extend the array and add the given object.  */
-extern _kernel_oserror *somarray_add_object (som_array * array,
+extern _kernel_oserror *somarray_add_object (som_array *array,
 					     struct _som_object *obj);
 
 /* SWI "SOM_GenerateGOTArray" has to be called at least twice - once after

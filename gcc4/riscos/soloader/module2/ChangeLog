@@ -1,3 +1,58 @@
+Sat Sep 29 17:02:28 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_utilswis.c(som_query_object): added FIND_CLIENT () return value
+	check.
+	* som_register.c(deregister_shared_object): Likewise.
+	(som_deregister_client): Likewise.
+	* som_array.c(som_generate_runtime_array): Likewise.
+	* som_utilswis.c(som_got_from_addr): changed while loop into a for one
+	resulting in more clear source code and also better optimized binary
+	code.
+	(som_handle_from_addr): Likewise.
+	(som_handle_from_name): Likewise.
+	(som_addr_to_offset): Likewise.
+	* som_register.c(som_add_sharedobject): Likewise.
+	(som_register_sharedobject): Likewise.
+	(deregister_shared_object): Likewise.
+	* som_command.c(command_status): Likewise.
+	(command_address): Likewise.
+	* som_runcom.c(register_dynamic_loader): Likewise.
+	(register_client): Likewise.
+	* som_main.c(som_find_client): Likewise.
+	* som_array.c(somarray_add_object): Likewise.
+	(som_generate_runtime_array): Likewise.
+	* memory-layout: Elf -> ELF
+	* som_final.c(module_finalisation): check on return value
+	som_stop_call_every.
+	* som_command.c: added include som_runcom.h.
+	* som_os_swis.h(os_get_env): return RISC OS error if any.
+	(os_read_var_val): Likewise.
+	* som_swihandler.c(module_swihandler): no need to preset allocation
+	variable used in som_alloc and som_alloc_lib.
+	* som_runcom.c(command_run): Likewise.
+	* som_init.c(is_host_32bit): made it pro-forma also working for USR
+	mode.
+	(module_initialise): explicit initialise global struct to 0; check on
+	return value som_start_call_every.
+	* som_startapp.h(som_start_app): add noreturn attribute.
+	* som_runcom.c(runcom_init_state): explicit initialise runcom_state
+	to 0.
+	(setup_env_array): check on return value of os_read_var_val.
+	(os_get_env): check on return value of os_get_env.
+	* som_elf.c(elffile_init): use memset.
+	(elffile_memory_size): deleted
+	* som_elf.h(elffile_memory_size): deleted prototype.
+	* Makefile.am(SOManager_CFLAGS,SOManager_CCASFLAGS): added
+	-Wall -std=gnu99
+	* som_startapp.s(som_start_app): check on error of OS_ReadSysInfo
+	and call OS_Exit.
+	* link_list.h: have static inline iso extern inline.
+	* som_array.h,som_utilswis.c,som_register.c,som.h,som_utilswis.h,
+	som_register.h,som_main.c,som_os_swis.c,som_alloc.c,som_os_swis.h,
+	som_swihandler.c,som_init.c,som_runcom.c,som_elf.c,som_symlinks.c,
+	link_list.c,som_elf.h,som_array.c,som_symlinks.h,link_list.h:
+	White-space and some other cosmetic changes.
+
 Thu Aug 30 01:45:19 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_os_swis.h: cleaned up the reidentation mess of the inline

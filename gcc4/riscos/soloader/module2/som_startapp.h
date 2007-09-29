@@ -15,6 +15,7 @@
  * loader as defined by the entry point.
  * It never returns.
  */
-extern void som_start_app (som_PTR entry, unsigned int sp, int stack_size);
+extern void som_start_app (som_PTR entry, unsigned int sp, int stack_size)
+	__attribute__ ((noreturn));
 
 #endif

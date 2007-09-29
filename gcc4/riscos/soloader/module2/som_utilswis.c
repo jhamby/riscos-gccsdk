@@ -4,8 +4,8 @@
  * Written by Lee Noar
  */
 
-#include "som_utilswis.h"
 #include <string.h>
+#include "som_utilswis.h"
 #include "som.h"
 #include "somanager.h"
 
@@ -17,7 +17,7 @@
  * a buffer.
  */
 _kernel_oserror *
-som_query_object (som_handle handle, som_objinfo * objinfo,
+som_query_object (som_handle handle, som_objinfo *objinfo,
 		  unsigned int flags)
 {
   som_object *object;
@@ -27,7 +27,10 @@ som_query_object (som_handle handle, som_objinfo * objinfo,
 
   if ((flags & mask_QUERY_LIST) == flag_QUERY_CLIENT_LIST)
     {
-      som_client *client = FIND_CLIENT ();
+      som_client *client;
+
+      if ((client = FIND_CLIENT ()) == NULL)
+        return somerr_client_not_found;
 
       object = linklist_first_som_object (&client->object_list);
     }
@@ -79,7 +82,7 @@ som_query_object (som_handle handle, som_objinfo * objinfo,
  * (Note: internal handle is actually base address of object)
  */
 _kernel_oserror *
-som_iterate_objects (_kernel_swi_regs * regs)
+som_iterate_objects (_kernel_swi_regs *regs)
 {
   _kernel_oserror *err = NULL;
   som_object *result_object = NULL;
@@ -151,7 +154,7 @@ som_iterate_objects (_kernel_swi_regs * regs)
  *  r0 = ptr to GOT or 0 if failed
  */
 _kernel_oserror *
-som_got_from_addr (_kernel_swi_regs * regs)
+som_got_from_addr (_kernel_swi_regs *regs)
 {
   som_client *client;
   som_object *object;
@@ -163,29 +166,20 @@ som_got_from_addr (_kernel_swi_regs * regs)
       return somerr_client_not_found;
     }
 
-  object = linklist_first_som_object (&client->object_list);
-  while (object)
-    {
-      if (addr <= object->end_addr)
-	break;
+  for (object = linklist_first_som_object (&client->object_list);
+       object != NULL && addr > object->end_addr;
+       object = linklist_next_som_object (object))
+    /* */;
 
-      object = linklist_next_som_object (object);
-    }
-
-  _kernel_oserror *err;
-
-  if (object)
-    {
-      regs->r[0] = (unsigned int) object->private_got_ptr;
-      err = NULL;
-    }
-  else
+  if (object == NULL)
     {
       regs->r[0] = 0;
-      err = somerr_object_not_found;
+      return somerr_object_not_found;
     }
 
-  return err;
+  regs->r[0] = (unsigned int) object->private_got_ptr;
+
+  return NULL;
 }
 
 /* Given an address return the handle of the library that contains it
@@ -195,7 +189,7 @@ som_got_from_addr (_kernel_swi_regs * regs)
  *  r0 = handle
  */
 _kernel_oserror *
-som_handle_from_addr (_kernel_swi_regs * regs)
+som_handle_from_addr (_kernel_swi_regs *regs)
 {
   som_client *client;
   som_object *object;
@@ -207,29 +201,20 @@ som_handle_from_addr (_kernel_swi_regs * regs)
       return somerr_client_not_found;
     }
 
-  object = linklist_first_som_object (&client->object_list);
-  while (object)
-    {
-      if (addr <= object->end_addr)
-	break;
+  for (object = linklist_first_som_object (&client->object_list);
+       object != NULL && addr > object->end_addr;
+       object = linklist_next_som_object (object))
+    /* */;
 
-      object = linklist_next_som_object (object);
-    }
-
-  _kernel_oserror *err;
-
-  if (object)
-    {
-      regs->r[0] = object->handle;
-      err = NULL;
-    }
-  else
+  if (object == NULL)
     {
       regs->r[0] = 0;
-      err = somerr_object_not_found;
+      return somerr_object_not_found;
     }
 
-  return err;
+  regs->r[0] = object->handle;
+
+  return NULL;
 }
 
 /* Given ptr to library name, return handle of library
@@ -243,22 +228,14 @@ som_handle
 som_handle_from_name (const char *name)
 {
   som_object *object;
-  som_handle handle = 0;
 
   /* Search global list, not current client.  */
-  object = linklist_first_som_object (&global.object_list);
-  while (object)
-    {
-      if (strcmp (object->name, name) == 0)
-	{
-	  handle = object->handle;
-	  break;
-	}
+  for (object = linklist_first_som_object (&global.object_list);
+       object != NULL && strcmp (object->name, name);
+       object = linklist_next_som_object (object))
+    /* */;
 
-      object = linklist_next_som_object (object);
-    }
-
-  return handle;
+  return (object == NULL) ? 0 : object->handle;
 }
 
 /* entry:
@@ -267,7 +244,7 @@ som_handle_from_name (const char *name)
  *  r0 = offset
  */
 _kernel_oserror *
-som_addr_to_offset (_kernel_swi_regs * regs)
+som_addr_to_offset (_kernel_swi_regs *regs)
 {
   som_client *client = FIND_CLIENT ();
   unsigned int offset = 0;
@@ -275,18 +252,14 @@ som_addr_to_offset (_kernel_swi_regs * regs)
 
   if (client)
     {
-      som_object *object = linklist_first_som_object (&client->object_list);
+      som_object *object;
 
-      while (object)
-	{
-	  if (addr <= object->end_addr)
-	    {
-	      offset = addr - object->base_addr;
-	      break;
-	    }
-
-	  object = linklist_next_som_object (object);
-	}
+      for (object = linklist_first_som_object (&client->object_list);
+	   object != NULL && addr > object->end_addr;
+	   object = linklist_next_som_object (object))
+	/* */;
+      if (object != NULL)
+	offset = addr - object->base_addr;
     }
 
   regs->r[0] = offset;

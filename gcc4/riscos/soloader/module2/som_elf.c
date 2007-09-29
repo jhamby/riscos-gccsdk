@@ -4,30 +4,25 @@
  * Written by Lee Noar
  */
 
+#include <kernel.h>
+#include <stdio.h>
+#include <string.h>
 #include "som.h"
 #include "somanager.h"
 #include "som_alloc.h"
 #include "som_elf.h"
 #include "som_symlinks.h"
-#include <kernel.h>
-#include <stdio.h>
-#include <string.h>
 
 void
-elffile_init (elf_file * file)
+elffile_init (elf_file *file)
 {
-  file->handle = NULL;
-  file->prog_headers = NULL;
-  file->dynamic_seg = NULL;
-  file->interp_name = NULL;
-  file->memory_size = 0;
-  file->base_addr = NULL;
+  memset (file, 0, sizeof (elf_file));
 }
 
 #define ELF_ID (unsigned int)(('F' << 24) | ('L' << 16) | ('E' << 8) | 0x7F)
 
 _kernel_oserror *
-elffile_open (const char *filename, elf_file * file)
+elffile_open (const char *filename, elf_file *file)
 {
   _kernel_oserror *err;
 
@@ -52,26 +47,24 @@ elffile_open (const char *filename, elf_file * file)
     goto error;
 
   /* Make sure the file is suitable for RISC OS.  */
-  if (*((unsigned int *) file->elf_header.e_ident) != ELF_ID ||
-      file->elf_header.e_ident[EI_CLASS] != ELFCLASS32 ||
-      file->elf_header.e_ident[EI_DATA] != ELFDATA2LSB ||
-      file->elf_header.e_ident[EI_VERSION] != EV_CURRENT ||
-      file->elf_header.e_machine != EM_ARM)
+  if (*((unsigned int *) file->elf_header.e_ident) != ELF_ID
+      || file->elf_header.e_ident[EI_CLASS] != ELFCLASS32
+      || file->elf_header.e_ident[EI_DATA] != ELFDATA2LSB
+      || file->elf_header.e_ident[EI_VERSION] != EV_CURRENT
+      || file->elf_header.e_machine != EM_ARM)
     {
       err = somerr_invalid_elf;
       goto error;
     }
 
   /* Allocate space for program headers and read them from file.  */
-  if ((err =
-       som_alloc (file->elf_header.e_phentsize * file->elf_header.e_phnum,
-		  (void **) (void *) &file->prog_headers)) != NULL)
+  if ((err = som_alloc (file->elf_header.e_phentsize * file->elf_header.e_phnum,
+			(void **) (void *) &file->prog_headers)) != NULL)
     goto error;
 
   fseek (file->handle, file->elf_header.e_phoff, SEEK_SET);
-  if (fread
-      (file->prog_headers, file->elf_header.e_phentsize,
-       file->elf_header.e_phnum, file->handle) != file->elf_header.e_phnum)
+  if (fread (file->prog_headers, file->elf_header.e_phentsize,
+	     file->elf_header.e_phnum, file->handle) != file->elf_header.e_phnum)
     goto error;
 
   Elf32_Phdr *phdr = file->prog_headers;
@@ -107,9 +100,9 @@ elffile_open (const char *filename, elf_file * file)
   return NULL;
 
 error:
-  if (!err)
-    if ((err = _kernel_last_oserror ()) == NULL)
-      err = somerr_file_error;	/* Default to file error.  */
+  if (err == NULL
+      && (err = _kernel_last_oserror ()) == NULL)
+    err = somerr_file_error;	/* Default to file error.  */
 
 #ifdef USE_SYMLINKS
   if (resolved_filename)
@@ -122,7 +115,7 @@ error:
 }
 
 void
-elffile_close (elf_file * file)
+elffile_close (elf_file *file)
 {
   if (file->handle)
     {
@@ -141,7 +134,7 @@ elffile_close (elf_file * file)
    load_offset defines the load address. For an executable, load_offset
    should be NULL.  */
 _kernel_oserror *
-elffile_load (elf_file * file, som_PTR load_offset, bool init_bss)
+elffile_load (elf_file *file, som_PTR load_offset, bool init_bss)
 {
   Elf32_Phdr *phdr = file->prog_headers;
   int phnum = file->elf_header.e_phnum;
@@ -188,7 +181,7 @@ error:
 
 /* Fill in an elf_file structure from an image already in memory.  */
 _kernel_oserror *
-elffile_from_memory (elf_file * loader, som_PTR base_addr)
+elffile_from_memory (elf_file *loader, som_PTR base_addr)
 {
   _kernel_oserror *err;
 
@@ -196,9 +189,8 @@ elffile_from_memory (elf_file * loader, som_PTR base_addr)
   memcpy (&loader->elf_header, base_addr, sizeof (Elf32_Ehdr));
 
   /* Allocate space for program headers and copy them from the image.  */
-  if ((err =
-       som_alloc (loader->elf_header.e_phentsize * loader->elf_header.e_phnum,
-		  (void **) (void *) &loader->prog_headers)) != NULL)
+  if ((err = som_alloc (loader->elf_header.e_phentsize * loader->elf_header.e_phnum,
+			(void **) (void *) &loader->prog_headers)) != NULL)
     return err;
 
   memcpy (loader->prog_headers, base_addr + loader->elf_header.e_phoff,
@@ -226,24 +218,4 @@ elffile_from_memory (elf_file * loader, som_PTR base_addr)
     }
 
   return NULL;
-}
-
-/* Return the amount of memory required to hold all loadable segments in
-   the file.  */
-int
-elffile_memory_size (elf_file * file)
-{
-  Elf32_Phdr *phdr = file->prog_headers;
-  int phnum = file->elf_header.e_phnum;
-  int size = 0;
-
-  while (phnum--)
-    {
-      if (phdr->p_type == PT_LOAD)
-	size += phdr->p_memsz;
-
-      phdr++;
-    }
-
-  return size;
 }

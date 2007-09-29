@@ -8,7 +8,7 @@
 
 _kernel_oserror *
 dynamic_area_create (const char *name, int init_size, int max_size,
-		     dynamic_area_block * ret)
+		     dynamic_area_block *ret)
 {
   _kernel_oserror *err;
   _kernel_swi_regs regs;

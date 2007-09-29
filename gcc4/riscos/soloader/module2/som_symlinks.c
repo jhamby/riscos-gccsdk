@@ -6,7 +6,7 @@
 #include <kernel.h>
 #include <stdio.h>
 #include <swis.h>
-#include "string.h"
+#include <string.h>
 #include "som_alloc.h"
 #include "somanager.h"
 
@@ -54,11 +54,11 @@ som_resolve_links (const char *file_in, char **filename_ret)
   if (strlen (file_in) + 1 > MAX_FILENAME_LEN)
     return somerr_symlink_overflow;
 
-  if ((err =
-       som_alloc (MAX_FILENAME_LEN, (void **) (void *) &file_out)) != NULL)
+  if ((err = som_alloc (MAX_FILENAME_LEN,
+			(void **) (void *) &file_out)) != NULL)
     goto error;
-  if ((err =
-       som_alloc (MAX_FILENAME_LEN, (void **) (void *) &buffer)) != NULL)
+  if ((err = som_alloc (MAX_FILENAME_LEN,
+			(void **) (void *) &buffer)) != NULL)
     goto error;
 
   strcpy (file_out, file_in);
