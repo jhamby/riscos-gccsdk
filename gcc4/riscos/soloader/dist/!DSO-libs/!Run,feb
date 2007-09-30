@@ -1,10 +1,22 @@
 | !DSO-libs.!Run
 
+Unset Alias$SOMRun
+
+Set DSOLib$Dir <Obey$Dir>
+
 If "<DSOLib$Path>" = "" Then Set Run$Path <Run$Path>,DSOLib:bin.
+If "<DSOLib$Path>" = "" Then Set GCCSOLib$Path DSOLib:lib.,<GCCSOLib$Path>
 
-Run <Obey$Dir>.!Boot
+Set DSOLib$Path <DSOLib$Dir>.
 
-RMEnsure SoManager	2.00 RMLoad <Obey$Dir>.SoManager
+IconSprites <Obey$Dir>.!Sprites
+
+Set File$Type_E1F ELF
+Set Alias$@RunType_E1F SOMRun %%*0
+
+Set File$Type_1C8 Symlink
+
+RMEnsure SoManager	2.00 RMLoad <DSOLib$Dir>.SoManager
 RMEnsure SoManager	2.00 Error Need at least V2.00 of Shared Object Manager (SoManager)
 
 | Environment setting

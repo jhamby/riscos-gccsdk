@@ -1,11 +1,11 @@
 | !DSO-libs.!Boot
 
-Set DSOLib$Path <Obey$Dir>.
-Set DSOLib$Dir <Obey$Dir>
-
 IconSprites <Obey$Dir>.!Sprites
 
+If "<DSOLib$Path>" = "" Then Set Alias$SOMRun Error Shared Object Manager is not loaded. Please ensure !DSO-libs has been run.|m %echo %*0 { > null: }
+
 Set File$Type_E1F ELF
-Set Alias$@RunType_E1F SOMRun %%*0
+
+If "<Alias$@RunType>"="" Then Set Alias$@RunType_E1F SOMRun %%*0
 
 Set File$Type_1C8 Symlink
