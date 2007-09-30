@@ -6,6 +6,6 @@ If "<DSOLib$Path>" = "" Then Set Alias$SOMRun Error Shared Object Manager is not
 
 Set File$Type_E1F ELF
 
-If "<Alias$@RunType>"="" Then Set Alias$@RunType_E1F SOMRun %%*0
+If "<Alias$@RunType_E1F>"="" Then Set Alias$@RunType_E1F SOMRun %%*0
 
 Set File$Type_1C8 Symlink
