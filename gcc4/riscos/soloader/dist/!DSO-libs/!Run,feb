@@ -16,8 +16,8 @@ Set Alias$@RunType_E1F SOMRun %%*0
 
 Set File$Type_1C8 Symlink
 
-RMEnsure SoManager	2.00 RMLoad <DSOLib$Dir>.SoManager
-RMEnsure SoManager	2.00 Error Need at least V2.00 of Shared Object Manager (SoManager)
+RMEnsure SOManager	2.00 RMLoad <DSOLib$Dir>.SOManager
+RMEnsure SOManager	2.00 Error Need at least v2.00 of Shared Object Manager (SOManager)
 
 | Environment setting
 Set LD$Env "LD_WARN=1"
