@@ -97,7 +97,7 @@ if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; t
   # dynamic loader
   echo +++ Building dl
   cd $GCCSDK_RISCOS/soloader
-  make install-cross LIBDIR=$GCCSDK_PREFIX/$GCCSDK_TARGET_NAME/lib
+  PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make install-cross LIBDIR=$GCCSDK_PREFIX/$GCCSDK_TARGET_NAME/lib
 
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # These make only sense in the native RISC OS build:
