@@ -569,7 +569,8 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
        * the relocation code uses the data in the public copy to correctly relocate
        * the same data in the private copy.
        */
-      objinfo.private_rw_ptr = _dl_malloc(objinfo.rw_size);
+      if ((objinfo.private_rw_ptr = _dl_malloc(objinfo.rw_size)) == NULL)
+	return NULL;
 
       /* Register the library with the support module. During registration an object index
        * is written into the GOT. This index needs to be copied into the private version

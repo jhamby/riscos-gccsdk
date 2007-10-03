@@ -34,6 +34,12 @@ struct som_rt_elem
   int	rw_size;
 };
 
+typedef struct os_error
+{
+  unsigned int errnum;
+  char errmess[252];
+} os_error;
+
 extern inline void _dl_exit(int status);
 extern inline void _dl_close(int fd);
 extern inline int _dl_mmap(void * addr, unsigned int size,
@@ -74,7 +80,7 @@ extern inline int _dl_munmap(char * addr, int size);
 		".asciz \""x"\";\n\t"	\
 		".align\n\t")
 
-extern inline void print_text(char *s)
+static inline void print_text(char *s)
 {
   asm volatile ("mov r0,%0;\n\t"
 		"swi 0x2;\n"
@@ -83,7 +89,7 @@ extern inline void print_text(char *s)
 		: "a1", "cc");
 }
 
-extern inline void print_hex(unsigned int v)
+static inline void print_hex(unsigned int v)
 {
   asm volatile ("mov r0,%0;\n\t"
 		"sub r1,sp,#20;\n\t"
@@ -97,13 +103,13 @@ extern inline void print_hex(unsigned int v)
 		: "a1", "a2", "a3", "cc");
 }
 
-extern inline void print_nl(void)
+static inline void print_nl(void)
 {
   asm volatile ("swi 0x10a;\n\t"
 		"swi 0x10d;\n\t");
 }
 
-extern inline void print_dec(unsigned int v)
+static inline void print_dec(unsigned int v)
 {
   asm volatile ("mov r0,%0;\n\t"
   		"sub r1,sp,#20;\n\t"
@@ -175,7 +181,7 @@ extern inline volatile void backtrace(void)
 }
 #endif
 
-extern inline unsigned int _dl_check_system_files(char *name)
+static inline unsigned int _dl_check_system_files(char *name)
 {
 unsigned int res;
 
@@ -188,7 +194,7 @@ unsigned int res;
   return res;
 }
 
-extern inline unsigned int _dl_generate_runtime_array(void)
+static inline unsigned int _dl_generate_runtime_array(void)
 {
 unsigned int err_flag;
 
@@ -204,7 +210,7 @@ unsigned int err_flag;
 /*
   Return next object for given object
 */
-extern inline struct elf_resolve *_dl_next_object(void **handle)
+static inline struct elf_resolve *_dl_next_object(void **handle)
 {
 struct elf_resolve *res;
 
@@ -222,7 +228,7 @@ struct elf_resolve *res;
 /*
   Return first object for current client's object list
 */
-extern inline struct elf_resolve *_dl_first_object(void **handle)
+static inline struct elf_resolve *_dl_first_object(void **handle)
 {
 struct elf_resolve *res;
 
@@ -236,7 +242,7 @@ struct elf_resolve *res;
   return res;
 }
 
-extern inline unsigned int _dl_handle_from_addr(void *addr)
+static inline unsigned int _dl_handle_from_addr(void *addr)
 {
 unsigned int res;
 
@@ -249,7 +255,7 @@ unsigned int res;
   return res;
 }
 
-extern inline unsigned int *_dl_got_from_addr(void *addr)
+static inline unsigned int *_dl_got_from_addr(void *addr)
 {
 unsigned int *got;
 
@@ -262,7 +268,7 @@ unsigned int *got;
   return got;
 }
 
-extern inline char *_dl_resolve_symlinks(const char *filename)
+static inline char *_dl_resolve_symlinks(const char *filename)
 {
 char *res;
 
@@ -276,7 +282,7 @@ char *res;
   return res;
 }
 
-extern inline void _dl_som_free(void *addr)
+static inline void _dl_som_free(void *addr)
 {
   asm volatile ("mov	r0, %[addr];\n\t"
 		"swi	%[swi_name];\n\t"
@@ -285,7 +291,7 @@ extern inline void _dl_som_free(void *addr)
 		: "a1", "cc");
 }
 
-extern inline void _dl_exit(int status)
+static inline void _dl_exit(int status)
 {
   asm volatile ("swi	%[swi_name];\n\t"	/* SWI "XSOM_DeregisterClient" */
 		"ldr	r0,1f;\n\t"
@@ -302,7 +308,19 @@ extern inline void _dl_exit(int status)
 		: "r" (status), [swi_name] "i" (XSOM_DEREGISTER_CLIENT));
 }
 
-extern inline void _dl_close(int fd)
+static inline void _dl_generate_error(os_error *err)
+{
+  asm volatile ("swi	%[som_deregister_client];\n\t"
+		"mov	r0, %0;\n\t"
+		"swi	%[os_generate_error];\n\t"
+		: /* no outputs */
+		: "r" (err),
+		  [som_deregister_client] "i" (XSOM_DEREGISTER_CLIENT),
+		  [os_generate_error] "i" (0x2b)
+		: "r0", "cc");
+}
+
+static inline void _dl_close(int fd)
 {
    asm volatile ("mov r1,%0;\n\t"
 		"mov r0,#0;\n\t"
@@ -312,7 +330,7 @@ extern inline void _dl_close(int fd)
 		: "a1","a2");
 }
 
-extern inline int _dl_alloc_lib(unsigned int size)
+static inline int _dl_alloc_lib(unsigned int size)
 {
 int addr;
 
@@ -344,7 +362,7 @@ struct object_info
 /*
   Register a library for the current app
 */
-extern inline void _dl_register_lib(unsigned int handle,struct object_info *buffer)
+static inline void _dl_register_lib(unsigned int handle,struct object_info *buffer)
 {
   asm volatile ("mov	r0,%3;\n\t"
 		"mov	r1,%0;\n\t"
@@ -355,7 +373,7 @@ extern inline void _dl_register_lib(unsigned int handle,struct object_info *buff
 		: "a1", "a2", "a3", "cc");
 }
 
-extern inline void _dl_deregister_lib(unsigned int handle)
+static inline void _dl_deregister_lib(unsigned int handle)
 {
   asm volatile ("mov	r0,%0;\n\t"
 		"swi	%[swi_name];\n\t"	/* SWI "XSOM_DeregisterSharedObject" */
@@ -368,7 +386,7 @@ extern inline void _dl_deregister_lib(unsigned int handle)
   Fill buffer with information about the object whose handle is given.
   Returns -1 if error occured (including not finding the object) or 0 for success.
 */
-extern inline int _dl_query_object_global(unsigned int handle,struct object_info *buffer)
+static inline int _dl_query_object_global(unsigned int handle,struct object_info *buffer)
 {
 int result;
 
@@ -388,7 +406,7 @@ int result;
   Fill buffer with information about the object whose handle is given.
   Returns -1 if error occured (including not finding the object) or 0 for success.
 */
-extern inline int _dl_query_object_client(unsigned int handle,struct object_info *buffer)
+static inline int _dl_query_object_client(unsigned int handle,struct object_info *buffer)
 {
 int result;
 
@@ -405,7 +423,7 @@ int result;
 }
 
 /* This is only used for loading the cache */
-extern inline int _dl_mmap(void * rqd_addr, unsigned int size,
+static inline int _dl_mmap(void * rqd_addr, unsigned int size,
 				    unsigned int prot,
 				    unsigned int flags, int fd,
 				    unsigned int f_offset)
@@ -432,7 +450,7 @@ int addr = 0;
   return addr;
 }
 
-extern inline int _dl_write(int fd, const char * buf, int len)
+static inline int _dl_write(int fd, const char * buf, int len)
 {
   int status;
 
@@ -465,7 +483,7 @@ extern inline int _dl_write(int fd, const char * buf, int len)
 }
 
 
-extern inline int _dl_read(int fd, const char * buf, int len)
+static inline int _dl_read(int fd, const char * buf, int len)
 {
   int status;
 
@@ -487,7 +505,7 @@ extern inline int _dl_read(int fd, const char * buf, int len)
   return status;
 }
 
-extern inline int _dl_set_file_pos(int fd, int pos)
+static inline int _dl_set_file_pos(int fd, int pos)
 {
 int status;
 
@@ -503,7 +521,7 @@ int status;
   return status;
 }
 
-extern inline int _dl_munmap(char * addr, int size)
+static inline int _dl_munmap(char * addr, int size)
 {
 int ret;
 
@@ -523,7 +541,7 @@ int ret;
  * this is OK or not.
  */
 
-extern inline int _dl_suid_ok(void)
+static inline int _dl_suid_ok(void)
 {
   return 1;
 }

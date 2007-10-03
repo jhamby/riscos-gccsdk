@@ -956,21 +956,19 @@ int _dl_fixup(struct elf_resolve * tpnt)
   return goof;
 }
 
-void * _dl_malloc(int size) {
+static const os_error error_nomem = { 0, "Insufficient memory for application" };
+
+void * _dl_malloc(int size)
+{
   void * retval;
+  register char *stack_limit asm("r10");
 
   if(_dl_malloc_function)
   	return (*_dl_malloc_function)(size);
 
-/*  if(_dl_malloc_addr-_dl_mmap_zero+size>4096) {
-	_dl_mmap_zero = _dl_malloc_addr = (unsigned char *) _dl_mmap((void*) 0, size,
-  				PROT_READ | PROT_WRITE,
-  				MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
-  	if(_dl_mmap_check_error(_dl_mmap_zero)) {
-  	    _dl_fdprintf(2, "%s: can't map '/dev/zero'\n", _dl_progname);
-  	    _dl_exit(20);
-  	}
-  }*/
+  if (_dl_malloc_addr + size >= stack_limit)
+    _dl_generate_error(&error_nomem);
+
   retval = _dl_malloc_addr;
   _dl_malloc_addr += size;
 
