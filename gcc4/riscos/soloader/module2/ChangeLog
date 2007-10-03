@@ -1,3 +1,7 @@
+Wed Oct  3 19:11:01 2007  Lee Noar  <leenoar@sky.com>
+
+	* Makefile.am: Make sure -mmodule is passed to the linker.
+
 Tue Oct  2 22:33:43 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_runcom.h: Added missing header file.
