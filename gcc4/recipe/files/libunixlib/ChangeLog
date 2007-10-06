@@ -1,3 +1,7 @@
+Sat Oct  6 17:32:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* sys/_vfork.s (fork,vfork): Prevent register corruption v4 and v5.
+
 Sun Sep  2 02:19:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gcccompat/_b_return.s: Made code usable for libscl.

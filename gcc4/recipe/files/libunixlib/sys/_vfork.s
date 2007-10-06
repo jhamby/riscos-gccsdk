@@ -1,5 +1,5 @@
 @ vfork, fork
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
@@ -25,7 +25,7 @@ vfork:
 fork:
 	MOV	a1, #1
 fork_common:
-	STMFD	sp!, {a1,lr}
+	STMFD	sp!, {a1, lr}
 	SUB	sp, sp, #2*4
 	ADD	a2, sp, #4	@ Space for __proc->sul_fork
 	MOV	a3, sp		@ Space for __proc->pid
@@ -34,8 +34,12 @@ fork_common:
 	ADDNE	sp, sp, #3*4
 	LDMNEFD	sp!, {pc}
 
-	LDMFD	sp!, {a1-a3,lr}
- PICEQ "STR	v4, [sp, #-4]!"
+	LDMFD	sp!, {a1-a3, lr}
+	@ a1 = __proc->pid
+	@ a2 = __proc->sul_fork
+	@ a3 = isfork
+	@ lr = return address fork()/vfork()
+ PICEQ "STMFD	sp!, {v4-v5}"
 
  PICEQ "LDR	v4, .L0+12"
 .LPIC0:
@@ -49,7 +53,10 @@ fork_common:
 	@ by the time we return as the parent
 	LDR	a2, .L0			@=__saved_lr
  PICEQ "LDR	a2, [v4, a2]"
+ PICEQ "LDMFD	sp!, {a4, v5}"
+ PICEQ "STMIA	a2!, {a4, v5}"
 	STMIA	a2, {a3, lr}
+
 	LDR	a2, .L0+4		@=__proc
  PICEQ "LDR	a2, [v4, a2]"
 	TEQ	a3, #0
@@ -69,8 +76,9 @@ fork_common:
 	@ Tail-call __fork_post to do the remaining work
 	LDR	lr, .L0			@=__saved_lr
  PICEQ "LDR	lr, [v4, lr]"
+ PICEQ "LDMIA	lr!, {v4, v5}"
 	LDMIA	lr, {a2, lr}
- PICEQ "LDR	v4, [sp], #4"
+
 	B	__fork_post
 .L0:
 	WORD	__saved_lr
@@ -82,7 +90,8 @@ fork_common:
 
 	.section ".bss"
 __saved_lr:
-	.space	8
+ PICNE ".space	8"
+ PICEQ ".space	16"
 	DECLARE_OBJECT __saved_lr
 
 	.end
