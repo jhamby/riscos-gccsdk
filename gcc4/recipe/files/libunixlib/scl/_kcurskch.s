@@ -15,5 +15,6 @@ _kernel_current_stack_chunk:
 	TEQ	a2, a3
 	MOVNE	a1, #0
 	MOV	pc, lr
+	DECLARE_FUNCTION _kernel_current_stack_chunk
 
 	.end

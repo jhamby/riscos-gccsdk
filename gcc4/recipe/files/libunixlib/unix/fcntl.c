@@ -1,5 +1,5 @@
 /* UnixLib fcntl() implementation.
-   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2000-2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -15,7 +15,6 @@
 int
 fcntl (int fd, int cmd, ...)
 {
-  va_list ap;
   struct __unixlib_fd *file_desc;
 
   PTHREAD_UNSAFE_CANCELLATION
@@ -30,6 +29,7 @@ fcntl (int fd, int cmd, ...)
     case F_DUPFD:
       {
 	/* Duplicate the file descriptor.  */
+	va_list ap;
 	int duplicate_fd;
 
 	va_start (ap, cmd);
@@ -37,27 +37,26 @@ fcntl (int fd, int cmd, ...)
 	va_end (ap);
 
 	/* Check the new file descriptor for validity.  */
-	if ((unsigned int) duplicate_fd < __proc->maxfd)
-	  {
-	    /* Allocate a new file descriptor.  */
-	    duplicate_fd = __alloc_file_descriptor (duplicate_fd);
-
-	    if (duplicate_fd != -1)
-	      {
-		struct __unixlib_fd *dup_file_desc = getfd (duplicate_fd);
-
-		dup_file_desc->fflag = file_desc->fflag;
-		dup_file_desc->devicehandle = file_desc->devicehandle;
-		__atomic_modify (&(dup_file_desc->devicehandle->refcount), 1);
-		/* File descriptor flags aren't duplicated.  */
-		dup_file_desc->dflag = 0;
-		/* The close-on-exec flag isn't duplicated.  */
-		dup_file_desc->fflag &= ~O_EXECCL;
-	      }
-	    return duplicate_fd;
-	  }
-	else
+	if ((unsigned int) duplicate_fd >= __ul_global.sulproc->maxfd)
 	  return __set_errno (EINVAL);
+
+	/* Allocate a new file descriptor.  */
+	duplicate_fd = __alloc_file_descriptor (duplicate_fd);
+
+	if (duplicate_fd != -1)
+	  {
+	    struct __unixlib_fd *dup_file_desc = getfd (duplicate_fd);
+
+	    dup_file_desc->fflag = file_desc->fflag;
+	    dup_file_desc->devicehandle = file_desc->devicehandle;
+	    __atomic_modify (&(dup_file_desc->devicehandle->refcount), 1);
+	    /* File descriptor flags aren't duplicated.  */
+	    dup_file_desc->dflag = 0;
+	    /* The close-on-exec flag isn't duplicated.  */
+	    dup_file_desc->fflag &= ~O_EXECCL;
+	  }
+
+	return duplicate_fd;
       }
 
     case F_GETFD:
@@ -66,6 +65,8 @@ fcntl (int fd, int cmd, ...)
     case F_SETFD:
       {
 	/* Set close-on-exec flag */
+	va_list ap;
+
 	va_start(ap, cmd);
 
 	if (va_arg (ap, int))
@@ -81,6 +82,7 @@ fcntl (int fd, int cmd, ...)
 
     case F_SETFL:
       {
+	va_list ap;
 	int modify = O_APPEND | O_NONBLOCK | O_ASYNC;
 	int newfflag;
 
@@ -112,6 +114,7 @@ fcntl (int fd, int cmd, ...)
 
     case F_SETUNL:
       {
+	va_list ap;
 	int arg;
 
 	va_start (ap, cmd);
@@ -126,28 +129,24 @@ fcntl (int fd, int cmd, ...)
       }
 
     case F_SETOWN:
-      {
-	return 0;
-      }
+      return 0;
 
     case F_GETLK:
       {
-        struct flock *arg;
+	va_list ap;
+	struct flock *arg;
 
-        va_start (ap, cmd);
-        arg = va_arg (ap, struct flock *);
-        va_end (ap);
+	va_start (ap, cmd);
+	arg = va_arg (ap, struct flock *);
+	va_end (ap);
 
-        arg->l_type = F_UNLCK;
-        return 0;
+	arg->l_type = F_UNLCK;
+	return 0;
       }
 
     case F_SETLK:
     case F_SETLKW:
-      {
-        /* Dummy functionality */
-        return 0;
-      }
+      return 0; /* Dummy functionality */
     }
 
   return __set_errno (EINVAL);

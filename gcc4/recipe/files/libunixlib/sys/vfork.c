@@ -1,5 +1,5 @@
 /* Implementation of fork.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <unixlib/unix.h>
@@ -13,11 +13,13 @@
 static int __saved_pthread_system_running;
 static const char *dde_prefix;
 
-/* Do everything that needs doing before the call to sul_fork */
+/* Do everything that needs doing before the call to sul_fork.  */
 int
 __fork_pre (int isfork, void **sul_fork, pid_t *pid)
 {
   struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
+
   /* Supporting fork when dynamic areas are in use is difficult.
      We would have to take a copy of the main heap DA, and also any mmaped
      regions. Then, when the child exits, we would have to restore them all
@@ -26,31 +28,31 @@ __fork_pre (int isfork, void **sul_fork, pid_t *pid)
      address. Also, if the child ever runs concurrently with the parent, we
      could not support mapping both tasks copies of the DAs to the same
      address.  */
-  if (isfork && gbl->__dynamic_num != -1)
+  if (isfork && gbl->dynamic_num != -1)
     return __set_errno (EINVAL);
 
-  if (gbl->__pthread_system_running)
+  if (gbl->pthread_system_running)
     {
       __pthread_atfork_callprepare ();
       __pthread_stop_ticker ();
     }
 
-  /* Save __pthread_system_running, as the child process
-     will always set it to 0 on exit */
-  __saved_pthread_system_running = gbl->__pthread_system_running;
+  /* Save __ul_global.pthread_system_running, as the child process
+     will always set it to 0 on exit.  */
+  __saved_pthread_system_running = gbl->pthread_system_running;
 
-  /* Take a snapshot of DDEUtils_Prefix value. */
+  /* Take a snapshot of DDEUtils_Prefix value.  */
   dde_prefix = __get_dde_prefix ();
 
 #if __UNIXLIB_FEATURE_ITIMERS
-  /* Stop any interval timers */
+  /* Stop any interval timers.  */
   __stop_itimers ();
 #endif
 
   __env_riscos ();
 
-  *sul_fork = (void *)gbl->__proc->sul_fork;
-  *pid = gbl->__proc->pid;
+  *sul_fork = (void *)sulproc->sul_fork;
+  *pid = sulproc->pid;
 
   return 0;
 }
@@ -59,9 +61,10 @@ pid_t
 __fork_post (pid_t pid, int isfork)
 {
   struct ul_global *gbl = &__ul_global;
+
   __env_unixlib ();
 
-  gbl->__pthread_system_running = __saved_pthread_system_running;
+  gbl->pthread_system_running = __saved_pthread_system_running;
 
   if (pid == 0)
     {
@@ -75,14 +78,13 @@ __fork_post (pid_t pid, int isfork)
           regs[0] = 14;
           regs[1] = 0;
           __os_swi (OS_ChangeEnvironment, regs);
-	  mem->appspace_limit = regs[1];
-          mem->appspace_himem = mem->appspace_limit;
+	  mem->appspace_himem = mem->appspace_limit = regs[1];
         }
 
       /* There are now two processes sharing the dynamic area.  */
       __atomic_modify (&__dynamic_area_refcount, 1);
 
-      if (gbl->__pthread_system_running)
+      if (gbl->pthread_system_running)
         __pthread_atfork_callparentchild (0);
     }
   else
@@ -98,13 +100,14 @@ __fork_post (pid_t pid, int isfork)
           regs[0] = (int) dde_prefix;
           (void) __os_swi (DDEUtils_Prefix, regs);
           free ((void *)dde_prefix);
+	  dde_prefix = NULL;
         }
 
       /* Disable escape if necessary (in case the child enabled it).  */
-      if (__escape_disabled)
+      if (gbl->escape_disabled)
         __os_byte (229, 1, 0, NULL);
 
-      if (gbl->__pthread_system_running)
+      if (gbl->pthread_system_running)
         {
           __pthread_start_ticker ();
           __pthread_atfork_callparentchild (1);

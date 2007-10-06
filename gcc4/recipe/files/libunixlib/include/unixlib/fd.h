@@ -16,7 +16,7 @@ __BEGIN_DECLS
 
 #ifdef __UNIXLIB_INTERNALS
 
-#define getfd(fdes) ((struct __unixlib_fd *)(void *)(((char *)(__proc->file_descriptors)) + ((fdes) * __proc->fdsize)))
+#define getfd(fdes) ((struct __unixlib_fd *)(void *)(((char *)(__ul_global.sulproc->file_descriptors)) + ((fdes) * __ul_global.sulproc->fdsize)))
 
 /* Beware of backwards compatibility when altering these structures.
    They are referenced by SUL and other processes */
@@ -38,7 +38,7 @@ struct __unixlib_fd
 };
 
 /* Macro for checking file descriptor validity.  */
-#define BADF(fdes) (((unsigned int)(fdes) < __proc->maxfd) ? (getfd (fdes)->devicehandle == NULL):1)
+#define BADF(fdes) (((unsigned int)(fdes) < __ul_global.sulproc->maxfd) ? (getfd (fdes)->devicehandle == NULL) : 1)
 
 /* File descriptor flags.  */
 

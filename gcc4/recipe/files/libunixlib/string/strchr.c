@@ -1,7 +1,8 @@
 /* strchr ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
+#include <stdlib.h>
 #include <string.h>
 
 char *
@@ -14,7 +15,7 @@ strchr (const char *s, int c_)
     s++;
 
   if (i == c)
-    return ((char *) s);
-  else
-    return (0);
+    return (char *) s;
+
+  return NULL;
 }

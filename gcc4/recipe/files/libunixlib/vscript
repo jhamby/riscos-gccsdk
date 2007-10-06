@@ -23,7 +23,6 @@ VERSION {
      __env_read;
      __env_riscos;
      __env_unixlib;
-     __executing_signalhandler;
      __exit;
      _Exit;
      __exit_no_code;
@@ -92,8 +91,6 @@ VERSION {
      __sdirinit;
      __sfixinit;
      __sfixfind;
-     __signalhandler_sl;
-     __signalhandler_sp;
      __sock*;
      __stackalloc;
      __stackfree;
@@ -113,8 +110,6 @@ VERSION {
      __ul_malloc_init;
      __ul_memory;
      __ul_global;
-     __upcall_handler_addr;
-     __upcall_handler_r12;
      __unixinit;
      __unixlib_fatal;
      __unixlib_exec_sig;

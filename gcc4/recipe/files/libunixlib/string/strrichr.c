@@ -1,7 +1,8 @@
 /* strrichr ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -13,7 +14,7 @@ strrichr (const char *s, int c)
 
   c = tolower (c);
 
-  _s = 0;
+  _s = NULL;
   do
     {
       i = *s;
@@ -23,5 +24,5 @@ strrichr (const char *s, int c)
     }
   while (s++, i);
 
-  return ((char *) _s);
+  return (char *) _s;
 }

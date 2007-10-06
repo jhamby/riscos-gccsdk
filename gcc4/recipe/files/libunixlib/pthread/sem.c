@@ -1,6 +1,5 @@
 /* POSIX Semaphores.
-   Copyright (c) 2004, 2005, 2006 UnixLib Developers.  */
-
+   Copyright (c) 2004-2007 UnixLib Developers.  */
 
 /*-
  * Copyright (c) 2003 The NetBSD Foundation, Inc.
@@ -79,6 +78,7 @@
 #include <stdarg.h>
 
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 #ifdef PTHREAD_DEBUG_SEMS
 #include <unixlib/os.h>
@@ -100,8 +100,7 @@ static __inline int sem_check_validity (const sem_t *sem)
   if (sem != NULL && sem->usem_magic == USEM_MAGIC)
     return 0;
 
-  errno = EINVAL;
-  return -1;
+  return __set_errno (EINVAL);
 }
 
 static __inline void sem_free (sem_t *sem)
@@ -122,16 +121,10 @@ int sem_init (sem_t *sem, int pshared, unsigned int value)
 
   /* Semaphores shared between processes aren't supported on RISC OS */
   if (pshared)
-    {
-      errno = ENOSYS;
-      return -1;
-    }
+    return __set_errno (ENOSYS);
 
   if (value > SEM_VALUE_MAX)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __set_errno (EINVAL);
 
 #ifdef PTHREAD_DEBUG_SEMS
   __os_print("-- sem_alloc: Allocating semaphore (");
@@ -171,8 +164,7 @@ sem_destroy(sem_t *sem)
 #ifdef PTHREAD_DEBUG_SEMS
       __os_print("failed\r\n");
 #endif
-      errno = EBUSY;
-      return -1;
+      return __set_errno (EBUSY);
     }
   pthread_rwlock_unlock(&sem->usem_interlock);
 
@@ -188,16 +180,15 @@ sem_t *
 sem_open(const char *name, int oflag, ...)
 {
   /* not supported under RISC OS */
-  errno = ENOSYS;
-  return (SEM_FAILED);
+  __set_errno (ENOSYS);
+  return SEM_FAILED;
 }
 
 int
 sem_close(sem_t *sem)
 {
   /* not supported under RISC OS */
-  errno = ENOSYS;
-  return (-1);
+  return __set_errno (ENOSYS);
 }
 
 int
@@ -369,5 +360,5 @@ sem_getvalue(sem_t * __restrict sem, int * __restrict sval)
   *sval = (int) sem->usem_count;
   pthread_rwlock_unlock(&sem->usem_interlock);
 
-  return (0);
+  return 0;
 }

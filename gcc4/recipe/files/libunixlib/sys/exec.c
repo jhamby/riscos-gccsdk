@@ -66,6 +66,8 @@ set_dde_cli (char *cli)
 int
 execve (const char *execname, char *const argv[], char *const envp[])
 {
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
   int x, cli_length;
   const char *program_name;
   char *command_line;
@@ -87,8 +89,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
     argv = &null_list;
 
 #ifdef DEBUG
-  debug_printf ("execve: function arguments\n");
-  debug_printf ("   execname: '%s'\n", execname);
+  debug_printf ("execve: function arguments\n"
+                "   execname: '%s'\n", execname);
   for (x = 0; argv[x] != NULL; ++x)
     debug_printf ("   argv[%d]: %s\n", x, argv[x]);
 
@@ -124,8 +126,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	return __set_errno (E2BIG);
 
 #if __UNIXLIB_SYMLINKS
-      if (__resolve_symlinks (pathname, respathname, sizeof (respathname)) !=
-	  0)
+      if (__resolve_symlinks (pathname, respathname,
+			      sizeof (respathname)) != 0)
 	return -1;
       program_name = respathname;	/* This is copied into cli + 1 */
 #else
@@ -208,8 +210,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	return __set_errno (E2BIG);
 
 #if __UNIXLIB_SYMLINKS
-      if (__resolve_symlinks (pathname, respathname, sizeof (respathname)) !=
-	  0)
+      if (__resolve_symlinks (pathname, respathname,
+			      sizeof (respathname)) != 0)
 	return -1;
       program_name = respathname;	/* This is copied into cli + 1 */
 #else
@@ -259,7 +261,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #endif
 
   /* SUL will free cli for us when we call sul_exec.  */
-  cli = __proc->sul_malloc (__proc->pid, cli_length + 1);
+  cli = sulproc->sul_malloc (sulproc->pid, cli_length + 1);
   if (cli == NULL)
     return __set_errno (ENOMEM);
 
@@ -329,7 +331,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
      is done, cli will only contain the program name.  */
   if (cli_length >= MAXPATHLEN && set_dde_cli (cli) < 0)
     {
-      __proc->sul_free (__proc->pid, cli);
+      sulproc->sul_free (sulproc->pid, cli);
       return -1;
     }
 
@@ -349,10 +351,10 @@ execve (const char *execname, char *const argv[], char *const envp[])
       /* The length must be word aligned */
       envlen = (envlen + 3) & ~3;
 
-      newenviron = __proc->sul_malloc (__proc->pid, envlen);
+      newenviron = sulproc->sul_malloc (sulproc->pid, envlen);
       if (newenviron == NULL)
 	{
-	  __proc->sul_free (__proc->pid, cli);
+	  sulproc->sul_free (sulproc->pid, cli);
 	  return __set_errno (ENOMEM);
 	}
 
@@ -370,13 +372,12 @@ execve (const char *execname, char *const argv[], char *const envp[])
 
   /* From this point onwards we cannot return an error */
 
-
   /* All threads are terminated on an exec call.
      Destructor functions are not called. */
-  if (__pthread_system_running)
+  if (gbl->pthread_system_running)
     {
       __pthread_stop_ticker ();
-      __pthread_system_running = 0;
+      gbl->pthread_system_running = 0;
     }
 
 #if __UNIXLIB_FEATURE_ITIMERS
@@ -385,13 +386,13 @@ execve (const char *execname, char *const argv[], char *const envp[])
   __stop_itimers ();
 #endif
 
-  if (__proc->ppid == 1)
+  if (sulproc->ppid == 1)
     {
       /* This process doesn't have a parent. Technically, all file descriptors
          that don't have FD_CLOEXEC set should remain open, but if we are
          calling a non-UnixLib program then it won't know about them and so
          they will never get closed. */
-      __free_process (__proc);
+      __free_process (sulproc);
     }
   else
     {
@@ -399,19 +400,19 @@ execve (const char *execname, char *const argv[], char *const envp[])
       /* File descriptors open in the existing process image remain open
          in the new process image, unless they have the 'FD_CLOEXEC'
          flag set.  O_EXECCL is an alias for FD_CLOEXEC.  */
-      for (x = 0; x < __proc->maxfd; x++)
+      for (x = 0; x < sulproc->maxfd; x++)
 	if (getfd (x)->devicehandle && (getfd (x)->dflag & O_EXECCL))
 	  close (x);
 
-      if (__proc->environ)
-	__proc->sul_free (__proc->pid, __proc->environ);
+      if (sulproc->environ)
+	sulproc->sul_free (sulproc->pid, sulproc->environ);
     }
 
-  __proc->environ = newenviron;
-  __proc->environ_size = envlen;
+  sulproc->environ = newenviron;
+  sulproc->environ_size = envlen;
 
   /* Force a malloc trim to reduce memory usage.  */
-  malloc_trim_unlocked (__ul_global.malloc_state, 0);
+  malloc_trim_unlocked (gbl->malloc_state, 0);
   __stackalloc_trim ();
 
   /* If the DAs are being used, then delete the dynamic area. */
@@ -427,10 +428,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #ifdef DEBUG
   debug_printf ("execve: about to call: %s\n", cli);
 #endif
-  __proc->sul_exec (__proc->pid, cli,
-		    (void *) __ul_memory.unixlib_stack_limit,
-		    (void *) __ul_memory.unixlib_stack);
-
+  sulproc->sul_exec (sulproc->pid, cli,
+		     (void *) __ul_memory.stack_limit,
+		     (void *) __ul_memory.stack);
 
   /* This is never reached.  */
   return 0;

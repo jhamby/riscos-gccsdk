@@ -1,5 +1,5 @@
 /* wait4 ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -74,13 +74,13 @@ wait_type (pid_t pid, struct __sul_process *process)
   if (pid == WAIT_ANY)
     return 1;
   /* Match any process in the current process's group.  */
-  if (pid == WAIT_MYPGRP)
-    if (process->gid == __proc->pgrp)
-      return 1;
+  if (pid == WAIT_MYPGRP
+      && process->gid == __ul_global.sulproc->pgrp)
+    return 1;
   /* Match any process whose process group is the abs(pid).  */
-  if (pid < -1)
-    if (process->gid == abs (pid))
-      return 1;
+  if (pid < -1
+      && process->gid == abs (pid))
+    return 1;
   /* Match a specific process id.  */
   if (process->pid == pid)
     return 1;
@@ -93,61 +93,62 @@ wait_type (pid_t pid, struct __sul_process *process)
 pid_t
 wait4 (pid_t pid, int *status, int options, struct rusage *usage)
 {
-  struct __sul_process *process;
-  struct __sul_process *lastprocess;
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
 
   PTHREAD_UNSAFE
 
   if ((options & ~(WNOHANG | WUNTRACED)) != 0)
     return (pid_t) __set_errno (EINVAL);
 
-  while (__proc->children)
+  while (sulproc->children)
     {
-      process = __proc->children;
-      lastprocess = NULL;
+      struct __sul_process *process;
+      struct __sul_process *lastprocess;
 
-      while (process)
+      for (process = sulproc->children, lastprocess = NULL;
+           process != NULL;
+           lastprocess = process, process = process->next_child)
         {
-          if (wait_type (pid, process))
-            if (process->status.zombie
-                || ((options & WUNTRACED) && process->status.stopped && !process->status.reported))
-              {
-                /* If the untraced bit is set, we will match against
-                   stopped children; otherwise we won't.  */
+          if (wait_type (pid, process)
+              && (process->status.zombie
+                  || ((options & WUNTRACED)
+		      && process->status.stopped && !process->status.reported)))
+            {
+              /* If the untraced bit is set, we will match against stopped
+                 children; otherwise we won't.  */
 
-                process->status.reported = 1;
+              process->status.reported = 1;
 
-                /* Copy the resource usage details (if usage is not null).  */
-                if (usage && process->pid == pid)
-                  memset(usage, 0, sizeof (struct rusage));
-                if (status)
-                  {
-                    *status = wait_convert_status (&(process->status));
+              /* Copy the resource usage details (if usage is not null).  */
+              if (usage && process->pid == pid)
+                memset(usage, 0, sizeof (struct rusage));
+
+              if (status)
+                {
+                  *status = wait_convert_status (&(process->status));
 #ifdef DEBUG
-                    printf ("wait4: process = %d, status = %x\n", process, *status);
+                  printf ("wait4: process = %d, status = %x\n", process, *status);
 #endif
-                  }
+                }
 
-                pid = process->pid;
+              pid = process->pid;
 
-                if (process->status.zombie)
-                  {
-                    /* Remove the child from the children list */
-                    if (lastprocess)
-                      lastprocess->next_child = process->next_child;
-                    else
-                      __proc->children = process->next_child;
+              if (process->status.zombie)
+                {
+                  /* Remove the child from the children list */
+                  if (lastprocess)
+                    lastprocess->next_child = process->next_child;
+                  else
+                    sulproc->children = process->next_child;
 
-                    __free_process (process);
-                  }
+                  __free_process (process);
+                  /* FIXME: who/where deletes process via sul_free ? */
+                }
 
-                return pid;
-              }
-
-            lastprocess = process;
-            process = process->next_child;
+              return pid;
+            }
         }
-
 
       /* If the no hang bit is set and we have found no dead
          children, return 0.  */

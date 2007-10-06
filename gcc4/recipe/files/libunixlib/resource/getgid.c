@@ -1,5 +1,5 @@
 /* getgid ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <unistd.h>
@@ -8,5 +8,7 @@
 __gid_t
 getgid (void)
 {
-  return __proc->gid;
+  struct __sul_process *sulproc = __ul_global.sulproc;
+
+  return sulproc->gid;
 }

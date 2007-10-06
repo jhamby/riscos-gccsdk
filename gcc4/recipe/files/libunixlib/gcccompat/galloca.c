@@ -140,9 +140,6 @@ set_chunk_head (struct alloca_chunk *head)
 static inline unsigned int
 pc_to_address (unsigned int pc)
 {
-#if 0
-  return (__32bit) ? pc : (pc & 0x03FFFFFC);
-#else
   unsigned int result;
   unsigned int unused;
 
@@ -154,7 +151,6 @@ pc_to_address (unsigned int pc)
 		    : "cc");
 
   return result;
-#endif
 }
 
 

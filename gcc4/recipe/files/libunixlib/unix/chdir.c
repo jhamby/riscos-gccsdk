@@ -1,5 +1,5 @@
 /* Change directory.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -119,12 +119,8 @@ chdir (const char *ux_path)
     }
 
   /* No Prefix$Dir, so just change directory with OS_FSControl 0.  */
-  err = __os_fsctrl (0, path, 0, 0);
-  if (err)
-    {
-      __ul_seterr (err, 1);
-      return -1;
-    }
+  if ((err = __os_fsctrl (0, path, 0, 0)) != NULL)
+    return __ul_seterr (err, 1);
 
   return 0;
 }

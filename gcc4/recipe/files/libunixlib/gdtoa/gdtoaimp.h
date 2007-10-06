@@ -189,6 +189,7 @@ THIS SOFTWARE.
 #include "string.h"
 
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 #ifdef KR_headers
 #define Char char
@@ -468,15 +469,17 @@ extern double rnd_prod(double, double), rnd_quot(double, double);
 #define MULTIPLE_THREADS
 extern pthread_mutex_t __gdtoa_locks[2];
 
-#define ACQUIRE_DTOA_LOCK(n)	do {				\
-	if (__pthread_system_running)				\
-		pthread_mutex_lock(&__gdtoa_locks[n]);		\
-} while(0)
+#define ACQUIRE_DTOA_LOCK(n)					\
+	do {							\
+		if (__ul_global.pthread_system_running)		\
+			pthread_mutex_lock(&__gdtoa_locks[n]);	\
+	} while(0)
 
-#define FREE_DTOA_LOCK(n)	do {				\
-	if (__pthread_system_running)				\
-		pthread_mutex_unlock(&__gdtoa_locks[n]);	\
-} while(0)
+#define FREE_DTOA_LOCK(n)						\
+	do {								\
+		if (__ul_global.pthread_system_running)		\
+			pthread_mutex_unlock(&__gdtoa_locks[n]);	\
+	} while(0)
 
 #define Kmax 15
 

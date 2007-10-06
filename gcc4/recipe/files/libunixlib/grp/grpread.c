@@ -28,7 +28,7 @@ g_gstrcp (char **lp, char sep)
   if (*l)
     *l++ = 0;
   *lp = l;
-  return (r);
+  return r;
 }
 
 

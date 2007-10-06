@@ -1,7 +1,8 @@
 /* adjtime ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
+#include <errno.h>
 #include <sys/time.h>
 
 /* This function speeds up or slows down the system clock in order to
@@ -13,7 +14,5 @@
 int
 adjtime (const struct timeval *delta, struct timeval *olddelta)
 {
-  olddelta = olddelta;
-  delta = delta;
-  return -1;
+  return __set_errno (ENOSYS);
 }

@@ -1,5 +1,5 @@
 /* UnixLib process initialisation and finalisation.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -60,12 +60,10 @@ extern int main (int, char *[], char **);
 #endif
 
 /* Only called externally from here - see comment below */
-extern int dsp_exit(void);
+extern void __dsp_exit(void);
 
 static struct proc ___u;
 struct proc *__u = &___u;	/* current process */
-
-int __escape_disabled;
 
 static void
 __badr (void)
@@ -114,76 +112,72 @@ __hexstrtochar (const char *nptr)
 
 /* Free any remaining memory and file descriptors associated with a process */
 void
-__free_process(struct __sul_process *process)
+__free_process (struct __sul_process *process)
 {
-  struct __sul_process *child = process->children;
+  struct __sul_process *sulproc = __ul_global.sulproc;
+  struct __sul_process *child;
   struct __sul_process *next_child;
 
   /* Close all file descriptors.  */
   if (process->file_descriptors)
     {
       unsigned int i;
-      struct __unixlib_fd *file_desc;
-
       for (i = 0; i < process->maxfd; i++)
 	{
+	  struct __unixlib_fd *file_desc;
+
 	  file_desc = (struct __unixlib_fd *)((char *)(process->file_descriptors) + i * process->fdsize);
 	  if (file_desc->devicehandle)
 	    __close (file_desc);
 	}
 
-      __proc->sul_free (__proc->pid, process->file_descriptors);
+      sulproc->sul_free (sulproc->pid, process->file_descriptors);
       process->file_descriptors = NULL;
     }
 
   if (process->environ)
     {
-      __proc->sul_free (__proc->pid, process->environ);
+      sulproc->sul_free (sulproc->pid, process->environ);
       process->environ = NULL;
     }
 
   if (process->console)
     {
       if (__atomic_modify (&(process->console->refcount), -1) == 0)
-	__proc->sul_free(__proc->pid, __proc->console);
+	sulproc->sul_free(sulproc->pid, sulproc->console);
       process->console = NULL;
     }
 
   if (process->rs423)
     {
       if (__atomic_modify (&(process->rs423->refcount), -1) == 0)
-	__proc->sul_free(__proc->pid, process->rs423);
+	sulproc->sul_free(sulproc->pid, process->rs423);
       process->rs423 = NULL;
     }
 
   /* Free all zombie children of this process */
-  while (child)
+  for (child = process->children; child != NULL; child = next_child)
     {
       next_child = child->next_child;
       if (child->status.zombie)
-	{
-	  __free_process (child);
-	}
+	__free_process (child);
       else
 	{
 	  /* The child is still running, so we can't free it */
 	  child->ppid = 1;
 	  child->next_child = NULL;
 	}
-
-      child = next_child;
     }
-
   process->children = NULL;
 
   /* If this a process struct from a zombie child, then free it */
   if (process->status.zombie)
-    __proc->sul_free (__proc->pid, process);
+    sulproc->sul_free (sulproc->pid, process);
 }
 
 /* Initialise the UnixLib world.  Create a new process structure, initialise
    the UnixLib library and parse command line arguments.
-   This function is called by __main () in sys.s._syslib.
+   This function is called by __main () in sys/_syslib.s.
 
    No calls to 'brk', 'sbrk' or 'malloc' should occur before calling
    this function.  */
@@ -192,6 +186,8 @@ __unixinit (void)
 {
   int __cli_size, cli_size, regs[10];
   char *cli;
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
 
 #ifdef DEBUG
   debug_printf ("__unixinit: new process\n");
@@ -205,7 +201,7 @@ __unixinit (void)
      might be if we are being run as an ANSI task from Nettle) then we
      want to ensure the tty driver does not reenable it. */
   __os_byte (0xe5, 0, 0xff, regs);
-  __escape_disabled = regs[1];
+  gbl->escape_disabled = regs[1];
 
   /* Initialise the pthread system */
   __pthread_prog_init ();
@@ -237,10 +233,10 @@ __unixinit (void)
 #endif
 
   /* Set up the environment */
-  if (__proc->environ)
+  if (sulproc->environ)
     {
       /* We have inherited an environment from our parent */
-      environ = __proc->environ;
+      environ = sulproc->environ;
     }
   else
     {
@@ -278,13 +274,12 @@ __unixinit (void)
       environ[environentries] = NULL;
     }
 
-  /* Get command line.  __unixlib_cli's pointing to the command line block
+  /* Get command line.  __ul_global.cli's pointing to the command line block
      returned by OS_GetEnv in __main ().  */
-  __cli_size = strlen (__unixlib_cli);
+  __cli_size = strlen (gbl->cli);
 
 #ifdef DEBUG
-  debug_printf ("__unixinit (getting cli) __unixlib_cli=%s\n",
-		__unixlib_cli);
+  debug_printf ("__unixinit (getting cli) __ul_global.cli=%s\n", gbl->cli);
 #endif
 
   /* Since the command line limit of RISC OS is only 255 characters,
@@ -298,7 +293,7 @@ __unixinit (void)
   cli = malloc (cli_size + 2);
   if (cli != NULL)
     {
-      memcpy (cli, __unixlib_cli, __cli_size);
+      memcpy (cli, gbl->cli, __cli_size);
       cli[__cli_size] = '\0';
       if (__cli_size < cli_size)
 	{
@@ -402,20 +397,22 @@ _Exit (int status)
 void
 _exit (int return_code)
 {
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
   int status;
 
   /* Interval timers must be stopped.  */
   __stop_itimers ();
 
   /* pthread timers must be stopped */
-  if (__pthread_system_running)
+  if (gbl->pthread_system_running)
     {
       __pthread_stop_ticker ();
-      __pthread_system_running = 0;
+      gbl->pthread_system_running = 0;
     }
 
   /* De-register with DigitalRenderer in case of an exception */
-  dsp_exit();
+  __dsp_exit();
 
   /* Convert the 16-bit return code into an 8-bit equivalent
      for compatibility with RISC OS.
@@ -434,27 +431,25 @@ _exit (int return_code)
     {
       /* Process terminated with a signal.  */
       status = WTERMSIG (return_code);
-      __proc->status.return_code = 0;
-      __proc->status.signal_exit = 1;
-      __proc->status.signal = status;
+      sulproc->status.return_code = 0;
+      sulproc->status.signal_exit = 1;
+      sulproc->status.signal = status;
       status |= (1 << 7);
 
       if (WCOREDUMP (return_code))
 	{
 	  status |= (1 << 6);
-	  __proc->status.core_dump = 1;
+	  sulproc->status.core_dump = 1;
 	}
       else
-	{
-	  __proc->status.core_dump = 0;
-	}
+	sulproc->status.core_dump = 0;
     }
   else
     {
       status = WEXITSTATUS (return_code);
-      __proc->status.return_code = status;
-      __proc->status.core_dump = 0;
-      __proc->status.signal_exit = 0;
+      sulproc->status.return_code = status;
+      sulproc->status.core_dump = 0;
+      sulproc->status.signal_exit = 0;
     }
 
   /* Reset the DDEUtils' Prefix variable to the value at startup.  */
@@ -467,10 +462,10 @@ _exit (int return_code)
     }
 
   /* Re-enable Escape (in case SIGINT handler fired in ttyicanon) */
-  if (!__escape_disabled)
+  if (!gbl->escape_disabled)
     __os_byte (229, 0, 0, NULL);
 
-  __free_process (__proc);
+  __free_process (sulproc);
   __dynamic_area_exit ();
   __env_riscos ();
 
@@ -486,18 +481,20 @@ _exit (int return_code)
 #ifdef DEBUG
   debug_printf ("__exit(): Calling sul_exit with return code=%d\n", status);
 #endif
-  __proc->sul_exit (__proc->pid, status);
+  sulproc->sul_exit (sulproc->pid, status);
 }
 
 int
 __alloc_file_descriptor (int start)
 {
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
   unsigned int i;
 
   PTHREAD_UNSAFE
 
   /* Look for a spare file descriptor.  */
-  for (i = start; i < __proc->maxfd; i++)
+  for (i = start; i < sulproc->maxfd; i++)
     if (getfd (i)->devicehandle == NULL)
       {
 #ifdef DEBUG
@@ -517,10 +514,8 @@ __stop_itimers (void)
   struct itimerval new_timer;
 
   /* Interval timers are not implemented in task windows nor in WIMP
-     programs so we don't need to stop them.   Note that when
-     __taskwindow == 1 => __taskhandle != 0 but not necessary vice-
-     versa so the test on __taskhandle is enough.  */
-  if (__taskhandle != 0)
+     programs so we don't need to stop them.  */
+  if (__get_taskhandle () != 0)
     return;
 
   /* Stop all interval timers.  */
@@ -537,45 +532,45 @@ __stop_itimers (void)
 static void
 initialise_unix_io (void)
 {
-  if (__proc->file_descriptors == NULL)
-    {
-      _kernel_oserror *err;
-      int regs[10];
-      unsigned int i;
+  struct __sul_process *sulproc = __ul_global.sulproc;
+  _kernel_oserror *err;
+  int regs[10];
+  unsigned int i;
 
-      __proc->file_descriptors = __proc->sul_malloc (__proc->pid,
-						     __proc->maxfd * __proc->fdsize);
-      if (__proc->file_descriptors == NULL)
-	__unixlib_fatal ("Cannot allocate file descriptor memory");
+  if (sulproc->file_descriptors != NULL)
+    return;
 
-      /* Set all file descriptors to unallocated status.  */
-      for (i = 0; i < __proc->maxfd; i++)
-	getfd (i)->devicehandle = NULL;
+  sulproc->file_descriptors = sulproc->sul_malloc (sulproc->pid,
+						   sulproc->maxfd * sulproc->fdsize);
+  if (sulproc->file_descriptors == NULL)
+    __unixlib_fatal ("Cannot allocate file descriptor memory");
 
-      /* These are guaranteed to be the first files opened. stdin, stdout
-	 and stderr will receive file descriptor numbers 0, 1 and 2
-	 respectively.  */
+  /* Set all file descriptors to unallocated status.  */
+  for (i = 0; i < sulproc->maxfd; i++)
+    getfd (i)->devicehandle = NULL;
 
-      /* Open a file descriptor for reading from the tty (stdin)
-	 and writing to the tty (stdout) when there is no CLI
-	 redirection done by RISC OS, otherwise take RISC OS own
-	 files handles as basis for stdin and/or stdout.  */
-      regs[1] = regs[0] = -1;
-      err = __os_swi (OS_ChangeRedirection, regs);
-      if (err != NULL)
-	__unixlib_fatal (err->errmess);
-      if ((regs[0] ? __open_fh (STDIN_FILENO, regs[0], O_RDONLY, 0777)
+  /* These are guaranteed to be the first files opened. stdin, stdout and
+     stderr will receive file descriptor numbers 0, 1 and 2 respectively.  */
+
+  /* Open a file descriptor for reading from the tty (stdin) and writing to
+     the tty (stdout) when there is no CLI redirection done by RISC OS,
+     otherwise take RISC OS own files handles as basis for stdin and/or
+     stdout.  */
+  regs[1] = regs[0] = -1;
+  err = __os_swi (OS_ChangeRedirection, regs);
+  if (err != NULL)
+    __unixlib_fatal (err->errmess);
+  if ((regs[0] ? __open_fh (STDIN_FILENO, regs[0], O_RDONLY, 0777)
                    : __open_fn (STDIN_FILENO, "/dev/tty", O_RDONLY, 0777)) < 0)
-	__unixlib_fatal ("Cannot open stdin");
-      if ((regs[1] ? __open_fh (STDOUT_FILENO, regs[1], O_WRONLY | O_CREAT, 0666)
+    __unixlib_fatal ("Cannot open stdin");
+  if ((regs[1] ? __open_fh (STDOUT_FILENO, regs[1], O_WRONLY | O_CREAT, 0666)
                    : __open_fn (STDOUT_FILENO, "/dev/tty", O_WRONLY | O_CREAT, 0666)) < 0)
-	__unixlib_fatal ("Cannot open stdout");
+    __unixlib_fatal ("Cannot open stdout");
 
-      /* Duplicate the file descriptor for stdout, to create a suitable
-	 file descriptor for stderr.  */
-      if (fcntl (STDOUT_FILENO, F_DUPFD, STDERR_FILENO) < 0)
-	__unixlib_fatal ("Cannot open stderr");
-    }
+  /* Duplicate the file descriptor for stdout, to create a suitable file
+     descriptor for stderr.  */
+  if (fcntl (STDOUT_FILENO, F_DUPFD, STDERR_FILENO) < 0)
+    __unixlib_fatal ("Cannot open stderr");
 }
 
 /* Attempt to re-direct a file descriptor based on the file descriptor
@@ -596,7 +591,7 @@ check_fd_redirection (const char *filename, unsigned int fd_to_replace)
     {
       unsigned int dup_fd = __decstrtoui (filename, NULL);
 
-      if (dup_fd >= __proc->maxfd)
+      if (dup_fd >= __ul_global.sulproc->maxfd)
 	__badr ();
 
       if (dup_fd != fd_to_replace)
@@ -629,7 +624,7 @@ get_fd_redirection (const char *redir)
       multiplier *= 10;
       redir--;
     }
-  if (fd >= __proc->maxfd)
+  if (fd >= __ul_global.sulproc->maxfd)
     __badr ();
 
   return fd;
@@ -1106,45 +1101,45 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
       int filetype;
 
       regs[0] = 37;
-      regs[1] = (int)argv[0];
+      regs[1] = (int) argv[0];
       regs[5] = regs[4] = regs[3] = regs[2] = 0;
-      if ((err = __os_swi(OS_FSControl, regs)) != NULL)
-       {
-         __ul_seterr (err, 0);
-         __unixlib_fatal ("Cannot convert process filename");
-       }
+      if ((err = __os_swi (OS_FSControl, regs)) != NULL)
+        {
+          __ul_seterr (err, 0);
+          __unixlib_fatal ("Cannot convert process filename");
+        }
       if (regs[5] > 0)
-       __unixlib_fatal ("Cannot convert process filename");
+        __unixlib_fatal ("Cannot convert process filename");
 
-      if ((new_argv0 = malloc(1 - regs[5])) == NULL)
-       __unixlib_fatal ("Cannot allocate memory to convert process filename");
+      if ((new_argv0 = malloc (1 - regs[5])) == NULL)
+        __unixlib_fatal ("Cannot allocate memory to convert process filename");
 
       regs[0] = 37;
-      regs[1] = (int)argv[0];
-      regs[2] = (int)new_argv0;
+      regs[1] = (int) argv[0];
+      regs[2] = (int) new_argv0;
       regs[4] = regs[3] = 0;
       regs[5] = 1 - regs[5];
       if ((err = __os_swi(OS_FSControl, regs)) != NULL)
-       {
-         __ul_seterr (err, 0);
-         __unixlib_fatal ("Cannot convert process filename");
-       }
+        {
+          __ul_seterr (err, 0);
+          __unixlib_fatal ("Cannot convert process filename");
+        }
 
       if (__os_file (OSFILE_READCATINFO, new_argv0, regs) != NULL
-         || regs[0] != 1)
-       {
+          || regs[0] != 1)
+        {
 #ifdef DEBUG
-         __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.");
-         __os_nl ();
+          __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.");
+          __os_nl ();
 #endif
-         filetype = __RISCOSIFY_FILETYPE_NOTFOUND;
-       }
+          filetype = __RISCOSIFY_FILETYPE_NOTFOUND;
+        }
       else
-       filetype = ((regs[2] & 0xfff00000U) == 0xfff00000U) ? (regs[2] >> 8) & 0xfff : __RISCOSIFY_FILETYPE_NOTFOUND;
+        filetype = ((regs[2] & 0xfff00000U) == 0xfff00000U) ? (regs[2] >> 8) & 0xfff : __RISCOSIFY_FILETYPE_NOTFOUND;
 
       /* Convert to Unix full path, if needed.  */
       if ((new_uargv0 = __unixify_std (new_argv0, NULL, 0, filetype)) == NULL)
-       __unixlib_fatal ("Cannot allocate memory to convert process filename");
+        __unixlib_fatal ("Cannot allocate memory to convert process filename");
 
       free(new_argv0);
       free(argv[0]);

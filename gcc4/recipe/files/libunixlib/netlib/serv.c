@@ -1,5 +1,6 @@
-/* setservent (), getservent (), endservent (), getservbyname (), getservbyport ()
- * Copyright (c) 2000-2006 UnixLib Developers
+/* setservent (), getservent (), endservent (), getservbyname (),
+ * getservbyport ()
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <stdio.h>
@@ -12,6 +13,7 @@
 #include <sys/socket.h>
 
 #include <unixlib/local.h>
+#include <unixlib/unix.h>
 
 /* File handle for the services file.  */
 static FILE *servfile = NULL;

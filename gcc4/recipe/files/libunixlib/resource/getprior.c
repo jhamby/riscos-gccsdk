@@ -1,5 +1,5 @@
 /* getpriority ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -14,8 +14,9 @@
 int
 getpriority (enum __priority_which which, id_t who)
 {
-  struct __sul_process *child;
-  int ret = -1;
+  const struct __sul_process *sulproc = __ul_global.sulproc;
+  const struct __sul_process *child;
+  int ret;
 
   if (who == 0)
     {
@@ -23,20 +24,19 @@ getpriority (enum __priority_which which, id_t who)
       switch (which)
 	{
 	case PRIO_PROCESS:
-	  return __proc->ppri;
+	  return sulproc->ppri;
 	case PRIO_PGRP:
-	  return __proc->gpri;
+	  return sulproc->gpri;
 	case PRIO_USER:
-	  return __proc->upri;
-	default:
-	  errno = EINVAL;
-	  return -1;
+	  return sulproc->upri;
 	}
-      return -1;
+
+      return __set_errno (EINVAL);
     }
 
-  child = __proc->children;
-  while (child && ret == -1)
+  for (child = sulproc->children, ret = -1;
+       child != NULL && ret == -1;
+       child = child->next_child)
     {
       switch (which)
 	{
@@ -53,15 +53,13 @@ getpriority (enum __priority_which which, id_t who)
 	    ret = child->upri;
 	  break;
 	default:
-	  errno = EINVAL;
-	  return -1;
+	  return __set_errno (EINVAL);
 	}
-      child = child->next_child;
     }
 
-  if (ret == -1)
-    /* Invalid value of 'which'.  */
-    errno = ESRCH;
+  if (ret != -1)
+    return ret;
 
-  return ret;
+  /* Invalid value of 'which'.  */
+  return __set_errno (ESRCH);
 }

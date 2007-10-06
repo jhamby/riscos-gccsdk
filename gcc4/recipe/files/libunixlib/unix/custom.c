@@ -21,8 +21,6 @@
 #include <unixlib/unix.h>
 #include <internal/swiparams.h>
 
-#define IGNORE(x) {(void) x;}
-
 
 /* Return the UnixLib device from a file descriptor.  This allows the
    overriding to occur.  */

@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 #define INTSIZE 4
 
@@ -26,5 +27,6 @@ getw (FILE * f)
   i |= (getc (f) << 56);
 #endif
 #endif
-  return (ferror (f) ? -1 : i);
+
+  return ferror (f) ? -1 : i;
 }

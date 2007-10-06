@@ -1,5 +1,5 @@
 /* strncpy ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <string.h>
@@ -14,8 +14,8 @@ strncpy (char *s, const char *s2, size_t n)
       {
 	while (n--)
 	  *s1++ = 0;
-	return (s);
+	return s;
       }
 
-  return (s);
+  return s;
 }

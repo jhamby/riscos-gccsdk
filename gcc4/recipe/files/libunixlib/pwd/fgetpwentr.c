@@ -1,13 +1,14 @@
 /* fgetpwent_r
  * Read a password file entry (re-entrant version).
  * Written by Nick Burrett, 10 December 1997.
- * Copyright (c) 1997-2006 UnixLib Developers
+ * Copyright (c) 1997-2007 UnixLib Developers
  */
 
 #include <stddef.h>
 #include <stdio.h>
 #include <pwd.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Read one entry from the given stream.  */
 int

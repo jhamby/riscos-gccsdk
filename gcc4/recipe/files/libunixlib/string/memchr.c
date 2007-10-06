@@ -1,5 +1,5 @@
 /* memchr ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <string.h>
@@ -15,7 +15,8 @@ memchr (const void *s, int c_, size_t n)
       n--;
       if (*_s++ == c)
 	{
-	ret:return ((void *) (--_s));
+ret:
+	  return (void *) (--_s);
 	}
     }
   n >>= 3;
@@ -40,5 +41,5 @@ memchr (const void *s, int c_, size_t n)
 	goto ret;
     }
 
-  return (0);
+  return NULL;
 }

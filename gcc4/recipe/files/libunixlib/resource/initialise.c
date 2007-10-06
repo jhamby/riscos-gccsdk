@@ -1,5 +1,5 @@
 /* Initialise system resource limits.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
 
 #include <sys/resource.h>
 #include <unixlib/os.h>
@@ -46,14 +46,14 @@ __resource_initialise (struct proc *p)
      For dynamic areas the limit is current available memory size or
      the limit imposed by any virtual memory system such as Virtualise.  */
 
-  if (gbl->__dynamic_num == -1)
+  if (gbl->dynamic_num == -1)
     {
       /* No dynamic area.  */
       p->limit[RLIMIT_DATA].rlim_max = max_wimpslot;
     }
   else
     {
-      regs[0] = gbl->__dynamic_num;
+      regs[0] = gbl->dynamic_num;
       if (__os_swi (OS_ReadDynamicArea, regs))
 	p->limit[RLIMIT_DATA].rlim_max = mem->rwbreak - mem->rwlomem;
       else
@@ -77,7 +77,7 @@ __resource_initialise (struct proc *p)
      I think that maximum physical memory is the area from robase to
      'appspace_himem' (no dynamic area). Also included is from
      'rwlomem' to 'rwbreak' and beyond for dynamic areas.  */
-  if (gbl->__dynamic_num == -1) 
+  if (gbl->dynamic_num == -1) 
     {
       /* No dynamic area */
       p->limit[RLIMIT_RSS].rlim_max = max_wimpslot;
@@ -93,8 +93,8 @@ __resource_initialise (struct proc *p)
       else
 	/* rlim_max is all of physical memory ?  */
 	p->limit[RLIMIT_RSS].rlim_max = regs[2];
-      /* rlim_cur is available free memory + __image_ro_base
-	 to __image_rw_himem.  */
+      /* rlim_cur is available free memory + __ul_memory.robase
+	 to __ul_memory.appspace_himem.  */
       p->limit[RLIMIT_RSS].rlim_cur += regs[1];
     }
 

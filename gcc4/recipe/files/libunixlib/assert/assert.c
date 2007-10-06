@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Output something of the form:
       foo.c, line 1234: bar: Assertion failed: a == b

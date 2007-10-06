@@ -1,5 +1,5 @@
 /* UnixLib low-level stream implementation.
-   Copyright 2001-2006 UnixLib Developers.  */
+   Copyright 2001-2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stddef.h>
@@ -8,6 +8,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Invalidate a stream.  */
 void
@@ -23,7 +24,8 @@ __invalidate (FILE *stream)
 }
 
 /* Make a new stream.  */
-FILE *__newstream (void)
+FILE *
+__newstream (void)
 {
   FILE *stream;
 
@@ -90,7 +92,8 @@ __stream_init (int fd, FILE *stream)
 }
 
 /* Dissect the given mode string into an __io_mode.  */
-__io_mode __getmode (const char *mode)
+__io_mode
+__getmode (const char *mode)
 {
   __io_mode m;
 

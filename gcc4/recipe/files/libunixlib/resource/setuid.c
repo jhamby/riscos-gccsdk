@@ -1,22 +1,27 @@
 /* setuid ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
+#include <errno.h>
 #include <unistd.h>
-#include <unixlib/unix.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 int
 setuid (__uid_t uid)
 {
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
+
   PTHREAD_UNSAFE
-  
-  if (uid == __proc->uid)
+
+  if (uid == sulproc->uid)
     return 0;
-  if (uid == __proc->euid)
+  if (uid == sulproc->euid)
     {
-      __proc->uid = uid;
+      sulproc->uid = uid;
       return 0;
     }
-  return -1;
+
+  return __set_errno (EINVAL);
 }

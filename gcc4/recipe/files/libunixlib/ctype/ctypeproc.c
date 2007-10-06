@@ -1,7 +1,7 @@
 /* toascii (), tolower (), toupper (), _tolower (), _toupper (), isascii (),
  * isalnum (), isalpha (), iscntrl (), isdigit (), isgraph (), islower (),
  * isprint (), ispunct (), isspace (), isupper (), isxdigit ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <ctype.h>
@@ -45,7 +45,7 @@ int
 int
   (isalnum) (int c)
 {
-  return (isalnum (c));
+  return isalnum (c);
 }
 
 int

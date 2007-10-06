@@ -1,7 +1,8 @@
 /* strichr ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -17,9 +18,9 @@ strichr (const char *s, int c)
       i = *s;
       i = tolower (i);
       if (i == c)
-	return ((char *) s);
+	return (char *) s;
     }
   while (*s++);
 
-  return (0);
+  return NULL;
 }

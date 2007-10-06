@@ -1,5 +1,5 @@
 /* pipe ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <stdlib.h>
@@ -19,6 +19,8 @@
 int
 pipe (int *p)
 {
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
   struct __unixlib_fd *file_desc_0, *file_desc_1;
   int fd0, fd1;
   char file[32];
@@ -31,15 +33,16 @@ pipe (int *p)
     return -1;
   file_desc_0 = getfd (fd0);
 
-  file_desc_0->devicehandle = __proc->sul_malloc (__proc->pid, __proc->fdhandlesize);
+  file_desc_0->devicehandle = sulproc->sul_malloc (sulproc->pid,
+						   sulproc->fdhandlesize);
   if (file_desc_0->devicehandle == NULL)
-    return -1;
+    return __set_errno (ENOMEM);
 
   fd1 = __alloc_file_descriptor (0);
   if (fd1 == -1)
     {
       /* Deallocate the first file descriptor.  */
-      __proc->sul_free (__proc->pid, file_desc_0->devicehandle);
+      sulproc->sul_free (sulproc->pid, file_desc_0->devicehandle);
       file_desc_0->devicehandle = NULL;
       return -1;
     }
@@ -79,10 +82,11 @@ pipe (int *p)
       {
 	/* Opening the pipes failed, so deallocate the file
 	   descriptors and return.  */
-	__proc->sul_free (__proc->pid, file_desc_0->devicehandle);
+	sulproc->sul_free (sulproc->pid, file_desc_0->devicehandle);
 	file_desc_0->devicehandle = file_desc_1->devicehandle = NULL;
 	return -1;
       }
+
     file_desc_0->devicehandle->handle = (void *) handle;
   }
 

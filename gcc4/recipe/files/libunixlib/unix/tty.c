@@ -1,5 +1,5 @@
 /* UnixLib tty device driver.
-   Copyright (c) 2000-2006 UnixLib Developers.  */
+   Copyright (c) 2000-2007 UnixLib Developers.  */
 
 #define _BSD_SOURCE
 
@@ -24,8 +24,6 @@
 #include <unixlib/fd.h>
 #include <pthread.h>
 #include <time.h>
-
-#define IGNORE(x) x = x
 
 /* Store the number of characters actually displayed for this single
    character in the del buffer.  When a backspace/delete is processed,
@@ -121,7 +119,7 @@ __tty_console_gwinsz (struct winsize *win)
   int values[(sizeof (vars) - 1) / sizeof (int)];
   int regs[10];
 
-  if (__taskhandle != 0)
+  if (__get_taskhandle () != 0)
     {
       char *size;
       int lines, cols;
@@ -170,7 +168,7 @@ __tty_console_gwinsz (struct winsize *win)
 static void
 __tty_console_swinsz (struct winsize *win)
 {
-  if (!__taskwindow)
+  if (!__ul_global.taskwindow)
     {
       static const int vars[] = {132, 135, 128, 131, 4, 5, -1};
       int values[(sizeof (vars) - 1) / sizeof (int)];
@@ -225,7 +223,7 @@ __tty_console_gterm (struct termios *term)
   __os_byte (0xdc, 0, 0xff, regs);
   term->c_cc[VINTR] = regs[1];
 
-  if (!__escape_disabled)
+  if (!__ul_global.escape_disabled)
     {
       __os_byte (0xe5, 0, 0xff, regs);
       if (regs[1])
@@ -241,7 +239,7 @@ __tty_console_sterm (struct termios *term)
 {
   PTHREAD_UNSAFE
 
-  if (!__escape_disabled)
+  if (!__ul_global.escape_disabled)
     {
       /* Set `Interrupt key' and state of `Interrupt key'.  */
       __os_byte (0xdc, term->c_cc[VINTR], 0, NULL);
@@ -336,12 +334,10 @@ __tty_423_sterm (struct termios *term)
 void *
 __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 {
+  struct __sul_process *sulproc = __ul_global.sulproc;
   struct tty *tty;
   struct termios *term;
   int type;
-
-  IGNORE (mode);
-  IGNORE (file_desc);
 
   if (file[sizeof("/dev/")-1] == 'c')
     type = TTY_CON; /* /dev/console */
@@ -349,32 +345,32 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
            || strcmp(file + sizeof("/dev/")-1, "ttyS0") == 0)
     type = TTY_423; /* /dev/rs423 */
   else if (file[sizeof("/dev/")-1] == 't')
-    type = __proc->tty_type; /* /dev/tty */
+    type = sulproc->tty_type; /* /dev/tty */
   else
     return (void *) -1;
 
   if (type >= MAXTTY)
     return (void *) -1;
 
-  __proc->tty_type = type;
+  sulproc->tty_type = type;
 
-  tty = type == TTY_CON ? __proc->console : __proc->rs423;
+  tty = type == TTY_CON ? sulproc->console : sulproc->rs423;
 
   if (tty == NULL)
     {
 
-      tty = __proc->sul_malloc(__proc->pid, sizeof(struct tty));
+      tty = sulproc->sul_malloc (sulproc->pid, sizeof(struct tty));
       if (tty == NULL)
-        return (void *) -1;
+        return (void *) __set_errno (ENOMEM);
 
       if (type == TTY_CON)
-        __proc->console = tty;
+        sulproc->console = tty;
       else
-        __proc->rs423 = tty;
+        sulproc->rs423 = tty;
 
       tty->type = type;
       tty->refcount = 2; /* There is the reference from the fd, and the
-                            reference from __proc */
+                            reference from __ul_global.sulproc.  */
 
       term = tty->t;
       /* Input mode is set to:
@@ -444,9 +440,7 @@ __ttyopen (struct __unixlib_fd *file_desc, const char *file, int mode)
         __tty_423_sterm (tty->t);
     }
   else
-    {
-      __atomic_modify (&(tty->refcount), 1);
-    }
+    __atomic_modify (&(tty->refcount), 1);
 
   return tty;
 }
@@ -455,9 +449,10 @@ int
 __ttyclose (struct __unixlib_fd *file_desc)
 {
   struct tty *tty = file_desc->devicehandle->handle;
+  struct __sul_process *sulproc = __ul_global.sulproc;
 
   if (__atomic_modify (&(tty->refcount), -1) == 0)
-    __proc->sul_free(__proc->pid, file_desc->devicehandle->handle);
+    sulproc->sul_free(sulproc->pid, file_desc->devicehandle->handle);
 
   return 0;
 }
@@ -468,8 +463,8 @@ __ttyread (struct __unixlib_fd *file_desc, void *buf, int nbyte)
   struct tty *tty = file_desc->devicehandle->handle;
 
   return (tty->t->c_lflag & ICANON)
-	  ? __ttyicanon (file_desc, buf, nbyte, tty)
-	  : __ttyiraw (file_desc, buf, nbyte, tty);
+	   ? __ttyicanon (file_desc, buf, nbyte, tty)
+	   : __ttyiraw (file_desc, buf, nbyte, tty);
 }
 
 static int
@@ -534,7 +529,7 @@ ret:
 
 	      if (c < 0)
 		{
-	          if (__taskwindow)
+	          if (__ul_global.taskwindow)
 	            {
                       _kernel_swi_regs regs;
 
@@ -718,7 +713,7 @@ __ttyiraw (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 
 	      if (c < 0)
 	        {
-	          if (__taskwindow && nbyte)
+	          if (__ul_global.taskwindow && nbyte)
 	            {
                       _kernel_swi_regs regs;
 
@@ -914,8 +909,6 @@ __ttycr (struct tty *tty, tcflag_t oflag)
   if ((oflag & (OPOST | OCRNL)) == (OPOST | OCRNL))
     getfunc (tty).out ('\n');
   else if ((oflag & (OPOST | ONOCR)) != (OPOST | ONOCR))
-#else
-  IGNORE (oflag);
 #endif
   getfunc (tty).out ('\r');
 }
@@ -1010,7 +1003,7 @@ __ttyioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
     case TIOCCDTR: /* Clear data terminal ready.  */
       break;
     case TIOCGPGRP: /* Get pgrp of tty.  */
-      *(int *)arg = __proc->pgrp;
+      *(int *)arg = __ul_global.sulproc->pgrp;
       break;
     case TIOCSPGRP: /* Set pgrp of tty.  */
       return __set_errno (EPERM);

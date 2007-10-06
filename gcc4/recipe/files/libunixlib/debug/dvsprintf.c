@@ -1,5 +1,5 @@
 /* Linux kernel vsprintf modified for UnixLib debugging.
-   Copyright (c) 2005, 2006 UnixLib Devlopers.
+   Copyright (c) 2005-2007 UnixLib Devlopers.
 
    This must be compiled without stack checking.  */
 
@@ -26,6 +26,7 @@
 #include <stdio.h>
 #define DEBUG
 #include <sys/debug.h>
+#include <unixlib/unix.h>
 #include <unixlib/os.h>
 
 static __inline int local_isxdigit (const char x)

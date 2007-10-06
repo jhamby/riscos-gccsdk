@@ -19,6 +19,7 @@
 
 #include <wchar.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* The mbrlen function has an internal shift state which gets used if
    the PS parameter is NULL.  */

@@ -1,22 +1,25 @@
 /* setegid ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
 #include <unistd.h>
-#include <unixlib/unix.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 int
 setegid (gid_t gid)
 {
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
+
   PTHREAD_UNSAFE
 
-  if (gid == __proc->egid)
+  if (gid == sulproc->egid)
     return 0;
-  if (gid == __proc->gid)
+  if (gid == sulproc->gid)
     {
-      __proc->egid = gid;
+      sulproc->egid = gid;
       return 0;
     }
 

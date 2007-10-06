@@ -1,5 +1,5 @@
 /* getegid ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <unistd.h>
@@ -8,5 +8,5 @@
 __gid_t
 getegid (void)
 {
-  return __proc->egid;
+  return __ul_global.sulproc->egid;
 }

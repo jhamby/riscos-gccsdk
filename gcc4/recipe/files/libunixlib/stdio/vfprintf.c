@@ -61,6 +61,7 @@ __FBSDID("$FreeBSD: src/lib/libc/stdio/vfprintf.c,v 1.68 2004/08/26 06:25:28 des
 #include <stdlib.h>
 #include <string.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 #include <wchar.h>
 
 #include <stdarg.h>

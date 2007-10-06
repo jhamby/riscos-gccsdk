@@ -29,8 +29,8 @@ pthread_atfork (void (*prepare)(void), void (*parent)(void),
   int retval;
   struct ul_global *gbl = &__ul_global;
 
-  if (! gbl->__pthread_system_running)
-    gbl->__pthread_system_running = 1;
+  if (! gbl->pthread_system_running)
+    gbl->pthread_system_running = 1;
 
   __pthread_disable_ints ();
   newhandlers = malloc_unlocked (gbl->malloc_state,

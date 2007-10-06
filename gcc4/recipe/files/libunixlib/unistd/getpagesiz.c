@@ -1,5 +1,5 @@
 /* Get memory page size.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005-2007 UnixLib Developers.  */
 
 #include <unistd.h>
 #include <unixlib/unix.h>
@@ -8,5 +8,5 @@
    UnixLib initialisation.  */
 int getpagesize (void)
 {
-  return __ul_pagesize;
+  return __ul_global.pagesize;
 }

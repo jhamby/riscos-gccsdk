@@ -1,7 +1,7 @@
 /* getgroups (), setgroups (), initgroups ()
  * Supplementary group reading and setting functions.
  *
- * Copyright (c) 2002-2006 UnixLib Developers
+ * Copyright (c) 2002-2007 UnixLib Developers
  */
 
 
@@ -13,6 +13,7 @@
 #include <stdlib.h>
 #include <grp.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Maximum number of groups initgroups() can handle.  */
 #define MAX_GROUPS 10
@@ -41,6 +42,7 @@ getgroups (int gidsetlen, gid_t *gidset)
 
   if (gidsetlen > 0)
     memcpy (gidset, g_gidset, gidsetlen * sizeof (gid_t));
+
   return gidsetlen;
 }
 
@@ -63,6 +65,7 @@ setgroups (int ngroups, const gid_t *gidset)
         return __set_errno (ENOMEM);
       memcpy (g_gidset, gidset, ngroups * sizeof (gid_t));
     }
+
   return 0;
 }
 
@@ -80,16 +83,17 @@ initgroups (const char *name, gid_t basegid)
 
   while ((grp = getgrent ()) !=NULL)
     {
-      char **mem = grp->gr_mem;
+      char **mem;
 
-      while (*mem && ngroups < MAX_GROUPS)
+      for (mem = grp->gr_mem;
+	   *mem && ngroups < MAX_GROUPS;
+           ++mem)
         {
           if (strcmp (*mem, name) == 0)
             gidset[ngroups++] = grp->gr_gid;
-          mem++;
         }
-
     }
   endgrent ();
+
   return setgroups (ngroups, gidset);
 }

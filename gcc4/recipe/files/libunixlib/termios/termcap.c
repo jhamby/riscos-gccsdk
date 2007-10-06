@@ -1,14 +1,14 @@
 /* tgetent (), tgetnum (), tgetflag (), tgetstr(), tgoto (), tputs ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
-#include <unixlib/unix.h>
-
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 #include <termcap.h>
 
@@ -16,14 +16,14 @@
 
 static char *t_bname = "acorn0";
 static unsigned char *t_btenv = (unsigned char *)
-"av|acorn0|Acorn VDU Driver Mode 0:"
-":li#32:co#80:am:cl=^L:bs:cm=^_%r%.%.:up=^K:ho=^^:bl=^G:bw:"
-":ce=^W^H^E^F\\200\\200\\200\\200\\200\\200:"
-":so=^W^Q^E\\200\\200\\200\\200\\200\\200\\200:"
-":se=^W^Q^E\\200\\200\\200\\200\\200\\200\\200:"
-":sb=^W^G^A^B\\200\\200\\200\\200\\200\\200:"
-":sf=^W^G^A^C\\200\\200\\200\\200\\200\\200:"
-":is=^C^F^D^O^V\\200:";
+  "av|acorn0|Acorn VDU Driver Mode 0:"
+  ":li#32:co#80:am:cl=^L:bs:cm=^_%r%.%.:up=^K:ho=^^:bl=^G:bw:"
+  ":ce=^W^H^E^F\\200\\200\\200\\200\\200\\200:"
+  ":so=^W^Q^E\\200\\200\\200\\200\\200\\200\\200:"
+  ":se=^W^Q^E\\200\\200\\200\\200\\200\\200\\200:"
+  ":sb=^W^G^A^B\\200\\200\\200\\200\\200\\200:"
+  ":sf=^W^G^A^C\\200\\200\\200\\200\\200\\200:"
+  ":is=^C^F^D^O^V\\200:";
 
 #define T_IOCTL			/* use TIOCGWINSIZ to get LI,CO */
 
@@ -74,7 +74,7 @@ tgetent (char *bp, const char *name)
   PTHREAD_UNSAFE
 
   if (bp == NULL)
-    return -1;
+    return __set_errno (EINVAL);
 
   t_tbp = bp;
 
@@ -90,12 +90,14 @@ tgetent (char *bp, const char *name)
 
   if (!name)
 #ifdef T_BUILTIN
+    {
 #ifdef T_DEBUG
-    fputs ("tgetent(\"(null)\")\n", t_debug);
+      fputs ("tgetent(\"(null)\")\n", t_debug);
 #endif
-  name = t_bname;
+      name = t_bname;
+    }
 #else
-    return (-1);
+    return -1;
 #endif
 
   fnam = T_FILE;
@@ -150,8 +152,8 @@ tgetent (char *bp, const char *name)
 #endif
 
 		  if (strlen ((char *) tenv) > t_tbpspace)
-		    return (-1);
-		  return (t_tentcp (tenv) ? -1 : 1);
+		    return -1;
+		  return t_tentcp (tenv) ? -1 : 1;
 		}
 	      else
 		*tp2 = tc;
@@ -183,10 +185,10 @@ tgetent (char *bp, const char *name)
 	  goto builtin;
 	}
       else
-	return (-1);
+	return -1;
     }
 #else
-    return (-1);
+    return -1;
 #endif
 
   tent = tentbuf = (unsigned char *) malloc (1024);
@@ -223,7 +225,7 @@ tgetent (char *bp, const char *name)
 		  if (nbyt > t_tbpspace || nbyt < 0)
 		    {
 		      free ((char *) tentbuf);
-		      return (-1);
+		      return -1;
 		    }
 		  if (tfile)
 		    {
@@ -232,7 +234,7 @@ tgetent (char *bp, const char *name)
 		    }
 		  rval = t_tentcp (tent);
 		  free ((char *) tentbuf);
-		  return (rval ? -1 : 1);
+		  return rval ? -1 : 1;
 		}
 	      else
 		*tp2 = tc;
@@ -361,7 +363,7 @@ t_tentcp (unsigned char *s)
 
   free (tcnam);
 
-  return (0);
+  return 0;
 }
 
 /* t_tgetln() */
@@ -380,7 +382,7 @@ t_tgetln (FILE * tfile, unsigned char *buf)
   while (-1)
     {
       if (!fgets ((char *) bufp, t_tbpspace - nbyt, tfile))
-	return (nbyt);
+	return nbyt;
       while (*bufp++)
         ;
       bufp--;
@@ -392,7 +394,7 @@ t_tgetln (FILE * tfile, unsigned char *buf)
       if (*--bufp != '\\')
 	{
 	  *++bufp = 0;
-	  return (nbyt);
+	  return nbyt;
 	}
       buf = bufp;
       nbyt--;
@@ -455,7 +457,7 @@ tgetnum (const char *id)
       struct winsize w[1];
 
       ioctl (2, TIOCGWINSZ, w);
-      return ((rval > 0) ? w->ws_row : w->ws_col);
+      return (rval > 0) ? w->ws_row : w->ws_col;
     }
 #endif
 
@@ -487,10 +489,10 @@ tgetflag (const char *id)
   idp = t_tgetid (id);
   rval = (idp ? ((*idp != '@') ? 1 : 0) : 0);
   fprintf (t_debug, "tgetflag(\"%s\"): %d\n", id, rval);
-  return (rval);
+  return rval;
 #else
   idp = t_tgetid (id);
-  return (idp ? ((*idp != '@') ? 1 : 0) : 0);
+  return idp ? ((*idp != '@') ? 1 : 0) : 0;
 #endif
 }
 
@@ -610,7 +612,7 @@ tgetstr_ret:
 	__BC = rval;
     }
 
-  return (rval);
+  return rval;
 }
 
 static int tg_aoff, tg_coff, tg_clev;
@@ -643,11 +645,11 @@ tgoto (char *cm, int destcol, int destline)
   if (cm == NULL)
     {
       putc ('\n', t_debug);
-      return (0);
+      return 0;
     }
 #else
   if (!cm)
-    return (0);
+    return 0;
 #endif
 
   tg_aoff = tg_coff = tg_clev = 0;
@@ -813,7 +815,7 @@ t_tccalc:
 
   (*_f) ^= TG_revxy;
   tg_aoff = 0;
-  return (x);
+  return x;
 }
 
 /* tputs() */
@@ -873,7 +875,7 @@ tputs (const char *cp, int affcnt, int (*outc) (int))
     while (delay-- > 0)
       __funcall ((*outc), (__PC));
 
-  return (0);
+  return 0;
 }
 
 #ifdef T_TEST

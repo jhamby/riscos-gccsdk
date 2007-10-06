@@ -2,13 +2,14 @@
  * Write an entry to stream.
  * System V compatibility function.
  * Written by Nick Burrett, 13 October 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2007 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdio.h>
 #include <pwd.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Write an entry to the given stream.
    This must know the format of the password file.  */
@@ -16,11 +17,9 @@ int
 putpwent (const struct passwd *p, FILE * stream)
 {
   PTHREAD_UNSAFE_CANCELLATION
+
   if (p == NULL || stream == NULL)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __set_errno (EINVAL);
 
   if (fprintf (stream, "%s:%s:%u:%u:%s:%s:%s\n",
 	       p->pw_name, p->pw_passwd,

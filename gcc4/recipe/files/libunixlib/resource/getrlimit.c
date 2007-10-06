@@ -1,5 +1,5 @@
 /* getrlimit ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <sys/resource.h>
@@ -14,10 +14,7 @@ int
 getrlimit (enum __rlimit_resource resource, struct rlimit *rlimits)
 {
   if (rlimits == NULL || (unsigned int) resource >= RLIMIT_NLIMITS)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __set_errno (EINVAL);
 
   *rlimits = __u->limit[resource];
   return 0;

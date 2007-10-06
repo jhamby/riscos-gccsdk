@@ -1,11 +1,12 @@
 /* sigpause ()
  * BSD signal function.
  * Written by Nick Burrett, 5 October 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2007 UnixLib Developers
  */
 
 #include <signal.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Set the mask of blocked signals to MASK,
    wait for a signal to arrive, and then restore the mask.  */

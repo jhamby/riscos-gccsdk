@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* If buf is null, this makes stream unbuffered.
    Otherwise it makes stream fully buffered using buf
@@ -29,9 +30,10 @@ setbuf (FILE * f, char *buf)
   setvbuf (f, buf, (buf) ? _IOFBF : _IONBF, BUFSIZ);
 }
 
-static int do_buffer (unsigned char **base, unsigned char **ptr, int *cnt,
-		      unsigned int *bufsize, unsigned int *userbuf,
-		      char *buf, int flag, int newbufsize)
+static int
+do_buffer (unsigned char **base, unsigned char **ptr, int *cnt,
+	   size_t *bufsize, unsigned int *userbuf,
+	   char *buf, int flag, size_t newbufsize)
 {
   if (*base && !*userbuf)
     free (*base);
@@ -66,6 +68,7 @@ static int do_buffer (unsigned char **base, unsigned char **ptr, int *cnt,
       (void) __set_errno (EINVAL);
       return EOF;
     }
+
   return 0;
 }
 

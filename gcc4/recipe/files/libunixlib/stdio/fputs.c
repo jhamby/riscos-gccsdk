@@ -6,6 +6,7 @@
 #include <string.h>
 #include <errno.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 int
 fputs (const char *s, FILE * stream)
@@ -17,7 +18,7 @@ fputs (const char *s, FILE * stream)
   /* Check file steam validity.  */
   if (!__validfp (stream))
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return EOF;
     }
 

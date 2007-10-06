@@ -15,6 +15,7 @@
 #include <unixlib/os.h>
 #endif
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 FILE *
 freopen (const char *filename, const char *mode, FILE *stream)
@@ -34,7 +35,7 @@ freopen (const char *filename, const char *mode, FILE *stream)
 
   if (filename == NULL || mode == NULL)
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return NULL;
     }
 

@@ -33,5 +33,5 @@ __pthread_prog_init (void)
   mainthread.magic = PTHREAD_MAGIC;
 
   __pthread_thread_list = __pthread_running_thread;
-  gbl->__pthread_num_running_threads = 1;
+  gbl->pthread_num_running_threads = 1;
 }

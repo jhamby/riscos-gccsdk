@@ -1,5 +1,5 @@
 /* Rename a file.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005, 2007 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -13,6 +13,7 @@
 
 #include <unixlib/local.h>
 #include <unixlib/os.h>
+#include <unixlib/unix.h>
 #include <internal/swiparams.h>
 
 int
@@ -92,10 +93,7 @@ rename (const char *old_name, const char *new_name)
 	  /* We can't use unlink() as it might delete the suffix dir */
 	  err = __os_file (OSFILE_DELETENAMEDOBJECT, nfile, regs);
 	  if (err)
-	    {
-	      __ul_seterr (err, 1);
-	      return -1;
-	    }
+	    return __ul_seterr (err, 1);
 	}
     }
 
@@ -110,12 +108,10 @@ rename (const char *old_name, const char *new_name)
   err = __os_swi (OS_FSControl, regs);
   if (err)
     {
-      if (err->errnum == 176)
-	/* Error is probably caused by a rename across file systems.  */
-	(void) __set_errno (EXDEV);
-      else
-	__ul_seterr (err, 1);
-      return -1;
+      /* We check on RISC OS error 176 which probably is caused by a rename
+         across file systems.  */
+      return (err->errnum == 176)
+	       ? __set_errno (EXDEV) : __ul_seterr (err, 1);
     }
 
 try_filetyping:
@@ -127,10 +123,7 @@ try_filetyping:
       regs[2] = nftype_a;
       err = __os_swi (OS_File, regs);
       if (err)
-        {
-          __ul_seterr (err, 1);
-          return -1;
-        }
+        return __ul_seterr (err, 1);
     }
 
   /* Delete the suffix swap dir if it is now empty */

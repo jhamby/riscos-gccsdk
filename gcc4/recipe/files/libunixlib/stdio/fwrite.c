@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 #ifdef DEBUG
 #include <unixlib/os.h>
@@ -26,15 +27,15 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
   if (!__validfp (stream) || !stream->__mode.__bits.__write)
     {
       (void) __set_errno (EINVAL);
-      return (size_t)0;
+      return (size_t) 0;
     }
 
   if (ferror (stream))
-    return (size_t)0;
+    return (size_t) 0;
 
   to_write = size * count;
   if (to_write == 0)
-    return (size_t)0;
+    return (size_t) 0;
 
 #ifdef DEBUG
   __os_print ("fwrite("); __os_prdec (stream->fd);
@@ -63,7 +64,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	  /* We have lots of data to output. First flush the buffer,
 	     then just write the rest out.  */
 	  if (__flsbuf (EOF, stream) < 0)
-	    return (size_t)0; /* we wouldn't have written anything yet.  */
+	    return (size_t) 0; /* we wouldn't have written anything yet.  */
 
 	  /* Write it out in a loop, as recommended.  */
 	  while (to_write)

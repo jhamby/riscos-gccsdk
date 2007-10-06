@@ -17,7 +17,6 @@ int sum = 0;
 int threads_made = 0;
 
 extern int __pthread_num_running_threads;
-extern int __pthread_callback_semaphore;
 
 void* new_thread(void* arg);
 
@@ -84,7 +83,7 @@ int main(int argc,char **argv)
 	thread_count = 0;
 	while(__pthread_num_running_threads > 1)
 	{
-		/*if (__pthread_callback_semaphore != 1) __pthread_fatal_error("sema set in main");*/
+		/*if (gbl->__pthread_callback_semaphore != 1) __pthread_fatal_error("sema set in main");*/
 		if (thread_count != __pthread_num_running_threads)
 		{
 			printf("Running threads = %d\n",__pthread_num_running_threads);

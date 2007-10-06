@@ -5,8 +5,10 @@
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
-char *fgets (char *s, int n, FILE * stream)
+char *
+fgets (char *s, int n, FILE * stream)
 {
   char *p = s;
   int c = 0;
@@ -15,7 +17,7 @@ char *fgets (char *s, int n, FILE * stream)
 
   if (!__validfp (stream) || s == NULL || n == 0)
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return NULL;
     }
 

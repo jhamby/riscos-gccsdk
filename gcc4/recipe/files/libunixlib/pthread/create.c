@@ -51,8 +51,8 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
 
   /* If the pthread subsystem wasn't running before, set the flag to
      indicate that it should be now.  */
-  if (! gbl->__pthread_system_running)
-    gbl->__pthread_system_running = 1;
+  if (! gbl->pthread_system_running)
+    gbl->pthread_system_running = 1;
 
   __pthread_disable_ints ();
 
@@ -132,9 +132,11 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
 
   *threadin = thread;
 
-  gbl->__pthread_num_running_threads ++;
+  gbl->pthread_num_running_threads ++;
 #ifdef PTHREAD_DEBUG
-  debug_printf ("pthread_create: running threads=%d (%08x)\n", gbl->__pthread_num_running_threads, &gbl->__pthread_num_running_threads);
+  debug_printf ("pthread_create: running threads=%d (at %08x)\n",
+		gbl->pthread_num_running_threads,
+		&gbl->pthread_num_running_threads);
 #endif
   __pthread_start_ticker ();
   __pthread_enable_ints ();

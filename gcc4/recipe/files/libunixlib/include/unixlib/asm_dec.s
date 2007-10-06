@@ -46,7 +46,7 @@
 .set	EXIT_SUCCESS, 0
 .set	EXIT_FAILURE, 1
 
-	@Keep the signal list in sync with <signal.h> contents.
+	@ Keep the signal list in sync with <signal.h> contents.
 .set	SIGHUP, 1	@   hangup
 .set	SIGINT, 2	@   terminal interrupt
 .set	SIGQUIT, 3	@ * ^\ from terminal
@@ -85,7 +85,7 @@
 .set	SIGLOST, 32	@   resource lost
 .set	SIGOSERROR, 33	@   RISC OS error
 
-.set	EOPSYS, 88	@ RISC OS error
+.set	EOPSYS, 88	@ RISC OS error, same value as EOPSYS in errno.h
 
 .set	SharedUnixLibrary_SWIChunk, 0x55c80	@Range 0x55c80 - &55cc0 (excl) is allocated.
 .set	SharedUnixLibrary_ErrorChunk, 0x81a400	@Range 0x81a400 - &81a40 (excl) is allocated.
@@ -104,12 +104,18 @@
 .set	SharedUnixLibrary_Error_NotEnoughMem, SharedUnixLibrary_ErrorChunk + 0x3E
 .set	SharedUnixLibrary_Error_NoCallASWI, SharedUnixLibrary_ErrorChunk + 0x3F
 
+.set	OS_WriteC, 0x000000
 .set	OS_WriteS, 0x000001
+.set	OS_Write0, 0x000002
 .set	OS_NewLine, 0x000003
+.set	OS_CLI, 0x000005
+.set	OS_GetEnv, 0x000010
 .set	OS_Exit, 0x000011
 .set	OS_EnterOS, 0x000016
+.set	OS_ChangeDynamicArea, 0x00002A
 .set	OS_GenerateError, 0x00002B
-.set	OS_CLI, 0x000005
+.set	OS_ChangeEnvironment, 0x000040
+.set	OS_DynamicArea, 0x000066
 
 .set	X_Bit, 0x20000
 
@@ -138,7 +144,6 @@
 .set	XOS_EnterOS, 0x000016 + X_Bit
 .set	XOS_BreakPt, 0x000017 + X_Bit
 .set	XOS_BrealCtrl, 0x000018 + X_Bit
-
 .set	XOS_UpdateMEMC, 0x00001A + X_Bit
 .set	XOS_SetCallBack, 0x00001B + X_Bit
 .set	XOS_Mouse, 0x00001C + X_Bit
@@ -267,64 +272,67 @@
 .set	XFilter_DeRegisterPreFilter, 0x042642 + X_Bit
 .set	XFilter_DeRegisterPostFilter, 0x042643 + X_Bit
 
-.set	XSharedUnixLibrary_RegisterUpCall, 0x55c80 + X_Bit
-.set	XSharedUnixLibrary_DeRegisterUpCall, 0x55c81 + X_Bit
-.set	XSharedUnixLibrary_SetValue, 0x55c82 + X_Bit
-.set	XSharedUnixLibrary_Count, 0x55c83 + X_Bit
+@ Deprecated SWIs:
+@.set	XSharedUnixLibrary_RegisterUpCall, 0x55c80 + X_Bit
+@.set	XSharedUnixLibrary_DeRegisterUpCall, 0x55c81 + X_Bit
+@.set	XSharedUnixLibrary_SetValue, 0x55c82 + X_Bit
+@.set	XSharedUnixLibrary_Count, 0x55c83 + X_Bit
+.set	SharedUnixLibrary_Initialise, 0x55c84
 .set	XSharedUnixLibrary_Initialise, 0x55c84 + X_Bit
 
 	@ Entries into the __ul_global structure.  Must be kept in sync with
 	@ sys/_syslib.s.
-.set	GBL_UNIXLIB_CLI, 0
+.set	GBL_UNIXLIB_CLI, 0		@ = __ul_global.cli
 
-.set	GBL_TIME_LOW, 4
-.set	GBL_TIME_HIGH, 8
+.set	GBL_TIME_LOW, 4			@ = __ul_global.time[0]
+.set	GBL_TIME_HIGH, 8		@ = __ul_global.time[1]
 
-.set	GBL_NOTUSED1, 12
-.set	GBL_TASKWINDOW, 16
-.set	GBL_TASKHANDLE, 20
-.set	GBL_DYNAMIC_NUM, 24
-.set	GBL_OLD_U, 28
-.set	GBL_32BIT, 32
-.set	GBL_PANIC_MODE, 36
-.set	GBL_PROC, 40
-.set	GBL_UL_PAGESIZE, 44
-.set	GBL_UPCALL_HANDLER_ADDR, 48
-.set	GBL_UPCALL_HANDLER_R12, 52
+.set	GBL_NOTUSED1, 12		@ = __ul_global.__notused1
+.set	GBL_TASKWINDOW, 16		@ = __ul_global.taskwindow
+.set	GBL_TASKHANDLE, 20		@ = __ul_global.taskwindow
+.set	GBL_DYNAMIC_NUM, 24		@ = __ul_global.dynamic_num
+.set	GBL_NOTUSED4, 28		@ = __ul_global.__notused4
+.set	GBL_NOTUSED2, 32		@ = __ul_global.__notused2
+.set	GBL_PANIC_MODE, 36		@ = __ul_global.panic_mode
+.set	GBL_SULPROC, 40			@ = __ul_global.sulproc
+.set	GBL_PAGESIZE, 44		@ = __ul_global.pagesize
+.set	GBL_UPCALL_HANDLER_ADDR, 48	@ = __ul_global.upcall_handler_addr
+.set	GBL_UPCALL_HANDLER_R12, 52	@ = __ul_global.upcall_handler_r12
 
-.set	GBL_PTH_RETURN_ADDRESS, 56
-.set	GBL_PTH_WORKSEMAPHORE, 60
-.set	GBL_PTH_CALLBACK_SEMAPHORE, 64
-.set	GBL_PTH_SYSTEM_RUNNING, 68
-.set	GBL_PTH_CALLBACK_MISSED, 72
-.set	GBL_PTH_NUM_RUNNING_THREADS, 76
+.set	GBL_PTH_RETURN_ADDRESS, 56	@ = __ul_global.pthread_return_address
+.set	GBL_PTH_WORKSEMAPHORE, 60	@ = __ul_global.pthread_worksemaphore
+.set	GBL_PTH_CALLBACK_SEMAPHORE, 64	@ = __ul_global.pthread_callback_semaphore
+.set	GBL_PTH_SYSTEM_RUNNING, 68	@ = __ul_global.pthread_system_running
+.set	GBL_PTH_CALLBACK_MISSED, 72	@ = __ul_global.pthread_callback_missed
+.set	GBL_PTH_NUM_RUNNING_THREADS, 76	@ = __ul_global.pthread_num_running_threads
 
-.set	GBL_EXECUTING_SIGNALHANDLER, 80
-.set	GBL_SIGNALHANDLER_SL, 84
-.set	GBL_SIGNALHANDLER_SP, 88
+.set	GBL_EXECUTING_SIGNALHANDLER, 80	@ = __ul_global.executing_signalhandler
+.set	GBL_SIGNALHANDLER_SL, 84	@ = __ul_global.signalhandler_sl
+.set	GBL_SIGNALHANDLER_SP, 88	@ = __ul_global.signalhandler_sp
 
-.set	GBL_MUTEX, 92
-.set	GBL_MALLOC_GBL, 96
-.set	GBL_MAIN, 100
+.set	GBL_NOTUSED5, 92		@ = __ul_global.__notused5
+.set	GBL_MALLOC_STATE, 96		@ = __ul_global.malloc_state
+#if defined(PIC)
+.set	GBL_MAIN, 100			@ = __ul_global.main
+#else
+.set	GBL_NOTUSED3, 100		@ = __ul_global.__notused3
+#endif
+.set	GBL_ESCAPEDISABLED, 104		@ = __ul_global.escapedisabled
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
 	@ sys/_syslib.s.
-.set	MEM_APPSPACE_HIMEM, 4
-.set	MEM_UNIXLIB_STACK, 8
-
-.set	MEM_ROBASE, 12
-.set	MEM_RWLOMEM, 16
-.set	MEM_RWBASE, 20
-.set	MEM_RWBREAK, 24
-
-.set	MEM_UNIXLIB_STACK_LIMIT, 28
-
-.set	MEM_DALOMEM, 32
-.set	MEM_DABREAK, 36
-.set	MEM_DALIMIT, 40
-
-.set	MEM_APPSPACE_LIMIT, 44
-.set	MEM_OLD_HIMEM, 48
+.set	MEM_APPSPACE_HIMEM, 4	@ = __ul_memory.appspace_himem
+.set	MEM_STACK, 8		@ = __ul_memory.stack
+.set	MEM_ROBASE, 12		@ = __ul_memory.robase (const)
+.set	MEM_RWLOMEM, 16		@ = __ul_memory.rwlomem (const)
+.set	MEM_RWBASE, 20		@ = __ul_memory.rwbase (const)
+.set	MEM_RWBREAK, 24		@ = __ul_memory.rwbreak
+.set	MEM_STACK_LIMIT, 28	@ = __ul_memory.stack_limit
+.set	MEM_DALOMEM, 32		@ = __ul_memory.dalomem
+.set	MEM_DABREAK, 36		@ = __ul_memory.dabreak
+.set	MEM_DALIMIT, 40		@ = __ul_memory.dalimit
+.set	MEM_APPSPACE_LIMIT, 44	@ = __ul_memory.appspace_limit
+.set	MEM_OLD_HIMEM, 48	@ = __ul_memory.old_himem
 
 	@ Entries in the struct __stack_chunk.  Must be kept in sync with
 	@ unix.h definition.

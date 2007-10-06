@@ -1,5 +1,5 @@
 /* sigemptyset (), sigfillset (), sigmask ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -10,7 +10,8 @@
 #undef sigfillset
 #undef sigmask
 
-int sigemptyset (sigset_t *set)
+int
+sigemptyset (sigset_t *set)
 {
   if (set == NULL)
     return __set_errno (EINVAL);
@@ -20,7 +21,8 @@ int sigemptyset (sigset_t *set)
   return 0;
 }
 
-int sigfillset (sigset_t *set)
+int
+sigfillset (sigset_t *set)
 {
   if (set == NULL)
     return __set_errno (EINVAL);
@@ -30,10 +32,11 @@ int sigfillset (sigset_t *set)
   return 0;
 }
 
-sigset_t sigmask (int sig)
+sigset_t
+sigmask (int sig)
 {
   if (__SIG_INVALID_P (sig))
     return __set_errno (EINVAL);
 
-  return (((sigset_t) 1) << (sig - 1));
+  return ((sigset_t) 1) << (sig - 1);
 }

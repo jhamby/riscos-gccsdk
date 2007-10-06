@@ -11,6 +11,7 @@
 #include <limits.h>
 #include <sys/types.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Read up to (and including) a terminator from stream into *lineptr
    (and null-terminate it). *lineptr is a pointer returned from malloc

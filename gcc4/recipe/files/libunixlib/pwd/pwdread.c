@@ -1,7 +1,7 @@
 /* __pwdread (), __pwddefault ()
  * Internal password-file reading functions.
  * Modified from the original c.getpw by Nick Burrett, 13 October 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <pwd.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 static char *
 p_pstrcp (char **lp)
@@ -23,7 +24,7 @@ p_pstrcp (char **lp)
   if (*l)
     *l++ = 0;
   *lp = l;
-  return (r);
+  return r;
 }
 
 static void

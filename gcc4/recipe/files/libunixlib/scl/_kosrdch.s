@@ -5,7 +5,6 @@
 
 	.text
 
-
 	@ int _kernel_osrdch (void)
 	.global	_kernel_osrdch
 	NAME	_kernel_osrdch
@@ -25,5 +24,6 @@ error:
 	BL	__ul_seterr
 	MOV	a1, #-2
 	LDMFD	sp!, {pc}
+	DECLARE_FUNCTION _kernel_osrdch
 
 	.end

@@ -572,8 +572,6 @@ struct __pthread_saved_context
 };
 
 extern pthread_t __pthread_thread_list; /* Linked list of all threads */
-extern int __pthread_system_running; /* Has the thread system been initialised yet */
-extern int __pthread_num_running_threads; /* Number of threads currently running or blocked */
 
 /* Called once early in program initialisation */
 extern void __pthread_prog_init (void);
@@ -607,40 +605,50 @@ extern void __pthread_context_switch (void);
 
 /* Assembly functions */
 
-/* Prevent the callevery interrupt from initialising a context switch.
-   Don't use this over a Wimp_Poll - instead use __pthread_stop_ticker */
+/* Prevent the callevery interrupt from initialising a context switch.  */
 extern int __pthread_disable_ints (void);
-/* Allow the callevery interrupt from initialising a context switch */
+/* Allow the callevery interrupt from initialising a context switch.  */
 extern int __pthread_enable_ints (void);
-/* Initialise a context save area */
+/* Initialise a context save area.  */
 extern void __pthread_init_save_area (struct __pthread_saved_context *);
-/* Calls alloca cleanup functions on thread exit */
+/* Calls alloca cleanup functions on thread exit.  */
 extern void __pthread_exit (void);
 
-
 /* Prevent the callevery interrupt from initialising a context switch,
-   and register a function to reenable them when the current function returns */
+   and register a function to reenable them when the current function
+   returns.  */
 extern void __pthread_protect_unsafe (void);
 
 /* Should be placed at the beginning of a function body for a
-   thread safe function that is defined as a cancellation point */
-#define PTHREAD_SAFE_CANCELLATION if (__pthread_system_running) pthread_testcancel ();
+   thread safe function that is defined as a cancellation point.  */
+#define PTHREAD_SAFE_CANCELLATION \
+  do \
+    { \
+      if (__ul_global.pthread_system_running) \
+        pthread_testcancel (); \
+    } while (0);
 
 /* Should be placed at the beginning of a function body for a
-   function that is not reentrant */
-#define PTHREAD_UNSAFE if (__pthread_system_running) __pthread_protect_unsafe ();
+   function that is not reentrant.  */
+#define PTHREAD_UNSAFE \
+  do \
+    { \
+      if (__ul_global.pthread_system_running) \
+        __pthread_protect_unsafe (); \
+    } while (0);
 
 /* Should be placed at the beginning of a function body for a
-   function that is not reentrant and is also defined as a cancellation point */
+   function that is not reentrant and is also defined as a cancellation
+   point.  */
 #define PTHREAD_UNSAFE_CANCELLATION \
-if (__pthread_system_running) \
-  { \
-    pthread_testcancel (); \
-    __pthread_protect_unsafe (); \
-  }
-
-/* zero if the context switcher is allowed to switch threads */
-extern int __pthread_worksemaphore;
+  do \
+    { \
+      if (__ul_global.pthread_system_running) \
+        { \
+          pthread_testcancel (); \
+          __pthread_protect_unsafe (); \
+        } \
+    } while (0);
 
 #endif /* __UNIXLIB_INTERNALS */
 

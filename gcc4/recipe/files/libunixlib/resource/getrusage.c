@@ -15,10 +15,7 @@ getrusage (enum __rusage_who who, struct rusage *usage)
   int ticks;
 
   if (who != RUSAGE_SELF && who != RUSAGE_CHILDREN)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __set_errno (EINVAL);
 
   if (usage == 0)
     return -1;

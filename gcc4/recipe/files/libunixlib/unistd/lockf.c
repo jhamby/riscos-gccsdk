@@ -37,8 +37,7 @@ lockf (int fd, int cmd, off_t len)
 	return -1;
       if (fl.l_type == F_UNLCK || fl.l_pid == getpid ())
 	return 0;
-      errno = EACCES;
-      return -1;
+      return __set_errno (EACCES);
 
     case F_ULOCK:
       fl.l_type = F_UNLCK;
@@ -54,8 +53,7 @@ lockf (int fd, int cmd, off_t len)
       break;
 
     default:
-      errno = EINVAL;
-      return -1;
+      return __set_errno (EINVAL);
     }
 
   /* lockf is always relative to the current file position.  */

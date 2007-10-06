@@ -608,17 +608,16 @@ struct dirent *readdir (DIR *stream)
 }
 
 /* Return the file position of the directory stream. */
-long int telldir (DIR *stream)
+long int
+telldir (DIR *stream)
 {
-  if (__validdir (stream))
-    {
-      if (stream->suffix && stream->suffix->dd_off != GBPB_END_ENUM)
-	return (stream->dd_off - 1) + (stream->suffix->dd_off << 16);
-      else
-	return stream->dd_off + (stream->dd_suf_off << 16);
-    }
-  else
+  if (!__validdir (stream))
     return -1;
+
+  if (stream->suffix && stream->suffix->dd_off != GBPB_END_ENUM)
+    return (stream->dd_off - 1) + (stream->suffix->dd_off << 16);
+
+  return stream->dd_off + (stream->dd_suf_off << 16);
 }
 
 /* Set the file position of the directory stream to pos. */

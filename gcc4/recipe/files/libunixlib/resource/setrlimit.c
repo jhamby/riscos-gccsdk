@@ -1,5 +1,5 @@
 /* setrlimit ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <sys/resource.h>
@@ -17,12 +17,9 @@ setrlimit (enum __rlimit_resource resource, const struct rlimit *rlimits)
   struct rlimit lim;
 
   PTHREAD_UNSAFE
-  
+
   if (rlimits == NULL || (unsigned int) resource >= RLIMIT_NLIMITS)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __set_errno (EINVAL);
 
   lim = *rlimits;
 
@@ -30,8 +27,7 @@ setrlimit (enum __rlimit_resource resource, const struct rlimit *rlimits)
   if (lim.rlim_max != RLIM_INFINITY)
     {
       /* We have no enforceable resource limits.  */
-      errno = ENOSYS;
-      return -1;
+      return __set_errno (ENOSYS);
     }
 #endif
   if (lim.rlim_cur > lim.rlim_max)

@@ -1,7 +1,7 @@
 /* setgrent (), endgrent (), getgrent (), getgrent_r ()
  * Group Password-file operations.
  *
- * Copyright (c) 2002-2006 UnixLib Developers
+ * Copyright (c) 2002-2007 UnixLib Developers
  */
 
 
@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <grp.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 static FILE *stream = NULL;
 
@@ -18,6 +19,7 @@ void
 setgrent (void)
 {
   PTHREAD_UNSAFE_CANCELLATION
+
   if (stream != NULL)
     rewind (stream);
 }
@@ -28,6 +30,7 @@ void
 endgrent (void)
 {
   PTHREAD_UNSAFE_CANCELLATION
+
   if (stream != NULL)
     {
       fclose (stream);
@@ -61,5 +64,6 @@ getgrent_r (struct group *result_buf, char *buffer, size_t buflen,
 	    struct group **result)
 {
   PTHREAD_SAFE_CANCELLATION
+
   return fgetgrent_r (stream, result_buf, buffer, buflen, result);
 }

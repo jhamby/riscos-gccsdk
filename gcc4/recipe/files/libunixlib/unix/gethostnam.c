@@ -26,12 +26,8 @@ fakehostname (char *name, size_t len)
 
   /* Create a string that consists of "acorn<econet station number>".
      Read station number from CMOS location 1.  */
-  err = __os_byte (161, 0, 0, regs);
-  if (err)
-    {
-      __ul_seterr (err, 1);
-      return -1;
-    }
+  if ((err = __os_byte (161, 0, 0, regs)) != NULL)
+    return __ul_seterr (err, 1);
 
   buf[7] = 0;
   buf[6] = hex[regs[1] & 0xf];

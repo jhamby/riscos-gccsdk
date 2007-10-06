@@ -60,9 +60,8 @@ sleep_int (clock_t clockticks)
     return 0;
 
   /* alarm() does not work in a TaskWindow nor whilst running as a
-     WIMP program.  Note that when __taskwindow == 1 => __taskhandle != 0
-     but not necessary vice-versa so the test on __taskhandle is enough. */
-  if (__taskhandle != 0)
+     WIMP program.  */
+  if (__get_taskhandle () != 0)
     {
       before = clock () + clockticks;
       while (clock () < before)
@@ -190,5 +189,6 @@ int nanosleep (const struct timespec *req, struct timespec *rem)
       ticks -= rem->tv_sec * CLOCKS_PER_SEC;
       rem->tv_nsec = ticks * NSECS_PER_CLOCK;
     }
+
   return 0;
 }

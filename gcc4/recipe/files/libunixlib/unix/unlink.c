@@ -59,10 +59,9 @@ unlink (const char *ux_file)
   err = __os_file (OSFILE_DELETENAMEDOBJECT, file, regs);
   if (err)
     {
-      /* Should check for EROFS but this would involve
+      /* FIXME: Should check for EROFS but this would involve
 	 opening/closing the file.  */
-      __ul_seterr (err, 1);
-      return -1;
+      return __ul_seterr (err, 1);
     }
 
   __unlinksuffix (file);

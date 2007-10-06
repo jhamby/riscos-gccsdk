@@ -21,8 +21,6 @@
 #include <internal/swiparams.h>
 #include <unixlib/unix.h>
 
-#define IGNORE(x) {(void) x;}
-
 const struct dev __dev[NDEV] = {
   /* DEV_RISCOS */
   {__fsopen, __fsclose, __fsread, __fswrite,
@@ -229,9 +227,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	  /* If no file exists and O_CREAT was not specified,
 	     return ENOENT.  */
 	  if (!(fflag & O_CREAT))
-	    {
-	      return (void *) __set_errno (ENOENT);
-	    }
+	    return (void *) __set_errno (ENOENT);
 	}
     }
 
@@ -324,7 +320,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
     if (fflag & O_CREAT)
       {
-	mode &= ~(__proc->umask & 0777);
+	mode &= ~(__ul_global.sulproc->umask & 0777);
 	regs[5] = __set_protection (mode);
 
 	/* Write the object attributes.  */
@@ -355,8 +351,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
   return (void *) fd;
 
 os_err:
-  __ul_seterr (err, 1);
-  return (void *) -1;
+  return (void *) __ul_seterr (err, 1);
 }
 
 int
@@ -399,7 +394,7 @@ __fsclose (struct __unixlib_fd *file_desc)
     }
 
   free (buffer);
-  return (!err) ? 0 : (__ul_seterr (err, 1), -1);
+  return (!err) ? 0 : __ul_seterr (err, 1);
 }
 
 int
@@ -428,13 +423,10 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
       int regs[5];
 
       if ((err = __os_fread ((int) file_desc->devicehandle->handle,
-			     data, nbyte, regs)))
-	{
-	  __ul_seterr (err, 1);
-	  return -1;
-	}
+			     data, nbyte, regs)) != NULL)
+	return __ul_seterr (err, 1);
 
-      return (nbyte - regs[3]);
+      return nbyte - regs[3];
     }
 }
 
@@ -453,13 +445,10 @@ __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 #endif
 
   if ((err = __os_fwrite ((int) file_desc->devicehandle->handle,
-			  data, nbyte, regs)))
-    {
-      __ul_seterr (err, 1);
-      return -1;
-    }
+			  data, nbyte, regs)) != NULL)
+    return __ul_seterr (err, 1);
 
-  return (nbyte - regs[3]);
+  return nbyte - regs[3];
 }
 
 __off_t
@@ -493,7 +482,7 @@ __fslseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
   else
     return __set_errno (EINVAL);
 
-  return (!err) ? ((__off_t) regs[2]) : (__ul_seterr (err, 1), -1);
+  return (!err) ? (__off_t) regs[2] : __ul_seterr (err, 1);
 }
 
 int
@@ -682,57 +671,41 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
 void *
 __nullopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 {
-  IGNORE (file);
-  IGNORE (mode);
-  IGNORE (file_desc);
   return (void *) 1;
 }
 
 int
 __nullclose (struct __unixlib_fd *file_desc)
 {
-  IGNORE (file_desc);
   return 0;
 }
 
 int
 __nullread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 {
-  IGNORE (data);
-  IGNORE (nbyte);
-  IGNORE (file_desc);
   return 0;
 }
 
 int
 __nullwrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 {
-  IGNORE (data);
-  IGNORE (file_desc);
   return nbyte;
 }
 
 __off_t
 __nulllseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
 {
-  IGNORE (lpos);
-  IGNORE (whence);
-  IGNORE (file_desc);
   return __set_errno (ESPIPE);
 }
 
 int
 __nullioctl (struct __unixlib_fd *file_desc, unsigned long request, void *arg)
 {
-  IGNORE (request);
-  IGNORE (arg);
-  IGNORE (file_desc);
-
   switch (request)
     {
-    case FIOASYNC:
-      /* Set/Clear async I/O.  Do nothing */
-      return 0;
+      case FIOASYNC:
+        /* Set/Clear async I/O.  Do nothing */
+        return 0;
     }
 
   return __set_errno (EINVAL);
@@ -743,7 +716,7 @@ __nullselect (struct __unixlib_fd *file_desc, int fd,
 	      __fd_set * cread, __fd_set * cwrite, __fd_set * except)
 {
   /* Return ready to read, ready to write, no execptional conditions.  */
-  IGNORE (file_desc);
+
   if (cread)
     FD_SET (fd, cread);
   if (cwrite)
@@ -758,8 +731,6 @@ __nullselect (struct __unixlib_fd *file_desc, int fd,
 int
 __nullstat (const char *filename, struct stat *buf)
 {
-  IGNORE (filename);
-
   buf->st_ino = 0;
 
   __stat (0, 0, 0, 0, 0, buf);
@@ -799,9 +770,6 @@ __nullfstat (int fd, struct stat *buf)
 void *
 __sockopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 {
-  IGNORE (file);
-  IGNORE (mode);
-  IGNORE (file_desc);
   return (void *) __set_errno (EOPNOTSUPP);
 }
 
@@ -835,7 +803,7 @@ __sockselect (struct __unixlib_fd *file_descriptor, int fd,
 {
   /* Return 1,1,1 so that merge routine will copy in this socket's
      results.  */
-  IGNORE (file_descriptor);
+
   if (sread)
     FD_SET (fd, sread);
   if (swrite)
@@ -851,8 +819,6 @@ __sockselect (struct __unixlib_fd *file_descriptor, int fd,
 int
 __zeroread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 {
-  IGNORE (file_desc);
-
   memset (data, 0, nbyte);
 
   return nbyte;
@@ -864,10 +830,6 @@ __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 {
   int regs[10];
 
-  IGNORE (file);
-  IGNORE (mode);
-  IGNORE (file_desc);
-
   /* Test for the existance of the CryptRandom module */
   if (__os_swi (CryptRandom_Stir, regs))
     {
@@ -876,10 +838,7 @@ __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
       /* Try to load the module. Ignore any errors */
       if ((err = __os_cli ("RMEnsure CryptRandom 0.12 RMLoad System:Modules.CryptRand")) != NULL
 	  || (err = __os_cli ("RMEnsure CryptRandom 0.12 Error 16_10F /dev/random support requires CryptRand 0.12 or newer")) != NULL)
-	{
-	  __ul_seterr (err, 1);
-	  return (void *) -1;
-	}
+	return (void *) __ul_seterr (err, 1);
 
       /* If still not available, then the open must fail */
       if (__os_swi (CryptRandom_Stir, regs))
@@ -895,16 +854,10 @@ __randomread (struct __unixlib_fd *file_desc, void *data, int nbyte)
   int regs[10];
   _kernel_oserror *err;
 
-  IGNORE (file_desc);
-
   regs[0] = (int) data;
   regs[1] = nbyte;
-  err = __os_swi (CryptRandom_Block, regs);
-  if (err)
-    {
-      __ul_seterr (err, 1);
-      return -1;
-    }
+  if ((err = __os_swi (CryptRandom_Block, regs)) != NULL)
+    return __ul_seterr (err, 1);
 
   return nbyte;
 }

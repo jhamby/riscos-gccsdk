@@ -1,5 +1,5 @@
 /* Structures for UnixLib's internal process management.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
+   Copyright (c) 2002-2007 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_UNIX_H
 #define __UNIXLIB_UNIX_H 1
@@ -78,7 +78,7 @@ struct proc
 };
 
 /* Beware of backwards compatibility when altering this structure.
-   It is referenced by SUL and other processes */
+   It is referenced by SUL and other processes.  */
 struct __sul_process
 {
   int reserved1; /* Reserved for use by SUL */
@@ -110,13 +110,11 @@ struct __sul_process
   struct __sul_process *next_child;
   __pid_t (*sul_fork) (__pid_t pid, struct __sul_process **proc, void *stacklimit, void *stack);
   unsigned int environ_size;
-  void (*sul_exec) (__pid_t pid, char *cli, void *stacklimit, void *stack);
+  void (*sul_exec) (__pid_t pid, char *cli, void *stacklimit, void *stack) __attribute__ ((__noreturn__));
   void *(*sul_wimpslot) (__pid_t pid, void *newslot);
 };
 
-extern struct __sul_process *__proc;
 extern struct proc *__u;	/* current process */
-
 
 /* This structure must be kept in perfect synchronisation with:
 
@@ -134,45 +132,44 @@ extern struct proc *__u;	/* current process */
 
    Otherwise the compiler will force a lookup on __ul_global for each
    access.  */
-
 struct ul_global
 {
-  char *__unixlib_cli;
-  unsigned int __time[2];
+  const char *cli;
+  unsigned int time[2];
   int __notused1;
-  int __taskwindow;
-  int __taskhandle;
-  int __dynamic_num;
-  void *__old_u;
-  int __32bit;
-  int __panic_mode;
-  struct __sul_process *__proc;
-  int __ul_pagesize;
-  void *__upcall_handler_addr;
-  void *__upcall_handler_r12;
+  int taskwindow;
+  int taskhandle; /* consider using __get_taskhandle() to read this value.  */
+  int dynamic_num;
+  int __notused4;
+  int __notused2;
+  int panic_mode;
+  struct __sul_process *sulproc;
+  int pagesize;
+  void *upcall_handler_addr;
+  void *upcall_handler_r12;
 
-  void *__pthread_return_address;
-  volatile int __pthread_worksemaphore;
-  volatile int __pthread_callback_semaphore;
-  int __pthread_system_running;
-  int __pthread_callback_missed;
-  int __pthread_num_running_threads;
+  void *pthread_return_address;
+  volatile int pthread_worksemaphore;
+  volatile int pthread_callback_semaphore;
+  int pthread_system_running;
+  int pthread_callback_missed;
+  int pthread_num_running_threads;
 
-  int __executing_signalhandler;
-  void *__signalhandler_sl;
-  void *__signalhandler_sp;
+  int executing_signalhandler;
+  void *signalhandler_sl;
+  void *signalhandler_sp;
 
-  /* Serialise access to data in this structure (opaque type).  */
-  void *__mutex;
+  void *__notused5;
 
-  /* The global malloc state (opaque type).  */
   void *malloc_state;
 
 #if defined(PIC)
   int (*main) (int, char *[], char **);
 #else
-  void *__pad1; /* To remain unused */
+  void *__unused3; /* To remain unused */
 #endif
+
+  int escape_disabled;
 };
 
 /* This structure must be kept in perfect synchronisation with:
@@ -188,9 +185,7 @@ struct ul_global
         struct ul_memory *mem = &__ul_memory;
         ...
       }
-
    */
-
 struct ul_memory
 {
   /* Serialise access to this structure (opaque type).  */
@@ -210,9 +205,9 @@ struct ul_memory
   unsigned int appspace_himem;
 
   /* Current lowest position of the stack.  It lowers in memory address
-     until it reaches 'unixlib_stack_limit'.  Once reached, attempts to
+     until it reaches 'stack_limit'.  Once reached, attempts to
      increase stack size will happen by increasing the wimpslot.  */
-  unsigned int unixlib_stack;
+  unsigned int stack;
 
   /* This points to the start of application memory, usually 0x8000.
      Defined as Image$$RO$$Base for AOF.
@@ -226,11 +221,7 @@ struct ul_memory
      that is usable for run-time allocation of memory.
 
      Defined as Image$$RW$$Limit for AOF.
-     Defined as __end__ for ELF.
-
-     Note that if we decide to use a dynamic area for general memory
-     allocations, then this value is changed to point to the base
-     address of the dynamic area in sys/_syslib.s.  */
+     Defined as __end__ for ELF.  */
   const unsigned int rwlomem;
 
   /* This points to the start of read/write data.
@@ -239,18 +230,19 @@ struct ul_memory
   const unsigned int rwbase;
 
   /* As data is requested from the system by 'brk' to satisfy allocation
-     and deallocation requests, the value of 'rwlimit' will change.
+     and deallocation requests and we're not using a dynamic area to store
+     our heap, the value of 'rwbreak' will change.
 
      Initially it starts off equal to 'rwlomem', meaning that no data
      has been allocated at run-time.
 
-     When a request is made for more space, then 'rwlimit' will increase.  */
+     When a request is made for more space, then 'rwbreak' will increase.  */
   unsigned int rwbreak;
 
   /* This variable points to the lowest extent to which the stack can
-     grow.  It's value increases in line with 'rwbreak' as more memory
+     grow.  Its value increases in line with 'rwbreak' as more memory
      is taken from the system.  */
-  unsigned int unixlib_stack_limit;
+  unsigned int stack_limit;
 
   /* Holds the base memory address of the dynamic area.  It is used to
      ensure that any requests by 'brk' or 'sbrk' to change the data segment
@@ -284,6 +276,9 @@ extern struct ul_memory __ul_memory;
 
 extern struct ul_global __ul_global;
 
+/* Returns __ul_global.taskhandle and makes sure that this value is still
+   up-to-date.  */
+extern int __get_taskhandle (void);
 
 extern int __funcall_error (const char *, int, unsigned int);
 #if __UNIXLIB_PARANOID
@@ -294,35 +289,17 @@ extern int __funcall_error (const char *, int, unsigned int);
 #define __funcall(f, p) ((f)p)
 #endif
 
-
-extern char *__unixlib_cli;		/* command line from OS_GetEnv */
-extern int __dynamic_num;
 extern unsigned int __dynamic_area_refcount;
 extern void __dynamic_area_exit (void);
 
 extern void __munmap_all (void);	/* Deallocate all mappings.  */
 
-/* Zero if we are not executing within a TaskWindow.  Non-zero otherwise.  */
-extern int __taskwindow;
-/* Zero if we are running in command mode (not as a WIMP program).  Non-zero
-   otherwise and equals current WIMP task handle.  */
-extern int __taskhandle;
-/* Zero if we are running in 26-bit, non-zero for 32-bit */
-extern int __32bit;
-/* Non-zero if the escape key was disabled on program initialisation */
-extern int __escape_disabled;
-
-extern unsigned int __time[2];	/* start time */
-
-/* System memory page size.  */
-extern int __ul_pagesize;
-
 /* Stop the interval timers.  */
 extern void __stop_itimers (void);
 
 /* OS_ChangeEnvironment is used to set up exception handlers. These
- * handlers use OS_CallBack to raise signals in the foreground process.
- * RTFM (RISC OS PRM - 'The Program Environment') for more info. */
+   handlers use OS_CallBack to raise signals in the foreground process.
+   RTFM (RISC OS PRM - 'The Program Environment') for more info. */
 
 /* Reset handlers, etc. back to original state.  */
 extern void __env_riscos (void);
@@ -369,8 +346,8 @@ extern void __runtime_features (const char *__cmdline)
 
 /* Print an error and exit the process. When MESSAGE is NULL, the printed
    error message is based on the current errno value.  */
-extern void
-__unixlib_fatal (const char *__message) __attribute__ ((__noreturn__));
+extern void __unixlib_fatal (const char *__message)
+	__attribute__ ((__noreturn__));
 
 /* Atomically increment or decrement a word of memory */
 extern unsigned int __atomic_modify (unsigned int *addr, int incr)
@@ -412,7 +389,7 @@ extern void __unixinit (void);
 
 /* Free any remaining memory and file descriptors associated with a
    process.  */
-extern void __free_process(struct __sul_process *process)
+extern void __free_process (struct __sul_process *process)
 	__nonnull ((1));
 
 extern int _main (void);
@@ -423,10 +400,8 @@ extern int __fork_pre (int isfork, void **sul_fork, pid_t *pid);
 extern unsigned int __get_cpu_arch (void);
 
 #if __UNIXLIB_SYMLINKS
-
 extern int __resolve_symlinks (const char *filename_in, char *filename_out,
 			       size_t fn_out_size);
-
 #endif
 
 #endif  /* __UNIXLIB_INTERNALS */

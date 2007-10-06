@@ -1,19 +1,21 @@
 /* clearerr ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdio.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Clear the error and EOF indicators of stream.  */
-void clearerr (FILE *stream)
+void
+clearerr (FILE *stream)
 {
   PTHREAD_UNSAFE
 
   if (!__validfp (stream))
     {
-      errno = EINVAL;
+      (void) __set_errno (EINVAL);
       return;
     }
 

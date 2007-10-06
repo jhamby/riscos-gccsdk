@@ -1,5 +1,5 @@
 /* Unixlib select() implementation.
-   Copyright 1997-2006 UnixLib Developers.  */
+   Copyright 1997-2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <string.h>
@@ -146,6 +146,8 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
   signed int remain;
   struct timeval poll = {0, 0};
   int zerotime = 0;
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
 
 #ifdef DEBUG
   fprintf (stderr, "Entry:\t%d\t%p\t%p\t%p\t%p\n"
@@ -161,7 +163,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 
       FD_ZERO (&__socket_fd_set);
 
-      for (i = 0; i < __proc->maxfd; i++)
+      for (i = 0; i < sulproc->maxfd; i++)
         if (getfd (i)->devicehandle && getfd (i)->devicehandle->type == DEV_SOCKET)
           FD_SET (i, &__socket_fd_set);
 
@@ -171,9 +173,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
   if (timeout)
     {
       if (!timeout->tv_usec && !timeout->tv_sec)
-        {
-          zerotime = 1;
-        }
+        zerotime = 1;
       else
         {
           /* 21474836.48 seconds will fit in 31 bits.  */
@@ -183,7 +183,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
           /* OK, so we can't cope with anything more than roughly 248.55 days!  */
           now = clock ();
           end = now
-           + timeout->tv_sec * 100 + (50000 + timeout->tv_usec) / 1000000;
+                  + timeout->tv_sec * 100 + (50000 + timeout->tv_usec) / 1000000;
         }
     }
 
@@ -376,7 +376,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
       __os_print ("Loop\n\r");
 #endif
 
-      if (__taskwindow)
+      if (gbl->taskwindow)
 	{
 	  int regs[10];
 
@@ -384,7 +384,6 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	  /* Yield.  This is the recommended value for taskwindow
 	     sleeping with no poll word.  */
 	  regs[1] = 0;
-
 	  __os_swi (OS_UpCall, regs);
 	}
 

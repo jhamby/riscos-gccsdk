@@ -1,7 +1,7 @@
 /* getgrnam ()
  * Search for an entry with a matching username.
  *
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -9,6 +9,7 @@
 #include <string.h>
 #include <grp.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Search for an entry with a matching name.
    Defined by POSIX as not threadsafe.  */
@@ -29,5 +30,6 @@ getgrnam (const char *name)
       break;
 
   fclose (stream);
+
   return grp;
 }

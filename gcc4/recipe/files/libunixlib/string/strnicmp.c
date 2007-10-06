@@ -1,5 +1,5 @@
 /* strnicmp (), strncasecmp ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <string.h>
@@ -12,7 +12,7 @@ strnicmp (const char *s1, const char *s2, size_t n)
   int i, j;
 
   if (!n)
-    return (0);
+    return 0;
 
   do
     {
@@ -22,7 +22,7 @@ strnicmp (const char *s1, const char *s2, size_t n)
     }
   while (i && i == j && --n);
 
-  return (i - j);
+  return i - j;
 }
 
 int

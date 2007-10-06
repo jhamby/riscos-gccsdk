@@ -1,6 +1,6 @@
 /* setlocale ()
  * Written by Nick Burrett, 20 July 1997.
- * Copyright (c) 1997-2006 UnixLib Developers
+ * Copyright (c) 1997-2007 UnixLib Developers
  */
 
 #include <ctype.h>
@@ -8,18 +8,21 @@
 #include <locale.h>
 #include <string.h>
 #include <stddef.h>
-#include <unixlib/os.h>
 #include <swis.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
+#include <unixlib/os.h>
 
 /* Locale information types. These should correspond to the #defines
    in <locale.h>.  */
-static const char *locale_names[] = { "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES",
-                                      "LC_MONETARY", "LC_NUMERIC", "LC_TIME",
-                                      "LC_ALL" };
+static const char * const locale_names[] = {
+  "LC_COLLATE", "LC_CTYPE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC",
+  "LC_TIME", "LC_ALL"
+  };
 
 /* Convert a territory number into a name.  */
-static void territory_name (int territory, char *buffer, int size)
+static void
+territory_name (int territory, char *buffer, int size)
 {
   /* Territory -1 is used as the C/POSIX locale.  */
   if (territory == -1)
@@ -39,7 +42,8 @@ static void territory_name (int territory, char *buffer, int size)
 }
 
 /* Convert a territory name into a number.  */
-static int territory_number (const char *locale)
+static int
+territory_number (const char *locale)
 {
   int regs[10];
 
@@ -63,7 +67,8 @@ static int territory_number (const char *locale)
   return regs[0];
 }
 
-static void do_lc_all (char *buffer, int size)
+static void
+do_lc_all (char *buffer, int size)
 {
   char temp[64];
   int category, same = 1;
@@ -97,7 +102,8 @@ static void do_lc_all (char *buffer, int size)
     }
 }
 
-char *setlocale (int category, const char *locale)
+char *
+setlocale (int category, const char *locale)
 {
   int new_territory, changed;
   static char old_locale[256];

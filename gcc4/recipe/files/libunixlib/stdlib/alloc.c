@@ -45,7 +45,7 @@
 #define MMAP_CLEARS 0
 #define MORECORE_CLEARS 0
 
-#define malloc_getpagesize __ul_pagesize
+#define malloc_getpagesize __ul_global.pagesize
 
 #define MORECORE __internal_sbrk
 
@@ -3914,11 +3914,13 @@ void *malloc_trim_unlocked (void *state, size_t pad)
    malloc call.  */
 void *__malloc (size_t bytes)
 {
+  struct ul_global *gbl = &__ul_global;
+
   void *ptr;
-  if (__pthread_system_running)
+  if (gbl->pthread_system_running)
     __pthread_disable_ints ();
-  ptr = malloc_unlocked (__ul_global.malloc_state, bytes);
-  if (__pthread_system_running)
+  ptr = malloc_unlocked (gbl->malloc_state, bytes);
+  if (gbl->pthread_system_running)
     __pthread_enable_ints ();
   return ptr;
 }
@@ -3926,20 +3928,24 @@ weak_alias (__malloc, malloc)
 
 void __free (void *ptr)
 {
-  if (__pthread_system_running)
+  struct ul_global *gbl = &__ul_global;
+
+  if (gbl->pthread_system_running)
     __pthread_disable_ints ();
-  free_unlocked (__ul_global.malloc_state, ptr);
-  if (__pthread_system_running)
+  free_unlocked (gbl->malloc_state, ptr);
+  if (gbl->pthread_system_running)
     __pthread_enable_ints ();
 }
 weak_alias (__free, free)
 
 void *__realloc (void *ptr, size_t bytes)
 {
-  if (__pthread_system_running)
+  struct ul_global *gbl = &__ul_global;
+
+  if (gbl->pthread_system_running)
     __pthread_disable_ints ();
-  ptr = realloc_unlocked (__ul_global.malloc_state, ptr, bytes);
-  if (__pthread_system_running)
+  ptr = realloc_unlocked (gbl->malloc_state, ptr, bytes);
+  if (gbl->pthread_system_running)
     __pthread_enable_ints ();
   return ptr;
 }
@@ -3949,10 +3955,12 @@ weak_alias (__realloc, realloc)
 void *__memalign (size_t alignment, size_t bytes)
 {
   void *ptr;
-  if (__pthread_system_running)
+  struct ul_global *gbl = &__ul_global;
+
+  if (gbl->pthread_system_running)
     __pthread_disable_ints ();
-  ptr = memalign_unlocked (__ul_global.malloc_state, alignment, bytes);
-  if (__pthread_system_running)
+  ptr = memalign_unlocked (gbl->malloc_state, alignment, bytes);
+  if (gbl->pthread_system_running)
     __pthread_enable_ints ();
   return ptr;
 }
@@ -3961,10 +3969,12 @@ weak_alias (__memalign, memalign)
 void *__valloc (size_t bytes)
 {
   void *ptr;
-  if (__pthread_system_running)
+  struct ul_global *gbl = &__ul_global;
+
+  if (gbl->pthread_system_running)
     __pthread_disable_ints ();
-  ptr = int_valloc (__ul_global.malloc_state, bytes);
-  if (__pthread_system_running)
+  ptr = int_valloc (gbl->malloc_state, bytes);
+  if (gbl->pthread_system_running)
     __pthread_enable_ints ();
   return ptr;
 }
@@ -3973,10 +3983,12 @@ weak_alias (__valloc, valloc)
 void *__pvalloc (size_t bytes)
 {
   void *ptr;
-  if (__pthread_system_running)
+  struct ul_global *gbl = &__ul_global;
+
+  if (gbl->pthread_system_running)
     __pthread_disable_ints ();
-  ptr = int_pvalloc (__ul_global.malloc_state, bytes);
-  if (__pthread_system_running)
+  ptr = int_pvalloc (gbl->malloc_state, bytes);
+  if (gbl->pthread_system_running)
     __pthread_enable_ints ();
   return ptr;
 }
@@ -3985,10 +3997,12 @@ weak_alias (__pvalloc, pvalloc)
 void *__calloc (size_t n, size_t elem_size)
 {
   void *ptr;
-  if (__pthread_system_running)
+  struct ul_global *gbl = &__ul_global;
+
+  if (gbl->pthread_system_running)
     __pthread_disable_ints ();
-  ptr = int_calloc (__ul_global.malloc_state, n, elem_size);
-  if (__pthread_system_running)
+  ptr = int_calloc (gbl->malloc_state, n, elem_size);
+  if (gbl->pthread_system_running)
     __pthread_enable_ints ();
   return ptr;
 }
@@ -3996,10 +4010,12 @@ weak_alias (__calloc, calloc)
 
 void __cfree (void *ptr)
 {
-  if (__pthread_system_running)
+  struct ul_global *gbl = &__ul_global;
+
+  if (gbl->pthread_system_running)
     __pthread_disable_ints ();
-  int_cfree (__ul_global.malloc_state, ptr);
-  if (__pthread_system_running)
+  int_cfree (gbl->malloc_state, ptr);
+  if (gbl->pthread_system_running)
     __pthread_enable_ints ();
 }
 weak_alias (__cfree, cfree)
@@ -4007,10 +4023,12 @@ weak_alias (__cfree, cfree)
 int __malloc_trim (size_t bytes)
 {
   int result;
-  if (__pthread_system_running)
+  struct ul_global *gbl = &__ul_global;
+
+  if (gbl->pthread_system_running)
     __pthread_disable_ints ();
-  result = (int) malloc_trim_unlocked (__ul_global.malloc_state, bytes);
-  if (__pthread_system_running)
+  result = (int) malloc_trim_unlocked (gbl->malloc_state, bytes);
+  if (gbl->pthread_system_running)
     __pthread_enable_ints ();
   return result;
 }

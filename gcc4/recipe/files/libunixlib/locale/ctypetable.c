@@ -1,14 +1,16 @@
 /* __build_ctype_tables ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <ctype.h>
-#include <unixlib/os.h>
 #include <swis.h>
 #include <locale.h>
 #include <pthread.h>
+#include <unixlib/os.h>
+#include <unixlib/unix.h>
 
-void __build_ctype_tables (int territory)
+void
+__build_ctype_tables (int territory)
 {
   int regs[10], x, y, code, pos, offset;
   unsigned int *table, bits;

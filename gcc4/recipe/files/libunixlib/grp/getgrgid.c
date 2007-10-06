@@ -1,7 +1,7 @@
 /* getgrgid.c
  * Search for an entry with a matching user ID.
  *
- * Copyright (c) 2002-2006 UnixLib Developers
+ * Copyright (c) 2002-2007 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -9,6 +9,7 @@
 #include <grp.h>
 #include <sys/types.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Search for an entry with a matching gid.
    Defined by POSIX as not threadsafe.  */
@@ -29,5 +30,6 @@ getgrgid (gid_t gid)
       break;
 
   fclose (stream);
+
   return grp;
 }

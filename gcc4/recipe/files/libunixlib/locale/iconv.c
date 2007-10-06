@@ -1,6 +1,6 @@
 /* iconv_open (), iconv (), iconv_close ()
  * Written by Peter Naulls
- * Copyright (c) 2004-2006 UnixLib Developers
+ * Copyright (c) 2004-2007 UnixLib Developers
  */
 
 #include <stdlib.h>
@@ -8,8 +8,9 @@
 #include <swis.h>
 #include <errno.h>
 #include <iconv.h>
-#include <unixlib/os.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
+#include <unixlib/os.h>
 
 #define ERROR_BASE 0x81b900
 
@@ -19,38 +20,41 @@
 #define ICONV_ILSEQ (ERROR_BASE+3)
 
 
-static int iconv_error (_kernel_oserror *err)
+static int
+iconv_error (_kernel_oserror *err)
 {
-  __ul_seterr (err, 0);
+  int uerr;
 
   switch (err->errnum)
     {
     case ICONV_NOMEM:
-      errno = ENOMEM;
+      uerr = ENOMEM;
       break;
 
     case ICONV_INVAL:
-      errno = EINVAL;
+      uerr = EINVAL;
       break;
 
     case ICONV_2BIG:
-      errno = E2BIG;
+      uerr = E2BIG;
       break;
 
     case ICONV_ILSEQ:
-      errno = EILSEQ;
+      uerr = EILSEQ;
       break;
 
     default:
-      errno = EINVAL;
+      uerr = EINVAL;
       break;
     }
-  
-  return -1;
+
+  __ul_seterr (err, 0);
+  return __set_errno (uerr);
 }
 
 
-iconv_t iconv_open (const char *tocode, const char *fromcode)
+iconv_t
+iconv_open (const char *tocode, const char *fromcode)
 {
   iconv_t ret;
   _kernel_oserror *err;
@@ -60,17 +64,11 @@ iconv_t iconv_open (const char *tocode, const char *fromcode)
 
   err = __os_cli ("RMEnsure Iconv 0.04 RMload System:Modules.Iconv");
   if (err)
-    {
-      __ul_seterr (err, 1);
-      return (iconv_t) -1;
-    }
+    return (iconv_t) __ul_seterr (err, 1);
 
   err = __os_cli ("RMEnsure Iconv 0.04 Error 16_10F iconv support requires the Iconv module 0.04 or newer");
   if (err)
-    {
-      __ul_seterr (err, 1);
-      return (iconv_t) -1;
-    }
+    return (iconv_t) __ul_seterr (err, 1);
 
   regs[0] = (int) tocode;
   regs[1] = (int) fromcode;
@@ -82,8 +80,9 @@ iconv_t iconv_open (const char *tocode, const char *fromcode)
 }
 
 
-size_t iconv (iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf,
-	      size_t *outbytesleft)
+size_t
+iconv (iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf,
+       size_t *outbytesleft)
 {
   int regs[10];
   _kernel_oserror *err;
@@ -102,7 +101,8 @@ size_t iconv (iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf,
 }
 
 
-int iconv_close(iconv_t cd)
+int
+iconv_close(iconv_t cd)
 {
   int regs[10];
   _kernel_oserror *err;

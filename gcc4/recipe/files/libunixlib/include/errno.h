@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.1.3: Errors <errno.h>
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #ifndef __ERRNO_H
@@ -104,6 +104,8 @@
 #define ELIBNOEXEC	86 /* Shared library exec format error.  */
 #define ENOSYS		87 /* Function not implemented.  */
 
+/* Keep EOPSYS value in sync with EOPSYS value defined in
+   unixlib/asm_dec.s.  */
 #define EOPSYS		88 /* RISC OS operating system error.  */
 #define ESIG		89
 #define EILSEQ		90 /* Invalid multibyte sequence.  */

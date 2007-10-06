@@ -1,5 +1,5 @@
 /* Get time in seconds.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005, 2007 UnixLib Developers.  */
 
 #include <time.h>
 #include <unixlib/os.h>
@@ -11,19 +11,16 @@
 #include <stdio.h>
 #endif
 
-time_t time (time_t *timep)
+time_t
+time (time_t *timep)
 {
   unsigned int buf[2];
   _kernel_oserror *err;
   time_t time1;
 
   buf[0] = 3;
-  err = __os_word (14, buf);
-  if (err)
-    {
-      __ul_seterr (err, 1);
-      return -1;
-    }
+  if ((err = __os_word (14, buf)) != NULL)
+    return __ul_seterr (err, 1);
 
   time1 = __cvt_riscos_time (buf[1] & 0xff, buf[0]);
 

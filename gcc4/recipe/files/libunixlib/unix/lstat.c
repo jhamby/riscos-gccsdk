@@ -17,5 +17,5 @@ int
 lstat64 (const char *filename, struct stat64 *buf)
 {
   /* struct stat64 is currently the same as struct stat.  */
-  return stat (filename, (struct buf *)buf);
+  return stat (filename, (struct stat *)buf);
 }

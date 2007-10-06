@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 #define INTSIZE 4
 
@@ -24,5 +25,6 @@ putw (int i, FILE * f)
   putc ((i >> 56) & 0xff, f);
 #endif
 #endif
-  return (ferror (f) ? -1 : i);
+
+  return ferror (f) ? -1 : i;
 }

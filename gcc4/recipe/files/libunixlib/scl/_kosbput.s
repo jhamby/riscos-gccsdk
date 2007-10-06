@@ -1,5 +1,5 @@
 @ _kernel_osbput
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
@@ -9,9 +9,15 @@
 	.global	_kernel_osbput
 	NAME	_kernel_osbput
 _kernel_osbput:
+	STMFD	sp!, {lr}
 	SWI	XOS_BPut
-	MOVVS	a1, #-2
 	MOVVC	a1, #0
-	MOV	pc, lr
+	LDMVCFD	sp!, {pc}
+
+	MOV	a2, #0
+	BL	__ul_seterr
+	MOV	a1, #-2
+	LDMFD	sp!, {pc}
+	DECLARE_FUNCTION _kernel_osbput
 
 	.end

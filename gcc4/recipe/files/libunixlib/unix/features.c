@@ -105,8 +105,10 @@ static char *env (const char *program_name, const char *variable,
 
 /* We have to be careful with the string processing because not enough
    of UnixLib will have been initialised to use more powerful functions.  */
-static void features (const char *progname)
+static void
+features (const char *progname)
 {
+  struct __sul_process *sulproc = __ul_global.sulproc;
   char varbuf[256];
   char *ptr;
 
@@ -122,11 +124,7 @@ static void features (const char *progname)
   /* Feature "uid".  */
   ptr = env (progname, "uid", varbuf, sizeof (varbuf) - 1);
   if (ptr != NULL)
-    {
-      unsigned int uid = __decstrtoui(ptr, NULL);
-
-    __proc->uid = __proc->euid = (uid_t)uid;
-    }
+    sulproc->uid = sulproc->euid = (uid_t) __decstrtoui(ptr, NULL);
 }
 
 void __runtime_features (const char *cli)

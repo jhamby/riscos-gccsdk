@@ -75,12 +75,12 @@ __raise:
 @ int __ul_seterr (const _kernel_oserror *err, int seterrno)
 @
 @ On entry:
-@	a1 = RISC OS error block
+@	a1 = RISC OS error block or NULL
 @	a2 = non-zero if errno should be set,
 @	     zero if errno should not be set
 @ On exit:
 @	APCS-32 compliant.
-@       a1 = -1 if there was an error, else 0
+@       a1 = -1 if err on entry was non-NULL, else 0
 @       a2-a4, ip corrupted.
 @
 @ Set UnixLib's errno to EOPSYS and copy the error from err to UnixLib's
@@ -467,7 +467,7 @@ __h_sigsegv1:
 @	Error		raise (SIGOSERROR  SIGEMT  SIGFPE)
 @	Escape		raise (SIGINT)
 @	Event		on Internet event, raise (SIGIO  SIGURG  SIGPIPE)
-@	Exit		see sys/syslib.s
+@	Exit		see sys/_syslib.s
 @	Unused SWI	raise (SIGSYS)
 @	UpCall		restore handlers on UpCall 256
 @	CallBack	raise a deferred signal
@@ -818,7 +818,9 @@ __h_sigsys:
 	.global	__h_cback
 	NAME	__h_cback
 __h_cback:
-	@ Check that the return PC value is within our wimpslot.
+	@ Check that the return PC value is within our codespace.  For non
+	@ shared builds we check if PC value is in the wimpslot.  For shared
+	@ builds we don't check if PC is valid.
 	@ If it isn't, then we don't want to do a context switch
 	@ so return straight away.
  PICEQ "LDR	a1, .L9+12"		@__cbreg

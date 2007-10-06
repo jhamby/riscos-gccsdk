@@ -29,7 +29,7 @@ fopen (const char *filename, const char *mode)
 
   if (filename == NULL || mode == NULL)
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return NULL;
     }
 
@@ -108,12 +108,12 @@ fdopen (int fd, const char *mode)
   /* Check the access mode.  */
   if ((dflags & O_ACCMODE) == O_RDONLY && ! m.__bits.__read)
     {
-      errno = EBADF;
+      __set_errno (EBADF);
       return NULL;
     }
   if ((dflags & O_ACCMODE) == O_WRONLY && ! m.__bits.__write)
     {
-      errno = EBADF;
+      __set_errno (EBADF);
       return NULL;
     }
 

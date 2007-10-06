@@ -1,5 +1,5 @@
 /* getuid ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <unistd.h>
@@ -8,5 +8,5 @@
 __uid_t
 getuid (void)
 {
-  return __proc->uid;
+  return __ul_global.sulproc->uid;
 }

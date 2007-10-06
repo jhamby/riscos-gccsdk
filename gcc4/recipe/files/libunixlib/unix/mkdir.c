@@ -1,5 +1,5 @@
 /* Make a directory on disk.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005, 2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -44,8 +44,8 @@ mkdir (const char *ux_path, __mode_t mode)
   if (err)
     {
       /* Match with "Not found" RISC OS error */
-      if (err->errnum == 0x108d6 || strcasecmp(err->errmess, "Not found") == 0 ||
-          strstr(err->errmess, "not found"))
+      if (err->errnum == 0x108d6 || strcasecmp(err->errmess, "Not found") == 0
+          || strstr(err->errmess, "not found"))
         return __set_errno (ENOENT);
 
       return __ul_seterr (err, 1);

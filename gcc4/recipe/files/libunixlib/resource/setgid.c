@@ -1,24 +1,29 @@
 /* setgid ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
+#include <errno.h>
 #include <unistd.h>
-#include <unixlib/unix.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Set the real and effective group ID of the process to gid.  */
 
 int
 setgid (__gid_t gid)
 {
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
+
   PTHREAD_UNSAFE
-  
-  if (gid == __proc->gid)
+
+  if (gid == sulproc->gid)
     return 0;
-  if (gid == __proc->egid)
+  if (gid == sulproc->egid)
     {
-      __proc->gid = gid;
+      sulproc->gid = gid;
       return 0;
     }
-  return -1;
+
+  return __set_errno (EINVAL);
 }

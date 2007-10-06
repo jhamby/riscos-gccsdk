@@ -1,5 +1,5 @@
 /* Get time.
-   Copyright (c) 2003, 2005 UnixLib Developers.  */
+   Copyright (c) 2003, 2005, 2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdint.h>
@@ -11,7 +11,7 @@
 /* The `gettimeofday' function returns the current date and time in
    the `struct timeval' structure indicated by TP.  Information about
    the time zone is returned in the structure pointed at TZP.  If the
-   TZP argument is a null pointer, time zone information is ignored.
+   TZP argument is a NULL pointer, time zone information is ignored.
 
    The return value is `0' on success and `-1' on failure.  The
    following `errno' error condition is defined for this function:
@@ -35,18 +35,12 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
   uint64_t centisec, sec;
 
   if (tv == NULL)
-    {
-      __set_errno (EINVAL);
-      return -1;
-    }
+    return __set_errno (EINVAL);
 
   buf[0] = 3;
-  err = __os_word(14, buf);
-  if (err)
-    {
-      __ul_seterr (err, 1);
-      return -1;
-    }
+  if ((err = __os_word(14, buf)) != NULL)
+    return __ul_seterr (err, 1);
+
   /* The number of centiseconds that have elapsed between the starts
      of RISC OS and Unix times is 0x336e996a00.  */
   high = buf[1] & 0xFF;

@@ -1,10 +1,9 @@
 @ _kernel_osargs
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
 	.text
-
 
 	@ _kernel_osargs (int op, unsigned handle, int arg)
 	.global	_kernel_osargs
@@ -22,5 +21,6 @@ error:
 	BL	__ul_seterr
 	MOV	a1, #-2
 	LDMFD	sp!, {pc}
+	DECLARE_FUNCTION _kernel_osargs
 
 	.end

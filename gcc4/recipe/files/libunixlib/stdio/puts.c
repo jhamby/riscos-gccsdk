@@ -4,6 +4,7 @@
 
 #include <stdio.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 int
 puts (const char *s)

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 int
 ungetc (int c, FILE * stream)
@@ -12,7 +13,7 @@ ungetc (int c, FILE * stream)
 
   if (!__validfp (stream) || !stream->__mode.__bits.__read)
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return EOF;
     }
 

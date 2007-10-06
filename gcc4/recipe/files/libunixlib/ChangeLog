@@ -1,3 +1,97 @@
+Sat Oct  6 22:24:36 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	Due to the large number of files where following changes were made, we
+	won't mention them all explicitly.
+	* __set_errno: use it more consistently to set errno value and return
+	-1.
+	* __ul_seterr: likewise.
+	* IGNORE(): removed.
+	* Include unixlib/unix.h to get access to private UnixLib variables.
+	* Reduction of the export of private variables by referencing them
+	via __ul_global.
+	* Updated comments.
+	* dsp_exit: renamed to __dsp_exit.
+	* scl/_ksetenv.s(_kernel_setenv): declare as function.
+	* scl/_kswi_c.s(_kernel_swi_c): likewise.
+	* scl/_kernel.s(_kernel_swi): likewise.
+	* scl/_kosbyte.s(_kernel_osbyte): likewise.
+	* scl/_koscli.s(_kernel_oscli): likewise.
+	* scl/_kosbput.s(_kernel_osbput): likewise; call __ul_set_err in case
+	of a RISC OS error.
+	* scl/_kosgbpb.s(_kernel_osgbpb): likewise.
+	* scl/_kosfile.s(_kernel_osfile): likewise.
+	* scl/_kosfind.s(_kernel_osfind): likewise.
+	* scl/_kosrdch.s(_kernel_osrdch): likewise.
+	* scl/_kosbget.s(_kernel_osbget): likewise.
+	* scl/_kgetenv.s(_kernel_getenv): likewise.
+	* scl/_kosargs.s(_kernel_osargs): likewise.
+	* scl/_kcurskch.s(_kernel_current_stack_chunk): likewise.
+	* include/assert.h(assert): removed noreturn attribute.
+	* module/sul.s(DEBUG_PROC_MATCHING): added debug output during
+	sul_exec and sul_fork;
+	(PROC_FORK_STORAGE): reserved 10*4 + 4*12 instead of 11*4 + 4*12
+	bytes.
+	(swi_handler): turned into branch table.
+	(swi_value): reduced the number of different registers used.
+	(swi_count): likewise.
+	(sul_wimpslot): likewise.
+	(swi_initialise): strip off the FS of OS_GetEnv argv[0] as well the
+	executable given to sul_exec().
+	(sul_fork): FP register f4-f7 were not restored.
+	(sul_exec): canonicalise exec filename so that we can inherit process
+	structures more reliably at swi_initialise; FP registers f4-f7 were
+	wrongly restored when returning to a parent process.
+	* common/_taskhandle.s(__get_task_handle): used to request taskhandle
+	from OS and result is stored as __ul_global.taskhandle.
+	* sys/_syslib.s:
+	Removed X bit from SWI calls made before setting up our UnixLib OS
+	environment handlers so that an error will call the default error
+	handler automatically.
+	(__get_cpu_arch): wasn't called when ___dynamic_no_da was set.
+	(__unixlib_get_fpstatus): prefix with function name.
+	(__unixlib_set_fpstatus): likewise.
+	(__valid_address): likewise.
+	(__unixlib_cli): dropped and its contents is now __ul_global.cli.
+	(__time): dropped and its contents is now __ul_global.time.
+	(__notused1):): dropped and its contents is now __ul_global.unused1.
+	(__taskwindow): dropped and its contents is now
+	__ul_global.taskwindow.
+	(__taskhandle): dropped and its contents is now
+	__ul_global.taskhandle.
+	(__dynamic_num): dropped and its contents is now
+	__ul_global.dynamic_num.
+	(__old_u): dropped and its contents is now __ul_global.unused4.
+	(__32bit): removed, this can easily and cheaply found out at run-time.
+	(__panic_mode): dropped and its contents is now
+	__ul_global.panic_mode.
+	(__proc): dropped and its contents is now __ul_global.sulproc.
+	(__ul_pagesize): dropped and its contents is now
+	__ul_global.pagesize.
+	(__upcall_handler_addr): dropped and its contents is now
+	__ul_global.upcall_handler_addr.
+	(__upcall_handler_r12): dropped and its contents is now
+	__ul_global.upcall_handler_r12.
+	(__pthread_return_address): dropped and its contents is now
+	__ul_global.pthread_return_address.
+	(__pthread_worksemaphore): dropped and its contents is now
+	__ul_global.pthread_worksemaphore.
+	(__pthread_system_running): dropped and its contents is now
+	__ul_global.pthread_system_running.
+	(__pthread_callback_semaphore): dropped and its contents is now
+	__ul_global.pthread_callback_semaphore.
+	(__pthread_callback_missed): dropped and its contents is now
+	__ul_global.pthread_callback_missed.
+	(__pthread_num_running_threads): dropped and its contents is now
+	__ul_global.pthread_num_running_threads.
+	(__executing_signalhandler): dropped and its contents is now
+	__ul_global.executing_signalhandler.
+	(__signalhandler_sl): dropped and its contents is now
+	__ul_global.signalhandler_sl.
+	(__signalhandler_sp): dropped and its contents is now
+	__ul_global.signalhandler_sp.
+	(__escape_disabled): dropped and its contents is now
+	__ul_global.escape_disabled.
+
 Sat Oct  6 17:32:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* sys/_vfork.s (fork,vfork): Prevent register corruption v4 and v5.

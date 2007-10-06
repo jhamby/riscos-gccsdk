@@ -1,5 +1,5 @@
 /* mbtowc ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <stdlib.h>
@@ -13,5 +13,5 @@ mbtowc (wchar_t *pwc, const char *s, size_t n)
     return -1;
   if (pwc)
     *pwc = (wchar_t) * s;
-  return (*s != '\0');
+  return *s != '\0';
 }

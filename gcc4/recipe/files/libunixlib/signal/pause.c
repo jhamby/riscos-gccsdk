@@ -1,11 +1,12 @@
 /* pause ()
  * Written by Nick Burrett, 5 October 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2007 UnixLib Developers
  */
 
 #include <signal.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Suspend the process until a signal arrives.
    This always returns -1 and sets errno to EINTR.  */

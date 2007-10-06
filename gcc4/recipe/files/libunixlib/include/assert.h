@@ -1,6 +1,6 @@
 /*
  * ANSI Standard: 4.2 Diagnostics <assert.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 /* It is possible to turn assertions off and on in different functions within
@@ -16,7 +16,7 @@
 
 __BEGIN_DECLS
 
-extern void assert (int) __THROW __attribute__ ((__noreturn__));
+extern void assert (int) __THROW;
 
 /* __assert2 is also used by Norcroft C compiler.  */
 extern void __assert2 (const char *__message,

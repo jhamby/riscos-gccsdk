@@ -1,10 +1,9 @@
 @ _kernel_osbget
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
 	.text
-
 
 	@ int _kernel_osbget (int handle)
 	.global	_kernel_osbget
@@ -20,5 +19,6 @@ _kernel_osbget:
 	BL	__ul_seterr
 	MOV	a1, #-2		@ Error occurred. Return -2
 	LDMFD	sp!, {pc}
+	DECLARE_FUNCTION _kernel_osbget
 
 	.end

@@ -46,11 +46,11 @@ generate_temporary_filename (char *buf, const char *dir,
   s -= 7;
   if (*s != 'X')
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return NULL;
     }
 
-  idx = __time[0] % maxidx;
+  idx = __ul_global.time[0] % maxidx;
   while (1)
     {
       if (idx >= maxidx)
@@ -85,7 +85,7 @@ generate_temporary_filename (char *buf, const char *dir,
       idx++;
     }
 
-  errno = EEXIST;
+  __set_errno (EEXIST);
   return NULL;
 }
 
@@ -143,7 +143,7 @@ tmpnam_r (char *buf)
 {
   if (!buf)
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return NULL;
     }
 
@@ -159,7 +159,7 @@ mktemp (char *file_template)
 int
 mkstemp (char *file_template)
 {
-  return (open (mktemp (file_template), O_RDWR | O_CREAT | O_TRUNC, 0666));
+  return open (mktemp (file_template), O_RDWR | O_CREAT | O_TRUNC, 0666);
 }
 
 char *
@@ -191,7 +191,7 @@ tempnam (const char *dir, const char *prefix)
 
   if (d == NULL)
     {
-      errno = ENOENT;
+      __set_errno (ENOENT);
       return NULL;
     }
 

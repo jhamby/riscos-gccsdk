@@ -1,5 +1,5 @@
 /* strtok ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <string.h>
@@ -13,9 +13,9 @@ strtok (char *s1, const char *s2)
   if (!s1)
     {
       if (!s)
-	return (0);
-      else
-	s1 = s;
+	return NULL;
+
+      s1 = s;
     }
 
   s1 += strspn (s1, s2);

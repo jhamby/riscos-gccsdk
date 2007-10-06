@@ -7,9 +7,11 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Check the stream for validity and errors.  */
-static int check_stream (FILE *stream)
+static int
+check_stream (FILE *stream)
 {
   if (!__validfp (stream) || !stream->__mode.__bits.__read)
     {
@@ -34,7 +36,8 @@ static int check_stream (FILE *stream)
 }
 
 /* Fill the input buffer.  */
-static int fill_buffer (FILE *stream)
+static int
+fill_buffer (FILE *stream)
 {
   int count, to_read = 0;
   unsigned char *buffer;
@@ -79,6 +82,7 @@ static int fill_buffer (FILE *stream)
 	}
       return EOF;
     }
+
   return count;
 }
 

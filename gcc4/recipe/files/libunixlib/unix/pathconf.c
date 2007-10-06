@@ -1,7 +1,7 @@
 /* pathconf (), fpathconf ()
  * Return filing system implementation details.
  * Written by Nick Burrett, 13 October 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -20,76 +20,55 @@
 long int
 pathconf (const char *filename, int parameter)
 {
-  filename = filename;
-
   switch (parameter)
     {
-    default:
-      return __set_errno (EINVAL);
-
-    case _PC_LINK_MAX:
 #ifdef LINK_MAX
-      return LINK_MAX;
-#else
-      return -1;
+      case _PC_LINK_MAX:
+        return LINK_MAX;
 #endif
 
-    case _PC_MAX_CANON:
 #ifdef MAX_CANON
-      return MAX_CANON;
-#else
-      return -1;
+      case _PC_MAX_CANON:
+        return MAX_CANON;
 #endif
 
-    case _PC_MAX_INPUT:
 #ifdef MAX_INPUT
-      return MAX_INPUT;
-#else
-      return -1;
+      case _PC_MAX_INPUT:
+        return MAX_INPUT;
 #endif
 
-    case _PC_NAME_MAX:
 #ifdef NAME_MAX
-      return NAME_MAX;
-#else
-      return -1;
+      case _PC_NAME_MAX:
+        return NAME_MAX;
 #endif
 
-    case _PC_PATH_MAX:
 #ifdef PATH_MAX
-      return PATH_MAX;
-#else
-      return -1;
+      case _PC_PATH_MAX:
+        return PATH_MAX;
 #endif
 
-    case _PC_PIPE_BUF:
 #ifdef PIPE_BUF
-      return PIPE_BUF;
-#else
-      return -1;
+      case _PC_PIPE_BUF:
+        return PIPE_BUF;
 #endif
 
-    case _PC_CHOWN_RESTRICTED:
 #ifdef _POSIX_CHOWN_RESTRICTED
-      return _POSIX_CHOWN_RESTRICTED;
-#else
-      return -1;
+      case _PC_CHOWN_RESTRICTED:
+        return _POSIX_CHOWN_RESTRICTED;
 #endif
 
-    case _PC_NO_TRUNC:
 #ifdef _POSIX_NO_TRUNC
-      return _POSIX_NO_TRUNC;
-#else
-      return -1;
+      case _PC_NO_TRUNC:
+        return _POSIX_NO_TRUNC;
 #endif
 
-    case _PC_VDISABLE:
 #ifdef _POSIX_VDISABLE
-      return _POSIX_VDISABLE;
-#else
-      return -1;
+      case _PC_VDISABLE:
+        return _POSIX_VDISABLE;
 #endif
     }
+
+  return __set_errno (EINVAL);
 }
 
 long int
@@ -106,8 +85,9 @@ fpathconf (int fd, int selection)
     {
       if (__fd_to_name (fd, filename, sizeof (filename)) == NULL)
 	return __set_errno (EBADF);
+
       return pathconf (filename, selection);
     }
-  else
-    return pathconf (NULL, selection);
+
+  return pathconf (NULL, selection);
 }

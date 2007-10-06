@@ -17,10 +17,12 @@
 
 /* #define DEBUG */
 
-int __close (struct __unixlib_fd *file_desc)
+int
+__close (struct __unixlib_fd *file_desc)
 {
   if (__atomic_modify (&(file_desc->devicehandle->refcount), -1) == 0)
     {
+      struct __sul_process *sulproc = __ul_global.sulproc;
       int x;
       /* We can close the file */
 #ifdef DEBUG
@@ -29,7 +31,7 @@ int __close (struct __unixlib_fd *file_desc)
 
       x = dev_funcall (file_desc->devicehandle->type, close, (file_desc));
 
-      __proc->sul_free (__proc->pid, file_desc->devicehandle);
+      sulproc->sul_free (sulproc->pid, file_desc->devicehandle);
 
       /* Invalidate this file descriptor.  */
       file_desc->devicehandle = NULL;

@@ -1,5 +1,5 @@
 /* UnixLib ttyname() and open() implementation.
-   Copyright (c) 2000-2006 UnixLib Developers.  */
+   Copyright (c) 2000-2007 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -42,6 +42,7 @@ ttyname (int fd)
 int
 __open_fh (int fd, int fh, int oflag, int mode)
 {
+  struct __sul_process *sulproc = __ul_global.sulproc;
   struct __unixlib_fd *file_desc;
   char *rofs;
 
@@ -51,14 +52,15 @@ __open_fh (int fd, int fh, int oflag, int mode)
   file_desc->fflag = oflag;
   file_desc->dflag = FILE_HANDLE_FROM_OS; /* Never close this handle. */
 
-  file_desc->devicehandle = __proc->sul_malloc (__proc->pid, __proc->fdhandlesize);
+  file_desc->devicehandle = sulproc->sul_malloc (sulproc->pid,
+						 sulproc->fdhandlesize);
   if (file_desc->devicehandle == NULL)
-    return -1;
+    return __set_errno (ENOMEM);
 
   rofs = __fd_to_name (fh, NULL, 0);
   if (rofs == NULL)
     {
-      __proc->sul_free (__proc->pid, file_desc->devicehandle);
+      sulproc->sul_free (sulproc->pid, file_desc->devicehandle);
       file_desc->devicehandle = NULL;
       return -1;
     }
@@ -78,6 +80,8 @@ int
 __open_fn (int fd, const char *file, int oflag, int mode)
 {
   struct __unixlib_fd *file_desc;
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
 
   PTHREAD_UNSAFE
 
@@ -85,12 +89,14 @@ __open_fn (int fd, const char *file, int oflag, int mode)
   file_desc->fflag = oflag;
   file_desc->dflag = 0;
 
-  file_desc->devicehandle = __proc->sul_malloc (__proc->pid, __proc->fdhandlesize);
+  file_desc->devicehandle = sulproc->sul_malloc (sulproc->pid,
+						 sulproc->fdhandlesize);
   if (file_desc->devicehandle == NULL)
-    return -1;
+    return __set_errno (ENOMEM);
 
   /* Perform a special check for devices.  */
-  file_desc->devicehandle->type = __getdevtype (file, __get_riscosify_control());
+  file_desc->devicehandle->type = __getdevtype (file,
+						__get_riscosify_control());
   file_desc->devicehandle->refcount = 1;
 
   /* Perform the device specific open operation.  */
@@ -98,7 +104,7 @@ __open_fn (int fd, const char *file, int oflag, int mode)
 				 open, (file_desc, file, mode));
   if (file_desc->devicehandle->handle == (void *) -1)
     {
-      __proc->sul_free (__proc->pid, file_desc->devicehandle);
+      sulproc->sul_free (sulproc->pid, file_desc->devicehandle);
       file_desc->devicehandle = NULL;
       return -1;
     }

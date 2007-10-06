@@ -1,5 +1,5 @@
 /* settimeofday ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -9,8 +9,5 @@
 int
 settimeofday (const struct timeval *tv, const struct timezone *tz)
 {
-  tv = tv;
-  tz = tz;
-  (void) __set_errno (EPERM);
-  return -1;
+  return __set_errno (EPERM);
 }

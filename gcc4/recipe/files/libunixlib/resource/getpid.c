@@ -1,5 +1,5 @@
 /* getpid ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <unistd.h>
@@ -8,5 +8,5 @@
 __pid_t
 getpid (void)
 {
-  return __proc->pid;
+  return __ul_global.sulproc->pid;
 }

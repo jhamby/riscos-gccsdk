@@ -2,40 +2,39 @@
 @ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
 @ Written by Martin Piper and Alex Waugh
 
-@ For a single tasking program (not running in a taskwindow), the context
-@ switcher works as follows:
+@ The context switcher works as follows:
+@
 @ OS_CallEvery is used to cause an interrupt every centisecond. This interrupt
 @ could occur at any time, so we might be in the middle of a SWI call.
 @ Therefore a callback is set, so when the SWI returns, or when the callevery
 @ routine returns if a SWI call was not taking place, the callback handler is
 @ invoked. (A transient callback cannot be used as this might be called when
 @ RISC OS is idleing, eg. in an OS_ReadC call.)
+@
 @ The callback handler saves all integer and floating point register values
 @ in the thread's context save area, and then calls the scheduler
-@ (__pthread_context_switch) which decides which thread to run next. The
+@ __pthread_context_switch which decides which thread to run next. The
 @ register values (including the saved program counter) from this new thread
 @ are then loaded from the thread's context save area into the appropriate
 @ registers, thus restoring that thread to where is was before it was switched
 @ out, and returning from the callback at the same time.
+@
 @ If a routine does not want to be switched out, the it can call
 @ __pthread_disable_ints or __pthread_protect_unsafe which will alter
 @ __pthread_work_semaphore. The callevery interrupt will still occur, but it
 @ will take note of the state of the semaphore, and not set a callback
-
+@
+@ Multitasking programs use the Filter module (Filter_RegisterPreFilter and
+@ Filter_RegisterPostFilter) to enable/disable OS_CallEvery.
 
 #include "unixlib/asm_dec.s"
 
-
 	.text
-
-
-	.global	__pthread_start_ticker
-	.global	__pthread_stop_ticker
-	.global	__pthread_init_save_area
 
 @
 @ Start a ticker which will set the callback flag every clock tick
 @
+	.global	__pthread_start_ticker
 	NAME	__pthread_start_ticker
 __pthread_start_ticker:
  PICNE "STMFD	sp!, {v1-v2, lr}"
@@ -71,6 +70,7 @@ __pthread_start_ticker:
 	BNE	start_ticker_install_filters
 
 	@ Application may have called Wimp_Initialise since we last checked
+	@ Code similar to __get_taskhandle.
 	MOV	a1, #3				@ In desktop?
 	SWI	XWimp_ReadSysInfo
 	MOVVS	a1, #0
@@ -82,7 +82,7 @@ __pthread_start_ticker:
 	MOVS	a4, a1
 	BEQ	start_ticker_test_running
  
-	STR	a4, [a3, #GBL_TASKHANDLE]	@ __taskhandle
+	STR	a4, [a3, #GBL_TASKHANDLE]	@ __ul_global.taskhandle
  
 	@ a4 = current taskhandle
 start_ticker_install_filters:
@@ -206,6 +206,7 @@ stop_call_every:
 @
 @ Stop the ticker running
 @
+	.global	__pthread_stop_ticker
 	NAME	__pthread_stop_ticker
 __pthread_stop_ticker:
  PICNE "STMFD	sp!, {v1-v3, lr}"
@@ -298,10 +299,10 @@ pthread_call_every:
 	MOV	a3, #0
 	MOV	a4, #0
 	SWI	XOS_ChangeEnvironment
+	LDMVSFD	sp!, {a1-a4, pc}
 
 	LDR	a4, .L1	@=__ul_global
  PICEQ "LDR	a4, [r12, a4]"
-	LDMVSFD	sp!, {a1-a4, pc}
 
 	@ If it is not a SUL upcall handler, don't set callback
 	LDR	a1, [a4, #GBL_UPCALL_HANDLER_ADDR]
@@ -345,7 +346,7 @@ __pthread_callback:
 	@ Everything checks out, so from now on we're going to change
 	@ contexts.
 
-	@ Set __pthread_callback_semaphore to ensure that another
+	@ Set __ul_global.pthread_callback_semaphore to ensure that another
 	@ context interrupt does not interfere with us during this critical
 	@ time.
 	MOV	a1, #1
@@ -470,6 +471,7 @@ skip_contextswitch:
 
 @ entry:
 @   R0 = save area
+	.global	__pthread_init_save_area
 	NAME	__pthread_init_save_area
 __pthread_init_save_area:
 #ifndef __SOFTFP__

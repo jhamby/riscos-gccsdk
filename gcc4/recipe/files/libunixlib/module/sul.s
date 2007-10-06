@@ -3,6 +3,8 @@
 
 #include "unixlib/asm_dec.s"
 
+#define DEBUG_PROC_MATCHING 0
+
 	.text
 	.fpu fpa
 
@@ -15,8 +17,13 @@
 .set	ListValue, 8	@ Value at UpCall handler function
 .set	ListHead, 12	@ Pointer to head of list
 
-@ Process structure
-@ See also clib/unixlib/unix.h
+.set	ListSize, 16	@ Size of the List structure.
+
+@ Structure for clients written for SUL after v1.04.  This structure happens
+@ to be UnixLib struct __sul_process structure followed by internal SUL data
+@ for that process.
+@ Note that ListNext == PROC_NEXT.
+@ See the "struct __sul_process" definition in include/unixlib/unix.h.
 @ All entries upto PROC_SULONLY are accessible by client programs, and should
 @ not be altered, to ensure backwards compatibility. Entries after this are
 @ private to SUL and can be altered in new versions of SUL without problems.
@@ -58,25 +65,26 @@
 
 .set	PROC_SULONLY, 124
 
-.set	PROC_PARENTPROC, PROC_SULONLY + 0	@ Process structure of this process' parent
-.set	PROC_PARENTPROCADDR, PROC_SULONLY + 4	@ Address of the parent's __proc variable
-.set	PROC_CLI, PROC_SULONLY + 8	@ String to pass to OS_CLI on an exec
-.set	PROC_OLDEXIT, PROC_SULONLY + 12	@ Old handler values to restire after an exec
+.set	PROC_PARENTSULPROC, PROC_SULONLY + 0	@ Process structure of this process' parent
+.set	PROC_PARENTSULPROCADDR, PROC_SULONLY + 4	@ Address of the parent's __ul_global.sulproc variable
+.set	PROC_CLI, PROC_SULONLY + 8		@ String to pass to OS_CLI on an exec
+.set	PROC_OLDEXIT, PROC_SULONLY + 12		@ Old handler values to restire after an exec
 .set	PROC_OLDEXITR12, PROC_SULONLY + 16
 .set	PROC_OLDERROR, PROC_SULONLY + 20
 .set	PROC_OLDERRORR12, PROC_SULONLY + 24
 .set	PROC_OLDERRORBUF, PROC_SULONLY + 28
 .set	PROC_INITIALAPPSPACE, PROC_SULONLY + 32	@ Original appspace limit when the process was created
 .set	PROC_INITIALHIMEM, PROC_SULONLY + 36	@ Original memory limit when the process was created
-.set	PROC_PARENTSTACK, PROC_SULONLY + 40	@ The value of the process' __unixlib_stack
+.set	PROC_PARENTSTACK, PROC_SULONLY + 40	@ The value of the process' __ul_memory.stack
 .set	PROC_PARENTADDR, PROC_SULONLY + 44	@ The address the parent has been copied up to
-.set	PROC_PARENTSIZE1, PROC_SULONLY + 48	@ The size of the first part of the parent (0x8000 to __unixlib_stack_limit)
-.set	PROC_PARENTSIZE2, PROC_SULONLY + 52	@ The size of the second part of the parent (__unixlib_stack_limit to himem)
+.set	PROC_PARENTSIZE1, PROC_SULONLY + 48	@ The size of the first part of the parent (0x8000 to __ul_memory.stack_limit)
+.set	PROC_PARENTSIZE2, PROC_SULONLY + 52	@ The size of the second part of the parent (__ul_memory.stack_limit to himem)
 .set	PROC_PRIVATEWORD, PROC_SULONLY + 56	@ The private word of this module, so we can access it from an exit or error handler
-.set	PROC_FORK_STORAGE, PROC_SULONLY + 60	@ Storage for registers to restore on return from a fork/vfork
-
-.set	PROC_SIZE, PROC_FORK_STORAGE + 11*4 + 4*12
-
+.set	PROC_FORK_STORAGE, PROC_SULONLY + 60
+	@ Storage for registers to restore on return from a fork/vfork:
+	@   f4, f5, f6, f7
+	@   {v1-v6, sl, fp, ip, lr}
+.set	PROC_SIZE, PROC_FORK_STORAGE + 4*12 + 10*4
 
 
 @ The size of a __unixlib_fd struct
@@ -131,7 +139,7 @@ module_start:
 help:
 	.ascii	"SharedUnixLibrary"
 	.byte	9
-	.asciz	"1.10 (10 Apr 2006) (C) UnixLib Developers, 2001-2006"
+	.asciz	"1.11 (06 Oct 2007) (C) UnixLib Developers, 2001-2007"
 	.align
 
 title:
@@ -157,7 +165,7 @@ error_unknown:
 
 error_active:
 	.word	SharedUnixLibrary_Error_StillActive
-	.asciz	"There are still clients active"
+	.asciz	"There are still SharedUnixLibrary clients active"
 	.align
 
 error_tooold:
@@ -170,39 +178,20 @@ module_flags:
 
 swi_handler:
 	LDR	r12, [r12]
-	CMP	r11, #0
-	BEQ	register
-	CMP	r11, #1
-	BEQ	deregister
-	CMP	r11, #2
-	BEQ	value
-	CMP	r11, #3
-	BEQ	count
-	CMP     r11, #4
-	BEQ     initialise
+	CMP	r11, #5
+	ADDCC	pc, pc, r11, LSL#2
+	B	swi_handler_unknownswi
+	B	swi_register
+	B	swi_deregister
+	B	swi_value
+	B	swi_count
+	B	swi_initialise
+swi_handler_unknownswi:
 	ADR	r0, error_swi
 	TEQ	pc, pc
 	ORRNES	pc, lr, #VFlag
 	MSR	CPSR_f, #VFlag
 	MOV	pc, lr
-
-
-	@ Application UpCall handler, PRM 1-291
-	@
-	@ The address of this handler is passed back via The RegisterUpCall SWI.
-	@ The caller application then provides that address to
-	@ OS_ChangeEnvironment
-	@ Having this handler in a module enables it to be validly called when
-	@ the application isn't paged in.  This is despite the fact that most of
-	@ the UpCalls we are not interested in at all.
-
-upcall_handler:
-	TEQ	r0, #256		@ New Application UpCall
-	MOVNE	pc, lr			@ Otherwise exit quickly
-
-	MOV	r0, #0			@ Prevent new application from starting
-	MOV	pc, lr			@ This is easier than ensuring the
-					@ handler frees all resources correctly
 
 
 	@ Register an application with the module.
@@ -234,11 +223,11 @@ upcall_handler:
 	@         passed in R2 to OS_ChangeEnvironment
 
 
-register:
+swi_register:
 	STMFD	sp!, {r0, r3, lr}
 
 	MOV	r0, #6
-	MOV	r3, #16
+	MOV	r3, #ListSize
 	SWI	XOS_Module		@ Claim memory to use
 
 	LDMVSFD sp!, {r2, r3, pc}	@ Return to caller if error
@@ -259,6 +248,24 @@ register:
 	LDMFD	sp!, {r0, r3, pc}
 
 
+	@ Application UpCall handler, PRM 1-291
+	@
+	@ The address of this handler is passed back via The RegisterUpCall SWI.
+	@ The caller application then provides that address to
+	@ OS_ChangeEnvironment
+	@ Having this handler in a module enables it to be validly called when
+	@ the application isn't paged in.  This is despite the fact that most of
+	@ the UpCalls we are not interested in at all.
+
+upcall_handler:
+	TEQ	r0, #256		@ New Application UpCall
+	MOVNE	pc, lr			@ Otherwise exit quickly
+
+	MOV	r0, #0			@ Prevent new application from starting
+	MOV	pc, lr			@ This is easier than ensuring the
+					@ handler frees all resources correctly
+
+
 	@ Deregister a previously registered handler
 	@
 	@ Entry
@@ -270,7 +277,7 @@ register:
 	@ An error will be generated if the key is invalid, for example
 	@ if the handler has already been deregistered.
 
-deregister:
+swi_deregister:
 	STMFD	sp!, {r0-r1, lr}
 	BL	delink
 	CMP	r2, #0
@@ -310,7 +317,7 @@ delink:
 delink_find:
 	CMP	r0, #0
 	MOVEQ	r2, #0
-	MOVEQ	pc, lr	@ End of list, not found
+	MOVEQ	pc, lr			@ End of list, not found
 
 	CMP	r0, r2			@ Compare passed key
 	MOVNE	r1, r0			@ Set to current point in list
@@ -331,40 +338,40 @@ delink_find:
 	@
 	@ Exit
 	@    Registers preserved
-value:
-	STMFD   sp!, {r2-r3, lr}
+swi_value:
+	STMFD   sp!, {lr}
 
-	MOV	r2, r12
+	MOV	r14, r12
 
 value_find:
-	LDR	r2, [r2, #ListNext]
-	CMP	r2, #0
-	LDMEQFD	sp!, {r2-r3, pc}
-	CMP	r2, r0
+	LDR	r14, [r14, #ListNext]	@ ListNext == PROC_NEXT
+	CMP	r14, #0
+	LDMEQFD	sp!, {pc}
+	CMP	r14, r0
 	BNE	value_find
-	STR	r1, [r2, #ListValue]
-	LDMFD	sp!, {r2-r3, pc}
+	STR	r1, [r14, #ListValue]
+	LDMFD	sp!, {pc}
 
 
 
 	@ Return number of current clients in R0
-count:
-	STMFD	sp!, {r1, lr}
+swi_count:
+	STMFD	sp!, {lr}
 
 	MOV	r0, #0
-	LDR	r1, [r12]
+	MOV	r14, r12
 
 count_find:
-	CMP	r1, #0
-	LDMEQFD	sp!, {r1, pc}
-	LDR	r1, [r1]
+	LDR	r14, [r14, #ListNext]	@ ListNext == PROC_NEXT
+	CMP	r14, #0
+	LDMEQFD	sp!, {pc}
 	ADD	r0, r0, #1
 	B	count_find
 
 	@ Module initialisation
+	@
 	@ Allocate the initial list pointer rather than use the private word,
 	@ so code running in user mode doesn't have to access the private word.
-
 init_code:
 	STMFD	sp!, {lr}
 	MOV	r0, #6
@@ -379,43 +386,42 @@ init_code:
 	@ Module finalisation
 	@
 	@ Only allow exit if there are no claimants
-
 final_code:
-	STMFD	sp!, {r0, lr}
+	STMFD	sp!, {lr}
 
 	LDR	r0, [r12]
 	LDR	r0, [r0]
-	CMP	r0, #0			@ Is head of list set?
-	BEQ	normal_exit		@ No, so allow normal finalisation
+	TEQ	r0, #0			@ Is head of list set?
+	BNE	final_code_err		@ Yes, give error and don't die
 
-	ADR	r0, error_active	@ If so, set error and
-					@ disallow module finalisation
-	ADD	sp, sp, #4
+	MOV	r0, #7			@ Delete the initial list pointer
+	LDR	r2, [r12]
+	SWI	XOS_Module
+	LDMFD	sp!, {pc}
+
+	@ Set error and disallow module finalisation
+final_code_err:
+	ADR	r0, error_active
 	LDMFD	sp!, {lr}
-	TEQ	r0, r0
+	@ TEQ	r0, r0			@ Not needed as we're in SVC mode.
 	TEQ	pc, pc
 	ORRNES	pc, lr, #VFlag		@ Return error (26bit)
 	MSR	CPSR_f, #VFlag
 	MOV	pc, lr			@ Return error (32bit)
 
-normal_exit:
-	MOV	r0, #7
-	LDR	r2, [r12]
-	SWI	XOS_Module
-	LDMFD sp!, {r0, pc}
 
-
-@ SharedUnixLibrary_Initialise SWI
-@
-@ Entry
-@    R0 = Expected SUL version
-@
-@ Exit
-@    R0 = Address of process structure
-@    R1 = Address of upcall handler
-@    R2 = R12 value to use for upcall handler
-initialise:
-
+	@ SharedUnixLibrary_Initialise SWI
+	@
+	@ Entry
+	@    R0 = Expected SUL version
+	@
+	@ Exit
+	@    R0 = Address of process structure
+	@    R1 = Address of upcall handler
+	@    R2 = R12 value to use for upcall handler
+	@
+	@ Can return with an error.
+swi_initialise:
 	CMP	r0, #EARLIEST_SUPPORTED_VERSION
 	BHS	version_ok
 
@@ -443,11 +449,6 @@ version_ok:
 	TEQ	v2, #0
 	BEQ	alloc_proc
 
-findproc_loop:
-	LDR	a2, [v2, #PROC_TASKHANDLE]
-	TEQ	a1, a2
-	BNE	try_next
-
 	@ The taskhandles match, but we still need to determine if we are the
 	@ first program to be called since this process structure was created.
 	@ Otherwise, if a non-UnixLib program was called by the original
@@ -455,40 +456,141 @@ findproc_loop:
 	@ process structure as it was intended for use by the non-UnixLib
 	@ program.
 	SWI	XOS_GetEnv
-	BVS	try_next
+	MOVVS	pc, lr
+#if DEBUG_PROC_MATCHING
+	SWI	OS_WriteS
+	.asciz	"OS_GetEnv: "
+	.align
+	MOV	a3, a1
+	SWI	OS_Write0
+	MOV	a1, a3
+	SWI	OS_NewLine
+#endif
+
+	@ In the case of the command being ADFS::Disc.$.foo then some versions
+	@ of RISC OS will treat the ADFS: as a temporary filing system
+	@ selection and unhelpfully remove it from the command line provided
+	@ by OS_GetEnv.
+	@ So we have to skip the FS name before comparing if this is the case.
+	LDRB	lr, [a1]
+	TEQ	lr, #':'
+	BEQ	tmp_fs_loop1_done
+tmp_fs_loop1:
+	LDRB	lr, [a1], #1
+	CMP	lr, #' '
+	BLE	try_next
+	TEQ	lr, #':'
+	BNE	tmp_fs_loop1
+tmp_fs_loop1_done:
+
+#if DEBUG_PROC_MATCHING
+	SWI	OS_WriteS
+	.asciz	"OS_GetEnv (no FS): "
+	.align
+	MOV	a3, a1
+	SWI	OS_Write0
+	MOV	a1, a3
+	SWI	OS_NewLine
+#endif
+
+	@ a1 => OS_GetEnv CLI line without FS
+findproc_loop:
+	LDR	a2, [v2, #PROC_TASKHANDLE]
+	TEQ	v1, a2
+	BNE	try_next
+
 	LDR	a2, [v2, #PROC_CLI]
 
-	@ In the case of the command being ADFS::Disc.$.foo then RISC OS will
-	@ treat the ADFS: as a temporary filing system selection and
-	@ unhelpfully remove it from the command line provided by OS_GetEnv.
-	@ So we have to skip the FS name before comparing if this is the case.
-	LDRB	a3, [a1]
-	TEQ	a3, #':'
-	BNE	cli_loop
-tmp_fs_loop:
-	LDRB	a4, [a2], #1
-	TEQ	a4, #0
-	BEQ	try_next
-	TEQ	a4, #':'
-	BNE	tmp_fs_loop
+#if DEBUG_PROC_MATCHING
+	SWI	OS_WriteS
+	.asciz	" -> proc loop, cli: "
+	.align
+	MOV	a3, a1
+	MOV	a1, a2
+	SWI	OS_Write0
+	MOV	a1, a3
+	SWI	OS_NewLine
+#endif
 
+	@ Do the same with the canonicalised exec filename:
+	LDRB	a3, [a2]
+	TEQ	a3, #':'
+	BEQ	tmp_fs_loop2_done
+tmp_fs_loop2:
+	LDRB	a3, [a2], #1
+	CMP	a3, #' '
+	BLE	try_next
+	TEQ	a3, #':'
+	BNE	tmp_fs_loop2
+tmp_fs_loop2_done:
+
+#if DEBUG_PROC_MATCHING
+	SWI	OS_WriteS
+	.asciz	"    cli (no FS): "
+	.align
+	MOV	a3, a1
+	MOV	a1, a2
+	SWI	OS_Write0
+	MOV	a1, a3
+	SWI	OS_NewLine
+#endif
+
+	@ Compare OS_GetEnv cli (without FS) and exec filename (also without
+	@ FS). Stop comparing when encountering a space or control character.
 cli_loop:
 	LDRB	a3, [a1], #1
+	CMP	a3, #' '
+	MOVLE	a3, #0
 	LDRB	a4, [a2], #1
+	CMP	a4, #' '
+	MOVLE	a4, #0
 	TEQ	a3, a4
 	BNE	try_next
 	TEQ	a3, #0
 	BNE	cli_loop
+
 	@ If we get here, the two CLI strings matched, so use this
-	@ process struct
-	B	use_found
+	@ process struct.  This means we have a UnixLib compiled program
+	@ exec'd from from a fork'd UnixLib compiled program.
+
+#if DEBUG_PROC_MATCHING
+	SWI	OS_WriteS
+	.asciz	"** Matched proc"
+	.align
+	SWI	OS_NewLine
+#endif
+
+	@ Reset himem to appspace. We don't record the old values as this
+	@ could be an exec of an exec'd process and on exit we need to
+	@ restore the limits as they were at the start of the first
+	@ exec'd process.
+	MOV	a1, #14
+	MOV	a2, #0
+	SWI	XOS_ChangeEnvironment
+	MOVVC	a1, #0
+	SWIVC	XOS_ChangeEnvironment
+	B	invalidate_handle
 
 try_next:
+#if DEBUG_PROC_MATCHING
+	SWI	OS_WriteS
+	.asciz	"** Go next proc"
+	.align
+	SWI	OS_NewLine
+#endif
+
 	LDR	v2, [v2, #PROC_NEXT]
 	TEQ	v2, #0
 	BNE	findproc_loop
 
 alloc_proc:
+#if DEBUG_PROC_MATCHING
+	SWI	OS_WriteS
+	.asciz	"** New proc"
+	.align
+	SWI	OS_NewLine
+#endif
+
 	@ No existing process struct was found, so allocate a new one
 	MOV	a1, #6
 	LDR	a4, =PROC_SIZE
@@ -530,7 +632,7 @@ alloc_proc:
 	STR	a1, [v2, #PROC_FDARRAY]
 	STR	a1, [v2, #PROC_ENVIRON]
 	STR	a1, [v2, #PROC_ENVIRONSIZE]
-	STR	a1, [v2, #PROC_PARENTPROC]
+	STR	a1, [v2, #PROC_PARENTSULPROC]
 	STR	a1, [v2, #PROC_OLDEXIT]
 	STR	a1, [v2, #PROC_OLDEXITR12]
 	STR	a1, [v2, #PROC_OLDERROR]
@@ -538,7 +640,7 @@ alloc_proc:
 	STR	a1, [v2, #PROC_OLDERRORBUF]
 	STR	a1, [v2, #PROC_CLI]
 	STR	a1, [v2, #PROC_PARENTADDR]
-	MOV	a1, #18 @ 022
+	MOV	a1, #18		@ 022
 	STR	a1, [v2, #PROC_UMASK]
 	MOV	a1, #FDSIZE
 	STR	a1, [v2, #PROC_FDSIZE]
@@ -562,7 +664,7 @@ alloc_proc:
 	@ Record the current appspace and himem values, then set himem
 	@ to the appspace limit. This is necessary so any calls to
 	@ Wimp_SlotSize don't fail.
-	@ The process will have already recored the old value of himem,
+	@ The process will have already recorded the old value of himem,
 	@ so it won't overwrite its parent.
 	MOV	a1, #14
 	MOV	a2, #0
@@ -573,22 +675,10 @@ alloc_proc:
 	SWI	XOS_ChangeEnvironment
 	MOVVS	a2, #0
 	STR	a2, [v2, #PROC_INITIALHIMEM]
-	B	invalidate_handle
-
-use_found:
-	@ v2 = found, or newly allocated, __proc
-
-	@ Reset himem to appspace. We don't record the old values as this
-	@ could be an exec of an exec'd process and on exit we need to
-	@ restore the limits as they were at the start of the first
-	@ exec'd process.
-	MOV	a1, #14
-	MOV	a2, #0
-	SWI	XOS_ChangeEnvironment
-	MOV	a1, #0
-	SWIVC	XOS_ChangeEnvironment
 
 invalidate_handle:
+	@ v2 = found, or newly allocated, __ul_global.sulproc (struct __sul_process)
+
 	@ Invalidate the taskhandle so any children of this process don't
 	@ pick it up
 	MOV	a1, #-1
@@ -607,6 +697,8 @@ invalidate_handle:
 @ Allocate some memory. The client should use this to allocate anything that
 @ gets linked to from the process structure.
 @
+@ On exit, a2-a4 can be corrupted.
+@
 sul_malloc:
 	STMFD	sp!, {lr}
 	MOV	a4, a2
@@ -622,6 +714,8 @@ sul_malloc:
 @
 @ Free memory allocated by sul_malloc
 @
+@ On exit, a1-a4 can be corrupted.
+@
 sul_free:
 	STMFD	sp!, {lr}
 	MOV	a3, a2
@@ -636,18 +730,20 @@ sul_free:
 @ Increase the wimpslot to the address newslot.
 @ Returns the new value, or NULL on error
 @
+@ On exit, a2-a4 can be corrupted.
+@
 sul_wimpslot:
-	STMFD	sp!, {v1, lr}
+	STMFD	sp!, {lr}
 	SUB	a1, a2, #0x8000
 	MOV	a2, #-1
 	SWI	XWimp_SlotSize
 	MOVVS	a1, #0
 	ADDVC	a1, a1, #0x8000
-	LDMFD	sp!, {v1, pc}
+	LDMFD	sp!, {pc}
 
 
 @
-@ sul_memmove (void *dest, void *src, int size);
+@ void sul_memmove (void *dest, const void *src, size_t size);
 @
 @ Internal implementation of memmove.
 @ May not have a stack present when called.
@@ -690,6 +786,7 @@ sul_fork:
 	MOV	ip, sp
 	MOV	a1, a1, LSL #2 @ expand pid to 32-bits
 	STMFD	sp!, {a1-a4}
+
 	LDR	a4, =PROC_SIZE
 	MOV	a1, #6
 	SWI	XOS_Module
@@ -697,19 +794,18 @@ sul_fork:
 	MOVVS	pc, lr
 
 	@ Save registers that need restoring when we return as the parent
-	LDR	a1, =PROC_FORK_STORAGE
-	ADD	a1, a3, a1
-	STMIA	a1!, {v1-v6,sl,fp,ip,lr}
-	SFM	f4, 4, [a1]
+	ADD	a1, a3, #PROC_FORK_STORAGE
+	SFM	f4, 4, [a1], #4*12
+	STMIA	a1, {v1-v6, sl, fp, ip, lr}
 
 	MOV	v2, a3
 	LDMFD	sp!, {v1, v3-v5}
-	@ at this point:
-	@ v1 = parent __proc,
-	@ v2 = child __proc
-	@ v3 = 0x__proc
-	@ v4 = stacklimit
-	@ v5 = stack
+	@ At this point:
+	@   v1 = parent's __ul_global.sulproc ptr
+	@   v2 = ptr new child's struct __sul_process
+	@   v3 = & __ul_global.sulproc
+	@   v4 = stacklimit
+	@   v5 = stack
 
 	@ Copy everything except the fork storage from parent to child
 	MOV	a1, v2
@@ -801,9 +897,9 @@ fd_loop:
 	STR	a1, [v2, #PROC_PARENTADDR]
 
 	@ Save a reference to the parent proc struct
-	STR	v1, [v2, #PROC_PARENTPROC]
-	STR	v3, [v2, #PROC_PARENTPROCADDR]
-	STR	v2, [v3] @ Update the processes __proc
+	STR	v1, [v2, #PROC_PARENTSULPROC]
+	STR	v3, [v2, #PROC_PARENTSULPROCADDR]
+	STR	v2, [v3] @ Update the processes __ul_global.sulproc
 
 	@ If this was due to a fork then take a copy of the parent
 	MOV	a1, #0
@@ -815,9 +911,9 @@ fd_loop:
 
 	@ Return as the child
 	@ a1 will already be 0 from copy_up_parent
-	LDR	a2, =PROC_FORK_STORAGE
-	ADD	a2, v2, a2
-	LDMIA	a2, {v1-v6,sl,fp,sp,pc}
+	ADD	a2, v2, #PROC_FORK_STORAGE
+	LFM	f4, 4, [a2], #4*12
+	LDMIA	a2, {v1-v6, sl, fp, sp, pc}
 
 	@ Something has gone wrong, so free anything we have allocated before
 	@ returning an error
@@ -831,9 +927,10 @@ fork_error2:
 	SWI	XOS_Module
 fork_error1:
 	MOV	a3, v2
-	LDR	a2, =PROC_FORK_STORAGE
-	ADD	a2, a3, a2
-	LDMIA	a2, {v1-v6,sl,fp,sp,lr}
+
+	ADD	a2, v2, #PROC_FORK_STORAGE
+	LFM	f4, 4, [a2], #4*12
+	LDMIA	a2, {v1-v6, sl, fp, sp, lr}
 
 	MOV	a1, #7
 	SWI	XOS_Module
@@ -847,7 +944,7 @@ fork_error1:
 @ a1 = min_exec_mem / 0
 @ a2 = stacklimit
 @ a3 = stack
-@ v2 = __proc
+@ v2 = __ul_global.sulproc
 @ on exit, v2 preserved, a1-v1, v3-v6, ip corrupted
 @ returns 0 in a1 on success, -1 on error
 copy_up_parent:
@@ -872,7 +969,7 @@ copy_up_parent:
 	STR	a1, [v2, #PROC_PARENTSIZE1]
 
 	@ v1 = stacklimit
-	@ v2 = __proc
+	@ v2 = __ul_global.sulproc
 	@ v3 = min mem
 	@ v4 = stack
 	@ v5 = appspace
@@ -931,7 +1028,7 @@ no_increase:
 
 @
 @ Copy down parent from top of wimpslot to its original location
-@ v2 = __proc, preserved
+@ v2 = __ul_global.sulproc, preserved
 @ a1-a4, ip corrupted
 @ sp may not be valid
 copy_down_parent:
@@ -988,24 +1085,108 @@ restore_wimpslot:
 	MOV	pc, lr
 
 @
-@ void sul_exec (pid_t pid, char *cli, void *stacklimit, void *stack);
+@ void sul_exec (pid_t pid, char *cli, void *stacklimit, void *stack)
+@   __attribute__ ((__noreturn__))
 @
 @ Execute a program or *command
 @ cli should be allocated with sul_malloc, we will free it.
 @ Memory between stack limit and stack is free and can be used by us.
 @
 @ Never returns, so all registers can be corrupted
+@ FIXME: we're assuming sp is valid (sul_malloc, sul_free, etc), is that ok ?
 sul_exec:
-	MOV	v2, a1, LSL #2 @ expand pid to 32-bits
-	MOV	v3, a3
-	MOV	v4, a4
+	MOV	v3, a1, LSL #2	@ expand pid to 32-bits
+	MOV	v4, a3		@ v4 = stacklimit
+	MOV	v5, a4		@ v5 = stack
 
 	@ Save the cli, and free any old value
-	LDR	a3, [v2, #PROC_CLI]
-	STR	a2, [v2, #PROC_CLI]
+	@ But first canonicalise the program name part of the cli
+	MOV	v6, a2
+find_end_program_loop:
+	LDRB	v7, [v6], #1
+	CMP	v7, #32
+	BGT	find_end_program_loop
+	@ v6 => cli arguments
+	@ v7 < ' ' : there are no cli arguments
+	@    = ' ' : space in front of the cli arguments
+
+	@ Calculate cli argument length
+	SUB	v8, v6, #1
+cli_arg_len_loop:
+	LDRB	lr, [v8], #1
+	CMP	lr, #32
+	BGE	cli_arg_len_loop
+	SUB	v8, v8, v6	@ v8 = length cli argument + term char
+	ADD	v8, v8, #1	@ v8 = length cli argument + term char + 1
+
+	MOV	lr, #0
+	STRB	lr, [v6, #-1]
+
+	MOV	a1, #37
+	@ MOV	a2, a2
+	MOV	a3, #0
+	MOV	a4, #0
+	MOV	v1, #0
+	MOV	v2, #0
+	SWI	XOS_FSControl
+	BVS	restore_cli	@ Don't give error (good idea ?) and continue FIXME: why not use OS_GenerateError which terminates the parent ?
+
+	@ Allocate sul memory to hold canonicalised program name + cli arguments
+	STMFD	sp!, {a2}
+	MOV	a1, v3, LSR #2
+	SUB	v2, v8, v2
+	ADD	a2, v2, #1
+	BL	sul_malloc	@ a1-a4 can get corrupted
+	LDMFD	sp!, {a2}
+	MOVS	a3, a1
+	BEQ	restore_cli	@ FIXME: better error reporting needed ?
+
+	MOV	a1, #37
+	MOV	a4, #0
+	ADD	v2, v2, #1
+	SWI	XOS_FSControl
+	BVS	restore_cli
+
+	CMP	v7, #32
+	BLT	swap_cli
+
+	@ Add cli arguments
+	MOV	a4, a3		@ Find end canonicalised program name
+find_end_canon_program_loop:
+	LDRB	lr, [a4], #1
+	CMP	lr, #32
+	BGT	find_end_canon_program_loop
+	STRB	v7, [a4, #-1]	@ Write ' '
+add_cli_arguments:		@ Add the cli arguments
+	LDRB	lr, [v6], #1
+	STRB	lr, [a4], #1
+	CMP	lr, #32
+	BGE	add_cli_arguments
+
+swap_cli:
+	@ a2 non canonicalised cli (sul_malloced)
+	@ a3 canonicalised cli (sul_malloced)
+	MOV	v1, a3
+	MOV	a1, a2
+	BL	sul_free	@ a1-a4 can get corrupted
+
+	MOV	a2, v1
+	B	update_cli_in_proc
+
+	@ a2 = sul_malloced memory block containing the cli
+restore_cli:
+	STRB	v7, [v6, #-1]
+
+	@ a2 = sul_malloced memory block containing the cli
+update_cli_in_proc:
+	LDR	a3, [v3, #PROC_CLI]
 	TEQ	a3, #0
 	MOVNE	a1, #7
 	SWINE	XOS_Module
+	STR	a2, [v3, #PROC_CLI]
+
+	@ From here onwards, v2 = pid_t
+	MOV	v2, v3
 
 	@ Record the taskhandle, so if the child calls SUL_Initialise then
 	@ we can match it with the correct process structure
@@ -1051,8 +1232,8 @@ skip_handler_setup:
 
 	@ We have a parent that needs copying, i.e. we were created by a vfork
 	MOV	a1, #MIN_EXEC_MEM
-	MOV	a2, v3
-	MOV	a3, v4
+	MOV	a2, v4
+	MOV	a3, v5
 	BL	copy_up_parent
 	TEQ	a1, #0
 	ADRNE	a1, error_no_mem
@@ -1067,6 +1248,14 @@ no_copy_needed:
 	BL	restore_wimpslot
 
 do_exec:
+	LDR	a1, [v2, #PROC_CLI]
+#if DEBUG_PROC_MATCHING
+	SWI	OS_WriteS
+	.asciz	"About to exec: "
+	.align
+	SWI	XOS_Write0
+	SWI	XOS_NewLine
+#endif
 	LDR	a1, [v2, #PROC_CLI]
 	SWI	OS_CLI
 
@@ -1087,7 +1276,7 @@ do_exec:
 	MOV     a2, #0
 	B       exit_error_handler_common
 
-error_handler: @ r0 = __proc
+error_handler: @ r0 = __ul_global.sulproc
 	MOV	ip, a1
 	MOV	a1, #0x8000
 	ADD	a1, a1, #8
@@ -1106,7 +1295,8 @@ print_error:
 	MOV	a2, #1
 	B	exit_error_handler_common
 
-exit_handler: @r12 = __proc
+	@ r12 = __ul_global.sulproc
+exit_handler:
 	@ Read the return code and convert to an integer (why on earth doesn't
 	@ RISC OS store it as a numeric variable?)
 	@ We can use the bottom of the wimpslot as a temporary buffer as the
@@ -1134,7 +1324,8 @@ convert_loop:
 	MUL	a4, v3, a4
 	B	convert_loop
 
-exit_error_handler_common:	@ a1 = __proc, a2 = returncode
+exit_error_handler_common:
+	@ a1 = __ul_global.sulproc, a2 = returncode
 	@ Save the return code
 	AND	a3, a2, #RETURNCODE_MASK
 	STR	a3, [a1, #PROC_STATUS]
@@ -1201,9 +1392,9 @@ sul_exit:
 	SWI	OS_Exit		@ - never returns
 
 has_parent:
-	@ Update parent's __proc pointer
-	LDR	a2, [v2, #PROC_PARENTPROC]
-	LDR	a3, [v2, #PROC_PARENTPROCADDR]
+	@ Update parent's __ul_global.sulproc pointer
+	LDR	a2, [v2, #PROC_PARENTSULPROC]
+	LDR	a3, [v2, #PROC_PARENTSULPROCADDR]
 	STR	a2, [a3]
 
 	@ This process is now a zombie child
@@ -1213,10 +1404,9 @@ has_parent:
 
 	@ Restore registers and return with a1 = child pid
 	MOV	a1, v2, LSR #2 @ shrink pid to 30-bits
-	LDR	a2, =PROC_FORK_STORAGE
-	ADD	a2, v2, a2
-	LFM	f4, 4, [a2]
-	LDMIA	a2!, {v1-v6,sl,fp,sp,pc}
+	ADD	a2, v2, #PROC_FORK_STORAGE
+	LFM	f4, 4, [a2], #4*12
+	LDMIA	a2, {v1-v6, sl, fp, sp, pc}
 
 exit_word:
 	.word	0x58454241

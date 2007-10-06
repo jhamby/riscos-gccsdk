@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 int
 fputc (int c, FILE *stream)
@@ -12,7 +13,7 @@ fputc (int c, FILE *stream)
 
   if (! __validfp (stream) || ! stream->__mode.__bits.__write)
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return EOF;
     }
 

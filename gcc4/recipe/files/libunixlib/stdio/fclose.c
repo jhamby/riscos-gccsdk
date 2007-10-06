@@ -7,13 +7,13 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <fcntl.h>
+#include <pthread.h>
+#include <unixlib/unix.h>
 
 #ifdef DEBUG
 #include <unixlib/os.h>
 #endif
-
-#include <fcntl.h>
-#include <pthread.h>
 
 int
 fclose (FILE * stream)

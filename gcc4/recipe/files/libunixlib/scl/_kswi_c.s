@@ -1,14 +1,12 @@
 @ _kernel_swi_c
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
 	.text
 
-
-
-	@ _kernel_swi_c (int no, _kernel_swi_regs *in,
-	@		 _kernel_swi_regs *out, int *carry);
+	@ _kernel_oserror *_kernel_swi_c (int no, _kernel_swi_regs *in,
+	@				  _kernel_swi_regs *out, int *carry)
 	.global	_kernel_swi_c
 	NAME	_kernel_swi_c
 _kernel_swi_c:
@@ -35,5 +33,6 @@ error:
 	BL	__ul_seterr
 	MOV	a1, v1
 	LDMIA	sp!, {a3-a4, v1-v6, pc}
+	DECLARE_FUNCTION _kernel_swi_c
 
 	.end

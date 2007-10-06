@@ -11,6 +11,7 @@
 #include <sys/param.h>
 #include <sys/wait.h>
 
+#include <unixlib/unix.h>
 #ifdef DEBUG
 #include <unixlib/os.h>
 #endif
@@ -156,18 +157,13 @@ pclose (FILE * stream)
       /* The current process has written to the pipe, so now fork the child
 	 to read from the pipe.  */
       static struct pwr *pwr;
-      struct pwr *prev_pwr = NULL;
-
-      pwr = __pwr;
+      struct pwr *prev_pwr;
 
       /* Locate saved pipe command and remove it from the list.  */
-      while (pwr)
-	{
-	  if (pwr->f == stream)
-	    break;
-	  prev_pwr = pwr;
-	  pwr = pwr->next;
-	}
+      for (pwr = __pwr, prev_pwr = NULL;
+	   pwr != NULL && pwr->f != stream;
+	   pwr = pwr->next, prev_pwr = pwr)
+	/* */;
       if (!pwr)
 	return -1;
       if (prev_pwr)

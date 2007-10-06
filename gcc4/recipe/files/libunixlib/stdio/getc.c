@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 int
 fgetc (FILE * stream)
@@ -11,10 +12,8 @@ fgetc (FILE * stream)
   PTHREAD_UNSAFE
 
   if (!__validfp (stream) || !stream->__mode.__bits.__read)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __set_errno (EINVAL);
+
   return getc_unlocked (stream);
 }
 

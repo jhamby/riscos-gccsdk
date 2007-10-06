@@ -45,7 +45,8 @@ static mmap_info mmaps[MAX_MMAPS] = {
   IMMAP, IMMAP, IMMAP, IMMAP, IMMAP, IMMAP, IMMAP, IMMAP
 };
 
-#define page_align(len) (((len) + __ul_pagesize - 1) & ~(__ul_pagesize - 1));
+#define page_align(gbl, len) \
+  (((len) + (gbl)->pagesize - 1) & ~((gbl)->pagesize - 1))
 
 extern void __mmap_page_copy (caddr_t dst, caddr_t src, int len);
 
@@ -75,6 +76,7 @@ __munmap_all (void)
 caddr_t
 mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
+  struct ul_global *gbl = &__ul_global;
   int regs[10];
   int i;
 
@@ -90,15 +92,14 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   /* We don't support MAP_FIXED.  */
   if (flags & MAP_FIXED)
-    return (caddr_t) __set_errno (((size_t)addr & (__ul_pagesize - 1)) != 0
-				  ? EINVAL : ENOSYS);
+    return (caddr_t) __set_errno (((size_t)addr & (gbl->pagesize - 1)) ? EINVAL : ENOSYS);
 
   /* We don't support MAP_COPY.  */
   if (flags & MAP_COPY)
     return (caddr_t) __set_errno (ENOSYS);
 
   /* We only support mmap when dynamic areas are enabled.  */
-  if (__dynamic_num == -1)
+  if (gbl->dynamic_num == -1)
     return (caddr_t) __set_errno (ENOSYS);
 
   /* We only support PROT_READ or PROT_WRITE.  */
@@ -120,7 +121,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   if (i == MAX_MMAPS)
     return (caddr_t) __set_errno (ENOMEM);
 
-  len = page_align (len);
+  len = page_align (gbl, len);
   /* Create the dynamic area.  */
   regs[0] = 0;
   regs[1] = -1;
@@ -141,7 +142,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   regs[5] = regs[2] * 3;
   regs[6] = 0;
   regs[7] = 0;
-  /* The DA name could be the same name used in sys/syslib.s so Virtualise
+  /* The DA name could be the same name used in sys/_syslib.s so Virtualise
      can be enabled/disabled for the area. Using the name with 'X' appended
      is useful though to separate the areas from the more general purpose
      heap.  */
@@ -166,7 +167,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   mmaps[i].len	  = len;
   mmaps[i].prot	  = prot;
 
-  return (mmaps[i].addr);
+  return mmaps[i].addr;
 }
 
 /* Deallocate any mapping for the region starting at ADDR and extending LEN
@@ -197,13 +198,9 @@ munmap (caddr_t addr, size_t len)
   regs[1] = mmaps[i].number;
   mmaps[i].addr = 0;
   mmaps[i].number = -1;
-  err = __os_swi (OS_DynamicArea, regs);
-  if (err)
-    {
-      /* Failed to delete area.  */
-      __ul_seterr (err, 1);
-      return -1;
-    }
+  if ((err = __os_swi (OS_DynamicArea, regs)) != NULL)
+    return __ul_seterr (err, 1); /* Failed to delete area.  */
+
   return 0;
 }
 
@@ -256,6 +253,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
   caddr_t new_addr;
   _kernel_oserror *err;
   int regs[10];
+  struct ul_global *gbl = &__ul_global;
 
   PTHREAD_UNSAFE
 
@@ -269,13 +267,13 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
   if (i == MAX_MMAPS)
     return (caddr_t) __set_errno (EINVAL);
 
-  old_len = page_align (old_len);
+  old_len = page_align (gbl, old_len);
 
   /* Check correct length was passed.  */
   if (old_len != mmaps[i].len)
     return (caddr_t) __set_errno (EINVAL);
 
-  new_len = page_align (new_len);
+  new_len = page_align (gbl, new_len);
   regs[0] = mmaps[i].number;
   regs[1] = new_len - old_len;
 
@@ -295,10 +293,8 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 	  return addr;
 	}
       if ((may_move & MREMAP_MAYMOVE) == 0)
-	{
-	  __ul_seterr (err, 1); /* XXX Should we return ENOMEM ? */
-	  return ((caddr_t)-1);
-	}
+	return (caddr_t) __ul_seterr (err, 1); /* XXX Should we return ENOMEM ? */
+
       /* Create a new mmap section to replace this section and copy over the
 	 data.  */
       old_area = mmaps[i].number;
@@ -310,7 +306,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 	  /* If mmap failed, then keep the old area.  */
 	  mmaps[i].addr	  = addr;
 	  mmaps[i].number = old_area;
-	  return ((caddr_t)-1);
+	  return (caddr_t) -1;
 	}
       /* Fast page copy. */
       __mmap_page_copy (new_addr, addr, old_len);
@@ -324,5 +320,6 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 	__ul_seterr (err, 1);
       addr = new_addr;
     }
+
   return addr;
 }

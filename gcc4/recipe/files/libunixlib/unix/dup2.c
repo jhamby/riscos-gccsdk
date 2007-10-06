@@ -1,5 +1,5 @@
 /* dup2 ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -12,7 +12,7 @@ dup2 (int fd1, int fd2)
 {
   int save;
 
-  if ((unsigned int) fd2 >= __proc->maxfd)
+  if ((unsigned int) fd2 >= __ul_global.sulproc->maxfd)
     return __set_errno (EINVAL);
 
   if (fcntl (fd1, F_GETFL) < 0)

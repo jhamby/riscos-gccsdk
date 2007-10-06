@@ -86,7 +86,7 @@ __main:
 	@   a1 = pointer to environment string
 	@   a2 = permitted RAM limit (highest address available + 1)
 	@   a3 = pointer to real time the program was started (5 bytes)
-	SWI	XOS_GetEnv
+	SWI	OS_GetEnv		@ When error, call parent error handler.
 
 	@ struct_base is the start of our memory environment variables
 	@ See the end of this file.  For the initialisation here, we
@@ -96,14 +96,14 @@ __main:
 	LDR	fp, .L0+4		@=__ul_memory
  PICEQ "LDR	fp, [v4, fp]"
 
-	@ __unixlib_cli = pointer to command line
+	@ __ul_global.unixlib_cli = pointer to command line
 	STR	a1, [ip, #GBL_UNIXLIB_CLI]
-	@ __image_rw_himem = permitted RAM limit
+	@ __ul_memory.appspace_himem = permitted RAM limit
 	STR	a2, [fp, #MEM_APPSPACE_HIMEM]
 
 	LDMIA	a3, {a1, a2}			@ Get time
-	STR	a1, [ip, #GBL_TIME_LOW]		@ __time (low word)
-	STR	a2, [ip, #GBL_TIME_HIGH]	@ __time (high word)
+	STR	a1, [ip, #GBL_TIME_LOW]		@ __ul_global.time (low word)
+	STR	a2, [ip, #GBL_TIME_HIGH]	@ __ul_global.time (high word)
 
 	@ Store the pointer to the programs _init & _fini functions for
 	@ calling later. This applies to both static and shared libs.
@@ -126,23 +126,18 @@ __main:
 	@ Also store the pointer to the programs main function for calling later.
  PICEQ "STR	a4, [ip, #GBL_MAIN]"
 
-	MVNS	a1, #0			@ ensure a flag is set
-	TEQ	pc, pc			@ EQ if in 32-bit mode, NE if 26-bit
-	STREQ	a1, [ip, #GBL_32BIT]	@ __32bit
-
 	@ Obtain the application space limit.  Note that this is different
-	@ to the permitted RAM limit returned by OS_GetEnv.
+	@ to the permitted RAM limit returned by OS_GetEnv, i.e. MEM_APPSPACE_HIMEM
 	MOV	a1, #14
 	MOV	a2, #0
-	MOV	a3, #0
-	SWI	XOS_ChangeEnvironment
+	SWI	OS_ChangeEnvironment	@ No X call, if error call parent error handler.
 	STR	a2, [fp, #MEM_APPSPACE_LIMIT]
 
 	@ For a description of the memory layout of a UnixLib application
 	@ see sys/brk.c.
-	LDR	a2, [fp, #MEM_RWLOMEM]	@ __rwlomem
-	STR	a2, [fp, #MEM_RWBREAK]	@ __break = __rwlomem
-	STR	a2, [fp, #MEM_UNIXLIB_STACK_LIMIT] @ __stack_limit = __rwlomem
+	LDR	a2, [fp, #MEM_RWLOMEM]		@ __ul_memory.rwlomem
+	STR	a2, [fp, #MEM_RWBREAK]		@ __ul_memory.rwbreak = __ul_memory.rwlomem
+	STR	a2, [fp, #MEM_STACK_LIMIT]	@ __ul_memory.stack_limit = __ul_memory.rwlomem
 
 	@ The stack is allocated in chunks in the wimpslot, with the first
 	@ 4KB chunk immediately below 'appspace_himem'.  We cannot place it
@@ -167,7 +162,7 @@ __main:
 	SUB	a3, a1, #8
 	@ __stackalloc_init needs a minimum of 8 bytes below the initial
 	@ chunk for its heap - check this doesn't overlap the code section
-	STR	a3, [fp, #MEM_UNIXLIB_STACK]	@ __stack = bottom of stack
+	STR	a3, [fp, #MEM_STACK]	@ __ul_memory.stack = bottom of stack
 	CMP	a3, a2
 	MOVCC	a1, #ERR_NO_MEMORY
 	BCC	__exit_with_error_num	@ No room for stack, exit.
@@ -212,12 +207,6 @@ __main:
 	MOVVS	a1, #ERR_NO_SUL
 	BVS	__exit_with_error_num
 
-	@ Use of DAs explicitly overridden if __dynamic_no_da is declared
-	LDR	a1, ___dynamic_no_da
- PICEQ "LDR	a1, [v4, a1]"
-	TEQ	a1, #0
-	BNE	no_dynamic_area
-
 	@ Checks for minimum ARM CPU architecture.  When it is an unknown CPU
 	@ architecture, we continue without error.
 	BL	__get_cpu_arch
@@ -227,6 +216,15 @@ __main:
 	MOVCC	a1, #ERR_TOO_LOW_CPU_ARCH
 	BCC	__exit_with_error_num
 unknown_cpu_arch:
+
+	@ Use of DAs explicitly overridden if __dynamic_no_da is declared
+	MOV	lr, #-1
+	STR	lr, [ip, #GBL_DYNAMIC_NUM]
+
+	LDR	a1, ___dynamic_no_da
+ PICEQ "LDR	a1, [v4, a1]"
+	TEQ	a1, #0
+	BNE	no_dynamic_area
 
 	@ Check OS version for RISC OS 3.5 or more recent.
 	MOV	a1, #129
@@ -345,19 +343,18 @@ t08:
 	MOV	v3, #0
 	MOV	v4, #0
 	@ v5 is already set from above
-	SWI	XOS_DynamicArea
-	BVS	__exit_with_error_block	@ no DA, report and exit
+	SWI	OS_DynamicArea	@ No X bit, if error -> call parent error handler.
 	MOV	v1, a3				@ setup for deletion at exit
-	STR	a2, [ip, #GBL_DYNAMIC_NUM]	@ __dynamic_num
+	STR	a2, [ip, #GBL_DYNAMIC_NUM]	@ __ul_global.dynamic_num
  PICEQ "MOV	v4, v6"		@ Restore PIC register
 
 	@ v1 is size left in area, a4 is start offset
 	ADD	a1, v1, a4
-	@ __lomem = start of dynamic area
+	@ __ul_memory.dalomem = start of dynamic area
 	STR	a4, [fp, #MEM_DALOMEM]
-	@ __break = end of used part of DA
+	@ __ul_memory.dabreak = end of used part of DA
 	STR	a1, [fp, #MEM_DABREAK]
-	@ __real_break = end of used part of DA
+	@ __ul_memory.dalimit = end of used part of DA
 	STR	a1, [fp, #MEM_DALIMIT]
 
 no_dynamic_area:
@@ -367,9 +364,10 @@ no_dynamic_area:
 	MOV	a1, #0
 	SWI	XTaskWindow_TaskInfo
 	MOVVS	a1, #0
-	STR	a1, [ip, #GBL_TASKWINDOW]	@ __taskwindow
+	STR	a1, [ip, #GBL_TASKWINDOW]	@ __ul_global.taskwindow
 
 	@ Find out whether we are executing as a WIMP program or not.
+	@ Code similar to __get_taskhandle.
 	MOV	a1, #3		@ Text output mode, or desktop mode ?
 	SWI	XWimp_ReadSysInfo
 	MOVVS	a1, #0
@@ -377,12 +375,12 @@ no_dynamic_area:
 	MOVNE	a1, #5		@ When desktop mode, get the taskhandle
 	SWINE	XWimp_ReadSysInfo
 	MOVVS	a1, #0
-	STR	a1, [ip, #GBL_TASKHANDLE]	@ __taskhandle
+	STR	a1, [ip, #GBL_TASKHANDLE]	@ __ul_global.taskhandle
 
 	@ Cache the system page size as this call can be slow.
 	@ Used by getpagesize ().
 	SWI	XOS_ReadMemMapInfo
-	STR	a1, [ip, #GBL_UL_PAGESIZE]	@ __ul_pagesize
+	STR	a1, [ip, #GBL_PAGESIZE]		@ __ul_global.pagesize
 
 #ifndef __SOFTFP__
 	@ Recognise the Floating Point facility by determining whether
@@ -401,12 +399,10 @@ no_dynamic_area:
 	MOV	a1, #SUL_MIN_VERSION
 	@ SUL version we are expecting. Newer versions should be backwards
 	@ compatible, if not they will return an error
-	SWI	XSharedUnixLibrary_Initialise
-	BVS	__exit_with_error_block
-	STR	a1, [ip, #GBL_PROC]
+	SWI	SharedUnixLibrary_Initialise	@ No X bit, if error -> call parent error handler.
+	STR	a1, [ip, #GBL_SULPROC]
 	STR	a2, [ip, #GBL_UPCALL_HANDLER_ADDR]
 	STR	a3, [ip, #GBL_UPCALL_HANDLER_R12]
-
 
 	@ Initialise the malloc memory allocator.
 	BL	__ul_malloc_init
@@ -468,10 +464,9 @@ ___dynamic_no_da:
 	@ are not registered (anymore) because otherwise an OS_GenerateError
 	@ straight jumps in our code again.
 	@ Cfr. PRM 1-294 & 1-295.
-	@ a1 contains an index to the error to print.
+	@ a1 contains an index to the error block to report.
 	NAME	__exit_with_error_num
 __exit_with_error_num:
-
  PICEQ "LDR	a2, .L7+4"
 .LPIC1:
  PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
@@ -486,14 +481,11 @@ __exit_with_error_num:
 	CMP	a1, #(error_table_end - error_table) >> 2
 	MOVCS	a1, #ERR_UNRECOVERABLE
 	LDR	a1, [a2, a1, LSL #2]
-
-__exit_with_error_block:
 	SWI	OS_GenerateError
 .L7:
 	WORD	error_table
  PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 	DECLARE_FUNCTION __exit_with_error_num
-	DECLARE_FUNCTION __exit_with_error_block
 
 #if PIC
 	.data
@@ -932,9 +924,9 @@ __check_stack:
 	BLNE	__pthread_disable_ints
 	LDR	a1, .L5+4	@=__ul_memory
  PICEQ "LDR	a1, [v4, a1]"
-	LDR	a2, [a1, #MEM_UNIXLIB_STACK]
-	LDR	a3, [a1, #MEM_APPSPACE_HIMEM]
-	LDR	a4, [a1, #MEM_ROBASE]
+	LDR	a2, [a1, #MEM_STACK]		@ __ul_memory.stack
+	LDR	a3, [a1, #MEM_APPSPACE_HIMEM]	@ __ul_memory.appspace_limit
+	LDR	a4, [a1, #MEM_ROBASE]		@ __ul_memory.robase
 
 	SUB	a1, sl, #512+CHUNK_OVERHEAD
 __check_stack_l1:
@@ -963,8 +955,10 @@ __check_stack_l4:
 	LDR	a1, [a1, #CHUNK_PREV]
 	B	__check_stack_l3
 
-	@ a1 = chunk, a2 = __unixlib_stack,
-	@ a3 = __image_rw_himem, a4 = __image_ro_base
+	@ a1 = chunk
+	@ a2 = __ul_memory.stack
+	@ a3 = __ul_memory.appspace_himem
+	@ a4 = __ul_memory.robase
 __check_chunk:
 	CMP	a1, a2
 	BCC	stack_corrupt
@@ -1029,6 +1023,8 @@ __check_chunk_l2:
 	.global	__trim_stack
 __trim_stack:
 	SUB	a2, sl, #512 + CHUNK_OVERHEAD	@ Find bottom of chunk
+	@ FIXME: a2/sl value come from a jmpbuf buffer so it would be a good
+	@ idea to validate this somehow.
 	LDR	a1, [a2, #CHUNK_NEXT]
 	TEQ	a1, #0
 	MOVEQ	pc, lr
@@ -1183,6 +1179,7 @@ __unixlib_fatal_got_msg:
 	DECLARE_FUNCTION __unixlib_fatal
 
 	.global	__unixlib_get_fpstatus
+	NAME	__unixlib_get_fpstatus
 __unixlib_get_fpstatus:
 #ifndef __SOFTFP__
 	rfs	r0
@@ -1193,6 +1190,7 @@ __unixlib_get_fpstatus:
 	DECLARE_FUNCTION __unixlib_get_fpstatus
 
 	.global	__unixlib_set_fpstatus
+	NAME	__unixlib_set_fpstatus
 __unixlib_set_fpstatus:
 #ifndef __SOFTFP__
 	wfs	r0
@@ -1204,8 +1202,11 @@ __unixlib_set_fpstatus:
 	@ Return non-zero value when address range <lower> - <upper> (excl)
 	@ is a valid address range.
 	.global	__valid_address
+	NAME	__valid_address
 __valid_address:
 	SWI	XOS_ValidateAddress
+	MOVVS	a1, #0
+	MOVVS	pc, lr
 	@ If the C flag is clear then the address range is OK
 	@ If the C flag is set then the address range is not OK.
 	MOVCC	a1, #1
@@ -1252,7 +1253,7 @@ dynamic_area_name_end:
 @
 @ The intention is to move virtually all global variables into this
 @ structure and patch all assembler and C source files to reference
-@ them via __ul_global, thereby allowing us to drop the EXPORT directives
+@ them via __ul_global, thereby allowing us to drop the .global directives
 @ below.  If all assembler files are converted, then it would be possible
 @ to redefine this structure in C and drop the definitions here.
 @
@@ -1260,111 +1261,126 @@ dynamic_area_name_end:
 @ unixlib/asm_dec.s and prefixed 'GBL_'.  If you change this structure
 @ you must change that file.
 
-	.global	__unixlib_cli		@ CLI from OS_GetEnv
-	.global	__time	@ start time - 5 byte format
-	.global	__taskwindow	@ non-zero if executing in a TaskWindow
-	.global	__taskhandle	@ WIMP task handle, or zero if non WIMP task
-	.global	__dynamic_num
-	.global	__32bit	@ non-zero if executing in 32-bit mode
-	.global	__panic_mode	@ non-zero when we're panicing.
-	.global	__proc
-	.global	__ul_pagesize	@ system page size
-	.global	__upcall_handler_addr
-	.global	__upcall_handler_r12
-	.global	__pthread_return_address
-	.global	__pthread_worksemaphore
-	.global	__pthread_system_running
-	.global	__pthread_callback_semaphore
-	.global	__pthread_callback_missed
-	.global	__pthread_num_running_threads
-	.global	__executing_signalhandler
-	.global	__signalhandler_sl
-	.global	__signalhandler_sp
-
 #if PIC
 	.global	main
 #endif
 
 	@ This variable refers to the base address of the UnixLib
 	@ global structure.
+	@ Altering this structure will require fixing __main.
 	.global	__ul_global
 __ul_global:
+	@ __ul_global.cli
+	@ CLI from OS_GetEnv
+	.word	0				@ offset = 0
 
-	@ Altering this structure will require fixing __main.
-__unixlib_cli:		.word	0				@ offset = 0
-__time:			.word	0, 0	@ low word, high byte	@ offset = 4
-__notused1:		.word	0				@ offset = 12
+	@ __ul_global.time
+	@ low word, high byte
+	.word	0, 0	@ 			@ offset = 4
 
-__taskwindow:		.word	0				@ offset = 16
-__taskhandle:		.word	0				@ offset = 20
+	@ __ul_global.__notused1
+	.word	0				@ offset = 12
 
-__dynamic_num:		.word	-1				@ offset = 24
-__old_u:		.word	0				@ offset = 28
+	@ __ul_global.taskwindow
+	@ Non-zero if executing in a TaskWindow
+	@ This value is always up-to-date as we can't become a TaskWindow task
+	@ if we aren't one at startup. So no need for __get_task_window () or
+	@ something similar.
+	.word	0				@ offset = 16
 
-__32bit:		.word	0				@ offset = 32
+	@ __ul_global.taskhandle
+	@ WIMP task handle, or zero if non WIMP task
+	@ Note that when __ul_global.taskwindow == 1 =>
+	@ __ul_global.taskhandle != 0 but not necessary vice-versa.
+	@ Also, if this value is zero it could be that Wimp_InitialiseTask
+	@ has been called since last check so you have to check if this
+	@ value is still up-to-date.  Use __get_taskhandle ().
+	.word	0				@ offset = 20
 
-__panic_mode:		.word	0				@ offset = 36
+	@ __ul_global.dynamic_num
+	@ -1 is no DA is used, i.e. heap in application memory.
+	@ Otherwise the DA number used to store our heap.
+	.word	-1				@ offset = 24
 
-__proc:			.word	0				@ offset = 40
-__ul_pagesize:		.word	0				@ offset = 44
-__upcall_handler_addr:	.word	0				@ offset = 48
-__upcall_handler_r12:	.word	0				@ offset = 52
+	@ __ul_global.__notused4
+	.word	0				@ offset = 28
 
-__pthread_return_address:
+	@ __ul_global.__notused2
+	.word	0				@ offset = 32
+
+	@ __ul_global.panic_mode
+	@ Non-zero when we're panicing.
+	.word	0				@ offset = 36
+
+	@ __ul_global.sulproc
+	@ Process structure returned from SUL.
+	.word	0				@ offset = 40
+
+	@ __ul_global.pagesize
+	@ System page size
+	.word	0				@ offset = 44
+
+	@ __ul_global.upcall_handler_addr
+	.word	0				@ offset = 48
+
+	@ __ul_global.upcall_handler_r12
+	.word	0				@ offset = 52
+
+	@ __ul_global.pthread_return_address
 	.word	0						@ offset = 56
-	DECLARE_OBJECT __pthread_return_address
 
-__pthread_worksemaphore:
+	@ __ul_global.pthread_worksemaphore
+	@ Zero if the context switcher is allowed to switch threads
 	.word	0						@ offset = 60
-	DECLARE_OBJECT __pthread_worksemaphore
 
+	@ __ul_global.pthread_callback_semaphore
 	@ Prevent a callback being set whilst servicing another callback
-__pthread_callback_semaphore:
 	.word	0						@ offset = 64
-	DECLARE_OBJECT __pthread_callback_semaphore
 
+	@ __ul_global.pthread_system_running
 	@ Global initialisation flag.  UnixLib internally uses this to
 	@ test whether or not to use mutexes for locking critical structures.
-__pthread_system_running:
 	.word	0						@ offset = 68
-	DECLARE_OBJECT __pthread_system_running
 
+	@ __ul_global.pthread_callback_missed
 	@ Non zero if a callback occured when context switching was
 	@ temporarily disabled
-__pthread_callback_missed:
 	.word	0						@ offset = 72
-	DECLARE_OBJECT __pthread_callback_missed
 
+	@ __ul_global.pthread_num_running_threads
 	@ Number of running threads.
-__pthread_num_running_threads:
 	.word	1						@ offset = 76
-	DECLARE_OBJECT __pthread_num_running_threads
 
+	@ __ul_global.executing_signalhandler
 	@ Non-zero if we are currently executing a signal handler
-__executing_signalhandler:
 	.word	0						@ offset = 80
-	DECLARE_OBJECT __executing_signalhandler
 
+	@ __ul_global.signalhandler_sl
 	@ Stack limit for signal handlers
-__signalhandler_sl:
 	.word	0						@ offset = 84
-	DECLARE_OBJECT __signalhandler_sl
 
+	@ __ul_global.signalhandler_sp
 	@ Stack pointer for signal handlers
-__signalhandler_sp:
 	.word	0						@ offset = 88
-	DECLARE_OBJECT __signalhandler_sp
 
-	.word	0			@ __mutex		@ offset = 92
-	.word	0			@ malloc_state		@ offset = 96
-	
+	@ __ul_global.__notused5
+	.word	0						@ offset = 92
+
+	@ __ul_global.malloc_state
+	@ The global malloc state (opaque type).
+	.word	0						@ offset = 96
+
 #if PIC
+	@ __ul_global.main
 	@ A pointer used by the shared library to call the program's main function.
 .hidden main
 main:
 #endif
-	.word	0			@ main			@ offset = 100
+	.word	0						@ offset = 100
 
+	@ __ul_global.escape_disabled
+	@ Non-zero if the escape key was disabled on program initialisation.
+	.word	0						@ offset = 104
 	DECLARE_OBJECT __ul_global
 
 
@@ -1375,7 +1391,7 @@ main:
 __ul_memory:
 	.word	0			@ mutex			offset = 0
 	.word	0			@ appspace_himem	offset = 4
-	.word	0			@ unixlib_stack		offset = 8
+	.word	0			@ stack			offset = 8
 #if PIC
 	.word	0			@ robase		offset = 12
 	.word	0			@ rwlomem		offset = 16
@@ -1386,7 +1402,7 @@ __ul_memory:
 	.word	Image$$RW$$Base		@ rwbase		offset = 20
 #endif
 	.word	0			@ rwbreak		offset = 24
-	.word	0			@ unixlib_stack_limit	offset = 28
+	.word	0			@ stack_limit		offset = 28
 	.word	0			@ dalomem		offset = 32
 	.word	0			@ dabreak		offset = 36
 	.word	0			@ dalimit		offset = 40

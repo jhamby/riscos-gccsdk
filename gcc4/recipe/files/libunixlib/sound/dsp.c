@@ -16,7 +16,7 @@
  *
  * FIXME: I don't believe that 8-bit currently works properly.
  *
- * Copyright (c) 2004-2006 UnixLib Developers
+ * Copyright (c) 2004-2007 UnixLib Developers
  */
 
 #include <swis.h>
@@ -34,11 +34,8 @@
 #include <internal/swiparams.h>
 #include <pthread.h>
 
-#define IGNORE(x) {(void) x;}
-
 #define DRENDERER_BUFFER_SIZE 512
 #define DRENDERER_CSEC_TO_BUFFER 500
-
 
 /* If we've called atexit */
 static int handler_installed;
@@ -54,20 +51,19 @@ static int dr_fragscale  = 1;
 
 
 /* Avoid warnings, but don't advertise */
-void dsp_exit(void);
+void __dsp_exit(void);
 
 
 /* Close /dev/dsp upon exit if it's still open.  This is mostly
    to ensure that DigitalRenderer is in a good state after
-   an Alt-Break or an exception */
-
-
-void dsp_exit(void)
+   an Alt-Break or an exception.  */
+void
+__dsp_exit(void)
 {
   if (dr_registered)
     {
       _kernel_swi_regs regs;
-      
+
       regs.r[0] = 0;
       _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs);
       _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs);
@@ -75,16 +71,19 @@ void dsp_exit(void)
 }
 
 
-static _kernel_oserror *set_defaults (struct __unixlib_fd *fd,
-				      int channels, int format,
-				      int frequency, int buffers)
+static _kernel_oserror *
+set_defaults (struct __unixlib_fd *fd, int channels, int format,
+	      int frequency, int buffers)
 {
   _kernel_swi_regs regs;
   _kernel_oserror *err;
 
-  if (channels)  dr_channels  = channels;
-  if (frequency) dr_frequency = frequency;
-  if (format)    dr_format    = format;
+  if (channels)
+    dr_channels = channels;
+  if (frequency)
+    dr_frequency = frequency;
+  if (format)
+    dr_format = format;
 
   /* It seems it's neccessary to remove our handler and read add it
      to change some values - I think there is a bug in RISC OS 5
@@ -92,20 +91,18 @@ static _kernel_oserror *set_defaults (struct __unixlib_fd *fd,
 
   if (!handler_installed)
     {
+      /* FIXME: we're already calling __dsp_exit in _exit(). Isn't that
+         enough ?  */
       handler_installed = 1;
-      atexit(dsp_exit);
+      atexit(__dsp_exit);
     }
   else
-    {
-      _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs);
-    }
+    _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs);
 
   dr_registered = 0;
 
   if (buffers)
-    {
-      dr_buffers = buffers;
-    }
+    dr_buffers = buffers;
   else if (dr_buffers == 0)
     {
       /* This still isn't quite correct as the buffers should
@@ -118,7 +115,7 @@ static _kernel_oserror *set_defaults (struct __unixlib_fd *fd,
     }
 
   regs.r[0] = dr_buffers;
-  if ((err = _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs)))
+  if ((err = _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs)) != NULL)
     return err;
 
   /* Set to fill with zero when out of data */
@@ -133,11 +130,11 @@ static _kernel_oserror *set_defaults (struct __unixlib_fd *fd,
       regs.r[2] = dr_frequency;
       regs.r[3] = 1;
 
-      if ((err = _kernel_swi(DigitalRenderer_Activate16, &regs, &regs)))
+      if ((err = _kernel_swi(DigitalRenderer_Activate16, &regs, &regs)) != NULL)
         return err;
 
       if (!_kernel_swi(DigitalRenderer_GetFrequency, &regs, &regs))
-	  dr_frequency = regs.r[0];
+	dr_frequency = regs.r[0];
     }
   else
     {
@@ -147,7 +144,7 @@ static _kernel_oserror *set_defaults (struct __unixlib_fd *fd,
       regs.r[2] = dr_frequency / 1000;
       regs.r[3] = 0;
 
-      if ((err = _kernel_swi(DigitalRenderer_Activate, &regs, &regs)))
+      if ((err = _kernel_swi(DigitalRenderer_Activate, &regs, &regs)) != NULL)
         return err;
     }
 
@@ -157,88 +154,80 @@ static _kernel_oserror *set_defaults (struct __unixlib_fd *fd,
 }
 
 
-void *__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
+void *
+__dspopen (struct __unixlib_fd *fd, const char *file, int mode)
 {
   _kernel_oserror *err;
-
-  IGNORE(file);
-  IGNORE(mode);
 
   dr_fragscale = 1;
 
   if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer")) != NULL
       || (err = __os_cli("RMEnsure DigitalRenderer 0.51 Error 16_10F Sound support requires DigitalRenderer 0.51 or newer")) != NULL
       || (err = set_defaults(fd, 2, 2, 44100, 0)) != NULL)
+    return (void *) __ul_seterr (err, 1);
+
+  return (void *) 1; /* Dummy value */
+}
+
+
+int
+__dspclose (struct __unixlib_fd *fd)
+{
+  if (fd->devicehandle->handle)
     {
-      __ul_seterr (err, 1);
-      return (void *) -1;
-    }
+      _kernel_oserror *err;
+      _kernel_swi_regs regs;
 
-  return (void *)1; /* Dummy value */
-}
+      regs.r[0] = 0;
+      if ((err = _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs)) != NULL
+          || (err = _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs)) != NULL)
+        return __ul_seterr (err, 1);
 
-
-int __dspclose (struct __unixlib_fd *fd)
-{
-  _kernel_oserror *err = NULL;
-
-  if (fd->devicehandle->handle) {
-    _kernel_swi_regs regs;
-
-    regs.r[0] = 0;
-    if ((err = _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs)) ||
-        (err = _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs)))
-      __ul_seterr (err, 1);
-    else
       dr_registered = 0;
-  }
-
-  return err ? -1 : 0;
-}
-
-
-__off_t __dsplseek (struct __unixlib_fd *fd, __off_t lpos, int whence)
-{
-   /* Do nothing, just so programs don't complain */
-
-  IGNORE(fd);
-  IGNORE(lpos);
-  IGNORE(whence);
+    }
 
   return 0;
 }
 
 
-int __dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
+__off_t
+__dsplseek (struct __unixlib_fd *fd, __off_t lpos, int whence)
+{
+  /* Do nothing, just so programs don't complain.  */
+
+  return 0;
+}
+
+
+int
+__dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
 {
   _kernel_oserror *err;
   _kernel_swi_regs regs;
   int left = nbyte;
   int buffer_byte_size = DRENDERER_BUFFER_SIZE * dr_channels;
-  if (dr_format == AFMT_S16_LE) buffer_byte_size <<= 1;
+
+  if (dr_format == AFMT_S16_LE)
+    buffer_byte_size <<= 1;
 
   while (left > 0)
     {
-      int towrite = ((left < buffer_byte_size)
-		     ? left : buffer_byte_size);
+      int towrite = ((left < buffer_byte_size) ? left : buffer_byte_size);
 
       do
 	{
 	  if ((err = _kernel_swi (DigitalRenderer_StreamStatistics,
-				  &regs, &regs)))
-	    {
-	      __ul_seterr (err, 1);
-	      return -1;
-	    }
-    
+				  &regs, &regs)) != NULL)
+	    return __ul_seterr (err, 1);
+
 	  if (regs.r[0] < dr_buffers)
 	    break;
-    
+
 	  __pthread_enable_ints();
 	  pthread_yield();
 	  __pthread_disable_ints();
 	} while (1);
-    
+
         regs.r[0] = (int)data + nbyte - left;
         /* Size is in samples, counting left and right as separate samples
            so it is always divided by 2 for 16 bit samples regardless of
@@ -251,11 +240,8 @@ int __dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
       if ((err = _kernel_swi((dr_format == AFMT_S16_LE)
 			     ? DigitalRenderer_Stream16BitSamples
 			     : DigitalRenderer_StreamSamples,
-			     &regs, &regs)))
-        {
-          __ul_seterr (err, 1);
-          return -1;
-        }
+			     &regs, &regs)) != NULL)
+        return __ul_seterr (err, 1);
 
       left -= buffer_byte_size;
     }
@@ -264,7 +250,8 @@ int __dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
 }
 
 
-int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
+int
+__dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
 {
   request &= 0xffff;
 
@@ -293,9 +280,9 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
           int format = *((int *)arg);
 
           /* DigitalRenderer supports 8-bit ulaw and 16-bit signed linear */
-          if (format == AFMT_MU_LAW || format == AFMT_S16_LE)
-            if (!set_defaults(fd, 0, format, 0, 0))
-              return 0;
+          if ((format == AFMT_MU_LAW || format == AFMT_S16_LE)
+              && !set_defaults(fd, 0, format, 0, 0))
+            return 0;
 
           return __set_errno (EINVAL);
         }
@@ -313,7 +300,9 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
       case SNDCTL_DSP_GETBLKSIZE & 0xffff:
 	{
           int blksize = DRENDERER_BUFFER_SIZE * dr_channels;
-          if (dr_format == AFMT_MU_LAW) blksize <<= 1;
+
+          if (dr_format == AFMT_MU_LAW)
+            blksize <<= 1;
           *((int *)arg) = blksize;
 
           return 0;
@@ -338,9 +327,11 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
 	  /* fragsize is in bytes, but the buffer size used
 	     by DigitalRenderer is in samples */
           dr_fragscale = (fragsize / (DRENDERER_BUFFER_SIZE * dr_channels));
-	  if (dr_format == AFMT_S16_LE) dr_fragscale >>= 1;
+	  if (dr_format == AFMT_S16_LE)
+            dr_fragscale >>= 1;
 
-          if (dr_fragscale == 0) dr_fragscale = 1;
+          if (dr_fragscale == 0)
+            dr_fragscale = 1;
           fragments *= dr_fragscale;
 
           if (!set_defaults(fd, 0, 0, 0, fragments))
@@ -358,17 +349,17 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
           struct audio_buf_info *info = arg;
           _kernel_swi_regs regs;
 
-           _kernel_swi(DigitalRenderer_StreamStatistics, &regs, &regs);
+          _kernel_swi(DigitalRenderer_StreamStatistics, &regs, &regs);
 
           info->fragments  = (dr_buffers - regs.r[0]) / dr_fragscale;
           info->fragstotal = dr_buffers / dr_fragscale;
           info->fragsize   = DRENDERER_BUFFER_SIZE * dr_fragscale * dr_channels;
           info->bytes      = (dr_buffers - regs.r[0]) * DRENDERER_BUFFER_SIZE * dr_channels;
           if (dr_format == AFMT_S16_LE)
-          {
-            info->fragsize <<= 1;
-            info->bytes <<= 1;
-          }
+            {
+              info->fragsize <<= 1;
+              info->bytes <<= 1;
+            }
           return 0;
         }
 
@@ -390,4 +381,3 @@ int __dspioctl (struct __unixlib_fd *fd, unsigned long request, void *arg)
 
   return __set_errno (EINVAL);
 }
-

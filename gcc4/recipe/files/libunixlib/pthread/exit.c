@@ -22,7 +22,7 @@ pthread_exit (void *status)
   struct ul_global *gbl = &__ul_global;
 
   /* If we aren't running the thread system then just exit */
-  if (! gbl->__pthread_system_running)
+  if (! gbl->pthread_system_running)
     exit ((int)status);
 
   __pthread_disable_ints ();
@@ -70,9 +70,9 @@ pthread_exit (void *status)
   debug_printf ("pthread_exit: thread %08x now exit idle\n", thread);
 #endif
 
-  gbl->__pthread_num_running_threads--;
+  gbl->pthread_num_running_threads--;
 
-  if (gbl->__pthread_num_running_threads <= 1)
+  if (gbl->pthread_num_running_threads <= 1)
     {
 #ifdef PTHREAD_DEBUG
       debug_printf ("pthread_exit: Last or penultimate thread exited, stopping interrupts\n");
@@ -81,7 +81,7 @@ pthread_exit (void *status)
       __pthread_stop_ticker ();
     }
 
-  if (gbl->__pthread_num_running_threads > 0)
+  if (gbl->pthread_num_running_threads > 0)
     {
       /* Not the last thread */
       thread->state = STATE_IDLE;

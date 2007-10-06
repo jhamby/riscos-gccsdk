@@ -1,5 +1,5 @@
 /* Provide obsolete ulimit function.
-   Copyright (c) 2004, 2005 UnixLib Devlopers.  */
+   Copyright (c) 2004, 2005, 2007 UnixLib Devlopers.  */
 
 #include <sys/resource.h>
 #include <unixlib/unix.h>
@@ -63,7 +63,6 @@ long int ulimit (int cmd, ...)
       return FOPEN_MAX;
 
     default:
-      errno = EINVAL;
-      return -1;
+      return __set_errno (EINVAL);
     }
 }

@@ -48,6 +48,7 @@ static const char rcsid[] =
 #include <stdarg.h>
 #include <string.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 #define FLOATING_POINT
 

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 int
 fflush (FILE *stream)
@@ -15,19 +16,18 @@ fflush (FILE *stream)
       int lossage = 0;
 
       /* Flush all streams.  */
-      stream = __iob_head;
-      while (stream)
+      for (stream = __iob_head; stream != NULL; stream = stream->next)
         {
 	  if (__validfp (stream) && stream->__mode.__bits.__write)
 	    lossage |= __flsbuf (EOF, stream);
-	  stream = stream->next;
 	}
+
       return lossage ? EOF : 0;
     }
 
   if (!__validfp (stream))
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return EOF;
     }
 

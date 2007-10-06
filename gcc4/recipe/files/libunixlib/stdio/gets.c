@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 char *
 gets (char *_s)
@@ -17,7 +18,7 @@ gets (char *_s)
 
   if (!__validfp (stream) || s == NULL)
     {
-      errno = EINVAL;
+      __set_errno (EINVAL);
       return NULL;
     }
 

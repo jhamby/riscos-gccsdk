@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 #ifdef DEBUG
 #  include <unixlib/os.h>

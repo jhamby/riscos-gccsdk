@@ -13,6 +13,7 @@
 
 #include "rand48.h"
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 double
 erand48 (unsigned short xseed[3])

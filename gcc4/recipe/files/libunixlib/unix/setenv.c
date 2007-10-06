@@ -1,5 +1,5 @@
 /* Set Unix-style environment variables.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005, 2007 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <string.h>
@@ -36,12 +36,8 @@ __addenv_to_os (const char *name, const char *value, int replace)
   regs[2] = strlen (value);
   regs[3] = 0;
   regs[4] = 4;
-  err = __os_swi (OS_SetVarVal, regs);
-  if (err)
-    {
-      __ul_seterr (err, 1);
-      return -1;
-    }
+  if ((err = __os_swi (OS_SetVarVal, regs)) != NULL)
+    return __ul_seterr (err, 1);
 
   return 0;
 }
@@ -61,7 +57,7 @@ __remenv_from_os (const char *name)
   regs[4] = 0;
   /* Do not set the errno if the variable was not found. */
   err = __os_swi (OS_SetVarVal, regs);
-  return (err ? -1 : 0);
+  return err ? -1 : 0;
 }
 
 
@@ -89,9 +85,7 @@ unsetenv (const char *name)
     return __set_errno (EINVAL);
 
   if (strchr (name, '$'))
-    {
-      __remenv_from_os (name);
-    }
+    __remenv_from_os (name);
   else
     {
       const size_t len = strlen (name);
@@ -111,7 +105,8 @@ unsetenv (const char *name)
               --ep;
             }
     }
-    return 0;
+
+  return 0;
 }
 
 /* The `clearenv' was planned to be added to POSIX.1 but probably

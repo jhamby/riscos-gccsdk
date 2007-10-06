@@ -1,7 +1,8 @@
 /* getsubopt ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
+#include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,8 +14,8 @@ getsubopt (char **optionp, const char *const *tokens, char **valuep)
   char buf[64];
   int x;
 
-  if (**optionp == '\0')
-    return -1;
+  if (optionp == NULL || *optionp == NULL || **optionp == '\0')
+    return __set_errno (EINVAL);
 
   /* Find option terminator.  This will be either a comma or a null.  */
   end = strchr (*optionp, ',');

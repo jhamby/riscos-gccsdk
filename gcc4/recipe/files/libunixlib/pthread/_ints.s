@@ -65,7 +65,7 @@ __pthread_enable_ints:
  PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 #if __UNIXLIB_PARANOID
 semazero:
-	.asciz	"__pthread_enable_ints called with semaphore already 0"
+	.asciz	"__pthread_enable_ints called with semaphore already 0 or lower"
 	.align
 #endif
 	DECLARE_FUNCTION __pthread_enable_ints
@@ -130,8 +130,9 @@ return_notempty:
 #endif
 	DECLARE_FUNCTION __pthread_protect_unsafe
 
-@ Similar to __pthread_enable_ints, but return to the saved __pthread_return_address
-@ Can corrupt a3-a4,ip,lr but NOT a1 or a2
+@ Similar to __pthread_enable_ints, but return to the saved
+@ __ul_global.pthread_return_address.
+@ Can corrupt a3-a4,ip,lr but NOT a1 nor a2
 	NAME	__pthread_unprotect_unsafe
 __pthread_unprotect_unsafe:
  PICEQ "LDR	a3, .L3+4"

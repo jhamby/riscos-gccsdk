@@ -1,12 +1,12 @@
 @ _kernel_setenv
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
 	.text
 
-
-	@ int _kernel_setenv (const char *name, const char *value)
+	@ _kernel_oserror *_kernel_setenv (const char *name,
+	@				   const char *value)
 	.global	_kernel_setenv
 	NAME	_kernel_setenv
 _kernel_setenv:
@@ -30,5 +30,6 @@ loop:
 	BL	__ul_seterr
 	MOV	a1, v1
 	LDMFD	sp!, {v1, pc}
+	DECLARE_FUNCTION _kernel_setenv
 
 	.end

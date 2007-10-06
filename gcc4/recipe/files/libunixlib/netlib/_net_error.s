@@ -5,7 +5,6 @@
 
 	.text
 
-
 	@ Function to record a networking (TCP/IP) SWI error.
 	@ a1 is a (kernel_oserror *) RISC OS error block and errno is
 	@ extracted from this.

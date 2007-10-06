@@ -1,6 +1,6 @@
 /* socket ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -16,6 +16,8 @@ int
 socket (int af, int type, int protocol)
 {
   struct __unixlib_fd *file_desc;
+  struct ul_global *gbl = &__ul_global;
+  const struct __sul_process *sulproc = __ul_global.sulproc;
   int fd, sd;
 
   PTHREAD_UNSAFE
@@ -30,7 +32,7 @@ socket (int af, int type, int protocol)
      it here for clarity.  To reduce the dangerous nature of this ioctl,
      we now only do it when we are executing within a task window.  */
 
-  if (__taskwindow)
+  if (gbl->taskwindow)
     {
       int arg = 1;
       int saved_errno = errno;
@@ -58,9 +60,10 @@ socket (int af, int type, int protocol)
   file_desc->fflag = O_RDWR;
   file_desc->dflag = 0;
 
-  file_desc->devicehandle = __proc->sul_malloc (__proc->pid, __proc->fdhandlesize);
+  file_desc->devicehandle = sulproc->sul_malloc (sulproc->pid,
+						 sulproc->fdhandlesize);
   if (file_desc->devicehandle == NULL)
-    return -1;
+    return __set_errno (ENOMEM);
 
   file_desc->devicehandle->handle = (void *) sd;
 

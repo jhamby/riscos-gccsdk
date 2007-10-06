@@ -19,6 +19,7 @@
 
 #include <search.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* The non-reentrant version use a global space for storing the table.  */
 static struct hsearch_data htab;

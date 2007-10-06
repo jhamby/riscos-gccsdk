@@ -1,10 +1,9 @@
 @ _kernel_getenv
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
 	.text
-
 
 	@ _kernel_getenv (const char *name, char *buffer, unsigned size)
 	.global	_kernel_getenv
@@ -24,5 +23,6 @@ _kernel_getenv:
 	BL	__ul_seterr
 	MOV	a1, v1
 	LDMFD	sp!, {v1, pc}
+	DECLARE_FUNCTION _kernel_getenv
 
 	.end

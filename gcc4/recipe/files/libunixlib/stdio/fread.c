@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Return number of objects read.  */
 size_t
@@ -22,15 +23,15 @@ fread (void *data, size_t size, size_t count, FILE *stream)
   if (!__validfp (stream) || !stream->__mode.__bits.__read)
     {
       (void) __set_errno (EINVAL);
-      return (size_t)0;
+      return (size_t) 0;
     }
 
   if (feof (stream) || ferror (stream))
-    return (size_t)0;
+    return (size_t) 0;
 
   to_read = size * count;
   if (to_read == 0)
-    return (size_t)0;
+    return (size_t) 0;
 
   /* If we don't do this ungetc() followed by fread() screws up! */
   if (stream->__pushedback == 1)

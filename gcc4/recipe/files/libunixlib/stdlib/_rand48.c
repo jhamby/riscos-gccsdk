@@ -13,6 +13,7 @@
 
 #include "rand48.h"
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 unsigned short _rand48_seed[3] = {
   RAND48_SEED_0,

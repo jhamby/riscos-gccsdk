@@ -1,5 +1,5 @@
 /* Perform delivery of a signal to a process.
-   Copyright (c) 1996, 1997, 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 1996-2007 UnixLib Developers.
    Written by Nick Burrett.  */
 
 #include <errno.h>
@@ -29,7 +29,7 @@ extract_name (const unsigned int *pc)
   int address;
   const char *name;
 
-  if ((unsigned int) pc <= 0x100)
+  if ((unsigned int) pc < 0x8000)
     return NULL;
 
   name = NULL;
@@ -52,9 +52,11 @@ extract_name (const unsigned int *pc)
       static char *demangled;
       static size_t size;
       int status;
+
       demangled = __unixlib_cxa_demangle ((name[0] == '^') ? name + 1 : name,
 					  demangled, &size, &status);
-      name = (demangled == NULL || status != 0) ? name : demangled;
+      if (demangled != NULL && status == 0)
+        name = demangled;
     }
 
   return name;
@@ -207,10 +209,19 @@ write_termination (int signo)
 
 
 static void
-__write_backtrace_thread (unsigned int *fp)
+__write_backtrace_thread (const unsigned int *fp)
 {
   int features;
-  unsigned int *oldfp = NULL;
+  const unsigned int *oldfp = NULL;
+  unsigned int is32bit;
+
+  /* Running as USR26 or USR32 ?  */
+  __asm__ volatile ("SUBS	%[is32bit], r0, r0\n\t" /* Set at least one status flag. */
+		    "TEQ	pc, pc\n\t"
+		    "MOVEQ	%[is32bit], #1\n\t"
+		    : [is32bit] "=r" (is32bit)
+		    : /* no inputs */
+		    : "cc");
 
   if (_swix (OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
     features = 0;
@@ -239,7 +250,7 @@ __write_backtrace_thread (unsigned int *fp)
 	}
 
       /* Retrieve PC counter.  */
-      if (__32bit)
+      if (is32bit)
 	pc = (unsigned int *)(fp[0] & 0xfffffffc);
       else
 	pc = (unsigned int *)(fp[0] & 0x03fffffc);
@@ -253,7 +264,7 @@ __write_backtrace_thread (unsigned int *fp)
 	}
 
       /* Retrieve lr.  */
-      if (__32bit)
+      if (is32bit)
 	lr = (unsigned int *)(fp[-1] & 0xfffffffc);
       else
 	lr = (unsigned int *)(fp[-1] & 0x03fffffc);
@@ -302,7 +313,7 @@ __write_backtrace_thread (unsigned int *fp)
 		  fprintf (stderr, " %s: %8x", rname[reg], oldfp[reg + 2]);
 		}
 
-	      if (__32bit)
+	      if (is32bit)
 		fprintf (stderr, "\n    cpsr: %8x\n", oldfp[1]);
 	      else
 		{
@@ -322,7 +333,7 @@ __write_backtrace_thread (unsigned int *fp)
 	  else
 	    fputs ("\n    [bad register dump address]\n", stderr);
 
-	  if (__32bit)
+	  if (is32bit)
 	    pc = (unsigned int *) (oldfp[17] & 0xfffffffc);
 	  else
 	    pc = (unsigned int *) (oldfp[17] & 0x03fffffc);
@@ -344,7 +355,7 @@ __write_backtrace_thread (unsigned int *fp)
 		  _swix (Debugger_Disassemble, _INR(0,1) | _OUTR(1,2),
 			 *diss, diss, &ins, &length);
 
-		  c[3] = *diss >> 24;
+		  c[3] = (*diss >> 24);
 		  c[2] = (*diss >> 16) & 0xFF;
 		  c[1] = (*diss >>  8) & 0xFF;
 		  c[0] = (*diss >>  0) & 0xFF;
@@ -366,7 +377,7 @@ __write_backtrace_thread (unsigned int *fp)
 	  fputs ("\n\n", stderr);
 	}
     }
-  
+
   fputc ('\n', stderr);
 }
 
@@ -374,7 +385,7 @@ __write_backtrace_thread (unsigned int *fp)
 void
 __write_backtrace (int signo)
 {
-  register unsigned long *fp __asm ("fp");
+  register const unsigned int *fp __asm ("fp");
   pthread_t th;
 
   fprintf (stderr, "\nFatal signal received: %s\n\nStack backtrace:\n\n",
@@ -391,10 +402,10 @@ __write_backtrace (int signo)
       fprintf (stderr, "\nThread %p\n", th);
       const unsigned int fakestackframe[] =
         {
-        (unsigned int)th->saved_context->r[11],
-        (unsigned int)th->saved_context->r[13],
-        (unsigned int)th->saved_context->r[14],
-        (unsigned int)th->saved_context->r[15]
+          (unsigned int)th->saved_context->r[11],
+          (unsigned int)th->saved_context->r[13],
+          (unsigned int)th->saved_context->r[14],
+          (unsigned int)th->saved_context->r[15]
         };
       __write_backtrace_thread (&fakestackframe[3]);
     }
@@ -415,6 +426,8 @@ post_signal (struct unixlib_sigstate *ss, int signo)
     | sigmask (SIGTRAP) | sigmask (SIGIOT) | sigmask (SIGEMT)
     | sigmask (SIGFPE) | sigmask (SIGBUS) | sigmask (SIGSEGV)
     | sigmask (SIGSYS);
+  struct ul_global *gbl = &__ul_global;
+  struct __sul_process *sulproc = gbl->sulproc;
   enum
   {
     stop, ignore, core, term, handle
@@ -486,7 +499,7 @@ post_signal:
 	    act = core;
 	  else if (signo == SIGINFO)
 	    {
-	      if (__proc->pgrp == __proc->pid)
+	      if (sulproc->pgrp == sulproc->pid)
 		{
 		  /* We provide a default handler for SIGINFO since
 		     there is no user-specified handler.  */
@@ -513,20 +526,22 @@ post_signal:
 	  ss->pending &= ~stop_signals;
 	  /* Resume all our children.  */
 	  ss_suspended = 1;
-	  __proc->status.stopped = 0;
-	  __proc->status.reported = 0;
+	  sulproc->status.stopped = 0;
+	  sulproc->status.reported = 0;
 	}
     }
 
 #ifdef DEBUG
   {
-    const char *s[] = { "stop", "ignore", "core", "term", "handle" };
+    const char * const s[] = { "stop", "ignore", "core", "term", "handle" };
     debug_printf ("post_signal: action taken = %s\n", s[act]);
   }
 #endif
 
-  if (__proc->ppid == 1 && act == stop &&
-      (signal_mask & (sigmask (SIGTTIN) | sigmask (SIGTTOU) | sigmask (SIGTSTP))))
+  if (sulproc->ppid == 1 && act == stop
+      && (signal_mask & (sigmask (SIGTTIN)
+			 | sigmask (SIGTTOU)
+			 | sigmask (SIGTSTP))) != 0)
     {
       /* If we would ordinarily stop for a job control signal, but we are
 	 orphaned so noone would ever notice and continue us again, we just
@@ -551,7 +566,7 @@ post_signal:
       debug_printf ("post_signal: stop\n");
 #endif
       /* Stop all our threads, and mark ourselves stopped.  */
-      __proc->status.stopped = 1;
+      sulproc->status.stopped = 1;
       /* Wake up sigsuspend. */
       __u->sleeping = 0; /* inline version of sigwakeup() */
       break;
@@ -571,26 +586,15 @@ post_signal:
       {
 	int regs[10];
 	int status = W_EXITCODE (0, signo);
+
 	/* Do a core dump if desired. Only set the wait status bit saying
 	   we in fact dumped core if the operation was actually successful.  */
 #ifdef DEBUG
 	debug_printf ("post_signal: term/core\n");
 #endif
 
-	/* Update __taskhandle (The task could have called Wimp_Initialise
-	   since we last checked at program startup */
-	regs[0] = 3;
-	if (__os_swi (Wimp_ReadSysInfo, regs))
-	  regs[0] = 0;
-	if (regs[0])
-	  {
-	    regs[0] = 5;
-	    if (__os_swi (Wimp_ReadSysInfo, regs))
-	      regs[0] = 0;
-	  }
-	__taskhandle = regs[0];
-
-	if (__taskhandle && !__taskwindow && isatty (fileno (stderr)))
+	if (__get_taskhandle ()
+	    && !gbl->taskwindow && isatty (fileno (stderr)))
 	  {
 	    regs[0] = (int)__u->argv[0];
 	    __os_swi (Wimp_CommandWindow, regs);
@@ -614,9 +618,7 @@ post_signal:
 	  }
 
 	if (act == term)
-	  {
-	    write_termination (signo);
-	  }
+	  write_termination (signo);
 	else if (act == core)
 	  {
 	    __write_backtrace (signo);
@@ -626,8 +628,8 @@ post_signal:
 	/* Die, returning information about how we died.  */
 	_exit (status);
 	/* Never reached.  */
+	break;
       }
-      break;
 
     case handle:
       /* Call a handler for this signal.  */

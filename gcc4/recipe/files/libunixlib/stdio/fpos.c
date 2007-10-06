@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 #ifdef DEBUG
 #include <unixlib/os.h>
@@ -20,10 +21,8 @@ fgetpos (FILE * stream, fpos_t * pos)
   PTHREAD_UNSAFE
 
   if (!__validfp (stream) || pos == NULL)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __set_errno (EINVAL);
+
   *pos = ftell (stream);
   if (*pos < 0L)
     return -1;
@@ -36,9 +35,10 @@ fsetpos (FILE * stream, const fpos_t * pos)
 {
   if (pos == NULL)
     {
-      errno = EINVAL;
+      (void) __set_errno (EINVAL);
       return EOF;
     }
+
   return fseek (stream, *pos, SEEK_SET);
 }
 
@@ -51,7 +51,7 @@ fseek (FILE * stream, long offset, int w)
 
   if (!__validfp (stream))
     {
-      errno = EINVAL;
+      (void) __set_errno (EINVAL);
       return EOF;
     }
 
@@ -72,7 +72,7 @@ fseek (FILE * stream, long offset, int w)
 	{
 	  /* A negative file offset makes no sense, but it does not
 	     need to put the stream into error.  */
-	  errno = EINVAL;
+	  (void) __set_errno (EINVAL);
 	  return EOF;
 	}
       result = lseek (fileno (stream), offset, SEEK_SET);
@@ -84,7 +84,7 @@ fseek (FILE * stream, long offset, int w)
       result = lseek (fileno (stream), offset, SEEK_END);
       break;
     default:
-      errno = EINVAL;
+      (void) __set_errno (EINVAL);
       return EOF;
     }
   if (result < 0)
@@ -124,10 +124,7 @@ ftell (FILE *stream)
   PTHREAD_UNSAFE
 
   if (!__validfp (stream))
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __set_errno (EINVAL);
 
   /* It can be difficult to determine the correct file position
      if the file is opened for read/write because we are using
@@ -151,9 +148,9 @@ ftell (FILE *stream)
       __os_print (", pushed_back="); __os_prdec (stream->__pushedback);
       __os_nl ();
 #endif
-      return (stream->__offset - ( (stream->__pushedback)
-				 ? (long) stream->__pushedi_cnt + 1
-				 : (long) stream->i_cnt) );
+      return stream->__offset - ( (stream->__pushedback)
+				? (long) stream->__pushedi_cnt + 1
+				: (long) stream->i_cnt);
     }
 
   if (stream->o_base)
@@ -163,10 +160,10 @@ ftell (FILE *stream)
       __os_print (", o_ptr-o_base="); __os_prdec (stream->o_ptr-stream->o_base);
       __os_nl ();
 #endif
-      return (stream->__offset + (long) (stream->o_ptr - stream->o_base));
+      return stream->__offset + (long) (stream->o_ptr - stream->o_base);
     }
+
   return stream->__offset - stream->__pushedback;
-  /* NWC 1997/05/26 */
 }
 
 __off_t

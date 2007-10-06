@@ -1,11 +1,12 @@
 /* getpw ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdio.h>
 #include <pwd.h>
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 /* Re-construct the password-file line for the given uid
    in the given buffer.  This knows the format that the caller
@@ -17,10 +18,7 @@ int getpw (uid_t uid, char *buf)
   PTHREAD_UNSAFE_CANCELLATION
 
   if (buf == NULL)
-    {
-      errno = EINVAL;
-      return -1;
-    }
+    return __set_errno (EINVAL);
 
   p = getpwuid (uid);
   if (p == NULL)

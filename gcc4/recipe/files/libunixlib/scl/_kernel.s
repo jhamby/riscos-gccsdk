@@ -1,5 +1,5 @@
 @ _kernel_swi
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2007 UnixLib Developers
 
 #include "unixlib/asm_dec.s"
 
@@ -23,7 +23,6 @@
 @ code on a StrongARM, so we use OS_CallASWIR12 (as all good boys and
 @ girls should).
 
-
 	@ _kernel_oserror *_kernel_swi(int no, _kernel_swi_regs *in,
 	@                              _kernel_swi_regs *out);
 	.global	_kernel_swi
@@ -44,5 +43,6 @@ _kernel_swi:
 	BL	__ul_seterr
 	MOV	a1, v1
 	LDMFD	sp!, {a3, v1-v6, pc}
+	DECLARE_FUNCTION _kernel_swi
 
 	.end

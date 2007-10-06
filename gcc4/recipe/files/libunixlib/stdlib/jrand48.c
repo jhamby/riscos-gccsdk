@@ -13,6 +13,7 @@
 
 #include "rand48.h"
 #include <pthread.h>
+#include <unixlib/unix.h>
 
 long
 jrand48 (unsigned short xseed[3])
