@@ -287,10 +287,10 @@ void riscos_host_initialisation (void)
 	       "Failed to determine available memory for application.\n");
       exit (EXIT_FAILURE);
     }
-  if (rout.r[0] < (4000 * 1024))
+  if (rout.r[0] < 6000 * 1024)
     {
       fprintf (stderr,
-	       "Application requires a minimum of 4000K to run.\n");
+	       "Application requires a minimum of 6000K to run.\n");
       exit (EXIT_FAILURE);
     }
 }

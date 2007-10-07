@@ -223,10 +223,20 @@ using_unixlib:
 <p>Here are described some common problems users have with gcc and the GNU compilers. Possible solutions are provided for the known problems.
 
 <ul>
+<li>Double clicking on !GCC filer icon results in an error &quot;There are still SharedUnixLibrary clients active&quot;.
+    <p>GCCSDK 4 requires at least SharedUnixLibrary version 1.11. This error is because you have a version loaded in memory which is prior to that version and still currently in use by one or more UnixLib compiled programs.
+
+    <p>Loading a newer version of the SharedUnixLibrary is not possible until all those UnixLib compiled programs have been stopped.
+
+    <p>You should quit all those UnixLib compiled programs and again double click on !GCC filer icon.
+
+<li>Double clicking on !GCC filer icon results in an error &quot;GCCSDK 4 requires SharedUnixLibrary 1.11 or later&quot;.
+    <p>You have no or a not up-to-date version of the SharedUnixLibrary module in your !System.  Use the GCCSDK supplied !System and use the System merge utility provided by Configure to merge this with your !System.
+
 <li>The compiler fails to compile anything but no error message is reported.
     <p>This is usually caused by a lack of memory. To see how far through compilation a file has gone, try compiling with the '-v' switch. '-v' gives verbose output and will show the programs gcc is executing.
 
-    <p>A lack of memory will be shown up by an almost instantaneous return from any program executed. If this happens, try increasing the wimpslot, using *wimpslot -min 4000K.
+    <p>A lack of memory will be shown up by an almost instantaneous return from any program executed. If this happens, try increasing the wimpslot, using *wimpslot -min 6000K.
 
     <p>When the compiler runs out of memory during compilation, an error 'virtual memory exhausted' is usually reported.
 
@@ -341,7 +351,7 @@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 GCCSDK Developers
 
 <p>The following people have also made contributions over the last four years (in alphabetic order) :
 
-<p>Ben Avison, John-Mark Bell, Stefan Bellon, Alan Buckley, James Bursa, Steve Ellacott, Rich Hudson, Rob Kendrick, Jeffrey Lee, Christian Ludlam, Alex Macfarlane Smith, Theo Markettos, David Marston, Philip Pemberton, Graham Shaw, Tony van der Hoff, Simon Wilson, Martin Wuerthner.
+<p>Ben Avison, John-Mark Bell, Stefan Bellon, Alan Buckley, James Bursa, Steve Ellacott, Rich Hudson, Rob Kendrick, Jeffrey Lee, Adrian Lees, Christian Ludlam, Alex Macfarlane Smith, Theo Markettos, David Marston, Philip Pemberton, Graham Shaw, Tony van der Hoff, Simon Wilson, Martin Wuerthner.
 
 <p>Special thanks to the following people having written programs which are used in the GCCSDK project :
 <ul>
