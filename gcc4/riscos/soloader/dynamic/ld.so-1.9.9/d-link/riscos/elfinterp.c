@@ -447,8 +447,9 @@ int _dl_parse_copy_information(struct dyn_elf * xpnt, int rel_addr,
 
       symbol_addr = (unsigned int)
 	_dl_find_hash(strtab + symtab[symtab_index].st_name,
-			      xpnt->next, &lib/*(int) reloc_addr*/, NULL, 1);
-      if(!symbol_addr)
+			      xpnt->next, &lib, NULL, 1);
+
+      if(!symbol_addr || !lib)
       {
 	_dl_fdprintf(2, "%s: can't resolve symbol '%s'\n",
 		   _dl_progname, strtab + symtab[symtab_index].st_name);

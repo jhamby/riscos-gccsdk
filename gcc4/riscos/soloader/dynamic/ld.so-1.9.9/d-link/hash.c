@@ -200,6 +200,9 @@ char * _dl_find_hash(char * name, struct dyn_elf * rpnt1,
   struct dyn_elf * rpnt, first;
   char * data_result = 0;         /* nakao */
 
+  if (lib)
+    *lib = NULL;
+
   weak_result = 0;
   elf_hash_number = _dl_elf_hash(name);
 
@@ -313,6 +316,9 @@ char * _dl_find_hash(char * name, struct dyn_elf * rpnt1,
 	    switch(ELF32_ST_BIND(symtab[si].st_info))
 	    {
 	    case STB_GLOBAL:
+	      if (lib)
+		*lib = tpnt;
+
 	      if ( tpnt->libtype != elf_executable
 	        && ELF32_ST_TYPE(symtab[si].st_info) == STT_NOTYPE)
 	      { /* nakao */
@@ -321,11 +327,15 @@ char * _dl_find_hash(char * name, struct dyn_elf * rpnt1,
 	      }
 	      else                                                /* nakao */
 	      {
-	        if (lib) *lib = tpnt;
 	        return tpnt->loadaddr + symtab[si].st_value;
 	      }
 	    case STB_WEAK:
-	      if (!weak_result) weak_result = tpnt->loadaddr + symtab[si].st_value;
+	      if (!weak_result)
+		{
+		  weak_result = tpnt->loadaddr + symtab[si].st_value;
+		  if (lib)
+		    *lib = tpnt;
+		}
 	      break;
 	    default:  /* Do local symbols need to be examined? */
 	      break;
@@ -334,7 +344,7 @@ char * _dl_find_hash(char * name, struct dyn_elf * rpnt1,
 	}
       }
     }
-  if (lib) *lib = tpnt;
+
   if (data_result) return data_result; /* nakao */
   return weak_result;
 }
