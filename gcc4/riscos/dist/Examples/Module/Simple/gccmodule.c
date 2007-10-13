@@ -1,4 +1,4 @@
-/* Copyright (c) 2005 GCCSDK Developers
+/* Copyright (c) 2005-2007 GCCSDK Developers
  *
  * Example module using GCC.
  */

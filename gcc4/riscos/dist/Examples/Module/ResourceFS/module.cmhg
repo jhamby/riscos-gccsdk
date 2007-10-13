@@ -1,0 +1,18 @@
+; Copyright (c) 2006-2007 GCCSDK Developers
+; Small boiler plate example how to GCCSDK's mkresfs.
+
+date-string:            13 Oct 2007
+
+title-string:           GCCExample
+
+help-string:            GCCExample 1.01 (c) 2005-2007 GCCSDK Developers
+
+initialisation-code:    gccmodule_init
+
+finalisation-code:      gccmodule_final
+
+; When storing data in ResourceFS, you have to listen and act on service
+; call Service_ResourceFSStarting (&60).  When you make use of ResourceFS
+; files you might want to listen and act on service calls
+; Service_ResourceFSStarted (&59) and Service_ResourceFSDying (&5A).
+service-call-handler: gccmodule_service &60

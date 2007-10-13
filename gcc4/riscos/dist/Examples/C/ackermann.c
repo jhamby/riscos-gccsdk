@@ -4,7 +4,7 @@
 #include <time.h>
 #include <stdlib.h>
 
-int ack (int, int, int);
+static int ack (int, int, int);
 
 int
 main (int argc, char *argv[])
@@ -29,7 +29,7 @@ main (int argc, char *argv[])
 }
 
 int
-ack (register int x, register int y, register int acker)
+ack (int x, int y, int acker)
 {
   if (x == 0)
     {
@@ -46,5 +46,6 @@ ack (register int x, register int y, register int acker)
 	  acker = ack (x - 1, ack (x, y - 1, 0), 0);
 	}
     }
+
   return acker;
 }
