@@ -22,10 +22,11 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <sys/stat.h>
 
-#ifdef CROSS_COMPILE
+#ifdef __riscos
 #  include <kernel.h>
+#else
+#  include <sys/stat.h>
 #endif
 
 #define	LINK_FILETYPE	0x1C8
@@ -39,7 +40,7 @@ static unsigned int verbose = 0;
 static void
 settype (const char *file)
 {
-#ifdef CROSS_COMPILE
+#ifdef __riscos
   _kernel_swi_regs regs;
 
   regs.r[0] = 18;
@@ -53,10 +54,20 @@ settype (const char *file)
 static int
 exists_as_file (const char *file)
 {
+#ifdef __riscos
+  _kernel_swi_regs regs;
+
+  regs.r[0] = 17;
+  regs.r[1] = (int) file;
+  if (_kernel_swi (0x8, &regs, &regs) == NULL
+      && regs.r[0] == 1)
+    return 1;
+#else
   struct stat buf;
 
   if (stat (file, &buf) == 0)
     return S_ISREG (buf.st_mode);
+#endif
 
   return 0;
 }
@@ -65,10 +76,20 @@ exists_as_file (const char *file)
 static int
 exists_as_dir (const char *dir)
 {
+#ifdef __riscos
+  _kernel_swi_regs regs;
+
+  regs.r[0] = 17;
+  regs.r[1] = (int) dir;
+  if (_kernel_swi (0x8, &regs, &regs) == NULL
+      && regs.r[0] == 1)
+    return 1;
+#else
   struct stat buf;
 
   if (stat (dir, &buf) == 0)
     return S_ISDIR (buf.st_mode);
+#endif
 
   return 0;
 }
@@ -171,7 +192,7 @@ main (int argc, char *argv[])
     {
       char *sep;
 
-#ifdef CROSS_COMPILE
+#ifdef __riscos
       sep = strrchr (target, '.');
       if (!sep)
 	sep = strrchr (target, ':');
@@ -192,7 +213,7 @@ main (int argc, char *argv[])
 	  goto err;
 	}
 
-#ifdef CROSS_COMPILE
+#ifdef __riscos
       /* Make sure riscosify knows that this is a RISC OS name.  */
       strcpy (link_name, "@.");
 #else
@@ -231,7 +252,7 @@ main (int argc, char *argv[])
 	  goto err;
         }
       strcpy (new_link_name, link_name);
-#ifdef CROSS_COMPILE
+#ifdef __riscos
       strcat (new_link_name, ".");
 #else
       strcat (new_link_name, "/");
