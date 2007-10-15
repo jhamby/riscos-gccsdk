@@ -31,7 +31,7 @@
 
 <p>This is the RISC OS port of <a href="http://gcc.gnu.org/">GCC (GNU Compiler Collection)</a> and supporting binaries allowing you to start developing RISC OS applications and modules straight away. So you get a compiler for one or more languages, an linker, an assembler, a RISC OS module header and veneer generator, the UnixLib C runtime library and headers and stubs for the SharedCLibrary module (as found in the RISC OS ROMs).
 
-<p>This GCC port itself and the code produced using this GCC version is targeted and tested for RISC OS 4 (26-bit and 32-bit version), RISC OS 5 (32-bit version) and RISC OS 6 (32-bit version).
+<p>This GCC port itself and the code produced using this GCC version is targeted and tested for RISC OS 4 (26-bit and 32-bit version), RISC OS 5 (32-bit version) and RISC OS 6 (26-bit and 32-bit version).
 
 <p>The RISC OS GNU Compiler Collection consists of a generic front end program `gcc' that provides a consistent interface to the compilers themselves. Currently compilers are supported for the C and C++ languages. Later releases of GCCSDK might have support for Ada, Fortran, Java, Pascal and/or Objective C/C++ but this will be largely dependant on available GCCSDK developer resources, interest and of course that all technical issues can be reasonably solved.
 
@@ -303,10 +303,17 @@ using_unixlib:
   <li><a href="libscl">SharedCLibrary</a>: this is an alternative runtime library which is using the SharedCLibrary RISC OS module.  It has the advantage that those applications are usually smaller in size but does not have a rich API as UnixLib. When building modules, this is the only runtime library you can use.
 </ul>
 
+<p>Shared library support on RISC OS:
+<ul>
+  <li><a href="SharedLibs/!ReadMe">RISC OS shared library documentation for the developer</a>.
+  <li><a href="SharedLibs/Technical">Advanced RISC OS shared library documentation</a> (for GCCSDK developers).
+</ul>
+
 <p>RISC OS related documentation:
 <ul>
   <li><a href="cmunge">CMunge</a>: a tool to generates a suitable veneer to allow RISC OS modules to be developed in C or C++.
   <li><a href="elf2aif">elf2aif</a>: a tool to convert static ELF binaries into AIF Absolute files avoiding the need for ELF loader at runtime.
+  <li><a href="ln">ln</a>: a tool to create symlink files for use with the dynamic linking GCC, although they can be used with any UnixLib compiled program.
   <li><a href="mkresfs">mkresfs</a>: a tool to generate C code that creates and removes files from ResourceFS in your RISC OS modules.
 </ul>
 
@@ -326,13 +333,14 @@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 GCCSDK Developers
 
 <p>The GCCSDK releases made by the GCCSDK Developers consists of several binaries and sources which do not necessary have the same licenses.  The following overview can help to identify those licenses more easily but is in no way an authoritative statement on behalf of the GCCSDK Developers:
 <ul>
-  <li>gcc (and all its associated files) : See <a href="gcc/gcc/index.html">its manual</a>.
   <li>binutils (and all its associated files) : See <a href="binutils/index.html">its manual</a>.
-  <li>libscl : See <a href="libscl/COPYING">!GCC.docs.libscl.COPYING</a>.
-  <li>UnixLib : See <a href="libunixlib/COPYING">!GCC.docs.libunixlib.COPYING</a>.
   <li>cmunge : See <a href="cmunge/Copyright">!GCC.docs.cmunge.Copyright</a>.
   <li>elf2aif : See <a href="elf2aif/COPYING">!GCC.docs.elf2aif.COPYING</a>.
+  <li>gcc (and all its associated files) : See <a href="gcc/gcc/index.html">its manual</a>.
+  <li>ln : See <a href="ln/COPYING">!GCC.docs.ln.COPYING</a>.
   <li>mkresfs : See <a href="mkresfs/COPYING">!GCC.docs.mkresfs.COPYING</a>.
+  <li>libscl : See <a href="libscl/COPYING">!GCC.docs.libscl.COPYING</a>.
+  <li>UnixLib : See <a href="libunixlib/COPYING">!GCC.docs.libunixlib.COPYING</a>.
 </ul>
 
 <p>As with all GNU programs, THERE IS NO WARRANTY OF ANY SORT.

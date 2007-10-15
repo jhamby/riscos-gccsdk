@@ -98,25 +98,25 @@ if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; t
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # Build the native RISC OS compiler
   GCCSDK_BUILDDIR=$GCCSDK_RISCOS_BUILDDIR
-  GCCSDK_PREFIX=$GCCSDK_RISCOS_PREFIX
+  GCCSDK_PREFIX=$GCCSDK_RISCOS_GCCPREFIX
   GCCSDK_CONFIGURE_ARGS="--build=`$GCCSDK_SRCDIR/config.guess` --host=$GCCSDK_TARGET_NAME --target=$GCCSDK_TARGET_NAME"
 
   # Make sure our cross-compiler binaries can be found.
   PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
+
+  # Do sanity check:
+  which $GCCSDK_TARGET_NAME-gcc > /dev/null || ( echo "GCCSDK cross compiler can not be found. Need to do './build-it cross' first ?" && exit 1 )
 else
   echo Error: called $0 with unknown build action $GCCSDK_BUILD_ACTION
   exit 1
 fi
 
-# Make sure build dir and install dir exist:
-if [ ! -d $GCCSDK_BUILDDIR ] ; then
-  mkdir -p $GCCSDK_BUILDDIR
-fi
-if [ ! -d $GCCSDK_PREFIX ] ; then
-  mkdir -p $GCCSDK_PREFIX
-fi
+# Sanity check there are sources available:
+test ! -f $GCCSDK_SRCDIR/configure && echo "No $GCCSDK_SRCDIR/configure found, need to execute './create-srcdir' first ?" && exit 1
 
-test ! -f $GCCSDK_SRCDIR/configure && echo "No $GCCSDK_SRCDIR/configure found, need to execute ./create-srcdir first ?" && exit 1
+# Make sure build dir and install dir exist:
+test ! -d $GCCSDK_BUILDDIR && mkdir -p $GCCSDK_BUILDDIR
+test ! -d $GCCSDK_PREFIX && mkdir -p $GCCSDK_PREFIX
 
 cd $GCCSDK_BUILDDIR
 # Notes:
@@ -135,7 +135,7 @@ $GCCSDK_SRCDIR/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS \
 	--enable-maintainer-mode
 
 # When you want the host binaries with debug information:
-#   make CFLAGS='-O0 -g' LIBCFLAGS='-O0 -g' LIBCXXFLAGS='-O0 -g' all
+#   make CFLAGS="-O0 -g" LIBCFLAGS="-O0 -g" LIBCXXFLAGS="-O0 -g" all
 # When you want to have optimized ARM libraries:
 #   make CFLAGS_FOR_TARGET="-O3 -march=armv5" CXXFLAGS_FOR_TARGET="-O3 -march=armv5" all
 make $GCCSDK_MAKE_ARGS all

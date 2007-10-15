@@ -47,185 +47,319 @@ for param in $@ ; do
 done
 
 # We have the following binary kits (BKIT..) and source kits (SKIT...):
-BKIT_GCC_NAME=$GCCSDK_RELEASE_AREA/gcc-bin-$GCCSDK_RELEASE_NAME.zip
-BKIT_SYSTEM_NAME=$GCCSDK_RELEASE_AREA/system.zip
-BKIT_SOLOADER_NAME=$GCCSDK_RELEASE_AREA/soloader.zip
-SKIT_CMUNGE_NAME=$GCCSDK_RELEASE_AREA/cmunge-src-`grep Module_MajorVersion_CMHG $GCCSDK_RISCOS/cmunge/VersionNum | tr -s " " | cut -d ' ' -f 3`-gccsdk.zip
-SKIT_GCC_NAME=$GCCSDK_RELEASE_AREA/gcc-src-$GCCSDK_RELEASE_NAME.tar.bz2
+#   1. GCC Core: Minimal binary GCCSDK kit holding C compiler, !DSO-libs
+#      (C libs only), !System, binutils, examples and documentation.
+BKIT_GCCCORE_NAME=gccsdk-gcc-core-bin-$GCCSDK_RELEASE_NAME
+#   2. G++: Optional binary kit adding C++ support to !GCC and !DSO-libs.
+BKIT_GCCGPP_NAME=gccsdk-gcc-g++-bin-$GCCSDK_RELEASE_NAME
+#   3. User binary distribution: !System
+BKIT_SYSTEM_NAME=system
+#   4. User binary distribution: !DSO-libs (C support)
+BKIT_DSOLIBSCORE_NAME=gccsdk-dsolibs-core
+#   5. User binary distribution: !DSO-libs (optional, C++ support)
+BKIT_DSOLIBSGPP_NAME=gccsdk-dsolibs-g++
+#   6. Source CMunge with GCCSDK changes:
+SKIT_CMUNGE_NAME=cmunge-src-`grep Module_MajorVersion_CMHG $GCCSDK_RISCOS/cmunge/VersionNum | tr -s " " | cut -d ' ' -f 3`-gccsdk4-support
+#   7. Source used to build GCC, Binutils, SCL and UnixLib:
+SKIT_GCC_NAME=gccsdk-gcc-src-$GCCSDK_RELEASE_NAME
+#   8. Source used to build riscos tools:
+SKIT_RISCOS_NAME=gccsdk-riscos-tools-src-$GCCSDK_RELEASE_NAME
 
-# Where is the kit data is before packaging it up:
-BKIT_GCC_SRC=$GCCSDK_RELEASE_AREA/\!GCC
-BKIT_SYSTEM_SRC=$GCCSDK_RELEASE_AREA/\!System
-BKIT_SOLOADER_SRC=$GCCSDK_RELEASE_AREA/\!DSO-libs
-SKIT_CMUNGE_SRC=$GCCSDK_RELEASE_AREA/cmunge
-SKIT_GCC_SRC=$GCCSDK_SRCDIR
+# In $GCCSDK_RELEASE_AREA/full we will have the full unpacked binary kits.
+# We first make sure that this gets fully populated, then we make a copy to
+# $GCCSDK_RELEASE_AREA/copy and use that to distribute to all the binary
+# kits.
+GCCSDK_UNPACKED=$GCCSDK_RELEASE_AREA/full
+
+BKIT_GCC_UNPACKED=$GCCSDK_UNPACKED/\!GCC
+BKIT_SYSTEM_UNPACKED=$GCCSDK_UNPACKED/system
+BKIT_DSOLIBS_UNPACKED=$GCCSDK_UNPACKED/\!DSO-libs
+BKIT_EXAMPLES_UNPACKED=$GCCSDK_UNPACKED/Examples
 
 # Do a sanity check to see if the native RISC OS compiler has been built.
-if [ ! -d $BKIT_GCC_SRC/bin ] ; then
-  echo The native RISC OS compiler doesn\'t seem to have been built at $BKIT_GCC_SRC.
-  echo Use \'./build-cross riscos\' for doing this.
+if [ ! -d $BKIT_GCC_UNPACKED/bin ] ; then
+  echo "The native RISC OS compiler doesn't seem to be built at $BKIT_GCC_UNPACKED."
+  echo "Use './build-cross riscos' for doing this."
   exit 1
 fi
 
-# Remove the target prefixed binaries.  We don't need them as we have the
-# non-target prefixed binaries as well.
-cd $BKIT_GCC_SRC/bin
-test -f $GCCSDK_TARGET_NAME-ln && mv $GCCSDK_TARGET_NAME-ln ln
-find . -name "$GCCSDK_TARGET_NAME-*" -exec rm {} \;
-# Remove gcc bug submit script (won't work under RISC OS):
-test -f gccbug && rm gccbug
-# Remove c++ as it is same as g++:
-test -f c++ && rm c++
-# Use links:
-cd $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/bin
-for f in `ls` ; do
-  test -f $BKIT_GCC_SRC/bin/$f && $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-ln -s -f ^.^.bin.$f $f,1c8 && rm $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/bin/$f
-done
-# Remove install-tools which is useless on RISC OS
-test -d $BKIT_GCC_SRC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools && rm -rf $BKIT_GCC_SRC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
-test -d $BKIT_GCC_SRC/lib/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools && rm -rf $BKIT_GCC_SRC/lib/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
-
-# Remove the softfloat libscl.  This is useless and a fallout of the multilib
-# configuration madness.
-test -f $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/lib/libscl.a && rm $BKIT_GCC_SRC/$GCCSDK_TARGET_NAME/lib/libscl.a
-
-# Remove the shared libgcc_so.so for each of the libscl configurations:
-test -f $BKIT_GCC_SRC/lib/scl/fpu/libgcc_s.so && rm $BKIT_GCC_SRC/lib/scl/fpu/libgcc_s.so
-test -f $BKIT_GCC_SRC/lib/scl/fpu/module/libgcc_s.so && rm $BKIT_GCC_SRC/lib/scl/fpu/module/libgcc_s.so
-
-# Move SharedUnixLibrary module to !System:
-test -f $BKIT_GCC_SRC/bin/sul && mkdir -p $BKIT_SYSTEM_SRC/310/Modules && mv $BKIT_GCC_SRC/bin/sul $BKIT_SYSTEM_SRC/310/Modules/SharedULib,ffa
-
-# Strip the RISC OS binaries.  We won't need the debug info nor the symbols.
-# We don't process arm-unknown-riscos/bin as the binaries there are hard-linked to bin ones.
-cd $BKIT_GCC_SRC
-for bindir in bin $GCCSDK_TARGET_NAME/bin libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE ; do
-  for f in `find $bindir -maxdepth 1 -type f` ; do
-    filetype=`file $f`
-    if echo $filetype | grep -q ARM ; then
-      $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip $f
-      # Take the opportunity to add ,e1f suffix to ELF binaries:
-      if ! echo $f | grep -q ",e1f" ; then
-        mv $f $f,e1f
-      fi
-    elif echo $filetype | grep -q "RISC OS AIF" ; then
-      # Add ,ff8 suffix to AIF binaries:
-      if ! echo $f | grep -q ",ff8" ; then
-        mv $f $f,ff8
-      fi
-    fi
+# Do suffix swapping of all the .c/.cpp/.cmhg/.s/.h/.o files (don't do this
+# for .so/.a/.la suffixes).
+# Has one argument specifying the directory where the suffix swapping needs to happen.
+do_suffix_swapping() {
+  pushd $1 > /dev/null
+  for suffix in c cpp cmhg s h o ; do
+    for dir in `find . -type f -name "*.$suffix" -exec dirname {} \; | sort | uniq` ; do
+      mkdir -p $dir/$suffix
+      find $dir -maxdepth 1 -type f -name "*.$suffix" -exec rename -f 's/(.+)\/(.+)\.(.+)/$1\/$3\/$2/' {} \;
+    done
   done
-done
+  popd > /dev/null
+}
 
-## FIXME: need to do the stripping for .so files as well ?
-### Do the stripping for all .so files (don't do this for .a files):
-##cd $BKIT_GCC_SRC
-##find . -type f -name "*.a" -exec $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip {} \;
+create_empty_dir() {
+  test -d $1 && rm -rf $1
+  mkdir -p $1
+}
 
-# Do suffix swapping of all the .h/.o files (don't do this for .so/.a/.la):
-cd $BKIT_GCC_SRC
-for suffix in h o ; do
-  for dir in `find . -type f -name "*.$suffix" -exec dirname {} \; | sort | uniq` ; do
-    mkdir -p $dir/$suffix
-    find $dir -maxdepth 1 -type f -name "*.$suffix" -exec rename -f 's/(.+)\/(.+)\.(.+)/$1\/$3\/$2/' {} \;
+remove_if_there() {
+  if [ -e $1 ] ; then rm -rf $1 ; fi
+}
+
+# Populates $BKIT_SYSTEM_UNPACKED
+create_system_kit() {
+  if [ ! -d $BKIT_SYSTEM_UNPACKED/\!System ] ; then
+    create_empty_dir $BKIT_SYSTEM_UNPACKED/\!System
+
+    # Copy !System skeleton:
+    svn export -q --force $GCCSDK_RISCOS/dist/\!System $BKIT_SYSTEM_UNPACKED/\!System
+
+    # Move SharedUnixLibrary module from !GCC/bin to !System:
+    test -f $BKIT_GCC_UNPACKED/bin/sul && mkdir -p $BKIT_SYSTEM_UNPACKED/\!System/310/Modules && mv $BKIT_GCC_UNPACKED/bin/sul $BKIT_SYSTEM_UNPACKED/\!System/310/Modules/SharedULib,ffa
+
+    # Checks if we have SharedULib,ffa:
+    test ! -f $BKIT_SYSTEM_UNPACKED/\!System/310/Modules/SharedULib,ffa && echo "WARNING: SharedULib,ffa not present"
+
+    # Copy documentation, license:
+    #   - FIXME: SharedUnixLibrary license:
+    #   - Copy drenderer documentation:
+    create_empty_dir $BKIT_SYSTEM_UNPACKED/docs/drenderer
+    cp $GCCSDK_RISCOS/drenderer/{COPYING,DocDRender} $BKIT_SYSTEM_UNPACKED/docs/drenderer
+    #   - FIXME: syslogd, enable this when we can build syslogd and have a copy stored in !System.
+    ##test ! -d $BKIT_SYSTEM_UNPACKED/docs/syslogd && mkdir -p $BKIT_SYSTEM_UNPACKED/docs/syslogd
+    ##cp $GCCSDK_RISCOS/syslogd/ReadMe $BKIT_SYSTEM_UNPACKED/docs/syslogd
+  fi
+}
+
+# Populates $BKIT_EXAMPLES_UNPACKED
+create_examples_kit() {
+  create_empty_dir $BKIT_EXAMPLES_UNPACKED
+
+  # Copy Examples:
+  svn export -q --force $GCCSDK_RISCOS/dist/Examples $BKIT_EXAMPLES_UNPACKED
+
+  do_suffix_swapping $BKIT_EXAMPLES_UNPACKED
+}
+
+# Removes all files which we can't use on RISC OS or which don't make sense
+# to keep around.
+# Also uses RISC OS link files (filetype 0x1C8) instead of hard-linked files.
+slim_gcckit() {
+  # Remove the target prefixed binaries.  We don't need them as we have the
+  # non-target prefixed binaries as well.
+  cd $BKIT_GCC_UNPACKED/bin
+  test -f $GCCSDK_TARGET_NAME-ln && mv $GCCSDK_TARGET_NAME-ln ln
+  find . -name "$GCCSDK_TARGET_NAME-*" -print0 | xargs -0 rm -f
+  # Remove gcc bug submit script (won't work under RISC OS):
+  remove_if_there gccbug
+  # Remove c++ as it is same as g++:
+  remove_if_there c++
+  # Use links:
+  cd $BKIT_GCC_UNPACKED/$GCCSDK_TARGET_NAME/bin
+  for f in `ls` ; do
+    test -f $BKIT_GCC_UNPACKED/bin/$f && $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-ln -s -f ^.^.bin.$f $f,1c8 && rm $BKIT_GCC_UNPACKED/$GCCSDK_TARGET_NAME/bin/$f
   done
-done
+  # Remove install-tools which is useless on RISC OS
+  remove_if_there $BKIT_GCC_UNPACKED/lib/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
+  remove_if_there $BKIT_GCC_UNPACKED/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
 
-# Copy !GCC skeleton:
-svn export -q --force $GCCSDK_RISCOS/dist/\!GCC $BKIT_GCC_SRC
-# Copy !System skeleton:
-svn export -q --force $GCCSDK_RISCOS/dist/\!System $BKIT_SYSTEM_SRC
+  # Remove the softfloat libscl.  This is useless and a fallout of the multilib
+  # configuration madness.
+  remove_if_there $BKIT_GCC_UNPACKED/$GCCSDK_TARGET_NAME/lib/libscl.a
+  # Remove exception handling for libscl:
+  remove_if_there $BKIT_GCC_UNPACKED/lib/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/scl/fpu/libgcc_eh.a
+  remove_if_there $BKIT_GCC_UNPACKED/lib/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/scl/fpu/module/libgcc_eh.a
 
-# GCC & binutils documentation: we remove the info & man pages as they are not
-# really useful on RISC OS but create HTML versions instead and use those.
-test -d $BKIT_GCC_SRC/share && rm -rf $BKIT_GCC_SRC/share
-if [ ! -f $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/ld/ld.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE ] ; then
-  # Build the HTML documentation:
-  cd $GCCSDK_RISCOS_BUILDDIR && PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make html
-fi
-# Copy documentation:
-mkdir -p $BKIT_GCC_SRC/docs/libiberty && cp -r $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html $BKIT_GCC_SRC/docs/libiberty
-mkdir -p $BKIT_GCC_SRC/docs/binutils && cp -r $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html/* $BKIT_GCC_SRC/docs/binutils
-mkdir -p $BKIT_GCC_SRC/docs/as && cp -r $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html/* $BKIT_GCC_SRC/docs/as
-mkdir -p $BKIT_GCC_SRC/docs/ld && cp -r $GCCSDK_RISCOS_BUILDDIR/ld/ld.html/* $BKIT_GCC_SRC/docs/ld
-mkdir -p $BKIT_GCC_SRC/docs/gprof && cp -r $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html/* $BKIT_GCC_SRC/docs/gprof
-mkdir -p $BKIT_GCC_SRC/docs/gcc && cp -r $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE/* $BKIT_GCC_SRC/docs/gcc
-# Some parts of the documentation are not useful for RISC OS developers:
-test -d $BKIT_GCC_SRC/docs/gcc/cppinternals && rm -rf $BKIT_GCC_SRC/docs/gcc/cppinternals
-test -d $BKIT_GCC_SRC/docs/gcc/gccinstall && rm -rf $BKIT_GCC_SRC/docs/gcc/gccinstall
-test -d $BKIT_GCC_SRC/docs/gcc/gccint && rm -rf $BKIT_GCC_SRC/docs/gcc/gccint
+  # Remove the shared libgcc_so.so for each of the libscl configurations:
+  # Commented out as we're going to remove all shared libraries here.
+  ##remove_if_there $BKIT_GCC_UNPACKED/lib/scl/fpu/libgcc_s.so
+  ##remove_if_there $BKIT_GCC_UNPACKED/lib/scl/fpu/module/libgcc_s.so
 
-# Other documentation:
-# 1. Kit BKIT_GCC_SRC:
-# 1.1. Copy cmunge documentation:
-test -d $BKIT_GCC_SRC/docs/cmunge && rm -rf $BKIT_GCC_SRC/docs/cmunge
-svn export -q --force $GCCSDK_RISCOS/cmunge/Docs $BKIT_GCC_SRC/docs/cmunge
-cp $GCCSDK_RISCOS/cmunge/GCCSDK-CHANGES $BKIT_GCC_SRC/docs/cmunge
-# 1.2. Copy elf2aif documentation:
-test -d $BKIT_GCC_SRC/docs/elf2aif && rm -rf $BKIT_GCC_SRC/docs/elf2aif
-mkdir -p $BKIT_GCC_SRC/docs/elf2aif
-cp $GCCSDK_RISCOS/elf2aif/{ChangeLog,AUTHORS,COPYING,README} $BKIT_GCC_SRC/docs/elf2aif
-# 1.3. Copy mkresfs documentation:
-test -d $BKIT_GCC_SRC/docs/mkresfs && rm -rf $BKIT_GCC_SRC/docs/mkresfs
-svn export -q --force $GCCSDK_RISCOS/mkresfs/doc $BKIT_GCC_SRC/docs/mkresfs
-cp $GCCSDK_RISCOS/mkresfs/{ChangeLog,AUTHORS,COPYING} $BKIT_GCC_SRC/docs/mkresfs
-# 1.4. Copy UnixLib documentation:
-test -d $BKIT_GCC_SRC/docs/libunixlib && rm -rf $BKIT_GCC_SRC/docs/libunixlib
-mkdir -p $BKIT_GCC_SRC/docs/libunixlib
-cp $GCCSDK_SRCDIR/libunixlib/{ChangeLog,contrib/Help,COPYING,README} $BKIT_GCC_SRC/docs/libunixlib
-# 1.5. Copy SCL documentation:
-test -d $BKIT_GCC_SRC/docs/libscl && rm -rf $BKIT_GCC_SRC/docs/libscl
-mkdir -p $BKIT_GCC_SRC/docs/libscl
-cp $GCCSDK_SRCDIR/libscl/{ChangeLog,COPYING,README} $BKIT_GCC_SRC/docs/libscl
-# 2. Kit BKIT_SYSTEM_SRC
-# 2.1. Copy drenderer documentation:
-test -d $BKIT_SYSTEM_SRC/docs/drenderer && rm -rf $BKIT_SYSTEM_SRC/docs/drenderer
-mkdir -p  $BKIT_SYSTEM_SRC/docs/drenderer
-cp $GCCSDK_RISCOS/drenderer/{COPYING,DocDRender} $BKIT_SYSTEM_SRC/docs/drenderer
-# FIXME: 2.2. syslogd, enable this when we can build syslogd and have a copy stored in !System.
-##test -d $BKIT_SYSTEM_SRC/docs/syslogd && rm -rf $BKIT_SYSTEM_SRC/docs/syslogd
-##mkdir -p  $BKIT_SYSTEM_SRC/docs/syslogd
-##cp $GCCSDK_RISCOS/syslogd/ReadMe $BKIT_SYSTEM_SRC/docs/syslogd
+  # Remove all shared libraries (even the fpu ones) as we have them shipped in !DSO-libs:
+  find $BKIT_GCC_UNPACKED -name "*.so*" -print0 | xargs -0 rm -f
 
-# CMunge source kit (without the GCCSDK-DIFF patch):
-test -d $GCCSDK_RELEASE_AREA/cmunge && rm -rf $GCCSDK_RELEASE_AREA/cmunge
-svn export -q --force $GCCSDK_RISCOS/cmunge $GCCSDK_RELEASE_AREA/cmunge
+  # Strip the RISC OS binaries.  We won't need the debug info nor the symbols.
+  # We don't process arm-unknown-riscos/bin as the binaries there are hard-linked to bin ones.
+  cd $BKIT_GCC_UNPACKED
+  for bindir in bin $GCCSDK_TARGET_NAME/bin libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE ; do
+    for f in `find $bindir -maxdepth 1 -type f` ; do
+      filetype=`file $f`
+      if echo $filetype | grep -q ARM ; then
+        $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip $f
+        # Take the opportunity to add ,e1f suffix to ELF binaries:
+        if ! echo $f | grep -q ",e1f" ; then
+          mv $f $f,e1f
+        fi
+      elif echo $filetype | grep -q "RISC OS AIF" ; then
+        # Add ,ff8 suffix to AIF binaries:
+        if ! echo $f | grep -q ",ff8" ; then
+          mv $f $f,ff8
+        fi
+      fi
+    done
+  done
+
+  ### FIXME: need to do the stripping for .so files as well ?
+  ## Do the stripping for all .so files (don't do this for .a files):
+  ##cd $BKIT_GCC_UNPACKED
+  ##find . -type f -name "*.a" -exec $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip {} \;
+
+  do_suffix_swapping $BKIT_GCC_UNPACKED
+}
+
+# Populates $BKIT_GCC_UNPACKED and $BKIT_DSOLIBS_UNPACKED:
+create_gcc_kit() {
+  slim_gcckit
+
+  # Copy !GCC skeleton:
+  svn export -q --force $GCCSDK_RISCOS/dist/\!GCC $BKIT_GCC_UNPACKED
+
+  # GCC & binutils documentation: we remove the info & man pages as they are not
+  # really useful on RISC OS but create HTML versions instead and use those.
+  remove_if_there $BKIT_GCC_UNPACKED/share
+  if [ ! -f $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/ld/ld.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE ] ; then
+    # Build the HTML documentation:
+    cd $GCCSDK_RISCOS_BUILDDIR && PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make html
+  fi
+  # Copy documentation:
+  mkdir -p $BKIT_GCC_UNPACKED/docs/libiberty && cp -r $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html $BKIT_GCC_UNPACKED/docs/libiberty
+  mkdir -p $BKIT_GCC_UNPACKED/docs/binutils && cp -r $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html/* $BKIT_GCC_UNPACKED/docs/binutils
+  mkdir -p $BKIT_GCC_UNPACKED/docs/as && cp -r $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html/* $BKIT_GCC_UNPACKED/docs/as
+  mkdir -p $BKIT_GCC_UNPACKED/docs/ld && cp -r $GCCSDK_RISCOS_BUILDDIR/ld/ld.html/* $BKIT_GCC_UNPACKED/docs/ld
+  mkdir -p $BKIT_GCC_UNPACKED/docs/gprof && cp -r $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html/* $BKIT_GCC_UNPACKED/docs/gprof
+  mkdir -p $BKIT_GCC_UNPACKED/docs/gcc && cp -r $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE/* $BKIT_GCC_UNPACKED/docs/gcc
+  # Some parts of the documentation are not useful for RISC OS developers:
+  remove_if_there $BKIT_GCC_UNPACKED/docs/gcc/cppinternals
+  remove_if_there $BKIT_GCC_UNPACKED/docs/gcc/gccinstall
+  remove_if_there $BKIT_GCC_UNPACKED/docs/gcc/gccint
+
+  # Copy CMunge documentation:
+  remove_if_there $BKIT_GCC_UNPACKED/docs/cmunge
+  svn export -q --force $GCCSDK_RISCOS/cmunge/Docs $BKIT_GCC_UNPACKED/docs/cmunge
+  cp $GCCSDK_RISCOS/cmunge/GCCSDK-CHANGES $BKIT_GCC_UNPACKED/docs/cmunge
+  # Copy drenderer documentation:
+  create_empty_dir $BKIT_GCC_UNPACKED/docs/drenderer
+  cp $GCCSDK_RISCOS/drenderer/{COPYING,DocDRender} $BKIT_GCC_UNPACKED/docs/drenderer
+  # Copy elf2aif documentation:
+  create_empty_dir $BKIT_GCC_UNPACKED/docs/elf2aif
+  cp $GCCSDK_RISCOS/elf2aif/{ChangeLog,AUTHORS,COPYING,README} $BKIT_GCC_UNPACKED/docs/elf2aif
+  # Copy ln documentation:
+  create_empty_dir $BKIT_GCC_UNPACKED/docs/ln
+  cp $GCCSDK_RISCOS/ln/{ChangeLog,AUTHORS,COPYING,README} $BKIT_GCC_UNPACKED/docs/ln
+  # Copy mkresfs documentation:
+  remove_if_there $BKIT_GCC_UNPACKED/docs/mkresfs
+  svn export -q --force $GCCSDK_RISCOS/mkresfs/doc $BKIT_GCC_UNPACKED/docs/mkresfs
+  cp $GCCSDK_RISCOS/mkresfs/{ChangeLog,AUTHORS,COPYING} $BKIT_GCC_UNPACKED/docs/mkresfs
+  # Copy UnixLib documentation:
+  create_empty_dir $BKIT_GCC_UNPACKED/docs/libunixlib
+  cp $GCCSDK_SRCDIR/libunixlib/{ChangeLog,contrib/Help,COPYING,README} $BKIT_GCC_UNPACKED/docs/libunixlib
+  # Copy SCL documentation:
+  create_empty_dir $BKIT_GCC_UNPACKED/docs/libscl
+  cp $GCCSDK_SRCDIR/libscl/{ChangeLog,COPYING,README} $BKIT_GCC_UNPACKED/docs/libscl
+  # Copy syslogd documentation:
+  create_empty_dir $BKIT_GCC_UNPACKED/docs/syslogd
+  cp $GCCSDK_RISCOS/syslogd/ReadMe $BKIT_GCC_UNPACKED/docs/syslogd
+}
+
+# Move the C++ library to a separate kit:
+split_off_dsolibsgpp() {
+  create_empty_dir $GCCSDK_UNPACKED/$BKIT_DSOLIBSGPP_NAME
+  mkdir -p $GCCSDK_UNPACKED/$BKIT_DSOLIBSGPP_NAME/\!DSO-libs/lib/system
+  mv $BKIT_DSOLIBS_UNPACKED/lib/{libstdc++.so\,1c8,libstdc++.so.6\,1c8} $GCCSDK_UNPACKED/$BKIT_DSOLIBSGPP_NAME/\!DSO-libs/lib
+  mv $BKIT_DSOLIBS_UNPACKED/lib/system/libstdc++.6.0.8.so,e1f $GCCSDK_UNPACKED/$BKIT_DSOLIBSGPP_NAME/\!DSO-libs/lib/system
+}
+
+split_off_dsolibscore() {
+  create_empty_dir $GCCSDK_UNPACKED/$BKIT_DSOLIBSCORE_NAME
+  mv $BKIT_DSOLIBS_UNPACKED $GCCSDK_UNPACKED/$BKIT_DSOLIBSCORE_NAME
+}
+
+# Move the C++ compiler to a separate kit:
+split_off_gccgpp() {
+  create_empty_dir $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME
+  for obj in $GCCSDK_TARGET_NAME/lib/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
+             $GCCSDK_TARGET_NAME/lib/fpu/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
+             bin/{g++\,e1f,c++filt\,e1f} \
+             include/c++ ; do
+    mkdir -p $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/`dirname $obj`
+    mv $BKIT_GCC_UNPACKED/$obj $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/`dirname $obj`
+  done
+
+  # Copy dsolibsgpp in there:
+  cp -r $GCCSDK_UNPACKED/$BKIT_DSOLIBSGPP_NAME/* $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME
+}
+
+split_off_gcccore() {
+  create_empty_dir $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME
+  mv $BKIT_GCC_UNPACKED $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME
+
+  # Move Examples in there:
+  mv $BKIT_EXAMPLES_UNPACKED $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME
+
+  # Copy dsolibscore and system in there:
+  cp -r $GCCSDK_UNPACKED/$BKIT_DSOLIBSCORE_NAME/* $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME
+  cp -r $BKIT_SYSTEM_UNPACKED/\!System $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME
+}
+
+# Here starts the real work:
+create_system_kit
+create_gcc_kit
+create_examples_kit
+
+# Make a copy:
+cp -r $GCCSDK_UNPACKED $GCCSDK_UNPACKED/../kits
+GCCSDK_UNPACKED=$GCCSDK_RELEASE_AREA/kits
+BKIT_GCC_UNPACKED=$GCCSDK_UNPACKED/\!GCC
+BKIT_SYSTEM_UNPACKED=$GCCSDK_UNPACKED/system
+BKIT_DSOLIBS_UNPACKED=$GCCSDK_UNPACKED/\!DSO-libs
+BKIT_EXAMPLES_UNPACKED=$GCCSDK_UNPACKED/Examples
+
+split_off_dsolibsgpp
+split_off_dsolibscore
+split_off_gccgpp
+split_off_gcccore
 
 if [ "$GCCSDK_DO_PKG" == "YES" ] ; then
   # Package all the kits:
-  if [ -f $GCCSDK_CROSS_PREFIX/bin/zip ] ; then
-    # Create $BKIT_GCC_NAME
-    test -f $BKIT_GCC_NAME && rm $BKIT_GCC_NAME
-    cd $BKIT_GCC_SRC/..
-    $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq $BKIT_GCC_NAME \!GCC \!System \!DSO-libs
-    echo Created $BKIT_GCC_NAME
-
-    # Create $BKIT_SYSTEM_NAME
-    test -f $BKIT_SYSTEM_NAME && rm $BKIT_SYSTEM_NAME
-    cd $BKIT_SYSTEM_SRC/..
-    $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq $BKIT_SYSTEM_NAME \!System
-    echo Created $BKIT_SYSTEM_NAME
-
-    # Create $BKIT_SOLOADER_NAME
-    test -f $BKIT_SOLOADER_NAME && rm $BKIT_SOLOADER_NAME
-    cd $BKIT_SOLOADER_SRC/..
-    $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq $BKIT_SOLOADER_NAME \!DSO-libs
-    echo Created $BKIT_SOLOADER_NAME
-
-    # Create $SKIT_CMUNGE_NAME
-    test -f $SKIT_CMUNGE_NAME && rm $SKIT_CMUNGE_NAME
-    svn diff svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/cmunge svn://svn.riscos.info/gccsdk/trunk/gcc4/riscos/cmunge > $SKIT_CMUNGE_SRC/GCCSDK-DIFF
-    cd $SKIT_CMUNGE_SRC/..
-    $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq $SKIT_CMUNGE_NAME cmunge
-    echo Created $SKIT_CMUNGE_NAME
-  else
-    echo Unable to create $BKIT_GCC_NAME because of missing zip executable.
-    echo Unable to create $BKIT_SYSTEM_NAME because of missing zip executable.
-    echo Unable to create $BKIT_SOLOADER_NAME because of missing zip executable.
-    echo Unable to create $SKIT_CMUNGE_NAME because of missing zip executable.
+  if [ ! -f $GCCSDK_CROSS_PREFIX/bin/zip ] ; then
+    echo Unable to create kits because of missing zip executable.
+    exit 1
   fi
 
-  cd $SKIT_GCC_SRC
-  tar cjf $SKIT_GCC_NAME .
-  echo Created $SKIT_GCC_NAME
+  cd $GCCSDK_UNPACKED
+
+  # CMunge source kit:
+  remove_if_there $SKIT_CMUNGE_NAME
+  svn export -q --force $GCCSDK_RISCOS/cmunge $SKIT_CMUNGE_NAME
+  # Add GCCSDK patch file:
+  svn diff svn://svn.riscos.info/gccsdk/branches/CMungeImportBranch/cmunge svn://svn.riscos.info/gccsdk/trunk/gcc4/riscos/cmunge > $SKIT_CMUNGE_NAME/GCCSDK-DIFF
+  echo Creating $SKIT_CMUNGE_NAME.zip
+  cd $SKIT_CMUNGE_NAME && $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$SKIT_CMUNGE_NAME.zip * && cd ..
+
+  # riscos tools source kit:
+  create_empty_dir $SKIT_RISCOS_NAME
+  cd $GCCSDK_RISCOS
+  for obj in `find . -maxdepth 1 -mindepth 1 -type d` ; do
+    case "$obj" in
+      *cmunge | *.svn)
+        # Skip the CMunge sources, those are packed in a separate source kit
+        # $SKIT_CMUNGE_NAME. Skip also the .svn directory.
+        ;;
+      *)
+        svn export -q --force $obj $GCCSDK_UNPACKED/$SKIT_RISCOS_NAME/$obj
+        ;;
+    esac
+  done
+
+  cd $GCCSDK_UNPACKED
+  # Create from each directoy a zip file:
+  for dir in `find . -maxdepth 1 -mindepth 1 -type d` ; do
+     echo Creating $dir.zip
+     cd $dir && $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$dir.zip * && cd ..
+     rm -rf $dir
+  done
+
+  cd $GCCSDK_SRCDIR
+  echo Creating $SKIT_GCC_NAME.tar.bz2
+  tar --exclude="*.svn*" -cjf $GCCSDK_UNPACKED/$SKIT_GCC_NAME.tar.bz2 .
 fi
