@@ -82,7 +82,7 @@ exists_as_dir (const char *dir)
   regs.r[0] = 17;
   regs.r[1] = (int) dir;
   if (_kernel_swi (0x8, &regs, &regs) == NULL
-      && regs.r[0] == 1)
+      && (regs.r[0] == 2 || regs.r[0] == 3))
     return 1;
 #else
   struct stat buf;

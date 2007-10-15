@@ -1,3 +1,7 @@
+Mon Oct 15 20:08:45 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ln.c (exists_as_dir): fixed wrong test for RISC OS build.
+
 Mon Oct 15 01:01:40 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* ln.c: changed test on CROSS_COMPILE to __riscos; added OS_File
