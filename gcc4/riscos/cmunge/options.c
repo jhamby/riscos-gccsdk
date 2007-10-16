@@ -82,7 +82,7 @@ static void help_text(void) {
 "\n"
 "Make a RISC OS module header for a module written in C/C++.\n"
 "\n"
-#ifdef __riscos__
+#ifdef __riscos
 "Syntax: *CMunge [<options>] <infile>\n"
 #else
 /* Non-RISC OS systems don't use the above style for their usage commands. */
@@ -390,7 +390,7 @@ void Options_CheckSanity(void) {
   switch (opt.toolchain)
   {
     case tc_gcc:
-#ifdef __riscos__
+#ifdef __riscos
       /* Throwback is supported on RISC OS builds of GCC */
 #else
       if (opt.throwback)

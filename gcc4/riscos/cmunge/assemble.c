@@ -22,7 +22,7 @@ void AssembleFile(void) {
 
   if (opt.ofile) {
     int throwback;
-#ifdef __riscos__
+#ifdef __riscos
     throwback = opt.throwback;
 #  define GCC_BINARY_NAME "gcc"
 #else

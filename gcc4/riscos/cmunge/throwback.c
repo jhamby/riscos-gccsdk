@@ -2,7 +2,7 @@
  * Copyright (C) 1999-2000 Robin Watts/Justin Fletcher
  */
 
-#ifdef __riscos__
+#ifdef __riscos
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>

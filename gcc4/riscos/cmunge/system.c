@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#ifdef __riscos__
+#ifdef __riscos
 #include "swis.h"
 #endif
 #include "error.h"
@@ -42,7 +42,7 @@
 int our_system(const char *cmdtxt)
 {
   int rc;
-#if defined(__riscos__) && defined(__TARGET_SCL__)
+#if defined(__riscos) && defined(__TARGET_SCL__)
 
 #ifndef DDEUtils_SetCLSize
 #define DDEUtils_SetCLSize (0x42581)

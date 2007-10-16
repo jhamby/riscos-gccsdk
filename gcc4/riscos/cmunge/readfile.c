@@ -125,7 +125,7 @@ static void preprocess(FILE *file) {
        throwback work properly, we must convert this to RISC OS style
        if so given */
     const char *nativefilename;
-#ifdef __riscos__
+#ifdef __riscos
     nativefilename = filename_unixtoriscos(filename, EXTLIST_NORCROFT_CMHG);
 #else
     /* On non-RISC OS systems, you won't care about the RISC OS filename;
@@ -1597,10 +1597,15 @@ void ReadFile(void) {
         /* -xc hints that the input language is to be considered as C
            because that is not necessarily guessable with the usual
            cmhg extension. */
-        bufend = buf+sprintf(buf, "arm-unknown-riscos-gcc -E -nostdinc -xc");
+#ifdef __riscos
+#  define GCC_BINARY_NAME "gcc"
+#else
+#  define GCC_BINARY_NAME "arm-unknown-riscos-gcc"
+#endif
+        bufend = buf+sprintf(buf, GCC_BINARY_NAME " -E -nostdinc -xc");
         break;
       case tc_norcroft:
-#ifdef __riscos__
+#ifdef __riscos
         bufend = buf+sprintf(buf, "cc -E -C++");
 #else
         bufend = buf+sprintf(buf, "ncc -E -C++");
@@ -1642,7 +1647,7 @@ void ReadFile(void) {
         /* Don't know how to do dependencies with gcc -
              -M gives output in a mix of unix and RISC OS which isn't useful
          */
-#ifdef __riscos__
+#ifdef __riscos
         if (opt.throwback)
           bufend += sprintf(bufend," -mthrowback");
 #endif
@@ -1709,7 +1714,7 @@ void ReadFile(void) {
             const char *altfilename;
             altfilename = filename_unixtoriscos(opt.infile,
                                                 EXTLIST_NORCROFT_CMHG);
-#ifndef __riscos__
+#ifndef __riscos
             /* If we're not on RISC OS then a RISC OS name won't be valid
                and we will need the actual unix name to be able to check
                the file's existance. Because we specify no extension list,
