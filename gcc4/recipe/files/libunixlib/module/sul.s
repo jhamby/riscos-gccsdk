@@ -139,7 +139,7 @@ module_start:
 help:
 	.ascii	"SharedUnixLibrary"
 	.byte	9
-	.asciz	"1.11 (06 Oct 2007) (C) UnixLib Developers, 2001-2007"
+	.asciz	"1.11 (15 Oct 2007) (C) UnixLib Developers, 2001-2007"
 	.align
 
 title:
@@ -1084,6 +1084,10 @@ restore_wimpslot:
 
 	MOV	pc, lr
 
+runpath_str:
+	.asciz	"Run$Path"
+	.align
+
 @
 @ void sul_exec (pid_t pid, char *cli, void *stacklimit, void *stack)
 @   __attribute__ ((__noreturn__))
@@ -1100,7 +1104,8 @@ sul_exec:
 	MOV	v5, a4		@ v5 = stack
 
 	@ Save the cli, and free any old value
-	@ But first canonicalise the program name part of the cli
+	@ But first canonicalise the program name part of the cli and see if
+	@ that results in a real file.
 	MOV	v6, a2
 find_end_program_loop:
 	LDRB	v7, [v6], #1
@@ -1124,10 +1129,10 @@ cli_arg_len_loop:
 
 	MOV	a1, #37
 	@ MOV	a2, a2
-	MOV	a3, #0
-	MOV	a4, #0
+	MOV	a3, #0		@ Zero ptr buffer
+	ADR	a4, runpath_str
 	MOV	v1, #0
-	MOV	v2, #0
+	MOV	v2, #0		@ Zero length buffer
 	SWI	XOS_FSControl
 	BVS	restore_cli	@ Don't give error (good idea ?) and continue FIXME: why not use OS_GenerateError which terminates the parent ?
 
@@ -1142,10 +1147,23 @@ cli_arg_len_loop:
 	BEQ	restore_cli	@ FIXME: better error reporting needed ?
 
 	MOV	a1, #37
-	MOV	a4, #0
+	ADR	a4, runpath_str
 	ADD	v2, v2, #1
 	SWI	XOS_FSControl
-	BVS	restore_cli
+	BVS	release_rma_and_restore_cli
+
+	@ When the canoniclised filename does not exist, we have to fall back
+	@ on the original sul_exec() argument given as it might be an OSCLI
+	@ one.
+	STMFD	sp!, {a3}
+	MOV	a1, #5
+	@ MOV	a2, a2
+	SWI	XOS_File
+	LDMFD	sp!, {a3}
+	BVS	release_rma_and_restore_cli
+	TEQ	a1, #1		@ Is it a file or image file ?
+	TEQNE	a1, #3
+	BNE	release_rma_and_restore_cli
 
 	CMP	v7, #32
 	BLT	swap_cli
@@ -1167,11 +1185,20 @@ swap_cli:
 	@ a2 non canonicalised cli (sul_malloced)
 	@ a3 canonicalised cli (sul_malloced)
 	MOV	v1, a3
-	MOV	a1, a2
+	MOV	a1, v3
 	BL	sul_free	@ a1-a4 can get corrupted
 
 	MOV	a2, v1
 	B	update_cli_in_proc
+
+	@ a2 = sul_malloced memory block containing the cli
+	@ a3 = sul_malloced memory block we no longer need so we free it here.
+release_rma_and_restore_cli:
+	MOV	v1, a2
+	MOV	a1, v3
+	MOV	a2, a3
+	BL	sul_free	@ a1-a4 can get corrupted
+	MOV	a2, v1
 
 	@ a2 = sul_malloced memory block containing the cli
 restore_cli:
