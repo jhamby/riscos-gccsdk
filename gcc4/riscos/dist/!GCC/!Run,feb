@@ -38,6 +38,8 @@ Set UnixEnv$strings$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$strip$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$gcov$sfix <UnixEnv$gcc$sfix>
 Set UnixEnv$gprof$sfix <UnixEnv$gcc$sfix>
+| For well known programs outside !GCC:
+Set UnixEnv$make$sfix <UnixEnv$gcc$sfix>
 
 | Set system variables for controlling UnixLib heap for dynamic areas.
 | See the documentation about UnixLib and dynamic areas.

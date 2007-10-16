@@ -7,12 +7,18 @@ ASMFLAGS    = $(CCFLAGS)
 LINK        = gcc
 LINKFLAGS   = -mmodule
 CMHG        = cmunge
-CMHGFLAGS   =  -tgcc -32bit
+CMHGFLAGS   = -tgcc -32bit
 
-gccmodule: gccmodule.o module.o
-	$(LINK) $(LINKFLAGS) $< -o $@
+OBJS = gccmodule.o module.o
+
+gccmodule: $(OBJS)
+	$(LINK) $(LINKFLAGS) $(OBJS) -o $@
+
+.SUFFIXES:
+.SUFFIXES: .c .o .h .cmhg
 
 .c.o:;	$(CC) $(CCFLAGS) -c -o $@ $<
+
 # CMunge invocation rule:
 .cmhg.h:;	$(CMHG) $(CMHGFLAGS) -d $@ $<
 .cmhg.o:;	$(CMHG) $(CMHGFLAGS) -o $@ $<

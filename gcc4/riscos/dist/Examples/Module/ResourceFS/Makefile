@@ -34,13 +34,11 @@ MODCMHGSRC = module.cmhg
 MKRESFSDATA = data
 MKRESFSSRC  = resfs.c
 
-all: gccmodule3
-
-.INIT:
-	@$(MKDIR) o
+all: gccmodule
 
 .PHONY: all
 
+.SUFFIXES:
 .SUFFIXES: .o .c .s .cmhg .h
 
 .c.o:;	$(CC) $(CCFLAGS) -c -o $@ $<
@@ -56,10 +54,10 @@ $(MODCSRCS): $(MODCMHGSRC:.cmhg=.h) $(MKRESFSSRC:.c=.h)
 
 ifeq ($(UNITATATIME),yes)
 # One big compilation:
-gccmodule3: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.o) $(MKRESFSSRC)
+gccmodule: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.o) $(MKRESFSSRC)
 	$(CC) $(CCFLAGS) -o $@ $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.o) $(MKRESFSSRC) $(LIBS)
 else
 # Object-per-object compilation:
-gccmodule3: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.o) $(MKRESFSSRC:.c=.o)
+gccmodule: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.o) $(MKRESFSSRC:.c=.o)
 	$(LINK) $(LINKFLAGS) -o $@ $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.o) $(MKRESFSSRC:.c=.o) $(LIBS)
 endif

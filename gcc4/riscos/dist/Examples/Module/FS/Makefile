@@ -28,13 +28,11 @@ MODSSRCS   =
 # Add here your CMHG file :
 MODCMHGSRC = module.cmhg
 
-all: gccmodule2
-
-.INIT:
-	@$(MKDIR) o
+all: gccmodule
 
 .PHONY: all
 
+.SUFFIXES:
 .SUFFIXES: .o .c .s .cmhg .h
 
 .c.o:;	$(CC) $(CCFLAGS) -c -o $@ $<
@@ -42,18 +40,14 @@ all: gccmodule2
 .cmhg.h:;	$(CMHG) $(CMHGFLAGS) -d $@ $<
 .cmhg.o:;	$(CMHG) $(CMHGFLAGS) -o $@ $<
 
-# Static dependencies:
-
 $(MODCSRCS): $(MODCMHGSRC:.cmhg=.h)
 
 ifeq ($(UNITATATIME),yes)
 # One big compilation:
-gccmodule2: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o)
+gccmodule: $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o)
 	$(CC) $(CCFLAGS) -o $@ $(MODCSRCS) $(MODSSRCS) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
 else
 # Object-per-object compilation:
-gccmodule2: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o)
+gccmodule: $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.h) $(MODCMHGSRC:.cmhg=.o)
 	$(LINK) $(LINKFLAGS) -o $@ $(MODCSRCS:.c=.o) $(MODSSRCS:.s=.o) $(MODCMHGSRC:.cmhg=.o) $(LIBS)
 endif
-
-# Dynamic dependencies:
