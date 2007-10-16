@@ -24,7 +24,9 @@ fi
 # The install directory of the native RISC OS compiler is a
 # subdirectory of our release directory.
 GCCSDK_RELEASE_AREA=$GCCSDK_ROOT/release-area
-GCCSDK_RISCOS_PREFIX=$GCCSDK_RELEASE_AREA/\!GCC
+GCCSDK_RISCOS_PREFIX=$GCCSDK_RELEASE_AREA/full
+GCCSDK_RISCOS_GCCPREFIX=$GCCSDK_RISCOS_PREFIX/\!GCC
+GCCSDK_RISCOS_DSOPREFIX=$GCCSDK_RISCOS_PREFIX/\!DSO-libs
 
 # Where are we building (not in $GCCSDK_SRCDIR !):
 GCCSDK_CROSS_BUILDDIR=$GCCSDK_ROOT/builddir-cross
