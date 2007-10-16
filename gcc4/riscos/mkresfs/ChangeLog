@@ -1,3 +1,8 @@
+Wed Oct 17 00:52:47 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/mkresfs.c(generate): use __asm__ instead of asm in generated C
+	file so that it still compiles with -std=c99 option.
+
 Thu Aug 30 01:47:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* doc/README: Purpose paragraph still talked about two functions
