@@ -8,7 +8,7 @@ if [ -z "$RO_PKG" ] ; then
 fi
 
 if [ -z "$AB_MAKE" ] ; then
-  AB_MAKE=GCCSDK_ENV/ro-make
+  AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 fi
 
 if [ -z "$AB_INSTALLTARGET" ] ; then
@@ -22,8 +22,9 @@ mkdir -p $AB_DIR/package/lib/pkgconfig/
 mkdir -p $AB_DIR/package/doc/$RO_PKG
 
 echo "RO libpack: Running install target: $AB_INSTALLTARGET"
-# Adding GCCSDK_ENV in our path to intercept cp/rm/ln calls during installation.
-PATH=GCCSDK_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
+# Adding GCCSDK_INSTALL_ENV in our path to intercept cp/rm/ln
+# calls during installation.
+PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
 
 # Setup defaults for copying source
 if [ -z "$AB_COPYSOURCE" ] ; then
@@ -48,7 +49,7 @@ if [ "$AB_COPYSOURCE" == "yes" ] ; then
   find . -name "*.svn" -type d -print0 | xargs -0 rm -rf
 
   mkdir -p $AB_DIR/package/sources
-  GCCSDK_BIN/zip -r -y $AB_DIR/package/sources/$RO_PKG.zip *
+  $GCCSDK_INSTALL_CROSSBIN/zip -r -y $AB_DIR/package/sources/$RO_PKG.zip *
 fi
 
 if [ ! -z "$AB_INSTALLDOCS" ] ; then
@@ -109,7 +110,7 @@ if [ -d "$AB_OUTPUTLIB" ] ; then
   if [ -e $AB_OUTPUTLIB/$RO_PKG.zip ] ; then
     rm $AB_OUTPUTLIB/$RO_PKG.zip
   fi
-  GCCSDK_BIN/zip -, -r -D $AB_OUTPUTLIB/$RO_PKG.zip .
+  $GCCSDK_INSTALL_CROSSBIN/zip -, -r -D $AB_OUTPUTLIB/$RO_PKG.zip .
 
 else
   if [ -z "$AB_OUTPUTLIB" ] ; then
