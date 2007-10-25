@@ -81,7 +81,7 @@ SHLIB_NAME = @shlib_base_name@.so
 SHLIB_SONAME = @shlib_base_name@.so.1
 SHLIB_OBJS = @shlib_objs@
 
-SHLIB_LINK = $(GCC_FOR_TARGET) $(LIBGCC2_CFLAGS) -fPIC -shared -nostdlib \
+SHLIB_LINK = $(GCC_FOR_TARGET) $(LIBGCC2_CFLAGS) -fPIC -shared -nodefaultlibs \
 	-Wl,-soname,$(SHLIB_SONAME) \
 	-o @multilib_dir@/$(SHLIB_NAME).tmp @multilib_flags@ $(SHLIB_OBJS) && \
 	rm -f @multilib_dir@/$(SHLIB_SONAME) && \

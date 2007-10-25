@@ -55,7 +55,9 @@
    result in linker errors when VFP fpu is taken as default fpu not matching
    -mfloat-abi=soft.  */
 #undef SUBTARGET_EXTRA_ASM_SPEC
-#define SUBTARGET_EXTRA_ASM_SPEC "%{!mfpu:%{mhard-float|mfloat-abi=hard:-mfpu=fpa; :-mfpu=softfpa}}"
+#define SUBTARGET_EXTRA_ASM_SPEC \
+     "%{!mfpu:%{mhard-float|mfloat-abi=hard:-mfpu=fpa; :-mfpu=softfpa}}" \
+     "%{fpic:-k} %{fPIC:-k}"
 
 #undef SUBTARGET_EXTRA_LINK_SPEC
 #ifdef CROSS_COMPILE
@@ -151,6 +153,15 @@
 #undef FINI_SECTION_ASM_OP
 #define FINI_SECTION_ASM_OP	".section\t.fini"
 #define HAVE_INIT_SECTION
+
+/* Select a format to encode pointers in exception handling data.  CODE
+   is 0 for data, 1 for code labels, 2 for function pointers.  GLOBAL is
+   true if the symbol may be affected by dynamic relocations.
+
+   Use a 32-bit pc-relative relocation to static data.  Dynamic data is
+   accessed indirectly to allow for read only EH sections.  */
+#define ASM_PREFERRED_EH_DATA_FORMAT(CODE,GLOBAL)       \
+  (((GLOBAL) ? DW_EH_PE_indirect : 0) | DW_EH_PE_pcrel | DW_EH_PE_sdata4)
 
 #define TARGET_OS_CPP_BUILTINS()		\
   do						\
