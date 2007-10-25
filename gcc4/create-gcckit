@@ -277,8 +277,8 @@ split_off_dsolibscore() {
 # Move the C++ compiler to a separate kit:
 split_off_gccgpp() {
   create_empty_dir $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME
-  for obj in $GCCSDK_TARGET_NAME/lib/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
-             $GCCSDK_TARGET_NAME/lib/fpu/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
+  for obj in $GCCSDK_TARGET_NAME/lib/{libstdc++.la,libstdc++.a} \
+             $GCCSDK_TARGET_NAME/lib/fpu/{libstdc++.la,libstdc++.a} \
              bin/{g++\,e1f,c++filt\,e1f} \
              include/c++ ; do
     mkdir -p $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/`basename $BKIT_GCC_UNPACKED`/`dirname $obj`
