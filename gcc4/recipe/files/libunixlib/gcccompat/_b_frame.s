@@ -47,6 +47,7 @@ __stackchunk_magic_number:
 	@ at assemble time check __TARGET_SCL__ / __TARGET_UNIXLIB__ and
 	@ reduce the code a bit.
 	.global	__builtin_frame_address
+	NAME	__builtin_frame_address
 __builtin_frame_address:
 	MOV	ip, sp
 	STMFD	sp!, {v1, v2, fp, ip, lr, pc}

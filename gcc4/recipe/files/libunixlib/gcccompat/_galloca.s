@@ -15,6 +15,7 @@
 	.text
 
 	.global	__gcc_alloca_free
+	NAME	__gcc_alloca_free
 __gcc_alloca_free:
 	@ We must save any call-clobbered registers that are likely to be
 	@ corrupted by the following function.  Otherwise we risk corrupting

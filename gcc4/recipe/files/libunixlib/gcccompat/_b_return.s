@@ -23,6 +23,7 @@
 	@ being modified in the frame by calls to stack extension code
 	@ or calls to alloca.
 	.global	__builtin_return_address
+	NAME	__builtin_return_address
 __builtin_return_address:
  PICNE "STMFD	sp!, {lr}"
  PICEQ "STMFD	sp!, {v4, lr}"

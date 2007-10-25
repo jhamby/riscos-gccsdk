@@ -418,6 +418,14 @@ no_dynamic_area:
 	@ calling this function.
 	BL	__unixinit
 
+	@ Use the Dynamic Loader to call the _init functions of all
+	@ shared libraries. This also reqisters the _fini functions
+	@ with atexit().
+ PICEQ "LDR	a1, .L0+36"		@ _dl_call_ctors
+ PICEQ "LDR	a1, [v4, a1]"
+ PICEQ "TEQ	a1, #0"
+ PICEQ "BLNE	_dl_call_ctors"
+
 	@ Make sure the _fini function of the executable is called at program
 	@ exit.
 	LDR	a1, .L0+28		@ exec_fini
@@ -426,7 +434,7 @@ no_dynamic_area:
 	BL	atexit
 
 	@ Call the programs _init function.
-	LDR	a1, .L0+24
+	LDR	a1, .L0+24		@ exec_init
  PICEQ "LDR	a1, [v4, a1]"
 	MOV	lr, pc
 	LDR	pc, [a1, #0]
@@ -444,6 +452,8 @@ no_dynamic_area:
 	WORD	exec_init
 	WORD	exec_fini
  PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
+ PICEQ ".word	_dl_call_ctors(GOT)"
+ PICEQ ".weak _dl_call_ctors"
 	DECLARE_FUNCTION __main
 
 ___program_name:
