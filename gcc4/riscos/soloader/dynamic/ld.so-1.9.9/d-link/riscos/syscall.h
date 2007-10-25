@@ -308,7 +308,7 @@ static inline void _dl_exit(int status)
 		: "r" (status), [swi_name] "i" (XSOM_DEREGISTER_CLIENT));
 }
 
-static inline void _dl_generate_error(os_error *err)
+static inline void _dl_generate_error(const os_error *err)
 {
   asm volatile ("swi	%[som_deregister_client];\n\t"
 		"mov	r0, %0;\n\t"

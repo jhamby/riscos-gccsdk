@@ -865,7 +865,7 @@ void _dl_boot(int args)
   START();
 }
 
-void _dl_init_funcs(void)
+void _dl_call_ctors(void)
 {
 struct elf_resolve *tpnt;
 int (*_dl_atexit)(void *);
