@@ -99,9 +99,7 @@
 #define LIB_SPEC \
   "%{!nostdlib:%{mlibscl:-lscl; :-lunixlib }}"
 
-#define LIBGCC_SPEC	"%{static:-lgcc} \
-			%{!static:%{!shared:-lgcc_s}} \
-			%{shared:-lgcc_s}"
+#define LIBGCC_SPEC	"-lgcc"
 
 /* Provide a STARTFILE_SPEC appropriate for GNU/Linux.  Here we add
    the GNU/Linux magical crtbegin.o file (see crtstuff.c) which
