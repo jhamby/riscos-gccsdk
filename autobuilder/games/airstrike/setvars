@@ -1,13 +1,18 @@
 
-AB_CATEGORY=games
+AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 AB_DISTCLEAN="make clean"
 
 ab_package() {
-  cp -av $H/\!AirStrike $D
-  rm -rf $D/\!AirStrike/.svn
-  cp -av $S/ChangeLog $S/COPYING $S/LICENSE $S/README $D/\!AirStrike
-  cp -av $S/src/airstrike$AB_EXEEXT $S/data $D/\!AirStrike
-  sed s#datapath.*\$#"datapath \"<AirStrike\$Dir>/data/\""# < $S/airstrikerc > $D/\!AirStrike/airstrikerc
+  mkdir -p $D/Apps
+  mkdir -p $D/Apps/Games
+  AD=$D/Apps/Games
+  cp -av $H/\!AirStrike $AD
+  rm -rf $AD/\!AirStrike/.svn
+  cp -av $S/ChangeLog $S/COPYING $S/LICENSE $S/README $AD/\!AirStrike
+  cp -av $S/src/airstrike$AB_EXEEXT $S/data $AD/\!AirStrike
+  sed s#datapath.*\$#"datapath \"<AirStrike\$Dir>/data/\""# < $S/airstrikerc > $AD/\!AirStrike/airstrikerc
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound
 }
 
