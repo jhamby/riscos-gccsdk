@@ -1,0 +1,295 @@
+# Add Packaging information for the
+# RISC OS packaging project.
+#
+# This will attempt to create as much
+# of the package information it can
+# automatically and type all the files.
+#
+echo "add-riscpkg: Adding files for the RISC OS Packaging Project"
+
+H=$AB_HOME/$AB_PACKAGEDIR
+if [ -z "$AB_DIR" ] ; then
+   AB_DIR=.
+fi
+
+D=$AB_DIR/package
+
+# Parse parameters
+
+depends=""
+package="$AB_PACKAGE"
+section="$AB_CATEGORY"
+
+# Scan the boot file for variables etc,
+scan_boot_file() {
+  boot_file=`find $D -iname "\!Boot,feb"`
+  # Get appdir/appname defaults
+  appdir=`echo "$boot_file" | sed "s#$D/## ; s#/#.#g ; s/!//"`
+  appname=`echo "$appdir" | cut -d . -f 3`
+  appdir=`echo "$appdir" | cut -d . -f 1-2`
+}
+
+scan_boot_file
+
+boot_vars="yes"
+
+for param in $@ ; do
+  case "$param" in
+  -unixlib)
+     depends="$depends, UnixLib"
+     ;;
+  -unixsound)
+     depends="$depends, DRenderer"
+     ;;
+  -unixhome)
+     depends="$depends, UnixHome"
+     ;;
+  -dirvar)
+     if [ -z "$appdir" ] || [ -z "$appname" ] ; then
+       echo "add-riscpkg: appdir and appname must be specified before dirvar"
+       exit 1
+     fi
+     mkdir -p  $D/SysVars
+     echo -e "<Packages\$@$appdir.\x21$appname>" > "$D/SysVars/$appname=24Dir"
+     boot_vars="no"
+     ;;
+  -pathvar)
+     if [ -z "$appdir" ] || [ -z "$appname" ] ; then
+       echo "add-riscpkg: appdir and appname must be specified before pathvar"
+       exit 1
+     fi
+     mkdir -p  $D/SysVars
+     echo -e "<Packages\$@$appdir.\x21$appname>." > "$D/SysVars/$appname=24Path"
+     boot_vars="no"
+     ;;
+  -nobootvars)
+     boot_vars="no"
+     ;;
+  -*)
+     last_param=$param
+     ;;
+  *)
+     if [ -z "$last_param" ] ; then
+       echo "add-riscpkg: Missing option before $param"
+       exit 1
+     fi
+
+     case "$last_param" in
+     -copyrightfile)
+         copyrightfile=$param
+         ;;
+     -depends)
+         depends="$depends, $param"
+         ;;
+     -appdir)
+         appdir="$param"
+         ;;
+     -appname)
+         appname="$param"
+         ;;
+     -package)
+         package="$param"
+         # Multiple packages can be put in subdirectories
+         # so check for a package specific directory
+         if [ -d "$D/$package" ] ; then
+           D="$D/$package"
+           scan_boot_file
+         fi
+         ;;
+     -section)
+         section="$param"
+         ;;
+     *)
+       echo "add-riscpkg: Invalid parameter $last_param"
+       exit 1
+       ;;
+     esac
+
+     last_param=""
+     ;;
+  esac
+done
+
+# Create SysVars from entries in !Boot file
+if [ "$boot_vars" == "yes" ] && [ ! -z "$boot_file" ] ; then     
+  if [ -z "$appdir" ] || [ -z "$appname" ] ; then
+    echo "add-riscpkg: Failed to determine application directory/name"
+    exit 1
+  fi
+  mkdir -p $D/SysVars
+  vars=`grep "Set " $boot_file | sed "s/^.*Set // ; s/<Obey\\\$Dir>/<Packages\\\$@$appdir.!$appname>/g"`
+  echo "$vars" |
+  while read line
+  do
+    var=`echo "$line" | cut -d ' ' -f 1 | sed 's/\\\$/=24/'`
+    val=`echo "$line" | cut -d ' ' -f 2-`
+    echo "$val" > "$D/SysVars/$var"
+  done
+fi
+
+mkdir -p $D/RiscPkg
+
+if [ -d "$H/RiscPkg" ] ; then
+  cp -av $H/RiscPkg/* $D/RiscPkg
+fi
+
+if [ -d "$H/SysVars" ] ; then
+  mkdir -p $D/SysVars
+  cp -av $H/SysVars/* $D/SysVars
+fi
+
+if [ -d "$H/Sprites" ] ; then
+  mkdir -p $D/Sprites
+  cp -av $H/Sprites/* $D/Sprites
+fi
+
+# Build Control record
+
+# First check what has been hard coded
+has_description=""
+has_licence=""
+has_depends=""
+if [ -e "$H/RiscPkg/Control" ] ; then
+  has_description=`grep "^Package:" $H/RiscPkg/Control`
+  has_licence=`grep "^Licence:" $H/RiscPkg/Control`
+  has_depends=`grep "^Depends:" $H/RiscPkg/Control`
+fi
+
+echo "Package: $package" > $D/RiscPkg/Control
+echo "Version: $AB_PVERSION-$AB_ROVERSION" >> $D/RiscPkg/Control
+echo "Section: $section" >> $D/RiscPkg/Control
+echo "Priority: Optional" >> $D/RiscPkg/Control
+if [ -z "$has_licence" ] ; then
+  echo "Licence: Free" >> $D/RiscPkg/Control
+fi
+echo "Maintainer: GCCSDK mailing list <gcc@gccsdk.riscos.info>" >> $D/RiscPkg/Control
+echo "Standards-Version: 0.1.0" >> $D/RiscPkg/Control
+
+if [ -z "$has_depends" ] && [ ! -z "$depends" ] ; then
+  depends=`echo "$depends" | cut -b 2-`
+  echo "Depends:$depends" >> $D/RiscPkg/Control
+fi
+
+if [ -e "$H/RiscPkg/Control" ] ; then
+  cat $H/RiscPkg/Control >> $D/RiscPkg/Control
+fi
+
+# Standard header for copyright
+echo "$package" > $D/RiscPkg/Copyright
+echo "" >> $D/RiscPkg/Copyright
+echo "Upstream sources were downloaded and built by" >> $D/RiscPkg/Copyright
+echo "the GCCSDK Autobuilder." >> $D/RiscPkg/Copyright
+echo "" >> $D/RiscPkg/Copyright
+echo "For information on the autobuilder see the URL:" >> $D/RiscPkg/Copyright
+echo "" >> $D/RiscPkg/Copyright
+echo "http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder" >> $D/RiscPkg/Copyright
+echo "" >> $D/RiscPkg/Copyright
+echo "The source used for this build can be found at" >> $D/RiscPkg/Copyright
+echo "" >> $D/RiscPkg/Copyright
+echo "http://www.riscos.info/packages/src/$AB_CATEGORY" >> $D/RiscPkg/Copyright
+echo "" >> $D/RiscPkg/Copyright
+
+if [ ! -d debian ] ; then
+   # This is the same as fetch-program
+   AB_CVS_ROOT=$(grep AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+   if [ ! -z "$AB_CVS_ROOT" ] ; then
+     AB_CVS_MODULE=$(grep AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+     AB_CVS_TAGORBRANCH=$(grep AB_CVS_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+     if [ ! -z "$AB_CVS_TAGORBRANCH" ] ; then
+       AB_CVS_TAGORBRANCH="tag/branch $AB_CVS_TAGORBRANCH"
+     fi
+     echo "Upstream source fetched by CVS with" >> $D/RiscPkg/Copyright
+     echo "" >> $D/RiscPkg/Copyright
+     echo "CVS root $AB_CVS_ROOT" >> $D/RiscPkg/Copyright
+     echo "Module   $AB_CVS_MODULE" >> $D/RiscPkg/Copyright
+     if [ ! -z "$AB_CVS_TAGORBRANCH" ] ; then
+       echo "Tag/branch $AB_CVS_TAGORBRANCH" >> $D/RiscPkg/Copyright
+     fi
+  fi
+  AB_SVN=$(grep AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+  if [ ! -z "$AB_SVN" ] ; then
+     echo "Upstream source fetched using SVN from" >> $D/RiscPkg/Copyright
+     echo "" >> $D/RiscPkg/Copyright
+     echo "$AB_SVN" >> $D/RiscPkg/Copyright
+  fi
+  AB_URL=$(grep AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+  if [ ! -z "$AB_URL" ] ; then
+     echo "Upstream source fetched from URL" >> $D/RiscPkg/Copyright
+     echo "" >> $D/RiscPkg/Copyright
+     echo "$AB_URL" >> $D/RiscPkg/Copyright
+  fi
+  echo "" >> $D/RiscPkg/Copyright
+fi
+
+has_copyright="no"
+if [ -e "$H/RiscPkg/Copyright" ] ; then
+   has_copyright="yes"
+   cat $H/RiscPkg/Copyright >> $D/RiscPkg/Copyright
+fi
+
+# Use debian descpription and copyright 
+if [ -d debian ] ; then
+  if [ -z "$has_description" ] ; then
+    echo "add-riskpkg: Using debian description"
+    # Look for exact description
+    desc=`grep -A100 "Package: $package$" debian/control | sed -n '/^Description:/,/^$/p' | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
+    if [ -z "$desc" ] ; then
+      dev_desc=`echo "$package" | grep ".*-dev$"`
+      if [ -z "$dev_desc" ] ; then	
+        desc=`sed -n '/^Description:/,/^$/p' debian/control | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
+      else
+        desc=`grep -A100 "Package: .*-dev$" debian/control | sed -n '/^Description:/,/^$/p' | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
+      fi 
+    fi
+    echo "$desc" >> $D/RiscPkg/Control
+  fi
+ 
+  if [ "$has_copyright" == "no" ] ; then
+    echo "This was built from unstable debian sources" >> $D/RiscPkg/Copyright
+    echo "" >> $D/RiscPkg/Copyright
+    cat debian/copyright >> $D/RiscPkg/Copyright 
+    echo "" >> $D/RiscPkg/Copyright
+    echo "On RISC OS the common licenses can be found in" >> $D/RiscPkg/Copyright
+    echo 'the directory <CommonLicences$Dir>' >> $D/RiscPkg/Copyright
+    echo "or downloaded from the URL: http://www.riscpkg.org/licences." >> $D/RiscPkg/Copyright
+  fi
+else
+  # Try to build copyright from COPYING or equivalent file
+  if [ "$has_copyright" == "no" ] && [ ! -z "$copyrightfile" ] ; then
+    if [ -e $copyrightfile ] ; then
+      lic=`head -1 $copyrightfile`
+      lgpl=`echo $lic | grep "GNU LESSER GENERAL PUBLIC LICENSE"`
+      if [ ! -z "$lgpl" ] ; then
+        echo "Distribution and use are subject to the GNU Lesser General Public License," >> $D/RiscPkg/Copyright
+        echo "a copy of which may be found in the file:" >> $D/RiscPkg/Copyright
+        echo "" >> $D/RiscPkg/Copyright
+        echo "<Common_Licences$Dir>.LGPL-2/1" >> $D/RiscPkg/Copyright
+        echo "" >> $D/RiscPkg/Copyright
+        echo "or downloaded from the URL:" >> $D/RiscPkg/Copyright
+        echo "" >> $D/RiscPkg/Copyright
+        echo "http://www.riscpkg.org/licences/LGPL-2.1.txt" >> $D/RiscPkg/Copyright
+      else
+        gpl=`echo $lic | grep "GNU GENERAL PUBLIC LICENSE"`
+        if [ ! -z "$gpl" ] ; then
+          echo "Distribution and use are subject to the GNU General Public License," >> $D/RiscPkg/Copyright
+          echo "a copy of which may be found in the file:" >> $D/RiscPkg/Copyright
+          echo "" >> $D/RiscPkg/Copyright
+          echo "<Common_Licences$Dir>.GPL-2" >> $D/RiscPkg/Copyright
+          echo "" >> $D/RiscPkg/Copyright
+          echo "or downloaded from the URL:" >> $D/RiscPkg/Copyright
+          echo "" >> $D/RiscPkg/Copyright
+          echo "http://www.riscpkg.org/licences/GPL-2.txt" >> $D/RiscPkg/Copyright
+        else
+          cat $copyrightfile >> $D/RiscPkg/Copyright
+        fi
+      fi
+    fi
+  fi
+fi
+
+# Set file types of all files not already set to be text
+# as current version of RiscPkg needs this
+echo "add-riscpkg: Setting filetypes..."
+find $D ! -iname \*,??? -type f -execdir mv {} {},fff \;
+
+echo "add-riskpkg: Finished"
