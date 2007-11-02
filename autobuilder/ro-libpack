@@ -26,32 +26,6 @@ echo "RO libpack: Running install target: $AB_INSTALLTARGET"
 # calls during installation.
 PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
 
-# Setup defaults for copying source
-if [ -z "$AB_COPYSOURCE" ] ; then
-  if [ -e COPYING ]; then
-    AB_COPYSOURCE=yes
-  fi
-fi
-
-if [ "$AB_COPYSOURCE" == "yes" ] ; then
-  if [ -z "$AB_DISTCLEAN" ] ; then
-    AB_DISTCLEAN="$AB_MAKE distclean"
-  fi
-
-  eval $AB_DISTCLEAN
-
-  # Some configure tests end up with this file
-  if [ -e \!RunImage,ff8 ] ; then
-     rm -f \!RunImage,ff8
-  fi
-
-  # Delete svn subdirectories
-  find . -name "*.svn" -type d -print0 | xargs -0 rm -rf
-
-  mkdir -p $AB_DIR/package/sources
-  $GCCSDK_INSTALL_CROSSBIN/zip -r -y $AB_DIR/package/sources/$RO_PKG.zip *
-fi
-
 if [ ! -z "$AB_INSTALLDOCS" ] ; then
   for file in $AB_INSTALLDOCS ; do
      if [ -e $file ] ; then
