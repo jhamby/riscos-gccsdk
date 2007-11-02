@@ -71,8 +71,9 @@ ab_package_source() {
   rm -f $S/man3
 
   mkdir -p $S/riscos
-  cp $H/*.p $S/riscos || true
-  cp $H/setvars $S/riscos
+  cp -r $H/* $S/riscos || true
+  rm -f $S/riscos/last-failure
+  rm -f $S/riscos/last-success
 }
 
 # Default function for creating webinfo
@@ -173,7 +174,7 @@ else
  echo "Autobuilder: source directory is $S"
  
  # Get the version number
- AB_PVERSION=$(echo $AB_FULLNAME | sed s/$AB_PACKAGE-//)
+ AB_PVERSION=$(echo $AB_FULLNAME | sed s/$AB_PACKAGE-// )
  
  # Apply any Debian patches
  if [ -d debian/patches ] ; then
@@ -204,6 +205,14 @@ else
    echo "Autobuilder: RISC OS patch: $AB_PATCH"
    patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
  done
+
+ # Set default for source copy based on the premise
+ # that most open source programs have a COPYING file
+ if [ -z "$AB_COPYSOURCE" ] ; then
+  if [ -e COPYING ]; then
+    AB_COPYSOURCE=yes
+  fi
+ fi
  
  echo "Autobuilder: Calling setvars"
  . $AB_HOME/$AB_PACKAGEDIR/setvars
@@ -260,8 +269,6 @@ else
  if [ "$AB_INSTALL" == "yes" ] ; then
    export AB_OUTPUTLIB
    export AB_INSTALLDOCS
-   export AB_COPYSOURCE
-   export AB_DISTCLEAN
    export AB_SHORTDESC
 
    if [ "$AB_ZIPNAME" != "" ] ; then
@@ -271,9 +278,9 @@ else
        export RO_PKG=$AB_ZIPNAME$AB_TARGET
      fi
 
-     $GCCSDK_INSTALL_ENV/ro-libpack
+     $AB_HOME/ro-libpack
    else
-     RO_PKG=$AB_FULLNAME$AB_TARGET $GCCSDK_INSTALL_ENV/ro-libpack
+     RO_PKG=$AB_FULLNAME$AB_TARGET $AB_HOME/ro-libpack
    fi
  fi
  
@@ -284,6 +291,11 @@ fi # Package only
 # Custom package routine ?
 rm -rf $D
 mkdir -p $D
+
+# export variable required by add-riscpkg
+export AB_PVERSION
+export AB_ROVERSION
+export AB_CATEGORY
 
 ab_package
 
@@ -321,41 +333,71 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
    find -type f -wholename "*,e1f" | $GCCSDK_INSTALL_ENV/ro-path xargs arm-unknown-riscos-strip
  fi
 
- # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
- if [ -e $AB_ZIP ] ; then
-   rm $AB_ZIP
- fi
+ if [ -z "$AB_PACKAGES" ] ; then
+   # Single package
 
- if [ "$AB_MANPAGE" != "" ] ; then
-   for AB_PAGE in $AB_MANPAGE ; do
-     rman -f HTML $S/$AB_PAGE > $S/$AB_PAGE,faf
-     addzip -j $AB_ZIP $S/$AB_PAGE,faf
+   # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
+   if [ -e $AB_ZIP ] ; then
+     rm $AB_ZIP
+   fi
+
+   if [ "$AB_MANPAGE" != "" ] ; then
+     for AB_PAGE in $AB_MANPAGE ; do
+       rman -f HTML $S/$AB_PAGE > $S/$AB_PAGE,faf
+       addzip -j $AB_ZIP $S/$AB_PAGE,faf
+     done
+   fi
+ 
+   if [ -e $H/ReadMe ] ; then
+     AB_UNDER=$(echo $AB_PACKAGE | tr [:alnum:] =)
+ 
+     sed "s/PACKAGE/$AB_PACKAGE/; s/XXXXXXX/$AB_UNDER/; s/VERSION/$AB_PVERSION/; s/RELEASE/$AB_ROVERSION/" \
+       < $AB_HOME/header \
+       > $D/ReadMe
+ 
+     cat $H/ReadMe >> $D/ReadMe
+ 
+    if [ "$AB_README" != "ReadMe" ] ; then
+      mv $AB_DIR/ReadMe $AB_README
+    else
+      :
+    fi
+
+   fi
+
+   # FIXME? this will not add files beginning with a dot.  Intended behaviour ?
+   addzip -r $AB_ZIP *
+
+   mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
+   mv $AB_ZIP $AB_OUTPUTPACK/$AB_CATEGORY
+   ls -l  $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP)
+
+ else
+   # Multiple packages (AB_PACKAGES defined)
+   for package in $AB_PACKAGES ; do
+     if [ -d "$package" ] ; then
+       if [ -e "$package/RiscPkg/Control,fff" ] ; then
+         section=`grep "Section: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
+       fi
+       if [ -z "$section" ] ; then
+         section="$AB_CATEGORY"
+       fi
+       AB_PZIP=$AB_DIR/$package$AB_TARGET-$AB_PVERSION-$AB_ROVERSION.zip
+       # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
+       if [ -e $AB_PZIP ] ; then
+         rm $AB_PZIP
+       fi
+       cd $package
+       addzip -r $AB_PZIP *
+       mkdir -p $AB_OUTPUTPACK/$section
+       mv $AB_PZIP $AB_OUTPUTPACK/$section
+       ls -l  $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)
+       cd ..
+     else
+       echo "Autobuilder: package directory missing $package" 
+     fi
    done
  fi
- 
- if [ -e $H/ReadMe ] ; then
-   AB_UNDER=$(echo $AB_PACKAGE | tr [:alnum:] =)
- 
-   sed "s/PACKAGE/$AB_PACKAGE/; s/XXXXXXX/$AB_UNDER/; s/VERSION/$AB_PVERSION/; s/RELEASE/$AB_ROVERSION/" \
-     < $AB_HOME/header \
-     > $D/ReadMe
- 
-   cat $H/ReadMe >> $D/ReadMe
- 
-  if [ "$AB_README" != "ReadMe" ] ; then
-    mv $AB_DIR/ReadMe $AB_README
-  else
-    :
-  fi
-
- fi
-
- # FIXME? this will not add files beginning with a dot.  Intended behaviour ?
- addzip -r $AB_ZIP *
-
- mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
- mv $AB_ZIP $AB_OUTPUTPACK/$AB_CATEGORY
- ls -l  $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP)
 
  # Package source if required
  if [ "$AB_COPYSOURCE" == "yes" ] && [ "$AB_DEBUG" != "yes" ] ; then
