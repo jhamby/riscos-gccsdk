@@ -80,6 +80,13 @@
 # needed. Useful if tools from a library, etc.
 #AB_ZIPNAME=
 
+# Multiple packages. This specifies the name of the packages
+# to create if multiple packages are to be produced.
+# Each package should be created in a seperate subdirectory
+# of the package directory (the $D variable in the package function)
+# with the same name as the package name specified in the variable.
+#AB_PACKAGES=
+
 # Name ReadMe should be zipped as.  For example, !Program/!Help,fff
 # Don't forget to escape '!' in bash.
 #AB_README=ReadMe,fff
@@ -87,8 +94,6 @@
 # Copy sources into library packages or produce a source zip
 # file for other packages "yes" or "no"
 # If left blank it will copy the sources if the file COPYING exists
-# for libraries, other packages will do nothing unless it is set to
-# "yes".
 #AB_COPYSOURCE=
 
 # Command to clean the distribution before packaging up the source
