@@ -1,17 +1,22 @@
-AB_CATEGORY=games
+AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 
 ab_package() {
-  cp -av $H/\!CircusLnx $D
-  cp -av $H/\!CircusLnx/\!* $D/\!CircusLnx
-  cp -av circuslinux,ff8 $D/\!CircusLnx/\!RunImage,ff8
-  cat $S/README.txt >> $D/\!CircusLnx/\!Help
+  mkdir -p $D/Apps
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -av $H/\!CircusLnx $AD
+  cp -av $H/\!CircusLnx/\!* $AD/\!CircusLnx
+  cp -av circuslinux,ff8 $AD/\!CircusLnx/\!RunImage,ff8
+  cat $S/README.txt >> $AD/\!CircusLnx/\!Help
 
   cp -av $S/AUTHORS.txt $S/CHANGES.txt $S/FAQ.txt $S/README-SDL.txt \
-  $S/COPYING.txt $D/\!CircusLnx
+  $S/COPYING.txt $AD/\!CircusLnx
 
-  mkdir -p $D/\!CircusLnx/data
-  cp -r $S/data/images $S/data/music $S/data/sounds $D/\!CircusLnx/data
+  mkdir -p $AD/\!CircusLnx/data
+  cp -r $S/data/images $S/data/music $S/data/sounds $AD/\!CircusLnx/data
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
 }
 
 export LIBS="-ljpeg -lpng -ltiff -lz -logg -lvorbis -lvorbisfile"
