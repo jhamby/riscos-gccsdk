@@ -6,43 +6,39 @@
 
 #ifdef __TARGET_SCL__
 
-#define __RISCOSIFY
+#  define __RISCOSIFY
 
-#define MAXPATHLEN 256
+#  define MAXPATHLEN 256
 
-#define MMM_TYPE_RISCOS               0
-#define MMM_TYPE_RISCOS_STRING        1
-#define MMM_TYPE_MIME                 2
-#define MMM_TYPE_DOT_EXTN             3
+#  define MMM_TYPE_RISCOS               0
+#  define MMM_TYPE_RISCOS_STRING        1
+#  define MMM_TYPE_MIME                 2
+#  define MMM_TYPE_DOT_EXTN             3
 
-#define OSFILE_READCATINFO_NOPATH   17
+#  define OSFILE_READCATINFO_NOPATH   17
 
 extern const char __filename_char_map[256];
 
-#define stricmp strcmp
+#  define stricmp strcmp
 
-#define __os_prhex(val) fprintf(stderr, "%x", val)
-#define __os_print(val) fputs(val, stderr)
+#  define __os_prhex(val) fprintf(stderr, "%x", val)
+#  define __os_print(val) fputs(val, stderr)
+
+#  include <kernel.h>
 
 #else
 
-#include <unixlib/local.h>
-#include <unixlib/unix.h>
-#include <unixlib/os.h>
-#include <internal/swiparams.h>
-#include <pwd.h>
+#  include <unixlib/local.h>
+#  include <unixlib/unix.h>
+#  include <unixlib/os.h>
+#  include <internal/swiparams.h>
+#  include <pwd.h>
 
 #endif
 
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
-
-#ifdef __TARGET_SCL__
-
-#include <kernel.h>
-
-#endif
-
 #include <swis.h>
 #include <stdlib.h>
 #include <ctype.h>
@@ -64,16 +60,9 @@ static const char wimp_scrap[] = "<Wimp$ScrapDir>";
 
 /* /tmp is so common and can't guarantee that $.tmp exists.
    /pipe is used in some programs and can't guarantee that $.pipe exists.  */
-static __sdir_default_map def_map[] =
-{
-  {
-    0,
-    { "pipe", wimp_scrap },
-  },
-  {
-    0,
-    { "tmp", wimp_scrap },
-  }
+static __sdir_default_map def_map[] = {
+  { 0, {"pipe", wimp_scrap}, },
+  { 0, {"tmp", wimp_scrap}, }
 };
 
 /* Maximum number of special directories. This should be dynamic, but
@@ -98,8 +87,7 @@ struct sfix
 
    This may still change, as the current find API allows the returned string
    to differ from the supplied string. eg "*.cpp" could map to "cc.*".  */
-static struct sfix *__sfix[SFIXSIZE] =
-{
+static struct sfix *__sfix[SFIXSIZE] = {
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
   NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
@@ -185,11 +173,11 @@ __sfixinit (const char *list)
       struct sfix *entry;
 
       for (entry = __sfix[i]; entry;)
-        {
-          struct sfix *next = entry->next;
-          free (entry);
-          entry = next;
-        }
+	{
+	  struct sfix *next = entry->next;
+	  free (entry);
+	  entry = next;
+	}
       __sfix[i] = NULL;
     }
 
@@ -203,9 +191,9 @@ __sfixinit (const char *list)
       if (ch == ':')
 	continue;
 
-      start = list-1;
+      start = list - 1;
       while ((ch = *list++) && ch != ':')
-        ;
+	;
 
       length = list - start;	/* Includes ':' or '\0'.  */
       entry = (struct sfix *) malloc (length + sizeof (struct sfix *));
@@ -216,14 +204,16 @@ __sfixinit (const char *list)
       entry->suffix[length] = '\0';
       where = sfix_hash (entry->suffix);
 #ifdef DEBUG
-      __os_prhex (where); __os_print (" '");
-      __os_print (entry->suffix); __os_print ("'\r\n");
+      __os_prhex (where);
+      __os_print (" '");
+      __os_print (entry->suffix);
+      __os_print ("'\r\n");
 #endif
       entry->next = __sfix[where];
       __sfix[where] = entry;
 
       if (!ch)
-        return;	/* Last suffix terminated on '\0'.  */
+	return;			/* Last suffix terminated on '\0'.  */
     }
 }
 
@@ -249,7 +239,6 @@ sdirseg (const char **in_p, char **out_p, const char *buf_end)
   char ch;
   int j;
 
-
   for (j = 0; j < MAXSDIR; j++)
     {
       s3 = __sdir[j].name;
@@ -272,6 +261,7 @@ sdirseg (const char **in_p, char **out_p, const char *buf_end)
 	  return sdirseg_match;
 	}
     }
+
   return sdirseg_no_match;
 }
 
@@ -279,15 +269,15 @@ const char *
 __sfixfind (const char *sfix, size_t len)
 {
   int where = sfix_hash (sfix);
-  struct sfix *entry = __sfix[where];
+  struct sfix *entry;
 
-  while (entry)
+  for (entry = __sfix[where]; entry != NULL; entry = entry->next)
     {
-      if (strncmp (entry->suffix, sfix, len) == 0 && entry->suffix[len] == '\0')
-        return entry->suffix;
+      if (strncmp (entry->suffix, sfix, len) == 0
+	  && entry->suffix[len] == '\0')
+	return entry->suffix;
 
       /* Modifiying this struct would allow, e.g., mapping .C to cc.  */
-      entry = entry->next;
     }
 
   /* Failed.  */
@@ -311,22 +301,22 @@ copy_or_null (char *to, const char *from, const char *buf_end)
    Return NULL if buffer overflowed. */
 static char *
 translate_or_null (int create_dir, int flags,
-                   char *buffer, const char *buf_end, int *filetype,
-                   char *out, const char *in, int path)
+		   char *buffer, const char *buf_end, int *filetype,
+		   char *out, const char *in, int path)
 {
   /* in points to a (possibly partial) unix pathname.
      If it was absolute, it will have had any leading '/'s stripped, and any
      RISC OS specific parts will already have been copied */
 
-  const char *start = in;      /* The start of our input */
-  const char *last_slash = in; /* The next character after the last '/'
-                                  discovered in the input */
-  const char *previous_slash = NULL; /* The previous value of last_slash */
-  char *last_out_slash = out;  /* The position in the output that corresponds
-                                  to last_slash in the input */
-  const char *last_dot = NULL; /* The last '.' found in the input */
-  char *last_out_dot = NULL;   /* The position in the output that corresponds
-                                  to the last '.' found in the input */
+  const char *start = in;	/* The start of our input */
+  const char *last_slash = in;	/* The next character after the last '/'
+				   discovered in the input */
+  const char *previous_slash = NULL;	/* The previous value of last_slash */
+  char *last_out_slash = out;	/* The position in the output that corresponds
+				   to last_slash in the input */
+  const char *last_dot = NULL;	/* The last '.' found in the input */
+  char *last_out_dot = NULL;	/* The position in the output that corresponds
+				   to the last '.' found in the input */
   const char *suffix;
 
 #ifdef DEBUG
@@ -345,126 +335,127 @@ translate_or_null (int create_dir, int flags,
   while (*in)
     {
       switch (*in)
-        {
-        case '.':
-          if (in[1] == '/')
-            {
-              /* Skip any ./
-                 If it is at the beginning the output a @. */
+	{
+	case '.':
+	  if (in[1] == '/')
+	    {
+	      /* Skip any ./
+	         If it is at the beginning the output a @. */
 
-              if (in == start && !path)
-               {
-                 if (out + 2 > buf_end)
-                   return NULL;
+	      if (in == start && !path)
+		{
+		  if (out + 2 > buf_end)
+		    return NULL;
 
-                 *out++ = '@';
-                 *out++ = '.';
+		  *out++ = '@';
+		  *out++ = '.';
 
-                 last_out_slash = out;
-                 in += 2;
-                 last_slash = in;
-               }
-              else if (in[-1] == '/')
-                {
-                  /* only skip ./ if it was preceded by a /
-                     since we don't want to trim foo. into foo */
-                  in += 2;
-                  last_slash = in;
-                }
-              else
-                {
-                  *out++ = '/';
-                  in++;
-                }
-            }
-          else if (in > start && in[-1] == '/' && in[1] == '\0')
-            {
-              /* Skip any /. at the end of a filename
-                 The check against start ensures we don't read earlier
-                 than the start of the input buffer */
-              in++;
-            }
-          else if (in[1] == '.' && in[2] == '/')
-            {
-              /* Change ../ to ^. */
-              in += 3;
-              last_slash = in;
+		  last_out_slash = out;
+		  in += 2;
+		  last_slash = in;
+		}
+	      else if (in[-1] == '/')
+		{
+		  /* only skip ./ if it was preceded by a /
+		     since we don't want to trim foo. into foo */
+		  in += 2;
+		  last_slash = in;
+		}
+	      else
+		{
+		  *out++ = '/';
+		  in++;
+		}
+	    }
+	  else if (in > start && in[-1] == '/' && in[1] == '\0')
+	    {
+	      /* Skip any /. at the end of a filename
+	         The check against start ensures we don't read earlier
+	         than the start of the input buffer */
+	      in++;
+	    }
+	  else if (in[1] == '.' && in[2] == '/')
+	    {
+	      /* Change ../ to ^. */
+	      in += 3;
+	      last_slash = in;
 
-              if (out + 2 > buf_end)
-                return NULL;
+	      if (out + 2 > buf_end)
+		return NULL;
 
-              *out++ = '^';
-              *out++ = '.';
-              last_out_slash = out;
-            }
-          else if (in > start && in[-1] == '/' && in[1] == '.' && in[2] == '\0')
-            {
-              /* Change .. to ^ when at the end of a filename
-                 The check against start ensures we don't read earlier
-                 than the start of the input buffer */
+	      *out++ = '^';
+	      *out++ = '.';
+	      last_out_slash = out;
+	    }
+	  else if (in > start && in[-1] == '/' && in[1] == '.'
+		   && in[2] == '\0')
+	    {
+	      /* Change .. to ^ when at the end of a filename
+	         The check against start ensures we don't read earlier
+	         than the start of the input buffer */
 
-              in += 2;
+	      in += 2;
 
-              if (previous_slash == start)
-                {
-                  /* Make a special case for foo/.. as RISC OS will canonicalise
-                     this to an empty string, and then complain about the lack
-                     of filename */
+	      if (previous_slash == start)
+		{
+		  /* Make a special case for foo/.. as RISC OS will canonicalise
+		     this to an empty string, and then complain about the lack
+		     of filename */
 
-                  out = buffer;
-                  *out++ = '@';
-                  *out = '\0';
-                }
-              else
-                {
-                  if (out + 1 > buf_end)
-                    return NULL;
+		  out = buffer;
+		  *out++ = '@';
+		  *out = '\0';
+		}
+	      else
+		{
+		  if (out + 1 > buf_end)
+		    return NULL;
 
-                  *out++ = '^';
-                }
-            }
-          else
-            {
-              /* Just a . as part of a filename */
-              last_dot = in++;
-              last_out_dot = out;
-              *out++ = '/';
+		  *out++ = '^';
+		}
+	    }
+	  else
+	    {
+	      /* Just a . as part of a filename */
+	      last_dot = in++;
+	      last_out_dot = out;
+	      *out++ = '/';
 
-              if (out > buf_end)
-                return NULL;
-            }
+	      if (out > buf_end)
+		return NULL;
+	    }
 
-          break;
+	  break;
 
-        case '/':
-          /* Strip out any multiple slashes */
-          while (in[1] == '/')
-            in++;
+	case '/':
+	  /* Strip out any multiple slashes */
+	  while (in[1] == '/')
+	    in++;
 
-          previous_slash = last_slash;
+	  previous_slash = last_slash;
 
-          last_slash = ++in;
+	  last_slash = ++in;
 
-          /* Copy as a '.', unless nothing else has been output yet or there
-             is already a . */
-          if (out > buffer && out[-1] != '.')
-            *out++ = '.';
+	  /* Copy as a '.', unless nothing else has been output yet or there
+	     is already a . */
+	  if (out > buffer && out[-1] != '.')
+	    *out++ = '.';
 
-          last_out_slash = out;
+	  last_out_slash = out;
 
-          if (out > buf_end)
-            return NULL;
+	  if (out > buf_end)
+	    return NULL;
 
-          break;
+	  break;
 
-        default:
-          /* Translate all other characters as appropriate */
-          *out++ = __filename_char_map[(unsigned char) *in++];
+	default:
+	  /* Translate all other characters as appropriate */
+	  *out++ = __filename_char_map[(unsigned char) *in++];
 
-          if (out > buf_end)
-            return NULL;
+	  if (out > buf_end)
+	    return NULL;
 
-        }
+	}
     }
 
   /* If the input ended in any / then remove them. */
@@ -474,8 +465,8 @@ translate_or_null (int create_dir, int flags,
   if (out == buffer && !path)
     {
       /* Translate an empty filename into the current dir */
-      if (out +1 > buf_end)
-        return NULL;
+      if (out + 1 > buf_end)
+	return NULL;
 
       *out++ = '@';
     }
@@ -489,26 +480,26 @@ translate_or_null (int create_dir, int flags,
 
   /* Use MimeMap to find a filetype to match the filename
      extension.  e.g.  file.html -> 0xfaf */
-  if (!(flags & __RISCOSIFY_FILETYPE_NOT_SET) &&
-      filetype != NULL && last_dot != NULL)
+  if (!(flags & __RISCOSIFY_FILETYPE_NOT_SET)
+      && filetype != NULL && last_dot != NULL)
     {
-       _kernel_swi_regs regs;
+      _kernel_swi_regs regs;
 
-      regs.r[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
-      regs.r[1] = (int)last_dot;
-      regs.r[2] = MMM_TYPE_RISCOS; /* Output filetype */
+      regs.r[0] = MMM_TYPE_DOT_EXTN;	/* Input extension */
+      regs.r[1] = (int) last_dot;
+      regs.r[2] = MMM_TYPE_RISCOS;	/* Output filetype */
 
       /* If there's an error, then the filetype will remain
          __RISCOSIFY_FILETYPE_NOT_FOUND.  */
 #ifdef __TARGET_SCL__
-      if (! _kernel_swi (MimeMap_Translate, &regs, &regs))
+      if (!_kernel_swi (MimeMap_Translate, &regs, &regs))
 #else
       /* Avoid _kernel_swi if possible because it can corrupt errno and
          _kernel_last_oserror if the mimemap translation fails.
          __os_swi is not available in the SCL. */
-      if (! __os_swi (MimeMap_Translate, regs.r))
+      if (!__os_swi (MimeMap_Translate, regs.r))
 #endif
-        *filetype = regs.r[3];
+	*filetype = regs.r[3];
 
     }
 
@@ -518,22 +509,20 @@ translate_or_null (int create_dir, int flags,
      relax the latter condition if __RISCOSIFY_FILETYPE_FFF_EXT is
      set.  */
   if (out - last_out_slash > 4 && out[-4] == ','
-      && isxdigit (out[-3])
-      && isxdigit (out[-2])
-      && isxdigit (out[-1])
+      && isxdigit (out[-3]) && isxdigit (out[-2]) && isxdigit (out[-1])
       && (flags & __RISCOSIFY_FILETYPE_EXT))
     {
       int ftype = 0;
       int i;
 
       for (i = -3; i < 0; i++)
-        ftype = (ftype << 4) + ((out[i] <= '9')
-                                ? (out[i] - '0')
-                                : (toupper (out[i]) - 'A' + 10));
+	ftype = (ftype << 4) + ((out[i] <= '9')
+				? (out[i] - '0')
+				: (toupper (out[i]) - 'A' + 10));
 
       if (filetype != NULL
-          && (ftype != 0xFFF || (flags & __RISCOSIFY_FILETYPE_FFF_EXT)))
-        *filetype = ftype;
+	  && (ftype != 0xFFF || (flags & __RISCOSIFY_FILETYPE_FFF_EXT)))
+	*filetype = ftype;
 
       /* Remove the comma and extension from the output */
       out -= 4;
@@ -559,44 +548,43 @@ translate_or_null (int create_dir, int flags,
 
       /* Copy the new suffix */
       while (*suffix)
-        {
-          *out++ = *suffix++;
+	{
+	  *out++ = *suffix++;
 
-          if (out > buf_end)
-            return NULL;
-        }
+	  if (out > buf_end)
+	    return NULL;
+	}
 
       if (create_dir)
-        {
-          _kernel_swi_regs regs;
+	{
+	  _kernel_swi_regs regs;
 
-          /* Terminate the output buffer */
-          *out = '\0';
+	  /* Terminate the output buffer */
+	  *out = '\0';
 
-          regs.r[0] = OSFILE_READCATINFO_NOPATH;
-          regs.r[1] = (int)buffer;
+	  regs.r[0] = OSFILE_READCATINFO_NOPATH;
+	  regs.r[1] = (int) buffer;
 
-          /* Create the directory if it doesn't exist.  */
-          if (! _kernel_swi(OS_File, &regs, &regs)
-              && ! regs.r[0])
-            {
-              regs.r[0] = 8;
-              regs.r[1] = (int)buffer;
-              regs.r[4] = 0;   /* Default number of entries in dir.  */
-              _kernel_swi(OS_File, &regs, &regs);
-            }
-        }
+	  /* Create the directory if it doesn't exist.  */
+	  if (!_kernel_swi (OS_File, &regs, &regs) && !regs.r[0])
+	    {
+	      regs.r[0] = 8;
+	      regs.r[1] = (int) buffer;
+	      regs.r[4] = 0;	/* Default number of entries in dir.  */
+	      _kernel_swi (OS_File, &regs, &regs);
+	    }
+	}
 
       /* Copy the leafname without suffix */
       leaf_len = last_out_dot - last_out_slash;
 
       if (out + leaf_len > buf_end)
-        return NULL;
+	return NULL;
 
       *out++ = '.';
 
       while (leaf_len-- > 0)
-        *out++ = __filename_char_map[(unsigned char)*last_slash++];
+	*out++ = __filename_char_map[(unsigned char) *last_slash++];
     }
 
   /* Terminate the output */
@@ -620,8 +608,8 @@ translate_or_null (int create_dir, int flags,
    Return NULL if buffer overflowed. */
 static char *
 guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
-               int *filetype, char *out, const char *in, const char *name,
-               int path)
+	       int *filetype, char *out, const char *in, const char *name,
+	       int path)
 {
   char *last;
   char *penultimate;
@@ -649,7 +637,7 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
   /* Need to guess it could be a RISC OS filename ?  */
   if ((flags & __RISCOSIFY_STRICT_UNIX_SPECS) != 0)
     return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
-                              orig_out, orig_in, path);
+			      orig_out, orig_in, path);
 
   /* Find the last two dots or slashes */
   last = NULL;
@@ -657,21 +645,21 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
   while (*in)
     {
       if (*in == '.')
-        {
-          penultimate = last;
-          last = out;
-        }
+	{
+	  penultimate = last;
+	  last = out;
+	}
       else if (*in == '/')
-        {
-          penultimate = last;
-          last = out;
-          slash = out;
-        }
+	{
+	  penultimate = last;
+	  last = out;
+	  slash = out;
+	}
 
       *out++ = *in++;
 
       if (out > buf_end)
-        return NULL;
+	return NULL;
     }
 
   *out = '\0';
@@ -680,7 +668,7 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
     {
       /* Just a leafname, so let translate_or_null deal with ,xyz etc. */
       return translate_or_null (create_dir, flags, buffer, buf_end,
-                                filetype, orig_out, orig_in, path);
+				filetype, orig_out, orig_in, path);
     }
 
   if (penultimate == NULL)
@@ -690,36 +678,38 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
     {
       *last = '\0';
 
-      if (slash == NULL && __sfixfind (penultimate + 1, strlen (penultimate + 1)))
-        {
-          /* foo.c.getopt so it's probably RISC OS, unless there was
-             a slash earlier in the input */
-          return copy_or_null (orig_out, orig_in, buf_end);
-        }
+      if (slash == NULL
+	  && __sfixfind (penultimate + 1, strlen (penultimate + 1)))
+	{
+	  /* foo.c.getopt so it's probably RISC OS, unless there was
+	     a slash earlier in the input */
+	  return copy_or_null (orig_out, orig_in, buf_end);
+	}
 
       if (__sfixfind (last + 1, strlen (last + 1)))
-        {
-          /* foo/getopt.c so it's probably unix */
-          return translate_or_null (create_dir, flags, buffer, buf_end,
-                                    filetype, orig_out, orig_in, path);
-        }
+	{
+	  /* foo/getopt.c so it's probably unix */
+	  return translate_or_null (create_dir, flags, buffer, buf_end,
+				    filetype, orig_out, orig_in, path);
+	}
     }
   else
     {
       *last = '\0';
 
       if (__sfixfind (penultimate + 1, strlen (penultimate + 1)))
-        {
-          /* foo/c/getopt so it's probably unix */
-          return translate_or_null (create_dir, flags, buffer,
-                                    buf_end, filetype, orig_out, orig_in, path);
-        }
+	{
+	  /* foo/c/getopt so it's probably unix */
+	  return translate_or_null (create_dir, flags, buffer,
+				    buf_end, filetype, orig_out, orig_in,
+				    path);
+	}
 
       if (__sfixfind (last + 1, strlen (last + 1)))
-        {
-          /* foo.getopt/c so it's probably RISC OS */
-          return copy_or_null (orig_out, orig_in, buf_end);
-        }
+	{
+	  /* foo.getopt/c so it's probably RISC OS */
+	  return copy_or_null (orig_out, orig_in, buf_end);
+	}
     }
 
   /* No known suffix found at the start or end.
@@ -730,7 +720,7 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
     return copy_or_null (orig_out, orig_in, buf_end);
 
   return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
-                            orig_out, orig_in, path);
+			    orig_out, orig_in, path);
 }
 
 
@@ -753,12 +743,12 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
  */
 
 static char *
-canonicalise_unix_path(char *to, const char *from, const char *buf_end)
+canonicalise_unix_path (char *to, const char *from, const char *buf_end)
 {
   char *out = to;
   const char *in = from;
-  char *current_slash = to;    /* the current directory terminating slash */
-  char *previous_slash = NULL; /* the parent directory terminating slash */
+  char *current_slash = to;	/* the current directory terminating slash */
+  char *previous_slash = NULL;	/* the parent directory terminating slash */
 
 #ifdef DEBUG
   __os_print ("-- canonicalise_unix_path:\r\n");
@@ -767,67 +757,67 @@ canonicalise_unix_path(char *to, const char *from, const char *buf_end)
   __os_print ("'\r\n");
 #endif
   /* sanity check our input parameters */
-  if ((!from) || (!to) || (!buf_end))
+  if (!from || !to || !buf_end)
     return NULL;
 
 
-  while ((out <= buf_end) && in[0])
-  {
-    switch (in[0])
+  while (out <= buf_end && in[0])
     {
-      case '/':
-      /* copy one slash, but not multiple */
-        previous_slash = current_slash;
-        current_slash = out;
-        *out++=*in++;
-        while (*in == '/')
-          in++;
-        break;
-      case '.':
-        if (in==from || in[-1]=='/')
-        {
-          /* if this is an initial '.' or was preceded by a '/' */
-          if (in[1]=='.' && (in[2]=='/' || in[2]=='\0'))
-          {
-          /* if '..', rewind to previous slash found if there was one */
-            if (previous_slash)
-            {
-              out = previous_slash;
-              in+=2;
-            }
-            else
-            {
-            /* if there wasn't a previous slash just copy '..' verbatim
-             * (this path started with '..' )
-             */
-              *out++ = '.';
-              if (out <= buf_end)
-                *out++ = '.';
-              else
-                return NULL;
-              in+=2;
-            }
-          }
-          else if (in[1]=='/')
-          /* ignore any './' */
-            in+=2;
-          else if (in[1]=='\0' && in[-1]=='/' && in!=from)
-          /* ignore any terminating '/.' */
-            in++;
-          else
-          /* otherwise it's just a '.' at the start of a name */
-            *out++ = *in++;
-        }
-        else
-        /* otherwise it's just a '.' in the middle of a name */
-          *out++ = *in++;
+      switch (in[0])
+	{
+	case '/':
+	  /* copy one slash, but not multiple */
+	  previous_slash = current_slash;
+	  current_slash = out;
+	  *out++ = *in++;
+	  while (*in == '/')
+	    in++;
+	  break;
+	case '.':
+	  if (in == from || in[-1] == '/')
+	    {
+	      /* if this is an initial '.' or was preceded by a '/' */
+	      if (in[1] == '.' && (in[2] == '/' || in[2] == '\0'))
+		{
+		  /* if '..', rewind to previous slash found if there was one */
+		  if (previous_slash)
+		    {
+		      out = previous_slash;
+		      in += 2;
+		    }
+		  else
+		    {
+		      /* if there wasn't a previous slash just copy '..' verbatim
+		       * (this path started with '..' )
+		       */
+		      *out++ = '.';
+		      if (out <= buf_end)
+			*out++ = '.';
+		      else
+			return NULL;
+		      in += 2;
+		    }
+		}
+	      else if (in[1] == '/')
+		/* ignore any './' */
+		in += 2;
+	      else if (in[1] == '\0' && in[-1] == '/' && in != from)
+		/* ignore any terminating '/.' */
+		in++;
+	      else
+		/* otherwise it's just a '.' at the start of a name */
+		*out++ = *in++;
+	    }
+	  else
+	    /* otherwise it's just a '.' in the middle of a name */
+	    *out++ = *in++;
 
-        break;
-      default:
-        *out++ = *in++;
-        break;
+	  break;
+	default:
+	  *out++ = *in++;
+	  break;
+	}
     }
-  }
   *out = '\0';
 #ifdef DEBUG
   __os_print ("output buffer = '");
@@ -844,30 +834,26 @@ canonicalise_unix_path(char *to, const char *from, const char *buf_end)
    Place adjacent to __riscosify() to help with cache hits.  */
 char *
 __riscosify_std (const char *name, int create_dir,
-		char *buffer, size_t buf_len, int *filetype)
+		 char *buffer, size_t buf_len, int *filetype)
 {
   return __riscosify (name, create_dir, __get_riscosify_control (), buffer,
-  		      buf_len, filetype);
+		      buf_len, filetype);
 }
 
 char *
 __riscosify (const char *name, int create_dir,
-             int flags, char *buffer, size_t buf_len, int *filetype)
+	     int flags, char *buffer, size_t buf_len, int *filetype)
 {
-  const char *buf_end = buffer + buf_len - 1; /* The last char in the buffer. */
+  const char *buf_end = buffer + buf_len - 1;	/* The last char in the buffer. */
   const char *in = name;
   char *out = buffer;
 
-  /* Check for silly user input and return errors appropriately.  */
-  if ((flags & ~__RISCOSIFY_MASK))
-    {
-      /* Don't pull in assert function.  */
-      fprintf (stderr, "\n__riscosify: assertion failed: ((flags & ~__RISCOSIFY_MASK) == 0)\n");
-      fflush (stderr);
-      abort ();
-    }
+#if __UNIXLIB_PARANOID
+  assert ((flags & ~__RISCOSIFY_MASK) == 0);
+#endif
 
-  if (! name || ! buffer || ! buf_len)
+  /* Check for silly user input and return errors appropriately.  */
+  if (!name || !buffer || !buf_len)
     return NULL;
 
 #ifdef DEBUG
@@ -888,7 +874,7 @@ __riscosify (const char *name, int create_dir,
     return copy_or_null (buffer, name, buf_end);
 
   /* catch ./path:file.h */
-  if (in[0] == '.' && in[1] == '/' && strchr(in, ':'))
+  if (in[0] == '.' && in[1] == '/' && strchr (in, ':'))
     in++;
 
   /* We can tell quite a lot from the first character of the path */
@@ -905,28 +891,31 @@ __riscosify (const char *name, int create_dir,
          make a new buffer containing a concatentaion of the path
          passed in and our HOME value, and call __riscosify again
          (but making sure we don't infinitely loop).
-      */
-         {
-           char new_buffer[MAXPATHLEN];
-           char *home =
+       */
+      {
+	char new_buffer[MAXPATHLEN];
+	const char *home =
 #ifdef __TARGET_SCL__
-             getenv("UnixEnv$HOME") ?: getenv("HOME");
+	  getenv ("UnixEnv$HOME") ? : getenv ("HOME");
 #else
-             __pwddefault()->pw_dir;
+	  __pwddefault ()->pw_dir;
 #endif
-           strcpy(new_buffer, home);
+	strcpy (new_buffer, home);
 
-           do {
-             in++;
-           } while (*in != '\0' && *in != '/');
+	do
+	  {
+	    in++;
+	  }
+	while (*in != '\0' && *in != '/');
 
-           if (new_buffer[0] != '~')
-             {
-               strcat(new_buffer, in);
-               return __riscosify(new_buffer, create_dir, flags, buffer, buf_len, filetype);
-             }
-         }
-         /* Fall through */
+	if (new_buffer[0] != '~')
+	  {
+	    strcat (new_buffer, in);
+	    return __riscosify (new_buffer, create_dir, flags, buffer,
+				buf_len, filetype);
+	  }
+      }
+      /* Fall through */
 
     case '/':
       /* The directory separator must be a slash. Could be an absolute unix
@@ -943,308 +932,309 @@ __riscosify (const char *name, int create_dir,
          /usr/xxx                    xxx
          /xxx                        xxx */
 
-      in++; /* Skip the '/' */
+      in++;			/* Skip the '/' */
 
       if (*in == '<')
-        {
-          /* Must be a sysvar
-             /<GCC$dir>/something */
+	{
+	  /* Must be a sysvar
+	     /<GCC$dir>/something */
 
-          /* Copy everything upto the '>' */
-          do
-            {
-              *out++ = *in++;
+	  /* Copy everything upto the '>' */
+	  do
+	    {
+	      *out++ = *in++;
 
-              if (out > buf_end)
-                return NULL;
-            }
-          while (*in && *in != '>');
+	      if (out > buf_end)
+		return NULL;
+	    }
+	  while (*in && *in != '>');
 
-          if (out + 2 > buf_end)
-            return NULL;
+	  if (out + 2 > buf_end)
+	    return NULL;
 
-          if (*in)
-            *out++ = *in++; /* Copy the '>' */
+	  if (*in)
+	    *out++ = *in++;	/* Copy the '>' */
 
-          if (*in == '/')
-            {
-              /* Copy the first '/' as a '.' */
-              *out++ = '.';
-              in++;
-            }
+	  if (*in == '/')
+	    {
+	      /* Copy the first '/' as a '.' */
+	      *out++ = '.';
+	      in++;
+	    }
 
-          /* Skip any further '/'s */
-          while (*in == '/')
-            in++;
+	  /* Skip any further '/'s */
+	  while (*in == '/')
+	    in++;
 
-        }
+	}
       else
-        {
-          /* Not a sysvar */
+	{
+	  /* Not a sysvar */
 
-          /* Copy everything upto the first '.', '/', ':' or '#' */
-          while (*in && *in != ':' && *in != '.' && *in != '/' && *in != '#')
-            {
-              *out++ = *in++;
+	  /* Copy everything upto the first '.', '/', ':' or '#' */
+	  while (*in && *in != ':' && *in != '.' && *in != '/' && *in != '#')
+	    {
+	      *out++ = *in++;
 
-              if (out > buf_end)
-                return NULL;
-            }
+	      if (out > buf_end)
+		return NULL;
+	    }
 
-          if (*in == '#')
-            {
-              /* Copy any fileswitch special field (i.e. the nfs#station::)
-                 These start with '#' and can contain almost anything except ':' */
-              while (*in && *in != ':')
-                {
-                  *out++ = *in++;
+	  if (*in == '#')
+	    {
+	      /* Copy any fileswitch special field (i.e. the nfs#station::)
+	         These start with '#' and can contain almost anything except ':' */
+	      while (*in && *in != ':')
+		{
+		  *out++ = *in++;
 
-                  if (out > buf_end)
-                    return NULL;
-                }
-            }
+		  if (out > buf_end)
+		    return NULL;
+		}
+	    }
 
-          if (*in == ':')
-            {
-              /* Must be a RISC OS filing system or path variable.
-                 /idefs:: or /gcc: */
+	  if (*in == ':')
+	    {
+	      /* Must be a RISC OS filing system or path variable.
+	         /idefs:: or /gcc: */
 
-              *out++ = *in++; /* Copy the ':' */
+	      *out++ = *in++;	/* Copy the ':' */
 
-              if (out > buf_end)
-                return NULL;
+	      if (out > buf_end)
+		return NULL;
 
-              if (*in == ':')
-                {
-                  /* Must be a filing system
-                     /idefs:: */
+	      if (*in == ':')
+		{
+		  /* Must be a filing system
+		     /idefs:: */
 
-                  /* Copy upto the next '/'
-                     /idefs::hd/ */
-                  while (*in && *in != '/')
-                    {
-                      *out++ = *in++;
+		  /* Copy upto the next '/'
+		     /idefs::hd/ */
+		  while (*in && *in != '/')
+		    {
+		      *out++ = *in++;
 
-                      if (out > buf_end)
-                        return NULL;
-                    }
+		      if (out > buf_end)
+			return NULL;
+		    }
 
-                  if (out + 3 > buf_end)
-                    return NULL;
+		  if (out + 3 > buf_end)
+		    return NULL;
 
-                  if (in[0] == '/' && in[1] == '$')
-                    {
-                      /* Copy the /$ as  .$ */
-                      *out++ = '.';
-                      *out++ = '$';
-                      in += 2;
-                    }
+		  if (in[0] == '/' && in[1] == '$')
+		    {
+		      /* Copy the /$ as  .$ */
+		      *out++ = '.';
+		      *out++ = '$';
+		      in += 2;
+		    }
 
-                  if (*in == '/')
-                    {
-                      /* Copy the / as . */
-                      *out++ = '.';
-                      in++;
-                    }
+		  if (*in == '/')
+		    {
+		      /* Copy the / as . */
+		      *out++ = '.';
+		      in++;
+		    }
 
-                  /* Skip any further '/'s */
-                  while (*in == '/')
-                    in++;
+		  /* Skip any further '/'s */
+		  while (*in == '/')
+		    in++;
 
-                }
-              else if (*in == '/')
-                {
-                  /* Must be a path var followed by a '/'
-                     /gcc:/ */
+		}
+	      else if (*in == '/')
+		{
+		  /* Must be a path var followed by a '/'
+		     /gcc:/ */
 
-                  /* Skip any '/'s */
-                  do
-                    {
-                      in++;
-                    }
-                  while (*in == '/');
+		  /* Skip any '/'s */
+		  do
+		    {
+		      in++;
+		    }
+		  while (*in == '/');
 
-                }
-              else
-                {
-                  /* Must be a path var
-                     /gcc:something
-                     in already points to the char after the ':', so nothing
-                     else needs copying */
-                }
-            }
-          else
-            {
-              /* Must be an absolute unix path, with no RISC OS specific
-                 parts, so rewind to just after the initial slashes but
-                 we must first attempt to convert the path we've been
-                 given into a canonicalised Unix path because otherwise
-                 we won't match on things like /home/foo/../riscos//./env/
-               */
-              int matched = 0;
-              char canonical_name[MAXPATHLEN];
-              const char *cname;
-              canonicalise_unix_path(canonical_name, name, canonical_name+MAXPATHLEN);
-              cname = (const char *) canonical_name;
+		}
+	      else
+		{
+		  /* Must be a path var
+		     /gcc:something
+		     in already points to the char after the ':', so nothing
+		     else needs copying */
+		}
+	    }
+	  else
+	    {
+	      /* Must be an absolute unix path, with no RISC OS specific
+	         parts, so rewind to just after the initial slashes but
+	         we must first attempt to convert the path we've been
+	         given into a canonicalised Unix path because otherwise
+	         we won't match on things like /home/foo/../riscos//./env/
+	       */
+	      int matched = 0;
+	      char canonical_name[MAXPATHLEN];
+	      const char *cname = canonical_name;
 
-              out = buffer;
+	      canonicalise_unix_path (canonical_name, name,
+				      canonical_name + MAXPATHLEN);
 
-              /* Check for special paths, starting with /dev  */
-              if (   cname[0] == '/' && cname[1] == 'd' && cname[2] == 'e'
-                  && cname[3] == 'v' && cname[4] == '/' && cname[5] != '\0')
-                {
-                  /* Copy to the destination string as {device}:  e.g. /dev/tty
-                     would become tty:.  */
+	      out = buffer;
 
-                  out = copy_or_null (out, cname + 5, buf_end);
-                  if (out == NULL)
-                    return NULL;
+	      /* Check for special paths, starting with /dev  */
+	      if (cname[0] == '/' && cname[1] == 'd' && cname[2] == 'e'
+		  && cname[3] == 'v' && cname[4] == '/' && cname[5] != '\0')
+		{
+		  /* Copy to the destination string as {device}:  e.g. /dev/tty
+		     would become tty:.  */
 
-                  *out++ = ':';
-                  *out = '\0';
-                  return out;
-                }
+		  out = copy_or_null (out, cname + 5, buf_end);
+		  if (out == NULL)
+		    return NULL;
 
+		  *out++ = ':';
+		  *out = '\0';
+		  return out;
+		}
 
+	      /* /usr/xxx and /var/xxx. Try matching xxx segment.  */
+	      if (cname[0] == '/' && ((cname[1] == 'u' && cname[2] == 's')
+				      || (cname[1] == 'v' && cname[2] == 'a'))
+		  && cname[3] == 'r' && cname[4] == '/')
+		{
+		  cname += 5;
+		  switch (sdirseg (&cname, &out, buf_end))
+		    {
+		    case sdirseg_buf_too_small:
+		      return NULL;
+		      break;
 
-              /* /usr/xxx and /var/xxx. Try matching xxx segment.  */
-              if (    cname[0] == '/' && (( cname[1] == 'u' && cname[2] == 's' )
-                  || (cname[1] == 'v' && cname[2] == 'a'))
-                  &&  cname[3] == 'r' && cname[4] == '/')
-                {
-                  cname += 5;
-                  switch (sdirseg (&cname, &out, buf_end))
-                    {
-                    case sdirseg_buf_too_small:
-                      return NULL;
-                      break;
+		    case sdirseg_match:
+		      matched = 1;
 
-                    case sdirseg_match:
-                      matched = 1;
+		      /* If the matched segment was a path var then consume
+		         any '/'s in the input to prevent them being copied
+		         as '.'s (so we don't end up with gcc:.foo) */
+		      if (out > buffer && out[-1] == ':')
+			while (*cname == '/')
+			  cname++;
 
-                      /* If the matched segment was a path var then consume
-                         any '/'s in the input to prevent them being copied
-                         as '.'s (so we don't end up with gcc:.foo) */
-                      if (out > buffer && out[-1] == ':')
-                        while (*cname == '/')
-                          cname++;
+		      break;
 
-                      break;
-
-                    default:
-                      cname -= 5;
-                    }
-                }
+		    default:
+		      cname -= 5;
+		    }
+		}
 
 /* The __ELF__ test is a hack until our ELF build system @ gccsdk4 has a
    concept of RO_ENV. FIXME  */
 #ifndef __ELF__
-              /* /home/riscos/env/xxx. (or configured path) Try matching xxx segment.  */
-              if (strncmp (cname, RO_ENV, sizeof(RO_ENV) - 1) == 0)
-                {
-                  cname += sizeof(RO_ENV) - 1;
-                  while (*cname && *cname == '/') cname++;
+	      /* /home/riscos/env/xxx. (or configured path) Try matching xxx segment.  */
+	      if (strncmp (cname, RO_ENV, sizeof (RO_ENV) - 1) == 0)
+		{
+		  cname += sizeof (RO_ENV) - 1;
+		  while (*cname && *cname == '/')
+		    cname++;
 
-                  switch (sdirseg (&cname, &out, buf_end))
-                  {
-                     case sdirseg_buf_too_small:
-                      return NULL;
-                      break;
+		  switch (sdirseg (&cname, &out, buf_end))
+		    {
+		    case sdirseg_buf_too_small:
+		      return NULL;
+		      break;
 
-                    case sdirseg_match:
-                      matched = 1;
-                      /* If the matched segment was a path var then consume
-                         any '/'s in the input to prevent them being copied
-                         as '.'s (so we don't end up with gcc:.foo) */
-                      if (out > buffer && out[-1] == ':')
-                        while (*cname == '/')
-                          cname++;
+		    case sdirseg_match:
+		      matched = 1;
+		      /* If the matched segment was a path var then consume
+		         any '/'s in the input to prevent them being copied
+		         as '.'s (so we don't end up with gcc:.foo) */
+		      if (out > buffer && out[-1] == ':')
+			while (*cname == '/')
+			  cname++;
 
-                      break;
+		      break;
 
-                    default:
-                        /* Not matched anything in the list of UnixFS$...
-                         variables.  So we assume this is a vanilla
-                         path: translate /home/riscos/env/foo/bar/baz
-                         into foo:bar.baz
-                       */
-                      if (*cname == '\0')
-                      {
-                        /* this is just /home/riscos/env/
-                         * so just return it as $.home.riscos.env because
-                         * it doesn't match anything under RISC OS
-                         */
-                        cname -= sizeof(RO_ENV) - 1; /* wind back to after the first / in /home/... */
-                        break;
-                      }
+		    default:
+		      /* Not matched anything in the list of UnixFS$...
+		         variables.  So we assume this is a vanilla
+		         path: translate /home/riscos/env/foo/bar/baz
+		         into foo:bar.baz
+		       */
+		      if (*cname == '\0')
+			{
+			  /* this is just /home/riscos/env/
+			   * so just return it as $.home.riscos.env because
+			   * it doesn't match anything under RISC OS
+			   */
+			  cname -= sizeof (RO_ENV) - 1;	/* wind back to after the first / in /home/... */
+			  break;
+			}
 
-                      /* copy the name of the path variable */
-                      while (*cname != '/' && *cname != '\0')
-                      {
-                        *out = *cname;
-                        cname++;
-                        out++;
-                      }
+		      /* copy the name of the path variable */
+		      while (*cname != '/' && *cname != '\0')
+			{
+			  *out = *cname;
+			  cname++;
+			  out++;
+			}
 
-                      /* ...consuming any trailing slash */
-                      if (*cname == '/')
-                        cname++;
+		      /* ...consuming any trailing slash */
+		      if (*cname == '/')
+			cname++;
 
-                      /* this is a RISC OS path */
-                      *out++ = ':';
-                      matched = 1;
-                  }
-              }
+		      /* this is a RISC OS path */
+		      *out++ = ':';
+		      matched = 1;
+		    }
+		}
 #endif
 
-              if (! matched)
-                {
-                  cname++;
-                  /* Try matching against a user defined /xxx.  */
-                  switch (sdirseg (&cname, &out, buf_end))
-                    {
-                    case sdirseg_buf_too_small:
-                      return NULL;
-                      break;
+	      if (!matched)
+		{
+		  cname++;
+		  /* Try matching against a user defined /xxx.  */
+		  switch (sdirseg (&cname, &out, buf_end))
+		    {
+		    case sdirseg_buf_too_small:
+		      return NULL;
+		      break;
 
-                    case sdirseg_match:
-                      matched = 1;
+		    case sdirseg_match:
+		      matched = 1;
 
-                      /* If the matched segment was a path var then consume
-                         any '/'s in the input to prevent them being copied
-                         as '.'s (so we don't end up with gcc:.foo) */
-                      if (out > buffer && out[-1] == ':')
-                        while (*cname == '/')
-                          cname++;
+		      /* If the matched segment was a path var then consume
+		         any '/'s in the input to prevent them being copied
+		         as '.'s (so we don't end up with gcc:.foo) */
+		      if (out > buffer && out[-1] == ':')
+			while (*cname == '/')
+			  cname++;
 
-                      break;
+		      break;
 
-                    case sdirseg_no_match:
-                      cname--;
-                      break;
+		    case sdirseg_no_match:
+		      cname--;
+		      break;
 
-                    }
-                }
+		    }
+		}
 
-              if (! matched)
-                {
-                  /* Did not match any user defined paths, so treat it as a
-                     path on the current filing system */
-                  if (out + 2 > buf_end)
-                    return NULL;
+	      if (!matched)
+		{
+		  /* Did not match any user defined paths, so treat it as a
+		     path on the current filing system */
+		  if (out + 2 > buf_end)
+		    return NULL;
 
-                  *out++ = '$';
-                  *out++ = '.';
-                }
-              return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
-                                        out, cname, 1);
-            }
-        }
+		  *out++ = '$';
+		  *out++ = '.';
+		}
+
+	      return translate_or_null (create_dir, flags, buffer, buf_end,
+					filetype, out, cname, 1);
+	    }
+	}
 
       /* By this point, all RISC OS specific parts have been copied across and
          all that remains is something like foo/bar/baz.c */
       return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
-                                out, in, 1);
+				out, in, 1);
 
       break;
 
@@ -1264,29 +1254,29 @@ __riscosify (const char *name, int create_dir,
          @/fred.c         @.c.fred
          ^.fred           ^.fred */
 
-      *out++ = *in++; /* We know there is at least one space in the buffer */
+      *out++ = *in++;		/* We know there is at least one space in the buffer */
 
       /* The next char must be the directory separator */
       if (*in == '/')
-        {
-          if (out > buf_end)
-            return NULL;
+	{
+	  if (out > buf_end)
+	    return NULL;
 
-          /* Copy the / as . */
-          *out++ = '.';
-          in++;
+	  /* Copy the / as . */
+	  *out++ = '.';
+	  in++;
 
-          /* Skip any further '/'s */
-          while (*in == '/')
-            in++;
+	  /* Skip any further '/'s */
+	  while (*in == '/')
+	    in++;
 
-          return translate_or_null (create_dir, flags, buffer, buf_end,
-                                    filetype, out, in, 1);
-        }
+	  return translate_or_null (create_dir, flags, buffer, buf_end,
+				    filetype, out, in, 1);
+	}
       else
-        {
-          return copy_or_null (out, in, buf_end);
-        }
+	{
+	  return copy_or_null (out, in, buf_end);
+	}
 
       break;
 
@@ -1300,39 +1290,37 @@ __riscosify (const char *name, int create_dir,
 
       /* Copy everything upto the '>' */
       do
-        {
-          *out++ = *in++;
+	{
+	  *out++ = *in++;
 
-          if (out > buf_end)
-            return NULL;
-        }
+	  if (out > buf_end)
+	    return NULL;
+	}
       while (*in && *in != '>');
 
       /* Copy the '>' */
       if (*in)
-        *out++ = *in++;
+	*out++ = *in++;
 
       if (out > buf_end)
-        return NULL;
+	return NULL;
 
       /* The char following the '>' must be the directory separator */
       if (*in == '/')
-        {
-          /* Copy the / as . */
-          *out++ = '.';
-          in++;
+	{
+	  /* Copy the / as . */
+	  *out++ = '.';
+	  in++;
 
-          /* Skip any further '/'s */
-          while (*in == '/')
-            in++;
+	  /* Skip any further '/'s */
+	  while (*in == '/')
+	    in++;
 
-          return translate_or_null (create_dir, flags, buffer, buf_end,
-                                    filetype, out, in, 1);
-        }
+	  return translate_or_null (create_dir, flags, buffer, buf_end,
+				    filetype, out, in, 1);
+	}
       else
-        {
-          return copy_or_null (out, in, buf_end);
-        }
+	return copy_or_null (out, in, buf_end);
 
       break;
 
@@ -1350,29 +1338,29 @@ __riscosify (const char *name, int create_dir,
          ./..              @.^ */
 
       if (in[1] == '\0')
-        {
-          if (out + 1 > buf_end)
-            return NULL;
+	{
+	  if (out + 1 > buf_end)
+	    return NULL;
 
-          *out++ = '@';
-          *out = '\0';
+	  *out++ = '@';
+	  *out = '\0';
 
-          return out;
-        }
+	  return out;
+	}
 
       if (in[1] == '.' && in[2] == '\0')
-        {
-          if (out + 1 > buf_end)
-            return NULL;
+	{
+	  if (out + 1 > buf_end)
+	    return NULL;
 
-          *out++ = '^';
-          *out = '\0';
+	  *out++ = '^';
+	  *out = '\0';
 
-          return out;
-        }
+	  return out;
+	}
 
       return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
-                                out, in, 0);
+				out, in, 0);
 
       break;
 
@@ -1398,107 +1386,104 @@ __riscosify (const char *name, int create_dir,
 
       /* Copy everything upto the first '.', '/', ':' or '#' */
       while (*in && *in != ':' && *in != '.' && *in != '/' && *in != '#')
-        {
-          *out++ = *in++;
+	{
+	  *out++ = *in++;
 
-          if (out > buf_end)
-            return NULL;
-        }
+	  if (out > buf_end)
+	    return NULL;
+	}
 
       if (*in == '#')
-        {
-          /* Copy any fileswitch special field (i.e. the nfs#station::)
-             These start with '#' and can contain almost anything except ':' */
-          while (*in && *in != ':')
-            {
-              *out++ = *in++;
+	{
+	  /* Copy any fileswitch special field (i.e. the nfs#station::)
+	     These start with '#' and can contain almost anything except ':' */
+	  while (*in && *in != ':')
+	    {
+	      *out++ = *in++;
 
-              if (out > buf_end)
-                return NULL;
-            }
-        }
+	      if (out > buf_end)
+		return NULL;
+	    }
+	}
 
       if (*in == ':')
-        {
-          /* Must be a RISC OS filing system or path var
-             idefs:: or gcc: */
+	{
+	  /* Must be a RISC OS filing system or path var
+	     idefs:: or gcc: */
 
-          *out++ = *in++; /* Copy the ':' */
-          if (out > buf_end)
-            return NULL;
+	  *out++ = *in++;	/* Copy the ':' */
+	  if (out > buf_end)
+	    return NULL;
 
-          if (*in == ':')
-            {
-              /* Must be a filing system */
-              while (*in && *in != '.' && *in != '/')
-                {
-                  *out++ = *in++; /* Copy the discname */
+	  if (*in == ':')
+	    {
+	      /* Must be a filing system */
+	      while (*in && *in != '.' && *in != '/')
+		{
+		  *out++ = *in++;	/* Copy the discname */
 
-                  if (out > buf_end)
-                    return NULL;
-                }
+		  if (out > buf_end)
+		    return NULL;
+		}
 
 
-              /* Copy the .$ or /$ as .$ */
-              if (in[0] && in[1] == '$')
-                {
-                 /* Add the .$ */
-                 if (out + 2 > buf_end)
-                   return NULL;
+	      /* Copy the .$ or /$ as .$ */
+	      if (in[0] && in[1] == '$')
+		{
+		  /* Add the .$ */
+		  if (out + 2 > buf_end)
+		    return NULL;
 
-                 *out++ = '.';
-                 *out++ = '$';
-                 in += 2;
-                }
+		  *out++ = '.';
+		  *out++ = '$';
+		  in += 2;
+		}
 
-              if (*in == '/')
-                {
-                  /* Copy the / as . */
-                  *out++ = '.';
-                  in++;
+	      if (*in == '/')
+		{
+		  /* Copy the / as . */
+		  *out++ = '.';
+		  in++;
 
-                  /* Skip any further '/'s */
-                  while (*in == '/')
-                    in++;
+		  /* Skip any further '/'s */
+		  while (*in == '/')
+		    in++;
 
-                  return translate_or_null (create_dir, flags, buffer, buf_end,
-                                            filetype, out, in, 1);
-                }
-              else
-                {
-                  return copy_or_null (out, in, buf_end);
-                }
-            }
-          else
-            {
-              /* Must be a path var
-                 gcc: */
-              if (*in == '/')
-                {
-                  /* Skip over any '/'s */
-                  while (*in == '/')
-                    in++;
+		  return translate_or_null (create_dir, flags, buffer,
+					    buf_end, filetype, out, in, 1);
+		}
+	      else
+		return copy_or_null (out, in, buf_end);
+	    }
+	  else
+	    {
+	      /* Must be a path var
+	         gcc: */
+	      if (*in == '/')
+		{
+		  /* Skip over any '/'s */
+		  while (*in == '/')
+		    in++;
 
-                  return translate_or_null (create_dir, flags, buffer, buf_end,
-                                            filetype, out, in, 1);
-                }
-              else
-                {
-                  /* Have to make a guess if it is RISC OS or unix format */
-                  return guess_or_null (create_dir, flags, buffer, buf_end,
-                                        filetype, out, in, name, 1);
+		  return translate_or_null (create_dir, flags, buffer,
+					    buf_end, filetype, out, in, 1);
+		}
+	      else
+		{
+		  /* Have to make a guess if it is RISC OS or unix format */
+		  return guess_or_null (create_dir, flags, buffer, buf_end,
+					filetype, out, in, name, 1);
 
-                }
-            }
-        }
+		}
+	    }
+	}
       else
-        {
-          /* Must be a relative path. Could be RISC OS or unix, and there's no
-             reliable way to tell. */
-
-          return guess_or_null (create_dir, flags, buffer, buf_end, filetype,
-                                out, in, name, 0);
-        }
+	{
+	  /* Must be a relative path. Could be RISC OS or unix, and there's no
+	     reliable way to tell. */
+	  return guess_or_null (create_dir, flags, buffer, buf_end, filetype,
+				out, in, name, 0);
+	}
     }
 
   /* Not reached */
@@ -1512,7 +1497,7 @@ static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
 
 
 char *
-__riscosify_scl(const char *name, int create_dir)
+__riscosify_scl (const char *name, int create_dir)
 {
   static char buffer1[MAXPATHLEN];
   static char buffer2[MAXPATHLEN];
@@ -1524,24 +1509,24 @@ __riscosify_scl(const char *name, int create_dir)
       char buf[1024];
       char *cmd, *start;
 
-      cmd = _kernel_command_string();
+      cmd = _kernel_command_string ();
 
       /* skip leading spaces */
       while (*cmd == ' ')
-        cmd++;
+	cmd++;
 
       /* Take the program name, and find the last segment of it
          (using '.' and ':' as the directory separator).  */
       start = cmd;
       while (*cmd && *cmd != ' ')
-        {
-          if (*cmd == '.' || *cmd == ':')
-            start = cmd + 1;
-          cmd++;
-        }
+	{
+	  if (*cmd == '.' || *cmd == ':')
+	    start = cmd + 1;
+	  cmd++;
+	}
 
-      snprintf(buf, sizeof buf, "UnixEnv$%.*s$sfix", cmd - start, start);
-      cmd = getenv(buf);
+      snprintf (buf, sizeof buf, "UnixEnv$%.*s$sfix", cmd - start, start);
+      cmd = getenv (buf);
 
       riscosify_init = 1;
       __sdirinit ();
@@ -1551,7 +1536,8 @@ __riscosify_scl(const char *name, int create_dir)
   /* Swap between two static buffers to allow the rename call to work */
   current = 1 - current;
 
-  __riscosify (name, create_dir, __get_riscosify_control(), current ? buffer1 : buffer2, sizeof(buffer1), NULL);
+  __riscosify (name, create_dir, __get_riscosify_control (),
+	       current ? buffer1 : buffer2, sizeof (buffer1), NULL);
   return current ? buffer1 : buffer2;
 }
 
@@ -1569,39 +1555,38 @@ __riscosify_scl(const char *name, int create_dir)
 
    This table is also used to 'go the other way' in dirent and getcwd.  */
 
-const char __filename_char_map[256] =
-{
-  '\0',  '_',  '_',  '_',  '_',  '_',  '_',  '_',
-   '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',
-   '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',
-   '_',  '_',  '_',  '_',  '_',  '_',  '_',  '_',
-   0xA0, '!',  '_',  '?',  '_',  '_',  '_', '\'',
-   '(',  ')',  '*',  '+',  ',',  '-',  '/',  '.',
-   '0',  '1',  '2',  '3',  '4',  '5',  '6',  '7',
-   '8',  '9',  '_',  ';',  '<',  '=',  '>',  '#',
-   '_',  'A',  'B',  'C',  'D',  'E',  'F',  'G',
-   'H',  'I',  'J',  'K',  'L',  'M',  'N',  'O',
-   'P',  'Q',  'R',  'S',  'T',  'U',  'V',  'W',
-   'X',  'Y',  'Z',  '[',  '_',  ']',  '_',  '_',
-   '`',  'a',  'b',  'c',  'd',  'e',  'f',  'g',
-   'h',  'i',  'j',  'k',  'l',  'm',  'n',  'o',
-   'p',  'q',  'r',  's',  't',  'u',  'v',  'w',
-   'x',  'y',  'z',  '{',  '_',  '}',  '~',  '_',
+const char __filename_char_map[256] = {
+  '\0', '_', '_', '_', '_', '_', '_', '_',
+  '_', '_', '_', '_', '_', '_', '_', '_',
+  '_', '_', '_', '_', '_', '_', '_', '_',
+  '_', '_', '_', '_', '_', '_', '_', '_',
+  0xA0, '!', '_', '?', '_', '_', '_', '\'',
+  '(', ')', '*', '+', ',', '-', '/', '.',
+  '0', '1', '2', '3', '4', '5', '6', '7',
+  '8', '9', '_', ';', '<', '=', '>', '#',
+  '_', 'A', 'B', 'C', 'D', 'E', 'F', 'G',
+  'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O',
+  'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
+  'X', 'Y', 'Z', '[', '_', ']', '_', '_',
+  '`', 'a', 'b', 'c', 'd', 'e', 'f', 'g',
+  'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o',
+  'p', 'q', 'r', 's', 't', 'u', 'v', 'w',
+  'x', 'y', 'z', '{', '_', '}', '~', '_',
 
   0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87,
   0x88, 0x89, 0x8A, 0x8B, 0x8C, 0x8D, 0x8E, 0x8F,
   0x90, 0x91, 0x92, 0x93, 0x94, 0x95, 0x96, 0x97,
   0x98, 0x99, 0x9A, 0x9B, 0x9C, 0x9D, 0x9E, 0x9F,
-   ' ',  '¡',  '¢',  '£',  '¤',  '¥',  '¦',  '§',
-   '¨',  '©',  'ª',  '«',  '¬',  '­',  '®',  '¯',
-   '°',  '±',  '²',  '³',  '´',  'µ',  '¶',  '·',
-   '¸',  '¹',  'º',  '»',  '¼',  '½',  '¾',  '¿',
-   'À',  'Á',  'Â',  'Ã',  'Ä',  'Å',  'Æ',  'Ç',
-   'È',  'É',  'Ê',  'Ë',  'Ì',  'Í',  'Î',  'Ï',
-   'Ð',  'Ñ',  'Ò',  'Ó',  'Ô',  'Õ',  'Ö',  '×',
-   'Ø',  'Ù',  'Ú',  'Û',  'Ü',  'Ý',  'Þ',  'ß',
-   'à',  'á',  'â',  'ã',  'ä',  'å',  'æ',  'ç',
-   'è',  'é',  'ê',  'ë',  'ì',  'í',  'î',  'ï',
-   'ð',  'ñ',  'ò',  'ó',  'ô',  'õ',  'ö',  '÷',
-   'ø',  'ù',  'ú',  'û',  'ü',  'ý',  'þ',  'ÿ'
+  ' ', '¡', '¢', '£', '¤', '¥', '¦', '§',
+  '¨', '©', 'ª', '«', '¬', '­', '®', '¯',
+  '°', '±', '²', '³', '´', 'µ', '¶', '·',
+  '¸', '¹', 'º', '»', '¼', '½', '¾', '¿',
+  'À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 'Ç',
+  'È', 'É', 'Ê', 'Ë', 'Ì', 'Í', 'Î', 'Ï',
+  'Ð', 'Ñ', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', '×',
+  'Ø', 'Ù', 'Ú', 'Û', 'Ü', 'Ý', 'Þ', 'ß',
+  'à', 'á', 'â', 'ã', 'ä', 'å', 'æ', 'ç',
+  'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï',
+  'ð', 'ñ', 'ò', 'ó', 'ô', 'õ', 'ö', '÷',
+  'ø', 'ù', 'ú', 'û', 'ü', 'ý', 'þ', 'ÿ'
 };

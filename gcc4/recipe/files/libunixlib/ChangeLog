@@ -1,4 +1,11 @@
-Thu Oct 25 16:49:23 2007  Lee Noar <leenoar@sky.com>
+Sat Nov 10 18:06:26 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* common/riscosify.c: Use GNU code style
+	(__sfixfind): Changed while() into for()
+	(riscosify): Do the test on non-__RISCOSIFY_MASK bits only when
+	configured for __UNIXLIB_PARANOID and use assert() for this.
+
+Thu Oct 25 16:49:23 2007  Lee Noar  <leenoar@sky.com>
 
 	* gcccompat/_b_return.s: Poke function name to aid debugging.
 	* gcccompat/_galloca.s: Likewise.
@@ -6,13 +13,13 @@ Thu Oct 25 16:49:23 2007  Lee Noar <leenoar@sky.com>
 	* sys/_syslib.s: In the DSO, call Dynamic Loader function
 	_dl_call_ctors() to call all shared library _init functions.
 
-Tue Oct 16 01:55:08 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Tue Oct 16 01:55:08 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* module/sul.s(sul_exec): finetune previous change by canonicalising
 	given exec parameter using Run$Path and verifying if result is an
 	existing file.  If not, fall back on original given parameter.
 
-Sat Oct  6 22:24:36 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sat Oct  6 22:24:36 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	Due to the large number of files where following changes were made, we
 	won't mention them all explicitly.
@@ -106,11 +113,11 @@ Sat Oct  6 22:24:36 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	(__escape_disabled): dropped and its contents is now
 	__ul_global.escape_disabled.
 
-Sat Oct  6 17:32:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sat Oct  6 17:32:59 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* sys/_vfork.s (fork,vfork): Prevent register corruption v4 and v5.
 
-Sun Sep  2 02:19:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sun Sep  2 02:19:59 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gcccompat/_b_return.s: Made code usable for libscl.
 	* gcccompat/_galloca.s: Likewise.
@@ -119,14 +126,14 @@ Sun Sep  2 02:19:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	when running in 26-bit mode.
 	* gcccompat/_b_frame.s: Likewise.
 
-Thu Aug 30 01:36:41 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Thu Aug 30 01:36:41 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-auto.pl(sul): Reverted previous (unwanted and undocumented)
 	change as it required libscl to be present; use STRIP iso OBJCOPY
 	to extract binary blob out of ELF file which has the advantage that
 	this is already defined in GCC build system.
 
-Fri Aug 24 01:38:30 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Fri Aug 24 01:38:30 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/system.c(system): whitespace changes; use EXIT_FAILURE for
 	_exit.
@@ -155,16 +162,16 @@ Fri Aug 24 01:38:30 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	* sys/execlp.c: Updated comments.
 	* sys/execvp.c: Likewise.
 
-Mon Aug 20 22:41:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Mon Aug 20 22:41:11 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-auto.pl: forgot to escape special chararacters in previous
 	change.
 
-Fri Aug 17 23:49:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Fri Aug 17 23:49:29 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* sys/exec.c(execve): support __UNIXLIB_SYMLINKS.
 
-Thu Aug 16 23:40:21 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Thu Aug 16 23:40:21 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-auto.pl: Define tooldir in produced Makefile.am so that partial
 	build (or out-of-tree) of UnixLib works.
@@ -200,7 +207,7 @@ Sat Aug 4 14:40:20 2007  Lee Noar  <leenoar@sky.com>
 	instead of via the PLT and __gcc_alloca_free doesn't need to load
 	the PIC register.
 
-Tue Jul 10 00:53:25 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Tue Jul 10 00:53:25 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/sys/cdefs.h(__REDIRECT, __REDIRECT_NTH): Define.
 	* include/sys/stat.h(struct stat): Define struct stat equal to the
@@ -286,7 +293,7 @@ Wed May 16 21:34:47 2007  Lee Noar  <leenoar@sky.com>
 	* signal/_signal.s(__h_sigint): Fixed bug in DSO where r12 was assumed
 	to be GOT pointer, but was actually reused for something else.
 
-Wed Apr 11 03:21:40 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Wed Apr 11 03:21:40 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* string/{_ffs.s,_ffsll.s}: the armv5 implemenation didn't work at
 	all; replaced the non-armv5 implementation by a faster algorithm from
@@ -305,7 +312,7 @@ Tue Apr 10 19:10:01 2007  Lee Noar  <leenoar@ntlworld.com>
 	* libtool.m4: Remove occurrences of -fcall-used-v5 as it's now implied
 	by -fPIC.
 
-Mon Apr  9 21:16:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Mon Apr  9 21:16:29 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	Removed the last pre-UnixLib 5 only alloca implementation remains:
 	* include/pthread.h(struct __pthread_thread): reduced alloca entry
@@ -336,7 +343,7 @@ Mon Apr  9 21:16:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	__free_stack_chunk value when running on 26 bit systems (not needed
 	for APCS-32).
 
-Mon Apr  9 01:57:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Mon Apr  9 01:57:11 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* signal/_signal.s(unrecoverable_error): don't test for FPU exception
 	in soft-float build.
@@ -347,13 +354,13 @@ Mon Apr  9 01:57:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	option.
 	* README(<program name>$HeapMax): clarified it a little bit more.
 
-Sat Apr  7 16:06:43 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sat Apr  7 16:06:43 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/alloc.c(calloc): Detect size_t overflow for total size
 	calculation as this might result in a non-NULL return value letting
 	the caller believe it has a memory block that big.
 
-Fri Apr  6 18:37:14 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Fri Apr  6 18:37:14 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/stdio.h(__STDIOLIB__): Removed static __stdiolib function
 	pointer to __stdioinit (). It wasn't needed anymore for quite some
@@ -384,7 +391,7 @@ Fri Mar 30 19:16:19 2007  Lee Noar  <leenoar@ntlworld.com>
 	More symbols may be added to the list in the future as it becomes clearer
 	which qualify for inclusion.
 
-Tue Mar 27 02:11:36 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Tue Mar 27 02:11:36 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/unixlib/asm_dec.s: include internal/defines.h; removed define
 	TRUE/FALSE as it was not used.
@@ -869,18 +876,18 @@ Tue Nov  7 19:44:12 2006  Lee Noar  <leenoar@ntlworld.com>
 	* unixlib/elf/convert-unixlib.pl: Added code to generate stubs header
 	for ELF version (adapted from gen-makefiles.pl).
 
-Sun Oct  8 19:38:58 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+Sun Oct  8 19:38:58 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/sys/elf.h: Added (copy of Lee Noar's GCCSDK 3.4.6 patch
 	of his ELF work).
 
-Wed Oct  4 22:22:30 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+Wed Oct  4 22:22:30 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Removed all CVS identifiers, updated Copyright statements and years
 	based on SVN history (but UnixLib history starts before CVS/SVN so
 	start dates are not always correct).
 
-Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+Sun Oct 01 01:02:06 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	Start of UnixLib 5.0 as RISC OS RunTime lib in ELF format.
 	* source/debug/dvsprintf.c: renamed isxdigit()/isdigit()/tolower()/
@@ -899,12 +906,12 @@ Sun Oct 01 01:02:06 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 [ ^^^ Here starts UnixLib 5.0 ^^^ ]
 -----------------------------------------------------------------------
-Sun Jul 29 20:17:09 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sun Jul 29 20:17:09 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Docs/ReadMe: update section on pthread & Wimp behaviour after recent
 	progress in this area.
 
-Sun Jul 29 15:00:17 CEST 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+Sun Jul 29 15:00:17 CET 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
 	* source/sys/__getcpuarch.s(__get_cpu_arch): wrong result for ARM
 	architecture 3 processors.
@@ -912,12 +919,12 @@ Sun Jul 29 15:00:17 CEST 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 -----------------------------------------------------------------------
 [ vvv Here ends UnixLib 4.6 vvv ]
 
-Sun Jul 15 13:52:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sun Jul 15 13:52:59 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* !Help: Update version to 4.6.
 	* source/clib/features.h (__ULIBC_MINOR__): Bump minor version to 6.
 
-Sun Jul  8 19:14:58 CEST 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+Sun Jul  8 19:14:58 CET 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
                                John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/pthread/_context.s: enabled pthread Wimp filter code after
@@ -936,13 +943,13 @@ Wed May 23 20:31:26 2007  Alex Waugh  <alex@alexwaugh.com>
 
 	* source/include/unixlib/types.h: Fix typo in typedef.
 
-Sun Apr 29 17:55:43 CEST 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+Sun Apr 29 17:55:43 CET 2007  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 
 	* source/unix/unix.c(find_redirection_type): don't go beyond start of
 	cmdline when it starts with the redirection_type character or one or
 	more digits followed by the redirection_type character.
 
-Tue Mar 27 01:48:55 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Tue Mar 27 01:48:55 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/unixlib/unix.h(__get_cpu_arch): Declare.  Gives rough
 	indication which ARM architecture we're running on.
@@ -983,11 +990,11 @@ Tue Nov 21 21:45:22 2006  Alex Waugh  <alex@alexwaugh.com>
 	* source/unix/sync.c (fsync): Don't error on files open with 
 	  O_RDWR
 
-Sat Oct 21 22:38:13 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+Sat Oct 21 22:38:13 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/clib/regex.h: Made it usable for C++ programs.
 
-Wed Oct  4 23:13:35 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+Wed Oct  4 23:13:35 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/sys/exec.c (execve): Made code slightly less obfuscated.
 
@@ -999,7 +1006,7 @@ Tue Sep 26 23:14:57 2006  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
 -----------------------------------------------------------------------
 [ vvv Here ends UnixLib 4.5 vvv ]
 
-Thu Sep 14 01:25:05 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+Thu Sep 14 01:25:05 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* !Help: Update version to 4.5.
 	* source/clib/features.h (__ULIBC_MINOR__): Bump minor version to 5.
@@ -1028,7 +1035,7 @@ Mon Sep  4 06:43:03 PDT 2006  Peter Naulls  <peter@chocky.org>
 	  "/home/riscos/env/" path.
 	* source/clib/bits/posix_opt.h: Refine further.
 
-Sat Aug 26 16:59:31 CEST 2006  John Tytgat  <John.Tytgat@aaug.net>
+Sat Aug 26 16:59:31 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
 
 	* source/pthread/{*.c,*.s}: Removed CVS keywords and made Copyright
 	  statements conforming.
