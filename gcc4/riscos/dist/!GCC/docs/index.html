@@ -102,11 +102,40 @@
 
 <p>For further examples of compilation procedures, please look at <a href="../Examples">`Examples' inside !GCC</a>.
 
-<h4>1.3. Switches</h4>
+<h4>1.3. More advanced compiliations</h4>
+
+<h5>1.3.1. SharedCLibrary</h5>
+
+By default <a href="libunixlib">UnixLib</a> is used as runtime library.  In case it is important to use RISC OS' <a href="libscl">SharedCLibrary</a> and at expense of a much more reduced API, you can do that by specifying the switch -mlibscl at compile and link time. The linker will produce an Absolute (filetype &ff8) file having an AIF header:
+
+<pre>
+   *gcc -mlibscl -o file.o -c file.c
+   *gcc -mlibscl -o mybinary file.o
+</pre>
+
+<h5>1.3.2. RISC OS module support</h5>
+
+<p>Module code must be compiled and linked with the SharedCLibrary as UnixLib is not suitable for this purpose. The switch -mmodule needs to be specified to make sure that global data can be properly relocated at runtime.  Specifying -mmodule implicitly specifies -mlibscl so it is not really necessary to specify it yourself however if you want your build script (or Makefile) reasonably backwards compatible with GCCSDK 3.4 you better specify it as it was not the case before.
+
+<pre>
+   *gcc -mlibscl -mmodule -c module.c -O2
+   *gcc -mlibscl -mmodule module.o header.o -o mymodule
+</pre>
+
+<h5>1.3.3. Static UnixLib</h5>
+
+When UnixLib is selected as runtime library, by default it will be the shared UnixLib library.  It is possible to use the static UnixLib at link time by specifying the linker switch -static.
+
+<pre>
+   *gcc -o file.o -c file.c
+   *gcc -static -o mybinary file.o
+</pre>
+
+<h4>1.4. Switches</h4>
 
 <p>This is a list of the simpler, standard switches for GCC. Full details can be obtained from the <a href="gcc/gcc/index.html">GNU C/C++ manual</a>. Please see below for the ARM specific switches since these have altered from the original GCC version.
 
-<h5>1.3.1. General switches</h5>
+<h5>1.4.1. General switches</h5>
 
 <p>The switches described below are useable with any GNU compiler.
 
@@ -127,7 +156,7 @@
   <dd>Full optimisation and inline small functions as well.
 </dl>
 
-<h5>1.3.2. ARM specific switches</h5>
+<h5>1.4.2. ARM specific switches</h5>
 
 <p>The ARM specific switches are documented in <a href="gcc/gcc/index.html">GNU C/C++ manual</a>, section "ARM Options".  The most important ones are:
 
@@ -146,7 +175,7 @@
 
 <p>Note that APCS-R mode (option -mapcs-26) is deprecated and is no longer working nor supported in this version of GCCSDK.
 
-<h5>1.3.3. RISC OS specific switches</h5>
+<h5>1.4.3. RISC OS specific switches</h5>
 
 <dl>
 <dt>-mthrowback
@@ -172,7 +201,7 @@
   <li>-mclient-static-data-offset and -mlibrary-static-data-offset.  -mclient-static-data-offset is the default.
 </ul>
 
-<h4>1.4. Predefines</h4>
+<h4>1.5. Predefines</h4>
 
 <p>This is a short list of the most interesting and useful predefines set:
 
@@ -218,7 +247,17 @@ using_unixlib:
 	.size	using_unixlib, . - using_unixlib
 </pre>
 
-<h4>1.5. Troubleshooting</h4>
+<h4>1.6. Distributing your programs</h4>
+
+<p>When you want to distribute your compiled program it might be necessary to accompagn it with an ELF loader and possibly also a set of shared libraries used by your program. This is not necessary when your program is using SharedCLibrary as runtime library, i.e. when your program is an Absolute (filetype &ff8) file with AIF header or a RISC OS module (filetype &ffa).
+
+<p>The ELF loader and the default set of shared libraries (UnixLib, libgcc and the dynamic loader) are bundled in the form of the !DSO-libs application. In the <a href="http://www.riscos.info/downloads/gccsdk/latest/">download area of the GCCSDK website</a> there is separate 'core' !DSO-libs ZIP file available (also containing a !System holding the most recent modules required by UnixLib) which can be downloaded by the users of your program. In case your program is a C++ program, an additional 'g++' !DSO-libs ZIP needs to be downloaded and its contents copied on top of the 'core' !DSO-libs application as this will add the necessary C++ shared libraries.
+
+<p>We strongly recommend that you instruct your users to download !DSO-libs ZIP file(s) themselves instead of providing a copy of a possibly outdated version together with your program.
+
+<p>Over time we anticipate that a more managed download and upgrade facility will be used like <a href="http://www.riscpkg.org/">RiscPkg</a> but details and instructions are not available at the time of writing.
+
+<h4>1.7. Troubleshooting</h4>
 
 <p>Here are described some common problems users have with gcc and the GNU compilers. Possible solutions are provided for the known problems.
 
@@ -243,15 +282,6 @@ using_unixlib:
 <li>The error 'No writable memory at this address' is returned.
     <p>This is caused by insufficient memory memory and can be fixed by increasing the wimpslot to similar values as above.
 </ul>
-
-<h4>1.6. RISC OS module support</h4>
-
-<p>Module code must be compiled and linked with the SharedCLibrary as UnixLib is not suitable for this purpose. The switch -mmodule needs to be specified to make sure that global data can be properly relocated at runtime.  Specifying -mmodule implicitly specifies -mlibscl so it is not really necessary to specify it yourself however if you want your build script (or Makefile) reasonably backwards compatible with GCCSDK 3.4 you better specify it as it was not the case before.
-
-<pre>
-   *gcc -mlibscl -mmodule -c module.c -O2
-   *gcc -mlibscl -mmodule module.o header.o -o mymodule
-</pre>
 
 <p>Each RISC OS module needs a module header which can be created using CMunge. See <a href="cmunge">CMunge documentation</a> for more information.  CMunge can also be used to create veneer code acting as glue code for RISC OS callbacks into your C/C++ coded module.
 
