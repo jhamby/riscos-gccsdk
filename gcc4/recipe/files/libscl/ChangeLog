@@ -1,4 +1,8 @@
-Sun Sep  2 02:19:43 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sun Nov 11 01:08:20 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/asm_dec.s: Added license terms.
+
+Sun Sep  2 02:19:43 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/alloca.h: New.
 	* include/setjmp.h(__JMP_BUF_SIZE): Define it one word bigger than
@@ -39,7 +43,7 @@ Sun Sep  2 02:19:43 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	* incl-local/internal/asm_dec.s: New file defining SCL stack chunk
 	fields.
 
-Thu Aug 16 23:43:34 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Thu Aug 16 23:43:34 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am (tooldir): Define, so that partial build (or
 	out-of-tree) of libscl works.
@@ -49,7 +53,7 @@ Mon Aug 13 19:33:59 2007  Lee Noar  <leenoar@sky.com>
 	* riscos/stubs.s: Call static global constructors and
 	destructors for non-module code.
 
-Sun Aug 12 19:12:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sun Aug 12 19:12:29 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/chunkid01.s: rename .bss section into
 	.bss.riscos.libscl.chunkstub.id01 so that in ld's elf.sc and
@@ -59,7 +63,7 @@ Sun Aug 12 19:12:29 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	defined by R0 on entry of SWI SharedCLibrary_LibInitAPCS_32.
 	* riscos/chunkid02.s: Likewise.
 
-Fri Jul 27 03:10:01 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Fri Jul 27 03:10:01 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/stubs.s: Added explanation from Ben Avison on
 	kallocExtendsWS.
@@ -75,11 +79,11 @@ Sun Jun 17 21:51:28 2007  Alex Waugh  <alex@alexwaugh.com>
 	* stdio/fileno.c: New file to implement fileno. This allows c++
 	fstreams to work.
 
-Mon May 28 08:15:56 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Mon May 28 08:15:56 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/chunkid01.s: Make _stub_kallocExtendsWS .global.
 
-Mon May 28 03:33:46 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Mon May 28 03:33:46 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/stubs.s: moved chunks to...
 	* riscos/chunkstub.s,riscos/chunkid01.s,riscos/chunkid02,
@@ -88,7 +92,7 @@ Mon May 28 03:33:46 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	* README: Added C++ & float argument in va_args list as known
 	problems.
 
-Sun May 27 18:10:24 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sun May 27 18:10:24 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/stubs.s: Exported __gcc_vfscanf,__gcc_vscanf and
 	__gcc_vsscanf as aliases for vfscanf, vscanf and vsscanf.
