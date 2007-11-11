@@ -7,4 +7,4 @@ if [ -z "$GCCSDK_SRCDIR" ] ; then
   exit 1
 fi
 
-( cd $GCCSDK_SRCDIR/libstdc++-v3 && autoconf )
+( cd $GCCSDK_SRCDIR/libstdc++-v3 && aclocal-1.9 -I . -I .. -I ../config && autoheader && automake-1.9 -a && autoconf )
