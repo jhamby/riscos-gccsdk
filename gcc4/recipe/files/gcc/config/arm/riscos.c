@@ -20,6 +20,7 @@ the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #ifndef CROSS_COMPILE
+
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -29,9 +30,11 @@ Boston, MA 02111-1307, USA.  */
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <obstack.h>
+
 #include <swis.h>
 #include <kernel.h>
-#include <obstack.h>
+#include <unixlib/local.h>
 
 /* The DDEUtils module throwback error category codes.  */
 #define THROWBACK_INFORMATION         -1
@@ -47,10 +50,12 @@ Boston, MA 02111-1307, USA.  */
 /* The full canonicalised pathname of the current error file.  */
 static char *arm_error_file = NULL;
 
+#if 0
 /* Unique reference number for current file.
    Used to determine whether DDEUtils module needs telling we
    have changed the error file.  */
 static int arm_error_file_ref = -1;
+#endif
 
 /* Control status of throwback,
    -1 => no throwback possible
@@ -299,11 +304,15 @@ void riscos_host_initialisation (void)
    Unix format name.  */
 const char *riscos_convert_filename (void *obstack, const char *name, int do_exe, int do_obj)
 {
-  struct obstack *obs = (struct obstack *) obstack;
   char tmp[1024];
-  extern char *riscos_to_unix (const char *, char *);
-  riscos_to_unix (name, tmp);
-  /* printf("riscos_convert_filename(%s, %d, %d) -> <%s>\n", name, do_exe, do_obj, tmp); */
-  return obstack_copy0 (obs, tmp, strlen (tmp));
+
+  /* printf("riscos_convert_filename(%s, %d, %d)...\n", name, do_exe, do_obj); */
+  if (!__unixify_std (name, tmp, sizeof (tmp), NULL))
+    return name;
+
+  /* printf("riscos_convert_filename() result is <%s>\n", tmp);*/
+  return obstack_copy0 ((struct obstack *) obstack, tmp, strlen (tmp));
 }
+
 #endif
+

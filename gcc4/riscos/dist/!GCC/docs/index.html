@@ -23,7 +23,7 @@
 
 <h2>Welcome to GCCSDK GCC 4.1.1 Prerelease 1 for RISC OS</h2>
 <p>
-<b>*** EXPERIMENTAL ***</b>
+<b>*** IN TESTING ***</b>
 
 <p>If you have received this copy of GCC from a CD of fetched your copy from the Internet yourself some time ago, then it is likely there is a more up-to-date version obtainable from <a href="http://gccsdk.riscos.info/">http://gccsdk.riscos.info/</a> which is also the homepage of this RISC OS GCC port.
 
@@ -261,12 +261,10 @@ using_unixlib:
 
 <p>List of known problems or missing features compared to GCCSDK 3.4.6:
 <ul>
-  <li>native RISC OS build: using cmunge without -s option always results in an error.  Temporary workaround is to specify the -s option. The -p option has a similar issue but for this there is no workaround.
   <li>native RISC OS build: not all RISC OS specific option are implemented yet, like -mamu, -mlibrary-static-data-offset, -mclient-static-data-offset.
   <li>native RISC OS build: not all recent GCCSDK 3.4.6 bug fixes concerning -mthrowback and RISC OS file path handling have been merged through.
   <li>native RISC OS build: option -mpoke-function-name is default set while it in GCCSDK 3.4 it was by default unset.
-  <li>native RISC OS build: the linker can not be found on RISC OS 4 and RISC OS 6 (don't know if this problem is also there on RISC OS 5).  This requires a bug fix in SharedUnixLibrary.
-  <li>libscl: the GCCSDK support code in libscl is not yet fully enabled as it requires some cleanup first.
+  <li>libscl: the GCCSDK support code in libscl is not yet fully enabled as libscl requires some cleanup first and have support for network API builtin.
   <li>libscl: no C++ support
 </ul>
 
