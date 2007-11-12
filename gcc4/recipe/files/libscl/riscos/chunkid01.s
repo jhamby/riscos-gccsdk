@@ -45,6 +45,7 @@
 	MakePtr	kernel_statics_end
 
 	.text
+kernel_vectors:
 kernel_vectors_begin:
 
 	.global	_kernel_init
@@ -147,9 +148,9 @@ _kernel_swi_c:			MOV	PC, #0
 _kernel_register_slotextend:	MOV	PC, #0
 	.global	_kernel_raise_error
 _kernel_raise_error:		MOV	PC, #0
-kernel_vectors_mid:
-	.space			kernel_vectors_mid - kernel_vectors_begin
 kernel_vectors_end:
+	.space	kernel_vectors_end - kernel_vectors_begin
+	.size	kernel_vectors, . - kernel_vectors
 
 	.section .bss.riscos.libscl.chunkstub.id01,"w",%nobits
 kernel_statics_begin:
@@ -220,3 +221,4 @@ kernel_statics_end:
 .set	_stub_unused, kernel_statics_begin + 0x02dc
 
 	.end
+

@@ -45,6 +45,7 @@
 	.word	0
 
 	.text
+extra_vectors:
 extra_vectors_begin:
 
 	@ Entry 0
@@ -934,8 +935,9 @@ nexttowardf_FIXME_float_arg:
 fmaf:
 	MOV	PC, #0
 
-extra_vectors_mid:
-	.space	extra_vectors_mid - extra_vectors_begin
 extra_vectors_end:
+	.space	extra_vectors_end - extra_vectors_begin
+	.size	extra_vectors, . - extra_vectors
 
 	.end
+

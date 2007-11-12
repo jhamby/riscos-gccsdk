@@ -45,6 +45,7 @@
 	MakePtr	clib_statics_end
 
 	.text
+clib_vectors:
 clib_vectors_begin:
 
 	.global	TrapHandler
@@ -471,9 +472,9 @@ _swi:
 _swix:
 	MOV	PC, #0
 
-clib_vectors_mid:
-	.space			clib_vectors_mid - clib_vectors_begin
 clib_vectors_end:
+	.space	clib_vectors_end - clib_vectors_begin
+	.size	clib_vectors, . - clib_vectors
 
 	.global	__SIG_IGN
 .set	__SIG_IGN, 0xfffffffd
@@ -511,3 +512,4 @@ clib_statics_end:
 .set	_stub_ClibSpace, clib_statics_begin + 0x03a0
 
 	.end
+

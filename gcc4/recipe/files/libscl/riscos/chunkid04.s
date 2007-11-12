@@ -44,6 +44,7 @@
 	.word	0
 
 	.text
+c99low_vectors:
 c99low_vectors_begin:
 
 	@ A 'long long' can be effectively represented as a structure thus :
@@ -469,8 +470,9 @@ _ll_ufrom_f:
 _ll_sfrom_f:
 	MOV	PC, #0
 
-c99low_vectors_mid:
-	.space	c99low_vectors_mid - c99low_vectors_begin
 c99low_vectors_end:
+	.space	c99low_vectors_end - c99low_vectors_begin
+	.size	c99low_vectors, . - c99low_vectors
 
 	.end
+
