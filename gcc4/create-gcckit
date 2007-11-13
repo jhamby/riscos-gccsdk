@@ -83,12 +83,12 @@ if [ ! -d $BKIT_GCC_UNPACKED/bin ] ; then
   exit 1
 fi
 
-# Do suffix swapping of all the .c/.cc/.cmhg/.s/.h/.o files (don't do this
+# Do suffix swapping of all the .c/.cc/.tcc/.cmhg/.s/.h/.o files (don't do this
 # for .so/.a/.la suffixes).
 # Has one argument specifying the directory where the suffix swapping needs to happen.
 do_suffix_swapping() {
   pushd $1 > /dev/null
-  for suffix in c cc cmhg s h o ; do
+  for suffix in c cc tcc cmhg s h o ; do
     for dir in `find . -type f -name "*.$suffix" -exec dirname {} \; | sort | uniq` ; do
       mkdir -p $dir/$suffix
       find $dir -maxdepth 1 -type f -name "*.$suffix" -exec rename -f 's/(.+)\/(.+)\.(.+)/$1\/$3\/$2/' {} \;
