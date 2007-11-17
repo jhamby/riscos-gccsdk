@@ -2,10 +2,37 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !gcc.docs.UnixLib.Changes too.
 
-GCCSDK GCC 4.1.1 Release 1 (XXX 2007)
-==========================
+GCCSDK GCC 4.1.1 pre-release 1 (released 17 November 2007)
+==============================
 
-XXX FIXME
+The first test release of GCC 4.1.1 + Binutils 2.17 port featuring:
+
+  - GNU C/C++ compilers based on GCC 4.1.1.
+  - Object file format is now ELF based and no longer AOF/AIF (although that
+    Absolute AIF files can be created from static built ELF programs).
+  - Shared library support with default set of shared libraries for UnixLib,
+    libgcc, C++ support library and dynamic loader.
+  - UnixLib as runtime library also means a soft-float floating point
+    implementation resulting significant speed increases for floating point
+    intensive code.
+  - RISC OS module support for C programs.
+
+Further documentation can be found in !GCC's help file.
+
+VERY IMPORTANT: we encourage every RISC OS developer to try out this release
+and gives us feedback on your experience with this release.  There is a known
+list of problems mentioned in !GCC's help file which we foresee to be fixed in
+the first release.
+
+Note that we like to reserve the freedom to make some incompatible changes to
+the shared UnixLib API before the first release and this based on developer
+feedback and the already known need to do some API bugfixes or cleanups.
+
+So therefore please do *not* distribute your programs built with *shared*
+UnixLib runtime library found in this pre-release but feel free to do so with
+the *static* UnixLib version instead (i.e. using -static option when linking)
+so that users still can run your programs when we do the first release
+containing the first supported shared UnixLib version.
 
 GCCSDK GCC 3.4.6 Release 3 (released 17 July 2007)
 ==========================
