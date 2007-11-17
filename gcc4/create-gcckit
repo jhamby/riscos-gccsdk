@@ -79,7 +79,7 @@ BKIT_EXAMPLES_UNPACKED=$GCCSDK_UNPACKED/Examples
 # Do a sanity check to see if the native RISC OS compiler has been built.
 if [ ! -d $BKIT_GCC_UNPACKED/bin ] ; then
   echo "The native RISC OS compiler doesn't seem to be built at $BKIT_GCC_UNPACKED."
-  echo "Use './build-cross riscos' for doing this."
+  echo "Use './build-it riscos' for doing this."
   exit 1
 fi
 
