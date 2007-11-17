@@ -20,7 +20,7 @@ Currently it might be necessary to define LTCONFIG_VERSION as:
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 The following is a non exhaustive list of programs which are needed to compile
-and work with GCCSDK on top of a typical recent standard Unix distribution.
+and work with GCCSDK on top of a typical recent standard Unix distribution:
 
 - svn v1.2 or later (only to be used to checkout GCCSDK source code)
 - gcc v3.4.x or v4.x (other versions might work too)
@@ -28,6 +28,14 @@ and work with GCCSDK on top of a typical recent standard Unix distribution.
 - libtool v1.5.22 (other versions might work too)
 - automake v1.9 (no other version !)
 - autogen v5.8.8 (other versions might work too)
+- patch v2.5.9 (other versions might work too)
+- makeinfo v4.8 (package texinfo, other versions might work too)
+
+When you want to run the gcc testsuite, you need at least:
+
+- DejaGnu
+- Tcl
+- Expect
 
 Prerequisites for building GCC can be found at
 <URL:http://gcc.gnu.org/install/prerequisites.html>.
@@ -49,8 +57,7 @@ We have now in 'gcc4' directory the GCCSDK 4 code.
 The build steps are the following:
 
 1. Build cross-compiler.
-2. Build RISC OS ELF loader.
-3. Build the native RISC OS compiler and GCCSDK kit creation.
+2. Build the native RISC OS compiler and GCCSDK kit creation.
 
 However, people only interested in having the cross-compiler only need to
 do step 1 and they might also be interested in "5. Porting tools" section
@@ -118,17 +125,12 @@ cross-compiler will be installed).
      $ make CFLAGS_FOR_TARGET="-O3 -march=armv4" CXXFLAGS_FOR_TARGET="-O3 -march=armv4"
      $ make install
 
-2.2. Build RISC OS ELF loader
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-   $ cd riscos/soloader
-   $ ./build-it > build-output.txt 2>&1
-
-2.3. Build the native RISC OS compiler
+2.2. Build the native RISC OS compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The native RISC OS compiler is built with the cross-compiler.  It is using
-the same build-it script with "riscos" as argument given.
+The native RISC OS compiler and associated programs like the ELF loader (part
+f !DSO-libs) are built using the previously built cross-compiler.  It is using
+the same 'build-it' script with "riscos" as argument given.
 
    $ ./build-it riscos > build-output.txt 2>&1
 
@@ -166,7 +168,17 @@ The GCC testsuite requires the installation of at least DejaGnu, Tcl and
 Expect and can be started using:
 
   $ cd builddir-cross/gcc
-  $ make check
+  $ make check-gcc//unix/{-static}
+
+Currently the testing works only for static libraries so that why you need to
+specify the '-static' option. When you want to test the hard-float
+configuration use:
+
+  $ make check-gcc//unix/{-static -mhard-float}
+
+Or both at the same time:
+
+  $ make check-gcc//unix/{-static -mhard-float,-static -msoft-float}
 
 More information on running GCC testsuite can be found at
 <URL:http://gcc.gnu.org/install/test.html>.
@@ -220,6 +232,9 @@ its assembler to write ELF output instead of AOF.  This requires:
 The initial static ELF RISC OS work for GCC 4.1 was done by Nick Burrett (Jun
 2005). Integrating Nick's work in a GCCSDK build environment and bringing it
 up-to-date was done by John Tytgat and John-Mark Bell (Oct 2006).
+
+Module support, multilib, libscl integration and build support changes was
+realised by John Tytgat.
 
 Lee Noar contributed his RISC OS ELF loader work together with the necessary
 dynamic ELF changes for RISC OS (originally developed for GCCSDK 3.4)
