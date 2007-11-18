@@ -292,12 +292,10 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	    if (file_desc->dflag & FILE_ISDIR)
 	      {
 		DIR *dir;
-#ifdef DEBUG
-		__os_print ("-- open directory (read only): file=");
-		__os_print (file);
-		__os_nl ();
-#endif
 
+#ifdef DEBUG
+		debug_printf ("open directory (read only): file=%s\n", file);
+#endif
 		dir = opendir (file);
 		return (dir == NULL) ? (void *) -1 : (void *) dir;
 	      }
@@ -373,14 +371,8 @@ __fsclose (struct __unixlib_fd *file_desc)
     buffer = NULL;
 
 #ifdef DEBUG
-  __os_print ("Closing file ");
-  __os_prhex ((int) file_desc->devicehandle->handle);
-  if (buffer)
-    {
-      __os_print (": ");
-      __os_print (buffer);
-    }
-  __os_nl ();
+  debug_printf ("-- __fsclose: file %p, buffer '%s'\n", file_desc->devicehandle->handle,
+		buffer ? buffer : "<NULL>");
 #endif
 
   /* Close file.  */
@@ -403,10 +395,10 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
   if (file_desc->dflag & FILE_ISDIR)
     {
       struct dirent entry, *result;
-#ifdef DEBUG
-      __os_print ("__fsread: read directory entry\r\n");
-#endif
 
+#ifdef DEBUG
+      debug_printf ("-- __fsread: read directory entry\n");
+#endif
       if (readdir_r ((DIR *) file_desc->devicehandle->handle, &entry, &result))
 	return -1;
       if (!result)
@@ -437,13 +429,9 @@ __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
   int regs[5];
 
 #ifdef DEBUG
-  __os_print ("__fswrite(");
-  __os_prdec ((int) file_desc->devicehandle->handle);
-  __os_print (", nbyte=");
-  __os_prdec (nbyte);
-  __os_print (")\r\n");
+  debug_printf ("-- __fswrite(%p, nbyte=%d)\n", file_desc->devicehandle->handle,
+		nbyte);
 #endif
-
   if ((err = __os_fwrite ((int) file_desc->devicehandle->handle,
 			  data, nbyte, regs)) != NULL)
     return __ul_seterr (err, 1);

@@ -78,8 +78,7 @@ static char *env (const char *program_name, const char *variable,
       ptr = stpcpy (ptr, variable);
 
 #ifdef DEBUG
-      __os_print ("features.c (env): Looking for '"); __os_print (envvar);
-      __os_print ("'.");
+      debug_printf ("-- features.c (env): Looking for '%s'.\n", envvar);
 #endif
 
       result = __getenv_from_os (envvar, buffer, bufsiz, NULL);
@@ -90,15 +89,14 @@ static char *env (const char *program_name, const char *variable,
       ptr = stpcpy (base_ptr, variable);
 
 #ifdef DEBUG
-      __os_print ("features.c (env): Looking for '"); __os_print (envvar);
-      __os_print ("'.");
+      debug_printf ("-- features.c (env): Looking for '%s'.\n", envvar);
 #endif
 
       result = __getenv_from_os (envvar, buffer, bufsiz, NULL);
     }
 
 #ifdef DEBUG
-  __os_print ((result) ? "Found\r\n" : "Not found\r\n");
+  debug_printf ((result) ? "   -> Found\n" : "   -> Not found\n");
 #endif
   return result;
 }

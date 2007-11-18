@@ -74,12 +74,7 @@ popen (const char *command, const char *mode)
     return NULL;
 
 #ifdef DEBUG
-  if (*mode == 'r')
-    __os_print ("pipe(r): ");
-  else
-    __os_print ("pipe(w): ");
-  __os_print (command);
-  __os_nl ();
+  debug_printf ("-- popen(cmd='%s', mode='%s'\n", command, mode);
 #endif
 
   /* mode == 'r' means current process will read from the file created by the

@@ -123,12 +123,8 @@ open (const char *file, int oflag, ...)
   if (file == NULL)
     return __set_errno (EINVAL);
 
-/* __riscosify() is called by __fsopen() */
-
 #ifdef DEBUG
-  __os_print ("open(): file = ");
-  __os_print (file);
-  __os_nl ();
+  debug_printf ("open(file=%s)\n", file);
 #endif
 
   if (oflag & O_CREAT)

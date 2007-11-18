@@ -24,14 +24,14 @@ __pthread_create (pthread_t thread)
   void *ret = NULL;
 
 #ifdef PTHREAD_DEBUG
-  debug_printf ("__pthread_create: About to start thread %d\n", thread);
+  debug_printf ("-- __pthread_create: About to start thread %d\n", thread);
 #endif
 
   /* Go into the thread properly.  */
   ret = (*thread->start_routine) (thread->arg);
 
 #ifdef PTHREAD_DEBUG
-  debug_printf ("__pthread_create: Thread %d has returned\n", thread);
+  debug_printf ("-- __pthread_create: Thread %d has returned\n", thread);
 #endif
 
   /* A thread returning from its main function is an implicit call
@@ -57,7 +57,7 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
   __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
-  debug_printf ("pthread_create: Starting new thread\n");
+  debug_printf ("-- pthread_create: Starting new thread\n");
 #endif
 
   /* Allocate memory for a new thread, without adding the thread to
@@ -83,7 +83,7 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
       free_unlocked (gbl->malloc_state, thread);
 
 #ifdef PTHREAD_DEBUG
-      debug_printf ("pthread_create: Cannot start any more threads at the moment (no memory)\n");
+      debug_printf ("-- pthread_create: Cannot start any more threads at the moment (no memory)\n");
 #endif
       __pthread_enable_ints ();
       return EAGAIN;
@@ -134,7 +134,7 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
 
   gbl->pthread_num_running_threads ++;
 #ifdef PTHREAD_DEBUG
-  debug_printf ("pthread_create: running threads=%d (at %08x)\n",
+  debug_printf ("-- pthread_create: running threads=%d (at %08x)\n",
 		gbl->pthread_num_running_threads,
 		&gbl->pthread_num_running_threads);
 #endif

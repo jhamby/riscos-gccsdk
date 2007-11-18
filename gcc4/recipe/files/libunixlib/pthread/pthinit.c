@@ -1,5 +1,5 @@
 /* Pthread initialisation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers.
    Written by Martin Piper and Alex Waugh */
 
 #include <unixlib/os.h>
@@ -16,7 +16,7 @@ __pthread_prog_init (void)
 {
   struct ul_global *gbl = &__ul_global;
 #ifdef PTHREAD_DEBUG
-  debug_printf ("__pthread_prog_init: Program initialisation\n");
+  debug_printf ("-- __pthread_prog_init: Program initialisation\n");
 #endif
 
   /* Create a node for the main program.  Calling this function with a

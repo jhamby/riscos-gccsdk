@@ -33,7 +33,7 @@ __pthread_new_node (pthread_t node)
       if (node == NULL)
         {
 #ifdef DEBUG_PTHREAD
-          debug_printf ("__pthread_new_node: Unable to allocate thread node\n");
+          debug_printf ("-- __pthread_new_node: Unable to allocate thread node\n");
 #endif
           return NULL;
         }
@@ -44,7 +44,7 @@ __pthread_new_node (pthread_t node)
       if (node->saved_context == NULL)
         {
 #ifdef DEBUG_PTHREAD
-          debug_printf ("_pthread_new_node: Unable to allocate thread saved_context\n");
+          debug_printf ("-- __pthread_new_node: Unable to allocate thread saved_context\n");
 #endif
           free_unlocked (gbl->malloc_state, node);
           return NULL;
@@ -88,7 +88,7 @@ __pthread_new_stack (void)
   if (stack == NULL)
     {
 #ifdef DEBUG_PTHREAD
-      debug_printf ("__pthread_new_stack: Unable to allocate thread stack\n");
+      debug_printf ("-- __pthread_new_stack: Unable to allocate thread stack\n");
 #endif
       return NULL;
     }

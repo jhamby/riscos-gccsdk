@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 /* #define DEBUG */
@@ -21,8 +21,7 @@ extern const char __filename_char_map[256];
 
 #  define stricmp strcmp
 
-#  define __os_prhex(val) fprintf(stderr, "%x", val)
-#  define __os_print(val) fputs(val, stderr)
+#  define debug_printf printf
 
 #  include <kernel.h>
 
@@ -204,10 +203,7 @@ __sfixinit (const char *list)
       entry->suffix[length] = '\0';
       where = sfix_hash (entry->suffix);
 #ifdef DEBUG
-      __os_prhex (where);
-      __os_print (" '");
-      __os_print (entry->suffix);
-      __os_print ("'\r\n");
+      debug_printf ("%d '%s'\n", where, entry->suffix);
 #endif
       entry->next = __sfix[where];
       __sfix[where] = entry;
@@ -320,13 +316,10 @@ translate_or_null (int create_dir, int flags,
   const char *suffix;
 
 #ifdef DEBUG
-  __os_print ("-- translate_or_null:\r\n");
-  __os_print ("output buffer = '");
   *out = '\0';
-  __os_print (buffer);
-  __os_print ("'\r\nremaining input = '");
-  __os_print (in);
-  __os_print ("'\r\n");
+  debug_printf ("-- translate_or_null:\n"
+		"   output buffer = '%s'\n"
+		"   remaining input = '%s'\n", buffer, in);
 #endif
 
   if (out > buf_end)
@@ -473,9 +466,7 @@ translate_or_null (int create_dir, int flags,
 
 #ifdef DEBUG
   *out = '\0';
-  __os_print ("before ,xyz and suffix checking '");
-  __os_print (buffer);
-  __os_print ("'\r\n");
+  debug_printf ("before ,xyz and suffix checking '%s'\n", buffer);
 #endif
 
   /* Use MimeMap to find a filetype to match the filename
@@ -591,9 +582,7 @@ translate_or_null (int create_dir, int flags,
   *out = '\0';
 
 #ifdef DEBUG
-  __os_print ("final output '");
-  __os_print (buffer);
-  __os_print ("'\r\n");
+  debug_printf ("final output '%s'\n", buffer);
 #endif
 
   return out;
@@ -618,13 +607,10 @@ guess_or_null (int create_dir, int flags, char *buffer, const char *buf_end,
   char *slash = NULL;
 
 #ifdef DEBUG
-  __os_print ("-- guess_or_null:\r\n");
-  __os_print ("output buffer = '");
   *out = '\0';
-  __os_print (buffer);
-  __os_print ("'\r\nremaining input = '");
-  __os_print (in);
-  __os_print ("'\r\n");
+  debug_printf ("-- guess_or_null:\n"
+		"   output buffer = '%s'\n"
+		"   remaining input = '%s'\n", buffer, in);
 #endif
 
   /* Set orig_* to the bit after the pathvar, if any */
@@ -751,10 +737,8 @@ canonicalise_unix_path (char *to, const char *from, const char *buf_end)
   char *previous_slash = NULL;	/* the parent directory terminating slash */
 
 #ifdef DEBUG
-  __os_print ("-- canonicalise_unix_path:\r\n");
-  __os_print ("input = '");
-  __os_print (from);
-  __os_print ("'\r\n");
+  debug_printf ("-- canonicalise_unix_path:\n"
+		"   input = '%s'\n", from);
 #endif
   /* sanity check our input parameters */
   if (!from || !to || !buf_end)
@@ -820,9 +804,7 @@ canonicalise_unix_path (char *to, const char *from, const char *buf_end)
     }
   *out = '\0';
 #ifdef DEBUG
-  __os_print ("output buffer = '");
-  __os_print (to);
-  __os_print ("'\r\n");
+  debug_printf ("output buffer = '%s'\n", to);
 #endif
   if (out <= buf_end)
     return NULL;
@@ -857,9 +839,7 @@ __riscosify (const char *name, int create_dir,
     return NULL;
 
 #ifdef DEBUG
-  __os_print ("-- __riscosify: '");
-  __os_print (name);
-  __os_print ("'\r\n");
+  debug_printf ("-- __riscosify: '%s'\n", name);
 #endif
 
   if (filetype != NULL)

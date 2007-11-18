@@ -1,3 +1,17 @@
+Sun Nov 18 02:40:16 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* debug/dvsprintf.c: Synced with the latest Linux version.
+	* stdio/freopen.c, stdio/newstream.c, stdio/flsbuf.c, stdio/fwrite.c,
+	stdio/fopen.c, stdio/fpos.c, stdio/fclose.c, stdio/popen.c,
+	unix/open.c, unix/close.c, unix/stat.c, unix/features.c,
+	unix/select.c, unix/unix.c, unix/dirent.c, unix/dev.c,
+	unix/putenv.c, unix/getenv.c, unix/write.c, pthread/create.c,
+	pthread/exit.c, pthread/pthinit.c, pthread/newnode.c,
+	pthread/context.c, signal/sleep.c, signal/sigprocmsk.c,
+	signal/sigsuspend.c, signal/post.c, common/riscosify.c,
+	common/funcallerr.c, sys/brk.c, sys/stackalloc.c, sys/exec.c,
+	sys/execvp.c: Make use of debug_printf.
+
 Sat Nov 10 18:06:26 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* common/riscosify.c: Use GNU code style

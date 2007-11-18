@@ -96,9 +96,7 @@ fseek (FILE * stream, long offset, int w)
   stream->__offset = (fpos_t) result;
 
 #ifdef DEBUG
-  __os_print ("fseek("); __os_prdec (stream->fd);
-  __os_print ("): newpos="); __os_prdec (stream->__offset);
-  __os_nl ();
+  debug_printf ("-- fseek(fd=%d): newpos=%d\n", stream->fd, stream->__offset);
 #endif
 
   /* Set the input counter to zero so we will read in
@@ -137,16 +135,14 @@ ftell (FILE *stream)
     __flsbuf (EOF, stream);
 
 #ifdef DEBUG
-  __os_print ("ftell("); __os_prdec (stream->fd); __os_print ("): ");
+  debug_printf ("-- ftell(fd=%d): ", stream->fd);
 #endif
 
   if (stream->i_base)
     {
 #ifdef DEBUG
-      __os_print ("offset="); __os_prdec (stream->__offset);
-      __os_print (", i_cnt="); __os_prdec (stream->i_cnt);
-      __os_print (", pushed_back="); __os_prdec (stream->__pushedback);
-      __os_nl ();
+      debug_printf ("offset=%d, i_cnt=%d, pushed_back=%d\n",
+		    stream->__offset, stream->i_cnt, stream->__pushedback);
 #endif
       return stream->__offset - ( (stream->__pushedback)
 				? (long) stream->__pushedi_cnt + 1
@@ -156,20 +152,23 @@ ftell (FILE *stream)
   if (stream->o_base)
     {
 #ifdef DEBUG
-      __os_print ("offset="); __os_prdec (stream->__offset);
-      __os_print (", o_ptr-o_base="); __os_prdec (stream->o_ptr-stream->o_base);
-      __os_nl ();
+      debug_printf ("offset=%d, o_ptr - o_base=%d\n",
+		    stream->__offset, stream->o_ptr - stream->o_base);
 #endif
       return stream->__offset + (long) (stream->o_ptr - stream->o_base);
     }
 
+#ifdef DEBUG
+  debug_printf ("offset=%d, pushed_back=%d\n",
+		stream->__offset, stream->__pushedback);
+#endif
   return stream->__offset - stream->__pushedback;
 }
 
 __off_t
 ftello (FILE *stream)
 {
-  return ftell(stream);
+  return ftell (stream);
 }
 
 void

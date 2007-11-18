@@ -22,9 +22,7 @@ stat (const char *filename, struct stat *buf)
   PTHREAD_UNSAFE
 
 #ifdef DEBUG
-  __os_print ("stat(): file = ");
-  __os_print (filename);
-  __os_nl ();
+  debug_printf ("stat(file=%s)\n", filename);
 #endif
 
   /* Perform a special check for devices.  */

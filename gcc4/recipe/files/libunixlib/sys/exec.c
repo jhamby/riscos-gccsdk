@@ -56,7 +56,7 @@ set_dde_cli (char *cli)
   if (*temp != '\0')
     temp[-1] = '\0';		/* terminate cli.  */
 #ifdef DEBUG
-  debug_printf ("DDEUtils set up\n");
+  debug_printf ("-- set_dde_cli\n");
 #endif
   return 0;
 }
@@ -89,7 +89,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
     argv = &null_list;
 
 #ifdef DEBUG
-  debug_printf ("execve: function arguments\n"
+  debug_printf ("-- execve: function arguments\n"
                 "   execname: '%s'\n", execname);
   for (x = 0; argv[x] != NULL; ++x)
     debug_printf ("   argv[%d]: %s\n", x, argv[x]);
@@ -201,7 +201,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
       nasty_hack = x;
 
 #ifdef DEBUG
-      debug_printf ("execve: pathname: '%s'\n", temp);
+      debug_printf ("-- execve: pathname: '%s'\n", temp);
 #endif
 
       program_name = __riscosify_std (temp, 0, pathname,
@@ -220,8 +220,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
     }
 
 #ifdef DEBUG
-  debug_printf ("execve: program_name: %s\n", program_name);
-  debug_printf ("execve: building command line\n");
+  debug_printf ("-- execve: program_name: %s\n", program_name);
+  debug_printf ("-- execve: building command line\n");
 #endif
 
   /* Calculate the length of the command line.  */
@@ -257,7 +257,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
     }
 
 #ifdef DEBUG
-  debug_printf ("execve: cli_length = %d\n", cli_length);
+  debug_printf ("-- execve: cli_length = %d\n", cli_length);
 #endif
 
   /* SUL will free cli for us when we call sul_exec.  */
@@ -324,7 +324,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
   command_line[-1] = '\0';
 
 #ifdef DEBUG
-  debug_printf ("execve: cli: %s\n", cli);
+  debug_printf ("-- execve: cli: %s\n", cli);
 #endif
 
   /* If the cli is >= MAXPATHLEN, we will need the aid of DDEUtils. When this
@@ -426,7 +426,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
      (This function never returns, even for a RISC OS built-in
      command.)  */
 #ifdef DEBUG
-  debug_printf ("execve: about to call: %s\n", cli);
+  debug_printf ("-- execve: about to call: %s\n", cli);
 #endif
   sulproc->sul_exec (sulproc->pid, cli,
 		     (void *) __ul_memory.stack_limit,

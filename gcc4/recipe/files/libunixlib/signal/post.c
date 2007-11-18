@@ -92,17 +92,15 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 			    (void *) (handler_addr + 16 * 4)))
     {
 #ifdef DEBUG
-      debug_printf ("sigsetup: handler %08x points to an invalid address\n",
+      debug_printf ("-- sigsetup: handler %08x points to an invalid address\n",
 		    handler_addr);
 #endif
       return 1;
     }
 
 #ifdef DEBUG
-  debug_printf ("sigsetup: signo=%d (%s)\n",
-		signo, sys_siglist[signo]);
-  debug_printf ("sigsetup: handler=%08x (%s)\n",
-		handler_addr,
+  debug_printf ("-- sigsetup: signo=%d (%s)\n",	signo, sys_siglist[signo]);
+  debug_printf ("-- sigsetup: handler=%08x (%s)\n", handler_addr,
 		extract_name ((unsigned int *) handler_addr));
 #endif
   system_stack = ((ss->signalstack.ss_flags & SA_DISABLE)
@@ -114,7 +112,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
   if ((flags & SA_ONSTACK) && system_stack)
     {
 #ifdef DEBUG
-      debug_printf ("sigsetup: bad system stack. ss_size=%d, ss_sp=%d, ss_flags=%d\n",
+      debug_printf ("-- sigsetup: bad system stack. ss_size=%d, ss_sp=%d, ss_flags=%d\n",
 		    ss->signalstack.ss_size,
 		    ss->signalstack.ss_sp,
 		    ss->signalstack.ss_flags);
@@ -130,11 +128,11 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
   if (system_stack)
     {
 #ifdef DEBUG
-      debug_printf ("sigsetup: will execute signal off a normal stack\n");
+      debug_printf ("-- sigsetup: will execute signal off a normal stack\n");
 #endif
       __unixlib_exec_sig (handler, signo);
 #ifdef DEBUG
-      debug_printf ("sigsetup: signal handler successfully executed\n");
+      debug_printf ("-- sigsetup: signal handler successfully executed\n");
 #endif
       return 0;
     }
@@ -150,7 +148,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
       unsigned int low = (unsigned int) ss->signalstack.ss_sp;
       unsigned int high = low + 16384;
 #ifdef DEBUG
-      debug_printf ("sigsetup: will execute signal off a BSD stack\n");
+      debug_printf ("-- sigsetup: will execute signal off a BSD stack\n");
 #endif
 
       /* Perform address validation on the user supplied stack.
@@ -161,7 +159,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 	  || ! __valid_address ((void *) low, (void *) high))
 	{
 #ifdef DEBUG
-	  debug_printf ("sigsetup: stack area (%08x - %08x) is invalid\n",
+	  debug_printf ("-- sigsetup: stack area (%08x - %08x) is invalid\n",
 			low, high);
 #endif
 	  return 1;
@@ -173,7 +171,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
       unsigned int low = (unsigned int) ss->signalstack.ss_sp;
       unsigned int high = low + ss->signalstack.ss_size;
 #ifdef DEBUG
-      debug_printf ("sigsetup: will execute signal off a POSIX stack\n");
+      debug_printf ("-- sigsetup: will execute signal off a POSIX stack\n");
 #endif
 
       /* Perform address validation on the user supplied stack.  */
@@ -182,7 +180,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 	  || ! __valid_address ((void *) low, (void *) high))
 	{
 #ifdef DEBUG
-	  debug_printf ("sigsetup: stack area (%08x - %08x) is invalid\n",
+	  debug_printf ("-- sigsetup: stack area (%08x - %08x) is invalid\n",
 			low, high);
 #endif
 	  return 1;
@@ -195,7 +193,7 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
   ss->signalstack.ss_flags &= ~SA_ONSTACK;
 
 #ifdef DEBUG
-  debug_printf ("sigsetup: signal handler successfully executed\n");
+  debug_printf ("-- sigsetup: signal handler successfully executed\n");
 #endif
 
   return 0;
@@ -448,7 +446,7 @@ post_signal (struct unixlib_sigstate *ss, int signo)
 
 post_signal:
 #ifdef DEBUG
-  debug_printf ("post_signal: sigstate=%08x, signo %d (%s)\n",
+  debug_printf ("-- post_signal: sigstate=%08x, signo %d (%s)\n",
 		ss, signo, sys_siglist[signo]);
 #endif
 
@@ -478,7 +476,7 @@ post_signal:
 	  name = "SIG_IGN";
 	else
 	  name = extract_name ((const unsigned int *) (unsigned int) handler);
-	debug_printf ("post_signal: handler=%08x (%s)\n",
+	debug_printf ("-- post_signal: handler=%08x (%s)\n",
 		      handler, name);
       }
 #endif
@@ -534,7 +532,7 @@ post_signal:
 #ifdef DEBUG
   {
     const char * const s[] = { "stop", "ignore", "core", "term", "handle" };
-    debug_printf ("post_signal: action taken = %s\n", s[act]);
+    debug_printf ("-- post_signal: action taken = %s\n", s[act]);
   }
 #endif
 
@@ -563,7 +561,7 @@ post_signal:
     {
     case stop:
 #ifdef DEBUG
-      debug_printf ("post_signal: stop\n");
+      debug_printf ("-- post_signal: stop\n");
 #endif
       /* Stop all our threads, and mark ourselves stopped.  */
       sulproc->status.stopped = 1;
@@ -573,7 +571,7 @@ post_signal:
 
     case ignore:
 #ifdef DEBUG
-      debug_printf ("post_signal: ignore\n");
+      debug_printf ("-- post_signal: ignore\n");
 #endif
       /* Nobody cares about this signal.  */
       break;
@@ -590,7 +588,7 @@ post_signal:
 	/* Do a core dump if desired. Only set the wait status bit saying
 	   we in fact dumped core if the operation was actually successful.  */
 #ifdef DEBUG
-	debug_printf ("post_signal: term/core\n");
+	debug_printf ("-- post_signal: term/core\n");
 #endif
 
 	if (__get_taskhandle ()
@@ -637,7 +635,7 @@ post_signal:
 	sigset_t blocked;
 	int flags;
 #ifdef DEBUG
-	debug_printf ("post_signal: handle\n");
+	debug_printf ("-- post_signal: handle\n");
 #endif
 	/* We're going to handle this signal now, so remove it from
 	   the pending list.  */
@@ -677,7 +675,7 @@ post_signal:
 
 post_pending:
 #ifdef DEBUG
-  debug_printf ("post_signal: Deliver pending signals."
+  debug_printf ("-- post_signal: Deliver pending signals."
 		" Pending %08x, blocked %08x\n",
 		ss->pending, ss->blocked);
 #endif
@@ -693,7 +691,7 @@ post_pending:
 
   ss->currently_handling = 0;
 #ifdef DEBUG
-  debug_printf ("post_signal: pending signals delivered\n");
+  debug_printf ("-- post_signal: pending signals delivered\n");
 #endif
   /* No more signals pending.  */
   __u->sleeping = 0; /* inline version of sigwakeup (); */
@@ -709,9 +707,9 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 #ifdef DEBUG
   __os_nl ();
   if (signo == 0)
-    debug_printf ("__ul_raise_signal: deliver pending signals\n");
+    debug_printf ("-- __ul_raise_signal: deliver pending signals\n");
   else
-    debug_printf ("__ul_raise_signal: sigtate %08x, signo %d (%s)\n",
+    debug_printf ("-- __ul_raise_signal: sigtate %08x, signo %d (%s)\n",
 		  ss, signo, sys_siglist[signo]);
 #endif
 
@@ -765,13 +763,13 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 	}
 
 #ifdef DEBUG
-      debug_printf ("__ul_raise_signal: signal %d (%s) is pending for delivery\n",
+      debug_printf ("-- __ul_raise_signal: signal %d (%s) is pending for delivery\n",
 		    signo, sys_siglist[signo]);
 #endif
     }
 
 #ifdef DEBUG
-  debug_printf ("__ul_raise_signal: returning\n");
+  debug_printf ("-- __ul_raise_signal: returning\n");
 #endif
 
   return;

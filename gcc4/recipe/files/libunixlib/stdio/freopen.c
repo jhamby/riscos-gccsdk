@@ -40,10 +40,8 @@ freopen (const char *filename, const char *mode, FILE *stream)
     }
 
 #ifdef DEBUG
-  __os_print ("freopen(file="); __os_print (filename);
-  __os_print (",mode="); __os_print (mode);
-  __os_print (",fd="); __os_prdec (stream->fd);
-  __os_print (")\r\n");
+  debug_printf ("--freopen(file=%s,mode=%s,fd=%d\n",
+		filename, mode, stream->fd);
 #endif
 
   m = __getmode (mode);

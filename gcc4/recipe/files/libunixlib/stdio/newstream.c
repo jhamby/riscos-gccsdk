@@ -65,9 +65,7 @@ __stream_init (int fd, FILE *stream)
   stream->fd = fd;
 
 #ifdef DEBUG
-  __os_print ("stream_init(): fd = ");
-  __os_prhex (fd);
-  __os_nl ();
+  debug_printf ("-- __stream_init(): fd = %x\n", fd);
 #endif
 
   /* By default a stream is opened with no buffers.  */

@@ -34,8 +34,7 @@ fopen (const char *filename, const char *mode)
     }
 
 #ifdef DEBUG
-  __os_print ("fopen(fname="); __os_print (filename);
-  __os_print (", mode="); __os_print (mode); __os_print ("): ");
+  debug_printf ("-- fopen(fname=%s, mode=%s): ", filename, mode);
 #endif
 
   m = __getmode (mode);
@@ -69,7 +68,7 @@ fopen (const char *filename, const char *mode)
     fd = open (filename, file_mode);
 
 #ifdef DEBUG
-  __os_print ("fd="); __os_prdec (fd); __os_nl ();
+  debug_printf ("fd=%d\n", fd);
 #endif
 
   if (fd < 0)
@@ -86,24 +85,16 @@ fdopen (int fd, const char *mode)
   int dflags;
 
 #ifdef DEBUG
-  __os_print ("fdopen (fd="); __os_prdec (fd);
-  __os_print (",mode="); __os_print (mode); __os_print (")\r\n");
+  debug_printf ("-- fdopen (fd=%d,mode=%s)\n", fd, mode);
 #endif
   m = __getmode (mode);
   if (! m.__bits.__read && ! m.__bits.__write)
     return NULL;
 
-#ifdef DEBUG
-  __os_print ("fdopen: here1\r\n");
-#endif
   /* Verify the FD is valid and allows the access 'mode' specifies.  */
   dflags = getfd (fd)->fflag; /* dflags = fcntl (fd, F_GETFL); */
   if (dflags == -1)
     return NULL;
-
-#ifdef DEBUG
-  __os_print ("fdopen: here2\r\n");
-#endif
 
   /* Check the access mode.  */
   if ((dflags & O_ACCMODE) == O_RDONLY && ! m.__bits.__read)
@@ -120,10 +111,6 @@ fdopen (int fd, const char *mode)
   stream = __newstream ();
   if (stream == NULL)
     return NULL;
-
-#ifdef DEBUG
-  __os_print ("fdopen: here3\r\n");
-#endif
 
   stream->__mode = m;
 

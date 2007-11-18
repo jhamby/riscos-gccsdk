@@ -190,7 +190,7 @@ __unixinit (void)
   struct __sul_process *sulproc = gbl->sulproc;
 
 #ifdef DEBUG
-  debug_printf ("__unixinit: new process\n");
+  debug_printf ("-- __unixinit: new process\n");
 #endif
 
   /* Calls to 'brk', 'sbrk' or 'malloc' can occur once the call
@@ -279,7 +279,7 @@ __unixinit (void)
   __cli_size = strlen (gbl->cli);
 
 #ifdef DEBUG
-  debug_printf ("__unixinit (getting cli) __ul_global.cli=%s\n", gbl->cli);
+  debug_printf ("-- __unixinit (getting cli) __ul_global.cli=%s\n", gbl->cli);
 #endif
 
   /* Since the command line limit of RISC OS is only 255 characters,
@@ -322,7 +322,7 @@ __unixinit (void)
   __runtime_features (cli);
 
 #ifdef DEBUG
-  debug_printf ("__unixinit: create argv: cli_size=%d\n", cli_size);
+  debug_printf ("-- __unixinit: create argv: cli_size=%d\n", cli_size);
 #endif
   /* Parse the command line, looking for I/O redirection.  */
   get_io_redir (cli);
@@ -479,7 +479,7 @@ _exit (int return_code)
 #endif
 
 #ifdef DEBUG
-  debug_printf ("__exit(): Calling sul_exit with return code=%d\n", status);
+  debug_printf ("-- __exit(): Calling sul_exit with return code=%d\n", status);
 #endif
   sulproc->sul_exit (sulproc->pid, status);
 }
@@ -498,7 +498,7 @@ __alloc_file_descriptor (int start)
     if (getfd (i)->devicehandle == NULL)
       {
 #ifdef DEBUG
-	debug_printf ("__alloc_file_descriptor: found free descriptor %d\n",
+	debug_printf ("-- __alloc_file_descriptor: found free descriptor %d\n",
 		      i);
 #endif
 	return i;
@@ -655,7 +655,7 @@ check_io_redir (const char *p, int fd, int mode)
     fd = get_fd_redirection (p - 1);
 
 #ifdef DEBUG
-  debug_printf ("check_io_redir: redirecting fd %d\n", fd);
+  debug_printf ("-- check_io_redir: redirecting fd %d\n", fd);
 #endif
 
   /* Skip any whitespace that precedes the filename e.g '< filename'.  */
@@ -668,7 +668,7 @@ check_io_redir (const char *p, int fd, int mode)
   /* Zero terminate the filename.  */
   fn[space - p] = '\0';
 #ifdef DEBUG
-  debug_printf ("check_io_redir: filename='%s', mode=%08x\n",
+  debug_printf ("-- check_io_redir: filename='%s', mode=%08x\n",
 		fn, mode);
 #endif
 
@@ -704,7 +704,7 @@ get_io_redir (const char *cli)
 
   /* By default, we redirect file descriptor 0 (stdin).  */
 #ifdef DEBUG
-  debug_printf ("get_io_redir: checking <\n");
+  debug_printf ("-- get_io_redir: checking <\n");
 #endif
   while ((p = find_redirection_type (p, '<')))
     {
@@ -718,7 +718,7 @@ get_io_redir (const char *cli)
   /* By default, we redirect file descriptor 1 (stdout).  */
   mode = O_WRONLY | O_CREAT;
 #ifdef DEBUG
-  debug_printf ("get_io_redir: checking >\n");
+  debug_printf ("-- get_io_redir: checking >\n");
 #endif
   while ((p = find_redirection_type (p, '>')) != NULL)
     {
@@ -758,7 +758,7 @@ verify_redirection (const char *redir)
   int x;
 
 #ifdef DEBUG
-  debug_printf ("verify_redirection: %s\n", redir);
+  debug_printf ("-- verify_redirection: %s\n", redir);
 #endif
 
   /* So we've found a re-direction operator.  We must watch out
@@ -1129,8 +1129,7 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
           || regs[0] != 1)
         {
 #ifdef DEBUG
-          __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.");
-          __os_nl ();
+          __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.\r\n");
 #endif
           filetype = __RISCOSIFY_FILETYPE_NOTFOUND;
         }

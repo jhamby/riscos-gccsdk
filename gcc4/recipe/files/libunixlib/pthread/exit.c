@@ -1,5 +1,5 @@
 /* Terminate the calling thread.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers.
    Written by Martin Piper and Alex Waugh.  */
 
 #include <stdlib.h>
@@ -28,7 +28,7 @@ pthread_exit (void *status)
   __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
-  debug_printf ("pthread_exit(%d): called from thread %08x\n",
+  debug_printf ("-- pthread_exit(%d): called from thread %08x\n",
 		status, __pthread_running_thread);
 #endif
 
@@ -67,7 +67,7 @@ pthread_exit (void *status)
   __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
-  debug_printf ("pthread_exit: thread %08x now exit idle\n", thread);
+  debug_printf ("-- pthread_exit: thread %08x now exit idle\n", thread);
 #endif
 
   gbl->pthread_num_running_threads--;
@@ -75,7 +75,7 @@ pthread_exit (void *status)
   if (gbl->pthread_num_running_threads <= 1)
     {
 #ifdef PTHREAD_DEBUG
-      debug_printf ("pthread_exit: Last or penultimate thread exited, stopping interrupts\n");
+      debug_printf ("-- pthread_exit: Last or penultimate thread exited, stopping interrupts\n");
 #endif
       /* There is no need for the ticker if there is only one thread left.  */
       __pthread_stop_ticker ();
@@ -97,9 +97,8 @@ pthread_exit (void *status)
     }
 
 #ifdef PTHREAD_DEBUG
-  debug_printf ("pthread_exit: Last thread exited, calling exit()\n");
+  debug_printf ("-- pthread_exit: Last thread exited, calling exit()\n");
 #endif
 
   exit ((int)status);
 }
-

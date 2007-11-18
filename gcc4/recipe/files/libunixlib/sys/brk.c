@@ -73,7 +73,7 @@ brk_da (unsigned int addr)
   addr = align (addr);
 
 #ifdef DEBUG
-  debug_printf ("brk_da: addr=%08x dalomem=%08x dabreak=%08x dalimit=%08x\n",
+  debug_printf ("-- brk_da: addr=%08x dalomem=%08x dabreak=%08x dalimit=%08x\n",
 		addr, mem->dalomem, mem->dabreak, mem->dalimit);
 #endif
 
@@ -85,7 +85,7 @@ brk_da (unsigned int addr)
       /* It would be interesting to know if this ever happens, so
 	 for the time being it is marked with a flag to draw special
 	 attention.  */
-      debug_printf ("brk_da: addr (%08x) < dalomem (%08x)  !!! flag !!!\n",
+      debug_printf ("-- brk_da: addr (%08x) < dalomem (%08x)  !!! flag !!!\n",
 		    addr, mem->dalomem);
 #endif
       return __set_errno (EINVAL);
@@ -112,7 +112,7 @@ brk_da (unsigned int addr)
       if (__os_swi (OS_ChangeDynamicArea, regs))
 	{
 #ifdef DEBUG
-	  debug_printf ("brk: OS_ChangeDynamicArea failed\n");
+	  debug_printf ("-- brk: OS_ChangeDynamicArea failed\n");
 #endif
 	  /* Failed to allocate the memory, so return an error.  */
 	  return __set_errno (ENOMEM);
@@ -179,7 +179,7 @@ brk_rw (unsigned int addr, int internal_call)
   addr = align (addr);
 
 #ifdef DEBUG
-  debug_printf ("brk_rw: addr=%08x rwlomem=%08x rwbreak=%08x stack_limit=%08x stack=%08x\n",
+  debug_printf ("-- brk_rw: addr=%08x rwlomem=%08x rwbreak=%08x stack_limit=%08x stack=%08x\n",
 		addr, mem->rwlomem, mem->rwbreak,
 		mem->stack_limit, mem->stack);
 #endif
@@ -192,7 +192,7 @@ brk_rw (unsigned int addr, int internal_call)
       /* It would be interesting to know if this ever happens, so
 	 for the time being it is marked with a flag to draw special
 	 attention.  */
-      debug_printf ("brk_rw: addr (%08x) < rwlomem (%08x)  !!! flag !!!\n",
+      debug_printf ("-- brk_rw: addr (%08x) < rwlomem (%08x)  !!! flag !!!\n",
 		    addr, mem->rwlomem);
 #endif
       return __set_errno (EINVAL);
@@ -203,7 +203,7 @@ brk_rw (unsigned int addr, int internal_call)
   if (addr > mem->stack)
     {
 #ifdef DEBUG
-      debug_printf ("brk_rw: addr > __ul_memory.stack (!!!)\n");
+      debug_printf ("-- brk_rw: addr > __ul_memory.stack (!!!)\n");
 #endif
       /* No space before stack, so try to increase wimpslot
 	 If this is a userland call then increasing the wimpslot is
@@ -242,7 +242,7 @@ __internal_brk (void *addr, int internalcall)
 	  > __u->limit[RLIMIT_DATA].rlim_cur)
 	{
 #ifdef DEBUG
-	  debug_printf ("brk: addr (%08x) - rwlomem (%08x) [%08x]"
+	  debug_printf ("-- brk: addr (%08x) - rwlomem (%08x) [%08x]"
 			" > RLIMIT_DATA (%08x)\n",
 			addr, mem->rwlomem,
 			addr - mem->rwlomem,
@@ -281,7 +281,7 @@ sbrk (intptr_t delta)
   struct ul_global *gbl = &__ul_global;
 
 #ifdef DEBUG
-  debug_printf ("sbrk: incr=%d\n", delta);
+  debug_printf ("-- sbrk: incr=%d\n", delta);
 #endif
 
   if (gbl->pthread_system_running)
@@ -332,7 +332,7 @@ __internal_sbrk (int incr)
   struct ul_global *gbl = &__ul_global;
 
 #ifdef DEBUG
-  debug_printf ("__internal_sbrk: incr=%d\n", incr);
+  debug_printf ("-- __internal_sbrk: incr=%d\n", incr);
 #endif
 
   if (incr < 0)

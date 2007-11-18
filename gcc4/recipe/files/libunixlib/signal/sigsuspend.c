@@ -1,6 +1,6 @@
 /* sigsuspend ()
  * Written by Nick Burrett, 26 Aug 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -38,12 +38,12 @@ sigsuspend (const sigset_t * set)
      tasking system so it's not really possible to have a SWI Wimp_Poll
      call here.  */
 #ifdef DEBUG
-  __os_print ("sigsuspend: Process suspended. Waiting for a signal.\r\n");
+  debug_printf ("-- sigsuspend: Process suspended. Waiting for a signal.\r\n");
 #endif
   while (__u->sleeping)
     pthread_yield ();
 #ifdef DEBUG
-  __os_print ("sigsuspend: Signal received. Process continuing\r\n");
+  debug_printf ("-- sigsuspend: Signal received. Process continuing\r\n");
 #endif
 
   if (sigprocmask (SIG_SETMASK, &oset, (sigset_t *) NULL) < 0)

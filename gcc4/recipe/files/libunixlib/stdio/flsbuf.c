@@ -14,7 +14,7 @@
 #  include <unixlib/os.h>
 #endif
 
-/* __flsbuf(EOF, f) flushes output without adding c */
+/* __flsbuf(EOF, f) flushes output without adding c.  */
 int
 __flsbuf (int c, FILE *stream)
 {
@@ -26,7 +26,7 @@ __flsbuf (int c, FILE *stream)
     return EOF;
 
 #ifdef DEBUG
-  __os_print ("__flsbuf("); __os_prdec (stream->fd); __os_print ("): ");
+  debug_printf ("-- __flsbuf(%d): ", stream->fd);
 #endif
 
   if (stream->__pushedback)
@@ -42,7 +42,7 @@ __flsbuf (int c, FILE *stream)
 
       to_write = stream->o_ptr - stream->o_base;
 #ifdef DEBUG
-      __os_print ("to_write="); __os_prdec (to_write); __os_print ("\r\n");
+      debug_printf ("to_write=%d\n", to_write);
 #endif
       /* Skip write if 0 characters to write. Keeps perl happy, consistent
          with BSD.  */
@@ -58,9 +58,7 @@ __flsbuf (int c, FILE *stream)
     }
 #ifdef DEBUG
   else
-    {
-      __os_nl ();
-    }
+    debug_printf ("nothing to write\n");
 #endif
 
   if (c == EOF)

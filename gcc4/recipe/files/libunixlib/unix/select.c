@@ -370,9 +370,7 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	}
 #ifdef DEBUG
       else
-	{
-	  __os_print ("No timeout\n\r");
-	}
+	__os_print ("No timeout\n\r");
       __os_print ("Loop\n\r");
 #endif
 

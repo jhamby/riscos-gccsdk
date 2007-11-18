@@ -122,7 +122,7 @@ __stackalloc_incr_wimpslot (unsigned int incr)
   if (mem->appspace_himem + incr <= mem->appspace_limit)
     {
 #ifdef DEBUG
-      debug_printf ("__stackalloc_incr_wimpslot: no need to increase\n");
+      debug_printf ("-- __stackalloc_incr_wimpslot: no need to increase\n");
 #endif
       mem->appspace_himem += incr;
       return mem->appspace_himem;
@@ -138,7 +138,7 @@ __stackalloc_incr_wimpslot (unsigned int incr)
 		  + __DA_WIMPSLOT_ALIGNMENT) & ~__DA_WIMPSLOT_ALIGNMENT;
 
 #ifdef DEBUG
-  debug_printf ("__stackalloc_incr_wimpslot: attempting to"
+  debug_printf ("-- __stackalloc_incr_wimpslot: attempting to"
 		"increase wimpslot to %d\n", new_wimpslot);
 #endif
 
@@ -147,13 +147,13 @@ __stackalloc_incr_wimpslot (unsigned int incr)
   if (new_wimpslot == 0)
     {
 #ifdef DEBUG
-      debug_printf ("__stackalloc_incr_wimpslot: request failed\n");
+      debug_printf ("-- __stackalloc_incr_wimpslot: request failed\n");
 #endif
       return 0;
     }
 
 #ifdef DEBUG
-  debug_printf ("__stackalloc_incr_wimpslot: increased wimpslot to %08x\n",
+  debug_printf ("-- __stackalloc_incr_wimpslot: increased wimpslot to %08x\n",
 		new_wimpslot);
 #endif
 
@@ -164,7 +164,7 @@ __stackalloc_incr_wimpslot (unsigned int incr)
   if (mem->appspace_himem + incr > mem->appspace_limit)
     {
 #ifdef DEBUG
-      debug_printf ("__stackalloc_incr_wimpslot: wimpslot not increased by enough\n");
+      debug_printf ("-- __stackalloc_incr_wimpslot: wimpslot not increased by enough\n");
 #endif
       return 0;
     }
@@ -280,7 +280,7 @@ incr_downwards (int blocksneeded)
   else
     {
 #ifdef DEBUG
-      debug_printf ("incr_downwards: no free memory below stack heap\n");
+      debug_printf ("-- incr_downwards: no free memory below stack heap\n");
 #endif
       newbottomblock = NULL;
     }
@@ -320,7 +320,7 @@ __stackalloc_trim (void)
   mem->stack = (unsigned int) dummybottomblock + sizeof(struct block) - 4;
 
 #ifdef DEBUG
-  debug_printf ("__stackalloc_trim: __ul_memory.stack=%08x\n", mem->stack);
+  debug_printf ("-- __stackalloc_trim: __ul_memory.stack=%08x\n", mem->stack);
 #endif
 
   if (gbl->pthread_system_running)
@@ -342,8 +342,8 @@ __stackalloc_init (void)
      There are also 8 bytes spare above the initial chunk */
 
 #ifdef DEBUG
-  debug_printf ("stackalloc_init: stack=%08x"
-		" appspace_himem=%08x  appspace_limit=%08x\n",
+  debug_printf ("-- stackalloc_init: stack=%08x  appspace_himem=%08x  "
+		"appspace_limit=%08x\n",
 		mem->stack, mem->appspace_himem,
 		mem->appspace_limit);
 #endif
@@ -387,7 +387,7 @@ __stackalloc (size_t size)
      this should optimise to a shift.  */
   blocksneeded /= BLOCK_DATA_SIZE;
 #ifdef DEBUG
-  debug_printf ("__stackalloc: size=%08x, blocksneeded=%08x\n",
+  debug_printf ("-- __stackalloc: size=%08x, blocksneeded=%08x\n",
 		size, blocksneeded);
 #endif
 
@@ -435,7 +435,7 @@ __stackalloc (size_t size)
       if (blocktoalloc == NULL)
         {
 #ifdef DEBUG
-          debug_printf ("__stackalloc: no free memory\n");
+          debug_printf ("-- __stackalloc: no free memory\n");
 #endif
           if (gbl->pthread_system_running)
             __pthread_enable_ints ();
@@ -474,7 +474,7 @@ __stackalloc (size_t size)
   returnptr = ((char*)blocktoalloc)
     + offsetof (struct block, contents.allocated);
 #ifdef DEBUG
-  debug_printf ("__stackalloc: returning %08x\n", returnptr);
+  debug_printf ("-- __stackalloc: returning %08x\n", returnptr);
 #endif
 
   if (gbl->pthread_system_running)
@@ -513,7 +513,7 @@ __stackfree (void *ptr)
       /* Block below this is not free, so we need to add this
 	 block to the freelist.  */
 #ifdef DEBUG
-      debug_printf ("__stackfree: adding to free list\n");
+      debug_printf ("-- __stackfree: adding to free list\n");
 #endif
       startblock = blocktofree;
       startblock->contents.free.numconsecutiveblocks = 0;
@@ -524,7 +524,7 @@ __stackfree (void *ptr)
     {
       /* Block below this is free, so we can coalesce with it and
 	 hence don't need to add this block to the freelist.  */
-      debug_printf ("__stackfree: coalescing with lower block\n");
+      debug_printf ("-- __stackfree: coalescing with lower block\n");
     }
 #endif
 
@@ -537,7 +537,7 @@ __stackfree (void *ptr)
          This block has already been added to the freelist,
          so we need to remove the nextblock from the freelist.  */
 #ifdef DEBUG
-      debug_printf ("__stackfree: coalescing with higher block\n");
+      debug_printf ("-- __stackfree: coalescing with higher block\n");
 #endif
       REMOVE_FROM_FREELIST (nextblock);
       startblock->contents.free.numconsecutiveblocks += nextblock->contents.free.numconsecutiveblocks;

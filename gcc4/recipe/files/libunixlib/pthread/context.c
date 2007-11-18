@@ -31,7 +31,7 @@ __pthread_cleanup_idle (pthread_t node)
     __pthread_fatal_error ("-- __pthread_cleanup_idle: Not an idle thread!");
 
 #ifdef PTHREAD_DEBUG
-  debug_printf ("__pthread_cleanup_idle: Marking as STATE_UNALLOCED idle thread node %08x from linked list\n", node);
+  debug_printf ("-- __pthread_cleanup_idle: Marking as STATE_UNALLOCED idle thread node %08x from linked list\n", node);
 #endif
   node->state = STATE_UNALLOCED;
 
@@ -55,7 +55,7 @@ __pthread_cleanup_idle (pthread_t node)
       free_unlocked (gbl->malloc_state, node);
     }
 #ifdef PTHREAD_DEBUG
-  debug_printf ("__pthread_cleanup_idle: complete\n");
+  debug_printf ("-- __pthread_cleanup_idle: complete\n");
 #endif
 }
 
@@ -68,7 +68,7 @@ __pthread_context_switch (void)
   int iter = 0;
 
 #ifdef PTHREAD_DEBUG_CONTEXT
-  debug_printf ("__pthread_context_switch: __pthread_running_thread=%08x\n",
+  debug_printf ("-- __pthread_context_switch: __pthread_running_thread=%08x\n",
 		__pthread_running_thread);
 #endif
 
@@ -146,7 +146,7 @@ __pthread_context_switch (void)
             }
         }
 #ifdef PTHREAD_DEBUG_CONTEXT
-      debug_printf ("__pthread_context_switch: thread=%08x, state=%d\n",
+      debug_printf ("-- __pthread_context_switch: thread=%08x, state=%d\n",
 		    __pthread_running_thread, __pthread_running_thread->state);
 #endif
 
@@ -166,7 +166,7 @@ __pthread_context_switch (void)
     }
 
 #ifdef PTHREAD_DEBUG_CONTEXT
-  debug_printf ("__pthread_context_switch: New __pthread_running_thread=%08x\n",
+  debug_printf ("-- __pthread_context_switch: New __pthread_running_thread=%08x\n",
 		__pthread_running_thread);
 #endif
 }

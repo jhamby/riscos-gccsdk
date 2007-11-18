@@ -1,7 +1,7 @@
 /* sigprocmask ()
  * Implementation of the POSIX signal function sigprocmask.
  * Written by Nick Burrett, 5 October 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -46,13 +46,12 @@ sigprocmask (int how, const sigset_t * nset, sigset_t * oset)
   mask = (unsigned int) set;
 
 #ifdef DEBUG
-  __os_print ("sigprocmask: how = "); __os_prdec (how);
-  __os_print (", mask = "); __os_prhex (mask); __os_print ("\r\n");
+  debug_printf ("-- sigprocmask: how = %d, mask = %x\n", how, mask);
 #endif
   if (how == SIG_BLOCK)
     {
 #ifdef DEBUG
-      __os_print ("sigprocmask: SIG_BLOCK\r\n");
+      debug_printf ("-- sigprocmask: SIG_BLOCK\n");
 #endif
       /* This will always block more signals,
          so we don't have to worry about delivering
@@ -62,7 +61,7 @@ sigprocmask (int how, const sigset_t * nset, sigset_t * oset)
   else if (how == SIG_UNBLOCK)
     {
 #ifdef DEBUG
-      __os_print ("sigprocmask: SIG_UNBLOCK\r\n");
+      debug_printf ("-- sigprocmask: SIG_UNBLOCK\n");
 #endif
       __u->sigstate.blocked &= ~mask;
       /* Cause delivery of some pending signals.  */
@@ -71,7 +70,7 @@ sigprocmask (int how, const sigset_t * nset, sigset_t * oset)
   else if (how == SIG_SETMASK)
     {
 #ifdef DEBUG
-      __os_print ("sigprocmask: SIG_SETMASK\r\n");
+      debug_printf ("-- sigprocmask: SIG_SETMASK\n");
 #endif
       __u->sigstate.blocked = mask;
       /* The new mask might have unblocked a few signals so try and
@@ -81,7 +80,7 @@ sigprocmask (int how, const sigset_t * nset, sigset_t * oset)
   else
     {
 #ifdef DEBUG
-      __os_print ("sigprocmask: invalid\r\n");
+      debug_printf ("-- sigprocmask: invalid\n");
 #endif
       return __set_errno (EINVAL);
     }

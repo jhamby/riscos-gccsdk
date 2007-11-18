@@ -38,8 +38,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
     return (size_t) 0;
 
 #ifdef DEBUG
-  __os_print ("fwrite("); __os_prdec (stream->fd);
-  __os_print ("): to_write="); __os_prdec (to_write);
+  debug_printf ("-- fwrite(%d): to_write=%d", stream->fd, to_write);
 #endif
 
   if (stream->o_base != NULL)
@@ -59,7 +58,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
       if (to_write > stream->o_cnt)
 	{
 #ifdef DEBUG
-	  __os_print (", direct write\r\n");
+	  debug_printf (", direct write\n");
 #endif
 	  /* We have lots of data to output. First flush the buffer,
 	     then just write the rest out.  */
@@ -86,7 +85,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	  /* The data is small enough to place in the output
 	     buffer.  */
 #ifdef DEBUG
-	  __os_print (", buffering");
+	  debug_printf (", buffering");
 #endif
 	  bytes = to_write;
 	  if (to_write >= 16)
@@ -112,20 +111,20 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	  if (stream->__linebuf && stream->o_ptr[-1] == '\n')
 	    {
 #ifdef DEBUG
-	      __os_print (", flushing\r\n");
+	      debug_printf (", flushing\n");
 #endif
 	      __flsbuf (EOF, stream);
 	    }
 #ifdef DEBUG
           else
-            __os_nl ();
+	    debug_printf ("\n");
 #endif
 	}
     }
   else
     {
 #ifdef DEBUG
-      __os_print (", unbuffered write\r\n");
+      debug_printf (", unbuffered write\n");
 #endif
       /* Optimisations appropriate for an unbuffered file.
 	 We don't have to worry about all that buffer crap :-) */

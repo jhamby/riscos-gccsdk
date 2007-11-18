@@ -1,5 +1,5 @@
 /* __close (), close ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -24,9 +24,10 @@ __close (struct __unixlib_fd *file_desc)
     {
       struct __sul_process *sulproc = __ul_global.sulproc;
       int x;
+
       /* We can close the file */
 #ifdef DEBUG
-      __os_print (", closing\r\n");
+      debug_printf (", closing\n");
 #endif
 
       x = dev_funcall (file_desc->devicehandle->type, close, (file_desc));
@@ -39,9 +40,8 @@ __close (struct __unixlib_fd *file_desc)
       if (x == -1)
         {
 #ifdef DEBUG
-          __os_print ("         Failed!: ");
-          __os_print (_kernel_last_oserror()->errmess);
-          __os_nl();
+          debug_printf ("         Failed!: %s\n",
+			_kernel_last_oserror()->errmess);
 #endif
           return -1;
         }
@@ -51,7 +51,7 @@ __close (struct __unixlib_fd *file_desc)
       /* Invalidate this file descriptor.  */
       file_desc->devicehandle = NULL;
 #ifdef DEBUG
-      __os_print (", duplicate\r\n");
+      debug_printf (", duplicate\n");
 #endif
     }
 
@@ -66,15 +66,13 @@ close (int fd)
   PTHREAD_UNSAFE_CANCELLATION
 
 #ifdef DEBUG
-  __os_print ("close(): fd = ");
-  __os_prhex (fd);
+  debug_printf ("-- close(fd=%d): ", fd);
 #endif
 
   if (BADF (fd))
     {
 #ifdef DEBUG
-      __os_print (" - bad file descriptor\r\n");
-      __unixlib_raise_signal(NULL, SIGILL);
+      debug_printf ("bad file descriptor\n");
 #endif
       return __set_errno (EBADF);
     }

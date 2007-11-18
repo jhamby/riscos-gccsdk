@@ -7,6 +7,7 @@
 /* #define DEBUG 1 */
 #ifdef DEBUG
 #include <unixlib/os.h>
+#include <unixlib/unix.h>
 #include <pthread.h>
 #endif
 
@@ -21,13 +22,14 @@ execvp (const char *name, char *const argv[])
 
   if (environ != NULL)
     {
-      int x = -1;
-      while (environ[++x])
-        {
-          __os_print ("--execvp: environ["); __os_prdec (x); __os_print ("]: ");
-          __os_print (environ[x]); __os_nl ();
-        }
+      int x;
+
+      debug_printf ("-- execvp:\n");
+      for (x = 0; environ[x] != NULL; ++x)
+	debug_printf ("   environ[%d]: %s\n", x, environ[x]);
     }
+  else
+    debug_printf ("-- execvp: environ == NULL\n");
 #endif
 
   /* Path searching has not been implemented.  */

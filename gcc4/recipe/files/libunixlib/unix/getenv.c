@@ -1,5 +1,5 @@
 /* Manipulate Unix-style environment variables.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -175,9 +175,7 @@ __getenv_from_env (const char *name)
   PTHREAD_UNSAFE
 
 #ifdef DEBUG
-  __os_print ("-- __getenv_from_env: name='"); __os_print (name);
-  __os_print ("', environ="); __os_prhex ((int) environ);
-  __os_nl ();
+  debug_printf ("-- __getenv_from_env: name='%s', environ=%p\n", name, environ);
 #endif
 
   if (environ != NULL)

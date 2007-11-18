@@ -1,5 +1,5 @@
 /* putenv ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <stdlib.h>
@@ -23,13 +23,9 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
   PTHREAD_UNSAFE
 
 #ifdef DEBUG
-  __os_print ("-- __add_to_env: ");
-  __os_print (string ? string : name);
-  __os_print (" ");
-  __os_print (string ? "" : value);
-  __os_print (", environ="); __os_prhex ((int) environ);
-  __os_print (", __last_environ="); __os_prhex ((int) __last_environ);
-  __os_nl ();
+  debug_printf ("-- __add_to_env: %s %s, environ=%p, __last_environ=%p\n",
+		string ? string : name, string ? "" : value, environ,
+		__last_environ);
 #endif
 
   if (string)

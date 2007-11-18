@@ -1,5 +1,5 @@
 /* write ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #include <errno.h>
@@ -24,8 +24,7 @@ write (int fd, const void *buf, size_t nbytes)
   ssize_t status;
 
 #ifdef DEBUG
-  __os_print ("write(fd="); __os_prdec (fd);
-  __os_print (", nbytes="); __os_prdec (nbytes); __os_print (")\r\n");
+  debug_printf ("-- write(fd=%d, nbytes=%d)\n", fd, nbytes);
 #endif
 
   if (nbytes == 0)
@@ -41,7 +40,7 @@ write (int fd, const void *buf, size_t nbytes)
   if ((file_desc->fflag & O_ACCMODE) == O_RDONLY)
     {
 #ifdef DEBUG
-      __os_print ("write(): not open for writing\r\n");
+      debug_printf ("write(): not open for writing\n");
 #endif
       return __set_errno (EBADF);
     }

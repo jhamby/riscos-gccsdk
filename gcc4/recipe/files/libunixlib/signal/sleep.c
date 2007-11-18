@@ -86,9 +86,8 @@ sleep_int (clock_t clockticks)
 	       / USECS_PER_CLOCK);
 
 #ifdef DEBUG
-  __os_print ("sleep: Set up an alarm for "); __os_prdec (clockticks);
-  __os_print (" clockticks\r\n  Remaining: "); __os_prdec(remaining);
-  __os_print (" clockticks\r\n");
+  debug_printf ("-- sleep: Set up an alarm for %d clockticks\n"
+		"   Remaining: %d clockticks\n", clockticks, remaining);
 #endif
 
   if (remaining > 0 && remaining < clockticks)
@@ -100,12 +99,11 @@ sleep_int (clock_t clockticks)
       /* Restore sooner alarm.  */
       ualarm ((useconds_t) clockticks * USECS_PER_CLOCK, 0);
 #ifdef DEBUG
-      __os_print ("sleep: A user alarm existed. Wait ");
-      __os_prdec (remaining); __os_print (" clockticks for that instead\r\n");
+      debug_printf ("-- sleep: A user alarm existed. Wait %d clockticks for that instead\n", remaining);
 #endif
       sigsuspend (&oset);	/* Wait for it to go off.  */
 #ifdef DEBUG
-      __os_print ("sleep: Alarm has gone off. Continuing with execution\r\n");
+      debug_printf ("-- sleep: Alarm has gone off. Continuing with execution\n");
 #endif
       after = clock ();
     }
@@ -115,11 +113,11 @@ sleep_int (clock_t clockticks)
          (which had better not block SIGALRM),
          and wait for a signal to arrive.  */
 #ifdef DEBUG
-      __os_print ("sleep: Waiting for the alarm\r\n");
+      debug_printf ("-- sleep: Waiting for the alarm\n");
 #endif
       sigsuspend (&oset);
 #ifdef DEBUG
-      __os_print ("sleep: Alarm has gone off. Continuing with execution\r\n");
+      debug_printf ("-- sleep: Alarm has gone off. Continuing with execution\n");
 #endif
       after = clock ();
 

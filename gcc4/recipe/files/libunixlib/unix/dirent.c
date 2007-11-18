@@ -1,5 +1,5 @@
 /* Perform operations on a directory.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -24,7 +24,7 @@
 /* Size of OS_GBPB buffer. If this is too small, directory reading
    performance is severly reduced. A 1K buffer is sufficient until
    long filenames. It should at least to be big enough to contain
-   1 OS_GBPB 10 record otherwise we loop forever ! */
+   1 OS_GBPB 10 record otherwise we loop forever !  */
 #define CACHE_SIZE 1024
 
 /* It is a common mistake to assume that the offsets returned from
@@ -35,7 +35,7 @@
    We assign two 'random' values to represent directories '.' and
    '..' (only be used when we do want unix <-> RISC OS filename
    processing) and hope those values will never be returned from
-   OS_GBPB. */
+   OS_GBPB.  */
 #define GBPB_FAKE_CURRENTDIR	0x2A0E180B
 #define GBPB_FAKE_PARENTDIR	0x04B63067
 #define GBPB_START_ENUM		0x00000000
@@ -50,8 +50,7 @@
    conditions are not fullfilled, we stop the enumeration.
    Another solution is to return table index numbers which, when presented
    to seekdir, will get looked up in a table giving the two internal dir
-   offsets.
- */
+   offsets.  */
 #define GBPB_MAX_ENUM		0x00010000
 
 static DIR *dir_head = NULL;
@@ -70,7 +69,7 @@ invalidate (DIR *stream)
 }
 
 /* Make a new directory stream with RISC OS name 'name' and starting
-   the OS_GBPB enum at offset 'offset'. */
+   the OS_GBPB enum at offset 'offset'.  */
 static DIR *
 newstream (const char *name, __off_t offset)
 {
@@ -99,7 +98,7 @@ newstream (const char *name, __off_t offset)
   invalidate (stream);
   stream->__magic = _DIRMAGIC;
 
-  /* stream created, now filling it in with meaningful values */
+  /* stream created, now filling it in with meaningful values.  */
 
   /* Canonicalise the name in case the user changes the PSD.
      First find out the buffer size needed, then store it.  */
@@ -133,7 +132,7 @@ newstream (const char *name, __off_t offset)
       return NULL;
     }
 
-  /* Initialise a directory cache to speed up reading. */
+  /* Initialise a directory cache to speed up reading.  */
   stream->dir_cache = malloc (CACHE_SIZE);
   if (stream->dir_cache == NULL)
     {
@@ -145,8 +144,8 @@ newstream (const char *name, __off_t offset)
   /* Initialise the directory stream.  */
   stream->gbpb_off = stream->dd_off = offset;
 #ifdef DEBUG
-  fprintf (stderr, "Stream 0x%p created : gbpb_off 0x%x and dd_off 0x%x\n",
-	   stream, stream->gbpb_off, stream->dd_off);
+  debug_printf ("Stream 0x%p created : gbpb_off 0x%x and dd_off 0x%x\n",
+		stream, stream->gbpb_off, stream->dd_off);
 #endif
   /* Already done by invalidate() :
   stream->suffix = NULL;
@@ -184,9 +183,7 @@ opendir (const char *ux_name)
     }
 
 #ifdef DEBUG
-  __os_print ("opendir: ux_name="); __os_print (ux_name);
-  __os_print (", ro name="); __os_print (name);
-  __os_nl ();
+  debug_printf ("-- opendir: ux_name=%s, ro name=%s\n", ux_name, name);
 #endif
 
   switch (__object_exists_raw (name))
@@ -200,23 +197,22 @@ opendir (const char *ux_name)
     }
 
   /* If leafname of 'name' is one of the suffixes and __riscosify_control
-   * & __RISCOSIFY_NO_REVERSE_SUFFIX is clear, then we're about to enum
-   * a dir which doesn't really exist from the unix point of view.
-   */
+     & __RISCOSIFY_NO_REVERSE_SUFFIX is clear, then we're about to enum
+     a dir which doesn't really exist from the unix point of view.  */
   if (!(__get_riscosify_control () & __RISCOSIFY_NO_REVERSE_SUFFIX))
     {
       const char *leafname, *i;
 
 #ifdef DEBUG
-      fprintf (stderr, "Suffix handling !\n");
+      debug_printf ("Suffix handling !\n");
 #endif
       for (i = leafname = name; *i; /* nothing */)
 	if (*i++ == '.')
 	  leafname = i;
 
 #ifdef DEBUG
-      fprintf (stderr, "name 0x%p, leafname 0x%p\n", name, leafname);
-      fprintf (stderr, "name '%s', leafname '%s'\n", name, leafname);
+      debug_printf ("name 0x%p, leafname 0x%p\n", name, leafname);
+      debug_printf ("name '%s', leafname '%s'\n", name, leafname);
 #endif
       if (__sfixfind (leafname, strlen (leafname)))
 	{
@@ -229,12 +225,12 @@ opendir (const char *ux_name)
   stream = newstream (name,
 		      (__get_riscosify_control () & __RISCOSIFY_NO_PROCESS)
 		      ? GBPB_START_ENUM : GBPB_FAKE_CURRENTDIR);
-  /* stream = NULL when newstream() failed. */
+  /* stream = NULL when newstream() failed.  */
 
   return stream;
 }
 
-/* Read the next entry from the directory stream. POSIX.4a version. */
+/* Read the next entry from the directory stream. POSIX.4a version.  */
 int
 readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 {
@@ -247,26 +243,26 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
   *result = NULL;
 
 #ifdef DEBUG
-  fprintf (stderr, "readdir_r: stream 0x%p : start user offset 0x%x\n",
-	   stream, stream->dd_off);
+  debug_printf ("readdir_r: stream 0x%p : start user offset 0x%x\n",
+			stream, stream->dd_off);
 #endif
 
   if (!__validdir (stream))
     return EBADF;
 
-  /* Enumerating the suffix swapped directory ? */
+  /* Enumerating the suffix swapped directory ?  */
   if (stream->suffix)
     {
       struct dirent *sresult;
 
-      /* Perhaps we no longer can fetch entries from our suffix dir ? */
+      /* Perhaps we no longer can fetch entries from our suffix dir ?  */
       if (stream->suffix->dd_off != GBPB_END_ENUM)
 	{
 #ifdef DEBUG
-	  fprintf (stderr, "doing enum of suffix stream...\n");
+	  debug_printf ("doing enum of suffix stream...\n");
 #endif
 	  /* Directories inside RISC OS suffix directories may not
-	     come out of a dirent enum. */
+	     come out of a dirent enum.  */
 	  do
 	    {
 	      readdir_r (stream->suffix, entry, result);
@@ -282,7 +278,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 #endif
 	      /* When __RISCOSIFY_FILETYPE_EXT is set in __riscosify_control,
 		 map <filename,xyz> to <filename>.d_name,xyz with xyz a
-		 valid hex number. */
+		 valid hex number.  */
 	      if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
 		  && sresult->d_namlen > sizeof(",xyz")-1
 		  && sresult->d_name[sresult->d_namlen - 4] == ','
@@ -314,7 +310,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 	    }
 	}
 
-      /* Suffix dir enumeration done ? */
+      /* Suffix dir enumeration done ?  */
       if (stream->suffix->dd_off == GBPB_END_ENUM)
 	{
 #ifdef DEBUG
@@ -325,7 +321,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
 	}
 
       /* Continue with enum of the main dir if suffix dir enum didn't
-	 return a valid entry */
+	 return a valid entry.  */
     }
 
 #ifdef DEBUG
@@ -339,9 +335,9 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
       case GBPB_FAKE_PARENTDIR:
         {
           int x = 0;
-          /* Fake directory '.' or '..' */
+          /* Fake directory '.' or '..'.  */
           if (stream->dd_off == GBPB_FAKE_PARENTDIR)
-            entry->d_name[x++] = '.'; /* Fake directory '..' */
+            entry->d_name[x++] = '.'; /* Fake directory '..'  */
 
           entry->d_name[x++] = '.';
 
@@ -363,7 +359,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
       default:
         {
           char *str;
-          /* Does the cache needs a refill ? */
+          /* Does the cache needs a refill ?  */
           if (stream->do_read == 0)
             {
               int regs[10];
@@ -381,7 +377,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
                   regs[3] = CACHE_SIZE / (sizeof(__os_gbpb_10) + 1);
                   regs[5] = CACHE_SIZE;
                   regs[4] = (int) stream->gbpb_off;
-                  regs[6] = 0;		    /* Match all names */
+                  regs[6] = 0; /* Match all names.  */
  
                   err = __os_swi (OS_GBPB, regs);
                   if (err)
@@ -406,14 +402,14 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
                   else
                     {
                       /* Check if we have a monotonic unit increase OS_GBPB
-                        offset, if not, we don't do anything. */
+                        offset, if not, we don't do anything.  */
                       if (stream->gbpb_off + regs[3] != regs[4])
                         {
                           stream->gbpb_off = stream->dd_off = GBPB_END_ENUM;
                           return 0;
                         }
 
-                      /* We can't enum more than GBPB_MAX_ENUM-1 objects */
+                      /* We can't enum more than GBPB_MAX_ENUM-1 objects.  */
                       if ((unsigned int)regs[4] >= GBPB_MAX_ENUM)
                         {
                           regs[3] -= (unsigned int)regs[4] - GBPB_MAX_ENUM;
@@ -469,7 +465,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
                       + (str - entry->d_name) + 1 + 3) & -4;
 
               /* Need to add filetype extension (for straight files or
-                image files if they are treated as files) */
+		 image files if they are treated as files).  */
               if ((riscosify_ctl & __RISCOSIFY_FILETYPE_EXT)
                   && (stream->dir_cache_index->obj_type == 1 ||
                       (stream->dir_cache_index->obj_type == 3
@@ -496,8 +492,8 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
                             {
                               int regs[10];
 
-                              /* We have a filename extension
-                                at 'fn_extension'.  */
+                              /* We have a filename extension at
+				 'fn_extension'.  */
                               regs[0] = MMM_TYPE_DOT_EXTN; /* Input extension */
                               regs[1] = (int)fn_extension;
                               regs[2] = MMM_TYPE_RISCOS; /* Output extension */
@@ -529,12 +525,12 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
                           ? DT_REG : DT_DIR;
 
           entry->d_namlen = str - entry->d_name;
-          /* 'entry' is now correctly filled in except for the d_fileno field. */
+          /* 'entry' is now correctly filled in except for the d_fileno field.  */
 
-          /* Update the stream params */
+          /* Update the stream params.  */
           stream->dir_cache_index = (__os_gbpb_10 *)(((char *)stream->dir_cache_index) + slen);
           stream->do_read--;
-          /* Did the previous OS_GBPB enum indicated the end ? */
+          /* Did the previous OS_GBPB enum indicated the end ?  */
           if (stream->do_read == 0 && stream->gbpb_off == GBPB_END_ENUM)
             stream->dd_off = GBPB_END_ENUM;
           else
@@ -545,7 +541,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
                   !(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX),
                   entry->d_type == DT_DIR, entry->d_name);
 #endif
-          /* Check for reverse suffix dir swapping */
+          /* Check for reverse suffix dir swapping.  */
           if (!(riscosify_ctl & __RISCOSIFY_NO_REVERSE_SUFFIX)
               && entry->d_type == DT_DIR
               && __sfixfind (entry->d_name, entry->d_namlen))
@@ -560,7 +556,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
               stream->suffix = newstream (name , stream->dd_suf_off);
               stream->dd_suf_off = GBPB_START_ENUM;
 
-              /* Get the first entry in the suffix directory */
+              /* Get the first entry in the suffix directory.  */
 #ifdef DEBUG
               fprintf (stderr, "First entry in suffix dir\n");
 #endif
@@ -589,7 +585,6 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
    allows different DIR streams to be read simultaneously without corruption
    of the returned result. Multiple readers on the same DIR stream is not
    reentrant.  */
-
 struct dirent *readdir (DIR *stream)
 {
   struct dirent *result;
@@ -607,7 +602,7 @@ struct dirent *readdir (DIR *stream)
   return result;
 }
 
-/* Return the file position of the directory stream. */
+/* Return the file position of the directory stream.  */
 long int
 telldir (DIR *stream)
 {
@@ -620,7 +615,7 @@ telldir (DIR *stream)
   return stream->dd_off + (stream->dd_suf_off << 16);
 }
 
-/* Set the file position of the directory stream to pos. */
+/* Set the file position of the directory stream to pos.  */
 
 void seekdir (DIR *stream, long int pos)
 {
@@ -629,15 +624,15 @@ void seekdir (DIR *stream, long int pos)
       long int sufpos;
 
       /* If we were doing a suffix dir enumeration, close the suffix
-	 stream.  If needed, a new one will be created automatically. */
+	 stream.  If needed, a new one will be created automatically.  */
       if (stream->suffix != NULL)
 	{
 	  (void) closedir (stream->suffix);
 	  stream->suffix = NULL;
 	}
 
-      /* Determing if 'pos' contains offset information for the
-	 suffix dir enum. */
+      /* Determing if 'pos' contains offset information for the suffix dir
+	 enum. */
       if (pos != GBPB_FAKE_CURRENTDIR
 	  && pos != GBPB_FAKE_PARENTDIR
 	  && pos != GBPB_END_ENUM
@@ -658,7 +653,6 @@ void seekdir (DIR *stream, long int pos)
 
 /* Reinitialise the directory stream. Reading will then
    start from the first entry.  */
-
 void
 rewinddir (DIR *stream)
 {
@@ -680,7 +674,6 @@ rewinddir (DIR *stream)
 }
 
 /* Close a DIR stream.  */
-
 int
 closedir (DIR *stream)
 {
@@ -730,7 +723,7 @@ scandir (const char *dir, struct dirent ***namelist,
 	struct dirent *vnew;
 	size_t dsize;
 
-	/* Ignore errors from select or readdir */
+	/* Ignore errors from select or readdir.  */
 	(void) __set_errno(0);
 
 	if (i == vsize)
@@ -746,7 +739,7 @@ scandir (const char *dir, struct dirent ***namelist,
 	    v = newdir;
 	  }
 
-	/* FIXME: this 256 should be a macro, but see comments in dirent.h */
+	/* FIXME: this 256 should be a macro, but see comments in dirent.h.  */
 	dsize = &d->d_name[256] - (char *) d;
 	vnew = (struct dirent *) malloc(dsize);
 	if (vnew == NULL)

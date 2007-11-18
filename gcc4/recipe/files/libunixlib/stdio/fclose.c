@@ -25,16 +25,16 @@ fclose (FILE * stream)
   if (stream == NULL)
     {
       FILE *f;
+      int status = 0;
 
       /* Close all streams.  */
-      f = __iob_head;
-      while (f)
+      for (f = __iob_head; f != NULL; f = f->next)
         {
           if (__validfp (f))
-            fclose (f);
-          f = f->next;
+            status |= fclose (f);
         }
-      return 0;
+
+      return status;
     }
 
   if (!__validfp (stream))
@@ -44,14 +44,14 @@ fclose (FILE * stream)
     }
 
 #ifdef DEBUG
-  __os_print ("fclose("); __os_prdec (stream->fd); __os_print ("): ");
+  debug_printf ("fclose(%d): ", stream->fd);
 #endif
 
   /* Only flush writable streams.  */
   if (stream->__mode.__bits.__write && __flsbuf (EOF, stream) == EOF)
     {
 #ifdef DEBUG
-      __os_print ("EOF\r\n");
+      debug_printf ("EOF\n");
 #endif
       return EOF;
     }
@@ -63,11 +63,14 @@ fclose (FILE * stream)
     free (stream->o_base);
 
   /* Close the file descriptor.  */
-  status = 0;
   status = close (stream->fd);
 
   /* Invalidate the stream, ready for re-use.  */
   __invalidate (stream);
+
+#ifdef DEBUG
+  debug_printf ("status=%d\n", status);
+#endif
 
   return (status < 0) ? EOF : 0;
 }
