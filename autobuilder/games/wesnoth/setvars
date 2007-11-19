@@ -1,22 +1,30 @@
-AB_CATEGORY=games
+AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 
 ab_package() {
-  cp -av $H/\!Wesnoth $D
-  cp -av $H/\!Wesnoth/\!* $D/\!Wesnoth
-  cp -av src/wesnoth,ff8 $D/\!Wesnoth/wesnoth,ff8
 
-  mkdir -p $D/\!Wesnoth/docs
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -av $H/\!Wesnoth $AD
+  cp -av $H/\!Wesnoth/\!* $AD/\!Wesnoth
+  cp -av src/wesnoth,ff8 $AD/\!Wesnoth/wesnoth,ff8
+
+  mkdir -p $AD/\!Wesnoth/docs
   cp -av $S/changelog $S/copying $S/COPYRIGHT \
     MANUAL README \
-    $D/\!Wesnoth/docs
-  cp -av $H/\!Wesnoth/docs/RISCOS $D/\!Wesnoth/docs
+    $AD/\!Wesnoth/docs
+  cp -av $H/\!Wesnoth/docs/RISCOS $AD/\!Wesnoth/docs
 
-  cp -r $S/data $D/\!wesnoth
-  cp -r $S/fonts $D/\!wesnoth
-  cp -r $S/images $D/\!wesnoth
-  cp -r $S/sounds $D/\!wesnoth
-  cp -r $S/music $D/\!wesnoth
+  cp -r $S/data $AD/\!wesnoth
+  cp -r $S/fonts $AD/\!wesnoth
+  cp -r $S/images $AD/\!wesnoth
+  cp -r $S/sounds $AD/\!wesnoth
+  cp -r $S/music $AD/\!wesnoth
+
+  $AB_HOME/add-riscpkg -unixhome -unixsound -unixhome
 }
 
-export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile -lintl"
+export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec -lintl"
+AB_CONFLAGS="--without-x"
+
+cp $H/libtool $S
