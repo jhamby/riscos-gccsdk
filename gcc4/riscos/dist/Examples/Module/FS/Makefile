@@ -18,8 +18,9 @@ CMHGFLAGS   = -throwback -p -zbase -tgcc -apcs 3/32
 MKDIR       = cdir
 
 # Here you need to specify extra libraries if you use them, like:
-# OSLib:o.OSLib32
-LIBS = OSLib:o.OSLib32
+# "-LOSLib: -lOSLib32" which specifies to link with the library "libOSLib32/a"
+# to be found in the directory "OSLib:".
+LIBS = -LOSLib: -lOSLib32
 
 # Add here all your C files :
 MODCSRCS   = gccmodule.c
