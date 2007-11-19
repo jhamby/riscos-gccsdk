@@ -102,17 +102,6 @@ cross-compiler will be installed).
 
    At this point the source tree at 'srcdir' is used to do the real build.
 
-   [ Following is only for GCCSDK developers:
-
-     Developer changes can and should be done in 'srcdir' and when those changes
-     are ready to be commited, either patches need to be created, either full
-     file copy needs to be made in the correct subdirector in 'recipe' directory.
-     This can easily done by:
-
-       $ cd srcdir
-       $ ../create-patch <file to patch or file to copy>
-   ]
-
 3. Build and install the cross-compiler into $GCCSDK_INSTALL_CROSSBIN/..
    directory:
 
@@ -157,16 +146,37 @@ files.  This packaging in zip files happens by:
 
    $ ./create-gcckit -pkg
 
-3. Developing
-~~~~~~~~~~~~~
+3. Developing GCCSDK
+~~~~~~~~~~~~~~~~~~~~
 
-GCCSDK specific changes for the original gcc/binutils sources are done via
-patches (recipe/patches directory), copying full source files (recipe/files)
-or via scripts (recipe/scripts).  Easy patch (re)creation can be done using the
-'create-patch' script.
+Developer changes can and should first be done in 'srcdir' directory and you
+can then rebuild parts of GCCSDK by going to the appropriate subdirectory
+inside 'builddir-cross' (or 'builddir-riscos' if your changes are appropriate
+for the native RISC OS compiler) and issue a 'make' or 'make install' there.
+
+Autotools configuration files changes need to be made in the files
+configure.ac and Makefile.am or when those are not yet existing, in the
+configure.in and Makefile.in files instead.  The already existing 'Makefile'
+will detect those autotool configuration file changes and normally
+automatically regenerates all related files but as this is not happening when
+doing a full build from scratch (e.g. after 'create-srcdir'), we're doing a
+forced Autotools regeneration of some parts of GCCSDK using scripts inside
+the recipe/scripts directory which are executed at the end of 'create-srcdir'.
+
+When those changes are ready to be commited, either patches need to be created
+(in recipe/patches directory) or either full file copy needs to be made (in
+recipe/files directory).
+
+Easy patch (re)creation can be done using the 'create-patch' script. This
+script will also take care of making full copies inside recipe/files directory
+when it concerns a file not belonging to GCC nor binutils standard
+distribution.
 
   $ cd srcdir
   $ ../create-patch <file to patch or file to copy>
+
+Don't forget to do a 'svn add recipe/...' when it concerns a new patch file or
+a new file inside recipe/files or recipe/scripts.
 
 4. Testing
 ~~~~~~~~~~
