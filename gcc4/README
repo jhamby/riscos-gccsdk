@@ -1,10 +1,15 @@
-The RISC OS Software Development Kit [GCCSDK GCC 4.1.1 Prerelease 1 ]
+The RISC OS Software Development Kit [GCCSDK GCC 4.1.1 Pre-release 2 ]
 ====================================
 
 This is a lightweight build environment which combines a GCC 4.1.1 release,
 binutils 2.17 release, UnixLib 5.0 and libscl 2.0 into one directory which can
 be used to build a RISC OS cross-compiler and native RISC OS compiler with
-target arm-unknown-riscos.
+target 'arm-unknown-riscos'.
+
+We don't have GCC and binutils sources stored in our SVN server so you need
+to get those sources from their official repositories (see 2.1. how you can
+do that easily).  Only patches to those sources a full copies of new files
+are stored a source control managed.
 
 We expect that the current set of GCCSDK patches for GCC and binutils can
 be applied to later versions than GCC 4.1.1 and binutils 2.17 as is, or at
@@ -59,24 +64,26 @@ The build steps are the following:
 1. Build cross-compiler.
 2. Build the native RISC OS compiler and GCCSDK kit creation.
 
-However, people only interested in having the cross-compiler only need to
-do step 1 and they might also be interested in "5. Porting tools" section
+People only interested in having the cross-compiler only need to do step 1
+and they might also be interested in executing "5. Porting tools" section
 mentioned below.
 
-Build steps 2 and 3 are only of interest for the GCCSDK developer.
+Build step 2 is only of interest for the GCCSDK developer or anyone else who
+want to (re)build the native RISC OS compiler himself.
 
 2.1. Build cross-compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The setup-gccsdk-params file contains several definitions as environment
+The 'setup-gccsdk-params' file contains several definitions as environment
 variables which you can change if really desired.  Like with GCCSDK 3.4.6, we
 recommend setting up $GCCSDK_INSTALL_CROSSBIN which then can be used by
-setup-gccsdk-params files to determine where the cross-compiler will be
+'setup-gccsdk-params' files to determine where the cross-compiler will be
 installed during 'make install' (note: $GCCSDK_INSTALL_CROSSBIN actually
 specifies the pathname 'bin' subdirectory of the directory where the complete
 cross-compiler will be installed).
 
-1. Place an official GCC 4.1 release in 'orig.gcc' directory and official
+1. As the GCC and binutils sources are not in SVN, you need a copy of those.
+   Place an official GCC 4.1 release in 'orig.gcc' directory and official
    binutils 2.17 release in 'orig.binutils' by running:
 
      $ ./download-gcc-binutils gcc
@@ -95,13 +102,16 @@ cross-compiler will be installed).
 
    At this point the source tree at 'srcdir' is used to do the real build.
 
-   Developer changes can and should be done in 'srcdir' and when those changes
-   are ready to be commited, either patches need to be created, either full
-   file copy needs to be made in the correct subdirector in 'recipe' directory.
-   This can easily done by:
+   [ Following is only for GCCSDK developers:
 
-     $ cd srcdir
-     $ ../create-patch <file to patch or file to copy>
+     Developer changes can and should be done in 'srcdir' and when those changes
+     are ready to be commited, either patches need to be created, either full
+     file copy needs to be made in the correct subdirector in 'recipe' directory.
+     This can easily done by:
+
+       $ cd srcdir
+       $ ../create-patch <file to patch or file to copy>
+   ]
 
 3. Build and install the cross-compiler into $GCCSDK_INSTALL_CROSSBIN/..
    directory:
@@ -129,8 +139,8 @@ cross-compiler will be installed).
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The native RISC OS compiler and associated programs like the ELF loader (part
-f !DSO-libs) are built using the previously built cross-compiler.  It is using
-the same 'build-it' script with "riscos" as argument given.
+of !DSO-libs) are built using the previously built cross-compiler.  It is
+using the same 'build-it' script with "riscos" instead of "cross" as argument.
 
    $ ./build-it riscos > build-output.txt 2>&1
 
@@ -154,6 +164,9 @@ GCCSDK specific changes for the original gcc/binutils sources are done via
 patches (recipe/patches directory), copying full source files (recipe/files)
 or via scripts (recipe/scripts).  Easy patch (re)creation can be done using the
 'create-patch' script.
+
+  $ cd srcdir
+  $ ../create-patch <file to patch or file to copy>
 
 4. Testing
 ~~~~~~~~~~
