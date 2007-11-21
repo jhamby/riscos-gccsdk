@@ -9,7 +9,7 @@ tooldir = $(exec_prefix)/$(target_alias)
 # Local install exec hook to install a copy of elf2aif copy in <target>/bin
 # directory where gcc's collect2 will look.
 install-exec-local: $(bin_PROGRAMS)
-	$(MKDIR_P) "$(DESTDIR)$(tooldir)/bin"
+	$(mkdir_p) "$(DESTDIR)$(tooldir)/bin"
 	list='$(bin_PROGRAMS)'; for p in $$list; do \
 	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
 	  if test -f $$p; then \
