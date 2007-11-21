@@ -1,0 +1,6 @@
+| Run file for LibPNG
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibPNG$Dir <Obey$Dir>
+Set LibPNG$Path <Obey$Dir>.,<Obey$Dir>.libpng12.

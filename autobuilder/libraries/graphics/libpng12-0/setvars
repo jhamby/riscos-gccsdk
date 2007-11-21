@@ -1,4 +1,5 @@
-AB_CATEGORY=libraries/graphics
+AB_CATEGORY=Library
+AB_ZIPNAME=libpng12-dev
 
 AB_INSTALL=yes
 
@@ -7,3 +8,42 @@ AB_INSTALL=yes
 #cp scripts/makefile.linux Makefile
 
 mkdir -p $D/include/libpng12
+
+ab_package()
+{
+  AD=$D/Apps/Library/!LibPNG
+  mkdir -p $AD
+  cp $H/\!LibPNG/\!* $AD
+
+  cat $S/libpng.txt >> $AD/\!Help,fff
+
+  HERE=`pwd`
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/libpng12 libpng12
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  cp o/libpng12 o/libpng 
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  rm -rf bin
+
+  cd $HERE
+
+  # Downloaded version can include a character that is invalid
+  # for a riscpkg version number so replace it
+  AB_PVERSION=`echo "$AB_PVERSION" | sed "s/~/-/"`
+
+  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
+    -depends "zlib1g-dev"
+
+}
