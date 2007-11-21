@@ -1,9 +1,13 @@
 
-AB_CATEGORY=develop
+AB_CATEGORY=Programming
 
 /usr/bin/cc -o man/texinfo2man man/texinfo2man.c
 
 ab_package() {
-  cp -av $S/src/indent$AB_EXEEXT doc/indent.html $S/COPYING $D
+  AD=$D/Apps/Programming/!Indent
+  mkdir -p $AD
+  cp -av $H/\!Indent/\!* $AD
+  cp -av $S/src/indent$AB_EXEEXT $S/COPYING $AD
+  cp -av doc/indent.html $AD/!Help,faf
+  $AB_HOME/add-riscpkg -unixlib
 }
-

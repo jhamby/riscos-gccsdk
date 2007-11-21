@@ -1,0 +1,5 @@
+| Boot file for indent command
+
+If "<Indent$Dir>" = "" Then Set Indent$Dir <Obey$Dir>
+
+If "<Indent$Dir>" = "<Obey$Dir>" Then Set Alias$Indent <Obey$Dir>.indent %%*0
