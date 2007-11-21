@@ -1,3 +1,5 @@
+AB_CATEGORY=Library
+AB_ZIPNAME=libfreetype6-dev
 
 AB_INSTALL=yes
 AB_INSTALLDOCS="README docs/LICENSE docs/FTL.TXT docs/GPL.TXT docs/CHANGES"
@@ -20,4 +22,33 @@ ab_make() {
   cp freetype-config freetype2.pc ftconfig.h libtool *.mk builds/unix
 
   eval $AB_MAKE
+}
+
+ab_package() {
+  AD=$D/Apps/Library/\!Freetype2
+  mkdir -p $AD
+  cp $H/\!Freetype2/\!* $AD
+
+  cp README $AD/\!Help
+  cp README $AD
+  cp -r docs $AD
+
+  HERE=`pwd`
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/freetype2 freetype2
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  rm -rf bin
+  rm -rf doc
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
+    -depends "zlib1g-dev"
 }
