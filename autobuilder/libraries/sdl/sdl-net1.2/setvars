@@ -1,5 +1,37 @@
+AB_CATEGORY=Library
+AB_ZIPNAME=libsdl-net1.2-dev
 AB_INSTALL=yes
 
 export SED=sed
 
 mkdir -p $D/include/SDL/
+
+ab_package()
+{
+  AD=$D/Apps/Library/!SDLNet
+  mkdir -p $AD
+  cp $H/\!SDLNet/\!* $AD
+
+  HERE=`pwd`
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/SDL SDL
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cp README ../\!Help,feb
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
+    -depends "libsdl1.2-dev"
+}

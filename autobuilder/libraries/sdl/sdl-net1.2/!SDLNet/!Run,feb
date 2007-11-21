@@ -1,0 +1,6 @@
+| Run file for SDLNet
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set SDLNet$Dir <Obey$Dir>
+Set SDLNet$Path <Obey$Dir>.,<Obey$Dir>.SDL.
