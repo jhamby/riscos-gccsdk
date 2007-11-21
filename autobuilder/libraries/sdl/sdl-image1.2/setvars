@@ -1,6 +1,42 @@
+AB_CATEGORY=Library
+AB_ZIPNAME=libsdl-image1.2-dev
 
-AB_CONFLAGS="--enable-tif --enable-xmf"
+AB_CONFLAGS="--enable-tif --enable-xmf --disable-png-shared --disable-tiff-shared"
 
 AB_INSTALL=yes
 
 mkdir -p $D/include/SDL/
+
+ab_package()
+{
+  AD=$D/Apps/Library/!SDLImage
+  mkdir -p $AD
+  cp $H/\!SDLImage/\!* $AD
+
+  HERE=`pwd`
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/SDL SDL
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cp README ../\!Help,feb
+
+  cd $HERE
+
+  cp $S/showimage.c $AD/doc
+  cp $S/showimage,ff8 $AD
+
+  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
+    -depends "libjpeg62-dev" -depends "libpng12-dev" \
+    -depends "libtiff4-dev" -depends "libsdl1.2-dev"
+}

@@ -1,0 +1,6 @@
+| Boot file for SDLImage
+|
+If "<SDLImage$Dir>" = "" Then Set SDLImage$Dir <Obey$Dir>
+If "<SDLImage$Path>" = "" Then Set SDLImage$Path <Obey$Dir>.,<Obey$Dir>.SDL.
+
+IconSprites <SDLImage$Dir>.!Sprites

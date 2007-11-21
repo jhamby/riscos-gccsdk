@@ -1,0 +1,6 @@
+| Run file for SDLImage
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set SDLImage$Dir <Obey$Dir>
+Set SDLImage$Path <Obey$Dir>.,<Obey$Dir>.SDL.
