@@ -1,0 +1,6 @@
+| Boot file for SDLGFX
+|
+If "<SDLGFX$Dir>" = "" Then Set SDLGFX$Dir <Obey$Dir>
+If "<SDLGFX$Path>" = "" Then Set SDLGFX$Path <Obey$Dir>.,<Obey$Dir>.SDL.
+
+IconSprites <SDLGFX$Dir>.!Sprites
