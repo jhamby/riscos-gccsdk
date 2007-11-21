@@ -1,11 +1,17 @@
 
-AB_CATEGORY=emulation
+AB_CATEGORY=Emulation
 AB_COPYSOURCE=yes
-AB_MANPAGE=docs/dosbox.1
+# AB_MANPAGE=docs/dosbox.1
+AB_CONFLAGS="--disable-opengl"
 
 ab_package() {
-  cp -av $H/\!DosBox $D
+  AD=$D/Apps/Emulation
+  mkdir -p $AD
+  cp -av $H/\!DosBox $AD
   cp -av $S/AUTHORS $S/COPYING $S/INSTALL $S/NEWS $S/THANKS $S/src/dosbox$AB_EXEEXT \
-         $D/\!DosBox
-  cp -av $S/README $D/\!DosBox/\!Help
+         $AD/\!DosBox
+  cp -av $S/README $AD/\!DosBox/\!Help
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+    -appdir Apps.Emulation -appname DosBox -dirvar 
 }
