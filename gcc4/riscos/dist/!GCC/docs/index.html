@@ -173,8 +173,6 @@ When UnixLib is selected as runtime library, by default it will be the shared Un
 
 <p>In the RISC OS port, options -msoft-float and -mhard-float are mutually exclusive.
 
-<p>Note that APCS-R mode (option -mapcs-26) is deprecated and is no longer working nor supported in this version of GCCSDK.
-
 <h5>1.4.3. RISC OS specific switches</h5>
 
 <dl>
@@ -200,6 +198,12 @@ When UnixLib is selected as runtime library, by default it will be the shared Un
   <li>-munixlib and -mlibscl. -munixlib is the default.
   <li>-mclient-static-data-offset and -mlibrary-static-data-offset.  -mclient-static-data-offset is the default.
 </ul>
+
+<h5>1.4.4. Obsolete GCCSDK switches</h5>
+
+<p>From GCCSDK 3.3.3 release onwards, APCS-32 became default and APCS-R support became deprecated. You could select between those two ABI's using respectively the mutually exclusive -mapcs-32 and -mapcs-26 switches.
+
+<p>From GCCSDK 4 onwards we don't have any APCS-R support and made the switches -mapcs-32 and -mapcs-26 obsolete.
 
 <h4>1.5. Predefines</h4>
 
