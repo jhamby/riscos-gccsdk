@@ -1,0 +1,6 @@
+| Run file for SDLTTF
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set SDLTTF$Dir <Obey$Dir>
+Set SDLTTF$Path <Obey$Dir>.,<Obey$Dir>.SDL.

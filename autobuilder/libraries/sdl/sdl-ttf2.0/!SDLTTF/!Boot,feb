@@ -1,0 +1,6 @@
+| Boot file for SDLTTF
+|
+If "<SDLTTF$Dir>" = "" Then Set SDLTTF$Dir <Obey$Dir>
+If "<SDLTTF$Path>" = "" Then Set SDLTTF$Path <Obey$Dir>.,<Obey$Dir>.SDL.
+
+IconSprites <SDLTTF$Dir>.!Sprites
