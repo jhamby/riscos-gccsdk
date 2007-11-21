@@ -1,0 +1,16 @@
+LibJPEG - JPEG Graphics Library
+
+This RISC OS version was created by the GCCSDK
+Autobuilder.
+
+See the "doc" and "man" subdirectories for more documentation.
+
+To include in you C programs.
+
+include "jpeg.h"
+
+and add the include flag
+ -I/LibJPEG:/
+
+Link with
+ -LLibJPEG: -ljpeg

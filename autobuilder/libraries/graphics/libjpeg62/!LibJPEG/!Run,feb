@@ -1,0 +1,6 @@
+| Run file for LibJPEG
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibJPEG$Dir <Obey$Dir>
+Set LibJPEG$Path <Obey$Dir>.
