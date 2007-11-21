@@ -1,5 +1,7 @@
 AB_SVN=http://svn.libsdl.org/tags/SDL/release-1.2.11
-AB_ZIPNAME=libsdl1.2-1.2.11
+AB_ZIPNAME=libsdl1.2-dev
+
+AB_CATEGORY=Library
 
 AB_INSTALLDOCS="COPYING README README.RISCOS README-SDL.txt WhatsNew"
 AB_SHORTDESC="Allows programs portable low level access to a video, audio, mouse, and keyboard"
@@ -11,3 +13,38 @@ mkdir -p $D/include/SDL/
 
 ./autogen.sh
 
+
+# Package script uses installed library
+# zip built due to AB_INSTALL=yes
+
+ab_package() {
+  mkdir -p $D/Apps/Library
+  cp -r $H/!SDL $D/Apps/Library
+
+  HERE=`pwd`
+  cd $D/Apps/Library/\!SDL
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  # Need to retype the converted manual files
+  MANFILES=$(find man -type f)
+  for FILE in $MANFILES ; do
+     mv $FILE $FILE,faf
+  done
+
+  # Move headers libs and docs up one directory
+  mv include/SDL SDL
+  rm -rf include
+  mv lib/o o
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package "libsdl1.2-dev" \
+    -copyrightfile $S/COPYING -unixlib 
+ 
+}
