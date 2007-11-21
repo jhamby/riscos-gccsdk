@@ -11,6 +11,12 @@ export GCCSDK_SRCDIR=$GCCSDK_ROOT/srcdir
 # For determining the install directory of the cross-compiler, if
 # GCCSDK_INSTALL_CROSSBIN is defined we use its value.
 if [ ! -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  # Check if it ends on '.../bin':
+  if [ "`basename $GCCSDK_INSTALL_CROSSBIN`" != "bin" ] ; then
+    echo \$GCCSDK_INSTALL_CROSSBIN does not end with \'bin\' sub-directory and has as value \'$GCCSDK_INSTALL_CROSSBIN\'
+    return 1
+  fi
+
   GCCSDK_CROSS_PREFIX=$GCCSDK_INSTALL_CROSSBIN/..
   # Shorten path:
   test ! -d $GCCSDK_CROSS_PREFIX && mkdir -p $GCCSDK_CROSS_PREFIX
