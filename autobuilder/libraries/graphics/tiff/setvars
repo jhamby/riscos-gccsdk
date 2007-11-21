@@ -1,2 +1,33 @@
+AB_CATEGORY=Library
+AB_ZIPNAME=libtiff4-dev
 AB_INSTALL=yes
 AB_INSTALLTARGET="-C libtiff install"
+
+ab_package()
+{
+  AD=$D/Apps/Library/!LibTIFF
+  mkdir -p $AD
+  cp $H/\!LibTIFF/\!* $AD
+  cp COPYRIGHT VERSION RELEASE-DATE $AD
+  cp README $AD/\!Help
+  cp -r html $AD
+
+  HERE=`pwd`
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/* .
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  rm -rf doc
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
+     -depends zlib1g-dev
+}
+
