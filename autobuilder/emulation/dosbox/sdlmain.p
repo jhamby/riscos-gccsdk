@@ -1,9 +1,9 @@
 --- src/gui/sdlmain.cpp.orig	2006-10-27 16:20:22.875000000 +0100
 +++ src/gui/sdlmain.cpp	2006-10-27 13:21:56.828125000 +0100
 @@ -1274,7 +1274,10 @@
-         setbuf(stderr, NULL);
- #endif
- 
+	LOG_MSG("---");
+
+	/* Init SDL */
 -	if ( SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER|SDL_INIT_CDROM
 +	if ( SDL_Init( SDL_INIT_AUDIO|SDL_INIT_VIDEO|SDL_INIT_TIMER
 +#ifndef __riscos__
