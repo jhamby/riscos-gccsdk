@@ -1,1 +1,30 @@
+AB_CATEGORY=Library
 AB_INSTALL=yes
+AB_PACKAGES="zlib1g-dev"
+
+ab_package() {
+  AD=$D/zlib1g-dev/Apps/Library/!ZLib1g
+  mkdir -p $AD
+  cp $H/\!ZLib1g/\!* $AD
+  cp README $AD/\!Help
+
+  HERE=`pwd`
+  cd $AD
+  
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/* .
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  rm -rf doc
+
+  cd $HERE
+
+  cp -r examples $AD/doc
+  cp ChangeLog FAQ $AD/doc
+
+  $AB_HOME/add-riscpkg -package zlib1g-dev -unixlib
+}
