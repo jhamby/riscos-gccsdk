@@ -1,0 +1,14 @@
+Tremor - Portable Network Graphics Library
+
+This RISC OS version was created by the GCCSDK
+Autobuilder.
+
+See the "doc" subdirectory for more documentation.
+
+A simple example program ivorbisfile_example.c is included in the doc subdirectory.
+
+To compile add the include flag
+ -ITremor:
+
+Link with
+ -lTremor:o.libpng

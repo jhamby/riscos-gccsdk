@@ -1,0 +1,6 @@
+| Boot file for Tremor
+|
+If "<Tremor$Dir>" = "" Then Set Tremor$Dir <Obey$Dir>
+If "<Tremor$Path>" = "" Then Set Tremor$Path <Obey$Dir>.
+
+IconSprites <Tremor$Dir>.!Sprites
