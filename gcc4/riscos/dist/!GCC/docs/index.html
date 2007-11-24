@@ -21,25 +21,25 @@
 </head>
 <body>
 
-<h2>Welcome to GCCSDK GCC 4.1.1 Prerelease 1 for RISC OS</h2>
+<h2>Welcome to GCCSDK GCC 4.1.1 Pre-release 2 for RISC&nbsp;OS</h2>
 <p>
 <b>*** IN TESTING ***</b>
 
-<p>If you have received this copy of GCC from a CD of fetched your copy from the Internet yourself some time ago, then it is likely there is a more up-to-date version obtainable from <a href="http://gccsdk.riscos.info/">http://gccsdk.riscos.info/</a> which is also the homepage of this RISC OS GCC port.
+<p>If you have received this copy of GCC from a CD of fetched your copy from the Internet yourself some time ago, then it is likely there is a more up-to-date version obtainable from <a href="http://gccsdk.riscos.info/">http://gccsdk.riscos.info/</a> which is also the homepage of this RISC&nbsp;OS GCC port.
 
 <h3>1. Introduction</h3>
 
-<p>This is the RISC OS port of <a href="http://gcc.gnu.org/">GCC (GNU Compiler Collection)</a> and supporting binaries allowing you to start developing RISC OS applications and modules straight away. So you get a compiler for one or more languages, an linker, an assembler, a RISC OS module header and veneer generator, the UnixLib C runtime library and headers and stubs for the SharedCLibrary module (as found in the RISC OS ROMs).
+<p>This is the RISC&nbsp;OS port of <a href="http://gcc.gnu.org/">GCC (GNU Compiler Collection)</a> and supporting binaries allowing you to start developing RISC&nbsp;OS applications and modules straight away. So you get a compiler for one or more languages, an linker, an assembler, a RISC&nbsp;OS module header and veneer generator, the UnixLib C runtime library and headers and stubs for the SharedCLibrary module (as found in the RISC&nbsp;OS ROMs).
 
-<p>This GCC port itself and the code produced using this GCC version is targeted and tested for RISC OS 4 (26-bit and 32-bit version), RISC OS 5 (32-bit version) and RISC OS 6 (26-bit and 32-bit version).
+<p>This GCC port itself and the code produced using this GCC version is targeted and tested for RISC&nbsp;OS 4 (26-bit and 32-bit version), RISC&nbsp;OS 5 (32-bit version) and RISC&nbsp;OS 6 (26-bit and 32-bit version).
 
-<p>The RISC OS GNU Compiler Collection consists of a generic front end program `gcc' that provides a consistent interface to the compilers themselves. Currently compilers are supported for the C and C++ languages. Later releases of GCCSDK might have support for Ada, Fortran, Java, Pascal and/or Objective C/C++ but this will be largely dependant on available GCCSDK developer resources, interest and of course that all technical issues can be reasonably solved.
+<p>The RISC&nbsp;OS GNU Compiler Collection consists of a generic front end program `gcc' that provides a consistent interface to the compilers themselves. Currently compilers are supported for the C and C++ languages. Later releases of GCCSDK might have support for Ada, Fortran, Java, Pascal and/or Objective C/C++ but this will be largely dependant on available GCCSDK developer resources, interest and of course that all technical issues can be reasonably solved.
 
 <p>The following is a short introduction to GCC. It does not provide an introduction to programming, for that you will have to get a text book on the language you are interested in.
 
 <h4>1.1. Installation</h4>
 
-<p>To install GCC, copy the contents of !GCC onto your hard disc. Other compilers can be installed by copying the contents of their archives into the same directory as where you install GCC - RISC OS will automatically combine the !GCC directories together. Running !GCC will setup Run$Path to automatically search for the compiler tools.
+<p>To install GCC, copy the contents of !GCC onto your hard disc. Other compilers can be installed by copying the contents of their archives into the same directory as where you install GCC - RISC&nbsp;OS will automatically combine the !GCC directories together. Running !GCC will setup Run$Path to automatically search for the compiler tools.
 
 <p>As compilers are installed, sub-directories named according to the language they support will be placed within !GCC.docs. These sub-directories will contain specific information for the language compiler, including its usage and environment requirements.
 
@@ -87,9 +87,9 @@
 <pre>
    *gcc hellow.c -mlibscl
 </pre>
-<p>will compile and link the hellow.c source file, using header files from the SharedCLibrary, and linking against the SharedCLibrary stubs which will result in using the RISC OS SharedCLibrary module routines at runtime. The output file will still be called '!RunImage' and can be run in the same way.
+<p>will compile and link the hellow.c source file, using header files from the SharedCLibrary, and linking against the SharedCLibrary stubs which will result in using the RISC&nbsp;OS SharedCLibrary module routines at runtime. The output file will still be called '!RunImage' and can be run in the same way.
 
-<p>Support has been provided for both RISC OS and UNIX format filenames. GCC will translate any UNIX filenames into their RISC OS equivalent. For example:
+<p>Support has been provided for both RISC&nbsp;OS and UNIX format filenames. GCC will translate any UNIX filenames into their RISC&nbsp;OS equivalent. For example:
 <pre>
    ../include/stdio.h	is translated to	^.include.h.stdio
    /work/gcc/hello.c	is translated to	$.work.gcc.c.hello
@@ -106,14 +106,14 @@
 
 <h5>1.3.1. SharedCLibrary</h5>
 
-By default <a href="libunixlib">UnixLib</a> is used as runtime library.  In case it is important to use RISC OS' <a href="libscl">SharedCLibrary</a> and at expense of a much more reduced API, you can do that by specifying the switch -mlibscl at compile and link time. The linker will produce an Absolute (filetype &ff8) file having an AIF header:
+<p>By default <a href="libunixlib">UnixLib</a> is used as runtime library.  In case it is important to use RISC&nbsp;OS' <a href="libscl">SharedCLibrary</a> and at expense of a much more reduced API, you can do that by specifying the switch -mlibscl at compile and link time. The linker will produce an Absolute (filetype &amp;ff8) file having an AIF header:
 
 <pre>
    *gcc -mlibscl -o file.o -c file.c
    *gcc -mlibscl -o mybinary file.o
 </pre>
 
-<h5>1.3.2. RISC OS module support</h5>
+<h5>1.3.2. RISC&nbsp;OS module support</h5>
 
 <p>Module code must be compiled and linked with the SharedCLibrary as UnixLib is not suitable for this purpose. The switch -mmodule needs to be specified to make sure that global data can be properly relocated at runtime.  Specifying -mmodule implicitly specifies -mlibscl so it is not really necessary to specify it yourself however if you want your build script (or Makefile) reasonably backwards compatible with GCCSDK 3.4 you better specify it as it was not the case before.
 
@@ -122,9 +122,13 @@ By default <a href="libunixlib">UnixLib</a> is used as runtime library.  In case
    *gcc -mlibscl -mmodule module.o header.o -o mymodule
 </pre>
 
+<p>Each RISC&nbsp;OS module needs a module header which can be created using CMunge. See <a href="cmunge">CMunge documentation</a> for more information.  CMunge can also be used to create veneer code acting as glue code for RISC&nbsp;OS callbacks into your C/C++ coded module.
+
+<p>Modules often have their data (Messages, Sprites, etc) stored in ResourceFS. <a href="mkresfs">mkresfs</a> can be used to create a C file representing the intended ResourceFS data allowing easy (de)registration with ResourceFS. In GCCSDK 3.4 this functionality was covered with the 'resgen' program but as its code was very thightly AOF based, a new program (and approach) was chosen.
+
 <h5>1.3.3. Static UnixLib</h5>
 
-When UnixLib is selected as runtime library, by default it will be the shared UnixLib library.  It is possible to use the static UnixLib at link time by specifying the linker switch -static.
+<p>When UnixLib is selected as runtime library, by default it will be the shared UnixLib library.  It is possible to use the static UnixLib at link time by specifying the linker switch -static.
 
 <pre>
    *gcc -o file.o -c file.c
@@ -171,9 +175,9 @@ When UnixLib is selected as runtime library, by default it will be the shared Un
 <dd>Makes that floating point (FP) ARM instructions will be used in the generated code.
 </dl>
 
-<p>In the RISC OS port, options -msoft-float and -mhard-float are mutually exclusive.
+<p>In the RISC&nbsp;OS port, options -msoft-float and -mhard-float are mutually exclusive.
 
-<h5>1.4.3. RISC OS specific switches</h5>
+<h5>1.4.3. RISC&nbsp;OS specific switches</h5>
 
 <dl>
 <dt>-mthrowback
@@ -186,11 +190,11 @@ When UnixLib is selected as runtime library, by default it will be the shared Un
 <dt>-mamu [ *** NOT YET IMPLEMENTED IN GCCSDK 4 *** ]
 <dd>Generates the file !Depend which contains a list of all the source files that the produced object depends on. This is intended for use with Acorn's Make Utility (AMU), which edits the makefile to include these after the '# Dynamic Dependencies' line.
 <dt>-mmodule
-<dd>Generates code suitable for a RISC OS module.  This will implicitly select -mlibscl.  This also defines the preprocessor define __TARGET_MODULE__.
+<dd>Generates code suitable for a RISC&nbsp;OS module.  This will implicitly select -mlibscl.  This also defines the preprocessor define __TARGET_MODULE__.
 <dt>-mclient-static-data-offset (default) [ *** NOT YET IMPLEMENTED IN GCCSDK 4 *** ]
-<dd>Only relevant when compiling a RISC OS module (option -mmodule set). This specifies to use the client static data offset (at sl-536) instead of the library static data offset (sl-540).
+<dd>Only relevant when compiling a RISC&nbsp;OS module (option -mmodule set). This specifies to use the client static data offset (at sl-536) instead of the library static data offset (sl-540).
 <dt>-mlibrary-static-data-offset [ *** NOT YET IMPLEMENTED IN GCCSDK 4 *** ]
-<dd>Only relevant when compiling a RISC OS module (option -mmodule set). This specifies to use the library static data offset (at sl-540) instead of the client static data offset (sl-536).  This is only to be used in very rare cases.
+<dd>Only relevant when compiling a RISC&nbsp;OS module (option -mmodule set). This specifies to use the library static data offset (at sl-540) instead of the client static data offset (sl-536).  This is only to be used in very rare cases.
 </dl>
 
 <p>The following switches are mutually exclusive:
@@ -205,17 +209,30 @@ When UnixLib is selected as runtime library, by default it will be the shared Un
 
 <p>From GCCSDK 4 onwards we don't have any APCS-R support and made the switches -mapcs-32 and -mapcs-26 obsolete.
 
-<h4>1.5. Predefines</h4>
+<h4>1.5. Binary configurations</h4>
+
+<p>As an overview, the following configurations are possible with the native RISC&nbsp;OS release :
+
+<ul>
+  <li>Softfloat with shared UnixLib as runtime library: default configuration.
+  <li>Softfloat with static UnixLib as runtime library: use '-static' option when linking.
+  <li>Hardfloat with static UnixLib as runtime library: use '-mhard-float' when compiling and '-mhard-float -static' when linking.
+  <li>Hardfloat with SharedCLibrary as runtime library: use '-mlibscl' when compiling and '-mlibscl' when linking. When creating a RISC&nbsp;OS module you specify '-mmodule' instead for both complication and linking.
+</ul>
+
+<p>In a cross-compile environment you can have "hardfloat with shared UnixLib as runtime library" configuration as well but seen that softfloat configuration has significant advantages for floating point intensive code, this is not relevant and not included in the native RISC&nbsp;OS release.
+
+<h4>1.6. Predefines</h4>
 
 <p>This is a short list of the most interesting and useful predefines set:
 
 <dl>
 <dt>__arm
 <dt>__arm__
-<dd>Always defined in the RISC OS port and can be used to make a difference between ARM specific vs non-ARM code.
+<dd>Always defined in the RISC&nbsp;OS port and can be used to make a difference between ARM specific vs non-ARM code.
 <dt>__riscos
 <dt>__riscos__
-<dd>Always defined in the RISC OS port and can be used to make a difference between RISC OS specific vs non-RISC OS code.
+<dd>Always defined in the RISC&nbsp;OS port and can be used to make a difference between RISC&nbsp;OS specific vs non-RISC&nbsp;OS code.
 <dt>__ELF__
 <dd>Always defined as GCCSDK 4 is now ELF based.
 <dt>__SOFTFP__
@@ -251,9 +268,105 @@ using_unixlib:
 	.size	using_unixlib, . - using_unixlib
 </pre>
 
-<h4>1.6. Distributing your programs</h4>
+<h4>1.7. Migrating projects to GCCSDK 4</h4>
 
-<p>When you want to distribute your compiled program it might be necessary to accompagn it with an ELF loader and possibly also a set of shared libraries used by your program. This is not necessary when your program is using SharedCLibrary as runtime library, i.e. when your program is an Absolute (filetype &ff8) file with AIF header or a RISC OS module (filetype &ffa).
+<p>The GCCSDK 4 release contains a significant number of changes compared to its previous stable GCCSDK 3.4.6 release and this might require some changes to your project when you want to build it with GCCSDK 4.
+
+<ul>
+  <li>Object format is ELF
+      <p>Pre GCCSDK 4 releases had as object format AOF (Acorn Object Format) and the AOF based libraries came as ALF (Acorn Library Format).  RISC&nbsp;OS Absolute programs (filetype &amp;FF8) came in an AIF file format (Acorn Image Format).
+      <p>As those formats are not supported by GNU binutils' assembler 'gas' nor linker 'ld', this means that your projects needs to be completely rebuilt and that you can not use previously made (or supplied) AOF/ALF files. In case of C or C++ files this is most probably just a case of recompiling.  In case of assembler files, the sources need to be changes to make them 'gas' compatible (read further on).  In case of creating library, the process can be slightly different (read further on).
+      <p>Both object files, shared library files and resulting fully linked binary files are in ELF file format (filetype &amp;e1f).  There is no native RISC&nbsp;OS support for loading shared libraries and ELF linked binary files so that's why you need an ELF loader such like 'SOManager' (currently part of !DSO-libs application).
+      <p>There are two ways to create AIF based program files which of course do not need the use of 'SOManager' to run those programs:
+         <ul>
+            <li>Use 'elf2aif' program to convert an ELF binary not using any shared library into AIF.  This means you need to specify '-static' linker option when making ELF binary.
+            <li>Use the SharedCLibrary instead of UnixLib as runtime library, i.e. use '-mlibscl' during compilation and linking.  In this case the linker will automatically create an AIF application program so no explicit 'elf2aif' invocation is needed.
+         </ul>
+      <p>Aside: when creating a module (i.e. using '-mmodule' during compilation and linking), the intermediate object files are ELF based but the final binary produced by the linker is a valid RISC&nbsp;OS module which of course does not need the 'SOManager' ELF loader.
+
+  <li>'gas' assembler syntax
+      <p>In GCCSDK 4 we no longer use the 'as' AOF assembler and are using the 'gas' assembler instead.  The syntax used for 'gas' is slightly different and the most important differences are:
+         <ul>
+            <li>Labels : 'as' assembler labels start at the beginning of a line can be optionally be pre- and postfixed with a '|' character like "mylabel" or "|mylabel|". 'gas' does not support the optional '|' character and requires that a label gets terminated with a column ':'.
+                <p>So, 'as' assembler code like:
+                <p>
+<pre>
+|mylabel1|
+	ADD	r0, r0, #1
+mylabel2
+	MOV	pc, r14
+</pre>
+                <p>needs to be changed to:
+                <p>
+<pre>
+mylabel1:
+	ADD	r0, r0, #1
+mylabel2:
+	MOV	pc, r14
+</pre>
+            <li>Comments : 'as' assembler used semi-column ';' to mark the start of a comment line. 'gas' syntax is using the '@' character.
+            <li>IMPORT : the IMPORT statement followed by a symbol name is no longer needed unless you want to import a symbol 'weakly'.
+                <p>
+<pre>
+	IMPORT	|mylabel1|
+	IMPORT	|mylabel2|, WEAK
+</pre>
+                <p>needs to be changed to:
+<pre>
+	.weak	mylabel2
+</pre>
+            <li>EXPORT : the EXPORT statement is to be replaced by '.global'.
+                <p>
+<pre>
+	EXPORT	|mylabel|
+</pre>
+                <p>needs to be changed to:
+<pre>
+	.global	mylabel
+</pre>
+            <li>Other directives:
+                <p>
+<pre>
+	AREA	bla_data, DATA
+	AREA	bla_code, CODE
+	DCB	&12
+	DCD	&12345678
+	=	"test"
+	=	" and another test", 0
+	END
+</pre>
+                <p>needs to be changed to:
+<pre>
+	.data	@ A short form of .section + arguments
+	.text	@ A short form of .section + arguments
+	.byte	0x12
+	.word	0x12345678
+	.ascii	"test"
+	.asciz	" and another test"
+	.end	@ ".end" can be left out and is not required.
+</pre>
+            <li>Macros are quite different and there are no mechanical easy rules for translation.  Refer to <a href="as/index.html">GNU assembler as</a> for full description on '.macro' and '.mend'.
+         </ul>
+      <p>More information can be found in <a href="as/index.html">GNU assembler as</a>.
+  <li>Specifying how to link with libraries : the 'drlink' linker used in pre-GCCSDK 4 releases was quite liberal dealing with object and library files and didn't need any special handling to make a difference between those two file formats so in pre-GCCSDK 4 projects you could see link lines like:
+<pre>
+*gcc -o myapp object1.o object2.o OSLib:o.OSLib32
+</pre>
+      <p>which links the object1.o and object2.o object files with the RISC&nbsp;OS OSLib library found as OSLib:o.OSLib32.  The binutils' linker needs to have its libraries specified with '-l' option and further assumes that all libraries filenames on disc start with 'lib' (but omited when specified) and have an 'a' extension instead of 'o' which was usually used in pre-GCCSDK 4 projects.  Also it is prefered to specify the directory where the library can be found using an extra option '-L' (in fact, this specifies an additional search directory for the '-l' libraries). So above example needs to be changed for GCCSDK 4 as:
+<pre>
+*gcc -o myapp object1.o object2.o -LOSLib: -lOSLib32
+</pre>
+      <p>and this with the file "libOSLib32/a" stored in the directory defined by the 'OSLib:' path. Note we don't do suffix swapping for 'a' extensions. Of course, it is expected that ELF releases of libraries already have the 'lib' prefix and '/a' extension of the library filename.
+
+  <li>APCS-R / APCS-32 : when option '-mapcs-32' is used, you have to remove this from the command line as this is default now and there isn't any APCS-R support forseen.  When your project is still APCS-R, you need to drag it into the 21st centurary and make it APCS-32.  When you don't have any assembler code in your project, this is just a matter of recompiling your project.
+
+  <li>Softfloat &amp; hardfloat: the default configuration is now softfloat which means that there is no use of floating point instructions which are most of times emulated with a significant overhead. The floating point implementation is done using built-in library support not requiring the FPEmulator module in RISC&nbsp;OS.
+      <p>This change has hardly any effect on your project when you migrate to GCCSDK 4 except for the improved runtime speed for floating point intensive code.
+</ul>
+
+<h4>1.8. Distributing your programs</h4>
+
+<p>When you want to distribute your compiled program it might be necessary to accompagn it with an ELF loader and possibly also a set of shared libraries used by your program. This is not necessary when your program is using SharedCLibrary as runtime library, i.e. when your program is an Absolute (filetype &amp;ff8) file with AIF header or a RISC&nbsp;OS module (filetype &amp;ffa).
 
 <p>The ELF loader and the default set of shared libraries (UnixLib, libgcc and the dynamic loader) are bundled in the form of the !DSO-libs application. In the <a href="http://www.riscos.info/downloads/gccsdk/latest/">download area of the GCCSDK website</a> there is separate 'core' !DSO-libs ZIP file available (also containing a !System holding the most recent modules required by UnixLib) which can be downloaded by the users of your program. In case your program is a C++ program, an additional 'g++' !DSO-libs ZIP needs to be downloaded and its contents copied on top of the 'core' !DSO-libs application as this will add the necessary C++ shared libraries.
 
@@ -261,7 +374,7 @@ using_unixlib:
 
 <p>Over time we anticipate that a more managed download and upgrade facility will be used like <a href="http://www.riscpkg.org/">RiscPkg</a> but details and instructions are not available at the time of writing.
 
-<h4>1.7. Troubleshooting</h4>
+<h4>1.9. Troubleshooting</h4>
 
 <p>Here are described some common problems users have with gcc and the GNU compilers. Possible solutions are provided for the known problems.
 
@@ -287,17 +400,13 @@ using_unixlib:
     <p>This is caused by insufficient memory memory and can be fixed by increasing the wimpslot to similar values as above.
 </ul>
 
-<p>Each RISC OS module needs a module header which can be created using CMunge. See <a href="cmunge">CMunge documentation</a> for more information.  CMunge can also be used to create veneer code acting as glue code for RISC OS callbacks into your C/C++ coded module.
-
-<p>Modules often have their data (Messages, Sprites, etc) stored in ResourceFS. <a href="mkresfs">mkresfs</a> can be used to create a C file representing the intended ResourceFS data allowing easy (de)registration with ResourceFS. In GCCSDK 3.4 this functionality was covered with the 'resgen' program but as its code was very thightly AOF based, a new program (and approach) was chosen.
-
 <h3>2. Known issues</h3>
 
 <p>List of known problems or missing features compared to GCCSDK 3.4.6:
 <ul>
-  <li>native RISC OS build: not all RISC OS specific option are implemented yet, like -mamu, -mlibrary-static-data-offset, -mclient-static-data-offset.
-  <li>native RISC OS build: not all recent GCCSDK 3.4.6 bug fixes concerning -mthrowback and RISC OS file path handling have been merged through.
-  <li>native RISC OS build: option -mpoke-function-name is default set while it in GCCSDK 3.4 it was by default unset.
+  <li>native RISC&nbsp;OS build: not all RISC&nbsp;OS specific option are implemented yet, like -mamu, -mlibrary-static-data-offset, -mclient-static-data-offset.
+  <li>native RISC&nbsp;OS build: not all recent GCCSDK 3.4.6 bug fixes concerning -mthrowback and RISC&nbsp;OS file path handling have been merged through.
+  <li>native RISC&nbsp;OS build: option -mpoke-function-name is default set while it in GCCSDK 3.4 it was by default unset.
   <li>libscl: the GCCSDK support code in libscl is not yet fully enabled as libscl requires some cleanup first and have support for network API builtin.
   <li>libscl: no C++ support
 </ul>
@@ -331,27 +440,27 @@ using_unixlib:
 
 <p>Runtime documentation:
 <ul>
-  <li><a href="libunixlib">UnixLib</a>: the default runtime library used when compiling programs with GCC. The UnixLib's intend is to provide, as much as possible, a fully POSIX-compatible runtime library for RISC OS in order to compile and run most (but not all) POSIX-compatible code that avoids OS specific code.
-  <li><a href="libscl">SharedCLibrary</a>: this is an alternative runtime library which is using the SharedCLibrary RISC OS module.  It has the advantage that those applications are usually smaller in size but does not have a rich API as UnixLib. When building modules, this is the only runtime library you can use.
+  <li><a href="libunixlib">UnixLib</a>: the default runtime library used when compiling programs with GCC. The UnixLib's intend is to provide, as much as possible, a fully POSIX-compatible runtime library for RISC&nbsp;OS in order to compile and run most (but not all) POSIX-compatible code that avoids OS specific code.
+  <li><a href="libscl">SharedCLibrary</a>: this is an alternative runtime library which is using the SharedCLibrary RISC&nbsp;OS module.  It has the advantage that those applications are usually smaller in size but does not have a rich API as UnixLib. When building modules, this is the only runtime library you can use.
 </ul>
 
-<p>Shared library support on RISC OS:
+<p>Shared library support on RISC&nbsp;OS:
 <ul>
-  <li><a href="SharedLibs/!ReadMe">RISC OS shared library documentation for the developer</a>.
-  <li><a href="SharedLibs/Technical">Advanced RISC OS shared library documentation</a> (for GCCSDK developers).
+  <li><a href="SharedLibs/!ReadMe">RISC&nbsp;OS shared library documentation for the developer</a>.
+  <li><a href="SharedLibs/Technical">Advanced RISC&nbsp;OS shared library documentation</a> (for GCCSDK developers).
 </ul>
 
-<p>RISC OS related documentation:
+<p>RISC&nbsp;OS related documentation:
 <ul>
-  <li><a href="cmunge">CMunge</a>: a tool to generates a suitable veneer to allow RISC OS modules to be developed in C or C++.
+  <li><a href="cmunge">CMunge</a>: a tool to generates a suitable veneer to allow RISC&nbsp;OS modules to be developed in C or C++.
   <li><a href="elf2aif">elf2aif</a>: a tool to convert static ELF binaries into AIF Absolute files avoiding the need for ELF loader at runtime.
   <li><a href="ln">ln</a>: a tool to create symlink files for use with the dynamic linking GCC, although they can be used with any UnixLib compiled program.
-  <li><a href="mkresfs">mkresfs</a>: a tool to generate C code that creates and removes files from ResourceFS in your RISC OS modules.
+  <li><a href="mkresfs">mkresfs</a>: a tool to generate C code that creates and removes files from ResourceFS in your RISC&nbsp;OS modules.
 </ul>
 
 <h3>5. GCCSDK website, bug reporting &amp; mailing list</h3>
 
-<p>The <a href="http://gccsdk.riscos.info/">GCCSDK website</a> contains more information like how you can log bugs, addressing the GCCSDK development itself and related RISC OS development aspects. Currently the GCCSDK website is Wiki based so your input in the form of changes and/or additional input is greatly appreciated.
+<p>The <a href="http://gccsdk.riscos.info/">GCCSDK website</a> contains more information like how you can log bugs, addressing the GCCSDK development itself and related RISC&nbsp;OS development aspects. Currently the GCCSDK website is Wiki based so your input in the form of changes and/or additional input is greatly appreciated.
 
 <p>Most importantly, you can also find details how you can join the GCCSDK mailing which has been setup for discussions on GCCSDK, including its development work. We strongly recommend to join this mailing list.
 
@@ -381,8 +490,8 @@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 GCCSDK Developers
 
 <p>Primary GCCSDK Developers today are:
 <ul>
-  <li>John Tytgat - Release management, allround GCCSDK hacking.
-  <li>Lee Noar - Shared library development.
+  <li>John Tytgat - Release management, module support, multilib, libscl integration and allround GCCSDK hacking.
+  <li>Lee Noar - Shared library development including ELF loader.
   <li>Peter Naulls - UnixLib (all areas, especially glibc compatibility).
   <li>Alex Waugh - UnixLib (especially signals, pthreads, file handling).
 </ul>
