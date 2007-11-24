@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 if [ "$AB_PACKONLY" != "yes" ] ; then
   echo "Autobuilder: Building package: $AB_PACKAGE"
