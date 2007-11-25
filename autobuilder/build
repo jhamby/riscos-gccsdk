@@ -151,9 +151,9 @@ fi
 
 # File extension
 if [ "$AB_ELFBUILD" == "yes" ] ; then
-  AB_EXEEXT=,e1f
+  export AB_EXEEXT=,e1f
 else
-  AB_EXEEXT=,ff8
+  export AB_EXEEXT=,ff8
 fi
 
 # GCCSDK Scripts
