@@ -330,7 +330,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  cd $D
  if [ "$AB_ELFBUILD" == "yes" ] ; then
    # strip binaries
-   find -type f -wholename "*,e1f" | $GCCSDK_INSTALL_ENV/ro-path xargs arm-unknown-riscos-strip
+   find -type f -wholename "*,e1f" | $GCCSDK_INSTALL_ENV/ro-path xargs arm-unknown-riscos-strip 2>/dev/null || true
  fi
 
  if [ -z "$AB_PACKAGES" ] ; then
