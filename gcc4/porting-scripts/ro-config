@@ -59,6 +59,15 @@ adde1f() {
     chmod +x $e1fPATH
   fi
 
+  # Be GNU for linking and versioning characteristics for libraries
+  if grep -q -- "^gnu\*)" $e1fPATH ; then
+    echo RISC OS: Adding libtool handling
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed "s#^gnu\*)#gnu\* | riscos\*)#" < $e1fPATH > $tmpconfigure
+    mv $tmpconfigure $e1fPATH
+    chmod +x $e1fPATH
+  fi
+
   # Doesn't strictly belong here, but it fits
   if grep -q "sys_lib_dlsearch_path_spec=" $e1fPATH ; then
     echo RISC OS: Setting libtool library paths for $e1fPATH
