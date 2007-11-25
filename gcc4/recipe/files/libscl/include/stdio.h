@@ -151,7 +151,6 @@ extern int fflush (FILE *__stream);
 /* Open a stream for I/O to the file 'filename' and return a pointer
    to the stream.  */
 extern FILE *fopen (const char *__filename, const char *__opentype);
-
 #ifdef __RISCOSIFY
 #define fopen(f, t) (fopen(__riscosify_scl(f, (t)[0] == 'a' || (t)[0] == 'w'), t))
 #endif
@@ -162,7 +161,6 @@ extern FILE *fopen (const char *__filename, const char *__opentype);
    streams e.g. stdin, stdout or stderr.  */
 extern FILE *freopen (const char *__filename, const char *__opentype,
 		      FILE *__stream);
-
 #ifdef __RISCOSIFY
 #define freopen(f, t, s) (freopen(__riscosify_scl(f, (t)[0] == 'a' || (t)[0] == 'w'), t, s))
 #endif
@@ -186,26 +184,30 @@ extern int setvbuf (FILE *__stream, char *__buf, int __mode,
 /* Print the optional arguments under control of the template
    string 'fmt' to the stream stdout. Returns the number of characters
    printed, or a negative value if there was an output error.  */
-extern int printf (const char *__fmt, ...);
+extern int printf (const char *__restrict __format, ...);
 
 /* Similar to printf except the output is written to the stream
    'stream' instead of stdout.  */
-extern int fprintf (FILE *__stream, const char *__fmt, ...);
+extern int fprintf (FILE *__restrict __stream,
+                    const char *__restrict __format, ...);
 
 /* Similar to printf except the output is stored in the array
    'string'. A null terminating character is also written.  */
-extern int sprintf (char *__string, const char *__fmt, ...);
+extern int sprintf (char *__restrict __s,
+                    const char *__restrict __format, ...);
 
 /* Read formatted input from the stream stdin under control
    of the template 'fmt'. Returns the number of successful
    assignments.  */
-extern int scanf (const char *__fmt, ...);
+extern int scanf (const char *__restrict __format, ...);
 
 /* Similar to scanf but reads from the stream 'stream'.  */
-extern int fscanf (FILE *__stream, const char *__fmt, ...);
+extern int fscanf (FILE *__restrict __stream,
+                   const char *__restrict __format, ...);
 
 /* Similar to scanf but reads from the array 'string'.  */
-extern int sscanf (const char *__string, const char *__fmt, ...);
+extern int sscanf (const char *__restrict __s,
+                   const char *__restrict __format, ...);
 
 /* Write formatted output to s from argument list arg.  limit is the
    maximum number of characters to produce.  */
@@ -230,8 +232,8 @@ extern int __gcc_vsnprintf (char *__restrict __s, size_t __limit,
 			    const char *__restrict __format,
 			    __gnuc_va_list *__arg)
      __attribute__ ((__format__ (__printf__, 3, 0)));
-     extern int __gcc_vsprintf (char *__restrict __s,
-				const char *__restrict __format, __gnuc_va_list *__arg);
+extern int __gcc_vsprintf (char *__restrict __s,
+			   const char *__restrict __format, __gnuc_va_list *__arg);
 extern int __gcc_vfprintf (FILE *__restrict __stream,
                      const char *__restrict __format, __gnuc_va_list *__arg);
 extern int __gcc_vprintf (const char *__restrict __format, __gnuc_va_list *__arg);
@@ -243,45 +245,11 @@ extern int __gcc_vprintf (const char *__restrict __format, __gnuc_va_list *__arg
 #define vprintf(__fmt,__ap) (__gcc_vprintf(__fmt, &__ap))
 #endif
 
-#ifndef __GNUC__
-#pragma -v1
-#endif
-
 /* Write formatted output to s.  limit is the maximum number of characters
    to produce.  */
 extern int snprintf (char *__restrict __s, size_t __limit,
                      const char *__restrict __format, ...)
      __attribute__ ((__format__ (__printf__, 3, 4)));
-     
-     /* Write formatted output to s.  */
-     extern int sprintf (char *__restrict __s,
-                    const char *__restrict __format, ...);
-
-/* Write formatted output to stream.  */
-extern int fprintf (FILE *__restrict __stream,
-                    const char *__restrict __format, ...);
-
-/* Write formatted output to stdout.  */
-extern int printf (const char *__restrict __format, ...);
-
-#ifndef __GNUC__
-#pragma -v2
-#endif
-
-/* Read formatted input from s.  */
-extern int sscanf (const char *__restrict __s,
-                   const char *__restrict __format, ...);
-
-/* Read formatted input from stream.  */
-extern int fscanf (FILE *__restrict __stream,
-                   const char *__restrict __format, ...);
-
-/* Read formatted input from stdin.  */
-extern int scanf (const char *__restrict __format, ...);
-
-#ifndef __GNUC__
-#pragma -v0
-#endif
 
 /* Read formatted input from stdin into argument list arg.  */
 extern int vscanf (const char *__restrict __format, __gnuc_va_list __ap)

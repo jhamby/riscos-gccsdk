@@ -1,3 +1,8 @@
+Sun Nov 25 19:30:02 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/stdio.h: Removed multiple declarations of the same
+	functions.
+
 Tue Nov 13 00:12:05 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/chunkid01.s: End pointer of chunk branch table should point
