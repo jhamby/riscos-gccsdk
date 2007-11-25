@@ -1,3 +1,8 @@
+Sun Nov 25 11:36:06 PST 2007  Peter Naulls <peter@chocky.org>
+
+	* include/swis.h: Massive number of missing SWIs. Thanks to Rob F. Johnson.
+	* unix/stat.c: Add missing stat64 function - just call stat.
+
 Sun Nov 18 02:40:16 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* debug/dvsprintf.c: Synced with the latest Linux version.
