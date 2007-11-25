@@ -9,4 +9,4 @@ ab_package() {
  cp -av $S/src/wget$AB_EXEEXT COPYING $D 
 }
 
-
+autoconf
