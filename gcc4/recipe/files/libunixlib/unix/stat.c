@@ -31,3 +31,11 @@ stat (const char *filename, struct stat *buf)
   /* Perform the device specific open operation.  */
   return dev_funcall (buf->st_dev, stat, (filename, buf));
 }
+
+
+int
+stat64 (const char *filename, struct stat64 *buf)
+{
+  return stat(filename, (struct stat *)buf);
+}
+
