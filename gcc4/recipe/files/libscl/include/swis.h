@@ -143,10 +143,25 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define OS_ClaimProcessorVector        0x000069
 #define OS_Reset                       0x00006a
 #define OS_MMUControl                  0x00006b
+#define OS_ResyncTime                  0x00006c
 #define OS_PlatformFeatures	       0x00006d
-#define OS_SynchroniseCodeAreas	       0x00006e
+#define OS_SynchroniseCodeAreas        0x00006e
 #define OS_CallASWI		       0x00006f
+#define OS_AMBControl                  0x000070
 #define OS_CallASWIR12		       0x000071
+#define OS_SpecialControl              0x000072
+#define OS_EnterUSR32                  0x000073
+#define OS_EnterUSR26                  0x000074
+#define OS_VIDCDivider                 0x000075
+#define OS_NVMemory                    0x000076
+#define OS_ClaimOSSWI                  0x000077
+#define OS_TaskControl                 0x000078
+#define OS_DeviceDriver                0x000079
+#define OS_Hardware                    0x00007a
+#define OS_IICOp                       0x00007b
+#define OS_LeaveOS                     0x00007c
+#define OS_ReadLine32                  0x00007d
+#define OS_SubstituteArgs32            0x00007e
 #define OS_HeapSort32                  0x00007f
 #define OS_ConvertStandardDateAndTime  0x0000c0
 #define OS_ConvertDateAndTime          0x0000c1
@@ -179,8 +194,76 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define OS_ConvertNetStation           0x0000ea
 #define OS_ConvertFixedFileSize        0x0000eb
 #define OS_ConvertFileSize             0x0000ec
+#define OS_ConvertHex16                0x0000ed
+#define OS_ConvertCardinal8            0x0000ee
+#define OS_ConvertInteger8             0x0000ef
+#define OS_ConvertBinary8              0x0000f0
+#define OS_ConvertSpacedCardinal8      0x0000f1
+#define OS_ConvertSpacedInteger8       0x0000f2
+#define OS_ConvertFixedFileSize64      0x0000f3
+#define OS_ConvertFileSize64           0x0000f4
 
 #define IIC_Control                    0x000240
+
+#define Cache_Control                  0x000280
+#define Cache_Cacheable                0x000281
+#define Cache_Updateable               0x000282
+#define Cache_Disruptive               0x000283
+#define Cache_Flush                    0x000284
+
+#define Econet_CreateReceive           0x040000
+#define Econet_ExamineReceive          0x040001
+#define Econet_ReadReceive             0x040002
+#define Econet_AbandonReceive          0x040003
+#define Econet_WaitForReception        0x040004
+#define Econet_EnumerateReceive        0x040005
+#define Econet_StartTransmit           0x040006
+#define Econet_PollTransmit            0x040007
+#define Econet_AbandonTransmit         0x040008
+#define Econet_DoTransmit              0x040009
+#define Econet_ReadLocalStationAndNet  0x04000a
+#define Econet_ConvertStatusToString   0x04000b
+#define Econet_ConvertStatusToError    0x04000c
+#define Econet_ReadProtection          0x04000d
+#define Econet_SetProtection           0x04000e
+#define Econet_ReadStationNumber       0x04000f
+#define Econet_PrintBanner             0x040010
+#define Econet_ReadTransportType       0x040011
+#define Econet_ReleasePort             0x040012
+#define Econet_AllocatePort            0x040013
+#define Econet_DeAllocatePort          0x040014
+#define Econet_ClaimPort               0x040015
+#define Econet_StartImmediate          0x040016
+#define Econet_DoImmediate             0x040017
+#define Econet_AbandonAndReadReceive   0x040018
+#define Econet_Version                 0x040019
+#define Econet_NetworkState            0x04001a
+#define Econet_PacketSize              0x04001b
+#define Econet_ReadTransportName       0x04001c
+#define Econet_InetRxDirect            0x04001d
+#define Econet_EnumerateMap            0x04001e
+#define Econet_EnumerateTransmit       0x04001f
+#define Econet_HardwareAddresses       0x040020
+#define Econet_NetworkParameters       0x040021
+
+#define NetFS_ReadFSNumber             0x040040
+#define NetFS_SetFSNumber              0x040041
+#define NetFS_ReadFSName               0x040042
+#define NetFS_SetFSName                0x040043
+#define NetFS_ReadCurrentContext       0x040044
+#define NetFS_SetCurrentContext        0x040045
+#define NetFS_ReadFSTimeouts           0x040046
+#define NetFS_SetFSTimeouts            0x040047
+#define NetFS_DoFSOp                   0x040048
+#define NetFS_EnumerateFSList          0x040049
+#define NetFS_EnumerateFS              0x04004a
+#define NetFS_ConvertDate              0x04004b
+#define NetFS_DoFSOpToGivenFS          0x04004c
+#define NetFS_UpdateFSList             0x04004d
+#define NetFS_EnumerateFSContexts      0x04004e
+#define NetFS_ReadUserId               0x04004f
+#define NetFS_GetObjectUID             0x040050
+#define NetFS_EnableCache              0x040051
 
 #define Font_CacheAddr                 0x040080
 #define Font_FindFont                  0x040081
@@ -223,6 +306,8 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Font_FindField                 0x0400a6
 #define Font_ApplyFields               0x0400a7
 #define Font_LookupFont                0x0400a8
+#define Font_EnumerateCharacters       0x0400a9
+#define Font_ChangeArea                0x0400bf
 
 #define Wimp_Initialise                0x0400c0
 #define Wimp_CreateWindow              0x0400c1
@@ -285,11 +370,19 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Wimp_SetWatchdogState          0x0400fa
 #define Wimp_Extend                    0x0400fb
 #define Wimp_ResizeIcon                0x0400fc
+#define Wimp_AutoScroll                0x0400fd
+
+#define HostFS_HostVdu                 0x040100
+#define HostFS_TubeVdu                 0x040101
+#define HostFS_WriteC                  0x040102
 
 #define Sound_Configure                0x040140
 #define Sound_Enable                   0x040141
 #define Sound_Stereo                   0x040142
 #define Sound_Speaker                  0x040143
+#define Sound_Mode                     0x040144
+#define Sound_LinearHandler            0x040145
+#define Sound_SampleRate               0x040146
 #define Sound_Volume                   0x040180
 #define Sound_SoundLog                 0x040181
 #define Sound_LogScale                 0x040182
@@ -312,6 +405,16 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Sound_QBeat                    0x0401c6
 #define Sound_QInterface               0x0401c7
 
+#define NetPrint_ReadPSNumber          0x040200
+#define NetPrint_SetPSNumber           0x040201
+#define NetPrint_ReadPSName            0x040202
+#define NetPrint_SetPSName             0x040203
+#define NetPrint_ReadPSTimeouts        0x040204
+#define NetPrint_SetPSTimeouts         0x040205
+#define NetPrint_BindPSName            0x040206
+#define NetPrint_ListServers           0x040207
+#define NetPrint_ConvertStatusToString 0x040208
+
 #define ADFS_DiscOp                    0x040240
 #define ADFS_HDC                       0x040241
 #define ADFS_Drives                    0x040242
@@ -325,7 +428,15 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define ADFS_SetIDEController          0x04024a
 #define ADFS_IDEUserOp                 0x04024b
 #define ADFS_MiscOp                    0x04024c
+#define ADFS_SectorDiscOp              0x04024d
+#define ADFS_NOP2                      0x04024e
+#define ADFS_NOP3                      0x04024f
 #define ADFS_ECCSAndRetries            0x040250
+#define ADFS_LockIDE                   0x040251
+#define ADFS_FreeSpace64               0x040252
+#define ADFS_IDEDeviceInfo             0x040253
+#define ADFS_DiscOp64                  0x040254
+#define ADFS_ATAPIOp                   0x040255
 
 #define Podule_ReadID                  0x040280
 #define Podule_ReadHeader              0x040281
@@ -344,8 +455,29 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Podule_SetSpeed                0x04028e
 
 #define Debugger_Disassemble           0x040380
+#define Debugger_DisassembleThumb      0x040381
+
+#define SCSI_Version                   0x0403c0
+#define SCSI_Initialise                0x0403c1
+#define SCSI_Control                   0x0403c2
+#define SCSI_Op                        0x0403c3
+#define SCSI_Status                    0x0403c4
+#define SCSI_ReadControlLines          0x0403c5
+#define SCSI_EEProm                    0x0403c6
+#define SCSI_Reserve                   0x0403c7
+#define SCSI_List                      0x0403c8
+#define SCSI_TargetControl             0x0403c9
 
 #define FPEmulator_Version             0x040480
+#define FPEmulator_DeactivateContext   0x040481
+#define FPEmulator_ActivateContext     0x040482
+#define FPEmulator_ChangeContext       0x040483
+#define FPEmulator_ContextLength       0x040484
+#define FPEmulator_InitContext         0x040485
+#define FPEmulator_ExceptionDump       0x040486
+#define FPEmulator_Abort               0x040487
+#define FPEmulator_LoadContext         0x040488
+#define FPEmulator_SaveContext         0x040489
 
 #define FileCore_DiscOp                0x040540
 #define FileCore_Create                0x040541
@@ -357,6 +489,10 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define FileCore_DiscFormat            0x040547
 #define FileCore_LayoutStructure       0x040548
 #define FileCore_MiscOp                0x040549
+#define FileCore_SectorDiscOp          0x04054a
+#define FileCore_FreeSpace64           0x04054b
+#define FileCore_DiscOp64              0x04054c
+#define FileCore_Features              0x04054d
 
 #define Shell_Create                   0x0405c0
 #define Shell_Destroy                  0x0405c1
@@ -381,6 +517,10 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Draw_FlattenPathFP             0x040709
 #define Draw_TransformPath             0x04070a
 #define Draw_TransformPathFP           0x04070b
+#define Draw_FillClipped               0x04070c
+#define Draw_FillClippedFP             0x04070d
+#define Draw_StrokeClipped             0x04070e
+#define Draw_StrokeClippedFP           0x04070f
 
 #define ColourTrans_SelectTable        0x040740
 #define ColourTrans_SelectGCOLTable    0x040741
@@ -419,12 +559,43 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define ColourTrans_SetOppTextColour   0x040762
 #define ColourTrans_GenerateTable      0x040763
 
+#define RamFS_DiscOp                   0x040780
+#define RamFS_NOP1                     0x040781
+#define RamFS_Drives                   0x040782
+#define RamFS_FreeSpace                0x040783
+#define RamFS_NOP2                     0x040784
+#define RamFS_DescribeDisc             0x040785
+#define RamFS_DiscOp64                 0x040786
+
+#define SCSIFS_DiscOp                  0x040980
+#define SCSIFS_NOP1                    0x040981
+#define SCSIFS_Drives                  0x040982
+#define SCSIFS_FreeSpace               0x040983
+#define SCSIFS_NOP2                    0x040984
+#define SCSIFS_DescribeDisc            0x040985
+#define SCSIFS_TestReady               0x040986
+#define SCSIFS_NOP3                    0x040987
+#define SCSIFS_NOP4                    0x040988
+#define SCSIFS_NOP5                    0x040989
+#define SCSIFS_NOP6                    0x04098a
+#define SCSIFS_NOP7                    0x04098b
+#define SCSIFS_MiscOp                  0x04098c
+#define SCSIFS_SectorDiscOp            0x04098d
+#define SCSIFS_NOP8                    0x04098e
+#define SCSIFS_NOP9                    0x04098f
+#define SCSIFS_NOP10                   0x040990
+#define SCSIFS_NOP11                   0x040991
+#define SCSIFS_FreeSpace64             0x040992
+
 #define Super_Sample90                 0x040d80
 #define Super_Sample45                 0x040d81
 
 #define FilerAction_SendSelectedDirectory 0x040f80
 #define FilerAction_SendSelectedFile   0x040f81
 #define FilerAction_SendStartOperation 0x040f82
+
+#define SCSI_LogVersion                0x041080
+#define SCSI_LogList                   0x041081
 
 #define NFS_Mount                      0x0410c0
 #define NFS_MountList                  0x0410c1
@@ -460,6 +631,51 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Socket_Gettsize                0x041218
 #define Socket_Sendtosm                0x041219
 
+#define CD_Version                     0x041240
+#define CD_ReadData                    0x041241
+#define CD_SeekTo                      0x041242
+#define CD_DriveStatus                 0x041243
+#define CD_DriveReady                  0x041244
+#define CD_GetParameters               0x041245
+#define CD_SetParameters               0x041246
+#define CD_OpenDrawer                  0x041247
+#define CD_EjectButton                 0x041248
+#define CD_EnquireAddress              0x041249
+#define CD_EnquireDataMode             0x04124a
+#define CD_PlayAudio                   0x04124b
+#define CD_PlayTrack                   0x04124c
+#define CD_AudioPause                  0x04124d
+#define CD_EnquireTrack                0x04124e
+#define CD_ReadSubChannel              0x04124f
+#define CD_CheckDrive                  0x041250
+#define CD_DiscChanged                 0x041251
+#define CD_StopDisc                    0x041252
+#define CD_DiscUsed                    0x041253
+#define CD_AudioStatus                 0x041254
+#define CD_Inquiry                     0x041255
+#define CD_DiscHasChanged              0x041256
+#define CD_Control                     0x041257
+#define CD_Supported                   0x041258
+#define CD_Prefetch                    0x041259
+#define CD_Reset                       0x04125a
+#define CD_CloseDrawer                 0x04125b
+#define CD_IsDrawerLocked              0x04125c
+#define CD_AudioControl                0x04125d
+#define CD_LastError                   0x04125e
+#define CD_AudioLevel                  0x04125f
+#define CD_Register                    0x041260
+#define CD_Unregister                  0x041261
+#define CD_ByteCopy                    0x041262
+#define CD_Identify                    0x041263
+#define CD_ConvertToLBA                0x041264
+#define CD_ConvertToMSF                0x041265
+#define CD_ReadAudio                   0x041266
+#define CD_ReadUserData                0x041267
+#define CD_SeekUserData                0x041268
+#define CD_GetAudioParms               0x041269
+#define CD_SetAudioParms               0x04126a
+#define CD_SCSIUserOp                  0x04126b
+
 #define MessageTrans_FileInfo          0x041500
 #define MessageTrans_OpenFile          0x041501
 #define MessageTrans_Lookup            0x041502
@@ -471,8 +687,32 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define MessageTrans_CopyError         0x041508
 #define MessageTrans_Dictionary        0x041509
 
+#define PDumper_Info                   0x041b00
+#define PDumper_Claim                  0x041b01
+#define PDumper_Free                   0x041b02
+#define PDumper_Find                   0x041b03
+#define PDumper_StartJob               0x041b04
+#define PDumper_TidyJob                0x041b05
+#define PDumper_SetColour              0x041b06
+#define PDumper_PrepareStrip           0x041b07
+#define PDumper_LookupError            0x041b08
+#define PDumper_CopyFilename           0x041b09
+
 #define ResourceFS_RegisterFiles       0x041b40
 #define ResourceFS_DeregisterFiles     0x041b41
+
+#define Debugger_DebugAIF              0x041d40
+#define Debugger_BeingDebugged         0x041d41
+#define Debugger_StartDebug            0x041d42
+#define Debugger_EndDebug              0x041d43
+
+#define CDFS_ConvertDriveToDevice      0x041e80
+#define CDFS_SetBufferSize             0x041e81
+#define CDFS_GetBufferSize             0x041e82
+#define CDFS_SetNumberOfDrives         0x041e83
+#define CDFS_GetNumberOfDrives         0x041e84
+#define CDFS_GiveFileType              0x041e85
+#define CDFS_DescribeDisc              0x041e86
 
 #define DragASprite_Start              0x042400
 #define DragASprite_Stop               0x042401
@@ -492,10 +732,19 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Filter_RegisterPostFilter      0x042641
 #define Filter_DeRegisterPreFilter     0x042642
 #define Filter_DeRegisterPostFilter    0x042643
+#define Filter_RegisterRectFilter      0x042644
+#define Filter_DeRegisterRectFilter    0x042645
+#define Filter_RegisterCopyFilter      0x042646
+#define Filter_DeRegisterCopyFilter    0x042647
+#define Filter_RegisterPostRectFilter  0x042648
+#define Filter_DeRegisterPostRectFilter 0x042649
+#define Filter_RegisterPostIconFilter  0x04264a
+#define Filter_DeRegisterPostIconFilter 0x04264b
 
 #define TaskManager_TaskNameFromHandle 0x042680
 #define TaskManager_EnumerateTasks     0x042681
 #define TaskManager_Shutdown           0x042682
+#define TaskManager_StartTask          0x042683
 
 #define Squash_Compress                0x042700
 #define Squash_Decompress              0x042701
@@ -526,6 +775,21 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 
 #define Parallel_HardwareAddress       0x042ec0
 #define Parallel_Op                    0x042ec1
+
+#define Portable_Speed                 0x042fc0
+#define Portable_Control               0x042fc1
+#define Portable_ReadBMUVariable       0x042fc2
+#define Portable_WriteBMUVariable      0x042fc3
+#define Portable_CommandBMU            0x042fc4
+#define Portable_ReadFeatures          0x042fc5
+#define Portable_Idle                  0x042fc6
+#define Portable_Stop                  0x042fc7
+#define Portable_Status                0x042fc8
+#define Portable_Contrast              0x042fc9
+#define Portable_Refresh               0x042fca
+#define Portable_Halt                  0x042fcb
+#define Portable_SleepTime             0x042fcc
+#define Portable_SMBusOp               0x042fcd
 
 #define Territory_Number               0x043040
 #define Territory_Register             0x043041
@@ -561,11 +825,19 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Territory_ReadCalendarInformation 0x04305f
 #define Territory_NameToNumber         0x043060
 #define Territory_TransformString      0x043061
+#define Territory_IME                  0x043062
 #define Territory_ConvertTextToString  0x043075
+#define Territory_Select               0x043076
 
 #define ScreenBlanker_Control          0x043100
 
 #define TaskWindow_TaskInfo            0x043380
+
+#define Joystick_Read                  0x043f40
+#define Joystick_CalibrateTopRight     0x043f41
+#define Joystick_CalibrateBottomLeft   0x043f42
+
+#define MakePSFont_MakeFont            0x043440
 
 #define VProtect_FI                    0x044300
 #define VProtect_OF                    0x044301
@@ -577,6 +849,8 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Free_DeRegister                0x0444c1
 
 #define FSLock_Version                 0x044780
+#define FSLock_Status                  0x044781
+#define FSLock_ChangeStatus            0x044782
 
 #define DOSFS_DiscFormat               0x044b00
 #define DOSFS_LayoutStructure          0x044b01
@@ -595,6 +869,7 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define DMA_SuspendTransfer            0x046144
 #define DMA_ResumeTransfer             0x046145
 #define DMA_ExamineTransfer            0x046146
+#define DMA_AllocateLogicalChannels    0x046147
 
 #define ColourPicker_RegisterModel     0x047700
 #define ColourPicker_DeregisterModel   0x047701
@@ -640,6 +915,9 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define ArcFSMemMan_Slide              0x048a08
 #define ArcFSMemMan_LookupBlock        0x048a09
 
+#define DragAnObject_Start             0x049c40
+#define DragAnObject_Stop              0x049c41
+
 #define Omni_EnumerateMounts           0x04a200
 #define Omni_RegisterClient            0x04a201
 #define Omni_DeregisterClient          0x04a202
@@ -664,9 +942,40 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define Internet_LogLevel              0x04a242
 #define Internet_ReadErrorMessage      0x04a243
 
+#define ATAPI_GetDrives                0x04a740
+
 #define OmniNFS_OmniOp                 0x04a480
 
+#define PCI_ReadID                     0x050380
+#define PCI_ReadHeader                 0x050381
+#define PCI_ReturnNumber               0x050382
+#define PCI_EnumerateFunctions         0x050383
+#define PCI_IORead                     0x050384
+#define PCI_IOWrite                    0x050385
+#define PCI_MemoryRead                 0x050386
+#define PCI_MemoryWrite                0x050387
+#define PCI_ConfigurationRead          0x050388
+#define PCI_ConfigurationWrite         0x050389
+#define PCI_HardwareAddress            0x05038a
+#define PCI_ReadInfo                   0x05038b
+#define PCI_SpecialCycle               0x05038c
+#define PCI_FindByLocation             0x05038d
+#define PCI_FindByID                   0x05038e
+#define PCI_FindByClass                0x05038f
+#define PCI_RAMAlloc                   0x050390
+#define PCI_RAMFree                    0x050391
+#define PCI_LogicalAddress             0x050392
+
 #define MimeMap_Translate              0x050b00
+
+#define NetMonitor_PrintChar           0x080040
+#define NetMonitor_DefineTask          0x080041
+#define NetMonitor_AbandonTask         0x080042
+#define NetMonitor_ConvertFont         0x080043
+#define NetMonitor_UseFont             0x080044
+#define NetMonitor_RestoreFont         0x080045
+#define NetMonitor_StartWithCurrentFont 0x080046
+#define NetMonitor_StartWithInternalFont 0x080047
 
 #define PDriver_Info                   0x080140
 #define PDriver_SetInfo                0x080141
@@ -699,5 +1008,10 @@ extern _kernel_oserror *_swix (int swi_no, unsigned int, ...);
 #define PDriver_SetDriver              0x08015c
 #define PDriver_JPEGSWI                0x08015d
 
+#define SharedCLibrary_LibInitAPCS_A   0x080680
+#define SharedCLibrary_LibInitAPCS_R   0x080681
+#define SharedCLibrary_LibInitModule   0x080682
+#define SharedCLibrary_LibInitAPCS_32  0x080683
+#define SharedCLibrary_LibInitModuleAPCS_32 0x080684
 
 #endif
