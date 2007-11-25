@@ -22,13 +22,13 @@ ab_package()
 
   unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
 
-  mv include/libpng12 libpng12
+  #mv include/libpng12 libpng12
   rm -rf include
 
-  mv lib/o o
+  #mv lib/o o
   rm -rf lib
 
-  cp o/libpng12 o/libpng 
+  #cp o/libpng12 o/libpng 
 
   cd doc
   docdir=`echo *`
