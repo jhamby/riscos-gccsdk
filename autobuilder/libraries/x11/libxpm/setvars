@@ -1,2 +1,2 @@
 AB_INSTALL=yes
-
+sh autogen.sh
