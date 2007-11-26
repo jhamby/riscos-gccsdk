@@ -6,8 +6,6 @@ else
   echo "Autobuilder: Zipping package: $AB_PACKAGE"
 fi
 
-set -e
-
 # Reset vars for each package with default values:
 AB_MANPAGE=
 AB_ROVERSION=1
@@ -319,8 +317,13 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  else
    if [ "$AB_ZIPNAME" != "" ] ; then
      echo "Autobuilder: Packaging as $AB_ZIPNAME"
-     AB_ZIPNAME=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
- 
+     # Try to preserve any versioning present in the filename
+     zipname=$(sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"# <<<$AB_FULLNAME)
+      
+     if [ "$zipname" != "$AB_FULLNAME" ] ; then
+       AB_ZIPNAME=$zipname
+     fi
+
      AB_ZIP=$AB_DIR/$AB_ZIPNAME-$AB_ROVERSION$AB_TARGET.zip
    else  
      AB_ZIP=$AB_DIR/$AB_FULLNAME-$AB_ROVERSION$AB_TARGET.zip
