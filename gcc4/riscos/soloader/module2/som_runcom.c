@@ -445,6 +445,8 @@ command_run (const char *arg_string, int argc)
 
   if (state->elf_prog_args)
     *state->elf_prog_args++ = '\0';
+  else
+    state->elf_prog_args = "";
 
   if ((err = elffile_open (state->elf_prog_name, &state->elf_prog)) != NULL)
     goto error;
@@ -479,7 +481,7 @@ command_run (const char *arg_string, int argc)
      OS_FSControl,2 has already setup the OS environment for both command
      and args.  */
   if (state->ddeutils_is_present)
-    ddeutils_set_cl (state->elf_prog_args ?: NULL);
+    ddeutils_set_cl (state->elf_prog_args);
 
   som_PTR entry_point;
   if (state->elf_prog.dynamic_seg == NULL)
