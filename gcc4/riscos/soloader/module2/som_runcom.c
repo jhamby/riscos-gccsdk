@@ -479,7 +479,7 @@ command_run (const char *arg_string, int argc)
      OS_FSControl,2 has already setup the OS environment for both command
      and args.  */
   if (state->ddeutils_is_present)
-    ddeutils_set_cl (state->elf_prog_args);
+    ddeutils_set_cl (state->elf_prog_args ?: NULL);
 
   som_PTR entry_point;
   if (state->elf_prog.dynamic_seg == NULL)
