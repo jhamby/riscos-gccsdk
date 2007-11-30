@@ -26,6 +26,9 @@ for param in $@ ; do
           d)
             AB_DEBUG=yes
             ;;
+          D)
+            AB_THISDEBUG=yes
+            ;;
           p)
             AB_PACKONLY=yes
             ;;
@@ -261,7 +264,11 @@ ab_build() {
 
 
   AB_OUTPUT=/tmp/ab-output-$$-$RANDOM
-  $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT $AB_STDOUT
+  if [ "$AB_THISDEBUG" == "yes" -a "$IS_DEPENDENCY" == "0" ] ; then
+    AB_DEBUG=yes $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT $AB_STDOUT
+  else
+    $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT $AB_STDOUT
+  fi
 
   if ! grep -q "Autobuilder: Package stage completed" < $AB_OUTPUT ; then
     echo "Package $AB_PACKAGE: ***Failure***"
