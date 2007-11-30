@@ -13,11 +13,11 @@ ab_package() {
   
   unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
 
-  #mv include/* .
-  #rm -rf include
+  mv include/* .
+  rm -rf include
 
-  #mv lib/o o
-  #rm -rf lib
+  mv lib/o o
+  rm -rf lib
 
   rm -rf doc
 

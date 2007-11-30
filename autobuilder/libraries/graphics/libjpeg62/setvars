@@ -36,10 +36,10 @@ ab_package() {
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
-  #mv include/h h
+  mv include/h h
   rm -rf include
 
-  #mv lib/o o
+  mv lib/o o
   rm -rf lib
 
   mv doc/libjpeg62-$AB_PVERSION/* doc
