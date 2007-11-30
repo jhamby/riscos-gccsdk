@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 
 # Install wrapper for RISC OS, to handle ",e1f" extensions
 
@@ -27,6 +27,7 @@ for param in $@ ; do
   dest=$param
 done
 
+dest=$(sed -e s#//#/#g -e s#/\$## <<< $dest)
 
 if [ "$command" == "/usr/bin/install" ] ; then
   # If we're installing when one of the $installparams are directories, we need to expand
@@ -65,7 +66,7 @@ else
     exec $command $installparams $dest
   fi
 
-  if echo "$dest" | grep -q -E "/env/share/man/|/env/man/" ; then
+  if echo "$dest" | grep -q -E "/env/share/man|/env/man" ; then
     dest=$(echo $dest | sed -e "s#GCCSDK_ENV/share/#$AB_DIR/package/#" -e "s#GCCSDK_ENV/#$AB_DIR/package/#" -e "s#/man[0-9]##")
     # Skip option '-m'
     if [ "$(echo $installparams | cut -c -2)" == "-m" ] ; then
