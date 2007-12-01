@@ -1,12 +1,16 @@
+Tue Nov 27 07:11:25 CET 2007  Peter Naulls  <peter@chocky.org>
+
+	* som_runcom.c: Fix problem when no arguments where given.
+
 Wed Oct  3 19:11:01 2007  Lee Noar  <leenoar@sky.com>
 
 	* Makefile.am: Make sure -mmodule is passed to the linker.
 
-Tue Oct  2 22:33:43 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Tue Oct  2 22:33:43 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_runcom.h: Added missing header file.
 
-Sat Sep 29 17:02:28 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sat Sep 29 17:02:28 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_utilswis.c(som_query_object): added FIND_CLIENT () return value
 	check.
@@ -61,17 +65,17 @@ Sat Sep 29 17:02:28 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	link_list.c,som_elf.h,som_array.c,som_symlinks.h,link_list.h:
 	White-space and some other cosmetic changes.
 
-Thu Aug 30 01:45:19 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Thu Aug 30 01:45:19 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_os_swis.h: cleaned up the reidentation mess of the inline
 	assembler code.
 
-Fri Aug 24 23:53:23 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Fri Aug 24 23:53:23 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_startapp.s(som_start_app): make use of OS_TaskControl when
 	available to flatten the SVC stack.
 
-Tue Aug 21 02:24:37 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Tue Aug 21 02:24:37 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* link_list.c, link_list.h, som_alloc.c, som_alloc.h, som_array.c,
 	som_array.h, som_command.c, som_elf.c, som_elf.h, som_final.c,
@@ -80,19 +84,19 @@ Tue Aug 21 02:24:37 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 	som_swihandler.c, som_symlinks.c, som_symlinks.h, som_types.h,
 	som_utilswis.c, som_utilswis.h, som_workspace.h: GNU indentation.
 
-Sun Aug 19 12:20:02 2007  John Tytgat  <John.Tytgat@aaug.net>
+Sun Aug 19 12:20:02 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	Using autotools to do the building.
 	* configure.ac, Makefile.am: new.
 	* Makefile: removed.
 
-Fri Aug 17 23:08:28 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Fri Aug 17 23:08:28 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_register.c(som_deregister_client): set client's
 	rt_workspace_CLIENT_STRUCT_PTR to 0 to indicate succesful
 	deregistration.
 
-Wed Aug 15 20:45:46 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
+Wed Aug 15 20:45:46 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_runcom.c(command_run): we can't return from this routine with an
 	error after having called os_start_app() as otherwise the error "Not a
