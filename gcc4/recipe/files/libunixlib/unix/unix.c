@@ -892,7 +892,7 @@ find_redirection_type (const char *cmdline, char redirection_type)
 }
 
 /* Convert a command line that is contained as a single string, with
-   arguments deliminated by spaces, into a zero terminated string with
+   arguments delimited by spaces, into a zero terminated string with
    index markers.  */
 static int
 convert_command_line (struct proc *process, const char *cli, int cli_size)

@@ -10,6 +10,8 @@ export GCCSDK_SRCDIR=$GCCSDK_ROOT/srcdir
 # Where to install the cross-compiler and native RISC OS compiler.
 # For determining the install directory of the cross-compiler, if
 # GCCSDK_INSTALL_CROSSBIN is defined we use its value.
+GCCSDK_INSTALL_CROSSBIN=/home/riscos/elf/cross/bin
+
 if [ ! -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
   # Check if it ends on '.../bin':
   if [ "`basename $GCCSDK_INSTALL_CROSSBIN`" != "bin" ] ; then
