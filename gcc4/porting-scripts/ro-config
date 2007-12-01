@@ -390,6 +390,7 @@ export ac_cv_func_atexit=yes
 export ac_cv_func_bcopy=yes
 export ac_cv_func_bsd_getpgrp=yes
 export ac_cv_func_bsd_setpgrp=yes
+export ac_cv_func_bzero=yes
 export ac_cv_func_dtoa=yes
 export ac_cv_func_dtoa_r=yes
 export ac_cv_func_ecvt=no
