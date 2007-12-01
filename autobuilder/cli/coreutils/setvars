@@ -1,15 +1,10 @@
 
 AB_CATEGORY=cli
 
-AB_URL=http://www.mirror.ac.uk/mirror/ftp.gnu.org/gnu/coreutils/coreutils-5.2.1.tar.bz2
-#ab_url=http://www.mirror.ac.uk/mirror/ftp.gnu.org/gnu/coreutils/coreutils-6.9.tar.bz2
-
-#AB_MANPAGE=
-
 ab_package() {
   cp $S/src/*$AB_EXEEXT $S/COPYING $D
 }
 
 
-touch configure.ac aclocal.m4 stamp-h.in Makefile.in config.status
+#touch configure.ac aclocal.m4 stamp-h.in Makefile.in config.status
 
