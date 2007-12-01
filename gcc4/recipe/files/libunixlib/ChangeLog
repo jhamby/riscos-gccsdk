@@ -1,4 +1,8 @@
-Sun Nov 25 11:36:06 PST 2007  Peter Naulls <peter@chocky.org>
+Sat Dec  1 05:51:17 CET 2007  Peter Naulls  <peter@chocky.org>
+
+	* unix/unix.c: Fixed typo.
+
+Sun Nov 25 11:36:06 PST 2007  Peter Naulls  <peter@chocky.org>
 
 	* include/swis.h: Massive number of missing SWIs. Thanks to Rob F. Johnson.
 	* unix/stat.c: Add missing stat64 function - just call stat.
