@@ -1,20 +1,35 @@
---- Makefile.old	2003-02-15 13:19:52.000000000 +0000
-+++ Makefile	2003-02-15 15:01:20.000000000 +0000
-@@ -26,7 +26,7 @@
+--- Makefile.orig	2007-11-30 20:16:47.000000000 -0800
++++ Makefile	2007-11-30 20:33:16.000000000 -0800
+@@ -3,10 +3,10 @@
+ SHELL=/bin/sh
  
- all: libbz2.a bzip2 bzip2recover test
+ # To assist in cross-compiling
+-CC=gcc
+-AR=ar
++#CC=gcc
++#AR=ar
+ RANLIB=ranlib
+-LDFLAGS=
++#LDFLAGS=
+ 
+ BIGFILES=-D_FILE_OFFSET_BITS=64
+ CFLAGS=-Wall -Winline -O2 -g $(BIGFILES) $(DEBCFLAGS)
+@@ -23,13 +23,13 @@
+       decompress.o \
+       bzlib.o
+ 
+-all: libbz2.a bzip2 bzip2recover # test
++all: libbz2.a bzip2$(AB_EXEEXT) bzip2recover$(AB_EXEEXT) # test
  
 -bzip2: libbz2.so bzip2.o
-+bzip2: libbz2.a bzip2.o
- 	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2 bzip2.o -L. -lbz2
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2 bzip2.o -L. -lbz2
++bzip2$(AB_EXEEXT): libbz2.so bzip2.o
++	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2$(AB_EXEEXT) bzip2.o -L. -lbz2
  
- bzip2recover: bzip2recover.o
-@@ -52,7 +52,7 @@
- 	  -Wl,-soname,libbz2.so.$(somajor) $^ -lc
+-bzip2recover: bzip2recover.o
+-	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2recover bzip2recover.o
++bzip2recover$(AB_EXEEXT): bzip2recover.o
++	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2recover$(AB_EXEEXT) bzip2recover.o
  
- %.sho: %.c
--	$(CC) $(CFLAGS) -D_REENTRANT -fPIC -o $@ -c $<
-+	$(CC) $(CFLAGS) -D_REENTRANT -o $@ -c $<
- 
- %.o: %.c
- 	$(CC) $(CFLAGS) -D_REENTRANT -o $@ -c $<
+ libbz2.a: $(OBJS)
+ 	rm -f libbz2.a
