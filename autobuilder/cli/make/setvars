@@ -6,6 +6,6 @@ AB_MANPAGE="make.1"
 
 ab_package() {
   cp $S/make$AB_EXEEXT COPYING $D
-  ( cd $S ; make html )
-  cp -r $S/doc/make $D/doc
+  #( cd $S ; make html )
+  #cp -r $S/doc/make $D/doc
 }
