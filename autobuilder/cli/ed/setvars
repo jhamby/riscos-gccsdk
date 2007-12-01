@@ -1,7 +1,7 @@
 
 AB_CATEGORY=cli
 
-AB_MANPAGE="ed.1"
+AB_MANPAGE="doc/ed.1"
 
 ab_package() {
   cp -av $S/ed$AB_EXEEXT $S/COPYING $D
