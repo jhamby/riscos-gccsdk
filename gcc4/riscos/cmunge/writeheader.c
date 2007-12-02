@@ -829,8 +829,8 @@ static void handlers(handler_list head, const char *type, rettype rtype) {
       if (head != opt.irqs)
       {
         header_handler.exit = "Update r to alter return values\n"
-                              "Return VECTOR_PASS to claim (return via stack)\n"
-                              "Return VECTOR_CLAIM to pass on (return via r14)";
+                              "Return VECTOR_CLAIM to claim (return via stack)\n"
+                              "Return VECTOR_PASSON to pass on (return via r14)";
       }
       else
       {
