@@ -1107,7 +1107,7 @@ void WriteHeader(void) {
   fprintf(file, "#endif\n\n");
 
   if (opt.base)
-    fprintf(file, "extern int Image__RO_Base;\n\n");
+    fprintf(file, "extern const int Image__RO_Base;\n\n");
 
   if (opt.runnable == run_clib)
     mainp();
