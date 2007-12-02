@@ -7,41 +7,29 @@
 
 #include <stdio.h>
 
+#include "codecall_fnc.h"
 #include "MdlHdr.h"
 
-static void test1 (void);
-static void test2 (void);
-static void test3 (void);
-
 typedef struct {
-  const char *name;
+  char *name;
   void (*call)(void);
   } callentry_t;
 
-const callentry_t callvector[] = {
+char test1_non_const[] = "test1 non-const: ";
+
+const callentry_t callvector_const[] = {
   { "test1: ", test1 },
   { "test2: ", test2 },
   { "test3: ", test3 },
   { NULL, NULL }
   };
 
-static void
-test1 (void)
-{
-  puts("ok1");
-}
-
-static void
-test2 (void)
-{
-  puts("ok2");
-}
-
-static void
-test3 (void)
-{
-  puts("ok3");
-}
+callentry_t callvector_no_const[] = {
+  { test1_non_const, test1 },
+  { "test2: ", test2 },
+  { "test3: ", test3 },
+  { NULL, NULL }
+  };
 
 _kernel_oserror *
 gccmodule_init (const char *cmd_tail, int podule_base, void *pw)
@@ -52,15 +40,26 @@ gccmodule_init (const char *cmd_tail, int podule_base, void *pw)
         "test1: ok1\n"
         "test2: ok2\n"
         "test2: ok3\n"
+        "\n"
+        "test1 non-const: ok1\n"
+        "test2: ok2\n"
+        "test2: ok3\n"
         "No main program\n\n"
-        "---\n\n");
+        "---\n");
 
-  for (ce = callvector; ce->name != NULL; ++ce)
+  for (ce = callvector_const; ce->name != NULL; ++ce)
     {
     fputs (ce->name, stdout);
+//    printf (" %p ", ce->call);
+    (*(ce->call)) ();
+    }
+  fputc ('\n', stdout);
+  for (ce = callvector_no_const; ce->name != NULL; ++ce)
+    {
+    fputs (ce->name, stdout);
+//    printf (" %p ", ce->call);
     (*(ce->call)) ();
     }
 
   return NULL;
 }
-

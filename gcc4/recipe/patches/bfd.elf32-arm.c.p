@@ -1,5 +1,5 @@
---- bfd/elf32-arm.c.orig	2007-06-07 00:57:03.000000000 +0100
-+++ bfd/elf32-arm.c	2007-06-07 00:58:02.000000000 +0100
+--- bfd/elf32-arm.c.orig	2007-12-02 18:47:23.000000000 +0100
++++ bfd/elf32-arm.c	2007-12-02 18:46:30.000000000 +0100
 @@ -1470,7 +1470,7 @@
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -9,14 +9,7 @@
  
  #ifdef FOUR_WORD_PLT
  
-@@ -1564,12 +1564,50 @@
- 
- /* The entries in a PLT when using a DLL-based target with multiple
-    address spaces.  */
--static const bfd_vma elf32_arm_symbian_plt_entry [] = 
-+static const bfd_vma elf32_arm_symbian_plt_entry [] =
-   {
-     0xe51ff004,         /* ldr   pc, [pc, #-4] */
+@@ -1570,6 +1570,44 @@
      0x00000000,         /* dcd   R_ARM_GLOB_DAT(X) */
    };
  
@@ -55,20 +48,13 @@
 +  {
 +    0xe2878600,		/* add  r8, r7, #0x0XX00000 */
 +    0xe2888a00,		/* add	r8, r8, #0x000XX000 */
-+    0xe5b8f000		/* ldr  pc,[r8, #0x00000XXX]!  @ call function */
++    0xe5b8f000		/* ldr  pc, [r8, #0x00000XXX]!  @ call function */
 +  };
 +
  /* Used to build a map of a section.  This is required for mixed-endian
     code/data.  */
  
-@@ -1757,12 +1795,26 @@
-       bfd_signed_vma refcount;
-       bfd_vma offset;
-     } tls_ldm_got;
--    
-+
-     /* Small local sym to section mapping cache.  */
-     struct sym_sec_cache sym_sec;
+@@ -1763,6 +1801,20 @@
  
      /* For convenience in allocate_dynrelocs.  */
      bfd * obfd;
@@ -89,11 +75,10 @@
    };
  
  /* Create an entry in an ARM ELF linker hash table.  */
-@@ -1888,7 +1940,16 @@
+@@ -1888,6 +1940,15 @@
  	}
      }
  
--  if (!htab->splt 
 +  if (info->flag_pic == 2)
 +    {
 +      htab->plt_header_size = PLT_RISCOS_HEADER_SIZE;
@@ -103,11 +88,10 @@
 +	htab->plt_entry_size = PLT_RISCOS_EXEC_ENTRY_SIZE;
 +    }
 +
-+  if (!htab->splt
+   if (!htab->splt 
        || !htab->srelplt
        || !htab->sdynbss
-       || (!info->shared && !htab->srelbss))
-@@ -2004,9 +2065,198 @@
+@@ -2004,9 +2065,202 @@
    ret->obfd = abfd;
    ret->tls_ldm_got.refcount = 0;
  
@@ -208,6 +192,8 @@
 +				    /* | SEC_RELOC */
 +			            | SEC_CODE
 +				    | SEC_HAS_CONTENTS
++				    | SEC_LINKER_CREATED
++				    | SEC_READONLY
 +				    | SEC_IN_MEMORY));
 +  if (s == NULL
 +      || !bfd_set_section_alignment (abfd, s, 2))
@@ -221,7 +207,7 @@
 +    return FALSE;
 +
 +  /* Set size which is the size of __RelocCode code + its data (including
-+     RISCOS_MODULE_RELOCCODE_OFFSET_* and -1 sentinal value.  */
++     RISCOS_MODULE_RELOCCODE_OFFSET_* and -1 sentinel value.  */
 +  globals->ro_module_reloccode_size += 4*NUM_ELEM (riscos_module_reloccode) + 3*4;
 +  s->size = globals->ro_module_reloccode_size;
 +
@@ -237,6 +223,8 @@
 +				    /* | SEC_RELOC */
 +			            | SEC_CODE
 +				    | SEC_HAS_CONTENTS
++				    | SEC_LINKER_CREATED
++				    | SEC_READONLY
 +				    | SEC_IN_MEMORY));
 +  if (s == NULL
 +      || !bfd_set_section_alignment (abfd, s, 2))
@@ -249,7 +237,7 @@
 +      BSF_GLOBAL | BSF_FUNCTION, s, 0, (const char *) NULL, FALSE, FALSE, &bh))
 +    return FALSE;
 +
-+  /* Set size which is the size of __RelocData code + its data and -1 sentinal
++  /* Set size which is the size of __RelocData code + its data and -1 sentinel
 +     value.  */
 +  globals->ro_module_relocdata_size += 4*NUM_ELEM (riscos_module_relocdata) + 1*4;
 +  s->size = globals->ro_module_relocdata_size;
@@ -306,59 +294,53 @@
  /* Locate the Thumb encoded calling stub for NAME.  */
  
  static struct elf_link_hash_entry *
-@@ -2082,7 +2332,7 @@
-    ldr r12, __func_addr
-    bx  r12
-    __func_addr:
--   .word func    @ behave as if you saw a ARM_32 reloc.  
-+   .word func    @ behave as if you saw a ARM_32 reloc.
- 
-    (relocatable images)
-    .arm
-@@ -3005,6 +3255,42 @@
+@@ -3005,6 +3259,45 @@
    else
      addend = signed_addend = rel->r_addend;
  
 +  if (globals->bfd_ro_module_owner != NULL)
 +    {
-+      switch (r_type)
++      /* __RelocData entry:
++         Any ABS32 reloc in a rw data section pointing to RW data (ie module workspace), need to have a __RelocData entry.  */
++#define ro_module_is_datareloc(type, secname) \
++  ((type) == R_ARM_ABS32 \
++   && (!strncmp (secname, ".data", sizeof (".data")-1) && strcmp (secname, ".data.rel.ro")))
++      if (ro_module_is_datareloc (r_type, input_section->name)
++          && value + addend >= globals->ro_module_image_rw_base)
 +        {
-+         case R_ARM_ABS32:
-+            {
-+              if (strncmp (input_section->name, ".data", sizeof (".data")-1)
-+                  && strncmp (input_section->name, ".rodata", sizeof (".rodata")-1))
-+                break;
++          /* Relocation inside RW data, i.e. in module RMA workspace.  */
++          const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset - globals->ro_module_image_rw_base;
 +
-+              if (h != NULL) /* <= FIXME: gross hack: we should properly check if it points to RW area */
-+                {
-+                  /* Relocation inside RW data, i.e. in module RMA workspace.  */
-+                  bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset - globals->ro_module_image_rw_base;
++	  BFD_ASSERT (h != NULL); /* Just to make sure our dodgy allocation approach is not underallocating.  */
++          BFD_ASSERT (globals->ro_module_relocdata_offset < globals->ro_module_relocdata_size);
 +
-+                  BFD_ASSERT (globals->ro_module_relocdata_offset < globals->ro_module_relocdata_size);
++          bfd_put_32 (input_bfd, osection_addr + rel->r_offset, globals->s_ro_module_relocdata->contents + globals->ro_module_relocdata_offset);
++          globals->ro_module_relocdata_offset += 4;
++	}
 +
-+                  bfd_put_32 (input_bfd, osection_addr + rel->r_offset, globals->s_ro_module_relocdata->contents + globals->ro_module_relocdata_offset);
-+                  globals->ro_module_relocdata_offset += 4;
-+                }
-+              /* Fall through.  */
-+            }
-+          case R_ARM_GOT32:
-+          case R_ARM_GOTOFF32:
-+            {
-+              bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset - globals->ro_module_image_ro_base;
++      /* __RelocCode entry:
++         An ABS32 reloc in any .data* and .rodata* section needs to result in an __RelocCode entry.
++         Any GOT32/GOTOFF32 reloc needs to be mentioned in __RelocCode entry.  */
++#define ro_module_is_codereloc(type, secname) \
++  (((type) == R_ARM_ABS32 && (!strncmp (secname, ".data", sizeof (".data")-1) || !strncmp (secname, ".rodata", sizeof (".rodata")-1))) \
++   || (type) == R_ARM_GOT32 \
++   || (type) == R_ARM_GOTOFF32)
++      if (ro_module_is_codereloc (r_type, input_section->name))
++	{
++	  /* Relocation because of placing Module in RMA instead of application space.  */
++	  const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset - globals->ro_module_image_ro_base;
 +
-+              BFD_ASSERT (globals->ro_module_reloccode_offset < globals->ro_module_reloccode_size);
++	  BFD_ASSERT (globals->ro_module_reloccode_offset < globals->ro_module_reloccode_size);
 +
-+              bfd_put_32 (input_bfd, osection_addr + rel->r_offset, globals->s_ro_module_reloccode->contents + globals->ro_module_reloccode_offset);
-+              globals->ro_module_reloccode_offset += 4;
-+              break;
-+            }
-+        }
++          bfd_put_32 (input_bfd, osection_addr + rel->r_offset, globals->s_ro_module_reloccode->contents + globals->ro_module_reloccode_offset);
++          globals->ro_module_reloccode_offset += 4;
++	}
 +    }
 +
    switch (r_type)
      {
      case R_ARM_NONE:
-@@ -3706,7 +3992,8 @@
+@@ -3706,7 +3999,8 @@
           define _GLOBAL_OFFSET_TABLE in a different way, as is
           permitted by the ABI, we might have to change this
           calculation.  */
@@ -368,48 +350,7 @@
        return _bfd_final_link_relocate (howto, input_bfd, input_section,
  				       contents, rel->r_offset, value,
  				       rel->r_addend);
-@@ -3882,7 +4169,7 @@
- 	    globals->tls_ldm_got.offset |= 1;
- 	  }
- 
--	value = globals->sgot->output_section->vma + globals->sgot->output_offset + off 
-+	value = globals->sgot->output_section->vma + globals->sgot->output_offset + off
- 	  - (input_section->output_section->vma + input_section->output_offset + rel->r_offset);
- 
- 	return _bfd_final_link_relocate (howto, input_bfd, input_section,
-@@ -4040,7 +4327,7 @@
- 
- 	if ((tls_type & GOT_TLS_GD) && r_type != R_ARM_TLS_GD32)
- 	  off += 8;
--	value = globals->sgot->output_section->vma + globals->sgot->output_offset + off 
-+	value = globals->sgot->output_section->vma + globals->sgot->output_offset + off
- 	  - (input_section->output_section->vma + input_section->output_offset + rel->r_offset);
- 
- 	return _bfd_final_link_relocate (howto, input_bfd, input_section,
-@@ -4055,11 +4342,11 @@
- 	    (_("%B(%A+0x%lx): R_ARM_TLS_LE32 relocation not permitted in shared object"),
- 	     input_bfd, input_section,
- 	     (long) rel->r_offset, howto->name);
--	  return FALSE;	  
-+	  return FALSE;
- 	}
-       else
- 	value = tpoff (info, value);
--      
-+
-       return _bfd_final_link_relocate (howto, input_bfd, input_section,
- 				       contents, rel->r_offset, value,
- 				       rel->r_addend);
-@@ -4127,7 +4414,7 @@
-     size += strlen ((char *)attr->s) + 1;
-   return size;
- }
--  
-+
- /* Returns the size of the eabi object attributess section.  */
- bfd_vma
- elf32_arm_eabi_attr_size (bfd *abfd)
-@@ -4229,6 +4516,11 @@
+@@ -4229,6 +4523,11 @@
    asection *attr_section = NULL;
    bfd_byte *contents;
    bfd_vma size = 0;
@@ -421,15 +362,7 @@
  
    /* elf32_arm_merge_private_bfd_data will already have merged the
       object attributes.  Remove the input sections from the link, and set
-@@ -4248,14 +4540,83 @@
- 		 elf_link_input_bfd ignores this section.  */
- 	      input_section->flags &= ~SEC_HAS_CONTENTS;
- 	    }
--	    
-+
- 	  size = elf32_arm_eabi_attr_size (abfd);
- 	  bfd_set_section_size (abfd, o, size);
- 	  attr_section = o;
+@@ -4255,6 +4554,74 @@
  	  /* Skip this section later on.  */
  	  o->map_head.link_order = NULL;
  	}
@@ -469,7 +402,7 @@
 +	  /* Skip this section later on.  */
 +	  o->map_head.link_order = NULL;
 +        }
-     }
++    }
 +  if (globals->s_ro_module_reloccode != NULL
 +      || globals->s_ro_module_relocdata != NULL)
 +    {
@@ -501,12 +434,10 @@
 +
 +      BFD_ASSERT (ro_module_reloccode_section != NULL);
 +      BFD_ASSERT (ro_module_relocdata_section != NULL);
-+    }
-+
+     }
    /* Invoke the ELF linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
-     return FALSE;
-@@ -4269,6 +4630,58 @@
+@@ -4269,6 +4636,58 @@
        bfd_set_section_contents (abfd, attr_section, contents, 0, size);
        free (contents);
      }
@@ -550,7 +481,7 @@
 +    {
 +      asection *ro_section = globals->s_ro_module_relocdata;
 +
-+      BFD_ASSERT (globals->ro_module_relocdata_offset == globals->ro_module_relocdata_size - 4);
++      BFD_ASSERT (globals->ro_module_relocdata_offset <= globals->ro_module_relocdata_size - 4);
 +
 +      /* Write sentinel.  */
 +      bfd_put_32 (globals->bfd_ro_module_owner,
@@ -565,80 +496,26 @@
    return TRUE;
  }
  
-@@ -4681,7 +5094,7 @@
- {
-   char * p;
-   int len;
--  
-+
-   len = strlen (s) + 1;
-   p = (char *)bfd_alloc(abfd, len);
-   return memcpy (p, s, len);
-@@ -5767,6 +6180,23 @@
+@@ -5767,6 +6186,18 @@
  
        eh = (struct elf32_arm_link_hash_entry *) h;
  
 +      /* For RISC OS module __RelocCode / __RelocData support.  */
-+      switch (r_type)
++      if (ro_module_is_datareloc (r_type, sec->name))
 +        {
-+          case R_ARM_ABS32:
-+            /* Only ABS32 in data & rodata section are taken.  */
-+            if (strncmp (sec->name, ".data", sizeof (".data")-1)
-+                && strncmp (sec->name, ".rodata", sizeof (".rodata")-1))
-+              break;
-+            if (h != NULL) /* <= FIXME: gross hack: we should properly check if it points to RW area */
-+              htab->ro_module_relocdata_size += 4;
-+            /* Fall through */
-+          case R_ARM_GOT32:
-+          case R_ARM_GOTOFF32:
-+            htab->ro_module_reloccode_size += 4;
-+            break;
++	  /* This can allocate too much but we can only be sure of the
++	     exact size after linking, e.g. after we know that the relocs
++	     are in RO RMA space or in RW RMA workspace.  */
++          if (h != NULL)
++            htab->ro_module_relocdata_size += 4;
 +        }
++      if (ro_module_is_codereloc (r_type, sec->name))
++        htab->ro_module_reloccode_size += 4;
 +
        switch (r_type)
          {
  	  case R_ARM_GOT32:
-@@ -5798,7 +6228,7 @@
- 		  if (local_got_refcounts == NULL)
- 		    {
- 		      bfd_size_type size;
--		      
-+
- 		      size = symtab_hdr->sh_info;
- 		      size *= (sizeof (bfd_signed_vma) + sizeof(char));
- 		      local_got_refcounts = bfd_zalloc (abfd, size);
-@@ -6082,7 +6512,7 @@
-     *functionname_ptr = bfd_asymbol_name (func);
- 
-   return TRUE;
--}  
-+}
- 
- 
- /* Find the nearest line to a particular section and offset, for error
-@@ -6895,10 +7325,10 @@
- 	{
- 	  unsigned i;
- 	  for (i = 0; i < htab->plt_entry_size / 4; ++i)
--	    bfd_put_32 (output_bfd, 
-+	    bfd_put_32 (output_bfd,
- 			elf32_arm_symbian_plt_entry[i],
- 			splt->contents + h->plt.offset + 4 * i);
--	  
-+
- 	  /* Fill in the entry in the .rel.plt section.  */
- 	  rel.r_offset = (splt->output_section->vma
- 			  + splt->output_offset
-@@ -6909,7 +7339,7 @@
- 	     corresponds to this symbol.  This is the index of this symbol
- 	     in all the symbols for which we are making plt entries.  The
- 	     first entry in the procedure linkage table is reserved.  */
--	  plt_index = ((h->plt.offset - htab->plt_header_size) 
-+	  plt_index = ((h->plt.offset - htab->plt_header_size)
- 		       / htab->plt_entry_size);
- 	}
-       else
-@@ -6917,7 +7347,7 @@
+@@ -6917,7 +7348,7 @@
  	  bfd_vma got_offset, got_address, plt_address;
  	  bfd_vma got_displacement;
  	  asection * sgot;
@@ -647,7 +524,7 @@
  	  sgot = bfd_get_section_by_name (dynobj, ".got.plt");
  	  BFD_ASSERT (sgot != NULL);
  
-@@ -6930,7 +7360,10 @@
+@@ -6930,7 +7361,10 @@
  	     in all the symbols for which we are making plt entries.  The
  	     first three entries in .got.plt are reserved; after that
  	     symbols appear in the same order as in .plt.  */
@@ -659,7 +536,7 @@
  
  	  /* Calculate the address of the GOT entry.  */
  	  got_address = (sgot->output_section->vma
-@@ -7012,22 +7445,80 @@
+@@ -7012,22 +7446,80 @@
  			      splt->contents + h->plt.offset - 2);
  		}
  
@@ -754,39 +631,7 @@
  	    }
  
  	  /* Fill in the entry in the global offset table.  */
-@@ -7035,7 +7526,7 @@
- 		      (splt->output_section->vma
- 		       + splt->output_offset),
- 		      sgot->contents + got_offset);
--	  
-+
- 	  /* Fill in the entry in the .rel(a).plt section.  */
- 	  rel.r_addend = 0;
- 	  rel.r_offset = got_address;
-@@ -7234,7 +7725,7 @@
- 	      dyn.d_un.d_val = s->size;
- 	      bfd_elf32_swap_dyn_out (output_bfd, &dyn, dyncon);
- 	      break;
--	      
-+
- 	    case DT_RELSZ:
- 	    case DT_RELASZ:
- 	      if (!htab->symbian_p)
-@@ -7275,11 +7766,11 @@
- 		  dyn.d_un.d_val = 0;
- 		  for (i = 1; i < elf_numsections (output_bfd); i++)
- 		    {
--		      Elf_Internal_Shdr *hdr 
-+		      Elf_Internal_Shdr *hdr
- 			= elf_elfsections (output_bfd)[i];
- 		      if (hdr->sh_type == type)
- 			{
--			  if (dyn.d_tag == DT_RELSZ 
-+			  if (dyn.d_tag == DT_RELSZ
- 			      || dyn.d_tag == DT_RELASZ)
- 			    dyn.d_un.d_val += hdr->sh_size;
- 			  else if ((ufile_ptr) hdr->sh_offset
-@@ -7352,19 +7843,31 @@
+@@ -7352,19 +7844,31 @@
  	    {
  	      got_displacement = got_address - (plt_address + 16);
  
@@ -827,25 +672,7 @@
  	    }
  	}
  
-@@ -7996,7 +8499,7 @@
-       newsym = *src;
-       newsym.st_info = ELF_ST_INFO (ELF_ST_BIND (src->st_info), STT_FUNC);
-       newsym.st_value |= 1;
--      
-+
-       src = &newsym;
-     }
-   bfd_elf32_swap_symbol_out (abfd, src, cdst, shndx);
-@@ -8005,7 +8508,7 @@
- /* Add the PT_ARM_EXIDX program header.  */
- 
- static bfd_boolean
--elf32_arm_modify_segment_map (bfd *abfd, 
-+elf32_arm_modify_segment_map (bfd *abfd,
- 			      struct bfd_link_info *info ATTRIBUTE_UNUSED)
- {
-   struct elf_segment_map *m;
-@@ -8140,7 +8643,7 @@
+@@ -8140,7 +8644,7 @@
  #define elf_backend_default_use_rela_p 0
  #define elf_backend_rela_normal     0
  
@@ -854,39 +681,3 @@
  
  #include "elf32-target.h"
  
-@@ -8171,7 +8674,7 @@
-       htab->vxworks_p = 1;
-     }
-   return ret;
--}     
-+}
- 
- static void
- elf32_arm_vxworks_final_write_processing (bfd *abfd, bfd_boolean linker)
-@@ -8245,7 +8748,7 @@
-       htab->root.is_relocatable_executable = 1;
-     }
-   return ret;
--}     
-+}
- 
- static const struct bfd_elf_special_section
- elf32_arm_symbian_special_sections[] =
-@@ -8269,7 +8772,7 @@
- };
- 
- static void
--elf32_arm_symbian_begin_write_processing (bfd *abfd, 
-+elf32_arm_symbian_begin_write_processing (bfd *abfd,
- 					  struct bfd_link_info *link_info
- 					    ATTRIBUTE_UNUSED)
- {
-@@ -8285,7 +8788,7 @@
- }
- 
- static bfd_boolean
--elf32_arm_symbian_modify_segment_map (bfd *abfd, 
-+elf32_arm_symbian_modify_segment_map (bfd *abfd,
- 				      struct bfd_link_info *info)
- {
-   struct elf_segment_map *m;

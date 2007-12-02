@@ -3,7 +3,7 @@ CFLAGS = -O3 -mmodule
 CMHG = cmunge
 CMHGFLAGS = -tgcc -32bit
 
-COBJS = codecall.c
+COBJS = codecall.c codecall_fnc.c
 
 OBJS = $(COBJS:.c=.o) MdlHdr.o
 

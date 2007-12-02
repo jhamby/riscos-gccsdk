@@ -1,5 +1,5 @@
---- ld/scripttempl/elf.sc.orig	2007-08-12 19:11:22.000000000 +0200
-+++ ld/scripttempl/elf.sc	2007-08-12 19:08:24.000000000 +0200
+--- ld/scripttempl/elf.sc.orig	2007-12-02 20:17:58.000000000 +0100
++++ ld/scripttempl/elf.sc	2007-12-02 20:08:49.000000000 +0100
 @@ -236,6 +236,21 @@
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
@@ -31,12 +31,7 @@
    ${CREATE_SHLIB-${INTERP}}
    ${INITIAL_READONLY_SECTIONS}
    ${TEXT_DYNAMIC+${DYNAMIC}}
-@@ -358,16 +375,24 @@
-   ${CREATE_SHLIB-${SDATA2}}
-   ${CREATE_SHLIB-${SBSS2}}
-   ${OTHER_READONLY_SECTIONS}
-+
-   .eh_frame_hdr : { *(.eh_frame_hdr) }
+@@ -362,6 +379,8 @@
    .eh_frame     ${RELOCATING-0} : ONLY_IF_RO { KEEP (*(.eh_frame)) }
    .gcc_except_table ${RELOCATING-0} : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }
  
@@ -45,18 +40,7 @@
    /* Adjust the address for the data segment.  We want to adjust up to
       the same address within the page on the next page up.  */
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+. = ${DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}}
-   ${CREATE_SHLIB+${RELOCATING+. = ${SHLIB_DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}
-   ${CREATE_PIE+${RELOCATING+. = ${SHLIB_DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}
- 
-+  /* RISC OS module __RelocCode & __RelocData */
-+  .riscos.module.reloccode : { *(.riscos.module.reloccode) }
-+  .riscos.module.relocdata : { *(.riscos.module.relocdata) }
-+  ${RELOCATING+${CREATE_SHLIB-${RISCOS_RWBASE}}}
-+
-   /* Exception handling  */
-   .eh_frame     ${RELOCATING-0} : ONLY_IF_RW { KEEP (*(.eh_frame)) }
-   .gcc_except_table ${RELOCATING-0} : ONLY_IF_RW { *(.gcc_except_table .gcc_except_table.*) }
-@@ -403,6 +428,7 @@
+@@ -403,6 +422,7 @@
    ${RELOCATING+${DATARELRO}}
    ${OTHER_RELRO_SECTIONS}
    ${TEXT_DYNAMIC-${DYNAMIC}}
@@ -64,18 +48,32 @@
    ${DATA_GOT+${RELRO_NOW+${GOT}}}
    ${DATA_GOT+${RELRO_NOW+${GOTPLT}}}
    ${DATA_GOT+${RELRO_NOW-${SEPARATE_GOTPLT+${GOT}}}}
-@@ -437,8 +463,9 @@
+@@ -412,6 +432,7 @@
+ 
+   ${DATA_PLT+${PLT_BEFORE_GOT-${PLT}}}
+ 
++  ${RELOCATING+${CREATE_SHLIB-${RISCOS_RWBASE}}}
+   .data         ${RELOCATING-0} :
+   {
+     ${RELOCATING+${DATA_START_SYMBOLS}}
+@@ -435,10 +456,15 @@
+   ${RELOCATING+${OTHER_BSS_SYMBOLS}}
+   ${SBSS}
    ${BSS_PLT+${PLT}}
++  /* RISC OS module __RelocCode & __RelocData */
++  .riscos.module.relocdata : { *(.riscos.module.relocdata) }
++  .riscos.module.reloccode : { *(.riscos.module.reloccode) }
    .bss          ${RELOCATING-0} :
    {
 +   ${RELOCATING+${CREATE_SHLIB-${RISCOS_ZIBASE}}}
     *(.dynbss)
 -   *(.bss${RELOCATING+ .bss.* .gnu.linkonce.b.*})
++   /* Sort the .bss sections to avoid runtime check errors in SCL.  */
 +   *(.bss${RELOCATING+ SORT(.bss.*) .gnu.linkonce.b.*})
     *(COMMON)
     /* Align here to ensure that the .bss section occupies space up to
        _end.  Align after .bss to ensure correct alignment even if the
-@@ -446,6 +473,7 @@
+@@ -446,6 +472,7 @@
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */
     ${RELOCATING+. = ALIGN(. != 0 ? ${ALIGNMENT} : 1);}
@@ -83,7 +81,7 @@
    }
    ${RELOCATING+${OTHER_BSS_END_SYMBOLS}}
    ${RELOCATING+. = ALIGN(${ALIGNMENT});}
-@@ -454,6 +482,7 @@
+@@ -454,6 +481,7 @@
    ${RELOCATING+${OTHER_END_SYMBOLS}}
    ${RELOCATING+${END_SYMBOLS-_end = .; PROVIDE (end = .);}}
    ${RELOCATING+${DATA_SEGMENT_END}}
