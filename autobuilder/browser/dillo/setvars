@@ -5,6 +5,8 @@ AB_CATEGORY=browser
 
 AB_MANPAGE=debian/dillo.1
 
+# Undo Debian patch
+patch -p1 -R < debian/patches/01_i18n
 
 ab_package() {
   cp -av $H/\!Dillo $D
