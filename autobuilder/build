@@ -1,12 +1,12 @@
 #!/bin/bash -e
 
 AB_PACKAGES=""
-AB_DEBUG=no           # Leave source
-AB_PACKONLY=no        # Zip only from current directory
-AB_NOFETCH=no         # Using existing source fetched from last time
+export AB_DEBUG=no    # Leave source
+export AB_PACKONLY=no # Zip only from current directory
+export AB_NOFETCH=no  # Using existing source fetched from last time
 AB_VERBOSE=no         # Echo output
 AB_DEPS=yes           # Build dependencies first
-AB_TARGET=            # Name added to packages and logs
+export AB_TARGET=     # Name added to packages and logs
 
 for param in $@ ; do
   case "$param" in
@@ -67,9 +67,6 @@ check_dependencies() {
 
 check_dependencies
 
-export AB_PACKONLY
-export AB_DEBUG
-export AB_NOFETCH
 set -a
 
 # Autobuilder home
@@ -85,11 +82,9 @@ if [ -z "$AB_OUTPUTPACK" ] ; then
     echo "Autobuilder: will store the packages at $AB_OUTPUTPACK"
     mkdir $AB_OUTPUTPACK
   fi
-else
-  if [ ! -d "$AB_OUTPUTPACK" ] ; then
-    echo "Autobuilder: Autobuilder package directory $AB_OUTPUTPACK (defined by \$AB_OUTPUTPACK) does not exist."
-    exit 1
-  fi
+elif [ ! -d "$AB_OUTPUTPACK" ] ; then
+  echo "Autobuilder: Autobuilder package directory $AB_OUTPUTPACK (defined by \$AB_OUTPUTPACK) does not exist."
+  exit 1
 fi
 
 # Determine directory where the libraries will be published:
@@ -100,11 +95,9 @@ if [ -z "$AB_OUTPUTLIB" ] ; then
     echo "Autobuilder: will store the libraries at $AB_OUTPUTLIB"
     mkdir $AB_OUTPUTLIB
   fi
-else
-  if [ ! -d "$AB_OUTPUTLIB" ] ; then
-    echo "Autobuilder: Autobuilder library directory $AB_OUTPUTLIB (defined by \$AB_OUTPUTLIB) does not exist."
-    exit 1
-  fi
+elif [ ! -d "$AB_OUTPUTLIB" ] ; then
+  echo "Autobuilder: Autobuilder library directory $AB_OUTPUTLIB (defined by \$AB_OUTPUTLIB) does not exist."
+  exit 1
 fi
 
 # Check for values set in a local build directory
@@ -122,21 +115,28 @@ fi
 
 # GCCSDK Scripts
 if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
-  GCCSDK_INSTALL_ENV=/home/riscos/env
-fi
-if [ ! -d "$GCCSDK_INSTALL_ENV" ] ; then
-  echo "Autobuilder: directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV not defined or /home/riscos/env does not exist."
+  if [ -d "$GCCSDK_INSTALL_ENV" ] ; then
+    GCCSDK_INSTALL_ENV=/home/riscos/env
+  else
+    echo "Autobuilder: directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV is not defined and /home/riscos/env does not exist."
+    exit 1
+  fi
+elif [ ! -d "$GCCSDK_INSTALL_ENV" ] ; then
+  echo "Autobuilder: directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV is defined as $GCCSDK_INSTALL_ENV but that does not exist."
   exit 1
 fi
 export GCCSDK_INSTALL_ENV
-export AB_TARGET
 
 # GCCSDK Binaries
 if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
-  GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin
-fi
-if [ ! -d "$GCCSDK_INSTALL_CROSSBIN" ] ; then
-  echo "Autobuilder: directory with cross compiling tools does not exist. \$GCCSDK_INSTALL_CROSSBIN not defined or /home/riscos/cross/bin does not exist."
+  if [ -d "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+    GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin
+  else
+    echo "Autobuilder: directory with cross compiling tools does not exist. \$GCCSDK_INSTALL_CROSSBIN is not defined and /home/riscos/cross/bin does not exist."
+    exit 1
+  fi
+elif [ ! -d "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  echo "Autobuilder: directory with cross compiling tools does not exist. \$GCCSDK_INSTALL_CROSSBIN is defined as $GCCSDK_INSTALL_CROSSBIN but that does not exist."
   exit 1
 fi
 export GCCSDK_INSTALL_CROSSBIN
