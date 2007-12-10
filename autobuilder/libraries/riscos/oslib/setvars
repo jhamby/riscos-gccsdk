@@ -1,9 +1,16 @@
-AB_CVS_ROOT=:pserver:anonymous@ro-oslib.cvs.sourceforge.net:/cvsroot/ro-oslib
-AB_CVS_MODULE=OSLib
-AB_ZIPNAME=oslib-cvs-$(date +%Y%m%d)
+# OSLib trunk suppors both ELF as AOF building:
+AB_SVN=https://ro-oslib.svn.sourceforge.net/svnroot/ro-oslib/trunk/!OSLib
+AB_ZIPNAME=oslib-svn-$(date +%Y%m%d)
 
 AB_INSTALL=yes
 
-AB_MAKE="cd $PWD/\!OsLib; $AB_MAKE"
+# ro-make turns an empty $CC into our cross-compiler filename.
+if [ "$AB_ELFBUILD" == "yes" ] ; then
+AB_MAKE="CC=/usr/bin/cc $AB_MAKE oslib-elf"
+AB_INSTALLTARGET=install-elf
+else
+AB_MAKE="CC=/usr/bin/cc $AB_MAKE oslib-aof"
+AB_INSTALLTARGET=install-aof
+fi
 
 mkdir -p $D/include/oslib/oslib
