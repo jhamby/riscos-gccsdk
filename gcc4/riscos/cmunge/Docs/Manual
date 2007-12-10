@@ -32,7 +32,7 @@ Differences between CMunge and CMHG:
 ------------------------------------
 
 CMHG takes a textual input file, optionally preprocesses it, and produces an
-AOF output file.
+AOF or ELF output file.
 
 CMunge takes the same textual input file, again optionally preprocesses it,
 but produces a textual output file suitable for feeding to an assembler. The
@@ -54,7 +54,7 @@ Usage: cmunge [options] infile
 Options:
 
 -h              Output help about the command.
--o <file>       Name the output AOF file.
+-o <file>       Name the output AOF or ELF file.
 -s <file>       Name the output assembler file.
 -d <file>       Name a C header file that CMunge will generate.
 -x<type> <file> Name an export file to place SWI numbers in. Types can be :
@@ -80,9 +80,9 @@ Options:
                 When in 'CMHG' mode this will generate a warning but will
                 generate a header containing only CMHG-based features.
 -cmhg           Give warnings about CMHG incompatibilities.
--tgcc           Use GCC tool chain to generate output.
--tlcc           Use LCC tool chain to generate output.
--tnorcroft      Use Norcroft tool chain to generate output (default).
+-tgcc           Use GCC tool chain to generate ELF output.
+-tlcc           Use LCC tool chain to generate AOF output.
+-tnorcroft      Use Norcroft tool chain to generate AOF output (default).
 -32bit          Generate 32bit code.
 -26bit          Generate 26bit code (default).
 -apcs 3/<flags> Specify APCS variant to use - see below for more details.
