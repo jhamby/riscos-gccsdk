@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.c.orig	2007-06-15 16:23:40.000000000 +0100
-+++ gcc/config/arm/arm.c	2007-06-17 10:51:54.000000000 +0100
+--- gcc/config/arm/arm.c.orig	2007-12-11 00:50:05.000000000 +0100
++++ gcc/config/arm/arm.c	2007-12-11 00:19:27.000000000 +0100
 @@ -52,6 +52,7 @@
  #include "target-def.h"
  #include "debug.h"
@@ -728,7 +728,7 @@
  		  && cfun->static_chain_decl != NULL
  		  && ! cfun->machine->uses_anonymous_args) ? 4 : 0;
  
-@@ -10548,15 +10805,76 @@
+@@ -10548,15 +10805,77 @@
      }
  }
  
@@ -749,8 +749,9 @@
 +{
 +  int frame_size;
 +
-+  /* Don't do any stack checking if it was not asked for.  */
-+  if (! TARGET_APCS_STACK)
++  /* Don't do any stack checking if it was not asked for, or when producing
++     RISC OS Module code.  */
++  if (! TARGET_APCS_STACK || TARGET_MODULE)
 +    return false;
 +  
 +  /* We will always use stack checking for non-optimising
@@ -808,7 +809,7 @@
    unsigned long live_regs_mask;
    unsigned long func_type;
    int fp_offset = 0;
-@@ -10571,6 +10889,16 @@
+@@ -10571,6 +10890,16 @@
    if (IS_NAKED (func_type))
      return;
  
@@ -825,7 +826,7 @@
    /* Make a copy of c_f_p_a_s as we may need to modify it locally.  */
    args_to_push = current_function_pretend_args_size;
  
-@@ -10578,8 +10906,9 @@
+@@ -10578,8 +10907,9 @@
    live_regs_mask = arm_compute_save_reg_mask ();
  
    ip_rtx = gen_rtx_REG (SImode, IP_REGNUM);
@@ -836,7 +837,7 @@
      {
        if (IS_INTERRUPT (func_type))
  	{
-@@ -10699,7 +11028,7 @@
+@@ -10699,7 +11029,7 @@
       can be done with a single instruction.  */
    if ((func_type == ARM_FT_ISR || func_type == ARM_FT_FIQ)
        && (live_regs_mask & (1 << LR_REGNUM)) != 0
@@ -845,7 +846,7 @@
      emit_insn (gen_rtx_SET (SImode,
  			    gen_rtx_REG (SImode, LR_REGNUM),
  			    gen_rtx_PLUS (SImode,
-@@ -10800,13 +11129,67 @@
+@@ -10800,13 +11130,67 @@
  	}
      }
  
@@ -872,7 +873,7 @@
  
 +#if defined(ARM_STKOVF_SPLIT_SMALL) && defined(ARM_STKOVF_SPLIT_BIG)
 +      /* Explicit stack checks.  */
-+      if (arm_abi == ARM_ABI_APCS32 && TARGET_APCS_STACK)
++      if (arm_abi == ARM_ABI_APCS32 && arm_stack_check_needed ())
 +	{
 +	  rtx last = get_last_insn ();
 +	  rtx sl_reg = gen_rtx_REG (GET_MODE (stack_pointer_rtx), 10);
@@ -916,7 +917,7 @@
        if (IS_NESTED (func_type))
  	{
  	  /* Recover the static chain register.  */
-@@ -10815,8 +11198,11 @@
+@@ -10815,8 +11199,11 @@
  	    insn = gen_rtx_REG (SImode, 3);
  	  else /* if (current_function_pretend_args_size == 0) */
  	    {
@@ -930,7 +931,7 @@
  	      insn = gen_frame_mem (SImode, insn);
  	    }
  
-@@ -10826,18 +11212,14 @@
+@@ -10826,18 +11213,14 @@
  	}
      }
  
@@ -951,7 +952,7 @@
        do
  	{
  	  last = last ? NEXT_INSN (last) : get_insns ();
-@@ -10848,13 +11230,20 @@
+@@ -10848,13 +11231,20 @@
        /* If the frame pointer is needed, emit a special barrier that
  	 will prevent the scheduler from moving stores to the frame
  	 before the stack adjustment.  */
@@ -975,7 +976,7 @@
      arm_load_pic_register (0UL);
  
    /* If we are profiling, make sure no instructions are scheduled before
-@@ -10873,6 +11262,7 @@
+@@ -10873,6 +11263,7 @@
        emit_insn (gen_prologue_use (gen_rtx_REG (SImode, LR_REGNUM)));
        cfun->machine->lr_save_eliminated = 1;
      }
@@ -983,7 +984,7 @@
  }
  
  /* If CODE is 'd', then the X is a condition operand and the instruction
-@@ -11252,14 +11642,20 @@
+@@ -11252,14 +11643,20 @@
        if (NEED_GOT_RELOC && flag_pic && making_const_table &&
  	  (GET_CODE (x) == SYMBOL_REF || GET_CODE (x) == LABEL_REF))
  	{
@@ -1010,7 +1011,7 @@
  	}
        fputc ('\n', asm_out_file);
        return true;
-@@ -11947,7 +12343,7 @@
+@@ -11947,7 +12344,7 @@
  
    /* If we are using the stack pointer to point at the
       argument, then an offset of 0 is correct.  */
@@ -1019,7 +1020,7 @@
        && REGNO (addr) == SP_REGNUM)
      return 0;
  
-@@ -12714,7 +13110,7 @@
+@@ -12714,7 +13111,7 @@
      case ARM_BUILTIN_WSHUFH:
        icode = CODE_FOR_iwmmxt_wshufh;
        arg0 = TREE_VALUE (arglist);
@@ -1028,7 +1029,7 @@
        op0 = expand_expr (arg0, NULL_RTX, VOIDmode, 0);
        op1 = expand_expr (arg1, NULL_RTX, VOIDmode, 0);
        tmode = insn_data[icode].operand[0].mode;
-@@ -13503,17 +13899,33 @@
+@@ -13503,17 +13900,33 @@
  #if ARM_FT_UNKNOWN != 0
    machine->func_type = ARM_FT_UNKNOWN;
  #endif
@@ -1063,7 +1064,7 @@
    return get_hard_reg_initial_val (Pmode, LR_REGNUM);
  }
  
-@@ -13619,7 +14031,7 @@
+@@ -13619,7 +14032,7 @@
    if (flag_pic)
      arm_load_pic_register (live_regs_mask);
  
@@ -1072,7 +1073,7 @@
      emit_move_insn (gen_rtx_REG (Pmode, ARM_HARD_FRAME_POINTER_REGNUM),
  		    stack_pointer_rtx);
  
-@@ -13653,7 +14065,7 @@
+@@ -13653,7 +14066,7 @@
  	     it now.  */
  	  for (regno = LAST_ARG_REGNUM + 1; regno <= LAST_LO_REGNUM; regno++)
  	    if (live_regs_mask & (1 << regno)
@@ -1081,7 +1082,7 @@
  		     && (regno == THUMB_HARD_FRAME_POINTER_REGNUM)))
  	      break;
  
-@@ -13711,7 +14123,7 @@
+@@ -13711,7 +14124,7 @@
  	}
      }
  
@@ -1090,7 +1091,7 @@
      {
        amount = offsets->outgoing_args - offsets->locals_base;
  
-@@ -13768,7 +14180,7 @@
+@@ -13768,7 +14181,7 @@
    offsets = arm_get_frame_offsets ();
    amount = offsets->outgoing_args - offsets->saved_regs;
  
@@ -1099,7 +1100,7 @@
      {
        emit_insn (gen_movsi (stack_pointer_rtx, hard_frame_pointer_rtx));
        amount = offsets->locals_base - offsets->saved_regs;
-@@ -15057,7 +15469,7 @@
+@@ -15057,7 +15470,7 @@
      emit_move_insn (gen_rtx_REG (Pmode, LR_REGNUM), source);
    else
      {
@@ -1108,7 +1109,7 @@
  	addr = plus_constant(hard_frame_pointer_rtx, -4);
        else
  	{
-@@ -15100,7 +15512,7 @@
+@@ -15100,7 +15513,7 @@
        offsets = arm_get_frame_offsets ();
  
        /* Find the saved regs.  */
@@ -1117,7 +1118,7 @@
  	{
  	  delta = offsets->soft_frame - offsets->saved_args;
  	  reg = THUMB_HARD_FRAME_POINTER_REGNUM;
-@@ -15157,13 +15569,91 @@
+@@ -15157,13 +15570,91 @@
    return mode == SImode ? 255 : 0;
  }
  
@@ -1210,7 +1211,7 @@
      return regno;
  
    /* TODO: Legacy targets output FPA regs as registers 16-23 for backwards
-@@ -15171,9 +15661,12 @@
+@@ -15171,9 +15662,12 @@
    if (IS_FPA_REGNUM (regno))
      return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
  
