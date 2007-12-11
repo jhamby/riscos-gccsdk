@@ -16,12 +16,16 @@ ab_package() {
   cp -av $H/\!Wesnoth/docs/RISCOS $AD/\!Wesnoth/docs
 
   cp -r $S/data $AD/\!wesnoth
+  # Some of the language files have an @ char in that RISC OS
+  # doesn't like in filenames.
+  for fname in `find $AD -name "*@*"` ; do mv $fname ${fname/@/A} ; done
+
   cp -r $S/fonts $AD/\!wesnoth
   cp -r $S/images $AD/\!wesnoth
   cp -r $S/sounds $AD/\!wesnoth
   cp -r $S/music $AD/\!wesnoth
 
-  $AB_HOME/add-riscpkg -unixhome -unixsound -unixhome
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
 }
 
 export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec -lintl"

@@ -9,5 +9,5 @@ Set Wesnoth$Path <Obey$Dir>.
 RMEnsure UtilityModule 5.00 Set wesnoth$Heap ""
 RMEnsure UtilityModule 5.00 SetEval wesnoth$HeapMax 64
 
-<Obey$Dir>.wesnoth ><Obey$Dir>.stdout 2><Obey$Dir>.stderr -w 
+<Obey$Dir>.wesnoth ><Obey$Dir>.stdout 2><Obey$Dir>.stderr 
 
