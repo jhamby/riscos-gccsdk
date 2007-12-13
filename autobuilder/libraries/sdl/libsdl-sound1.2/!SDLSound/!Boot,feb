@@ -1,0 +1,6 @@
+| Boot file for SDLSound
+|
+If "<SDLSound$Dir>" = "" Then Set SDLSound$Dir <Obey$Dir>
+If "<SDLSound$Path>" = "" Then Set SDLSound$Path <Obey$Dir>.,<Obey$Dir>.SDL.
+
+IconSprites <SDLSound$Dir>.!Sprites
