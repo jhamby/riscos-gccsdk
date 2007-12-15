@@ -22,33 +22,33 @@ exeext=,e1f
 
 # Add onto exeext with ,e1f extension 
 adde1f() {
-  if grep -q "exeext=$" $e1fPATH ; then
-    echo RISC OS: Adding filetype for exeext for $e1fPATH
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed s#exeext=\$#"exeext=,e1f;"# < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
-  fi
-
-  # Fix modern autoconf badness with ,e1f
-  if grep -q "conftest.exe a.out" $e1fPATH ; then
-    echo RISC OS: Adding extra filetype checks for $e1fPATH
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed -e s#"conftest.exe a.out"#"conftest.exe *,e1f !RunImage a.out"# \
-        -e s#"[ab].out )"#"[ab].out | *,e1f )"# \
-       < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
-  fi
-
-  # Fix some tests that assume no file extension for binaries
-  if grep -q -- "-s conftest;" $e1fPATH ; then
-    echo RISC OS: Adding filetype for binary tests for $e1fPATH
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
-  fi
+#  if grep -q "exeext=$" $e1fPATH ; then
+#    echo RISC OS: Adding filetype for exeext for $e1fPATH
+#    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+#    sed s#exeext=\$#"exeext=,e1f;"# < $e1fPATH > $tmpconfigure
+#    mv $tmpconfigure $e1fPATH
+#    chmod +x $e1fPATH
+#  fi
+#
+#  # Fix modern autoconf badness with ,e1f
+#  if grep -q "conftest.exe a.out" $e1fPATH ; then
+#    echo RISC OS: Adding extra filetype checks for $e1fPATH
+#    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+#    sed -e s#"conftest.exe a.out"#"conftest.exe *,e1f !RunImage a.out"# \
+#        -e s#"[ab].out )"#"[ab].out | *,e1f )"# \
+#       < $e1fPATH > $tmpconfigure
+#    mv $tmpconfigure $e1fPATH
+#    chmod +x $e1fPATH
+#  fi
+#
+#  # Fix some tests that assume no file extension for binaries
+#  if grep -q -- "-s conftest;" $e1fPATH ; then
+#    echo RISC OS: Adding filetype for binary tests for $e1fPATH
+#    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+#    sed s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# < $e1fPATH > $tmpconfigure
+#    mv $tmpconfigure $e1fPATH
+#    chmod +x $e1fPATH
+#  fi
 
   # Add !RunImage,$exeext to the list of possible default compiler output filenames.
   if grep -q -- "ac_outfiles=\"a_out.exe" $e1fPATH ; then
