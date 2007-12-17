@@ -1,365 +1,189 @@
 /* RISC OS to Unix format file name conversion.
    (c) Copyright 1996, 2000, Nick Burrett.
+   (c) Copyright 2007 GCCSDK Developers.
 
    This source provides one function:
-      char *riscos_to_unix (const char *riscos, char *unix)
-
-   A filename passed in 'riscos' is translated and stored in a
-   buffer 'unix'. A pointer to 'unix' is also return on exit
-   from the function.  The user must have previously declared
-   a suitably sized buffer for the Unix format filename.
-
-   Last modified: 27 December 2000 <nick@dsvr.net>  */
+      extern char *riscos_to_unix (char *riscos)
+   
+   In cross-compilation builds (CROSS_COMPILE set) there is support
+   to map "MyPath:foo.h" into "/a/directory/path/foo.h" when environment
+   variable MYPATH_PATH is set to "/a/directory/path".  The XYZ_PATH
+   environment variable can be a comma separated search path.  */
 
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <sys/stat.h>
 
 /* #define DEBUG */
+/* #define CROSS_COMPILE */
+/* #define TEST */
 
-/* A list of prefixes we will try to swap round.  */
-
-static const char *const prefixes[] =
-{
-  "java", "class", "jar", "lang",
-  "f", "for", "fpp", "p", "pas", "ph", "gpi",
-  "cc", "cxx", "cpp", "c++", "c", "m", "rpo",
-  "i", "ii", "h", "hpp", "i", "s", "l", "o", "y",
-  "ads", "adb", "ada", "ali", "adc", "xrb", "xrs", 0
-};
-
-static int
-get_directory_name (const char *input, char *output)
-{
-  const char *t = 0;
-
-  if (*input == '\0')
-    return 0;
-
-  if (t)
-  {
-    strncpy (output, input, t - input);
-    output[t - input] = '\0';
-    return 1;
-  }
-  else
-  {
-  /* If we reach here, we have four possibilities:
-     1. fname
-     2. directory/fname
-     3. .
-     4. ..
-     none of which need any conversion. No.1 has both compatible with
-     RISC OS and Unix, and nos. 2-4 are already in Unix form.  */
-    strcpy (output, input);
-    return 0;
-  }
-}
-
-static char *
-add_directory_name (char *o, const char *i)
-{
-#ifdef DEBUG
-  printf ("add_dir_name: i = '%s'\n", i);
-#endif
-
-  /* Root directory ($) can be ignored since output is only a '/'.
-     The backslash is automatically output at the end of the string.  */
-  if (i[1] == '\0')
-    {
-      switch (i[0])
-	{
-	case '$':
-	  /* Do nothing for the root directory becuase a '/' is
-	     automatically added at the end.  */
-	  break;
-	case '^':
-	  /* Parent directory. In Unix this is '../' */
-	  *o++ = '.';
-	  *o++ = '.';
-	  break;
-	case '@':
-	case '.':
-	  /* Currently selected directory. In Unix this is './' */
-	  *o++ = '.';
-	  break;
-	case '%':
-	  /* The library directory.  In Unix this is '/lib'.  */
-	  *o++ = '/';
-	  *o++ = 'l';
-	  *o++ = 'i';
-	  *o++ = 'b';
-	  break;
-	default:
-	  /* Cope with one letter directories.  */
-	  *o++ = i[0];
-	  break;
-	}
-    }
-  else
-    {
-      strcpy (o, i);
-      o += strlen (i);
-    }
-  /* Look out for the :^ and :/ constructs.  */
-  if (o[-2] == ':' && o[-1] == '^')
-  {
-    o[-1] = '/';
-    *o++ = '.';
-    *o++ = '.';
-  }
-  if (o[-2] == ':' && o[-1] == '/')
-    *o++ = '.';
-  else
-    *o++ = '/';
-
-  *o++ = '\0';
-  return o - 1;
-}
-
-static char *
-add_directory_and_prefix (char *output, char *dir, const char *prefix)
-{
-  /* Output in the form: 'dir.prefix' */
-  strcpy (output, dir);
-  output += strlen (dir);
-  *output++ = '.';
-  strcpy (output, prefix);
-  output += strlen (prefix);
-  *output++ = '\0';
-  return output - 1;
-}
-
-static int
-is_prefix (const char *name)
-{
-  const char *t1;
-  int x = 0;
-  /* If there is more than one dot left in the filename, then this
-     cannot be the prefix.  */
-  if ((t1 = strchr (name, '.')) != strrchr (name, '.'))
-    return 0;
-
-  if (t1 == NULL)
-    t1 = name + strlen(name);
-
-  while (prefixes[x] != 0)
-    {
-      /* Prefixes must be compared in a case-insensitive manner.  */
-      if (strncasecmp (prefixes[x], name, t1 - name) == 0)
-	return 1;
-      x++;
-    }
-  return 0;
-}
-
-static int
-one_dot (const char *name)
-{
-  int x = 0;
-
-  while (*name)
-    if (*name++ == '.')
-      x++;
-  return (x == 1) ? 1 : 0;
-}
+extern char *riscos_to_unix (char *riscos);
 
 char *
-riscos_to_unix (const char *filename, char *output)
+riscos_to_unix (char *riscos)
 {
-  char *o;
-  const char *i;
-  char tempbuf[256];
-  char *temp;
-  int flag = 0, skip;
-
-  o = output;
-  i = filename;
-  *o = '\0';
-
-  /* Fast case. Look for a `.', `..' or `/'.  */
-  if (filename[0] == '.' && filename[1] == '\0')
-    {
-      *output++ = '.';
-      *output = '\0';
-      return output;
-    }
-
-  if (filename[0] == '.' && filename[1] == '.' && filename[2] == '\0')
-    {
-      *output++ = '.';
-      *output++ = '.';
-      *output = '\0';
-      return output;
-    }
-
-  if (filename[0] == '.' && filename[1] == '.'
-      && filename[2] == '/' && filename[3] == '\0')
-    {
-      *output++ = '.';
-      *output++ = '.';
-      *output = '\0';
-      return output;
-    }
-
-  if (filename[0] == '/' && filename[1] == '\0')
-    {
-      *output++ = '/';
-      *output = '\0';
-      return output;
-    }
-
-  if (filename[0] == '.' && filename[1] == '/' && filename[2] == '\0')
-    {
-      *output++ = '.';
-      *output = '\0';
-      return output;
-    }
-
-  /* If we take a file name like:
-     IDEFS::HD.$.Work.gcc.gcc-272.config.arm.c.rname
-     we would like to convert it to:
-     /IDEFS::HD.$/Work/gcc/gcc-272/config/arm/rname.c
-
-     Firstly try and locate a '.$'. Anything before this just specifies
-     a file system.  */
-  temp = strstr (filename, ".$");
-  if (temp != NULL)
-    {
-      /* We've found a '.$' */
-      if (*i != '/')
-        *output++ = '/';
-      temp+= 2;
-      while (i != temp)
-	*output++ = *i++;
-      /* Copy across the '.$' */
-      *output++ = '/';
-      i++;
-    }
-  else
-    {
-      temp = strchr (filename, ':');
-      if (temp)
-	{
-	/* In a cross-compiling environment we need to find a way of supporting
-	   RISC OS filenames such as DeskLib:foobar.h.  I think the best solution
-	   is to look for a environment variable of similar name (i.e.
-	   DESKLIB_PATH) which (if found) we will substitute into the resulting
-	   file name in place of the `DeskLib:'.  */
-	  char env[256], *e;
-	  int x;
-
-	  for (x = 0, e = (char *) filename; e != temp; e++)
-	    env[x++] = toupper (*e);
-	  env[x] = '\0';
-	  /*strncpy (env, filename, temp - filename); */
-	  strcpy (env + (temp - filename), "_PATH");
-	  e = getenv (env);
-#ifdef DEBUG
-	  printf ("looking for `%s' (%s)\n", env,
-		  (e) ? "found" : "not found");
-#endif
-	  if (e)
-	    {
-	      /* Found a matching environment variable.  */
-	      output = stpcpy (output, e);
-	      *output++ = '/';
-	      i += temp - filename + 1;
-	    }
-	}
-    }
-
-  while ((skip = get_directory_name (i, tempbuf)))
-    {
-#ifdef DEBUG
-      printf ("i = '%s', tempbuf = '%s'\n", i, tempbuf);
-#endif
-	{
-	  output = add_directory_name (output, tempbuf);
-	  /* Add 1 to get past dot.  */
-	  i += strlen (tempbuf) + 1;
-	}
-    }
-#ifdef DEBUG
-  printf ("final i = '%s', tempbuf = '%s'\n", i, tempbuf);
-#endif
-
-  if (!flag)
-    {
-      strcpy (output, tempbuf);
-    }
-#ifdef TEST
-  printf ("input = '%s'\noutput = '%s'\n", filename, o);
-#endif
-  return o;
-}
-
-#ifdef TEST
 #ifdef __riscos__
-#include <unixlib/local.h>
-
-static void test (const char *input)
-{
-  char out[256], name[256];
-  int flags = 0;
-
-  riscos_to_unix (input, out);
-  __riscosify (out, 0, flags, name, sizeof (name), NULL);
-  printf ("uname = %s\n", name);
-}
+  return riscos;
 #else
-static void test (const char *input)
-{
-  char out[256];
-  riscos_to_unix (input, out);
-}
+  const char *in;
+  const char *pathprefix;
+
+  for (in = riscos; *in && *in != ':'; ++in)
+    /* */;
+  pathprefix = (*in == ':') ? in : NULL;
+#ifdef DEBUG
+  printf ("In: '%s'\n", riscos);
+  printf ("  pathprefix: '%s'\n", pathprefix ? pathprefix : "--NONE--");
 #endif
+  /* Quick case.  */
+  if (pathprefix == NULL)
+    return riscos;
+
+  if (pathprefix - riscos < (unsigned int)(64 - sizeof ("_PATH")))
+    {
+      char env[64];
+      const char *es;
+      char *ed;
+      const char *e;
+
+      for (es = (*riscos == '/') ? riscos + 1 : riscos, ed = env;
+	   es != pathprefix; ++es, ++ed)
+	*ed = toupper (*es);
+      strcpy (ed, "_PATH");
+      e = getenv (env);
+#ifdef DEBUG
+      printf ("  path: '%s' gives '%s'\n", env, e ? e : "--NONE--");
+#endif
+      if (e != NULL)
+	{
+	  for (/* */; *e == ' ' || *e == ','; ++e)
+	    /* */;
+	  if (*e)
+	    {
+	      char *out = malloc (strlen (e) + strlen (riscos) + 1);
+	      while (1)
+	        {
+	          const char *ed;
+		  struct stat buf;
+	          for (ed = e; *ed && *ed != ',' && *ed != ' '; ++ed)
+		    /* */;
+		  memcpy (out, e, ed - e);
+		  if (pathprefix[1] != '/')
+		    out[ed - e] = '/';
+		  strcpy (out + (ed - e) + 1, pathprefix + 1);
+		  for (/* */; *ed == ' ' || *ed == ','; ++ed)
+	            /* */;
+		  if (*ed == '\0' || !stat (out, &buf))
+		    break;
+		  e = ed;
+		}
+	      free (riscos);
+	      return out;
+	    }
+        }
+    }
+
+  return riscos;
+#endif
+}
+
+#ifdef TEST
+#  ifdef __riscos__
+#    include <unixlib/local.h>
+#  endif
+static void
+test (const char *input, const char *expected)
+{
+  char *out;
+#  ifdef __riscos__
+  char ul_rname[256];
+  char ul_uname[256];
+#  endif
+
+  printf ("Test: '%s'\n", input);
+  out = riscos_to_unix (strdup (input));
+#  ifdef __riscos__
+  __unixify (input, 0, ul_uname, sizeof (ul_uname), 0);
+  __riscosify (out, 0, 0, ul_rname, sizeof (ul_rname), NULL);
+#  endif
+  if (!strcmp (out, expected))
+    printf ("  ...ok (%s)\n", expected);
+  else
+    printf ("  ...**NOT** OK: expected '%s', got '%s'\n", expected, out);
+#  ifdef __riscos__
+  /* The following test just shows that this implementation is slightly
+     different than unixify.  */
+  if (strcmp (out, ul_uname))
+    printf ("  ...output is **NOT** same as unixify() gives: '%s'\n", ul_uname);
+  /* This test just shows that going from RISC OS -> Unix -> RISC OS can
+     not always be done without loss.  */
+  if (strcmp (input, ul_rname))
+    printf ("  ...input is **NOT** same as riscosify() gives: '%s'\n", ul_rname);
+#  endif
+  free (out);
+}
 
 int
 main (void)
 {
-  char out[256], name[256];
-  test ("machmode.def");
-  test ("DeskLib:foobar.h");
-  test ("IDEFS::HD.$.Work.gcc.gcc-272.config.arm.c.rname");
-  test ("IDEFS::HD.$.Work.gcc.gcc-272.config.arm.for.rname");
-  test ("gcc.gcc-272.config.arm.cpp.rname");
-  test ("ali.rname");
-  test ("rname.xrb");
-  test ("config/arm/rname.c");
-  test ("/arm/rname.c");
-  test ("$.fred.jim.harry.c.smart");
-  test ("^.harry.c.smart");
-  test ("@.ohyeah.c.smart");
-  test ("<GCC$Dir>.funky.monky.cc.smart");
-  test ("^.^.^.^.cc.up.we.go.cc.cool");
-  test ("cc.c++.c.for.lots.of.prefixes.cc.cool");
-  test ("../cc.cool");
-  test ("./././c.cool");
-  test ("../../../c.smart");
-  test ("funky.cold.medina.c");
-  test ("a.c");
-  test ("c.a");
-  test ("%.make");
-  test ("%.something.in.the.library");
-  test ("aa.c");
-  test ("c.aa");
-  test ("hello.world");
-  test ("objects/EltNode-h");
-  test ("objects.EltNode-m");
-  test ("GCC:objc/list.h");
-  test ("gcc:^.getopt.c");
-  test ("/gcc:/../getopt.c");
-  test ("gcc:/../getopt.c");
-  test ("gcc:/getopt.c");
-  test ("/idefs::hd.$.fred.preset.s");
-  test ("/idefs::hd.$/fred/preset.s");
-  test ("c/jimmyhill");
-  test (".");
-  test ("../../arm-riscos-aof/libiberty/libiberty");
-  test ("../../bin/arm-riscos-aof/2_95_2/apcs26/hard/arch2/unixlib/libio");
+#ifdef CROSS_COMPILE
+  setenv("TESTPATH_PATH", ", nopath/p, HostFS::bad HostFS::Disc/$/put/valid/path/here  ,last.pointless, (see-testpath-definition-in-source-to-remove-problem)", 1);
+  setenv("MORETEST_PATH", "nospacesor_commas_should/return/whole-thing", 1);
+  setenv("LASTTEST_PATH", "one two three, ,,thisone", 1);
+  setenv("DESKLIB_PATH", "/home/adamr/desklib-aof/\\!DeskLib/include, /home/adamr/desklib-aof/\\!DeskLib/oldinclude", 1);
+#endif
+
+  /* XXX_PATH testing (CROSS_COMPILE only).  */
+  test ("GCC:objc/list.h",
+        "GCC:objc/list.h");
+  test ("gcc:^.getopt.c",
+        "gcc:^.getopt.c");
+  test ("/gcc:/../getopt.c",
+        "/gcc:/../getopt.c");
+  test ("gcc:/../getopt.c",
+        "gcc:/../getopt.c");
+  test ("gcc:/getopt.c",
+        "gcc:/getopt.c");
+  test ("Lasttest:dir/whatever.c",
+#ifdef CROSS_COMPILE
+        "thisone/dir/whatever.c");
+#else
+        "/Lasttest:dir/whatever.c");
+#endif
+  test ("TestPath:inetdown.h",
+#ifdef CROSS_COMPILE
+        "(see-testpath-definition-in-source-to-remove-problem)/inetdown.h");
+#else
+        "/TestPath:inetdown.h");
+#endif
+  test ("Moretest:none",
+#ifdef CROSS_COMPILE
+        "nospacesor_commas_should/return/whole-thing/none");
+#else
+        "/Moretest:none");
+#endif
+  test ("Nopathhere:nothing.to.see.c.here",
+#ifdef CROSS_COMPILE
+        "Nopathhere:nothing.to.see.c.here");
+#else
+        "Nopathhere:nothing.to.see.c.here");
+#endif
+  test ("DeskLib:Wimp.h",
+#ifdef CROSS_COMPILE
+        "/home/adamr/desklib-aof/\\!DeskLib/oldinclude/Wimp.h");
+#else
+        "/DeskLib:Wimp.h");
+#endif
+  test ("DeskLib:WAssert.h",
+#ifdef CROSS_COMPILE
+        "/home/adamr/desklib-aof/\\!DeskLib/oldinclude/WAssert.h");
+#else
+        "/DeskLib:WAssert.h");
+#endif
   return 0;
 }
 #endif

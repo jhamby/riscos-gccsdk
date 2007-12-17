@@ -1,4 +1,4 @@
-The RISC OS Software Development Kit [GCCSDK GCC 4.1.1 Pre-release 2 ]
+The RISC OS Software Development Kit [GCCSDK GCC 4.1.1 Pre-release 2]
 ====================================
 
 This is a lightweight build environment which combines a GCC 4.1.1 release,
@@ -124,7 +124,62 @@ cross-compiler will be installed).
      $ make CFLAGS_FOR_TARGET="-O3 -march=armv4" CXXFLAGS_FOR_TARGET="-O3 -march=armv4"
      $ make install
 
-2.2. Build the native RISC OS compiler
+2.2. Using the cross-compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The cross-compiler can be used on its own.  The recommended way is to
+define the environment variable GCCSDK_INSTALL_CROSSBIN.
+  $ export GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin
+
+Add add this environment value to your PATH.
+  $ PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
+
+Then use it as you would the GCC compiler normally.
+
+GCCSDK_INSTALL_CROSSBIN is sometimes also used explicitly to access the
+GCCSDK cross-compiler.
+
+2.2.1. RISC OS filename compatibility issues for the cross-compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Since the cross-compiler is built to execute on a Unix-like file system,
+it expects file naming conventions particular to that operating system.
+However, since there is going to be a lot of source code out there that
+makes use of some RISC OS pathname features, the pre-processor has been
+fixed to cope with path variable names in file names.
+
+When the pre-processor attempts to read an include statement like:
+  #include <DeskLib:Wimp.h>
+it will try to resolve the DeskLib reference against the environment variable
+DESKLIB_PATH.  So you could install the DeskLib header files in a place
+such as /home/riscos/env/include/DeskLib.  To get GCC to search in that
+directory for those headers, simply define the variable:
+  $ export DESKLIB_PATH=/home/riscos/env/include/DeskLib
+
+The xxx_PATH environment variable is in fact a search path containing one
+or more directories separated by a comma where the part after "xxx:" in
+the #include line is being searched for.
+
+2.2.2. Throwback
+~~~~~~~~~~~~~~~~
+
+[ NOTE: THIS FEATURE HASN'T BEEN MERGED YET ]
+
+When used in conjuction with the SysLogD module, the cross-compiler can
+produce throwback messages on a RISC OS machine when cross-compiling on
+a different machine. This allows you to edit in RISC OS files stored on
+a network filing system, cross-compile, and get throwback as if the
+compiler was running on the RISC OS machine. It can also be used if the
+cross-compiler is invoked by distcc.
+
+To use throwback:
+Install the SysLogD module and set up a mappings file as described in its
+help file.
+On the machine running the cross-compiler, set the THROWBACK_HOST
+environment variable to the hostname or IP address of the RISC OS machine.
+Add -mthrowback to the compiler command line.
+
+2.3. Build the native RISC OS compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The native RISC OS compiler and associated programs like the ELF loader (part
