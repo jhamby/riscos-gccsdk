@@ -5,7 +5,7 @@
     the revision of your modified compiler.  */
  
 -#define VERSUFFIX ""
-+#define VERSUFFIX " (GCCSDK GCC 4.1.1 Prerelease 1)"
++#define VERSUFFIX " (GCCSDK GCC 4.1.1 pre-release 2)"
  
  /* This is the location of the online document giving instructions for
     reporting bugs.  If you distribute a modified version of GCC,

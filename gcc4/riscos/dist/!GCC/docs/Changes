@@ -2,6 +2,11 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !gcc.docs.UnixLib.Changes too.
 
+GCCSDK GCC 4.1.1 pre-release 2 (released XXX)
+==============================
+
+XXX
+
 GCCSDK GCC 4.1.1 pre-release 1 (released 17 November 2007)
 ==============================
 
@@ -401,7 +406,7 @@ GCCSDK GCC 3.4.4 pre-release 4 (released 20 December 2004)
 GCCSDK GCC 3.4.4 pre-release 3 (released 10 December 2004)
 ==============================
 
-* gcc: Updated to version 3.4.4 (prerelease of 03/Dec/2004)
+* gcc: Updated to version 3.4.4 (pre-release of 03 Dec 2004)
 
 * gcc: No longer prefix register names with '__' in assembler output.
 
@@ -424,7 +429,7 @@ GCCSDK GCC 3.4.4 pre-release 2 (released 29 November 2004)
 GCCSDK GCC 3.4.4 pre-release 1 (released 26 November 2004)
 ==============================
 
-* gcc: Updated to version 3.4.4 (prerelease of 13 Nov 2004)
+* gcc: Updated to version 3.4.4 (pre-release of 13 Nov 2004)
 
 
 GCCSDK GCC 3.4.1 Release 1 (released 05 October 2004)
