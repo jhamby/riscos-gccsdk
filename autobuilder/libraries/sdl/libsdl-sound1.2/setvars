@@ -3,8 +3,6 @@ AB_ZIPNAME=libsdl-sound1.2-dev
 
 AB_INSTALL=yes
 
-AB_CONFLAGS=--disable-ogg
-
 mkdir -p $D/include/SDL/
 
 ab_package()
