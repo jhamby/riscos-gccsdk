@@ -1,4 +1,5 @@
-AB_CATEGORY=audio
+AB_CATEGORY=Library
+AB_ZIPNAME=libflac-dev
 
 AB_INSTALL=yes
 
@@ -8,5 +9,37 @@ mkdir -p $D/include/OggFLAC
 mkdir -p $D/include/OggFLAC++
 
 ab_package () {
-	cp $S/src/flac/flac$AB_EXEEXT COPYING.* $D
+
+#TODO: Create package with flac program
+#	cp $S/src/flac/flac$AB_EXEEXT COPYING.* $D
+
+  AD=$D/Apps/Library/\!LibFLAC
+  mkdir -p $AD
+  cp $H/\!LibFLAC/\!* $AD
+
+  HERE=`pwd`
+
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/FLAC FLAC
+  mv include/FLAC++ FLAC++
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  # Copy HTML documentation
+  cp -r $S/doc/html $AD/doc
+
+  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib -unixsound
+
 }
