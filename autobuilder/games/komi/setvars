@@ -1,16 +1,19 @@
-AB_CATEGORY=games
+AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 AB_DISTCLEAN="make clean"
 
 ab_package() {
-  mkdir -p $D/\!komi
-  cp -av $H/\!komi/\!* $D/\!komi
-  cp -av komi,ff8 $D/\!komi
-  cat README.txt $H/RISCOSNotes >$D/\!komi/\!Help
+  AD=$D/Apps/Games
+  mkdir -p $AD/\!komi
+  cp -av $H/\!komi/\!* $AD/\!komi
+  cp -av komi,ff8 $AD/\!komi
+  cat README.txt $H/RISCOSNotes >$AD/\!komi/\!Help
 
-  cp -av CHANGELOG.txt $D/\!komi/CHANGES
-  cp -av COPYING.txt $D/\!komi/COPYING
-  cp -av TROUBLESHOOTING.txt $D/\!komi/TROUBLESHOOTING
+  cp -av CHANGELOG.txt $AD/\!komi/CHANGES
+  cp -av COPYING.txt $AD/\!komi/COPYING
+  cp -av TROUBLESHOOTING.txt $AD/\!komi/TROUBLESHOOTING
 
-  cp -r komidata $D/\!komi
+  cp -r komidata $AD/\!komi
+
+  $AB_HOME/add-riscpkg -unixlib
 }
