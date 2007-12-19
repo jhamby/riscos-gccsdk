@@ -1,0 +1,6 @@
+| Run file for LibMikMod
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibMikMod$Dir <Obey$Dir>
+Set LibMikMod$Path <Obey$Dir>.

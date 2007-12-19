@@ -1,6 +1,39 @@
+AB_CATEGORY=Library
+AB_ZIPNAME=libmikmod-dev
+AB_COPYSOURCE=yes
 
 AB_CONFLAGS="--disable-esd"
 
 AB_INSTALL=yes
 
 cp /usr/share/automake-1.8/config.sub .
+
+ab_package() {
+  AD=$D/Apps/Library/\!LibMikMod
+  mkdir -p $AD
+  cp $H/\!LibMikMod/\!* $AD
+
+  HERE=`pwd`
+
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/h h
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  # Copy HTML documentation
+  cp -av $S/docs/mikmod.html $AD/doc
+
+  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib -unixsound
+}
