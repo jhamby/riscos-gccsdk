@@ -1,19 +1,23 @@
-AB_CATEGORY=games
+AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 
 ab_package() {
-  cp -av $H/\!Toppler $D
-  cp -av $H/\!Toppler/\!* $D/\!Toppler
-  cp -av toppler,ff8 $D/\!Toppler/!RunImage,ff8
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -av $H/\!Toppler $AD
+  cp -av $H/\!Toppler/\!* $AD/\!Toppler
+  cp -av toppler,ff8 $AD/\!Toppler/!RunImage,ff8
 
   cp -av AUTHORS ChangeLog COPYING NEWS README \
-    $D/\!Toppler
+    $AD/\!Toppler
 
-  mkdir -p $D/\!Toppler/data
-  mkdir -p $D/\!Toppler/data/toppler
-  cp -av toppler.dat $D/\!Toppler/data/toppler
-  cp -av *.ttm $D/\!Toppler/data/toppler
-  cp -av levelnames.txt $D/\!Toppler/data/toppler
+  mkdir -p $AD/\!Toppler/data
+  mkdir -p $AD/\!Toppler/data/toppler
+  cp -av toppler.dat $AD/\!Toppler/data/toppler
+  cp -av *.ttm $AD/\!Toppler/data/toppler
+  cp -av levelnames.txt $AD/\!Toppler/data/toppler
+
+  $AB_HOME/add-riscpkg -unixhome -unixsound -unixhome
 }
 
 export LIBS="-logg -lvorbis -lvorbisfile"
