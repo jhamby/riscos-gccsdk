@@ -1,20 +1,24 @@
-AB_CATEGORY=games
+AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 AB_DISTCLEAN="make clean"
 
 ab_package() {
-  cp -av $H/\!Defenguin $D
-  cp -av $H/\!Defenguin/\!* $D/\!Defenguin
-  cp -av defendguin,ff8 $D/\!Defenguin/\!RunImage,ff8
-  cat docs/README.txt $H/RISCOSNotes >$D/\!Defenguin/\!Help
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -av $H/\!Defenguin $AD
+  cp -av $H/\!Defenguin/\!* $AD/\!Defenguin
+  cp -av defendguin,ff8 $AD/\!Defenguin/\!RunImage,ff8
+  cat docs/README.txt $H/RISCOSNotes >$AD/\!Defenguin/\!Help
 
-  cp -av docs/AUTHORS.txt $D/\!Defenguin/AUTHORS
-  cp -av docs/CHANGES.txt $D/\!Defenguin/CHANGES
-  cp -av docs/COPYING.txt $D/\!Defenguin/COPYING
+  cp -av docs/AUTHORS.txt $AD/\!Defenguin/AUTHORS
+  cp -av docs/CHANGES.txt $AD/\!Defenguin/CHANGES
+  cp -av docs/COPYING.txt $AD/\!Defenguin/COPYING
 
-  mkdir -p $D/\!Defenguin/data
-  mkdir -p $D/\!Defenguin/data
-  cp -r data/images $D/\!Defenguin/data
-  cp -r data/music $D/\!Defenguin/data
-  cp -r data/sounds $D/\!Defenguin/data
+  mkdir -p $AD/\!Defenguin/data
+  mkdir -p $AD/\!Defenguin/data
+  cp -r data/images $AD/\!Defenguin/data
+  cp -r data/music $AD/\!Defenguin/data
+  cp -r data/sounds $AD/\!Defenguin/data
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound
 }
