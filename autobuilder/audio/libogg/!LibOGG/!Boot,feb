@@ -1,0 +1,6 @@
+| Boot file for LibOGG
+|
+If "<LibOGG$Dir>" = "" Then Set LibOGG$Dir <Obey$Dir>
+If "<LibOGG$Path>" = "" Then Set LibOGG$Path <Obey$Dir>.
+
+IconSprites <LibOGG$Dir>.!Sprites

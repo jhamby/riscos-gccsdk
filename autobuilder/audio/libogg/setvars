@@ -1,4 +1,35 @@
-
+AB_CATEGORY=Library
+AB_ZIPNAME=libogg-dev
 AB_INSTALL=yes
 
 mkdir -p $D/include/ogg/
+
+ab_package() {
+  AD=$D/Apps/Library/\!LibOGG
+  mkdir -p $AD
+  cp $H/\!LibOGG/\!* $AD
+
+  HERE=`pwd`
+
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/ogg ogg
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  # Copy HTML documentation
+  cp -r $S/doc $AD
+
+  $AB_HOME/add-riscpkg -package libogg-dev -unixlib -unixsound
+}
