@@ -1,0 +1,15 @@
+This directory contains the source for C++ programs used to
+build the autobuilder website.
+
+The build-website script in the autobuilder directory uses
+them both to create the full website.
+
+The programs are:
+
+pkgindex - build the RISC OS Packaging Project index
+pkgweb   - create a HTML website based on the above index file
+
+These programs also use a cut down version of the libpkg
+library (home page can be found on www.riscpkg.org) that
+just includes the minimum files these programs require.
+

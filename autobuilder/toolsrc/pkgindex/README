@@ -1,0 +1,16 @@
+pkgindex
+--------
+
+The pkgindex makes the index file for packages contained within directory and all its descendants.
+
+To invoke it run.
+
+pkgindex <dir_to_index> <index_file> [-u <base_url>]
+
+<dir_to_index> is the directory containing the packages.
+<index_file> is the name of the index file.
+<base_url> is the prefix for the URL entry in the index file that gives the
+relative location of the packages to the location of the index file.
+e.g. if the index_file is put in a folder called "pkg" and the packages are
+placed in a folder called "binary" in the same directory as "pkg" the
+base_url would be "../binary/".

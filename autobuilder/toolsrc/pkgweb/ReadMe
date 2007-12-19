@@ -1,0 +1,18 @@
+pkgweb
+------
+
+The pkgweb program creates web pages with details of the packages found in an index file for the RISC OS Packaging project.
+
+Usage:
+
+pkgweb <packages_file> <dest_dir> <url_base>
+
+<packages_file> it the index file to process.
+<dest_dir> is the directory to create the web pages in.
+<url_base> is the relative location of the index web pages from the <packages_file>.
+
+e.g.
+pkgweb unstable test ..
+
+will create the web pages from the unstable index into a directory called test. The download url will all be updated so that the first component of the path will be removed.
+

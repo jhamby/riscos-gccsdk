@@ -1,0 +1,134 @@
+# This file is part of !LibPkg.
+# Copyright (C) 2003-2005 Graham Shaw.
+# Distribution and use are subject to the GNU Lesser General Public License,
+# a copy of which may be found in the file !LibPkg.Copyright.
+
+This version included here is just a subset of the files of the
+library that are necessary for the pkgindex and pkgweb programs
+use.
+
+-----------------------------------------------------------------------
+LibPkg
+
+Version 0.2.1 (25 Feb 2005)
+-----------------------------------------------------------------------
+
+Introduction
+
+  LibPkg is a package management library for RISC OS. It includes
+  classes to:
+    * represent version numbers, status records and control files;
+    * access the content of package files; and
+    * install and remove packages.
+
+  The first use of LibPkg will be as the back-end of RiscPkg, but it is
+  not tied to any particular user interface and there could be other
+  front-ends in the future. Parts of LibPkg are likely to be useful for
+  writing package development tools and other types of package
+  management utility.
+
+WARNING
+
+  LibPkg is currently at an early stage of development and it has not
+  yet received extensive testing. Package managers by their nature have
+  the potential to do serious harm to your filesystem. At this time it
+  would be unwise to use LibPkg on a system you do not consider to be
+  expendable.
+
+  (If LibPkg does go wrong then it is most likely to corrupt software
+  that it itself has installed, closely followed by the contents of the
+  !Boot directory. It is much less likely to touch user data, however
+  now would be a good time to review your backup policy.)
+
+Requirements
+
+  Supported operating systems include:
+    * RISC OS 4.02
+    * RISC OS 5.03
+
+  Supported compilers include:
+    * GCC 2.95.4 (release 3)
+    * GCC 2.95.4 (experimental 32-bit, 05 May 2003)
+
+  The Acorn C/C++ compiler (up to version 3.19 at least) is not
+  supported because there are important parts of the C++ language that
+  it does not implement.
+
+Installation
+
+  The !LibPkg application directory can be located anywhere.
+
+  Ensure that it has been booted and/or run before attempting to compile
+  or link against it.
+
+  (If two or more versions are present, running !LibPkg will change the
+  active version whereas booting it will not.)
+
+Use
+
+  When compiling, append -Ilibpkg: to the GCC command line. This adds
+  libpkg: to the list of paths that are searched for include files.
+
+  When linking, append -llibpkg:a.libpkg to the GCC command line. This
+  adds libpkg:a.libpkg to the list of libraries searched by the linker.
+
+  Include directives should be of the form:
+
+    #include "libpkg/control.h"
+
+  Be aware that all LibPkg classes are declared within the namespace
+  pkg. You must either specify the namespace expicitly:
+
+    pkg::control
+
+  or place a using directive at the start of each source file:
+
+    using namespace control;
+
+  Documentation available from the RiscPkg web site currently includes:
+    * the LibPkg reference manual
+
+Building from Source
+
+  To build LibPkg from souce code the following tools must be present on
+  the Run$Path:
+    * make
+    * gcc
+    * libfile
+    * fixdeps
+
+  Also required are the libraries:
+    * zlib
+    * libcurl
+    * RTK
+
+  Suitable versions of make, gcc and libfile may be found within
+  supported distributions of GCC. fixdeps and the RTK may be obtained
+  from the RTK web site (http://www.sagitta.demon.co.uk/rtk/).
+
+  No configuration is necessary. Change the current directory to !LibPkg
+  then issue the command:
+
+    make all
+
+  Please note that some difficulties have been encountered when using
+  recursive makefiles with the experimental 32-bit version of make. They
+  can be overcome by executing the makefiles individually from an obey
+  file.
+
+Support
+
+  The RiscPkg and LibPkg home page may be found at:
+
+  http://www.riscpkg.org/
+
+  and the library itself downloaded from:
+
+  http://www.sagitta.demon.co.uk/riscos/
+
+  There is a mailing list for RiscPkg and LibPkg. To subscribe, send an
+  empty message to:
+
+  mailto:riscpkg-request@sagitta.demon.co.uk
+
+  with a subject of "subscribe".
