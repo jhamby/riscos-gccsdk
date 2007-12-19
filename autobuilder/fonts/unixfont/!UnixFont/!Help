@@ -1,0 +1,11 @@
+This application is a placeholder for
+unix format fonts.
+
+It is initially empty.
+
+See the doc subdirectory for documentation
+on any installed fonts.
+
+The path variable UnixFont has been set up
+to allow the fonts installed here to be
+located.
