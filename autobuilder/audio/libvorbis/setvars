@@ -1,4 +1,35 @@
-
+AB_CATEGORY=Library
+AB_ZIPNAME=libvorbis-dev
 AB_INSTALL=yes
 
 mkdir -p $D/include/vorbis
+
+ab_package() {
+  AD=$D/Apps/Library/\!LibVorbis
+  mkdir -p $AD
+  cp $H/\!LibVorbis/\!* $AD
+
+  HERE=`pwd`
+
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+
+  mv include/vorbis vorbis
+  rm -rf include
+
+  mv lib/o o
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd $HERE
+
+  # Copy HTML documentation
+  cp -r $S/doc $AD
+
+  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib -unixsound
+}
