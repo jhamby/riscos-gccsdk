@@ -287,9 +287,10 @@ else
   fi
 fi
 
-# Set file types of all files not already set to be text
+# Set file types of all files not already set to be html or text
 # as current version of RiscPkg needs this
 echo "add-riscpkg: Setting filetypes..."
+find $D -iname \*.html -type f -execdir mv {} {},faf \;
 find $D ! -iname \*,??? -type f -execdir mv {} {},fff \;
 
 echo "add-riskpkg: Finished"
