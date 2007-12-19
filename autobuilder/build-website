@@ -1,0 +1,92 @@
+#!/bin/sh
+# Script to build autobuilder website
+#
+# Script must be run in autobuilder directory
+abdir=`dirname $0`
+
+# Website
+newsite=$abdir/autobuilder_website
+oldsite=$abdir/oldwebsite
+diffsite=$abdir/diffwebsite
+
+# Backup old site
+rm -rf $oldsite
+if [ -d "$newsite" ] ; then
+   mv $newsite $oldsite
+fi
+
+# Create $newsite
+mkdir -p $newsite
+mkdir -p $newsite/pkg
+mkdir -p $newsite/arm
+mkdir -p $newsite/src
+
+PDIR=$abdir/autobuilder_packages
+if [ ! -d "$PDIR" ] ; then
+  echo "build-website: Can't find package directory $PDIR"
+  exit 1
+fi
+
+# Check the C++ programs have been created
+if [ ! -f "$abdir/pkgindex" ] && [ ! -f "$abdir/pkgindex.exe" ] ; then
+  echo "build-website: pkgindex utility missing - try building it from the"
+  echo "$abdir/toolsrc/pkgindex directory"
+  exit 1
+fi
+if [ ! -f "$abdir/pkgweb" ] && [ ! -f "$abdir/pkgweb.exe" ] ; then
+  echo "build-website: pkgweb utility missing - try building it from the"
+  echo "$abdir/toolsrc/pkgweb directory"
+  exit 1
+fi
+
+# Create package index
+$abdir/pkgindex $PDIR $newsite/pkg/autobuilt -u ../arm/ -x -src.zip -x webinfo
+
+# Copy across static website pages
+cp $abdir/toolsrc/pkgweb/staticpages/*.html $newsite
+
+# Generate dynamic website pages
+$abdir/pkgweb $newsite/pkg/autobuilt $newsite ..
+
+# Get a list of applications ready for packaging
+apps=`grep "^URL:" $newsite/pkg/autobuilt | cut -b 13-`
+
+for app in $apps ; do
+   echo "Copying $app"
+   dir=`dirname $app`
+   mkdir -p $newsite/arm/$dir   
+   cp $PDIR/$app $newsite/arm/$app
+   appsrc=`echo "$app" | sed 's/.zip/-src.zip/'`
+   if [ -e $PDIR/$appsrc ] ; then
+     echo "Copying source $appsrc"
+     mkdir -p $newsite/src/$dir
+     cp $PDIR/$appsrc $newsite/src/$appsrc
+   fi
+done
+
+# Create directory with differences only
+if [ ! -d $oldsite ] ; then
+   echo "No previous version - everything is new"
+else
+  diffs=`diff -rq $newsite $oldsite | sed "s?.*$newsite?? ; sc: c/c ; s/ .*//"`
+
+  if [ -d $diffsite ] ; then
+    rm -rf $diffsite
+  fi
+
+  if [ -z "$diffs" ] ; then
+    echo "No files have changed"
+  else
+    echo "Making directory of diffs ($diffsite)"
+    mkdir -p $diffsite
+
+    for itemdiff in $diffs; do
+      echo "diff found $itemdiff"
+      dir=`dirname $diffsite$itemdiff`
+      mkdir -p $dir
+      cp -r $newsite$itemdiff $diffsite$itemdiff
+    done
+  fi
+fi
+
+echo "Finished"
