@@ -1,20 +1,24 @@
-AB_CATEGORY=games
+AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 
 ab_package() {
-  cp -av $H/\!TuxMath $D
-  cp -av $H/\!TuxMath/\!* $D/\!TuxMath
-  cp -av src/tuxmath,ff8 $D/\!TuxMath/tuxmath,ff8
-  cat docs/README.txt $H/RISCOSNotes >$D/\!TuxMath/\!Help
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -av $H/\!TuxMath $AD
+  cp -av $H/\!TuxMath/\!* $AD/\!TuxMath
+  cp -av src/tuxmath,ff8 $AD/\!TuxMath/tuxmath,ff8
+  cat docs/README.txt $H/RISCOSNotes >$AD/\!TuxMath/\!Help
 
-  cp -r docs $D/\!TuxMath
+  cp -r docs $AD/\!TuxMath
 
-  mkdir -p $D/\!TuxMath/data
-  mkdir -p $D/\!TuxMath/data/tuxmath
-  cp -r data/* $D/\!TuxMath/data/tuxmath
+  mkdir -p $AD/\!TuxMath/data
+  mkdir -p $AD/\!TuxMath/data/tuxmath
+  cp -r data/* $AD/\!TuxMath/data/tuxmath
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+  -depends ttf-sil-andika
 }
 
-export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile"
+export LIBS="-ljpeg -lpng -ltiff -lz  -lvorbisidec -lfreetype"
 AB_CONFLAGS=\''--datadir=/\<TuxMath\$$Dir\>/data'\'
 
-./autogen.sh
