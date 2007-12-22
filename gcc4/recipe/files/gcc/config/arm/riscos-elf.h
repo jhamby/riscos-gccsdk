@@ -23,6 +23,8 @@
 /* elfos.h should have already been included.  Now just override
    any conflicting definitions and add any extras.  */
 
+#include <stdarg.h>
+
 /* Run-time Target Specification.  */
 #undef  TARGET_VERSION
 #define TARGET_VERSION fputs (" (ARM RISC OS with ELF)", stderr)
@@ -282,24 +284,21 @@
    natively on RISC OS.  */
 
 /* For the throwback of GCC errors to a text editor.  */
-extern void arm_error_throwback (const char *file, int line,
-                                 const char *prefix, const char *s);
-extern void arm_throwback_finish (void);
+extern void arm_error_throwback (int lvl, const char *file, int line,
+  const char *s, va_list *va) ATTRIBUTE_FPTR_PRINTF(4,0);
+
+/* Define for the implementation of throwbacks.  */
+#define TARGET_ERROR_THROWBACK \
+  arm_error_throwback
+
 extern void riscos_host_initialisation (void);
 extern const char *riscos_convert_filename (void *obstack,
-                        const char *name, int do_exe, int do_obj);
-
-/* Defines for the implementation of throwbacks.  */
-#define ERROR_THROWBACK(FILE,LINE,PREFIX,S)         \
-  do {                                              \
-    if (TARGET_THROWBACK)                           \
-      arm_error_throwback (FILE, LINE, PREFIX, S);  \
-  } while (0)
-#define ERROR_THROWBACK_FINALISE arm_throwback_finish ()
+  const char *name, int do_exe, int do_obj);
 
 #define GCC_DRIVER_HOST_INITIALIZATION \
   riscos_host_initialisation ()
-#define TARGET_CONVERT_FILENAME(a,b,c,d) return riscos_convert_filename (a,b,c,d)
+#define TARGET_CONVERT_FILENAME(a,b,c,d) \
+  return riscos_convert_filename (a,b,c,d)
 
 /* Character constant used in separating components in paths.  */
 #undef PATH_SEPARATOR

@@ -1,6 +1,6 @@
---- libcpp/directives.c.orig	2007-12-17 00:15:32.000000000 +0100
-+++ libcpp/directives.c	2007-12-16 23:53:53.000000000 +0100
-@@ -675,9 +675,13 @@
+--- libcpp/directives.c.orig	2007-12-21 00:07:45.000000000 +0100
++++ libcpp/directives.c	2007-12-19 02:23:06.000000000 +0100
+@@ -675,9 +679,13 @@
    header = get_token_no_padding (pfile);
    if (header->type == CPP_STRING || header->type == CPP_HEADER_NAME)
      {
@@ -14,3 +14,17 @@
        *pangle_brackets = header->type == CPP_HEADER_NAME;
      }
    else if (header->type == CPP_LESS)
+@@ -997,6 +1005,13 @@
+       pfile->state.prevent_expansion++;
+       cpp_output_line (pfile, stderr);
+       pfile->state.prevent_expansion--;
++      if (pfile->cb.throwback)
++        {
++          extern const char *throwback_file;
++          extern int throwback_line;
++
++          (*pfile->cb.throwback) (code, throwback_file, throwback_line, "%s", pfile->directive->name);
++        }
+     }
+ }
+ 
