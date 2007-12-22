@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.c.orig	2007-12-13 20:13:58.000000000 +0000
-+++ gcc/config/arm/arm.c	2007-12-13 20:11:36.000000000 +0000
+--- gcc/config/arm/arm.c.orig	2007-12-21 00:04:48.000000000 +0100
++++ gcc/config/arm/arm.c	2007-12-20 20:18:29.000000000 +0100
 @@ -52,6 +52,7 @@
  #include "target-def.h"
  #include "debug.h"
@@ -979,10 +979,10 @@
 -	  if (GET_CODE (x) == SYMBOL_REF
 -	      && (CONSTANT_POOL_ADDRESS_P (x)
 -		  || SYMBOL_REF_LOCAL_P (x)))
--	    fputs ("(GOTOFF)", asm_out_file);
--	  else if (GET_CODE (x) == LABEL_REF)
 +	  if (TARGET_MODULE) /* -mmodule */
  	    fputs ("(GOTOFF)", asm_out_file);
+-	  else if (GET_CODE (x) == LABEL_REF)
+-	    fputs ("(GOTOFF)", asm_out_file);
 -	  else
 +	  else if (flag_pic == 2) /* -fPIC */
  	    fputs ("(GOT)", asm_out_file);
@@ -1106,17 +1106,19 @@
  	{
  	  delta = offsets->soft_frame - offsets->saved_args;
  	  reg = THUMB_HARD_FRAME_POINTER_REGNUM;
-@@ -15157,13 +15565,91 @@
+@@ -15157,13 +15565,98 @@
    return mode == SImode ? 255 : 0;
  }
  
-+void arm_expand_save_stack_block (rtx save_area, rtx stack_pointer)
++void
++arm_expand_save_stack_block (rtx save_area, rtx stack_pointer ATTRIBUTE_UNUSED)
 +{
 +  emit_library_call_value (gen_rtx_SYMBOL_REF (Pmode, "__gcc_alloca_save"),
 +                           save_area, LCT_NORMAL, GET_MODE (save_area), 0);
 +}
 +
-+void arm_expand_restore_stack_block (rtx stack_pointer, rtx save_area)
++void
++arm_expand_restore_stack_block (rtx stack_pointer ATTRIBUTE_UNUSED, rtx save_area)
 +{
 +  emit_library_call (gen_rtx_SYMBOL_REF (Pmode, "__gcc_alloca_restore"),
 +		     LCT_NORMAL, VOIDmode,
@@ -1125,7 +1127,8 @@
 +		     save_area, Pmode);
 +}
 +
-+void arm_expand_alloca_epilogue (void)
++void
++arm_expand_alloca_epilogue (void)
 +{
 +  rtx sym = gen_rtx_SYMBOL_REF (Pmode, "__gcc_alloca_free");
 +#if 1
@@ -1137,7 +1140,8 @@
 +#endif
 +}
 +
-+void arm_expand_allocate_stack (rtx memptr, rtx size)
++void
++arm_expand_allocate_stack (rtx memptr, rtx size)
 +{
 +  emit_library_call_value (gen_rtx_SYMBOL_REF (Pmode, "__gcc_alloca"),
 +                           memptr, LCT_NORMAL, GET_MODE (memptr),
@@ -1146,10 +1150,11 @@
 +
 +}
 +
-+void arm_expand_save_stack_nonlocal (rtx *operands)
++void
++arm_expand_save_stack_nonlocal (rtx *operands)
 +{
 +  rtx sa = XEXP (operands[0], 0);
-+  rtx sp = operands[1];
++  /*rtx sp = operands[1];*/
 +
 +  /*emit_move_insn (sa, gen_rtx_REG (Pmode, FP_REGNUM));*/
 +  emit_move_insn (gen_rtx_MEM (Pmode, plus_constant (sa, 0)),
@@ -1159,7 +1164,8 @@
 +}
 +
 +
-+void arm_expand_restore_stack_nonlocal (rtx *operands)
++void
++arm_expand_restore_stack_nonlocal (rtx *operands)
 +{
 +  rtx sa = XEXP (operands[1], 0);
 +  rtx sp = operands[0];
@@ -1178,7 +1184,8 @@
 +    emit_move_insn (frame_pointer_rtx, sp);
 +}
 +
-+void arm_expand_nonlocal_goto (rtx *operands)
++void
++arm_expand_nonlocal_goto (rtx *operands)
 +{
 +  rtx sa = XEXP (operands[2], 0);
 +  rtx fp = gen_rtx_REG (Pmode, FP_REGNUM);
@@ -1199,7 +1206,7 @@
      return regno;
  
    /* TODO: Legacy targets output FPA regs as registers 16-23 for backwards
-@@ -15171,9 +15657,12 @@
+@@ -15171,9 +15664,12 @@
    if (IS_FPA_REGNUM (regno))
      return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
  
