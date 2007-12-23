@@ -163,8 +163,6 @@ the #include line is being searched for.
 2.2.2. Throwback
 ~~~~~~~~~~~~~~~~
 
-[ NOTE: THIS FEATURE HASN'T BEEN MERGED YET ]
-
 When used in conjuction with the SysLogD module, the cross-compiler can
 produce throwback messages on a RISC OS machine when cross-compiling on
 a different machine. This allows you to edit in RISC OS files stored on
@@ -173,11 +171,11 @@ compiler was running on the RISC OS machine. It can also be used if the
 cross-compiler is invoked by distcc.
 
 To use throwback:
-Install the SysLogD module and set up a mappings file as described in its
-help file.
-On the machine running the cross-compiler, set the THROWBACK_HOST
-environment variable to the hostname or IP address of the RISC OS machine.
-Add -mthrowback to the compiler command line.
+- On RISC OS install the SysLogD module and set up a mappings file as
+  described in its help file (see riscos/syslogd/ReadMe).
+- On the machine running the cross-compiler, set the THROWBACK_HOST
+  environment variable to the hostname or IP address of the RISC OS machine.
+  Add -mthrowback to the compiler command line.
 
 2.3. Build the native RISC OS compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
