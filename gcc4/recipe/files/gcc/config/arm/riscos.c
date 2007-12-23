@@ -1,6 +1,7 @@
 /* Functions for RISC OS as target machine for GNU C compiler.
    Copyright (C) 1997, 1999, 2003, 2004, 2005 Free Software Foundation, Inc.
-   Contributed by Nick Burrett (nick@sqrt.co.uk)
+   Contributed by Nick Burrett <nick@sqrt.co.uk>,
+   Alex Waugh <alex@alexwaugh.com> and John Tytgat <John.Tytgat@aaug.net>.
 
 This file is part of GNU CC.
 
@@ -19,7 +20,6 @@ along with GNU CC; see the file COPYING.  If not, write to
 the Free Software Foundation, 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifndef CROSS_COMPILE
 
 #include "config.h"
 #include "system.h"
@@ -32,31 +32,55 @@ Boston, MA 02111-1307, USA.  */
 #include <stdlib.h>
 #include <unistd.h>
 
-#include <swis.h>
-#include <kernel.h>
-#include <unixlib/local.h>
+#ifdef CROSS_COMPILE
+# include <string.h>
+# include <limits.h>
+# include <time.h>
+# include <netdb.h>
+# include <sys/socket.h>
+# include <netinet/in.h>
+#else
+# include <swis.h>
+# include <kernel.h>
+# include <unixlib/local.h>
+#endif
 
 #include "cpplib.h"
 
+#define THROWBACK_WARNING 0
+#define THROWBACK_ERROR 1
+
+#ifdef CROSS_COMPILE
+/* The syslog facilities and priorities.  */
+# define PRI_WARNING (1 * 8 + 4)
+# define PRI_ERROR   (1 * 8 + 3)
+#else
 /* The DDEUtils module throwback error category codes.  */
-#define THROWBACK_INFORMATION         -1
-#define THROWBACK_WARNING              0
-#define THROWBACK_ERROR                1
-#define THROWBACK_SERIOUS_ERROR        2
+# define DDEUTILS_THROWBACK_INFORMATION         -1
+# define DDEUTILS_THROWBACK_WARNING              0
+# define DDEUTILS_THROWBACK_ERROR                1
+# define DDEUTILS_THROWBACK_SERIOUS_ERROR        2
 
 /* The DDEUtils module throwback reason codes.  */
-#define THROWBACK_REASON_PROCESSING    0
-#define THROWBACK_REASON_ERROR_DETAILS 1
-#define THROWBACK_REASON_INFO_DETAILS  2
+# define DDEUTILS_THROWBACK_REASON_PROCESSING    0
+# define DDEUTILS_THROWBACK_REASON_ERROR_DETAILS 1
+# define DDEUTILS_THROWBACK_REASON_INFO_DETAILS  2
+#endif
 
-/* The full canonicalised pathname of the current error file.  */
+#ifndef CROSS_COMPILE
+/* The full RISC OS canonicalised pathname of the current error file.  */
 static char *arm_error_file = NULL;
+#endif
 
 #if 0
 /* Unique reference number for current file.
    Used to determine whether DDEUtils module needs telling we
    have changed the error file.  */
 static int arm_error_file_ref = -1;
+#endif
+
+#ifdef CROSS_COMPILE
+static int arm_throwback_socket = 0;
 #endif
 
 /* Control status of throwback,
@@ -68,23 +92,65 @@ static int arm_throwback_started = 0;
 
 static void arm_throwback_finish (void);
 
-/* Initialise the DDEUtils module for throwback.  */
 static void
 arm_throwback_start (void)
 {
-  _kernel_swi_regs rin, rout;
-  if (_kernel_swi (DDEUtils_ThrowbackStart, &rin, &rout))
+#ifdef CROSS_COMPILE
+  struct hostent *hp;
+  struct servent *servptr;
+  struct sockaddr_in name;
+  char *hostname;
+  int port;
+
+  hostname = getenv ("THROWBACK_HOST");
+  if (hostname == NULL)
     {
-      /*printf ("-- failed to initialise throwback: '%s'\n", err);*/
-      arm_throwback_started = 1;
+      arm_throwback_started = -1;
+      return;
     }
+
+  hp = gethostbyname (hostname);
+  if (hp == NULL)
+    {
+      arm_throwback_started = -1;
+      return;
+    }
+
+  memset (&name, 0, sizeof (name));
+  memcpy (&name.sin_addr, hp->h_addr, hp->h_length);
+  name.sin_family = AF_INET;
+
+  servptr = getservbyname ("syslog", "udp");
+  if (servptr == NULL)
+    port = 514;
   else
+    port = servptr->s_port;
+
+  name.sin_port = htons (port);
+
+  if ((arm_throwback_socket = socket (AF_INET, SOCK_DGRAM, 0)) < 0
+      || connect(arm_throwback_socket, (struct sockaddr *)&name,
+		 sizeof (struct sockaddr_in)) < 0)
     {
-      atexit (arm_throwback_finish);
-      arm_throwback_started = 1;
+      fprintf (stderr, "warning: failed to start syslog throwback\n");
+      arm_throwback_started = -1;
+      return;
     }
+
+  atexit (arm_throwback_finish);
+  arm_throwback_started = 1;
+#else
+  _kernel_swi_regs rin, rout;
+
+  /* Initialise the DDEUtils module for throwback.  */
+  if (!_kernel_swi (DDEUtils_ThrowbackStart, &rin, &rout))
+    atexit (arm_throwback_finish);
+
+  arm_throwback_started = 1;
+#endif
 }
 
+#ifndef CROSS_COMPILE
 /* Tell DDEUtils that we are processing a new file.
    The DDE documentation is unclear, but does suggest that this
    message should be sent if the filename changes.  */
@@ -93,45 +159,86 @@ arm_throwback_new_file (const char *fname)
 {
   _kernel_swi_regs rin, rout;
 
-  rin.r[0] = THROWBACK_REASON_PROCESSING;
-  rin.r[2] = (int)fname;
+  rin.r[0] = DDEUTILS_THROWBACK_REASON_PROCESSING;
+  rin.r[2] = (int) fname;
   if (_kernel_swi (DDEUtils_ThrowbackSend, &rin, &rout))
     arm_throwback_started = -1;
 }
-
+#endif
 
 /* Send details of a specific error to DDEUtils module.  */
 static void
 arm_throwback_error (const char *fname, int level,
-		     int line_number, const char *error)
+		     int line_number, const char *error, int errorlen)
 {
+#ifdef CROSS_COMPILE
+  char msg[1024];
+  int len;
+  char hostname[100];
+  char timestamp[20];
+  time_t timer;
+  char pathname[PATH_MAX];
+  int syslog_lvl;
+
+  if (gethostname (hostname, sizeof (hostname)) < 0)
+    strcpy (hostname, "unknown");
+
+  time (&timer);
+  strftime (timestamp, sizeof (timestamp), "%a %d %H:%M:%S", localtime (&timer));
+
+  if (realpath (fname, pathname) == NULL)
+    snprintf (pathname, sizeof (pathname), "%s", fname);
+
+  syslog_lvl = (level == THROWBACK_ERROR) ? PRI_ERROR : PRI_WARNING;
+  for (len = snprintf (msg, sizeof (msg), "<%d>%s %s throwback %s:%d: ",
+		       syslog_lvl, timestamp, hostname, pathname, line_number);
+       len < sizeof (msg) && errorlen > 0;
+       ++error, --errorlen)
+    {
+      if (isprint (*error))
+        msg[len++] = *error;
+    }
+
+  if (len > sizeof (msg))
+    len = sizeof (msg);
+
+  if (send (arm_throwback_socket, msg, len, 0) < 0)
+    arm_throwback_started = -1;
+#else
   _kernel_swi_regs rin, rout;
 
-  /* printf ("ate: '%s'\n", error); */
-
-  rin.r[0] = (level == THROWBACK_INFORMATION)
-	      ? THROWBACK_REASON_INFO_DETAILS
-	      : THROWBACK_REASON_ERROR_DETAILS;
+  rin.r[0] = (level == DDEUTILS_THROWBACK_INFORMATION)
+	      ? DDEUTILS_THROWBACK_REASON_INFO_DETAILS
+	      : DDEUTILS_THROWBACK_REASON_ERROR_DETAILS;
   rin.r[1] = 0;
-  rin.r[2] = (int)fname;
+  rin.r[2] = (int) fname;
   rin.r[3] = line_number;
-  rin.r[4] = (level == THROWBACK_INFORMATION) ? 0 : level;
-  rin.r[5] = (int)error;
+  rin.r[4] = (level == DDEUTILS_THROWBACK_INFORMATION) ? 0 : level;
+  rin.r[5] = (int) error;
   if (_kernel_swi (DDEUtils_ThrowbackSend, &rin, &rout))
     arm_throwback_started = -1;
+#endif
 }
 
-/* Tell DDEUtils that we have finished throwing errors.  */
+/* Called via atexit().  */
 static void
 arm_throwback_finish (void)
 {
+#ifdef CROSS_COMPILE
+  /* Close the socket.  */
+  close (arm_throwback_socket);
+  arm_throwback_socket = 0;
+#else
   _kernel_swi_regs rin, rout;
 
+  /* Tell DDEUtils that we have finished throwing errors.  */
   if (arm_throwback_started > 0)
     _kernel_swi (DDEUtils_ThrowbackEnd, &rin, &rout);
   arm_throwback_started = 0;
+#endif
 }
 
+#ifndef CROSS_COMPILE
 /* Convert from Unix name to RISC OS name and canonicalise the name
    so that throwback knows the full pathname of the file.
    Return the converted filename, stored in arm_error_file, or NULL.  */
@@ -152,7 +259,7 @@ riscos_canonicalise_filename (const char *sname)
   /* The first call will calculate the size of buffer needed to
      store the canonicalised filename.  */
   rin.r[0] = 37;
-  rin.r[1] = (int)filename;
+  rin.r[1] = (int) filename;
   rin.r[2] = 0;
   rin.r[3] = 0;
   rin.r[4] = 0;
@@ -162,8 +269,8 @@ riscos_canonicalise_filename (const char *sname)
       arm_error_file = xrealloc (arm_error_file, 1 - rout.r[5]);
       /* Now perform the canonicalisation and store in a buffer
          which we know is large enough.  */
-      rin.r[1] = (int)filename;
-      rin.r[2] = (int)arm_error_file;
+      rin.r[1] = (int) filename;
+      rin.r[2] = (int) arm_error_file;
       rin.r[3] = 0;
       rin.r[4] = 0;
       rin.r[5] = 1 - rout.r[5];
@@ -176,10 +283,12 @@ riscos_canonicalise_filename (const char *sname)
   arm_error_file = NULL;
   return NULL;
 }
+#endif
 
 /* Throwback interface to GNU family of compilers.  */
 void
-arm_error_throwback (int lvl, const char *file, int line, const char *s, va_list *va)
+arm_error_throwback (int lvl, const char *file, int line, const char *s,
+		     va_list *va)
 {
   char msg[256];
 
@@ -190,19 +299,25 @@ arm_error_throwback (int lvl, const char *file, int line, const char *s, va_list
   if (file == NULL || *file == '\0')
     return;
 
-  vsnprintf (msg, sizeof(msg), s, va);
+  vsnprintf (msg, sizeof (msg), s, va);
 
   /* Initialise throwback.  */
   if (!arm_throwback_started)
     arm_throwback_start ();
 
-  if (arm_throwback_started > 0 && riscos_canonicalise_filename (file))
+  if (arm_throwback_started > 0
+#ifndef CROSS_COMPILE
+      && riscos_canonicalise_filename (file)
+#endif
+     )
     {
       size_t flen, slen;
       char sline[16];
       const char *p;
 
+#ifndef CROSS_COMPILE
       arm_throwback_new_file (arm_error_file);
+#endif
 
       flen = strlen (file);
       slen = sprintf (sline, "%d: ", line);
@@ -213,6 +328,8 @@ arm_error_throwback (int lvl, const char *file, int line, const char *s, va_list
          as there are newlines.  */
       for (p = msg; *p != '\0'; /* */)
 	{
+          const char *msg;
+
           /* Skip filename, line and level (warning/error) in the 'p' message:  */
           if (!strncmp (p, file, flen) && p[flen] == ':')
             {
@@ -227,14 +344,19 @@ arm_error_throwback (int lvl, const char *file, int line, const char *s, va_list
                 }
             }
 
-	  arm_throwback_error (arm_error_file,
-                               CPP_DL_WARNING_P(lvl) ? THROWBACK_WARNING : THROWBACK_ERROR,
-			       line, p);
-
-	  while (*p != '\0' && *p != '\n')
-	    p++;
+	  for (msg = p; *p != '\0' && *p != '\n'; ++p)
+	    /* */;
 	  if (*p == '\n')
 	    p++;
+
+	  arm_throwback_error (
+#ifdef CROSS_COMPILE
+			       file,
+#else
+			       arm_error_file,
+#endif
+                               CPP_DL_WARNING_P(lvl) ? THROWBACK_WARNING : THROWBACK_ERROR,
+			       line, msg, p - msg);
 	}
     }
 }
@@ -287,12 +409,11 @@ arm_gnat_error_throwback (text, sname, sfile, line, column, cat)
       if (arm_throwback_started > 0)
 	arm_throwback_error (arm_error_file,
 			     (cat == cat_none
-			      ? THROWBACK_INFORMATION
+			      ? DDEUTILS_THROWBACK_INFORMATION
 			      : (cat == cat_warning
-			         ? THROWBACK_WARNING : THROWBACK_ERROR)),
+			         ? DDEUTILS_THROWBACK_WARNING : DDEUTILS_THROWBACK_ERROR)),
 			     line, text);
     }
 }
 #endif
 
-#endif

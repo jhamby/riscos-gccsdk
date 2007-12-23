@@ -279,10 +279,6 @@
      call_used_regs[PIC_PLT_SCRATCH_REGNUM] = 1;\
    }
 
-#ifndef CROSS_COMPILE
-/* This section defines all the specific features for GCC when running
-   natively on RISC OS.  */
-
 /* For the throwback of GCC errors to a text editor.  */
 extern void arm_error_throwback (int lvl, const char *file, int line,
   const char *s, va_list *va) ATTRIBUTE_FPTR_PRINTF(4,0);
@@ -290,6 +286,10 @@ extern void arm_error_throwback (int lvl, const char *file, int line,
 /* Define for the implementation of throwbacks.  */
 #define TARGET_ERROR_THROWBACK \
   arm_error_throwback
+
+#ifndef CROSS_COMPILE
+/* This section defines all the specific features for GCC when running
+   natively on RISC OS.  */
 
 extern void riscos_host_initialisation (void);
 extern const char *riscos_convert_filename (void *obstack,
