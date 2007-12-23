@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.11: String Handling <string.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2007 UnixLib Developers
  */
 
 #ifndef __STRING_H
@@ -262,6 +262,14 @@ extern int strncasecmp (const char *__s1, const char *__s2, size_t __n)
 extern int strerror_r (int __errnum, char *__strerrbuf, size_t __buflen)
      __THROW __nonnull ((2));
 #endif
+
+# ifndef basename
+/* Return the file name within directory of FILENAME.  We don't
+   declare the function if the `basename' macro is available (defined
+   in <libgen.h>) which makes the XPG version of this function
+   available.  */
+extern char *basename (__const char *__filename) __THROW __nonnull ((1));
+# endif
 
 __END_DECLS
 

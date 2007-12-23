@@ -1,3 +1,8 @@
+Sun Dec 23 17:36:16 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* string/basename.c: Added version from glibc 2.7.
+	* include/string.h (basename): Added prototype.
+
 Sat Dec  1 05:51:17 CET 2007  Peter Naulls  <peter@chocky.org>
 
 	* unix/unix.c: Fixed typo.
