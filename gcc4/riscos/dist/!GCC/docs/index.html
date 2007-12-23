@@ -21,7 +21,7 @@
 </head>
 <body>
 
-<h2>Welcome to GCCSDK GCC 4.1.1 Pre-release 2 for RISC&nbsp;OS</h2>
+<h2>Welcome to GCCSDK GCC 4.1.1 pre-release 2 for RISC&nbsp;OS</h2>
 <p>
 <b>*** IN TESTING ***</b>
 
@@ -187,27 +187,28 @@
 <dt>-mlibscl
 <dd>Builds and links source code against the SharedCLibrary headers and library files. Note that when used, this needs to be specified during compiling and linking. This defines the preprocessor define __TARGET_SCL__.
     <p>Switch -mmodule will implicitly select -mlibscl as well.
-<dt>-mamu [ *** NOT YET IMPLEMENTED IN GCCSDK 4 *** ]
-<dd>Generates the file !Depend which contains a list of all the source files that the produced object depends on. This is intended for use with Acorn's Make Utility (AMU), which edits the makefile to include these after the '# Dynamic Dependencies' line.
 <dt>-mmodule
 <dd>Generates code suitable for a RISC&nbsp;OS module.  This will implicitly select -mlibscl.  This also defines the preprocessor define __TARGET_MODULE__.
-<dt>-mclient-static-data-offset (default) [ *** NOT YET IMPLEMENTED IN GCCSDK 4 *** ]
-<dd>Only relevant when compiling a RISC&nbsp;OS module (option -mmodule set). This specifies to use the client static data offset (at sl-536) instead of the library static data offset (sl-540).
-<dt>-mlibrary-static-data-offset [ *** NOT YET IMPLEMENTED IN GCCSDK 4 *** ]
-<dd>Only relevant when compiling a RISC&nbsp;OS module (option -mmodule set). This specifies to use the library static data offset (at sl-540) instead of the client static data offset (sl-536).  This is only to be used in very rare cases.
 </dl>
 
-<p>The following switches are mutually exclusive:
-<ul>
-  <li>-munixlib and -mlibscl. -munixlib is the default.
-  <li>-mclient-static-data-offset and -mlibrary-static-data-offset.  -mclient-static-data-offset is the default.
-</ul>
+<p>The -munixlib and -mlibscl switches are mutually exclusive.
 
-<h5>1.4.4. Obsolete GCCSDK switches</h5>
+<h5>1.4.4. Obsolete or not implemented GCCSDK specific switches</h5>
 
-<p>From GCCSDK 3.3.3 release onwards, APCS-32 became default and APCS-R support became deprecated. You could select between those two ABI's using respectively the mutually exclusive -mapcs-32 and -mapcs-26 switches.
-
-<p>From GCCSDK 4 onwards we don't have any APCS-R support and made the switches -mapcs-32 and -mapcs-26 obsolete.
+<dl>
+<dt>-mapcs-26 / -mapcs-32
+<dd>From GCCSDK 3.3.3 release onwards, APCS-32 became default and APCS-R support became deprecated. You could select between those two ABI's using respectively the mutually exclusive -mapcs-32 and -mapcs-26 switches.
+    <p>From GCCSDK 4 onwards we don't have any APCS-R support and made the switches -mapcs-32 and -mapcs-26 obsolete.
+<dt>-mamu
+<dd>Generates the file !Depend which contains a list of all the source files that the produced object depends on. This is intended for use with Acorn's Make Utility (AMU), which edits the makefile to include these after the '# Dynamic Dependencies' line.
+    <p>The use of GNU make is prefered as it allows to write more expressive Makefiles and ensures a better compatibility with or require less differences than Makefiles for cross-compiling.
+<dt>-mclient-static-data-offset (default)
+<dd>Only relevant when compiling a RISC&nbsp;OS module (option -mmodule set). This specifies to use the client static data offset (at sl-536) instead of the library static data offset (sl-540).
+    <p>The -mclient-static-data-offset and -mlibrary-static-data-offset switchs are mutually exclusive.
+<dt>-mlibrary-static-data-offset
+<dd>Only relevant when compiling a RISC&nbsp;OS module (option -mmodule set). This specifies to use the library static data offset (at sl-540) instead of the client static data offset (sl-536).  This is only to be used in very rare cases.
+    <p>The -mclient-static-data-offset and -mlibrary-static-data-offset switchs are mutually exclusive.
+</dl>
 
 <h4>1.5. Binary configurations</h4>
 
