@@ -1,0 +1,6 @@
+
+* Mon Dec 24 18:31:42 UTC 2007  Peter Naulls <peter@chocky.org>
+
+	* ChangeLog started for Porting Scripts
+	* ro-ar: Removed.  This is an anarchronism from AOF tools - should use the 
+	  version from binutils.
