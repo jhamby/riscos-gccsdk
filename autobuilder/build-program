@@ -251,6 +251,9 @@ else
  if ! [ -e $S/man3 ] ; then
    ln -s . $S/man3
  fi
+ if [ -e $S/man ] ; then
+   ln -s . $S/man/man3
+ fi
 
  # Need to install in $GCCSDK_INSTALL_ENV ?
  if [ "$AB_INSTALL" == "env" ] || [ "$AB_INSTALL" == "yes" ] ; then
