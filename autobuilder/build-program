@@ -251,7 +251,7 @@ else
  if ! [ -e $S/man3 ] ; then
    ln -s . $S/man3
  fi
- if [ -e $S/man ] ; then
+ if [ -e $S/man ] && ! [ -e $S/man/man3 ] ; then
    ln -s . $S/man/man3
  fi
 
