@@ -1,5 +1,4 @@
 AB_INSTALL=yes
 
-AB_PRECONF=:
+cp $S/makefiles/makefile.unix $S/Makefile
 
-cp $H/makefile.riscos $S/Makefile
