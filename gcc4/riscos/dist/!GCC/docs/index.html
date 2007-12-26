@@ -316,6 +316,26 @@ mylabel2:
 <pre>
 	.weak	mylabel2
 </pre>
+            <li>Variable setting:
+                <p>
+<pre>
+	abc	* 0
+	def	* 4
+</pre>
+                <p>needs to be changed to:
+<pre>
+	.set abc, 0
+	.set def, 4
+</pre>
+            <li>Space claiming:
+                <p>
+<pre>
+		% 256
+</pre>
+                <p>needs to be changed to:
+<pre>
+	.space 256
+</pre>
             <li>EXPORT : the EXPORT statement is to be replaced by '.global'.
                 <p>
 <pre>
@@ -329,6 +349,7 @@ mylabel2:
                 <p>
 <pre>
 	AREA	bla_data, DATA
+	AREA	bla_data_noinit, DATA, NOINIT
 	AREA	bla_code, CODE
 	DCB	&12
 	DCD	&12345678
@@ -339,6 +360,7 @@ mylabel2:
                 <p>needs to be changed to:
 <pre>
 	.data	@ A short form of .section + arguments
+	.bss
 	.text	@ A short form of .section + arguments
 	.byte	0x12
 	.word	0x12345678
