@@ -76,11 +76,8 @@ ac_add_options --enable-static
 
 #ac_add_options --disable-native-uconv
 
-# remove link dependency on libstdc++.so
 LIBS=-lstdc++
-#CXX=$GCCSDK_INSTALL_CROSSBIN/g++
 DLL_SUFFIX=a
-LD="$GCCSDK_INSTALL_ENV/ro-ar cr"
 
 ac_add_options --enable-application=browser
 ac_add_options --disable-timeline
