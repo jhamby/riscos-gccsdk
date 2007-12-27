@@ -31,7 +31,7 @@
 	.global	setjmp
 	NAME	setjmp
 setjmp:
- PICEQ "LDR	a4, .L0+12"
+ PICEQ "LDR	a4, .L0+8"
 .LPIC0:
  PICEQ "ADD	a4, pc, a4"		@ a4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	a4, {a4, ip}"		@ a4 = Object index, ip = GOT ptr array location

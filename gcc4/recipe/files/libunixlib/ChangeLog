@@ -1,3 +1,8 @@
+Thu Dec 27 04:47:04 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
+
+	* sys/_jmp.s (setjmp): Previous change introduced wrong GOT handling
+	for shared library support.
+
 Sun Dec 23 17:36:16 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* string/basename.c: Added version from glibc 2.7.
