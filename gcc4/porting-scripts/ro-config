@@ -517,7 +517,7 @@ export db_cv_path_rm=echo
 export tcl_cv_strtod_buggy=1
 
 export ac_cv_header_wctype_h=no
-export ac_cv_header_dlfcn_h=no
+export ac_cv_header_dlfcn_h=yes
 export ac_cv_header_mcheck=no
 export ac_cv_header_tcl_h=yes 
 export ac_cv_header_readline_h=yes
