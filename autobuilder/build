@@ -59,8 +59,8 @@ done
 check_dependencies() {
   # FIXME: we need also at least libglib1.2-dev libpopt-dev x11proto-core-dev for
   # some Autobuilder projects but their presence is not checked for at the moment.
-  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen dpkg-source xgettext ; do
-    if [ "`whereis $build_prog | cut -d ':' -f 2`" == "" ] ; then
+  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen xgettext ; do
+    if ! type $build_prog > /dev/null 2>&1 ; then
       echo "Autobuilder: $build_prog not found; is it installed on your path?"
       exit 1;
     fi
