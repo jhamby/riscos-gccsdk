@@ -117,7 +117,7 @@ fi
 
 # GCCSDK Scripts
 if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
-  if [ -d "$GCCSDK_INSTALL_ENV" ] ; then
+  if [ -d /home/riscos/env ] ; then
     GCCSDK_INSTALL_ENV=/home/riscos/env
   else
     echo "Autobuilder: directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV is not defined and /home/riscos/env does not exist."
@@ -131,7 +131,7 @@ export GCCSDK_INSTALL_ENV
 
 # GCCSDK Binaries
 if [ -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
-  if [ -d "$GCCSDK_INSTALL_CROSSBIN" ] ; then
+  if [ -d /home/riscos/cross/bin ] ; then
     GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin
   else
     echo "Autobuilder: directory with cross compiling tools does not exist. \$GCCSDK_INSTALL_CROSSBIN is not defined and /home/riscos/cross/bin does not exist."
