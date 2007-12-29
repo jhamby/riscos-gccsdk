@@ -42,10 +42,11 @@ adde1f() {
   fi
 
   # Fix some tests that assume no file extension for binaries
-  if grep -q -- "-s conftest;" $e1fPATH ; then
+  if grep -E -q -- "-s conftest;|-o conftest" $e1fPATH ; then
     echo RISC OS: Adding filetype for binary tests for $e1fPATH
     tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# < $e1fPATH > $tmpconfigure
+    sed -e s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# -e "s# -o conftest # -o conftest\$\{ac_exeext\}\ #" \
+      < $e1fPATH > $tmpconfigure
     mv $tmpconfigure $e1fPATH
     chmod +x $e1fPATH
   fi
