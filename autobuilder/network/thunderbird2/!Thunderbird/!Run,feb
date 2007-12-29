@@ -14,11 +14,10 @@ Set Chox11$thunderbird-bin$scalefont 120
 | Application name
 Set thunderbird-bin$Title "Mozilla Thunderbird"
 
-| Requires DSO-libs
-If "<DSOLib$Dir>" = "" Then Error Firefox 2 requires !DSO-libs
-
 | Latest Tinct
 RMEnsure Tinct 0.13 RMLoad System:Modules.Tinct
 RMEnsure Tinct 0.13 Error Thunderbird requires Tinct 0.13 or later. This can be downloaded from http://www.tinct.net/
 
+| stdout is not interesting.  stderr may contain crash or debug information.
 <Thunderbird$Dir>.thunderbird-bin >null: 2><Thunderbird$Dir>.stderr
+
