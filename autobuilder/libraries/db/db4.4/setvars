@@ -8,3 +8,5 @@ chmod u+w dist/configure
 mkdir -p obj
 cd obj
 export RO_CPATH=../dist
+
+ln -s libdb-4.4.a $GCCSDK_INSTALL_ENV/lib/libdb-4.a
