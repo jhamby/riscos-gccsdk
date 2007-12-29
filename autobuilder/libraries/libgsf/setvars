@@ -5,3 +5,6 @@ AB_CONFLAGS="--without-python --disable-schemas-install"
 mkdir -p $D/include/libgsf-1/gsf
 mkdir -p $D/include/libgsf-1/gsf-gnome
 mkdir -p $D/include/libgsf-1/gsf-win32
+mkdir -p $D/include/libgsf-1/gsf-gvfs
+
+
