@@ -1,8 +1,5 @@
 AB_INSTALL=yes
 
-AB_CONFLAGS=--enable-ipv6=no
-
-# Makefile.am got patched
-aclocal && autoheader && automake -a && autoconf -f
+AB_CONFLAGS="--enable-ipv6=no --with-python=no"
 
 mkdir -p $D/include/libxml2/libxml
