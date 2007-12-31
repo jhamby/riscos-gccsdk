@@ -4,3 +4,4 @@ AB_INSTALL=yes
 
 AB_MAKE="$AB_MAKE CFLAGS=-O2"
 
+mkdir -p $D/lib/tcl8.4/http1.0/
