@@ -18,3 +18,25 @@
  libgnorbagtk_la_OBJECTS =  gnome-factory-skels.lo gnome-factory-stubs.lo \
  gnome-factory-common.lo Table-skels.lo Table-stubs.lo Table-common.lo \
  gnome-unknown-skels.lo gnome-unknown-stubs.lo gnome-unknown-common.lo \
+--- libgnome/Makefile.in.orig	2007-12-31 12:53:16.000000000 -0800
++++ libgnome/Makefile.in	2007-12-31 12:53:41.000000000 -0800
+@@ -256,7 +256,7 @@
+ 
+ gnome_moz_remote_SOURCES = gnome-moz-remote.c vroot.h
+ gnome_moz_remote_LDADD = libgnome.la $(LIBSUPPORT) $(LIBGNOME_LIBS) \
+-	$(X_LIBS) $(X_PRE_LIBS) -lXext -lX11 $(X_EXTRA_LIBS) $(INTLLIBS)
++	$(X_LIBS) $(X_PRE_LIBS) -lXext -lCX11 -lDesk $(X_EXTRA_LIBS) $(INTLLIBS)
+ 
+ 
+ gconfigger_SOURCES = gconfigger.c
+--- zvt/Makefile.in.orig	2007-12-31 12:53:56.000000000 -0800
++++ zvt/Makefile.in	2007-12-31 12:54:17.000000000 -0800
+@@ -222,7 +222,7 @@
+ X_EXTRA_LIBS = @X_EXTRA_LIBS@
+ X_PRE_LIBS = @X_PRE_LIBS@
+ libzvt_la_LIBADD = 
+-libzvt_la_LIBADD += -lgdk -lgmodule -lX11 -lgtk -lgdk_imlib -lutil
++libzvt_la_LIBADD += -lgdk -lgmodule -lCX11 -lDesk -lgtk -lgdk_imlib -lutil
+ libzvt_la_OBJECTS =  gnome-login-support.lo lists.lo subshell.lo \
+ update.lo vt.lo zvtterm.lo
+ noinst_PROGRAMS =  zterm$(EXEEXT) test-utmp$(EXEEXT)
