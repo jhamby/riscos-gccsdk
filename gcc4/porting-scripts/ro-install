@@ -27,7 +27,7 @@ for param in $@ ; do
   dest=$param
 done
 
-dest=$(sed -e s#//#/#g -e s#/\$## <<< $dest)
+dest=$(sed -e s#//#/#g -e s#/\$## -e s#/usr/share/#GCCSDK_ENV/share/# <<< $dest)
 
 if [ "$command" == "/usr/bin/install" ] ; then
   # If we're installing when one of the $installparams are directories, we need to expand
