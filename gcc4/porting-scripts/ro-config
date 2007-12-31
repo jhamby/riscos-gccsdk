@@ -69,6 +69,15 @@ adde1f() {
     chmod +x $e1fPATH
   fi
 
+  # Use CX11
+  if grep -q -- "-lX11" $e1fPATH ; then
+    echo RISC OS: Replacing -lX11 with -lCX11 -lDesk
+    tmpconfigure=/tmp/new-configure-$$-$RANDOM
+    sed "s#-lX11#-lCX11 -lDesk#" < $e1fPATH > $tmpconfigure
+    mv $tmpconfigure $e1fPATH
+    chmod +x $e1fPATH
+  fi
+
   # Doesn't strictly belong here, but it fits
   if grep -q "sys_lib_dlsearch_path_spec=" $e1fPATH ; then
     echo RISC OS: Setting libtool library paths for $e1fPATH
@@ -87,7 +96,8 @@ adde1f() {
          < $e1fPATH > $tmpconfigure
     mv $tmpnewconfigure $e1fPATH
     chmod +x $e1fPATH
-  fi  
+  fi
+
 }
 
 
@@ -541,8 +551,6 @@ export ac_cv_header_X11_Xos_h=yes
 export ac_cv_header_X11_Xutil_h=yes
 export ac_cv_header_X11_extensions_XShm_h=no
 export ac_cv_header_X11_keysym_h=yes
-# Because we're replacing libX11 by libCX11 and the latter needs libDesk
-export X_EXTRA_LIBS="-lDesk"
 
 export ac_cv_lib_X11_XOpenDisplay=yes
 
