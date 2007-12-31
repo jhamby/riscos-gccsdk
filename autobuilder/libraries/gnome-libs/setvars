@@ -3,6 +3,8 @@
 AB_CONFLAGS="--disable-nls --ro-recurse"
 AB_INSTALL=yes
 
+AB_INSTALLTARGET="install INSTALL=$GCCSDK_INSTALL_ENV/ro-install"
+
 ab_make() {
   # Build gen_art_config first
   /usr/bin/cc -O2 -Wall libart_lgpl/gen_art_config.c -o libart_lgpl/gen_art_config
