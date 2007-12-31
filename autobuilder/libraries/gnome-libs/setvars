@@ -7,7 +7,7 @@ ab_make() {
   # Build gen_art_config first
   /usr/bin/cc -O2 -Wall libart_lgpl/gen_art_config.c -o libart_lgpl/gen_art_config
   # Build native convertrgb
-  make -C tools/convertrgb loadpng.o convertrgb.o
+  make CC=/usr/bin/cc -C tools/convertrgb loadpng.o convertrgb.o
   /usr/bin/cc -lglib -lpng12 -o tools/convertrgb/convertrgb tools/convertrgb/*.o
   touch tools/convertrgb/convertrgb$AB_EXEEXT
   eval $AB_MAKE
