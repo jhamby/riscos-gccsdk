@@ -6,3 +6,9 @@ mkdir -p $D/include/Mrm
 mkdir -p $D/include/uil
 mkdir -p $D/include/Dt
 mkdir -p $D/lib/LessTif/config
+mkdir -p $D/lib/X11/app-defaults
+
+/usr/bin/gcc scripts/man2html.c -o scripts/man2html
+chmod a-w scripts/man2html
+
+
