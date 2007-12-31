@@ -95,6 +95,9 @@ fork_common:
 	DECLARE_FUNCTION fork
 
 	.section ".bss"
+
+	.align
+
 __saved_lr:
  PICNE ".space	8"
  PICEQ ".space	16"

@@ -1,3 +1,10 @@
+Mon Dec 31 17:10:15 2007  Lee Noar  <leenoar@sky.com>
+
+	* sys/_syslib.s: Force word alignment of bss area. If we don't and
+	a bss section whose size is not a multiple of 4 is merged before this one,
+	then it will be misaligned.
+	* sys/_vfork.s: Likewise.
+
 Thu Dec 27 04:47:04 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* sys/_jmp.s (setjmp): Previous change introduced wrong GOT handling

@@ -1226,6 +1226,8 @@ __valid_address:
 
 	.section ".bss"
 
+	.align
+
 	@ This space is reserved for UnixLib to store the environment
 	@ handlers of the calling application.
 	@ Size: 17 handlers x 3 words x 4 bytes/word = 204 bytes
