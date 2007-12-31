@@ -1,1 +1,5 @@
 AB_INSTALL=yes
+
+aclocal
+touch src/Makefile.in
+
