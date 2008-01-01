@@ -70,7 +70,7 @@ somarray_add_object (som_array *array, som_object *object)
   ((unsigned int *) object->got_addr)[SOM_OBJECT_INDEX_OFFSET] = object->index;
 
   /* Store the location of the client runtime array in the public GOT.  */
-  ((unsigned int *) object->got_addr)[SOM_RUNTIME_ARRAY_OFFSET] = 0x80D4;
+  ((unsigned int *) object->got_addr)[SOM_RUNTIME_ARRAY_OFFSET] = RT_WORKSPACE_START;
 
   return NULL;
 }

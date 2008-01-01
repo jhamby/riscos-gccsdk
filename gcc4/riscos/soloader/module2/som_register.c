@@ -161,7 +161,8 @@ som_register_client (som_handle handle, som_objinfo *objinfo)
     object->index;
 
   /* Store the location of the client runtime array in the GOT.  */
-  *((unsigned int *) object->got_addr + SOM_RUNTIME_ARRAY_OFFSET) = 0x80D4;
+  *((unsigned int *) object->got_addr + SOM_RUNTIME_ARRAY_OFFSET) =
+    RT_WORKSPACE_START;
 
   somarray_init (&client->runtime_array, sizeof (som_rt_elem), 0);
 

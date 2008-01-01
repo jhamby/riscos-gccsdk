@@ -1,3 +1,10 @@
+Tue Jan  1 16:42:05 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c: Use RT_WORKSPACE_START instead of magic number.
+	* som_array.c: Likewise.
+	* som_workspace.h: Define RT_WORKSPACE_START as an address rather
+	than an offset.
+
 Tue Nov 27 07:11:25 CET 2007  Peter Naulls  <peter@chocky.org>
 
 	* som_runcom.c: Fix problem when no arguments where given.
@@ -105,7 +112,7 @@ Wed Aug 15 20:45:46 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 Mon Aug 06 20:40:59 2007  Lee Noar  <leenoar@sky.com>
 
 	* som_array.c(somarray_add_object(): Recycle object array elements
-	there were previously used by an object that has since expired.
+	that were previously used by an object that has since expired.
 
 Mon Aug 06 19:35:48 2007  Lee Noar  <leenoar@sky.com>
 
