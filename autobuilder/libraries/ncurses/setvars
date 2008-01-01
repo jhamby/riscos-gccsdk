@@ -1,6 +1,6 @@
 
 
-AB_CONFLAGS="--disable-database --with-hashed-db=no --with-fallbacks=vt102,vt220,xterm-vt220 --without-ada --without-progs CPPFLAGS="
+AB_CONFLAGS="--disable-database --with-hashed-db=no --with-fallbacks=vt102,vt220,xterm-vt220 --without-ada --without-progs CPPFLAGS= --includedir=$GCCSDK_INSTALL_ENV/include"
 AB_INSTALL=yes
 
 
