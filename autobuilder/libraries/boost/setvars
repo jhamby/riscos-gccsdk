@@ -5,7 +5,7 @@ AB_INSTALL=env
 ./configure
 
 # Find it
-BJAM=`find $PWD/tools/build/jam_src -name bjam`
+BJAM=`find $PWD/tools/jam -name bjam`
 
 echo "Using bjam: $BJAM"
 
