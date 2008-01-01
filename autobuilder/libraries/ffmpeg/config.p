@@ -16,7 +16,7 @@ diff -u -r1.190 configure
 +dv1394="no"
 +LDFLAGS=""
 +FFSLDFLAGS=""
-+EXESUF=",ff8"
++EXESUF="$EXEEXT"
 +ranlib="echo ignoring ranlib"
 +strip="echo ignoring strip"
  ;;
