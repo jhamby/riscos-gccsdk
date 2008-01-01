@@ -1,3 +1,2 @@
 AB_INSTALL=env
 
-chmod +x install-sh
