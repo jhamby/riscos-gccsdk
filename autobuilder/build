@@ -218,7 +218,7 @@ ab_build() {
     local DEP
 
     if [ "`which apt-cache 2>/dev/null`" != "" ] ; then
-      DEPENDENCIES=`apt-cache depends $PACKAGE_NAME 2>/dev/null | grep Depends: | sed 's/^.*Depends: //' | grep -v ^libc6\$`
+      DEPENDENCIES=`apt-cache depends $PACKAGE_NAME 2>/dev/null | grep Depends: | sed 's/^.*Depends: //' | grep -v ^libc6\$ || true`
     fi
 
     for DEP in $DEPENDENCIES ; do
@@ -227,7 +227,7 @@ ab_build() {
       fi
     done
 
-    DEPENDENCIES=
+    unset DEPENDENCIES
     if [ -e "$AB_HOME/$PACKAGE_DIR/depends" ] ; then
       DEPENDENCIES=$(cat $AB_HOME/$PACKAGE_DIR/depends | grep -v \^\#)
     fi
