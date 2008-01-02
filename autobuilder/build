@@ -171,6 +171,7 @@ ab_build() {
 
   local PACKAGE_NAME=$1
   local IS_DEPENDENCY=$2
+  local IS_EXPLICIT=$3
 
   # Because the dependency info only contains the package name, and not the
   # directory, we need to search for the directory containing this package.
@@ -181,23 +182,35 @@ ab_build() {
   PACKAGE_DIR=`dirname $PACKAGE_DIR`
 
   if [ ! -d $AB_HOME/$PACKAGE_DIR ] ; then
-    echo "Autobuilder: No directory found for package \"$PACKAGE_NAME\" - ignoring" 1>&2
+    if $IS_DEPENDENCY ; then
+      if $IS_EXPLICIT ; then
+        echo "Autobuilder: No explicit dependency \"$PACKAGE_NAME\" found - failing" 1>&2
+        exit 1
+      else
+        echo "Autobuilder: No match for Debian dependency \"$PACKAGE_NAME\" - ignoring" 1>&2
+      fi
+    else
+      echo "Autobuilder: Package \"$PACKAGE_NAME\" not found"
+      exit 1 
+    fi 
+
     return 0
   fi
-
-  echo "Autobuilder: Package \"$PACKAGE_NAME\" will be built using recipe at \"$AB_HOME/$PACKAGE_DIR\""
 
   if [ ! -e $AB_HOME/$PACKAGE_DIR/setvars ] ; then
     echo "Autobuilder: No setvars found for package \"$PACKAGE_NAME\" - ignoring" 1>&2
     return 0
   fi
 
-  if [ "$IS_DEPENDENCY" == "1" ] ; then
+  if $IS_DEPENDENCY ; then
     if [ -e "$AB_HOME/$PACKAGE_DIR/last-success$AB_TARGET" ] ; then
-      echo "Autobuilder: Dependency $PACKAGE_NAME satisfied"
+      echo "Autobuilder: Dependency $PACKAGE_NAME satisfied by previous successful build"
       return 0
     fi
   fi
+
+  echo "Autobuilder: Package \"$PACKAGE_NAME\" will be built using rules at \"$AB_HOME/$PACKAGE_DIR\""
+
 
   if [ "$AB_DEPS" == "yes" ] ; then
 
@@ -205,16 +218,22 @@ ab_build() {
     local DEP
 
     if [ "`which apt-cache 2>/dev/null`" != "" ] ; then
-      DEPENDENCIES=`apt-cache depends $PACKAGE_NAME | grep Depends: | sed 's/^.*Depends: //'`
+      DEPENDENCIES=`apt-cache depends $PACKAGE_NAME 2>/dev/null | grep Depends: | sed 's/^.*Depends: //' | grep -v ^libc6\$`
     fi
-
-    if [ -e "$AB_HOME/$PACKAGE_DIR/depends" ] ; then
-      DEPENDENCIES=`echo $DEPENDENCIES $(cat $AB_HOME/$PACKAGE_DIR/depends | grep -v \^\#)`
-    fi
-
 
     for DEP in $DEPENDENCIES ; do
-      if ! ab_build $DEP 1 ; then
+      if ! ab_build $DEP true false ; then
+        return 1
+      fi
+    done
+
+    DEPENDENCIES=
+    if [ -e "$AB_HOME/$PACKAGE_DIR/depends" ] ; then
+      DEPENDENCIES=$(cat $AB_HOME/$PACKAGE_DIR/depends | grep -v \^\#)
+    fi
+
+    for DEP in $DEPENDENCIES ; do
+      if ! ab_build $DEP true true ; then
         return 1
       fi
     done
@@ -227,7 +246,7 @@ ab_build() {
 
 
   AB_OUTPUT=/tmp/ab-output-$$-$RANDOM
-  if [ "$AB_THISDEBUG" == "yes" -a "$IS_DEPENDENCY" == "0" ] ; then
+  if [ "$AB_THISDEBUG" == "yes" ] && ! $IS_DEPENDENCY ; then
     AB_DEBUG=yes $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT $AB_STDOUT
   else
     $AB_HOME/build-program 2>&1 | tee $AB_OUTPUT $AB_STDOUT
@@ -257,6 +276,6 @@ ab_build() {
 for PACKAGEDIR in $AB_PACKAGES ; do
  PACKAGE=$(echo "$PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
 
- ab_build $PACKAGE 0
+ ab_build $PACKAGE false false
 
 done
