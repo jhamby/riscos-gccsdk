@@ -1,5 +1,0 @@
-| Boot file for LibU
-
-If "<LibU$Dir>" = "" Then Set LibU$Dir <Obey$Dir>
-If "<LibU$Path>" = "" Then Set LibU$Path <LibU$Dir>.
-IconSprites <LibU$Dir>.!Sprites
