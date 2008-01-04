@@ -1,3 +1,36 @@
+Fri Jan  4 18:24:23 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_workspace.h: Move runtime workspace to immediately after ELF
+	header. Use a new function, rt_workspace_find(), to calculate
+	address of runtime workspace using ELF header.
+	* som_register.c: Use new function to find workspace.
+	* som_array.c: Likewise.
+
+	The following changes were also made to parts of GCCSDK:
+
+	* bfd/elf32-arm.c: Add extra 20 bytes to size of ELF header to use
+	as runtime workspace.
+	* ld/scripttempl/elf.sc: Remove runtime workspace allocation from
+	linker scripts.
+
+	Note that the runtime workspace has been reduced in size to five 4
+	byte words rather than ten. The current implementation uses the first
+	two leaving the other three unused.
+
+	There are several advantages to moving the workspace:
+
+	1) The new position is consistent for both static and dynamic binaries
+	(something I require for a project).
+	2) If the number of program headers change, the workspace position
+	will not change.
+	3) If a non standard linker script is used, the workspace will not
+	disappear.
+	4) Hopefully future proof against extensions to the ELF header.
+
+	The only minor disadvantage is that shared libraries also acquire the
+	workspace 'hole' immediately after the ELF header, however, it is only
+	an extra 20 bytes and it may even be useful in the future.
+
 Tue Jan  1 16:42:05 2008  Lee Noar  <leenoar@sky.com>
 
 	* som_register.c: Use RT_WORKSPACE_START instead of magic number.

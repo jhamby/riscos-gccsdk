@@ -1,5 +1,5 @@
---- bfd/elf32-arm.c.orig	2007-12-02 18:47:23.000000000 +0100
-+++ bfd/elf32-arm.c	2007-12-02 18:46:30.000000000 +0100
+--- bfd/elf32-arm.c.orig	2008-01-02 20:17:43.000000000 +0000
++++ bfd/elf32-arm.c	2008-01-01 16:53:08.000000000 +0000
 @@ -1470,7 +1470,7 @@
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -672,6 +672,15 @@
  	    }
  	}
  
+@@ -8053,7 +8557,7 @@
+ 
+ /* We use this to override swap_symbol_in and swap_symbol_out.  */
+ const struct elf_size_info elf32_arm_size_info = {
+-  sizeof (Elf32_External_Ehdr),
++  sizeof (Elf32_External_Ehdr) + 20,
+   sizeof (Elf32_External_Phdr),
+   sizeof (Elf32_External_Shdr),
+   sizeof (Elf32_External_Rel),
 @@ -8140,7 +8644,7 @@
  #define elf_backend_default_use_rela_p 0
  #define elf_backend_rela_normal     0

@@ -1,6 +1,6 @@
---- ld/scripttempl/elf.sc.orig	2007-12-02 20:17:58.000000000 +0100
-+++ ld/scripttempl/elf.sc	2007-12-02 20:08:49.000000000 +0100
-@@ -236,6 +236,21 @@
+--- ld/scripttempl/elf.sc.orig	2008-01-02 20:13:13.000000000 +0000
++++ ld/scripttempl/elf.sc	2008-01-01 18:45:55.000000000 +0000
+@@ -236,6 +236,18 @@
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
  
@@ -12,9 +12,6 @@
 +RISCOS_ZIBASE="PROVIDE (Image\$\$ZI\$\$Base = .);"
 +RISCOS_ZILIMIT="PROVIDE (Image\$\$ZI\$\$Limit = .);"
 +
-+RISCOS_IMAGE_HDR="
-+  /* Make space for run-time data when dynamically linked. */
-+  . = . + 40;"
 +RISCOS_SOM_GOT_SYMBOL="
 +  /* Define a symbol that allows the RISC OS dynamic loader to find the GOT. */
 +  __som_got__ = .;"
@@ -22,16 +19,15 @@
  cat <<EOF
  OUTPUT_FORMAT("${OUTPUT_FORMAT}", "${BIG_OUTPUT_FORMAT}",
  	      "${LITTLE_OUTPUT_FORMAT}")
-@@ -256,6 +271,8 @@
+@@ -256,6 +268,7 @@
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+PROVIDE (__executable_start = ${TEXT_START_ADDR}); . = ${TEXT_BASE_ADDRESS};}}}
    ${CREATE_SHLIB+${RELOCATING+. = ${SHLIB_TEXT_START_ADDR:-0} + SIZEOF_HEADERS;}}
    ${CREATE_PIE+${RELOCATING+. = ${SHLIB_TEXT_START_ADDR:-0} + SIZEOF_HEADERS;}}
-+  ${CREATE_SHLIB-${RISCOS_IMAGE_HDR}}
 +  ${CREATE_SHLIB-${RISCOS_ROBASE}}
    ${CREATE_SHLIB-${INTERP}}
    ${INITIAL_READONLY_SECTIONS}
    ${TEXT_DYNAMIC+${DYNAMIC}}
-@@ -362,6 +379,8 @@
+@@ -362,6 +375,8 @@
    .eh_frame     ${RELOCATING-0} : ONLY_IF_RO { KEEP (*(.eh_frame)) }
    .gcc_except_table ${RELOCATING-0} : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }
  
@@ -40,7 +36,7 @@
    /* Adjust the address for the data segment.  We want to adjust up to
       the same address within the page on the next page up.  */
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+. = ${DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}}
-@@ -403,6 +422,7 @@
+@@ -403,6 +418,7 @@
    ${RELOCATING+${DATARELRO}}
    ${OTHER_RELRO_SECTIONS}
    ${TEXT_DYNAMIC-${DYNAMIC}}
@@ -48,7 +44,7 @@
    ${DATA_GOT+${RELRO_NOW+${GOT}}}
    ${DATA_GOT+${RELRO_NOW+${GOTPLT}}}
    ${DATA_GOT+${RELRO_NOW-${SEPARATE_GOTPLT+${GOT}}}}
-@@ -412,6 +432,7 @@
+@@ -412,6 +428,7 @@
  
    ${DATA_PLT+${PLT_BEFORE_GOT-${PLT}}}
  
@@ -56,7 +52,7 @@
    .data         ${RELOCATING-0} :
    {
      ${RELOCATING+${DATA_START_SYMBOLS}}
-@@ -435,10 +456,15 @@
+@@ -435,10 +452,15 @@
    ${RELOCATING+${OTHER_BSS_SYMBOLS}}
    ${SBSS}
    ${BSS_PLT+${PLT}}
@@ -73,7 +69,7 @@
     *(COMMON)
     /* Align here to ensure that the .bss section occupies space up to
        _end.  Align after .bss to ensure correct alignment even if the
-@@ -446,6 +472,7 @@
+@@ -446,6 +468,7 @@
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */
     ${RELOCATING+. = ALIGN(. != 0 ? ${ALIGNMENT} : 1);}
@@ -81,7 +77,7 @@
    }
    ${RELOCATING+${OTHER_BSS_END_SYMBOLS}}
    ${RELOCATING+. = ALIGN(${ALIGNMENT});}
-@@ -454,6 +481,7 @@
+@@ -454,6 +477,7 @@
    ${RELOCATING+${OTHER_END_SYMBOLS}}
    ${RELOCATING+${END_SYMBOLS-_end = .; PROVIDE (end = .);}}
    ${RELOCATING+${DATA_SEGMENT_END}}
