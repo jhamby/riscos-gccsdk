@@ -37,7 +37,7 @@ if [ "$command" == "/usr/bin/install" ] ; then
   for param in $installparams ; do
     if [ -d $param ] ; then
       for fileinparam in $(find $param -mindepth 1 -maxdepth 1) ; do
-        mkdir -p $dest/$param
+        /bin/mkdir -p $dest/$param
         GCCSDK_ENV/ro-install $fileinparam $dest/$param
       done
     else
@@ -63,6 +63,7 @@ else
   if echo "$dest" | grep -q -E "/env/lib|/env/include|/env/bin" ; then
     dest=$(echo $dest | sed s#GCCSDK_ENV/#$AB_DIR/package/#)
     echo "RISC OS Cross installer: $installparams $dest"
+    /bin/mkdir -p $(dirname $dest)
     exec $command $installparams $dest
   fi
 
@@ -86,7 +87,7 @@ else
       destbasename=""
     fi
     # $dest is a directory, make sure it exists.
-    mkdir -p $dest
+    /bin/mkdir -p $dest
 
     # Convert man pages to HTML:
     for manpage in $installparams ; do
