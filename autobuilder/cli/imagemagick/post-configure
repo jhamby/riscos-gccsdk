@@ -1,5 +1,0 @@
-cd coders
-
-/bin/sh ../libtool --silent --mode=compile $RO_BIN/gcc -DHAVE_CONFIG_H -I../ -I. -I. -I../magick -I.. -I.. -I../magick  -D_REENTRANT -I/home/riscos/env/include -D_FILE_OFFSET_BITS=64 -I/home/riscos/env/X11R6/include -I/X11  -Wall -c -o svg.lo `test -f 'svg.c' || echo './'`svg.c
-
-cd ..
