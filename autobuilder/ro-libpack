@@ -26,6 +26,15 @@ echo "RO libpack: Running install target: $AB_INSTALLTARGET"
 # calls during installation.
 PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
 
+pushd .
+cd $AB_DIR/package
+files=$(find -type f)
+if [ -z "$files" ] ; then
+  echo "RO libpack: No files to pack" 1>&2
+  exit 1
+fi
+popd
+
 if [ ! -z "$AB_INSTALLDOCS" ] ; then
   for file in $AB_INSTALLDOCS ; do
      if [ -e $file ] ; then
@@ -52,12 +61,6 @@ echo "$RO_PKG $AB_SHORTDESC" > $AB_DIR/package/abshortdesc
 
 cd $AB_DIR/package
 
-files=$(find -type f)
-
-if [ -z "$files" ] ; then
-  echo "RO libpack: No files to pack"
-  exit 0
-fi
 
 if [ -d "$AB_OUTPUTLIB" ] ; then
 
