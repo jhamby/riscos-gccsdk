@@ -3,8 +3,6 @@ AB_ZIPNAME=libpng12-dev
 
 AB_INSTALL=yes
 
-mkdir -p $D/include/libpng12
-
 ab_package()
 {
   AD=$D/Apps/Library/!LibPNG

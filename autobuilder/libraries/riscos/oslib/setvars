@@ -13,4 +13,3 @@ AB_MAKE="CC=/usr/bin/cc $AB_MAKE oslib-aof"
 AB_INSTALLTARGET=install-aof
 fi
 
-mkdir -p $D/include/oslib/oslib

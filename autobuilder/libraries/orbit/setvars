@@ -18,8 +18,3 @@ make clean
 cp /tmp/orbit-idl $GCCSDK_INSTALL_ENV/bin
 mv /tmp/orbit-idl src/orbit-idl-compiler/
 
-mkdir -p $D/include/libIDL-1.0/libIDL/
-mkdir -p $D/include/orbit-1.0/ORBitutil/
-mkdir -p $D/include/orbit-1.0/IIOP/
-mkdir -p $D/include/orbit-1.0/orb/
-mkdir -p $D/include/orbit-1.0/ORBitservices/

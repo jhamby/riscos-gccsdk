@@ -6,4 +6,3 @@ AB_INSTALL=yes
 
 AB_MAKE="cd $PWD/\!DLSources; $AB_MAKE -f Makefile.unix"
 
-mkdir -p $D/include/DeskLib
