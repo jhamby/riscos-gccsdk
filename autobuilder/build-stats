@@ -3,7 +3,7 @@
 verbose=false
 
 
-if [ $1 == '-v' ] ; then
+if [ "$1" == '-v' ] ; then
   verbose=true
   shift
 fi
