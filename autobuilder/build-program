@@ -199,7 +199,14 @@ else
  fi  
  
  # Apply any RISC OS patches
- for AB_PATCH in $(find $AB_HOME/$AB_PACKAGEDIR/ | grep "\.p$") ; do
+ patches=$(find $AB_HOME/$AB_PACKAGEDIR/ | grep "\.p\$" || true)
+ if [ "$AB_ELFBUILD" == "yes" ] ; then
+   patches="$patches $(find $AB_HOME/$AB_PACKAGEDIR/ | grep \.p.elf\$ || true)"
+ else
+   patches="$patches $(find $AB_HOME/$AB_PACKAGEDIR/ | grep \.p.aof\$ || true)"
+ fi
+
+ for AB_PATCH in $patches ; do
    echo "Autobuilder: RISC OS patch: $AB_PATCH"
    patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
  done
