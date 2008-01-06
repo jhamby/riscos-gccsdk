@@ -8,8 +8,6 @@ AB_SHORTDESC="Allows programs portable low level access to a video, audio, mouse
 
 AB_INSTALL=yes
 
-mkdir -p $D/include/SDL/
-
 
 # Package script uses installed library
 # zip built due to AB_INSTALL=yes
