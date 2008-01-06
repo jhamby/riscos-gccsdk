@@ -15,10 +15,8 @@ if [ -z "$AB_INSTALLTARGET" ] ; then
   AB_INSTALLTARGET=install
 fi
 
-mkdir -p $AB_DIR/package/bin/
-mkdir -p $AB_DIR/package/lib/X11/
-mkdir -p $AB_DIR/package/include/X11/extensions/
-mkdir -p $AB_DIR/package/lib/pkgconfig/
+mkdir -p $AB_DIR/package/lib
+mkdir -p $AB_DIR/package/include/
 mkdir -p $AB_DIR/package/doc/$RO_PKG
 
 echo "RO libpack: Running install target: $AB_INSTALLTARGET"
@@ -26,6 +24,7 @@ echo "RO libpack: Running install target: $AB_INSTALLTARGET"
 # calls during installation.
 PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
 
+# Check for bogus package conditions
 pushd .
 cd $AB_DIR/package
 files=$(find -type f)
@@ -33,6 +32,18 @@ if [ -z "$files" ] ; then
   echo "RO libpack: No files to pack" 1>&2
   exit 1
 fi
+
+for file in $files ; do
+  if grep -q "/#" <<<$file; then
+    echo "RO libpack: Temporary file \"$file\" found during packaging" 1>&2
+    exit 1
+  fi
+  if file $file | grep -q -E "386|x86-64" ; then
+    echo "RO libpack: Attempt to pack host binary: \"$file\"" 1>&2
+    exit 1
+  fi
+done
+
 popd
 
 if [ ! -z "$AB_INSTALLDOCS" ] ; then
