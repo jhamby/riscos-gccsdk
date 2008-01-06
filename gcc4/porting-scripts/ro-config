@@ -321,7 +321,7 @@ rm $tmpoutconfigure
 # Set tool chain variables picked up by configure
 export CC="$DISTCC GCCSDK_BIN/arm-unknown-riscos-gcc"
 export CPPFLAGS="-isystem GCCSDK_ENV/include"
-export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS"
+export LDFLAGS="-LGCCSDK_ENV/lib -static $AB_LDFLAGS"
 export CXX="$DISTCC GCCSDK_BIN/arm-unknown-riscos-g++"
 
 export CC_FOR_BUILD=/usr/bin/cc
