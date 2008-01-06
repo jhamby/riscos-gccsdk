@@ -1,5 +1,5 @@
 
-AB_CATEGORY=cli
+AB_CATEGORY=network
 
 AB_CONFLAGS=--without-ssl
 AB_MANPAGE=doc/wget.1
