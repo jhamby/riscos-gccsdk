@@ -10,8 +10,6 @@ if [ ! -e $S/acinclude.m4 ] ; then
   cp -v $H/acinclude.m4 $S
 fi
 
-mkdir -p $D/include/SDL/
-
 ab_package()
 {
   AD=$D/Apps/Library/!SDLGFX

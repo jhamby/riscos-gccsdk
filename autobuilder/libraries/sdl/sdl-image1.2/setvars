@@ -5,8 +5,6 @@ AB_CONFLAGS="--enable-tif --enable-xmf --disable-png-shared --disable-tiff-share
 
 AB_INSTALL=yes
 
-mkdir -p $D/include/SDL/
-
 ab_package()
 {
   AD=$D/Apps/Library/!SDLImage
@@ -34,7 +32,7 @@ ab_package()
   cd $HERE
 
   cp $S/showimage.c $AD/doc
-  cp $S/showimage,ff8 $AD
+  cp $S/showimage$AB_EXEEXT $AD
 
   $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
     -depends "libjpeg62-dev" -depends "libpng12-dev" \

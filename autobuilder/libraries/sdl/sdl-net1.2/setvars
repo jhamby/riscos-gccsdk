@@ -4,8 +4,6 @@ AB_INSTALL=yes
 
 export SED=sed
 
-mkdir -p $D/include/SDL/
-
 ab_package()
 {
   AD=$D/Apps/Library/!SDLNet

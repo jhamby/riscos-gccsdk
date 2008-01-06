@@ -4,8 +4,6 @@ AB_INSTALL=yes
 
 ./autogen.sh
 
-mkdir -p $D/include/SDL/
-
 ab_package()
 {
   AD=$D/Apps/Library/!SDLTTF
