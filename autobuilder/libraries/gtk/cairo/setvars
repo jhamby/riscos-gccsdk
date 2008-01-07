@@ -1,8 +1,4 @@
-AB_URL=http://cairographics.org/releases/cairo-1.2.6.tar.gz
-AB_ZIPNAME=cairo-1.2.6
-
 AB_INSTALL=yes
 
 AB_CONFLAGS="--enable-xlib=yes --enable-png=yes --enable-freetype=yes --enable-ps=yes --enable-pdf=yes --enable-svg=yes"
 
-mkdir -p $D/include/cairo/
