@@ -219,8 +219,10 @@ else
   fi
  fi
  
- echo "Autobuilder: Calling setvars"
- . $AB_HOME/$AB_PACKAGEDIR/setvars
+ if [ "$AB_TRY" != yes ] ; then
+   echo "Autobuilder: Calling setvars"
+   . $AB_HOME/$AB_PACKAGEDIR/setvars
+ fi
  
  export AB_DIR
 
@@ -260,6 +262,11 @@ else
  fi
  if [ -e $S/man ] && ! [ -e $S/man/man3 ] ; then
    ln -s . $S/man/man3
+ fi
+
+ if [ -e install-sh ] && ! [ -h install-sh ] ; then
+   mv install-sh install.sh-old
+   ln -s $GCCSDK_INSTALL_ENV/ro-install install-sh
  fi
 
  # Need to install in $GCCSDK_INSTALL_ENV ?

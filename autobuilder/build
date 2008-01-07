@@ -7,6 +7,7 @@ export AB_NOFETCH=no  # Using existing source fetched from last time
 AB_VERBOSE=no         # Echo output
 AB_DEPS=yes           # Build dependencies first
 export AB_TARGET=     # Name added to packages and logs
+export AB_TRY=no      # Try to build Debian packages not in autobuilder yet
 
 for param in $@ ; do
   case "$param" in
@@ -40,6 +41,9 @@ for param in $@ ; do
             ;;
           n)
             AB_DEPS=no
+            ;;
+          t)
+            AB_TRY=yes
             ;;
           *)
           echo "Autobuilder: unknown option -$opt"
@@ -182,22 +186,28 @@ ab_build() {
   PACKAGE_DIR=`dirname $PACKAGE_DIR`
 
   if [ ! -d $AB_HOME/$PACKAGE_DIR ] ; then
-    if $IS_DEPENDENCY ; then
-      if $IS_EXPLICIT ; then
-        echo "Autobuilder: No explicit dependency \"$PACKAGE_NAME\" found - failing" 1>&2
-        exit 1
-      else
-        echo "Autobuilder: No match for Debian dependency \"$PACKAGE_NAME\" - ignoring" 1>&2
-      fi
+    if [ "$AB_TRY" == yes ] && ! $IS_DEPENDENCY ; then
+      echo "Autobuilder: Attempting to build \"$PACKAGE_NAME\" not in autobuilder"
+      PACKAGE_DIR=try
+      mkdir -p $AB_HOME/$PACKAGE_DIR
     else
-      echo "Autobuilder: Package \"$PACKAGE_NAME\" not found"
-      exit 1 
-    fi 
+      if $IS_DEPENDENCY ; then
+        if $IS_EXPLICIT ; then
+          echo "Autobuilder: No explicit dependency \"$PACKAGE_NAME\" found - failing" 1>&2
+          exit 1
+        else
+          echo "Autobuilder: No match for Debian dependency \"$PACKAGE_NAME\" - ignoring" 1>&2
+        fi
+      else
+        echo "Autobuilder: Package \"$PACKAGE_NAME\" not found"
+        exit 1 
+      fi 
 
-    return 0
+      return 0
+    fi
   fi
 
-  if [ ! -e $AB_HOME/$PACKAGE_DIR/setvars ] ; then
+  if [ ! -e $AB_HOME/$PACKAGE_DIR/setvars ] && [ "$AB_TRY" != yes ] ; then
     echo "Autobuilder: No setvars found for package \"$PACKAGE_NAME\" - ignoring" 1>&2
     return 0
   fi
