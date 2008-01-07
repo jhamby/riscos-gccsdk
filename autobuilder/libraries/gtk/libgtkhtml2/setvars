@@ -3,14 +3,5 @@ AB_INSTALL=yes
 # We don't have GAILUTIL.
 AB_CONFLAGS=--disable-accessibility
 
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/css/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/document/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/dom/core/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/dom/events/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/dom/html/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/dom/traversal/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/dom/views/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/graphics/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/layout/html/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/util/
-mkdir -p $D/include/gtkhtml-2.0/libgtkhtml/view/
+export RO_NOSTATIC=yes
+

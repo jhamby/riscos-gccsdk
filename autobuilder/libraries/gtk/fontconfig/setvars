@@ -2,4 +2,3 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--disable-docs --with-arch=arm-riscos-aof"
 
-mkdir -p $D/include/fontconfig

@@ -1,5 +1,3 @@
 
 AB_INSTALL=yes
 
-mkdir -p $D/include/gtk-1.2/gdk/
-mkdir -p $D/include/gtk-1.2/gtk/

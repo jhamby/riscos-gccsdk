@@ -2,4 +2,3 @@
 
 AB_INSTALL=yes
 
-mkdir -p $D/include/atk-1.0/atk/
