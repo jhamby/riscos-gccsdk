@@ -1,6 +1,7 @@
 AB_CATEGORY=Library
 AB_INSTALL=yes
 AB_PACKAGES="zlib1g-dev"
+AB_CONFLAGS=--static
 
 ab_package() {
   AD=$D/zlib1g-dev/Apps/Library/!ZLib1g
