@@ -321,8 +321,13 @@ rm $tmpoutconfigure
 # Set tool chain variables picked up by configure
 export CC="$DISTCC GCCSDK_BIN/arm-unknown-riscos-gcc"
 export CPPFLAGS="-isystem GCCSDK_ENV/include"
-export LDFLAGS="-LGCCSDK_ENV/lib -static $AB_LDFLAGS"
 export CXX="$DISTCC GCCSDK_BIN/arm-unknown-riscos-g++"
+
+if [ "$RO_NOSTATIC" == yes ] ; then
+  export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS"
+else
+  export LDFLAGS="-LGCCSDK_ENV/lib -static $AB_LDFLAGS"
+fi
 
 export CC_FOR_BUILD=/usr/bin/cc
 
@@ -528,7 +533,6 @@ export db_cv_path_rm=echo
 export tcl_cv_strtod_buggy=1
 
 export ac_cv_header_wctype_h=no
-export ac_cv_header_dlfcn_h=yes
 export ac_cv_header_mcheck=no
 export ac_cv_header_tcl_h=yes 
 export ac_cv_header_readline_h=yes
@@ -560,11 +564,17 @@ export fu_cv_sys_mounted_fread=yes
 
 export libc_cv_asm_global_directive=EXPORT
 
-export libltdl_cv_sys_dlopen_deplibs=no
-export lt_cv_sys_global_symbol_pipe="cut -d ' ' -f 1"
-export lt_cv_global_symbol_to_cdecl="sed -n -e 's/\\(.*\\)\$/extern char \\1;/p'"
-export lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (lt_ptr) 0},/p' -e 's/^\\([^ ]*\\)\$/  {\"\\1\", (lt_ptr) \\&\\1},/p'"
+#export libltdl_cv_sys_dlopen_deplibs=no
+#export lt_cv_sys_global_symbol_pipe="cut -d ' ' -f 1"
+#export lt_cv_global_symbol_to_cdecl="sed -n -e 's/\\(.*\\)\$/extern char \\1;/p'"
+#export lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (lt_ptr) 0},/p' -e 's/^\\([^ ]*\\)\$/  {\"\\1\", (lt_ptr) \\&\\1},/p'"
 
+# Dynamic library handling disabling
+export ac_cv_header_dlfcn_h=yes
+if [ "$RO_NOSTATIC" != yes ] ; then
+  export ac_cv_lib_dl_dlopen=no
+  export ac_cv_func_dlsym=no
+fi
 
 
 GCCSDK_ENV/ro-path $RO_CPATH/configure \
@@ -573,7 +583,7 @@ GCCSDK_ENV/ro-path $RO_CPATH/configure \
 
 
 # Force libtool to make static binaries
-if [ -e $RO_CPATH/libtool ] ; then
+if [ "$RO_NOSTATIC" != yes ] && [ -e $RO_CPATH/libtool ] ; then
   sed "s#all-static)#all-static|-static)#" < $RO_CPATH/libtool > $RO_CPATH/libtool.tmp
   mv $RO_CPATH/libtool.tmp $RO_CPATH/libtool
   chmod +x $RO_CPATH/libtool 
