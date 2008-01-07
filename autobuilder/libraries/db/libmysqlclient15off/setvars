@@ -12,5 +12,3 @@ autoconf
 
 /usr/bin/gcc libmysql/conf_to_src.c -o libmysql/conf_to_src
 
-mkdir -p $D/include/mysql
-mkdir -p $D/lib/mysql

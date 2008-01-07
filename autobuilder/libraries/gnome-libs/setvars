@@ -19,10 +19,3 @@ ab_make() {
 touch $GCCSDK_INSTALL_ENV/bin/esd-config
 chmod +x $GCCSDK_INSTALL_ENV/bin/esd-config
 
-mkdir -p $D/lib/gnome-libs/include/
-mkdir -p $D/include/gnome-1.0/libgnome/
-mkdir -p $D/include/gnome-1.0/libgnomeui/
-mkdir -p $D/include/gnome-1.0/gtk-xmhtml/
-mkdir -p $D/include/gnome-1.0/libart_lgpl/
-mkdir -p $D/include/gnome-1.0/zvt/
-mkdir -p $D/include/gnome-1.0/libgnorba/

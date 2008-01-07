@@ -6,7 +6,3 @@ autoconf
 libtoolize --force
 automake --foreign --add-missing --ignore-deps
 
-mkdir -p $D/include/agg2
-mkdir -p $D/include/agg2/ctrl
-mkdir -p $D/include/agg2/platform
-mkdir -p $D/include/agg2/util
