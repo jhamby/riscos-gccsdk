@@ -6,4 +6,3 @@ AB_INSTALL=yes
 
 AB_MAKE="TERM=xterm-colour make -C ncurses fallback.c; $AB_MAKE"
 
-mkdir -p $D/include/ncurses

@@ -1,3 +1,2 @@
 AB_INSTALL=yes
 
-mkdir -p $D/include/liboaf/

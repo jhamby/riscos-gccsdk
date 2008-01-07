@@ -6,7 +6,6 @@ else
 perl Configure --prefix=$GCCSDK_INSTALL_ENV riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5
 fi
 
-mkdir -p $D/include/openssl
 
 ln -s ssl/ssl.pod doc/ssl.pod
 ln -s crypto/crypto.pod doc/crypto.pod

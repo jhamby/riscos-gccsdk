@@ -1,5 +1,6 @@
 
 AB_INSTALL=yes
+export RO_NOSTATIC=yes
 
 export ac_cv_working_getnameinfo=no
 export ac_cv_working_getaddrinfo=no
@@ -7,8 +8,6 @@ export ac_cv_working_getaddrinfo=no
 export apr_cv_process_shared_works=no
 export ac_cv_file__dev_zero=no
 export apr_cv_tcp_nodelay_with_cork=no
-export ac_cv_lib_dl_dlopen=yes
-export ac_cv_func_dlsym=yes
 
 #These two are not strictly true, but it stops configure from complaining
 export ac_cv_func_mmap=yes
