@@ -3,4 +3,3 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--enable-http --enable-ftp --enable-file --disable-ldap --disable-dict --enable-gopher --disable-telnet --disable-manual --disable-ipv6 --enable-nonblocking --enable-thread --enable-ares=/home/riscos/env/lib --disable-debug --with-random=/dev/urandom --without-libidn"
 
-mkdir -p $D/include/curl
