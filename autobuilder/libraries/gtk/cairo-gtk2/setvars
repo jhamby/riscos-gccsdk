@@ -5,11 +5,7 @@
 # SVG backend requires that gtk+-2.0 is already installed, which it isn't
 # in the case where we're installing gtk+-2.0
 
-AB_URL=http://cairographics.org/releases/cairo-1.2.4.tar.gz
-AB_ZIPNAME=cairo-1.2.4
-
 AB_INSTALL=yes
 
 AB_CONFLAGS="--enable-xlib=yes --enable-png=yes --enable-freetype=yes --enable-ps=yes --enable-pdf=yes --enable-svg=no"
 
-mkdir -p $D/include/cairo/
