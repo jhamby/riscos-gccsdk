@@ -2,5 +2,3 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--with-python=no"
 
-mkdir -p $D/include/libxslt/
-mkdir -p $D/include/libexslt/

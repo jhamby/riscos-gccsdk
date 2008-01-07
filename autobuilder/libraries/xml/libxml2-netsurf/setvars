@@ -6,5 +6,4 @@ AB_CONFLAGS="--without-ftp --without-http --without-reader --without-pattern
 --without-xptr --without-c14n --without-xinclude --without-schemas
 --without-regexps --with-iconv --with-iso8859x"
 
-mkdir -p $D/include/libxml2/libxml
 
