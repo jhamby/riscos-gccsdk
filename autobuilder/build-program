@@ -18,7 +18,6 @@ AB_README=ReadMe
 AB_COPYSOURCE=
 AB_DISTCLEAN=
 AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
-AB_SHORTDESC=
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
 export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 export AB_INSTALLTARGET=install
@@ -72,13 +71,6 @@ ab_package_source() {
   cp -r $H/* $S/riscos || true
   rm -f $S/riscos/last-failure
   rm -f $S/riscos/last-success
-}
-
-# Default function for creating webinfo
-ab_webinfo() {
-  if [ -e $H/abwebinfo ] ; then
-    . $AB_HOME/build-webinfo
-  fi
 }
 
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
@@ -284,7 +276,6 @@ else
  if [ "$AB_INSTALL" == "yes" ] ; then
    export AB_OUTPUTLIB
    export AB_INSTALLDOCS
-   export AB_SHORTDESC
 
    if [ "$AB_ZIPNAME" != "" ] ; then
 
@@ -441,11 +432,6 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
    else
      echo "Autobuilder: Warning! Source directory for source package missing '$AB_SRCDIR'"
    fi
- fi
-
- # Create web info here so we can get the size of the zip file
- if [ "$AB_PACKONLY" != "yes" ] ; then
-   ab_webinfo
  fi
 fi
 

@@ -59,17 +59,6 @@ if [ ! -z "$AB_INSTALLDOCS" ] ; then
   done
 fi
 
-if [ -z "$AB_SHORTDESC" ] && [ -e debian/control ] ; then
-  # Try to get description of development package
-  AB_SHORTDESC=$(grep -A20 "Package:.*-dev" debian/control | grep -m 1 "Description:" | cut --bytes 14-)
-  # Just use first found if we can't find a dev entry
-  if [ -z "$AB_SHORTDESC" ] ; then
-    AB_SHORTDESC=$(grep -m 1 "Description:" debian/control | cut --bytes 14-)
-  fi
-fi
-
-echo "$RO_PKG $AB_SHORTDESC" > $AB_DIR/package/abshortdesc
-
 cd $AB_DIR/package
 
 
