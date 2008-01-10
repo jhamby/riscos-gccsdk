@@ -1,6 +1,7 @@
 
 AB_INSTALL=yes
-export RO_NOSTATIC=yes
+# This makes it static
+AB_CONFLAGS=-disable-dso
 
 export ac_cv_working_getnameinfo=no
 export ac_cv_working_getaddrinfo=no
