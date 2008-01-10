@@ -2,5 +2,4 @@ AB_CATEGORY=libraries/graphics
 AB_INSTALL=yes
 AB_CONFLAGS=--disable-gnome-vfs
 
-export RO_NOSTATIC=yes
 

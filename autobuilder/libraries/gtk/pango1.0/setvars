@@ -1,5 +1,4 @@
 AB_INSTALL=yes
 
 AB_CONFLAGS=--with-included-modules=basic-x,basic-fc
-export RO_NOSTATIC=yes
 

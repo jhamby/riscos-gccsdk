@@ -3,5 +3,4 @@ AB_INSTALL=yes
 AB_CONFLAGS=--disable-modules
 AB_PRECONF="LIBS=\"-lz -ltiff -ljpeg -lpng\""
 
-export RO_NOSTATIC=yes
 

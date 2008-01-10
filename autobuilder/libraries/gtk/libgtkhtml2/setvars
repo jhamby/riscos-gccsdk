@@ -3,5 +3,4 @@ AB_INSTALL=yes
 # We don't have GAILUTIL.
 AB_CONFLAGS=--disable-accessibility
 
-export RO_NOSTATIC=yes
 
