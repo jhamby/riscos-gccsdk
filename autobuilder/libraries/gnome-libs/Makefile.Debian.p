@@ -14,7 +14,7 @@
  libgnorbagtk_la_LDFLAGS = 
  libgnorbagtk_la_LIBADD = 
 -libgnorbagtk_la_LIBADD += $(ORBIT_LIBS) $(GLIB_LIBS) -lm -lgdk -ldl -lgtk -lgmodule -lX11 -lpopt
-+libgnorbagtk_la_LIBADD += $(ORBIT_LIBS) $(GLIB_LIBS) -lm -lgdk -ldl -lgtk -lgmodule -lCX11 -lDesk -lpopt
++libgnorbagtk_la_LIBADD += $(ORBIT_LIBS) $(GLIB_LIBS) -lm -lgdk -lgtk -lgmodule -lCX11 -lDesk -lpopt
  libgnorbagtk_la_OBJECTS =  gnome-factory-skels.lo gnome-factory-stubs.lo \
  gnome-factory-common.lo Table-skels.lo Table-stubs.lo Table-common.lo \
  gnome-unknown-skels.lo gnome-unknown-stubs.lo gnome-unknown-common.lo \
@@ -40,3 +40,14 @@
  libzvt_la_OBJECTS =  gnome-login-support.lo lists.lo subshell.lo \
  update.lo vt.lo zvtterm.lo
  noinst_PROGRAMS =  zterm$(EXEEXT) test-utmp$(EXEEXT)
+--- libgnorba/Makefile.in.orig	2008-01-10 19:30:38.000000000 -0800
++++ libgnorba/Makefile.in	2008-01-10 19:31:15.000000000 -0800
+@@ -230,7 +230,7 @@
+ 
+ libgnorba_la_LDFLAGS = -version-info 28:8:1 -rpath $(libdir) -L`pwd`/../libgnomeui -L`pwd`/../libgnomeui/.libs -L`pwd`/../libgnome -L`pwd`/../libgnome/.libs
+ libgnorba_la_LIBADD = $(ORBIT_LIBS) $(GLIB_LIBS) -lm
+-libgnorba_la_LIBADD += -lgnomeui -lgnome -lgdk -ldl -lgtk -lgmodule -lX11 -lpopt
++libgnorba_la_LIBADD += -lgnomeui -lgnome -lgdk -lgtk -lgmodule -lCX11 -lDesk -lpopt
+ 
+ loadshlib_SOURCES = loadshlib.c
+ 
