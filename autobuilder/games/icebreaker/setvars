@@ -6,6 +6,7 @@ AB_PRECONF=:
 
 ab_package() {
   AD=$D/Apps/Games
+  mkdir -p $AD
   cp -av $H/\!IceBreaker $AD
   cp -av $H/\!IceBreaker/\!* $AD/\!IceBreaker
   cp -av icebreaker,ff8 $AD/\!IceBreaker
