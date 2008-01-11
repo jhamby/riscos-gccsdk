@@ -1,0 +1,5 @@
+| Boot file for wget command
+
+If "<wget$Dir>" = "" Then Set wget$Dir <Obey$Dir>
+If "<wget$Dir>" = "<Obey$Dir>" Then Set Alias$wget <Obey$Dir>.wget %%*0
+IconSprites <wget$Dir>.!Sprites

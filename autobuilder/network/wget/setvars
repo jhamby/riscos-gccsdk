@@ -1,12 +1,20 @@
 
-AB_CATEGORY=network
+AB_CATEGORY=Network
 
 AB_CONFLAGS=--without-ssl
-AB_MANPAGE=doc/wget.1
+# AB_MANPAGE=doc/wget.1
 AB_COPYSOURCE=yes
 
 ab_package() {
- cp -av $S/src/wget$AB_EXEEXT COPYING $D 
+ AD=$D/Apps/Network/\!Wget
+ mkdir -p $AD
+ cp $H/\!Wget/\!* $AD
+ cp -av $S/src/wget$AB_EXEEXT $AD 
+ cp -av $S/README $AD/\!Help
+ cp -av $S/AUTHORS $S/COPYING $S/MAILING-LIST $AD
+ cp -av $S/NEWS $S/TODO $S/ChangeLog $AD
+
+ $AB_HOME/add-riscpkg -unixlib
 }
 
 autoconf
