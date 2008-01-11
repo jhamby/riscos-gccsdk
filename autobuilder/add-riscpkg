@@ -122,7 +122,7 @@ if [ "$boot_vars" == "yes" ] && [ ! -z "$boot_file" ] ; then
   while read line
   do
     var=`echo "$line" | cut -d ' ' -f 1 | sed 's/\\\$/=24/'`
-    val=`echo "$line" | cut -d ' ' -f 2-`
+    val=`echo "$line" | cut -d ' ' -f 2- | sed 's/%%/%/'`
     echo "$val" > "$D/SysVars/$var"
   done
 fi
