@@ -9,9 +9,9 @@ export QTDIR=$PWD
 
 YACC='byacc -d'
 
-echo "yes" | ./configure -prefix "/home/riscos/env" -docdir "/home/riscos/env/share/doc/qt3-doc" -headerdir "/home/riscos/env/qt" \
-           -datadir "/home/riscos/env/share/qt" -qt-gif -system-zlib -system-libpng -system-libjpeg -system-libmng \
-           -qt-imgfmt-jpeg -qt-imgfmt-png -qt-imgfmt-mng -I/home/riscos/env/include \
+echo "yes" | ./configure -prefix "$GCCSDK_INSTALL_ENV" -docdir "$GCCSDK_INSTALL_ENV/share/doc/qt3-doc" -headerdir "$GCCSDK_INSTALL_ENV/qt" \
+           -datadir "$GCCSDK_INSTALL_ENV/share/qt" -qt-gif -system-zlib -system-libpng -system-libjpeg -system-libmng \
+           -qt-imgfmt-jpeg -qt-imgfmt-png -qt-imgfmt-mng -I$GCCSDK_INSTALL_ENV/include \
            -plugin-sql-psql -plugin-style-windows -plugin-style-compact -plugin-style-platinum -plugin-style-sgi \
            -plugin-style-cde -stl -no-g++-exceptions -platform riscos-g++ $@
 
