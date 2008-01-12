@@ -1,5 +1,7 @@
 cd unix
 
+AB_CONFLAGS=--disable-load
+
 AB_INSTALL=yes
 
 AB_MAKE="$AB_MAKE CFLAGS=-O2"
