@@ -1,4 +1,4 @@
-
+AB_INSTALL=yes
 AB_CATEGORY=cli
 
 AB_PRECONF=:
