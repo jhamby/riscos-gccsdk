@@ -1,13 +1,17 @@
 # Just install into env
 AB_INSTALL=env
 
-# Configure for host platform (gets bjam built)
-./configure
+# Build bjam
+CC=gcc-4.1; cd tools/jam/src && sh build.sh cc; cd ../../..
 
 # Find it
 BJAM=`find $PWD/tools/jam -name bjam`
 
 echo "Using bjam: $BJAM"
 
-AB_CONFLAGS="--with-bjam=$BJAM --without-libraries=python"
+AB_CONFLAGS="--with-bjam=$BJAM --without-libraries=python --with-toolset=gcc --without-icu"
 
+ab_make() {
+  echo "using gcc : 4.1 : $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc -DBOOST_HAS_PTHREADS ;" > user-config.jam
+  eval $AB_MAKE
+}
