@@ -2,13 +2,18 @@ AB_ZIPNAME=libmysqlclient
 
 AB_INSTALL=yes
 
-AB_CONFLAGS=--without-server
+AB_CONFLAGS="--without-server --without-docs --without-extra-tools"
 
 mkdir -p Docs/Images
 echo -e "all:\ninstall:\n" > Docs/Makefile.in
 echo -e "all:\ninstall:\n" > Docs/Images/Makefile.in
+echo -e "all:\ninstall:\n" > debian/Makefile.in
+
+for dir in libmysql client sql cmd-line-utils/libedit scripts pstack strings regex mysys tests netware; do
+  echo -e ".deps/%.Po .deps/%.Plo:\n\t@mkdir -p .deps\n\t@touch \$@" >> $dir/Makefile.in
+done
 
 autoconf
 
-/usr/bin/gcc libmysql/conf_to_src.c -o libmysql/conf_to_src
+ln -s . man/man1
 
