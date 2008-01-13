@@ -31,9 +31,9 @@ fi
 H=$AB_HOME/$AB_PACKAGEDIR
 
 
-# Make $CC available 
+# Make $CC, $CXX available 
 eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
-echo "CC=\"$CC\""
+eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
 
 addzip() {
  result=$($GCCSDK_INSTALL_CROSSBIN/zip -, $@ -x "*/CVS/*" -x "*/\.svn/*" 2>&1)
