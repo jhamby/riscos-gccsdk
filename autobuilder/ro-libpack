@@ -1,6 +1,4 @@
-#!/bin/bash
-
-set -e
+#!/bin/bash -e
 
 if [ -z "$RO_PKG" ] ; then 
   echo "RO libpack: RO_PKG must be set to the package filename"
@@ -27,6 +25,10 @@ PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
 # Check for bogus package conditions
 pushd .
 cd $AB_DIR/package
+
+# Don't package any binaries
+rm -rf bin
+
 files=$(find -type f)
 if [ -z "$files" ] ; then
   echo "RO libpack: No files to pack" 1>&2
