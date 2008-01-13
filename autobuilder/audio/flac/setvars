@@ -3,11 +3,6 @@ AB_ZIPNAME=libflac-dev
 
 AB_INSTALL=yes
 
-mkdir -p $D/include/FLAC
-mkdir -p $D/include/FLAC++
-mkdir -p $D/include/OggFLAC
-mkdir -p $D/include/OggFLAC++
-
 ab_package () {
 
 #TODO: Create package with flac program

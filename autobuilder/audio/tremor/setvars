@@ -12,9 +12,6 @@ AB_INSTALL=yes
 
 ./autogen.sh
 
-mkdir -p $D/include/tremor/
-
-
 ab_package() {
   AD=$D/Apps/Library/\!Tremor
   mkdir -p $AD

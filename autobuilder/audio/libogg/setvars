@@ -2,8 +2,6 @@ AB_CATEGORY=Library
 AB_ZIPNAME=libogg-dev
 AB_INSTALL=yes
 
-mkdir -p $D/include/ogg/
-
 ab_package() {
   AD=$D/Apps/Library/\!LibOGG
   mkdir -p $AD

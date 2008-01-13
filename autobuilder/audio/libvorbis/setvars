@@ -2,8 +2,6 @@ AB_CATEGORY=Library
 AB_ZIPNAME=libvorbis-dev
 AB_INSTALL=yes
 
-mkdir -p $D/include/vorbis
-
 ab_package() {
   AD=$D/Apps/Library/\!LibVorbis
   mkdir -p $AD
