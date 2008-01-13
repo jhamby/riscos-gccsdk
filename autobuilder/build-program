@@ -68,8 +68,8 @@ ab_package_source() {
   # Ensure no RISC OS executable left behind
   find . -name "*,ff8" -type f -print0 | xargs -0 rm -f
 
-  # Remove man3 link
-  rm -f $S/man3
+  # Remove man3 links
+  rm -f $S/man3 $S/man/man3
 
   mkdir -p $S/riscos
   cp -r $H/* $S/riscos || true
