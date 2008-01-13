@@ -1,7 +1,7 @@
 
-AB_PRECONF=ac_cv_path_KRB5_CONFIG=no
-
 AB_CATEGORY=browser
+
+AB_CONFLAGS=--disable-dlgui
 
 AB_MANPAGE=debian/dillo.1
 
