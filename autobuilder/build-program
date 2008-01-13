@@ -65,8 +65,9 @@ ab_package_source() {
 
   eval $AB_DISTCLEAN
 
-  # Ensure no RISC OS executable left behind
-  find . -name "*,ff8" -type f -print0 | xargs -0 rm -f
+  # Ensure no RISC OS files left behind
+  find . -name "*${AB_EXEEXT}" -type f -print0 | xargs -0 rm -f
+  find . -name "*,faf" -type f -print0 | xargs -0 rm -f
 
   # Remove man3 links
   rm -f $S/man3 $S/man/man3
