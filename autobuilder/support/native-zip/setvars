@@ -1,0 +1,9 @@
+
+AB_PRECONF=:
+
+make -f unix/Makefile generic LOCAL_ZIP=-DFORRISCOS  
+
+cp zip $GCCSDK_INSTALL_CROSSBIN/
+
+echo "all:" > Makefile
+
