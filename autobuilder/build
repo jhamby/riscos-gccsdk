@@ -231,6 +231,11 @@ ab_build() {
       DEPENDENCIES=`apt-cache depends $PACKAGE_NAME 2>/dev/null | grep Depends: | sed 's/^.*Depends: //' | grep -v ^libc6\$ || true`
     fi
 
+    # Build our version of zip for packaging
+    if [ "$PACKAGE_NAME" != "native-zip" ] && ! [ -e $GCCSDK_INSTALL_CROSSBIN/zip ] ; then
+      ab_build native-zip true true 
+    fi
+
     for DEP in $DEPENDENCIES ; do
       if ! ab_build $DEP true false ; then
         return 1
