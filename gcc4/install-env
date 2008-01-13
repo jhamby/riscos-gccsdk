@@ -29,6 +29,5 @@ done
 
 # Create an empty libc.a and libpthread.a (needed to fool configure tests)
 $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/libc.a
-$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/fpu/libc.a
 $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/libpthread.a
-$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/fpu/pthread.a
+$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/libgcc_s.a
