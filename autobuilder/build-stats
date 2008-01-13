@@ -8,7 +8,7 @@ if [ "$1" == '-v' ] ; then
   shift
 fi
 
-packages=$(find $1 -type f | grep "/setvars\$")
+packages=$(find $1 -type f | grep "/setvars\$" | sort)
 
 
 for package in $packages; do 
