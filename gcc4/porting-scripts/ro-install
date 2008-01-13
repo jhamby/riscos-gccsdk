@@ -22,9 +22,8 @@ for param in $@ ; do
         param="$param,e1f"
       fi
     fi
+    dest=$param
   fi
-
-  dest=$param
 done
 
 dest=$(sed -e s#//#/#g -e s#/\$## -e s#/usr/share/#GCCSDK_ENV/share/# <<< $dest)

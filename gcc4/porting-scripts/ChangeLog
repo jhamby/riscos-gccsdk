@@ -1,4 +1,10 @@
 
+* Sat Jan 12 19:43:48 PST 2008  Peter Naulls <peter@chocky.org>
+
+	* ro-config: autoconf 2.12 handling. Replace -lX11 with -lCX11 -lDesk.
+          Ensure binaries really are static - force variables and libtool values.	       * mkdir: Addition of mkdir for package creation handling
+	* ro-install: Mostly remove need for mkdir in setvars.
+	
 * Mon Dec 24 20:28:18 UTC 2007  Peter Naulls <peter@chocky.org>
 
 	* Reinstate ,e1f addition.
