@@ -1,2 +1,2 @@
-tar xfz grep_*.tar.gz
+tar xfz grep*.tar.gz
 mv grep-*/* .
