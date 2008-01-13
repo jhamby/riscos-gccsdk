@@ -1,0 +1,4 @@
+AB_INSTALL=yes
+
+AB_PRECONF="X_EXTRA_LIBS=\"-lz -lintl\""
+
