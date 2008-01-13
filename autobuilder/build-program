@@ -31,6 +31,10 @@ fi
 H=$AB_HOME/$AB_PACKAGEDIR
 
 
+# Make $CC available 
+eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
+echo "CC=\"$CC\""
+
 addzip() {
  result=$($GCCSDK_INSTALL_CROSSBIN/zip -, $@ -x "*/CVS/*" -x "*/\.svn/*" 2>&1)
  echo $result
@@ -266,9 +270,9 @@ else
    echo "Autobuilder: Running make install"
    # Append GCCSDK_INSTALL_ENV to PATH so that cp/rm/ln are picked up there.
    if [ "$AB_COMPILEFAIL" != "yes" ] ; then
-     PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
+     eval "$AB_MAKE $AB_INSTALLTARGET"
    else
-     PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET" || true
+     eval "$AB_MAKE $AB_INSTALLTARGET" || true
    fi
  fi
 
