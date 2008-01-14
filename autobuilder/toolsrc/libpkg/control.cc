@@ -2,7 +2,7 @@
 // Copyright © 2003 Graham Shaw.            
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
-
+// This version modified for use by the GCCSDK
 #include "libpkg/control.h"
 #include <ostream>
 #include <istream>
@@ -153,8 +153,8 @@ std::ostream& operator<<(std::ostream& out,const control& ctrl)
 	{
 		out << (*i).first << ':';
 		string value((*i).second);
-		unsigned int i=0;
-		unsigned int f=value.find('\n',i);
+		string::size_type i=0;
+		string::size_type f=value.find('\n',i);
 		while (f!=string::npos)
 		{
 			if ((f==i)&&(i!=0))
