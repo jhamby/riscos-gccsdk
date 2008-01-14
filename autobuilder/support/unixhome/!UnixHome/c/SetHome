@@ -2,12 +2,9 @@
 
 /*  Set HOME variable, given a RISC OS directory path */
 
-#define __UNIXLIB_INTERNALS
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unixlib/unix.h>
 #include <unixlib/local.h>
 
 
