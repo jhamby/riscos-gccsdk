@@ -1,4 +1,4 @@
-AB_CATEGORY=network
+AB_CATEGORY=Network
 
 ab_package() {
  cp -av $S/ctorrent$AB_EXEEXT README-DNH.TXT UserGuide ChangeLog COPYING $D 

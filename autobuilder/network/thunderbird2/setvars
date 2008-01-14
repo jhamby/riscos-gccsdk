@@ -4,7 +4,7 @@ AB_CVS_TAGORBRANCH=THUNDERBIRD_2_0_0_9_RELEASE
 AB_CVS_MODULE=mozilla/client.mk
 AB_ZIPNAME=thunderbird-2.0.0.9-$(date +%Y%m%d)
 
-AB_CATEGORY=mail
+AB_CATEGORY=Mail
 
 # 'Official' build:
 # We don't have permission for this

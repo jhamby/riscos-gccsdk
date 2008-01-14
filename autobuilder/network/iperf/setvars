@@ -1,5 +1,5 @@
 
-AB_CATEGORY=network
+AB_CATEGORY=Network
 
 export ac_cv_func_pthread_cancel=no
 
