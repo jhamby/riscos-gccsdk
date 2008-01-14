@@ -7,7 +7,7 @@ AB_ZIPNAME=UnixHome-$AB_ROVERSION
 
 cp $H/!UnixHome/c/SetHome $S/SetHome.c
 
-AB_MAKE="$GCCSDK_INSTALL_CROSSBIN/gcc SetHome.c -O2 -o SetHome"
+AB_MAKE="$CC SetHome.c -O2 -o SetHome"
 
 ab_package() {
   cp -av $H/\!UnixHome $D
