@@ -4,7 +4,7 @@ AB_CVS_TAGORBRANCH=FIREFOX_2_0_0_11_RELEASE
 AB_CVS_MODULE=mozilla/client.mk
 AB_ZIPNAME=firefox-2.0.0.11-$(date +%Y%m%d)
 
-AB_CATEGORY=browser
+AB_CATEGORY=Browser
 
 # 'Official' build:
 # We don't have permission for this
