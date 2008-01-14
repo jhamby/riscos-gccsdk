@@ -1,3 +1,4 @@
+#!/bin/bash -e
 # Add Packaging information for the
 # RISC OS packaging project.
 #
