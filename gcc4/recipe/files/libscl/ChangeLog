@@ -1,4 +1,9 @@
-Sun Nov 25 11:36:06 PST 2007  Peter Naulls <peter@chocky.org>
+Mon Jan 14 04:03:56 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/stdio.h: changed type FILE:__file from void* to int as
+	it is like in the Castle C/C++ headers.
+
+Sun Nov 25 11:36:06 PST 2007  Peter Naulls  <peter@chocky.org>
 
 	* include/swis.h: Massive number of missing SWIs. Thanks to Rob F. Johnson.
 

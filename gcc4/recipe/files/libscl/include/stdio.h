@@ -1,6 +1,6 @@
 /* stdio.h standard header for the RISC OS SharedCLibrary.
    Copyright (c) 1997-2005 Nick Burrett
-   Copyright (c) 2006-2007 UnixLib Developers
+   Copyright (c) 2006-2008 UnixLib Developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without
@@ -58,7 +58,7 @@ typedef struct __FILE_struct
   int __ocnt;
   int __flag;
   unsigned char *__base;
-  void *__file;
+  int __file;
   long __pos;
   int __bufsiz;
   int __signature;
