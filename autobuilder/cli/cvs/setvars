@@ -1,4 +1,4 @@
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 AB_MANPAGE=doc/cvs.1
 

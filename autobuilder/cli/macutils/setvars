@@ -1,4 +1,4 @@
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 rm -f crc/*.o crc/*.a
 make -C crc

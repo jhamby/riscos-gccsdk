@@ -1,5 +1,5 @@
 AB_INSTALL=yes
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 AB_PRECONF=:
 

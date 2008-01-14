@@ -1,5 +1,5 @@
 
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 AB_PRECONF="CFLAGS=\"-I$GCCSDK_INSTALL_ENV/include -O2 -D_USE_BSD\""
 AB_CONFLAGS="--disable-elf --disable-elf-core"

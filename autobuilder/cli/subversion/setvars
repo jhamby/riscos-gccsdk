@@ -5,7 +5,7 @@ AB_CONFLAGS="--with-apr=$GCCSDK_INSTALL_ENV \
 --without-berkeley-db \
 --without-apxs"
 
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 ab_package() {
   cp $S/subversion/clients/cmdline/svn$AB_EXEEXT $S/COPYING $D

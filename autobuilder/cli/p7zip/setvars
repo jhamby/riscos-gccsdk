@@ -1,4 +1,4 @@
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 cp $H/makefile.riscos $S/makefile.machine
 

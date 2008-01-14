@@ -1,6 +1,6 @@
 AB_URL=http://kent.dl.sourceforge.net/sourceforge/ghostscript/ghostscript-8.50-gpl.tar.bz2
 
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 # Get Ghostscript fonts:
 if [ ! -e fonts/ghostscript-fonts-std-6.0.tar.gz ] ; then

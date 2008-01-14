@@ -1,4 +1,4 @@
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 AB_CONFLAGS=" --without-readline --without-dynamic-ffi --with-libiconv-prefix=$GCCSDK_INSTALL_ENV --with-libsigsegv-prefix=$GCCSDK_INSTALL_ENV"
 

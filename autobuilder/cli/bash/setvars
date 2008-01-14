@@ -1,6 +1,5 @@
 
-
-AB_CATEGORY=cli/test
+AB_CATEGORY=Command
 
 AB_CONFLAGS="--without-bash-malloc --disable-process-substitution"
 AB_MAKE=make

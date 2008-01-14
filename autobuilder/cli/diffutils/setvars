@@ -1,5 +1,5 @@
 
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 AB_MANPAGE="man/cmp.1 man/diff.1 man/diff3.1 man/sdiff.1"
 

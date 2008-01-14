@@ -1,4 +1,4 @@
 
-AB_CATEGORY=cli
+AB_CATEGORY=Command
 
 AB_CONFLAGS="--disable-nls"
