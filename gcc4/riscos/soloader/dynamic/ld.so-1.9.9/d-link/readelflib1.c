@@ -555,11 +555,11 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
        * rely on _GLOBAL_OFFSET_TABLE_ being exported by the library, so we use
        * our own symbol.
        */
-      got = (char *)_dl_find_hash_in_lib("__som_got__",tpnt);
+      got = (char *)_dl_find_hash_in_lib("som___got",tpnt);
       if (!got)
       {
         _dl_internal_error_number = DL_NO_SYMBOL;
-        _dl_fdprintf(2, "%s: '%s' is missing the __som_got__ symbol\n", _dl_progname, libname);
+        _dl_fdprintf(2, "%s: '%s' is missing the som___got symbol\n", _dl_progname, libname);
         return NULL;
       }
 

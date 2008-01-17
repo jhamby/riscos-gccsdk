@@ -1,5 +1,5 @@
---- ld/scripttempl/elf.sc.orig	2008-01-02 20:13:13.000000000 +0000
-+++ ld/scripttempl/elf.sc	2008-01-01 18:45:55.000000000 +0000
+--- ld/scripttempl/elf.sc.orig	2008-01-17 19:44:04.000000000 +0000
++++ ld/scripttempl/elf.sc	2008-01-17 19:43:11.000000000 +0000
 @@ -236,6 +236,18 @@
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
@@ -14,7 +14,7 @@
 +
 +RISCOS_SOM_GOT_SYMBOL="
 +  /* Define a symbol that allows the RISC OS dynamic loader to find the GOT. */
-+  __som_got__ = .;"
++  som___got = .;"
 +
  cat <<EOF
  OUTPUT_FORMAT("${OUTPUT_FORMAT}", "${BIG_OUTPUT_FORMAT}",
