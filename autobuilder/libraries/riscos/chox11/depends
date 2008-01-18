@@ -2,5 +2,5 @@ desklib
 x11proto-core
 x11proto-xcmisc
 x11proto-kb
-libxau
+libxau6
 xtrans
