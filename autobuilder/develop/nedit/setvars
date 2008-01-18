@@ -1,4 +1,4 @@
-AB_CATEGORY=x11/test
+AB_CATEGORY=Develop
 
 cp $AB_HOME/$AB_PACKAGEDIR/Makefile.riscos makefiles
 
