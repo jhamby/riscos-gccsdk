@@ -3,4 +3,4 @@ AB_INSTALL=yes
 
 AB_PRECONF="glib_cv_uscore=no glib_cv_monotonic_clock=yes"
 
-
+AB_CONFLAGS=--with-pcre=system
