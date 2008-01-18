@@ -1,5 +1,6 @@
-AB_URL=http://linux.rice.edu/~rahul/xflame/xflame-1.1.1.tar.gz
-AB_ZIPNAME=xflame-1.1.1
+#AB_URL=http://linux.rice.edu/~rahul/xflame/xflame-1.1.1.tar.gz
+AB_URL=http://www.libsdl.org/projects/xflame/src/xflame-1.0.tar.gz
+AB_ZIPNAME=xflame-1.0
 
 AB_CATEGORY=graphics
 
