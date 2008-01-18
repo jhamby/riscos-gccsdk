@@ -16,7 +16,7 @@ AR=ar
 #
 CFLAGS=-O2 -I$(GCCSDK_INSTALL_ENV)/include -DUSE_DIRENT -DUSE_LPR_PRINT_CMD 
 ARFLAGS=-urs
-LIBS= -L$(GCCSDK_INSTALL_ENV)/lib -lX11 -lXm -lXext -lXt -lSM -lICE
+LIBS= -L$(GCCSDK_INSTALL_ENV)/lib -lCX11 -lDesk -lXm -lXext -lXt -lSM -lICE
 
 include Makefile.common
 
