@@ -1,19 +1,11 @@
---- configure.orig	2005-08-05 16:01:28.000000000 +0100
-+++ configure	2005-08-05 17:10:15.000000000 +0100
-@@ -23167,11 +23167,11 @@
- echo "$as_me:$LINENO: checking bitfield ordering in structs" >&5
- echo $ECHO_N "checking bitfield ordering in structs... $ECHO_C" >&6
- if test "$cross_compiling" = yes; then
--  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
--See \`config.log' for more details." >&5
--echo "$as_me: error: cannot run test program while cross compiling
--See \`config.log' for more details." >&2;}
--   { (exit 1); exit 1; }; }
-+#  { { echo "$as_me:$LINENO: error: cannot run test program while cross compiling
-+#See \`config.log' for more details." >&5
-+#echo "$as_me: error: cannot run test program while cross compiling
-+#See \`config.log' for more details." >&2;}
-+: #   { (exit 1); exit 1; }; }
- else
-   cat >conftest.$ac_ext <<_ACEOF
- /* confdefs.h.  */
+--- configure.orig	2008-01-18 12:04:03.000000000 -0800
++++ configure	2008-01-18 12:58:04.000000000 -0800
+@@ -24319,7 +24319,7 @@
+ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+         if test "$cross_compiling" = yes; then
+   case "$host" in
+-     *-*-mingw32* | *-*-cygwin*)
++     *-*-mingw32* | *-*-cygwin* | *riscos*)
+        bf_lsbf=1
+      ;;
+      *)
