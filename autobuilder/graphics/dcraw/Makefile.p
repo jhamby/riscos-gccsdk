@@ -1,31 +1,44 @@
---- Makefile.orig	2005-05-09 17:19:18.000000000 +0100
-+++ Makefile	2005-05-09 17:20:56.000000000 +0100
-@@ -1,9 +1,9 @@
+--- Makefile.orig	2008-01-18 11:38:44.000000000 -0800
++++ Makefile	2008-01-18 11:41:04.000000000 -0800
+@@ -1,32 +1,32 @@
  # Executables
 -CC     = gcc
-+CC     = gcc -L/home/riscos/env/lib
++CC     := $(CC) -L$(GCCSDK_INSTALL_ENV)/lib -static
  INSTALL= /usr/bin/install
  
  # Flags
--CFLAGS = -I. -O3 -g -Wall
-+CFLAGS = -I. -O3 -g -Wall -I/home/riscos/env/include
+-CFLAGS = -I. -O4 -g -Wall
++CFLAGS = -I. -O4 -g -Wall -I$(GCCSDK_INSTALL_ENV)/include
  
- SRC = dcraw.c parse.c fixdates.c
- OBJ = dcraw.o parse.o fixdates.o
-@@ -12,13 +12,13 @@
- default: dcraw dcparse dcfixdates
+ SRC = dcraw.c parse.c fujiturn.c fuji_green.c clean_crw.c
+ OBJ = dcraw.o parse.o fujiturn.o fujiturn16.o fuji_green.o clean_crw.o
  
- dcraw: dcraw.o
--	$(CC) -s -o $@ dcraw.o -lm -ljpeg
-+	$(CC) -o $@ dcraw.o -lm -ljpeg
+ # Targets
+-default: dcraw dcparse dcfujiturn dcfujiturn16 dcfujigreen dccleancrw
++default: dcraw$(AB_EXEEXT) dcparse$(AB_EXEEXT) dcfujiturn$(AB_EXEEXT) dcfujiturn16$(AB_EXEEXT) dcfujigreen$(AB_EXEEXT) dccleancrw$(AB_EXEEXT)
  
- dcparse: parse.o
--	$(CC) -s -o $@ parse.o
-+	$(CC) -o $@ parse.o
+-dcraw: dcraw.o
++dcraw$(AB_EXEEXT): dcraw.o
+ 	$(CC) -o $@ dcraw.o -lm -ljpeg -llcms
  
- dcfixdates: fixdates.o
--	$(CC) -s -o $@ fixdates.o
-+	$(CC) -o $@ fixdates.o
+-dcparse: parse.o
++dcparse$(AB_EXEEXT): parse.o
+ 	$(CC) -o $@ parse.o
+ 
+-dcfujiturn: fujiturn.o
++dcfujiturn$(AB_EXEEXT): fujiturn.o
+ 	$(CC) -o $@ fujiturn.o
+ 
+-dcfujiturn16: fujiturn16.o
++dcfujiturn16$(AB_EXEEXT): fujiturn16.o
+ 	$(CC) -o $@ fujiturn16.o
+ 
+-dcfujigreen: fuji_green.o
++dcfujigreen$(AB_EXEEXT): fuji_green.o
+ 	$(CC) -o $@ fuji_green.o -lm
+ 
+-dccleancrw: clean_crw.o
++dccleancrw$(AB_EXEEXT): clean_crw.o
+ 	$(CC) -o $@ clean_crw.o
  
  clean:
- 	rm -f core *.o dcraw dcparse dcfixdates
