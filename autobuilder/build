@@ -193,14 +193,14 @@ ab_build() {
     else
       if $IS_DEPENDENCY ; then
         if $IS_EXPLICIT ; then
-          echo "Autobuilder: No explicit dependency \"$PACKAGE_NAME\" found - failing" 1>&2
-          exit 1
+          echo "Autobuilder: No explicit dependency \"$PACKAGE_NAME\" found" 1>&2
+          return 1
         else
           echo "Autobuilder: No match for Debian dependency \"$PACKAGE_NAME\" - ignoring" 1>&2
         fi
       else
         echo "Autobuilder: Package \"$PACKAGE_NAME\" not found"
-        exit 1 
+        return 1
       fi 
 
       return 0
@@ -237,7 +237,9 @@ ab_build() {
     fi
 
     for DEP in $DEPENDENCIES ; do
+      echo $DEP > $AB_HOME/$PACKAGE_DIR/last-depends
       if ! ab_build $DEP true false ; then
+        echo "Dependency \"$DEP\" failed for $PACKAGE_NAME"
         return 1
       fi
     done
@@ -248,10 +250,13 @@ ab_build() {
     fi
 
     for DEP in $DEPENDENCIES ; do
+      echo $DEP > $AB_HOME/$PACKAGE_DIR/last-depends
       if ! ab_build $DEP true true ; then
+        echo "Dependency \"$DEP\" failed for $PACKAGE_NAME"
         return 1
       fi
     done
+    rm -f $AB_HOME/$PACKAGE_DIR/last-depends
   fi
 
 
@@ -288,9 +293,15 @@ ab_build() {
   return 0
 }
 
+ok=0
+
 for PACKAGEDIR in $AB_PACKAGES ; do
  PACKAGE=$(echo "$PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
 
- ab_build $PACKAGE false false
-
+ if ! ab_build $PACKAGE false false ; then
+   echo "Build for package \"$PACKAGE\" failed" 1>&2
+   ok=1
+ fi
 done
+
+exit $ok
