@@ -69,11 +69,5 @@ ab_package () {
     ; do
     cp -prL $S/dist/bin/$f $D/!Firefox
   done
-  if [ x"$AB_EXEEXT" == x,e1f ] ; then
-    # Currently we're building ELF static, so we can create AIF binaries and don't
-    # need to be dependent on an ELF loader.
-    $GCCSDK_INSTALL_CROSSBIN/elf2aif $S/dist/bin/firefox-bin$AB_EXEEXT $D/!Firefox/firefox-bin,ff8
-  else
-    cp -prL $S/dist/bin/firefox-bin$AB_EXEEXT $D/!Firefox
-  fi
+  cp -prL $S/dist/bin/firefox-bin$AB_EXEEXT $D/!Firefox
 }
