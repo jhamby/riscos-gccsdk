@@ -1,8 +1,8 @@
 glib1.2
 orbit
-libxt
-libxext
-libxinerama
+libxt6
+libxext6
+libxinerama1
 libxp
 db4.4
 libexpat1
