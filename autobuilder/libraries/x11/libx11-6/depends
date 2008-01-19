@@ -5,6 +5,6 @@ x11proto-core
 x11proto-xext
 x11proto-kb
 x11proto-input
-libxau
+libxau6
 libxdmcp
 xtrans
