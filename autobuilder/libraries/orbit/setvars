@@ -8,6 +8,7 @@ if ! [ -e /usr/bin/glib-config ] ; then
 fi
 
 # Build orbit-idl-compiler natively:
+CC=/usr/bin/gcc
 GLIB_CONFIG=/usr/bin/glib-config  ./configure $AB_CONFLAGS --disable-shared --enable-static
 make -C src/orbit-idl-compiler
 cp src/orbit-idl-compiler/orbit-idl /tmp
