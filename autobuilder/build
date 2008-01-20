@@ -237,6 +237,8 @@ ab_build() {
     fi
 
     for DEP in $DEPENDENCIES ; do
+      if [ "$PACKAGE_NAME" == "librsvg2-2" ] && [ "$DEP" == "libcairo2" ] ; then continue; fi
+
       echo $DEP > $AB_HOME/$PACKAGE_DIR/last-depends
       if ! ab_build $DEP true false ; then
         echo "Dependency \"$DEP\" failed for $PACKAGE_NAME"
