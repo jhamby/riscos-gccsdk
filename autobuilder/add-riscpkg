@@ -248,7 +248,9 @@ if [ -d debian ] ; then
   if [ "$has_copyright" == "no" ] ; then
     echo "This was built from unstable debian sources" >> $D/RiscPkg/Copyright
     echo "" >> $D/RiscPkg/Copyright
-    cat debian/copyright >> $D/RiscPkg/Copyright 
+    if [ -e debian/copyright ] ; then
+      cat debian/copyright >> $D/RiscPkg/Copyright 
+    fi
     echo "" >> $D/RiscPkg/Copyright
     echo "On RISC OS the common licenses can be found in" >> $D/RiscPkg/Copyright
     echo 'the directory <CommonLicences$Dir>' >> $D/RiscPkg/Copyright
