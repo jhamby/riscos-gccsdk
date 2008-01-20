@@ -42,8 +42,8 @@ ab_package() {
   mv lib/o o
   rm -rf lib
 
-  mv doc/libjpeg62-$AB_PVERSION/* doc
-  rm -rf doc/libjpeg62-$AB_PVERSION
+  mv doc/$RO_PKG/* doc
+  rm -rf doc/$RO_PKG
 
   # Add some documentation
   mkdir -p $AD/doc
