@@ -10,7 +10,6 @@ fi
 AB_MANPAGE=
 AB_ROVERSION=1
 AB_PRECONF=
-AB_COMPILEFAIL=no
 AB_INSTALL=no
 AB_CATEGORY=
 AB_ZIPNAME=
@@ -168,9 +167,6 @@ else
  S=$PWD
  echo "Autobuilder: source directory is $S"
  
- # Get the version number
- AB_PVERSION=$(echo $AB_FULLNAME | sed s/$AB_PACKAGE-// )
- 
  # Apply any Debian patches
  if [ -d debian/patches ] ; then
    for AB_PATCH in $(find debian/patches/ -type f | sort -n || true) ; do
@@ -216,10 +212,33 @@ else
   fi
  fi
  
+ # Try to guess the version number.  This isn't reliable, and might need to be
+ # explictly set by the package
+ AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#$AB_PACKAGE-## -e "s/[^-]*-//")
+ if [ -z "$AB_PVERSION" ] ; then
+   AB_PVERSION=1
+ fi 
+
  if [ "$AB_TRY" != yes ] ; then
    echo "Autobuilder: Calling setvars"
    . $AB_HOME/$AB_PACKAGEDIR/setvars
  fi
+
+ # Set final package name used for archives
+# if [ -n "$AB_ZIPNAME" ] ; then
+#   zipname=$(sed -e "s#$AB_PACKAGE#$AB_ZIPNAME#" <<<$AB_FULLNAME)
+#
+#   if [ "$zipname" != "$AB_FULLNAME" ] ; then
+#     AB_ZIPNAME=$zipname
+#   fi
+# else
+
+ if [ -z "$AB_ZIPNAME" ] ; then
+   AB_ZIPNAME=$AB_PACKAGE
+ fi
+
+ AB_PACKAGENAME=${AB_ZIPNAME}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
+ AB_ZIP=${AB_DIR}/$AB_PACKAGENAME.zip
  
  export AB_DIR
 
@@ -246,12 +265,7 @@ else
  S=$PWD
  
  echo "Autobuilder: Running make command: $AB_MAKE"
- 
- if ab_make || [ "$AB_COMPILEFAIL" == "yes" ] ; then
-   :
- else
-   exit 1
- fi
+ ab_make 
 
  # Ensure links in man pages work when creating HTML with rman 
  if ! [ -e $S/man3 ] ; then
@@ -270,11 +284,7 @@ else
  if [ "$AB_INSTALL" == "env" ] || [ "$AB_INSTALL" == "yes" ] ; then
    echo "Autobuilder: Running make install"
    # Append GCCSDK_INSTALL_ENV to PATH so that cp/rm/ln are picked up there.
-   if [ "$AB_COMPILEFAIL" != "yes" ] ; then
-     eval "$AB_MAKE $AB_INSTALLTARGET"
-   else
-     eval "$AB_MAKE $AB_INSTALLTARGET" || true
-   fi
+   eval "$AB_MAKE $AB_INSTALLTARGET"
  fi
 
  # Need to package the installed files ?
@@ -282,20 +292,9 @@ else
    export AB_OUTPUTLIB
    export AB_INSTALLDOCS
 
-   if [ "$AB_ZIPNAME" != "" ] ; then
-
-     export RO_PKG=$(echo $AB_FULLNAME | sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"#)
-     if [ "$RO_PKG" == "$AB_FULLNAME" ] ; then
-       export RO_PKG=$AB_ZIPNAME$AB_TARGET
-     fi
-
-     $AB_HOME/ro-libpack
-   else
-     RO_PKG=$AB_FULLNAME$AB_TARGET $AB_HOME/ro-libpack
-   fi
+   export RO_PKG=$AB_PACKAGENAME
+   $AB_HOME/ro-libpack
  fi
- 
-
 fi # Package only
 
 
@@ -320,7 +319,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
  echo "Autobuilder: Packaging files"
  if [ "$AB_PACKONLY" == "yes" ] ; then
  
-   if [ "$AB_ZIPNAME" != "" ] ; then
+   if [ -n "$AB_ZIPNAME" ] ; then
      echo "Autobuilder: Packaging as $AB_ZIPNAME$AB_TARGET"
      AB_ZIP=$AB_ZIPNAME$AB_TARGET.zip
    else
@@ -328,19 +327,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
    fi
 
  else
-   if [ "$AB_ZIPNAME" != "" ] ; then
-     echo "Autobuilder: Packaging as $AB_ZIPNAME"
-     # Try to preserve any versioning present in the filename
-     zipname=$(sed s#"$AB_PACKAGE"#"$AB_ZIPNAME"# <<<$AB_FULLNAME)
-      
-     if [ "$zipname" != "$AB_FULLNAME" ] ; then
-       AB_ZIPNAME=$zipname
-     fi
-
-     AB_ZIP=$AB_DIR/$AB_ZIPNAME-$AB_ROVERSION$AB_TARGET.zip
-   else  
-     AB_ZIP=$AB_DIR/$AB_FULLNAME-$AB_ROVERSION$AB_TARGET.zip
-   fi
+   echo "Autobuilder: Packaging as $AB_ZIPNAME"
  fi
 
  cd $D
@@ -386,7 +373,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
    fi
 
-   # FIXME? this will not add files beginning with a dot.  Intended behaviour ?
+   # This will not add files beginning with a dot.
    addzip -r $AB_ZIP *
 
    mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
@@ -403,7 +390,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
        if [ -z "$section" ] ; then
          section="$AB_CATEGORY"
        fi
-       AB_PZIP=$AB_DIR/$package$AB_TARGET-$AB_PVERSION-$AB_ROVERSION.zip
+       AB_PZIP=${AB_DIR}/${package}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}.zip
        # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
        if [ -e $AB_PZIP ] ; then
          rm $AB_PZIP
