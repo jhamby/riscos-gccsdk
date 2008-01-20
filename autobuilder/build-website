@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash -e
 # Script to build autobuilder website
 #
 # Script must be run in autobuilder directory
@@ -28,16 +28,7 @@ if [ ! -d "$PDIR" ] ; then
 fi
 
 # Check the C++ programs have been created
-if [ ! -f "$abdir/pkgindex" ] && [ ! -f "$abdir/pkgindex.exe" ] ; then
-  echo "build-website: pkgindex utility missing - try building it from the"
-  echo "$abdir/toolsrc/pkgindex directory"
-  exit 1
-fi
-if [ ! -f "$abdir/pkgweb" ] && [ ! -f "$abdir/pkgweb.exe" ] ; then
-  echo "build-website: pkgweb utility missing - try building it from the"
-  echo "$abdir/toolsrc/pkgweb directory"
-  exit 1
-fi
+make -C toolsrc
 
 # Create package index
 $abdir/pkgindex $PDIR $newsite/pkg/autobuilt -u ../arm/ -x -src.zip -x webinfo
