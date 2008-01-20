@@ -228,7 +228,7 @@ ab_build() {
     local DEP
 
     if [ "`which apt-cache 2>/dev/null`" != "" ] ; then
-      DEPENDENCIES=`apt-cache depends $PACKAGE_NAME 2>/dev/null | grep Depends: | sed 's/^.*Depends: //' | grep -v ^libc6\$ || true`
+      DEPENDENCIES=`apt-cache depends $PACKAGE_NAME 2>/dev/null | grep Depends: | sed 's/^.*Depends: //'`
     fi
 
     # Build our version of zip for packaging
@@ -237,7 +237,33 @@ ab_build() {
     fi
 
     for DEP in $DEPENDENCIES ; do
-      if [ "$PACKAGE_NAME" == "librsvg2-2" ] && [ "$DEP" == "libcairo2" ] ; then continue; fi
+      case $DEP in
+        # Not useful to report
+        libc6|libstdc++6|libgcc1)
+          continue
+          ;;
+
+        # Handle circular dependency
+        libcairo2)
+          if [ "$PACKAGE_NAME" == "librsvg2-2" -o "$PACKAGE_NAME" == "libgtk2.0-0" -o "$PACKAGE_NAME" == "libpango1.0-0" ] ; then
+            continue
+          fi
+          ;;
+
+        # Anything with the same prefix probably came from the same source package
+        ${PACKAGE_NAME}*)
+          continue
+          ;;
+
+        # Debian miscellanea
+        *debconf*)
+          continue
+          ;;
+      esac
+
+
+      if [ "$PACKAGE_NAME" == "librsvg2-2" -o "$PACKAGE_NAME" == "libgtk2.0-0" -o "$PACKAGE_NAME" == "libpango1.0-0" ] \
+         && [ "$DEP" == "libcairo2" ] ; then continue; fi
 
       echo $DEP > $AB_HOME/$PACKAGE_DIR/last-depends
       if ! ab_build $DEP true false ; then
