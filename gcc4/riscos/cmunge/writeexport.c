@@ -19,11 +19,9 @@
 
 static FILE *file;
 
-static void hdr_swis(void) {
-
-  swi_list l;
+static void hdr_swis(void)
+{
   const char * const prefix=opt.swi_names->name;
-  int swi;
 
   if (!opt.swi_names)
     return;
@@ -33,39 +31,50 @@ static void hdr_swis(void) {
   /* Non-X variants */
   if (opt.toolchain != tc_gcc)
   {
+    swi_list l;
     int len=0;
     while (len++<24) fputc(' ',file);
-    fprintf(file, "^ &%08x\n",swi);
-  }
-  for (l = opt.swi_names->next, swi=opt.swi_base; l; l = l->next, ++swi) {
-    const char *name=l->name;
-    int len;
-    len = fprintf(file, "%s_%s ", prefix, name);
-    while (len++<24) fputc(' ',file);
-    if (opt.toolchain == tc_gcc)
-      fprintf(file, "0x%x\n", swi);
-    else
+    fprintf(file, "^ &%08x\n",opt.swi_base);
+
+    for (l = opt.swi_names->next; l; l = l->next)
+    {
+      int len;
+      len = fprintf(file, "%s_%s ", prefix, l->name);
+      while (len++<24) fputc(' ',file);
       fprintf(file, "# 1\n");
+    }
+  }
+  else
+  {
+    swi_list l;
+    int swi;
+    for (l = opt.swi_names->next, swi=opt.swi_base; l; l = l->next, ++swi)
+      fprintf(file, ".set %s_%s,0x%x\n", prefix, l->name, swi);
   }
 
   /* X variants */
   if (opt.toolchain != tc_gcc)
   {
+    swi_list l;
     int len=0;
     while (len++<24) fputc(' ',file);
-    fprintf(file, "^ &%08x\n",swi+(1<<17));
-  }
-  for (l = opt.swi_names->next, swi=opt.swi_base; l; l = l->next, ++swi) {
-    const char *name=l->name;
-    int len;
-    len = fprintf(file, "X%s_%s ", prefix, name);
-    while (len++<24) fputc(' ',file);
-    if (opt.toolchain == tc_gcc)
-      fprintf(file, "0x%x\n", swi);
-    else
-      fprintf(file, "# 1\n");
-  }
+    fprintf(file, "^ &%08x\n", opt.swi_base + (1<<17));
 
+    for (l = opt.swi_names->next; l; l = l->next)
+    {
+      int len;
+      len = fprintf(file, "X%s_%s ", prefix, l->name);
+      while (len++<24) fputc(' ',file);
+      fprintf(file, "# 1\n");
+    }
+  }
+  else
+  {
+    swi_list l;
+    int swi;
+    for (l = opt.swi_names->next, swi=opt.swi_base; l; l = l->next, ++swi)
+      fprintf(file, ".set X%s_%s,0x%x\n", prefix, l->name, swi+(1<<17));
+  }
 }
 
 static void h_swis(void) {
@@ -116,7 +125,8 @@ void WriteExport_Hdr(void) {
   if (opt.swi_handler || opt.swi_codesupplied)
     hdr_swis();
 
-  fprintf(file, "\n\n\tEND\n");
+  if (opt.toolchain != tc_gcc)
+    fprintf(file, "\n\tEND\n");
   file_close(file);
 }
 
