@@ -18,7 +18,7 @@ ab_package() {
 
   HERE=`pwd`
   cd $D/Apps/Library/\!SDL
-  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
   # Need to retype the converted manual files
   MANFILES=$(find man -type f)
