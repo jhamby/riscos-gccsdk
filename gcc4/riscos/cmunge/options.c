@@ -390,12 +390,6 @@ void Options_CheckSanity(void) {
   switch (opt.toolchain)
   {
     case tc_gcc:
-#ifdef __riscos
-      /* Throwback is supported on RISC OS builds of GCC */
-#else
-      if (opt.throwback)
-        Warning("GCC has no support for -throwback flag");
-#endif
       if (opt.dfile)
         Warning("GCC has no support for -depend flag");
       break;

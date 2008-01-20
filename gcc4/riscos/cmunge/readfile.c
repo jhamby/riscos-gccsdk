@@ -1643,16 +1643,13 @@ void ReadFile(void) {
     switch (opt.toolchain)
     {
       case tc_gcc:
-        /* Don't know how to do throwback with gcc on non-RISC OS platform */
         /* Don't know how to do dependencies with gcc -
              -M gives output in a mix of unix and RISC OS which isn't useful
          */
-#ifdef __riscos
         if (opt.throwback)
           bufend += sprintf(bufend," -mthrowback");
-#endif
         /* See the Options_CheckSanity in c.options for warnings about the
-           dependency and throwback usage. */
+           dependency usage. */
         break;
 
       case tc_norcroft:
