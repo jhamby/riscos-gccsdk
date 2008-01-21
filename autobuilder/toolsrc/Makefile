@@ -1,19 +1,15 @@
 # Make website building programs
 
-.PHONY: all clean
+TARGETS=libpkg pkgindex pkgweb
 
-all: libpkg/libpkg.a ../pkgindex ../pkgweb
+.PHONY: $(TARGETS)
 
-libpkg/libpkg.a:
-	make -C libpkg
+all: $(TARGETS)
 
-../pkgindex:
-	make -C pkgindex
-
-../pkgweb:
-	make -C pkgweb
+$(TARGETS):
+	$(MAKE) -C $@
 
 clean:
-	make -C libpkg clean
-	make -C pkgindex clean
-	make -C pkgweb clean
+	$(MAKE) -C libpkg clean
+	$(MAKE) -C pkgindex clean
+	$(MAKE) -C pkgweb clean
