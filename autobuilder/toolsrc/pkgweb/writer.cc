@@ -97,17 +97,16 @@ std::string DetailsWriter::resolve(const std::string &token)
 		{
 			text.insert(pos, "</p>");
 			pos += 5;
-		    text.insert(pos, "<p>");
+		        text.insert(pos, "<p>");
 			pos = text.find('\n', pos+1);
 		}
 
 		while (pos != std::string::npos)
 		{
-			if (pos < text.size() && text[pos+1] == '\n')
+			if (text[pos] == '\n')
 			{
-			  text.insert(pos, "</p>");
-			  pos += 6;
-			  text.insert(pos, "<p>");
+			  text.insert(pos, "<br>");
+			  pos += 5;
 			}
 			pos = text.find('\n', pos+1);
 		}
