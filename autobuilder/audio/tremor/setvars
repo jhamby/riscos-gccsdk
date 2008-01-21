@@ -21,7 +21,7 @@ ab_package() {
 
   cd $AD
 
-  unzip $AB_OUTPUTLIB/$AB_ZIPNAME.zip
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
   mv include/tremor tremor
   rm -rf include
