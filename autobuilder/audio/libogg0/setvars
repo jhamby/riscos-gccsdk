@@ -11,7 +11,7 @@ ab_package() {
 
   cd $AD
 
-  unzip $AB_OUTPUTLIB/$AB_ZIPNAME-$AB_PVERSION.zip
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
   mv include/ogg ogg
   rm -rf include
