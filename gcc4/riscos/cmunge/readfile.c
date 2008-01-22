@@ -1676,7 +1676,7 @@ void ReadFile(void) {
       case tc_norcroft:
         if (opt.dfile)
         {
-          char *result_file = NULL;
+          const char *result_file = NULL;
           /* We have to provide the name of the file that is being generated
              so that we have a correct dependency in the !Depend file. */
           if (opt.ofile)

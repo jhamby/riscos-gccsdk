@@ -16,18 +16,19 @@
 /* Define this to debug this file */
 /* #define DEBUG */
 
-typedef struct {
-  void *next;
+typedef struct filelist_s filelist;
+struct filelist_s {
+  filelist *next;
   FILE *handle;
-  char *filename;
+  const char *filename;
   removetype remove;
-} filelist;
+};
 
 static filelist *list=NULL;
 static int failed=1;
 
 #ifdef DEBUG
-char *removenames[] =
+const char * const removenames[] =
 {
   "never",
   "onfail",
@@ -240,7 +241,7 @@ const char *file_getfilename(FILE *f)
  Parameters:   none
  Returns:      pointer to filename, or NULL if failed
  ******************************************************************/
-char *file_temp(void)
+const char *file_temp(void)
 {
   filelist *ptr;
 
@@ -285,12 +286,12 @@ int file_close(FILE *f)
         *lastp=ptr->next; /* Unlink from chain */
         if (ptr->remove==remove_onclose)
           remove(ptr->filename);
-        free(ptr->filename);
+        free((void *)ptr->filename);
         free(ptr);
       }
       return 0;
     }
-    lastp=(filelist **)&ptr->next;
+    lastp=&ptr->next;
     ptr=ptr->next;
   }
 #ifdef DEBUG

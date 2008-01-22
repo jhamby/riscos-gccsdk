@@ -612,12 +612,10 @@ static void commands(void)
     help_list l;
     int numentries=0;
 
-    l = opt.commands;
-    while (l)
+    for (l = opt.commands; l; l = l->next)
     {
       if (!l->no_handler)
         numentries++;
-      l=l->next;
     }
     fprintf(file, "\tMOV\tr14,pc\n");
     fprintf(file, "\tADD\tr14,r14,# _CMUNGE_com_ret - _CMUNGE_com_pc\n");
@@ -632,8 +630,7 @@ static void commands(void)
     else
       fprintf(file, "\tB\t_CMUNGE_nocom_handler\n");
 
-    l = opt.commands;
-    while (l)
+    for (l = opt.commands; l; l = l->next)
     {
       if (!l->no_handler)
       {
@@ -650,7 +647,6 @@ static void commands(void)
             fprintf(file, "\tB\t_CMUNGE_nocom_handler\n");
         }
       }
-      l=l->next;
     }
     if (!opt.helpfn)
     {
@@ -1222,14 +1218,11 @@ static void swi_handler(void)
   if (opt.swi_codesupplied)
   {
     swi_list l;
-    int numswis=0;
+    int numswis;
 
-    l = opt.swi_names->next; /* First one must be valid */
-    while (l)
-    {
-      numswis++;
-      l=l->next;
-    }
+    /* First one must be valid */
+    for (l = opt.swi_names->next, numswis = 0; l; l = l->next, ++numswis)
+      /* */;
     fprintf(file, "\tMOV\tr14,pc\n");
     fprintf(file, "\tADD\tr14,r14,# _CMUNGE_swi_ret - _CMUNGE_swi_pc\n");
     output_label("_CMUNGE_swi_pc");
@@ -1243,8 +1236,8 @@ static void swi_handler(void)
     else
       fprintf(file, "\tB\t_CMUNGE_noswi_handler\n");
 
-    l = opt.swi_names->next; /* First one must be valid */
-    while (l)
+    /* First one must be valid */
+    for (l = opt.swi_names->next; l; l = l->next)
     {
       if (l->handler)
       {
@@ -1258,7 +1251,6 @@ static void swi_handler(void)
         else
           fprintf(file, "\tB\t_CMUNGE_noswi_handler\n");
       }
-      l=l->next;
     }
     if (!opt.swi_handler)
     {

@@ -74,7 +74,7 @@ const char *file_getfilename(FILE *f);
  Parameters:   none
  Returns:      pointer to filename, or NULL if failed
  ******************************************************************/
-char *file_temp(void);
+const char *file_temp(void);
 
 /*********************************************** <c> Gerph *********
  Function:     file_close

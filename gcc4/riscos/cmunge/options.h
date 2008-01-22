@@ -151,7 +151,7 @@ typedef struct {
   /* The files we're going to use */
   int          blank;           /* Are we producing a blank template file ? */
   char         *ofile;		/* the AOF or ELF file */
-  char         *sfile;		/* the assembler file */
+  const char   *sfile;		/* the assembler file */
   int           stemp;          /* is the assembler in a temporary file? */
   char         *hfile;		/* the C header */
   char         *x_hdr;		/* the assembler SWI header */
@@ -171,7 +171,7 @@ typedef struct {
 
   /* For pre-processing */
   char         *rootinfile;     /* the base input file to emulate cmhg's ignoring of anything in include files */
-  char         *pfile;          /* preprocessed file */
+  const char   *pfile;          /* preprocessed file */
   int           pextended;      /* are we using extended pre-processor operations */
   defines_list  defines;        /* any defines added */
   include_list  includes;       /* Include Path List */
