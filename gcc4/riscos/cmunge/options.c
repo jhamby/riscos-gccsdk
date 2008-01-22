@@ -53,7 +53,7 @@ void Options_Init(void) {
   opt.date        = NULL;
   opt.datestring  = NULL;
   opt.blank       = 0;
-  opt.ofile       = NULL; /* AOF output */
+  opt.ofile       = NULL; /* AOF or ELF output */
   opt.sfile       = NULL; /* Assembler output */
   opt.stemp       = 0;
   opt.hfile       = NULL; /* Header output */
@@ -92,7 +92,7 @@ static void help_text(void) {
 "Options:\n"
 "\n"
 "\t-h            \bOutput this information.\n"
-"\t-o <file>     \bName the output AOF file.\n"
+"\t-o <file>     \bName the output AOF or ELF file.\n"
 "\t-s <file>     \bName the output assembler file.\n"
 "\t-d <file>     \bName a C header file that CMunge will generate.\n"
 "\t-xhdr <file>  \bName a Assembler SWI header file that CMunge will generate.\n"

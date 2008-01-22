@@ -150,7 +150,7 @@ typedef struct {
 
   /* The files we're going to use */
   int          blank;           /* Are we producing a blank template file ? */
-  char         *ofile;		/* the AOF file */
+  char         *ofile;		/* the AOF or ELF file */
   char         *sfile;		/* the assembler file */
   int           stemp;          /* is the assembler in a temporary file? */
   char         *hfile;		/* the C header */
