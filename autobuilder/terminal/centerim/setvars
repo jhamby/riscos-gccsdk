@@ -1,0 +1,5 @@
+
+AB_CATEGORY=Terminal
+
+AB_CONFLAGS="--ro-recurse --disable-msn --with-openssl=no"
+
