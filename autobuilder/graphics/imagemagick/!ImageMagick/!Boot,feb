@@ -1,3 +1,0 @@
-| !Boot file for ImageMagick command
-<Obey$Dir>.!Run
-IconSprites <Obey$Dir>.!Sprites

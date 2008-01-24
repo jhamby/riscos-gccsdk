@@ -6,19 +6,13 @@ AB_MANPAGE=utilities/ImageMagick.1
 AB_CONFLAGS="--with-perl=no --disable-largefile"
 
 ab_package() {
- AD=$D/Apps/Graphics/\!ImageMagick
- mkdir -p $AD
- cp $H/\!ImageMagick/\!* $AD
- cp -av $S/utilities/*$AB_EXEEXT $AD
- cp -av $S/README.txt $AD/\!Help
- cp -av $S/AUTHORS $S/LICENSE $S/NEWS $AD
- cp -av config $AD/
+  ab_create_command_app ImageMagick Apps/Graphics
+  ab_add_commands $S/utilities/*$AB_EXEEXT
 
- for program in $AD/*$AB_EXEEXT; do 
-   name=$(sed -e s#$AB_EXEEXT##  <<<$program)
-   echo "Set Alias$$$name <ImageMagick$Dir>.$name %%*0" >> $AD/\!Run
- done
-
- $AB_HOME/add-riscpkg -unixlib
+  cp -av $S/README.txt $A/
+  cp -av $S/AUTHORS $S/LICENSE $S/NEWS $A/
+  cp -av config $A/
+  mv $D/*,faf $A/\!Help,faf
+ 
+  $AB_HOME/add-riscpkg -unixlib
 }
-
