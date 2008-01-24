@@ -52,6 +52,40 @@ ab_make() {
   return
 }
 
+
+ab_create_command_app() {
+  local app=$1
+  local section=$2
+
+  A=$D/$section/\!$app/
+  AA=$app
+  mkdir -p $A
+
+  if [ -e $H/\!$app ] ; then
+    cp -av $H/\!$app $D/$section
+  fi
+
+  if ! [ -e $A/\!Run,feb ] ; then
+    echo -e "| !Run file for $app\n" > $A/\!Run,feb
+    echo "<Obey\$Dir>.!Boot" >> $A/\!Run,feb
+  fi
+
+  if ! [ -e $A/\!Boot,feb ] ; then
+    echo -e "| !Boot file for $app\n" > $A/\!Boot,feb
+    echo "Set $app\$Dir <Obey\$Dir>" >> $A/\!Boot,feb
+    echo -e "Iconsprites <$app\$Dir>.!Sprites\n" >> $A/\!Boot,feb
+  fi
+}
+
+ab_add_commands() {
+  for program in $@; do
+    name=$(basename $program | sed -e s#$AB_EXEEXT##)
+    echo "Set Alias\$$name <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
+    cp -av $program $A
+  done
+}
+
+
 # Default function to package the source code
 # Only used on if AB_COPYSOURCE=yes and object
 # has been packaged.
@@ -263,9 +297,9 @@ else
  fi
 
  S=$PWD
- 
+
  echo "Autobuilder: Running make command: $AB_MAKE"
- ab_make 
+ ab_make
 
  # Ensure links in man pages work when creating HTML with rman 
  if ! [ -e $S/man3 ] ; then
@@ -307,7 +341,14 @@ export AB_PVERSION
 export AB_ROVERSION
 export AB_CATEGORY
 
-ab_package
+if [ "$AB_MANPAGE" != "" ] ; then
+  for AB_PAGE in $AB_MANPAGE ; do
+    rman -f HTML $S/$AB_PAGE > $D/$(basename $AB_PAGE),faf
+    #addzip -j $AB_ZIP $S/$AB_PAGE,faf
+   done
+ fi
+
+ ab_package
 
 if [ "$AB_NOPACKAGE" == "" ] ; then
 
@@ -315,10 +356,10 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
    echo "Autobuilder: No category specified, not packaging"
    exit 1
  fi
- 
+
  echo "Autobuilder: Packaging files"
  if [ "$AB_PACKONLY" == "yes" ] ; then
- 
+
    if [ -n "$AB_ZIPNAME" ] ; then
      echo "Autobuilder: Packaging as $AB_ZIPNAME$AB_TARGET"
      AB_ZIP=$AB_ZIPNAME$AB_TARGET.zip
@@ -349,31 +390,21 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
      rm $AB_ZIP
    fi
 
-   if [ "$AB_MANPAGE" != "" ] ; then
-     for AB_PAGE in $AB_MANPAGE ; do
-       rman -f HTML $S/$AB_PAGE > $S/$AB_PAGE,faf
-       addzip -j $AB_ZIP $S/$AB_PAGE,faf
-     done
-   fi
- 
    if [ -e $H/ReadMe ] ; then
      AB_UNDER=$(echo $AB_PACKAGE | tr [:alnum:] =)
- 
+
      sed "s/PACKAGE/$AB_PACKAGE/; s/XXXXXXX/$AB_UNDER/; s/VERSION/$AB_PVERSION/; s/RELEASE/$AB_ROVERSION/" \
        < $AB_HOME/header \
        > $D/ReadMe
- 
-     cat $H/ReadMe >> $D/ReadMe
- 
-    if [ "$AB_README" != "ReadMe" ] ; then
-      mv $AB_DIR/ReadMe $AB_README
-    else
-      :
-    fi
 
+     cat $H/ReadMe >> $D/ReadMe
+
+     if [ "$AB_README" != "ReadMe" ] ; then
+       mv $AB_DIR/ReadMe $AB_README
+     fi
    fi
 
-   # This will not add files beginning with a dot.
+   # This will not add files beginning with a dot
    addzip -r $AB_ZIP *
 
    mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
