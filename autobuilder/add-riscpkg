@@ -228,14 +228,14 @@ if [ -e "$H/RiscPkg/Copyright" ] ; then
    cat $H/RiscPkg/Copyright >> $D/RiscPkg/Copyright
 fi
 
-# Use debian descpription and copyright 
+# Use Debian descpription and copyright 
 if [ -d debian ] ; then
   if [ -z "$has_description" ] ; then
-    echo "add-riskpkg: Using debian description"
+    echo "add-riskpkg: Using Debian description"
     # Look for exact description
     desc=`grep -A100 "Package: $package$" debian/control | sed -n '/^Description:/,/^$/p' | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
     if [ -z "$desc" ] ; then
-      dev_desc=`echo "$package" | grep ".*-dev$"`
+      dev_desc=`echo "$package" | grep ".*-dev$" || true`
       if [ -z "$dev_desc" ] ; then	
         desc=`sed -n '/^Description:/,/^$/p' debian/control | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
       else
@@ -246,7 +246,7 @@ if [ -d debian ] ; then
   fi
  
   if [ "$has_copyright" == "no" ] ; then
-    echo "This was built from unstable debian sources" >> $D/RiscPkg/Copyright
+    echo "This was built from unstable Debian sources" >> $D/RiscPkg/Copyright
     echo "" >> $D/RiscPkg/Copyright
     if [ -e debian/copyright ] ; then
       cat debian/copyright >> $D/RiscPkg/Copyright 
