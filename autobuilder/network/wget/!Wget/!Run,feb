@@ -1,4 +1,0 @@
-| Run file for wget command
-
-Set wget$Dir <Obey$Dir>
-Set Alias$wget <wget$Dir>.wget %%*0

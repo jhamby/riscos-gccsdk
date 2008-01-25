@@ -2,17 +2,18 @@
 AB_CATEGORY=Network
 
 AB_CONFLAGS=--without-ssl
-# AB_MANPAGE=doc/wget.1
+#AB_MANPAGE=doc/wget.1
 AB_COPYSOURCE=yes
 
 ab_package() {
- AD=$D/Apps/Network/\!Wget
- mkdir -p $AD
- cp $H/\!Wget/\!* $AD
- cp -av $S/src/wget$AB_EXEEXT $AD 
- cp -av $S/README $AD/\!Help
- cp -av $S/AUTHORS $S/COPYING $S/MAILING-LIST $AD
- cp -av $S/NEWS $S/TODO $S/ChangeLog $AD
+ ab_create_command_app Wget Apps/Network
+ ab_add_commands $S/src/*$AB_EXEEXT
+
+ rman -f HTML $S/doc/wget.info > $A/\!Help,faf
+
+ cp -av $S/README $A
+ cp -av $S/AUTHORS $S/COPYING $S/MAILING-LIST $A
+ cp -av $S/NEWS $S/TODO $S/ChangeLog $A
 
  $AB_HOME/add-riscpkg -unixlib
 }
