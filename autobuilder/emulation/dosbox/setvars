@@ -5,13 +5,12 @@ AB_COPYSOURCE=yes
 AB_CONFLAGS="--disable-opengl"
 
 ab_package() {
-  AD=$D/Apps/Emulation
-  mkdir -p $AD
-  cp -av $H/\!DosBox $AD
+  ab_create_command_app DosBox Apps/Emulation
+
   cp -av $S/AUTHORS $S/COPYING $S/INSTALL $S/NEWS $S/THANKS $S/src/dosbox$AB_EXEEXT \
-         $AD/\!DosBox
-  cp -av $S/README $AD/\!DosBox/\!Help
+         $A
+  cp -av $S/README $A/\!Help
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
-    -appdir Apps.Emulation -appname DosBox -dirvar 
+    -appdir Apps.Emulation -appname DosBox -dirvar
 }
