@@ -118,12 +118,13 @@ if [ "$boot_vars" == "yes" ] && [ ! -z "$boot_file" ] ; then
     exit 1
   fi
   mkdir -p $D/SysVars
-  vars=`grep "Set " $boot_file | sed "s/^.*Set // ; s/<Obey\\\$Dir>/<Packages\\\$@$appdir.!$appname>/g"`
+  pdir="Packages\\\$@$appdir.!$appname"
+  vars=`grep "Set " $boot_file | sed "s/^.*Set // ; s/<Obey\\\$Dir>/<$pdir>/g"`
   echo "$vars" |
   while read line
   do
-    var=`echo "$line" | cut -d ' ' -f 1 | sed 's/\\\$/=24/'`
-    val=`echo "$line" | cut -d ' ' -f 2- | sed 's/%%/%/'`
+    var=`echo "$line" | cut -d ' ' -f 1 | sed -e 's/\\\$/=24/'`
+    val=`echo "$line" | cut -d ' ' -f 2- | sed -e 's/%%/%/' -e "s/$appname\\\$Dir/$pdir/"`
     echo "$val" > "$D/SysVars/$var"
   done
 fi
@@ -228,7 +229,7 @@ if [ -e "$H/RiscPkg/Copyright" ] ; then
    cat $H/RiscPkg/Copyright >> $D/RiscPkg/Copyright
 fi
 
-# Use Debian descpription and copyright 
+# Use Debian descpription and copyright
 if [ -d debian ] ; then
   if [ -z "$has_description" ] ; then
     echo "add-riskpkg: Using Debian description"
@@ -244,7 +245,7 @@ if [ -d debian ] ; then
     fi
     echo "$desc" >> $D/RiscPkg/Control
   fi
- 
+
   if [ "$has_copyright" == "no" ] ; then
     echo "This was built from unstable Debian sources" >> $D/RiscPkg/Copyright
     echo "" >> $D/RiscPkg/Copyright
