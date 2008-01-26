@@ -1,4 +1,0 @@
-| Run file for indent command
-
-Set Indent$Dir <Obey$Dir>
-Set Alias$Indent <Indent$Dir>.indent %%*0
