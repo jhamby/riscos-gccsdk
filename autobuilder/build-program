@@ -77,6 +77,9 @@ ab_create_command_app() {
   fi
 }
 
+# Might vary in future
+alias ab_create_app=ab_create_command_app
+
 ab_add_commands() {
   for program in $@; do
     name=$(basename $program | sed -e s#$AB_EXEEXT##)
