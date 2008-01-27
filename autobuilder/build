@@ -6,7 +6,7 @@ export AB_PACKONLY=no # Zip only from current directory
 export AB_NOFETCH=no  # Using existing source fetched from last time
 AB_VERBOSE=no         # Echo output
 AB_DEPS=yes           # Build dependencies first
-AB_ALLDEPS=no         # Force build of all dependencies
+AB_ALLDEPS=false      # Force build of all dependencies
 export AB_TARGET=     # Name added to packages and logs
 export AB_TRY=no      # Try to build Debian packages not in autobuilder yet
 
@@ -44,7 +44,7 @@ for param in $@ ; do
             AB_DEPS=no
             ;;
           F)
-            AB_ALLDEPS=yes
+            AB_ALLDEPS=false
             ;;
           t)
             AB_TRY=yes
@@ -334,7 +334,7 @@ if [ "$AB_DEPS" == "yes" ] ; then
  for PACKAGEDIR in $AB_PACKAGES ; do
    PACKAGE=$(echo "$PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
 
-   ab_build $PACKAGE false false true
+   ab_build $PACKAGE false false $AB_ALLDEPS
    done
 fi
 
