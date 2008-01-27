@@ -330,7 +330,7 @@ ab_build() {
 }
 
 
-if [ "$AB_DEPS" == "yes" ] ; then
+if $AB_ALLDEPS ; then
  for PACKAGEDIR in $AB_PACKAGES ; do
    PACKAGE=$(echo "$PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
 
