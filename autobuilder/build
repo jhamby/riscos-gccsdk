@@ -6,6 +6,7 @@ export AB_PACKONLY=no # Zip only from current directory
 export AB_NOFETCH=no  # Using existing source fetched from last time
 AB_VERBOSE=no         # Echo output
 AB_DEPS=yes           # Build dependencies first
+AB_ALLDEPS=no         # Force build of all dependencies
 export AB_TARGET=     # Name added to packages and logs
 export AB_TRY=no      # Try to build Debian packages not in autobuilder yet
 
@@ -41,6 +42,9 @@ for param in $@ ; do
             ;;
           n)
             AB_DEPS=no
+            ;;
+          F)
+            AB_ALLDEPS=yes
             ;;
           t)
             AB_TRY=yes
@@ -213,7 +217,9 @@ ab_build() {
   fi
 
   if $IS_DEPENDENCY ; then
-    if [ -e "$AB_HOME/$PACKAGE_DIR/last-success$AB_TARGET" ] ; then
+    if [ "$AB_ALLDEPS" == yes ] ; then
+      echo "Autobuilder: Dependency $PACKAGE_NAME forcibly rebeing rebuilt"
+    elif [ -e "$AB_HOME/$PACKAGE_DIR/last-success$AB_TARGET" ] ; then
       echo "Autobuilder: Dependency $PACKAGE_NAME satisfied by previous successful build"
       return 0
     fi
