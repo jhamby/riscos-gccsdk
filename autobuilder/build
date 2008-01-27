@@ -175,11 +175,12 @@ else
   AB_STDOUT=>/dev/null
 fi
 
-ab_build() {
 
+ab_build() {
   local PACKAGE_NAME=$1
   local IS_DEPENDENCY=$2
   local IS_EXPLICIT=$3
+  local REMOVE_DEPS=$4
 
   # Because the dependency info only contains the package name, and not the
   # directory, we need to search for the directory containing this package.
@@ -199,7 +200,7 @@ ab_build() {
         if $IS_EXPLICIT ; then
           echo "Autobuilder: No explicit dependency \"$PACKAGE_NAME\" found" 1>&2
           return 1
-        else
+        elif ! $REMOVE_DEPS; then
           echo "Autobuilder: No match for Debian dependency \"$PACKAGE_NAME\" - ignoring" 1>&2
         fi
       else
@@ -217,19 +218,23 @@ ab_build() {
   fi
 
   if $IS_DEPENDENCY ; then
-    if [ "$AB_ALLDEPS" == yes ] ; then
-      echo "Autobuilder: Dependency $PACKAGE_NAME forcibly rebeing rebuilt"
-    elif [ -e "$AB_HOME/$PACKAGE_DIR/last-success$AB_TARGET" ] ; then
-      echo "Autobuilder: Dependency $PACKAGE_NAME satisfied by previous successful build"
-      return 0
+    if [ -e "$AB_HOME/$PACKAGE_DIR/last-success$AB_TARGET" ] ; then
+      if $REMOVE_DEPS; then
+        echo "Autobuilder: Dependency $PACKAGE_NAME forcibly being rebuilt"
+        rm $AB_HOME/$PACKAGE_DIR/last-success$AB_TARGET
+      else
+        echo "Autobuilder: Dependency $PACKAGE_NAME satisfied by previous successful build"
+        return 0
+      fi
     fi
   fi
 
-  echo "Autobuilder: Package \"$PACKAGE_NAME\" will be built using rules at \"$AB_HOME/$PACKAGE_DIR\""
+  if ! $REMOVE_DEPS; then
+    echo "Autobuilder: Package \"$PACKAGE_NAME\" will be built using rules at \"$AB_HOME/$PACKAGE_DIR\""
+  fi
 
 
   if [ "$AB_DEPS" == "yes" ] ; then
-
     local DEPENDENCIES
     local DEP
 
@@ -239,7 +244,7 @@ ab_build() {
 
     # Build our version of zip for packaging
     if [ "$PACKAGE_NAME" != "native-zip" ] && ! [ -e $GCCSDK_INSTALL_CROSSBIN/zip ] ; then
-      ab_build native-zip true true 
+      ab_build native-zip true true
     fi
 
     for DEP in $DEPENDENCIES ; do
@@ -267,12 +272,8 @@ ab_build() {
           ;;
       esac
 
-
-      if [ "$PACKAGE_NAME" == "librsvg2-2" -o "$PACKAGE_NAME" == "libgtk2.0-0" -o "$PACKAGE_NAME" == "libpango1.0-0" ] \
-         && [ "$DEP" == "libcairo2" ] ; then continue; fi
-
       echo $DEP > $AB_HOME/$PACKAGE_DIR/last-depends
-      if ! ab_build $DEP true false ; then
+      if ! ab_build $DEP true false $REMOVE_DEPS; then
         echo "Dependency \"$DEP\" failed for $PACKAGE_NAME"
         return 1
       fi
@@ -285,7 +286,7 @@ ab_build() {
 
     for DEP in $DEPENDENCIES ; do
       echo $DEP > $AB_HOME/$PACKAGE_DIR/last-depends
-      if ! ab_build $DEP true true ; then
+      if ! ab_build $DEP true true $REMOVE_DEPS; then
         echo "Dependency \"$DEP\" failed for $PACKAGE_NAME"
         return 1
       fi
@@ -293,6 +294,7 @@ ab_build() {
     rm -f $AB_HOME/$PACKAGE_DIR/last-depends
   fi
 
+  if $REMOVE_DEPS ; then return 0; fi
 
   # If we get here then all dependencies for this package should be satisfied.
   AB_PACKAGE=$PACKAGE_NAME
@@ -327,15 +329,25 @@ ab_build() {
   return 0
 }
 
+
+if [ "$AB_DEPS" == "yes" ] ; then
+ for PACKAGEDIR in $AB_PACKAGES ; do
+   PACKAGE=$(echo "$PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
+
+   ab_build $PACKAGE false false true
+   done
+fi
+
+
 ok=0
 
 for PACKAGEDIR in $AB_PACKAGES ; do
- PACKAGE=$(echo "$PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
+  PACKAGE=$(echo "$PACKAGEDIR" | sed -e "s#/\$##" -e "s#/#\n#g" | tail -1)
 
- if ! ab_build $PACKAGE false false ; then
-   echo "Build for package \"$PACKAGE\" failed" 1>&2
-   ok=1
- fi
+  if ! ab_build $PACKAGE false false false; then
+    echo "Build for package \"$PACKAGE\" failed" 1>&2
+    ok=1
+  fi
 done
 
 exit $ok
