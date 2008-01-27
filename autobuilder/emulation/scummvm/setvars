@@ -1,16 +1,14 @@
-AB_CVS_ROOT=:pserver:anonymous:@cvs.sf.net:/cvsroot/scummvm
-AB_CVS_MODULE=scummvm
-AB_ZIPNAME=scummvm-cvs-$(date +%Y%m%d)
-
 AB_CATEGORY=emulation
 
-AB_CONFLAGS="--with-sdl-prefix=/home/riscos/env/bin --enable-release"
+AB_CONFLAGS="--with-sdl-prefix=$GCCSDK_INSTALL_ENV/bin --enable-release"
 
 ab_package() {
-  cp -av $H/\!ScummVM $D
+  ab_create_app ScummVM Apps/Emulation
 
-  mkdir -p $D/\!ScummVM/Docs
-  cp "$H/RISC OS" $S/README $S/COPYING $D/\!ScummVM/Docs
+  mkdir -p $A/Docs
+  cp "$H/RISC OS" $S/README $S/COPYING $A/Docs
 
-  cp $S/scummvm$AB_EXEEXT $D/\!ScummVM
+  cp $S/scummvm$AB_EXEEXT $A
+
+  $AB_HOME/add-riscpkg -unixlib
 }
