@@ -82,7 +82,7 @@
 
 # Multiple packages. This specifies the name of the packages
 # to create if multiple packages are to be produced.
-# Each package should be created in a seperate subdirectory
+# Each package should be created in a separate subdirectory
 # of the package directory (the $D variable in the package function)
 # with the same name as the package name specified in the variable.
 #AB_PACKAGES=
