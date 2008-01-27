@@ -1,5 +1,5 @@
---- Makefile.orig	2008-01-12 13:34:14.000000000 -0800
-+++ Makefile	2008-01-12 13:34:29.000000000 -0800
+--- Makefile.orig	2008-01-26 22:52:48.000000000 -0800
++++ Makefile	2008-01-26 22:54:23.000000000 -0800
 @@ -17,16 +17,16 @@
  SHELL=/bin/sh
  
@@ -40,7 +40,7 @@
  
  libbz2.a: $(OBJS)
  	rm -f libbz2.a
-@@ -93,15 +93,15 @@
+@@ -93,47 +93,47 @@
  	cmp sample3.tst sample3.ref
  	@cat words3
  
@@ -54,17 +54,69 @@
  	cp -f bzip2 $(PREFIX)/bin/bzip2
 -	ln $(PREFIX)/bin/bzip2 $(PREFIX)/bin/bunzip2
 -	ln $(PREFIX)/bin/bzip2 $(PREFIX)/bin/bzcat
+-	cp -f bzip2recover $(PREFIX)/bin/bzip2recover
+-	chmod a+x $(PREFIX)/bin/bzip2
+-	chmod a+x $(PREFIX)/bin/bunzip2
+-	chmod a+x $(PREFIX)/bin/bzcat
+-	chmod a+x $(PREFIX)/bin/bzip2recover
+-	cp -f bzip2.1 $(PREFIX)/man/man1
+-	chmod a+r $(PREFIX)/man/man1/bzip2.1
 +	#ln $(PREFIX)/bin/bzip2 $(PREFIX)/bin/bunzip2
 +	#ln $(PREFIX)/bin/bzip2 $(PREFIX)/bin/bzcat
- 	cp -f bzip2recover $(PREFIX)/bin/bzip2recover
- 	chmod a+x $(PREFIX)/bin/bzip2
- 	chmod a+x $(PREFIX)/bin/bunzip2
-@@ -111,7 +111,7 @@
- 	chmod a+r $(PREFIX)/man/man1/bzip2.1
++	#cp -f bzip2recover $(PREFIX)/bin/bzip2recover
++	#chmod a+x $(PREFIX)/bin/bzip2
++	#chmod a+x $(PREFIX)/bin/bunzip2
++	#chmod a+x $(PREFIX)/bin/bzcat
++	#chmod a+x $(PREFIX)/bin/bzip2recover
++	#cp -f bzip2.1 $(PREFIX)/man/man1
++	#chmod a+r $(PREFIX)/man/man1/bzip2.1
  	cp -f bzlib.h $(PREFIX)/include
  	chmod a+r $(PREFIX)/include/bzlib.h
 -	cp -fa libbz2.a libbz2.so* $(PREFIX)/lib
 +	cp -fa libbz2.a $(PREFIX)/lib
  	chmod a+r $(PREFIX)/lib/libbz2.a
- 	cp -f bzexe $(PREFIX)/bin/bzexe
- 	chmod a+x $(PREFIX)/bin/bzexe
+-	cp -f bzexe $(PREFIX)/bin/bzexe
+-	chmod a+x $(PREFIX)/bin/bzexe
+-	cp -f bzgrep $(PREFIX)/bin/bzgrep
+-	ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzegrep
+-	ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzfgrep
+-	chmod a+x $(PREFIX)/bin/bzgrep
+-	cp -f bzmore $(PREFIX)/bin/bzmore
+-	ln -s -f $(PREFIX)/bin/bzmore $(PREFIX)/bin/bzless
+-	chmod a+x $(PREFIX)/bin/bzmore
+-	cp -f bzdiff $(PREFIX)/bin/bzdiff
+-	ln -s -f $(PREFIX)/bin/bzdiff $(PREFIX)/bin/bzcmp
+-	chmod a+x $(PREFIX)/bin/bzdiff
+-	cp -f bzexe.1 bzgrep.1 bzmore.1 bzdiff.1 $(PREFIX)/man/man1
+-	chmod a+r $(PREFIX)/man/man1/bzexe.1
+-	chmod a+r $(PREFIX)/man/man1/bzgrep.1
+-	chmod a+r $(PREFIX)/man/man1/bzmore.1
+-	chmod a+r $(PREFIX)/man/man1/bzdiff.1
+-	echo ".so man1/bzgrep.1" > $(PREFIX)/man/man1/bzegrep.1
+-	echo ".so man1/bzgrep.1" > $(PREFIX)/man/man1/bzfgrep.1
+-	echo ".so man1/bzmore.1" > $(PREFIX)/man/man1/bzless.1
+-	echo ".so man1/bzdiff.1" > $(PREFIX)/man/man1/bzcmp.1
++	#cp -f bzexe $(PREFIX)/bin/bzexe
++	#chmod a+x $(PREFIX)/bin/bzexe
++	#cp -f bzgrep $(PREFIX)/bin/bzgrep
++	#ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzegrep
++	#ln -s -f $(PREFIX)/bin/bzgrep $(PREFIX)/bin/bzfgrep
++	#chmod a+x $(PREFIX)/bin/bzgrep
++	#cp -f bzmore $(PREFIX)/bin/bzmore
++	#ln -s -f $(PREFIX)/bin/bzmore $(PREFIX)/bin/bzless
++	#chmod a+x $(PREFIX)/bin/bzmore
++	#cp -f bzdiff $(PREFIX)/bin/bzdiff
++	#ln -s -f $(PREFIX)/bin/bzdiff $(PREFIX)/bin/bzcmp
++	#chmod a+x $(PREFIX)/bin/bzdiff
++	#cp -f bzexe.1 bzgrep.1 bzmore.1 bzdiff.1 $(PREFIX)/man/man1
++	#chmod a+r $(PREFIX)/man/man1/bzexe.1
++	#chmod a+r $(PREFIX)/man/man1/bzgrep.1
++	#chmod a+r $(PREFIX)/man/man1/bzmore.1
++	#chmod a+r $(PREFIX)/man/man1/bzdiff.1
++	#echo ".so man1/bzgrep.1" > $(PREFIX)/man/man1/bzegrep.1
++	#echo ".so man1/bzgrep.1" > $(PREFIX)/man/man1/bzfgrep.1
++	#echo ".so man1/bzmore.1" > $(PREFIX)/man/man1/bzless.1
++	#echo ".so man1/bzdiff.1" > $(PREFIX)/man/man1/bzcmp.1
+ 
+ clean: 
+ 	rm -f *.o *.sho libbz2.a libbz2.so* bzip2 bzip2recover \
