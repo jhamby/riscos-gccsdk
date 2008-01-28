@@ -1,3 +1,8 @@
+Sun Jan 27 19:29:25 PST 2008  Peter Naulls  <peter@chocky.org>	
+
+	* stdio/fpurge.c, include/stdio.h: Added hopefully correct fpurge
+	implementation.
+
 Mon Dec 31 17:10:15 2007  Lee Noar  <leenoar@sky.com>
 
 	* sys/_syslib.s: Force word alignment of bss area. If we don't and

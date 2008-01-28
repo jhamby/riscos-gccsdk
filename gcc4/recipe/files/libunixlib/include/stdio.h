@@ -203,6 +203,9 @@ extern int fclose (FILE *__stream);
    This function is a cancellation point.  */
 extern int fflush (FILE *__stream);
 
+/* Clears the buffer of a given stream. */
+extern int fpurge (FILE *__stream);
+
 /* Read chunks of generic data from stream.  This function is a cancellation
    point.  */
 extern size_t fread (void *__restrict __ptr, size_t __size,
