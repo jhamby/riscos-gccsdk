@@ -2,6 +2,12 @@
  * Copyright (C) 2003 Justin Fletcher
  */
 
+#if !defined(__riscos) || !defined(__TARGET_SCL__)
+/* To make WEXITSTATUS() available which converts the return code of
+   system() into a real exit status value.  */
+#  define _XOPEN_SOURCE
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -141,6 +147,8 @@ int our_system(const char *cmdtxt)
   /* Fake the RISC OS form of 'could not start process' */
   if (rc==-1)
     rc = -2;
+  else
+    rc = WEXITSTATUS(rc);
 #endif
   return rc;
 }
