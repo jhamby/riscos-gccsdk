@@ -5,6 +5,15 @@ ab_package() {
   cp $S/src/*$AB_EXEEXT $S/COPYING $D
 }
 
+export gl_cv_func_fflush_stdin=yes 
+export gl_cv_func_gettimeofday_clobber=no
+export gl_cv_func_gettimeofday_posix_signature=yes
+export gl_cv_func_working_mkstemp=yes
+export gl_cv_func_svid_putenv=yes
+export ac_cv_func_chown_works=yes
+export gl_cv_func_getcwd_null=yes
+export ac_cv_func_lchown=yes
+
 
 #touch configure.ac aclocal.m4 stamp-h.in Makefile.in config.status
 
