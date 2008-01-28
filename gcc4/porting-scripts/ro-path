@@ -5,6 +5,14 @@
 export GCCSDK_INSTALL_CROSSBIN=GCCSDK_BIN
 export GCCSDK_INSTALL_ENV=GCCSDK_ENV
 
+if [ -z "$CC" ] ; then
+  export CC=GCCSDK_BIN/arm-unknown-riscos-gcc
+fi
+
+if [ -z "$CXX" ] ; then
+  export CXX=GCCSDK_BIN/arm-unknown-riscos-g++
+fi
+
 # In order to be able to include header files using
 # "#include <DeskLib:Wimp.h>" in the compiler:
 export DESKLIB_PATH=GCCSDK_ENV/include/DeskLib
@@ -14,4 +22,4 @@ export DESKLIB_PATH=GCCSDK_ENV/include/DeskLib
 # expect default arguments.
 export PKG_CONFIG=GCCSDK_ENV/ro-pkg-config
 
-PATH=$GCCSDK_INSTALL_CROSSBIN:GCCSDK_ENV/bin:$PATH "$@"
+PATH=$GCCSDK_INSTALL_CROSSBIN:GCCSDK_ENV:GCCSDK_ENV/bin:$PATH "$@"

@@ -1,8 +1,17 @@
 
+* Thu Jan 17 16:24:54 PST 2008  Peter Naulls <peter@chocky.org>
+
+	* ro-pkg-config: Additional path for pkgconfig.
+	* ro-config: Make values of CC/CXX easier to grab from here.
+	* ro-make, ro-path: Make values of CC/CXX more generally available.
+	* ro-install: Revert earlier parameter handling change; otherwise options are not handled - 
+	  improve the issue this was meant to solve in a different way in future.
+	
 * Sat Jan 12 19:43:48 PST 2008  Peter Naulls <peter@chocky.org>
 
 	* ro-config: autoconf 2.12 handling. Replace -lX11 with -lCX11 -lDesk.
-          Ensure binaries really are static - force variables and libtool values.	       * mkdir: Addition of mkdir for package creation handling
+          Ensure binaries really are static - force variables and libtool values.
+	* mkdir: Addition of mkdir for package creation handling
 	* ro-install: Mostly remove need for mkdir in setvars.
 	
 * Mon Dec 24 20:28:18 UTC 2007  Peter Naulls <peter@chocky.org>
@@ -12,5 +21,5 @@
 * Mon Dec 24 18:31:42 UTC 2007  Peter Naulls <peter@chocky.org>
 
 	* ChangeLog started for Porting Scripts
-	* ro-ar: Removed.  This is an anarchronism from AOF tools - should use the 
+	* ro-ar: Removed.  This is an anachronism from AOF tools - should use the 
 	  version from binutils.

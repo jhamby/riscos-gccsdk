@@ -3,11 +3,6 @@
 ro_jobs=""
 ro_hosts=GCCSDK_ENV/ro-hosts
 
-
-if [ -z "$CC" ] ; then
-  export CC=GCCSDK_BIN/arm-unknown-riscos-gcc
-fi
-
 if [ -f $ro_hosts ] && [ "$RO_DIST" == "YES" ] ; then
   export DISTCC_HOSTS=$(cat $ro_hosts)
   ro_jobs="-j$(wc -w < $ro_hosts | tr -s " " | cut -f 2 -d ' ')"
