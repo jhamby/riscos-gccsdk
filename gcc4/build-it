@@ -122,8 +122,12 @@ if [ -d $GCCSDK_BUILDDIR ] ; then
   rm -rf $GCCSDK_BUILDDIR
 fi
 mkdir -p $GCCSDK_BUILDDIR
-# Make sure install dir exists:
-test ! -d $GCCSDK_PREFIX && mkdir -p $GCCSDK_PREFIX
+# Do the same for install dir:
+if [ -d $GCCSDK_PREFIX ] ; then
+  echo Deleting old $GCCSDK_PREFIX
+  rm -rf $GCCSDK_PREFIX
+fi
+mkdir -p $GCCSDK_PREFIX
 
 cd $GCCSDK_BUILDDIR
 # Notes:
