@@ -10,6 +10,8 @@
 #include <features.h>
 #endif
 
+#include <sys/types.h>
+
 __BEGIN_DECLS
 
 struct statfs

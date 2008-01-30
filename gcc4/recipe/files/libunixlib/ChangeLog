@@ -1,3 +1,8 @@
+Tue Jan 29 22:46:43 PST 2008  Peter Naulls  <peter@chocky.org>
+
+	* unix/statfs.c, include/sys/vfs.h, include/statfs.h: Dummy
+	statfs implementation.
+
 Sun Jan 27 19:29:25 PST 2008  Peter Naulls  <peter@chocky.org>	
 
 	* stdio/fpurge.c, include/stdio.h: Added hopefully correct fpurge
