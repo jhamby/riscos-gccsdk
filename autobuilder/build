@@ -1,14 +1,15 @@
 #!/bin/bash -e
 
 AB_PACKAGES=""
-export AB_DEBUG=no    # Leave source
-export AB_PACKONLY=no # Zip only from current directory
-export AB_NOFETCH=no  # Using existing source fetched from last time
-AB_VERBOSE=no         # Echo output
-AB_DEPS=yes           # Build dependencies first
-AB_ALLDEPS=false      # Force build of all dependencies
-export AB_TARGET=     # Name added to packages and logs
-export AB_TRY=no      # Try to build Debian packages not in autobuilder yet
+export AB_DEBUG=no     # Leave source
+export AB_PACKONLY=no  # Zip only from current directory
+export AB_NOFETCH=no   # Using existing source fetched from last time
+AB_VERBOSE=no          # Echo output
+AB_DEPS=yes            # Build dependencies first
+AB_ALLDEPS=false       # Force build of all dependencies
+export AB_TARGET=      # Name added to packages and logs
+export AB_TRY=no       # Try to build Debian packages not in autobuilder yet
+export AB_ELFBUILD=yes # ELF is default
 
 for param in $@ ; do
   case "$param" in
