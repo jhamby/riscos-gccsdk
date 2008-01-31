@@ -157,7 +157,7 @@ else
 fi
 
 if grep -q -- --build= $RO_CPATH/configure; then
- BUILD="--build=i686-linux"
+ BUILD="--build=GCCSDK_BUILD"
 else
  BUILD=
 fi
