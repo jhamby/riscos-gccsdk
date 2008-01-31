@@ -244,7 +244,7 @@ ab_build() {
 
     # Build our version of zip for packaging
     if [ "$PACKAGE_NAME" != "native-zip" ] && ! [ -e $GCCSDK_INSTALL_CROSSBIN/zip ] ; then
-      ab_build native-zip true true
+      ab_build native-zip true true false
     fi
 
     for DEP in $DEPENDENCIES ; do
