@@ -1,3 +1,27 @@
+
+params=$(dirname $0)/gccsdk-params
+
+if [ -e "$params" ] ; then
+  . $params
+else
+  echo "# This is required by the build" > $params
+  echo "export LTCONFIG_VERSION=1.4a-GCC3.0" >> $params 
+  echo "# This is where the cross compiler will be installed.  It needs to end in 'bin'." >> $params
+  echo "export GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin" >> $params
+  echo "# This is where the porting tools and any libraries you build will be installed"  >> $params
+  echo "export GCCSDK_INSTALL_ENV=/home/riscos/env" >> $params
+
+  echo ""
+  echo "It looks like this is the first time you're running the GCCSDK build."
+  echo "Some default locations have been set for you in the file 'gccsdk-params'."
+  echo "These locations need to be writable.  Check that they're ok, or change them as you need, then"
+  echo "Run this command again.  Here is the contents of the 'gccsdk-params' file that was created for you:"
+  echo ""
+  cat $params
+  echo ""
+  exit 0
+fi
+
 if [ -z "$GCCSDK_ROOT" ] || [ ! -d $GCCSDK_ROOT ] ; then
   echo \$GCCSDK_ROOT is wrongly defined \(being \'$GCCSDK_ROOT\'\)
   return 1

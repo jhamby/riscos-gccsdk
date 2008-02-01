@@ -25,11 +25,11 @@ fi
 mkdir $GCCSDK_SRCDIR
 
 # Copy original GCC:
-echo "Copying original GCC"
+echo "Copying original GCC source"
 cp -a $GCCSDK_GCCORIG/* $GCCSDK_SRCDIR
 
 # Copy a selection of binutils' directories:
-echo "Copying original binutils"
+echo "Copying original binutils source"
 cp -a $GCCSDK_BINUTILSORIG/{etc,include,bfd,binutils,cpu,gas,opcodes,ld,gprof,gettext.m4} $GCCSDK_SRCDIR
 
 # 1. Patch it:

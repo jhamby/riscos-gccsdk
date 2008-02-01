@@ -17,9 +17,6 @@ least with a minimum of changes of those patches.  However this still needs to
 be verified if that's really going to be the case as we're currently focusing
 to get all GCCSDK specific development done for GCC 4.1.1 and binutils 2.17.
 
-Currently it might be necessary to define LTCONFIG_VERSION as:
-
-  $ export LTCONFIG_VERSION=1.4a-GCC3.0
 
 0. Required build tools
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -31,7 +28,7 @@ and work with GCCSDK on top of a typical recent standard Unix distribution:
 - gcc v3.4.x or v4.x (other versions might work too)
 - make v3.81 (other versions might work too)
 - libtool v1.5.22 (other versions might work too)
-- automake v1.9 (no other version !)
+- automake v1.9 (no other version, Debian package 'automake-1.9')
 - autogen v5.8.8 (other versions might work too)
 - patch v2.5.9 (other versions might work too)
 - makeinfo v4.8 (package texinfo, other versions might work too)
@@ -56,8 +53,30 @@ To check out GCCSDK 4 build code:
 
 We have now in 'gcc4' directory the GCCSDK 4 code.
 
+1.1 Build everything
+~~~~~~~~~~~~~~~~~~~~
+
+From inside the 'gcc4' directory run:
+
+ ./build-world
+
+Follow the prompts as required, and rerun as noted when you are happy
+with the settings.  If it completes ok, then you will have completed 
+build of the cross compiler and porting tools, and you can jump to 
+step 2.2.
+
+
 2. Build steps
 ~~~~~~~~~~~~~~
+
+What follows documents the more involved manual build prodecure. This
+might be required if you have problems with the build and need to 
+debug issues.   It is also relevant if you want to make improvements 
+to GCCSDK.
+
+Currently it is probably necessary to define LTCONFIG_VERSION as:
+
+  $ export LTCONFIG_VERSION=1.4a-GCC3.0
 
 The build steps are the following:
 
@@ -199,6 +218,7 @@ files.  This packaging in zip files happens by:
 
    $ ./create-gcckit -pkg
 
+
 3. Developing GCCSDK
 ~~~~~~~~~~~~~~~~~~~~
 
@@ -231,6 +251,7 @@ distribution.
 Don't forget to do a 'svn add recipe/...' when it concerns a new patch file or
 a new file inside recipe/files or recipe/scripts.
 
+
 4. Testing
 ~~~~~~~~~~
 
@@ -259,6 +280,7 @@ Or both at the same time:
 More information on running GCC testsuite can be found at
 <URL:http://gcc.gnu.org/install/test.html>.
 
+
 5. Porting tools
 ~~~~~~~~~~~~~~~~
 
@@ -266,7 +288,7 @@ The files in the subdirectory 'porting-scripts' can help you to easily use the
 cross-compiler for porting of existing programs.  More information can be
 found in the 'PortingTools.html' file how this works.
 
-To install those scripts:
+To install those scripts (This will have already been done in step 1.1):
 
   1. Define GCCSDK_INSTALL_ENV as the directory where those porting scripts can
      be installed.  E.g.:
