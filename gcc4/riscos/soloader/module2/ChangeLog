@@ -1,3 +1,7 @@
+Fri Feb  1 00:39:19 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_alloc.c(DA_extend): Wrong pointer passed to heap_block_size().
+
 Fri Jan  4 18:24:23 2008  Lee Noar  <leenoar@sky.com>
 
 	* som_workspace.h: Move runtime workspace to immediately after ELF

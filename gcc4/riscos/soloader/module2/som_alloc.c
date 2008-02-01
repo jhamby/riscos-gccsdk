@@ -174,7 +174,7 @@ DA_extend (dynamic_area_block *da, int by, void **block)
 	     the block needs to be moved.  */
 	  int heap_inc;
 
-	  if ((err = heap_block_size (da->base_addr, block,
+	  if ((err = heap_block_size (da->base_addr, *block,
 				      &heap_inc)) != NULL)
 	    return err;
 
