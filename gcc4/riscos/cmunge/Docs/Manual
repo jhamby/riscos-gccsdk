@@ -250,7 +250,7 @@ every occurrence of _kernel_oserror is replaced by os_error.
     around. The generated header filters out calls for service calls that
     have not been declared to it. For C-function-name service, this gives:
 
-    void *service(int number, _kernel_swi_regs *r, void *pw);
+    void service(int number, _kernel_swi_regs *r, void *pw);
     
     If no service calls are specified, then all service calls are passed in.
     This is *not* recommended.
