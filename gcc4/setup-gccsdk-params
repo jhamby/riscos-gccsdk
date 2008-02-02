@@ -1,5 +1,9 @@
 
-params=$(dirname $0)/gccsdk-params
+if [ -n "$GCCSDK_ROOT" ] ; then
+  params=$GCCSDK_ROOT/gccsdk-params
+else
+  params=$(dirname $0)/gccsdk-params
+fi
 
 if [ -e "$params" ] ; then
   . $params
