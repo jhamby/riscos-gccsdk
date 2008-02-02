@@ -111,10 +111,26 @@ elif [ ! -d "$AB_OUTPUTLIB" ] ; then
   exit 1
 fi
 
+
+found_vars=false
+
+# Check for GCCSDK values
+if [ -e $(dirname $0)/../gcc4/gccsdk-params ] ; then
+  echo "Autobuilder: using GCCSDK set values"
+  . $(dirname $0)/../gcc4/gccsdk-params
+  found_vars=true
+fi
+
 # Check for values set in a local build directory
 if [ -e build-setvars ] ; then
  echo "Autobuilder: using locally set values"
  . build-setvars
+ found_vars=true
+fi
+
+
+if ! $found_vars ; then
+  echo "Autobuilder: Didn't find GCCSDK settings (looked for $(dirname $0)/../gcc4/gccsdk-params and ./build-setvars), will try to proceed anyway"
 fi
 
 # File extension
@@ -129,11 +145,11 @@ if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
   if [ -d /home/riscos/env ] ; then
     GCCSDK_INSTALL_ENV=/home/riscos/env
   else
-    echo "Autobuilder: directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV is not defined and /home/riscos/env does not exist."
+    echo "Autobuilder: Directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV is not defined and /home/riscos/env does not exist."
     exit 1
   fi
 elif [ ! -d "$GCCSDK_INSTALL_ENV" ] ; then
-  echo "Autobuilder: directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV is defined as $GCCSDK_INSTALL_ENV but that does not exist."
+  echo "Autobuilder: Directory with porting tools does not exist. \$GCCSDK_INSTALL_ENV is defined as $GCCSDK_INSTALL_ENV but that does not exist."
   exit 1
 fi
 export GCCSDK_INSTALL_ENV
@@ -245,7 +261,9 @@ ab_build() {
 
     # Build our version of zip for packaging
     if [ "$PACKAGE_NAME" != "native-zip" ] && ! [ -e $GCCSDK_INSTALL_CROSSBIN/zip ] ; then
-      ab_build native-zip true true false
+      if ! ab_build native-zip true true false; then
+        return 1
+      fi
     fi
 
     for DEP in $DEPENDENCIES ; do
