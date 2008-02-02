@@ -42,7 +42,5 @@ fi
 
 ./install-env
 
-./riscos/built-it
-
 echo "Built and installed GCCSDK ok.  Check out the README for examples of how to use the cross compiler or autobuilder"
 
