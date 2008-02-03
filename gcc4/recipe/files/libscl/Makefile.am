@@ -1,5 +1,5 @@
 # Automake style makefile for libscl (SharedCLibrary stub)
-# Copyright (c) 2005, 2006, 2007 UnixLib developers
+# Copyright (c) 2005, 2006, 2007, 2008 UnixLib developers
 # Written by John Tytgat <John.Tytgat@aaug.net> based on the work done for
 # UnixLib.
 
@@ -34,10 +34,17 @@ includedir = $(prefix)
 gcccompat_src = \
 	gcccompat/_b_frame.s gcccompat/_b_return.s gcccompat/galloca.c \
 	gcccompat/_galloca.s
+# FIXME: math_src: not done yet
 riscos_src = \
 	riscos/chunkid01.s riscos/chunkid02.s riscos/chunkid04.s \
 	riscos/chunkid05.s riscos/chunkstub.s riscos/stubs.s \
 	riscos/redirect_setjmp.s
+stdio_src = \
+	stdio/fdopen.c stdio/fileno.c
+# FIXME: stdlib_src: not done yet
+string_src = \
+	string/strdup.c
+# FIXME: time_src: not done yet
 
 # All files in the 'include' directory.
 libc_headers = 	\
@@ -76,7 +83,7 @@ libc_headers = 	\
 	varargs.h
 
 toolexeclib_LIBRARIES = libscl.a
-libscl_a_SOURCES = $(gcccompat_src) $(riscos_src)
+libscl_a_SOURCES = $(gcccompat_src) $(riscos_src) $(stdio_src) $(string_src)
 
 install-data-local: install-headers
 

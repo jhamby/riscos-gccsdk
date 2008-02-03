@@ -1,11 +1,20 @@
+Sun Feb  3 20:31:14 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdlib/_exit.c (_Exit): Removed, we have this in our stubs defined.
+	* stdio/fdopen.c (fdopen): Protected against silly fd values but the
+	implementation looks wrong to me anyway.
+	* stdio/fileno.c: Removed blank line.
+	* Makefile.am: Added sources from stdio and string subdirectories.
+
 Mon Jan 14 04:03:56 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
-	* include/stdio.h: changed type FILE:__file from void* to int as
+	* include/stdio.h: Changed type FILE:__file from void* to int as
 	it is like in the Castle C/C++ headers.
 
 Sun Nov 25 11:36:06 PST 2007  Peter Naulls  <peter@chocky.org>
 
-	* include/swis.h: Massive number of missing SWIs. Thanks to Rob F. Johnson.
+	* include/swis.h: Massive number of missing SWIs. Thanks to Rob F.
+	Johnson.
 
 Sun Nov 25 19:30:02 CET 2007  John Tytgat  <John.Tytgat@aaug.net>
 

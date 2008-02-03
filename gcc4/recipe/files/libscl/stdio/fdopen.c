@@ -1,5 +1,6 @@
 /* Unix-style file-descriptor based I/O for the SCL
    Copyright (c) 1997-2005 Nick Burrett
+   Copyright (c) 2008 UnixLib developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without
@@ -29,5 +30,8 @@
 
 FILE *fdopen (int fd, const char *mode)
 {
+  if ((unsigned int)fd >= _SYS_OPEN)
+    return NULL;
+
   return &__iob[fd];
 }

@@ -1,5 +1,6 @@
 /* Unix-style file-descriptor based I/O for the SCL
    Copyright (c) 1997-2005 Nick Burrett
+   Copyright (c) 2008 UnixLib developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without
@@ -26,7 +27,6 @@
 
 #include <stdio.h>
 #include <errno.h>
-
 
 int fileno (FILE *__stream)
 {
