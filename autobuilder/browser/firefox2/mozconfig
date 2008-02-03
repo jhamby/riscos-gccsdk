@@ -13,7 +13,7 @@ ac_add_options --x-includes=$GCCSDK_INSTALL_ENV/include
 ac_add_options --x-libraries=$GCCSDK_INSTALL_ENV/lib
 
 # use GTK+-2 widget set with XFT font rendering
-#ac_add_options --enable-default-toolkit=gtk
+#ac_add_options --enable-default-toolkit=gtk2
 ac_add_options --enable-default-toolkit=riscos
 #ac_add_options --enable-default-toolkit=xlib
 #ac_add_options --enable-xft
@@ -31,20 +31,10 @@ ac_add_options --disable-accessibility
 ac_add_options --disable-composer
 ac_add_options --enable-plaintext-editor-only
 ac_add_options --disable-mailnews
-#ac_add_options --disable-ldap
 ac_add_options --enable-postscript
 ac_add_options --enable-mathml
-#ac_add_options --disable-jsd
-#ac_add_options --disable-jsloader
 ac_add_options --disable-installer
-#ac_add_options --disable-xpinstall
-#ac_add_options --disable-xpfe-components
-#ac_add_options --disable-xprint
-#ac_add_options --disable-necko-disk-cache
 ac_add_options --disable-oji
-
-# configure necko to allocate smaller network buffers
-#ac_add_options --enable-necko-small-buffers
 
 # disable debug logging and tests
 ac_add_options --disable-dtd-debug
@@ -56,31 +46,22 @@ ac_add_options --disable-gtktest
 # build crypto module (PSM + NSS)
 ac_add_options --enable-crypto
 
-# build minimal set of protocol handlers
-#ac_add_options --enable-necko-protocols=http,file,res,jar,ftp
-
-# build minimal set of image decoders
-ac_add_options --enable-image-decoders=png,gif,jpeg
-
 # code generation options (optimize for size)
 ac_add_options --enable-optimize="-O3 -mcpu=strongarm"
-#-mpoke-function-name"
 #ac_add_options --enable-optimize="-O3 -march=armv3m -mtune=strongarm"
-# ac_add_options --enable-strip
-#ac_add_options --disable-reorder
-#ac_add_options --enable-elf-dynstr-gc
+#ac_add_options --enable-strip
 
 # enable static build
 ac_add_options --disable-shared
 ac_add_options --enable-static
-
-#ac_add_options --disable-native-uconv
 
 LIBS=-lstdc++
 DLL_SUFFIX=a
 
 ac_add_options --enable-application=browser
 ac_add_options --disable-timeline
-#ac_add_options --enable-debug
-#ac_add_options --disable-svg
 ac_add_options --disable-debug
+
+ac_add_options --with-system-jpeg
+ac_add_options --with-system-zlib
+ac_add_options --with-system-png
