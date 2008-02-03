@@ -1,0 +1,48 @@
+; Module header description file for a PDriver
+; Written by John Tytgat / BASS
+
+#include "oslib/pdriver.h"
+
+title-string: PDriverXX
+
+help-string:  Printer driver 0.01 
+
+initialisation-code: Module_Initialisation
+
+finalisation-code: Module_Finalisation
+
+; Service calls:
+;   &65: Service_PDriverStarting
+service-call-handler: Module_Service Service_PDriverStarting
+
+pdriver-handler: pdriver_entry,
+	PDriver_Info_Handler,
+	PDriver_SetInfo_Handler,
+	PDriver_CheckFeatures_Handler,
+	PDriver_PageSize_Handler,
+	PDriver_SetPageSize_Handler,
+	PDriver_CreateJob_Handler, /* SelectJob - shared with SelectIllustration */
+	PDriver_BadSWI_Handler, /* CurrentJob */
+	PDriver_FontSWI_Handler,
+	PDriver_EndJob_Handler,
+	PDriver_AbortJob_Handler,
+	PDriver_Reset_Handler,
+	PDriver_GiveRectangle_Handler,
+	PDriver_DrawPage_Handler,
+	PDriver_GetRectangle_Handler,
+	PDriver_CancelJob_Handler, /* CancelJob - shared with CancelJobWithError */
+	PDriver_BadSWI_Handler, /* ScreenDump: we don't support this */
+	PDriver_BadSWI_Handler, /* EnumerateJobs */
+	PDriver_BadSWI_Handler, /* SetPrinter */
+	PDriver_CancelJob_Handler, /* CancelJobWithError - shared with CancelJob */
+	PDriver_CreateJob_Handler, /* SelectIllustration - shared with SelectJob */
+	PDriver_BadSWI_Handler, /* InsertIllustrator: we don't support this */
+	PDriver_DeclareFont_Handler,
+	PDriver_BadSWI_Handler, /* DeclareDriver */
+	PDriver_BadSWI_Handler, /* RemoveDriver */
+	PDriver_BadSWI_Handler, /* SelectDriver */
+	PDriver_BadSWI_Handler, /* EnumerateDrivers */
+	PDriver_MiscOp_Handler,
+	PDriver_MiscOp_Handler, /* MiscOpDriver */
+	PDriver_BadSWI_Handler, /* SetDriver */
+	PDriver_JPEGSWI_Handler

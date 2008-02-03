@@ -74,7 +74,7 @@ typedef struct argumentpair_s {
 #define MAXARGS (5)
 
 typedef struct prototypedef_s {
-  char *name;                         /* the function name */
+  const char *name;                   /* the function name */
   char *returntype;                   /* type of data returned */
   char *description;                  /* function description */
   char *note;                         /* Notes about this prototype */
@@ -549,7 +549,7 @@ static void swi_handler(void) {
   };
 
   swi_list l;
-  char *prefix=opt.swi_names->name;
+  const char *prefix = opt.swi_names->name;
   int swi=opt.swi_base;
 
   prototypedef_t header_proto;
@@ -596,7 +596,7 @@ static void swi_handler(void) {
   if (l)
     l = l->next;
   while (l) {
-    char *name=l->name;
+    const char *name = l->name;
     int startlen,len;
     startlen=len=strlen(prefix)+1+strlen(name);
     fprintf(file, "#undef %s_%s\n", prefix, name);
@@ -718,6 +718,78 @@ static void swi_decoder(void) {
 
     prototype_write(&header);
   }
+}
+
+static void pdriver_handler(void)
+{
+  static prototypedef_t header_entry =
+  {
+    NULL, /* Function name is filled in */
+    "extern void",
+    "Symbol for entry point to module - NOT a C function.\n"
+    "This name should be used as an argument to PDriver_DeclareDriver as "
+    "required, but should never be called from C.",
+    NULL, /* No note */
+    { { NULL } }, /* NO Entry parameters */
+    NULL
+  };
+
+  static prototypedef_t header_text =
+  {
+    NULL, /* Function name is filled in */
+    "%error%",
+    "PDriver handler routine.",
+    NULL, /* No note */
+    { /* Entry parameters */
+      {
+        "int",
+        "number",
+        "PDriver reason code (i.e. 0 to 63)" },
+      {
+        "%regs%",
+        "r",
+        "pointer to register block on entry" },
+      {
+        "void *",
+        "pw",
+        "private word for module" },
+    },
+    "Return NULL if PDriver SWI call handled sucessfully, setting return register "
+    "values (r0-r9) in r.\n"
+    "Return error_BAD_PDRIVER_SWI for out of range SWIs.\n"
+    "Return an error block for a custom error."
+  };
+
+  pdriver_list *l;
+  prototypedef_t header_proto;
+
+  header_entry.name = opt.pdriver_entry;
+  prototype_write(&header_entry);
+  
+  header_proto = header_text;
+  header_proto.description = NULL;
+
+#ifdef CLASSIC_HEADERS
+#else
+  prototype_write(&header_text);
+#endif
+
+  c_comment(file, "Functions called to handle particular PDriver SWI calls");
+  for (l = opt.pdriver_names; l; l = l->next)
+  {
+    header_proto.name = l->handler;
+    prototype_write(&header_proto);
+  }
+
+#ifdef CLASSIC_HEADERS
+  prototype_write(&header_text);
+#endif
+
+  fprintf(file, "\n");
+  c_comment(file, "Special error for 'PDriver SWI values out of range for "
+                  "this module'");
+  fprintf(file, "#define error_BAD_PDRIVER_SWI ((%s *) -1)\n", error);
+  fprintf(file, "\n");
 }
 
 static void event_handler(void) {
@@ -1123,6 +1195,8 @@ void WriteHeader(void) {
     swi_handler();
   if (opt.swi_decoder)
     swi_decoder();
+  if (opt.pdriver_entry)
+    pdriver_handler();
   if (opt.events)
     event_handler();
   if (opt.irqs)

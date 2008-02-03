@@ -371,6 +371,24 @@ every occurrence of _kernel_oserror is replaced by os_error.
     [Note: The header defines these through a macro so that errors are not
      copied to the workspace]
   
+  * pdriver-handler: <entry point> [,<C-function-name>][,<C-function-name>] ...
+  
+    This is only to be used to define an interface for registering a printer
+    driver using SWI PDriver_DeclareDriver.  The first parameter is defining
+    a symbol whose value needs to be R0 of SWI PDriver_DeclareDriver. The
+    rest of the parameters specify the names of C routines one per reason
+    code from 0 onwards.  So, for
+    "pdriver-handler: pdentry,getinfo_handler,setinfo_handler" you get the
+    symbol:
+
+    extern int pdentry(void);
+    
+    defined (which is NOT a C function), and you need to provide the following
+    C functions:
+    
+    _kernel_oserror *getinfo_handler(int number, kernel_swi_regs *r, void *pw);
+    _kernel_oserror *setinfo_handler(int number, kernel_swi_regs *r, void *pw);    
+
   * swi-chunk-base-number: <number>
     
     This sets the SWI base number for the module. Do not specify the X-bit

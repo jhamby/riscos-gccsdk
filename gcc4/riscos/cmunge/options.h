@@ -31,8 +31,8 @@ typedef struct help_list_s {
   int          international;
   char        *invalid_syntax;
   char        *help_text;
-  char        *name;
-  char        *handler;
+  const char  *name;
+  const char  *handler;
   int          no_handler; /* There isn't a code entry point */
   help_list    next;
 } help_list_s;
@@ -51,18 +51,26 @@ typedef struct include_list_s {
 typedef struct swi_list_s *swi_list;
 
 typedef struct swi_list_s {
-  char     *name;
-  char     *handler;
-  swi_list  next;
+  const char *name;
+  const char *handler;
+  swi_list    next;
 } swi_list_s;
+
+/* PDriver list */
+
+typedef struct pdriver_list_s pdriver_list;
+struct pdriver_list_s {
+  const char   *handler;
+  pdriver_list *next;
+};
 
 /* Handler list */
 
 typedef struct handler_list_s *handler_list;
 
 typedef struct handler_list_s {
-  char         *name;
-  char         *handler;
+  const char  *name;
+  const char  *handler;
   int          private_word;
   int          carry_capable; /* Set for generics if it is capable of setting
                                  carry on return */
@@ -81,8 +89,8 @@ typedef struct handler_list_s {
 typedef struct error_list_s *error_list;
 
 typedef struct error_list_s {
-  char         *name;
-  char         *message;
+  const char   *name;
+  const char   *message;
   unsigned int number; /* 0 to auto-allocate, number for an explicit number */
   error_list  next;
 } error_list_s;
@@ -121,11 +129,11 @@ typedef struct {
   } toolchain;
   int           reentrant;	/* module-is-not-reentrant */
   int           cplusplus;      /* module-is-c-plus-plus */
-  char         *service;	/* service-call-handler */
+  const char   *service;	/* service-call-handler */
   int_list      services;	/* service-call-handler */
   char         *title;		/* title-string */
   char         *help;		/* help-string */
-  char         *helpfn;		/* help-handler */
+  const char   *helpfn;		/* help-handler */
   help_list     commands;	/* command-keyword-table */
   int           command_codesupplied; /* commands include handler routines */
   int           swi_base;	/* swi-shunk-base-number */
@@ -133,6 +141,8 @@ typedef struct {
   swi_list      swi_names;	/* swi-decoding-table */
   int           swi_codesupplied; /* swis include handler routines */
   handler_list  swi_decoder;	/* swi-decoding-code */
+  const char   *pdriver_entry;  /* pdriver-handler: entry point name */
+  pdriver_list *pdriver_names;  /* pdriver-handler: C function names per reason code */
   int           error_base;     /* error base */
   handler_list  irqs;		/* irq-handlers */
   handler_list  events;		/* event-handler */

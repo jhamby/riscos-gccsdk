@@ -38,6 +38,8 @@ void Options_Init(void) {
   opt.swi_names   = NULL;
   opt.swi_codesupplied = 0;
   opt.swi_decoder = NULL;
+  opt.pdriver_entry = NULL;
+  opt.pdriver_names = NULL;
   opt.error_base  = 0;
   opt.irqs        = NULL;
   opt.events      = NULL;
@@ -450,6 +452,9 @@ void Options_CheckSanityPostRead(void) {
       }
     }
 
+    if (opt.pdriver_entry && opt.pdriver_names == NULL)
+      Warning("PDriver entry point defined but no handlers");
+    
     if (opt.errors && opt.error_base == 0 && !opt.errors_special)
       ErrorFatal("Errors defined, but no error base");
   }

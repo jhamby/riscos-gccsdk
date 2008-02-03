@@ -9,6 +9,12 @@ Overview of the changes made so far:
   - hiding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
   - marked "[GCCSDK 4]" via the CMunge printf() in main()
   - -tgcc option supports ELF object format and no longer AOF object format.
+  - added 'pdriver-handler' keyword for those wanting to create printer driver
+    module code. Added an example for this new feature.
+  - constify a lot of pointers.
+  - several manual typo fixes and added explanation on 'pdriver-handler'.
+  - strduptok/strfindpair/strstring : use memcpy() instead of strncpy() for
+    more clearness.
 
 The GCCSDK-DIFF file contains those changes in diff format and are submitted
 back to the CMunge authors for possible inclusion in future versions.  It is

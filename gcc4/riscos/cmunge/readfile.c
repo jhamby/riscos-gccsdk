@@ -848,7 +848,7 @@ static void read_commands(const char *s, FILE *file) {
           case ft_label:
           case ft_quoted:
             {
-              char **value=(char **)valuep;
+              const char **value = (const char **)valuep;
               if (*value!=NULL)
                 ErrorFatal("Only supply one %s field in command-keyword-table!",field->name);
 
@@ -1019,8 +1019,43 @@ static void read_handlers(const char *s, handler_list *h, unsigned long allow,
   *h = NULL;
 }
 
-static void read_swidec(const char *s, FILE *file) {
+static void read_pdriver(const char *s, FILE *file)
+{
+  pdriver_list **pl;
 
+  UNUSED(file);
+
+  if (opt.pdriver_entry)
+    ErrorFatal("Only supply one pdriver-handler!");
+
+  s = strduptok(s, &opt.pdriver_entry);
+  if (opt.pdriver_entry[0] == '\0')
+    ErrorFatal("No entry point defined for pdriver-handler!");
+  if (*s++ != ',')
+      ErrorFatal("Wrong separator found in pdriver-handler!");
+  while (isspace(*s))
+    ++s;
+
+  pl = &opt.pdriver_names;
+  while (*s)
+  {
+    (*pl) = Malloc(sizeof(**pl));
+    (*pl)->next = NULL;
+    s = strduptok(s, &(*pl)->handler);
+    if (*s == ',')
+    {
+      ++s;
+      while (isspace(*s))
+	++s;
+    }
+    else if (*s != '\0')
+      ErrorFatal("Wrong separator found in pdriver-handler!");
+    pl = &(*pl)->next;
+  }
+}
+
+static void read_swidec(const char *s, FILE *file)
+{
   handler_list h;
 
   UNUSED(file);
@@ -1033,35 +1068,28 @@ static void read_swidec(const char *s, FILE *file) {
     ErrorFatal("Junk found at end of swi-decoding-code!");
 }
 
-
 static void read_generics(const char *s, FILE *file)
 {
-  UNUSED(file);
   read_handlers(s, &opt.generics, HANDLER_ALLOW_PW | HANDLER_ALLOW_CARRY, file);
 }
 
 static void read_irqs(const char *s, FILE *file)
 {
-  UNUSED(file);
   read_handlers(s, &opt.irqs, 0, file);
 }
 
 static void read_vectors(const char *s, FILE *file)
 {
-  UNUSED(file);
   read_handlers(s, &opt.vectors, HANDLER_ALLOW_ERROR, file);
 }
 
 static void read_vector_traps(const char *s, FILE *file)
 {
-  UNUSED(file);
   read_handlers(s, &opt.vector_traps, 0, file);
 }
 
 static void read_runnable(const char *s, FILE *file)
 {
-  UNUSED(file);
-  UNUSED(s);
   switch (opt.runnable)
   {
     case run_none:
@@ -1272,6 +1300,13 @@ field_t fields[] =
       "file."
     }, IN_BOTH },
 
+  { "pdriver-handler",             { read_pdriver },
+     { "PDriver_Entry, PDReason00_Handler, PDReason01_Handler, PDReason02_Handler",
+       "The PDriver handler specifies the PDriver entry point for registering "
+       "with SWI PDriver_DeclareDriver and is followed by a list of C "
+       "routines one per PDriver reason code."
+     }, IN_CMUNGE | IN_ERRORS },
+    
   { "swi-handler-code",            { NULL, ft_label,    &opt.swi_handler },
     { "Mod_SWI",
       "The SWI handler is entered for every SWI the module provides. "
@@ -1547,7 +1582,7 @@ static void parse_line(FILE *file) {
       case ft_label:
       case ft_quoted:
         {
-          char **value=(char **)field->values.value;
+          const char **value = (const char **)field->values.value;
           if (*value!=NULL)
             ErrorFatal("Only supply one %s field!",field->name);
 

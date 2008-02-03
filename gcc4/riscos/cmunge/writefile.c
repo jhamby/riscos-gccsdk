@@ -1271,11 +1271,11 @@ static void swi_handler(void)
     fprintf(file, "\tLDMEQIA\tr13!,{r0-r9,pc}^\n");
   else
   {
-    fprintf(file, "\tBNE      _CMUNGE_swi_10\n");
-    fprintf(file, "\tTEQ      pc,pc\n");
-    fprintf(file, "\tLDMNEIA  r13!,{r0-r9,pc}^\n");
+    fprintf(file, "\tBNE\t_CMUNGE_swi_10\n");
+    fprintf(file, "\tTEQ\tpc,pc\n");
+    fprintf(file, "\tLDMNEIA\tr13!,{r0-r9,pc}^\n");
     output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
-    fprintf(file, "\tLDMIA    r13!,{r0-r9,pc}\n");
+    fprintf(file, "\tLDMIA\tr13!,{r0-r9,pc}\n");
     output_label("_CMUNGE_swi_10");
   }
   fprintf(file, "\tADD\tr13,r13,#4\n");
@@ -1307,6 +1307,99 @@ static void swi_handler(void)
   else
     fprintf(file, "\tB\t_CMUNGE_swi_20\n");
   output_label("_CMUNGE_sht");
+  output_word(0x1e6 , "");
+  output_simple_string("BadSWI");
+  output_align();
+}
+
+// FIXME: some generated ARM code can be shared with pieces emited in swi_handler()
+static void pdriver_handler(void)
+{
+  pdriver_list *l;
+  int numpdreasons;
+
+  if (!opt.pdriver_entry)
+    return;
+
+  output_export(opt.pdriver_entry);
+  output_label(opt.pdriver_entry);
+  fprintf(file, "\tSTMDB\tr13!,{r0-r9,r14}\n");
+  if (CODE26)
+  {}
+  else
+    fprintf(file, "\tMRS\tr8,cpsr\n");
+  fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
+  fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
+  fprintf(file, "\tMOV\tr0,r11\n");
+  fprintf(file, "\tMOV\tr1,r13\n");
+  fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
+  fprintf(file, "\tMOV\tr2,r12\n");
+  fprintf(file, "\tLDR\tr12,[r12]\n");
+  fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
+  fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+  output_ADD_Lib_Reloc();
+  fprintf(file, "\tMOV\tr11,#0\n");
+  for (l = opt.pdriver_names, numpdreasons = 0; l; l = l->next, ++numpdreasons)
+    /* */;
+  fprintf(file, "\tMOV\tr14,pc\n");
+  fprintf(file, "\tADD\tr14,r14,# _CMUNGE_pdriver_ret - _CMUNGE_pdriver_pc\n");
+  output_label("_CMUNGE_pdriver_pc");
+  fprintf(file, "\tCMP\tr0,#%i\n", numpdreasons);
+  fprintf(file, "\tADDLT\tpc,pc,r0,LSL #2\n");
+  fprintf(file, "\tB\t_CMUNGE_nopdriver_handler\n");
+
+  /* First one must be valid */
+  for (l = opt.pdriver_names; l; l = l->next)
+  {
+     output_import(l->handler);
+     fprintf(file, "\tB\t%s\n", l->handler);
+  }
+  output_label("_CMUNGE_nopdriver_handler");
+  fprintf(file, "\tMOV\tr0,#-1\n"); /* 'SWI not known' */
+  output_label("_CMUNGE_pdriver_ret");
+  output_SUB_Lib_Reloc();
+  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
+  fprintf(file, "\tTEQ\tr0,#0\n");
+  if (CODE26)
+    fprintf(file, "\tLDMEQIA\tr13!,{r0-r9,pc}^\n");
+  else
+  {
+    fprintf(file, "\tBNE\t_CMUNGE_pdriver_10\n");
+    fprintf(file, "\tTEQ\tpc,pc\n");
+    fprintf(file, "\tLDMNEIA\tr13!,{r0-r9,pc}^\n");
+    output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
+    fprintf(file, "\tLDMIA\tr13!,{r0-r9,pc}\n");
+    output_label("_CMUNGE_pdriver_10");
+  }
+  fprintf(file, "\tADD\tr13,r13,#4\n");
+  fprintf(file, "\tCMN\tr0,#1\n");
+  if (CODE26)
+  {
+    fprintf(file, "\tLDMNEIA\tr13!,{r1-r9,r14}\n");
+    fprintf(file, "\tORRNES\tpc,r14,#0x10000000\n");
+  }
+  else
+  {
+    fprintf(file, "\tBEQ\t_CMUNGE_pdriver_30\n");
+    output_label("_CMUNGE_pdriver_20");
+    fprintf(file, "\tTEQ\tpc,pc\n");
+    fprintf(file, "\tLDMNEIA\tr13!,{r1-r9,r14}\n");
+    fprintf(file, "\tORRNES\tpc,r14,#0x10000000\n");
+    fprintf(file, "\tORR\tr8,r8,#0x10000000\n");
+    output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
+    fprintf(file, "\tLDMIA\tr13!,{r1-r9,pc}\n");
+    output_label("_CMUNGE_pdriver_30");
+  }
+  fprintf(file, "\tADR\tr0,_CMUNGE_sht_pd\n");
+  fprintf(file, "\tMOV\tr1,#0\n");
+  fprintf(file, "\tMOV\tr2,#0\n");
+  fprintf(file, "\taddr\tr4,_CMUNGE_title\n");
+  fprintf(file, "\tSWI\t0x61506\t"); output_comment("XMessageTrans_ErrorLookup\n");
+  if (CODE26)
+    fprintf(file, "\tLDMIA\tr13!,{r1-r9,pc}\n");
+  else
+    fprintf(file, "\tB\t_CMUNGE_pdriver_20\n");
+  output_label("_CMUNGE_sht_pd");
   output_word(0x1e6 , "");
   output_simple_string("BadSWI");
   output_align();
@@ -2036,6 +2129,7 @@ void WriteFile(void)
   final();
   swi_handler();
   swi_decoder();
+  pdriver_handler();
   veneers();
   vector_traps();
   generics();

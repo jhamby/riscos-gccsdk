@@ -45,9 +45,10 @@ char *strdup_strip(const char *p) {
   return res;
 }
 
-const char *strduptok(const char *p, char **res) {
-
+const char *strduptok(const char *p, const char **resPP)
+{
   const char *s;
+  char *resP;
 
   /* Skip any prefix of whitespace */
   while (isspace(*p))
@@ -56,9 +57,10 @@ const char *strduptok(const char *p, char **res) {
   while (!isspace(*p) && (*p != ',') && (*p != ')') &&
          (*p != '(') && (*p != 0))
     p++;
-  *res = Malloc(p-s+1);
-  strncpy(*res, s, p-s);
-  (*res)[p-s] = 0;
+  resP = Malloc(p-s+1);
+  memcpy(resP, s, p-s);
+  resP[p-s] = 0;
+  *resPP = resP;
   /* Skip any more whitespace */
   while (isspace(*p))
     p++;
@@ -84,9 +86,10 @@ int strprefix(const char *p, const char *q) {
   }
 }
 
-const char *strfindpair(const char *p, char **p1, char **p2) {
-
+const char *strfindpair(const char *p, const char **p1PP, const char **p2PP)
+{
   const char *s;
+  char *p1P, *p2P;
 
   /* Skip any whitespace */
   while (isspace(*p))
@@ -103,9 +106,10 @@ const char *strfindpair(const char *p, char **p1, char **p2) {
   if (p == 0)
     ErrorFatal("Failed to find handler name!");
   /* Copy the first name */
-  *p1 = Malloc(p-s+1);
-  strncpy(*p1, s, p-s);
-  (*p1)[p-s] = 0;
+  p1P = Malloc(p-s+1);
+  memcpy(p1P, s, p-s);
+  p1P[p-s] = 0;
+  *p1PP = p1P;
 
   /* Skip any more whitespace */
   while (isspace(*p))
@@ -113,7 +117,7 @@ const char *strfindpair(const char *p, char **p1, char **p2) {
 
   /* Did we find a / ? */
   if (*p != '/') {
-    *p2 = 0;
+    *p2PP = NULL;
     /* Skip over any comma */
     if (*p == ',') {
       p++;
@@ -137,9 +141,10 @@ const char *strfindpair(const char *p, char **p1, char **p2) {
   if (p == 0)
     ErrorFatal("Failed to find handler name!");
   /* Copy the second name */
-  *p2 = Malloc(p-s+1);
-  strncpy(*p2, s, p-s);
-  (*p2)[p-s] = 0;
+  p2P = Malloc(p-s+1);
+  memcpy(p2P, s, p-s);
+  p2P[p-s] = 0;
+  *p2PP = p2P;
 
   /* Skip any more whitespace */
   while (isspace(*p))
@@ -177,9 +182,10 @@ const char *strskip(const char *s, char c) {
   return s;
 }
 
-const char *strstring(const char *s, char **res) {
-
+const char *strstring(const char *s, const char **resPP)
+{
   const char *p;
+  char *resP;
   int escape;
 
   while (isspace(*s))
@@ -196,9 +202,11 @@ const char *strstring(const char *s, char **res) {
       escape = 0;
     s++;
   }
-  *res = Malloc(s-p+1);
-    strncpy(*res, p, s-p);
-  (*res)[s-p] = 0;
+  resP = Malloc(s-p+1);
+  memcpy(resP, p, s-p);
+  resP[s-p] = 0;
+  *resPP = resP;
+  
   s++;
   while (isspace(*s))
     s++;
