@@ -1,4 +1,16 @@
 AB_INSTALL=yes
 
+if [ -z "$(which gtk-update-icon-cache)" ] ; then
+ echo "RISC OS GTK 2 build requires native 'gtk-update-icon-cache' (try libgtk2.0-bin package)" 1>&2
+ exit 1
+fi
+
+if [ -z "$(which gdk-pixbuf-csource)" ] ; then
+ echo "RISC OS GTK 2 build requires native 'gdk-pixbuf-csource' (try libgtk2.0-dev package)" 1>&2
+ exit 1
+fi
+
+export ac_cv_path_CUPS_CONFIG=no
+
 AB_CONFLAGS="--disable-modules --with-included-loaders=xpm,bmp,gif,ico,jpeg,png --disable-shm --disable-xim --disable-xkb --with-gdktarget=x11 --disable-shadowfb"
 
