@@ -1,6 +1,16 @@
 # Just install into env
 AB_INSTALL=env
 
+echo ""
+echo "******"
+echo "Warning: Although the RISC OS build for boost suceeds overall, it has a number of individual failures that could do with attention."
+echo "For this reason, you should be aware that it might not be adequate for your needs."
+echo ""
+echo "Press enter to proceed"
+
+read
+
+
 # Build bjam
 CC=gcc-4.1; cd tools/jam/src && sh build.sh cc; cd ../../..
 
