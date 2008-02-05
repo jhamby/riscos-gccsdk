@@ -2,7 +2,7 @@ History
 -------
 V1.03
 24/8/06
-	Fixed bug in module that caused crash on Iyonix and later versions
+	Fixed bug in module that caused crash on IYONIX pc and later versions
 	of RISC OS 4 (SWI handler corrupted r9).
 V1.02
 21/7/06

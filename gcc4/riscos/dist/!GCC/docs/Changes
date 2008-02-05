@@ -179,7 +179,7 @@ GCCSDK GCC 3.4.6 Release 1 (released 12 June 2006)
 
 * cmunge: Upgraded to v0.76 which has fixes for the carry-capable veneer
   return problem and a workaround for the broken handling of the system
-  call in Pace SCL seen on Iyonix.  All details in !gcc.docs.CMunge.History.
+  call in Pace SCL seen on IYONIX pc.  All details in !gcc.docs.CMunge.History.
 
 * Provided two new GCC options -mlibrary-static-data-offset and
   -mclient-static-data-offset (latter being default) which when compiling

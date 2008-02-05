@@ -14,7 +14,7 @@ NOTE ON MINI-BUGFIX VERSION 0.51 (17 Jun 2003)
 **********************************************
 
 This version merely fixes a tiny bug that has been in the module for ages
-and only caused problems on Iyonix computers with Aemulor loaded -- the SWI
+and only caused problems on IYONIX pc computers with Aemulor loaded -- the SWI
 chunk base in the module header accidentally had the X-bit set. Because it's
 such a small fix I chose not to change the version number.
 
