@@ -68,6 +68,15 @@ done
 check_dependencies() {
   # FIXME: we need also at least libglib1.2-dev libpopt-dev x11proto-core-dev for
   # some Autobuilder projects but their presence is not checked for at the moment.
+  # Cygwin uses a different name for autoconf2.13 so make a symlink for it
+  if ! type autoconf2.13 > /dev/null 2>&1 ; then
+    if type autoconf-2.13 > /dev/null 2>&1 ; then
+       cygac13=`type autoconf-2.13 | cut -d' ' -f 3`
+       pushd $(dirname $cygac13)
+       ln -s autoconf-2.13 autoconf2.13
+       popd
+    fi
+  fi
   for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen xgettext unzip autoconf2.13 ; do
     if ! type $build_prog > /dev/null 2>&1 ; then
       echo "Autobuilder: $build_prog not found; is it installed on your path?"
