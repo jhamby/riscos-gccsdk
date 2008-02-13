@@ -266,6 +266,8 @@ ab_build() {
 
     if [ "`which apt-cache 2>/dev/null`" != "" ] ; then
       DEPENDENCIES=`apt-cache depends $PACKAGE_NAME 2>/dev/null | grep Depends: | sed 's/^.*Depends: //'`
+    else
+      DEPENDENCIES=`$AB_HOME/fetch-depends $PACKAGE_NAME`
     fi
 
     # Build our version of zip for packaging
