@@ -138,8 +138,23 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
 int
 putenv (char *string)
 {
-  if (strchr (string, '='))
-    return __addenv_to_env (string, NULL, NULL, 1);
-  else
+  const char *equal = strchr (string, '=');
+
+  if (!equal)
     return unsetenv (string);
+  else
+    {
+      const char *dollar = strchr (string, '$');
+
+      if (dollar && dollar < equal)
+        {
+          char *name = alloca(equal - string + 1);
+          strncpy(name, string, equal - string);
+          name[equal - string] = '\0';
+
+          return __addenv_to_os (name, equal + 1, 1);
+        }
+      else
+        return __addenv_to_env (string, NULL, NULL, 1);
+    }
 }

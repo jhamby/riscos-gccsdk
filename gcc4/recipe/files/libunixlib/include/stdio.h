@@ -287,7 +287,7 @@ extern int getchar_unlocked (void);
 
 extern int fputc_unlocked (int __c, FILE *__stream) __nonnull ((2));
 
-#define putc_unlocked(c, stream) putc(c, stream)
+extern int putc_unlocked (int __c, FILE *__stream) __nonnull ((2));
 #endif
 
 __BEGIN_NAMESPACE_STD

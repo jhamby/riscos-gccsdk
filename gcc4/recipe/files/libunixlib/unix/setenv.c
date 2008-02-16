@@ -12,7 +12,7 @@
 
 /* Put value into the OS environment. Will not overwrite an existing
    variable of the same name if replace is 0 */
-static int
+int
 __addenv_to_os (const char *name, const char *value, int replace)
 {
   _kernel_oserror *err;

@@ -1,3 +1,10 @@
+Sat Feb 16 07:05:37 PST 2008  Peter Naulls  <peter@chocky.org>
+
+	* include/stdio.h, stdio/putc.c: Change putc_unlocked to a declaration.  
+	  This works better with some code that gets confused when it's a #define.
+	* unix/setenv.c, unix/putenv.c: Make putenv works as advertised for
+	  setenv when handling RISC OS native variables as documented in the README.
+
 Tue Jan 29 22:46:43 PST 2008  Peter Naulls  <peter@chocky.org>
 
 	* unix/statfs.c, include/sys/vfs.h, include/statfs.h: Dummy

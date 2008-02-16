@@ -1,4 +1,4 @@
-/* UnixLib fputc(), fputc_unlocked(), putc() and putchar() implementation.
+/* UnixLib fputc(), fputc_unlocked(), putc(), putc_unlocked(). and putchar() implementation.
    Copyright 2002-2007 UnixLib Developers.  */
 
 #include <stdio.h>
@@ -42,6 +42,12 @@ fputc_unlocked(int c, FILE *stream)
 
 int
 putc (int c, FILE *stream)
+{
+  return fputc (c, stream);
+}
+
+int
+putc_unlocked (int c, FILE *stream)
 {
   return fputc (c, stream);
 }
