@@ -9,6 +9,7 @@ fi
 # Reset vars for each package with default values:
 AB_MANPAGE=
 AB_ROVERSION=1
+AB_PVERSION=
 AB_PRECONF=
 AB_INSTALL=no
 AB_CATEGORY=
@@ -77,8 +78,6 @@ ab_create_command_app() {
   fi
 }
 
-# Might vary in future
-alias ab_create_app=ab_create_command_app
 
 ab_add_commands() {
   for program in $@; do
@@ -86,6 +85,11 @@ ab_add_commands() {
     echo "Set Alias\$$name <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
     cp -av $program $A
   done
+}
+
+# Might vary in future
+ab_create_app() {
+  ab_create_command_app $1 $2
 }
 
 
@@ -258,7 +262,10 @@ else
  
  # Try to guess the version number.  This isn't reliable, and might need to be
  # explictly set by the package
- AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#$AB_PACKAGE-## -e "s/[^-]*-//")
+ if [ -z "$AB_PVERSION" ] ; then
+   AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#$AB_PACKAGE-## -e "s/[^-]*-//")
+ fi
+
  if [ -z "$AB_PVERSION" ] ; then
    AB_PVERSION=1
  fi 
@@ -443,7 +450,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
        ls -l  $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)
        cd ..
      else
-       echo "Autobuilder: package directory missing $package" 
+       echo "Autobuilder: package directory missing $package"
      fi
    done
  fi
