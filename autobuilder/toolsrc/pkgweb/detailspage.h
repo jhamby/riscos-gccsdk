@@ -16,7 +16,7 @@ const char *detailItem =
    "<tr bgcolor=\"#ddffdd\">\n"
    "<td><a name = \"#%Package%\"><h3>%Package%</h3></a></td>\n"
    "<td><b>Version:</b> %Version%</td>\n"
-   "<td align=\"right\">&nbsp</td>\n"
+   "<td align=\"right\">&nbsp;</td>\n"
    "</tr>\n"
    "</table>\n"
    "<h3>Description:</h3>\n"
