@@ -1,8 +1,9 @@
 AB_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
 # See <URL:http://developer.mozilla.org/en/docs/CVS_Tags> for CVS branch/tag info.
-AB_CVS_TAGORBRANCH=FIREFOX_2_0_0_11_RELEASE
+AB_CVS_TAGORBRANCH=FIREFOX_2_0_0_12_RELEASE
 AB_CVS_MODULE=mozilla/client.mk
-AB_ZIPNAME=firefox-2.0.0.11-$(date +%Y%m%d)
+AB_ZIPNAME=firefox
+AB_PVERSION=2.0.0.12
 
 AB_CATEGORY=Browser
 
@@ -61,13 +62,17 @@ mozilla_patch () {
 }
 
 ab_package () {
-  cp -pr $H/\!Firefox $D
+  ab_create_app Firefox Apps/Network
+
   for f in \
-      bloaturls.txt browserconfig.properties \
-      LICENSE README.txt updater.ini chrome components defaults extensions \
+      browserconfig.properties \
+      LICENSE README.txt chrome components defaults extensions \
       greprefs plugins res searchplugins \
     ; do
-    cp -prL $S/dist/bin/$f $D/!Firefox
+    cp -prL $S/dist/bin/$f $A
   done
-  cp -prL $S/dist/bin/firefox-bin$AB_EXEEXT $D/!Firefox
+  rm $A/components/*.a
+  cp -prL $S/dist/bin/firefox-bin$AB_EXEEXT $A
+
+  $AB_HOME/add-riscpkg -unixlib
 }

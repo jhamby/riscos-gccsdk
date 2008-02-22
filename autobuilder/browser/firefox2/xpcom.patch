@@ -4,7 +4,7 @@ RCS file: /cvsroot/mozilla/xpcom/io/SpecialSystemDirectory.cpp,v
 retrieving revision 1.22.4.4
 diff -u -r1.22.4.4 SpecialSystemDirectory.cpp
 --- xpcom/io/SpecialSystemDirectory.cpp	6 Sep 2007 21:44:29 -0000	1.22.4.4
-+++ xpcom/io/SpecialSystemDirectory.cpp	25 Nov 2007 19:53:19 -0000
++++ xpcom/io/SpecialSystemDirectory.cpp	21 Feb 2008 03:36:46 -0000
 @@ -307,8 +307,13 @@
                                       aFile);
      }
@@ -26,7 +26,7 @@ RCS file: /cvsroot/mozilla/xpcom/io/nsAppFileLocationProvider.cpp,v
 retrieving revision 1.56.4.4
 diff -u -r1.56.4.4 nsAppFileLocationProvider.cpp
 --- xpcom/io/nsAppFileLocationProvider.cpp	17 Jun 2006 00:13:35 -0000	1.56.4.4
-+++ xpcom/io/nsAppFileLocationProvider.cpp	25 Nov 2007 19:53:19 -0000
++++ xpcom/io/nsAppFileLocationProvider.cpp	21 Feb 2008 03:36:46 -0000
 @@ -85,7 +85,7 @@
  #endif
  
@@ -52,7 +52,7 @@ RCS file: /cvsroot/mozilla/xpcom/io/nsDirectoryService.cpp,v
 retrieving revision 1.83.4.2
 diff -u -r1.83.4.2 nsDirectoryService.cpp
 --- xpcom/io/nsDirectoryService.cpp	8 Apr 2006 17:12:56 -0000	1.83.4.2
-+++ xpcom/io/nsDirectoryService.cpp	25 Nov 2007 19:53:19 -0000
++++ xpcom/io/nsDirectoryService.cpp	21 Feb 2008 03:36:46 -0000
 @@ -172,7 +172,7 @@
  
  #elif defined(XP_MAC)
@@ -80,7 +80,7 @@ RCS file: /cvsroot/mozilla/xpcom/io/nsLocalFileUnix.cpp,v
 retrieving revision 1.126.8.2
 diff -u -r1.126.8.2 nsLocalFileUnix.cpp
 --- xpcom/io/nsLocalFileUnix.cpp	28 Dec 2006 05:19:57 -0000	1.126.8.2
-+++ xpcom/io/nsLocalFileUnix.cpp	25 Nov 2007 19:53:19 -0000
++++ xpcom/io/nsLocalFileUnix.cpp	21 Feb 2008 03:36:46 -0000
 @@ -311,7 +311,11 @@
          
          mPath = homePath + Substring(filePath, 1, filePath.Length() - 1);
@@ -107,7 +107,7 @@ RCS file: /cvsroot/mozilla/xpcom/obsolete/Attic/nsSpecialSystemDirectory.cpp,v
 retrieving revision 1.9
 diff -u -r1.9 nsSpecialSystemDirectory.cpp
 --- xpcom/obsolete/nsSpecialSystemDirectory.cpp	6 Jul 2005 01:23:20 -0000	1.9
-+++ xpcom/obsolete/nsSpecialSystemDirectory.cpp	25 Nov 2007 19:53:19 -0000
++++ xpcom/obsolete/nsSpecialSystemDirectory.cpp	21 Feb 2008 03:36:46 -0000
 @@ -747,8 +747,12 @@
          	    *this = decc$translate_vms(pHome);
  	    }
@@ -124,10 +124,10 @@ diff -u -r1.9 nsSpecialSystemDirectory.cpp
 Index: xpcom/reflect/xptcall/src/md/unix/Makefile.in
 ===================================================================
 RCS file: /cvsroot/mozilla/xpcom/reflect/xptcall/src/md/unix/Makefile.in,v
-retrieving revision 1.80.4.4
-diff -u -r1.80.4.4 Makefile.in
---- xpcom/reflect/xptcall/src/md/unix/Makefile.in	1 Nov 2007 20:52:25 -0000	1.80.4.4
-+++ xpcom/reflect/xptcall/src/md/unix/Makefile.in	25 Nov 2007 19:53:19 -0000
+retrieving revision 1.80.4.5
+diff -u -r1.80.4.5 Makefile.in
+--- xpcom/reflect/xptcall/src/md/unix/Makefile.in	18 Dec 2007 20:04:45 -0000	1.80.4.5
++++ xpcom/reflect/xptcall/src/md/unix/Makefile.in	21 Feb 2008 03:36:47 -0000
 @@ -185,6 +185,13 @@
  endif
  endif
@@ -148,7 +148,7 @@ RCS file: /cvsroot/mozilla/xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp,
 retrieving revision 1.7.28.3
 diff -u -r1.7.28.3 xptcinvoke_arm.cpp
 --- xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	2 Nov 2007 14:35:46 -0000	1.7.28.3
-+++ xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	25 Nov 2007 19:53:19 -0000
++++ xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	21 Feb 2008 03:36:47 -0000
 @@ -37,9 +37,10 @@
  
  /* Platform specific code to invoke XPCOM methods on native objects */
@@ -255,7 +255,7 @@ RCS file: /cvsroot/mozilla/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp,v
 retrieving revision 1.7.28.2
 diff -u -r1.7.28.2 xptcstubs_arm.cpp
 --- xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	2 Nov 2007 14:35:46 -0000	1.7.28.2
-+++ xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	25 Nov 2007 19:53:19 -0000
++++ xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	21 Feb 2008 03:36:47 -0000
 @@ -40,14 +40,14 @@
  
  #include "xptcprivate.h"

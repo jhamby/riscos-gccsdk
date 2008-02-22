@@ -346,7 +346,7 @@ nsMenuItem :: UncheckRadioSiblings(nsIContent* inCheckedContent)
 
 
 NS_IMETHODIMP
-nsMenuItem :: AttributeChanged ( nsIDocument *aDocument, PRInt32 aNameSpaceID, nsIAtom *aAttribute )
+nsMenuItem :: AttributeChanged ( nsIDocument *aDocument, PRInt32 aNameSpaceID, nsIContent *aContent, nsIAtom *aAttribute )
 {
   nsAutoString menuitemName;
   mContent->GetAttr(kNameSpaceID_None, nsWidgetAtoms::label, menuitemName);

@@ -266,7 +266,7 @@ nsMenuBar::MenuOpen(event_pollblock *event, void *reference)
 {
   nsMenuBar *menubar = (nsMenuBar *)reference;
 
-  printf("MenuBar MenuOpen: %p\n", menubar);
+  printf("MenuBar MenuOpen: %p\n", (void *)menubar);
 
   if (!event->data.mouse.button.data.menu ||
       event->data.mouse.window < 0)
@@ -376,9 +376,20 @@ printf("menu count: %d\n", count);
         menu->GetAttr(kNameSpaceID_None, nsWidgetAtoms::accesskey, menuAccessKey);
 
 //printf("name: %s\n", NS_LossyConvertUCS2toASCII(menuName).get());
-        Menu_SetText(mROMenu, i, NS_LossyConvertUCS2toASCII(menuName).get());
+        const char *text = NS_LossyConvertUCS2toASCII(menuName).get();
+/*        char *hs = (char *)alloca(strlen(text) + 1);
+        int pos = 0;
+
+        do {
+          if (text[pos] != ' ')
+            hs[pos] = text[pos];
+          else
+            hs[pos] = 160;
+        } while (text[pos++] != '\0');*/
+
+        Menu_SetText(mROMenu, i, text);
         // Don't create the whole menu yet, just add in the top level names
-              
+
         // Create nsMenu, the menubar will own it
         nsCOMPtr<nsIMenu> pnsMenu ( do_CreateInstance(kMenuCID) );
         if ( pnsMenu ) {
@@ -400,7 +411,7 @@ printf("menu count: %d\n", count);
 
 //            nsCOMPtr<nsIMenuListener> listener(do_QueryInterface(pnsMenu));
 //            listener->MenuSelected(event);
-//          }          
+// //          }          
         }
       } 
     }
@@ -551,7 +562,7 @@ nsMenuBar::AttributeChanged( nsIDocument * aDocument, nsIContent * aContent,
   nsCOMPtr<nsIChangeObserver> obs;
   Lookup ( aContent, getter_AddRefs(obs) );
   if ( obs )
-    obs->AttributeChanged ( aDocument, aNameSpaceID, aAttribute );
+    obs->AttributeChanged ( aDocument, aNameSpaceID, aContent, aAttribute );
   mNeedsRebuild = PR_TRUE;
 }
 

@@ -4,8 +4,8 @@ RCS file: /cvsroot/mozilla/gfx/src/Makefile.in,v
 retrieving revision 1.139
 diff -u -r1.139 Makefile.in
 --- gfx/src/Makefile.in	20 Feb 2005 03:21:03 -0000	1.139
-+++ gfx/src/Makefile.in	25 Nov 2007 22:27:04 -0000
-@@ -75,6 +75,10 @@
++++ gfx/src/Makefile.in	21 Feb 2008 03:19:35 -0000
+@@ -75,12 +75,16 @@
  DIRS	    += mac
  endif
  
@@ -16,6 +16,13 @@ diff -u -r1.139 Makefile.in
  ifneq (,$(filter beos os2 mac windows,$(MOZ_GFX_TOOLKIT)))
  DIRS        += $(MOZ_GFX_TOOLKIT)
  endif
+ 
+ # Build xlibrgb only for X toolkits and/or Xprint
+-ifneq (,$(filter xlib,$(MOZ_WIDGET_TOOLKIT))$(MOZ_ENABLE_XLIB)$(MOZ_ENABLE_XPRINT))
++ifneq (,$(filter xlib riscos,$(MOZ_WIDGET_TOOLKIT))$(MOZ_ENABLE_XLIB)$(MOZ_ENABLE_XPRINT))
+ DIRS        += xlibrgb
+ endif
+ 
 @@ -106,6 +110,9 @@
   ifdef MOZ_ENABLE_PHOTON
   DIRS        += photon
@@ -48,7 +55,7 @@ RCS file: /cvsroot/mozilla/gfx/src/x11shared/Attic/nsFontDebug.h,v
 retrieving revision 1.3
 diff -u -r1.3 nsFontDebug.h
 --- gfx/src/x11shared/nsFontDebug.h	20 Aug 2004 09:11:25 -0000	1.3
-+++ gfx/src/x11shared/nsFontDebug.h	25 Nov 2007 22:27:05 -0000
++++ gfx/src/x11shared/nsFontDebug.h	21 Feb 2008 03:19:36 -0000
 @@ -52,7 +52,7 @@
  #define NS_FONT_DEBUG_FREETYPE_GRAPHICS 0x800
  
@@ -64,7 +71,7 @@ RCS file: /cvsroot/mozilla/gfx/src/x11shared/Attic/nsX11AlphaBlend.cpp,v
 retrieving revision 1.4
 diff -u -r1.4 nsX11AlphaBlend.cpp
 --- gfx/src/x11shared/nsX11AlphaBlend.cpp	17 Apr 2004 21:52:34 -0000	1.4
-+++ gfx/src/x11shared/nsX11AlphaBlend.cpp	25 Nov 2007 22:27:05 -0000
++++ gfx/src/x11shared/nsX11AlphaBlend.cpp	21 Feb 2008 03:19:36 -0000
 @@ -48,7 +48,7 @@
  #include "nsAntiAliasedGlyph.h"
  #include "nsX11AlphaBlend.h"
@@ -80,7 +87,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xlib/Attic/Makefile.in,v
 retrieving revision 1.63
 diff -u -r1.63 Makefile.in
 --- gfx/src/xlib/Makefile.in	9 Dec 2004 19:28:02 -0000	1.63
-+++ gfx/src/xlib/Makefile.in	25 Nov 2007 22:27:05 -0000
++++ gfx/src/xlib/Makefile.in	21 Feb 2008 03:19:36 -0000
 @@ -81,10 +81,6 @@
  # Code shared between GTK+, Xlib and Xprint gfx modules
  # (empty for now - but this will be filled soon...)
@@ -110,7 +117,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xlib/Attic/nsDeviceContextXlib.cpp,v
 retrieving revision 1.70.28.1
 diff -u -r1.70.28.1 nsDeviceContextXlib.cpp
 --- gfx/src/xlib/nsDeviceContextXlib.cpp	28 Feb 2006 14:55:53 -0000	1.70.28.1
-+++ gfx/src/xlib/nsDeviceContextXlib.cpp	25 Nov 2007 22:27:05 -0000
++++ gfx/src/xlib/nsDeviceContextXlib.cpp	21 Feb 2008 03:19:36 -0000
 @@ -76,6 +76,7 @@
  
  /* global default font handle */
@@ -223,7 +230,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xlib/Attic/nsDeviceContextXlib.h,v
 retrieving revision 1.33
 diff -u -r1.33 nsDeviceContextXlib.h
 --- gfx/src/xlib/nsDeviceContextXlib.h	18 Jul 2004 17:36:01 -0000	1.33
-+++ gfx/src/xlib/nsDeviceContextXlib.h	25 Nov 2007 22:27:05 -0000
++++ gfx/src/xlib/nsDeviceContextXlib.h	21 Feb 2008 03:19:37 -0000
 @@ -89,8 +89,11 @@
    virtual void GetFontMetricsContext(nsFontMetricsXlibContext *&aContext) { aContext = mFontMetricsContext; };
    virtual void GetRCContext(nsRenderingContextXlibContext *&aContext) { aContext = mRCContext; };

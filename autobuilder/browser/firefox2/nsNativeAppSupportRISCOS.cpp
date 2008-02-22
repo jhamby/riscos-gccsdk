@@ -40,6 +40,7 @@
 #include "nsIBaseWindow.h"
 #include "nsIDOMWindowInternal.h"
 #include "nsNativeAppSupportBase.h"
+#include "nsIAppStartup.h"
 #include "nsIServiceManager.h"
 #include "nsCOMPtr.h"
 #include "nsIObserver.h"
@@ -48,6 +49,7 @@
 #include "nsISupportsPrimitives.h"
 #include "nsString.h"
 
+#include "nsXPFEComponentsCID.h"
 
 #include "DeskLib:WimpSWIs.h"
 #include "DeskLib:Icon.h"
@@ -115,7 +117,7 @@ NS_IMPL_RELEASE_INHERITED(nsNativeAppSupportRISCOS, nsNativeAppSupportBase)
 NS_IMETHODIMP
 nsNativeAppSupportRISCOS::Start( PRBool *result )
 {
-  fputs("Native App Start\n", stderr);
+//  fputs("Native App Start\n", stderr);
 
   *result = PR_TRUE;
   return NS_OK;
@@ -127,7 +129,6 @@ nsNativeAppSupportRISCOS::OpenWindow(const char *url, const char *args)
 {
   nsresult rv = NS_ERROR_FAILURE;
 
-  printf("open window: %s\n", url);
   args = url;
   url = "chrome://browser/content/";
 
@@ -138,7 +139,6 @@ nsNativeAppSupportRISCOS::OpenWindow(const char *url, const char *args)
 
   if (wwatch && sarg) {
     nsCOMPtr<nsIDOMWindow> newWindow;
-    puts("call open window");
     rv = wwatch->OpenWindow(nsnull,
                             url,
                             "_blank",
@@ -177,7 +177,9 @@ nsNativeAppSupportRISCOS::MenuHandler(event_pollblock *event, void *reference)
     switch (event->data.selection[0])
     {
       case 1: // Quit
-        exit(0);
+        nsresult rv;
+        nsCOMPtr<nsIAppStartup> appStartup(do_GetService(NS_APPSTARTUP_CONTRACTID, &rv));
+        if (!NS_FAILED(rv)) appStartup->Quit(nsIAppStartup::eAttemptQuit);
         break;
     }
 
@@ -208,7 +210,7 @@ nsNativeAppSupportRISCOS::UrlHandler(BOOL check_only, const char *url)
 NS_IMETHODIMP
 nsNativeAppSupportRISCOS::Enable()
 {
-  fputs("Native App Enable\n", stderr);
+//  fputs("Native App Enable\n", stderr);
 
   Resource_Initialise("Firefox");
 
@@ -222,7 +224,7 @@ nsNativeAppSupportRISCOS::Enable()
   Menu_AddSubMenu(iconbar_menu, 0, (menu_ptr)Window_Create("Info", 0));
 
   Event_Claim(event_CLICK, window_ICONBAR, iconbar_icon, IconbarHandler, NULL);
-  Event_Claim(event_MENU, event_ANY, event_ANY, MenuHandler, NULL);
+  Event_Claim(event_MENU, event_ANY, event_ANY, MenuHandler, this);
   Url_AddHandler(UrlHandler);
 
   nsCOMPtr<nsIObserverService> obs
@@ -240,7 +242,7 @@ nsNativeAppSupportRISCOS::Enable()
 NS_IMETHODIMP
 nsNativeAppSupportRISCOS::Stop( PRBool *result )
 {
-  puts("Native App Stop");
+//  puts("Native App Stop");
   *result = PR_TRUE;
   return NS_OK;
 }
@@ -248,20 +250,19 @@ nsNativeAppSupportRISCOS::Stop( PRBool *result )
 NS_IMETHODIMP
 nsNativeAppSupportRISCOS::Quit()
 {
-  fputs("Native App Quit\n", stderr);
+//  fputs("Native App Quit\n", stderr);
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsNativeAppSupportRISCOS::ReOpen()
 {
-  puts("Native App ReOpen");
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsNativeAppSupportRISCOS::OnLastWindowClosing() {
-  puts("Native App On Last Window Closing");
+//  puts("Native App On Last Window Closing");
   return NS_OK;
 }
 
@@ -270,20 +271,13 @@ NS_IMETHODIMP
 nsNativeAppSupportRISCOS::Observe(nsISupports* aSubject, const char *aTopic,
                                   const PRUnichar* aData)
 {
-  printf("Native App Observe: %s\n", aTopic);
-
-//  abort();
-
-//  if (strcmp(aTopic, "quit-application") == 0)
-//    return NS_FALSE;
-
+//  printf("Native App Observe: %s\n", aTopic);
   return NS_OK;
 }
 
 nsresult
 NS_CreateNativeAppSupport( nsINativeAppSupport **aResult )
 {
-puts("create native");
   nsNativeAppSupportRISCOS* native = new nsNativeAppSupportRISCOS();
   if (!native) return NS_ERROR_OUT_OF_MEMORY;
 
