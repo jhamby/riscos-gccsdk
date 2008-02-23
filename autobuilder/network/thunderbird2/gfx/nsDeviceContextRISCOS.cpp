@@ -234,7 +234,7 @@ nsDeviceContextXlib::CommonInit(void)
 
 
   mWidthFloat  = (float) XWidthOfScreen(mScreen);
-  mHeightFloat = (float) XHeightOfScreen(mScreen);
+  mHeightFloat = (float) (XHeightOfScreen(mScreen) - 100);
 
   DeviceContextImpl::CommonInit();
   

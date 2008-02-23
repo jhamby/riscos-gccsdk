@@ -1,20 +1,31 @@
+? toolkit/mozapps/extensions/src/nsExtensionManager.js
+? toolkit/mozapps/update/src/nsUpdateService.js
+? toolkit/mozapps/update/src/updater/updater,e1f
+? toolkit/xre/nsNativeAppSupportRISCOS.cpp
+Index: toolkit/components/remote/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/components/remote/Makefile.in,v
+retrieving revision 1.6.8.1
+diff -u -r1.6.8.1 Makefile.in
+--- toolkit/components/remote/Makefile.in	21 Dec 2007 20:04:18 -0000	1.6.8.1
++++ toolkit/components/remote/Makefile.in	21 Feb 2008 03:35:14 -0000
+@@ -80,7 +80,7 @@
+ CXXFLAGS += $(TK_CFLAGS)
+ 
+ # Add explicit X11 dependency when building against X11 toolkits
+-ifneq (,$(filter gtk gtk2 qt xlib,$(MOZ_WIDGET_TOOLKIT)))
++ifneq (,$(filter gtk gtk2 qt xlib riscos,$(MOZ_WIDGET_TOOLKIT)))
+ EXTRA_DSO_LDOPTS += $(XLDFLAGS) $(XLIBS)
+ endif
+ 
 Index: toolkit/components/startup/src/nsAppStartup.cpp
 ===================================================================
 RCS file: /cvsroot/mozilla/toolkit/components/startup/src/nsAppStartup.cpp,v
 retrieving revision 1.8.4.2
 diff -u -r1.8.4.2 nsAppStartup.cpp
 --- toolkit/components/startup/src/nsAppStartup.cpp	8 Jun 2006 17:52:31 -0000	1.8.4.2
-+++ toolkit/components/startup/src/nsAppStartup.cpp	25 Nov 2007 19:53:17 -0000
-@@ -168,6 +168,8 @@
-   nsresult rv = NS_OK;
-   PRBool postedExitEvent = PR_FALSE;
- 
-+printf("quit: %d\n", ferocity);
-+
-   if (mShuttingDown)
-     return NS_OK;
- 
-@@ -346,7 +348,7 @@
++++ toolkit/components/startup/src/nsAppStartup.cpp	21 Feb 2008 03:35:14 -0000
+@@ -346,7 +346,7 @@
  void
  nsAppStartup::AttemptingQuit(PRBool aAttempt)
  {
@@ -23,29 +34,13 @@ diff -u -r1.8.4.2 nsAppStartup.cpp
    if (aAttempt) {
      // now even the Mac wants to quit when the last window is closed
      if (!mAttemptingQuit)
-@@ -367,6 +369,7 @@
- nsAppStartup::EnterLastWindowClosingSurvivalArea(void)
- {
-   ++mConsiderQuitStopper;
-+  printf("last window closing enter: %d\n", mConsiderQuitStopper);
-   return NS_OK;
- }
- 
-@@ -375,6 +378,7 @@
- nsAppStartup::ExitLastWindowClosingSurvivalArea(void)
- {
-   NS_ASSERTION(mConsiderQuitStopper > 0, "consider quit stopper out of bounds");
-+  printf("last window closing exit: %d\n", mConsiderQuitStopper);
-   --mConsiderQuitStopper;
-   return NS_OK;
- }
 Index: toolkit/content/globalOverlay.js
 ===================================================================
 RCS file: /cvsroot/mozilla/toolkit/content/globalOverlay.js,v
 retrieving revision 1.18.8.9
 diff -u -r1.18.8.9 globalOverlay.js
 --- toolkit/content/globalOverlay.js	17 Sep 2006 23:23:45 -0000	1.18.8.9
-+++ toolkit/content/globalOverlay.js	25 Nov 2007 19:53:17 -0000
++++ toolkit/content/globalOverlay.js	21 Feb 2008 03:35:14 -0000
 @@ -13,10 +13,12 @@
  
  # Closing the last window doesn't quit the application on OS X.
@@ -65,7 +60,7 @@ RCS file: /cvsroot/mozilla/toolkit/content/xul.css,v
 retrieving revision 1.61.2.22
 diff -u -r1.61.2.22 xul.css
 --- toolkit/content/xul.css	29 Jan 2007 19:12:06 -0000	1.61.2.22
-+++ toolkit/content/xul.css	25 Nov 2007 19:53:17 -0000
++++ toolkit/content/xul.css	21 Feb 2008 03:35:14 -0000
 @@ -230,6 +230,13 @@
  }
  %endif
@@ -96,39 +91,57 @@ diff -u -r1.61.2.22 xul.css
  
  /********** floating popups **********/
  
+Index: toolkit/library/nsStaticXULComponents.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/library/nsStaticXULComponents.cpp,v
+retrieving revision 1.10.2.3
+diff -u -r1.10.2.3 nsStaticXULComponents.cpp
+--- toolkit/library/nsStaticXULComponents.cpp	3 Apr 2007 14:32:27 -0000	1.10.2.3
++++ toolkit/library/nsStaticXULComponents.cpp	21 Feb 2008 03:35:14 -0000
+@@ -100,6 +100,8 @@
+ #  define GFX_MODULES MODULE(nsGfxQtModule)
+ #  elif defined(MOZ_WIDGET_XLIB)
+ #  define GFX_MODULES MODULE(nsGfxXlibModule)
++#  elif defined(MOZ_WIDGET_RISCOS)
++#  define GFX_MODULES MODULE(nsGfxRISCOSModule)
+ #  elif defined(MOZ_WIDGET_PHOTON)
+ #  define GFX_MODULES MODULE(nsGfxPhModule)
+ #  endif
+@@ -120,6 +122,9 @@
+ #ifdef MOZ_WIDGET_XLIB
+ #define WIDGET_MODULES MODULE(nsWidgetXLIBModule)
+ #endif
++#ifdef MOZ_WIDGET_RISCOS
++#define WIDGET_MODULES MODULE(nsWidgetRISCOSModule)
++#endif
+ #ifdef MOZ_WIDGET_PHOTON
+ #define WIDGET_MODULES MODULE(nsWidgetPhModule)
+ #endif
 Index: toolkit/profile/src/nsToolkitProfileService.cpp
 ===================================================================
 RCS file: /cvsroot/mozilla/toolkit/profile/src/nsToolkitProfileService.cpp,v
 retrieving revision 1.12.2.1
 diff -u -r1.12.2.1 nsToolkitProfileService.cpp
 --- toolkit/profile/src/nsToolkitProfileService.cpp	19 Aug 2005 19:36:57 -0000	1.12.2.1
-+++ toolkit/profile/src/nsToolkitProfileService.cpp	25 Nov 2007 19:53:17 -0000
-@@ -305,11 +305,18 @@
++++ toolkit/profile/src/nsToolkitProfileService.cpp	21 Feb 2008 03:35:14 -0000
+@@ -305,6 +305,10 @@
  {
      nsresult rv;
  
-+//    mDirectory = aDirectory;
-+//    return 0;
++    mDirectory = aDirectory;
++    mLocalDirectory = aLocalDirectory;
++    return 0;
++
      rv = mLock.Lock(aDirectory, aUnlocker);
  
      if (NS_SUCCEEDED(rv)) {
-         mDirectory = aDirectory;
-         mLocalDirectory = aLocalDirectory;
-+    } else {
-+      printf("profile lock failed\n");
-+        mDirectory = aDirectory;
-+        mLocalDirectory = aLocalDirectory;
-+      return 0;
-     }
- 
-     return rv;
 Index: toolkit/xre/Makefile.in
 ===================================================================
 RCS file: /cvsroot/mozilla/toolkit/xre/Makefile.in,v
 retrieving revision 1.48.2.5
 diff -u -r1.48.2.5 Makefile.in
 --- toolkit/xre/Makefile.in	6 Feb 2007 07:13:20 -0000	1.48.2.5
-+++ toolkit/xre/Makefile.in	25 Nov 2007 19:53:17 -0000
++++ toolkit/xre/Makefile.in	21 Feb 2008 03:35:14 -0000
 @@ -133,11 +133,15 @@
  ifeq ($(MOZ_WIDGET_TOOLKIT),beos)
  CPPSRCS += nsNativeAppSupportBeOS.cpp
@@ -151,40 +164,8 @@ RCS file: /cvsroot/mozilla/toolkit/xre/nsAppRunner.cpp,v
 retrieving revision 1.113.2.24
 diff -u -r1.113.2.24 nsAppRunner.cpp
 --- toolkit/xre/nsAppRunner.cpp	8 Nov 2007 11:56:25 -0000	1.113.2.24
-+++ toolkit/xre/nsAppRunner.cpp	25 Nov 2007 19:53:17 -0000
-@@ -928,6 +928,7 @@
-     (do_QueryInterface(mServiceManager));
-   NS_ASSERTION(registrar, "Where's the component registrar?");
- 
-+puts("create 1");
-   nsCOMPtr<nsIFactory> nativeFactory = new nsSingletonFactory(native);
-   NS_ENSURE_TRUE(nativeFactory, NS_ERROR_OUT_OF_MEMORY);
- 
-@@ -936,6 +937,7 @@
-                                   NS_NATIVEAPPSUPPORT_CONTRACTID,
-                                   nativeFactory);
-   NS_ENSURE_SUCCESS(rv, rv);
-+puts("create 2");
- 
-   // Inform the chrome registry about OS accessibility
-   nsCOMPtr<nsIToolkitChromeRegistry> cr (do_GetService(NS_CHROMEREGISTRY_CONTRACTID));
-@@ -943,12 +945,15 @@
-     cr->CheckForOSAccessibility();
- 
-   nsCOMPtr<nsIWindowCreator> creator (do_GetService(NS_APPSTARTUP_CONTRACTID));
-+puts("create 2a");
-   if (!creator) return NS_ERROR_UNEXPECTED;
-+puts("create 3");
- 
-   nsCOMPtr<nsIWindowWatcher> wwatch
-     (do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv));
-   NS_ENSURE_SUCCESS(rv, rv);
- 
-+puts("create 4");
-   return wwatch->SetWindowCreator(creator);
- }
- 
-@@ -1283,7 +1288,12 @@
++++ toolkit/xre/nsAppRunner.cpp	21 Feb 2008 03:35:14 -0000
+@@ -1283,7 +1283,11 @@
  
    if (NS_FAILED(rv))
      return rv;
@@ -192,383 +173,12 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
 +#elif defined(XP_RISCOS)
 +  rv = NS_NewNativeLocalFile(nsDependentCString("/Thunderbird:/thunderbird-bin"), PR_TRUE, getter_AddRefs(lf));
 +  if (NS_FAILED(rv)) {
-+    puts("fail here 1");
 +    return rv;
 +  }
  #elif defined(XP_UNIX)
    struct stat fileStat;
    char exePath[MAXPATHLEN];
-@@ -1513,6 +1523,17 @@
-   if (_execv(exePath.get(), gRestartArgv) == -1)
-     return NS_ERROR_FAILURE;
- #elif defined(XP_UNIX)
-+  printf("LaunchChild: %s\n", exePath.get());
-+
-+  {
-+    int arg = 0;
-+
-+    while (gRestartArgv[arg]) {
-+      printf("arg: %s\n", gRestartArgv[arg++]);
-+    }
-+    gRestartArgv[0] = NULL;
-+  }
-+
-   if (execv(exePath.get(), gRestartArgv) == -1)
-     return NS_ERROR_FAILURE;
- #elif defined(XP_BEOS)
-@@ -1522,6 +1543,7 @@
-   if (res != B_OK)
-     return NS_ERROR_FAILURE;
- #else
-+
-   PRProcess* process = PR_CreateProcess(exePath.get(), gRestartArgv,
-                                         nsnull, nsnull);
-   if (!process) return NS_ERROR_FAILURE;
-@@ -1636,6 +1658,7 @@
-     rv |= xpcom.InitEventQueue();
-     rv |= xpcom.SetWindowCreator(aNative);
-     NS_ENSURE_SUCCESS(rv, NS_ERROR_FAILURE);
-+puts("show 1");
- 
- #ifdef XP_MACOSX
-     SetupMacCommandLine(gRestartArgc, gRestartArgv);
-@@ -1672,6 +1695,7 @@
-       appStartup->ExitLastWindowClosingSurvivalArea();
- 
-       NS_ENSURE_SUCCESS_LOG(rv, rv);
-+puts("show 2");
- 
-       aProfileSvc->Flush();
- 
-@@ -1683,12 +1707,14 @@
-       rv = dlgArray->QueryElementAt(0, NS_GET_IID(nsIProfileLock),
-                                     getter_AddRefs(lock));
-       NS_ENSURE_SUCCESS_LOG(rv, rv);
-+puts("show 3");
- 
-       rv = lock->GetDirectory(getter_AddRefs(profD));
-       NS_ENSURE_SUCCESS(rv, rv);
- 
-       rv = lock->GetLocalDirectory(getter_AddRefs(profLD));
-       NS_ENSURE_SUCCESS(rv, rv);
-+puts("show 4");
- 
-       lock->Unlock();
-     }
-@@ -1768,13 +1794,17 @@
-   arg = PR_GetEnv("XRE_START_OFFLINE");
-   if ((arg && *arg) || ar)
-     *aStartOffline = PR_TRUE;
-+puts("profile1a");
- 
- 
-   arg = PR_GetEnv("XRE_PROFILE_PATH");
-+puts("profile1b");
-   if (arg && *arg) {
-     nsCOMPtr<nsILocalFile> lf;
-+puts("profile1bb");
-     rv = NS_NewNativeLocalFile(nsDependentCString(arg), PR_TRUE,
-                                getter_AddRefs(lf));
-+puts("profile1bc");
-     NS_ENSURE_SUCCESS(rv, rv);
- 
-     nsCOMPtr<nsILocalFile> localDir;
-@@ -1795,6 +1825,7 @@
- 
-     return NS_LockProfilePath(lf, localDir, nsnull, aResult);
-   }
-+puts("profile2");
- 
-   ar = CheckArg("migration", PR_TRUE);
-   if (ar == ARG_BAD) {
-@@ -1824,7 +1855,9 @@
- 
-     return ProfileLockedDialog(lf, lf, unlocker, aNative, aResult);
-   }
-+puts("profile2");
- 
-+puts("profile3");
-   nsCOMPtr<nsIToolkitProfileService> profileSvc;
-   rv = NS_NewToolkitProfileService(getter_AddRefs(profileSvc));
-   NS_ENSURE_SUCCESS(rv, rv);
-@@ -1834,9 +1867,11 @@
-     PR_fprintf(PR_STDERR, "Error: argument -createprofile requires a profile name\n");
-     return NS_ERROR_FAILURE;
-   }
-+puts("profile4");
-   if (ar) {
-     nsCOMPtr<nsIToolkitProfile> profile;
- 
-+puts("profile4a");
-     const char* delim = strchr(arg, ' ');
-     if (delim) {
-       nsCOMPtr<nsILocalFile> lf;
-@@ -1855,6 +1890,7 @@
-       rv = profileSvc->CreateProfile(nsnull, nsnull, nsDependentCString(arg),
-                                      getter_AddRefs(profile));
-     }
-+puts("profile4b");
-     if (NS_SUCCEEDED(rv)) {
-       rv = NS_ERROR_ABORT;
-       PR_fprintf(PR_STDERR, "Success: created profile '%s'\n", arg);
-@@ -1863,6 +1899,7 @@
- 
-     // XXXben need to ensure prefs.js exists here so the tinderboxes will
-     //        not go orange.
-+puts("profile4c");
-     nsCOMPtr<nsILocalFile> prefsJSFile;
-     profile->GetRootDir(getter_AddRefs(prefsJSFile));
-     prefsJSFile->AppendNative(NS_LITERAL_CSTRING("prefs.js"));
-@@ -1874,14 +1911,18 @@
- 
-     return rv;
-   }
-+puts("profile5");
- 
-   PRUint32 count;
-   rv = profileSvc->GetProfileCount(&count);
-   NS_ENSURE_SUCCESS(rv, rv);
-+puts("profile5a");
- 
-   if (gAppData->flags & NS_XRE_ENABLE_PROFILE_MIGRATOR) {
-     arg = PR_GetEnv("XRE_IMPORT_PROFILES");
-+puts("profile5b");
-     if (!count && (!arg || !*arg)) {
-+puts("profile5c");
-       return ImportProfiles(profileSvc, aNative);
-     }
-   }
-@@ -1895,6 +1936,7 @@
-     }
-     return ShowProfileManager(profileSvc, aNative);
-   }
-+puts("profile7");
-   if (ar) {
-     ar = CheckArg("osint");
-     if (ar == ARG_FOUND) {
-@@ -1922,6 +1964,7 @@
-                                  aNative, aResult);
-     }
- 
-+puts("profile8");
-     return ShowProfileManager(profileSvc, aNative);
-   }
- 
-@@ -1936,6 +1979,7 @@
-   if (!count) {
-     gDoMigration = PR_TRUE;
- 
-+puts("profile10");
-     // create a default profile
-     nsCOMPtr<nsIToolkitProfile> profile;
-     nsresult rv = profileSvc->CreateProfile(nsnull, // choose a default dir for us
-@@ -1954,29 +1998,36 @@
-   if (count > 1)
-     profileSvc->GetStartWithLastProfile(&useDefault);
- 
-+puts("profile11");
-   if (useDefault) {
-     nsCOMPtr<nsIToolkitProfile> profile;
-     // GetSelectedProfile will auto-select the only profile if there's just one
-     profileSvc->GetSelectedProfile(getter_AddRefs(profile));
-+puts("profile12");
-     if (profile) {
-       nsCOMPtr<nsIProfileUnlocker> unlocker;
-       rv = profile->Lock(getter_AddRefs(unlocker), aResult);
-+puts("profile13");
-       if (NS_SUCCEEDED(rv))
-         return NS_OK;
- 
-+puts("profile14");
-       nsCOMPtr<nsILocalFile> profileDir;
-       rv = profile->GetRootDir(getter_AddRefs(profileDir));
-       NS_ENSURE_SUCCESS(rv, rv);
-+puts("profile15");
- 
-       nsCOMPtr<nsILocalFile> profileLocalDir;
-       rv = profile->GetRootDir(getter_AddRefs(profileLocalDir));
-       NS_ENSURE_SUCCESS(rv, rv);
-+puts("profile16");
- 
-       return ProfileLockedDialog(profileDir, profileLocalDir, unlocker,
-                                  aNative, aResult);
-     }
-   }
- 
-+puts("profile7");
-   return ShowProfileManager(profileSvc, aNative);
- }
- 
-@@ -2206,6 +2257,7 @@
-   nsresult rv;
-   ArgResult ar;
-   NS_TIMELINE_MARK("enter main");
-+puts("main 1");
- 
- #ifdef DEBUG
-   if (PR_GetEnv("XRE_MAIN_BREAK"))
-@@ -2230,6 +2282,7 @@
- #if defined(XP_UNIX) || defined(XP_BEOS)
-   InstallUnixSignalHandlers(argv[0]);
- #endif
-+puts("main 2");
- 
- #ifdef MOZ_ACCESSIBILITY_ATK
-   // Reset GTK_MODULES, strip atk-bridge if exists
-@@ -2247,6 +2300,7 @@
- 
-   // Unbuffer stdout, needed for tinderbox tests.
-   setbuf(stdout, 0);
-+puts("main 3");
- 
- #if defined(FREEBSD)
-   // Disable all SIGFPE's on FreeBSD, as it has non-IEEE-conformant fp
-@@ -2254,6 +2308,7 @@
-   // the JS engine.  See bugzilla bug 9967 details.
-   fpsetmask(0);
- #endif
-+puts("main 4");
- 
-   gArgc = argc;
-   gArgv = argv;
-@@ -2307,8 +2362,10 @@
-   gRestartArgv = (char**) malloc(sizeof(char*) * (gArgc + 1));
-   if (!gRestartArgv) return 1;
- 
-+printf("main 5: %d\n", gArgc);
-   int i;
-   for (i = 0; i < gArgc; ++i) {
-+puts(gArgv[i]);  
-     gRestartArgv[i] = gArgv[i];
-   }
-   gRestartArgv[gArgc] = nsnull;
-@@ -2354,6 +2411,7 @@
-   gArgc = argc = NS_TraceMallocStartupArgs(argc, argv);
- #endif
- 
-+puts("main 6");
-   nsXREDirProvider dirProvider;
-   {
-     rv = dirProvider.Initialize(gAppData->directory);
-@@ -2363,6 +2421,7 @@
- 
-   // Check for -register, which registers chrome and then exits immediately.
- 
-+puts("main 7");
-   ar = CheckArg("register", PR_TRUE);
-   if (ar == ARG_BAD) {
-     PR_fprintf(PR_STDERR, "Error: argument -register is invalid when argument -osint is specified\n");
-@@ -2440,6 +2499,7 @@
-   if (NS_FAILED(rv) || !canRun) {
-     return 1;
-   }
-+puts("main 9");
- 
-   //----------------------------------------------------------------
-   // We need to check if a previous installation occured and
-@@ -2522,23 +2582,29 @@
-                  gRestartArgc,
-                  gRestartArgv);
- #endif
-+puts("main 10");
- 
-   nsCOMPtr<nsIProfileLock> profileLock;
-   PRBool startOffline = PR_FALSE;
- 
-+puts("main 10a");
-   rv = SelectProfile(getter_AddRefs(profileLock), nativeApp, &startOffline);
-   if (rv == NS_ERROR_LAUNCHED_CHILD_PROCESS ||
-       rv == NS_ERROR_ABORT) return 0;
-+  printf("%d %d\n", rv == NS_ERROR_LAUNCHED_CHILD_PROCESS, rv);
-   if (NS_FAILED(rv)) return 1;
- 
-+puts("main 10b");
-   nsCOMPtr<nsILocalFile> profD;
-   rv = profileLock->GetDirectory(getter_AddRefs(profD));
-   NS_ENSURE_SUCCESS(rv, 1);
- 
-+puts("main 10c");
-   nsCOMPtr<nsILocalFile> profLD;
-   rv = profileLock->GetLocalDirectory(getter_AddRefs(profLD));
-   NS_ENSURE_SUCCESS(rv, 1);
- 
-+puts("main 10d");
-   rv = dirProvider.SetProfile(profD, profLD);
-   NS_ENSURE_SUCCESS(rv, 1);
- 
-@@ -2548,6 +2614,7 @@
- 
-   nsCAutoString version;
-   BuildVersion(version);
-+puts("main 11");
- 
- #ifdef TARGET_OS_ABI
-     NS_NAMED_LITERAL_CSTRING(osABI, TARGET_OS_ABI);
-@@ -2624,6 +2691,7 @@
-         io->SetOffline(PR_TRUE);
-       }
- 
-+puts("main 12b");
-       {
-         NS_TIMELINE_ENTER("startupNotifier");
-         nsCOMPtr<nsIObserver> startupNotifier
-@@ -2669,6 +2737,7 @@
-       }
-       dirProvider.DoStartup();
- 
-+puts("main 12c");
-       nsCOMPtr<nsICommandLineRunner> cmdLine
-         (do_CreateInstance("@mozilla.org/toolkit/command-line;1"));
-       NS_ENSURE_TRUE(cmdLine, 1);
-@@ -2681,6 +2750,7 @@
-                          workingDir, nsICommandLine::STATE_INITIAL_LAUNCH);
-       NS_ENSURE_SUCCESS(rv, 1);
- 
-+puts("main 13");
-       /* Special-case services that need early access to the command
-          line. */
-       nsCOMPtr<nsIObserver> chromeObserver
-@@ -2689,11 +2759,13 @@
-         chromeObserver->Observe(cmdLine, "command-line-startup", nsnull);
-       }
- 
-+puts("main 14");
-       NS_TIMELINE_ENTER("appStartup->CreateHiddenWindow");
-       rv = appStartup->CreateHiddenWindow();
-       NS_TIMELINE_LEAVE("appStartup->CreateHiddenWindow");
-       NS_ENSURE_SUCCESS(rv, 1);
- 
-+puts("main 15");
-       // Extension Compatibility Checking and Startup
-       if (gAppData->flags & NS_XRE_ENABLE_EXTENSION_MANAGER) {
-         nsCOMPtr<nsIExtensionManager> em(do_GetService("@mozilla.org/extensions/manager;1"));
-@@ -2719,6 +2791,7 @@
-           return 0;
-         }
- 
-+puts("main 16");
-         if (upgraded) {
-           rv = em->CheckForMismatches(&needsRestart);
-           if (NS_FAILED(rv)) {
-@@ -2762,6 +2835,7 @@
- 
-         SetupMacCommandLine(gArgc, gArgv);
- 
-+printf("upgrade 1: %d restart: %d\n", upgraded, needsRestart);
-         rv = cmdLine->Init(gArgc, gArgv,
-                            workingDir, nsICommandLine::STATE_INITIAL_LAUNCH);
-         NS_ENSURE_SUCCESS(rv, 1);
-@@ -2776,6 +2850,9 @@
-         if (obsService)
-           obsService->NotifyObservers(nsnull, "final-ui-startup", nsnull);        
- 
-+printf("upgrade 2: %d restart: %d\n", upgraded, needsRestart);
-+        needsRestart = upgraded = PR_FALSE;
-+
-         rv = cmdLine->Run();
-         NS_ENSURE_SUCCESS_LOG(rv, 1);
- 
-@@ -2796,7 +2873,7 @@
+@@ -2796,7 +2800,7 @@
            gLogConsoleErrors = PR_TRUE;
          }
          else {
@@ -577,28 +187,13 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
            appStartup->ExitLastWindowClosingSurvivalArea();
  #endif
  
-@@ -2860,6 +2937,7 @@
- 
-     profileLock->Unlock();
-   }
-+puts("main 14");
- 
-   // Restart the app after XPCOM has been shut down cleanly. 
-   if (needsRestart) {
-@@ -2892,5 +2970,6 @@
-     return rv == NS_ERROR_LAUNCHED_CHILD_PROCESS ? 0 : 1;
-   }
- 
-+puts("main 9");
-   return NS_FAILED(rv) ? 1 : 0;
- }
 Index: toolkit/xre/nsNativeAppSupportWin.cpp
 ===================================================================
 RCS file: /cvsroot/mozilla/toolkit/xre/nsNativeAppSupportWin.cpp,v
 retrieving revision 1.20.4.4
 diff -u -r1.20.4.4 nsNativeAppSupportWin.cpp
 --- toolkit/xre/nsNativeAppSupportWin.cpp	6 Feb 2007 07:13:20 -0000	1.20.4.4
-+++ toolkit/xre/nsNativeAppSupportWin.cpp	25 Nov 2007 19:53:18 -0000
++++ toolkit/xre/nsNativeAppSupportWin.cpp	21 Feb 2008 03:35:15 -0000
 @@ -663,7 +663,7 @@
   *        If not, then this is the first instance of Mozilla.  In
   *        that case, we create and set up the message window.
@@ -614,7 +209,7 @@ RCS file: /cvsroot/mozilla/toolkit/xre/nsXREDirProvider.cpp,v
 retrieving revision 1.37.2.11
 diff -u -r1.37.2.11 nsXREDirProvider.cpp
 --- toolkit/xre/nsXREDirProvider.cpp	8 May 2007 19:25:29 -0000	1.37.2.11
-+++ toolkit/xre/nsXREDirProvider.cpp	25 Nov 2007 19:53:18 -0000
++++ toolkit/xre/nsXREDirProvider.cpp	21 Feb 2008 03:35:15 -0000
 @@ -904,6 +904,18 @@
    rv = localDir->AppendNative(nsDependentCString(gAppData->name));
    NS_ENSURE_SUCCESS(rv, rv);

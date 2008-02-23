@@ -164,7 +164,7 @@ nsMenu::Create(nsISupports * aParent, const nsAString &aLabel, const nsAString &
   printf("nsMenu::MenuCreate called for %s\n", NS_LossyConvertUCS2toASCII(aLabel).get());
 
   // register this menu to be notified when changes are made to our content object
-  mManager = aManager;			// weak ref
+  mManager = aManager;	// weak ref
   nsCOMPtr<nsIChangeObserver> changeObs ( do_QueryInterface(NS_STATIC_CAST(nsIChangeObserver*, this)) );
   mManager->Register(mMenuContent, changeObs);
 
@@ -210,10 +210,8 @@ nsMenu::Create(nsISupports * aParent, const nsAString &aLabel, const nsAString &
 
       if (lastItem != nsnull && tag == nsWidgetAtoms::menuseparator &&
           !lastItem->menuflags.data.dotted) {
-puts("separator");
         lastItem->menuflags.data.dotted = 1;
-//         (item != count - 1);
-        
+
       } else {
 
         nsAutoString hiddenValue;
@@ -224,9 +222,21 @@ puts("separator");
         child->GetAttr(kNameSpaceID_None, nsWidgetAtoms::label, itemName);
         if ( itemName.EqualsLiteral("") ) continue;
 
-        lastItem = Menu_FirstItem(mROMenu) + ROPosition;         
+        lastItem = Menu_FirstItem(mROMenu) + ROPosition;
 
-        Menu_SetText(mROMenu, ROPosition, NS_LossyConvertUCS2toASCII(itemName).get());
+        const char *text = NS_LossyConvertUCS2toASCII(itemName).get();
+
+        char *hs = (char *)alloca(strlen(text) + 1);
+        int pos = 0;
+
+        do {
+          if (text[pos] != ' ')
+            hs[pos] = text[pos];
+          else
+            hs[pos] = 160;
+        } while (text[pos++] != '\0');
+
+        Menu_SetText(mROMenu, ROPosition, hs);
 
         if ( tag == nsWidgetAtoms::menu ) {
           mMenuPosition = ROPosition;
@@ -234,7 +244,7 @@ puts("separator");
         } else {
           LoadMenuItem(child, ROPosition);
         }
-        
+
         if (tag == nsWidgetAtoms::menuseparator)
           lastItem->menuflags.data.dotted = lastItem->menuflags.data.shaded = 1;
 
@@ -888,14 +898,14 @@ void nsMenu::LoadMenuItem(nsIContent* inMenuItemContent, PRUint32 ROPosition )
       itemType = nsIMenuItem::eCheckbox;
     else if ( type.EqualsLiteral("radio") )
       itemType = nsIMenuItem::eRadio;
-      
+
     nsCOMPtr<nsIDocShell>  docShell = do_QueryReferent(mDocShellWeakRef);
     if (!docShell)
       return;
 
     // Create the item.
     pnsMenuItem->Create(this, menuitemName, PR_FALSE, itemType, 
-                          PR_TRUE, mManager, docShell, inMenuItemContent);   
+                          PR_TRUE, mManager, docShell, inMenuItemContent);
 
     Menu_SetFlags(mROMenu, ROPosition, checked.EqualsLiteral("true"),
                            disabled.EqualsLiteral("true"));
@@ -1305,7 +1315,7 @@ nsMenu :: CountVisibleBefore ( PRUint32* outVisibleBefore )
 
 
 NS_IMETHODIMP
-nsMenu::AttributeChanged(nsIDocument *aDocument, PRInt32 aNameSpaceID, nsIAtom *aAttribute)
+nsMenu::AttributeChanged(nsIDocument *aDocument, PRInt32 aNameSpaceID, nsIContent *aContent, nsIAtom *aAttribute)
 {
   if (gConstructingMenu)
     return NS_OK;

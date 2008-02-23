@@ -18,6 +18,4 @@ Set thunderbird-bin$Title "Mozilla Thunderbird"
 RMEnsure Tinct 0.13 RMLoad System:Modules.Tinct
 RMEnsure Tinct 0.13 Error Thunderbird requires Tinct 0.13 or later. This can be downloaded from http://www.tinct.net/
 
-| stdout is not interesting.  stderr may contain crash or debug information.
-<Thunderbird$Dir>.thunderbird-bin >null: 2><Thunderbird$Dir>.stderr
-
+<Thunderbird$Dir>.thunderbird-bin >null: 2>null:

@@ -1,10 +1,10 @@
 Index: nsprpub/configure.in
 ===================================================================
 RCS file: /cvsroot/mozilla/nsprpub/configure.in,v
-retrieving revision 1.199.2.14
-diff -u -r1.199.2.14 configure.in
---- nsprpub/configure.in	27 Apr 2007 20:01:01 -0000	1.199.2.14
-+++ nsprpub/configure.in	29 Dec 2007 15:13:38 -0000
+retrieving revision 1.199.2.17
+diff -u -r1.199.2.17 configure.in
+--- nsprpub/configure.in	31 Oct 2007 18:07:38 -0000	1.199.2.17
++++ nsprpub/configure.in	21 Feb 2008 03:30:19 -0000
 @@ -629,6 +629,7 @@
          linux*)       OS_ARCH=Linux ;;
          solaris*)     OS_ARCH=SunOS OS_RELEASE=5 ;;
@@ -13,7 +13,7 @@ diff -u -r1.199.2.14 configure.in
          darwin*)      OS_ARCH=Darwin ;;
      esac
  else
-@@ -1800,7 +1801,7 @@
+@@ -1815,7 +1816,7 @@
      MDCPUCFG_H=_riscos.cfg
      PR_MD_CSRCS=riscos.c
      DLL_SUFFIX=a
@@ -28,7 +28,7 @@ RCS file: /cvsroot/mozilla/nsprpub/config/rules.mk,v
 retrieving revision 3.61.2.1
 diff -u -r3.61.2.1 rules.mk
 --- nsprpub/config/rules.mk	22 Feb 2006 22:53:55 -0000	3.61.2.1
-+++ nsprpub/config/rules.mk	29 Dec 2007 15:13:38 -0000
++++ nsprpub/config/rules.mk	21 Feb 2008 03:30:19 -0000
 @@ -352,7 +352,11 @@
  	  fi; \
  	fi
@@ -47,7 +47,7 @@ RCS file: /cvsroot/mozilla/nsprpub/pr/src/malloc/prmem.c,v
 retrieving revision 3.19
 diff -u -r3.19 prmem.c
 --- nsprpub/pr/src/malloc/prmem.c	21 Jul 2005 18:22:53 -0000	3.19
-+++ nsprpub/pr/src/malloc/prmem.c	29 Dec 2007 15:13:38 -0000
++++ nsprpub/pr/src/malloc/prmem.c	21 Feb 2008 03:30:19 -0000
 @@ -150,7 +150,7 @@
      return sym;
  }
@@ -57,3 +57,44 @@ diff -u -r3.19 prmem.c
  
  static void *
  pr_FindSymbolInProg(const char *name)
+Index: nsprpub/pr/src/misc/prenv.c
+===================================================================
+RCS file: /cvsroot/mozilla/nsprpub/pr/src/misc/prenv.c,v
+retrieving revision 3.11
+diff -u -r3.11 prenv.c
+--- nsprpub/pr/src/misc/prenv.c	25 Apr 2004 15:01:01 -0000	3.11
++++ nsprpub/pr/src/misc/prenv.c	21 Feb 2008 03:30:19 -0000
+@@ -79,7 +79,16 @@
+     if (!_pr_initialized) _PR_ImplicitInitialization();
+ 
+     _PR_LOCK_ENV();
++#ifdef __riscos__
++    {
++      char *roenv = alloca(strlen(var) + 9);
++      strcpy(roenv, "Firefox$");
++      strcpy(roenv + 8, var);
++      ev = _PR_MD_GET_ENV(roenv);
++    }
++#else
+     ev = _PR_MD_GET_ENV(var);
++#endif
+     _PR_UNLOCK_ENV();
+     return ev;
+ }
+@@ -93,7 +102,16 @@
+     if ( !strchr(string, '=')) return(PR_FAILURE);
+ 
+     _PR_LOCK_ENV();
++#ifdef __riscos__
++    {
++      char *roenv = alloca(strlen(string) + 9);
++      strcpy(roenv, "Firefox$");
++      strcpy(roenv + 8, string);
++      result = _PR_MD_PUT_ENV(roenv);
++    }
++#else
+     result = _PR_MD_PUT_ENV(string);
++#endif
+     _PR_UNLOCK_ENV();
+     return (result)? PR_FAILURE : PR_SUCCESS;
+ }

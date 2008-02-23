@@ -4,7 +4,7 @@ RCS file: /cvsroot/mozilla/security/coreconf/config.mk,v
 retrieving revision 1.17.28.2
 diff -u -r1.17.28.2 config.mk
 --- security/coreconf/config.mk	28 Apr 2006 03:36:22 -0000	1.17.28.2
-+++ security/coreconf/config.mk	25 Nov 2007 19:53:14 -0000
++++ security/coreconf/config.mk	21 Feb 2008 03:33:17 -0000
 @@ -63,7 +63,7 @@
  #######################################################################
  
@@ -20,7 +20,7 @@ RCS file: /cvsroot/mozilla/security/coreconf/rules.mk,v
 retrieving revision 1.66.2.5
 diff -u -r1.66.2.5 rules.mk
 --- security/coreconf/rules.mk	6 Jan 2007 05:48:54 -0000	1.66.2.5
-+++ security/coreconf/rules.mk	25 Nov 2007 19:53:14 -0000
++++ security/coreconf/rules.mk	21 Feb 2008 03:33:17 -0000
 @@ -356,8 +356,12 @@
  ifdef XP_OS2_VACPP
  	$(MKSHLIB) $(DLLFLAGS) $(LDFLAGS) $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
@@ -40,7 +40,7 @@ RCS file: /cvsroot/mozilla/security/coreconf/nsinstall/nsinstall.c,v
 retrieving revision 1.8
 diff -u -r1.8 nsinstall.c
 --- security/coreconf/nsinstall/nsinstall.c	25 Apr 2004 15:02:18 -0000	1.8
-+++ security/coreconf/nsinstall/nsinstall.c	25 Nov 2007 19:53:14 -0000
++++ security/coreconf/nsinstall/nsinstall.c	21 Feb 2008 03:33:17 -0000
 @@ -58,7 +58,7 @@
  
  #define HAVE_LCHOWN
@@ -68,7 +68,7 @@ RCS file: /cvsroot/mozilla/security/manager/ssl/src/nsKeygenHandler.cpp,v
 retrieving revision 1.36
 diff -u -r1.36 nsKeygenHandler.cpp
 --- security/manager/ssl/src/nsKeygenHandler.cpp	20 Jul 2005 19:31:22 -0000	1.36
-+++ security/manager/ssl/src/nsKeygenHandler.cpp	25 Nov 2007 19:53:14 -0000
++++ security/manager/ssl/src/nsKeygenHandler.cpp	21 Feb 2008 03:33:17 -0000
 @@ -95,6 +95,7 @@
      { 0, }
  };
@@ -94,78 +94,13 @@ diff -u -r1.36 nsKeygenHandler.cpp
  
  static NS_DEFINE_IID(kIDOMHTMLSelectElementIID, NS_IDOMHTMLSELECTELEMENT_IID);
  static NS_DEFINE_CID(kNSSComponentCID, NS_NSSCOMPONENT_CID);
-Index: security/manager/ssl/src/nsNSSComponent.cpp
-===================================================================
-RCS file: /cvsroot/mozilla/security/manager/ssl/src/nsNSSComponent.cpp,v
-retrieving revision 1.126.2.7
-diff -u -r1.126.2.7 nsNSSComponent.cpp
---- security/manager/ssl/src/nsNSSComponent.cpp	2 Oct 2007 22:12:47 -0000	1.126.2.7
-+++ security/manager/ssl/src/nsNSSComponent.cpp	25 Nov 2007 19:53:14 -0000
-@@ -1350,7 +1350,8 @@
-                                                     // once in a process.
-       return NS_ERROR_FAILURE;
-     }
--    
-+puts("nss 1");
-+
-     hashTableCerts = PL_NewHashTable( 0, certHashtable_keyHash, certHashtable_keyCompare, 
-       certHashtable_valueCompare, 0, 0 );
- 
-@@ -1402,6 +1403,7 @@
-     // ignore return code from conversion, we continue anyway
-     TryCFM2MachOMigration(cfmSecurityPath, profilePath);
-   #endif
-+puts("nss 2");
- 
-     PRBool supress_warning_preference = PR_FALSE;
-     rv = mPrefBranch->GetBoolPref("security.suppress_nss_rw_impossible_warning", &supress_warning_preference);
-@@ -1423,6 +1425,7 @@
-     ConfigureInternalPKCS11Token();
- 
-     SECStatus init_rv = ::NSS_InitReadWrite(profileStr.get());
-+puts("nss 3");
- 
-     if (init_rv != SECSuccess) {
-       PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("can not init NSS r/w in %s\n", profileStr.get()));
-@@ -1431,6 +1434,7 @@
-         which_nss_problem = problem_none;
-       }
-       else {
-+puts("nss 4");
-         which_nss_problem = problem_no_rw;
-       }
- 
-@@ -1440,6 +1444,7 @@
-       if (init_rv != SECSuccess) {
-         PR_LOG(gPIPNSSLog, PR_LOG_DEBUG, ("can not init in r/o either\n"));
-         which_nss_problem = problem_no_security_at_all;
-+puts("nss 5");
- 
-         NSS_NoDB_Init(profileStr.get());
-       }
-@@ -1449,6 +1454,7 @@
- 
-     if (problem_no_security_at_all != which_nss_problem) {
- 
-+puts("nss 6");
-       mNSSInitialized = PR_TRUE;
- 
-       ::NSS_SetDomesticPolicy();
-@@ -1470,6 +1476,7 @@
-       mPrefBranch->GetBoolPref("security.enable_tls", &enabled);
-       SSL_OptionSetDefault(SSL_ENABLE_TLS, enabled);
- 
-+puts("nss 7");
-       // Disable any ciphers that NSS might have enabled by default
-       for (PRUint16 i = 0; i < SSL_NumImplementedCiphers; ++i)
-       {
 Index: security/nss/lib/freebl/unix_rand.c
 ===================================================================
 RCS file: /cvsroot/mozilla/security/nss/lib/freebl/unix_rand.c,v
 retrieving revision 1.17.10.5
 diff -u -r1.17.10.5 unix_rand.c
 --- security/nss/lib/freebl/unix_rand.c	12 Oct 2006 22:50:48 -0000	1.17.10.5
-+++ security/nss/lib/freebl/unix_rand.c	25 Nov 2007 19:53:14 -0000
++++ security/nss/lib/freebl/unix_rand.c	21 Feb 2008 03:33:18 -0000
 @@ -34,6 +34,8 @@
   *
   * ***** END LICENSE BLOCK ***** */
@@ -184,258 +119,13 @@ diff -u -r1.17.10.5 unix_rand.c
  #include <sys/times.h>
  
  #define getdtablesize() sysconf(_SC_OPEN_MAX)
-Index: security/nss/lib/nss/nssinit.c
-===================================================================
-RCS file: /cvsroot/mozilla/security/nss/lib/nss/nssinit.c,v
-retrieving revision 1.69.2.6
-diff -u -r1.69.2.6 nssinit.c
---- security/nss/lib/nss/nssinit.c	21 Sep 2006 20:09:48 -0000	1.69.2.6
-+++ security/nss/lib/nss/nssinit.c	25 Nov 2007 19:53:15 -0000
-@@ -426,16 +426,18 @@
-     /* New option bits must not change the size of CERTCertificate. */
-     PORT_Assert(sizeof(dummyCert.options) == sizeof(void *));
- 
-+puts("init 1");
-     if (SECSuccess != InitCRLCache()) {
-         return SECFailure;
-     }
--    
-+puts("init 2");
-     if (SECSuccess != InitOCSPGlobal()) {
-         return SECFailure;
-     }
- 
-     flags = nss_makeFlags(readOnly,noCertDB,noModDB,forceOpen,
- 					pk11_password_required, optimizeSpace);
-+puts("init 3");
-     if (flags == NULL) return rv;
- 
-     /*
-@@ -458,6 +460,7 @@
-     if (lsecmodName == NULL) {
- 	goto loser;
-     }
-+puts("init 4");
-     if (noSingleThreadedModules || allowAlreadyInitializedModules ||
-         dontFinalizeModules) {
-         pk11_setGlobalOptions(noSingleThreadedModules,
-@@ -478,24 +481,31 @@
-     if (lsecmodName) PORT_Free(lsecmodName);
- 
-     if (moduleSpec) {
-+//puts("init 4a");
- 	SECMODModule *module = SECMOD_LoadModule(moduleSpec,NULL,PR_TRUE);
- 	PR_smprintf_free(moduleSpec);
-+//puts("init 4b");
- 	if (module) {
- 	    if (module->loaded) rv=SECSuccess;
-+puts("init 4c");
- 	    SECMOD_DestroyModule(module);
- 	}
-     }
- 
-     if (rv == SECSuccess) {
-+puts("init 5");
- 	if (secoid_Init() != SECSuccess) {
- 	    return SECFailure;
- 	}
-+puts("init 6");
- 	if (STAN_LoadDefaultNSS3TrustDomain() != PR_SUCCESS) {
- 	    return SECFailure;
- 	}
-+puts("init 7");
- 	if (nss_InitShutdownList() != SECSuccess) {
- 	    return SECFailure;
- 	}
-+puts("init 8");
- 	CERT_SetDefaultCertDB((CERTCertDBHandle *)
- 				STAN_GetDefaultTrustDomain());
- #ifndef XP_MAC
-Index: security/nss/lib/pk11wrap/pk11load.c
-===================================================================
-RCS file: /cvsroot/mozilla/security/nss/lib/pk11wrap/pk11load.c,v
-retrieving revision 1.17
-diff -u -r1.17 pk11load.c
---- security/nss/lib/pk11wrap/pk11load.c	20 Sep 2005 20:56:07 -0000	1.17
-+++ security/nss/lib/pk11wrap/pk11load.c	25 Nov 2007 19:53:15 -0000
-@@ -148,6 +148,7 @@
- 	pInitArgs = &moduleArgs;
-     }
-     crv = PK11_GETTAB(mod)->C_Initialize(pInitArgs);
-+printf("%d %x %d\n", crv, crv, enforceAlreadyInitializedError);
-     if ((CKR_CRYPTOKI_ALREADY_INITIALIZED == crv) &&
-         (!enforceAlreadyInitializedError)) {
-         *alreadyLoaded = PR_TRUE;
-@@ -158,14 +159,17 @@
- 		crv == CKR_NETSCAPE_CERTDB_FAILED ||
- 		crv == CKR_NETSCAPE_KEYDB_FAILED) {
- 	    PORT_SetError(PK11_MapError(crv));
-+puts("sec 1");
- 	    return SECFailure;
- 	}
- 	if (!loadSingleThreadedModules) {
-+puts("sec 2");
- 	    PORT_SetError(SEC_ERROR_INCOMPATIBLE_PKCS11);
- 	    return SECFailure;
- 	}
- 	mod->isThreadSafe = PR_FALSE;
-     	crv = PK11_GETTAB(mod)->C_Initialize(NULL);
-+printf("%d %d\n", crv, enforceAlreadyInitializedError);
- 	if ((CKR_CRYPTOKI_ALREADY_INITIALIZED == crv) &&
- 	    (!enforceAlreadyInitializedError)) {
- 	    *alreadyLoaded = PR_TRUE;
-@@ -173,6 +177,7 @@
- 	}
-     	if (crv != CKR_OK)  {
- 	    PORT_SetError(PK11_MapError(crv));
-+puts("sec 3");
- 	    return SECFailure;
- 	}
-     }
-@@ -234,6 +239,8 @@
-     SECStatus rv;
-     PRBool alreadyLoaded = PR_FALSE;
- 
-+printf("load 11: %d %d %s\n", mod->loaded, mod->internal, mod->dllName);
-+
-     if (mod->loaded) return SECSuccess;
- 
-     /* intenal modules get loaded from their internal list */
-@@ -300,12 +307,15 @@
- 	}
-     }
- 
-+puts("load 11 1");
-+
-     /*
-      * We need to get the function list
-      */
-     if ((*entry)((CK_FUNCTION_LIST_PTR *)&mod->functionList) != CKR_OK) 
- 								goto fail;
- 
-+puts("load 11 2");
- #ifdef DEBUG_MODULE
-     if (PR_TRUE) {
- 	modToDBG = PR_GetEnv("NSS_DEBUG_PKCS11_MODULE");
-@@ -321,6 +331,7 @@
-     /* Now we initialize the module */
-     rv = secmod_ModuleInit(mod, &alreadyLoaded);
-     if (rv != SECSuccess) {
-+puts("load 11 3");
- 	goto fail;
-     }
- 
-@@ -331,6 +342,7 @@
-     if (info.cryptokiVersion.minor < 1) {
-         if (!loadSingleThreadedModules) {
-             PORT_SetError(SEC_ERROR_INCOMPATIBLE_PKCS11);
-+puts("load 11 4");
-             goto fail2;
-         } else {
-             mod->isThreadSafe = PR_FALSE;
-@@ -342,6 +354,7 @@
-     if ((mod->commonName == NULL) || (mod->commonName[0] == 0)) {
- 	mod->commonName = PK11_MakeString(mod->arena,NULL,
- 	   (char *)info.libraryDescription, sizeof(info.libraryDescription));
-+puts("load 11 5");
- 	if (mod->commonName == NULL) goto fail2;
-     }
-     
-@@ -383,10 +396,12 @@
-     mod->moduleID = nextModuleID++;
-     return SECSuccess;
- fail2:
-+puts("fail 2");
-     if (enforceAlreadyInitializedError || (!alreadyLoaded)) {
-         PK11_GETTAB(mod)->C_Finalize(NULL);
-     }
- fail:
-+puts("fail");
-     mod->functionList = NULL;
-     if (library) PR_UnloadLibrary(library);
-     return SECFailure;
-Index: security/nss/lib/pk11wrap/pk11pars.c
-===================================================================
-RCS file: /cvsroot/mozilla/security/nss/lib/pk11wrap/pk11pars.c,v
-retrieving revision 1.21
-diff -u -r1.21 pk11pars.c
---- security/nss/lib/pk11wrap/pk11pars.c	12 Nov 2005 00:14:25 -0000	1.21
-+++ security/nss/lib/pk11wrap/pk11pars.c	25 Nov 2007 19:53:15 -0000
-@@ -298,6 +298,8 @@
-     SECMODModule *module = NULL;
-     SECStatus rv;
- 
-+printf("load module: %s\n", modulespec);
-+
-     /* initialize the underlying module structures */
-     SECMOD_Init();
- 
-Index: security/nss/lib/softoken/dbinit.c
-===================================================================
-RCS file: /cvsroot/mozilla/security/nss/lib/softoken/Attic/dbinit.c,v
-retrieving revision 1.28.2.1
-diff -u -r1.28.2.1 dbinit.c
---- security/nss/lib/softoken/dbinit.c	22 Sep 2006 00:21:03 -0000	1.28.2.1
-+++ security/nss/lib/softoken/dbinit.c	25 Nov 2007 19:53:15 -0000
-@@ -160,22 +160,27 @@
-     configdir = sftk_EvaluateConfigDir(configdir, &appName);
- 
-     name = PR_smprintf("%s" PATH_SEPARATOR "%s",configdir,prefix);
-+printf("certdb: %s\n", name);    
-     if (name == NULL) goto loser;
- 
-     certdb = (NSSLOWCERTCertDBHandle*)PORT_ZAlloc(sizeof(NSSLOWCERTCertDBHandle));
-     if (certdb == NULL) 
-     	goto loser;
-+puts("2");
- 
-     certdb->ref = 1;
- /* fix when we get the DB in */
-     rv = nsslowcert_OpenCertDB(certdb, readOnly, appName, prefix,
- 				sftk_certdb_name_cb, (void *)name, PR_FALSE);
-     if (rv == SECSuccess) {
-+puts("3");
- 	crv = CKR_OK;
- 	*certdbPtr = certdb;
- 	certdb = NULL;
-     }
--loser: 
-+puts("4");
-+loser:
-+puts("loser");
-     if (certdb) PR_Free(certdb);
-     if (name) PR_smprintf_free(name);
-     if (appName) PORT_Free(appName);
-Index: security/nss/lib/softoken/dbmshim.c
-===================================================================
-RCS file: /cvsroot/mozilla/security/nss/lib/softoken/Attic/dbmshim.c,v
-retrieving revision 1.11.30.1
-diff -u -r1.11.30.1 dbmshim.c
---- security/nss/lib/softoken/dbmshim.c	12 May 2006 23:59:32 -0000	1.11.30.1
-+++ security/nss/lib/softoken/dbmshim.c	25 Nov 2007 19:53:15 -0000
-@@ -618,6 +618,7 @@
- 
-     dbsp->blobdir=dbs_mkBlobDirName(dbname);
-     if (dbsp->blobdir == NULL) {
-+puts("blobdir failed");    
- 	goto loser;
-     }
-     dbsp->mode = mode;
-@@ -629,6 +630,7 @@
-     /* the real dbm call */
-     db = dbopen(dbname, flags, mode, type, &dbs_hashInfo);
-     if (db == NULL) {
-+puts("dbopen failed");
- 	goto loser;
-     }
-     dbs->internal = (void *) db;
 Index: security/nss/lib/softoken/pcertdb.c
 ===================================================================
 RCS file: /cvsroot/mozilla/security/nss/lib/softoken/Attic/pcertdb.c,v
 retrieving revision 1.53.2.10
 diff -u -r1.53.2.10 pcertdb.c
 --- security/nss/lib/softoken/pcertdb.c	17 May 2006 20:46:59 -0000	1.53.2.10
-+++ security/nss/lib/softoken/pcertdb.c	25 Nov 2007 19:53:15 -0000
++++ security/nss/lib/softoken/pcertdb.c	21 Feb 2008 03:33:18 -0000
 @@ -4027,6 +4027,15 @@
  #define NO_CREATE	(O_RDWR | O_CREAT | O_TRUNC)
  #endif
@@ -452,121 +142,23 @@ diff -u -r1.53.2.10 pcertdb.c
  /*
   * open an old database that needs to be updated
   */
-@@ -4056,11 +4065,13 @@
+@@ -4056,7 +4065,7 @@
      if (appName) {
  	handle->permCertDB=rdbopen( appName, prefix, "cert", NO_CREATE, &status);
      } else {
 -	handle->permCertDB=dbsopen(certdbname, NO_CREATE, 0600, DB_HASH, 0);
-+puts("dbsopen");
 +	handle->permCertDB=dbsopen(certdbname, NO_CREATE, 0666, DB_HASH, 0);
      }
  
      /* if create fails then we lose */
-     if ( handle->permCertDB == 0 ) {
-+puts("fail new");
- 	return status == RDB_RETRY ? SECWouldBlock : SECFailure;
-     }
- 
-@@ -4146,6 +4157,8 @@
- 	return(SECFailure);
-     }
- 
-+printf("certdb: %s\n", certdbname);
-+
-     openflags = readOnly ? NO_RDONLY : NO_RDWR;
- 
-     /*
-@@ -4157,6 +4170,8 @@
- 	handle->permCertDB = dbsopen( certdbname, openflags, 0600, DB_HASH, 0 );
-     }
- 
-+printf("handle: %p\n", handle->permCertDB);
-+
-     /* check for correct version number */
-     if ( handle->permCertDB ) {
- 	version = nsslowcert_GetVersionNumber(handle);
-@@ -4165,6 +4180,7 @@
- 	    goto loser;
- 	}
-     } else if ( readOnly ) {
-+puts("readonly");
- 	/* don't create if readonly */
- 	    /* Try openning a version 7 database */
- 	    handle->permCertDB = nsslowcert_openolddb(namecb,cbarg, 7);
-@@ -4175,6 +4191,7 @@
- 		goto loser;
- 	    }
-     } else {
-+puts("first fail");
-         /* if first open fails, try to create a new DB */
- 	rv = openNewCertDB(appName,prefix,certdbname,handle,namecb,cbarg);
- 	if (rv == SECWouldBlock) {
-@@ -4184,6 +4201,7 @@
- 
- 	    /* check for correct version number */
- 	    if ( !handle->permCertDB ) {
-+puts("version");
- 		goto loser;
- 	    }
- 	    version = nsslowcert_GetVersionNumber(handle);
-@@ -4201,6 +4219,7 @@
-     return (SECSuccess);
-     
- loser:
-+puts("loser");
- 
-     PORT_SetError(SEC_ERROR_BAD_DATABASE);
-     
 Index: security/nss/lib/softoken/pkcs11.c
 ===================================================================
 RCS file: /cvsroot/mozilla/security/nss/lib/softoken/pkcs11.c,v
 retrieving revision 1.112.2.20
 diff -u -r1.112.2.20 pkcs11.c
 --- security/nss/lib/softoken/pkcs11.c	12 Oct 2006 22:20:04 -0000	1.112.2.20
-+++ security/nss/lib/softoken/pkcs11.c	25 Nov 2007 19:53:16 -0000
-@@ -2993,12 +2993,14 @@
- 
-     rv = secoid_Init();
-     if (rv != SECSuccess) {
-+puts("common 1");
- 	crv = CKR_DEVICE_ERROR;
- 	return crv;
-     }
- 
-     rv = RNG_RNGInit();         /* initialize random number generator */
-     if (rv != SECSuccess) {
-+puts("common 2");
- 	crv = CKR_DEVICE_ERROR;
- 	return crv;
-     }
-@@ -3006,11 +3008,11 @@
- 
-     rv = nsslowcert_InitLocks();
-     if (rv != SECSuccess) {
-+puts("common 3");
- 	crv = CKR_DEVICE_ERROR;
- 	return crv;
-     }
- 
--
-     /* NOTE:
-      * we should be getting out mutexes from this list, not statically binding
-      * them from NSPR. This should happen before we allow the internal to split
-@@ -3087,11 +3089,13 @@
- CK_RV NSC_Initialize(CK_VOID_PTR pReserved)
- {
-     CK_RV crv;
-+puts("pkcs init");
-     if (nsc_init) {
- 	return CKR_CRYPTOKI_ALREADY_INITIALIZED;
-     }
-     crv = nsc_CommonInitialize(pReserved,PR_FALSE);
-     nsc_init = (PRBool) (crv == CKR_OK);
-+printf("pkcs init: %d\n", crv == CKR_OK);
-     return crv;
- }
- 
-@@ -3123,7 +3127,7 @@
++++ security/nss/lib/softoken/pkcs11.c	21 Feb 2008 03:33:19 -0000
+@@ -3123,7 +3123,7 @@
      /* tell freeBL to clean up after itself */
      BL_Cleanup();
      /* unload freeBL shared library from memory */
@@ -581,7 +173,7 @@ RCS file: /cvsroot/mozilla/security/nss/lib/ssl/sslsock.c,v
 retrieving revision 1.44.2.6
 diff -u -r1.44.2.6 sslsock.c
 --- security/nss/lib/ssl/sslsock.c	2 Oct 2006 21:17:59 -0000	1.44.2.6
-+++ security/nss/lib/ssl/sslsock.c	25 Nov 2007 19:53:16 -0000
++++ security/nss/lib/ssl/sslsock.c	21 Feb 2008 03:33:19 -0000
 @@ -509,7 +509,7 @@
  static SECStatus SSL_BypassShutdown(void* appData, void* nssData)
  {
@@ -591,38 +183,3 @@ diff -u -r1.44.2.6 sslsock.c
      setupBypassOnce = pristineCallOnce;
      return SECSuccess;
  }
-Index: security/nss/tests/pkcs11/netscape/trivial/configure
-===================================================================
-RCS file: /cvsroot/mozilla/security/nss/tests/pkcs11/netscape/trivial/configure,v
-retrieving revision 1.1
-diff -u -r1.1 configure
---- security/nss/tests/pkcs11/netscape/trivial/configure	8 May 2000 23:19:44 -0000	1.1
-+++ security/nss/tests/pkcs11/netscape/trivial/configure	25 Nov 2007 19:53:16 -0000
-@@ -516,7 +516,7 @@
- ac_link='${CC-cc} -o conftest${ac_exeext} $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $LIBS 1>&5'
- cross_compiling=$ac_cv_prog_cc_cross
- 
--ac_exeext=
-+ac_exeext=,ff8;
- ac_objext=o
- if (echo "testing\c"; echo 1,2,3) | grep c >/dev/null; then
-   # Stardent Vistra SVR4 grep lacks -e, says ghazi@caip.rutgers.edu.
-Index: storage/src/mozStorageAsyncIO.cpp
-===================================================================
-RCS file: /cvsroot/mozilla/storage/src/mozStorageAsyncIO.cpp,v
-retrieving revision 1.1.2.15
-diff -u -r1.1.2.15 mozStorageAsyncIO.cpp
---- storage/src/mozStorageAsyncIO.cpp	2 Aug 2006 16:10:46 -0000	1.1.2.15
-+++ storage/src/mozStorageAsyncIO.cpp	25 Nov 2007 19:53:16 -0000
-@@ -253,7 +253,11 @@
- // See below for some discussion on this. This will let us use a reader
- // filehandle and a writer filehandle so that read operations are not blocked
- // by asychronous writes.
-+#ifndef __riscos__
- #define SQLITE_ASYNC_TWO_FILEHANDLES 1
-+#else
-+#define SQLITE_ASYNC_TWO_FILEHANDLES 0
-+#endif
- 
- //#define SINGLE_THREADED
- 
