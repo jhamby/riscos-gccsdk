@@ -18,7 +18,7 @@ D=$AB_DIR/package
 # Parse parameters
 
 depends=""
-package="$AB_PACKAGE"
+package="$AB_ZIPNAME"
 section="$AB_CATEGORY"
 
 # Scan the boot file for variables etc,
@@ -161,10 +161,21 @@ echo "Package: $package" > $D/RiscPkg/Control
 echo "Version: $AB_PVERSION-$AB_ROVERSION" >> $D/RiscPkg/Control
 echo "Section: $section" >> $D/RiscPkg/Control
 echo "Priority: Optional" >> $D/RiscPkg/Control
+
 if [ -z "$has_licence" ] ; then
-  echo "Licence: Free" >> $D/RiscPkg/Control
+  if [ -z "$AB_LICENCE" ] ; then
+    echo "Licence: Unknown" >> $D/RiscPkg/Control
+  else
+    echo "Licence: $AB_LICENCE" >> $D/RiscPkg/Control
+  fi
 fi
-echo "Maintainer: GCCSDK mailing list <gcc@gccsdk.riscos.info>" >> $D/RiscPkg/Control
+
+if [ -z "$AB_MAINTAINER" ] ; then
+  echo "Maintainer: GCCSDK mailing list <gcc@gccsdk.riscos.info>" >> $D/RiscPkg/Control
+else
+  echo "Maintainer: $AB_MAINTAINER" >> $D/RiscPkg/Control
+fi
+
 echo "Standards-Version: 0.1.0" >> $D/RiscPkg/Control
 
 if [ -z "$has_depends" ] && [ ! -z "$depends" ] ; then

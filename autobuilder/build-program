@@ -13,7 +13,7 @@ AB_PVERSION=
 AB_PRECONF=
 AB_INSTALL=no
 AB_CATEGORY=
-AB_ZIPNAME=
+export AB_ZIPNAME=
 AB_README=ReadMe
 AB_COPYSOURCE=
 AB_DISTCLEAN=
@@ -275,15 +275,6 @@ else
    . $AB_HOME/$AB_PACKAGEDIR/setvars
  fi
 
- # Set final package name used for archives
-# if [ -n "$AB_ZIPNAME" ] ; then
-#   zipname=$(sed -e "s#$AB_PACKAGE#$AB_ZIPNAME#" <<<$AB_FULLNAME)
-#
-#   if [ "$zipname" != "$AB_FULLNAME" ] ; then
-#     AB_ZIPNAME=$zipname
-#   fi
-# else
-
  if [ -z "$AB_ZIPNAME" ] ; then
    AB_ZIPNAME=$AB_PACKAGE
  fi
@@ -348,6 +339,9 @@ else
  fi
 fi # Package only
 
+
+export AB_MAINTAINER
+export AB_LICENCE
 
 # Custom package routine ?
 rm -rf $D
