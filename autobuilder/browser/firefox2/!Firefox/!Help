@@ -5,7 +5,7 @@ Mozilla Firefox 2 for RISC OS
 http://www.riscos.info/index.php/Firefox
 
 February 2008
-RISC OS Release 3
+RISC OS Release 4
 Peter Naulls
 peter@chocky.org
 
@@ -43,11 +43,24 @@ This Version
 
 This version is suitable for the following RISC OS systems:
 
-IYONIX pc, A9, Omega, VirtualRPC.  It is not suitable for RiscPCs or older
-RISC OS machines due to the use of half-word instructions.
+IYONIX pc, A9, Omega, VirtualRPC (StrongARM edition only).  It is not suitable
+for RiscPCs or older RISC OS machines due to the use of half-word instructions.
+See instead the RiscPC version.
+
 
 Changes
 -------
+
+Release 4 (Feburary 2008)
+
+This fixes minor issues with the previous release.  The code is otherwise the same.
+
+- Some widget handling fixes promised in the last release didn't make it, these
+  are now included, and some additional debugging is disabled.
+- There were some issues with the packaging process which meant that the wrong
+  name was in the RiscPkg information.  Unfortunately, RiscPkg still doesn't
+  like the resulting package much.
+
 
 Release 3 (February 2008)
 
@@ -84,7 +97,6 @@ Release 1 (November 2006)
 - First release of version 2 of Firefox for RISC OS
 
 
-
 I just want to run it
 ---------------------
 
@@ -95,12 +107,14 @@ Tinct
 SharedUnixLibrary
  http://www.riscos.info/downloads/gccsdk/sharedunixlib/sharedunixlib.zip
 
+
 Running First Time
 ------------------
 
 It takes longer the first time due to creation of profiles.  Please be
 patient before the first window opens.  There is a desktop refresh which
 I was not able to fix for this release.
+
 
 Reporting bugs
 --------------
