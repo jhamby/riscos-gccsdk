@@ -6,6 +6,7 @@ AB_ZIPNAME=firefox
 AB_PVERSION=2.0.0.12
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
+AB_ROVERSION=2
 
 AB_CATEGORY=Browser
 

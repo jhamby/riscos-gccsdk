@@ -93,14 +93,6 @@ diff -u -r1.126.8.2 nsLocalFileUnix.cpp
              return NS_ERROR_FILE_UNRECOGNIZED_PATH;
          mPath = filePath;
      }
-@@ -1664,6 +1668,7 @@
-         nsresult rv = file->InitWithNativePath(path);
-         if (NS_FAILED(rv)) {
-             NS_RELEASE(file);
-+puts("fail newnativelocalfile");
-             return rv;
-         }
-     }
 Index: xpcom/obsolete/nsSpecialSystemDirectory.cpp
 ===================================================================
 RCS file: /cvsroot/mozilla/xpcom/obsolete/Attic/nsSpecialSystemDirectory.cpp,v
