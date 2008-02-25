@@ -12,14 +12,14 @@ mkdir -p $newsite/pkg
 mkdir -p $newsite/arm
 mkdir -p $newsite/src
 
-PDIR=$newsite/arm
+PDIR=./arm/
 if [ ! -d "$PDIR" ] ; then
   echo "build-website: Can't find package directory $PDIR"
   exit 1
 fi
 
 # Create package index
-$abdir/pkgindex $PDIR $newsite/pkg/autobuilt -u $PDIR -x -src.zip -x webinfo
+$abdir/pkgindex $PDIR $newsite/pkg/autobuilt -u ../arm/ -x -src.zip -x webinfo
 
 # Copy across static website pages
 #cp $abdir/toolsrc/pkgweb/staticpages/*.html $newsite
