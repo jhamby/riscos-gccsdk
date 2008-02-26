@@ -1,12 +1,14 @@
 AB_INSTALL=yes
 
 if [ "$AB_ELFBUILD" == "yes" ] ; then
-perl Configure --prefix=$GCCSDK_INSTALL_ENV arm-unknown-riscos no-threads no-shared no-idea no-mdc2 no-rc5
+  perl Configure --prefix=$GCCSDK_INSTALL_ENV arm-unknown-riscos no-threads no-shared no-idea no-mdc2 no-rc5
 else
-perl Configure --prefix=$GCCSDK_INSTALL_ENV riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5
+  perl Configure --prefix=$GCCSDK_INSTALL_ENV riscos-aof-arm no-threads no-shared no-idea no-mdc2 no-rc5
 fi
 
 
 ln -s ssl/ssl.pod doc/ssl.pod
 ln -s crypto/crypto.pod doc/crypto.pod
 ln -s apps/openssl.pod doc/openssl.pod
+
+AB_CONFIG='make depend'
