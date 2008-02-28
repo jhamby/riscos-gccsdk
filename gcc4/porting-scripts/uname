@@ -3,7 +3,11 @@
 case "$1" in
      "-m")
         echo "armv4l" ;;
-     "-s" | "")
+
+     "-s"|"")
         echo "RISCOS" ;;
+
+     "--version"|"--help")
+        /bin/uname $1
 esac
 

@@ -1,4 +1,9 @@
 
+* Wed Feb 27 19:23:33 PST 2008  Peter Naulls <peter@chocky.org>
+
+	* ro-config: Add CPP, RAWCPP variables, set sys/vfs.h available.
+	* uname: Add more flags.
+	
 * Thu Jan 17 16:24:54 PST 2008  Peter Naulls <peter@chocky.org>
 
 	* ro-pkg-config: Additional path for pkgconfig.
