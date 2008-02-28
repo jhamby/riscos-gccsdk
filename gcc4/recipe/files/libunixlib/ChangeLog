@@ -1,9 +1,16 @@
+Thu Feb 28 00:58:23 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* README: Added comment on Wimp_StartTask usage in threaded programs.
+	Updated description on build options.
+
 Sat Feb 16 07:05:37 PST 2008  Peter Naulls  <peter@chocky.org>
 
-	* include/stdio.h, stdio/putc.c: Change putc_unlocked to a declaration.  
-	  This works better with some code that gets confused when it's a #define.
+	* include/stdio.h, stdio/putc.c: Change putc_unlocked to a
+	declaration. This works better with some code that gets confused when
+	it's a #define.
 	* unix/setenv.c, unix/putenv.c: Make putenv works as advertised for
-	  setenv when handling RISC OS native variables as documented in the README.
+	setenv when handling RISC OS native variables as documented in the
+	README.
 
 Tue Jan 29 22:46:43 PST 2008  Peter Naulls  <peter@chocky.org>
 
