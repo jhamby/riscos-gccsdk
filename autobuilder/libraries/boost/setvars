@@ -22,6 +22,6 @@ echo "Using bjam: $BJAM"
 AB_CONFLAGS="--with-bjam=$BJAM --without-libraries=python --with-toolset=gcc --without-icu"
 
 ab_make() {
-  echo "using gcc : 4.1 : $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc -DBOOST_HAS_PTHREADS ;" > user-config.jam
+  echo "using gcc : 4.1 : $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc -I$GCCSDK_INSTALL_ENV/include -DBOOST_HAS_PTHREADS -DBOOST_HAS_GETTIMEOFDAY ;" > user-config.jam
   eval $AB_MAKE
 }
