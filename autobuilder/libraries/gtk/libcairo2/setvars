@@ -1,4 +1,7 @@
+AB_URL=http://cairographics.org/snapshots/cairo-1.5.12.tar.gz
+
 AB_INSTALL=yes
 
+export FONTCONFIG_LIBS="-lfontconfig -lfreetype -lexpat -lz"
 AB_CONFLAGS="--enable-xlib=yes --enable-png=yes --enable-freetype=yes --enable-ps=yes --enable-pdf=yes --enable-svg=yes"
 
