@@ -6,10 +6,10 @@ binutils 2.17 release, UnixLib 5.0 and libscl 2.0 into one directory which can
 be used to build a RISC OS cross-compiler and native RISC OS compiler with
 target 'arm-unknown-riscos'.
 
-We don't have GCC and binutils sources stored in our SVN server so you need
-to get those sources from their official repositories (see 2.1. how you can
-do that easily).  Only patches to those sources a full copies of new files
-are stored a source control managed.
+We don't have the GCC and binutils sources stored in our SVN server so you need
+to get those sources from their official repositories (see paragraph 2.1.,
+point 1 how you can do that easily).  Only patches to those sources and full
+copies of new files are stored in the gccsdk SVN repository.
 
 We expect that the current set of GCCSDK patches for GCC and binutils can
 be applied to later versions than GCC 4.1.1 and binutils 2.17 as is, or at
@@ -24,12 +24,14 @@ to get all GCCSDK specific development done for GCC 4.1.1 and binutils 2.17.
 The following is a non exhaustive list of programs which are needed to compile
 and work with GCCSDK on top of a typical recent standard Unix distribution:
 
+- automake v1.9.x (*no* other version than the latest in in 1.9.x series which
+  is currently 1.9.6, Debian package 'automake-1.9')
+- autoconf v2.59 (*no* other version)
+- autogen v5.5.4 (or later)
 - svn v1.2 or later (only to be used to checkout GCCSDK source code)
 - gcc v3.4.x or v4.x (other versions might work too)
 - make v3.81 (other versions might work too)
 - libtool v1.5.22 (other versions might work too)
-- automake v1.9 (no other version, Debian package 'automake-1.9')
-- autogen v5.8.8 (other versions might work too)
 - patch v2.5.9 (other versions might work too)
 - makeinfo v4.8 (package texinfo, other versions might work too)
 
@@ -39,8 +41,9 @@ When you want to run the gcc testsuite, you need at least:
 - Tcl
 - Expect
 
-Prerequisites for building GCC can be found at
+Other and more detailed prerequisites for building GCC can be found at
 <URL:http://gcc.gnu.org/install/prerequisites.html>.
+
 
 1. Checking out
 ~~~~~~~~~~~~~~~
@@ -53,53 +56,63 @@ To check out GCCSDK 4 build code:
 
 We have now in 'gcc4' directory the GCCSDK 4 code.
 
-1.1 Build everything
-~~~~~~~~~~~~~~~~~~~~
+
+2. Build and using cross compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 From inside the 'gcc4' directory run:
 
- ./build-world
+  $ ./build-world
 
 Follow the prompts as required, and rerun as noted when you are happy
-with the settings.  If it completes ok, then you will have completed 
-build of the cross compiler and porting tools, and you can jump to 
-step 2.2.
+with the settings written to the file 'gccsdk-params'.  If 'build-world'
+completes ok, then you will have completed build of the cross compiler and
+porting tools, and you can jump straight to step 3 "Using the cross compiler".
 
-
-2. Build steps
-~~~~~~~~~~~~~~
+2.1. Build setup
+~~~~~~~~~~~~~~~~
 
 What follows documents the more involved manual build prodecure. This
 might be required if you have problems with the build and need to 
-debug issues.   It is also relevant if you want to make improvements 
+debug issues. It is also relevant if you want to make improvements 
 to GCCSDK.
 
 Currently it is probably necessary to define LTCONFIG_VERSION as:
 
   $ export LTCONFIG_VERSION=1.4a-GCC3.0
 
+Note that if you have an up-to-date file 'gccsdk-params', you can simply do:
+
+  $ source gccsdk-params
+
+which not only defines LTCONFIG_VERSION but also GCCSDK_INSTALL_CROSSBIN
+and GCCSDK_INSTALL_ENV which will be needed later on.
+
 The build steps are the following:
 
 1. Build cross-compiler.
-2. Build the native RISC OS compiler and GCCSDK kit creation.
+2. Build the porting tools.
 
 People only interested in having the cross-compiler only need to do step 1
-and they might also be interested in executing "5. Porting tools" section
-mentioned below.
+and they might also be interested in the porting tools as well which ease
+porting existing programs using the cross-compiler.  Note that in order to
+use Autobuilder, you need to have the porting tools built.
 
-Build step 2 is only of interest for the GCCSDK developer or anyone else who
-want to (re)build the native RISC OS compiler himself.
+Building the native RISC OS compiler is very similar to building the
+cross-compiler and more details can be found in "4. Build the native RISC OS
+compiler" section.
 
-2.1. Build cross-compiler
+2.2. Build cross-compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The 'setup-gccsdk-params' file contains several definitions as environment
-variables which you can change if really desired.  Like with GCCSDK 3.4.6, we
+variables which aren't supposed to be changed.  Like with GCCSDK 3.4.6, we
 recommend setting up $GCCSDK_INSTALL_CROSSBIN which then can be used by
 'setup-gccsdk-params' files to determine where the cross-compiler will be
 installed during 'make install' (note: $GCCSDK_INSTALL_CROSSBIN actually
 specifies the pathname 'bin' subdirectory of the directory where the complete
-cross-compiler will be installed).
+cross-compiler will be installed).  GCCSDK_INSTALL_CROSSBIN is usually defined
+by the user file 'gccsdk-params' which you can simply source in your shell.
 
 1. As the GCC and binutils sources are not in SVN, you need a copy of those.
    Place an official GCC 4.1 release in 'orig.gcc' directory and official
@@ -129,10 +142,30 @@ cross-compiler will be installed).
    Note that 'build-it' can take some useful options, use -h option to have an
    option list.
 
+   The 'build-it' script does roughly the following:
+
+   1. Run 'configure' which will check the build systems for availability of
+      prerequisites and figure out the build options to use.  This configure
+      step will be done in several subdirectories of gcc/binutils/libunixlib/
+      ...
+   2. Run 'make'
+   3. Run 'make install' to install the successful built binaries
+   4. Move to 'srcdir/riscos' and call a similar named 'build-it' script to
+      build the RISC OS specific binaries.
+
    When the configuration part has been successfully done during ./build-it,
-   you can restart the build by:
+   you can restart the gcc/binutils/libunixlib/libscl specific build parts by:
 
      $ cd builddir-cross
+     $ make
+     $ make install
+
+   Instead of restarting the build with 'make' at the top-level, you can also
+   restart parts of the build by going to the appropriate subdirectory inside
+   builddir-cross and do 'make' followed by 'make install' there.  E.g. for
+   rebuilding libunixlib:
+
+     $ cd builddir-cross/arm-unknown-riscos/libunixlib
      $ make
      $ make install
 
@@ -143,8 +176,34 @@ cross-compiler will be installed).
      $ make CFLAGS_FOR_TARGET="-O3 -march=armv4" CXXFLAGS_FOR_TARGET="-O3 -march=armv4"
      $ make install
 
-2.2. Using the cross-compiler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+2.3. Build porting tools
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The files in the subdirectory 'porting-scripts' can help you to easily use the
+cross-compiler for porting of existing programs.  More information can be
+found in the 'PortingTools.html' file how this works.
+
+To install those scripts (This will have already been done in step 1.1):
+
+  1. Define GCCSDK_INSTALL_ENV as the directory where those porting scripts can
+     be installed.  E.g.:
+
+       $ export GCCSDK_INSTALL_ENV=/home/riscos/env
+
+     GCCSDK_INSTALL_CROSSBIN still needs to be defined where the cross-compiler
+     has been instaled (see above).
+
+  2. Run 'install-env':
+
+       $ ./install-env
+
+Note that the GCCSDK Autobuilder framework will use these porting-scripts in
+order to do its job, cfr. <URL:http://www.riscos.info/index.php/Using_GCCSDK>
+for more information.
+
+
+3. Using the cross-compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The cross-compiler can be used on its own.  The recommended way is to
 define the environment variable GCCSDK_INSTALL_CROSSBIN.
@@ -158,8 +217,8 @@ Then use it as you would the GCC compiler normally.
 GCCSDK_INSTALL_CROSSBIN is sometimes also used explicitly to access the
 GCCSDK cross-compiler.
 
-2.2.1. RISC OS filename compatibility issues for the cross-compiler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+3.1. RISC OS filename compatibility issues for the cross-compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Since the cross-compiler is built to execute on a Unix-like file system,
 it expects file naming conventions particular to that operating system.
@@ -168,19 +227,22 @@ makes use of some RISC OS pathname features, the pre-processor has been
 fixed to cope with path variable names in file names.
 
 When the pre-processor attempts to read an include statement like:
+
   #include <DeskLib:Wimp.h>
+
 it will try to resolve the DeskLib reference against the environment variable
 DESKLIB_PATH.  So you could install the DeskLib header files in a place
 such as /home/riscos/env/include/DeskLib.  To get GCC to search in that
 directory for those headers, simply define the variable:
+
   $ export DESKLIB_PATH=/home/riscos/env/include/DeskLib
 
 The xxx_PATH environment variable is in fact a search path containing one
 or more directories separated by a comma where the part after "xxx:" in
 the #include line is being searched for.
 
-2.2.2. Throwback
-~~~~~~~~~~~~~~~~
+3.2. Throwback
+~~~~~~~~~~~~~~
 
 When used in conjuction with the SysLogD module, the cross-compiler can
 produce throwback messages on a RISC OS machine when cross-compiling on
@@ -190,23 +252,32 @@ compiler was running on the RISC OS machine. It can also be used if the
 cross-compiler is invoked by distcc.
 
 To use throwback:
+
 - On RISC OS install the SysLogD module and set up a mappings file as
   described in its help file (see riscos/syslogd/ReadMe).
 - On the machine running the cross-compiler, set the THROWBACK_HOST
   environment variable to the hostname or IP address of the RISC OS machine.
   Add -mthrowback to the compiler command line.
 
-2.3. Build the native RISC OS compiler
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+4. Build the native RISC OS compiler
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The native RISC OS compiler and associated programs like the ELF loader (part
 of !DSO-libs) are built using the previously built cross-compiler.  It is
 using the same 'build-it' script with "riscos" instead of "cross" as argument.
+The intermediate build results are stored in 'builddir-riscos' instead of
+'builddir-cross'.
 
    $ ./build-it riscos > build-output.txt 2>&1
 
 Note that 'build-it' can take some useful options, use -h option to have an
 option list.
+
+If you want to restart the native RISC OS compiler build, you need to ensure
+that the cross-compiler can be found in your path, so you can do:
+
+   $ PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
 
 The RISC OS GCC release consists of several kits.  These are prepared using:
 
@@ -219,7 +290,7 @@ files.  This packaging in zip files happens by:
    $ ./create-gcckit -pkg
 
 
-3. Developing GCCSDK
+5. Developing GCCSDK
 ~~~~~~~~~~~~~~~~~~~~
 
 Developer changes can and should first be done in 'srcdir' directory and you
@@ -252,7 +323,7 @@ Don't forget to do a 'svn add recipe/...' when it concerns a new patch file or
 a new file inside recipe/files or recipe/scripts.
 
 
-4. Testing
+6. Testing
 ~~~~~~~~~~
 
 After building the cross-compiler you can run the GCC testsuite.  This can be
@@ -281,50 +352,7 @@ More information on running GCC testsuite can be found at
 <URL:http://gcc.gnu.org/install/test.html>.
 
 
-5. Porting tools
-~~~~~~~~~~~~~~~~
-
-The files in the subdirectory 'porting-scripts' can help you to easily use the
-cross-compiler for porting of existing programs.  More information can be
-found in the 'PortingTools.html' file how this works.
-
-To install those scripts (This will have already been done in step 1.1):
-
-  1. Define GCCSDK_INSTALL_ENV as the directory where those porting scripts can
-     be installed.  E.g.:
-
-       $ export GCCSDK_INSTALL_ENV=/home/riscos/env
-
-  2. GCCSDK_INSTALL_CROSSBIN still needs to be defined where the cross-compiler
-     has been instaled (see above).
-
-  3. Run 'install-env':
-
-       $ ./install-env
-
-Note that the GCCSDK Autobuilder framework will use these porting-scripts in
-order to do its job, cfr. <URL:http://www.riscos.info/index.php/Using_GCCSDK>
-for more information.
-
-[ vvv Only temporary vvv ]
-Some GCCSDK Autobuilder projects still have AOF based assembler and currently
-the best way to handle these (and remain GCCSDK 3.4.6 compatible until GCCSDK
-4.x is completely selfhosting) is to temporary use GCCSDK 3.4.6 and instructing
-its assembler to write ELF output instead of AOF.  This requires:
-
-  1. Building GCCSDK 3.4.6 in gccsdk/gcc cross-compiler ('make build-cross')
-     using the same GCCSDK_INSTALL_CROSSBIN as above.
-  2. Rename the GCCSDK 3.4.6 binaries using 'move-3-4-6-away' (actually they
-     get prefixed with 'arm-riscos-aof-'.
-  3. AOF assembler based project need to use in their Makefile:
-
-       AS = $(GCCSDK_INSTALL_CROSSBIN)/arm-riscos-aof-gcc
-       ASFLAGS = -Wa,-elf,-ILibraries,-I$(@D) -c
-
-     It is advised to do this only when AB_ELFBUILD is defined as "yes".
-[ ^^^ Only temporary ^^^ ]
-
-6. Credits
+7. Credits
 ~~~~~~~~~~
 
 The initial static ELF RISC OS work for GCC 4.1 was done by Nick Burrett (Jun
@@ -349,5 +377,5 @@ important contributions from many people in the original GCC 3.x GCCSDK;
 in particular, endless improvements to UnixLib which made it practical to
 run a wide range of software on RISC OS.  See those versions for full details.
 
-Copyright (c) 2005, 2006, 2007 GCCSDK Developers
+Copyright (c) 2005, 2006, 2007, 2008 GCCSDK Developers
 <URL:http://gccsdk.riscos.info/>
