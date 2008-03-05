@@ -102,7 +102,7 @@
 
 <p>For further examples of compilation procedures, please look at <a href="../Examples">`Examples' inside !GCC</a>.
 
-<h4>1.3. More advanced compiliations</h4>
+<h4>1.3. More advanced compilations</h4>
 
 <h5>1.3.1. SharedCLibrary</h5>
 
@@ -124,7 +124,7 @@
 
 <p>Each RISC&nbsp;OS module needs a module header which can be created using CMunge. See <a href="cmunge">CMunge documentation</a> for more information.  CMunge can also be used to create veneer code acting as glue code for RISC&nbsp;OS callbacks into your C/C++ coded module.
 
-<p>Modules often have their data (Messages, Sprites, etc) stored in ResourceFS. <a href="mkresfs">mkresfs</a> can be used to create a C file representing the intended ResourceFS data allowing easy (de)registration with ResourceFS. In GCCSDK 3.4 this functionality was covered with the 'resgen' program but as its code was very thightly AOF based, a new program (and approach) was chosen.
+<p>Modules often have their data (Messages, Sprites, etc) stored in ResourceFS. <a href="mkresfs">mkresfs</a> can be used to create a C file representing the intended ResourceFS data allowing easy (de)registration with ResourceFS. In GCCSDK 3.4 this functionality was covered with the 'resgen' program but as its code was very tightly AOF based, a new program (and approach) was chosen.
 
 <h5>1.3.3. Static UnixLib</h5>
 
@@ -149,15 +149,15 @@
 <dt>-S
   <dd>Compile the source to assembler code
 <dt>-E
-  <dd>Preprocess the source file
+  <dd>Pre-process the source file
 <dt>-o &lt;file&gt;
   <dd>Put the resulting output into &lt;file&gt;
 <dt>-O
-  <dd>Apply some optimisations to the output
+  <dd>Apply some optimizations to the output
 <dt>-O2
-  <dd>Apply full optimisation.
+  <dd>Apply full optimization.
 <dt>-O3
-  <dd>Full optimisation and inline small functions as well.
+  <dd>Full optimization and inline small functions as well.
 </dl>
 
 <h5>1.4.2. ARM specific switches</h5>
@@ -201,13 +201,13 @@
     <p>From GCCSDK 4 onwards we don't have any APCS-R support and made the switches -mapcs-32 and -mapcs-26 obsolete.
 <dt>-mamu
 <dd>Generates the file !Depend which contains a list of all the source files that the produced object depends on. This is intended for use with Acorn's Make Utility (AMU), which edits the makefile to include these after the '# Dynamic Dependencies' line.
-    <p>The use of GNU make is prefered as it allows to write more expressive Makefiles and ensures a better compatibility with or require less differences than Makefiles for cross-compiling.
+    <p>The use of GNU make is preferred as it allows to write more expressive Makefiles and ensures a better compatibility with or require less differences than Makefiles for cross-compiling.
 <dt>-mclient-static-data-offset (default)
 <dd>Only relevant when compiling a RISC&nbsp;OS module (option -mmodule set). This specifies to use the client static data offset (at sl-536) instead of the library static data offset (sl-540).
-    <p>The -mclient-static-data-offset and -mlibrary-static-data-offset switchs are mutually exclusive.
+    <p>The -mclient-static-data-offset and -mlibrary-static-data-offset switches are mutually exclusive.
 <dt>-mlibrary-static-data-offset
 <dd>Only relevant when compiling a RISC&nbsp;OS module (option -mmodule set). This specifies to use the library static data offset (at sl-540) instead of the client static data offset (sl-536).  This is only to be used in very rare cases.
-    <p>The -mclient-static-data-offset and -mlibrary-static-data-offset switchs are mutually exclusive.
+    <p>The -mclient-static-data-offset and -mlibrary-static-data-offset switches are mutually exclusive.
 </dl>
 
 <h4>1.5. Binary configurations</h4>
@@ -237,16 +237,16 @@
 <dt>__ELF__
 <dd>Always defined as GCCSDK 4 is now ELF based.
 <dt>__SOFTFP__
-<dd>Defined when soft-float routines are used in the to be generated code in contrast with using floating point (FP) instructions. FP instructions will be used when the SharedCLibrary runtime library is selected (switch -mlibscl and/or -mmodule is selected).  When UnixLib runtime library is used, by default soft-float routins are used unless you have -mhard-float specified.
+<dd>Defined when soft-float routines are used in the to be generated code in contrast with using floating point (FP) instructions. FP instructions will be used when the SharedCLibrary runtime library is selected (switch -mlibscl and/or -mmodule is selected).  When UnixLib runtime library is used, by default soft-float routines are used unless you have -mhard-float specified.
 <dt>__TARGET_SCL__
 <dd>Defined when targeting the SharedCLibrary runtime library, i.e. when -mlibscl or -mmodule switches are supplied.
 <dt>__TARGET_MODULE__
 <dd>Defined when module code is being generated, i.e. when -mmodule switch is supplied.
 <dt>__TARGET_UNIXLIB__
-<dd>Defined when targeting the UnixLib runtime library, i.e. when -mlibscl nor -mmodule switchs are supplied (as -munixlib is default switch).
+<dd>Defined when targeting the UnixLib runtime library, i.e. when -mlibscl nor -mmodule switches are supplied (as -munixlib is default switch).
 </dl>
 
-<p>GCCSDK 3 defines the predefine __aof__ which is no longer the case in GCCSDK 4 as it is now fully ELF based. So this can be used to distingues between AOF and ELF compilations.
+<p>GCCSDK 3 defines the predefine __aof__ which is no longer the case in GCCSDK 4 as it is now fully ELF based. So this can be used to distinguish between AOF and ELF compilations.
 
 <p>More common predefines are documented in the section "Common Predefined Macros" of the <a href="gcc/cpp/index.html">GNU C preprocessor manual</a>.
 
@@ -375,13 +375,13 @@ mylabel2:
 <pre>
 *gcc -o myapp object1.o object2.o OSLib:o.OSLib32
 </pre>
-      <p>which links the object1.o and object2.o object files with the RISC&nbsp;OS OSLib library found as OSLib:o.OSLib32.  The binutils' linker needs to have its libraries specified with '-l' option and further assumes that all libraries filenames on disc start with 'lib' (but omited when specified) and have an 'a' extension instead of 'o' which was usually used in pre-GCCSDK 4 projects.  Also it is prefered to specify the directory where the library can be found using an extra option '-L' (in fact, this specifies an additional search directory for the '-l' libraries). So above example needs to be changed for GCCSDK 4 as:
+      <p>which links the object1.o and object2.o object files with the RISC&nbsp;OS OSLib library found as OSLib:o.OSLib32.  The binutils' linker needs to have its libraries specified with '-l' option and further assumes that all libraries filenames on disc start with 'lib' (but omited when specified) and have an 'a' extension instead of 'o' which was usually used in pre-GCCSDK 4 projects.  Also it is preferred to specify the directory where the library can be found using an extra option '-L' (in fact, this specifies an additional search directory for the '-l' libraries). So above example needs to be changed for GCCSDK 4 as:
 <pre>
 *gcc -o myapp object1.o object2.o -LOSLib: -lOSLib32
 </pre>
       <p>and this with the file "libOSLib32/a" stored in the directory defined by the 'OSLib:' path. Note we don't do suffix swapping for 'a' extensions. Of course, it is expected that ELF releases of libraries already have the 'lib' prefix and '/a' extension of the library filename.
 
-  <li>APCS-R / APCS-32 : when option '-mapcs-32' is used, you have to remove this from the command line as this is default now and there isn't any APCS-R support forseen.  When your project is still APCS-R, you need to drag it into the 21st centurary and make it APCS-32.  When you don't have any assembler code in your project, this is just a matter of recompiling your project.
+  <li>APCS-R / APCS-32 : when option '-mapcs-32' is used, you have to remove this from the command line as this is default now and there isn't any APCS-R support foreseen.  When your project is still APCS-R, you need to drag it into the 21st century and make it APCS-32.  When you don't have any assembler code in your project, this is just a matter of recompiling your project.
 
   <li>Softfloat &amp; hardfloat: the default configuration is now softfloat which means that there is no use of floating point instructions which are most of times emulated with a significant overhead. The floating point implementation is done using built-in library support not requiring the FPEmulator module in RISC&nbsp;OS.
       <p>This change has hardly any effect on your project when you migrate to GCCSDK 4 except for the improved runtime speed for floating point intensive code.
@@ -389,7 +389,7 @@ mylabel2:
 
 <h4>1.8. Distributing your programs</h4>
 
-<p>When you want to distribute your compiled program it might be necessary to accompagn it with an ELF loader and possibly also a set of shared libraries used by your program. This is not necessary when your program is using SharedCLibrary as runtime library, i.e. when your program is an Absolute (filetype &amp;ff8) file with AIF header or a RISC&nbsp;OS module (filetype &amp;ffa).
+<p>When you want to distribute your compiled program it might be necessary to accompany it with an ELF loader and possibly also a set of shared libraries used by your program. This is not necessary when your program is using SharedCLibrary as runtime library, i.e. when your program is an Absolute (filetype &amp;ff8) file with AIF header or a RISC&nbsp;OS module (filetype &amp;ffa).
 
 <p>The ELF loader and the default set of shared libraries (UnixLib, libgcc and the dynamic loader) are bundled in the form of the !DSO-libs application. In the <a href="http://www.riscos.info/downloads/gccsdk/latest/">download area of the GCCSDK website</a> there is separate 'core' !DSO-libs ZIP file available (also containing a !System holding the most recent modules required by UnixLib) which can be downloaded by the users of your program. In case your program is a C++ program, an additional 'g++' !DSO-libs ZIP needs to be downloaded and its contents copied on top of the 'core' !DSO-libs application as this will add the necessary C++ shared libraries.
 
@@ -423,12 +423,11 @@ mylabel2:
     <p>This is caused by insufficient memory memory and can be fixed by increasing the wimpslot to similar values as above.
 </ul>
 
-<h3>2. Known issues</h3>
+<h3>2. Known issues or unsupported GCCSDK 3.4.6 features</h3>
 
 <p>List of known problems or missing features compared to GCCSDK 3.4.6:
 <ul>
   <li>native RISC&nbsp;OS build: not all RISC&nbsp;OS specific option are implemented yet, like -mamu, -mlibrary-static-data-offset, -mclient-static-data-offset.
-  <li>native RISC&nbsp;OS build: not all recent GCCSDK 3.4.6 bug fixes concerning -mthrowback and RISC&nbsp;OS file path handling have been merged through.
   <li>native RISC&nbsp;OS build: option -mpoke-function-name is default set while it in GCCSDK 3.4 it was by default unset.
   <li>libscl: the GCCSDK support code in libscl is not yet fully enabled as libscl requires some cleanup first and have support for network API builtin.
   <li>libscl: no C++ support
@@ -457,7 +456,7 @@ mylabel2:
   <li><a href="gcc/cpp/index.html">GNU C preprocessor</a>
   <li><a href="as/index.html">GNU assembler as</a>
   <li><a href="ld/index.html">GNU linker ld</a>
-  <li><a href="binutils/index.html">BNU Binary Utilities</a>: a large set of utilities for creating, inspecting and modifying binary object files.
+  <li><a href="binutils/index.html">GNU Binary Utilities</a>: a large set of utilities for creating, inspecting and modifying binary object files.
   <li><a href="libiberty/libiberty.html">GNU libiberty</a>: a collection of subroutines used by various GNU programs. It is available under the Library General Public License.
 </ul>
 
