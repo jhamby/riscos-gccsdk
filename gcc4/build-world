@@ -19,7 +19,7 @@ GCCSDK_ROOT=`pwd`
 for tool in \
   gcc make libtool automake-1.9 autogen patch makeinfo ; do
 
-  if ! which $tool >/dev/null 2>&1 ; then
+  if ! type $tool >/dev/null 2>&1 ; then
     echo "'$tool' couldn't be found.  This needs to be installed for GCCSDK".
     exit 1
   fi
@@ -42,5 +42,5 @@ fi
 
 ./install-env
 
-echo "Built and installed GCCSDK ok.  Check out the README for examples of how to use the cross compiler or autobuilder"
+echo "Built and installed GCCSDK cross compiler ok.  Check out the README for examples of how to use the cross compiler or autobuilder"
 
