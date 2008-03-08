@@ -58,6 +58,10 @@ ab_create_command_app() {
   local app=$1
   local section=$2
 
+  if [ -z "$AB_CATEGORY" ] ; then
+    AB_CATEGORY=$section
+  fi
+
   A=$D/$section/\!$app/
   AA=$app
   mkdir -p $A
