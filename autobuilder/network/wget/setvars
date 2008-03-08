@@ -2,7 +2,6 @@
 AB_CATEGORY=Network
 
 AB_CONFLAGS=--without-ssl
-#AB_MANPAGE=doc/wget.1
 AB_COPYSOURCE=yes
 
 ab_package() {

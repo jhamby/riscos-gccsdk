@@ -1,8 +1,13 @@
-AB_CATEGORY=Network
 
 AB_PRECONF=:
-AB_MANPAGE=whois.1
+AB_LICENCE=GPLv2
 
 ab_package() {
-  cp -av $S/whois$AB_EXEEXT $D
+ ab_create_command_app whois Apps/Network
+ ab_add_commands $S/*$AB_EXEEXT
+
+ cp $S/COPYING $A/
+ rman -f HTML $S/whois.1 > $A/\!Help,faf
+
+ $AB_HOME/add-riscpkg -unixlib
 }
