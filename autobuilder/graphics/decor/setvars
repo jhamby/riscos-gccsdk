@@ -1,0 +1,12 @@
+
+AB_CATEGORY=Graphics
+AB_NOREMOTE=yes
+AB_PVERSION=1.40
+
+cp -av $H/\!Decor $S/$'!D\xE9cor/'
+cp -av $H/Decor.c $H/Makefile $S
+
+ab_package() {
+  cp -av $S/$'!D\xE9cor/' $D
+}
+
