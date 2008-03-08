@@ -1,12 +1,14 @@
 
-AB_CATEGORY=Network
-
 export ac_cv_func_pthread_cancel=no
 
-AB_MANPAGE=debian/iperf.1
-
 ab_package() {
-  cp -av $S/src/iperf$AB_EXEEXT $D
+ ab_create_command_app iperf Apps/Network
+ ab_add_commands $S/src/*$AB_EXEEXT
+
+ cp -av $S/doc/index.html $A/\!Help,faf
+ cp -av $S/doc/*.gif $S/doc/ui_license.html $A/
+
+ $AB_HOME/add-riscpkg -unixlib
 }
 
 
