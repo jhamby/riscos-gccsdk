@@ -1,11 +1,15 @@
 AB_INSTALL=yes
-AB_CATEGORY=Command
+AB_ZIPNAME=bzip2
 
 AB_PRECONF=:
 
 
 ab_package() {
-  mkdir -p $D/manual
-  cp -av $S/*.html $S/README $D/manual/
-  cp $S/bzip2$AB_EXEEXT $S/LICENSE $D
+  cp -f $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT
+  ab_create_command_app bzip2 Apps/Utilities
+  ab_add_commands $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT $S/bzip2recover$AB_EXEEXT
+
+  mkdir -p $A/docs
+  cp -av $S/*.html $A/\!Help,faf
+  cp -av $S/README $S/LICENSE $A/docs/
 }
