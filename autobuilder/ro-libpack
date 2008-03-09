@@ -23,7 +23,7 @@ echo "RO libpack: Running install target: $AB_INSTALLTARGET"
 PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
 
 # Check for bogus package conditions
-pushd .
+pushd . > /dev/null
 cd $AB_DIR/package
 
 # Don't package any binaries
@@ -46,7 +46,7 @@ for file in $files ; do
   fi
 done
 
-popd
+popd > /dev/null
 
 if [ ! -z "$AB_INSTALLDOCS" ] ; then
   for file in $AB_INSTALLDOCS ; do
