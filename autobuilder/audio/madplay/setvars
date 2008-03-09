@@ -1,8 +1,8 @@
 
-AB_CATEGORY=audio
-
-AB_MANPAGE=madplay.1
-
 ab_package () {
-  cp $S/madplay$AB_EXEEXT $D
+ ab_create_command_app Madplay Apps/Audio
+ ab_add_commands $S/*$AB_EXEEXT
+
+ rman -f HTML $S/madplay.1 > $A/\!Help,faf
+ cp -av $S/COPYING $A/
 }

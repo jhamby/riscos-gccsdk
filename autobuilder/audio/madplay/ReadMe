@@ -10,9 +10,7 @@ emulates the /dev/dsp OSS system found on Linux.
 Installation
 ------------
 
-madplay can be placed anywhere, but putting it in your Run$Path such as
-in the !Boot Library directory will make it easily accessable.
-
+Drag !Madplay anywhere, and double-click to add the command alias.
 
 Usage
 -----
@@ -28,7 +26,6 @@ controls for volume and pausing.
 Support
 -------
 
-Part of the Unix Porting Project: http://www.chocky.org/unix/
-Support is only available to subscribers to the project.
+From riscos.info : http://www.riscos.info/
 
-Contact: unix@chocky.org
+Contact: peter@chocky.org
