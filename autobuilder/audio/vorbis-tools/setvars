@@ -1,15 +1,20 @@
 
-AB_CATEGORY=Audio
 AB_CONFLAGS="--enable-vcut=yes"
 
-AB_MANPAGE="ogg123/ogg123.1 oggenc/man/oggenc.1 oggdec/oggdec.1 \
-                ogginfo/ogginfo.1 vcut/vcut.1 \
-                vorbiscomment/vorbiscomment.1"
+#AB_MANPAGE="ogg123/ogg123.1 oggenc/man/oggenc.1 oggdec/oggdec.1 \
+#                ogginfo/ogginfo.1 vcut/vcut.1 \
+#                vorbiscomment/vorbiscomment.1"
 
 ab_package() {
-  cp $S/ogg123/ogg123$AB_EXEEXT $S/oggenc/oggenc$AB_EXEEXT $S/oggdec/oggdec$AB_EXEEXT \
-     $S/ogginfo/ogginfo$AB_EXEEXT $S/vcut/vcut$AB_EXEEXT \
-     $S/vorbiscomment/vorbiscomment$AB_EXEEXT COPYING $D
+  ab_create_command_app vorbis-tools Apps/Audio
+  ab_add_commands \
+    $S/ogg123/ogg123$AB_EXEEXT $S/oggenc/oggenc$AB_EXEEXT \
+    $S/oggdec/oggdec$AB_EXEEXT $S/ogginfo/ogginfo$AB_EXEEXT \
+    $S/vcut/vcut$AB_EXEEXT $S/vorbiscomment/vorbiscomment$AB_EXEEXT
+
+  cp -av $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib
 }
 
 echo "distclean:" > debian/Makefile
