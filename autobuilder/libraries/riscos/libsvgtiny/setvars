@@ -1,0 +1,6 @@
+AB_SVN=svn://semichrome.net/trunk/libsvgtiny/
+AB_ZIPNAME=libsvgtiny-svn-$(date +%Y%m%d)
+
+AB_MAKE="$AB_MAKE TARGET=riscos EXEEXT=$AB_EXEEXT"
+
+AB_INSTALL=no
