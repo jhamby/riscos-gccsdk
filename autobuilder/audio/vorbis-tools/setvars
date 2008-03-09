@@ -1,5 +1,6 @@
 
-AB_CATEGORY=audio
+AB_CATEGORY=Audio
+AB_CONFLAGS="--enable-vcut=yes"
 
 AB_MANPAGE="ogg123/ogg123.1 oggenc/man/oggenc.1 oggdec/oggdec.1 \
                 ogginfo/ogginfo.1 vcut/vcut.1 \
@@ -10,3 +11,6 @@ ab_package() {
      $S/ogginfo/ogginfo$AB_EXEEXT $S/vcut/vcut$AB_EXEEXT \
      $S/vorbiscomment/vorbiscomment$AB_EXEEXT COPYING $D
 }
+
+echo "distclean:" > debian/Makefile
+
