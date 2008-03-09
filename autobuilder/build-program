@@ -59,7 +59,7 @@ ab_create_command_app() {
   local section=$2
 
   if [ -z "$AB_CATEGORY" ] ; then
-    AB_CATEGORY=$section
+    AB_CATEGORY=$(sed s#^Apps/## <<<$section)
   fi
 
   A=$D/$section/\!$app/
