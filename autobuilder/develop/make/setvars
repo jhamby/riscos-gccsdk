@@ -1,11 +1,13 @@
-AB_CATEGORY=cli
+AB_CATEGORY=App/Develop
 
 AB_PRECONF="CFLAGS=\"-DNO_ARCHIVES -DSYS_SIGLIST_DECLARED -O2\""
 
-AB_MANPAGE="make.1"
-
 ab_package() {
-  cp $S/make$AB_EXEEXT COPYING $D
-  #( cd $S ; make html )
-  #cp -r $S/doc/make $D/doc
+  mkdir -p $D/$AB_CATEGORY/\!GCC/bin/
+  mkdir -p $D/$AB_CATEGORY/\!GCC/doc/
+
+  cp $S/make$AB_EXEEXT $D/$AB_CATEGORY\/!GCC/bin/
+  rman -f HTML $S/make.1 > $D/$AB_CATEGORY/\!GCC/doc/make.html,faf
+
+  $AB_HOME/add-riscpkg -unixlib
 }
