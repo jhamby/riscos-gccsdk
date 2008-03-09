@@ -406,13 +406,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
    fi
 
    if [ -e $H/ReadMe ] ; then
-     AB_UNDER=$(echo $AB_PACKAGE | tr [:alnum:] =)
-
-     sed "s/PACKAGE/$AB_PACKAGE/; s/XXXXXXX/$AB_UNDER/; s/VERSION/$AB_PVERSION/; s/RELEASE/$AB_ROVERSION/" \
-       < $AB_HOME/header \
-       > $D/ReadMe
-
-     cat $H/ReadMe >> $D/ReadMe
+     cp $H/ReadMe $D/ReadMe
 
      if [ "$AB_README" != "ReadMe" ] ; then
        mv $AB_DIR/ReadMe $AB_README
