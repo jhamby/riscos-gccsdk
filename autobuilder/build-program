@@ -14,7 +14,6 @@ AB_PRECONF=
 AB_INSTALL=no
 AB_CATEGORY=
 export AB_ZIPNAME=
-AB_README=ReadMe
 AB_COPYSOURCE=
 AB_DISTCLEAN=
 AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
@@ -403,14 +402,6 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
    # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
    if [ -e $AB_ZIP ] ; then
      rm $AB_ZIP
-   fi
-
-   if [ -e $H/ReadMe ] ; then
-     cp $H/ReadMe $D/ReadMe
-
-     if [ "$AB_README" != "ReadMe" ] ; then
-       mv $AB_DIR/ReadMe $AB_README
-     fi
    fi
 
    # This will not add files beginning with a dot
