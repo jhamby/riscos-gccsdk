@@ -1,13 +1,22 @@
 
-AB_CATEGORY=Command
-
 AB_PRECONF="CFLAGS=\"-I$GCCSDK_INSTALL_ENV/include -O2 -D_USE_BSD\""
 AB_CONFLAGS="--disable-elf --disable-elf-core"
 
-AB_PREZIP="mkdir -p \!UnixHome/home; cp magic/magic \!UnixHome/home/.magic; "
+ab_package() {
+  ab_create_command_app file Apps/Utilities
+  ab_add_commands $S/src/*$AB_EXEEXT
 
-AB_FILESNOPATH="src/file$AB_EXEEXT LEGAL.NOTICE"
-AB_FILESPATH="!UnixHome"
-AB_MANPAGE=doc/file.1
+  rman -f HTML $S/doc/file.1 > $A/\!Help,faf
 
+  cp -av $S/README $S/LEGAL.NOTICE $A
+  mkdir $A/files/
+  cp -av $S/magic/magic $S/magic/magic.mime $A/files
+  cp -av $S/magic/*.mgc $A/files
+
+  echo "" >> $A/\!Boot,feb
+  echo "Set file\$Path <Obey\$Dir>." >> $A/\!Boot,feb
+  echo "Set UnixEnv\$MAGIC file:/files/magic" >> $A/\!Boot,feb
+
+  $AB_HOME/add-riscpkg -unixlib
+}
 

@@ -1,31 +1,23 @@
---- src/file.c.orig	2003-05-18 22:06:21.000000000 +0100
-+++ src/file.c	2003-05-18 21:06:22.000000000 +0100
-@@ -73,6 +73,10 @@
+--- src/file.c.orig	2008-03-09 17:58:06.000000000 -0700
++++ src/file.c	2008-03-09 17:59:56.000000000 -0700
+@@ -68,6 +68,11 @@
  
  #include <netinet/in.h>		/* for byte swapping */
  
 +#ifdef __riscos__
 +#include <unixlib/local.h>
++int __feature_image_fs_is_file = 1;
 +#endif
 +
  #include "patchlevel.h"
  
  #ifndef	lint
-@@ -165,6 +169,7 @@
- 	};
- #endif
- 
-+
- #ifdef LC_CTYPE
- 	setlocale(LC_CTYPE, ""); /* makes islower etc work for other langs */
- #endif
-@@ -295,6 +300,11 @@
+@@ -326,6 +331,10 @@
  		break;
  	}
  
 +#ifdef __riscos__
-+       __riscosify_control = __RISCOSIFY_NO_PROCESS;
-+       __feature_imagefs_is_file = 1;
++       __set_riscosify_control(__RISCOSIFY_NO_PROCESS);
 +#endif
 +
  	if (optind == argc) {
