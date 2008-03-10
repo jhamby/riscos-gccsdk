@@ -87,10 +87,6 @@
 # with the same name as the package name specified in the variable.
 #AB_PACKAGES=
 
-# Name ReadMe should be zipped as.  For example, !Program/!Help,fff
-# Don't forget to escape '!' in bash.
-#AB_README=ReadMe,fff
-
 # Copy sources into library packages or produce a source zip
 # file for other packages "yes" or "no"
 # If left blank it will copy the sources if the file COPYING exists
