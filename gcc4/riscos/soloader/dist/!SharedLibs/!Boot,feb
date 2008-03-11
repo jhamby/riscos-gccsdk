@@ -1,0 +1,11 @@
+| !SharedLibs.!Boot
+
+IconSprites <Obey$Dir>.!Sprites
+
+If "<SharedLibs$Path>" = "" Then Set Alias$SOMRun Error Shared Object Manager is not loaded. Please ensure !SharedLibs has been run.|m %echo %*0 { > null: }
+
+Set File$Type_E1F ELF
+
+If "<Alias$@RunType_E1F>"="" Then Set Alias$@RunType_E1F SOMRun %%*0
+
+Set File$Type_1C8 Symlink

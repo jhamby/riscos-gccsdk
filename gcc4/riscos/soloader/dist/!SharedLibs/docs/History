@@ -1,0 +1,78 @@
+History
+-------
+V1.03
+24/8/06
+	Fixed bug in module that caused crash on IYONIX pc and later versions
+	of RISC OS 4 (SWI handler corrupted r9).
+V1.02
+21/7/06
+	Altered documentation to reflect change to ELF GCC V3.4.6 which
+	makes explicit use of -fPIC at link time unnecessary.
+V1.01
+1/6/06
+ld-1.9.9.so
+	Somewhere between binutils 2.15 and 2.16.1 the visibility of the
+	symbol _GLOBAL_OFFSET_TABLE_ apparently changed which the dynamic
+	loader used to find the public GOT of the dependant libraries.
+	After wasting a lot of time trying to figure how, I decided to
+	change the dynamic loader to use a different method.
+1/1/06
+module/so-module.s
+	Fixed bug in SOM_IterateObjects that returned a non NULL handle after
+	the last object.
+	Fixed bug that allowed the same client to be deregistered more than
+	once.
+	
+9/12/05
+module/so-module.s
+	Moved cached values from module memory to client memory to prevent
+	clashes between tasks running at same time.
+	
+	Fixed bug that shows expiry pending when library still in use.
+V1.00
+19/11/05
+	Official filetype of &1C8 used for symlink files.
+	Added *SOMExpire.
+	Added expiry time to *SOMStatus display.
+
+12/11/05
+	Fixed expiry bugs in SOManager.
+
+6/11/05
+static/main.s
+	Fixed bug that caused crash with empty LD$Env.
+
+23/10/05
+static/main.s
+	Do not look for default loader - return error if requested loader is
+	not found.
+	
+7/10/05
+	Switch to official SWI chunk 0x58580.
+	
+V0.04
+21/8/05
+dynamic/ld.so-1.9.9/d-link/boot1.c
+	The DT_INIT functions of the shared libraries cannot be called by
+	the dynamic loader as UnixLib has not been initialised. This means
+	that, for example, malloc and stdio cannot be used in global object
+	constructors. To overcome this, the code in the dynamic loader
+	responsible for calling the DT_INIT functions is moved to a separate
+	function that can be called from crt1.o at the correct time.
+
+modules/main.s
+	SOManager now refuses to quit if there are still clients using it.
+	
+	Improved *SOMStatus display.
+V0.03
+30/7/05
+rt_lib/_rt_loadpic.s
+	Changed visibility of symbol __rt_load_pic to hidden to prevent it
+	being visible outside each library.
+
+28/7/05
+	SOManager no longer responsible for loading dynamic loader at
+	initialisation. Static loader now responsible for registering client,
+	loading dynamic loader (as requested by program) and registering
+	loader.
+V0.02 

@@ -1,0 +1,6 @@
+Installation
+------------
+!SharedLibs can be placed anywhere on the harddrive,
+but must be run in order for GCC and the
+static/dynamic loaders to be able to find the
+shared libraries.
