@@ -108,7 +108,7 @@ added to Unixlib and the static/dynamic loaders. A utility to create these
 symlinks is supplied.
 
 Note that it is not mandatory to use the naming convention described above,
-libraries can simply be called lib<name>/so and placed in !DSO-libs.lib,
+libraries can simply be called lib<name>/so and placed in !SharedLibs.lib,
 however, this is not very flexible.
 
 Compiling code for dynamically linked executable
@@ -128,7 +128,7 @@ required library is found then GCC will default to dynamic linking. On the other
 hand, if only archive (static) libraries are available, then GCC will default to
 static linking. If static linking is required regardless of what libraries are
 available, then this can be forced using the -static option. The shared versions
-of the runtime libraries are stored in !DSO-libs and this must have been run so
+of the runtime libraries are stored in !SharedLibs and this must have been run so
 that GCC can see them.
 
 C++ code
@@ -217,7 +217,7 @@ relocation and will reject it causing the program to fail with an error similar
 to:
 
 <program name>: Text relocation of data symbol 'xyz' found:
- DSOLib:lib.xyz/so/1 (offset 0x63C0)
+ SharedLibs:lib.xyz/so/1 (offset 0x63C0)
 
 The error tells you which library contained the offending relocation and the
 offset from the start of the library file to where the relocation occurs. This
