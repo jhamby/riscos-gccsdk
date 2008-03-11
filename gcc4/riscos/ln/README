@@ -21,7 +21,7 @@ occurs, however, LINK_NAME is translated.
 
 The TARGET should be either an absolute filename, ie:
 
-ADFS::IDEDisc1:$.!DSO-libs.lib.system.libUnixLib/so/4/1/0
+ADFS::IDEDisc1:$.!SharedLibs.lib.system.libUnixLib/so/4/1/0
 
 or a relative filename, ie:
 
@@ -43,7 +43,7 @@ The following options are supported:
 	    --version	Outout version information and exit
 
 Symlink files have the official filetype of &1C8 (Symlink) and support for
-them is included in the ELF loader module SOManager (inside of !DSO-libs) and
+them is included in the ELF loader module SOManager (inside of !SharedLibs) and
 support is also present in UnixLib 5. This means that any code that links to
 UnixLib as supplied with the dynamic linking GCC can use symlinks.
 

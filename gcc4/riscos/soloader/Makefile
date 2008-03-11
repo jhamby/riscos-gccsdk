@@ -3,7 +3,7 @@
 
 include		config.mk
 
-LIBDIR ?= dist/\!DSO-libs/lib
+LIBDIR ?= dist/\!SharedLibs/lib
 
 DIRS = dynamic/ld.so-1.9.9
 
@@ -24,7 +24,7 @@ dist:
 	$(MAKE) install-riscos
 	$(MAKE) zip -C dist
 
-# Use 'make install-riscos' to copy libdl and ld to !DSO-libs.
+# Use 'make install-riscos' to copy libdl and ld to !SharedLibs.
 install-riscos:
 	$(MAKE)
 	mkdir -p $(LIBDIR)/system
