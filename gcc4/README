@@ -264,7 +264,7 @@ To use throwback:
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The native RISC OS compiler and associated programs like the ELF loader (part
-of !DSO-libs) are built using the previously built cross-compiler.  It is
+of !SharedLibs) are built using the previously built cross-compiler.  It is
 using the same 'build-it' script with "riscos" instead of "cross" as argument.
 The intermediate build results are stored in 'builddir-riscos' instead of
 'builddir-cross'.
