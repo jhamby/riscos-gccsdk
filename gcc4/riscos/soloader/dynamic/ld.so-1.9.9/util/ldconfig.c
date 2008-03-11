@@ -650,7 +650,7 @@ int main(int argc, char **argv)
 	    }
 
 	    /* everybody needs these, don't they? */
-	    scan_dir("/DSOLib:lib");
+	    scan_dir("/SharedLibs:lib");
 /*	    scan_dir("/usr/lib");
 	    scan_dir("/lib");*/
 	}

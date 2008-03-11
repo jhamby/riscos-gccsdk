@@ -6,9 +6,9 @@
 #  define LDDSTUB    "../util/lddstub"
 #else
 #  define LDSO_IMAGE "/lib/ld.so"
-#  define LDSO_CONF  "DSOLib:etc.ld/so/conf"
-#  define LDSO_CACHE "DSOLib:etc.ld/so/cache"
-#  define LDSO_PRELOAD "DSOLib:etc.ld/so/preload"
+#  define LDSO_CONF  "SharedLibs:etc.ld/so/conf"
+#  define LDSO_CACHE "SharedLibs:etc.ld/so/cache"
+#  define LDSO_PRELOAD "SharedLibs:etc.ld/so/preload"
 #  define LDDSTUB    "/usr/lib/lddstub"
 #endif
 

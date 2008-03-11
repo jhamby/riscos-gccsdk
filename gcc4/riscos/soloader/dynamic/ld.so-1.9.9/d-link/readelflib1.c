@@ -264,7 +264,7 @@ struct elf_resolve * _dl_load_shared_library(int secure,
   pnt1 = "/usr/i486-sysv4/lib/";
 #else
 /*  pnt1 = "/usr/lib/";*/
-  pnt1 = "DSOLib:lib/";
+  pnt1 = "SharedLibs:lib/";
 #endif
   pnt = mylibname;
   while(*pnt1) *pnt++ = *pnt1++;
