@@ -1,3 +1,8 @@
+Mon Mar 10 17:17:26 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_runcom.c: Change occurrence of DSOLib: to SharedLibs: as part
+	of the process to rename !DSO-libs as !SharedLibs.
+
 Fri Feb  1 00:39:19 2008  Lee Noar  <leenoar@sky.com>
 
 	* som_alloc.c(DA_extend): Wrong pointer passed to heap_block_size().

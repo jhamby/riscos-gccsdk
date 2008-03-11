@@ -1,6 +1,6 @@
 /* som_runcom.c
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007, 2008 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -23,7 +23,7 @@
    the benefit of the Dynamic Loader.  */
 #define SOM_RUN_STACK_SIZE	(16 * 1024)	/* 16KB */
 
-static const char loader_path[] = "DSOLib:lib.";
+static const char loader_path[] = "SharedLibs:lib.";
 static const char env_array_name[] = "LD$Env";
 
 typedef struct runcom_state
