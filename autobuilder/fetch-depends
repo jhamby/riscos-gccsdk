@@ -20,6 +20,7 @@ fi
 
 if bzgrep -A20 "^Package:.*\<$PACKAGE\>$" $packindex > packentry ; then
    sed -n 0,/^$/p --in-place packentry
+   sed -n 0,/^--$/p --in-place packentry
 else
    echo "" > packentry
 fi
