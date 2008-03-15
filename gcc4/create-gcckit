@@ -261,9 +261,9 @@ create_gcc_kit() {
 # Move the C++ library to a separate kit:
 split_off_sharedlibsgpp() {
   create_empty_dir $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME
-  mkdir -p $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib/system
+  mkdir -p $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib
   mv $BKIT_SHAREDLIBS_UNPACKED/lib/{libstdc++.so\,1c8,libstdc++.so.6\,1c8} $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib
-  mv $BKIT_SHAREDLIBS_UNPACKED/lib/system/libstdc++.6.0.8.so,e1f $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib/system
+  mv $BKIT_SHAREDLIBS_UNPACKED/lib/libstdc++.6.0.8.so,e1f $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib
 }
 
 split_off_sharedlibscore() {

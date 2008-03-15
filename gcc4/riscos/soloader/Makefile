@@ -27,12 +27,12 @@ dist:
 # Use 'make install-riscos' to copy libdl and ld to !SharedLibs.
 install-riscos:
 	$(MAKE)
-	mkdir -p $(LIBDIR)/system
-	cp build/dynamic/ld-1.9.9.so,e1f $(LIBDIR)/system/ld-1.9.9.so,e1f
-	$(LN) -s -f system.ld-1/9/9/so $(LIBDIR)/ld-riscos.so.1,1c8
-	cp build/dynamic/libdl.1.9.9.so,e1f $(LIBDIR)/system/libdl.1.9.9.so,e1f
-	$(LN) -s -f system.libdl/1/9/9/so $(LIBDIR)/libdl.1.so,1c8
-	$(LN) -s -f system.libdl/1/9/9/so $(LIBDIR)/libdl.so,1c8
+	mkdir -p $(LIBDIR)
+	cp build/dynamic/ld-1.9.9.so,e1f $(LIBDIR)/ld-1.9.9.so,e1f
+	$(LN) -s -f ld-1/9/9/so $(LIBDIR)/ld-riscos.so.1,1c8
+	cp build/dynamic/libdl.1.9.9.so,e1f $(LIBDIR)/libdl.1.9.9.so,e1f
+	$(LN) -s -f libdl/1/9/9/so $(LIBDIR)/libdl.1.so,1c8
+	$(LN) -s -f libdl/1/9/9/so $(LIBDIR)/libdl.so,1c8
 
 # Use 'make install-cross' to copy libdl to a place where gcc can find it using -ldl
 install-cross:
