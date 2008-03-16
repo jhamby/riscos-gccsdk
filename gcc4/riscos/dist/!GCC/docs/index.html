@@ -305,7 +305,7 @@ mylabel1:
 mylabel2:
 	MOV	pc, r14
 </pre>
-            <li>Comments : 'as' assembler used semi-column ';' to mark the start of a comment line. 'gas' syntax is using the '@' character.
+            <li>Comments : 'as' assembler used semi-column ';' to mark the start of a comment line. 'gas' syntax is using the '@' character. You can also use the C style comments &quot;/* ... */&quot; if you're enable the preprocess before assembling your code.
             <li>IMPORT : the IMPORT statement followed by a symbol name is no longer needed unless you want to import a symbol 'weakly'.
                 <p>
 <pre>
@@ -319,22 +319,79 @@ mylabel2:
             <li>Variable setting:
                 <p>
 <pre>
-	abc	* 0
-	def	* 4
+abc	* 0
+def	* &1234
 </pre>
                 <p>needs to be changed to:
 <pre>
-	.set abc, 0
-	.set def, 4
+.set abc, 0
+.set def, 0x1234
 </pre>
+                <p>Or:
+<pre>
+abc	EQU 0
+def	EQU &1234
+</pre>
+                <p>needs to be changed to:
+<pre>
+#define	abc	0
+#define	def	0x1234
+</pre>
+                and you assemble the code using:
+<pre>
+gcc -xassembler-with-cpp -o file.o -c file.s
+</pre>
+                so that the pre-processor can expand the #define definitions.
             <li>Space claiming:
                 <p>
 <pre>
-		% 256
+	% 256
 </pre>
                 <p>needs to be changed to:
 <pre>
 	.space 256
+</pre>
+                <p>Or:
+<pre>
+	^	0, ip
+parentprogname	#	4	; Ptr to program name
+editname	#	12	; Edit name
+WSSize		*       :INDEX:
+
+	LDR	r0, parentprogname
+	ADR	r2, editname
+	MOV	r3, #WSSize
+</pre>
+                <p>needs to be changed to:
+<pre>
+        .struct	0
+parentprogname	: .skip   4	@ Ptr to program name
+editname	: .skip   12	@ Edit name
+WSSize		:
+
+	LDR	r0, [ip, #parentprogname]
+	ADD	r2, ip, #editname
+	MOV	r3, #WSSize
+</pre>
+            <li>Constant notation:
+<pre>
+	TEQ	r1, #"R"
+</pre>
+                <p>needs to be changed to:
+<pre>
+	TEQ	r1, #'R'
+</pre>
+                <p>Integer notation:
+<pre>
+	TST	r0, #2_0101	; Binary value
+	TEQ	r0, #8_12	; Octal value
+	TEQ	r0, #&100	; Hex value
+</pre>
+                <p>needs to be changed to:
+<pre>
+	TST	r0, #0b0101	@ Binary value (or 0B0101 can be used)
+	TEQ	r0, #012	@ Octal value, notice the extra digit 0 as first character
+	TEQ	r0, #0x100	@ Hex value (or 0X100 can be used)
 </pre>
             <li>EXPORT : the EXPORT statement is to be replaced by '.global'.
                 <p>
