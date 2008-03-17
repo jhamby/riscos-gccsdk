@@ -1,3 +1,9 @@
+Mon Mar 17 03:31:08 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/stdio_ext.h: Moved to...
+	* include/stdio_ext.h: ...here and changed contents with a glibc
+	version with everything disabled except the __fpurge prototype.
+
 Thu Feb 28 00:58:23 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* README: Added comment on Wimp_StartTask usage in threaded programs.
