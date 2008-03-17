@@ -305,7 +305,7 @@ mylabel1:
 mylabel2:
 	MOV	pc, r14
 </pre>
-            <li>Comments : 'as' assembler used semi-column ';' to mark the start of a comment line. 'gas' syntax is using the '@' character. You can also use the C style comments &quot;/* ... */&quot; if you're enable the preprocess before assembling your code.
+            <li>Comments : 'as' assembler used semi-column ';' to mark the start of a comment line. 'gas' syntax is using the '@' character. You can also use the C style comments &quot;/* ... */&quot; if you enable preprocessing before assembling your code (use filename.S instead of filename.s)
             <li>IMPORT : the IMPORT statement followed by a symbol name is no longer needed unless you want to import a symbol 'weakly'.
                 <p>
 <pre>
