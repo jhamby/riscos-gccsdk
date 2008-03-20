@@ -1,29 +1,27 @@
 #!/bin/bash
 
-if [ "$RO_DIST" == "YES" ] ; then
-  DISTCC="$(which distcc) "
+if [ "$RO_DIST" == "yes" ] ; then
+  ro_distcc="$(which distcc) "
 else
-  DISTCC=""
+  ro_distcc=""
 fi
 
-RO_CPARAMS=
-RO_RECURSE=no
+ro_cparams=
+ro_recurse=no
 
 # Check Parameters for recurse option
 for param in $@ ; do
   if [ "$param" == "--ro-recurse" ] ; then
-    RO_RECURSE=yes
+    ro_recurse=yes
   else
-    RO_CPARAMS="$RO_CPARAMS $param"
+    ro_cparams="$ro_cparams $param"
   fi
 done
-
-exeext=,e1f
 
 # Add onto exeext with ,e1f extension 
 adde1f() {
   if grep -q "exeext=$" $e1fPATH ; then
-    echo RISC OS: Adding filetype for exeext for $e1fPATH
+    echo RISC OS: Adding E1F filetype for $e1fPATH
     tmpconfigure=/tmp/new-configure-$$-$RANDOM
     sed s#exeext=\$#"exeext=,e1f;"# < $e1fPATH > $tmpconfigure
     mv $tmpconfigure $e1fPATH
@@ -47,15 +45,6 @@ adde1f() {
     tmpconfigure=/tmp/new-configure-$$-$RANDOM
     sed -e s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# -e "s# -o conftest # -o conftest\$\{ac_exeext\}\ #" \
       < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
-  fi
-
-  # Add !RunImage,$exeext to the list of possible default compiler output filenames.
-  if grep -q -- "ac_outfiles=\"a_out.exe" $e1fPATH ; then
-    echo RISC OS: Adding \!RunImage,$exeext to list of possible default compiler output filenames for $e1fPATH
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed s#"ac_outfiles=\"a_out.exe"#"ac_outfiles=\"\!RunImage,$exeext a_out.exe"# < $e1fPATH > $tmpconfigure
     mv $tmpconfigure $e1fPATH
     chmod +x $e1fPATH
   fi
@@ -120,11 +109,11 @@ fi
 
 
 # Massage the configure scripts
-if [ "$RO_RECURSE" == "yes" ] ; then
+if [ "$ro_recurse" == "yes" ] ; then
   # Search for more configure files
-  RO_CFILES=$(find $RO_CPATH -type f -name configure)
+  ro_cfiles=$(find $RO_CPATH -type f -name configure)
 
-  for e1fPATH in $RO_CFILES ; do
+  for e1fPATH in $ro_cfiles ; do
     adde1f
   done
 else
@@ -151,137 +140,145 @@ $RO_CPATH/configure --help > $tmpoutconfigure
 
 # Set target type
 if grep -q -- --target= $RO_CPATH/configure; then
- TARGET="--target=arm-unknown-riscos"
+  ro_target="--target=arm-unknown-riscos"
 else
- TARGET=
+  ro_target=
 fi
+# Well, this should ideally be set.  But some things (e.g. ncurses) get
+# confused and think we're no longer cross compiling.  OTOH, the TIFF
+# library needs it set, so we do so manually for its configure switches
+ro_target=
 
 if grep -q -- --build= $RO_CPATH/configure; then
- BUILD="--build=GCCSDK_BUILD"
+  ro_build="--build=GCCSDK_BUILD"
 else
- BUILD=
+  ro_build=
 fi
 
 
 if grep -q -- --host= $RO_CPATH/configure; then
- HOST="--host=arm-unknown-riscos"
+  ro_host="--host=arm-unknown-riscos"
 else
- HOST=
+  ro_host=
 fi
 
 
-# Well, this should ideally be set.  But some things (e.g. ncurses) get
-# confused and think we're no longer cross compiling.  OTOH, the TIFF
-# library needs it set, so we do so manually for its configure switches
-TARGET=
-
-
-# Set Prefix
+# Set prefix
 if echo $@ | grep -q -- -prefix; then
- :
+  :
+elif grep -q -- --prefix $tmpoutconfigure; then
+  ro_prefix="--prefix=GCCSDK_ENV"
+elif grep -q -- -prefix $tmpoutconfigure; then
+  ro_prefix="-prefix=GCCSDK_ENV"
 else
- if grep -q -- --prefix $tmpoutconfigure; then
-  PREFIX="--prefix=GCCSDK_ENV"
- else
-  if grep -q -- -prefix $tmpoutconfigure; then
-   PREFIX="--prefix=GCCSDK_ENV"
-  else
-   PREFIX=
-  fi 
- fi
+  ro_prefix=
 fi 
 
-# Set WITHLIBS
+# Set ro_withlibs
 #if grep -q -- --with-libs $tmpoutconfigure; then
-# WITHLIBS="--with-libs=GCCSDK_ENV"
+#  ro_withlibs="--with-libs=GCCSDK_ENV"
 #else
- WITHLIBS= 
+  ro_withlibs= 
 #fi
 
 # Add X paths if needed
 if grep -q -- -x-includes $RO_CPATH/configure; then
- echo RISC OS: Adding X Paths
- X="--x-libraries=GCCSDK_ENV/lib --x-includes=GCCSDK_ENV/include"
+  echo RISC OS: Adding X Paths
+  ro_x="--x-libraries=GCCSDK_ENV/lib --x-includes=GCCSDK_ENV/include"
 else
- X=
+  ro_x=
 fi
 
 
 # Add OpenSSL
 if grep -q -- --with-openssl $RO_CPATH/configure; then
- echo RISC OS: Adding SSL Path
- SSL="--with-openssl=GCCSDK_ENV"
+  echo RISC OS: Adding SSL Path
+  ro_ssl="--with-openssl=GCCSDK_ENV"
 else
- SSL=
+  ro_ssl=
 fi
 
 
 # Disable NLS unless otherwise specified
- NLS=
 if echo $@ | grep -q -- -nls; then
- :
-else
- if grep -q -- --disable-nls $RO_CPATH/configure; then
+  ro_nls=
+elif grep -q -- --disable-nls $RO_CPATH/configure; then
   echo RISC OS: Disable NLS
-  NLS="--disable-nls"
- fi
+  ro_nls="--disable-nls"
 fi
 
 
 # Set Static and Dynamic options
-if grep -q -- --enable-shared $tmpoutconfigure; then
- echo RISC OS: Disabling shared libraries
- SHARED=--enable-shared=no
-else
- if grep -q -- --disable-shared $tmpoutconfigure; then
-   echo RISC OS: Disabling shared libraries
-   SHARED=--disable-shared
- else
-   SHARED=
- fi
-fi
+if [ x"$RO_SHAREDLIBS" == xyes ] ; then
+  # Force shared library building:
+  if grep -q -- --enable-shared $tmpoutconfigure; then
+    echo RISC OS: Enabling shared libraries
+    ro_shared=--enable-shared
+  else
+    ro_shared=
+  fi
 
-if grep -q enable-static $tmpoutconfigure; then
- echo RISC OS: Enabling static libraries
- STATIC=--enable-static=yes
+  if grep -q -- --enable-static $tmpoutconfigure; then
+    echo RISC OS: Disable static libraries
+    ro_static=--enable-static=no
+  elif grep -q -- --disable-static $tmpoutconfigure; then
+    echo RISC OS: Disable static libraries
+    ro_static=--disable-static
+  else
+    ro_static=
+  fi
 else
- if grep -q -- " -static" $tmpoutconfigure; then
-  STATIC=-static
- else
-  STATIC=
- fi
+  # Force static library building:
+  if grep -q -- --enable-shared $tmpoutconfigure; then
+    echo RISC OS: Disabling shared libraries
+    ro_shared=--enable-shared=no
+  elif grep -q -- --disable-shared $tmpoutconfigure; then
+    echo RISC OS: Disabling shared libraries
+    ro_shared=--disable-shared
+  else
+    ro_shared=
+  fi
+
+  if grep -q -- --enable-static $tmpoutconfigure; then
+    echo RISC OS: Enabling static libraries
+    ro_static=--enable-static=yes
+  elif grep -q -- " -static" $tmpoutconfigure; then
+    ro_static=-static
+  else
+    ro_static=
+  fi
 fi
 
 
 # Glib location
 if grep -q with-glib-prefix $tmpoutconfigure; then
- echo RISC OS: Setting Glib path
- GLIB=--with-glib-prefix=GCCSDK_ENV
+  echo RISC OS: Setting Glib path
+  ro_glib=--with-glib-prefix=GCCSDK_ENV
 else
- GLIB=
+  ro_glib=
 fi
 
 # GTK location
 if grep -q with-gtk-prefix $tmpoutconfigure; then
- echo RISC OS: Setting GTK path
- GTK=--with-gtk-prefix=GCCSDK_ENV
+  echo RISC OS: Setting GTK path
+  ro_gtk=--with-gtk-prefix=GCCSDK_ENV
 else
- GTK=
+  ro_gtk=
 fi
 
 
 # TCL
 if grep -q with-tclconfig $tmpoutconfigure; then
- echo RISC OS: Setting TCL path
- TCLTK="--with-tclconfig=GCCSDK_ENV/lib/tcl8.4"
+  echo RISC OS: Setting TCL path
+  ro_tcltk="--with-tclconfig=GCCSDK_ENV/lib/tcl8.4"
 else
- TCLTK=
- fi
+  ro_tcltk=
+fi
 
 # TK
 if grep -q with-tkconfig $tmpoutconfigure; then
- echo RISC OS: Setting TK path
- TCLTK="$TCLTK --with-tkconfig=GCCSDK_ENV/lib/tk8.4"
+  echo RISC OS: Setting TK path
+  ro_tcltk="$ro_tcltk --with-tkconfig=GCCSDK_ENV/lib/tk8.4"
 fi
 
 
@@ -289,28 +286,28 @@ fi
 # We probably want this on in future. 
 #if grep -q -- "--enable-thread" $tmpoutconfigure ; then
 # echo RISC OS: Disabling threads
-# THREADS=--disable-threads
+# ro_threads=--disable-threads
 #else
-# THREADS=
+# ro_threads=
 #fi
 
 
 # Native compilers
 if grep -q -- "--with-build-cc" $tmpoutconfigure ; then
- echo RISC OS: Setting native compiler
- NATIVE="--with-build-cc=$(which cc)"
+  echo RISC OS: Setting native compiler
+  ro_native="--with-build-cc=$(which cc)"
 else
- NATIVE=
+  ro_native=
 fi
 
 
 # Define architecture
 if grep -q -- "--with-arch" $tmpoutconfigure ; then
- echo RISC OS: Setting architecture
- # FIXME: right value?
- ARCHITECTURE="--with-arch=arm-riscos"
+  echo RISC OS: Setting architecture
+  # FIXME: right value?
+  ro_architecture="--with-arch=arm-riscos"
 else
- ARCHITECTURE=
+  ro_architecture=
 fi
 
 
@@ -319,22 +316,24 @@ rm $tmpoutconfigure
 
 
 # Set tool chain variables picked up by configure
-export CC="${DISTCC}GCCSDK_BIN/arm-unknown-riscos-gcc"
+export CC="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-gcc"
 export CPP="GCCSDK_BIN/arm-unknown-riscos-cpp"
 export RAWCPP=$CPP
 export CPPFLAGS="-isystem GCCSDK_ENV/include"
-export CXX="${DISTCC}GCCSDK_BIN/arm-unknown-riscos-g++"
+export CXX="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-g++"
 
-if [ "$RO_NOSTATIC" == yes ] ; then
+if [ x"$RO_SHAREDLIBS" == xyes ] ; then
+  export CFLAGS+=
   export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS"
 else
+  export CFLAGS+="-static"
   export LDFLAGS="-LGCCSDK_ENV/lib -static $AB_LDFLAGS"
 fi
 
 export CC_FOR_BUILD=/usr/bin/cc
 
 export config_BUILD_CC=/usr/bin/cc
-export config_TARGET_CC="${DISTCC}GCCSDK_BIN/arm-unknown-riscos-gcc"
+export config_TARGET_CC="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-gcc"
 
 export AR=GCCSDK_BIN/arm-unknown-riscos-ar
 export NM=GCCSDK_BIN/arm-unknown-riscos-nm
@@ -385,8 +384,8 @@ export ac_cv_have_control_in_msghdr=no
 export ac_cv_have_uname_domainname_field=no
 export ac_cv_have_uname_us_domainname_field=no
 
-export ac_exeext=$exeext
-export ac_cv_exeext=$exeext
+export ac_exeext=,e1f
+export ac_cv_exeext=,e1f
 
 export ac_cv_file___dev_ptmx_=no
 export ac_cv_file___dev_ptc_=no
@@ -573,7 +572,7 @@ export libc_cv_asm_global_directive=EXPORT
 #export lt_cv_global_symbol_to_c_name_address="sed -n -e 's/^: \\([^ ]*\\) \$/  {\\\"\\1\\\", (lt_ptr) 0},/p' -e 's/^\\([^ ]*\\)\$/  {\"\\1\", (lt_ptr) \\&\\1},/p'"
 
 # Dynamic library handling disabling
-if [ "$RO_NOSTATIC" != yes ] ; then
+if [ "$RO_SHAREDLIBS" != yes ] ; then
   export ac_cv_header_dlfcn_h=no
   export ac_cv_lib_dl_dlopen=no
   export ac_cv_func_dlsym=no
@@ -583,12 +582,12 @@ fi
 
 
 GCCSDK_ENV/ro-path $RO_CPATH/configure \
-  $HOST $BUILD $TARGET $PREFIX $WITHLIBS $X $SHARED $STATIC $GLIB $GTK \
-  $TCLTK $THREADS $NATIVE $ARCHITECTURE $SSL $NLS $RO_CPARAMS 
+  $ro_host $ro_build $ro_target $ro_prefix $ro_withlibs $ro_x $ro_shared $ro_static $ro_glib $ro_gtk \
+  $ro_tcltk $ro_threads $ro_native $ro_architecture $ro_ssl $ro_nls $ro_cparams 
 
 
 # Force libtool to make static binaries
-if [ "$RO_NOSTATIC" != yes ] && [ -e $RO_CPATH/libtool ] ; then
+if [ "$RO_SHAREDLIBS" != yes ] && [ -e $RO_CPATH/libtool ] ; then
   sed -e "s#all-static)#all-static|-static)#" -e "s#prefer_static_libs=built#prefer_static_libs=yes#"  < $RO_CPATH/libtool > $RO_CPATH/libtool.tmp
   mv $RO_CPATH/libtool.tmp $RO_CPATH/libtool
   chmod +x $RO_CPATH/libtool 

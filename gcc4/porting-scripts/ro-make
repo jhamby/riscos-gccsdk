@@ -3,7 +3,7 @@
 ro_jobs=""
 ro_hosts=GCCSDK_ENV/ro-hosts
 
-if [ -f $ro_hosts ] && [ "$RO_DIST" == "YES" ] ; then
+if [ -f $ro_hosts ] && [ x"$RO_DIST" == x"yes" ] ; then
   export DISTCC_HOSTS=$(cat $ro_hosts)
   ro_jobs="-j$(wc -w < $ro_hosts | tr -s " " | cut -f 2 -d ' ')"
 fi

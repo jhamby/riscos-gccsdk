@@ -1,30 +1,48 @@
+Thu Mar 20 21:11:19 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
-* Wed Feb 27 19:23:33 PST 2008  Peter Naulls <peter@chocky.org>
+	* ChangeLog: reformat.
+	* ro-config: changed RO_NOSTATIC into RO_SHAREDLIBS; add -static to
+	CFLAGS when doing static builds; go for consistent two space
+	indentation; lowercased internal variables; renamed DISTCC to
+	ro_distcc; likewise for HOST/ro_host, BUILD/ro_build, TARGET/ro_target,
+	PREFIX/ro_prefix, WITHLIBS/ro_withlibs, X/ro_x, SHARED/ro_shared,
+	STATIC/ro_static, TCLTK/ro_tcltk, THREADS/ro_threads, NATIVE/ro_native
+	ARCHITECTURE/ro_architecture, SSL/ro_ssl, NLS/ro_nls,
+	CPARAMS/ro_cparams; renamed RO_NOSTATIC to RO_SHAREDLIBS; removed
+	exeext and extension handling for !RunImage binary; use RO_SHAREDLIBS
+	test for the --{enable,disable}-{shared,static} massaging.
+	* ro-make: contents test for RO_DIST is lowercase 'yes' i.s.o. 'YES'.
+	* PortingTools.html: actualised, documented the public RO_ prefixed
+	parameters.
+
+Wed Feb 27 19:23:33 PST 2008  Peter Naulls  <peter@chocky.org>
 
 	* ro-config: Add CPP, RAWCPP variables, set sys/vfs.h available.
 	* uname: Add more flags.
-	
-* Thu Jan 17 16:24:54 PST 2008  Peter Naulls <peter@chocky.org>
+
+Thu Jan 17 16:24:54 PST 2008  Peter Naulls  <peter@chocky.org>
 
 	* ro-pkg-config: Additional path for pkgconfig.
 	* ro-config: Make values of CC/CXX easier to grab from here.
 	* ro-make, ro-path: Make values of CC/CXX more generally available.
-	* ro-install: Revert earlier parameter handling change; otherwise options are not handled - 
-	  improve the issue this was meant to solve in a different way in future.
-	
-* Sat Jan 12 19:43:48 PST 2008  Peter Naulls <peter@chocky.org>
+	* ro-install: Revert earlier parameter handling change; otherwise
+	options are not handled - improve the issue this was meant to solve
+	in a different way in future.
+
+Sat Jan 12 19:43:48 PST 2008  Peter Naulls  <peter@chocky.org>
 
 	* ro-config: autoconf 2.12 handling. Replace -lX11 with -lCX11 -lDesk.
-          Ensure binaries really are static - force variables and libtool values.
+	Ensure binaries really are static - force variables and libtool
+	values.
 	* mkdir: Addition of mkdir for package creation handling
 	* ro-install: Mostly remove need for mkdir in setvars.
-	
-* Mon Dec 24 20:28:18 UTC 2007  Peter Naulls <peter@chocky.org>
+
+Mon Dec 24 20:28:18 UTC 2007  Peter Naulls  <peter@chocky.org>
 
 	* Reinstate ,e1f addition.
-	
-* Mon Dec 24 18:31:42 UTC 2007  Peter Naulls <peter@chocky.org>
+
+Mon Dec 24 18:31:42 UTC 2007  Peter Naulls  <peter@chocky.org>
 
 	* ChangeLog started for Porting Scripts
-	* ro-ar: Removed.  This is an anachronism from AOF tools - should use the 
-	  version from binutils.
+	* ro-ar: Removed.  This is an anachronism from AOF tools - should use
+	the version from binutils.
