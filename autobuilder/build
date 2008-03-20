@@ -132,9 +132,11 @@ fi
 
 # Check for values set in a local build directory
 if [ -e build-setvars ] ; then
- echo "Autobuilder: using locally set values"
- . build-setvars
- found_vars=true
+  echo "Autobuilder: using locally set build values"
+  . build-setvars
+  found_vars=true
+else
+  echo "Autobuilder: no build-setvars found, using default build parameters"
 fi
 
 
