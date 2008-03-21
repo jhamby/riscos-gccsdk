@@ -1,5 +1,5 @@
 /* __get_file_ino ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -20,38 +20,38 @@ __get_file_ino (const char *directory, const char *filename)
 {
   char tmp[_POSIX_PATH_MAX + _POSIX_NAME_MAX];
   char pathname[_POSIX_PATH_MAX + _POSIX_NAME_MAX];
-  char *name = tmp;
-  const char * const name_end = &tmp[sizeof (tmp) - 1];
-  int hash, ino, filetype, regs[10];
+  const char *name;
+  int hash, ino, regs[10];
 
   if (directory != NULL)
     {
       /* Concat directory, directory separator and filename and ensure
 	 buffer is not overrun.  */
-      const char *src = directory;
-      while (*src && name <= name_end)
-	*name++ = *src++;
+      char *dst = tmp;
+      const char * const name_end = &tmp[sizeof (tmp) - 1];
+
+      while (*directory && dst <= name_end)
+	*dst++ = *directory++;
       if (filename != NULL)
 	{
-	  if (name[-1] != ':' && name <= name_end)
-	    *name++ = '.';
-	  /* Convert Unix filename to RISC OS filename and append.  */
-	  src = __riscosify_std (filename, 0, name, sizeof (tmp), &filetype);
+	  int filetype;
 
-	  if (!src)
+	  if (dst[-1] != ':' && dst <= name_end)
+	    *dst++ = '/';
+	  /* Convert Unix filename to RISC OS filename and append.  */
+	  if (! __riscosify_std (filename, 0, dst, name_end - dst, &filetype))
 	    return -1;
 	}
       else
         {
-	  if (name <= name_end)
-	    *name = '\0';
-	  else
+	  if (dst > name_end)
 	    return -1;
+	  *dst = '\0';
         }
       name = tmp;
     }
   else
-    name = (char *)(int) filename;	/* It's okay, we won't be modifying name.  */
+    name = filename;
 
   /* Need to canonicalise even when canonical dir passed in, as readdir
      generates entries . and .., which map to @ and ^

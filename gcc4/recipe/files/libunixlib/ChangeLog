@@ -1,3 +1,9 @@
+Fri Mar 21 13:26:13 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* serial/common.c(__get_file_ino): combinine directory and filename
+	should be done with a Unix directory separator, not RISC OS one;
+	some variable shuffling resulting in dropping a nasty cast.
+
 Fri Mar 21 05:34:43 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/printf.c: Cosmetic reformat.
