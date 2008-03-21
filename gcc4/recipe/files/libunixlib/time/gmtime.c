@@ -11,7 +11,7 @@ struct tm *
 gmtime (const time_t *tp)
 {
   struct tm *t = __calendar_convert (Territory_ConvertTimeToUTCOrdinals, tp,
-				     &__tz[0]);
+				     NULL);
 
    /* GMT conversion rather than localtime - whether local time is on daylight
       saving is irrelevalant */

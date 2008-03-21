@@ -17,7 +17,6 @@
 /* The default timezones.  */
 static char __tzname[2][8] = { "GMT", "BST" };
 char *tzname[2] = { __tzname[0], __tzname[1] };
-struct tm __tz[1];
 
 /* System V compatibility variables.  */
 int timezone = 0, daylight = 0;
@@ -37,10 +36,10 @@ tzset (void)
   /* regs[0] contains a pointer to the name of the standard time zone.
      regs[1] contains a pointer to the name of the daylight saving time.
      We copy these strings to be safe if their location should change. */
-  strncpy (__tzname[0], (char *) regs[0], 8);
+  strncpy (__tzname[0], (const char *) regs[0], 7);
   __tzname[0][7] = '\0';
   tzname[0] = __tzname[0];
-  strncpy (__tzname[1], (char *) regs[1], 8);
+  strncpy (__tzname[1], (const char *) regs[1], 7);
   __tzname[1][7] = '\0';
   tzname[1] = __tzname[1];
   nondstoffset = regs[2];

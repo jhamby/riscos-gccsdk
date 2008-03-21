@@ -1,7 +1,8 @@
 /* Read clock information.
-   Copyright (c) 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2005-2008 UnixLib Developers.  */
 
 #include <errno.h>
+#include <stdint.h>
 #include <time.h>
 #include <unixlib/os.h>
 
@@ -12,35 +13,21 @@ clock_gettime (clockid_t clk_id, struct timespec *tp)
     {
       case CLOCK_REALTIME:
         {
-	  unsigned int buf[2], tc;
-	  int high, low;
+	  unsigned int buf[2];
+	  uint64_t centisec, sec;
 	  _kernel_oserror *err;
 
 	  buf[0] = 3;
 	  if ((err = __os_word (14, buf)) != NULL)
 	    return __ul_seterr (err, 1);
 
-	  /* This is a derivation of __cvt_riscos_time but without the
-	     truncation of centiseconds.  */
-	  high = buf[1] & 0xff;
-	  low = buf[0];
+	  /* The number of centiseconds that have elapsed between the starts
+	     of RISC OS and Unix times is 0x336e996a00.  */
+	  centisec = (uint64_t)buf[0] + (((uint64_t)(buf[1] & 0xFF))<<32)
+		     - 0x336e996a00ULL;
 
-	  /* Firstly, subtract 0x336e996a00 centiseconds from the
-	     RISC OS time.  */
-	  tc = 0x6e996a00U;
-	  if (low < tc) /* check for a carry.  */
-	    high--;
-	  low -= tc;
-
-	  /* Subtract 0x33 from the fifth byte. We assume that
-	     high > 0x33.  */
-	  high -= 0x33;
-
-	  /* Remove the centiseconds from the time.  */
-
-	  /* 0x1000000000 / 100 = 42949672.96 */
-	  tp->tv_nsec = (low / 100) + (high * 42949673U);
-	  tp->tv_sec = low - (high / 25); /* compensate for 0.04 error.  */
+	  tp->tv_sec = (centisec / 10ULL) / 10ULL;
+	  tp->tv_nsec = (centisec - sec * 100ULL) * 10000000;
           break;
         }
 
@@ -51,7 +38,7 @@ clock_gettime (clockid_t clk_id, struct timespec *tp)
 	     and has centisecond resolution.  */
 	  clock_t c = clock ();
 	  tp->tv_sec = c / 100;
-	  tp->tv_nsec = (c - (tp->tv_sec * 100)) * 1000000000;
+	  tp->tv_nsec = (c - (tp->tv_sec * 100)) * 10000000;
 	}
       break;
 

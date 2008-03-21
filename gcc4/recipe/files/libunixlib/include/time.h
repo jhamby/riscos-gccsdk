@@ -236,8 +236,6 @@ extern char *tzname[];
 #endif
 
 #ifdef __UNIXLIB_INTERNALS
-extern struct tm __tz[1];
-
 /* Convert broken time to 5-byte RISC OS time.  */
 extern void __cvt_broken_time (const struct tm *__brokentime,
 			       char *__riscos_time);

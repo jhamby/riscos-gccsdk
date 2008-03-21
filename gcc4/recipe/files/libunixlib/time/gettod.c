@@ -1,5 +1,5 @@
 /* Get time.
-   Copyright (c) 2003, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2003-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdint.h>
@@ -30,7 +30,7 @@
 int
 gettimeofday (struct timeval *tv, struct timezone *tz)
 {
-  unsigned int buf[2], high;
+  unsigned int buf[2];
   _kernel_oserror *err;
   uint64_t centisec, sec;
 
@@ -43,31 +43,19 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 
   /* The number of centiseconds that have elapsed between the starts
      of RISC OS and Unix times is 0x336e996a00.  */
-  high = buf[1] & 0xFF;
-  centisec = (uint64_t)buf[0] + (((uint64_t)high)<<32) - 0x336e996a00ULL;
+  centisec = (uint64_t)buf[0] + (((uint64_t)(buf[1] & 0xFF))<<32)
+	     - 0x336e996a00ULL;
 
-  sec = centisec / 10ULL / 10ULL;
+  sec = (centisec / 10ULL) / 10ULL;
   tv->tv_sec = (time_t)sec;
   tv->tv_usec = 10000 * (suseconds_t)(centisec - sec * 100ULL);
 
   if (tz != NULL)
     {
-      const time_t timer = tv->tv_sec;
-      const struct tm *tm;
-
-      const int save_timezone = timezone;
-      const struct tm saved_tz = __tz[0];
-
-      tm = localtime (&timer);
+      tzset (); /* Initialises timezone & daylight.  */
 
       tz->tz_minuteswest = timezone / 60;
       tz->tz_dsttime = 0;
-
-      timezone = save_timezone;
-      __tz[0] = saved_tz;
-
-      if (tm == NULL)
-	return -1;
     }
 
   return 0;

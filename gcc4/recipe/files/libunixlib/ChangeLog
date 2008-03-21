@@ -1,6 +1,26 @@
+Fri Mar 21 19:37:54 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/time.h(__tz): Remove declaration.
+	* time/tzset.c(tzset): One maximum byte less copied.
+	(__tz): Moved to...
+	* time/calendconv.c: ...here.
+	(__calendar_convert): Use static __tz data when parameter tz is NULL.
+	* time/localtime.c(localtime): Use tz = NULL for __calendar_convert;
+	call tzset() to initialise timezone and daylight.
+	* time/localtime_r.c(localtime_r): Call tzset() to initialise timezone
+	and daylight.
+	* time/gmtime.c(gmtime): Use tz = NULL for __calendar_convert.
+	* time/asctime.c(asctime): One byte trimming.
+	* time/gettod.c(gettimeofday): Simplified code for tz != NULL.
+	* time/mktime.c(mktime): calculated tm_wday and tm_yday fields were
+	one off.
+	* time/clk_gettime.c(clock_gettime): case CLOCK_REALTIME: use uint64_t
+	based calculation which now gives correct result; case
+	CLOCK_MONOTONIC: calculated tv_nsec field was 100 times too big.
+
 Fri Mar 21 13:26:13 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
-	* serial/common.c(__get_file_ino): combinine directory and filename
+	* serial/common.c(__get_file_ino): combining directory and filename
 	should be done with a Unix directory separator, not RISC OS one;
 	some variable shuffling resulting in dropping a nasty cast.
 

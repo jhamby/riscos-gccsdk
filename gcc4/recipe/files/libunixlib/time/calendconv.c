@@ -16,7 +16,11 @@
 #include <stdio.h>
 #endif
 
-/* Common function for localtime() and gmtime().  */
+static struct tm __tz[1];
+
+/* Common function for localtime(), localtime_r(), gmtime() and gmtime_r().
+   When called with tz, a ptr to a static struct is returned which makes
+   this routine non-reentrant.  */
 struct tm *
 __calendar_convert (int swinum, const time_t *tp, struct tm *tz)
 {
@@ -37,6 +41,9 @@ __calendar_convert (int swinum, const time_t *tp, struct tm *tz)
   regs[1] = (int)riscos_time;
   regs[2] = (int)ordinals_buffer;
   __os_swi (swinum, regs);
+
+  if (tz == NULL)
+    tz = __tz;
   tz->tm_sec = ordinals_buffer[1];
   tz->tm_min = ordinals_buffer[2];
   tz->tm_hour = ordinals_buffer[3];

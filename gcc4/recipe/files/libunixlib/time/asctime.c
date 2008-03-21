@@ -1,6 +1,6 @@
 /* asctime ()
  * Written by Nick Burrett on 12 July 1997.
- * Copyright (c) 1997-2006 UnixLib Developers
+ * Copyright (c) 1997-2008 UnixLib Developers
  */
 
 #include <time.h>
@@ -9,7 +9,7 @@
 char *
 asctime (const struct tm *brokentime)
 {
-  char riscos_time[6];
+  char riscos_time[5];
 
   __cvt_broken_time (brokentime, riscos_time);
   return __standard_time (riscos_time);
