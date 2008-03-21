@@ -100,6 +100,8 @@ struct __dir_stream
   __os_gbpb_10 *dir_cache_index; /* index in that cache for the next file  */
   __u_int do_read; /* zero if we need to fill the directory cache */
 
+  int fd; /* directory file descriptor.  */
+
   struct dirent dirent; /* last directory entry read using readdir */
 };
 
@@ -146,6 +148,10 @@ extern void rewinddir (DIR *__dirp) __THROW __nonnull ((1));
 extern int closedir (DIR *__dirp) __nonnull ((1));
 
 #if defined __USE_BSD || defined __USE_MISC
+
+/* Return the file descriptor used by DIRP.  */
+extern int dirfd (DIR *__dirp) __THROW __nonnull ((1));
+
 /* Function to compare two `struct dirent's alphabetically.  */
 extern int alphasort (const struct dirent **__a,
 		      const struct dirent ** __b)

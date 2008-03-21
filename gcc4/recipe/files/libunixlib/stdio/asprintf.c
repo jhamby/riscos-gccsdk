@@ -1,11 +1,12 @@
 /* Print to allocated string.
-   Copyright (c) 2005-2006 UnixLib Developers.  */
+   Copyright (c) 2005-2008 UnixLib Developers.  */
 
 #include <stdarg.h>
 #include <stdio.h>
 #include <sys/cdefs.h>
 
-int __asprintf (char **buf, const char *fmt, ...)
+int
+__asprintf (char **buf, const char *fmt, ...)
 {
   va_list ap;
   int r;

@@ -1,5 +1,5 @@
 /* printf interface functions.
-   Copyright (c) 2005-2006 UnixLib Developers.  */
+   Copyright (c) 2005-2008 UnixLib Developers.  */
 
 #include <sys/types.h>
 
@@ -12,9 +12,8 @@
 #include <wchar.h>
 #include <pthread.h>
 
-
-
-int __vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
+int
+__vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 {
   FILE f[1];
   int ret;
@@ -51,15 +50,17 @@ int __vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 
   return ret;
 }
+weak_alias (__vsnprintf, vsnprintf)
 
-
-int __vsprintf(char *buf, const char *format, va_list ap)
+int
+__vsprintf(char *buf, const char *format, va_list ap)
 {
   return vsnprintf (buf, INT_MAX, format, ap);
 }
+weak_alias (__vsprintf, vsprintf)
 
-
-int __snprintf(char *buf, size_t limit, const char *format, ...)
+int
+__snprintf(char *buf, size_t limit, const char *format, ...)
 {
   va_list ap;
   int r;
@@ -70,9 +71,10 @@ int __snprintf(char *buf, size_t limit, const char *format, ...)
 
   return r;
 }
+weak_alias (__snprintf, snprintf)
 
-
-int __sprintf (char *buf, const char *format, ...)
+int
+__sprintf (char *buf, const char *format, ...)
 {
   va_list ap;
   int r;
@@ -83,13 +85,17 @@ int __sprintf (char *buf, const char *format, ...)
 
   return r;
 }
+weak_alias (__sprintf, sprintf)
 
-int __vprintf (const char *format, va_list ap)
+int
+__vprintf (const char *format, va_list ap)
 {
   return vfprintf (stdout, format, ap);
 }
+weak_alias (__vprintf, vprintf)
 
-int __fprintf (FILE * stream, const char *format, ...)
+int
+__fprintf (FILE * stream, const char *format, ...)
 {
   va_list ap;
   int r;
@@ -100,8 +106,10 @@ int __fprintf (FILE * stream, const char *format, ...)
 
   return r;
 }
+weak_alias (__fprintf, fprintf)
 
-int __printf (const char *format, ...)
+int
+__printf (const char *format, ...)
 {
   va_list ap;
   int r;
@@ -112,11 +120,4 @@ int __printf (const char *format, ...)
 
   return r;
 }
-
-weak_alias (__vsnprintf, vsnprintf)
-weak_alias (__vsprintf, vsprintf)
-weak_alias (__snprintf, snprintf)
-weak_alias (__sprintf, sprintf)
-weak_alias (__vprintf, vprintf)
-weak_alias (__fprintf, fprintf)
 weak_alias (__printf, printf)

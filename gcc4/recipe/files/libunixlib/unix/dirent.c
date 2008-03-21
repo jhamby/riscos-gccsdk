@@ -66,6 +66,7 @@ invalidate (DIR *stream)
   next = stream->next;
   memset(stream, 0, sizeof (DIR));
   stream->next = next;
+  stream->fd = -1;
 }
 
 /* Make a new directory stream with RISC OS name 'name' and starting
@@ -685,6 +686,9 @@ closedir (DIR *stream)
     return __set_errno (EBADF);
 
   result = (stream->suffix != NULL) ? closedir (stream->suffix) : 0;
+
+  if (stream->fd != -1)
+    close (stream->fd);
 
   /* Free any memory allocated for the stream, then invalidate
      it ready for re-use.  */

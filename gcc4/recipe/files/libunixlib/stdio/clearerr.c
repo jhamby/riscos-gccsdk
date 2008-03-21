@@ -1,5 +1,5 @@
 /* clearerr ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
@@ -22,3 +22,5 @@ clearerr (FILE *stream)
   stream->__error = 0;
   stream->__eof = 0;
 }
+weak_alias (clearerr, clearerr_unlocked)
+

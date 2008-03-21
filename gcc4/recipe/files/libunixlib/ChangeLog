@@ -1,3 +1,15 @@
+Fri Mar 21 05:34:43 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/printf.c: Cosmetic reformat.
+	* stdio/asprintf.c: Likewise.
+	* include/stdio.h(clearerr_unlocked): Declare.
+	* stdio/clearerr.c(clearerr_unlocked): Implement as alias to clearerr.
+	* include/dirent.h(DIR): Add fd entry.
+	(dirfd): Declare.
+	* unix/dirfd.c(dirfd): Implemention based on lazy fd allocation.
+	* unix/dirent.c(newstream): Initialize fd to -1.
+	(closedir): close fd when allocated.
+
 Mon Mar 17 03:31:08 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/stdio_ext.h: Moved to...

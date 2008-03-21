@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.9: Input/Output <stdio.h>.
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __STDIO_H
@@ -179,6 +179,11 @@ extern void clearerr (FILE *__stream) __THROW;
 
 #define feof(stream) ((stream)->__eof != 0)
 #define ferror(stream) ((stream)->__error != 0)
+
+#ifdef __USE_MISC
+/* Faster versions when locking is not required.  */
+extern void clearerr_unlocked (FILE *__stream) __THROW;
+#endif
 
 /* Print a message describing the meaning of the value of errno.
    This function is a cancellation point.  */
