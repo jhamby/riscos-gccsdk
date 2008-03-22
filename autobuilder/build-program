@@ -21,7 +21,7 @@ AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
 export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 export AB_INSTALLTARGET=install
 
-if [ "$AB_VERBOSE" == "yes" ] ; then
+if [ "$AB_ELFBUILD" == "yes" ] ; then
   # Use ChoX11 (libCX11) as X library instead of cross-compiled one (libX11)
   # Only needed for GCCSDK 3.4 AOF builds.
   export TLINK_CX11=
@@ -35,11 +35,15 @@ eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
 eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
 
 addzip() {
- result=$($GCCSDK_INSTALL_CROSSBIN/zip -, $@ -x "*/CVS/*" -x "*/\.svn/*" 2>&1)
- echo $result
- if echo $result | grep "zip warning" > /dev/null ; then
-   exit 1
- fi
+  if [ ! -x $GCCSDK_INSTALL_CROSSBIN/zip ] ; then
+    echo "Autobuilder: zip binary not found"
+    exit 1
+  fi
+  result=$($GCCSDK_INSTALL_CROSSBIN/zip -, $@ -x "*/CVS/*" -x "*/\.svn/*" 2>&1)
+  echo $result
+  if echo $result | grep "zip warning" > /dev/null ; then
+    exit 1
+  fi
 }
 
 ab_package() {
@@ -126,220 +130,220 @@ export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 
 if [ "$AB_PACKONLY" == "yes" ] ; then
 
- AB_DIR=.
- D=$AB_DIR/package
- S=$PWD
+  AB_DIR=.
+  D=$AB_DIR/package
+  S=$PWD
 
- if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
-  echo "Autobuilder: Calling preprocess"
-  . $AB_HOME/$AB_PACKAGEDIR/preprocess
- fi
+  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
+    echo "Autobuilder: Calling preprocess"
+    . $AB_HOME/$AB_PACKAGEDIR/preprocess
+  fi
  
- echo "Autobuilder: Calling setvars"
- . $AB_HOME/$AB_PACKAGEDIR/setvars
+  echo "Autobuilder: Calling setvars"
+  . $AB_HOME/$AB_PACKAGEDIR/setvars
 
 else
  
- # Build directory
- if [ "$AB_NOFETCH" == "yes" ] ; then
-   AB_DIR=$AB_TMPDIR
- else
-   AB_DIR=$AB_TMPDIR/$AB_PACKAGE
- fi
-
- D=$AB_DIR/package
-
- # Remove old dir and create new one
- [ "$AB_DEBUG" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || rm -rf $AB_DIR
- [ "$AB_NOFETCH" == "yes" ] || mkdir -p $AB_DIR
- cd $AB_DIR
-
- if [ -e $AB_HOME/$AB_PACKAGEDIR/alias ] ; then
-  AB_ZIPNAME=$AB_PACKAGE
-  echo "Autobuilder: Calling alias"
-  . $AB_HOME/$AB_PACKAGEDIR/alias
- fi
-
- if [ "$AB_NOFETCH" != "yes" ] ; then
-   # Fetch the source
-   echo "Autobuilder: Fetching source for $AB_PACKAGE"
-   . $AB_HOME/fetch-program
- fi
- 
- AB_FULLNAME=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut --bytes 3-)
-
- # Run any preprocess script to unpack it in any special way
- if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
-   cd $AB_FULLNAME
-   echo "Autobuilder: Calling preprocess"
-   . $AB_HOME/$AB_PACKAGEDIR/preprocess
-
- # Check to see if it's tarred up inside
- elif [ -d "$AB_FULLNAME/upstream" ] ; then
-
-   mkdir unpack
-   cd unpack
-
-   for tarball in $(find ../$AB_FULLNAME/upstream/ | grep gz) ; do
-     tar xfz $tarball
-   done
-
-   cp -a */* ../$AB_FULLNAME
-
-   cd ../$AB_FULLNAME
-   rm -rf ../unpack
-
-   AB_PATCHES=
-
-   if [ -d upstream/patches ] ; then
-     AB_PATCHES=$(find upstream/patches/ | grep "\.patch$" | sort -n || true)
-   fi
-
-   # Apply any Debian/Upstream patches
-   for AB_PATCH in $AB_PATCHES ; do
-    echo "Autobuilder: Upstream patch: $AB_PATCH"
-    patch -p1 -l < "$AB_PATCH" || true
-   done
- else
-   cd $AB_FULLNAME
- fi
-
- # FIXME: needed for the TIFF project, is it a more general problem ?
- # Workaround when *.gz file is the contents of the package.orig.tar.gz file.
- ( cd .. && find $AB_FULLNAME -maxdepth 1 -name '*.gz' -exec tar -xzf '{}' \; )
-
- S=$PWD
- echo "Autobuilder: source directory is $S"
-
- # Apply any Debian patches
- if [ -d debian/patches ] ; then
-   if [ -e debian/patches/series ] ; then
-     patches=$(cat debian/patches/series)
-   else
-     patches=$(cd debian/patches; find -type f | sort -n || true)
-   fi
-
-   for AB_PATCH in $patches; do
-     echo "Autobuilder: Debian patch: $AB_PATCH"
-     AB_PATCH=debian/patches/$AB_PATCH
-     # Not all patches are at the same level. Do some heuristic (see simple-patchsys.mk).
-     AB_PATCH_SUCCESS=""
-     for AB_PATCH_LEVEL in 0 1 2 ; do
-       if [ -z "$AB_PATCH_SUCCESS" ] ; then
-         echo "  ...trying level $AB_PATCH_LEVEL"
-         if cat $AB_PATCH | patch -E --dry-run -p$AB_PATCH_LEVEL -l 1> /dev/null 2>&1 ; then
-           # Patching at this level seems to work out.  Do it now for real:
-           cat $AB_PATCH | patch -E -p$AB_PATCH_LEVEL -l
-           AB_PATCH_SUCCESS="yes"
-         fi
-       fi
-     done
-     if [ -z "$AB_PATCH_SUCCESS" ] ; then
-       echo "  ...FAILED"
-     else
-       echo "  ...success !"
-     fi
-   done
- fi  
- 
- # Apply any RISC OS patches
- patches=$(find $AB_HOME/$AB_PACKAGEDIR/ | grep "\.p\$" || true)
- if [ "$AB_ELFBUILD" == "yes" ] ; then
-   patches="$patches $(find $AB_HOME/$AB_PACKAGEDIR/ | grep \.p.elf\$ || true)"
- else
-   patches="$patches $(find $AB_HOME/$AB_PACKAGEDIR/ | grep \.p.aof\$ || true)"
- fi
-
- for AB_PATCH in $patches ; do
-   echo "Autobuilder: RISC OS patch: $AB_PATCH"
-   patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
- done
-
- # Set default for source copy based on the premise
- # that most open source programs have a COPYING file
- if [ -z "$AB_COPYSOURCE" ] ; then
-  if [ -e COPYING ]; then
-    AB_COPYSOURCE=yes
+  # Build directory
+  if [ "$AB_NOFETCH" == "yes" ] ; then
+    AB_DIR=$AB_TMPDIR
+  else
+    AB_DIR=$AB_TMPDIR/$AB_PACKAGE
   fi
- fi
+
+  D=$AB_DIR/package
+
+  # Remove old dir and create new one
+  [ "$AB_DEBUG" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || rm -rf $AB_DIR
+  [ "$AB_NOFETCH" == "yes" ] || mkdir -p $AB_DIR
+  cd $AB_DIR
+
+  if [ -e $AB_HOME/$AB_PACKAGEDIR/alias ] ; then
+    AB_ZIPNAME=$AB_PACKAGE
+    echo "Autobuilder: Calling alias"
+    . $AB_HOME/$AB_PACKAGEDIR/alias
+  fi
+
+  if [ "$AB_NOFETCH" != "yes" ] ; then
+    # Fetch the source
+    echo "Autobuilder: Fetching source for $AB_PACKAGE"
+    . $AB_HOME/fetch-program
+  fi
  
- # Try to guess the version number.  This isn't reliable, and might need to be
- # explictly set by the package
- if [ -z "$AB_PVERSION" ] ; then
-   AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#$AB_PACKAGE-## -e "s/[^-]*-//")
- fi
+  AB_FULLNAME=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut --bytes 3-)
 
- if [ -z "$AB_PVERSION" ] ; then
-   AB_PVERSION=1
- fi 
+  # Run any preprocess script to unpack it in any special way
+  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
+    cd $AB_FULLNAME
+    echo "Autobuilder: Calling preprocess"
+    . $AB_HOME/$AB_PACKAGEDIR/preprocess
 
- if [ "$AB_TRY" != yes ] ; then
-   echo "Autobuilder: Calling setvars"
-   . $AB_HOME/$AB_PACKAGEDIR/setvars
- fi
+  # Check to see if it's tarred up inside
+  elif [ -d "$AB_FULLNAME/upstream" ] ; then
 
- if [ -z "$AB_ZIPNAME" ] ; then
-   AB_ZIPNAME=$AB_PACKAGE
- fi
+    mkdir unpack
+    cd unpack
 
- AB_PACKAGENAME=${AB_ZIPNAME}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
- AB_ZIP=${AB_DIR}/$AB_PACKAGENAME.zip
+    for tarball in $(find ../$AB_FULLNAME/upstream/ | grep gz) ; do
+      tar xfz $tarball
+    done
+
+    cp -a */* ../$AB_FULLNAME
+
+    cd ../$AB_FULLNAME
+    rm -rf ../unpack
+
+    AB_PATCHES=
+
+    if [ -d upstream/patches ] ; then
+      AB_PATCHES=$(find upstream/patches/ | grep "\.patch$" | sort -n || true)
+    fi
+
+    # Apply any Debian/Upstream patches
+    for AB_PATCH in $AB_PATCHES ; do
+      echo "Autobuilder: Upstream patch: $AB_PATCH"
+      patch -p1 -l < "$AB_PATCH" || true
+    done
+  else
+    cd $AB_FULLNAME
+  fi
+
+  # FIXME: needed for the TIFF project, is it a more general problem ?
+  # Workaround when *.gz file is the contents of the package.orig.tar.gz file.
+  ( cd .. && find $AB_FULLNAME -maxdepth 1 -name '*.gz' -exec tar -xzf '{}' \; )
+
+  S=$PWD
+  echo "Autobuilder: source directory is $S"
+
+  # Apply any Debian patches
+  if [ -d debian/patches ] ; then
+    if [ -e debian/patches/series ] ; then
+      patches=$(cat debian/patches/series)
+    else
+      patches=$(cd debian/patches; find -type f | sort -n || true)
+    fi
+
+    for AB_PATCH in $patches; do
+      echo "Autobuilder: Debian patch: $AB_PATCH"
+      AB_PATCH=debian/patches/$AB_PATCH
+      # Not all patches are at the same level. Do some heuristic (see simple-patchsys.mk).
+      AB_PATCH_SUCCESS=""
+      for AB_PATCH_LEVEL in 0 1 2 ; do
+        if [ -z "$AB_PATCH_SUCCESS" ] ; then
+          echo "  ...trying level $AB_PATCH_LEVEL"
+          if cat $AB_PATCH | patch -E --dry-run -p$AB_PATCH_LEVEL -l 1> /dev/null 2>&1 ; then
+            # Patching at this level seems to work out.  Do it now for real:
+            cat $AB_PATCH | patch -E -p$AB_PATCH_LEVEL -l
+            AB_PATCH_SUCCESS="yes"
+          fi
+        fi
+      done
+      if [ -z "$AB_PATCH_SUCCESS" ] ; then
+        echo "  ...FAILED"
+      else
+        echo "  ...success !"
+      fi
+    done
+  fi  
  
- export AB_DIR
+  # Apply any RISC OS patches
+  patches=$(find $AB_HOME/$AB_PACKAGEDIR/ | grep "\.p\$" || true)
+  if [ "$AB_ELFBUILD" == "yes" ] ; then
+    patches="$patches $(find $AB_HOME/$AB_PACKAGEDIR/ | grep \.p.elf\$ || true)"
+  else
+    patches="$patches $(find $AB_HOME/$AB_PACKAGEDIR/ | grep \.p.aof\$ || true)"
+  fi
 
- if [ -e Imakefile ] ; then
-   echo "Autobuilder: Calling xmkmf"
-   $GCCSDK_INSTALL_ENV/ro-path $GCCSDK_INSTALL_ENV/bin/xmkmf -a
- elif [ -e configure ] || [ ! -z "$RO_CPATH" -a -e $RO_CPATH/configure ] ; then
-   if [ "$AB_PRECONF" != ":" ] ; then
-     echo "Autobuilder: Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
-   fi
-   eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
- elif [ -e Makefile ] || [ -e makefile ] ; then
-   :
- elif [ "$AB_MAKE" == "$GCCSDK_INSTALL_ENV/ro-make" ] ; then
-   echo "Autobuilder: No known build method"
-   exit 1
- fi
+  for AB_PATCH in $patches ; do
+    echo "Autobuilder: RISC OS patch: $AB_PATCH"
+    patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
+  done
+
+  # Set default for source copy based on the premise
+  # that most open source programs have a COPYING file
+  if [ -z "$AB_COPYSOURCE" ] ; then
+    if [ -e COPYING ]; then
+      AB_COPYSOURCE=yes
+    fi
+  fi
  
- if [ -e $AB_HOME/$AB_PACKAGEDIR/post-configure ] ; then
-   echo "Autobuilder: Calling post-configure"
-   . $AB_HOME/$AB_PACKAGEDIR/post-configure
- fi
+  # Try to guess the version number.  This isn't reliable, and might need to be
+  # explictly set by the package
+  if [ -z "$AB_PVERSION" ] ; then
+    AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#$AB_PACKAGE-## -e "s/[^-]*-//")
+  fi
 
- S=$PWD
+  if [ -z "$AB_PVERSION" ] ; then
+    AB_PVERSION=1
+  fi 
 
- echo "Autobuilder: Running make command: $AB_MAKE"
- ab_make
+  if [ "$AB_TRY" != yes ] ; then
+    echo "Autobuilder: Calling setvars"
+    . $AB_HOME/$AB_PACKAGEDIR/setvars
+  fi
 
- # Ensure links in man pages work when creating HTML with rman 
- if ! [ -e $S/man3 ] ; then
-   ln -s . $S/man3
- fi
- if [ -e $S/man ] && ! [ -e $S/man/man3 ] ; then
-   ln -s . $S/man/man3
- fi
+  if [ -z "$AB_ZIPNAME" ] ; then
+    AB_ZIPNAME=$AB_PACKAGE
+  fi
 
- if [ -e install-sh ] && ! [ -h install-sh ] ; then
-   mv install-sh install.sh-old
-   ln -s $GCCSDK_INSTALL_ENV/ro-install install-sh
- fi
+  AB_PACKAGENAME=${AB_ZIPNAME}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
+  AB_ZIP=${AB_DIR}/$AB_PACKAGENAME.zip
+ 
+  export AB_DIR
 
- # Need to install in $GCCSDK_INSTALL_ENV ?
- if [ "$AB_INSTALL" == "env" ] || [ "$AB_INSTALL" == "yes" ] ; then
-   echo "Autobuilder: Running make install"
-   # Append GCCSDK_INSTALL_ENV to PATH so that cp/rm/ln are picked up there.
-   eval "$AB_MAKE $AB_INSTALLTARGET"
- fi
+  if [ -e Imakefile ] ; then
+    echo "Autobuilder: Calling xmkmf"
+    $GCCSDK_INSTALL_ENV/ro-path $GCCSDK_INSTALL_ENV/bin/xmkmf -a
+  elif [ -e configure ] || [ ! -z "$RO_CPATH" -a -e $RO_CPATH/configure ] ; then
+    if [ "$AB_PRECONF" != ":" ] ; then
+      echo "Autobuilder: Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
+    fi
+    eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
+  elif [ -e Makefile ] || [ -e makefile ] ; then
+    :
+  elif [ "$AB_MAKE" == "$GCCSDK_INSTALL_ENV/ro-make" ] ; then
+    echo "Autobuilder: No known build method"
+    exit 1
+  fi
+ 
+  if [ -e $AB_HOME/$AB_PACKAGEDIR/post-configure ] ; then
+    echo "Autobuilder: Calling post-configure"
+    . $AB_HOME/$AB_PACKAGEDIR/post-configure
+  fi
 
- # Need to package the installed files ?
- if [ "$AB_INSTALL" == "yes" ] ; then
-   export AB_OUTPUTLIB
-   export AB_INSTALLDOCS
+  S=$PWD
 
-   export RO_PKG=$AB_PACKAGENAME
-   $AB_HOME/ro-libpack
- fi
+  echo "Autobuilder: Running make command: $AB_MAKE"
+  ab_make
+
+  # Ensure links in man pages work when creating HTML with rman 
+  if ! [ -e $S/man3 ] ; then
+    ln -s . $S/man3
+  fi
+  if [ -e $S/man ] && ! [ -e $S/man/man3 ] ; then
+    ln -s . $S/man/man3
+  fi
+
+  if [ -e install-sh ] && ! [ -h install-sh ] ; then
+    mv install-sh install.sh-old
+    ln -s $GCCSDK_INSTALL_ENV/ro-install install-sh
+  fi
+
+  # Need to install in $GCCSDK_INSTALL_ENV ?
+  if [ "$AB_INSTALL" == "env" ] || [ "$AB_INSTALL" == "yes" ] ; then
+    echo "Autobuilder: Running make install"
+    # Append GCCSDK_INSTALL_ENV to PATH so that cp/rm/ln are picked up there.
+    eval "$AB_MAKE $AB_INSTALLTARGET"
+  fi
+
+  # Need to package the installed files ?
+  if [ "$AB_INSTALL" == "yes" ] ; then
+    export AB_OUTPUTLIB
+    export AB_INSTALLDOCS
+
+    export RO_PKG=$AB_PACKAGENAME
+    $AB_HOME/ro-libpack
+  fi
 fi # Package only
 
 
@@ -359,103 +363,103 @@ if [ "$AB_MANPAGE" != "" ] ; then
   for AB_PAGE in $AB_MANPAGE ; do
     rman -f HTML $S/$AB_PAGE > $D/$(basename $AB_PAGE),faf
     #addzip -j $AB_ZIP $S/$AB_PAGE,faf
-   done
- fi
+  done
+fi
 
- ab_package
+ab_package
 
 if [ "$AB_NOPACKAGE" == "" ] ; then
 
- if [ "$AB_CATEGORY" == "" ] ; then
-   echo "Autobuilder: No category specified, not packaging"
-   exit 1
- fi
+  if [ "$AB_CATEGORY" == "" ] ; then
+    echo "Autobuilder: No category specified, not packaging"
+    exit 1
+  fi
 
- echo "Autobuilder: Packaging files"
- if [ "$AB_PACKONLY" == "yes" ] ; then
+  echo "Autobuilder: Packaging files"
+  if [ "$AB_PACKONLY" == "yes" ] ; then
 
-   if [ -n "$AB_ZIPNAME" ] ; then
-     echo "Autobuilder: Packaging as $AB_ZIPNAME$AB_TARGET"
-     AB_ZIP=$AB_ZIPNAME$AB_TARGET.zip
-   else
-     AB_ZIP=$AB_PACKAGE$AB_TARGET.zip
-   fi
+    if [ -n "$AB_ZIPNAME" ] ; then
+      echo "Autobuilder: Packaging as $AB_ZIPNAME$AB_TARGET"
+      AB_ZIP=$AB_ZIPNAME$AB_TARGET.zip
+    else
+      AB_ZIP=$AB_PACKAGE$AB_TARGET.zip
+    fi
 
- else
-   echo "Autobuilder: Packaging as $AB_ZIPNAME"
- fi
+  else
+    echo "Autobuilder: Packaging as $AB_ZIPNAME"
+  fi
 
- cd $D
- if [ "$AB_ELFBUILD" == "yes" ] ; then
-   # strip and convert binaries
-   binaries=$(find -type f -wholename "*,e1f")
-   for binary in $binaries; do
-     $GCCSDK_INSTALL_ENV/ro-path arm-unknown-riscos-strip $binary || true
-     $GCCSDK_INSTALL_ENV/ro-path elf2aif $binary $(sed "s#,e1f\$#,ff8#" <<<$binary)
-     rm $binary
-   done
- fi
+  cd $D
+  if [ "$AB_ELFBUILD" == "yes" ] ; then
+    # strip and convert binaries
+    binaries=$(find -type f -wholename "*,e1f")
+    for binary in $binaries; do
+      $GCCSDK_INSTALL_ENV/ro-path arm-unknown-riscos-strip $binary || true
+      $GCCSDK_INSTALL_ENV/ro-path elf2aif $binary $(sed "s#,e1f\$#,ff8#" <<<$binary)
+      rm $binary
+    done
+  fi
 
- if [ -z "$AB_PACKAGES" ] ; then
-   # Single package
+  if [ -z "$AB_PACKAGES" ] ; then
+    # Single package
 
-   # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
-   if [ -e $AB_ZIP ] ; then
-     rm $AB_ZIP
-   fi
+    # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
+    if [ -e $AB_ZIP ] ; then
+      rm $AB_ZIP
+    fi
 
-   # This will not add files beginning with a dot
-   addzip -r $AB_ZIP *
+    # This will not add files beginning with a dot
+    addzip -r $AB_ZIP *
 
-   mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
-   mv $AB_ZIP $AB_OUTPUTPACK/$AB_CATEGORY
-   ls -l  $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP)
+    mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
+    mv $AB_ZIP $AB_OUTPUTPACK/$AB_CATEGORY
+    ls -l  $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP)
 
- else
-   # Multiple packages (AB_PACKAGES defined)
-   for package in $AB_PACKAGES ; do
-     if [ -d "$package" ] ; then
-       if [ -e "$package/RiscPkg/Control,fff" ] ; then
-         section=`grep "Section: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
-       fi
-       if [ -z "$section" ] ; then
-         section="$AB_CATEGORY"
-       fi
-       AB_PZIP=${AB_DIR}/${package}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}.zip
-       # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
-       if [ -e $AB_PZIP ] ; then
-         rm $AB_PZIP
-       fi
-       cd $package
-       addzip -r $AB_PZIP *
-       mkdir -p $AB_OUTPUTPACK/$section
-       mv $AB_PZIP $AB_OUTPUTPACK/$section
-       ls -l  $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)
-       cd ..
-     else
-       echo "Autobuilder: package directory missing $package"
-     fi
-   done
- fi
+  else
+    # Multiple packages (AB_PACKAGES defined)
+    for package in $AB_PACKAGES ; do
+      if [ -d "$package" ] ; then
+        if [ -e "$package/RiscPkg/Control,fff" ] ; then
+          section=`grep "Section: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
+        fi
+        if [ -z "$section" ] ; then
+          section="$AB_CATEGORY"
+        fi
+        AB_PZIP=${AB_DIR}/${package}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}.zip
+        # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
+        if [ -e $AB_PZIP ] ; then
+          rm $AB_PZIP
+        fi
+        cd $package
+        addzip -r $AB_PZIP *
+        mkdir -p $AB_OUTPUTPACK/$section
+        mv $AB_PZIP $AB_OUTPUTPACK/$section
+        ls -l  $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)
+        cd ..
+      else
+        echo "Autobuilder: package directory missing $package"
+      fi
+    done
+  fi
 
- # Package source if required
- if [ "$AB_COPYSOURCE" == "yes" ] && [ "$AB_DEBUG" != "yes" ] ; then
-   echo "Autobuilder: Packaging source"
-   ab_package_source
-   if [ -z $AB_SRCRDIR ] && [ -d $AB_SRCDIR ] ; then
-     AB_SRCZIP=$(echo "$AB_ZIP" | sed s#".zip"#"-src.zip"#)
-     if [ -e $AB_SRCZIP ] ; then
-       rm $AB_SRCZIP
-     fi
+  # Package source if required
+  if [ "$AB_COPYSOURCE" == "yes" ] && [ "$AB_DEBUG" != "yes" ] ; then
+    echo "Autobuilder: Packaging source"
+    ab_package_source
+    if [ -z $AB_SRCRDIR ] && [ -d $AB_SRCDIR ] ; then
+      AB_SRCZIP=$(echo "$AB_ZIP" | sed s#".zip"#"-src.zip"#)
+      if [ -e $AB_SRCZIP ] ; then
+        rm $AB_SRCZIP
+      fi
 
-     cd $AB_SRCDIR
-     $GCCSDK_INSTALL_CROSSBIN/zip -r $AB_SRCZIP * -x "*/CVS/*" -x "*/\.svn/*"
-     mv $AB_SRCZIP $AB_OUTPUTPACK/$AB_CATEGORY
-     cd $D
-   else
-     echo "Autobuilder: Warning! Source directory for source package missing '$AB_SRCDIR'"
-   fi
- fi
+      cd $AB_SRCDIR
+      $GCCSDK_INSTALL_CROSSBIN/zip -r $AB_SRCZIP * -x "*/CVS/*" -x "*/\.svn/*"
+      mv $AB_SRCZIP $AB_OUTPUTPACK/$AB_CATEGORY
+      cd $D
+    else
+      echo "Autobuilder: Warning! Source directory for source package missing '$AB_SRCDIR'"
+    fi
+  fi
 fi
 
 cd $AB_DIR/..
