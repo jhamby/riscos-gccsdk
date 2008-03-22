@@ -18,9 +18,9 @@ mkdir -p $AB_DIR/package/include/
 mkdir -p $AB_DIR/package/doc/$RO_PKG
 
 echo "RO libpack: Running install target: $AB_INSTALLTARGET"
-# Adding GCCSDK_INSTALL_ENV in our path to intercept cp/rm/ln
-# calls during installation.
-PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
+# Adding GCCSDK_INSTALL_ENV in our path to intercept cp/rm/ln calls and
+# making sure ro-install gets found during installation.
+INSTALL=ro-install PATH=$GCCSDK_INSTALL_ENV:$PATH eval "$AB_MAKE $AB_INSTALLTARGET"
 
 # Check for bogus package conditions
 pushd . > /dev/null
