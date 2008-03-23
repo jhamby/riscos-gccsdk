@@ -326,7 +326,7 @@ if [ x"$RO_SHAREDLIBS" == xyes ] ; then
   export CFLAGS+=
   export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS"
 else
-  export CFLAGS+="-static"
+  export CFLAGS+=" -static "
   export LDFLAGS="-LGCCSDK_ENV/lib -static $AB_LDFLAGS"
 fi
 
