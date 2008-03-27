@@ -1,3 +1,8 @@
+Thu Mar 27 02:24:59 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* vscript(_Exit,__exit,__exit_no_code,__exit_with_error_block):
+	Deleted (_Exit is a valid C99 symbol and the others were not defined)
+
 Fri Mar 21 19:37:54 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/time.h(__tz): Remove declaration.

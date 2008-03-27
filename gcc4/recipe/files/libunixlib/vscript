@@ -23,11 +23,7 @@ VERSION {
      __env_read;
      __env_riscos;
      __env_unixlib;
-     __exit;
-     _Exit;
-     __exit_no_code;
      __exit_with_error_num;
-     __exit_with_error_block;
      __fd_to_name;
      __fork_pre;
      __fork_post;
