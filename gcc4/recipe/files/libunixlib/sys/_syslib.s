@@ -1288,10 +1288,10 @@ __ul_global:
 
 	@ __ul_global.time
 	@ low word, high byte
-	.word	0, 0	@ 			@ offset = 4
+	.word	0, 0				@ offset = 4
 
-	@ __ul_global.__notused1
-	.word	0				@ offset = 12
+	@ __ul_global.rewindpipeoffset
+	.word	-1				@ offset = 12
 
 	@ __ul_global.taskwindow
 	@ Non-zero if executing in a TaskWindow
@@ -1314,11 +1314,11 @@ __ul_global:
 	@ Otherwise the DA number used to store our heap.
 	.word	-1				@ offset = 24
 
-	@ __ul_global.__notused4
-	.word	0				@ offset = 28
+	@ __ul_global.changeredir0
+	.word	-1				@ offset = 28
 
-	@ __ul_global.__notused2
-	.word	0				@ offset = 32
+	@ __ul_global.changeredir1
+	.word	-1				@ offset = 32
 
 	@ __ul_global.panic_mode
 	@ Non-zero when we're panicing.

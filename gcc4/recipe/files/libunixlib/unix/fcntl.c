@@ -1,5 +1,5 @@
 /* UnixLib fcntl() implementation.
-   Copyright (c) 2000-2007 UnixLib Developers.  */
+   Copyright (c) 2000-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -47,13 +47,13 @@ fcntl (int fd, int cmd, ...)
 	  {
 	    struct __unixlib_fd *dup_file_desc = getfd (duplicate_fd);
 
-	    dup_file_desc->fflag = file_desc->fflag;
 	    dup_file_desc->devicehandle = file_desc->devicehandle;
 	    __atomic_modify (&(dup_file_desc->devicehandle->refcount), 1);
-	    /* File descriptor flags aren't duplicated.  */
-	    dup_file_desc->dflag = 0;
+	    /* File descriptor flags (like FILE_ISDIR, FILE_HANDLE_FROM_OS)
+	       are duplicated.  */
+	    dup_file_desc->dflag = file_desc->dflag;
 	    /* The close-on-exec flag isn't duplicated.  */
-	    dup_file_desc->fflag &= ~O_EXECCL;
+	    dup_file_desc->fflag = file_desc->fflag & ~O_EXECCL;
 	  }
 
 	return duplicate_fd;

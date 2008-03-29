@@ -1,3 +1,23 @@
+Sat Mar 29 18:48:49 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/fcntl.c(fcntl): Case F_DUPFD needs file descriptors to be
+	copied too otherwise we would be closing OS_ChangeRedirection acquired
+	RISC OS handles (FILE_HANDLE_FROM_OS).  And FILE_ISDIR bit also needs
+	to be copied.
+	* include/unixlib/unix.h(struct ul_global): Renamed __unused1,
+	__unused4 and __unused2 to rewindpipeoffset, changeredir0 and
+	changeredir1.
+	* sys/_syslib.s: Likewise.
+	* sys/vfork.c(__fork_pre): initialise rewindpipeoffset, changeredir0
+	and changeredir1; (__fork_post): restore read pipe file offset and
+	RISC OS redirection.
+	* sys/exec.c(execve): when in a fork context set RISC OS redirection
+	based on file descriptors 0 and 1 when those are real files or a pipe.
+	Also record the read pipe offset for file descriptor 1 as
+	rewindpipeoffset and move file offset to the end. Any non-UL process
+	(e.g. libscl, OS command) can now read/write data using file handles
+	managed by parent.
+
 Thu Mar 27 02:24:59 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* vscript(_Exit,__exit,__exit_no_code,__exit_with_error_block):

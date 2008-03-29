@@ -1,5 +1,5 @@
 /* Execute a new program.
-   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2002-2008 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -18,9 +18,13 @@
 #include <sys/wait.h>
 #include <unixlib/local.h>
 #include <pthread.h>
+#include <unixlib/dev.h>
 
 /* #define DEBUG 1 */
 
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 /* Setup the extended command line by sending all the arguments to the
    program via DDEUtils module.  */
@@ -368,6 +372,42 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	  offset += len;
 	}
       newenviron[enventries] = NULL;
+    }
+
+  /* Setup RISC OS redirection.  This will only be used by non-UL child
+     processes.  */
+  if (sulproc->ppid != 1)
+    {
+      int regs[10];
+      _kernel_oserror *err;
+
+      regs[0] = (!BADF (0)
+                 && (getfd (0)->devicehandle->type == DEV_RISCOS
+                     || getfd (0)->devicehandle->type == DEV_PIPE)) ?
+        (int) getfd (0)->devicehandle->handle : -1;
+      regs[1] = (!BADF (1)
+                 && (getfd (1)->devicehandle->type == DEV_RISCOS
+                     || getfd (1)->devicehandle->type == DEV_PIPE)) ?
+        (int) getfd (1)->devicehandle->handle : -1;
+      if ((err = __os_swi (OS_ChangeRedirection, regs)) != NULL)
+        return __ul_seterr (err, 1);
+      gbl->changeredir0 = regs[0];
+      gbl->changeredir1 = regs[1];
+
+      if (!BADF (1) && getfd (1)->devicehandle->type == DEV_PIPE)
+        {
+          /* Read the current (read) file pointer and seek then to the end.
+             When returning in vfork(), we'll reset the file pointer back to
+             its read position again.  */
+          int handle = (int) getfd (1)->devicehandle->handle;
+
+          if ((err = __os_args (0, handle, 0, regs)) != NULL)
+            return __ul_seterr (err, 1);
+          gbl->rewindpipeoffset = regs[2];
+          if ((err = __os_args (2, handle, 0, regs)) != NULL
+              || (err = __os_args (1, handle, regs[2], NULL)) != NULL)
+            return __ul_seterr (err, 1);
+        }
     }
 
   /* From this point onwards we cannot return an error */

@@ -1,5 +1,5 @@
 /* Implementation of fork.
-   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <unixlib/unix.h>
@@ -9,6 +9,13 @@
 #include <swis.h>
 #include <unixlib/local.h>
 #include <stdlib.h>
+#include <unixlib/dev.h>
+
+/* #define DEBUG 1 */
+
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 static int __saved_pthread_system_running;
 static const char *dde_prefix;
@@ -19,6 +26,12 @@ __fork_pre (int isfork, void **sul_fork, pid_t *pid)
 {
   struct ul_global *gbl = &__ul_global;
   struct __sul_process *sulproc = gbl->sulproc;
+
+  /* Reset redirection variables.  They are set in exec(), when it is called,
+     and consuled at __fork_post() time.  */
+  gbl->rewindpipeoffset = -1;
+  gbl->changeredir0 = -1;
+  gbl->changeredir1 = -1;
 
   /* Supporting fork when dynamic areas are in use is difficult.
      We would have to take a copy of the main heap DA, and also any mmaped
@@ -106,6 +119,22 @@ __fork_post (pid_t pid, int isfork)
       /* Disable escape if necessary (in case the child enabled it).  */
       if (gbl->escape_disabled)
         __os_byte (229, 1, 0, NULL);
+
+      {
+        int regs[10];
+
+        /* Restore RISC OS in/out redirection.  */
+        regs[0] = gbl->changeredir0;
+        regs[1] = gbl->changeredir1;
+        (void) __os_swi (OS_ChangeRedirection, regs);
+        /* When the stdout of our child process was a DEV_PIPE, we need to rewind it to
+           to point where we exec'ed the child so we can read its output.  */
+        if (gbl->rewindpipeoffset != -1)
+          {
+            (void) __os_args (1, regs[1], gbl->rewindpipeoffset, NULL);
+            gbl->rewindpipeoffset = -1;
+          }
+      }
 
       if (gbl->pthread_system_running)
         {

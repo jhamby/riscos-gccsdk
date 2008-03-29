@@ -136,12 +136,12 @@ struct ul_global
 {
   const char *cli;
   unsigned int time[2];
-  int __notused1;
+  int rewindpipeoffset;
   int taskwindow;
   int taskhandle; /* consider using __get_taskhandle() to read this value.  */
   int dynamic_num;
-  int __notused4;
-  int __notused2;
+  int changeredir0;
+  int changeredir1;
   int panic_mode;
   struct __sul_process *sulproc;
   int pagesize;
