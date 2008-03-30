@@ -1,5 +1,5 @@
 /* Low-level device handling.
-   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2002-2008 UnixLib Developers.  */
 
 /* #define DEBUG */
 
@@ -371,7 +371,7 @@ __fsclose (struct __unixlib_fd *file_desc)
     buffer = NULL;
 
 #ifdef DEBUG
-  debug_printf ("-- __fsclose: file %p, buffer '%s'\n", file_desc->devicehandle->handle,
+  debug_printf ("-- __fsclose: ro file handle 0x%x, buffer '%s'\n", file_desc->devicehandle->handle,
 		buffer ? buffer : "<NULL>");
 #endif
 
@@ -379,8 +379,7 @@ __fsclose (struct __unixlib_fd *file_desc)
   err = __os_fclose ((int) file_desc->devicehandle->handle);
   if (!err && buffer)
     {
-      int regs[10];
-      err = __os_file (OSFILE_DELETENAMEDOBJECT, buffer, regs);
+      err = __os_file (OSFILE_DELETENAMEDOBJECT, buffer, NULL);
       /* Delete the suffix swap dir if it is now empty */
       __unlinksuffix (buffer);	/* buffer is corrupted by this call */
     }
@@ -529,7 +528,6 @@ __fsfstat (int fd, struct stat *buf)
   int regs[10];
   char *buffer;
   _kernel_oserror *err;
-  int argsregs[3];
 
   file_desc = getfd (fd);
 
@@ -554,6 +552,8 @@ __fsfstat (int fd, struct stat *buf)
 
   if (!(file_desc->dflag & FILE_ISDIR))
     {
+      int argsregs[3];
+
       /* __os_file returns the allocated size of the file,
          but we want the current extent of the file */
       err = __os_args (2, (int) file_desc->devicehandle->handle, 0, argsregs);
@@ -600,12 +600,12 @@ __pipewrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
       int offset = regs[2];
       /* Read extent && Set file pointer to end of file.  */
       if (!__os_args (2, handle, 0, regs)
-	  && !__os_args (1, handle, regs[2], regs))
+	  && !__os_args (1, handle, regs[2], NULL))
 	{
 	  /* Write some more data to the "pipe" at the end of the file.  */
 	  int write_err = __fswrite (file_desc, data, nbyte);
 	  /* Restore the pointer to where we found it.  */
-	  if (!__os_args (1, handle, offset, regs))
+	  if (!__os_args (1, handle, offset, NULL))
 	    return write_err;
 	}
     }
@@ -624,15 +624,16 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
   if (pread)
     {
       int regs[3];
-      int pos;
+
       /* Read current file position.  */
       if (!__os_args (0, (int) file_desc->devicehandle->handle, 0, regs))
 	{
-	  pos = regs[2];
+	  int pos = regs[2];
+
 	  /* Read extent.  */
-	  if (!__os_args (2, (int) file_desc->devicehandle->handle, 0, regs))
-	    if (pos != regs[2])
-	      to_read = 1;
+	  if (!__os_args (2, (int) file_desc->devicehandle->handle, 0, regs)
+              && pos != regs[2])
+	    to_read = 1;
 	  /* If file pointer != extent then there is still data to read.  */
 	}
 

@@ -1,5 +1,5 @@
 /* Internal UnixLib structure debugging.
-   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Devlopers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2007, 2008 UnixLib Devlopers.  */
 
 #include <pthread.h>
 #include <string.h>
@@ -64,8 +64,9 @@ __debug (const char *s)
 	    {
 	      char fname[_POSIX_PATH_MAX];
 
-	      debug_printf ("f[%d].handle: %d\n",
-			    ui, getfd (ui)->devicehandle->handle);
+	      debug_printf ("f[%d].handle: %p (type %d)\n",
+			    ui, getfd (ui)->devicehandle->handle,
+			    getfd (ui)->devicehandle->type);
 
 	      /* Do not change this to an malloc'ing version. execve can call
 	         this function after it knows no more malloc'ing is done.  */

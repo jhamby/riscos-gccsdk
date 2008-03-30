@@ -1,5 +1,5 @@
 /* UnixLib tty device driver.
-   Copyright (c) 2000-2007 UnixLib Developers.  */
+   Copyright (c) 2000-2008 UnixLib Developers.  */
 
 #define _BSD_SOURCE
 
@@ -500,7 +500,7 @@ ret:
   if (tty->cnt != 0)
     {
       if (tty->type == TTY_CON)
-	__os_byte (0xe5, escapestate, 0, 0);	/* Restore SIGINT.  */
+	__os_byte (0xe5, escapestate, 0, NULL);	/* Restore SIGINT.  */
 
       i = (nbyte > tty->cnt) ? tty->cnt : nbyte;
       memcpy (buf, tty->ptr, i);
@@ -648,7 +648,7 @@ eol:
     goto ret;
 
   if (tty->type == TTY_CON)
-    __os_byte (0xe5, escapestate, 0, 0);	/* Restore SIGINT.  */
+    __os_byte (0xe5, escapestate, 0, NULL);	/* Restore SIGINT.  */
 
   if (tty->cnt == 0 && c != ceof)
     return __set_errno (EAGAIN);

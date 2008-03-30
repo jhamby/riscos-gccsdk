@@ -1,3 +1,10 @@
+Sun Mar 30 15:59:15 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/dev.c: Added a bit more debug info and did some
+	microoptimisation.
+	* unix/tty.c(__ttyicanon): 0 -> NULL
+	* debug/debug.c(__debug): Added a bit more debug info.
+
 Sun Mar 30 15:33:22 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* test/process-redirect/{child.c,Makefile,parent.c,RunTestQueue,feb}:
