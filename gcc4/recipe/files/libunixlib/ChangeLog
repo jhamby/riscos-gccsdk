@@ -1,3 +1,8 @@
+Sun Mar 30 15:33:22 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* test/process-redirect/{child.c,Makefile,parent.c,RunTestQueue,feb}:
+	Added test suite used to test the recent redirection/pipe/dup fixes.
+
 Sat Mar 29 18:48:49 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/fcntl.c(fcntl): Case F_DUPFD needs file descriptors to be
