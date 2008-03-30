@@ -273,7 +273,7 @@ ab_build() {
     fi
 
     # Build our version of zip for packaging
-    if [ "$PACKAGE_NAME" != "native-zip" ] && ! [ -e $GCCSDK_INSTALL_CROSSBIN/zip ] ; then
+    if [ "$PACKAGE_NAME" != "native-zip" ] && ! [ -e $GCCSDK_INSTALL_ENV/bin/zip ] ; then
       if ! ab_build native-zip true true false; then
         return 1
       fi
