@@ -1,9 +1,3 @@
-? xpfe/components/filepicker/src/nsFilePicker.js
-? xpfe/global/buildconfig.html
-? browser/app/firefox
-? browser/app/firefox-bin,e1f
-? browser/app/profile
-? browser/components/microsummaries/src/nsMicrosummaryService.js
 Index: allmakefiles.sh
 ===================================================================
 RCS file: /cvsroot/mozilla/allmakefiles.sh,v

@@ -4,7 +4,7 @@ RCS file: /cvsroot/mozilla/security/coreconf/config.mk,v
 retrieving revision 1.17.28.2
 diff -u -r1.17.28.2 config.mk
 --- security/coreconf/config.mk	28 Apr 2006 03:36:22 -0000	1.17.28.2
-+++ security/coreconf/config.mk	21 Feb 2008 03:33:17 -0000
++++ security/coreconf/config.mk	30 Mar 2008 14:46:24 -0000
 @@ -63,7 +63,7 @@
  #######################################################################
  
@@ -20,7 +20,7 @@ RCS file: /cvsroot/mozilla/security/coreconf/rules.mk,v
 retrieving revision 1.66.2.5
 diff -u -r1.66.2.5 rules.mk
 --- security/coreconf/rules.mk	6 Jan 2007 05:48:54 -0000	1.66.2.5
-+++ security/coreconf/rules.mk	21 Feb 2008 03:33:17 -0000
++++ security/coreconf/rules.mk	30 Mar 2008 14:46:25 -0000
 @@ -356,8 +356,12 @@
  ifdef XP_OS2_VACPP
  	$(MKSHLIB) $(DLLFLAGS) $(LDFLAGS) $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
@@ -40,7 +40,7 @@ RCS file: /cvsroot/mozilla/security/coreconf/nsinstall/nsinstall.c,v
 retrieving revision 1.8
 diff -u -r1.8 nsinstall.c
 --- security/coreconf/nsinstall/nsinstall.c	25 Apr 2004 15:02:18 -0000	1.8
-+++ security/coreconf/nsinstall/nsinstall.c	21 Feb 2008 03:33:17 -0000
++++ security/coreconf/nsinstall/nsinstall.c	30 Mar 2008 14:46:25 -0000
 @@ -58,7 +58,7 @@
  
  #define HAVE_LCHOWN
@@ -65,42 +65,49 @@ diff -u -r1.8 nsinstall.c
 Index: security/manager/ssl/src/nsKeygenHandler.cpp
 ===================================================================
 RCS file: /cvsroot/mozilla/security/manager/ssl/src/nsKeygenHandler.cpp,v
-retrieving revision 1.36
-diff -u -r1.36 nsKeygenHandler.cpp
---- security/manager/ssl/src/nsKeygenHandler.cpp	20 Jul 2005 19:31:22 -0000	1.36
-+++ security/manager/ssl/src/nsKeygenHandler.cpp	21 Feb 2008 03:33:17 -0000
-@@ -95,6 +95,7 @@
-     { 0, }
+retrieving revision 1.36.2.1
+diff -u -r1.36.2.1 nsKeygenHandler.cpp
+--- security/manager/ssl/src/nsKeygenHandler.cpp	13 Feb 2008 10:28:38 -0000	1.36.2.1
++++ security/manager/ssl/src/nsKeygenHandler.cpp	30 Mar 2008 14:46:25 -0000
+@@ -75,6 +75,7 @@
+     { nsnull, 0 }, 
  };
  
 +#if 0
  DERTemplate SECAlgorithmIDTemplate[] = {
      { DER_SEQUENCE,
  	  0, NULL, sizeof(SECAlgorithmID) },
-@@ -105,6 +106,7 @@
+@@ -84,6 +85,7 @@
+ 	  offsetof(SECAlgorithmID,parameters), },
+     { 0, }
+ };
++#endif
+ 
+ DERTemplate CERTSubjectPublicKeyInfoTemplate[] = {
+     { DER_SEQUENCE,
+@@ -104,6 +106,7 @@
      { 0, }
  };
  
-+
++#if 0
  const SEC_ASN1Template SECKEY_PQGParamsTemplate[] = {
      { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(PQGParams) },
      { SEC_ASN1_INTEGER, offsetof(PQGParams,prime) },
-@@ -113,6 +115,8 @@
+@@ -111,6 +114,7 @@
+     { SEC_ASN1_INTEGER, offsetof(PQGParams,base) },
      { 0, }
  };
- 
 +#endif
-+
+ 
  
  static NS_DEFINE_IID(kIDOMHTMLSelectElementIID, NS_IDOMHTMLSELECTELEMENT_IID);
- static NS_DEFINE_CID(kNSSComponentCID, NS_NSSCOMPONENT_CID);
 Index: security/nss/lib/freebl/unix_rand.c
 ===================================================================
 RCS file: /cvsroot/mozilla/security/nss/lib/freebl/unix_rand.c,v
 retrieving revision 1.17.10.5
 diff -u -r1.17.10.5 unix_rand.c
 --- security/nss/lib/freebl/unix_rand.c	12 Oct 2006 22:50:48 -0000	1.17.10.5
-+++ security/nss/lib/freebl/unix_rand.c	21 Feb 2008 03:33:18 -0000
++++ security/nss/lib/freebl/unix_rand.c	30 Mar 2008 14:46:25 -0000
 @@ -34,6 +34,8 @@
   *
   * ***** END LICENSE BLOCK ***** */
@@ -125,7 +132,7 @@ RCS file: /cvsroot/mozilla/security/nss/lib/softoken/Attic/pcertdb.c,v
 retrieving revision 1.53.2.10
 diff -u -r1.53.2.10 pcertdb.c
 --- security/nss/lib/softoken/pcertdb.c	17 May 2006 20:46:59 -0000	1.53.2.10
-+++ security/nss/lib/softoken/pcertdb.c	21 Feb 2008 03:33:18 -0000
++++ security/nss/lib/softoken/pcertdb.c	30 Mar 2008 14:46:25 -0000
 @@ -4027,6 +4027,15 @@
  #define NO_CREATE	(O_RDWR | O_CREAT | O_TRUNC)
  #endif
@@ -157,7 +164,7 @@ RCS file: /cvsroot/mozilla/security/nss/lib/softoken/pkcs11.c,v
 retrieving revision 1.112.2.20
 diff -u -r1.112.2.20 pkcs11.c
 --- security/nss/lib/softoken/pkcs11.c	12 Oct 2006 22:20:04 -0000	1.112.2.20
-+++ security/nss/lib/softoken/pkcs11.c	21 Feb 2008 03:33:19 -0000
++++ security/nss/lib/softoken/pkcs11.c	30 Mar 2008 14:46:26 -0000
 @@ -3123,7 +3123,7 @@
      /* tell freeBL to clean up after itself */
      BL_Cleanup();
@@ -173,7 +180,7 @@ RCS file: /cvsroot/mozilla/security/nss/lib/ssl/sslsock.c,v
 retrieving revision 1.44.2.6
 diff -u -r1.44.2.6 sslsock.c
 --- security/nss/lib/ssl/sslsock.c	2 Oct 2006 21:17:59 -0000	1.44.2.6
-+++ security/nss/lib/ssl/sslsock.c	21 Feb 2008 03:33:19 -0000
++++ security/nss/lib/ssl/sslsock.c	30 Mar 2008 14:46:26 -0000
 @@ -509,7 +509,7 @@
  static SECStatus SSL_BypassShutdown(void* appData, void* nssData)
  {
