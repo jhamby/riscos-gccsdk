@@ -1,17 +1,18 @@
---- gcc/collect2.c.orig	2007-08-14 21:09:00.000000000 +0200
-+++ gcc/collect2.c	2007-08-15 21:20:07.000000000 +0200
-@@ -47,6 +47,10 @@
+--- gcc/collect2.c.orig	2008-03-31 23:53:11.000000000 +0200
++++ gcc/collect2.c	2008-04-01 00:04:55.000000000 +0200
+@@ -47,6 +47,11 @@
  #include "intl.h"
  #include "version.h"
  
 +#if defined(TARGET_RISCOSELF) && !defined(CROSS_COMPILE)
++#include <kernel.h>
 +#include <unixlib/local.h>
 +#endif
 +
  /* On certain systems, we have code that works by scanning the object file
     directly.  But this code uses system-specific header files and library
     functions, so turn it off in a cross-compiler.  Likewise, the names of
-@@ -179,6 +183,11 @@
+@@ -179,6 +184,11 @@
  
  static int shared_obj;		        /* true if -shared */
  
@@ -23,7 +24,7 @@
  static const char *c_file;		/* <xxx>.c for constructor/destructor list.  */
  static const char *o_file;		/* <xxx>.o for constructor/destructor list.  */
  #ifdef COLLECT_EXPORT_LIST
-@@ -192,6 +201,7 @@
+@@ -192,6 +202,7 @@
  static const char *ldd_file_name;	/* pathname of ldd (or equivalent) */
  #endif
  static const char *strip_file_name;		/* pathname of strip */
@@ -31,7 +32,7 @@
  const char *c_file_name;	        /* pathname of gcc */
  static char *initname, *fininame;	/* names of init and fini funcs */
  
-@@ -729,6 +739,77 @@
+@@ -729,6 +740,87 @@
  	endp++;
      }
  }
@@ -48,29 +49,34 @@
 +      /* Take the binary only part of ELF binary.  */
 +#ifdef CROSS_COMPILE
 +      /* When we are building the cross-compiler, we have strip-new built but
-+         it is not yet installed.  */
++	 it is not yet installed.  */
 +      if (strip_file_name == NULL)
-+        notice ("'%s' has not been found so therefore not used.\n", "strip");
++	notice ("'%s' has not been found so therefore not used.\n", "strip");
 +      else
 +#endif
-+        {
-+          char **real_strip_argv = xcalloc (sizeof (char *), 5);
-+          const char ** strip_argv = (const char **) real_strip_argv;
++	{
++	  char **real_strip_argv = xcalloc (sizeof (char *), 5);
++	  const char ** strip_argv = (const char **) real_strip_argv;
 +
-+          strip_argv[0] = strip_file_name;
-+          strip_argv[1] = "-O";
-+          strip_argv[2] = "binary";
-+          strip_argv[3] = output_file;
-+          strip_argv[4] = NULL;
-+          fork_execute ("strip", real_strip_argv);
-+        }
++	  strip_argv[0] = strip_file_name;
++	  strip_argv[1] = "-O";
++	  strip_argv[2] = "binary";
++	  strip_argv[3] = output_file;
++	  strip_argv[4] = NULL;
++	  fork_execute ("strip", real_strip_argv);
++	}
 +
 +#ifndef CROSS_COMPILE
 +      {
-+        char robuf[_POSIX_PATH_MAX];
-+        /* Set filetype Module.  */
-+        __object_set_attrs (output_file, robuf, sizeof (robuf),
-+                            0xFFA /* module */, __ATTR_NOTSPECIFIED);
++	char robuf[_POSIX_PATH_MAX];
++	/* Set filetype Module.  */
++	if (__riscosify_std (output_file, 0, robuf, sizeof (robuf), NULL))
++	  {
++	    _kernel_osfile_block bl;
++
++	    bl.load = 0xFFA; /* RISC OS Module */
++	    _kernel_osfile (18, robuf, &bl);
++	  }
 +      }
 +#endif
 +    }
@@ -79,29 +85,34 @@
 +      /* Run elf2aif on the ELF binary.  */
 +#ifdef CROSS_COMPILE
 +      /* When we are building the cross-compiler, we don't have elf2aif in
-+         our build-tree as it gets built later. The test on CROSS_COMPILE is
-+         therefore a little bit too wide.  */
++	 our build-tree as it gets built later. The test on CROSS_COMPILE is
++	 therefore a little bit too wide.  */
 +      if (elf2aif_file_name == NULL)
-+        notice ("'%s' has not been found so therefore not used.\n", "elf2aif");
++	notice ("'%s' has not been found so therefore not used.\n", "elf2aif");
 +      else
 +#endif
-+        {
-+          char **real_elf2aif_argv = xcalloc (sizeof (char *), 3);
-+          const char ** elf2aif_argv = (const char **) real_elf2aif_argv;
++	{
++	  char **real_elf2aif_argv = xcalloc (sizeof (char *), 3);
++	  const char ** elf2aif_argv = (const char **) real_elf2aif_argv;
 +
-+          elf2aif_argv[0] = elf2aif_file_name;
-+          elf2aif_argv[1] = output_file;
-+          elf2aif_argv[2] = NULL;
-+          fork_execute ("elf2aif", real_elf2aif_argv);
-+        }
++	  elf2aif_argv[0] = elf2aif_file_name;
++	  elf2aif_argv[1] = output_file;
++	  elf2aif_argv[2] = NULL;
++	  fork_execute ("elf2aif", real_elf2aif_argv);
++	}
 +    }
 +  else
 +    {
 +#ifndef CROSS_COMPILE
 +      char robuf[_POSIX_PATH_MAX];
 +      /* Set filetype ELF.  */
-+      __object_set_attrs (output_file, robuf, sizeof (robuf),
-+                          0xE1F /* ELF */, __ATTR_NOTSPECIFIED);
++      if (__riscosify_std (output_file, 0, robuf, sizeof (robuf), NULL))
++	{
++	  _kernel_osfile_block bl;
++
++	  bl.load = 0xE1F; /* ELF binary */
++	  _kernel_osfile (18, robuf, &bl);
++	}
 +#endif
 +    }
 +}
@@ -109,7 +120,7 @@
  
  /* Main program.  */
  
-@@ -745,6 +826,7 @@
+@@ -745,6 +837,7 @@
  #endif
    static const char *const strip_suffix = "strip";
    static const char *const gstrip_suffix = "gstrip";
@@ -117,7 +128,7 @@
  
  #ifdef CROSS_COMPILE
    /* If we look for a program in the compiler directories, we just use
-@@ -953,6 +1035,10 @@
+@@ -953,6 +1046,10 @@
    if (strip_file_name == 0)
      strip_file_name = find_a_file (&path, full_strip_suffix);
  
@@ -128,7 +139,7 @@
    /* Determine the full path name of the C compiler to use.  */
    c_file_name = getenv ("COLLECT_GCC");
    if (c_file_name == 0)
-@@ -1015,6 +1101,12 @@
+@@ -1015,6 +1112,12 @@
  	*c_ptr++ = xstrdup (q);
        if (strcmp (q, "-shared") == 0)
  	shared_obj = 1;
@@ -141,7 +152,7 @@
        if (*q == '-' && q[1] == 'B')
  	{
  	  *c_ptr++ = xstrdup (q);
-@@ -1277,6 +1369,8 @@
+@@ -1277,6 +1380,8 @@
  #endif
        fprintf (stderr, "strip_file_name     = %s\n",
  	       (strip_file_name ? strip_file_name : "not found"));
@@ -150,7 +161,7 @@
        fprintf (stderr, "c_file              = %s\n",
  	       (c_file ? c_file : "not found"));
        fprintf (stderr, "o_file              = %s\n",
-@@ -1327,6 +1421,11 @@
+@@ -1327,6 +1432,11 @@
  #endif
        maybe_unlink (c_file);
        maybe_unlink (o_file);
@@ -162,7 +173,7 @@
        return 0;
      }
  
-@@ -1381,6 +1480,11 @@
+@@ -1381,6 +1491,11 @@
  #endif
        maybe_unlink (c_file);
        maybe_unlink (o_file);
@@ -174,7 +185,7 @@
        return 0;
      }
  
-@@ -1472,6 +1576,10 @@
+@@ -1472,6 +1587,10 @@
    maybe_unlink (export_file);
  #endif
  
