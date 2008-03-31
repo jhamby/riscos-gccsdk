@@ -19,8 +19,9 @@
 
 #include <errno.h>
 #include <wchar.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 #ifndef EILSEQ
 #define EILSEQ EINVAL

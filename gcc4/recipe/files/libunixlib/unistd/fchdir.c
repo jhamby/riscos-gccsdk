@@ -1,6 +1,6 @@
 /* fchdir ()
  * Written by Alex Waugh
- * Copyright (c) 2003-2006 UnixLib Developers
+ * Copyright (c) 2003-2008 UnixLib Developers
  */
 
 #include <errno.h>
@@ -8,8 +8,8 @@
 #include <pthread.h>
 #include <dirent.h>
 
-#include <unixlib/dev.h>
-#include <unixlib/unix.h>
+#include <internal/dev.h>
+#include <internal/unix.h>
 #include <unixlib/local.h>
 
 int fchdir (int fd)

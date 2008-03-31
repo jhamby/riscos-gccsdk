@@ -1,10 +1,10 @@
-/* Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+/* Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers
    Written by Alex Waugh */
 
 #include <pthread.h>
 #include <stdlib.h>
-#include <unixlib/os.h>
 
+#include <internal/os.h>
 
 /* Called whenever there is an error that would not be sensible to continue running after */
 void

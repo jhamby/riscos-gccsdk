@@ -1,9 +1,10 @@
 /* Paranoid error function.
-   Copyright (c) 2004, 2005, 2006, 2007 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2006, 2007, 2008 UnixLib Developers.  */
 
 #include <signal.h>
-#include <unixlib/unix.h>
-#include <unixlib/os.h>
+
+#include <internal/unix.h>
+#include <internal/os.h>
 
 /* Don't use debug_printf () here as we don't want to pull in dvsprintf.c
    routines in static builds.  */

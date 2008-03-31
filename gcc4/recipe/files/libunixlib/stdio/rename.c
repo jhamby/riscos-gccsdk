@@ -1,9 +1,8 @@
 /* Rename a file.
-   Copyright (c) 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
-#include <pthread.h>
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
@@ -12,9 +11,11 @@
 #include <swis.h>
 
 #include <unixlib/local.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
+#include <internal/local.h>
+#include <internal/os.h>
+#include <internal/unix.h>
 #include <internal/swiparams.h>
+#include <pthread.h>
 
 int
 rename (const char *old_name, const char *new_name)

@@ -1,6 +1,6 @@
 /* localeconv ()
  * Written by Nick Burrett, 20 July 1997.
- * Copyright (c) 1997-2006 UnixLib Developers
+ * Copyright (c) 1997-2008 UnixLib Developers
  */
 
 #include <locale.h>
@@ -8,8 +8,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unixlib/os.h>
 #include <swis.h>
+
+#include <internal/os.h>
 
 /* #define DEBUG */
 

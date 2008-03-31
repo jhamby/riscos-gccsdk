@@ -1,14 +1,15 @@
 /* Initialise system resource limits.
-   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <sys/resource.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
 #include <errno.h>
 #include <stdio.h>
 #include <limits.h>
 #include <swis.h>
 #include <sys/types.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 
 /* Initialise the resource limits to calculated initial values.
    Best guesses are taken where information is hard to obtain. :-(  */

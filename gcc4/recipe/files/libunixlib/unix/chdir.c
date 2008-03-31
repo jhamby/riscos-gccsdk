@@ -1,17 +1,17 @@
 /* Change directory.
-   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include <unixlib/os.h>
 #include <swis.h>
-#include <unixlib/unix.h>
 
 #include <unixlib/local.h>
+#include <internal/os.h>
+#include <internal/unix.h>
+#include <internal/local.h>
 
 /* Change the current directory to PATH, taking into consideration any
    setting of Prefix$Dir.  */

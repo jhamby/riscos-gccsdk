@@ -1,5 +1,5 @@
 /* Return system implementation details.
-   Copyright (c) 2001, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2001, 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -7,7 +7,8 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <time.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 
 /* Get the value of the system variable NAME.  */
 long int

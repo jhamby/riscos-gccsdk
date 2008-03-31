@@ -1,13 +1,14 @@
 /* waitpid ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <sys/wait.h>
 #include <sys/types.h>
 #include <stddef.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Wait for a child matching pid to die.
 

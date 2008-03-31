@@ -1,10 +1,11 @@
 /* UnixLib stdio stdin/stdout/stderr initialisation and finalisation.
-   Copyright (c) 2000-2007 UnixLib Developers.  */
+   Copyright (c) 2000-2008 UnixLib Developers.  */
 
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 
 FILE *__iob_head = NULL;
 FILE *__stdin, *__stdout, *__stderr;

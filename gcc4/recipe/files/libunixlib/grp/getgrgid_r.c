@@ -1,7 +1,7 @@
 /* getgrgid_r ()
  * Search for an entry with a matching group ID (re-entrant version).
  *
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -9,8 +9,9 @@
 #include <errno.h>
 #include <grp.h>
 #include <sys/types.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 int
 getgrgid_r (gid_t gid, struct group *resbuf, char *buffer, size_t buflen,

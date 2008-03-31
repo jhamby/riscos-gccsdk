@@ -1,6 +1,6 @@
 /* tzset ()
  * Written by Nick Burrett on 12 July 1997.
- * Copyright (c) 1997-2007 UnixLib Developers
+ * Copyright (c) 1997-2008 UnixLib Developers
  */
 
 #include <locale.h>
@@ -10,9 +10,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <swis.h>
+
 #include <pthread.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
+#include <internal/os.h>
+#include <internal/unix.h>
 
 /* The default timezones.  */
 static char __tzname[2][8] = { "GMT", "BST" };

@@ -1,7 +1,7 @@
 @ SharedUnixLibrary
-@ Copyright (c) 2002-2007 UnixLib Developers
+@ Copyright (c) 2002-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 #define DEBUG_PROC_MATCHING 0
 
@@ -23,7 +23,7 @@
 @ to be UnixLib struct __sul_process structure followed by internal SUL data
 @ for that process.
 @ Note that ListNext == PROC_NEXT.
-@ See the "struct __sul_process" definition in include/unixlib/unix.h.
+@ See the "struct __sul_process" definition in include/internal/unix.h.
 @ All entries upto PROC_SULONLY are accessible by client programs, and should
 @ not be altered, to ensure backwards compatibility. Entries after this are
 @ private to SUL and can be altered in new versions of SUL without problems.

@@ -1,14 +1,8 @@
 @ __builtin_frame_address
 @ This source is used by SCL and UnixLib libraries.
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Developers
 
-#if __TARGET_UNIXLIB__
-#  include "unixlib/asm_dec.s"
-#elif __TARGET_SCL__
-#  include "internal/asm_dec.s"
-#else
-#  error "Unsupported runtime"
-#endif
+#include "internal/asm_dec.s"
 
 	.text
 

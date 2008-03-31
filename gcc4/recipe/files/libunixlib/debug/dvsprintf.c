@@ -1,7 +1,6 @@
 /* Linux kernel vsprintf modified for UnixLib debugging.
-   Copyright (c) 2005-2007 UnixLib Devlopers.
-
-   This must be compiled without stack checking.  */
+   This must be compiled without stack checking.
+   Copyright (c) 2005-2008 UnixLib Devlopers.  */
 
 #define UNIXLIB_CHANGES
 
@@ -38,8 +37,8 @@
 #include <stddef.h>
 
 #include <pthread.h>
-#include <unixlib/unix.h>
-#include <unixlib/os.h>
+#include <internal/unix.h>
+#include <internal/os.h>
 
 static __inline int
 local_isxdigit (const char x)

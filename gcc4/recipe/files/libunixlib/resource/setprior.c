@@ -1,12 +1,13 @@
 /* setpriority ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <sys/resource.h>
 #include <limits.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* A return value of zero indicates success.  */
 

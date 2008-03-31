@@ -1,15 +1,16 @@
 /* __unixlib_signal_initialise ()
  * Initialise the UnixLib stack handlers.
  * Written by Nick Burrett, 26 August 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <stdlib.h>
 #include <signal.h>
-#include <unixlib/sigstate.h>
-#include <unixlib/unix.h>
 #include <unistd.h>
-#include <unixlib/os.h>
+
+#include <internal/sigstate.h>
+#include <internal/unix.h>
+#include <internal/os.h>
 
 void
 __unixlib_signal_initialise (struct proc *p)

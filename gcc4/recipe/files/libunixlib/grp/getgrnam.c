@@ -1,15 +1,16 @@
 /* getgrnam ()
  * Search for an entry with a matching username.
  *
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <grp.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Search for an entry with a matching name.
    Defined by POSIX as not threadsafe.  */

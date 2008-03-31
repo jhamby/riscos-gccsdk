@@ -1,12 +1,13 @@
 /* listen ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 1995-2006 UnixLib Developers
+ * Copyright (c) 1995-2008 UnixLib Developers
  */
 
-#include <unixlib/unix.h>
 #include <sys/socket.h>
-#include <unixlib/fd.h>
-#include <unixlib/local.h>
+
+#include <internal/unix.h>
+#include <internal/fd.h>
+#include <internal/local.h>
 #include <pthread.h>
 
 int

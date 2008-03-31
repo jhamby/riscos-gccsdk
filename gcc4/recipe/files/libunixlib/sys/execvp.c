@@ -1,14 +1,14 @@
 /* execvp ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <unistd.h>
 
 /* #define DEBUG 1 */
 #ifdef DEBUG
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
-#include <pthread.h>
+#  include <sys/debug.h>
+#  include <internal/unix.h>
+#  include <pthread.h>
 #endif
 
 /* Execute file, searching in the 'PATH' environment variable if it

@@ -1,19 +1,20 @@
 /* UnixLib popen() and pclose() implementation.
-   Copyright 2001-2007 UnixLib Developers.  */
+   Copyright 2001-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <pthread.h>
-
 #include <sys/param.h>
 #include <sys/wait.h>
 
-#include <unixlib/unix.h>
+#include <internal/unix.h>
+#include <pthread.h>
+
+/* #define DEBUG */
 #ifdef DEBUG
-#include <unixlib/os.h>
+#  include <sys/debug.h>
 #endif
 
 /* FIXME, hang this off the FILE structure.  */

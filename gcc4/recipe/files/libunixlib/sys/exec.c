@@ -8,20 +8,19 @@
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>
-
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/param.h>
-#include <unixlib/unix.h>
-#include <unixlib/os.h>
 #include <swis.h>
 #include <sys/wait.h>
+
+#include <internal/unix.h>
+#include <internal/os.h>
 #include <unixlib/local.h>
 #include <pthread.h>
-#include <unixlib/dev.h>
+#include <internal/dev.h>
 
 /* #define DEBUG 1 */
-
 #ifdef DEBUG
 #  include <sys/debug.h>
 #endif

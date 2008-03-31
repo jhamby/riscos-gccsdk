@@ -1,11 +1,12 @@
 /* sigismember ()
  * Written by Nick Burrett, 6 October 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <signal.h>
-#include <unixlib/sigstate.h>
+
+#include <internal/sigstate.h>
 
 #undef sigismember
 

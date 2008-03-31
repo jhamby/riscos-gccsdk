@@ -1,7 +1,7 @@
 /* getgroups (), setgroups (), initgroups ()
  * Supplementary group reading and setting functions.
  *
- * Copyright (c) 2002-2007 UnixLib Developers
+ * Copyright (c) 2002-2008 UnixLib Developers
  */
 
 
@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <grp.h>
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Maximum number of groups initgroups() can handle.  */
 #define MAX_GROUPS 10

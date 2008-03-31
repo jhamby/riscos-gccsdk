@@ -3,8 +3,9 @@
 
 #include <stdlib.h>
 #include <pthread.h>
-#include <unixlib/unix.h>
 #include <malloc.h>
+
+#include <internal/unix.h>
 
 /* Separated from key.c to avoid other key functions being
    pulled in by the linker */

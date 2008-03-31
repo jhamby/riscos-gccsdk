@@ -1,7 +1,7 @@
 @ Provide program entry and initialise the UnixLib world
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
+@ Copyright (c) 2002-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	@ Keep in sync with error_table.
 .set	ERR_NO_MEMORY, 0
@@ -1270,7 +1270,7 @@ dynamic_area_name_end:
 @ to redefine this structure in C and drop the definitions here.
 @
 @ Offsets to elements within the __ul_global structure are maintained in
-@ unixlib/asm_dec.s and prefixed 'GBL_'.  If you change this structure
+@ internal/asm_dec.s and prefixed 'GBL_'.  If you change this structure
 @ you must change that file.
 
 #if PIC

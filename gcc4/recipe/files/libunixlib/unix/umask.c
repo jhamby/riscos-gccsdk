@@ -1,10 +1,11 @@
 /* umask ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
-#include <unixlib/types.h>
 #include <sys/stat.h>
-#include <unixlib/unix.h>
+
+#include <unixlib/types.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 __mode_t

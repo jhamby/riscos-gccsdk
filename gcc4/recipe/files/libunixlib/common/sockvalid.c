@@ -1,13 +1,14 @@
 /* __socket_valid ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
-#include <unixlib/fd.h>
+
+#include <internal/fd.h>
 #include <unixlib/local.h>
-#include <unixlib/dev.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 #include <pthread.h>
+#include <internal/dev.h>
 
 /* Return 0 if 'socket' is both a valid file descriptor  and refers to a
    socket device.  Sets errno and return -1 if not.  */

@@ -1,11 +1,12 @@
 /* Common stat operation.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2008 UnixLib Developers.  */
 
 #include <time.h>
-#include <unixlib/dev.h>
 #include <sys/stat.h>
+
 #include <unixlib/types.h>
-#include <unixlib/local.h>
+#include <internal/local.h>
+#include <internal/dev.h>
 
 void
 __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct stat *buf)

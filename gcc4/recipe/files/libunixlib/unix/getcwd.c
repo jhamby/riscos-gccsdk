@@ -1,17 +1,17 @@
 /* Get the current working directory.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include <unixlib/os.h>
 #include <swis.h>
-#include <unixlib/unix.h>
 
 #include <unixlib/local.h>
+#include <internal/os.h>
+#include <internal/unix.h>
+#include <internal/local.h>
 #include <pthread.h>
 
 /* Return current working directory in Unix format

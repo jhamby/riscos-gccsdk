@@ -1,5 +1,5 @@
 /* UnixLib process initialisation and finalisation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,29 +8,28 @@
 #include <ctype.h>
 #include <limits.h>
 #include <locale.h>
-
 #include <unistd.h>
 #include <fcntl.h>
-#include <pthread.h>
 #include <swis.h>
 #include <termios.h>
 #include <time.h>
-
 #include <fpu_control.h>
-
 #include <sys/param.h>
 #include <sys/wait.h>
 
-#include <unixlib/fd.h>
 #include <unixlib/local.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
-#include <unixlib/sigstate.h>
+#include <internal/fd.h>
+#include <internal/local.h>
+#include <internal/os.h>
+#include <internal/unix.h>
+#include <internal/sigstate.h>
 #include <internal/swiparams.h>
+#include <pthread.h>
 
 /*#define DEBUG 1*/
-
-#include <sys/debug.h>
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 void (*__atexit_function_array[__MAX_ATEXIT_FUNCTION_COUNT]) (void);
 int __atexit_function_count = 0;
@@ -51,7 +50,7 @@ static void __badr (void) __attribute__ ((__noreturn__));
 
 /* This is the only file that need ever reference main()
    so to prevent possible compiler errors from sources that
-   might include <unixlib/unix.h> we will have the main()
+   might include <internal/unix.h> we will have the main()
    declaration here.  */
 #if defined(PIC)
 extern int (*main) (int, char *[], char **);

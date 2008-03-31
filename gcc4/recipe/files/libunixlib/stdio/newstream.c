@@ -1,5 +1,5 @@
 /* UnixLib low-level stream implementation.
-   Copyright 2001-2007 UnixLib Developers.  */
+   Copyright 2001-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stddef.h>
@@ -7,8 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Invalidate a stream.  */
 void

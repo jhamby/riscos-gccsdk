@@ -1,11 +1,12 @@
 /* wait ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <sys/wait.h>
 #include <sys/types.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Wait for a child to die. When one does, put its status in *status
    and return its process ID. For errors, return -1.  */

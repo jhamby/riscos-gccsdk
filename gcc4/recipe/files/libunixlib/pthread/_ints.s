@@ -1,10 +1,10 @@
 @ Enable and disable the callevery interrupt from causing context switches
 @ disable_ints can be called multiple times, provided enable_ints is
 @ subsequently called an equal number of times
-@ Copyright (c) 2002-2007 UnixLib Developers
+@ Copyright (c) 2002-2008 UnixLib Developers
 @ Written by Martin Piper and Alex Waugh
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

@@ -1,6 +1,6 @@
 /* getdelim (), getline ()
  * Written by Nick Burrett, 27 October 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
@@ -10,8 +10,9 @@
 #include <string.h>
 #include <limits.h>
 #include <sys/types.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Read up to (and including) a terminator from stream into *lineptr
    (and null-terminate it). *lineptr is a pointer returned from malloc

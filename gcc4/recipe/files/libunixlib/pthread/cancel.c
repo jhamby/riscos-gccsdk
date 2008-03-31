@@ -1,9 +1,10 @@
 /* Thread cancellation functions.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers
    Written by Alex Waugh */
 
 #include <errno.h>
-#include <unixlib/os.h>
+
+#include <internal/os.h>
 #include <pthread.h>
 
 

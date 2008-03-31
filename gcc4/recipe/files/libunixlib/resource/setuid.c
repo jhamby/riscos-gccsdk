@@ -1,11 +1,12 @@
 /* setuid ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <unistd.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 int
 setuid (__uid_t uid)

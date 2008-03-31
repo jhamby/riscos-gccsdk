@@ -1,12 +1,13 @@
 /* __cvt_broken_time ()
  * Written by Nick Burrett on 12 July 1997.
- * Copyright (c) 1997-2006 UnixLib Developers
+ * Copyright (c) 1997-2008 UnixLib Developers
  */
 
 #include <time.h>
 #include <locale.h>
-#include <unixlib/os.h>
 #include <swis.h>
+
+#include <internal/os.h>
 #include <unixlib/local.h>
 
 /* Convert broken local time to 5-byte RISC OS time (UTC).  */

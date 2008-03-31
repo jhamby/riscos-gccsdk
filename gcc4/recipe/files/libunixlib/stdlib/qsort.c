@@ -1,12 +1,12 @@
 /* qsort ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
-
-#include <unixlib/unix.h>
 
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <internal/unix.h>
 #include <pthread.h>
 
 #define N_INSERT	8

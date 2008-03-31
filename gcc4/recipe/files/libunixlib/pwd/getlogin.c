@@ -1,12 +1,13 @@
 /* getlogin ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <pwd.h>
 #include <string.h>
 #include <unistd.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Return a pointer to a string containing the name of the user logged
    in on the controlling terminal of the process.

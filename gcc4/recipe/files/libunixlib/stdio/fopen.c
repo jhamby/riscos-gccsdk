@@ -1,7 +1,5 @@
 /* UnixLib fopen()/fdopen() implementation.
-   Copyright 2001-2007 UnixLib Developers.  */
-
-/* #define DEBUG */
+   Copyright 2001-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -10,11 +8,13 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 #include <pthread.h>
 
+/* #define DEBUG */
 #ifdef DEBUG
-#include <unixlib/os.h>
+#  include <sys/debug.h>
 #endif
 
 FILE *

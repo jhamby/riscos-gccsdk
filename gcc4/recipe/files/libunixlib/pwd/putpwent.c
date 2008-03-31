@@ -2,14 +2,15 @@
  * Write an entry to stream.
  * System V compatibility function.
  * Written by Nick Burrett, 13 October 1996.
- * Copyright (c) 1996-2007 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdio.h>
 #include <pwd.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Write an entry to the given stream.
    This must know the format of the password file.  */

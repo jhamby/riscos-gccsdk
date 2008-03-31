@@ -4,7 +4,7 @@
 #include <dirent.h>
 #include <fcntl.h>
 
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 #include <unixlib/local.h>
 #include <pthread.h>
 

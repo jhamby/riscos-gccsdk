@@ -4,8 +4,9 @@
 
 #include <errno.h>
 #include <stdio.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Clear the error and EOF indicators of stream.  */
 void

@@ -1,12 +1,13 @@
 /* sigpending ()
  * Written by Nick Burrett, 5 October 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stddef.h>
 #include <signal.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 #include <pthread.h>
 
 int

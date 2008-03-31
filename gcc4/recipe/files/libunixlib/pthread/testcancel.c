@@ -1,12 +1,13 @@
 /* pthread_testcancel
    Separate from cancel.c to avoid pulling in other cancel functions
    for a non threaded program
-   Copyright (c) 2002-2007 UnixLib Developers
+   Copyright (c) 2002-2008 UnixLib Developers
    Written by Alex Waugh */
 
 #include <pthread.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 
 /* Introduce a cancellation point into the current thread.  */
 void

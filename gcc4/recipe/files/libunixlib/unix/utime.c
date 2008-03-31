@@ -1,5 +1,5 @@
 /* Change access and/or modification times of an inode.
-   Copyright (c) 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -7,8 +7,8 @@
 #include <unistd.h>
 #include <utime.h>
 
-#include <unixlib/os.h>
-#include <unixlib/local.h>
+#include <internal/os.h>
+#include <internal/local.h>
 #include <internal/swiparams.h>
 
 int

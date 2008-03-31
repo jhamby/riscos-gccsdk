@@ -5,7 +5,8 @@
 #include <stdint.h>
 #include <time.h>
 #include <sys/time.h>
-#include <unixlib/os.h>
+
+#include <internal/os.h>
 #include <unixlib/local.h>
 
 /* The `gettimeofday' function returns the current date and time in

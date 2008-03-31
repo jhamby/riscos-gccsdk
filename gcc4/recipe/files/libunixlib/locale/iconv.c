@@ -1,16 +1,16 @@
 /* iconv_open (), iconv (), iconv_close ()
  * Written by Peter Naulls
- * Copyright (c) 2004-2007 UnixLib Developers
+ * Copyright (c) 2004-2008 UnixLib Developers
  */
 
 #include <stdlib.h>
-
 #include <swis.h>
 #include <errno.h>
 #include <iconv.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
-#include <unixlib/os.h>
+#include <internal/unix.h>
+#include <internal/os.h>
 
 #define ERROR_BASE 0x81b900
 

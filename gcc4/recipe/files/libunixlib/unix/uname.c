@@ -1,5 +1,5 @@
 /* uname ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
@@ -7,9 +7,10 @@
 #include <sys/utsname.h>
 #include <sys/param.h>
 #include <unistd.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
 #include <swis.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 
 /* Try and extract the help version from the module help string.  */
 static void

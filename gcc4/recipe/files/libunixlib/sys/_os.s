@@ -1,7 +1,7 @@
 @ __os_*
-@ Copyright (c) 2000-2006 UnixLib Developers
+@ Copyright (c) 2000-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

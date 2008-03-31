@@ -34,11 +34,8 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/syslog.h>
-#include <unixlib/unix.h>
-#include <unixlib/os.h>
 #include <swis.h>
 #include <netdb.h>
-
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -46,10 +43,11 @@
 #include <strings.h>
 #include <time.h>
 #include <unistd.h>
-
 #include <stdarg.h>
-#include <pthread.h>
 
+#include <pthread.h>
+#include <internal/unix.h>
+#include <internal/os.h>
 
 static int LogStat = 0;		/* status bits, set by openlog() */
 static const char *LogTag = NULL;	/* string to tag the entry with */

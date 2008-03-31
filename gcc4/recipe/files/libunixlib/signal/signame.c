@@ -1,8 +1,9 @@
 /* signame.c: Define signals for sys_siglist.
-   Copyright (c) 2000-2006 UnixLib Developers.  */
+   Copyright (c) 2000-2008 UnixLib Developers.  */
 
 #include <signal.h>
-#include <unixlib/sigstate.h>
+
+#include <internal/sigstate.h>
 
 int sys_nsig = NSIG;
 

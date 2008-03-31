@@ -189,7 +189,7 @@ THIS SOFTWARE.
 #include "string.h"
 
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 #ifdef KR_headers
 #define Char char

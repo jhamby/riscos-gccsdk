@@ -1,7 +1,5 @@
 /* Perform operations on a directory.
-   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Developers.  */
-
-/* #define DEBUG */
+   Copyright (c) 2002, 2003, 2004, 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <dirent.h>
 #include <errno.h>
@@ -11,15 +9,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <ctype.h>
-
-#include <unixlib/unix.h>
-#include <unixlib/os.h>
-#include <internal/swiparams.h>
 #include <sys/types.h>
 #include <swis.h>
 
 #include <unixlib/local.h>
+#include <internal/unix.h>
+#include <internal/os.h>
+#include <internal/swiparams.h>
+#include <internal/local.h>
 #include <pthread.h>
+
+/* #define DEBUG */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 /* Size of OS_GBPB buffer. If this is too small, directory reading
    performance is severly reduced. A 1K buffer is sufficient until

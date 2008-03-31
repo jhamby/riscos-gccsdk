@@ -1,6 +1,6 @@
 /* symlinks.c
  *
- * Copyright 2007 UnixLib Developers
+ * Copyright 2007, 2008 UnixLib Developers
  *
  * Given a filename, determine if it is a symlink file. If so extract the
  * target file and check again. Repeat until the target filename is not a
@@ -12,7 +12,8 @@
 #include <string.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <unixlib/os.h>
+
+#include <internal/os.h>
 
 /* Offically allocated filetype.  */
 #define	LINK_FILETYPE		0x1C8

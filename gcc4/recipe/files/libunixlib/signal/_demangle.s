@@ -1,8 +1,8 @@
 @ Demangle C++ symbols using libstc++ '__cxa_demangle' implementation when
 @ libstc++ is available during link time.
-@ Copyright (c) 2006 UnixLib Developers
+@ Copyright (c) 2006-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

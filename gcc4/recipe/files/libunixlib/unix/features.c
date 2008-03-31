@@ -1,12 +1,17 @@
 /* Set UnixLib run-time features based on environment variables.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers.  */
-
-/* #define DEBUG 1 */
+   Copyright (c) 2002-2008 UnixLib Developers.  */
 
 #include <string.h>
-#include <unixlib/unix.h>
+
 #include <unixlib/local.h>
-#include <unixlib/os.h>
+#include <internal/unix.h>
+#include <internal/local.h>
+#include <internal/os.h>
+
+/* #define DEBUG 1 */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
 

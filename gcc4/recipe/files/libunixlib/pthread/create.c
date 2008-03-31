@@ -1,15 +1,16 @@
 /* Thread creation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.
    Written by Martin Piper and Alex Waugh.  */
 
 /*#define PTHREAD_DEBUG*/
 
 #include <stdlib.h>
 #include <errno.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
 #include <pthread.h>
 #include <malloc.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 
 #ifdef PTHREAD_DEBUG
 #define DEBUG

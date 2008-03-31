@@ -1,17 +1,19 @@
 /* sigsuspend ()
  * Written by Nick Burrett, 26 Aug 1996.
- * Copyright (c) 1996-2007 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <signal.h>
 #include <stddef.h>
 #include <unistd.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 #include <pthread.h>
 
+/* #define DEBUG */
 #ifdef DEBUG
-#include <unixlib/os.h>
+#  include <sys/debug.h>
 #endif
 
 /* Change the set of blocked signals to SET,

@@ -1,14 +1,15 @@
 /* Context switching/scheduling.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.
    Written by Martin Piper and Alex Waugh */
 
 #include <stdlib.h>
 #include <errno.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h> /* for __stackalloc */
 #include <time.h>
 #include <pthread.h>
 #include <malloc.h>
+
+#include <internal/os.h>
+#include <internal/unix.h> /* for __stackalloc */
 
 /* #define PTHREAD_DEBUG
 #define PTHREAD_DEBUG_CONTEXT

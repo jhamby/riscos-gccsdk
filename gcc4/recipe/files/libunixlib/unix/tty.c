@@ -11,19 +11,18 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <unistd.h>
-
 #include <sys/ioctl.h>
 #include <sys/types.h>
-#include <unixlib/unix.h>
-#include <unixlib/dev.h>
-#include <internal/tty.h>
-#include <unixlib/os.h>
-#include <unixlib/dev.h>
 #include <sys/select.h>
 #include <swis.h>
-#include <unixlib/fd.h>
-#include <pthread.h>
 #include <time.h>
+
+#include <internal/unix.h>
+#include <internal/dev.h>
+#include <internal/tty.h>
+#include <internal/os.h>
+#include <internal/fd.h>
+#include <pthread.h>
 
 /* Store the number of characters actually displayed for this single
    character in the del buffer.  When a backspace/delete is processed,

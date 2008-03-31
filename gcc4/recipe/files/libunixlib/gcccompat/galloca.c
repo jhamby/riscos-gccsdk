@@ -1,5 +1,5 @@
 /* Implementation of all alloca related functions for GCC 4
-   Copyright (c) 2005, 2006, 2007 UnixLib Developers
+   Copyright (c) 2005, 2006, 2007, 2008 UnixLib Developers
    Written by Nick Burrett <nick@sqrt.co.uk>
    Reworked by John Tytgat <John.Tytgat@aaug.net>  */
 
@@ -11,7 +11,7 @@
 #if __TARGET_UNIXLIB__
 #  include <pthread.h>
 #  include <unixlib/local.h>
-#  include <unixlib/unix.h>
+#  include <internal/unix.h>
 #elif __TARGET_SCL__
 #  include <kernel.h>
 #endif

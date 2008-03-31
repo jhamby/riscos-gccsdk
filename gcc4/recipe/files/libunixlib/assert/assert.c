@@ -1,12 +1,12 @@
 /* __assert2 (), assert ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Output something of the form:
       foo.c, line 1234: bar: Assertion failed: a == b

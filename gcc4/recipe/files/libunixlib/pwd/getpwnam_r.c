@@ -1,7 +1,7 @@
 /* getpwnam_r ()
  * Search for an entry with a matching username (re-entrant version).
  * Written by Nick Burrett, 10 December 1997.
- * Copyright (c) 1997-2007 UnixLib Developers
+ * Copyright (c) 1997-2008 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -9,8 +9,9 @@
 #include <string.h>
 #include <pwd.h>
 #include <errno.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Search for an entry with a matching name.  */
 int

@@ -19,17 +19,17 @@
 #include <time.h>
 #include <unistd.h>
 #include <errno.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 #include <pthread.h>
+
+/* #define DEBUG */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 #define USECS_PER_CLOCK (1000000 / CLOCKS_PER_SEC)
 #define NSECS_PER_CLOCK (1000000000 / CLOCKS_PER_SEC)
-
-/* #define DEBUG */
-
-#ifdef DEBUG
-#include <unixlib/os.h>
-#endif
 
 /* SIGALRM signal handler for `sleep'.  This does nothing but return,
    but SIG_IGN isn't supposed to break `pause'.  */

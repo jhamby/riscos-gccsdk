@@ -60,11 +60,12 @@ __FBSDID("$FreeBSD: src/lib/libc/stdio/vfprintf.c,v 1.68 2004/08/26 06:25:28 des
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
-#include <unixlib/unix.h>
 #include <wchar.h>
 
 #include <stdarg.h>
+
+#include <pthread.h>
+#include <internal/unix.h>
 
 #define va_start(v,l)	__builtin_va_start(v,l)
 #define va_end(v)	__builtin_va_end(v)

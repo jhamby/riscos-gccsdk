@@ -1,18 +1,18 @@
 /* UnixLib fwrite() implementation.
-   Copyright 2001-2007 UnixLib Developers.  */
-
-/* #define DEBUG */
+   Copyright 2001-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
-#include <pthread.h>
-#include <unixlib/unix.h>
 
+#include <pthread.h>
+#include <internal/unix.h>
+
+/* #define DEBUG */
 #ifdef DEBUG
-#include <unixlib/os.h>
+#  include <sys/debug.h>
 #endif
 
 /* Return number of objects written.  */

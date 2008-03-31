@@ -1,5 +1,5 @@
 /* Change data segment size.
-   Copyright (c) 2002, 2003, 2004, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2007, 2008 UnixLib Developers.  */
 
 /****************************************************************************
  *
@@ -44,19 +44,17 @@
 #include <string.h>
 #include <errno.h>
 #include <unistd.h>
-
 #include <sys/resource.h>
-#include <unixlib/os.h>
 #include <swis.h>
 #include <sys/types.h>
-#include <unixlib/unix.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* #define DEBUG */
-
 #ifdef DEBUG
-#include <sys/debug.h>
-#include <unixlib/os.h>
+#  include <sys/debug.h>
 #endif
 
 #define align(x) ((x + 3) & ~3)

@@ -97,7 +97,7 @@ enum __itimer_which
     /* Timers run when the process is executing and when
        the system is executing on behalf of the process.  */
     ITIMER_PROF = 2,
-    /* Used in <unixlib/unix.h>.  */
+    /* Used in <internal/unix.h>.  */
     __MAX_ITIMERS = 3
   };
 

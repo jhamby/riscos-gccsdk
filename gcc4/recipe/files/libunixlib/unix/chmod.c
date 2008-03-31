@@ -1,15 +1,14 @@
 /* Change permissions of a file.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
-
-#include <unixlib/os.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <unixlib/local.h>
+#include <internal/os.h>
+#include <internal/local.h>
 #include <internal/swiparams.h>
 
 int

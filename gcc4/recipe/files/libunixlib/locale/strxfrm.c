@@ -4,8 +4,9 @@
 
 #include <locale.h>
 #include <string.h>
-#include <unixlib/os.h>
 #include <swis.h>
+
+#include <internal/os.h>
 
 size_t
 strxfrm (char *to, const char *from, size_t size)

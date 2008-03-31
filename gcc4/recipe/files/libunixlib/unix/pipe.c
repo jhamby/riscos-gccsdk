@@ -1,5 +1,5 @@
 /* pipe ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stdlib.h>
@@ -7,13 +7,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-
-#include <unixlib/os.h>
-#include <unixlib/dev.h>
 #include <swis.h>
-#include <unixlib/unix.h>
 
-#include <unixlib/fd.h>
+#include <internal/os.h>
+#include <internal/dev.h>
+#include <internal/unix.h>
+#include <internal/fd.h>
 #include <pthread.h>
 
 int

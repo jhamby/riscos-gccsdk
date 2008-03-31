@@ -1,7 +1,7 @@
 @ _swi, _swix
-@ Copyright (c) 2002-2006 UnixLib Developers
+@ Copyright (c) 2002-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

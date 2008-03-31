@@ -1,12 +1,13 @@
 /* Detach a thread.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.
    Written by Alex Waugh */
 
 #include <pthread.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <malloc.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 
 /* Detach a thread.  No thread should subsequently try to join with
    this thread.  */

@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
-#ifndef __UNIXLIB_OS_H
-#define __UNIXLIB_OS_H
+#ifndef __INTERNAL_OS_H
+#define __INTERNAL_OS_H
 
 #ifndef __UNIXLIB_FEATURES_H
 #include <features.h>

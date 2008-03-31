@@ -1,17 +1,18 @@
 /* pathconf (), fpathconf ()
  * Return filing system implementation details.
  * Written by Nick Burrett, 13 October 1996.
- * Copyright (c) 1996-2007 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
 #include <stddef.h>
-#include <unixlib/dev.h>
-#include <unixlib/unix.h>
-#include <unixlib/fd.h>
-#include <unixlib/local.h>
+
+#include <internal/dev.h>
+#include <internal/unix.h>
+#include <internal/fd.h>
+#include <internal/local.h>
 #include <pthread.h>
 
 /* These functions are stub varieties that need a proper

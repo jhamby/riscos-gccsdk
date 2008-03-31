@@ -1,14 +1,14 @@
 /* Synchronise unwritten data in buffers to disk.
-   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <unixlib/os.h>
-#include <unixlib/dev.h>
-#include <unixlib/unix.h>
 
-#include <unixlib/fd.h>
+#include <internal/os.h>
+#include <internal/dev.h>
+#include <internal/unix.h>
+#include <internal/fd.h>
 #include <pthread.h>
 
 /* This function is always successful.  */

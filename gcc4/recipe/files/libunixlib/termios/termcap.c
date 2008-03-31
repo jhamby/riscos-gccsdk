@@ -1,5 +1,5 @@
 /* tgetent (), tgetnum (), tgetflag (), tgetstr(), tgoto (), tputs ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
@@ -7,10 +7,10 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
-#include <pthread.h>
-#include <unixlib/unix.h>
-
 #include <termcap.h>
+
+#include <pthread.h>
+#include <internal/unix.h>
 
 #define T_BUILTIN		/* builtin termcap */
 

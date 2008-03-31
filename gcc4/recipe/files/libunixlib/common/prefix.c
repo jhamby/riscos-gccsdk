@@ -1,13 +1,14 @@
 /* __get_dde_prefix ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stdlib.h>
 #include <string.h>
 #include <swis.h>
+
 #include <unixlib/local.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
+#include <internal/os.h>
+#include <internal/unix.h>
 
 /* Returns malloced block of memory holding DDEUtils_Prefix non zero-length
    string value or NULL when there isn't one set.  Caller needs to free

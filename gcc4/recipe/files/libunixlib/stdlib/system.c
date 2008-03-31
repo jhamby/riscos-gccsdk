@@ -1,6 +1,6 @@
 /* system ()
  * Written by Nick Burrett, 6 October 1996.
- * Copyright 1996-2007 UnixLib Developers
+ * Copyright 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
@@ -11,8 +11,9 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <sys/types.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Execute LINE as a shell command, returning its status.  */
 int

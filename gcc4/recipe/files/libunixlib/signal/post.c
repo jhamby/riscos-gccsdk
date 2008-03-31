@@ -1,5 +1,5 @@
 /* Perform delivery of a signal to a process.
-   Copyright (c) 1996-2007 UnixLib Developers.
+   Copyright (c) 1996-2008 UnixLib Developers.
    Written by Nick Burrett.  */
 
 #include <errno.h>
@@ -10,15 +10,15 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
 #include <swis.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
-#include <unixlib/sigstate.h>
 
-/*#define DEBUG 1*/
+#include <internal/os.h>
+#include <internal/unix.h>
+#include <internal/sigstate.h>
+
+/* #define DEBUG 1 */
 #ifdef DEBUG
-#include <sys/debug.h>
+#  include <sys/debug.h>
 #endif
 
 /* Given an address to the approximate start of a function, try

@@ -1,16 +1,16 @@
 /* wait4 ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <sys/resource.h>
 #include <sys/types.h>
-#include <unixlib/unix.h>
 #include <sys/wait.h>
+
 #include <pthread.h>
+#include <internal/unix.h>
 
 /* If usage is not null, wait4 returns usage figures for the child
    process in *usage (but only if the child has terminated and not

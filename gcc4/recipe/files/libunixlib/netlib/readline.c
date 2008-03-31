@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <unixlib/local.h>
+#include <internal/local.h>
 
 /* Read a line from a file and remove any comments.  */
 char *

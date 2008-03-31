@@ -7,9 +7,10 @@
 #include <time.h>
 #include <stddef.h>
 #include <string.h>
-#include <unixlib/os.h>
 #include <swis.h>
-#include <unixlib/local.h>
+
+#include <internal/os.h>
+#include <internal/local.h>
 
 time_t
 mktime (struct tm *brokentime)

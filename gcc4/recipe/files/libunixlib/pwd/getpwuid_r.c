@@ -1,7 +1,7 @@
 /* getpwuid_r ()
  * Search for an entry with a matching user ID (re-entrant version).
  * Written by Nick Burrett, 10 December 1997.
- * Copyright (c) 1997-2007 UnixLib Developers
+ * Copyright (c) 1997-2008 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -9,8 +9,9 @@
 #include <errno.h>
 #include <pwd.h>
 #include <sys/types.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 int
 getpwuid_r (uid_t uid, struct passwd *resbuf, char *buffer, size_t buflen,

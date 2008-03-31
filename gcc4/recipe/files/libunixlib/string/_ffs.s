@@ -1,8 +1,8 @@
 @ ffs, ffsl
 @ Written by John Tytgat
-@ Copyright (c) 2004-2007 UnixLib Developers
+@ Copyright (c) 2004-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

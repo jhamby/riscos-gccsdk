@@ -1,16 +1,16 @@
 /* socket ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
-
-#include <unixlib/unix.h>
 #include <sys/socket.h>
-#include <unixlib/dev.h>
 #include <fcntl.h>
 #include <netdb.h>
+
 #include <pthread.h>
+#include <internal/dev.h>
+#include <internal/unix.h>
 
 int
 socket (int af, int type, int protocol)

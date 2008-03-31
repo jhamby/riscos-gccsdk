@@ -1,11 +1,12 @@
 /* fgets ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stdio.h>
 #include <errno.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 char *
 fgets (char *s, int n, FILE * stream)

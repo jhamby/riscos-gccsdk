@@ -6,13 +6,12 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <unistd.h>
-
 #include <sys/uio.h>
-#include <unixlib/dev.h>
 #include <sys/types.h>
-#include <unixlib/unix.h>
 
-#include <unixlib/fd.h>
+#include <internal/dev.h>
+#include <internal/unix.h>
+#include <internal/fd.h>
 #include <pthread.h>
 
 /* Write data pointed by the buffers described by VECTOR, which

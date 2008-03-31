@@ -1,18 +1,17 @@
 /* tmpfile (), tmpnam (), tmpnam_r (), mktemp (), mkstemp (), tempnam ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
-
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
-#include <unixlib/local.h>
-#include <unixlib/unix.h>
+#include <internal/local.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* These are the characters used in temporary filenames. Increasing

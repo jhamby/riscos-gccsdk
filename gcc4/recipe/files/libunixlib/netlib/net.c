@@ -1,19 +1,18 @@
 /* setnetent (), getnetent (), endnetent (), getnetbyname (), getentbyaddr ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <pthread.h>
-
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 
-#include <unixlib/local.h>
-#include <unixlib/unix.h>
+#include <internal/local.h>
+#include <internal/unix.h>
+#include <pthread.h>
 
 /* File handle for the nets file.  */
 static FILE *netfile = NULL;

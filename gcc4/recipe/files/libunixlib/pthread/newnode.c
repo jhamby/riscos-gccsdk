@@ -1,15 +1,20 @@
 /* Internal thread node creation.
-   Copyright (c) 2002-2007 UnixLib Developers.
+   Copyright (c) 2002-2008 UnixLib Developers.
    Written by Martin Piper and Alex Waugh.  */
 
 #include <stdlib.h>
 #include <errno.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
-#include <pthread.h>
 #include <malloc.h>
+#include <pthread.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 
 /* #define DEBUG_PTHREAD */
+#ifdef DEBUG_PTHREAD
+#  define DEBUG
+#  include <sys/debug.h>
+#endif
 
 /* Initialise an new thread node to hold all the details of the thread.
    If node is NULL, then allocate memory for the node as well.

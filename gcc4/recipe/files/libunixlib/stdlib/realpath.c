@@ -1,5 +1,5 @@
 /* realpath ()
- * Copyright 2002-2006 UnixLib Developers
+ * Copyright 2002-2008 UnixLib Developers
  */
 
 #include <errno.h>
@@ -7,8 +7,9 @@
 #include <kernel.h>
 #include <swis.h>
 #include <limits.h>
+
 #include <unixlib/local.h>
-#include <unixlib/os.h>
+#include <internal/os.h>
 
 /* Canonicalise a filename */
 /* resolved_name points to a buffer of at least PATH_MAX bytes */

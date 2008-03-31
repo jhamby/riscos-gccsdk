@@ -1,12 +1,13 @@
 /* Pthread initialisation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Developers.
    Written by Martin Piper and Alex Waugh */
 
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
 #include <stdlib.h>
 #include <pthread.h>
 #include <malloc.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 
 static struct __pthread_thread mainthread;
 

@@ -5,10 +5,12 @@
 #include <errno.h>
 #include <time.h>
 #include <sys/time.h>
-#include <unixlib/os.h>
+
+#include <internal/os.h>
 #include <pthread.h>
+
 #ifdef PTHREAD_DEBUG
-#include <stdio.h>
+#  include <sys/debug.h>
 #endif
 
 /* Initialise a condition variable with the given attributes */
@@ -130,14 +132,14 @@ pthread_cond_signal (pthread_cond_t *cond)
   if (thread != NULL)
     {
 #ifdef PTHREAD_DEBUG
-      printf ("-- pthread_cond_signal: Signalling thread %p, next waiting = %p\n", thread, thread->nextwait);
+      debug_printf ("-- pthread_cond_signal: Signalling thread %p, next waiting = %p\n", thread, thread->nextwait);
 #endif
       thread->state = STATE_RUNNING;
       cond->waiting = thread->nextwait;
     }
 #ifdef PTHREAD_DEBUG
   else
-    printf ("No thread to signal\n");
+    debug_printf ("No thread to signal\n");
 #endif
 
   __pthread_enable_ints ();

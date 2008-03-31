@@ -105,7 +105,7 @@
 #define ENOSYS		87 /* Function not implemented.  */
 
 /* Keep EOPSYS value in sync with EOPSYS value defined in
-   unixlib/asm_dec.s.  */
+   internal/asm_dec.s.  */
 #define EOPSYS		88 /* RISC OS operating system error.  */
 #define ESIG		89
 #define EILSEQ		90 /* Invalid multibyte sequence.  */

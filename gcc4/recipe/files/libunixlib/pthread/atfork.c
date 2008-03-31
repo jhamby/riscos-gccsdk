@@ -1,12 +1,13 @@
 /* Register handlers to be called at fork time.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.
    Written by Alex Waugh.  */
 
 #include <pthread.h>
 #include <errno.h>
 #include <stdlib.h>
-#include <unixlib/unix.h>
 #include <malloc.h>
+
+#include <internal/unix.h>
 
 struct fork_handlers
 {

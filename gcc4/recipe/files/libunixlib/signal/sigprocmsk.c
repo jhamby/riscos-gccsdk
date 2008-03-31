@@ -1,18 +1,18 @@
 /* sigprocmask ()
  * Implementation of the POSIX signal function sigprocmask.
  * Written by Nick Burrett, 5 October 1996.
- * Copyright (c) 1996-2007 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <signal.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* #define DEBUG */
-
 #ifdef DEBUG
-#include <unixlib/os.h>
+#  include <sys/debug.h>
 #endif
 
 /* If SET is not NULL, modify the current set of blocked signals

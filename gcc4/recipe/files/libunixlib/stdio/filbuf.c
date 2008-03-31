@@ -1,13 +1,14 @@
 /* UnixLib buffer stream handling.
-   Copyright 2000-2007 UnixLib Developers.  */
+   Copyright 2000-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Check the stream for validity and errors.  */
 static int

@@ -1,11 +1,12 @@
 /* getrusage ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <sys/resource.h>
-#include <unixlib/unix.h>
 #include <errno.h>
 #include <time.h>
+
+#include <internal/unix.h>
 
 /* Return resource usage information on process indicated by WHO
    and put it in *USAGE.  Returns 0 for success, -1 for failure.  */

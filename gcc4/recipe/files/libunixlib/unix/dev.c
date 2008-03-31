@@ -1,8 +1,6 @@
 /* Low-level device handling.
    Copyright (c) 2002-2008 UnixLib Developers.  */
 
-/* #define DEBUG */
-
 #include <ctype.h>
 #include <dirent.h>
 #include <errno.h>
@@ -15,11 +13,18 @@
 #include <sys/stat.h>
 #include <swis.h>
 #include <unistd.h>
-#include <unixlib/dev.h>
-#include <unixlib/os.h>
+
 #include <unixlib/local.h>
+#include <internal/dev.h>
+#include <internal/os.h>
+#include <internal/local.h>
 #include <internal/swiparams.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
+
+/* #define DEBUG */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 const struct dev __dev[NDEV] = {
   /* DEV_RISCOS */

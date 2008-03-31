@@ -1,10 +1,9 @@
 /* strdup ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stdlib.h>
 #include <string.h>
-#include <unixlib/unix.h>
 
 char *
 strdup (const char *string)

@@ -4,22 +4,6 @@
 #ifndef __UNIXLIB_UNIX_H
 #define __UNIXLIB_UNIX_H 1
 
-#ifndef __UNIXLIB_FEATURES_H
-#include <features.h>
-#endif
-#ifndef __UNIXLIB_TYPES_H
-#include <unixlib/types.h>
-#endif
-#ifndef __UNIXLIB_FD_H
-#include <unixlib/fd.h>
-#endif
-#ifndef __UNIXLIB_SIGSTATE_H
-#include <unixlib/sigstate.h>
-#endif
-
-#ifndef __INTERNAL_TTY_H
-#include <internal/tty.h>
-#endif
 #ifndef __SETJMP_H
 #include <setjmp.h>
 #endif
@@ -37,6 +21,23 @@
 #endif
 #ifndef __KERNEL_H
 #include <kernel.h>
+#endif
+
+#ifndef __UNIXLIB_FEATURES_H
+#include <features.h>
+#endif
+#ifndef __UNIXLIB_TYPES_H
+#include <unixlib/types.h>
+#endif
+
+#ifndef __INTERNAL_FD_H
+#include <internal/fd.h>
+#endif
+#ifndef __INTERNAL_SIGSTATE_H
+#include <internal/sigstate.h>
+#endif
+#ifndef __INTERNAL_TTY_H
+#include <internal/tty.h>
 #endif
 
 __BEGIN_DECLS
@@ -118,7 +119,7 @@ extern struct proc *__u;	/* current process */
 
 /* This structure must be kept in perfect synchronisation with:
 
-     a) GBL_* definitions in clib/unixlib/asm_dec.s
+     a) GBL_* definitions in incl-local/internal/asm_dec.s
      b) The __ul_global structure at the end of sys/_syslib.s
 
    Functions wishing to use this structure can reduce the number of
@@ -174,7 +175,7 @@ struct ul_global
 
 /* This structure must be kept in perfect synchronisation with:
 
-     a) MEM_* definitions in clib/unixlib/asm_dec.s
+     a) MEM_* definitions in incl-local/internal/asm_dec.s
      b) The __ul_memory structure at the end of sys/_syslib.s
 
    Functions wishing to use this structure can reduce the number of

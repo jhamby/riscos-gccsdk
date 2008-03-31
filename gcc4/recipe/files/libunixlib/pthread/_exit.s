@@ -1,7 +1,7 @@
 @ Call alloca thread free functions as necessary
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

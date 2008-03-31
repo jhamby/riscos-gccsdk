@@ -1,11 +1,12 @@
 /* getpriority ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <sys/resource.h>
-#include <unixlib/unix.h>
 #include <limits.h>
+
+#include <internal/unix.h>
 
 /* Return the highest priority of any process specified by 'which' and 'who'
    (see <sys/resource.h>); if WHO is zero, the current process, process group,

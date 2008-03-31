@@ -1,6 +1,6 @@
 /* setlocale ()
  * Written by Nick Burrett, 20 July 1997.
- * Copyright (c) 1997-2007 UnixLib Developers
+ * Copyright (c) 1997-2008 UnixLib Developers
  */
 
 #include <ctype.h>
@@ -9,9 +9,10 @@
 #include <string.h>
 #include <stddef.h>
 #include <swis.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
-#include <unixlib/os.h>
+#include <internal/unix.h>
+#include <internal/os.h>
 
 /* Locale information types. These should correspond to the #defines
    in <locale.h>.  */

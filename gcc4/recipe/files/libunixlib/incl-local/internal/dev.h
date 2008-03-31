@@ -1,8 +1,8 @@
 /* UnixLib internal device implementation.
-   Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2008 UnixLib Developers.  */
 
-#ifndef __UNIXLIB_DEV_H
-#define __UNIXLIB_DEV_H
+#ifndef __INTERNAL_DEV_H
+#define __INTERNAL_DEV_H
 
 #ifndef __UNIXLIB_FEATURES_H
 #include <features.h>
@@ -12,8 +12,8 @@
 #include <unixlib/types.h>
 #endif
 
-#ifndef __UNIXLIB_FD_H
-#include <unixlib/fd.h>
+#ifndef __INTERNAL_FD_H
+#include <internal/fd.h>
 #endif
 
 #include <sys/select.h>

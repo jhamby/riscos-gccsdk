@@ -1,12 +1,13 @@
-/* Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+/* Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers
    Written by Alex Waugh */
 
 #include <sys/types.h>
 #include <signal.h>
-#include <unixlib/unix.h>
-#include <pthread.h>
 #include <strings.h>
 #include <errno.h>
+#include <pthread.h>
+
+#include <internal/unix.h>
 
 static pthread_mutex_t sigwait_mutex = PTHREAD_MUTEX_INITIALIZER;
 

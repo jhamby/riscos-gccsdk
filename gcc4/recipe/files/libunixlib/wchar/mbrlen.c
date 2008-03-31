@@ -18,8 +18,9 @@
    Boston, MA 02111-1307, USA.  */
 
 #include <wchar.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* The mbrlen function has an internal shift state which gets used if
    the PS parameter is NULL.  */

@@ -1,13 +1,13 @@
 @ Fast strlen
 @ Written by Adrian Lees
-@ Copyright (c) 2005-2006 UnixLib Developers
+@ Copyright (c) 2005-2008 UnixLib Developers
 
 @ Determine the length of a NUL-terminated string
 @
 @ entry	a1 -> NUL-terminated string
 @ exit	a1 = length excluding terminator
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

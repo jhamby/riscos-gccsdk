@@ -7,9 +7,10 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <netdb.h>
-#include <unixlib/unix.h>
-#include <unixlib/fd.h>
-#include <unixlib/dev.h>
+
+#include <internal/unix.h>
+#include <internal/fd.h>
+#include <internal/dev.h>
 #include <pthread.h>
 
 int

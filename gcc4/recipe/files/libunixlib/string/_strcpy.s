@@ -1,6 +1,6 @@
 @ Fast strcpy
 @ Written by Adrian Lees
-@ Copyright (c) 2005-2006 UnixLib Developers
+@ Copyright (c) 2005-2008 UnixLib Developers
 
 @ ----- Remember that string-handling routines can only read one
 @       word ahead without risking a data abort :-(
@@ -11,7 +11,7 @@
 @	a2 -> string
 @ exit	a1 -> destination buffer
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

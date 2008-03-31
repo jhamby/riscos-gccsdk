@@ -1,5 +1,5 @@
 /* Map or unmap memory.
-   Copyright (c) 1996, 1997, 2005, 2006, 2007 UnixLib Developers.  */
+   Copyright (c) 1996, 1997, 2005, 2006, 2007, 2008 UnixLib Developers.  */
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
 /* sys/mman.c: Written by Peter Burwood, 1 November 1996, June 1997  */
@@ -12,13 +12,14 @@
 */
 
 #include <sys/mman.h>
-#include <unixlib/os.h>
 #include <sys/types.h>
 #include <swis.h>
 #include <unistd.h>
-#include <unixlib/unix.h>
 #include <string.h>
 #include <errno.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 

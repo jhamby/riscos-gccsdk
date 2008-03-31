@@ -4,7 +4,7 @@
  * This is used where the device specific structures need to set on a per
  * file descriptor basis, such as faking a socket.
  *
- * Copyright (c) 2005-2006 UnixLib Developers
+ * Copyright (c) 2005-2008 UnixLib Developers
  */
 
 #include <swis.h>
@@ -16,9 +16,10 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <unixlib/os.h>
-#include <unixlib/dev.h>
-#include <unixlib/unix.h>
+
+#include <internal/os.h>
+#include <internal/dev.h>
+#include <internal/unix.h>
 #include <internal/swiparams.h>
 
 

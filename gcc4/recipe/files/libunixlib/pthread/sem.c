@@ -1,5 +1,5 @@
 /* POSIX Semaphores.
-   Copyright (c) 2004-2007 UnixLib Developers.  */
+   Copyright (c) 2004-2008 UnixLib Developers.  */
 
 /*-
  * Copyright (c) 2003 The NetBSD Foundation, Inc.
@@ -78,10 +78,10 @@
 #include <stdarg.h>
 
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 #ifdef PTHREAD_DEBUG_SEMS
-#include <unixlib/os.h>
+#include <internal/os.h>
 #endif
 
 struct pthread_queue_t

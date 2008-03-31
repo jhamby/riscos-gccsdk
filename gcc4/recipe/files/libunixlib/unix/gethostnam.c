@@ -1,11 +1,12 @@
 /* Get internet hostname for machine.
-   Copyright (c) 2003, 2005 UnixLib Developers.  */
+   Copyright (c) 2003, 2005, 2008 UnixLib Developers.  */
 
 #include <string.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
-#include <unixlib/os.h>
+
+#include <internal/os.h>
 
 /* gethostname() returns
    1: <Inet$HostName> if Inet$HostName contains a dot

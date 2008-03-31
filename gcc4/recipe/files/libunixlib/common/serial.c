@@ -5,9 +5,11 @@
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
-#include <unixlib/local.h>
-#include <unixlib/os.h>
 #include <swis.h>
+
+#include <unixlib/local.h>
+#include <unixlib/types.h>
+#include <internal/os.h>
 
 /* Generate a file serial number. This should distinguish the file from all
    other files on the same device.  DIRECTORY is either NULL and FILENAME

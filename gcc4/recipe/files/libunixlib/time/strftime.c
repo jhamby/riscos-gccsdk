@@ -20,8 +20,9 @@
 #include <stdio.h>
 #include <time.h>
 #include <locale.h>
-#include <unixlib/os.h>
 #include <swis.h>
+
+#include <internal/os.h>
 
 static char *add (const char *, char *, const char *);
 static char *conv (int, const char *, char *, const char *);

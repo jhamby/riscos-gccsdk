@@ -1,10 +1,11 @@
 /* UnixLib fflush() implementation.
-   Copyright 2000-2007 UnixLib Developers.  */
+   Copyright 2000-2008 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <errno.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 int
 fflush (FILE *stream)

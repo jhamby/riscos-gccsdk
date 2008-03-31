@@ -1,14 +1,15 @@
 /* fgetgrent ()
  * Read a group password file entry.
  *
- * Copyright (c) 2002-2007 UnixLib Developers
+ * Copyright (c) 2002-2008 UnixLib Developers
  */
 
 #include <stddef.h>
 #include <stdio.h>
 #include <grp.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Read one entry from the given stream.
    Not thread safe.  */

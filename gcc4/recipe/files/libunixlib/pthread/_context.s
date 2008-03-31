@@ -1,5 +1,5 @@
 @ Low level context switching code
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Developers
 @ Written by Martin Piper and Alex Waugh
 
 @ The context switcher works as follows:
@@ -27,7 +27,7 @@
 @ Multitasking programs use the Filter module (Filter_RegisterPreFilter and
 @ Filter_RegisterPostFilter) to enable/disable OS_CallEvery.
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

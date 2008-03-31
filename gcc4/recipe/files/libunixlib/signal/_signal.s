@@ -1,5 +1,5 @@
 @ Signal exception handling
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Developers
 
 @ This file handles all the hairy exceptions that can occur when a
 @ program runs. This includes hardware exceptions like data abort and
@@ -11,7 +11,7 @@
 @ to common code rather than having long sequences of conditionally
 @ executed instructions.
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

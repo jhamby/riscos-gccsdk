@@ -1,10 +1,11 @@
 /* __sigsetjmp_helper (), __siglongjmp_helper ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <setjmp.h>
-#include <unixlib/sigstate.h>
-#include <unixlib/unix.h>
+
+#include <internal/sigstate.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 void __sigsetjmp_helper (sigjmp_buf state, int savesigs)

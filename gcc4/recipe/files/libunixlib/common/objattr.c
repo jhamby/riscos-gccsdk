@@ -1,15 +1,15 @@
 /* __object_get_attrs ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdlib.h>
-
 #include <swis.h>
 
-#include <unixlib/os.h>
 #include <unixlib/local.h>
-#include <unixlib/unix.h>
+#include <internal/os.h>
+#include <internal/local.h>
+#include <internal/unix.h>
 #include <internal/swiparams.h>
 
 /* Get an object's filetype, object type, etc and do some common checks.

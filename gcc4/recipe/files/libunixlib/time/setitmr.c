@@ -1,13 +1,14 @@
 /* setitimer ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stddef.h>
 #include <errno.h>
-#include <unixlib/os.h>
 #include <swis.h>
 #include <sys/time.h>
-#include <unixlib/unix.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* setitimer provides a mechanism for a process to interrupt itself at
@@ -104,7 +105,7 @@ setitimer (enum __itimer_which which, const struct itimerval *new_timer,
       || new_timer->it_value.tv_usec >= 1000000)
     return __set_errno (EINVAL);
 
-  /* __u is current process <unixlib/unix.h>.  */
+  /* __u is current process <internal/unix.h>.  */
   itimer = &__u->itimers[which];
   if (old_timer)
     *old_timer = *itimer;

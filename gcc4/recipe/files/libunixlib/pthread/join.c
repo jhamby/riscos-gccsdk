@@ -1,13 +1,14 @@
 /* Wait for the termination of another thread.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.
    Written by Martin Piper and Alex Waugh.  */
 
 #include <pthread.h>
 #include <stdlib.h>
 #include <errno.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
 #include <malloc.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 
 /* Wait for the specified thread to finish, and read its exit value.  */
 int

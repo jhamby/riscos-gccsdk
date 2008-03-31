@@ -40,8 +40,9 @@ static char sccsid[] = "@(#)random.c	8.2 (Berkeley) 5/19/95";
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /*
  * random.c:

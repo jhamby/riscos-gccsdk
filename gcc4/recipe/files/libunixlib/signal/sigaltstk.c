@@ -1,12 +1,13 @@
 /* sigaltstack ()
  * Written by Nick Burrett, 27 August 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <signal.h>
 #include <errno.h>
-#include <unixlib/sigstate.h>
-#include <unixlib/unix.h>
+
+#include <internal/sigstate.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* Specifies an alternate stack for use during signal handling.

@@ -1,7 +1,5 @@
 /* UnixLib freopen() implementation.
-   Copyright 2001-2007 UnixLib Developers.  */
-
-/* #define DEBUG */
+   Copyright 2001-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -10,12 +8,15 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <unixlib/local.h>
-#ifdef DEBUG
-#include <unixlib/os.h>
-#endif
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
+#include <internal/local.h>
+
+/* #define DEBUG */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 FILE *
 freopen (const char *filename, const char *mode, FILE *stream)

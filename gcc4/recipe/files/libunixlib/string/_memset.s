@@ -1,8 +1,8 @@
 @ Fast memset
-@ Copyright (c) 2005, 2006, 2007 UnixLib Developers
+@ Copyright (c) 2005-2008 UnixLib Developers
 @ Written by Adrian Lees
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

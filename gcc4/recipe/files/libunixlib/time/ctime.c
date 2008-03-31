@@ -1,10 +1,11 @@
 /* ctime ()
  * Written by Nick Burrett on 12 July 1997.
- * Copyright (c) 1997-2006 UnixLib Developers
+ * Copyright (c) 1997-2008 UnixLib Developers
  */
 
 #include <time.h>
-#include <unixlib/local.h>
+
+#include <internal/local.h>
 
 /* Defined by POSIX as not threadsafe */
 char *

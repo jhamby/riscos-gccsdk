@@ -1,8 +1,8 @@
 @ __mmap_page_copy
 @ Written by Peter Burwood, June 1997
-@ Copyright (c) 1997-2006 UnixLib Developers
+@ Copyright (c) 1997-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

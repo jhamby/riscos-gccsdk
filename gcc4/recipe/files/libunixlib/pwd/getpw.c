@@ -1,12 +1,13 @@
 /* getpw ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdio.h>
 #include <pwd.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Re-construct the password-file line for the given uid
    in the given buffer.  This knows the format that the caller

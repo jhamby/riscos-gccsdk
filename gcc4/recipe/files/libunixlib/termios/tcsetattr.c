@@ -1,12 +1,13 @@
 /* Set terminal attributes.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stddef.h>
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 
 /* Set the state of FD to *TERMIOS_P.  */
 int

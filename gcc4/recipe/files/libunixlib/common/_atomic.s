@@ -1,7 +1,7 @@
 @ __atomic_modify
-@ Copyright (c) 2005-2006 UnixLib Developers
+@ Copyright (c) 2005-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

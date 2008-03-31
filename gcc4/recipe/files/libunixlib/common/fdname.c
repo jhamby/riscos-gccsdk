@@ -1,11 +1,12 @@
 /* Return a canonicalised RISC OS filename.
-   Copyright (c) 2003, 2005 UnixLib Developers.  */
+   Copyright (c) 2003, 2005, 2008 UnixLib Developers.  */
 
 #include <stdlib.h>
-#include <unixlib/local.h>
-#include <unixlib/os.h>
 #include <swis.h>
 #include <errno.h>
+
+#include <unixlib/local.h>
+#include <internal/os.h>
 #include <pthread.h>
 
 /* Return canonicalised RISC OS filename corresponding to a RISC OS file

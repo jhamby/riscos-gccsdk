@@ -1,6 +1,6 @@
-@ Copyright (c) 2002, 2003, 2004, 2005 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.weak	__feature_imagefs_is_file
 

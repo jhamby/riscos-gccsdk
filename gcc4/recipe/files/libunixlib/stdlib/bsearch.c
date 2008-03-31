@@ -1,10 +1,11 @@
 /* bsearch ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
-#include <unixlib/unix.h>
 #include <stddef.h>
 #include <stdlib.h>
+
+#include <internal/unix.h>
 
 void *
 bsearch (const void *key, const void *base, size_t nmemb,

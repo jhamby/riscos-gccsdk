@@ -1,14 +1,15 @@
 /* kill ()
  * Written by Nick Burrett, 27 August 1996.
- * Copyright (c) 1996-2007 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <signal.h>
 #include <unistd.h>
 #include <sys/types.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
-#include <unixlib/sigstate.h>
+#include <internal/unix.h>
+#include <internal/sigstate.h>
 
 int
 kill (pid_t pid, int sig)

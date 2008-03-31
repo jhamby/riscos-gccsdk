@@ -1,13 +1,14 @@
 /* __build_ctype_tables ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <ctype.h>
 #include <swis.h>
 #include <locale.h>
+
 #include <pthread.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
+#include <internal/os.h>
+#include <internal/unix.h>
 
 void
 __build_ctype_tables (int territory)

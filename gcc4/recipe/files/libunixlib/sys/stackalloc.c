@@ -1,5 +1,5 @@
 /* Non-contiguous stack chunk allocator.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Devlopers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Devlopers.
    Written by Alex Waugh, January 2002. */
 
 /****************************************************************************
@@ -24,13 +24,13 @@
  ***************************************************************************/
 
 #include <stddef.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
-#include <pthread.h>
 #include <swis.h>
 
-/* #define DEBUG 1 */
+#include <internal/os.h>
+#include <internal/unix.h>
+#include <pthread.h>
 
+/* #define DEBUG 1 */
 #ifdef DEBUG
 #  include <sys/debug.h>
 #endif

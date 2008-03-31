@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 /* #define DEBUG */
@@ -27,11 +27,12 @@ extern const char __filename_char_map[256];
 
 #else
 
-#  include <unixlib/local.h>
-#  include <unixlib/unix.h>
-#  include <unixlib/os.h>
-#  include <internal/swiparams.h>
 #  include <pwd.h>
+#  include <unixlib/local.h>
+#  include <internal/local.h>
+#  include <internal/unix.h>
+#  include <internal/os.h>
+#  include <internal/swiparams.h>
 
 #endif
 

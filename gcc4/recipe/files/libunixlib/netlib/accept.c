@@ -1,15 +1,15 @@
 /* accept ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
-
-#include <unixlib/unix.h>
 #include <sys/socket.h>
-#include <unixlib/dev.h>
 #include <fcntl.h>
-#include <unixlib/fd.h>
-#include <unixlib/local.h>
+
+#include <internal/unix.h>
+#include <internal/fd.h>
+#include <internal/local.h>
+#include <internal/dev.h>
 #include <pthread.h>
 
 int

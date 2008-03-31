@@ -1,14 +1,15 @@
 /* Set Unix-style environment variables.
-   Copyright (c) 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
 #include <swis.h>
-#include <pthread.h>
 #include <errno.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
+#include <pthread.h>
 
 /* Put value into the OS environment. Will not overwrite an existing
    variable of the same name if replace is 0 */

@@ -1,20 +1,22 @@
 /* UnixLib stat()/stat64() implementation.
-   Copyright (c) 2000-2007 UnixLib Developers.  */
+   Copyright (c) 2000-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
 #include <string.h>
-
-#include <unixlib/dev.h>
-#include <unixlib/os.h>
 #include <sys/stat.h>
 
-#include <unixlib/local.h>
+#include <internal/dev.h>
+#include <internal/os.h>
+#include <internal/local.h>
 #include <internal/swiparams.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* #define DEBUG */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 int
 stat (const char *filename, struct stat *buf)

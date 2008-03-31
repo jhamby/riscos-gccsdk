@@ -1,13 +1,14 @@
 /* sigaction ()
  * Written by Nick Burrett, 31 August 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stddef.h>
 #include <signal.h>
-#include <unixlib/sigstate.h>
-#include <unixlib/unix.h>
+
+#include <internal/sigstate.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* Set up a new action for the signal 'sig' specified by 'act'.

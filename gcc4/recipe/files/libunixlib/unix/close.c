@@ -1,21 +1,23 @@
 /* __close (), close ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <fcntl.h>
-
 #include <sys/types.h>
-#include <unixlib/unix.h>
-#include <unixlib/dev.h>
-#include <unixlib/os.h>
 #include <unistd.h>
 
-#include <unixlib/fd.h>
+#include <internal/unix.h>
+#include <internal/os.h>
+#include <internal/dev.h>
+#include <internal/fd.h>
 #include <unixlib/local.h>
 #include <pthread.h>
 
 /* #define DEBUG */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 int
 __close (struct __unixlib_fd *file_desc)

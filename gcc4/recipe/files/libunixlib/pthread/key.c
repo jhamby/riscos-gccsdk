@@ -1,12 +1,13 @@
 /* Thread specific keys.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.
    Written by Alex Waugh.  */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <pthread.h>
-#include <unixlib/unix.h>
 #include <malloc.h>
+
+#include <internal/unix.h>
 
 /* ID to allocate to next new key.  */
 static pthread_key_t nextkey = 0;

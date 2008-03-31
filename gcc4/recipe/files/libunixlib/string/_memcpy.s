@@ -1,10 +1,10 @@
 @ Fast memcpy and memmove
-@ Copyright (c) 2005, 2006, 2007 UnixLib Devlopers
+@ Copyright (c) 2005-2008 UnixLib Devlopers
 @ Written by Adrian Lees
 
 	.text
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	@ Always select ARM v6 architecture as this avoids the assembler error
 	@ "selected processor does not support `PLD xxx`" when there is an

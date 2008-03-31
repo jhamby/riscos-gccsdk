@@ -1,11 +1,12 @@
 /* signal (), siginterrupt ()
  * Written by Nick Burrett, 27 August 1996.
- * Copyright (c) 1996-2006 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <signal.h>
-#include <unixlib/sigstate.h>
+
+#include <internal/sigstate.h>
 
 /* Set the handler for the signal 'sig' to handler, returning
    the old handler, or SIG_ERR on error.  */

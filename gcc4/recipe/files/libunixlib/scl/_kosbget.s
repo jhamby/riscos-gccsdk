@@ -1,7 +1,7 @@
 @ _kernel_osbget
-@ Copyright (c) 2000-2007 UnixLib Developers
+@ Copyright (c) 2000-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

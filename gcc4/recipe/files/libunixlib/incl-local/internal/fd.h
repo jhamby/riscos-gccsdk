@@ -1,8 +1,8 @@
 /* UnixLib internal file descriptor interface definition.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.  */
 
-#ifndef __UNIXLIB_FD_H
-#define __UNIXLIB_FD_H 1
+#ifndef __INTERNAL_FD_H
+#define __INTERNAL_FD_H 1
 
 #ifndef __UNIXLIB_FEATURES_H
 #include <features.h>

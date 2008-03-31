@@ -1,17 +1,16 @@
 /* fstat (), fstat64 ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <fcntl.h>
 #include <stdlib.h>
 #include <dirent.h>
-
-#include <unixlib/dev.h>
-#include <unixlib/os.h>
 #include <sys/stat.h>
-#include <unixlib/unix.h>
 
+#include <internal/dev.h>
+#include <internal/os.h>
+#include <internal/unix.h>
 #include <unixlib/local.h>
 #include <internal/swiparams.h>
 #include <pthread.h>

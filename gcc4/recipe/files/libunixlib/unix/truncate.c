@@ -1,17 +1,16 @@
 /* Truncate a file to a specified length.
-   Copyright (c) 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
-
-#include <unixlib/dev.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
 #include <sys/types.h>
 
+#include <internal/dev.h>
+#include <internal/os.h>
+#include <internal/unix.h>
 #include <unixlib/local.h>
-#include <unixlib/fd.h>
+#include <internal/fd.h>
 #include <pthread.h>
 
 int

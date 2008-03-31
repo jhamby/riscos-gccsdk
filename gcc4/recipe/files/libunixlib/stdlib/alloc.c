@@ -1,5 +1,5 @@
 /* Doug Lea's malloc, modified for UnixLib.
-   Copyright (c) 2005-2006 UnixLib Devlopers.  */
+   Copyright (c) 2005-2008 UnixLib Devlopers.  */
 
 /* Original version is public domain.  */
 
@@ -32,7 +32,7 @@
 
 */
 
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 #include <stdlib.h>
 #include <string.h>
 #include <malloc.h>

@@ -1,15 +1,16 @@
 /* getpwnam ()
  * Search for an entry with a matching username (POSIX.1 function)
  * written by Nick Burrett, 13 October 1996.
- * Copyright (c) 1996-2007 UnixLib Developers
+ * Copyright (c) 1996-2008 UnixLib Developers
  */
 
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
 #include <pwd.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Search for an entry with a matching name.
    Defined by POSIX as not threadsafe.  */

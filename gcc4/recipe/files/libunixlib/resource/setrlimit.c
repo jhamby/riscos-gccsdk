@@ -1,12 +1,12 @@
 /* setrlimit ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <sys/resource.h>
-#include <unixlib/unix.h>
 #include <errno.h>
-#include <pthread.h>
 
+#include <pthread.h>
+#include <internal/unix.h>
 
 /* Set the soft and hard limits for RESOURCE to *RLIMITS.
    Only the super-user can increase hard limits.

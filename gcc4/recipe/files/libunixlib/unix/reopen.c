@@ -1,16 +1,15 @@
 /* UnixLib __reopen() implementation.
-   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008 UnixLib Developers.  */
 
 #include <stdarg.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 
-#include <unixlib/unix.h>
-#include <unixlib/dev.h>
-
-#include <unixlib/fd.h>
-#include <unixlib/local.h>
+#include <internal/unix.h>
+#include <internal/dev.h>
+#include <internal/fd.h>
+#include <internal/local.h>
 #include <pthread.h>
 
 int

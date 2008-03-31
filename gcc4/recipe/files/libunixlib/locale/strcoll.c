@@ -1,11 +1,12 @@
 /* strcoll ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <locale.h>
 #include <string.h>
-#include <unixlib/os.h>
 #include <swis.h>
+
+#include <internal/os.h>
 
 int
 strcoll (const char *s1, const char *s2)

@@ -6,11 +6,12 @@
 #define DEBUG
 #include <sys/debug.h>
 
-#include <unixlib/dev.h>
 #include <unixlib/local.h>
-#include <unixlib/os.h>
-#include <unixlib/sigstate.h>
-#include <unixlib/unix.h>
+#include <internal/local.h>
+#include <internal/os.h>
+#include <internal/sigstate.h>
+#include <internal/unix.h>
+#include <internal/dev.h>
 
 void
 __debug (const char *s)

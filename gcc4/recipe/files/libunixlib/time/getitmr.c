@@ -1,11 +1,12 @@
 /* getitimer ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stddef.h>
 #include <errno.h>
 #include <sys/time.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 
 /* The `getitimer' function stores information about the timer
    specified by 'which' in the structure pointed at by 'value'

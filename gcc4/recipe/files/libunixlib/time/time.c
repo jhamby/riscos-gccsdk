@@ -1,14 +1,14 @@
 /* Get time in seconds.
-   Copyright (c) 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <time.h>
-#include <unixlib/os.h>
-#include <unixlib/local.h>
+
+#include <internal/os.h>
+#include <internal/local.h>
 
 /* #define DEBUG */
-
 #ifdef DEBUG
-#include <stdio.h>
+#  include <sys/debug.h>
 #endif
 
 time_t
@@ -25,7 +25,8 @@ time (time_t *timep)
   time1 = __cvt_riscos_time (buf[1] & 0xff, buf[0]);
 
 #ifdef DEBUG
-  printf ("time():  t1 = %x, b[1] = %x, b[0] = %x\n", time1, buf[1], buf[0]);
+  debug_printf ("time():  t1 = %x, b[1] = %x, b[0] = %x\n",
+		time1, buf[1], buf[0]);
 #endif
 
   if (timep != NULL)

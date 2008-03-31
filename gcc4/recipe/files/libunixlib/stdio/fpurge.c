@@ -6,11 +6,13 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <pthread.h>
-#include <unixlib/unix.h>
 
+#include <pthread.h>
+#include <internal/unix.h>
+
+/* #define DEBUG */
 #ifdef DEBUG
-#  include <unixlib/os.h>
+#  include <sys/debug.h>
 #endif
 
 /* fpurge(f) discards buffered output.  */

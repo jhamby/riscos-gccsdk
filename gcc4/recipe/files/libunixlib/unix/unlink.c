@@ -1,13 +1,14 @@
 /* Delete a file from disk.
-   Copyright (c) 2005 UnixLib Developers.  */
+   Copyright (c) 2005, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
 #include <unistd.h>
 #include <string.h>
 
-#include <unixlib/os.h>
 #include <unixlib/local.h>
+#include <internal/os.h>
+#include <internal/local.h>
 #include <internal/swiparams.h>
 
 /* Removes the suffix swap directory if it is empty.

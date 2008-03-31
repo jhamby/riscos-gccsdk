@@ -1,10 +1,11 @@
 /* sigemptyset (), sigfillset (), sigmask ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <signal.h>
-#include <unixlib/sigstate.h>
+
+#include <internal/sigstate.h>
 
 #undef sigemptyset
 #undef sigfillset

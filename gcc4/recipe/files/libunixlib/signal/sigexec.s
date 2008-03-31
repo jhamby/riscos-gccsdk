@@ -1,8 +1,8 @@
 @ __unixlib_exec_sig, __unixlib_exec_sigstack, __unixlib_exec_sigstack_bsd
 @ Written by Nick Burrett, 1 September 1996.
-@ Copyright (c) 1996-2006 UnixLib Developers
+@ Copyright (c) 1996-2008 UnixLib Developers
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

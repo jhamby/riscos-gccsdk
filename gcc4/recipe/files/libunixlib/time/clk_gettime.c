@@ -4,7 +4,8 @@
 #include <errno.h>
 #include <stdint.h>
 #include <time.h>
-#include <unixlib/os.h>
+
+#include <internal/os.h>
 
 int
 clock_gettime (clockid_t clk_id, struct timespec *tp)

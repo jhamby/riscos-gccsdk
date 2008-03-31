@@ -2,17 +2,17 @@
    Copyright (c) 2004, 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <errno.h>
-#include <unixlib/unix.h>
-#include <pthread.h>
 #include <unistd.h>
-#include <unixlib/os.h>
 #include <swis.h>
-#include <unixlib/local.h>
 #include <stdlib.h>
-#include <unixlib/dev.h>
+
+#include <internal/unix.h>
+#include <internal/os.h>
+#include <internal/local.h>
+#include <internal/dev.h>
+#include <pthread.h>
 
 /* #define DEBUG 1 */
-
 #ifdef DEBUG
 #  include <sys/debug.h>
 #endif

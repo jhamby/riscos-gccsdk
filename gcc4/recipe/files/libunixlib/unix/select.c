@@ -1,21 +1,24 @@
 /* Unixlib select() implementation.
-   Copyright 1997-2007 UnixLib Developers.  */
+   Copyright 1997-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <string.h>
 #include <time.h>
 #include <sys/select.h>
-#include <unixlib/unix.h>
-#include <unixlib/dev.h>
-#include <unixlib/os.h>
 #include <swis.h>
 #include <sys/time.h>
+
+#include <internal/unix.h>
+#include <internal/dev.h>
+#include <internal/os.h>
 #include <unixlib/local.h>
 #include <unixlib/types.h>
 #include <pthread.h>
 
 /* #define DEBUG */
-
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 fd_set __socket_fd_set;
 static int __socket_fd_set_initialised = 0;

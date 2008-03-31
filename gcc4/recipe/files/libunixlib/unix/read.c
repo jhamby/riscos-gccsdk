@@ -1,16 +1,15 @@
 /* read ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
-
-#include <unixlib/dev.h>
 #include <sys/types.h>
-#include <unixlib/unix.h>
 
-#include <unixlib/fd.h>
+#include <internal/dev.h>
+#include <internal/unix.h>
+#include <internal/fd.h>
 #include <pthread.h>
 
 ssize_t

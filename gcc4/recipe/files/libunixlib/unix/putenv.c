@@ -1,13 +1,14 @@
 /* putenv ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stdlib.h>
 #include <string.h>
-#include <unixlib/unix.h>
-#include <pthread.h>
 #include <errno.h>
 #include <unistd.h>
+
+#include <internal/unix.h>
+#include <pthread.h>
 
 /* Add NAME=VALUE to the environment. If NAME is already in the environment,
    only add when replace is non-zero.  If string is non-NULL then it is

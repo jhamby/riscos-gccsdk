@@ -1,5 +1,5 @@
 /* Common routines shared by the mutex, rwlock and cond functions.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers
+   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers
    Written by Alex Waugh */
 
 /* #define PTHREAD_DEBUG */
@@ -7,8 +7,8 @@
 #include <pthread.h>
 #include <errno.h>
 #include <limits.h>
-#include <stdio.h>
-#include <unixlib/os.h>
+
+#include <internal/os.h>
 
 /* Mark a mutex/rwlock as owned by the current thread */
 static void
@@ -18,7 +18,7 @@ __pthread_lock_acquire (pthread_mutex_t *mutex, const enum __pthread_locktype ty
   mutex->count++;
   mutex->type = type;
 #ifdef PTHREAD_DEBUG
-  printf ("-- __pthread_lock_acquire: Incrementing %p to %u for %p\n", mutex, mutex->count, __pthread_running_thread);
+  debug_printf ("-- __pthread_lock_acquire: Incrementing %p to %u for %p\n", mutex, mutex->count, __pthread_running_thread);
 #endif
 }
 
@@ -36,14 +36,11 @@ __pthread_lock_block (pthread_mutex_t *mutex, const enum __pthread_locktype type
 
   /* Add this thread to the end of the list of threads waiting on the mutex */
   if (list == NULL)
-    {
-      mutex->waiting = __pthread_running_thread;
-    }
+    mutex->waiting = __pthread_running_thread;
   else
     {
-      while (list->nextwait != NULL) {
+      while (list->nextwait != NULL)
         list = list->nextwait;
-      }
 
       list->nextwait = __pthread_running_thread;
     }
@@ -53,55 +50,43 @@ __pthread_lock_block (pthread_mutex_t *mutex, const enum __pthread_locktype type
       __pthread_running_thread->state = STATE_MUTEX_WAIT;
 
 #ifdef PTHREAD_DEBUG
-      printf ("-- __pthread_lock_block: Unavailable, yielding %p from %p\n", mutex, __pthread_running_thread);
+      debug_printf ("-- __pthread_lock_block: Unavailable, yielding %p from %p\n", mutex, __pthread_running_thread);
 #endif
-    __pthread_enable_ints ();
-    /* Yield until the mutex becomes available */
-    pthread_yield ();
-    __pthread_disable_ints ();
+      __pthread_enable_ints ();
+      /* Yield until the mutex becomes available */
+      pthread_yield ();
+      __pthread_disable_ints ();
 
-    if (mutex->owner == NULL)
-      {
+      if (mutex->owner == NULL)
         wait = 0; /* Lock is now available for us */
-      }
-    else
-      {
-        if (type == LOCK_READ && mutex->type == LOCK_READ)
-          {
+      else
+        {
+          if (type == LOCK_READ && mutex->type == LOCK_READ)
             wait = 0; /* Many read locks can be held at once, by different threads */
-          }
-        else
-          {
+          else
             wait = 1; /* Lock is still not available */
-          }
-      }
+        }
     }
   while (wait);
 
 #ifdef PTHREAD_DEBUG
-  printf ("-- __pthread_lock_block: Acquired %p for %p\n",mutex,__pthread_running_thread);
+  debug_printf ("-- __pthread_lock_block: Acquired %p for %p\n",mutex,__pthread_running_thread);
 #endif
 
   /* Remove the current thread from the list of threads waiting on the mutex */
-  list = mutex->waiting;
-  if (list == __pthread_running_thread)
-    {
-      mutex->waiting = list->nextwait;
-    }
+  if (mutex->waiting == __pthread_running_thread)
+    mutex->waiting = list->nextwait;
   else
     {
-      while (1)
-        {
-          if (list == NULL)
-            __pthread_fatal_error ("-- __pthread_lock_block: Mutex does not have a thread waiting on it, but it should have");
+      for (list = mutex->waiting;
+	   list != NULL && list->nextwait != __pthread_running_thread;
+	   list = list->nextwait)
+	/* */;
 
-          if (list->nextwait == __pthread_running_thread)
-            {
-              list->nextwait = __pthread_running_thread->nextwait;
-              break;
-            }
-          list = list->nextwait;
-        }
+      if (list == NULL)
+        __pthread_fatal_error ("-- __pthread_lock_block: Mutex does not have a thread waiting on it, but it should have");
+
+      list->nextwait = __pthread_running_thread->nextwait;
     }
 
   __pthread_lock_acquire (mutex, type);
@@ -117,7 +102,7 @@ __pthread_lock_lock (pthread_mutex_t *mutex, const enum __pthread_locktype type,
   __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
-  printf ("-- __pthread_lock_lock: %p type %d for %p\n", mutex, type, __pthread_running_thread);
+  debug_printf ("-- __pthread_lock_lock: %p type %d for %p\n", mutex, type, __pthread_running_thread);
 #endif
 
   if (mutex->owner == NULL || (mutex->type == LOCK_READ && type == LOCK_READ))
@@ -126,17 +111,16 @@ __pthread_lock_lock (pthread_mutex_t *mutex, const enum __pthread_locktype type,
       if (type == LOCK_READ)
         {
           /* Check there aren't any writers waiting on the lock */
-          pthread_t list = mutex->waiting;
+          pthread_t list;
           int block = 0;
 
-          while (list != NULL)
+          for (list = mutex->waiting; list != NULL; list = list->nextwait)
             {
               if (list->mutextype == LOCK_WRITE)
                 {
                   block = 1;
                   break;
                 }
-              list = list->nextwait;
             }
           if (block)
             {
@@ -210,7 +194,7 @@ __pthread_lock_unlock (pthread_mutex_t *mutex, int yield)
   __pthread_disable_ints ();
 
 #ifdef PTHREAD_DEBUG
-  printf ("-- __pthread_lock_unlock: %p for %p\n", mutex, __pthread_running_thread);
+  debug_printf ("-- __pthread_lock_unlock: %p for %p\n", mutex, __pthread_running_thread);
 #endif
 
   if ((mutex->type != LOCK_READ && mutex->owner != __pthread_running_thread) || mutex->count == 0)
@@ -232,14 +216,10 @@ __pthread_lock_unlock (pthread_mutex_t *mutex, int yield)
       while (thread)
         {
           if (thread == __pthread_running_thread)
-            {
-              __pthread_fatal_error ("-- __pthread_lock_unlock: Unlocking mutex that current thread is already blocked on");
-            }
+            __pthread_fatal_error ("-- __pthread_lock_unlock: Unlocking mutex that current thread is already blocked on");
 
           if (thread->mutex != mutex)
-            {
-              __pthread_fatal_error ("-- __pthread_lock_unlock: Blocking thread in wrong mutex list");
-            }
+            __pthread_fatal_error ("-- __pthread_lock_unlock: Blocking thread in wrong mutex list");
 
           if (thread->mutextype == LOCK_WRITE || thread->mutextype == LOCK_MUTEX)
             {

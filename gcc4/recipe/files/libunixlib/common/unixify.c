@@ -1,16 +1,18 @@
 /*
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <errno.h>
 #include <string.h>
-#include <unixlib/local.h>
-#include <internal/swiparams.h>
-#include <unixlib/os.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <swis.h>
 #include <stdio.h>
+
+#include <unixlib/local.h>
+#include <internal/local.h>
+#include <internal/swiparams.h>
+#include <internal/os.h>
 
 /* #define DEBUG */
 

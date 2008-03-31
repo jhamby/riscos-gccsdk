@@ -1,10 +1,11 @@
 /* setsid ()
- * Copyright (c) 2003-2006 UnixLib Developers
+ * Copyright (c) 2003-2008 UnixLib Developers
  */
 
 #include <unistd.h>
-#include <unixlib/unix.h>
 #include <errno.h>
+
+#include <internal/unix.h>
 
 /* Creates a new session if the calling process is not a process group leader */
 

@@ -16,7 +16,7 @@
  *
  * FIXME: I don't believe that 8-bit currently works properly.
  *
- * Copyright (c) 2004-2007 UnixLib Developers
+ * Copyright (c) 2004-2008 UnixLib Developers
  */
 
 #include <swis.h>
@@ -29,8 +29,9 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/soundcard.h>
-#include <unixlib/os.h>
-#include <unixlib/dev.h>
+
+#include <internal/os.h>
+#include <internal/dev.h>
 #include <internal/swiparams.h>
 #include <pthread.h>
 

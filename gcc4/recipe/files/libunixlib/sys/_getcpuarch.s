@@ -1,8 +1,8 @@
 /* Get ARM CPU Architecture.
-   Copyright (c) 2007 UnixLib Developers
+   Copyright (c) 2007-2008 UnixLib Developers
    Written by John Tytgat.  */
 
-#include "unixlib/asm_dec.s"
+#include "internal/asm_dec.s"
 
 	.text
 

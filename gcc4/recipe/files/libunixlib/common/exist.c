@@ -1,11 +1,12 @@
 /* __isdir (), __object_exists ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <limits.h>
 
 #include <unixlib/local.h>
-#include <unixlib/unix.h>
+#include <internal/local.h>
+#include <internal/unix.h>
 
 /* Return nonzero if DIR is an existent directory.  */
 int

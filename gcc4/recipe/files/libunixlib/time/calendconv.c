@@ -1,19 +1,19 @@
 /* __calendar_convert ()
  * Written by Nick Burrett on 13 July 1997.
- * Copyright (c) 1997-2006 UnixLib Developers
+ * Copyright (c) 1997-2008 UnixLib Developers
  */
 
 #include <time.h>
 #include <locale.h>
 #include <string.h>
-#include <unixlib/os.h>
 #include <swis.h>
-#include <unixlib/local.h>
+
+#include <internal/os.h>
+#include <internal/local.h>
 
 /* #define DEBUG */
-
 #ifdef DEBUG
-#include <stdio.h>
+#  include <sys/debug.h>
 #endif
 
 static struct tm __tz[1];
@@ -32,9 +32,9 @@ __calendar_convert (int swinum, const time_t *tp, struct tm *tz)
   __cvt_unix_time (*tp, &riscos_time[1], &riscos_time[0]);
 
 #ifdef DEBUG
-  printf ("__calendar_convert:\n");
-  printf ("    *tp = %x, riscos_time[1] = %x, riscos_time[0] = %x\n",
-	  *tp, riscos_time[1], riscos_time[0]);
+  debug_printf ("__calendar_convert:\n"
+		"    *tp = %x, riscos_time[1] = %x, riscos_time[0] = %x\n",
+		*tp, riscos_time[1], riscos_time[0]);
 #endif
 
   regs[0] = __locale_territory[LC_TIME];
@@ -54,10 +54,10 @@ __calendar_convert (int swinum, const time_t *tp, struct tm *tz)
   tz->tm_yday = ordinals_buffer[8] - 1;
 
 #ifdef DEBUG
-  printf ("    sec = %d, min = %d, hour = %d\n", tz->tm_sec,
-	  tz->tm_min, tz->tm_hour);
-  printf ("    mday = %d, mon = %d, year = %d, wday = %d, yday = %d\n", tz->tm_mday,
-	  tz->tm_mon, tz->tm_year, tz->tm_wday, tz->tm_yday);
+  debug_printf ("    sec = %d, min = %d, hour = %d\n", tz->tm_sec,
+		tz->tm_min, tz->tm_hour);
+  debug_printf ("    mday = %d, mon = %d, year = %d, wday = %d, yday = %d\n",
+		tz->tm_mday, tz->tm_mon, tz->tm_year, tz->tm_wday, tz->tm_yday);
 #endif
 
   return tz;

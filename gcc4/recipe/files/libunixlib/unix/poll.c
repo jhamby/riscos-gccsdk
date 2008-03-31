@@ -1,5 +1,5 @@
 /* poll ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <string.h>
@@ -7,8 +7,9 @@
 #include <sys/poll.h>
 #include <sys/time.h>
 #include <sys/select.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Poll the file descriptors described by the NFDS structures starting at
    FDS.  If TIMEOUT is nonzero and not -1, allow TIMEOUT milliseconds for

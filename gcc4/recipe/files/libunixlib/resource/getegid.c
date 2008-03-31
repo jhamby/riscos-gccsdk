@@ -1,9 +1,10 @@
 /* getegid ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <unistd.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 
 __gid_t
 getegid (void)

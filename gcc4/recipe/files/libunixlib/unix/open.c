@@ -1,5 +1,5 @@
 /* UnixLib ttyname() and open() implementation.
-   Copyright (c) 2000-2007 UnixLib Developers.  */
+   Copyright (c) 2000-2008 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <stdarg.h>
@@ -7,16 +7,19 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-
 #include <sys/types.h>
-#include <unixlib/unix.h>
-#include <unixlib/dev.h>
 
-#include <unixlib/fd.h>
 #include <unixlib/local.h>
+#include <internal/unix.h>
+#include <internal/dev.h>
+#include <internal/fd.h>
+#include <internal/local.h>
 #include <pthread.h>
 
 /* #define DEBUG */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 char *
 ttyname (int fd)

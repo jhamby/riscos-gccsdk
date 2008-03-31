@@ -1,13 +1,14 @@
 /* Provide obsolete ulimit function.
-   Copyright (c) 2004, 2005, 2007 UnixLib Devlopers.  */
+   Copyright (c) 2004, 2005, 2007, 2008 UnixLib Devlopers.  */
 
 #include <sys/resource.h>
-#include <unixlib/unix.h>
 #include <unistd.h>
 #include <errno.h>
 #include <stdio.h>
 #include <ulimit.h>
 #include <stdarg.h>
+
+#include <internal/unix.h>
 
 /* Function depends on CMD:
    1 = Return the limit on the size of a file, in units of 512 bytes.

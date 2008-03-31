@@ -1,5 +1,5 @@
 /* UnixLib fread() implementation.
-   Copyright 2000-2007 UnixLib Developers.  */
+   Copyright 2000-2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -7,8 +7,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* Return number of objects read.  */
 size_t

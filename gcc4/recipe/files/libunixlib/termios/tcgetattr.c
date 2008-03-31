@@ -1,5 +1,5 @@
 /* tcgetattr ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <stdio.h>
@@ -8,7 +8,8 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
-#include <unixlib/unix.h>
+
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* Put the state of FD into *TERMIOS_P.  */

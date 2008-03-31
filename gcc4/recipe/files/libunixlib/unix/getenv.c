@@ -1,16 +1,20 @@
 /* Manipulate Unix-style environment variables.
-   Copyright (c) 2004, 2005, 2007 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2007, 2008 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <unixlib/os.h>
-#include <unixlib/unix.h>
 #include <swis.h>
+
+#include <internal/os.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* #define DEBUG 1 */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
 
 /* This global variable is also initialised in unix.c when we are a child.  */
 char **environ = NULL;

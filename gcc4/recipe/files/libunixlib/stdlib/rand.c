@@ -1,10 +1,11 @@
 /* srand (), rand ()
- * Copyright (c) 2002-2007 UnixLib Developers
+ * Copyright (c) 2002-2008 UnixLib Developers
  */
 
 #include <stdlib.h>
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 /* This is a BAD random number generator.  Use the random functions
    instead.  */

@@ -12,8 +12,9 @@
  */
 
 #include "rand48.h"
+
 #include <pthread.h>
-#include <unixlib/unix.h>
+#include <internal/unix.h>
 
 extern unsigned short _rand48_seed[3];
 

@@ -1,9 +1,9 @@
 /* This is an internal UnixLib header file for implementing the signal
    handlers.  These functions cannot be used in a user program.
-   Copyright 2000-2006 UnixLib Developers.  */
+   Copyright 2000-2008 UnixLib Developers.  */
 
-#ifndef __UNIXLIB_SIGSTATE_H
-#define __UNIXLIB_SIGSTATE_H 1
+#ifndef __INTERNAL_SIGSTATE_H
+#define __INTERNAL_SIGSTATE_H 1
 
 #ifndef __UNIXLIB_FEATURES_H
 #include <features.h>
