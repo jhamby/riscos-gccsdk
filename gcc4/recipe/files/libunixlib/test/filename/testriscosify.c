@@ -47,6 +47,11 @@ char tests[][2][256] = {
 {"..cunningplan","//cunningplan"},
 {"/idefs::4/$/fred/preset/s","idefs::4.$.fred.preset.s"},
 {"/idefs::4/$/fred/preset.s","idefs::4.$.fred.s.preset"},
+{"/Sunfish#192.168.0.50::/home/joty.$/projects/gccsdk/index.html","Sunfish#192.168.0.50::/home/joty.$.projects.gccsdk.index/html"},
+{"/HostFS:","HostFS:"},
+{"/HostFS:$","HostFS:$"},
+{"/HostFS:$.jo.html","HostFS:$.jo/html"},
+{"/HostFS:$/jo.html","HostFS:$.jo/html"},
 {"/rname.c","$.c.rname"},
 {"/arm/rname.c","$.arm.c.rname"},
 {"/arm//rname.c","$.arm.c.rname"},
@@ -114,10 +119,13 @@ char tests[][2][256] = {
 {"foo/","foo"},
 {"foo//","foo"},
 {"dir/file.h/","dir.file/h"},
+/* This is not yet ported to GCCSDK 4.  */
+#ifndef __ELF__
 {"/home/riscos/env/foo","foo:"},
 {"/home/riscos/env/","$.home.riscos.env"},
 {"/home/riscos/env/foo/bar/baz/","foo:bar.baz"},
 {"/../home/./fred/../riscos////env/./Choices/Boot","Choices:Boot"},
+#endif
 {"/usr/../var/../tmp/./file.c","<Wimp$ScrapDir>.c.file"},
 {"~/foo",""},
 {"/a/long/path/name/that/is/going/to/end/in/a.","$.a.long.path.name.that.is.going.to.end.in.a/"},

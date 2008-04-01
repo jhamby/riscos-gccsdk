@@ -1,3 +1,9 @@
+Wed Apr  2 00:36:38 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* common/riscosify.c(riscosify): Avoid discname when specified gets
+	changed and when no discname is specified, make sure we output a '$'.
+	* test/filename/testriscosify.c: Added new cases.
+
 Tue Apr  1 00:23:32 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/unixlib/asm_dec.s: Moved to...
@@ -14,7 +20,7 @@ Tue Apr  1 00:23:32 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 	* incl-local/internal/unix.h: ...here.
 	* include/unixlib/local.h: Moved __UNIXLIB_INTERNALS marked
 	declarations to...
-	* incl-local/internal/local.h.
+	* incl-local/internal/local.h: ...here.
 	* Updated lots and lots of c/h/s files to follow above changes.
 
 Sun Mar 30 15:59:15 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>

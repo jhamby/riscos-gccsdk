@@ -904,6 +904,9 @@ __riscosify (const char *name, int create_dir,
 
          /idefs::hd/$/fred/preset/s  idefs::hd.$.fred.preset.s
          /idefs::hd/$/fred/preset.s  idefs::hd.$.fred.s.preset
+         /Sunfish#192.168.0.50::/home/joty.$/projects/gccsdk/index.html
+				     Sunfish#192.168.0.50::/home/joty.$.projects.gccsdk.index/html
+	 /HostFS:$/jo.html	     HostFS:$.jo/html
          /arm/rname.c                $.arm.c.rname
          /lib/something/cc           %.something.cc
          /<GCC$Dir>/config           <GCC$Dir>.config
@@ -946,7 +949,6 @@ __riscosify (const char *name, int create_dir,
 	  /* Skip any further '/'s */
 	  while (*in == '/')
 	    in++;
-
 	}
       else
 	{
@@ -964,7 +966,8 @@ __riscosify (const char *name, int create_dir,
 	  if (*in == '#')
 	    {
 	      /* Copy any fileswitch special field (i.e. the nfs#station::)
-	         These start with '#' and can contain almost anything except ':' */
+		 These start with '#' and can contain almost anything
+		 except ':'.  */
 	      while (*in && *in != ':')
 		{
 		  *out++ = *in++;
@@ -989,38 +992,55 @@ __riscosify (const char *name, int create_dir,
 		  /* Must be a filing system
 		     /idefs:: */
 
-		  /* Copy upto the next '/'
-		     /idefs::hd/ */
-		  while (*in && *in != '/')
+		  /* Copy discname which is all chars upto the next '$'
+		     /idefs::hd/$
+                     /idefs::/foo/bar.$ */
+		  while (*in && *in != '$')
 		    {
 		      *out++ = *in++;
 
 		      if (out > buf_end)
 			return NULL;
 		    }
+		  if (*in == '$')
+		    {
+		      /* Ensure a dot before '$'.  */
+		      if (out[-1] == '/')
+			out[-1] = '.';
 
-		  if (out + 3 > buf_end)
+		      *out++ = *in++;
+		      if (out + 1 > buf_end)
+			return NULL;
+
+		      if (*in == '/')
+			{
+			  *out++ = '.';
+
+			  /* Skip any further '/'s */
+			  while (*in == '/')
+			    in++;
+			}
+		    }
+		}
+	      else if (*in == '$')
+		{
+		  /* Cases: /HostFS:          -> HostFS:
+			    /HostFS:$         -> HostFS:$
+			    /HostFS:$.jo.html -> HostFS:$.jo/html
+			    /HostFS:$/jo.html -> HostFS:$.jo/html */
+		  *out++ = *in++;
+		  if (out + 1 > buf_end)
 		    return NULL;
-
-		  if (in[0] == '/' && in[1] == '$')
+		  if (*in)
 		    {
-		      /* Copy the /$ as  .$ */
 		      *out++ = '.';
-		      *out++ = '$';
-		      in += 2;
+		      if (*in == '.')
+			in++;
+		      else
+			/* Skip any '/'s */
+			while (*in == '/')
+			  in++;
 		    }
-
-		  if (*in == '/')
-		    {
-		      /* Copy the / as . */
-		      *out++ = '.';
-		      in++;
-		    }
-
-		  /* Skip any further '/'s */
-		  while (*in == '/')
-		    in++;
-
 		}
 	      else if (*in == '/')
 		{
@@ -1033,24 +1053,23 @@ __riscosify (const char *name, int create_dir,
 		      in++;
 		    }
 		  while (*in == '/');
-
 		}
 	      else
 		{
 		  /* Must be a path var
 		     /gcc:something
 		     in already points to the char after the ':', so nothing
-		     else needs copying */
+		     else needs copying.  */
 		}
 	    }
 	  else
 	    {
 	      /* Must be an absolute unix path, with no RISC OS specific
-	         parts, so rewind to just after the initial slashes but
-	         we must first attempt to convert the path we've been
-	         given into a canonicalised Unix path because otherwise
-	         we won't match on things like /home/foo/../riscos//./env/
-	       */
+		 parts, so rewind to just after the initial slashes but
+		 we must first attempt to convert the path we've been
+		 given into a canonicalised Unix path because otherwise
+		 we won't match on things like /home/foo/../riscos//./env/
+		 */
 	      int matched = 0;
 	      char canonical_name[MAXPATHLEN];
 	      const char *cname = canonical_name;
@@ -1077,39 +1096,41 @@ __riscosify (const char *name, int create_dir,
 		}
 
 	      /* /usr/xxx and /var/xxx. Try matching xxx segment.  */
-	      if (cname[0] == '/' && ((cname[1] == 'u' && cname[2] == 's')
-				      || (cname[1] == 'v' && cname[2] == 'a'))
+	      if (cname[0] == '/'
+		  && ((cname[1] == 'u' && cname[2] == 's')
+		      || (cname[1] == 'v' && cname[2] == 'a'))
 		  && cname[3] == 'r' && cname[4] == '/')
 		{
 		  cname += 5;
 		  switch (sdirseg (&cname, &out, buf_end))
 		    {
-		    case sdirseg_buf_too_small:
-		      return NULL;
-		      break;
+		      case sdirseg_buf_too_small:
+			return NULL;
+			break;
 
-		    case sdirseg_match:
-		      matched = 1;
+		      case sdirseg_match:
+			matched = 1;
 
-		      /* If the matched segment was a path var then consume
-		         any '/'s in the input to prevent them being copied
-		         as '.'s (so we don't end up with gcc:.foo) */
-		      if (out > buffer && out[-1] == ':')
-			while (*cname == '/')
-			  cname++;
+			/* If the matched segment was a path var then consume
+			   any '/'s in the input to prevent them being copied
+			   as '.'s (so we don't end up with gcc:.foo).  */
+			if (out > buffer && out[-1] == ':')
+			  while (*cname == '/')
+			    cname++;
+			break;
 
-		      break;
-
-		    default:
-		      cname -= 5;
+		      default:
+			cname -= 5;
 		    }
 		}
 
-/* The __ELF__ test is a hack until our ELF build system @ gccsdk4 has a
-   concept of RO_ENV. FIXME  */
+/* FIXME: the __ELF__ test is a hack until our ELF build system @ GCCSDK 4
+   has a concept of RO_ENV. Also test/filename/testriscosify.c needs to be
+   changed.  */
 #ifndef __ELF__
-	      /* /home/riscos/env/xxx. (or configured path) Try matching xxx segment.  */
-	      if (strncmp (cname, RO_ENV, sizeof (RO_ENV) - 1) == 0)
+	      /* /home/riscos/env/xxx. (or configured path) Try matching
+	         xxx segment.  */
+	      else if (strncmp (cname, RO_ENV, sizeof (RO_ENV) - 1) == 0)
 		{
 		  cname += sizeof (RO_ENV) - 1;
 		  while (*cname && *cname == '/')
@@ -1124,8 +1145,8 @@ __riscosify (const char *name, int create_dir,
 		    case sdirseg_match:
 		      matched = 1;
 		      /* If the matched segment was a path var then consume
-		         any '/'s in the input to prevent them being copied
-		         as '.'s (so we don't end up with gcc:.foo) */
+			 any '/'s in the input to prevent them being copied
+			 as '.'s (so we don't end up with gcc:.foo) */
 		      if (out > buffer && out[-1] == ':')
 			while (*cname == '/')
 			  cname++;
@@ -1134,27 +1155,22 @@ __riscosify (const char *name, int create_dir,
 
 		    default:
 		      /* Not matched anything in the list of UnixFS$...
-		         variables.  So we assume this is a vanilla
-		         path: translate /home/riscos/env/foo/bar/baz
-		         into foo:bar.baz
-		       */
+			 variables.  So we assume this is a vanilla
+			 path: translate /home/riscos/env/foo/bar/baz
+			 into foo:bar.baz  */
 		      if (*cname == '\0')
 			{
 			  /* this is just /home/riscos/env/
-			   * so just return it as $.home.riscos.env because
-			   * it doesn't match anything under RISC OS
-			   */
-			  cname -= sizeof (RO_ENV) - 1;	/* wind back to after the first / in /home/... */
+			     so just return it as $.home.riscos.env because
+			     it doesn't match anything under RISC OS.
+			     Wind back to after the first / in /home/... */
+			  cname -= sizeof (RO_ENV) - 1;
 			  break;
 			}
 
 		      /* copy the name of the path variable */
 		      while (*cname != '/' && *cname != '\0')
-			{
-			  *out = *cname;
-			  cname++;
-			  out++;
-			}
+			*out++ = *cname++;
 
 		      /* ...consuming any trailing slash */
 		      if (*cname == '/')
@@ -1173,26 +1189,25 @@ __riscosify (const char *name, int create_dir,
 		  /* Try matching against a user defined /xxx.  */
 		  switch (sdirseg (&cname, &out, buf_end))
 		    {
-		    case sdirseg_buf_too_small:
-		      return NULL;
-		      break;
+		      case sdirseg_buf_too_small:
+			return NULL;
+			break;
 
-		    case sdirseg_match:
-		      matched = 1;
+		      case sdirseg_match:
+			matched = 1;
 
-		      /* If the matched segment was a path var then consume
-		         any '/'s in the input to prevent them being copied
-		         as '.'s (so we don't end up with gcc:.foo) */
-		      if (out > buffer && out[-1] == ':')
-			while (*cname == '/')
-			  cname++;
+			/* If the matched segment was a path var then consume
+			   any '/'s in the input to prevent them being copied
+			   as '.'s (so we don't end up with gcc:.foo) */
+			if (out > buffer && out[-1] == ':')
+			  while (*cname == '/')
+			    cname++;
 
-		      break;
+			break;
 
-		    case sdirseg_no_match:
-		      cname--;
-		      break;
-
+		      case sdirseg_no_match:
+			cname--;
+			break;
 		    }
 		}
 
@@ -1216,7 +1231,6 @@ __riscosify (const char *name, int create_dir,
          all that remains is something like foo/bar/baz.c */
       return translate_or_null (create_dir, flags, buffer, buf_end, filetype,
 				out, in, 1);
-
       break;
 
 
@@ -1254,11 +1268,8 @@ __riscosify (const char *name, int create_dir,
 	  return translate_or_null (create_dir, flags, buffer, buf_end,
 				    filetype, out, in, 1);
 	}
-      else
-	{
-	  return copy_or_null (out, in, buf_end);
-	}
 
+      return copy_or_null (out, in, buf_end);
       break;
 
 
@@ -1433,8 +1444,8 @@ __riscosify (const char *name, int create_dir,
 		  return translate_or_null (create_dir, flags, buffer,
 					    buf_end, filetype, out, in, 1);
 		}
-	      else
-		return copy_or_null (out, in, buf_end);
+
+	      return copy_or_null (out, in, buf_end);
 	    }
 	  else
 	    {
