@@ -1,7 +1,5 @@
 #!/bin/bash -e
 
-set -x
-
 if [ "$AB_PACKONLY" != "yes" ] ; then
   echo "Autobuilder: Building package: $AB_PACKAGE"
 else
