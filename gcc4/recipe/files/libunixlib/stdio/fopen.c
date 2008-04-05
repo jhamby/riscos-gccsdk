@@ -71,6 +71,9 @@ fopen (const char *filename, const char *mode)
   debug_printf ("fd=%d\n", fd);
 #endif
 
+  /* When fd is not valid, we can just quit and leave the stream
+     invalidated.  This stream will be picked up and reused the next time
+     __newstream is called.  */
   if (fd < 0)
     return NULL;
 

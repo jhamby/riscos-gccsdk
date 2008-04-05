@@ -1,3 +1,10 @@
+Sat Apr  5 22:01:57 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/fopen.c(fopen): Added comment.
+	* unix/dev.c(__fsopen): When opening a directory, make sure we're
+	using the original filename and not the riscosified one.  Solves
+	bug #163 logged by Duncan Moore <duncan.m00re@btinternet.com>.
+
 Sat Apr  5 17:58:01 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* time/_clock.s: Use NAME/DECLARE_FUNCTION macros.

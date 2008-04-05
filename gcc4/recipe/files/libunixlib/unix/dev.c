@@ -181,7 +181,8 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
       /* Check for permission to access the file in the mode we
          requested.  */
-      if (regs[0] == 2 || (regs[0] == 3 && !__get_feature_imagefs_is_file ()))
+      if (regs[0] == 2
+	  || (regs[0] == 3 && !__get_feature_imagefs_is_file ()))
 	{
 	  /* Directory or image file.  Set errno if the user
 	     specified write access.  */
@@ -301,7 +302,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 #ifdef DEBUG
 		debug_printf ("open directory (read only): file=%s\n", file);
 #endif
-		dir = opendir (file);
+		dir = opendir (filename);
 		return (dir == NULL) ? (void *) -1 : (void *) dir;
 	      }
 	    else
