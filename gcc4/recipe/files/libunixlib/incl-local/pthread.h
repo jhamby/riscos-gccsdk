@@ -10,6 +10,89 @@
 #if !defined(__INTERNAL_PTHREAD_H) && defined(__PTHREAD_H)
 #define __INTERNAL_PTHREAD_H
 
+/* Hold all details about the thread. A pthread_t points to one of these structures */
+struct __pthread_thread
+{
+  int magic; /* Magic number */
+
+  /* Space for registers on the context switch */
+  struct __pthread_saved_context *saved_context;
+
+  void *alloca; /* Storage for alloca_chunk linked list */
+
+  int thread_errno; /* Value of errno for this thread */
+
+  struct
+  {
+    int errnum;
+    char errmess[252];
+  } errbuf; /* Last RISC OS error from error handler */
+
+  /* WARNING: Various assembly files refer to this structure, using
+     offsets defined in internal/asm_dec.s.
+     If you change the ordering of any of the elements above this
+     comment then make sure the offsets are kept in sync. */
+
+  struct __pthread_thread *next; /* Linked list of all threads */
+  enum __pthread_state state; /* Running/blocked/idle/etc. */
+  void *ret; /* Value returned from thread */
+
+  void *(*start_routine)(void *); /* Function to call as the new thread */
+  void *arg; /* Argument to pass to the start_routine */
+
+  /* Initial stack chunk allocated to thread */
+  struct __stack_chunk *stack;
+
+  /* Thread that wishes to join with this thread */
+  struct __pthread_thread *joined;
+
+  /* Linked list of keys associated with this thread */
+  struct __pthread_key *keys;
+
+  /* Mutex that the thread is waiting for */
+  pthread_mutex_t *mutex;
+
+  /* Type of mutex that the thread is waiting for */
+  enum __pthread_locktype mutextype;
+
+  /* Condition var that the thread is waiting for */
+  pthread_cond_t *cond;
+
+  /* Timeout value for condition var */
+  clock_t condtimeout;
+
+  /* Next thread that is waiting on the same mutex/condition var */
+  struct __pthread_thread *nextwait;
+
+  /* Linked list of cleanup functions to call when this thread exits */
+  struct __pthread_cleanup *cleanupfns;
+
+  /* Scheduling parameters. Currently ignored */
+  struct sched_param __param;
+
+  /* Scheduling policy.  Currently ignored.  */
+  int __policy;
+
+  /* Cancelability state of this thread (enabled or disabled) */
+  unsigned int cancelstate : 1;
+
+  /* Cancelability type (asynchronous or deferred) */
+  unsigned int canceltype : 1;
+
+  /* Should this thread be cancelled when it next reaches a
+     cancellation point.  */
+  unsigned int cancelpending : 1;
+
+  /* Is the thread detached of can it still be joined to.  */
+  unsigned int detachstate : 1;
+
+  __sigset_t blocked; /* Signal mask for this thread. */
+  __sigset_t pending; /* Pending signals for this thread */
+  pthread_cond_t sigwait_cond;
+};
+
+extern pthread_t __pthread_running_thread; /* Currently running thread */
+
 /* Print lots of general debugging info */
 /*#define PTHREAD_DEBUG*/
 /* Print debug info for the context switcher */

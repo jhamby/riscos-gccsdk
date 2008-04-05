@@ -1,11 +1,12 @@
 /* strsignal ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <signal.h>
 #include <stdio.h>
 #include <string.h>
 
+#include <pthread.h>
 
 /* Return a string describing the meaning of the signal number SIGNUM.  */
 char *
@@ -21,8 +22,8 @@ strsignal (int signum)
       int bytesWritten;
 
       if ((bytesWritten = snprintf(ro_err, sizeof(ro_err), "%s (%s)",
-          sys_siglist[signum], __pthread_running_thread->errbuf.errmess
-          )) >= 0 && bytesWritten < sizeof(ro_err))
+          sys_siglist[signum], __pthread_running_thread->errbuf.errmess)) >= 0
+	  && bytesWritten < sizeof(ro_err))
         return ro_err;
     }
 

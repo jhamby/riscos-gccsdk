@@ -1,3 +1,10 @@
+Sun Apr  6 01:47:47 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/pthread.h(struct __pthread_thread,
+	__pthread_running_thread): Move to...
+	* incl-local/pthread.h: ...here.
+	* string/strsignal.c: Added include pthread.h.
+
 Sat Apr  5 22:01:57 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/fopen.c(fopen): Added comment.
