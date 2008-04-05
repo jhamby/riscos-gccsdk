@@ -89,7 +89,7 @@ if [ -d "$AB_OUTPUTLIB" ] ; then
   if [ -e $AB_OUTPUTLIB/$RO_PKG.zip ] ; then
     rm $AB_OUTPUTLIB/$RO_PKG.zip
   fi
-  $GCCSDK_INSTALL_CROSSBIN/zip -, -r -D $AB_OUTPUTLIB/$RO_PKG.zip .
+  $GCCSDK_INSTALL_CROSSBIN/zip -, -9 -r -D $AB_OUTPUTLIB/$RO_PKG.zip .
 
 else
   if [ -z "$AB_OUTPUTLIB" ] ; then

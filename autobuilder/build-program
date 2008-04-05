@@ -1,5 +1,7 @@
 #!/bin/bash -e
 
+set -x
+
 if [ "$AB_PACKONLY" != "yes" ] ; then
   echo "Autobuilder: Building package: $AB_PACKAGE"
 else
@@ -39,7 +41,7 @@ addzip() {
     echo "Autobuilder: zip binary not found"
     exit 1
   fi
-  result=$($GCCSDK_INSTALL_CROSSBIN/zip -, $@ -x "*/CVS/*" -x "*/\.svn/*" 2>&1)
+  result=$($GCCSDK_INSTALL_CROSSBIN/zip -, -9 $@ -x "*/CVS/*" -x "*/\.svn/*" 2>&1)
   echo $result
   if echo $result | grep "zip warning" > /dev/null ; then
     exit 1
