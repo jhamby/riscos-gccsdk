@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.1.3: Errors <errno.h>
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __ERRNO_H
@@ -135,34 +135,6 @@ extern int errno;
 
 extern const char *sys_errlist[];
 extern int sys_nerr;
-
-#ifdef __UNIXLIB_INTERNALS
-/* This macro should be used whenever errno is to be set. This permits
-   us to easily make setting the errno call a function if necessary if
-   threads ever appear.  We also give a return value so we can use
-   return __set_errno () which can allow function tail calling.  */
-
-#if __UNIXLIB_ERRNO_THREADED
-#define __set_errno(val) (__pthread_running_thread->thread_errno = (val), -1)
-#else
-#define __set_errno(val) (errno = (val), -1)
-#endif
-
-extern struct
-{
-  void *pc;
-  int errnum;
-  char errmess[252];
-  int valid;
-} __ul_errbuf;
-
-extern struct
-{
-  int fpsr;
-  double f[8];
-} __ul_fp_registers;
-
-#endif /* __UNIXLIB_INTERNALS */
 
 __END_DECLS
 

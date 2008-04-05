@@ -436,7 +436,7 @@ post_signal (struct unixlib_sigstate *ss, int signo)
   int ss_suspended;
   int errbuf_valid;
 
-  /* The error buffer is only valid for this signal and not the next */
+  /* The error buffer is only valid for this signal and not the next.  */
   errbuf_valid = __ul_errbuf.valid;
   __ul_errbuf.valid = 0;
 

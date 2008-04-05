@@ -1,10 +1,10 @@
 /*
  * ANSI Standard 4.4: Localisation <locale.h>
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef	__LOCALE_H
-#define	__LOCALE_H 1
+#define	__LOCALE_H
 
 #ifndef __UNIXLIB_FEATURES_H
 #include <features.h>
@@ -93,17 +93,6 @@ extern char *setlocale (int __category, const char *__locale) __THROW;
 extern struct lconv *localeconv (void) __THROW;
 
 __END_NAMESPACE_STD
-
-#ifdef __UNIXLIB_INTERNALS
-/* Territory number for each locale.  C locale is -1.  */
-extern int __locale_territory[LC_ALL + 1];
-
-/* Set to 1 is setlocale has been called since the last call to
-   localeconv. localeconv uses this flag to cache the lconv structure.  */
-extern int __setlocale_called;
-
-extern void __build_ctype_tables (int __territory) __THROW;
-#endif
 
 __END_DECLS
 

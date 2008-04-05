@@ -1,10 +1,10 @@
 /*
  * POSIX Standard 9.2.2 User Database Access <pwd.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __PWD_H
-#define __PWD_H 1
+#define __PWD_H
 
 #ifndef __UNIXLIB_FEATURES
 #include <features.h>
@@ -130,15 +130,6 @@ extern int getpwnam_r (const char *__restrict __name,
    given buffer.
    This function is a cancellation point.  */
 extern int getpw (__uid_t __uid, char *__buf);
-#endif
-
-#ifdef __UNIXLIB_INTERNALS
-/* UnixLib pwd implementation function.  */
-extern struct passwd *__pwdread (FILE *__stream, struct passwd *__ppwd,
-				 char *__buf, size_t __buflen);
-
-/* Default values for passwd struct. */
-extern struct passwd *__pwddefault (void);
 #endif
 
 __END_DECLS

@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 2.10: Symbolic Constants <unistd.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __UNISTD_H
@@ -401,12 +401,6 @@ extern int readlink (const char *__restrict __path, char *__restrict __buf,
 /* Remove the line name.  */
 extern int unlink (const char *__name) __THROW __nonnull ((1));
 
-#ifdef __UNIXLIB_INTERNALS
-/* Removes the suffix swap directory if it is empty.
-   The filename passed to it is corrupted. */
-extern void __unlinksuffix (char *__file);
-#endif
-
 /* Remove the directory path.  */
 extern int rmdir (const char *__path) __THROW __nonnull ((1));
 
@@ -442,11 +436,6 @@ extern int brk (void *__addr) __THROW __nonnull ((1)) __wur;
    returns (void *) -1 for errors (with errno set).  */
 extern void *sbrk (intptr_t __delta) __THROW;
 #endif
-
-#ifdef __UNIXLIB_INTERNALS
-extern void *__internal_sbrk (int __incr);
-#endif
-
 
 #if (defined __USE_MISC || defined __USE_XOPEN_EXTENDED) && !defined F_LOCK
 /* NOTE: These declarations also appear in <fcntl.h>; be sure to keep both

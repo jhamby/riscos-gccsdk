@@ -1,9 +1,9 @@
 /*
- * Copyright (c) 2002-2006 UnixLib Developers
+ * Copyright (c) 2002-2008 UnixLib Developers
  */
 
 #ifndef __GRP_H
-#define __GRP_H 1
+#define __GRP_H
 
 #ifndef __UNIXLIB_FEATURES_H
 #include <features.h>
@@ -109,13 +109,6 @@ extern int setgroups (int __ngroups, const gid_t *__gidset)
    This function is a cancellation point.  */
 extern int initgroups (const char *__name, gid_t __basegid)
      __nonnull ((1));
-#endif
-
-#ifdef __UNIXLIB_INTERNALS
-/* UnixLib group implementation function.  */
-extern struct group *__grpread (FILE *__stream, struct group *__grp,
-				char *__buf, size_t __buflen)
-     __nonnull ((1, 2, 3)) __wur;
 #endif
 
 __END_DECLS

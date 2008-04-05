@@ -1,6 +1,6 @@
 /*
  * ANSI, POSIX and BSD signal handling.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __SIGNAL_H
@@ -116,19 +116,15 @@ struct sigaction
 /* Set the set of blocked signals.  */
 #define	SIG_SETMASK	3
 
-/* Currently in an optimised state but this could soon change.  */
 
 /* Clear all signals from set.  */
 extern int sigemptyset (__sigset_t *__set) __THROW __nonnull ((1));
-#define sigemptyset(set) ((*(set) = (__sigset_t) 0), 0)
 
 /* Set all signals in set.  */
 extern int sigfillset (__sigset_t *__set) __THROW __nonnull ((1));
-#define sigfillset(set) ((*(set) = ~(__sigset_t) 0), 0)
 
-extern __sigset_t sigmask (int __sig) __THROW;
-#define sigmask(sig) (((__sigset_t) 1) << ((sig) - 1))
-
+/* Constructs and returns a "signal mask" for signo.  */
+extern __sigset_t sigmask (int __signo) __THROW;
 
 /* Add signo to set.  */
 extern int sigaddset (__sigset_t *__set, int __signo) __THROW __nonnull ((1));
@@ -139,20 +135,6 @@ extern int sigdelset (__sigset_t *__set, int __signo) __THROW __nonnull ((1));
 /* Remove 1 if signo is in set, 0 if not.  */
 extern int sigismember (const __sigset_t *__set, int __signo)
      __THROW __nonnull ((1));
-
-#ifdef __UNIXLIB_INTERNALS
-/* Inline versions for UnixLib library only. These are subject to change.  */
-
-/* Add signo to set.  */
-#define sigaddset(set,signo) ((*(set) |= sigmask (signo)), 0)
-
-/* Remove signo from set.  */
-#define sigdelset(set,signo) ((*(set) &= ~sigmask (signo)), 0)
-
-/* Remove 1 if signo is in set, 0 if not.  */
-#define sigismember(set,signo) ((*(set) & sigmask (signo)) ? 1 : 0)
-
-#endif  /* __UNIXLIB_INTERNALS */
 
 /* Get and/or change the set of blocked signals.  */
 extern int sigprocmask (int __how, const __sigset_t *__restrict __set,

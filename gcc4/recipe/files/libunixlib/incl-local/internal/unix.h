@@ -317,6 +317,10 @@ extern char **__last_environ;
 /* UnixLib's prefix for global RISC OS environment variables.  */
 #define __UNIX_ENV_PREFIX "UnixEnv$"
 
+/* Put value into the OS environment. Will not overwrite an existing
+   variable of the same name if replace is 0 */
+extern int __addenv_to_os (const char *name, const char *value, int replace);
+
 /* Add NAME=VALUE to the environment. If NAME is already in the environment,
    only add when replace is non-zero.  If string is non-NULL then it is
    used directly, otherwise a copy of name and value is used. */

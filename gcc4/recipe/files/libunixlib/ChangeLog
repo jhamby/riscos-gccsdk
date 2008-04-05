@@ -1,3 +1,21 @@
+Sat Apr  5 17:07:58 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/features.h: Move UnixLib internal definitions to...
+	* incl-local/features.h: ...here.
+	* include/dirent.h,incl-local/dirent.h: Likewise.
+	* include/time.h,incl-local/time.h: Likewise.
+	* include/locale.h,incl-local/locale.h: Likewise.
+	* include/setjmp.h,incl-local/setjmp.h: Likewise.
+	* include/pwd.h,incl-local/pwd.h: Likewise.
+	* include/stdlib.h,incl-local/stdlib.h: Likewise.
+	* include/stdio.h,incl-local/stdio.h: Likewise.
+	* include/pthread.h,incl-local/pthread.h: Likewise.
+	* include/grp.h,incl-local/grp.h: Likewise.
+	* include/unistd.h,incl-local/unistd.h: Likewise.
+	* include/signal.h,incl-local/signal.h: Likewise.
+	* include/errno.h,incl-local/errno.h: Likewise.
+	* incl-local/internal/unix.h( __addenv_to_os): Add prototype.
+
 Wed Apr  2 00:36:38 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* common/riscosify.c(riscosify): Avoid discname when specified gets

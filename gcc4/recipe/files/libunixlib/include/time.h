@@ -1,6 +1,6 @@
 /*
  * ISO C99 Standard: 7.23 Date and Time <time.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __TIME_H
@@ -234,19 +234,6 @@ extern void tzset (void) __THROW;
    is in use.  */
 extern char *tzname[];
 #endif
-
-#ifdef __UNIXLIB_INTERNALS
-/* Convert broken time to 5-byte RISC OS time.  */
-extern void __cvt_broken_time (const struct tm *__brokentime,
-			       char *__riscos_time);
-
-/* Common function for localtime() and gmtime().  */
-extern struct tm *__calendar_convert (int __swinum, const time_t *__tp,
-				      struct tm *resultp);
-
-/* Common function for ctime() and asctime().  */
-extern char *__standard_time (const char *__riscos_time);
-#endif /* __UNIXLIB_INTERNALS */
 
 __END_DECLS
 

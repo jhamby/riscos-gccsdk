@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.6: Non-Local Jumps <setjmp.h>.
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __SETJMP_H
@@ -65,12 +65,6 @@ extern int sigsetjmp (sigjmp_buf __state, int __savesigs) __THROW;
    mask if that sigsetjmp call saved it.  */
 extern void siglongjmp (sigjmp_buf __env, int __val)
      __THROW __attribute__ ((__noreturn__));
-#endif
-
-#ifdef __UNIXLIB_INTERNALS
-/* Internal functions.  */
-extern void __sigsetjmp_helper (sigjmp_buf __state, int __savesigs);
-extern void __siglongjmp_helper (const sigjmp_buf __state, int __savesigs);
 #endif
 
 __END_DECLS

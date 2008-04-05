@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.10: General Utilities <stdlib.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __STDLIB_H
@@ -115,18 +115,6 @@ __END_NAMESPACE_STD
 extern char *realpath (const char *__file_name, char *__resolved_name)
      __THROW __wur;
 #endif
-
-#ifdef __UNIXLIB_INTERNALS
-
-/* Definitions for the atexit array of functions that are to be
-   called when the process calls exit.  ANSI requires a minimum
-   of 32, however C++ requires 33.  */
-#define __MAX_ATEXIT_FUNCTION_COUNT 33
-
-extern void (*__atexit_function_array[__MAX_ATEXIT_FUNCTION_COUNT]) (void);
-extern int __atexit_function_count;
-
-#endif  /* __UNIXLIB_INTERNALS */
 
 __BEGIN_NAMESPACE_STD
 /* Allocate nmemb elements of size bytes each. Initialise

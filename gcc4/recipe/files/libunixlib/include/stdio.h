@@ -110,40 +110,6 @@ struct __iobuf
   FILE *next; /* next FILE in the linked list */
 };
 
-#ifdef __UNIXLIB_INTERNALS
-
-/* Magic number to fill __magic.  */
-#define _IOMAGIC 0xfe000000
-
-/* Nonzero if stream is a valid stream.  */
-#define __validfp(stream) (stream != NULL && stream->__magic == _IOMAGIC)
-
-/* Invalidate a stream.  */
-extern void __invalidate (FILE *__stream) __THROW __nonnull ((1));
-
-/* Make a new stream.  */
-extern FILE *__newstream (void) __THROW __wur;
-
-/* Initialise a new stream.  */
-extern FILE *__stream_init (int __fd, FILE *__stream)
-     __THROW __nonnull ((2)) __wur;
-
-/* Dissect the given mode string into an __io_mode.  */
-extern __io_mode __getmode (const char *__mode) __THROW __nonnull ((1));
-
-extern void __stdioinit (void);	/* Initialise stdin, stdout & stderr.  */
-extern void __stdioexit (void);	/* Close streams & delete tmpfile().  */
-
-/* Return the next character in the input buffer, keeping it in
-   the input buffer.  If the buffer is empty, then fill it.  */
-extern int __peek_char (FILE *__stream) __THROW;
-
-/* All streams are in a linked list.
-   This is the head of the list.  */
-extern FILE *__iob_head;
-
-#endif  /* __UNIXLIB_INTERNALS */
-
 /* fill buffer */
 extern int __filbuf (FILE *__stream) __THROW;
 /* flush buffer */
@@ -342,16 +308,6 @@ extern int vsprintf (char *__restrict __s,
    is a cancellation point.  Thread-safe version.  */
 extern int vfprintf (FILE *__restrict __stream,
 		     const char *__restrict __format, __gnuc_va_list __arg);
-
-#ifdef __UNIXLIB_INTERNALS
-/* Write formatted output to stream from arg list arg.  This function
-   is a cancellation point.
-
-   Non thread-safe version.   This function is for UnixLib internal
-   use only.  */
-extern int __vfprintf (FILE *__restrict __stream,
-		       const char *__restrict __format, __gnuc_va_list __arg);
-#endif
 
 /* Write formatted output to stdio from arg list arg.  This function
    is a cancellation point.  */
