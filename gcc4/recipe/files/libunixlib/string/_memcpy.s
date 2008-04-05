@@ -16,6 +16,7 @@
 	.global	memmove
 	.global	bcopy
 
+	NAME	bcopy
 bcopy:
 	MOV	a4,a1
 	MOV	a1,a2
@@ -710,6 +711,10 @@ dcp1sh3:
 	LDR	v2,[sp],#4
 	LDR	v1,[sp],#4
 	LDR	pc,[sp],#4
+
+	DECLARE_FUNCTION bcopy
+	DECLARE_FUNCTION memcpy
+	DECLARE_FUNCTION memmove
 
 	.weak	memcpy
 	.weak	memmove

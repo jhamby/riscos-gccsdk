@@ -11,9 +11,10 @@
 
 	.text
 
-        .align	5 @ For cache alignment of the code
-
 	.global	strlen
+	NAME	strlen
+
+        .align	5 @ For cache alignment of the code
 strlen:
 	LDR	ip,[a1]		@read 1st word, possibly rotated
 	MOV	a4,#1
@@ -80,5 +81,7 @@ strlen3:
 	SUBEQ	a1,a2,a1
 	MOVEQ	pc,lr
 	B	strlen_lp
+
+	DECLARE_FUNCTION strlen
 
 	.end

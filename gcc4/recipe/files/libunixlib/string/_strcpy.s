@@ -15,9 +15,10 @@
 
 	.text
 
-        .align	5 @ For cache alignment of the code
-
 	.global	strcpy
+	NAME	strcpy
+
+        .align	5 @ For cache alignment of the code
 strcpy:	@strongly biased in favour of word-aligned source and destination
 	STR	a1,[sp,#-4]!
 	MOV	a4,#1
@@ -321,5 +322,6 @@ strcpy3_fin:
 	LDR	a1,[sp,#4]
 	LDR	pc,[sp],#8
 
+	DECLARE_FUNCTION strcpy
 
 	.end

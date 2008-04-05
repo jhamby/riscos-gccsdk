@@ -1,3 +1,11 @@
+Sat Apr  5 17:58:01 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* time/_clock.s: Use NAME/DECLARE_FUNCTION macros.
+	* string/_strcpy.s: Likewise.
+	* string/_memcpy.s: Likewise.
+	* string/_strlen.s: Likewise.
+	* string/_memset.s: Likewise.
+
 Sat Apr  5 17:07:58 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/features.h: Move UnixLib internal definitions to...

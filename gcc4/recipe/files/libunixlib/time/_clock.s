@@ -13,5 +13,6 @@
 clock:
 	SWI	XOS_ReadMonotonicTime
 	MOV	pc, lr
+	DECLARE_FUNCTION clock
 
 	.end

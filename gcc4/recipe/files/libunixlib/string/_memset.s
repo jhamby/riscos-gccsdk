@@ -11,6 +11,7 @@
 	.global	memset
 	.global	bzero
 
+	NAME	bzero
 bzero:
 	MOV	a3,a2
 	MOV	a2,#0
@@ -102,6 +103,9 @@ mset_unaligned:
 	TEQ	a3,#0		@finished already?
 	MOVEQ	pc,lr
 	B	mset_aligned
+
+	DECLARE_FUNCTION bzero
+	DECLARE_FUNCTION memset
 
 	.weak	memset
 	.weak	bzero
