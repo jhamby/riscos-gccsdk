@@ -1,8 +1,11 @@
 
 ab_package () {
- ab_create_command_app Madplay Apps/Audio
- ab_add_commands $S/*$AB_EXEEXT
+  ab_create_command_app Madplay Apps/Audio
+  ab_add_commands $S/*$AB_EXEEXT
 
- rman -f HTML $S/madplay.1 > $A/\!Help,faf
- cp -av $S/COPYING $A/
+  rman -f HTML $S/madplay.1 > $A/\!Help,faf
+  cp -av $S/COPYING $A/
+  cp -av $H/ReadMe $A/..
+
+  $AB_HOME/add-riscpkg -unixlib
 }
