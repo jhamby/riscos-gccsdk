@@ -12,4 +12,6 @@ ab_package() {
   mkdir -p $A/docs
   cp -av $S/*.html $A/\!Help,faf
   cp -av $S/README $S/LICENSE $A/docs/
+
+  $AB_HOME/add-riscpkg -unixlib
 }
