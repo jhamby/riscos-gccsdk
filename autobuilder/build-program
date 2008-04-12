@@ -35,11 +35,11 @@ eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
 eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
 
 addzip() {
-  if [ ! -x $GCCSDK_INSTALL_CROSSBIN/zip ] ; then
-    echo "Autobuilder: zip binary not found"
+  if [ ! -x $GCCSDK_INSTALL_ENV/bin/zip ] ; then
+    echo "Autobuilder: zip binary not found (build native-zip package first)"
     exit 1
   fi
-  result=$($GCCSDK_INSTALL_CROSSBIN/zip -, -9 $@ -x "*/CVS/*" -x "*/\.svn/*" 2>&1)
+  result=$($GCCSDK_INSTALL_ENV/bin/zip -, -9 $@ -x "*/CVS/*" -x "*/\.svn/*" 2>&1)
   echo $result
   if echo $result | grep "zip warning" > /dev/null ; then
     exit 1
@@ -453,7 +453,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
       fi
 
       cd $AB_SRCDIR
-      $GCCSDK_INSTALL_CROSSBIN/zip -r $AB_SRCZIP * -x "*/CVS/*" -x "*/\.svn/*"
+      $GCCSDK_INSTALL_ENV/bin/zip -r $AB_SRCZIP * -x "*/CVS/*" -x "*/\.svn/*"
       mv $AB_SRCZIP $AB_OUTPUTPACK/$AB_CATEGORY
       cd $D
     else
