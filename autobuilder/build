@@ -266,7 +266,7 @@ ab_build() {
     local DEPENDENCIES
     local DEP
 
-    if [ "`which apt-cache 2>/dev/null`" != "" ] ; then
+    if [ -n "`which apt-cache 2>/dev/null`" ] && [ "$AB_NOAPT" != "yes" ] ; then
       DEPENDENCIES=`apt-cache depends $PACKAGE_NAME 2>/dev/null | grep Depends: | sed 's/^.*Depends: //'`
     else
       DEPENDENCIES=`$AB_HOME/fetch-depends $PACKAGE_NAME`
