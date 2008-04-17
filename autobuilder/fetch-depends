@@ -12,7 +12,7 @@ debarchive=http://ftp.uk.debian.org/debian
 
 if ! [ -e $packindex ] ||
      [ $(($(date +"%s") - $(date -r $packindex +"%s"))) -gt $((24 * 60 * 60)) ] ; then
-  wget -q $debarchive/dists/unstable/main/binary-arm/Packages.bz2
+  wget -q $debarchive/dists/unstable/main/binary-i386/Packages.bz2
   if [ -e $packindex.1 ] ; then
      mv -f $packindex.1 $packindex
   fi
