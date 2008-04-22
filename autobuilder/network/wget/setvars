@@ -12,7 +12,7 @@ ab_package() {
 
  cp -av $S/README $A
  cp -av $S/AUTHORS $S/COPYING $S/MAILING-LIST $A
- cp -av $S/NEWS $S/TODO $S/ChangeLog $A
+ cp -av $S/NEWS $S/ChangeLog $A
 
  $AB_HOME/add-riscpkg -unixlib
 }
