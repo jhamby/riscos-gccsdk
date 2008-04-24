@@ -120,3 +120,11 @@ __customfstat (int fd, struct stat *buf)
 {
   return __nullfstat(fd, buf);
 }
+
+
+void
+__set_customselect(int fd, int (*cselect) (void *__fd, int __fd1, __fd_set *__read,
+		       __fd_set *__write, __fd_set *__except))
+{
+  __unixlib_getdev(fd)->select = cselect;
+}

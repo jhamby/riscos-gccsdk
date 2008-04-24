@@ -10,7 +10,7 @@
 
 #define __need_size_t
 #include <stddef.h>
-
+#include <sys/select.h>
 
 __BEGIN_DECLS
 
@@ -108,6 +108,9 @@ extern char *__unixify_std (const char *__name,
 			    int __filetype);
 extern char *__unixify_ext (const char *name, char *buffer, size_t buflen,
                             int filetype, const char *ext);
+
+extern void __set_customselect(int fd, int (*cselect) (void *fd, int fd1, fd_set *__read,
+			       fd_set *__write, fd_set *__except));
 
 __END_DECLS
 
