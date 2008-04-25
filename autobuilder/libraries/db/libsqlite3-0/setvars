@@ -1,5 +1,5 @@
 
-export config_TARGET_EXEEXT=$(AB_EXEEXT)
+export config_TARGET_EXEEXT=$AB_EXEEXT
 
 AB_INSTALL=yes
 
