@@ -1,6 +1,6 @@
 AB_CATEGORY=Library
 AB_ZIPNAME=libpng12-dev
-AB_URL=ftp://ftp.simplesystems.org/pub/png/src/libpng-1.2.25.tar.bz2
+#AB_URL=ftp://ftp.simplesystems.org/pub/png/src/libpng-1.2.26.tar.bz2
 
 AB_INSTALL=yes
 
@@ -10,7 +10,7 @@ ab_package()
   mkdir -p $AD
   cp $H/\!LibPNG/\!* $AD
 
-  cat $S/libpng-1.2.25.txt >> $AD/\!Help,fff
+  cat $S/libpng-1.2.26.txt >> $AD/\!Help,fff
 
   HERE=`pwd`
   cd $AD
