@@ -1,5 +1,5 @@
-freetype
-libsdl1.2
+libfreetype6
+libsdl1.2debian
 libpng12-0
 libjpeg62
-tiff
+libtiff4
