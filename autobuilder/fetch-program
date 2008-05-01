@@ -82,6 +82,7 @@ else
       exit 1
     fi
 
+    sed --in-place "/^Checksum/,$"d files
     debdir=$debarchive/$(grep Directory files | cut -d ' ' -f 2)
     wget -nv $debdir/$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
     wget -nv $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
