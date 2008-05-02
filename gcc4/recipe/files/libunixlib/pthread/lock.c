@@ -75,7 +75,7 @@ __pthread_lock_block (pthread_mutex_t *mutex, const enum __pthread_locktype type
 
   /* Remove the current thread from the list of threads waiting on the mutex */
   if (mutex->waiting == __pthread_running_thread)
-    mutex->waiting = list->nextwait;
+    mutex->waiting = mutex->waiting->nextwait;
   else
     {
       for (list = mutex->waiting;

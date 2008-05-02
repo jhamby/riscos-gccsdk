@@ -1,3 +1,7 @@
+Thu May  1 20:08:23 PDT 2008  Peter Naulls  <peter@chocky.org>
+
+	* pthread/lock.c: Fix logic from earlier tidy.
+
 Wed Apr 23 22:23:03 PDT 2008  Peter Naulls  <peter@chocky.org>
 
 	* unix/custom.c, include/unixlib/local.h: New function to 
