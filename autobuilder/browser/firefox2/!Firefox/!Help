@@ -5,7 +5,7 @@ Mozilla Firefox 2 for RISC OS
 http://www.riscos.info/index.php/Firefox
 
 February 2008
-RISC OS Release 5
+RISC OS Release 6
 Peter Naulls
 peter@chocky.org
 
@@ -50,6 +50,14 @@ See instead the RiscPC version.
 
 Changes
 -------
+
+Release 6 (May 2008)
+
+This is an upstream update only.
+
+- Update to 2.0.0.14:
+  http://www.mozilla.com/en-US/firefox/2.0.0.14/releasenotes/
+
 
 Release 5 (April 2008)
 
