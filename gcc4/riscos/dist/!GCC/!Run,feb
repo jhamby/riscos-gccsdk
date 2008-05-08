@@ -96,3 +96,8 @@ RMEnsure SharedUnixLibrary 1.11 Error GCCSDK 4 requires SharedUnixLibrary 1.11 o
 
 | Used for extended command lines
 RMEnsure DDEUtils 0.02 RMLoad System:Modules.DDEUtils
+
+| Some tools use SharedCLibrary as runtime library and we need APCS-32
+| support.
+RMEnsure SharedCLibrary 5.17 RMLoad System:Modules.CLib
+RMEnsure SharedCLibrary 5.34 Error This application requires SharedCLibrary 5.34 or later
