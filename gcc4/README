@@ -25,15 +25,23 @@ The following is a non exhaustive list of programs which are needed to compile
 and work with GCCSDK on top of a typical recent standard Unix distribution:
 
 - automake v1.9.x (*no* other version than the latest in in 1.9.x series which
-  is currently 1.9.6, Debian package 'automake-1.9')
+  is currently 1.9.6, Debian package 'automake1.9')
 - autoconf v2.59 (*no* other version)
 - autogen v5.5.4 (or later)
-- svn v1.2 or later (only to be used to checkout GCCSDK source code)
-- gcc v3.4.x or v4.x (other versions might work too)
+- svn v1.2 or later (only to be used to checkout GCCSDK source code from
+  svn.riscos.info Subversion server)
+- gcc & g++ v3.4.x or v4.x (other versions might work too)
 - make v3.81 (other versions might work too)
 - libtool v1.5.22 (other versions might work too)
 - patch v2.5.9 (other versions might work too)
 - makeinfo v4.8 (package texinfo, other versions might work too)
+
+When you want to build Ada:
+
+- gcc and g++ need to be version 4.1.
+- GMP library (Debian package 'libgmp3-dev')
+- MPFR library (Debian package 'libmpfr-dev')
+- GNAT 4.1 (Debian package 'gnat-4.1')
 
 When you want to run the gcc testsuite, you need at least:
 
