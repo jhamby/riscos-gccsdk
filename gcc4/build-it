@@ -105,7 +105,10 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
 
   # Do sanity check:
-  type $GCCSDK_TARGET_NAME-gcc > /dev/null 2>&1 || ( echo "GCCSDK cross compiler can not be found. Need to do './build-it cross' first ?" && exit 1 )
+  if ! type $GCCSDK_TARGET_NAME-gcc > /dev/null 2>&1 ; then
+    echo "GCCSDK cross compiler can not be found. Need to do './build-it cross' first ? Or not located in PATH ?"
+    exit 1
+  fi
 else
   echo Error: called $0 with unknown build action $GCCSDK_BUILD_ACTION
   exit 1
