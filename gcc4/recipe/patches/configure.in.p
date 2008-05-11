@@ -1,5 +1,5 @@
---- configure.in.orig	2007-08-29 23:50:11.000000000 +0200
-+++ configure.in	2007-08-29 23:49:52.000000000 +0200
+--- configure.in.orig	2008-05-10 23:25:14.000000000 +0200
++++ configure.in	2008-05-10 23:25:04.000000000 +0200
 @@ -21,10 +21,27 @@
  sinclude(config/acx.m4)
  
@@ -235,6 +235,15 @@
  esac
  
  # Allow the user to override the flags for
+@@ -2128,7 +2205,7 @@
+     # For an installed makeinfo, we require it to be from texinfo 4.2 or
+     # higher, else we use the "missing" dummy.
+     if ${MAKEINFO} --version \
+-       | egrep 'texinfo[^0-9]*([1-3][0-9]|4\.[2-9]|[5-9])' >/dev/null 2>&1; then
++       | egrep 'texinfo[^0-9]*(4\.([2-9]|[1-9][0-9])|[5-9]|[1-9][0-9])' >/dev/null 2>&1; then
+       :
+     else
+       MAKEINFO="$MISSING makeinfo"
 @@ -2211,7 +2288,7 @@
  GCC_TARGET_TOOL(nm, NM_FOR_TARGET, NM, [binutils/nm-new])
  GCC_TARGET_TOOL(objdump, OBJDUMP_FOR_TARGET, OBJDUMP, [binutils/objdump])
