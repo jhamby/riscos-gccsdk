@@ -157,14 +157,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
     if (__resolve_symlinks (file, target, MAXPATHLEN) != 0)
       return (void *) -1;
 
-    /* Pass through __riscosify() again to get the true end_of_filename and at the
-       same time copy the resolved filename back to file[]. */
-    end_of_filename = __riscosify (target,
-				   fflag & (O_CREAT | O_WRONLY | O_RDWR),
-				   __RISCOSIFY_NO_PROCESS,
-				   file, sizeof (file) - 2, &sftype);
-    if (end_of_filename == NULL)
-      return (void *) __set_errno (ENAMETOOLONG);
+    strcpy (file, target);
   }
 #endif
 

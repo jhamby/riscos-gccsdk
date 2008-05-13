@@ -1,3 +1,11 @@
+Tue May 13 21:07:51 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/dev.c(__fsopen): Call __riscosify only once as the result of
+	__resolve_symlinks is guaranteed to be already a RISC OS filename.
+	* common/symlinks.c(__resolve_symlinks): avoid malloc/free sequence
+	unless it is really necessary and reuse previously claimed buffer when
+	possible; Made code a little bit more compact; Added comments.
+
 Thu May  1 20:08:23 PDT 2008  Peter Naulls  <peter@chocky.org>
 
 	* pthread/lock.c: Fix logic from earlier tidy.
