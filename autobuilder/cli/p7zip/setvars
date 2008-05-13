@@ -1,7 +1,16 @@
-AB_CATEGORY=Command
-
 cp $H/makefile.riscos $S/makefile.machine
 
 ab_package() {
-  cp $H/README.RISCOS $S/bin/7za$AB_EXEEXT $S/DOCS/copying.txt $S/README $D
+  mv $S/bin/7za $S/bin/7za$AB_EXEEXT  
+
+  ab_create_command_app p7zip Apps/Utilities
+  ab_add_commands $S/bin/7za$AB_EXEEXT
+
+  rman -f HTML $S/man1/7za.1 > $A/\!Help,faf  
+
+  mkdir $A/\doc
+  cp $H/README.RISCOS $A/\doc
+  cp $S/DOCS/copying.txt $S/README $A/\doc
+
+  $AB_HOME/add-riscpkg -unixlib  
 }
