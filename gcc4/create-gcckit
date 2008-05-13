@@ -1,6 +1,6 @@
 #!/bin/bash
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2007 GCCSDK Developers
+# Copyright (c) 2007-2008 GCCSDK Developers
 #
 # Creates the RISC OS GCCSDK kits
 #
@@ -204,9 +204,19 @@ slim_gcckit() {
   do_suffix_swapping $BKIT_GCC_UNPACKED
 }
 
+gnat_support() {
+  # It is essemtial that all gnat* binaries are located in !GCC.bin and not
+  # !GCC.arm-unknown-riscos.bin as otherwise Ada's RTS files are not found.
+  cd $BKIT_GCC_UNPACKED/$GCCSDK_TARGET_NAME/bin
+  for f in `ls gnat*` ; do
+    mv $f ../../bin
+  done
+}
+
 # Populates $BKIT_GCC_UNPACKED and $BKIT_SHAREDLIBS_UNPACKED:
 create_gcc_kit() {
   slim_gcckit
+  gnat_support
 
   # Copy !GCC skeleton:
   svn export -q --force $GCCSDK_RISCOS/dist/\!GCC $BKIT_GCC_UNPACKED
