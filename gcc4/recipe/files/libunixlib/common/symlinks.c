@@ -66,6 +66,7 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
       int type, filetype;
       size_t size;
       char *sep;
+      char id[4];
 
       if (read_link_file_info (filename_out, &filetype, &type) != 0)
         break;
@@ -85,8 +86,8 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 	  break;
 	}
 
-      if (__os_fread (fd, buffer, 4, regs) != NULL
-	  || *((unsigned int *) buffer) != LINK_ID
+      if (__os_fread (fd, id, 4, regs) != NULL
+	  || *(unsigned int *)id != LINK_ID
 	  || __os_fread (fd, &size, 4, regs) != NULL)
 	{
 	  __set_errno (EIO);

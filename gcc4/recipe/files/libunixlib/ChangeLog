@@ -1,3 +1,7 @@
+Fri May 16 01:43:59 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* common/symlinks.c(__resolve_symlinks): avoid writing to NULL.
+
 Tue May 13 21:07:51 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/dev.c(__fsopen): Call __riscosify only once as the result of
