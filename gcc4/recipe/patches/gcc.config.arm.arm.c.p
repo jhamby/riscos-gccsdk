@@ -1,5 +1,5 @@
 --- gcc/config/arm/arm.c.orig	2008-05-16 22:26:28.000000000 +0200
-+++ gcc/config/arm/arm.c	2008-05-16 22:36:58.000000000 +0200
++++ gcc/config/arm/arm.c	2008-05-18 19:14:38.000000000 +0200
 @@ -52,6 +52,7 @@
  #include "target-def.h"
  #include "debug.h"
@@ -833,7 +833,7 @@
 +	    {
 +	      rtx stkovf = gen_rtx_SYMBOL_REF (Pmode, ARM_STKOVF_SPLIT_BIG);
 +	      emit_insn (gen_addsi3 (ip_rtx, stack_pointer_rtx,
-+					GEN_INT (frame_size)));
++				     GEN_INT (frame_size)));
 +	      if (call_used_regs[8])
 +		{
 +		  rtx null = gen_rtx_SYMBOL_REF(Pmode, "__ABC__");
@@ -852,7 +852,7 @@
 +		}
 +	      else
 +	        insn = emit_insn (gen_rt_stkovf (stack_pointer_rtx,
-+					       sl_reg, stkovf));
++						 sl_reg, stkovf));
 +	    }
 +	  /* Create barrier to prevent real stack adjustment from being
 +	     scheduled before call to stack checker.  */
@@ -1070,7 +1070,7 @@
  	{
  	  delta = offsets->soft_frame - offsets->saved_args;
  	  reg = THUMB_HARD_FRAME_POINTER_REGNUM;
-@@ -15157,13 +15562,98 @@
+@@ -15157,13 +15562,97 @@
    return mode == SImode ? 255 : 0;
  }
  
@@ -1111,7 +1111,6 @@
 +                           memptr, LCT_NORMAL, GET_MODE (memptr),
 +                      	   1,
 +			   size, SImode);
-+
 +}
 +
 +void
@@ -1170,7 +1169,7 @@
      return regno;
  
    /* TODO: Legacy targets output FPA regs as registers 16-23 for backwards
-@@ -15171,9 +15661,12 @@
+@@ -15171,9 +15660,12 @@
    if (IS_FPA_REGNUM (regno))
      return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
  

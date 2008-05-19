@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.h.orig	2007-06-14 02:20:52.000000000 +0200
-+++ gcc/config/arm/arm.h	2007-06-14 02:28:04.000000000 +0200
+--- gcc/config/arm/arm.h.orig	2008-05-18 19:04:22.000000000 +0200
++++ gcc/config/arm/arm.h	2008-05-18 19:12:47.000000000 +0200
 @@ -167,6 +167,12 @@
  #define SUBTARGET_CPP_SPEC      ""
  #endif
@@ -49,7 +49,7 @@
  
  #ifndef TARGET_UNWIND_INFO
 +/* We use sjlj exceptions for backwards compatibility.
-+   For RISC OS/elf, we will not use SJLJ.  */
++   For RISC OS, we will not use SJLJ.  */
 +#ifndef TARGET_RISCOSELF
  /* We use sjlj exceptions for backwards compatibility.  */
  #define MUST_USE_SJLJ_EXCEPTIONS 1
@@ -58,26 +58,7 @@
  
  /* We can generate DWARF2 Unwind info, even though we don't use it.  */
  #define DWARF2_UNWIND_INFO 1
-@@ -826,13 +839,16 @@
- #define ARM_HARD_FRAME_POINTER_REGNUM	11
- #define THUMB_HARD_FRAME_POINTER_REGNUM	 7
- 
-+#define FP_REGNUM	\
-+  (arm_abi == ARM_ABI_APCS32		\
-+   ? ARM_HARD_FRAME_POINTER_REGNUM	\
-+   : HARD_FRAME_POINTER_REGNUM)
-+
- #define HARD_FRAME_POINTER_REGNUM		\
-   (TARGET_ARM					\
-    ? ARM_HARD_FRAME_POINTER_REGNUM		\
-    : THUMB_HARD_FRAME_POINTER_REGNUM)
- 
--#define FP_REGNUM	                HARD_FRAME_POINTER_REGNUM
--
- /* Register to use for pushing function arguments.  */
- #define STACK_POINTER_REGNUM	SP_REGNUM
- 
-@@ -852,10 +868,18 @@
+@@ -852,10 +865,18 @@
    (((REGNUM) >= FIRST_IWMMXT_GR_REGNUM) && ((REGNUM) <= LAST_IWMMXT_GR_REGNUM))
  
  /* Base register for access to local variables of the function.  */
@@ -96,7 +77,7 @@
  
  #define FIRST_CIRRUS_FP_REGNUM	27
  #define LAST_CIRRUS_FP_REGNUM	42
-@@ -865,7 +889,8 @@
+@@ -865,7 +886,8 @@
  #define FIRST_VFP_REGNUM	63
  #define LAST_VFP_REGNUM		94
  #define IS_VFP_REGNUM(REGNUM) \
@@ -106,7 +87,7 @@
  
  /* The number of hard registers is 16 ARM + 8 FPA + 1 CC + 1 SFP + 1 AFP.  */
  /* + 16 Cirrus registers take us up to 43.  */
-@@ -880,16 +905,18 @@
+@@ -880,16 +902,18 @@
     via the stack pointer) in functions that seem suitable.
     If we have to have a frame pointer we might as well make use of it.
     APCS says that the frame pointer does not need to be pushed in leaf
@@ -131,7 +112,7 @@
  
  /* Return number of consecutive hard regs needed starting at reg REGNO
     to hold something of mode MODE.
-@@ -898,6 +925,13 @@
+@@ -898,6 +922,13 @@
  
     On the ARM regs are UNITS_PER_WORD bits wide; FPA regs can hold any FP
     mode.  */
@@ -145,7 +126,7 @@
  #define HARD_REGNO_NREGS(REGNO, MODE)  	\
    ((TARGET_ARM 				\
      && REGNO >= FIRST_FPA_REGNUM	\
-@@ -905,6 +939,7 @@
+@@ -905,6 +936,7 @@
      && REGNO != ARG_POINTER_REGNUM)	\
      && !IS_VFP_REGNUM (REGNO)		\
     ? 1 : ARM_NUM_REGS (MODE))
@@ -153,7 +134,7 @@
  
  /* Return true if REGNO is suitable for holding a quantity of type MODE.  */
  #define HARD_REGNO_MODE_OK(REGNO, MODE)					\
-@@ -1350,7 +1385,7 @@
+@@ -1350,7 +1382,7 @@
     is at the high-address end of the local variables;
     that is, each additional local variable allocated
     goes at a more negative offset in the frame.  */
@@ -162,7 +143,7 @@
  
  /* The amount of scratch space needed by _interwork_{r7,r11}_call_via_rN().
     When present, it is one word in size, and sits at the top of the frame,
-@@ -1370,7 +1405,10 @@
+@@ -1370,7 +1402,10 @@
     If FRAME_GROWS_DOWNWARD, this is the offset to the END of the
     first local allocated.  Otherwise, it is the offset to the BEGINNING
     of the first local allocated.  */
@@ -174,7 +155,7 @@
  
  /* If we generate an insn to push BYTES bytes,
     this says how many the stack pointer really advances by.  */
-@@ -1495,6 +1533,7 @@
+@@ -1495,6 +1530,7 @@
    int soft_frame;	/* FRAME_POINTER_REGNUM.  */
    int locals_base;	/* THUMB_HARD_FRAME_POINTER_REGNUM.  */
    int outgoing_args;	/* STACK_POINTER_REGNUM.  */
@@ -182,7 +163,7 @@
  }
  arm_stack_offsets;
  
-@@ -1519,6 +1558,8 @@
+@@ -1519,6 +1555,8 @@
    /* Records if sibcalls are blocked because an argument
       register is needed to preserve stack alignment.  */
    int sibcall_blocked;
@@ -191,7 +172,7 @@
    /* Labels for per-function Thumb call-via stubs.  One per potential calling
       register.  We can never call via LR or PC.  We can call via SP if a
       trampoline happens to be on the top of the stack.  */
-@@ -1539,6 +1580,8 @@
+@@ -1539,6 +1577,8 @@
    int nregs;
    /* This is the number of iWMMXt register arguments scanned so far.  */
    int iwmmxt_nregs;
@@ -200,7 +181,7 @@
    int named_count;
    int nargs;
    /* One of CALL_NORMAL, CALL_LONG or CALL_SHORT.  */
-@@ -1593,6 +1636,9 @@
+@@ -1593,6 +1633,9 @@
    if (arm_vector_mode_supported_p (MODE)	       	\
        && (CUM).named_count > (CUM).nargs)		\
      (CUM).iwmmxt_nregs += 1;				\
@@ -210,7 +191,7 @@
    else							\
      (CUM).nregs += ARM_NUM_REGS2 (MODE, TYPE)
  
-@@ -1607,9 +1653,7 @@
+@@ -1607,9 +1650,7 @@
  /* 1 if N is a possible register number for function argument passing.
     On the ARM, r0-r3 are used to pass args.  */
  #define FUNCTION_ARG_REGNO_P(REGNO)	\
@@ -221,7 +202,7 @@
  
  
  /* If your target environment doesn't prefix user functions with an
-@@ -1695,6 +1739,11 @@
+@@ -1695,6 +1736,11 @@
     pointer.  Note we have to use {ARM|THUMB}_HARD_FRAME_POINTER_REGNUM
     because the definition of HARD_FRAME_POINTER_REGNUM is not a constant.  */
  
@@ -233,7 +214,7 @@
  #define ELIMINABLE_REGS						\
  {{ ARG_POINTER_REGNUM,        STACK_POINTER_REGNUM            },\
   { ARG_POINTER_REGNUM,        FRAME_POINTER_REGNUM            },\
-@@ -1703,21 +1752,11 @@
+@@ -1703,21 +1749,11 @@
   { FRAME_POINTER_REGNUM,      STACK_POINTER_REGNUM            },\
   { FRAME_POINTER_REGNUM,      ARM_HARD_FRAME_POINTER_REGNUM   },\
   { FRAME_POINTER_REGNUM,      THUMB_HARD_FRAME_POINTER_REGNUM }}
@@ -258,7 +239,7 @@
  
  /* Define the offset between two registers, one to be eliminated, and the
     other its replacement, at the start of a routine.  */
-@@ -1834,8 +1873,8 @@
+@@ -1834,8 +1870,8 @@
  /*   On the ARM, don't allow the pc to be used.  */
  #define ARM_REGNO_OK_FOR_BASE_P(REGNO)			\
    (TEST_REGNO (REGNO, <, PC_REGNUM)			\
@@ -269,7 +250,7 @@
  
  #define THUMB_REGNO_MODE_OK_FOR_BASE_P(REGNO, MODE)		\
    (TEST_REGNO (REGNO, <=, LAST_LO_REGNUM)			\
-@@ -2012,8 +2051,8 @@
+@@ -2012,8 +2048,8 @@
  #define ARM_REG_OK_FOR_BASE_P(X)		\
    (REGNO (X) <= LAST_ARM_REGNUM			\
     || REGNO (X) >= FIRST_PSEUDO_REGISTER	\
@@ -280,21 +261,3 @@
  
  #define THUMB_REG_MODE_OK_FOR_BASE_P(X, MODE)	\
    (REGNO (X) <= LAST_LO_REGNUM			\
-@@ -2530,7 +2569,7 @@
-      in 26 bit mode, the condition codes must be masked out of the	\
-      return address.  This does not apply to ARM6 and later processors	\
-      when running in 32 bit mode.  */					\
--  ((arm_arch4 || TARGET_THUMB)						\
-+  ((arm_arch4 || TARGET_THUMB)		\
-    ? (gen_int_mode ((unsigned long)0xffffffff, Pmode))			\
-    : arm_gen_return_addr_mask ())
- 
-@@ -2699,6 +2738,8 @@
- 
-   ARM_BUILTIN_THREAD_POINTER,
- 
-+  ARM_BUILTIN_SWI,
-+
-   ARM_BUILTIN_MAX
- };
- #endif /* ! GCC_ARM_H */
