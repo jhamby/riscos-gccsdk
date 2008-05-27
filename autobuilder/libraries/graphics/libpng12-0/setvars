@@ -4,13 +4,21 @@ AB_ZIPNAME=libpng12-dev
 
 AB_INSTALL=yes
 
+export ECHO=echo
+
+ab_make()
+{
+  rm -f libtool
+  ln -s $(which libtool)
+}
+
 ab_package()
 {
   AD=$D/Apps/Library/!LibPNG
   mkdir -p $AD
   cp $H/\!LibPNG/\!* $AD
 
-  cat $S/libpng-1.2.26.txt >> $AD/\!Help,fff
+  cat $S/libpng-1.2.27.txt >> $AD/\!Help,fff
 
   HERE=`pwd`
   cd $AD
