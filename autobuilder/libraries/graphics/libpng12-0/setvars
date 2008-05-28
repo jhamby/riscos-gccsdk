@@ -1,6 +1,5 @@
 AB_CATEGORY=Library
 AB_ZIPNAME=libpng12-dev
-#AB_URL=ftp://ftp.simplesystems.org/pub/png/src/libpng-1.2.26.tar.bz2
 
 AB_INSTALL=yes
 
@@ -8,8 +7,14 @@ export ECHO=echo
 
 ab_make()
 {
-  rm -f libtool
-  ln -s $(which libtool)
+  if [ "$AB_ELFBUILD" != "yes" ] ; then
+    # GCCSDK 3.4.6 support
+    cp scripts/makefile.gcc Makefile
+  else
+    rm -f libtool
+    ln -s $(which libtool)
+  fi
+  $AB_MAKE
 }
 
 ab_package()
@@ -48,5 +53,4 @@ ab_package()
 
   $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
     -depends "zlib1g-dev"
-
 }
