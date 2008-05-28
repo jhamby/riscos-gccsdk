@@ -1,5 +1,5 @@
---- scripts/makefile.gcc.orig	2008-05-28 02:34:01.000000000 +0200
-+++ scripts/makefile.gcc	2008-05-28 02:34:14.000000000 +0200
+--- scripts/makefile.gcc.orig	2008-05-28 04:12:37.000000000 +0200
++++ scripts/makefile.gcc	2008-05-28 04:14:03.000000000 +0200
 @@ -4,8 +4,8 @@
  # For conditions of distribution and use, see copyright notice in png.h
  
@@ -11,7 +11,7 @@
  
  # Compiler, linker, lib and other tools
  CC = gcc
-@@ -51,6 +51,13 @@
+@@ -51,6 +51,14 @@
  	$(AR_RC) $@ $(OBJS)
  	$(RANLIB) $@
  
@@ -21,6 +21,7 @@
 +	cp libpng.pc $(GCCSDK_INSTALL_ENV)/lib/pkgconfig
 +	mkdir -p $(GCCSDK_INSTALL_ENV)/include/libpng12
 +	cp png.h pngconf.h $(GCCSDK_INSTALL_ENV)/include/libpng12
++	cp png.h pngconf.h $(GCCSDK_INSTALL_ENV)/include
 +
  test: pngtest$(EXE)
  	./pngtest$(EXE)
