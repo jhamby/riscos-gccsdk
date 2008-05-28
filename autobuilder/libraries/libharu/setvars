@@ -1,0 +1,5 @@
+# libharu is available as Debian package.
+AB_URL=http://libharu.org/files/snapshots/libharu-latest.tar.gz
+
+AB_CONFLAGS="--with-zlib=$GCCSDK_INSTALL_ENV --with-png=$GCCSDK_INSTALL_ENV"
+
