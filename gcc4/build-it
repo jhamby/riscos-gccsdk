@@ -22,8 +22,8 @@
 #         By default we build shared (target) ARM libraries, but with this
 #         option we only build the static ones.
 #   -lang=XXX (default: "c,c++")
-#         Specified which languages are to be compiled.  Currently only C or
-#         C++ is supported.
+#         Specifies which languages are to be compiled.  Currently only C, C++
+#         and Ada are supported.
 #   -no-multilib
 #         No multilib configuration which means only softfloat UnixLib runtime
 #         and no SharedCLibrary runtime (nor module support).
@@ -42,7 +42,7 @@ give_help() {
   echo -e "\t-jX\t\tMake -j option (replace X with a number or leave it out)"
   echo -e "\t-static\t\tOnly build the static ARM libraries, not the shared ones"
   echo -e "\t-lang=\t\tSpecify which languages need to be built (default: c,c++)"
-  echo -e "\t-no-multilib\tOnly softfloat UnixLib (no SharedCLibrary) support"
+  echo -e "\t-no-multilib\tOnly softfloat UnixLib (no hardfloat UnixLib nor SharedCLibrary) support"
   echo -e "\t-h\t\tThis help output"
   echo
   echo -e "\tcross\t\tBuild the cross compiler (default)"
