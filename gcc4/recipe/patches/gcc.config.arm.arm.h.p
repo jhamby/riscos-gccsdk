@@ -1,6 +1,6 @@
---- gcc/config/arm/arm.h.orig	2008-05-18 19:04:22.000000000 +0200
-+++ gcc/config/arm/arm.h	2008-05-18 19:12:47.000000000 +0200
-@@ -167,6 +167,12 @@
+--- gcc/config/arm/arm.h.orig	2008-05-31 00:06:43.000000000 +0200
++++ gcc/config/arm/arm.h	2008-05-25 15:13:01.000000000 +0200
+@@ -167,6 +167,12 @@ extern GTY(()) rtx aof_pic_label;
  #define SUBTARGET_CPP_SPEC      ""
  #endif
  
@@ -13,7 +13,7 @@
  /* Run-time Target Specification.  */
  #ifndef TARGET_VERSION
  #define TARGET_VERSION fputs (" (ARM/generic)", stderr);
-@@ -190,7 +196,7 @@
+@@ -190,7 +196,7 @@ extern GTY(()) rtx aof_pic_label;
  				         : TARGET_TPCS_FRAME)
  #define TARGET_LDRD			(arm_arch5e && ARM_DOUBLEWORD_ALIGN)
  #define TARGET_AAPCS_BASED \
@@ -22,7 +22,7 @@
  
  #define TARGET_HARD_TP			(target_thread_pointer == TP_CP15)
  #define TARGET_SOFT_TP			(target_thread_pointer == TP_SOFT)
-@@ -283,7 +289,8 @@
+@@ -283,7 +289,8 @@ enum arm_abi_type
    ARM_ABI_ATPCS,
    ARM_ABI_AAPCS,
    ARM_ABI_IWMMXT,
@@ -32,19 +32,25 @@
  };
  
  extern enum arm_abi_type arm_abi;
-@@ -719,8 +726,10 @@
+@@ -719,10 +726,14 @@ extern int arm_structure_size_boundary;
        fixed_regs[PIC_OFFSET_TABLE_REGNUM] = 1;			\
        call_used_regs[PIC_OFFSET_TABLE_REGNUM] = 1;		\
      }								\
 -  else if (TARGET_APCS_STACK)					\
-+  if (TARGET_APCS_STACK || arm_abi == ARM_ABI_APCS32)		\
++  if (TARGET_APCS_STACK						\
++      || arm_abi == ARM_ABI_APCS32 && !TARGET_MODULE)		\
      {								\
-+      /* For APCS-32, we preserve SL because we need to		\
-+	 interwork with functions that have stack checking.  */	\
-       fixed_regs[10]     = 1;					\
-       call_used_regs[10] = 1;					\
+-      fixed_regs[10]     = 1;					\
+-      call_used_regs[10] = 1;					\
++      /* For APCS-32 non-module code, we preserve SL even in	\
++	 non stack checking code because we need to interwork 	\
++	 with functions that have stack checking.  */		\
++      fixed_regs[SL_REGNUM]     = 1;				\
++      call_used_regs[SL_REGNUM] = 1;				\
      }								\
-@@ -788,9 +797,13 @@
+   /* -mcaller-super-interworking reserves r11 for calls to	\
+      _interwork_r11_call_via_rN().  Making the register global	\
+@@ -788,9 +799,13 @@ extern int arm_structure_size_boundary;
  #define LAST_HI_REGNUM		11
  
  #ifndef TARGET_UNWIND_INFO
@@ -58,7 +64,7 @@
  
  /* We can generate DWARF2 Unwind info, even though we don't use it.  */
  #define DWARF2_UNWIND_INFO 1
-@@ -852,10 +865,18 @@
+@@ -852,10 +867,18 @@ extern int arm_structure_size_boundary;
    (((REGNUM) >= FIRST_IWMMXT_GR_REGNUM) && ((REGNUM) <= LAST_IWMMXT_GR_REGNUM))
  
  /* Base register for access to local variables of the function.  */
@@ -77,7 +83,7 @@
  
  #define FIRST_CIRRUS_FP_REGNUM	27
  #define LAST_CIRRUS_FP_REGNUM	42
-@@ -865,7 +886,8 @@
+@@ -865,7 +888,8 @@ extern int arm_structure_size_boundary;
  #define FIRST_VFP_REGNUM	63
  #define LAST_VFP_REGNUM		94
  #define IS_VFP_REGNUM(REGNUM) \
@@ -87,7 +93,7 @@
  
  /* The number of hard registers is 16 ARM + 8 FPA + 1 CC + 1 SFP + 1 AFP.  */
  /* + 16 Cirrus registers take us up to 43.  */
-@@ -880,16 +902,18 @@
+@@ -880,16 +904,18 @@ extern int arm_structure_size_boundary;
     via the stack pointer) in functions that seem suitable.
     If we have to have a frame pointer we might as well make use of it.
     APCS says that the frame pointer does not need to be pushed in leaf
@@ -112,7 +118,7 @@
  
  /* Return number of consecutive hard regs needed starting at reg REGNO
     to hold something of mode MODE.
-@@ -898,6 +922,13 @@
+@@ -898,6 +924,13 @@ extern int arm_structure_size_boundary;
  
     On the ARM regs are UNITS_PER_WORD bits wide; FPA regs can hold any FP
     mode.  */
@@ -126,7 +132,7 @@
  #define HARD_REGNO_NREGS(REGNO, MODE)  	\
    ((TARGET_ARM 				\
      && REGNO >= FIRST_FPA_REGNUM	\
-@@ -905,6 +936,7 @@
+@@ -905,6 +938,7 @@ extern int arm_structure_size_boundary;
      && REGNO != ARG_POINTER_REGNUM)	\
      && !IS_VFP_REGNUM (REGNO)		\
     ? 1 : ARM_NUM_REGS (MODE))
@@ -134,7 +140,7 @@
  
  /* Return true if REGNO is suitable for holding a quantity of type MODE.  */
  #define HARD_REGNO_MODE_OK(REGNO, MODE)					\
-@@ -1350,7 +1382,7 @@
+@@ -1350,7 +1384,7 @@ do {									      \
     is at the high-address end of the local variables;
     that is, each additional local variable allocated
     goes at a more negative offset in the frame.  */
@@ -143,7 +149,7 @@
  
  /* The amount of scratch space needed by _interwork_{r7,r11}_call_via_rN().
     When present, it is one word in size, and sits at the top of the frame,
-@@ -1370,7 +1402,10 @@
+@@ -1370,7 +1404,10 @@ do {									      \
     If FRAME_GROWS_DOWNWARD, this is the offset to the END of the
     first local allocated.  Otherwise, it is the offset to the BEGINNING
     of the first local allocated.  */
@@ -155,7 +161,7 @@
  
  /* If we generate an insn to push BYTES bytes,
     this says how many the stack pointer really advances by.  */
-@@ -1495,6 +1530,7 @@
+@@ -1495,6 +1532,7 @@ typedef struct arm_stack_offsets GTY(())
    int soft_frame;	/* FRAME_POINTER_REGNUM.  */
    int locals_base;	/* THUMB_HARD_FRAME_POINTER_REGNUM.  */
    int outgoing_args;	/* STACK_POINTER_REGNUM.  */
@@ -163,7 +169,7 @@
  }
  arm_stack_offsets;
  
-@@ -1519,6 +1555,8 @@
+@@ -1519,6 +1557,8 @@ typedef struct machine_function GTY(())
    /* Records if sibcalls are blocked because an argument
       register is needed to preserve stack alignment.  */
    int sibcall_blocked;
@@ -172,7 +178,7 @@
    /* Labels for per-function Thumb call-via stubs.  One per potential calling
       register.  We can never call via LR or PC.  We can call via SP if a
       trampoline happens to be on the top of the stack.  */
-@@ -1539,6 +1577,8 @@
+@@ -1539,6 +1579,8 @@ typedef struct
    int nregs;
    /* This is the number of iWMMXt register arguments scanned so far.  */
    int iwmmxt_nregs;
@@ -181,7 +187,7 @@
    int named_count;
    int nargs;
    /* One of CALL_NORMAL, CALL_LONG or CALL_SHORT.  */
-@@ -1593,6 +1633,9 @@
+@@ -1593,6 +1635,9 @@ typedef struct
    if (arm_vector_mode_supported_p (MODE)	       	\
        && (CUM).named_count > (CUM).nargs)		\
      (CUM).iwmmxt_nregs += 1;				\
@@ -191,7 +197,7 @@
    else							\
      (CUM).nregs += ARM_NUM_REGS2 (MODE, TYPE)
  
-@@ -1607,9 +1650,7 @@
+@@ -1607,9 +1652,7 @@ typedef struct
  /* 1 if N is a possible register number for function argument passing.
     On the ARM, r0-r3 are used to pass args.  */
  #define FUNCTION_ARG_REGNO_P(REGNO)	\
@@ -202,7 +208,7 @@
  
  
  /* If your target environment doesn't prefix user functions with an
-@@ -1695,6 +1736,11 @@
+@@ -1695,6 +1738,11 @@ typedef struct
     pointer.  Note we have to use {ARM|THUMB}_HARD_FRAME_POINTER_REGNUM
     because the definition of HARD_FRAME_POINTER_REGNUM is not a constant.  */
  
@@ -214,7 +220,7 @@
  #define ELIMINABLE_REGS						\
  {{ ARG_POINTER_REGNUM,        STACK_POINTER_REGNUM            },\
   { ARG_POINTER_REGNUM,        FRAME_POINTER_REGNUM            },\
-@@ -1703,21 +1749,11 @@
+@@ -1703,21 +1751,11 @@ typedef struct
   { FRAME_POINTER_REGNUM,      STACK_POINTER_REGNUM            },\
   { FRAME_POINTER_REGNUM,      ARM_HARD_FRAME_POINTER_REGNUM   },\
   { FRAME_POINTER_REGNUM,      THUMB_HARD_FRAME_POINTER_REGNUM }}
@@ -239,7 +245,7 @@
  
  /* Define the offset between two registers, one to be eliminated, and the
     other its replacement, at the start of a routine.  */
-@@ -1834,8 +1870,8 @@
+@@ -1834,8 +1872,8 @@ typedef struct
  /*   On the ARM, don't allow the pc to be used.  */
  #define ARM_REGNO_OK_FOR_BASE_P(REGNO)			\
    (TEST_REGNO (REGNO, <, PC_REGNUM)			\
@@ -250,7 +256,7 @@
  
  #define THUMB_REGNO_MODE_OK_FOR_BASE_P(REGNO, MODE)		\
    (TEST_REGNO (REGNO, <=, LAST_LO_REGNUM)			\
-@@ -2012,8 +2048,8 @@
+@@ -2012,8 +2050,8 @@ typedef struct
  #define ARM_REG_OK_FOR_BASE_P(X)		\
    (REGNO (X) <= LAST_ARM_REGNUM			\
     || REGNO (X) >= FIRST_PSEUDO_REGISTER	\

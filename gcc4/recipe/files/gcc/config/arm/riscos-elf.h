@@ -234,7 +234,7 @@
    - explicit stack checks
    - UnixLib as runtime library */
 #undef  TARGET_DEFAULT
-#define TARGET_DEFAULT (MASK_APCS_FRAME | MASK_POKE_FUNCTION_NAME | MASK_APCS_STACK | MASK_UNIXLIB)
+#define TARGET_DEFAULT (MASK_APCS_FRAME | MASK_UNIXLIB)
 
 /* Prevent FRAME_POINTER_REGNUM being clobbered in functions that call
    alloca.  */

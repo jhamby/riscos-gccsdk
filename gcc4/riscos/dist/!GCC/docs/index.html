@@ -115,12 +115,16 @@
 
 <h5>1.3.2. RISC&nbsp;OS module support</h5>
 
-<p>Module code must be compiled and linked with the SharedCLibrary as UnixLib is not suitable for this purpose. The switch -mmodule needs to be specified to make sure that global data can be properly relocated at runtime.  Specifying -mmodule implicitly specifies -mlibscl so it is not really necessary to specify it yourself however if you want your build script (or Makefile) reasonably backwards compatible with GCCSDK 3.4 you better specify it as it was not the case before.
+<p>Module code must be compiled and linked with the SharedCLibrary as UnixLib is not suitable for this purpose. The switch -mmodule needs to be specified to make sure that global data can be properly relocated at runtime.  Specifying -mmodule implicitly specifies -mlibscl so it is not really necessary to specify it yourself however if you want your build script (or Makefile) to be backwards compatible with GCCSDK 3.4 you have to specify -mlibscl as well as it was not done by default before.
 
 <pre>
-   *gcc -mlibscl -mmodule -c module.c -O2
+   *gcc -mlibscl -mmodule -O2 -c module.c -o module.o
    *gcc -mlibscl -mmodule module.o header.o -o mymodule
 </pre>
+
+<p>Module code executed in SVC or IRQ mode does not need to do any APCS stack checking (as the RISC&nbsp;OS R13 SVC and IRQ stacks are not chunked) so the switch -mmodule implictly selects the
+-mno-apcs-stack-check switch as well. However some pieces of module code can also run in USR mode as e.g. module start code (hence, as application) so an explicit -mapcs-stack-check switch is then needed
+to enforce chunk stack checking for those module object files containing code which is executed in USR mode.
 
 <p>Each RISC&nbsp;OS module needs a module header which can be created using CMunge. See <a href="cmunge">CMunge documentation</a> for more information.  CMunge can also be used to create veneer code acting as glue code for RISC&nbsp;OS callbacks into your C/C++ coded module.
 
@@ -485,9 +489,8 @@ WSSize		:
 <p>List of known problems or missing features compared to GCCSDK 3.4.6:
 <ul>
   <li>native RISC&nbsp;OS build: not all RISC&nbsp;OS specific option are implemented yet, like -mamu, -mlibrary-static-data-offset, -mclient-static-data-offset.
-  <li>native RISC&nbsp;OS build: option -mpoke-function-name is default set while it in GCCSDK 3.4 it was by default unset.
   <li>libscl: the GCCSDK support code in libscl is not yet fully enabled as libscl requires some cleanup first and have support for network API builtin.
-  <li>libscl: no C++ support
+  <li>libscl: no C++ support.
 </ul>
 
 <h3>3. Changes</h3>
