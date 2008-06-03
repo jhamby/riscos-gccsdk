@@ -208,7 +208,7 @@ gnat_support() {
   # It is essemtial that all gnat* binaries are located in !GCC.bin and not
   # !GCC.arm-unknown-riscos.bin as otherwise Ada's RTS files are not found.
   cd $BKIT_GCC_UNPACKED/$GCCSDK_TARGET_NAME/bin
-  for f in `ls gnat*` ; do
+  for f in `ls gnat* 2>/dev/null` ; do
     mv $f ../../bin
   done
 }
