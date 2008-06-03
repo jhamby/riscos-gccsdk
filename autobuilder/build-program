@@ -270,7 +270,7 @@ else
   # Try to guess the version number.  This isn't reliable, and might need to be
   # explictly set by the package
   if [ -z "$AB_PVERSION" ] ; then
-    AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#$AB_PACKAGE-## -e "s/[^-]*-//")
+    AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#$AB_PACKAGE-## -e "s/[^-]*-//" -e "s/~//")
   fi
 
   if [ -z "$AB_PVERSION" ] ; then
