@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.h.orig	2008-05-31 00:06:43.000000000 +0200
-+++ gcc/config/arm/arm.h	2008-05-25 15:13:01.000000000 +0200
+--- gcc/config/arm/arm.h.orig	2008-06-04 22:45:31.000000000 +0200
++++ gcc/config/arm/arm.h	2008-06-04 22:44:20.000000000 +0200
 @@ -167,6 +167,12 @@ extern GTY(()) rtx aof_pic_label;
  #define SUBTARGET_CPP_SPEC      ""
  #endif
@@ -38,7 +38,7 @@
      }								\
 -  else if (TARGET_APCS_STACK)					\
 +  if (TARGET_APCS_STACK						\
-+      || arm_abi == ARM_ABI_APCS32 && !TARGET_MODULE)		\
++      || arm_abi == ARM_ABI_APCS32 && !TARGET_UNIXLIB)		\
      {								\
 -      fixed_regs[10]     = 1;					\
 -      call_used_regs[10] = 1;					\
