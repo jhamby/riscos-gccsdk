@@ -82,7 +82,7 @@
   { "-mlibscl", "-mlibscl -mhard-float -static" },	    \
   { "-mmodule", "-mmodule -mlibscl -mhard-float -static" }
 
-/* Default multilib is UnixLib, hard-float (and no module support) */
+/* Default multilib is UnixLib and soft-float.  */
 #undef  MULTILIB_DEFAULTS
 #define MULTILIB_DEFAULTS { "" }
 
@@ -228,11 +228,9 @@
 #define ARM_STKOVF_SPLIT_SMALL "__rt_stkovf_split_small"
 #define ARM_STKOVF_SPLIT_BIG "__rt_stkovf_split_big"
 
-/* Default RISC OS options
-   - APCS
-   - function name poking
-   - explicit stack checks
-   - UnixLib as runtime library */
+/* Default RISC OS options:
+   - APCS frame
+   - UnixLib as runtime library  */
 #undef  TARGET_DEFAULT
 #define TARGET_DEFAULT (MASK_APCS_FRAME | MASK_UNIXLIB)
 
