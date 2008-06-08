@@ -176,7 +176,7 @@ LD_WARN
 	Not for general use - used by ldd (which is not yet supported).
 
 LD_LIBRARY_PATH
-	A colon separated list of paths for finding shared libraries
+	A comma separated list of paths for finding shared libraries
 	other than the standard place (which must be in RISC OS format).
 
 LD_BIND_NOW

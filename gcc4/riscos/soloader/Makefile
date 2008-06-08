@@ -31,7 +31,7 @@ install-riscos:
 	cp build/dynamic/ld-1.9.9.so,e1f $(LIBDIR)/ld-1.9.9.so,e1f
 	$(LN) -s -f ld-1/9/9/so $(LIBDIR)/ld-riscos.so.1,1c8
 	cp build/dynamic/libdl.1.9.9.so,e1f $(LIBDIR)/libdl.1.9.9.so,e1f
-	$(LN) -s -f libdl/1/9/9/so $(LIBDIR)/libdl.1.so,1c8
+	$(LN) -s -f libdl/1/9/9/so $(LIBDIR)/libdl.so.1,1c8
 	$(LN) -s -f libdl/1/9/9/so $(LIBDIR)/libdl.so,1c8
 
 # Use 'make install-cross' to copy libdl to a place where gcc can find it using -ldl

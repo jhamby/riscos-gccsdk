@@ -224,7 +224,7 @@ struct elf_resolve * _dl_load_shared_library(int secure,
       }
       if (pnt2 - mylibname >= 1024)
 	break;
-      if(pnt2[-1] != '.') *pnt2++ = '.';
+      if(pnt2[-1] != '.' && pnt2[-1] != ':') *pnt2++ = '.';
       pnt = libname;
       while(*pnt) *pnt2++  = *pnt++;
       *pnt2++ = 0;
