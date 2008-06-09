@@ -25,7 +25,7 @@
   [(use (match_operand:SI 0 "s_register_operand" "=r"))
    (match_operand:SI 1 "s_register_operand" "")
    (clobber (reg:SI 14))]
-  "TARGET_ARM && TARGET_APCS_STACK"
+  "TARGET_ARM && OPTION_APCS_STACK"
 {
   arm_expand_save_stack_block (operands[0], operands[1]);
   DONE;
@@ -37,7 +37,7 @@
   [(match_operand:SI 0 "s_register_operand" "")
    (use (match_operand:SI 1 "s_register_operand" "=r"))
    (clobber (reg:SI 14))]
-  "TARGET_ARM && TARGET_APCS_STACK"
+  "TARGET_ARM && OPTION_APCS_STACK"
 {
   arm_expand_restore_stack_block (operands[0], operands[1]);
   DONE;
@@ -46,7 +46,7 @@
 (define_expand "save_stack_nonlocal"
   [(use (match_operand:SI 0 "memory_operand" ""))
    (use (match_operand:SI 1 "s_register_operand" ""))]
-  "TARGET_ARM && TARGET_APCS_STACK"
+  "TARGET_ARM && OPTION_APCS_STACK"
 {
   arm_expand_save_stack_nonlocal (operands);
   DONE;
@@ -55,7 +55,7 @@
 (define_expand "restore_stack_nonlocal"
   [(use (match_operand:SI 0 "s_register_operand" ""))
    (use (match_operand:SI 1 "memory_operand" ""))]
-  "TARGET_ARM && TARGET_APCS_STACK"
+  "TARGET_ARM && OPTION_APCS_STACK"
 {
   arm_expand_restore_stack_nonlocal (operands);
   DONE;
@@ -68,7 +68,7 @@
         (minus:SI (reg:SI 13) (match_dup 1)))
    (clobber (reg:SI 0))
    (clobber (reg:SI 14))]
-  "TARGET_APCS_STACK"
+  "OPTION_APCS_STACK"
   "
 {
   arm_expand_allocate_stack (operands[0], operands[1]);
@@ -80,7 +80,7 @@
    (match_operand:SI 1 "general_operand" "")
    (match_operand:SI 2 "general_operand" "")
    (match_operand:SI 3 "" "")]
-  "TARGET_ARM && TARGET_APCS_STACK"
+  "TARGET_ARM && OPTION_APCS_STACK"
 {
   arm_expand_nonlocal_goto (operands);
   DONE;

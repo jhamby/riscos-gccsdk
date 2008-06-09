@@ -1,5 +1,5 @@
 --- gcc/config/arm/arm.h.orig	2008-06-04 22:45:31.000000000 +0200
-+++ gcc/config/arm/arm.h	2008-06-04 22:44:20.000000000 +0200
++++ gcc/config/arm/arm.h	2008-06-09 23:44:55.000000000 +0200
 @@ -167,6 +167,12 @@ extern GTY(()) rtx aof_pic_label;
  #define SUBTARGET_CPP_SPEC      ""
  #endif
@@ -37,7 +37,7 @@
        call_used_regs[PIC_OFFSET_TABLE_REGNUM] = 1;		\
      }								\
 -  else if (TARGET_APCS_STACK)					\
-+  if (TARGET_APCS_STACK						\
++  if (OPTION_APCS_STACK						\
 +      || arm_abi == ARM_ABI_APCS32 && !TARGET_UNIXLIB)		\
      {								\
 -      fixed_regs[10]     = 1;					\
@@ -251,8 +251,8 @@
    (TEST_REGNO (REGNO, <, PC_REGNUM)			\
 -   || TEST_REGNO (REGNO, ==, FRAME_POINTER_REGNUM)	\
 -   || TEST_REGNO (REGNO, ==, ARG_POINTER_REGNUM))
-+   || (! TARGET_APCS_STACK && TEST_REGNO (REGNO, ==, FRAME_POINTER_REGNUM)) \
-+   || (! TARGET_APCS_STACK && TEST_REGNO (REGNO, ==, ARG_POINTER_REGNUM)))
++   || (!OPTION_APCS_STACK && TEST_REGNO (REGNO, ==, FRAME_POINTER_REGNUM)) \
++   || (!OPTION_APCS_STACK && TEST_REGNO (REGNO, ==, ARG_POINTER_REGNUM)))
  
  #define THUMB_REGNO_MODE_OK_FOR_BASE_P(REGNO, MODE)		\
    (TEST_REGNO (REGNO, <=, LAST_LO_REGNUM)			\
@@ -262,8 +262,8 @@
     || REGNO (X) >= FIRST_PSEUDO_REGISTER	\
 -   || REGNO (X) == FRAME_POINTER_REGNUM		\
 -   || REGNO (X) == ARG_POINTER_REGNUM)
-+   || (! TARGET_APCS_STACK && REGNO (X) == FRAME_POINTER_REGNUM) \
-+   || (! TARGET_APCS_STACK && REGNO (X) == ARG_POINTER_REGNUM))
++   || (!OPTION_APCS_STACK && REGNO (X) == FRAME_POINTER_REGNUM) \
++   || (!OPTION_APCS_STACK && REGNO (X) == ARG_POINTER_REGNUM))
  
  #define THUMB_REG_MODE_OK_FOR_BASE_P(X, MODE)	\
    (REGNO (X) <= LAST_LO_REGNUM			\
