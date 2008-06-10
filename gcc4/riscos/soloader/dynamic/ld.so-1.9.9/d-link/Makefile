@@ -34,7 +34,6 @@ $(OBJDIR)/%.o: %.c
 
 $(OBJDIR)/boot1.o: boot1.c
 	$(CC) $(CFLAGS) $(CFLAGS_EXTRA) -o $@ -c $<
-	$(OBJCOPY) --redefine-sym __rt_stkovf_split_small=_dl_stkovf_split_small --redefine-sym __rt_stkovf_split_big=_dl_stkovf_split_big $@
 
 $(DIRS) libdl:
 	$(MAKE) -C $@
