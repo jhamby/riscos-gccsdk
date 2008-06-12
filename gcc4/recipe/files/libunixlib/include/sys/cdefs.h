@@ -278,36 +278,4 @@
 # endif
 #endif
 
-#ifdef __UNIXLIB_INTERNALS
-
-#define strong_alias(name, aliasname) _strong_alias(name, aliasname)
-#define _strong_alias(name, aliasname) \
-  extern __typeof (name) aliasname __attribute__ ((alias (#name)));
-
-/* This comes between the return type and function name in
-   a function definition to make that definition weak.  */
-#define weak_function __attribute__ ((weak))
-#define weak_const_function __attribute__ ((weak, __const__))
-
-#define weak_alias(name, aliasname) _weak_alias(name, aliasname)
-#define _weak_alias(name, aliasname) \
-  extern __typeof (name) aliasname __attribute__ ((weak, alias (#name)));
-
-/* For the future, we may want to support ELF symbol visibility which will
-   help to reduce the symbol tables of dynamic libraries and speed up
-   dynamic linking. FIXME */
-#define hidden_def(name) /**/
-#define libm_hidden_def(name) /**/
-#define INTDEF(name) /**/
-
-/* On some platforms we can make internal function calls (i.e., calls of
-   functions not exported) a bit faster by using a different calling
-   convention.  */
-#ifndef internal_function
-# define internal_function	/* empty */
-#endif
-
-#endif /* __UNIXLIB_INTERNALS */
-
-
 #endif	 /* sys/cdefs.h */

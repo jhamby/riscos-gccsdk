@@ -1,5 +1,5 @@
 /* strrchr ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <string.h>
@@ -19,3 +19,4 @@ strrchr (const char *s, int c_)
 
   return ((char *) _s);
 }
+strong_alias (strrchr, rindex)

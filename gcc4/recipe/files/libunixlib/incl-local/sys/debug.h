@@ -1,5 +1,5 @@
 /* Functions for internally debugging UnixLib.
-   Copyright (c) 2004, 2005 UnixLib Developers.  */
+   Copyright (c) 2004, 2005, 2008 UnixLib Developers.  */
 
 #ifdef DEBUG
 
@@ -18,7 +18,8 @@ extern void __debug(const char *__s);
 
 /* Works like the standard printf function but outputs using standard
    RISC OS SWIs to the console.  */
-extern void debug_printf (const char *__fmt, ...);
+extern void debug_printf (const char *__fmt, ...)
+     __attribute__ ((__format__ (__printf__, 1, 2)));
 
 __END_DECLS
 

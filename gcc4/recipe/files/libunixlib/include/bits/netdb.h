@@ -1,9 +1,3 @@
-/*
- * File taken from glibc 2.2.5.
- * Following changes were made:
- *  - Added the prototypes for the SWI veneers.
- */
-
 /* Copyright (C) 1996, 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -37,15 +31,3 @@ struct netent
   int n_addrtype;		/* Net address type.  */
   uint32_t n_net;		/* Network number.  */
 };
-
-__BEGIN_DECLS
-
-#ifdef __UNIXLIB_INTERNALS
-/* Direct SWI veneers: */
-extern int _sclose (int sd);
-extern int _sread (int sd, void *data, int nbyte);
-extern int _swrite (int sd, const void *data, int nbyte);
-extern int _sioctl (int sd, unsigned long request, void *arg);
-#endif
-
-__END_DECLS

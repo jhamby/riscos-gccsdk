@@ -1,3 +1,35 @@
+Fri Jun 13 01:33:48 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/bits/netdb.h(_sclose,_sread,_swrite,_sioctl): Move internal
+	swi veneers to...
+	* incl-local/bits/netdb.h: ...here.
+	* include/sys/stat.h(__stat): Move to...
+	* incl-local/sys/stat.h: ...here.
+	* include/sys/select.h(_select): Move to...
+	* incl-local/sys/select.h: ...here.
+	* include/sys/cdefs.h(_strong_alias,weak_function,weak_const_function,
+	weak_alias,_weak_alias,hidden_def,libm_hidden_def,INTDEF,
+	internal_function): Move to...
+	* incl-local/sys/cdefs.h: ...here.
+	* include/sys/debug.h: Moved file to...
+	* incl-local/sys/debug.h: ...here.
+	(debug_printf): Added printf attribute for better type checking.
+	* include/sys/socket.h(_socket,_bind,_listen,_accept,_connect,_recv,
+	_recvfrom,_recvmsg,_send,_sendto,_sendmsg,_shutdown,_setsockopt,
+	_getsockopt,_getsockname,_getpeername,__opensock): Move to...
+	* incl-local/sys/socket.h: ...here.
+	Upgraded to glibc 2.7 version.
+	* string/strchr.c(index): Make index strong alias of strchr.
+	* string/strrchr.c(rindex): Make rindex strong alias of strrchr.
+	* string/index.c(index,rindex): Removed.
+	* string/stricmp.c(strcasecmp): Make strcasecmp strong alias of
+	stricmp.
+	* string/strnicmp.c(strncasecmp): Make strncasecmp strong alias of
+	strnicmp.
+	* string/memcmp.c(bcmp): Make bcmp strong alias of memcmp.
+	* string/memrchr.c: Go for original glibc 2.7 version.
+	* string/strchrnul.c: Likewise.
+
 Fri May 16 01:43:59 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* common/symlinks.c(__resolve_symlinks): avoid writing to NULL.

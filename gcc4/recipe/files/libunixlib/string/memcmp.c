@@ -1,5 +1,5 @@
 /* memcmp (), bcmp ()
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #include <string.h>
@@ -54,9 +54,4 @@ memcmp (const void *s1, const void *s2, size_t n)
 differs:
   return *_s1 - *_s2;
 }
-
-int
-bcmp (const void *s1, const void *s2, size_t n)
-{
-  return memcmp (s1, s2, n);
-}
+strong_alias (memcmp, bcmp)

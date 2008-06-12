@@ -1,6 +1,6 @@
 /*
  * POSIX 1003.1g: 6.2 Select from File Descriptor Sets
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __SYS_SELECT_H
@@ -82,15 +82,6 @@ extern int pselect (int __nfds,
 		    fd_set *__restrict __exceptfds,
 		    const struct timespec *__restrict __timeout,
 		    const __sigset_t *__restrict __sigmask);
-
-#ifdef __UNIXLIB_INTERNALS
-/* SWI veneer. Do not use directly.  */
-extern int _select (int __nfds,
-		    fd_set *__restrict __readfds,
-		    fd_set *__restrict __writefds,
-		    fd_set *__restrict __exceptfds,
-		    const struct timeval *__restrict __timeout);
-#endif  /* __UNIXLIB_INTERNALS */
 
 __END_DECLS
 

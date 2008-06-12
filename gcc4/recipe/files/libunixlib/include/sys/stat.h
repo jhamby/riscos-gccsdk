@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 5.6: File Characteristics <sys/stat.h>.
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __SYS_STAT_H
@@ -214,13 +214,6 @@ extern int __REDIRECT_NTH (lstat,
 extern int lstat64 (const char *__filename,
 		    struct stat64 *__buf) __THROW __nonnull ((1, 2));
 # endif
-#endif
-
-#ifdef __UNIXLIB_INTERNALS
-/* We declare __stat here to prevent the inclusion if <sys/stat.h> in
-   <unixlib/local.h>.  This function is internal to stat and fstat.  */
-extern void __stat (int __objtype, int __loadaddr, int __execaddr,
-                    int __length, int __attr, struct stat *buf);
 #endif
 
 /* Set file access permissions for file to mode.  */

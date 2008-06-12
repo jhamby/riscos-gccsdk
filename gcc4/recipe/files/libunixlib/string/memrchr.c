@@ -57,6 +57,10 @@
 #undef __memrchr
 #undef memrchr
 
+#ifndef weak_alias
+# define __memrchr memrchr
+#endif
+
 /* Search no more than N bytes of S for C.  */
 __ptr_t
 __memrchr (s, c_in, n)
