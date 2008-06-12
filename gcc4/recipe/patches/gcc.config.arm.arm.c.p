@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.c.orig	2008-06-09 22:46:04.000000000 +0200
-+++ gcc/config/arm/arm.c	2008-06-10 00:25:09.000000000 +0200
+--- gcc/config/arm/arm.c.orig	2008-06-13 00:21:53.000000000 +0200
++++ gcc/config/arm/arm.c	2008-06-13 00:32:52.000000000 +0200
 @@ -112,6 +112,7 @@ static tree arm_handle_isr_attribute (tr
  #if TARGET_DLLIMPORT_DECL_ATTRIBUTES
  static tree arm_handle_notshared_attribute (tree *, tree, tree, int, bool *);
@@ -917,7 +917,7 @@
        do
  	{
  	  last = last ? NEXT_INSN (last) : get_insns ();
-@@ -10848,13 +11245,20 @@ arm_expand_prologue (void)
+@@ -10848,13 +11245,27 @@ arm_expand_prologue (void)
        /* If the frame pointer is needed, emit a special barrier that
  	 will prevent the scheduler from moving stores to the frame
  	 before the stack adjustment.  */
@@ -927,8 +927,15 @@
  					 hard_frame_pointer_rtx));
 -    }
  
-+      if (arm_abi == ARM_ABI_APCS32 && !optimize)
++      if (arm_abi == ARM_ABI_APCS32
++	  && (!optimize
++	      || (current_function_calls_alloca && !OPTION_APCS_STACK)))
 +	{
++	  /* These are the cases when we still have an uneliminated
++	     FRAME_POINTER_REGNUM usage: either in an unoptimized case, either
++	     when the function calls alloca and we don't have APCS stack
++	     checking which results in directly allocating alloca memory
++	     on the stack.  */
 +	  insn = emit_insn (gen_movsi (frame_pointer_rtx, stack_pointer_rtx));
 +	  RTX_FRAME_RELATED_P (insn) = 1;
 +	}
@@ -941,7 +948,7 @@
      arm_load_pic_register (0UL);
  
    /* If we are profiling, make sure no instructions are scheduled before
-@@ -10873,6 +11277,7 @@ arm_expand_prologue (void)
+@@ -10873,6 +11284,7 @@ arm_expand_prologue (void)
        emit_insn (gen_prologue_use (gen_rtx_REG (SImode, LR_REGNUM)));
        cfun->machine->lr_save_eliminated = 1;
      }
@@ -949,7 +956,7 @@
  }
  
  /* If CODE is 'd', then the X is a condition operand and the instruction
-@@ -11252,14 +11657,20 @@ arm_assemble_integer (rtx x, unsigned in
+@@ -11252,14 +11664,20 @@ arm_assemble_integer (rtx x, unsigned in
        if (NEED_GOT_RELOC && flag_pic && making_const_table &&
  	  (GET_CODE (x) == SYMBOL_REF || GET_CODE (x) == LABEL_REF))
  	{
@@ -976,7 +983,7 @@
  	}
        fputc ('\n', asm_out_file);
        return true;
-@@ -11947,7 +12358,7 @@ arm_debugger_arg_offset (int value, rtx 
+@@ -11947,7 +12365,7 @@ arm_debugger_arg_offset (int value, rtx 
  
    /* If we are using the stack pointer to point at the
       argument, then an offset of 0 is correct.  */
@@ -985,7 +992,7 @@
        && REGNO (addr) == SP_REGNUM)
      return 0;
  
-@@ -12714,7 +13125,7 @@ arm_expand_builtin (tree exp,
+@@ -12714,7 +13132,7 @@ arm_expand_builtin (tree exp,
      case ARM_BUILTIN_WSHUFH:
        icode = CODE_FOR_iwmmxt_wshufh;
        arg0 = TREE_VALUE (arglist);
@@ -994,7 +1001,7 @@
        op0 = expand_expr (arg0, NULL_RTX, VOIDmode, 0);
        op1 = expand_expr (arg1, NULL_RTX, VOIDmode, 0);
        tmode = insn_data[icode].operand[0].mode;
-@@ -13503,17 +13914,33 @@ arm_init_machine_status (void)
+@@ -13503,17 +13921,33 @@ arm_init_machine_status (void)
  #if ARM_FT_UNKNOWN != 0
    machine->func_type = ARM_FT_UNKNOWN;
  #endif
@@ -1029,7 +1036,7 @@
    return get_hard_reg_initial_val (Pmode, LR_REGNUM);
  }
  
-@@ -13619,7 +14046,7 @@ thumb_expand_prologue (void)
+@@ -13619,7 +14053,7 @@ thumb_expand_prologue (void)
    if (flag_pic)
      arm_load_pic_register (live_regs_mask);
  
@@ -1038,7 +1045,7 @@
      emit_move_insn (gen_rtx_REG (Pmode, ARM_HARD_FRAME_POINTER_REGNUM),
  		    stack_pointer_rtx);
  
-@@ -13653,7 +14080,7 @@ thumb_expand_prologue (void)
+@@ -13653,7 +14087,7 @@ thumb_expand_prologue (void)
  	     it now.  */
  	  for (regno = LAST_ARG_REGNUM + 1; regno <= LAST_LO_REGNUM; regno++)
  	    if (live_regs_mask & (1 << regno)
@@ -1047,7 +1054,7 @@
  		     && (regno == THUMB_HARD_FRAME_POINTER_REGNUM)))
  	      break;
  
-@@ -13711,7 +14138,7 @@ thumb_expand_prologue (void)
+@@ -13711,7 +14145,7 @@ thumb_expand_prologue (void)
  	}
      }
  
@@ -1056,7 +1063,7 @@
      {
        amount = offsets->outgoing_args - offsets->locals_base;
  
-@@ -13768,7 +14195,7 @@ thumb_expand_epilogue (void)
+@@ -13768,7 +14202,7 @@ thumb_expand_epilogue (void)
    offsets = arm_get_frame_offsets ();
    amount = offsets->outgoing_args - offsets->saved_regs;
  
@@ -1065,7 +1072,7 @@
      {
        emit_insn (gen_movsi (stack_pointer_rtx, hard_frame_pointer_rtx));
        amount = offsets->locals_base - offsets->saved_regs;
-@@ -15057,7 +15484,7 @@ arm_set_return_address (rtx source, rtx 
+@@ -15057,7 +15491,7 @@ arm_set_return_address (rtx source, rtx 
      emit_move_insn (gen_rtx_REG (Pmode, LR_REGNUM), source);
    else
      {
@@ -1074,7 +1081,7 @@
  	addr = plus_constant(hard_frame_pointer_rtx, -4);
        else
  	{
-@@ -15100,7 +15527,7 @@ thumb_set_return_address (rtx source, rt
+@@ -15100,7 +15534,7 @@ thumb_set_return_address (rtx source, rt
        offsets = arm_get_frame_offsets ();
  
        /* Find the saved regs.  */
@@ -1083,7 +1090,7 @@
  	{
  	  delta = offsets->soft_frame - offsets->saved_args;
  	  reg = THUMB_HARD_FRAME_POINTER_REGNUM;
-@@ -15157,13 +15584,97 @@ arm_shift_truncation_mask (enum machine_
+@@ -15157,13 +15591,97 @@ arm_shift_truncation_mask (enum machine_
    return mode == SImode ? 255 : 0;
  }
  
@@ -1182,7 +1189,7 @@
      return regno;
  
    /* TODO: Legacy targets output FPA regs as registers 16-23 for backwards
-@@ -15171,9 +15682,12 @@ arm_dbx_register_number (unsigned int re
+@@ -15171,9 +15689,12 @@ arm_dbx_register_number (unsigned int re
    if (IS_FPA_REGNUM (regno))
      return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
  

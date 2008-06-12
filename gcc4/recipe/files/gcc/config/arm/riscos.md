@@ -68,7 +68,7 @@
         (minus:SI (reg:SI 13) (match_dup 1)))
    (clobber (reg:SI 0))
    (clobber (reg:SI 14))]
-  "OPTION_APCS_STACK"
+  "TARGET_ARM && OPTION_APCS_STACK"
   "
 {
   arm_expand_allocate_stack (operands[0], operands[1]);

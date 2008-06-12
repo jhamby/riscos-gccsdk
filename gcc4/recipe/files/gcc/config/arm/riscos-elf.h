@@ -234,10 +234,6 @@
 #undef  TARGET_DEFAULT
 #define TARGET_DEFAULT (MASK_APCS_FRAME | MASK_UNIXLIB)
 
-/* Prevent FRAME_POINTER_REGNUM being clobbered in functions that call
-   alloca.  */
-#define PREVENT_FP_CLOBBER (OPTION_APCS_STACK)
-
 /* If we're targeting explicit APCS stack checks, then force calls to
    __builtin_return_address and __builtin_frame_address as library
    function calls.  */
@@ -271,11 +267,20 @@
 #define PIC_PLT_SCRATCH_REGNUM	8
 
 #undef SUBTARGET_CONDITIONAL_REGISTER_USAGE
-#define SUBTARGET_CONDITIONAL_REGISTER_USAGE	\
- if (flag_pic == 2 || TARGET_UNIXLIB)		\
-   {						\
-     call_used_regs[PIC_PLT_SCRATCH_REGNUM] = 1;\
-   }
+#define SUBTARGET_CONDITIONAL_REGISTER_USAGE			\
+  if (/* flag_pic == 2 || */ TARGET_UNIXLIB)			\
+    {								\
+      call_used_regs[PIC_PLT_SCRATCH_REGNUM] = 1;		\
+    }								\
+  if (TARGET_LIBSCL)						\
+    {								\
+      /* SL is preserved when stack checking is performed	\
+	 but for APCS-32 SCL code, we preserve SL even for	\
+	 non stack checking code because the SCL library needs	\
+	 it to find its private workspace.  */			\
+      fixed_regs[SL_REGNUM]     = 1;				\
+      call_used_regs[SL_REGNUM] = 1;				\
+    }								\
 
 /* For the throwback of GCC errors to a text editor.  */
 extern void arm_error_throwback (int lvl, const char *file, int line,
