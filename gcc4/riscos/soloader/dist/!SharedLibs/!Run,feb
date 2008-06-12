@@ -4,20 +4,18 @@ Unset Alias$SOMRun
 
 Set SharedLibs$Dir <Obey$Dir>
 
-If "<SharedLibs$Path>" = "" Then Set Run$Path <Run$Path>,SharedLibs:bin.
 If "<SharedLibs$Path>" = "" Then Set GCCSOLib$Path SharedLibs:lib.,<GCCSOLib$Path>
 
 Set SharedLibs$Path <SharedLibs$Dir>.
 
 IconSprites <Obey$Dir>.!Sprites
 
+Set Alias$SOMRun SharedLibs:SOM1stRun %%*0
+
 Set File$Type_E1F ELF
 Set Alias$@RunType_E1F SOMRun %%*0
 
 Set File$Type_1C8 Symlink
-
-RMEnsure SOManager	2.00 RMLoad <SharedLibs$Dir>.SOManager
-RMEnsure SOManager	2.00 Error Need at least v2.00 of Shared Object Manager (SOManager)
 
 | Environment setting
 Set LD$Env "LD_WARN=1"
