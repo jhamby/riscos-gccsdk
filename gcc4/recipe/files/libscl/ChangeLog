@@ -1,3 +1,13 @@
+Fri Jun 13 01:31:04 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/string.h(stricmp,strnicmp): Added prototype.
+	(strdup): Added malloc attribute.
+	* include/stdlib.h(malloc,calloc): Added malloc attribute.
+	* Makefile.am(string/strnicmp.c,string/stricmp.c): Added.
+	* string/strnicmp.c: Link to UnixLib version.
+	* string/stricmp.c: Link to UnixLib version.
+	* string/strdup.c: Replaced by a link to UnixLib version.
+
 Sun Feb  3 20:31:14 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/_exit.c (_Exit): Removed, we have this in our stubs defined.

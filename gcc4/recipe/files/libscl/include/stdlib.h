@@ -1,5 +1,6 @@
 /* stdlib.h standard header for the RISC OS SharedCLibrary.
    Copyright (c) 1997-2005 Nick Burrett
+   Copyright (c) 2008 UnixLib Developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without
@@ -136,14 +137,16 @@ extern void _ANSI_srand (unsigned int __seed);
 /* Allocate a block long enough to contain a vector of 'count'
    elements, each of size 'eltsize'. Its contents are cleared
    to zero before 'calloc' returns.  */
-extern void *calloc (size_t __count, size_t __eltsize);
+extern void *calloc (size_t __count, size_t __eltsize)
+  __attribute__ ((__malloc__));
 
 /* Deallocates the block of storage pointed at by 'ptr'.  */
 extern void free (void *__ptr);
 
 /* Return a pointer to a newly allocated block 'size' bytes
    long, or a null pointer if the block could not be allcated.  */
-extern void *malloc (size_t __size);
+extern void *malloc (size_t __size)
+  __attribute__ ((__malloc__));
 
 /* Change the size of the block whose address is 'ptr' to be 'newsize'.  */
 extern void *realloc (void *__ptr, size_t __newsize);

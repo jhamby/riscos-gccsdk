@@ -1,0 +1,1 @@
+../../libunixlib/string/strnicmp.c

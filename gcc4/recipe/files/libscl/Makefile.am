@@ -43,7 +43,9 @@ stdio_src = \
 	stdio/fdopen.c stdio/fileno.c
 # FIXME: stdlib_src: not done yet
 string_src = \
-	string/strdup.c
+	string/strdup.c \
+	string/stricmp.c \
+	string/strnicmp.c
 # FIXME: time_src: not done yet
 
 # All files in the 'include' directory.

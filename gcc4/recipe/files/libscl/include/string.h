@@ -1,5 +1,6 @@
 /* string.h standard header for the RISC OS SharedCLibrary.
    Copyright (c) 1997-2005 Nick Burrett
+   Copyright (c) 2008 UnixLib Developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without
@@ -63,6 +64,12 @@ extern int strcmp (const char *__s1, const char *__s2);
 /* Compare n chars of s1 and s2.  */
 extern int strncmp (const char *__s1, const char *__s2, size_t __n);
 
+/* Compare S1 and S2, ignoring case.  */
+extern int stricmp (const char *__s1, const char *__s2);
+
+/* Compare n chars of S1 and S2, ignoring case.  */
+extern int strnicmp (const char *__s1, const char *__s2, size_t __n);
+
 /* Similar to strcmp but uses the collating sequence of the
    current locale for collation (LC_COLLATE).  */
 extern int strcoll (const char *__s1, const char *__s2);
@@ -110,7 +117,8 @@ extern char *strerror (int __errnum);
 extern size_t strlen (const char *__s);
 
 /* Duplicate s, returning an identical malloc'd string.  */
-extern char *strdup (const char *__s);
+extern char *strdup (const char *__s)
+  __attribute__ ((__malloc__));
 
 
 #ifdef __cplusplus
