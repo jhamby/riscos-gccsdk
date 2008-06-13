@@ -1,6 +1,6 @@
 AB_SVN=http://svn.xiph.org/trunk/Tremor
 TREMOR_VERSION=1.0.2
-AB_ZIPNAME=tremor-dev-$TREMOR_VERSION
+AB_ZIPNAME=tremor-dev
 # Case doesn't match package name so alter package name
 AB_PACKAGE="Tremor"
 
