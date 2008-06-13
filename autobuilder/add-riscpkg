@@ -82,6 +82,9 @@ for param in $@ ; do
      -depends)
          depends="$depends, $param"
          ;;
+     -depver)
+         depends="$depends (>=$param)"
+         ;;
      -appdir)
          appdir="$param"
          ;;
