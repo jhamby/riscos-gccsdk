@@ -43,7 +43,7 @@ popd > /dev/null
 echo "Symlinking files"
 pushd $GCCSDK_RECIPE_FILES > /dev/null
 for dir in `find . -type d | grep -v "\.svn" ` ; do mkdir -p $GCCSDK_SRCDIR/$dir ; done
-for file in `find . -type f | grep -v "\.svn" ` ; do rm -f $GCCSDK_SRCDIR/$file; ln -s $GCCSDK_RECIPE_FILES/$file $GCCSDK_SRCDIR/$file ; done
+for file in `find . -type f -o -type l | grep -v "\.svn" ` ; do rm -f $GCCSDK_SRCDIR/$file; ln -s $GCCSDK_RECIPE_FILES/$file $GCCSDK_SRCDIR/$file ; done
 popd > /dev/null
 
 # 3. Run scripts in alphabetical order:
