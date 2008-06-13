@@ -19,7 +19,7 @@ ab_package()
   mv include/SDL SDL
   rm -rf include
 
-  mv lib/o o
+  mv lib/*.a .
   rm -rf lib
 
   cd doc

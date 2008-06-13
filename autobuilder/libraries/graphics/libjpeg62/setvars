@@ -39,7 +39,7 @@ ab_package() {
   mv include/h h
   rm -rf include
 
-  mv lib/o o
+  mv lib/*.a .
   rm -rf lib
 
   mv doc/$RO_PKG/* doc

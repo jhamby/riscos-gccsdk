@@ -2,6 +2,10 @@ AB_CATEGORY=Library
 AB_ZIPNAME=libsdl-net1.2-dev
 AB_INSTALL=yes
 
+# Package version needs help as download doesn't have same name
+AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#sdl-net1.2-## -e "s/[^-]*-//")
+AB_ROVERSION=2
+
 export SED=sed
 
 ab_package()
@@ -18,7 +22,7 @@ ab_package()
   mv include/SDL SDL
   rm -rf include
 
-  mv lib/o o
+  mv lib/*.a .
   rm -rf lib
 
   cd doc
@@ -31,5 +35,5 @@ ab_package()
   cd $HERE
 
   $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
-    -depends "libsdl1.2-dev"
+    -depends "libsdl1.2-dev" -depver "1.2.13-2"
 }

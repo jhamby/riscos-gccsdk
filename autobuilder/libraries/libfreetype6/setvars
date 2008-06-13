@@ -41,7 +41,7 @@ ab_package() {
   mv include/freetype2 freetype2
   rm -rf include
 
-  mv lib/o o
+  mv lib/*.a .
   rm -rf lib
 
   rm -rf bin
