@@ -12,7 +12,7 @@ read
 
 
 # Build bjam
-CC=gcc-4.1; cd tools/jam/src && sh build.sh cc; cd ../../..
+CC=gcc; cd tools/jam/src && sh build.sh cc; cd ../../..
 
 # Find it
 BJAM=`find $PWD/tools/jam -name bjam`
