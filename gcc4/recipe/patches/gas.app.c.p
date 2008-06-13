@@ -1,11 +1,6 @@
-===================================================================
-RCS file: /cvs/src/src/gas/app.c,v
-retrieving revision 1.43
-retrieving revision 1.44
-diff -u -r1.43 -r1.44
---- gas/app.c	2007/07/03 11:01:02	1.43
-+++ gas/app.c	2007/07/20 08:20:27	1.44
-@@ -558,8 +558,14 @@
+--- gas/app.c.orig	2006-03-10 11:57:18.000000000 +0100
++++ gas/app.c	2008-06-13 02:05:12.000000000 +0200
+@@ -561,8 +561,14 @@ do_scrub_chars (int (*get) (char *, int)
  	  ch = GET ();
  	  if (ch == EOF)
  	    {
