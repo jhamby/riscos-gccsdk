@@ -77,13 +77,6 @@ if [ -d "$AB_OUTPUTLIB" ] ; then
      mkdir -p $dirname/h
      mv $file $dirname/h/$filename
    fi
-
-   if echo $file | grep "\.a$" > /dev/null ; then
-     filename=$(basename $file | sed s#\.a\$##)
-     dirname=$(echo $file | sed s#/$filename\.a\$##)
-     mkdir -p $dirname/o
-     mv $file $dirname/o/$filename
-   fi
   done
 
   if [ -e $AB_OUTPUTLIB/$RO_PKG.zip ] ; then
