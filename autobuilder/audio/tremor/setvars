@@ -26,7 +26,7 @@ ab_package() {
   mv include/tremor tremor
   rm -rf include
 
-  mv lib/o o
+  mv lib/*.a .
   rm -rf lib
 
   cd doc
