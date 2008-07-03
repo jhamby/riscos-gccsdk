@@ -43,8 +43,6 @@ RPKG_GCCCORE_NAME=GCCSDK4
 RPKG_GCCGPP_NAME=GCCSDK4-G++
 RPKG_SHAREDLIBSC_NAME=SharedLibs-C
 RPKG_SHAREDLIBSGPP_NAME=SharedLibs-G++
-RPKG_EXAMPLES_NAME=GCCSDK4-Examples
-
 
 GCCSDK_MAINTAINER="GCCSDK mailing list <gcc@gccsdk.riscos.info>"
 
@@ -136,6 +134,9 @@ mkdir temp
 cd temp
 mkdir -p Apps/Development
 cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC Apps/Development
+
+# Add Examples
+cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/Examples Apps/Development/\!GCC
 
 mkdir RiscPkg
 
@@ -347,40 +348,6 @@ gpl_copyright
 set_file_types
 
 $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_SHAREDLIBSGPP_NAME\_$RPKG_SHAREDLIBSGPP_VERSION.zip *
-
-cd ..
-rm -rf temp
-
-# Examples
-##########
-
-mkdir temp
-cd temp
-mkdir -p Apps/Development/GCC4-Examples
-
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/Examples/* Apps/Development/GCC4-Examples
-
-mkdir RiscPkg
-
-echo "Package: $RPKG_EXAMPLES_NAME" > RiscPkg/Control
-echo "Version: $GCCSDK_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
-echo "Priority: Optional" >> RiscPkg/Control
-echo "Section: Development" >> RiscPkg/Control
-echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
-echo "Standards-Version: 0.1.0" >> RiscPkg/Control
-echo "Licence: Free" >> RiscPkg/Control
-echo "Description: Compilation Examples for GCC4" >> RiscPkg/Control
-
-# Create copyright
-echo "GCC Examples" > RiscPkg/Copyright
-copyright_header
-echo "GCC Examples copyright" >> RiscPkg/Copyright
-echo "======================" >> RiscPkg/Copyright
-gpl_copyright
-
-set_file_types
-
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_EXAMPLES_NAME\_$GCCSDK_RELEASE_NAME-$RPKG_VERSION.zip *
 
 cd ..
 rm -rf temp
