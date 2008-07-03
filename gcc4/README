@@ -360,7 +360,30 @@ More information on running GCC testsuite can be found at
 <URL:http://gcc.gnu.org/install/test.html>.
 
 
-7. Credits
+7. RISC OS Packaging Project packages
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A set of packages suitable for use with the RISC OS Packaging Project
+can be created by running:
+
+  $ ./create-riscpkg
+
+from the gcc4 directory after running the create-gcckit script documented
+above.
+
+The packages are output to release-area/riscpkg.
+
+No additional tools are required for this script.
+
+The compilers and base GCC use the version numbers of the GCCSDK, however
+the support modules, shared library loader, C and C++ shared libraries
+need their versions set by editing the riscpkg-versions script.
+
+More information on the RISC OS Packaging Project can be found at
+<URL:http://www.riscpkg.org>
+
+
+8. Credits
 ~~~~~~~~~~
 
 The initial static ELF RISC OS work for GCC 4.1 was done by Nick Burrett (Jun
