@@ -4,6 +4,10 @@
 
 /* #define DEBUG */
 
+#ifdef __TARGET_SOLOADER__
+#define __TARGET_SCL__
+#endif
+
 #ifdef __TARGET_SCL__
 
 #  define __RISCOSIFY
@@ -17,11 +21,7 @@
 
 #  define OSFILE_READCATINFO_NOPATH   17
 
-extern const char __filename_char_map[256];
-
 #  define stricmp strcmp
-
-#  define debug_printf printf
 
 #  include <kernel.h>
 
@@ -42,6 +42,29 @@ extern const char __filename_char_map[256];
 #include <swis.h>
 #include <stdlib.h>
 #include <ctype.h>
+
+#ifdef __TARGET_SOLOADER__
+#  include <unixlib/local.h>
+#define memcpy _dl_memcpy
+#define malloc _dl_malloc
+#define strncmp _dl_strncmp
+#define strcat _dl_strcat
+#define strcpy _dl_strcpy
+#define strchr _dl_strchr
+#define getenv _dl_getenv
+
+#define __riscosify_scl _dl_riscosify_dl
+#define __riscosify_std _dl_riscosify_std
+#define __riscosify     _dl_riscosify
+#define __sfixinit _dl_sfixinit 
+#define __sfixfind _dl_sfixfind
+
+#define __filename_char_map _dl_filename_char_map
+extern const char _dl_filename_char_map[256];
+
+#define __get_riscosify_control() (0)
+
+#endif
 
 /* Special directory list.  */
 struct sdir
@@ -96,6 +119,7 @@ static struct sfix *__sfix[SFIXSIZE] = {
 
 static char *copy_or_null (char *to, const char *from, const char *buf_end);
 
+#ifndef __TARGET_SOLOADER__
 /* For all UnixFS$/#* global environment values, set up a mapping as
    requested by the user to map Unix directories to RISC OS directories.
    See __riscosify[_std] ().  Called from unix/features.c.  */
@@ -152,6 +176,7 @@ __sdirinit (void)
   if (i < MAXSDIR)
     __sdir[i].name = NULL;
 }
+#endif
 
 static __inline int
 sfix_hash (const char *suffix)
@@ -172,12 +197,14 @@ __sfixinit (const char *list)
     {
       struct sfix *entry;
 
+#ifndef __TARGET_SOLOADER__
       for (entry = __sfix[i]; entry;)
 	{
 	  struct sfix *next = entry->next;
 	  free (entry);
 	  entry = next;
 	}
+#endif
       __sfix[i] = NULL;
     }
 
@@ -470,6 +497,7 @@ translate_or_null (int create_dir, int flags,
   debug_printf ("before ,xyz and suffix checking '%s'\n", buffer);
 #endif
 
+#ifndef __TARGET_SOLOADER__
   /* Use MimeMap to find a filetype to match the filename
      extension.  e.g.  file.html -> 0xfaf */
   if (!(flags & __RISCOSIFY_FILETYPE_NOT_SET)
@@ -494,7 +522,9 @@ translate_or_null (int create_dir, int flags,
 	*filetype = regs.r[3];
 
     }
+#endif
 
+#ifndef __TARGET_SOLOADER__
   /* Check if we have "blabla,xyz" as filename where `xyz' is a
      valid 12 bit hex number.  Only perform the check if
      __RISCOSIFY_FILETYPE_EXT is set and xyz != 0xfff.  However
@@ -519,6 +549,7 @@ translate_or_null (int create_dir, int flags,
       /* Remove the comma and extension from the output */
       out -= 4;
     }
+#endif
 
   /* Terminate the output */
   *out = '\0';
@@ -547,6 +578,7 @@ translate_or_null (int create_dir, int flags,
 	    return NULL;
 	}
 
+#ifndef __TARGET_SOLOADER__
       if (create_dir)
 	{
 	  _kernel_swi_regs regs;
@@ -566,6 +598,7 @@ translate_or_null (int create_dir, int flags,
 	      _kernel_swi (OS_File, &regs, &regs);
 	    }
 	}
+#endif
 
       /* Copy the leafname without suffix */
       leaf_len = last_out_dot - last_out_slash;
@@ -812,6 +845,10 @@ canonicalise_unix_path (char *to, const char *from, const char *buf_end)
   else
     return to;
 }
+
+char *
+__riscosify (const char *name, int create_dir,
+	     int flags, char *buffer, size_t buf_len, int *filetype);
 
 /* Call __riscosify() with __riscosfy_control as the flags.
    Place adjacent to __riscosify() to help with cache hits.  */
@@ -1487,7 +1524,6 @@ __riscosify (const char *name, int create_dir,
 
 static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
 
-
 char *
 __riscosify_scl (const char *name, int create_dir)
 {
@@ -1498,6 +1534,10 @@ __riscosify_scl (const char *name, int create_dir)
 
   if (!riscosify_init)
     {
+#ifdef __TARGET_SOLOADER__
+      riscosify_init = 1;
+      __sfixinit (__sfix_default);
+#else
       char buf[1024];
       char *cmd, *start;
 
@@ -1523,6 +1563,7 @@ __riscosify_scl (const char *name, int create_dir)
       riscosify_init = 1;
       __sdirinit ();
       __sfixinit (cmd ? cmd : __sfix_default);
+#endif
     }
 
   /* Swap between two static buffers to allow the rename call to work */

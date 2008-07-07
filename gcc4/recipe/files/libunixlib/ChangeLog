@@ -1,3 +1,10 @@
+Sun Jul  6 17:12:39 PDT 2008  Peter Naulls  <peter@chocky.org>
+
+	* common/riscosify.c: Add defines for a cut-down version of
+	__riscosify for the benefit libdl, which only needs to handle a single 
+	case.  This doesn't change the behaviour of the code for UnixLib or
+	SCL.
+
 Fri Jun 13 01:33:48 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/bits/netdb.h(_sclose,_sread,_swrite,_sioctl): Move internal
