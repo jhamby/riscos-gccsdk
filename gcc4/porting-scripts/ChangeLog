@@ -1,3 +1,15 @@
+Sun Jul  6 17:19:12 PDT 2008  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Always build dynamic and static libraries by default.
+	Pass ld for linker instead of GCC, since configure expects this
+	for dymamic linking - previously we didn't since under AOF we
+	never referred directly to drlink.
+
+Sat Jun  7 13:32:13 PDT 2008  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Additional library path for shared library linking,
+	  do have statfs.h.
+
 Thu Mar 20 21:11:19 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* ChangeLog: reformat.

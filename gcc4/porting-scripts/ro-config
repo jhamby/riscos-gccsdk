@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export RO_SHAREDLIBS=yes
+
 if [ "$RO_DIST" == "yes" ] ; then
   ro_distcc="$(which distcc) "
 else
@@ -210,7 +212,7 @@ fi
 
 # Set Static and Dynamic options
 if [ x"$RO_SHAREDLIBS" == xyes ] ; then
-  # Force shared library building:
+  # Enable shared library building
   if grep -q -- --enable-shared $tmpoutconfigure; then
     echo RISC OS: Enabling shared libraries
     ro_shared=--enable-shared
@@ -218,17 +220,8 @@ if [ x"$RO_SHAREDLIBS" == xyes ] ; then
     ro_shared=
   fi
 
-  if grep -q -- --enable-static $tmpoutconfigure; then
-    echo RISC OS: Disable static libraries
-    ro_static=--enable-static=no
-  elif grep -q -- --disable-static $tmpoutconfigure; then
-    echo RISC OS: Disable static libraries
-    ro_static=--disable-static
-  else
-    ro_static=
-  fi
 else
-  # Force static library building:
+  # Disable shared library building
   if grep -q -- --enable-shared $tmpoutconfigure; then
     echo RISC OS: Disabling shared libraries
     ro_shared=--enable-shared=no
@@ -238,15 +231,16 @@ else
   else
     ro_shared=
   fi
+fi
 
-  if grep -q -- --enable-static $tmpoutconfigure; then
-    echo RISC OS: Enabling static libraries
-    ro_static=--enable-static=yes
-  elif grep -q -- " -static" $tmpoutconfigure; then
-    ro_static=-static
-  else
-    ro_static=
-  fi
+# Always build static
+if grep -q -- --enable-static $tmpoutconfigure; then
+  echo RISC OS: Enabling static libraries
+  ro_static=--enable-static=yes
+elif grep -q -- " -static" $tmpoutconfigure; then
+  ro_static=-static
+else
+  ro_static=
 fi
 
 
@@ -321,10 +315,11 @@ export CPP="GCCSDK_BIN/arm-unknown-riscos-cpp"
 export RAWCPP=$CPP
 export CPPFLAGS="-isystem GCCSDK_ENV/include"
 export CXX="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-g++"
+export LD="GCCSDK_BIN/arm-unknown-riscos-ld"
 
 if [ x"$RO_SHAREDLIBS" == xyes ] ; then
   export CFLAGS+=
-  export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS"
+  export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS -LGCCSDK_BIN/../arm-unknown-riscos/lib"
 else
   export CFLAGS+=" -static "
   export LDFLAGS="-LGCCSDK_ENV/lib -static $AB_LDFLAGS"
@@ -540,7 +535,7 @@ export ac_cv_header_tcl_h=yes
 export ac_cv_header_readline_h=yes
 export ac_cv_header_nl_types_h=no
 export ac_cv_header_sys_vfs_h=yes
-export ac_cv_header_sys_statfs_h=no
+export ac_cv_header_sys_statfs_h=yes
 export ac_cv_header_sys_statvfs_h=no
 
 export ac_cv_lib_z_deflate=yes
