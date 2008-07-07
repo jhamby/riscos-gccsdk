@@ -11,7 +11,8 @@ CFLAGS += -I. -I./$(ARCH) -DNO_UNDERSCORE -DVERBOSE_DLINKER -DUSE_CACHE \
 CFLAGS_EXTRA = -mno-apcs-stack-check
 # -g
 
-DLINK_OBJS = $(OBJDIR)/boot1.o $(OBJDIR)/hash.o $(OBJDIR)/readelflib1.o $(OBJDIR)/vsprintf.o
+DLINK_OBJS = $(OBJDIR)/boot1.o $(OBJDIR)/hash.o $(OBJDIR)/readelflib1.o $(OBJDIR)/vsprintf.o \
+             $(OBJDIR)/riscosify.o
 
 OBJS	= $(DLINK_OBJS)
 
@@ -32,6 +33,11 @@ $(OBJDIR)/%.o: %.c
 	$(CC) $(CFLAGS) -o $@ -c $<
 	$(OBJCOPY) --redefine-sym __rt_stkovf_split_small=_dl_stkovf_split_small --redefine-sym __rt_stkovf_split_big=_dl_stkovf_split_big $@
 
+
+$(OBJDIR)/riscosify.o:  ../../../../../srcdir/libunixlib/common/riscosify.c
+	$(CC) $(CFLAGS) -o $@ -c $< -D__TARGET_SOLOADER__
+	$(OBJCOPY) --redefine-sym __rt_stkovf_split_small=_dl_stkovf_split_small --redefine-sym __rt_stkovf_split_big=_dl_stkovf_split_big $@
+
 $(OBJDIR)/boot1.o: boot1.c
 	$(CC) $(CFLAGS) $(CFLAGS_EXTRA) -o $@ -c $<
 
@@ -49,3 +55,4 @@ $(OBJDIR)/readelflib1.o: readelflib1.c riscos/sysdep.h riscos/syscall.h riscos/s
 $(OBJDIR)/elfinterp.o: riscos/elfinterp.c riscos/syscall.h
 $(OBJDIR)/resolve.o: riscos/resolve.s
 $(OBJDIR)/vsprintf.o: vsprintf.c riscos/syscall.h
+

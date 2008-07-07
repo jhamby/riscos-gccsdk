@@ -264,7 +264,7 @@ struct elf_resolve * _dl_load_shared_library(int secure,
   pnt1 = "/usr/i486-sysv4/lib/";
 #else
 /*  pnt1 = "/usr/lib/";*/
-  pnt1 = "SharedLibs:lib/";
+  pnt1 = "SharedLibs:/lib/";
 #endif
   pnt = mylibname;
   while(*pnt1) *pnt++ = *pnt1++;
@@ -277,7 +277,7 @@ struct elf_resolve * _dl_load_shared_library(int secure,
 #ifndef IBCS_COMPATIBLE
   /* Check in /lib */
   /* try "/lib/". */
-  pnt1 = "/lib/";
+  pnt1 = "";
   pnt = mylibname;
   while(*pnt1) *pnt++ = *pnt1++;
   pnt1 = libname;
@@ -327,26 +327,8 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
   struct object_info objinfo;
   char ro_libname[2048];
 
-  /* Very simple filename translation. Convert all '.' to '/' and
-     visa versa. Avoid altering the original string */
-  {
-  char *s = libname, *d = ro_libname;
-
-    while (*s != '\0')
-    {
-      if (*s == '.')
-        *d = '/';
-      else if (*s == '/')
-        *d = '.';
-      else
-        *d = *s;
-      d++;
-      s++;
-    }
-    *d = '\0';
-
-    libname = ro_libname;
-  }
+  extern char *_dl_riscosify(const char *name, int create_dir);
+  libname = _dl_riscosify_dl(libname, 0);
 
   /* If this file is already loaded for the current client , skip this step */
   tpnt = _dl_check_hashed_files(libname);
