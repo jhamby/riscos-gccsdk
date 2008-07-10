@@ -1,3 +1,9 @@
+Wed Jul 09 21:55:34 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_utilswis.c(som_iterate_objects): When the last/first object
+	has been returned, make sure r1 (internal handle) is set to 0 on
+	exit.
+
 Mon Mar 10 17:17:26 2008  Lee Noar  <leenoar@sky.com>
 
 	* som_runcom.c: Change occurrence of DSOLib: to SharedLibs: as part

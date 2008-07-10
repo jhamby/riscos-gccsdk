@@ -1,6 +1,6 @@
 /* som_utilswis.c
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007, 2008 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -138,10 +138,13 @@ som_iterate_objects (_kernel_swi_regs *regs)
       break;
     }
 
-  if (err)
+  if (err || result_object == NULL)
     regs->r[0] = regs->r[1] = 0;
-  else if ((regs->r[1] = (unsigned int) result_object) != 0)
-    regs->r[0] = result_object->handle;
+  else
+    {
+      regs->r[1] = (unsigned int) result_object;
+      regs->r[0] = result_object->handle;
+    }
 
   return err;
 }
