@@ -149,38 +149,6 @@ struct elf_resolve * _dl_add_elf_hash_table(char * libname,
 }
 
 /*
- * Find the named symbol, searching only in the given object. This is useful for finding
- * a common object like the GOT where _dl_find_hash() will always return the executable's
- * copy.
- */
-char *_dl_find_hash_in_lib(char *name,struct elf_resolve *tpnt)
-{
-unsigned int elf_hash_number, hn;
-Elf32_Sym * symtab;
-char * strtab;
-char * pnt;
-int si;
-
-  elf_hash_number = _dl_elf_hash(name);
-
-  do_rem(hn, elf_hash_number, tpnt->nbucket);
-
-  symtab = (Elf32_Sym *) (tpnt->dynamic_info[DT_SYMTAB] +
-				       tpnt->loadaddr);
-  strtab = (char *) (tpnt->dynamic_info[DT_STRTAB] + tpnt->loadaddr);
-
-  for (si = tpnt->elf_buckets[hn]; si; si = tpnt->chains[si])
-  {
-    pnt = strtab + symtab[si].st_name;
-
-    if (_dl_strcmp(pnt, name) == 0)
-      return tpnt->loadaddr + symtab[si].st_value;
-  }
-
-  return 0;
-}
-
-/*
  * This function resolves externals, and this is either called when we process
  * relocations or when we call an entry in the PLT table for the first time.
  */

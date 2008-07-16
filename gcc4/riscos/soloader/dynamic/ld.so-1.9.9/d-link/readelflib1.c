@@ -532,18 +532,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
     {
     char *got;
 
-      /*
-       * We can't rely on DT_PLTGOT to give us a pointer to the GOT and we can't
-       * rely on _GLOBAL_OFFSET_TABLE_ being exported by the library, so we use
-       * our own symbol.
-       */
-      got = (char *)_dl_find_hash_in_lib("som___got",tpnt);
-      if (!got)
-      {
-        _dl_internal_error_number = DL_NO_SYMBOL;
-        _dl_fdprintf(2, "%s: '%s' is missing the som___got symbol\n", _dl_progname, libname);
-        return NULL;
-      }
+      got = (char *)(dynamic_info[DT_PLTGOT] + libaddr);
 
       objinfo.got_offset = (got - objinfo.public_rw_ptr);
 

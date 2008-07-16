@@ -72,7 +72,6 @@ extern char * _dl_find_hash(char * name, struct dyn_elf * rpnt1,
 			    struct elf_resolve **lib,
 			    struct elf_resolve * f_tpnt,
 			    int copyrel);
-extern char * _dl_find_hash_in_lib(char * name,struct elf_resolve * tpnt);
 
 extern int _dl_linux_dynamic_link(void);
 
