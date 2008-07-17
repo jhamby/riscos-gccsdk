@@ -154,10 +154,11 @@ fi
 has_description=""
 has_licence=""
 has_depends=""
+
 if [ -e "$H/RiscPkg/Control" ] ; then
-  has_description=`grep "^Package:" $H/RiscPkg/Control`
-  has_licence=`grep "^Licence:" $H/RiscPkg/Control`
-  has_depends=`grep "^Depends:" $H/RiscPkg/Control`
+  has_description=`grep "^Description:" $H/RiscPkg/Control` || true
+  has_licence=`grep "^Licence:" $H/RiscPkg/Control` || true
+  has_depends=`grep "^Depends:" $H/RiscPkg/Control` || true
 fi
 
 echo "Package: $package" > $D/RiscPkg/Control
@@ -276,7 +277,7 @@ else
   if [ "$has_copyright" == "no" ] && [ ! -z "$copyrightfile" ] ; then
     if [ -e $copyrightfile ] ; then
       lic=`head -1 $copyrightfile`
-      lgpl=`echo $lic | grep "GNU LESSER GENERAL PUBLIC LICENSE"`
+      lgpl=`echo $lic | grep "GNU LESSER GENERAL PUBLIC LICENSE"` || true
       if [ ! -z "$lgpl" ] ; then
         echo "Distribution and use are subject to the GNU Lesser General Public License," >> $D/RiscPkg/Copyright
         echo "a copy of which may be found in the file:" >> $D/RiscPkg/Copyright
@@ -287,7 +288,7 @@ else
         echo "" >> $D/RiscPkg/Copyright
         echo "http://www.riscpkg.org/licences/LGPL-2.1.txt" >> $D/RiscPkg/Copyright
       else
-        gpl=`echo $lic | grep "GNU GENERAL PUBLIC LICENSE"`
+        gpl=`echo $lic | grep "GNU GENERAL PUBLIC LICENSE"` || true
         if [ ! -z "$gpl" ] ; then
           echo "Distribution and use are subject to the GNU General Public License," >> $D/RiscPkg/Copyright
           echo "a copy of which may be found in the file:" >> $D/RiscPkg/Copyright
