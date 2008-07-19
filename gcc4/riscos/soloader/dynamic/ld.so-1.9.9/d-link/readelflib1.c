@@ -573,12 +573,6 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
 
   if (lpnt)
   {
-    /* It's OK to write the dynamic linker address into the public GOT as it's
-     * the same for all libraries.
-     */
-    lpnt = (int *) (dynamic_info[DT_PLTGOT] + ((int) libaddr));
-    lpnt[4] = (int) _dl_riscos_resolve;
-
     lpnt = (int *) (objinfo.private_rw_ptr + objinfo.got_offset);
     INIT_GOT(lpnt, tpnt);
   }

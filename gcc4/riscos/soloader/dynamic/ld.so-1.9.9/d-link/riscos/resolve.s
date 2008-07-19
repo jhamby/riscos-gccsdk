@@ -26,21 +26,16 @@
 RESOLVE:
 	@ we get called with
 	@	r8 contains &GOT[n+5] (pointer to function - private GOT)
-	@	lr points to &GOT[4] (public GOT)
+	@	lr points to &GOT[5] (private GOT)
 
 	@ We have to be careful which registers we use here. We can't use
 	@ any that the stack extension routines may require to be preserved
 	@ (eg, sl, fp, ip).
 
-	@ lr is already on the stack
+	@ lr was already stacked by the PLT
+	@ ip is stacked for the sake of the stack extension routines, as
+	@ the fixup routine may corrupt it.
 	stmfd	sp!, {r0-r3, ip}
-
-	@ Find the private GOT of the object
-	ldr	r2, [lr, #-12]		@ r2 = Object index
-	ldr	r3, [lr, #-8]		@ r3 = GOT array location
-	ldr	r3, [r3, #0]		@ r3 = GOT array
-	ldr	lr, [r3, r2, lsl#4]	@ lr = GOT
-	add	lr, lr, #16		@ lr = &GOT[4] (private GOT)
 
 	@ prepare to call fixup()
 	@ change &GOT[n+5] into 8*n        NOTE: reloc are 8 bytes each

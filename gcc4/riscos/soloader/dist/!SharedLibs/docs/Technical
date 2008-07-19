@@ -24,7 +24,7 @@ four words are 0. The first element in the runtime array is always the client
 object.
 
 A pointer to the runtime array is stored in the runtime workspace of the client.
-This currently starts at 0x80D4. As this workspace exists in the client's
+This currently starts at 0x8034. As this workspace exists in the client's
 application space, each client can store its own array at the same address.
 
 Global Offset Table (GOT)
@@ -45,7 +45,7 @@ GOT[4] = _dl_riscos_resolve - pointer to routine to link functions at runtime
 
 When the dynamic loader processes the libraries the client requires, it fills
 in GOT[1] with the library's index into the runtime array and GOT[2] with the
-location of the runtime array (currently 0x80D4). These two entries are used
+location of the runtime array (currently 0x8034). These two entries are used
 by the PIC register loading code.
 
 Loading of PIC register
@@ -77,42 +77,56 @@ Note the .LPIC0+4 (rather than .LPIC0+8) is necessary in order to point to
 Procedure Linkage Table
 -----------------------
 
-The first entry of a PLT is the same for both shared libraries and executables:
-
-	STR	lr, [sp, #-4]!			@ Save return address
-	LDR	lr, [pc, #4]
-	ADD	lr, pc, lr			@ lr = Library public GOT
-	LDR	pc, [lr, #16]!			@ Call resolver with
-	&GOT[0] - .				@ r8 = &GOT[n+5], lr = &GOT[5]
-
+The format of the entries in the PLT depends on whether they are part of an
+executable or a library.
 When lazy binding, all functions initially call the first PLT entry so that
-they can be dynamically linked.
+they can be dynamically linked. In the executable there is no separate public
+and private GOT; they are one in the same, ie, they have the same address. This
+allows the first PLT entry to access the GOT directly in much the same way as
+the ARM Linux version does, the only difference being the offset in the load
+instruction:
 
-The format of subsequent entries of a PLT depends on whether it is part of a
-shared library or an executable. With a shared library, the PIC register is
-already loaded making the PLT entries relatively simple:
+	STR	lr, [sp, #-4]!		@ Save return address
+	LDR	lr, [pc, #4]
+	ADD	lr, pc, lr		@ lr = GOT
+	LDR	pc, [lr, #16]!		@ Call resolver with
+	&GOT[0] - .			@ r8 = &GOT[n+5], lr = &GOT[5]
 
-	@ assumes caller setup r7 as private GOT
+In a shared library, the first PLT can take advantage of the fact that the caller
+has already loaded the PIC register with the address of the client's private copy
+of the GOT:
+
+	STR	lr, [sp, #-4]!		@ Save return address
+	MOV	lr, r7			@ lr = private GOT
+	LDR	pc, [lr, #16]!		@ Call resolver with
+					@ r8 = &GOT[n+5], lr = &GOT[5]
+
+The format of subsequent entries of a PLT have a similar structure in both
+executables and shared libraries, however, they are not the same.
+Again, in an executable, the PLT entries can take advantage of the fact that the
+public and private GOT have the same address allowing code similar to ARM Linux
+to be used:
+
+	ADD	r8, pc, #0x0XX00000
+	ADD	r8, r8, #0x000XX000
+	LDR	pc,[r8, #0x00000XXX]!
+
+The only difference to ARM Linux is the use of register r8 instead of r12. Under
+RISC OS, r12 cannot be used because the stack extension routines require that it
+be preserved.
+
+In a shared library, a slightly different format must be used:
+
 	ADD	r8, r7, #0x0XX00000
 	ADD	r8, r8, #0x000XX000
 	LDR	pc,[r8, #0x00000XXX]!
 
-In an executable, the PIC register is not used and therefore not loaded making
-it necessary for the PLT entry to load the PIC register itself. This makes it
-more complex, however, because the PLT is in the client, the object index can be
-assumed to be 0 meaning that it does not have to be loaded from the GOT:
-
-	@ caller cannot setup r7 as private GOT,
-	@ PLT has to do it itself, however, we can assume
-	@ that the object index is 0.
-	LDR	r8, [pc, #20]			@ r8 = GOT (public)
-	LDR	r8, [pc, r8]			@ r8 = runtime array location
-	LDR	r8, [r8, #0]			@ r8 = runtime array
-	LDR	r8, [r8, #0]			@ r8 = GOT (private)
-	ADD	r8, r8, #0x0XX00000
-	ADD	r8, r8, #0x000XX000
-	LDR	pc,[r8, #0x00000XXX]! 		@ Call function
-	&GOT[0] - .
+In this case, the caller has already loaded the PIC register with the client's
+private copy of the GOT and the immediate values applied in the above instructions
+add up to the offset of the relevant function from the start of the GOT. This is
+different from the exectuable case above whereby the immediate values add up to
+the difference between the current PC and the location of the relevant function in
+the GOT.
 
 Memory layout
 -------------
