@@ -72,7 +72,8 @@ an ELF sharable library or a linux style of shared library. */
 
 extern char *_dl_progname;
 
-unsigned int _dl_riscos_resolver(struct elf_resolve *tpnt, int reloc_entry)
+unsigned int __attribute__ ((visibility ("hidden")))
+_dl_riscos_resolver(struct elf_resolve *tpnt, int reloc_entry)
 
 {
   int reloc_type;

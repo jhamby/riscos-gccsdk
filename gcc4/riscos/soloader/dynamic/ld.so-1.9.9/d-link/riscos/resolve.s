@@ -47,18 +47,8 @@ RESOLVE:
 	ldr	r0, [lr, #-4]
 
 	@ Call fixup routine
-	ldr	r3, 0f
-	add	r3, pc, r3
-1:
-	ldr	r2, 2f
-	mov	lr, pc
-	add	pc, r3, r2
-	b	3f
-0:
-	.word	_GLOBAL_OFFSET_TABLE_ - 1b - 4
-2:
-	.word	RESOLVER(GOTOFF)
-3:
+	bl	_dl_riscos_resolver
+
 	@ Save the return
 	mov	r8, r0
 
