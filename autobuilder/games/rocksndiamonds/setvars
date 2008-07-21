@@ -1,0 +1,27 @@
+AB_CATEGORY=Games
+AB_URL=http://artsoft.org/RELEASES/unix/rocksndiamonds/rocksndiamonds-3.2.4.tar.gz
+
+AB_DISTCLEAN="$AB_MAKE dist-clean PLATFORM=unix"
+
+ab_make() {
+  eval "$AB_MAKE PLATFORM=unix CC=$CC EXTRA_LDFLAGS='-static -lvorbisidec -ljpeg -lpng -ltiff -lz' RO_GAMEDIR='RocksNDmds:' RW_GAMEDIR='~'"
+}
+
+ab_package() {
+  
+  AD=$D/Apps/Games/\!RocksNDmds
+  mkdir -p $AD
+  cp $H/\!RocksNDmds/\!* $AD
+  cp rocksndiamonds $AD/rocksndiamonds$AB_EXEEXT
+  cp README $AD/\!Help
+
+  cp ChangeLog COPYING CREDITS TODO $AD
+  cp -r docs $AD
+  cp -r graphics $AD
+  cp -r levels $AD
+  cp -r music $AD
+  cp -r sounds $AD
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+    -copyrightfile $S/COPYING
+}
