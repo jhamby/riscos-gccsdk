@@ -1,0 +1,16 @@
+| Run file for Penguin Command
+
+Wimpslot -min 12768K -max 12768K
+
+RMEnsure DigitalRenderer 0.51 RMLoad System:modules.DRenderer
+
+| Need larger audio buffer than the default for startup
+Set SDL$PengCmnd$AudioBuffer 8192
+
+| Close does nothing so hide close icon
+Set SDL$PengCmnd$CloseAction 0
+
+Set PengCmnd$Dir <Obey$Dir>
+Set PengCmnd$Path <PengCmnd$Dir>.
+
+Run <PengCmnd$Dir>.!RunImage >null: 2>null:
