@@ -1,1 +1,21 @@
+AB_CATEGORY=Games
 
+ab_package() {
+  AD=$D/Apps/Games/\!Heroes
+  mkdir -p $AD
+  cp -r $H/\!Heroes/* $AD
+
+  cp src/heroes,e1f $AD
+  cp src/heroeslvl,e1f $AD
+  cp doc/heroes.html $AD/docs
+  cp AUTHORS ChangeLog COPYING README THANKS TODO $AD/docs
+
+  mkdir -p $AD/share/heroes/etc
+  cp src/etc/heroesrc $AD/share/heroes/etc
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+     -depends heroes-data
+}
+
+# export LIBS doesn't work so hack configure
+sed -e "s/-lSDL_mixer/-lSDL_mixer -lvorbisidec/" --in-place configure

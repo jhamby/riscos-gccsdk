@@ -1,0 +1,15 @@
+AB_CATEGORY=Games
+
+ab_make() {
+  echo "Data only - no make required"
+}
+
+ab_package() {
+  AD=$D/Apps/Games/\!Heroes/share/heroes
+  mkdir -p $AD/sfx
+  cp *.wav $AD/sfx
+  cp sfx.conf $AD/sfx
+  
+  $AB_HOME/add-riscpkg
+}
+

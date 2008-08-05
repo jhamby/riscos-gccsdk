@@ -1,0 +1,16 @@
+AB_CATEGORY=Games
+
+ab_make() {
+  echo "Data only - no make required"
+}
+
+ab_package() {
+  AD=$D/Apps/Games/\!Heroes/share/heroes
+  mkdir -p $AD
+  cp -r levels $AD
+  cp -r pics $AD
+  cp -r tilesets $AD
+  
+  $AB_HOME/add-riscpkg
+}
+
