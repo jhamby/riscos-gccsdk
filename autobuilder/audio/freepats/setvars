@@ -1,0 +1,19 @@
+AB_CATEGORY=Audio
+
+AB_MAKE="echo Data package - nothing to make"
+
+ab_package() {
+  AD=$D/Apps/Audio/!Freepats
+  mkdir -p $AD
+  cp $H/\!Freepats/\!* $AD
+
+  cp -r freepats/* $AD
+  mv $AD/COPYING $AD
+  mv $AD/README $AD/\!Help
+
+  echo "dir /Freepats:/" > $AD/timidity.cfg
+  cat freepats/crude.cfg >> $AD/timidity.cfg
+
+  $AB_HOME/add-riscpkg
+}
+
