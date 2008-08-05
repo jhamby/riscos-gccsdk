@@ -1,0 +1,53 @@
+AB_URL=http://mesh.dl.sourceforge.net/sourceforge/xu4/xu4-1.0beta3.tar.gz
+AB_CATEGORY=Games
+AB_PVERSION=`grep "VERSION" src/Makefile.common | cut -d'=' -f 2`
+
+# Get data files
+wget http://mesh.dl.sourceforge.net/sourceforge/xu4/ultima4-1.01.zip
+wget http://mesh.dl.sourceforge.net/sourceforge/xu4/u4upgrad.zip
+
+AB_MAKE="$AB_MAKE -C src EXEEXT=$AB_EXEEXT"
+AB_DISTCLEAN="rm src/*.o *.zip src/*$AB_EXEEXT"
+AB_PVERSION=`grep "VERSION" src/Makefile.common | cut -d'=' -f 2`
+
+ab_package() {
+
+  AG=$D/Apps/Games
+  AD=$AG/\!xu4
+  mkdir -p $AG
+ 
+  cp -r $H/\!xu4 $AG
+  cp -av README AUTHORS COPYING $AD
+
+  cp -av src/u4$AB_EXEEXT $AD/\!RunImage$AB_EXEEXT
+
+  mkdir -p $AD/pixmaps
+  cp -av icons/u4.bmp $AD/pixmaps/u4.bmp
+  cp -av icons/u4.png $AD/pixmaps/u4.png
+
+  mkdir -p $AD/mid
+  cp -av mid/*.mid $AD/mid
+
+  mkdir -p $AD/sound
+  cp -av sound/*.ogg $AD/sound
+  cp -av sound/*.wav $AD/sound
+  cp -av src/dumpsavegame$AB_EXEEXT $AD
+  cp -av src/u4enc$AB_EXEEXT $AD
+  cp -av src/u4dec$AB_EXEEXT $AD
+  cp -av src/tlkconv$AB_EXEEXT $AD
+  mkdir -p $AD/conf
+  cp -av conf/*.xml $AD/conf
+  mkdir -p $AD/conf/dtd
+  cp -av conf/dtd/*.dtd $AD/conf/dtd
+  mkdir -p $AD/graphics
+  mkdir -p $AD/graphics/ega
+  mkdir -p $AD/graphics/vga
+  cp -av graphics/ega/*.png $AD/graphics/ega
+  cp -av graphics/vga/*.png $AD/graphics/vga
+
+  cp -av u4upgrad.zip ultima4-1.01.zip $AD
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+    -copyrightfile COPYING
+
+}
