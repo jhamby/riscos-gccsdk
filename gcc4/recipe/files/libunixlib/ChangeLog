@@ -1,3 +1,11 @@
+Wed Aug  6 20:34:09 2008  Lee Noar  <leenoar@sky.com>
+
+	* pthread/cancel.c: Add dummy function that is never called or
+	referenced. Its only purpose is to ensure that several pthread
+	functions that are made weak in libstdc++ are pulled in by the
+	static linker which otherwise would resolve to NULL. This only
+	effects statically linked C++ binaries.
+
 Sun Jul  6 17:12:39 PDT 2008  Peter Naulls  <peter@chocky.org>
 
 	* common/riscosify.c: Add defines for a cut-down version of
