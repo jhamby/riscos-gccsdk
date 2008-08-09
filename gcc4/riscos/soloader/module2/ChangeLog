@@ -1,3 +1,17 @@
+Sat Aug 09 13:32:29 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_elf.c(elffile_open): It's possible for the text segment not
+	to be a multiple of 4 in size which can create a 'hole' between
+	segments due to realignment by the static linker. This can cause
+	two problems; 1) The memory size calculation doesn't take the hole
+	into account meaning the segments overflow and 2) The free memory
+	pointer is not word aligned.
+	Rather than adding memory size of segments together, track upper
+	limit of memory segments as an offset from the start of the object.
+
+	* som_runcom.c(command_run): To be on the safe side, make sure we
+	start with a word aligned free memory pointer.
+
 Wed Jul 09 21:55:34 2008  Lee Noar  <leenoar@sky.com>
 
 	* som_utilswis.c(som_iterate_objects): When the last/first object

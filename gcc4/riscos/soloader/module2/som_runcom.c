@@ -464,7 +464,7 @@ command_run (const char *arg_string, int argc)
     goto error;
 
   /* Work out where free memory starts.  */
-  state->free_memory = state->elf_prog.base_addr + state->elf_prog.memory_size;
+  state->free_memory = word_align (state->elf_prog.base_addr + state->elf_prog.memory_size);
 
   /* Check that loading the executable won't overwrite the stack.  */
   if (state->free_memory >= (som_PTR) (state->env.ram_limit - SOM_RUN_STACK_SIZE))

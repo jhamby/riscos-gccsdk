@@ -69,6 +69,7 @@ elffile_open (const char *filename, elf_file *file)
 
   Elf32_Phdr *phdr = file->prog_headers;
   int phnum = file->elf_header.e_phnum;
+  unsigned int memory_size = 0;
 
   while (phnum--)
     {
@@ -87,7 +88,9 @@ elffile_open (const char *filename, elf_file *file)
 	  break;
 
 	case PT_LOAD:
-	  file->memory_size += phdr->p_memsz;
+	  if (phdr->p_offset + phdr->p_memsz > memory_size)
+	    memory_size = phdr->p_offset + phdr->p_memsz;
+
 	  if (file->base_addr == NULL
 	      || (som_PTR) phdr->p_vaddr < file->base_addr)
 	    file->base_addr = (som_PTR) phdr->p_vaddr;
@@ -96,6 +99,8 @@ elffile_open (const char *filename, elf_file *file)
 
       phdr++;
     }
+
+  file->memory_size = memory_size;
 
   return NULL;
 
