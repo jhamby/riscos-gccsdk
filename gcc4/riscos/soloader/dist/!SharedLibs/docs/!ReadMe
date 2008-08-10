@@ -190,9 +190,12 @@ LD_TRACE_LOADED_OBJECTS
 
 The support module SOManager provides four useful commands:
 
-SOMStatus
-	List the shared libraries that are present in memory and any
-	clients that are using them.
+SOMStatus [clients | libraries]
+	If libraries (or the letter l) is given as the parameter, then list
+	all libraries registered with the Shared Object Manager.
+	If clients (or the letter c) is given as the parameter, then list all
+	clients registered.
+	Omitting the parameter lists all libraries and clients.
 
 SOMAddress <Address in hexadecimal or decimal>
 	Given an address, report the library that contains it and also

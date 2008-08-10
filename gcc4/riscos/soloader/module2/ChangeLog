@@ -1,3 +1,12 @@
+Sun Aug 10 19:48:45 2008  Lee Noar  <leenoar@sky.com>
+
+	* som_command.c(command_status): Produce a more compact and easier
+	to read output for *SOMStatus command. Also allow libraries and
+	clients to be listed separately.
+	* somanager.cmhg: Update *SOMStatus syntax.
+	* riscos/soloader/dist/!SharedLibs/docs/!ReadMe: Update docs.
+	* riscos/dist/!GCC/docs/SharedLibs/!ReadMe: Likewise.
+
 Sat Aug 09 13:32:29 2008  Lee Noar  <leenoar@sky.com>
 
 	* som_elf.c(elffile_open): It's possible for the text segment not

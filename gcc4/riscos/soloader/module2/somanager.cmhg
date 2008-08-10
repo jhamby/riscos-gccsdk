@@ -27,9 +27,9 @@ finalisation-code: module_finalisation
 ;service-call-handler: module_service
 
 command-keyword-table: module_command
-  SOMStatus(min-args: 0, max-args: 0,
-            invalid-syntax: "Syntax: *SOMStatus",
-            help-text: "*SOMStatus displays information about the dynamic loader.\n"),
+  SOMStatus(min-args: 0, max-args: 1,
+            invalid-syntax: "Syntax: *SOMStatus [clients] | [libraries]",
+            help-text: "*SOMStatus [clients] | [c] displays information about all clients registered.\n*SOMStatus [libraries] | [l] displays information about all libraries registered.\n*SOMStatus with no parameter displays both libraries and clients.\n"),
   SOMAddress(min-args: 1, max-args: 1,
              invalid-syntax: "Syntax: *SOMAddress <address>",
              help-text: "*SOMAddress reports the shared library that contains the given address and also the offset from the start of the library file where the address lies.\nIt is useful for debugging purposes.\n"),

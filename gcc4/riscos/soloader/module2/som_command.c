@@ -12,81 +12,146 @@
 #include "som.h"
 #include "som_runcom.h"
 
-static void
-command_status (void)
+static const char *column_title_string[] =
 {
-  printf ("Shared Object Manager Status\n");
-  printf ("----------------------------\n");
+  "Idx",
+  "Text from",
+  "Text to",
+  "Data from",
+  "Data to",
+  "Library name",
+  "GOT",
+  "Dynamic",
+  "Time to expire"
+};
 
-  printf (" Number of libraries loaded by system: %d\n",
+enum column_title
+{
+  column_title_IDX,
+  column_title_TEXT_FROM,
+  column_title_TEXT_TO,
+  column_title_DATA_FROM,
+  column_title_DATA_TO,
+  column_title_LIBRARY_NAME,
+  column_title_GOT,
+  column_title_DYNAMIC,
+  column_title_EXPIRES
+};
+
+static void
+command_status_libraries (void)
+{
+  if (global.object_list.count == 0)
+  {
+    puts ("There are no libraries currently registered.\n");
+    return;
+  }
+
+  printf ("Number of libraries registered: %d\n\n",
 	  global.object_list.count);
+
+  printf ("%-4s %-11s %-11s %-11s %-11s %s\n",
+	  column_title_string[column_title_IDX],
+	  column_title_string[column_title_TEXT_FROM],
+	  column_title_string[column_title_TEXT_TO],
+	  column_title_string[column_title_DATA_FROM],
+	  column_title_string[column_title_DATA_TO],
+	  column_title_string[column_title_LIBRARY_NAME]);
+
+  for (som_object *object = linklist_first_som_object (&global.object_list);
+       object != NULL;
+       object = linklist_next_som_object (object))
+    printf ("%-4d 0x%.8X  0x%.8X  0x%.8X  0x%.8X  %s\n",
+	    object->index,
+	    (unsigned int)object->base_addr,
+	    (unsigned int)object->rw_addr,
+	    (unsigned int)object->rw_addr,
+	    (unsigned int)(object->rw_addr + object->rw_size),
+	    object->name);
+
+  printf ("\n%-4s %-11s %-11s %s\n",
+	  column_title_string[column_title_IDX],
+	  column_title_string[column_title_GOT],
+	  column_title_string[column_title_DYNAMIC],
+	  column_title_string[column_title_EXPIRES]);
+
   for (som_object *object = linklist_first_som_object (&global.object_list);
        object != NULL;
        object = linklist_next_som_object (object))
     {
-      printf ("               Library name: %s\n", object->name);
-      printf ("                      index: %d\n", object->index);
-      printf ("              Address space: 0x%p -> 0x%p (size: 0x%lX)\n",
-	      object->base_addr, object->end_addr,
-	      object->end_addr - object->base_addr);
-      printf ("       R/W segment (public): 0x%p -> 0x%p (size: 0x%X)\n",
-	      object->rw_addr, object->rw_addr + object->rw_size,
-	      object->rw_size);
-      printf ("           GOT ptr (public): 0x%p\n", object->got_addr);
-      printf ("   Dynamic segment (public): 0x%p\n", object->dynamic_addr);
-      printf ("             Time to expire: ");
+      printf ("%-4d 0x%.8X  0x%.8X  ",
+	     object->index,
+	     (unsigned int)object->got_addr,
+	     (unsigned int)object->dynamic_addr);
 
       if (object->usage_count != 0)
-	printf ("None, still in use\n\n");
+	printf ("%-24s", "None, still in use");
       else
 	{
 	  int t = object->expire_time - os_read_monotonic_time ();
-
-	  if (t <= 0)
-	    printf ("Pending\n\n");
+	  if (t < 0)
+	    printf ("%-24s", "Pending");
 	  else
-	    {
-	      printf ("%dh ", (((t / 100) / 60) / 60));
-	      printf ("%dm\n\n", (((t / 100) / 60) % 60));
-	    }
+	    printf ("%02dh %02dm                 ",
+		    ((t / 100) / 60) / 60,
+		    ((t / 100) / 60) % 60);
 	}
+
+      printf ("%s\n", object->name);
     }
 
-  printf (" Number of clients registered: %d\n", global.client_list.count);
+  putchar('\n');
+}
+
+static void
+command_status_clients (void)
+{
+  if (global.client_list.count == 0)
+  {
+    puts("There are no clients currently registered.\n");
+    return;
+  }
+
+  printf ("Number of clients registered: %d\n\n", global.client_list.count);
+
+  printf ("     %-11s %-11s %-11s %-11s\n",
+	  column_title_string[column_title_DATA_FROM],
+	  column_title_string[column_title_DATA_TO],
+	  column_title_string[column_title_GOT],
+	  column_title_string[column_title_DYNAMIC]);
+
   for (som_client *client = linklist_first_som_client (&global.client_list);
        client != NULL;
        client = linklist_next_som_client (client))
     {
-      printf ("           Client name: %s\n", client->name);
-      printf ("                    ID: %X\n", client->unique_ID);
-
       /* The 1st object in the client list is the client itself.  */
       som_object *object = linklist_first_som_object (&client->object_list);
-      printf (" R/W segment (private): 0x%p -> 0x%p (size: %X)\n",
-	      object->private_rw_ptr,
-	      object->private_rw_ptr + object->rw_size, object->rw_size);
-      printf ("     GOT ptr (private): 0x%p\n\n", object->private_got_ptr);
 
-      /* Display details of libraries each client is using.  */
-      if (object->flags.type == object_flag_type_CLIENT)
-	object = linklist_next_som_object (object);
+      printf ("%s\n", client->name);
+      printf ("     0x%.8X  0x%.8X  0x%.8X  0x%.8X\n",
+	      (unsigned int)object->private_rw_ptr,
+	      (unsigned int)(object->private_rw_ptr + object->rw_size),
+	      (unsigned int)object->private_got_ptr,
+	      (unsigned int)(object->private_rw_ptr +
+			    (object->dynamic_addr - object->rw_addr)));
+
+      object = linklist_next_som_object (object);
 
       while (object)
 	{
-	  printf ("            Library handle: %X (%s)\n", object->handle,
-		  object->name);
-	  printf ("     R/W segment (private): 0x%p -> 0x%p (size: %X)\n",
-		  object->private_rw_ptr,
-		  object->private_rw_ptr + object->rw_size, object->rw_size);
-	  printf ("         GOT ptr (private): 0x%p\n",
-		  object->private_got_ptr);
-	  printf (" Dynamic segment (private): 0x%p\n\n",
-		  object->private_rw_ptr + (object->dynamic_addr -
-					    object->rw_addr));
+	  printf("  => 0x%.8X  0x%.8X  0x%.8X  0x%.8X  %s\n",
+		 (unsigned int)object->private_rw_ptr,
+		 (unsigned int)(object->private_rw_ptr + object->rw_size),
+		 (unsigned int)object->private_got_ptr,
+		 (unsigned int)(object->private_rw_ptr +
+			       (object->dynamic_addr - object->rw_addr)),
+		 object->name);
 
 	  object = linklist_next_som_object (object);
 	}
     }
+
+  putchar('\n');
 }
 
 static void
@@ -165,6 +230,38 @@ command_expire (const char *arg_string, int argc)
     }
 }
 
+static void
+command_status(const char *arg_string, int argc)
+{
+  if (argc == 0)
+    {
+      command_status_libraries ();
+      command_status_clients ();
+      return;
+    }
+
+  const char *end;
+  int len;
+
+  /* Argument string is terminated by carriage return.  */
+  for (end = arg_string, len = 0;
+       *end != '\0' && *end != ' ' && *end != '\r';
+       end++, len++)
+    /* */;
+
+  if (strnicmp (arg_string, "libraries", len) == 0)
+    command_status_libraries ();
+  else if (strnicmp (arg_string, "clients", len) == 0)
+    command_status_clients ();
+  else
+    {
+      puts("Syntax: *SOMStatus [clients] | [libraries]");
+      puts("*SOMStatus [clients] | [c] displays information about all clients registered.");
+      puts("*SOMStatus [libraries] | [l] displays information about all libraries registered.");
+      puts("*SOMStatus with no parameter displays both libraries and clients.\n");
+    }
+}
+
 _kernel_oserror *
 module_command (const char *arg_string, int argc, int number, void *pw)
 {
@@ -173,7 +270,7 @@ module_command (const char *arg_string, int argc, int number, void *pw)
   switch (number)
     {
     case CMD_SOMStatus:
-      command_status ();
+      command_status (arg_string, argc);
       break;
 
     case CMD_SOMAddress:
