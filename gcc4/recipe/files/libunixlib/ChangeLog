@@ -1,3 +1,9 @@
+Mon Aug 11 20:38:14 2008  Lee Noar  <leenoar@sky.com>
+
+	* signal/_signal.s(__h_cback): Make sure __pthread_callback
+	is called with r7 containing the UnixLib GOT pointer as it
+	expects.
+
 Wed Aug  6 20:34:09 2008  Lee Noar  <leenoar@sky.com>
 
 	* pthread/cancel.c: Add dummy function that is never called or
