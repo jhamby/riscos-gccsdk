@@ -1,8 +1,8 @@
 
 AB_CATEGORY=games
-AB_DEBNAME=freeciv-client-gtk
+AB_DEBNAME=freeciv-client-sdl
 
-AB_CONFLAGS="--disable-esd"
+AB_CONFLAGS="--enable-client=sdl"
 
 #AB_PREZIP="cp $AB_HOME/$AB_PACKAGEDIR/Run* ."
 
