@@ -1,0 +1,7 @@
+AB_CATEGORY=Command
+
+AB_URL=http://members.optusnet.com.au/~eseychell/gerb2tif/gerb2tif_0.74.zip
+
+ab_package() {
+  cp $S/../GPL $S/../readme.txt $S/../CHANGES.TXT $S/gerb2tif$AB_EXEEXT $D
+}
