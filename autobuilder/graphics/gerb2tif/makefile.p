@@ -5,7 +5,7 @@
  
  # to compile on linux uncommend the following line
 -TARGET := $(TARGET).exe
-+#TARGET := $(TARGET).exe
++TARGET := $(TARGET)$(AB_EXEEXT)
  
  
 -CC 		= g++
