@@ -134,6 +134,14 @@ diff -u -r1.85.2.11 Makefile.in
  endif
  
  ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+@@ -84,6 +84,7 @@
+ endif
+
+ LIBS = \
++       -Wl,-rpath-link=$(GCCSDK_INSTALL_ENV)/lib \
+        $(STATIC_COMPONENTS_LINKER_PATH) \
+        $(EXTRA_DSO_LIBS) \
+        $(DIST)/lib/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX) \
 Index: browser/app/firefox-branding.js
 ===================================================================
 RCS file: /cvsroot/mozilla/browser/app/firefox-branding.js,v

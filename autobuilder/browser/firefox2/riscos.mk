@@ -37,16 +37,22 @@
 
 XP_DEFINE  += -DXP_UNIX
 LIB_SUFFIX  = a
-DLL_SUFFIX  = a
+DLL_SUFFIX  = so
 AR          = ar cr $@
 LDOPTS     += -L$(SOURCE_LIB_DIR)
-MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
+#MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
+MKSHLIB         = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
+
+DSO_CFLAGS              = -fPIC
+DSO_LDOPTS              = -shared 
+DSO_LDFLAGS             =
 
 OS_RELEASE =
 OS_TARGET  = riscos
+OS_CFLAGS  = $(DSO_CFLAGS)
 
 ifdef BUILD_OPT
-	OPTIMIZER  += -O2 -mpoke-function-name
+	OPTIMIZER  += -O2 #-mpoke-function-name
 	DEFINES    += -UDEBUG -DNDEBUG
 else
 	OPTIMIZER  += -g

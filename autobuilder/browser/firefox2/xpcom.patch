@@ -1,10 +1,79 @@
+? xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm_riscos.cpp
+? xpcom/tools/registry/regxpcom,e1f
+? xpcom/typelib/xpidl/host_xpidl
+? xpcom/typelib/xpidl/xpidl,e1f
+? xpcom/typelib/xpt/tools/host_xpt_dump
+? xpcom/typelib/xpt/tools/host_xpt_link
+? xpcom/typelib/xpt/tools/xpt_dump,e1f
+? xpcom/typelib/xpt/tools/xpt_link,e1f
+Index: xpcom/components/nsNativeComponentLoader.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/components/nsNativeComponentLoader.cpp,v
+retrieving revision 1.106.2.1
+diff -u -r1.106.2.1 nsNativeComponentLoader.cpp
+--- xpcom/components/nsNativeComponentLoader.cpp	14 Nov 2006 21:09:15 -0000	1.106.2.1
++++ xpcom/components/nsNativeComponentLoader.cpp	12 Aug 2008 05:07:10 -0000
+@@ -196,6 +196,8 @@
+     nsresult rv = NS_ERROR_FAILURE;
+     PRBool isDir = PR_FALSE;
+ 
++    fprintf(stderr, "RegisterComponentsInDir\n");
++
+ #if 0
+     // Going to many of these checks is a performance hit on the mac.
+     // Since these routines are called relatively infrequently and
+@@ -715,6 +717,7 @@
+ #else
+     nsCAutoString leafName;
+     rv = component->GetNativeLeafName(leafName);
++printf("leafname: %s\n", leafName.get());
+     if (NS_FAILED(rv)) return rv;
+     int flen = leafName.Length();
+     for (int i=0; ValidDllExtensions[i] != NULL; i++)
+Index: xpcom/glue/standalone/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/glue/standalone/Makefile.in,v
+retrieving revision 1.24.2.3
+diff -u -r1.24.2.3 Makefile.in
+--- xpcom/glue/standalone/Makefile.in	5 Jan 2006 19:35:46 -0000	1.24.2.3
++++ xpcom/glue/standalone/Makefile.in	12 Aug 2008 05:07:10 -0000
+@@ -59,7 +59,7 @@
+ ifeq (WINNT,$(OS_ARCH))
+ LINKSRC = nsGlueLinkingWin.cpp
+ endif
+-ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS,$(OS_ARCH)))
++ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS riscos,$(OS_ARCH)))
+ LINKSRC = nsGlueLinkingDlopen.cpp
+ endif
+ ifeq (OS2,$(OS_ARCH))
+Index: xpcom/glue/standalone/nsGlueLinkingDlopen.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/glue/standalone/nsGlueLinkingDlopen.cpp,v
+retrieving revision 1.2.2.2
+diff -u -r1.2.2.2 nsGlueLinkingDlopen.cpp
+--- xpcom/glue/standalone/nsGlueLinkingDlopen.cpp	22 Feb 2006 21:57:09 -0000	1.2.2.2
++++ xpcom/glue/standalone/nsGlueLinkingDlopen.cpp	12 Aug 2008 05:07:10 -0000
+@@ -76,9 +76,12 @@
+ static void
+ ReadDependentCB(const char *aDependentLib)
+ {
++    printf("ReadDependentCB: dlopen: %s\n", aDependentLib);
+     void *libHandle = dlopen(aDependentLib, RTLD_GLOBAL | RTLD_LAZY);
+-    if (!libHandle)
++    if (!libHandle) {
++        perror("fail");
+         return;
++    }
+ 
+     AppendDependentLib(libHandle);
+ }
 Index: xpcom/io/SpecialSystemDirectory.cpp
 ===================================================================
 RCS file: /cvsroot/mozilla/xpcom/io/SpecialSystemDirectory.cpp,v
 retrieving revision 1.22.4.4
 diff -u -r1.22.4.4 SpecialSystemDirectory.cpp
 --- xpcom/io/SpecialSystemDirectory.cpp	6 Sep 2007 21:44:29 -0000	1.22.4.4
-+++ xpcom/io/SpecialSystemDirectory.cpp	21 Feb 2008 03:36:46 -0000
++++ xpcom/io/SpecialSystemDirectory.cpp	12 Aug 2008 05:07:10 -0000
 @@ -307,8 +307,13 @@
                                       aFile);
      }
@@ -26,7 +95,7 @@ RCS file: /cvsroot/mozilla/xpcom/io/nsAppFileLocationProvider.cpp,v
 retrieving revision 1.56.4.4
 diff -u -r1.56.4.4 nsAppFileLocationProvider.cpp
 --- xpcom/io/nsAppFileLocationProvider.cpp	17 Jun 2006 00:13:35 -0000	1.56.4.4
-+++ xpcom/io/nsAppFileLocationProvider.cpp	21 Feb 2008 03:36:46 -0000
++++ xpcom/io/nsAppFileLocationProvider.cpp	12 Aug 2008 05:07:10 -0000
 @@ -85,7 +85,7 @@
  #endif
  
@@ -52,7 +121,7 @@ RCS file: /cvsroot/mozilla/xpcom/io/nsDirectoryService.cpp,v
 retrieving revision 1.83.4.2
 diff -u -r1.83.4.2 nsDirectoryService.cpp
 --- xpcom/io/nsDirectoryService.cpp	8 Apr 2006 17:12:56 -0000	1.83.4.2
-+++ xpcom/io/nsDirectoryService.cpp	21 Feb 2008 03:36:46 -0000
++++ xpcom/io/nsDirectoryService.cpp	12 Aug 2008 05:07:10 -0000
 @@ -172,7 +172,7 @@
  
  #elif defined(XP_MAC)
@@ -80,7 +149,7 @@ RCS file: /cvsroot/mozilla/xpcom/io/nsLocalFileUnix.cpp,v
 retrieving revision 1.126.8.2
 diff -u -r1.126.8.2 nsLocalFileUnix.cpp
 --- xpcom/io/nsLocalFileUnix.cpp	28 Dec 2006 05:19:57 -0000	1.126.8.2
-+++ xpcom/io/nsLocalFileUnix.cpp	21 Feb 2008 03:36:46 -0000
++++ xpcom/io/nsLocalFileUnix.cpp	12 Aug 2008 05:07:10 -0000
 @@ -311,7 +311,11 @@
          
          mPath = homePath + Substring(filePath, 1, filePath.Length() - 1);
@@ -99,7 +168,7 @@ RCS file: /cvsroot/mozilla/xpcom/obsolete/Attic/nsSpecialSystemDirectory.cpp,v
 retrieving revision 1.9
 diff -u -r1.9 nsSpecialSystemDirectory.cpp
 --- xpcom/obsolete/nsSpecialSystemDirectory.cpp	6 Jul 2005 01:23:20 -0000	1.9
-+++ xpcom/obsolete/nsSpecialSystemDirectory.cpp	21 Feb 2008 03:36:46 -0000
++++ xpcom/obsolete/nsSpecialSystemDirectory.cpp	12 Aug 2008 05:07:10 -0000
 @@ -747,8 +747,12 @@
          	    *this = decc$translate_vms(pHome);
  	    }
@@ -116,10 +185,10 @@ diff -u -r1.9 nsSpecialSystemDirectory.cpp
 Index: xpcom/reflect/xptcall/src/md/unix/Makefile.in
 ===================================================================
 RCS file: /cvsroot/mozilla/xpcom/reflect/xptcall/src/md/unix/Makefile.in,v
-retrieving revision 1.80.4.5
-diff -u -r1.80.4.5 Makefile.in
---- xpcom/reflect/xptcall/src/md/unix/Makefile.in	18 Dec 2007 20:04:45 -0000	1.80.4.5
-+++ xpcom/reflect/xptcall/src/md/unix/Makefile.in	21 Feb 2008 03:36:47 -0000
+retrieving revision 1.80.4.6
+diff -u -r1.80.4.6 Makefile.in
+--- xpcom/reflect/xptcall/src/md/unix/Makefile.in	19 Feb 2008 21:11:34 -0000	1.80.4.6
++++ xpcom/reflect/xptcall/src/md/unix/Makefile.in	12 Aug 2008 05:07:10 -0000
 @@ -185,6 +185,13 @@
  endif
  endif
@@ -140,7 +209,7 @@ RCS file: /cvsroot/mozilla/xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp,
 retrieving revision 1.7.28.3
 diff -u -r1.7.28.3 xptcinvoke_arm.cpp
 --- xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	2 Nov 2007 14:35:46 -0000	1.7.28.3
-+++ xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	21 Feb 2008 03:36:47 -0000
++++ xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	12 Aug 2008 05:07:10 -0000
 @@ -37,9 +37,10 @@
  
  /* Platform specific code to invoke XPCOM methods on native objects */
@@ -168,12 +237,12 @@ diff -u -r1.7.28.3 xptcinvoke_arm.cpp
      my_params.fn_count = (PRUint32) &invoke_count_words;
  
 +//    puts("invoke");
-+//    printf("invoke: %p %d %d\n", that, methodIndex, paramCount);
++//    printf("invoke: %p %d %d\n", (void *)that, methodIndex, paramCount);
 +
  /* This is to call a given method of class that.
   * The parameters are in params, the number is in paramCount.
   * The routine will issue calls to count the number of words
-@@ -177,43 +182,44 @@
+@@ -177,44 +182,46 @@
   */
   
    __asm__ __volatile__(
@@ -239,15 +308,18 @@ diff -u -r1.7.28.3 xptcinvoke_arm.cpp
 -    : "r0", "r1", "r2", "r3", "r4", "ip", "lr", "sp"
 +    : "r0", "r1", "r2", "r3", "r4", "r5", "ip", "lr", "sp"
      );
-     
+-    
++
++  //puts("invoke returned");
    return result;
+ }    
 Index: xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp
 ===================================================================
 RCS file: /cvsroot/mozilla/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp,v
 retrieving revision 1.7.28.2
 diff -u -r1.7.28.2 xptcstubs_arm.cpp
 --- xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	2 Nov 2007 14:35:46 -0000	1.7.28.2
-+++ xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	21 Feb 2008 03:36:47 -0000
++++ xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	12 Aug 2008 05:07:11 -0000
 @@ -40,14 +40,14 @@
  
  #include "xptcprivate.h"
@@ -267,3 +339,136 @@ diff -u -r1.7.28.2 xptcstubs_arm.cpp
  PrepareAndDispatch(nsXPTCStubBase* self, uint32 methodIndex, PRUint32* args)
  {
  #define PARAM_BUFFER_COUNT     16
+Index: xpcom/threads/TimerThread.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/threads/TimerThread.cpp,v
+retrieving revision 1.22.8.1
+diff -u -r1.22.8.1 TimerThread.cpp
+--- xpcom/threads/TimerThread.cpp	25 Feb 2006 12:54:57 -0000	1.22.8.1
++++ xpcom/threads/TimerThread.cpp	12 Aug 2008 05:07:11 -0000
+@@ -230,6 +230,8 @@
+ #endif
+ }
+ 
++#include <stdio.h>
++
+ /* void Run(); */
+ NS_IMETHODIMP TimerThread::Run()
+ {
+@@ -238,6 +240,8 @@
+   while (!mShutdown) {
+     PRIntervalTime waitFor;
+ 
++    fprintf(stderr, "timers: %d %d\n", mSleeping, mTimers.Count());
++
+     if (mSleeping) {
+       // Sleep for 0.1 seconds while not firing timers.
+       waitFor = PR_MillisecondsToInterval(100);
+@@ -263,6 +267,11 @@
+           // We release mLock around the Fire call to avoid deadlock.
+           lock.unlock();
+ 
++          fprintf(stderr, "Timer thread woke up %dms from when it was supposed to\n",
++                    (now >= timer->mTimeout)
++                    ? PR_IntervalToMilliseconds(now - timer->mTimeout)
++                    : -(PRInt32)PR_IntervalToMilliseconds(timer->mTimeout-now));
++
+ #ifdef DEBUG_TIMERS
+           if (PR_LOG_TEST(gTimerLog, PR_LOG_DEBUG)) {
+             PR_LOG(gTimerLog, PR_LOG_DEBUG,
+Index: xpcom/threads/nsEventQueue.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/threads/nsEventQueue.cpp,v
+retrieving revision 3.46.8.3
+diff -u -r3.46.8.3 nsEventQueue.cpp
+--- xpcom/threads/nsEventQueue.cpp	10 Jul 2007 21:17:31 -0000	3.46.8.3
++++ xpcom/threads/nsEventQueue.cpp	12 Aug 2008 05:07:11 -0000
+@@ -445,6 +445,8 @@
+     gEventQueueLogThread = PR_GetCurrentThread();
+   }
+ #endif
++
++fprintf(stderr, "call PL_ProcessPendingEvents\n");
+   PL_ProcessPendingEvents(mEventQueue);
+ 
+   // if we're no longer accepting events and there are still events in the
+Index: xpcom/threads/nsTimerImpl.cpp
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/threads/nsTimerImpl.cpp,v
+retrieving revision 1.35
+diff -u -r1.35 nsTimerImpl.cpp
+--- xpcom/threads/nsTimerImpl.cpp	4 May 2005 20:22:31 -0000	1.35
++++ xpcom/threads/nsTimerImpl.cpp	12 Aug 2008 05:07:11 -0000
+@@ -53,6 +53,7 @@
+ static PRBool           gFireOnIdle = PR_FALSE;
+ static nsTimerManager*  gManager = nsnull;
+ 
++
+ #ifdef DEBUG_TIMERS
+ #include <math.h>
+ 
+@@ -354,6 +355,8 @@
+   return NS_OK;
+ }
+ 
++#include <stdio.h>
++
+ void nsTimerImpl::Fire()
+ {
+   if (mCanceled)
+@@ -379,6 +382,11 @@
+   }
+ #endif
+ 
++    fprintf(stderr, "[this=%p] expected delay time %4dms\n", (void *)this, mDelay);
++//    fprintf(stderr, "[this=%p] actual delay time   %4dms\n", this, PR_IntervalToMilliseconds(now - mStart));
++//    fprintf(stderr, "[this=%p] (mType is %d)       -------\n", this, mType);
++//    fprintf(stderr, "[this=%p]     delta           %4dms\n", this, (a > b) ? (PRInt32)d : -(PRInt32)d);
++
+   PRIntervalTime timeout = mTimeout;
+   if (mType == TYPE_REPEATING_PRECISE) {
+     // Precise repeating timers advance mTimeout by mDelay without fail before
+@@ -430,9 +438,12 @@
+ };
+ 
+ 
++#include <stdio.h>
++
+ void* handleTimerEvent(TimerEventType* event)
+ {
+   nsTimerImpl* timer = NS_STATIC_CAST(nsTimerImpl*, event->owner);
++fprintf(stderr, "handlerTimerEvent\n");
+   if (event->mGeneration != timer->GetGeneration())
+     return nsnull;
+ 
+@@ -526,6 +537,7 @@
+     aDelay = PR_IntervalToMilliseconds(delayInterval);
+   }
+ 
++fprintf(stderr, "delay now = %d\n", aDelay);
+   mDelay = aDelay;
+ 
+   PRIntervalTime now = PR_IntervalNow();
+Index: xpcom/threads/plevent.c
+===================================================================
+RCS file: /cvsroot/mozilla/xpcom/threads/Attic/plevent.c,v
+retrieving revision 1.54.2.1
+diff -u -r1.54.2.1 plevent.c
+--- xpcom/threads/plevent.c	26 Sep 2005 19:43:34 -0000	1.54.2.1
++++ xpcom/threads/plevent.c	12 Aug 2008 05:07:11 -0000
+@@ -613,6 +613,7 @@
+      */
+     count = _pl_GetEventCount(self);
+     PR_ExitMonitor(self->monitor);
++    fprintf(stderr, "count = %d\n", count);
+ 
+     while (count-- > 0) {
+         PLEvent* event = PL_GetEvent(self);
+@@ -679,6 +680,7 @@
+ PL_HandleEvent(PLEvent* self)
+ {
+     void* result;
++fprintf(stderr, "PL_HandleEvent\n");
+     if (self == NULL)
+         return;
+ 

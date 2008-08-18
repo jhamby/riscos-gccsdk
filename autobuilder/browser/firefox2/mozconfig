@@ -31,6 +31,7 @@ ac_add_options --disable-accessibility
 ac_add_options --disable-composer
 ac_add_options --enable-plaintext-editor-only
 ac_add_options --disable-mailnews
+#ac_add_options --disable-ldap
 ac_add_options --enable-postscript
 ac_add_options --enable-mathml
 ac_add_options --disable-installer
@@ -47,19 +48,24 @@ ac_add_options --disable-gtktest
 ac_add_options --enable-crypto
 
 # code generation options (optimize for size)
-ac_add_options --enable-optimize="-O3 -mcpu=strongarm"
+ac_add_options --enable-optimize="-O3 -mcpu=strongarm -mpoke-function-name"
+#-mpoke-function-name"
 #ac_add_options --enable-optimize="-O3 -march=armv3m -mtune=strongarm"
 #ac_add_options --enable-strip
+#ac_add_options --disable-reorder
+#ac_add_options --enable-elf-dynstr-gc
 
 # enable static build
-ac_add_options --disable-shared
-ac_add_options --enable-static
+#ac_add_options --disable-shared
+#ac_add_options --enable-static
 
-LIBS=-lstdc++
-DLL_SUFFIX=a
+#LIBS=-lstdc++
+#DLL_SUFFIX=a
 
 ac_add_options --enable-application=browser
 ac_add_options --disable-timeline
+#ac_add_options --enable-debug
+#ac_add_options --disable-svg
 ac_add_options --disable-debug
 
 ac_add_options --with-system-jpeg
@@ -67,4 +73,4 @@ ac_add_options --with-system-zlib
 ac_add_options --with-system-png
 
 ac_add_options --disable-updater
-
+ac_add_options --disable-plugins
