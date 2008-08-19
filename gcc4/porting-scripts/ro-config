@@ -233,14 +233,15 @@ else
   fi
 fi
 
-# Always build static
-if grep -q -- --enable-static $tmpoutconfigure; then
-  echo RISC OS: Enabling static libraries
-  ro_static=--enable-static=yes
-elif grep -q -- " -static" $tmpoutconfigure; then
-  ro_static=-static
-else
-  ro_static=
+# Always build static if we can
+unset ro_static
+if ! grep -q "Only one of --enable-shared" $RO_CPATH/configure; then
+  if grep -q -- --enable-static $tmpoutconfigure; then
+    echo RISC OS: Enabling static libraries
+    ro_static=--enable-static=yes
+  elif grep -q -- " -static" $tmpoutconfigure; then
+    ro_static=-static
+  fi
 fi
 
 
@@ -369,6 +370,8 @@ export ac_cv_sizeof_off_t=4
 export ac_cv_sizeof_pid_t=4
 export ac_cv_sizeof_size_t=4
 export ac_cv_sizeof_ssize_t=4
+
+export ac_cv_va_copy=yes
 
 export ac_cv_type_long_long=yes
 export ac_cv_type_unsigned_long_long=yes
