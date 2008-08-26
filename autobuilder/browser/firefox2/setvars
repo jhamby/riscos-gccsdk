@@ -70,12 +70,12 @@ ab_package () {
   for f in \
       browserconfig.properties \
       LICENSE README.txt chrome components defaults extensions \
-      greprefs plugins res searchplugins \
+      greprefs res searchplugins \
     ; do
     cp -prL $S/dist/bin/$f $A
   done
-  rm $A/components/*.a
   cp -prL $S/dist/bin/firefox-bin$AB_EXEEXT $A
+  cp -prL $S/dist/bin/*.so $A
 
   $AB_HOME/add-riscpkg -unixlib
 }
