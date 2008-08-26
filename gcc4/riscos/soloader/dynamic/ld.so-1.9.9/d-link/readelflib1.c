@@ -325,9 +325,8 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
 
   unsigned int handle;
   struct object_info objinfo;
-  char ro_libname[2048];
 
-  extern char *_dl_riscosify(const char *name, int create_dir);
+  extern char *_dl_riscosify_dl(const char *name, int create_dir);
   libname = _dl_riscosify_dl(libname, 0);
 
   /* If this file is already loaded for the current client , skip this step */
