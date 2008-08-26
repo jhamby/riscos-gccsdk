@@ -1,3 +1,7 @@
+Mon Aug 25 19:23:22 PDT 2008  Peter Naulls  <peter@chocky.org>
+
+	* som_init.c: Better name for dynamic area. 
+
 Sun Aug 10 19:48:45 2008  Lee Noar  <leenoar@sky.com>
 
 	* som_command.c(command_status): Produce a more compact and easier
@@ -78,7 +82,7 @@ Tue Jan  1 16:42:05 2008  Lee Noar  <leenoar@sky.com>
 
 Tue Nov 27 07:11:25 CET 2007  Peter Naulls  <peter@chocky.org>
 
-	* som_runcom.c: Fix problem when no arguments where given.
+	* som_runcom.c: Fix problem when no arguments were given.
 
 Wed Oct  3 19:11:01 2007  Lee Noar  <leenoar@sky.com>
 

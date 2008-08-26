@@ -61,7 +61,7 @@ module_initialise (const char *tail, int podule_base, void *pw)
 #ifdef LIBRARIES_IN_DA
   if (global.flags.host_32bit)
     {
-      if ((err = dynamic_area_create ("DSO Libraries", SOM_INIT_LIBDA_SIZE,
+      if ((err = dynamic_area_create ("Shared Libraries", SOM_INIT_LIBDA_SIZE,
 				      SOM_MAX_LIBDA_SIZE,
 				      &global.library_da)) != NULL)
 	goto error;
