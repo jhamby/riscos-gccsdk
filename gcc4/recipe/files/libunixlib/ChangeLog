@@ -1,3 +1,13 @@
+Thu Aug 28 20:27:45 2008  Lee Noar  <leenoar@sky.com>
+
+	* pthread/_yields.s(pthread_yield): The current implementation
+	uses a single STMDB instruction to store all relevant registers
+	to __cbreg including two banked registers. Under certain
+	circumstances, this can trigger a bug in revision K StrongARM
+	CPUs whereby the banked register r14 is not saved. To overcome
+	the bug, split the instruction into two STMs so that the banked
+	registers are saved independently of the others.
+
 Mon Aug 11 20:38:14 2008  Lee Noar  <leenoar@sky.com>
 
 	* signal/_signal.s(__h_cback): Make sure __pthread_callback

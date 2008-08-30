@@ -48,11 +48,19 @@ pthread_yield:
 	@ Save regs to callback save area
 	LDR	a1, .L0+4	@=__cbreg
  PICEQ "LDR	a1, [v4, a1]"
-	ADD	a1, a1, #15*4
-	STMDB	a1, {r4-r14}^
+
+	ADD	a1, a1, #13*4
+
+	@ Using an STMDB instruction to save all relevant registers can trigger
+	@ a bug in revision K StrongARM CPUs whereby, as in this particular case,
+	@ banked register r14 is not saved. To avoid it, split the instruction
+	@ into two so that the banked registers are saved independently of the
+	@ others.
+	STMDB	a1, {r4-r12}
+	STMIA	a1, {r13,r14}^
 	ADR	a2, __pthread_yield_return	@USR mode, IRQs enabled if in a 26bit mode
-	STR	a2, [a1]
-	STR	a3, [a1, #4]	@ Save CPSR
+	STR	a2, [a1, #8]
+	STR	a3, [a1, #12]	@ Save CPSR
 
 	@ Branch directly to the context switcher.
 	@ It will return by loading the registers from __cbreg
