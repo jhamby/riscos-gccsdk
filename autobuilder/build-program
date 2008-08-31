@@ -391,12 +391,18 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
   cd $D
   if [ "$AB_ELFBUILD" == "yes" ] ; then
-    # strip and convert binaries
+    # strip and convert binaries and libraries where possible
     binaries=$(find -type f -wholename "*,e1f")
     for binary in $binaries; do
-      $GCCSDK_INSTALL_ENV/ro-path arm-unknown-riscos-strip $binary || true
-      $GCCSDK_INSTALL_ENV/ro-path elf2aif $binary $(sed "s#,e1f\$#,ff8#" <<<$binary)
-      rm $binary
+      $GCCSDK_INSTALL_ENV/ro-path arm-unknown-riscos-strip $binary 2>/dev/null || true
+      if $GCCSDK_INSTALL_ENV/ro-path elf2aif $binary $(sed "s#,e1f\$#,ff8#" <<<$binary) 2>/dev/null; then
+        rm $binary
+      fi
+    done
+
+    libs=$(find -type f -wholename "*.so,fff")
+    for lib in $libs; do
+     $GCCSDK_INSTALL_ENV/ro-path arm-unknown-riscos-strip $lib 2>/dev/null || true
     done
   fi
 
