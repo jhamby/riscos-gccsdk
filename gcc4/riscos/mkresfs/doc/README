@@ -2,7 +2,7 @@ mkrefs - A tool for generating code to register and deregister
          data from ResourceFS
 
          Copyright 2006 - 2007, Rob Kendrick <rjek@rjek.com>
-         Copyright 2007, GCCSDK Developers <http://gccsdk.riscos.info/>
+         Copyright 2007 - 2008, GCCSDK Developers <http://gccsdk.riscos.info/>
 
 Purpose
 -------
@@ -46,7 +46,8 @@ Usage
        for.  The layout of this directory will be discussed in the next
        section.
 
-       mkresfs [-o <file>] [-p <file>] [-v] [-r <func>] [-d <func>] <dir>
+       mkresfs [-o <file>] [-p <file>] [-v] [-z]
+               [-r <func>] [-d <func>] [-s <func>] <dir>
 
        [..] donates optional elements, <..> donates compulsory elements.
 
@@ -61,12 +62,17 @@ Usage
        The -v switch makes mkresfs more verbose, and output status information
        as it works.
 
-       The -r and -d switches control the names of the register and deregister
-       functions, respectively.  If they are absent, then the standard
-       function names are used (mkresfs_register and mkresfs_deregister).
+       The -z switch uses OSLib headers instead of SharedCLibrary headers
+       for prototyping used in the generated files.
+
+       The -r, -d and -s switches control the names of the register,
+       deregister and reregister functions, respectively.  If they are absent,
+       then default function names are used (mkresfs_register,
+       mkresfs_deregister and mkresfs_reregister).
 
        The last parameter is the directory to scan for files to generate code
-       for.
+       for. All files and directories starting with '/' (RISC OS) or '.'
+       (other OS) character in their name will be ignored.
 
 Data directory layout
 ---------------------

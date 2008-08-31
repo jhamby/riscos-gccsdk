@@ -1,6 +1,15 @@
+Sun Aug 31 14:47:54 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/mkresfs.c: Provided new option -z to specify OSLib API instead
+	of SharedCLibrary API; ignore files/directories beginning with "/"
+	(RISC OS) or "." (other OS) as leading character when enumerating
+	resources.
+	* doc/README: Documented made changes.
+	* configure.ac: Version is v1.04.
+
 Wed Oct 17 00:52:47 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
-	* src/mkresfs.c(generate): use __asm__ instead of asm in generated C
+	* src/mkresfs.c(generate): Use __asm__ instead of asm in generated C
 	file so that it still compiles with -std=c99 option.
 
 Thu Aug 30 01:47:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
@@ -10,13 +19,13 @@ Thu Aug 30 01:47:11 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 Tue Aug 28 00:32:02 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
-	* configure.ac: version is v1.03.
+	* configure.ac: Version is v1.03.
 	* doc/example/{module.cmhg, main.c}: Added support for service call
 	Service_ResourceFSStarting.
 	* doc/example/TestData/Resources: Renamed to...
 	* doc/example/TestData/ThirdParty: ...this.
 	* doc/example/Makefile: Go for -O3, it makes a useful difference.
-	* doc/README: updated now we can properly support
+	* doc/README: Updated now we can properly support
 	Service_ResourceFSStarting; reworded the example section a bit;
 	Added License section.
 	* AUTHORS: Added myself.
@@ -35,7 +44,7 @@ Sun Jul 29 23:20:08 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 Sun Jul 29 19:25:01 2007  John Tytgat  <John.Tytgat@aaug.net>
 
-	* configure.ac: corrected version number to v1.02.
+	* configure.ac: Corrected version number to v1.02.
 
 Sun Jul 29 18:29:17 2007  John Tytgat  <John.Tytgat@aaug.net>
 
