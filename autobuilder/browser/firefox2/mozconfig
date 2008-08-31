@@ -48,7 +48,7 @@ ac_add_options --disable-gtktest
 ac_add_options --enable-crypto
 
 # code generation options (optimize for size)
-ac_add_options --enable-optimize="-O3 -mcpu=strongarm -mpoke-function-name"
+ac_add_options --enable-optimize="-O2 -mcpu=strongarm -mpoke-function-name"
 #-mpoke-function-name"
 #ac_add_options --enable-optimize="-O3 -march=armv3m -mtune=strongarm"
 #ac_add_options --enable-strip
