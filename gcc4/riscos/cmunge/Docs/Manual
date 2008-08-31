@@ -74,8 +74,12 @@ Options:
 -throwback      Use throwback for error processing.
 -zbase          Define symbol Image__RO_Base in generated header.
 -zerrors        Define errors and veneers only (for use in applications).
--zoslib         Use '#include "os.h"' (OSLib) instead of '#include "kernel.h"'
-                (Acorn) in generated C header file.
+-zoslib         Use 'os_error *' instead of '_kernel_oserror *' to prototype
+                a pointer to a RISC OS error block. Use 'os_register_block'
+                instead of '_kernel_swi_regs' to represent a set of ARM
+                registers. Use '#include "oslib/os.h"' (OSLib) instead of
+                '#include "kernel.h"' (SharedCLibrary) in generated C header
+                file.
 -blank          Generate an empty CMunge file instead of reading one.
                 When in 'CMHG' mode this will generate a warning but will
                 generate a header containing only CMHG-based features.
