@@ -16,6 +16,7 @@ Read 'doc/ChangeLog.html' for the Stratagus changelog.
 RISC OS Notes
 -------------
 
+Version 2.2 Ported by Alan Buckley 1st September 2008.
 Version 2.1 Ported by Alan Buckley 8th February 2005.
 
 This is the game engine only to play any games the games must be downloaded
@@ -26,10 +27,6 @@ This is a binary distribution for RISC OS.
 
 The installation instructions in 'doc/install.html' do not apply to this
 binary distribution.
-
-Part of the Unix Porting Project.  Support for this program under RISC OS
-is only offered to subscribers.  See http://www.chocky.org/unix/
-for more information.
 
 This program is 32-bit compatible, and is suitable for all RISC OS
 ARM6, ARM7, StrongARM and XScale machines.  It may not be suitable for
@@ -44,7 +41,7 @@ The program needs a lot of memory possibly over 64MB.
 The Digital Renderer module (available from http://home.t-online.de/~zarquon)
 must be installed in System:Modules for sound playback.
 
-The !UnixHome application (available from http://www.chocky.org/unix/) has
+The !UnixHome application (available from http://www.riscos.info/packages/) has
 to have been seen by the filer.
 
 See www.stratagus.org for more information on the engine and links to
@@ -79,10 +76,8 @@ shows how to do this) and check the log file for errors.
 Compiling RISC OS version from source
 -------------------------------------
 
-This version was cross compiled from the original source with
-the a modification made to the lua 5.0.2 library source to stop
-it causing floating point exceptions when loading saved games.
-
 Both stratagus and a patched version of lua50 can be recompiled using
-the autobuilder scripts (see http://www.riscos.info/porting/ for
+the autobuilder scripts
+
+(see http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder for
 details).

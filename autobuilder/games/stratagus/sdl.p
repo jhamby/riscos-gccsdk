@@ -1,9 +1,9 @@
---- ../orig/stratagus-040702/src/video/sdl.c	2004-06-27 09:38:20.000000000 +0100
-+++ src/video/sdl.c	2005-01-11 12:53:58.000000000 +0000
+--- ../orig/stratagus-040702/src/video/sdl.cpp	2004-06-27 09:38:20.000000000 +0100
++++ src/video/sdl.cpp	2005-01-11 12:53:58.000000000 +0000
 @@ -257,6 +262,13 @@
  	ColorYellow = VideoMapRGB(TheScreen->format, 252, 252, 0);
  
- 	TheUI.MouseWarpX = TheUI.MouseWarpY = -1;
+ 	UI.MouseWarpX = UI.MouseWarpY = -1;
 +
 +#ifdef __riscos__
 +//ARB: Ensure NextFrameTicks has a sensible value at startup

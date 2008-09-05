@@ -1,12 +1,17 @@
-
-AB_CATEGORY=games
+AB_URL=http://switch.dl.sourceforge.net/sourceforge/stratagus/stratagus-2.2.4-src.tar.gz
+AB_CATEGORY=Games
 
 # Force the install to use lua50
-AB_CONFLAGS="LUACONFIG=./lua-config"
+AB_CONFLAGS="--without-x LUACONFIG=./lua-config"
 cp -av $H/lua-config $S/lua-config
 
 ab_package() {
-  cp -av $H/\!Stratagus $D
-  cp -av $S/doc $S/stratagus$AB_EXEEXT \
-         $D/\!Stratagus
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -av $H/\!Stratagus $AD
+  cp -av $S/doc $AD/\!Stratagus
+  cp -av $S/stratagus $AD/\!Stratagus/stratagus$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound \
+     -unixhome -copyrightfile $S/COPYING
 }
