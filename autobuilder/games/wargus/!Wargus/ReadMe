@@ -8,12 +8,12 @@ See http://wargus.sourceforge.net for details.
 
 You also need a copy of the Stratagus engine for RISC OS. A precompiled
 version to go with the !Run obey file provided here is available from
-the Unix Porting Project (address below).
+the GCCSDK Autobuilder website (address below).
 
 Instructions
 ------------
 
-1. Go into the !wargus directory (Shift click on the !Wargus application)
+1. Go into the !wargus directory (This is the same location as this ReadMe)
 
 2. Ensure the ARCHIVE and WTARCHIVE variables in the BuildRO obey file
 are correct for your CDROM drive.
@@ -30,15 +30,9 @@ then run !wargus to play.
 Notes
 -----
 
-The tool to extract the files from the CD (wartool) can be patched
-and built using the wargus autobuilder script
-(see http://www.riscos.info/porting/ for details).
-
-The autobuilder also includes patches for the makefile and the other
-support files used.
-
-Part of the Unix Porting Project.  Support for this program under RISC OS
-is only offered to subscribers.  See http://www.chocky.org/unix/
-for more information.
+The tool to extract the files from the CD (wartool) was built by
+the GCCSDK Autobuilder.
+(see http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder) 
 
 Version 2.1 Ported by Alan Buckley 7th January 2005.
+Version 2.2 Ported by Alan Buckley 3rd Sept 2007

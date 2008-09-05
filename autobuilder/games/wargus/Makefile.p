@@ -1,31 +1,29 @@
---- Makefile.orig	2004-07-02 11:44:34.000000000 +0100
-+++ Makefile	2005-04-27 09:33:24.140625000 +0100
-@@ -1,11 +1,11 @@
+--- Makefile.orig	2007-04-09 07:14:49.000000000 +0100
++++ Makefile	2008-08-29 12:31:31.749138400 +0100
+@@ -1,19 +1,18 @@
  
 -CC = gcc
-+CC = /home/riscos/cross/bin/gcc
  
  CROSSDIR = /usr/local/cross
  STRATAGUSPATH = ../stratagus/
  
--CFLAGS = -I/usr/local/include
--LDFLAGS = -lz -lpng -lm -static -L/usr/local/lib
-+CFLAGS = -I/home/riscos/env/include
-+LDFLAGS =  -L/home/riscos/env/lib -lz -lpng -lm -static
+-CFLAGS = -I/usr/local/include -Wall -Wsign-compare
+-LDFLAGS = -lz -lpng -lm -L/usr/local/lib
++CFLAGS = -I$(GCCSDK_INSTALL_ENV)/include -Wall -Wsign-compare
++LDFLAGS = -lz -lpng -lm -L$(GCCSDK_INSTALL_ENV)/lib -static
  
- all: cleanobj wartool$(EXE)
+-all: wartool pudconvert
++all: wartool$(AB_EXEEXT) pudconvert$(AB_EXEEXT)
  
-@@ -22,12 +22,11 @@
+-wartool: wartool.o pudconvert.o
+-	$(CC) -o $@ $^ $(LDFLAGS)
++wartool$(AB_EXEEXT): wartool.o pudconvert.o
++	$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS)
+ 
+-pudconvert: pudconvert.c
+-	$(CC) -o $@ -DSTAND_ALONE pudconvert.c $(LDFLAGS)
++pudconvert$(AB_EXEEXT): pudconvert.c
++	$(CC) $(CFLAGS) -o $@ -DSTAND_ALONE pudconvert.c $(LDFLAGS)
  
  cleanobj:
- 	rm -f wartool.o
--
- clean:
- 	rm -rf wartool wartool.exe wartool.o data.wc2 wargus-* wargus
- 
- strip:
--	strip wartool
-+#	strip wartool
- #	strip wartool.exe
- 
- date = $(shell date +%y%m%d)
+ 	rm -f wartool.o pudconvert.o

@@ -10,7 +10,7 @@
 |
 |	build.bat	-	The graphics and sound extractor.
 |
-|	(c) Copyright 1999-2003 by Lutz Sammer and Jimmy Salmon.
+|	(c) Copyright 1999-2005 by Lutz Sammer and Jimmy Salmon.
 |
 |	Stratagus is free software; you can redistribute it and/or modify
 |	it under the terms of the GNU General Public License as published
@@ -108,7 +108,11 @@ copy maps.multi <DIR>.maps.other ~CFR
 | copy maps.single.* <DIR>.maps.other
 
 |	*** Setup the default pud ***
-copy <DIR>.maps.multi.(2)mysterious-dragon-isle/pud/gz <DIR>.maps.default/pud/gz ~CF
+| copy <DIR>.maps.multi.(2)mysterious-dragon-isle/pud/gz <DIR>.maps.default/pud/gz ~CF
+| No symbolic links so make copies
+copy <DIR>.maps.multi.(2)mysterious-dragon-isle/sms/gz <DIR>.maps.default/sms/gz ~CF
+copy <DIR>.maps.multi.(2)mysterious-dragon-isle/smp/gz <DIR>.maps.default/smp/gz ~CF
+
 
 |	*** Copy script files ***
 cdir <DIR>.scripts.ai
