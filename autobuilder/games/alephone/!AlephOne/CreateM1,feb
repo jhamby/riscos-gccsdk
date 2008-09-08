@@ -1,0 +1,27 @@
+| Obey script to create the Marathon 1 game
+| by building a wrapper app and downloading
+| and unzipping the game data
+
+Dir <Obey$Dir>
+
+IfThere ^.!M1A1 Error ^.!M1A1 game directory already exists
+
+wget http://archives2.bungie.org/a1sdl/m1a1_sdl.zip
+
+IfThere m1a1_sdl.zip Then Else Error m1a1_sdl.zip file was not downloaded
+
+aowrapper "Marathon 1" ^.!A1M1
+
+unzip m1a1_sdl.zip -d ^.!A1M1
+
+IfThere ^.!M1A1.M1A1 SDL Then Else Error Failed to unzip m1a1_sdl.zip
+
+Delete ^.!M1A1.data
+Delete ^.!M1A1.!Help
+
+Rename ^.!M1A1.M1A1 SDL ^.!M1A1.data
+
+Copy ^.!M1A1.data.ReadMe M1A1 SDL.html ^.!M1A1.!Help
+
+SetType ^.!M1A1.!Help HTML
+
