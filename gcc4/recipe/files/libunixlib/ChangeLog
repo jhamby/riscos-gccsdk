@@ -1,3 +1,9 @@
+Tue Sep  9 20:49:05 2008  Lee Noar  <leenoar@sky.com>
+
+	* signal/post.c(sigsetup): Don't use the address range of the
+	application to validate the location of the signal handler when
+	compiling for the shared library.
+
 Thu Aug 28 20:27:45 2008  Lee Noar  <leenoar@sky.com>
 
 	* pthread/_yields.s(pthread_yield): The current implementation

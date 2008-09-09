@@ -16,7 +16,7 @@
 #include <internal/unix.h>
 #include <internal/sigstate.h>
 
-/* #define DEBUG 1 */
+/*  #define DEBUG 1 */
 #ifdef DEBUG
 #  include <sys/debug.h>
 #endif
@@ -82,14 +82,23 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
   unsigned int handler_addr = (unsigned int) handler;
 
   /* Perform an address validation on the user supplied handler address.
-     We select a reasonable range of 16 instructions.
+     We select a reasonable range of 16 instructions.  */
 
-     The handler must also reside within the address range of read
-     only code of the application.  */
+#ifdef PIC
+  /* In the shared library, the application's address range can't be used
+     to validate the handler code location. The handler may well be in a
+     shared library as is the case with the UnixLib handlers. All we
+     can do is ask the OS to validate.  */
+  if (! __valid_address ((void *) handler_addr,
+			 (void *) (handler_addr + 16 * 4)))
+#else
+  /* In the static library, the handler must also reside within the address
+     range of read only code of the application.  */
   if (handler_addr < mem->robase
       || handler_addr > mem->rwbase
       || ! __valid_address ((void *) handler_addr,
 			    (void *) (handler_addr + 16 * 4)))
+#endif
     {
 #ifdef DEBUG
       debug_printf ("-- sigsetup: handler %08x points to an invalid address\n",
