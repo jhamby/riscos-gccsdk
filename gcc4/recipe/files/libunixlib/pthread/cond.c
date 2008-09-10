@@ -80,7 +80,7 @@ pthread_cond_timedwait (pthread_cond_t *cond, pthread_mutex_t *mutex,
 
       /* A bit crude, but... */
       diff = (100 * (abstime->tv_sec - time (NULL)))
-             + (abstime->tv_nsec / 1000000);
+             + (abstime->tv_nsec / 10000000);
       __pthread_running_thread->condtimeout = clock () + diff;
     }
 
