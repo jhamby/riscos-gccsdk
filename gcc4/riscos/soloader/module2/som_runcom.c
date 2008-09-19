@@ -13,6 +13,7 @@
 #include "som.h"
 #include "som_register.h"
 #include "som_startapp.h"
+#include "som_utils.h"
 
 /* In order to minimise the amount of SVC stack used at any one time, most
    of the static functions are marked as not being inlined, otherwise GCC is
@@ -24,7 +25,11 @@
 #define SOM_RUN_STACK_SIZE	(16 * 1024)	/* 16KB */
 
 static const char loader_path[] = "SharedLibs:lib.";
-static const char env_array_name[] = "LD$Env";
+
+/* Suffix used for per program system variable that defines dynamic loader
+   environment variables for current client. If such a variable doesn't
+   exist, then this is also the name of the global version.  */
+static const char global_env_name[] = "LD$Env";
 
 typedef struct runcom_state
 {
@@ -354,11 +359,105 @@ setup_aux_array (runcom_state *state)
   return NULL;
 }
 
+/* Find Dynamic Loader environment variables for the current process.
+   This is done by first looking for a system variable with a name based
+   on that of the executable, ie, "<program name>$LD$Env". Program name
+   is the leaf name of the full filename. If the program name is !runimage
+   or ends in "-bin", then use the application name instead (minus the pling).
+   If such a system variable does not exist, then use the global variable
+   "LD$Env".
+
+   Return size of buffer required to hold environment, including terminator
+   and return environment in BUFFER.
+   BUFFER may be NULL on entry if only the size is required.  */
+static int
+read_ld_env(runcom_state *state, char *buffer)
+{
+  char *name_start, *name_end;
+
+  name_end = state->elf_prog_name + strlen (state->elf_prog_name);
+
+  /* I don't think this can ever fail, as we always get a full filename
+     from the OS. */
+  if ((name_start = strrchr (state->elf_prog_name, '.')) == NULL)
+    goto exit_with_empty_string;
+
+  name_start++;
+
+  bool use_global_env = true;
+
+  /* If the leaf name happens to be !RunImage or ends in -bin, then look
+    for the application name.  */
+  if (stricmp (name_start, "!runimage") == 0
+      || wildcmp (name_start, "*-bin", true) == true)
+    {
+      char *app_start;
+
+      for (app_start = name_start - 1;
+	   app_start >= state->elf_prog_name && *app_start != '!';
+	   app_start--)
+	/* */;
+
+      if (*app_start == '!')
+	{
+	  name_end = name_start - 1;
+	  name_start = app_start + 1;
+	  use_global_env = false;
+	}
+    }
+
+  char *env_name;
+
+  /* "<process name>" + '$' + "LD$Env" + '\0' */
+  if ((env_name = (char *)malloc ((name_end - name_start)
+				 + sizeof (global_env_name) + 2)) == NULL)
+    goto exit_with_empty_string;
+
+  if (!use_global_env)
+    {
+      strncpy (env_name, name_start, name_end - name_start);
+      strcpy (env_name + (name_end - name_start), "$");
+    }
+  else
+    *env_name = '\0';
+
+  strcat (env_name, global_env_name);
+
+  int var_len;
+
+  /* If a variable for this particular process doesn't exist, try the global
+     one instead.  */
+  if ((var_len = os_read_var_val_size (env_name)) == 1
+      /* If we've already done the global env, then no point in doing it again. */
+      && !use_global_env)
+    {
+      var_len = os_read_var_val_size (global_env_name);
+      use_global_env = true;
+    }
+
+  if (buffer)
+    if (var_len == 1
+	|| os_read_var_val (use_global_env ? global_env_name : env_name,
+			    buffer,
+			    var_len) != NULL)
+      *buffer = '\0';
+
+  free (env_name);
+
+  return var_len;
+
+exit_with_empty_string:
+
+  if (buffer)
+    *buffer = '\0';
+
+  return 1;
+}
+
 static noinline _kernel_oserror *
 setup_env_array (runcom_state *state)
 {
-  int env_size = os_read_var_val_size (env_array_name);
-  _kernel_oserror *err;
+  int env_size = read_ld_env(state, NULL);
 
   /* Make sure we have enough space to store the string.  */
   if (state->free_memory + env_size > (som_PTR) state->env.ram_limit)
@@ -366,9 +465,7 @@ setup_env_array (runcom_state *state)
 
   char *env_string = (char *) state->free_memory;
 
-  if (env_size != 1 /* = environment variable can not be found.  */
-      && (err = os_read_var_val (env_array_name, env_string, env_size)) != NULL)
-    return err;
+  read_ld_env(state, env_string);
 
   state->free_memory = word_align (state->free_memory + env_size);
 

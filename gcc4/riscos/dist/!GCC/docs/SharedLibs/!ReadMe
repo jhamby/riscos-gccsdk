@@ -164,11 +164,27 @@ control passes to the dynamic loader which ensures that any libraries that are
 required are present. It then performs the dynamic linking before finally
 passing control to the binary.
 
-The environment of the dynamic loader is controlled by the RISC OS system
-variable LD$Env. This can contain a space separated list of variables that
-the dynamic loader will use, e.g.,
+The environment of the dynamic loader can be set on a per client basis by
+setting a RISC OS system variable with a name based on that of the executable:
 
-set LD$Env "LD_WARN=1 LD_LIBRARY_PATH=ram:$.test"
+<program name>$LD$Env
+
+If the program name is !RunImage or ends in -bin (ignoring case), then the
+program is assumed to be an application and the application name, minus the '!'
+character is used instead.
+If a system variable based on the program name is found not to exist, then
+LD$Env is used instead. This allows a common environment to be shared by many
+clients, whilst at the same time, allowing specific clients their own.
+
+In either case, the environment contains a space separated list of variables
+that the dynamic loader will use, e.g.,
+
+set Firefox$LD$Env "LD_WARN=1 LD_LIBRARY_PATH=/Firefox:"
+
+set LD$Env "LD_WARN=1"
+
+If neither type of variable is defined, then the environment is assumed to be
+empty and ignored.
 
 The following variables are recognised:
 

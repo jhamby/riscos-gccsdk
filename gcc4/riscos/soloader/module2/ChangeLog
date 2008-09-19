@@ -1,3 +1,16 @@
+Fri Sep 19 19:24:56 2008  Lee Noar  <leenoar@sky.com>
+
+	Add support for per client dynamic loader environment:
+
+	* som_runcom.c(read_ld_env): New function to find the
+	environment of the dynamic loader for the current client.
+	(setup_env_array): Use read_ld_env().
+	* som_utils.c, som_utils.h: New files for miscellaneous utility
+	functions (wildcmp).
+	* Makefile.am: Add som_utils.c.
+	* riscos/soloader/dist/!SharedLibs/docs/!ReadMe: Update docs.
+	* riscos/dist/!GCC/docs/SharedLibs/!ReadMe: Likewise.
+
 Mon Aug 25 19:23:22 PDT 2008  Peter Naulls  <peter@chocky.org>
 
 	* som_init.c: Better name for dynamic area. 
