@@ -59,14 +59,14 @@ if [ -z "$RO_PKG" ] ; then
 else
   # Install for RISC OS headers, libraries and man pages
 
-  if echo "$dest" | grep -q -E "/env/lib|/env/include|/env/bin" ; then
+  if echo "$dest" | grep -q -E "GCCSDK_ENV/lib|GCCSDK_ENV/include|GCCSDK_ENV/bin" ; then
     dest=$(echo $dest | sed s#GCCSDK_ENV/#$AB_DIR/package/#)
     echo "RISC OS Cross installer: $installparams $dest"
     /bin/mkdir -p $(dirname $dest)
     exec $command $installparams $dest
   fi
 
-  if echo "$dest" | grep -q -E "/env/share/man|/env/man" ; then
+  if echo "$dest" | grep -q -E "GCCSDK_ENV/share/man|GCCSDK_ENV/man" ; then
     dest=$(echo $dest | sed -e "s#GCCSDK_ENV/share/#$AB_DIR/package/#" -e "s#GCCSDK_ENV/#$AB_DIR/package/#" -e "s#/man[0-9]##")
     # Skip option '-m'
     if [ "$(echo $installparams | cut -c -2)" == "-m" ] ; then
