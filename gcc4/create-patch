@@ -1,11 +1,9 @@
-#!/bin/bash
+#!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2006, 2007 GCCSDK Developers
+# Copyright (c) 2006-2008 GCCSDK Developers
 
 # Arguments:
 #  $1: file to patch (relative to $GCCSDK_SRCDIR)
-
-set -e
 
 pushd `dirname $0` > /dev/null
 GCCSDK_ROOT=`pwd`

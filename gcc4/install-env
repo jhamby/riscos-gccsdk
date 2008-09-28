@@ -1,8 +1,6 @@
-#!/bin/bash
+#!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2006, 2007 GCCSDK Developers
-
-set -e
+# Copyright (c) 2006-2008 GCCSDK Developers
 
 pushd `dirname $0` > /dev/null
 GCCSDK_ROOT=`pwd`

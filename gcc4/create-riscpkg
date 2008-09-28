@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 # Written by Alan Buckley <alan_baa@hotmail.com>
 # Copyright (c) 2008 GCCSDK Developers
 #
@@ -9,8 +9,6 @@
 #     Creates the GCCSDK RISC OS Packaging project packages in $GCCSDK_RELEASE_AREA/riscpkg
 #
 # Packages created
-
-set -e
 
 pushd `dirname $0` > /dev/null
 GCCSDK_ROOT=`pwd`

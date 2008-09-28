@@ -1,10 +1,8 @@
-#!/bin/bash
+#!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2007 GCCSDK Developers
+# Copyright (c) 2007-2008 GCCSDK Developers
 #
 # Downloads the gcc or binutils sources needed to build GCCSDK.
-
-set -e
 
 pushd `dirname $0` > /dev/null
 GCCSDK_ROOT=`pwd`

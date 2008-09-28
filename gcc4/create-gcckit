@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
 # Copyright (c) 2007-2008 GCCSDK Developers
 #
@@ -8,8 +8,6 @@
 #   create-gcckit [-pkg] [-h]
 #     Creates the GCCSDK kits in $GCCSDK_RELEASE_AREA and optionally packages
 #     these as well.
-
-set -e
 
 pushd `dirname $0` > /dev/null
 GCCSDK_ROOT=`pwd`

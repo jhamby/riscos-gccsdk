@@ -1,12 +1,10 @@
-#!/bin/bash
+#!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2006, 2007 GCCSDK Developers
+# Copyright (c) 2006-2008 GCCSDK Developers
 #
 # Combines the contents of gcc, parts of binutils, UnixLib 5.0 and
 # SharedCLibrary support into the srcdir directory, does the configuration
 # and applies the necessary patches for the arm-unknown-riscos target.
-
-set -e
 
 pushd `dirname $0` > /dev/null
 GCCSDK_ROOT=`pwd`
