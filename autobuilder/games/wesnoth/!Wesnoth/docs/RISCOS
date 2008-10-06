@@ -2,7 +2,16 @@
 Battle for Westnoth
 -------------------
 
-This RISC OS port for the autobuilder by Alan Buckley
+RISC OS port improvements for 1.4.5 and later by Christopher Martin
+
+1st October 2008.
+
+(The 1.4.5 version on the autobuilder website was currently built
+using GCC 3.4.6 on Christopher's machine. The patches he used
+have been added to the autobuilder and it is hoped that a
+runnable version compiled by GCC4 will be available in future.)
+ 
+RISC OS port for the autobuilder by Alan Buckley
 
 10th July 2007
 

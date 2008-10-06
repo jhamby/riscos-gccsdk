@@ -1,0 +1,23 @@
+Set Wesnoth$Dir <Obey$Dir>
+Set Wesnoth$Path WesnothUser:wesnoth.,<Wesnoth$Dir>.
+Set WesnothData$Path Wesnoth:
+
+If "<WesnothUser$Dir>"="" Then Filer_Run <Wesnoth$Dir>.!MyWesnoth.!Help
+If "<WesnothUser$Dir>"="" Then Obey
+
+IconSprites <Wesnoth$Dir>.!Sprites
+
+| Ensure SharedUnixLibrary is installed
+| http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip
+RMEnsure SharedUnixLibrary 1.07 RMLoad System:Modules.SharedULib
+RMEnsure SharedUnixLibrary 1.07 Error Couldn't load SharedUnixLibrary module!
+
+| The digital renderer replaces the Channel Handler for sound.
+RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
+RMEnsure DigitalRenderer 0.51 Error Couldn't load DigitalRenderer module!
+
+Set SDL$wesnoth$BackBuffer 2
+Set SDL$wesnoth$TaskName Wesnoth
+
+WimpSlot -min 65536k -max 8996k
+Run <Wesnoth$Dir>.wesnoth --log-debug=all -w ><Wesnoth$Dir>.stdout 2><Wesnoth$Dir>.stderr

@@ -1,0 +1,3 @@
+If "<Obey$Dir>"="<Wesnoth$Dir>.!MyWesnoth" Then Obey
+Set WesnothUser$Dir <Obey$Dir>
+Set WesnothUser$Path <WesnothUser$Dir>.
