@@ -1,3 +1,7 @@
+Mon Oct 13 02:19:00 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gen-auto.pl: Fix typo.
+
 Tue Sep  9 19:29:39 PDT 2008  Peter Naulls  <peter@chocky.org>
 
 	* pthread/cond.c(pthread_cond_timedwait): Fix divisor.
