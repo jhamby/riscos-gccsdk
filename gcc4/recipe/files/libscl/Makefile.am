@@ -19,7 +19,7 @@ WARNINGS = -pedantic -Wall -Wundef -Wpointer-arith \
 
 # The -isystem command tells GCC to prefer the header files in libscl,
 # rather than trying to compile the library with the system headers.
-# Header files that provide additional defintions only required for the
+# Header files that provide additional definitions only required for the
 # building of libscl should be held in the source directories.
 AM_CPPFLAGS = -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
 
