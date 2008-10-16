@@ -1,0 +1,4 @@
+| Boot file for CivServer
+
+Set CivServer$Dir <Obey$Dir>
+Iconsprites <CivServer$Dir>.!Sprites

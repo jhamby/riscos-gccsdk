@@ -1,0 +1,110 @@
+freeciv for RISC OS (SDL Client)
+================================
+
+Added to the gccsdk autobuilder at version 2.1.5.
+
+1.4.1-devel was Ported by Peter Naulls (unix@chocky.org)
+
+This version of freeciv was built by the GCCSDK autobuilder and is
+released on the autobuilder website: http://www.riscos.info/packages
+
+
+Please note
+-----------
+
+This program is 32-bit compatible, and is suitable for all RISC OS
+ARM6, ARM7, StrongARM and XScale machines.  It may not be suitable for
+earlier machines.
+
+If not installed using !RiscPkg you will also need to download the
+UnixFont application and copy the ttf-dejavu-core archive over it.
+!UnixFont must have been seen by the filer.
+
+Currently the Start option from the client menu is not implemented
+on RISC OS.
+
+Usage
+-----
+
+This is a port of the SDL client of Freeciv to RISC OS.  this version
+is based upon a current CVS version, and may have various display issues
+(also present on other platforms).
+
+Quick start:
+
+  Run !CivServer
+  Run !CivClient
+  Click "Join Game"
+  Click "Connect"
+  Type "start" in the server taskwindow
+  Choose your nation in the client, then click "start".
+
+
+Other notes:
+
+  If you double-click !UnixHome and edit the file !UserRC, you can
+  add at the end:
+
+    Set UnixEnv$USER peter
+
+  Or similar to give yourself a sensible unix style username.  
+
+
+  Not quitting the client properly may cause no sound when running
+  subsequent SDL games.  "*RMReinit DigitalRenderer" is a temporary
+  work around.
+
+
+  For more information about Freeciv see http://www.freeciv.org/
+
+
+SDL Client Controls:
+
+    - <Right Shift> + Enter to show input dialog.
+    - <F10> hide/show log window
+    - <ctrl - w> hide/show fog of war
+    - <ctrl - r> hide/show road/RR
+    - <ctrl - t> hide/show terrains
+    - <ctrl - i> hide/show irrigations/farmlands
+    - <ctrl - u> hide/show units    
+    - <ctrl - o> hide/show pollutions
+    - <ctrl - p> hide/show city productions
+    - <ctrl - s> hide/show map specials
+    - <ctrl - g> hide/show map grids
+    - <ctrl - l> hide/show nuke wast
+    - <ctrl - c> hide/show cities
+    - <ctrl - n> hide/show city names
+    - <print screen> make screenschot
+    - <F1> - cities report
+    - <F2> - units report
+    - <F5> - economy report
+    - <F6> - science report
+    - <MMB> - advenced menu    
+    - <Left Shift + LMB> - advenced menu
+    - <left CTRL + LBM on city> - open prduction dialog.
+    - <left ALT + LBM on city> - open buy production dialog
+                                 (work only in fullscreen).
+    - if actice unit stay on city then <Enter> key enter the city.
+    - <Tab> - options dlg.
+    - in options dlg <q> key exit game.
+    in city dlg:
+    - <c> change production dlg.
+    - <h> hurry production dlg.
+    all dlgs:
+    - <ESC> - exit/close dlg.
+    - <ENTER> - ok/commit/etc.
+    In Worklit dlg.
+    - <LMB> on "target" - change production to "target"
+    - <RMB> on "target" - add "target" to work list
+    - <MMB> on "target" - callhelp about "target" - not implemented !
+    - <LMB> on "worklist item" - swap "item" up
+    - <RMB> on "worklist item" - swap "item" down
+    - <MMB> on "worklist item" - remove "item" from worklist.
+    In MiniMap :
+    - <LMB> center map here.
+    - <RMB> open minimap scalling dialog.
+    In Unit Info Window
+    - <LMB> - next unit.
+    - <RMB> - center on focused unit.
+
+

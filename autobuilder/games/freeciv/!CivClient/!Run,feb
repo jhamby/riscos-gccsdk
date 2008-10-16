@@ -1,0 +1,13 @@
+| Run file for FreeCiv Client
+
+Set FreeCiv$Dir <Obey$Dir>
+Set FreeCiv$Path <Obey$Dir>.
+IconSprites <FreeCiv$Dir>.!Sprites
+
+If "<UnixFont$Dir>" = "" Then Error FreeCiv client needs UnixFont to have been seen by the filer
+IfThere UnixFont:truetype.ttf-dejavu Then Else Error FreeCiv needs the ttf-dejavu font installed
+
+Set FREECIV_PATH /FreeCiv:data/
+
+WimpSlot -min 8192k -max 8192k
+<FreeCiv$Dir>.civclient ><Obey$Dir>.stdout 2><Obey$Dir>.stderr

@@ -1,0 +1,3 @@
+
+If "<FreeCiv$Path>" = "" Then Error !FreeCiv has not been seen
+Filer_Run <FreeCiv$Dir>.!Help

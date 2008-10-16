@@ -1,2 +1,0 @@
-Set civserver$heap ""
-Taskwindow <Obey$Dir>.civserver -wimpslot 2500k -quit

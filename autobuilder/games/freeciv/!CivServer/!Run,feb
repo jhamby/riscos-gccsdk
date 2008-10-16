@@ -1,0 +1,6 @@
+| Run file for the FreeCiv Server
+
+*/<Obey$Dir>.!Boot
+If "<FreeCiv$Path>" = "" Then Error !FreeCiv has not been seen
+
+Taskwindow "<Obey$Dir>.civserver" -wimpslot 4096k -quit -name "FreeCiv Server"

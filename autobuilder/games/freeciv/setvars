@@ -1,13 +1,26 @@
 
-AB_CATEGORY=games
+AB_CATEGORY=Games
 AB_DEBNAME=freeciv-client-sdl
 
 AB_CONFLAGS="--enable-client=sdl"
 
-#AB_PREZIP="cp $AB_HOME/$AB_PACKAGEDIR/Run* ."
+export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec"
 
-#AB_FILESNOPATH="server/civserver$AB_EXEEXT client/civclient$AB_EXEEXT COPYING doc/HOWTOPLAY Run*"
-#AB_FILESPATH="data"
+ab_package() {
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -rav $H/\!CivClient $AD
+  cp -rav $H/\!CivServer $AD
+
+  cp -rav data $AD/\!CivClient
+  cp AUTHORS COPYING NEWS $AD/\!CivClient/doc
+  cp client/civclient$AB_EXEEXT $AD/\!CivClient
+  cp server/civserver$AB_EXEEXT $AD/\!CivServer
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+         -nobootvars -depends ttf-dejavu-core
+}
+
 
 
 
