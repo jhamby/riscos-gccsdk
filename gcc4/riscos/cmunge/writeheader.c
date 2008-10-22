@@ -377,7 +377,7 @@ static void fin(void) {
         "pw",
         "private word for module" },
     },
-    "Return 0 for successful finalisation, or a pointer to an error block "
+    "Return NULL for successful finalisation, or a pointer to an error block "
     "if module was not shutdown properly."
   };
   header.name=opt.final;
