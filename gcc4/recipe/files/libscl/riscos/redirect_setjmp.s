@@ -1,5 +1,5 @@
 @ Stub routines for linking with the SharedCLibrary
-@ Copyright (c) 2007 UnixLib Developers
+@ Copyright (c) 2007-2008 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -26,6 +26,8 @@
 
 @ Only suited for APCS-32 linking (SharedCLibrary 5) with code compiled
 @ with GCCSDK 4.x.
+
+#include "internal/scl-macros.s"
 
 	.text
 

@@ -1,6 +1,5 @@
-@ Stub routines for linking with the SharedCLibrary
-@ Copyright (c) 1997-2005 Nick Burrett
-@ Copyright (c) 2005-2008 UnixLib Developers
+@ libscl specific macros used by all its assembler files.
+@ Copyright (c) 2008 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -25,16 +24,24 @@
 @ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
 @ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-@ Only suited for APCS-32 linking (SharedCLibrary 5) with code compiled
-@ with GCCSDK 4.x.
+	.macro	MakePtr ptrname
+#ifdef __TARGET_MODULE__
+	.word	\ptrname(GOTOFF)
+#else
+	.word	\ptrname
+#endif
+	.endm
 
-#include "internal/scl-macros.s"
+	@ Add a function stub entry with labels 'fncname' and '__fncname'
+	@ whom the former one is weak definition.
+	.macro	DefSCLFnc fncname
+	.global	__\fncname
+	.type	__\fncname, %function
+	.global	\fncname
+	.type	\fncname, %function
+	.weak	\fncname
+\fncname:
+__\fncname:
+	MOV	PC, #0
+	.endm
 
-	.section .riscos.libscl.chunkstub.start,"ax",%progbits
-	.global	__chunkstub
-__chunkstub:
-
-	.section .riscos.libscl.chunkstub.end,"ax",%progbits
-	.word	-1			@ end of list
-
-	.end

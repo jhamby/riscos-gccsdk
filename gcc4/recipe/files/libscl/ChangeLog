@@ -1,3 +1,16 @@
+Fri Oct 24 02:09:51 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/scl-macros.s: Added, provides MakePtr and
+	DefSCLFnc macros.
+	* riscos/redirect_setjmp.s: Make use of scl-macros.s.
+	* riscos/chunkstub.s: Likewise.
+	* riscos/chunkid01.s: Likewise.
+	* riscos/chunkid02.s: Likewise.
+	* riscos/chunkid04.s: Likewise.
+	* riscos/chunkid05.s: Likewise.
+	* incl-local/sys/cdefs.h(strong_alias,weak_function,
+	weak_const_function,weak_alias): Added.
+
 Mon Oct 13 02:19:00 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am: Fix typo.

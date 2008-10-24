@@ -1,5 +1,5 @@
-@ Stub routines for linking with the SharedCLibrary
-@ Copyright (c) 2007 UnixLib Developers
+@ Chunk 4 stub routines for linking with the SharedCLibrary
+@ Copyright (c) 2007-2008 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -27,13 +27,7 @@
 @ Only suited for APCS-32 linking (SharedCLibrary 5) with code compiled
 @ with GCCSDK 4.x.
 
-	.macro	MakePtr ptrname
-#ifdef __TARGET_MODULE__
-	.word	\ptrname(GOTOFF)
-#else
-	.word	\ptrname
-#endif
-	.endm
+#include "internal/scl-macros.s"
 
 	.section .riscos.libscl.chunkstub.id04,"ax",%progbits
 	@ Chunk 4 is optional

@@ -1,6 +1,6 @@
-@ Stub routines for linking with the SharedCLibrary
+@ Chunk 5 stub routines for linking with the SharedCLibrary
 @ Copyright (c) 1997-2005 Nick Burrett
-@ Copyright (c) 2005-2007 UnixLib Developers
+@ Copyright (c) 2005-2008 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -28,13 +28,7 @@
 @ Only suited for APCS-32 linking (SharedCLibrary 5) with code compiled
 @ with GCCSDK 4.x.
 
-	.macro	MakePtr ptrname
-#ifdef __TARGET_MODULE__
-	.word	\ptrname(GOTOFF)
-#else
-	.word	\ptrname
-#endif
-	.endm
+#include "internal/scl-macros.s"
 
 	.section .riscos.libscl.chunkstub.id05,"ax",%progbits
 	@ Chunk 5 is optional
@@ -56,7 +50,7 @@ extra_vectors_begin:
 	@   2. = Value is a sub-normal FP value
 	@   3. = Value is a normal FP value
 	@   4. = Value is an infinity FP value
-	@   5. = Value is Not-A-Number (NAN) FP value 
+	@   5. = Value is Not-A-Number (NAN) FP value
 	@ Note: FP values are passed in FP registers.
 	@.global	__fpclassifyf
 __fpclassifyf_FIXME_float_arg:	MOV	PC, #0
@@ -69,7 +63,7 @@ __fpclassifyf_FIXME_float_arg:	MOV	PC, #0
 	@   2. = Value is a sub-normal FP value
 	@   3. = Value is a normal FP value
 	@   4. = Value is an infinity FP value
-	@   5. = Value is Not-A-Number (NAN) FP value 
+	@   5. = Value is Not-A-Number (NAN) FP value
 	@ Note: FP values are passed in FP registers.
 	.global	__fpclassifyd
 __fpclassifyd:
@@ -99,9 +93,7 @@ __signbitd:
 	@ whose magnitude is that of x. Effectively, copies the sign of y
 	@ into x and returns it.
 	@ Note: FP values are passed in FP registers.
-	.global	copysign
-copysign:
-	MOV	PC, #0
+	DefSCLFnc	copysign
 
 	@ Entry 5
 	@ floats copysignf(float x, float y);
@@ -119,26 +111,20 @@ copysignf_not_used:
 	@ Returns a Not-A-Number (NAN) FP value. The value of tag is
 	@ implementation defined. Current implementations ignore the value of
 	@ tag.
-	.global	nan
-nan:
-	MOV	PC, #0
+	DefSCLFnc	nan
 
 	@ Entry 7
 	@ float nanf(const char *tag);
 	@ Returns a Not-A-Number (NAN) FP value. The value of tag is
 	@ implementation defined. Current implementations ignore the value of
 	@ tag.
-	.global	nanf
-nanf:
-	MOV	PC, #0
+	DefSCLFnc	nanf
 
 	@ Entry 8
 	@ double nextafter(double x, double y);
 	@ Returns the next representable value in the specified format after
 	@ x in the direction of y.
-	.global	nextafter
-nextafter:
-	MOV	PC, #0
+	DefSCLFnc	nextafter
 
 	@ Entry 9
 	@ float nextafterf(float x, float y);
@@ -155,9 +141,7 @@ nextafterf_FIXME_float_arg:
 	@ if x <= y, returns +0
 	@ A range error may occur.
 	@ Returns: the positive difference value.
-	.global	fdim
-fdim:
-	MOV	PC, #0
+	DefSCLFnc	fdim
 
 	@ Entry 11
 	@ float fdimf(float x, float y);
@@ -173,9 +157,7 @@ fdimf_FIXME_float_arg:
 	@ Entry 12
 	@ double fmax(double x, double y);
 	@ Returns the higher of the two arguments.
-	.global	fmax
-fmax:
-	MOV	PC, #0
+	DefSCLFnc	fmax
 
 	@ Entry 13
 	@ float fmaxf(float x, float y);
@@ -187,9 +169,7 @@ fmaxf_FIXME_float_arg:
 	@ Entry 14
 	@ double fmin(double x, double y);
 	@ Returns the lower of the two arguments.
-	.global	fmin
-fmin:
-	MOV	PC, #0
+	DefSCLFnc	fmin
 
 	@ Entry 15
 	@ float fminf(float x, float y);
@@ -210,17 +190,15 @@ fabsf_not_used:
 	@ Returns the square root of the sum of the squares of x and y,
 	@ without undue overflow or underflow.
 	@ A range error may occur.
-	.global	hypot
-hypot:
-	MOV	PC, #0
+	DefSCLFnc	hypot
 
 	@ Entry 18
 	@ float hypotf(float x, float y);
 	@ Returns the square root of the sum of the squares of x and y,
 	@ without undue overflow or underflow.
 	@ A range error may occur.
-	.global	hypotf
-hypotf:
+	@.global	hypotf
+hypotf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 19
@@ -233,27 +211,21 @@ hypotf:
 	@   bit 2 = Overflow
 	@   bit 3 = Underflow
 	@   bit 4 = Inexact
-	.global	feclearexcept
-feclearexcept:
-	MOV	PC, #0
+	DefSCLFnc	feclearexcept
 
 	@ Entry 20
 	@ int fegetexceptflag(unsigned int *flagsp, int exceptions);
 	@ Reads the representation of the FP status flags indicated by the
 	@ exceptions arguments.
 	@ Returns zero if successful, non-zero if failed.
-	.global	fegetexceptflag
-fegetexceptflag:
-	MOV	PC, #0
+	DefSCLFnc	fegetexceptflag
 
 	@ Entry 21
 	@ int feraiseexcept(int exceptions);
-	@ Attempts to raise the floating point exceptions specified within the
-	@ exceptions flags.
+	@ Attempts to raise the floating point exceptions specified within
+	@ the exceptions flags.
 	@ Returns zero if successful, non-zero if failed.
-	.global	feraiseexcept
-feraiseexcept:
-	MOV	PC, #0
+	DefSCLFnc	feraiseexcept
 
 	@ Entry 22
 	@ int fesetexceptflag(unsigned int *flagsp, int exceptions);
@@ -262,19 +234,15 @@ feraiseexcept:
 	@ This function can be used together with fegetexceptflag() to
 	@ preserve and restore floating point status flags.
 	@ Returns zero if successful, or non-zero if failed.
-	.global	fesetexceptflag
-fesetexceptflag:
-	MOV	PC, #0
+	DefSCLFnc	fesetexceptflag
 
 	@ Entry 23
 	@ int fetestexcept(int exceptions);
 	@ Determines which of the exceptions specified in the argument are
 	@ currently set.
-	@ Returns the exceptions which are currently set, from those specified
-	@ within the argument.
-	.global	fetestexcept
-fetestexcept:
-	MOV	PC, #0
+	@ Returns the exceptions which are currently set, from those
+	@ specified within the argument.
+	DefSCLFnc	fetestexcept
 
 	@ Entry 24
 	@ int fegetround(void);
@@ -282,27 +250,21 @@ fetestexcept:
 	@ Returns 0 indicating 'round to nearest'.
 	@ The current implementation of the ARM FP system cannot change its
 	@ rounding direction at runtime.
-	.global	fegetround
-fegetround:
-	MOV	PC, #0
+	DefSCLFnc	fegetround
 
 	@ Entry 25
 	@ int fesetround(int direction);
 	@ Changes the rounding direction.
 	@ Returns 0 indicating success if the direction specified was 0, or 1
 	@ indicating a failure otherwise.
-	.global	fesetround
-fesetround:
-	MOV	PC, #0
+	DefSCLFnc	fesetround
 
 	@ Entry 26
 	@ int fegetenv(const fenv_t *envp);
 	@ Reads the current floating point environment into the structure
 	@ specified. The structure must be 6 words long.
 	@ Returns 0 if successful, or 1 if failed.
-	.global	fegetenv
-fegetenv:
-	MOV	PC, #0
+	DefSCLFnc	fegetenv
 
 	@ Entry 27
 	@ int feholdexcept(const fenv_t *envp);
@@ -310,27 +272,21 @@ fegetenv:
 	@ specified, clears any pending exceptions and disables all floating
 	@ point exceptions.
 	@ Returns 0 if successful, or 1 if failed.
-	.global	feholdexcept
-feholdexcept:
-	MOV	PC, #0
+	DefSCLFnc	feholdexcept
 
 	@ Entry 28
 	@ int fesetenv(const fenv_t *envp);
 	@ Attempts to set the floating point enviroment to that stored in the
 	@ argument. No exceptions are raised.
 	@ Returns 0 if successful, or 1 if failed.
-	.global	fesetenv
-fesetenv:
-	MOV	PC, #0
+	DefSCLFnc	fesetenv
 
 	@ Entry 29
 	@ int feupdateenv(const fent_t *envp);
 	@ Attempts to set the floating point enviroment to that stored in the
 	@ argument. Exceptions are then raised.
 	@ Returns 0 if successful, or 1 if failed.
-	.global	feupdateenv
-feupdateenv:
-	MOV	PC, #0
+	DefSCLFnc	feupdateenv
 
 	@ Entry 30
 	@ int _snprintf(char *output, size_t max, const char *format, ...);
@@ -350,9 +306,7 @@ _snprintf:
 	@ Returns the number of bytes which have been written to the output
 	@ buffer, or would have been written if the buffer had been long
 	@ enough.
-	.global	snprintf
-snprintf:
-	MOV	PC, #0
+	DefSCLFnc	snprintf
 
 	@ Entry 32
 	@ int vsnprintf(char *output, size_t max, const char *format, va_list ap);
@@ -421,9 +375,7 @@ floorf_not_used:
 	@ double nearbyint(double x);
 	@ Rounds its argument to an integer value, using the current rounding
 	@ direction. Does not raise the inexact exception.
-	.global	nearbyint
-nearbyint:
-	MOV	PC, #0
+	DefSCLFnc	nearbyint
 
 	@ Entry 39
 	@ float nearbyintf(float x);
@@ -437,9 +389,7 @@ nearbyintf_FIXME_float_arg:
 	@ double rint(double x);
 	@ Rounds its argument to an integer value, using the current rounding
 	@ direction. Raises "inexact" if the result differs from the argument.
-	.global	rint
-rint:
-	MOV	PC, #0
+	DefSCLFnc	rint
 
 	@ Entry 41
 	@ float rintf(float x);
@@ -453,9 +403,7 @@ rintf_FIXME_float_arg:
 	@ long int lrint(double x);
 	@ Rounds its argument to an integer value, using the current rounding
 	@ direction. Raises "inexact" if the result differs from the argument.
-	.global	lrint
-lrint:
-	MOV	PC, #0
+	DefSCLFnc	lrint
 
 	@ Entry 43
 	@ long int lrintf(float x);
@@ -469,9 +417,7 @@ lrintf_FIXME_float_arg:
 	@ double round(double x);
 	@ Rounds its argument to the nearest integer value, rounding halfway
 	@ cases away from zero.
-	.global	round
-round:
-	MOV	PC, #0
+	DefSCLFnc	round
 
 	@ Entry 45
 	@ float roundf(float x);
@@ -485,9 +431,7 @@ roundf_FIXME_float_arg:
 	@ long int lround(double x);
 	@ Rounds its argument to the nearest integer value, rounding halfway
 	@ cases away from zero.
-	.global	lround
-lround:
-	MOV	PC, #0
+	DefSCLFnc	lround
 
 	@ Entry 47
 	@ long int lroundf(float x);
@@ -501,9 +445,7 @@ lroundf_FIXME_float_arg:
 	@ double trunc(double x);
 	@ Rounds its argument to the integer value, nearest to but no larger
 	@ in magnitude than the argument.
-	.global	trunc
-trunc:
-	MOV	PC, #0
+	DefSCLFnc	trunc
 
 	@ Entry 49
 	@ float truncf(float x);
@@ -515,9 +457,7 @@ truncf_FIXME_float_arg:
 	@ Entry 50
 	@ double remainder(double x);
 	@ Computes the remainder x REM y required by IEEE 754
-	.global	remainder
-remainder:
-	MOV	PC, #0
+	DefSCLFnc	remainder
 
 	@ Entry 51
 	@ float remainderf(float x);
@@ -528,30 +468,25 @@ remainderf_FIXME_float_arg:
 	@ Entry 52
 	@ long long llabs(long long j);
 	@ Returns the absolute value of j.
-	.global	llabs
-llabs:
-	MOV	PC, #0
+	DefSCLFnc	llabs
 
 	@ Entry 53
 	@ lldiv_t lldiv(long long j, long long k);
 	@ Computes numer / denom and numer % denom in a single operation.
-	@ Returns: a structure of type lldiv_t, comprising both the quotient and the remainder.
+	@ Returns: a structure of type lldiv_t, comprising both the
+	@ quotient and the remainder.
 	@  typedef struct lldiv_t {
 	@    long quot;
 	@    long long rem;
 	@    } lldiv_t;
-	.global	lldiv
-lldiv:
-	MOV	PC, #0
+	DefSCLFnc	lldiv
 
 	@ Entry 54
 	@ long long atoll(const char *s);
 	@ Returns the value of the string in s. This is equivalent to
 	@ strtoll(s, (char **)NULL, 10); with the exception that errno is
 	@ unaffected by the conversion.
-	.global	atoll
-atoll:
-	MOV	PC, #0
+	DefSCLFnc	atoll
 
 	@ Entry 55
 	@ long long strtoll(const char *s, char **e, int b);
@@ -566,9 +501,7 @@ atoll:
 	@ because it is too large, it will return LLONG_MAX or LLONG_MIN,
 	@ depending on whether the overflowing value was positive or negative,
 	@ and errno will be set to ERANGE.
-	.global	strtoll
-strtoll:
-	MOV	PC, #0
+	DefSCLFnc	strtoll
 
 	@ Entry 56
 	@ unsigned long long strtoull(const char *s, char **e, int b);
@@ -576,39 +509,29 @@ strtoll:
 	@ base b, storing the end of the conversion in pointer at e. This
 	@ function is identical to strtoll, except that underflow cannot be
 	@ reported, and an overflow is indicated by ULLONG_MAX.
-	.global	strtoull
-strtoull:
-	MOV	PC, #0
+	DefSCLFnc	strtoull
 
 	@ Entry 57
 	@ long long imaxabs(long long i);
 	@ Returns the absolute value of a 64bit value.
 	@ Equivalent to llabs.
-	.global	imaxabs
-imaxabs:
-	MOV	PC, #0
+	DefSCLFnc	imaxabs
 
 	@ Entry 58
 	@ intmax_t imaxdiv(long long j, long long k);
 	@ Divides an intmax_t value by a second intmax_t value.
 	@ Equivalent to lldiv.
-	.global	imaxdiv
-imaxdiv:
-	MOV	PC, #0
+	DefSCLFnc	imaxdiv
 
 	@ Entry 59
 	@ imax_t strtoimax((const char *s, char **e, int b);
 	@ This function is equivalent to strtoll.
-	.global	strtoimax
-strtoimax:
-	MOV	PC, #0
+	DefSCLFnc	strtoimax
 
 	@ Entry 60
 	@ imax_t strtouimax((const char *s, char **e, int b);
 	@ This function is equivalent to strtoull.
-	.global	strtoumax
-strtoumax:
-	MOV	PC, #0
+	DefSCLFnc	strtoumax
 
 	@ Entry 61
 	@ void __assert2(const char *message, const char *func, const char *file, int line);
@@ -630,314 +553,277 @@ _Exit:
 	MOV	PC, #0
 
 	@ Entry 63
-	@ 
+	@
 	@.global	acosf
 acosf_not_used:
 	MOV	PC, #0
 
 	@ Entry 64
-	@ 
+	@
 	@.global	asinf
 asinf_not_used:
 	MOV	PC, #0
 
 	@ Entry 65
-	@ 
+	@
 	@.global	atanf
 atanf_not_used:
 	MOV	PC, #0
 
 	@ Entry 66
-	@ 
+	@
 	@.global	atan2f
 atan2f_not_used:
 	MOV	PC, #0
 
 	@ Entry 67
-	@ 
+	@
 	@.global	cosf
 cosf_not_used:
 	MOV	PC, #0
 
 	@ Entry 68
-	@ 
+	@
 	@.global	sinf
 sinf_not_used:
 	MOV	PC, #0
 
 	@ Entry 69
-	@ 
+	@
 	@.global	tanf
 tanf_not_used:
 	MOV	PC, #0
 
 	@ Entry 70
-	@ 
-	.global	acosh
-acosh:
-	MOV	PC, #0
+	@
+	DefSCLFnc	acosh
 
 	@ Entry 71
-	@ 
+	@
 	@.global	acoshf
 acoshf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 72
-	@ 
-	.global	asinh
-asinh:
-	MOV	PC, #0
+	@
+	DefSCLFnc	asinh
 
 	@ Entry 73
-	@ 
+	@
 	@.global	asinhf
 asinhf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 74
-	@ 
-	.global	atanh
-atanh:
-	MOV	PC, #0
+	@
+	DefSCLFnc	atanh
 
 	@ Entry 75
-	@ 
+	@
 	@.global	atanhf
 atanhf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 76
-	@ 
+	@
 	@.global	expf
 expf_not_used:
 	MOV	PC, #0
 
 	@ Entry 77
-	@ 
-	.global	exp2
-exp2:
-	MOV	PC, #0
+	@
+	DefSCLFnc	exp2
 
 	@ Entry 78
-	@ 
+	@
 	@.global	exp2f
 exp2f_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 79
-	@ 
-	.global	expm1
-expm1:
-	MOV	PC, #0
+	@
+	DefSCLFnc	expm1
 
 	@ Entry 80
-	@ 
+	@
 	@.global	expm1f
 expm1f_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 81
-	@ 
+	@
 	@.global	frexpf
 frexpf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 82
-	@ 
-	.global	ilogb
-ilogb:
-	MOV	PC, #0
+	@
+	DefSCLFnc	ilogb
 
 	@ Entry 83
-	@ 
+	@
 	@.global	ilogbf
 ilogbf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 84
-	@ 
+	@
 	@.global	ldexpf
 ldexpf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 85
-	@ 
+	@
 	@.global	logf
 logf_not_used:
 	MOV	PC, #0
 
 	@ Entry 86
-	@ 
+	@
 	@.global	log10f
 log10f_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 87
-	@ 
-	.global	log1p
-log1p:
-	MOV	PC, #0
+	@
+	DefSCLFnc	log1p
 
 	@ Entry 88
-	@ 
+	@
 	@.global	log1pf
 log1pf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 89
-	@ 
-	.global	log2
-log2:
-	MOV	PC, #0
+	@
+	DefSCLFnc	log2
 
 	@ Entry 90
-	@ 
+	@
 	@.global	log2f
 log2f_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 91
-	@ 
-	.global	logb
-logb:
-	MOV	PC, #0
+	@
+	DefSCLFnc	logb
 
 	@ Entry 92
-	@ 
+	@
 	@.global	logbf
 logbf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 93
-	@ 
+	@
 	@.global	modff
 modff_not_used:
 	MOV	PC, #0
 
 	@ Entry 94
-	@ 
+	@
 	@.global	fmodf
 fmodf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 95
-	@ 
-	.global	scalbn
-scalbn:
-	MOV	PC, #0
+	@
+	DefSCLFnc	scalbn
 
 	@ Entry 96
-	@ 
+	@
 	@.global	scalbnf
 scalbnf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 97
-	@ 
-	.global	scalbln
-scalbln:
-	MOV	PC, #0
+	@
+	DefSCLFnc	scalbln
 
 	@ Entry 98
-	@ 
+	@
 	@.global	scalblnf
 scalblnf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 99
-	@ 
-	.global	cbrt
-cbrt:
-	MOV	PC, #0
+	@
+	DefSCLFnc	cbrt
 
 	@ Entry 100
-	@ 
+	@
 	@.global	cbrtf
 cbrtf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 101
-	@ 
+	@
 	@.global	powf
 powf_not_used:
 	MOV	PC, #0
 
 	@ Entry 102
-	@ 
+	@
 	@.global	sqrtf
 sqrtf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 103
-	@ 
-	.global	erf
-erf:
-	MOV	PC, #0
+	@
+	DefSCLFnc	erf
 
 	@ Entry 104
-	@ 
+	@
 	@.global	erff
 erff_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 105
-	@ 
-	.global	erfc
-erfc:
-	MOV	PC, #0
+	@
+	DefSCLFnc	erfc
 
 	@ Entry 106
-	@ 
+	@
 	@.global	erfcf
 erfcf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 107
-	@ 
-	.global	lgamma
-lgamma:
-	MOV	PC, #0
+	@
+	DefSCLFnc	lgamma
 
 	@ Entry 108
-	@ 
+	@
 	@.global	lgammaf
 lgammaf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 109
-	@ 
-	.global	tgamma
-tgamma:
-	MOV	PC, #0
+	@
+	DefSCLFnc	tgamma
 
 	@ Entry 110
-	@ 
+	@
 	@.global	tgammaf
 tgammaf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 111
-	@ 
-	.global	nexttoward
-nexttoward:
-	MOV	PC, #0
+	@
+	DefSCLFnc	nexttoward
 
 	@ Entry 112
-	@ 
+	@
 	@.global	nexttowardf
 nexttowardf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 113
-	@ 
-	.global	fmaf
-fmaf:
-	MOV	PC, #0
+	@
+	DefSCLFnc	fmaf
 
 extra_vectors_end:
 	.space	extra_vectors_end - extra_vectors_begin
 	.size	extra_vectors, . - extra_vectors
 
 	.end
-
