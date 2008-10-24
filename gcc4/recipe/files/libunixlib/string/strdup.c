@@ -4,9 +4,10 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <sys/cdefs.h>
 
 char *
-strdup (const char *string)
+__strdup (const char *string)
 {
   int len;
   char *newstr;
@@ -19,3 +20,4 @@ strdup (const char *string)
     return NULL;
   return memcpy (newstr, string, len);
 }
+weak_alias(__strdup, strdup);
