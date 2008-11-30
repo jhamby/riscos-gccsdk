@@ -136,7 +136,7 @@ if [ -e build-setvars ] ; then
   . build-setvars
   found_vars=true
 else
-  echo "Autobuilder: no build-setvars found, using default build parameters"
+  echo "Autobuilder: no local build-setvars found, using default build parameters"
 fi
 
 
