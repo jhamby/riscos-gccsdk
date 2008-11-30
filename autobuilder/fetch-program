@@ -12,6 +12,7 @@ else
     AB_SVN=$(grep ^AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
   fi
 fi
+AB_GIT=$(grep ^AB_GIT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
 AB_URL=$(grep ^AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
 AB_NOREMOTE=$(grep ^AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
 
@@ -29,6 +30,9 @@ if [ "$AB_CVS_ROOT" != "" ] ; then
 
 elif [ "$AB_SVN" != "" ] ; then
   svn co -q $AB_SVN
+
+elif [ "$AB_GIT" != "" ] ; then
+  git clone $AB_GIT
 
 elif [ "$AB_URL" != "" ] ; then
   wget -nv $AB_URL

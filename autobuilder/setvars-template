@@ -22,10 +22,13 @@
 #AB_SVN_AOF=
 #     Note: consider defining "AB_ZIPNAME=xxx-svn-$(date +%Y%m%d)" as well.
 #
-#  3. Either via an URL:
+#  3. Either via git:
+#AB_GIT=
+#
+#  4. Either via an URL:
 #AB_URL=
 #
-#  4. Either somewhere on a filing system:
+#  5. Either somewhere on a filing system:
 #AB_NOREMOTE=yes
 #     Note: consider defining "AB_ZIPNAME=xxx-local-$(date +%Y%m%d)" as well.
 #
