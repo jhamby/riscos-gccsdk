@@ -31,7 +31,7 @@ rm -rf bin
 
 files=$(find -type f)
 if [ -z "$files" ] ; then
-  echo "RO libpack: No files to pack" 1>&2
+  echo "RO libpack: No files in $AB_DIR/package to pack" 1>&2
   exit 1
 fi
 
