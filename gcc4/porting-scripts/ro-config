@@ -564,6 +564,9 @@ export fu_cv_sys_mounted_fread=yes
 
 export libc_cv_asm_global_directive=EXPORT
 
+# We don't need -lc added to our linker line by libtool:
+export archive_cmds_need_lc=no
+
 #export libltdl_cv_sys_dlopen_deplibs=no
 #export lt_cv_sys_global_symbol_pipe="cut -d ' ' -f 1"
 #export lt_cv_global_symbol_to_cdecl="sed -n -e 's/\\(.*\\)\$/extern char \\1;/p'"

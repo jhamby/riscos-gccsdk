@@ -1,3 +1,8 @@
+Sun Nov 30 16:38:49 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ro-config: Define archive_cmds_need_lc to no to prevent configure
+	generating a libtool script which adds -lc to our linker lines.
+
 Mon Aug 18 21:14:29 PDT 2008  Peter Naulls  <peter@chocky.org>
 
 	* ro-config: Improve static vs dynamic configuration.  
