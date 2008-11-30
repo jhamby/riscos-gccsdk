@@ -1,7 +1,15 @@
-AB_CATEGORY=Command
+AB_CATEGORY=Graphics
+AB_LICENCE=GPLv2
+AB_APPNAME=gerb2tif
 
 AB_URL=http://members.optusnet.com.au/~eseychell/gerb2tif/gerb2tif_0.74.zip
 
 ab_package() {
-  cp $S/../GPL $S/../readme.txt $S/../CHANGES.TXT $S/gerb2tif$AB_EXEEXT $D
+  mkdir -p $D/\!$AB_APPNAME
+  cp $S/../GPL $S/../CHANGES.TXT $S/gerb2tif$AB_EXEEXT $D/\!$AB_APPNAME
+  cp $S/../readme.txt $D/\!$AB_APPNAME/\!Help
+  echo "Set Alias\$gerb2tif <Obey\$Dir>.gerb2tif %*0" >  $D/\!$AB_APPNAME/!Boot,feb
+  cp $D/\!$AB_APPNAME/!Boot,feb $D/\!$AB_APPNAME/!Run,feb
+
+  $AB_HOME/add-riscpkg -unixlib -appname $AB_APPNAME -copyrightfile $S/../GPL
 }
