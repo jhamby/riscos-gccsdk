@@ -1,15 +1,25 @@
 AB_CATEGORY=Graphics
-AB_LICENCE=GPLv2
+AB_LICENCE=Free
 AB_APPNAME=gerb2tif
+AB_PVERSION=0.74
+AB_ZIPNAME=gerb2tif
+AB_COPYSOURCE=yes
+AB_DISTCLEAN="$AB_MAKE clean"
 
 AB_URL=http://members.optusnet.com.au/~eseychell/gerb2tif/gerb2tif_0.74.zip
 
 ab_package() {
-  mkdir -p $D/\!$AB_APPNAME
-  cp $S/../GPL $S/../CHANGES.TXT $S/gerb2tif$AB_EXEEXT $D/\!$AB_APPNAME
-  cp $S/../readme.txt $D/\!$AB_APPNAME/\!Help
-  echo "Set Alias\$gerb2tif <Obey\$Dir>.gerb2tif %*0" >  $D/\!$AB_APPNAME/!Boot,feb
-  cp $D/\!$AB_APPNAME/!Boot,feb $D/\!$AB_APPNAME/!Run,feb
+  AD=$D/Apps/Graphics
+  mkdir -p $AD/\!$AB_APPNAME
+  cp $S/../GPL $S/../CHANGES.TXT $S/gerb2tif$AB_EXEEXT $AD/\!$AB_APPNAME
+  cp $S/../readme.txt $AD/\!$AB_APPNAME/\!Help
+  echo "Set Alias\$gerb2tif <Obey\$Dir>.gerb2tif %*0" >  $AD/\!$AB_APPNAME/!Boot,feb
+  cp $AD/\!$AB_APPNAME/!Boot,feb $AD/\!$AB_APPNAME/!Run,feb
 
   $AB_HOME/add-riscpkg -unixlib -appname $AB_APPNAME -copyrightfile $S/../GPL
+  # Add a description
+  echo "Description: gerb2tif is a command line driven program that will read an" >>$D/RiscPkg/Control,fff
+  echo " input file of Gerber RS273X format and generates a raster graphics" >>$D/RiscPkg/Control,fff
+  echo " bitmap. Output file is uncompressed monochrome TIFF image." >>$D/RiscPkg/Control,fff
+
 }
