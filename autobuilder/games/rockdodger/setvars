@@ -1,0 +1,17 @@
+AB_CATEGORY=Games
+AB_COPYSOURCE=yes
+AB_DISTCLEAN="make clean"
+
+ab_package() 
+{
+  AD=$D/Apps/Games
+  mkdir -p $AD/\!RockDodger
+  cp -av $H/\!RockDodger/\!* $AD/\!RockDodger
+  cp -av rockdodger $AD/\!RockDodger/rockdodger$AB_EXEEXT
+  cp -av COPYING $AD/\!RockDodger
+
+  mkdir -p $AD/\!RockDodger/data
+  cp data/*.{bmp,png,wav,mod} $AD/\!RockDodger/data
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
+}
