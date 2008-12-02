@@ -268,11 +268,14 @@ create_gcc_kit() {
 
 # Move the C++ library to a separate kit:
 split_off_sharedlibsgpp() {
-  create_empty_dir $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME
-  mkdir -p $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib
-  for obj in $BKIT_SHAREDLIBS_UNPACKED/lib/{libstdc++.so\,1c8,libstdc++.so.6\,1c8,libstdc++.6.0.8.so\,e1f} ; do
-    test -f $obj && mv $obj $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib
-  done
+  FILES_TOSPLITOFF=$BKIT_SHAREDLIBS_UNPACKED/lib/{libstdc++.so\,1c8,libstdc++.so.6\,1c8,libstdc++.6.0.8.so\,e1f}
+  if [ ! -z $FILES_TOSPLITOFF ] ; then
+    create_empty_dir $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME
+    mkdir -p $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib
+    for obj in  ; do
+      test -f $obj && mv $obj $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib
+    done
+  fi
 }
 
 split_off_sharedlibscore() {
@@ -328,7 +331,7 @@ split_off_gcccore
 if [ "$GCCSDK_DO_PKG" == "YES" ] ; then
   # Package all the kits:
   if [ ! -f $GCCSDK_CROSS_PREFIX/bin/zip ] ; then
-    echo Unable to create kits because of missing zip executable.
+    echo Unable to create kits because of missing zip executable $GCCSDK_CROSS_PREFIX/bin/zip.
     exit 1
   fi
 
