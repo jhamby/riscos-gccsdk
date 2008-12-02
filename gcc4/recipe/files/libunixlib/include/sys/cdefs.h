@@ -33,17 +33,12 @@
    to help it optimize the function calls.  But this works only with
    gcc 2.8.x and egcs.  For gcc 3.2 and up we even mark C functions
    as non-throwing using a function attribute since programs can use
-   the -fexceptions options for C code as well.
-
-   If compiling UnixLib with a C++ compiler, we disable the option
-   as it breaks compatibility between function prototype and definition.
-   UnixLib generally isn't compiled with a C++ compiler but the additional
-   type checking can be useful in finding small errors.  */
+   the -fexceptions options for C code as well.  */
 # if !defined __cplusplus && __GNUC_PREREQ (3, 3)
 #  define __THROW       __attribute__ ((__nothrow__))
 #  define __NTH(fct)    __attribute__ ((__nothrow__)) fct
 # else
-#  if defined __cplusplus && ! defined (__UNIXLIB_INTERNALS)
+#  if defined __cplusplus
 #   define __THROW      throw ()
 #   define __NTH(fct)   fct throw ()
 #  else

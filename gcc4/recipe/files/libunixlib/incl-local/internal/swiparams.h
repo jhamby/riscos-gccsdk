@@ -1,11 +1,9 @@
 /*
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2008 UnixLib Developers
  */
 
 #ifndef __INTERNAL_SWIPARAMS_H
 #define __INTERNAL_SWIPARAMS_H
-
-#ifdef __UNIXLIB_INTERNALS
 
 /* Limited set of SWI parameters needed in UnixLib itself */
 
@@ -41,7 +39,5 @@
 #define MMM_TYPE_RISCOS_STRING        1
 #define MMM_TYPE_MIME                 2
 #define MMM_TYPE_DOT_EXTN             3
-
-#endif  /* __UNIXLIB_INTERNALS */
 
 #endif

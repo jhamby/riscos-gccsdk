@@ -84,11 +84,7 @@ __BEGIN_DECLS
 
 /* And the long double versions.  It is non-critical to define them
    here unconditionally since `long double' is required in ISO C99.  */
-/* The test on __UNIXLIB_INTERNALS requires an explanation: this is a hack
-   to avoid the 'long double' routines to be declared in the bits/cmathcalls.h
-   header and in the source code as well because there we're simply defining
-   it as an alias to the 'double' equivalent.  */
-#if (__STDC__ - 0 || __GNUC__ - 0) && !defined __NO_LONG_DOUBLE_MATH && ! defined (__UNIXLIB_INTERNALS)
+#if (__STDC__ - 0 || __GNUC__ - 0) && !defined __NO_LONG_DOUBLE_MATH
 # ifndef _Mlong_double_
 #  define _Mlong_double_	long double
 # endif

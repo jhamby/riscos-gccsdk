@@ -1,3 +1,18 @@
+Tue Dec  2 02:36:59 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* test/pthread/fork.c(__UNIXLIB_INTERNALS): Remove usage as it is no
+	longer needed.
+	* include/complex.h: Likewise.
+	* include/features.h: Likewise.
+	* include/math.h: Likewise.
+	* include/sys/cdefs.h: Likewise.
+	* incl-local/internal/fd.h: Likewise.
+	* incl-local/internal/os.h: Likewise.
+	* incl-local/internal/unix.h: Likewise.
+	* incl-local/internal/swiparams.h: Likewise.
+	* gen-auto.pl(AM_CFLAGS): Remove __UNIXLIB_INTERNALS definition and
+	add __GNU_LIBRARY__ and __NO_LONG_DOUBLE_MATH definitions.
+
 Fri Oct 24 02:07:18 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* string/strdup.c(strdup): renamed strdup to __strdup and

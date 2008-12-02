@@ -15,8 +15,6 @@
 
 __BEGIN_DECLS
 
-#ifdef __UNIXLIB_INTERNALS
-
 /* Setup console I/O.  */
 extern int __os_console (void) __THROW;
 
@@ -93,7 +91,6 @@ extern _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
    to be used as a return value in error situations */
 extern int __ul_seterr (const _kernel_oserror *_err, int __seterrno)
      __THROW __nonnull ((1));
-#endif
 
 __END_DECLS
 

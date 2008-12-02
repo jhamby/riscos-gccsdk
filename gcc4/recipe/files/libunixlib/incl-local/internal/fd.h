@@ -14,8 +14,6 @@
 
 __BEGIN_DECLS
 
-#ifdef __UNIXLIB_INTERNALS
-
 #define getfd(fdes) ((struct __unixlib_fd *)(void *)(((char *)(__ul_global.sulproc->file_descriptors)) + ((fdes) * __ul_global.sulproc->fdsize)))
 
 /* Beware of backwards compatibility when altering these structures.
@@ -47,11 +45,9 @@ struct __unixlib_fd
 /* Set if handle in devicehandle is from OS (OS_ChangeRedirection).  */
 #define FILE_HANDLE_FROM_OS	0x0002
 
-
 /* Allocate and initialise a new file descriptor, searching from fd start
    onwards.  */
 extern int __alloc_file_descriptor (int start);
-#endif
 
 __END_DECLS
 

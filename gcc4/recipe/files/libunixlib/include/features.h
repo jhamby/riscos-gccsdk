@@ -113,10 +113,6 @@
 #undef  __KERNEL_STRICT_NAMES
 
 
-#ifdef __UNIXLIB_INTERNALS
-# define __GNU_LIBRARY__
-#endif
-
 /* Always use ISO C things.  */
 #define	__USE_ANSI	1
 

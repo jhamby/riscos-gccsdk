@@ -42,8 +42,6 @@
 
 __BEGIN_DECLS
 
-#ifdef __UNIXLIB_INTERNALS
-
 struct __process
 {
   /* The return code of this process.  */
@@ -408,8 +406,6 @@ extern unsigned int __get_cpu_arch (void);
 extern int __resolve_symlinks (const char *filename_in, char *filename_out,
 			       size_t fn_out_size);
 #endif
-
-#endif  /* __UNIXLIB_INTERNALS */
 
 __END_DECLS
 

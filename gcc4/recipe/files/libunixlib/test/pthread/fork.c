@@ -1,8 +1,4 @@
-/*#define __UNIXLIB_INTERNALS*/
 #include <pthread.h>
-/*#undef __UNIXLIB_INTERNALS*/
-
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>

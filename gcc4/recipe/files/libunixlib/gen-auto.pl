@@ -113,11 +113,11 @@ AM_CPPFLAGS = -isystem \$(top_srcdir)/include -I \$(top_srcdir)/incl-local
 
 # C99 mode is required to build UnixLib because the library now contains
 # a lot of C99 features.
-# The __UNIXLIB_INTERNALS definition will disappear when the system headers
-# have moved all private data into private header files.
-# The NO_LONG_DOUBLE definition results in having the 'long double' math
-# routines aliased as the normal 'double' onces.
-AM_CFLAGS = -D__UNIXLIB_INTERNALS -DNO_LONG_DOUBLE -D_GNU_SOURCE=1 -std=c99 \$(LIBM_FLAGS)
+# The __GNU_LIBRARY__ definition is for matching the expectation of the couple
+# of GNU C Library files we're using.
+# The NO_LONG_DOUBLE and NO_LONG_DOUBLE_MATH definitions results in having the
+# 'long double' math routines aliased as the normal 'double' onces.
+AM_CFLAGS = -D__GNU_LIBRARY__ -DNO_LONG_DOUBLE -D__NO_LONG_DOUBLE_MATH -D_GNU_SOURCE=1 -std=c99 \$(LIBM_FLAGS)
 
 # Assembler files rely heavily on the C preprocessor to keep structures
 # referred to by both languages in sync.

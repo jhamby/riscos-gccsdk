@@ -97,11 +97,7 @@ __BEGIN_DECLS
 # undef _Mdouble_END_NAMESPACE
 # undef	__MATH_PRECNAME
 
-/* The test on __UNIXLIB_INTERNALS requires an explanation: this is a hack
-   to avoid the 'long double' routines to be declared in the bits/mathcalls.h
-   header and in the source code as well because there we're simply defining
-   it as an alias to the 'double' equivalent.  */
-# if (__STDC__ - 0 || __GNUC__ - 0) && !defined __NO_LONG_DOUBLE_MATH && ! defined (__UNIXLIB_INTERNALS)
+# if (__STDC__ - 0 || __GNUC__ - 0) && !defined __NO_LONG_DOUBLE_MATH
 /* Include the file of declarations again, this time using `long double'
    instead of `double' and appending l to each function name.  */
 
