@@ -1,4 +1,4 @@
-The RISC OS Software Development Kit [GCCSDK GCC 4.1.1 pre-release 2]
+The RISC OS Software Development Kit [GCCSDK GCC 4.1.1 release 1]
 ====================================
 
 This is a lightweight build environment which combines a GCC 4.1.1 release,
@@ -380,7 +380,7 @@ the support modules, shared library loader, C and C++ shared libraries
 need their versions set by editing the riscpkg-versions script.
 
 More information on the RISC OS Packaging Project can be found at
-<URL:http://www.riscpkg.org>
+<URL:http://www.riscpkg.org>.
 
 
 8. Credits
