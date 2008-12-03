@@ -55,6 +55,7 @@ fi
 
 if [ -z "$RO_PKG" ] ; then
   # Regular Unix style install for cross environment
+  /bin/mkdir -p `dirname $dest`
   exec $command $installparams $dest
 else
   # Install for RISC OS headers, libraries and man pages
