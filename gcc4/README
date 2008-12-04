@@ -89,6 +89,10 @@ Currently it is probably necessary to define LTCONFIG_VERSION as:
 
   $ export LTCONFIG_VERSION=1.4a-GCC3.0
 
+It has also proven helpful to define WANT_AUTOMAKE on cygwin as:
+
+  $ export WANT_AUTOMAKE=1.9
+
 Note that if you have an up-to-date file 'gccsdk-params', you can simply do:
 
   $ source gccsdk-params
