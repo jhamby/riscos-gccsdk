@@ -1,7 +1,6 @@
 #!/bin/bash
 
-export RO_SHAREDLIBS=yes
-
+# RO_SHAREDLIBS and RO_DIST are optional user parameters.
 if [ "$RO_DIST" == "yes" ] ; then
   ro_distcc="$(which distcc) "
 else
@@ -211,7 +210,7 @@ fi
 
 
 # Set Static and Dynamic options
-if [ x"$RO_SHAREDLIBS" == xyes ] ; then
+if [ "$RO_SHAREDLIBS" == yes ] ; then
   # Enable shared library building
   if grep -q -- --enable-shared $tmpoutconfigure; then
     echo RISC OS: Enabling shared libraries
@@ -318,7 +317,7 @@ export CPPFLAGS="-isystem GCCSDK_ENV/include"
 export CXX="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-g++"
 export LD="GCCSDK_BIN/arm-unknown-riscos-ld"
 
-if [ x"$RO_SHAREDLIBS" == xyes ] ; then
+if [ "$RO_SHAREDLIBS" == yes ] ; then
   export CFLAGS+=
   export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS -LGCCSDK_BIN/../arm-unknown-riscos/lib"
 else

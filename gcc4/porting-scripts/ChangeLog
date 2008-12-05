@@ -1,3 +1,8 @@
+Fri Dec  5 22:05:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ro-config: Don't have RO_SHAREDLIBS hardwired to 'yes' (partially
+	reverting r3498).
+
 Wed Dec  3 02:33:14 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* ro-install: when called in 'install' mode, make sure the destination
