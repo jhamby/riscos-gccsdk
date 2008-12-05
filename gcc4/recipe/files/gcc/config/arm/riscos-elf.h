@@ -230,9 +230,10 @@
 
 /* Default RISC OS options:
    - APCS frame
-   - UnixLib as runtime library  */
+   - UnixLib as runtime library
+   - Poke function names in front of each routine.  */
 #undef  TARGET_DEFAULT
-#define TARGET_DEFAULT (MASK_APCS_FRAME | MASK_UNIXLIB)
+#define TARGET_DEFAULT (MASK_APCS_FRAME | MASK_UNIXLIB | MASK_POKE_FUNCTION_NAME)
 
 /* If we're targeting explicit APCS stack checks, then force calls to
    __builtin_return_address and __builtin_frame_address as library

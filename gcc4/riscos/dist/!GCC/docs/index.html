@@ -168,13 +168,12 @@ to enforce chunk stack checking for those module object files containing code wh
 <p>The ARM specific switches are documented in <a href="gcc/gcc/index.html">GNU C/C++ manual</a>, section "ARM Options".  The most important ones are:
 
 <dl>
-<dt>-mpoke-function-name
+<dt>-mpoke-function-name (default) / -mno-poke-function-name
 <dd>Place the name of the current function before the start of the function to allow the post mortem debugger to print a readable backtrace.
-    <p>This option is disabled by default.
     <p>Turning this option on can increase code size by about 3.5% for C programs and as much as 10% for C++. However, it should be noted that the performance of the generated application will not be slower. It is useful to turn this option on when developing applications as it can lead to a clear indication of where a program is failing when a backtrace is generated.
 <dt>-msoft-float (default for when UnixLib runtime library is used)
 <dd>Select soft-float routines to be used and generated when floating point operations are needed. Unless you have hardware FP support in your ARM processor, soft-float routines result in faster executables.
-<dt>-mhard-float (default and not changeable when SharedCLibrary runtime library is used)
+<dt>-mhard-float (default when SharedCLibrary runtime library is used)
 <dd>Makes that floating point (FP) ARM instructions will be used in the generated code.
 </dl>
 
@@ -183,7 +182,7 @@ to enforce chunk stack checking for those module object files containing code wh
 <h5>1.4.3. RISC&nbsp;OS specific switches</h5>
 
 <dl>
-<dt>-mthrowback
+<dt>-mthrowback / -mno-throwback (default)
 <dd>Send errors to a text editor capable of receiving 'throwbacks'. Error throwbacks will only occur when the DDEUtils module has previously been loaded.
 <dt>-munixlib (default)
 <dd>Builds and links source code against the UnixLib headers and library files. Note that when used, this needs to be specified during compiling and linking. This defines the preprocessor define __TARGET_UNIXLIB__.
