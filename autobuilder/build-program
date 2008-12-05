@@ -89,7 +89,7 @@ ab_create_command_app() {
 ab_add_commands() {
   for program in $@; do
     name=$(basename $program | sed -e s#$AB_EXEEXT##)
-    echo "Set Alias\$$name <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
+    echo "Set Alias\$$name Run <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
     cp -av $program $A
   done
 }
@@ -402,7 +402,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
     libs=$(find -type f -wholename "*.so,fff")
     for lib in $libs; do
-     $GCCSDK_INSTALL_ENV/ro-path arm-unknown-riscos-strip $lib 2>/dev/null || true
+      $GCCSDK_INSTALL_ENV/ro-path arm-unknown-riscos-strip $lib 2>/dev/null || true
     done
   fi
 
