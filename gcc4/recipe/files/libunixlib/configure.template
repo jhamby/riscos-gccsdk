@@ -146,6 +146,7 @@ AC_SUBST(toolexecdir)
 AC_SUBST(toolexeclibdir)
 
 # For libtool support
+ac_cv_func_shl_load=yes
 AC_LIBTOOL_DLOPEN
 AM_PROG_LIBTOOL
 AC_SUBST(enable_shared)
