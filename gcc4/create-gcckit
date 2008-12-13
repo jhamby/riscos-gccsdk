@@ -173,17 +173,31 @@ slim_gcckit() {
   # Remove all shared libraries (even the fpu ones) as we have them shipped in !SharedLibs:
   find $BKIT_GCC_UNPACKED -name "*.so*" -print0 | xargs -0 rm -f
 
-  # Strip the RISC OS binaries.  We won't need the debug info nor the symbols.
-  # We don't process arm-unknown-riscos/bin as the binaries there are hard-linked to bin ones.
+  # Strip the RISC OS binaries which are using shared libraries (we won't need
+  # the debug info nor the symbols).  Create AIF RISC OS binaries of the
+  # statically linked ELF binaries.
+  # We don't process arm-unknown-riscos/bin as the binaries there are
+  # hard-linked to bin ones.
   cd $BKIT_GCC_UNPACKED
   for bindir in bin $GCCSDK_TARGET_NAME/bin libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE ; do
     for f in `find $bindir -maxdepth 1 -type f` ; do
       filetype=`file $f`
       if echo $filetype | grep -q ARM ; then
-        $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip $f
-        # Take the opportunity to add ,e1f suffix to ELF binaries:
-        if ! echo $f | grep -q ",e1f" ; then
-          mv $f $f,e1f
+        if echo $filetype | grep -q statically ; then
+          # Statically linked ELF binary:
+          $GCCSDK_CROSS_PREFIX/bin/elf2aif $f
+          if ! echo $f | grep -q ",ff8" ; then
+            mv $f $f,ff8
+          fi
+        elif echo $filetype | grep -q dynamically ; then
+          # Dynamically linke ELF binary (using shared libraries):
+          $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip $f
+          # Take the opportunity to add ,e1f suffix to ELF binaries:
+          if ! echo $f | grep -q ",e1f" ; then
+            mv $f $f,e1f
+          fi
+        else
+          echo Unrecognized ARM binary format $f
         fi
       elif echo $filetype | grep -q "RISC OS AIF" ; then
         # Add ,ff8 suffix to AIF binaries:
@@ -220,7 +234,7 @@ create_gcc_kit() {
   svn export -q --force $GCCSDK_RISCOS/dist/\!GCC $BKIT_GCC_UNPACKED
 
   # GCC & binutils documentation: we remove the info & man pages as they are not
-  # really useful on RISC OS but create HTML versions instead and use those.
+  # really useful on RISC OS but create and use those HTML versions instead.
   remove_if_there $BKIT_GCC_UNPACKED/share
   if [ ! -f $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/ld/ld.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE ] ; then
     # Build the HTML documentation:
@@ -288,7 +302,7 @@ split_off_gccgpp() {
   create_empty_dir $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME
   for obj in $GCCSDK_TARGET_NAME/lib/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
              $GCCSDK_TARGET_NAME/lib/fpu/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
-             bin/{g++\,e1f,c++filt\,e1f} \
+             bin/{g++\,*,c++filt\,*} \
              include/c++ ; do
     mkdir -p $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/`basename $BKIT_GCC_UNPACKED`/`dirname $obj`
     mv $BKIT_GCC_UNPACKED/$obj $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/`basename $BKIT_GCC_UNPACKED`/`dirname $obj`
