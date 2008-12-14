@@ -166,13 +166,12 @@
 #define TARGET_OS_CPP_BUILTINS()		\
   do						\
     {						\
-	builtin_define ("__riscos");		\
-	builtin_define ("__riscos__");		\
-	if (flag_pic)				\
-	  {					\
-		builtin_define ("__PIC__");	\
-		builtin_define ("__pic__");	\
-	  }					\
+      builtin_define ("__riscos");		\
+      builtin_define ("__riscos__");		\
+      if (flag_pic == 1)			\
+	builtin_define ("__pic__");		\
+      else if (flag_pic == 2)			\
+	builtin_define ("__PIC__");		\
     }						\
   while (0)
 
