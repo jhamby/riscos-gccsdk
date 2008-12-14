@@ -25,6 +25,7 @@ Boston, MA 02111-1307, USA.  */
 #include "system.h"
 #include "coretypes.h"
 #include "tm.h"
+#include "safe-ctype.h"
 
 #include <errno.h>
 #include <stdio.h>
@@ -192,14 +193,14 @@ arm_throwback_error (const char *fname, int level,
   syslog_lvl = (level == THROWBACK_ERROR) ? PRI_ERROR : PRI_WARNING;
   for (len = snprintf (msg, sizeof (msg), "<%d>%s %s throwback %s:%d: ",
 		       syslog_lvl, timestamp, hostname, pathname, line_number);
-       len < sizeof (msg) && errorlen > 0;
+       len < (int) sizeof (msg) && errorlen > 0;
        ++error, --errorlen)
     {
-      if (isprint (*error))
+      if (ISPRINT (*error))
         msg[len++] = *error;
     }
 
-  if (len > sizeof (msg))
+  if (len > (int) sizeof (msg))
     len = sizeof (msg);
 
   if (send (arm_throwback_socket, msg, len, 0) < 0)
@@ -299,7 +300,7 @@ arm_error_throwback (int lvl, const char *file, int line, const char *s,
   if (file == NULL || *file == '\0')
     return;
 
-  vsnprintf (msg, sizeof (msg), s, va);
+  vsnprintf (msg, sizeof (msg), s, *va);
 
   /* Initialise throwback.  */
   if (!arm_throwback_started)
