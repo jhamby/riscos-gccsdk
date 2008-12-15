@@ -59,10 +59,6 @@ extern void __unixlib_default_sigaction (struct unixlib_sigstate *);
    a valid address range.  */
 extern int __valid_address (const void *__lower, const void *__upper);
 
-/* Write a stack backtrace direct to the terminal.  A meaningful signal
-   number can be supplied as 'signo'.  */
-extern void __write_backtrace (int signo);
-
 /* Demangle C++ symbols (only when libstdc++ was available during
    linktime).  Is a wrapper around __cxa_demangle() and follows the
    same API.  When libstd++ wasn't available during linking, the returned
@@ -85,6 +81,10 @@ extern int __h_sigprof_sema, __h_sigvtalrm_sema, __h_sigalrm_sema;
 
 /* When non-NULL, the fp at the moment __h_cback_common is executed.  */
 extern unsigned int * __ul_callbackfp;
+
+/* Defines the coredump directory when __unixlib_write_coredump doesn't
+   have a non-NULL directory specfied.  */
+extern void __init_coredump (const char *dir);
 
 __END_DECLS
 

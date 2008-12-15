@@ -10,7 +10,6 @@ VERSION {
      __alloc_file_descriptor;
      __atexit_function_array;
      __atexit_function_count;
-     __backtrace_getfp;
      __build_ctype_tables;
      __calling_environment;
      __cbreg;

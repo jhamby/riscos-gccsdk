@@ -1,3 +1,21 @@
+Mon Dec 15 05:08:52 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/features.c(features): Implement coredump feature.
+	* signal/post.c(__write_backtrace): Mark as pthread unsafe.
+	(post_signal): Move FPE reg dump code to __write_backtrace; call
+	__unixlib_write_coredump when action is 'core'.
+	* include/unixlib/local.h(__unixlib_write_coredump,__write_backtrack):
+	Make public.
+	* vscript(__backtrace_getfp): Remove, this routine no longer exists.
+	* README: Document 'coredump' feature.
+	* incl-local/internal/sigstate.h(__init_coredump): Add prototype.
+	* incl-local/internal/swiparams.h(OSFILE_SAVEBLOCK_LOADNEXEC,
+	OSFILE_SAVEBLOCK_FILETYPE): Define.
+	* sys/_os.s(__os_file): Don't change a3 when it was 0 on entry.
+	* sys/mman.c(__init_coredump): Define coredump directory.
+	(__unixlib_write_coredump): Write coredump files (application space
+	and all DAs).
+
 Tue Dec  2 02:36:59 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* test/pthread/fork.c(__UNIXLIB_INTERNALS): Remove usage as it is no

@@ -7,6 +7,9 @@
 
 /* Limited set of SWI parameters needed in UnixLib itself */
 
+#define OSFILE_SAVEBLOCK_LOADNEXEC	0
+#define OSFILE_SAVEBLOCK_FILETYPE	10
+
 #define OSFILE_READCATINFO_FILEPATH	5
 #define OSFILE_READCATINFO_PATH		13
 #define OSFILE_READCATINFO_PATHVAR	15

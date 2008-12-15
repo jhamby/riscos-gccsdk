@@ -20,6 +20,7 @@
 
 #include <internal/os.h>
 #include <internal/unix.h>
+#include <internal/swiparams.h>
 #include <pthread.h>
 
 
@@ -50,6 +51,82 @@ static mmap_info mmaps[MAX_MMAPS] = {
   (((len) + (gbl)->pagesize - 1) & ~((gbl)->pagesize - 1))
 
 extern void __mmap_page_copy (caddr_t dst, caddr_t src, int len);
+
+static char coredump_dir[256];
+void
+__init_coredump (const char *dir)
+{
+  size_t dirlen = strlen (dir);
+
+  /* Allow at least 16 bytes for the coredump filenames inside user supplied
+     directory.  */
+  if (dirlen < sizeof (coredump_dir)-16)
+    strcpy (coredump_dir, dir);
+}
+
+_kernel_oserror *
+__unixlib_write_coredump (const char *dir)
+{
+  size_t dirlen;
+  int regs[6];
+  _kernel_oserror *roerr;
+  struct ul_memory *mem = &__ul_memory;
+  int i;
+
+  if (dir != NULL)
+    __init_coredump (dir);
+
+  dirlen = strlen (coredump_dir);
+  if (dirlen == 0)
+    return NULL;
+
+  /* Remove ending dot if there is one.  */
+  if (coredump_dir[dirlen - 1] == '.')
+    coredump_dir[--dirlen] = '\0';
+  
+  /* Create the coredump directory, with default number of entries.  */
+  regs[4] = 0;
+  if ((roerr = __os_file (OSFILE_CREATEDIRECTORY, coredump_dir, regs)) != NULL)
+    return roerr;
+
+  /* Write application space data.  */
+  strcpy (coredump_dir + dirlen, ".app");
+  regs[2] = 0x8000; /* Load address: start application memory.  */
+  regs[3] = mem->rwlomem; /* Exec address.  */
+  regs[4] = 0x8000; /* Start address in memory of data (incl).  */
+  regs[5] = mem->appspace_limit; /* End address in memory of data (excl).  */
+  roerr = __os_file (OSFILE_SAVEBLOCK_LOADNEXEC, coredump_dir, regs);
+
+  /* Write main DA block (if there is one).  */
+  if (__ul_global.dynamic_num != -1)
+    {
+      strcpy (coredump_dir + dirlen, ".da_main");
+      regs[2] = mem->dalomem;
+      regs[3] = mem->dabreak; /* Exec address = dabreak.  */
+      regs[4] = mem->dalomem;
+      regs[5] = mem->dalimit;
+      if (roerr == NULL)
+	roerr = __os_file (OSFILE_SAVEBLOCK_LOADNEXEC, coredump_dir, regs);
+    }
+
+  /* Write all mmap DA blocks (when there).  */
+  strcpy (coredump_dir + dirlen, ".da_X");
+  for (i = 0; i < MAX_MMAPS; i++)
+    {
+      if (mmaps[i].number != -1)
+	{
+	  coredump_dir[dirlen + sizeof (".da_")-1] = '0' + i;
+	  regs[4] = regs[3] = regs[2] = (int) mmaps[i].addr;
+	  regs[5] = (int) mmaps[i].addr + mmaps[i].len;
+	  if (roerr == NULL)
+	    roerr = __os_file (OSFILE_SAVEBLOCK_LOADNEXEC, coredump_dir, regs);
+	}
+    }
+
+  coredump_dir[dirlen] = '\0';
+  return roerr;
+}
+
 
 /* Free all mmapped memory.  This is called from __dynamic_area_exit.
    At that point, the thread system is not running.  */

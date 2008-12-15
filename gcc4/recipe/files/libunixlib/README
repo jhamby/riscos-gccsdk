@@ -82,6 +82,13 @@ The list of recognised features are:
    Default: 1
    If set, then its value is used to set the UNIX uid and euid values.
 
+4. coredump
+
+   Default: No coredump done (empty string)
+   If set to a non empty string, then this value will be used to write a
+   coredump file of the application workspace and dynamic areas in use when
+   there is an uncatched signal or when the __unixlib_write_coredump routine
+   is called.
 
 Another important runtime feature is the environment variable UnixFS$/
 followed by a non-zero length string.  This non-zero length string is

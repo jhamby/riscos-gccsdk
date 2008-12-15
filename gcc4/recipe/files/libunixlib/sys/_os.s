@@ -245,7 +245,7 @@ __os_cli:
 __os_file:
 	STMFD	sp!, {v1, v2, lr}
 	MOVS	ip, a3
-	ADD	a3, a3, #8
+	ADDNE	a3, a3, #8
 	LDMNEIA a3, {a3, a4, v1, v2}
 	SWI	XOS_File
 	LDMVSFD	sp!, {v1, v2, pc}

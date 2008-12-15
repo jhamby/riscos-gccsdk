@@ -15,7 +15,8 @@
 
 static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
 
-char *__get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
+char *
+__get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
 {
   char *out;
   const char *start, *end;
@@ -68,8 +69,9 @@ char *__get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len
    certain UnixLib runtime functionality, for example the filename
    translations.  This can either be done globally i.e. once set, all
    applications will be affected, or per-process.  */
-static char *env (const char *program_name, const char *variable,
-		  char *buffer, size_t bufsiz)
+static char *
+env (const char *program_name, const char *variable, char *buffer,
+     size_t bufsiz)
 {
   char envvar[128];
   char *base_ptr, *ptr, *result;
@@ -128,9 +130,15 @@ features (const char *progname)
   ptr = env (progname, "uid", varbuf, sizeof (varbuf) - 1);
   if (ptr != NULL)
     sulproc->uid = sulproc->euid = (uid_t) __decstrtoui(ptr, NULL);
+
+  /* Feature "coredump".  */
+  ptr = env (progname, "coredump", varbuf, sizeof (varbuf) - 1);
+  if (ptr != NULL && ptr[0] != '\0')
+    __init_coredump (ptr);
 }
 
-void __runtime_features (const char *cli)
+void
+__runtime_features (const char *cli)
 {
   char program_name[128];
 

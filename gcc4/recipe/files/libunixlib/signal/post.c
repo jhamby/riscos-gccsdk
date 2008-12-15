@@ -12,6 +12,7 @@
 #include <unistd.h>
 #include <swis.h>
 
+#include <unixlib/local.h>
 #include <internal/os.h>
 #include <internal/unix.h>
 #include <internal/sigstate.h>
@@ -395,12 +396,28 @@ __write_backtrace (int signo)
   register const unsigned int *fp __asm ("fp");
   pthread_t th;
 
-  fprintf (stderr, "\nFatal signal received: %s\n\nStack backtrace:\n\n",
-	   strsignal (signo));
+  PTHREAD_UNSAFE
 
-  fprintf (stderr, "Running thread %p\n", __pthread_running_thread);
+  if (signo != 0)
+    fprintf (stderr, "\nFatal signal received: %s\n\n", strsignal (signo));
+
+  if (signo == SIGFPE)
+    {
+      fprintf(stderr, "  f0: %f  f1: %f  f2: %f  f3: %f\n"
+		      "  f4: %f  f5: %f  f6: %f  f7: %f\n  fpsr: %x\n",
+		      __ul_fp_registers.f[0], __ul_fp_registers.f[1],
+		      __ul_fp_registers.f[2], __ul_fp_registers.f[3],
+		      __ul_fp_registers.f[4], __ul_fp_registers.f[5],
+		      __ul_fp_registers.f[5], __ul_fp_registers.f[7],
+		      __ul_fp_registers.fpsr);
+    }
+
+  /* Dump first the details of the current thread.  */
+  fprintf (stderr, "Stack backtrace:\n\nRunning thread %p\n",
+	   __pthread_running_thread);
   __write_backtrace_thread (fp);
 
+  /* And then the other suspended threads if any.  */
   for (th = __pthread_thread_list; th != NULL; th = th->next)
     {
       if (th == __pthread_running_thread)
@@ -613,22 +630,16 @@ post_signal:
 			    __ul_errbuf.errnum, __ul_errbuf.errmess,
 			    (int)((int *)__ul_errbuf.pc - 1));
 	  }
-	if (signo == SIGFPE)
-	  {
-	    fprintf(stderr, "  f0: %f  f1: %f  f2: %f  f3: %f\n"
-			    "  f4: %f  f5: %f  f6: %f  f7: %f\n  fpsr: %x\n",
-			    __ul_fp_registers.f[0], __ul_fp_registers.f[1],
-			    __ul_fp_registers.f[2], __ul_fp_registers.f[3],
-			    __ul_fp_registers.f[4], __ul_fp_registers.f[5],
-			    __ul_fp_registers.f[5], __ul_fp_registers.f[7],
-			    __ul_fp_registers.fpsr);
-	  }
 
 	if (act == term)
 	  write_termination (signo);
 	else if (act == core)
 	  {
+	    _kernel_oserror *roerr;
+
 	    __write_backtrace (signo);
+	    if ((roerr = __unixlib_write_coredump (NULL)) != NULL)
+	      fprintf (stderr, "Failed to coredump: %s\n", roerr->errmess);
 	    status |= WCOREFLAG;
 	  }
 

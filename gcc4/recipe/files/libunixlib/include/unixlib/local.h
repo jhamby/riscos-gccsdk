@@ -8,6 +8,10 @@
 #include <features.h>
 #endif
 
+#ifndef __KERNEL_H
+#include <kernel.h>
+#endif
+
 #define __need_size_t
 #include <stddef.h>
 #include <sys/select.h>
@@ -109,8 +113,21 @@ extern char *__unixify_std (const char *__name,
 extern char *__unixify_ext (const char *name, char *buffer, size_t buflen,
                             int filetype, const char *ext);
 
-extern void __set_customselect(int fd, int (*cselect) (void *fd, int fd1, fd_set *__read,
-			       fd_set *__write, fd_set *__except));
+extern void __set_customselect (int fd,
+				int (*cselect) (void *__fd, int __fd1,
+						fd_set *__read, fd_set *__write,
+						fd_set *__except));
+
+/* Force writing a coredump in directory 'dir' when non-NULL.  Otherwise a
+   previous specified non-NULL directory gets used, or the directory specified
+   by OS system variables (in order) UnixEnv$<program name>$coredump and
+   UnixEnv$coredump when defined.  */
+extern _kernel_oserror *__unixlib_write_coredump (const char *__dir);
+
+/* Output detailed backtrace of current thread and all other threads via
+   stderr. When a non zero signal number 'signo' is supplied, the corresponding
+   signal name will be outputed as well.  */
+extern void __write_backtrace (int __signo);
 
 __END_DECLS
 
