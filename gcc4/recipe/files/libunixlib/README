@@ -343,9 +343,9 @@ to call this.  It should act much like the inbuilt iconv support in GLIBC.
 
 The latest version of the iconv module is currently available from:
 
-  <URL:http://netsurf.sf.net/iconv/iconv_latest.zip>
+  <URL:http://www.netsurf-browser.org/projects/iconv/iconv_latest.zip>
 
-At the time of writing, the latest version is 0.07.
+At the time of writing, the latest version is 0.10.
 
 
 /dev/(u)random support
@@ -355,7 +355,7 @@ UnixLib implements the /dev/random and /dev/urandom devices using the
 CryptRandom RISC OS module.  This CryptRandom module is currently available
 from:
 
-  <URL:http://www.markettos.org.uk/>
+  <URL:http://www.markettos.org.uk/riscos/crypto/>
 
 At the time of writing, the latest version is 0.12.
 
