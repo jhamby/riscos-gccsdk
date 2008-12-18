@@ -1,6 +1,11 @@
+Thu Dec 18 22:57:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/syslog.c(vsyslog): More sensible mapping between Unix and
+	RISC OS syslog priorities.
+
 Thu Dec 18 22:23:52 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
-	* stdlib/msort.c: copy from glibc 2.9 which has a much better qsort
+	* stdlib/msort.c: Copy from glibc 2.9 which has a much better qsort
 	implementation.  Number of compares done in testsort2.c dropped from
 	1849086/1534480/834012928/627343953 to 1536347/815024/853904/1209216.
 	* stdlib/memcopy.h: Added, also from glibc 2.9.

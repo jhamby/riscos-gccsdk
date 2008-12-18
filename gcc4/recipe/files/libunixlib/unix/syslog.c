@@ -156,14 +156,16 @@ vsyslog (int pri, const char *fmt, va_list ap)
       (void) write (STDERR_FILENO, (const void *) "\n", 1);
     }
 
-  /* Ignore errors, syslog module is probably not loaded */
+  /* Ignore errors as SysLog module is probably not loaded.
+     The mapping between Unix and RISC OS SysLog priorities is a bit
+     arbitrary.  */
+  static const int unx2ro[8] = { 20, 30, 40, 60, 80, 100, 150, 200 };
   regs[0] = (int) LogTag;
   regs[1] = (int) msg;
-  regs[2] = LOG_PRI (pri);
+  regs[2] = unx2ro[LOG_PRI (pri)];
   __os_swi (SysLog_LogMessage, regs);
 
-  /*
-   * Output the message to the console; don't worry about blocking,
+  /* Output the message to the console; don't worry about blocking,
    * if console blocks everything will.  Make sure the error reported
    * is the one from the syslogd failure.
    */
