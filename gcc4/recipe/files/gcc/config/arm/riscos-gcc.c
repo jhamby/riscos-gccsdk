@@ -64,13 +64,17 @@ riscos_host_initialisation (void)
 }
 
 /* Called from the gcc driver to convert a RISC OS filename into a
-   Unix format name.  */
+   Unix format name.  When do_exe is non-zero we do *not* convert the
+   filename as we know the executable output filename will be passed on
+   to collect2 cmd line. */
 const char *
 riscos_convert_filename (void *obstack, const char *name,
-                         int do_exe ATTRIBUTE_UNUSED,
-			 int do_obj ATTRIBUTE_UNUSED)
+                         int do_exe, int do_obj ATTRIBUTE_UNUSED)
 {
   char tmp[1024];
+
+  if (do_exe)
+    return name;
 
   if (!__unixify_std (name, tmp, sizeof (tmp), 0))
     return name;
