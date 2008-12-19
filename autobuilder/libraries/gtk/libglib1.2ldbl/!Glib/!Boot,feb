@@ -1,0 +1,4 @@
+| Boot file for Glib1.2
+|
+If "<GLib$Dir>" = "" Then Set GLib$Dir <Obey$Dir>
+If "<GLib$Path>" = "" Then Set GLib$Path <Obey$Dir>.

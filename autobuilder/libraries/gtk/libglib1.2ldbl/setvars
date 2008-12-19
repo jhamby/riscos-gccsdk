@@ -1,5 +1,44 @@
+AB_ZIPNAME=libglib1.2-dev
+AB_LICENCE=Free
+AB_CATEGORY=Library
 
 AB_INSTALL=yes
 AB_PRECONF="glib_cv_uscore=no glib_cv_rtldglobal_broken=no"
 
+# Package script uses installed library
+# zip built due to AB_INSTALL=yes
 
+ab_package() {
+
+  AD=$D/Apps/Library
+  mkdir -p $AD
+
+  cp -r $H/\!GLib $AD
+
+  HERE=`pwd`
+  cd $AD/\!GLib
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  # Move headers libs and docs up one directory
+  mv include/* .
+  rm -rf include
+
+  # Need to put glibconfig.h in headers
+  cp $S/glibconfig.h $AD/\!Glib/glib-1.2/h/glibconfig
+
+  # Copy static libs
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo libglib*`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  # Add html documentation
+  cp $S/docs/*.html $AD/\!Glib/doc
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -unixlib 
+}
