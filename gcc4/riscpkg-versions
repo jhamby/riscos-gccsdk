@@ -10,20 +10,23 @@
 # a user of what it is.
 #
 # The package version should be updated with each
-# release (including pre-releases) and reset only if
-# the upstream version changes
+# release and reset only if the upstream version changes
 
-export RPKG_SHAREDLIBS_VERSION=2.0-0-pre1
+# Get release number from name program
+rel=`echo $GCCSDK_RELEASE_NAME | cut -d '-' -f 2`
+rel="-$rel"
+
+export RPKG_SHAREDLIBS_VERSION=2.0$rel-1
 
 # The C shared libraries includes libunixlib, libgcc
 # and libm so use the GCCSDK version, but remember
 # to update the the package version if anything
 # else changes
-export RPKG_SHAREDLIBSC_VERSION=4.1.1-0-pre1
+export RPKG_SHAREDLIBSC_VERSION=4.1.1$rel-1
 
-export RPKG_SHAREDLIBSGPP_VERSION=6.0.8-0-pre1
+export RPKG_SHAREDLIBSGPP_VERSION=6.0.8$rel-1
 
-export RPKG_UNIXLIB_VERSION=5.0-0-pre1
+export RPKG_UNIXLIB_VERSION=5.0$rel-1
 
 export RPKG_DRENDERER_VERSION=0.52-1
 
