@@ -109,6 +109,12 @@ extern int setgroups (int __ngroups, const gid_t *__gidset)
    This function is a cancellation point.  */
 extern int initgroups (const char *__name, gid_t __basegid)
      __nonnull ((1));
+
+/* Return a list of groups the user is in */
+extern int getgrouplist (const char *__user, gid_t __group,
+    gid_t *__groups, int *__ngroups)
+     __nonnull ((1,3,4));
+
 #endif
 
 __END_DECLS
