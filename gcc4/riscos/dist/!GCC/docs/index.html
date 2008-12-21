@@ -53,50 +53,68 @@
 
 <p>Source files are stored in the standard ASCII text format and kept in a directory that is relevant for the language of your program. For example, C programs are stored in directory 'c', C++ programs are stored in 'cc', assembler files in 's' and CMunge/CMHG files in 'cmhg'.
 
+<p>When specifying those source files for the compile, assembler or linker, it is recommended to use the 'my_c_program.c' syntax instead of the RISC&nbsp;OS file syntax 'c.my_c_program'.
+
 <p>For simple use, all that is needed is to set up a command line prompt and ensure there is enough free memory to run the compiler (details of memory requirements vary between compilers and can be found in the specific compiler documentation).
 
 <p>To compile a C program just type:
 <pre>
-   *gcc hellow.c
-</pre>
-
-<p>This will compile, assemble and link the source 'c.hellow' to produce an executable called '!RunImage', which can be run immediately.
-
-<p>Adding the switch '-o' to the command line, it's possible to specify a place to store the resultant file:
-<pre>
    *gcc hellow.c -o hellow
 </pre>
 
-<p>This will compile, assemble and link the source 'hellow.c' to produce an executable called 'hellow', which can be run immediately.
+<p>This will compile, assemble and link the source 'c.hellow' in one go to produce an ELF executable (filetype &amp;E1F) called 'hellow'. An
+ELF executable can make use of static libraries and/or shared libraries (whom the UnixLib runtime library).  In GCCSDK GCC 4.1.1 Release 1
+however we only include static ELF support and it is anticipated that the next release will support shared library support as well.
+
+<p>ELF executables need support of a loader module in order to be usable under RISC OS and this is provided by the
+'!SharedLibs' application which containing the SOManager RISC&nbsp;OS module.  This means also that when ELF executables
+are distributed to users, they also need to have access to '!SharedLibs' application in order to be able to run
+the ELF based program.
+
+<p>Currently it is recommended to distribute Absolute executables instead of ELF static executables as this reduces the installation
+and distribution efforts of '!SharedLibs' (a next release of GCCSDK supporting shared libraries will need the distribution and
+management of '!SharedLibs').  This can be done by transforming the ELF executable into a standalone Absolute executable
+which does not needing the '!SharedLibs' application at runtime:
+<pre>
+   *elf2aif hellow
+</pre>
+
+<p>In case you really want to distribute the ELF executable, you make sure your users have access and installed '!SharedLibs'
+application and you probably want to strip the ELF executables first as well (as this will reduce program size by removing all
+non-essential information) by adding the switch '-Wl,-s':
+<pre>
+   *gcc hellow.c -Wl,-s -o hellow
+</pre>
 
 <p>It is possible to compile several sources at one go, mixing C sources in the same program, using a command line of:
 <pre>
-   *gcc file1.c file2.c file3.c file4.c
+   *gcc file1.c file2.c file3.c file4.c -o myprogram
 </pre>
 
-<p>Again, this will compile, assemble and link all the sources to produce the '!RunImage' executable.
+<p>Again, this will compile, assemble and link all the sources to produce the ELF 'myprogram' executable.
 
 <p>To compile to the object form, use the -c switch. i.e.
 <pre>
    *gcc -c file.c
 </pre>
-<p>will compile and assemble 'file.c' to 'file.o'.
-
-<p>To compile the same files but using the SharedCLibrary as the target run-time library instead of UnixLib, add the switch '-mlibscl' to the command line. For example:
+or
 <pre>
-   *gcc hellow.c -mlibscl
+   *gcc -c file.c -o file.o
 </pre>
-<p>will compile and link the hellow.c source file, using header files from the SharedCLibrary, and linking against the SharedCLibrary stubs which will result in using the RISC&nbsp;OS SharedCLibrary module routines at runtime. The output file will still be called '!RunImage' and can be run in the same way.
+<p>will compile and assemble 'c.file' to 'o.file'.
 
-<p>Support has been provided for both RISC&nbsp;OS and UNIX format filenames. GCC will translate any UNIX filenames into their RISC&nbsp;OS equivalent. For example:
+<p>Support has been provided for both RISC&nbsp;OS and UNIX format filenames and we recommend to use the UNIX format style
+as this is more cross-platform compatible. For example:
 <pre>
-   ../include/stdio.h	is translated to	^.include.h.stdio
-   /work/gcc/hello.c	is translated to	$.work.gcc.c.hello
-   stdlib.h		is translated to	h.stdlib
+   UNIX format (preferred)	RISC OS format
+
+   ../include/stdio.h		^.include.h.stdio
+   /work/gcc/hello.c		$.work.gcc.c.hello
+   stdlib.h			h.stdlib
 </pre>
-<p>but
+<p>but note that
 <pre>
-   tree.def		is translated to	tree/def
+   tree.def			tree/def
 </pre>
 
 <p>For further examples of compilation procedures, please look at <a href="../Examples">`Examples' inside !GCC</a>.
@@ -105,7 +123,7 @@
 
 <h5>1.3.1. SharedCLibrary</h5>
 
-<p>By default <a href="libunixlib">UnixLib</a> is used as runtime library.  In case it is important to use RISC&nbsp;OS' <a href="libscl">SharedCLibrary</a> and at expense of a much more reduced API, you can do that by specifying the switch -mlibscl at compile and link time. The linker will produce an Absolute (filetype &amp;ff8) file having an AIF header:
+<p>By default <a href="libunixlib">UnixLib</a> is used as runtime library.  In case it is important to use RISC&nbsp;OS' <a href="libscl">SharedCLibrary</a> and at expense of a much more reduced API, you can do that by specifying the switch -mlibscl at compile and link time. The linker will produce an Absolute (filetype &amp;FF8) file having an AIF header straight away instead of producing an ELF executable (filetype &amp;E1F):
 
 <pre>
    *gcc -mlibscl -o file.o -c file.c
@@ -121,14 +139,16 @@
    *gcc -mlibscl -mmodule module.o header.o -o mymodule
 </pre>
 
-<p>Module code executed in SVC or IRQ mode does not need to do any APCS stack checking (as the RISC&nbsp;OS R13 SVC and IRQ stacks are not chunked) so the switch -mmodule implictly selects the
--mno-apcs-stack-check switch as well. However some pieces of module code can also run in USR mode as e.g. module start code (hence, as application) so an explicit -mapcs-stack-check switch is then needed
+<p>Module code executed in SVC or IRQ mode does not need to do any APCS stack checking (as the RISC&nbsp;OS R13 SVC and IRQ stacks are not chunked) so the switch -mmodule implicitly selects the
+-mno-apcs-stack-check switch as well. However some pieces of module code can also run in USR mode as e.g. module start code (hence, as application) so the -mapcs-stack-check switch is then exclicitly needed
 to enforce chunk stack checking for those module object files containing code which is executed in USR mode.
 
 <p>Each RISC&nbsp;OS module needs a module header which can be created using CMunge. See <a href="cmunge">CMunge documentation</a> for more information.  CMunge can also be used to create veneer code acting as glue code for RISC&nbsp;OS callbacks into your C/C++ coded module.
 
 <p>Modules often have their data (Messages, Sprites, etc) stored in ResourceFS. <a href="mkresfs">mkresfs</a> can be used to create a C file representing the intended ResourceFS data allowing easy (de)registration with ResourceFS. In GCCSDK 3.4 this functionality was covered with the 'resgen' program but as its code was very tightly AOF based, a new program (and approach) was chosen.
 
+<!--
+FIXME: enable this for shared library release!
 <h5>1.3.3. Static UnixLib</h5>
 
 <p>When UnixLib is selected as runtime library, by default it will be the shared UnixLib library.  It is possible to use the static UnixLib at link time by specifying the linker switch -static.
@@ -137,6 +157,7 @@ to enforce chunk stack checking for those module object files containing code wh
    *gcc -o file.o -c file.c
    *gcc -static -o mybinary file.o
 </pre>
+-->
 
 <h4>1.4. Switches</h4>
 
@@ -161,6 +182,11 @@ to enforce chunk stack checking for those module object files containing code wh
   <dd>Apply full optimization.
 <dt>-O3
   <dd>Full optimization and inline small functions as well.
+<!--
+FIXME: enable this for shared library release!
+<dt>-static
+  <dd>Use static instead of shared UnixLib runtime library.  This switch is implicitly implied when the SharedCLibrary runtime library is used (by using -mlibscl or -mmodule switches).
+-->
 </dl>
 
 <h5>1.4.2. ARM specific switches</h5>
@@ -169,12 +195,12 @@ to enforce chunk stack checking for those module object files containing code wh
 
 <dl>
 <dt>-mpoke-function-name (default) / -mno-poke-function-name
-<dd>Place the name of the current function before the start of the function to allow the post mortem debugger to print a readable backtrace.
+  <dd>Place the name of the current function before the start of the function to allow the post mortem debugger to print a readable backtrace.
     <p>Turning this option on can increase code size by about 3.5% for C programs and as much as 10% for C++. However, it should be noted that the performance of the generated application will not be slower. It is useful to turn this option on when developing applications as it can lead to a clear indication of where a program is failing when a backtrace is generated.
 <dt>-msoft-float (default for when UnixLib runtime library is used)
-<dd>Select soft-float routines to be used and generated when floating point operations are needed. Unless you have hardware FP support in your ARM processor, soft-float routines result in faster executables.
+  <dd>Select soft-float routines to be used and generated when floating point operations are needed. Unless you have hardware FP support in your ARM processor, soft-float routines result in faster executables.
 <dt>-mhard-float (default when SharedCLibrary runtime library is used)
-<dd>Makes that floating point (FP) ARM instructions will be used in the generated code.
+  <dd>Makes that floating point (FP) ARM instructions will be used in the generated code.
 </dl>
 
 <p>In the RISC&nbsp;OS port, options -msoft-float and -mhard-float are mutually exclusive.
@@ -199,7 +225,7 @@ to enforce chunk stack checking for those module object files containing code wh
 
 <dl>
 <dt>-mapcs-26 / -mapcs-32
-<dd>From GCCSDK 3.3.3 release onwards, APCS-32 became default and APCS-R support became deprecated. You could select between those two ABI's using respectively the mutually exclusive -mapcs-32 and -mapcs-26 switches.
+<dd>From GCCSDK 3.3.3 release onwards, APCS-32 became default and APCS-R deprecated. With the releases before you could select between those two ABI's using respectively the mutually exclusive -mapcs-32 and -mapcs-26 switches.
     <p>From GCCSDK 4 onwards we don't have any APCS-R support and made the switches -mapcs-32 and -mapcs-26 obsolete.
 <dt>-mamu
 <dd>Generates the file !Depend which contains a list of all the source files that the produced object depends on. This is intended for use with Acorn's Make Utility (AMU), which edits the makefile to include these after the '# Dynamic Dependencies' line.
@@ -217,13 +243,19 @@ to enforce chunk stack checking for those module object files containing code wh
 <p>As an overview, the following configurations are possible with the native RISC&nbsp;OS release :
 
 <ul>
+<!--
+FIXME: enable this for shared library release!
   <li>Softfloat with shared UnixLib as runtime library: default configuration.
+-->
   <li>Softfloat with static UnixLib as runtime library: use '-static' option when linking.
   <li>Hardfloat with static UnixLib as runtime library: use '-mhard-float' when compiling and '-mhard-float -static' when linking.
   <li>Hardfloat with SharedCLibrary as runtime library: use '-mlibscl' when compiling and '-mlibscl' when linking. When creating a RISC&nbsp;OS module you specify '-mmodule' instead for both complication and linking.
 </ul>
 
+<!--
+FIXME: enable this for shared library release!
 <p>In a cross-compile environment you can have "hardfloat with shared UnixLib as runtime library" configuration as well but seen that softfloat configuration has significant advantages for floating point intensive code, this is not relevant and not included in the native RISC&nbsp;OS release.
+-->
 
 <h4>1.6. Predefines</h4>
 
@@ -278,12 +310,12 @@ using_unixlib:
 <ul>
   <li>Object format is ELF
       <p>Pre GCCSDK 4 releases had as object format AOF (Acorn Object Format) and the AOF based libraries came as ALF (Acorn Library Format).  RISC&nbsp;OS Absolute programs (filetype &amp;FF8) came in an AIF file format (Acorn Image Format).
-      <p>As those formats are not supported by GNU binutils' assembler 'gas' nor linker 'ld', this means that your projects needs to be completely rebuilt and that you can not use previously made (or supplied) AOF/ALF files. In case of C or C++ files this is most probably just a case of recompiling.  In case of assembler files, the sources need to be changes to make them 'gas' compatible (read further on).  In case of creating library, the process can be slightly different (read further on).
-      <p>Both object files, shared library files and resulting fully linked binary files are in ELF file format (filetype &amp;e1f).  There is no native RISC&nbsp;OS support for loading shared libraries and ELF linked binary files so that's why you need an ELF loader such like 'SOManager' (currently part of !SharedLibs application).
+      <p>As those formats are not supported by GNU binutils' assembler 'gas' nor linker 'ld', this means that your projects needs to be completely rebuilt as you can not use previously made (or supplied) AOF/ALF files. In case of C or C++ files this is most probably just a case of recompiling.  In case of assembler files, the sources need to be changes to make them 'gas' compatible (read further on).  In case of creating library, the process can be slightly different (read further on).
+      <p>Both object files, shared library files and resulting fully linked binary files are in ELF file format (filetype &amp;E1F).  There is no native RISC&nbsp;OS support for loading shared libraries and ELF linked binary files so that's why you need an ELF loader such like 'SOManager' (currently part of !SharedLibs application).
       <p>There are two ways to create AIF based program files which of course do not need the use of 'SOManager' to run those programs:
          <ul>
-            <li>Use 'elf2aif' program to convert an ELF binary not using any shared library into AIF.  This means you need to specify '-static' linker option when making ELF binary.
-            <li>Use the SharedCLibrary instead of UnixLib as runtime library, i.e. use '-mlibscl' during compilation and linking.  In this case the linker will automatically create an AIF application program so no explicit 'elf2aif' invocation is needed.
+            <li>Use <a href="elf2aif">elf2aif</a> program to convert an ELF binary not using any shared library into AIF.  This means you need to specify '-static' linker option when making ELF binary.
+            <li>Use the SharedCLibrary instead of UnixLib as runtime library, i.e. use '-mlibscl' during compilation and linking.  In this case the linker will automatically create an AIF application program so no explicit <a href="elf2aif">elf2aif</a> invocation is needed.
          </ul>
       <p>Aside: when creating a module (i.e. using '-mmodule' during compilation and linking), the intermediate object files are ELF based but the final binary produced by the linker is a valid RISC&nbsp;OS module which of course does not need the 'SOManager' ELF loader.
 
@@ -434,13 +466,13 @@ WSSize		:
 <pre>
 *gcc -o myapp object1.o object2.o OSLib:o.OSLib32
 </pre>
-      <p>which links the object1.o and object2.o object files with the RISC&nbsp;OS OSLib library found as OSLib:o.OSLib32.  The binutils' linker needs to have its libraries specified with '-l' option and further assumes that all libraries filenames on disc start with 'lib' (but omited when specified) and have an 'a' extension instead of 'o' which was usually used in pre-GCCSDK 4 projects.  Also it is preferred to specify the directory where the library can be found using an extra option '-L' (in fact, this specifies an additional search directory for the '-l' libraries). So above example needs to be changed for GCCSDK 4 as:
+      <p>which links the object1.o and object2.o object files with the RISC&nbsp;OS OSLib library found as OSLib:o.OSLib32.  The binutils' linker needs to have its libraries specified with '-l' option and further assumes that all libraries filenames on disc start with 'lib' (but omitted when specified) and have an 'a' extension instead of 'o' which was usually used in pre-GCCSDK 4 projects.  Also it is preferred to specify the directory where the library can be found using an extra option '-L' (in fact, this specifies an additional search directory for the '-l' libraries). So above example needs to be changed for GCCSDK 4 as:
 <pre>
 *gcc -o myapp object1.o object2.o -LOSLib: -lOSLib32
 </pre>
       <p>and this with the file "libOSLib32/a" stored in the directory defined by the 'OSLib:' path. Note we don't do suffix swapping for 'a' extensions. Of course, it is expected that ELF releases of libraries already have the 'lib' prefix and '/a' extension of the library filename.
 
-  <li>APCS-R / APCS-32 : when option '-mapcs-32' is used, you have to remove this from the command line as this is default now and there isn't any APCS-R support foreseen.  When your project is still APCS-R, you need to drag it into the 21st century and make it APCS-32.  When you don't have any assembler code in your project, this is just a matter of recompiling your project.
+  <li>APCS-R / APCS-32 : when option '-mapcs-32' is used, you have to remove this from the command line as this is default now and there isn't any APCS-R support foreseen.  When your project is still APCS-R, you need to drag it into the 21st century and make it APCS-32 compliant.  When you don't have any assembler code in your project, this is just a matter of recompiling your project.
 
   <li>Softfloat &amp; hardfloat: the default configuration is now softfloat which means that there is no use of floating point instructions which are most of times emulated with a significant overhead. The floating point implementation is done using built-in library support not requiring the FPEmulator module in RISC&nbsp;OS.
       <p>This change has hardly any effect on your project when you migrate to GCCSDK 4 except for the improved runtime speed for floating point intensive code.
@@ -448,7 +480,11 @@ WSSize		:
 
 <h4>1.8. Distributing your programs</h4>
 
-<p>When you want to distribute your compiled program it might be necessary to accompany it with an ELF loader and possibly also a set of shared libraries used by your program. This is not necessary when your program is using SharedCLibrary as runtime library, i.e. when your program is an Absolute (filetype &amp;ff8) file with AIF header or a RISC&nbsp;OS module (filetype &amp;ffa).
+<p>When you want to distribute your compiled program it might be necessary to accompany it with an ELF 
+loader<!--
+FIXME: enable this for shared library release!
+ and possibly also a set of shared libraries used by your program
+-->. This is not necessary when your program is a static ELF binary which has been converted with <a href="elf2aif">elf2aif</a> or when it is using SharedCLibrary as runtime library (as for both cases your program is an Absolute (filetype &amp;FF8) file with AIF header) or when it is a RISC&nbsp;OS module (filetype &amp;FFA).
 
 <p>The ELF loader and the default set of shared libraries (UnixLib, libgcc and the dynamic loader) are bundled in the form of the !SharedLibs application. In the <a href="http://www.riscos.info/downloads/gccsdk/latest/">download area of the GCCSDK website</a> there is separate 'core' !SharedLibs ZIP file available (also containing a !System holding the most recent modules required by UnixLib) which can be downloaded by the users of your program. In case your program is a C++ program, an additional 'g++' !SharedLibs ZIP needs to be downloaded and its contents copied on top of the 'core' !SharedLibs application as this will add the necessary C++ shared libraries.
 
@@ -549,7 +585,7 @@ WSSize		:
 <p>This port of GCC is:
 <pre>
 Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
-Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 GCCSDK Developers
+Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 GCCSDK Developers
 </pre>
 
 <p>The GCCSDK releases made by the GCCSDK Developers consists of several binaries and sources which do not necessary have the same licenses.  The following overview can help to identify those licenses more easily but is in no way an authoritative statement on behalf of the GCCSDK Developers:
