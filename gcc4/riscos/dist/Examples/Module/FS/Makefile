@@ -1,4 +1,5 @@
-# Copyright (C) 2005-2007 GCCSDK Developers
+# Copyright (C) 2005-2008 GCCSDK Developers
+# This requires at least OSLib 7 (which supports ELF).
 
 # Option: enable unit-at-a-time (yes/no) ?
 UNITATATIME=no
