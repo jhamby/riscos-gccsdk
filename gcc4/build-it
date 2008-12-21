@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash -ue
 # Written by John Tytgat <John.Tytgat@aaug.net>
 # Copyright (c) 2006-2008 GCCSDK Developers
 #
@@ -113,7 +113,7 @@ else
 fi
 
 # Sanity check there are sources available:
-test ! -f $GCCSDK_SRCDIR/configure && echo "No $GCCSDK_SRCDIR/configure found, need to execute './create-srcdir' first ?" && exit 1
+test -f $GCCSDK_SRCDIR/configure || ( echo "No $GCCSDK_SRCDIR/configure found, need to execute './create-srcdir' first ?" && exit 1 )
 
 # Make sure we start with a clean build dir (if you want to restart a
 # broken build after the configure stage, do 'cd $GCCSDK_BUILDDIR && make'

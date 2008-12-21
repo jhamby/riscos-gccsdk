@@ -71,11 +71,11 @@ else
 fi
 
 # Build the programs which we use for cross-compiling and for native RISC OS compiling:
-for roapp in cmunge elf2aif mkresfs ln ; do
+for roapp in cmunge elf2aif ln mkresfs ; do
   if [ ! -f $GCCSDK_PREFIX/bin/$roapp -a ! -f $GCCSDK_PREFIX/bin/$roapp,ff8 -a ! -f $GCCSDK_PREFIX/bin/$roapp,e1f ] ; then
     echo +++ Building $roapp
-    test ! -f $GCCSDK_RISCOS/$roapp/configure && cd $GCCSDK_RISCOS/$roapp && autoreconf --install && test -d $GCCSDK_BUILDDIR/$roapp && rm -rf $GCCSDK_BUILDDIR/$roapp
-    mkdir -p $GCCSDK_BUILDDIR/$roapp
+    test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && autoreconf --install )
+    ( test ! -d $GCCSDK_BUILDDIR/$roapp || rm -rf $GCCSDK_BUILDDIR/$roapp ) && mkdir -p $GCCSDK_BUILDDIR/$roapp
     cd $GCCSDK_BUILDDIR/$roapp
     export CFLAGS=""
     if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
@@ -105,8 +105,8 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # SOManager module:
   if [ ! -f $GCCSDK_RELEASE_AREA/\!SharedLibs/SOManager,ffa ] ; then
     echo +++ Building SOManager
-    test ! -f $GCCSDK_RISCOS/soloader/module2/configure && cd $GCCSDK_RISCOS/soloader/module2 && autoreconf --install && test -d $GCCSDK_BUILDDIR/somanager && rm -rf $GCCSDK_BUILDDIR/somanager
-    mkdir -p $GCCSDK_BUILDDIR/somanager
+    test -f $GCCSDK_RISCOS/soloader/module2/configure || ( cd $GCCSDK_RISCOS/soloader/module2 && autoreconf --install )
+    ( test ! -d $GCCSDK_BUILDDIR/somanager || rm -rf $GCCSDK_BUILDDIR/somanager ) && mkdir -p $GCCSDK_BUILDDIR/somanager
     cd $GCCSDK_BUILDDIR/somanager
     export CFLAGS=""
     $GCCSDK_RISCOS/soloader/module2/configure --prefix=$GCCSDK_RISCOS_DSOPREFIX --bindir=$GCCSDK_RISCOS_DSOPREFIX $GCCSDK_CONFIGURE_ARGS
