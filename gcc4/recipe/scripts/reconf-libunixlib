@@ -1,6 +1,6 @@
 #!/bin/bash
 # Auto-generate libunixlib
-# Copyright (c) 2007 GCCSDK Developers
+# Copyright (c) 2007-2008 GCCSDK Developers
 
 if [ -z "$GCCSDK_SRCDIR" ] ; then
   echo "\$GCCSDK_SRCDIR needs to be defined"
@@ -14,6 +14,9 @@ fi
 
 # Generate the Makefile.am files:
 $GCCSDK_SRCDIR/libunixlib/gen-auto.pl
+
+# Patch libtool.m4:
+( cd $GCCSDK_SRCDIR/libunixlib && cp libtool-org.m4 libtool.m4 && patch -p0 < libtool.m4.p )
 
 # Run the autotools:
 ( cd $GCCSDK_SRCDIR/libunixlib && aclocal-1.9 -I ./ && autoheader && automake-1.9 -a && autoconf )
