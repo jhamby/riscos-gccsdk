@@ -13,10 +13,10 @@ ab_package() {
   AD=$D/Apps/Library
   mkdir -p $AD
 
-  cp -r $H/\!GLib $AD
+  cp -r $H/\!Glib $AD
 
   HERE=`pwd`
-  cd $AD/\!GLib
+  cd $AD/\!Glib
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
   # Move headers libs and docs up one directory
