@@ -1,0 +1,6 @@
+| Run file for FreeType2 library
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set FreeType2$Dir <Obey$Dir>
+Set FreeType2$Path <Obey$Dir>.

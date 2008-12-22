@@ -5,12 +5,12 @@ Autobuilder.
 
 See the "doc" and "man" subdirectories for more documentation.
 
-To include in you C programs.
+To include in your C programs.
 
-include "jpeg.h"
+#include "jpeg.h"
 
 and add the include flag
- -I/LibJPEG:/
+ -ILibJPEG:
 
-Link with
+Link with:
  -LLibJPEG: -ljpeg
