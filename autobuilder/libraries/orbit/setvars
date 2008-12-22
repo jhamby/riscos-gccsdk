@@ -2,7 +2,7 @@ AB_INSTALL=yes
 
 AB_CONFLAGS=--disable-nls
 
-if ! [ -e /usr/bin/glib-config ] ; then
+if ! [ -e /usr/bin/glib-config ] || ! [ -e /usr/include/popt.h ] ; then
   echo "Pleaes install native libglib1.2-dev and libpopt-dev packages"
   exit 1
 fi
