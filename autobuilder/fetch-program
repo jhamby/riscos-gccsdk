@@ -52,7 +52,7 @@ elif [ "$AB_NOREMOTE" == "yes" ] ; then
   mkdir $AB_PACKAGE
 
 else
-  if [ "$AB_NOAPT" != "yes" ] && [ -x /usr/bin/apt-get ] ; then
+  if [ "$AB_USEAPT" == "yes" ] && [ -x /usr/bin/apt-get ] ; then
     apt-get source $AB_PACKAGE
   else
     # Slower method.  Fetch packages file ourself and parse it.
