@@ -1,0 +1,7 @@
+Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Migrated GCCSDK 3.4.6 'as' as 'objasm' in GCCSDK 4.1.1 and brought
+	its build up to date.
+	* Removed the unimplemented -gas option.
+	* Made ELF output format default and provided new option -aof for AOF
+	output format.
