@@ -138,12 +138,12 @@ if [ "$AB_PACKONLY" == "yes" ] ; then
     echo "Autobuilder: Calling preprocess"
     . $AB_HOME/$AB_PACKAGEDIR/preprocess
   fi
- 
+
   echo "Autobuilder: Calling setvars"
   . $AB_HOME/$AB_PACKAGEDIR/setvars
 
 else
- 
+
   # Build directory
   if [ "$AB_NOFETCH" == "yes" ] ; then
     AB_DIR=$AB_TMPDIR
@@ -169,7 +169,7 @@ else
     echo "Autobuilder: Fetching source for $AB_PACKAGE"
     . $AB_HOME/fetch-program
   fi
- 
+
   AB_FULLNAME=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut --bytes 3-)
 
   # Run any preprocess script to unpack it in any special way
@@ -244,8 +244,8 @@ else
         echo "  ...success !"
       fi
     done
-  fi  
- 
+  fi
+
   # Apply any RISC OS patches
   patches=$(find $AB_HOME/$AB_PACKAGEDIR/ | grep "\.p\$" || true)
   if [ "$AB_ELFBUILD" == "yes" ] ; then
@@ -266,7 +266,7 @@ else
       AB_COPYSOURCE=yes
     fi
   fi
- 
+
   # Try to guess the version number.  This isn't reliable, and might need to be
   # explictly set by the package
   if [ -z "$AB_PVERSION" ] ; then
@@ -282,13 +282,23 @@ else
     . $AB_HOME/$AB_PACKAGEDIR/setvars
   fi
 
+  # If no preference is set for shared versus dynamic, then by default build libraries dynamically
+  # (which ususally also builds a static library) but others statically
+  if [ -z "$RO_SHAREDLIBS" ] ; then
+    if [ "$AB_INSTALL" == "yes" ] ; then
+      export RO_SHAREDLIBS=yes
+    else
+      export RO_SHAREDLIBS=no
+    fi
+  fi
+
   if [ -z "$AB_ZIPNAME" ] ; then
     AB_ZIPNAME=$AB_PACKAGE
   fi
 
   AB_PACKAGENAME=${AB_ZIPNAME}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
   AB_ZIP=${AB_DIR}/$AB_PACKAGENAME.zip
- 
+
   export AB_DIR
 
   if [ -e Imakefile ] ; then
