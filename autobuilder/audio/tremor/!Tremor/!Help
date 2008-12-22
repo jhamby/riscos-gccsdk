@@ -1,4 +1,4 @@
-Tremor - Portable Network Graphics Library
+Tremor - Ogg Bitstream Library Development
 
 This RISC OS version was created by the GCCSDK
 Autobuilder.
@@ -7,8 +7,8 @@ See the "doc" subdirectory for more documentation.
 
 A simple example program ivorbisfile_example.c is included in the doc subdirectory.
 
-To compile add the include flag
- -ITremor:
+To compile add the include flag:
+ -ITremor:tremor
 
-Link with
- -lTremor:o.libpng
+Link with:
+ -LTremor: -lvorbisidec
