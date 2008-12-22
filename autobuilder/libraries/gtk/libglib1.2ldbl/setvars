@@ -1,6 +1,7 @@
 AB_ZIPNAME=libglib1.2-dev
 AB_LICENCE=Free
 AB_CATEGORY=Library
+AB_ROVERSION=2
 
 AB_INSTALL=yes
 AB_PRECONF="glib_cv_uscore=no glib_cv_rtldglobal_broken=no"
