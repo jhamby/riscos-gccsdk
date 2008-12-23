@@ -49,6 +49,7 @@ give_help() {
 
 # Setup the default values which can be overruled by user options given:
 GCCSDK_MAKE_ARGS=""
+GCCSDK_BUILD_OPTTOPASSON=""
 GCCSDK_BUILD_ACTION=""
 GCCSDK_TARGET_LIBTYPE="--enable-shared=libunixlib,libgcc,libstdc++"
 GCCSDK_LANGUAGES="c,c++"
@@ -60,6 +61,7 @@ for param in $@ ; do
        ;;
     -static)
        GCCSDK_TARGET_LIBTYPE="--disable-shared"
+       GCCSDK_BUILD_OPTTOPASSON="$GCCSDK_BUILD_OPTTOPASSON -static"
        ;;
     -lang=*)
        GCCSDK_LANGUAGES=`expr "$param" : '[^=]*=\(.*\)'`
@@ -157,4 +159,4 @@ make $GCCSDK_MAKE_ARGS all
 make $GCCSDK_MAKE_ARGS install
 
 # Build the relevant RISC OS specific binaries:
-cd $GCCSDK_ROOT/riscos && ./build-it $GCCSDK_BUILD_ACTION
+cd $GCCSDK_ROOT/riscos && ./build-it $GCCSDK_BUILD_OPTTOPASSON $GCCSDK_BUILD_ACTION
