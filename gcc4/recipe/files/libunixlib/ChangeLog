@@ -1,3 +1,11 @@
+Tue Dec 23 02:25:46 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
+
+	* test/env/testenv.c: Added test for inheritance of environment
+	variables from parent to child process and when changes from
+	Unix environment variables need to result in updated RISC OS
+	system variables.  Based on a test program written and posted
+	in ML by Peter Naulls.
+
 Sat Dec 20 14:34:20 CET 2008  Theo Markettos <theo@markettos.org.uk>
 
 	* grp/getgrouplist.c(getgrouplist): Added.
