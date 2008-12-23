@@ -2,10 +2,24 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !gcc.docs.UnixLib.Changes too.
 
-GCCSDK GCC 4.1.1 release 1 (released XXX)
+GCCSDK GCC 4.1.1 release 1 (released 23 December 2008)
 ==========================
 
-XXX
+First stable release of GCC 4.1.1 + Binutils 2.17 port featuring:
+
+  - GNU C/C++ compilers based on GCC 4.1.1.
+  - Object file format is now ELF based and no longer AOF/AIF (although that
+    Absolute AIF files can be created from static built ELF programs).
+    Currently only static ELF binaries are supported in this release but
+    the shared library development is already finished and undergoing
+    testing.
+  - UnixLib as runtime library also means a soft-float floating point
+    implementation resulting significant speed increases for floating point
+    intensive code.
+  - UnixLib: many enhancements and bugfixes done.
+  - RISC OS module support for C programs.
+
+Further documentation can be found in !GCC's help file.
 
 GCCSDK GCC 4.1.1 pre-release 1 (released 17 November 2007)
 ==============================

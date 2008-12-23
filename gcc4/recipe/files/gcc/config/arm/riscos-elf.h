@@ -41,6 +41,11 @@
 #undef  FPUTYPE_DEFAULT
 #define FPUTYPE_DEFAULT FPUTYPE_FPA_EMU3
 
+/* When we have a static build, make sure that the linker doesn't search
+   for shared libraries, i.e. force -static as default.  */
+#define DRIVER_SELF_SPECS \
+"%{!shared:-static}"
+
 /* RISC OS uses the APCS-32 ABI.  */
 #undef ARM_DEFAULT_ABI
 #define ARM_DEFAULT_ABI ARM_ABI_APCS32
@@ -70,8 +75,7 @@
 /* When building the native RISC OS compiler, we add an extra library path
    GCCSOLib:  */
 #  define SUBTARGET_EXTRA_LINK_SPEC \
-     "-m armelf_riscos -p %{!static:%{!fpic:-fPIC}} " \
-     "-L/GCCSOLib: " \
+     "-m armelf_riscos -p %{!static:%{!fpic:-fPIC -L/GCCSOLib:}} " \
      "%{fpic:-fpic} %{mmodule:--ro-module-reloc} "
 #endif
 
@@ -204,6 +208,8 @@
 #define LINK_GCC_C_SEQUENCE_SPEC \
   "%{static:--start-group} %G %L %{static:--end-group}%{!static:%G}"
 
+/* Same definition as in gcc.c but with --start-group / --end-group around
+   %o.  */
 #define LINK_COMMAND_SPEC "\
 %{!fsyntax-only:%{!c:%{!M:%{!MM:%{!E:%{!S:\
     %(linker) %l " LINK_PIE_SPEC "%X %{o*} %{A} %{d} %{e*} %{m} %{N} %{n} %{r}\
