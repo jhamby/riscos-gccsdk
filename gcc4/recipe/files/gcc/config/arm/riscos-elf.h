@@ -41,10 +41,12 @@
 #undef  FPUTYPE_DEFAULT
 #define FPUTYPE_DEFAULT FPUTYPE_FPA_EMU3
 
+#if 0
 /* When we have a static build, make sure that the linker doesn't search
    for shared libraries, i.e. force -static as default.  */
 #define DRIVER_SELF_SPECS \
 "%{!shared:-static}"
+#endif
 
 /* RISC OS uses the APCS-32 ABI.  */
 #undef ARM_DEFAULT_ABI
