@@ -21,7 +21,7 @@
 </head>
 <body>
 
-<h2>Welcome to GCCSDK GCC 4.1.1 release 1 for RISC&nbsp;OS</h2>
+<h2>Welcome to GCCSDK GCC 4.1.1 pre-release 2 for RISC&nbsp;OS</h2>
 <p>
 
 <p>If you have received this copy of GCC from a CD of fetched your copy from the Internet yourself some time ago, then it is likely there is a more up-to-date version obtainable from <a href="http://gccsdk.riscos.info/">http://gccsdk.riscos.info/</a> which is also the homepage of this RISC&nbsp;OS GCC port.
@@ -147,8 +147,6 @@ to enforce chunk stack checking for those module object files containing code wh
 
 <p>Modules often have their data (Messages, Sprites, etc) stored in ResourceFS. <a href="mkresfs">mkresfs</a> can be used to create a C file representing the intended ResourceFS data allowing easy (de)registration with ResourceFS. In GCCSDK 3.4 this functionality was covered with the 'resgen' program but as its code was very tightly AOF based, a new program (and approach) was chosen.
 
-<!--
-FIXME: enable this for shared library release!
 <h5>1.3.3. Static UnixLib</h5>
 
 <p>When UnixLib is selected as runtime library, by default it will be the shared UnixLib library.  It is possible to use the static UnixLib at link time by specifying the linker switch -static.
@@ -157,7 +155,6 @@ FIXME: enable this for shared library release!
    *gcc -o file.o -c file.c
    *gcc -static -o mybinary file.o
 </pre>
--->
 
 <h4>1.4. Switches</h4>
 
@@ -182,11 +179,8 @@ FIXME: enable this for shared library release!
   <dd>Apply full optimization.
 <dt>-O3
   <dd>Full optimization and inline small functions as well.
-<!--
-FIXME: enable this for shared library release!
 <dt>-static
   <dd>Use static instead of shared UnixLib runtime library.  This switch is implicitly implied when the SharedCLibrary runtime library is used (by using -mlibscl or -mmodule switches).
--->
 </dl>
 
 <h5>1.4.2. ARM specific switches</h5>
@@ -243,19 +237,13 @@ FIXME: enable this for shared library release!
 <p>As an overview, the following configurations are possible with the native RISC&nbsp;OS release :
 
 <ul>
-<!--
-FIXME: enable this for shared library release!
   <li>Softfloat with shared UnixLib as runtime library: default configuration.
--->
   <li>Softfloat with static UnixLib as runtime library: use '-static' option when linking.
   <li>Hardfloat with static UnixLib as runtime library: use '-mhard-float' when compiling and '-mhard-float -static' when linking.
   <li>Hardfloat with SharedCLibrary as runtime library: use '-mlibscl' when compiling and '-mlibscl' when linking. When creating a RISC&nbsp;OS module you specify '-mmodule' instead for both complication and linking.
 </ul>
 
-<!--
-FIXME: enable this for shared library release!
 <p>In a cross-compile environment you can have "hardfloat with shared UnixLib as runtime library" configuration as well but seen that softfloat configuration has significant advantages for floating point intensive code, this is not relevant and not included in the native RISC&nbsp;OS release.
--->
 
 <h4>1.6. Predefines</h4>
 
@@ -480,11 +468,7 @@ WSSize		:
 
 <h4>1.8. Distributing your programs</h4>
 
-<p>When you want to distribute your compiled program it might be necessary to accompany it with an ELF 
-loader<!--
-FIXME: enable this for shared library release!
- and possibly also a set of shared libraries used by your program
--->. This is not necessary when your program is a static ELF binary which has been converted with <a href="elf2aif">elf2aif</a> or when it is using SharedCLibrary as runtime library (as for both cases your program is an Absolute (filetype &amp;FF8) file with AIF header) or when it is a RISC&nbsp;OS module (filetype &amp;FFA).
+<p>When you want to distribute your compiled program it might be necessary to accompany it with an ELF loader and possibly also a set of shared libraries used by your program. This is not necessary when your program is a static ELF binary which has been converted with <a href="elf2aif">elf2aif</a> or when it is using SharedCLibrary as runtime library (as for both cases your program is an Absolute (filetype &amp;FF8) file with AIF header) or when it is a RISC&nbsp;OS module (filetype &amp;FFA).
 
 <p>The ELF loader and the default set of shared libraries (UnixLib, libgcc and the dynamic loader) are bundled in the form of the !SharedLibs application. In the <a href="http://www.riscos.info/downloads/gccsdk/latest/">download area of the GCCSDK website</a> there is separate 'core' !SharedLibs ZIP file available (also containing a !System holding the most recent modules required by UnixLib) which can be downloaded by the users of your program. In case your program is a C++ program, an additional 'g++' !SharedLibs ZIP needs to be downloaded and its contents copied on top of the 'core' !SharedLibs application as this will add the necessary C++ shared libraries.
 
