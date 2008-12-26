@@ -1,0 +1,4 @@
+# UnixLib has POSIX strerror_r() implementation but curl can't detect
+# this during cross-compilation so we force that here:
+echo "/* Added by Autobuilder: */" >> lib/config.h
+echo "#define HAVE_POSIX_STRERROR_R 1" >> lib/config.h
