@@ -31,8 +31,8 @@ GCCSDK_UNPACKED=$GCCSDK_RELEASE_AREA/kits
 GCCSDK_RISCPKG=$GCCSDK_RELEASE_AREA/riscpkg
 
 # Location in kites folder
-BKIT_GCCCORE_NAME=gccsdk-gcc-core-bin-$GCCSDK_RELEASE_NAME
-BKIT_GCCGPP_NAME=gccsdk-gcc-g++-bin-$GCCSDK_RELEASE_NAME
+BKIT_GCCCORE_NAME=gccsdk-gcc-core-bin-$GCCSDK_FULL_RELEASE_NAME
+BKIT_GCCGPP_NAME=gccsdk-gcc-g++-bin-$GCCSDK_FULL_RELEASE_NAME
 BKIT_SYSTEM_NAME=system
 BKIT_SHAREDLIBSCORE_NAME=gccsdk-sharedlibs-core
 BKIT_SHAREDLIBSGPP_NAME=gccsdk-sharedlibs-g++
@@ -61,7 +61,7 @@ copyright_header() {
   echo "" >> RiscPkg/Copyright
   echo "For information on GCC for RISC OS see the URL:" >> RiscPkg/Copyright
   echo "" >> RiscPkg/Copyright
-  echo "http://www.riscos.info/index.php/GCCSDK" >> RiscPkg/Copyright
+  echo "http://gccsdk.riscos.info/" >> RiscPkg/Copyright
   echo "" >> RiscPkg/Copyright
   echo "Copyright notices for the component(s) of this package follow." >> RiscPkg/Copyright
   echo "" >> RiscPkg/Copyright
@@ -140,7 +140,7 @@ mkdir RiscPkg
 
 # Create control file
 echo "Package: $RPKG_GCCCORE_NAME" > RiscPkg/Control
-echo "Version: $GCCSDK_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
+echo "Version: $GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
 echo "Section: Programming" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
@@ -179,7 +179,7 @@ cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/libunixlib/COPYING >> RiscPk
 set_file_types
 
 # Zip it all up
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_GCCCORE_NAME\_$GCCSDK_RELEASE_NAME-$RPKG_VERSION.zip *
+$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_GCCCORE_NAME\_$GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION.zip *
 
 cd ..
 rm -rf temp
@@ -197,13 +197,13 @@ mkdir RiscPkg
 
 # Create Control file
 echo "Package: $RPKG_GCCGPP_NAME" > RiscPkg/Control
-echo "Version: $GCCSDK_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
+echo "Version: $GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
 echo "Section: Programming" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
-echo "Depends: $RPKG_GCCCORE_NAME (>=$GCCSDK_RELEASE_NAME), $RPKG_SHAREDLIBSGPP_NAME (>=$RPKG_SHAREDLIBSGPP_VERSION)" >> RiscPkg/Control
+echo "Depends: $RPKG_GCCCORE_NAME (>=$GCCSDK_FULL_RELEASE_NAME), $RPKG_SHAREDLIBSGPP_NAME (>=$RPKG_SHAREDLIBSGPP_VERSION)" >> RiscPkg/Control
 echo "Description: The GNU C++ Compiler" >> RiscPkg/Control
 
 # Create copyright
@@ -216,7 +216,7 @@ gpl_copyright
 
 set_file_types
 
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_GCCGPP_NAME\_$GCCSDK_RELEASE_NAME-$RPKG_VERSION.zip *
+$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_GCCGPP_NAME\_$GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION.zip *
 
 cd ..
 rm -rf temp
