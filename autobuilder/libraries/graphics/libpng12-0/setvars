@@ -1,6 +1,8 @@
 AB_CATEGORY=Library
 AB_ZIPNAME=libpng12-dev
 
+AB_URL=ftp://ftp.simplesystems.org/pub/libpng/png/src/libpng-1.2.34.tar.bz2
+
 AB_INSTALL=yes
 
 export ECHO=echo
@@ -10,9 +12,6 @@ ab_make()
   if [ "$AB_ELFBUILD" != "yes" ] ; then
     # GCCSDK 3.4.6 support
     cp scripts/makefile.gcc Makefile
-  else
-    rm -f libtool
-    ln -s $(which libtool)
   fi
   $AB_MAKE
 }
@@ -23,7 +22,7 @@ ab_package()
   mkdir -p $AD
   cp $H/\!LibPNG/\!* $AD
 
-  cat $S/libpng-1.2.27.txt >> $AD/\!Help,fff
+  cat $S/libpng-1.2.*.txt >> $AD/\!Help,fff
 
   HERE=`pwd`
   cd $AD
