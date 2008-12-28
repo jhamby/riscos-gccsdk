@@ -73,7 +73,7 @@ diff -ur subversion.orig/libsvn_subr/io.c subversion/libsvn_subr/io.c
 +      if (filetype && filetype->len > 0)
 +      	filetype_val = 0xfff & strtol(filetype->data, NULL, 16);
 +
-+      __object_set_attrs (path_apr, buf, sizeof (buf), filetype_val, __ATTR_NOTSPECIFIED);
++      __object_set_attrs (path_apr, buf, sizeof (buf), filetype_val, -1);
 +    }
 +
 +  return SVN_NO_ERROR;

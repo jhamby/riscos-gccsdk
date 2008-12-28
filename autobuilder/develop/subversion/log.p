@@ -5,7 +5,7 @@
                                               adm_access, pool));
  
 +        SVN_ERR(svn_wc__maybe_set_filetype(NULL, full_dest_path, adm_access,
-+                                           pool);
++                                           pool));
 +
          return SVN_NO_ERROR;
        }

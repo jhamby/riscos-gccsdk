@@ -1,6 +1,6 @@
 
 AB_CONFLAGS="--with-apr=$GCCSDK_INSTALL_ENV \
---with-apr-util=$GCCSDK_INSTALL_ENV \
+--with-apr-util=$GCCSDK_INSTALL_ENV/bin/apu-1-config \
 --with-neon=$GCCSDK_INSTALL_ENV \
 --without-berkeley-db \
 --without-apxs"
@@ -8,6 +8,6 @@ AB_CONFLAGS="--with-apr=$GCCSDK_INSTALL_ENV \
 AB_CATEGORY=Command
 
 ab_package() {
-  cp $S/subversion/clients/cmdline/svn$AB_EXEEXT $S/COPYING $D
+  cp $S/subversion/svn/svn$AB_EXEEXT $S/COPYING $D
 }
 
