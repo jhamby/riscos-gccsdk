@@ -1,35 +1,3 @@
-diff -ur subversion.orig/clients/cmdline/main.c subversion/clients/cmdline/main.c
---- subversion.orig/clients/cmdline/main.c	2005-07-28 23:08:40.000000000 +0100
-+++ subversion/clients/cmdline/main.c	2006-03-22 20:52:31.000000000 +0000
-@@ -48,6 +48,15 @@
- 
- #include "svn_private_config.h"
- 
-+#ifdef __riscos__
-+
-+#include <unixlib/local.h>
-+
-+int __riscosify_control = __RISCOSIFY_STRICT_UNIX_SPECS;
-+int __feature_imagefs_is_file = 1;
-+
-+#endif
-+
- 
- /*** Option Processing ***/
- 
-@@ -823,6 +832,11 @@
-   if (svn_cmdline_init ("svn", stderr) != EXIT_SUCCESS)
-     return EXIT_FAILURE;
- 
-+#ifdef __riscos__
-+  if (getenv("svn$filetypeext"))
-+    __riscosify_control |= __RISCOSIFY_FILETYPE_EXT | __RISCOSIFY_FILETYPE_NOT_SET;
-+#endif
-+
-   /* Create our top-level pool.  Use a seperate mutexless allocator,
-    * given this application is single threaded.
-    */
-Only in subversion/clients/cmdline: main.c.orig
 diff -ur subversion.orig/include/svn_io.h subversion/include/svn_io.h
 --- subversion.orig/include/svn_io.h	2005-04-04 22:04:29.000000000 +0100
 +++ subversion/include/svn_io.h	2006-03-22 20:52:30.000000000 +0000
@@ -55,39 +23,6 @@ diff -ur subversion.orig/include/svn_io.h subversion/include/svn_io.h
  /** Read a line from @a file into @a buf, but not exceeding @a *limit bytes.
   * Does not include newline, instead '\\0' is put there.
 Only in subversion/include: svn_io.h.orig
-diff -ur subversion.orig/include/svn_props.h subversion/include/svn_props.h
---- subversion.orig/include/svn_props.h	2005-04-04 19:16:07.000000000 +0100
-+++ subversion/include/svn_props.h	2006-03-22 20:52:30.000000000 +0000
-@@ -179,6 +179,9 @@
- /** Set to either TRUE or FALSE if we want a file to be executable or not. */
- #define SVN_PROP_EXECUTABLE  SVN_PROP_PREFIX "executable"
- 
-+#define SVN_PROP_FILETYPE  SVN_PROP_PREFIX "riscosfiletype"
-+
-+
- /** The value to force the executable property to when set */
- #define SVN_PROP_EXECUTABLE_VALUE "*"
- 
-diff -ur subversion.orig/libsvn_client/add.c subversion/libsvn_client/add.c
---- subversion.orig/libsvn_client/add.c	2005-03-22 05:32:19.000000000 +0000
-+++ subversion/libsvn_client/add.c	2006-03-22 20:52:30.000000000 +0000
-@@ -193,6 +193,15 @@
-                       svn_string_create ("", pool));
-     }
- 
-+    {
-+      svn_string_t *filetype;
-+      SVN_ERR (svn_io_get_file_filetype (&filetype, path, pool));
-+      if (filetype)
-+        apr_hash_set (autoprops.properties, SVN_PROP_FILETYPE,
-+                      strlen (SVN_PROP_FILETYPE),
-+                      filetype);
-+    }
-+
-   *mimetype = autoprops.mimetype;
-   return SVN_NO_ERROR;
- }
-Only in subversion/libsvn_client: add.c.orig
 diff -ur subversion.orig/libsvn_client/export.c subversion/libsvn_client/export.c
 --- subversion.orig/libsvn_client/export.c	2005-08-03 23:20:13.000000000 +0100
 +++ subversion/libsvn_client/export.c	2006-03-22 20:52:30.000000000 +0000
@@ -260,19 +195,6 @@ diff -ur subversion.orig/libsvn_subr/io.c subversion/libsvn_subr/io.c
  
  /*** File locking. ***/
  /* Clear all outstanding locks on ARG, an open apr_file_t *. */
-Only in subversion/libsvn_subr: io.c.orig
-diff -ur subversion.orig/libsvn_wc/adm_crawler.c subversion/libsvn_wc/adm_crawler.c
---- subversion.orig/libsvn_wc/adm_crawler.c	2005-04-11 14:03:20.000000000 +0100
-+++ subversion/libsvn_wc/adm_crawler.c	2006-03-22 20:52:30.000000000 +0000
-@@ -101,6 +101,7 @@
- 
-   /* If necessary, tweak the new working file's executable bit. */
-   SVN_ERR (svn_wc__maybe_set_executable (NULL, file_path, adm_access, pool));
-+  SVN_ERR (svn_wc__maybe_set_filetype (NULL, file_path, adm_access, pool));
- 
-   /* Remove any text conflict */
-   SVN_ERR (svn_wc_resolved_conflict2 (file_path, adm_access, TRUE, FALSE,
-Only in subversion/libsvn_wc: adm_crawler.c.orig
 diff -ur subversion.orig/libsvn_wc/adm_ops.c subversion/libsvn_wc/adm_ops.c
 --- subversion.orig/libsvn_wc/adm_ops.c	2005-05-07 02:25:05.000000000 +0100
 +++ subversion/libsvn_wc/adm_ops.c	2006-03-22 20:52:30.000000000 +0000
