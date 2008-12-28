@@ -1,8 +1,14 @@
 
-AB_CATEGORY=Utilities
-
-AB_MANPAGE=gzip.1
-
 ab_package() {
-  cp $S/gzip$AB_EXEEXT $S/COPYING $D
+  ab_create_command_app gzip Apps/Utilities
+  ab_add_commands $S/*$AB_EXEEXT
+
+  echo "Set Alias\$gunzip gzip -d %%*0" >> $A/\!Boot,feb
+  echo "Set Alias\$zcat gzip -cd %%*0" >> $A/\!Boot,feb
+
+  rman -f HTML $S/gzip.1 > $A/\!Help,faf
+
+  cp $S/gzip$AB_EXEEXT $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib
 }
