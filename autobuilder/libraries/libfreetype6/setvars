@@ -25,9 +25,9 @@ ab_make() {
 }
 
 ab_package() {
-  AD=$D/Apps/Library/\!Freetype2
+  AD=$D/Apps/Library/\!FreeType2
   mkdir -p $AD
-  cp $H/\!Freetype2/\!* $AD
+  cp $H/\!FreeType2/\!* $AD
 
   cp README $AD/\!Help
   cp README $AD
