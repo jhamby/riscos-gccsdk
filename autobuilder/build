@@ -293,6 +293,12 @@ ab_build() {
           fi
           ;;
 
+       libcroco3|libglib2.0-0)
+         if [ "$PACKAGE_NAME" == "gettext" ] ; then
+           continue
+         fi
+         ;;
+
         # Anything with the same prefix probably came from the same source package
         ${PACKAGE_NAME}*)
           continue
