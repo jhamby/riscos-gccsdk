@@ -1,11 +1,9 @@
-AS = $(GCCSDK_INSTALL_CROSSBIN)/gcc
-ASFLAGS = -c -mcpu=xscale
+AS = ../objasm
+ASFLAGS = -t xscale
 DIFF = diff
 DIFFFLAGS = -q
 ECHO = echo
-ECHOFLAGS = -e
-LD = $(GCCSDK_INSTALL_CROSSBIN)/drlink
-LDFLAGS = -bin
+ECHOFLAGS =
 
 check_PROGRAMS = arithmetic1 arithmetic2 branch copro dsp fp loadstore loadstore2 loadstore3 misc
 ref_PROGRAMS = $(check_PROGRAMS:%=reference/%)
@@ -25,11 +23,9 @@ clean:
 
 %: %.s
 	@$(ECHO) $(ECHOFLAGS) "\tGBLL REFERENCE\nREFERENCE\tSETL\t{FALSE}\n\tEND" >config.h
-	@$(AS) $(ASFLAGS) -o $@.o $<
-	@$(LD) $(LDFLAGS) -o $@ $@.o >/dev/null
+	@$(AS) $(ASFLAGS) -o $@ $<
 	@$(DIFF) $(DIFFFLAGS) $@ reference/$@
 
 reference/%: %.s
 	@$(ECHO) $(ECHOFLAGS) "\tGBLL REFERENCE\nREFERENCE\tSETL\t{TRUE}\n\tEND" >config.h
-	@$(AS) $(ASFLAGS) -o $@.o $<
-	@$(LD) $(LDFLAGS) -o $@ $@.o >/dev/null
+	@$(AS) $(ASFLAGS) -o $@ $<
