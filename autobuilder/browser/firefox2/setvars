@@ -8,6 +8,8 @@ AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
 AB_ROVERSION=1
 
+#export RO_SHAREDLIBS=yes
+
 AB_CATEGORY=Browser
 
 # 'Official' build:
@@ -62,6 +64,12 @@ mozilla_patch () {
 
   cp -av $H/widget $S/widget/src/riscos
   cp -av $H/gfx $S/gfx/src/riscos
+
+  # For static builds, then apply this
+  if [ "$RO_SHAREDLIBS" != "yes" ] ; then
+    # Applying static build patch
+    patch -p0 < $AB_HOME/$AB_PACKAGEDIR/static-build.diff
+  fi
 }
 
 ab_package () {
