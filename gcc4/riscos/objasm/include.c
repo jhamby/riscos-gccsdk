@@ -133,14 +133,20 @@ getInclude (const char *file, const char *mode, const char **strdupFilename)
 #endif
   char *apcs;
 
+  /* TODO: Replace this with a generic getenv().
+   * This will require that we actually parse the path components,
+   * and replace any instances of <...> with the result of getenv(...),
+   * if such a thing exists. If it doesn't, leave <...> alone.
+   */
   if ((apcs = strstr(file, "<APCS>")))
     {
-      char *apcs_path = alloca(strlen(file) + 1);
-      strncpy(apcs_path, file, apcs - file);
+      /* APCS-32 is 1 byte longer than <APCS>, so add one to the length */
+      char *apcs_path = alloca(strlen(file) + 1 + 1 /* \0 */);
+      memcpy(apcs_path, file, apcs - file);
       strcpy(apcs_path + (apcs - file), apcs_32bit ? "APCS-32" : "APCS-26");
-      file = apcs_path;
+      strcpy(apcs_path + (apcs - file) + 7, apcs + 6);
 
-      strcat(apcs_path, apcs + 6);
+      file = apcs_path;
     }
 
 #ifndef __riscos__
