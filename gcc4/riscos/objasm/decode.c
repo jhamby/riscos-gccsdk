@@ -908,9 +908,10 @@ decode (Lex * label)
 	  switch (inputGetUC ())
 	    {
 	    case 'b':
-               switch (c = inputGetUC ())
+               switch (c = inputGet ())
                  {
                  case 't':
+                 case 'T':
                    C_FINISH (c_title);                  /* SUBT */
                  default:
                    inputUnGet (c);
