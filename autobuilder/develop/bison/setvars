@@ -1,8 +1,18 @@
 
-AB_CATEGORY=Command
-
-AB_MANPAGE=doc/bison.1
+AB_CATEGORY=Develop
 
 ab_package() {
-  cp $S/src/bison$AB_EXEEXT $S/COPYING $D
+
+  mkdir -p $D/Apps/$AB_CATEGORY/\!GCC/bin/
+  mkdir -p $D/Apps/$AB_CATEGORY/\!GCC/docs/
+
+  cp $S/src/bison$AB_EXEEXT $D/Apps/$AB_CATEGORY\/!GCC/bin/
+  rman -f HTML $S/doc/bison.1 > $D/Apps/$AB_CATEGORY/\!GCC/docs/bison.html,faf
+
+  $AB_HOME/add-riscpkg -unixlib
 }
+
+touch --date="Jan 01 2000" \
+  doc/bison.info \
+  doc/bison.texinfo \
+  doc/fdl.texi
