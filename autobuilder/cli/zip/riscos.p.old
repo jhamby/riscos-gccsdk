@@ -1,0 +1,149 @@
+Index: zipfile.c
+===================================================================
+--- zipfile.c	(revision 2811)
++++ zipfile.c	(working copy)
+@@ -657,6 +657,7 @@
+     buf = malloc(4096 + 4);
+     if (buf == NULL)
+       return ZE_MEM;
++    memset(buf,0,4096+4);
+ 
+ #ifdef HANDLE_AMIGA_SFX
+     amiga_sfx_offset = (fread(buf, 1, 4, f) == 4 && LG(buf) == 0xF3030000);
+Index: acorn/riscos.c
+===================================================================
+--- acorn/riscos.c	(revision 2811)
++++ acorn/riscos.c	(working copy)
+@@ -14,8 +14,6 @@
+ #include "zip.h"
+ #include "riscos.h"
+ 
+-#define MAXEXT 16
+-
+ /* External globals */
+ extern int scanimage;
+ 
+@@ -177,8 +175,8 @@
+ /* Delete the file *f, returning non-zero on failure. */
+ {
+  os_error *er;
+- char canon[256];
+- int size=255;
++ char canon[MAXFILENAMELEN];
++ int size=MAXFILENAMELEN-1;
+ 
+  er=SWI_OS_FSControl_37(f,canon,&size);
+  if (er==NULL) {
+@@ -217,8 +215,8 @@
+ 
+  if (er=SWI_OS_File_6(s),er!=NULL) {
+    /* maybe this is a problem with the DDEUtils module, try to canonicalise the path */
+-   char canon[256];
+-   int size=255;
++   char canon[MAXFILENAMELEN];
++   int size=MAXFILENAMELEN-1;
+ 
+    if (er=SWI_OS_FSControl_37(s,canon,&size),er!=NULL) {
+      free(s);
+@@ -246,7 +244,7 @@
+ 
+ void setfiletype(char *fname,int ftype)
+ {
+- char str[256];
++ static char str[MAXFILENAMELEN+32];
+  sprintf(str,"SetType %s &%3.3X",fname,ftype);
+  SWI_OS_CLI(str);
+ }
+@@ -292,7 +290,7 @@
+ 
+ void swapext(char *name, char *exptr)
+ {
+- char ext[MAXEXT];
++ static char ext[MAXFILENAMELEN];
+  register char *p1=exptr+1;
+  register char *p2=ext;
+  int extchar=*exptr;
+@@ -318,7 +316,7 @@
+ 
+ void set_prefix(void)
+ {
+- char *pref;
++ char *pref=0;
+  int size=0;
+ 
+  if (SWI_OS_FSControl_37("@",pref,&size)!=NULL)
+Index: acorn/acornzip.c
+===================================================================
+--- acorn/acornzip.c	(revision 2811)
++++ acorn/acornzip.c	(working copy)
+@@ -81,9 +81,9 @@
+     if ((subwild = strchr(wildtail + 1, '.')) != NULL) {
+         /* this "+ 1" dodges the   ^^^ hole left by *glue == 0 */
+         *(subwild++) = 0;               /* wildtail = one component pattern */
+-        newlen = strlen(whole) + strlen(subwild) + 32;
++        newlen = strlen(whole) + strlen(subwild) + MAXFILENAMELEN;
+     } else
+-        newlen = strlen(whole) + 31;
++        newlen = strlen(whole) + MAXFILENAMELEN;
+     if (!dir || !(newwhole = malloc(newlen))) {
+         if (glue)
+             *glue = plug;
+@@ -99,7 +99,7 @@
+         goto ohforgetit;
+     }
+ 
+-    while (name = readd(dir)) {
++    while ((name = readd(dir)) != 0) {
+         if (MATCH(wildtail, name, 0)) {
+             strcpy(newwhole + newlen, name);
+             if (subwild) {
+@@ -136,7 +136,7 @@
+   if (strcmp(p, "-") == 0)   /* if compressing stdin */
+     return newname(p, 0, 0);
+ 
+-  path=p;
++  path=(char *) p;
+   if (strchr(p, ':')==NULL && *p!='@') {
+     if (!(path=malloc(strlen(p)+3))) {
+       return ZE_MEM;
+@@ -159,7 +159,7 @@
+ /* Process a name or sh expression to operate on (or exclude).  Return
+    an error code in the ZE_ class. */
+ {
+-  const char *a;        /* path and name for recursion */
++  char *a;              /* path and name for recursion */
+   DIR *d;               /* directory stream from opendir() */
+   char *e;              /* pointer to name from readd() */
+   int m;                /* matched flag */
+Index: acorn/riscos.h
+===================================================================
+--- acorn/riscos.h	(revision 2811)
++++ acorn/riscos.h	(working copy)
+@@ -23,9 +23,8 @@
+ #  include "swiven.h"
+ #endif
+ 
+-#define MAXPATHLEN 256
+-#define MAXFILENAMELEN 64  /* should be 11 for ADFS, 13 for DOS, 64 seems a sensible value... */
+-#define DIR_BUFSIZE 1024   /* this should be enough to read a whole E-Format directory */
++#define MAXFILENAMELEN 1024  /* RISC OS 4 has 1024 limit. 1024 is also the same as FNMAX in zip.h */
++#define DIR_BUFSIZE MAXFILENAMELEN   /* Ensure we can read at least one full-length RISC OS 4 filename */
+ 
+ struct stat {
+   unsigned int st_dev;
+@@ -61,15 +60,6 @@
+   char d_name[MAXFILENAMELEN]; /* name */
+ };
+ 
+-typedef struct {
+-  unsigned int load_addr;
+-  unsigned int exec_addr;
+-  int lenght;
+-  int attrib;
+-  int objtype;
+-  char name[13];
+-} riscos_direntry;
+-
+ #define SPARKID   0x4341        /* = "AC" */
+ #define SPARKID_2 0x30435241    /* = "ARC0" */
+ 

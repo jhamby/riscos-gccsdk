@@ -1,0 +1,11 @@
+AB_CATEGORY=Command
+
+AB_PRECONF=:
+
+AB_MAKE="$AB_MAKE -f unix/Makefile generic"
+
+#cp $H/makefile.riscos $S/makefile.machine
+
+#ab_package() {
+#  cp $H/README.RISCOS $S/bin/7za$AB_EXEEXT $S/DOCS/copying.txt $S/README $D
+#}
