@@ -58,8 +58,16 @@ ab_make() {
 
 
 ab_create_command_app() {
-  local app=$1
-  local section=$2
+  local app
+  local section
+
+  if [ -z "$2" ] ; then
+    section=$1
+    app=$AB_PACKAGE
+  else
+    app=$1
+    section=$2
+  fi
 
   if [ -z "$AB_CATEGORY" ] ; then
     AB_CATEGORY=$(sed s#^Apps/## <<<$section)
