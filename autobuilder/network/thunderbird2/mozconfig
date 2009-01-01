@@ -32,6 +32,7 @@ ac_add_options --enable-composer
 ac_add_options --enable-plaintext-editor-only
 #ac_add_options --disable-mailnews
 ac_add_options --disable-ldap
+#ac_add_options --disable-ldap
 ac_add_options --enable-postscript
 ac_add_options --enable-mathml
 #ac_add_options --disable-jsd
@@ -63,22 +64,19 @@ ac_add_options --enable-crypto
 ac_add_options --enable-image-decoders=png,gif,jpeg
 
 # code generation options (optimize for size)
-#ac_add_options --enable-optimize="-O3 -fno-unit-at-a-time -fno-rename-registers"
-#-mpoke-function-name"
-#ac_add_options --enable-optimize="-O3 -march=armv3m -mtune=strongarm"
-ac_add_options --enable-optimize="-O3 -mcpu=strongarm"
+ac_add_options --enable-optimize="-O2 -mcpu=strongarm -mpoke-function-name"
 # ac_add_options --enable-strip
+#ac_add_options --disable-reorder
+#ac_add_options --enable-elf-dynstr-gc
 #ac_add_options --disable-reorder
 #ac_add_options --enable-elf-dynstr-gc
 
 # enable static build
-ac_add_options --disable-shared
-ac_add_options --enable-static
+#ac_add_options --disable-shared
+#ac_add_options --enable-static
 
-#ac_add_options --disable-native-uconv
-
-LIBS=-lstdc++
-DLL_SUFFIX=a
+#LIBS=-lstdc++
+#DLL_SUFFIX=a
 
 ac_add_options --enable-application=mail
 ac_add_options --disable-timeline
@@ -91,4 +89,4 @@ ac_add_options --with-system-zlib
 ac_add_options --with-system-png
 
 ac_add_options --disable-updater
-
+ac_add_options --disable-plugins

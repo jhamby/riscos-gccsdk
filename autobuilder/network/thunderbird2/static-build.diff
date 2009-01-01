@@ -1,0 +1,232 @@
+--- ./security/nss/lib/ssl/sslsock.c.orig	2008-12-29 21:41:49.000000000 -0800
++++ ./security/nss/lib/ssl/sslsock.c	2008-12-29 21:42:01.000000000 -0800
+@@ -521,7 +521,7 @@
+ static SECStatus SSL_BypassShutdown(void* appData, void* nssData)
+ {
+     /* unload freeBL shared library from memory */
+-    BL_Unload();
++    //BL_Unload();
+     setupBypassOnce = pristineCallOnce;
+     return SECSuccess;
+ }
+--- ./security/coreconf/rules.mk.orig	2008-12-29 21:14:44.000000000 -0800
++++ ./security/coreconf/rules.mk	2008-12-29 21:14:55.000000000 -0800
+@@ -356,7 +356,7 @@
+ ifdef XP_OS2_VACPP
+ 	$(MKSHLIB) $(DLLFLAGS) $(LDFLAGS) $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+ else
+-ifeq ($(OS_TARGET),riscos-static)
++ifeq ($(OS_TARGET),riscos)
+ 	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
+ else
+ 	$(MKSHLIB) -o $@ $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+--- ./security/nss-fips/lib/softoken/pkcs11.c.orig	2008-12-29 21:29:39.000000000 -0800
++++ ./security/nss-fips/lib/softoken/pkcs11.c	2008-12-29 21:29:53.000000000 -0800
+@@ -3123,7 +3123,7 @@
+     /* tell freeBL to clean up after itself */
+     BL_Cleanup();
+     /* unload freeBL shared library from memory */
+-    BL_Unload();
++    //BL_Unload();
+     /* clean up the default OID table */
+     SECOID_Shutdown();
+     nsc_init = PR_FALSE;
+--- ./security/nss-fips/lib/softoken/pcertdb.c.orig	2008-12-29 21:37:45.000000000 -0800
++++ ./security/nss-fips/lib/softoken/pcertdb.c	2008-12-29 21:38:16.000000000 -0800
+@@ -4027,6 +4027,15 @@
+ #define NO_CREATE	(O_RDWR | O_CREAT | O_TRUNC)
+ #endif
+ 
++#if 1
++DB *dbopen(const char *file, int flags, int mode, DBTYPE type, const void *openinfo)
++{
++    return __db185_open_4004(file, flags, /*mode*/ 0666, type, openinfo);
++//    return __db_open(file, flags, mode, type, openinfo);
++}
++
++#endif
++
+ /*
+  * open an old database that needs to be updated
+  */
+--- ./security/nss-fips/lib/ssl/sslsock.c.orig	2008-12-29 21:34:56.000000000 -0800
++++ ./security/nss-fips/lib/ssl/sslsock.c	2008-12-29 21:35:04.000000000 -0800
+@@ -509,7 +509,7 @@
+ static SECStatus SSL_BypassShutdown(void* appData, void* nssData)
+ {
+     /* unload freeBL shared library from memory */
+-    BL_Unload();
++    //BL_Unload();
+     setupBypassOnce = pristineCallOnce;
+     return SECSuccess;
+ }
+--- ./security/manager/ssl/src/nsKeygenHandler.cpp.orig	2008-12-29 21:27:26.000000000 -0800
++++ ./security/manager/ssl/src/nsKeygenHandler.cpp	2008-12-29 21:28:17.000000000 -0800
+@@ -75,6 +75,7 @@
+     { nsnull, 0 }, 
+ };
+ 
++#if 0
+ DERTemplate SECAlgorithmIDTemplate[] = {
+     { DER_SEQUENCE,
+ 	  0, NULL, sizeof(SECAlgorithmID) },
+@@ -84,6 +85,7 @@
+ 	  offsetof(SECAlgorithmID,parameters), },
+     { 0, }
+ };
++#endif
+ 
+ DERTemplate CERTSubjectPublicKeyInfoTemplate[] = {
+     { DER_SEQUENCE,
+@@ -104,6 +106,7 @@
+     { 0, }
+ };
+ 
++#if 0
+ const SEC_ASN1Template SECKEY_PQGParamsTemplate[] = {
+     { SEC_ASN1_SEQUENCE, 0, NULL, sizeof(PQGParams) },
+     { SEC_ASN1_INTEGER, offsetof(PQGParams,prime) },
+@@ -111,6 +114,7 @@
+     { SEC_ASN1_INTEGER, offsetof(PQGParams,base) },
+     { 0, }
+ };
++#endif
+ 
+ 
+ static NS_DEFINE_IID(kIDOMHTMLSelectElementIID, NS_IDOMHTMLSELECTELEMENT_IID);
+--- ./xpcom/glue/standalone/Makefile.in.orig	2008-12-28 20:14:53.000000000 -0800
++++ ./xpcom/glue/standalone/Makefile.in	2008-12-28 20:15:07.000000000 -0800
+@@ -59,7 +59,7 @@
+ ifeq (WINNT,$(OS_ARCH))
+ LINKSRC = nsGlueLinkingWin.cpp
+ endif
+-ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS riscos,$(OS_ARCH)))
++ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS,$(OS_ARCH)))
+ LINKSRC = nsGlueLinkingDlopen.cpp
+ endif
+ ifeq (OS2,$(OS_ARCH))
+--- ./widget/src/riscos/nsMenuBar.cpp.orig	2008-12-29 21:26:30.000000000 -0800
++++ ./widget/src/riscos/nsMenuBar.cpp	2008-12-29 21:26:47.000000000 -0800
+@@ -73,7 +73,7 @@
+ NS_IMPL_ISUPPORTS5(nsMenuBar, nsIMenuBar, nsIMenuListener, nsIDocumentObserver,
+                     nsIChangeManager, /*nsIMenuCommandDispatcher,*/ nsISupportsWeakReference)
+ 
+-/*extern*/ menu_ptr gCurrentROMenu;  
++extern menu_ptr gCurrentROMenu;  
+ 
+ //
+ // nsMenuBar constructor
+--- .mozconfig.orig	2008-12-29 21:54:37.000000000 -0800
++++ .mozconfig	2008-12-29 21:54:45.000000000 -0800
+@@ -57,7 +57,7 @@
+ 
+ # enable static build
+ #ac_add_options --disable-shared
+-#ac_add_options --enable-static
++ac_add_options --enable-static
+ 
+ #LIBS=-lstdc++
+ #DLL_SUFFIX=a
+Index: config/rules.mk
+===================================================================
+RCS file: /cvsroot/mozilla/config/rules.mk,v
+retrieving revision 3.487.2.9
+diff -u -r3.487.2.9 rules.mk
+--- config/rules.mk	18 Dec 2007 21:33:08 -0000	3.487.2.9
++++ config/rules.mk	30 Dec 2008 05:59:34 -0000
+@@ -1018,7 +1018,11 @@
+ 	@for lib in $(SHARED_LIBRARY_LIBS); do $(AR_EXTRACT) $${lib}; $(CLEANUP2); done
+ endif # SHARED_LIBRARY_LIBS
+ endif # NO_LD_ARCHIVE_FLAGS
++ifeq ($(OS_ARCH),riscos)
++	$(MKSHLIB) $(SHLIB_LDSTARTFILE) $(OBJS) $(LOBJS) $(SUB_SHLOBJS) $(RESFILE) $(EXTRA_LIBS) $(DEF_FILE) $(SHLIB_LDENDFILE)
++else
+ 	$(MKSHLIB) $(SHLIB_LDSTARTFILE) $(OBJS) $(LOBJS) $(SUB_SHLOBJS) $(RESFILE) $(LDFLAGS) $(EXTRA_DSO_LDOPTS) $(OS_LIBS) $(EXTRA_LIBS) $(DEF_FILE) $(SHLIB_LDENDFILE)
++endif
+ 	@rm -f foodummyfilefoo $(SUB_SHLOBJS) $(DELETE_AFTER_LINK)
+ else # os2 vacpp
+ 	$(MKSHLIB) -O:$@ -DLL -INC:_dllentry $(LDFLAGS) $(OBJS) $(LOBJS) $(EXTRA_DSO_LDOPTS) $(OS_LIBS) $(EXTRA_LIBS) $(DEF_FILE)
+--- nsprpub/pr/include/md/_riscos.h.orig	2008-12-29 22:06:37.000000000 -0800
++++ nsprpub/pr/include/md/_riscos.h	2008-12-29 22:06:56.000000000 -0800
+@@ -44,7 +44,7 @@
+ #define PR_LINKER_ARCH		"riscos"
+ #define _PR_SI_SYSNAME		"RISCOS"
+ #define _PR_SI_ARCHITECTURE	"arm"
+-#define PR_DLL_SUFFIX		".so"
++#define PR_DLL_SUFFIX		".a"
+ 
+ #define _PR_POLL_AVAILABLE
+ #define _PR_USE_POLL
+@@ -60,8 +60,8 @@
+ 
+ 
+ #undef  HAVE_STACK_GROWING_UP
+-#define HAVE_DLL
+-#define USE_DLFCN
++//#define HAVE_DLL
++//#define USE_DLFCN
+ #define NEED_STRFTIME_LOCK
+ #define NEED_TIME_R
+ #define PT_NO_SIGTIMEDWAIT
+--- nsprpub/configure.in.orig	2008-12-29 22:02:31.000000000 -0800
++++ nsprpub/configure.in	2008-12-29 22:03:06.000000000 -0800
+@@ -1815,11 +1815,11 @@
+     USE_PTHREADS=1
+     MDCPUCFG_H=_riscos.cfg
+     PR_MD_CSRCS=riscos.c
+-    DSO_CFLAGS=-fPIC
+-    DSO_LDOPTS='-shared -Wl,-soname -Wl,$(notdir $@)'
+-    #DLL_SUFFIX=a
+-    MKSHLIB='$(CC) $(DSO_LDOPTS) -o $@'
+-    #MKSHLIB='$(AR) rc $@'
++    #DSO_CFLAGS=-fPIC
++    #DSO_LDOPTS='-shared -Wl,-soname -Wl,$(notdir $@)'
++    DLL_SUFFIX=a
++    #MKSHLIB='$(CC) $(DSO_LDOPTS) -o $@'
++    MKSHLIB='$(AR) rc $@'
+     ;;
+ 
+ *-*-sco*)
+--- configure.in.orig	2008-12-31 19:25:16.000000000 -0800
++++ configure.in	2008-12-31 19:25:32.000000000 -0800
+@@ -1406,14 +1406,14 @@
+ *riscos*)
+     HOST_CFLAGS="$HOST_CFLAGS -DXP_UNIX"
+     HOST_OPTIMIZE_FLAGS="${HOST_OPTIMIZE_FLAGS=-O2}"
+-    #DSO_PIC_CFLAGS=
++    DSO_PIC_CFLAGS=
+     #DSO_LDOPTS=
+-    #DLL_SUFFIX=.a
++    DLL_SUFFIX=.a
+     BIN_SUFFIX=,e1f
+-    #MKSHLIB="$AR rc \$@"
+-    #MKCSHLIB="$AR rc \$@"
+-    #MKSHLIB_FORCE_ALL=''
+-    #MKSHLIB_UNFORCE_ALL=''
++    MKSHLIB="$AR rc \$@"
++    MKCSHLIB="$AR rc \$@"
++    MKSHLIB_FORCE_ALL=''
++    MKSHLIB_UNFORCE_ALL=''
+     #MOZ_OPTIMIZE_FLAGS=-O2
+     ;;
+ 
+--- security/coreconf/riscos.mk.orig	2008-12-31 19:56:04.000000000 -0800
++++ security/coreconf/riscos.mk	2008-12-31 19:56:29.000000000 -0800
+@@ -37,13 +37,13 @@
+ 
+ XP_DEFINE  += -DXP_UNIX
+ LIB_SUFFIX  = a
+-DLL_SUFFIX  = so
++DLL_SUFFIX  = a
+ AR          = ar cr $@
+ LDOPTS     += -L$(SOURCE_LIB_DIR)
+-#MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
+-MKSHLIB         = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
++MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
++#MKSHLIB         = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
+ 
+-DSO_CFLAGS              = -fPIC
++#DSO_CFLAGS              = -fPIC
+ DSO_LDOPTS              = -shared 
+ DSO_LDFLAGS             =
+ 

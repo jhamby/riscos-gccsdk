@@ -73,7 +73,7 @@ static NS_DEFINE_CID(kMenuCID, NS_MENU_CID);
 NS_IMPL_ISUPPORTS5(nsMenuBar, nsIMenuBar, nsIMenuListener, nsIDocumentObserver,
                     nsIChangeManager, /*nsIMenuCommandDispatcher,*/ nsISupportsWeakReference)
 
-extern menu_ptr gCurrentROMenu;  
+/*extern*/ menu_ptr gCurrentROMenu;  
 
 //
 // nsMenuBar constructor
