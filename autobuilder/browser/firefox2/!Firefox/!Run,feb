@@ -4,7 +4,8 @@ Set Firefox$Dir <Obey$Dir>
 Set Firefox$Path <Firefox$Dir>.
 
 | Large enough to contain the binary
-Wimpslot -min 700k -max 700k
+|Wimpslot -min 700k -max 700k
+Wimpslot -min 20000k -max 20000k
 Set firefox-bin$heap ""
 
 | Control font behaviour

@@ -4,8 +4,8 @@ Mozilla Firefox 2 for RISC OS
 
 http://www.riscos.info/index.php/Firefox
 
-February 2008
-RISC OS Release 6
+December 2008
+RISC OS Release 7
 Peter Naulls
 peter@chocky.org
 
@@ -50,6 +50,17 @@ See instead the RiscPC version.
 
 Changes
 -------
+
+Release 7 (Dec 2008)
+
+Upstream update and minor bug fixes.
+
+- Update to 2.0.0.18:
+  http://www.mozilla.com/en-US/firefox/2.0.0.18/releasenotes/
+- A timing issue was fixed, which means caret flashing/animated
+  GIFs now work properly, and some operations are more responsive.
+- Fixes so that the package works with RiscPkg.
+
 
 Release 6 (May 2008)
 
@@ -155,17 +166,13 @@ didn't list it, doesn't mean I don't know about it:
    Making proper use of RISC OS scrollbars is a surprising amount of
    work.  I expect that to be done for some future release.
 
- - Animation
-
-   The caret does not flash properly, nor do animated GIFs update
-   properly.
-
  - Root certificates and SSL sites
 
    For technical reasons, it is not yet possible to support the
    mechanism used to access the Mozilla root certificates.  That means
-   that you will be asked to verify the identity of https:// websites,
-   I expect to address this in some future release.
+   that you will be asked to verify the identity of https:// websites.
+   This works in a test shared library version, but that is not yet
+   stable.
 
  - Speed
 

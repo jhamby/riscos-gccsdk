@@ -218,7 +218,7 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
    setupProfilingStuff();
  #endif
  
-+puts("main 1");
++//puts("main 1");
    // Try to allocate "native app support."
    nsCOMPtr<nsINativeAppSupport> nativeApp;
    rv = NS_CreateNativeAppSupport(getter_AddRefs(nativeApp));
@@ -226,7 +226,7 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
        return VerifyInstallation(dirProvider.GetAppDir());
      }
    }
-+puts("main 2");
++//puts("main 2");
  
  #ifdef MOZ_ENABLE_XREMOTE
    // handle -remote now that xpcom is fired up
@@ -234,7 +234,7 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
    nsCOMPtr<nsIProfileLock> profileLock;
    PRBool startOffline = PR_FALSE;
  
-+puts("main 3");
++//puts("main 3");
    rv = SelectProfile(getter_AddRefs(profileLock), nativeApp, &startOffline);
    if (rv == NS_ERROR_LAUNCHED_CHILD_PROCESS ||
        rv == NS_ERROR_ABORT) return 0;
@@ -242,7 +242,7 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
      WriteVersion(profD, version, osABI,
                   dirProvider.GetAppDir(), gAppData->directory);
    }
-+puts("main 4");
++//puts("main 4");
  
    PRBool needsRestart = PR_FALSE;
    PRBool appInitiatedRestart = PR_FALSE;
@@ -250,12 +250,12 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
      rv = xpcom.Initialize();
      NS_ENSURE_SUCCESS(rv, 1); 
      rv = xpcom.DoAutoreg();
-+printf("%d\n", rv);
++//printf("%d\n", rv);
      rv |= xpcom.InitEventQueue();
-+printf("%d\n", rv);
++//printf("%d\n", rv);
      rv |= xpcom.SetWindowCreator(nativeApp);
-+printf("%d\n", rv);
-+puts("main 4a");
++//printf("%d\n", rv);
++//puts("main 4a");
      NS_ENSURE_SUCCESS(rv, 1);
  
      {
@@ -263,7 +263,7 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
          NS_ENSURE_TRUE(io, 1);
          io->SetOffline(PR_TRUE);
        }
-+puts("main 4b");
++//puts("main 4b");
  
        {
          NS_TIMELINE_ENTER("startupNotifier");
@@ -271,7 +271,7 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
          startupNotifier->Observe(nsnull, APPSTARTUP_TOPIC, nsnull);
          NS_TIMELINE_LEAVE("startupNotifier");
        }
-+puts("main 4c");
++//puts("main 4c");
  
        nsCOMPtr<nsIAppStartup> appStartup
          (do_GetService(NS_APPSTARTUP_CONTRACTID));
@@ -279,7 +279,7 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
            }
          }
        }
-+puts("main 4d");
++//puts("main 4d");
  
        // Profile Migration
        if (gAppData->flags & NS_XRE_ENABLE_PROFILE_MIGRATOR && gDoMigration) {
@@ -296,7 +296,7 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
  
      profileLock->Unlock();
    }
-+puts("main 5");
++//puts("main 5");
  
    // Restart the app after XPCOM has been shut down cleanly. 
    if (needsRestart) {
