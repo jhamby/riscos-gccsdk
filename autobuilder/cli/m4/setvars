@@ -1,7 +1,28 @@
 
-AB_CATEGORY=Command
-
 AB_FILESNOPATH="src/m4$AB_EXEEXT"
-AB_MANPAGE=debian/m4.1
 
 AB_PRECONF="CFLAGS=-O2"
+
+export gl_cv_func_fflush_stdin=yes
+export gl_cv_func_gettimeofday_clobber=no
+export gl_cv_func_gettimeofday_posix_signature=yes
+export gl_cv_func_working_mkstemp=yes
+export gl_cv_func_svid_putenv=yes
+export ac_cv_func_chown_works=yes
+export gl_cv_func_getcwd_null=yes
+export ac_cv_func_lchown=yes
+
+
+ab_package() {
+ ab_create_command_app Apps/Develop
+ ab_add_commands $S/src/*$AB_EXEEXT
+
+ rman -f HTML $S/doc/m4.1 > $A/\!Help,faf
+
+ cp -av $S/README $A
+ cp -av $S/AUTHORS $S/COPYING $A
+ cp -av $S/NEWS $S/ChangeLog $A
+
+ $AB_HOME/add-riscpkg -unixlib
+}
+
