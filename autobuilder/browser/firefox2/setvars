@@ -62,13 +62,13 @@ mozilla_patch () {
 
   cp $H/nsNativeAppSupportRISCOS.cpp $S/toolkit/xre/
 
-  cp -av $H/widget $S/widget/src/riscos
-  cp -av $H/gfx $S/gfx/src/riscos
+  cp -av $H/widget $S/widget/src/riscos || [ "$AB_DEBUG" == "yes" ]
+  cp -av $H/gfx $S/gfx/src/riscos || [ "$AB_DEBUG" == "yes" ]
 
   # For static builds, then apply this
   if [ "$RO_SHAREDLIBS" != "yes" ] ; then
     # Applying static build patch
-    patch -p0 < $AB_HOME/$AB_PACKAGEDIR/static-build.diff
+    patch -p0 < $AB_HOME/$AB_PACKAGEDIR/static-build.diff || [ "$AB_DEBUG" == "yes" ]
   fi
 }
 
@@ -83,7 +83,12 @@ ab_package () {
     cp -prL $S/dist/bin/$f $A
   done
   cp -prL $S/dist/bin/firefox-bin$AB_EXEEXT $A
-  cp -prL $S/dist/bin/*.so $A
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    cp -prL $S/dist/bin/*.so $A
+  fi
+
+  mv $A/extensions/inspector@mozilla.org/ $A/extensions/inspector_mozilla.org/
 
   $AB_HOME/add-riscpkg -unixlib
 }
