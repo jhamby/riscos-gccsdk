@@ -169,9 +169,9 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
                                    "Native App Support",
                                    NS_NATIVEAPPSUPPORT_CONTRACTID,
                                    nativeFactory);
-+puts("native 1");
++//puts("native 1");
    NS_ENSURE_SUCCESS(rv, rv);
-+puts("native 2");
++//puts("native 2");
  
    // Inform the chrome registry about OS accessibility
    nsCOMPtr<nsIToolkitChromeRegistry> cr (do_GetService(NS_CHROMEREGISTRY_CONTRACTID));
@@ -179,15 +179,15 @@ diff -u -r1.113.2.24 nsAppRunner.cpp
      cr->CheckForOSAccessibility();
  
    nsCOMPtr<nsIWindowCreator> creator (do_GetService(NS_APPSTARTUP_CONTRACTID));
-+puts("native 3");
++//puts("native 3");
    if (!creator) return NS_ERROR_UNEXPECTED;
  
    nsCOMPtr<nsIWindowWatcher> wwatch
      (do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv));
-+puts("native 4");
++//puts("native 4");
    NS_ENSURE_SUCCESS(rv, rv);
  
-+puts("native 5");
++//puts("native 5");
    return wwatch->SetWindowCreator(creator);
  }
  
