@@ -375,18 +375,35 @@ ret:
 }
 
 
-static int
-inputVarSub(int ptr, int *trunc) {
-  char *rb = input_pos;
-  int len = ptr;
+/****************************************************************
+* Perform variable substitution.
+*
+* input_pos points to the first input character after the $
+* ptr points to the next position to write to input_buff
+* trunc points to a location to receive the truncation state
+* inString flags whether the variable we're processing is in a string literal
+*
+* Returns TRUE if successful.
+*
+* input_pos will be updated to point to the next input character to process
+* *ptr will be updated
+* *trunc will be set to 1 if the input is truncated 
+*
+****************************************************************/
+
+static BOOL
+inputVarSub(int *ptr, int *trunc, BOOL inString) {
+  char *rb = input_pos; /* Remember input position */
+  int len = *ptr;       /* And initial write offset */
   Lex label;
   Symbol *sym = NULL;
 
+  /* $$ -> $ */
   if (*input_pos == '$')
     {
-      input_buff[ptr++] = '$';
+      input_buff[(*ptr)++] = '$';
       input_pos++;
-      return ptr;
+      return TRUE;
     }
 
   /* replace symbol by its definition */
@@ -394,15 +411,27 @@ inputVarSub(int ptr, int *trunc) {
 
   if (label.tag == LexId)
     {
-      if (/*c &&*/ *input_pos == '.')
+      /* Skip any . after the id - it indicates concatenation (e.g. $foo.bar) */
+      if (*input_pos == '.')
         input_pos++;
+      /* Leave $[Ll].* alone, if we're wanting local labels */
       if (local && label.LexId.len == 1 && toupper (*label.LexId.str) == 'L')
         {
-          input_buff[ptr++] = '$';
-          input_buff[ptr++] = *label.LexId.str;
-          return ptr;
+          input_buff[(*ptr)++] = '$';
+          input_buff[(*ptr)++] = *label.LexId.str;
+          return TRUE;
        }
       sym = symbolFind (&label);
+    }
+  else if (inString == FALSE)
+    {
+      /* Must be an id if we're not in a string literal */
+      error (ErrorWarning, TRUE, "Non-ID in $ expansion");
+      input_buff[(*ptr)++] = '$';
+      /* Restore input_pos, so we reprocess the current input */
+      input_pos = rb;
+      /* Not a fatal error */
+      return TRUE;
     }
 
   if (sym)
@@ -410,25 +439,27 @@ inputVarSub(int ptr, int *trunc) {
       switch (sym->value.Tag.t)
 	{
 	case ValueInt:
-	  sprintf (input_buff + ptr, "%i", sym->value.ValueInt.i);
-	  ptr += strlen (input_buff + ptr);
+	  sprintf (input_buff + (*ptr), "%i", sym->value.ValueInt.i);
+	  (*ptr) += strlen (input_buff + (*ptr));
 	  break;
 	case ValueFloat:
-	  sprintf (input_buff + ptr, "%f", sym->value.ValueFloat.f);
-	  ptr += strlen (input_buff + ptr);
+	  sprintf (input_buff + (*ptr), "%f", sym->value.ValueFloat.f);
+	  (*ptr) += strlen (input_buff + (*ptr));
 	  break;
 	case ValueString:
-	  if (ptr + sym->value.ValueString.len >= MAX_LINE)
-	    ptr = MAX_LINE + 1;
+	  if ((*ptr) + sym->value.ValueString.len >= MAX_LINE)
+	    (*ptr) = MAX_LINE + 1;
 	  else
 	    {
-	      strcpy (input_buff + ptr, sym->value.ValueString.s);
-	      ptr += sym->value.ValueString.len;
+	      memcpy (input_buff + (*ptr), sym->value.ValueString.s,
+                      sym->value.ValueString.len);
+	      (*ptr) += sym->value.ValueString.len;
 	    }
 	  break;
 	case ValueBool:
-	  strcpy (input_buff + ptr, sym->value.ValueBool.b ? "{TRUE}" : "{FALSE}");
-	  ptr += strlen (input_buff + ptr);
+	  strcpy (input_buff + (*ptr), 
+                  sym->value.ValueBool.b ? "{TRUE}" : "{FALSE}");
+	  (*ptr) += strlen (input_buff + (*ptr));
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
@@ -437,42 +468,74 @@ inputVarSub(int ptr, int *trunc) {
 	    const char *s;
 	    if ((s = strndup(label.LexId.str, label.LexId.len)) == NULL)
 	      {
-	        errorOutOfMem("inputArgSub");
-	        return -1;
+	        errorOutOfMem ("inputVarSub");
+	        return FALSE;
 	      }
 	    error (ErrorError, TRUE, "$ expansion '%s' is a pointer",
 		   s);
 	    free((void *)s);
+            /* This one's fatal */
+            return FALSE;
 	  }
 	  break;
 	default:
-	  input_buff[ptr++] = '$';
-          strcpy (input_buff + ptr, label.LexId.str);
-          ptr += (len = label.LexId.len);
+          goto unknown;
 	}
     }
   else
     {
-      input_buff[ptr++] = '$';
-      strcpy (input_buff + ptr, label.LexId.str);
-      ptr += (len = label.LexId.len);
+    unknown:
+      if (inString == FALSE)
+        {
+         /* Not in string literal, so this is an error */
+          const char *s;
+
+          if ((s = strndup(label.LexId.str, label.LexId.len)) == NULL)
+            {
+              errorOutOfMem ("inputVarSub");
+              return FALSE;
+            }
+          error (ErrorError, TRUE, "Unknown value '%s' for $ expansion", s);
+          free((void *)s);
+          input_buff[(*ptr)++] = '$';
+          /* Restore input_pos so we reprocess current input */
+          input_pos = rb;
+          /* Not a fatal error */
+          return TRUE;
+        }
+      else
+        {
+          /* Unknown symbol, but in string literal, so output verbatim */
+          if ((*ptr) + 1 + label.LexId.len >= MAX_LINE)
+            (*ptr) = MAX_LINE + 1;
+          else
+            {
+              input_buff[(*ptr)++] = '$';
+              memcpy (input_buff + (*ptr), label.LexId.str, label.LexId.len);
+              (*ptr) += label.LexId.len;
+            }
+        }
     }
 
   /* substitution complete or not found; copy the rest of the line */
-  while (*input_pos && ptr < MAX_LINE)
-    input_buff[ptr++] = *input_pos++;
-  if (ptr >= MAX_LINE)
+  while (*input_pos && (*ptr) < MAX_LINE)
+    input_buff[(*ptr)++] = *input_pos++;
+  if ((*ptr) >= MAX_LINE)
     {
       *trunc = 1;
       input_buff[MAX_LINE - 1] = 0;
     }
   else
-   input_buff[ptr] = 0;
+   input_buff[(*ptr)] = 0;
 
-  ptr = len;
-  strcpy (input_pos = rb, input_buff + ptr);	/* only copy what's necessary */
+  /* Restore input position and write offset */
+  input_pos = rb;
+  (*ptr) = len;
+  /* Copy expanded string to input_pos, so it's reprocessed next time.
+   * This allows variable values to contain substituted components. */
+  strcpy(input_pos, input_buff + len);
 
-  return ptr;
+  return TRUE;
 }
 
 
@@ -481,7 +544,7 @@ inputVarSub(int ptr, int *trunc) {
 * copy the line from |workBuff| to |input_buff|, while performing any
 * substitutions.
 *
-* Retrns TRUE if successful
+* Returns TRUE if successful
 *
 ****************************************************************/
 
@@ -556,7 +619,7 @@ inputArgSub (void)
 	      char cc = *input_pos++;
 	      if (cc == '$')
 	        {
-	          if ((ptr = inputVarSub(ptr, &trunc)) < 0)
+	          if (inputVarSub(&ptr, &trunc, TRUE) == FALSE)
                     return FALSE;
                   continue;
                 }
@@ -578,7 +641,7 @@ inputArgSub (void)
 	*/
 	case '$':
 	  input_pos++;
-          if ((ptr = inputVarSub(ptr, &trunc)) < 0)
+          if (inputVarSub(&ptr, &trunc, FALSE) == FALSE)
             return FALSE;
 	}
     }
