@@ -1,3 +1,8 @@
+Fri Jan  2 03:23:07 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* module/sul.s: Update module title with "(debug)" string when
+	DEBUG_PROC_MATCHING has been defined.
+
 -----------------------------------------------------------------------
 [ UnixLib v5.0 ]
 

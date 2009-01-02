@@ -1,5 +1,5 @@
 @ SharedUnixLibrary
-@ Copyright (c) 2002-2008 UnixLib Developers
+@ Copyright (c) 2002-2009 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -139,7 +139,11 @@ module_start:
 help:
 	.ascii	"SharedUnixLibrary"
 	.byte	9
-	.asciz	"1.11 (15 Oct 2007) (C) UnixLib Developers, 2001-2007"
+	.ascii	"1.11 (15 Oct 2007) "
+#if DEBUG_PROC_MATCHING
+	.ascii	"(debug) "
+#endif
+	.asciz	"(C) UnixLib Developers, 2001-2007"
 	.align
 
 title:
