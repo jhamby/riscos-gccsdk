@@ -1,6 +1,11 @@
 -----------------------------------------------------------------------
 [ UnixLib v5.0 ]
 
+Fri Jan  2 03:09:47 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdlib/msort.c: Fixed wrong __mempcpy emulation (when result gets
+	written back to first __mempcpy argument).
+
 Tue Dec 23 02:25:46 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* test/env/testenv.c: Added test for inheritance of environment
