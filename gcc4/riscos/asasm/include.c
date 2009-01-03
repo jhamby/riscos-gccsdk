@@ -144,7 +144,6 @@ getInclude (const char *file, const char *mode, const char **strdupFilename)
         {
           /* Try presuming everything is a directory.  
            * This is for the benefit of paths like Hdr:APCS.Common */
-          /* TODO: does this want to lookup $Hdr_PATH and substitute it? */
           char *dot = filename;
 
           while (*dot)
