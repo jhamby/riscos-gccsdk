@@ -129,28 +129,7 @@ getInclude (const char *file, const char *mode, const char **strdupFilename)
 #ifdef __riscos__
   FILE *fp;
 #else
-  char *filename;
-#endif
-  char *apcs;
-
-  /* TODO: Replace this with a generic getenv().
-   * This will require that we actually parse the path components,
-   * and replace any instances of <...> with the result of getenv(...),
-   * if such a thing exists. If it doesn't, leave <...> alone.
-   */
-  if ((apcs = strstr(file, "<APCS>")))
-    {
-      /* APCS-32 is 1 byte longer than <APCS>, so add one to the length */
-      char *apcs_path = alloca(strlen(file) + 1 + 1 /* \0 */);
-      memcpy(apcs_path, file, apcs - file);
-      strcpy(apcs_path + (apcs - file), apcs_32bit ? "APCS-32" : "APCS-26");
-      strcpy(apcs_path + (apcs - file) + 7, apcs + 6);
-
-      file = apcs_path;
-    }
-
-#ifndef __riscos__
-  filename = rname (file);
+  char *filename = rname (file);
 #endif
 
   *strdupFilename = NULL;
@@ -160,16 +139,18 @@ getInclude (const char *file, const char *mode, const char **strdupFilename)
   else
     {
       if (filename[0] == '.' && filename[1] == '/')
-        filename += 2; /* Skip / */
+        filename += 2; /* Skip ./ */
       else if (strchr(file, ':'))
         {
-          /* Try presuming everything is a directory.  This is for the benefit of paths like Hdr:APCS.Common */
-          apcs = filename;
+          /* Try presuming everything is a directory.  
+           * This is for the benefit of paths like Hdr:APCS.Common */
+          /* TODO: does this want to lookup $Hdr_PATH and substitute it? */
+          char *dot = filename;
 
-          while (*apcs)
+          while (*dot)
             {
-              if (*apcs == '.') *apcs = '/';
-              apcs++;
+              if (*dot == '.') *dot = '/';
+              dot++;
             }
 
             if (access (filename, F_OK) == 0)

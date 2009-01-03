@@ -376,6 +376,72 @@ ret:
 
 
 /****************************************************************
+* Perform environment variable substitution (objasm compatibility mode only)
+*
+* input_pos points to the first input character after the <
+* ptr points to the next position to write to input_buff
+* trunc points to a location to receive the truncation state
+*
+* Returns TRUE if successful.
+*
+* input_pos will be updated to point to the next input character to process
+* *ptr will be updated
+* *trunc will be set to 1 if the input is truncated 
+*
+****************************************************************/
+
+static BOOL
+inputEnvSub(int *ptr, int *trunc)
+{
+  char *rb = input_pos;
+  char *temp;
+  char *env;
+  int len;
+
+  /* Find end of variable */
+  while (*rb != 0 && *rb != '>' && *rb > 32)
+    rb++;
+  if (*rb != '>')
+    {
+      /* Not a variable, just had a lone '<' */
+      input_buff[(*ptr)++] = '<';
+      return TRUE;
+    }
+
+  /* Clone variable name into a temporary buffer */
+  temp = alloca (rb - input_pos + 1);
+  memcpy (temp, input_pos, rb - input_pos);
+  temp[rb - input_pos] = '\0';
+
+  env = getenv (temp);
+  if (env == NULL)
+    {
+      /* No such variable defined. Warn, though we may want to error. */
+      error (ErrorWarning, TRUE, "Unknown environment variable '%s'", temp);
+      input_buff[(*ptr)++] = '<';
+      return TRUE;
+    }
+
+
+  len = strlen (env);
+
+  /* Substitute variable's value, providing it won't truncate */
+  if ((*ptr) + len >= MAX_LINE)
+    *trunc = 1;
+  else
+    {
+      memcpy(input_buff + (*ptr), env, len);
+      (*ptr) += len;
+    }
+
+  /* Next input to process is the character after the '>' */
+  /* Unlike $ substitution, we don't reprocess the substituted string */
+  input_pos = rb + 1;
+
+  return TRUE;
+}
+
+/****************************************************************
 * Perform variable substitution.
 *
 * input_pos points to the first input character after the $
@@ -392,7 +458,8 @@ ret:
 ****************************************************************/
 
 static BOOL
-inputVarSub(int *ptr, int *trunc, BOOL inString) {
+inputVarSub(int *ptr, int *trunc, BOOL inString)
+{
   char *rb = input_pos; /* Remember input position */
   int len = *ptr;       /* And initial write offset */
   Lex label;
@@ -582,20 +649,12 @@ inputArgSub (void)
 	  strcpy (input_buff + ptr, input_pos);
 	  goto finished;
 
-	/* characters enclosed between <...>
-	   Not ObjAsm; I don't know what this means?
-	*/
-	case '<':		/* is it a variable name? */
-	  rb = input_pos;
-	  while (*++rb != 0 && *rb != '>' && *rb > 32);
-	  if (*rb != '>')
-	    {
-	      input_buff[ptr++] = *input_pos++;
-	      break;
-	    }
-	  c = '>';		/* set delimiter and fall through */
-
-
+	/* characters enclosed between <...> in ObjAsm mode */
+	case '<':
+          input_pos++;
+          if (inputEnvSub(&ptr, &trunc) == FALSE)
+            return FALSE;
+          break;
 	case '|':
 	  do
 	    {
@@ -623,8 +682,14 @@ inputArgSub (void)
                     return FALSE;
                   continue;
                 }
+              else if (cc == '<' && objasm)
+                {
+                  if (inputEnvSub(&ptr, &trunc) == FALSE)
+                    return FALSE;
+                  continue;
+                }
 
-               input_buff[ptr++] = cc;
+              input_buff[ptr++] = cc;
 
 	      if (cc == '\\' && *input_pos)
 		input_buff[ptr++] = *input_pos++;

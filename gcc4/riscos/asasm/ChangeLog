@@ -1,3 +1,10 @@
+Sat Jan  3 02:22:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* input.c: Implement environment variable substitution in objasm mode.
+	* include.c: Remove <APCS> substitution -- define APCS as an
+	environment variable, instead.
+	* ChangeLog: Update my email address.
+
 Sat Jan  3 03:02:40 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/Makefile: follow objasm -> asasm name change.
@@ -10,24 +17,24 @@ Sat Jan  3 01:08:33 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 	by using UTF-8 now.
 	* README: Added.
 
-2009-01-02 03:33  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+2009-01-02 03:33  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* input.c: Fix runaway execution and segfault when encountering
 	uses of undefined variables.
 	Also, more comments and rather more robustness here.
 
-2008-12-31 14:51  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+2008-12-31 14:51  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* include.c: Fix buffer overflow. This entire thing needs replacing
 	with environment variable lookup, anyway.
 
-2008-12-31 14:15  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+2008-12-31 14:15  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* decode.c: Fix handling of SUBS -- when you're potentially going
 	to put a character back on the input stream, you need to use
 	inputGet(), and not inputGetUC().
 
-2008-12-31 14:14  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+2008-12-31 14:14  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* regression/Makefile: Fixup regression test makefile to not assume
 	that we're gcc's backend assembler.
@@ -117,7 +124,7 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 	whileif.c, whileif.h: Updated Copyright statements based on
 	contribution history in cvs/svn.
 
-2006-09-14 00:01  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+2006-09-14 00:01  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* commands.c, include.c, input.c, lex.c, main.c, main.h, version.h:
 	Remove gcc_backend option & associated code. This was solely support
@@ -125,7 +132,7 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 	GCCSDK builds without it; Fix include processing to handle hdr.foo
 	and foo.hdr correctly; Bump version number.
 
-2006-09-06 21:47  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+2006-09-06 21:47  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* code.c, decode.c, fix.c, fix.h, get.c, get.h, lex.c, lex.h,
 	m_cop.c, m_copmem.c, m_cpu.c, m_cpu.h, m_cpuctrl.c, m_cpumem.c,
@@ -146,7 +153,7 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 	  Fix Coprocessor 1 detection for pedantic FP warning.
 	  Fix opcode1 generation for MCR/MRC.
 
-2006-09-06 21:43  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+2006-09-06 21:43  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* help_cop.c: Tidy up numeric offset handling (no longer accepts
 	{+/-}#NN). Make FP stack handling (LFMFD etc) less intrusive.
@@ -158,7 +165,7 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 	correctly.
 	* main.c: Fix ELF output to not append AOF output, too.
 
-2006-09-06 21:42  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+2006-09-06 21:42  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	Testcases for instruction generation (up to, and including ARMv5TE):
 	* regression/Makefile: New, processes all regression tests.
@@ -175,7 +182,7 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 	* regression/loadstore3.s: Load/Store multiple (addressing mode 4).
 	* regression/misc.s: Miscellaneous other instructions.
 
-2006-09-06 21:41  John-Mark Bell  <jmb202@ecs.soton.ac.uk>
+2006-09-06 21:41  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* m_cpumem.c: Fix LDR|STR{H,SH,SB} Rd,[Rn] - was encoding as
 	... Rd,[Rn,R0].
