@@ -169,7 +169,14 @@ getInclude (const char *file, const char *mode, const char **strdupFilename)
   for (i = 0; i < incDirCurSize; i++)
     {
       char incpath[MAXPATHLEN];
-      sprintf (incpath, "%s%c%s", incDirPP[i], DIR, file);
+      sprintf (incpath, "%s%c%s", incDirPP[i], DIR, 
+#ifndef __riscos__
+               filename
+#else
+               file
+#endif
+      );
+
 #if (defined DEBUG) && (DEBUG > 0)
       fprintf (stderr, "getInclude: Searching for %s\n", incpath);
 #endif
