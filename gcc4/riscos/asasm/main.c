@@ -46,7 +46,6 @@
 #include "output.h"
 #include "symbol.h"
 #include "targetcpu.h"
-#include "version.h"
 #ifdef __riscos__
 #include "depend.h"
 #endif

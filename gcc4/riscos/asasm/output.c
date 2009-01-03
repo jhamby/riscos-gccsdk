@@ -41,7 +41,6 @@
 #include "os.h"
 #include "main.h"
 #include "symbol.h"
-#include "version.h"
 
 #ifdef __TARGET_SCL__
 #  include <swis.h>

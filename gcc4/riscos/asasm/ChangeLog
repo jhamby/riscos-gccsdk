@@ -1,3 +1,8 @@
+Sat Jan  3 19:24:38 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* version.h: Removed as the version info comes from config.h.
+	* main.c,output.c: Remove include of version.h.
+
 Sat Jan  3 18:14:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* symbol.c,symbol.h,get.c,main.c,lex.c,lex.h: Predefine register names
