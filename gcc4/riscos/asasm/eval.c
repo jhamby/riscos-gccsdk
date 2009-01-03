@@ -363,7 +363,7 @@ evalUnop (Operator op, Value * value)
 	}
       return TRUE;
     case Op_index:
-      if (value->Tag.t != ValueAddr)
+      if (value->Tag.t != ValueAddr && value->Tag.t != ValueInt)
 	return FALSE;
       value->Tag.t = ValueInt;
       return TRUE;
