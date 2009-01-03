@@ -580,6 +580,7 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
               input_buff[(*ptr)++] = '$';
               memcpy (input_buff + (*ptr), label.LexId.str, label.LexId.len);
               (*ptr) += label.LexId.len;
+              return TRUE;
             }
         }
     }
