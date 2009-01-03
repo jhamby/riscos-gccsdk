@@ -401,9 +401,9 @@ inputEnvSub(int *ptr, int *trunc)
   /* Find end of variable */
   while (*rb != 0 && *rb != '>' && *rb > 32)
     rb++;
-  if (*rb != '>')
+  if (*rb != '>' || rb == input_pos)
     {
-      /* Not a variable, just had a lone '<' */
+      /* Not a variable, had a lone '<' or "<>" */
       input_buff[(*ptr)++] = '<';
       return TRUE;
     }
