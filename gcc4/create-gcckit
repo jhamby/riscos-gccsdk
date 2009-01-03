@@ -1,6 +1,6 @@
 #!/bin/bash -ue
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2007-2008 GCCSDK Developers
+# Copyright (c) 2007-2009 GCCSDK Developers
 #
 # Creates the RISC OS GCCSDK kits
 #
@@ -233,11 +233,17 @@ create_gcc_tree() {
   if [ ! -f $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/ld/ld.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE ] ; then
     # Build the HTML documentation:
     cd $GCCSDK_RISCOS_BUILDDIR && PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make html
+    # Fix documentation: in binutils, gas and ld we have both index.html and
+    # Index.html. We rename Index.html to Index2.html.
+    for d in `echo $GCCSDK_RISCOS_BUILDDIR/{gas/doc/as.html,binutils/doc/binutils.html,ld/ld.html}` ; do
+      sed s/Index.html/Index2.html/ < $d/index.html > $d/index_fixed.html && mv $d/index_fixed.html $d/index.html
+      test ! -f $d/Index.html || mv $d/Index.html $d/Index2.html
+    done
   fi
   # Copy documentation:
   mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/libiberty && cp -r $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html $GCCSDK_UNPACKED/\!GCC/docs/libiberty
   mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/binutils && cp -r $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html/* $GCCSDK_UNPACKED/\!GCC/docs/binutils
-  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/as && cp -r $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html/* $GCCSDK_UNPACKED/\!GCC/docs/as
+  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/gas && cp -r $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html/* $GCCSDK_UNPACKED/\!GCC/docs/gas
   mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/ld && cp -r $GCCSDK_RISCOS_BUILDDIR/ld/ld.html/* $GCCSDK_UNPACKED/\!GCC/docs/ld
   mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/gprof && cp -r $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html/* $GCCSDK_UNPACKED/\!GCC/docs/gprof
   mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/gcc && cp -r $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE/* $GCCSDK_UNPACKED/\!GCC/docs/gcc

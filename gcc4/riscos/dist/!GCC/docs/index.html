@@ -447,9 +447,9 @@ WSSize		:
 	.asciz	" and another test"
 	.end	@ ".end" can be left out and is not required.
 </pre>
-            <li>Macros are quite different and there are no mechanical easy rules for translation.  Refer to <a href="as/index.html">GNU assembler as</a> for full description on '.macro' and '.mend'.
+            <li>Macros are quite different and there are no mechanical easy rules for translation.  Refer to <a href="gas/index.html">GNU assembler as</a> for full description on '.macro' and '.mend'.
          </ul>
-      <p>More information can be found in <a href="as/index.html">GNU assembler as</a>.
+      <p>More information can be found in <a href="gas/index.html">GNU assembler as</a>.
   <li>Specifying how to link with libraries : the 'drlink' linker used in pre-GCCSDK 4 releases was quite liberal dealing with object and library files and didn't need any special handling to make a difference between those two file formats so in pre-GCCSDK 4 projects you could see link lines like:
 <pre>
 *gcc -o myapp object1.o object2.o OSLib:o.OSLib32
@@ -532,7 +532,7 @@ WSSize		:
 <ul>
   <li><a href="gcc/gcc/index.html">GNU C/C++ compiler</a>
   <li><a href="gcc/cpp/index.html">GNU C preprocessor</a>
-  <li><a href="as/index.html">GNU assembler as</a>
+  <li><a href="gas/index.html">GNU assembler as</a>
   <li><a href="ld/index.html">GNU linker ld</a>
   <li><a href="binutils/index.html">GNU Binary Utilities</a>: a large set of utilities for creating, inspecting and modifying binary object files.
   <li><a href="libiberty/libiberty.html">GNU libiberty</a>: a collection of subroutines used by various GNU programs. It is available under the Library General Public License.
@@ -569,7 +569,7 @@ WSSize		:
 <p>This port of GCC is:
 <pre>
 Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
-Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 GCCSDK Developers
+Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 GCCSDK Developers
 </pre>
 
 <p>The GCCSDK releases made by the GCCSDK Developers consists of several binaries and sources which do not necessary have the same licenses.  The following overview can help to identify those licenses more easily but is in no way an authoritative statement on behalf of the GCCSDK Developers:

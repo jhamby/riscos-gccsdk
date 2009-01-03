@@ -1,12 +1,25 @@
 Noteworthy changes to the RISC OS GCCSDK releases made.
 
-For specific UnixLib changes, see !gcc.docs.UnixLib.Changes too.
+For specific UnixLib changes, see !GCC.docs.UnixLib.Changes too.
 
 GCCSDK GCC 4.1.1 pre-release 2 (released xxx)
 ==============================
 
 Test release where the shared library code generation is enabled
 and containing !SharedLibs.
+
+GCCSDK GCC 4.1.1 release 1a (released 03 January 2009)
+===========================
+
+This is the same as GCCSDK GCC 4.1.1 release 1 but with the following
+fixes:
+  - Workaround for a problem in RISC OS 5 where UnixLib is not able
+    to determine the full path for argv[0] when the binary is run via
+    Run$Path.  This fixes the "File 'cc1' not found" error when compiling
+    on RISC OS 5.
+  - The new UnixLib 5 qsort code could sometimes fail resulting in an
+    "internal compiler error" during compilation on RISC OS.
+  - Avoid having index/html and Index/html in !GCC.docs.binutils.
 
 GCCSDK GCC 4.1.1 release 1 (released 23 December 2008)
 ==========================

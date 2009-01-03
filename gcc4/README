@@ -412,5 +412,5 @@ important contributions from many people in the original GCC 3.x GCCSDK;
 in particular, endless improvements to UnixLib which made it practical to
 run a wide range of software on RISC OS.  See those versions for full details.
 
-Copyright (c) 2005, 2006, 2007, 2008 GCCSDK Developers
+Copyright (c) 2005, 2006, 2007, 2008, 2009 GCCSDK Developers
 <URL:http://gccsdk.riscos.info/>
