@@ -1,3 +1,9 @@
+Sat Jan  3 18:14:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* symbol.c,symbol.h,get.c,main.c,lex.c,lex.h: Predefine register names
+	properly, so that "foo RN R10" works correctly. Remove special case
+	predefinitions from get.c, as the symbol system will handle these.
+
 Sat Jan  3 03:13:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* include.c: Use unixified filename when searching include paths and

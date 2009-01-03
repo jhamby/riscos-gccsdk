@@ -44,6 +44,7 @@
 #include "main.h"
 #include "os.h"
 #include "output.h"
+#include "symbol.h"
 #include "targetcpu.h"
 #include "version.h"
 #ifdef __riscos__
@@ -402,6 +403,7 @@ int main (int argc, char **argv)
   else
     {
       asmAbortValid = TRUE;
+      symbolInit ();
       inputInit (SourceFileName);
       errorInit (SourceFileName);
 #ifdef __riscos__

@@ -87,7 +87,7 @@ typedef struct SYMBOL
 }
 Symbol;
 
-
+void symbolInit (void);
 Symbol *symbolAdd (Lex l);
 Symbol *symbolGet (Lex l);
 Symbol *symbolFind (const Lex * l);

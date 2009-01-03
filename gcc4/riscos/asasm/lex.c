@@ -59,7 +59,7 @@ static BOOL nextbinopvalid = FALSE;
  maxn maximum number of chars to consider
  hashs hash table size. */
 
-static int hashstr (const char *s, int maxn)
+int lexHashStr (const char *s, int maxn)
 {
   static const unsigned char hashtab[] =
   {
@@ -197,7 +197,7 @@ lexGetIdInternal (BOOL genError)
       result.LexId.str = inputSymbol (&result.LexId.len, '|');
       if (inputGet () != '|')
 	error (ErrorError, TRUE, "Identifier continues over newline");
-      result.LexId.hash = hashstr (result.LexId.str, result.LexId.len);
+      result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
     }
   else
     {
@@ -215,7 +215,7 @@ lexGetIdInternal (BOOL genError)
 	{
 	  result.tag = LexId;
 	  result.LexId.str = inputSymbol (&result.LexId.len, 0);
-	  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len);
+	  result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
 	}
       else
 	{
@@ -299,7 +299,7 @@ lexMakeLocal (int dir)
   sprintf (id, localFormat, areaCurrent, label, i, rout_id);
   result.LexId.str = strdup (id);
   result.LexId.len = strlen (id);
-  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len);
+  result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
   if (!result.LexId.str)
     errorOutOfMem ("lexMakeLocal");
   else
@@ -329,7 +329,7 @@ lexGetLocal (void)
 	  errorOutOfMem ("lexGetLocal");
 	  return result;
 	}
-      result.LexId.hash = hashstr (result.LexId.str, result.LexId.len);
+      result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
       result.tag = LexId;
       return result;
     }
@@ -530,7 +530,7 @@ lexGetPrim (void)
       result.LexId.str = inputSymbol (&result.LexId.len, '|');
       if (inputGet () != '|')
 	error (ErrorError, TRUE, "Identifier continues over newline");
-      result.LexId.hash = hashstr (result.LexId.str, result.LexId.len);
+      result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
 
       break;
     case '.':
@@ -603,7 +603,7 @@ lexGetPrim (void)
 	{
 	  result.tag = LexId;
 	  result.LexId.str = inputSymbol (&result.LexId.len, 0);
-	  result.LexId.hash = hashstr (result.LexId.str, result.LexId.len);
+	  result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
 	}
       else
 	result.tag = LexNone;
@@ -788,7 +788,7 @@ lexTempLabel (const char *ptr, int len)
   var.tag = LexId;
   var.LexId.str = ptr;
   var.LexId.len = len;
-  var.LexId.hash = hashstr (ptr, len);
+  var.LexId.hash = lexHashStr (ptr, len);
   return var;
 }
 

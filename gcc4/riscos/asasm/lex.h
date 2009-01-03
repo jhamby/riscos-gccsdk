@@ -147,6 +147,8 @@ int lexAcornBinop (Lex * lex);
 int lexAcornUnop (Lex * lex);
 int lexAcornPrim (Lex * lex);
 
+int lexHashStr (const char *s, int maxn);
+
 #ifdef DEBUG
 void lexPrint(const Lex * lex);
 #endif

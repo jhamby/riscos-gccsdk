@@ -79,6 +79,119 @@ EqSymLex (const Symbol * str, const Lex * lx)
   return !memcmp(str->str, lx->LexId.str, str->len);
 }
 
+void
+symbolInit (void)
+{
+  static struct {
+    const char *name;
+    int len;
+    int value;
+    int type;
+  } predefines[] = {
+    /* Normal registers */
+    { "r0",  2, 0, SYMBOL_CPUREG },  { "R0",  2, 0, SYMBOL_CPUREG },
+    { "r1",  2, 1, SYMBOL_CPUREG },  { "R1",  2, 1, SYMBOL_CPUREG },
+    { "r2",  2, 2, SYMBOL_CPUREG },  { "R2",  2, 2, SYMBOL_CPUREG },
+    { "r3",  2, 3, SYMBOL_CPUREG },  { "R3",  2, 3, SYMBOL_CPUREG },
+    { "r4",  2, 4, SYMBOL_CPUREG },  { "R4",  2, 4, SYMBOL_CPUREG },
+    { "r5",  2, 5, SYMBOL_CPUREG },  { "R5",  2, 5, SYMBOL_CPUREG },
+    { "r6",  2, 6, SYMBOL_CPUREG },  { "R6",  2, 6, SYMBOL_CPUREG },
+    { "r7",  2, 7, SYMBOL_CPUREG },  { "R7",  2, 7, SYMBOL_CPUREG },
+    { "r8",  2, 8, SYMBOL_CPUREG },  { "R8",  2, 8, SYMBOL_CPUREG },
+    { "r9",  2, 9, SYMBOL_CPUREG },  { "R9",  2, 9, SYMBOL_CPUREG },
+    { "r10", 3, 10, SYMBOL_CPUREG }, { "R10", 3, 10, SYMBOL_CPUREG },
+    { "r11", 3, 11, SYMBOL_CPUREG }, { "R11", 3, 11, SYMBOL_CPUREG },
+    { "r12", 3, 12, SYMBOL_CPUREG }, { "R12", 3, 12, SYMBOL_CPUREG },
+    { "r13", 3, 13, SYMBOL_CPUREG }, { "R13", 3, 13, SYMBOL_CPUREG },
+    { "r14", 3, 14, SYMBOL_CPUREG }, { "R14", 3, 14, SYMBOL_CPUREG },
+    { "r15", 3, 15, SYMBOL_CPUREG }, { "R15", 3, 15, SYMBOL_CPUREG },
+    /* APCS names */
+    { "a1", 2, 0, SYMBOL_CPUREG },  { "A1", 2, 0, SYMBOL_CPUREG },
+    { "a2", 2, 1, SYMBOL_CPUREG },  { "A2", 2, 1, SYMBOL_CPUREG },
+    { "a3", 2, 2, SYMBOL_CPUREG },  { "A3", 2, 2, SYMBOL_CPUREG },
+    { "a4", 2, 3, SYMBOL_CPUREG },  { "A4", 2, 3, SYMBOL_CPUREG },
+    { "v1", 2, 4, SYMBOL_CPUREG },  { "V1", 2, 4, SYMBOL_CPUREG },
+    { "v2", 2, 5, SYMBOL_CPUREG },  { "V2", 2, 5, SYMBOL_CPUREG },
+    { "v3", 2, 6, SYMBOL_CPUREG },  { "V3", 2, 6, SYMBOL_CPUREG },
+    { "v4", 2, 7, SYMBOL_CPUREG },  { "V4", 2, 7, SYMBOL_CPUREG },
+    { "v5", 2, 8, SYMBOL_CPUREG },  { "V5", 2, 8, SYMBOL_CPUREG },
+    { "v6", 2, 9, SYMBOL_CPUREG },  { "V6", 2, 9, SYMBOL_CPUREG },
+    { "sb", 2, 9, SYMBOL_CPUREG },  { "SB", 2, 9, SYMBOL_CPUREG },
+    { "sl", 2, 10, SYMBOL_CPUREG }, { "SL", 2, 10, SYMBOL_CPUREG },
+    { "fp", 2, 11, SYMBOL_CPUREG }, { "FP", 2, 11, SYMBOL_CPUREG },
+    { "ip", 2, 12, SYMBOL_CPUREG }, { "IP", 2, 12, SYMBOL_CPUREG },
+    { "sp", 2, 13, SYMBOL_CPUREG }, { "SP", 2, 13, SYMBOL_CPUREG },
+    { "lr", 2, 14, SYMBOL_CPUREG }, { "LR", 2, 14, SYMBOL_CPUREG },
+    { "pc", 2, 15, SYMBOL_CPUREG }, { "PC", 2, 15, SYMBOL_CPUREG },
+    /* Backwards compatibility */
+    { "rfp", 3, 9, SYMBOL_CPUREG }, { "RFP", 3, 9, SYMBOL_CPUREG },
+    /* FPU registers */
+    { "f0", 2, 0, SYMBOL_FPUREG }, { "F0", 2, 0, SYMBOL_FPUREG },
+    { "f1", 2, 1, SYMBOL_FPUREG }, { "F1", 2, 1, SYMBOL_FPUREG },
+    { "f2", 2, 2, SYMBOL_FPUREG }, { "F2", 2, 2, SYMBOL_FPUREG },
+    { "f3", 2, 3, SYMBOL_FPUREG }, { "F3", 2, 3, SYMBOL_FPUREG },
+    { "f4", 2, 4, SYMBOL_FPUREG }, { "F4", 2, 4, SYMBOL_FPUREG },
+    { "f5", 2, 5, SYMBOL_FPUREG }, { "F5", 2, 5, SYMBOL_FPUREG },
+    { "f6", 2, 6, SYMBOL_FPUREG }, { "F6", 2, 6, SYMBOL_FPUREG },
+    { "f7", 2, 7, SYMBOL_FPUREG }, { "F7", 2, 7, SYMBOL_FPUREG },
+    /* Coprocessor numbers */
+    { "p0",  2, 0, SYMBOL_COPNUM },
+    { "p1",  2, 1, SYMBOL_COPNUM },
+    { "p2",  2, 2, SYMBOL_COPNUM },
+    { "p3",  2, 3, SYMBOL_COPNUM },
+    { "p4",  2, 4, SYMBOL_COPNUM },
+    { "p5",  2, 5, SYMBOL_COPNUM },
+    { "p6",  2, 6, SYMBOL_COPNUM },
+    { "p7",  2, 7, SYMBOL_COPNUM },
+    { "p8",  2, 8, SYMBOL_COPNUM },
+    { "p9",  2, 9, SYMBOL_COPNUM },
+    { "p10", 3, 10, SYMBOL_COPNUM },
+    { "p11", 3, 11, SYMBOL_COPNUM },
+    { "p12", 3, 12, SYMBOL_COPNUM },
+    { "p13", 3, 13, SYMBOL_COPNUM },
+    { "p14", 3, 14, SYMBOL_COPNUM },
+    { "p15", 3, 15, SYMBOL_COPNUM },
+    /* Coprocessor registers */
+    { "c0",  2, 0, SYMBOL_COPREG },
+    { "c1",  2, 1, SYMBOL_COPREG },
+    { "c2",  2, 2, SYMBOL_COPREG },
+    { "c3",  2, 3, SYMBOL_COPREG },
+    { "c4",  2, 4, SYMBOL_COPREG },
+    { "c5",  2, 5, SYMBOL_COPREG },
+    { "c6",  2, 6, SYMBOL_COPREG },
+    { "c7",  2, 7, SYMBOL_COPREG },
+    { "c8",  2, 8, SYMBOL_COPREG },
+    { "c9",  2, 9, SYMBOL_COPREG },
+    { "c10", 3, 10, SYMBOL_COPREG },
+    { "c11", 3, 11, SYMBOL_COPREG },
+    { "c12", 3, 12, SYMBOL_COPREG },
+    { "c13", 3, 13, SYMBOL_COPREG },
+    { "c14", 3, 14, SYMBOL_COPREG },
+    { "c15", 3, 15, SYMBOL_COPREG },
+    /* Terminator */
+    { NULL, 0, 0, 0 }
+  };
+
+  int i;
+  Lex l;
+  Symbol *s;
+
+  l.tag = LexId;
+
+  for (i = 0; predefines[i].name != NULL; i++)
+    {
+      l.LexId.str = predefines[i].name;
+      l.LexId.len = predefines[i].len;
+      l.LexId.hash = lexHashStr (l.LexId.str, l.LexId.len);
+
+      s = symbolAdd(l);
+      s->type |= SYMBOL_ABSOLUTE | predefines[i].type;
+      s->value.Tag.t = ValueInt;
+      s->value.ValueInt.i = predefines[i].value;
+      s->declared = 1;
+      s->area.ptr = NULL;
+    }
+}
 
 Symbol *
 symbolAdd (Lex l)
