@@ -1,4 +1,4 @@
-AS = ../objasm
+AS = ../asasm
 ASFLAGS = -t xscale
 DIFF = diff
 DIFFFLAGS = -q

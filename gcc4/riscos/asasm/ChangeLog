@@ -1,3 +1,7 @@
+Sat Jan  3 03:02:40 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/Makefile: follow objasm -> asasm name change.
+
 Sat Jan  3 01:08:33 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac,Makefile.am: Instead of having 'as' known as 'objasm'
