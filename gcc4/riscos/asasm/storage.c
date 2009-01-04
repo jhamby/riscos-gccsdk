@@ -58,13 +58,16 @@ c_record (void)
   Value value;
   storageD = TRUE;
   exprBuild ();
-  value = exprEval (ValueInt);
+  value = exprEval (ValueInt | ValueAddr);
   storageV.ValueAddr.r = 15;
   storageV.Tag.t = ValueAddr;
   switch (value.Tag.t)
     {
     case ValueInt:
       storageV.ValueAddr.i = value.ValueInt.i;
+      break;
+    case ValueAddr:
+      storageV.ValueAddr.i = value.ValueAddr.i;
       break;
     default:
       storageV.ValueAddr.i = 0;

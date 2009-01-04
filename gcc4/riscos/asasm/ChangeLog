@@ -1,3 +1,15 @@
+Sun Jan  4 02:24:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* storage.c: Permit use of ValueAddr in record base calculation.
+	For example:
+			^	0
+			#	1
+		foo	#	1
+			^	foo + 4
+		bar	#	1
+	should result in "bar" having a value of 5.
+	* input.c: Pedantic whitespace removal.
+
 Sun Jan  4 02:36:02 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos_c.c: Use _kernel_swi instead of __os_swi.

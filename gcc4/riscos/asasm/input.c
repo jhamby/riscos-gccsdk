@@ -423,7 +423,6 @@ inputEnvSub(int *ptr, int *trunc)
       return TRUE;
     }
 
-
   len = strlen (env);
 
   /* Substitute variable's value, providing it won't truncate */
