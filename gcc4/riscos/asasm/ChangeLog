@@ -1,3 +1,7 @@
+Sun Jan  4 21:36:15 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c(c_define): Remove return parameter, is the as its 2nd one.
+
 Sun Jan  4 21:00:58 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c,symbol.h(symbolAdd,symbolGet): Pass Lex parameter by (const)

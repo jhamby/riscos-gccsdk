@@ -55,8 +55,8 @@
 #include "symbol.h"
 #include "value.h"
 
-static Symbol *
-c_define (const char *msg, Symbol * sym, ValueTag legal)
+static void
+c_define (const char *msg, Symbol *sym, ValueTag legal)
 {
   Value value;
 
@@ -76,22 +76,22 @@ c_define (const char *msg, Symbol * sym, ValueTag legal)
   sym->type |= SYMBOL_DEFINED;
   sym->declared = 1;
   sym->area.ptr = NULL;
-  return sym;
 }
 
 
 void
-c_equ (Symbol * symbol)
+c_equ (Symbol *symbol)
 {
-  (void) c_define ("equ", symbol, ValueAll);
+  c_define ("equ", symbol, ValueAll);
 }
 
 
 void
-c_fn (Symbol * symbol)
+c_fn (Symbol *symbol)
 {
-  int no = c_define ("float register", symbol, ValueInt)->value.ValueInt.i;
+  c_define ("float register", symbol, ValueInt);
   symbol->type |= SYMBOL_FPUREG;
+  int no = symbol->value.ValueInt.i;
   if (no < 0 || no > 7)
     {
       symbol->value.ValueInt.i = 0;
@@ -101,10 +101,11 @@ c_fn (Symbol * symbol)
 
 
 void
-c_rn (Symbol * symbol)
+c_rn (Symbol *symbol)
 {
-  int no = c_define ("register", symbol, ValueInt)->value.ValueInt.i;
+  c_define ("register", symbol, ValueInt);
   symbol->type |= SYMBOL_CPUREG;
+  int no = symbol->value.ValueInt.i;
   if (no < 0 || no > 15)
     {
       symbol->value.ValueInt.i = 0;
@@ -114,10 +115,11 @@ c_rn (Symbol * symbol)
 
 
 void
-c_cn (Symbol * symbol)
+c_cn (Symbol *symbol)
 {
-  int no = c_define ("coprocessor register", symbol, ValueInt)->value.ValueInt.i;
+  c_define ("coprocessor register", symbol, ValueInt);
   symbol->type |= SYMBOL_COPREG;
+  int no = symbol->value.ValueInt.i;
   if (no < 0 || no > 15)
     {
       symbol->value.ValueInt.i = 0;
@@ -126,10 +128,11 @@ c_cn (Symbol * symbol)
 }
 
 void
-c_cp (Symbol * symbol)
+c_cp (Symbol *symbol)
 {
-  int no = c_define ("coprocessor number", symbol, ValueInt)->value.ValueInt.i;
+  c_define ("coprocessor number", symbol, ValueInt);
   symbol->type |= SYMBOL_COPNUM;
+  int no = symbol->value.ValueInt.i;
   if (no < 0 || no > 15)
     {
       symbol->value.ValueInt.i = 0;
@@ -587,6 +590,3 @@ c_title (void)
   inputRest();
   /* Do nothing right now.  This command is for the benefit of error reporting */
 }
-
-
-
