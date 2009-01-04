@@ -1,3 +1,9 @@
+Sun Jan  4 03:16:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* input.c: Invalidate asmfile in inputFinish. This allows multiple
+	calls to inputFinish to occur (may happen if we longjmp to the abort
+	handler after inputFinish is called in normal execution).
+
 Sun Jan  4 03:02:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* decode.c: Treat SET[^ALS] as illegal.

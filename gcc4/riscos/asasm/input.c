@@ -286,7 +286,10 @@ void
 inputFinish (void)
 {
   if (asmfile && asmfile != stdin)
-    fclose (asmfile);
+    {
+      fclose (asmfile);
+      asmfile = NULL;
+    }
 }
 
 
