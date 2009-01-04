@@ -88,14 +88,14 @@ typedef struct SYMBOL
 Symbol;
 
 void symbolInit (void);
-Symbol *symbolAdd (Lex l);
-Symbol *symbolGet (Lex l);
-Symbol *symbolFind (const Lex * l);
+Symbol *symbolAdd (const Lex *l);
+Symbol *symbolGet (const Lex *l);
+Symbol *symbolFind (const Lex *l);
 
 int symbolFix (void);		/* Returns number of symbols */
 int symbolStringSize (void);
-void symbolStringOutput (FILE * outfile);
-void symbolSymbolAOFOutput (FILE * outfile);
-void symbolSymbolELFOutput (FILE * outfile);
+void symbolStringOutput (FILE *outfile);
+void symbolSymbolAOFOutput (FILE *outfile);
+void symbolSymbolELFOutput (FILE *outfile);
 
 #endif

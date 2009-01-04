@@ -277,8 +277,9 @@ c_area (void)
   int newtype = 0;
   int c;
   int rel_specified = 0, data_specified = 0;
+  Lex lex = lexGetId ();
 
-  sym = symbolGet (lexGetId ());
+  sym = symbolGet (&lex);
   if (sym->type & SYMBOL_DEFINED)
     error (ErrorError, TRUE, "Redefinition of label to area %s", sym->str);
   else if (sym->type & SYMBOL_AREA)

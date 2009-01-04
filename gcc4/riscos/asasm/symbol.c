@@ -184,7 +184,7 @@ symbolInit (void)
       l.LexId.len = predefines[i].len;
       l.LexId.hash = lexHashStr (l.LexId.str, l.LexId.len);
 
-      s = symbolAdd(l);
+      s = symbolAdd(&l);
       s->type |= SYMBOL_ABSOLUTE | predefines[i].type;
       s->value.Tag.t = ValueInt;
       s->value.ValueInt.i = predefines[i].value;
@@ -194,28 +194,28 @@ symbolInit (void)
 }
 
 Symbol *
-symbolAdd (Lex l)
+symbolAdd (const Lex *l)
 {
   Symbol **isearch;
 
-  if (l.tag != LexId)
+  if (l->tag != LexId)
     error (ErrorSerious, FALSE, "Internal symbolAdd: non-ID");
 
-  for (isearch = &symbolTable[l.LexId.hash]; *isearch; isearch = &((*isearch)->next))
+  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &((*isearch)->next))
     {
       Symbol *search = *isearch;
-      if (EqSymLex (search, &l))
+      if (EqSymLex (search, l))
 	{
 	  if ((search->type & SYMBOL_DEFINED) && !SYMBOL_GETREG(search->type))
 	    error (ErrorError, TRUE, "Redefinition of %.*s",
-	           l.LexId.len, l.LexId.str);
+	           l->LexId.len, l->LexId.str);
 	  else
 	    {
 	      if (search->type & SYMBOL_AREA)
 	        {
 	          if (areaCurrentSymbol->value.ValueInt.i != 0)
 		    error (ErrorError, TRUE, "Symbol %.*s is already defined as area with incompatible definition",
-		           l.LexId.len, l.LexId.str);
+		           l->LexId.len, l->LexId.str);
 		}
 	      else
 		{
@@ -225,37 +225,36 @@ symbolAdd (Lex l)
 	    }
 	}
     }
-  *isearch = symbolNew (l.LexId.len, l.LexId.str);
+  *isearch = symbolNew (l->LexId.len, l->LexId.str);
   (*isearch)->type |= SYMBOL_DEFINED;
   return *isearch;
 }
 
 Symbol *
-symbolGet (Lex l)
+symbolGet (const Lex *l)
 {
   Symbol **isearch = NULL;
-  if (l.tag != LexId)
+  if (l->tag != LexId)
     {
-      if (l.tag == LexNone)
+      if (l->tag == LexNone)
 	{
-	  isearch = &symbolTable[0];
-	  while (*isearch)
-	    isearch = &((*isearch)->next);
-	  *isearch = symbolNew (sizeof("|Dummy|")-1, "|Dummy|");
+	  for (isearch = &symbolTable[0]; *isearch; isearch = &((*isearch)->next))
+	    /* */;
+	  *isearch = symbolNew (sizeof("|Dummy|")-1, "|Dummy|"); /* FIXME: *isearch is written again further on, so memory leak here ? */
 	}
       else
 	error (ErrorSerious, FALSE, "Internal symbolGet: non-ID");
     }
   else
     {
-      for (isearch = &symbolTable[l.LexId.hash]; *isearch; isearch = &((*isearch)->next))
+      for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &((*isearch)->next))
 	{
-	  if (EqSymLex (*isearch, &l))
+	  if (EqSymLex (*isearch, l))
 	    return *isearch;
 	}
     }
 
-  *isearch = symbolNew (l.LexId.len, l.LexId.str);
+  *isearch = symbolNew (l->LexId.len, l->LexId.str);
   return *isearch;
 }
 

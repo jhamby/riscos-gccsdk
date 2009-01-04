@@ -319,7 +319,7 @@ symFlag (int flag, int declared, const char *err)
   Lex lex = lexGetId ();
   if (lex.tag != LexId)
     return;
-  sym = symbolGet (lex);
+  sym = symbolGet (&lex);
   if (localTest (sym->str))
     error (ErrorError, TRUE, "Local labels cannot be %s", err);
   else
@@ -362,7 +362,7 @@ c_import (void)
   if (lex.tag != LexId)
     return;
 
-  sym = symbolGet (lex);
+  sym = symbolGet (&lex);
   sym->type |= SYMBOL_REFERENCE;
   sym->declared = 1;
   while ((c = inputGet ()) == ',')

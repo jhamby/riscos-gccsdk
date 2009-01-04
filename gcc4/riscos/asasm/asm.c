@@ -86,19 +86,12 @@ assemble (void)
 
 
 Symbol *
-asm_label (Lex * label)
+asm_label (const Lex *label)
 {
   Symbol *symbol;
   if (label->tag != LexId)
     return 0;
-/*  if (label->LexId.len>1) {
-   if (label->LexId.str[label->LexId.len-2]=='$' &&
-   label->LexId.str[label->LexId.len-2]=='l')
-   error(ErrorWarning,FALSE,"Local labels not yet implemented");
-   }
- */
-  symbol = symbolAdd (*label);
-//  symbol = symbolGet(*label);
+  symbol = symbolAdd (label);
   if (areaCurrentSymbol)
     {
       symbol->value = valueLateToCode (areaCurrentSymbol->value.ValueInt.i,

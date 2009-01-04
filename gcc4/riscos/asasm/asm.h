@@ -27,6 +27,6 @@
 #include "symbol.h"
 
 extern void assemble (void);
-extern Symbol *asm_label (Lex * label);
+extern Symbol *asm_label (const Lex *label);
 
 #endif

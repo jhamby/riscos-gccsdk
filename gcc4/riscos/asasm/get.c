@@ -49,7 +49,7 @@ getCpuRegInternal (BOOL genError)
   if (lexSym.tag == LexNone)
     return genError ? 0 : INVALID_REG;
 
-  sym = symbolGet (lexSym);
+  sym = symbolGet (&lexSym);
 
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
@@ -85,7 +85,7 @@ getFpuReg (void)
   if (lexSym.tag == LexNone)
     return 0;
 
-  sym = symbolGet (lexSym);
+  sym = symbolGet (&lexSym);
 
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
@@ -108,7 +108,7 @@ getCopReg (void)
   if (lexSym.tag == LexNone)
     return 0;
 
-  sym = symbolGet (lexSym);
+  sym = symbolGet (&lexSym);
 
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
@@ -131,7 +131,7 @@ getCopNum (void)
   if (lexSym.tag == LexNone)
     return 0;
 
-  sym = symbolGet (lexSym);
+  sym = symbolGet (&lexSym);
 
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {

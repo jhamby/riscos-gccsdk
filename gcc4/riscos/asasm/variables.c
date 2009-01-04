@@ -143,7 +143,7 @@ declare_var (const char *ptr, int len, const ValueTag type, BOOL local)
     }
   else
     {
-      sym = symbolAdd (var);
+      sym = symbolAdd (&var);
       if (!sym)
 	return;
     }
