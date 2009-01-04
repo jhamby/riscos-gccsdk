@@ -56,7 +56,7 @@ extern _kernel_oserror *ThrowbackEnd (void);
 
 extern char *CanonicalisePath (const char *path);
 
-#endif /* !CROSS_COMPILE */
+#endif /* !__riscos__ */
 
 #ifndef HAVE_STRNDUP
 extern char *strndup (const char *str, size_t len);

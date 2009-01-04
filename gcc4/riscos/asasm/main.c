@@ -72,7 +72,7 @@ int apcs_32bit = -1;
 int apcs_fpv3 = -1;
 int apcs_softfloat = -1;
 int rma_module = 0;
-static int option_elf = 0;
+int option_elf = 0;
 static int option_aof = 0;
 
 const char *ProgName = NULL;
@@ -313,7 +313,7 @@ int main (int argc, char **argv)
 #endif
 		   " Assembler " VERSION " (" __DATE__ ") [GCCSDK]\n");
 
-	  fprintf (stderr, "Copyright (c) 1992-2008 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
+	  fprintf (stderr, "Copyright (c) 1992-2009 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
 	  return EXIT_SUCCESS;
 	}
       else if (IS_ARG ("-H", "-h")
@@ -412,7 +412,7 @@ int main (int argc, char **argv)
       /* ... do the assembly ... */
       outputInit (ObjFileName);
 
-      /* ... tidy up and write the AOF */
+      /* ... tidy up and write the ELF/AOF output.  */
       areaInit ();
       setjmp (asmContinue); asmContinueValid = TRUE;
       assemble ();

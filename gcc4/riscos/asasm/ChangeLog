@@ -1,3 +1,12 @@
+Sun Jan  4 02:36:02 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos_c.c: Use _kernel_swi instead of __os_swi.
+	* os.h, error.c, input.c: Minor source cleanup.
+	* output.c: Remaining as -> asasm renaming; write ELF filetyped files
+	in ELF output mode.
+	* rname.c: include rname.h instead of having double prototypes.
+	* main.c,main.h: make option ELF available to other files.
+
 Sat Jan  3 19:53:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* input.c: Don't treat "<>" as an environment variable substitution.

@@ -158,10 +158,11 @@ inputPutBack (char c)
 {
   if (input_pos[-1] == c)
     input_pos--;
-  else if (*input_pos || c) {
-    /* printf("char = '%c' \"%s\" \"%s\"\n", c, input_pos, input_buff); */
-    error (ErrorSerious, FALSE, "Internal inputPutBack: illegal character");
-  }
+  else if (*input_pos || c)
+    {
+      /* printf("char = '%c' \"%s\" \"%s\"\n", c, input_pos, input_buff); */
+      error (ErrorSerious, FALSE, "Internal inputPutBack: illegal character");
+    }
 }
 
 

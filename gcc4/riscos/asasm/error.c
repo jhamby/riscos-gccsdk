@@ -186,49 +186,36 @@ error (ErrorTag e, BOOL c, const char *format,...)
   int sameline = 1;
   int t = 0;
 
+  switch (e)
+    {
+      case ErrorInfo:
+        str = "Info";
 #ifdef __riscos__
-  switch (e)
-    {
-    case ErrorInfo:
-      str = "Info";
-      t = ThrowbackInfo;
-      break;
-    case ErrorWarning:
-      str = "Warning";
-      no_warnings++;
-      t = ThrowbackWarning;
-      break;
-    case ErrorError:
-      str = "Error";
-      no_errors++;
-      t = ThrowbackError;
-      break;
-    default:
-      str = "Serious error";
-      no_errors++;
-      t = ThrowbackSeriousError;
-      break;
-    }
-#else
-  switch (e)
-    {
-    case ErrorInfo:
-      str = "Info";
-      break;
-    case ErrorWarning:
-      str = "Warning";
-      no_warnings++;
-      break;
-    case ErrorError:
-      str = "Error";
-      no_errors++;
-      break;
-    default:
-      str = "Serious error";
-      no_errors++;
-      break;
-    }
+        t = ThrowbackInfo;
 #endif
+        break;
+      case ErrorWarning:
+        str = "Warning";
+        no_warnings++;
+#ifdef __riscos__
+        t = ThrowbackWarning;
+#endif
+        break;
+      case ErrorError:
+        str = "Error";
+        no_errors++;
+#ifdef __riscos__
+        t = ThrowbackError;
+#endif
+        break;
+      default:
+        str = "Serious error";
+        no_errors++;
+#ifdef __riscos__
+        t = ThrowbackSeriousError;
+#endif
+        break;
+    }
   va_start (ap, format);
   vsprintf (errbuf, format, ap);
   va_end (ap);
@@ -278,50 +265,37 @@ errorLine (long int lineno, const char *file,
   const char *str;
   va_list ap;
 
-#ifdef __riscos__
   int t;
   switch (e)
     {
-    case ErrorInfo:
-      str = "Info";
-      t = ThrowbackInfo;
-      break;
-    case ErrorWarning:
-      str = "Warning";
-      t = ThrowbackWarning;
-      no_warnings++;
-      break;
-    case ErrorError:
-      str = "Error";
-      t = ThrowbackError;
-      no_errors++;
-      break;
-    default:
-      str = "Fatal error";
-      t = ThrowbackSeriousError;
-      no_errors++;
-      break;
-    }
-#else
-  switch (e)
-    {
-    case ErrorInfo:
-      str = "Info";
-      break;
-    case ErrorWarning:
-      str = "Warning";
-      no_warnings++;
-      break;
-    case ErrorError:
-      str = "Error";
-      no_errors++;
-      break;
-    default:
-      str = "Fatal error";
-      no_errors++;
-      break;
-    }
+      case ErrorInfo:
+        str = "Info";
+#ifdef __riscos__
+        t = ThrowbackInfo;
 #endif
+        break;
+      case ErrorWarning:
+        str = "Warning";
+#ifdef __riscos__
+        t = ThrowbackWarning;
+#endif
+        no_warnings++;
+        break;
+      case ErrorError:
+        str = "Error";
+#ifdef __riscos__
+        t = ThrowbackError;
+#endif
+        no_errors++;
+        break;
+      default:
+        str = "Fatal error";
+#ifdef __riscos__
+        t = ThrowbackSeriousError;
+#endif
+        no_errors++;
+        break;
+    }
 
   va_start (ap, format);
   vsprintf (errbuf, format, ap);

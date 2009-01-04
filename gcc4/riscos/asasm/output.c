@@ -58,7 +58,7 @@ static FILE *objfile;
 #define FIX(n) ((3+(int)(n))&~3)
 #define EXTRA(n) (FIX(n)-(n))
 
-const char *idfn_text = "GCCSDK AS AOF"
+const char *idfn_text = "GCCSDK ASASM AOF"
 #ifndef NO_ELF_SUPPORT
 	"/ELF"
 #endif
@@ -120,11 +120,11 @@ outputInit (const char *outfile)
 
       if ((objfile = fopen (outname, "wb")) == NULL)
 	{
-#if defined(__TARGET_UNIXLIB__) || !defined(__riscos__)
-	  error (ErrorAbort, FALSE, "As can't write %s: %s",
+#if !defined(__TARGET_SCL__)
+	  error (ErrorAbort, FALSE, PACKAGE_NAME " can't write %s: %s",
 		 outname, strerror (errno));
 #else
-	  error (ErrorAbort, FALSE, "As can't write %s", outname);
+	  error (ErrorAbort, FALSE, PACKAGE_NAME " can't write %s", outname);
 #endif
 	}
       /* setvbuf (objfile, NULL, _IOFBF, 16 * 1024); */
@@ -146,14 +146,16 @@ outputFinish (void)
     {
       fclose (objfile);
       objfile = NULL;
-#ifdef __TARGET_SCL__
-      /* Set filetype to text */
+#ifdef __riscos__
+      /* Set filetype to 0xE1F (ELF, ELF output) or 0xFF (Text,
+	 AOF output).  */
       {
         _kernel_swi_regs regs;
 
         regs.r[0] = 18;
-        regs.r[1] = (int)__riscosify_scl(outname, 0);
-        regs.r[2] = 0xfff;
+/* TODO:        regs.r[1] = (int) __riscosify_scl(outname, 0); */
+        regs.r[1] = (int) outname;
+        regs.r[2] = (option_elf) ? 0xE1F : 0xFFF;
 
         _kernel_swi(OS_File, &regs, &regs);
       }
@@ -340,7 +342,7 @@ writeElfSH (int nmoffset, int type, int flags, int size,
   sect_hdr.sh_info = info;
   sect_hdr.sh_addralign = addralign;
   sect_hdr.sh_entsize = entsize;
-  if (type!=SHT_NOBITS)
+  if (type != SHT_NOBITS)
     *offset += size;
   return fwrite (&sect_hdr, 1, sizeof (sect_hdr), objfile);
 }
@@ -372,16 +374,16 @@ outputElf (void)
   elf_head.e_ident[EI_OSABI] = ELFOSABI_ARM;
   elf_head.e_ident[EI_ABIVERSION] = 0;
   for (i = EI_PAD; i< EI_NIDENT; i++)
-    elf_head.e_ident[i]=0;
+    elf_head.e_ident[i] = 0;
   elf_head.e_type = ET_REL;
   elf_head.e_machine = EM_ARM;
   elf_head.e_version = EV_CURRENT;
   elf_head.e_entry = areaEntry?areaEntryOffset:0;
   elf_head.e_phoff = 0;
   elf_head.e_shoff = sizeof(elf_head);
-  /* We like to take all the aspects of EF_ARM_CURRENT but not its ARM EABI version
-     as we aren't complying with any of the versions so we set the version to 0 which
-     means EF_ARM_ABI_UNKNOWN.  */
+  /* We like to take all the aspects of EF_ARM_CURRENT but not its ARM EABI
+     version as we aren't complying with any of the versions so we set the
+     version to 0 which means EF_ARM_ABI_UNKNOWN.  */
   elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
   if (areaEntry)
     elf_head.e_flags |= EF_ARM_HASENTRY;
@@ -437,7 +439,7 @@ outputElf (void)
         {
           /* relocations */
           writeElfSH(shstrsize, SHT_REL, 0,
-            (ap->area.info->norelocs)*sizeof(Elf32_Rel),
+            ap->area.info->norelocs * sizeof(Elf32_Rel),
             1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
           shstrsize += ap->len + 5;
           elfIndex++;
@@ -494,7 +496,7 @@ outputElf (void)
         }
     }
 
-  fwrite (".shstrtab", sizeof(char), sizeof(".shstrtab"), objfile);
+  fwrite (".shstrtab", 1, sizeof(".shstrtab"), objfile);
   for (pad = EXTRA (shstrsize); pad; pad--)
     fputc (0, objfile);
 }

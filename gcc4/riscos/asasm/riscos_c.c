@@ -60,17 +60,27 @@
 #define THROWBACK_REASON_ERROR_DETAILS 1
 #define THROWBACK_REASON_INFO_DETAILS  2
 
-static char filename[1024];
 static const char *ErrorFile;
 
-extern _kernel_oserror *__os_swi (int swinum, int *regs);
-
-char *CanonicalisePath (const char *path1)
+/**
+ * Canonicalise filename.
+ * \param path1 Filename.
+ * \returns When non-NULL, pointer to malloced buffer holding the canonicalised
+ * filename (caller needs to free).  NULL in case of an error.
+ */
+char *
+CanonicalisePath (const char *path1)
 {
   int size;
   char *buffer;
+  char filename[1024];
+#if __TARGET_UNIXLIB__
   char path[1024];
   __riscosify (path1, 0, 0, path, sizeof (path), NULL);
+#else
+  const char *path = path1;
+#endif
+  
   if (dde && *path == '@')
     {				/* Replace @ with <Prefix$Dir> if dde flags */
       strcpy (filename, "<Prefix$Dir>");
@@ -94,66 +104,73 @@ char *CanonicalisePath (const char *path1)
   return NULL;			/* keep the compiler happy */
 }
 
-int switonum (const char *swiname)
+int
+switonum (const char *swiname)
 {
-  int regs[10];
-  regs[1] = (int) swiname;
-  __os_swi (OS_SWINumberFromString, regs);
-  return regs[0];
+  _kernel_swi_regs regs;
+  regs.r[1] = (int) swiname;
+  _kernel_swi (OS_SWINumberFromString, &regs, &regs); /* TODO: handle error ? */
+  return regs.r[0];
 }
 
-_kernel_oserror *ThrowbackStart (void)
+_kernel_oserror *
+ThrowbackStart (void)
 {
-  int regs[10];
-  _kernel_oserror *err = __os_swi (DDEUtils_ThrowbackStart, regs);
-  return err;
+  _kernel_swi_regs regs;
+  return _kernel_swi (DDEUtils_ThrowbackStart, &regs, &regs);
 }
 
-_kernel_oserror *ThrowbackSendStart (const char *filename)
+_kernel_oserror *
+ThrowbackSendStart (const char *filename)
 {
-  int regs[10];
+  _kernel_swi_regs regs;
+
   ErrorFile = filename;
-  regs[0] = THROWBACK_REASON_PROCESSING;
-  regs[2] = (int) filename;
-  return __os_swi (DDEUtils_ThrowbackSend, regs);
+  regs.r[0] = THROWBACK_REASON_PROCESSING;
+  regs.r[2] = (int) filename;
+  return _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
 }
 
-_kernel_oserror *ThrowbackSendError (int level,
-				     long int lineno, const char *error)
+/**
+ * \param level 0 for warning, 1 for error, 2 for serious error.
+ * \param error nul terminated description of error
+ */
+_kernel_oserror *
+ThrowbackSendError (int level, long int lineno, const char *error)
 {
-  int regs[10];
-  regs[0] = THROWBACK_REASON_ERROR_DETAILS;
-  regs[1] = 0;
-  regs[2] = (int) ErrorFile;
-  regs[3] = lineno;
-  regs[4] = level;
-  regs[5] = (int) error;
-  return __os_swi (DDEUtils_ThrowbackSend, regs);
+  _kernel_swi_regs regs;
+
+  regs.r[0] = THROWBACK_REASON_ERROR_DETAILS;
+  regs.r[1] = 0;
+  regs.r[2] = (int) ErrorFile;
+  regs.r[3] = lineno;
+  regs.r[4] = level;
+  regs.r[5] = (int) error;
+  return _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
 }
 
-_kernel_oserror *ThrowbackEnd (void)
+_kernel_oserror *
+ThrowbackEnd (void)
 {
-  int regs[10];
-  regs[0] = 0;
-  regs[1] = 0;
-  regs[2] = 0;
-  regs[3] = 0;
-  regs[4] = 0;
-  return __os_swi (DDEUtils_ThrowbackEnd, regs);
+  _kernel_swi_regs regs;
+
+  return _kernel_swi (DDEUtils_ThrowbackEnd, &regs, &regs);
 }
 
-int OSCanonicalisePath (const char *path, char *buffer, int buffersize,
-			char *systemvar, char *defaultpath)
+int
+OSCanonicalisePath (const char *path, char *buffer, int buffersize,
+		    char *systemvar, char *defaultpath)
 {
-  int regs[10];
-  regs[0] = 37;
-  regs[1] = (int) path;
-  regs[2] = (int) buffer;
-  regs[3] = (int) systemvar;
-  regs[4] = (int) defaultpath;
-  regs[5] = buffersize;
-  __os_swi (OS_FSControl, regs);
-  return regs[5];
+  _kernel_swi_regs regs;
+
+  regs.r[0] = 37;
+  regs.r[1] = (int) path;
+  regs.r[2] = (int) buffer;
+  regs.r[3] = (int) systemvar;
+  regs.r[4] = (int) defaultpath;
+  regs.r[5] = buffersize;
+  _kernel_swi (OS_FSControl, &regs, &regs); /* TODO: error handling */
+  return regs.r[5];
 }
 
 #endif /* __riscos__ */
