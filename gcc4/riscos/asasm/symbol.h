@@ -34,8 +34,8 @@
 
 #define SYMBOL_KIND(x)   ((x) & 0x0003)
 
-#define SYMBOL_DEFINED   0x0001
-#define SYMBOL_EXPORT    0x0002
+#define SYMBOL_DEFINED   0x0001 /* This is a mask.  */
+#define SYMBOL_EXPORT    0x0002 /* This is a mask.  */
 
 #define SYMBOL_ABSOLUTE  0x0004	/* This is a constant, (not valid if SYMBOL_REFERENCE) */
 #define SYMBOL_NOCASE    0x0008	/* Only if SYMBOL_REFERENCE, case insensitive */
@@ -80,9 +80,9 @@ typedef struct SYMBOL
   }
   area;
   unsigned int offset;		/* Offset in stringtable */
-  int used;		/* this id is used (ie not resolved) */
+  int used;			/* this id is used (ie not resolved) */
   /* Later changed to index in symbol table */
-  int len;		/* length of str[] */
+  int len;			/* length of str[] with NUL terminator.  */
   char str[1];			/* str[len+1] */
 }
 Symbol;
@@ -95,7 +95,7 @@ Symbol *symbolFind (const Lex * l);
 int symbolFix (void);		/* Returns number of symbols */
 int symbolStringSize (void);
 void symbolStringOutput (FILE * outfile);
-void symbolSymbolOutput (FILE * outfile);
-void symbolSymbolElfOutput (FILE * outfile);
+void symbolSymbolAOFOutput (FILE * outfile);
+void symbolSymbolELFOutput (FILE * outfile);
 
 #endif

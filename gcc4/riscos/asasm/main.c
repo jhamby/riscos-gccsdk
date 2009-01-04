@@ -68,12 +68,11 @@ int align = 1;
 int local = 1;
 int objasm = 0;
 int uc = 0;
-int apcs_32bit = -1;
-int apcs_fpv3 = -1;
-int apcs_softfloat = -1;
+int apcs_32bit = -1; /* -1 = option not specified.  */
+int apcs_fpv3 = -1; /* -1 = option not specified.  */
+int apcs_softfloat = -1; /* -1 = option not specified.  */
 int rma_module = 0;
-int option_elf = 0;
-static int option_aof = 0;
+int option_aof = -1; /* -1 = option not specified.  */
 
 const char *ProgName = NULL;
 const char *ObjFileName = NULL;
@@ -149,7 +148,19 @@ restore_prefix (void)
   /* workaround for throwback/Prefix$Dir problem */
 }
 
-int main (int argc, char **argv)
+static void
+set_option_aof (int writeaof)
+{
+  if (option_aof != -1 && option_aof != writeaof)
+    {
+      fprintf (stderr, "%s: Conflicting options -aof and -elf\n", ProgName);
+      exit (EXIT_FAILURE);
+    }
+  option_aof = writeaof;
+}
+
+int
+main (int argc, char **argv)
 {
 #ifdef __riscos__
   ProgName = getenv ("Prefix$Dir");
@@ -182,7 +193,7 @@ int main (int argc, char **argv)
 		var_define (*++argv);
 	      else
 		{
-		  fprintf (stderr, "%s: Missing argument after -o\n", ProgName);
+		  fprintf (stderr, "%s: Missing argument after -D\n", ProgName);
 		  return EXIT_FAILURE;
 		}
 	    }
@@ -362,10 +373,10 @@ int main (int argc, char **argv)
 #endif
 #ifndef NO_ELF_SUPPORT
       else if (!strcmp (*argv, "-elf"))
-	option_elf++;
+	set_option_aof (0);
 #endif
       else if (!strcmp (*argv, "-aof"))
-	option_aof++;
+	set_option_aof (1);
       else if (**argv != '-')
 	{
 	  if (SourceFileName != NULL)
@@ -386,6 +397,12 @@ int main (int argc, char **argv)
     apcs_fpv3 = 1;
   if (apcs_softfloat == -1)
     apcs_softfloat = 0;
+  if (option_aof == -1)
+#ifndef NO_ELF_SUPPORT
+    option_aof = 1;
+#else
+    option_aof = 0;
+#endif
 
   set_cpuvar();
 
@@ -423,12 +440,6 @@ int main (int argc, char **argv)
       else
         {
 #ifndef NO_ELF_SUPPORT
-	  if (option_elf && option_aof)
-	    {
-	      fprintf (stderr, "%s: Conflicting options -aof and -elf\n", ProgName);
-	      return EXIT_FAILURE;
-	    }
-	  /* Writing ELF output format is default.  */
 	  if (!option_aof)
 	    outputElf();
 	  else

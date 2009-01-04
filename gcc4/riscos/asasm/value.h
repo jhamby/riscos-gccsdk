@@ -83,8 +83,8 @@ typedef union
   struct
   {				/* ValueString */
     ValueType Tag;
-    int len;
-    const char *s;
+    int len; /* Size string without its NUL terminator.  */
+    const char *s; /* Malloced memory block and string is NUL terminated.  */
   }
   ValueString;
   struct

@@ -369,7 +369,7 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
 }
 
 void
-symbolSymbolOutput (FILE * outfile)
+symbolSymbolAOFOutput (FILE *outfile)
 {
   int i;
   Symbol *sym;
@@ -495,7 +495,7 @@ findAreaIndex (struct AREA * area)
 }
 
 void
-symbolSymbolElfOutput (FILE * outfile)
+symbolSymbolELFOutput (FILE *outfile)
 {
   int i;
   int bind, type;

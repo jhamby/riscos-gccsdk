@@ -1058,8 +1058,6 @@ decode (Lex * label)
     }
   skipblanks ();
   if (!inputComment ())
-    {
-      error (ErrorError, FALSE, "Skipping extra characters '%s'", inputRest ());
-    }
+    error (ErrorError, FALSE, "Skipping extra characters '%s'", inputRest ());
   return returnvalue;
 }

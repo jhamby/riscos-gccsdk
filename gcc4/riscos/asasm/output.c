@@ -155,7 +155,7 @@ outputFinish (void)
         regs.r[0] = 18;
 /* TODO:        regs.r[1] = (int) __riscosify_scl(outname, 0); */
         regs.r[1] = (int) outname;
-        regs.r[2] = (option_elf) ? 0xE1F : 0xFFF;
+        regs.r[2] = (option_aof) ? 0xFFF : 0xE1F;
 
         _kernel_swi(OS_File, &regs, &regs);
       }
@@ -291,7 +291,7 @@ outputAof (void)
     fputc (0, objfile);
 
 /******** Chunk 3 Symbol Table ***********/
-  symbolSymbolOutput (objfile);
+  symbolSymbolAOFOutput (objfile);
 
 /******** Chunk 4 Area *****************/
   for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
@@ -395,8 +395,8 @@ outputElf (void)
       elf_head.e_phentsize = 0;
       elf_head.e_phnum = 0;
       elf_head.e_shentsize = sizeof(Elf32_Shdr);
-      elf_head.e_shnum = (noareas+norels)+4;
-      elf_head.e_shstrndx = (noareas+norels)+3;
+      elf_head.e_shnum = (noareas + norels) + 4;
+      elf_head.e_shstrndx = (noareas + norels) + 3;
       
       written = fwrite (&elf_head, 1, sizeof (elf_head), objfile);
       
@@ -428,11 +428,11 @@ outputElf (void)
   for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
     {
       int areaFlags = 0;
-      if ((ap->area.info->type & AREA_CODE) > 0)
+      if (ap->area.info->type & AREA_CODE)
         areaFlags |= SHF_EXECINSTR;
-      if ((ap->area.info->type & AREA_READONLY) == 0)
+      if (!(ap->area.info->type & AREA_READONLY))
         areaFlags |= SHF_WRITE;
-      if ((ap->area.info->type & AREA_COMMONDEF) > 0)
+      if (ap->area.info->type & AREA_COMMONDEF)
         areaFlags |= SHF_COMDEF;
       if (ap == areaEntry)
         areaFlags |= SHF_ENTRYSECT;
@@ -461,7 +461,7 @@ outputElf (void)
 
   /* Write out the sections */
   /* Symbol table */
-  symbolSymbolElfOutput(objfile);
+  symbolSymbolELFOutput(objfile);
 
   /* String table */
   fputc (0, objfile);

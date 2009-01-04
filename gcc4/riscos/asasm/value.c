@@ -35,7 +35,8 @@
 #include "value.h"
 
 /* Code demands at least one Lateinfo */
-Value valueLateToCode(int offset,LateInfo *late)
+Value
+valueLateToCode(int offset,LateInfo *late)
 {
   LateInfo *l;
   Value value;
@@ -112,9 +113,10 @@ Value valueLateToCode(int offset,LateInfo *late)
 }
 
 
-Value valueCopy(Value value)
+Value
+valueCopy (Value value)
 {
-  switch(value.Tag.t)
+  switch (value.Tag.t)
     {
     case ValueIllegal:
     case ValueInt:
@@ -123,20 +125,20 @@ Value valueCopy(Value value)
     case ValueAddr:
       break;
     case ValueString:
-      if ((value.ValueString.s = strndup(value.ValueString.s, value.ValueString.len)) == NULL)
+      if ((value.ValueString.s = strndup (value.ValueString.s, value.ValueString.len)) == NULL)
         {
           errorOutOfMem("valueCopy");
           value.ValueString.len = 0;
         }
       break;
     case ValueCode:
-      value.ValueCode.c = codeCopy(value.ValueCode.len, value.ValueCode.c);
+      value.ValueCode.c = codeCopy (value.ValueCode.len, value.ValueCode.c);
       break;
     case ValueLateLabel:
-      value = valueLateToCode(value.ValueLate.i, value.ValueLate.late);
+      value = valueLateToCode (value.ValueLate.i, value.ValueLate.late);
       break;
     default:
-      error(ErrorSerious, FALSE, "Internal valueCopy: illegal value");
+      error (ErrorSerious, FALSE, "Internal valueCopy: illegal value");
       value.Tag.t = ValueIllegal;
       break;
     }
@@ -144,7 +146,8 @@ Value valueCopy(Value value)
   return value;
 }
 
-static void valueFree(Value value)
+static void
+valueFree(Value value)
 {
   switch(value.Tag.t)
     {
@@ -175,7 +178,8 @@ static void valueFree(Value value)
     }
 }
 
-static int lateInfoEqual(LateInfo *a, LateInfo *b)
+static int
+lateInfoEqual(LateInfo *a, LateInfo *b)
 {
   for(; a || b; a = a->next, b = b->next) {
     if(!a || !b)	       return FALSE;
@@ -185,7 +189,8 @@ static int lateInfoEqual(LateInfo *a, LateInfo *b)
   return TRUE;
 }
 
-int valueEqual(const Value *a, const Value *b)
+int
+valueEqual(const Value *a, const Value *b)
 {
   if (a->Tag.t == ValueLateLabel)
     {

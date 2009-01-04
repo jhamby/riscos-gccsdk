@@ -70,19 +70,20 @@ extern BOOL exprNotConst;
 void codeInit (void);
 
 void codeOperator (Operator op);
-void codeSymbol (Symbol * symbol);
+void codeSymbol (Symbol *symbol);
 void codeInt (int value);
-void codePosition (Symbol * area);
+void codePosition (Symbol *area);
 void codeStorage (void);
 void codeString (int len, const char *str);
 void codeFloat (FLOAT value);
 void codeBool (BOOL value);
 
 void codeFixReloc (void);
-Value codeEvalLow (ValueTag legal, int size, Code * program);
+Value codeEvalLow (ValueTag legal, int size, Code *program);
 Value codeEval (ValueTag legal);
 
-LateInfo *codeNewLateInfo (Symbol * symbol);
-Code *codeCopy (int len, Code * code);
-int codeEqual (int len, Code * a, Code * b);
+LateInfo *codeNewLateInfo (Symbol *symbol);
+Code *codeCopy (int len, const Code *code);
+int codeEqual (int len, const Code *a, const Code *b);
+
 #endif

@@ -112,7 +112,7 @@ static void
 declare_var (const char *ptr, int len, const ValueTag type, BOOL local)
 {
   Lex var;
-  Symbol *sym = NULL;
+  Symbol *sym;
 
   var = lexTempLabel (ptr, len);
   if (local == FALSE && (sym = symbolFind (&var)) != NULL)
@@ -121,6 +121,8 @@ declare_var (const char *ptr, int len, const ValueTag type, BOOL local)
 	     var.LexId.len, var.LexId.str);
       return;
     }
+  else
+    sym = NULL;
   /* *Will* occur for locals redeclared as globals, hence just a warning */
   if (sym)
     {
@@ -172,14 +174,19 @@ var_inputSymbol (int *len)
 void
 c_gbl (ValueTag type, Lex * label)
 {
-  char *ptr = NULL;
-  int len = 0;
+  const char *ptr;
+  int len;
 
   if (label->tag != LexNone)
     error (ErrorWarning, TRUE, "Label not allowed here - ignoring");
   skipblanks ();
   if (!inputComment ())
     ptr = var_inputSymbol (&len);
+  else
+    {
+      len = 0;
+      ptr = NULL;
+    }
   if (!len)
     {
       error (ErrorError, TRUE, "Missing variable name");
@@ -192,7 +199,7 @@ c_gbl (ValueTag type, Lex * label)
 void
 c_lcl (ValueTag type, Lex * label)
 {
-  char *ptr;
+  const char *ptr;
   int len;
   varPos *p;
   Symbol *sym;
@@ -334,7 +341,7 @@ var_define (const char *def)
   value.Tag.t = ValueString;
   value.Tag.v = ValueString;
   value.ValueString.len = strlen (i);
-  value.ValueString.s = (char *) i;
-  /* FIXME: symbolFid() can return NULL here, no ? */
+  value.ValueString.s = i;
+  /* FIXME: symbolFind() can return NULL here, no ? */
   symbolFind (&var)->value = valueCopy (value);
 }

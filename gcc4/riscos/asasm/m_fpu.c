@@ -46,39 +46,23 @@ WORD
 fpuImm (FLOAT d)
 {
   if (d == 0.0)
-    {
-      return 0;
-    }
-  else if (d == 1.0)
-    {
-      return 1;
-    }
-  else if (d == 2.0)
-    {
-      return 2;
-    }
-  else if (d == 3.0)
-    {
-      return 3;
-    }
-  else if (d == 4.0)
-    {
-      return 4;
-    }
-  else if (d == 5.0)
-    {
-      return 5;
-    }
-  else if (d == 0.5)
-    {
-      return 6;
-    }
-  else if (d == 10.0)
-    {
-      return 7;
-    }
-  else
-    return -1;
+    return 0;
+  if (d == 1.0)
+    return 1;
+  if (d == 2.0)
+    return 2;
+  if (d == 3.0)
+    return 3;
+  if (d == 4.0)
+    return 4;
+  if (d == 5.0)
+    return 5;
+  if (d == 0.5)
+    return 6;
+  if (d == 10.0)
+    return 7;
+
+  return -1;
 }
 
 static WORD
@@ -109,9 +93,8 @@ getFloatRhs (WORD ir)
 	}
     }
   else
-    {
-      ir |= getFpuReg ();
-    }
+    ir |= getFpuReg ();
+
   return ir;
 }
 
@@ -122,7 +105,8 @@ dstlhsrhs (WORD ir)
 {
   WORD op;
 
-  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+  if (apcs_softfloat)
+    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
 
   op = getFpuReg ();
   ir |= DST_OP (op);
@@ -234,7 +218,8 @@ dstrhs (WORD ir)
 {
   WORD op;
 
-  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+  if (apcs_softfloat)
+    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
 
   op = getFpuReg ();
   ir |= DST_OP (op);
@@ -352,7 +337,8 @@ m_fix (WORD cc)
 {
   WORD ir = M_FIX | cc;
 
-  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+  if (apcs_softfloat)
+    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
 
   ir |= DST_OP (getCpuReg ());
   skipblanks ();
@@ -371,7 +357,8 @@ m_flt (WORD cc)
 {
   WORD ir = M_FLT | cc;
 
-  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+  if (apcs_softfloat)
+    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
 
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
@@ -391,7 +378,8 @@ flagtransfer (WORD ir)
 {
   WORD op;
 
-  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+  if (apcs_softfloat)
+    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
 
   op = getCpuReg ();
   ir |= DST_OP (op);
@@ -425,7 +413,8 @@ m_rfc (WORD cc)
 static void
 comparelow (WORD ir)		/* No precision and no rounding allowed ? */
 {
-  if (apcs_softfloat) error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+  if (apcs_softfloat)
+    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
 
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();

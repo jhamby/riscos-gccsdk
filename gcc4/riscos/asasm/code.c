@@ -281,7 +281,7 @@ codeEval (ValueTag legal)
 }
 
 Value
-codeEvalLow (ValueTag legal, int size, Code * program)
+codeEvalLow (ValueTag legal, int size, Code *program)
 {
   Value Result;
   Sp = -1;
@@ -312,7 +312,7 @@ codeEvalLow (ValueTag legal, int size, Code * program)
 }
 
 Code *
-codeCopy (int len, Code * code)
+codeCopy (int len, const Code *code)
 {
   int i;
   Code *newCode = malloc (len * sizeof (Code));
@@ -329,6 +329,7 @@ codeCopy (int len, Code * code)
 	    break;
 	  case CodeSymbol:
 	    newCode[i].CodeSymbol.symbol = code[i].CodeSymbol.symbol;
+	    break;
 	  }
       }
   else
@@ -337,7 +338,7 @@ codeCopy (int len, Code * code)
 }
 
 int
-codeEqual (int len, Code * a, Code * b)
+codeEqual (int len, const Code *a, const Code *b)
 {
   int i;
   for (i = 0; i < len; i++)
