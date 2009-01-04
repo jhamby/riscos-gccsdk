@@ -1,3 +1,7 @@
+Sun Jan  4 17:21:39 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* global.h,area.c,area.h,fix.c: Small code cleanup.
+
 Sun Jan  4 17:14:00 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c,code.c,m_cpuctrl.c,m_cpumem.c,get.c: Put some extra brackets

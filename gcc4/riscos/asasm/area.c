@@ -53,10 +53,10 @@ Symbol *areaHead = NULL;
 void
 areaError (void)
 {
-  static int reported = 0;
+  static BOOL reported = FALSE;
   if (!reported)
     {
-      reported = 1;
+      reported = TRUE;
       error (ErrorSerious, TRUE, "No area defined");
     }
 }

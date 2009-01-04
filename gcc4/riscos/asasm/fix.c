@@ -20,6 +20,8 @@
  * fix.c
  */
 
+#include <stdlib.h>
+
 #include "error.h"
 #include "fix.h"
 #include "global.h"

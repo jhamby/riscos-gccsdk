@@ -55,7 +55,7 @@
 #define AREA_RESERVED30		0x40000000
 #define AREA_SOFTFLOAT		0x80000000 /* Avoids FP instructions (GCCSDK extension) Normally reserved bit. */
 
-#define AREA_IMAGE(x) (!((x)->type&AREA_UDATA))
+#define AREA_IMAGE(x) (!((x)->type & AREA_UDATA))
 #define AREA_NOSPACE(x,v) ((x)->imagesize < v)
 typedef struct AREA
 {
@@ -78,6 +78,5 @@ extern void areaError (void);		/* report "No area defined" */
 extern void areaInit (void);
 extern void areaFinish (void);
 extern void areaGrow (Area * area, int mingrow);
-extern void areaPrint (Symbol * area);
 
 #endif
