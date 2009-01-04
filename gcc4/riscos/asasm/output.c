@@ -353,9 +353,8 @@ outputElf (void)
   int noareas = countAreas (areaHead);
   int norels;
   int written, offset, obj_area_size, pad, strsize;
-  int elfIndex, nsyms, shstrsize=0;
+  int elfIndex, nsyms, shstrsize;
   int i, sectionSize, sectionType;
-  Elf32_Ehdr elf_head;
   Symbol *ap;
 
   /* We must call relocFix() before anything else.  */
@@ -364,42 +363,50 @@ outputElf (void)
     ap->area.info->norelocs = relocFix (ap);
   norels = countRels(areaHead);
 
-  elf_head.e_ident[EI_MAG0] = ELFMAG0;
-  elf_head.e_ident[EI_MAG1] = ELFMAG1;
-  elf_head.e_ident[EI_MAG2] = ELFMAG2;
-  elf_head.e_ident[EI_MAG3] = ELFMAG3;
-  elf_head.e_ident[EI_CLASS] = ELFCLASS32;
-  elf_head.e_ident[EI_DATA] = ELFDATA2LSB;
-  elf_head.e_ident[EI_VERSION] = EV_CURRENT;
-  elf_head.e_ident[EI_OSABI] = ELFOSABI_ARM;
-  elf_head.e_ident[EI_ABIVERSION] = 0;
-  for (i = EI_PAD; i< EI_NIDENT; i++)
-    elf_head.e_ident[i] = 0;
-  elf_head.e_type = ET_REL;
-  elf_head.e_machine = EM_ARM;
-  elf_head.e_version = EV_CURRENT;
-  elf_head.e_entry = areaEntry?areaEntryOffset:0;
-  elf_head.e_phoff = 0;
-  elf_head.e_shoff = sizeof(elf_head);
-  /* We like to take all the aspects of EF_ARM_CURRENT but not its ARM EABI
-     version as we aren't complying with any of the versions so we set the
-     version to 0 which means EF_ARM_ABI_UNKNOWN.  */
-  elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
-  if (areaEntry)
-    elf_head.e_flags |= EF_ARM_HASENTRY;
-  elf_head.e_ehsize = sizeof(elf_head);
-  elf_head.e_phentsize = 0;
-  elf_head.e_phnum = 0;
-  elf_head.e_shentsize = sizeof(Elf32_Shdr);
-  elf_head.e_shnum = (noareas+norels)+4;
-  elf_head.e_shstrndx = (noareas+norels)+3;
+    {
+      Elf32_Ehdr elf_head;
 
-  written = fwrite (&elf_head, 1, sizeof (elf_head), objfile);
-
-  offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
-
+      elf_head.e_ident[EI_MAG0] = ELFMAG0;
+      elf_head.e_ident[EI_MAG1] = ELFMAG1;
+      elf_head.e_ident[EI_MAG2] = ELFMAG2;
+      elf_head.e_ident[EI_MAG3] = ELFMAG3;
+      elf_head.e_ident[EI_CLASS] = ELFCLASS32;
+      elf_head.e_ident[EI_DATA] = ELFDATA2LSB;
+      elf_head.e_ident[EI_VERSION] = EV_CURRENT;
+      elf_head.e_ident[EI_OSABI] = ELFOSABI_ARM;
+      elf_head.e_ident[EI_ABIVERSION] = 0;
+      for (i = EI_PAD; i< EI_NIDENT; i++)
+	elf_head.e_ident[i] = 0;
+      elf_head.e_type = ET_REL;
+      elf_head.e_machine = EM_ARM;
+      elf_head.e_version = EV_CURRENT;
+      elf_head.e_entry = areaEntry?areaEntryOffset:0;
+      elf_head.e_phoff = 0;
+      elf_head.e_shoff = sizeof(elf_head);
+      /* We like to take all the aspects of EF_ARM_CURRENT but not its
+         ARM EABI version as we aren't complying with any of the versions
+         so we set the version to 0 which means EF_ARM_ABI_UNKNOWN.  */
+      elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
+      if (apcs_softfloat)
+        elf_head.e_flags |= 0x200;
+      if (areaEntry)
+	elf_head.e_flags |= EF_ARM_HASENTRY;
+      elf_head.e_ehsize = sizeof(elf_head);
+      elf_head.e_phentsize = 0;
+      elf_head.e_phnum = 0;
+      elf_head.e_shentsize = sizeof(Elf32_Shdr);
+      elf_head.e_shnum = (noareas+norels)+4;
+      elf_head.e_shstrndx = (noareas+norels)+3;
+      
+      written = fwrite (&elf_head, 1, sizeof (elf_head), objfile);
+      
+      offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
+    }
+  shstrsize = 0;
+  
   /* Section headers - index 0 */
-  written += writeElfSH(shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);  shstrsize += 1; /* Null */
+  written += writeElfSH(shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
+  shstrsize += 1; /* Null */
 
   /* Symbol table - index 1 */
   nsyms = symbolFix();

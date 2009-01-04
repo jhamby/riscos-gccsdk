@@ -1,3 +1,8 @@
+Sun Jan  4 03:37:05 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* output.c(outputElf): Allow switch between softfloat vs hardfloat
+	ELF output.
+
 Sun Jan  4 02:24:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* storage.c: Permit use of ValueAddr in record base calculation.
