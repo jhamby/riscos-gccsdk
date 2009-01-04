@@ -1,3 +1,8 @@
+Sun Jan  4 03:58:08 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Invoke AC_C_BIGENDIAN so we have WORDS_BIGENDIAN
+	defined when necessary.
+
 Sun Jan  4 03:37:05 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* output.c(outputElf): Allow switch between softfloat vs hardfloat
