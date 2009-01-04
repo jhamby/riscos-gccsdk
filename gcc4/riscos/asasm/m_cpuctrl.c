@@ -273,7 +273,7 @@ m_adr (WORD cc)
 	relocAdr (ir, im);
       break;
     default:
-      error (ErrorError, TRUE, "Illegal ADR%s expression", cc & 1 ? "L" : "");
+      error (ErrorError, TRUE, "Illegal ADR%s expression", (cc & 1) ? "L" : "");
       break;
     }
   putIns (ir);
@@ -484,7 +484,7 @@ getpsr (BOOL only_all)
 	    }
 	  if (p)
 	    {
-	      if (saved & 1 << p)
+	      if (saved & (1 << p))
 		error (ErrorError, TRUE, "PSR mask bit '%c' already specified", c);
 	      saved |= 1 << p;
 	    }

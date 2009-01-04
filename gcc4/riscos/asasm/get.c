@@ -51,7 +51,7 @@ getCpuRegInternal (BOOL genError)
 
   sym = symbolGet (lexSym);
 
-  if (sym->type & SYMBOL_DEFINED && sym->type & SYMBOL_ABSOLUTE)
+  if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_CPUREG)
 	return sym->value.ValueInt.i;
@@ -87,7 +87,7 @@ getFpuReg (void)
 
   sym = symbolGet (lexSym);
 
-  if (sym->type & SYMBOL_DEFINED && sym->type & SYMBOL_ABSOLUTE)
+  if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_FPUREG)
 	return sym->value.ValueInt.i;
@@ -110,7 +110,7 @@ getCopReg (void)
 
   sym = symbolGet (lexSym);
 
-  if (sym->type & SYMBOL_DEFINED && sym->type & SYMBOL_ABSOLUTE)
+  if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_COPREG)
 	return sym->value.ValueInt.i;
@@ -133,7 +133,7 @@ getCopNum (void)
 
   sym = symbolGet (lexSym);
 
-  if (sym->type & SYMBOL_DEFINED && sym->type & SYMBOL_ABSOLUTE)
+  if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_COPNUM)
 	return sym->value.ValueInt.i;

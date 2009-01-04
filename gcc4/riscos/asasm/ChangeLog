@@ -1,3 +1,8 @@
+Sun Jan  4 17:14:00 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c,code.c,m_cpuctrl.c,m_cpumem.c,get.c: Put some extra brackets
+	around '&' tests where it improves readability.
+
 Sun Jan  4 15:46:16 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c,code.c,symbol.h,code.h,decode.c,variables.c,value.c

@@ -434,7 +434,7 @@ dstreglist (WORD ir)
   if (inputLook () == '^')
     {
       inputSkip ();
-      if (ir & WB_FLAG && !(ir & (1 << 15)))
+      if ((ir & WB_FLAG) && !(ir & (1 << 15)))
 	error (ErrorInfo, TRUE, "Writeback together with force user");
       ir |= FORCE_FLAG;
       skipblanks ();

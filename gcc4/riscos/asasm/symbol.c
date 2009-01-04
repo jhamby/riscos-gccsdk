@@ -43,8 +43,8 @@
 #include "symbol.h"
 
 #define SYMBOL_OUTPUT(sym) \
-  (((sym)->type & (SYMBOL_EXPORT|SYMBOL_KEEP)) > 0 \
-    && (((sym)->type & SYMBOL_DEFINED) > 0 || (sym)->used > -1))
+  (((sym)->type & (SYMBOL_EXPORT|SYMBOL_KEEP)) \
+    && (((sym)->type & SYMBOL_DEFINED) || (sym)->used > -1))
   /* must be exported & defined, or imported and referenced */
 int (SYMBOL_OUTPUT) (const Symbol *);	/* typedef it */
 
@@ -303,7 +303,6 @@ symbolFix (void)		/* Returns number of symbols */
 	      if (SYMBOL_KIND (sym->type) == 0)
 		sym->type |= SYMBOL_REFERENCE;
 	      if (SYMBOL_OUTPUT (sym) && sym->value.Tag.v == ValueConst)
-		/*(sym->used >= 0 || sym->type & SYMBOL_REFERENCE) */
 		{
 		  int label = -1, i;
 		  if (localTest (sym->str))
@@ -356,11 +355,11 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
     for (sym = symbolTable[i]; sym; sym = sym->next)
       {
 /*printf("%-40s  %3i %8X %8X %8X\n",sym->str,sym->used,sym->type,sym->value.Tag.t,sym->value.Tag.v); */
-	if (SYMBOL_OUTPUT (sym) /*(sym)->used >= 0 */  || sym->type & SYMBOL_AREA)
+	if (SYMBOL_OUTPUT (sym) || (sym->type & SYMBOL_AREA))
 	  {
 /*puts("  (written)"); */
 	    if (pedantic && sym->declared == 0)
-	      if ((sym->type & SYMBOL_DEFINED) > 0 || sym->used > -1)
+	      if ((sym->type & SYMBOL_DEFINED) || sym->used > -1)
 		errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
 	    fwrite (sym->str, 1, sym->len + 1, outfile);
 	  }
@@ -376,7 +375,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym->next)
-      if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym) /*sym->used >= 0 */ )
+      if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym))
 	{
 	  AofSymbol asym;
 	  asym.Name = sym->offset;
@@ -516,7 +515,7 @@ symbolSymbolELFOutput (FILE *outfile)
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym-> next)
-      if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym) /*sym->used >= 0 */ )
+      if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym))
         {
           asym.st_name = sym->offset - 3;
           type = 0;
@@ -558,10 +557,10 @@ symbolSymbolELFOutput (FILE *outfile)
                   v = 0;
                   break;
                 case ValueLateLabel:
-                  if (!value.ValueLate.late->next &&    /* Only one late label */
-                      value.ValueLate.late->factor == 1 &&      /* ... occuring
+                  if (!value.ValueLate.late->next    /* Only one late label */
+                      && value.ValueLate.late->factor == 1      /* ... occuring
 one time */
-                      value.ValueLate.late->symbol->type & SYMBOL_AREA)
+                      && (value.ValueLate.late->symbol->type & SYMBOL_AREA))
                     {           /* ... and it is an area */
                       if (sym->type & SYMBOL_ABSOLUTE)
                         {       /* Change absolute to relative */
@@ -604,7 +603,7 @@ one time */
             bind = STB_GLOBAL;
 
           if (SYMBOL_KIND(sym->type) == TYPE_REFERENCE &&
-              (sym->type & TYPE_WEAK) > 0)
+	      (sym->type & TYPE_WEAK))
             bind = STB_WEAK;
 
           asym.st_info = ELF32_ST_INFO(bind, type);

@@ -89,7 +89,7 @@ codeSymbol (Symbol * symbol)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
-      if (symbol->type & SYMBOL_DEFINED && !(symbol->type & SYMBOL_AREA))
+      if ((symbol->type & SYMBOL_DEFINED) && !(symbol->type & SYMBOL_AREA))
 	{
 	  if (symbol->value.Tag.v != ValueIllegal)
 	    exprNotConst = TRUE;
@@ -297,7 +297,7 @@ codeEvalLow (ValueTag legal, int size, Code *program)
     Result.Tag.t = ValueIllegal;
   if (!(Result.Tag.t & legal))
     {
-      if (autocast && legal & ValueFloat && Result.Tag.t == ValueInt)
+      if (autocast && (legal & ValueFloat) && Result.Tag.t == ValueInt)
 	{
 	  FLOAT f = Result.ValueInt.i;
 	  if (fussy > 1)
