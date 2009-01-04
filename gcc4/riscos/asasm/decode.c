@@ -106,7 +106,8 @@ checkchr (char chr)
 	switch (c) {				 \
 	  case 'a': fun(ValueInt,label); break;	 \
 	  case 'l': fun(ValueBool,label); break; \
-	  case 's': fun(ValueString,label);	 \
+	  case 's': fun(ValueString,label); break; \
+	  default: macro=TRUE; goto illegal;	 \
 	} break;
 
 #define C_FINISH_CHR(chr,fun)		 \

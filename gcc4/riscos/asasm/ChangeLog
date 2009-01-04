@@ -1,3 +1,7 @@
+Sun Jan  4 03:02:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* decode.c: Treat SET[^ALS] as illegal.
+
 Sun Jan  4 03:58:08 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac: Invoke AC_C_BIGENDIAN so we have WORDS_BIGENDIAN
