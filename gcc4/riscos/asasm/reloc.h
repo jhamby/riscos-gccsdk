@@ -33,7 +33,7 @@ typedef enum
   RelocImmFloat,		/* An immediate constant float (only 0.0 1.0 2.0, 3.0, 4.0, 5.0, 10.0 or 0.5) */
   RelocBranch,			/* Branch immediate */
   RelocBranchT,			/* Thumb branch immediate */
-  RelocSwi,			/* Swi immediate */
+  RelocSwi,			/* SWI immediate */
   RelocCpuOffset,		/* An offset in ldr/str */
   RelocCopOffset,		/* An offset in ldf/stf */
   RelocAdr,			/* Used in pseudoinstruction adr */
@@ -61,9 +61,9 @@ typedef struct RELOC
 }
 Reloc;
 
-int relocFix (Symbol * area);
-void relocOutput (FILE * outfile, Symbol * area);
-void relocElfOutput (FILE * outfile, Symbol * area);
+int relocFix (const Symbol *area);
+void relocAOFOutput (FILE *outfile, const Symbol *area);
+void relocELFOutput (FILE *outfile, const Symbol *area);
 
 void relocShiftImm (WORD shiftop, Value shift);
 void relocImm8s4 (WORD ir, Value im8s4);

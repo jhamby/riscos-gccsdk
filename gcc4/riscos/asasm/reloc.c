@@ -49,25 +49,27 @@
   (((image)[(offset)+3]<<24) | ((image)[(offset)+2]<<16) | \
    ((image)[(offset)+1]<<8 ) |  (image)[(offset)  ])
 
-static const char *relocstr[] =
-{
-  "RelocShiftImm",
-  "RelocImm8s4",
-  "RelocImmFloat",
-  "RelocBranch",
-  "RelocBranchT",
-  "RelocSWI",
-  "RelocCpuOffset",
-  "RelocCopOffset",
-  "RelocAdr",
-  "RelocAdrl",
-  "RelocImmN",
-  "RelocFloat",
-  "RelocNone"
-};
 
-static const char *reloc2String (RelocTag tag)
+static const char *
+reloc2String (RelocTag tag)
 {
+  static const char * const relocstr[] =
+  {
+    "RelocShiftImm",
+    "RelocImm8s4",
+    "RelocImmFloat",
+    "RelocBranch",
+    "RelocBranchT",
+    "RelocSWI",
+    "RelocCpuOffset",
+    "RelocCopOffset",
+    "RelocAdr",
+    "RelocAdrl",
+    "RelocImmN",
+    "RelocFloat",
+    "RelocNone"
+  };
+
   return relocstr[tag];
 }
 
@@ -97,7 +99,7 @@ relocOp (int word, Value * value, RelocTag tag)
 {
   if (areaCurrent)
     {
-        Reloc *newReloc;
+      Reloc *newReloc;
 
       newReloc = relocNew (areaCurrent->area.info->relocs, tag,
 		      areaCurrent->value.ValueInt.i, *value);
@@ -243,7 +245,7 @@ relocLate2Reloc (Reloc * r, Value * value)
 
 
 static int
-relocEval (Reloc * r, Value * value, Symbol * area)
+relocEval (Reloc *r, Value *value, const Symbol *area)
 {
   int norelocs = 0;
 
@@ -339,9 +341,8 @@ relocEval (Reloc * r, Value * value, Symbol * area)
 	    LateInfo *late;
 
 	  for (late = value->ValueLate.late; late; late = late->next)
-	    if (late->factor > 0)
-	      if (!(late->symbol->type & SYMBOL_AREA))
-		late->symbol->used++;
+	    if (late->factor > 0 && !(late->symbol->type & SYMBOL_AREA))
+	      late->symbol->used++;
 	  break;
 	  }
 
@@ -367,7 +368,7 @@ relocEval (Reloc * r, Value * value, Symbol * area)
 
 
 static void
-relocWrite (Reloc * r, Value * value, unsigned char *image)
+relocWrite (Reloc *r, const Value *value, unsigned char *image)
 {
   int offset = r->offset;
   WORD w, w1;
@@ -534,15 +535,15 @@ relocWrite (Reloc * r, Value * value, unsigned char *image)
 
 
 int
-relocFix (Symbol * area)
+relocFix (const Symbol *area)
 {
   unsigned char *image = area->area.info->image;
-  Reloc *relocs = area->area.info->relocs;
+  Reloc *relocs;
   int norelocs = 0;
-  Value value;
 
-  while (relocs)
+  for (relocs = area->area.info->relocs; relocs; relocs = relocs->more)
     {
+      Value value;
       switch (relocs->value.Tag.t)
 	{
 	case ValueInt:
@@ -559,22 +560,22 @@ relocFix (Symbol * area)
 	}
       if (relocs->Tag != RelocNone)	/* We now have a Value */
 	relocWrite (relocs, &value, image);
-      relocs = relocs->more;
     }
   return norelocs;
 }
 
 
 void
-relocOutput (FILE * outfile, Symbol * area)
+relocAOFOutput (FILE *outfile, const Symbol *area)
 {
   Reloc *relocs;
-  AofReloc areloc;
-  int loop = 0, ip;
-  unsigned int How;
 
   for (relocs = area->area.info->relocs; relocs; relocs = relocs->more)
     {
+      int ip;
+      unsigned int How;
+      AofReloc areloc;
+
       switch (relocs->Tag)
 	{
 	case RelocImmN:
@@ -602,9 +603,7 @@ relocOutput (FILE * outfile, Symbol * area)
 	  if (relocs->value.Tag.t == ValueCode
 	      && (relocs->value.ValueCode.c->CodeSymbol.symbol->type & SYMBOL_AREA)
 	      && (relocs->value.ValueCode.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
-	    {
-	      How = HOW3_INIT | HOW3_INSTR | HOW3_BASED ;
-	    }
+	    How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
 	  else
 	    How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
 	  break;
@@ -626,10 +625,14 @@ relocOutput (FILE * outfile, Symbol * area)
       areloc.Offset = armword(relocs->offset);
       for (ip = 0; ip < relocs->value.ValueCode.len; ip++)
 	{
+	  int loop;
 	  if (relocs->value.ValueCode.c[ip].Tag == CodeValue)
 	    {
 	      if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag.t != ValueInt)
-		errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal relocsOutput: not an int");
+		{
+		  errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal relocsOutput: not an int");
+		  loop = 0;
+		}
 	      else
 		loop = relocs->value.ValueCode.c[ip++].CodeValue.value.ValueInt.i;
 	    }
@@ -642,21 +645,22 @@ relocOutput (FILE * outfile, Symbol * area)
 	    areloc.How |= HOW2_SYMBOL;
 	  areloc.How = armword(areloc.How);
 	  while (loop--)
-	    fwrite ((void *) &areloc, 1, 8, outfile);
+	    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
 	}
     }
 }
 
 #ifndef NO_ELF_SUPPORT
 void
-relocElfOutput (FILE * outfile, Symbol * area)
+relocELFOutput (FILE *outfile, const Symbol *area)
 {
   Reloc *relocs;
-  Elf32_Rel areloc;
-  int How, loop = 0, ip;
-  int symbol, type;
   for (relocs = area->area.info->relocs; relocs; relocs = relocs->more)
     {
+      int ip;
+      unsigned int How;
+      Elf32_Rel areloc;
+
       switch (relocs->Tag)
         {
         case RelocImmN:
@@ -683,11 +687,8 @@ relocElfOutput (FILE * outfile, Symbol * area)
         case RelocCopOffset:
           if (relocs->value.Tag.t == ValueCode
               && (relocs->value.ValueCode.c->CodeSymbol.symbol->type & SYMBOL_AREA)
-              && (relocs->value.ValueCode.c->CodeSymbol.symbol->area.info->type
-& AREA_BASED))
-            {
-              How = HOW3_INIT | HOW3_INSTR | HOW3_BASED ;
-            }
+              && (relocs->value.ValueCode.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
+            How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
           else
             How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
           break;
@@ -709,10 +710,14 @@ relocElfOutput (FILE * outfile, Symbol * area)
       areloc.r_offset = armword(relocs->offset);
       for (ip = 0; ip < relocs->value.ValueCode.len; ip++)
         {
+	  int loop, symbol, type;
           if (relocs->value.ValueCode.c[ip].Tag == CodeValue)
             {
               if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag.t != ValueInt)
-                errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal relocsOutput: not an int");
+		{
+                  errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal relocsOutput: not an int");
+		  loop = 0;
+		}
               else
                 loop = relocs->value.ValueCode.c[ip++].CodeValue.value.ValueInt.i;
             }
@@ -721,20 +726,20 @@ relocElfOutput (FILE * outfile, Symbol * area)
           if (relocs->value.ValueCode.c[ip].Tag != CodeSymbol)
             errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal error in relocsOutput");
 
-          How = How | relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
+          How |= relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
           if (!(relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
             How |= HOW2_SYMBOL;
 
-        symbol = (How & HOW3_SIDMASK) + 1;
+          symbol = (How & HOW3_SIDMASK) + 1;
 
-        if (How & HOW3_RELATIVE)
-                type = R_ARM_PC24;
-        else
-                type = R_ARM_ABS32;
+          if (How & HOW3_RELATIVE)
+            type = R_ARM_PC24;
+          else
+            type = R_ARM_ABS32;
 
-        areloc.r_info = ELF32_R_INFO(symbol, type);
+          areloc.r_info = ELF32_R_INFO(symbol, type);
           while (loop--)
-            fwrite ((void *) &areloc, 1, sizeof(Elf32_Rel), outfile);
+            fwrite (&areloc, 1, sizeof(Elf32_Rel), outfile);
         }
     }
 }

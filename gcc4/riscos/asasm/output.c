@@ -308,7 +308,7 @@ outputAof (void)
 	  /* Word align the written area.  */
 	  for (pad = EXTRA (ap->value.ValueInt.i); pad; --pad)
 	    fputc (0, objfile);
-	  relocOutput (objfile, ap);
+	  relocAOFOutput (objfile, ap);
 	}
     }
 }
@@ -485,7 +485,7 @@ outputElf (void)
 	  for (pad = EXTRA (ap->value.ValueInt.i); pad; --pad)
 	    fputc (0, objfile);
           if (ap->area.info->norelocs)
-            relocElfOutput (objfile, ap);
+            relocELFOutput (objfile, ap);
         }
     }
 

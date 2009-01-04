@@ -1,3 +1,7 @@
+Sun Jan  4 15:31:53 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* reloc.c,reloc.h,output: Small code cleanup.
+
 Sun Jan  4 03:26:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* m_cpuctrl.c: Permit ValueAddr as SWI value.
