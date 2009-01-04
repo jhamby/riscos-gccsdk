@@ -1,3 +1,7 @@
+Sun Jan  4 03:26:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* m_cpuctrl.c: Permit ValueAddr as SWI value.
+
 Sun Jan  4 03:16:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* input.c: Invalidate asmfile in inputFinish. This allows multiple

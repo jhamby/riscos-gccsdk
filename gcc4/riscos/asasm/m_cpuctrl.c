@@ -166,11 +166,15 @@ m_swi (WORD cc)
       error (ErrorInfo, TRUE, "SWI is always immediate");
     }
   exprBuild ();
-  im = exprEval (ValueInt | ValueString | ValueCode | ValueLateLabel);
+  im = exprEval (ValueInt | ValueAddr | ValueString | ValueCode | 
+                 ValueLateLabel);
   switch (im.Tag.t)
     {
     case ValueInt:
       ir |= fixSwi (inputLineNo, im.ValueInt.i);
+      break;
+    case ValueAddr:
+      ir |= fixSwi (inputLineNo, im.ValueAddr.i);
       break;
     case ValueCode:
     case ValueLateLabel:
