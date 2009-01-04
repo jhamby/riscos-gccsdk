@@ -62,7 +62,7 @@ m_branch (WORD cc)
       break;
     default:
       exprBuild ();
-      codePosition (areaCurrent);	/* It's relative */
+      codePosition (areaCurrentSymbol);	/* It's relative */
       codeOperator (Op_sub);
       codeInt (8);
       codeOperator (Op_sub);
@@ -114,7 +114,7 @@ m_blx (WORD cc)
 	  break;
 	default:
 	  exprBuild ();
-	  codePosition (areaCurrent);
+	  codePosition (areaCurrentSymbol);
 	  codeOperator (Op_sub);
 	  codeInt (8);
 	  codeOperator (Op_sub);
@@ -252,7 +252,7 @@ m_adr (WORD cc)
   else
     error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
   exprBuild ();
-  codePosition (areaCurrent);	/* It's relative */
+  codePosition (areaCurrentSymbol);	/* It's relative */
   codeOperator (Op_sub);
   codeInt (8);
   codeOperator (Op_sub);

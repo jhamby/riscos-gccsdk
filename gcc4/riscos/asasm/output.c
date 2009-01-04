@@ -199,7 +199,7 @@ writeEntry (int ID, int type, int size, int *offset)
 void
 outputAof (void)
 {
-  int noareas = countAreas (areaHead);
+  int noareas = countAreas (areaHeadSymbol);
   unsigned int idfn_size, strt_size;
   int offset, pad, written, obj_area_size;
   Symbol *ap;
@@ -211,7 +211,7 @@ outputAof (void)
   /* We must call relocFix() before anything else.  */
   obj_area_size = 0;
   /* avoid problems with no areas.  */
-  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       ap->area.info->norelocs = relocFix (ap);
       if (AREA_IMAGE (ap->area.info))
@@ -223,8 +223,8 @@ outputAof (void)
   aof_head.Version = armword (310);
   aof_head.noAreas = armword (noareas);
   aof_head.noSymbols = armword (symbolFix ());
-  aof_head.EntryArea = armword (areaEntry ? areaEntry->used + 1 : 0);
-  aof_head.EntryOffset = armword (areaEntry ? areaEntryOffset : 0);
+  aof_head.EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->used + 1 : 0);
+  aof_head.EntryOffset = armword (areaEntrySymbol ? areaEntryOffset : 0);
 
   /* Write out the chunk file header.  */
   chunk_header.ChunkField = armword (ChunkFileID);
@@ -258,7 +258,7 @@ outputAof (void)
 /******** Chunk 0 Header ********/
   fwrite (&aof_head, 1, sizeof (aof_head), objfile);
 
-  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       aof_entry.Name = armword (ap->offset);
       aof_entry.Type = armword (ap->area.info->type);
@@ -294,7 +294,7 @@ outputAof (void)
   symbolSymbolAOFOutput (objfile);
 
 /******** Chunk 4 Area *****************/
-  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       if (AREA_IMAGE (ap->area.info))
 	{
@@ -350,7 +350,7 @@ writeElfSH (int nmoffset, int type, int flags, int size,
 void
 outputElf (void)
 {
-  int noareas = countAreas (areaHead);
+  int noareas = countAreas (areaHeadSymbol);
   int norels;
   int written, offset, obj_area_size, pad, strsize;
   int elfIndex, nsyms, shstrsize;
@@ -359,9 +359,9 @@ outputElf (void)
 
   /* We must call relocFix() before anything else.  */
   obj_area_size = 0;
-  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     ap->area.info->norelocs = relocFix (ap);
-  norels = countRels(areaHead);
+  norels = countRels(areaHeadSymbol);
 
     {
       Elf32_Ehdr elf_head;
@@ -380,7 +380,7 @@ outputElf (void)
       elf_head.e_type = ET_REL;
       elf_head.e_machine = EM_ARM;
       elf_head.e_version = EV_CURRENT;
-      elf_head.e_entry = areaEntry?areaEntryOffset:0;
+      elf_head.e_entry = areaEntrySymbol?areaEntryOffset:0;
       elf_head.e_phoff = 0;
       elf_head.e_shoff = sizeof(elf_head);
       /* We like to take all the aspects of EF_ARM_CURRENT but not its
@@ -389,7 +389,7 @@ outputElf (void)
       elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
       if (apcs_softfloat)
         elf_head.e_flags |= 0x200;
-      if (areaEntry)
+      if (areaEntrySymbol)
 	elf_head.e_flags |= EF_ARM_HASENTRY;
       elf_head.e_ehsize = sizeof(elf_head);
       elf_head.e_phentsize = 0;
@@ -425,7 +425,7 @@ outputElf (void)
   /* Area headers - index 3 */
   
   elfIndex = 3;
-  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       int areaFlags = 0;
       if (ap->area.info->type & AREA_CODE)
@@ -434,7 +434,7 @@ outputElf (void)
         areaFlags |= SHF_WRITE;
       if (ap->area.info->type & AREA_COMMONDEF)
         areaFlags |= SHF_COMDEF;
-      if (ap == areaEntry)
+      if (ap == areaEntrySymbol)
         areaFlags |= SHF_ENTRYSECT;
       areaFlags |= SHF_ALLOC;
       sectionSize = FIX (ap->value.ValueInt.i);
@@ -470,7 +470,7 @@ outputElf (void)
     fputc (0, objfile);
 
   /* Areas */
-  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       if (AREA_IMAGE (ap->area.info))
         {
@@ -493,7 +493,7 @@ outputElf (void)
   fputc (0, objfile);
   fwrite (".symtab", 1, sizeof(".symtab"), objfile);
   fwrite (".strtab", 1, sizeof(".strtab"), objfile);
-  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       fwrite (ap->str, 1, ap->len + 1, objfile);
       if (ap->area.info->norelocs)

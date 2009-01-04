@@ -99,13 +99,13 @@ asm_label (Lex * label)
  */
   symbol = symbolAdd (*label);
 //  symbol = symbolGet(*label);
-  if (areaCurrent)
+  if (areaCurrentSymbol)
     {
-      symbol->value = valueLateToCode (areaCurrent->value.ValueInt.i,
-				       codeNewLateInfo (areaCurrent));
+      symbol->value = valueLateToCode (areaCurrentSymbol->value.ValueInt.i,
+				       codeNewLateInfo (areaCurrentSymbol));
       symbol->type |= SYMBOL_ABSOLUTE;
       /* If the current area is a based area, then set the based bit.  */
-      if (areaCurrent->area.info->type & AREA_BASED)
+      if (areaCurrentSymbol->area.info->type & AREA_BASED)
 	symbol->type |= SYMBOL_BASED;
     }
   else

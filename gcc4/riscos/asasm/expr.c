@@ -60,7 +60,7 @@ prim (void)
       codeStorage ();
       break;
     case LexPosition:
-      codePosition (areaCurrent);
+      codePosition (areaCurrentSymbol);
       break;
     case LexOperator:
       prim ();

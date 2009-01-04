@@ -213,7 +213,7 @@ symbolAdd (Lex l)
 	    {
 	      if (search->type & SYMBOL_AREA)
 	        {
-	          if (areaCurrent->value.ValueInt.i != 0)
+	          if (areaCurrentSymbol->value.ValueInt.i != 0)
 		    error (ErrorError, TRUE, "Symbol %.*s is already defined as area with incompatible definition",
 		           l.LexId.len, l.LexId.str);
 		}
@@ -481,7 +481,7 @@ findAreaIndex (struct AREA * area)
   Symbol *ap;
   int i=3;
 
-  for (ap=areaHead; ap; ap=ap->area.info->next)
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       if (area == (struct AREA *)ap)
         return i;

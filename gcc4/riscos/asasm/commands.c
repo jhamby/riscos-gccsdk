@@ -141,8 +141,8 @@ c_cp (Symbol * symbol)
 void
 c_ltorg (void)
 {
-  if (areaCurrent)
-    litOrg (areaCurrent->area.info->lits);
+  if (areaCurrentSymbol)
+    litOrg (areaCurrentSymbol->area.info->lits);
   else
     areaError ();
 }
@@ -199,14 +199,14 @@ c_head (void)
   int i;
   Value value;
 
-  i = areaCurrent ? areaCurrent->value.ValueInt.i : 0;
+  i = areaCurrentSymbol ? areaCurrentSymbol->value.ValueInt.i : 0;
   skipblanks ();
   exprBuild ();
   value = exprEval (ValueString);
   switch (value.Tag.t)
     {
     case ValueString:
-      if (areaCurrent)
+      if (areaCurrentSymbol)
 	{
 	  int len = value.ValueString.len;
 	  const char *str = value.ValueString.s;
@@ -219,11 +219,11 @@ c_head (void)
       error (ErrorError, TRUE, "Illegal %s expression", "string");
       break;
     }
-  if (areaCurrent)
+  if (areaCurrentSymbol)
     {
-      while (areaCurrent->value.ValueInt.i & 3)
-	areaCurrent->area.info->image[areaCurrent->value.ValueInt.i++] = 0;
-      putData (4, 0xFF000000 + (areaCurrent->value.ValueInt.i - i));
+      while (areaCurrentSymbol->value.ValueInt.i & 3)
+	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = 0;
+      putData (4, 0xFF000000 + (areaCurrentSymbol->value.ValueInt.i - i));
     }
   else
     areaError ();

@@ -204,7 +204,7 @@ dstmem (WORD ir)
          instruction for later pre-processing.  */
       ir |= PRE_FLAG;
       exprBuild ();
-      codePosition (areaCurrent);
+      codePosition (areaCurrentSymbol);
       codeOperator (Op_sub);
       codeInt (8);
       codeOperator (Op_sub);

@@ -44,10 +44,10 @@
 #define DOUBLE_UP_TO (128*1024)
 #define GROWSIZE      (16*1024)
 
-Symbol *areaCurrent = NULL;
-Symbol *areaEntry = NULL;
+Symbol *areaCurrentSymbol = NULL;
+Symbol *areaEntrySymbol = NULL;
 int areaEntryOffset;
-Symbol *areaHead = NULL;
+Symbol *areaHeadSymbol = NULL;
 
 
 void
@@ -68,7 +68,7 @@ areaNew (int type)
   Area *res = malloc (sizeof (Area));
   if (res)
     {
-      res->next = areaHead;
+      res->next = areaHeadSymbol;
       res->type = type;
       res->imagesize = 0;
       res->image = NULL;
@@ -121,16 +121,16 @@ areaGrow (Area * area, int mingrow)
 void
 areaInit (void)
 {
-  areaCurrent = NULL;
+  areaCurrentSymbol = NULL;
 }
 
 void
 areaFinish (void)		/* insert ltorg at end of all areas */
 {
   Symbol *ap;
-  for (ap = areaHead; ap != NULL; ap = ap->area.info->next)
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
-      areaCurrent = ap;
+      areaCurrentSymbol = ap;
       litOrg (ap->area.info->lits);
     }
 }
@@ -138,14 +138,14 @@ areaFinish (void)		/* insert ltorg at end of all areas */
 void
 c_entry (void)
 {
-  if (areaCurrent)
+  if (areaCurrentSymbol)
     {
-      if (areaEntry)
+      if (areaEntrySymbol)
 	error (ErrorError, FALSE, "More than one ENTRY");
       else
 	{
-	  areaEntry = areaCurrent;
-	  areaEntryOffset = areaCurrent->value.ValueInt.i;
+	  areaEntrySymbol = areaCurrentSymbol;
+	  areaEntryOffset = areaCurrentSymbol->value.ValueInt.i;
 	}
     }
   else
@@ -158,7 +158,7 @@ c_align (void)
 {
   int alignValue, offsetValue, unaligned;
 
-  if (!areaCurrent)
+  if (!areaCurrentSymbol)
     {
       areaError ();
       return;
@@ -223,18 +223,18 @@ c_align (void)
     }
   /* We have to align on alignValue + offsetValue */
 
-  unaligned = (offsetValue - areaCurrent->value.ValueInt.i) % alignValue;
+  unaligned = (offsetValue - areaCurrentSymbol->value.ValueInt.i) % alignValue;
   if (unaligned || offsetValue >= alignValue)
     {
       int bytesToStuff = (unaligned < 0) ? alignValue + unaligned : unaligned;
 
       bytesToStuff += (offsetValue / alignValue)*alignValue;
 
-      if (AREA_NOSPACE (areaCurrent->area.info, areaCurrent->value.ValueInt.i + bytesToStuff))
-	areaGrow (areaCurrent->area.info, bytesToStuff);
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.ValueInt.i + bytesToStuff))
+	areaGrow (areaCurrentSymbol->area.info, bytesToStuff);
 
       for (; bytesToStuff; --bytesToStuff)
-	areaCurrent->area.info->image[areaCurrent->value.ValueInt.i++] = 0;
+	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = 0;
     }
 }
 
@@ -244,7 +244,7 @@ c_reserve (void)
 {
   Value value;
 
-  if (!areaCurrent)
+  if (!areaCurrentSymbol)
     {
       areaError ();
       return;
@@ -254,15 +254,15 @@ c_reserve (void)
   value = exprEval (ValueInt);
   if (value.Tag.t == ValueInt)
     {
-      int i = areaCurrent->value.ValueInt.i;
+      int i = areaCurrentSymbol->value.ValueInt.i;
 
-      if (AREA_NOSPACE (areaCurrent->area.info, i + value.ValueInt.i))
-	areaGrow (areaCurrent->area.info, value.ValueInt.i);
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, i + value.ValueInt.i))
+	areaGrow (areaCurrentSymbol->area.info, value.ValueInt.i);
 
-      areaCurrent->value.ValueInt.i += value.ValueInt.i;
+      areaCurrentSymbol->value.ValueInt.i += value.ValueInt.i;
 
-      for (; i < areaCurrent->value.ValueInt.i; i++)
-	areaCurrent->area.info->image[i] = 0;
+      for (; i < areaCurrentSymbol->value.ValueInt.i; i++)
+	areaCurrentSymbol->area.info->image[i] = 0;
     }
   else
     error (ErrorError, TRUE, "Unresolved reserve not possible");
@@ -290,7 +290,7 @@ c_area (void)
       sym->value.Tag.t = ValueInt;
       sym->value.ValueInt.i = 0;
       sym->area.info = areaNew (0);
-      areaHead = sym;
+      areaHeadSymbol = sym;
     }
   skipblanks ();
   while ((c = inputGet ()) == ',')
@@ -420,5 +420,5 @@ c_area (void)
   if (newtype && oldtype && newtype != oldtype)
     error (ErrorError, TRUE, "Changing attribute of area %s", sym->str);
   sym->area.info->type |= newtype;
-  areaCurrent = sym;
+  areaCurrentSymbol = sym;
 }

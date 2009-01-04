@@ -227,7 +227,7 @@ help_copAddr (WORD ir, BOOL stack)
       /*  cop_reg,Address */
       ir |= PRE_FLAG | LHS_OP (15);
       exprBuild ();
-      codePosition (areaCurrent);
+      codePosition (areaCurrentSymbol);
       codeOperator (Op_sub);
       codeInt (8);
       codeOperator (Op_sub);

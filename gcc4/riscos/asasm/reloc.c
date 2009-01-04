@@ -97,14 +97,14 @@ relocNew (Reloc * more, RelocTag tag, int offset, Value value)
 static void
 relocOp (int word, Value * value, RelocTag tag)
 {
-  if (areaCurrent)
+  if (areaCurrentSymbol)
     {
       Reloc *newReloc;
 
-      newReloc = relocNew (areaCurrent->area.info->relocs, tag,
-		      areaCurrent->value.ValueInt.i, *value);
+      newReloc = relocNew (areaCurrentSymbol->area.info->relocs, tag,
+		      areaCurrentSymbol->value.ValueInt.i, *value);
       newReloc->extra = word;
-      areaCurrent->area.info->relocs = newReloc;
+      areaCurrentSymbol->area.info->relocs = newReloc;
     }
   else
     areaError ();
@@ -205,10 +205,10 @@ relocFloat (int size, Value value)
 void
 relocAdd (Reloc * newReloc)
 {
-  if (areaCurrent)
+  if (areaCurrentSymbol)
     {
-      newReloc->more = areaCurrent->area.info->relocs;
-      areaCurrent->area.info->relocs = newReloc;
+      newReloc->more = areaCurrentSymbol->area.info->relocs;
+      areaCurrentSymbol->area.info->relocs = newReloc;
     }
   else
     areaError ();

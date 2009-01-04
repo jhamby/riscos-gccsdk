@@ -1,3 +1,10 @@
+Sun Jan  4 20:04:39 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c,symbol.c,put.c,m_cpuctrl.c,help_cop.c,m_cpumem.c,area.c,
+	area.h,expr.c,output.c,reloc.c,asm.c,lit.c,lex.c: Rename 
+	areaCurrent/areaEntry/areaHead to
+	areaCurrentSymbol/areaEntrySymbol/areaHeadSymbol.
+
 Sun Jan  4 17:21:39 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* global.h,area.c,area.h,fix.c: Small code cleanup.

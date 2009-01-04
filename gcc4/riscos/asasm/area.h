@@ -59,7 +59,7 @@
 #define AREA_NOSPACE(x,v) ((x)->imagesize < v)
 typedef struct AREA
 {
-  Symbol *next;
+  Symbol *next;			/** The following area symbol.  */
   unsigned int type;		/* See AREA_ #defines */
   int imagesize;
   unsigned char *image;
@@ -69,10 +69,10 @@ typedef struct AREA
 }
 Area;
 
-extern Symbol *areaCurrent;
-extern Symbol *areaEntry;
+extern Symbol *areaCurrentSymbol; /** Symbol of the area which is currently being processed.  */
+extern Symbol *areaEntrySymbol; /** Symbol of area which has been marked as ENTRY point.  */
 extern int areaEntryOffset;
-extern Symbol *areaHead;
+extern Symbol *areaHeadSymbol; /** Start of the linked list of all area symbols seen so far.  */
 
 extern void areaError (void);		/* report "No area defined" */
 extern void areaInit (void);

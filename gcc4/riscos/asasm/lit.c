@@ -96,11 +96,11 @@ litInfoNew (LitInfo * more, RelocTag tag, WORD extra, Value value)
 static void
 litNew (RelocTag tag, WORD extra, int offset, int notbefore, Value value)
 {
-  LitInfo *p = litFind (areaCurrent->area.info->lits, tag, extra, notbefore, value);
+  LitInfo *p = litFind (areaCurrentSymbol->area.info->lits, tag, extra, notbefore, value);
   if (!p)
     {
-      p = litInfoNew (areaCurrent->area.info->lits, tag, extra, value);
-      areaCurrent->area.info->lits = p;
+      p = litInfoNew (areaCurrentSymbol->area.info->lits, tag, extra, value);
+      areaCurrentSymbol->area.info->lits = p;
     }
   p->used = litListNew (p->used, offset);
 }
@@ -108,9 +108,9 @@ litNew (RelocTag tag, WORD extra, int offset, int notbefore, Value value)
 void
 litInt (int size, Value value)
 {
-  if (areaCurrent)
+  if (areaCurrentSymbol)
     {
-      litNew (RelocImmN, size, areaCurrent->value.ValueInt.i, areaCurrent->value.ValueInt.i - 4095, value);
+      litNew (RelocImmN, size, areaCurrentSymbol->value.ValueInt.i, areaCurrentSymbol->value.ValueInt.i - 4095, value);
     }
   else
     error (ErrorError, TRUE, "No area defined");
@@ -120,14 +120,14 @@ void
 litOrg (LitInfo * li)
 {
   LitList *ll, *nll;
-  unsigned char *image = areaCurrent->area.info->image;
+  unsigned char *image = areaCurrentSymbol->area.info->image;
   BOOL fp;
 
   for (; li; li = li->next)
     {
       if (li->reloc.lineno < 0)
 	{
-	  li->reloc.offset = areaCurrent->value.ValueInt.i;
+	  li->reloc.offset = areaCurrentSymbol->value.ValueInt.i;
 	  relocAdd (&li->reloc);
 	}
       fp = li->reloc.value.Tag.t == ValueFloat;
