@@ -1,3 +1,9 @@
+Sun Jan  4 02:03:21 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/elf2aif.c: Make AIF output file executable when running on a
+	non-RISC OS platform.
+	* configure.ac: version 0.04.
+
 Wed Aug 15 21:48:59 CEST 2007  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/elf2aif.c: report the ELF filename in error messages; remove the

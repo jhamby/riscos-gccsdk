@@ -1,5 +1,5 @@
 /* Static linked ELF to AIF convertor for ARM binaries
-   Copyright (c) 2006, 2007 GCCSDK Developers
+   Copyright (c) 2006, 2007, 2009 GCCSDK Developers
 
    Written by John Tytgat.
 
@@ -28,6 +28,8 @@
 #ifdef __riscos__
 #  include <kernel.h>
 #  include <swis.h>
+#else
+#  include <sys/stat.h>
 #endif
 
 #ifdef HAVE_CONFIG_H
@@ -37,7 +39,7 @@
 #include "elf/common.h"
 #include "elf/external.h"
 
-#define COPYRIGHT "Copyright (c) 2006, 2007 GCCSDK Developers"
+#define COPYRIGHT "Copyright (c) 2006, 2007, 2009 GCCSDK Developers"
 #define DISCLAIMER "This is free software; see the source for copying conditions.  There is NO\n" \
                    "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
 
@@ -602,7 +604,35 @@ convert_end:
 	}
       aifhandle = NULL;
     }
-  /* Remove output file, if there is one written.  */
+#ifndef __riscos__
+  if (status == EXIT_SUCCESS)
+    {
+      /* Make AIF output file executable so we can run it with e.g. QEMU.  */
+      struct stat buf;
+      if (stat (aiffilename, &buf) < 0)
+	{
+	  fprintf (stderr, "Failed to get file status '%s'\n", aiffilename);
+	  status = EXIT_FAILURE;
+	}
+      else
+	{
+	  buf.st_mode &= S_IRWXU | S_IRWXG | S_IRWXO;
+	  if (buf.st_mode & S_IRUSR)
+	    buf.st_mode |= S_IXUSR;
+	  if (buf.st_mode & S_IRGRP)
+	    buf.st_mode |= S_IXGRP;
+	  if (buf.st_mode & S_IROTH)
+	    buf.st_mode |= S_IXOTH;
+	  if (chmod (aiffilename, buf.st_mode) < 0)
+	    {
+	      fprintf (stderr, "Failed to make '%s' executable\n", aiffilename);
+	      status = EXIT_FAILURE;
+	    }
+	}
+    }
+#endif
+  /* When there was an error, remove the output file if there was one
+     written.  */
   if (status != EXIT_SUCCESS)
     {
       if (aiffile_exists)
