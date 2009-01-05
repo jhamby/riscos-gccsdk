@@ -275,17 +275,20 @@ symbolFind (const Lex * l)
 
 static int stringtablesize = -1;
 
+/**
+ * Calculates number of symbols which need to be written in the output file
+ * together with the total string size needed for all those symbols.
+ * \param stringSizeNeeded Pointer to a value which will on return contain the
+ * total length of symbol strings.
+ * \return number of symbols which need to be written in output file.
+ */
 int
-symbolFix (void)		/* Returns number of symbols */
+symbolFix (int *stringSizeNeeded)
 {
   int nosym = 0;
-  int strsize = 4;		/* Always contains its length */
+  int strsize = 0;		/* Always contains its length */
   int i;
   Symbol *sym;
-  char routine[1024];
-  void *area; /* FIXME: this is not usefully used. Why ? */
-  const char *file;
-  long int lineno;
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     {
@@ -306,14 +309,20 @@ symbolFix (void)		/* Returns number of symbols */
 		  int label = -1, i;
 		  if (localTest (sym->str))
 		    {
+		      void *area; /* FIXME: this is not usefully used. Why ? */
+		      char routine[1024];
 		      *routine = 0;
 		      if (sscanf (sym->str, localFormat, &area, &label, &i, &routine) > 2)
 			{
+			  const char *file;
+			  long int lineno;
 			  localFindRout (routine, &file, &lineno);
 			  errorLine (lineno, file, ErrorError, FALSE, "Missing local label (fwd) with ID %02i in routine '%s'%s", label, *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
 			}
 		      else if (sscanf (sym->str + sizeof ("Local$$")-1, "%i$$%s", &i, routine) > 0)
 			{
+			  const char *file;
+			  long int lineno;
 			  localFindLocal (i, &file, &lineno);
 			  errorLine (lineno, file, ErrorError, FALSE, "Missing local label '%s'%s", *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
 			}
@@ -332,23 +341,19 @@ symbolFix (void)		/* Returns number of symbols */
 	    }
 	}
     }
-  stringtablesize = strsize;
+  *stringSizeNeeded = strsize;
   return nosym;
 }
 
-int
-symbolStringSize (void)
-{
-  if (stringtablesize < 0)
-    error (ErrorSerious, FALSE, "Internal symbolStringSize: bad string table size");
-  return stringtablesize;
-}
-
+/**
+ * This should exactly write *stringSizeNeeded bytes (with *stringSizeNeeded
+ * the value returned by symbolFix()).
+ */
 void
 symbolStringOutput (FILE * outfile)	/* Count already output */
 {
   int i;
-  Symbol *sym;
+  const Symbol *sym;
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym->next)
@@ -357,9 +362,9 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
 	if (SYMBOL_OUTPUT (sym) || (sym->type & SYMBOL_AREA))
 	  {
 /*puts("  (written)"); */
-	    if (pedantic && sym->declared == 0)
-	      if ((sym->type & SYMBOL_DEFINED) || sym->used > -1)
-		errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
+	    if (pedantic && sym->declared == 0
+		&& ((sym->type & SYMBOL_DEFINED) || sym->used > -1))
+	      errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
 	    fwrite (sym->str, 1, sym->len + 1, outfile);
 	  }
       }
@@ -377,7 +382,7 @@ symbolSymbolAOFOutput (FILE *outfile)
       if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym))
 	{
 	  AofSymbol asym;
-	  asym.Name = sym->offset;
+	  asym.Name = sym->offset + 4; /* + 4 to skip the initial length */
 	  if (sym->type & SYMBOL_DEFINED)
 	    {
 	      int v;
@@ -448,7 +453,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 	      if ((asym.Type = sym->type) & SYMBOL_ABSOLUTE)
 		asym.AreaName = 0;
 	      else
-		asym.AreaName = sym->area.ptr->offset;
+		asym.AreaName = sym->area.ptr->offset + 4;
 	    }
 	  else
 	    {
@@ -459,16 +464,16 @@ symbolSymbolAOFOutput (FILE *outfile)
           asym.Name     = armword (asym.Name);
           asym.Type     = armword (asym.Type & SYMBOL_SUPPORTEDBITS);
           asym.Value    = armword (asym.Value);
-          asym.AreaName = armword(asym.AreaName);
+          asym.AreaName = armword (asym.AreaName);
 	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
 	}
       else if (sym->type & SYMBOL_AREA)
 	{
 	  AofSymbol asym;
-	  asym.Name = armword (sym->offset);
+	  asym.Name = armword (sym->offset + 4); /* + 4 to skip the initial length */
 	  asym.Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL);
 	  asym.Value = armword (0);
-	  asym.AreaName = armword (sym->offset);
+	  asym.AreaName = armword (sym->offset + 4); /* + 4 to skip the initial length */
 	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
 	}
 }
@@ -516,7 +521,7 @@ symbolSymbolELFOutput (FILE *outfile)
     for (sym = symbolTable[i]; sym; sym = sym-> next)
       if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym))
         {
-          asym.st_name = sym->offset - 3;
+          asym.st_name = sym->offset + 1; /* + 1 to skip the initial & extra NUL */
           type = 0;
           bind = 0;
           if (sym->type & SYMBOL_DEFINED)
@@ -557,8 +562,7 @@ symbolSymbolELFOutput (FILE *outfile)
                   break;
                 case ValueLateLabel:
                   if (!value.ValueLate.late->next    /* Only one late label */
-                      && value.ValueLate.late->factor == 1      /* ... occuring
-one time */
+                      && value.ValueLate.late->factor == 1      /* ... occuring one time */
                       && (value.ValueLate.late->symbol->type & SYMBOL_AREA))
                     {           /* ... and it is an area */
                       if (sym->type & SYMBOL_ABSOLUTE)
@@ -612,7 +616,7 @@ one time */
 	{
 	  type = (sym->type & SYMBOL_GLOBAL)?STB_GLOBAL:STB_LOCAL;
 	  asym.st_info = ELF32_ST_INFO(type, STT_SECTION);
-	  asym.st_name = sym->offset - 3;
+	  asym.st_name = sym->offset + 1; /* + 1 to skip initial & extra NUL */
 	  asym.st_value = 0;
 	  asym.st_shndx = findAreaIndex ((struct AREA *)sym);
 	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);

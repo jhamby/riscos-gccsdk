@@ -1,6 +1,16 @@
+Mon Jan  5 02:17:02 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c(symbolFix): Let it return the offset in the symbol strings
+	array without the AOF 4 byte length included (as the ELF output only
+	needs one byte extra)
+	(symbolStringSize): Remove, no longer needed.
+	* symbol.h: Updated comments, removed symbolStringSize prototype.
+	* output.c(outputAlf,outputElf): Follow above changes.
+
 Sun Jan  4 21:36:15 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
-	* commands.c(c_define): Remove return parameter, is the as its 2nd one.
+	* commands.c(c_define): Remove return parameter, is the same as its
+	2nd one.
 
 Sun Jan  4 21:00:58 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 

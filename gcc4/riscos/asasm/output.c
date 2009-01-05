@@ -200,7 +200,7 @@ void
 outputAof (void)
 {
   int noareas = countAreas (areaHeadSymbol);
-  unsigned int idfn_size, strt_size;
+  unsigned int idfn_size;
   int offset, pad, written, obj_area_size;
   Symbol *ap;
   ChunkFileHeader chunk_header;
@@ -219,10 +219,11 @@ outputAof (void)
 	  + ap->area.info->norelocs * sizeof (AofReloc);
     }
 
+  int stringSizeNeeded;
   aof_head.Type = armword (AofHeaderID);
   aof_head.Version = armword (310);
   aof_head.noAreas = armword (noareas);
-  aof_head.noSymbols = armword (symbolFix ());
+  aof_head.noSymbols = armword (symbolFix (&stringSizeNeeded));
   aof_head.EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->used + 1 : 0);
   aof_head.EntryOffset = armword (areaEntrySymbol ? areaEntryOffset : 0);
 
@@ -240,7 +241,7 @@ outputAof (void)
                         idfn_size = FIX (strlen (idfn_text) + 1), &offset);
 
   written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_STRT,
-                        strt_size = FIX (symbolStringSize ()), &offset);
+                        FIX (stringSizeNeeded) + 4, &offset);
 
   written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_SYMT,
                         ourword (aof_head.noSymbols) * sizeof (AofSymbol), &offset);
@@ -260,7 +261,7 @@ outputAof (void)
 
   for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
-      aof_entry.Name = armword (ap->offset);
+      aof_entry.Name = armword (ap->offset + 4); /* +4 because of extra length entry */
       aof_entry.Type = armword (ap->area.info->type);
       aof_entry.Size = armword (FIX (ap->value.ValueInt.i));
       aof_entry.noRelocations = armword(ap->area.info->norelocs);
@@ -279,7 +280,7 @@ outputAof (void)
       return;
     }
 /******** Chunk 2 String Table ***********/
-  strt_size = armword(symbolStringSize ());
+  unsigned int strt_size = armword(stringSizeNeeded + 4);
   if (fwrite (&strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
       errorLine (0, NULL, ErrorSerious, FALSE,
@@ -287,7 +288,7 @@ outputAof (void)
       return;
     }
   symbolStringOutput (objfile);
-  for (pad = EXTRA (symbolStringSize ()); pad; pad--)
+  for (pad = EXTRA (stringSizeNeeded); pad; pad--)
     fputc (0, objfile);
 
 /******** Chunk 3 Symbol Table ***********/
@@ -409,13 +410,14 @@ outputElf (void)
   shstrsize += 1; /* Null */
 
   /* Symbol table - index 1 */
-  nsyms = symbolFix();
+  int stringSizeNeeded;
+  nsyms = symbolFix(&stringSizeNeeded);
   written += writeElfSH(shstrsize, SHT_SYMTAB, 0,
                         (nsyms + 1) * sizeof (Elf32_Sym),
                         2, 0, 4, sizeof (Elf32_Sym), &offset);
   shstrsize += 8; /* .symtab */
 
-  strsize = symbolStringSize() - 3; /* not outputting size, but null */
+  strsize = stringSizeNeeded + 1; /* Add extra NUL terminator at start. */
 
   /* String table - index 2 */
   written += writeElfSH(shstrsize, SHT_STRTAB, 0, FIX (strsize),

@@ -69,7 +69,7 @@
 
 typedef struct SYMBOL
 {
-  struct SYMBOL *next;
+  struct SYMBOL *next;  /** Linked symbols all having the same hash value.  */
   unsigned int type;
   int declared;
   Value value;
@@ -79,11 +79,11 @@ typedef struct SYMBOL
     struct AREA *info;
   }
   area;
-  unsigned int offset;		/* Offset in stringtable */
+  unsigned int offset;		/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
   int used;			/* this id is used (ie not resolved) */
   /* Later changed to index in symbol table */
-  int len;			/* length of str[] with NUL terminator.  */
-  char str[1];			/* str[len+1] */
+  int len;			/** length of str[] without its NUL terminator.  */
+  char str[1];			/** symbol name as NUL terminated string */
 }
 Symbol;
 
@@ -92,8 +92,7 @@ Symbol *symbolAdd (const Lex *l);
 Symbol *symbolGet (const Lex *l);
 Symbol *symbolFind (const Lex *l);
 
-int symbolFix (void);		/* Returns number of symbols */
-int symbolStringSize (void);
+int symbolFix (int *stringSizeNeeded);
 void symbolStringOutput (FILE *outfile);
 void symbolSymbolAOFOutput (FILE *outfile);
 void symbolSymbolELFOutput (FILE *outfile);
