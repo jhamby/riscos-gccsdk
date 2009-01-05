@@ -1,19 +1,20 @@
-diff -ur subversion.orig/include/svn_io.h subversion/include/svn_io.h
---- subversion.orig/include/svn_io.h	2005-04-04 22:04:29.000000000 +0100
-+++ subversion/include/svn_io.h	2006-03-22 20:52:30.000000000 +0000
-@@ -298,6 +298,10 @@
-                                          svn_boolean_t ignore_enoent,
-                                          apr_pool_t *pool);
+diff -ur subversion-1.5.5.orig/subversion/include/svn_io.h subversion-1.5.5/subversion/include/svn_io.h
+--- subversion/include/svn_io.h	2008-06-11 06:26:41.000000000 +0100
++++ subversion/include/svn_io.h	2009-01-03 21:00:16.000000000 +0000
+@@ -383,6 +383,11 @@
+                                         svn_boolean_t ignore_enoent,
+                                         apr_pool_t *pool);
  
 +svn_error_t *svn_io_set_file_filetype (const char *path,
 +                                       const svn_string_t *filetype,
 +                                       apr_pool_t *pool);
 +
- /** Determine whether a file is executable by the current user.  
-  * Set @a *executable to @c TRUE if the file @a path is executable by the 
-  * current user, otherwise set it to @c FALSE.  
-@@ -308,6 +312,9 @@
-                                        const char *path, 
++
+ /** Determine whether a file is executable by the current user.
+  * Set @a *executable to @c TRUE if the file @a path is executable by the
+  * current user, otherwise set it to @c FALSE.
+@@ -393,6 +398,9 @@
+                                        const char *path,
                                         apr_pool_t *pool);
  
 +svn_error_t *svn_io_get_file_filetype(svn_string_t **filetype,
@@ -22,29 +23,29 @@ diff -ur subversion.orig/include/svn_io.h subversion/include/svn_io.h
  
  /** Read a line from @a file into @a buf, but not exceeding @a *limit bytes.
   * Does not include newline, instead '\\0' is put there.
-diff -ur subversion.orig/libsvn_subr/io.c subversion/libsvn_subr/io.c
---- subversion.orig/libsvn_subr/io.c	2005-08-19 16:18:45.000000000 +0100
-+++ subversion/libsvn_subr/io.c	2006-03-22 20:52:30.000000000 +0000
-@@ -31,6 +31,8 @@
- #endif
+diff -ur subversion-1.5.5.orig/subversion/libsvn_subr/io.c subversion-1.5.5/subversion/libsvn_subr/io.c
+--- subversion/libsvn_subr/io.c	2008-10-08 20:28:59.000000000 +0100
++++ subversion/libsvn_subr/io.c	2009-01-03 21:24:45.000000000 +0000
+@@ -25,6 +25,8 @@
+ #include <unistd.h>
  #endif
  
 +#include <unixlib/local.h>
 +
  #ifndef APR_STATUS_IS_EPERM
+ #include <errno.h>
  #ifdef EPERM
- #define APR_STATUS_IS_EPERM(s)   ((s) == EPERM)
-@@ -579,6 +581,7 @@
+@@ -780,6 +782,7 @@
      {
        apr_file_t *s;
        apr_finfo_t finfo;
 +      svn_string_t *filetype;
  
-       SVN_ERR (svn_io_file_open (&s, src, APR_READ, APR_OS_DEFAULT, pool));
-       SVN_ERR (svn_io_file_info_get (&finfo, APR_FINFO_PROT, s, pool));
-@@ -599,6 +602,10 @@
+       SVN_ERR(svn_io_file_open(&s, src, APR_READ, APR_OS_DEFAULT, pool));
+       SVN_ERR(svn_io_file_info_get(&finfo, APR_FINFO_PROT, s, pool));
+@@ -800,6 +803,10 @@
              (apr_err, _("Can't set permissions on '%s'"),
-              svn_path_local_style (dst_tmp, pool));
+              svn_path_local_style(dst_tmp, pool));
          }
 +
 +      SVN_ERR (svn_io_get_file_filetype(&filetype, src_apr, pool));
@@ -53,7 +54,16 @@ diff -ur subversion.orig/libsvn_subr/io.c subversion/libsvn_subr/io.c
      }
  #endif /* ! WIN32 */
  
-@@ -1239,13 +1246,35 @@
+@@ -1447,7 +1454,7 @@
+                           const char *path,
+                           apr_pool_t *pool)
+ {
+-#if defined(APR_HAS_USER) && !defined(WIN32)
++#if defined(APR_HAS_USER) && !defined(WIN32) && !defined(__riscos__)
+   apr_finfo_t file_info;
+   apr_status_t apr_err;
+   apr_uid_t uid;
+@@ -1481,6 +1488,60 @@
    return SVN_NO_ERROR;
  }
  
@@ -79,21 +89,6 @@ diff -ur subversion.orig/libsvn_subr/io.c subversion/libsvn_subr/io.c
 +  return SVN_NO_ERROR;
 +}
 +
- 
- svn_error_t *
- svn_io_is_file_executable(svn_boolean_t *executable, 
-                           const char *path, 
-                           apr_pool_t *pool)
- {
--#if defined(APR_HAS_USER) && !defined(WIN32)
-+#if defined(APR_HAS_USER) && !defined(WIN32) && !defined(__riscos__)
-   apr_finfo_t file_info;
-   apr_status_t apr_err;
-   apr_uid_t uid;
-@@ -1279,6 +1308,38 @@
-   return SVN_NO_ERROR;
- }
- 
 +
 +svn_error_t *
 +svn_io_get_file_filetype(svn_string_t **filetype,
@@ -129,23 +124,23 @@ diff -ur subversion.orig/libsvn_subr/io.c subversion/libsvn_subr/io.c
  
  /*** File locking. ***/
  /* Clear all outstanding locks on ARG, an open apr_file_t *. */
-diff -ur subversion.orig/libsvn_wc/merge.c subversion/libsvn_wc/merge.c
---- subversion.orig/libsvn_wc/merge.c	2005-03-22 05:32:19.000000000 +0000
-+++ subversion/libsvn_wc/merge.c	2006-03-22 20:52:30.000000000 +0000
-@@ -376,6 +376,9 @@
-     {
-       SVN_ERR (svn_wc__maybe_set_executable (NULL, merge_target, adm_access,
-                                              pool));
-+  if (! dry_run)
-+    SVN_ERR (svn_wc__maybe_set_filetype (NULL, merge_target, adm_access,
-+                                         pool));
+diff -ur subversion-1.5.5.orig/subversion/libsvn_wc/merge.c subversion-1.5.5/subversion/libsvn_wc/merge.c
+--- subversion/libsvn_wc/merge.c	2008-12-17 20:20:41.000000000 +0000
++++ subversion/libsvn_wc/merge.c	2009-01-03 20:57:18.000000000 +0000
+@@ -842,6 +842,9 @@
+                                                 adm_access, merge_target,
+                                                 pool));
  
-       SVN_ERR (svn_wc__maybe_set_read_only (NULL, merge_target,
-                                             adm_access, pool));
-diff -ur subversion.orig/libsvn_wc/translate.c subversion/libsvn_wc/translate.c
---- subversion.orig/libsvn_wc/translate.c	2005-05-11 19:10:45.000000000 +0100
-+++ subversion/libsvn_wc/translate.c	2006-03-22 20:52:30.000000000 +0000
-@@ -287,3 +287,25 @@
++      SVN_ERR (svn_wc__maybe_set_filetype (NULL, merge_target, adm_access,
++                                           pool));
++
+     }
+ 
+   return SVN_NO_ERROR;
+diff -ur subversion-1.5.5.orig/subversion/libsvn_wc/translate.c subversion-1.5.5/subversion/libsvn_wc/translate.c
+--- subversion/libsvn_wc/translate.c	2007-12-27 20:42:46.000000000 +0000
++++ subversion/libsvn_wc/translate.c	2009-01-03 20:57:18.000000000 +0000
+@@ -350,3 +350,25 @@
  
    return SVN_NO_ERROR;
  }
@@ -171,20 +166,19 @@ diff -ur subversion.orig/libsvn_wc/translate.c subversion/libsvn_wc/translate.c
 +
 +  return SVN_NO_ERROR;
 +}
-Only in subversion/libsvn_wc: translate.c.orig
-diff -ur subversion.orig/libsvn_wc/translate.h subversion/libsvn_wc/translate.h
---- subversion.orig/libsvn_wc/translate.h	2005-05-07 02:25:05.000000000 +0100
-+++ subversion/libsvn_wc/translate.h	2006-03-22 20:52:30.000000000 +0000
-@@ -104,6 +104,11 @@
-                               const char *path,
-                               svn_wc_adm_access_t *adm_access,
-                               apr_pool_t *pool);
+diff -ur subversion-1.5.5.orig/subversion/libsvn_wc/translate.h subversion-1.5.5/subversion/libsvn_wc/translate.h
+--- subversion/libsvn_wc/translate.h	2006-02-15 21:30:49.000000000 +0000
++++ subversion/libsvn_wc/translate.h	2009-01-03 20:57:18.000000000 +0000
+@@ -103,6 +103,12 @@
+                              svn_wc_adm_access_t *adm_access,
+                              apr_pool_t *pool);
+ 
 +svn_error_t *
 +svn_wc__maybe_set_filetype (svn_boolean_t *did_set,
 +                            const char *path,
 +                            svn_wc_adm_access_t *adm_access,
 +                            apr_pool_t *pool);
- 
++
  /* If the SVN_PROP_NEEDS_LOCK property is present and there is no
     lock token for the file in the working copy, set PATH to
-Only in subversion/libsvn_wc: translate.h.orig
+    read-only. If DID_SET is non-null, then set *DID_SET to TRUE if
