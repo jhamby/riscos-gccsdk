@@ -1,3 +1,11 @@
+Tue Jan 06 18:42:23 2009  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c(deregister_shared_object): If an object is
+	linked to a client, then mark for expiry as before. However,
+	if the object is not used by any client then remove
+	immediately. Allows the dynamic loader to remove rogue
+	libraries if something goes wrong during initialisation.
+
 Fri Sep 19 19:24:56 2008  Lee Noar  <leenoar@sky.com>
 
 	Add support for per client dynamic loader environment:

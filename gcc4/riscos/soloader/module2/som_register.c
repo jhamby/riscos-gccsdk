@@ -318,9 +318,6 @@ deregister_shared_object (unsigned int handle)
        client_obj = linklist_next_som_object (client_obj))
     /* */;
 
-  if (client_obj == NULL)
-    return somerr_object_not_found;
-
   /* Next find the object in the global list.  */
   som_object *global_obj;
   for (global_obj = linklist_first_som_object (&global.object_list);
@@ -331,22 +328,47 @@ deregister_shared_object (unsigned int handle)
   if (global_obj == NULL)
     return somerr_object_not_found;
 
-  /* Remove object from client list.  */
-  linklist_remove (&client->object_list, &client_obj->link);
+  /* If the object was linked to the client, then it is marked for expiry.
+     If the object is not used by any client, then assume that this is a
+     specific request to remove it from the system immediately.  */
+  if (client_obj)
+    {
+      /* Remove object from client list.  */
+      linklist_remove (&client->object_list, &client_obj->link);
 
-  /* Free memory used to store object in client list.  */
-  som_free (client_obj);
+      /* Free memory used to store object in client list.  */
+      som_free (client_obj);
 
-  /* Now deal with global object.
-     If the usage count is not zero, then another client is using the
-     library and it should not be marked for expiry.  */
-  if (--global_obj->usage_count)
-    return NULL;
+      /* Now deal with global object.
+         If the usage count is not zero, then another client is using the
+         library and it should not be marked for expiry.  */
+      if (--global_obj->usage_count)
+        return NULL;
 
-  /* Usage count is zero, so object is no longer in use at all. We
-     don't remove it from memory straight away, but mark it for
-     expiry.  */
-  global_obj->expire_time = os_read_monotonic_time () + global.max_idle_time;
+      /* Usage count is zero, so object is no longer in use at all. We
+         don't remove it from memory straight away, but mark it for
+         expiry.  */
+      global_obj->expire_time = os_read_monotonic_time () + global.max_idle_time;
+    }
+  else if (global_obj->usage_count == 0)
+    {
+      /* Remove from the global list.  */
+      linklist_remove (&global.object_list, &global_obj->link);
+
+      /* Mark this slot in the array as re-usable.  */
+      global.object_array.object_base[global_obj->index] = NULL;
+
+      som_free (global_obj->name);
+      som_free (global_obj->base_addr);
+      som_free (global_obj);
+    }
+  /*
+  else
+    In theory, there shouldn't be another client using the object (i.e.,
+    usage_count > 0). If the dynamic loader is trying to remove a bogus
+    library, then it must be for the first client that tried to use it.
+    However, we will make no assumptions. If the usage count is not 0,
+    then leave it alone.  */
 
   return NULL;
 }
