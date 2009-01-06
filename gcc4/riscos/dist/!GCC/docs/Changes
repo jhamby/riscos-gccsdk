@@ -8,6 +8,13 @@ GCCSDK GCC 4.1.1 pre-release 2 (released xxx)
 Test release where the shared library code generation is enabled
 and containing !SharedLibs.
 
+GCCSDK GCC 4.1.1 release 1b (released 06 January 2009)
+===========================
+
+Another small but important bug fix release for release 1a as its
+workaround for the canonicalisation for argv[0] resulted in ignoring
+the first parameter given to gcc/g++.
+
 GCCSDK GCC 4.1.1 release 1a (released 03 January 2009)
 ===========================
 
