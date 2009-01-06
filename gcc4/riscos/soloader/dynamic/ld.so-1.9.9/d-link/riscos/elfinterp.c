@@ -269,6 +269,14 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	  _dl_fdprintf(2,"%s: Text relocation of data symbol '%s' found:\r\n %s (offset 0x%X)\r\n",
 		_dl_progname, strtab + symtab[symtab_index].st_name, tpnt->libname,
 		(unsigned int)reloc_addr - (unsigned int)tpnt->loadaddr);
+
+	  /* _dl_exit() would deregister the library from the client, but it would
+	   * remain in memory until expiry and block attempts to replace it without
+	   * reinitialising SOManager.
+	   */
+	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from client. */
+	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from global list - clean up. */
+
 	  _dl_exit(1);
 	}
 
@@ -342,6 +350,14 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	    _dl_fdprintf(2,"%s: Text relocation of data symbol '%s' found:\r\n %s (offset 0x%X)\n",
 		_dl_progname,strtab + symtab[symtab_index].st_name,
 		tpnt->libname,(unsigned int)reloc_addr - (unsigned int)tpnt->loadaddr);
+
+	    /* _dl_exit() would deregister the library from the client, but it would
+	     * remain in memory until expiry and block attempts to replace it without
+	     * reinitialising SOManager.
+	     */
+	    _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from client. */
+	    _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from global list - clean up. */
+
 	    _dl_exit(1);
 	  }
 	  break;
