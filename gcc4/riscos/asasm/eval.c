@@ -304,41 +304,36 @@ evalUnop (Operator op, Value * value)
       return TRUE;
     case Op_fsize:
       {
-      const char *s;
       if (value->Tag.t != ValueString)
 	return FALSE;
+      char *s;
       if ((s = strndup(value->ValueString.s, value->ValueString.len)) == NULL)
         {
           errorOutOfMem("evalUnop");
           return FALSE;
         }
-      {
-	FILE *fp;
-	const char *newS;
-	if ((fp = getInclude (s, "r", &newS)) == NULL)
-	  {
-	    error (ErrorError, TRUE, "Cannot open file \"%s\"", s ? s : "");
-	    free ((void *)s);
-	    free ((void *)newS);
-	    return FALSE;
-	  }
-	free ((void *)newS);
-	if (fseek (fp, 0l, SEEK_END))
-	  {
-	    error (ErrorError, TRUE, "Cannot seek to end of file \"%s\"", s ? s : "");
-	    free ((void *)s);
-	    return FALSE;
-	  }
-	if (-1 == (value->ValueInt.i = (int) ftell (fp)))
-	  {
-	    error (ErrorError, TRUE, "Cannot find size of file \"%s\"", s ? s : "");
-	    free ((void *)s);
-	    return FALSE;
-	  }
-	fclose (fp);
-	free ((void *)s);
-	value->Tag.t = ValueInt;
-      }
+      FILE *fp;
+      if ((fp = getInclude (s, "r", NULL)) == NULL)
+	{
+	  error (ErrorError, TRUE, "Cannot open file \"%s\"", s ? s : "");
+	  free (s);
+	  return FALSE;
+	}
+      if (fseek (fp, 0l, SEEK_END))
+	{
+	  error (ErrorError, TRUE, "Cannot seek to end of file \"%s\"", s ? s : "");
+	  free (s);
+	  return FALSE;
+	}
+      if (-1 == (value->ValueInt.i = (int) ftell (fp)))
+	{
+	  error (ErrorError, TRUE, "Cannot find size of file \"%s\"", s ? s : "");
+	  free (s);
+	  return FALSE;
+	}
+      fclose (fp);
+      free (s);
+      value->Tag.t = ValueInt;
       return TRUE;
       }
     case Op_lnot:

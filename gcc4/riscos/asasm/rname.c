@@ -257,18 +257,15 @@ riscos_to_unix (const char *filename, char *output)
       temp = strchr (filename, ':');
       if (temp)
 	{
-	  char env[256], *e;
+	  char env[1024];
+	  const char *ef;
 	  int x;
-
-	  for (x = 0, e = (char *) filename; e != temp; e++)
-	    env[x++] = toupper (*e);
-	  env[x] = '\0';
-	  /*strncpy (env, filename, temp - filename); */
-	  strcpy (env + (temp - filename), "_PATH");
-	  e = getenv (env);
+	  for (x = 0, ef = filename; ef != temp; ef++)
+	    env[x++] = toupper (*ef);
+	  strcpy (env + x, "_PATH");
+	  char *e = getenv (env);
 #ifdef DEBUG
-	  printf ("looking for `%s' (%s)\n", env,
-		  (e) ? "found" : "not found");
+	  printf ("looking for `%s' (%s)\n", env, (e) ? "found" : "not found");
 #endif
 	  if (e)
 	    {

@@ -265,7 +265,9 @@ errorLine (long int lineno, const char *file,
   const char *str;
   va_list ap;
 
+#ifdef __riscos__
   int t;
+#endif
   switch (e)
     {
       case ErrorInfo:

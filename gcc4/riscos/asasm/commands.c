@@ -415,7 +415,6 @@ c_get (void)
 {
   char *filename, *cptr;
   FILE *getfp;
-  const char *newInputName;
 
   if (macroSP)
     {
@@ -437,11 +436,12 @@ c_get (void)
 	  error (ErrorError, FALSE, "Skipping extra characters '%s' after filename", cptr);
 	}
     }
+  char *newInputName;
   if ((getfp = getInclude (filename, "r", &newInputName)) == NULL)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
       free (filename);
-      free ((void *)newInputName);
+      free (newInputName);
       return;
     }
 
@@ -463,7 +463,6 @@ c_lnk (void)
 {
   char *filename, *cptr;
   FILE *lnkfp;
-  const char *newInputName;
 
   if (macroSP)
     {
@@ -483,12 +482,13 @@ c_lnk (void)
   for (cptr = filename; *cptr && !isspace (*cptr); cptr++);
   *cptr = '\0';
   inputNextLine ();
+  char *newInputName;
   lnkfp = getInclude (filename, "r", &newInputName);
   if (!lnkfp)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
       free (filename);
-      free ((void *)newInputName);
+      free (newInputName);
       return;
     }
   skiprest ();
@@ -516,7 +516,6 @@ c_bin (void)
 {
   char *filename, *cptr;
   FILE *binfp;
-  const char *newFilename;
 
   inputExpand = FALSE;
   if ((filename = strdup (inputRest ())) == NULL)
@@ -524,17 +523,18 @@ c_bin (void)
   for (cptr = filename; *cptr && !isspace (*cptr); cptr++);
   *cptr = '\0';
 
+  char *newFilename;
   binfp = getInclude (filename, "r", &newFilename);
   if (!binfp)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
       free (filename);
-      free ((void *)newFilename);
+      free (newFilename);
       return;
     }
   if (verbose)
     fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", filename, newFilename);
-  free ((void *)newFilename);
+  free (newFilename);
   while (!feof (binfp))
     putData (1, getc (binfp));
   fclose (binfp);

@@ -149,13 +149,13 @@ static FLOAT
 lexfloat (int r)
 {
   FLOAT res = r;
-  FLOAT frac = 0.1;
-  FLOAT exp = 0.0;
-  int signexp = 1;
-  char c;
+  FLOAT exponent = 0.0;
+  FLOAT signexp = 1.;
 
   if (inputGet () == '.')
     {				/* Fraction part */
+      FLOAT frac = 0.1;
+      char c;
       while (isdigit (c = inputGet ()))
 	{
 	  res = res + frac * ((FLOAT) c - (FLOAT) '0');
@@ -166,20 +166,18 @@ lexfloat (int r)
 	  if (inputLook () == '-')
 	    {
 	      inputSkip ();
-	      signexp = -1;
+	      signexp = -1.;
 	    }
 	  else if (inputLook () == '+')
-	    {
-	      inputSkip ();
-	    }
+	    inputSkip ();
 	  while (isdigit (c = inputGet ()))
-	    exp = exp * 10.0 + ((FLOAT) c - (FLOAT) '0');
+	    exponent = exponent * 10.0 + ((FLOAT) c - (FLOAT) '0');
 	}
       inputUnGet (c);
     }
   else
     error (ErrorError, TRUE, "Internal lexfloat: parse error");
-  return res * pow (10.0, signexp * exp);
+  return res * pow (10.0, signexp * exponent);
 }
 
 

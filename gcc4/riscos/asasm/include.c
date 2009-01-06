@@ -94,8 +94,17 @@ addInclude (const char *path)
 }
 
 
+/**
+ * Opens file with given filename, or suffix swapped (when using UnixLib)
+ * and optionally returns a possibly better qualified filename.
+ * \param filename Filename of file which needs to be opened.
+ * \param mode Std C file open mode.
+ * \param strdupFilename When non-NULL, is a pointer of a value containing
+ * on return a malloc block holding the possibly better qualified filename.
+ * \return When non-NULL, a std C file stream pointer.
+ */
 static FILE *
-openInclude (const char *filename, const char *mode, const char **strdupFilename)
+openInclude (const char *filename, const char *mode, char **strdupFilename)
 {
   FILE *fp;
 
@@ -109,63 +118,60 @@ openInclude (const char *filename, const char *mode, const char **strdupFilename
 #endif
     }
 
-  if (fp == NULL)
-      *strdupFilename = NULL;
-  else
+  if (strdupFilename != NULL)
+    {
+      if (fp == NULL)
+	*strdupFilename = NULL;
+      else
 #ifndef __riscos__
-    *strdupFilename = strdup (filename);
+	*strdupFilename = strdup (filename);
 #else
-    *strdupFilename = CanonicalisePath (filename);
+        *strdupFilename = CanonicalisePath (filename);
 #endif
-
+    }
+  
   return fp;
 }
 
 
 FILE *
-getInclude (const char *file, const char *mode, const char **strdupFilename)
+getInclude (const char *file, const char *mode, char **strdupFilename)
 {
-  int i;
 #ifdef __riscos__
   FILE *fp;
 #else
   char *filename = rname (file);
 #endif
 
-  *strdupFilename = NULL;
+  if (strdupFilename)
+    *strdupFilename = NULL;
 #ifndef __riscos__
   if (access (filename, F_OK) == 0)
     return openInclude (filename, mode, strdupFilename);
-  else
+  if (filename[0] == '.' && filename[1] == '/')
+    filename += 2; /* Skip ./ */
+  else if (strchr(file, ':'))
     {
-      if (filename[0] == '.' && filename[1] == '/')
-        filename += 2; /* Skip ./ */
-      else if (strchr(file, ':'))
-        {
-          /* Try presuming everything is a directory.  
-           * This is for the benefit of paths like Hdr:APCS.Common */
-          char *dot = filename;
-
-          while (*dot)
-            {
-              if (*dot == '.') *dot = '/';
-              dot++;
-            }
-
-            if (access (filename, F_OK) == 0)
-              return openInclude (filename, mode, strdupFilename);
-        }
+      /* Try presuming everything is a directory.  
+       * This is for the benefit of paths like Hdr:APCS.Common */
+      char *dot;
+      for (dot = filename; *dot; ++dot)
+	{
+	  if (*dot == '.')
+	    *dot = '/';
+	}
+      
+      if (access (filename, F_OK) == 0)
+	return openInclude (filename, mode, strdupFilename);
     }
 #else
   if ((fp = openInclude (file, mode, strdupFilename)) != NULL)
     return fp;
-  else
-    {
-      if (file[0] == '@' && file[1] == '.')
-	file += 2;		/* Skip @. */
-    }
+  if (file[0] == '@' && file[1] == '.')
+    file += 2;		/* Skip @. */
 #endif
 
+  int i;
   for (i = 0; i < incDirCurSize; i++)
     {
       char incpath[MAXPATHLEN];

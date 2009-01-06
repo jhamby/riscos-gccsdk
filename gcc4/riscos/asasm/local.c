@@ -71,7 +71,7 @@ static localPos *localListEnd;
 
 
 void
-c_rout (Lex * label)
+c_rout (Lex *label)
 {
   routPos *p = malloc (sizeof (localPos));
   memset (rout_lblno, 0, sizeof (rout_lblno));
@@ -106,7 +106,7 @@ c_rout (Lex * label)
 
 
 void
-c_local (Lex * label)
+c_local (Lex *label)
 {
   localPos *p;
 
@@ -137,13 +137,13 @@ localTest (const char *s)
 
 
 void
-localMunge (Lex * label)
+localMunge (Lex *label)
 {
   int i;
   if (!local)
     return;
-  if (label->LexId.str[i = label->LexId.len - 2] == '$' &&
-      (label->LexId.str[i + 1] == 'L' || label->LexId.str[i + 1] == 'l'))
+  if (label->LexId.str[i = label->LexId.len - 2] == '$'
+      && (label->LexId.str[i + 1] == 'L' || label->LexId.str[i + 1] == 'l'))
     {
       char id[1024];
       sprintf (id, "Local$$%i$$", localCurrent);
@@ -164,9 +164,9 @@ localMunge (Lex * label)
 void
 localFindLocal (int local, const char **file, long int *lineno)
 {
-  localPos *p = localList;
-  while (p && p->local != local)
-    p = p->next;
+  localPos *p;
+  for (p = localList; p && p->local != local; p = p->next)
+    /* */;
   if (p)
     {
       *file = p->file;
@@ -174,7 +174,7 @@ localFindLocal (int local, const char **file, long int *lineno)
     }
   else
     {
-      *file = 0;
+      *file = NULL;
       *lineno = 0;
     }
 }
@@ -183,9 +183,9 @@ localFindLocal (int local, const char **file, long int *lineno)
 void
 localFindRout (const char *rout, const char **file, long int *lineno)
 {
-  routPos *p = routList;
-  while (p && strcmp (p->id, rout))
-    p = p->next;
+  routPos *p;
+  for (p = routList; p && strcmp (p->id, rout); p = p->next)
+    /* */;
   if (p)
     {
       *file = p->file;
@@ -193,7 +193,7 @@ localFindRout (const char *rout, const char **file, long int *lineno)
     }
   else
     {
-      *file = 0;
+      *file = NULL;
       *lineno = 0;
     }
 }

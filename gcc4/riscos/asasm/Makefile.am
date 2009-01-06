@@ -1,7 +1,11 @@
 bin_PROGRAMS=asasm
 
 # _GNU_SOURCE to make strndup available
-asasm_CFLAGS = -D_GNU_SOURCE
+asasm_CFLAGS = -D_GNU_SOURCE -std=c99 \
+	-W -Wall -pedantic -Wbad-function-cast -Wcast-align \
+	-Wchar-subscripts -Winline \
+	-Wmissing-prototypes -Wnested-externs -Wpointer-arith \
+	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wwrite-strings
 asasm_LDFLAGS = -lm
 asasm_SOURCES=area.c asm.c code.c commands.c decode.c depend.c error.c \
 	eval.c expr.c filestack.c fix.c get.c help_cop.c help_cpu.c \

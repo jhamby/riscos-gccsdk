@@ -1,3 +1,9 @@
+Tue Jan  6 22:09:45 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am: Go for C99 and more warnings enabled.
+	* commands.c,symbol.c,decode.c,error.c,local.c,area.c,rname.c,input.c,
+	get.c,include.c,eval.c,lex.c,include.h: Lots of small cleanups.
+
 Tue Jan  6 21:50:41 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* main.c(main): Change default output format back to ELF (was wrongly

@@ -273,8 +273,6 @@ symbolFind (const Lex * l)
   return NULL;
 }
 
-static int stringtablesize = -1;
-
 /**
  * Calculates number of symbols which need to be written in the output file
  * together with the total string size needed for all those symbols.
@@ -306,24 +304,24 @@ symbolFix (int *stringSizeNeeded)
 		sym->type |= SYMBOL_REFERENCE;
 	      if (SYMBOL_OUTPUT (sym) && sym->value.Tag.v == ValueConst)
 		{
-		  int label = -1, i;
+		  int label = -1, ii;
 		  if (localTest (sym->str))
 		    {
 		      void *area; /* FIXME: this is not usefully used. Why ? */
 		      char routine[1024];
 		      *routine = 0;
-		      if (sscanf (sym->str, localFormat, &area, &label, &i, &routine) > 2)
+		      if (sscanf (sym->str, localFormat, &area, &label, &ii, &routine) > 2)
 			{
 			  const char *file;
 			  long int lineno;
 			  localFindRout (routine, &file, &lineno);
 			  errorLine (lineno, file, ErrorError, FALSE, "Missing local label (fwd) with ID %02i in routine '%s'%s", label, *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
 			}
-		      else if (sscanf (sym->str + sizeof ("Local$$")-1, "%i$$%s", &i, routine) > 0)
+		      else if (sscanf (sym->str + sizeof ("Local$$")-1, "%i$$%s", &ii, routine) > 0)
 			{
 			  const char *file;
 			  long int lineno;
-			  localFindLocal (i, &file, &lineno);
+			  localFindLocal (ii, &file, &lineno);
 			  errorLine (lineno, file, ErrorError, FALSE, "Missing local label '%s'%s", *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
 			}
 		      return 0;

@@ -534,19 +534,10 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
 	case ValueCode:
 	case ValueLateLabel:
 	case ValueAddr:
-	  {
-	    const char *s;
-	    if ((s = strndup(label.LexId.str, label.LexId.len)) == NULL)
-	      {
-	        errorOutOfMem ("inputVarSub");
-	        return FALSE;
-	      }
-	    error (ErrorError, TRUE, "$ expansion '%s' is a pointer",
-		   s);
-	    free((void *)s);
-            /* This one's fatal */
-            return FALSE;
-	  }
+	  error (ErrorError, TRUE, "$ expansion '%.*s' is a pointer",
+		 label.LexId.len, label.LexId.str);
+          /* This one's fatal */
+          return FALSE;
 	  break;
 	default:
           goto unknown;
@@ -557,16 +548,9 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
     unknown:
       if (inString == FALSE)
         {
-         /* Not in string literal, so this is an error */
-          const char *s;
-
-          if ((s = strndup(label.LexId.str, label.LexId.len)) == NULL)
-            {
-              errorOutOfMem ("inputVarSub");
-              return FALSE;
-            }
-          error (ErrorError, TRUE, "Unknown value '%s' for $ expansion", s);
-          free((void *)s);
+          /* Not in string literal, so this is an error */
+          error (ErrorError, TRUE, "Unknown value '%.*s' for $ expansion",
+		 label.LexId.len, label.LexId.str);
           input_buff[(*ptr)++] = '$';
           /* Restore input_pos so we reprocess current input */
           input_pos = rb;
@@ -623,7 +607,7 @@ static BOOL
 inputArgSub (void)
 {
   int ptr = 0, trunc = 0, len;
-  char c, *rb;
+  char c;
 
   input_pos = workBuff;
 

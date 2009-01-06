@@ -197,12 +197,12 @@ c_align (void)
 	offsetValue = 0;
       else if (inputGet () == ',')
 	{
-	  Value value;
+	  Value valueO;
 	  exprBuild ();
-	  value = exprEval (ValueInt);
-	  if (value.Tag.t == ValueInt)
+	  valueO = exprEval (ValueInt);
+	  if (valueO.Tag.t == ValueInt)
 	    {
-	      offsetValue = value.ValueInt.i;
+	      offsetValue = valueO.ValueInt.i;
 	      if (offsetValue < 0)
 		{
 		  error (ErrorError, TRUE, "ALIGN offset value is out-of-bounds");

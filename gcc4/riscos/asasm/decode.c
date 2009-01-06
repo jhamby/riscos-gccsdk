@@ -1027,26 +1027,28 @@ decode (Lex * label)
       break;
     default:
     illegal:
-      {
-	int l;			/* Is it a macro call? */
-	char *c;
-	Macro *m = NULL;
+      { /* Is it a macro call? */
+	Macro *m;
 	if (macro)
 	  {
 	    inputRollback ();
+	    int l;
+	    char *ci;
 	    if (inputLook () == '|')
 	      {
 		inputSkip ();
-		c = inputSymbol (&l, '|');
+		ci = inputSymbol (&l, '|');
 		if (inputGet () != '|')
 		  error (ErrorError, TRUE,
 			 "Identifier continues over newline");
 	      }
 	    else
-	      c = inputSymbol (&l, '\0');
-	    m = macroFind (l, c);
+	      ci = inputSymbol (&l, '\0');
+	    m = macroFind (l, ci);
 	  }
-	if (macro && m)
+	else
+	  m = NULL;
+	if (m)
 	  macroCall (m, label);
 	else
 	  {
