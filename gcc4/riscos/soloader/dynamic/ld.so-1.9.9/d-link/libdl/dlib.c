@@ -433,7 +433,7 @@ resolved a coredump would occur. Rob Ryan (robr@cmu.edu)*/
 					end = ppnt->p_vaddr + ppnt->p_memsz;
 			}
 #endif
-			_dl_deregister_lib((unsigned int)tpnt);
+			_dl_deregister_lib((unsigned int)tpnt->loadaddr);
 //			_dl_munmap (rpnt->dyn->loadaddr, end);
 
 			/* Next, remove rpnt->dyn from the loaded_module list */
