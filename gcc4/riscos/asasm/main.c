@@ -399,9 +399,9 @@ main (int argc, char **argv)
     apcs_softfloat = 0;
   if (option_aof == -1)
 #ifndef NO_ELF_SUPPORT
-    option_aof = 1;
-#else
     option_aof = 0;
+#else
+    option_aof = 1;
 #endif
 
   set_cpuvar();

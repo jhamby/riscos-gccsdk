@@ -1,3 +1,8 @@
+Tue Jan  6 21:50:41 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* main.c(main): Change default output format back to ELF (was wrongly
+	AOF since r3694 / Sun Jan  4 15:46:16 CET 2009).
+
 Mon Jan  5 02:17:02 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c(symbolFix): Let it return the offset in the symbol strings
