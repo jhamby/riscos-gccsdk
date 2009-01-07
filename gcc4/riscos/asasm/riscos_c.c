@@ -81,7 +81,7 @@ CanonicalisePath (const char *path1)
   const char *path = path1;
 #endif
   
-  if (dde && *path == '@')
+  if (option_dde && *path == '@')
     {				/* Replace @ with <Prefix$Dir> if dde flags */
       strcpy (filename, "<Prefix$Dir>");
       strcat (filename, path + 1);

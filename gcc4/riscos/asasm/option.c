@@ -303,7 +303,7 @@ optionCondSP (void)
   if (inputLookUC () == 's')
     {
       inputSkip ();
-      if (pedantic)
+      if (option_pedantic)
 	error (ErrorInfo, TRUE, "S is implicit in test instructions");
     }
   if (inputLookUC () == 'p')

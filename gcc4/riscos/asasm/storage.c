@@ -99,7 +99,7 @@ c_alloc (Symbol * sym)
     case ValueInt:
       if (value.ValueInt.i >= 0)
 	{
-	  if (pedantic > 1 && value.ValueInt.i == 0)
+	  if (option_pedantic > 1 && value.ValueInt.i == 0)
 	    error (ErrorInfo, TRUE, "You are reserving zero bytes?");
 	  storageV.ValueAddr.i += value.ValueInt.i;
 	  /* ValueInt & ValueAddr have i in the same place */

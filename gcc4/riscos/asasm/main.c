@@ -58,20 +58,20 @@ BOOL asmAbortValid = FALSE;
 
 /* AS options :
  */
-int verbose = 0;
-int pedantic = 0;
-int fussy = 0;
-int throwback = 0;
-int dde = 0;
-int autocast = 0;
-int align = 1;
-int local = 1;
-int objasm = 0;
-int uc = 0;
-int apcs_32bit = -1; /* -1 = option not specified.  */
-int apcs_fpv3 = -1; /* -1 = option not specified.  */
-int apcs_softfloat = -1; /* -1 = option not specified.  */
-int rma_module = 0;
+int option_verbose = 0;
+int option_pedantic = 0;
+int option_fussy = 0;
+int option_throwback = 0;
+int option_dde = 0;
+int option_autocast = 0;
+int option_align = 1;
+int option_local = 1;
+int option_objasm = 0;
+int option_uc = 0;
+int option_apcs_32bit = -1; /* -1 = option not specified.  */
+int option_apcs_fpv3 = -1; /* -1 = option not specified.  */
+int option_apcs_softfloat = -1; /* -1 = option not specified.  */
+int option_rma_module = 0;
 int option_aof = -1; /* -1 = option not specified.  */
 
 const char *ProgName = NULL;
@@ -149,6 +149,39 @@ restore_prefix (void)
 }
 
 static void
+set_option_apcs_32bit (int write32bit)
+{
+  if (option_apcs_32bit != -1 && option_apcs_32bit != write32bit)
+    {
+      fprintf (stderr, "%s: Conflicting options -apcs26 and -apcs32\n", ProgName);
+      exit (EXIT_FAILURE);
+    }
+  option_apcs_32bit = write32bit;
+}
+
+static void
+set_option_apcs_fpv3 (int writefpv3)
+{
+  if (option_apcs_fpv3 != -1 && option_apcs_fpv3 != writefpv3)
+    {
+      fprintf (stderr, "%s: Conflicting options -apcsfpv2 and -apcsfpv3\n", ProgName);
+      exit (EXIT_FAILURE);
+    }
+  option_apcs_fpv3 = writefpv3;
+}
+
+static void
+set_option_apcs_softfloat(int writesf)
+{
+  if (option_apcs_softfloat != -1 && option_apcs_softfloat != writesf)
+    {
+      fprintf (stderr, "%s: Conflicting options -soft-float and -hard-float\n", ProgName);
+      exit (EXIT_FAILURE);
+    }
+  option_apcs_softfloat = writesf;
+}
+
+static void
 set_option_aof (int writeaof)
 {
   if (option_aof != -1 && option_aof != writeaof)
@@ -217,90 +250,45 @@ main (int argc, char **argv)
 	}
 #ifdef __riscos__
       else if (IS_ARG ("-throwback", "-tb"))
-	throwback++;
+	option_throwback++;
 #endif
       else if (IS_ARG ("-autocast", "-ac"))
-	autocast++;
+	option_autocast++;
       else if (IS_ARG ("-noalign", "-na"))
-	align = 0;
+	option_align = 0;
       else if (IS_ARG ("-nolocal", "-nl"))
-	local = 0;
+	option_local = 0;
       else if (IS_ARG ("-objasm", "-obj"))
-	{
-	  /* Used as index in lex.c.  */
-	  objasm = 1;
-	}
+	option_objasm = 1; /* Used as index in lex.c.  */
       else if (IS_ARG ("-upper", "-up"))
-	uc++;
+	option_uc++;
       else if (IS_ARG ("-pedantic", "-p"))
-	pedantic++;
+	option_pedantic++;
       else if (IS_ARG ("-target", "-t"))
         {
 	  if (as_target (--argc ? *++argv : NULL) < 0)
 	    return EXIT_FAILURE;
 	}
       else if (IS_ARG ("-verbose", "-v"))
-	verbose++;
+	option_verbose++;
       else if (IS_ARG ("-fussy", "-f"))
-	fussy++;
-      else if (! strcmp (*argv, "-apcs26"))
-        {
-          if (apcs_32bit == 1)
-            {
-	      fprintf (stderr, "%s: Conflicting options -apcs26 and -apcs32\n", ProgName);
-	      return EXIT_FAILURE;
-	    }
-	  apcs_32bit = 0;
-	}
-      else if (! strcmp (*argv, "-apcs32"))
-        {
-          if (apcs_32bit == 0)
-            {
-	      fprintf (stderr, "%s: Conflicting options -apcs26 and -apcs32\n", ProgName);
-	      return EXIT_FAILURE;
-	    }
-	  apcs_32bit = 1;
-	}
-      else if (! strcmp (*argv, "-apcsfpv2"))
-        {
-          if (apcs_fpv3 == 1)
-            {
-	      fprintf (stderr, "%s: Conflicting options -apcsfpv2 and -apcsfpv3\n", ProgName);
-	      return EXIT_FAILURE;
-	    }
-	  apcs_fpv3 = 0;
-	}
-      else if (! strcmp (*argv, "-apcsfpv3"))
-        {
-          if (apcs_fpv3 == 0)
-            {
-	      fprintf (stderr, "%s: Conflicting options -apcsfpv2 and -apcsfpv3\n", ProgName);
-	      return EXIT_FAILURE;
-	    }
-	  apcs_fpv3 = 1;
-	}
-      else if (! strcmp (*argv, "-soft-float"))
-        {
-          if (apcs_softfloat == 0)
-            {
-              fprintf (stderr, "%s: Conflicting options -soft-float and -hard-float\n", ProgName);
-	      return EXIT_FAILURE;
-	    }
-	  apcs_softfloat = 1;
-	}
-      else if (! strcmp (*argv, "-hard-float"))
-        {
-          if (apcs_softfloat == 1)
-            {
-              fprintf (stderr, "%s: Conflicting options -soft-float and -hard-float\n", ProgName);
-	      return EXIT_FAILURE;
-	    }
-	  apcs_softfloat = 0;
-	}
-      else if (! strcmp (*argv, "-module"))
-	rma_module = 1;
+	option_fussy++;
+      else if (!strcmp (*argv, "-apcs26"))
+	set_option_apcs_32bit (0);
+      else if (!strcmp (*argv, "-apcs32"))
+	set_option_apcs_32bit (1);
+      else if (!strcmp (*argv, "-apcsfpv2"))
+	set_option_apcs_fpv3 (0);
+      else if (!strcmp (*argv, "-apcsfpv3"))
+	set_option_apcs_fpv3 (1);
+      else if (!strcmp (*argv, "-soft-float"))
+	set_option_apcs_softfloat (1);
+      else if (!strcmp (*argv, "-hard-float"))
+	set_option_apcs_softfloat (0);
+      else if (!strcmp (*argv, "-module"))
+	option_rma_module = 1;
       else if (!strcmp (*argv, "-dde"))
-	dde++;
+	option_dde++;
       else if (!strncmp (*argv, "-I", 2))
 	{
 	  const char *inclDir = *argv + 2;
@@ -391,12 +379,12 @@ main (int argc, char **argv)
     }
 
   /* Fallback on default options ? */
-  if (apcs_32bit == -1)
-    apcs_32bit = 1;
-  if (apcs_fpv3 == -1)
-    apcs_fpv3 = 1;
-  if (apcs_softfloat == -1)
-    apcs_softfloat = 0;
+  if (option_apcs_32bit == -1)
+    option_apcs_32bit = 1;
+  if (option_apcs_fpv3 == -1)
+    option_apcs_fpv3 = 1;
+  if (option_apcs_softfloat == -1)
+    option_apcs_softfloat = 0;
   if (option_aof == -1)
 #ifndef NO_ELF_SUPPORT
     option_aof = 0;

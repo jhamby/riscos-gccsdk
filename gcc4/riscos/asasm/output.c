@@ -388,7 +388,7 @@ outputElf (void)
          ARM EABI version as we aren't complying with any of the versions
          so we set the version to 0 which means EF_ARM_ABI_UNKNOWN.  */
       elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
-      if (apcs_softfloat)
+      if (option_apcs_softfloat)
         elf_head.e_flags |= 0x200;
       if (areaEntrySymbol)
 	elf_head.e_flags |= EF_ARM_HASENTRY;

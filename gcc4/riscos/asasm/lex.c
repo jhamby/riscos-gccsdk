@@ -112,7 +112,7 @@ lexint (int base)
     {
       if ((c = inputLook ()) == '0')
 	{
-	  if (!objasm)
+	  if (!option_objasm)
 	    base = 8;
 	  if ((c = inputSkipLook ()) == 'x' || c == 'X')
 	    {
@@ -419,7 +419,7 @@ lexGetPrim (void)
         }
       if (inputGet () != '"')
 	error (ErrorError, TRUE, "String continues over newline");
-      if (objasm)
+      if (option_objasm)
 	{
 	  char *s1, *s2;
 	  int l1;
@@ -559,34 +559,17 @@ lexGetPrim (void)
 	  case 't':
 	    inputSkip ();
 
-	    	if (pedantic)
-		{
-#if 0
-	/* reason for ignoring flag clarified */
-	    error (ErrorWarning, TRUE, "Ignored 't' in local label name");
-#else
-	    error (ErrorWarning, TRUE, "Range qualifiers in local label names are not implemented. " \
-	    				"Ignored 't' in local label name");
-#endif
-		}
+	    if (option_pedantic) /* TODO: */
+	      error (ErrorWarning, TRUE, "Range qualifiers in local label names are not implemented. "
+					 "Ignored 't' in local label name");
 	    break;
 	  case 'a':
 	    inputSkip ();
 	    break;
 	  default:
-	    if (pedantic)
-		{
-#if 0
-/*	This warning is confusing to the user, as it warns of a deficiency in as.
-	I've re-worded it accordingly.
-	What really needs to be done is for range qualifiers to be implemented.
-*/
-	    error (ErrorWarning, TRUE, "Assumed 'a' in local label name");
-#else
-	    error (ErrorWarning, TRUE, "Range qualifiers in local label names are not implemented. " \
-	    				"'all macro levels' is assumed");
-#endif
-		}
+	    if (option_pedantic) /* TODO: */
+	      error (ErrorWarning, TRUE, "Range qualifiers in local label names are not implemented. "
+					 "'all macro levels' is assumed");
 	    break;
 	  }
 	return lexMakeLocal (dir);

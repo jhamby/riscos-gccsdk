@@ -171,7 +171,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
       return ir;
    }
 
-  if (fussy > 1)
+  if (option_fussy > 1)
     errorLine (lineno, NULL, ErrorInfo, TRUE, optype, m1, im, m2, im2);
 
   return ir | i8s4;
@@ -244,7 +244,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
       break;
     }
 
-  if (fussy > 1)
+  if (option_fussy > 1)
     errorLine (lineno, NULL, ErrorInfo, TRUE, optype, m1, im, m2, -im);
 
   return ir | f;
@@ -284,7 +284,7 @@ fixAdrl (long int lineno, WORD * ir, WORD * ir2, int im, int warn)
   i8s4 = help_cpuImm8s4 (im);
   if (i8s4 != -1)
     {
-      if (warn && fussy && (im == 0 || (*ir & 0x00400000) || help_cpuImm8s4 (im - 4) != -1))
+      if (warn && option_fussy && (im == 0 || (*ir & 0x00400000) || help_cpuImm8s4 (im - 4) != -1))
 	errorLine (lineno, NULL, ErrorInfo, TRUE, "ADRL not required for offset %d (0x%08x)", im, im);
       *ir |= i8s4;
     }

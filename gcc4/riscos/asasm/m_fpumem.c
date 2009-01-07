@@ -40,7 +40,7 @@
 static void
 dstmem (WORD ir)
 {
-  if (apcs_softfloat)
+  if (option_apcs_softfloat)
     error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
     
   ir |= DST_OP (getFpuReg ());
@@ -68,7 +68,7 @@ dstmemx (WORD ir)
   BOOL stack;
   Value im;
 
-  if (apcs_softfloat)
+  if (option_apcs_softfloat)
     error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
 
   stack = (BOOL) ! isspace (inputLook ());

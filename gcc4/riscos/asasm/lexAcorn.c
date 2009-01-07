@@ -176,7 +176,7 @@ lexAcornPrim (Lex * lex)
     case 'c':
       FINISH_STR_PRIM ("onfig}");
       lex->tag = LexInt;
-      lex->LexInt.value = apcs_32bit ? 32 : 26;
+      lex->LexInt.value = option_apcs_32bit ? 32 : 26;
       return 1;
     case 'f':
       FINISH_STR_PRIM ("alse}");
@@ -186,7 +186,7 @@ lexAcornPrim (Lex * lex)
     case 'm':
       FINISH_STR_PRIM ("odule}");
       lex->tag = LexBool;
-      lex->LexInt.value = rma_module;
+      lex->LexInt.value = option_rma_module;
       return 1;
     case 'p':
       FINISH_STR_PRIM ("c}");
@@ -195,7 +195,7 @@ lexAcornPrim (Lex * lex)
     case 's':
       FINISH_STR_PRIM ("oftfloat}");
       lex->tag = LexBool;
-      lex->LexInt.value = apcs_softfloat;
+      lex->LexInt.value = option_apcs_softfloat;
       return 1;
     case 't':
       FINISH_STR_PRIM ("rue}");

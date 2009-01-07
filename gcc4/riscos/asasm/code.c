@@ -297,10 +297,10 @@ codeEvalLow (ValueTag legal, int size, Code *program)
     Result.Tag.t = ValueIllegal;
   if (!(Result.Tag.t & legal))
     {
-      if (autocast && (legal & ValueFloat) && Result.Tag.t == ValueInt)
+      if (option_autocast && (legal & ValueFloat) && Result.Tag.t == ValueInt)
 	{
 	  FLOAT f = Result.ValueInt.i;
-	  if (fussy > 1)
+	  if (option_fussy > 1)
 	    error (ErrorInfo, TRUE, "Changing integer %d to float %1.1f", Result.ValueInt.i, f);
 	  Result.Tag.t = ValueFloat;
 	  Result.ValueFloat.f = f;

@@ -453,7 +453,7 @@ c_get (void)
   dependWrite (filename);
 #endif
   asmfile = getfp;
-  if (verbose)
+  if (option_verbose)
     fprintf (stderr, "Including file \"%s\" as \"%s\"\n", filename, inputName);
 }
 
@@ -497,7 +497,7 @@ c_lnk (void)
   inputName = newInputName;
   if_depth = 0;
   asmfile = lnkfp;
-  if (verbose)
+  if (option_verbose)
     fprintf (stderr, "Linking to file \"%s\" as \"%s\"\n", filename, inputName);
 }
 
@@ -532,7 +532,7 @@ c_bin (void)
       free (newFilename);
       return;
     }
-  if (verbose)
+  if (option_verbose)
     fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", filename, newFilename);
   free (newFilename);
   while (!feof (binfp))
@@ -558,7 +558,7 @@ c_end (void)
     {
       fclose (asmfile);
       asmfile = fp;
-      if (verbose)
+      if (option_verbose)
 	fprintf (stderr, "Returning from include file\n");
     }
 }

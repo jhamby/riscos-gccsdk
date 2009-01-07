@@ -395,11 +395,11 @@ c_area (void)
   if (newtype & AREA_CODE)
     {
       /* 32-bit and FPv3 flags should only be set on CODE areas.  */
-      if (apcs_32bit)
+      if (option_apcs_32bit)
 	newtype |= AREA_32BITAPCS;
-      if (apcs_fpv3)
+      if (option_apcs_fpv3)
 	newtype |= AREA_EXTFPSET;
-      if (apcs_softfloat)
+      if (option_apcs_softfloat)
 	newtype |= AREA_SOFTFLOAT;
     }
   else if (newtype & (AREA_32BITAPCS | AREA_REENTRANT | AREA_EXTFPSET | AREA_NOSTACKCHECK))

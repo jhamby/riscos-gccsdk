@@ -360,7 +360,7 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
 	if (SYMBOL_OUTPUT (sym) || (sym->type & SYMBOL_AREA))
 	  {
 /*puts("  (written)"); */
-	    if (pedantic && sym->declared == 0
+	    if (option_pedantic && sym->declared == 0
 		&& ((sym->type & SYMBOL_DEFINED) || sym->used > -1))
 	      errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
 	    fwrite (sym->str, 1, sym->len + 1, outfile);

@@ -47,7 +47,7 @@ coprocessor (BOOL CopOnly, WORD ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,in
 
   if (cop == CP_NUMBER (1))
     {
-      if (pedantic)
+      if (option_pedantic)
 	error (ErrorInfo, TRUE, "Coprocessor 1 is the floating point unit. Use a floating point mnemonic if possible");
     }
   else

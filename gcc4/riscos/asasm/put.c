@@ -52,7 +52,7 @@ putData (int size, WORD data)
       areaError ();
       return;
     }
-  if (align)
+  if (option_align)
     {
       if (AREA_NOSPACE (areaCurrentSymbol->area.info,
 			areaCurrentSymbol->value.ValueInt.i + size))

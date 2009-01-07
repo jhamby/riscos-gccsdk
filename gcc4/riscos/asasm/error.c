@@ -67,7 +67,7 @@ errorFinish (void)
   if (ThrowbackStarted > 0)
     {
       _kernel_oserror *err;
-      if ((err = ThrowbackEnd ()) != NULL && verbose > 1)
+      if ((err = ThrowbackEnd ()) != NULL && option_verbose > 1)
         fprintf (stderr, "ThrowbackEnd error: %s\n", err->errmess);
     }
 #endif
@@ -92,7 +92,7 @@ LF (char *buf)
 static void
 TB (int level, long int lineno, const char *error, const char *file)
 {
-  if (!throwback || source == NULL)
+  if (!option_throwback || source == NULL)
     return;
 
   if (!ThrowbackStarted)
@@ -102,9 +102,9 @@ TB (int level, long int lineno, const char *error, const char *file)
     {
       _kernel_oserror *err;
 
-      if ((err = ThrowbackSendStart (file)) != NULL && verbose > 1)
+      if ((err = ThrowbackSendStart (file)) != NULL && option_verbose > 1)
         fprintf (stderr, "ThrowbackSendStart error: %s\n", err->errmess);
-      if ((err = ThrowbackSendError (level, lineno, error)) != NULL && verbose > 1)
+      if ((err = ThrowbackSendError (level, lineno, error)) != NULL && option_verbose > 1)
         fprintf (stderr, "ThrowbackSendError error: %s\n", err->errmess);
     }
 }

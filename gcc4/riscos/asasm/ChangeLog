@@ -1,3 +1,12 @@
+Wed Jan  7 02:44:53 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c,riscos_c.c,symbol.c,put.c,code.c,decode.c,error.c,local.c,
+	m_cop.c,storage.c,option.c,area.c,output.c,m_cpu.c,m_fpumem.c,m_fpu.c,
+	input.c,help_lex.c,lexAcorn.c,main.c,fix.c,lex.c,main.h,lex.h:
+	Prefixed option verbose,pedantic,fussy,throwback,dde,autocast,
+	align,gas_backend,local,objasm,uc,apcs_32bit,apcs_fpv3,apcs_softfloat,
+	rma_module with "option_".
+
 Tue Jan  6 22:09:45 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am: Go for C99 and more warnings enabled.

@@ -140,7 +140,7 @@ void
 localMunge (Lex *label)
 {
   int i;
-  if (!local)
+  if (!option_local)
     return;
   if (label->LexId.str[i = label->LexId.len - 2] == '$'
       && (label->LexId.str[i + 1] == 'L' || label->LexId.str[i + 1] == 'l'))

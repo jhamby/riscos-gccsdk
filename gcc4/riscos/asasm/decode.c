@@ -511,7 +511,7 @@ decode (Lex * label)
 	  switch (inputGetUC ())
 	    {
 	    case 'c':
-	      if (!local)
+	      if (!option_local)
 		goto illegal;
 	      C_FINISH_FLOW ("al", c_local);	/* local */
 	    case 'g':

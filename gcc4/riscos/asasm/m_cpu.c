@@ -192,7 +192,7 @@ lhsrhs (WORD ir)
     }
   else
     error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
-  if ((ir & P_FLAG) && apcs_32bit)
+  if ((ir & P_FLAG) && option_apcs_32bit)
     error (ErrorWarning, TRUE, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
   ir = getRhs (FALSE, TRUE, ir);
   putIns (ir);
@@ -254,13 +254,11 @@ onlyregs (BOOL acc, WORD ir)
 	error (ErrorError, TRUE, "Destination and left operand are the same register %d", dst);
       else
 	{
-	  if (fussy)
+	  if (option_fussy)
 	    error (ErrorInfo, TRUE, "Changing order of operands in %s", acc ? "MLA" : "MUL");
-	  {
-	    int t = lhs;
-	    lhs = rhs;
-	    rhs = t;
-	  }
+	  int t = lhs;
+	  lhs = rhs;
+	  rhs = t;
 	}
     }
   ir |= LHS_MUL (lhs);
@@ -364,13 +362,11 @@ l_onlyregs (WORD ir, const char *op)
             error (ErrorError, TRUE, "Left operand register %d also occurs in destination", lhs);
           else
 	    {
-	      if (fussy)
+	      if (option_fussy)
 	        error (ErrorInfo, TRUE, "Changing order of operands in %s", op);
-	      {
-	        int t = lhs;
-	        lhs = rhs;
-	        rhs = t;
-	      }
+	      int t = lhs;
+	      lhs = rhs;
+	      rhs = t;
 	    }
         }
      }

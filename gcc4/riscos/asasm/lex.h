@@ -54,7 +54,7 @@ Operator;
 int (isUnop) (Operator);
 
 extern const char Pri[2][10];
-#define PRI(n) Pri[objasm][n-1]
+#define PRI(n) Pri[option_objasm][n-1]
 
 typedef enum
 { LexId,			/* start with character */

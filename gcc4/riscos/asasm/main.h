@@ -24,23 +24,21 @@
 
 #include <setjmp.h>
 
-/* AS options :
- */
-extern int verbose;
-extern int pedantic;
-extern int fussy;
-extern int throwback;
-extern int dde;
-extern int autocast;
-extern int align;
-extern int gas_backend;
-extern int local;
-extern int objasm;
-extern int uc;
-extern int apcs_32bit;
-extern int apcs_fpv3;
-extern int apcs_softfloat;
-extern int rma_module;
+/* asasm options:  */
+extern int option_verbose;
+extern int option_pedantic;
+extern int option_fussy;
+extern int option_throwback;
+extern int option_dde;
+extern int option_autocast;
+extern int option_align;
+extern int option_local;
+extern int option_objasm;
+extern int option_uc;
+extern int option_apcs_32bit;
+extern int option_apcs_fpv3;
+extern int option_apcs_softfloat;
+extern int option_rma_module;
 extern int option_aof;
 
 extern const char *ProgName;

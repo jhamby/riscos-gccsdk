@@ -83,7 +83,7 @@ char
 inputLookUC (void)
 {
   char x = *input_pos;
-  return uc ? FLIP (x) : tolower (x);
+  return option_uc ? FLIP (x) : tolower (x);
 }
 
 int
@@ -111,7 +111,7 @@ char
 inputLookNUC (int n)		/* Unsafe */
 {
   char x = input_pos[n];
-  return uc ? FLIP (x) : tolower (x);
+  return option_uc ? FLIP (x) : tolower (x);
 }
 
 char
@@ -135,7 +135,7 @@ char
 inputGetUC (void)
 {
   char x = *input_pos ? *input_pos++ : *input_pos;
-  return uc ? FLIP (x) : tolower (x);
+  return option_uc ? FLIP (x) : tolower (x);
 }
 
 
@@ -326,7 +326,7 @@ inputNextLine (void)
     goto ret;
   while (fgets (workBuff, MAX_LINE, asmfile) == NULL)
     {
-      if (pedantic)
+      if (option_pedantic)
 	error (ErrorWarning, TRUE, "No END found in this file");
       if ((asmfile = pop_file ()) == NULL)
 	{
@@ -485,7 +485,7 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
       if (*input_pos == '.')
         input_pos++;
       /* Leave $[Ll].* alone, if we're wanting local labels */
-      if (local && label.LexId.len == 1 && toupper (*label.LexId.str) == 'L')
+      if (option_local && label.LexId.len == 1 && toupper (*label.LexId.str) == 'L')
         {
           input_buff[(*ptr)++] = '$';
           input_buff[(*ptr)++] = *label.LexId.str;
@@ -618,7 +618,7 @@ inputArgSub (void)
       /* copy each input character, until a special symbol is found */
       while (*input_pos && *input_pos != '"' && *input_pos != '\''
              && *input_pos != '|' && *input_pos != '$'
-	     && *input_pos != ';' && (*input_pos != '<' || !objasm)
+	     && *input_pos != ';' && (*input_pos != '<' || !option_objasm)
 	     && ptr < MAX_LINE)
 	input_buff[ptr++] = *input_pos++;
 
@@ -656,7 +656,7 @@ inputArgSub (void)
 	    }
 	  break;
 	case '\'':
-	  if (objasm)
+	  if (option_objasm)
 	    input_buff[ptr++] = *input_pos++;	/* some special case stuff */
 	  /* fall through to '"' */
 	case '\"':
@@ -670,7 +670,7 @@ inputArgSub (void)
                     return FALSE;
                   continue;
                 }
-              else if (cc == '<' && objasm)
+              else if (cc == '<' && option_objasm)
                 {
                   if (inputEnvSub(&ptr, &trunc) == FALSE)
                     return FALSE;
@@ -719,7 +719,7 @@ inputSymbol (int *ilen, char del)
 
   if (del)
     {
-      if (objasm && (del == '\'' || del == '\"'))
+      if (option_objasm && (del == '\'' || del == '\"'))
 	{
 	  if (del == '\'')
 	    ++p;		/* some special case stuff... */
@@ -745,7 +745,7 @@ inputSymbol (int *ilen, char del)
              && (isalnum (c)
 		 || c == '_'
 		 || (c == '$'
-		     && local
+		     && option_local
 		     && (p[1] == 'l' || p[1] == 'L')
 		     && p[2] != '.'
 		     && p[2] != '_'

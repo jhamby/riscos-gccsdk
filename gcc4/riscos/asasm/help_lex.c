@@ -44,7 +44,7 @@ lexGetCharFromString (int *ilen, const char **istr)
   int len = *ilen;
   char c;
 
-  if (*str == '\\' && !objasm)
+  if (*str == '\\' && !option_objasm)
     {				/* An escape character */
       if (--len < 1)
 	{
