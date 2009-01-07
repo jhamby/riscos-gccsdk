@@ -7,7 +7,7 @@ OBJDIR = ../../$(BUILDDIR)/dynamic
 DIRS = $(ARCH)
 
 CFLAGS += -I. -I./$(ARCH) -DNO_UNDERSCORE -DVERBOSE_DLINKER -DUSE_CACHE \
-	-fPIC -D__PIC__ -mpic-register=v4 -ffixed-sl
+	-fPIC -D__PIC__ -mpic-register=v4 -ffixed-sl -Wall
 CFLAGS_EXTRA = -mno-apcs-stack-check
 # -g
 
