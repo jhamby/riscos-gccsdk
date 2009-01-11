@@ -151,7 +151,7 @@ declare_var (const char *ptr, int len, const ValueTag type, BOOL local)
 }
 
 
-static char *
+static const char *
 var_inputSymbol (int *len)
 {
   char delim = '|', *sym;

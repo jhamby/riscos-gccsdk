@@ -1,3 +1,9 @@
+Sun Jan 11 18:18:31 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* variables.c(var_inputSymbol): Make return type const char ptr.
+	* value.c(valuePrint), help_lex.c(lexChar2Int): Minor source
+	cleanup.
+
 Wed Jan  7 02:44:53 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c,riscos_c.c,symbol.c,put.c,code.c,decode.c,error.c,local.c,

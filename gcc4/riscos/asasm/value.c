@@ -241,38 +241,38 @@ valueEqual(const Value *a, const Value *b)
 void
 valuePrint(const Value *v)
 {
-if (v == NULL)
-  return;
-printf("Value %d:%d : ", v->Tag.t, v->Tag.v);
-switch (v->Tag.t)
-  {
-  case ValueIllegal:
-    printf("<illegal>\n");
-    break;
-  case ValueInt:
-    printf("<%d> (int)\n", v->ValueInt.i);
-    break;
-  case ValueFloat:
-    printf("<%g> (float)\n", v->ValueFloat.f);
-    break;
-  case ValueString:
-    printf("<%.*s> (string)\n", v->ValueString.len, v->ValueString.s);
-    break;
-  case ValueBool:
-    printf("<%s> (bool)\n", v->ValueBool.b ? "TRUE" : "FALSE");
-    break;
-  case ValueCode:
-    printf("(code)\n");
-    break;
-  case ValueLateLabel:
-    printf("(late label)\n");
-    break;
-  case ValueAddr:
-    printf("(addr)\n");
-    break;
-  default:
-    printf("???\n");
-    break;
-  }
+  if (v == NULL)
+    return;
+  printf("Value %d:%d : ", v->Tag.t, v->Tag.v);
+  switch (v->Tag.t)
+    {
+      case ValueIllegal:
+	printf("<illegal>\n");
+	break;
+      case ValueInt:
+	printf("<%d> (int)\n", v->ValueInt.i);
+	break;
+      case ValueFloat:
+	printf("<%g> (float)\n", v->ValueFloat.f);
+	break;
+      case ValueString:
+	printf("<%.*s> (string)\n", v->ValueString.len, v->ValueString.s);
+	break;
+      case ValueBool:
+	printf("<%s> (bool)\n", v->ValueBool.b ? "TRUE" : "FALSE");
+	break;
+      case ValueCode:
+	printf("(code)\n");
+	break;
+      case ValueLateLabel:
+	printf("(late label)\n");
+	break;
+      case ValueAddr:
+	printf("(addr)\n");
+	break;
+      default:
+	printf("???\n");
+	break;
+    }
 }
 #endif

@@ -185,48 +185,31 @@ WORD
 lexChar2Int (BOOL rev, int len, const char *str)
 {
   char c[4];
-  int i = 0;
-  while (len && i < 4)
-    c[i++] = lexGetCharFromString (&len, &str);
-  if (rev)
+  int i;
+
+  for (i = 0; len && i < 4; ++i)
+    c[i] = lexGetCharFromString (&len, &str);
+
+  switch (i)
     {
-      switch (i)
-	{
-	case 0:
-	  error (ErrorError, TRUE, "Empty character");
-	  return 0;
-	case 1:
-	  return c[0];
-	case 2:
-	  return c[0] << 8 | c[1];
-	case 3:
-	  return c[0] << 16 | c[1] << 8 | c[2];
-	case 4:
-	  return c[0] << 24 | c[1] << 16 | c[2] << 8 | c[3];
-	default:
-	  error (ErrorError, TRUE, "Multi character bigger than 4 bytes (%d)", i);
-	  return 0;
-	}
+      case 0:
+	error (ErrorError, TRUE, "Empty character");
+	return 0;
+      case 1:
+	return c[0];
+      case 2:
+	return (rev) ? (c[1] << 8) | c[0]
+	             : (c[0] << 8) | c[1];
+      case 3:
+	return (rev) ? (c[2] << 16) | (c[1] << 8) | c[0]
+	             : (c[0] << 16) | (c[1] << 8) | c[2];
+      case 4:
+	return (rev) ? (c[3] << 24) | (c[2] << 16) | (c[1] << 8) | c[0]
+	             : (c[0] << 24) | (c[1] << 16) | (c[2] << 8) | c[3];
+      default:
+	error (ErrorError, TRUE, "Multi character bigger than 4 bytes (%d)", i);
+	return 0;
     }
-  else
-    {
-      switch (i)
-	{
-	case 0:
-	  error (ErrorError, TRUE, "Empty character");
-	  return 0;
-	case 1:
-	  return c[0];
-	case 2:
-	  return c[1] << 8 | c[0];
-	case 3:
-	  return c[2] << 16 | c[1] << 8 | c[0];
-	case 4:
-	  return c[3] << 24 | c[2] << 16 | c[1] << 8 | c[0];
-	default:
-	  error (ErrorError, TRUE, "Multi character bigger than 4 bytes (%d)", i);
-	  return 0;
-	}
-    }
+
   return 0;
 }
