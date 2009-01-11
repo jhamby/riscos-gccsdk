@@ -73,8 +73,7 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
     }
   else
     sym->value = valueCopy (value);
-  sym->type |= SYMBOL_DEFINED;
-  sym->declared = 1;
+  sym->type |= SYMBOL_DEFINED | SYMBOL_DECLARED;
   sym->area.ptr = NULL;
 }
 
@@ -182,7 +181,7 @@ defineint (int size)
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
-	  relocInt (size, value);
+	  relocInt (size, &value);
 	  putData (size, word);
 	  break;
 	default:
@@ -273,7 +272,7 @@ definereal (int size)
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
-	  relocFloat (size, value);
+	  relocFloat (size, &value);
 	  putDataFloat (size, 0.0);
 	  break;
 	default:
@@ -316,7 +315,7 @@ c_dcfp (void)
 
 
 static void
-symFlag (int flag, int declared, const char *err)
+symFlag (unsigned int flags, const char *err)
 {
   Symbol *sym;
   Lex lex = lexGetId ();
@@ -326,32 +325,28 @@ symFlag (int flag, int declared, const char *err)
   if (localTest (sym->str))
     error (ErrorError, TRUE, "Local labels cannot be %s", err);
   else
-    {
-      sym->type |= flag;
-      if (declared)
-	sym->declared = 1;
-    }
+    sym->type |= flags;
 }
 
 
 void
 c_globl (void)
 {
-  symFlag (SYMBOL_REFERENCE, 1, "exported");
+  symFlag (SYMBOL_REFERENCE | SYMBOL_DECLARED, "exported");
 }
 
 
 void
 c_strong (void)
 {
-  symFlag (SYMBOL_STRONG, 0, "marked 'strong'");
+  symFlag (SYMBOL_STRONG, "marked 'strong'");
 }
 
 
 void
 c_keep (void)
 {
-  symFlag (SYMBOL_KEEP, 1, "marked 'keep'");
+  symFlag (SYMBOL_KEEP | SYMBOL_DECLARED, "marked 'keep'");
 }
 
 
@@ -366,8 +361,7 @@ c_import (void)
     return;
 
   sym = symbolGet (&lex);
-  sym->type |= SYMBOL_REFERENCE;
-  sym->declared = 1;
+  sym->type |= SYMBOL_REFERENCE | SYMBOL_DECLARED;
   while ((c = inputGet ()) == ',')
     {
       Lex attribute = lexGetId ();

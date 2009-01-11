@@ -113,7 +113,7 @@ help_copAddr (WORD ir, BOOL stack)
 		  break;
 		case ValueCode:
 		case ValueLateLabel:
-		  relocCopOffset (ir, offset);
+		  relocCopOffset (ir, &offset);
 		  break;
 		default:
 		  error (ErrorError, TRUE, "Illegal offset expression");
@@ -239,7 +239,7 @@ help_copAddr (WORD ir, BOOL stack)
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
-	  relocCopOffset (ir | LHS_OP (15), offset);
+	  relocCopOffset (ir | LHS_OP (15), &offset);
 	  break;
 	case ValueAddr:
 	  ir = fixCopOffset (inputLineNo, ir | LHS_OP (offset.ValueAddr.r),

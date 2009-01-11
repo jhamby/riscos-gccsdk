@@ -85,7 +85,7 @@ getFloatRhs (WORD ir)
 	  break;
 	case ValueLateLabel:
 	case ValueCode:
-	  relocImmFloat (ir, im);
+	  relocImmFloat (ir, &im);
 	  break;
 	default:
 	  error (ErrorError, TRUE, "Illegal float immediate");

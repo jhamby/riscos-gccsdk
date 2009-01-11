@@ -102,7 +102,7 @@ codeSymbol (Symbol * symbol)
 	    case ValueAddr:
 	      Program[FirstFreeIns].Tag = CodeValue;
 	      Program[FirstFreeIns++].CodeValue.value = symbol->value;
-	      symbol->used = 0;	/* Mark as used.  */
+	      symbol->used = 0; /* Mark as used.  */
 	      break;
 	    case ValueCode:
 	      if (FirstFreeIns + symbol->value.ValueCode.len <= CODE_SIZECODE)
@@ -110,7 +110,7 @@ codeSymbol (Symbol * symbol)
 		  int i;
 		  for (i = 0; i < symbol->value.ValueCode.len; i++)
 		    Program[FirstFreeIns++] = symbol->value.ValueCode.c[i];
-		  symbol->used = 0;
+		  symbol->used = 0; /* Mark as used.  */
 		}
 	      else
 		error (ErrorSerious, FALSE, "Internal codeSymbol: overflow (n)");
@@ -124,7 +124,7 @@ codeSymbol (Symbol * symbol)
 	{
 	  Program[FirstFreeIns].Tag = CodeSymbol;
 	  Program[FirstFreeIns++].CodeSymbol.symbol = symbol;
-	  symbol->used = 0;
+	  symbol->used = 0; /* Mark as used.  */
 	}
     }
   else

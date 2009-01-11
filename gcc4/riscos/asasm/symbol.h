@@ -32,7 +32,7 @@
 #define SYMBOL_REFERENCE 0x0002 /* E.g. IMPORT symbol, or unused EXPORT symbol.  */
 #define SYMBOL_GLOBAL    0x0003	/* Defined with global scope.  E.g. used EXPORT symbol.  */
 
-#define SYMBOL_KIND(x)   ((x) & 0x0003)
+#define SYMBOL_KIND(x)   ((x) & 0x0003) /* Returns: 0 (area symbol, symbols which are only marked as imported or exported), SYMBOL_LOCAL, SYMBOL_REFERENCE or SYMBOL_GLOBAL.  */
 
 #define SYMBOL_DEFINED   0x0001 /* This is a mask.  */
 #define SYMBOL_EXPORT    0x0002 /* This is a mask.  */
@@ -57,11 +57,13 @@
 #define SYMBOL_NOTRESOLVED	0x04000000
 #define SYMBOL_BASED		0x08000000 /** Symbol is defined in a based area.  */
 
-#define SYMBOL_CPUREG		0x10000000 /* FIXME? SYMBOL_*REG should not be a bitfield */
+#define SYMBOL_CPUREG		0x10000000
 #define SYMBOL_FPUREG		0x20000000
-#define SYMBOL_COPREG		0x40000000
-#define SYMBOL_COPNUM		0x80000000
-#define SYMBOL_GETREG(x)	((x) & 0xF0000000)
+#define SYMBOL_COPREG		0x30000000
+#define SYMBOL_COPNUM		0x40000000
+#define SYMBOL_GETREG(x)	((x) & 0x70000000)
+
+#define SYMBOL_DECLARED		0x80000000
 
 #define SYMBOL_TABLESIZE 1024
 
@@ -70,7 +72,6 @@ typedef struct SYMBOL
 {
   struct SYMBOL *next;  /** Linked symbols all having the same hash value.  */
   unsigned int type;
-  int declared; /* FIXME: replace this by a new bit in type field.  */
   Value value;
   union
   {
@@ -78,11 +79,10 @@ typedef struct SYMBOL
     struct AREA *info;
   }
   area;
-  unsigned int offset;		/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
-  int used;			/* this id is used (ie not resolved) */
-  /* Later changed to index in symbol table */
-  int len;			/** length of str[] without its NUL terminator.  */
-  char str[1];			/** symbol name as NUL terminated string */
+  unsigned int offset;	/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
+  int used;		/** -1 when not used; for area symbols: at outputAof/outputElf stage, this will be the area number counted from 0; for other symbols, 0 when symbol is needed in output. This will become the symbol index at symbolFix stage.  */
+  int len;		/** length of str[] without its NUL terminator.  */
+  char str[1];		/** symbol name as NUL terminated string */
 }
 Symbol;
 

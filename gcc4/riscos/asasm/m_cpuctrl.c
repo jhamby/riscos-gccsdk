@@ -76,7 +76,7 @@ m_branch (WORD cc)
       break;
     case ValueCode:
     case ValueLateLabel:
-      relocBranch (im);
+      relocBranch (&im);
       break;
     default:
       error (ErrorError, TRUE, "Illegal branch destination");
@@ -128,7 +128,7 @@ m_blx (WORD cc)
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
-	  relocBranchT (im);
+	  relocBranchT (&im);
 	  break;
 	default:
 	  error (ErrorError, TRUE, "Illegal branch destination");
@@ -178,7 +178,7 @@ m_swi (WORD cc)
       break;
     case ValueCode:
     case ValueLateLabel:
-      relocSwi (im);
+      relocSwi (&im);
       break;
     case ValueString:
 #ifdef __riscos__
@@ -268,9 +268,9 @@ m_adr (WORD cc)
     case ValueCode:
     case ValueLateLabel:
       if (cc & 1)
-	relocAdrl (ir, im);
+	relocAdrl (ir, &im);
       else
-	relocAdr (ir, im);
+	relocAdr (ir, &im);
       break;
     default:
       error (ErrorError, TRUE, "Illegal ADR%s expression", (cc & 1) ? "L" : "");

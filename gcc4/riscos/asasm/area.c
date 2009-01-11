@@ -286,8 +286,7 @@ c_area (void)
     oldtype = sym->area.info->type;
   else
     {
-      sym->type = SYMBOL_AREA;
-      sym->declared = 1;
+      sym->type = SYMBOL_AREA | SYMBOL_DECLARED;
       sym->value.Tag.t = ValueInt;
       sym->value.ValueInt.i = 0;
       sym->area.info = areaNew (0);

@@ -65,18 +65,19 @@ int relocFix (const Symbol *area);
 void relocAOFOutput (FILE *outfile, const Symbol *area);
 void relocELFOutput (FILE *outfile, const Symbol *area);
 
-void relocShiftImm (WORD shiftop, Value shift);
-void relocImm8s4 (WORD ir, Value im8s4);
-void relocImmFloat (WORD ir, Value value);
-void relocBranch (Value offset);
-void relocBranchT (Value offset);
-void relocSwi (Value code);
-void relocCopOffset (WORD ir, Value offset);
-void relocCpuOffset (WORD ir, Value offset);
-void relocAdr (WORD ir, Value addr);
-void relocAdrl (WORD ir, Value addr);
-void relocMask (Value mask);
-void relocInt (int size, Value value);
-void relocFloat (int size, Value value);
-void relocAdd (Reloc * newReloc);
+void relocShiftImm (WORD shiftop, const Value *shift);
+void relocImm8s4 (WORD ir, const Value *im8s4);
+void relocImmFloat (WORD ir, const Value *value);
+void relocBranch (const Value *offset);
+void relocBranchT (const Value *offset);
+void relocSwi (const Value *code);
+void relocCpuOffset (WORD ir, const Value *offset);
+void relocCopOffset (WORD ir, const Value *offset);
+void relocAdr (WORD ir, const Value *addr);
+void relocAdrl (WORD ir, const Value *addr);
+void relocMask (const Value *mask);
+void relocInt (int size, const Value *value);
+void relocFloat (int size, const Value *value);
+void relocAdd (Reloc *newReloc);
+
 #endif

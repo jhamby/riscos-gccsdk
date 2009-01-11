@@ -172,14 +172,12 @@ outputRemove (void)
 }
 
 static int
-countAreas (Symbol * ap)
+countAreas (void)
 {
+  Symbol *ap;
   int i = 0;
-  while (ap)
-    {
-      ap->used = i++;
-      ap = ap->area.info->next;
-    }
+  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+    ap->used = i++;
   return i;
 }
 
@@ -199,7 +197,7 @@ writeEntry (int ID, int type, int size, int *offset)
 void
 outputAof (void)
 {
-  int noareas = countAreas (areaHeadSymbol);
+  int noareas = countAreas ();
   unsigned int idfn_size;
   int offset, pad, written, obj_area_size;
   Symbol *ap;
@@ -351,7 +349,7 @@ writeElfSH (int nmoffset, int type, int flags, int size,
 void
 outputElf (void)
 {
-  int noareas = countAreas (areaHeadSymbol);
+  int noareas = countAreas ();
   int norels;
   int written, offset, obj_area_size, pad, strsize;
   int elfIndex, nsyms, shstrsize;

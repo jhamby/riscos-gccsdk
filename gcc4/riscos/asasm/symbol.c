@@ -54,7 +54,7 @@ int (SYMBOL_AOF_OUTPUT) (const Symbol *);	/* typedef it */
    or coprocessor names).  */
 int (SYMBOL_ELF_OUTPUT) (const Symbol *);	/* typedef it */
 #define SYMBOL_ELF_OUTPUT(sym) \
-  (!SYMBOL_GETREG((sym)->type) && ((sym)->used > -1))
+  (!SYMBOL_GETREG((sym)->type) && (sym)->used > -1)
 
 #ifndef NO_ELF_SUPPORT
 #define SYMBOL_OUTPUT(sym) \
@@ -73,7 +73,7 @@ symbolNew (int len, const char *str)
   if ((result = (Symbol *) malloc (sizeof (Symbol) + len)) != NULL)
     {
       result->next = NULL;
-      result->type = result->declared = result->offset = 0;
+      result->type = result->offset = 0;
       result->value.Tag.t = ValueIllegal;
       result->value.Tag.v = ValueConst;
       result->used = -1;
@@ -201,10 +201,9 @@ symbolInit (void)
       l.LexId.hash = lexHashStr (l.LexId.str, l.LexId.len);
 
       s = symbolAdd(&l);
-      s->type |= SYMBOL_ABSOLUTE | predefines[i].type;
+      s->type |= SYMBOL_ABSOLUTE | SYMBOL_DECLARED | predefines[i].type;
       s->value.Tag.t = ValueInt;
       s->value.ValueInt.i = predefines[i].value;
-      s->declared = 1;
       s->area.ptr = NULL;
     }
 }
@@ -302,13 +301,10 @@ symbolFix (int *stringSizeNeeded)
   int nosym = 0;
   int strsize = 0;		/* Always contains its length */
   int i;
-  Symbol *sym;
 
-#ifdef DEBUG
-  symbolPrint ();
-#endif
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     {
+      Symbol *sym;
       for (sym = symbolTable[i]; sym; sym = sym->next)
 	{
 	  if (sym->type & SYMBOL_AREA)
@@ -320,7 +316,11 @@ symbolFix (int *stringSizeNeeded)
 	  else
 	    {
 	      if (SYMBOL_KIND (sym->type) == 0)
-		sym->type |= SYMBOL_REFERENCE;
+		{
+		  sym->type |= SYMBOL_REFERENCE;
+		  if (option_pedantic)
+		    errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
+		}
 	      if (SYMBOL_OUTPUT (sym) && sym->value.Tag.v == ValueConst)
 		{
 		  int label = -1, ii;
@@ -358,6 +358,9 @@ symbolFix (int *stringSizeNeeded)
 	    }
 	}
     }
+#ifdef DEBUG
+  symbolPrint ();
+#endif
   /* printf("Number of symbols selected: %d, size needed %d bytes\n", nosym, strsize); */
   *stringSizeNeeded = strsize;
   return nosym;
@@ -371,24 +374,21 @@ void
 symbolStringOutput (FILE * outfile)	/* Count already output */
 {
   int i;
-  const Symbol *sym;
   int nosym = 0, strsize = 0;
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
-    for (sym = symbolTable[i]; sym; sym = sym->next)
-      {
-/*printf("%-40s  %3i %8X %8X %8X\n",sym->str,sym->used,sym->type,sym->value.Tag.t,sym->value.Tag.v); */
-	if (SYMBOL_OUTPUT (sym) || (sym->type & SYMBOL_AREA))
-	  {
-/*puts("  (written)"); */
-	    ++nosym;
-	    strsize += sym->len + 1;
-	    if (option_pedantic && sym->declared == 0
-		&& ((sym->type & SYMBOL_DEFINED) || sym->used > -1))
-	      errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
-	    fwrite (sym->str, 1, sym->len + 1, outfile);
-	  }
-      }
+    {
+      const Symbol *sym;
+      for (sym = symbolTable[i]; sym; sym = sym->next)
+	{
+	  if (SYMBOL_OUTPUT (sym) || (sym->type & SYMBOL_AREA))
+	    {
+	      ++nosym;
+	      strsize += sym->len + 1;
+	      fwrite (sym->str, 1, sym->len + 1, outfile);
+	    }
+	}
+    }
   /* printf ("symbolStringOutput(): number of symbols written %d, size needed %d bytes\n", nosym, strsize); */
 }
 
@@ -667,6 +667,11 @@ symbolPrint (void)
       const Symbol *sym;
       for (sym = symbolTable[i]; sym; sym = sym->next)
 	{
+	  /* We skip all internally defined register names and coprocessor
+	     numbers.  */
+	  if (SYMBOL_GETREG(sym->type))
+	    continue;
+
 	  static const char *symkind[4] = { "UNKNOWN", "LOCAL", "REFERENCE", "GLOBAL" };
 	  printf ("\"%.*s\": %s /",
 		  sym->len, sym->str, symkind[SYMBOL_KIND(sym->type)]);
@@ -700,17 +705,30 @@ symbolPrint (void)
 	    printf ("not resolved/");
 	  if (sym->type & SYMBOL_BASED)
 	    printf ("based/");
-	  if (sym->type & SYMBOL_CPUREG)
-	    printf ("cpu reg/");
-	  if (sym->type & SYMBOL_FPUREG)
-	    printf ("fpu reg/");
-	  if (sym->type & SYMBOL_COPREG)
-	    printf ("coproc reg/");
-	  if (sym->type & SYMBOL_COPNUM)
-	    printf ("coproc num/");
+	  switch (SYMBOL_GETREG(sym->type))
+	    {
+	      case 0: /* No register, nor coprocessor number.  */
+		break;
+	      case SYMBOL_CPUREG:
+		printf ("cpu reg/");
+		break;
+	      case SYMBOL_FPUREG:
+		printf ("fpu reg/");
+		break;
+	      case SYMBOL_COPREG:
+		printf ("coproc reg/");
+		break;
+	      case SYMBOL_COPNUM:
+		printf ("coproc num/");
+		break;
+	      default:
+		printf ("??? 0x%x/", SYMBOL_GETREG(sym->type));
+		break;
+	    }
+	  if (sym->type & SYMBOL_DECLARED)
+	    printf ("declared/");
 	  
-	  printf (" * %sdeclared, %p, offset 0x%x, used %d: ",
-		  (sym->declared) ? "" : "not ",
+	  printf (" * %p, offset 0x%x, used %d: ",
 		  (void *)sym->area.ptr, sym->offset, sym->used);
 	  valuePrint (&sym->value);
 	}

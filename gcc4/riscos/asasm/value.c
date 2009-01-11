@@ -36,7 +36,7 @@
 
 /* Code demands at least one Lateinfo */
 Value
-valueLateToCode(int offset,LateInfo *late)
+valueLateToCode(int offset, LateInfo *late)
 {
   LateInfo *l;
   Value value;
@@ -147,34 +147,35 @@ valueCopy (Value value)
 }
 
 static void
-valueFree(Value value)
+valueFree(Value *value)
 {
-  switch(value.Tag.t)
+  switch (value->Tag.t)
     {
-    case ValueIllegal:
-    case ValueInt:
-    case ValueFloat:
-    case ValueBool:
-    case ValueAddr: /* Needed here? */
-      break;
-    case ValueString:
-      if (value.Tag.v == ValueString)
-        {
-	  free((void *)value.ValueString.s);
-	  value.ValueString.s = NULL;
-        }
-      else
-	error(ErrorSerious,FALSE,"Internal valueFree: cannot handle %s", "string");
-      break;
-    case ValueCode:
-      free(value.ValueCode.c);
-      break;
-    case ValueLateLabel:
-      error(ErrorSerious,FALSE,"Internal valueFree: cannot handle %s", "late label");
-      break;
-    default:
-      error(ErrorSerious,FALSE,"Internal valueFree: illegal value");
-      break;
+      case ValueIllegal:
+      case ValueInt:
+      case ValueFloat:
+      case ValueBool:
+      case ValueAddr: /* Needed here? */
+	break;
+      case ValueString:
+	if (value->Tag.v == ValueString)
+	  {
+	    free((void *)value->ValueString.s);
+	    value->ValueString.s = NULL;
+	  }
+	else
+	  error(ErrorSerious,FALSE,"Internal valueFree: cannot handle %s", "string");
+	break;
+      case ValueCode:
+	free(value->ValueCode.c);
+	value->ValueCode.c = NULL;
+	break;
+      case ValueLateLabel:
+	error(ErrorSerious,FALSE,"Internal valueFree: cannot handle %s", "late label");
+	break;
+      default:
+	error(ErrorSerious,FALSE,"Internal valueFree: illegal value");
+	break;
     }
 }
 
@@ -217,7 +218,7 @@ valueEqual(const Value *a, const Value *b)
         {
 	Value v = valueLateToCode(b->ValueLate.i,b->ValueLate.late);
 	BOOL res = a->ValueCode.len == v.ValueCode.len && codeEqual(a->ValueCode.len,a->ValueCode.c,v.ValueCode.c);
-	valueFree(v);
+	valueFree(&v);
 	return res;
         }
       else

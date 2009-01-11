@@ -249,7 +249,7 @@ getShift (BOOL immonly)
 	      break;
 	    case ValueCode:
 	    case ValueLateLabel:
-	      relocShiftImm (shift, im);
+	      relocShiftImm (shift, &im);
 	      op = SHIFT_OP (shift);	/* !! Fixed !! */
 	      break;
 	    default:
@@ -312,7 +312,7 @@ getRhs (BOOL immonly, BOOL shift, WORD ir)
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
-	  relocImm8s4 (ir, im);
+	  relocImm8s4 (ir, &im);
 	  break;
 	default:
 	  error (ErrorError, TRUE, "Illegal immediate expression");

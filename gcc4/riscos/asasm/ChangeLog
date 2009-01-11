@@ -1,3 +1,26 @@
+Sun Jan 11 21:35:31 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.h: Have SYMBOL_CPUREG, SYMBOL_FPUREG, SYMBOL_COPREG and
+	SYMBOL_COPNUM defined as values not individual bits. Define
+	SYMBOL_DECLARED as a new bit and remove Symbol::declared.
+	* commands.c(c_define,symFlag), symbol.c(symbolNew,symbolInit,
+	symbolPrint),area.c(c_area): Follow previous changes.
+	* symbol.c(symbolPrint): Skip the internally defined register and
+	coprocessor number symbols.
+	* code.c: Add comments.
+	* reloc.c(relocShiftImm,relocImm8s4,relocImmFloat,relocBranch,
+	relocBranchT,relocSwi,relocCpuOffset,relocCopOffset,relocAdr,relocAdrl,
+	relocMask,relocInt,relocFloat,relocAdd),value.c(valueFree): Pass Value parameter as
+	reference, not by copy.
+	* reloc.h,commands.c(defineint,definereal),m_cpuctrl.c(m_branch,
+	m_blx,m_swi,m_adr),help_cop.c(help_copAddr),m_cpumem.c(dstmem,
+	dstreglist),value.c(valueEqual),m_fpu.c(getFloatRhs),reloc.c(relocNew),
+	get.c(getShift,getRhs): Follow previous change.
+	* output.c(countAreas): Get rid of parameter.
+	(outputAof,outputElf): Follow previous change.
+	* symbol.c(symbolFix,symbolStringOutput): Implicitly imported symbol
+	warning was wrongly given for some symbols in ELF output mode.
+	
 Sun Jan 11 18:32:47 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* docs/{AIF-1993,ALF-1989,ALF-1993,AOF-1989,AOF-2002,APCS,AIF-1989,

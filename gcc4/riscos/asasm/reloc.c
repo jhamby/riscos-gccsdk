@@ -75,7 +75,7 @@ reloc2String (RelocTag tag)
 
 
 static Reloc *
-relocNew (Reloc * more, RelocTag tag, int offset, Value value)
+relocNew (Reloc *more, RelocTag tag, int offset, const Value *value)
 {
   Reloc *newReloc;
   if ((newReloc = malloc (sizeof (Reloc))) != NULL)
@@ -86,7 +86,7 @@ relocNew (Reloc * more, RelocTag tag, int offset, Value value)
       newReloc->file = inputName;
       newReloc->offset = offset;
       /* fprintf (stderr, "relocNew: line=%d, offset=%d\n", inputLineNo, offset); */
-      newReloc->value = valueCopy (value);
+      newReloc->value = valueCopy (*value);
     }
   else
     errorOutOfMem ("relocNew2");
@@ -95,14 +95,14 @@ relocNew (Reloc * more, RelocTag tag, int offset, Value value)
 
 
 static void
-relocOp (int word, Value * value, RelocTag tag)
+relocOp (int word, const Value *value, RelocTag tag)
 {
   if (areaCurrentSymbol)
     {
       Reloc *newReloc;
 
       newReloc = relocNew (areaCurrentSymbol->area.info->relocs, tag,
-		      areaCurrentSymbol->value.ValueInt.i, *value);
+		      areaCurrentSymbol->value.ValueInt.i, value);
       newReloc->extra = word;
       areaCurrentSymbol->area.info->relocs = newReloc;
     }
@@ -112,98 +112,98 @@ relocOp (int word, Value * value, RelocTag tag)
 
 
 void
-relocShiftImm (WORD shiftop, Value shift)
+relocShiftImm (WORD shiftop, const Value *shift)
 {
-  relocOp (shiftop, &shift, RelocShiftImm);
+  relocOp (shiftop, shift, RelocShiftImm);
 }
 
 
 void
-relocImm8s4 (WORD ir, Value im8s4)
+relocImm8s4 (WORD ir, const Value *im8s4)
 {
-  relocOp (ir, &im8s4, RelocImm8s4);
+  relocOp (ir, im8s4, RelocImm8s4);
 }
 
 
 void
-relocImmFloat (WORD ir, Value value)
+relocImmFloat (WORD ir, const Value *value)
 {
-  relocOp (ir, &value, RelocImmFloat);
+  relocOp (ir, value, RelocImmFloat);
 }
 
 
 void
-relocBranch (Value offset)
+relocBranch (const Value *offset)
 {
-  relocOp (0, &offset, RelocBranch);
+  relocOp (0, offset, RelocBranch);
 }
 
 
 void
-relocBranchT (Value offset)
+relocBranchT (const Value *offset)
 {
-  relocOp (0, &offset, RelocBranchT);
+  relocOp (0, offset, RelocBranchT);
 }
 
 
 void
-relocSwi (Value code)
+relocSwi (const Value *code)
 {
-  relocOp (0, &code, RelocSwi);
+  relocOp (0, code, RelocSwi);
 }
 
 
 void
-relocCpuOffset (WORD ir, Value offset)
+relocCpuOffset (WORD ir, const Value *offset)
 {
-  relocOp (ir, &offset, RelocCpuOffset);
+  relocOp (ir, offset, RelocCpuOffset);
 }
 
 
 void
-relocCopOffset (WORD ir, Value offset)
+relocCopOffset (WORD ir, const Value *offset)
 {
-  relocOp (ir, &offset, RelocCopOffset);
+  relocOp (ir, offset, RelocCopOffset);
 }
 
 
 void
-relocAdr (WORD ir, Value addr)
+relocAdr (WORD ir, const Value *addr)
 {
-  relocOp (ir, &addr, RelocAdr);
+  relocOp (ir, addr, RelocAdr);
 }
 
 
 void
-relocAdrl (WORD ir, Value addr)
+relocAdrl (WORD ir, const Value *addr)
 {
-  relocOp (ir, &addr, RelocAdrl);
+  relocOp (ir, addr, RelocAdrl);
 }
 
 
 void
-relocMask (Value mask)
+relocMask (const Value *mask)
 {
-  relocOp (0, &mask, RelocImmN);
+  relocOp (0, mask, RelocImmN);
 }
 
 
 void
-relocInt (int size, Value value)
+relocInt (int size, const Value *value)
 {
-  relocOp (size, &value, RelocImmN);
+  relocOp (size, value, RelocImmN);
 }
 
 
 void
-relocFloat (int size, Value value)
+relocFloat (int size, const Value *value)
 {
-  relocOp (size, &value, RelocFloat);
+  relocOp (size, value, RelocFloat);
 }
 
 
 void
-relocAdd (Reloc * newReloc)
+relocAdd (Reloc *newReloc)
 {
   if (areaCurrentSymbol)
     {
@@ -316,15 +316,11 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 	      if (late->factor > 0)
 		{
 		  if (!(late->symbol->type & SYMBOL_AREA))
-		    {
-		      late->symbol->used++;
-		    }
+		    late->symbol->used++;
 		  else if (r->extra != 4)
-		    {
-		      errorLine (r->lineno, r->file, ErrorError, TRUE,
-		       "8/16 bits field cannot be allocated with area (%s)",
-				 late->symbol->str);
-		    }
+		    errorLine (r->lineno, r->file, ErrorError, TRUE,
+			       "8/16 bits field cannot be allocated with area (%s)",
+			       late->symbol->str);
 		}
 	      else if (late->factor < 0)
 		{

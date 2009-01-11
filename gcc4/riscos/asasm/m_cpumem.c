@@ -104,7 +104,7 @@ dstmem (WORD ir)
 		  case ValueLateLabel:
 		    if ((ir & 0x90) == 0x90)
 		      ir |= 0x00400000;
-		    relocCpuOffset (ir, offset);
+		    relocCpuOffset (ir, &offset);
 		    break;
 		  default:
 		    error (ErrorError, TRUE, "Illegal offset expression");
@@ -219,7 +219,7 @@ dstmem (WORD ir)
 	case ValueLateLabel:
 	  if ((ir & 0x90) == 0x90)
 	    ir |= (1 << 22);
-	  relocCpuOffset (ir |= LHS_OP (15), offset);
+	  relocCpuOffset (ir |= LHS_OP (15), &offset);
 	  break;
 	case ValueAddr:
 	  ir |= LHS_OP (offset.ValueAddr.r);
@@ -373,7 +373,7 @@ dstreglist (WORD ir)
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
-	  relocMask (mask);
+	  relocMask (&mask);
 	  break;
 	default:
 	  error (ErrorError, TRUE, "Illegal mask expression");
