@@ -21,6 +21,7 @@
  */
 
 #include "config.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -42,11 +43,26 @@
 #include "output.h"
 #include "symbol.h"
 
-#define SYMBOL_OUTPUT(sym) \
+/* For AOF, we output a symbol when it is be exported (or forced exported)
+   and it is defined, or imported and referenced in the code.  */
+int (SYMBOL_AOF_OUTPUT) (const Symbol *);	/* typedef it */
+#define SYMBOL_AOF_OUTPUT(sym) \
   (((sym)->type & (SYMBOL_EXPORT|SYMBOL_KEEP)) \
-    && (((sym)->type & SYMBOL_DEFINED) || (sym)->used > -1))
-  /* must be exported & defined, or imported and referenced */
-int (SYMBOL_OUTPUT) (const Symbol *);	/* typedef it */
+   && (((sym)->type & SYMBOL_DEFINED) || (sym)->used > -1))
+
+/* For ELF, we output all used & defined or referenced symbols (except register
+   or coprocessor names).  */
+int (SYMBOL_ELF_OUTPUT) (const Symbol *);	/* typedef it */
+#define SYMBOL_ELF_OUTPUT(sym) \
+  (!SYMBOL_GETREG((sym)->type) && ((sym)->used > -1))
+
+#ifndef NO_ELF_SUPPORT
+#define SYMBOL_OUTPUT(sym) \
+  (option_aof ? SYMBOL_AOF_OUTPUT(sym) : SYMBOL_ELF_OUTPUT(sym))
+#else
+#define SYMBOL_OUTPUT(sym) \
+  SYMBOL_AOF_OUTPUT(sym)
+#endif
 
 static Symbol *symbolTable[SYMBOL_TABLESIZE];
 
@@ -82,7 +98,7 @@ EqSymLex (const Symbol * str, const Lex * lx)
 void
 symbolInit (void)
 {
-  static struct {
+  static const struct {
     const char *name;
     int len;
     int value;
@@ -259,7 +275,7 @@ symbolGet (const Lex *l)
 }
 
 Symbol *
-symbolFind (const Lex * l)
+symbolFind (const Lex *l)
 {
   Symbol **isearch;
 
@@ -288,6 +304,9 @@ symbolFix (int *stringSizeNeeded)
   int i;
   Symbol *sym;
 
+#ifdef DEBUG
+  symbolPrint ();
+#endif
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     {
       for (sym = symbolTable[i]; sym; sym = sym->next)
@@ -339,6 +358,7 @@ symbolFix (int *stringSizeNeeded)
 	    }
 	}
     }
+  /* printf("Number of symbols selected: %d, size needed %d bytes\n", nosym, strsize); */
   *stringSizeNeeded = strsize;
   return nosym;
 }
@@ -352,6 +372,7 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
 {
   int i;
   const Symbol *sym;
+  int nosym = 0, strsize = 0;
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym->next)
@@ -360,13 +381,15 @@ symbolStringOutput (FILE * outfile)	/* Count already output */
 	if (SYMBOL_OUTPUT (sym) || (sym->type & SYMBOL_AREA))
 	  {
 /*puts("  (written)"); */
+	    ++nosym;
+	    strsize += sym->len + 1;
 	    if (option_pedantic && sym->declared == 0
 		&& ((sym->type & SYMBOL_DEFINED) || sym->used > -1))
 	      errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);
 	    fwrite (sym->str, 1, sym->len + 1, outfile);
 	  }
       }
-
+  /* printf ("symbolStringOutput(): number of symbols written %d, size needed %d bytes\n", nosym, strsize); */
 }
 
 void
@@ -377,7 +400,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym->next)
-      if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym))
+      if (!(sym->type & SYMBOL_AREA) && SYMBOL_AOF_OUTPUT (sym))
 	{
 	  AofSymbol asym;
 	  asym.Name = sym->offset + 4; /* + 4 to skip the initial length */
@@ -418,9 +441,9 @@ symbolSymbolAOFOutput (FILE *outfile)
 		  v = 0;
 		  break;
 		case ValueLateLabel:
-		  if (!value.ValueLate.late->next &&	/* Only one late label */
-		      value.ValueLate.late->factor == 1 &&	/* ... occuring one time */
-		      value.ValueLate.late->symbol->type & SYMBOL_AREA)
+		  if (!value.ValueLate.late->next	/* Only one late label */
+		      && value.ValueLate.late->factor == 1	/* ... occuring one time */
+		      && (value.ValueLate.late->symbol->type & SYMBOL_AREA))
 		    {		/* ... and it is an area */
 		      if (sym->type & SYMBOL_ABSOLUTE)
 			{	/* Change absolute to relative */
@@ -443,7 +466,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 		    }
 		  break;
 		default:
-		  errorLine (0, NULL, ErrorSerious, FALSE, "Internal symbolSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+		  errorLine (0, NULL, ErrorSerious, FALSE, "Internal symbolSymbolAOFOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
 		  v = 0;
 		  break;
 		}
@@ -478,14 +501,14 @@ symbolSymbolAOFOutput (FILE *outfile)
 
 #ifndef NO_ELF_SUPPORT
 static int
-findAreaIndex (struct AREA * area)
+findAreaIndex (const struct AREA *area)
 {
-  Symbol *ap;
-  int i=3;
+  const Symbol *ap;
+  int i = 3;
 
   for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
-      if (area == (struct AREA *)ap)
+      if (area == (const struct AREA *)ap)
         return i;
       i++;
       if (ap->area.info->norelocs > 0)
@@ -499,31 +522,28 @@ void
 symbolSymbolELFOutput (FILE *outfile)
 {
   int i;
-  int bind, type;
   Symbol *sym;
-  Value value;
-  int v = 0;
   Elf32_Sym asym;
 
   /* Output the undefined symbol */
-  asym.st_name=0;
-  asym.st_value=0;
-  asym.st_size=0;
-  asym.st_info=0;
-  asym.st_other=0;
-  asym.st_shndx=0;
-
+  asym.st_name = 0;
+  asym.st_value = 0;
+  asym.st_size = 0;
+  asym.st_info = 0;
+  asym.st_other = 0;
+  asym.st_shndx = 0;
   fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 
   for (i = 0; i < SYMBOL_TABLESIZE; i++)
     for (sym = symbolTable[i]; sym; sym = sym-> next)
-      if (!(sym->type & SYMBOL_AREA) && SYMBOL_OUTPUT (sym))
+      if (!(sym->type & SYMBOL_AREA) && SYMBOL_ELF_OUTPUT (sym))
         {
+          int type = 0, bind;
           asym.st_name = sym->offset + 1; /* + 1 to skip the initial & extra NUL */
-          type = 0;
-          bind = 0;
           if (sym->type & SYMBOL_DEFINED)
             {
+              int v;
+              Value value;
               if (sym->value.Tag.t == ValueCode)
                 {
                   codeInit ();
@@ -531,9 +551,7 @@ symbolSymbolELFOutput (FILE *outfile)
                   type = STT_NOTYPE; /* No information to base type on */
                 }
               else
-                {
-                  value = sym->value;
-                }
+                value = sym->value;
               switch (value.Tag.t)
                 {
                 case ValueIllegal:
@@ -559,8 +577,8 @@ symbolSymbolELFOutput (FILE *outfile)
                   v = 0;
                   break;
                 case ValueLateLabel:
-                  if (!value.ValueLate.late->next    /* Only one late label */
-                      && value.ValueLate.late->factor == 1      /* ... occuring one time */
+                  if (!value.ValueLate.late->next		/* Only one late label */
+                      && value.ValueLate.late->factor == 1	/* ... occuring one time */
                       && (value.ValueLate.late->symbol->type & SYMBOL_AREA))
                     {           /* ... and it is an area */
                       if (sym->type & SYMBOL_ABSOLUTE)
@@ -570,22 +588,27 @@ symbolSymbolELFOutput (FILE *outfile)
                           sym->area.ptr = value.ValueLate.late->symbol;
                         }
                       else if (sym->area.ptr != value.ValueLate.late->symbol)
-                        errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
+                        {
+                          errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
+                          v = 0;
+                        }
+		      else
+			v = 0;
                     }
                   else
                     {
                       errorLine (0, NULL, ErrorError, TRUE, "Linker cannot have many late labels for the same symbol (%s)", sym->str);
+                      v = 0;
                     }
                   break;
                 default:
-                  errorLine (0, NULL, ErrorSerious, FALSE, "Internal symbolSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+                  errorLine (0, NULL, ErrorSerious, FALSE, "Internal symbolELFSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+                  v = 0;
                   break;
                 }
               asym.st_value = v;
               if (sym->type & SYMBOL_ABSOLUTE)
-                {
-                  asym.st_shndx = 0;
-                }
+                asym.st_shndx = 0;
               else
                 /* Inefficient, needs fixing later */
                 asym.st_shndx = findAreaIndex(sym->area.info);
@@ -596,28 +619,101 @@ symbolSymbolELFOutput (FILE *outfile)
               asym.st_shndx = 0;
             }
 
-          if (SYMBOL_KIND(sym->type) == TYPE_LOCAL)
-            bind = STB_LOCAL;
-
-          if (SYMBOL_KIND(sym->type) == TYPE_GLOBAL ||
-              SYMBOL_KIND(sym->type) == TYPE_REFERENCE)
-            bind = STB_GLOBAL;
-
-          if (SYMBOL_KIND(sym->type) == TYPE_REFERENCE &&
-	      (sym->type & TYPE_WEAK))
-            bind = STB_WEAK;
+          switch (SYMBOL_KIND(sym->type))
+            {
+              case TYPE_LOCAL:
+                bind = STB_LOCAL;
+                break;
+              case TYPE_REFERENCE:
+                bind = (sym->type & TYPE_WEAK) ? STB_WEAK : STB_GLOBAL;
+                break;
+              case TYPE_GLOBAL:
+                bind = STB_GLOBAL;
+                break;
+              default:
+                bind = 0; /* TODO: give error ? */
+                break;
+            }
 
           asym.st_info = ELF32_ST_INFO(bind, type);
-          fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+	  if (asym.st_shndx == 65535)
+	    error (ErrorSerious, FALSE, "Internal symbolSymbolELFOutput: unable to find section id");
+	  else
+            fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
         }
       else if (sym->type & SYMBOL_AREA)
 	{
-	  type = (sym->type & SYMBOL_GLOBAL)?STB_GLOBAL:STB_LOCAL;
-	  asym.st_info = ELF32_ST_INFO(type, STT_SECTION);
+	  int bind = (sym->type & SYMBOL_GLOBAL) ? STB_GLOBAL : STB_LOCAL;
+	  int type = STT_SECTION;
+	  asym.st_info = ELF32_ST_INFO(bind, type);
 	  asym.st_name = sym->offset + 1; /* + 1 to skip initial & extra NUL */
 	  asym.st_value = 0;
-	  asym.st_shndx = findAreaIndex ((struct AREA *)sym);
+	  asym.st_shndx = findAreaIndex ((const struct AREA *)sym);
 	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 	}
+}
+#endif
+
+#ifdef DEBUG
+/**
+ * Lists all symbols collected so far together with all its attributes.
+ */
+void
+symbolPrint (void)
+{
+  int i;
+  for (i = 0; i < SYMBOL_TABLESIZE; i++)
+    {
+      const Symbol *sym;
+      for (sym = symbolTable[i]; sym; sym = sym->next)
+	{
+	  static const char *symkind[4] = { "UNKNOWN", "LOCAL", "REFERENCE", "GLOBAL" };
+	  printf ("\"%.*s\": %s /",
+		  sym->len, sym->str, symkind[SYMBOL_KIND(sym->type)]);
+	  assert (strlen (sym->str) == sym->len);
+	  /* Dump the symbol attributes:  */
+	  if (sym->type & SYMBOL_ABSOLUTE)
+	    printf ("absolute/");
+	  if (sym->type & SYMBOL_NOCASE)
+	    printf ("caseinsensitive/");
+	  if (sym->type & SYMBOL_WEAK)
+	    printf ("weak/");
+	  if (sym->type & SYMBOL_STRONG)
+	    printf ("strong/");
+	  if (sym->type & SYMBOL_COMMON)
+	    printf ("common/");
+	  if (sym->type & SYMBOL_DATUM)
+	    printf ("datum/");
+	  if (sym->type & SYMBOL_FPREGARGS)
+	    printf ("fp args in regs/");
+	  if (sym->type & SYMBOL_LEAF)
+	    printf ("leaf/");
+	  if (sym->type & SYMBOL_THUMB)
+	    printf ("thumb/");
+	  /* Internal attributes: */
+	  printf (" * /");
+	  if (sym->type & SYMBOL_KEEP)
+	    printf ("keep/");
+	  if (sym->type & SYMBOL_AREA)
+	    printf ("area/");
+	  if (sym->type & SYMBOL_NOTRESOLVED)
+	    printf ("not resolved/");
+	  if (sym->type & SYMBOL_BASED)
+	    printf ("based/");
+	  if (sym->type & SYMBOL_CPUREG)
+	    printf ("cpu reg/");
+	  if (sym->type & SYMBOL_FPUREG)
+	    printf ("fpu reg/");
+	  if (sym->type & SYMBOL_COPREG)
+	    printf ("coproc reg/");
+	  if (sym->type & SYMBOL_COPNUM)
+	    printf ("coproc num/");
+	  
+	  printf (" * %sdeclared, %p, offset 0x%x, used %d: ",
+		  (sym->declared) ? "" : "not ",
+		  (void *)sym->area.ptr, sym->offset, sym->used);
+	  valuePrint (&sym->value);
+	}
+    }
 }
 #endif

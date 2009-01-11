@@ -29,8 +29,8 @@
 #include "value.h"
 
 #define SYMBOL_LOCAL     0x0001	/* Defined with local scope */
-#define SYMBOL_REFERENCE 0x0002
-#define SYMBOL_GLOBAL    0x0003	/* Defined with global scope */
+#define SYMBOL_REFERENCE 0x0002 /* E.g. IMPORT symbol, or unused EXPORT symbol.  */
+#define SYMBOL_GLOBAL    0x0003	/* Defined with global scope.  E.g. used EXPORT symbol.  */
 
 #define SYMBOL_KIND(x)   ((x) & 0x0003)
 
@@ -48,17 +48,16 @@
 #define SYMBOL_LEAF      0x0800	/* Leaf function, for code symbol only */
 #define SYMBOL_THUMB     0x1000	/* Identifies Thumb code, instead of ARM code */
 
-#define SYMBOL_SUPPORTEDBITS 0x1B7F
+#define SYMBOL_SUPPORTEDBITS 0x1B7F /** Mask for the symbol bits which are AOF defined symbols bits and can be passed on in the AOF output file.  */
 
 /* The following are 'as' internal SYMBOL attribute values only and should
    not be used in the AOF output file.  */
 #define SYMBOL_KEEP		0x01000000
 #define SYMBOL_AREA		0x02000000
 #define SYMBOL_NOTRESOLVED	0x04000000
-/* Symbol is defined in a based area.  */
-#define SYMBOL_BASED		0x08000000
+#define SYMBOL_BASED		0x08000000 /** Symbol is defined in a based area.  */
 
-#define SYMBOL_CPUREG		0x10000000
+#define SYMBOL_CPUREG		0x10000000 /* FIXME? SYMBOL_*REG should not be a bitfield */
 #define SYMBOL_FPUREG		0x20000000
 #define SYMBOL_COPREG		0x40000000
 #define SYMBOL_COPNUM		0x80000000
@@ -71,7 +70,7 @@ typedef struct SYMBOL
 {
   struct SYMBOL *next;  /** Linked symbols all having the same hash value.  */
   unsigned int type;
-  int declared;
+  int declared; /* FIXME: replace this by a new bit in type field.  */
   Value value;
   union
   {
@@ -96,5 +95,9 @@ int symbolFix (int *stringSizeNeeded);
 void symbolStringOutput (FILE *outfile);
 void symbolSymbolAOFOutput (FILE *outfile);
 void symbolSymbolELFOutput (FILE *outfile);
+
+#ifdef DEBUG
+void symbolPrint (void);
+#endif
 
 #endif

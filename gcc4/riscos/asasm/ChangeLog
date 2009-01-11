@@ -1,3 +1,9 @@
+Sun Jan 11 18:21:17 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c(symbolSymbolELFOutput): Output local symbols in ELF mode.
+	(symbolPrint): Added for debug purposes.
+	* symbol.h: Added comments and symbolPrint prototype.
+
 Sun Jan 11 18:18:31 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* variables.c(var_inputSymbol): Make return type const char ptr.
