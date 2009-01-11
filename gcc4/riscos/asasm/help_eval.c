@@ -34,7 +34,7 @@
 #include "symbol.h"
 
 static void
-fixValueTag (Value * value)
+fixValueTag (Value *value)
 {
   LateInfo **c;
   /* Remove symbols with factor == 0  */
@@ -43,16 +43,9 @@ fixValueTag (Value * value)
       if (!(*c)->factor)
 	*c = (*c)->next;
       else
-	{
-	  c = &((*c)->next);
-	}
+	c = &((*c)->next);
     }				/* Decide type of value */
-  if (value->ValueLate.late)
-    {
-      value->Tag.t = ValueLateLabel;
-    }
-  else
-    value->Tag.t = ValueInt;
+  value->Tag.t = (value->ValueLate.late) ? ValueLateLabel : ValueInt;
 }
 
 void

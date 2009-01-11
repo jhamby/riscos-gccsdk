@@ -284,8 +284,7 @@ m_adr (WORD cc)
 
 /** APCS prologue **/
 
-static signed int regs[3] =
-{-1, -1, -1};
+static signed int regs[3] = {-1, -1, -1};
 /* [0] Stack args       0 = no, 1..4 = a1-an; -1 = RET or TAIL will cause error
  * [1] Stack reg vars 0 = no, 1..6 = v1-vn
  * [2] Stack fp vars    0 = no, 1..4 = f4-f(3+n)
@@ -294,14 +293,12 @@ static signed int regs[3] =
 void
 m_stack (void)
 {
-  static const unsigned int lim[3] =
-  {4, 6, 4};
+  static const unsigned int lim[3] = {4, 6, 4};
   static const unsigned int
-    arg_regs[] =
-  {0x00000000, 0xE92D0001, 0xE92D0003, 0xE92D0007, 0xE92D000F}, push_inst[] =
-  {0xE92DD800, 0xE92DD810, 0xE92DD830, 0xE92DD870,
-   0xE92DD8F0, 0xE92DD9F0, 0xE92DDBF0}, pfp_inst[] =
-  {0x00000000, 0xED2DC203, 0xED6D4206, 0xED6DC209, 0xED2D420C};
+    arg_regs[]  = {0x00000000, 0xE92D0001, 0xE92D0003, 0xE92D0007, 0xE92D000F},
+    push_inst[] = {0xE92DD800, 0xE92DD810, 0xE92DD830, 0xE92DD870,
+		   0xE92DD8F0, 0xE92DD9F0, 0xE92DDBF0},
+    pfp_inst[]  = {0x00000000, 0xED2DC203, 0xED6D4206, 0xED6DC209, 0xED2D420C};
 
   regs[2] = regs[1] = regs[0] = -1;
   skipblanks ();
@@ -373,9 +370,8 @@ m_stack (void)
 static void
 apcsEpi (WORD cc, const int *pop_inst, const char *op)
 {
-  static const int pfp_inst[]
-  =
-  {0x00000000, 0x0CBDC203, 0x0CFD4206, 0x0CFDC209, 0x0CBD420C};
+  static const int
+    pfp_inst[] = {0x00000000, 0x0CBDC203, 0x0CFD4206, 0x0CFDC209, 0x0CBD420C};
 
   if (regs[0] == -1)
     error (ErrorError, TRUE, "Cannot assemble %s without an earlier STACK", op);
@@ -390,10 +386,9 @@ apcsEpi (WORD cc, const int *pop_inst, const char *op)
 void
 m_ret (WORD cc)
 {
-  static const int pop_inst[]
-  =
-  {0x095BA800, 0x095BA810, 0x095BA830, 0x095BA870, 0x095BA8F0,
-   0x095BA9F0, 0x095BABF0};
+  static const int
+    pop_inst[] = {0x095BA800, 0x095BA810, 0x095BA830, 0x095BA870, 0x095BA8F0,
+		  0x095BA9F0, 0x095BABF0};
   apcsEpi (cc, pop_inst, "RET");
 }
 
@@ -402,10 +397,9 @@ m_ret (WORD cc)
 void
 m_tail (WORD cc)
 {
-  static const int pop_inst[]
-  =
-  {0x091B6800, 0x091B6810, 0x091B6830, 0x091B6870, 0x091B68F0,
-   0x091B69F0, 0x091B6BF0};
+  static const int
+    pop_inst[] = {0x091B6800, 0x091B6810, 0x091B6830, 0x091B6870, 0x091B68F0,
+		  0x091B69F0, 0x091B6BF0};
   apcsEpi (cc, pop_inst, "TAIL");
   skipblanks ();
   if (inputLook ())

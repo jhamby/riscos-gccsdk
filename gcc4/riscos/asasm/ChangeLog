@@ -1,3 +1,10 @@
+Sun Jan 11 22:48:00 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpuctrl.c,expr.c,help_eval.c: Minor source cleanup.
+	* reloc.c(relocWrite): R_ARM_PC24 ELF reloc needs to happen for a
+	"B + PC - 8" instruction, while in AOF this needs to happen for a
+	"B 0" one.
+
 Sun Jan 11 21:35:31 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.h: Have SYMBOL_CPUREG, SYMBOL_FPUREG, SYMBOL_COPREG and

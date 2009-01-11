@@ -79,9 +79,7 @@ prim (void)
 	    error (ErrorError, TRUE, "Missing ')'");
 	}
       else if (lex.LexDelim.delim == ')')
-	{
-	  error (ErrorError, TRUE, "Missing '('");
-	}
+	error (ErrorError, TRUE, "Missing '('");
       else
 	error (ErrorError, TRUE, "Illegal delimiter '%c'", lex.LexDelim.delim);
       break;
@@ -98,8 +96,6 @@ prim (void)
 static void
 expr (int pri)
 {
-  Lex op;
-
   if (pri == 10)
     prim ();
   else
@@ -107,6 +103,7 @@ expr (int pri)
 
   while (lexNextPri () == pri)
     {
+      Lex op;
       op = lexGetBinop ();
       if (pri == 10)
 	prim ();

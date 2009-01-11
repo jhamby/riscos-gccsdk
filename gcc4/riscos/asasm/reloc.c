@@ -40,6 +40,7 @@
 #include "global.h"
 #include "input.h"
 #include "lex.h"
+#include "main.h"
 #include "option.h"
 #include "output.h"
 #include "reloc.h"
@@ -366,167 +367,187 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 static void
 relocWrite (Reloc *r, const Value *value, unsigned char *image)
 {
-  int offset = r->offset;
-  WORD w, w1;
-  Symbol *sym;
-
-  if (value->Tag.t == ValueLateLabel || value->Tag.t == ValueInt)
+  const int offset = r->offset;
+  
+  switch (value->Tag.t)
     {
-      switch (r->Tag)
+      case ValueLateLabel:
+      case ValueInt:
+	switch (r->Tag)
 	{			/* Write out the value */
-	case RelocBranch:
-	  w = fixBranch (r->lineno, value->ValueInt.i);
-	  image[offset + 2] = (w >> 16) & 0xff;
-	  image[offset + 1] = (w >> 8) & 0xff;
-	  image[offset + 0] = w & 0xff;
-	  break;
-	case RelocBranchT:
-	  w = READWORD (image, offset);
-	  w |= fixBranchT (r->lineno, value->ValueInt.i);
-	  image[offset + 3] = (w >> 24) & 0xff;
-	  image[offset + 2] = (w >> 16) & 0xff;
-	  image[offset + 1] = (w >> 8) & 0xff;
-	  image[offset + 0] = w & 0xff;
-	  break;
-	case RelocCpuOffset:
-	  w = READWORD (image, offset);
-	  /* fprintf (stderr, "RelocCpuOffset: tag = %d, lineno = %d, offset = %d, val=%s\n",
-		   value->Tag.t, r->lineno, value->ValueInt.i,
-		   (value->Tag.t == ValueLateLabel) ? value->ValueLate.late->symbol->str : "-"); */
-	  if (value->Tag.t == ValueLateLabel)
+	  case RelocBranch:
 	    {
-	      sym = value->ValueLate.late->symbol;
-	      if ((sym->type & SYMBOL_AREA)
-	          && (sym->area.info->type & AREA_BASED))
-	    	{
-	      	  /* fprintf (stderr, "  --- based: off = %d, adjusted = %d\n",
-	      	  	   offset,
-	      	  	   value->ValueInt.i + offset + 8); */
-                  /* value->ValueInt.i += offset + 8; */
-                  w = fixCpuOffset (r->lineno, w,
-                      		    value->ValueInt.i + offset + 8);
-                  w &= ~LHS_OP(15);
-                  w |= LHS_OP((sym->area.info->type & 0x0f000000) >> 24);
-                  /* r->offset = value->ValueInt.i + offset + 8; */
-	    	}
-	      else
-	        w = fixCpuOffset (r->lineno, w, value->ValueInt.i);
+	      /* The R_ARM_PC24 ELF reloc needs to happen for a "B + PC - 8"
+	         instruction, while in AOF this needs to happen for a "B 0".  */
+	      int bv = (!option_aof && value->Tag.t == ValueLateLabel) ?
+		value->ValueInt.i + offset : value->ValueInt.i;
+	      WORD w = fixBranch (r->lineno, bv);
+	      image[offset + 2] = (w >> 16) & 0xff;
+	      image[offset + 1] = (w >> 8) & 0xff;
+	      image[offset + 0] = w & 0xff;
+	      break;
 	    }
-	  else
-	    w = fixCpuOffset (r->lineno, w, value->ValueInt.i);
-	  image[offset + 3] = (w >> 24) & 0xff;
-	  image[offset + 2] = (w >> 16) & 0xff;
-	  image[offset + 1] = (w >> 8) & 0xff;
-	  image[offset + 0] = w & 0xff;
-	  break;
-	case RelocCopOffset:
-	  w = READWORD (image, offset);
-	  w = fixCopOffset (r->lineno, w, value->ValueInt.i);
-	  image[offset + 3] = (w >> 24) & 0xff;
-	  image[offset + 2] = (w >> 16) & 0xff;
-	  image[offset + 1] = (w >> 8) & 0xff;
-	  image[offset + 0] = w & 0xff;
-	  break;
-	case RelocImmN:
-	  /* fprintf (stderr, "RelocImmN: lineno = %d\n", r->lineno); */
-	  w = fixInt (r->lineno, r->extra, value->ValueInt.i);
-	  switch (r->extra)
+	  case RelocBranchT:
 	    {
-	    case 4:
+	      WORD w = READWORD (image, offset);
+	      w |= fixBranchT (r->lineno, value->ValueInt.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
-	    case 2:
 	      image[offset + 1] = (w >> 8) & 0xff;
-	    case 1:
 	      image[offset + 0] = w & 0xff;
+	      break;
 	    }
-	  break;
-	case RelocAdr:
-	  /* fprintf (stderr, "RelocAdr: lineno = %d\n", r->lineno); */
-	  w = READWORD (image, offset);
-	  w = fixAdr (r->lineno, w, value->ValueInt.i);
-	  image[offset + 3] = (w >> 24) & 0xff;
-	  image[offset + 2] = (w >> 16) & 0xff;
-	  image[offset + 1] = (w >> 8) & 0xff;
-	  image[offset + 0] = w & 0xff;
-	  break;
-	case RelocAdrl:
-	  w = READWORD (image, offset);
-	  w1 = value->Tag.t == ValueLateLabel ?
-	    value->ValueLate.late->symbol->type & SYMBOL_DEFINED :
-	    1;			/* warn if symbol is defined or isn't a late label */
-	  fixAdrl (r->lineno, &w, &w1, value->ValueInt.i, w1);
-	  image[offset + 3] = (w >> 24) & 0xff;
-	  image[offset + 2] = (w >> 16) & 0xff;
-	  image[offset + 1] = (w >> 8) & 0xff;
-	  image[offset + 0] = w & 0xff;
-	  image[offset + 7] = (w1 >> 24) & 0xff;
-	  image[offset + 6] = (w1 >> 16) & 0xff;
-	  image[offset + 5] = (w1 >> 8) & 0xff;
-	  image[offset + 4] = w1 & 0xff;
-	  break;
-	case RelocImm8s4:
-	  w = READWORD (image, offset);
-	  w = fixImm8s4 (r->lineno, w, value->ValueInt.i);
-	  image[offset + 3] = (w >> 24) & 0xff;
-	  image[offset + 2] = (w >> 16) & 0xff;
-	  image[offset + 1] = (w >> 8) & 0xff;
-	  image[offset + 0] = w & 0xff;
-	  break;
-	default:
-	  errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot handle %s when value is %s", reloc2String (r->Tag), "int");
+	  case RelocCpuOffset:
+	    {
+	      WORD w = READWORD (image, offset);
+	      /* fprintf (stderr, "RelocCpuOffset: tag = %d, lineno = %d, offset = %d, val=%s\n",
+			  value->Tag.t, r->lineno, value->ValueInt.i,
+			  (value->Tag.t == ValueLateLabel) ? value->ValueLate.late->symbol->str : "-"); */
+	      if (value->Tag.t == ValueLateLabel)
+		{
+		  const Symbol *sym = value->ValueLate.late->symbol;
+		  if ((sym->type & SYMBOL_AREA)
+		      && (sym->area.info->type & AREA_BASED))
+		    {
+		      /* fprintf (stderr, "  --- based: off = %d, adjusted = %d\n",
+				  offset,
+				  value->ValueInt.i + offset + 8); */
+		      /* value->ValueInt.i += offset + 8; */
+		      w = fixCpuOffset (r->lineno, w,
+					value->ValueInt.i + offset + 8);
+		      w &= ~LHS_OP(15);
+		      w |= LHS_OP((sym->area.info->type & 0x0f000000) >> 24);
+		      /* r->offset = value->ValueInt.i + offset + 8; */
+		    }
+		  else
+		    w = fixCpuOffset (r->lineno, w, value->ValueInt.i);
+		}
+	      else
+		w = fixCpuOffset (r->lineno, w, value->ValueInt.i);
+	      image[offset + 3] = (w >> 24) & 0xff;
+	      image[offset + 2] = (w >> 16) & 0xff;
+	      image[offset + 1] = (w >> 8) & 0xff;
+	      image[offset + 0] = w & 0xff;
+	      break;
+	    }
+	  case RelocCopOffset:
+	    {
+	      WORD w = READWORD (image, offset);
+	      w = fixCopOffset (r->lineno, w, value->ValueInt.i);
+	      image[offset + 3] = (w >> 24) & 0xff;
+	      image[offset + 2] = (w >> 16) & 0xff;
+	      image[offset + 1] = (w >> 8) & 0xff;
+	      image[offset + 0] = w & 0xff;
+	      break;
+	    }
+	  case RelocImmN:
+	    {
+	      /* fprintf (stderr, "RelocImmN: lineno = %d\n", r->lineno); */
+	      WORD w = fixInt (r->lineno, r->extra, value->ValueInt.i);
+	      switch (r->extra)
+		{
+		  case 4:
+		    image[offset + 3] = (w >> 24) & 0xff;
+		    image[offset + 2] = (w >> 16) & 0xff;
+		    /* Fall through */
+		  case 2:
+		    image[offset + 1] = (w >> 8) & 0xff;
+		    /* Fall through */
+		  case 1:
+		    image[offset + 0] = w & 0xff;
+		}
+	      break;
+	    }
+	  case RelocAdr:
+	    {
+	      /* fprintf (stderr, "RelocAdr: lineno = %d\n", r->lineno); */
+	      WORD w = READWORD (image, offset);
+	      w = fixAdr (r->lineno, w, value->ValueInt.i);
+	      image[offset + 3] = (w >> 24) & 0xff;
+	      image[offset + 2] = (w >> 16) & 0xff;
+	      image[offset + 1] = (w >> 8) & 0xff;
+	      image[offset + 0] = w & 0xff;
+	      break;
+	    }
+	  case RelocAdrl:
+	    {
+	      WORD w = READWORD (image, offset);
+	      WORD w1 = (value->Tag.t == ValueLateLabel) ? value->ValueLate.late->symbol->type & SYMBOL_DEFINED : 1;
+	      /* warn if symbol is defined or isn't a late label */
+	      fixAdrl (r->lineno, &w, &w1, value->ValueInt.i, w1);
+	      image[offset + 3] = (w >> 24) & 0xff;
+	      image[offset + 2] = (w >> 16) & 0xff;
+	      image[offset + 1] = (w >> 8) & 0xff;
+	      image[offset + 0] = w & 0xff;
+	      image[offset + 7] = (w1 >> 24) & 0xff;
+	      image[offset + 6] = (w1 >> 16) & 0xff;
+	      image[offset + 5] = (w1 >> 8) & 0xff;
+	      image[offset + 4] = w1 & 0xff;
+	      break;
+	    }
+	  case RelocImm8s4:
+	    {
+	      WORD w = READWORD (image, offset);
+	      w = fixImm8s4 (r->lineno, w, value->ValueInt.i);
+	      image[offset + 3] = (w >> 24) & 0xff;
+	      image[offset + 2] = (w >> 16) & 0xff;
+	      image[offset + 1] = (w >> 8) & 0xff;
+	      image[offset + 0] = w & 0xff;
+	      break;
+	    }
+	  default:
+	    errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot handle %s when value is %s", reloc2String (r->Tag), "int");
+	    r->Tag = RelocNone;
+	    return;
+	}
+	if (value->Tag.t == ValueInt || r->value.ValueCode.len == 0)	/* Value is known */
 	  r->Tag = RelocNone;
-	  return;
-	}
-      if (value->Tag.t == ValueInt || r->value.ValueCode.len == 0)	/* Value is known */
-	r->Tag = RelocNone;
-    }
-  else if (value->Tag.t == ValueFloat)
-    {
-      switch (r->Tag)
+	break;
+      case ValueFloat:
+	switch (r->Tag)
 	{			/* Write out the value */
-	case RelocImmN:	/* ? */
-	case RelocFloat:
-	  {
-	    unsigned int i;
-	    union
-	      {
-		double d;
-		float f;
-		struct
-		  {
-		    char c[8];
-		  }
-		u;
-	      }
-	    translate;		/* Do endianness issues affect this struct? */
-	    if (r->extra == 4)
-	      translate.f = (float) value->ValueFloat.f;
-	    else
-	      translate.d = (double) value->ValueFloat.f;
-	    for (i = 0; i < r->extra; i++)
-	      image[offset + i] = translate.u.c[i];
-	  }
-	  break;
-	case RelocImmFloat:
-	  w = READWORD (image, offset);
-	  w = fixImmFloat (r->lineno, w, value->ValueFloat.f);
-	  image[offset + 3] = (w >> 24) & 0xff;
-	  image[offset + 2] = (w >> 16) & 0xff;
-	  image[offset + 1] = (w >> 8) & 0xff;
-	  image[offset + 0] = w & 0xff;
-	  break;
-	default:
-	  errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot handle %s when value is %s", reloc2String (r->Tag), "float");
-	  break;
+	  case RelocImmN:	/* ? */
+	    case RelocFloat:
+	    {
+	      unsigned int i;
+	      union
+		{
+		  double d;
+		  float f;
+		  struct
+		    {
+		      char c[8];
+		    } u;
+		} translate;		/* Do endianness issues affect this struct? */
+	      if (r->extra == 4)
+		translate.f = (float) value->ValueFloat.f;
+	      else
+		translate.d = (double) value->ValueFloat.f;
+	      for (i = 0; i < r->extra; i++)
+		image[offset + i] = translate.u.c[i];
+	    }
+	    break;
+	  case RelocImmFloat:
+	    {
+	      WORD w = READWORD (image, offset);
+	      w = fixImmFloat (r->lineno, w, value->ValueFloat.f);
+	      image[offset + 3] = (w >> 24) & 0xff;
+	      image[offset + 2] = (w >> 16) & 0xff;
+	      image[offset + 1] = (w >> 8) & 0xff;
+	      image[offset + 0] = w & 0xff;
+	      break;
+	    }
+	  default:
+	    errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot handle %s when value is %s", reloc2String (r->Tag), "float");
+	    break;
 	}
-      r->Tag = RelocNone;
+	r->Tag = RelocNone;
+	break;
+      default:
+	errorLine (r->lineno, r->file, ErrorError, TRUE, "Internal relocWrite: illegal value");
+	r->Tag = RelocNone;
+	break;
     }
-  else
-    {
-      errorLine (r->lineno, r->file, ErrorError, TRUE, "Internal relocWrite: illegal value");
-      r->Tag = RelocNone;
-    }				/* value->Tag.t */
 }
 
 
