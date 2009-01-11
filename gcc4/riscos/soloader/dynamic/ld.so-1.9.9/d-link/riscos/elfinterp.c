@@ -324,6 +324,23 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
       *client_reloc_addr = symbol_addr;
       break;
     case R_ARM_RELATIVE:
+	if ((unsigned int)reloc_addr < (unsigned int)objinfo->public_rw_ptr)
+	{
+	  /* Address of relocation is in text segment.  */
+	  _dl_fdprintf(2,"%s: Text relocation of data symbol '%s' found:\r\n %s (offset 0x%X)\n",
+		_dl_progname,strtab + symtab[symtab_index].st_name,
+		tpnt->libname,(unsigned int)reloc_addr - (unsigned int)tpnt->loadaddr);
+
+	  /* _dl_exit() would deregister the library from the client, but it would
+	   * remain in memory until expiry and block attempts to replace it without
+	   * reinitialising SOManager.
+	   */
+	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from client. */
+	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from global list - clean up. */
+
+	  _dl_exit(1);
+	}
+
 	/*
 	 * Alter relocation to be in the client's private GOT instead
 	 * of the library's public GOT
@@ -331,39 +348,6 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	 * Convert reloc_addr to an offset from start of library public R/W segment and then
 	 * as an absolute address in client's private R/W segment.
 	 */
-
-	// Handle text segment relocations
-	if ((unsigned int)reloc_addr < (unsigned int)objinfo->public_rw_ptr)
-	{
-	  /*
-	   * The relocation is in the RO segment. If the relocated address is in the RW segment
-	   * then that's an error. If it's in the RO segment then it can be resolved although
-	   * this should be avoided where possible for the sake of performance.
-	  */
-	  if (*reloc_addr < (objinfo->public_rw_ptr - tpnt->loadaddr))
-	  {
-	    /* Relocation from RO segment to RO segment */
-	    *reloc_addr = (unsigned int)tpnt->loadaddr + *reloc_addr;
-	  }
-	  else
-	  { /* Relocation from RO segment to RW segment */
-	    _dl_fdprintf(2,"%s: Text relocation of data symbol '%s' found:\r\n %s (offset 0x%X)\n",
-		_dl_progname,strtab + symtab[symtab_index].st_name,
-		tpnt->libname,(unsigned int)reloc_addr - (unsigned int)tpnt->loadaddr);
-
-	    /* _dl_exit() would deregister the library from the client, but it would
-	     * remain in memory until expiry and block attempts to replace it without
-	     * reinitialising SOManager.
-	     */
-	    _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from client. */
-	    _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from global list - clean up. */
-
-	    _dl_exit(1);
-	  }
-	  break;
-	}
-
-	// Handle data segment relocations
 	client_reloc_addr = (unsigned int *)(((unsigned int)reloc_addr -
 		(unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr);
 
