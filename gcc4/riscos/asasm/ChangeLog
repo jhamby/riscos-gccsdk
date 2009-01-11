@@ -1,3 +1,8 @@
+Sun Jan 11 18:32:47 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* docs/{AIF-1993,ALF-1989,ALF-1993,AOF-1989,AOF-2002,APCS,AIF-1989,
+	ASDTF}: Added.
+
 Sun Jan 11 18:21:17 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c(symbolSymbolELFOutput): Output local symbols in ELF mode.

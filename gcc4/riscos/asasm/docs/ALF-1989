@@ -1,0 +1,311 @@
+                T E C H N I C A L  M E M O R A N D U M
+
+
+
+Subject:        Acorn Library Format / Object Library Format
+
+Reference:      PLG-ALF
+
+Issue:          0.02/proto-1.00
+
+Author:         Lee Smith, 2nd February 1989
+
+Distribution:   Not restricted.
+
+
+-----------------------------------------------------------------------------
+Programming Languages Group, Acorn Computers Limited,
+Fulbourn Road, Cherry Hinton, Cambridge, CB1 4JN, England.
+-----------------------------------------------------------------------------
+
+
+
+Copyright Acorn Computers Limited 1989
+
+
+
+Neither the whole nor any part of the information contained in this technical
+memorandum may be adapted or reproduced in any material form except with the
+prior written approval of Acorn Computers Limited (Acorn).
+
+The information contained in this technical memorandum relates to ongoing
+developments. Whilst it is given in good faith by Acorn, it is acknowledged
+that there may be errors or omissions.
+
+
+
+
+                H I S T O R Y
+
+
+    26-Oct-88   First written.
+    02-Feb-89   Minor editing and revision;
+                added description of 'old-style' libraries;
+                added description of chunk files (from PLG-AOF);
+                merged in description of Object Library Format;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Introduction
+============
+
+A library file contains a number of separate but related pieces of data.
+In order to simplify access to these data, and to provide for a degree of
+extensibility, the library file format is itself layered on another format
+called "Chunk File Format", which provides a simple and efficient means of
+accessing and updating distinct chunks of data within a single file. The
+library file format defines four chunks: "Directory", "Time-stamp", "Version"
+and "Data". There may be many "Data" chunks in a library.
+
+The minimum size of a piece of data in both formats is four bytes or one
+word. Each word is stored in a file in "litle-endian" format; that is the
+least significant byte of the word is stored first.
+
+
+Chunk File Format
+=================
+
+A chunk is accessed via a header at the start of the file. The header contains
+the number, size, location and identity of each chunk in the file. The size of
+the header may vary between different chunk files but is fixed for each file.
+Not all entries in a header need be used, thus limited expansion of the number
+of chunks is permitted without a wholesale copy. A chunk file can be copied
+without knowledge of the contents of the individual chunks.
+
+Graphically, the layout of a chunk file is as follows:-
+
+             ----------------------------
+             |       ChunkFileId        |
+             ----------------------------
+             |       maxChunks          |
+             ----------------------------
+             |       numChunks          |  3 words
+             ============================
+             |        entry1            |  4 words per entry
+             |                          |
+             ----------------------------
+             |        entry2            |
+             |                          |
+             ----------------------------
+                       ...
+             ----------------------------
+             |     entry "maxChunks"    |  End of Header
+             |                          |  (3 + 4*maxChunks words)
+             ============================
+             |        chunk  1          |  Start of Data Chunks
+             |                          |
+             ----------------------------
+                       ...
+             ----------------------------
+             |    chunk  "numChunks"    |
+             |                          |
+             ----------------------------
+
+ChunkFileId marks the file as a chunk file. Its value is C3CBC6C5 hex.
+The "maxChunks" field defines the number of the entries in the header, fixed
+when the file is created. The "numChunks" field defines how many chunks are
+currently used in the file, which can vary from 0 to "maxChunks". The value
+of "numChunks" is redundant as it can be found by scanning the entries.
+
+
+
+
+Each entry in the header comprises four words in the following order:
+
+chunkId     a two word field identifying what data the chunk contains;
+
+fileOffset  a one word field defining the byte offset within the file of
+            the chunk (which must be divisible by four); an entry of zero
+            indicates that the corresponding chunk is unused;
+
+size        a one word field defining the exact byte size of the chunk
+            (which need not be a multiple of four).
+
+The "chunkId" field provides a conventional way of identifying what type of
+data a chunk contains. It is split into two parts. The first four characters
+(in the first word) contain a universally unique name allocated by a central
+authority (Acorn). The remaining four characters (in the second word) can
+be used to identify component chunks within this universal domain. In each
+part, the first character of the name is stored first in the file, and so on.
+
+For library files, the first part of each chunk's name is "LIB_"; the second
+components are defined in the next section entitled "Library File Format".
+
+
+Library File Format Types
+=========================
+
+There are two library file formats described here, termed "new-style" and
+"old-style". The linker and the library management tools can all read both
+formats, though no tool will actually generate an "old-style" library.
+
+Currently, only the Fortran-77 compiler generates "old-style" libraries
+(which it does instead of generating AOF object files). The linker handles
+these libraries specially, including every member in the output image unless
+explicitly instructed otherwise.
+
+Old-style libraries are obsolescent and should no longer be generated.
+
+
+Library File Format
+===================
+
+Each piece of a library file is stored in a separate, identifiable, chunk,
+named as follows:
+
+    Chunk          |  Chunk Name
+    ---------------+------------
+    Directory      |  LIB_DIRY
+    Time-stamp     |  LIB_TIME
+    Version        |  LIB_VSRN          -- new-style libraries only
+    Data           |  LIB_DATA
+    ---------------+------------
+    Symbol table   |  OFL_SYMT          -- object code libraries only
+    Time-stamp     |  OFL_TIME          -- object code libraries only
+
+There may be many LIB_DATA chunks in a library, one for each library member.
+
+
+LIB_DIRY
+--------
+
+The LIB_DIRY chunk contains a directory of all modules in the library each
+of which is stored in a LIB_DATA chunk. The directory size is fixed when the
+library is created. The directory consists of a sequence of variable length
+entries, each an integral number of words long. The number of directory
+entries is determined by the size of the LIB_DIRY chunk.
+Pictorially:
+
+                    +-> +--------------------+
+                    |   |    ChunkIndex      |
+                    |   +--------------------+
+                    +------- EntryLength     |
+                    |   +--------------------+
+                 an |   |    DataLength ---------+
+           integral |   +--------------------+ <-+
+             number |   |                    |   | in an old-style library,
+                 of |   .    Data            .   | may be an odd number of
+              words |   .                    .   | bytes
+                    |   .              /-----+ <-+
+                    |   +-------------/      .
+                    |   |    Padding         |
+                    +-> +--------------------+
+
+
+Chunkindex
+----------
+The ChunkIndex is a 0 origin index within the chunk file header of the
+corresponding LIB_DATA chunk. The LIB_DATA chunk entry gives the offset and
+size of the library module in the library file. A ChunkIndex of 0 means the
+directory entry is not in use.
+
+EntryLength
+-----------
+The number of bytes in this LIB_DIRY entry, always a multiple of 4.
+
+DataLength
+----------
+The number of bytes used in the Data section of this LIB_DIRY entry. This
+need not be a multiple of 4, though it always is in new-style libraries.
+
+Data
+----
+The data section consists of a 0 terminated string followed by any other
+information relevant to the library module. Strings should contain only
+ISO-8859 non-control characters (i.e. codes [0-31], 127 and 128+[0-31] are
+excluded). The string is the name used by the library management tools to
+identify this library module. Typically this is the name of the file from
+which the library member was created.
+
+In new-style libraries, an 8-byte, word-aligned time-stamp follows the
+member name. The format of this time-stamp is described in the sub-section
+entitled "LIB_TIME". Its value is (an encoded version of) the time-stamp
+(i.e. the last modified time) of the file from which the library member
+was created.
+
+Applications which create libraries or library members should ensure that
+the LIB_DIRY entries they create contain valid time-stamps. Applications
+which read LIB_DIRY entries should not rely on any data beyond the end of the
+name string string being present unless the difference between the DataLength
+field and the name-string length allows for it. Even then, the contents of a
+time-stamp should be treated cautiously and not assumed to be sensible.
+
+Applications which write LIB_DIRY or OFL_SYMT entries should ensure that
+padding is done with NUL (0) bytes; applications which read LIB_DIRY or
+OFL_SYMT entries should make no assumptions about the values of padding
+bytes beyond the first, string-terminating NUL byte.
+
+
+
+
+LIB_TIME
+--------
+
+The LIB_TIME chunk contains a 64 bit time-stamp recording when the library
+was last modified, in the following format:
+
+  High-address byte      low-address byte       
+         |                    |
+        +----------------+-----+
+        |    TimeStamp   |     |
+        +----------------+-----+
+                .           .
+               /|\         /|\
+                |           +--- 2 byte micro second count, usually 0
+                |
+                +--------------- 6 bytes of centi-seconds since
+                                                   1/1/1900 00:00 GMT
+
+
+LIB_VSRN
+--------
+
+In new-style libraries, this chunk contains a 4-byte version number.
+The current version number is 1. Old-style libraries do not contain
+this chunk.
+
+
+LIB_DATA
+--------
+
+A LIB_DATA chunk contains one of the library members indexed by the LIB_DIRY
+chunk. No interpretation is placed on the contents of a member by the library
+management tools. A member could itself be a file in chunk file format or even
+another library.
+
+
+Object Code Libraries
+=====================
+
+An object code library is a library file whose members are files in Acorn
+Object Format (AOF - see document PLG-AOF for a description of this format).
+
+Additional information is stored in two extra chunks, OFL_SYMT and OFL_TIME.
+
+OFL_SYMT contains an entry for each external symbol defined by members of the
+library, together with the index of the chunk containing the member defining
+that symbol.
+
+The OFL_SYMT chunk has exactly the same format as the LIB_DIRY chunk except
+that the Data section of each entry contains only a string, the name of an
+external symbol (and between 1 and 4 bytes of NUL padding). OFL_SYMT entries
+do not contain time-stamps.
+
+The OFL_TIME chunk records when the OFL_SYMT chunk was last modified and has
+the same format as the LIB_TIME chunk (see above).
