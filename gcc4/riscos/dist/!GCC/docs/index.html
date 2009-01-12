@@ -307,8 +307,15 @@ using_unixlib:
          </ul>
       <p>Aside: when creating a module (i.e. using '-mmodule' during compilation and linking), the intermediate object files are ELF based but the final binary produced by the linker is a valid RISC&nbsp;OS module which of course does not need the 'SOManager' ELF loader.
 
+  <li>Assembler code
+      <p>As the object format is ELF you need to make use of an assembler outputing ELF. There are two options:
+         <ul>
+            <li>You use <a href="asasm">asasm</a> (previously known as 'as' which was originally written by Niklas Röjemo).  'asasm' got significantly updated to behave more like Acorn objasm and will by default output ELF object format.
+            <li>You use <a href="gas/index.html">GNU assembler as</a> but this means that your assembler code needs to be tuned for 'gas' assembler syntax.
+         </ul>
+
   <li>'gas' assembler syntax
-      <p>In GCCSDK 4 we no longer use the 'as' AOF assembler and are using the 'gas' assembler instead.  The syntax used for 'gas' is slightly different and the most important differences are:
+      <p>The syntax used for 'gas' is slightly different and the most important differences are:
          <ul>
             <li>Labels : 'as' assembler labels start at the beginning of a line can be optionally be pre- and postfixed with a '|' character like "mylabel" or "|mylabel|". 'gas' does not support the optional '|' character and requires that a label gets terminated with a column ':'.
                 <p>So, 'as' assembler code like:
@@ -521,6 +528,7 @@ WSSize		:
 <ul>
   <li><a href="libunixlib/ChangeLog">UnixLib ChangeLog</a>
   <li><a href="libscl/ChangeLog">SharedCLibrary ChangeLog</a>
+  <li><a href="asasm/ChangeLog">asasm ChangeLog</a>
   <li><a href="cmunge/History">CMunge official history</a> and its <a href="cmunge/GCCSDK-CHANGES">specific GCCSDK changes</a> which haven't made in an official release yet.
   <li><a href="elf2aif/ChangeLog">elf2aif ChangeLog</a>
   <li><a href="mkresfs/ChangeLog">mkresfs ChangeLog</a>
@@ -552,6 +560,7 @@ WSSize		:
 
 <p>RISC&nbsp;OS related documentation:
 <ul>
+  <li><a href="asasm">asasm</a>: an Acorn objasm clone outputing AOF and ELF files and previously known as 'as' and originally written by Niklas Röjemo. This also contains the AIF, ALF, AOF, APCS and ASDTF specifications.
   <li><a href="cmunge">CMunge</a>: a tool to generates a suitable veneer to allow RISC&nbsp;OS modules to be developed in C or C++.
   <li><a href="elf2aif">elf2aif</a>: a tool to convert static ELF binaries into AIF Absolute files avoiding the need for ELF loader at runtime.
   <li><a href="ln">ln</a>: a tool to create symlink files for use with the dynamic linking GCC, although they can be used with any UnixLib compiled program.
@@ -575,6 +584,7 @@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009 GCCSDK Developers
 <p>The GCCSDK releases made by the GCCSDK Developers consists of several binaries and sources which do not necessary have the same licenses.  The following overview can help to identify those licenses more easily but is in no way an authoritative statement on behalf of the GCCSDK Developers:
 <ul>
   <li>binutils (and all its associated files) : See <a href="binutils/index.html">its manual</a>.
+  <li>asasm : See <a href="asasm/COPYING">!GCC.docs.asasm.COPYING</a>.
   <li>cmunge : See <a href="cmunge/Copyright">!GCC.docs.cmunge.Copyright</a>.
   <li>elf2aif : See <a href="elf2aif/COPYING">!GCC.docs.elf2aif.COPYING</a>.
   <li>gcc (and all its associated files) : See <a href="gcc/gcc/index.html">its manual</a>.

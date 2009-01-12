@@ -251,6 +251,10 @@ create_gcc_tree() {
   remove_if_there "`echo $GCCSDK_UNPACKED/\!GCC/docs/gcc/{cppinternals,gccinstall,gccint}`"
   remove_if_there "`echo $GCCSDK_UNPACKED/\!GCC/info/{configure.info,dir,dir.old,gccinstall.info}`"
 
+  # Copy asasm documentation:
+  create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/asasm
+  cp $GCCSDK_RISCOS/asasm/{ChangeLog,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/asasm
+  cp $GCCSDK_RISCOS/asasm/docs/{AIF-1989,AIF-1993,ALF-1989,ALF-1993,AOF-1989,AOF-2002,APCS,ASDTF} $GCCSDK_UNPACKED/\!GCC/docs/asasm
   # Copy CMunge documentation:
   remove_if_there $GCCSDK_UNPACKED/\!GCC/docs/cmunge
   svn export -q --force $GCCSDK_RISCOS/cmunge/Docs $GCCSDK_UNPACKED/\!GCC/docs/cmunge

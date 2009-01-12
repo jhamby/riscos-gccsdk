@@ -1,6 +1,6 @@
 #!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2007-2008 GCCSDK Developers
+# Copyright (c) 2007-2009 GCCSDK Developers
 #
 # Builds the RISC OS specific binaries in GCCSDK, either for cross-compilation
 # usage, either a native RISC OS binaries.
@@ -75,7 +75,7 @@ else
 fi
 
 # Build the programs which we use for cross-compiling and for native RISC OS compiling:
-for roapp in cmunge elf2aif ln mkresfs ; do
+for roapp in asasm cmunge elf2aif ln mkresfs ; do
   if [ ! -f $GCCSDK_PREFIX/bin/$roapp -a ! -f $GCCSDK_PREFIX/bin/$roapp,ff8 -a ! -f $GCCSDK_PREFIX/bin/$roapp,e1f ] ; then
     echo +++ Building $roapp
     test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && autoreconf --install )
