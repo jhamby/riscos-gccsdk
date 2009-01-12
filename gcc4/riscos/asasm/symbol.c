@@ -54,7 +54,7 @@ int (SYMBOL_AOF_OUTPUT) (const Symbol *);	/* typedef it */
    or coprocessor names).  */
 int (SYMBOL_ELF_OUTPUT) (const Symbol *);	/* typedef it */
 #define SYMBOL_ELF_OUTPUT(sym) \
-  (!SYMBOL_GETREG((sym)->type) && (sym)->used > -1)
+  (SYMBOL_AOF_OUTPUT(sym) || (sym)->value.Tag.t == ValueCode)
 
 #ifndef NO_ELF_SUPPORT
 #define SYMBOL_OUTPUT(sym) \
@@ -317,6 +317,7 @@ symbolFix (int *stringSizeNeeded)
 	    {
 	      if (SYMBOL_KIND (sym->type) == 0)
 		{
+		  /* Make it a reference symbol.  */
 		  sym->type |= SYMBOL_REFERENCE;
 		  if (option_pedantic)
 		    errorLine (0, NULL, ErrorWarning, TRUE, "Symbol %s is implicitly imported", sym->str);

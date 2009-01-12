@@ -3,8 +3,8 @@
 		AREA |C$$code|, CODE, READONLY
 
 		; Branch instructions
-	[ :LNOT: REFERENCE
 label
+	[ :LNOT: REFERENCE
 		B	label
 		BL	label
 

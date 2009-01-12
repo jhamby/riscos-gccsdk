@@ -9,6 +9,7 @@ check_PROGRAMS = arithmetic1 arithmetic2 branch copro dsp fp loadstore loadstore
 ref_PROGRAMS = $(check_PROGRAMS:%=reference/%)
 
 all: setup $(ref_PROGRAMS) $(check_PROGRAMS)
+	@$(ECHO) All tests were OK
 
 setup:
 	@mkdir -p reference
@@ -24,7 +25,7 @@ clean:
 %: %.s Makefile
 	@$(ECHO) $(ECHOFLAGS) "\tGBLL REFERENCE\nREFERENCE\tSETL\t{FALSE}\n\tEND" >config.h
 	@$(AS) $(ASFLAGS) -o $@ $<
-	@$(DIFF) $(DIFFFLAGS) $@ reference/$@ || rm $@
+	@$(DIFF) $(DIFFFLAGS) $@ reference/$@ || ( rm $@ && false )
 
 reference/%: %.s Makefile
 	@$(ECHO) $(ECHOFLAGS) "\tGBLL REFERENCE\nREFERENCE\tSETL\t{TRUE}\n\tEND" >config.h

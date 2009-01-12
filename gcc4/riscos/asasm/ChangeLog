@@ -1,3 +1,11 @@
+Mon Jan 12 01:58:02 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/Makefile: Output OK when all tests passed succesfully.
+	* regression/branch.s: Output local label 'label' otherwise ELF output
+	differs.
+	* symbol.c(SYMBOL_ELF_OUTPUT): Symplify and make it more bulletproof.
+	* Makefile.am: Add comment.
+
 Mon Jan 12 01:09:31 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/Makefile: Remake all references and redo all tests when
