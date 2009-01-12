@@ -21,11 +21,11 @@ clean:
 	-rm -f config.h
 	-rmdir reference
 
-%: %.s
+%: %.s Makefile
 	@$(ECHO) $(ECHOFLAGS) "\tGBLL REFERENCE\nREFERENCE\tSETL\t{FALSE}\n\tEND" >config.h
 	@$(AS) $(ASFLAGS) -o $@ $<
-	@$(DIFF) $(DIFFFLAGS) $@ reference/$@
+	@$(DIFF) $(DIFFFLAGS) $@ reference/$@ || rm $@
 
-reference/%: %.s
+reference/%: %.s Makefile
 	@$(ECHO) $(ECHOFLAGS) "\tGBLL REFERENCE\nREFERENCE\tSETL\t{TRUE}\n\tEND" >config.h
 	@$(AS) $(ASFLAGS) -o $@ $<
