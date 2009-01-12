@@ -42,9 +42,8 @@
 #include "main.h"
 #include "symbol.h"
 
-#ifdef __TARGET_SCL__
+#ifdef __riscos__
 #  include <swis.h>
-#else
 #  include <ctype.h>
 #  include <errno.h>
 #endif

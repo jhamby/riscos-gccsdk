@@ -1,3 +1,8 @@
+Mon Jan 12 21:20:52 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* output.c: Define OS_File etc SWI numbers for native RISC OS build
+	and using UnixLib.
+
 Mon Jan 12 01:58:02 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/Makefile: Output OK when all tests passed succesfully.
