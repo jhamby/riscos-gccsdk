@@ -44,6 +44,8 @@
 
 #ifdef __riscos__
 #  include <swis.h>
+#endif
+#if !defined(__TARGET_SCL__)
 #  include <ctype.h>
 #  include <errno.h>
 #endif

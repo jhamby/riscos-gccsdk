@@ -78,7 +78,6 @@ void codeString (int len, const char *str);
 void codeFloat (FLOAT value);
 void codeBool (BOOL value);
 
-void codeFixReloc (void);
 Value codeEvalLow (ValueTag legal, int size, Code *program);
 Value codeEval (ValueTag legal);
 

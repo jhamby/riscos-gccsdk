@@ -1,3 +1,9 @@
+Tue Jan 13 03:42:37 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* output.c: Previous fix wasn't correct.
+	* code.h(codeFixReloc): Remove prototype, this wasn't defined.
+	* value.c: Minor reidentation.
+
 Mon Jan 12 21:20:52 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* output.c: Define OS_File etc SWI numbers for native RISC OS build
@@ -35,8 +41,8 @@ Sun Jan 11 21:35:31 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 	* code.c: Add comments.
 	* reloc.c(relocShiftImm,relocImm8s4,relocImmFloat,relocBranch,
 	relocBranchT,relocSwi,relocCpuOffset,relocCopOffset,relocAdr,relocAdrl,
-	relocMask,relocInt,relocFloat,relocAdd),value.c(valueFree): Pass Value parameter as
-	reference, not by copy.
+	relocMask,relocInt,relocFloat,relocAdd),value.c(valueFree): Pass Value
+	parameter as reference, not by copy.
 	* reloc.h,commands.c(defineint,definereal),m_cpuctrl.c(m_branch,
 	m_blx,m_swi,m_adr),help_cop.c(help_copAddr),m_cpumem.c(dstmem,
 	dstreglist),value.c(valueEqual),m_fpu.c(getFloatRhs),reloc.c(relocNew),
@@ -986,5 +992,3 @@ Sun Jan 30 00:50:54 2005  John Tytgat  <John.Tytgat@aaug.net>
 	strdup.c, strdup.h, symbol.c, symbol.h, targetcpu.c, targetcpu.h,
 	test.c, uname.c, uname.h, value.c, value.h, variables.c,
 	variables.h, version.h, whileif.c, whileif.h: Initial revision
-
-

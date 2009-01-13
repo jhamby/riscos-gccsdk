@@ -179,14 +179,16 @@ valueFree(Value *value)
     }
 }
 
-static int
-lateInfoEqual(LateInfo *a, LateInfo *b)
+static BOOL
+lateInfoEqual(const LateInfo *a, const LateInfo *b)
 {
-  for(; a || b; a = a->next, b = b->next) {
-    if(!a || !b)	       return FALSE;
-    if(a->factor != b->factor) return FALSE;
-    if(a->symbol != b->symbol) return FALSE;
-  }
+  for (/* */; a || b; a = a->next, b = b->next)
+    {
+      if (!a || !b
+	  || a->factor != b->factor
+	  || a->symbol != b->symbol)
+	return FALSE;
+    }
   return TRUE;
 }
 
@@ -195,8 +197,8 @@ valueEqual(const Value *a, const Value *b)
 {
   if (a->Tag.t == ValueLateLabel)
     {
-    /* Prevent valueEqual(ValueLateLabel,ValueCode) */
-    const Value *t = a; a = b; b = t;
+      /* Prevent valueEqual(ValueLateLabel,ValueCode) */
+      const Value *t = a; a = b; b = t;
     }
 
   switch (a->Tag.t)
@@ -216,19 +218,19 @@ valueEqual(const Value *a, const Value *b)
     case ValueCode:
       if (b->Tag.t == ValueLateLabel)
         {
-	Value v = valueLateToCode(b->ValueLate.i,b->ValueLate.late);
-	BOOL res = a->ValueCode.len == v.ValueCode.len && codeEqual(a->ValueCode.len,a->ValueCode.c,v.ValueCode.c);
-	valueFree(&v);
-	return res;
+	  Value v = valueLateToCode(b->ValueLate.i,b->ValueLate.late);
+	  BOOL res = a->ValueCode.len == v.ValueCode.len && codeEqual(a->ValueCode.len,a->ValueCode.c,v.ValueCode.c);
+	  valueFree(&v);
+	  return res;
         }
       else
-       return b->Tag.t == ValueCode
-	      && a->ValueCode.len == b->ValueCode.len
-	      && codeEqual(a->ValueCode.len,a->ValueCode.c,b->ValueCode.c);
+        return b->Tag.t == ValueCode
+	       && a->ValueCode.len == b->ValueCode.len
+	       && codeEqual(a->ValueCode.len,a->ValueCode.c,b->ValueCode.c);
     case ValueLateLabel:
-       return b->Tag.t == ValueLateLabel
-	      && a->ValueLate.i == b->ValueLate.i
-	      && lateInfoEqual(a->ValueLate.late,b->ValueLate.late);
+      return b->Tag.t == ValueLateLabel
+	     && a->ValueLate.i == b->ValueLate.i
+	     && lateInfoEqual(a->ValueLate.late,b->ValueLate.late);
     default:
       error(ErrorSerious,FALSE,"Internal valueEqual: illegal value");
       break;
