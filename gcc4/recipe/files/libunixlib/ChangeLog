@@ -1,3 +1,9 @@
+Fri Jan 16 02:53:30 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	*  unix/features.c(__get_program_name): A colum character can mark the
+	start of a leafname as well.  Solves Bugzilla #169 (reported by John
+	Kortink).
+
 Sat Jan  3 21:03:34 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* ChangeLog: Updated John-Mark Bell's e-mail address.

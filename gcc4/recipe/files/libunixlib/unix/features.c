@@ -15,6 +15,7 @@
 
 static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
 
+/* 'cli' can be an Unix or RISC OS executable path.  */
 char *
 __get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
 {
@@ -36,12 +37,12 @@ __get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
     cli++;
 
   /* Find the end of the program name.  Set 'start' to mark the
-     beginning of the program name. Use '.' and '/' as the directory
-     separation characters to calculate this.  */
+     beginning of the program name. Use '.', '/' and ':' as separation
+     characters to calculate this.  */
   start = cli;
   while (*cli != ' ' && *cli != '\0')
     {
-      if (*cli == '/' || *cli == '.')
+      if (*cli == '/' || *cli == '.' || *cli == ':')
 	/* Point to the character after the separation char.  */
 	start = cli + 1;
       cli++;
