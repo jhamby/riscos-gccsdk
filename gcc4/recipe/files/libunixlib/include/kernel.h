@@ -5,7 +5,7 @@
  * Any simularity between this and the Norcroft kernel.h file is probably
  * due to having to use identical structs.
  *
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2009 UnixLib Developers
  */
 
 #ifndef __KERNEL_H
@@ -80,10 +80,10 @@ extern int _kernel_osrdch (void) __THROW;
 extern int _kernel_oswrch (int __ch) __THROW;
 
 /* Return the next byte from the file 'handle'. Return -1 on EOF.  */
-extern int _kernel_osbget (unsigned __handle) __THROW;
+extern int _kernel_osbget (unsigned int __handle) __THROW;
 
 /* Write the byte 'ch' to the file 'handle'. Return success or failure.  */
-extern int _kernel_osbput (int __ch, unsigned __handle) __THROW;
+extern int _kernel_osbput (int __ch, unsigned int __handle) __THROW;
 
 /* Perform an OS_File operation. The _kernel_osfile_block provides
    values for registers R2-R5.  */
@@ -100,7 +100,7 @@ typedef struct
 } _kernel_osgbpb_block;
 
 /* Read/write a number of bytes on file 'handle'. */
-extern int _kernel_osgbpb (int __operation, unsigned __handle,
+extern int _kernel_osgbpb (int __operation, unsigned int __handle,
 			   _kernel_osgbpb_block *__inout)
      __THROW __nonnull ((3));
 
@@ -115,7 +115,7 @@ extern int _kernel_osfind (int __operation, char *__name)
 
 /* Perform an OS_Args operation. Generally returns the value in R2,
    unless op = 0.  */
-extern int _kernel_osargs (int __operation, unsigned __handle,
+extern int _kernel_osargs (int __operation, unsigned int __handle,
 			   int __arg) __THROW;
 
 /* Read the value of system variable 'name', placing the

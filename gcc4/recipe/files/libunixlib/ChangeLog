@@ -1,3 +1,8 @@
+Sat Jan 17 15:53:04 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/kernel.h: Add 'int' to 'unsigned'.
+	* README(Building): Updated.
+
 Fri Jan 16 02:53:30 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	*  unix/features.c(__get_program_name): A colum character can mark the
