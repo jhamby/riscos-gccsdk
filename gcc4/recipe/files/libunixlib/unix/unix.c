@@ -43,8 +43,8 @@ static void get_io_redir (const char *cli);
 static int verify_redirection (const char *redirection);
 static const char *find_redirection_type (const char *command_line,
 					  char redirection_type);
-static int convert_command_line (struct proc *process, const char *cli,
-				 int cli_size);
+static void convert_command_line (struct proc *process, const char *cli,
+				  int cli_size);
 
 static void __badr (void) __attribute__ ((__noreturn__));
 
@@ -893,11 +893,12 @@ find_redirection_type (const char *cmdline, char redirection_type)
 /* Convert a command line that is contained as a single string, with
    arguments delimited by spaces, into a zero terminated string with
    index markers.  */
-static int
+static void
 convert_command_line (struct proc *process, const char *cli, int cli_size)
 {
   int argc;
-  char **argv, *temp, *p;
+  char **argv, *temp;
+  _kernel_oserror *err = NULL;
 
   /* A temporary buffer for the command line arguments, holds a
      particular argument prior to it being added to the argv array.  */
@@ -906,9 +907,11 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
   argc = 0;
   argv = (char **) malloc ((argc + 2) * sizeof (char *));
   if (temp == NULL || argv == NULL)
-    __unixlib_fatal ("Cannot allocate memory for main() parameters");
+    goto fatal;
   while (*cli)
     {
+      char *p;
+
       /* Set to 1 if we are storing an empty argument, for example
 	 -classpath ''  */
       int empty_arg = 0;
@@ -1074,9 +1077,9 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 	  argv = (char **) realloc (argv, (argc + 1) * sizeof (char *));
 	  argv[argc - 1] = strdup (temp);
 	  if (argv == NULL || argv[argc - 1] == NULL)
-	    __unixlib_fatal ("Cannot allocate memory for main() parameters");
+	    goto fatal;
 	}
-  }
+    }
 
   /* Set the last item to NULL */
   argv[argc] = NULL;
@@ -1084,68 +1087,66 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
   free (temp);
 
   /* Convert the process filename, either to a RISC OS full path, either
-     to an Unix full path.  Note that there is a fundamental problem when
-     you start a process via a temporary FS selection and that the current
-     FS get taken instead.  Use "/ADFS::MyDisc.$.my_risc_os_process" or
-     "run ADFS::MyDisc.$.my_risc_os_process" instead of
-     "ADFS::MyDisc.$.my_risc_os_process" to avoid this problem.
-     The path isn't converted if there is no . in it, as that indicates
-     that it is something on Run$Path and so canonicalising it is not a
-     good idea.  */
-  if (strchr(argv[0], '.'))
+     to an Unix full path.
+     Note that there is a fundamental problem in any pre RISC OS 6 version
+     when you start a process via a temporary FS selection and that the
+     current FS get taken instead.  Use "/ADFS::MyDisc.$.my_risc_os_process"
+     or "run ADFS::MyDisc.$.my_risc_os_process" instead of
+     "ADFS::MyDisc.$.my_risc_os_process" to avoid this problem.  */
     {
       int regs[10];
-      char *new_argv0, *new_uargv0;
-      _kernel_oserror *err;
+      char *canon_argv0, *input_argv0, *uargv0;
       int filetype;
 
       regs[0] = 37;
       regs[1] = (int) argv[0];
-      regs[5] = regs[4] = regs[3] = regs[2] = 0;
-      if ((err = __os_swi (OS_FSControl, regs)) != NULL)
-        {
-          __ul_seterr (err, 0);
-          __unixlib_fatal ("Cannot convert process filename");
-        }
-      if (regs[5] > 0)
-        __unixlib_fatal ("Cannot convert process filename");
-
-      if ((new_argv0 = malloc (1 - regs[5])) == NULL)
-        __unixlib_fatal ("Cannot allocate memory to convert process filename");
+      regs[3] = (int) "Run$Path";
+      regs[5] = regs[4] = regs[2] = 0;
+      if ((err = __os_swi (OS_FSControl, regs)) != NULL
+	  || regs[5] > 0
+	  || (canon_argv0 = malloc (1 - regs[5])) == NULL)
+	goto fatal;
 
       regs[0] = 37;
       regs[1] = (int) argv[0];
-      regs[2] = (int) new_argv0;
-      regs[4] = regs[3] = 0;
+      regs[2] = (int) canon_argv0;
+      regs[3] = (int) "Run$Path";
+      regs[4] = 0;
       regs[5] = 1 - regs[5];
-      if ((err = __os_swi(OS_FSControl, regs)) != NULL)
-        {
-          __ul_seterr (err, 0);
-          __unixlib_fatal ("Cannot convert process filename");
-        }
+      if ((err = __os_swi (OS_FSControl, regs)) != NULL)
+        goto fatal;
 
-      if (__os_file (OSFILE_READCATINFO, new_argv0, regs) != NULL
+      if (__os_file (OSFILE_READCATINFO, canon_argv0, regs) != NULL
           || regs[0] != 1)
         {
 #ifdef DEBUG
           __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.\r\n");
 #endif
           filetype = __RISCOSIFY_FILETYPE_NOTFOUND;
+	  /* Use the uncanonicalised argv[0] as input for unixify.  */
+	  input_argv0 = argv[0];
         }
       else
-        filetype = ((regs[2] & 0xfff00000U) == 0xfff00000U) ? (regs[2] >> 8) & 0xfff : __RISCOSIFY_FILETYPE_NOTFOUND;
+	{
+	  filetype = ((regs[2] & 0xfff00000U) == 0xfff00000U) ? (regs[2] >> 8) & 0xfff : __RISCOSIFY_FILETYPE_NOTFOUND;
+	  input_argv0 = canon_argv0;
+	}
 
       /* Convert to Unix full path, if needed.  */
-      if ((new_uargv0 = __unixify_std (new_argv0, NULL, 0, filetype)) == NULL)
-        __unixlib_fatal ("Cannot allocate memory to convert process filename");
+      if ((uargv0 = __unixify_std (input_argv0, NULL, 0, filetype)) == NULL)
+        goto fatal;
 
-      free(new_argv0);
-      free(argv[0]);
-      argv[0] = new_uargv0;
+      free (canon_argv0);
+      free (argv[0]);
+      argv[0] = uargv0;
     }
 
   process->argc = argc;
   process->argv = argv;
 
-  return argc;
+  return;
+
+fatal:
+  __ul_seterr (err, 0);
+  __unixlib_fatal ("Failed to process command line");
 }
