@@ -157,7 +157,7 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
 	}
     }
 
-#if __UNIXLIB_SYMLINK
+#if __UNIXLIB_SYMLINKS
   free (target);
 #endif
 
