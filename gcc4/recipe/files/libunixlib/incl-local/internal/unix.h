@@ -285,9 +285,17 @@ extern int __get_taskhandle (void);
 
 extern int __funcall_error (const char *, int, unsigned int);
 #if __UNIXLIB_PARANOID
+#ifdef PIC
+/* In the shared library, function addresses can and will exist outside
+   application space.  */
+#define __funcall(f, p) \
+  ((((unsigned int)(f) >= __ul_memory.robase) && !((unsigned int)(f) & 3) \
+   ? 0 : __funcall_error(__FILE__, __LINE__, (unsigned int)(f))), (f)p)
+#else
 #define __funcall(f, p) \
   ((((unsigned int)(f) >= __ul_memory.robase) && !((unsigned int)(f) & 3) && (unsigned int)(f) < __ul_memory.appspace_himem \
    ? 0 : __funcall_error(__FILE__, __LINE__, (unsigned int)(f))), (f)p)
+#endif
 #else
 #define __funcall(f, p) ((f)p)
 #endif

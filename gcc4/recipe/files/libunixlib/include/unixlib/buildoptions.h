@@ -5,9 +5,7 @@
 #define __UNIXLIB_ALLOCA_FATAL		1
 
 /* Set to 1 if runtime paranoid checks need to be performed. Otherwise
-   set it to 0.
-   FIXME: I don't think this works for shared library configuration.  See
-   __funcall() definition and its use of __ul_memory.appspace_himem.  */
+   set it to 0.  */
 #define __UNIXLIB_PARANOID		0
 
 /* Set to 1 if we should check that the entire stack chunk chain is
