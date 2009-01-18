@@ -3,8 +3,6 @@ AB_CATEGORY=Command
 # The RISC OS patches are against zip 3.0 which is not yet in Debian unstable, so direct fetching:
 AB_URL=ftp://ftp.info-zip.org/pub/infozip/src/zip30.tgz
 
-AB_MANPAGE="man/zip.1 man/zipcloak.1 man/zipnote.1 man/zipsplit.1"
-
 AB_ROVERSION=001
 
 AB_PRECONF=:
@@ -15,7 +13,23 @@ AB_MAKE="$AB_MAKE CC=arm-unknown-riscos-gcc E=,ff8"
 cp $S/acorn/GMakefile $S/Makefile
 
 ab_package() {
-  cp $S/{BUGS,CHANGES,LICENSE,README,README.CR,TODO,WHATSNEW,WHERE,zip30.ann,zip\,ff8,zipcloak\,ff8,zipnote\,ff8,zipsplit\,ff8} $D
-  cp $S/acorn/zipsfx $D/zipsfx,feb
+  ab_create_command_app zip Apps/Utilities
+  # We're using SCL so use ,ff8 instead of $AB_EXEEXT
+  ab_add_commands $S/*,ff8
+  test ! -f $S/acorn/zipsfx || mv $S/acorn/zipsfx $S/acorn/zipsfx,feb
+  ab_add_commands $S/acorn/zipsfx,feb
+
+  echo "Filer_OpenDir <Obey\$Dir>.docs" > $A/\!Help,feb
+
+  # Copy documentation:
+  mkdir $A/docs
+  rman -f HTML $S/man/zip.1 > $A/docs/zip,faf
+  rman -f HTML $S/man/zipcloak.1 > $A/docs/zipcloak,faf
+  rman -f HTML $S/man/zipnote.1 > $A/docs/zipnote,faf
+  rman -f HTML $S/man/zipsplit.1 > $A/docs/zipsplit,faf
+  cp $S/{BUGS,CHANGES,LICENSE,README,README.CR,TODO,WHATSNEW,WHERE,zip30.ann} $A/docs
+
+  # No -unixlib as we're using SCL
+  $AB_HOME/add-riscpkg -copyrightfile $S/LICENSE
 }
 
