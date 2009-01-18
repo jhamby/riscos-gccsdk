@@ -83,7 +83,7 @@ ab_create_command_app() {
 
   if ! [ -e $A/\!Run,feb ] ; then
     echo -e "| !Run file for $app\n" > $A/\!Run,feb
-    echo "<Obey\$Dir>.!Boot" >> $A/\!Run,feb
+    echo "/<Obey\$Dir>.!Boot" >> $A/\!Run,feb
   fi
 
   if ! [ -e $A/\!Boot,feb ] ; then
@@ -96,7 +96,10 @@ ab_create_command_app() {
 
 ab_add_commands() {
   for program in $@; do
-    name=$(basename $program | sed -e s#$AB_EXEEXT##)
+    # We don't just strip AB_EXEEXT but any RISC OS filetype extension.
+    # ObeyFiles can be a program, or we can have Absolute files (e.g.
+    # using SCL) in an ELF build, etc.
+    name=$(basename $program | sed -e s#,[a-f\|0-9][a-f\|0-9][a-f\|0-9]##)
     echo "Set Alias\$$name Run <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
     cp -av $program $A
   done
