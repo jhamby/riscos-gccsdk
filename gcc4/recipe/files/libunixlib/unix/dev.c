@@ -1,5 +1,5 @@
 /* Low-level device handling.
-   Copyright (c) 2002-2008 UnixLib Developers.  */
+   Copyright (c) 2002-2009 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <dirent.h>
@@ -20,6 +20,7 @@
 #include <internal/local.h>
 #include <internal/swiparams.h>
 #include <internal/unix.h>
+#include <internal/symlinks.h>
 
 /* #define DEBUG */
 #ifdef DEBUG
@@ -29,40 +30,49 @@
 const struct dev __dev[NDEV] = {
   /* DEV_RISCOS */
   {__fsopen, __fsclose, __fsread, __fswrite,
-   __fslseek, __nullioctl, __nullselect, __fsstat, __fsfstat},
+   __fslseek, __nullioctl, __nullselect, __fsstat, __fsfstat,
+   __fslstat},
 
   /* DEV_TTY */
   {__ttyopen, __ttyclose, __ttyread, __ttywrite,
-   __nulllseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat},
+   __nulllseek, __ttyioctl, __ttyselect, __nullstat, __nullfstat,
+   __nullstat},
 
   /* DEV_PIPE */
   {__pipeopen, __pipeclose, __piperead, __pipewrite,
-   __nulllseek, __nullioctl, __pipeselect, __nullstat, __nullfstat},
+   __nulllseek, __nullioctl, __pipeselect, __nullstat, __nullfstat,
+   __nullstat},
 
   /* DEV_NULL */
   {__nullopen, __nullclose, __nullread, __nullwrite,
-   __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat},
+   __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat,
+   __nullstat},
 
   /* DEV_SOCKET */
   /* Socket select is a special case.  */
   {__sockopen, __sockclose, __sockread, __sockwrite,
-   __nulllseek, __sockioctl, __sockselect, __nullstat, __nullfstat},
+   __nulllseek, __sockioctl, __sockselect, __nullstat, __nullfstat,
+   __nullstat},
 
   /* DEV_ZERO */
   {__nullopen, __nullclose, __zeroread, __nullwrite,
-   __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat},
+   __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat,
+   __nullstat},
 
   /* DEV_RANDOM */
   {__randomopen, __nullclose, __randomread, __nullwrite,
-   __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat},
+   __nulllseek, __nullioctl, __nullselect, __nullstat, __nullfstat,
+   __nullstat},
 
   /* DEV_DSP */
   {__dspopen, __dspclose, __nullread, __dspwrite,
-   __dsplseek, __dspioctl, __nullselect, __nullstat, __nullfstat},
+   __dsplseek, __dspioctl, __nullselect, __nullstat, __nullfstat,
+   __nullstat},
 
   /* DEV_CUSTOM */
   {__customopen, __customclose, __customread, __customwrite,
-   __customlseek, __customioctl, __customselect, __customstat, __customfstat}
+   __customlseek, __customioctl, __customselect, __customstat, __customfstat,
+   __customlstat}
 };
 
 /* Map of special device names to device types.  */
@@ -565,6 +575,63 @@ __fsfstat (int fd, struct stat *buf)
     }
 
   __stat (regs[0], regs[2], regs[3], regs[4], regs[5], buf);
+
+  return 0;
+}
+
+int
+__fslstat (const char *ux_filename, struct stat *buf)
+{
+  char filename[_POSIX_PATH_MAX];
+  int objtype, load, exec, length, attr, ftype;
+  int riscosify_control, rtrn_get_attrs, dir_suffix_check;
+
+  if (buf == NULL)
+    return __set_errno (EINVAL);
+
+  /* When we have suffix swapping defined, the directory names are not
+     suffix swapped so check first without suffix swapping if we can't
+     find a directory.  */
+  if (((riscosify_control = __get_riscosify_control ())
+       & __RISCOSIFY_NO_SUFFIX) == 0)
+    {
+      /* Suffix swapping is setup.  */
+      __set_riscosify_control (riscosify_control | __RISCOSIFY_NO_SUFFIX);
+      dir_suffix_check = 1;
+    }
+  else
+    dir_suffix_check = 0;
+
+  rtrn_get_attrs =
+    __object_get_lattrs (ux_filename, filename, sizeof (filename), &objtype,
+			 &ftype, &load, &exec, &length, &attr);
+
+  if (dir_suffix_check)
+    {
+      /* Restore suffix swapping status.  */
+      __set_riscosify_control (riscosify_control);
+    }
+
+  if (rtrn_get_attrs)
+    {
+      if (dir_suffix_check == 0
+	  || __object_get_lattrs (ux_filename, filename, sizeof (filename),
+				  &objtype, &ftype, &load, &exec, &length,
+				  &attr))
+	return -1;
+    }
+
+  buf->st_ino = __get_file_ino (NULL, filename);
+
+  __stat (objtype, load, exec, length, attr, buf);
+
+#if __UNIXLIB_SYMLINKS
+  if (ftype == SYMLINK_FILETYPE)
+    {
+      buf->st_mode |= S_IFLNK;
+      buf->st_mode &= (~S_IFREG);
+    }
+#endif
 
   return 0;
 }

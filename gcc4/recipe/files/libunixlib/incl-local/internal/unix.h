@@ -1,5 +1,5 @@
 /* Structures for UnixLib's internal process management.
-   Copyright (c) 2002-2007 UnixLib Developers.  */
+   Copyright (c) 2002-2007, 2009 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_UNIX_H
 #define __UNIXLIB_UNIX_H 1
@@ -38,6 +38,10 @@
 #endif
 #ifndef __INTERNAL_TTY_H
 #include <internal/tty.h>
+#endif
+
+#ifndef __INTERNAL_SYMLINKS_H
+#include <internal/symlinks.h>
 #endif
 
 __BEGIN_DECLS
@@ -401,11 +405,6 @@ extern pid_t __fork_post (pid_t pid, int isfork);
 extern int __fork_pre (int isfork, void **sul_fork, pid_t *pid);
 
 extern unsigned int __get_cpu_arch (void);
-
-#if __UNIXLIB_SYMLINKS
-extern int __resolve_symlinks (const char *filename_in, char *filename_out,
-			       size_t fn_out_size);
-#endif
 
 __END_DECLS
 

@@ -4,7 +4,7 @@
  * This is used where the device specific structures need to set on a per
  * file descriptor basis, such as faking a socket.
  *
- * Copyright (c) 2005-2008 UnixLib Developers
+ * Copyright (c) 2005-2009 UnixLib Developers
  */
 
 #include <swis.h>
@@ -121,6 +121,12 @@ __customfstat (int fd, struct stat *buf)
   return __nullfstat(fd, buf);
 }
 
+
+int
+__customlstat (const char *filename, struct stat *buf)
+{
+  return __nullstat(filename, buf);
+}
 
 void
 __set_customselect(int fd, int (*cselect) (void *__fd, int __fd1, __fd_set *__read,

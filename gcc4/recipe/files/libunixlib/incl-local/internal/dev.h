@@ -1,5 +1,5 @@
 /* UnixLib internal device implementation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2002-2005, 2008, 2009 UnixLib Developers.  */
 
 #ifndef __INTERNAL_DEV_H
 #define __INTERNAL_DEV_H
@@ -53,6 +53,7 @@ struct dev
 		 fd_set *__write, fd_set *__except);
   int (*stat) (const char *filename, struct stat *buf);
   int (*fstat) (int fd, struct stat *buf);
+  int (*lstat) (const char *filename, struct stat *buf);
 };
 
 /* Keep track of an fd_set of socket handles for use with select()  */
@@ -70,6 +71,7 @@ extern int __fswrite (struct __unixlib_fd *__fd, const void *__data, int __nbyte
 extern __off_t __fslseek (struct __unixlib_fd *__fd, __off_t __lpos, int __whence);
 extern int __fsstat (const char *__filename, struct stat *__buf);
 extern int __fsfstat (int __fd, struct stat *__buf);
+extern int __fslstat (const char *__filename, struct stat *__buf);
 
 /* /dev/tty, /dev/console, /dev/rs423, /dev/ttyS0 support */
 extern void *__ttyopen (struct __unixlib_fd *__fd, const char *file, int __mode);
@@ -132,6 +134,7 @@ extern int __customioctl (struct __unixlib_fd *__fd, unsigned long __request, vo
 extern int __customselect (struct __unixlib_fd *__fd, int __fd1, fd_set *__read, fd_set *__write, fd_set *__except);
 extern int __customstat (const char *filename, struct stat *buf);
 extern int __customfstat (int fd, struct stat *buf);
+extern int __customlstat (const char *filename, struct stat *buf);
 
 __END_DECLS
 

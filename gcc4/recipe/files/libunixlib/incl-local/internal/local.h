@@ -1,5 +1,5 @@
 /* UnixLib internal function declarations.
-   Copyright (c) 2002, 2003, 2004, 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2002-2005, 2008, 2009 UnixLib Developers.  */
 
 #ifndef __INTERNAL_LOCAL_H
 #define __INTERNAL_LOCAL_H 1
@@ -116,6 +116,16 @@ extern void __set_riscosify_control (int __riscosify_flags);
    in __buffer. __objtype, __ftype and __attr may be NULL if not needed. */
 extern int
 __object_get_attrs (const char *__ux_file, char *__buffer, size_t __buf_len,
+		    int *__objtype, int *__ftype, int *__loadaddr,
+		    int *__execaddr, int *__length, int *__attr);
+
+/* Get an object's filetype, object type, etc and do some common checks.
+   Returns nonzero and sets errno on error. Returns riscosified filename
+   in __buffer. __objtype, __ftype and __attr may be NULL if not needed.
+   If the object is a symlink, return info on the link rather than the
+   object that it leads to.  */
+extern int
+__object_get_lattrs (const char *__ux_file, char *__buffer, size_t __buf_len,
 		    int *__objtype, int *__ftype, int *__loadaddr,
 		    int *__execaddr, int *__length, int *__attr);
 

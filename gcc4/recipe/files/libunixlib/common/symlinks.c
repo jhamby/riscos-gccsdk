@@ -1,6 +1,6 @@
 /* symlinks.c
  *
- * Copyright 2007, 2008 UnixLib Developers
+ * Copyright 2007-2009 UnixLib Developers
  *
  * Given a filename, determine if it is a symlink file. If so extract the
  * target file and check again. Repeat until the target filename is not a
@@ -15,15 +15,9 @@
 #include <sys/param.h>
 
 #include <internal/os.h>
+#include <internal/symlinks.h>
 
-/* Offically allocated filetype.  */
-#define	LINK_FILETYPE		0x1C8
-
-/* Arbitrary limit to prevent cyclical links. */
-#define MAX_LINKS		64
-
-/* ASCII representation of 'LINK'.  */
-#define LINK_ID			0x4B4E494C
+#if __UNIXLIB_SYMLINKS
 
 static int
 read_link_file_info (const char *filename, int *filetype, int *type)
@@ -45,7 +39,7 @@ read_link_file_info (const char *filename, int *filetype, int *type)
   return 0;
 }
 
-/* filenames passed and the symlinks itself are always RISC OS filenames.  */
+/* Filenames passed and the symlinks itself are always RISC OS filenames.  */
 int
 __resolve_symlinks (const char *filename_in, char *filename_out,
 		    size_t fn_out_size)
@@ -71,10 +65,10 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
       if (read_link_file_info (filename_out, &filetype, &type) != 0)
         break;
 
-      if (!type || filetype != LINK_FILETYPE)
+      if (!type || filetype != SYMLINK_FILETYPE)
 	return 0;
 
-      if (link_count >= MAX_LINKS)
+      if (link_count >= SYMLINK_MAX_LINKS)
 	{
 	  __set_errno (EMLINK);	/* or ELOOP? */
 	  break;
@@ -87,7 +81,7 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 	}
 
       if (__os_fread (fd, id, 4, regs) != NULL
-	  || *(unsigned int *)id != LINK_ID
+	  || *(unsigned int *)id != SYMLINK_ID
 	  || __os_fread (fd, &size, 4, regs) != NULL)
 	{
 	  __set_errno (EIO);
@@ -171,3 +165,5 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 
   return -1;
 }
+
+#endif

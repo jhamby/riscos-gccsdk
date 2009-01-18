@@ -1,3 +1,32 @@
+Sun Jan 18 16:57:12 2009  Lee Noar  <leenoar@sky.com>
+
+	* Generally:
+	Implement lstat so that symlinks can be probed. Fix for
+	bug(feature request) #162 item 1.
+
+	stat() - Always follow symlinks and return info on target object.
+	lstat() - Do not follow symlinks, and return info on given
+	object even if symlink. As per Linux, if a symlink is lstat()ed,
+	S_IFLNK = TRUE, S_IFREG = FALSE.
+
+	* Specifically:
+	* unix/custom.c: Add __customlstat().
+	* unix/lstat.c(lstat,lstat64): Call new implementation instead
+	of stat().
+	* unix/dev.c: Add __fslstat() and ensure all devices have a
+	suitable lstat entry.
+	* common/objattr.c(__object_get_lattrs): New function similar
+	to __object_get_attrs() except symlinks are not followed. Allows
+	the file info of the symlink itself to be found.
+	* common/symlinks.c: Move macro definitions of constants...
+	* incl-local/internal/symlinks.h: ...to here.
+	* incl-local/internal/local.h: Add declaration of
+	__object_get_lattrs().
+	* incl-local/internal/dev.h: Add lstat entry to struct dev.
+	Add declarations for __fslstat() and __customlstat().
+	* incl-local/internal/unix.h: Instead of declaring
+	__resolve_symlinks() directly, include symlinks.h.
+
 Sat Jan 17 20:10:49 2009  Lee Noar  <leenoar@sky.com>
 
 	* common/objattr.c(__object_set_attrs): Fix typo that would lead
