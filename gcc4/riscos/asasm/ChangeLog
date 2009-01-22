@@ -1,3 +1,7 @@
+Thu Jan 22 03:34:31 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* fix.c(fixInt): Upper limit for 1 or 2 byte sized words was one off.
+
 Tue Jan 13 03:42:37 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* output.c: Previous fix wasn't correct.

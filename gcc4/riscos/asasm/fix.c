@@ -80,8 +80,8 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
 WORD
 fixImm8s4 (long int lineno, WORD ir, int im)
 {
-  const char * const op3 = "Changing \"%s R_, R_, #%d\" to \"%s R_, R_, #%d\"";
-  const char * const op2 = "Changing \"%s R_, #%d\" to \"%s R_, #%d\"";
+  static const char op3[] = "Changing \"%s R_, R_, #%d\" to \"%s R_, R_, #%d\"";
+  static const char op2[] = "Changing \"%s R_, #%d\" to \"%s R_, #%d\"";
   const char *m1, *m2, *optype;
   int i8s4;
   WORD mnemonic;
@@ -180,8 +180,8 @@ fixImm8s4 (long int lineno, WORD ir, int im)
 WORD
 fixImmFloat (long int lineno, WORD ir, FLOAT im)
 {
-  const char * const op3 = "Changing \"%s F_, F_, #%.1f\" to \"%s F_, F_, #%.1f\"";
-  const char * const op2 = "Changing \"%s F_, #%.1f\" to \"%s F_, #%.1f\"";
+  static const char op3[] = "Changing \"%s F_, F_, #%.1f\" to \"%s F_, F_, #%.1f\"";
+  static const char op2[] = "Changing \"%s F_, #%.1f\" to \"%s F_, #%.1f\"";
   const char *m1, *m2, *optype;
   int f;
   WORD mnemonic;
@@ -330,12 +330,14 @@ fixBranchT (long int lineno, int im)
 WORD
 fixCopOffset (long int lineno, WORD ir, int offset)
 {
-  BOOL up = TRUE;
+  BOOL up;
   if (offset < 0)
     {
       offset = -offset;
       up = FALSE;
     }
+  else
+    up = TRUE;
   if (offset & 3)
     errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d is not a word offset", offset);
   if (offset > 1020)
@@ -349,12 +351,14 @@ fixCopOffset (long int lineno, WORD ir, int offset)
 WORD
 fixCpuOffset (long int lineno, WORD ir, int offset)
 {
-  BOOL up = TRUE;
+  BOOL up;
   if (offset < 0)
     {
       offset = -offset;
       up = FALSE;
     }
+  else
+    up = TRUE;
   if ((ir & 0x90) == 0x90)
     {
       if (offset > 255)
@@ -380,30 +384,38 @@ fixMask (long int lineno, int mask)
   return mask & 0xffff;
 }
 
+/**
+ * Check if given value fits in word of given size.
+ * \entry lineno Source linenumber where the value is coming from.
+ * \entry size Size in bytes of word value, should be 1, 2 or 4.
+ * \entry value Value which should be checked for.
+ * When the check fails, an error is given and the value is truncated so it
+ * fits in given word size.
+ */
 WORD
 fixInt (long int lineno, int size, int value)
 {
   switch (size)
     {
-    case 1:
-      if (value < -128 || value > 256)
-	{
-	  errorLine (lineno, NULL, ErrorError, TRUE, "Expression %d too big for %i bits", value, 8);
-	  value &= 0xff;
-	}
-      break;
-    case 2:
-      if (value < -32768 || value > 65536)
-	{
-	  errorLine (lineno, NULL, ErrorError, TRUE, "Expression %d too big for %i bits", value, 16);
-	  value &= 0xffff;
-	}
-      break;
-    case 4:
-      break;
-    default:
-      errorLine (lineno, NULL, ErrorSerious, TRUE, "Internal fixInt: size %d is not legal", size);
-      break;
+      case 1:
+	if (value < -128 || value >= 256)
+	  {
+	    errorLine (lineno, NULL, ErrorError, TRUE, "Expression %d too big for %i bits", value, 8);
+	    value &= 0xff;
+	  }
+	break;
+      case 2:
+	if (value < -32768 || value >= 65536)
+	  {
+	    errorLine (lineno, NULL, ErrorError, TRUE, "Expression %d too big for %i bits", value, 16);
+	    value &= 0xffff;
+	  }
+	break;
+      case 4:
+	break;
+      default:
+	errorLine (lineno, NULL, ErrorSerious, TRUE, "Internal fixInt: size %d is not legal", size);
+	break;
     }
   return value;
 }
