@@ -66,8 +66,7 @@ typedef struct AREA
   int norelocs;
   Reloc *relocs;
   LitInfo *lits;		/* ldr reg,=value */
-}
-Area;
+} Area;
 
 extern Symbol *areaCurrentSymbol; /** Symbol of the area which is currently being processed.  */
 extern Symbol *areaEntrySymbol; /** Symbol of area which has been marked as ENTRY point.  */
@@ -77,6 +76,6 @@ extern Symbol *areaHeadSymbol; /** Start of the linked list of all area symbols 
 extern void areaError (void);		/* report "No area defined" */
 extern void areaInit (void);
 extern void areaFinish (void);
-extern void areaGrow (Area * area, int mingrow);
+extern void areaGrow (Area *area, int mingrow);
 
 #endif

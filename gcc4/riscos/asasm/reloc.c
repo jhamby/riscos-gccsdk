@@ -217,7 +217,7 @@ relocAdd (Reloc *newReloc)
 
 
 static int
-relocLate2Reloc (Reloc * r, Value * value)
+relocLate2Reloc (Reloc *r, Value *value)
 {
   int size = 0;
   int norelocs = 0;

@@ -41,7 +41,7 @@
 
 #define MAXERR (100)
 
-const char *const InsertCommaAfter = "Inserting missing comma after ";
+const char InsertCommaAfter[] = "Inserting missing comma after ";
 
 static int no_errors = 0;
 static int no_warnings = 0;

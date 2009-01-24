@@ -59,9 +59,9 @@ static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 
 static BOOL inputArgSub (void);
 
-/* Debug only:
- */
-const char *inputGiveRestLine(void)
+/* For debug only.  */
+const char *
+inputGiveRestLine(void)
 {
   return input_pos;
 }
@@ -117,10 +117,7 @@ inputLookNUC (int n)		/* Unsafe */
 char
 inputGet (void)
 {
-  if (*input_pos)
-    return *input_pos++;
-  else
-    return *input_pos;
+  return (*input_pos) ? *input_pos++ : *input_pos;
 }
 
 
@@ -189,7 +186,8 @@ inputRest (void)
 {
   char *t = input_pos;
   char *p = input_pos - 1;
-  while (*++p);
+  while (*++p)
+    /* */;
   input_pos = p;
   return t;
 }
@@ -251,7 +249,7 @@ inputInit (const char *infile)
     {
       if ((asmfile = fopen (infile, "r")) == NULL)
         {
-#if defined(__riscos__) && defined(__TARGET_UNIXLIB__)
+#if defined(__TARGET_UNIXLIB__)
           __set_riscosify_control(__get_riscosify_control () | __RISCOSIFY_NO_SUFFIX);
            asmfile = fopen (infile, "r");
           __set_riscosify_control(__get_riscosify_control () & ~__RISCOSIFY_NO_SUFFIX);
@@ -349,7 +347,7 @@ inputNextLine (void)
 	{
 	  int i;
 	  for (i = 2; workBuff[i] != '\0' && isdigit(workBuff[i]); ++i)
-	    ;
+	    /* */;
 	  if (i > 2 && workBuff[i] == ' ')
 	    {
 	      (input_pos = input_buff)[0] = 0;

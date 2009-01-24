@@ -34,8 +34,7 @@ typedef enum
   CodeOperator,
   CodeValue,
   CodeSymbol
-}
-CodeTag;
+} CodeTag;
 
 typedef union CODE
 {
@@ -58,8 +57,7 @@ typedef union CODE
     Symbol *symbol;
   }
   CodeSymbol;
-}
-Code;
+} Code;
 
 #define CODE_SIZECODE  (1024)
 #define CODE_SIZESTACK (1024)
@@ -83,6 +81,6 @@ Value codeEval (ValueTag legal);
 
 LateInfo *codeNewLateInfo (Symbol *symbol);
 Code *codeCopy (int len, const Code *code);
-int codeEqual (int len, const Code *a, const Code *b);
+BOOL codeEqual (int len, const Code *a, const Code *b);
 
 #endif

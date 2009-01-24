@@ -41,17 +41,14 @@ typedef enum
   Op_eq, Op_ne,			/*  3 */
   Op_land,			/*  2 */
   Op_lor			/*  1 */
-}
-Operator;
+} Operator;
 
 #define isUnop(op) \
   ((op)==Op_fload || (op)==Op_fexec || (op)==Op_fsize || \
    (op)==Op_fattr || (op)==Op_lnot  || (op)==Op_not   || \
    (op)==Op_neg   || (op)==Op_index || (op)==Op_len   || \
-   (op)==Op_str   || (op)==Op_chr \
-  )
-
-int (isUnop) (Operator);
+   (op)==Op_str   || (op)==Op_chr)
+BOOL (isUnop) (Operator);
 
 extern const char Pri[2][10];
 #define PRI(n) Pri[option_objasm][n-1]

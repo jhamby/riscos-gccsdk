@@ -51,15 +51,14 @@ const char Pri[2][10] =
 static Lex nextbinop;
 static BOOL nextbinopvalid = FALSE;
 
-/*
+/**
  * A simple and fast generic string hasher based on Peter K. Pearson's
  * article in CACM 33-6, pp. 677.
-
- s string to hash
- maxn maximum number of chars to consider
- hashs hash table size. */
-
-int lexHashStr (const char *s, int maxn)
+ * \param s string to hash
+ * \param maxn maximum number of chars to consider
+ */
+int
+lexHashStr (const char *s, int maxn)
 {
   static const unsigned char hashtab[] =
   {
@@ -204,11 +203,10 @@ lexGetIdInternal (BOOL genError)
 	*/
       inputUnGet (c);
 #else
-	inputPutBack( c );
+      inputPutBack(c);
 #endif
 
-      /* Note: we allow identifiers to begin with '#'.
-       */
+      /* Note: we allow identifiers to begin with '#'.  */
       if (isalpha (c) || c == '.' || c == '_' || c == '#')
 	{
 	  result.tag = LexId;
@@ -249,19 +247,18 @@ lexReadLocal (int *len, int *label)
   if (!isdigit (inputLook ()))
     {
       error (ErrorSerious, TRUE, "Missing local label number");
-
       return 0;
     }
   *label = inputGet () - '0';
   if (isdigit (inputLook ()))
     *label = (*label * 10) + (inputGet () - '0');
   name = inputSymbol (len, 0);
-  if (len)
-    if (strncmp (rout_id, name, *len))
-      {
-	error (ErrorError, TRUE, "Local label name (%s) does not match routine name (%s)", rout_id, name );
-	return 0;
-      }
+  if (len && strncmp (rout_id, name, *len))
+    {
+      error (ErrorError, TRUE, "Local label name (%s) does not match routine name (%s)", rout_id, name );
+      return 0;
+    }
+
   return name;
 }
 
@@ -335,9 +332,6 @@ lexGetLocal (void)
 }
 
 
-
-
-
 Lex
 lexGetPrim (void)
 {
@@ -345,6 +339,7 @@ lexGetPrim (void)
   char *str;
   int len;
   Lex result;
+
   nextbinopvalid = FALSE;
   skipblanks ();
   switch (c = inputGet ())

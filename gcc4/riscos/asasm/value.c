@@ -192,7 +192,7 @@ lateInfoEqual(const LateInfo *a, const LateInfo *b)
   return TRUE;
 }
 
-int
+BOOL
 valueEqual(const Value *a, const Value *b)
 {
   if (a->Tag.t == ValueLateLabel)

@@ -31,10 +31,9 @@ typedef enum
   ErrorError,
   ErrorSerious,
   ErrorAbort
-}
-ErrorTag;
+} ErrorTag;
 
-extern const char *const InsertCommaAfter;
+extern const char InsertCommaAfter[];
 
 void errorInit (const char *filename);
 void errorFinish (void);

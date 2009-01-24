@@ -102,7 +102,7 @@ areaImage (Area * area, int newsize)
 
 
 void
-areaGrow (Area * area, int mingrow)
+areaGrow (Area *area, int mingrow)
 {
   int inc;
   if (area->imagesize && area->imagesize < DOUBLE_UP_TO)
@@ -124,15 +124,16 @@ areaInit (void)
   areaCurrentSymbol = NULL;
 }
 
+/**
+ * Do an implicit LTORG at the end of all areas.
+ */
 void
-areaFinish (void)		/* insert ltorg at end of all areas */
+areaFinish (void)
 {
-  Symbol *ap;
-  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
-    {
-      areaCurrentSymbol = ap;
-      litOrg (ap->area.info->lits);
-    }
+  for (areaCurrentSymbol = areaHeadSymbol;
+       areaCurrentSymbol != NULL;
+       areaCurrentSymbol = areaCurrentSymbol->area.info->next)
+    litOrg (areaCurrentSymbol->area.info->lits);
 }
 
 void

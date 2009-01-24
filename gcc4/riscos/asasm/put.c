@@ -32,6 +32,12 @@
 #include "main.h"
 #include "put.h"
 
+
+/**
+ * Align the size of current area.
+ * \entry align Align factor - 1, typically 1 (for 2 byte alignment) or 3 (for 4 byte alignment)
+ * \entry msg NUL terminated reason for this alignment.
+ */
 static void
 putAlign (int align, const char *msg)
 {
@@ -43,7 +49,11 @@ putAlign (int align, const char *msg)
     areaError ();
 }
 
-
+/**
+ * Append 1, 2 or 4 bytes of data at the end of current area.
+ * \entry size Size in bytes of the data to be written, should be 1, 2 or 4.
+ * \entry data Data value to be written.
+ */
 void
 putData (int size, WORD data)
 {
@@ -99,6 +109,11 @@ putData (int size, WORD data)
 }
 
 
+/**
+ * Append single or double float at the end of current area.
+ * \entry size Size of the float data to be written, should be 4 (single float) or 8 (double float).
+ * \entry data Float value to be written.
+ */
 void
 putDataFloat (int size, FLOAT data)
 {
@@ -142,19 +157,20 @@ putDataFloat (int size, FLOAT data)
       if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.ValueInt.i + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
       for (i = 0; i < size; i++)
-	{
-	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i + i] = translate.u.c[i];
-	}
+	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = translate.u.c[i];
     }
   else if (data)
     {
       error (ErrorError, TRUE, "Trying to define a non-zero value in an uninitialised area");
       return;
     }
-  areaCurrentSymbol->value.ValueInt.i += size;
 }
 
 
+/**
+ * Append ARM instruction at the end of current area.
+ * \entry ins ARM instruction value to be written.
+ */
 void
 putIns (WORD ins)
 {
@@ -170,11 +186,10 @@ putIns (WORD ins)
     {
       if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.ValueInt.i + 4))
 	areaGrow (areaCurrentSymbol->area.info, 4);
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i + 3] = (ins >> 24) & 0xff;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i + 2] = (ins >> 16) & 0xff;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i + 1] = (ins >> 8) & 0xff;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i + 0] = ins & 0xff;
-      areaCurrentSymbol->value.ValueInt.i += 4;
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = ins & 0xff;
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = (ins >> 8) & 0xff;
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = (ins >> 16) & 0xff;
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = (ins >> 24) & 0xff;
     }
   else
     error (ErrorError, TRUE, "Trying to define code an uninitialised area");

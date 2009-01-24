@@ -39,20 +39,22 @@
 static LitList *cache = NULL;
 
 static LitInfo *
-litFind (LitInfo * p, RelocTag tag, WORD extra, int notbefore, Value value)
+litFind (LitInfo *p, RelocTag tag, WORD extra, int notbefore, const Value *value)
 {
   for (; p; p = p->next)
     {
       if (p->reloc.lineno < 0 && p->reloc.offset < notbefore)
-	return 0;
-      if (p->reloc.Tag == tag && p->reloc.extra == extra && valueEqual (&p->reloc.value, &value))
+	return NULL;
+      if (p->reloc.Tag == tag 
+	  && p->reloc.extra == extra
+	  && valueEqual (&p->reloc.value, value))
 	return p;
     }
-  return 0;
+  return NULL;
 }
 
 static LitList *
-litListNew (LitList * next, int offset)
+litListNew (LitList *next, int offset)
 {
   LitList *newLitList;
 
@@ -75,7 +77,7 @@ litListNew (LitList * next, int offset)
 }
 
 static LitInfo *
-litInfoNew (LitInfo * more, RelocTag tag, WORD extra, Value value)
+litInfoNew (LitInfo *more, RelocTag tag, WORD extra, const Value *value)
 {
   LitInfo *newLitList = malloc (sizeof (LitInfo));
   if (newLitList)
@@ -83,10 +85,10 @@ litInfoNew (LitInfo * more, RelocTag tag, WORD extra, Value value)
       newLitList->next = more;
       newLitList->used = 0;
       newLitList->reloc.Tag = tag;
-      newLitList->reloc.lineno = -1;
+      newLitList->reloc.lineno = -1; /* Will be the lineno of LTORG when encountered.  */
       newLitList->reloc.offset = -1;
       newLitList->reloc.extra = extra;
-      newLitList->reloc.value = valueCopy (value);
+      newLitList->reloc.value = valueCopy (*value);
     }
   else
     errorOutOfMem ("litInfoNew");
@@ -94,7 +96,7 @@ litInfoNew (LitInfo * more, RelocTag tag, WORD extra, Value value)
 }
 
 static void
-litNew (RelocTag tag, WORD extra, int offset, int notbefore, Value value)
+litNew (RelocTag tag, WORD extra, int offset, int notbefore, const Value *value)
 {
   LitInfo *p = litFind (areaCurrentSymbol->area.info->lits, tag, extra, notbefore, value);
   if (!p)
@@ -106,25 +108,25 @@ litNew (RelocTag tag, WORD extra, int offset, int notbefore, Value value)
 }
 
 void
-litInt (int size, Value value)
+litInt (int size, const Value *value)
 {
   if (areaCurrentSymbol)
-    {
-      litNew (RelocImmN, size, areaCurrentSymbol->value.ValueInt.i, areaCurrentSymbol->value.ValueInt.i - 4095, value);
-    }
+    litNew (RelocImmN, size, areaCurrentSymbol->value.ValueInt.i,
+	    areaCurrentSymbol->value.ValueInt.i - 4095, value);
   else
     error (ErrorError, TRUE, "No area defined");
 }
 
 void
-litOrg (LitInfo * li)
+litOrg (LitInfo *li)
 {
-  LitList *ll, *nll;
-  unsigned char *image = areaCurrentSymbol->area.info->image;
-  BOOL fp;
+  LitList *ll;
 
   for (; li; li = li->next)
     {
+      LitList *nll;
+      unsigned char *image = areaCurrentSymbol->area.info->image;
+      BOOL fp;
       if (li->reloc.lineno < 0)
 	{
 	  li->reloc.offset = areaCurrentSymbol->value.ValueInt.i;

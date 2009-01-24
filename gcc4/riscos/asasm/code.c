@@ -46,13 +46,13 @@ static Value Stack[CODE_SIZESTACK];
 static LateInfo LateHeap[CODE_SIZELATE];
 static int LateHeapPtr;
 
-static int Sp;				/* Used by codeEvalLow and codeEvalLowest */
+static int Sp;			/* Used by codeEvalLow and codeEvalLowest */
 
 BOOL exprNotConst;
 
 
 LateInfo *
-codeNewLateInfo (Symbol * symbol)
+codeNewLateInfo (Symbol *symbol)
 {
   if (LateHeapPtr < CODE_SIZELATE)
     {
@@ -85,7 +85,7 @@ codeOperator (Operator op)
 }
 
 void
-codeSymbol (Symbol * symbol)
+codeSymbol (Symbol *symbol)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -132,7 +132,7 @@ codeSymbol (Symbol * symbol)
 }
 
 void
-codePosition (Symbol * area)
+codePosition (Symbol *area)
 {
   if (area)
     {
@@ -205,9 +205,9 @@ codeBool (BOOL value)
 }
 
 
+/* TRUE if codeEvalLowest succeeded */
 static BOOL
-codeEvalLowest (int size, Code * program)
-/* True if codeEvalLowest succeeded */
+codeEvalLowest (int size, const Code *program)
 {
   int Pp;
   for (Pp = 0; Pp < size; Pp++)
@@ -245,12 +245,12 @@ codeEvalLowest (int size, Code * program)
 		  break;
 		case ValueCode:
 		  if (!codeEvalLowest (program[Pp].CodeSymbol.symbol->value.ValueCode.len,
-			  program[Pp].CodeSymbol.symbol->value.ValueCode.c))
+				       program[Pp].CodeSymbol.symbol->value.ValueCode.c))
 		    return FALSE;
 		  break;
 		case ValueAddr:
 		  error (ErrorSerious, FALSE,
-		       "Register offset labels must be defined before use");
+			 "Register offset labels must be defined before use");
 		  break;
 		default:
 		  error (ErrorSerious, FALSE,
@@ -295,6 +295,7 @@ codeEvalLow (ValueTag legal, int size, Code *program)
     Result = Stack[0];
   else
     Result.Tag.t = ValueIllegal;
+
   if (!(Result.Tag.t & legal))
     {
       if (option_autocast && (legal & ValueFloat) && Result.Tag.t == ValueInt)
@@ -337,7 +338,7 @@ codeCopy (int len, const Code *code)
   return newCode;
 }
 
-int
+BOOL
 codeEqual (int len, const Code *a, const Code *b)
 {
   int i;

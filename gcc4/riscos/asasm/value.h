@@ -25,7 +25,7 @@
 
 #include "global.h"
 
-struct SYMBOL;			/* Cannot include symbol.h as it needs value.h */
+struct SYMBOL;		/* Cannot include symbol.h as it needs value.h */
 
 union CODE;
 
@@ -34,8 +34,7 @@ typedef struct LATEINFO
   struct LATEINFO *next;
   int factor;
   struct SYMBOL *symbol;
-}
-LateInfo;
+} LateInfo;
 
 typedef enum
 {
@@ -55,15 +54,13 @@ typedef enum
   ValueDouble    = 3 << 28,
   ValueExtended  = 5 << 28,	/* inaccurate */
   ValuePacked    = 7 << 28	/* inaccurate */
-}
-ValueTag;
+} ValueTag;
 
 typedef struct
 {
   ValueTag t;
   ValueTag v;			/* var type: ValueIllegal (const), ValueInt, ValueString */
-}
-ValueType;
+} ValueType;
 
 typedef union
 {
@@ -114,12 +111,11 @@ typedef union
     int r;
   }
   ValueAddr;
-}
-Value;
+} Value;
 
-Value valueLateToCode (int offset, LateInfo * late);
+Value valueLateToCode (int offset, LateInfo *late);
 Value valueCopy (Value value);
-int valueEqual (const Value * a, const Value * b);
+BOOL valueEqual (const Value *a, const Value *b);
 #ifdef DEBUG
 void valuePrint(const Value *v);
 #endif

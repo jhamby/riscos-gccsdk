@@ -199,16 +199,16 @@ help_copAddr (WORD ir, BOOL stack)
 	  switch (ir & PRECISION_MEM_PACKED)
 	    {
 	    case PRECISION_MEM_SINGLE:
-	      litInt (4, offset);
+	      litInt (4, &offset);
 	      break;
 	    case PRECISION_MEM_DOUBLE:
-	      litInt (8, offset);
+	      litInt (8, &offset);
 	      break;
 	    default:
 	      error (ErrorWarning, TRUE,
 		     "Extended and packed not supported; using double");
 	      ir = (ir & ~PRECISION_MEM_PACKED) | PRECISION_MEM_DOUBLE;
-	      litInt (8, offset);
+	      litInt (8, &offset);
 	      /* note that litFloat==litInt, so there's no litFloat */
 	      break;
 	    }

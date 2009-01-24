@@ -392,7 +392,7 @@ main (int argc, char **argv)
     option_aof = 1;
 #endif
 
-  set_cpuvar();
+  set_cpuvar ();
 
   /* When the command line has been sorted, get on with the job in hand */
   if (ObjFileName == NULL)

@@ -30,18 +30,16 @@ typedef struct LITLIST
   struct LITLIST *next;
   int offset;
   long int lineno;
-}
-LitList;
+} LitList;
 
 typedef struct LITINFO
 {
   struct LITINFO *next;
   LitList *used;
-  Reloc reloc;			/* reloc.lineno == -1 until placed, then line number of LTORG */
-}
-LitInfo;
+  Reloc reloc;	/* reloc.lineno == -1 until placed, then line number of LTORG */
+} LitInfo;
 
-void litInt (int size, Value value);
-void litOrg (LitInfo * li);
+void litInt (int size, const Value *value);
+void litOrg (LitInfo *li);
 
 #endif

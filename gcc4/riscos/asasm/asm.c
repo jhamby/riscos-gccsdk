@@ -40,22 +40,20 @@
 #include "input.h"
 #include "lex.h"
 
-/******************************************************************
-* Parse the input file, and perform the assembly.
-*
-******************************************************************/
+/**
+ * Parse the input file, and perform the assembly.
+ */
 void
 assemble (void)
 {
-  /* read each line from the input into input.c:workBuff,
-  ** if inputExpand is true, then expand the input line into where necessary
-  */
+  /* Read each line from the input into input.c:workBuff, if inputExpand is
+     true, then expand the input line into where necessary.  */
   while (inputNextLine ())
     {
       Lex label;
       Symbol *symbol;
 
-	/* ignore blank lines and comments */
+      /* ignore blank lines and comments */
       if (inputLook () && !isspace (inputLook ()) && !inputComment ())
 	{
 	  /* Deal with any label */

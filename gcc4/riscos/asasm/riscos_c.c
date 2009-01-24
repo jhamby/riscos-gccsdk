@@ -104,13 +104,17 @@ CanonicalisePath (const char *path1)
   return NULL;			/* keep the compiler happy */
 }
 
+/**
+ * Converts given SWI name into its SWI number.
+ * \param swiname NUL terminated SWI name
+ * \return SWI number or -1 when the conversion can't be done.
+ */
 int
 switonum (const char *swiname)
 {
   _kernel_swi_regs regs;
   regs.r[1] = (int) swiname;
-  _kernel_swi (OS_SWINumberFromString, &regs, &regs); /* TODO: handle error ? */
-  return regs.r[0];
+  return _kernel_swi (OS_SWINumberFromString, &regs, &regs) ? -1 : regs.r[0];
 }
 
 _kernel_oserror *
@@ -133,10 +137,10 @@ ThrowbackSendStart (const char *filename)
 
 /**
  * \param level 0 for warning, 1 for error, 2 for serious error.
- * \param error nul terminated description of error
+ * \param errstr nul terminated description of error
  */
 _kernel_oserror *
-ThrowbackSendError (int level, long int lineno, const char *error)
+ThrowbackSendError (int level, long int lineno, const char *errstr)
 {
   _kernel_swi_regs regs;
 
@@ -145,7 +149,7 @@ ThrowbackSendError (int level, long int lineno, const char *error)
   regs.r[2] = (int) ErrorFile;
   regs.r[3] = lineno;
   regs.r[4] = level;
-  regs.r[5] = (int) error;
+  regs.r[5] = (int) errstr;
   return _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
 }
 

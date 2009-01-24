@@ -28,38 +28,36 @@
 
 typedef enum
 {
-  RelocShiftImm,		/* An immediate shift constant 0-32 may need patching of shiftop */
-  RelocImm8s4,			/* An immediate constant 8 bits rotated by 4 bits */
-  RelocImmFloat,		/* An immediate constant float (only 0.0 1.0 2.0, 3.0, 4.0, 5.0, 10.0 or 0.5) */
-  RelocBranch,			/* Branch immediate */
-  RelocBranchT,			/* Thumb branch immediate */
-  RelocSwi,			/* SWI immediate */
-  RelocCpuOffset,		/* An offset in ldr/str */
-  RelocCopOffset,		/* An offset in ldf/stf */
-  RelocAdr,			/* Used in pseudoinstruction adr */
-  RelocAdrl,			/* Used in pseudoinstruction adrl */
-  RelocImmN,			/* extra = 4: A word constant (linker can handle this) */
-  /* extra = 2: A halfword constant, also used in ldm/stm with immediate mask */
-  /* extra = 1: A byte constant */
-  /* all others are illegal */
-  RelocFloat,			/* extra = 8: A double constant */
-  /* extra = 4: A float constant */
-  /* all others are illegal */
-  RelocNone			/* No relocation necessary */
-}
-RelocTag;
+  RelocShiftImm,	/* An immediate shift constant 0-32 may need patching of shiftop */
+  RelocImm8s4,		/* An immediate constant 8 bits rotated by 4 bits */
+  RelocImmFloat,	/* An immediate constant float (only 0.0 1.0 2.0, 3.0, 4.0, 5.0, 10.0 or 0.5) */
+  RelocBranch,		/* Branch immediate */
+  RelocBranchT,		/* Thumb branch immediate */
+  RelocSwi,		/* SWI immediate */
+  RelocCpuOffset,	/* An offset in ldr/str */
+  RelocCopOffset,	/* An offset in ldf/stf */
+  RelocAdr,		/* Used in pseudoinstruction adr */
+  RelocAdrl,		/* Used in pseudoinstruction adrl */
+  RelocImmN,		/* extra = 4: A word constant (linker can handle this) */
+			/* extra = 2: A halfword constant, also used in ldm/stm with immediate mask */
+			/* extra = 1: A byte constant */
+			/* all others are illegal */
+  RelocFloat,		/* extra = 8: A double constant */
+			/* extra = 4: A float constant */
+			/* all others are illegal */
+  RelocNone		/* No relocation necessary */
+} RelocTag;
 
 typedef struct RELOC
 {
   struct RELOC *more;
   RelocTag Tag;
-  long int lineno;		/* For error messages */
-  const char *file;		/* ditto */
-  int offset;			/* Offset in area */
-  WORD extra;			/* e.g. shiftop in ShiftImm, size in RelocImmN, e.t.c. */
+  long int lineno;	/* For error messages */
+  const char *file;	/* ditto */
+  int offset;		/* Offset in area */
+  WORD extra;		/* e.g. shiftop in ShiftImm, size in RelocImmN, e.t.c. */
   Value value;
-}
-Reloc;
+} Reloc;
 
 int relocFix (const Symbol *area);
 void relocAOFOutput (FILE *outfile, const Symbol *area);

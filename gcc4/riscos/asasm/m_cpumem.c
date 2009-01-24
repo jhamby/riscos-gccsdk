@@ -188,10 +188,12 @@ dstmem (WORD ir)
     case '=':
       if (ir & 0x00100000)
 	{			/* only allowed for ldr */
+	  Value value;
 	  ir |= PRE_FLAG | LHS_OP (15);
 	  inputSkip ();
 	  exprBuild ();
-	  litInt (4, exprEval (ValueInt | ValueString | ValueCode | ValueLateLabel));
+	  value = exprEval (ValueInt | ValueString | ValueCode | ValueLateLabel);
+	  litInt (4, &value);
 	}
       else
 	error (ErrorError, FALSE, "You can't store into a constant");
