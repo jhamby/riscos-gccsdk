@@ -5,7 +5,8 @@ DIFFFLAGS = -q
 ECHO = echo
 ECHOFLAGS =
 
-check_PROGRAMS = arithmetic1 arithmetic2 branch copro dsp fp loadstore loadstore2 loadstore3 misc
+check_PROGRAMS = arithmetic1 arithmetic2 branch builtinvar_endian \
+	copro dsp fp loadstore loadstore2 loadstore3 misc
 ref_PROGRAMS = $(check_PROGRAMS:%=reference/%)
 
 all: setup $(ref_PROGRAMS) $(check_PROGRAMS)

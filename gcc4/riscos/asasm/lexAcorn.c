@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2009 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,195 +26,209 @@
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#include <string.h>
 
 #include "decode.h"
+#include "error.h"
 #include "input.h"
 #include "lex.h"
+#include "lexAcorn.h"
 #include "main.h"
 
-#define FINISH_STR(string,Op,Pri) \
-  if(notinput(string)) goto illegal; \
-  lex->LexOperator.op = Op; lex->LexOperator.pri = PRI(Pri); return 1
+#define FINISH_STR(string,Op,Pri)	\
+  if (notinput(string))			\
+    goto illegal;			\
+  lex->LexOperator.op = Op;		\
+  lex->LexOperator.pri = PRI(Pri);	\
+  return;
 
-#define FINISH_CHR(Op,Pri) \
-  if(inputGet()!=':') goto illegal; \
-  lex->LexOperator.op = Op; lex->LexOperator.pri = PRI(Pri); return 1;
+#define FINISH_CHR(Op,Pri)		\
+  if (inputGet()!=':')			\
+    goto illegal;			\
+  lex->LexOperator.op = Op;		\
+  lex->LexOperator.pri = PRI(Pri);	\
+  return;
 
-int
-lexAcornUnop (Lex * lex)
+void
+lexAcornUnop (Lex *lex)
 {
   lex->tag = LexOperator;
   switch (inputGetLower ())
     {
-    case 'c':
-      FINISH_STR ("hr:", Op_chr, 10);
-    case 'd':
-      if (notinput ("ef:"))
-	goto illegal;
-      *lex = lexGetPrim ();
-      if (lex->tag != LexId)
-	goto illegal;
-      lex->LexInt.value = symbolFind (lex) != NULL;
-      lex->tag = LexBool;
-      return 1;
-    case 'f':
-      switch (inputGetLower ())
-	{
-	case 'a':
-	  FINISH_STR ("ttr:", Op_fattr, 10);
-	case 'e':
-	  FINISH_STR ("xec", Op_fexec, 10);
-	case 'l':
-	  FINISH_STR ("oad:", Op_fload, 10);
-	case 's':
-	  FINISH_STR ("ize:", Op_fsize, 10);
-	}
-      break;
-    case 'i':
-      FINISH_STR ("ndex:", Op_index, 10);
-    case 'l':
-      switch (inputGetLower ())
-	{
-	case 'e':
-	  FINISH_STR ("n:", Op_len, 10);
-	case 'n':
-	  FINISH_STR ("ot:", Op_lnot, 10);
-	}
-    case 'n':
-      FINISH_STR ("ot:", Op_not, 10);
-    case 's':
-      FINISH_STR ("tr:", Op_str, 10);
-    default:
-    illegal:;
-      break;
+      case 'c':
+	FINISH_STR ("hr:", Op_chr, 10); /* :chr: */
+      case 'd':
+	if (notinput ("ef:")) /* :def: */
+	  goto illegal;
+	*lex = lexGetPrim ();
+	if (lex->tag != LexId)
+	  goto illegal;
+	lex->LexInt.value = symbolFind (lex) != NULL;
+	lex->tag = LexBool;
+	return;
+      case 'f':
+	switch (inputGetLower ())
+	  {
+	    case 'a':
+	      FINISH_STR ("ttr:", Op_fattr, 10); /* :fattr: */
+	    case 'e':
+	      FINISH_STR ("xec", Op_fexec, 10); /* :fexec: */
+	    case 'l':
+	      FINISH_STR ("oad:", Op_fload, 10); /* :fload: */
+	    case 's':
+	      FINISH_STR ("ize:", Op_fsize, 10); /* :fsize: */
+	  }
+	break;
+      case 'i':
+	FINISH_STR ("ndex:", Op_index, 10); /* :index: */
+      case 'l':
+	switch (inputGetLower ())
+	  {
+	    case 'e':
+	      FINISH_STR ("n:", Op_len, 10); /* :len: */
+	    case 'n':
+	      FINISH_STR ("ot:", Op_lnot, 10); /* :lnot: */
+	  }
+	break;
+      case 'n':
+	FINISH_STR ("ot:", Op_not, 10); /* :not: */
+      case 's':
+	FINISH_STR ("tr:", Op_str, 10); /* :str: */
     }
+
+illegal:
   lex->tag = LexNone;
-  return 0;
 }
 
 
-int
+void
 lexAcornBinop (Lex * lex)
 {
   lex->tag = LexOperator;
   switch (inputGetLower ())
     {
-    case 'a':
-      FINISH_STR ("nd:", Op_and, 8);
-    case 'c':
-      FINISH_STR ("c:", Op_concat, 9);
-    case 'e':
-      FINISH_STR ("or:", Op_xor, 6);
-    case 'l':
-      switch (inputGetLower ())
-	{
-	case 'a':
-	  FINISH_STR ("nd:", Op_land, 2);
-	case 'e':
-	  switch (inputGetLower ())
-	    {
-	    case 'f':
-	      FINISH_STR ("t:", Op_left, 10);
+      case 'a':
+	FINISH_STR ("nd:", Op_and, 8); /* :and: */
+      case 'c':
+	FINISH_STR ("c:", Op_concat, 9); /* :cc: */
+      case 'e':
+	FINISH_STR ("or:", Op_xor, 6); /* :eor: */
+      case 'l':
+	switch (inputGetLower ())
+	  {
+	    case 'a':
+	      FINISH_STR ("nd:", Op_land, 2); /* :land: */
+	    case 'e':
+	      switch (inputGetLower ())
+		{
+		  case 'f':
+		    FINISH_STR ("t:", Op_left, 10); /* :left: */
+		  case 'o':
+		    FINISH_STR ("r:", Op_ne, 1); /* :leor: */
+		}
+	      break;
 	    case 'o':
-	      FINISH_STR ("r:", Op_ne, 1);
-	    }
-	case 'o':
-	  FINISH_STR ("r:", Op_lor, 1);
-	}
-      break;
+	      FINISH_STR ("r:", Op_lor, 1); /* :lor: */
+	  }
+	break;
     case 'm':
-      FINISH_STR ("od:", Op_mod, 10);
+	FINISH_STR ("od:", Op_mod, 10); /* :mod: */
     case 'o':
-      FINISH_STR ("r:", Op_or, 7);
+	FINISH_STR ("r:", Op_or, 7); /* :or: */
     case 'r':
-      switch (inputGetLower ())
-	{
-	case 'i':
-	  FINISH_STR ("ght:", Op_right, 10);
-	case 'o':
-	  switch (inputGetLower ())
-	    {
-	    case 'l':
-	      FINISH_CHR (Op_rol, 5);
-	    case 'r':
-	      FINISH_CHR (Op_ror, 5);
-	    }
-	  break;
-	}
-      break;
+	switch (inputGetLower ())
+	  {
+	    case 'i':
+	      FINISH_STR ("ght:", Op_right, 10); /* :right: */
+	    case 'o':
+	      switch (inputGetLower ())
+		{
+		  case 'l':
+		    FINISH_CHR (Op_rol, 5); /* :rol: */
+		  case 'r':
+		    FINISH_CHR (Op_ror, 5); /* :ror: */
+		}
+	      break;
+	  }
+	break;
     case 's':
-      switch (inputGetLower ())
-	{
-	case 'h':
-	  switch (inputGetLower ())
-	    {
-	    case 'l':
-	      FINISH_CHR (Op_sl, 5);
-	    case 'r':
-	      FINISH_CHR (Op_sr, 5);
-	    }
-	  break;
-	}
-      break;
-    default:
-    illegal:;
-      break;
+	switch (inputGetLower ())
+	  {
+	    case 'h':
+	      switch (inputGetLower ())
+		{
+		  case 'l':
+		    FINISH_CHR (Op_sl, 5); /* :shl: */
+		  case 'r':
+		    FINISH_CHR (Op_sr, 5); /* :shr: */
+		}
+	      break;
+	  }
+	break;
     }
+
+illegal:
   lex->tag = LexNone;
-  return 0;
 }
 
 
-#define FINISH_STR_PRIM(string) if(notinput(string)) goto illegal;
+#define FINISH_STR_PRIM(string)	\
+  if (notinput(string))		\
+    goto illegal;
 
 
-int
-lexAcornPrim (Lex * lex)
+void
+lexAcornPrim (Lex *lex)
 {
   switch (inputGetLower ())
     {
-    case 'c':
-      FINISH_STR_PRIM ("onfig}");
-      lex->tag = LexInt;
-      lex->LexInt.value = option_apcs_32bit ? 32 : 26;
-      return 1;
-    case 'f':
-      FINISH_STR_PRIM ("alse}");
-      lex->tag = LexBool;
-      lex->LexInt.value = FALSE;
-      return 1;
-    case 'm':
-      FINISH_STR_PRIM ("odule}");
-      lex->tag = LexBool;
-      lex->LexInt.value = option_rma_module;
-      return 1;
-    case 'p':
-      FINISH_STR_PRIM ("c}");
-      lex->tag = LexPosition;
-      return 1;
-    case 's':
-      FINISH_STR_PRIM ("oftfloat}");
-      lex->tag = LexBool;
-      lex->LexInt.value = option_apcs_softfloat;
-      return 1;
-    case 't':
-      FINISH_STR_PRIM ("rue}");
-      lex->tag = LexBool;
-      lex->LexInt.value = TRUE;
-      return 1;
-    case 'v':
-      FINISH_STR_PRIM ("ar}");
-      lex->tag = LexStorage;
-      return 1;
-    case 'o':
-      FINISH_STR_PRIM ("pt}");
-      lex->tag = LexInt;
-      lex->LexInt.value = 2;
-      return 1;
-    default:
-    illegal:;
-      break;
+      case 'c':
+	FINISH_STR_PRIM ("onfig}"); /* {config} */
+	lex->tag = LexInt;
+	lex->LexInt.value = option_apcs_32bit ? 32 : 26;
+	return;
+      case 'e':
+	FINISH_STR_PRIM ("ndian}"); /* {endian} */
+	lex->tag = LexString;
+	if ((lex->LexString.str = strdup ("little")) == NULL)
+	  errorOutOfMem ("lexAcornPrim");
+	lex->LexString.len = sizeof ("little")-1;
+	return;
+      case 'f':
+	FINISH_STR_PRIM ("alse}"); /* {false} */
+	lex->tag = LexBool;
+	lex->LexInt.value = FALSE;
+	return;
+      case 'm':
+	FINISH_STR_PRIM ("odule}"); /* {module} */
+	lex->tag = LexBool;
+	lex->LexInt.value = option_rma_module;
+	return;
+      case 'p':
+	FINISH_STR_PRIM ("c}"); /* {pc} */
+	lex->tag = LexPosition;
+	return;
+      case 's':
+	FINISH_STR_PRIM ("oftfloat}"); /* {softfloat} */
+	lex->tag = LexBool;
+	lex->LexInt.value = option_apcs_softfloat;
+	return;
+      case 't':
+	FINISH_STR_PRIM ("rue}"); /* {true} */
+	lex->tag = LexBool;
+	lex->LexInt.value = TRUE;
+	return;
+      case 'v':
+	FINISH_STR_PRIM ("ar}"); /* {var} */
+	lex->tag = LexStorage;
+	return;
+      case 'o':
+	FINISH_STR_PRIM ("pt}"); /* {opt} */
+	lex->tag = LexInt;
+	lex->LexInt.value = 2;
+	return;
     }
+
+illegal:
   lex->tag = LexNone;
-  return 0;
 }

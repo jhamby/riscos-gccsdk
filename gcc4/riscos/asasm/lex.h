@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2009 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,75 +59,64 @@ typedef enum
   LexInt,			/* start with digit */
   LexFloat,			/* start with digit contains dot */
   LexOperator,			/* + - * % / >> >>> << */
-  /* ~ & | ^ ! && || */
-  /* == != <= >= */
+				/* ~ & | ^ ! && || */
+				/* == != <= >= */
   LexPosition,			/* . representing current position */
   LexStorage,			/* @ representing current storage counter */
   LexDelim,			/* ()[]{}, */
   Lex00Label,			/* local (numeric) label */
   LexBool,			/* {TRUE} or {FALSE} */
   LexNone
-}
-LexTag;
-
+} LexTag;
 
 typedef union
 {
-  LexTag tag;			/* LexStorage LexDelim LexNone */
+  LexTag tag;			/* LexPosition, LexStorage, LexNone */
   struct
   {
     LexTag tag;
     const char *str;
     int len;
     int hash;
-  }
-  LexId;
+  } LexId;			/* LexId */
   struct
   {
     LexTag tag;
     const char *str;
     int len;
-  }
-  LexString;
+  } LexString;			/* LexString */
   struct
   {
     LexTag tag;
     int value;
-  }
-  LexInt;
+  } LexInt;			/* LexInt */
   struct
   {
     LexTag tag;
     FLOAT value;
-  }
-  LexFloat;
+  } LexFloat;			/* LexFloat */
   struct
   {
     LexTag tag;
     Operator op;
     int pri;
-  }
-  LexOperator;
+  } LexOperator;		/* LexOperator */
   struct
   {
     LexTag tag;
     char delim;
-  }
-  LexDelim;
+  } LexDelim;			/* LexDelim */
   struct
   {
     LexTag tag;
     int value;
-  }
-  Lex00Label;
+  } Lex00Label;			/* Lex00Label */
   struct
   {
     LexTag tag;
     BOOL value;
-  }
-  LexBool;
-}
-Lex;
+  } LexBool;			/* LexBool */
+} Lex;
 
 Lex lexGetLabel (void);
 Lex lexGetLocal (void);
@@ -139,10 +128,6 @@ Lex lexGetBinop (void);
 int lexNextPri (void);
 
 Lex lexTempLabel (const char *, int);
-
-int lexAcornBinop (Lex * lex);
-int lexAcornUnop (Lex * lex);
-int lexAcornPrim (Lex * lex);
 
 int lexHashStr (const char *s, int maxn);
 

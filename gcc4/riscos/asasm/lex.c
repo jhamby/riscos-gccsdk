@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2009 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,6 +37,7 @@
 #include "help_lex.h"
 #include "input.h"
 #include "lex.h"
+#include "lexAcorn.h"
 #include "local.h"
 #include "main.h"
 #include "os.h"
@@ -79,18 +80,18 @@ lexHashStr (const char *s, int maxn)
     140, 36, 210, 172, 41, 54, 159, 8, 185, 232, 113, 196, 231, 47, 146, 120,
     51, 65, 28, 144, 254, 221, 93, 189, 194, 139, 112, 43, 71, 109, 184, 209,
   };
+
   const unsigned char *p;
   unsigned char h = 0;
-  int i, rh = 0;
-
-  for (i = 0, p = (const unsigned char *) s; *p && i < maxn; i++, p++)
+  int i;
+  for (i = 0, p = (const unsigned char *)s; *p && i < maxn; i++, p++)
     h = hashtab[h ^ *p];
 
-  rh = h;
+  int rh = h;
 
   if (SYMBOL_TABLESIZE > 256 && *s)
     {
-      for (i = 1, p = (const unsigned char *) s, h = (*p++ + 1) & 0xff;
+      for (i = 1, p = (const unsigned char *)s, h = (*p++ + 1) & 0xff;
 	   *p && i < maxn; i++, p++)
 	h = hashtab[h ^ *p];
 
