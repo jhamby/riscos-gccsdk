@@ -313,7 +313,7 @@ evalUnop (Operator op, Value * value)
           return FALSE;
         }
       FILE *fp;
-      if ((fp = getInclude (s, "r", NULL)) == NULL)
+      if ((fp = getInclude (s, NULL)) == NULL)
 	{
 	  error (ErrorError, TRUE, "Cannot open file \"%s\"", s ? s : "");
 	  free (s);

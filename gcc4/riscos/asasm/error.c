@@ -74,29 +74,14 @@ errorFinish (void)
 }
 
 #ifdef __riscos__
-char *
-LF (char *buf)
-{
-  char *p = buf;
-  p--;
-  while (*++p)
-    if (*p == '\n' || *p == '\r')
-      *p = ' ';
-  while (*--p == ' ' && p > buf)
-    *p = 0;
-  *++p = '\n';
-  *++p = 0;
-  return buf;
-}
-
 static void
-TB (int level, long int lineno, const char *error, const char *file)
+TB (int level, long int lineno, const char *errstr, const char *file)
 {
   if (!option_throwback || source == NULL)
     return;
 
   if (!ThrowbackStarted)
-    ThrowbackStarted = ThrowbackStart ()? -1 : 1;
+    ThrowbackStarted = ThrowbackStart () ? -1 : 1;
 
   if (ThrowbackStarted == 1)
     {
@@ -104,7 +89,7 @@ TB (int level, long int lineno, const char *error, const char *file)
 
       if ((err = ThrowbackSendStart (file)) != NULL && option_verbose > 1)
         fprintf (stderr, "ThrowbackSendStart error: %s\n", err->errmess);
-      if ((err = ThrowbackSendError (level, lineno, error)) != NULL && option_verbose > 1)
+      if ((err = ThrowbackSendError (level, lineno, errstr)) != NULL && option_verbose > 1)
         fprintf (stderr, "ThrowbackSendError error: %s\n", err->errmess);
     }
 }
@@ -181,11 +166,7 @@ void
 error (ErrorTag e, BOOL c, const char *format,...)
 {
   const char *str;
-  va_list ap;
-  long int line;
-  int sameline = 1;
   int t = 0;
-
   switch (e)
     {
       case ErrorInfo:
@@ -216,16 +197,18 @@ error (ErrorTag e, BOOL c, const char *format,...)
 #endif
         break;
     }
+  va_list ap;
   va_start (ap, format);
   vsprintf (errbuf, format, ap);
   va_end (ap);
   fprintf (stderr, "%s: %s", str, errbuf);
-  line = inputLineNo;
+  long int line = inputLineNo;
   if (macroSP)
     {
       int i = macroSP;
       const char *name = macroCurrent->name;
       const char *file = macroCurrent->file;
+      BOOL sameline = TRUE;
       do
 	{
 	  TB (t, line, errbuf, file);
@@ -263,8 +246,6 @@ errorLine (long int lineno, const char *file,
 	   ErrorTag e, BOOL c, const char *format,...)
 {
   const char *str;
-  va_list ap;
-
 #ifdef __riscos__
   int t;
 #endif
@@ -299,6 +280,7 @@ errorLine (long int lineno, const char *file,
         break;
     }
 
+  va_list ap;
   va_start (ap, format);
   vsprintf (errbuf, format, ap);
   va_end (ap);

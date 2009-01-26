@@ -320,11 +320,13 @@ c_wend (Lex * label)
 void
 testUnmatched (void)
 {
-  int i;
-
   if (if_depth)
-    error (ErrorSerious, TRUE, "Unmatched IF%s", "s" + (if_depth > 1));
+    {
+      error (ErrorSerious, TRUE, "Unmatched IF%s", "s" + (if_depth > 1));
+      if_depth = 0;
+    }
 
+  int i;
   for (i = 0; whileCurrent != NULL; ++i)
     whileFree ();
   if (i)

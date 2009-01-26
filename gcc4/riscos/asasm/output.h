@@ -33,6 +33,11 @@ void outputAof (void);
 void outputElf (void);
 
 extern const char *idfn_text;
+#ifdef NO_ELF_SUPPORT
+#  define DEFAULT_IDFN "GCCSDK ASASM AOF Assembler " VERSION " (" __DATE__ ")"
+#else
+#  define DEFAULT_IDFN "GCCSDK ASASM AOF/ELF Assembler " VERSION " (" __DATE__ ")"
+#endif
 
 #if defined(WORDS_BIGENDIAN)
 WORD armword (WORD val);

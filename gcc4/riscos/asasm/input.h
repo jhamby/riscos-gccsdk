@@ -39,7 +39,7 @@ extern BOOL inputRewind;
 extern const char *inputName;
 
 void inputInit (const char *infile);
-void inputFinish (void);
+void inputFinish (FILE *newAsmFile);
 
 /* Debug only:
  */
@@ -50,7 +50,7 @@ BOOL inputNextLine (void);
 void skipblanks (void);
 void skiprest (void);
 
-int inputComment (void);	/* True if null or a comment */
+BOOL inputComment (void);
 char inputLook (void);
 char inputLookLower (void);
 char inputLookUC (void);

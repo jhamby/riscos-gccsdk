@@ -94,7 +94,9 @@ Symbol *symbolFind (const Lex *l);
 int symbolFix (int *stringSizeNeeded);
 void symbolStringOutput (FILE *outfile);
 void symbolSymbolAOFOutput (FILE *outfile);
+#ifndef NO_ELF_SUPPORT
 void symbolSymbolELFOutput (FILE *outfile);
+#endif
 
 #ifdef DEBUG
 void symbolPrint (void);

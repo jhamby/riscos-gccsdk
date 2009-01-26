@@ -27,15 +27,13 @@
 #include <ctype.h>
 
 #if !defined(__riscos__) || defined(__TARGET_UNIXLIB__)
-# include <sys/param.h>		/* for MAXPATHLEN */
-# include <fcntl.h>
-# include <unistd.h>
+#  include <sys/param.h>		/* for MAXPATHLEN */
 #else
-# define MAXPATHLEN 256
+#  define MAXPATHLEN 256
 #endif
 
 #ifdef __TARGET_UNIXLIB__
-#include <unixlib/local.h>
+#  include <unixlib/local.h>
 #endif
 
 #include "error.h"
@@ -98,23 +96,21 @@ addInclude (const char *path)
  * Opens file with given filename, or suffix swapped (when using UnixLib)
  * and optionally returns a possibly better qualified filename.
  * \param filename Filename of file which needs to be opened.
- * \param mode Std C file open mode.
  * \param strdupFilename When non-NULL, is a pointer of a value containing
  * on return a malloc block holding the possibly better qualified filename.
  * \return When non-NULL, a std C file stream pointer.
  */
 static FILE *
-openInclude (const char *filename, const char *mode, char **strdupFilename)
+openInclude (const char *filename, char **strdupFilename)
 {
   FILE *fp;
-
-  if ((fp = fopen (filename, mode)) == NULL)
+  if ((fp = fopen (filename, "r")) == NULL)
     {
-#if defined(__riscos__) && defined(__TARGET_UNIXLIB__)
-      /* Try again, without suffix swapping */
-      __set_riscosify_control(__get_riscosify_control () | __RISCOSIFY_NO_SUFFIX);
-      fp = fopen (filename, mode);
-      __set_riscosify_control(__get_riscosify_control () & ~__RISCOSIFY_NO_SUFFIX);
+#if defined(__TARGET_UNIXLIB__)
+      /* Try again but this time with(out) suffix swapping.  */
+      __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
+      fp = fopen (filename, "r");
+      __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
 #endif
     }
 
@@ -123,37 +119,42 @@ openInclude (const char *filename, const char *mode, char **strdupFilename)
       if (fp == NULL)
 	*strdupFilename = NULL;
       else
-#ifndef __riscos__
-	*strdupFilename = strdup (filename);
-#else
         *strdupFilename = CanonicalisePath (filename);
-#endif
     }
   
   return fp;
 }
 
 
+/**
+ * Opens file with given filename, or suffix swapped (when using UnixLib)
+ * and optionally returns a possibly better qualified filename.
+ * \param filename Filename of file which needs to be opened.
+ * \param strdupFilename When non-NULL, is a pointer of a value containing
+ * on return a malloc block holding the possibly better qualified filename.
+ * \return When non-NULL, a std C file stream pointer.
+ */
 FILE *
-getInclude (const char *file, const char *mode, char **strdupFilename)
+getInclude (const char *file, char **strdupFilename)
 {
+  if (strdupFilename)
+    *strdupFilename = NULL;
+
 #ifdef __riscos__
-  FILE *fp;
+  const char *filename = file;
 #else
   char *filename = rname (file);
 #endif
-
-  if (strdupFilename)
-    *strdupFilename = NULL;
+  FILE *fp;
+  if ((fp = openInclude (filename, strdupFilename)) != NULL)
+    return fp;
 #ifndef __riscos__
-  if (access (filename, F_OK) == 0)
-    return openInclude (filename, mode, strdupFilename);
   if (filename[0] == '.' && filename[1] == '/')
     filename += 2; /* Skip ./ */
-  else if (strchr(file, ':'))
+  else if (strchr(filename, ':'))
     {
       /* Try presuming everything is a directory.  
-       * This is for the benefit of paths like Hdr:APCS.Common */
+         This is for the benefit of paths like Hdr:APCS.Common.  */
       char *dot;
       for (dot = filename; *dot; ++dot)
 	{
@@ -161,39 +162,26 @@ getInclude (const char *file, const char *mode, char **strdupFilename)
 	    *dot = '/';
 	}
       
-      if (access (filename, F_OK) == 0)
-	return openInclude (filename, mode, strdupFilename);
+      return openInclude (filename, strdupFilename);
     }
 #else
-  if ((fp = openInclude (file, mode, strdupFilename)) != NULL)
-    return fp;
-  if (file[0] == '@' && file[1] == '.')
-    file += 2;		/* Skip @. */
+  if (filename[0] == '@' && filename[1] == '.')
+    filename += 2; /* Skip @. */
 #endif
 
   int i;
   for (i = 0; i < incDirCurSize; i++)
     {
       char incpath[MAXPATHLEN];
-      sprintf (incpath, "%s%c%s", incDirPP[i], DIR, 
-#ifndef __riscos__
-               filename
-#else
-               file
-#endif
-      );
+      snprintf (incpath, sizeof (incpath), "%s%c%s", incDirPP[i], DIR, filename);
+      incpath[sizeof (incpath) - 1] = '\0';
 
 #if (defined DEBUG) && (DEBUG > 0)
       fprintf (stderr, "getInclude: Searching for %s\n", incpath);
 #endif
 
-#ifndef __riscos__
-      if (access (incpath, F_OK) == 0)
-        return openInclude (incpath, mode, strdupFilename);
-#else
-      if ((fp = openInclude (incpath, mode, strdupFilename)) != NULL)
+      if ((fp = openInclude (incpath, strdupFilename)) != NULL)
         return fp;
-#endif
     }
 
   return NULL;

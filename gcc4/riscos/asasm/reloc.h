@@ -61,7 +61,9 @@ typedef struct RELOC
 
 int relocFix (const Symbol *area);
 void relocAOFOutput (FILE *outfile, const Symbol *area);
+#ifndef NO_ELF_SUPPORT
 void relocELFOutput (FILE *outfile, const Symbol *area);
+#endif
 
 void relocShiftImm (WORD shiftop, const Value *shift);
 void relocImm8s4 (WORD ir, const Value *im8s4);

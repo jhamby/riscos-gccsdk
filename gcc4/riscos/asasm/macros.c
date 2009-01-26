@@ -59,7 +59,8 @@ macroPop (void)
   if (!macroSP)
     error (ErrorAbort, FALSE, "Internal macroPop: unexpected call");
   testUnmatched ();
-  for (p = MACRO_LIMIT; p; free ((void *) (macroArgs[--p])));
+  for (p = MACRO_LIMIT; p; free ((void *) macroArgs[--p]))
+    /* */;
   var_restoreLocals ();
   inputLineNo = macroStack[--macroSP].lineno + 1;
   whileCurrent = macroStack[macroSP].whilestack;

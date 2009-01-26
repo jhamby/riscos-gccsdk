@@ -51,7 +51,7 @@ FILE *asmfile;
 long int inputLineNo;
 BOOL inputExpand = TRUE;
 BOOL inputRewind = FALSE;
-const char *inputName = NULL;
+const char *inputName = NULL; /**< Malloced block holding the current filename, is NUL terminated.  */
 
 static char *input_buff = NULL;
 static char *input_pos, *input_mark;
@@ -86,7 +86,10 @@ inputLookUC (void)
   return option_uc ? FLIP (x) : tolower (x);
 }
 
-int
+/**
+ * \return TRUE if next input character is NUL or start of a comment.
+ */
+BOOL
 inputComment (void)
 {
   const int c = *input_pos;
@@ -250,9 +253,10 @@ inputInit (const char *infile)
       if ((asmfile = fopen (infile, "r")) == NULL)
         {
 #if defined(__TARGET_UNIXLIB__)
-          __set_riscosify_control(__get_riscosify_control () | __RISCOSIFY_NO_SUFFIX);
+	  /* Try again but this time with(out) suffix swapping.  */
+	  __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
            asmfile = fopen (infile, "r");
-          __set_riscosify_control(__get_riscosify_control () & ~__RISCOSIFY_NO_SUFFIX);
+	  __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
 #endif
         }
 
@@ -261,15 +265,11 @@ inputInit (const char *infile)
 	           infile, strerror (errno));
       else
 	{
-	  char *buffer;
-#ifdef __riscos__
+	  free ((void *)inputName);
 	  inputName = CanonicalisePath (infile);
-#else
-	  inputName = infile;
-#endif
-	  if ((buffer = (char *) malloc (17 * 1024)) == NULL)
-	    errorOutOfMem("inputInit");
-	  setvbuf (asmfile, buffer, _IOFBF, 16 * 1024);
+
+	  static char buffer[16 * 1024];
+	  setvbuf (asmfile, buffer, _IOFBF, sizeof (buffer));
 	}
     }
   else
@@ -280,34 +280,35 @@ inputInit (const char *infile)
 }
 
 
+/**
+ * Close the current input file handle and optionally replace it with a new
+ * given one.
+ * \param newAsmFile When non-NULL, the new current input file handle.
+ */
 void
-inputFinish (void)
+inputFinish (FILE *newAsmFile)
 {
   if (asmfile && asmfile != stdin)
-    {
-      fclose (asmfile);
-      asmfile = NULL;
-    }
+    fclose (asmfile);
+  asmfile = newAsmFile;
 }
 
 
-/******************************************************************
-* Read a line from the input file into file global |workBuff|, with some
-*   minimal error checking.
-* Application global |inputLineNo| is incremented for each line read
-*
-* Any empty line and any line starting with '#' followed by space and
-* one or more digits is discarded.  The '#' exception is to be able to
-* parse C preprocessed assembler files.
-*
-* If file global |inputExpand| is not set,
-*   then workBuff is copied into application global |input_buff|.
-*   Application global |input_pos| is a pointer to this.
-*
-* InputArgSub() then performs any required argument substitution
-*
-******************************************************************/
-
+/**
+ * Read a line from the input file into file global |workBuff|, with some
+ * minimal error checking.
+ * Application global |inputLineNo| is incremented for each line read
+ *
+ * Any empty line and any line starting with '#' followed by space and
+ * one or more digits is discarded.  The '#' exception is to be able to
+ * parse C preprocessed assembler files.
+ *
+ * If file global |inputExpand| is not set,
+ *   then workBuff is copied into application global |input_buff|.
+ *   Application global |input_pos| is a pointer to this.
+ *
+ * InputArgSub() then performs any required argument substitution
+ */
 BOOL
 inputNextLine (void)
 {
@@ -328,7 +329,7 @@ inputNextLine (void)
 	error (ErrorWarning, TRUE, "No END found in this file");
       if ((asmfile = pop_file ()) == NULL)
 	{
-	retBad:
+retBad:
 	  inputLineNo = -inputLineNo;
 	  return FALSE;
 	}

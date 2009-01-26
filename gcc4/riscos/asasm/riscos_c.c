@@ -49,6 +49,10 @@
 #  include <unixlib/local.h>
 #endif
 
+#ifdef __TARGET_UNIXLIB__
+int __riscosify_control = 0;
+#endif
+
 /* The DDEUtils module throwback error category codes.  */
 #define THROWBACK_INFORMATION         -1
 #define THROWBACK_WARNING              0
@@ -71,9 +75,6 @@ static const char *ErrorFile;
 char *
 CanonicalisePath (const char *path1)
 {
-  int size;
-  char *buffer;
-  char filename[1024];
 #if __TARGET_UNIXLIB__
   char path[1024];
   __riscosify (path1, 0, 0, path, sizeof (path), NULL);
@@ -81,16 +82,16 @@ CanonicalisePath (const char *path1)
   const char *path = path1;
 #endif
   
+  char filename[1024];
   if (option_dde && *path == '@')
     {				/* Replace @ with <Prefix$Dir> if dde flags */
       strcpy (filename, "<Prefix$Dir>");
       strcat (filename, path + 1);
     }
   else
-    {
-      strcpy (filename, path);
-    }
-  size = 1 - OSCanonicalisePath (filename, 0, 0, 0, 0);
+    strcpy (filename, path);
+  int size = 1 - OSCanonicalisePath (filename, 0, 0, 0, 0);
+  char *buffer;
   if ((buffer = malloc (size)) == NULL)
     {
       errorOutOfMem("CanonicalisePath");

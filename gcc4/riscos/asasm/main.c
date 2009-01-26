@@ -82,11 +82,7 @@ static void
 as_help (void)
 {
   fprintf (stderr,
-	   "AS AOF"
-#ifndef NO_ELF_SUPPORT
-	   "/ELF"
-#endif
-	   " Assembler " VERSION " (" __DATE__ ") [GCCSDK]"
+	   DEFAULT_IDFN
 	   "\n"
 	   "Usage: %s [option]... <asmfile>\n"
 	   "\n"
@@ -402,7 +398,7 @@ main (int argc, char **argv)
     {
       asmAbortValid = FALSE;
       fprintf (stderr, "%s: Aborted\n", ProgName);
-      inputFinish ();
+      inputFinish (NULL);
     }
   else
     {
@@ -422,7 +418,7 @@ main (int argc, char **argv)
       setjmp (asmContinue); asmContinueValid = TRUE;
       assemble ();
       areaFinish ();
-      inputFinish ();
+      inputFinish (NULL);
       if (setjmp (asmContinue))
 	fprintf (stdout, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
       else

@@ -82,7 +82,7 @@ var_type (ValueTag type)
 
 
 static void
-assign_var (Symbol * sym, ValueTag type)
+assign_var (Symbol *sym, ValueTag type)
 {
   sym->value.Tag.t = type;
   sym->value.Tag.v = type;

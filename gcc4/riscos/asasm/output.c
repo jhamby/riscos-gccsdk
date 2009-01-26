@@ -59,18 +59,16 @@ static FILE *objfile;
 #define FIX(n) ((3+(int)(n))&~3)
 #define EXTRA(n) (FIX(n)-(n))
 
-const char *idfn_text = "GCCSDK ASASM AOF"
-#ifndef NO_ELF_SUPPORT
-	"/ELF"
-#endif
-	" Assembler " VERSION " (" __DATE__ ") [GCCSDK]\n";
+#define GET_IDFN ((idfn_text) ? idfn_text : DEFAULT_IDFN)
+const char *idfn_text = NULL; /**< Identifier, when NULL use DEFAULT_IDFN; this is a malloced string.  */
 
 #define MAXNAME 1024
 static char outname[MAXNAME + 1];
 
 #if defined(WORDS_BIGENDIAN)
 /* Convert to ARM byte-sex.  */
-WORD armword (WORD val)
+WORD
+armword (WORD val)
 {
   return (val >> 24) |
          ((val >> 8) & 0xff00)   |
@@ -79,7 +77,8 @@ WORD armword (WORD val)
 }
 
 /* Convert from ARM byte-sex.  */
-WORD ourword (WORD val)
+WORD
+ourword (WORD val)
 {
   return  (val >> 24) |
          ((val >> 8) & 0xff00)   |
@@ -128,7 +127,6 @@ outputInit (const char *outfile)
 	  error (ErrorAbort, FALSE, PACKAGE_NAME " can't write %s", outname);
 #endif
 	}
-      /* setvbuf (objfile, NULL, _IOFBF, 16 * 1024); */
 #ifdef __riscos__
       dependOpen (outname);
 #endif
@@ -237,7 +235,7 @@ outputAof (void)
                sizeof (aof_head) + noareas * sizeof (aof_entry), &offset);
 
   written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_IDFN,
-                        idfn_size = FIX (strlen (idfn_text) + 1), &offset);
+                        idfn_size = FIX (strlen (GET_IDFN) + 1), &offset);
 
   written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_STRT,
                         FIX (stringSizeNeeded) + 4, &offset);
@@ -272,7 +270,7 @@ outputAof (void)
     }
 
 /******** Chunk 1 Identification *********/
-  if (idfn_size != fwrite (idfn_text, 1, idfn_size, objfile))
+  if (idfn_size != fwrite (GET_IDFN, 1, idfn_size, objfile))
     {
       errorLine (0, NULL, ErrorSerious, FALSE,
 		 "Internal outputAof: error when writing identification");

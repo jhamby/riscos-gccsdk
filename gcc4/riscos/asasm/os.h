@@ -25,10 +25,11 @@
 #define os_header_included
 
 #include "config.h"
+#include <string.h>
 
 #ifndef __riscos__
 /* UNIX specific information.  */
-#define OSCanonicalisePath(a,b,c,d,e) strdup(a)
+#  define CanonicalisePath(path) strdup(path)
 #else
 
 #include <kernel.h>

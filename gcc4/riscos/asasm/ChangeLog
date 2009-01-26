@@ -1,3 +1,42 @@
+Mon Jan 26 01:46:49 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c(c_get,c_lnk,c_idfn): Fix memory leaks.
+	* riscos_c.c: Define __riscosify_control.
+	* input.c(inputInit): Don't use the internal UnixLib
+	__set_riscosify_control and __get_riscosify_control routines; Use
+	static 16K input buffer instead of malloced one.
+	(inputFinish): Support setting new input stream.
+	(inputComment): Change return type from int into BOOL.
+	* input.h: Likewise.
+	* include.c(openInclude): Drop mode parameter; Don't use the internal
+	UnixLib __set_riscosify_control and __get_riscosify_control routines.
+	(getInclude): Simplify.
+	* symbol.h(symbolSymbolELFOutput): Disable prototype for non ELF
+	output build.
+	* reloc.h(relocELFOutput): Likewise.
+	* decode.c(decode): Support INCLUDE keyword (synonym for GET).
+	* os.h: Define CanonicalisePath as strdup() instead of
+	OSCanonicalisePath.
+	* error.c(LF): Remove, wasn't used.
+	* output.c(idfn_text): Is now a pointer to malloced block holding a
+	user defined identification string. Use DEFAULT_IDFN is there is none
+	defined. Use GET_IDFN to get the identification string under all
+	circumstances.
+	* output.h(DEFAULT_IDFN): Define.
+	* main.c(as_help): Use DEFAULT_IDFN.
+	+ minor source cleanups.
+
+Sun Jan 25 23:08:47 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* lex.h(lexAcornBinop,lexAcornUnop,lexAcornPrim): Move too...
+	* lexAcorn.h: ...here and change return value into void; new file.
+	* lexAcorn.c(lexAcornBinop,lexAcornUnop,lexAcornPrim): Change return
+	value into void.
+	(lexAcornPrim): Support {ENDIAN}
+	* regression/{builtinvar_endian.s,Makefile}: Add test for {ENDIAN}
+	support.
+	* lex.c,lexAcorn.c: Minor source cleanup.
+
 Sat Jan 24 14:33:32 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos_c.c(switonum): Return -1 on error.

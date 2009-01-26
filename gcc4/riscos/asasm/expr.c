@@ -64,7 +64,8 @@ prim (void)
       break;
     case LexOperator:
       prim ();
-      if (lex.LexOperator.op == Op_none);
+      if (lex.LexOperator.op == Op_none)
+	/* */;
       else if (isUnop (lex.LexOperator.op))
 	codeOperator (lex.LexOperator.op);
       else

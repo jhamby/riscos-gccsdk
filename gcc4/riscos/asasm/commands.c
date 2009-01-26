@@ -404,12 +404,12 @@ c_import (void)
 }
 
 
+/**
+ * Called for GET / INCLUDE
+ */
 void
 c_get (void)
 {
-  char *filename, *cptr;
-  FILE *getfp;
-
   if (macroSP)
     {
       error (ErrorSerious, TRUE, "Cannot use GET within a macro");
@@ -417,28 +417,31 @@ c_get (void)
       return;
     }
   inputExpand = FALSE;
+
+  char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ("c_get");
-  for (cptr = filename; *cptr && !isspace (*cptr); cptr++);
+  char *cptr;
+  for (cptr = filename; *cptr && !isspace (*cptr); cptr++)
+    /* */;
   if (*cptr)
     {
       *cptr++ = '\0';		/* must be a space */
       while (*cptr && isspace (*cptr))
 	cptr++;
       if (*cptr && *cptr != ';')
-	{
-	  error (ErrorError, FALSE, "Skipping extra characters '%s' after filename", cptr);
-	}
+	error (ErrorError, FALSE, "Skipping extra characters '%s' after filename", cptr);
     }
+  FILE *getfp;
   char *newInputName;
-  if ((getfp = getInclude (filename, "r", &newInputName)) == NULL)
+  if ((getfp = getInclude (filename, &newInputName)) == NULL)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
       free (filename);
-      free (newInputName);
       return;
     }
 
+  free ((void *)inputName);
   inputName = newInputName;
   push_file (asmfile);
   inputLineNo = 0;
@@ -449,15 +452,13 @@ c_get (void)
   asmfile = getfp;
   if (option_verbose)
     fprintf (stderr, "Including file \"%s\" as \"%s\"\n", filename, inputName);
+  free (filename);
 }
 
 
 void
 c_lnk (void)
 {
-  char *filename, *cptr;
-  FILE *lnkfp;
-
   if (macroSP)
     {
       error (ErrorSerious, TRUE, "Cannot use LNK within a macro");
@@ -465,40 +466,49 @@ c_lnk (void)
       return;
     }
   inputExpand = FALSE;
+
+  /* Support LNK inside one IF statement.  */
   if (if_depth)
     if_depth--;
   testUnmatched ();
+
+  char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ("c_lnk");
 #ifdef __riscos__
   dependWrite (filename);
 #endif
-  for (cptr = filename; *cptr && !isspace (*cptr); cptr++);
+  char *cptr;
+  for (cptr = filename; *cptr && !isspace (*cptr); cptr++)
+    /* */;
   *cptr = '\0';
   inputNextLine ();
   char *newInputName;
-  lnkfp = getInclude (filename, "r", &newInputName);
+  FILE *lnkfp = getInclude (filename, &newInputName);
   if (!lnkfp)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
       free (filename);
-      free (newInputName);
       return;
     }
   skiprest ();
-  inputFinish ();
+
+  inputFinish (lnkfp);
   inputLineNo = 0;
+
+  free ((void *)inputName);
   inputName = newInputName;
-  if_depth = 0;
-  asmfile = lnkfp;
+
   if (option_verbose)
     fprintf (stderr, "Linking to file \"%s\" as \"%s\"\n", filename, inputName);
+  free (filename);
 }
 
 
 void
 c_idfn (void)
 {
+  free ((void *)idfn_text);
   if ((idfn_text = strdup (inputRest ())) == NULL)
     errorOutOfMem("c_idfn");
   skiprest ();
@@ -508,17 +518,17 @@ c_idfn (void)
 void
 c_bin (void)
 {
-  char *filename, *cptr;
-  FILE *binfp;
-
   inputExpand = FALSE;
+  char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ("c_bin");
-  for (cptr = filename; *cptr && !isspace (*cptr); cptr++);
+  char *cptr;
+  for (cptr = filename; *cptr && !isspace (*cptr); cptr++)
+    /* */;
   *cptr = '\0';
 
   char *newFilename;
-  binfp = getInclude (filename, "r", &newFilename);
+  FILE *binfp = getInclude (filename, &newFilename);
   if (!binfp)
     {
       error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
@@ -529,6 +539,7 @@ c_bin (void)
   if (option_verbose)
     fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", filename, newFilename);
   free (newFilename);
+  /* Include binary file.  */
   while (!feof (binfp))
     putData (1, getc (binfp));
   fclose (binfp);
@@ -538,14 +549,12 @@ c_bin (void)
 void
 c_end (void)
 {
-  FILE *fp;
-
   if (macroCurrent)
     {
       error (ErrorSerious, TRUE, "Cannot use END within a macro");
       return;
     }
-  fp = pop_file ();
+  FILE *fp = pop_file ();
   if (!fp)
     returnvalue = 1;
   else

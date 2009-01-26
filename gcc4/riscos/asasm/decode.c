@@ -445,7 +445,7 @@ decode (Lex * label)
 	  else
 	    goto illegal;
 	case 'e':
-	  C_FINISH_CHR ('t', c_get);
+	  C_FINISH_CHR ('t', c_get); /* GET */
 	case 'l':
 	  C_FINISH_STR ("obl", c_globl);	/* globl  */
 	default:
@@ -460,8 +460,10 @@ decode (Lex * label)
 	{
 	case 'd':
 	  C_FINISH_STR ("fn", c_idfn);	/* idfn */
+	case 'n':
+	  C_FINISH_STR ("clude", c_get);	/* INCLUDE */
 	case 'm':
-	  C_FINISH_STR ("port", c_import);	/*IMPORT */
+	  C_FINISH_STR ("port", c_import);	/* IMPORT */
 	default:
 	  goto illegal;
 	}
