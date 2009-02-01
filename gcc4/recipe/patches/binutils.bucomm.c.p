@@ -1,6 +1,14 @@
---- binutils/bucomm.c.orig	2008-12-09 23:59:53.000000000 +0100
-+++ binutils/bucomm.c	2008-12-09 23:59:41.000000000 +0100
-@@ -386,52 +386,75 @@ print_arelt_descr (FILE *file, bfd *abfd
+--- binutils/bucomm.c.orig	2009-02-01 17:12:45.000000000 +0100
++++ binutils/bucomm.c	2009-02-01 17:12:36.000000000 +0100
+@@ -1,5 +1,6 @@
+ /* bucomm.c -- Bin Utils COMmon code.
+-   Copyright 1991, 1992, 1993, 1994, 1995, 1997, 1998, 2000, 2001, 2002, 2003
++   Copyright 1991, 1992, 1993, 1994, 1995, 1997, 1998, 2000, 2001, 2002,
++   2003, 2006
+    Free Software Foundation, Inc.
+ 
+    This file is part of GNU Binutils.
+@@ -386,55 +387,103 @@ print_arelt_descr (FILE *file, bfd *abfd
    fprintf (file, "%s\n", bfd_get_filename (abfd));
  }
  
@@ -96,4 +104,32 @@
 +  close (fd);
    return tmpname;
  }
+ 
++/* Return the name of a created temporary directory inside the
++   directory containing FILENAME.  */
++
++char *
++make_tempdir (char *filename)
++{
++  char *tmpname = template_in_dir (filename);
++
++#ifdef HAVE_MKDTEMP
++  return mkdtemp (tmpname);
++#else
++  tmpname = mktemp (tmpname);
++  if (tmpname == NULL)
++    return NULL;
++#if defined (_WIN32) && !defined (__CYGWIN32__)
++  if (mkdir (tmpname) != 0)
++    return NULL;
++#else
++  if (mkdir (tmpname, 0700) != 0)
++    return NULL;
++#endif
++  return tmpname;
++#endif
++}
++
+ /* Parse a string into a VMA, with a fatal error if it can't be
+    parsed.  */
  

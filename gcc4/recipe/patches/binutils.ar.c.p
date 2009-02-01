@@ -1,5 +1,5 @@
---- binutils/ar.c.orig	2008-12-10 00:04:42.000000000 +0100
-+++ binutils/ar.c	2008-12-10 00:04:15.000000000 +0100
+--- binutils/ar.c.orig	2009-02-01 17:59:33.000000000 +0100
++++ binutils/ar.c	2009-02-01 17:59:23.000000000 +0100
 @@ -779,10 +779,10 @@ open_inarch (const char *archive_filenam
  static void
  print_contents (bfd *abfd)
@@ -75,4 +75,14 @@
 +	  fatal ("%s: %s", output_filename, strerror (errno));
  	ncopied += tocopy;
        }
+ 
+@@ -923,6 +929,9 @@ write_archive (bfd *iarch)
+   old_name = xmalloc (strlen (bfd_get_filename (iarch)) + 1);
+   strcpy (old_name, bfd_get_filename (iarch));
+   new_name = make_tempname (old_name);
++ 
++  if (new_name == NULL)
++    bfd_fatal ("could not create temporary file whilst writing archive");
+ 
+   output_filename = new_name;
  
