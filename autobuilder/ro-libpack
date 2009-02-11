@@ -29,7 +29,7 @@ cd $AB_DIR/package
 # Don't package any binaries
 rm -rf bin
 
-files=$(find -type f)
+files=$(find . -type f)
 if [ -z "$files" ] ; then
   echo "RO libpack: No files in $AB_DIR/package to pack" 1>&2
   exit 1

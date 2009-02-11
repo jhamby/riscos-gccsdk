@@ -94,7 +94,7 @@ else
     tar xfz *.orig.tar.gz
 
     targetname=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
-    origname=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut --bytes 3-)
+    origname=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut -b 3-)
 
     # Have to check that targetname is not already a directory
     # to stop problems on case insensitive systems like cygwin.

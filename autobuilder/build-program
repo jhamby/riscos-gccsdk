@@ -181,7 +181,7 @@ else
     . $AB_HOME/fetch-program
   fi
 
-  AB_FULLNAME=$(find -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut --bytes 3-)
+  AB_FULLNAME=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut -b 3-)
 
   # Run any preprocess script to unpack it in any special way
   if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
@@ -231,7 +231,7 @@ else
     if [ -e debian/patches/series ] ; then
       patches=$(cat debian/patches/series)
     else
-      patches=$(cd debian/patches; find -type f | sort -n || true)
+      patches=$(cd debian/patches; find . -type f | sort -n || true)
     fi
 
     for AB_PATCH in $patches; do
@@ -413,7 +413,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
   cd $D
   if [ "$AB_ELFBUILD" == "yes" ] ; then
     # strip and convert binaries and libraries where possible
-    binaries=$(find -type f -wholename "*,e1f")
+    binaries=$(find . -type f -wholename "*,e1f")
     for binary in $binaries; do
       $GCCSDK_INSTALL_ENV/ro-path arm-unknown-riscos-strip $binary 2>/dev/null || true
       if $GCCSDK_INSTALL_ENV/ro-path elf2aif $binary $(sed "s#,e1f\$#,ff8#" <<<$binary) 2>/dev/null; then
@@ -421,7 +421,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
       fi
     done
 
-    libs=$(find -type f -wholename "*.so,fff")
+    libs=$(find . -type f -wholename "*.so,fff")
     for lib in $libs; do
       $GCCSDK_INSTALL_ENV/ro-path arm-unknown-riscos-strip $lib 2>/dev/null || true
     done
