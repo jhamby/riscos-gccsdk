@@ -299,7 +299,8 @@ every occurrence of _kernel_oserror is replaced by os_error.
     
     If it is an actual command to be run, then arg_string is the command
     string to be executed and argc is the argument count. Return NULL on
-    success or an error pointer.
+    success or an error pointer. Note that arg_string is not NUL terminated
+    string but control terminated.
 
     If its a *Configure option, and arg_string is set to arg_CONFIGURE_SYNTAX
     (as defined in the generated header file to be a cast of 0) then print the
