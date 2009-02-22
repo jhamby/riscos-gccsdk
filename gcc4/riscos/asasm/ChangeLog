@@ -1,3 +1,8 @@
+Sun Feb 22 18:47:47 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* filestack.c: Added GPL license header.
+	* filestack.h: Likewise.
+
 Sun Feb 22 13:21:55 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* decode.c: ENTRY must be all caps, treat as macro otherwise.
