@@ -6,7 +6,7 @@ ECHO = echo
 ECHOFLAGS =
 
 check_PROGRAMS = arithmetic1 arithmetic2 branch builtinvar_endian \
-	copro dsp fp loadstore loadstore2 loadstore3 misc
+	copro dsp fp loadstore loadstore2 loadstore3 misc register_based_map
 ref_PROGRAMS = $(check_PROGRAMS:%=reference/%)
 
 all: setup $(ref_PROGRAMS) $(check_PROGRAMS)
