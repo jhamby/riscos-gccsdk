@@ -1,3 +1,7 @@
+Sun Feb 22 13:21:55 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* decode.c: ENTRY must be all caps, treat as macro otherwise.
+
 Mon Jan 26 01:46:49 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c(c_get,c_lnk,c_idfn): Fix memory leaks.
