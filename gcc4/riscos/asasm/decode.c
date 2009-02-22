@@ -383,7 +383,19 @@ decode (Lex * label)
 	    case 'd':
 	      C_FINISH (c_end);	/* END */
 	    case 't':
-	      C_FINISH_STR ("ry", c_entry);	/* entry */
+	      inputRollback ();
+	      if (inputGet () != 'E')
+		goto illegal;
+	      if (inputGet () != 'N')
+		goto illegal;
+	      if (inputGet () != 'T')
+		goto illegal;
+	      if (inputGet () != 'R')
+		goto illegal;
+	      if (inputGet () != 'Y')
+		goto illegal;
+
+              C_FINISH(c_entry);	/* ENTRY (must be all caps) */
 	    default:
 	      goto illegal;
 	    }
