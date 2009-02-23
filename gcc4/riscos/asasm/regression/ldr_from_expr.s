@@ -24,8 +24,8 @@ marray	#	256
 		LDR	r0, baz
 		LDR	r0, marray + 10
 	|
-		LDR	r0, [pc,#24 - 8]
-		LDR	r0, [pc,#24 + 10 - 8]
+		LDR	r0, [pc,#32 - 8]
+		LDR	r0, [pc,#32 + 10 - 8]
 
 		LDR	r0, [r9]
 		LDR	r0, [r9,#14]
