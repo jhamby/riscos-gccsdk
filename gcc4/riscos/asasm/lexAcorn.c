@@ -72,7 +72,7 @@ lexAcornUnop (Lex *lex)
 	    case 'a':
 	      FINISH_STR ("ttr:", Op_fattr, 10); /* :fattr: */
 	    case 'e':
-	      FINISH_STR ("xec", Op_fexec, 10); /* :fexec: */
+	      FINISH_STR ("xec:", Op_fexec, 10); /* :fexec: */
 	    case 'l':
 	      FINISH_STR ("oad:", Op_fload, 10); /* :fload: */
 	    case 's':
@@ -226,6 +226,11 @@ lexAcornPrim (Lex *lex)
 	FINISH_STR_PRIM ("pt}"); /* {opt} */
 	lex->tag = LexInt;
 	lex->LexInt.value = 2;
+	return;
+      case 'a':
+	FINISH_STR_PRIM ("sasm}"); /* {asasm} */
+	lex->tag = LexBool;
+	lex->LexInt.value = TRUE;
 	return;
     }
 

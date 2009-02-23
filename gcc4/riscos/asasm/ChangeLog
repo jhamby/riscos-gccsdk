@@ -1,3 +1,12 @@
+Mon Feb 23 15:40:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* eval,c(evalUnop): Stub implementations of :fload: and :fexec:. These
+	aren't particularly useful, but are better than bailing out.
+	* lexAcorn.c(lexAcornUnop): Fix decode of :fexec:.
+	(lexAcornPrim): Add {ASASM}, so existing code can work around our
+	deficiencies (specifically ?A and ASSERT using late labels in the code
+	I'm currently assembling). Comments about this welcome.
+
 Mon Feb 23 13:37:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* m_cpumem.c: Revert r3747 -- LDR|STR Rd,[Rm,#xxx] may have xxx as a

@@ -295,12 +295,16 @@ evalUnop (Operator op, Value * value)
     case Op_fexec:
       if (value->Tag.t != ValueString)
 	return FALSE;
-      error (ErrorError, TRUE, "%s not implemented", "fexec");
+      /* TODO: Real exec address. For now, just fill with zeros */
+      value->ValueInt.i = 0;
+      value->Tag.t = ValueInt;
       return TRUE;
     case Op_fload:
       if (value->Tag.t != ValueString)
 	return FALSE;
-      error (ErrorError, TRUE, "%s not implemented", "fload");
+      /* TODO: Real load address. For now, type everything as text */
+      value->ValueInt.i = 0xFFFfff00;
+      value->Tag.t = ValueInt;
       return TRUE;
     case Op_fsize:
       {
