@@ -31,6 +31,7 @@
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#include <math.h>
 
 #include "area.h"
 #include "code.h"
@@ -578,6 +579,41 @@ c_assert (void)
     error (ErrorError, TRUE, "ASSERT expression must be boolean");
   else if (!value.ValueBool.b)
     error (ErrorError, TRUE, "Assertion failed");
+}
+
+void
+c_info (void)
+{
+  Value value, message;
+
+  exprBuild ();
+  value = exprEval (ValueInt | ValueFloat);
+
+  skipblanks();
+  if (inputGet () != ',')
+    error (ErrorError, TRUE, "Missing , in INFO directive");
+
+  exprBuild();
+  message = exprEval (ValueString);
+  if (message.Tag.t != ValueString)
+    error (ErrorError, TRUE, "INFO message must be a string");
+
+  if (value.Tag.t != ValueInt && value.Tag.t != ValueFloat)
+    error (ErrorError, TRUE, "INFO expression must be arithmetic");
+  else if (value.Tag.t == ValueInt)
+    {
+      if (value.ValueInt.i != 0)
+	error (ErrorError, TRUE, message.ValueString.s);
+      else
+	error (ErrorWarning, TRUE, message.ValueString.s);
+    }
+  else
+    {
+      if (fabs(value.ValueFloat.f) < 0.00001)
+	error (ErrorWarning, TRUE, message.ValueString.s);
+      else
+	error (ErrorError, TRUE, message.ValueString.s);
+    }
 }
 
 void

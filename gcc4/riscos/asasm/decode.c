@@ -192,6 +192,8 @@ decode (Lex * label)
       C_FINISH (c_record);	/* start of new record layout */
     case '#':
       C_FINISH_SYMBOL (c_alloc);	/* reserve space in the current record */
+    case '!':
+      C_FINISH(c_info);		/* INFO shorthand */
     case 'a':
       switch (inputGetUC ())
 	{
@@ -473,7 +475,16 @@ decode (Lex * label)
 	case 'd':
 	  C_FINISH_STR ("fn", c_idfn);	/* idfn */
 	case 'n':
-	  C_FINISH_STR ("clude", c_get);	/* INCLUDE */
+	  switch (inputGetUC ())
+	    {
+	    case 'c':
+	      C_FINISH_STR ("clude", c_get);	/* INCLUDE */
+	    case 'f':
+	      C_FINISH_STR("o", c_info);	/* INFO */
+	    default:
+	      goto illegal;
+	    }
+	  break;
 	case 'm':
 	  C_FINISH_STR ("port", c_import);	/* IMPORT */
 	default:

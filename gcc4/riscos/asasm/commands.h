@@ -28,6 +28,7 @@
 void c_align (void);
 void c_area (void);
 void c_assert (void);
+void c_info (void);
 
 void c_rn (Symbol * symbol);
 void c_fn (Symbol * symbol);

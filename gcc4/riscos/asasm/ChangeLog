@@ -1,3 +1,9 @@
+Mon Feb 23 12:15:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* decode.c, commands.[ch]: Add support for the INFO directive and the
+	! shorthand.
+	* regression/{info.s,Makefile}: Test case for the above.
+
 Mon Feb 23 11:35:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* m_cpuctrl.c(m_adr): Permit use of ADR(L) to obtain address of fields
