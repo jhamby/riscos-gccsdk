@@ -1,11 +1,14 @@
+export HDR_PATH := $(CURDIR)/hdr
+export APCS := APCS-32
+
 AS = ../asasm
-ASFLAGS = -t xscale
+ASFLAGS = -t xscale -objasm
 DIFF = diff
 DIFFFLAGS = -q
 ECHO = echo
 ECHOFLAGS =
 
-check_PROGRAMS = arithmetic1 arithmetic2 branch builtinvar_endian \
+check_PROGRAMS = apcs arithmetic1 arithmetic2 branch builtinvar_endian \
 	copro dsp fp loadstore loadstore2 loadstore3 misc register_based_map
 ref_PROGRAMS = $(check_PROGRAMS:%=reference/%)
 
