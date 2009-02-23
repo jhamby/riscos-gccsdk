@@ -1,4 +1,11 @@
-Mon Feb 23 04:54:00 UTF 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+Mon Feb 23 11:35:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* m_cpuctrl.c(m_adr): Permit use of ADR(L) to obtain address of fields
+	in register-based maps.
+	* regression/register_based_map.s: Expand test data to cover the
+	above.
+
+Mon Feb 23 04:54:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* include.c(getInclude): Consult the original filespec to determine
 	whether to perform '.' -> '/' conversion on Unix.

@@ -251,29 +251,52 @@ m_adr (WORD cc)
     }
   else
     error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+  /* The label will expand to either a field in a based map or a PC-relative 
+   * expression */
   exprBuild ();
-  codePosition (areaCurrentSymbol);	/* It's relative */
-  codeOperator (Op_sub);
-  codeInt (8);
-  codeOperator (Op_sub);
-  im = exprEval (ValueInt | ValueCode | ValueLateLabel);
+  /* Try the field first */
+  im = exprEval (ValueAddr);
   switch (im.Tag.t)
     {
-    case ValueInt:
+    case ValueAddr:
+      /* Fix up the base register */
+      ir &= ~LHS_OP (15);
+      ir |= LHS_OP (im.ValueAddr.r);
+      /* Manufacture the offset as per normal */
       if (cc & 1)
-	fixAdrl (inputLineNo, &ir, &ir2, im.ValueInt.i, 0);	/* don't warn ? */
+	fixAdrl (inputLineNo, &ir, &ir2, im.ValueInt.i, 0); /* don't warn ? */
       else
 	ir = fixAdr (inputLineNo, ir, im.ValueInt.i);
       break;
-    case ValueCode:
-    case ValueLateLabel:
-      if (cc & 1)
-	relocAdrl (ir, &im);
-      else
-	relocAdr (ir, &im);
-      break;
     default:
-      error (ErrorError, TRUE, "Illegal ADR%s expression", (cc & 1) ? "L" : "");
+      /* Not a field, so append " - . - 8" to the expression, and treat it as
+       * PC-relative */
+      /* TODO: It may also be a late field but there's no simple way of
+       * handling this when performing relocation */
+      codePosition (areaCurrentSymbol);	/* It's relative */
+      codeOperator (Op_sub);
+      codeInt (8);
+      codeOperator (Op_sub);
+      im = exprEval (ValueInt | ValueCode | ValueLateLabel);
+      switch (im.Tag.t)
+	{
+	case ValueInt:
+	  if (cc & 1)
+	    fixAdrl (inputLineNo, &ir, &ir2, im.ValueInt.i, 0);	/* don't warn ? */
+	  else
+	    ir = fixAdr (inputLineNo, ir, im.ValueInt.i);
+	  break;
+	case ValueCode:
+	case ValueLateLabel:
+	  if (cc & 1)
+	    relocAdrl (ir, &im);
+	  else
+	    relocAdr (ir, &im);
+	  break;
+	default:
+	  error (ErrorError, TRUE, "Illegal ADR%s expression", (cc & 1) ? "L" : "");
+	  break;
+	}
       break;
     }
   putIns (ir);
