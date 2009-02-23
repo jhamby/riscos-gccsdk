@@ -1,3 +1,12 @@
+Mon Feb 23 04:54:00 UTF 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* include.c(getInclude): Consult the original filespec to determine
+	whether to perform '.' -> '/' conversion on Unix.
+	* filestack.c: Duplicate filename strings when pushing onto the stack.
+	Free the current input name when popping off the stack. This avoids
+	double freeing of data when an included file includes multiple files
+	itself.
+
 Mon Feb 23 03:51:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* m_cpumem.c: Partial support for LDR/STR to fields in register-based

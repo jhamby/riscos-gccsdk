@@ -151,7 +151,7 @@ getInclude (const char *file, char **strdupFilename)
 #ifndef __riscos__
   if (filename[0] == '.' && filename[1] == '/')
     filename += 2; /* Skip ./ */
-  else if (strchr(filename, ':'))
+  else if (strchr(file, ':'))
     {
       /* Try presuming everything is a directory.  
          This is for the benefit of paths like Hdr:APCS.Common.  */

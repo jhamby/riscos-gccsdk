@@ -24,11 +24,13 @@
 
 #include "config.h"
 #include <stdio.h>
+#include <stdlib.h>
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #elif HAVE_INTTYPES_H
 #include <inttypes.h>
 #endif
+#include <string.h>
 
 #include "error.h"
 #include "filestack.h"
@@ -40,7 +42,7 @@
 typedef struct FileStack
   {
     FILE *file;
-    const char *name;
+    char *name;
     long int line, no;
     int if_depth;
     WhileBlock *whilestack;
@@ -59,7 +61,13 @@ push_file (FILE * fp)
       return -1;
     }
   stack[top].line = inputLineNo;
-  stack[top].name = inputName;
+  /* Need to duplicate this, in case it's destroyed under us */
+  stack[top].name = strdup(inputName);
+  if (stack[top].name == NULL)
+    {
+      error (ErrorSerious, TRUE, "No space for filename string");
+      return -1;
+    }
   stack[top].if_depth = if_depth;
   stack[top].whilestack = whileCurrent;
   stack[top++].file = fp;
@@ -75,6 +83,8 @@ pop_file (void)
   if (top)
     {
       inputLineNo = stack[--top].line;
+      if (inputName != NULL)
+	free((void *)inputName);
       inputName = stack[top].name;
       whileCurrent = stack[top].whilestack;
       if_depth = stack[top].if_depth;
