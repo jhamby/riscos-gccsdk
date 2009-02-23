@@ -92,11 +92,12 @@ dstmem (WORD ir)
 	      {
 		inputSkip ();
 		exprBuild ();
-		offset = exprEval (ValueInt | ValueCode | ValueLateLabel);
+		offset = exprEval (ValueInt | ValueAddr | ValueCode | ValueLateLabel);
 		offValue = TRUE;
 		switch (offset.Tag.t)
 		  {
 		  case ValueInt:
+		  case ValueAddr:
 		    ir = fixCpuOffset (inputLineNo, ir, offset.ValueInt.i);
 		    break;
 		  case ValueCode:
