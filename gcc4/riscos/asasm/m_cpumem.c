@@ -198,36 +198,60 @@ dstmem (WORD ir)
 	error (ErrorError, FALSE, "You can't store into a constant");
       break;
     default:			/* ldr reg,label */
-      /* This is not quite correct since we maybe referencing a label
-         in a based area.  So the assumption that a label is PC relative
-         will not hold up.  The problem is that we probably don't know
-         that the label is within a based area.  We need to mark this
-         instruction for later pre-processing.  */
+      /* We're dealing with one of the following:
+       *
+       * 1) a PC-relative label
+       * 2) a field in a register-based map
+       * 3) a label in a register-based area
+       */
+      /* Whatever happens, this must be a pre-increment */
       ir |= PRE_FLAG;
+
+      /* Firstly, see if it's a field in a register-based map */
       exprBuild ();
-      codePosition (areaCurrentSymbol);
-      codeOperator (Op_sub);
-      codeInt (8);
-      codeOperator (Op_sub);
-      offset = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueAddr);
+      offset = exprEval (ValueAddr);
       switch (offset.Tag.t)
 	{
-	case ValueInt:
-	  ir |= LHS_OP (15);
-	  ir = fixCpuOffset (inputLineNo, ir, offset.ValueInt.i);
-	  break;
-	case ValueCode:
-	case ValueLateLabel:
-	  if ((ir & 0x90) == 0x90)
-	    ir |= (1 << 22);
-	  relocCpuOffset (ir |= LHS_OP (15), &offset);
-	  break;
 	case ValueAddr:
 	  ir |= LHS_OP (offset.ValueAddr.r);
 	  ir = fixCpuOffset (inputLineNo, ir, offset.ValueAddr.i);
 	  break;
 	default:
-	  error (ErrorError, TRUE, "Illegal address expression");
+	  /* No, so it's either a PC-relative or based area.
+	   * The relocation code will fix based areas up for us.
+	   *
+	   * TODO: It could also be a late field. Unfortunately, there's no
+	   * simple way of detecting this when fixing up relocations. For now
+	   * we'll just treat the input as invalid and give up. */
+
+	  /* The previous evaluation will have left its result in the current
+	   * program. Append " - . - 8" to the program so we can calculate the
+	   * offset of the label from the current position. */
+	  codePosition (areaCurrentSymbol);
+	  codeOperator (Op_sub);
+	  codeInt (8);
+	  codeOperator (Op_sub);
+	  offset = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueAddr);
+	  switch (offset.Tag.t)
+	    {
+	    case ValueInt:
+	      ir |= LHS_OP (15);
+	      ir = fixCpuOffset (inputLineNo, ir, offset.ValueInt.i);
+	      break;
+	    case ValueCode:
+	    case ValueLateLabel:
+	      if ((ir & 0x90) == 0x90)
+	        ir |= (1 << 22);
+	      relocCpuOffset (ir |= LHS_OP (15), &offset);
+	      break;
+	    case ValueAddr:
+	      ir |= LHS_OP (offset.ValueAddr.r);
+	      ir = fixCpuOffset (inputLineNo, ir, offset.ValueAddr.i);
+	      break;
+	    default:
+	      error (ErrorError, TRUE, "Illegal address expression");
+	      break;
+	    }
 	  break;
 	}
       break;

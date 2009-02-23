@@ -1,3 +1,8 @@
+Mon Feb 23 03:51:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* m_cpumem.c: Partial support for LDR/STR to fields in register-based
+	maps. Currently, the map must be defined before it is used.
+
 Mon Feb 23 01:19:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* m_cpumem.c: LDR|STR Rd,[Rm,#xxx] has no business expecting "xxx" 
