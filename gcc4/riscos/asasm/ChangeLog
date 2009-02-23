@@ -1,3 +1,8 @@
+Mon Feb 23 01:19:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* m_cpumem.c: LDR|STR Rd,[Rm,#xxx] has no business expecting "xxx" 
+	to be a register-relative expression.
+
 Sun Feb 22 18:47:47 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* filestack.c: Added GPL license header.
