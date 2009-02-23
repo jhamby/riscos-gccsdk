@@ -15,6 +15,10 @@ marray	#	256
 		; (=> R9 relative expression)
 		LDR	r0, bar
 		LDR	r0, barray + 10
+		; Late label in different area
+		; (=> PC-relative expression)
+		LDR	r0, bat
+		LDR	r0, oarray + 10
 		; Label in map based on R12
 		; (=> R12 relative expression)
 		LDR	r0, baz
@@ -25,6 +29,9 @@ marray	#	256
 
 		LDR	r0, [r9]
 		LDR	r0, [r9,#14]
+
+		LDR	r0, [pc,#-24]
+		LDR	r0, [pc,#-14]
 
 		LDR	r0, [r12]
 		LDR	r0, [r12,#14]
@@ -39,3 +46,10 @@ array	%	256
 bar	DCD	0xaa
 
 barray	%	256
+
+	AREA	Data2, DATA
+
+bat	DCD	0xf8
+
+oarray	%	256
+
