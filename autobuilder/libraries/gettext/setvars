@@ -1,6 +1,68 @@
+AB_CATEGORY=Library
+AB_PACKAGES="libgettext-dev libgettext"
+AB_LICENSE="Free"
 
 cd gettext-runtime
 
 AB_INSTALL=yes
 
 AB_CONFLAGS="--with-included-gettext --enable-nls --disable-java --disable-native-java"
+
+ab_package()
+{
+  # Developer package
+  AD=$D/libgettext-dev/Apps/Library/!LibGetText
+  mkdir -p $AD
+
+  # Run time libraries
+  slibdir=$D/libgettext/Resources/\!SharedLibs/lib
+  mkdir -p $slibdir
+
+  cp $H/\!LibGetText/\!* $AD
+
+  HERE=`pwd`
+  cd $AD
+
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  mv include/h h
+  rm -rf include
+
+  # Copy shared libs to shared libs package
+  mv lib/*.so.* $slibdir
+
+  # Move static libs to correct place in static package
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  docdir=`echo *`
+  mv $docdir/* .
+  rm -rf $docdir
+
+  cd ../man
+  find . -maxdepth 1 -type f -execdir mv {} {},faf \;
+
+  cd $HERE
+  cd $slibdir
+
+  # Create soft links
+  SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
+  for SLIB in $SLIBS ; do
+     ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
+     LNAME=`echo $SLIB | cut -d '.' -f 1-3`
+     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+     LNAME=`echo $SLIB | cut -d '.' -f 1-4`
+     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+  done
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package libgettext-dev -unixlib \
+       -copyrightfile $S/COPYING
+  $AB_HOME/add-riscpkg -package libgettext -unixlib \
+       -copyrightfile $S/COPYING -depends SharedLibs
+
+  # Need to add description to library package
+  echo "Description: Runtime shared libraries for gettext" >> $D/libgettext/RiscPkg/Control,fff
+}
