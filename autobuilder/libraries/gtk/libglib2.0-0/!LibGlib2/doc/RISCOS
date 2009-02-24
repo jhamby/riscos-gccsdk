@@ -1,0 +1,14 @@
+Compiling glib2.0 programs on RISC OS
+
+C flags
+-I/LibGLib2:glib2-0
+
+Linking flags for shared libraries
+-LLibGLib2: -lglib2.0
+
+Linking flags for static libraries
+-LLibGlib2: -lglib2.0 -LLibGetText: -lintl
+
+For running of shared programs you will need the
+libglib2.0 runtime and the libgettext runtime.
+

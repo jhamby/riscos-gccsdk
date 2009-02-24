@@ -1,6 +1,89 @@
+AB_PACKAGES="libglib2.0-0 libglib2.0-dev libglib2.0-doc"
+AB_CATEGORY=Library
+AB_LICENSE=Free
 
 AB_INSTALL=yes
 
 AB_PRECONF="glib_cv_uscore=no glib_cv_monotonic_clock=yes ac_cv_func_posix_getgrgid_r=no"
 
 AB_CONFLAGS=--with-pcre=system
+
+# Package script uses installed library
+# zip built due to AB_INSTALL=yes
+
+ab_package() {
+
+  # Shared libraries package
+  slibdir=$D/libglib2.0-0/Resources/\!SharedLibs/lib
+  mkdir -p $slibdir
+
+  # Developer package
+  devdir=$D/libglib2.0-dev/Apps/Library
+  mkdir -p $devdir
+
+  # Doc package
+  docdir=$D/libglib2.0-doc/Apps/Library/\!LibGLib2/doc
+  mkdir -p $docdir
+
+  cp -r $H/!LibGLib2 $devdir
+
+  HERE=`pwd`
+  cd $devdir/\!LibGLib2
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  # Need to retype the converted manual files
+  MANFILES=$(find man -type f)
+  for FILE in $MANFILES ; do
+     mv $FILE $FILE,faf
+  done
+
+  # Move headers libs and docs up one directory
+  mv include/* .
+  rm -rf include
+
+  # Need to put glibconfig.h in headers
+  cp $S/glibconfig.h glib-2.0/h/glibconfig
+
+  # Copy shared libs to shared libs package
+  mv lib/*.so.* $slibdir
+
+  # Copy static libs to static package
+  mv lib/*.a .
+  rm -rf lib
+
+  cd doc
+  tdocdir=`echo libglib*`
+  mv $tdocdir/* .
+  rm -rf $tdocdir
+
+  cd $HERE
+  cd $slibdir
+
+  # Create soft links
+  SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
+  for SLIB in $SLIBS ; do
+     ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
+     LNAME=`echo $SLIB | cut -d '.' -f 1-3`
+     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+     LNAME=`echo $SLIB | cut -d '.' -f 1-4`
+     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+  done
+
+  cd $HERE
+
+  # Copy HTML docs to docs package
+  mkdir -p $docdir/glib
+  cp $S/docs/reference/glib/html/* $docdir/glib
+  mkdir -p $docdir/gio
+  cp $S/docs/reference/gio/html/* $docdir/gio
+  mkdir -p $docdir/gobject
+  cp $S/docs/reference/gobject/html/* $docdir/gobject
+
+  $AB_HOME/add-riscpkg -package "libglib2.0-0" \
+    -depends SharedLibs
+
+  $AB_HOME/add-riscpkg -package "libglib2.0-dev" \
+    -unixlib 
+
+  $AB_HOME/add-riscpkg -package "libglib2.0-doc"
+}
