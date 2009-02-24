@@ -1,0 +1,13 @@
+Compiling libpcre3 programs on RISC OS
+
+C flags
+-I/LibPcre3:
+
+Linking flags for shared libraries
+-LLibPcre3: -lpcre3
+
+Linking flags for static libraries
+-LLibPcre3: -lpcre3
+
+For running of shared programs you will need the
+libpcre3 runtime.
