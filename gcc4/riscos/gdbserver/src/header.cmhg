@@ -1,0 +1,18 @@
+help-string: GDBServer 0.01
+
+title-string: GDBServer
+
+initialisation-code: mod_init
+
+finalisation-code: mod_fini
+
+command-keyword-table: command_handler
+	GDB(min-args: 1, max-args: 255,
+			invalid-syntax: "Syntax: *GDB <filename> [<args>]",
+			help-text: "*GDB runs the specified binary under GDB.\n")
+
+event-handler: internet 19
+
+generic-veneers: post_run, appexit, apperror, appupcall, post_abort
+
+service-call-handler: mod_service &2a
