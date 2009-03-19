@@ -1,0 +1,75 @@
+GDBServer architecture
+======================
+
+Overview
+--------
+
+  GDBServer is designed to allow multiple, simultaneous debugging sessions,
+  potentially of Wimp applications.
+
+  To achieve this, it is comprised of a number of components:
+
+  + A session manager (session.[ch], session_asm.s)
+  + A module frontend (module.[ch], header.cmhg)
+  + A GDB protocol implementation (gdb.[ch])
+  + A collection of utility code (asmutils.[hs], socket.[ch], utils.h)
+
+  GDBServer claims the Undefined Instruction, Prefetch Abort, and Data Abort 
+  processor vectors so that it can report aborts correctly. It also claims
+  the SWI and IRQ vectors so that it may keep a record of where execution has
+  reached in the debuggee (this being used for asynchronous interruption from
+  the debugger).
+
+Anatomy of a debug session
+--------------------------
+
+  A debug session proceeds as follows:
+
+  module.c:command_handler
+    1) *GDB <binary> <command tail>
+    2) A session is created, opening a TCP socket.
+    3) Record this session as the one being initialised.
+    4) A callback is registered to wait for the debugger connecting.
+    5) The debuggee is started.
+
+  module.c:mod_service:
+    1) Detect application starting, and register environment handlers
+
+  module.c:post_run_handler
+    1) Wait for the debugger to connect, or timeout.
+    2) Set the current session to the one being initialised.
+    3) Wait for the debugger to send a continue.
+
+  gdb.c:gdb_process_input/process_packet
+    1) Process GDB input packets, and act accordingly, using callbacks into
+       the session code provided.
+
+  session.c:session_break/session_continue/session_set_bkpt/session_clear_bkpt
+    1) Update debug session state and set/clear breakpoints on the debuggee
+    2) If continue, then unpause the debuggee and allow whatever is waiting
+       on it to continue (this will either be the post_run_handler if the
+       debuggee has just started up or will be the last abort handler called
+       for this debuggee).
+
+  If an abort/breakpoint happens then one of the exception handlers will be
+  called. These are to be found in session_asm.s. They all work in the same
+  way:
+
+    1) Determine if there is an active session, if not, pass on the exception 
+       to the previous vector claimant.
+    2) Save aborted mode's registers + SPSR.
+    3) Switch into SVC mode with IRQs enabled and call session_handle_break.
+    4) Return to ABT/UND mode with IRQs disabled.
+    5) Restore aborted mode's registers from the saved buffer.
+    6) Return to the saved PC address.
+
+  session_handle_break is the core of the exception handling. It determines
+  the reason for the abort. It also detects if the abort was because of
+  a one-shot breakpoint and, if so, clears it (This will happen if the 
+  debugger requested an asynchronous interrupt). Finally, it adds a callback
+  to inform the debugger of the debuggee being paused and waits for the
+  debugger to issue a continue.
+
+  Debuggee exit is detected through the environment handlers. These cause
+  the debugging session to be terminated and cleaned up.
+
