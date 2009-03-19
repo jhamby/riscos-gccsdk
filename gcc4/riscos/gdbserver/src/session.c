@@ -7,6 +7,7 @@
 #include "asmutils.h"
 #include "gdb.h"
 #include "header.h"
+#include "regs.h"
 #include "session.h"
 #include "socket.h"
 #include "utils.h"
@@ -29,7 +30,7 @@ typedef struct session_bkpt {
 
 struct session_ctx {
 	uint32_t cur_pc;
-	uint32_t regs[16 + 1];		/* 16 regs + SPSR */
+	cpu_registers regs;
 
 	void *pw;
 
@@ -65,7 +66,7 @@ static session_ctx sessions[MAX_SESSIONS];
 
 static int session_break(uintptr_t ctx);
 static int session_continue(uintptr_t ctx);
-static uint32_t *session_get_regs(uintptr_t ctx, size_t *n_regs);
+static cpu_registers *session_get_regs(uintptr_t ctx);
 static int session_set_bkpt(uintptr_t ctx, uint32_t address);
 static int session_clear_bkpt(uintptr_t ctx, uint32_t address);
 
@@ -163,9 +164,9 @@ void session_handle_break(session_ctx *ctx, int reason)
 	}
 
 	/* If this was a breakpoint, and it's one-shot, then clear it */
-	bkpt = session_find_bkpt(ctx, ctx->regs[15]);
+	bkpt = session_find_bkpt(ctx, ctx->regs.r[15]);
 	if (bkpt != NULL && (bkpt->address & BKPT_ONE_SHOT))
-		session_clear_bkpt((uintptr_t ) ctx, ctx->regs[15]);
+		session_clear_bkpt((uintptr_t ) ctx, ctx->regs.r[15]);
 
 	/* Add a callback to emit the break status */
 	_swix(OS_AddCallBack, _INR(0,1), post_abort, ctx->pw);
@@ -239,13 +240,11 @@ int session_continue(uintptr_t ctx)
 	return 1;
 }
 
-uint32_t *session_get_regs(uintptr_t ctx, size_t *n_regs)
+cpu_registers *session_get_regs(uintptr_t ctx)
 {
 	session_ctx *session = (session_ctx *) ctx;
 
-	*n_regs = 17;
-
-	return session->regs;
+	return &session->regs;
 }
 
 int session_set_bkpt(uintptr_t ctx, uint32_t address)

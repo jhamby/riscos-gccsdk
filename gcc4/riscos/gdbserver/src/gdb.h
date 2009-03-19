@@ -3,12 +3,14 @@
 
 #include <stdint.h>
 
+#include "regs.h"
+
 typedef struct gdb_ctx gdb_ctx;
 
 typedef size_t (*gdb_send_cb)(uintptr_t ctx, const uint8_t *data, size_t len);
 typedef int (*gdb_break_cb)(uintptr_t ctx);
 typedef int (*gdb_continue_cb)(uintptr_t ctx);
-typedef uint32_t *(*gdb_get_regs_cb)(uintptr_t ctx, size_t *n_regs);
+typedef cpu_registers *(*gdb_get_regs_cb)(uintptr_t ctx);
 typedef int (*gdb_set_bkpt_cb)(uintptr_t ctx, uint32_t address);
 typedef int (*gdb_clear_bkpt_cb)(uintptr_t ctx, uint32_t address);
 

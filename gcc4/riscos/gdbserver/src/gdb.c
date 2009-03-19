@@ -178,16 +178,22 @@ void process_packet(gdb_ctx *ctx)
 		break;
 	case 'g':
 	{
-		size_t n_regs;
-		const uint32_t *regs = ctx->get_regs(ctx->pw, &n_regs);
+		const cpu_registers *regs = ctx->get_regs(ctx->pw);
 
-		for (size_t i = 0; i < n_regs; i++) {
+		for (size_t i = 0; i < N_REGS; i++) {
 			for (int j = 0; j < 4; j++) {
-				uint8_t b = (regs[i] >> (8 * j)) & 0xff;
+				uint8_t b = (regs->r[i] >> (8 * j)) & 0xff;
 
 				*p++ = hexDigits[b >> 4];
 				*p++ = hexDigits[b & 0xf];
 			}
+		}
+
+		for (int j = 0; j < 4; j++) {
+			uint8_t b = (regs->cpsr >> (8 * j)) & 0xff;
+
+			*p++ = hexDigits[b >> 4];
+			*p++ = hexDigits[b & 0xf];
 		}
 
 		send_packet(ctx, buf, p - buf);
@@ -195,14 +201,13 @@ void process_packet(gdb_ctx *ctx)
 		break;
 	case 'G':
 	{
-		size_t n_regs;
-		uint32_t *regs = ctx->get_regs(ctx->pw, &n_regs);
+		cpu_registers *regs = ctx->get_regs(ctx->pw);
 
 		p = &ctx->data_buf[1];
 
-		for (size_t i = 0; i < n_regs && 
+		for (size_t i = 0; i < N_REGS && 
 				p - ctx->data_buf <= ctx->data_len - 8; i++) {
-			regs[i] = 0;
+			regs->r[i] = 0;
 
 			for (int j = 0; j < 4; j++) {
 				uint8_t b;
@@ -210,7 +215,20 @@ void process_packet(gdb_ctx *ctx)
 				b = hexToInt(*p++) << 4;
 				b |= hexToInt(*p++);
 
-				regs[i] |= b << (8 * j);
+				regs->r[i] |= b << (8 * j);
+			}
+		}
+
+		if (p - ctx->data_buf <= ctx->data_len - 8) {
+			regs->cpsr = 0;
+
+			for (int j = 0; j < 4; j++) {
+				uint8_t b;
+
+				b = hexToInt(*p++) << 4;
+				b |= hexToInt(*p++);
+
+				regs->cpsr |= b << (8 * j);
 			}
 		}
 
