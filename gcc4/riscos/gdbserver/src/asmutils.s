@@ -53,3 +53,11 @@ flush_caches:
 	SWI	XOS_MMUControl
 	MOV	pc, r12
 
+	.globl cpuconfig
+cpuconfig:
+	TEQ	r0, r0
+	TEQ	pc, pc
+	MOVEQ	r0, #32
+	MOVNE	r0, #26
+	MOV	pc, lr
+

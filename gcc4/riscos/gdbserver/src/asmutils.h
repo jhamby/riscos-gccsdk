@@ -10,4 +10,6 @@ void irqs_restore(int state);
 void flush_icache(void);
 void flush_caches(void);
 
+int cpuconfig(void);
+
 #endif

@@ -182,9 +182,19 @@ void process_packet(gdb_ctx *ctx)
 	case 'g':
 	{
 		const cpu_registers *regs = ctx->get_regs(ctx->pw);
+		int config = cpuconfig();
 
 		for (size_t i = 0; i < N_REGS; i++) {
 			uint32_t val = regs->r[i];
+
+			if (config == 26) {
+				/* Remove PSR flags */
+				/** \todo is this sane? should we just 
+				 * teach GDB about 26 bit ARMs, instead?
+				 */
+				if (i == 14 || i == 15)
+					val &= ~0xfc000003;
+			}
 
 			for (int j = 0; j < 4; j++) {
 				uint8_t b = (val >> (8 * j)) & 0xff;
