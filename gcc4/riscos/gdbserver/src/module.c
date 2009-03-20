@@ -1,11 +1,11 @@
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 
 #include <swis.h>
 
 #include "asmutils.h"
+#include "debug.h"
 #include "header.h"
 #include "session.h"
 #include "utils.h"
@@ -117,7 +117,7 @@ _kernel_oserror *command_handler(const char *arg_string, int argc,
 		/* 10 seconds */
 		init_timeout += 1000;
 
-		printf("Waiting 10s for debugger\n");
+		debug("Waiting 10s for debugger\n", 0);
 
 		/* Register callback which will trigger when the kernel
 		 * threads out but before the application is entered.
@@ -205,7 +205,7 @@ _kernel_oserror *post_run_handler(_kernel_swi_regs *r, void *pw)
 		/* Then add ourselves back to the pending callback chain */
 		return _swix(OS_AddCallBack, _INR(0,1), post_run, pw);
 	} else if (now >= init_timeout) {
-		printf("timed out\n");
+		debug("timed out\n", 0);
 
 		/* Do not destroy the session here. 
 		 * It will be cleaned up by the exit handler
@@ -216,7 +216,7 @@ _kernel_oserror *post_run_handler(_kernel_swi_regs *r, void *pw)
 		return NULL;
 	}
 
-	printf("done\n");
+	debug("done\n", 0);
 
 	init_timeout = 0;
 	init_session = NULL;

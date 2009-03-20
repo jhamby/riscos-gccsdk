@@ -5,6 +5,7 @@
 #include <swis.h>
 
 #include "asmutils.h"
+#include "debug.h"
 #include "gdb.h"
 #include "header.h"
 #include "regs.h"
@@ -455,7 +456,7 @@ int session_tcp_process_input(session_ctx *session, int socket)
 		if (session->data.tcp.client == -1)
 			return 0;
 
-		printf("New client on %d\n", session->data.tcp.client);
+		debug("New client on %d\n", session->data.tcp.client);
 
 		session->gdb = gdb_ctx_create(session_tcp_send_for_gdb, 
 					session_break, session_continue,
@@ -471,7 +472,7 @@ int session_tcp_process_input(session_ctx *session, int socket)
 		ssize_t read;
 
 		while ((read = socket_recv(socket, buf, sizeof(buf))) > 0) {
-			printf("-> %.*s\n", (int) read, buf);
+			debug("-> %.*s\n", (int) read, buf);
 
 			gdb_process_input(session->gdb, buf, read);
 		}
@@ -483,7 +484,7 @@ int session_tcp_process_input(session_ctx *session, int socket)
 void session_tcp_notify_closed(session_ctx *session, int socket)
 {
 	if (socket == session->data.tcp.client) {
-		printf("Client %d disconnected\n", session->data.tcp.client);
+		debug("Client %d disconnected\n", session->data.tcp.client);
 
 		socket_close(session->data.tcp.client);
 
@@ -505,7 +506,7 @@ session_ctx *session_tcp_initialise(session_ctx *session)
 		return NULL;
 	}
 
-	printf("Listening on %ld (%d)\n", TCP_BASE_PORT + session - sessions,
+	debug("Listening on %ld (%d)\n", TCP_BASE_PORT + session - sessions,
 			session->data.tcp.server);
 
 	return session;
@@ -528,7 +529,7 @@ size_t session_tcp_send_for_gdb(uintptr_t ctx, const uint8_t *data, size_t len)
 	if (session->data.tcp.client < 0)
 		return 0;
 
-	printf("<- %.*s\n", (int) len, data);
+	debug("<- %.*s\n", (int) len, data);
 
 	for (towrite = len; towrite > 0; ) {
 		towrite = socket_send(session->data.tcp.client, 

@@ -1,8 +1,8 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "asmutils.h"
+#include "debug.h"
 #include "gdb.h"
 
 typedef enum gdb_state {
@@ -340,7 +340,7 @@ void process_packet(gdb_ctx *ctx)
 		ctx->step(ctx->pw);
 		break;
 	default:
-		printf("Unsupported packet '%.*s'\n", 
+		debug("Unsupported packet '%.*s'\n", 
 				ctx->data_len, (char *) ctx->data_buf);
 
 		send_packet(ctx, (const uint8_t *) "", 0);
