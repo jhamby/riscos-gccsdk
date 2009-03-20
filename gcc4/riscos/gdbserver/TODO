@@ -1,7 +1,6 @@
 Things that need doing before this can be released
 --------------------------------------------------
 
- + Single stepping (vital, as it's mostly useless without it)
  + Add support for Wimp apps (the infrastructure is mostly there, 
    just requires the appropriate filter code)
  + Error checking/handling (there's not much at present)

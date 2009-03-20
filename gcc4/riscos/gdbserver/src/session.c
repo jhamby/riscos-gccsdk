@@ -10,6 +10,7 @@
 #include "regs.h"
 #include "session.h"
 #include "socket.h"
+#include "step.h"
 #include "utils.h"
 
 /* Ideally, keep this synced with N_CTX in gdb.c */
@@ -66,6 +67,7 @@ static session_ctx sessions[MAX_SESSIONS];
 
 static int session_break(uintptr_t ctx);
 static int session_continue(uintptr_t ctx);
+static int session_step(uintptr_t ctx);
 static cpu_registers *session_get_regs(uintptr_t ctx);
 static int session_set_bkpt(uintptr_t ctx, uint32_t address);
 static int session_clear_bkpt(uintptr_t ctx, uint32_t address);
@@ -183,8 +185,6 @@ _kernel_oserror *post_abort_handler(_kernel_swi_regs *r, void *pw)
 
 	/** \todo retrieve break status from the ctx, then improve this */
 
-	printf("Post abort\n");
-
 	/* Emit break status */
 	if (ctx->data.tcp.client >= 0) {
 		const uint8_t *msg = (const uint8_t *) "$S05#b8";
@@ -234,6 +234,21 @@ int session_break(uintptr_t ctx)
 int session_continue(uintptr_t ctx)
 {
 	session_ctx *session = (session_ctx *) ctx;
+
+	session->brk = 0;
+
+	return 1;
+}
+
+int session_step(uintptr_t ctx)
+{
+	session_ctx *session = (session_ctx *) ctx;
+	uint32_t instruction = *((uint32_t *) session->regs.r[15]);
+	uint32_t next = step_instruction(instruction, &session->regs);
+
+	/* Inject bkpt, so debuggee breaks on resumption */
+	if (session_set_bkpt(ctx, next | BKPT_ONE_SHOT) == 0)
+		return 0;
 
 	session->brk = 0;
 
@@ -295,9 +310,6 @@ int session_set_bkpt(uintptr_t ctx, uint32_t address)
 	/* And leave the critical section */
 	irqs_restore(irq_state);
 
-	printf("Setting breakpoint at 0x%08x (instruction: 0x%08x) %p\n",
-			bkpt->address, bkpt->instruction, (void *) bkpt);
-
 	return 1;
 }
 
@@ -331,9 +343,6 @@ int session_clear_bkpt(uintptr_t ctx, uint32_t address)
 	if (session->free_bkpts != NULL)
 		session->free_bkpts->prev = bkpt;
 	session->free_bkpts = bkpt;
-
-	printf("Removing breakpoint from 0x%08x (instruction: 0x%08x) %p\n",
-			bkpt->address, bkpt->instruction, (void *) bkpt);
 
 	/* IRQs off while we remove the breakpoint */
 	irq_state = irqs_off();
@@ -451,7 +460,7 @@ int session_tcp_process_input(session_ctx *session, int socket)
 		session->gdb = gdb_ctx_create(session_tcp_send_for_gdb, 
 					session_break, session_continue,
 					session_get_regs, session_set_bkpt,
-					session_clear_bkpt,
+					session_clear_bkpt, session_step,
 					(uintptr_t) session);
 		if (session->gdb == NULL)
 			return 0;

@@ -31,6 +31,7 @@ struct gdb_ctx {
 	gdb_get_regs_cb get_regs;
 	gdb_set_bkpt_cb set_bkpt;
 	gdb_clear_bkpt_cb clear_bkpt;
+	gdb_step_cb step;
 	uintptr_t pw;
 };
 
@@ -55,6 +56,7 @@ static int hexToInt(uint8_t c)
 gdb_ctx *gdb_ctx_create(gdb_send_cb send, gdb_break_cb brk, 
 		gdb_continue_cb cont, gdb_get_regs_cb get_regs,
 		gdb_set_bkpt_cb set_bkpt, gdb_clear_bkpt_cb clear_bkpt,
+		gdb_step_cb step,
 		uintptr_t pw)
 {
 	int i;
@@ -79,6 +81,7 @@ gdb_ctx *gdb_ctx_create(gdb_send_cb send, gdb_break_cb brk,
 	ctx->get_regs = get_regs;
 	ctx->set_bkpt = set_bkpt;
 	ctx->clear_bkpt = clear_bkpt;
+	ctx->step = step;
 	ctx->pw = pw;
 
 	return ctx;
@@ -181,8 +184,10 @@ void process_packet(gdb_ctx *ctx)
 		const cpu_registers *regs = ctx->get_regs(ctx->pw);
 
 		for (size_t i = 0; i < N_REGS; i++) {
+			uint32_t val = regs->r[i];
+
 			for (int j = 0; j < 4; j++) {
-				uint8_t b = (regs->r[i] >> (8 * j)) & 0xff;
+				uint8_t b = (val >> (8 * j)) & 0xff;
 
 				*p++ = hexDigits[b >> 4];
 				*p++ = hexDigits[b & 0xf];
@@ -321,8 +326,9 @@ void process_packet(gdb_ctx *ctx)
 	}
 		break;
 	case 's':
-		/** \todo Single step */
-//		break;
+		/** \todo parse addr, if any (and update PC) */
+		ctx->step(ctx->pw);
+		break;
 	default:
 		printf("Unsupported packet '%.*s'\n", 
 				ctx->data_len, (char *) ctx->data_buf);

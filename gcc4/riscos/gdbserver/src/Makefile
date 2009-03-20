@@ -35,8 +35,8 @@ d              := $(DIR)
 CFLAGS := $(CFLAGS) -I$(d)
 
 # Sources for module
-SRCS_$(d) := asmutils.s gdb.c header.cmhg module.c session.c session_asm.s \
-		socket.c
+SRCS_$(d) := asmutils.s gdb.c header.cmhg module.c \
+		session.c session_asm.s socket.c step.c
 
 SOURCES += $(addprefix $(d), $(SRCS_$(d)))
 
