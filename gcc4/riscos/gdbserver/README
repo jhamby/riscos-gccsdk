@@ -40,11 +40,11 @@ Usage
   application, simply prefix its invocation with *GDB. For example,
   if your application's !Run file contains
 
-		/<MyApp$Dir>.!RunImage %%*0
+		/<MyApp$Dir>.!RunImage %*0
 
   a debug !Run file would contain
 
-		/GDB <MyApp$Dir>.!RunImage %%*0
+		GDB <MyApp$Dir>.!RunImage %*0
 
   Once started, you have 10 seconds to connect the remote GDB instance
   to the session. Currently, TCP/IP connections are the only ones supported.
@@ -60,3 +60,5 @@ Usage
 
   GDBServer issues port numbers starting at 4900.
 
+  If you fail to connect in time, the application will run as per normal.
+  You just won't be able to debug it :)
