@@ -1,7 +1,5 @@
 Things that need doing before this can be released
 --------------------------------------------------
 
- + Add support for Wimp apps (the infrastructure is mostly there, 
-   just requires the appropriate filter code)
  + Error checking/handling (there's not much at present)
  + Get an allocation for the module name

@@ -14,7 +14,7 @@
 #define Module_VersionString	"0.01"
 #define Module_VersionNumber	1
 #ifndef Module_Date
-#define Module_Date		"20 Mar 2009"
+#define Module_Date		"21 Mar 2009"
 #endif
 
 #ifdef __cplusplus
@@ -237,6 +237,50 @@ extern void post_abort(void);
  *               Return an error pointer to set V and r0
  **************************************************************************/
 _kernel_oserror *post_abort_handler(_kernel_swi_regs *r, void *pw);
+
+
+/***************************************************************************
+ * Function:     global_pre_poll
+ * Description:  Symbol for entry point to module - NOT a C function.
+ *               This name should be used as an argument to
+ *               OS_Claim/OS_Release as required, but should never be called
+ *               from C.
+ **************************************************************************/
+extern void global_pre_poll(void);
+
+
+/***************************************************************************
+ * Function:     global_pre_poll_handler
+ * Description:  Generic handler function
+ * Parameters:   r  = pointer to register block on entry
+ *               pw = private word for module
+ * On exit:      Update r to alter return values
+ *               Return NULL to return with V clear
+ *               Return an error pointer to set V and r0
+ **************************************************************************/
+_kernel_oserror *global_pre_poll_handler(_kernel_swi_regs *r, void *pw);
+
+
+/***************************************************************************
+ * Function:     session_post_poll
+ * Description:  Symbol for entry point to module - NOT a C function.
+ *               This name should be used as an argument to
+ *               OS_Claim/OS_Release as required, but should never be called
+ *               from C.
+ **************************************************************************/
+extern void session_post_poll(void);
+
+
+/***************************************************************************
+ * Function:     session_post_poll_handler
+ * Description:  Generic handler function
+ * Parameters:   r  = pointer to register block on entry
+ *               pw = private word for module
+ * On exit:      Update r to alter return values
+ *               Return NULL to return with V clear
+ *               Return an error pointer to set V and r0
+ **************************************************************************/
+_kernel_oserror *session_post_poll_handler(_kernel_swi_regs *r, void *pw);
 
 #ifdef __cplusplus
 }

@@ -10,6 +10,9 @@
 #include "session.h"
 #include "utils.h"
 
+/* Global pre filter name */
+static const char *global_pre_filter_name = "GDBServer";
+
 /** Session currently being initialised */
 static session_ctx *init_session;
 static uint32_t init_timeout;
@@ -28,6 +31,10 @@ _kernel_oserror *mod_init(const char *tail, int podule_base, void *pw)
 
 	/* Don't really care if this fails */
 	_swix(OS_Byte, _INR(0,1), 14 /* Enable event */, 19);
+
+	_swix(Filter_RegisterPreFilter, _INR(0,3),
+			global_pre_filter_name, global_pre_poll,
+			pw, 0);
 
 	/* Claim CPU vectors. Disable IRQs while we do this. */
 	_swix(OS_IntOff, _IN(0), 0);
@@ -66,6 +73,10 @@ _kernel_oserror *mod_fini(int fatal, int podule_base, void *pw)
 	UNUSED(podule_base);
 
 	session_fini();
+
+	_swix(Filter_DeRegisterPreFilter, _INR(0,3),
+			global_pre_filter_name, global_pre_poll,
+			pw, 0);
 
 	/* Release CPU vectors. Disable IRQs while we do this. */
 	_swix(OS_IntOff, _IN(0), 0);
@@ -117,7 +128,7 @@ _kernel_oserror *command_handler(const char *arg_string, int argc,
 		/* 10 seconds */
 		init_timeout += 1000;
 
-		debug("Waiting 10s for debugger\n", 0);
+		debug("Waiting 10s for debugger%s\n", "");
 
 		/* Register callback which will trigger when the kernel
 		 * threads out but before the application is entered.
@@ -205,7 +216,7 @@ _kernel_oserror *post_run_handler(_kernel_swi_regs *r, void *pw)
 		/* Then add ourselves back to the pending callback chain */
 		return _swix(OS_AddCallBack, _INR(0,1), post_run, pw);
 	} else if (now >= init_timeout) {
-		debug("timed out\n", 0);
+		debug("timed out%s\n", "");
 
 		/* Do not destroy the session here. 
 		 * It will be cleaned up by the exit handler
@@ -216,36 +227,12 @@ _kernel_oserror *post_run_handler(_kernel_swi_regs *r, void *pw)
 		return NULL;
 	}
 
-	debug("done\n", 0);
+	debug("done%s\n", "");
 
 	init_timeout = 0;
 	init_session = NULL;
 
 	session_set_current(session);
-
-	/** \todo Wimp apps.
-	 * 
-	 * For Wimp apps, we'll need to acquire their task handle
-	 * once they've registered with the Wimp. Once we have that,
-	 * we need to install pre/post poll filters so that:
-	 *
-	 * 1) we do the right thing when the client tries to interrupt 
-	 *    the debuggee.
-	 * 2) we keep current_session in sync with reality.
-	 *
-	 * Given that we'll be single-tasking up until the first time
-	 * the debuggee calls Wimp_Poll, installing a global pre filter
-	 * should ensure that we get the correct task handle. 
-	 * Alternatively, there's Message_TaskInitialise.
-	 *
-	 * On reentry into the debuggee through the post filter, we need
-	 * to ensure that the PC resides in application space before
-	 * acting on any pending break. Our SWI vector handler will have 
-	 * stored the return address from Wimp_Poll into the session. 
-	 * Therefore, in the post filter, we need to consider the session's 
-	 * break flag and, if true, set a breakpoint on the return address. 
-	 * The normal breakpoint handling code will take over from there.
-	 */
 
 	/* Drop into the break handler */
 	session_wait_for_continue(session);
@@ -305,6 +292,25 @@ _kernel_oserror *appupcall_handler(_kernel_swi_regs *r, void *pw)
 	session_restore_environment(session);
 
 	session_ctx_destroy(session);
+
+	return NULL;
+}
+
+_kernel_oserror *global_pre_poll_handler(_kernel_swi_regs *r, void *pw)
+{
+	session_ctx *ctx = session_get_current();
+
+	UNUSED(pw);
+
+	if (ctx != NULL) {
+		debug("Wimp task: 0x%08x\n", r->r[2]);
+
+		/* Potential new Wimp task -- inform session */
+		session_set_task_handle(ctx, r->r[2]);
+
+		/* Invalidate current_session, as we're about to leave it */
+		session_set_current(NULL);
+	}
 
 	return NULL;
 }

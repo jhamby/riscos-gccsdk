@@ -13,6 +13,7 @@ command-keyword-table: command_handler
 
 event-handler: internet 19
 
-generic-veneers: post_run, appexit, apperror, appupcall, post_abort
+generic-veneers: post_run, appexit, apperror, appupcall, post_abort,
+		 global_pre_poll, session_post_poll
 
 service-call-handler: mod_service &2a

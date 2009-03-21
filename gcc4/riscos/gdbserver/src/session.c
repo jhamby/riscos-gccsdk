@@ -14,6 +14,8 @@
 #include "step.h"
 #include "utils.h"
 
+static const char *post_filter_name = "GDBServer";
+
 /* Ideally, keep this synced with N_CTX in gdb.c */
 #define MAX_SESSIONS 5
 
@@ -50,6 +52,8 @@ struct session_ctx {
 	uint8_t in_use;
 	volatile uint8_t brk;
 
+	uint32_t task_handle;
+
 	union {
 		struct {
 			int server;
@@ -74,6 +78,8 @@ static int session_set_bkpt(uintptr_t ctx, uint32_t address);
 static int session_clear_bkpt(uintptr_t ctx, uint32_t address);
 
 static session_bkpt *session_find_bkpt(session_ctx *ctx, uint32_t address);
+
+static session_ctx *session_find_by_task_handle(uint32_t task);
 
 static session_ctx *session_tcp_initialise(session_ctx *session);
 static void session_tcp_finalise(session_ctx *session);
@@ -102,6 +108,7 @@ session_ctx *session_ctx_create(session_type type)
 		return NULL;
 
 	sessions[i].in_use = 1;
+	sessions[i].task_handle = 0;
 	/* Start session with debuggee paused */
 	sessions[i].brk = 1;
 
@@ -135,6 +142,12 @@ void session_ctx_destroy(session_ctx *ctx)
 		b = ctx->free_bkpts;
 		ctx->free_bkpts = b->next;
 		free(b);
+	}
+
+	if (ctx->task_handle != 0) {
+		_swix(Filter_DeRegisterPostFilter, _INR(0,4),
+				post_filter_name, session_post_poll, 
+				ctx->pw, ctx->task_handle, 0);
 	}
 
 	memset(ctx, 0, sizeof(session_ctx));
@@ -420,9 +433,76 @@ void session_restore_environment(session_ctx *ctx)
 			ctx->env_ctx[2].buf);
 }
 
+void session_set_task_handle(session_ctx *ctx, uint32_t task)
+{
+	/* Not us, if we've already got a task handle */
+	if (ctx->task_handle != 0)
+		return;
+
+	/* Install post poll filter so that:
+	 *
+	 * 1) we do the right thing when the client tries to interrupt 
+	 *    the debuggee.
+	 * 2) we keep current_session in sync with reality.
+	 *
+	 * The global pre poll filter will invalidate current_session if it
+	 * is set.
+	 */
+	_swix(Filter_RegisterPostFilter, _INR(0,4),
+			post_filter_name, session_post_poll, 
+			ctx->pw, task, 0);
+
+	ctx->task_handle = task;
+}
+
+_kernel_oserror *session_post_poll_handler(_kernel_swi_regs *r, void *pw)
+{
+	session_ctx *session = session_find_by_task_handle(r->r[2]);
+
+	UNUSED(r);
+	UNUSED(pw);
+
+	debug("session post poll%s\n", "");
+
+	if (session != NULL) {
+		session_set_current(session);
+
+		/* On reentry into the debuggee through this post filter, 
+		 * we need to ensure that the PC resides in application space 
+		 * before acting on any pending break. Our SWI vector handler 
+		 * will have stored the return address from Wimp_Poll into 
+		 * the session. Therefore, we need to consider the session's 
+		 * break flag and, if set, set a breakpoint on the return 
+		 * address. The normal breakpoint handling code will take over
+		 * from there.
+		 */
+
+		if (session->brk) {
+			session_set_bkpt((uintptr_t) session, 
+					session->cur_pc | BKPT_ONE_SHOT);
+		}
+	}
+
+	return NULL;
+}
+
 void session_get_error(session_ctx *ctx, _kernel_oserror *error)
 {
 	memcpy(error, ctx->buffer + 4, sizeof(_kernel_oserror));
+}
+
+session_ctx *session_find_by_task_handle(uint32_t task)
+{
+	int i;
+
+	for (i = 0; i < MAX_SESSIONS; i++) {
+		if (sessions[i].in_use && sessions[i].task_handle == task)
+			break;
+	}
+	if (i == MAX_SESSIONS)
+		return NULL;
+
+	return &sessions[i];
 }
 
 session_ctx *session_find_by_socket(int socket)

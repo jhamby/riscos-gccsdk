@@ -20,6 +20,8 @@ int session_is_connected(session_ctx *ctx);
 void session_change_environment(session_ctx *ctx, void *pw);
 void session_restore_environment(session_ctx *ctx);
 
+void session_set_task_handle(session_ctx *ctx, uint32_t task);
+
 void session_get_error(session_ctx *ctx, _kernel_oserror *error);
 
 session_ctx *session_find_by_socket(int socket);
