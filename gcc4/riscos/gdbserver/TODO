@@ -6,4 +6,4 @@ Things that need doing before this can be released
    GDB itself may need teaching about our stack structure to avoid this 
    happening when the user attempts to get a backtrace.
  + Error checking/handling (there's not much at present)
- + Get an allocation for the module name
+
