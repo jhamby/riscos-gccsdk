@@ -336,11 +336,12 @@ static void asm_header(void)
     output_import("Image$$RO$$Base");
     output_export("Image__RO_Base");
     if (opt.toolchain == tc_gcc)
-      fputs("\t.data\n", file); /* FIXME: perhaps too simple */
+      fputs("\t.section .rodata\n", file);
     else
       fputs("\tAREA\tCode_Description, DATA, REL\n", file);
     output_label("Image__RO_Base");
     output_word_as_str("Image$$RO$$Base", "");
+    fputc('\n', file);
   }
 
   if (opt.toolchain == tc_gcc)
