@@ -110,7 +110,7 @@ extern int _kernel_osword (int __operation, int *__data)
 
 /* Open or close a file. Open returns a file handle, close just
    indicates success/failure.  */
-extern int _kernel_osfind (int __operation, char *__name)
+extern int _kernel_osfind (int __operation, const char *__name)
      __THROW __nonnull ((2));
 
 /* Perform an OS_Args operation. Generally returns the value in R2,
@@ -121,7 +121,7 @@ extern int _kernel_osargs (int __operation, unsigned int __handle,
 /* Read the value of system variable 'name', placing the
    result in 'buffer'.  */
 extern _kernel_oserror *
-_kernel_getenv (const char *__name, char *__buffer, unsigned __size)
+_kernel_getenv (const char *__name, char *__buffer, unsigned int __size)
      __THROW __nonnull ((1, 2)) __wur;
 
 /* Set the system variable 'name' with 'value'. If 'value == 0' then

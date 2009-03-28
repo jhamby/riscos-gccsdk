@@ -1,3 +1,10 @@
+Sat Mar 28 14:36:21 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/kernel.h: Constify _kernel_osfind name parameter;
+	'unsigned' -> 'unsigned int'.
+	* scl/_kosfind.s: Update comments.
+	* sys/mman.c: White space change.
+
 Sat Mar 28 11:30:10 2009  Lee Noar  <leenoar@sky.com>
 
 	* signal/_signal.s(__h_error): Make sure a valid signal number
@@ -53,7 +60,8 @@ Sat Jan 17 18:22:26 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 	* unix/unix.c(convert_command_line): Reverting r1904 change
 	(Fri Mar 10 21:25:47 2006) and canonicalise using Run$Path; When
 	result of canonicalisation is non-existing, use given argv[0] as
-	input for unixify; Made	common fatal exit point.
+	input for unixify; Made	common fatal exit point; void return instead
+	of unused int return.
 
 Sat Jan 17 15:53:04 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 

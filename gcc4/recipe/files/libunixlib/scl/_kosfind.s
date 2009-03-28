@@ -1,11 +1,11 @@
 @ _kernel_osfind
-@ Copyright (c) 2000-2008 UnixLib Developers
+@ Copyright (c) 2000-2009 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
 	.text
 
-	@ int _kernel_osfind (int op, char *name)
+	@ int _kernel_osfind (int op, const char *name)
 	.global	_kernel_osfind
 	NAME	_kernel_osfind
 _kernel_osfind:
