@@ -621,6 +621,8 @@ unrecoverable_error:
 	MOV	a2, #SIGFPE	@  A floating point exception
 
 non_fp_exception:
+#else
+	MOV	a2, #SIGEMT	@  A RISC OS exception.
 #endif
 	MOV	a1, #0
 

@@ -1,3 +1,12 @@
+Sat Mar 28 11:30:10 2009  Lee Noar  <leenoar@sky.com>
+
+	* signal/_signal.s(__h_error): Make sure a valid signal number
+	is passed to __unixlib_raise_signal() when __SOFTFP__ is defined.
+	Previously, for example, instead of seeing a branch through zero
+	error, you would get a recursive signal because the signal handler
+	itself would cause a memory violation due to a2 containing a
+	pointer instead of an array index.
+
 Sun Jan 18 19:45:02 2009  Lee Noar  <leenoar@sky.com>
 
 	* incl-local/internal/unix.h(__funcall): In the shared library,
