@@ -1,6 +1,6 @@
 @ Stub routines for linking with the SharedCLibrary
 @ Copyright (c) 1997-2005 Nick Burrett
-@ Copyright (c) 2005-2007 UnixLib Developers
+@ Copyright (c) 2005-2009 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -261,9 +261,9 @@ _clib_entermodule:
 	LDR	R6, stksiz
 	TEQ	R6, #0
 	MOVEQ	R6, #4 * 1024
-	LDRNE	R6, [R6, #0]
-	MOV	R8, R12
-	MOV	R12, #-1
+	LDRNE	R6, [R6, #0]    @ R6 requested root stack size
+	MOV	R8, R12		@ R8 module pw ptr
+	MOV	R12, #-1	@ -1 indicate new stubs, was otherwise module pw ptr
 	B	_kernel_entermodule
 	.size	_clib_entermodule, . - _clib_entermodule
 #endif

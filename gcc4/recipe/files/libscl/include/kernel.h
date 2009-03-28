@@ -1,6 +1,6 @@
 /* kernel.h standard header for the RISC OS SharedCLibrary.
    Copyright (c) 1997-2005 Nick Burrett
-   Copyright (c) 2007 UnixLib Developers
+   Copyright (c) 2007-2009 UnixLib Developers
    All rights reserved.
  
    Redistribution and use in source and binary forms, with or without
@@ -95,7 +95,7 @@ extern char *_kernel_language (int __pc);
 extern char *_kernel_command_string (void);
 
 /* Set the return code to be used by _kernel_exit.  */
-extern void _kernel_setreturncode (unsigned __code);
+extern void _kernel_setreturncode (unsigned int __code);
 
 /* Call OS_Exit. Use the return code set by _kernel_setreturncode.  */
 extern void _kernel_exit (int __value) __attribute__ ((__noreturn__));
@@ -118,7 +118,7 @@ extern _kernel_oserror *_kernel_last_oserror (void);
 
 /* Read the value of system variable 'name', placing the result in 'buffer'.  */
 extern _kernel_oserror *_kernel_getenv (const char *__name,
-					char *__buffer, unsigned __size);
+					char *__buffer, unsigned int __size);
 
 /* Set the system variable 'name' with 'value'. If 'value == 0' then
    'name' is deleted.  */
@@ -148,13 +148,13 @@ typedef struct
 /* Call the SWI specified by 'no'. 'in' points to a register block for SWI
    entry.  'out' points to a register block for SWI exit. The X bit is set
    by _kernel_swi unless bit 31 is set.  */
-extern _kernel_oserror *_kernel_swi (int __no, _kernel_swi_regs *__in,
+extern _kernel_oserror *_kernel_swi (int __no, const _kernel_swi_regs *__in,
 				     _kernel_swi_regs *__out);
 
 
 /* Similar to _kernel_swi but the carry flag status is returned in
    'carry'.  */
-extern _kernel_oserror *_kernel_swi_c (int __no, _kernel_swi_regs *__in,
+extern _kernel_oserror *_kernel_swi_c (int __no, const _kernel_swi_regs *__in,
 				       _kernel_swi_regs *__out,
 				       int *__carry);
 
@@ -171,10 +171,10 @@ extern int _kernel_osrdch (void);
 extern int _kernel_oswrch (int __ch);
 
 /* Return the next byte from the file 'handle'. Return -1 on EOF.  */
-extern int _kernel_osbget (unsigned __handle);
+extern int _kernel_osbget (unsigned int __handle);
 
 /* Write the byte 'ch' to the file 'handle'. Return success or failure.  */
-extern int _kernel_osbput (int __ch, unsigned __handle);
+extern int _kernel_osbput (int __ch, unsigned int __handle);
 
 typedef struct
 {
@@ -185,7 +185,7 @@ typedef struct
 } _kernel_osgbpb_block;
 
 /* Read/write a number of bytes on file 'handle'. */
-extern int _kernel_osgbpb (int __operation, unsigned __handle,
+extern int _kernel_osgbpb (int __operation, unsigned int __handle,
 			   _kernel_osgbpb_block *__inout);
 
 /* Perform an OS_Word operation.  */
@@ -193,7 +193,7 @@ extern int _kernel_osword (int __operation, int *__data);
 
 /* Open or close a file. Open returns a file handle, close just
    indicates success/failure.  */
-extern int _kernel_osfind (int __operation, char *__name);
+extern int _kernel_osfind (int __operation, const char *__name);
 
 typedef struct
 {
@@ -208,7 +208,7 @@ extern int _kernel_osfile (int __operation, const char *__name,
 
 /* Perform an OS_Args operation. Generally returns the value in R2, unless
    op = 0.  */
-extern int _kernel_osargs (int __operation, unsigned __handle, int __arg);
+extern int _kernel_osargs (int __operation, unsigned int __handle, int __arg);
 
 /* Call OS_CLI with the string 's'. If another application is called,
    the current application will be closed down.	  */
@@ -226,7 +226,7 @@ extern int _kernel_system (const char *__string, int __chain);
 
 /* Tries to allocate a block of size 'words' words. If it fails,
    it allocates the largest possible block.  */
-extern unsigned _kernel_alloc (unsigned __words, void **__block);
+extern unsigned _kernel_alloc (unsigned int __words, void **__block);
 
 
 /* Register procedures to be used by the SharedCLibrary when it
@@ -246,19 +246,19 @@ _kernel_ExtendProc *_kernel_register_slotextend (_kernel_ExtendProc *__proc);
 /* Language support.  */
 
 /* Unsigned divide and remainder function. Returns the remainder in R1. */
-extern unsigned
-_kernel_udiv (unsigned __divisor,
-	      unsigned __dividend) __attribute__ ((__const__));
+extern unsigned int
+_kernel_udiv (unsigned int __divisor, unsigned int __dividend)
+  __attribute__ ((__const__));
 
 /* Unsigned remainder function.  */
-extern unsigned
-_kernel_urem (unsigned __divisor,
-	      unsigned __dividend) __attribute__ ((__const__));
+extern unsigned int
+_kernel_urem (unsigned int __divisor, unsigned int __dividend)
+  __attribute__ ((__const__));
 
 /* Unsigned divide and remainder function by 10.
    Returns the remainder in R1. */
-extern unsigned
-_kernel_udiv10 (unsigned __dividend) __attribute__ ((__const__));
+extern unsigned int
+_kernel_udiv10 (unsigned int __dividend) __attribute__ ((__const__));
 
 /* Signed divide and remainder function. Returns the remainder in R1. */
 extern int

@@ -1,3 +1,9 @@
+Sat Mar 28 14:40:18 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos/stubs.s(_clib_entermodule): Updated comments.
+	* include/kernel.h: 'unsigned' -> 'unsigned int';
+	(_kernel_swi,_kernel_swi_c,_kernel_osfind): Constify input pointer.
+
 Fri Oct 24 02:09:51 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/scl-macros.s: Added, provides MakePtr and
