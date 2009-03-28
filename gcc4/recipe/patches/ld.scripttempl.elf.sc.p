@@ -1,5 +1,5 @@
---- ld/scripttempl/elf.sc.orig	2008-07-15 20:10:42.000000000 +0100
-+++ ld/scripttempl/elf.sc	2008-07-15 20:09:27.000000000 +0100
+--- ld/scripttempl/elf.sc.orig	2009-03-28 15:17:46.000000000 +0100
++++ ld/scripttempl/elf.sc	2009-03-28 14:53:36.000000000 +0100
 @@ -236,6 +236,14 @@ else
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
@@ -32,21 +32,20 @@
    /* Adjust the address for the data segment.  We want to adjust up to
       the same address within the page on the next page up.  */
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+. = ${DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}}
-@@ -412,6 +423,7 @@ cat <<EOF
+@@ -412,6 +423,11 @@ cat <<EOF
  
    ${DATA_PLT+${PLT_BEFORE_GOT-${PLT}}}
  
++  /* RISC OS module __RelocCode & __RelocData */
++  .riscos.module.relocdata : { *(.riscos.module.relocdata) }
++  .riscos.module.reloccode : { *(.riscos.module.reloccode) }
++
 +  ${RELOCATING+${CREATE_SHLIB-${RISCOS_RWBASE}}}
    .data         ${RELOCATING-0} :
    {
      ${RELOCATING+${DATA_START_SYMBOLS}}
-@@ -435,10 +447,15 @@ cat <<EOF
-   ${RELOCATING+${OTHER_BSS_SYMBOLS}}
-   ${SBSS}
+@@ -437,8 +453,10 @@ cat <<EOF
    ${BSS_PLT+${PLT}}
-+  /* RISC OS module __RelocCode & __RelocData */
-+  .riscos.module.relocdata : { *(.riscos.module.relocdata) }
-+  .riscos.module.reloccode : { *(.riscos.module.reloccode) }
    .bss          ${RELOCATING-0} :
    {
 +   ${RELOCATING+${CREATE_SHLIB-${RISCOS_ZIBASE}}}
@@ -57,7 +56,7 @@
     *(COMMON)
     /* Align here to ensure that the .bss section occupies space up to
        _end.  Align after .bss to ensure correct alignment even if the
-@@ -446,6 +463,7 @@ cat <<EOF
+@@ -446,6 +464,7 @@ cat <<EOF
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */
     ${RELOCATING+. = ALIGN(. != 0 ? ${ALIGNMENT} : 1);}
@@ -65,7 +64,7 @@
    }
    ${RELOCATING+${OTHER_BSS_END_SYMBOLS}}
    ${RELOCATING+. = ALIGN(${ALIGNMENT});}
-@@ -454,6 +472,7 @@ cat <<EOF
+@@ -454,6 +473,7 @@ cat <<EOF
    ${RELOCATING+${OTHER_END_SYMBOLS}}
    ${RELOCATING+${END_SYMBOLS-_end = .; PROVIDE (end = .);}}
    ${RELOCATING+${DATA_SEGMENT_END}}
