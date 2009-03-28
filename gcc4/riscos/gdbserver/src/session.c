@@ -14,7 +14,7 @@
 #include "step.h"
 #include "utils.h"
 
-static const char *post_filter_name = "GDBServer";
+static const char post_filter_name[] = "GDBServer";
 
 /* Ideally, keep this synced with N_CTX in gdb.c */
 #define MAX_SESSIONS 5
