@@ -1,5 +1,5 @@
---- bfd/elf32-arm.c.orig	2008-12-06 19:05:14.000000000 +0100
-+++ bfd/elf32-arm.c	2008-12-06 19:05:02.000000000 +0100
+--- bfd/elf32-arm.c.orig	2009-03-27 02:04:34.000000000 +0100
++++ bfd/elf32-arm.c	2009-03-28 03:40:28.000000000 +0100
 @@ -1470,7 +1470,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -308,7 +308,7 @@
 +  ((type) == R_ARM_ABS32 \
 +   && (!strncmp (secname, ".data", sizeof (".data")-1) && strcmp (secname, ".data.rel.ro")))
 +      if (ro_module_is_datareloc (r_type, input_section->name)
-+          && value + addend >= globals->ro_module_image_rw_base)
++          && (unsigned int)value + (unsigned int)addend >= (unsigned int)globals->ro_module_image_rw_base /* comparison needs to happen in 32-bit space.  */)
 +        {
 +          /* Relocation inside RW data, i.e. in module RMA workspace.  */
 +          const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset - globals->ro_module_image_rw_base;
