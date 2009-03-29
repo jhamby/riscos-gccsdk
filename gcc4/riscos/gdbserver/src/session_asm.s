@@ -306,6 +306,20 @@ undef_handler:
 	LDMEQIA	r13!, {r0, r1, r14}
 	LDREQ	pc, prev_undef_vector	@ current_session == NULL => bail
 
+	LDR	r0, [r14, #-4]		@ Get aborted instruction
+	AND	r1, r0, #0x0f000000
+	TEQ	r1, #0x0f000000		@ Clears C
+	CMPNE	r1, #0x0c000000		@ Sets C if >= 0x0c000000
+	BCC	1f			@ Not coprocessor, handle it
+	AND	r0, r0, #0x00000f00
+	TEQ	r0, #0x00000100
+	TEQNE	r0, #0x00000200		@ Coprocessor 1/2 => FPA
+	LDMEQIA	r13!, {r0, r1, r14}
+	LDREQ	pc, prev_undef_vector	@ Pass it on to FPEmulator
+	
+1:
+	LDR	r1, [r13, #4]		@ Restore aborted r1
+
 	STMIB	r0, {r0-r14}^		@ Save USR mode's r0-r14
 	LDR	r1, [r13]
 	STR	r1, [r0, #4]		@ Fix up saved r0
