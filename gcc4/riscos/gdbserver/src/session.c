@@ -595,6 +595,9 @@ session_ctx *session_find_by_socket(int socket)
 
 int session_tcp_process_input(session_ctx *session, int socket)
 {
+	static uint8_t buf[1024];
+	ssize_t read;
+
 	if (session->type != SESSION_TCP)
 		return 1;
 
@@ -617,17 +620,16 @@ int session_tcp_process_input(session_ctx *session, int socket)
 					(uintptr_t) session);
 		if (session->gdb == NULL)
 			return 0;
-	} else {
-		/* If it's a client socket, 
-		 * drive state machine some more */
-		static uint8_t buf[1024];
-		ssize_t read;
 
-		while ((read = socket_recv(socket, buf, sizeof(buf))) > 0) {
-			debug("-> %.*s\n", (int) read, buf);
+		/* Use client socket for read */
+		socket = session->data.tcp.client;
+	}
 
-			gdb_process_input(session->gdb, buf, read);
-		}
+	/* If there's data on the socket, drive state machine */
+	while ((read = socket_recv(socket, buf, sizeof(buf))) > 0) {
+		debug("-> %.*s\n", (int) read, buf);
+
+		gdb_process_input(session->gdb, buf, read);
 	}
 
 	return 0;

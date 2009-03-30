@@ -15,8 +15,6 @@ typedef enum gdb_state {
 struct gdb_ctx {
 	gdb_state state;
 
-	uint8_t first;
-
 	uint8_t data_buf[256];
 	uint8_t data_len;
 	uint8_t checksum;
@@ -72,8 +70,6 @@ gdb_ctx *gdb_ctx_create(gdb_send_cb send, gdb_break_cb brk,
 	ctx = &ctxs[i];
 
 	ctx->state = WAITING_FOR_PACKET;
-
-	ctx->first = 1;
 
 	ctx->send = send;
 	ctx->brk = brk;
@@ -135,21 +131,12 @@ void gdb_process_input(gdb_ctx *ctx, const uint8_t *data, size_t len)
 			/* Ensure the buffer is NUL terminated */
 			ctx->data_buf[ctx->data_len] = '\0';
 
-			/** \todo fix this properly */
-			/* Nasty hack as, for some reason, gdb sends us
-			 * the first packet twice. */
-			if (ctx->first == 0) {
-				if (ctx->checksum != ctx->refcksum) {
-					ctx->send(ctx->pw, 
-						(const uint8_t *) "-", 1);
-				} else {
-					ctx->send(ctx->pw, 
-						(const uint8_t *) "+", 1);
-
-					process_packet(ctx);
-				}
+			if (ctx->checksum != ctx->refcksum) {
+				ctx->send(ctx->pw, (const uint8_t *) "-", 1);
 			} else {
-				ctx->first = 0;
+				ctx->send(ctx->pw, (const uint8_t *) "+", 1);
+
+				process_packet(ctx);
 			}
 
 			ctx->state = WAITING_FOR_PACKET;
