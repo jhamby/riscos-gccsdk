@@ -461,7 +461,7 @@ void session_wimp_initialise(session_ctx *ctx)
 			  : /* No outputs */
 			  : [callback] "r" (post_wimp_initialise), 
 			    [pw] "r" (ctx->pw)
-			  : "r0", "r1", "cc");
+			  : "r0", "r1", "r14", "cc");
 }
 
 _kernel_oserror *post_wimp_initialise_handler(_kernel_swi_regs *r, void *pw)
