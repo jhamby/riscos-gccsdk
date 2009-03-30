@@ -10,9 +10,6 @@
 #include "session.h"
 #include "utils.h"
 
-/* Global pre filter name */
-static const char *global_pre_filter_name = "GDBServer";
-
 /** Session currently being initialised */
 static session_ctx *init_session;
 static uint32_t init_timeout;
@@ -31,10 +28,6 @@ _kernel_oserror *mod_init(const char *tail, int podule_base, void *pw)
 
 	/* Don't really care if this fails */
 	_swix(OS_Byte, _INR(0,1), 14 /* Enable event */, 19);
-
-	_swix(Filter_RegisterPreFilter, _INR(0,3),
-			global_pre_filter_name, global_pre_poll,
-			pw, 0);
 
 	/* Claim CPU vectors. Disable IRQs while we do this. */
 	_swix(OS_IntOff, _IN(0), 0);
@@ -73,11 +66,7 @@ _kernel_oserror *mod_fini(int fatal, int podule_base, void *pw)
 	UNUSED(podule_base);
 
 	session_fini();
-
-	_swix(Filter_DeRegisterPreFilter, _INR(0,3),
-			global_pre_filter_name, global_pre_poll,
-			pw, 0);
-
+	
 	/* Release CPU vectors. Disable IRQs while we do this. */
 	_swix(OS_IntOff, _IN(0), 0);
 
@@ -292,25 +281,6 @@ _kernel_oserror *appupcall_handler(_kernel_swi_regs *r, void *pw)
 	session_restore_environment(session);
 
 	session_ctx_destroy(session);
-
-	return NULL;
-}
-
-_kernel_oserror *global_pre_poll_handler(_kernel_swi_regs *r, void *pw)
-{
-	session_ctx *ctx = session_get_current();
-
-	UNUSED(pw);
-
-	if (ctx != NULL) {
-		debug("Wimp task: 0x%08x\n", r->r[2]);
-
-		/* Potential new Wimp task -- inform session */
-		session_set_task_handle(ctx, r->r[2]);
-
-		/* Invalidate current_session, as we're about to leave it */
-		session_set_current(NULL);
-	}
 
 	return NULL;
 }

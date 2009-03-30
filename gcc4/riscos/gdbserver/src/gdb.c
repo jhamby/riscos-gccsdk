@@ -102,6 +102,7 @@ void gdb_process_input(gdb_ctx *ctx, const uint8_t *data, size_t len)
 			switch (data[0]) {
 			case 3:
 				/* Tell client to interrupt application */
+				debug("Received interrupt%s\n", "");
 				ctx->brk(ctx->pw);
 				break;
 			case '$':

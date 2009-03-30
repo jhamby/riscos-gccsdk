@@ -14,7 +14,7 @@
 #define Module_VersionString	"0.01"
 #define Module_VersionNumber	1
 #ifndef Module_Date
-#define Module_Date		"21 Mar 2009"
+#define Module_Date		"30 Mar 2009"
 #endif
 
 #ifdef __cplusplus
@@ -46,7 +46,7 @@ _kernel_oserror *mod_init(const char *tail, int podule_base, void *pw);
  *               podule_base = address of podule module was started from, or
  *                             NULL if none
  *               pw          = private word for module
- * On exit:      Return 0 for successful finalisation, or a pointer to an
+ * On exit:      Return NULL for successful finalisation, or a pointer to an
  *               error block if module was not shutdown properly.
  **************************************************************************/
 _kernel_oserror *mod_fini(int fatal, int podule_base, void *pw);
@@ -240,17 +240,17 @@ _kernel_oserror *post_abort_handler(_kernel_swi_regs *r, void *pw);
 
 
 /***************************************************************************
- * Function:     global_pre_poll
+ * Function:     post_wimp_initialise
  * Description:  Symbol for entry point to module - NOT a C function.
  *               This name should be used as an argument to
  *               OS_Claim/OS_Release as required, but should never be called
  *               from C.
  **************************************************************************/
-extern void global_pre_poll(void);
+extern void post_wimp_initialise(void);
 
 
 /***************************************************************************
- * Function:     global_pre_poll_handler
+ * Function:     post_wimp_initialise_handler
  * Description:  Generic handler function
  * Parameters:   r  = pointer to register block on entry
  *               pw = private word for module
@@ -258,7 +258,29 @@ extern void global_pre_poll(void);
  *               Return NULL to return with V clear
  *               Return an error pointer to set V and r0
  **************************************************************************/
-_kernel_oserror *global_pre_poll_handler(_kernel_swi_regs *r, void *pw);
+_kernel_oserror *post_wimp_initialise_handler(_kernel_swi_regs *r, void *pw);
+
+
+/***************************************************************************
+ * Function:     session_pre_poll
+ * Description:  Symbol for entry point to module - NOT a C function.
+ *               This name should be used as an argument to
+ *               OS_Claim/OS_Release as required, but should never be called
+ *               from C.
+ **************************************************************************/
+extern void session_pre_poll(void);
+
+
+/***************************************************************************
+ * Function:     session_pre_poll_handler
+ * Description:  Generic handler function
+ * Parameters:   r  = pointer to register block on entry
+ *               pw = private word for module
+ * On exit:      Update r to alter return values
+ *               Return NULL to return with V clear
+ *               Return an error pointer to set V and r0
+ **************************************************************************/
+_kernel_oserror *session_pre_poll_handler(_kernel_swi_regs *r, void *pw);
 
 
 /***************************************************************************

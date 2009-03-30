@@ -14,7 +14,7 @@
 #include "step.h"
 #include "utils.h"
 
-static const char post_filter_name[] = "GDBServer";
+static const char session_filter_name[] = "GDBServer";
 
 /* Ideally, keep this synced with N_CTX in gdb.c */
 #define MAX_SESSIONS 5
@@ -145,8 +145,11 @@ void session_ctx_destroy(session_ctx *ctx)
 	}
 
 	if (ctx->task_handle != 0) {
+		_swix(Filter_DeRegisterPreFilter, _INR(0,3),
+				session_filter_name, session_pre_poll,
+				ctx->pw, ctx->task_handle);
 		_swix(Filter_DeRegisterPostFilter, _INR(0,4),
-				post_filter_name, session_post_poll, 
+				session_filter_name, session_post_poll, 
 				ctx->pw, ctx->task_handle, 0);
 	}
 
@@ -229,11 +232,15 @@ int session_break(uintptr_t ctx)
 {
 	session_ctx *session = (session_ctx *) ctx;
 
+	debug("Current break state: %d\n", session->brk);
+
 	/* Ignore any attempts to break while we're paused */
 	if (session->brk == 1)
 		return 0;
 
 	if (session == session_get_current()) {
+		debug("Session is current%s", "");
+
 		/* Inject bkpt, so debuggee breaks on resumption */
 		if (session_set_bkpt(ctx, 
 				session->cur_pc | BKPT_ONE_SHOT) == 0)
@@ -433,26 +440,90 @@ void session_restore_environment(session_ctx *ctx)
 			ctx->env_ctx[2].buf);
 }
 
-void session_set_task_handle(session_ctx *ctx, uint32_t task)
+void session_wimp_initialise(session_ctx *ctx)
 {
-	/* Not us, if we've already got a task handle */
+	/* Important: This function (and those called by it), *must* not
+	 * attempt to access non-automatic variables (i.e. globals) or call
+	 * SCL functions.
+	 * The magic words at the bottom of the SVC stack are not set up
+	 * by our exception handlers so relocations will fail.
+	 */
+
+	/* Ignore this if we already have a task handle */
 	if (ctx->task_handle != 0)
 		return;
+
+	/* Add a callback to grab the task handle and register filters */
+	/* It would appear that using _swix() here breaks things. */
+	__asm__ volatile ("MOV r0, %[callback]\n\t"
+			  "MOV r1, %[pw]\n\t"
+			  "SWI 0x20054\n\t" /* XOS_AddCallBack */
+			  : /* No outputs */
+			  : [callback] "r" (post_wimp_initialise), 
+			    [pw] "r" (ctx->pw)
+			  : "r0", "r1", "cc");
+}
+
+_kernel_oserror *post_wimp_initialise_handler(_kernel_swi_regs *r, void *pw)
+{
+	session_ctx *ctx = session_get_current();
+	_kernel_oserror *error;
+	uint32_t task;
+
+	UNUSED(r);
+
+	/* Read task handle from Wimp */
+	error = _swix(Wimp_ReadSysInfo, _IN(0) | _OUT(0), 5, &task);
+	if (error != NULL) {
+		debug("Wimp_ReadSysInfo: 0x%x %s\n", 
+				error->errnum, error->errmess);
+	}
+
+	debug("Task handle: 0x%0x\n", task);
+
+	if (task == 0)
+		return NULL;
+
+	/* Install pre filter to invalidate current_session. */
+	error = _swix(Filter_RegisterPreFilter, _INR(0,3),
+			session_filter_name, session_pre_poll,
+			pw, task);
+	if (error != NULL) {
+		debug("Filter_RegisterPreFilter: 0x%x %s\n",
+				error->errnum, error->errmess);
+	}
 
 	/* Install post poll filter so that:
 	 *
 	 * 1) we do the right thing when the client tries to interrupt 
 	 *    the debuggee.
 	 * 2) we keep current_session in sync with reality.
-	 *
-	 * The global pre poll filter will invalidate current_session if it
-	 * is set.
 	 */
-	_swix(Filter_RegisterPostFilter, _INR(0,4),
-			post_filter_name, session_post_poll, 
-			ctx->pw, task, 0);
+	error = _swix(Filter_RegisterPostFilter, _INR(0,4),
+			session_filter_name, session_post_poll, 
+			pw, task, 0);
+	if (error != NULL) {
+		debug("XFilter_RegisterPostFilter: 0x%x %s\n",
+				error->errnum, error->errmess);
+	}
 
-	ctx->task_handle = task;
+	/* Helpfully, our filters will only ever be passed the bottom N bits of
+	 * the task handle. I'm going to assume that N=16. If it doesn't, fix 
+	 * the OS already. */
+	ctx->task_handle = task & 0xffff;
+
+	return NULL;
+}
+
+_kernel_oserror *session_pre_poll_handler(_kernel_swi_regs *r, void *pw)
+{
+	UNUSED(r);
+	UNUSED(pw);
+
+	/* Invalidate current_session, as we're about to leave it */
+	session_set_current(NULL);
+
+	return NULL;
 }
 
 _kernel_oserror *session_post_poll_handler(_kernel_swi_regs *r, void *pw)
@@ -462,7 +533,7 @@ _kernel_oserror *session_post_poll_handler(_kernel_swi_regs *r, void *pw)
 	UNUSED(r);
 	UNUSED(pw);
 
-	debug("session post poll%s\n", "");
+	debug("Post poll: 0x%x (%p)\n", r->r[2], (void *) session);
 
 	if (session != NULL) {
 		session_set_current(session);
@@ -478,6 +549,7 @@ _kernel_oserror *session_post_poll_handler(_kernel_swi_regs *r, void *pw)
 		 */
 
 		if (session->brk) {
+			debug("Setting breakpoint at 0x%x\n", session->cur_pc);
 			session_set_bkpt((uintptr_t) session, 
 					session->cur_pc | BKPT_ONE_SHOT);
 		}

@@ -39,14 +39,38 @@ set_prev_swi_handler:
 	@ SWI vector handler
 	.globl swi_handler
 swi_handler:
-	STMFD	r13!, {r0, r1}
+	STMFD	r13!, {r0-r12, r14}
 	MRS	r1, SPSR
+	STR	r1, [r13, #-4]!		@ Save SPSR
+
 	ANDS	r1, r1, #0xf		@ not called from USR => bail
 	MOVNE	r0, #0
 	LDREQ	r0, current_session
 	TEQ	r0, #0			@ current_session == NULL => bail
-	STRNE	r1, [r0]		@ save return address into session
-	LDMIA	r13!, {r0, r1}
+	BEQ	1f
+
+	SUB	r13, r13, #8
+	STMIA	r13, {r13, r14}^	@ Save USR r13 + r14
+	NOP
+
+	STR	r14, [r0]		@ save return address into session
+
+	LDR	r1, [r14, #-4]		@ read SWI instruction
+	BIC	r1, r1, #0xff000000	@ clear uninteresting bits
+	BIC	r1, r1, #0x00020000	@ clear X
+	MOV	r2, #0x40000
+	ORR	r2, r2, #0xc0
+	TEQ	r1, r2			@ (X)Wimp_Initialise?
+	@ r0 -> current_session
+	BLEQ	session_wimp_initialise
+
+	LDMIA	r13, {r13, r14}^	@ Restore USR r13 + r14
+	ADD	r13, r13, #8
+
+1:
+	LDR	r1, [r13], #4
+	MSR	SPSR, r1		@ Restore SPSR
+	LDMIA	r13!, {r0-r12, r14}
 	LDR	pc, prev_swi_vector	@ pass on to previous claimant
 
 
@@ -107,6 +131,7 @@ dabort_handler:
 	LDREQ	pc, prev_dabort_vector	@ current_session == NULL => bail
 
 	STMIB	r0, {r0-r14}^		@ Save USR mode's r0-r14
+	NOP
 	LDR	r1, [r13]
 	STR	r1, [r0, #4]		@ Fix up saved r0
 
@@ -207,6 +232,7 @@ prefetch_handler:
 	LDREQ	pc, prev_prefetch_vector@ current_session == NULL => bail
 
 	STMIB	r0, {r0-r14}^		@ Save USR mode's r0-r14
+	NOP
 	LDR	r1, [r13]
 	STR	r1, [r0, #4]		@ Fix up saved r0
 
@@ -321,6 +347,7 @@ undef_handler:
 	LDR	r1, [r13, #4]		@ Restore aborted r1
 
 	STMIB	r0, {r0-r14}^		@ Save USR mode's r0-r14
+	NOP
 	LDR	r1, [r13]
 	STR	r1, [r0, #4]		@ Fix up saved r0
 
