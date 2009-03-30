@@ -3,6 +3,7 @@
 
 #include <swis.h>
 
+#include "debug.h"
 #include "socket.h"
 #include "utils.h"
 
@@ -52,8 +53,10 @@ static int accept(int sockfd, struct sockaddr *addr, size_t *addrlen)
 	e = _swix(Socket_Accept, _INR(0,2) | _OUT(0),
 			sockfd, addr, addrlen,
 			&child);
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Accept: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return child;
 }
@@ -66,8 +69,10 @@ static int bind(int sockfd, const struct sockaddr *addr, size_t addrlen)
 	e = _swix(Socket_Bind, _INR(0,2) | _OUT(0),
 			sockfd, addr, addrlen,
 			&error);
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Bind: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return error;
 }
@@ -80,8 +85,10 @@ static int connect(int sockfd, const struct sockaddr *serv_addr, size_t addrlen)
 	e = _swix(Socket_Connect, _INR(0,2) | _OUT(0),
 			sockfd, serv_addr, addrlen,
 			&error);
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Connect: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return error;
 }
@@ -115,8 +122,10 @@ static int ioctl(int s, int request, void *data)
 	e = _swix(Socket_Ioctl, _INR(0,2) | _OUT(0),
 			s, request, data,
 			&error);
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Ioctl: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return error;
 }
@@ -129,8 +138,10 @@ static int listen(int sockfd, int backlog)
 	e = _swix(Socket_Listen, _INR(0,1) | _OUT(0),
 			sockfd, backlog,
 			&error);
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Listen: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return error;
 }
@@ -143,8 +154,10 @@ static ssize_t recv(int s, void *buf, size_t len, int flags)
 	e = _swix(Socket_Read, _INR(0,3) | _OUT(0),
 			s, buf, len, flags,
 			&read);
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Read: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return read;
 }
@@ -157,8 +170,10 @@ static ssize_t send(int s, const void *buf, size_t len, int flags)
 	e = _swix(Socket_Send, _INR(0,3) | _OUT(0),
 			s, buf, len, flags,
 			&sent);
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Send: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return sent;
 }
@@ -171,8 +186,10 @@ static int shutdown(int s, int how)
 	e = _swix(Socket_Shutdown, _INR(0,1) | _OUT(0),
 			s, how,
 			&error);
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Shutdown: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return error;
 }
@@ -185,9 +202,10 @@ static int socket(int domain, int type, int protocol)
 	e = _swix(Socket_Creat, _INR(0,2) | _OUT(0),
 			domain, type, protocol,
 			&sock);
-
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Creat: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return sock;
 }
@@ -200,9 +218,10 @@ static int socketclose(int sock)
 	e = _swix(Socket_Close, _IN(0) | _OUT(0),
 			sock,
 			&error);
-
-	if (e != NULL)
+	if (e != NULL) {
+		debug("Socket_Close: 0x%x %s\n", e->errnum, e->errmess);
 		return -1;
+	}
 
 	return error;
 }
