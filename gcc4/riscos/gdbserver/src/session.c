@@ -581,7 +581,13 @@ session_ctx *session_find_by_socket(int socket)
 {
 	int i;
 
+	debug("Want socket %d\n", socket);
+
 	for (i = 0; i < MAX_SESSIONS; i++) {
+		debug("%d: %d: %d: %d\n", i, sessions[i].in_use,
+				sessions[i].data.tcp.server,
+				sessions[i].data.tcp.client);
+
 		if (sessions[i].in_use && sessions[i].type == SESSION_TCP &&
 				(sessions[i].data.tcp.server == socket || 
 				 sessions[i].data.tcp.client == socket))

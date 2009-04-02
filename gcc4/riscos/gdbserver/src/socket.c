@@ -308,6 +308,7 @@ void socket_close(int h)
 
 int socket_accept(int h)
 {
+	int one = 1;
 	int client;
 	struct sockaddr_in caddr;
 	size_t clen = sizeof(struct sockaddr_in);
@@ -316,6 +317,10 @@ int socket_accept(int h)
 	if (client < 0) {
 		return -1;
 	}
+
+	ioctl(client, FIOSLEEPTW, &one);
+	ioctl(client, FIOASYNC, &one);
+	ioctl(client, FIONBIO, &one);
 
 	return client;
 }

@@ -154,6 +154,8 @@ int internet_handler(_kernel_swi_regs *r, void *pw)
 	{
 		session_ctx *session;
 
+		debug("Input on %d\n", r->r[2]);
+
 		/* Work out what socket this is. */
 		session = session_find_by_socket(r->r[2]);
 		if (session == NULL)
@@ -164,6 +166,7 @@ int internet_handler(_kernel_swi_regs *r, void *pw)
 		break;
 	case 2: /* OOB data pending */
 		/* Ignore this */
+		debug("OOB on %d\n", r->r[2]);
 		break;
 	case 3: /* Socket closed */
 	{
