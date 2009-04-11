@@ -12,18 +12,35 @@
 void
 test1 (void)
 {
-  puts("ok1");
+  puts ("ok (test 1)");
 }
 
 void
 test2 (void)
 {
-  puts("ok2");
+  puts ("ok (test 2)");
 }
 
 void
 test3 (void)
 {
-  puts("ok3");
+  puts ("ok (test 3)");
 }
 
+void
+test4 (void)
+{
+  puts ("ok (test 4)");
+}
+
+void
+test5 (void)
+{
+  puts ("ok (test 5)");
+}
+
+void
+test6 (void)
+{
+  puts ("ok (test 6)");
+}

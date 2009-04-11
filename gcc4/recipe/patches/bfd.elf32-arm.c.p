@@ -1,5 +1,5 @@
 --- bfd/elf32-arm.c.orig	2009-03-27 02:04:34.000000000 +0100
-+++ bfd/elf32-arm.c	2009-03-28 03:40:28.000000000 +0100
++++ bfd/elf32-arm.c	2009-04-06 01:38:48.000000000 +0200
 @@ -1470,7 +1470,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -296,7 +296,7 @@
  /* Locate the Thumb encoded calling stub for NAME.  */
  
  static struct elf_link_hash_entry *
-@@ -3005,6 +3261,45 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -3005,6 +3261,47 @@ elf32_arm_final_link_relocate (reloc_how
    else
      addend = signed_addend = rel->r_addend;
  
@@ -306,18 +306,19 @@
 +         Any ABS32 reloc in a rw data section pointing to RW data (ie module workspace), need to have a __RelocData entry.  */
 +#define ro_module_is_datareloc(type, secname) \
 +  ((type) == R_ARM_ABS32 \
-+   && (!strncmp (secname, ".data", sizeof (".data")-1) && strcmp (secname, ".data.rel.ro")))
++   && (!strncmp (secname, ".data", sizeof (".data")-1)))
 +      if (ro_module_is_datareloc (r_type, input_section->name)
-+          && (unsigned int)value + (unsigned int)addend >= (unsigned int)globals->ro_module_image_rw_base /* comparison needs to happen in 32-bit space.  */)
-+        {
-+          /* Relocation inside RW data, i.e. in module RMA workspace.  */
-+          const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset - globals->ro_module_image_rw_base;
++	  && (unsigned int)value + (unsigned int)addend >= (unsigned int)globals->ro_module_image_rw_base /* comparison needs to happen in 32-bit space.  */)
++	{
++	  /* Relocation inside RW data, i.e. in module RMA workspace.  */
++	  const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset - globals->ro_module_image_rw_base;
 +
-+	  BFD_ASSERT (h != NULL); /* Just to make sure our dodgy allocation approach is not underallocating.  */
-+          BFD_ASSERT (globals->ro_module_relocdata_offset < globals->ro_module_relocdata_size);
++	  BFD_ASSERT (h != NULL);
++	  /* Just to make sure our dodgy allocation approach is not underallocating.  */
++	  BFD_ASSERT (globals->ro_module_relocdata_offset < globals->ro_module_relocdata_size);
 +
-+          bfd_put_32 (input_bfd, osection_addr + rel->r_offset, globals->s_ro_module_relocdata->contents + globals->ro_module_relocdata_offset);
-+          globals->ro_module_relocdata_offset += 4;
++	  bfd_put_32 (input_bfd, osection_addr + rel->r_offset, globals->s_ro_module_relocdata->contents + globals->ro_module_relocdata_offset);
++	  globals->ro_module_relocdata_offset += 4;
 +	}
 +
 +      /* __RelocCode entry:
@@ -332,6 +333,7 @@
 +	  /* Relocation because of placing Module in RMA instead of application space.  */
 +	  const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset - globals->ro_module_image_ro_base;
 +
++	  /* Just to make sure our dodgy allocation approach is not underallocating.  */
 +	  BFD_ASSERT (globals->ro_module_reloccode_offset < globals->ro_module_reloccode_size);
 +
 +          bfd_put_32 (input_bfd, osection_addr + rel->r_offset, globals->s_ro_module_reloccode->contents + globals->ro_module_reloccode_offset);
@@ -342,7 +344,7 @@
    switch (r_type)
      {
      case R_ARM_NONE:
-@@ -3706,7 +4001,8 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -3706,7 +4003,8 @@ elf32_arm_final_link_relocate (reloc_how
           define _GLOBAL_OFFSET_TABLE in a different way, as is
           permitted by the ABI, we might have to change this
           calculation.  */
@@ -352,7 +354,7 @@
        return _bfd_final_link_relocate (howto, input_bfd, input_section,
  				       contents, rel->r_offset, value,
  				       rel->r_addend);
-@@ -4229,6 +4525,11 @@ elf32_arm_bfd_final_link (bfd *abfd, str
+@@ -4229,6 +4527,11 @@ elf32_arm_bfd_final_link (bfd *abfd, str
    asection *attr_section = NULL;
    bfd_byte *contents;
    bfd_vma size = 0;
@@ -364,7 +366,7 @@
  
    /* elf32_arm_merge_private_bfd_data will already have merged the
       object attributes.  Remove the input sections from the link, and set
-@@ -4255,6 +4556,74 @@ elf32_arm_bfd_final_link (bfd *abfd, str
+@@ -4255,6 +4558,74 @@ elf32_arm_bfd_final_link (bfd *abfd, str
  	  /* Skip this section later on.  */
  	  o->map_head.link_order = NULL;
  	}
@@ -439,7 +441,7 @@
      }
    /* Invoke the ELF linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
-@@ -4269,6 +4638,58 @@ elf32_arm_bfd_final_link (bfd *abfd, str
+@@ -4269,6 +4640,58 @@ elf32_arm_bfd_final_link (bfd *abfd, str
        bfd_set_section_contents (abfd, attr_section, contents, 0, size);
        free (contents);
      }
@@ -498,7 +500,7 @@
    return TRUE;
  }
  
-@@ -5767,6 +6188,18 @@ elf32_arm_check_relocs (bfd *abfd, struc
+@@ -5767,6 +6190,18 @@ elf32_arm_check_relocs (bfd *abfd, struc
  
        eh = (struct elf32_arm_link_hash_entry *) h;
  
@@ -517,7 +519,7 @@
        switch (r_type)
          {
  	  case R_ARM_GOT32:
-@@ -6815,8 +7248,7 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -6815,8 +7250,7 @@ elf32_arm_size_dynamic_sections (bfd * o
  
        if (plt)
  	{
@@ -527,7 +529,7 @@
  	      || !add_dynamic_entry (DT_PLTREL,
  				     htab->use_rel ? DT_REL : DT_RELA)
  	      || !add_dynamic_entry (DT_JMPREL, 0))
-@@ -6841,6 +7273,9 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -6841,6 +7275,9 @@ elf32_arm_size_dynamic_sections (bfd * o
  	    }
  	}
  
@@ -537,7 +539,7 @@
        /* If any dynamic relocs apply to a read-only section,
  	 then we need a DT_TEXTREL entry.  */
        if ((info->flags & DF_TEXTREL) == 0)
-@@ -6930,7 +7365,10 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -6930,7 +7367,10 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  	     in all the symbols for which we are making plt entries.  The
  	     first three entries in .got.plt are reserved; after that
  	     symbols appear in the same order as in .plt.  */
@@ -549,7 +551,7 @@
  
  	  /* Calculate the address of the GOT entry.  */
  	  got_address = (sgot->output_section->vma
-@@ -7012,22 +7450,58 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -7012,22 +7452,58 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  			      splt->contents + h->plt.offset - 2);
  		}
  
@@ -622,7 +624,7 @@
  	    }
  
  	  /* Fill in the entry in the global offset table.  */
-@@ -7352,19 +7826,41 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -7352,19 +7828,41 @@ elf32_arm_finish_dynamic_sections (bfd *
  	    {
  	      got_displacement = got_address - (plt_address + 16);
  
@@ -673,7 +675,7 @@
  	    }
  	}
  
-@@ -8053,7 +8549,7 @@ elf32_arm_additional_program_headers (bf
+@@ -8053,7 +8551,7 @@ elf32_arm_additional_program_headers (bf
  
  /* We use this to override swap_symbol_in and swap_symbol_out.  */
  const struct elf_size_info elf32_arm_size_info = {
@@ -682,7 +684,7 @@
    sizeof (Elf32_External_Phdr),
    sizeof (Elf32_External_Shdr),
    sizeof (Elf32_External_Rel),
-@@ -8140,7 +8636,7 @@ const struct elf_size_info elf32_arm_siz
+@@ -8140,7 +8638,7 @@ const struct elf_size_info elf32_arm_siz
  #define elf_backend_default_use_rela_p 0
  #define elf_backend_rela_normal     0
  

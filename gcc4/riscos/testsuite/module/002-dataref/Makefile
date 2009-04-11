@@ -1,23 +1,26 @@
 CC = arm-unknown-riscos-gcc
 CFLAGS = -O3 -mmodule
+# Add -Wl,-M to get the linker map.
+LINKFLAGS = -mmodule
 CMHG = cmunge
 CMHGFLAGS = -tgcc -32bit
 
 COBJS = dataref.c
 
-OBJS = $(COBJS:.c=.o) MdlHdr.o
+OBJS = $(COBJS:.c=.o) check.o constants.o MdlHdr.o
 
 TARGET = testgccmodule,ffa
 
 $(TARGET): $(OBJS)
-	$(CC) $(CFLAGS) $(OBJS) -o $@
+	$(CC) $(LINKFLAGS) $(OBJS) -o $@
 
 $(OBJS): MdlHdr.h
 
 .SUFFIXES:
-.SUFFIXES: .c .o .h .cmhg
+.SUFFIXES: .c .s .o .h .cmhg
 
 .c.o:;	$(CC) $(CFLAGS) -c -o $@ $<
+.s.o:;	$(CC) $(CFLAGS) -c -o $@ $<
 
 # CMunge invocation rule:
 .cmhg.h:;	$(CMHG) $(CMHGFLAGS) -d $@ $<
