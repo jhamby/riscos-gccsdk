@@ -281,9 +281,10 @@ create_gcc_tree() {
   # Copy SharedLibs documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/SharedLibs
   cp $GCCSDK_RISCOS/soloader/dist/\!SharedLibs/docs/{\!ReadMe,Technical} $GCCSDK_UNPACKED/\!GCC/docs/SharedLibs
-  # Copy syslogd documentation:
-  create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/syslogd
-  cp $GCCSDK_RISCOS/syslogd/ReadMe $GCCSDK_UNPACKED/\!GCC/docs/syslogd
+  #   - FIXME: syslogd, enable this when we can build syslogd.
+  ### Copy syslogd documentation:
+  ##create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/syslogd
+  ##cp $GCCSDK_RISCOS/syslogd/ReadMe $GCCSDK_UNPACKED/\!GCC/docs/syslogd
 }
 
 # Move the C++ library to a separate kit:
