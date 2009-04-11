@@ -336,7 +336,13 @@ static void asm_header(void)
     output_import("Image$$RO$$Base");
     output_export("Image__RO_Base");
     if (opt.toolchain == tc_gcc)
-      fputs("\t.section .rodata\n", file);
+    {
+      fputs("\
+\t.section .rodata\n\
+\t.align 2\n\
+\t.type Image__RO_Base, %object\n\
+\t.size Image__RO_Base, 4\n", file);
+    }
     else
       fputs("\tAREA\tCode_Description, DATA, REL\n", file);
     output_label("Image__RO_Base");
