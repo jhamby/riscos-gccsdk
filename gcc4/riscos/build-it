@@ -29,6 +29,10 @@ give_help() {
   echo -e "\triscos\t\tBuild the RISC OS specific binaries for native execution on RISC OS"
 }
 
+create_empty_dir() {
+  ( test ! -d $1 || rm -rf $1 ) && mkdir -p $1
+}
+
 # Setup the default values which can be overruled by user options given:
 GCCSDK_BUILD_ISSTATIC="NO"
 for param in $@ ; do
@@ -79,7 +83,7 @@ for roapp in asasm cmunge elf2aif ln mkresfs ; do
   if [ ! -f $GCCSDK_PREFIX/bin/$roapp -a ! -f $GCCSDK_PREFIX/bin/$roapp,ff8 -a ! -f $GCCSDK_PREFIX/bin/$roapp,e1f ] ; then
     echo +++ Building $roapp
     test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && autoreconf --install )
-    ( test ! -d $GCCSDK_BUILDDIR/$roapp || rm -rf $GCCSDK_BUILDDIR/$roapp ) && mkdir -p $GCCSDK_BUILDDIR/$roapp
+    create_empty_dir $GCCSDK_BUILDDIR/$roapp
     cd $GCCSDK_BUILDDIR/$roapp
     export CFLAGS=""
     if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
@@ -105,15 +109,13 @@ if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; t
 
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # These make only sense in the native RISC OS build:
-  # FIXME: drenderer (we can not build this yet)
-  # Currently we have a binary copy in riscos/dist/!System/310/Modules.
 
   if [ "$GCCSDK_BUILD_ISSTATIC" != "YES" ] ; then
     # SOManager module:
     if [ ! -f $GCCSDK_RELEASE_AREA/\!SharedLibs/SOManager,ffa ] ; then
       echo +++ Building SOManager
       test -f $GCCSDK_RISCOS/soloader/module2/configure || ( cd $GCCSDK_RISCOS/soloader/module2 && autoreconf --install )
-      ( test ! -d $GCCSDK_BUILDDIR/somanager || rm -rf $GCCSDK_BUILDDIR/somanager ) && mkdir -p $GCCSDK_BUILDDIR/somanager
+      create_empty_dir $GCCSDK_BUILDDIR/somanager
       cd $GCCSDK_BUILDDIR/somanager
       export CFLAGS=""
       $GCCSDK_RISCOS/soloader/module2/configure --prefix=$GCCSDK_RISCOS_DSOPREFIX --bindir=$GCCSDK_RISCOS_DSOPREFIX $GCCSDK_CONFIGURE_ARGS
@@ -148,5 +150,38 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
     fi
   fi
 
-  # FIXME: syslogd (we can not build this yet)
+  # !System modules:
+  create_empty_dir $GCCSDK_RISCOS_SYSTEMPREFIX
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules
+  # Copy !System skeleton:
+  svn export -q --force $GCCSDK_RISCOS/dist/\!System $GCCSDK_RISCOS_SYSTEMPREFIX/\!System
+  # SharedUnixLibrary module:
+  #   1. Copy SharedUnixLibrary module from !GCC/bin to !System:
+  cp $GCCSDK_RISCOS_GCCPREFIX/bin/sul $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules/SharedULib,ffa
+  #   2. Copy UnixLib/SharedUnixLibrary license:
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
+  cp $GCCSDK_SRCDIR/libunixlib/COPYING $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
+  # syslogd module:
+  #   1. Build & install syslogd (FIXME: we can not build this yet)
+  echo +++ Building syslogd - skipped
+  #   2. Copy documentation, license:
+  #      FIXME: enable this when we can build syslogd and have a copy stored in !System.
+  ##mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/syslogd
+  ##cp $GCCSDK_RISCOS/syslogd/ReadMe $GCCSDK_RISCOS_SYSTEMPREFIX/docs/syslogd
+  # DRenderer module:
+  #   1. Build & install drenderer (FIXME: we can not build this yet)
+  #      Currently we have a binary copy in riscos/dist/!System/310/Modules.
+  echo +++ Building drenderer - skipped
+  #   2. Copy license and documentation:
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/DRenderer
+  cp $GCCSDK_RISCOS/drenderer/{COPYING,DocDRender} $GCCSDK_RISCOS_SYSTEMPREFIX/docs/DRenderer
+  # gdbserver module:
+  #   1. Build & install gdb server:
+  echo +++ Building gdbserver
+  cd $GCCSDK_RISCOS/gdbserver
+  make
+  cp GDBServer,ffa $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules
+  #   2. Copy license and documentation:
+  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/GDBServer
+  cp $GCCSDK_RISCOS/gdbserver/{COPYING,README} $GCCSDK_RISCOS_SYSTEMPREFIX/docs/GDBServer
 fi

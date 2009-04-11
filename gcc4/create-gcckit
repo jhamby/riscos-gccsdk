@@ -101,30 +101,6 @@ remove_if_there() {
   done
 }
 
-# Populates $GCCSDK_UNPACKED/system
-create_system_tree() {
-  if [ ! -d $GCCSDK_UNPACKED/system ] ; then
-    create_empty_dir $GCCSDK_UNPACKED/system/\!System
-
-    # Copy !System skeleton:
-    svn export -q --force $GCCSDK_RISCOS/dist/\!System $GCCSDK_UNPACKED/system/\!System
-
-    # Move SharedUnixLibrary module from !GCC/bin to !System:
-    test ! -f $GCCSDK_UNPACKED/\!GCC/bin/sul || ( mkdir -p $GCCSDK_UNPACKED/system/\!System/310/Modules && mv $GCCSDK_UNPACKED/\!GCC/bin/sul $GCCSDK_UNPACKED/system/\!System/310/Modules/SharedULib,ffa )
-
-    # Copy documentation, license:
-    #   - UnixLib/SharedUnixLibrary license:
-    create_empty_dir $GCCSDK_UNPACKED/system/docs/SharedULib
-    cp $GCCSDK_SRCDIR/libunixlib/COPYING $GCCSDK_UNPACKED/system/docs/SharedULib
-    #   - Copy drenderer documentation:
-    create_empty_dir $GCCSDK_UNPACKED/system/docs/DRenderer
-    cp $GCCSDK_RISCOS/drenderer/{COPYING,DocDRender} $GCCSDK_UNPACKED/system/docs/DRenderer
-    #   - FIXME: syslogd, enable this when we can build syslogd and have a copy stored in !System.
-    ## create_empty_dir $GCCSDK_UNPACKED/system/docs/syslogd
-    ##cp $GCCSDK_RISCOS/syslogd/ReadMe $GCCSDK_UNPACKED/system/docs/syslogd
-  fi
-}
-
 # Populates $GCCSDK_UNPACKED/Examples
 create_examples_tree() {
   create_empty_dir $GCCSDK_UNPACKED/Examples
@@ -144,6 +120,8 @@ slim_gcc_tree() {
   cd $GCCSDK_UNPACKED/\!GCC/bin
   test ! -f $GCCSDK_TARGET_NAME-ln || mv $GCCSDK_TARGET_NAME-ln ln
   find . -name "$GCCSDK_TARGET_NAME-*" -print0 | xargs -0 rm -f
+  # The SharedUnixLibrary already got copied to system folder.
+  remove_if_there sul
   # Remove gcc bug submit script (won't work under RISC OS):
   remove_if_there gccbug
   # Remove c++ as it is same as g++:
@@ -339,7 +317,6 @@ create_gcccore_kit() {
 }
 
 # Here starts the real work:
-create_system_tree
 create_examples_tree
 create_gcc_tree
 
