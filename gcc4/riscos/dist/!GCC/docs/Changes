@@ -2,7 +2,7 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !GCC.docs.UnixLib.Changes too.
 
-GCCSDK GCC 4.1.1 Pre-release 2 (released xxx)
+GCCSDK GCC 4.1.1 Pre-release 3 (released xxx)
 ==============================
 
 Major changes:
@@ -46,8 +46,7 @@ Cross compile related changes and bug fixes:
   - Fix for:
       $ arm-unknown-riscos-strip -s libfoo.a
       arm-unknown-riscos-strip: cannot mkdir stAVQDap for archive copying (error: File exists)
-  - Fix for linking a module binary on a 64-bit host avoiding an assert
-    triggering.
+  - Fix for linking a module binary on a 64-bit host triggering an assert.
   - gdbserver: development start of remote, gdb based, RISC OS debugger for
     ELF binaries.
 
@@ -70,6 +69,12 @@ fixes:
   - The new UnixLib 5 qsort code could sometimes fail resulting in an
     "internal compiler error" during compilation on RISC OS.
   - Avoid having index/html and Index/html in !GCC.docs.binutils.
+
+GCCSDK GCC 4.1.1 Pre-release 2 (released 26 December 2008)
+==============================
+ 
+Test release where the shared library code generation is enabled
+and containing !SharedLibs.
 
 GCCSDK GCC 4.1.1 Release 1 (released 23 December 2008)
 ==========================
