@@ -88,8 +88,15 @@ else
 
     sed --in-place "/^Checksum/,$"d files
     debdir=$debarchive/$(grep Directory files | cut -d ' ' -f 2)
-    wget -nv $debdir/$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
-    wget -nv $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
+    orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
+    if [ -z "$orig" ] ; then
+      file=$(grep \.tar\.gz files | cut -d ' ' -f 4)
+      orig=$(sed s#\.tar\.gz#\.orig\.tar\.gz# <<< $file)
+      wget -nv $debdir/$file -O $orig
+    else
+      wget -nv $debdir/$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
+      wget -nv $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
+    fi
 
     tar xfz *.orig.tar.gz
 
