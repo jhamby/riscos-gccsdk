@@ -1,6 +1,4 @@
 
-AB_CATEGORY=Network
-
 AB_CONFLAGS=--without-ssl
 AB_COPYSOURCE=yes
 
