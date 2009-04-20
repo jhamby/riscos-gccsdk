@@ -1,9 +1,14 @@
-AB_CATEGORY=Command
+ab_package() {
+ ab_create_command_app RSync Apps/Network
+ ab_add_commands $S/*$AB_EXEEXT
 
-AB_FILESNOPATH="rsync$AB_EXEEXT COPYING"
+ rman -f HTML $S/rsync.1 > $A/\!Help,faf
 
-AB_MANPAGE=rsync.1
+ cp -av $S/README $S/COPYING $A
 
-ab_package () {
-  cp -av $S/rsync$AB_EXEEXT $S/COPYING $D
+ $AB_HOME/add-riscpkg -unixlib
 }
+
+autoconf
+touch configure.sh
+
