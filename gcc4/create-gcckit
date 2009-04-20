@@ -292,9 +292,8 @@ create_gccgpp_kit() {
   create_empty_dir $GCCSDK_KITS/$BKIT_GCCGPP_NAME
   for obj in $GCCSDK_TARGET_NAME/lib/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
              $GCCSDK_TARGET_NAME/lib/fpu/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
-             bin/{g++\,*,c++filt\,*} \
-             include/c++ \
-             man/man1/{c++filt.1,g++.1} ; do
+             bin/g++\,* \
+             include/c++ ; do
     mkdir -p $GCCSDK_KITS/$BKIT_GCCGPP_NAME/`basename $SRC_BKIT_GCC_UNPACKED`/`dirname $obj`
     mv $obj $GCCSDK_KITS/$BKIT_GCCGPP_NAME/`basename $SRC_BKIT_GCC_UNPACKED`/`dirname $obj`
   done
