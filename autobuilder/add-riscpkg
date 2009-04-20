@@ -262,7 +262,7 @@ if [ -d debian ] ; then
   fi
 
   if [ "$has_copyright" == "no" ] ; then
-    echo "This was built from unstable Debian sources" >> $D/RiscPkg/Copyright
+    echo "This was built from Debian testing sources" >> $D/RiscPkg/Copyright
     echo "" >> $D/RiscPkg/Copyright
     if [ -e debian/copyright ] ; then
       cat debian/copyright >> $D/RiscPkg/Copyright 

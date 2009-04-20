@@ -68,7 +68,7 @@ else
 
       echo "Autobuilder: Fetching new Sources.bz2"
 
-      wget -nv $debarchive/dists/unstable/main/source/Sources.bz2
+      wget -nv $debarchive/dists/testing/main/source/Sources.bz2
       mv Sources.bz2 $Sources
 
     else

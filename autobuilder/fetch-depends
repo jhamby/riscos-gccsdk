@@ -1,4 +1,4 @@
-#/!bin/sh
+#/!bin/bash -e
 # Fetch the dependencies from the Debian database
 # for systems without apt-cache
 
@@ -12,13 +12,11 @@ debarchive=http://ftp.uk.debian.org/debian
 
 if ! [ -e $packindex ] ||
      [ $(($(date +"%s") - $(date -r $packindex +"%s"))) -gt $((24 * 60 * 60)) ] ; then
-  wget -q $debarchive/dists/unstable/main/binary-i386/Packages.bz2
-  if [ -e $packindex.1 ] ; then
-     mv -f $packindex.1 $packindex
-  fi
+  rm -rf $packindex
+  wget -q $debarchive/dists/testing/main/binary-i386/Packages.bz2 -O $packindex
 fi
 
-if bzgrep -A20 "^Package:.*\<$PACKAGE\>$" $packindex > packentry ; then
+if bzgrep -A20 "^Package:.* $PACKAGE$" $packindex > packentry ; then
    sed -n 0,/^$/p --in-place packentry
    sed -n 0,/^--$/p --in-place packentry
 else
