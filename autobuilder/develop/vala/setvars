@@ -1,0 +1,20 @@
+AB_CATEGORY="Development"
+AB_MAINTAINER="Jan-Jaap van der Geer <jjvdgeer@c2i.net>"
+AB_LICENCE="Free"
+AB_ROVERSION=0
+
+ab_package() {
+  valadir=$D/Apps/Development
+  mkdir -p $valadir
+
+  cp -r $H/\!Vala $valadir/
+
+  cp $S/compiler/valac,e1f $valadir/!Vala/bin/
+  cp $S/doc/vala/*.html $S/doc/vala/*.css $valadir/!Vala/doc/vala
+  cp $S/AUTHORS $S/ChangeLog* $S/COPYING $S/INSTALL $S/MAINTAINERS $S/NEWS $S/README $S/THANKS $valadir/!Vala/doc
+  cp $S/vapi/* $valadir/!Vala/vapi
+
+  $AB_HOME/add-riscpkg -package "vala" \
+    -depends unixlib
+}
+

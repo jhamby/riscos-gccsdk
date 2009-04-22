@@ -1,0 +1,62 @@
+Vala for RISC OS
+
+Ever since I heard about Vala I dreamt about bringing it to RISC OS, as it
+was a modern object oriented language which I felt was desperately lacking in
+RISC OS. Vala seemed a very nice way to bring such a language to RISC OS as
+it had not a lot of dependencies on other things and it basically just
+generates C-code. And a C-compiler we have!
+
+It was not simple to get it done, as I have almost no experience with porting
+software. However, the autobuilder tools proved to be very useful and
+although it took time to get it all done, in actuality there was not a lot I
+needed to do to get a version of Vala working for RISC OS.
+
+Notes on its use under RISC OS
+
+Normally, the Vala compiler generates C code which is then compiled using a C
+compiler. This last part does not work. Not really sure if it ever will, but
+as we can call the C compiler ourselves, this is not really a problem.
+
+To compile the Hello World program, generate a textfile with the following
+contents:
+
+using GLib;
+
+public class Test.HelloObject : GLib.Object
+{
+  public static void main(string[] args)
+  {
+    stdout.printf("Hello, World\n");
+  }
+}
+
+Save this program somewhere with the name "hellow/vala".
+
+Then compile the program to a C-program:
+
+*valac --vapidir=<ValaVapi$Dir> hellow.vala -C
+
+This will generate a "c.hellow" file which contains the Vala program
+converted to C.
+
+Then compile the C program (using GCC 4)
+
+*gcc hellow.c -I/LibGLib2:glib-2.0 -LLibGLib2: -lglib-2.0 -lgobject-2.0
+-LLibGetText: -lintl -LLibPcre3: -lpcre -o hellow
+
+After that you could convert the ELF file to a normal absolete by using:
+
+*elf2aif hellow
+
+Now, you can test the program by running
+
+*hellow
+
+Vala on RISC OS is, at this moment, barely tested. So anything can go wrong!
+
+Vala can make use of existing C libraries using vapi files. I have not yet
+looked into these but it should not be problem to make use of the RISC OS API
+this way.
+
+Cheers,
+Jan-Jaap van der Geer
