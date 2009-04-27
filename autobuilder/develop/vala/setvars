@@ -12,7 +12,7 @@ ab_package() {
   cp $S/compiler/valac,e1f $valadir/!Vala/bin/
   cp $S/doc/vala/*.html $S/doc/vala/*.css $valadir/!Vala/doc/vala
   cp $S/AUTHORS $S/ChangeLog* $S/COPYING $S/INSTALL $S/MAINTAINERS $S/NEWS $S/README $S/THANKS $valadir/!Vala/doc
-  cp $S/vapi/* $valadir/!Vala/vapi
+  cp $S/vapi/*.vapi $S/vapi/*.deps $valadir/!Vala/vapi
 
   $AB_HOME/add-riscpkg -package "vala" \
     -depends unixlib
