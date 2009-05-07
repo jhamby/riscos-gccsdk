@@ -1,19 +1,16 @@
---- zip.c.orig	2008-01-12 22:14:56.000000000 -0800
-+++ zip.c	2008-01-12 22:40:36.000000000 -0800
-@@ -476,7 +476,11 @@
- #endif /* ?AMIGA */
- #ifdef RISCOS
- ,"  -I   don't scan through Image files"
--#endif
-+#else
+--- zip.c.orig	2009-05-07 11:54:09.000000000 +0100
++++ zip.c	2009-05-07 11:53:08.000000000 +0100
+@@ -668,6 +668,9 @@
+ ,"  -h2  show more help               -I   don't scan thru Image files"
+ #else
+ ,"  -h2  show more help"
 +#ifdef FORRISCOS
-+,"  -,   strip ,xxx from filename and convert to RISC OS filetype encoding"
-+#endif /* FORRISCOS */
-+#endif /* !RISCOS */
++,"  -,   strip ,xxx from filename and convert to RISCOS filetype encoding"
++#endif
+ #endif
  #endif /* ?MACOS */
-   };
- 
-@@ -557,6 +561,9 @@
+ #ifdef VMS
+@@ -1144,6 +1147,9 @@
  #if CRYPT && defined(PASSWD_FROM_STDIN)
      "PASSWD_FROM_STDIN",
  #endif /* CRYPT & PASSWD_FROM_STDIN */
@@ -23,10 +20,20 @@
      NULL
    };
  
-@@ -1246,6 +1253,12 @@
-             case 'I':   /* Don't scan through Image files */
-               scanimage = 0;
-               break;
+@@ -2109,6 +2115,9 @@
+ #ifdef RISCOS
+     {"/",  "exts-to-swap", o_REQUIRED_VALUE, o_NOT_NEGATABLE, '/',  "override Zip$Exts"},
+ #endif
++#ifdef FORRISCOS
++    {",",  "strip-type",  o_NO_VALUE,       o_NOT_NEGATABLE, ',',  "strip ,xxx extension"},
++#endif
+     /* the end of the list */
+     {NULL, NULL,          o_NO_VALUE,       o_NOT_NEGATABLE, 0,    NULL} /* end has option_ID = 0 */
+   };
+@@ -2847,6 +2856,12 @@
+         case 'I':   /* Don't scan through Image files */
+           scanimage = 0;
+           break;
 +#else
 +#ifdef FORRISCOS
 +            case ',':   /* Convert ,xxx to RISC OS extended filetype info */
@@ -35,7 +42,7 @@
 +#endif 
  #endif
  #ifdef MACOS
-             case 'j':   /* Junk path / Store absolute path */
+         case o_jj:   /* store absolute path including volname */
 --- zip.h.org	2008-01-12 22:56:51.000000000 -0800
 +++ zip.h	2008-01-12 23:00:05.000000000 -0800
 @@ -256,6 +256,10 @@
