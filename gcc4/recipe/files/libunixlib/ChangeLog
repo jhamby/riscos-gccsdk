@@ -1,3 +1,8 @@
+Mon May 11 23:31:29 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/bits/posix_opt.h(_POSIX_TIMEOUTS): Disabled as we don't
+	have pthread_mutex_timedlock.
+
 Sat Mar 28 14:36:21 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/kernel.h: Constify _kernel_osfind name parameter;

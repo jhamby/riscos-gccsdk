@@ -1,3 +1,9 @@
+/*
+ * File taken from glibc ???
+ * Following changes were made:
+ *  - Disabled _POSIX_TIMEOUTS as we don't have support for pthread_mutex_timedlock.
+ */
+
 /* Define POSIX options for Linux.
    Copyright (C) 1996-2001, 2002, 2003, 2004 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
@@ -123,7 +129,7 @@
 #define _POSIX_SHELL	1
 
 /* We support the Timeouts option.  */
-#define _POSIX_TIMEOUTS	200112L
+/* #define _POSIX_TIMEOUTS	200112L */
 
 /* We support spinlocks.  */
 #define _POSIX_SPIN_LOCKS	200112L
