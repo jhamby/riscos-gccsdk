@@ -21,6 +21,7 @@
  */
 
 #include "config.h"
+#include <assert.h>
 #include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -476,7 +477,7 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
     }
 
   /* replace symbol by its definition */
-  label = lexGetId ();
+  label = lexGetIdNoError ();
 
   if (label.tag == LexId)
     {
@@ -558,14 +559,19 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
         }
       else
         {
+          int label_len = label.tag == LexId ? label.LexId.len : 0;
+
+          assert(label.tag == LexId || label.tag == LexNone);
+
           /* Unknown symbol, but in string literal, so output verbatim */
-          if ((*ptr) + 1 + label.LexId.len >= MAX_LINE)
+          if ((*ptr) + 1 + label_len >= MAX_LINE)
             (*ptr) = MAX_LINE + 1;
           else
             {
               input_buff[(*ptr)++] = '$';
-              memcpy (input_buff + (*ptr), label.LexId.str, label.LexId.len);
-              (*ptr) += label.LexId.len;
+              if (label.tag == LexId)
+                memcpy (input_buff + (*ptr), label.LexId.str, label.LexId.len);
+              (*ptr) += label_len;
               return TRUE;
             }
         }

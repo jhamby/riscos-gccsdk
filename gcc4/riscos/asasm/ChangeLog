@@ -1,6 +1,10 @@
+Mon May 11 23:17:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* input.c(inputVarSub): Permit verbatim '$' in string literals.
+
 Mon Feb 23 15:40:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
-	* eval,c(evalUnop): Stub implementations of :fload: and :fexec:. These
+	* eval.c(evalUnop): Stub implementations of :fload: and :fexec:. These
 	aren't particularly useful, but are better than bailing out.
 	* lexAcorn.c(lexAcornUnop): Fix decode of :fexec:.
 	(lexAcornPrim): Add {ASASM}, so existing code can work around our
