@@ -26,7 +26,7 @@ and work with GCCSDK on top of a typical recent standard Unix distribution:
 
 - automake v1.9.x (*no* other version than the latest in the 1.9.x series which
   is currently 1.9.6, Debian package 'automake1.9')
-- autoconf v2.59 (*no* other version)
+- autoconf v2.59 (*no* other version, Debian package 'autoconf2.59')
 - autogen v5.5.4 (or later)
 - svn v1.2 or later (only to be used to checkout GCCSDK source code from
   svn.riscos.info Subversion server)
