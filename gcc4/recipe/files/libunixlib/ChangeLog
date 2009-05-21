@@ -1,3 +1,9 @@
+Thu May 21 18:58:32 2009  Lee Noar  <leenoar@sky.com>
+
+	* sys/exec.c(execve): Deregister the current client from the
+	Shared Object Manager before passing control to the new
+	process. Fix for bug 171.
+
 Mon May 11 23:31:29 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/bits/posix_opt.h(_POSIX_TIMEOUTS): Disabled as we don't

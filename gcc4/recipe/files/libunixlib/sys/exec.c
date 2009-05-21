@@ -467,9 +467,26 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #ifdef DEBUG
   debug_printf ("-- execve: about to call: %s\n", cli);
 #endif
+
+#ifdef PIC
+  {
+    /* Tell the Shared Object Manager that the current client has exited.
+       We must avoid accessing global variables once deregistration has
+       occurred. */
+    int regs[10];
+    struct ul_memory *mem = &__ul_memory;
+
+    (void) __os_swi(SOM_DeregisterClient, regs);
+ 
+    sulproc->sul_exec (sulproc->pid, cli,
+		       (void *) mem->stack_limit,
+		       (void *) mem->stack);
+  }
+#else
   sulproc->sul_exec (sulproc->pid, cli,
 		     (void *) __ul_memory.stack_limit,
 		     (void *) __ul_memory.stack);
+#endif
 
   /* This is never reached.  */
   return 0;
