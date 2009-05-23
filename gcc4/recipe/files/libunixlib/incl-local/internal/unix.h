@@ -64,6 +64,8 @@ struct __process
   unsigned int reported : 1;
 };
 
+/* This structure must be kept in perfect synchronisation with
+   PROC_* definitions in incl-local/internal/asm_dec.s.  */
 struct proc
 {
   int argc;  /* Command line argument count.  */
@@ -162,15 +164,11 @@ struct ul_global
   void *signalhandler_sl;
   void *signalhandler_sp;
 
-  void *__notused5;
+  char **last_environ;
 
   void *malloc_state;
 
-#if defined(PIC)
   int (*main) (int, char *[], char **);
-#else
-  void *__unused3; /* To remain unused */
-#endif
 
   int escape_disabled;
 };
@@ -188,7 +186,7 @@ struct ul_global
         struct ul_memory *mem = &__ul_memory;
         ...
       }
-   */
+ */
 struct ul_memory
 {
   /* Serialise access to this structure (opaque type).  */
@@ -321,9 +319,6 @@ extern void __env_unixlib (void);
 extern unsigned int __decstrtoui (const char *__string, const char **__end)
 	__nonnull ((1));
 
-/* If this variable is non-null then we allocated the current environment.  */
-extern char **__last_environ;
-
 /* UnixLib's prefix for global RISC OS environment variables.  */
 #define __UNIX_ENV_PREFIX "UnixEnv$"
 
@@ -406,8 +401,6 @@ extern void __unixinit (void);
    process.  */
 extern void __free_process (struct __sul_process *process)
 	__nonnull ((1));
-
-extern int _main (void);
 
 extern pid_t __fork_post (pid_t pid, int isfork);
 extern int __fork_pre (int isfork, void **sul_fork, pid_t *pid);

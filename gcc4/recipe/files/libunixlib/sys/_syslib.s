@@ -1,5 +1,5 @@
 @ Provide program entry and initialise the UnixLib world
-@ Copyright (c) 2002-2008 UnixLib Developers
+@ Copyright (c) 2002-2009 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -74,7 +74,7 @@ __main:
 
 	MOV	v1, a1
 
- PICEQ "LDR	v4, .L0+32"
+ PICEQ "LDR	v4, .L0+40"
 .LPIC0:
  PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v4, {v4, ip}"		@ v4 = Object index, ip = GOT ptr array location
@@ -130,8 +130,8 @@ __main:
 	@ to the permitted RAM limit returned by OS_GetEnv, i.e. MEM_APPSPACE_HIMEM
 	MOV	a1, #14
 	MOV	a2, #0
-	SWI	OS_ChangeEnvironment	@ No X call, if error call parent error handler.
-	STR	a2, [fp, #MEM_APPSPACE_LIMIT]
+	SWI	OS_ChangeEnvironment		@ No X call, if error call parent
+	STR	a2, [fp, #MEM_APPSPACE_LIMIT]	@ error handler.
 
 	@ For a description of the memory layout of a UnixLib application
 	@ see sys/brk.c.
@@ -141,7 +141,8 @@ __main:
 
 	@ The stack is allocated in chunks in the wimpslot, with the first
 	@ 4KB chunk immediately below 'appspace_himem'.  We cannot place it
-	@ in a dynamic area because GCC might generate trampolines.
+	@ in a dynamic area because GCC might generate trampolines.  In USR32
+	@ mode we could however.
 
 	LDR	sp, [fp, #MEM_APPSPACE_HIMEM]
 
@@ -421,7 +422,7 @@ no_dynamic_area:
 	@ Use the Dynamic Loader to call the _init functions of all
 	@ shared libraries. This also reqisters the _fini functions
 	@ with atexit().
- PICEQ "LDR	a1, .L0+36"		@ _dl_call_ctors
+ PICEQ "LDR	a1, .L0+44"		@ _dl_call_ctors
  PICEQ "LDR	a1, [v4, a1]"
  PICEQ "TEQ	a1, #0"
  PICEQ "BLNE	_dl_call_ctors"
@@ -439,21 +440,46 @@ no_dynamic_area:
 	MOV	lr, pc
 	LDR	pc, [a1, #0]
 
-	BL	_main
+	@ Check if we have a non-NULL main() routine.
+	LDR	ip, .L0+0		@ =__ul_global
+ PICEQ "LDR	ip, [v4, ip]"
+	LDR	v1, [ip, #GBL_MAIN]
+	TEQ	v1, #0
+	ADREQ	a1, no_main_routine
+	BEQ	__unixlib_fatal
+
+	@ Load in a1, a2 and a3 registers the main() parameters, i.e.
+	@ argc, argv and, for Unix systems compatibility, environ.
+	LDR	lr, .L0+32		@ = __u
+ PICEQ "LDR	lr, [v4, lr]"
+	LDR	lr, [lr, #0]		@ Points to ___u structure.
+	LDMIA	lr, {a1-a2}		@ PROC_ARGC = 0, PROC_ARGV = 4
+	LDR	a3, .L0+36		@ = environ
+ PICEQ "LDR	a3, [v4, a3]"
+	LDR	a3, [a3, #0]
+
+	MOV	lr, pc			@ Jump to supplied main() program
+	MOV	pc, v1
+	
 	@ C programs always terminate by calling exit.
 	B	exit
 .L0:
-	WORD	__ul_global
-	WORD	__ul_memory
-	WORD	dynamic_area_name_end
-	WORD	rmensure1
-	WORD	rmensure2
-	WORD	rmensure3
-	WORD	exec_init
-	WORD	exec_fini
+	WORD	__ul_global		@ offset 0
+	WORD	__ul_memory		@ offset 4
+	WORD	dynamic_area_name_end	@ offset 8
+	WORD	rmensure1		@ offset 12
+	WORD	rmensure2		@ offset 16
+	WORD	rmensure3		@ offset 20
+	WORD	exec_init		@ offset 24
+	WORD	exec_fini		@ offset 28
+	WORD	__u			@ offset 32
+	WORD	environ			@ offset 36
  PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
- PICEQ ".word	_dl_call_ctors(GOT)"
+ PICEQ ".word	_dl_call_ctors(GOT)"	@ offset 44
  PICEQ ".weak _dl_call_ctors"
+no_main_routine:
+	.asciz	"There is no main function"
+	.align
 	DECLARE_FUNCTION __main
 
 ___program_name:
@@ -1273,10 +1299,6 @@ dynamic_area_name_end:
 @ internal/asm_dec.s and prefixed 'GBL_'.  If you change this structure
 @ you must change that file.
 
-#if PIC
-	.global	main
-#endif
-
 	@ This variable refers to the base address of the UnixLib
 	@ global structure.
 	@ Altering this structure will require fixing __main.
@@ -1375,20 +1397,25 @@ __ul_global:
 	@ Stack pointer for signal handlers
 	.word	0						@ offset = 88
 
-	@ __ul_global.__notused5
+	@ __ul_global.last_environ
+	@ Non-NULL when we allocated the current environment ourselves. Is
+	@ NULL when we've inherited the environment from our parent.
 	.word	0						@ offset = 92
 
 	@ __ul_global.malloc_state
 	@ The global malloc state (opaque type).
 	.word	0						@ offset = 96
 
-#if PIC
 	@ __ul_global.main
-	@ A pointer used by the shared library to call the program's main function.
-.hidden main
-main:
+	@ A pointer to call the program's main function.  It gets the argc,
+	@ argv and, for Unix systems compatibility also environ as parameters.
+	@ Note that this copy of the environment will not get updated by getenv
+	@ nor setenv. 
+#ifdef PIC
+	.word	0
+#else
+	.word	main						@ offset = 100
 #endif
-	.word	0						@ offset = 100
 
 	@ __ul_global.escape_disabled
 	@ Non-zero if the escape key was disabled on program initialisation.

@@ -1,5 +1,5 @@
 /* putenv ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2009 UnixLib Developers
  */
 
 #include <stdlib.h>
@@ -16,6 +16,7 @@
 int
 __addenv_to_env (char *string, const char *name, const char *value, int replace)
 {
+  struct ul_global *gbl = &__ul_global;
   char **ep = NULL;
   size_t envcnt = 0;
   size_t namelen;
@@ -24,9 +25,9 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
   PTHREAD_UNSAFE
 
 #ifdef DEBUG
-  debug_printf ("-- __add_to_env: %s %s, environ=%p, __last_environ=%p\n",
+  debug_printf ("-- __add_to_env: %s %s, environ=%p, gbl->last_environ=%p\n",
 		string ? string : name, string ? "" : value, environ,
-		__last_environ);
+		gbl->last_environ);
 #endif
 
   if (string)
@@ -64,8 +65,8 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
       /* If we allocated the environ, we can extend it, else allocate it.
          A memory leak is likely when a new environ is malloc'ed, but we
          cannot free the old environ, since it may not have been malloc'ed.  */
-      if (environ == __last_environ)
-        new_environ = realloc (__last_environ, (envcnt + 2) * sizeof (char*));
+      if (environ == gbl->last_environ)
+        new_environ = realloc (gbl->last_environ, (envcnt + 2) * sizeof (char*));
       else
         if ((new_environ = malloc ((envcnt + 2) * sizeof (char*))) != NULL)
           memcpy (new_environ, environ, envcnt * sizeof (char*));
@@ -85,7 +86,7 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
           new_environ[envcnt] = malloc (namelen + valuelen + 2);
           if (new_environ[envcnt] == NULL)
             {
-              if (environ != __last_environ)
+              if (environ != gbl->last_environ)
                 free (new_environ);
               return __set_errno (ENOMEM);
             }
@@ -96,13 +97,9 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
         }
 
       new_environ[envcnt + 1] = NULL;
-      __last_environ = environ = new_environ;
+      gbl->last_environ = environ = new_environ;
     }
-  else if (!replace)
-    {
-      return 0;
-    }
-  else
+  else if (replace)
     {
       /* Replace existing variable */
       if (string)

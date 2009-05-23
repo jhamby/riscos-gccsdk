@@ -1,3 +1,25 @@
+Sat May 23 15:29:42 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/getenv.c(__last_environ): Removed, is now
+	__ul_global.last_environ.
+	* incl-local/internal/unix.h(struct ul_global): Replaced __notused5
+	by last_environ field, always have a main function pointer.
+	(_main): Removed prototype, no longer exists.
+	* unix/setenv.c(unsetenv): Micro optimisation.
+	(clearenv): Make use of last_environ from __ul_global.
+	* unix/putenv.c(__addenv_to_env): Likewise.
+	* unix/unix.c(_main, main prototype): Remove, equivalent code got
+	added to __main.
+	* incl-local/internal/asm_dec.s(PROC_ARGC,PROC_ARGV): Added.
+	(GBL_*): Fixes up some recently allocated entries.
+	(GBL_LASTENVIRON): Added.
+	* sys/_syslib.s(__main): Instead of calling _main, call user
+	supplied main routine directly.
+	(main): Have it always defined.
+	* vscript(__last_environ): Removed.
+	* local/ctypetable.c(__build_ctype_tables): Fix comment.
+	* test/env/testenv.c: Dump environ.
+
 Thu May 21 18:58:32 2009  Lee Noar  <leenoar@sky.com>
 
 	* sys/exec.c(execve): Deregister the current client from the

@@ -1,5 +1,5 @@
 /* UnixLib process initialisation and finalisation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 2002-2009 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,16 +47,6 @@ static void convert_command_line (struct proc *process, const char *cli,
 				  int cli_size);
 
 static void __badr (void) __attribute__ ((__noreturn__));
-
-/* This is the only file that need ever reference main()
-   so to prevent possible compiler errors from sources that
-   might include <internal/unix.h> we will have the main()
-   declaration here.  */
-#if defined(PIC)
-extern int (*main) (int, char *[], char **);
-#else
-extern int main (int, char *[], char **);
-#endif
 
 /* Only called externally from here - see comment below */
 extern void __dsp_exit(void);
@@ -338,24 +328,6 @@ __unixinit (void)
 #ifdef DEBUG
   __debug ("__unixinit: process creation complete");
 #endif
-}
-
-int
-_main (void)
-{
-  /* Enter the user's program. For compatibility with Unix systems,
-     pass the 'environ' variable as a third argument.
-
-     This copy of the environment will not get updated by getenv
-     or setenv.  */
-
-#if defined(PIC)
-  /* Validate the main function pointer (shared library only) */
-  if (main == NULL)
-    __unixlib_fatal ("Pointer to main function is NULL");
-#endif
-
-  return main (__u->argc, __u->argv, environ);
 }
 
 void

@@ -1,5 +1,5 @@
 /* Set Unix-style environment variables.
-   Copyright (c) 2005, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 2005, 2007, 2008, 2009 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <string.h>
@@ -89,22 +89,24 @@ unsetenv (const char *name)
     __remenv_from_os (name);
   else
     {
-      const size_t len = strlen (name);
-      char **ep;
-      const char *env;
-
       if (environ != NULL)
-        for (ep = environ; (env = *ep) != NULL; ep++)
-          if (!strncmp (env, name, len) && env[len] == '=')
-            {
-              /* Found it.  Remove this pointer by moving later ones back.  */
-              char **dp = ep;
-              do
-                dp[0] = dp[1];
-              while (*dp++);
-              /* Continuing the loop in case NAME appears again, so adjust ep.  */
-              --ep;
-            }
+	{
+	  const size_t len = strlen (name);
+	  const char **ep;
+	  const char *env;
+
+	  for (ep = environ; (env = *ep) != NULL; ep++)
+	    if (!strncmp (env, name, len) && env[len] == '=')
+	      {
+		/* Found it.  Remove this pointer by moving later ones back.  */
+		char **dp = ep;
+		do
+		  dp[0] = dp[1];
+		while (*dp++);
+		/* Continuing the loop in case NAME appears again, so adjust ep.  */
+		--ep;
+	      }
+	}
     }
 
   return 0;
@@ -119,15 +121,17 @@ unsetenv (const char *name)
 int
 clearenv (void)
 {
+  struct ul_global *gbl = &__ul_global;
+
   /* We do not remove names from the global OS environment with clearenv.
      If the user wants to remove a global name, they should use unsetenv.  */
 
   PTHREAD_UNSAFE
 
-  if (environ == __last_environ && environ != NULL)
+  if (environ == gbl->last_environ && environ != NULL)
     {
       /* We allocated this environment so we can free it.  */
-      __last_environ = NULL;
+      gbl->last_environ = NULL;
       free (environ);
     }
 

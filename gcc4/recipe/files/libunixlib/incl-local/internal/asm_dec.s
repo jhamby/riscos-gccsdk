@@ -1,5 +1,5 @@
 @ Global definitions used by all assembler files.
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers.
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2009 UnixLib Developers.
 
 @ Bits that control which bits are compiled into UnixLib. Note, this must be
 @ kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
@@ -280,6 +280,11 @@
 .set	SharedUnixLibrary_Initialise, 0x55c84
 .set	XSharedUnixLibrary_Initialise, 0x55c84 + X_Bit
 
+	@ Entries into the struct proc structure.  Must be kept in sync with
+	@ incl-local/internal/unix.h.
+.set	PROC_ARGC, 0			@ = __u->argc
+.set	PROC_ARGV, 4			@ = __u->argv
+
 	@ Entries into the __ul_global structure.  Must be kept in sync with
 	@ sys/_syslib.s.
 .set	GBL_UNIXLIB_CLI, 0		@ = __ul_global.cli
@@ -287,12 +292,12 @@
 .set	GBL_TIME_LOW, 4			@ = __ul_global.time[0]
 .set	GBL_TIME_HIGH, 8		@ = __ul_global.time[1]
 
-.set	GBL_NOTUSED1, 12		@ = __ul_global.__notused1
+.set	GBL_REWINDPIPEOFFSET, 12	@ = __ul_global.rewindpipeoffset
 .set	GBL_TASKWINDOW, 16		@ = __ul_global.taskwindow
-.set	GBL_TASKHANDLE, 20		@ = __ul_global.taskwindow
+.set	GBL_TASKHANDLE, 20		@ = __ul_global.taskhandle
 .set	GBL_DYNAMIC_NUM, 24		@ = __ul_global.dynamic_num
-.set	GBL_NOTUSED4, 28		@ = __ul_global.__notused4
-.set	GBL_NOTUSED2, 32		@ = __ul_global.__notused2
+.set	GBL_CHANGEREDIR0, 28		@ = __ul_global.changeredir0
+.set	GBL_CHANGEREDIR1, 32		@ = __ul_global.changeredir1
 .set	GBL_PANIC_MODE, 36		@ = __ul_global.panic_mode
 .set	GBL_SULPROC, 40			@ = __ul_global.sulproc
 .set	GBL_PAGESIZE, 44		@ = __ul_global.pagesize
@@ -310,14 +315,10 @@
 .set	GBL_SIGNALHANDLER_SL, 84	@ = __ul_global.signalhandler_sl
 .set	GBL_SIGNALHANDLER_SP, 88	@ = __ul_global.signalhandler_sp
 
-.set	GBL_NOTUSED5, 92		@ = __ul_global.__notused5
+.set	GBL_LASTENVIRON, 92		@ = __ul_global.last_environ
 .set	GBL_MALLOC_STATE, 96		@ = __ul_global.malloc_state
-#if defined(PIC)
 .set	GBL_MAIN, 100			@ = __ul_global.main
-#else
-.set	GBL_NOTUSED3, 100		@ = __ul_global.__notused3
-#endif
-.set	GBL_ESCAPEDISABLED, 104		@ = __ul_global.escapedisabled
+.set	GBL_ESCAPEDISABLED, 104		@ = __ul_global.escape_disabled
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
 	@ sys/_syslib.s.

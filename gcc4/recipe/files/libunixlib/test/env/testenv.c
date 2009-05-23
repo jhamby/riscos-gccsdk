@@ -68,9 +68,13 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
-int main (int argc, char *argv[])
+int
+main (int argc, char *argv[], char **env)
 {
+  char *eP, **ePP;
+
   printf ("** I'm %s\n", argv[0]);
   puts ("-- get definition");
 
@@ -83,6 +87,18 @@ int main (int argc, char *argv[])
   printf ("my$test: %s\n", getenv ("my$test"));
   printf ("my$test2: %s\n", getenv ("my$test2"));
 
+  /* Dump given environment:  */
+  printf ("vvv main() environment: %p\n", env);
+  if (env)
+    for (ePP = env; (eP = *ePP) != NULL; ++ePP)
+      printf ("Env: <%s>\n", eP);
+  printf ("^^^\n");
+  printf ("vvv 'environ' environment: %p (pointer value stored at %p)\n", environ, &environ);
+  if (environ)
+    for (ePP = environ; (eP = *ePP) != NULL; ++ePP)
+      printf ("Env: <%s>\n", eP);
+  printf ("^^^\n");
+
   puts ("-- start definition");
 
   /* Defining 'test' and 'test2' will stick to UnixLib environment.
@@ -90,7 +106,7 @@ int main (int argc, char *argv[])
   setenv ("test", "testval", 1);
   putenv ("test2=someval");
 
-  /* However, defning 'my$test' and 'my$test2'  (i.e. containing a '$')
+  /* However, defining 'my$test' and 'my$test2'  (i.e. containing a '$')
      will make sure that those definitions also appear as RISC OS
      system variables.  */
   setenv ("my$test", "testval", 1);

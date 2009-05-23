@@ -15,13 +15,11 @@
 #ifdef DEBUG
 #  include <sys/debug.h>
 #endif
-
-/* This global variable is also initialised in unix.c when we are a child.  */
+ 
+/* This global variable is our current environment.  This can be inherited
+   from parent (then __ul_global.last_environ is NULL), or allocated ourselves
+   (then __ul_global.last_environ is non-NULL).  */
 char **environ = NULL;
-
-/* If this variable is not a null pointer we allocated the current
-   environment.  */
-char **__last_environ = NULL;
 
 
 /* Get environment value from OS and copy into BUF and return a pointer to BUF.

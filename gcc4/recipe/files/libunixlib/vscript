@@ -62,7 +62,6 @@ VERSION {
      __invalidate;
      __isdir_raw;
      __isdir;
-     __last_environ;
      malloc_trim;
      malloc_trim_unlocked;
      malloc_unlocked;

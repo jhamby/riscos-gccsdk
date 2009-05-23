@@ -1,5 +1,5 @@
 /* __build_ctype_tables ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2009 UnixLib Developers
  */
 
 #include <ctype.h>
@@ -21,7 +21,7 @@ __build_ctype_tables (int territory)
 
   if (territory == -2)
     {
-      /* Initialise the array. This is only done by _main().  */
+      /* Initialise the array. This is only done by __unixinit().  */
       territory = -1;
       for (x = 0; x <= LC_ALL; x++)
         __locale_territory[x] = -1;
