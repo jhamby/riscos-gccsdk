@@ -1,3 +1,7 @@
+Wed May 27 21:44:59 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-path: Also export ASASM to asasm path.
+
 Fri Dec  5 22:05:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 
 	* ro-config: Don't have RO_SHAREDLIBS hardwired to 'yes' (partially
