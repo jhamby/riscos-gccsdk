@@ -74,6 +74,10 @@ int option_apcs_softfloat = -1; /* -1 = option not specified.  */
 int option_rma_module = 0;
 int option_aof = -1; /* -1 = option not specified.  */
 
+const char *predefines[MAX_PREDEFINES];
+int num_predefines = 0;
+
+
 const char *ProgName = NULL;
 const char *ObjFileName = NULL;
 const char *SourceFileName = NULL;
@@ -88,7 +92,10 @@ as_help (void)
 	   "\n"
 	   "Options:\n"
 	   "-o objfile                 Specifies destination AOF file.\n"
-	   "-Idirectory                Search 'directory' for included assembler files.\n"
+	   "-I<directory>              Search 'directory' for included assembler files.\n"
+	   "-D<variable>               Define a string variable.\n"
+	   "-D<variable>=<value>       Define a string variable to a certain value.\n"
+	   "-PD <value>                Predefine a value using SETI/SETS/SETL syntax.\n"
 	   "-pedantic      -p          Display extra warnings.\n"
 	   "-verbose       -v          Display progress information.\n"
 	   "-fussy         -f          Display conversion information.  Can be specified more than once for more conversion information.\n"
@@ -229,6 +236,23 @@ main (int argc, char **argv)
 	  else
 	    var_define (argv[0] + 2);
 	}
+      else if (strcmp(argv[0], "-PD") == 0)
+        {
+          if (--argc)
+            {
+              if (num_predefines == MAX_PREDEFINES)
+                {
+		  fprintf (stderr, "%s: Too many predefines\n", ProgName);
+		  return EXIT_FAILURE;
+                }
+
+              predefines[num_predefines++] = *++argv;
+            }
+          else
+            {
+              fprintf (stderr, "%s: Missing argument after -PD\n", ProgName);
+            }
+        }
       else if (IS_ARG ("-o", "-To"))
 	{
 	  if (ObjFileName != NULL)

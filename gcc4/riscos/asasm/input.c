@@ -321,20 +321,58 @@ inputNextLine (void)
     }
   if (asmfile == NULL)
     goto retBad;
-  inputLineNo++;
-  if (macroCurrent && macroGetLine (workBuff))
-    goto ret;
-  while (fgets (workBuff, MAX_LINE, asmfile) == NULL)
+
+  if (num_predefines)
     {
-      if (option_pedantic)
-	error (ErrorWarning, TRUE, "No END found in this file");
-      if ((asmfile = pop_file ()) == NULL)
-	{
-retBad:
-	  inputLineNo = -inputLineNo;
-	  return FALSE;
-	}
+       static int toggle = 0;
+       static int num = 0;
+
+       const char *predefine = predefines[num];
+
+       /* Predefine.  We insert the values into the input stream before the main code */
+       /* Would benefit from buffer overrun checks */
+       if (!toggle)
+         {
+           const char *space = strchr(predefine, ' ');
+           const char *type = strstr(predefine, " SET");
+           if (!space) error (ErrorError, TRUE, "Invalid predefine");
+
+           if (type && (type[4] == 'L' || type[4] == 'S' || type[4] == 'I')) 
+             {
+               sprintf(workBuff, "\tGBL%c ", type[4]);
+               strncat(workBuff, predefine, space - predefine);
+               strcat(workBuff, "\n");
+             }
+           else
+             *workBuff = '\0';
+         }
+       else
+         {
+           sprintf(workBuff, "%s\n", predefine);
+           num++;
+         }
+
+       toggle = !toggle;
+       if (num == num_predefines) num_predefines = 0;
     }
+  else
+    {
+      inputLineNo++;
+      if (macroCurrent && macroGetLine (workBuff))
+        goto ret;
+      while (fgets (workBuff, MAX_LINE, asmfile) == NULL)
+        {
+          if (option_pedantic)
+	    error (ErrorWarning, TRUE, "No END found in this file");
+          if ((asmfile = pop_file ()) == NULL)
+	    {
+retBad:
+	      inputLineNo = -inputLineNo;
+	      return FALSE;
+	    }
+        }
+    }
+
   l = strlen (workBuff);
   if (l)
     {

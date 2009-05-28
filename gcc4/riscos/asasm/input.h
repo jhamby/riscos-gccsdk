@@ -38,6 +38,10 @@ extern BOOL inputExpand;
 extern BOOL inputRewind;
 extern const char *inputName;
 
+#define MAX_PREDEFINES 10
+extern const char *predefines[MAX_PREDEFINES];
+extern int num_predefines;
+
 void inputInit (const char *infile);
 void inputFinish (FILE *newAsmFile);
 

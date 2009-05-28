@@ -1,3 +1,9 @@
+Wed May 27 20:28:55 PDT 2009  Peter Naulls <peter@chocky.org>
+
+	* input.c, input.h, main.c: Approximate the -PD flag to objasm
+	to allow the SETx syntax to be passed on the command line.
+	This is largely a hack for the benefit of ROOL source.
+
 Mon May 11 23:17:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* input.c(inputVarSub): Permit verbatim '$' in string literals.
