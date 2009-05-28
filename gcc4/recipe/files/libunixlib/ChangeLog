@@ -1,3 +1,8 @@
+Wed May 27 20:31:18 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* sys/byteorder.h: Fix bogus include.  Seems to have been wrong
+	for a long time.
+
 Sat May 23 15:29:42 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/getenv.c(__last_environ): Removed, is now

@@ -10,7 +10,7 @@
 #endif
 
 #ifndef __ENDIAN_H
-#include <machine/endian.h>
+#include <endian.h>
 #endif
 
 #ifndef __UNIXLIB_TYPES_H
