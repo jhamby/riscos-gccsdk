@@ -13,8 +13,10 @@ Overview of the changes made so far:
     module code. Added an example for this new feature.
   - constify a lot of pointers.
   - several manual typo fixes and added explanation on 'pdriver-handler'.
-  - strduptok/strfindpair/strstring : use memcpy() instead of strncpy() for
-    more clearness.
+  - source improvements:
+    - strduptok/strfindpair/strstring : use memcpy() instead of strncpy() for
+      more clearness.
+    - use of 'const' where it makes sense.
 
 The GCCSDK-DIFF file contains those changes in diff format and are submitted
 back to the CMunge authors for possible inclusion in future versions.  It is

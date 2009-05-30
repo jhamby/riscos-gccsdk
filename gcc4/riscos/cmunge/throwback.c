@@ -75,14 +75,14 @@ void Throwback_Shutdown(void)
   /* Nothing to do */
 }
 
-void vThrowbackf(seriousness_t seriousness,char *file,int line,char *format,va_list args)
+void vThrowbackf(seriousness_t seriousness,const char *file,int line,const char *format,va_list args)
 {
   char buf[1024];
   vsprintf(buf,format,args);
   Throwback(seriousness,file,line,buf);
 }
 
-void Throwback(seriousness_t seriousness,char *file,int line,char *message)
+void Throwback(seriousness_t seriousness,const char *file,int line,const char *message)
 {
   fprintf(stderr, "%s:%d: %s: %s\n", file, line, (seriousness==s_information) ? "info" : "warning", message);
 }

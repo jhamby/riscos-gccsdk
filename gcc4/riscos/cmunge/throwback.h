@@ -18,7 +18,7 @@ typedef enum {
   s_warning=0, s_error, s_seriouserror, s_information
 } seriousness_t;
 
-void vThrowbackf(seriousness_t seriousness,char *file,int line,char *format,va_list args);
-void Throwback(seriousness_t seriousness,char *file,int line,char *message);
+void vThrowbackf(seriousness_t seriousness,const char *file,int line,const char *format,va_list args);
+void Throwback(seriousness_t seriousness,const char *file,int line,const char *message);
 
 #endif

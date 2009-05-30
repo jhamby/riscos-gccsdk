@@ -6,10 +6,10 @@
 
 #define ERROR_H
 
-void ErrorFatal(char *err, ...);
+void ErrorFatal(const char *err, ...);
 
-void Warning(char *err, ...);
+void Warning(const char *err, ...);
 
-void CMHGWarning(char *err, ...);
+void CMHGWarning(const char *err, ...);
 
 #endif

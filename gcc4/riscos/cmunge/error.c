@@ -8,7 +8,7 @@
 #include "options.h"
 #include "throwback.h"
 
-void ErrorFatal(char *err, ...) {
+void ErrorFatal(const char *err, ...) {
 
   va_list args;
 
@@ -33,7 +33,7 @@ void ErrorFatal(char *err, ...) {
   exit(EXIT_FAILURE);
 }
 
-void Warning(char *err, ...) {
+void Warning(const char *err, ...) {
 
   va_list args;
 
@@ -53,7 +53,7 @@ void Warning(char *err, ...) {
 
 /* This will eventually do either warning or fatal error depending
    on a switch */
-void CMHGWarning(char *err, ...) {
+void CMHGWarning(const char *err, ...) {
 
   va_list args;
 
