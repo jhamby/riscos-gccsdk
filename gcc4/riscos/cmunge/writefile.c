@@ -839,13 +839,13 @@ static void service(void)
   }
   else
   {
-    fprintf(file, "\tTEQ      pc,pc\n"
-                  "\tMOVNE    r8,pc\n"
-                  "\tBICNE    r3,r8,#3\n"
-                  "\tTEQNEP   r3,#3\n"
-                  "\tMRSEQ    r6,cpsr\n"
-                  "\tORREQ    r3,r6,#3\n"
-                  "\tMSREQ    cpsr_ctl,r3\n");
+    fprintf(file, "\tTEQ\tpc,pc\n"
+                  "\tMOVNE\tr8,pc\n"
+                  "\tBICNE\tr3,r8,#3\n"
+                  "\tTEQNEP\tr3,#3\n"
+                  "\tMRSEQ\tr6,cpsr\n"
+                  "\tORREQ\tr3,r6,#3\n"
+                  "\tMSREQ\tcpsr_c,r3\n");
   }
   fprintf(file, "\tMOV\tr11,#0\n"
                 "\tMOV\tr7,r14\n"
@@ -875,7 +875,7 @@ static void service(void)
   else
   {
     fprintf(file, "\tTEQ\tpc,pc\n"
-                  "\tMSREQ\tcpsr_ctl,r6\n"
+                  "\tMSREQ\tcpsr_c,r6\n"
                   "\tTEQNEP\tr8,#0\n");
   }
   output_SUB_Lib_Reloc();
@@ -1304,8 +1304,8 @@ static void swi_handler(void)
   {
     fprintf(file, "\tBNE\t_CMUNGE_swi_10\n"              
                   "\tTEQ\tpc,pc\n"              
-                  "\tLDMNEIA\tr13!,{r0-r9,pc}^\n");
-    output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
+                  "\tLDMNEIA\tr13!,{r0-r9,pc}^\n"
+                  "\tMSR\tcpsr_cxsf,r8\n");
     fprintf(file, "\tLDMIA\tr13!,{r0-r9,pc}\n");
     output_label("_CMUNGE_swi_10");
   }
@@ -1323,8 +1323,8 @@ static void swi_handler(void)
     fprintf(file, "\tTEQ\tpc,pc\n"              
                   "\tLDMNEIA\tr13!,{r1-r9,r14}\n"              
                   "\tORRNES\tpc,r14,#0x10000000\n"              
-                  "\tORR\tr8,r8,#0x10000000\n");
-    output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
+                  "\tORR\tr8,r8,#0x10000000\n"
+                  "\tMSR\tcpsr_cxsf,r8\n");
     fprintf(file, "\tLDMIA\tr13!,{r1-r9,pc}\n");
     output_label("_CMUNGE_swi_30");
   }
@@ -1397,9 +1397,9 @@ static void pdriver_handler(void)
   {
     fprintf(file, "\tBNE\t_CMUNGE_pdriver_10\n"              
                   "\tTEQ\tpc,pc\n"              
-                  "\tLDMNEIA\tr13!,{r0-r9,pc}^\n");
-    output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
-    fprintf(file, "\tLDMIA\tr13!,{r0-r9,pc}\n");
+                  "\tLDMNEIA\tr13!,{r0-r9,pc}^\n"
+                  "\tMSR\tcpsr_cxsf,r8\n"
+                  "\tLDMIA\tr13!,{r0-r9,pc}\n");
     output_label("_CMUNGE_pdriver_10");
   }
   fprintf(file, "\tADD\tr13,r13,#4\n"              
@@ -1416,9 +1416,9 @@ static void pdriver_handler(void)
     fprintf(file, "\tTEQ\tpc,pc\n"              
                   "\tLDMNEIA\tr13!,{r1-r9,r14}\n"              
                   "\tORRNES\tpc,r14,#0x10000000\n"              
-                  "\tORR\tr8,r8,#0x10000000\n");
-    output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
-    fprintf(file, "\tLDMIA\tr13!,{r1-r9,pc}\n");
+                  "\tORR\tr8,r8,#0x10000000\n"
+                  "\tMSR\tcpsr_cxsf,r8\n"
+                  "\tLDMIA\tr13!,{r1-r9,pc}\n");
     output_label("_CMUNGE_pdriver_30");
   }
   fprintf(file, "\tADR\tr0,_CMUNGE_sht_pd\n"              
@@ -1594,7 +1594,7 @@ static void veneers(void)
                   "\tTEQNEP\tr3,#0\n"              
                   "\tMRSEQ\tr6,cpsr\n"              
                   "\tORREQ\tr3,r6,#3\n"              
-                  "\tMSREQ\tcpsr_ctl,r3\n");
+                  "\tMSREQ\tcpsr_c,r3\n");
   }
   fprintf(file, "\tMOV\tr1,r12\n"              
                 "\tMOV\tr7,r14\n"              
@@ -1719,11 +1719,11 @@ static void veneers(void)
       fprintf(file, "\tMOVNE\tr0,#0\t"); output_comment("Mark as claiming\n");
     }
     fprintf(file, "\tMOV\tr12,r6\n"              
-                  "\tMSR\tcpsr_ctl,r6\n"              
+                  "\tMSR\tcpsr_c,r6\n"              
                   "\tTEQ\tr0,#0\n"              
                   "\tLDMIA\tr13!,{r0-r11,r14}\n"              
                   "\tLDREQ\tr14,[r13],#4\n"              
-                  "\tMSR\tcpsr_flg,r12\n"              
+                  "\tMSR\tcpsr_f,r12\n"              
                   "\tMOV\tpc,r14\n");
   }
 }
@@ -1767,7 +1767,7 @@ static void vector_traps(void)
                   "\tTEQNEP\tr3,#3\n"              
                   "\tMRSEQ\tr6,cpsr\n"              
                   "\tORREQ\tr3,r6,#3\n"              
-                  "\tMSREQ\tcpsr_ctl,r3\n");
+                  "\tMSREQ\tcpsr_c,r3\n");
   }
   fprintf(file, "\tMOV\tr1,r12\n"              
                 "\tMOV\tr7,r14\n"              
@@ -1812,7 +1812,7 @@ static void vector_traps(void)
   else
   {
     fprintf(file, "\tTEQ\tpc,pc\n"              
-                  "\tMSREQ\tcpsr_ctl,r6\n"              
+                  "\tMSREQ\tcpsr_c,r6\n"              
                   "\tTEQNEP\tr8,#0\n");
   }
   /* We need to return if 1,
@@ -1841,7 +1841,7 @@ static void vector_traps(void)
     fprintf(file, "\tTEQ\tpc,pc\n"              
                   "\tLDR\tr14, [sp], #4\n"              
                   "\tMOVNES\tpc,r14\n"              
-                  "\tMSR\tcpsr_flg,r12\n"              
+                  "\tMSR\tcpsr_f,r12\n"              
                   "\tMOV\tpc, r14\n");
 
     output_comment("r0 = anything else (claim+VS+R0 returned)\n");
@@ -1853,7 +1853,7 @@ static void vector_traps(void)
                   "\tORREQ\tr12, r6, #0x10000000\n"              
                   "\tORRNE\tr14, r14, #0x10000000\n"              
                   "\tMOVNES\tpc,r14\n"              
-                  "\tMSR\tcpsr_flg,r12\n"              
+                  "\tMSR\tcpsr_f,r12\n"              
                   "\tMOV\tpc, r14\n");
   }
 
@@ -1973,7 +1973,7 @@ static void generics(void)
                     "\tTEQNEP\tr3,#0\n"              
                     "\tMRSEQ\tr6,cpsr\n"              
                     "\tORREQ\tr3,r6,#3\n"              
-                    "\tMSREQ\tcpsr_ctl,r3\n");
+                    "\tMSREQ\tcpsr_c,r3\n");
     }
     fprintf(file, "\tMOV\tr1,r12\n"              
                   "\tMOV\tr7,r14\n"              
@@ -2072,7 +2072,7 @@ static void generics(void)
                       "\tBICS\tr14,r0,#2\t"); output_comment("NE if r0 <> 0 and r0 <> 2\n");
         fprintf(file, "\tSTRNE\tr0,[r13,#0]\n"              
                       "\tORRNE\tr6,r6,#0x10000000\n"              
-                      "\tMSR\tcpsr_flg,r6\n"              
+                      "\tMSR\tcpsr_f,r6\n"              
                       "\tLDMIA\tr13!,{r0-r11,pc}\n");
       }
       else
@@ -2087,7 +2087,7 @@ static void generics(void)
         fprintf(file, "\tTEQ\tr0,#0\n"              
                       "\tSTRNE\tr0,[r13,#0]\n"              
                       "\tORRNE\tr6,r6,#0x10000000\n"              
-                      "\tMSR\tcpsr_flg,r6\n"              
+                      "\tMSR\tcpsr_f,r6\n"              
                       "\tLDMIA\tr13!,{r0-r11,pc}\n");
       }
     }
