@@ -68,12 +68,37 @@ static void output_SUB_Lib_Reloc_S(void)
           "\tDCD\t|_Lib$Reloc$Off$DP| + &E25AA000\n", file);
 }
 
-/* Write comment in assembler file.  */
+/* Write comment in assembler file.  Support multiline comments but terminating
+   EOL characters are not part of the comment and outputed directly.  */
 static void output_comment(const char *comment)
 {
-  fputc((opt.toolchain == tc_gcc) ? '@' : ';', file);
-  fputc(' ', file);
-  fputs(comment, file);
+  while (1)
+    {
+      fputc((opt.toolchain == tc_gcc) ? '@' : ';', file);
+      fputc(' ', file);
+      for (/* */; *comment != '\0' && *comment != '\n'; ++comment)
+	fputc(*comment, file);
+      if (*comment == '\0')
+	break;
+      /* Check if we have terminating EOL characters.  */
+      const char *s;
+      for (s = comment; *s == '\n'; ++s)
+	/* */;
+      if (*s != '\0')
+	{
+	  /* We have one or more EOL characters in the comment itself.  So
+	     start a new comment line in the output.  */
+	  fputc('\n', file);
+	  ++comment; /* Skip one EOL character.  */
+	}
+      else
+	{
+	  /* Output the rest of the comment which is nothing else than one or
+	     more EOL characters and bail out.  */
+	  fputs(comment, file);
+	  break;
+	}
+    }
 }
 
 /* Write comment in assembler file.  */
