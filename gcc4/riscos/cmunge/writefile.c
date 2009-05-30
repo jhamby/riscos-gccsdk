@@ -915,15 +915,15 @@ static void start(void)
         output_weak_import("__root_stack_size");
         output_import("main");
         output_export("_CMUNGE_stack");
-        fprintf(file, "\tMOV\tv1,r0 \t; Save command tail\n"
-                      "\tLDR\tr12,[r12]\t; Workspace ptr from private word\n"
-                      "\tLDMIB\tr12,{v2,v3}\t; Module relocations\n"
-                      "\tLDR\tv4,_CMUNGE_stackptr\t; A Ptr to stack variable\n"
-                      "\tADD\tv4,v4,v3\t; gets relocated for user variable\n"
-                      "\tLDR\tr0,[v4]\t; stack chunk\n"
-                      "\tTEQ\tr0,#0\t; is it 0 ?\n"
-                      "\tBNE\t_CMUNGE_apprunning\t; if not, there's a stack already\n"
-                      "\tMOV\tr0,#6\n"
+        fprintf(file, "\tMOV\tv1,r0\t"); output_comment("Save command tail\n");
+        fprintf(file, "\tLDR\tr12,[r12]\t"); output_comment("Workspace ptr from private word\n");
+        fprintf(file, "\tLDMIB\tr12,{v2,v3}\t"); output_comment("Module relocations\n");
+        fprintf(file, "\tLDR\tv4,_CMUNGE_stackptr\t"); output_comment("A Ptr to stack variable\n");
+        fprintf(file, "\tADD\tv4,v4,v3\t"); output_comment("gets relocated for user variable\n");
+        fprintf(file, "\tLDR\tr0,[v4]\t"); output_comment("stack chunk\n");
+        fprintf(file, "\tTEQ\tr0,#0\t"); output_comment("is it 0 ?\n");
+        fprintf(file, "\tBNE\t_CMUNGE_apprunning\t"); output_comment("if not, there's a stack already\n");
+        fprintf(file, "\tMOV\tr0,#6\n"
                       "\tLDR\tr3, =|__root_stack_size|\n"
                       "\tTEQ\tr3, #0\n"
                       "\tMOVEQ\tr3,#8192\t; default stack size\n"
@@ -949,18 +949,18 @@ static void start(void)
                       "\tMOV\tr0,#0\n"
                       "\tSTR\tr0,[v4]\n"
                       "\n"
-                      "\tMOV\tr0,v1\t; FIXME: this is wrong - it's ShareFS code\n"
-                      "\tSWI\tOS_Exit\n"
+                      "\tMOV\tr0,v1\t"); output_comment("FIXME: this is wrong - it's ShareFS code\n");
+        fprintf(file, "\tSWI\tOS_Exit\n"
                       "\n");
         output_label("_CMUNGE_freeappstack");
         fprintf(file, "\tSTMFD\tsp!,{r0-r4,r14}\n"
-                      "\tLDR\tr4,_CMUNGE_stackptr\t; A Ptr to stack variable\n"
-                      "\tLDR\tr3,[sl,#-536]\n"
-                      "\tADD\tr4,r4,r3\t; gets relocated for user variable\n"
-                      "\tLDR\tr2,[r4]\t; stack chunk pointer\n"
-                      "\tTEQ\tr2,#0\t; is it allocated ?\n"
-                      "\tMOVNE\tr0,#7\t; if so, free it\n"
-                      "\tSWINE\tOS_Module\n"
+                      "\tLDR\tr4,_CMUNGE_stackptr\t"); output_comment("A Ptr to stack variable\n");
+        fprintf(file, "\tLDR\tr3,[sl,#-536]\n"
+                      "\tADD\tr4,r4,r3\t"); output_comment("gets relocated for user variable\n");
+        fprintf(file, "\tLDR\tr2,[r4]\t"); output_comment("stack chunk pointer\n");
+        fprintf(file, "\tTEQ\tr2,#0\t"); output_comment("is it allocated ?\n");
+        fprintf(file, "\tMOVNE\tr0,#7\t"); output_comment("if so, free it\n");
+        fprintf(file, "\tSWINE\tOS_Module\n"
                       "\tMOV\tr0,#0\n"
                       "\tSTR\tr0,[r4]\n");
         if (CODE26)
