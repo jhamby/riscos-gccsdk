@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 1999-2003 Robin Watts/Justin Fletcher
+ * Copyright (c) 2007-2009 GCCSDK Developers
  */
 
 #include <stdarg.h>
@@ -362,11 +363,10 @@ static void asm_header(void)
     output_export("Image__RO_Base");
     if (opt.toolchain == tc_gcc)
     {
-      fputs("\
-\t.section .rodata\n\
-\t.align 2\n\
-\t.type Image__RO_Base, %object\n\
-\t.size Image__RO_Base, 4\n", file);
+      fputs("\t.section .rodata\n"
+            "\t.align 2\n"
+            "\t.type Image__RO_Base, %object\n"
+            "\t.size Image__RO_Base, 4\n", file);
     }
     else
       fputs("\tAREA\tCode_Description, DATA, REL\n", file);
@@ -379,10 +379,9 @@ static void asm_header(void)
   {
     /* FIXME: adr vs adrl support needs to be written when I start understanding the
        GAS macro assembler syntax better. */
-    fputs("\
-.macro\taddr reg:req object:req cc\n\
-\tadrl\\cc\t\\reg, \\object\n\
-.endm\n\n", file);
+    fputs(".macro\taddr reg:req object:req cc\n"
+          "\tadrl\\cc\t\\reg, \\object\n"
+          ".endm\n\n", file);
   }
   else
   {
@@ -629,14 +628,14 @@ static void commands(void)
     }
   }
   output_label("_CMUNGE_ce");
-  fprintf(file, "\tSTMDB\tr13!,{r0,r10,r11,r14}\n");
-  fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-  fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-  fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tMOV\tr3,r12\n");
-  fprintf(file, "\tLDR\tr12,[r12]\n");
-  fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
-  fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+  fprintf(file, "\tSTMDB\tr13!,{r0,r10,r11,r14}\n"
+                "\tMOV\tr10,r13,LSR #20\n"
+                "\tMOV\tr10,r10,LSL #20\n"
+                "\tLDMIA\tr10,{r4,r5}\n"
+                "\tMOV\tr3,r12\n"
+                "\tLDR\tr12,[r12]\n"
+                "\tLDMIB\tr12,{r11,r12}\n"
+                "\tSTMIA\tr10,{r11,r12}\n");
   output_ADD_Lib_Reloc();
   fprintf(file, "\tMOV\tr11,#0\n");
   if (opt.command_codesupplied)
@@ -649,8 +648,8 @@ static void commands(void)
       if (!l->no_handler)
         numentries++;
     }
-    fprintf(file, "\tMOV\tr14,pc\n");
-    fprintf(file, "\tADD\tr14,r14,# _CMUNGE_com_ret - _CMUNGE_com_pc\n");
+    fprintf(file, "\tMOV\tr14,pc\n"
+                  "\tADD\tr14,r14,# _CMUNGE_com_ret - _CMUNGE_com_pc\n");
     output_label("_CMUNGE_com_pc");
     fprintf(file, "\tCMP\tr2,#%i\n",numentries);
     fprintf(file, "\tADDLO\tpc,pc,r2,LSL #2\n");
@@ -693,23 +692,23 @@ static void commands(void)
     fprintf(file, "\tBL\t%s\n", opt.helpfn);
   }
   output_SUB_Lib_Reloc();
-  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tLDMIA\tr13!,{r1,r10,r11,r14}\n");
-  fprintf(file, "\tCMP\tr1,r0\n");
-  fprintf(file, "\tCMPNE\tr0,#0\n");
+  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n"
+                "\tLDMIA\tr13!,{r1,r10,r11,r14}\n"
+                "\tCMP\tr1,r0\n"
+                "\tCMPNE\tr0,#0\n");
   if (CODE26)
     fprintf(file, "\tBICEQS\tpc,r14,#0x10000000\n");
   else
     fprintf(file, "\tMOVEQ\tpc,r14\n");
-  fprintf(file, "\tCMN\tr0,#1\n");
-  fprintf(file, "\tMOVEQ\tr0,#0\n");
+  fprintf(file, "\tCMN\tr0,#1\n"
+                "\tMOVEQ\tr0,#0\n");
   if (CODE26)
     fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
   else
   {
-    fprintf(file, "\tMOV\tr1,#0\n");
-    fprintf(file, "\tCMP\tr1,#1<<31\n");
-    fprintf(file, "\tMOV\tpc,r14\n");
+    fprintf(file, "\tMOV\tr1,#0\n"
+                  "\tCMP\tr1,#1<<31\n"
+                  "\tMOV\tpc,r14\n");
   }
 }
 
@@ -829,41 +828,41 @@ static void service(void)
     }
   }
   output_label("_CMUNGE_service_fast_entry");
-  fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n");
-  fprintf(file, "\tMOV\tr0,r1\n");
-  fprintf(file, "\tMOV\tr1,r13\n");
+  fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n"
+                "\tMOV\tr0,r1\n"
+                "\tMOV\tr1,r13\n");
   if (CODE26)
   {
-    fprintf(file, "\tMOV\tr6,pc\n");
-    fprintf(file, "\tBIC\tr3,r6,#3\n");
-    fprintf(file, "\tTEQP\tr3,#3\n");
+    fprintf(file, "\tMOV\tr6,pc\n"
+                  "\tBIC\tr3,r6,#3\n"
+                  "\tTEQP\tr3,#3\n");
   }
   else
   {
-    fprintf(file, "\tTEQ      pc,pc\n");
-    fprintf(file, "\tMOVNE    r8,pc\n");
-    fprintf(file, "\tBICNE    r3,r8,#3\n");
-    fprintf(file, "\tTEQNEP   r3,#3\n");
-    fprintf(file, "\tMRSEQ    r6,cpsr\n");
-    fprintf(file, "\tORREQ    r3,r6,#3\n");
-    fprintf(file, "\tMSREQ    cpsr_ctl,r3\n");
+    fprintf(file, "\tTEQ      pc,pc\n"
+                  "\tMOVNE    r8,pc\n"
+                  "\tBICNE    r3,r8,#3\n"
+                  "\tTEQNEP   r3,#3\n"
+                  "\tMRSEQ    r6,cpsr\n"
+                  "\tORREQ    r3,r6,#3\n"
+                  "\tMSREQ    cpsr_ctl,r3\n");
   }
-  fprintf(file, "\tMOV\tr11,#0\n");
-  fprintf(file, "\tMOV\tr7,r14\n");
-  fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-  fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-  fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tMOV\tr2,r12\n");
-  fprintf(file, "\tLDR\tr12,[r12,#0]\n");
+  fprintf(file, "\tMOV\tr11,#0\n"
+                "\tMOV\tr7,r14\n"
+                "\tMOV\tr10,r13,LSR #20\n"
+                "\tMOV\tr10,r10,LSL #20\n"
+                "\tLDMIA\tr10,{r4,r5}\n"
+                "\tMOV\tr2,r12\n"
+                "\tLDR\tr12,[r12,#0]\n");
   if (CODE26)
   {
-    fprintf(file, "\tLDMIB\tr12,{r8,r9}\n");
-    fprintf(file, "\tSTMIA\tr10,{r8,r9}\n");
+    fprintf(file, "\tLDMIB\tr12,{r8,r9}\n"
+                  "\tSTMIA\tr10,{r8,r9}\n");
   }
   else
   {
-    fprintf(file, "\tLDMIB\tr12,{r12,r14}\n");
-    fprintf(file, "\tSTMIA\tr10,{r12,r14}\n");
+    fprintf(file, "\tLDMIB\tr12,{r12,r14}\n"
+                  "\tSTMIA\tr10,{r12,r14}\n");
   }
   output_ADD_Lib_Reloc();
   output_import(opt.service);
@@ -875,9 +874,9 @@ static void service(void)
   }
   else
   {
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tMSREQ\tcpsr_ctl,r6\n");
-    fprintf(file, "\tTEQNEP\tr8,#0\n");
+    fprintf(file, "\tTEQ\tpc,pc\n"
+                  "\tMSREQ\tcpsr_ctl,r6\n"
+                  "\tTEQNEP\tr8,#0\n");
   }
   output_SUB_Lib_Reloc();
   fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
@@ -910,74 +909,74 @@ static void start(void)
 
       case run_rmaapp_simple: /* an incredibly simple task using RMA space */
         fprintf(file, "OS_Module * 30\n");
-        fprintf(file, "OS_Exit * 17\n");
-        fprintf(file, "OS_GenerateError * 43\n");
-        fprintf(file, "\n");
+        fprintf(file, "OS_Exit * 17\n"
+                      "OS_GenerateError * 43\n"
+                      "\n");
         output_weak_import("__root_stack_size");
         output_import("main");
         output_export("_CMUNGE_stack");
-        fprintf(file, "\tMOV\tv1,r0 \t; Save command tail\n");
-        fprintf(file, "\tLDR\tr12,[r12]\t; Workspace ptr from private word\n");
-        fprintf(file, "\tLDMIB\tr12,{v2,v3}\t; Module relocations\n");
-        fprintf(file, "\tLDR\tv4,_CMUNGE_stackptr\t; A Ptr to stack variable\n");
-        fprintf(file, "\tADD\tv4,v4,v3\t; gets relocated for user variable\n");
-        fprintf(file, "\tLDR\tr0,[v4]\t; stack chunk\n");
-        fprintf(file, "\tTEQ\tr0,#0\t; is it 0 ?\n");
-        fprintf(file, "\tBNE\t_CMUNGE_apprunning\t; if not, there's a stack already\n");
-        fprintf(file, "\tMOV\tr0,#6\n");
-        fprintf(file, "\tLDR\tr3, =|__root_stack_size|\n");
-        fprintf(file, "\tTEQ\tr3, #0\n");
-        fprintf(file, "\tMOVEQ\tr3,#8192\t; default stack size\n");
-        fprintf(file, "\tSWI\tOS_Module\n");
-        fprintf(file, "\tMOV\tsl,r2\n");
-        fprintf(file, "\tSTR\tsl,[v4]\n");
-        fprintf(file, "\tADD\tsp,sl,r3\n");
-        fprintf(file, "\tSTMIA\tsl,{v2,v3}\n");
-        fprintf(file, "\n");
+        fprintf(file, "\tMOV\tv1,r0 \t; Save command tail\n"
+                      "\tLDR\tr12,[r12]\t; Workspace ptr from private word\n"
+                      "\tLDMIB\tr12,{v2,v3}\t; Module relocations\n"
+                      "\tLDR\tv4,_CMUNGE_stackptr\t; A Ptr to stack variable\n"
+                      "\tADD\tv4,v4,v3\t; gets relocated for user variable\n"
+                      "\tLDR\tr0,[v4]\t; stack chunk\n"
+                      "\tTEQ\tr0,#0\t; is it 0 ?\n"
+                      "\tBNE\t_CMUNGE_apprunning\t; if not, there's a stack already\n"
+                      "\tMOV\tr0,#6\n"
+                      "\tLDR\tr3, =|__root_stack_size|\n"
+                      "\tTEQ\tr3, #0\n"
+                      "\tMOVEQ\tr3,#8192\t; default stack size\n"
+                      "\tSWI\tOS_Module\n"
+                      "\tMOV\tsl,r2\n"
+                      "\tSTR\tsl,[v4]\n"
+                      "\tADD\tsp,sl,r3\n"
+                      "\tSTMIA\tsl,{v2,v3}\n"
+                      "\n");
         output_ADD_Lib_Reloc();
-        fprintf(file, "\n");
-        fprintf(file, "\tMOV\tfp,#0\n");
-        fprintf(file, "\tMOV\ta1,v1\n");
-        fprintf(file, "\tBL\tmain\n");
-        fprintf(file, "\n");
+        fprintf(file, "\n"
+                      "\tMOV\tfp,#0\n"
+                      "\tMOV\ta1,v1\n"
+                      "\tBL\tmain\n"
+                      "\n");
         output_SUB_Lib_Reloc();
-        fprintf(file, "\n");
-        fprintf(file, "\tMOV\tv1,r0\n");
-        fprintf(file, "\n");
-        fprintf(file, "\tMOV\tr2,sl\n");
-        fprintf(file, "\tMOV\tr0,#7\n");
-        fprintf(file, "\tSWI\tOS_Module\n");
-        fprintf(file, "\tMOV\tr0,#0\n");
-        fprintf(file, "\tSTR\tr0,[v4]\n");
-        fprintf(file, "\n");
-        fprintf(file, "\tMOV\tr0,v1\t; FIXME: this is wrong - it's ShareFS code\n");
-        fprintf(file, "\tSWI\tOS_Exit\n");
-        fprintf(file, "\n");
+        fprintf(file, "\n"
+                      "\tMOV\tv1,r0\n"
+                      "\n"
+                      "\tMOV\tr2,sl\n"
+                      "\tMOV\tr0,#7\n"
+                      "\tSWI\tOS_Module\n"
+                      "\tMOV\tr0,#0\n"
+                      "\tSTR\tr0,[v4]\n"
+                      "\n"
+                      "\tMOV\tr0,v1\t; FIXME: this is wrong - it's ShareFS code\n"
+                      "\tSWI\tOS_Exit\n"
+                      "\n");
         output_label("_CMUNGE_freeappstack");
-        fprintf(file, "\tSTMFD\tsp!,{r0-r4,r14}\n");
-        fprintf(file, "\tLDR\tr4,_CMUNGE_stackptr\t; A Ptr to stack variable\n");
-        fprintf(file, "\tLDR\tr3,[sl,#-536]\n");
-        fprintf(file, "\tADD\tr4,r4,r3\t; gets relocated for user variable\n");
-        fprintf(file, "\tLDR\tr2,[r4]\t; stack chunk pointer\n");
-        fprintf(file, "\tTEQ\tr2,#0\t; is it allocated ?\n");
-        fprintf(file, "\tMOVNE\tr0,#7\t; if so, free it\n");
-        fprintf(file, "\tSWINE\tOS_Module\n");
-        fprintf(file, "\tMOV\tr0,#0\n");
-        fprintf(file, "\tSTR\tr0,[r4]\n");
+        fprintf(file, "\tSTMFD\tsp!,{r0-r4,r14}\n"
+                      "\tLDR\tr4,_CMUNGE_stackptr\t; A Ptr to stack variable\n"
+                      "\tLDR\tr3,[sl,#-536]\n"
+                      "\tADD\tr4,r4,r3\t; gets relocated for user variable\n"
+                      "\tLDR\tr2,[r4]\t; stack chunk pointer\n"
+                      "\tTEQ\tr2,#0\t; is it allocated ?\n"
+                      "\tMOVNE\tr0,#7\t; if so, free it\n"
+                      "\tSWINE\tOS_Module\n"
+                      "\tMOV\tr0,#0\n"
+                      "\tSTR\tr0,[r4]\n");
         if (CODE26)
           fprintf(file, "\tLDMFD\tsp!,{r0-r4,pc}^\n");
         else
         {
-          fprintf(file, "\tCMP\tpc,#0\t; clear V\n");
-          fprintf(file, "\tLDMFD\tsp!,{r0-r4,pc}^\n");
+          fprintf(file, "\tCMP\tpc,#0\t; clear V\n"
+                        "\tLDMFD\tsp!,{r0-r4,pc}^\n");
         }
         fprintf(file, "\n");
         output_label("_CMUNGE_stackptr");
         output_word_as_str("_CMUNGE_stack", "");
         fprintf(file, "\n");
         output_label("_CMUNGE_apprunning");
-        fprintf(file, "\tADR\tr0,_CMUNGE_apprunning_error\n");
-        fprintf(file, "\tSWI\tOS_GenerateError\n");
+        fprintf(file, "\tADR\tr0,_CMUNGE_apprunning_error\n"
+                      "\tSWI\tOS_GenerateError\n");
         output_label("_CMUNGE_apprunning_error");
         output_word(0, "FIXME: This is a bad error number to use");
         output_simple_string_vargs("%s already running", opt.title);
@@ -1016,13 +1015,13 @@ static void init(void)
   {
     if (CODE26)
     {
-      fprintf(file, "\tLDMVSIA\tr13!,{r7-r11,pc}\n");
-      fprintf(file, "\tMOV\tr6,r0\n");
+      fprintf(file, "\tLDMVSIA\tr13!,{r7-r11,pc}\n"
+                    "\tMOV\tr6,r0\n");
       output_SUB_Lib_Reloc();
-      fprintf(file, "\tLDMIA\tr10,{r0,r1}\n");
-      fprintf(file, "\tSUB\tr10,r10,#0x14\n");
-      fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-      fprintf(file, "\tSTMIA\tr10,{r0,r1}\n");
+      fprintf(file, "\tLDMIA\tr10,{r0,r1}\n"              
+                    "\tSUB\tr10,r10,#0x14\n"              
+                    "\tLDMIA\tr10,{r4,r5}\n"              
+                    "\tSTMIA\tr10,{r0,r1}\n");
       output_ADD_Lib_Reloc();
       fprintf(file, "\tMOV\tr11,#0\n");
       if (opt.cplusplus)
@@ -1040,45 +1039,45 @@ static void init(void)
       }
       if (opt.init)
       {
-        fprintf(file, "\tADD\tr0,r13,#0xc\n");
-        fprintf(file, "\tLDMIA\tr0,{r0,r1}\n");
-        fprintf(file, "\tMOV\tr2,r6\n");
+        fprintf(file, "\tADD\tr0,r13,#0xc\n"              
+                      "\tLDMIA\tr0,{r0,r1}\n"              
+                      "\tMOV\tr2,r6\n");
         output_import(opt.init);
         fprintf(file, "\tBL\t%s\n", opt.init);
-        fprintf(file, "\tTEQ\tr0,#0\n");
-        fprintf(file, "\tBEQ\t_CMUNGE_init_10\n");
-        fprintf(file, "\tSTR\tr0,[r13,#-4]!\n");
-        fprintf(file, "\tMOV\tr0,r6\n");
+        fprintf(file, "\tTEQ\tr0,#0\n"              
+                      "\tBEQ\t_CMUNGE_init_10\n"              
+                      "\tSTR\tr0,[r13,#-4]!\n"              
+                      "\tMOV\tr0,r6\n");
         if (!finalise_imported)
         {
           output_import("_clib_finalisemodule");
           finalise_imported = 1;
         }
-        fprintf(file, "\tBL\t_clib_finalisemodule\n");
-        fprintf(file, "\tLDR\tr0,[r13],#4\n");
+        fprintf(file, "\tBL\t_clib_finalisemodule\n"              
+                      "\tLDR\tr0,[r13],#4\n");
         output_label("_CMUNGE_init_10");
         output_SUB_Lib_Reloc();
-        fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-        fprintf(file, "\tTEQ\tr0,#0\n");
-        fprintf(file, "\tLDMEQIA\tr13!,{r7-r11,pc}^\n");
-        fprintf(file, "\tLDMIA\tr13!,{r7-r11,r14}\n");
-        fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
+        fprintf(file, "\tSTMIA\tr10,{r4,r5}\n"              
+                      "\tTEQ\tr0,#0\n"              
+                      "\tLDMEQIA\tr13!,{r7-r11,pc}^\n"              
+                      "\tLDMIA\tr13!,{r7-r11,r14}\n"              
+                      "\tORRS\tpc,r14,#0x10000000\n");
       }
       else
       {
-        fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-        fprintf(file, "\tLDMIA\tr13!,{r7-r11,pc}^\n");
+        fprintf(file, "\tSTMIA\tr10,{r4,r5}\n"              
+                      "\tLDMIA\tr13!,{r7-r11,pc}^\n");
       }
     }
     else
     {
-      fprintf(file, "\tLDMVSIA\tr13!,{r7-r11,pc}\n");
-      fprintf(file, "\tMOV\tr6,r0\n");
+      fprintf(file, "\tLDMVSIA\tr13!,{r7-r11,pc}\n"              
+                    "\tMOV\tr6,r0\n");
       output_SUB_Lib_Reloc();
-      fprintf(file, "\tLDMIA\tr10,{r0,r1}\n");
-      fprintf(file, "\tSUB\tr10,r10,#0x14\n");
-      fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-      fprintf(file, "\tSTMIA\tr10,{r0,r1}\n");
+      fprintf(file, "\tLDMIA\tr10,{r0,r1}\n"              
+                    "\tSUB\tr10,r10,#0x14\n"              
+                    "\tLDMIA\tr10,{r4,r5}\n"              
+                    "\tSTMIA\tr10,{r0,r1}\n");
       output_ADD_Lib_Reloc();
       fprintf(file, "\tMOV\tr11,#0\n");
       if (opt.cplusplus)
@@ -1096,35 +1095,35 @@ static void init(void)
       }
       if (opt.init)
       {
-        fprintf(file, "\tADD\tr0,r13,#0xc\n");
-        fprintf(file, "\tLDMIA\tr0,{r0,r1}\n");
-        fprintf(file, "\tMOV\tr2,r6\n");
+        fprintf(file, "\tADD\tr0,r13,#0xc\n"              
+                      "\tLDMIA\tr0,{r0,r1}\n"              
+                      "\tMOV\tr2,r6\n");
         output_import(opt.init);
         fprintf(file, "\tBL\t%s\n", opt.init);
-        fprintf(file, "\tTEQ\tr0,#0\n");
-        fprintf(file, "\tBEQ\t_CMUNGE_init_10\n");
-        fprintf(file, "\tSTR\tr0,[r13,#-4]!\n");
-        fprintf(file, "\tMOV\tr0,r6\n");
+        fprintf(file, "\tTEQ\tr0,#0\n"              
+                      "\tBEQ\t_CMUNGE_init_10\n"              
+                      "\tSTR\tr0,[r13,#-4]!\n"              
+                      "\tMOV\tr0,r6\n");
         if (!finalise_imported)
         {
           output_import("_clib_finalisemodule");
           finalise_imported = 1;
         }
-        fprintf(file, "\tBL\t_clib_finalisemodule\n");
-        fprintf(file, "\tLDR\tr0,[r13],#4\n");
+        fprintf(file, "\tBL\t_clib_finalisemodule\n"              
+                      "\tLDR\tr0,[r13],#4\n");
         output_label("_CMUNGE_init_10");
         output_SUB_Lib_Reloc();
-        fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-        fprintf(file, "\tCMP\tr0,#0\n");
-        fprintf(file, "\tMOVNE\tr1,#0\n");
-        fprintf(file, "\tCMPNE\tr1,#1<<31\n");
-        fprintf(file, "\tLDMIA\tr13!,{r7-r11,pc}\n");
+        fprintf(file, "\tSTMIA\tr10,{r4,r5}\n"              
+                      "\tCMP\tr0,#0\n"              
+                      "\tMOVNE\tr1,#0\n"              
+                      "\tCMPNE\tr1,#1<<31\n"              
+                      "\tLDMIA\tr13!,{r7-r11,pc}\n");
       }
       else
       {
-        fprintf(file, "\tCMP\tr0,r0\n"); /* Clear V */
-        fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-        fprintf(file, "\tLDMIA\tr13!,{r7-r11,pc}\n");
+        fprintf(file, "\tCMP\tr0,r0\n"               /* Clear V */
+                      "\tSTMIA\tr10,{r4,r5}\n"              
+                      "\tLDMIA\tr13!,{r7-r11,pc}\n");
       }
     }
   }
@@ -1139,17 +1138,17 @@ static void final(void)
   if (opt.final)
   {
     /* JRF: 32bit ok */
-    fprintf(file, "\tSTMDB\tr13!,{r7-r12,r14}\n");
-    fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-    fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-    fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-    fprintf(file, "\tLDR\tr12,[r12,#0]\n");
-    fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
-    fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+    fprintf(file, "\tSTMDB\tr13!,{r7-r12,r14}\n"              
+                  "\tMOV\tr10,r13,LSR #20\n"              
+                  "\tMOV\tr10,r10,LSL #20\n"              
+                  "\tLDMIA\tr10,{r4,r5}\n"              
+                  "\tLDR\tr12,[r12,#0]\n"              
+                  "\tLDMIB\tr12,{r11,r12}\n"              
+                  "\tSTMIA\tr10,{r11,r12}\n");
     output_ADD_Lib_Reloc();
-    fprintf(file, "\tMOV\tr11,#0\n");
-    fprintf(file, "\tADD\tr0,r13,#0xc\n");
-    fprintf(file, "\tLDMIA\tr0,{r0-r2}\n");
+    fprintf(file, "\tMOV\tr11,#0\n"              
+                  "\tADD\tr0,r13,#0xc\n"              
+                  "\tLDMIA\tr0,{r0-r2}\n");
     output_import(opt.final);
     fprintf(file, "\tBL\t%s\n", opt.final);
     fprintf(file, "\tCMP\tr0,#0\n");
@@ -1167,8 +1166,8 @@ static void final(void)
     }
     else
     {
-      fprintf(file, "\tBNE\t_CMUNGE_final_10\n");
-      fprintf(file, "\tLDR\tr0,[r13,#0x14]\n");
+      fprintf(file, "\tBNE\t_CMUNGE_final_10\n"              
+                    "\tLDR\tr0,[r13,#0x14]\n");
       if (!finalise_imported)
       {
         output_import("_clib_finalisemodule");
@@ -1184,25 +1183,25 @@ static void final(void)
     fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
     if (CODE26)
     {
-      fprintf(file, "\tLDMEQIA\tr13!,{r7-r12,pc}^\n");
-      fprintf(file, "\tLDMIA\tr13!,{r7-r12,r14}\n");
-      fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
+      fprintf(file, "\tLDMEQIA\tr13!,{r7-r12,pc}^\n"              
+                    "\tLDMIA\tr13!,{r7-r12,r14}\n"              
+                    "\tORRS\tpc,r14,#0x10000000\n");
     }
     else
     {
-      fprintf(file, "\tMOVNE\tr1,#0\n");
-      fprintf(file, "\tCMPNE\tr1,#1<<31\n");
-      fprintf(file, "\tLDMIA\tr13!,{r7-r12,pc}\n");
+      fprintf(file, "\tMOVNE\tr1,#0\n"              
+                    "\tCMPNE\tr1,#1<<31\n"              
+                    "\tLDMIA\tr13!,{r7-r12,pc}\n");
     }
   } else {
-    fprintf(file, "\tSTMDB\tr13!,{r7-r11,r14}\n");
-    fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-    fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-    fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-    fprintf(file, "\tMOV\tr0,r12\n");
-    fprintf(file, "\tLDR\tr12,[r12]\n");
-    fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
-    fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+    fprintf(file, "\tSTMDB\tr13!,{r7-r11,r14}\n"              
+                  "\tMOV\tr10,r13,LSR #20\n"              
+                  "\tMOV\tr10,r10,LSL #20\n"              
+                  "\tLDMIA\tr10,{r4,r5}\n"              
+                  "\tMOV\tr0,r12\n"              
+                  "\tLDR\tr12,[r12]\n"              
+                  "\tLDMIB\tr12,{r11,r12}\n"              
+                  "\tSTMIA\tr10,{r11,r12}\n");
     output_ADD_Lib_Reloc();
     fprintf(file, "\tMOV\tr11,#0\n");
     if (!finalise_imported)
@@ -1236,15 +1235,15 @@ static void swi_handler(void)
   {}
   else
     fprintf(file, "\tMRS\tr8,cpsr\n");
-  fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-  fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-  fprintf(file, "\tMOV\tr0,r11\n");
-  fprintf(file, "\tMOV\tr1,r13\n");
-  fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tMOV\tr2,r12\n");
-  fprintf(file, "\tLDR\tr12,[r12]\n");
-  fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
-  fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+  fprintf(file, "\tMOV\tr10,r13,LSR #20\n"              
+                "\tMOV\tr10,r10,LSL #20\n"              
+                "\tMOV\tr0,r11\n"              
+                "\tMOV\tr1,r13\n"              
+                "\tLDMIA\tr10,{r4,r5}\n"              
+                "\tMOV\tr2,r12\n"              
+                "\tLDR\tr12,[r12]\n"              
+                "\tLDMIB\tr12,{r11,r12}\n"              
+                "\tSTMIA\tr10,{r11,r12}\n");
   output_ADD_Lib_Reloc();
   fprintf(file, "\tMOV\tr11,#0\n");
   if (opt.swi_codesupplied)
@@ -1255,8 +1254,8 @@ static void swi_handler(void)
     /* First one must be valid */
     for (l = opt.swi_names->next, numswis = 0; l; l = l->next, ++numswis)
       /* */;
-    fprintf(file, "\tMOV\tr14,pc\n");
-    fprintf(file, "\tADD\tr14,r14,# _CMUNGE_swi_ret - _CMUNGE_swi_pc\n");
+    fprintf(file, "\tMOV\tr14,pc\n"              
+                  "\tADD\tr14,r14,# _CMUNGE_swi_ret - _CMUNGE_swi_pc\n");
     output_label("_CMUNGE_swi_pc");
     fprintf(file, "\tCMP\tr0,#%i\n",numswis);
     fprintf(file, "\tADDLT\tpc,pc,r0,LSL #2\n");
@@ -1297,43 +1296,43 @@ static void swi_handler(void)
     fprintf(file, "\tBL\t%s\n", opt.swi_handler);
   }
   output_SUB_Lib_Reloc();
-  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tTEQ\tr0,#0\n");
+  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n"              
+                "\tTEQ\tr0,#0\n");
   if (CODE26)
     fprintf(file, "\tLDMEQIA\tr13!,{r0-r9,pc}^\n");
   else
   {
-    fprintf(file, "\tBNE\t_CMUNGE_swi_10\n");
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tLDMNEIA\tr13!,{r0-r9,pc}^\n");
+    fprintf(file, "\tBNE\t_CMUNGE_swi_10\n"              
+                  "\tTEQ\tpc,pc\n"              
+                  "\tLDMNEIA\tr13!,{r0-r9,pc}^\n");
     output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
     fprintf(file, "\tLDMIA\tr13!,{r0-r9,pc}\n");
     output_label("_CMUNGE_swi_10");
   }
-  fprintf(file, "\tADD\tr13,r13,#4\n");
-  fprintf(file, "\tCMN\tr0,#1\n");
+  fprintf(file, "\tADD\tr13,r13,#4\n"              
+                "\tCMN\tr0,#1\n");
   if (CODE26)
   {
-    fprintf(file, "\tLDMNEIA\tr13!,{r1-r9,r14}\n");
-    fprintf(file, "\tORRNES\tpc,r14,#0x10000000\n");
+    fprintf(file, "\tLDMNEIA\tr13!,{r1-r9,r14}\n"              
+                  "\tORRNES\tpc,r14,#0x10000000\n");
   }
   else
   {
     fprintf(file, "\tBEQ\t_CMUNGE_swi_30\n");
     output_label("_CMUNGE_swi_20");
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tLDMNEIA\tr13!,{r1-r9,r14}\n");
-    fprintf(file, "\tORRNES\tpc,r14,#0x10000000\n");
-    fprintf(file, "\tORR\tr8,r8,#0x10000000\n");
+    fprintf(file, "\tTEQ\tpc,pc\n"              
+                  "\tLDMNEIA\tr13!,{r1-r9,r14}\n"              
+                  "\tORRNES\tpc,r14,#0x10000000\n"              
+                  "\tORR\tr8,r8,#0x10000000\n");
     output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
     fprintf(file, "\tLDMIA\tr13!,{r1-r9,pc}\n");
     output_label("_CMUNGE_swi_30");
   }
-  fprintf(file, "\tADR\tr0,_CMUNGE_sht\n");
-  fprintf(file, "\tMOV\tr1,#0\n");
-  fprintf(file, "\tMOV\tr2,#0\n");
-  fprintf(file, "\taddr\tr4,_CMUNGE_title\n");
-  fprintf(file, "\tSWI\t0x61506\t"); output_comment("XMessageTrans_ErrorLookup\n");
+  fprintf(file, "\tADR\tr0,_CMUNGE_sht\n"              
+                "\tMOV\tr1,#0\n"              
+                "\tMOV\tr2,#0\n"              
+                "\taddr\tr4,_CMUNGE_title\n"              
+                "\tSWI\t0x61506\t"); output_comment("XMessageTrans_ErrorLookup\n");
   if (CODE26)
     fprintf(file, "\tLDMIA\tr13!,{r1-r9,pc}\n");
   else
@@ -1360,25 +1359,25 @@ static void pdriver_handler(void)
   {}
   else
     fprintf(file, "\tMRS\tr8,cpsr\n");
-  fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-  fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-  fprintf(file, "\tMOV\tr0,r11\n");
-  fprintf(file, "\tMOV\tr1,r13\n");
-  fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tMOV\tr2,r12\n");
-  fprintf(file, "\tLDR\tr12,[r12]\n");
-  fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
-  fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+  fprintf(file, "\tMOV\tr10,r13,LSR #20\n"              
+                "\tMOV\tr10,r10,LSL #20\n"              
+                "\tMOV\tr0,r11\n"              
+                "\tMOV\tr1,r13\n"              
+                "\tLDMIA\tr10,{r4,r5}\n"              
+                "\tMOV\tr2,r12\n"              
+                "\tLDR\tr12,[r12]\n"              
+                "\tLDMIB\tr12,{r11,r12}\n"              
+                "\tSTMIA\tr10,{r11,r12}\n");
   output_ADD_Lib_Reloc();
   fprintf(file, "\tMOV\tr11,#0\n");
   for (l = opt.pdriver_names, numpdreasons = 0; l; l = l->next, ++numpdreasons)
     /* */;
-  fprintf(file, "\tMOV\tr14,pc\n");
-  fprintf(file, "\tADD\tr14,r14,# _CMUNGE_pdriver_ret - _CMUNGE_pdriver_pc\n");
+  fprintf(file, "\tMOV\tr14,pc\n"              
+                "\tADD\tr14,r14,# _CMUNGE_pdriver_ret - _CMUNGE_pdriver_pc\n");
   output_label("_CMUNGE_pdriver_pc");
   fprintf(file, "\tCMP\tr0,#%i\n", numpdreasons);
-  fprintf(file, "\tADDLT\tpc,pc,r0,LSL #2\n");
-  fprintf(file, "\tB\t_CMUNGE_nopdriver_handler\n");
+  fprintf(file, "\tADDLT\tpc,pc,r0,LSL #2\n"              
+                "\tB\t_CMUNGE_nopdriver_handler\n");
 
   /* First one must be valid */
   for (l = opt.pdriver_names; l; l = l->next)
@@ -1390,43 +1389,43 @@ static void pdriver_handler(void)
   fprintf(file, "\tMOV\tr0,#-1\n"); /* 'SWI not known' */
   output_label("_CMUNGE_pdriver_ret");
   output_SUB_Lib_Reloc();
-  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tTEQ\tr0,#0\n");
+  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n"              
+                "\tTEQ\tr0,#0\n");
   if (CODE26)
     fprintf(file, "\tLDMEQIA\tr13!,{r0-r9,pc}^\n");
   else
   {
-    fprintf(file, "\tBNE\t_CMUNGE_pdriver_10\n");
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tLDMNEIA\tr13!,{r0-r9,pc}^\n");
+    fprintf(file, "\tBNE\t_CMUNGE_pdriver_10\n"              
+                  "\tTEQ\tpc,pc\n"              
+                  "\tLDMNEIA\tr13!,{r0-r9,pc}^\n");
     output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
     fprintf(file, "\tLDMIA\tr13!,{r0-r9,pc}\n");
     output_label("_CMUNGE_pdriver_10");
   }
-  fprintf(file, "\tADD\tr13,r13,#4\n");
-  fprintf(file, "\tCMN\tr0,#1\n");
+  fprintf(file, "\tADD\tr13,r13,#4\n"              
+                "\tCMN\tr0,#1\n");
   if (CODE26)
   {
-    fprintf(file, "\tLDMNEIA\tr13!,{r1-r9,r14}\n");
-    fprintf(file, "\tORRNES\tpc,r14,#0x10000000\n");
+    fprintf(file, "\tLDMNEIA\tr13!,{r1-r9,r14}\n"              
+                  "\tORRNES\tpc,r14,#0x10000000\n");
   }
   else
   {
     fprintf(file, "\tBEQ\t_CMUNGE_pdriver_30\n");
     output_label("_CMUNGE_pdriver_20");
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tLDMNEIA\tr13!,{r1-r9,r14}\n");
-    fprintf(file, "\tORRNES\tpc,r14,#0x10000000\n");
-    fprintf(file, "\tORR\tr8,r8,#0x10000000\n");
+    fprintf(file, "\tTEQ\tpc,pc\n"              
+                  "\tLDMNEIA\tr13!,{r1-r9,r14}\n"              
+                  "\tORRNES\tpc,r14,#0x10000000\n"              
+                  "\tORR\tr8,r8,#0x10000000\n");
     output_word(0xe12ff008, "MSR cpsr_cxsf,r8");
     fprintf(file, "\tLDMIA\tr13!,{r1-r9,pc}\n");
     output_label("_CMUNGE_pdriver_30");
   }
-  fprintf(file, "\tADR\tr0,_CMUNGE_sht_pd\n");
-  fprintf(file, "\tMOV\tr1,#0\n");
-  fprintf(file, "\tMOV\tr2,#0\n");
-  fprintf(file, "\taddr\tr4,_CMUNGE_title\n");
-  fprintf(file, "\tSWI\t0x61506\t"); output_comment("XMessageTrans_ErrorLookup\n");
+  fprintf(file, "\tADR\tr0,_CMUNGE_sht_pd\n"              
+                "\tMOV\tr1,#0\n"              
+                "\tMOV\tr2,#0\n"              
+                "\taddr\tr4,_CMUNGE_title\n"              
+                "\tSWI\t0x61506\t"); output_comment("XMessageTrans_ErrorLookup\n");
   if (CODE26)
     fprintf(file, "\tLDMIA\tr13!,{r1-r9,pc}\n");
   else
@@ -1444,29 +1443,29 @@ static void swi_decoder(void)
   output_label("_CMUNGE_swi_decoder");
   if (opt.swi_decoder->handler)
   {
-    fprintf(file, "\tSTMDB\tr13!,{r0-r3,r10,r11,r14}\n");
-    fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-    fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-    fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-    fprintf(file, "\tLDR\tr14,[r12]\n");
-    fprintf(file, "\tLDMIB\tr14,{r11,r14}\n");
-    fprintf(file, "\tSTMIA\tr10,{r11,r14}\n");
+    fprintf(file, "\tSTMDB\tr13!,{r0-r3,r10,r11,r14}\n"              
+                  "\tMOV\tr10,r13,LSR #20\n"              
+                  "\tMOV\tr10,r10,LSL #20\n"              
+                  "\tLDMIA\tr10,{r4,r5}\n"              
+                  "\tLDR\tr14,[r12]\n"              
+                  "\tLDMIB\tr14,{r11,r14}\n"              
+                  "\tSTMIA\tr10,{r11,r14}\n");
     output_ADD_Lib_Reloc();
-    fprintf(file, "\tMOV\tr11,#0\n");
-    fprintf(file, "\tCMP\tr0,#0\n");
-    fprintf(file, "\tBGE\t_CMUNGE_sd1\n");
-    fprintf(file, "\tMOV\tr0,r1\n");
-    fprintf(file, "\tMOV\tr1,r12\n");
+    fprintf(file, "\tMOV\tr11,#0\n"              
+                  "\tCMP\tr0,#0\n"              
+                  "\tBGE\t_CMUNGE_sd1\n"              
+                  "\tMOV\tr0,r1\n"              
+                  "\tMOV\tr1,r12\n");
     output_import(opt.swi_decoder->name);
     fprintf(file, "\tBL\t%s\n", opt.swi_decoder->name);
-    fprintf(file, "\tSTR\tr0,[r13,#0]\n");
-    fprintf(file, "\tB\t_CMUNGE_sd2\n");
+    fprintf(file, "\tSTR\tr0,[r13,#0]\n"              
+                  "\tB\t_CMUNGE_sd2\n");
     output_label("_CMUNGE_sd1");
     fprintf(file, "\tSTMDB\tr13!,{r12}\n");
     output_import(opt.swi_decoder->handler);
     fprintf(file, "\tBL\t%s\n", opt.swi_decoder->handler);
-    fprintf(file, "\tADD\tr13,r13,#4\n");
-    fprintf(file, "\tSTR\tr0,[r13,#8]\n");
+    fprintf(file, "\tADD\tr13,r13,#4\n"              
+                  "\tSTR\tr0,[r13,#8]\n");
     output_label("_CMUNGE_sd2");
     if (CODE26)
       output_SUB_Lib_Reloc();
@@ -1478,15 +1477,15 @@ static void swi_decoder(void)
     else
       fprintf(file, "\tLDMIA\tr13!,{r0-r3,r10,r11,pc}\n");
   } else {
-    fprintf(file, "\tSTMDB\tr13!,{r0-r3,r10,r11,r14}\n");
-    fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-    fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-    fprintf(file, "\tMOV\tr0,r13\n");
-    fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-    fprintf(file, "\tMOV\tr1,r12\n");
-    fprintf(file, "\tLDR\tr12,[r12]\n");
-    fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
-    fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+    fprintf(file, "\tSTMDB\tr13!,{r0-r3,r10,r11,r14}\n"              
+                  "\tMOV\tr10,r13,LSR #20\n"              
+                  "\tMOV\tr10,r10,LSL #20\n"              
+                  "\tMOV\tr0,r13\n"              
+                  "\tLDMIA\tr10,{r4,r5}\n"              
+                  "\tMOV\tr1,r12\n"              
+                  "\tLDR\tr12,[r12]\n"              
+                  "\tLDMIB\tr12,{r11,r12}\n"              
+                  "\tSTMIA\tr10,{r11,r12}\n");
     output_ADD_Lib_Reloc();
     fprintf(file, "\tMOV\tr11,#0\n");
     output_import(opt.swi_decoder->name);
@@ -1541,8 +1540,8 @@ static void veneers(void)
       else
         fprintf(file, "\tMOVNE\tpc,r14\n");
     }
-    fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n");
-    fprintf(file, "\tMOV\tr9,#%d\n", n);
+    fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n"
+                  "\tMOV\tr9,#%d\n", n);
     first = 0;
   }
 
@@ -1571,8 +1570,8 @@ static void veneers(void)
       fprintf(file, "\tB\t_CMUNGE_ve\n");
     output_export(l->name);
     output_label(l->name);
-    fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n");
-    fprintf(file, "\tMOV\tr9,#%d\n", n);
+    fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n"
+                  "\tMOV\tr9,#%d\n", n);
     first = 0;
   }
 
@@ -1583,34 +1582,34 @@ static void veneers(void)
   fprintf(file, "\tMOV\tr0,r13\n");
   if (CODE26)
   {
-    fprintf(file, "\tMOV\tr6,pc\n");
-    fprintf(file, "\tBIC\tr3,r6,#3\n");
-    fprintf(file, "\tTEQP\tr3,#3\n");
+    fprintf(file, "\tMOV\tr6,pc\n"              
+                  "\tBIC\tr3,r6,#3\n"              
+                  "\tTEQP\tr3,#3\n");
   }
   else
   {
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tMOVNE\tr8,pc\n");
-    fprintf(file, "\tORRNE\tr3,r8,#3\n");
-    fprintf(file, "\tTEQNEP\tr3,#0\n");
-    fprintf(file, "\tMRSEQ\tr6,cpsr\n");
-    fprintf(file, "\tORREQ\tr3,r6,#3\n");
-    fprintf(file, "\tMSREQ\tcpsr_ctl,r3\n");
+    fprintf(file, "\tTEQ\tpc,pc\n"              
+                  "\tMOVNE\tr8,pc\n"              
+                  "\tORRNE\tr3,r8,#3\n"              
+                  "\tTEQNEP\tr3,#0\n"              
+                  "\tMRSEQ\tr6,cpsr\n"              
+                  "\tORREQ\tr3,r6,#3\n"              
+                  "\tMSREQ\tcpsr_ctl,r3\n");
   }
-  fprintf(file, "\tMOV\tr1,r12\n");
-  fprintf(file, "\tMOV\tr7,r14\n");
-  fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-  fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-  fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tLDR\tr12,[r12]\n");
-  fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
-  fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+  fprintf(file, "\tMOV\tr1,r12\n"              
+                "\tMOV\tr7,r14\n"              
+                "\tMOV\tr10,r13,LSR #20\n"              
+                "\tMOV\tr10,r10,LSL #20\n"              
+                "\tLDMIA\tr10,{r4,r5}\n"              
+                "\tLDR\tr12,[r12]\n"              
+                "\tLDMIB\tr12,{r11,r12}\n"              
+                "\tSTMIA\tr10,{r11,r12}\n");
   output_ADD_Lib_Reloc();
   fprintf(file, "\tMOV\tr11,#0\n");
   if (CODE26)
   {
-    fprintf(file, "\tMOV\tr14,pc\n");
-    fprintf(file, "\tADD\tr14,r14,# _CMUNGE_vret - _CMUNGE_vpc\n");
+    fprintf(file, "\tMOV\tr14,pc\n"              
+                  "\tADD\tr14,r14,# _CMUNGE_vret - _CMUNGE_vpc\n");
   }
   else
     fprintf(file, "\tADD\tr14,pc,# _CMUNGE_vret - _CMUNGE_vpc - 4\n");
@@ -1663,15 +1662,15 @@ static void veneers(void)
 
   output_label("_CMUNGE_vret");
   output_SUB_Lib_Reloc();
-  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tMOV\tr14,r7\n");
+  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n"              
+                "\tMOV\tr14,r7\n");
   if (CODE26)
     fprintf(file, "\tTEQP\tr6,#0\n");
   else
   {
-    fprintf(file, "\tTEQ      pc,pc\n");
-    fprintf(file, "\tBEQ      _CMUNGE_vret_10\n");
-    fprintf(file, "\tTEQP     r8,#0\n");
+    fprintf(file, "\tTEQ\tpc,pc\n"              
+                  "\tBEQ\t_CMUNGE_vret_10\n"              
+                  "\tTEQP\tr8,#0\n");
   }
   if (any_error)
   {
@@ -1683,21 +1682,20 @@ static void veneers(void)
             r0 = 0 (claim)
                  other (pass on)
      */
-    fprintf(file, "\tTST\tr9,#1<<31\n");
-    fprintf(file, "\tBEQ\t_CMUNGE_vret_26noerror\n");
-
-    fprintf(file, "\tCMP\tr0,#1\n");
-    fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,pc}^\n");
-    fprintf(file, "\tLDMLOIA\tr13!,{r0-r11,r14,pc}^\n");
-    fprintf(file, "\tSTR\tr0,[sp]\n");
-    fprintf(file, "\tLDMIA\tr13!,{r0-r11,r14}\n");
-    fprintf(file, "\tLDR\tr14,[sp], #4\n");
-    fprintf(file, "\tORRS\tpc, r14, #1<<28\t"); output_comment("Return with V set\n");
+    fprintf(file, "\tTST\tr9,#1<<31\n"              
+                  "\tBEQ\t_CMUNGE_vret_26noerror\n"              
+                  "\tCMP\tr0,#1\n"              
+                  "\tLDMEQIA\tr13!,{r0-r11,pc}^\n"              
+                  "\tLDMLOIA\tr13!,{r0-r11,r14,pc}^\n"              
+                  "\tSTR\tr0,[sp]\n"              
+                  "\tLDMIA\tr13!,{r0-r11,r14}\n"              
+                  "\tLDR\tr14,[sp], #4\n"              
+                  "\tORRS\tpc, r14, #1<<28\t"); output_comment("Return with V set\n");
     output_label("_CMUNGE_vret_26noerror");
   }
-  fprintf(file, "\tTEQ\tr0,#0\n");
-  fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,r14,pc}^\n");
-  fprintf(file, "\tLDMNEIA\tr13!,{r0-r11,pc}^\n");
+  fprintf(file, "\tTEQ\tr0,#0\n"              
+                "\tLDMEQIA\tr13!,{r0-r11,r14,pc}^\n"              
+                "\tLDMNEIA\tr13!,{r0-r11,pc}^\n");
 
   if (CODE26)
   {}
@@ -1714,19 +1712,19 @@ static void veneers(void)
               r0 = 0 (claim)
                    other (pass on)
        */
-      fprintf(file, "\tTST\tr9,#1<<31\n");
-      fprintf(file, "\tBICNES\tr14,r0,#1\n");
+      fprintf(file, "\tTST\tr9,#1<<31\n"              
+                    "\tBICNES\tr14,r0,#1\n");
       fprintf(file, "\tORRNE\tr6,r6,#1<<28\t"); output_comment("V set on returned flags\n");
       fprintf(file, "\tSTRNE\tr0,[sp, #0]\t"); output_comment("R0 updated for return\n");
       fprintf(file, "\tMOVNE\tr0,#0\t"); output_comment("Mark as claiming\n");
     }
-    fprintf(file, "\tMOV\tr12,r6\n");
-    fprintf(file, "\tMSR\tcpsr_ctl,r6\n");
-    fprintf(file, "\tTEQ\tr0,#0\n");
-    fprintf(file, "\tLDMIA\tr13!,{r0-r11,r14}\n");
-    fprintf(file, "\tLDREQ\tr14,[r13],#4\n");
-    fprintf(file, "\tMSR\tcpsr_flg,r12\n");
-    fprintf(file, "\tMOV\tpc,r14\n");
+    fprintf(file, "\tMOV\tr12,r6\n"              
+                  "\tMSR\tcpsr_ctl,r6\n"              
+                  "\tTEQ\tr0,#0\n"              
+                  "\tLDMIA\tr13!,{r0-r11,r14}\n"              
+                  "\tLDREQ\tr14,[r13],#4\n"              
+                  "\tMSR\tcpsr_flg,r12\n"              
+                  "\tMOV\tpc,r14\n");
   }
 }
 
@@ -1745,8 +1743,8 @@ static void vector_traps(void)
       fprintf(file, "\tB\t_CMUNGE_vte\n");
     output_export(l->name);
     output_label(l->name);
-    fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n");
-    fprintf(file, "\tMOV\tr2,#%d\n", n);
+    fprintf(file, "\tSTMDB\tr13!,{r0-r11,r14}\n"              
+                  "\tMOV\tr2,#%d\n", n);
     first = 0;
   }
 
@@ -1757,38 +1755,38 @@ static void vector_traps(void)
   fprintf(file, "\tMOV\tr0,r13\n");
   if (CODE26)
   {
-    fprintf(file, "\tMOV\tr6,pc\n");
-    fprintf(file, "\tBIC\tr3,r6,#3\n");
-    fprintf(file, "\tTEQP\tr3,#3\n");
+    fprintf(file, "\tMOV\tr6,pc\n"              
+                  "\tBIC\tr3,r6,#3\n"              
+                  "\tTEQP\tr3,#3\n");
   }
   else
   {
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tMOVNE\tr8,pc\n");
-    fprintf(file, "\tBICNE\tr3,r8,#3\n");
-    fprintf(file, "\tTEQNEP\tr3,#3\n");
-    fprintf(file, "\tMRSEQ\tr6,cpsr\n");
-    fprintf(file, "\tORREQ\tr3,r6,#3\n");
-    fprintf(file, "\tMSREQ\tcpsr_ctl,r3\n");
+    fprintf(file, "\tTEQ\tpc,pc\n"              
+                  "\tMOVNE\tr8,pc\n"              
+                  "\tBICNE\tr3,r8,#3\n"              
+                  "\tTEQNEP\tr3,#3\n"              
+                  "\tMRSEQ\tr6,cpsr\n"              
+                  "\tORREQ\tr3,r6,#3\n"              
+                  "\tMSREQ\tcpsr_ctl,r3\n");
   }
-  fprintf(file, "\tMOV\tr1,r12\n");
-  fprintf(file, "\tMOV\tr7,r14\n");
-  fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-  fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-  fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tLDR\tr12,[r12]\n");
-  fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
-  fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+  fprintf(file, "\tMOV\tr1,r12\n"              
+                "\tMOV\tr7,r14\n"              
+                "\tMOV\tr10,r13,LSR #20\n"              
+                "\tMOV\tr10,r10,LSL #20\n"              
+                "\tLDMIA\tr10,{r4,r5}\n"              
+                "\tLDR\tr12,[r12]\n"              
+                "\tLDMIB\tr12,{r11,r12}\n"              
+                "\tSTMIA\tr10,{r11,r12}\n");
   output_ADD_Lib_Reloc();
-  fprintf(file, "\tMOV\tr11,#0\n");
-  fprintf(file, "\tMOV\tr12,r2\n");
-  fprintf(file, "\tADR\tr2,_CMUNGE_vtcall\n");
-  fprintf(file, "\tMOV\tr3,r0\n");
-  fprintf(file, "\tMOV\tr14,pc\n");
-  fprintf(file, "\tADD\tr14,r14,# _CMUNGE_vtret - _CMUNGE_vtpc\n");
+  fprintf(file, "\tMOV\tr11,#0\n"              
+                "\tMOV\tr12,r2\n"              
+                "\tADR\tr2,_CMUNGE_vtcall\n"              
+                "\tMOV\tr3,r0\n"              
+                "\tMOV\tr14,pc\n"              
+                "\tADD\tr14,r14,# _CMUNGE_vtret - _CMUNGE_vtpc\n");
   output_label("_CMUNGE_vtpc");
-  fprintf(file, "\tADD\tpc,pc,r12\n");
-  fprintf(file, "\tMOV\tr0,r0\n");
+  fprintf(file, "\tADD\tpc,pc,r12\n"              
+                "\tMOV\tr0,r0\n");
 
   /* Vector traps */
   for (l = opt.vector_traps; l != NULL; l = l->next)
@@ -1806,16 +1804,16 @@ static void vector_traps(void)
   }
   output_label("_CMUNGE_vtret");
   output_SUB_Lib_Reloc();
-  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-  fprintf(file, "\tMOV\tr14,r7\n");
+  fprintf(file, "\tSTMIA\tr10,{r4,r5}\n"              
+                "\tMOV\tr14,r7\n");
   /* Return to the caller's mode */
   if (CODE26)
     fprintf(file, "\tTEQP\tr6,#0\n");
   else
   {
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tMSREQ\tcpsr_ctl,r6\n");
-    fprintf(file, "\tTEQNEP\tr8,#0\n");
+    fprintf(file, "\tTEQ\tpc,pc\n"              
+                  "\tMSREQ\tcpsr_ctl,r6\n"              
+                  "\tTEQNEP\tr8,#0\n");
   }
   /* We need to return if 1,
                 claim if 0,
@@ -1823,40 +1821,40 @@ static void vector_traps(void)
    */
   if (CODE26)
   {
-    fprintf(file, "\tTEQ\tr0,#1\n");
-    fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,pc}^\n");
-    fprintf(file, "\tTEQ\tr0,#0\n");
-    fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,r14,pc}^\n");
-    fprintf(file, "\tADD\tr13,r13,#4\n");
-    fprintf(file, "\tLDMIA\tr13!,{r1-r11,r14}\n");
-    fprintf(file, "\tLDR\tr14,[r13],#4\n");
-    fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
+    fprintf(file, "\tTEQ\tr0,#1\n"              
+                  "\tLDMEQIA\tr13!,{r0-r11,pc}^\n"              
+                  "\tTEQ\tr0,#0\n"              
+                  "\tLDMEQIA\tr13!,{r0-r11,r14,pc}^\n"              
+                  "\tADD\tr13,r13,#4\n"              
+                  "\tLDMIA\tr13!,{r1-r11,r14}\n"              
+                  "\tLDR\tr14,[r13],#4\n"              
+                  "\tORRS\tpc,r14,#0x10000000\n");
   }
   else
   {
     /* JRF: Checked 20 Feb 2006, and should now be correct */
-    fprintf(file, "\tCMP\tr0, #1\n");
-    fprintf(file, "\tBHI\t_CMUNGE_vtretv\n");
-    fprintf(file, "\tMOV\tr12, r6\n");
+    fprintf(file, "\tCMP\tr0, #1\n"              
+                  "\tBHI\t_CMUNGE_vtretv\n"              
+                  "\tMOV\tr12, r6\n");
     fprintf(file, "\tLDMEQIA\tr13!,{r0-r11}\t"); output_comment("r0=1 case (pass on)\n");
     fprintf(file, "\tLDMLOIA\tr13!,{r0-r11,r14}\t"); output_comment("r0=0 case (claim)\n");
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tLDR\tr14, [sp], #4\n");
-    fprintf(file, "\tMOVNES\tpc,r14\n");
-    fprintf(file, "\tMSR\tcpsr_flg,r12\n");
-    fprintf(file, "\tMOV\tpc, r14\n");
+    fprintf(file, "\tTEQ\tpc,pc\n"              
+                  "\tLDR\tr14, [sp], #4\n"              
+                  "\tMOVNES\tpc,r14\n"              
+                  "\tMSR\tcpsr_flg,r12\n"              
+                  "\tMOV\tpc, r14\n");
 
     output_comment("r0 = anything else (claim+VS+R0 returned)\n");
     output_label("_CMUNGE_vtretv");
-    fprintf(file, "\tADD\tr13, r13, #4\n");
-    fprintf(file, "\tLDMIA\tr13!,{r1-r11,r14}\n");
-    fprintf(file, "\tTEQ\tpc,pc\n");
-    fprintf(file, "\tLDR\tr14, [sp], #4\n");
-    fprintf(file, "\tORREQ\tr12, r6, #0x10000000\n");
-    fprintf(file, "\tORRNE\tr14, r14, #0x10000000\n");
-    fprintf(file, "\tMOVNES\tpc,r14\n");
-    fprintf(file, "\tMSR\tcpsr_flg,r12\n");
-    fprintf(file, "\tMOV\tpc, r14\n");
+    fprintf(file, "\tADD\tr13, r13, #4\n"              
+                  "\tLDMIA\tr13!,{r1-r11,r14}\n"              
+                  "\tTEQ\tpc,pc\n"              
+                  "\tLDR\tr14, [sp], #4\n"              
+                  "\tORREQ\tr12, r6, #0x10000000\n"              
+                  "\tORRNE\tr14, r14, #0x10000000\n"              
+                  "\tMOVNES\tpc,r14\n"              
+                  "\tMSR\tcpsr_flg,r12\n"              
+                  "\tMOV\tpc, r14\n");
   }
 
   /* Now the call routine...
@@ -1868,15 +1866,15 @@ static void vector_traps(void)
 
   output_label("_CMUNGE_vtcall");
 
-  fprintf(file, "\tSTMFD\tr13!,{r0,r4-r11,r14}\n");
-  fprintf(file, "\tADD\tr12,r1,#10*4\n");
-  fprintf(file, "\tLDMIA\tr0,{r0-r9}\n");
-  fprintf(file, "\tSTMFD\tr13!,{pc}\n");
-  fprintf(file, "\tLDMFD\tr12,{r10,r11,pc}\n");
-  fprintf(file, "\tNOP\n");
-  fprintf(file, "\tLDR\tr12,[r13],#4\n");
-  fprintf(file, "\tSTMIA\tr12,{r0-r9}\n");
-  fprintf(file, "\tMOVVC\tr0,#0\n");
+  fprintf(file, "\tSTMFD\tr13!,{r0,r4-r11,r14}\n"              
+                "\tADD\tr12,r1,#10*4\n"              
+                "\tLDMIA\tr0,{r0-r9}\n"              
+                "\tSTMFD\tr13!,{pc}\n"              
+                "\tLDMFD\tr12,{r10,r11,pc}\n"              
+                "\tNOP\n"              
+                "\tLDR\tr12,[r13],#4\n"              
+                "\tSTMIA\tr12,{r0-r9}\n"              
+                "\tMOVVC\tr0,#0\n");
   if (CODE26)
     fprintf(file, "\tLDMFD\tr13!,{r4-r11,pc}^\n");
   else
@@ -1963,34 +1961,34 @@ static void generics(void)
     fprintf(file, "\tMOV\tr0,r13\n");
     if (CODE26)
     {
-      fprintf(file, "\tMOV\tr6,pc\n");
-      fprintf(file, "\tBIC\tr3,r6,#3\n");
-      fprintf(file, "\tTEQP\tr3,#3\n");
+      fprintf(file, "\tMOV\tr6,pc\n"              
+                    "\tBIC\tr3,r6,#3\n"              
+                    "\tTEQP\tr3,#3\n");
     }
     else
     {
-      fprintf(file, "\tTEQ\tpc,pc\n");
-      fprintf(file, "\tMOVNE\tr8,pc\n");
-      fprintf(file, "\tORRNE\tr3,r8,#3\n");
-      fprintf(file, "\tTEQNEP\tr3,#0\n");
-      fprintf(file, "\tMRSEQ\tr6,cpsr\n");
-      fprintf(file, "\tORREQ\tr3,r6,#3\n");
-      fprintf(file, "\tMSREQ\tcpsr_ctl,r3\n");
+      fprintf(file, "\tTEQ\tpc,pc\n"              
+                    "\tMOVNE\tr8,pc\n"              
+                    "\tORRNE\tr3,r8,#3\n"              
+                    "\tTEQNEP\tr3,#0\n"              
+                    "\tMRSEQ\tr6,cpsr\n"              
+                    "\tORREQ\tr3,r6,#3\n"              
+                    "\tMSREQ\tcpsr_ctl,r3\n");
     }
-    fprintf(file, "\tMOV\tr1,r12\n");
-    fprintf(file, "\tMOV\tr7,r14\n");
-    fprintf(file, "\tMOV\tr10,r13,LSR #20\n");
-    fprintf(file, "\tMOV\tr10,r10,LSL #20\n");
-    fprintf(file, "\tLDMIA\tr10,{r4,r5}\n");
-    fprintf(file, "\tLDR\tr12,[r12]\n");
-    fprintf(file, "\tLDMIB\tr12,{r11,r12}\n");
-    fprintf(file, "\tSTMIA\tr10,{r11,r12}\n");
+    fprintf(file, "\tMOV\tr1,r12\n"              
+                  "\tMOV\tr7,r14\n"              
+                  "\tMOV\tr10,r13,LSR #20\n"              
+                  "\tMOV\tr10,r10,LSL #20\n"              
+                  "\tLDMIA\tr10,{r4,r5}\n"              
+                  "\tLDR\tr12,[r12]\n"              
+                  "\tLDMIB\tr12,{r11,r12}\n"              
+                  "\tSTMIA\tr10,{r11,r12}\n");
     output_ADD_Lib_Reloc();
     fprintf(file, "\tMOV\tr11,#0\n");
     if (CODE26)
     {
-      fprintf(file, "\tMOV\tr14,pc\n");
-      fprintf(file, "\tADD\tr14,r14,#_CMUNGE_gret%s - _CMUNGE_gpc%s\n",
+      fprintf(file, "\tMOV\tr14,pc\n"              
+                    "\tADD\tr14,r14,#_CMUNGE_gret%s - _CMUNGE_gpc%s\n",
                     carry_now ? "_carry" : "",
                     carry_now ? "_carry" : "");
     }
@@ -2001,8 +1999,8 @@ static void generics(void)
                     carry_now ? "_carry" : "");
     }
     output_label_vargs("_CMUNGE_gpc%s", carry_now ? "_carry" : "");
-    fprintf(file, "\tADD\tpc,pc,r2\n");
-    fprintf(file, "\tMOV\tr0,r0\n");
+    fprintf(file, "\tADD\tpc,pc,r2\n"              
+                  "\tMOV\tr0,r0\n");
     for (l = opt.generics; l != NULL; l = l->next)
     {
       if (carry_now != l->carry_capable)
@@ -2021,36 +2019,36 @@ static void generics(void)
     }
     output_label_vargs("_CMUNGE_gret%s", carry_now ? "_carry" : "");
     output_SUB_Lib_Reloc();
-    fprintf(file, "\tSTMIA\tr10,{r4,r5}\n");
-    fprintf(file, "\tMOV\tr14,r7\n");
+    fprintf(file, "\tSTMIA\tr10,{r4,r5}\n"              
+                  "\tMOV\tr14,r7\n");
     if (CODE26)
     {
-      fprintf(file, "\tTEQP\tr6,#0\n");
-      fprintf(file, "\tTEQ\tr0,#0\n");
-      fprintf(file, "\tLDMEQIA\tr13!,{r0-r%i,pc}^\n",preserve_endreg);
+      fprintf(file, "\tTEQP\tr6,#0\n"              
+                    "\tTEQ\tr0,#0\n"              
+                    "\tLDMEQIA\tr13!,{r0-r%i,pc}^\n",preserve_endreg);
       if (carry_now)
       {
-        fprintf(file, "\tTEQ\tr0,#2\n");
-        fprintf(file, "\tLDMEQIA\tr13!,{r0-r%i,r14}\n",preserve_endreg);
-        fprintf(file, "\tORREQS\tpc,r14,#0x20000000\n");
-        fprintf(file, "\tADD\tr13,r13,#4\n");
-        fprintf(file, "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
+        fprintf(file, "\tTEQ\tr0,#2\n"              
+                      "\tLDMEQIA\tr13!,{r0-r%i,r14}\n",preserve_endreg);
+        fprintf(file, "\tORREQS\tpc,r14,#0x20000000\n"              
+                      "\tADD\tr13,r13,#4\n"              
+                      "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
         fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
       }
       else
       {
-        fprintf(file, "\tADD\tr13,r13,#4\n");
-        fprintf(file, "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
+        fprintf(file, "\tADD\tr13,r13,#4\n"              
+                      "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
         fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
       }
     }
     else
     {
-      fprintf(file, "\tTEQ\tpc,pc\n");
-      fprintf(file, "\tBEQ\t_CMUNGE_genv%s\t", carry_now ? "_carry" : ""); output_comment("32bit PC\n");
-      fprintf(file, "\tTEQP\tr8,#0\n");
-      fprintf(file, "\tTEQ\tr0,#0\n");
-      fprintf(file, "\tLDMEQIA\tr13!,{r0-r11,pc}^\n");
+      fprintf(file, "\tTEQ\tpc,pc\n"              
+                    "\tBEQ\t_CMUNGE_genv%s\t", carry_now ? "_carry" : ""); output_comment("32bit PC\n");
+      fprintf(file, "\tTEQP\tr8,#0\n"              
+                    "\tTEQ\tr0,#0\n"              
+                    "\tLDMEQIA\tr13!,{r0-r11,pc}^\n");
       if (carry_now)
       {
         /* If r0 = 2, return CS
@@ -2058,39 +2056,39 @@ static void generics(void)
               r0 = anything else, return VS + R0 value
               r8 = 26bit PSR on entry
          */
-        fprintf(file, "\tTEQ\tr0,#2\n");
-        fprintf(file, "\tLDMEQIA\tr13!,{r0-r%i,r14}\n",preserve_endreg);
-        fprintf(file, "\tORREQS\tpc,r14,#0x20000000\n");
-        fprintf(file, "\tADD\tr13,r13,#4\n");
-        fprintf(file, "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
+        fprintf(file, "\tTEQ\tr0,#2\n"              
+                      "\tLDMEQIA\tr13!,{r0-r%i,r14}\n",preserve_endreg);
+        fprintf(file, "\tORREQS\tpc,r14,#0x20000000\n"              
+                      "\tADD\tr13,r13,#4\n"              
+                      "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
         fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
         output_label("_CMUNGE_genv_carry");
         /* 32bit return for the same case as the above 26bit case, except:
               r0 = 0 has not been dealt with
               r6 = 32bit PSR on entry
          */
-        fprintf(file, "\tTEQ\tr0,#2\n");
-        fprintf(file, "\tORREQ\tr6,r6,#0x20000000\n");
-        fprintf(file, "\tBICS\tr14,r0,#2\t"); output_comment("NE if r0 <> 0 and r0 <> 2\n");
-        fprintf(file, "\tSTRNE\tr0,[r13,#0]\n");
-        fprintf(file, "\tORRNE\tr6,r6,#0x10000000\n");
-        fprintf(file, "\tMSR\tcpsr_flg,r6\n");
-        fprintf(file, "\tLDMIA\tr13!,{r0-r11,pc}\n");
+        fprintf(file, "\tTEQ\tr0,#2\n"              
+                      "\tORREQ\tr6,r6,#0x20000000\n"              
+                      "\tBICS\tr14,r0,#2\t"); output_comment("NE if r0 <> 0 and r0 <> 2\n");
+        fprintf(file, "\tSTRNE\tr0,[r13,#0]\n"              
+                      "\tORRNE\tr6,r6,#0x10000000\n"              
+                      "\tMSR\tcpsr_flg,r6\n"              
+                      "\tLDMIA\tr13!,{r0-r11,pc}\n");
       }
       else
       {
-        fprintf(file, "\tADD\tr13,r13,#4\n");
-        fprintf(file, "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
+        fprintf(file, "\tADD\tr13,r13,#4\n"              
+                      "\tLDMIA\tr13!,{r1-r%i,r14}\n",preserve_endreg);
         fprintf(file, "\tORRS\tpc,r14,#0x10000000\n");
         output_label("_CMUNGE_genv");
         /* 32bit return for the same case as the above 26bit case, except:
               r6 = 32bit PSR on entry
          */
-        fprintf(file, "\tTEQ\tr0,#0\n");
-        fprintf(file, "\tSTRNE\tr0,[r13,#0]\n");
-        fprintf(file, "\tORRNE\tr6,r6,#0x10000000\n");
-        fprintf(file, "\tMSR\tcpsr_flg,r6\n");
-        fprintf(file, "\tLDMIA\tr13!,{r0-r11,pc}\n");
+        fprintf(file, "\tTEQ\tr0,#0\n"              
+                      "\tSTRNE\tr0,[r13,#0]\n"              
+                      "\tORRNE\tr6,r6,#0x10000000\n"              
+                      "\tMSR\tcpsr_flg,r6\n"              
+                      "\tLDMIA\tr13!,{r0-r11,pc}\n");
       }
     }
   }
