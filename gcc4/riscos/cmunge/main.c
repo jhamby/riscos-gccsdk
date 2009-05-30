@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
 
   file_init(); /* Initialise file tidy up library */
 
-  printf("CMunge " Module_FullVersionAndDate " [GCCSDK 4]\n" Copyright_CMunge "\n");
+  printf("CMunge " Module_FullVersionAndDate "\n" Copyright_CMunge "\n");
   /* If you alter this code, insert a printf here to say that you have */
 #if 0
   format_wrap(stdout,"","",
