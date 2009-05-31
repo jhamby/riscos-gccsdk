@@ -222,7 +222,7 @@ every occurrence of _kernel_oserror is replaced by os_error.
     specified name is called. For instance, with the name 'init' this would
     be as follows.
     
-    _kernel_oserror *init(char *tail, int podule_base, void *pw);
+    _kernel_oserror *init(const char *tail, int podule_base, void *pw);
     
     This function should do any initialisation required (claiming memory etc).
     'tail' points to the string of arguments (if any) that the module was
