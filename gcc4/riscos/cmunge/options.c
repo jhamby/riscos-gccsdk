@@ -24,6 +24,7 @@ void Options_Init(void) {
   opt.apcs_used   = 0;
   opt.toolchain_used = 0;
   opt.toolchain   = tc_norcroft;
+  opt.no_scl      = 0;
   opt.reentrant   = 1;
   opt.cplusplus   = 0;
   opt.service     = NULL;
@@ -116,6 +117,8 @@ static void help_text(void) {
                  "registers, '#include \"oslib/os.h\"' (OSLib) instead of "
                  "'#include \"kernel.h\"' (SCL) in generated C header "
                  "file.\n"
+"\t-znoscl       \bDon't interface with Shared C Library.  Bare metal run-time "
+                 "support only.\n"
 "\t-blank        \bGenerate a blank cmhg file to infile.\n"
 "\t-cmhg         \bGive warnings for non-CMHG values.\n"
 "\t-tgcc         \bUse GCC tool chain to generate output.\n"
@@ -292,15 +295,16 @@ void Options_CL(int argc, char *argv[]) {
       }
     } else if (strncmp("-z", argv[i], sizeof("-z")-1)==0) { /* case sensitive */
       arg = &argv[i][sizeof("-z")-1];
-      if (stricmp("oslib", arg)) {
+      if (stricmp("noscl", arg))
+	opt.no_scl = 1;
+      else if (stricmp("oslib", arg))
         opt.oslib = 1;
-      } else if (stricmp("base", arg)) {
+      else if (stricmp("base", arg))
         opt.base = 1;
-      } else if (stricmp("errors", arg)) {
+      else if (stricmp("errors", arg))
         opt.mode_errors = 1;
-      } else {
+      else
         ErrorFatal("Unknown tweak option -z");
-      }
     } else if (strcmp("-32bit", argv[i])==0) { /* case sensitive */
       opt.apcs|= APCS_32BIT;
     } else if (strcmp("-26bit", argv[i])==0) { /* case sensitive */

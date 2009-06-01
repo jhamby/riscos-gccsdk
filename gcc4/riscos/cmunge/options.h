@@ -127,6 +127,7 @@ typedef struct {
     tc_gcc,
     tc_lcc
   } toolchain;
+  int           no_scl;         /* module does not need SCL */
   int           reentrant;	/* module-is-not-reentrant */
   int           cplusplus;      /* module-is-c-plus-plus */
   const char   *service;	/* service-call-handler */

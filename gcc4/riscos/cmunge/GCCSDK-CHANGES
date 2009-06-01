@@ -1,22 +1,26 @@
 The official CMunge v0.76 contains nearly all the changes needed for usage
 in the GCCSDK 3.4 project.  For GCCSDK 4 we had to made additional changes
-for ELF, instead of AOF, object format support and this only affects the
-operation of the -tgcc option.
+for ELF, instead of AOF, object format support only affecting the operation
+of the -tgcc option.  Two new features have been added : printer driver
+handler and Bare Metal support.
 
-Overview of the changes made so far:
+More detailed overview of the changes made so far:
 
   - GCCSDK specific build structure changes.
-  - hiding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
-  - marked "[GCCSDK 4]" via the CMunge printf() in main()
+  - Miding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
+  - Marked "[with GCCSDK 4 changes]" Module_FullVersionAndDate of VersionNum
+    which makes startup message and generated files are marked as such.
   - -tgcc option supports ELF object format and no longer AOF object format.
-  - added 'pdriver-handler' keyword for those wanting to create printer driver
+  - Added 'pdriver-handler' keyword for those wanting to create printer driver
     module code. Added an example for this new feature.
-  - constify a lot of pointers.
-  - several manual typo fixes and added explanation on 'pdriver-handler'.
-  - source improvements:
+    Added explanation on 'pdriver-handler' in manual.
+  - Added Bare Metal support, i.e. not using Shared C Library runtime.
+    Added explanation on Bare Metal in manual.
+  - Several manual typo fixes.
+  - Source improvements:
     - strduptok/strfindpair/strstring : use memcpy() instead of strncpy() for
       more clearness.
-    - use of 'const' where it makes sense.
+    - constify a lot of pointers where it made sense.
 
 The GCCSDK-DIFF file contains those changes in diff format and are submitted
 back to the CMunge authors for possible inclusion in future versions.  It is

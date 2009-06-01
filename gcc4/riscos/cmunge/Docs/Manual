@@ -78,8 +78,10 @@ Options:
                 a pointer to a RISC OS error block. Use 'os_register_block'
                 instead of '_kernel_swi_regs' to represent a set of ARM
                 registers. Use '#include "oslib/os.h"' (OSLib) instead of
-                '#include "kernel.h"' (SharedCLibrary) in generated C header
+                '#include "kernel.h"' (Shared C Library) in generated C header
                 file.
+-znoscl         Don't interface with Shared C Library. Bare metal run-time
+                support only.
 -blank          Generate an empty CMunge file instead of reading one.
                 When in 'CMHG' mode this will generate a warning but will
                 generate a header containing only CMHG-based features.
@@ -99,7 +101,7 @@ Using CMunge:
 From here it gets technical. If you are to the stage of generating modules
 then you should be competent enough to understand the following.
 
-Input to cmhg is given in the form of a text file. This text file is
+Input to CMunge is given in the form of a text file. This text file is
 relatively free form, but the following (insane) set of rules was laid
 down by Acorn.
 
@@ -515,8 +517,8 @@ every occurrence of _kernel_oserror is replaced by os_error.
     generate an entry point that calls a handler function under the same
     entry/exit conditions as above. If multiple event-handler entries are
     required, using the token again allows this. Multiple event-handlers
-    are accepted in cmhg mode, but only the last is processed fully in
-    order to follow cmhg's behaviour.
+    are accepted in CMHG mode, but only the last is processed fully in
+    order to follow CMHG's behaviour.
     
     Fast accept/reject code is generated for the given event numbers. The
     numbers are optional, but strongly recommended.
@@ -641,6 +643,7 @@ is a bug. CMunge also adds to the file format :
   * Simple additive evaluation of integers (see below)
   * Simpler C++ module creation (module-is-c-plus-plus)
   * Command keyword handlers (handler) and handler omission (no-handler)
+  * Printer driver handler (pdriver-handler)
 
 The command line differs from CMHG in the following ways :
   * Exported header types (-x switch)
@@ -651,6 +654,8 @@ The command line differs from CMHG in the following ways :
   * Multiple toolchain suport (-t switch)
   * Explicit APCS variant selection (-apcs switch)
   * Backwards compatibility with CMHG (-cmhg switch)
+  * Bare Metal support, i.e. not using the Shared C Library runtime (-znoscl
+    switch)
 
 Within the header produced, there are a couple of deviances :
 
@@ -664,6 +669,25 @@ Within the header produced, there are a couple of deviances :
     but just the version number in CMHG.
 
 If these cause a problem, please let us know.
+
+
+Bare Metal support (option -znoscl)
+------------------
+
+This is one of the CMunge only features and allows you to build C based
+modules which are not using the Shared C Library runtime.  Apart from its
+lack of the Shared C Library dependency it also offers a smaller footprint.
+
+Note that apart from a run-time stack (the SVC one), you're on your own for
+memory management, I/O, etc and you can only rely on what RISC OS or third
+party modules provide, e.g. via their SWIs.
+
+It might be that the generated output of the C compiler contains calls to
+memcmp, memset, memcpy and memmove which you are required to provide yourself.
+
+Currently this feature has the following limitations : only GCC compiler is
+supported and it can not be combined with module-is-runnable nor
+module-is-c-plus-plus keywords.
 
 
 Evaluation of integer elements
