@@ -2,8 +2,8 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !GCC.docs.UnixLib.Changes too.
 
-GCCSDK GCC 4.1.1 Pre-release 3 (released xxx)
-==============================
+GCCSDK GCC 4.1.1 Release 2 (released xxx)
+==========================
 
 Major changes:
   - Test release where the shared library code generation is enabled
@@ -16,6 +16,8 @@ Major changes:
     part of GCCSDK 4 to support legacy Acorn ARM assembler and ObjAsm files
     and this after many compatibility fixes.
     More information can be found in !GCC.docs.asasm.
+  - Possibility to create RISC OS modules without having to use
+    SharedCLibrary.
 
 Bug fixes:
   - Shareble library fixes (SOModule and code generation).
