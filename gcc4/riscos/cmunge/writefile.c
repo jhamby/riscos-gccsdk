@@ -499,7 +499,7 @@ static void mod_header(void)
   else
     output_word(0, "Start offset");
   output_word_as_str("_CMUNGE_init\t\t-_CMUNGE_origin", "Initialisation offset");
-  /* Do not have a module finalisation routine when we have bare metal support
+  /* Do not have a module finalisation routine when we're not using SCL
      and no user supplied C routine.  */
   if (!opt.no_scl || opt.final)
     output_word_as_str("_CMUNGE_fin\t\t-_CMUNGE_origin", "Finalisation offset");

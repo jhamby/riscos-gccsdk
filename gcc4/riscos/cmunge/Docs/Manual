@@ -80,8 +80,8 @@ Options:
                 registers. Use '#include "oslib/os.h"' (OSLib) instead of
                 '#include "kernel.h"' (Shared C Library) in generated C header
                 file.
--znoscl         Don't interface with Shared C Library. Bare metal run-time
-                support only.
+-znoscl         Don't interface with Shared C Library, i.e. don't have
+                runtime support.
 -blank          Generate an empty CMunge file instead of reading one.
                 When in 'CMHG' mode this will generate a warning but will
                 generate a header containing only CMHG-based features.
@@ -654,8 +654,7 @@ The command line differs from CMHG in the following ways :
   * Multiple toolchain suport (-t switch)
   * Explicit APCS variant selection (-apcs switch)
   * Backwards compatibility with CMHG (-cmhg switch)
-  * Bare Metal support, i.e. not using the Shared C Library runtime (-znoscl
-    switch)
+  * Possibility to not use the Shared C Library runtime (-znoscl switch)
 
 Within the header produced, there are a couple of deviances :
 
@@ -671,8 +670,8 @@ Within the header produced, there are a couple of deviances :
 If these cause a problem, please let us know.
 
 
-Bare Metal support (option -znoscl)
-------------------
+Not using Shared C Library (option -znoscl)
+--------------------------
 
 This is one of the CMunge only features and allows you to build C based
 modules which are not using the Shared C Library runtime.  Apart from its

@@ -1,11 +1,11 @@
 /* Copyright (c) 2005-2009 GCCSDK Developers
  *
- * Example module using GCC but *not* the SharedCLibrary.  I.e. this is called
- * 'bare metal'.  It might be that you have to provide your own C library
- * routines.
+ * Example module using GCC but *not* the SharedCLibrary.  It might be that
+ * you have to provide your own C library routines like memset, memcpy,
+ * memmove and memcmp.
  * You can use the StandardCLibrary *header* files to get useful standard C
  * types (or RISC OS specific types like _kernel_oserror) but that's as far
- * as you can get with 'bare metal'.
+ * as you can get.
  */
 
 #include "module.h"

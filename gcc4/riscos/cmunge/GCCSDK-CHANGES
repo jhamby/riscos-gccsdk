@@ -2,7 +2,7 @@ The official CMunge v0.76 contains nearly all the changes needed for usage
 in the GCCSDK 3.4 project.  For GCCSDK 4 we had to made additional changes
 for ELF, instead of AOF, object format support only affecting the operation
 of the -tgcc option.  Two new features have been added : printer driver
-handler and Bare Metal support.
+handler and no-SCL support.
 
 More detailed overview of the changes made so far:
 
@@ -17,8 +17,8 @@ More detailed overview of the changes made so far:
   - Added 'pdriver-handler' keyword for those wanting to create printer driver
     module code. Added an example for this new feature.
     Added explanation on 'pdriver-handler' in manual.
-  - Added Bare Metal support, i.e. not using Shared C Library runtime.
-    Added explanation on Bare Metal in manual.
+  - Added the posibility to create modules without using the Shared C Library
+    runtime (option -znoscl) + manual update.
   - Several manual typo fixes.
   - Source improvements:
     - strduptok/strfindpair/strstring : use memcpy() instead of strncpy() for

@@ -132,7 +132,7 @@ as this is more cross-platform compatible. For example:
 
 <h5>1.3.2. RISC&nbsp;OS module support</h5>
 
-<p>When C based modules are created, you can make use of the SharedCLibrary as runtime library.  UnixLib is not suited as runtime library for modules.  It is also possible not to make use of any runtime library in your module (so called Bare Metal) and only rely on having a stack and do all your memory management, I/O, etc. yourself (possibly using RISC OS' or third party modules' SWIs).
+<p>When C based modules are created, you can make use of the SharedCLibrary as runtime library.  UnixLib is not suited as runtime library for modules.  It is also possible not to make use of any runtime library in your module and only rely on having a stack and do all your memory management, I/O, etc. yourself (possibly using RISC OS' or third party modules' SWIs).
 
 <p>In both cases you need to make use of <a href="cmunge">CMunge</a> to create a RISC&nbsp;OS module header and the necessary setup code for each of the user required module entries, like initialisation, finalisation, service calls, command implementations etc.  CMunge can also be used to create veneer code acting as glue code for RISC&nbsp;OS callbacks into your C<!-- /C++ --> coded module.
 
@@ -170,7 +170,7 @@ The requirements for CMunge are formulated in a .cmhg file which gets parsed by 
 -mno-apcs-stack-check switch as well. However some pieces of module code can also run in USR mode as e.g. module start code (hence, as application) so the -mapcs-stack-check switch is then exclicitly needed
 to enforce chunk stack checking for those module object files containing code which is executed in USR mode.
 
-<h6>1.3.2.3. Module support without SharedCLibrary - Bare Metal</h6>
+<h6>1.3.2.3. Module support without SharedCLibrary</h6>
 
 <p>Modules created without using SharedCLibrary have the advantage to not be dependent on the SharedCLibrary and have typically a smaller footprint.  They are created by specifying the extra CMunge switch "-znoscl" (specifying not to generate code to interface with SharedCLibrary but generate code instead to setup the runtime stack itself) and by the extra linker switches "-nostdlib -lgcc" (specifying not to use any standard library, whom the SharedCLibrary, except the GCC library which contains helper routines possibly used by its generated code).
 
@@ -178,7 +178,7 @@ to enforce chunk stack checking for those module object files containing code wh
 
 <p>It might be that GCC generates code which contains memcmp, memset, memcpy and memmove calls.  In such a case you need to provide those routines yourself (they are the same routines as the ones defined in standard C).
 
-<p>Calling RISC&nbsp;OS SWIs can be done via inline assembler calls, custom assembler routines or making use of a C library providing SWI level access like <a href="http://ro-oslib.sourceforge.net/">OSLib</a>.  Libraries used when linking Bare Metal modules can not use the SharedCLibrary as well.
+<p>Calling RISC&nbsp;OS SWIs can be done via inline assembler calls, custom assembler routines or making use of a C library providing SWI level access like <a href="http://ro-oslib.sourceforge.net/">OSLib</a>.  Note that such libraries can not use the SharedCLibrary as well.
 
 <h6>1.3.2.4. Module resource data</h6>
 
