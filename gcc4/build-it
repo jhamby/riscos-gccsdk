@@ -142,7 +142,7 @@ cd $GCCSDK_BUILDDIR
 #      not necessary the gcc version we're building here.
 $GCCSDK_SRCDIR/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS \
 	--enable-threads=posix \
-	--disable-nls --enable-sjlj-exceptions=yes \
+	--disable-nls --enable-sjlj-exceptions=no \
 	--disable-c-mbchar --enable-languages=$GCCSDK_LANGUAGES \
 	--enable-checking=no --disable-libstdcxx-pch \
 	--enable-c99 --enable-cmath \
