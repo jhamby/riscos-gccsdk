@@ -1,3 +1,60 @@
+Sun Jun 7 11:10:43 2009  Lee Noar  <leenoar@sky.com>
+
+	* General overview:
+	The call frame C++ exception handling code creates a table of
+	call frames that relate to the frames on the stack. This table
+	allows the stack unwinder to maintain a context that stores
+	the locations of all registers stored by the current function
+	on entry.
+	The return address of a function is used as a key to allow the
+	stack unwinder to find its particular entry in the table. If the
+	wrong return address is used, then exception handling will fail
+	usually with a crash in the personality routine. The personality
+	routine (for C++ at least) attempts to write to r0 and r1 in the
+	stack frame. These registers aren't usually saved on function
+	entry, only a few exception handling functions actually save
+	these registers.
+	Wesnoth is an example of where these crashes have been observed.
+
+	* Specifically:
+	* gcccompat/_b_frame.s(__builtin_frame_address): I have found
+	that __builtin_frame_address can return the wrong result under
+	certain circumstances, e.g., when the requested fp is not within
+	the current stack chunk. This causes __builtin_return_address to
+	give the wrong return address and crashes in C++ exception
+	handling as detailed above. The problem seems to be that the
+	behaviour of the SCL is slightly different to UnixLib when the
+	stack is extended. UnixLib creates a new chunk and starts using
+	that as the stack, but the comment in the code suggests that SCL
+	copies a frame as well. I believe that this makes the chain of
+	frames slightly different for UnixLib and SCL. These changes
+	simplify the UnixLib code to match the stack extension code, but
+	leave the SCL code as is, as I have no reason to believe that it
+	is wrong in this case.
+	* gcccompat/_b_return.s(__builtin_return_address): UnixLib code
+	attempts to load the return address from the stack chunk which is
+	addressed by a2. However, at this point, a2 will either contain a
+	frame address or have been corrupted by the call to
+	__gcc_alloca_return_address() leading to crashes in exception
+	handling as detailed above.
+	Set a2 to contain the address of the current stack chunk. Note
+	that using the chunk that actually contains the requested fp
+	doesn't work as far as exception handling is concerned.
+	* gcccompat/_eh_support.s(__ehs_return_address): New file, new
+	function. The context maintained by the exception handling code,
+	as detailed above, is initialised from the call frame table using
+	a return address obtained via __builtin_return_address(). This
+	correctly handles the case whereby the return address may be
+	__free_stack_chunk or __gcc_alloca_free. However, further updates
+	to the context by the stack unwinder retrieve the return address
+	directly from the stack. If the return address happens to be one
+	of these functions, then exception handling will fail.
+	__ehs_return_address() does a similar job to
+	__builtin_return_address() in that it traps these special functions
+	and returns the correct result. It differs in that we already know
+	the frame address (which will not be the current one) and are able
+	to pass it as an argument.
+
 Wed May 27 20:31:18 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* sys/byteorder.h: Fix bogus include.  Seems to have been wrong

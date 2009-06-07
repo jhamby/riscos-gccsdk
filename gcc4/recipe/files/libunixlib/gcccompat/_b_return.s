@@ -21,7 +21,7 @@
 __builtin_return_address:
  PICNE "STMFD	sp!, {lr}"
  PICEQ "STMFD	sp!, {v4, lr}"
- @ Setup GOT for function call via PLT.
+	@ Setup GOT for function call via PLT.
  PICEQ "LDR	v4, .L2+4"
 .LPIC0:
  PICEQ "ADD	v4, pc, v4"		@ v4 = Library public GOT
@@ -53,6 +53,7 @@ __builtin_return_address:
 	@ If the return address in the frame points to the
 	@ '__free_stack_chunk' function, then the real return address has
 	@ to be found at sl[CHUNK_RETURN].
+	SUB	a2, sl, #512 + CHUNK_OVERHEAD
 	LDR	lr, .L2
 	TEQ	a1, lr
 	LDREQ	a1, [a2, #CHUNK_RETURN]

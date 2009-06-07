@@ -1,6 +1,6 @@
 @ __builtin_frame_address
 @ This source is used by SCL and UnixLib libraries.
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Developers
+@ Copyright (c) 2002-2009 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -77,10 +77,13 @@ __builtin_frame_address_loop:
 
 	LDR	ip, [a1, #-12]	@ ip = next fp
 	LDR	v1, [a2, #CHUNK_MAGIC]
+
+	@ Check that this a valid stack chunk
 	TEQ	v2, v1
 	MOVNE	a1, ip
 	BNE	__builtin_frame_address_loop_end
 
+	@ Is the frame within the current stack chunk?
 	LDR	v1, [a2, #CHUNK_SIZE]
 	ADD	v1, v1, a2
 	CMP	ip, v1
@@ -102,17 +105,28 @@ __builtin_frame_address_sharedclibrary:
 	TEQ	a2, #0		@ No previous stack chunk
 	MOVEQ	a1, #0
 	LDMEQEA	fp, {v1, v2, fp, sp, pc}
+	
+#if __TARGET_SCL__
+	@ This may well be correct for the SharedCLibrary, but it doesn't seem
+	@ to work for UnixLib and causes failures in the C++ call frame
+	@ exception system. From the comment above, this may be because
+	@ UnxiLib doesn't copy the current stack frame during stack extension.
 	LDR	a1, [ip, #-12]
+#elif __TARGET_UNIXLIB__
+	MOV	a1, ip
+#endif
 
 __builtin_frame_address_loop_end:
 	ADD	a3, a3, #1
 	CMP	a3, a4
 	BLE	__builtin_frame_address_loop
 
+#if __TARGET_SCL__
 	LDR	v1, [a2, #CHUNK_MAGIC]
 	TEQ	v1, v2
 	LDMNEEA	fp, {v1, v2, fp, sp, pc}	@ a1 => fp
 
+	@ Again, this code can cause C++ call frame exception handling to fail.
 	LDR	v1, [a2, #CHUNK_SIZE]
 	ADD	v1, v1, a2
 	CMP	a1, v1
@@ -121,7 +135,9 @@ __builtin_frame_address_loop_end:
 
 	CMP	a1, a2
 	LDRLT	a1, [a1, #-12]
+#endif
 	LDMEA	fp, {v1, v2, fp, sp, pc}	@ a1 => fp
+	
 	DECLARE_FUNCTION __builtin_frame_address
 
 	.end
