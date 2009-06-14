@@ -1,3 +1,22 @@
+Sun Jun 14 14:46:12 2009  Lee Noar  <leenoar@sky.com>
+
+	* gcccompat/_eh_support.s:
+	* (__ehs_stack_limit): New function.
+	Given a stack pointer (which will not be the current one),
+	determine which stack chunk contains it and return the stack
+	limit for that chunk. Used by uw_install_context() in
+	unwind-dw2.c (call frame exception handling). The stack
+	unwinder steps through the call frames looking for either
+	cleanup handlers or exception handlers. The context is installed
+	once one of these is found, however, the frame that is jumped
+	to may be within a different stack chunk so we have to restore
+	the stack limit for that chunk.
+	* (__ehs_trim_stack): New function.
+	Wrapper for __trim_stack to preserve any registers that it may
+	use/corrupt. If the stack unwinder unwinds down the call frames
+	to a different stack chunk, then there will be one or more
+	redundant chunks that need to be freed.
+
 Sun Jun 7 11:10:43 2009  Lee Noar  <leenoar@sky.com>
 
 	* General overview:
