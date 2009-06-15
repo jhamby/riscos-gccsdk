@@ -21,7 +21,7 @@ static void Throwback_Shutdown(void)
   _kernel_swi(DDEUtils_ThrowbackEnd,&ARM,&ARM);
 }
 
-void vThrowbackf(seriousness_t seriousness,char *file,int line,char *format,va_list args)
+void vThrowbackf(seriousness_t seriousness,const char *file,int line,const char *format,va_list args)
 {
   char buf[1024];
 
@@ -29,7 +29,7 @@ void vThrowbackf(seriousness_t seriousness,char *file,int line,char *format,va_l
   Throwback(seriousness,file,line,buf);
 }
 
-void Throwback(seriousness_t seriousness,char *file,int line,char *message)
+void Throwback(seriousness_t seriousness,const char *file,int line,const char *message)
 {
   static int registered=0;
   _kernel_swi_regs ARM;
