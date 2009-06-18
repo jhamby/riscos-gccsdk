@@ -89,6 +89,9 @@ __BEGIN_DECLS
 /* Don't make terminal device controlling terminal */
 #define O_NOCTTY       0x10000
 
+/* Large file flag - not fully supported but needed for some libraries */
+#define O_LARGEFILE 0x20000
+
 
 /* Duplicate file descriptor.  */
 #define F_DUPFD 	0
