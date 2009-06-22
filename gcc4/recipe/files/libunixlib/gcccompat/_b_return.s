@@ -1,6 +1,6 @@
 @ __builtin_return_address
 @ This source is used by SCL and UnixLib libraries.
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Developers
+@ Copyright (c) 2002-2009 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -45,6 +45,7 @@ __builtin_return_address:
 	@ blocks so the return address needs to be found in one of the
 	@ 'struct alloca_chunk' blocks.
 	LDR	lr, .L1
+ PICEQ "LDR	lr, [v4, lr]"
 	TEQ	a1, lr
 	MOVEQ	a1, a2
 	BLEQ	__gcc_alloca_return_address
@@ -55,6 +56,7 @@ __builtin_return_address:
 	@ to be found at sl[CHUNK_RETURN].
 	SUB	a2, sl, #512 + CHUNK_OVERHEAD
 	LDR	lr, .L2
+ PICEQ "LDR	lr, [v4, lr]"
 	TEQ	a1, lr
 	LDREQ	a1, [a2, #CHUNK_RETURN]
 #endif

@@ -15,12 +15,21 @@
 	NAME	__ehs_return_address
 __ehs_return_address:
 	MOV	ip, sp
-	STMFD	sp!, {v1, fp, ip, lr, pc}
+ PICNE "STMFD	sp!, {v1, fp, ip, lr, pc}"
+ PICEQ "STMFD	sp!, {v1, v4, fp, ip, lr, pc}"
 	SUB	fp, ip, #4
 
 	MOVS	v1, a1
 	MOVEQ	a1, #0
-	LDMEQEA	fp, {v1, fp, sp, pc}
+ PICNE "LDMEQEA	fp, {v1, fp, sp, pc}"
+ PICEQ "LDMEQEA	fp, {v1, v4, fp, sp, pc}"
+
+ PICEQ "LDR	v4, .L3"
+.LPIC0:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = Library public GOT
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v4 = GOT table location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT table
+ PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = Library private GOT
 
 	@ Retrieve return address from stack frame
 	LDR	a1, [v1, #-4]
@@ -29,6 +38,7 @@ __ehs_return_address:
 	BICNE	a1, a1, #0xfc000003	@ If running 26bit, clear PSR bits.
 
 	LDR	lr, .L1			@ __gcc_alloca_free
+ PICEQ "LDR	lr, [v4, lr]"
 	TEQ	a1, lr
 	MOVEQ	a1, v1
 	BLEQ	__gcc_alloca_return_address
@@ -36,8 +46,10 @@ __ehs_return_address:
 	@ SCL doesn't store the return address in the stack chunk
 #if __TARGET_UNIXLIB__
 	LDR	lr, .L2			@ __free_stack_chunk
+ PICEQ "LDR	lr, [v4, lr]"
 	TEQ	a1, lr
-	LDMNEEA	fp, {v1, fp, sp, pc}
+ PICNE "LDMNEEA	fp, {v1, fp, sp, pc}"
+ PICEQ "LDMNEEA	fp, {v1, v4, fp, sp, pc}"
 
 	@ Starting at the current chunk, step back through the chunk list
 	@ until we find the one containing the given frame pointer. The
@@ -60,13 +72,15 @@ __ehs_return_address:
 	LDR	a2, [a2, #CHUNK_PREV]
 	TEQ	a2, #0
 	MOVEQ	a1, #0
-	LDMEQEA	fp, {fp, sp, pc}
+ PICNE "LDMEQEA	fp, {v1, fp, sp, pc}"
+ PICEQ "LDMEQEA	fp, {v1, v4, fp, sp, pc}"
 
 	@ Make sure we've got a valid chunk
 	LDR	a3, [a2, #CHUNK_MAGIC]
 	TEQ	a3, a4
 	MOVNE	a1, #0
-	LDMNEEA	fp, {fp, sp, pc}
+ PICNE "LDMNEEA	fp, {v1, fp, sp, pc}"
+ PICEQ "LDMNEEA	fp, {v1, v4, fp, sp, pc}"
 
 	B	0b	@ chunk_loop
 
@@ -76,13 +90,16 @@ __ehs_return_address:
 	LDRNE	a1, [a1, #CHUNK_RETURN]
 	LDREQ	a1, [a2, #CHUNK_RETURN]
 #endif
-	LDMEA	fp, {v1, fp, sp, pc}
+ PICNE "LDMEA	fp, {v1, fp, sp, pc}"
+ PICEQ "LDMEA	fp, {v1, v4, fp, sp, pc}"
 .L1:
 	WORD	__gcc_alloca_free
 #if __TARGET_UNIXLIB__
 .L2:
 	WORD	__free_stack_chunk
 #endif
+.L3:
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __ehs_return_address
 
 

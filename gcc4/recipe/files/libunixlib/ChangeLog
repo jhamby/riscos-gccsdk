@@ -1,3 +1,8 @@
+Mon Jun 22 19:23:05 2009  Lee Noar  <leenoar@sky.com>
+
+	* gcccompat/_eh_support.s: Add PIC instructions.
+	* gcccompat/_b_return.s: Likewise.
+
 Sun Jun 14 14:46:12 2009  Lee Noar  <leenoar@sky.com>
 
 	* gcccompat/_eh_support.s:
