@@ -469,24 +469,21 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #endif
 
 #ifdef PIC
-  {
-    /* Tell the Shared Object Manager that the current client has exited.
-       We must avoid accessing global variables once deregistration has
-       occurred. */
-    int regs[10];
-    struct ul_memory *mem = &__ul_memory;
+  if (sulproc->ppid == 1)
+    {
+      /* Tell the Shared Object Manager that the current client has exited.
+	 We can still access global variables afterwards, because the PIC
+	 register and R/W data segment are still valid and are not the
+	 responsibilty of the Shared Object Manager.  */
+      int regs[10];
 
-    (void) __os_swi(SOM_DeregisterClient, regs);
- 
-    sulproc->sul_exec (sulproc->pid, cli,
-		       (void *) mem->stack_limit,
-		       (void *) mem->stack);
-  }
-#else
+      (void) __os_swi(SOM_DeregisterClient, regs);
+    }
+#endif
+
   sulproc->sul_exec (sulproc->pid, cli,
 		     (void *) __ul_memory.stack_limit,
 		     (void *) __ul_memory.stack);
-#endif
 
   /* This is never reached.  */
   return 0;

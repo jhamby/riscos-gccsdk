@@ -1,3 +1,18 @@
+Fri Jul 03 19:42:48 2009  Lee Noar  <leenoar@sky.com>
+
+	* sys/exec.c(execve): Only deregister the client from the
+	Shared Object Manager if we are not the parent of another
+	process. If the client is a parent, then it must remain
+	registered so that the child can return.
+	Also don't bother about accessing global variables after
+	deregistering. Examination of the compiled code shows that
+	despite attempts to ensure that this doesn't happen, the
+	compiler still generates accesses to global variables after
+	deregistering without any ill effects. In fact, there should
+	be no ill effects as the PIC register and R/W data segment are
+	still valid and are not under the control of the Shared
+	Object Manager.
+
 Mon Jun 22 19:23:05 2009  Lee Noar  <leenoar@sky.com>
 
 	* gcccompat/_eh_support.s: Add PIC instructions.
