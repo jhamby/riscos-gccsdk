@@ -304,7 +304,7 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	    symbol_addr = (unsigned int)dst_obj->private_rw_ptr + symbol_offset;
 	}
 
-	*client_reloc_addr = symbol_addr;
+	*client_reloc_addr += symbol_addr;
 
       break;
     case R_ARM_JUMP_SLOT:
