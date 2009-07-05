@@ -241,31 +241,35 @@ som_handle_from_name (const char *name)
   return (object == NULL) ? 0 : object->handle;
 }
 
-/* entry:
- *  r0 = address
+/* SWI "SOM_Reloc"
+ *
+ * Given an address, determine if it exists within a library's R/W data
+ * segment. If this proves to be the case, then convert to the client's
+ * private copy and return as the result, otherwise, return what was given.
+ *
+ * entry:
+ *  r0 = address to relocate
  * exit:
- *  r0 = offset
+ *  r0 = address relocated if possible, otherwise preserved.
  */
-_kernel_oserror *
-som_addr_to_offset (_kernel_swi_regs *regs)
+void
+som_reloc (_kernel_swi_regs *regs)
 {
   som_client *client = FIND_CLIENT ();
-  unsigned int offset = 0;
-  som_PTR addr = (som_PTR) regs->r[0];
 
   if (client)
     {
+      som_PTR addr = (som_PTR) regs->r[0];
       som_object *object;
 
       for (object = linklist_first_som_object (&client->object_list);
-	   object != NULL && addr > object->end_addr;
+	   object != NULL
+	     && (addr < object->rw_addr
+	     || addr >= object->rw_addr + object->rw_size);
 	   object = linklist_next_som_object (object))
-	/* */;
+        /* */;
+
       if (object != NULL)
-	offset = addr - object->base_addr;
+	regs->r[0] = (int) (object->private_rw_ptr + (addr - object->rw_addr));
     }
-
-  regs->r[0] = offset;
-
-  return NULL;
 }

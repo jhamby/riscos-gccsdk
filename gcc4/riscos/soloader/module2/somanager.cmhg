@@ -18,7 +18,7 @@
 
 title-string: SOManager
 
-help-string: Shared Object Manager 2.00 (c) GCCSDK Developers
+help-string: Shared Object Manager 2.01 (c) GCCSDK Developers
 
 initialisation-code: module_initialise
 
@@ -50,7 +50,7 @@ swi-handler-code: module_swihandler
 swi-decoding-table: SOM, Alloc, Free, AllocLib, RegisterObject,
   DeregisterClient, DeregisterSharedObject, QueryObject,
   IterateObjects, GOTFromAddr, HandleFromAddr, HandleFromName,
-  ResolveSymlinks, GenerateRuntimeArray, AddrToOffset
+  ResolveSymlinks, GenerateRuntimeArray, Reloc
 
 error-chunk-base-number: 0x81DC00
 

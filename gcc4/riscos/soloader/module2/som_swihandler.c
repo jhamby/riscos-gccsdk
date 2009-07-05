@@ -132,12 +132,12 @@ module_swihandler (int number, _kernel_swi_regs * r, void *pw)
       }
       break;
 
-    case SOM_AddrToOffset - SOM_00:
-      err = som_addr_to_offset (r);
-      break;
-
     case SOM_GenerateRuntimeArray - SOM_00:
       err = som_generate_runtime_array ();
+      break;
+
+    case SOM_Reloc - SOM_00:
+      som_reloc (r);
       break;
 
     default:

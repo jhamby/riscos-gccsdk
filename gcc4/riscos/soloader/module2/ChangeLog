@@ -1,3 +1,24 @@
+Fri Jul 04 20:04:09 2009  Lee Noar  <leenoar@sky.com>
+
+	* somanager.cmhg: Add new SWI (SOM_Reloc) to SWI table,
+	and remove redundant SWI (SOM_AddrToOffset).
+	Bump module version number to V2.01 because of new SWI.
+	* som_swihandler.c(module_swihandler): Add handler code
+	for SWI "SOM_Reloc" and remove handler code for
+	SWI "SOM_AddrToOffset".
+	* som_utilswis.c, som_utilswis.h: Add code to implement
+	SWI "SOM_Reloc" and remove code for SWI "SOM_AddrToOffset".
+	* dist/!SharedLibs/SOM1stRun,feb: Require V2.01 of module.
+
+	SWI "SOM_Reloc" allows a client to relocate an address
+	that the dynamic loader has no knowledge of during
+	initialisation. For example, some dwarf expressions, when
+	evaluated, can yield an address that lies within a
+	library's public data segment. This will have to be
+	relocated manually by the client into its own private
+	data segment. This can occur within call frame exception
+	handling.
+
 Tue Jan 06 18:42:23 2009  Lee Noar  <leenoar@sky.com>
 
 	* som_register.c(deregister_shared_object): If an object is

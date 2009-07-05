@@ -67,17 +67,17 @@ extern _kernel_oserror *som_handle_from_addr (_kernel_swi_regs *regs);
  */
 extern som_handle som_handle_from_name (const char *name);
 
-/* SWI "SOM_AddrToOffset"
+/* SWI "SOM_Reloc"
  *
- * This SWI is not particularly useful in its current state and its presence
- * is due to historical reasons. It may be expanded in future to be of more
- * use or it may be removed altogether.
+ * Given an address, determine if it exists within a library's R/W data
+ * segment. If this proves to be the case, then convert to the client's
+ * private copy and return as the result, otherwise, return what was given.
  *
  * entry:
- *  r0 = address
+ *  r0 = address to relocate
  * exit:
- *  r0 = offset
+ *  r0 = address relocated if possible, otherwise preserved.
  */
-extern _kernel_oserror *som_addr_to_offset (_kernel_swi_regs *regs);
+extern void som_reloc (_kernel_swi_regs *regs);
 
 #endif
