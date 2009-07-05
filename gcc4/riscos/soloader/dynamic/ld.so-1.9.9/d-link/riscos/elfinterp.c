@@ -461,11 +461,17 @@ int _dl_parse_copy_information(struct dyn_elf * xpnt, int rel_addr,
       unsigned int *got = (unsigned int *)(lib->dynamic_info[DT_PLTGOT] + lib->loadaddr);
       struct som_rt_elem *objinfo = *((struct som_rt_elem **)got[2]) + got[1];
 
-        /*
-         * Adjust the symbol address to point to the one in the client's private
-         * R/W segment.
-         */
-        symbol_addr = (symbol_addr - (unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr;
+        if ((unsigned int)symbol_addr >= (unsigned int)objinfo->public_rw_ptr)
+	{
+	  /*
+	   * If the symbol to be copied is within the R/W data segment of the library, then
+	   * relocate its address to point to the one in the client's private R/W segment
+	   * (which has already been initialised). The symbol may be in the text segment of
+	   * the library, for example, if it's a constant string that is referenced in the
+	   * client code. In this case, don't relocate.
+	   */
+	  symbol_addr = (symbol_addr - (unsigned int)objinfo->public_rw_ptr) + (unsigned int)objinfo->private_rw_ptr;
+	}
 
         _dl_memcpy((char *) symtab[symtab_index].st_value,(char *) symbol_addr,
 		 symtab[symtab_index].st_size);
