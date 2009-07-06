@@ -5,6 +5,8 @@ AB_URL=ftp://ftp.simplesystems.org/pub/libpng/png/src/history/libpng-1.2.35.tar.
 
 AB_INSTALL=yes
 
+AB_PRECONF='CFLAGS=-O3'
+
 export ECHO=echo
 
 ab_make()
