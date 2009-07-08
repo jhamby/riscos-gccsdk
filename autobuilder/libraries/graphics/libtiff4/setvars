@@ -3,6 +3,8 @@ AB_ZIPNAME=libtiff4-dev
 AB_INSTALL=yes
 AB_INSTALLTARGET="-C libtiff install"
 
+AB_PRECONF='CFLAGS=-O3'
+
 ab_package()
 {
   AD=$D/Apps/Library/!LibTIFF
