@@ -6,6 +6,8 @@ AB_INSTALLTARGET=install-lib
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 
+AB_PRECONF="CFLAGS=-O3"
+
 ab_package() {
   
   HERE=`pwd`

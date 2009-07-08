@@ -5,7 +5,7 @@
  	echo arm-unknown-netbsd`echo ${UNAME_RELEASE}|sed -e 's/[-_].*/\./'`
  	exit 0 ;;
 +    arm:riscos:*:*)
-+	echo arm-riscos-aof
++	echo arm-unknown-riscos
 +	exit 0 ;;
      SR2?01:HI-UX/MPP:*:*)
  	echo hppa1.1-hitachi-hiuxmpp

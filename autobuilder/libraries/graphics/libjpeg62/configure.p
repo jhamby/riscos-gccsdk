@@ -5,7 +5,7 @@
      disable_static="--disable-static"
    fi
 -  $srcdir/ltconfig $disable_shared $disable_static $srcdir/ltmain.sh
-+  $srcdir/ltconfig $disable_shared $disable_static $srcdir/ltmain.sh arm-riscos-aof
++  $srcdir/ltconfig $disable_shared $disable_static $srcdir/ltmain.sh arm-unknown-riscos
  fi
  
  # Select memory manager depending on user input.
