@@ -45,13 +45,14 @@
 	.weak	__dynamic_da_max_size
 
 	@ RMEnsure the minimum version of the SharedUnixLibrary we need.
+	@ Now check System modules first as UnixLib package is deprecated.
 .set	SUL_MIN_VERSION, 107
 rmensure1:
 	.ascii	"RMEnsure SharedUnixLibrary 1.07 "
-	.asciz	"RMLoad UnixLib:Modules.SharedULib"
+	.asciz	"RMLoad System:Modules.SharedULib"
 rmensure2:
 	.ascii	"RMEnsure SharedUnixLibrary 1.07 "
-	.asciz	"RMLoad System:Modules.SharedULib"
+	.asciz	"RMLoad UnixLib:Modules.SharedULib"
 	@ The exact error message is not important as it will get ignored.
 rmensure3:
 	.asciz	"RMEnsure SharedUnixLibrary 1.07 Error XYZ"
