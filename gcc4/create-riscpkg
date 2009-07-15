@@ -20,7 +20,7 @@ RPKG_VERSION=1
 
 # Non GCCSDK named packages
 RPKG_SHAREDLIBS_NAME=SharedLibs
-RPKG_UNIXLIB_NAME=UnixLib
+RPKG_UNIXLIB_NAME=SharedUnixLibrary
 RPKG_DRENDERER_NAME=DRenderer
 
 # Set versions
@@ -350,40 +350,19 @@ $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_SHAREDLIBSGPP_NAME\_$RPKG_SHAREDLI
 cd ..
 rm -rf temp
 
-# UnixLib
-#########
+# SharedUnixLibrary
+###################
 
 mkdir temp
 cd temp
 
-# This is based on the riscpkg UnixLib package with permission
-# from Graham Shaw, but misses some of the sprites. It should
-# only really be used until the riscpkg site catches up.
-
-unixlibdir=Apps/Library/\!UnixLib
-
-mkdir -p $unixlibdir/Modules
-cp $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!System/310/Modules/SharedULib,ffa $unixlibdir/Modules
-
-echo "| This file is part of the GCCSDK pre-release distribution of UnixLib." > $unixlibdir/!Boot,feb
-echo "| Based (with permission) on the UnixLib package Copyright © 2005 Graham Shaw." >> $unixlibdir/!Boot,feb
-echo "| Distribution and use are subject to the same terms as UnixLib as a whole." >> $unixlibdir/!Boot,feb
-echo 'Set UnixLib$Dir <Obey$Dir>' >> $unixlibdir/!Boot,feb
-echo 'Set UnixLib$Path <Obey$Dir>.' >> $unixlibdir/!Boot,feb
-echo 'Set UnixLib$Help <Obey$Dir>.!Help' >> $unixlibdir/!Boot,feb
-
-echo "| This file is part of the GCCSDK pre-release distribution of UnixLib." > $unixlibdir/!Run,feb
-echo "| Based (with permission) on the UnixLib package Copyright © 2005 Graham Shaw." >> $unixlibdir/!Run,feb
-echo "| Distribution and use are subject to the same terms as UnixLib as a whole." >> $unixlibdir/!Run,feb
-echo '/<Obey$Dir>.!Boot' >> $unixlibdir/!Run,feb
-
-cp $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/libunixlib/Help $unixlibdir/!Help,fff
-
-scan_boot_file Apps/Library/\!UnixLib/\!Boot,feb Apps.Library UnixLib
+unixlibdir=System/310/Modules
+mkdir -p $unixlibdir
+cp $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!System/310/Modules/SharedULib,ffa $unixlibdir
 
 mkdir RiscPkg
 
-echo "Package: UnixLib" > RiscPkg/Control
+echo "Package: SharedUnixLibrary" > RiscPkg/Control
 echo "Priority: Required" >> RiscPkg/Control
 echo "Section: Library" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
