@@ -36,7 +36,7 @@
 # that the __do_global_{c,d}tors() code will walk through the list and
 # count the entries that it is supposed to be calling.
 	
-	.file		"crt1-riscos.asm"
+	.file		"gcrt1-riscos.asm"
 
 #ifndef __TARGET_MODULE__
 @	.section ".init","x"
@@ -81,7 +81,7 @@ rt_data:
 	.word	0
 	.word	__data_start
 	.word	main
-	.word	0	@ Always 0 indicating that profiling should be disabled.
+	.word	1	@ Always 1 indicating that profiling should be enabled
 #endif
 
-# end of crt1-riscos.asm
+# end of gcrt1-riscos.asm

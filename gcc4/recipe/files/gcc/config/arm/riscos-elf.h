@@ -115,7 +115,7 @@
    object constructed before entering `main'.  */
 #undef STARTFILE_SPEC
 #define STARTFILE_SPEC "%{!mmodule:crti.o%s \
-			%{!shared:crt1-riscos.o%s} \
+			%{!shared:%{pg:gcrt1-riscos.o%s;:crt1-riscos.o%s}} \
 			%{!shared:crtbegin.o%s} \
 			%{shared:crtbeginS.o%s}}"
 
