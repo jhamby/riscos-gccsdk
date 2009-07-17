@@ -217,6 +217,12 @@ create_gcc_tree() {
       sed s/Index.html/Index2.html/ < $d/index.html > $d/index_fixed.html && mv $d/index_fixed.html $d/index.html
       test ! -f $d/Index.html || mv $d/Index.html $d/Index2.html
     done
+    # gas also has ABORT.html and Abort.html
+    d=$GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html
+    test ! -f $d/ABORT.html || mv $d/ABORT.html $d/ABORT2.html
+    for f in `echo $d/{Abort.html,Align.html,index.html,Pseudo-Ops.html}` ; do
+       sed --in-place s/ABORT.html/ABORT2.html/ $f
+    done
   fi
   # Copy documentation:
   mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/libiberty && cp -r $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html $GCCSDK_UNPACKED/\!GCC/docs/libiberty
