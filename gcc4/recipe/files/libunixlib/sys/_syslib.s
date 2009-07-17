@@ -62,9 +62,9 @@ rmensure3:
 	NAME	__main
 
 __main:
-	@ crt1-riscos.o passes several values in memory addressed as an offset
-	@ from a1. The first two are used by both the static and DSO library, the
-	@ others are used by the DSO only.
+	@ (g)crt1-riscos.o passes several values in memory addressed as an offset
+	@ from a1. Offsets 0, 4 and 24 are used by both the static and DSO library,
+	@ the others are used by the DSO only.
 	@
 	@ a1+0  = _init
 	@ a1+4  = _fini
@@ -72,6 +72,8 @@ __main:
 	@ a1+12 = start of free memory
 	@ a1+16 = __data_start
 	@ a1+20 = main
+	@ a1+24 = Flags
+	@	   bit 0 set = enable profiling
 
 	MOV	v1, a1
 
@@ -106,7 +108,7 @@ __main:
 	STR	a1, [ip, #GBL_TIME_LOW]		@ __ul_global.time (low word)
 	STR	a2, [ip, #GBL_TIME_HIGH]	@ __ul_global.time (high word)
 
-	@ Store the pointer to the programs _init & _fini functions for
+	@ Store the pointer to the program's _init & _fini functions for
 	@ calling later. This applies to both static and shared libs.
 	LDMIA	v1!, {a1, a2}
 	LDR	a3, .L0+24			@ exec_init
@@ -119,13 +121,18 @@ __main:
 
 	@ For the shared library, fill in the linker generated values that
 	@ are passed in on the stack by crt1.o. These are only known at runtime.
- PICEQ "LDMIA	v1, {a1-a4}"
+ PICEQ "LDMIA	v1!, {a1-a4}"
+ PICNE "ADD	v1, v1, #4 * 4"
  PICEQ "STR	a1, [fp, #MEM_ROBASE]"		@ __executable_start
  PICEQ "STR	a2, [fp, #MEM_RWLOMEM]"
  PICEQ "STR	a3, [fp, #MEM_RWBASE]"		@ __data_start
 
-	@ Also store the pointer to the programs main function for calling later.
+	@ Also store the pointer to the program's main function for calling later.
  PICEQ "STR	a4, [ip, #GBL_MAIN]"
+
+	@ Now the crt1 flags word
+	LDR	a1, [v1, #0]
+	STR	a1, [ip, #GBL_CRT1_FLAGS]
 
 	@ Obtain the application space limit.  Note that this is different
 	@ to the permitted RAM limit returned by OS_GetEnv, i.e. MEM_APPSPACE_HIMEM
@@ -419,6 +426,12 @@ no_dynamic_area:
 	@ NOTE:	 No calls to brk, sbrk, or malloc should occur before
 	@ calling this function.
 	BL	__unixinit
+
+	LDR	ip, .L0+0		@ =__ul_global
+ PICEQ "LDR	ip, [v4, ip]"
+	LDR	a1, [ip, #GBL_CRT1_FLAGS]
+	TST	a1, #1
+	BLNE	__gmon_start__
 
 	@ Use the Dynamic Loader to call the _init functions of all
 	@ shared libraries. This also reqisters the _fini functions
@@ -1421,6 +1434,11 @@ __ul_global:
 	@ __ul_global.escape_disabled
 	@ Non-zero if the escape key was disabled on program initialisation.
 	.word	0						@ offset = 104
+
+	@ __ul_global.crt1_flags
+	@ Flags word passed from (g)crt1_riscos.o
+	@ Currently bit 0 indicates whether profiling should be enabled.
+	.word	0						@ offset = 108
 	DECLARE_OBJECT __ul_global
 
 

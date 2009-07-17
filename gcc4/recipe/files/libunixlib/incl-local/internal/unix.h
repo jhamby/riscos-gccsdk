@@ -171,6 +171,8 @@ struct ul_global
   int (*main) (int, char *[], char **);
 
   int escape_disabled;
+
+  unsigned int crt1_flags;
 };
 
 /* This structure must be kept in perfect synchronisation with:

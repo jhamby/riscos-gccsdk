@@ -1,5 +1,5 @@
 /* Internal UnixLib sys/cdefs.h
- * Copyright (c) 2008 UnixLib Developers
+ * Copyright (c) 2008, 2009 UnixLib Developers
  */
 
 #ifndef __SYS_CDEFS_H
@@ -27,9 +27,11 @@ __BEGIN_DECLS
 /* For the future, we may want to support ELF symbol visibility which will
    help to reduce the symbol tables of dynamic libraries and speed up
    dynamic linking. FIXME */
-#define hidden_def(name) /**/
+#define attribute_hidden __attribute__ ((visibility ("hidden")))
+#define hidden_def(name) __asm__(".hidden "#name);
 #define libm_hidden_def(name) /**/
 #define INTDEF(name) /**/
+#define libc_hidden_def(name) hidden_def(name)
 
 /* On some platforms we can make internal function calls (i.e., calls of
    functions not exported) a bit faster by using a different calling

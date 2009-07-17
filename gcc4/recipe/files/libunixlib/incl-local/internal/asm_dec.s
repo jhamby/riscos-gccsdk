@@ -319,6 +319,7 @@
 .set	GBL_MALLOC_STATE, 96		@ = __ul_global.malloc_state
 .set	GBL_MAIN, 100			@ = __ul_global.main
 .set	GBL_ESCAPEDISABLED, 104		@ = __ul_global.escape_disabled
+.set	GBL_CRT1_FLAGS,	108		@ = __ul_global.crt1_flags
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
 	@ sys/_syslib.s.
