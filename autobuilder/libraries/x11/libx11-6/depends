@@ -8,3 +8,4 @@ x11proto-input
 libxau6
 libxdmcp
 xtrans
+libxcb1
