@@ -1,1 +1,8 @@
 AB_INSTALL=yes
+
+AB_CONFLAGS=--disable-tls
+
+ab_make() {
+ cd $S/lib/uuid
+ $AB_MAKE
+}
