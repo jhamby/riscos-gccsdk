@@ -1,0 +1,5 @@
+AB_INSTALL=yes
+
+export libIDL_cv_long_long_format=ll
+
+AB_CONFLAGS="--with-idl-compiler=$GCCSDK_INSTALL_ENV/bin/orbit-idl-2"
