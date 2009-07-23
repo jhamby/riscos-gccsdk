@@ -130,7 +130,7 @@ diff -u -r1.85.2.11 Makefile.in
  
  ifdef BUILD_STATIC_LIBS
 -STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components
-+STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components -lCX11 -lDesk -lXt -lSM -lICE -ldb-4.4 -lfreebl3 -lexpat -static -s
++STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components -lCX11 -lDesk -lXt -lSM -lICE -ldb-4.6 -lfreebl3 -lexpat -static -s
  endif
  
  ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))

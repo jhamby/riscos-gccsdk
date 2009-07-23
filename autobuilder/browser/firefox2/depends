@@ -1,8 +1,8 @@
-libglib1.2ldbl
-orbit
+libglib2.0-0
 libxt6
 libxext6
 libxinerama1
 libxp
-db4.4
+db4.6
 libexpat1
+libidl

@@ -40,7 +40,7 @@
 +#if 1
 +DB *dbopen(const char *file, int flags, int mode, DBTYPE type, const void *openinfo)
 +{
-+    return __db185_open_4004(file, flags, /*mode*/ 0666, type, openinfo);
++    return __db_open_4006(file, flags, /*mode*/ 0666, type, openinfo);
 +//    return __db_open(file, flags, mode, type, openinfo);
 +}
 +
