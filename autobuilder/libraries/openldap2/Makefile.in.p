@@ -1,6 +1,6 @@
---- clients/tools/Makefile.in.orig	2008-01-11 18:49:57.000000000 -0800
-+++ clients/tools/Makefile.in	2008-01-11 19:05:42.000000000 -0800
-@@ -32,25 +32,25 @@
+--- clients/tools/Makefile.in.orig	2009-01-21 16:00:42.000000000 -0800
++++ clients/tools/Makefile.in	2009-07-24 11:45:23.000000000 -0700
+@@ -36,31 +36,31 @@
  
  
  ldapsearch:	ldsversion.o
@@ -31,10 +31,19 @@
 -	$(LTLINK) -o $@ ldapcompare.o common.o ldcversion.o $(LIBS)
 +	$(LTLINK) -o $@$(EXEEXT) ldapcompare.o common.o ldcversion.o $(LIBS)
  
+ ldapexop: ldeversion.o
+-	$(LTLINK) -o $@ ldapexop.o common.o ldeversion.o $(LIBS)
++	$(LTLINK) -o $@$(EXEEXT) ldapexop.o common.o ldeversion.o $(LIBS)
+ 
+ ldapurl: lduversion.o
+-	$(LTLINK) -o $@ ldapurl.o lduversion.o $(LIBS)
++	$(LTLINK) -o $@$(EXEEXT) ldapurl.o lduversion.o $(LIBS)
+ 
  ldsversion.c: Makefile
  	@-$(RM) $@
---- servers/slapd/Makefile.in.orig	2008-01-11 20:30:52.000000000 -0800
-+++ servers/slapd/Makefile.in	2008-01-11 20:31:39.000000000 -0800
+
+--- servers/slapd/Makefile.in.orig	2009-06-02 15:36:17.000000000 -0700
++++ servers/slapd/Makefile.in	2009-07-24 12:11:59.000000000 -0700
 @@ -266,7 +266,7 @@
  	cp slapi/.libs/libslapi.a .
  
@@ -44,18 +53,3 @@
  		$(WRAP_LIBS)
  	$(RM) $(SLAPTOOLS)
  	for i in $(SLAPTOOLS); do \
---- servers/slurpd/Makefile.in.orig	2008-01-11 21:14:19.000000000 -0800
-+++ servers/slurpd/Makefile.in	2008-01-11 21:14:47.000000000 -0800
-@@ -44,10 +44,10 @@
- XXXLIBS = $(LTHREAD_LIBS)
- 
- slurpd:	version.o
--	$(LTLINK) -o $@ $(OBJS) version.o $(LIBS)
-+	$(LTLINK) -o $@$(EXEEXT) $(OBJS) version.o $(LIBS)
- 
- sslurpd:	version.o
--	$(LTLINK) -static -o $@ $(OBJS) version.o $(LIBS)
-+	$(LTLINK) -static -o $@$(EXEEXT) $(OBJS) version.o $(LIBS)
- 
- version.c: Makefile
- 	@-$(RM) $@
