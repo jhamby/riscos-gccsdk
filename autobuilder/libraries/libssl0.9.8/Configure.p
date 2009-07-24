@@ -1,12 +1,12 @@
---- Configure.old	2007-04-04 22:43:10.000000000 +0200
-+++ Configure	2007-04-04 23:00:22.000000000 +0200
+--- Configure.orig	2009-07-24 12:51:28.000000000 -0700
++++ Configure	2009-07-24 12:53:00.000000000 -0700
 @@ -1,4 +1,4 @@
 -#!/usr/local/bin/perl
 +#!/usr/bin/perl
  eval 'exec perl -S $0 ${1+"$@"}'
      if $running_under_some_shell;
  ##
-@@ -422,6 +422,10 @@
+@@ -437,6 +437,10 @@
  "qnx4",	"cc:-DL_ENDIAN -DTERMIO::(unknown):::${x86_gcc_des} ${x86_gcc_opts}:",
  "qnx6",	"cc:-DL_ENDIAN -DTERMIOS::(unknown)::-lsocket:${x86_gcc_des} ${x86_gcc_opts}:",
  
@@ -17,12 +17,12 @@
  #### SCO/Caldera targets.
  #
  # Originally we had like unixware-*, unixware-*-pentium, unixware-*-p6, etc.
-@@ -963,6 +967,8 @@
- $IsMK1MF=1 if ($target eq "mingw" && $^O ne "cygwin" && !is_msys());
+@@ -1109,6 +1113,8 @@
+ $no_shared = 0 if ($fipsdso && !$IsMK1MF);
  
  $exe_ext=".exe" if ($target eq "Cygwin" || $target eq "DJGPP" || $target eq "mingw");
 +$exe_ext=",ff8" if ($target eq "riscos-aof-arm");
 +$exe_ext=",e1f" if ($target eq "arm-unknown-riscos");
+ $exe_ext=".nlm" if ($target =~ /netware/);
  $exe_ext=".pm"  if ($target =~ /vos/);
- $openssldir="/usr/local/ssl" if ($openssldir eq "" and $prefix eq "");
- $prefix=$openssldir if $prefix eq "";
+ if ($openssldir eq "" and $prefix eq "")
