@@ -2,9 +2,8 @@ AB_INSTALL=yes
 
 libtoolize --force
 aclocal
-ln -sf /usr/share/automake-1.8/depcomp
 autoheader
-automake
+automake --add-missing
 autoconf
 
 
