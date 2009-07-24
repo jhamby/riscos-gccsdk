@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+base=$(dirname $0)
+
+
+function getnext() {
+  local lib
+
+  for lib in $(find $base/libraries/ -type d) ; do 
+    if [ -e $lib/setvars ] && ! [ -e $lib/last-success ] ; then
+      basename $lib
+      return 0
+    fi
+  done
+}
+
+
+lib=$(getnext)
+
+while [ -n "$lib" ] ; do
+
+  $base/build -v $lib
+
+  lib=$(getnext)
+done
+
+echo "All libraries built"
+
