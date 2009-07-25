@@ -105,7 +105,7 @@ else
 
     # Have to check that targetname is not already a directory
     # to stop problems on case insensitive systems like cygwin.
-    if [ "$targetname" != "$origname" -a ! -d $targetname ] ; then
+    if [ "$targetname" != "$origname" ] && ! [ -d $targetname ] ; then
       mv $origname $targetname
     fi
 
