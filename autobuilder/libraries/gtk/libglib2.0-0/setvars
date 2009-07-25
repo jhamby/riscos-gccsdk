@@ -4,7 +4,9 @@ AB_LICENSE=Free
 
 AB_INSTALL=yes
 
-AB_PRECONF="glib_cv_uscore=no glib_cv_monotonic_clock=yes ac_cv_func_posix_getgrgid_r=no"
+export glib_cv_uscore=no 
+export glib_cv_monotonic_clock=yes 
+export ac_cv_func_posix_getgrgid_r=no
 
 AB_CONFLAGS=--with-pcre=system
 
