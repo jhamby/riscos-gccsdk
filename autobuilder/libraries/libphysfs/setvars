@@ -1,3 +1,11 @@
 
 AB_INSTALL=yes
 
+if ! which cmake >/dev/null ; then
+  echo "libphysfs requires native cmake installed"
+  exit 1
+fi
+
+cmake -D CMAKE_INSTALL_PREFIX=$GCCSDK_INSTALL_ENV .
+
+
