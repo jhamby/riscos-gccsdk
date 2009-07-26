@@ -2,17 +2,39 @@
 
 base=$(dirname $0)
 
+if [ "$1" == "-l" ] ; then
+  list=true
+  shift
+else
+  list=false
+fi
+
+subdir=$1
+
+if [ -z "$subdir" ] ; then
+  subdir=libraries
+fi
 
 function getnext() {
   local lib
 
-  for lib in $(find $base/libraries/ -type d) ; do 
+  for lib in $(find $base/$subdir -type d) ; do 
     if [ -e $lib/setvars ] && ! [ -e $lib/last-success ] ; then
-      basename $lib
-      return 0
+      if $list; then
+        sed s#$base/## <<< $lib
+      else
+        basename $lib
+        return 0
+      fi
     fi
   done
 }
+
+
+if $list; then
+  getnext
+  exit 0
+fi
 
 
 lib=$(getnext)
