@@ -1,6 +1,0 @@
-
-AB_INSTALL=yes
-
-rm -f ltmain.sh
-ln -s /usr/share/libtool/ltmain.sh
-
