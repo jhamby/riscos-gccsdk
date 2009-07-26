@@ -70,15 +70,18 @@ else
 
       rm -f $Sources
       wget -nv $debarchive/dists/testing/main/source/Sources.bz2 -O $Sources
+      touch $Sources
 
     else
       echo "Autobuilder: Using existing Sources.bz2"
     fi
 
-    if ! bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
+    if ! bzgrep -A4 "Package: /$AB_PACKAGE$" $Sources > files ; then
        echo "Autobuilder: Directory name not found in Sources.bz2"
        echo "Autobuilder: Trying Binary entry"
-       bzgrep -A20 "Binary:.* \<$AB_PACKAGE\>" $Sources > files
+       if ! bzgrep -A20 "Binary:.* $AB_PACKAGE\$" $Sources > files ; then
+         bzgrep -A20 "Binary:.* $AB_PACKAGE," $Sources > files || true
+       fi
     fi
 
     if ! [ -s files ] ; then
