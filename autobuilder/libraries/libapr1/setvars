@@ -9,6 +9,7 @@ export ac_cv_working_getaddrinfo=no
 export apr_cv_process_shared_works=no
 export ac_cv_file__dev_zero=no
 export apr_cv_tcp_nodelay_with_cork=no
+export ac_cv_sizeof_struct_iovec=8
 
 #These two are not strictly true, but it stops configure from complaining
 export ac_cv_func_mmap=yes
