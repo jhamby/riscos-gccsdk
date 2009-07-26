@@ -76,7 +76,7 @@ else
       echo "Autobuilder: Using existing Sources.bz2"
     fi
 
-    if ! bzgrep -A4 "Package: /$AB_PACKAGE$" $Sources > files ; then
+    if ! bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
        echo "Autobuilder: Directory name not found in Sources.bz2"
        echo "Autobuilder: Trying Binary entry"
        if ! bzgrep -A20 "Binary:.* $AB_PACKAGE\$" $Sources > files ; then
