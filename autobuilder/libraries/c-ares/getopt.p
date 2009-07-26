@@ -11,78 +11,6 @@
    if (argc < 1)
       Abort(usage);
  
---- adig.c	2009-03-26 20:49:27.000000000 +0000
-+++ adig.c	2009-03-26 20:54:49.000000000 +0000
-@@ -175,7 +175,7 @@
-           /* Add a flag. */
-           for (i = 0; i < nflags; i++)
-             {
--              if (strcmp(flags[i].name, optarg) == 0)
-+              if (strcmp(flags[i].name, ares_optarg) == 0)
-                 break;
-             }
-           if (i == nflags)
-@@ -185,10 +185,10 @@
- 
-         case 's':
-           /* Add a server, and specify servers in the option mask. */
--          hostent = gethostbyname(optarg);
-+          hostent = gethostbyname(ares_optarg);
-           if (!hostent || hostent->h_addrtype != AF_INET)
-             {
--              fprintf(stderr, "adig: server %s not found.\n", optarg);
-+              fprintf(stderr, "adig: server %s not found.\n", ares_optarg);
-               return 1;
-             }
-           options.servers = realloc(options.servers, (options.nservers + 1)
-@@ -208,7 +208,7 @@
-           /* Set the query class. */
-           for (i = 0; i < nclasses; i++)
-             {
--              if (strcasecmp(classes[i].name, optarg) == 0)
-+              if (strcasecmp(classes[i].name, ares_optarg) == 0)
-                 break;
-             }
-           if (i == nclasses)
-@@ -220,7 +220,7 @@
-           /* Set the query type. */
-           for (i = 0; i < ntypes; i++)
-             {
--              if (strcasecmp(types[i].name, optarg) == 0)
-+              if (strcasecmp(types[i].name, ares_optarg) == 0)
-                 break;
-             }
-           if (i == ntypes)
-@@ -230,23 +230,23 @@
- 
-         case 'T':
-           /* Set the TCP port number. */
--          if (!ISDIGIT(*optarg))
-+          if (!ISDIGIT(*ares_optarg))
-             usage();
--          options.tcp_port = (unsigned short)strtol(optarg, NULL, 0);
-+          options.tcp_port = (unsigned short)strtol(ares_optarg, NULL, 0);
-           optmask |= ARES_OPT_TCP_PORT;
-           break;
- 
-         case 'U':
-           /* Set the UDP port number. */
--          if (!ISDIGIT(*optarg))
-+          if (!ISDIGIT(*ares_optarg))
-             usage();
--          options.udp_port = (unsigned short)strtol(optarg, NULL, 0);
-+          options.udp_port = (unsigned short)strtol(ares_optarg, NULL, 0);
-           optmask |= ARES_OPT_UDP_PORT;
-           break;
-         }
-     }
--  argc -= optind;
--  argv += optind;
-+  argc -= ares_optind;
-+  argv += ares_optind;
-   if (argc == 0)
-     usage();
- 
 --- ahost.c	2009-03-26 20:49:27.000000000 +0000
 +++ ahost.c	2009-03-26 20:55:13.000000000 +0000
 @@ -71,9 +71,9 @@
@@ -199,3 +127,78 @@
  
  
  #endif /* ARES_GETOPT_H */
+--- adig.c.orig	2008-10-18 06:32:02.000000000 -0700
++++ adig.c	2009-07-26 08:30:14.000000000 -0700
+@@ -204,7 +204,7 @@
+           /* Add a flag. */
+           for (i = 0; i < nflags; i++)
+             {
+-              if (strcmp(flags[i].name, optarg) == 0)
++              if (strcmp(flags[i].name, ares_optarg) == 0)
+                 break;
+             }
+           if (i == nflags)
+@@ -214,12 +214,12 @@
+ 
+         case 's':
+           /* Add a server, and specify servers in the option mask. */
+-          if (ares_inet_pton(AF_INET, optarg, &inaddr) <= 0)
++          if (ares_inet_pton(AF_INET, ares_optarg, &inaddr) <= 0)
+             {
+-              hostent = gethostbyname(optarg);
++              hostent = gethostbyname(ares_optarg);
+               if (!hostent || hostent->h_addrtype != AF_INET)
+                 {
+-                  fprintf(stderr, "adig: server %s not found.\n", optarg);
++                  fprintf(stderr, "adig: server %s not found.\n", ares_optarg);
+                   return 1;
+                 }
+               memcpy(&inaddr, hostent->h_addr, sizeof(struct in_addr));
+@@ -241,7 +241,7 @@
+           /* Set the query class. */
+           for (i = 0; i < nclasses; i++)
+             {
+-              if (strcasecmp(classes[i].name, optarg) == 0)
++              if (strcasecmp(classes[i].name, ares_optarg) == 0)
+                 break;
+             }
+           if (i == nclasses)
+@@ -253,7 +253,7 @@
+           /* Set the query type. */
+           for (i = 0; i < ntypes; i++)
+             {
+-              if (strcasecmp(types[i].name, optarg) == 0)
++              if (strcasecmp(types[i].name, ares_optarg) == 0)
+                 break;
+             }
+           if (i == ntypes)
+@@ -263,23 +263,23 @@
+ 
+         case 'T':
+           /* Set the TCP port number. */
+-          if (!ISDIGIT(*optarg))
++          if (!ISDIGIT(*ares_optarg))
+             usage();
+-          options.tcp_port = (unsigned short)strtol(optarg, NULL, 0);
++          options.tcp_port = (unsigned short)strtol(ares_optarg, NULL, 0);
+           optmask |= ARES_OPT_TCP_PORT;
+           break;
+ 
+         case 'U':
+           /* Set the UDP port number. */
+-          if (!ISDIGIT(*optarg))
++          if (!ISDIGIT(*ares_optarg))
+             usage();
+-          options.udp_port = (unsigned short)strtol(optarg, NULL, 0);
++          options.udp_port = (unsigned short)strtol(ares_optarg, NULL, 0);
+           optmask |= ARES_OPT_UDP_PORT;
+           break;
+         }
+     }
+-  argc -= optind;
+-  argv += optind;
++  argc -= ares_optind;
++  argv += ares_optind;
+   if (argc == 0)
+     usage();
+ 
