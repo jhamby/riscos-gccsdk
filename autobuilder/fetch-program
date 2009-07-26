@@ -86,6 +86,7 @@ else
 
     if ! [ -s files ] ; then
       echo "AutoBuilder: Package not found"
+      rm -r $(pwd)
       exit 1
     fi
 
