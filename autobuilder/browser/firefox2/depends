@@ -6,3 +6,6 @@ libxp
 db4.6
 libexpat1
 libidl
+libjpeg62
+libpng12-0
+zlib1g
