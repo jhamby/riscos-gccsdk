@@ -17,11 +17,20 @@ fi
 
 function getnext() {
   local lib
+  local name
 
   for lib in $(find $base/$subdir -type d) ; do 
     if [ -e $lib/setvars ] && ! [ -e $lib/last-success ] ; then
       if $list; then
-        sed s#$base/## <<< $lib
+        name=$(sed s#$base/## <<< $lib)
+
+        if [ -e $lib/last-depends ] ; then
+          echo "$name: $(cat $lib/last-depends)"
+        elif [ -e $lib/last-failure ] ; then
+          echo "$name: (failed)"
+        else
+          echo "$name: (not attempted)"
+        fi
       else
         basename $lib
         return 0
