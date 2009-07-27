@@ -1,0 +1,6 @@
+#AB_CONFLAGS=--enable-modules
+
+AB_INSTALL=yes
+
+autoreconf -fi
+
