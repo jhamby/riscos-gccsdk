@@ -8,4 +8,11 @@ fi
 
 cmake -D CMAKE_INSTALL_PREFIX=$GCCSDK_INSTALL_ENV .
 
+ab_make() {
+  $AB_MAKE
 
+  mkdir -p $D/lib
+  mkdir -p $D/include
+  cp -av $S/libphysfs.* $D/lib
+  cp -av $S/physfs.h $D/include
+}
