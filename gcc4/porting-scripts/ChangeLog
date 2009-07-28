@@ -1,3 +1,10 @@
+Tue Jul 28 12:15:51 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Include -rpath-link as a linker flag, to help locating
+          shared library dependencies.  Simplify processing by using sed -i.
+	* ro-pkg-config: No longer pass -static.
+	* ro-path: Remove old comment about -static.
+
 Wed May 27 21:44:59 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* ro-path: Also export ASASM to asasm path.

@@ -3,5 +3,4 @@
 # In order to let the pkgconfig tool find its .pc files:
 export PKG_CONFIG_LIBDIR=GCCSDK_ENV/lib/pkgconfig:GCCSDK_ENV/share/pkgconfig
 
-# We're static building:
-/usr/bin/pkg-config --static $*
+/usr/bin/pkg-config $*

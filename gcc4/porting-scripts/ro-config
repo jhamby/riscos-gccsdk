@@ -23,69 +23,48 @@ done
 adde1f() {
   if grep -q "exeext=$" $e1fPATH ; then
     echo RISC OS: Adding E1F filetype for $e1fPATH
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed s#exeext=\$#"exeext=,e1f;"# < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
+    sed -i s#exeext=\$#"exeext=,e1f;"# $e1fPATH
   fi
 
   # Fix modern autoconf badness with ,e1f
   if grep -q "conftest.exe a.out" $e1fPATH ; then
     echo RISC OS: Adding extra filetype checks for $e1fPATH
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed -e s#"conftest.exe a.out"#"conftest.exe *,e1f !RunImage a.out"# \
+    sed -i -e s#"conftest.exe a.out"#"conftest.exe *,e1f !RunImage a.out"# \
         -e s#"[ab].out )"#"[ab].out | *,e1f )"# \
-       < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
+        $e1fPATH
   fi
 
   # Fix some tests that assume no file extension for binaries
   if grep -E -q -- "-s conftest;|-o conftest" $e1fPATH ; then
     echo RISC OS: Adding filetype for binary tests for $e1fPATH
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed -e s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# -e "s# -o conftest # -o conftest\$\{ac_exeext\}\ #" \
-      < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
+    sed -i -e s#-s\ conftest\;#"-s conftest\$\{ac_exeext\}\;"# -e "s# -o conftest # -o conftest\$\{ac_exeext\}\ #" \
+      $e1fPATH
   fi
 
   # Be GNU for linking and versioning characteristics for libraries
   if grep -q -- "^gnu\*)" $e1fPATH ; then
     echo RISC OS: Adding libtool handling
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed "s#^gnu\*)#gnu\* | riscos\*)#" < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
+    sed -i "s#^gnu\*)#gnu\* | riscos\*)#" $e1fPATH
   fi
 
   # Use CX11
   if grep -q -- "-lX11" $e1fPATH ; then
     echo RISC OS: Replacing -lX11 with -lCX11 -lDesk
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed "s#-lX11#-lCX11 -lDesk#" < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
+    sed "s#-lX11#-lCX11 -lDesk#" -i $e1fPATH
   fi
 
   # Doesn't strictly belong here, but it fits
   if grep -q "sys_lib_dlsearch_path_spec=" $e1fPATH ; then
     echo RISC OS: Setting libtool library paths for $e1fPATH
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed -e s#"sys_lib_dlsearch_path_spec=".*\$#"sys_lib_dlsearch_path_spec=GCCSDK_ENV/lib"# \
+    sed -i -e s#"sys_lib_dlsearch_path_spec=".*\$#"sys_lib_dlsearch_path_spec=GCCSDK_ENV/lib"# \
         -e s#"sys_lib_search_path_spec=".*\$#"sys_lib_search_path_spec=GCCSDK_ENV/lib"# \
-         < $e1fPATH > $tmpconfigure
-    mv $tmpconfigure $e1fPATH
-    chmod +x $e1fPATH
+        $e1fPATH
   fi
 
   if grep -q -- "-lSDL_mixer.*\$L" $e1fPATH; then
     echo RISC OS: Adding vorbis library
-    tmpconfigure=/tmp/new-configure-$$-$RANDOM
-    sed -e s#"-lSDL_mixer.*\$L"#"-lSDL_mixer -lvorbisfile \$L"# \
-         < $e1fPATH > $tmpconfigure
-    mv $tmpnewconfigure $e1fPATH
-    chmod +x $e1fPATH
+    sed -i -e s#"-lSDL_mixer.*\$L"#"-lSDL_mixer -lvorbisfile \$L"# \
+         $e1fPATH
   fi
 
 }
@@ -319,7 +298,7 @@ export LD="GCCSDK_BIN/arm-unknown-riscos-ld"
 
 if [ "$RO_SHAREDLIBS" == yes ] ; then
   export CFLAGS+=
-  export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS -LGCCSDK_BIN/../arm-unknown-riscos/lib"
+  export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS -LGCCSDK_BIN/../arm-unknown-riscos/lib -Wl,-rpath-link,GCCSDK_ENV/lib"
 else
   export CFLAGS+=" -static "
   export LDFLAGS="-LGCCSDK_ENV/lib -static $AB_LDFLAGS"
@@ -588,7 +567,5 @@ GCCSDK_ENV/ro-path $RO_CPATH/configure \
 
 # Force libtool to make static binaries
 if [ "$RO_SHAREDLIBS" != yes ] && [ -e $RO_CPATH/libtool ] ; then
-  sed -e "s#all-static)#all-static|-static)#" -e "s#prefer_static_libs=built#prefer_static_libs=yes#"  < $RO_CPATH/libtool > $RO_CPATH/libtool.tmp
-  mv $RO_CPATH/libtool.tmp $RO_CPATH/libtool
-  chmod +x $RO_CPATH/libtool 
+  sed -i -e "s#all-static)#all-static|-static)#" -e "s#prefer_static_libs=built#prefer_static_libs=yes#" $RO_CPATH/libtool
 fi
