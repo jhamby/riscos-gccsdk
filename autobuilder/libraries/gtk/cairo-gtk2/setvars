@@ -5,7 +5,7 @@
 # SVG backend requires that gtk+-2.0 is already installed, which it isn't
 # in the case where we're installing gtk+-2.0
 
-AB_URL=http://cairographics.org/snapshots/cairo-1.5.12.tar.gz
+AB_URL=http://cairographics.org/releases/cairo-1.8.8.tar.gz
 
 AB_INSTALL=yes
 
