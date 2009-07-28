@@ -3,3 +3,4 @@ libfontconfig1
 zlib1g
 libxrender1
 libpng12-0
+libpixman-1-0
