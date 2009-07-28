@@ -25,7 +25,7 @@ ELF_LDFLAGS=--shared -fPIC -Wl,--no-undefined -nostdlib # using GNU ld
 .PHONY: $(DIRS)
 .PHONY: libdl
 
-all: $(DIRS) $(DLINK_OBJS) $(DLINKER) libdl
+all: $(DIRS) $(DLINK_OBJS) $(DLINKER) libdl $(OBJDIR)/libdl.a
 
 $(OBJDIR)/%.o: %.s
 	$(CC) $(CFLAGS) -o $@ -c $<
@@ -47,6 +47,9 @@ $(DIRS) libdl:
 $(DLINKER): $(OBJS)
 	$(CC) $(OBJS) -Wl,-e -Wl,_dl_boot $(ELF_LDFLAGS) -o $(DLINKER) -Wl,-soname -Wl,ld-riscos/so/$(VMAJOR)
 
+$(OBJDIR)/libdl.a:
+	$(CC) -O2 static.c -c
+	$(AR) rc $@ static.o
 
 
 $(OBJDIR)/boot1.o: boot1.c link.h riscos/sysdep.h hash.h linuxelf.h riscos/syscall.h riscos/string.h
