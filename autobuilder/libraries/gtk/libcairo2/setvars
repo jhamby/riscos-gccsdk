@@ -1,4 +1,4 @@
-AB_URL=http://cairographics.org/snapshots/cairo-1.5.12.tar.gz
+AB_URL=http://cairographics.org/releases/cairo-1.8.8.tar.gz
 
 AB_INSTALL=yes
 
