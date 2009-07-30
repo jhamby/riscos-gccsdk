@@ -2,7 +2,7 @@ AB_CATEGORY=audio
 
 ab_package () {
 	cp -a -v $H/\!MP3Info $D/
-	cp -a -v $S/mp3info$AB_EXEEXT $D/
-	cp -a -v $S/gmp3info$AB_EXEEXT $D/\!MP3Info
+	cp -a -v $S/mp3info $D/mp3info$AB_EXEEXT
+	cp -a -v $S/gmp3info $D/\!MP3Info/gmp3info$AB_EXEEXT
 	cp -a -v $S/README $S/LICENSE $D/
 }
