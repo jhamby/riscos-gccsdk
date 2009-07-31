@@ -1,0 +1,3 @@
+AB_INSTALL=yes
+
+export ORBIT_IDL=$GCCSDK_INSTALL_ENV/bin/orbit-idl-2
