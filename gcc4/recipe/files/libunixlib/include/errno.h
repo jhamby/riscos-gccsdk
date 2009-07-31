@@ -109,8 +109,9 @@
 #define EOPSYS		88 /* RISC OS operating system error.  */
 #define ESIG		89
 #define EILSEQ		90 /* Invalid multibyte sequence.  */
+#define EOVERFLOW	91 /* Value too large for defined data type */
 
-#define __SYS_NERR	90
+#define __SYS_NERR	91
 
 #undef errno
 

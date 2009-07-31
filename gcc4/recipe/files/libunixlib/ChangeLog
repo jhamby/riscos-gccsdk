@@ -1,3 +1,8 @@
+Fri Jul 31 14:20:29 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* include/errno.h: Add EOVERFLOW.  Not used by UnixLib,
+          but sometimes returned by library routines.
+
 Thu Jul 16 17:29:12 2009  Lee Noar  <leenoar@sky.com>
 
 	* Generally:
