@@ -12,8 +12,20 @@ else
   command=/usr/bin/install
 fi
 
+skip=false
+
 for param in $@ ; do
   installparams="$installparams $dest"
+
+  if $skip; then
+    skip=false
+    continue
+  fi
+
+  if [ "$param" == "-g" -o "$param" == "-m" ] ; then
+    skip=true
+    continue
+  fi
 
   if [ "$(echo "$param" | cut -c 1)" != "-" ] ; then
     if ! [ -e "$param" ] ; then
