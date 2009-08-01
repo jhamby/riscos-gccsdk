@@ -9,6 +9,22 @@ else
   list=false
 fi
 
+if [ "$1" == "-a" ] ; then
+  all=true
+  shift
+else
+  all=false
+fi
+
+if [ "$1" == "-o" ] ; then
+  opt=true
+  shift
+else
+  opt=false
+fi
+
+
+
 subdir=$1
 
 if [ -z "$subdir" ] ; then
@@ -19,28 +35,39 @@ function getnext() {
   local lib
   local name
 
-  for lib in $(find $base/$subdir -type d) ; do 
-    if [ -e $lib/setvars ] && ! [ -e $lib/last-success ] ; then
-      if $list; then
-        name=$(sed s#$base/## <<< $lib)
-
-        if [ -e $lib/last-depends ] ; then
-          echo "$name: $(cat $lib/last-depends)"
-        elif [ -e $lib/last-failure ] ; then
-          echo "$name: (failed)"
-        else
-          echo "$name: (not attempted)"
+  for lib in $(find $base/$subdir -type d) ; do
+    if [ -e $lib/setvars ] ; then
+      if [ -e $lib/last-success ] ; then
+        if $opt; then
+          grep -E -- "-gcc|-g\+\+" $lib/last-success | grep -v libtool | grep -v checking | grep -v -- -O2 | grep -v -- -O3 | grep -v -- -Os || true
         fi
-      else
-        basename $lib
-        return 0
+      elif ! $opt; then
+
+        if $list; then
+          name=$(sed s#$base/## <<< $lib)
+
+          if [ -e $lib/last-depends ] ; then
+            echo "$name: $(cat $lib/last-depends)"
+          elif [ -e $lib/last-failure ] ; then
+            echo "$name: (failed)"
+          else
+            echo "$name: (not attempted)"
+          fi
+        else
+          if $all && [ -e $lib/last-failure ] ; then
+            continue
+          fi
+
+          basename $lib
+          return 0
+        fi
       fi
     fi
   done
 }
 
 
-if $list; then
+if $list || $opt; then
   getnext
   exit 0
 fi
