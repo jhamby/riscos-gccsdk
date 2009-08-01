@@ -6,9 +6,9 @@ echo "******"
 echo "Warning: Although the RISC OS build for boost suceeds overall, it has a number of individual failures that could do with attention."
 echo "For this reason, you should be aware that it might not be adequate for your needs."
 echo ""
-echo "Press enter to proceed"
+echo "Proceeding in 10 seconds"
 
-read
+sleep 10
 
 
 # Build bjam
