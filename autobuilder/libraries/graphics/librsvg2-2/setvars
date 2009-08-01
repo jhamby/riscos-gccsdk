@@ -1,4 +1,4 @@
-AB_CATEGORY=libraries/graphics
+AB_CATEGORY=Library
 AB_INSTALL=yes
 AB_CONFLAGS=--disable-gnome-vfs
 

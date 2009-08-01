@@ -1,5 +1,5 @@
 AB_PACKAGES="libjpeg-progs libjpeg62-dev"
-AB_CATEGORY=Graphics
+AB_CATEGORY=Library
 
 AB_INSTALL=yes
 AB_INSTALLTARGET=install-lib 
