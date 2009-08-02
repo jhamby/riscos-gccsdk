@@ -268,7 +268,22 @@ diff -u -r1.46.2.8 Makefile.in
  
  ifdef BUILD_STATIC_LIBS
 -STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components
-+STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components -lCX11 -lDesk -ldb-4.4 -lfreebl -static -s
++STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components -lCX11 -lDesk -ldbm -lfreebl -static -s
  endif
  
  ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+Index: dbm/src/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/dbm/src/Makefile.in,v
+retrieving revision 3.20
+diff -u -r3.20 Makefile.in
+--- dbm/src/Makefile.in	29 Apr 2005 13:33:34 -0000	3.20
++++ dbm/src/Makefile.in	2 Aug 2009 17:22:38 -0000
+@@ -42,7 +42,6 @@
+ 		hash.c \
+ 		hash_buf.c \
+ 		hsearch.c \
+-		mktemp.c \
+ 		ndbm.c \
+ 		strerror.c \
+ 		nsres.c \

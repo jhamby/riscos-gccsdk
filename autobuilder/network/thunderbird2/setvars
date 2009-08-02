@@ -1,9 +1,9 @@
 AB_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
 # See <URL:http://developer.mozilla.org/en/docs/CVS_Tags> for CVS branch/tag info.
-AB_CVS_TAGORBRANCH=THUNDERBIRD_2_0_0_21_RELEASE
+AB_CVS_TAGORBRANCH=THUNDERBIRD_2_0_0_22_RELEASE
 AB_CVS_MODULE=mozilla/client.mk
 AB_ZIPNAME=thunderbird
-AB_PVERSION=2.0.0.21
+AB_PVERSION=2.0.0.22
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
 AB_ROVERSION=1
@@ -20,6 +20,9 @@ AB_CATEGORY=Mail
 AB_PRECONF=:
 
 AB_MAKE=:
+
+# Avoid using glib 1.2
+export GLIB_CONFIG=/bin/true
 
 # For Debian/Ubuntu users: make sure you have liborbit-dev, libglib2.0-dev
 # and libidl-dev installed.  Other distributions will need to have similar

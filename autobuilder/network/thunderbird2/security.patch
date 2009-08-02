@@ -95,22 +95,6 @@ retrieving revision 1.53.2.11
 diff -u -r1.53.2.11 pcertdb.c
 --- security/nss/lib/softoken/pcertdb.c	16 Nov 2007 02:05:58 -0000	1.53.2.11
 +++ security/nss/lib/softoken/pcertdb.c	26 Aug 2008 03:14:47 -0000
-@@ -4026,6 +4026,15 @@
- #define NO_CREATE	(O_RDWR | O_CREAT | O_TRUNC)
- #endif
- 
-+#if 1
-+DB *dbopen(const char *file, int flags, int mode, DBTYPE type, const void *openinfo)
-+{
-+    return __db185_open_4004(file, flags, /*mode*/ 0666, type, openinfo);
-+//    return __db_open(file, flags, mode, type, openinfo);
-+} 
-+
-+#endif
-+
- /*
-  * open an old database that needs to be updated
-  */
 @@ -4055,7 +4064,7 @@
      if (appName) {
  	handle->permCertDB=rdbopen( appName, prefix, "cert", NO_CREATE, &status);
