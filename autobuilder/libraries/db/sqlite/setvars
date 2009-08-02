@@ -2,6 +2,6 @@
 AB_INSTALL=yes
 
 export config_TARGET_CFLAGS=-O3
-export TARGET_READLINE_INC="-I /home/riscos/env/include"
-export config_TARGET_READLINE_LIBS="-L/home/riscos/env/lib/ -lreadline"
+export TARGET_READLINE_INC="-I $GCCSDK_INSTALL_ENV/include"
+export config_TARGET_READLINE_LIBS="-L$GCCSDK_INSTALL_ENV/lib/ -lreadline"
 
