@@ -22,6 +22,9 @@ AB_PRECONF=:
 
 AB_MAKE=:
 
+# Avoid using glib 1.2
+export GLIB_CONFIG=/bin/true
+
 # For Debian/Ubuntu users: make sure you have liborbit-dev, libglib2.0-dev
 # and libidl-dev installed.  Other distributions will need to have similar
 # named packages installed.

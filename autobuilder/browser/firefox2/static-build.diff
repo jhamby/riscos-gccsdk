@@ -31,24 +31,6 @@
      /* clean up the default OID table */
      SECOID_Shutdown();
      nsc_init = PR_FALSE;
---- ./security/nss-fips/lib/softoken/pcertdb.c.orig	2008-12-29 21:37:45.000000000 -0800
-+++ ./security/nss-fips/lib/softoken/pcertdb.c	2008-12-29 21:38:16.000000000 -0800
-@@ -4027,6 +4027,15 @@
- #define NO_CREATE	(O_RDWR | O_CREAT | O_TRUNC)
- #endif
- 
-+#if 1
-+DB *dbopen(const char *file, int flags, int mode, DBTYPE type, const void *openinfo)
-+{
-+    return __db_open_4006(file, flags, /*mode*/ 0666, type, openinfo);
-+//    return __db_open(file, flags, mode, type, openinfo);
-+}
-+
-+#endif
-+
- /*
-  * open an old database that needs to be updated
-  */
 --- ./security/nss-fips/lib/ssl/sslsock.c.orig	2008-12-29 21:34:56.000000000 -0800
 +++ ./security/nss-fips/lib/ssl/sslsock.c	2008-12-29 21:35:04.000000000 -0800
 @@ -509,7 +509,7 @@
