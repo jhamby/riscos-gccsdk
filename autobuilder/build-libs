@@ -37,15 +37,23 @@ function getnext() {
 
   for lib in $(find $base/$subdir -type d) ; do
     if [ -e $lib/setvars ] ; then
+      name=$(sed s#$base/## <<< $lib)
+
       if [ -e $lib/last-success ] ; then
         if $opt; then
-          grep -E -- "-gcc|-g\+\+" $lib/last-success | grep -v libtool | grep -v checking | grep -v -- -O2 | grep -v -- -O3 | grep -v -- -Os || true
+          if grep -E -q "desklib|oslib" <<< $name ; then
+            continue
+          fi
+
+          out=$(grep -E -- "-gcc|-g\+\+" $lib/last-success | grep -- -o | grep -v libtool | grep -v checking | grep -v -- -O2 | grep -v -- -O3 | grep -v -- -Os | \
+              grep -v "\.so" | grep -v "unrecognized option" || true)
+          if [ -n "$out" ] ; then
+            echo "$name: $out"
+          fi
         fi
       elif ! $opt; then
 
         if $list; then
-          name=$(sed s#$base/## <<< $lib)
-
           if [ -e $lib/last-depends ] ; then
             echo "$name: $(cat $lib/last-depends)"
           elif [ -e $lib/last-failure ] ; then
