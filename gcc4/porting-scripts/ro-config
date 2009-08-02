@@ -296,6 +296,11 @@ export CPPFLAGS="-isystem GCCSDK_ENV/include"
 export CXX="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-g++"
 export LD="GCCSDK_BIN/arm-unknown-riscos-ld"
 
+# Only set optimization if CFLAGS not already set
+if [ -z "$CFLAGS" ] ; then
+  export CFLAGS=-O3
+fi
+
 if [ "$RO_SHAREDLIBS" == yes ] ; then
   export CFLAGS+=
   export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS -LGCCSDK_BIN/../arm-unknown-riscos/lib -Wl,-rpath-link,GCCSDK_ENV/lib"
