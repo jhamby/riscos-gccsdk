@@ -25,7 +25,6 @@ __isinf (double x)
 	lx |= -lx;
 	return ~(lx >> 31) & (hx >> 30);
 }
-hidden_def (__isinf)
 weak_alias (__isinf, isinf)
 #ifdef NO_LONG_DOUBLE
 strong_alias (__isinf, __isinfl)

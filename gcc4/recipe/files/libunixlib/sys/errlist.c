@@ -109,6 +109,7 @@ const char *sys_errlist[__SYS_NERR + 1] =
   "RISC OS error",				/* EOPSYS */
   "Signal Received",				/* ESIG, as flagged by SIG_ERR */
   "Invalid multibyte sequence"			/* EILSEQ */
+  "Value too large for defined data type"       /* EOVERFLOW */
 };
 
 char *

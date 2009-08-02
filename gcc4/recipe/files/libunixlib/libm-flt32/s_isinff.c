@@ -25,5 +25,4 @@ __isinff (float x)
 	t |= -t;
 	return ~(t >> 31) & (ix >> 30);
 }
-hidden_def (__isinff)
 weak_alias (__isinff, isinff)

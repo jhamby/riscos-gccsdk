@@ -36,5 +36,4 @@ static char rcsid[] = "$NetBSD: s_finitef.c,v 1.4 1995/05/10 20:47:18 jtc Exp $"
 	GET_FLOAT_WORD(ix,x);
 	return (int)((u_int32_t)((ix&0x7fffffff)-0x7f800000)>>31);
 }
-hidden_def (__finitef)
 weak_alias (__finitef, finitef)

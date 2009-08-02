@@ -1,3 +1,11 @@
+Sun Aug  2 07:44:06 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* sys/errlist.c: Add entry for EOVERFLOW.
+	* libm-dbl64/s_finite.c, libm-dbl64/s_isinf.c, libm-dbl64/s_isnan.c,
+          libm-flt32/s_isinff.c, libm-flt32/s_finitef.c libm-flt32/s_isnanf.c:
+	Remove hidden_def, since it seems to serve no purpose, and 
+        causes linking errors.
+
 Fri Jul 31 14:20:29 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* include/errno.h: Add EOVERFLOW.  Not used by UnixLib,
