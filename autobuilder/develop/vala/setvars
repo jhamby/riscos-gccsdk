@@ -3,6 +3,11 @@ AB_MAINTAINER="Jan-Jaap van der Geer <jjvdgeer@c2i.net>"
 AB_LICENCE="Free"
 AB_ROVERSION=0
 
+if ! which valac > /dev/null; then
+  echo "Native valac required"
+  exit 1
+fi
+
 ab_package() {
   valadir=$D/Apps/Development
   mkdir -p $valadir
