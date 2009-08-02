@@ -1,4 +1,3 @@
 
-cd abi
+AB_CONFLAGS=--without-spellcheck
 
-AB_CONFLAGS=--with-sys-wv
