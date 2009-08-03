@@ -6,7 +6,7 @@ ab_package() {
   mkdir -p $AD
   cp -av $H/\!TuxMath $AD
   cp -av $H/\!TuxMath/\!* $AD/\!TuxMath
-  cp -av src/tuxmath,ff8 $AD/\!TuxMath/tuxmath,ff8
+  cp -av src/tuxmath$AB_EXEEXT $AD/\!TuxMath/tuxmath$AB_EXEEXT
   cat docs/README.txt $H/RISCOSNotes >$AD/\!TuxMath/\!Help
 
   cp -r docs $AD/\!TuxMath

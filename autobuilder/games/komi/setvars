@@ -6,7 +6,7 @@ ab_package() {
   AD=$D/Apps/Games
   mkdir -p $AD/\!komi
   cp -av $H/\!komi/\!* $AD/\!komi
-  cp -av komi,ff8 $AD/\!komi
+  cp -av komi$AB_EXEEXT $AD/\!komi
   cat README.txt $H/RISCOSNotes >$AD/\!komi/\!Help
 
   cp -av CHANGELOG.txt $AD/\!komi/CHANGES

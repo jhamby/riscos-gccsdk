@@ -9,7 +9,7 @@ ab_package() {
   AD=$D/Apps/Games
   mkdir -p $AD/\!Blackbox
   cp -av $H/\!Blackbox/\!* $AD/\!Blackbox
-  cp -av $S/src/black-box,ff8 $AD/\!Blackbox/blackbox,ff8
+  cp -av $S/src/black-box$AB_EXEEXT $AD/\!Blackbox/blackbox$AB_EXEEXT
 
   cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/README $AD/\!Blackbox
 

@@ -6,7 +6,7 @@ ab_package() {
   mkdir -p $AD
   cp -av $H/\!BumpRace $AD
   cp -av $H/\!BumpRace/\!* $AD/\!BumpRace
-  cp -av src/bumprace,ff8 $AD/\!BumpRace/\!RunImage,ff8
+  cp -av src/bumprace$AB_EXEEXT $AD/\!BumpRace/\!RunImage$AB_EXEEXT
 
   cp -av AUTHORS $ChangeLog COPYING FAQ README \
     $AD/\!BumpRace

@@ -6,7 +6,7 @@ ab_package() {
   mkdir -p $AD
   cp -av $H/\!SuperTux $AD
   cp -av $H/\!SuperTux/\!* $AD/\!SuperTux
-  cp -av src/supertux,ff8 $AD/\!SuperTux/supertux,ff8
+  cp -av src/supertux$AB_EXEEXT $AD/\!SuperTux/supertux$AB_EXEEXT
 
   cp -av AUTHORS ChangeLog COPYING LEVELDESIGN NEWS README \
     $AD/\!SuperTux

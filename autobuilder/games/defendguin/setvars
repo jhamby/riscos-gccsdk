@@ -7,7 +7,7 @@ ab_package() {
   mkdir -p $AD
   cp -av $H/\!Defenguin $AD
   cp -av $H/\!Defenguin/\!* $AD/\!Defenguin
-  cp -av defendguin,ff8 $AD/\!Defenguin/\!RunImage,ff8
+  cp -av defendguin$AB_EXEEXT $AD/\!Defenguin/\!RunImage$AB_EXEEXT
   cat docs/README.txt $H/RISCOSNotes >$AD/\!Defenguin/\!Help
 
   cp -av docs/AUTHORS.txt $AD/\!Defenguin/AUTHORS

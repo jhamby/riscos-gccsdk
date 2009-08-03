@@ -7,7 +7,7 @@ ab_package() {
   mkdir -p $AD
   cp -av $H/\!GemDropX $AD
   cp -av $H/\!GemDropX/\!* $AD/\!GemDropX
-  cp -av gemdropx,ff8 $AD/\!GemDropX/\!RunImage,ff8
+  cp -av gemdropx$AB_EXEEXT $AD/\!GemDropX/\!RunImage$AB_EXEEXT
   cat README.txt $H/RISCOSNotes >$AD/\!GemDropX/\!Help
 
   cp -av AUTHORS.txt CHANGES.txt COPYING.txt ICON.txt \

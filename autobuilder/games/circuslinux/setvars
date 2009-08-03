@@ -7,10 +7,10 @@ ab_package() {
   mkdir -p $AD
   cp -av $H/\!CircusLnx $AD
   cp -av $H/\!CircusLnx/\!* $AD/\!CircusLnx
-  if [ -e circuslinux,ff8] ; then
-    cp -av circuslinux,ff8 $AD/\!CircusLnx/\!RunImage,ff8
+  if [ -e circuslinux$AB_EXEEXT ] ; then
+    cp -av circuslinux$AB_EXEEXT $AD/\!CircusLnx/\!RunImage$AB_EXEEXT
   else
-    cp -av circuslinux $AD/\!CircusLnx/\!RunImage,e1f
+    cp -av circuslinux $AD/\!CircusLnx/\!RunImage$AB_EXEEXT
   fi
 
   cat $S/README.txt >> $AD/\!CircusLnx/\!Help

@@ -5,7 +5,7 @@ ab_package() {
   AD=$D/Apps/Games
   mkdir -p $AD/\!PipeNight
   cp -av $H/\!PipeNight/\!* $AD/\!PipeNight
-  cp -av src/pipenightdreams,ff8 $AD/\!PipeNight/\!RunImage,ff8
+  cp -av src/pipenightdreams$AB_EXEEXT $AD/\!PipeNight/\!RunImage$AB_EXEEXT
 
   cp -av AUTHORS ChangeLog COPYING README \
     $AD/\!PipeNight

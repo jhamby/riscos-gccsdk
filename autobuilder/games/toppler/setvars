@@ -6,7 +6,7 @@ ab_package() {
   mkdir -p $AD
   cp -av $H/\!Toppler $AD
   cp -av $H/\!Toppler/\!* $AD/\!Toppler
-  cp -av toppler,ff8 $AD/\!Toppler/!RunImage,ff8
+  cp -av toppler$AB_EXEEXT $AD/\!Toppler/!RunImage$AB_EXEEXT
 
   cp -av AUTHORS ChangeLog COPYING NEWS README \
     $AD/\!Toppler

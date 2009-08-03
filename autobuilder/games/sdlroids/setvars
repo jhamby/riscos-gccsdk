@@ -7,7 +7,7 @@ ab_package() {
   AD=$D/Apps/Games
   mkdir -p $AD/\!SDLRoids
   cp -av $H/\!SDLRoids/\!* $AD/\!SDLRoids
-  cp -av sdlroids,ff8 $AD/\!SDLRoids
+  cp -av sdlroids$AB_EXEEXT $AD/\!SDLRoids
   mkdir -p $AD/\!SDLRoids/data
   mkdir -p $AD/\!SDLRoids/data/sdlroids
   cp -r bmp $AD/\!SDLRoids/data/sdlroids
