@@ -1,13 +1,9 @@
 
-touch Makefile
+cd src
 
 ab_make() {
-  make clean
-
-  cd src/bulletml
+  $AB_MAKE -C bulletml clean
+  $AB_MAKE -C bulletml
   $AB_MAKE
-
-  cd ..
-  exec $AB_MAKE
 }
 
