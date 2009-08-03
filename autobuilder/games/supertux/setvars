@@ -19,7 +19,5 @@ ab_package() {
 }
 
 export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile"
-AB_CONFLAGS=\''--datadir=/\<SuperTux\$$Dir\>/data'\'
-
-
+AB_CONFLAGS=\''--datadir=/<SuperTux$$Dir>/data'\'
 
