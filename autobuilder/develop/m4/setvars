@@ -1,8 +1,6 @@
 
 AB_FILESNOPATH="src/m4$AB_EXEEXT"
 
-AB_PRECONF="CFLAGS=-O2"
-
 export gl_cv_func_fflush_stdin=yes
 export gl_cv_func_gettimeofday_clobber=no
 export gl_cv_func_gettimeofday_posix_signature=yes
