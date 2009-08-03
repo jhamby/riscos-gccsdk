@@ -9,7 +9,7 @@ ab_package() {
   mkdir -p $AD
   cp -av $H/\!IceBreaker $AD
   cp -av $H/\!IceBreaker/\!* $AD/\!IceBreaker
-  cp -av icebreaker$AB_EXEEXT $AD/\!IceBreaker
+  cp -av icebreaker $AD/\!IceBreaker
   cat $S/README >> $AD/\!IceBreaker/\!Help
 
   cp -av $S/ChangeLog $S/LICENSE $S/TODO $S/README $AD/\!IceBreaker

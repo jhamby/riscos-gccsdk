@@ -1,5 +1,11 @@
---- Makefile.orig	2006-12-22 14:32:28.859375000 +0000
-+++ Makefile	2006-12-22 14:34:27.265625000 +0000
+--- Makefile.orig	2009-08-03 08:20:54.000000000 -0700
++++ Makefile	2009-08-03 08:22:25.000000000 -0700
+@@ -1,4 +1,4 @@
+-CC=gcc
++#CC=gcc
+ 
+ SDLCONFIG=sdl-config
+ 
 @@ -8,7 +8,8 @@
  endif
  
@@ -32,7 +38,7 @@
      options.c fullscreen.c
  
 -SDL_MIXER=-lSDL_mixer
-+SDL_MIXER=-lSDL_mixer -logg -lvorbisfile -lvorbis
++SDL_MIXER=-lSDL_mixer -logg -lvorbisfile -lvorbis -static
  SDL_LIB=$(SDL_LDFLAGS) $(SDL_MIXER) 
  SDL_CFLAGS := $(shell $(SDLCONFIG) --cflags)
  SDL_LDFLAGS := $(shell $(SDLCONFIG) --libs)
