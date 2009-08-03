@@ -2,7 +2,7 @@ AB_CATEGORY=Library
 AB_ZIPNAME=libsdl-net1.2-dev
 AB_INSTALL=yes
 
-AB_PRECONF="CFLAGS=-O3"
+
 
 # Package version needs help as download doesn't have same name
 AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#sdl-net1.2-## -e "s/[^-]*-//")

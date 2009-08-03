@@ -8,7 +8,7 @@ echo "echo arm-riscos-aof" > builds/unix/config.guess
 
 (cd builds/unix ; autoconf)
 
-AB_PRECONF="RO_CPATH=builds/unix/ CFLAGS=-O3"
+AB_PRECONF="RO_CPATH=builds/unix/"
 
 $AB_MAKE setup unix
 

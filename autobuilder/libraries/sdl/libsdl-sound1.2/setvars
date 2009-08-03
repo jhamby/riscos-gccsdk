@@ -3,7 +3,7 @@ AB_ZIPNAME=libsdl-sound1.2-dev
 
 AB_INSTALL=yes
 
-export CFLAGS=-O3
+
 
 ab_package()
 {
