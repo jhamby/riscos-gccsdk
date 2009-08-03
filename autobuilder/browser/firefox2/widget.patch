@@ -326,7 +326,7 @@ diff -u -r1.92 nsAppShell.cpp
 +    DispatchXEvent(&xevent);
    }
 -    
-+  fprintf(stderr, "Native: Pending Events\n");
++  //fprintf(stderr, "Native: Pending Events\n");
 +  mEventQueue->ProcessPendingEvents();
 +
    return NS_OK;
