@@ -1,12 +1,10 @@
+AB_URL=http://www.dillo.org/download/dillo-2.1.1.tar.bz2
 
-AB_CATEGORY=browser
+AB_CATEGORY=Browser
 
 AB_CONFLAGS=--disable-dlgui
 
 AB_MANPAGE=debian/dillo.1
-
-# Undo Debian patch
-patch -p1 -R < debian/patches/01_i18n
 
 ab_package() {
   cp -av $H/\!Dillo $D
