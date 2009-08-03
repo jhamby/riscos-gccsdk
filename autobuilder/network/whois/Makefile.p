@@ -1,11 +1,19 @@
---- Makefile.orig	2007-11-24 19:40:54.000000000 -0800
-+++ Makefile	2007-11-24 19:41:08.000000000 -0800
-@@ -30,7 +30,7 @@
+--- Makefile.orig	2008-12-08 16:46:06.000000000 -0800
++++ Makefile	2009-08-03 08:07:36.000000000 -0700
+@@ -1,6 +1,7 @@
+ prefix = /usr
  
- whois: whois.c whois.h config.h data.h \
- 		as_del.h as32_del.h ip_del.h ip6_del.h tld_serv.h
--	$(CC) $(CFLAGS) $(whois_CFLAGS) $(OPTS) whois.c -o whois \
-+	$(CC) $(CFLAGS) $(whois_CFLAGS) $(OPTS) whois.c -o whois$(AB_EXEEXT) -static \
- 		$(LDFLAGS) $(whois_LDADD)
+ CFLAGS = -g -O2
++LIBS = -static
  
- mkpasswd: mkpasswd.c
+ PERL = perl
+ INSTALL = install
+@@ -33,7 +34,7 @@
+ mkpasswd_LDADD += -lxcrypt
+ DEFS += -DHAVE_XCRYPT
+ else
+-mkpasswd_LDADD += -lcrypt
++#mkpasswd_LDADD += -lcrypt
+ endif
+ 
+ all: Makefile.depend whois mkpasswd #pos
