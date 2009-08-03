@@ -2,3 +2,8 @@
 AB_CATEGORY=Command
 
 AB_CONFLAGS="--disable-nls"
+
+export gl_cv_func_fflush_stdin=yes
+export gl_cv_list_mounted_fs=no
+
+
