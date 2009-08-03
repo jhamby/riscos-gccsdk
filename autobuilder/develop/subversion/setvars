@@ -1,6 +1,6 @@
 
-AB_CONFLAGS="--with-apr=$GCCSDK_INSTALL_ENV \
---with-apr-util=$GCCSDK_INSTALL_ENV/bin/apu-1-config \
+AB_CONFLAGS="\
+--with-apr=$GCCSDK_INSTALL_ENV \
 --with-neon=$GCCSDK_INSTALL_ENV \
 --without-berkeley-db \
 --without-apxs"
