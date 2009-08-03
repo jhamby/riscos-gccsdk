@@ -1,8 +1,6 @@
 
 AB_CATEGORY=Command
 
-AB_PRECONF="CFLAGS=\"-static -O2\""
-
 AB_MANPAGE=man/mawk.1
 
 AB_MAKE="$AB_MAKE mawk"
