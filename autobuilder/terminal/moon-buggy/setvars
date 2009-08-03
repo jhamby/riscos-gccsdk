@@ -1,5 +1,5 @@
 
-AB_CATEGORY=games/test
+AB_CATEGORY=Games
 
 AB_FILESNOPATH="moon-buggy$AB_EXEEXT COPYING"
 AB_MANPAGE=moon-buggy.6

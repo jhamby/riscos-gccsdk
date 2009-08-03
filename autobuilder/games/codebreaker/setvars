@@ -1,4 +1,4 @@
-AB_CATEGORY=games
+AB_CATEGORY=Games
 
 ab_package () {
 	cp -a -v $H/\!CodeBreaker $D/

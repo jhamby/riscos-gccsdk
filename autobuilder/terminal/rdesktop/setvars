@@ -2,7 +2,7 @@ AB_CVS_ROOT=:pserver:anonymous:@cvs.sf.net:/cvsroot/rdesktop
 AB_CVS_MODULE=rdesktop
 AB_ZIPNAME=rdesktop-cvs-$(date +%Y%m%d)
 
-AB_CATEGORY=terminal
+AB_CATEGORY=Terminal
 
 AB_MANPAGE=doc/rdesktop.1
 

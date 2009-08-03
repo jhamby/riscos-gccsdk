@@ -1,5 +1,5 @@
 
-AB_CATEGORY=graphics
+AB_CATEGORY=Graphics
 
 AB_CONFLAGS="--disable-perl --disable-print --disable-python"
 

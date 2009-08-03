@@ -1,7 +1,7 @@
 # Configuration file for CPPUnit under autobuilder
 #
 
-AB_CATEGORY=develop
+AB_CATEGORY=Develop
 
 AB_CONFLAGS="--prefix=`pwd`/cppunit --disable-test-plugin"
 

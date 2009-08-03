@@ -1,4 +1,4 @@
-AB_CATEGORY=terminal
+AB_CATEGORY=Terminal
 
 AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp"
 

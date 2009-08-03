@@ -1,4 +1,4 @@
-AB_CATEGORY=audio
+AB_CATEGORY=Audio
 
 ab_package () {
 	cp -a -v $H/\!MP3Info $D/

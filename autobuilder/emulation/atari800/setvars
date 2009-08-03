@@ -1,7 +1,7 @@
 
-AB_CATEGORY=emulation
+AB_CATEGORY=Emulation
 
-AB_PRECONF='CFLAGS="-O2 -I$GCCSDK_INSTALL_ENV/include"'
+AB_PRECONF='-I$GCCSDK_INSTALL_ENV/include"'
 
 AB_CONFLAGS=--target=sdl
 

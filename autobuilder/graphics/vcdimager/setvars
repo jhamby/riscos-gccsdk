@@ -1,5 +1,5 @@
 
-AB_CATEGORY=graphics
+AB_CATEGORY=Graphics
 
 ab_package() {
   cp -av $S/COPYING $D

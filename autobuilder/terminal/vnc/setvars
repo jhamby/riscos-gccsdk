@@ -1,5 +1,5 @@
 
-AB_CATEGORY=terminal
+AB_CATEGORY=Terminal
 
 AB_MANPAGE=debian/xvncviewer.1x
 

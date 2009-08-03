@@ -1,5 +1,5 @@
 
-AB_CATEGORY=browser
+AB_CATEGORY=Browser
 
 AB_CONFLAGS=--with-zlib
 AB_MAKE=make

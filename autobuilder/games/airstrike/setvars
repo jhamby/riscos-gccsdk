@@ -10,7 +10,7 @@ ab_package() {
   cp -av $H/\!AirStrike $AD
   rm -rf $AD/\!AirStrike/.svn
   cp -av $S/ChangeLog $S/COPYING $S/LICENSE $S/README $AD/\!AirStrike
-  cp -av $S/src/airstrike$AB_EXEEXT $S/data $AD/\!AirStrike
+  cp -av $S/src/airstrike $S/data $AD/\!AirStrike
   sed s#datapath.*\$#"datapath \"<AirStrike\$Dir>/data/\""# < $S/airstrikerc > $AD/\!AirStrike/airstrikerc
 
   $AB_HOME/add-riscpkg -unixlib -unixsound

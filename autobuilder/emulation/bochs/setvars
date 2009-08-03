@@ -1,4 +1,4 @@
-AB_CATEGORY=x11/test
+AB_CATEGORY=Emulation
 
 AB_CONFLAGS="--disable-cdrom --with-sdl"
 

@@ -1,4 +1,4 @@
-AB_CATEGORY=browser/test
+AB_CATEGORY=Browser
 
 ab_package() {
   cp -av $H/\!Chimera2 $D

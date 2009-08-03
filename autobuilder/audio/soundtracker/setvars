@@ -1,5 +1,5 @@
 
-AB_CATEGORY=audio
+AB_CATEGORY=Audio
 
 AB_CONFLAGS="--disable-nls --disable-esd --disable-asm --disable-gnome"
 

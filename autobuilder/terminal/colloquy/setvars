@@ -1,4 +1,4 @@
-AB_CATEGORY=terminal
+AB_CATEGORY=Terminal
 
 AB_MAKE="make -C src bin2c; $AB_MAKE"
 

@@ -1,5 +1,5 @@
 
-AB_CATEGORY=audio
+AB_CATEGORY=Audio
 
 ab_package() {
   cp -av $S/simplefrontend/stwolame$AB_EXEEXT $D
