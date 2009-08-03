@@ -15,8 +15,8 @@
  INSTALL_DATA= cp
 -#INSTALL_EXEC= install -m 0755
 -#INSTALL_DATA= install -m 0644
-+INSTALL_EXEC= install -m 0755
-+INSTALL_DATA= install -m 0644
++INSTALL_EXEC=$(INSTALL) -m 0755
++INSTALL_DATA=$(INSTALL) -m 0644
  
  # == END OF USER SETTINGS. DO NOT CHANGE ANYTHING BELOW THIS LINE =============
  
@@ -29,3 +29,14 @@
  
  
  # (end of config)
+--- config.orig	2009-08-02 20:09:22.000000000 -0700
++++ config	2009-08-02 20:09:34.000000000 -0700
+@@ -28,7 +28,7 @@
+ # ------------------------------------------------------------------ C compiler
+ 
+ # You need an ANSI C compiler. gcc is a popular one.
+-CC= gcc
++#CC= gcc
+ WARN= -ansi -pedantic -Wall
+ 
+ # On IRIX, cc is a good ANSI compiler.
