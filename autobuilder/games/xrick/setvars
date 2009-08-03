@@ -9,7 +9,7 @@ ab_package() {
   AD=$D/Apps/Games 
   mkdir -p $AD/\!XRick
   cp $H/\!XRick/\!* $AD/\!XRick
-  cp xrick,ff8 $AD/\!XRick/\!RunImage,ff8
+  cp xrick$AB_EXTEXT $AD/\!XRick/\!RunImage$AB_EXEEXT
   # Copy zip file as data to stop it being used as an image file system
   cp data.zip $AD/\!XRick/data.zip,ffd
   cat README $H/RISCOSNotes > $AD/\!XRick/\!Help
