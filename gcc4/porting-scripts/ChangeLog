@@ -1,3 +1,8 @@
+Tue Aug  4 14:36:18 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-install: Fail attempt to install static archive if it
+          contains PIC objects.
+
 Sun Aug  2 07:40:38 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* ro-config: Set CFLAGS to -O3, which ensures optimization in
