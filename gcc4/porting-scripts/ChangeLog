@@ -1,3 +1,10 @@
+Wed Aug  5 18:36:29 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-ar, ro-config, ro-install:  Work around for problems where
+          libtool puts PIC objects in subdirectory archives and they end
+          up in the final static libraries.  We do this by wrapping up
+          'ar' and generating additional libraries that are static only.
+
 Tue Aug  4 14:36:18 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* ro-install: Fail attempt to install static archive if it

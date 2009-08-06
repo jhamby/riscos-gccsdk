@@ -52,6 +52,11 @@ if [ "$command" == "/usr/bin/install" ] ; then
         GCCSDK_ENV/ro-install $fileinparam $dest/$param
       done
     else
+      # libtool hackery
+      if [ -e "${param}-static" ] ; then
+        param=${param}-static
+      fi
+
       installparams_exp="$installparams_exp $param"
     fi
 

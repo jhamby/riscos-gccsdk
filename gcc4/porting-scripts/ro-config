@@ -314,7 +314,8 @@ export CC_FOR_BUILD=/usr/bin/cc
 export config_BUILD_CC=/usr/bin/cc
 export config_TARGET_CC="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-gcc"
 
-export AR=GCCSDK_BIN/arm-unknown-riscos-ar
+#export AR=GCCSDK_BIN/arm-unknown-riscos-ar
+export AR=GCCSDK_ENV/ro-ar
 export NM=GCCSDK_BIN/arm-unknown-riscos-nm
 export RANLIB=GCCSDK_BIN/arm-unknown-riscos-ranlib
 export INSTALL=GCCSDK_ENV/ro-install
