@@ -12,7 +12,7 @@ ab_package() {
   mkdir -p $AD
   cp -av \!Tutris/* $AD
   cp -av tutris$AB_EXEEXT $AD
-  cat README >> $AD/\!Help
+  cat readme >> $AD/\!Help
   cp -av authors ChangeLog copying $AD
   cp -r data $AD
 
