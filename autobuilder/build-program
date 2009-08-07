@@ -78,7 +78,7 @@ ab_create_command_app() {
   mkdir -p $A
 
   if [ -e $H/\!$app ] ; then
-    cp -av $H/\!$app $D/$section
+    /bin/cp -av $H/\!$app $D/$section
   fi
 
   if ! [ -e $A/\!Run,feb ] ; then
@@ -101,7 +101,7 @@ ab_add_commands() {
     # using SCL) in an ELF build, etc.
     name=$(basename $program | sed -e s#,[a-f\|0-9][a-f\|0-9][a-f\|0-9]##)
     echo "Set Alias\$$name Run <${AA}\$Dir>.$name %%*0" >> $A/\!Boot,feb
-    cp -av $program $A
+    /bin/cp -av $program $A
   done
 }
 
@@ -131,10 +131,43 @@ ab_package_source() {
   rm -f $S/man3 $S/man/man3
 
   mkdir -p $S/riscos
-  cp -r $H/* $S/riscos || true
+  /bin/cp -r $H/* $S/riscos || true
   rm -f $S/riscos/last-failure
   rm -f $S/riscos/last-success
 }
+
+
+# Override 'cp' to ensure we look for extension and no-extension during
+# packaging.  This is similar code to that in ro-install
+cp() {
+  local param
+  local params
+  local dest
+
+  for param in $@ ; do
+    params="$params $dest"
+
+    if [ "$(echo "$param" | cut -c 1)" != "-" ] ; then
+      if ! [ -e "$param" ] ; then
+        # Add extension if the source doesn't exist but it's there with ,e1f
+        if [ -e "$param$AB_EXEEXT" ] ; then
+          param="$param$AB_EXTEXT"
+        else
+          # If it's there without an extension, then symlink
+          local plain=$(sed "s#$AB_EXEEXT##" <<< $param)
+
+          if [ -e "$plain" ] ; then
+            /bin/ln -s $plain $param
+          fi
+        fi
+      fi
+    fi
+    dest=$param
+  done
+
+  /bin/cp $params $dest
+}
+
 
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
 export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
@@ -199,7 +232,7 @@ else
       tar xfz $tarball
     done
 
-    cp -a */* ../$AB_FULLNAME
+    /bin/cp -a */* ../$AB_FULLNAME
 
     cd ../$AB_FULLNAME
     rm -rf ../unpack
