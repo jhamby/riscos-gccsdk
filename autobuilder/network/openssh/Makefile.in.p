@@ -1,0 +1,11 @@
+--- Makefile.in.orig	2009-08-03 11:26:34.000000000 -0700
++++ Makefile.in	2009-08-03 11:27:39.000000000 -0700
+@@ -42,7 +42,7 @@
+ 	-D_PATH_SSH_DATADIR=\"$(SSH_DATADIR)\"
+ 
+ CC=@CC@
+-LD=@LD@
++LD=@CC@
+ CFLAGS=@CFLAGS@
+ CPPFLAGS=-I. -I$(srcdir) @CPPFLAGS@ $(PATHS) @DEFS@
+ LIBS=@LIBS@
