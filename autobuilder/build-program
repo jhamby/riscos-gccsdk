@@ -157,7 +157,7 @@ cp() {
           local plain=$(sed "s#$AB_EXEEXT##" <<< $param)
 
           if [ -e "$plain" ] ; then
-            /bin/ln -s $plain $param
+            /bin/ln $plain $param
           fi
         fi
       fi
