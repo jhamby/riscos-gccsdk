@@ -5,7 +5,7 @@
    /* Start and end of RELRO region.  */
    bfd_vma relro_start, relro_end;
 +
-+  /* 1 for -fpic, 2 for fPIC (RISC OS) */
++  /* 1 for -fpic, 2 for -fPIC (RISC OS only) */
 +  unsigned int flag_pic;
  };
  
