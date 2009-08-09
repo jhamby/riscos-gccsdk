@@ -129,7 +129,7 @@ zibase:
 	@	   = 0, just allocate 12 bytes for SCL
 	@ On exit:
 	@	R0 = RMA module workspace ptr
-	@	SL = base SVC + 560
+	@	SL = base SVC + 540
 	@ May return with VS set and R0 pointing to RISC OS error block.
 	.global	_clib_initialisemodule
 	.type	_clib_initialisemodule, %function
@@ -150,12 +150,11 @@ _clib_initialisemodule:
 	MOV	R0, #6
 	MOV	R4, #0
 	MOV	R5, #0
-	TEQ	R9, #0
-	MOVEQ	R3, #12		@ Reserve 12 bytes for SCL statics
+	MOVS	R3, R9
 	LDRNE	R4, rwbase	@ Image$$RW$$Base
 	LDRNE	R5, rwlimit	@ Image$$RW$$Limit
 	SUBNE	R3, R5, R4
-	ADDNE	R3, R3, #12	@ 12 bytes for SCL statics
+	ADD	R3, R3, #12	@ 12 bytes for SCL statics
 	SWI	OS_Module + X_Bit
 	@ On exit:	 R2 = pointer to claimed block
 	@		 R3 = preserved (i.e. requested block size)
@@ -171,7 +170,7 @@ _clib_initialisemodule:
 
 	LDR	R0, stubs	@ R0 => list of stub descriptions
 	ADD	R1, R12, #12	@ R1 => RMA workspace start
-	ADD	R2, R12, R3
+	ADD	R2, R12, R3	@ R2 => RMA workspace end
 	LDR	R3, zibase	@ R3 = Image$$ZI$$base
 				@ R4 = Image$$RW$$Base
 				@ R5 = Image$$RW$$Limit
@@ -204,8 +203,7 @@ _clib_initialisemodule:
 	@ reference through SL[-536] for accessing global variables.
 	LDR	R7, [R1, #20]	@ SCL static relocation data offset
 	LDR	R8, [R1, #24]	@ Client static relocation data offset
-	STR	R7, [R12, #4]	@ Store in private workspace
-	STR	R8, [R12, #8]
+	STMIB	R12, {R7-R8}	@ Store in private workspace
 
 	MOV	R4, R0		@ End of workspace (FIXME: really needed ?)
 
