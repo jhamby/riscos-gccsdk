@@ -1,3 +1,8 @@
+Sun Aug  9 01:15:13 CEST 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* netlib/getnameinfo.c: Removed, we have another implementation in
+	netlib/getaddrinfo.c.
+
 Sun Aug  2 07:44:06 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* sys/errlist.c: Add entry for EOVERFLOW.
