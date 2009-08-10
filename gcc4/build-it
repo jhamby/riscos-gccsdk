@@ -27,6 +27,8 @@
 #   -no-multilib
 #         No multilib configuration which means only softfloat UnixLib runtime
 #         and no SharedCLibrary runtime (nor module support).
+#   -r
+#         Just rebuild; don't clean or reconfigure.
 #   -h
 #         Help
 
@@ -54,6 +56,9 @@ GCCSDK_BUILD_ACTION=""
 GCCSDK_TARGET_LIBTYPE="--enable-shared=libunixlib,libgcc,libstdc++"
 GCCSDK_LANGUAGES="c,c++"
 GCCSDK_MULTILIB="--enable-multilib"
+
+rebuild=false
+
 for param in $@ ; do
   case "$param" in
     -j*)
@@ -72,6 +77,9 @@ for param in $@ ; do
     -h | -help)
        give_help
        exit 0
+       ;;
+    -r)
+       rebuild=true
        ;;
     -*)
        echo "Unknown option $param" && echo
@@ -117,22 +125,25 @@ fi
 # Sanity check there are sources available:
 test -f $GCCSDK_SRCDIR/configure || ( echo "No $GCCSDK_SRCDIR/configure found, need to execute './create-srcdir' first ?" && exit 1 )
 
-# Make sure we start with a clean build dir (if you want to restart a
-# broken build after the configure stage, do 'cd $GCCSDK_BUILDDIR && make'
-# eventually followed by a 'make install').
-if [ -d $GCCSDK_BUILDDIR ] ; then
-  echo Deleting old $GCCSDK_BUILDDIR
-  rm -rf $GCCSDK_BUILDDIR
+if ! $rebuild; then
+  # Make sure we start with a clean build dir (if you want to restart a
+  # broken build after the configure stage, do 'cd $GCCSDK_BUILDDIR && make'
+  # eventually followed by a 'make install').
+  if [ -d $GCCSDK_BUILDDIR ] ; then
+    echo Deleting old $GCCSDK_BUILDDIR
+    rm -rf $GCCSDK_BUILDDIR
+  fi
+  mkdir -p $GCCSDK_BUILDDIR
+  # Do the same for install dir:
+  if [ -d $GCCSDK_PREFIX ] ; then
+    echo Deleting old $GCCSDK_PREFIX
+    rm -rf $GCCSDK_PREFIX
+  fi
+  mkdir -p $GCCSDK_PREFIX
 fi
-mkdir -p $GCCSDK_BUILDDIR
-# Do the same for install dir:
-if [ -d $GCCSDK_PREFIX ] ; then
-  echo Deleting old $GCCSDK_PREFIX
-  rm -rf $GCCSDK_PREFIX
-fi
-mkdir -p $GCCSDK_PREFIX
 
 cd $GCCSDK_BUILDDIR
+
 # Notes:
 #   1) --with-cross-host is needed to correctly find the target libraries in
 #      $GCCSDK_{CROSS|RISCOS}_PREFIX/arm-unknown-riscos/lib instead of
@@ -140,7 +151,7 @@ cd $GCCSDK_BUILDDIR
 #   2) Configure options are explained at http://gcc.gnu.org/install/configure.html
 #      but note that this explanation is for the latest gcc version released and
 #      not necessary the gcc version we're building here.
-$GCCSDK_SRCDIR/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS \
+$rebuild || $GCCSDK_SRCDIR/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS \
 	--enable-threads=posix \
 	--disable-nls --enable-sjlj-exceptions=no \
 	--disable-c-mbchar --enable-languages=$GCCSDK_LANGUAGES \
