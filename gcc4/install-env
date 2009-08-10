@@ -30,12 +30,11 @@ for f in `ls $GCCSDK_ROOT/porting-scripts` ; do
   test -x $GCCSDK_ROOT/porting-scripts/$f && chmod 755 $GCCSDK_INSTALL_ENV/$f
 done
 
-rm -f $GCCSDK_INSTALL_ENV/strip
-ln -s $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-strip $GCCSDK_INSTALL_ENV/strip
-rm -f $GCCSDK_INSTALL_ENV/cc
-ln -s $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc $GCCSDK_INSTALL_ENV/cc
+ln -sf $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-strip $GCCSDK_INSTALL_ENV/strip
+ln -sf $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc $GCCSDK_INSTALL_ENV/cc
 
-# Create an empty libc.a and libpthread.a (needed to fool configure tests)
-$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/libc.a
-$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/libpthread.a
-$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/libgcc_s.a
+# Create libraries needed to fool configure tests
+for lib in c pthread gcc_s; do 
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ar mv $GCCSDK_INSTALL_CROSSBIN/../arm-unknown-riscos/lib/lib${lib}.a
+done
+
