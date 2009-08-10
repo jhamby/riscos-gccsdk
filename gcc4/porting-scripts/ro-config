@@ -222,6 +222,11 @@ if ! grep -q "Only one of --enable-shared" $RO_CPATH/configure; then
   fi
 fi
 
+if [ "$RO_APPSHARED" == "yes" ] ; then
+  unset ro_static
+  unset ro_shared
+fi
+
 
 # Glib location
 if grep -q with-glib-prefix $tmpoutconfigure; then
@@ -382,9 +387,6 @@ export ac_cv_prog_cc_works=yes
 export ac_cv_prog_cc_cross=yes
 export ac_cv_prog_cc_g=no
 
-export lt_cv_prog_cc_can_build_shared=no
-export lt_cv_prog_cc_pic_works=no
-
 export ac_cv_func_atexit=yes
 export ac_cv_func_bcopy=yes
 export ac_cv_func_bsd_getpgrp=yes
@@ -455,10 +457,6 @@ export bash_cv_have_mbstate_t=no
 export bash_cv_getenv_redef=no
 export bash_cv_getcwd_malloc=yes
 
-export kde_cv_shortsetgroups=no
-export kde_cv_prog_uic_nounload=yes
-export kde_cv_defines_imake=""
-
 export glib_cv_hasinline=yes
 export glib_cv_has__inline=yes
 export glib_cv_has__inline__=yes
@@ -469,42 +467,12 @@ export glib_cv_va_val_copy=""
 export glib_cv_sizeof_gmutex=24
 export glib_cv_stack_grows=yes
 
-export ac_cv_alignof_CORBA_char=1
-export ac_cv_alignof_CORBA_boolean=1
-export ac_cv_alignof_CORBA_octet=1
-export ac_cv_alignof_CORBA_short=2
-export ac_cv_alignof_CORBA_long=4
-export ac_cv_alignof_CORBA_unsigned_short=2
-export ac_cv_alignof_CORBA_unsigned_long=4
-export ac_cv_alignof_CORBA_float=4
-export ac_cv_alignof_CORBA_double=4
-export ac_cv_alignof_CORBA_long_double=4
-export ac_cv_alignof_CORBA_wchar=2
-export ac_cv_alignof_CORBA_long_long=4
-export ac_cv_alignof_CORBA_unsigned_long_long=4
-export ac_cv_alignof_CORBA_struct=4
-export ac_cv_alignof_CORBA_pointer=4
-
-export lftp_cv_va_copy=no
-export lftp_cv___va_copy=yes
-export lftp_cv_precompiled_readline=yes
-
-export rsync_cv_HAVE_GETTIMEOFDAY_TZ=yes
-export rsync_cv_HAVE_C99_VSNPRINTF=yes
-export rsync_cv_HAVE_LONGLONG=yes
-export rsync_cv_HAVE_OFF64_T=yes
-export rsync_cv_HAVE_UNSIGNED_CHAR=yes
-
 export ac_cv_path_db_cv_path_ar=ar
 export ac_cv_path_db_cv_path_ranlib=:
 export ac_cv_path_db_cv_path_cp=$INSTALL
 export ac_cv_path_db_cv_path_chmod=/bin/echo
 export ac_cv_path_db_cv_path_rm=GCCSDK_ENV/rm
 export ac_cv_path_db_cv_path_strip=:
-
-export ac_cv_lib_db_4___db185_open=yes
-export ac_cv_lib_cposix_strerror=no
-export ac_cv_lib_z_gzopen=yes
 
 export ac_cv_path_install=$INSTALL
 
@@ -514,8 +482,6 @@ export db_cv_sprintf_count=yes
 export db_cv_path_cp=$INSTALL
 export db_cv_path_rm=echo
 
-export tcl_cv_strtod_buggy=1
-
 export ac_cv_header_wctype_h=no
 export ac_cv_header_mcheck=no
 export ac_cv_header_tcl_h=yes 
@@ -524,12 +490,6 @@ export ac_cv_header_nl_types_h=no
 export ac_cv_header_sys_vfs_h=yes
 export ac_cv_header_sys_statfs_h=yes
 export ac_cv_header_sys_statvfs_h=no
-
-export ac_cv_lib_z_deflate=yes
-
-export ac_cv_lib_SDL_ttf_TTF_RenderUNICODE_Blended_Shaded=yes
-export ac_cv_lib_SDL_ttf_TTF_Init=yes
-export ac_cv_lib_SDL_mixer_Mix_OpenAudio=yes
 
 export ac_cv_header_X11_X_h=yes
 export ac_cv_header_X11_Xatom_h=yes
@@ -541,10 +501,6 @@ export ac_cv_header_X11_extensions_XShm_h=no
 export ac_cv_header_X11_keysym_h=yes
 
 export ac_cv_lib_X11_XOpenDisplay=yes
-
-export ac_cv_kaffe_pathsep=:
-
-export fu_cv_sys_mounted_fread=yes
 
 export libc_cv_asm_global_directive=EXPORT
 

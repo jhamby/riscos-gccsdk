@@ -1,3 +1,13 @@
+Mon Aug 10 10:06:11 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Remove old application-specific autoconf values.
+          If these are still valid, then they should be added to the
+          relevant setvars script.  Add RO_APPSHARED variable, so
+          let the application set the precise shared vs static
+          flags, since we can't guess correctly 100% of the time.
+        * ro-install: Add an additional PIC check for extra static
+          libtool archives we create.
+
 Wed Aug  5 18:36:29 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* ro-ar, ro-config, ro-install:  Work around for problems where
