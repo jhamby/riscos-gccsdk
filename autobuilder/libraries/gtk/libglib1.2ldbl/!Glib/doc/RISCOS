@@ -1,7 +1,0 @@
-Compiling glib1.2 programs on RISC OS
-
-C flags:
-  -IGLib:glib-1.2
-
-Linking flags for static libraries:
-  -LGlib: -lglib
