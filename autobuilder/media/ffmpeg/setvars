@@ -1,3 +1,5 @@
+AB_INSTALL=env
+
 AB_SVN_ROOT=svn://svn.mplayerhq.hu/ffmpeg/trunk
 AB_CVS_MODULE=ffmpeg
 AB_ZIPNAME=ffmpeg-svn-$(date +%Y%m%d)
