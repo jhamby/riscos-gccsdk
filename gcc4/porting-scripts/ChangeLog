@@ -1,3 +1,7 @@
+Thu Aug 13 08:21:22 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-ar: Use bash. Ensure destination directory exists.
+
 Mon Aug 10 10:06:11 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* ro-config: Remove old application-specific autoconf values.

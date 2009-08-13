@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 # Work around problems with libtool putting PIC objects in convenience libraries in 
 # projects with subdirectories.  The calls to 'ar' are intercepted and we create fully
@@ -31,6 +31,7 @@ elif [ "$1" == "cru" ] && [ "${2:0:5}" == ".libs" ] ; then
   # libtool likes to rename things sometimes to avoid archive name conflicts.  Just hope it's static.
   for param in $params; do
     if ! [ -e $param ] ; then
+      mkdir -p $(dirname $param)
       cp -av $(sed s#-static## <<<$param) $param
     fi
   done
