@@ -1,0 +1,3 @@
+AB_PRECONF="LIBS=-ldl"
+
+AB_CONFLAGS="--disable-postproc --disable-a52 --disable-glx --disable-qt4 --disable-skins2"
