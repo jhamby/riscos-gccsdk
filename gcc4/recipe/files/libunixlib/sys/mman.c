@@ -160,8 +160,8 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 
   PTHREAD_UNSAFE
 
-  /* We don't support mmap on files yet.  */
-  if (fd != -1)
+  /* Only support mmap on files for reading from zero offset.  */
+  if (fd != -1 && (prot != PROT_READ))
     return (caddr_t) __set_errno (ENOSYS);
 
   /* Non-zero offset only makes sense for mmap onto files.  */
@@ -244,6 +244,29 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   mmaps[i].addr	  = (caddr_t)regs[3];
   mmaps[i].len	  = len;
   mmaps[i].prot	  = prot;
+
+  /* Simplistic mmap file handling.  Simply read the entire file into memory */
+  if (fd != -1)
+    {
+      int count = 0;
+
+      lseek(fd, 0, SEEK_SET);
+
+      while (count < len)
+        {
+          int size = read(fd, mmaps[i].addr + count, len - count);
+
+          if (size < 0)
+            {
+              munmap(mmaps[i].addr, len);
+              return (caddr_t) __set_errno (EINVAL);
+            }
+          else if (size == 0)
+            break;
+
+          count += size;
+        }
+    }
 
   return mmaps[i].addr;
 }

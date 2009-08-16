@@ -1,3 +1,8 @@
+Sun Aug 16 12:58:06 PDT 2009   Peter Naulls  <peter@chocky.org>
+
+	* sys/mman.c: Simplistic mmap file handling. Only supports reading
+        from a zero offset, but this covers much of its use.
+
 Sun Aug  9 01:15:13 CEST 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* netlib/getnameinfo.c: Removed, we have another implementation in
