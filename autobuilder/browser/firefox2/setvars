@@ -6,7 +6,7 @@ AB_ZIPNAME=firefox
 AB_PVERSION=2.0.0.20
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
-AB_ROVERSION=1
+AB_ROVERSION=2
 
 #export RO_SHAREDLIBS=yes
 
@@ -59,7 +59,7 @@ mozilla_patch () {
 
   cp $H/mozconfig $S/.mozconfig
 
-  cp $H/riscos.mk $S/security/coreconf/
+  cp $H/RISCOS.mk $S/security/coreconf/
 
   cp $H/xptcstubs_arm_riscos.cpp $S/xpcom/reflect/xptcall/src/md/unix/
 

@@ -19,7 +19,7 @@ diff -u -r1.24.2.3 Makefile.in
  LINKSRC = nsGlueLinkingWin.cpp
  endif
 -ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS,$(OS_ARCH)))
-+ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS riscos,$(OS_ARCH)))
++ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS RISCOS,$(OS_ARCH)))
  LINKSRC = nsGlueLinkingDlopen.cpp
  endif
  ifeq (OS2,$(OS_ARCH))
@@ -151,7 +151,7 @@ diff -u -r1.80.4.6 Makefile.in
  #
 +# RISC OS
 +#
-+ifeq ($(OS_ARCH),riscos)
++ifeq ($(OS_ARCH),RISCOS)
 +CPPSRCS		:= xptcinvoke_arm.cpp xptcstubs_arm_riscos.cpp
 +CXXFLAGS += -O2
 +endif
