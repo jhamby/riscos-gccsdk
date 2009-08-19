@@ -1,7 +1,0 @@
-AB_CATEGORY=Games
-
-ab_package () {
-	cp -a -v $H/\!CodeBreaker $D/
-	cp -a -v $S/src/codebreaker$AB_EXEEXT $D/!CodeBreaker/
-	cp -a -v $S/doc/HOWTO $D/!CodeBreaker/
-}
