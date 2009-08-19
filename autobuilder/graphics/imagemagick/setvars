@@ -10,7 +10,7 @@ ab_package() {
   ab_add_commands $S/utilities/*$AB_EXEEXT
 
   cp -av $S/README.txt $A/
-  cp -av $S/AUTHORS $S/LICENSE $S/NEWS $A/
+  cp -av $S/AUTHORS.txt $S/LICENSE $S/NEWS.txt $A/
   cp -av config $A/
   mv $D/*,faf $A/\!Help,faf
  
