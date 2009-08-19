@@ -23,5 +23,5 @@ ab_package() {
 }
 
 export LIBS="-lSDL_image -ljpeg -lpng -ltiff -lz"
-AB_CONFLAGS=\''--datadir=/\<PipeNight\$Dir\>'\'
+AB_CONFLAGS=\''--datadir=/<PipeNight$$Dir>/'\'
 
