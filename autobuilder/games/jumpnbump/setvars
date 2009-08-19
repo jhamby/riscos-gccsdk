@@ -1,3 +1,3 @@
 AB_PRECONF=:
 
-make gobpack
+CC=/usr/bin/gcc make gobpack
