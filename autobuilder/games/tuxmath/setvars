@@ -19,6 +19,6 @@ ab_package() {
   -depends ttf-sil-andika
 }
 
-export LIBS="-ljpeg -lpng -ltiff -lz  -lvorbisidec -lfreetype"
+export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lfreetype"
 AB_CONFLAGS=\''--datadir=/\<TuxMath\$$Dir\>/data'\'
 
