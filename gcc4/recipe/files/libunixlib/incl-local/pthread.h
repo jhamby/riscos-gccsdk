@@ -122,8 +122,10 @@ struct __pthread_saved_context
 {
   int r[16]; /* User mode integer registers */
   int spsr;
+#ifndef __SOFTFP__
   char fpregs[12*8]; /* Floating point registers */
   int fpstatus; /* Floating point status register */
+#endif
 };
 
 extern pthread_t __pthread_thread_list; /* Linked list of all threads */
