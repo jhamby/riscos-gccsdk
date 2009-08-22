@@ -3,7 +3,7 @@ AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 
 # Extra libraries needed by static build of SDL_Mixer
-export LIBS="-lvorbisidec"
+export LIBS="-lpng -lz -lvorbisidec -lvorbisfile"
 
 ab_package() {
   AD=$D/Apps/Games
