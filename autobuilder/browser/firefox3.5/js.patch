@@ -1,0 +1,21 @@
+diff -r 456a088b297b js/src/jsgc.cpp
+--- a/js/src/jsgc.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/js/src/jsgc.cpp	Sun Aug 09 10:36:28 2009 -0700
+@@ -90,7 +90,7 @@
+ /*
+  * Check if posix_memalign is available.
+  */
+-#if _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || MOZ_MEMORY
++#if (_POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600 || MOZ_MEMORY) && !defined(__riscos__)
+ # define HAS_POSIX_MEMALIGN 1
+ #else
+ # define HAS_POSIX_MEMALIGN 0
+@@ -904,7 +904,7 @@
+     if (js_gcUseMmap) {
+ # if defined(XP_WIN)
+         VirtualFree((void *) chunk, 0, MEM_RELEASE);
+-# elif defined(SOLARIS)
++# elif defined(SOLARIS) || defined(__riscos__)
+         munmap((char *) chunk, js_gcArenasPerChunk << GC_ARENA_SHIFT);
+ # else
+         munmap((void *) chunk, js_gcArenasPerChunk << GC_ARENA_SHIFT);

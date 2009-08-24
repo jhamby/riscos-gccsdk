@@ -1,0 +1,71 @@
+#mk_add_options MOZ_CO_PROJECT=xulrunner
+
+CROSS_COMPILE=1
+
+ac_add_options --prefix=$GCCSDK_INSTALL_ENV
+ac_add_options --target=arm-riscos
+ac_add_options --x-includes=$GCCSDK_INSTALL_ENV/include
+ac_add_options --x-libraries=$GCCSDK_INSTALL_ENV/lib
+
+# use GTK+-2 widget set with XFT font rendering
+#ac_add_options --enable-default-toolkit=gtk2
+#ac_add_options --enable-default-toolkit=riscos
+#ac_add_options --enable-default-toolkit=xlib
+ac_add_options --enable-default-toolkit=cairo-gtk2
+
+ac_add_options --disable-freetype2
+ac_add_options --disable-canvas
+
+# enable minimal profile support
+ac_add_options --disable-profilesharing
+ac_add_options --disable-profilelocking
+ac_add_options --enable-single-profile
+
+# disable features and skip various build steps
+#ac_add_options --disable-extensions
+ac_add_options --disable-accessibility
+ac_add_options --disable-composer
+ac_add_options --enable-plaintext-editor-only
+ac_add_options --disable-mailnews
+ac_add_options --enable-postscript
+ac_add_options --enable-mathml
+ac_add_options --disable-installer
+ac_add_options --disable-oji
+
+# disable debug logging and tests
+ac_add_options --disable-dtd-debug
+#ac_add_options --enable-logging
+ac_add_options --disable-logging
+ac_add_options --disable-tests
+ac_add_options --disable-gtktest
+
+# build crypto module (PSM + NSS)
+ac_add_options --enable-crypto
+
+# code generation options (optimize for size)
+ac_add_options --enable-optimize="-O3 -mcpu=strongarm"
+#ac_add_options --enable-strip
+
+# enable static build
+ac_add_options --enable-shared
+ac_add_options --disable-static
+
+ac_add_options --enable-application=xulrunner
+ac_add_options --disable-timeline
+ac_add_options --disable-debug
+
+ac_add_options --with-system-jpeg
+ac_add_options --with-system-zlib
+ac_add_options --with-system-png
+ac_add_options --enable-system-cairo
+
+ac_add_options --enable-libxul
+ac_add_options --disable-dbus
+ac_add_options --disable-updater
+
+#ac_add_options --disable-xpinstall
+ac_add_options --disable-freetype2
+
+ac_add_options --disable-jit
+ac_add_options --disable-ogg
+ac_add_options --disable-javaxpcom

@@ -1,37 +1,19 @@
-diff -r 11bdfa7b7c58 xpcom/glue/standalone/Makefile.in
---- a/xpcom/glue/standalone/Makefile.in	Thu Aug 06 15:43:07 2009 +0200
-+++ b/xpcom/glue/standalone/Makefile.in	Fri Aug 07 12:53:25 2009 -0700
+diff -r 456a088b297b xpcom/glue/standalone/Makefile.in
+--- a/xpcom/glue/standalone/Makefile.in	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/glue/standalone/Makefile.in	Sun Aug 09 10:38:00 2009 -0700
 @@ -62,7 +62,7 @@
  ifneq (,$(filter WINNT WINCE,$(OS_ARCH)))
  LINKSRC = nsGlueLinkingWin.cpp
  endif
 -ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS,$(OS_ARCH)))
-+ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS riscos,$(OS_ARCH)))
++ifneq (,$(filter AIX DragonFly FreeBSD Linux NetBSD OpenBSD SunOS RISCOS,$(OS_ARCH)))
  LINKSRC = nsGlueLinkingDlopen.cpp
  endif
  ifeq (OS2,$(OS_ARCH))
-diff -r 11bdfa7b7c58 xpcom/io/SpecialSystemDirectory.cpp
---- a/xpcom/io/SpecialSystemDirectory.cpp	Thu Aug 06 15:43:07 2009 +0200
-+++ b/xpcom/io/SpecialSystemDirectory.cpp	Fri Aug 07 12:53:25 2009 -0700
-@@ -237,8 +237,13 @@
-                                      aFile);
-     }
- #else
--    return NS_NewNativeLocalFile(nsDependentCString(PR_GetEnv("HOME")), 
-+#ifdef XP_RISCOS
-+    return NS_NewNativeLocalFile(nsDependentCString("/<Choices$Write>/"),
-                                  PR_TRUE, aFile);
-+#else
-+    return NS_NewNativeLocalFile(nsDependentCString(PR_GetEnv("HOME")),
-+                                 PR_TRUE, aFile);
-+#endif
- #endif
- }
- 
-diff -r 11bdfa7b7c58 xpcom/io/nsAppFileLocationProvider.cpp
---- a/xpcom/io/nsAppFileLocationProvider.cpp	Thu Aug 06 15:43:07 2009 +0200
-+++ b/xpcom/io/nsAppFileLocationProvider.cpp	Fri Aug 07 12:53:25 2009 -0700
-@@ -370,6 +370,9 @@
+diff -r 456a088b297b xpcom/io/nsAppFileLocationProvider.cpp
+--- a/xpcom/io/nsAppFileLocationProvider.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/io/nsAppFileLocationProvider.cpp	Sun Aug 09 10:38:00 2009 -0700
+@@ -352,6 +352,9 @@
          rv = directoryService->Get(NS_WIN_WINDOWS_DIR, NS_GET_IID(nsILocalFile), getter_AddRefs(localDir));
      }
      if (NS_FAILED(rv)) return rv;
@@ -41,10 +23,10 @@ diff -r 11bdfa7b7c58 xpcom/io/nsAppFileLocationProvider.cpp
  #elif defined(XP_UNIX)
      rv = NS_NewNativeLocalFile(nsDependentCString(PR_GetEnv("HOME")), PR_TRUE, getter_AddRefs(localDir));
      if (NS_FAILED(rv)) return rv;
-diff -r 11bdfa7b7c58 xpcom/io/nsDirectoryService.cpp
---- a/xpcom/io/nsDirectoryService.cpp	Thu Aug 06 15:43:07 2009 +0200
-+++ b/xpcom/io/nsDirectoryService.cpp	Fri Aug 07 12:53:25 2009 -0700
-@@ -192,7 +192,10 @@
+diff -r 456a088b297b xpcom/io/nsDirectoryService.cpp
+--- a/xpcom/io/nsDirectoryService.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/io/nsDirectoryService.cpp	Sun Aug 09 10:38:00 2009 -0700
+@@ -186,7 +186,10 @@
      NS_ASSERTION(*aFile, "nsDirectoryService - Could not determine CurrentProcessDir.\n");
      if (*aFile)
          return NS_OK;
@@ -56,10 +38,10 @@ diff -r 11bdfa7b7c58 xpcom/io/nsDirectoryService.cpp
  #elif defined(XP_UNIX)
  
      // In the absence of a good way to get the executable directory let
-diff -r 11bdfa7b7c58 xpcom/io/nsLocalFileUnix.cpp
---- a/xpcom/io/nsLocalFileUnix.cpp	Thu Aug 06 15:43:07 2009 +0200
-+++ b/xpcom/io/nsLocalFileUnix.cpp	Fri Aug 07 12:53:25 2009 -0700
-@@ -320,7 +320,11 @@
+diff -r 456a088b297b xpcom/io/nsLocalFileUnix.cpp
+--- a/xpcom/io/nsLocalFileUnix.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/io/nsLocalFileUnix.cpp	Sun Aug 09 10:38:00 2009 -0700
+@@ -308,7 +308,11 @@
          
          mPath = homePath + Substring(filePath, 1, filePath.Length() - 1);
      } else {
@@ -71,16 +53,16 @@ diff -r 11bdfa7b7c58 xpcom/io/nsLocalFileUnix.cpp
              return NS_ERROR_FILE_UNRECOGNIZED_PATH;
          mPath = filePath;
      }
-diff -r 11bdfa7b7c58 xpcom/reflect/xptcall/src/md/unix/Makefile.in
---- a/xpcom/reflect/xptcall/src/md/unix/Makefile.in	Thu Aug 06 15:43:07 2009 +0200
-+++ b/xpcom/reflect/xptcall/src/md/unix/Makefile.in	Fri Aug 07 12:53:25 2009 -0700
-@@ -190,6 +190,13 @@
+diff -r 456a088b297b xpcom/reflect/xptcall/src/md/unix/Makefile.in
+--- a/xpcom/reflect/xptcall/src/md/unix/Makefile.in	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/reflect/xptcall/src/md/unix/Makefile.in	Sun Aug 09 10:38:00 2009 -0700
+@@ -205,6 +205,13 @@
  endif
  endif
  #
 +# RISC OS
 +#
-+ifeq ($(OS_ARCH),riscos)
++ifeq ($(OS_ARCH),RISCOS)
 +CPPSRCS		:= xptcinvoke_arm.cpp xptcstubs_arm_riscos.cpp
 +CXXFLAGS += -O2
 +endif
@@ -88,22 +70,22 @@ diff -r 11bdfa7b7c58 xpcom/reflect/xptcall/src/md/unix/Makefile.in
  # OpenBSD/ARM
  #
  ifneq (,$(filter OpenBSDarmish OpenBSDzaurus,$(OS_ARCH)$(OS_TEST)))
-diff -r 11bdfa7b7c58 xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp
---- a/xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	Thu Aug 06 15:43:07 2009 +0200
-+++ b/xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	Fri Aug 07 12:53:25 2009 -0700
-@@ -37,9 +37,10 @@
+diff -r 456a088b297b xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp
+--- a/xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp	Sun Aug 09 10:38:00 2009 -0700
+@@ -39,9 +39,10 @@
  
- /* Platform specific code to invoke XPCOM methods on native objects */
+ #include "prlog.h"
  
 +#include <stdio.h>
  #include "xptcprivate.h"
  
 -#if !defined(LINUX) || !defined(__arm__)
-+#if (!defined(LINUX) && !defined(__riscos__)) || !defined(__arm__)
++#if (!defined(LINUX) && !defined(RISCOS)) || !defined(__arm__)
  #error "This code is for Linux ARM only. Check that it works on your system, too.\nBeware that this code is highly compiler dependent."
  #endif
  
-@@ -168,7 +169,8 @@
+@@ -173,7 +174,8 @@
                     PRUint32 paramCount, nsXPTCVariant* params)
  {
      PRUint32 result;
@@ -113,7 +95,7 @@ diff -r 11bdfa7b7c58 xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp
      my_params.that = that;
      my_params.Index = methodIndex;
      my_params.Count = paramCount;
-@@ -176,6 +178,9 @@
+@@ -181,6 +183,9 @@
      my_params.fn_copy = (PRUint32) &invoke_copy_to_stack;
      my_params.fn_count = (PRUint32) &invoke_count_words;
  
@@ -123,7 +105,7 @@ diff -r 11bdfa7b7c58 xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp
  /* This is to call a given method of class that.
   * The parameters are in params, the number is in paramCount.
   * The routine will issue calls to count the number of words
-@@ -202,43 +207,44 @@
+@@ -207,43 +212,44 @@
   */
   
    __asm__ __volatile__(
@@ -188,9 +170,9 @@ diff -r 11bdfa7b7c58 xpcom/reflect/xptcall/src/md/unix/xptcinvoke_arm.cpp
      );
      
    return result;
-diff -r 11bdfa7b7c58 xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp
---- a/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	Thu Aug 06 15:43:07 2009 +0200
-+++ b/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	Fri Aug 07 12:53:25 2009 -0700
+diff -r 456a088b297b xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp
+--- a/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	Sun Aug 09 16:45:00 2009 +0200
++++ b/xpcom/reflect/xptcall/src/md/unix/xptcstubs_arm.cpp	Sun Aug 09 10:38:00 2009 -0700
 @@ -41,8 +41,8 @@
  #include "xptcprivate.h"
  #include "xptiprivate.h"

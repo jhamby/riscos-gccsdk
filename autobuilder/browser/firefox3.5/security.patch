@@ -1,0 +1,79 @@
+diff -r 456a088b297b security/coreconf/RISCOS.mk
+--- a/security/coreconf/RISCOS.mk	Sun Aug 09 16:45:00 2009 +0200
++++ b/security/coreconf/RISCOS.mk	Sun Aug 09 10:37:43 2009 -0700
+@@ -20,6 +20,7 @@
+ # the Initial Developer. All Rights Reserved.
+ #
+ # Contributor(s):
++#   Peter Naulls
+ #
+ # Alternatively, the contents of this file may be used under the terms of
+ # either the GNU General Public License Version 2 or later (the "GPL"), or
+@@ -37,12 +38,19 @@
+ 
+ include $(CORE_DEPTH)/coreconf/UNIX.mk
+ 
+-DLL_SUFFIX  = a
+-MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
++LIB_SUFFIX  = a
++DLL_SUFFIX  = so
++AR          = ar cr $@ 
++LDOPTS     += -L$(SOURCE_LIB_DIR)
++MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
+ 
+ OS_RELEASE =
+ OS_TARGET  = RISCOS
+ 
++DSO_CFLAGS              = -fPIC
++DSO_LDOPTS              = -shared
++DSO_LDFLAGS             =
++
+ ifdef BUILD_OPT
+-	OPTIMIZER = -O2 -mpoke-function-name
++	OPTIMIZER = -O3
+ endif
+diff -r 456a088b297b security/coreconf/rules.mk
+--- a/security/coreconf/rules.mk	Sun Aug 09 16:45:00 2009 +0200
++++ b/security/coreconf/rules.mk	Sun Aug 09 10:37:43 2009 -0700
+@@ -338,11 +338,7 @@
+ endif	# MSVC with manifest tool
+ endif
+ else
+-ifeq ($(OS_TARGET),RISCOS)
+-	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
+-else
+ 	$(MKSHLIB) -o $@ $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+-endif
+ 	chmod +x $@
+ ifeq ($(OS_TARGET),Darwin)
+ ifdef MAPFILE
+diff -r 456a088b297b security/nss/lib/jar/jarfile.h
+--- a/security/nss/lib/jar/jarfile.h	Sun Aug 09 16:45:00 2009 +0200
++++ b/security/nss/lib/jar/jarfile.h	Sun Aug 09 10:37:43 2009 -0700
+@@ -54,7 +54,7 @@
+     char orglen [4];
+     char filename_len [2];
+     char extrafield_len [2];
+-};
++} __attribute__((packed));
+ 
+ struct ZipCentral {		/* 46 bytes */
+     char signature [4];
+@@ -74,7 +74,7 @@
+     char internal_attributes [2];
+     char external_attributes [4];
+     char localhdr_offset [4];
+-};
++} __attribute__((packed));
+ 
+ struct ZipEnd {			/* 22 bytes */
+     char signature [4];
+@@ -85,7 +85,7 @@
+     char central_dir_size [4];
+     char offset_central_dir [4];
+     char commentfield_len [2];
+-};
++} __attribute__((packed));
+ 
+ #define LSIG 0x04034B50l
+ #define CSIG 0x02014B50l

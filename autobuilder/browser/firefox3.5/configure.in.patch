@@ -1,0 +1,23 @@
+diff -r 456a088b297b configure.in
+--- a/configure.in	Sun Aug 09 16:45:00 2009 +0200
++++ b/configure.in	Sun Aug 09 10:36:16 2009 -0700
+@@ -1120,6 +1120,7 @@
+         mingw*)       OS_ARCH=WINNT ;;
+         wince*)       OS_ARCH=WINCE ;;
+         darwin*)      OS_ARCH=Darwin OS_TARGET=Darwin ;;
++        riscos*)      OS_ARCH=RISCOS ;;
+     esac
+ else
+     OS_TARGET=`uname -s`
+@@ -2657,6 +2658,11 @@
+     HOST_NSPR_MDCPUCFG='\"md/_os2.cfg\"'
+     ;;
+ 
++*-riscos*)
++    AC_DEFINE(XP_RISCOS)
++    BIN_SUFFIX=,e1f
++    ;;
++
+ esac
+ 
+ dnl Only one oddball right now (QNX), but this gives us flexibility
