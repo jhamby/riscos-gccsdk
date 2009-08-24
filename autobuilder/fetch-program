@@ -58,31 +58,42 @@ else
     # Slower method.  Fetch packages file ourself and parse it.
     debarchive=http://ftp.uk.debian.org/debian
 
+    # Old file
+   rm -f ../Sources.bz2
+
     # Use and keep existing Sources.bz2 if it exists and is less
     # than a day old
 
-    Sources=../Sources.bz2
+    for dist in testing stable; do
+      Sources=../Sources-${dist}.bz2
 
-    if ! [ -e $Sources ] ||
-         [ $(($(date +"%s") - $(date -r $Sources +"%s"))) -gt $((24 * 60 * 60)) ] ; then
+      if ! [ -e $Sources ] ||
+           [ $(($(date +"%s") - $(date -r $Sources +"%s"))) -gt $((24 * 60 * 60)) ] ; then
 
-      echo "Autobuilder: Fetching new Sources.bz2"
+        echo "Autobuilder: Fetching new Sources.bz2 ($dist)"
 
-      rm -f $Sources
-      wget -nv $debarchive/dists/testing/main/source/Sources.bz2 -O $Sources
-      touch $Sources
+        rm -f $Sources
+        wget -nv $debarchive/dists/${dist}/main/source/Sources.bz2 -O $Sources
+        touch $Sources
 
-    else
-      echo "Autobuilder: Using existing Sources.bz2"
-    fi
+      else
+        echo "Autobuilder: Using existing Sources.bz2 ($dist)"
+      fi
 
-    if ! bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
-       echo "Autobuilder: Directory name not found in Sources.bz2"
-       echo "Autobuilder: Trying Binary entry"
-       if ! bzgrep -A20 "Binary:.* $AB_PACKAGE\$" $Sources > files ; then
-         bzgrep -A20 "Binary:.* $AB_PACKAGE," $Sources > files || true
-       fi
-    fi
+      if bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
+        # Found ok
+        break
+      else
+        echo "Autobuilder: Directory name not found in Sources.bz2 $(dist)"
+        echo "Autobuilder: Trying Binary entry"
+        if bzgrep -A20 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
+          # Found ok
+          break
+        else
+          bzgrep -A20 "Binary:.* $AB_PACKAGE," $Sources > files || true
+        fi
+      fi
+    done
 
     if ! [ -s files ] ; then
       echo "AutoBuilder: Package not found"
