@@ -1,9 +1,7 @@
 AB_URL=http://switch.dl.sourceforge.net/sourceforge/stratagus/stratagus-2.2.4-src.tar.gz
 AB_CATEGORY=Games
 
-# Force the install to use lua50
-AB_CONFLAGS="--without-x LUACONFIG=./lua-config"
-cp -av $H/lua-config $S/lua-config
+AB_CONFLAGS="--without-x --with-extra-includes=$GCCSDK_INSTALL_ENV/include/lua50"
 
 ab_package() {
   AD=$D/Apps/Games
