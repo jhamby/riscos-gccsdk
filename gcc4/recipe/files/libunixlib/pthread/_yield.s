@@ -1,11 +1,10 @@
 @ Yield processor control to another thread
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008, 2009 UnixLib Developers
 @ Written by Martin Piper and Alex Waugh
 
 #include "internal/asm_dec.s"
 
 	.text
-
 
 @ pthread_yield
 @ Called in USR mode by a thread wishing to give up the processor
@@ -15,7 +14,7 @@ pthread_yield:
 	@ Setup an APCS-32 stack frame so this will appear in a backtrace
 	MOV	ip, sp
  PICNE "STMFD	sp!, {fp, ip, lr, pc}"
- PICEQ "STMFD	sp!, {v4, fp, ip, lr, pc}"
+ PICEQ "STMFD	sp!, {v4-v5, fp, ip, lr, pc}"
 
 	SUB	fp, ip, #4
 
@@ -31,7 +30,8 @@ pthread_yield:
  PICEQ "LDR	a2, [v4, a2]"
 	LDR	a1, [a2, #GBL_PTH_SYSTEM_RUNNING]
 	CMP	a1, #0
- PICEQ "LDMEQDB fp, {v4, fp, sp, pc}"
+ PICEQ "LDMEQDB fp, {v4-v5, fp, sp, pc}"
+ PICEQ "LDMFD	sp!, {v4-v5}"
  PICNE "LDMEQDB	fp, {fp, sp, pc}"
 
 	@ Check that a context switch can take place
@@ -68,8 +68,7 @@ pthread_yield:
 
 	NAME	__pthread_yield_return
 __pthread_yield_return:
- PICEQ "LDMDB	fp, {v4, fp, sp, pc}"
- PICNE "LDMDB	fp, {fp, sp, pc}"
+	LDMDB	fp, {fp, sp, pc}
 .L0:
 	WORD	__ul_global
 	WORD	__cbreg

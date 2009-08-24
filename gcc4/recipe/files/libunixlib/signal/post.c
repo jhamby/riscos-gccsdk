@@ -17,7 +17,7 @@
 #include <internal/unix.h>
 #include <internal/sigstate.h>
 
-/*  #define DEBUG 1 */
+/* #define DEBUG 1 */
 #ifdef DEBUG
 #  include <sys/debug.h>
 #endif
@@ -54,7 +54,7 @@ extract_name (const unsigned int *pc)
       static size_t size;
       int status;
 
-      demangled = __unixlib_cxa_demangle ((name[0] == '^') ? name + 1 : name,
+      demangled = __unixlib_cxa_demangle ((name[0] == '^' || name[0] == '#') ? name + 1 : name,
 					  demangled, &size, &status);
       if (demangled != NULL && status == 0)
         name = demangled;
@@ -741,7 +741,7 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
      error message and die.  */
   if (__u == NULL)
     {
-      err = "UnixLib process structure is non-existant.";
+      err = "UnixLib process structure is non-existent.";
       goto error;
     }
 

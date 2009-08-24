@@ -448,7 +448,7 @@ no_dynamic_area:
 	LDR	a1, [a1, #0]
 	BL	atexit
 
-	@ Call the programs _init function.
+	@ Call the program's _init function.
 	LDR	a1, .L0+24		@ exec_init
  PICEQ "LDR	a1, [v4, a1]"
 	MOV	lr, pc

@@ -3,6 +3,7 @@
    Copyright (c) 2005-2008 UnixLib Devlopers.  */
 
 #define UNIXLIB_CHANGES
+#define UNIXLIB_STDERR
 
 /*
  *  linux/lib/vsprintf.c
@@ -33,6 +34,7 @@
 #include <asm/page.h>		/* for PAGE_SIZE */
 #include <asm/div64.h>
 #else
+#include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
 
@@ -464,9 +466,10 @@ static char *number(char *buf, char *end, unsigned long long num, int base, int 
  * You probably want snprintf() instead.
  */
 #ifdef UNIXLIB_CHANGES
-static
-#endif
+static int debug_vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
+#else
 int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
+#endif
 {
 	int len;
 	unsigned long long num;
@@ -509,7 +512,11 @@ int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 			/* Because we are using RISC OS SWI calls to output
 			   the resultant sring, all newlines must be
 			   CR-LF.  */
-			if (*fmt == '\n') {
+			if (*fmt == '\n'
+#ifdef UNIXLIB_STDERR
+				 && !stderr
+#endif
+			) {
 				if (str + 1 < end) {
 					*str = '\r';
 					*++str = '\n';
@@ -1094,9 +1101,15 @@ void debug_printf (const char *fmt, ...)
   PTHREAD_UNSAFE
 
   va_start (args, fmt);
-  vsnprintf (buf, sizeof (buf), fmt, args);
+  debug_vsnprintf (buf, sizeof (buf), fmt, args);
   va_end (args);
 
-  __os_print (buf);
+#ifdef UNIXLIB_STDERR
+  /* Assume non-NULL stderr means the I/O system is initialised */
+  if (stderr)
+    fputs(buf, stderr);
+  else
+#endif
+    __os_print (buf);
 }
 #endif

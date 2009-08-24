@@ -1,3 +1,13 @@
+Mon Aug 24 10:41:22 PDT 2009  Peter Naulls  <peter@chocky.org>
+
+	* signal/post.c: Skip over # at start of C++ symbol names
+        for demangling.
+	* sys/_syslib.s: Typo fix.
+	* pthread/_yield.s: Register handling safety from John Tytgat.
+        * debug/dvsprintf.c: Use stdio for __os_printf after stdio
+        is initialised, otherwise Wimp debugging can become very
+        difficult.
+
 Thu Aug 20 00:44:36 CEST 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/pthread.h(__pthread_saved_context): don't define fpregs
