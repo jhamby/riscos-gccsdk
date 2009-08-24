@@ -1,3 +1,4 @@
 AB_INSTALL=yes
 
+ln -s ../../trunk/src/lib/compat-5.1r5/ src/lib/compat-5.1r5
 

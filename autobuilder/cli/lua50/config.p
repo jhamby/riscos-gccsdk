@@ -1,5 +1,5 @@
---- config.old	Fri Apr 15 13:23:28 2005
-+++ config	Fri Apr 15 13:36:13 2005
+--- config.orig	2009-08-23 20:29:15.000000000 -0700
++++ config	2009-08-23 20:32:26.000000000 -0700
 @@ -25,15 +25,15 @@
  # interface (e.g., Linux, Solaris, IRIX, BSD, AIX, HPUX, and probably others),
  # uncomment the next two lines.
@@ -19,7 +19,7 @@
  #
  # On Windows systems. support for dynamic loading is enabled by default.
  # To disable this support, uncomment the next line.
-@@ -100,8 +100,8 @@
+@@ -100,15 +100,15 @@
  # to add -lreadline (and perhaps also -lhistory and -lcurses or -lncurses)
  # to EXTRA_LIBS.
  #
@@ -30,36 +30,36 @@
  
  # ------------------------------------------------------------------ C compiler
  
-@@ -119,7 +119,7 @@
- # debug information. If you only want the shared libraries, you may want to
- # add -fPIC to MYCFLAGS.
+ # You need an ANSI C compiler. gcc is a popular one. We do not use -ansi in
+ # WARN because it disables POSIX features used in the libraries.
  #
--MYCFLAGS= -O3 -g
-+MYCFLAGS= -O2
- #MYCFLAGS= -O3 -fomit-frame-pointer # -fPIC
+-CC= gcc
++#CC= gcc
+ WARN= -Wall
  
- # Write here any options you may need for your C linker.
---- config.orig	2005-04-18 10:16:48.000000000 +0100
-+++ config	2005-04-18 10:16:51.000000000 +0100
-@@ -160,8 +160,8 @@
- #
- #INSTALL_EXEC= cp
- #INSTALL_DATA= cp
--INSTALL_EXEC= install -m 0755
--INSTALL_DATA= install -m 0644
-+INSTALL_EXEC= /home/riscos/env/ro-install -m 0755
-+INSTALL_DATA= /home/riscos/env/ro-install -m 0644
- 
- # == END OF USER SETTINGS. NO NEED TO CHANGE ANYTHING BELOW THIS LINE =========
- 
---- config.orig	2005-04-18 10:18:59.000000000 +0100
-+++ config	2005-04-18 10:19:07.000000000 +0100
-@@ -148,7 +148,7 @@
+ # ------------------------------------------------------------------ C options
+@@ -148,7 +148,8 @@
  
  # Locations for "make install". You may need to be root do "make install".
  #
--INSTALL_ROOT= $(PREFIX)/usr/
+-INSTALL_ROOT= $(PREFIX)/usr
++#INSTALL_ROOT= $(PREFIX)/usr
 +INSTALL_ROOT= $(PREFIX)/home/riscos/env
  INSTALL_BIN= $(INSTALL_ROOT)/bin
  INSTALL_INC= $(INSTALL_ROOT)/include/lua50
  INSTALL_LIB= $(INSTALL_ROOT)/lib
+@@ -158,10 +159,10 @@
+ # You may prefer to use "install" instead of "cp" if you have it.
+ # If you use "install", you may also want to change the permissions after -m.
+ #
+-#INSTALL_EXEC= cp
+-#INSTALL_DATA= cp
+-INSTALL_EXEC= install -m 0755
+-INSTALL_DATA= install -m 0644 -p
++INSTALL_EXEC= cp
++INSTALL_DATA= cp
++#INSTALL_EXEC= install -m 0755
++#INSTALL_DATA= install -m 0644 -p
+ 
+ # == END OF USER SETTINGS. NO NEED TO CHANGE ANYTHING BELOW THIS LINE =========
+ 
