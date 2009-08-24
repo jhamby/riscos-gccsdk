@@ -183,14 +183,14 @@ nsDeviceContextXlib::SetDPI(PRInt32 aPrefDPI)
     // value is under 96ppi, then use 96.
     mDpi = 96;
   }
-  
+
   int pt2t = 72;
 
   // make p2t a nice round number - this prevents rounding problems
   mPixelsToTwips = float(NSToIntRound(float(NSIntPointsToTwips(pt2t)) / float(mDpi)));
   mTwipsToPixels = 1.0f / mPixelsToTwips;
 
-   PR_LOG(DeviceContextXlibLM, PR_LOG_DEBUG, ("GFX: dpi=%d t2p=%g p2t=%g\n", dpi, mTwipsToPixels, mPixelsToTwips));
+   PR_LOG(DeviceContextXlibLM, PR_LOG_DEBUG, ("GFX: dpi=%d t2p=%g p2t=%g\n", mDpi, mTwipsToPixels, mPixelsToTwips));
 
   // XXX need to reflow all documents
   return NS_OK;

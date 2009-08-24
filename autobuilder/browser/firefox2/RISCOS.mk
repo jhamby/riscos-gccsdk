@@ -20,6 +20,7 @@
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
+#   Peter Naulls
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,71 +36,22 @@
 #
 # ***** END LICENSE BLOCK *****
 
-XP_DEFINE  += -DXP_UNIX
-LIB_SUFFIX  = a
+include $(CORE_DEPTH)/coreconf/UNIX.mk
+
+LIB_SUFFIX  = a        
 DLL_SUFFIX  = so
-AR          = ar cr $@
+AR          = ar cr $@ 
 LDOPTS     += -L$(SOURCE_LIB_DIR)
-#MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
-MKSHLIB         = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
+MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
+
+OS_RELEASE =
+OS_TARGET  = RISCOS
+OS_CFLAGS  = $(DSO_CFLAGS)
 
 DSO_CFLAGS              = -fPIC
 DSO_LDOPTS              = -shared 
-DSO_LDFLAGS             =
-
-OS_RELEASE =
-OS_TARGET  = riscos
-OS_CFLAGS  = $(DSO_CFLAGS)
+DSO_LDFLAGS             =         
 
 ifdef BUILD_OPT
-	OPTIMIZER  += -O2 #-mpoke-function-name
-	DEFINES    += -UDEBUG -DNDEBUG
-else
-	OPTIMIZER  += -g
-	DEFINES    += -DDEBUG -UNDEBUG -DDEBUG_$(shell whoami)
+	OPTIMIZER = -O3
 endif
-
-ifdef BUILD_TREE
-NSINSTALL_DIR  = $(BUILD_TREE)/nss
-NSINSTALL      = $(BUILD_TREE)/nss/nsinstall
-else
-NSINSTALL_DIR  = $(CORE_DEPTH)/coreconf/nsinstall
-NSINSTALL      = $(NSINSTALL_DIR)/$(OBJDIR_NAME)/nsinstall
-endif
-
-MKDEPEND_DIR    = $(CORE_DEPTH)/coreconf/mkdepend
-MKDEPEND        = $(MKDEPEND_DIR)/$(OBJDIR_NAME)/mkdepend
-MKDEPENDENCIES  = $(OBJDIR_NAME)/depend.mk
-
-####################################################################
-#
-# One can define the makefile variable NSDISTMODE to control
-# how files are published to the 'dist' directory.  If not
-# defined, the default is "install using relative symbolic
-# links".  The two possible values are "copy", which copies files
-# but preserves source mtime, and "absolute_symlink", which
-# installs using absolute symbolic links.  The "absolute_symlink"
-# option requires NFSPWD.
-#   - THIS IS NOT PART OF THE NEW BINARY RELEASE PLAN for 9/30/97
-#   - WE'RE KEEPING IT ONLY FOR BACKWARDS COMPATIBILITY
-####################################################################
-
-ifeq ($(NSDISTMODE),copy)
-	# copy files, but preserve source mtime
-	INSTALL  = $(NSINSTALL)
-	INSTALL += -t
-else
-	ifeq ($(NSDISTMODE),absolute_symlink)
-		# install using absolute symbolic links
-		INSTALL  = $(NSINSTALL)
-		INSTALL += -L `$(NFSPWD)`
-	else
-		# install using relative symbolic links
-		INSTALL  = $(NSINSTALL)
-		INSTALL += -R
-	endif
-endif
-
-define MAKE_OBJDIR
-if test ! -d $(@D); then rm -rf $(@D); $(NSINSTALL) -D $(@D); fi
-endef
