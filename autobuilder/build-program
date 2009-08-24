@@ -6,6 +6,11 @@ else
   echo "Autobuilder: Zipping package: $AB_PACKAGE"
 fi
 
+if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
+  echo "Do not call this script directly" 1>&2
+  exit 1
+fi
+
 # Reset vars for each package with default values:
 AB_MANPAGE=
 AB_ROVERSION=1
@@ -18,6 +23,8 @@ AB_COPYSOURCE=
 AB_DISTCLEAN=
 AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
+AB_PATCHOPT="-l -p0"
+
 export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 export AB_INSTALLTARGET=install
 
@@ -298,10 +305,19 @@ else
     patches="$patches $(find $AB_HOME/$AB_PACKAGEDIR/ | grep \.p.aof\$ || true)"
   fi
 
-  for AB_PATCH in $patches ; do
+  patch_ok=true
+
+  for AB_PATCH in $patches; do
     echo "Autobuilder: RISC OS patch: $AB_PATCH"
-    patch -p0 -l < $AB_PATCH || [ "$AB_DEBUG" == "yes" ]
+    if ! patch $AB_PATCHOPT < $AB_PATCH && [ "$AB_DEBUG" != "yes" ] ; then
+      patch_ok=false
+    fi
   done
+
+  if ! $patch_ok; then
+    echo "Autobuilder: Patches failed"
+    exit 1
+  fi
 
   # Set default for source copy based on the premise
   # that most open source programs have a COPYING file
