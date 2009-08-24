@@ -60,13 +60,6 @@ adde1f() {
         -e s#"sys_lib_search_path_spec=".*\$#"sys_lib_search_path_spec=GCCSDK_ENV/lib"# \
         $e1fPATH
   fi
-
-  if grep -q -- "-lSDL_mixer.*\$L" $e1fPATH; then
-    echo RISC OS: Adding vorbis library
-    sed -i -e s#"-lSDL_mixer.*\$L"#"-lSDL_mixer -lvorbisfile \$L"# \
-         $e1fPATH
-  fi
-
 }
 
 
