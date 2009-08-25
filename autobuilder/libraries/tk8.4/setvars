@@ -1,0 +1,7 @@
+cd unix
+
+AB_INSTALL=yes
+
+AB_CONFLAGS="--with-tcl=$GCCSDK_INSTALL_ENV/lib/tcl8.4/"
+
+mkdir -p $D/lib/tk8.4/
