@@ -123,3 +123,17 @@
  	cp -p $(TOP_DIR)/license.terms $(TOP_DIR)/tests/*.test \
  		$(TOP_DIR)/tests/*.tcl $(TOP_DIR)/tests/README \
  		$(TOP_DIR)/tests/option.file* $(DISTDIR)/tests
+--- unix/Makefile.in.orig	2009-08-25 11:43:10.000000000 -0700
++++ unix/Makefile.in	2009-08-25 11:44:33.000000000 -0700
+@@ -649,9 +649,9 @@
+ 	@echo "Installing wish as $(BIN_INSTALL_DIR)/wish$(VERSION)"
+ 	@$(INSTALL_PROGRAM) wish $(BIN_INSTALL_DIR)/wish$(VERSION)
+ 	@echo "Installing tkConfig.sh to $(LIB_INSTALL_DIR)/"
+-	@$(INSTALL_DATA) tkConfig.sh $(LIB_INSTALL_DIR)/tkConfig.sh
++	@$(INSTALL_DATA) tkConfig.sh $(TK_LIBRARY)/tkConfig.sh
+ 	@if test "$(STUB_LIB_FILE)" != "" ; then \
+-	    echo "Installing $(STUB_LIB_FILE) to $(LIB_INSTALL_DIR)/"; \
++	    echo "Installing $(STUB_LIB_FILE) to $(TK_LIBRARY)/"; \
+ 	    @INSTALL_STUB_LIB@ ; \
+ 	fi
+ 	@EXTRA_INSTALL_BINARIES@
