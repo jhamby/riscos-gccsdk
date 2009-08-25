@@ -1,18 +1,20 @@
 AB_URL=http://kent.dl.sourceforge.net/sourceforge/glhack/glhack-1.2.tar.gz
 AB_ZIPNAME=glhack-1.2
+AB_CATEGORY=Games
 
 ab_package() {
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -av $H/\!GLHack $AD
 
-  cp -av $H/\!GLHack $D
+  mkdir -p $AD/\!GLHack/Docs
+  mkdir -p $AD/\!GLHack/locks
+  mkdir -p $AD/\!GLHack/usr
+  mkdir -p $AD/\!GLHack/var/save
 
-  mkdir -p $D/\!GLHack/Docs
-  mkdir -p $D/\!GLHack/locks
-  mkdir -p $D/\!GLHack/usr
-  mkdir -p $D/\!GLHack/var/save
-
-  cp $S/src/glhack$AB_EXEEXT $D/\!GLHack/usr
-  cp $S/dat/*.png $D/\!GLHack/usr
-  cp $S/dat/glface*.lst $D/\!GLHack/usr
-  cp $S/dat/license $D/\!GLHack/usr
-  cp $S/dat/nhdat $D/\!GLHack/usr
+  cp $S/src/glhack$AB_EXEEXT $AD/\!GLHack/usr
+  cp $S/dat/*.png $AD/\!GLHack/usr
+  cp $S/dat/glface*.lst $AD/\!GLHack/usr
+  cp $S/dat/license $AD/\!GLHack/usr
+  cp $S/dat/nhdat $AD/\!GLHack/usr
 }
