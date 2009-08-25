@@ -25,3 +25,6 @@ ab_make() {
   echo "using gcc : 4.1 : $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc -I$GCCSDK_INSTALL_ENV/include -DBOOST_HAS_PTHREADS -DBOOST_HAS_GETTIMEOFDAY ;" > user-config.jam
   eval $AB_MAKE
 }
+
+mkdir -p $GCCSDK_INSTALL_ENV/boost-1_34_1/boost
+ln -sf $GCCSDK_INSTALL_ENV/include/boost-1_34_1/boost/ $GCCSDK_INSTALL_ENV/boost
