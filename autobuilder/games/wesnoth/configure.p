@@ -1,12 +1,11 @@
---- configure.orig	2007-11-15 12:39:35.558607700 +0000
-+++ configure	2007-11-15 12:40:24.466607700 +0000
-@@ -13,6 +13,9 @@
- ## M4sh Initialization.  ##
- ## --------------------- ##
- 
-+# Use libtool suitable for cross-compiling
-+ac_cv_path_LTOOL=`pwd`/libtool
-+
- # Be more Bourne compatible
- DUALCASE=1; export DUALCASE # for MKS sh
- if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
+--- configure.orig	2009-08-24 15:37:30.000000000 -0700
++++ configure	2009-08-24 15:37:51.000000000 -0700
+@@ -14100,7 +14100,7 @@
+       && boost_subminor_chk="|| (B_V_MAJ == $boost_version_major \
+ && B_V_MIN == $boost_version_minor \
+ && B_V_SUB < $boost_version_subminor)"
+-    for boost_inc in "$with_boost/include" '' \
++    for boost_inc in "$with_boost/" '' \
+              /opt/local/include /usr/local/include /opt/include /usr/include \
+              "$with_boost" C:/Boost/include
+     do
