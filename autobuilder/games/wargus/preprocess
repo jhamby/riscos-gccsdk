@@ -1,0 +1,5 @@
+# DOS line endings, so convert.  Assume Cygwin if not Linux
+
+if [ "$(uname)" == "Linux" ] ; then
+  dos2unix Makefile *.c
+fi
