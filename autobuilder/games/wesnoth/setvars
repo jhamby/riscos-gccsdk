@@ -7,25 +7,25 @@ ab_package() {
   AD=$D/Apps/Games
   mkdir -p $AD
   cp -av $H/\!Wesnoth $AD
-  cp -rav $H/\!Wesnoth/\!* $AD/\!Wesnoth
+  cp -auv $H/\!Wesnoth/\!* $AD/\!Wesnoth
   cp -av src/wesnoth$AB_EXEEXT $AD/\!Wesnoth
 
   mkdir -p $AD/\!Wesnoth/docs
-  cp -av $S/changelog $S/copying $S/COPYRIGHT \
+  cp -av $S/changelog $S/COPYING $S/copyright \
     README \
     $AD/\!Wesnoth/docs
 
   cp -av $S/doc/manual $AD/\!Wesnoth/docs
   cp -av $H/\!Wesnoth/docs/RISCOS $AD/\!Wesnoth/docs
 
-  cp -r $S/data $AD/\!wesnoth
+  cp -r $S/data $AD/\!Wesnoth
   # Some of the language files have an @ char in that RISC OS
   # doesn't like in filenames.
   for fname in `find $AD -name "*@*"` ; do mv $fname ${fname/@/A} ; done
 
-  cp -r $S/fonts $AD/\!wesnoth
-  cp -r $S/images $AD/\!wesnoth
-  cp -r $S/sounds $AD/\!wesnoth
+  cp -r $S/fonts $AD/\!Wesnoth
+  cp -r $S/images $AD/\!Wesnoth
+  cp -r $S/sounds $AD/\!Wesnoth
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
 }
