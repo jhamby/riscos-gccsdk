@@ -7,9 +7,9 @@ ab_package() {
   cp -av $H/\!TuxMath $AD
   cp -av $H/\!TuxMath/\!* $AD/\!TuxMath
   cp -av src/tuxmath$AB_EXEEXT $AD/\!TuxMath/tuxmath$AB_EXEEXT
-  cat docs/README.txt $H/RISCOSNotes >$AD/\!TuxMath/\!Help
+  cat doc/README.txt $H/RISCOSNotes >$AD/\!TuxMath/\!Help
 
-  cp -r docs $AD/\!TuxMath
+  cp -r doc $AD/\!TuxMath
 
   mkdir -p $AD/\!TuxMath/data
   mkdir -p $AD/\!TuxMath/data/tuxmath
@@ -21,4 +21,4 @@ ab_package() {
 
 export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lfreetype"
 AB_CONFLAGS=\''--datadir=/\<TuxMath\$$Dir\>/data'\'
-
+AB_CONFLAGS="$AB_CONFLAGS --without-sdlpango"
