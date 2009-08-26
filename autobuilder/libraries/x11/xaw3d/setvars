@@ -1,0 +1,9 @@
+AB_INSTALL=yes
+
+cd lib/Xaw3d
+CC=/usr/bin/gcc imake -Ulinux -D__riscos__ -DUseInstalled -I$GCCSDK_INSTALL_ENV/lib/X11/config
+
+mv Imakefile Imakefile.old
+
+
+
