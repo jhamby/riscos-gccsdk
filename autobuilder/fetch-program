@@ -56,10 +56,10 @@ else
     apt-get source $AB_PACKAGE
   else
     # Slower method.  Fetch packages file ourself and parse it.
-    debarchive=http://ftp.uk.debian.org/debian
+    debarchive=http://mirrors.kernel.org/debian
 
     # Old file
-   rm -f ../Sources.bz2
+    rm -f ../Sources.bz2
 
     # Use and keep existing Sources.bz2 if it exists and is less
     # than a day old
@@ -84,7 +84,7 @@ else
         # Found ok
         break
       else
-        echo "Autobuilder: Directory name not found in Sources.bz2 $(dist)"
+        echo "Autobuilder: Directory name not found in Sources.bz2 ($dist)"
         echo "Autobuilder: Trying Binary entry"
         if bzgrep -A20 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
           # Found ok
