@@ -1,6 +1,4 @@
 # $Id: Makefile.linux,v 1.8 2002/03/07 16:42:55 tringali Exp $
-CC=cc
-AR=ar
 
 # For editres, add -DEDITRES to CFLAGS and -lXmu to LIBS
 # If using a Motif 2.1 compatible library (LessTif, OM) add
@@ -16,7 +14,7 @@ AR=ar
 #
 CFLAGS=-O2 -I$(GCCSDK_INSTALL_ENV)/include -DUSE_DIRENT -DUSE_LPR_PRINT_CMD 
 ARFLAGS=-urs
-LIBS= -L$(GCCSDK_INSTALL_ENV)/lib -lCX11 -lDesk -lXm -lXext -lXt -lSM -lICE
+LIBS= -L$(GCCSDK_INSTALL_ENV)/lib -lCX11 -lDesk -lXm -lXext -lXt -lSM -lICE -lfontconfig -lfreetype -lXrender -lXft -lexpat -lz -static
 
 include Makefile.common
 
