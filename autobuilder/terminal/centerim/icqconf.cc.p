@@ -1,14 +1,14 @@
---- src/icqconf.cc.orig	2008-01-22 21:17:49.000000000 -0800
-+++ src/icqconf.cc	2008-01-22 21:18:12.000000000 -0800
-@@ -1714,6 +1714,7 @@
+--- src/icqconf.cc.orig	2009-02-22 07:41:47.000000000 -0800
++++ src/icqconf.cc	2009-08-27 09:09:32.000000000 -0700
+@@ -1812,6 +1812,7 @@
  void icqconf::checkdiskspace() {
      fenoughdiskspace = true;
  
-+#if 0
- #ifndef __sun__
++#ifndef __riscos__
+ #if !(defined(__sun__) || defined(__NetBSD__) || defined(__sgi__))
      struct statfs st;
-     if(!statfs(conf.getdirname().c_str(), &st)) {
-@@ -1723,6 +1724,7 @@
+     if(!statfs(conf->getdirname().c_str(), &st)) {
+@@ -1821,6 +1822,7 @@
  #endif
  	fenoughdiskspace = ((double) st.f_bavail) * st.f_bsize >= 10240;
      }
