@@ -1,13 +1,13 @@
---- sys/unix/Makefile.utl	2003-01-31 21:53:44.000000000 +0000
-+++ sys/unix/Makefile.utl.new	2003-01-31 21:52:59.000000000 +0000
-@@ -72,8 +72,8 @@
+--- sys/unix/Makefile.utl.orig	2003-12-07 15:39:13.000000000 -0800
++++ sys/unix/Makefile.utl	2009-08-27 10:34:11.000000000 -0700
+@@ -89,8 +89,8 @@
+ # flags for debugging:
+ # CFLAGS = -g -I../include
  
- # flags for Linux
- #   compile normally
--CFLAGS = -O2 -fomit-frame-pointer -I../include
--LFLAGS = -L/usr/X11R6/lib
-+CFLAGS = -O2 -fomit-frame-pointer -I../include -I/home/riscos/env/X11R6/include
-+LFLAGS = -L/home/riscos/env/X11R6/lib
- #   OR compile backwards compatible a.out format
- # CFLAGS = -O2 -b i486-linuxaout -fomit-frame-pointer -I../include
- # LFLAGS = -b i486-linuxaout -L/usr/X11R6/lib
+-CFLAGS = -O -I../include
+-LFLAGS =
++CFLAGS = -O2 -I../include $(GCCSDK_INSTALL_ENV)/include
++LFLAGS = -L$(GCCSDK_INSTALL_ENV)/lib
+ 
+ LIBS =
+  

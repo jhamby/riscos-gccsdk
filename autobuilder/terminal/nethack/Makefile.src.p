@@ -1,17 +1,19 @@
---- sys/unix/Makefile.src.old	2003-01-31 21:17:05.000000000 +0000
-+++ sys/unix/Makefile.src	2003-02-01 16:25:28.000000000 +0000
-@@ -117,8 +117,8 @@
+--- sys/unix/Makefile.src.orig	2009-08-27 10:29:22.000000000 -0700
++++ sys/unix/Makefile.src	2009-08-27 10:32:50.000000000 -0700
+@@ -124,8 +124,10 @@
  
  # flags for Linux
  #   compile normally
--CFLAGS = -O2 -fomit-frame-pointer -I../include
+-# CFLAGS = -O2 -fomit-frame-pointer -I../include
 -LFLAGS = -L/usr/X11R6/lib
-+CFLAGS = -O2 -fomit-frame-pointer -I../include -I/home/riscos/env/include -I/home/riscos/env/X11R6/include
-+LFLAGS = -L/home/riscos/env/lib -L/home/riscos/env/X11R6/lib
++CFLAGS = -O2 -fomit-frame-pointer -I../include -I$(GCCSDK_INSTALL_ENV)/include
++#LFLAGS = -L/usr/X11R6/lib
++LDFLAGS = -L$(GCCSDK_INSTALL_ENV)/lib
++
  #   OR compile backwards compatible a.out format
  # CFLAGS = -O2 -b i486-linuxaout -fomit-frame-pointer -I../include
  # LFLAGS = -b i486-linuxaout -L/usr/X11R6/lib
-@@ -442,11 +442,11 @@
+@@ -480,11 +482,11 @@
  # below in the 'make depend' output.
  monst.o:
  	$(CC) $(CFLAGS) -c monst.c
