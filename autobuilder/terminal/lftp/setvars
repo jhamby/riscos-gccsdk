@@ -1,5 +1,0 @@
-
-AB_CONFLAGS=--disable-nls
-
-AB_CATEGORY=Terminal
-
