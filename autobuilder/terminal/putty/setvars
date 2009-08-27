@@ -1,13 +1,5 @@
-AB_SVN=svn://ixion.tartarus.org/main/putty
-AB_ZIPNAME=putty-svn-$(date +%Y%m%d)
 
 AB_CATEGORY=Terminal
-
-# RISC OS Version of the package
-AB_ROVERSION=svn.`date +%G%m%d-%H%M`
-
-# Commands to be carried out prior to zip, such as copying or moving files
-#AB_PREZIP=
 
 ab_package() {
   echo S=$S
@@ -24,6 +16,10 @@ ab_package() {
 # generate makefiles (including Makefile.in)
 ./mkfiles.pl
 # run autoconf
-./mkauto.sh
+#./mkauto.sh
 # build from unix/ directory
 cd unix
+
+ab_make() {
+  $AB_MAKE -f Makefile.gtk COMPAT=-DNO_GSSAPI
+}

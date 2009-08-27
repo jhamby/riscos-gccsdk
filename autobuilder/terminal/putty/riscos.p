@@ -48,15 +48,6 @@ Index: unix/gtkwin.c
      } else {
  	w = h = 1;
  	x = y = 0;
-@@ -2625,7 +2628,7 @@
- 	     * glyphs in the first 32 char positions, it is assumed
- 	     * that those glyphs are the VT100 line-drawing
- 	     * character set.
--	     * 
-+	     *
- 	     * Actually, we'll hack even harder by only checking
- 	     * position 0x19 (vertical line, VT100 linedrawing
- 	     * `x'). Then we can check it easily by seeing if the
 @@ -3021,7 +3024,7 @@
       * Re-execing ourself is not an exact science under Unix. I do
       * the best I can by using /proc/self/exe if available and by
@@ -66,85 +57,3 @@ Index: unix/gtkwin.c
       * Note that we also have to reconstruct the elements of the
       * original argv which gtk swallowed, since the user wants the
       * new session to appear on the same X display as the old one.
-Index: unix/uxcons.c
-===================================================================
---- unix/uxcons.c	(revision 5808)
-+++ unix/uxcons.c	(working copy)
-@@ -129,12 +129,13 @@
- 
-     {
- 	struct termios oldmode, newmode;
-+	int count;
- 	tcgetattr(0, &oldmode);
- 	newmode = oldmode;
- 	newmode.c_lflag |= ECHO | ISIG | ICANON;
- 	tcsetattr(0, TCSANOW, &newmode);
- 	line[0] = '\0';
--	read(0, line, sizeof(line) - 1);
-+	count = read(0, line, sizeof(line) - 1);
- 	tcsetattr(0, TCSANOW, &oldmode);
-     }
- 
-@@ -177,12 +178,13 @@
- 
-     {
- 	struct termios oldmode, newmode;
-+	int count;
- 	tcgetattr(0, &oldmode);
- 	newmode = oldmode;
- 	newmode.c_lflag |= ECHO | ISIG | ICANON;
- 	tcsetattr(0, TCSANOW, &newmode);
- 	line[0] = '\0';
--	read(0, line, sizeof(line) - 1);
-+	count = read(0, line, sizeof(line) - 1);
- 	tcsetattr(0, TCSANOW, &oldmode);
-     }
- 
-@@ -226,12 +228,13 @@
- 
-     {
- 	struct termios oldmode, newmode;
-+	int count;
- 	tcgetattr(0, &oldmode);
- 	newmode = oldmode;
- 	newmode.c_lflag |= ECHO | ISIG | ICANON;
- 	tcsetattr(0, TCSANOW, &newmode);
- 	line[0] = '\0';
--	read(0, line, sizeof(line) - 1);
-+	count = read(0, line, sizeof(line) - 1);
- 	tcsetattr(0, TCSANOW, &oldmode);
-     }
- 
-@@ -245,7 +248,7 @@
- 
- /*
-  * Warn about the obsolescent key file format.
-- * 
-+ *
-  * Uniquely among these functions, this one does _not_ expect a
-  * frontend handle. This means that if PuTTY is ported to a
-  * platform which requires frontend handles, this function will be
-Index: unix/uxplink.c
-===================================================================
---- unix/uxplink.c	(revision 5808)
-+++ unix/uxplink.c	(working copy)
-@@ -461,7 +461,8 @@
- 
- void sigwinch(int signum)
- {
--    write(signalpipe[1], "x", 1);
-+    int count;
-+    count = write(signalpipe[1], "x", 1);
- }
- 
- /*
-@@ -985,7 +986,8 @@
- 	if (FD_ISSET(signalpipe[0], &rset)) {
- 	    char c[1];
- 	    struct winsize size;
--	    read(signalpipe[0], c, 1); /* ignore its value; it'll be `x' */
-+	    int count;
-+	    count = read(signalpipe[0], c, 1); /* ignore its value; it'll be `x' */
- 	    if (ioctl(0, TIOCGWINSZ, (void *)&size) >= 0)
- 		back->size(backhandle, size.ws_col, size.ws_row);
- 	}
