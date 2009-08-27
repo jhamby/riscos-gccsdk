@@ -1,11 +1,6 @@
-Index: Makefile.in
-===================================================================
-RCS file: /cvsroot/rdesktop/rdesktop/Makefile.in,v
-retrieving revision 1.8
-diff -u -r1.8 Makefile.in
---- Makefile.in	4 May 2005 18:01:56 -0000	1.8
-+++ Makefile.in	9 May 2005 08:50:57 -0000
-@@ -11,7 +11,8 @@
+--- Makefile.in.orig	2009-08-27 08:29:05.000000000 -0700
++++ Makefile.in	2009-08-27 08:30:44.000000000 -0700
+@@ -12,7 +12,8 @@
  datadir     = @datadir@
  
  VERSION     = @PACKAGE_VERSION@
@@ -15,3 +10,12 @@ diff -u -r1.8 Makefile.in
  
  CC          = @CC@
  INSTALL     = @INSTALL@
+@@ -39,7 +40,7 @@
+ all: $(TARGETS)
+ 
+ rdesktop: $(X11OBJ) $(SOUNDOBJ) $(RDPOBJ) $(SCARDOBJ)
+-	$(CC) $(CFLAGS) -o rdesktop $(X11OBJ) $(SOUNDOBJ) $(RDPOBJ) $(SCARDOBJ) $(LDFLAGS) -lX11
++	$(CC) $(CFLAGS) -o rdesktop $(X11OBJ) $(SOUNDOBJ) $(RDPOBJ) $(SCARDOBJ) $(LDFLAGS) -lCX11 -lDesk
+ 
+ rdp2vnc: $(VNCOBJ) $(SOUNDOBJ) $(RDPOBJ) $(SCARDOBJ) 
+ 	$(VNCLINK) $(CFLAGS) -o rdp2vnc $(VNCOBJ) $(SOUNDOBJ) $(RDPOBJ) $(SCARDOBJ) $(LDFLAGS) $(LDVNC)

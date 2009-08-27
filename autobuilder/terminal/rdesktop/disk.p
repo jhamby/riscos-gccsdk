@@ -1,5 +1,5 @@
---- disk.c.orig	2005-09-22 02:16:31.000000000 +0200
-+++ disk.c	2006-05-15 14:30:41.550000000 +0200
+--- disk.c.orig	2008-02-15 16:13:25.000000000 -0800
++++ disk.c	2009-08-27 08:26:02.000000000 -0700
 @@ -75,6 +75,15 @@
  #endif
  
@@ -17,7 +17,7 @@
  #define STATFS_T statvfs
  #define USE_STATVFS
 @@ -426,7 +435,8 @@
- 					return STATUS_NO_SUCH_FILE;
+ 					return RD_STATUS_NO_SUCH_FILE;
  			}
  		}
 -		handle = DIRFD(dirp);
@@ -26,39 +26,39 @@
  	}
  	else
  	{
-@@ -697,6 +707,9 @@
- NTSTATUS
- disk_set_information(NTHANDLE handle, uint32 info_class, STREAM in, STREAM out)
+@@ -700,6 +710,9 @@
+ RD_NTSTATUS
+ disk_set_information(RD_NTHANDLE handle, uint32 info_class, STREAM in, STREAM out)
  {
 +#ifdef __riscos__
-+	return STATUS_INVALID_PARAMETER;
++	return RD_STATUS_INVALID_PARAMETER;
 +#else
  	uint32 length, file_attributes, ft_high, ft_low, delete_on_close;
  	char newname[PATH_MAX], fullpath[PATH_MAX];
  	struct fileinfo *pfinfo;
-@@ -866,6 +879,7 @@
- 			return STATUS_INVALID_PARAMETER;
+@@ -869,6 +882,7 @@
+ 			return RD_STATUS_INVALID_PARAMETER;
  	}
- 	return STATUS_SUCCESS;
+ 	return RD_STATUS_SUCCESS;
 +#endif
  }
  
- NTSTATUS
-@@ -1046,6 +1060,9 @@
- NTSTATUS
- disk_query_volume_information(NTHANDLE handle, uint32 info_class, STREAM out)
+ RD_NTSTATUS
+@@ -1049,6 +1063,9 @@
+ RD_NTSTATUS
+ disk_query_volume_information(RD_NTHANDLE handle, uint32 info_class, STREAM out)
  {
 +#ifdef __riscos__
-+	return STATUS_INVALID_PARAMETER;
++	return RD_STATUS_INVALID_PARAMETER;
 +#else
  	struct STATFS_T stat_fs;
  	struct fileinfo *pfinfo;
  	FsInfoType *fsinfo;
-@@ -1106,6 +1123,7 @@
- 			return STATUS_INVALID_PARAMETER;
+@@ -1109,6 +1126,7 @@
+ 			return RD_STATUS_INVALID_PARAMETER;
  	}
- 	return STATUS_SUCCESS;
+ 	return RD_STATUS_SUCCESS;
 +#endif
  }
  
- NTSTATUS
+ RD_NTSTATUS
