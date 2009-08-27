@@ -5,5 +5,5 @@ AB_CONFLAGS=--disable-readline
 export CFLAGS=-O2
 
 AB_FILESNOPATH="ncftp$AB_EXEEXT COPYING"
-AB_MANPAGE=ncftp.1
+AB_MANPAGE=doc/man/ncftp.1
 
