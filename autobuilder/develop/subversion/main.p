@@ -1,6 +1,5 @@
-diff -ur subversion-1.5.5.orig/subversion/svn/main.c subversion-1.5.5/subversion/svn/main.c
---- subversion/svn/main.c	2008-12-18 15:08:56.000000000 +0000
-+++ subversion/svn/main.c	2009-01-03 20:57:18.000000000 +0000
+--- subversion/svn/main.c.orig	2009-03-20 15:49:12.000000000 +0100
++++ subversion/svn/main.c	2009-08-11 23:18:18.000000000 +0200
 @@ -49,6 +49,15 @@
  
  #include "svn_private_config.h"
@@ -17,7 +16,7 @@ diff -ur subversion-1.5.5.orig/subversion/svn/main.c subversion-1.5.5/subversion
  
  /*** Option Processing ***/
  
-@@ -1086,6 +1095,11 @@
+@@ -1108,6 +1117,11 @@
    if (svn_cmdline_init("svn", stderr) != EXIT_SUCCESS)
      return EXIT_FAILURE;
  
@@ -26,6 +25,6 @@ diff -ur subversion-1.5.5.orig/subversion/svn/main.c subversion-1.5.5/subversion
 +    __riscosify_control |= __RISCOSIFY_FILETYPE_EXT | __RISCOSIFY_FILETYPE_NOT_SET;
 +#endif
 +
-   /* Create our top-level pool.  Use a seperate mutexless allocator,
+   /* Create our top-level pool.  Use a separate mutexless allocator,
     * given this application is single threaded.
     */

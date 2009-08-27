@@ -1,7 +1,6 @@
-diff -ur subversion-1.5.5.orig/subversion/libsvn_wc/props.c subversion-1.5.5/subversion/libsvn_wc/props.c
---- subversion/libsvn_wc/props.c	2008-08-27 16:31:53.000000000 +0100
-+++ subversion/libsvn_wc/props.c	2009-01-03 20:57:18.000000000 +0000
-@@ -2324,6 +2324,7 @@
+--- subversion/libsvn_wc/props.c.orig	2009-04-07 14:48:12.000000000 +0200
++++ subversion/libsvn_wc/props.c	2009-08-13 20:00:15.000000000 +0200
+@@ -2253,6 +2253,7 @@
                                    SVN_PROP_EXTERNALS,
                                    NULL };
    const char *dir_prohibit[] = { SVN_PROP_EXECUTABLE,
@@ -9,7 +8,7 @@ diff -ur subversion-1.5.5.orig/subversion/libsvn_wc/props.c subversion-1.5.5/sub
                                   SVN_PROP_KEYWORDS,
                                   SVN_PROP_EOL_STYLE,
                                   SVN_PROP_MIME_TYPE,
-@@ -2512,6 +2513,11 @@
+@@ -2438,6 +2439,11 @@
          SVN_ERR(svn_io_set_file_executable(path, TRUE, TRUE, pool));
      }
  

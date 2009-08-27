@@ -1,9 +1,8 @@
-diff -ur subversion-1.5.5.orig/subversion/libsvn_client/add.c subversion-1.5.5/subversion/libsvn_client/add.c
---- subversion/libsvn_client/add.c	2008-05-21 22:24:24.000000000 +0100
-+++ subversion/libsvn_client/add.c	2009-01-03 20:57:17.000000000 +0000
-@@ -202,6 +202,15 @@
+--- subversion/libsvn_client/add.c.orig	2009-05-06 17:21:21.000000000 +0200
++++ subversion/libsvn_client/add.c	2009-08-13 20:20:25.000000000 +0200
+@@ -243,6 +243,15 @@
+                      svn_string_create("", pool));
      }
- #endif
  
 +    {
 +      svn_string_t *filetype;

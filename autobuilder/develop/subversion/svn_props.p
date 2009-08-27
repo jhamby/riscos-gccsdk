@@ -1,6 +1,6 @@
---- subversion/include/svn_props.h.orig	2008-05-21 14:24:24.000000000 -0700
-+++ subversion/include/svn_props.h	2008-12-27 22:13:42.000000000 -0800
-@@ -247,6 +247,9 @@
+--- subversion/include/svn_props.h.orig	2009-01-30 18:11:29.000000000 +0100
++++ subversion/include/svn_props.h	2009-08-13 20:00:15.000000000 +0200
+@@ -276,6 +276,9 @@
  /** Set to either TRUE or FALSE if we want a file to be executable or not. */
  #define SVN_PROP_EXECUTABLE  SVN_PROP_PREFIX "executable"
  
