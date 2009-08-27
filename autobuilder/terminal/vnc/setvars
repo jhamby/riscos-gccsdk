@@ -1,15 +1,16 @@
 
 AB_CATEGORY=Terminal
 
-AB_MANPAGE=debian/xvncviewer.1x
+AB_MANPAGE=vncviewer.man
 
 AB_ZIPNAME=xvncclient
 
-AB_CONFLAGS=--with-installed-zlib
-
 ab_package() {
   cp -av $H/\!ChoxVNC $D
-  cp -av $S/vncviewer/vncviewer$AB_EXEEXT $D/\!ChoxVNC
+  cp -av $S/vncviewer$AB_EXEEXT $D/\!ChoxVNC
 }
 
+cd vncviewer
+cp -av $H/Makefile .
+mv Imakefile Imakefile.old
 
