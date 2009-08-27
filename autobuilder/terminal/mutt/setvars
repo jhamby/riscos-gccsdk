@@ -1,5 +1,5 @@
 
-AB_CATEGORY=Terminal/test
+AB_CATEGORY=Terminal
 
 AB_FILESPATH="mutt$AB_EXEEXT doc/*,faf COPYRIGHT"
 
@@ -7,3 +7,7 @@ AB_CONFLAGS=--without-regex
 
 AB_MANPAGE=doc/mutt.man
 
+automake
+
+touch doc/makedoc.o
+/usr/bin/gcc doc/makedoc.c -o doc/makedoc$AB_EXEEXT -DSTDC_HEADERS
