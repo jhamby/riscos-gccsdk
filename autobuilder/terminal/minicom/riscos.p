@@ -1,17 +1,3 @@
---- src/config.c	2002-12-18 16:24:43.000000000 +0000
-+++ src/config.c	2002-12-11 11:45:40.000000000 +0000
-@@ -44,7 +44,10 @@
- 
-   /* Read global parameters */
-   if ((fp = fopen(parfile, "r")) == (FILE *)NULL) {
--  	if (real_uid == 0) {
-+#ifndef __riscos__
-+  	if (real_uid == 0)
-+#endif
-+  	{
-   		fputs(
-   _("minicom: WARNING: configuration file not found, using defaults\n"),stderr);
-   		sleep(2);
 --- src/getsdir.h	1998-04-06 16:53:02.000000000 +0100
 +++ src/getsdir.h	2002-12-10 23:12:44.000000000 +0000
 @@ -18,6 +18,8 @@
