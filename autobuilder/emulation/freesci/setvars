@@ -1,4 +1,2 @@
 
-autoconf
-
 AB_CONFLAGS=--without-x
