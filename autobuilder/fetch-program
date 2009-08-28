@@ -64,35 +64,42 @@ else
     # Use and keep existing Sources.bz2 if it exists and is less
     # than a day old
 
+    found=false
+
     for dist in testing stable; do
-      Sources=../Sources-${dist}.bz2
+      for section in main contrib; do
+        Sources=../Sources-${dist}-${section}.bz2
 
-      if ! [ -e $Sources ] ||
-           [ $(($(date +"%s") - $(date -r $Sources +"%s"))) -gt $((24 * 60 * 60)) ] ; then
+        if ! [ -e $Sources ] ||
+             [ $(($(date +"%s") - $(date -r $Sources +"%s"))) -gt $((24 * 60 * 60)) ] ; then
 
-        echo "Autobuilder: Fetching new Sources.bz2 ($dist)"
+          echo "Autobuilder: Fetching new Sources.bz2 (${dist}/${section})"
 
-        rm -f $Sources
-        wget -nv $debarchive/dists/${dist}/main/source/Sources.bz2 -O $Sources
-        touch $Sources
+          rm -f $Sources
+          wget -nv $debarchive/dists/${dist}/${section}/source/Sources.bz2 -O $Sources
+          touch $Sources
 
-      else
-        echo "Autobuilder: Using existing Sources.bz2 ($dist)"
-      fi
+        else
+          echo "Autobuilder: Using existing Sources.bz2 (${dist}/${section})"
+        fi
 
-      if bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
-        # Found ok
-        break
-      else
-        echo "Autobuilder: Directory name not found in Sources.bz2 ($dist)"
-        echo "Autobuilder: Trying Binary entry"
-        if bzgrep -A20 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
+        if bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
           # Found ok
+          found=true
           break
         else
-          bzgrep -A20 "Binary:.* $AB_PACKAGE," $Sources > files || true
+          echo "Autobuilder: Directory name not found in Sources.bz2 (${dist}/${section})"
+          echo "Autobuilder: Trying Binary entry"
+          if bzgrep -A20 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
+            found=true
+            break
+          else
+            bzgrep -A20 "Binary:.* $AB_PACKAGE," $Sources > files || true
+          fi
         fi
-      fi
+      done
+
+      if $found; then break; fi
     done
 
     if ! [ -s files ] ; then
