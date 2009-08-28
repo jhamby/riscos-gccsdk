@@ -6,7 +6,7 @@ AB_CONFLAGS="\
 --without-berkeley-db \
 --without-apxs"
 
-AB_CATEGORY=Command
+AB_CATEGORY=Develop
 
 ab_package() {
   cp $S/subversion/svn/svn$AB_EXEEXT $S/COPYING $D
