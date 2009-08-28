@@ -1,5 +1,5 @@
---- subversion/libsvn_subr/io.c.orig	2009-06-12 15:35:56.000000000 +0200
-+++ subversion/libsvn_subr/io.c	2009-08-11 23:49:03.000000000 +0200
+--- subversion/libsvn_subr/io.c.orig	2009-08-28 20:38:14.000000000 +0200
++++ subversion/libsvn_subr/io.c	2009-08-28 20:37:07.000000000 +0200
 @@ -24,6 +24,8 @@
  #include <unistd.h>
  #endif
@@ -9,26 +9,28 @@
  #ifndef APR_STATUS_IS_EPERM
  #include <errno.h>
  #ifdef EPERM
-@@ -781,6 +783,7 @@
+@@ -781,6 +783,8 @@
      apr_finfo_t finfo;
      const char *dst_apr;
      apr_status_t apr_err;
 +    svn_string_t *filetype;
++    const char *src_tmp_apr;
  
      SVN_ERR(svn_io_file_open(&src_file, src, APR_READ, APR_OS_DEFAULT, pool));
      SVN_ERR(svn_io_file_info_get(&finfo, APR_FINFO_PROT, src_file, pool));
-@@ -801,6 +804,10 @@
+@@ -801,6 +805,11 @@
          return svn_error_wrap_apr(apr_err, _("Can't set permissions on '%s'"),
                                    svn_path_local_style(dst, pool));
        }
 +
-+      SVN_ERR (svn_io_get_file_filetype(&filetype, src_apr, pool));
-+      SVN_ERR (svn_io_set_file_filetype(dst_tmp_apr, filetype, pool));
++      SVN_ERR (cstring_from_utf8(&src_tmp_apr, dst, pool));
++      SVN_ERR (svn_io_get_file_filetype(&filetype, src_tmp_apr, pool));
++      SVN_ERR (svn_io_set_file_filetype(dst_apr, filetype, pool));
 +
    }
  #endif /* ! WIN32 */
  
-@@ -1494,7 +1501,7 @@
+@@ -1494,7 +1503,7 @@
                            const char *path,
                            apr_pool_t *pool)
  {
@@ -37,7 +39,7 @@
    apr_finfo_t file_info;
    apr_status_t apr_err;
    apr_uid_t uid;
-@@ -1528,6 +1535,59 @@
+@@ -1528,6 +1537,59 @@
    return SVN_NO_ERROR;
  }
  
