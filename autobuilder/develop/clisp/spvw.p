@@ -1,6 +1,6 @@
---- src/spvw_base.d	2006-06-16 09:12:46.000000000 +0100
-+++ src/spvw.d	2006-08-27 21:03:25.000000000 +0100
-@@ -23,6 +23,44 @@
+--- src/spvw.d.orig	2008-06-16 14:28:19.000000000 -0700
++++ src/spvw.d	2009-08-27 20:43:00.000000000 -0700
+@@ -22,6 +22,44 @@
   version */
  #include "lispbibl.c"
  
@@ -45,8 +45,8 @@
  #include <string.h> /* declares strchr() and possibly memset() */
  #ifdef MULTITHREAD
    #define bzero(ptr,len)  memset(ptr,0,len)
-@@ -2919,7 +2959,7 @@
-   init_subr_tab_1(); # initialize subr_tab
+@@ -2951,7 +2989,7 @@
+   init_subr_tab_1();            /* initialize subr_tab */
    markwatchset = NULL; markwatchset_allocated = markwatchset_size = 0;
    if (p->argv_memfile)
 -    loadmem(p->argv_memfile);   /* load memory file */
@@ -54,28 +54,28 @@
    else if (!loadmem_from_executable())
      p->argv_memfile = get_executable_name();
    else initmem();               /* manual initialization */
-@@ -2990,7 +3030,8 @@
+@@ -3026,7 +3064,8 @@
        skipSTACK(1);
      }
-   } else { # set it
+   } else {                      /* set it */
 -    pushSTACK(asciz_to_string(p->argv_lisplibdir,O(pathname_encoding)));
 +    with_riscos_gstrans( p->argv_lisplibdir, unix_pname,
-+		{ pushSTACK(asciz_to_string(unix_pname,O(pathname_encoding))); } )
++               { pushSTACK(asciz_to_string(unix_pname,O(pathname_encoding))); } )
      funcall(L(set_lib_directory),1);
    }
    if (p->argv_batchmode_p) {
-@@ -3090,7 +3131,8 @@
-     var const char* const* fileptr = &p->argv_init_files[0];
+@@ -3123,7 +3162,8 @@
      var uintL count = p->argv_init_filecount;
+     finish_entry_frame(DRIVER,returner,,goto done_driver_init_files;);
      do {
 -      pushSTACK(asciz_to_string(*fileptr++,O(misc_encoding)));
 +      with_riscos_gstrans( *fileptr++, unix_fname,
 +	    { pushSTACK(asciz_to_string(unix_fname,O(misc_encoding))); } )
        funcall(S(load),1);
      } while (--count);
-   }
-@@ -3105,7 +3147,9 @@
-       var uintL count = p->argv_compile_filecount;
+    done_driver_init_files:
+@@ -3143,7 +3183,9 @@
+       finish_entry_frame(DRIVER,returner,,goto done_driver_compile_files;);
        do {
          var uintC argcount = 1;
 -        var object filename = asciz_to_string(fileptr->input_file,O(misc_encoding));
@@ -83,10 +83,10 @@
 +		with_riscos_gstrans( fileptr->input_file, unix_fname,
 +		  { filename = asciz_to_string(unix_fname,O(misc_encoding)); } )
          pushSTACK(filename);
-         pushSTACK(O(source_file_type)); # #".lisp"
-         funcall(L(cd),0); pushSTACK(value1); # (CD)
-@@ -3114,7 +3158,8 @@
-         funcall(L(merge_pathnames),2); # (MERGE-PATHNAMES file ...)
+         pushSTACK(O(source_file_type));      /* #".lisp" */
+         funcall(L(cd),0); pushSTACK(value1); /* (CD) */
+@@ -3152,7 +3194,8 @@
+         funcall(L(merge_pathnames),2); /* (MERGE-PATHNAMES file ...) */
          pushSTACK(value1);
          if (fileptr->output_file) {
 -          filename = asciz_to_string(fileptr->output_file,O(misc_encoding));
@@ -94,8 +94,8 @@
 +            { filename = asciz_to_string(unix_fname,O(misc_encoding)); } )
            pushSTACK(S(Koutput_file));
            pushSTACK(filename);
-           pushSTACK(O(compiled_file_type)); # #".fas"
-@@ -3177,7 +3222,8 @@
+           pushSTACK(O(compiled_file_type));    /* #".fas" */
+@@ -3220,7 +3263,8 @@
      if (asciz_equal(p->argv_execute_file,"-")) {
        pushSTACK(Symbol_value(S(standard_input))); /* *STANDARD-INPUT* */
      } else {
