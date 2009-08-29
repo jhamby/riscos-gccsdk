@@ -64,7 +64,7 @@ else
     # Use and keep existing Sources.bz2 if it exists and is less
     # than a day old
 
-    found=false
+    rm -f files
 
     for dist in testing stable; do
       for section in main contrib; do
@@ -85,21 +85,21 @@ else
 
         if bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
           # Found ok
-          found=true
           break
         else
           echo "Autobuilder: Directory name not found in Sources.bz2 (${dist}/${section})"
           echo "Autobuilder: Trying Binary entry"
           if bzgrep -A20 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
-            found=true
             break
           else
             bzgrep -A20 "Binary:.* $AB_PACKAGE," $Sources > files || true
           fi
         fi
+
+        if [ -s files ] ; then break; fi
       done
 
-      if $found; then break; fi
+      if [ -s files ] ; then break; fi
     done
 
     if ! [ -s files ] ; then
