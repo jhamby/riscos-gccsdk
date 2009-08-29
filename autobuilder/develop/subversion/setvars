@@ -12,3 +12,5 @@ ab_package() {
   cp $S/subversion/svn/svn$AB_EXEEXT $S/COPYING $D
 }
 
+export LIBS=-lexpat
+
