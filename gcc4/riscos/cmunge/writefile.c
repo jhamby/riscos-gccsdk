@@ -174,7 +174,7 @@ static void output_export_vargs(const char *symbol, ...)
     va_start(varg, symbol);
     vfprintf(file, symbol, varg);
     va_end(varg);
-    fputc('\n', file);
+    fprintf(file, "|\n");
   }
 }
 
