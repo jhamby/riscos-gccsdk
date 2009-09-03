@@ -16,7 +16,7 @@
  	$(MKSHLIB) $(DLLFLAGS) $(LDFLAGS) $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
  else
 -ifeq ($(OS_TARGET),riscos-static)
-+ifeq ($(OS_TARGET),riscos)
++ifeq ($(OS_TARGET),RISCOS)
  	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
  else
  	$(MKSHLIB) -o $@ $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
@@ -158,27 +158,7 @@ diff -u -r3.487.2.9 rules.mk
      ;;
  
  *-*-sco*)
---- security/coreconf/RISCOS.mk.orig	2008-12-31 19:56:04.000000000 -0800
-+++ security/coreconf/RISCOS.mk	2008-12-31 19:56:29.000000000 -0800
-@@ -37,13 +37,13 @@
- 
- XP_DEFINE  += -DXP_UNIX
- LIB_SUFFIX  = a
--DLL_SUFFIX  = so
-+DLL_SUFFIX  = a
- AR          = ar cr $@
- LDOPTS     += -L$(SOURCE_LIB_DIR)
--#MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
--MKSHLIB         = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
-+MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
-+#MKSHLIB         = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
- 
--DSO_CFLAGS              = -fPIC
-+#DSO_CFLAGS              = -fPIC
- DSO_LDOPTS              = -shared 
- DSO_LDFLAGS             =
- 
---- configure.in.orig	2009-08-18 14:04:47.000000000 -0700
+-- configure.in.orig	2009-08-18 14:04:47.000000000 -0700
 +++ configure.in	2009-08-18 15:39:23.000000000 -0700
 @@ -2303,6 +2303,15 @@
      HOST_NSPR_MDCPUCFG='\"md/_os2.cfg\"'
@@ -205,3 +185,26 @@ diff -u -r3.487.2.9 rules.mk
 +
 +# enable static build
 +ac_add_options --enable-static
+--- security/coreconf/RISCOS.mk.orig	2009-09-03 12:03:00.000000000 -0700
++++ security/coreconf/RISCOS.mk	2009-09-03 13:01:08.000000000 -0700
+@@ -39,16 +39,17 @@
+ include $(CORE_DEPTH)/coreconf/UNIX.mk
+ 
+ LIB_SUFFIX  = a        
+-DLL_SUFFIX  = so
++DLL_SUFFIX  = a
+ AR          = ar cr $@ 
+ LDOPTS     += -L$(SOURCE_LIB_DIR)
+-MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
++MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
++#MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
+ 
+ OS_RELEASE =
+ OS_TARGET  = RISCOS
+ OS_CFLAGS  = $(DSO_CFLAGS)
+ 
+-DSO_CFLAGS              = -fPIC
++#DSO_CFLAGS              = -fPIC
+ DSO_LDOPTS              = -shared 
+ DSO_LDFLAGS             =         
+ 
