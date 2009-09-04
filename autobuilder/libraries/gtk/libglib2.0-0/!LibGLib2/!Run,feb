@@ -1,3 +1,5 @@
 | Run file for libglib2.0
 
-*/<Obey$Dir>.!Boot
+Set LibGLib2$Dir <Obey$Dir>
+Set LibGLib2$Path <Obey$Dir>.
+
