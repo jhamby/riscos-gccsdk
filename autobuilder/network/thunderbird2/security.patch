@@ -11,7 +11,7 @@ diff -u -r1.17.28.3 config.mk
  
  TARGET_OSES = FreeBSD BSD_OS NetBSD OpenUNIX OS2 QNX Darwin BeOS OpenBSD \
 -              OpenVMS AIX
-+              OpenVMS AIX riscos
++              OpenVMS AIX RISCOS
  
  ifeq (,$(filter-out $(TARGET_OSES),$(OS_TARGET)))
  include $(CORE_DEPTH)/coreconf/$(OS_TARGET).mk

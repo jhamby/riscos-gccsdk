@@ -85,7 +85,7 @@ public:
   NS_IMETHOD DoCommand();
   NS_IMETHOD SetModifiers(PRUint8 aModifiers);
   NS_IMETHOD GetModifiers(PRUint8 * aModifiers);
-    
+
   // nsIMenuListener interface
   nsEventStatus MenuItemSelected(const nsMenuEvent & aMenuEvent);
   nsEventStatus MenuSelected(const nsMenuEvent & aMenuEvent);
@@ -108,10 +108,10 @@ protected:
 
   nsCOMPtr<nsIWidget>       mTarget;              // never set?
   nsCOMPtr<nsIMenuListener> mXULCommandListener;
-  
+
   nsWeakPtr                 mDocShellWeakRef;     // weak ref to docshell
   nsCOMPtr<nsIContent>      mContent; 
-  
+
   PRUint8           mModifiers;
   PRPackedBool      mIsSeparator;
   PRPackedBool      mEnabled;

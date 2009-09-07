@@ -56,7 +56,6 @@
 
 #include "nsGUIEvent.h"
 
-
 NS_IMPL_ISUPPORTS4(nsMenuItem, nsIMenuItem, nsIMenuListener, nsIChangeObserver, nsISupportsWeakReference)
 
 //
@@ -249,6 +248,7 @@ nsEventStatus nsMenuItem::SetRebuild(PRBool aNeedsRebuild)
 * Executes the "cached" JavaScript Command 
 * @return NS_OK if the command was executed properly, otherwise an error code
 */
+
 NS_METHOD nsMenuItem::DoCommand()
 {
 
@@ -267,10 +267,8 @@ puts("checkbox");
     }
 
   return MenuHelpers::DispatchCommandTo(mDocShellWeakRef, mContent);
-//  return nsEventStatus_eIgnore;
 }
-    
-   
+
    //-------------------------------------------------------------------------
 NS_METHOD nsMenuItem::GetModifiers(PRUint8 * aModifiers)
 {
@@ -334,7 +332,7 @@ nsMenuItem :: UncheckRadioSiblings(nsIContent* inCheckedContent)
         if ( currGroupName == myGroupName )
           sibling->SetAttr(kNameSpaceID_None, nsWidgetAtoms::checked, NS_LITERAL_STRING("false"), PR_TRUE);
       }
-    }    
+    }
   } // for each sibling
 
 } // UncheckRadioSiblings
@@ -365,14 +363,14 @@ nsMenuItem :: AttributeChanged ( nsIDocument *aDocument, PRInt32 aNameSpaceID, n
 
     nsCOMPtr<nsIMenuListener> listener = do_QueryInterface(mMenuParent);
     listener->SetRebuild(PR_TRUE);
-    
-  } 
+
+  }
   else if (aAttribute == nsWidgetAtoms::disabled || aAttribute == nsWidgetAtoms::hidden ||
              aAttribute == nsWidgetAtoms::collapsed || aAttribute == nsWidgetAtoms::label )  {
     nsCOMPtr<nsIMenuListener> listener = do_QueryInterface(mMenuParent);
     listener->SetRebuild(PR_TRUE);
   }
-  
+
   return NS_OK;
 
 } // AttributeChanged
