@@ -73,7 +73,7 @@ static NS_DEFINE_CID(kMenuCID, NS_MENU_CID);
 NS_IMPL_ISUPPORTS5(nsMenuBar, nsIMenuBar, nsIMenuListener, nsIDocumentObserver,
                     nsIChangeManager, /*nsIMenuCommandDispatcher,*/ nsISupportsWeakReference)
 
-/*extern*/ menu_ptr gCurrentROMenu;  
+extern menu_ptr gCurrentROMenu;  
 
 //
 // nsMenuBar constructor
@@ -290,42 +290,58 @@ nsMenuBar::MenuOpen(event_pollblock *event, void *reference)
   return TRUE;
 }
 
+
+
+extern "C" {
+void Chox11_CreateInternalEvent(void (*callback_func)(void *), void *arg);
+}
+
+void nsMenuBar::MenuHandlerFunc(void *arg)
+{
+  event_pollblock *event = (event_pollblock *)arg;
+  nsMenuBar *menubar = (nsMenuBar *)event->type;
+  const int *selectionData = event->data.selection;
+
+  nsCOMPtr<nsIMenu> menu;
+  menubar->GetMenuAt((PRUint32)selectionData[0], *getter_AddRefs(menu));
+  nsCOMPtr<nsIMenuListener> menuListener = do_QueryInterface(menu);
+
+  if (menuListener) {
+    nsMenuEvent menuEvent(PR_TRUE, NS_MENU_SELECTED, nsnull);
+    menuEvent.time = PR_IntervalNow();
+    menuEvent.mCommand = (PRUint32)(selectionData + 1);
+
+    gCurrentROMenu = (Menu_FirstItem(gCurrentROMenu) +
+                     selectionData[0])->submenu.menu;
+
+    menuListener->MenuSelected(menuEvent);
+  }
+
+  mouse_block ptr;
+  Wimp_GetPointerInfo(&ptr);
+  if (ptr.button.data.adjust) {
+    gCurrentROMenu = menubar->mROMenu;
+    Menu_ShowLast();
+  }
+}
+
+
 BOOL
 nsMenuBar::MenuHandler(event_pollblock *event, void *reference)
 {
   nsMenuBar *menubar = (nsMenuBar *)reference;
 
   if (gCurrentROMenu == menubar->mROMenu) {
-    const int *selectionData = event->data.selection;
-    printf("menu handler selection: ");
+    /* Cause callback in main thread */
+    event_pollblock *data = (event_pollblock *)malloc(sizeof(event_pollblock));
 
-    nsCOMPtr<nsIMenu> menu;
-    menubar->GetMenuAt((PRUint32)selectionData[0], *getter_AddRefs(menu));
-    nsCOMPtr<nsIMenuListener> menuListener = do_QueryInterface(menu);
-
-
-    if (menuListener) {
-      nsMenuEvent menuEvent(PR_TRUE, NS_MENU_SELECTED, nsnull);
-      menuEvent.time = PR_IntervalNow();
-      menuEvent.mCommand = (PRUint32)(selectionData + 1);
-
-      gCurrentROMenu = (Menu_FirstItem(gCurrentROMenu) +
-                       selectionData[0])->submenu.menu;
-
-      menuListener->MenuSelected(menuEvent);
-
+    if (data) {
+      memcpy(data, event, sizeof(event_pollblock));
+      data->type = (event_type)(int)reference;
+      Chox11_CreateInternalEvent(MenuHandlerFunc, data);
     }
-
-    mouse_block ptr;
-    Wimp_GetPointerInfo(&ptr);
-    if (ptr.button.data.adjust) {
-      gCurrentROMenu = menubar->mROMenu;
-      Menu_ShowLast();
-    }
-
     return TRUE;
   }
-
   return FALSE;
 }
 
@@ -347,7 +363,7 @@ nsMenuBar::MenuConstruct( const nsMenuEvent & aMenuEvent, nsIWidget* aParentWind
     puts("no content");
     return nsEventStatus_eIgnore;
   }
-    
+
   Create(aParentWindow);
 
   nsCOMPtr<nsIDocShell> docShell = do_QueryReferent(mDocShellWeakRef);
