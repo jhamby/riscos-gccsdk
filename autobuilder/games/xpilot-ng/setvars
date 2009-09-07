@@ -1,8 +1,5 @@
 AB_CATEGORY=Games
 
-AB_URL=http://kent.dl.sourceforge.net/sourceforge/xpilot/xpilot-ng-4.7.2.tar.gz
-AB_ZIPNAME=xpilot-ng-4.7.2
-
 AB_CONFLAGS="--disable-sdl-client --disable-replay --disable-xp-mapedit --datadir=\"/\<XPilot-NG\\\\$\\\$Dir\>/data\""
 
 ab_package () {
