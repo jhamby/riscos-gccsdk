@@ -1,10 +1,11 @@
+? widget/src/riscos
 Index: widget/public/Makefile.in
 ===================================================================
 RCS file: /cvsroot/mozilla/widget/public/Makefile.in,v
 retrieving revision 1.100.6.1
 diff -u -r1.100.6.1 Makefile.in
 --- widget/public/Makefile.in	2 Nov 2005 20:42:23 -0000	1.100.6.1
-+++ widget/public/Makefile.in	24 Feb 2008 22:32:30 -0000
++++ widget/public/Makefile.in	30 Aug 2008 23:06:10 -0000
 @@ -74,7 +74,7 @@
  		nsINativeKeyBindings.h \
  		$(NULL)
@@ -29,7 +30,7 @@ RCS file: /cvsroot/mozilla/widget/public/nsIMenuBar.h,v
 retrieving revision 1.16
 diff -u -r1.16 nsIMenuBar.h
 --- widget/public/nsIMenuBar.h	3 Jan 2005 22:51:13 -0000	1.16
-+++ widget/public/nsIMenuBar.h	24 Feb 2008 22:32:30 -0000
++++ widget/public/nsIMenuBar.h	30 Aug 2008 23:06:10 -0000
 @@ -1,3 +1,61 @@
 +/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
 + *
@@ -117,7 +118,7 @@ RCS file: /cvsroot/mozilla/widget/src/Makefile.in,v
 retrieving revision 1.34
 diff -u -r1.34 Makefile.in
 --- widget/src/Makefile.in	4 Apr 2005 19:08:50 -0000	1.34
-+++ widget/src/Makefile.in	24 Feb 2008 22:32:30 -0000
++++ widget/src/Makefile.in	30 Aug 2008 23:06:10 -0000
 @@ -51,6 +51,7 @@
  	MOZ_ENABLE_XLIB \
  	MOZ_ENABLE_PHOTON \
@@ -152,7 +153,7 @@ RCS file: /cvsroot/mozilla/widget/src/gtk/Attic/nsAppShell.cpp,v
 retrieving revision 1.96
 diff -u -r1.96 nsAppShell.cpp
 --- widget/src/gtk/nsAppShell.cpp	20 Dec 2004 21:53:31 -0000	1.96
-+++ widget/src/gtk/nsAppShell.cpp	24 Feb 2008 22:32:30 -0000
++++ widget/src/gtk/nsAppShell.cpp	30 Aug 2008 23:06:10 -0000
 @@ -359,7 +359,7 @@
      /* add listener */
      PRInt32 key = aQueue->GetEventQueueSelectFD();
@@ -168,7 +169,7 @@ RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsAppShell.cpp,v
 retrieving revision 1.92
 diff -u -r1.92 nsAppShell.cpp
 --- widget/src/xlib/nsAppShell.cpp	28 Apr 2005 23:48:28 -0000	1.92
-+++ widget/src/xlib/nsAppShell.cpp	24 Feb 2008 22:32:30 -0000
++++ widget/src/xlib/nsAppShell.cpp	30 Aug 2008 23:06:10 -0000
 @@ -66,13 +66,14 @@
  
  #define CHAR_BUF_SIZE 80
@@ -185,6 +186,15 @@ diff -u -r1.92 nsAppShell.cpp
  PRTime nsAppShell::mClickTime = 0;
  PRInt16 nsAppShell::mClicks = 1;
  PRUint16 nsAppShell::mClickedButton = 0;
+@@ -161,7 +162,7 @@
+   /* this should _never_ be happen... but if this happens - debug mode or not - scream !!! */
+   char errmsg[80];
+   XGetErrorText(display, ev->error_code, errmsg, sizeof(errmsg));
+-  fprintf(stderr, "nsAppShellXlib: Warning (X Error) -  %s\n", errmsg);
++  //fprintf(stderr, "nsAppShellXlib: Warning (X Error) -  %s\n", errmsg);
+   abort(); // die !!
+   
+   return 0;
 @@ -170,8 +171,8 @@
  
  NS_METHOD nsAppShell::Create(int* bac, char ** bav)
@@ -286,7 +296,7 @@ diff -u -r1.92 nsAppShell.cpp
        PL_HashTableRemove(sQueueHashTable, key);
      }  
    }
-@@ -460,28 +443,20 @@
+@@ -460,28 +443,21 @@
  nsresult nsAppShell::DispatchNativeEvent(PRBool aRealEvent, void *aEvent)
  {
    XEvent xevent;
@@ -316,7 +326,8 @@ diff -u -r1.92 nsAppShell.cpp
 +    DispatchXEvent(&xevent);
    }
 -    
-+  mEventQueue->ProcessPendingEvents();  
++  //fprintf(stderr, "Native: Pending Events\n");
++  mEventQueue->ProcessPendingEvents();
 +
    return NS_OK;
  }
@@ -327,7 +338,7 @@ RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsAppShell.h,v
 retrieving revision 1.28
 diff -u -r1.28 nsAppShell.h
 --- widget/src/xlib/nsAppShell.h	18 Apr 2004 22:00:30 -0000	1.28
-+++ widget/src/xlib/nsAppShell.h	24 Feb 2008 22:32:30 -0000
++++ widget/src/xlib/nsAppShell.h	30 Aug 2008 23:06:10 -0000
 @@ -70,7 +70,7 @@
    /* |xxlib_find_handle(XXLIBRGB_DEFAULT_HANDLE)| would be the official 
     * way - but |nsAppShell::GetXlibRgbHandle()| one is little bit faster... :-)
@@ -343,7 +354,7 @@ RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsKeyCode.cpp,v
 retrieving revision 1.11
 diff -u -r1.11 nsKeyCode.cpp
 --- widget/src/xlib/nsKeyCode.cpp	18 Apr 2004 22:00:30 -0000	1.11
-+++ widget/src/xlib/nsKeyCode.cpp	24 Feb 2008 22:32:31 -0000
++++ widget/src/xlib/nsKeyCode.cpp	30 Aug 2008 23:06:10 -0000
 @@ -182,7 +182,7 @@
  
  //////////////////////////////////////////////////////////////////////////
@@ -359,7 +370,7 @@ RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsKeyCode.h,v
 retrieving revision 1.5
 diff -u -r1.5 nsKeyCode.h
 --- widget/src/xlib/nsKeyCode.h	18 Apr 2004 22:00:30 -0000	1.5
-+++ widget/src/xlib/nsKeyCode.h	24 Feb 2008 22:32:31 -0000
++++ widget/src/xlib/nsKeyCode.h	30 Aug 2008 23:06:10 -0000
 @@ -47,7 +47,7 @@
  {
    static PRInt32  ConvertKeySymToVirtualKey(KeySym aKeySym);
@@ -375,7 +386,7 @@ RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsSound.cpp,v
 retrieving revision 1.10
 diff -u -r1.10 nsSound.cpp
 --- widget/src/xlib/nsSound.cpp	27 Apr 2004 18:01:08 -0000	1.10
-+++ widget/src/xlib/nsSound.cpp	24 Feb 2008 22:32:31 -0000
++++ widget/src/xlib/nsSound.cpp	30 Aug 2008 23:06:10 -0000
 @@ -53,7 +53,7 @@
  #include <unistd.h>
  
@@ -391,7 +402,7 @@ RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsToolkit.cpp,v
 retrieving revision 1.13
 diff -u -r1.13 nsToolkit.cpp
 --- widget/src/xlib/nsToolkit.cpp	18 Apr 2004 22:00:30 -0000	1.13
-+++ widget/src/xlib/nsToolkit.cpp	24 Feb 2008 22:32:31 -0000
++++ widget/src/xlib/nsToolkit.cpp	30 Aug 2008 23:06:10 -0000
 @@ -41,6 +41,10 @@
  #include "nsGCCache.h"
  #include "nsAppShell.h" // needed for nsAppShell::GetXlibRgbHandle()
@@ -420,7 +431,7 @@ RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsWidget.cpp,v
 retrieving revision 1.99.6.2
 diff -u -r1.99.6.2 nsWidget.cpp
 --- widget/src/xlib/nsWidget.cpp	20 Oct 2005 23:34:13 -0000	1.99.6.2
-+++ widget/src/xlib/nsWidget.cpp	24 Feb 2008 22:32:31 -0000
++++ widget/src/xlib/nsWidget.cpp	30 Aug 2008 23:06:10 -0000
 @@ -354,7 +354,9 @@
    default:
      break;
@@ -454,11 +465,42 @@ diff -u -r1.99.6.2 nsWidget.cpp
    }
  
    mRequestedSize.x = aX;
-@@ -962,7 +949,7 @@
+@@ -601,8 +588,8 @@
+     return (void *)NS_STATIC_CAST(nsToolkit*,mToolkit)->GetSharedGC();
+     break;
+   default:
+-    fprintf(stderr, "nsWidget::GetNativeData(%d) called with crap value.\n",
+-            aDataType);
++    //fprintf(stderr, "nsWidget::GetNativeData(%d) called with crap value.\n",
++    //        aDataType);
+     return nsnull;
+     break;
+   }
+@@ -861,7 +848,7 @@
+ 
+     /* clear out the cursor cache */
+ #ifdef DEBUG_CURSORCACHE
+-    printf("freeing cursor cache\n");
++    //printf("freeing cursor cache\n");
+ #endif
+     for (int i = 0; i < eCursorCount; i++)
+       if (gsXlibCursorCache[i])
+@@ -945,7 +932,7 @@
+ 
+   /* Get the origin (top left corner) coordinate and window's size */
+   if (XGetWindowAttributes(mDisplay, window, &inWindowAttributes) == 0) {
+-    fprintf(stderr, "Failed calling XGetWindowAttributes in nsWidget::IsMouseInWindow");
++    //fprintf(stderr, "Failed calling XGetWindowAttributes in nsWidget::IsMouseInWindow");
+     return PR_FALSE;
+   }
+ 
+@@ -961,8 +948,8 @@
+   if (!XTranslateCoordinates(mDisplay, mBaseWindow, rootWindow,
      inMouseX, inMouseY,
      &root_inMouse_x, &root_inMouse_y, &returnedChild)){
-     fprintf(stderr, "Could not get coordinates for origin coordinates for mouseclick\n");
+-    fprintf(stderr, "Could not get coordinates for origin coordinates for mouseclick\n");
 -    // should we return true or false??????
++    //fprintf(stderr, "Could not get coordinates for origin coordinates for mouseclick\n");
 +    // should we return true or false?
      return PR_FALSE;
    }
@@ -486,7 +528,7 @@ RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsWidgetFactory.cpp,v
 retrieving revision 1.26
 diff -u -r1.26 nsWidgetFactory.cpp
 --- widget/src/xlib/nsWidgetFactory.cpp	18 Apr 2004 22:00:30 -0000	1.26
-+++ widget/src/xlib/nsWidgetFactory.cpp	24 Feb 2008 22:32:31 -0000
++++ widget/src/xlib/nsWidgetFactory.cpp	30 Aug 2008 23:06:10 -0000
 @@ -157,3 +157,4 @@
  NS_IMPL_NSGETMODULE_WITH_DTOR(nsWidgetXLIBModule,
                                components,
@@ -498,7 +540,7 @@ RCS file: /cvsroot/mozilla/widget/src/xlib/Attic/nsWindow.cpp,v
 retrieving revision 1.70.6.1
 diff -u -r1.70.6.1 nsWindow.cpp
 --- widget/src/xlib/nsWindow.cpp	18 Aug 2005 08:11:23 -0000	1.70.6.1
-+++ widget/src/xlib/nsWindow.cpp	24 Feb 2008 22:32:31 -0000
++++ widget/src/xlib/nsWindow.cpp	30 Aug 2008 23:06:10 -0000
 @@ -681,7 +681,7 @@
      Invalidate(bounds, PR_TRUE);
    }
@@ -508,13 +550,33 @@ diff -u -r1.70.6.1 nsWindow.cpp
    // which were not copied with the XCopyArea function.
  
    if (mVisibility == VisibilityPartiallyObscured)
+Index: widget/src/xlibxtbin/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/widget/src/xlibxtbin/Attic/Makefile.in,v
+retrieving revision 1.9
+diff -u -r1.9 Makefile.in
+--- widget/src/xlibxtbin/Makefile.in	9 Dec 2004 19:28:34 -0000	1.9
++++ widget/src/xlibxtbin/Makefile.in	30 Aug 2008 23:06:10 -0000
+@@ -56,9 +56,11 @@
+ CPPSRCS         = \
+                 xlibxtbin.cpp \
+ 
++EXTRA_DSO_LDOPTS += $(XLDFLAGS) $(XLIBS) -lSM -lICE
++
+ EXTRA_DSO_LDOPTS += -L$(DIST)/bin -L$(DIST)/lib -lxlibrgb
+ 
+-EXTRA_DSO_LDOPTS += $(MOZ_XLIB_LDFLAGS) -L/usr/X11R6/lib -lXt
++EXTRA_DSO_LDOPTS += $(MOZ_XLIB_LDFLAGS) -L/usr/X11R6/lib -lXt $(XLDFLAGS) $(XLIBS)
+ 
+ EXPORTS         = xlibxtbin.h 
+ 
 Index: widget/src/xpwidgets/Makefile.in
 ===================================================================
 RCS file: /cvsroot/mozilla/widget/src/xpwidgets/Makefile.in,v
 retrieving revision 1.68
 diff -u -r1.68 Makefile.in
 --- widget/src/xpwidgets/Makefile.in	28 Jun 2005 22:04:03 -0000	1.68
-+++ widget/src/xpwidgets/Makefile.in	24 Feb 2008 22:32:31 -0000
++++ widget/src/xpwidgets/Makefile.in	30 Aug 2008 23:06:10 -0000
 @@ -73,7 +73,7 @@
  		nsClipboardHelper.cpp \
  		$(NULL)

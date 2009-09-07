@@ -130,6 +130,7 @@ EXTRA_DSO_LDOPTS += \
 		-lgkgfx		\
 		$(GFX_XIE_LIBS) \
 		$(MOZ_UNICHARUTIL_LIBS) \
+		$(MOZ_COMPONENT_LIBS) \
 		$(NULL)
 
 DEFINES		+= -DUSE_MOZILLA_TYPES
@@ -145,6 +146,8 @@ EXTRA_DSO_LDOPTS += \
 		-lxprintutil \
 		$(MOZ_XPRINT_LDFLAGS)
 endif
+
+EXTRA_DSO_LDOPTS += $(XLDFLAGS) $(XLIBS) 
 
 LOCAL_INCLUDES	+= \
 		-I../.. \

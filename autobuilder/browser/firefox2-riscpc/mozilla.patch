@@ -1,9 +1,3 @@
-? xpfe/components/filepicker/src/nsFilePicker.js
-? xpfe/global/buildconfig.html
-? browser/app/firefox
-? browser/app/firefox-bin,e1f
-? browser/app/profile
-? browser/components/microsummaries/src/nsMicrosummaryService.js
 Index: allmakefiles.sh
 ===================================================================
 RCS file: /cvsroot/mozilla/allmakefiles.sh,v
@@ -136,10 +130,18 @@ diff -u -r1.85.2.11 Makefile.in
  
  ifdef BUILD_STATIC_LIBS
 -STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components
-+STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components -lCX11 -lDesk -lXt -lSM -lICE -ldb-4.4 -lfreebl3 -lexpat -static -s
++STATIC_COMPONENTS_LINKER_PATH = -L$(DIST)/lib/components -lCX11 -lDesk -lXt -lSM -lICE -ldbm -lfreebl3 -lexpat -static -s
  endif
  
  ifneq (,$(filter mac cocoa,$(MOZ_WIDGET_TOOLKIT)))
+@@ -84,6 +84,7 @@
+ endif
+
+ LIBS = \
++       -Wl,-rpath-link=$(GCCSDK_INSTALL_ENV)/lib \
+        $(STATIC_COMPONENTS_LINKER_PATH) \
+        $(EXTRA_DSO_LIBS) \
+        $(DIST)/lib/$(LIB_PREFIX)xulapp_s.$(LIB_SUFFIX) \
 Index: browser/app/firefox-branding.js
 ===================================================================
 RCS file: /cvsroot/mozilla/browser/app/firefox-branding.js,v
@@ -344,3 +346,18 @@ diff -u -r1.114.2.3 nsHttpHandler.cpp
  #elif defined (XP_UNIX) || defined (XP_BEOS)
      struct utsname name;
      
+Index: dbm/src/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/dbm/src/Makefile.in,v
+retrieving revision 3.20
+diff -u -r3.20 Makefile.in
+--- dbm/src/Makefile.in	29 Apr 2005 13:33:34 -0000	3.20
++++ dbm/src/Makefile.in	2 Aug 2009 17:22:38 -0000
+@@ -42,7 +42,6 @@
+ 		hash.c \
+ 		hash_buf.c \
+ 		hsearch.c \
+-		mktemp.c \
+ 		ndbm.c \
+ 		strerror.c \
+ 		nsres.c \

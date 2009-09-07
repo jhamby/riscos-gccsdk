@@ -34,19 +34,4 @@ diff -u -r3.20.4.1 jsosdep.h
  #elif defined(SUNOS4)
  #undef JS_HAVE_LONG_LONG
  
-Index: js/src/xpconnect/loader/mozJSComponentLoader.cpp
-===================================================================
-RCS file: /cvsroot/mozilla/js/src/xpconnect/loader/mozJSComponentLoader.cpp,v
-retrieving revision 1.109.2.8
-diff -u -r1.109.2.8 mozJSComponentLoader.cpp
---- js/src/xpconnect/loader/mozJSComponentLoader.cpp	30 Aug 2007 15:56:08 -0000	1.109.2.8
-+++ js/src/xpconnect/loader/mozJSComponentLoader.cpp	21 Feb 2008 03:21:37 -0000
-@@ -85,7 +85,7 @@
- 
- /* Some platforms don't have an implementation of PR_MemMap(). */
- /* See bug 318077 for WinCE.                                   */
--#if !defined(XP_BEOS) && !defined(XP_OS2) && !defined(WINCE)
-+#if !defined(XP_BEOS) && !defined(XP_OS2) && !defined(WINCE) && !defined(RISCOS)
- #define HAVE_PR_MEMMAP
- #endif
  

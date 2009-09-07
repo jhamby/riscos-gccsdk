@@ -1,12 +1,17 @@
 AB_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
 # See <URL:http://developer.mozilla.org/en/docs/CVS_Tags> for CVS branch/tag info.
-AB_CVS_TAGORBRANCH=FIREFOX_2_0_0_12_RELEASE
+AB_CVS_TAGORBRANCH=FIREFOX_2_0_0_20_RELEASE
 AB_CVS_MODULE=mozilla/client.mk
 AB_ZIPNAME=firefox-riscpc
-AB_PVERSION=2.0.0.12
+AB_PVERSION=2.0.0.20
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
 AB_ROVERSION=2
+AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
+AB_LICENCE="Mozilla Public License"
+AB_ROVERSION=2
+
+#export RO_SHAREDLIBS=yes
 
 AB_CATEGORY=Browser
 
@@ -19,6 +24,9 @@ AB_CATEGORY=Browser
 AB_PRECONF=:
 
 AB_MAKE=:
+
+# Avoid using glib 1.2
+export GLIB_CONFIG=/bin/true
 
 # For Debian/Ubuntu users: make sure you have liborbit-dev, libglib2.0-dev
 # and libidl-dev installed.  Other distributions will need to have similar
@@ -54,14 +62,20 @@ mozilla_patch () {
 
   cp $H/mozconfig $S/.mozconfig
 
-  cp $H/riscos.mk $S/security/coreconf/
+  cp $H/RISCOS.mk $S/security/coreconf/
 
   cp $H/xptcstubs_arm_riscos.cpp $S/xpcom/reflect/xptcall/src/md/unix/
 
   cp $H/nsNativeAppSupportRISCOS.cpp $S/toolkit/xre/
 
-  cp -av $H/widget $S/widget/src/riscos
-  cp -av $H/gfx $S/gfx/src/riscos
+  cp -av $H/widget $S/widget/src/riscos || [ "$AB_DEBUG" == "yes" ]
+  cp -av $H/gfx $S/gfx/src/riscos || [ "$AB_DEBUG" == "yes" ]
+
+  # For static builds, then apply this
+  if [ "$RO_SHAREDLIBS" != "yes" ] ; then
+    # Applying static build patch
+    patch -p0 < $AB_HOME/$AB_PACKAGEDIR/static-build.diff || [ "$AB_DEBUG" == "yes" ]
+  fi
 }
 
 ab_package () {
@@ -70,12 +84,17 @@ ab_package () {
   for f in \
       browserconfig.properties \
       LICENSE README.txt chrome components defaults extensions \
-      greprefs plugins res searchplugins \
+      greprefs res searchplugins \
     ; do
     cp -prL $S/dist/bin/$f $A
   done
-  rm $A/components/*.a
   cp -prL $S/dist/bin/firefox-bin$AB_EXEEXT $A
+
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    cp -prL $S/dist/bin/*.so $A
+  fi
+
+  mv $A/extensions/inspector@mozilla.org/ $A/extensions/inspector_mozilla.org/
 
   $AB_HOME/add-riscpkg -unixlib
 }
