@@ -63,11 +63,12 @@ const char * const __dynamic_da_name = "Mozilla Firefox";
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 static icon_handle iconbar_icon;
 static menu_ptr    iconbar_menu;
 
-menu_ptr gCurrentROMenu;         
+menu_ptr gCurrentROMenu;
 
 
 
@@ -90,7 +91,7 @@ public:
     NS_IMETHOD OnLastWindowClosing();
 
     // Static methods
-    static nsresult OpenWindow(const char *url, const char *args);
+    static nsresult OpenWindow(const char *url);
     static BOOL IconbarHandler(event_pollblock *event, void *reference);
     static BOOL MenuHandler(event_pollblock *event, void *reference);
     static BOOL UrlHandler(BOOL check_only, const char *url);
@@ -124,29 +125,49 @@ nsNativeAppSupportRISCOS::Start( PRBool *result )
 }
 
 
-nsresult
-nsNativeAppSupportRISCOS::OpenWindow(const char *url, const char *args)
+extern "C" {
+void Chox11_CreateInternalEvent(void (*callback_func)(void *), void *arg);
+}
+
+static void OpenWindowFunc(void *arg)
 {
-  nsresult rv = NS_ERROR_FAILURE;
+  const char *args = (const char *)arg;
+  const char *url = "chrome://browser/content/";
 
-  args = url;
-  url = "chrome://browser/content/";
+  fprintf(stderr, "OpenWindowFunc: %s\n", args ?: "Quit");
 
-  nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-  nsCOMPtr<nsISupportsCString> sarg(do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID));
-  if (sarg)
-    sarg->SetData(nsDependentCString(args));
+  /* NULL argument is an overload for quit */
+  if (!args)
+  {
+    nsresult rv;
+    nsCOMPtr<nsIAppStartup> appStartup(do_GetService(NS_APPSTARTUP_CONTRACTID, &rv));
+    if (!NS_FAILED(rv)) appStartup->Quit(nsIAppStartup::eAttemptQuit);
 
-  if (wwatch && sarg) {
-    nsCOMPtr<nsIDOMWindow> newWindow;
-    rv = wwatch->OpenWindow(nsnull,
-                            url,
-                            "_blank",
-                            "chrome,dialog=no,all",
-                            sarg, getter_AddRefs(newWindow));
+  } else {
+    nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
+    nsCOMPtr<nsISupportsCString> sarg(do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID));
+    if (sarg)
+      sarg->SetData(nsDependentCString(args));
+
+    if (wwatch && sarg) {
+      nsCOMPtr<nsIDOMWindow> newWindow;
+      wwatch->OpenWindow(nsnull,
+                         url,
+                         "_blank",
+                         "chrome,dialog=no,all",
+                         sarg, getter_AddRefs(newWindow));
+    }
   }
+}
 
-  return rv;
+
+
+nsresult
+nsNativeAppSupportRISCOS::OpenWindow(const char *url)
+{
+  Chox11_CreateInternalEvent(OpenWindowFunc, strdup(url));
+
+  return NS_OK;
 }
 
 
@@ -156,7 +177,7 @@ nsNativeAppSupportRISCOS::IconbarHandler(event_pollblock *event, void *reference
 
   if (event->data.mouse.button.data.select)
   {
-    return OpenWindow("", NULL) == NS_OK;
+    return OpenWindow("") == NS_OK;
   }
   else if (event->data.mouse.button.data.menu)
   {
@@ -177,9 +198,7 @@ nsNativeAppSupportRISCOS::MenuHandler(event_pollblock *event, void *reference)
     switch (event->data.selection[0])
     {
       case 1: // Quit
-        nsresult rv;
-        nsCOMPtr<nsIAppStartup> appStartup(do_GetService(NS_APPSTARTUP_CONTRACTID, &rv));
-        if (!NS_FAILED(rv)) appStartup->Quit(nsIAppStartup::eAttemptQuit);
+        OpenWindow(NULL);
         break;
     }
 
@@ -200,7 +219,7 @@ nsNativeAppSupportRISCOS::UrlHandler(BOOL check_only, const char *url)
 
   if (!check_only)
   {
-    return OpenWindow(url, NULL) == NS_OK;
+    return OpenWindow(url) == NS_OK;
   }
 
   return TRUE;
@@ -286,8 +305,4 @@ NS_CreateNativeAppSupport( nsINativeAppSupport **aResult )
 
   return NS_OK;
 }
-
-
-
-
 

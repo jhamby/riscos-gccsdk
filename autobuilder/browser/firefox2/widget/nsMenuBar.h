@@ -121,11 +121,13 @@ public:
     NS_IMETHOD SetNativeData(void* aData);
 
     PRPackedBool            mNeedsRebuild;
-    
+
 protected:
 
     void GetDocument ( nsIDocShell* inDocShell, nsIDocument** outDocument ) ;
     void RegisterAsDocumentObserver ( nsIDocShell* inDocShell ) ;
+
+    static void MenuHandlerFunc(void *);
 
     nsEventStatus ExecuteCommand ( nsIContent* inDispatchTo ) ;
 
