@@ -134,8 +134,6 @@ static void OpenWindowFunc(void *arg)
   const char *args = (const char *)arg;
   const char *url = "chrome://browser/content/";
 
-  fprintf(stderr, "OpenWindowFunc: %s\n", args ?: "Quit");
-
   /* NULL argument is an overload for quit */
   if (!args)
   {
