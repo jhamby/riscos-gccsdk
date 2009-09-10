@@ -347,7 +347,7 @@ static void outstring(const char *s, int terminate, char newline, int translate_
 	s++;
       else
 	terminate=0;
-      if ((chars>60) || !(c || terminate))
+      if ((chars>60) || !(*s || terminate))
       {
 	/* Line too long, start new line in the assembler file.  */
 	if (inquote)
