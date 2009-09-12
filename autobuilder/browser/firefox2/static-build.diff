@@ -9,17 +9,6 @@
      setupBypassOnce = pristineCallOnce;
      return SECSuccess;
  }
---- ./security/coreconf/rules.mk.orig	2008-12-29 21:14:44.000000000 -0800
-+++ ./security/coreconf/rules.mk	2008-12-29 21:14:55.000000000 -0800
-@@ -356,7 +356,7 @@
- ifdef XP_OS2_VACPP
- 	$(MKSHLIB) $(DLLFLAGS) $(LDFLAGS) $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
- else
--ifeq ($(OS_TARGET),riscos-static)
-+ifeq ($(OS_TARGET),RISCOS)
- 	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
- else
- 	$(MKSHLIB) -o $@ $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
 --- ./security/nss-fips/lib/softoken/pkcs11.c.orig	2008-12-29 21:29:39.000000000 -0800
 +++ ./security/nss-fips/lib/softoken/pkcs11.c	2008-12-29 21:29:53.000000000 -0800
 @@ -3123,7 +3123,7 @@
@@ -208,3 +197,23 @@ diff -u -r3.487.2.9 rules.mk
  DSO_LDOPTS              = -shared 
  DSO_LDFLAGS             =         
  
+Index: coreconf/rules.mk
+===================================================================
+RCS file: /cvsroot/mozilla/security/coreconf/rules.mk,v
+retrieving revision 1.78
+diff -u -r1.78 rules.mk
+--- coreconf/rules.mk	20 Jan 2009 23:30:57 -0000	1.78
++++ coreconf/rules.mk	12 Sep 2009 04:20:18 -0000
+@@ -341,8 +341,12 @@
+ ifeq ($(OS_TARGET),RISCOS)
+ 	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
+ else
++ifeq ($(OS_TARGET),RISCOS)
++	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
++else
+ 	$(MKSHLIB) -o $@ $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
+ endif
++endif
+ 	chmod +x $@
+ ifeq ($(OS_TARGET),Darwin)
+ ifdef MAPFILE

@@ -1,6 +1,9 @@
 AB_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
 # See <URL:http://developer.mozilla.org/en/docs/CVS_Tags> for CVS branch/tag info.
-AB_CVS_TAGORBRANCH=FIREFOX_2_0_0_20_RELEASE
+
+AB_CVS_TAGORBRANCH=MOZILLA_1_8_BRANCH
+#AB_CVS_TAGORBRANCH=FIREFOX_2_0_0_20_RELEASE
+
 AB_CVS_MODULE=mozilla/client.mk
 AB_ZIPNAME=firefox
 AB_PVERSION=2.0.0.20
@@ -32,6 +35,12 @@ export GLIB_CONFIG=/bin/true
 ab_make () {
   # Download source:
   $GCCSDK_INSTALL_ENV/ro-make -f client.mk checkout MOZ_CO_PROJECT=browser
+
+  # Last versions that seem to usefully support static linking
+  if [ "$AB_CVS_TAGORBRANCH" == "MOZILLA_1_8_BRANCH" ] ; then
+    cvs -qq -z3 update -dPA -rFIREFOX_2_0_0_20_RELEASE security/manager
+    cvs -qq -z3 update -dPA -rNSS_3_11_10_RTM security/nss
+  fi
 
   # Patch downloaded source:
   mozilla_patch

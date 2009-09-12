@@ -4,7 +4,16 @@ RCS file: /cvsroot/mozilla/gfx/src/Makefile.in,v
 retrieving revision 1.139
 diff -u -r1.139 Makefile.in
 --- gfx/src/Makefile.in	20 Feb 2005 03:21:03 -0000	1.139
-+++ gfx/src/Makefile.in	10 Sep 2009 18:10:33 -0000
++++ gfx/src/Makefile.in	12 Sep 2009 04:06:42 -0000
+@@ -75,7 +75,7 @@
+ DIRS	    += mac
+ endif
+ 
+-ifneq (,$(filter beos os2 mac windows,$(MOZ_GFX_TOOLKIT)))
++ifneq (,$(filter beos os2 mac windows riscos,$(MOZ_GFX_TOOLKIT)))
+ DIRS        += $(MOZ_GFX_TOOLKIT)
+ endif
+ 
 @@ -106,6 +106,9 @@
   ifdef MOZ_ENABLE_PHOTON
   DIRS        += photon
@@ -37,17 +46,8 @@ RCS file: /cvsroot/mozilla/gfx/src/shared/gfxImageFrame.cpp,v
 retrieving revision 1.32
 diff -u -r1.32 gfxImageFrame.cpp
 --- gfx/src/shared/gfxImageFrame.cpp	8 Mar 2005 03:44:27 -0000	1.32
-+++ gfx/src/shared/gfxImageFrame.cpp	10 Sep 2009 18:10:33 -0000
-@@ -396,6 +396,8 @@
-   PRUint8 *alphaData = mImage->GetAlphaBits();
-   PRInt32 alphaLen = row_stride * mSize.height;
- 
-+//printf("setalphadata: %d %d %d %d\n", aLength, aOffset, row_stride, alphaLen);
-+
-   PRInt32 offset;
- #ifdef MOZ_PLATFORM_IMAGES_BOTTOM_TO_TOP
-   // Adjust: We need offset to be top-down rows & LTR within each row
-@@ -410,10 +412,42 @@
++++ gfx/src/shared/gfxImageFrame.cpp	12 Sep 2009 04:06:42 -0000
+@@ -410,10 +410,44 @@
      return NS_ERROR_FAILURE;
    }
  
@@ -70,13 +70,15 @@ diff -u -r1.32 gfxImageFrame.cpp
 +    while (aLength > 0) {
 +      int bit;
 +
++      //for (bit = 128; bit; bit >>= 1) {
 +      for (bit = 0; bit < 8; bit++) {
++        //*alphaData = (*aData & bit) ? 0xff : 0;
 +        *alphaData = (*aData & (1 << bit)) ? 0xff : 0;
++        alphaData += 4;
 +      }
++      aLength--;
 +
 +      aData++;
-+      alphaData += 4;
-+      aLength--;
 +    }
 +  }
 +#else
@@ -96,7 +98,7 @@ RCS file: /cvsroot/mozilla/gfx/src/x11shared/Attic/nsFontDebug.h,v
 retrieving revision 1.3
 diff -u -r1.3 nsFontDebug.h
 --- gfx/src/x11shared/nsFontDebug.h	20 Aug 2004 09:11:25 -0000	1.3
-+++ gfx/src/x11shared/nsFontDebug.h	10 Sep 2009 18:10:33 -0000
++++ gfx/src/x11shared/nsFontDebug.h	12 Sep 2009 04:06:42 -0000
 @@ -52,7 +52,7 @@
  #define NS_FONT_DEBUG_FREETYPE_GRAPHICS 0x800
  
@@ -112,7 +114,7 @@ RCS file: /cvsroot/mozilla/gfx/src/x11shared/Attic/nsX11AlphaBlend.cpp,v
 retrieving revision 1.4
 diff -u -r1.4 nsX11AlphaBlend.cpp
 --- gfx/src/x11shared/nsX11AlphaBlend.cpp	17 Apr 2004 21:52:34 -0000	1.4
-+++ gfx/src/x11shared/nsX11AlphaBlend.cpp	10 Sep 2009 18:10:33 -0000
++++ gfx/src/x11shared/nsX11AlphaBlend.cpp	12 Sep 2009 04:06:42 -0000
 @@ -48,7 +48,7 @@
  #include "nsAntiAliasedGlyph.h"
  #include "nsX11AlphaBlend.h"
@@ -128,7 +130,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xlib/Attic/Makefile.in,v
 retrieving revision 1.63
 diff -u -r1.63 Makefile.in
 --- gfx/src/xlib/Makefile.in	9 Dec 2004 19:28:02 -0000	1.63
-+++ gfx/src/xlib/Makefile.in	10 Sep 2009 18:10:33 -0000
++++ gfx/src/xlib/Makefile.in	12 Sep 2009 04:06:42 -0000
 @@ -81,10 +81,6 @@
  # Code shared between GTK+, Xlib and Xprint gfx modules
  # (empty for now - but this will be filled soon...)
@@ -158,7 +160,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xlib/Attic/nsDeviceContextXlib.cpp,v
 retrieving revision 1.70.28.1
 diff -u -r1.70.28.1 nsDeviceContextXlib.cpp
 --- gfx/src/xlib/nsDeviceContextXlib.cpp	28 Feb 2006 14:55:53 -0000	1.70.28.1
-+++ gfx/src/xlib/nsDeviceContextXlib.cpp	10 Sep 2009 18:10:33 -0000
++++ gfx/src/xlib/nsDeviceContextXlib.cpp	12 Sep 2009 04:06:42 -0000
 @@ -76,6 +76,7 @@
  
  /* global default font handle */
@@ -271,7 +273,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xlib/Attic/nsDeviceContextXlib.h,v
 retrieving revision 1.33
 diff -u -r1.33 nsDeviceContextXlib.h
 --- gfx/src/xlib/nsDeviceContextXlib.h	18 Jul 2004 17:36:01 -0000	1.33
-+++ gfx/src/xlib/nsDeviceContextXlib.h	10 Sep 2009 18:10:33 -0000
++++ gfx/src/xlib/nsDeviceContextXlib.h	12 Sep 2009 04:06:42 -0000
 @@ -89,8 +89,11 @@
    virtual void GetFontMetricsContext(nsFontMetricsXlibContext *&aContext) { aContext = mFontMetricsContext; };
    virtual void GetRCContext(nsRenderingContextXlibContext *&aContext) { aContext = mRCContext; };
@@ -299,35 +301,26 @@ RCS file: /cvsroot/mozilla/gfx/src/xlib/Attic/nsImageXlib.cpp,v
 retrieving revision 1.48
 diff -u -r1.48 nsImageXlib.cpp
 --- gfx/src/xlib/nsImageXlib.cpp	8 Mar 2005 03:44:27 -0000	1.48
-+++ gfx/src/xlib/nsImageXlib.cpp	10 Sep 2009 18:10:33 -0000
-@@ -61,12 +61,12 @@
- static GC s1bitGC = 0;
- static GC sXbitGC = 0;
- 
--XlibRgbHandle *nsImageXlib::mXlibRgbHandle = nsnull;
-+//XlibRgbHandle *nsImageXlib::mXlibRgbHandle = nsnull;
++++ gfx/src/xlib/nsImageXlib.cpp	12 Sep 2009 04:06:42 -0000
+@@ -65,8 +65,7 @@
  Display       *nsImageXlib::mDisplay       = nsnull;
  
  nsImageXlib::nsImageXlib()
 -: mImageBits(nsnull)
 -, mAlphaBits(nsnull)
-+: /*mImageBits(nsnull)
-+,*/ mAlphaBits(nsnull)
++: mAlphaBits(nsnull)
  , mWidth(0)
  , mHeight(0)
  , mDepth(0)
-@@ -87,40 +87,22 @@
- , mDecodedY2(0)
- {
-   PR_LOG(ImageXlibLM, PR_LOG_DEBUG, ("nsImageXlib::nsImageXlib()\n"));
--
--  if (!mXlibRgbHandle) {
--    mXlibRgbHandle = xxlib_find_handle(XXLIBRGB_DEFAULT_HANDLE);
--    mDisplay = xxlib_rgb_get_display(mXlibRgbHandle);
+@@ -91,36 +90,23 @@
+   if (!mXlibRgbHandle) {
+     mXlibRgbHandle = xxlib_find_handle(XXLIBRGB_DEFAULT_HANDLE);
+     mDisplay = xxlib_rgb_get_display(mXlibRgbHandle);
 -  }  
 -  
 -  if (!mXlibRgbHandle || !mDisplay)
 -    abort();
++  }
  }
  
  nsImageXlib::~nsImageXlib()
@@ -358,7 +351,7 @@ diff -u -r1.48 nsImageXlib.cpp
      }
    }
  
-@@ -131,7 +113,6 @@
+@@ -131,7 +117,6 @@
  #ifdef XLIB_PIXMAP_DEBUG
      printf("XFreePixmap(display = %p)\n",mDisplay);
  #endif
@@ -366,7 +359,7 @@ diff -u -r1.48 nsImageXlib.cpp
      XFreePixmap(mDisplay, mImagePixmap);
    }
  
-@@ -163,7 +144,7 @@
+@@ -163,7 +148,7 @@
      return NS_ERROR_FAILURE;
  
    if (24 == aDepth) {
@@ -375,7 +368,7 @@ diff -u -r1.48 nsImageXlib.cpp
    } else {
      NS_ASSERTION(PR_FALSE, "unexpected image depth");
      return NS_ERROR_UNEXPECTED;
-@@ -176,7 +157,9 @@
+@@ -176,7 +161,9 @@
    // Create the memory for the image
    ComputeMetrics();
  
@@ -386,12 +379,11 @@ diff -u -r1.48 nsImageXlib.cpp
  
    switch(aMaskRequirements) {
      case nsMaskRequirements_kNeeds1Bit:
-@@ -186,19 +169,23 @@
+@@ -186,16 +173,15 @@
        // 32-bit align each row
        mAlphaRowBytes = (mAlphaRowBytes + 3) & ~0x3;
  
 -      mAlphaBits = new unsigned char[mAlphaRowBytes * aHeight];
-+printf("mask 1: %d\n", mAlphaRowBytes * aHeight);
 +      mAlphaBits = GetBits();
 +      mAlphaValid = PR_TRUE;
        break;
@@ -404,18 +396,11 @@ diff -u -r1.48 nsImageXlib.cpp
 -      // 32-bit align each row
 -      mAlphaRowBytes = (mAlphaRowBytes + 3) & ~0x3;
 -      mAlphaBits = new unsigned char[mAlphaRowBytes * aHeight];
-+printf("mask 8: %d\n", mAlphaRowBytes * aHeight);
 +      mAlphaBits = GetBits();
-+
-+      //memset(GetBits(), 0xff, mRowBytes * aHeight);
        break;
  
      default:
-+puts("no mask");
-       break; // avoid compiler warning
-   }
-   return NS_OK;
-@@ -216,9 +203,13 @@
+@@ -216,9 +202,13 @@
    return mWidth;
  }
  
@@ -430,7 +415,7 @@ diff -u -r1.48 nsImageXlib.cpp
  }
  
  void *nsImageXlib::GetBitInfo()
-@@ -280,10 +271,7 @@
+@@ -280,10 +270,7 @@
    nsRegionRectIterator ri(mUpdateRegion);
    const nsRect *rect;
  
@@ -442,7 +427,7 @@ diff -u -r1.48 nsImageXlib.cpp
  
      unsigned bottom, left, right;
      bottom = rect->y + rect->height;
-@@ -293,9 +281,9 @@
+@@ -293,9 +280,9 @@
      // check if the image has an all-opaque 8-bit alpha mask
      if ((mAlphaDepth==8) && !mAlphaValid) {
        for (unsigned y=rect->y; (y<bottom) && !mAlphaValid; y++) {
@@ -454,7 +439,7 @@ diff -u -r1.48 nsImageXlib.cpp
              mAlphaValid=PR_TRUE;
              break;
            }
-@@ -303,87 +291,18 @@
+@@ -303,87 +290,18 @@
        }
      }
  
@@ -547,7 +532,7 @@ diff -u -r1.48 nsImageXlib.cpp
    }
  
    mUpdateRegion.SetEmpty();
-@@ -391,180 +310,10 @@
+@@ -391,180 +309,10 @@
    mFlags = nsImageUpdateFlags_kBitsChanged; // this should be 0'd out by Draw()
  }
  
@@ -581,7 +566,7 @@ diff -u -r1.48 nsImageXlib.cpp
 -    aDX += ((mDecodedX1 - aSX)*origDWidth)/origSWidth;
 -    aSX = mDecodedX1;
 -  }
- 
+-
 -  if (aSY + aSHeight > mDecodedY2) {
 -    aDHeight -= ((aSY + aSHeight - mDecodedY2)*origDHeight)/origSHeight;
 -    aSHeight -= (aSY + aSHeight) - mDecodedY2;
@@ -598,7 +583,7 @@ diff -u -r1.48 nsImageXlib.cpp
 -
 -  if (mAlphaDepth == 1)
 -    CreateAlphaBitmap(mWidth, mHeight);
--
+ 
 -  if ((mAlphaDepth == 8) && mAlphaValid) {
 -    DrawComposited(aContext, aSurface,
 -        aSX, aSY, aSWidth, aSHeight,
@@ -731,7 +716,7 @@ diff -u -r1.48 nsImageXlib.cpp
  }
  
  // Draw the bitmap, this method has a source and destination coordinates
-@@ -585,10 +334,7 @@
+@@ -585,10 +333,7 @@
    if (mDecodedX2 < mDecodedX1 || mDecodedY2 < mDecodedY1)
      return NS_OK;
  
@@ -743,7 +728,7 @@ diff -u -r1.48 nsImageXlib.cpp
  
    if (aSWidth <= 0 || aDWidth <= 0 || aSHeight <= 0 || aDHeight <= 0) {
      NS_ASSERTION(aSWidth > 0 && aDWidth > 0 && aSHeight > 0 && aDHeight > 0,
-@@ -597,622 +343,46 @@
+@@ -597,622 +342,46 @@
    }
  
    // limit the size of the blit to the amount of the image read in
@@ -793,13 +778,12 @@ diff -u -r1.48 nsImageXlib.cpp
 -    return NS_OK;
 -  }
 -
--  nsIDrawingSurfaceXlib *drawing = NS_STATIC_CAST(nsIDrawingSurfaceXlib *, aSurface);
+   nsIDrawingSurfaceXlib *drawing = NS_STATIC_CAST(nsIDrawingSurfaceXlib *, aSurface);
 -
 -  if (mAlphaDepth == 1)
 -    CreateAlphaBitmap(mWidth, mHeight);
 -
 -  GC copyGC;
-+  nsIDrawingSurfaceXlib *drawing = NS_STATIC_CAST(nsIDrawingSurfaceXlib *, aSurface);  
 +  Drawable drawable; drawing->GetDrawable(drawable);
    xGC *gc = ((nsRenderingContextXlib&)aContext).GetGC();
  
@@ -825,7 +809,7 @@ diff -u -r1.48 nsImageXlib.cpp
 -  } else {  /* !mAlphaPixmap */
 -    copyGC = *gc;
 -  }
-+puts("xcopyarea");
++printf("xcopyarea: %d %d\n", mAlphaValid, mAlphaDepth);
  
 -  Drawable drawable; drawing->GetDrawable(drawable);
 -  XCopyArea(mDisplay, mImagePixmap, drawable,
@@ -1384,23 +1368,21 @@ diff -u -r1.48 nsImageXlib.cpp
  // Draw the bitmap. This draw just has destination coordinates
  NS_IMETHODIMP
  nsImageXlib::Draw(nsIRenderingContext &aContext,
-@@ -1232,12 +402,15 @@
+@@ -1232,13 +401,6 @@
    if (mDecodedX2 < mDecodedX1 || mDecodedY2 < mDecodedY1)
      return NS_OK;
  
-+#if 0
-   if ((mAlphaDepth == 8) && mAlphaValid) {
-+    puts("Image with 8-bit alpha mask not drawn");
-     DrawComposited(aContext, aSurface,
-         0, 0, aWidth, aHeight,
-         aX, aY, aWidth, aHeight);
-     return NS_OK;
-   }
-+#endif
- 
+-  if ((mAlphaDepth == 8) && mAlphaValid) {
+-    DrawComposited(aContext, aSurface,
+-        0, 0, aWidth, aHeight,
+-        aX, aY, aWidth, aHeight);
+-    return NS_OK;
+-  }
+-
    // XXX it is said that this is temporary code
    if ((aWidth != mWidth) || (aHeight != mHeight)) {
-@@ -1246,7 +419,7 @@
+     aWidth = mWidth;
+@@ -1246,7 +408,7 @@
    }
  
    nsIDrawingSurfaceXlib *drawing = NS_STATIC_CAST(nsIDrawingSurfaceXlib *, aSurface);
@@ -1409,7 +1391,7 @@ diff -u -r1.48 nsImageXlib.cpp
    PRInt32
      validX = 0,
      validY = 0,
-@@ -1268,39 +441,12 @@
+@@ -1268,39 +430,12 @@
      validX = mDecodedX1;
    }
  
@@ -1452,7 +1434,21 @@ diff -u -r1.48 nsImageXlib.cpp
  
    gc->Release();
  
-@@ -1414,52 +560,7 @@
+@@ -1387,11 +522,11 @@
+     validX = mDecodedX1;
+     partial = PR_TRUE;
+   }
+-  
++
+   if (validWidth == 0 || validHeight == 0) {
+     return NS_OK;
+   }
+-   
++
+   if (partial || ((mAlphaDepth == 8) && mAlphaValid) || (aPadX || aPadY)) {
+     PRInt32 aY0 = aTileRect.y - aSYOffset,
+             aX0 = aTileRect.x - aSXOffset,
+@@ -1414,52 +549,7 @@
      return NS_OK;
    }
  
@@ -1506,7 +1502,7 @@ diff -u -r1.48 nsImageXlib.cpp
      // In the non-alpha case, xlib can tile for us
      nsRect clipRect;
      PRBool isValid;
-@@ -1512,174 +613,26 @@
+@@ -1512,174 +602,15 @@
    if (mPendingUpdate)
      UpdateCachedImage();
  
@@ -1523,17 +1519,7 @@ diff -u -r1.48 nsImageXlib.cpp
 -  
 -  if (mAlphaPixmap)
 -    SetupGCForAlpha(gc, aDX, aDY);
-+#if 0
-+  if (mAlphaDepth == 1) {
-+    puts("drawtoimage mask 1");
-+    //CreateAlphaBitmap(mWidth, mHeight);
-+  } else if (mAlphaDepth == 8) {
-+    puts("8 bit drawtoimage mask ignored");
-+  } else {
-+    puts("drawtoimage no mask");
-+  }
-+#endif
- 
+-
 -  XCopyArea(dest->mDisplay, mImagePixmap, dest->mImagePixmap, gc,
 -            0, 0, mWidth, mHeight, aDX, aDY);
 +  ChoX11_XCopyArea(dest->mDisplay, mImagePixmap, dest->mImagePixmap,
@@ -1699,7 +1685,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xlib/Attic/nsImageXlib.h,v
 retrieving revision 1.23
 diff -u -r1.23 nsImageXlib.h
 --- gfx/src/xlib/nsImageXlib.h	8 Mar 2005 03:44:27 -0000	1.23
-+++ gfx/src/xlib/nsImageXlib.h	10 Sep 2009 18:10:33 -0000
++++ gfx/src/xlib/nsImageXlib.h	12 Sep 2009 04:06:42 -0000
 @@ -90,7 +90,7 @@
  
    virtual nsresult    Optimize(nsIDeviceContext* aContext);
@@ -1771,7 +1757,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xlib/Attic/nsRenderingContextXlib.cpp,v
 retrieving revision 1.110.8.2
 diff -u -r1.110.8.2 nsRenderingContextXlib.cpp
 --- gfx/src/xlib/nsRenderingContextXlib.cpp	5 May 2006 20:22:33 -0000	1.110.8.2
-+++ gfx/src/xlib/nsRenderingContextXlib.cpp	10 Sep 2009 18:10:33 -0000
++++ gfx/src/xlib/nsRenderingContextXlib.cpp	12 Sep 2009 04:06:42 -0000
 @@ -199,8 +199,8 @@
  
    NS_ENSURE_TRUE(nsnull != aContext, NS_ERROR_NULL_POINTER);
@@ -1807,7 +1793,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xlibrgb/Attic/xlibrgb.c,v
 retrieving revision 1.27
 diff -u -r1.27 xlibrgb.c
 --- gfx/src/xlibrgb/xlibrgb.c	23 Mar 2005 05:43:38 -0000	1.27
-+++ gfx/src/xlibrgb/xlibrgb.c	10 Sep 2009 18:10:34 -0000
++++ gfx/src/xlibrgb/xlibrgb.c	12 Sep 2009 04:06:43 -0000
 @@ -4107,7 +4107,7 @@
  }
  
@@ -1823,7 +1809,7 @@ RCS file: /cvsroot/mozilla/gfx/src/xprint/Attic/Makefile.in,v
 retrieving revision 1.56
 diff -u -r1.56 Makefile.in
 --- gfx/src/xprint/Makefile.in	3 Feb 2005 23:01:44 -0000	1.56
-+++ gfx/src/xprint/Makefile.in	10 Sep 2009 18:10:34 -0000
++++ gfx/src/xprint/Makefile.in	12 Sep 2009 04:06:43 -0000
 @@ -109,6 +109,9 @@
  CFLAGS		+= $(TK_CFLAGS)
  CXXFLAGS	+= $(TK_CFLAGS)

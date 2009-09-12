@@ -268,59 +268,6 @@ diff -u -r5.0.2.9.76.1 ldappr-error.c
  #define EDEADLOCK       -1
  #endif
  
-Index: layout/base/nsCSSFrameConstructor.cpp
-===================================================================
-RCS file: /cvsroot/mozilla/layout/base/nsCSSFrameConstructor.cpp,v
-retrieving revision 1.1110.6.93
-diff -u -r1.1110.6.93 nsCSSFrameConstructor.cpp
---- layout/base/nsCSSFrameConstructor.cpp	18 Jan 2008 16:20:57 -0000	1.1110.6.93
-+++ layout/base/nsCSSFrameConstructor.cpp	21 Feb 2008 03:27:03 -0000
-@@ -6063,7 +6063,7 @@
-         rv = NS_NewMenuFrame(mPresShell, &newFrame, (aTag != nsXULAtoms::menuitem));
-       }
-       else if (aTag == nsXULAtoms::menubar) {
--  #ifdef XP_MACOSX
-+  #if defined(XP_MACOSX) || defined(XP_RISCOS)
-         // On Mac OS X, we use the system menubar for any root chrome shell
-         // XUL menubars.
-         PRBool isRootChromeShell = PR_FALSE;
-Index: layout/build/Makefile.in
-===================================================================
-RCS file: /cvsroot/mozilla/layout/build/Makefile.in,v
-retrieving revision 1.127.8.7
-diff -u -r1.127.8.7 Makefile.in
---- layout/build/Makefile.in	17 Jul 2006 19:05:13 -0000	1.127.8.7
-+++ layout/build/Makefile.in	21 Feb 2008 03:27:03 -0000
-@@ -209,11 +209,11 @@
- 		$(MOZ_JS_LIBS) \
- 		$(NULL)
- 
--ifdef MOZ_ENABLE_XLIB
-+#ifdef MOZ_ENABLE_XLIB
- EXTRA_DSO_LDOPTS += \
- 		-lxlibrgb \
- 		$(NULL)
--endif
-+#endif
- 
- ifdef NS_TRACE_MALLOC
- EXTRA_DSO_LIBS	+= tracemalloc
-Index: layout/generic/nsObjectFrame.cpp
-===================================================================
-RCS file: /cvsroot/mozilla/layout/generic/nsObjectFrame.cpp,v
-retrieving revision 1.510.2.17
-diff -u -r1.510.2.17 nsObjectFrame.cpp
---- layout/generic/nsObjectFrame.cpp	8 Nov 2007 00:08:10 -0000	1.510.2.17
-+++ layout/generic/nsObjectFrame.cpp	21 Feb 2008 03:27:03 -0000
-@@ -915,7 +915,7 @@
-                                aReflowState.mComputedMaxHeight);
-     }
- 
--#if defined (MOZ_WIDGET_GTK) || defined (MOZ_WIDGET_GTK2) || defined (MOZ_WIDGET_XLIB)  
-+#if defined (MOZ_WIDGET_GTK) || defined (MOZ_WIDGET_GTK2) || defined (MOZ_WIDGET_XLIB) || defined (MOZ_WIDGET_RISCOS)
-     // We need to make sure that the size of the object frame does not
-     // exceed the maximum size of X coordinates.  See bug #225357 for
-     // more information.  In theory Gtk2 can handle large coordinates,
 Index: netwerk/protocol/http/src/nsHttpHandler.cpp
 ===================================================================
 RCS file: /cvsroot/mozilla/netwerk/protocol/http/src/nsHttpHandler.cpp,v
