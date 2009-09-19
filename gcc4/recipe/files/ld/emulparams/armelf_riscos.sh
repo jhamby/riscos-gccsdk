@@ -11,6 +11,7 @@ TEMPLATE_NAME=elf32
 EXTRA_EM_FILE=armelf
 GENERATE_SHLIB_SCRIPT=yes
 
+TEXT_START_SYMBOLS='__text_start = . ;';
 DATA_START_SYMBOLS='__data_start = . ;';
 OTHER_TEXT_SECTIONS='*(.glue_7t) *(.glue_7) *(.riscos.libscl.chunkstub.start) *(SORT(.riscos.libscl.chunkstub.id*)) *(.riscos.libscl.chunkstub.end)'
 OTHER_BSS_SYMBOLS='__bss_start__ = .;'
