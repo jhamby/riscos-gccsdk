@@ -1,3 +1,10 @@
+Sat Sep 19 12:41:12 2009  Lee Noar  <leenoar@sky.com>
+
+	* gmon/gmon_start.c: Don't use _init symbol to find the
+	start of the text segment as this creates a bogus
+	DT_INIT entry in the dynamic segment. Instead use the
+	linker generated __text_start.
+
 Mon Aug 24 10:41:22 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* signal/post.c: Skip over # at start of C++ symbol names
