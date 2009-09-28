@@ -91,6 +91,7 @@ c_alloc (Symbol * sym)
       sym->type |= SYMBOL_ABSOLUTE | SYMBOL_DEFINED;
       sym->area.ptr = NULL;
       sym->value = storageValue ();
+      sym->value.Tag.t = ValueInt;
     }
   exprBuild ();
   value = exprEval (ValueInt);

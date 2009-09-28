@@ -1,5 +1,5 @@
 AC_PREREQ(2.59)
-AC_INIT([asasm],[1.47],[http://gccsdk.riscos.info/])
+AC_INIT([asasm],[1.48],[http://gccsdk.riscos.info/])
 
 AC_CONFIG_HEADERS([config.h])
 

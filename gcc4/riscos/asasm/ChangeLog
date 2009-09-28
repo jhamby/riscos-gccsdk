@@ -1,4 +1,12 @@
-Wed May 27 20:28:55 PDT 2009  Peter Naulls <peter@chocky.org>
+Tue Sep 29 00:21:05 CEST 2009  Christopher Martin  <belles@internode.on.net>
+
+	* storage.c(c_alloc): Enable expression evaluation that includes
+	symbols defined in record layouts.
+	* regression/tests_pass/record_basic.s,
+	regression/tests_fail/record_basic_fail.s: Added test case.
+	* configure.ac: Bumped version to 1.48.
+
+Wed May 27 20:28:55 PDT 2009  Peter Naulls  <peter@chocky.org>
 
 	* input.c, input.h, main.c: Approximate the -PD flag to objasm
 	to allow the SETx syntax to be passed on the command line.
