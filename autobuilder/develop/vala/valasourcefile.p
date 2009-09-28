@@ -1,6 +1,6 @@
---- vala/valasourcefile.vala.orig	2009-04-12 18:25:40.000000000 +0200
-+++ vala/valasourcefile.vala	2009-04-22 20:33:08.000000000 +0200
-@@ -64,8 +64,6 @@
+--- vala/valasourcefile.vala.orig	2009-09-26 13:57:39.000000000 +0200
++++ vala/valasourcefile.vala	2009-09-28 19:39:54.000000000 +0200
+@@ -62,8 +62,6 @@
  
  	private Gee.ArrayList<string> source_array = null;
  
@@ -9,12 +9,12 @@
  	private string? _content = null;
  
  	/**
-@@ -273,28 +271,25 @@
+@@ -258,28 +256,26 @@
  	}
  
  	public char* get_mapped_contents () {
 -		if (content != null) {
--			return content;
+-			return (char*) content;
 -		}
 -
 -		if (mapped_file == null) {
@@ -30,7 +30,7 @@
  				return null;
  			}
  		}
--
+ 
 -		return mapped_file.get_contents ();
 +		return content;
  	}
