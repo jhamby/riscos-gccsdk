@@ -4,7 +4,7 @@ AB_CONFLAGS="--disable-nls --with-idl-compiler=$GCCSDK_INSTALL_ENV/bin/orbit-idl
 
 
 if ! [ -e /usr/bin/glib-genmarshal ] || ! [ -e /usr/include/popt.h ] ; then
-  echo "Pleaes install native libglib2.0-dev and libpopt-dev packages"
+  echo "Please install native libglib2.0-dev and libpopt-dev packages"
   exit 1
 fi
 
