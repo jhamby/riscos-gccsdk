@@ -1,0 +1,5 @@
+| Run file for libgee
+
+Set LibGee$Dir <Obey$Dir>
+Set LibGee$Path <Obey$Dir>.
+

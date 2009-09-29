@@ -1,0 +1,74 @@
+AB_PACKAGES="libgee1 libgee-dev"
+AB_MAINTAINER="Jan-Jaap van der Geer <jjvdgeer@c2i.net>"
+AB_CATEGORY=Library
+AB_LICENSE=Free
+
+AB_INSTALL=yes
+
+AB_URL=http://ftp.gnome.org/pub/GNOME/sources/libgee/0.5/libgee-0.5.0.tar.bz2
+
+ab_package() {
+
+  # Shared libraries package
+  slibdir=$D/libgee1/Resources/\!SharedLibs/lib
+  mkdir -p $slibdir
+
+  # Developer package
+  devdir=$D/libgee-dev/Apps/Library
+  mkdir -p $devdir
+  vapidir=$D/libgee-dev/Apps/Development/\!Vala/vapi
+  mkdir -p $vapidir
+
+  cp -r $H/!LibGee $devdir
+
+  HERE=`pwd`
+  cd $devdir/\!LibGee
+  unzip $AB_OUTPUTLIB/$RO_PKG.zip
+
+  # Move headers libs and docs up one directory
+  mv include/* .
+  rm -rf include
+
+  # Copy shared libs to shared libs package
+  mv lib/*.so.* $slibdir
+
+  # Copy static libs to dev package
+  mv lib/*.a .
+  rm -rf lib
+
+  # Copy vapi files to dev package
+  echo $S
+  mv $S/gee/*.vapi $vapidir
+
+  thdir=`echo gee-*`
+  mv $thdir/* .
+  rm -rf $thdir
+
+  cd doc
+  tdocdir=`echo libgee*`
+  mv $tdocdir/* .
+  rm -rf $tdocdir
+
+  cd $HERE
+  cd $slibdir
+
+  # Create soft links
+  SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
+  for SLIB in $SLIBS ; do
+     ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
+     LNAME=`echo $SLIB | cut -d '.' -f 1-3`
+     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+     LNAME=`echo $SLIB | cut -d '.' -f 1-4`
+     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+  done
+
+  cd $HERE
+
+  $AB_HOME/add-riscpkg -package "libgee1" \
+    -depends SharedLibs -depends libglib2.0-0 \
+    -copyrightfile COPYING
+
+  $AB_HOME/add-riscpkg -package "libgee-dev" \
+    -unixlib -depends libglib2.0-dev \
+    -copyrightfile COPYING
+}
