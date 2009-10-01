@@ -1,0 +1,3 @@
+
+LIBS="-lXft -lfreetype -lfontconfig -lXrender -lz -lexpat"
+
