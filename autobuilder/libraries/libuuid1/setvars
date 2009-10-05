@@ -3,6 +3,6 @@ AB_INSTALL=yes
 AB_CONFLAGS="--disable-tls --enable-elf-shlibs"
 
 ab_make() {
- cd $S/lib/uuid
+ cd $S/shlibs/uuid/src/
  $AB_MAKE
 }
