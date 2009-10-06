@@ -103,7 +103,7 @@ relocOp (int word, const Value *value, RelocTag tag)
       Reloc *newReloc;
 
       newReloc = relocNew (areaCurrentSymbol->area.info->relocs, tag,
-		      areaCurrentSymbol->value.ValueInt.i, value);
+			   areaCurrentSymbol->value.ValueInt.i, value);
       newReloc->extra = word;
       areaCurrentSymbol->area.info->relocs = newReloc;
     }

@@ -260,13 +260,9 @@ getShift (BOOL immonly)
       else
 	{
 	  if (immonly)
-	    {
-	      error (ErrorError, TRUE, "Only shift immediate allowed here");
-	    }
+	    error (ErrorError, TRUE, "Only shift immediate allowed here");
 	  else
-	    {
-	      op = SHIFT_REG (getCpuReg ()) | SHIFT_OP (shift);
-	    }
+	    op = SHIFT_REG (getCpuReg ()) | SHIFT_OP (shift);
 	}
     }
   else
@@ -332,9 +328,7 @@ getRhs (BOOL immonly, BOOL shift, WORD ir)
 	  ir |= getShift (immonly);
 	}
       else
-	{
-	  ir |= NO_SHIFT;
-	}
+	ir |= NO_SHIFT;
     }
   return ir;
 }
