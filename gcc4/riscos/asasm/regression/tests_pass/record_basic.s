@@ -15,15 +15,17 @@ lbl1		#	1
 		^	2
 lbl2		#	0
 
+; Commented out code is currently not working, see
+; tests_fail/record_base_fail.s
 ;		^	(2*lbl1 + lbl2 + 9) / 5
 ;lbl3		#	1
 
-		MOV	R2, #lbl1
-		MOV	R3, #lbl2
+		MOV	R2, #lbl1	; #7
+		MOV	R3, #lbl2	; #2
 ;		MOV	R4, #lbl3
 
-		MOV	R5, #|lbl1| + |lbl2|
-		LDR	R1, [R1, #|lbl1| + |lbl2|]
+;		MOV	R5, #|lbl1| + |lbl2|	; #7 + 2
+;		LDR	R1, [R1, #|lbl1| + |lbl2|]	; #7 + 2
 	|
 		MOV	R0, #0
 		MOV	R1, #0
@@ -32,8 +34,8 @@ lbl2		#	0
 		MOV	R3, #2
 ;		MOV	R4, #5
 
-		MOV	R5, #7
-		LDR	R1, [R1, #7]
+;		MOV	R5, #9
+;		LDR	R1, [R1, #9]
 	]
 
 		END

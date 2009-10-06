@@ -1,3 +1,13 @@
+Tue Oct  6 02:22:15 CEST 2009  John Tytgat  <John.Tytgat@aaug.net>
+
+	* storate.c(c_alloc): Revert previous change as it introduces a
+	regression in the register_based_maps.s test.
+	* configure.ac: Revert back to 1.47.
+	* regression/tests_pass/record_basic.s: Uncomment part that now no
+	longer works.
+	* regression/tests_pass/record_basic.s,
+	regression/tests_fail/record_basic_fail.s: Update reference.
+
 Tue Sep 29 00:21:05 CEST 2009  Christopher Martin  <belles@internode.on.net>
 
 	* storage.c(c_alloc): Enable expression evaluation that includes
