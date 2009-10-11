@@ -1,6 +1,6 @@
 /* som_register.c
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007, 2009 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -11,6 +11,7 @@
 #include "som_alloc.h"
 #include "som_workspace.h"
 #include "som_array.h"
+#include "som_history.h"
 
 static _kernel_oserror *
 init_object (som_object *object, const som_objinfo *objinfo)
@@ -380,6 +381,8 @@ som_deregister_client (void)
 
   if ((client = FIND_CLIENT ()) == NULL)
     return somerr_unknown_client;
+
+  som_history_add_client (client);
 
   /* The first link in the client's object list should be the application
      itself. This is treated differently as it is not a shared object as

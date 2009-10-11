@@ -1,6 +1,6 @@
 /* som_command.c
  *
- * Copyright 2006, 2007 GCCSDK Developers
+ * Copyright 2006, 2007, 2009 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -11,8 +11,10 @@
 #include "somanager.h"
 #include "som.h"
 #include "som_runcom.h"
+#include "som_history.h"
+#include "som_command.h"
 
-static const char *column_title_string[] =
+const char *column_title_string[] =
 {
   "Idx",
   "Text from",
@@ -23,19 +25,6 @@ static const char *column_title_string[] =
   "GOT",
   "Dynamic",
   "Time to expire"
-};
-
-enum column_title
-{
-  column_title_IDX,
-  column_title_TEXT_FROM,
-  column_title_TEXT_TO,
-  column_title_DATA_FROM,
-  column_title_DATA_TO,
-  column_title_LIBRARY_NAME,
-  column_title_GOT,
-  column_title_DYNAMIC,
-  column_title_EXPIRES
 };
 
 static void
@@ -287,6 +276,10 @@ module_command (const char *arg_string, int argc, int number, void *pw)
 
     case CMD_SOMRun:
       err = command_run (arg_string, argc);
+      break;
+
+    case CMD_SOMHistory:
+      command_history ();
       break;
     }
 

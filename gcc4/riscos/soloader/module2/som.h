@@ -203,6 +203,9 @@ struct _som_globals
   /* List of libraries loaded by system.  */
   link_list object_list;
 
+  /* History list of recently deregistered clients.  */
+  link_list client_history;
+
   /* Array of som_object pointers.  */
   som_array object_array;
 

@@ -1,6 +1,6 @@
 ; This file is part of SOManager.
 ;
-; Copyright (C) 2006 GCCSDK Developers
+; Copyright (C) 2006, 2009 GCCSDK Developers
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 title-string: SOManager
 
-help-string: Shared Object Manager 2.01 (c) GCCSDK Developers
+help-string: Shared Object Manager 2.02 (c) GCCSDK Developers
 
 initialisation-code: module_initialise
 
@@ -41,7 +41,10 @@ command-keyword-table: module_command
                help-text: "*SOMAllowQuit allows the module to be killed even if there are still clients registered. It is used for developing the dynamic loader and should generally be avoided.\n"),
   SOMRun(min-args: 1, max-args: 255,
          invalid-syntax: "Syntax: *SOMRun <ELF file>",
-         help-text: "*SOMRun examines the given ELF executable to determine whether it is dynamically or statically linked, and runs it accordingly.\n")
+         help-text: "*SOMRun examines the given ELF executable to determine whether it is dynamically or statically linked, and runs it accordingly.\n"),
+  SOMHistory(min-args: 0, max-args: 0,
+	     invalid-syntax: "Syntax: *SOMHistory",
+	     help-text: "*SOMHistory lists some details about the last five clients as an aid to debugging them.\n")
 
 swi-chunk-base-number: 0x58580
 

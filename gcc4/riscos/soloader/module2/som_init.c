@@ -1,6 +1,6 @@
 /* som_init.c
  *
- * Copyright 2006, 2007 GCCSDK Developers
+ * Copyright 2006, 2007, 2009 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -40,6 +40,7 @@ module_initialise (const char *tail, int podule_base, void *pw)
   global.data_da.number = global.library_da.number = -1;
   // linklist_init_list (&global.client_list);
   // linklist_init_list (&global.object_list);
+  // linklist_init_list (&global.client_history);
   // global.object_array gets initialised further on.
   global.max_idle_time = SOM_MAX_IDLE_TIME;
   global.call_every_cs_delay = SOM_CALL_EVERY_CS_DELAY;
