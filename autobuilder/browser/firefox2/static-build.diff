@@ -201,3 +201,21 @@ diff -u -r1.78 rules.mk
  
  //
  // nsMenuBar constructor
+--- security/manager/ssl/src/nsKeygenHandler.cpp.orig	2009-10-13 09:03:47.000000000 -0700
++++ security/manager/ssl/src/nsKeygenHandler.cpp	2009-10-13 09:04:04.000000000 -0700
+@@ -75,6 +75,7 @@
+     { nsnull, 0 }, 
+ };
+ 
++#if 0
+ DERTemplate SECAlgorithmIDTemplate[] = {
+     { DER_SEQUENCE,
+ 	  0, NULL, sizeof(SECAlgorithmID) },
+@@ -84,6 +85,7 @@
+ 	  offsetof(SECAlgorithmID,parameters), },
+     { 0, }
+ };
++#endif
+ 
+ DERTemplate CERTSubjectPublicKeyInfoTemplate[] = {
+     { DER_SEQUENCE,
