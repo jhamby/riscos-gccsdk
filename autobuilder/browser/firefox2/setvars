@@ -6,7 +6,7 @@ AB_CVS_TAGORBRANCH=MOZILLA_1_8_BRANCH
 
 AB_CVS_MODULE=mozilla/client.mk
 AB_ZIPNAME=firefox
-AB_PVERSION=2.0.0.22
+AB_PVERSION=2.0.0.22pre
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
 AB_ROVERSION=2
@@ -57,7 +57,7 @@ ab_make () {
   # Start the offical build procedure:
   #We can't call the offical build target because that will rerun configure without all
   #all clever hacks & tricks in $GCCSDK_INSTALL_ENV/ro-config.
-  $GCCSDK_INSTALL_ENV/ro-make 
+  $GCCSDK_INSTALL_ENV/ro-make
 }
 
 mozilla_patch () {

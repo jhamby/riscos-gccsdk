@@ -342,3 +342,27 @@ diff -u -r1.37.2.11 nsXREDirProvider.cpp
  #elif defined(XP_UNIX)
    const char* homeDir = getenv("HOME");
    if (!homeDir || !*homeDir)
+Index: toolkit/themes/pinstripe/global/nativescrollbars.css
+===================================================================
+RCS file: /cvsroot/mozilla/toolkit/themes/pinstripe/global/nativescrollbars.css,v
+retrieving revision 1.5.2.1
+diff -u -r1.5.2.1 nativescrollbars.css
+--- toolkit/themes/pinstripe/global/nativescrollbars.css	14 Aug 2005 16:28:41 -0000	1.5.2.1
++++ toolkit/themes/pinstripe/global/nativescrollbars.css	13 Oct 2009 18:46:14 -0000
+@@ -48,7 +48,7 @@
+ scrollbar {
+   -moz-appearance: scrollbar;
+   -moz-binding: url(chrome://global/content/bindings/nativescrollbar.xml#scrollbar);
+-  min-width: 16px;
++  min-width: 0px;
+   cursor: default;
+   background-color: white;
+ }
+@@ -77,6 +77,6 @@
+ 
+ thumb {
+   background: url("chrome://global/skin/icons/thumb.png") transparent center no-repeat;
+-  min-width: 15px;
++  min-width: 0px;
+ }
+ 
