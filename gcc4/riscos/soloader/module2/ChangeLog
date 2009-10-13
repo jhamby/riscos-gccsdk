@@ -1,3 +1,9 @@
+Tue Oct 13 19:35:23 2009  Lee Noar  <leenoar@sky.com>
+
+	* som_runcom.c(read_ld_env): Looks like my logic
+	got a bit mixed up here. Only worked for !runimage
+	and *-bin. Simplify and fix.
+
 Sun Oct 11 14:10:45 2009  Lee Noar  <leenoar@sky.com>
 
 	New feature addition. Record basic details of last

@@ -384,8 +384,6 @@ read_ld_env(runcom_state *state, char *buffer)
 
   name_start++;
 
-  bool use_global_env = true;
-
   /* If the leaf name happens to be !RunImage or ends in -bin, then look
     for the application name.  */
   if (stricmp (name_start, "!runimage") == 0
@@ -402,7 +400,6 @@ read_ld_env(runcom_state *state, char *buffer)
 	{
 	  name_end = name_start - 1;
 	  name_start = app_start + 1;
-	  use_global_env = false;
 	}
     }
 
@@ -413,24 +410,17 @@ read_ld_env(runcom_state *state, char *buffer)
 				 + sizeof (global_env_name) + 2)) == NULL)
     goto exit_with_empty_string;
 
-  if (!use_global_env)
-    {
-      strncpy (env_name, name_start, name_end - name_start);
-      strcpy (env_name + (name_end - name_start), "$");
-    }
-  else
-    *env_name = '\0';
-
+  strncpy (env_name, name_start, name_end - name_start);
+  strcpy (env_name + (name_end - name_start), "$");
   strcat (env_name, global_env_name);
 
+  bool use_global_env = false;
   int var_len;
 
-  /* If a variable for this particular process doesn't exist, try the global
-     one instead.  */
-  if ((var_len = os_read_var_val_size (env_name)) == 1
-      /* If we've already done the global env, then no point in doing it again. */
-      && !use_global_env)
+  if ((var_len = os_read_var_val_size (env_name)) == 1)
     {
+      /* If a variable for this particular process doesn't exist, try the global
+         one instead.  */
       var_len = os_read_var_val_size (global_env_name);
       use_global_env = true;
     }
