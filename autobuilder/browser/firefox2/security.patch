@@ -1,19 +1,3 @@
-Index: security/coreconf/nsinstall/nsinstall.c
-===================================================================
-RCS file: /cvsroot/mozilla/security/coreconf/nsinstall/nsinstall.c,v
-retrieving revision 1.8
-diff -u -r1.8 nsinstall.c
---- security/coreconf/nsinstall/nsinstall.c	25 Apr 2004 15:02:18 -0000	1.8
-+++ security/coreconf/nsinstall/nsinstall.c	26 Aug 2008 03:14:46 -0000
-@@ -58,7 +58,7 @@
- 
- #define HAVE_LCHOWN
- 
--#if defined(AIX) || defined(BSDI) || defined(HPUX) || defined(LINUX) || defined(SUNOS4) || defined(SCO) || defined(UNIXWARE) || defined(VMS) || defined(NTO) || defined(DARWIN) || defined(BEOS)
-+#if defined(AIX) || defined(BSDI) || defined(HPUX) || defined(LINUX) || defined(SUNOS4) || defined(SCO) || defined(UNIXWARE) || defined(VMS) || defined(NTO) || defined(DARWIN) || defined(BEOS) || defined(__riscos__)
- #undef HAVE_LCHOWN
- #endif
- 
 Index: security/nss-fips/lib/freebl/unix_rand.c
 ===================================================================
 RCS file: /cvsroot/mozilla/security/nss/lib/freebl/unix_rand.c,v

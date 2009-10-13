@@ -33,22 +33,6 @@
  }
 --- ./security/manager/ssl/src/nsKeygenHandler.cpp.orig	2008-12-29 21:27:26.000000000 -0800
 +++ ./security/manager/ssl/src/nsKeygenHandler.cpp	2008-12-29 21:28:17.000000000 -0800
-@@ -75,6 +75,7 @@
-     { nsnull, 0 }, 
- };
- 
-+#if 0
- DERTemplate SECAlgorithmIDTemplate[] = {
-     { DER_SEQUENCE,
- 	  0, NULL, sizeof(SECAlgorithmID) },
-@@ -84,6 +85,7 @@
- 	  offsetof(SECAlgorithmID,parameters), },
-     { 0, }
- };
-+#endif
- 
- DERTemplate CERTSubjectPublicKeyInfoTemplate[] = {
-     { DER_SEQUENCE,
 @@ -104,6 +106,7 @@
      { 0, }
  };
@@ -76,17 +60,6 @@
  LINKSRC = nsGlueLinkingDlopen.cpp
  endif
  ifeq (OS2,$(OS_ARCH))
---- ./widget/src/riscos/nsMenuBar.cpp.orig	2008-12-29 21:26:30.000000000 -0800
-+++ ./widget/src/riscos/nsMenuBar.cpp	2008-12-29 21:26:47.000000000 -0800
-@@ -73,7 +73,7 @@
- NS_IMPL_ISUPPORTS5(nsMenuBar, nsIMenuBar, nsIMenuListener, nsIDocumentObserver,
-                     nsIChangeManager, /*nsIMenuCommandDispatcher,*/ nsISupportsWeakReference)
- 
--/*extern*/ menu_ptr gCurrentROMenu;  
-+extern menu_ptr gCurrentROMenu;  
- 
- //
- // nsMenuBar constructor
 Index: config/rules.mk
 ===================================================================
 RCS file: /cvsroot/mozilla/config/rules.mk,v
@@ -147,7 +120,7 @@ diff -u -r3.487.2.9 rules.mk
      ;;
  
  *-*-sco*)
--- configure.in.orig	2009-08-18 14:04:47.000000000 -0700
+--- configure.in.orig	2009-08-18 14:04:47.000000000 -0700
 +++ configure.in	2009-08-18 15:39:23.000000000 -0700
 @@ -2303,6 +2303,15 @@
      HOST_NSPR_MDCPUCFG='\"md/_os2.cfg\"'
@@ -202,8 +175,8 @@ Index: coreconf/rules.mk
 RCS file: /cvsroot/mozilla/security/coreconf/rules.mk,v
 retrieving revision 1.78
 diff -u -r1.78 rules.mk
---- coreconf/rules.mk	20 Jan 2009 23:30:57 -0000	1.78
-+++ coreconf/rules.mk	12 Sep 2009 04:20:18 -0000
+--- security/coreconf/rules.mk	20 Jan 2009 23:30:57 -0000	1.78
++++ security/coreconf/rules.mk	12 Sep 2009 04:20:18 -0000
 @@ -341,8 +341,12 @@
  ifeq ($(OS_TARGET),RISCOS)
  	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
@@ -217,3 +190,14 @@ diff -u -r1.78 rules.mk
  	chmod +x $@
  ifeq ($(OS_TARGET),Darwin)
  ifdef MAPFILE
+--- widget/src/riscos/nsMenuBar.cpp.orig	2009-10-12 21:15:52.000000000 -0700
++++ widget/src/riscos/nsMenuBar.cpp	2009-10-12 21:29:21.000000000 -0700
+@@ -73,7 +73,7 @@
+ NS_IMPL_ISUPPORTS5(nsMenuBar, nsIMenuBar, nsIMenuListener, nsIDocumentObserver,
+                     nsIChangeManager, /*nsIMenuCommandDispatcher,*/ nsISupportsWeakReference)
+ 
+-/*extern*/ menu_ptr gCurrentROMenu;
++extern menu_ptr gCurrentROMenu;
+ 
+ //
+ // nsMenuBar constructor

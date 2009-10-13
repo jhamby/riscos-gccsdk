@@ -60,6 +60,7 @@
 #include "nsHTMLFormatConverter.h"
 #include "nsDragService.h"
 #include "nsSound.h"
+#include "nsNativeScrollbar.h"
 
 #include "nsBidiKeyboard.h"
 
@@ -81,6 +82,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsClipboard)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsClipboardHelper)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsHTMLFormatConverter)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsDragService)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsNativeScrollbar)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsBidiKeyboard)
 
 static const nsModuleComponentInfo components[] =
@@ -139,12 +141,10 @@ static const nsModuleComponentInfo components[] =
     nsLabelConstructor },
   { "Transferrable",
     NS_TRANSFERABLE_CID,
-    //    "@mozilla.org/widget/transferrable/riscos;1",
     "@mozilla.org/widget/transferable;1",
     nsTransferableConstructor },
   { "RISC OS Clipboard",
     NS_CLIPBOARD_CID,
-    //    "@mozilla.org/widget/clipboard/riscos;1",
     "@mozilla.org/widget/clipboard;1",
     nsClipboardConstructor },
   { "Clipboard Helper",
@@ -157,9 +157,12 @@ static const nsModuleComponentInfo components[] =
     nsHTMLFormatConverterConstructor },
   { "RISC OS Drag Service",
     NS_DRAGSERVICE_CID,
-    //    "@mozilla.org/widget/dragservice/riscos;1",
     "@mozilla.org/widget/dragservice;1",
     nsDragServiceConstructor },
+  { "RISC OS Native Scrollbar",
+    NS_NATIVESCROLLBAR_CID,
+    "@mozilla.org/widget/nativescrollbar;1",
+    nsNativeScrollbarConstructor },
   { "RISC OS Bidi Keyboard",
     NS_BIDIKEYBOARD_CID,
     "@mozilla.org/widget/bidikeyboard;1",

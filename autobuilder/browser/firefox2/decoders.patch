@@ -5,7 +5,7 @@ RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/bmp/nsBMPDecoder.cpp,v
 retrieving revision 1.29.4.1
 diff -u -r1.29.4.1 nsBMPDecoder.cpp
 --- modules/libpr0n/decoders/bmp/nsBMPDecoder.cpp	17 Dec 2007 20:49:46 -0000	1.29.4.1
-+++ modules/libpr0n/decoders/bmp/nsBMPDecoder.cpp	12 Sep 2009 04:08:44 -0000
++++ modules/libpr0n/decoders/bmp/nsBMPDecoder.cpp	22 Sep 2009 21:41:15 -0000
 @@ -163,10 +163,10 @@
  
      for (cnt = 0; cnt < rows; cnt++) {
@@ -34,7 +34,7 @@ RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/bmp/nsBMPDecoder.h,v
 retrieving revision 1.20
 diff -u -r1.20 nsBMPDecoder.h
 --- modules/libpr0n/decoders/bmp/nsBMPDecoder.h	18 Apr 2004 22:00:41 -0000	1.20
-+++ modules/libpr0n/decoders/bmp/nsBMPDecoder.h	12 Sep 2009 04:08:44 -0000
++++ modules/libpr0n/decoders/bmp/nsBMPDecoder.h	22 Sep 2009 21:41:15 -0000
 @@ -125,7 +125,7 @@
  #define RLE_GFXFORMAT_ALPHA gfxIFormats::RGB_A1
  #endif
@@ -60,7 +60,7 @@ RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/bmp/nsICODecoder.cpp,v
 retrieving revision 1.35
 diff -u -r1.35 nsICODecoder.cpp
 --- modules/libpr0n/decoders/bmp/nsICODecoder.cpp	26 May 2005 22:43:36 -0000	1.35
-+++ modules/libpr0n/decoders/bmp/nsICODecoder.cpp	12 Sep 2009 04:08:44 -0000
++++ modules/libpr0n/decoders/bmp/nsICODecoder.cpp	22 Sep 2009 21:41:15 -0000
 @@ -70,10 +70,10 @@
  {
    PRUint32 bpr;
@@ -108,7 +108,7 @@ RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/gif/Attic/imgContainerGIF.cp
 retrieving revision 1.20.8.1
 diff -u -r1.20.8.1 imgContainerGIF.cpp
 --- modules/libpr0n/decoders/gif/imgContainerGIF.cpp	2 May 2006 18:49:16 -0000	1.20.8.1
-+++ modules/libpr0n/decoders/gif/imgContainerGIF.cpp	12 Sep 2009 04:08:44 -0000
++++ modules/libpr0n/decoders/gif/imgContainerGIF.cpp	22 Sep 2009 21:41:15 -0000
 @@ -1021,7 +1021,7 @@
    PRUint32 bpr; // Bytes Per Row
    aFrame->GetImageBytesPerRow(&bpr);
@@ -124,7 +124,7 @@ RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/gif/nsGIFDecoder2.cpp,v
 retrieving revision 1.65
 diff -u -r1.65 nsGIFDecoder2.cpp
 --- modules/libpr0n/decoders/gif/nsGIFDecoder2.cpp	10 Mar 2005 13:31:26 -0000	1.65
-+++ modules/libpr0n/decoders/gif/nsGIFDecoder2.cpp	12 Sep 2009 04:08:51 -0000
++++ modules/libpr0n/decoders/gif/nsGIFDecoder2.cpp	22 Sep 2009 21:41:15 -0000
 @@ -497,18 +497,18 @@
  
      if (!cmap) { // cmap could have null value if the global color table flag is 0
@@ -193,7 +193,7 @@ RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/jpeg/nsJPEGDecoder.cpp,v
 retrieving revision 1.62.18.1
 diff -u -r1.62.18.1 nsJPEGDecoder.cpp
 --- modules/libpr0n/decoders/jpeg/nsJPEGDecoder.cpp	3 Feb 2006 14:41:10 -0000	1.62.18.1
-+++ modules/libpr0n/decoders/jpeg/nsJPEGDecoder.cpp	12 Sep 2009 04:08:51 -0000
++++ modules/libpr0n/decoders/jpeg/nsJPEGDecoder.cpp	22 Sep 2009 21:41:15 -0000
 @@ -353,7 +353,7 @@
  
      // Note! row_stride here must match the row_stride in
@@ -245,7 +245,7 @@ RCS file: /cvsroot/mozilla/modules/libpr0n/decoders/png/nsPNGDecoder.cpp,v
 retrieving revision 1.46.18.1
 diff -u -r1.46.18.1 nsPNGDecoder.cpp
 --- modules/libpr0n/decoders/png/nsPNGDecoder.cpp	26 Sep 2006 21:40:49 -0000	1.46.18.1
-+++ modules/libpr0n/decoders/png/nsPNGDecoder.cpp	12 Sep 2009 04:08:51 -0000
++++ modules/libpr0n/decoders/png/nsPNGDecoder.cpp	22 Sep 2009 21:41:15 -0000
 @@ -435,13 +435,18 @@
      switch (format) {
      case gfxIFormats::RGB:

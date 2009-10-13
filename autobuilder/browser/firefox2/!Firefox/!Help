@@ -5,7 +5,7 @@ Mozilla Firefox 2 for RISC OS
 http://www.riscos.info/index.php/Firefox
 
 August 2009
-RISC OS Release 8
+RISC OS Release 9
 Peter Naulls
 peter@chocky.org
 
@@ -50,6 +50,15 @@ See instead the RiscPC version.
 
 Changes
 -------
+
+Release 9 (xxx 2009)
+
+Upstream update to ongoing Mozilla 1.8 branch, post 2.0.0.20
+
+ - Nominal upstream version of 2.0.0.22
+ - Rewritten graphics engine for RISC OS to increase speed and 
+   memory performance
+ - Native scrollbars
 
 Release 8 (Aug 2009)
 

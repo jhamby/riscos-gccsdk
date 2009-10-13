@@ -99,6 +99,7 @@ CPPSRCS		= \
 		nsMenu.cpp \
 		nsMenuItem.cpp \
 		nsWidgetFactory.cpp \
+		nsNativeScrollbar.cpp \
 		$(NULL)
 
 XPIDLSRCS  += \

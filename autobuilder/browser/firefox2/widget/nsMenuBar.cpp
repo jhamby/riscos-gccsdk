@@ -73,7 +73,7 @@ static NS_DEFINE_CID(kMenuCID, NS_MENU_CID);
 NS_IMPL_ISUPPORTS5(nsMenuBar, nsIMenuBar, nsIMenuListener, nsIDocumentObserver,
                     nsIChangeManager, /*nsIMenuCommandDispatcher,*/ nsISupportsWeakReference)
 
-extern menu_ptr gCurrentROMenu;  
+/*extern*/ menu_ptr gCurrentROMenu;
 
 //
 // nsMenuBar constructor
@@ -114,8 +114,6 @@ nsMenuBar::~nsMenuBar()
 //-------------------------------------------------------------------------
 NS_METHOD nsMenuBar::Create(nsIWidget *aParent)
 {
-  puts("menubar::Create menubar");
-
   SetParent(aParent);
   return NS_OK;
 }
@@ -124,7 +122,6 @@ NS_METHOD nsMenuBar::Create(nsIWidget *aParent)
 //-------------------------------------------------------------------------
 NS_METHOD nsMenuBar::GetParent(nsIWidget *&aParent)
 {
-  puts("menubar::GetParent");
   NS_IF_ADDREF(aParent = mParent);
   return NS_OK;
 }
@@ -133,7 +130,6 @@ NS_METHOD nsMenuBar::GetParent(nsIWidget *&aParent)
 //-------------------------------------------------------------------------
 NS_METHOD nsMenuBar::SetParent(nsIWidget *aParent)
 {
-  puts("menubar::Set Parent");
   mParent = aParent;    // weak ref
   return NS_OK;
 }
@@ -344,9 +340,6 @@ nsMenuBar::MenuHandler(event_pollblock *event, void *reference)
   }
   return FALSE;
 }
-
-
-
 
 
 nsEventStatus
@@ -644,7 +637,7 @@ nsMenuBar :: Register ( nsIContent *aContent, nsIChangeObserver *aMenuObject )
 {
   nsVoidKey key ( aContent );
   mObserverTable.Put ( &key, aMenuObject );
-  
+
   return NS_OK;
 }
 
@@ -654,7 +647,7 @@ nsMenuBar :: Unregister ( nsIContent *aContent )
 {
   nsVoidKey key ( aContent );
   mObserverTable.Remove ( &key );
-  
+
   return NS_OK;
 }
 
@@ -733,9 +726,8 @@ MenuHelpers::DocShellToPresContext (nsIDocShell* inDocShell, nsPresContext** out
   }
   else
     retval = NS_ERROR_FAILURE;
-  
+
   return retval;
-  
 } // DocShellToPresContext
 
 nsEventStatus
@@ -753,9 +745,6 @@ puts("helpers::dispatchcommandto");
 
   nsEventStatus status = nsEventStatus_eConsumeNoDefault;
   nsMouseEvent event(PR_TRUE, NS_XUL_COMMAND, nsnull, nsMouseEvent::eReal);
-
-  // FIXME: Should probably figure out how to init this with the actual
-  // pressed keys, but this is a big old edge case anyway. -dwh
 
   // See if we have a command element.  If so, we execute on the
   // command instead of on our content element.

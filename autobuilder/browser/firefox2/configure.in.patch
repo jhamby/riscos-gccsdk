@@ -24,22 +24,6 @@ diff -u -r1.1503.2.119 configure.in
  *)
      HOST_CFLAGS="$HOST_CFLAGS -DXP_UNIX"
      HOST_OPTIMIZE_FLAGS="${HOST_OPTIMIZE_FLAGS=-O2}"
-@@ -2298,6 +2303,15 @@
-     HOST_NSPR_MDCPUCFG='\"md/_os2.cfg\"'
-     ;;
- 
-+*-riscos*)
-+    DSO_PIC_CFLAGS=
-+    DLL_SUFFIX=.a
-+    MKSHLIB="$AR rc \$@"
-+    MKCSHLIB="$AR rc \$@"
-+    MKSHLIB_FORCE_ALL=''
-+    MKSHLIB_UNFORCE_ALL=''
-+    ;;
-+
- esac
- 
- dnl Only one oddball right now (QNX), but this gives us flexibility
 @@ -3965,7 +3979,8 @@
          -o "$_DEFAULT_TOOLKIT" = "windows" \
          -o "$_DEFAULT_TOOLKIT" = "cocoa" \

@@ -6,7 +6,7 @@ AB_CVS_TAGORBRANCH=MOZILLA_1_8_BRANCH
 
 AB_CVS_MODULE=mozilla/client.mk
 AB_ZIPNAME=firefox
-AB_PVERSION=2.0.0.20
+AB_PVERSION=2.0.0.22
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
 AB_ROVERSION=2
@@ -40,6 +40,7 @@ ab_make () {
   if [ "$AB_CVS_TAGORBRANCH" == "MOZILLA_1_8_BRANCH" ] ; then
     cvs -qq -z3 update -dPA -rFIREFOX_2_0_0_20_RELEASE security/manager
     cvs -qq -z3 update -dPA -rNSS_3_11_10_RTM security/nss
+    cp -a security/nss security/nss-fips
   fi
 
   # Patch downloaded source:
