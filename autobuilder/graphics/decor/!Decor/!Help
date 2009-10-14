@@ -1,4 +1,4 @@
-Décor version 4.20 (8th March 2008) Help File
+Décor version 4.20 (October 2009) Help File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Peter Naulls
@@ -144,8 +144,8 @@ List of features added by Peter and bug fixes for version 1.20
 - Made sure directories were relogged when paths are changed.
 - Stopped Décor hanging if there was only one picture in a directory
 - Adjust in menu now keeps menu open.
-- Note it is possible to use the Megaboard placement options when using 
-  megaboard by manually editing the configuration file.  e.g. "Top" aligns the 
+- Note it is possible to use the Megaboard placement options when using
+  megaboard by manually editing the configuration file.  e.g. "Top" aligns the
   backdrop with the top of the screen.
 
 1.30 (Peter)
@@ -211,25 +211,14 @@ List of features added by Peter and bug fixes for version 1.20
 
 - Update for RISC OS Autobuilder
 - Fix spelling mistakes
-- No feature changes since it has been perfect for over 5 years ;-)
+- No feature changes since it has been perfect for over 6 years ;-)
+- Released under GPL 2.
 
 -----------------------------------------------------------------------------
 
 Legal stuff
 ~~~~~~~~~~~
-This application, its source code and all included files are copyright
-Geoffrey Khoo and Peter Naulls unless stated elsewhere in this help file.
-You may freely distribute this application provided that:
-  - it is copied in its entirety will all files present and unaltered
-  - it is not sold for profit either on its own or as part of a
-    compilation.
-  - No charge is made for copying other than the charge to cover the
-    cost of a floppy disk.
 
-If you don't agree to all this, you must delete all copies of this
-application you have.
+Décor is copyright Geoffrey Khoo and Peter Naulls, and
+distributed under the terms of the GPL 2.
 
-No fitness of this software for any purpose is implied. The author is
-in no way liable for any misfortune encountered from the use of this
-software. In fact, it's probably got some horrendous bug in it right
-now. Well, use it at your own risk. I do. ;-)
