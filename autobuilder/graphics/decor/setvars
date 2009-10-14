@@ -1,7 +1,8 @@
 
-AB_CATEGORY=App/Graphics
+AB_CATEGORY=Graphics
 AB_NOREMOTE=yes
 AB_PVERSION=1.40
+AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
 cp -av $H/\!Decor $S/$'!D\xE9cor/'
 cp -av $H/Decor.c $H/Makefile $S
@@ -11,6 +12,7 @@ ab_package() {
 
  mkdir -p $D/$AB_CATEGORY
  cp -av $S/$'!D\xE9cor/' $D/$AB_CATEGORY/
+ cp -av $H/RiscPkg $D/
 
  $AB_HOME/add-riscpkg
 }

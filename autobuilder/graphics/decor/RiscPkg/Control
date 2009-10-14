@@ -1,0 +1,5 @@
+Licence: GPL
+Description: Ultimate RISC OS Backdrop Changer
+ Decor takes directories of JPEGs and Sprites and
+ displays them in configured manner on the backdrop.  
+ It can even be used as a slideshow with a temporary folder.
