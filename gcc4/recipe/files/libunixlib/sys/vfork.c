@@ -99,6 +99,10 @@ __fork_post (pid_t pid, int isfork)
 
       if (gbl->pthread_system_running)
         __pthread_atfork_callparentchild (0);
+
+      /* Record the fact that this child process was the result of
+	 fork().  */
+      gbl->sulproc->status.forked = 1;
     }
   else
     {

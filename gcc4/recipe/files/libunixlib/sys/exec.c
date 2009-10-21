@@ -468,6 +468,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
   debug_printf ("-- execve: about to call: %s\n", cli);
 #endif
 
+  /* Record the fact that the new process was the result of exec().  */
+  sulproc->status.execed = 1;
+
 #ifdef PIC
   if (sulproc->ppid == 1)
     {

@@ -441,12 +441,21 @@ _exit (int return_code)
   __env_riscos ();
 
 #ifdef PIC
-  {
-    /* Tell the Shared Object Manager that the current client has exited */
-    int regs[10];
+  /* There are 3 possibilities to watch out for here:
 
-    (void) __os_swi(SOM_DeregisterClient, regs);
-  }
+     a) The process is a child which resulted from a fork(), but
+        not an exec(). The child is the same client as the parent
+        and should not be deregistered.
+     b) The process is a child which resulted from an exec()
+	(regardless of fork()). The child is a new client which
+	is distinct from its parent and should be deregistered.
+     c) The process is not a child at all and should be deregistered.  */
+  if (sulproc->status.execed || !sulproc->status.forked)
+    {
+      int regs[10];
+
+      (void) __os_swi(SOM_DeregisterClient, regs);
+    }
 #endif
 
 #ifdef DEBUG

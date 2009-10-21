@@ -1,3 +1,22 @@
+Wed Oct 21 17:46:48 2009  Lee Noar  <leenoar@sky.com>
+
+	* incl-local/internal/unix.h(struct __process): Add
+	2 new flags to record how this process was created.
+	* sys/exec.c(execve): Set flag to show that this
+	process was the result of exec().
+	* sys/vfork.c(__fork_post): Set flag to show that this
+	process was the result of fork().
+	* unix/unix.c(_exit): Be more careful about when we
+	deregister the client from the Shared Object Manager.
+	A process that was forked (but not execed) is
+	considered to be the same client as its parent. It
+	should not be deregistered on exit, so that control can
+	be successfully returned to the parent.
+	A process that was execed (even if forked) is a new client
+	in its own right and distinct from its parent and should
+	be deregistered on exit.
+	A process with no parent should always be deregistered.
+
 Sat Sep 19 12:41:12 2009  Lee Noar  <leenoar@sky.com>
 
 	* gmon/gmon_start.c: Don't use _init symbol to find the

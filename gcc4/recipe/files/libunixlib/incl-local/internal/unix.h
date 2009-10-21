@@ -62,6 +62,10 @@ struct __process
   unsigned int zombie : 1;
   /* This process has already been reported to wait() whilst it is stopped.   */
   unsigned int reported : 1;
+  /* This process was the result of a fork().  */
+  unsigned int forked : 1;
+  /* This process was the result of exec().  */
+  unsigned int execed : 1;
 };
 
 /* This structure must be kept in perfect synchronisation with
