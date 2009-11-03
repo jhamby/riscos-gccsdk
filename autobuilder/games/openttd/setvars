@@ -14,8 +14,9 @@ $CC -I$GCCSDK_INSTALL_ENV/include -I$GCCSDK_INSTALL_ENV/include  $GCCSDK_INSTALL
  os/riscos/frontend.c os/riscos/rev.c -O2 -o frontend$AB_EXEEXT
 
 
-AB_CONFLAGS="--os=unix --with-zlib=$GCCSDK_INSTALL_ENV/lib/libz.a --prefix-dir=/OpenTTD: --data-dir= --personal-dir=/OpenTTDChoices:"
-
+export CFLAGS=-I/home/riscos/env/include
+AB_CONFLAGS="--os=unix --with-zlib=$GCCSDK_INSTALL_ENV/lib/libz.a --prefix-dir=/OpenTTD:
+             --data-dir= --personal-dir=/OpenTTDChoices: --with-freetype=0"
 
 ab_package () {
   ab_create_app OpenTTD Apps/Games
@@ -23,6 +24,7 @@ ab_package () {
   cp -av $S/bin/data/*.grf $A/data/
   cp -av $S/bin/data/*.dat $A/data/
   cp -av $S/bin/data/*.obg $A/data/
+  cp -av $S/bin/data/*.obs $A/data/
   cp -av $S/bin/scripts    $A/
 
   for doc in docs/Manual.txt docs/multiplayer.txt COPYING known-bugs.txt readme.txt; do
