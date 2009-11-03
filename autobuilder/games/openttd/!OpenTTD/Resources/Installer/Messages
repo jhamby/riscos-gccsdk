@@ -1,0 +1,40 @@
+Tsk:OpenTTD Installer
+Menu1:OpenTTD,>Info,Quit
+
+Website:http://www.flypig.co.uk/
+Email:mailto:david@flypig.co.uk
+
+Er1:To save, drag the icon to a directory display
+Er2:Memory to store data could not be allocated
+Er3:Failed to allocate memory to load file
+
+OK:OK
+Cancel:Cancel
+Text1:Drag the files to this window to install them inside the !OpenTTD application
+Text2:All files have been installed successfully; you can now click OK to run the game
+
+H1:This is the Shell program; it is a C++ shell for creating wimp applications.|M\S to open the main window.
+
+H2:This \w is used to design your application.
+H2I0:Drag the icon somewhere to save it.
+
+H3:This \w displays details of any errors that occur.
+H3I0:\Sdismiss the error message.
+
+H4:This \w displays informatiom about the application.
+H4I0:This is the name of the applcation.
+H4I1:This is the purpose of the application.
+H4I2:This is the author of the application.
+H4I3:This is the version of the application.
+H4I8:\Semail the author at david@flypig.co.uk.
+H4I9:\Sopen the author's website at www.flypig.co.uk.
+
+H5:This is the dialogue box for saving files.
+H5I0:\Ssave the file with the pathname above.
+H5I1:\Sclose the Save dialogue box.
+H5I2:Enter a new leafname or pathname for the file here.
+H5I3:Drag the icon to a directory display to save the file.
+
+H6I0:\Rsee information about the application.
+H6I1:\Squit the application.
+

@@ -1,0 +1,36 @@
+
+AB_SVN=svn://svn.openttd.org/trunk
+
+(unset CC; unset CXX; ./configure)
+make -C objs/lang
+
+rm config.cache
+cp objs/lang/endian_check objs/release
+cp $H/endian_host.h objs/release
+
+cp -av $H/riscos os
+
+$CC -I$GCCSDK_INSTALL_ENV/include -I$GCCSDK_INSTALL_ENV/include  $GCCSDK_INSTALL_ENV/lib/libOSLib32.a \
+ os/riscos/frontend.c os/riscos/rev.c -O2 -o frontend$AB_EXEEXT
+
+
+AB_CONFLAGS="--os=unix --with-zlib=$GCCSDK_INSTALL_ENV/lib/libz.a --prefix-dir=/OpenTTD: --data-dir= --personal-dir=/OpenTTDChoices:"
+
+
+ab_package () {
+  ab_create_app OpenTTD Apps/Games
+
+  cp -av $S/bin/data/*.grf $A/data/
+  cp -av $S/bin/data/*.dat $A/data/
+  cp -av $S/bin/data/*.obg $A/data/
+  cp -av $S/bin/scripts    $A/
+
+  for doc in docs/Manual.txt docs/multiplayer.txt COPYING known-bugs.txt readme.txt; do
+    cp -av $S/$doc $A/docs/
+  done
+
+  cp -av $S/bin/lang/*.lng $A/lang/
+
+  cp -av $S/frontend$AB_EXEEXT $A/Resources/Installer/\!RunImage$AB_EXEEXT
+  cp -av $S/objs/release/openttd $A/\!RunImage$AB_EXEEXT
+}
