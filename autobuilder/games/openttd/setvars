@@ -1,6 +1,4 @@
 
-AB_SVN=svn://svn.openttd.org/trunk
-
 (unset CC; unset CXX; ./configure)
 make -C objs/lang
 
@@ -24,7 +22,7 @@ ab_package () {
   cp -av $S/bin/data/*.grf $A/data/
   cp -av $S/bin/data/*.dat $A/data/
   cp -av $S/bin/data/*.obg $A/data/
-  cp -av $S/bin/data/*.obs $A/data/
+  #cp -av $S/bin/data/*.obs $A/data/
   cp -av $S/bin/scripts    $A/
 
   for doc in docs/Manual.txt docs/multiplayer.txt COPYING known-bugs.txt readme.txt; do
