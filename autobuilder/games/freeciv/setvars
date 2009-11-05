@@ -4,7 +4,7 @@ AB_DEBNAME=freeciv-client-sdl
 
 AB_CONFLAGS="--enable-client=sdl"
 
-export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec"
+export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -lSDL"
 
 ab_package() {
   AD=$D/Apps/Games
