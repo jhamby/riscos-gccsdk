@@ -1,6 +1,6 @@
---- utility/shared.c.orig	2008-06-16 08:32:59.000000000 +0100
-+++ utility/shared.c	2008-09-11 12:29:21.257353800 +0100
-@@ -53,7 +53,7 @@
+--- utility/shared.c.orig	2009-03-24 16:22:44.000000000 -0700
++++ utility/shared.c	2009-11-05 14:39:44.000000000 -0800
+@@ -54,7 +54,7 @@
  #include "shared.h"
  
  #ifndef PATH_SEPARATOR
@@ -9,3 +9,12 @@
    /* Win32, OS/2, DOS */
  # define PATH_SEPARATOR ";"
  #else
+@@ -766,6 +766,8 @@
+ {
+ #ifdef AMIGA
+   return "PROGDIR:";
++#elif !defined(riscos)
++  return mystrdup("/<Choices$Write>/");
+ #else
+   static bool init = FALSE;
+   static char *home_dir = NULL;
