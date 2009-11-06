@@ -1,61 +1,21 @@
 freeciv for RISC OS (SDL Client)
 ================================
 
-Added to the gccsdk autobuilder at version 2.1.5.
-
-1.4.1-devel was Ported by Peter Naulls (unix@chocky.org)
+Port by Peter Naulls <peter@chocky.org> and Alan Buckley.
 
 This version of freeciv was built by the GCCSDK autobuilder and is
 released on the autobuilder website: http://www.riscos.info/packages
 
 
-Please note
------------
+== Under RISC OS ==
 
-This program is 32-bit compatible, and is suitable for all RISC OS
-ARM6, ARM7, StrongARM and XScale machines.  It may not be suitable for
-earlier machines.
-
-If not installed using !RiscPkg you will also need to download the
-UnixFont application and copy the ttf-dejavu-core archive over it.
-!UnixFont must have been seen by the filer.
-
-Currently the Start option from the client menu is not implemented
-on RISC OS.
-
-Usage
------
-
-This is a port of the SDL client of Freeciv to RISC OS.  this version
-is based upon a current CVS version, and may have various display issues
-(also present on other platforms).
-
-Quick start:
-
-  Run !CivServer
-  Run !CivClient
-  Click "Join Game"
-  Click "Connect"
-  Type "start" in the server taskwindow
-  Choose your nation in the client, then click "start".
+When you start a single player game, a local server will be started in a
+taskwindow.  Under other systems this server would typically be invisible,
+so you are free to minimize this.
 
 
-Other notes:
 
-  If you double-click !UnixHome and edit the file !UserRC, you can
-  add at the end:
-
-    Set UnixEnv$USER peter
-
-  Or similar to give yourself a sensible unix style username.  
-
-
-  Not quitting the client properly may cause no sound when running
-  subsequent SDL games.  "*RMReinit DigitalRenderer" is a temporary
-  work around.
-
-
-  For more information about Freeciv see http://www.freeciv.org/
+For more information about Freeciv see http://www.freeciv.org/
 
 
 SDL Client Controls:

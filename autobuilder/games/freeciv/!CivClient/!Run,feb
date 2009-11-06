@@ -7,7 +7,9 @@ IconSprites <FreeCiv$Dir>.!Sprites
 If "<UnixFont$Dir>" = "" Then Error FreeCiv client needs UnixFont to have been seen by the filer
 IfThere UnixFont:truetype.ttf-dejavu Then Else Error FreeCiv needs the ttf-dejavu font installed
 
-Set FREECIV_PATH /FreeCiv:data/
+CDir <Choices$Write>.Freeciv
+Set FREECIV_PATH /FreeCiv:/data/
+Set SDL$civclient$TaskName Freeciv Client
 
 WimpSlot -min 8192k -max 8192k
 <FreeCiv$Dir>.civclient ><Obey$Dir>.stdout 2><Obey$Dir>.stderr
