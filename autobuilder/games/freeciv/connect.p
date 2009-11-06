@@ -1,5 +1,5 @@
---- client/connectdlg_common.c.orig	2009-11-05 21:23:48.000000000 -0800
-+++ client/connectdlg_common.c	2009-11-06 09:46:20.000000000 -0800
+--- client/connectdlg_common.c.orig	2009-11-06 11:50:22.000000000 -0800
++++ client/connectdlg_common.c	2009-11-06 11:50:46.000000000 -0800
 @@ -215,7 +215,25 @@
    /* find a free port */ 
    internal_server_port = find_next_free_port(DEFAULT_SOCK_PORT);
@@ -40,3 +40,15 @@
      if (waitpid(server_pid, NULL, WNOHANG) != 0) {
        break;
      }
+@@ -431,7 +451,11 @@
+ 
+     /* get the full filename path */
+     interpret_tilde(challenge_fullname, sizeof(challenge_fullname),
++#ifdef __riscos__
++                    "/<Choices$Write>/Freeciv/");
++#else
+ 		    "~/.freeciv/");
++#endif
+     make_dir(challenge_fullname);
+ 
+     sz_strlcat(challenge_fullname, filename);
