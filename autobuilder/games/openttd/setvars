@@ -1,3 +1,5 @@
+AB_MAINTAINER="Peter Naulls <peter@chocky.org>"                                                                    
+AB_LICENCE="GPLv2"
 
 (unset CC; unset CXX; ./configure)
 make -C objs/lang
@@ -14,7 +16,7 @@ $CC -I$GCCSDK_INSTALL_ENV/include -I$GCCSDK_INSTALL_ENV/include  $GCCSDK_INSTALL
 
 export CFLAGS=-I/home/riscos/env/include
 AB_CONFLAGS="--os=unix --with-zlib=$GCCSDK_INSTALL_ENV/lib/libz.a --prefix-dir=/OpenTTD:
-             --data-dir= --personal-dir=/OpenTTDChoices: --with-freetype=0"
+             --data-dir= --without-shared-dir --personal-dir=/OpenTTDChoices:/ --with-freetype=0 --with-fontconfig=0"
 
 ab_package () {
   ab_create_app OpenTTD Apps/Games
@@ -29,8 +31,12 @@ ab_package () {
     cp -av $S/$doc $A/docs/
   done
 
+  cat readme.txt >> $A/\!Help
+
   cp -av $S/bin/lang/*.lng $A/lang/
 
   cp -av $S/frontend$AB_EXEEXT $A/Resources/Installer/\!RunImage$AB_EXEEXT
   cp -av $S/objs/release/openttd $A/\!RunImage$AB_EXEEXT
+
+  $AB_HOME/add-riscpkg -unixlib
 }
