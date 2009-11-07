@@ -22,7 +22,7 @@ ab_package() {
   cp client/civclient$AB_EXEEXT $AD/\!CivClient
   cp server/civserver$AB_EXEEXT $AD/\!CivServer
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
+  $AB_HOME/add-riscpkg -unixlib -unixsound \
          -nobootvars -depends ttf-dejavu-core
 }
 
