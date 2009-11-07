@@ -2,6 +2,7 @@
 
 // Header %section% is replaced by section name
 const char *detailHeader = 
+  "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
   "<html>\n"
   "<head>\n"
   "<title>Packages in category %section%</title>\n"
@@ -14,7 +15,7 @@ const char *detailHeader =
 const char *detailItem =
    "<table cellpadding=10 cellspacing=0 width=\"100%%\">\n"
    "<tr bgcolor=\"#ddffdd\">\n"
-   "<td><a name = \"#%Package%\"><h3>%Package%</h3></a></td>\n"
+   "<td><a name=\"%Package%\"><b><font size=5>%Package%</font></b></a></td>\n"
    "<td><b>Version:</b> %Version%</td>\n"
    "<td align=\"right\">&nbsp;</td>\n"
    "</tr>\n"

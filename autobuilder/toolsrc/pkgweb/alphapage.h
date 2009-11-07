@@ -3,6 +3,7 @@
 
 // Start of page
 const char *alphaHeader =
+  "<!DOCTYPE html PUBLIC \"-//W3C//DTD HTML 4.01 Transitional//EN\">\n"
   "<html>\n"
   "<head>\n"
   "<title>Alphabetical index of Packages</title>\n"
