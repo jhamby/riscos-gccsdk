@@ -44,7 +44,7 @@ RPKG_SHAREDLIBSGPP_NAME=SharedLibs-C++
 
 GCCSDK_MAINTAINER="GCCSDK mailing list <gcc@gccsdk.riscos.info>"
 
-if [ ! -f $GCCSDK_CROSS_PREFIX/bin/zip ] ; then
+if [ ! -f $GCCSDK_INSTALL_ENV/bin/zip ] ; then
    echo Unable to create RISC OS Packages because of missing zip executable.
    exit 1
 fi

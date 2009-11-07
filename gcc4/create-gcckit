@@ -345,8 +345,8 @@ create_gcccore_kit
 
 if [ "$GCCSDK_DO_PKG" == "YES" ] ; then
   # Package all the kits:
-  if [ ! -f $GCCSDK_CROSS_PREFIX/bin/zip ] ; then
-    echo Unable to create kits because of missing zip executable $GCCSDK_CROSS_PREFIX/bin/zip.
+  if [ ! -f $GCCSDK_INSTALL_ENV/bin/zip ] ; then
+    echo Unable to create kits because of missing zip executable $GCCSDK_INSTALL_ENV/bin/zip.
     exit 1
   fi
 
@@ -377,7 +377,7 @@ if [ "$GCCSDK_DO_PKG" == "YES" ] ; then
   # Create from each binary and source directoy a zip file:
   for dir in `find . -maxdepth 1 -mindepth 1 -type d` ; do
      echo Creating $dir.zip
-     cd $dir && $GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$dir.zip * && cd ..
+     cd $dir && $GCCSDK_INSTALL_ENV/bin/zip -, -9rq ../$dir.zip * && cd ..
      rm -rf $dir
   done
 
