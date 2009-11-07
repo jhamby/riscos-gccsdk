@@ -2,12 +2,16 @@
 AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 AB_CONFLAGS=--with-x
+AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
 AB_MAKE="$AB_MAKE all xlincity$AB_EXEEXT"
 
 ab_package() {
-  cp -av $H/\!LinCity $D
+  ab_create_app LinCity Apps/Games
+
   cp -av $S/help $S/icons $S/messages $S/opening $S/colour.pal $S/xlincity$AB_EXEEXT \
-         $D/\!LinCity
-  cp -av $S/README $D/\!LinCity/\!Help
+         $A
+  cp -av $S/README $A/\!Help
+
+  $AB_HOME/add-riscpkg -unixlib
 }
