@@ -46,7 +46,7 @@ addzip() {
     echo "Autobuilder: zip binary not found (build native-zip package first)"
     exit 1
   fi
-  result=$($GCCSDK_INSTALL_ENV/bin/zip -, -9 $@ -x "*/CVS/*" -x "*/\.svn/*" 2>&1)
+  result=$($GCCSDK_INSTALL_ENV/bin/zip -, -9 $@ -x "*/CVS/*" -x "*/\.svn/*" -x "*~" -x "*~,fff" 2>&1)
   echo $result
   if echo $result | grep "zip warning" > /dev/null ; then
     exit 1
@@ -428,6 +428,7 @@ mkdir -p $D
 export AB_PVERSION
 export AB_ROVERSION
 export AB_CATEGORY
+export AB_DEBNAME
 
 if [ "$AB_MANPAGE" != "" ] ; then
   for AB_PAGE in $AB_MANPAGE ; do

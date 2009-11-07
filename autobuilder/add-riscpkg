@@ -247,6 +247,10 @@ fi
 # Use Debian descpription and copyright
 if [ -d debian ] ; then
   if [ -z "$has_description" ] ; then
+    if [ -n "$AB_DEBNAME" ] ; then
+      package=$AB_DEBNAME
+    fi
+
     echo "add-riskpkg: Using Debian description"
     # Look for exact description
     desc=`grep -A100 "Package: $package$" debian/control | sed -n '/^Description:/,/^$/p' | sed -n '0,/^$/p' | sed -n -e '1p' -e '/^ .*/p'`
