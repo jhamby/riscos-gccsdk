@@ -123,13 +123,16 @@ if [ "$boot_vars" == "yes" ] && [ ! -z "$boot_file" ] ; then
   mkdir -p $D/SysVars
   pdir="Packages\\\$@$appdir.!$appname"
   vars=`grep "Set " $boot_file | sed "s/^.*Set // ; s/<Obey\\\$Dir>/<$pdir>/g"`
-  echo "$vars" |
-  while read line
-  do
-    var=`echo "$line" | cut -d ' ' -f 1 | sed -e 's/\\\$/=24/'`
-    val=`echo "$line" | cut -d ' ' -f 2- | sed -e 's/%%/%/' -e "s/$appname\\\$Dir/$pdir/"`
-    echo "$val" > "$D/SysVars/$var"
-  done
+
+  if [ -n "$vars" ] ; then
+    echo "$vars" |
+    while read line
+    do
+      var=`echo "$line" | cut -d ' ' -f 1 | sed -e 's/\\\$/=24/'`
+      val=`echo "$line" | cut -d ' ' -f 2- | sed -e 's/%%/%/' -e "s/$appname\\\$Dir/$pdir/"`
+      echo "$val" > "$D/SysVars/$var"
+    done
+  fi
 fi
 
 mkdir -p $D/RiscPkg
