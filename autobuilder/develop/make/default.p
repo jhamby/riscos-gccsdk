@@ -5,7 +5,7 @@
      "AR", "ar",
      "ARFLAGS", "rv",
 +#ifdef __riscos__
-+    "AS", "gcc"         /* Always call assembler via GCC */
++    "AS", "gcc",         /* Always call assembler via GCC */
 +#else
      "AS", "as",
 +#endif
