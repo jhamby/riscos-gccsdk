@@ -1,5 +1,9 @@
 
+AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
+
 AB_CONFLAGS="--with-sdl-prefix=$GCCSDK_INSTALL_ENV/bin --enable-release"
+
+AB_PVERSION=1.0.0-rc1
 
 ab_package() {
   ab_create_app ScummVM Apps/Emulation
