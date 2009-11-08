@@ -1,4 +1,3 @@
-AB_CATEGORY=Terminal
 
 AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp"
 
@@ -6,5 +5,13 @@ AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp"
 #AB_MANPAGE="scp.1 sftp.1 ssh.1 ssh-keygen.1 ssh-keyscan.1"
 
 ab_package () {
-  cp -av $S/scp$AB_EXEEXT $S/sftp$AB_EXEEXT $S/ssh-keygen$AB_EXEEXT $S/ssh-keyscan$AB_EXEEXT $S/ssh$AB_EXEEXT $S/LICENCE $D
+  ab_create_command_app SSH Apps/Network
+  
+  for command in scp sftp ssh-keygen ssh-keyscan ssh; do
+     ab_add_commands $S/$command$AB_EXEEXT
+  done
+
+  cp -av $S/LICENCE $A
+
+  $AB_HOME/add-riscpkg -unixlib
 }
