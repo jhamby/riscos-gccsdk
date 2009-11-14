@@ -1,20 +1,24 @@
 AB_URL=http://kent.dl.sourceforge.net/sourceforge/glhack/glhack-1.2.tar.gz
-AB_ZIPNAME=glhack-1.2
-AB_CATEGORY=Games
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!GLHack $AD
+  ab_create_app GLHack Apps/Games
 
-  mkdir -p $AD/\!GLHack/Docs
-  mkdir -p $AD/\!GLHack/locks
-  mkdir -p $AD/\!GLHack/usr
-  mkdir -p $AD/\!GLHack/var/save
+  mkdir -p $A/Docs
+  mkdir -p $A/locks
+  mkdir -p $A/usr
+  mkdir -p $A/var/save
 
-  cp $S/src/glhack$AB_EXEEXT $AD/\!GLHack/usr
-  cp $S/dat/*.png $AD/\!GLHack/usr
-  cp $S/dat/glface*.lst $AD/\!GLHack/usr
-  cp $S/dat/license $AD/\!GLHack/usr
-  cp $S/dat/nhdat $AD/\!GLHack/usr
+  cp $S/src/glhack$AB_EXEEXT $A/usr
+  cp $S/dat/*.png $A/usr
+  cp $S/dat/glface*.lst $A/usr
+  cp $S/dat/license $A/usr
+  cp $S/dat/nhdat $A/usr
+  cp $S/CHANGELOG.GL $S/NEWS.GL $S/README* $A/Docs
+
+  rman -f HTML $S/doc/glhack.6 > $A/Docs/glhack.html,faf
+ 
+  $AB_HOME/add-riscpkg -unixlib
 }
+
+
+
