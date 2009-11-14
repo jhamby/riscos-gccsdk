@@ -1,6 +1,6 @@
 @ Fast strlen
 @ Written by Adrian Lees
-@ Copyright (c) 2005-2008 UnixLib Developers
+@ Copyright (c) 2005-2009 UnixLib Developers
 
 @ Determine the length of a NUL-terminated string
 @
@@ -16,11 +16,11 @@
 
         .align	5 @ For cache alignment of the code
 strlen:
-	LDR	ip,[a1]		@read 1st word, possibly rotated
-	MOV	a4,#1
-	MOV	a2,a1
-	ORR	a4,a4,a4,LSL #8
 	ANDS	a3,a1,#3
+	MOV	a4,#1
+	LDR	ip,[a1,-a3]	@read 1st word, guaranteed to be aligned
+	ORR	a4,a4,a4,LSL #8
+	MOV	a2,a1
 	ORR	a4,a4,a4,LSL #16
 	BNE	strlen_align
 
@@ -66,17 +66,15 @@ strlen_align:
 	CMP	a3,#2
 	BHI	strlen3
 	BEQ	strlen2
-	TST	ip,#0xFF
+	TST	ip,#0xFF00
 	MOVEQ	a1,#0
 	MOVEQ	pc,lr
-	MOV	ip,ip,LSR #8
 	ADD	a2,a2,#1
 strlen2:
-	TST	ip,#0xFF
-	MOVNE	ip,ip,LSR #8
+	TST	ip,#0xFF0000
 	ADDNE	a2,a2,#1
 strlen3:
-	TSTNE	ip,#0xFF
+	TSTNE	ip,#0xFF000000
 	LDRNE	ip,[a2,#1]!
 	SUBEQ	a1,a2,a1
 	MOVEQ	pc,lr

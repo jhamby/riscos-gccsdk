@@ -1,3 +1,8 @@
+Sat Nov 14 10:30:39 PST 2009  Peter Naulls  <peter@chocky.org>
+
+	* string/_strlen.s: Alignment access fix from Adrian
+          Lees (Bug #173).
+
 Wed Oct 21 17:46:48 2009  Lee Noar  <leenoar@sky.com>
 
 	* incl-local/internal/unix.h(struct __process): Add
