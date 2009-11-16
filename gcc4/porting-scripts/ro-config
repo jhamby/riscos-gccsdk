@@ -139,6 +139,8 @@ fi
 # Set prefix
 if echo $@ | grep -q -- -prefix; then
   :
+elif grep -q -- --prefix-dir $tmpoutconfigure; then
+  ro_prefix="--prefix-dir=GCCSDK_ENV"
 elif grep -q -- --prefix $tmpoutconfigure; then
   ro_prefix="--prefix=GCCSDK_ENV"
 elif grep -q -- -prefix $tmpoutconfigure; then

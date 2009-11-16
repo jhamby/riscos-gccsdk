@@ -1,7 +1,12 @@
+Mon Nov 16 10:27:23 PST 2009  Peter Naulls  <peter@chocky.org>
+
+	* ro-config: Add possible --prefix-dir alternative.  This is 
+          for the benefit of OpenTTD.
+
 Mon Aug 24 10:43:10 PDT 2009  Peter Naulls  <peter@chocky.org>
 
-	* Remove old SDL vs vorbis hack.  This made sense once,
-          but now makes matter worse.
+	* ro-config: Remove old SDL vs vorbis hack.  This made sense once,
+          but now makes matters worse.
 
 Thu Aug 13 08:21:22 PDT 2009  Peter Naulls  <peter@chocky.org>
 
