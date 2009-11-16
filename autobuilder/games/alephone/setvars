@@ -1,23 +1,22 @@
 AB_URL=http://alephone.cebix.net/downloads/AlephOne-20051119.tar.gz
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
+
+echo This package needs updating to the latest version
+sleep 5
 
 # Have to compile gennmtab with native compiler
 gcc -O2 -isystem  -D_GNU_SOURCE=1 -D_REENTRANT -DSDL  Source_Files/Expat/gennmtab.c -o Source_Files/Expat/gennmtab
 
 ab_package() {
-   AD=$D/Apps/Games
-   mkdir -p $AD
-   cp -rv $H/\!AlephOne $AD
-   cp -av $S/Source_Files/alephone$AB_EXEEXT $AD/\!AlephOne
-   cp -rv data/* $AD/\!AlephOne
-   cp -av docs $AD/\!AlephOne
-   cp -av AUTHORS COPYING COPYING.SDL README $AD/\!AlephOne
+   ab_create_app AlephOne Apps/Games
+
+   cp -av $S/Source_Files/alephone$AB_EXEEXT $A/
+   cp -rv data/* $A/
+   cp -av docs $A/
+   cp -av AUTHORS COPYING COPYING.SDL README $A/
 
    # Compile the RISC OS wrapper creation utility
-   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc $AD/\!AlephOne/aowrapper.c -static -o $AD/\!AlephOne/aowrapper$AB_EXEEXT
+   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc $A/aowrapper.c -static -o $A/aowrapper$AB_EXEEXT
 
    $AB_HOME/add-riscpkg -unixlib -unixhome -unixsound \
       -copyrightfile $S/COPYING
 }
-
