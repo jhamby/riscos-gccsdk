@@ -1,4 +1,3 @@
-AB_CATEGORY=Library
 AB_ZIPNAME=libfreetype6-dev
 
 AB_INSTALL=yes
@@ -25,16 +24,14 @@ ab_make() {
 }
 
 ab_package() {
-  AD=$D/Apps/Library/\!FreeType2
-  mkdir -p $AD
-  cp $H/\!FreeType2/\!* $AD
+  ab_create_app FreeType2 Apps/Library
 
-  cp README $AD/\!Help
-  cp README $AD
-  cp -r docs $AD
+  cp README $A/\!Help
+  cp README $A
+  cp -r docs $A
 
   HERE=`pwd`
-  cd $AD
+  cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip  
 

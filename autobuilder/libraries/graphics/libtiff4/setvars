@@ -1,4 +1,3 @@
-AB_CATEGORY=Library
 AB_ZIPNAME=libtiff4-dev
 AB_INSTALL=yes
 AB_INSTALLTARGET="-C libtiff install"
@@ -7,15 +6,14 @@ AB_INSTALLTARGET="-C libtiff install"
 
 ab_package()
 {
-  AD=$D/Apps/Library/!LibTIFF
-  mkdir -p $AD
-  cp $H/\!LibTIFF/\!* $AD
-  cp COPYRIGHT VERSION RELEASE-DATE $AD
-  cp README $AD/\!Help
-  cp -r html $AD
+  ab_create_app LibTIFF Apps/Library
+
+  cp COPYRIGHT VERSION RELEASE-DATE $A
+  cp README $A/\!Help
+  cp -r html $A
 
   HERE=`pwd`
-  cd $AD
+  cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 

@@ -1,4 +1,3 @@
-AB_CATEGORY=Library
 AB_ZIPNAME=libsdl-ttf2.0-dev
 AB_INSTALL=yes
 
@@ -6,12 +5,10 @@ AB_INSTALL=yes
 
 ab_package()
 {
-  AD=$D/Apps/Library/!SDLTTF
-  mkdir -p $AD
-  cp $H/\!SDLTTF/\!* $AD
+  ab_create_app SDLTTD Apps/Library
 
   HERE=`pwd`
-  cd $AD
+  cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 

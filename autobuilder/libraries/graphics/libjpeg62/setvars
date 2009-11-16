@@ -9,33 +9,26 @@ AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 
 
 ab_package() {
-  
-  HERE=`pwd`
-
   # Package programs
-  PD=$D/libjpeg-progs/Apps/Graphics/\!JPEGProgs
-  mkdir -p $PD
+  ab_create_app JPEGProgs Apps/Graphics
 
-  cp $H/\!JPEGProgs/\!* $PD
-  cp $S/*$AB_EXEEXT $PD
-  cp $S/usage.doc $PD/\!Help
-  cp $S/usage.doc wizard.doc $PD
-  cp $S/README $PD
+  cp $S/*$AB_EXEEXT $A
+  cp $S/usage.doc $A/\!Help
+  cp $S/usage.doc wizard.doc $A/
+  cp $S/README $A/
 
   for AB_PAGE in $AB_MANPAGE ; do
-    rman -f HTML $S/$AB_PAGE > $PD/$AB_PAGE,faf
+    rman -f HTML $S/$AB_PAGE > $A/$AB_PAGE,faf
   done
 
-  cd $HERE
   $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib
+  rm -rf $A
 
   # Package libraries
-  AD=$D/libjpeg62-dev/Apps/Library/\!LibJPEG
-  mkdir -p $AD
-  cp -av $H/\!LibJPEG/\!* $AD
+  ab_create_app LibJPEG Apps/Library
 
-  cd $AD
-
+  HERE=`pwd`
+  cd $A
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
   mv include/h h
@@ -48,13 +41,11 @@ ab_package() {
   rm -rf doc/$RO_PKG
 
   # Add some documentation
-  mkdir -p $AD/doc
-  mkdir -p $AD/doc/c
-  cp $S/example.c $AD/doc/c/example
-  cp $S/libjpeg.doc $AD/\!Help
-  cp $S/libjpeg.doc $S/README $AD/doc
+  mkdir -p $A/doc/c
+  cp $S/example.c $A/doc/c/example
+  cp $S/libjpeg.doc $A/\!Help
+  cp $S/libjpeg.doc $S/README $A/doc
 
-  cd $HERE
   $AB_HOME/add-riscpkg -package libjpeg62-dev -section Library -unixlib
 
   cd $HERE

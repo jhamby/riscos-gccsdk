@@ -1,4 +1,3 @@
-AB_CATEGORY=Library
 AB_ZIPNAME=libsdl-gfx1.2-dev
 
 AB_INSTALL=yes
@@ -12,12 +11,10 @@ fi
 
 ab_package()
 {
-  AD=$D/Apps/Library/!SDLGFX
-  mkdir -p $AD
-  cp $H/\!SDLGFX/\!* $AD
+  ab_create_app SDLGFX Apps/Library
 
   HERE=`pwd`
-  cd $AD
+  cd $A/..
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 

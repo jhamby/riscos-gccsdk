@@ -1,8 +1,5 @@
-AB_CATEGORY=Library
 AB_ZIPNAME=libsdl-net1.2-dev
 AB_INSTALL=yes
-
-
 
 # Package version needs help as download doesn't have same name
 AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#sdl-net1.2-## -e "s/[^-]*-//")
@@ -12,12 +9,10 @@ export SED=sed
 
 ab_package()
 {
-  AD=$D/Apps/Library/!SDLNet
-  mkdir -p $AD
-  cp $H/\!SDLNet/\!* $AD
+  ab_create_app SDLNet Apps/Library 
 
   HERE=`pwd`
-  cd $AD
+  cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 

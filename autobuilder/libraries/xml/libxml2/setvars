@@ -1,4 +1,3 @@
-AB_CATEGORY=Library
 AB_ZIPNAME=libxml2-dev
 
 AB_INSTALL=yes
@@ -7,12 +6,10 @@ AB_CONFLAGS="--enable-ipv6=no --with-python=no"
 
 ab_package()
 {
-  AD=$D/Apps/Library/!LibXML2
-  mkdir -p $AD
-  cp $H/\!LibXML2/\!* $AD
+  ab_create_app LibXML2 Apps/Library
 
   HERE=`pwd`
-  cd $AD
+  cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
