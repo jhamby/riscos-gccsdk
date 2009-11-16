@@ -2,7 +2,6 @@ AB_CATEGORY="Develop"
 AB_MAINTAINER="Jan-Jaap van der Geer <jjvdgeer@c2i.net>"
 AB_LICENCE="Free"
 AB_ROVERSION=0
-AB_URL=http://ftp.de.debian.org/debian/pool/main/v/vala/vala_0.7.8.orig.tar.gz
 
 if [ -e $GCCSDK_INSTALL_ENV/bin/valac ] ; then
   BINVERSION=`$GCCSDK_INSTALL_ENV/bin/valac --version | sed 's/[\n\r]*Vala //'`
