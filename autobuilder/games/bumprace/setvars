@@ -2,19 +2,15 @@ AB_CATEGORY=Games
 AB_COPYSOURCE=yes
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!BumpRace $AD
-  cp -av $H/\!BumpRace/\!* $AD/\!BumpRace
-  cp -av src/bumprace$AB_EXEEXT $AD/\!BumpRace/\!RunImage$AB_EXEEXT
+  ab_create_app BumpRace Apps/Games
 
-  cp -av AUTHORS $ChangeLog COPYING FAQ README \
-    $AD/\!BumpRace
+  cp -av src/bumprace$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
 
-  mkdir -p $AD/\!BumpRace/data
-  mkdir -p $AD/\!BumpRace/data/bumprace
-  cp -r data/gfx $AD/\!BumpRace/data/bumprace
-  cp -r data/sound $AD/\!BumpRace/data/bumprace
+  cp -av AUTHORS $ChangeLog COPYING FAQ README $A/
+
+  mkdir -p $A/data/bumprace
+  cp -r data/gfx $A/data/bumprace
+  cp -r data/sound $A/data/bumprace
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
 }
