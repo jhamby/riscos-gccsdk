@@ -1,20 +1,14 @@
-AB_CATEGORY=Games
-
-AB_COPYSOURCE=yes
-
 # Extra libraries needed by static build of SDL_Mixer
 export LIBS="-lpng -lz -lvorbisidec -lvorbisfile"
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD/\!Blackbox
-  cp -av $H/\!Blackbox/\!* $AD/\!Blackbox
-  cp -av $S/src/black-box$AB_EXEEXT $AD/\!Blackbox/blackbox$AB_EXEEXT
+  ab_create_app Blackbox Apps/Games
 
-  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/README $AD/\!Blackbox
+  cp -av $S/src/black-box$AB_EXEEXT $A/blackbox$AB_EXEEXT
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/README $A/
 
-  mkdir -p $AD/\!Blackbox/data
-  cp -r $S/data/gfx $S/data/sound $AD/\!Blackbox/data
+  mkdir -p $A/data
+  cp -r $S/data/gfx $S/data/sound $A/data
 
   $AB_HOME/add-riscpkg -unixlib
 }
