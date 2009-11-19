@@ -1,3 +1,29 @@
+AB_CATEGORY=Games
+AB_COPYSOURCE=yes
+AB_LICENCE=Free
+
+AB_DISTCLEAN="$AB_MAKE clean"
+
 AB_PRECONF=:
 
 CC=/usr/bin/gcc make gobpack
+
+
+ab_package() {
+  mkdir -p $D/Apps
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -av $H/\!jumpnbump $AD
+  cp -av $H/\!jumpnbump/\!* $AD/\!jumpnbump
+  cp -av $S/jumpnbump $AD/\!jumpnbump/\!RunImage$AB_EXEEXT
+ 
+  cp -av $S/README $AD/\!jumpnbump/\!Help
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/LINKS $AD/\!jumpnbump
+
+  mkdir -p $AD/\!jumpnbump/data
+  cp -r $S/data/jumpbump.dat $AD/\!jumpnbump/data
+  cp -r $S/levelmaking $AD/\!jumpnbump
+
+  $AB_HOME/add-riscpkg -unixlib -unixsound
+}
+
