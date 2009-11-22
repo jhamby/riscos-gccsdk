@@ -1,14 +1,14 @@
-AB_CATEGORY=Games
 
 ab_make() {
   echo "Data only - no make required"
 }
 
 ab_package() {
-  AD=$D/Apps/Games/\!Heroes/share/heroes
-  mkdir -p $AD/mod
-  cp *.xm $AD/mod
-  cp sound.conf $AD/mod
+  ab_create_app Heroes Apps/Games
+
+  mkdir -p $A/mod
+  cp *.xm $A/mod
+  cp sound.conf $A/mod
   
   $AB_HOME/add-riscpkg
 }
