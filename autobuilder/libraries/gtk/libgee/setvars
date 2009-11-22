@@ -1,4 +1,4 @@
-AB_PACKAGES="libgee1 libgee-dev"
+AB_PACKAGES="libgee libgee-dev"
 AB_MAINTAINER="Jan-Jaap van der Geer <jjvdgeer@c2i.net>"
 AB_CATEGORY=Library
 AB_LICENSE=Free
