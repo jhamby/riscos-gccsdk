@@ -19,3 +19,5 @@ export gl_cv_func_getcwd_null=yes
 export ac_cv_func_lchown=yes
 export gl_cv_func_rename_trailing_slash_bug=no
 export gl_cv_func_rename_dest_exists_bug=no
+
+export fu_cv_sys_mounted_fread=yes
