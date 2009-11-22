@@ -1,7 +1,6 @@
 
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
-AB_CATEGORY=Games
 AB_DEBNAME=freeciv-client-sdl
 
 AB_CONFLAGS="--enable-client=sdl --enable-debug=no"
@@ -9,23 +8,18 @@ AB_CONFLAGS="--enable-client=sdl --enable-debug=no"
 export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -lSDL"
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -rav $H/\!CivClient $AD
-  cp -rav $H/\!CivServer $AD
+  ab_create_app CivClient Apps/Games
 
-  cp -rav data $AD/\!CivClient
-  rm $AD/\!CivClient/data/*.in
-  find $AD/\!CivClient/data/ -name "Makefile*" | xargs rm
+  cp -rav $H/\!CivServer $A/..
 
-  cp AUTHORS COPYING NEWS doc/HOWTOPLAY doc/README $AD/\!CivClient/doc
-  cp client/civclient$AB_EXEEXT $AD/\!CivClient
-  cp server/civserver$AB_EXEEXT $AD/\!CivServer
+  cp -rav data $A/
+  rm $A/data/*.in
+  find $A/data/ -name "Makefile*" | xargs rm
+
+  cp AUTHORS COPYING NEWS doc/HOWTOPLAY doc/README $A/doc
+  cp client/civclient$AB_EXEEXT $A/
+  cp server/civserver$AB_EXEEXT $A/../\!CivServer/
 
   $AB_HOME/add-riscpkg -unixlib -unixsound \
          -nobootvars -depends ttf-dejavu-core
 }
-
-
-
-
