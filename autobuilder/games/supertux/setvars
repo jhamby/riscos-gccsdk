@@ -1,19 +1,12 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
-
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!SuperTux $AD
-  cp -av $H/\!SuperTux/\!* $AD/\!SuperTux
-  cp -av src/supertux$AB_EXEEXT $AD/\!SuperTux/supertux$AB_EXEEXT
+  ab_create_app SuperTux Apps/Games
 
-  cp -av AUTHORS ChangeLog COPYING LEVELDESIGN NEWS README \
-    $AD/\!SuperTux
+  cp -av src/supertux$AB_EXEEXT $A/supertux$AB_EXEEXT
 
-  mkdir -p $AD/\!SuperTux/data
-  mkdir -p $AD/\!SuperTux/data/supertux
-  cp -r data/* $AD/\!SuperTux/data/supertux
+  cp -av AUTHORS ChangeLog COPYING LEVELDESIGN NEWS README $A/
+
+  mkdir -p $A/data/supertux
+  cp -r data/* $A/data/supertux
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
 }

@@ -1,21 +1,17 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
 AB_DISTCLEAN="$AB_MAKE clean"
 
 AB_PRECONF=:
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!IceBreaker $AD
-  cp -av $H/\!IceBreaker/\!* $AD/\!IceBreaker
-  cp -av icebreaker $AD/\!IceBreaker
-  cat $S/README >> $AD/\!IceBreaker/\!Help
+  ab_create_app IceBreaker Apps/Games
 
-  cp -av $S/ChangeLog $S/LICENSE $S/TODO $S/README $AD/\!IceBreaker
+  cp -av icebreaker $A/
+  cat $S/README >> $A/\!Help
 
-  mkdir -p $AD/\!IceBreaker/data
-  cp -r $S/*.wav $S/*.bmp $AD/\!IceBreaker/data
+  cp -av $S/ChangeLog $S/LICENSE $S/TODO $S/README $A/
+
+  mkdir -p $A/data
+  cp -r $S/*.wav $S/*.bmp $A/data
 
   $AB_HOME/add-riscpkg -unixhome -unixlib
 }

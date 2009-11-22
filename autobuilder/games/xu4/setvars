@@ -1,5 +1,4 @@
 AB_URL=http://mesh.dl.sourceforge.net/sourceforge/xu4/xu4-1.0beta3.tar.gz
-AB_CATEGORY=Games
 AB_PVERSION=`grep "VERSION" src/Makefile.common | cut -d'=' -f 2`
 
 # Get data files
@@ -11,41 +10,37 @@ AB_DISTCLEAN="rm src/*.o *.zip src/*$AB_EXEEXT"
 AB_PVERSION=`grep "VERSION" src/Makefile.common | cut -d'=' -f 2`
 
 ab_package() {
+  ab_create_app xu4 Apps/Games
 
-  AG=$D/Apps/Games
-  AD=$AG/\!xu4
-  mkdir -p $AG
- 
-  cp -r $H/\!xu4 $AG
-  cp -av README AUTHORS COPYING $AD
+  cp -av README AUTHORS COPYING $A
 
-  cp -av src/u4$AB_EXEEXT $AD/\!RunImage$AB_EXEEXT
+  cp -av src/u4$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
 
-  mkdir -p $AD/pixmaps
-  cp -av icons/u4.bmp $AD/pixmaps/u4.bmp
-  cp -av icons/u4.png $AD/pixmaps/u4.png
+  mkdir -p $A/pixmaps
+  cp -av icons/u4.bmp $A/pixmaps/u4.bmp
+  cp -av icons/u4.png $A/pixmaps/u4.png
 
-  mkdir -p $AD/mid
-  cp -av mid/*.mid $AD/mid
+  mkdir -p $A/mid
+  cp -av mid/*.mid $A/mid
 
-  mkdir -p $AD/sound
-  cp -av sound/*.ogg $AD/sound
-  cp -av sound/*.wav $AD/sound
-  cp -av src/dumpsavegame$AB_EXEEXT $AD
-  cp -av src/u4enc$AB_EXEEXT $AD
-  cp -av src/u4dec$AB_EXEEXT $AD
-  cp -av src/tlkconv$AB_EXEEXT $AD
-  mkdir -p $AD/conf
-  cp -av conf/*.xml $AD/conf
-  mkdir -p $AD/conf/dtd
-  cp -av conf/dtd/*.dtd $AD/conf/dtd
-  mkdir -p $AD/graphics
-  mkdir -p $AD/graphics/ega
-  mkdir -p $AD/graphics/vga
-  cp -av graphics/ega/*.png $AD/graphics/ega
-  cp -av graphics/vga/*.png $AD/graphics/vga
+  mkdir -p $A/sound
+  cp -av sound/*.ogg $A/sound
+  cp -av sound/*.wav $A/sound
+  cp -av src/dumpsavegame$AB_EXEEXT $A
+  cp -av src/u4enc$AB_EXEEXT $A
+  cp -av src/u4dec$AB_EXEEXT $A
+  cp -av src/tlkconv$AB_EXEEXT $A
+  mkdir -p $A/conf
+  cp -av conf/*.xml $A/conf
+  mkdir -p $A/conf/dtd
+  cp -av conf/dtd/*.dtd $A/conf/dtd
+  mkdir -p $A/graphics
+  mkdir -p $A/graphics/ega
+  mkdir -p $A/graphics/vga
+  cp -av graphics/ega/*.png $A/graphics/ega
+  cp -av graphics/vga/*.png $A/graphics/vga
 
-  cp -av u4upgrad.zip ultima4-1.01.zip $AD
+  cp -av u4upgrad.zip ultima4-1.01.zip $A
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
     -copyrightfile COPYING
