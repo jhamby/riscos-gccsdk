@@ -204,7 +204,7 @@ LD_TRACE_LOADED_OBJECTS
 	Forces the dynamic loader to display the dependencies of the
 	binary rather than run it. Also used by ldd.
 
-The support module SOManager provides four useful commands:
+The support module SOManager provides five useful commands:
 
 SOMStatus [clients | libraries]
 	If libraries (or the letter l) is given as the parameter, then list
@@ -226,6 +226,9 @@ SOMRun <filename>
 SOMExpire [<n>h] [<n>m]
 	Allows the expiry time of any libraries used in the future to be set. If
 	no parameter is given, then it returns the current setting.
+
+SOMHistory
+	Display some basic details about the last five clients to deregister.
 
 Text relocations
 ----------------

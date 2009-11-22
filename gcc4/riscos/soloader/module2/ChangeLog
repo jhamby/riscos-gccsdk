@@ -1,3 +1,14 @@
+Sun Nov 22 16:06:14 2009  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c(deregister_shared_object): Don't
+	bother finding the client when the only caller already
+	knows it.
+	(som_deregister_client): If an error occurs when
+	deregistering a library, continue to deregister the
+	client rather than aborting the process.
+
+	* dist/!SharedLibs/docs/!ReadMe: Update docs.
+
 Wed Oct 21 19:55:01 2009  Lee Noar  <leenoar@sky.com>
 
 	* som_final.c(module_finalisation): If things really
