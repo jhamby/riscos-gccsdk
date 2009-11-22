@@ -102,33 +102,43 @@ done
 if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
   if [ "$GCCSDK_BUILD_ISSTATIC" != "YES" ] ; then
     # Dynamic loader:
-    echo +++ Building dl
-    cd $GCCSDK_RISCOS/soloader
-    PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make install-cross LIBDIR=$GCCSDK_PREFIX/$GCCSDK_TARGET_NAME/lib
+    echo +++ Building Dynamic Linker V1.9.9
+    test -f $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 || ( cd $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 && autoreconf --install )
+    create_empty_dir $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
+    cd $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
+    export CFLAGS="-O4 -Wall"
+    $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9/configure --host=$GCCSDK_TARGET_NAME --prefix=$GCCSDK_CROSS_PREFIX/$GCCSDK_TARGET_NAME $GCCSDK_CONFIGURE_ARGS
+    make BUILD_CROSS=1 $GCCSDK_MAKE_ARGS install
   fi
 
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
-  # These make only sense in the native RISC OS build:
+  # These only make sense in the native RISC OS build:
 
   if [ "$GCCSDK_BUILD_ISSTATIC" != "YES" ] ; then
     # SOManager module:
     if [ ! -f $GCCSDK_RELEASE_AREA/\!SharedLibs/SOManager,ffa ] ; then
       echo +++ Building SOManager
       test -f $GCCSDK_RISCOS/soloader/module2/configure || ( cd $GCCSDK_RISCOS/soloader/module2 && autoreconf --install )
-      create_empty_dir $GCCSDK_BUILDDIR/somanager
-      cd $GCCSDK_BUILDDIR/somanager
+      create_empty_dir $GCCSDK_BUILDDIR/soloader/somanager
+      cd $GCCSDK_BUILDDIR/soloader/somanager
       export CFLAGS=""
       $GCCSDK_RISCOS/soloader/module2/configure --prefix=$GCCSDK_RISCOS_DSOPREFIX --bindir=$GCCSDK_RISCOS_DSOPREFIX $GCCSDK_CONFIGURE_ARGS
       make $GCCSDK_MAKE_ARGS install
     fi
 
     # Dynamic loader:
-    echo +++ Building dl
-    cd $GCCSDK_RISCOS/soloader
-    make install-riscos LIBDIR=$GCCSDK_RISCOS_DSOPREFIX/lib
+    if [ ! -f $GCCSDK_RELEASE_AREA/\!SharedLibs/libs/ld-1.9.9.so ] ; then
+      echo +++ Building Dynamic Linker V1.9.9
+      test -f $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 || ( cd $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 && autoreconf --install )
+      create_empty_dir $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
+      cd $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
+      export CFLAGS="-O4 -Wall"
+      $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9/configure --prefix=$GCCSDK_RISCOS_DSOPREFIX $GCCSDK_CONFIGURE_ARGS
+      make $GCCSDK_MAKE_ARGS install
+    fi
 
-    # Copy !SharedLibs sceleton + shared library files in the gcc build result:
-    svn export -q --force dist/\!SharedLibs $GCCSDK_RISCOS_DSOPREFIX
+    # Copy !SharedLibs skeleton + shared library files in the gcc build result:
+    svn export -q --force $GCCSDK_RISCOS/soloader/dist/\!SharedLibs $GCCSDK_RISCOS_DSOPREFIX
     if [ -f $GCCSDK_RISCOS_GCCPREFIX/$GCCSDK_TARGET_NAME/lib/libunixlib.5.0.0.so ] ; then
       cp $GCCSDK_RISCOS_GCCPREFIX/$GCCSDK_TARGET_NAME/lib/libunixlib.5.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/libunixlib.5.0.0.so,e1f
       arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/libunixlib.so.5,1c8
