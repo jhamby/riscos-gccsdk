@@ -1,15 +1,16 @@
-AB_CATEGORY=Games
-
 AB_CONFLAGS="--disable-sdl-client --disable-replay --disable-xp-mapedit --datadir=\"/\<XPilot-NG\\\\$\\\$Dir\>/data\""
 
 ab_package () {
- cp -av $H/\!Xpilot-ng $D
- cp -av $S/src/client/x11/xpilot-ng-x11$AB_EXEEXT $D/\!Xpilot-ng
+  ab_create_app Xpilot-ng Apps/Games
 
- mkdir -p $D/\!Xpilot-ng/docs
- cp -av $S/COPYING $S/README $D/\!Xpilot-ng/docs
+  cp -av $S/src/client/x11/xpilot-ng-x11$AB_EXEEXT $A/
 
- mkdir -p $D/\!Xpilot-ng/data/xpilot-ng/textures
- cp -av $S/lib/textures/*.ppm $D/\!Xpilot-ng/data/xpilot-ng/textures
- cp -av $S/lib/shipshapes.txt $D/\!Xpilot-ng/data/xpilot-ng
+  mkdir -p $A/docs
+  cp -av $S/COPYING $S/README $A/docs
+
+  mkdir -p $A/data/xpilot-ng/textures
+  cp -av $S/lib/textures/*.ppm $A/data/xpilot-ng/textures
+  cp -av $S/lib/shipshapes.txt $A/data/xpilot-ng
+
+ $AB_HOME/add-riscpkg
 }

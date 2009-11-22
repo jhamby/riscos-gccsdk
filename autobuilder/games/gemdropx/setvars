@@ -1,21 +1,16 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
 AB_DISTCLEAN="make clean"
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!GemDropX $AD
-  cp -av $H/\!GemDropX/\!* $AD/\!GemDropX
-  cp -av gemdropx$AB_EXEEXT $AD/\!GemDropX/\!RunImage$AB_EXEEXT
-  cat README.txt $H/RISCOSNotes >$AD/\!GemDropX/\!Help
+  ab_create_app GemDropX Apps/Games
 
-  cp -av AUTHORS.txt CHANGES.txt COPYING.txt ICON.txt \
-    $AD/\!GemDropX
+  cp -av gemdropx$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
+  cat README.txt $H/RISCOSNotes >$A/\!Help
 
-  mkdir -p $AD/\!GemDropX/data
-  cp -r data/images $AD/\!GemDropX/data
-  cp -r data/sounds $AD/\!GemDropX/data
+  cp -av AUTHORS.txt CHANGES.txt COPYING.txt ICON.txt $A
+
+  mkdir -p $A/data
+  cp -r data/images $A/data
+  cp -r data/sounds $A/data
 
   $AB_HOME/add-riscpkg -unixhome -unixsound
 }
