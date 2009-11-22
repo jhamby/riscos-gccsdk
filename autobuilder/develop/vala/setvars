@@ -45,10 +45,10 @@ fi
 ab_package() {
   ab_create_app Vala Apps/Development
 
-  mv $S/compiler/valac,e1f $A/bin/
-  mv $S/doc/vala/*.html $S/doc/vala/*.css $A/doc/vala
-  mv $S/AUTHORS $S/ChangeLog* $S/COPYING $S/INSTALL $S/MAINTAINERS $S/NEWS $S/README $S/THANKS $A/doc
-  mv $S/vapi/*.vapi $S/vapi/*.deps $A/vapi
+  cp $S/compiler/valac,e1f $A/bin/
+  cp $S/doc/vala/*.html $S/doc/vala/*.css $A/doc/vala
+  cp $S/AUTHORS $S/ChangeLog* $S/COPYING $S/INSTALL $S/MAINTAINERS $S/NEWS $S/README $S/THANKS $A/doc
+  cp $S/vapi/*.vapi $S/vapi/*.deps $A/vapi
 
   $AB_HOME/add-riscpkg -package "vala" \
     -depends unixlib
