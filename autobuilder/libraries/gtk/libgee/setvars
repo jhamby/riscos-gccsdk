@@ -10,7 +10,7 @@ AB_URL=http://ftp.gnome.org/pub/GNOME/sources/libgee/0.5/libgee-0.5.0.tar.bz2
 ab_package() {
 
   # Shared libraries package
-  slibdir=$D/libgee1/Resources/\!SharedLibs/lib
+  slibdir=$D/libgee/Resources/\!SharedLibs/lib
   mkdir -p $slibdir
 
   # Developer package
@@ -64,7 +64,7 @@ ab_package() {
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -package "libgee1" \
+  $AB_HOME/add-riscpkg -package "libgee" \
     -depends SharedLibs -depends libglib2.0-0 \
     -copyrightfile COPYING
 
