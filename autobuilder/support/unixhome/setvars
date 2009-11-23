@@ -1,15 +1,17 @@
 AB_NOREMOTE=yes
 
-AB_CATEGORY=Support
-
 AB_ROVERSION=1.03
 AB_ZIPNAME=UnixHome-$AB_ROVERSION
 
 cp $H/!UnixHome/c/SetHome $S/SetHome.c
 
 AB_MAKE="$CC SetHome.c -O2 -o SetHome$AB_EXEEXT -static"
+AB_DISTCLEAN=":"
 
 ab_package() {
-  cp -av $H/\!UnixHome $D
-  cp -av $S/SetHome$AB_EXEEXT $D/\!UnixHome
+  ab_create_app UnixHome Apps/Support
+
+  cp -av $S/SetHome$AB_EXEEXT $A
+
+  $AB_HOME/add-riscpkg -unixlib
 }
