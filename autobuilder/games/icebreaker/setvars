@@ -1,5 +1,3 @@
-AB_DISTCLEAN="$AB_MAKE clean"
-
 AB_PRECONF=:
 
 ab_package() {

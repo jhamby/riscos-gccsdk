@@ -1,7 +1,6 @@
 AB_LICENCE=Free
 AB_PVERSION=0.74
 AB_ZIPNAME=gerb2tif
-AB_DISTCLEAN="$AB_MAKE clean"
 
 AB_URL=http://members.optusnet.com.au/~eseychell/gerb2tiff/gerb2tiff-1.0.7.zip
 

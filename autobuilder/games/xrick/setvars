@@ -1,7 +1,5 @@
 AB_URL=http://www.bigorno.net/xrick/xrick-021212.tgz
 
-AB_DISTCLEAN="$AB_MAKE clean"
-
 ab_package() {
   ab_create_app XRick Apps/Games
 

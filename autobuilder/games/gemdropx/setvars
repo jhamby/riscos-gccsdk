@@ -1,5 +1,3 @@
-AB_DISTCLEAN="make clean"
-
 ab_package() {
   ab_create_app GemDropX Apps/Games
 

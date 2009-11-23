@@ -1,6 +1,4 @@
 
-AB_DISTCLEAN="make clean"
-
 ab_package() {
   ab_create_command_app dcraw Apps/Graphics
 

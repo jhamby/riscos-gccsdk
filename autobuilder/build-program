@@ -125,7 +125,7 @@ ab_package_source() {
   AB_SRCDIR=$S
   cd $S
   if [ -z "$AB_DISTCLEAN" ] ; then
-    AB_DISTCLEAN="$AB_MAKE distclean"
+    AB_DISTCLEAN="$AB_MAKE distclean || $AB_MAKE clean"
   fi
 
   eval $AB_DISTCLEAN

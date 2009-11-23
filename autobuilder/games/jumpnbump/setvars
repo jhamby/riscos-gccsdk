@@ -1,7 +1,5 @@
 AB_LICENCE=Free
 
-AB_DISTCLEAN="$AB_MAKE clean"
-
 AB_PRECONF=:
 
 CC=/usr/bin/gcc make gobpack
