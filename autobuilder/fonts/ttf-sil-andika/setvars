@@ -1,14 +1,13 @@
-AB_CATEGORY=Fonts
 AB_MAKE=":"
 
 ab_package()
 {
-   AD=$D/Apps/Fonts/!UnixFont
-   mkdir -p $AD
-   mkdir -p $AD/truetype/ttf-sil-andika
-   cp $S/*.ttf $AD/truetype/ttf-sil-andika
-   mkdir -p $AD/doc/ttf-sil-andika
-   cp $S/*.txt $AD/doc/ttf-sil-andika
+  ab_create_app UnixFont Apps/Fonts
 
-   $AB_HOME/add-riscpkg -depends UnixFont
+  mkdir -p $A/truetype/ttf-sil-andika
+  cp $S/*.ttf $A/truetype/ttf-sil-andika
+  mkdir -p $A/doc/ttf-sil-andika
+  cp $S/*.txt $A/doc/ttf-sil-andika
+
+  $AB_HOME/add-riscpkg -depends UnixFont
 }

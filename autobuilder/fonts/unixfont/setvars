@@ -1,13 +1,11 @@
 AB_NOREMOTE=yes
-AB_CATEGORY=Fonts
 AB_PVERSION=0.1
 AB_ZIPNAME=UnixFont-$AB_PVERSION
 
 AB_MAKE=":"
 
 ab_package() {
-  AD=$D/Apps/Fonts
-  mkdir -p $AD
-  cp -r $H/\!UnixFont $AD
+  ab_create_app UnixFont Apps/Fonts
+
   $AB_HOME/add-riscpkg -package UnixFont
 }

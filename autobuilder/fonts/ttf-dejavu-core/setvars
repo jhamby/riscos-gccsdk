@@ -1,18 +1,16 @@
-AB_CATEGORY=Fonts
 AB_MAKE="make full-ttf"
 
 AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#ttf-dejavu-## -e "s/[^-]*-//")
 
 ab_package()
 {
-   AD=$D/Apps/Fonts/!UnixFont
-   mkdir -p $AD
-   mkdir -p $AD/truetype/ttf-dejavu
-   cp build/*.ttf $AD/truetype/ttf-dejavu
-   mkdir -p $AD/doc/ttf-dejavu-core
-   cp *.txt $AD/doc/ttf-dejavu-core
-   cp AUTHORS BUGS LICENSE NEWS README \
-      $AD/doc/ttf-dejavu-core
+  ab_create_app UnixFont Apps/Fonts
+
+   mkdir -p $A/truetype/ttf-dejavu
+   cp build/*.ttf $A/truetype/ttf-dejavu
+   mkdir -p $A/doc/ttf-dejavu-core
+   cp *.txt $A/doc/ttf-dejavu-core
+   cp AUTHORS BUGS LICENSE NEWS README $A/doc/ttf-dejavu-core
 
    $AB_HOME/add-riscpkg -depends UnixFont
 }
