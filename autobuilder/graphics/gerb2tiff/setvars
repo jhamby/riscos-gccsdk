@@ -1,21 +1,22 @@
 AB_LICENCE=Free
-AB_PVERSION=0.74
-AB_ZIPNAME=gerb2tif
+AB_PVERSION=1.0.8
+AB_ZIPNAME=gerb2tiff
 
-AB_URL=http://members.optusnet.com.au/~eseychell/gerb2tiff/gerb2tiff-1.0.7.zip
+AB_URL=http://members.optusnet.com.au/~eseychell/gerb2tiff/gerb2tiff-1.0.8.zip
 
 ab_package() {
-  ab_crete_app gerb2tif Apps/Graphics
+  ab_create_app gerb2tiff Apps/Graphics
 
-  cp $S/../GPL $S/../CHANGES.TXT $S/gerb2tif$AB_EXEEXT $A
-  cp $S/../readme.txt $A/\!Help
-  echo "Set Alias\$gerb2tif Run <Obey\$Dir>.gerb2tif %*0" >  $A/\!Boot,feb
-  cp $A/!Boot,feb $A/!Run,feb
+  cp $S/gerb2tiff.exe $S/gerb2tiff$AB_EXEEXT
+  ab_add_commands $S/gerb2tiff$AB_EXEEXT
+
+  cp $S/../GPL $S/../ChangeLog $A
+  cp $S/../manual.html $A/\!Help,faf
 
   $AB_HOME/add-riscpkg -unixlib -appname $AB_APPNAME -copyrightfile $S/../GPL
 
   # Add a description
-  echo "Description: gerb2tif is a command line driven program that will read an" > $D/RiscPkg/Control,fff
+  echo "Description: gerb2tiff is a command line driven program that will read an" > $D/RiscPkg/Control,fff
   echo " input file of Gerber RS273X format and generates a raster graphics" >> $D/RiscPkg/Control,fff
   echo " bitmap. Output file is uncompressed monochrome TIFF image." >> $D/RiscPkg/Control,fff
 }

@@ -1,1 +1,1 @@
-dos2unix gerber.h
+dos2unix gerber.cpp gerber.h

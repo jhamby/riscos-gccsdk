@@ -1,5 +1,5 @@
---- makefile.orig	2009-08-13 03:33:47.000000000 -0700
-+++ makefile	2009-08-27 11:15:04.000000000 -0700
+--- makefile.orig	2009-11-23 09:45:11.000000000 -0800
++++ makefile	2009-11-23 09:45:23.000000000 -0800
 @@ -13,9 +13,9 @@
  TARGET := $(TARGET).exe
  
@@ -13,3 +13,12 @@
  
  OBJS = apertures.o main.o  gerber.o polygon.o lex.yy.o gerber.tab.o 
  
+@@ -26,7 +26,7 @@
+ 
+ $(TARGET) : $(OBJS)
+ 	$(CC) $(CFLAGS) $(LDFLAGS) $(OBJS) -static -ltiff -lz -ljpeg -o $(TARGET)   
+-	cp $(TARGET) /usr/local/bin
++	#cp $(TARGET) /usr/local/bin
+ 
+ version:
+ 	@echo +---------------------------------+
