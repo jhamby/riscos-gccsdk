@@ -7,7 +7,7 @@ ab_package() {
   ab_create_command_app sed Apps/Utilities
   ab_add_commands $S/sed/sed$AB_EXEEXT
 
-  mv sed.1,faf $A/\!Help,faf
+  mv $D/sed.1,faf $A/\!Help,faf
 
   cp $S/COPYING $A
 }
