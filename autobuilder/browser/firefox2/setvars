@@ -13,8 +13,6 @@ AB_ROVERSION=2
 
 #export RO_SHAREDLIBS=yes
 
-AB_CATEGORY=Browser
-
 # 'Official' build:
 # We don't have permission for this
 #export MOZILLA_OFFICIAL=1
