@@ -1,18 +1,14 @@
 AB_URL=http://surfnet.dl.sourceforge.net/sourceforge/sdlroids/sdlroids-1.3.4.tar.gz
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
 
 ab_package() {
+  ab_create_app SDLRoids Apps/Games
 
-  AD=$D/Apps/Games
-  mkdir -p $AD/\!SDLRoids
-  cp -av $H/\!SDLRoids/\!* $AD/\!SDLRoids
-  cp -av sdlroids$AB_EXEEXT $AD/\!SDLRoids
-  mkdir -p $AD/\!SDLRoids/data
-  mkdir -p $AD/\!SDLRoids/data/sdlroids
-  cp -r bmp $AD/\!SDLRoids/data/sdlroids
-  cp -r sounds $AD/\!SDLRoids/data/sdlroids
-  cp -av ChangeLog COPYING README $AD/\!SDLRoids
+  cp -av sdlroids$AB_EXEEXT $A
+
+  mkdir -p $A/data/sdlroids
+  cp -r bmp $A/data/sdlroids
+  cp -r sounds $A/data/sdlroids
+  cp -av ChangeLog COPYING README $A/
 
   $AB_HOME/add-riscpkg -unixlib -unixsound \
      -copyrightfile $S/COPYING

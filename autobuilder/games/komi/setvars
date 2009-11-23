@@ -1,19 +1,16 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
 AB_DISTCLEAN="make clean"
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD/\!komi
-  cp -av $H/\!komi/\!* $AD/\!komi
-  cp -av komi$AB_EXEEXT $AD/\!komi
-  cat README.txt $H/RISCOSNotes >$AD/\!komi/\!Help
+  ab_create_app komi Apps/Games
 
-  cp -av CHANGELOG.txt $AD/\!komi/CHANGES
-  cp -av COPYING.txt $AD/\!komi/COPYING
-  cp -av TROUBLESHOOTING.txt $AD/\!komi/TROUBLESHOOTING
+  cp -av komi$AB_EXEEXT $A/
+  cat README.txt $H/RISCOSNotes > $A/\!Help
 
-  cp -r komidata $AD/\!komi
+  cp -av CHANGELOG.txt $A/CHANGES
+  cp -av COPYING.txt $A/COPYING
+  cp -av TROUBLESHOOTING.txt $A/TROUBLESHOOTING
+
+  cp -r komidata $A/
 
   $AB_HOME/add-riscpkg -unixlib
 }

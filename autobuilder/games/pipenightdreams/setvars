@@ -1,23 +1,18 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD/\!PipeNight
-  cp -av $H/\!PipeNight/\!* $AD/\!PipeNight
-  cp -av src/pipenightdreams$AB_EXEEXT $AD/\!PipeNight/\!RunImage$AB_EXEEXT
+  ab_create_app PipeNight Apps/Games
 
-  cp -av AUTHORS ChangeLog COPYING README \
-    $AD/\!PipeNight
+  cp -av src/pipenightdreams$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
 
-  mkdir -p $AD/\!PipeNight/games
-  mkdir -p $AD/\!PipeNight/games/pipenightdreams
-  cp -ar images $AD/\!PipeNight/games/pipenightdreams
-  cp -ar levels $AD/\!PipeNight/games/pipenightdreams
+  cp -av AUTHORS ChangeLog COPYING README $A
+
+  mkdir -p $A/games/pipenightdreams
+  cp -ar images $A/games/pipenightdreams
+  cp -ar levels $A/games/pipenightdreams
 
   # Need to remove a shortcut or zip issues a warning
-  rm $AD/\!PipeNight/games/pipenightdreams/images/pipes_space/back04/board_back.jpg
-  cp $AD/\!PipeNight/games/pipenightdreams/images/pipes_space/back01/board_back.jpg $AD/\!PipeNight/games/pipenightdreams/images/pipes_space/back04/board_back.jpg
+  rm $A/games/pipenightdreams/images/pipes_space/back04/board_back.jpg
+  cp $A/games/pipenightdreams/images/pipes_space/back01/board_back.jpg $A/games/pipenightdreams/images/pipes_space/back04/board_back.jpg
 
   $AB_HOME/add-riscpkg -unixlib
 }

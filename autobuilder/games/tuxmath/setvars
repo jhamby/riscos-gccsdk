@@ -1,19 +1,14 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!TuxMath $AD
-  cp -av $H/\!TuxMath/\!* $AD/\!TuxMath
-  cp -av src/tuxmath$AB_EXEEXT $AD/\!TuxMath/tuxmath$AB_EXEEXT
-  cat doc/README.txt $H/RISCOSNotes >$AD/\!TuxMath/\!Help
+  ab_create_app TuxMath Apps/Games
 
-  cp -r doc $AD/\!TuxMath
+  cp -av src/tuxmath$AB_EXEEXT $A/tuxmath$AB_EXEEXT
+  cat doc/README.txt $H/RISCOSNotes > $A/\!Help
 
-  mkdir -p $AD/\!TuxMath/data
-  mkdir -p $AD/\!TuxMath/data/tuxmath
-  cp -r data/* $AD/\!TuxMath/data/tuxmath
+  cp -r doc $A/
+
+  mkdir -p $A/data/tuxmath
+  cp -r data/* $A/data/tuxmath
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
   -depends ttf-sil-andika

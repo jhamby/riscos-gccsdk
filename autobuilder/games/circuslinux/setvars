@@ -1,25 +1,14 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
-
 ab_package() {
-  mkdir -p $D/Apps
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!CircusLnx $AD
-  cp -av $H/\!CircusLnx/\!* $AD/\!CircusLnx
-  if [ -e circuslinux$AB_EXEEXT ] ; then
-    cp -av circuslinux$AB_EXEEXT $AD/\!CircusLnx/\!RunImage$AB_EXEEXT
-  else
-    cp -av circuslinux $AD/\!CircusLnx/\!RunImage$AB_EXEEXT
-  fi
+  ab_create_app CircusLnx Apps/Games
 
-  cat $S/README.txt >> $AD/\!CircusLnx/\!Help
+  cp -av circuslinux$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
 
-  cp -av $S/AUTHORS.txt $S/CHANGES.txt $S/FAQ.txt $S/README-SDL.txt \
-  $S/COPYING.txt $AD/\!CircusLnx
+  cat $S/README.txt >> $A/\!Help
 
-  mkdir -p $AD/\!CircusLnx/data
-  cp -r $S/data/images $S/data/music $S/data/sounds $AD/\!CircusLnx/data
+  cp -av $S/AUTHORS.txt $S/CHANGES.txt $S/FAQ.txt $S/README-SDL.txt $S/COPYING.txt $A
+
+  mkdir -p $A/data
+  cp -r $S/data/images $S/data/music $S/data/sounds $A/data
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
 }

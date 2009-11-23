@@ -1,17 +1,13 @@
-AB_CATEGORY=Games
 AB_URL=http://heanet.dl.sourceforge.net/sourceforge/wargus/wargus-2.2.4-src.tar.gz
-AB_COPYSOURCE=yes
 AB_DISTCLEAN="$AB_MAKE clean"
 
 # Doesn't have a configure command
 AB_PRECONF=:
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!Wargus $AD
-  cp -av $S/campaigns $S/contrib $S/maps $S/scripts $S/wartool$AB_EXEEXT \
-         $AD/\!Wargus
+  ab_create_app Wargus Apps/Games
+
+  cp -av $S/campaigns $S/contrib $S/maps $S/scripts $S/wartool$AB_EXEEXT $A
 
   $AB_HOME/add-riscpkg -depends stratagus
 }

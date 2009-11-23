@@ -1,20 +1,15 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD/\!PengCmnd
-  cp -av $H/\!PengCmnd/\!* $AD/\!PengCmnd
-  cp -av src/penguin-command$AB_EXEEXT $AD/\!PengCmnd/\!RunImage$AB_EXEEXT
-  cat README $H/RISCOSNotes >$AD/\!PengCmnd/\!Help
+  ab_create_app PengCmnd Apps/Games
 
-  cp -av AUTHORS $ChangeLog COPYING \
-    $AD/\!PengCmnd
+  cp -av src/penguin-command$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
+  cat README $H/RISCOSNotes > $A/\!Help
 
-  mkdir -p $AD/\!PengCmnd/data
-  mkdir -p $AD/\!PengCmnd/data/penguin-command
-  cp -r data/gfx $AD/\!PengCmnd/data/penguin-command
-  cp -r data/sound $AD/\!PengCmnd/data/penguin-command
+  cp -av AUTHORS $ChangeLog COPYING $A
+
+  mkdir -p $A/data/penguin-command
+  cp -r data/gfx $A/data/penguin-command
+  cp -r data/sound $A/data/penguin-command
   
   $AB_HOME/add-riscpkg -unixlib -unixsound
 }

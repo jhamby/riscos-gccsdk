@@ -1,14 +1,12 @@
 AB_URL=http://switch.dl.sourceforge.net/sourceforge/stratagus/stratagus-2.2.4-src.tar.gz
-AB_CATEGORY=Games
 
 AB_CONFLAGS="--without-x --with-extra-includes=$GCCSDK_INSTALL_ENV/include/lua50"
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!Stratagus $AD
-  cp -av $S/doc $AD/\!Stratagus
-  cp -av $S/stratagus $AD/\!Stratagus/stratagus$AB_EXEEXT
+  ab_create_app Strategus Apps/Games
+
+  cp -av $S/doc $A/
+  cp -av $S/stratagus $A/stratagus$AB_EXEEXT
 
   $AB_HOME/add-riscpkg -unixlib -unixsound \
      -unixhome -copyrightfile $S/COPYING

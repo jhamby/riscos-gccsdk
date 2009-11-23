@@ -1,20 +1,17 @@
 AB_URL=http://www.riscos.info/packages/src/Games/tutris_1.0.0-1-src.zip
 # Tutris source was lost, so use a copy reconstructed from the UPP version
 
-AB_CATEGORY=Games
 AB_PVERSION=1.0.0
 # Source is retrieved from website so don't copy it back
 AB_COPYSOURCE=no
 
 ab_package() {
+  ab_create_app Tutris Apps/Games
 
-  AD=$D/Apps/Games/\!Tutris
-  mkdir -p $AD
-  cp -av \!Tutris/* $AD
-  cp -av tutris$AB_EXEEXT $AD
-  cat readme >> $AD/\!Help
-  cp -av authors ChangeLog copying $AD
-  cp -r data $AD
+  cp -av tutris$AB_EXEEXT $A
+  cat readme >> $A/\!Help
+  cp -av authors ChangeLog copying $A
+  cp -r data $A
 
   $AB_HOME/add-riscpkg -unixlib -copyrightfile copying
 }

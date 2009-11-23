@@ -1,21 +1,14 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
-
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!Toppler $AD
-  cp -av $H/\!Toppler/\!* $AD/\!Toppler
-  cp -av toppler$AB_EXEEXT $AD/\!Toppler/!RunImage$AB_EXEEXT
+  ab_create_app Toppler Apps/Games
 
-  cp -av AUTHORS ChangeLog COPYING NEWS README \
-    $AD/\!Toppler
+  cp -av toppler$AB_EXEEXT $A/!RunImage$AB_EXEEXT
 
-  mkdir -p $AD/\!Toppler/data
-  mkdir -p $AD/\!Toppler/data/toppler
-  cp -av toppler.dat $AD/\!Toppler/data/toppler
-  cp -av *.ttm $AD/\!Toppler/data/toppler
-  cp -av levelnames.txt $AD/\!Toppler/data/toppler
+  cp -av AUTHORS ChangeLog COPYING NEWS README $A/
+
+  mkdir -p $A/data/toppler
+  cp -av toppler.dat $A/data/toppler
+  cp -av *.ttm $A/data/toppler
+  cp -av levelnames.txt $A/data/toppler
 
   $AB_HOME/add-riscpkg -unixhome -unixsound -unixhome
 }

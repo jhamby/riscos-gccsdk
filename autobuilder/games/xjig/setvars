@@ -1,5 +1,3 @@
-AB_CATEGORY=Games
-
 # Copy hand built makefile and remove Imakefile
 cp $H/Makefile.riscos .
 mv Imakefile Imakefile.orig
@@ -10,12 +8,11 @@ ab_make() {
 }
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!XJig $AD
-  cp -av $S/xjig$AB_EXEEXT $AD/\!XJig
-  cp -av $S/tina.gif $AD/\!XJig
-  rman -f HTML $S/xjig.man > $AD/\!XJig/\!Help,faf
+  ab_create_app XJig Apps/Games
+
+  cp -av $S/xjig$AB_EXEEXT $A/
+  cp -av $S/tina.gif $A/
+  rman -f HTML $S/xjig.man > $A/\!Help,faf
 
   $AB_HOME/add-riscpkg -unixlib -depends Tinct
 }

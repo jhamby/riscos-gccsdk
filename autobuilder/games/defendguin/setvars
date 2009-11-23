@@ -1,24 +1,15 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
 AB_DISTCLEAN="make clean"
 
 ab_package() {
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!Defenguin $AD
-  cp -av $H/\!Defenguin/\!* $AD/\!Defenguin
-  cp -av defendguin$AB_EXEEXT $AD/\!Defenguin/\!RunImage$AB_EXEEXT
-  cat docs/README.txt $H/RISCOSNotes >$AD/\!Defenguin/\!Help
+  ab_create_app Defenguin Apps/Games
 
-  cp -av docs/AUTHORS.txt $AD/\!Defenguin/AUTHORS
-  cp -av docs/CHANGES.txt $AD/\!Defenguin/CHANGES
-  cp -av docs/COPYING.txt $AD/\!Defenguin/COPYING
+  cp -av defendguin$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
+  cat docs/README.txt $H/RISCOSNotes > $A/\!Help
 
-  mkdir -p $AD/\!Defenguin/data
-  mkdir -p $AD/\!Defenguin/data
-  cp -r data/images $AD/\!Defenguin/data
-  cp -r data/music $AD/\!Defenguin/data
-  cp -r data/sounds $AD/\!Defenguin/data
+  cp -av docs/*.txt $A
+
+  mkdir -p $A/data
+  cp -r data/images data/music data/sounds $A/data
 
   $AB_HOME/add-riscpkg -unixlib -unixsound
 }

@@ -1,31 +1,24 @@
-AB_CATEGORY=Games
-AB_COPYSOURCE=yes
 AB_LICENCE=Free
 
 ab_package() {
+  ab_create_app Wesnoth Apps/Games
 
-  AD=$D/Apps/Games
-  mkdir -p $AD
-  cp -av $H/\!Wesnoth $AD
-  cp -auv $H/\!Wesnoth/\!* $AD/\!Wesnoth
-  cp -av src/wesnoth$AB_EXEEXT $AD/\!Wesnoth
+  cp -av src/wesnoth$AB_EXEEXT $A
 
-  mkdir -p $AD/\!Wesnoth/docs
-  cp -av $S/changelog $S/COPYING $S/copyright \
-    README \
-    $AD/\!Wesnoth/docs
+  mkdir -p $A/docs
+  cp -av $S/changelog $S/COPYING $S/copyright README $A/docs
 
-  cp -av $S/doc/manual $AD/\!Wesnoth/docs
-  cp -av $H/\!Wesnoth/docs/RISCOS $AD/\!Wesnoth/docs
+  cp -av $S/doc/manual $A/docs
+  cp -av $H/\!Wesnoth/docs/RISCOS $A/docs
 
-  cp -r $S/data $AD/\!Wesnoth
+  cp -r $S/data $A/
   # Some of the language files have an @ char in that RISC OS
   # doesn't like in filenames.
-  for fname in `find $AD -name "*@*"` ; do mv $fname ${fname/@/A} ; done
+  for fname in `find $A -name "*@*"` ; do mv $fname ${fname/@/A} ; done
 
-  cp -r $S/fonts $AD/\!Wesnoth
-  cp -r $S/images $AD/\!Wesnoth
-  cp -r $S/sounds $AD/\!Wesnoth
+  cp -r $S/fonts $A/
+  cp -r $S/images $A/
+  cp -r $S/sounds $A/
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
 }
