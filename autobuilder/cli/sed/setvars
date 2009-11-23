@@ -1,8 +1,13 @@
 
-AB_CATEGORY=Command
-
 AB_MANPAGE=doc/sed.1
 
+export gl_cv_func_gettimeofday_clobber=no
+
 ab_package() {
-  cp $S/sed/sed$AB_EXEEXT $S/COPYING $D
+  ab_create_command_app sed Apps/Utilities
+  ab_add_commands $S/sed/sed$AB_EXEEXT
+
+  mv sed.1,faf $A/\!Help,faf
+
+  cp $S/COPYING $A
 }
