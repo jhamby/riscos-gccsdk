@@ -1,13 +1,17 @@
 
-AB_CATEGORY=Graphics
-
-AB_MANPAGE="dcparse.1 dcraw.1"
-
-ln -s . man1
+AB_DISTCLEAN="make clean"
 
 ab_package() {
-  cp $S/*$AB_EXEEXT $D
-  cp $H/ReadMe-jmb $D/ReadMe
+  ab_create_command_app dcraw Apps/Graphics
+
+  ab_add_commands $S/*$AB_EXEEXT
+
+  rman -f HTML dcparse.1 > $A/dcparse,faf
+  rman -f HTML dcraw.1 > $A/dcraw,faf
+
+  cp $H/ReadMe-jmb $A/\!Help
+
+  $AB_HOME/add-riscpkg -unixlib
 }
 
 

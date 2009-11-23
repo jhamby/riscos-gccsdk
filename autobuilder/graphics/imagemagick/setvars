@@ -1,6 +1,4 @@
 
-AB_CATEGORY=Graphics
-
 AB_MANPAGE=utilities/ImageMagick.1
 
 AB_CONFLAGS="--with-perl=no --disable-largefile"

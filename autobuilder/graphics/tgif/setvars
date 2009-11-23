@@ -1,14 +1,14 @@
 
-AB_CATEGORY=Graphics
-
 ab_package() {
-  cp -av $H/\!Tgif/ $D
-  mkdir -p $D/\!Tgif/Docs
-  cp -av $S/tgif$AB_EXEEXT $D/\!Tgif/
-  cp -av -L $S/Copyright $S/License $S/README $D/\!Tgif/Docs
+  ab_create_app Tgif Apps/Graphics
 
-  mkdir -p $D/\!Tgif/data
-  cp -av $S/tgificon.xpm $D/\!Tgif/data
+  cp -av $S/tgif$AB_EXEEXT $A
 
-  rman -f HTML $S/tgif.man > $D/\!Tgif/Docs/tgif.html
+  mkdir -p $A/Docs
+  cp -av -L $S/Copyright $S/License $S/README $A/Docs
+
+  mkdir -p $A/data
+  cp -av $S/tgificon.xpm $A/data
+
+  rman -f HTML $S/tgif.man > $A/Docs/tgif.html
 }

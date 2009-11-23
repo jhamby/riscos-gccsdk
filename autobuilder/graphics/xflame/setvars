@@ -2,9 +2,9 @@
 AB_URL=http://www.libsdl.org/projects/xflame/src/xflame-1.0.tar.gz
 AB_ZIPNAME=xflame-1.0
 
-AB_CATEGORY=Graphics
-
 ab_package() {
-  cp -av $H/!Run,feb $D
-  cp -av $S/xflame$AB_EXEEXT $D
+  ab_create_app Xflame Apps/Graphics
+
+  cp -av $H/!Run,feb $A
+  cp -av $S/xflame$AB_EXEEXT $A
 }
