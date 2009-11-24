@@ -1,9 +1,27 @@
 
-AB_CATEGORY=Command
-
 AB_CONFLAGS="--disable-nls"
 
 export gl_cv_func_fflush_stdin=yes
 export gl_cv_list_mounted_fs=no
+
+export fu_cv_sys_mounted_fread=yes
+export fu_cv_sys_mounted_fread_fstyp=no
+export gl_cv_func_gettimeofday_clobber=no
+
+AB_MANPAGE="find/find.1 xargs/xargs.1 locate/locate.1"
+
+ab_package() {
+  ab_create_command_app FindUtils Apps/Utilities
+
+  for app in find/find xargs/xargs locate/locate locate/frcode; do
+    ab_add_commands $S/$app$AB_EXEEXT
+  done
+
+  mkdir -p $A/doc  
+  mv $D/*faf $A/doc
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+
 
 
