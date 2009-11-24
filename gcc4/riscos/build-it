@@ -103,6 +103,7 @@ if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; t
   if [ "$GCCSDK_BUILD_ISSTATIC" != "YES" ] ; then
     # Dynamic loader:
     echo +++ Building Dynamic Linker V1.9.9
+    PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
     test -f $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 || ( cd $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 && autoreconf --install )
     create_empty_dir $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
     cd $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
