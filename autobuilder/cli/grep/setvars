@@ -1,5 +1,11 @@
 
-AB_CATEGORY=Command
-
 AB_PRECONF="LIBS=-lintl"
 
+ab_package() {
+  ab_create_command_app grep Apps/Utilities
+  ab_add_commands $S/src/*$AB_EXEEXT
+
+  cp $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib
+}
