@@ -27,7 +27,7 @@ ab_package()
   rm -rf lib
 
   cd doc
-  docdir=`echo *`
+  docdir=`echo lib*`
   mv $docdir/* .
   rm -rf $docdir
 
