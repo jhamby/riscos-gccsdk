@@ -156,6 +156,14 @@ extern struct tm *localtime_r (const time_t *__restrict __timer,
 extern struct tm *gmtime_r (const time_t *__restrict __timer,
 			    struct tm *__restrict resultp) __THROW;
 
+/* Convert the broken-down time value into a string in a standard
+   format:  "Sat Jul 12 14:47:12 1997\n" (re-entrant) */
+extern char *asctime_r (const struct tm *__brokentime, char *__buffer) __THROW;
+
+/* Similar to asctime except that the time value is specified
+   as a time_t calendar time value. (re-entrant)  */
+extern char *ctime_r (const time_t *__timer, char *__buffer) __THROW;
+
 #endif
 
 /* C99 Additions.  */

@@ -21,7 +21,7 @@ extern struct tm *__calendar_convert (int __swinum, const time_t *__tp,
 				      struct tm *resultp);
 
 /* Common function for ctime() and asctime().  */
-extern char *__standard_time (const char *__riscos_time);
+extern char *__standard_time (const char *__riscos_time, char *__buffer);
 #endif
 
 __END_DECLS

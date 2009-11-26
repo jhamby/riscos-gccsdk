@@ -1,3 +1,8 @@
+Thu Nov 26 10:13:45 PST 2009  Peter Naulls  <peter@chocky.org>
+
+	* time/ctime.c, time/stdtime.c, time/asctime.c, include/time.h,
+	  incl-local/time.h: Add asctime_r, ctime_r.
+
 Sat Nov 14 10:30:39 PST 2009  Peter Naulls  <peter@chocky.org>
 
 	* string/_strlen.s: Alignment access fix from Adrian

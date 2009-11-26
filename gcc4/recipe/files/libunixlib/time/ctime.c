@@ -18,5 +18,18 @@ ctime (const time_t *timer)
 
   /* Convert calendar time to 5 byte RISC OS time.  */
   __cvt_unix_time (*timer, &riscos_time[1], &riscos_time[0]);
-  return __standard_time ((const char *)riscos_time);
+  return __standard_time ((const char *)riscos_time, NULL);
+}
+
+char *
+ctime_r (const time_t *timer, char *buffer)
+{
+  unsigned int riscos_time[2];
+
+  /* Set tzname, timezone and daylight.  */
+  tzset ();
+
+  /* Convert calendar time to 5 byte RISC OS time.  */
+  __cvt_unix_time (*timer, &riscos_time[1], &riscos_time[0]);
+  return __standard_time ((const char *)riscos_time, buffer);
 }
