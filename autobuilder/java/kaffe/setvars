@@ -1,9 +1,0 @@
-
-cp -r $AB_HOME/$AB_PACKAGEDIR/riscos config/arm
-
-AB_PRECONF="KAFFEH=/usr/local/kaffe/bin/kaffeh"
-
-AB_CONFLAGS="--ro-recurse --with-staticlib --with-staticvm --with-staticbin --with-engine=intrp --with-iconv-prefix=/home/riscos/env"
-
-
-
