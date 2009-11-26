@@ -1,7 +1,12 @@
 AB_CATEGORY=Network
 
 ab_package() {
- cp -av $S/ctorrent$AB_EXEEXT README-DNH.TXT UserGuide ChangeLog COPYING $D 
+  ab_create_app CTorrent Apps/Network
+  ab_add_commands $S/ctorrent$AB_EXEEXT
+
+  cp -av README-DNH.TXT UserGuide ChangeLog COPYING $A/
+
+  $AB_HOME/add-riscpkg -unixlib
 }
 
 
