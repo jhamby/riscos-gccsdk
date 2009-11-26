@@ -36,6 +36,7 @@ fi
 
 H=$AB_HOME/$AB_PACKAGEDIR
 
+rm -f $AB_HOME/last-zips
 
 # Make $CC, $CXX available 
 eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
@@ -491,6 +492,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
     mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
     mv $AB_ZIP $AB_OUTPUTPACK/$AB_CATEGORY
     ls -l  $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP)
+    echo $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP) > $AB_HOME/last-zips
 
   else
     # Multiple packages (AB_PACKAGES defined)
@@ -532,6 +534,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
       cd $AB_SRCDIR
       $GCCSDK_INSTALL_ENV/bin/zip -r $AB_SRCZIP * -x "*/CVS/*" -x "*/\.svn/*"
       mv $AB_SRCZIP $AB_OUTPUTPACK/$AB_CATEGORY
+      echo $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_SRCZIP) >> $AB_HOME/last-zips
       cd $D
     else
       echo "Autobuilder: Warning! Source directory for source package missing '$AB_SRCDIR'"
