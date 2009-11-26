@@ -9,7 +9,6 @@ ab_package() {
   cp -av $S/changelog $S/COPYING $S/copyright README $A/docs
 
   cp -av $S/doc/manual $A/docs
-  cp -av $H/\!Wesnoth/docs/RISCOS $A/docs
 
   cp -r $S/data $A/
   # Some of the language files have an @ char in that RISC OS
@@ -25,7 +24,7 @@ ab_package() {
 
 # Boost directory finding doesn't work in configure script so
 # we find it here.
-BOOST_DIR=`echo $GCCSDK_INSTALL_ENV/include/*/boost`
+BOOST_DIR=`echo $GCCSDK_INSTALL_ENV/include/*/boost | cut -d ' ' -f 1`
 BOOST_INC=`dirname $BOOST_DIR`
 
 export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec -lintl"
