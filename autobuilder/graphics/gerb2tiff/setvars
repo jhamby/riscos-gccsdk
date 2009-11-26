@@ -16,7 +16,7 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib -appname $AB_APPNAME -copyrightfile $S/../GPL
 
   # Add a description
-  echo "Description: gerb2tiff is a command line driven program that will read an" > $D/RiscPkg/Control,fff
+  echo "Description: gerb2tiff is a command line driven program that will read an" >> $D/RiscPkg/Control,fff
   echo " input file of Gerber RS273X format and generates a raster graphics" >> $D/RiscPkg/Control,fff
   echo " bitmap. Output file is uncompressed monochrome TIFF image." >> $D/RiscPkg/Control,fff
 }
