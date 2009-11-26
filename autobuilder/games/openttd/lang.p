@@ -118,30 +118,6 @@ Index: src/lang/unfinished/macedonian.txt
  STR_OSNAME_SUNOS                                                :SunOS
  
  # Abandon game
-Index: src/lang/unfinished/basque.txt
-===================================================================
---- src/lang/unfinished/basque.txt	(revision 17960)
-+++ src/lang/unfinished/basque.txt	(working copy)
-@@ -823,6 +823,7 @@
- STR_OSNAME_MORPHOS                                              :MorphOS
- STR_OSNAME_AMIGAOS                                              :AmigaOS
- STR_OSNAME_OS2                                                  :OS/2
-+STR_OSNAME_RISCOS                                               :RISC OS
- STR_OSNAME_SUNOS                                                :SunOS
- 
- # Abandon game
-Index: src/lang/unfinished/vietnamese.txt
-===================================================================
---- src/lang/unfinished/vietnamese.txt	(revision 17960)
-+++ src/lang/unfinished/vietnamese.txt	(working copy)
-@@ -1348,6 +1348,7 @@
- STR_OSNAME_MORPHOS                                              :MorphOS
- STR_OSNAME_AMIGAOS                                              :AmigaOS
- STR_OSNAME_OS2                                                  :OS/2
-+STR_OSNAME_RISCOS                                               :RISC OS
- STR_OSNAME_SUNOS                                                :SunOS
- 
- # Abandon game
 Index: src/lang/korean.txt
 ===================================================================
 --- src/lang/korean.txt	(revision 17960)
@@ -447,18 +423,6 @@ Index: src/lang/luxembourgish.txt
 --- src/lang/luxembourgish.txt	(revision 17960)
 +++ src/lang/luxembourgish.txt	(working copy)
 @@ -1336,6 +1336,7 @@
- STR_OSNAME_MORPHOS                                              :MorphOS
- STR_OSNAME_AMIGAOS                                              :AmigaOS
- STR_OSNAME_OS2                                                  :OS/2
-+STR_OSNAME_RISCOS                                               :RISC OS
- STR_OSNAME_SUNOS                                                :SunOS
- 
- # Abandon game
-Index: src/lang/greek.txt
-===================================================================
---- src/lang/greek.txt	(revision 17960)
-+++ src/lang/greek.txt	(working copy)
-@@ -1349,6 +1349,7 @@
  STR_OSNAME_MORPHOS                                              :MorphOS
  STR_OSNAME_AMIGAOS                                              :AmigaOS
  STR_OSNAME_OS2                                                  :OS/2

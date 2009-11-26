@@ -1,5 +1,6 @@
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"                                                                    
 AB_LICENCE="GPLv2"
+AB_ROVERSION=2
 
 (unset CC; unset CXX; ./configure)
 make -C objs/lang
@@ -11,7 +12,7 @@ cp $H/endian_host.h objs/release
 cp -av $H/riscos os
 
 $CC -I$GCCSDK_INSTALL_ENV/include -I$GCCSDK_INSTALL_ENV/include  $GCCSDK_INSTALL_ENV/lib/libOSLib32.a \
- os/riscos/frontend.c os/riscos/rev.c -O2 -o frontend$AB_EXEEXT
+ os/riscos/frontend.c os/riscos/rev.c -O2 -o frontend$AB_EXEEXT -static
 
 
 export CFLAGS=-I/home/riscos/env/include
