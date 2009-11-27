@@ -1,0 +1,7 @@
+| Run file for Noiz2sa
+
+Wimpslot -min 2304K
+
+Set Noiz2sa$Dir <Obey$Dir>
+
+Run <Noiz2sa$Dir>.noiz2sa >null: 2>null:

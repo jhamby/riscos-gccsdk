@@ -12,24 +12,6 @@
  CFLAGS ?= -O2
  OBJS = bulletmlparser-tinyxml.o bulletmlparser.o bulletmltree.o calc.o formula-variables.o bulletmlrunner.o bulletmlrunnerimpl.o
  
---- src/Makefile.orig	2005-07-06 10:53:25.000000000 +0100
-+++ src/Makefile	2005-07-06 11:01:04.000000000 +0100
-@@ -10,12 +10,12 @@
- PROG        = $(NAME)
- 
- DEFAULT_CFLAGS = `sdl-config --cflags`
--LDFLAGS        = `sdl-config --libs` -lSDL_mixer -Lbulletml -lbulletml -lstdc++
-+LDFLAGS        = `sdl-config --libs` -lSDL_mixer -Lbulletml -lbulletml -lstdc++ -lmikmod -lvorbisidec
- 
--MORE_CFLAGS ?= -O3
-+MORE_CFLAGS ?= -O3 -Ibulletml
- 
- CFLAGS  = $(DEFAULT_CFLAGS) $(MORE_CFLAGS)
--CPPFLAGS  = $(DEFAULT_CFLAGS) $(MORE_CFLAGS) -I/usr/include
-+CPPFLAGS  = $(DEFAULT_CFLAGS) $(MORE_CFLAGS) 
- 
- OBJS =	$(NAME).$(O) ship.$(O) shot.$(O) frag.$(O) bonus.$(O) \
- 	foe.$(O) foecommand.$(O) barragemanager.$(O) attractmanager.$(O) \
 --- src/bulletml/Makefile.orig	2009-08-03 07:07:51.000000000 -0700
 +++ src/bulletml/Makefile	2009-08-03 07:07:59.000000000 -0700
 @@ -1,4 +1,4 @@
@@ -38,8 +20,9 @@
  INCLUDES = 
  LIBS = tinyxml/tinyxml.o tinyxml/tinyxmlparser.o tinyxml/tinyxmlerror.o
  #CXXFLAGS = -g -W -Wall -ansi -pedantic
---- src/Makefile.orig	2009-08-03 07:06:56.000000000 -0700
-+++ src/Makefile	2009-08-03 07:14:18.000000000 -0700
+
+--- src/Makefile.orig	2009-11-13 16:19:35.021464000 +0000
++++ src/Makefile	2009-11-13 16:35:33.715464000 +0000
 @@ -4,13 +4,13 @@
  NAME   = noiz2sa
  O      = o
@@ -49,11 +32,23 @@
 +#CC     = gcc
 +#CXX    = g++
  
- PROG        = $(NAME)
+-PROG        = $(NAME).exe
++PROG        = $(NAME)$(AB_EXEEXT)
  
  DEFAULT_CFLAGS = `sdl-config --cflags`
--LDFLAGS        = `sdl-config --libs` -lSDL_mixer -Lbulletml -lbulletml -lstdc++ -lmikmod -lvorbisidec
-+LDFLAGS        := `sdl-config --libs` -lSDL_mixer -Lbulletml -lbulletml -lstdc++ -lmikmod -lvorbisidec -static
+-LDFLAGS        = `sdl-config --libs` -L. -lmingw32 -lmingwex -lSDL_mixer -lbulletml -mwindows -lstdc++
++LDFLAGS        = `sdl-config --libs` -lSDL_mixer -Lbulletml -lbulletml -lstdc++ -lmikmod -lvorbisidec -static
  
- MORE_CFLAGS ?= -O3 -Ibulletml
+ MORE_CFLAGS = -O3
+ 
+@@ -20,8 +20,7 @@
+ OBJS =	$(NAME).$(O) ship.$(O) shot.$(O) frag.$(O) bonus.$(O) \
+ 	foe.$(O) foecommand.$(O) barragemanager.$(O) attractmanager.$(O) \
+ 	background.$(O) letterrender.$(O) \
+-	screen.$(O) clrtbl.$(O) vector.$(O) degutil.$(O) rand.$(O) soundmanager.$(O) \
+-	$(NAME)_res.$(O)
++	screen.$(O) clrtbl.$(O) vector.$(O) degutil.$(O) rand.$(O) soundmanager.$(O)
+ 
+ $(PROG): $(OBJS) 
+ 	$(CC) $(CFLAGS) -o $(PROG) $(OBJS) $(LDFLAGS)
  

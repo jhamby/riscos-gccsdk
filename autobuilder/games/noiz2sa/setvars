@@ -1,3 +1,5 @@
+AB_CATEGORY=Games
+AB_LICENCE=Free
 
 cd src
 
@@ -7,3 +9,20 @@ ab_make() {
   $AB_MAKE
 }
 
+ab_package() {
+  mkdir -p $D/Apps
+  AD=$D/Apps/Games
+  mkdir -p $AD
+  cp -av $H/\!Noiz2sa $AD
+  cp -av $H/\!Noiz2sa/\!* $AD/\!Noiz2sa
+  cp -av $S/noiz2sa$AB_EXEEXT $AD/\!Noiz2sa
+ 
+  cat $S/../readme_e.txt >> $AD/\!Noiz2sa/\!Help
+
+  mkdir -p $AD/\!Noiz2sa/data
+  cp -r $S/../noiz2sa_share/* $AD/\!Noiz2sa/data
+
+  cd ..
+  $AB_HOME/add-riscpkg -unixlib -unixsound
+  cd $S
+}
