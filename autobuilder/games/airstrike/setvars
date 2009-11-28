@@ -1,9 +1,9 @@
 
 ab_package() {
   ab_create_app AirStrike Apps/Games
+  ab_makerun $S/src/airstrike
 
   cp -av $S/ChangeLog $S/COPYING $S/LICENSE $S/README $S/data $A
-  cp -av $S/src/airstrike $A/airstrike${AB_EXEEXT}
   sed s#datapath.*\$#"datapath \"<AirStrike\$Dir>/data/\""# < $S/airstrikerc > $A/airstrikerc
 
   $AB_HOME/add-riscpkg -unixlib -unixsound

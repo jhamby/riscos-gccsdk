@@ -1,5 +1,4 @@
-WimpSlot -min 1500K -max 1500K
+WIMPSLOT
 
 Set AirStrike$Dir <Obey$Dir>
-
 Run <AirStrike$Dir>.airstrike >null: 2>null:

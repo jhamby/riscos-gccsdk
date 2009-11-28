@@ -5,7 +5,7 @@
  
  airstrike: $(OBJECTS)
 -	$(CC) -o $@ $(CFLAGS) $(OBJECTS) `sdl-config --libs` -lSDL_image
-+	$(CC) -o $@ $(CFLAGS) $(OBJECTS) `sdl-config --libs` -lSDL_image -ltiff -ljpeg -lpng -lz
++	$(CC) -o $@ $(CFLAGS) $(OBJECTS) `sdl-config --libs` -lSDL_image -ltiff -ljpeg -lpng -lz -static
  
  airstrike-sound: $(OBJECTS)
  	$(CC) -o $@ $(CFLAGS) $(OBJECTS) `sdl-config --libs` -lSDL_image -lSDL_mixer
