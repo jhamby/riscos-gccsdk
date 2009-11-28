@@ -1,8 +1,7 @@
-| Run file for xrick
+| Run file for XRick
 
-Wimpslot -min 3136K -max 3136K
+WIMPSLOT
 
 Set XRick$Dir <Obey$Dir>
-
-Run <XRick$Dir>.!RunImage -data /<XRick$Dir>/data.zip
+Run <XRick$Dir>.xrick -data /<XRick$Dir>/data.zip
 

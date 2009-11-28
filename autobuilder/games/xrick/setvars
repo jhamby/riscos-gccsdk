@@ -2,8 +2,8 @@ AB_URL=http://www.bigorno.net/xrick/xrick-021212.tgz
 
 ab_package() {
   ab_create_app XRick Apps/Games
+  ab_makerun $S/xrick
 
-  cp xrick$AB_EXTEXT $A/\!RunImage$AB_EXEEXT
   # Copy zip file as data to stop it being used as an image file system
   cp data.zip $A/data.zip,ffd
   cat README $H/RISCOSNotes > $A/\!Help

@@ -118,18 +118,6 @@ ab_create_app() {
   ab_create_command_app $1 $2
 }
 
-# Generate WimpSlot values
-ab_makerun() {
-  local app=$1
-  local aif=$(basename $app | sed "s#,e1f\$#,ff8#")
-
-  $GCCSDK_INSTALL_ENV/ro-path elf2aif $app $A/$aif
-
-  mv $A/\!Run,feb $A/\!Run
-  $GCCSDK_INSTALL_ENV/bin/makerun $A/$aif $A/\!Run $A/\!Run,feb
-  rm -f $A/\!Run
-}
-
 
 # Default function to package the source code
 # Only used on if AB_COPYSOURCE=yes and object
@@ -187,6 +175,24 @@ cp() {
 
   /bin/cp $params $dest
 }
+
+
+# Generate WimpSlot values
+ab_makerun() {
+  local app=$1
+  local aif=$(basename $app | sed "s#,e1f\$#,ff8#")
+
+  if ! grep -q ,ff8 <<< $aif; then
+    aif=$aif,ff8
+  fi
+
+  $GCCSDK_INSTALL_ENV/ro-path elf2aif $app $A/$aif
+
+  mv $A/\!Run,feb $A/\!Run
+  $GCCSDK_INSTALL_ENV/bin/makerun $A/$aif $A/\!Run $A/\!Run,feb
+  rm -f $A/\!Run
+}
+
 
 
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
