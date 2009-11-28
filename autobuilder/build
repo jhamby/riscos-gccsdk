@@ -272,10 +272,19 @@ ab_build() {
       DEPENDENCIES=`$AB_HOME/fetch-depends $PACKAGE_NAME`
     fi
 
-    # Build our version of zip for packaging
-    if [ "$PACKAGE_NAME" != "native-zip" ] && ! [ -e $GCCSDK_INSTALL_ENV/bin/zip ] ; then
-      if ! ab_build native-zip true true false; then
-        return 1
+    if [ "$PACKAGE_NAME" != "native-zip" ] && [ "$PACKAGE_NAME" != "makerun" ] ; then
+      # Build our version of zip for packaging
+      if ! [ -e $GCCSDK_INSTALL_ENV/bin/zip ] ; then
+        if ! ab_build native-zip true true false; then
+          return 1
+        fi
+      fi
+
+      # Build makerun
+      if ! [ -e $GCCSDK_INSTALL_ENV/bin/makerun ] ; then
+        if ! ab_build makerun true true false; then
+          return 1
+        fi
       fi
     fi
 

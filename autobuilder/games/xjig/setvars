@@ -9,8 +9,8 @@ ab_make() {
 
 ab_package() {
   ab_create_app XJig Apps/Games
+  ab_makerun $S/xjig$AB_EXEEXT
 
-  cp -av $S/xjig$AB_EXEEXT $A/
   cp -av $S/tina.gif $A/
   rman -f HTML $S/xjig.man > $A/\!Help,faf
 

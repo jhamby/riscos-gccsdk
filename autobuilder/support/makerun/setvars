@@ -1,0 +1,12 @@
+
+AB_PRECONF=:
+AB_MAKE=:
+
+AB_SVN=svn://source.netsurf-browser.org/trunk/tools/makerun/
+
+gcc -O2 makerun.c -o makerun
+
+mkdir -p $GCCSDK_INSTALL_ENV/bin
+cp makerun $GCCSDK_INSTALL_ENV/bin/
+
+
