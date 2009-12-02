@@ -1,0 +1,8 @@
+| Run file for Reminiscence
+|
+
+WIMPSLOT
+
+Set Reminiscence$Dir <Obey$Dir>
+
+<Reminiscence$Dir>.rs --datapath=/<Reminiscence$Dir>/data --savepath=/<Reminiscence$Dir>
