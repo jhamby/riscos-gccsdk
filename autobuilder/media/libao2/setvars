@@ -1,5 +1,5 @@
 
-AB_CONFLAGS="--disable-esd"
+AB_CONFLAGS="--disable-esd --disable-arts"
 
 AB_INSTALL=yes
 
