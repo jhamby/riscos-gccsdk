@@ -1,0 +1,5 @@
+WIMPSLOT
+
+Set MazeOfGalious$Dir <Obey$Dir>
+
+Run <MazeOfGalious$Dir>.mogs -file >null: 2><Obey$Dir>.stderr
