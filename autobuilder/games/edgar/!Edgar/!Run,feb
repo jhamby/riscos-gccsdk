@@ -1,0 +1,5 @@
+WIMPSLOT
+
+Set Edgar$Dir <Obey$Dir>
+
+Run <Edgar$Dir>.edgar >null: 2><Obey$Dir>.stderr
