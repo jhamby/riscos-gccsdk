@@ -1,7 +1,13 @@
-AB_CATEGORY=Command
 
-AB_URL=ftp://gnu.mirror.pacific.net.au/gnu/gnu/tar/tar-1.15.tar.gz
+export gl_cv_sys_struct_timeval=yes 
+export gl_cv_func_gettimeofday_clobber=no
 
 ab_package() {
-  cp $S/src/tar$AB_EXEEXT $S/COPYING $D
+ ab_create_command_app Tar Apps/Utilities
+ ab_add_commands $S/src/*$AB_EXEEXT
+
+ cp -av $S/COPYING $A
+
+ $AB_HOME/add-riscpkg -unixlib
 }
+
