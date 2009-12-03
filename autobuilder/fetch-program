@@ -35,7 +35,7 @@ elif [ "$AB_GIT" != "" ] ; then
   git clone $AB_GIT
 
 elif [ "$AB_URL" != "" ] ; then
-  wget -nv $AB_URL
+  wget -U "GCCSDK Autobuilder for RISC OS" -nv $AB_URL
   base=$(basename $AB_URL)
   if echo $base | grep -q -E "\.gz$|\.tgz$" ; then
     tar xfz $base
