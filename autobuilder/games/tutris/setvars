@@ -1,17 +1,18 @@
-AB_URL=http://www.riscos.info/packages/src/Games/tutris_1.0.0-1-src.zip
-# Tutris source was lost, so use a copy reconstructed from the UPP version
+AB_URL=ftp://ftp.usa.openbsd.org/pub/OpenBSD/distfiles/Tutris-1.0.1.tar.gz
 
-AB_PVERSION=1.0.0
-# Source is retrieved from website so don't copy it back
-AB_COPYSOURCE=no
+export LIBS="-lpng -lz"
+
+AB_CONFLAGS=\''--datadir=/\<Tutris\$$Dir\>/data'\'
 
 ab_package() {
   ab_create_app Tutris Apps/Games
+  ab_makerun src/tutris$AB_EXEEXT
 
-  cp -av tutris$AB_EXEEXT $A
-  cat readme >> $A/\!Help
-  cp -av authors ChangeLog copying $A
+  cat README >> $A/\!Help
+  cp -av AUTHORS ChangeLog COPYING $A
   cp -r data $A
+  rm $A/data/Makefile*
+
 
   $AB_HOME/add-riscpkg -unixlib -copyrightfile copying
 }

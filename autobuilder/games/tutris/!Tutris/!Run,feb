@@ -1,0 +1,5 @@
+WIMPSLOT
+
+Set Tutris$Dir <Obey$Dir>
+
+Run <Tutris$Dir>.tutris >null: 2><Obey$Dir>.stderr
