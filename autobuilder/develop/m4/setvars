@@ -4,6 +4,7 @@ AB_FILESNOPATH="src/m4$AB_EXEEXT"
 export gl_cv_func_fflush_stdin=yes
 export gl_cv_func_gettimeofday_clobber=no
 export gl_cv_func_gettimeofday_posix_signature=yes
+export gl_cv_sys_struct_timeval=yes
 export gl_cv_func_working_mkstemp=yes
 export gl_cv_func_svid_putenv=yes
 export ac_cv_func_chown_works=yes
