@@ -1,0 +1,6 @@
+
+AB_URL=http://rbelmont.mameworld.info/sdlmess0135.zip
+
+ab_make() {
+  $AB_MAKE -f makefile.sdl TARGETOS=riscos
+}
