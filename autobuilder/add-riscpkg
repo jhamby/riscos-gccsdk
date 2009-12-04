@@ -13,7 +13,7 @@ if [ -z "$AB_DIR" ] ; then
   AB_DIR=.
 fi
 
-D=$AB_DIR/package
+D=$AB_DIR/package/${AB_SUBPACKAGE}
 
 # Parse parameters
 

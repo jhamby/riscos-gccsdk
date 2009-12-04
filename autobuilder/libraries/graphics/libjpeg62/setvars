@@ -8,10 +8,8 @@ AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 
 
 ab_package() {
-  set -x
-
   # Package programs
-  ab_create_command_app JPEGProgs Apps/Graphics
+  ab_create_command_app JPEGProgs Apps/Graphics libjpeg-progs
   ab_add_commands $S/*$AB_EXEEXT
 
   cp $S/usage.doc $A/\!Help
@@ -20,11 +18,10 @@ ab_package() {
 
   mv $D/*,faf $A/
 
-  $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib
-  #rm -rf $A
+  $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib -section Graphics
 
   # Package libraries
-  ab_create_app LibJPEG Apps/Library
+  ab_create_app LibJPEG Apps/Library libjpeg62-dev
 
   HERE=`pwd`
   cd $A

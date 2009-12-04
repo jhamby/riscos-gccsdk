@@ -68,6 +68,7 @@ ab_make() {
 ab_create_app() {
   local app
   local section
+  local package
 
   if [ -z "$2" ] ; then
     section=$1
@@ -75,18 +76,24 @@ ab_create_app() {
   else
     app=$1
     section=$2
+
+    if [ -n "$3" ] ; then
+      package=$3/
+    fi
   fi
 
   if [ -z "$AB_CATEGORY" ] ; then
     AB_CATEGORY=$(sed s#^Apps/## <<<$section)
   fi
 
-  A=$D/$section/\!$app/
+  export AB_SUBPACKAGE=$package
+
+  A=$D/$package$section/\!$app/
   AA=$app
   mkdir -p $A
 
   if [ -e $H/\!$app ] ; then
-    /bin/cp -av $H/\!$app $D/$section
+    /bin/cp -av $H/\!$app $D/$package$section
   fi
 
   if ! [ -e $A/\!Boot,feb ] ; then
@@ -98,11 +105,11 @@ ab_create_app() {
 
 
 ab_create_command_app() {
-  ab_create_app $1 $2
+  ab_create_app $1 $2 $3
 
   # For commands applications, just run the !Boot file
   if ! [ -e $A/\!Run,feb ] ; then
-    echo -e "| !Run file for $app\n" > $A/\!Run,feb
+    echo -e "| !Run file for $AA\n" > $A/\!Run,feb
     echo "/<Obey\$Dir>.!Boot" >> $A/\!Run,feb
   fi
 }
