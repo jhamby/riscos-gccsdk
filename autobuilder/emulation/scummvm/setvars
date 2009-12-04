@@ -3,16 +3,12 @@ AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
 AB_CONFLAGS="--with-sdl-prefix=$GCCSDK_INSTALL_ENV/bin --enable-release"
 
-AB_PVERSION=1.0.0-rc1
-AB_ROVERSION=2
-
 ab_package() {
   ab_create_app ScummVM Apps/Emulation
+  ab_makerun $S/scummvm
 
   mkdir -p $A/Docs
   /bin/cp "$H/RISC OS" $S/README $S/COPYING $A/Docs
-
-  cp $S/scummvm $A/scummvm$AB_EXEEXT
 
   $AB_HOME/add-riscpkg -unixlib
 }

@@ -1,4 +1,4 @@
-WimpSlot -min 13000k -max 13000k
+WIMPSLOT
 
 Set SDL$scummvm$Backbuffer 2
 
