@@ -65,7 +65,7 @@ ab_make() {
 }
 
 
-ab_create_command_app() {
+ab_create_app() {
   local app
   local section
 
@@ -89,15 +89,21 @@ ab_create_command_app() {
     /bin/cp -av $H/\!$app $D/$section
   fi
 
-  if ! [ -e $A/\!Run,feb ] ; then
-    echo -e "| !Run file for $app\n" > $A/\!Run,feb
-    echo "/<Obey\$Dir>.!Boot" >> $A/\!Run,feb
-  fi
-
   if ! [ -e $A/\!Boot,feb ] ; then
     echo -e "| !Boot file for $app\n" > $A/\!Boot,feb
     echo "Set $app\$Dir <Obey\$Dir>" >> $A/\!Boot,feb
     echo -e "Iconsprites <$app\$Dir>.!Sprites\n" >> $A/\!Boot,feb
+  fi
+}
+
+
+ab_create_command_app() {
+  ab_create_app $1 $2
+
+  # For commands applications, just run the !Boot file
+  if ! [ -e $A/\!Run,feb ] ; then
+    echo -e "| !Run file for $app\n" > $A/\!Run,feb
+    echo "/<Obey\$Dir>.!Boot" >> $A/\!Run,feb
   fi
 }
 
@@ -113,10 +119,6 @@ ab_add_commands() {
   done
 }
 
-# Might vary in future
-ab_create_app() {
-  ab_create_command_app $1 $2
-}
 
 
 # Default function to package the source code
@@ -180,7 +182,14 @@ cp() {
 # Generate WimpSlot values
 ab_makerun() {
   local app=$1
-  local aif=$(basename $app | sed "s#,e1f\$#,ff8#")
+  local dest=$2
+  local aif
+
+  if [ -z "$dest" ] ; then
+    dest=$app
+  fi
+
+  aif=$(basename $dest | sed "s#,e1f\$#,ff8#")
 
   if ! grep -q ,ff8 <<< $aif; then
     aif=$aif,ff8
@@ -188,7 +197,16 @@ ab_makerun() {
 
   $GCCSDK_INSTALL_ENV/ro-path elf2aif $app $A/$aif
 
-  mv $A/\!Run,feb $A/\!Run
+  if [ -e $A/\!Run,feb ] ; then
+    mv $A/\!Run,feb $A/\!Run
+  else
+    # Create standard !Run
+
+    echo -e "WIMPSLOT\n" > $A/\!Run
+    echo -e "Set $AA\$Dir <Obey\$Dir>\n" >> $A/\!Run
+    echo "Run <$AA\$Dir>.$(basename $(sed "s#,ff8##" <<< $dest)) >null: 2><Obey\$Dir>.stderr" >> $A/\!Run
+  fi
+
   $GCCSDK_INSTALL_ENV/bin/makerun $A/$aif $A/\!Run $A/\!Run,feb
   rm -f $A/\!Run
 }
