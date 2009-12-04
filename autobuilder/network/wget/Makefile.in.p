@@ -1,11 +1,11 @@
---- Makefile.in.orig	2009-08-03 08:00:06.000000000 -0700
-+++ Makefile.in	2009-08-03 08:00:21.000000000 -0700
-@@ -83,7 +83,7 @@
- manext='$(manext)'
+--- doc/Makefile.in.orig	2009-12-03 18:46:10.000000000 -0800
++++ doc/Makefile.in	2009-12-03 18:30:26.000000000 -0800
+@@ -1035,7 +1035,7 @@
+ #wget.pod: $(srcdir)/wget.texi version.texi
+ #	$(TEXI2POD) $(srcdir)/wget.texi $@
+ wget.pod: wget.info
+-	info2pod wget.info > $@
++	info2pod wget.info > $@ || true
  
- # subdirectories in the distribution
--SUBDIRS = src doc po tests util windows
-+SUBDIRS = src #doc po tests util windows
- 
- # default target
- all: src/config.h Makefile $(SUBDIRS)
+ $(MAN): wget.pod
+ 	$(POD2MAN) --center="GNU Wget" --release="GNU Wget @VERSION@" $? > $@
