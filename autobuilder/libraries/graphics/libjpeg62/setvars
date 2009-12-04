@@ -1,11 +1,7 @@
-AB_PACKAGES="libjpeg-progs libjpeg62-dev"
-
 AB_INSTALL=yes
 AB_INSTALLTARGET=install-lib
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
-
-
 
 ab_package() {
   # Package programs

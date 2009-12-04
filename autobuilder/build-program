@@ -76,11 +76,27 @@ ab_create_app() {
   else
     app=$1
     section=$2
-
-    if [ -n "$3" ] ; then
-      package=$3/
-    fi
   fi
+
+  if [ -n "$3" ] ; then
+    package=$3
+  else
+    package=$AB_PACKAGE
+  fi
+
+  local check
+  local found=false
+  for check in $AB_PACKAGES; do
+    if [ "$check" == "$package" ] ; then
+      found=true
+      break
+    fi
+  done
+
+  if ! $found; then
+    AB_PACKAGES="$AB_PACKAGES $package"
+  fi
+
 
   if [ -z "$AB_CATEGORY" ] ; then
     AB_CATEGORY=$(sed s#^Apps/## <<<$section)
@@ -88,12 +104,12 @@ ab_create_app() {
 
   export AB_SUBPACKAGE=$package
 
-  A=$D/$package$section/\!$app/
+  A=$D/$package/$section/\!$app/
   AA=$app
   mkdir -p $A
 
   if [ -e $H/\!$app ] ; then
-    /bin/cp -av $H/\!$app $D/$package$section
+    /bin/cp -av $H/\!$app $D/$package/$section
   fi
 
   if ! [ -e $A/\!Boot,feb ] ; then
@@ -522,47 +538,33 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
   fi
 
   if [ -z "$AB_PACKAGES" ] ; then
-    # Single package
-
-    # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
-    if [ -e $AB_ZIP ] ; then
-      rm $AB_ZIP
-    fi
-
-    # This will not add files beginning with a dot
-    addzip -r $AB_ZIP *
-
-    mkdir -p  $AB_OUTPUTPACK/$AB_CATEGORY
-    mv $AB_ZIP $AB_OUTPUTPACK/$AB_CATEGORY
-    ls -l  $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP)
-    echo $AB_OUTPUTPACK/$AB_CATEGORY/$(basename $AB_ZIP) > $AB_HOME/last-zips
-
-  else
-    # Multiple packages (AB_PACKAGES defined)
-    for package in $AB_PACKAGES ; do
-      if [ -d "$package" ] ; then
-        if [ -e "$package/RiscPkg/Control,fff" ] ; then
-          section=`grep "Section: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
-        fi
-        if [ -z "$section" ] ; then
-          section="$AB_CATEGORY"
-        fi
-        AB_PZIP=${AB_DIR}/${package}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}.zip
-        # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
-        if [ -e $AB_PZIP ] ; then
-          rm $AB_PZIP
-        fi
-        cd $package
-        addzip -r $AB_PZIP *
-        mkdir -p $AB_OUTPUTPACK/$section
-        mv $AB_PZIP $AB_OUTPUTPACK/$section
-        ls -l  $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)
-        cd ..
-      else
-        echo "Autobuilder: package directory missing $package"
-      fi
-    done
+    AB_PACKAGES=$AB_PACKAGE
   fi
+
+  for package in $AB_PACKAGES ; do
+    if [ -d "$package" ] ; then
+      if [ -e "$package/RiscPkg/Control,fff" ] ; then
+        section=`grep "Section: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
+      fi
+      if [ -z "$section" ] ; then
+        section="$AB_CATEGORY"
+      fi
+      AB_PZIP=${AB_DIR}/${package}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}.zip
+      # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
+      if [ -e $AB_PZIP ] ; then
+        rm $AB_PZIP
+      fi
+      cd $package
+      addzip -r $AB_PZIP *
+      mkdir -p $AB_OUTPUTPACK/$section
+      mv $AB_PZIP $AB_OUTPUTPACK/$section
+      ls -l  $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)
+      cd ..
+    else
+      echo "Autobuilder: package directory missing $package" 1>&2
+      exit 1
+    fi
+  done
 
   # Package source if required
   if [ "$AB_COPYSOURCE" == "yes" ] && [ "$AB_DEBUG" != "yes" ] ; then
