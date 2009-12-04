@@ -15,7 +15,7 @@ Set SDL$wesnoth$TaskName Wesnoth
 RMEnsure UtilityModule 5.00 Set wesnoth$Heap ""
 RMEnsure UtilityModule 5.00 SetEval wesnoth$HeapMax 64
 
-WimpSlot -min 12000k -max 12000k
+WIMPSLOT
 
 Run <Wesnoth$Dir>.wesnoth ><Wesnoth$Dir>.stdout 2><Wesnoth$Dir>.stderr
 

@@ -2,8 +2,7 @@ AB_LICENCE=Free
 
 ab_package() {
   ab_create_app Wesnoth Apps/Games
-
-  cp -av src/wesnoth$AB_EXEEXT $A
+  ab_makerun src/wesnoth$AB_EXEEXT
 
   mkdir -p $A/docs
   cp -av $S/changelog $S/COPYING $S/copyright README $A/docs
