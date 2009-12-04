@@ -1,9 +1,0 @@
-| Run  file to set up alias for JPEG progs
-
-Set JPEGProgs$Dir <Obey$Dir>
-
-Set Alias$cjpeg Run <Obey$Dir>.cgpeg %%*0
-Set Alias$djpeg Run <Obey$Dir>.djpeg %%*0
-Set Alias$jpegtran Run <Obey$Dir>.jpegtran %%*0
-Set Alias$rdjpgcom Run <Obey$Dir>.rdjpgcom %%*0
-Set Alias$wrjpgcom Run <Obey$Dir>.wrjpgcom %%*0

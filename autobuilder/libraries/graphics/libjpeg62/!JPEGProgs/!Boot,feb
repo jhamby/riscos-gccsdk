@@ -1,9 +1,0 @@
-| Boot file to set up alias for JPEG progs
-
-If "<JPEGProgs$Dir>" = "" Then Set JPEGProgs$Dir <Obey$Dir>
-
-If "<JPEGProgs$Dir>" = "<Obey$Dir>" Then Set Alias$cjpeg Run <Obey$Dir>.cgpeg %%*0
-If "<JPEGProgs$Dir>" = "<Obey$Dir>" Then Set Alias$djpeg Run <Obey$Dir>.djpeg %%*0
-If "<JPEGProgs$Dir>" = "<Obey$Dir>" Then Set Alias$jpegtran Run <Obey$Dir>.jpegtran %%*0
-If "<JPEGProgs$Dir>" = "<Obey$Dir>" Then Set Alias$rdjpgcom Run <Obey$Dir>.rdjpgcom %%*0
-If "<JPEGProgs$Dir>" = "<Obey$Dir>" Then Set Alias$wrjpgcom Run <Obey$Dir>.wrjpgcom %%*0

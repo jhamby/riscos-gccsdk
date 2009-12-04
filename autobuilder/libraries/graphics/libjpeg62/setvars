@@ -1,27 +1,27 @@
 AB_PACKAGES="libjpeg-progs libjpeg62-dev"
 
 AB_INSTALL=yes
-AB_INSTALLTARGET=install-lib 
+AB_INSTALLTARGET=install-lib
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 
 
 
 ab_package() {
-  # Package programs
-  ab_create_app JPEGProgs Apps/Graphics
+  set -x
 
-  cp $S/*$AB_EXEEXT $A
+  # Package programs
+  ab_create_command_app JPEGProgs Apps/Graphics
+  ab_add_commands $S/*$AB_EXEEXT
+
   cp $S/usage.doc $A/\!Help
   cp $S/usage.doc wizard.doc $A/
   cp $S/README $A/
 
-  for AB_PAGE in $AB_MANPAGE ; do
-    rman -f HTML $S/$AB_PAGE > $A/$AB_PAGE,faf
-  done
+  mv $D/*,faf $A/
 
   $AB_HOME/add-riscpkg -package libjpeg-progs -unixlib
-  rm -rf $A
+  #rm -rf $A
 
   # Package libraries
   ab_create_app LibJPEG Apps/Library
