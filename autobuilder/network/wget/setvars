@@ -1,6 +1,5 @@
 
 AB_CONFLAGS=--without-ssl
-AB_COPYSOURCE=yes
 
 ab_package() {
  ab_create_command_app Wget Apps/Network

@@ -1,6 +1,4 @@
 
-AB_CATEGORY=Emulation
-AB_COPYSOURCE=yes
 # AB_MANPAGE=docs/dosbox.1
 AB_CONFLAGS="--disable-opengl"
 

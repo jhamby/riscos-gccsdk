@@ -1,6 +1,5 @@
 AB_CATEGORY=Library
 AB_ZIPNAME=libmikmod-dev
-AB_COPYSOURCE=yes
 
 AB_CONFLAGS="--disable-esd"
 
