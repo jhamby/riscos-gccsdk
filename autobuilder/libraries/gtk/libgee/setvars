@@ -14,15 +14,12 @@ ab_package() {
   mkdir -p $slibdir
 
   # Developer package
-  devdir=$D/libgee-dev/Apps/Library
-  mkdir -p $devdir
+  ab_create_app LibGee Apps/Library libgee-dev
   vapidir=$D/libgee-dev/Apps/Development/\!Vala/vapi
   mkdir -p $vapidir
 
-  cp -r $H/!LibGee $devdir
-
   HERE=`pwd`
-  cd $devdir/\!LibGee
+  cd $A
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
   # Move headers libs and docs up one directory
@@ -49,7 +46,6 @@ ab_package() {
   mv $tdocdir/* .
   rm -rf $tdocdir
 
-  cd $HERE
   cd $slibdir
 
   # Create soft links
