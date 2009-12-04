@@ -10,7 +10,7 @@ echo "add-riscpkg: Adding files for the RISC OS Packaging Project"
 
 H=$AB_HOME/$AB_PACKAGEDIR
 if [ -z "$AB_DIR" ] ; then
-   AB_DIR=.
+  AB_DIR=.
 fi
 
 D=$AB_DIR/package
@@ -23,7 +23,8 @@ section="$AB_CATEGORY"
 
 # Scan the boot file for variables etc,
 scan_boot_file() {
-  boot_file=`find $D -iname "\!Boot,feb"`
+  # Ignore nested !Boot files
+  boot_file=`find $D -iname "\!Boot,feb" | sort | head -1`
   # Get appdir/appname defaults
   appdir=`echo "$boot_file" | sed "s#$D/## ; s#/#.#g ; s/!//"`
   appname=`echo "$appdir" | cut -d . -f 3`
