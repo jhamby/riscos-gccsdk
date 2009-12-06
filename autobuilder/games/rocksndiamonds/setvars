@@ -1,15 +1,15 @@
-AB_URL=http://artsoft.org/RELEASES/unix/rocksndiamonds/rocksndiamonds-3.2.4.tar.gz
+AB_URL=http://artsoft.org/RELEASES/unix/rocksndiamonds/rocksndiamonds-3.2.6.1.tar.gz
 
 AB_DISTCLEAN="$AB_MAKE dist-clean PLATFORM=unix"
 
 ab_make() {
-  eval "$AB_MAKE PLATFORM=unix CC=$CC EXTRA_LDFLAGS='-static -lvorbisidec -ljpeg -lpng -ltiff -lz' RO_GAMEDIR='RocksNDmds:' RW_GAMEDIR='~'"
+  eval "$AB_MAKE PLATFORM=unix CC=$CC EXTRA_LDFLAGS='-static -lvorbisidec -ljpeg -lpng -ltiff -lz' RO_GAMEDIR='RocksNDmds:' RW_GAMEDIR='~' EXTRA_CFLAGS=-O2"
 }
 
 ab_package() {
   ab_create_app RocksNDmds Apps/Games
-  
-  cp rocksndiamonds $A/rocksndiamonds$AB_EXEEXT
+  ab_makerun rocksndiamonds
+
   cp README $A/\!Help
 
   cp ChangeLog COPYING CREDITS TODO $A

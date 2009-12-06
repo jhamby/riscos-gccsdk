@@ -12,6 +12,6 @@ If "<HasLargeWimpSlot>" = "no" Then SetEval rocksndiamonds$HeapMax 64
 
 Unset HasLargeWimpSlot
 
-WimpSlot -min 24576K -max 24576K
+WIMPSLOT
 
 <RocksNDmds$Dir>.rocksndiamonds >RocksNDmds:stdout 2>RocksNDmds:stderr
