@@ -60,5 +60,6 @@ ab_package()
        -copyrightfile $S/COPYING -depends SharedLibs
 
   # Need to add description to library package
+  mkdir -p $D/libgettext/RiscPkg
   echo "Description: Runtime shared libraries for gettext" >> $D/libgettext/RiscPkg/Control,fff
 }
