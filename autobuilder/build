@@ -302,7 +302,7 @@ ab_build() {
           fi
           ;;
 
-       libcroco3|libglib2.0-0)
+       libcroco3|libglib2.0-0|dpkg)
          if [ "$PACKAGE_NAME" == "gettext" ] ; then
            continue
          fi
