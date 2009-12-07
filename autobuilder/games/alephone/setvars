@@ -1,10 +1,11 @@
-AB_URL=http://alephone.cebix.net/downloads/AlephOne-20051119.tar.gz
 
-echo This package needs updating to the latest version
-sleep 5
+AB_URL=http://downloads.sourceforge.net/project/marathon/Aleph%20One/2009-10-15/AlephOne-20091015.tar.bz2
+
+#echo This package needs updating to the latest version
+#sleep 5
 
 # Have to compile gennmtab with native compiler
-gcc -O2 -isystem  -D_GNU_SOURCE=1 -D_REENTRANT -DSDL  Source_Files/Expat/gennmtab.c -o Source_Files/Expat/gennmtab
+#gcc -O2 -isystem  -D_GNU_SOURCE=1 -D_REENTRANT -DSDL  Source_Files/Expat/gennmtab.c -o Source_Files/Expat/gennmtab
 
 ab_package() {
    ab_create_app AlephOne Apps/Games
