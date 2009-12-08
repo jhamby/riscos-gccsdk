@@ -541,6 +541,8 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
     AB_PACKAGES=$AB_PACKAGE
   fi
 
+  rm -f $AB_HOME/last-zips
+
   for package in $AB_PACKAGES ; do
     if [ -d "$package" ] ; then
       if [ -e "$package/RiscPkg/Control,fff" ] ; then
@@ -558,7 +560,8 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
       addzip -r $AB_PZIP *
       mkdir -p $AB_OUTPUTPACK/$section
       mv $AB_PZIP $AB_OUTPUTPACK/$section
-      ls -l  $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)
+      ls -l $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)
+      echo $AB_OUTPUTPACK/$section/$(basename $AB_PZIP) >> $AB_HOME/last-zips
       cd ..
     else
       echo "Autobuilder: package directory missing $package" 1>&2
