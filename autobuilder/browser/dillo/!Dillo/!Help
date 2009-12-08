@@ -12,9 +12,6 @@ Copy the !UnixHome skeleton over your existing !UnixHome application to
 provide a configuration file for Dillo.   Place !Dillo in your location
 of choice.
 
-Please see http://www.chocky.org/unix/usage.html for more details on
-files required by Unix Porting Project programs.
-
 
 Usage
 -----
@@ -26,7 +23,6 @@ library to translation X Window System calls into RISC OS Wimp calls.
 Support
 -------
 
-Part of the Unix Porting Project: http://www.chocky.org/unix/
-Support is only available to subscribers to the project.
+Part of riscos.info: http://www.riscos.info/
 
-Contact: unix@chocky.org
+Contact: peter@chocky.org
