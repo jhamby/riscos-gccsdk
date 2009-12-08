@@ -1,2 +1,15 @@
 
 mv Imakefile Imakefile.old
+
+ab_package() {
+  ab_create_app Xconq Apps/Games
+  ab_makerun x11/xconq
+
+  mkdir $A/data
+
+  cp -av images $A/data
+  cp -av tcltk/*.tcl $A/data
+  cp -av lib $A/data
+  
+  $AB_HOME/add-riscpkg -unixlib 
+}
