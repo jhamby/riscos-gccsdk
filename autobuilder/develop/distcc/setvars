@@ -1,8 +1,13 @@
 
-AB_CATEGORY=Command
+cd source
 
 ab_package() {
-  cp $S/distcc$AB_EXEEXT $S/COPYING $D
+  ab_create_command_app DistCC Apps/Develop
+  ab_add_commands $S/distcc$AB_EXEEXT
+
+  ab_docs $S/COPYING
+
+  $AB_HOME/add-riscpkg -unixlib
 }
 
 
