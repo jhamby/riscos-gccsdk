@@ -1,4 +1,4 @@
-AB_URL=http://dmalloc.com/releases/old/dmalloc-5.4.2.tgz
+AB_URL=http://dmalloc.com/releases/dmalloc-5.5.2.tgz
 
 AB_CONFLAGS=--enable-threads
 
