@@ -1,15 +1,13 @@
 
 AB_CONFLAGS=--without-ssl
+AB_ROVERISON=2
 
 ab_package() {
  ab_create_command_app Wget Apps/Network
  ab_add_commands $S/src/*$AB_EXEEXT
 
- rman -f HTML $S/doc/wget.info > $A/\!Help,faf
-
- cp -av $S/README $A
- cp -av $S/AUTHORS $S/COPYING $S/MAILING-LIST $A
- cp -av $S/NEWS $S/ChangeLog $A
+ ab_docs -h $S/doc/wget.info $S/README $S/AUTHORS $S/COPYING $S/MAILING-LIST
+ ab_docs $S/NEWS $S/ChangeLog
 
  $AB_HOME/add-riscpkg -unixlib
 }

@@ -142,6 +142,46 @@ ab_add_commands() {
   done
 }
 
+ab_docs() {
+  local doc
+  local help=false
+
+  mkdir -p $A/docs
+
+  for doc in $@; do
+    case $doc in
+      -h)
+        help=true
+        ;;
+
+      *.1|*.man|*.info)
+        if $help; then
+          rman -f HTML $doc > $A/docs/\!Help,faf
+          help=false
+        else
+          rman -f HTML $doc > $A/docs/$(basename $doc),faf
+        fi
+        ;;
+
+      *)
+        if $help; then
+          cp -av $doc $A/docs/\!Help
+          help=false
+        else
+          cp -av $doc $A/docs/
+        fi
+        ;;
+    esac
+  done
+
+  if ! [ -e $A/\!Help ] && ! [ -e $A/\!Help,feb ] && ! [ -e $A/\!Help,faf ] ; then
+    echo "Filer_OpenDir <Obey\$Dir>.docs" > $A/\!Help,feb
+
+    if [ -e $A/docs/\!Help ] || [ -e $A/docs/\!Help,faf ] ; then
+      echo "Filer_Run <Obey\$Dir>.docs.!Help" >> $A/\!Help,feb
+    fi
+  fi
+}
 
 
 # Default function to package the source code
