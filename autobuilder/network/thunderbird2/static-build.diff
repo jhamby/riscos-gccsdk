@@ -20,46 +20,8 @@
  	$(MKSHLIB) $@ $(OBJS) $(SUB_SHLOBJS)
  else
  	$(MKSHLIB) -o $@ $(OBJS) $(SUB_SHLOBJS) $(LD_LIBS) $(EXTRA_LIBS) $(EXTRA_SHARED_LIBS) $(OS_LIBS)
---- ./security/nss-fips/lib/softoken/pkcs11.c.orig	2008-12-29 21:29:39.000000000 -0800
-+++ ./security/nss-fips/lib/softoken/pkcs11.c	2008-12-29 21:29:53.000000000 -0800
-@@ -3123,7 +3123,7 @@
-     /* tell freeBL to clean up after itself */
-     BL_Cleanup();
-     /* unload freeBL shared library from memory */
--    BL_Unload();
-+    //BL_Unload();
-     /* clean up the default OID table */
-     SECOID_Shutdown();
-     nsc_init = PR_FALSE;
---- ./security/nss-fips/lib/ssl/sslsock.c.orig	2008-12-29 21:34:56.000000000 -0800
-+++ ./security/nss-fips/lib/ssl/sslsock.c	2008-12-29 21:35:04.000000000 -0800
-@@ -509,7 +509,7 @@
- static SECStatus SSL_BypassShutdown(void* appData, void* nssData)
- {
-     /* unload freeBL shared library from memory */
--    BL_Unload();
-+    //BL_Unload();
-     setupBypassOnce = pristineCallOnce;
-     return SECSuccess;
- }
 --- ./security/manager/ssl/src/nsKeygenHandler.cpp.orig	2008-12-29 21:27:26.000000000 -0800
 +++ ./security/manager/ssl/src/nsKeygenHandler.cpp	2008-12-29 21:28:17.000000000 -0800
-@@ -75,6 +75,7 @@
-     { nsnull, 0 }, 
- };
- 
-+#if 0
- DERTemplate SECAlgorithmIDTemplate[] = {
-     { DER_SEQUENCE,
- 	  0, NULL, sizeof(SECAlgorithmID) },
-@@ -84,6 +85,7 @@
- 	  offsetof(SECAlgorithmID,parameters), },
-     { 0, }
- };
-+#endif
- 
- DERTemplate CERTSubjectPublicKeyInfoTemplate[] = {
-     { DER_SEQUENCE,
 @@ -104,6 +106,7 @@
      { 0, }
  };
@@ -158,7 +120,7 @@ diff -u -r3.487.2.9 rules.mk
      ;;
  
  *-*-sco*)
--- configure.in.orig	2009-08-18 14:04:47.000000000 -0700
+--- configure.in.orig	2009-08-18 14:04:47.000000000 -0700
 +++ configure.in	2009-08-18 15:39:23.000000000 -0700
 @@ -2303,6 +2303,15 @@
      HOST_NSPR_MDCPUCFG='\"md/_os2.cfg\"'
@@ -208,3 +170,19 @@ diff -u -r3.487.2.9 rules.mk
  DSO_LDOPTS              = -shared 
  DSO_LDFLAGS             =         
  
+Index: security/nss/lib/softoken/pkcs11.c
+===================================================================
+RCS file: /cvsroot/mozilla/security/nss/lib/softoken/pkcs11.c,v
+retrieving revision 1.165.2.1
+diff -u -r1.165.2.1 pkcs11.c
+--- security/nss/lib/softoken/pkcs11.c	27 Jul 2009 23:34:17 -0000	1.165.2.1
++++ security/nss/lib/softoken/pkcs11.c	8 Dec 2009 20:41:34 -0000
+@@ -2744,7 +2744,7 @@
+     
+     /* unload freeBL shared library from memory. This may only decrement the
+      * OS refcount if it's been loaded multiple times, eg. by libssl */
+-    BL_Unload();
++    //BL_Unload();
+ 
+     /* clean up the default OID table */
+     SECOID_Shutdown();

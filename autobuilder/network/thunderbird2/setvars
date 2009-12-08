@@ -1,12 +1,12 @@
 AB_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
 # See <URL:http://developer.mozilla.org/en/docs/CVS_Tags> for CVS branch/tag info.
-AB_CVS_TAGORBRANCH=THUNDERBIRD_2_0_0_22_RELEASE
+AB_CVS_TAGORBRANCH=THUNDERBIRD_2_0_0_23_RELEASE
 AB_CVS_MODULE=mozilla/client.mk
 AB_ZIPNAME=thunderbird
-AB_PVERSION=2.0.0.22
+AB_PVERSION=2.0.0.23
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
-AB_ROVERSION=2
+AB_ROVERSION=1
 
 AB_CATEGORY=Mail
 #export RO_SHAREDLIBS=yes
@@ -76,6 +76,7 @@ mozilla_patch () {
 
 ab_package () {
   ab_create_app Thunderbird Apps/Network
+  ab_makerun $S/dist/bin/thunderbird-bin$AB_EXEEXT
 
   for f in \
       LICENSE.txt README.txt chrome components defaults extensions \
@@ -83,7 +84,6 @@ ab_package () {
     ; do
     cp -prL $S/dist/bin/$f $A
   done
-  cp -prL $S/dist/bin/thunderbird-bin$AB_EXEEXT $A
 
   if [ "$RO_SHAREDLIBS" == "yes" ] ; then
     cp -prL $S/dist/bin/*.so $A
