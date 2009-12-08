@@ -2,11 +2,11 @@ Index: pngread.c
 ===================================================================
 --- pngread.c
 +++ pngread.c
-@@ -413,6 +413,11 @@
- #if defined(PNG_READ_zTXt_SUPPORTED)
+@@ -423,6 +423,11 @@
+ #ifdef PNG_READ_zTXt_SUPPORTED
        PNG_CONST PNG_zTXt;
  #endif
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +      PNG_CONST PNG_acTL;
 +      PNG_CONST PNG_fcTL;
 +      PNG_CONST PNG_fdAT;
@@ -14,21 +14,21 @@ Index: pngread.c
  #endif /* PNG_USE_LOCAL_ARRAYS */
        png_uint_32 length = png_read_chunk_header(png_ptr);
        PNG_CONST png_bytep chunk_name = png_ptr->chunk_name;
-@@ -457,6 +462,9 @@
+@@ -467,6 +472,9 @@
                    !(png_ptr->mode & PNG_HAVE_PLTE))
              png_error(png_ptr, "Missing PLTE before IDAT");
  
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +         png_have_info(png_ptr, info_ptr);
 +#endif
           png_ptr->idat_size = length;
           png_ptr->mode |= PNG_HAVE_IDAT;
           break;
-@@ -529,12 +537,97 @@
+@@ -539,12 +547,97 @@
        else if (!png_memcmp(chunk_name, png_iTXt, 4))
           png_handle_iTXt(png_ptr, info_ptr, length);
  #endif
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +      else if (!png_memcmp(chunk_name, png_acTL, 4))
 +         png_handle_acTL(png_ptr, info_ptr, length);
 +      else if (!png_memcmp(chunk_name, png_fcTL, 4))
@@ -40,9 +40,9 @@ Index: pngread.c
           png_handle_unknown(png_ptr, info_ptr, length);
     }
  }
- #endif /* PNG_NO_SEQUENTIAL_READ_SUPPORTED */
+ #endif /* PNG_SEQUENTIAL_READ_SUPPORTED */
  
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +void PNGAPI
 +png_read_frame_head(png_structp png_ptr, png_infop info_ptr)
 +{
@@ -122,18 +122,18 @@ Index: pngread.c
  /* Optional call to update the users info_ptr structure */
  void PNGAPI
  png_read_update_info(png_structp png_ptr, png_infop info_ptr)
-@@ -573,6 +666,10 @@
+@@ -584,6 +677,10 @@
+ png_read_row(png_structp png_ptr, png_bytep row, png_bytep dsp_row)
  {
- #ifdef PNG_USE_LOCAL_ARRAYS
     PNG_CONST PNG_IDAT;
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +   PNG_CONST PNG_fdAT;
 +   PNG_CONST PNG_IEND;
 +#endif
     PNG_CONST int png_pass_dsp_mask[7] = {0xff, 0x0f, 0xff, 0x33, 0xff, 0x55,
        0xff};
     PNG_CONST int png_pass_mask[7] = {0x80, 0x08, 0x88, 0x22, 0xaa, 0x55, 0xff};
-@@ -703,13 +800,39 @@
+@@ -716,13 +813,39 @@
     {
        if (!(png_ptr->zstream.avail_in))
        {
@@ -147,13 +147,13 @@ Index: pngread.c
 +            bytes_to_skip = 0;
  
              png_ptr->idat_size = png_read_chunk_header(png_ptr);
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +            if (png_ptr->num_frames_read == 0)
 +            {
 +#endif
              if (png_memcmp(png_ptr->chunk_name, png_IDAT, 4))
                 png_error(png_ptr, "Not enough image data");
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +            }
 +            else
 +            {
@@ -175,21 +175,21 @@ Index: pngread.c
           }
           png_ptr->zstream.avail_in = (uInt)png_ptr->zbuf_size;
           png_ptr->zstream.next_in = png_ptr->zbuf;
-@@ -727,6 +850,9 @@
+@@ -740,6 +863,9 @@
              png_error(png_ptr, "Extra compressed data");
           png_ptr->mode |= PNG_AFTER_IDAT;
           png_ptr->flags |= PNG_FLAG_ZLIB_FINISHED;
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +         png_ptr->num_frames_read++;
 +#endif
           break;
        }
        if (ret != Z_OK)
-@@ -981,6 +1107,11 @@
- #if defined(PNG_READ_zTXt_SUPPORTED)
+@@ -997,6 +1123,11 @@
+ #ifdef PNG_READ_zTXt_SUPPORTED
        PNG_CONST PNG_zTXt;
  #endif
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +      PNG_CONST PNG_acTL;
 +      PNG_CONST PNG_fcTL;
 +      PNG_CONST PNG_fdAT;
@@ -197,11 +197,11 @@ Index: pngread.c
  #endif /* PNG_USE_LOCAL_ARRAYS */
        png_uint_32 length = png_read_chunk_header(png_ptr);
        PNG_CONST png_bytep chunk_name = png_ptr->chunk_name;
-@@ -1081,6 +1212,14 @@
+@@ -1097,6 +1228,14 @@
        else if (!png_memcmp(chunk_name, png_iTXt, 4))
           png_handle_iTXt(png_ptr, info_ptr, length);
  #endif
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +      else if (!png_memcmp(chunk_name, png_acTL, 4))
 +         png_handle_acTL(png_ptr, info_ptr, length);
 +      else if (!png_memcmp(chunk_name, png_fcTL, 4))
@@ -216,11 +216,11 @@ Index: pngget.c
 ===================================================================
 --- pngget.c
 +++ pngget.c
-@@ -839,6 +839,167 @@
+@@ -842,6 +842,167 @@
  }
  #endif
  
-+#if defined(PNG_APNG_SUPPORTED)
++#ifdef PNG_APNG_SUPPORTED
 +png_uint_32 PNGAPI
 +png_get_acTL(png_structp png_ptr, png_infop info_ptr,
 +             png_uint_32 *num_frames, png_uint_32 *num_plays)
@@ -381,20 +381,22 @@ Index: pngget.c
 +}
 +#endif /* PNG_APNG_SUPPORTED */
 +
- #if defined(PNG_UNKNOWN_CHUNKS_SUPPORTED)
+ #ifdef PNG_UNKNOWN_CHUNKS_SUPPORTED
  png_uint_32 PNGAPI
  png_get_unknown_chunks(png_structp png_ptr, png_infop info_ptr,
 Index: png.c
 ===================================================================
 --- png.c
 +++ png.c
-@@ -54,6 +54,9 @@
+@@ -56,6 +56,11 @@
  PNG_tIME;
  PNG_tRNS;
  PNG_zTXt;
++#ifdef PNG_APNG_SUPPORTED
 +PNG_acTL;
 +PNG_fcTL;
 +PNG_fdAT;
++#endif
  
  #ifdef PNG_READ_SUPPORTED
  /* Arrays to facilitate easy interlacing - use pass (0 - 6) as index */
@@ -402,11 +404,11 @@ Index: png.h
 ===================================================================
 --- png.h
 +++ png.h
-@@ -1016,6 +1016,19 @@
-    png_fixed_point int_y_blue;
+@@ -1029,6 +1029,19 @@
+    png_fixed_point int_y_blue PNG_DEPSTRUCT;
  #endif
  
-+#if defined(PNG_APNG_SUPPORTED)
++#ifdef PNG_APNG_SUPPORTED
 +   png_uint_32 num_frames; /* including default image */
 +   png_uint_32 num_plays;
 +   png_uint_32 next_frame_width;
@@ -422,37 +424,39 @@ Index: png.h
  } png_info;
  
  typedef png_info FAR * png_infop;
-@@ -1117,6 +1130,8 @@
+@@ -1130,6 +1143,10 @@
  #define PNG_INFO_sPLT 0x2000   /* ESR, 1.0.6 */
  #define PNG_INFO_sCAL 0x4000   /* ESR, 1.0.6 */
  #define PNG_INFO_IDAT 0x8000L  /* ESR, 1.0.6 */
++#ifdef PNG_APNG_SUPPORTED
 +#define PNG_INFO_acTL 0x10000L
 +#define PNG_INFO_fcTL 0x20000L
++#endif
  
  /* This is used for the transformation routines, as some of them
   * change these values for the row.  It also should enable using
-@@ -1157,6 +1172,10 @@
+@@ -1170,6 +1187,10 @@
  typedef void (PNGAPI *png_progressive_end_ptr) PNGARG((png_structp, png_infop));
  typedef void (PNGAPI *png_progressive_row_ptr) PNGARG((png_structp, png_bytep,
     png_uint_32, int));
-+#if defined(PNG_APNG_SUPPORTED)
++#ifdef PNG_APNG_SUPPORTED
 +typedef void (PNGAPI *png_progressive_frame_ptr) PNGARG((png_structp, 
 +   png_uint_32));
 +#endif
  #endif
  
  #if defined(PNG_READ_USER_TRANSFORM_SUPPORTED) || \
-@@ -1491,6 +1510,39 @@
-    png_uint_32 user_height_max;
+@@ -1506,6 +1527,39 @@
+    png_uint_32 user_height_max PNG_DEPSTRUCT;
  #endif
  
-+#if defined(PNG_APNG_SUPPORTED)
++#ifdef PNG_APNG_SUPPORTED
 +   png_uint_32 apng_flags;
 +   png_uint_32 next_seq_num;         /* next fcTL/fdAT chunk sequence number */
 +   png_uint_32 first_frame_width;
 +   png_uint_32 first_frame_height;
 +
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +   png_uint_32 num_frames_read;      /* incremented after all image data of */
 +                                     /* a frame is read */
 +#ifdef PNG_PROGRESSIVE_READ_SUPPORTED
@@ -461,10 +465,9 @@ Index: png.h
 +#endif
 +#endif
 +
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +   png_uint_32 num_frames_to_write;
 +   png_uint_32 num_frames_written;
-+#endif
 +#endif
 +
 +/* For png_struct.apng_flags: */
@@ -478,15 +481,16 @@ Index: png.h
 +/* blend_op flags from inside fcTL */
 +#define PNG_BLEND_OP_SOURCE        0x00
 +#define PNG_BLEND_OP_OVER          0x01
++#endif /* PNG_APNG_SUPPORTED */
 +
  /* New member added in libpng-1.0.25 and 1.2.17 */
- #if defined(PNG_UNKNOWN_CHUNKS_SUPPORTED)
+ #ifdef PNG_UNKNOWN_CHUNKS_SUPPORTED
     /* Storage for unknown chunk that the library doesn't recognize. */
-@@ -1824,6 +1876,18 @@
+@@ -1840,6 +1894,18 @@
  extern PNG_EXPORT(void,png_write_image) PNGARG((png_structp png_ptr,
     png_bytepp image));
  
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +extern PNG_EXPORT (void,png_write_frame_head) PNGARG((png_structp png_ptr,
 +   png_infop png_info, png_bytepp row_pointers,
 +   png_uint_32 width, png_uint_32 height,
@@ -501,11 +505,11 @@ Index: png.h
  /* Writes the end of the PNG file. */
  extern PNG_EXPORT(void,png_write_end) PNGARG((png_structp png_ptr,
     png_infop info_ptr));
-@@ -2077,6 +2141,11 @@
+@@ -2093,6 +2159,11 @@
     png_voidp progressive_ptr,
     png_progressive_info_ptr info_fn, png_progressive_row_ptr row_fn,
     png_progressive_end_ptr end_fn));
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +extern PNG_EXPORT(void,png_set_progressive_frame_fn) PNGARG((png_structp png_ptr,
 +   png_progressive_frame_ptr frame_info_fn,
 +   png_progressive_frame_ptr frame_end_fn));
@@ -513,11 +517,11 @@ Index: png.h
  
  /* Returns the user pointer associated with the push read functions */
  extern PNG_EXPORT(png_voidp,png_get_progressive_ptr)
-@@ -2517,6 +2586,59 @@
+@@ -2533,6 +2604,59 @@
  #endif
  #endif /* PNG_sCAL_SUPPORTED || PNG_WRITE_sCAL_SUPPORTED */
  
-+#if defined(PNG_APNG_SUPPORTED)
++#ifdef PNG_APNG_SUPPORTED
 +extern PNG_EXPORT(png_uint_32,png_get_acTL) PNGARG((png_structp png_ptr,
 +   png_infop info_ptr, png_uint_32 *num_frames, png_uint_32 *num_plays));
 +extern PNG_EXPORT(png_uint_32,png_set_acTL) PNGARG((png_structp png_ptr, 
@@ -565,7 +569,7 @@ Index: png.h
 +   PNGARG((png_structp png_ptr, png_infop info_ptr, png_byte is_hidden));
 +#endif /* PNG_APNG_SUPPORTED */
 +
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +extern PNG_EXPORT(void,png_read_frame_head) PNGARG((png_structp png_ptr,
 +   png_infop info_ptr));
 +#endif
@@ -573,40 +577,46 @@ Index: png.h
  #ifdef PNG_HANDLE_AS_UNKNOWN_SUPPORTED
  /* Provide a list of chunks and how they are to be handled, if the built-in
     handling or default unknown chunk handling is not desired.  Any chunks not
-@@ -2883,6 +3005,8 @@
+@@ -2897,6 +3021,10 @@
  #define PNG_BACKGROUND_IS_GRAY     0x800
  #define PNG_HAVE_PNG_SIGNATURE    0x1000
  #define PNG_HAVE_CHUNK_AFTER_IDAT 0x2000 /* Have another chunk after IDAT */
++#ifdef PNG_APNG_SUPPORTED
 +#define PNG_HAVE_acTL             0x4000
 +#define PNG_HAVE_fcTL             0x8000L
++#endif
  
  /* Flags for the transformations the PNG library does on the image data */
  #define PNG_BGR                0x0001
-@@ -3024,6 +3148,9 @@
+@@ -3039,6 +3167,11 @@
  #define PNG_tIME png_byte png_tIME[5] = {116,  73,  77,  69, '\0'}
  #define PNG_tRNS png_byte png_tRNS[5] = {116,  82,  78,  83, '\0'}
  #define PNG_zTXt png_byte png_zTXt[5] = {122,  84,  88, 116, '\0'}
++#ifdef PNG_APNG_SUPPORTED
 +#define PNG_acTL png_byte png_acTL[5] = { 97,  99,  84,  76, '\0'}
 +#define PNG_fcTL png_byte png_fcTL[5] = {102,  99,  84,  76, '\0'}
 +#define PNG_fdAT png_byte png_fdAT[5] = {102, 100,  65,  84, '\0'}
++#endif
  
  #ifdef PNG_USE_GLOBAL_ARRAYS
  PNG_EXPORT_VAR (png_byte FARDATA) png_IHDR[5];
-@@ -3047,6 +3174,9 @@
+@@ -3062,6 +3195,11 @@
  PNG_EXPORT_VAR (png_byte FARDATA) png_tIME[5];
  PNG_EXPORT_VAR (png_byte FARDATA) png_tRNS[5];
  PNG_EXPORT_VAR (png_byte FARDATA) png_zTXt[5];
++#ifdef PNG_APNG_SUPPORTED
 +PNG_EXPORT_VAR (png_byte FARDATA) png_acTL[5];
 +PNG_EXPORT_VAR (png_byte FARDATA) png_fcTL[5];
 +PNG_EXPORT_VAR (png_byte FARDATA) png_fdAT[5];
++#endif
  #endif /* PNG_USE_GLOBAL_ARRAYS */
  
  #if defined(PNG_1_0_X) || defined (PNG_1_2_X)
-@@ -3322,6 +3452,17 @@
+@@ -3344,6 +3482,17 @@
  #endif
  #endif
  
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +PNG_EXTERN void png_write_acTL PNGARG((png_structp png_ptr,
 +   png_uint_32 num_frames, png_uint_32 num_plays));
 +
@@ -618,34 +628,34 @@ Index: png.h
 +#endif
 +
  /* Called when finished processing a row of data */
- PNG_EXTERN void png_write_finish_row PNGARG((png_structp png_ptr));
+ PNG_EXTERN void png_write_finish_row PNGARG((png_structp png_ptr)) PNG_PRIVATE;
  
-@@ -3373,6 +3514,20 @@
+@@ -3396,6 +3545,20 @@
  PNG_EXTERN void png_read_transform_info PNGARG((png_structp png_ptr,
-    png_infop info_ptr));
+    png_infop info_ptr)) PNG_PRIVATE;
  
-+#if defined(PNG_READ_APNG_SUPPORTED)
-+/* private, reset some things to become ready for reading next frame */
++#ifdef PNG_READ_APNG_SUPPORTED
++/* Private, reset some things to become ready for reading next frame */
 +PNG_EXTERN void png_read_reset PNGARG((png_structp png_ptr));
 +PNG_EXTERN void png_read_reinit PNGARG((png_structp png_ptr,
 +   png_infop info_ptr));
 +PNG_EXTERN void png_progressive_read_reset PNGARG((png_structp png_ptr));
 +#endif
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
-+/* private, reset some things to become ready for writing next frame */
++#ifdef PNG_WRITE_APNG_SUPPORTED
++/* Private, reset some things to become ready for writing next frame */
 +PNG_EXTERN void png_write_reset PNGARG((png_structp png_ptr));
 +PNG_EXTERN void png_write_reinit PNGARG((png_structp png_ptr, 
 +   png_infop info_ptr, png_uint_32 width, png_uint_32 height));
 +#endif
 +
  /* These are the functions that do the transformations */
- #if defined(PNG_READ_FILLER_SUPPORTED)
+ #ifdef PNG_READ_FILLER_SUPPORTED
  PNG_EXTERN void png_do_read_filler PNGARG((png_row_infop row_info,
-@@ -3588,6 +3743,18 @@
-    png_uint_32 length));
+@@ -3619,6 +3782,18 @@
+    png_uint_32 length)) PNG_PRIVATE;
  #endif
  
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +PNG_EXTERN void png_handle_acTL PNGARG((png_structp png_ptr, png_infop info_ptr,
 +   png_uint_32 length));
 +PNG_EXTERN void png_handle_fcTL PNGARG((png_structp png_ptr, png_infop info_ptr,
@@ -658,40 +668,40 @@ Index: png.h
 +#endif
 +
  PNG_EXTERN void png_handle_unknown PNGARG((png_structp png_ptr,
-    png_infop info_ptr, png_uint_32 length));
+    png_infop info_ptr, png_uint_32 length)) PNG_PRIVATE;
  
 Index: pngwrite.c
 ===================================================================
 --- pngwrite.c
 +++ pngwrite.c
-@@ -53,6 +53,10 @@
+@@ -56,6 +56,10 @@
     /* The rest of these check to see if the valid field has the appropriate
      * flag set, and if it does, writes the chunk.
      */
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +   if (info_ptr->valid & PNG_INFO_acTL)
 +      png_write_acTL(png_ptr, info_ptr->num_frames, info_ptr->num_plays);
 +#endif
- #if defined(PNG_WRITE_gAMA_SUPPORTED)
+ #ifdef PNG_WRITE_gAMA_SUPPORTED
     if (info_ptr->valid & PNG_INFO_gAMA)
     {
-@@ -314,6 +318,10 @@
+@@ -318,6 +322,10 @@
        return;
     if (!(png_ptr->mode & PNG_HAVE_IDAT))
        png_error(png_ptr, "No IDATs written into file");
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +   if (png_ptr->num_frames_written != png_ptr->num_frames_to_write)
 +      png_error(png_ptr, "Not enough frames written");
 +#endif
  
     /* See if user wants us to write information chunks */
     if (info_ptr != NULL)
-@@ -1558,4 +1566,39 @@
+@@ -1582,4 +1590,39 @@
     params = params;
  }
  #endif
 +
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +void PNGAPI
 +png_write_frame_head(png_structp png_ptr, png_infop info_ptr,
 +    png_bytepp row_pointers, png_uint_32 width, png_uint_32 height, 
@@ -730,57 +740,67 @@ Index: pngconf.h
 ===================================================================
 --- pngconf.h
 +++ pngconf.h
-@@ -944,6 +944,10 @@
- #  define PNG_READ_zTXt_SUPPORTED
- #  define PNG_zTXt_SUPPORTED
+@@ -756,7 +756,6 @@
+ 
+ #endif /* PNG_WRITE_SUPPORTED */
+ 
+-#define PNG_NO_ERROR_NUMBERS
+ #ifndef PNG_1_0_X
+ #  ifndef PNG_NO_ERROR_NUMBERS
+ #    define PNG_ERROR_NUMBERS_SUPPORTED
+@@ -944,6 +943,10 @@
+ #  define PNG_NO_READ_tEXt
+ #  define PNG_NO_READ_zTXt
  #endif
 +#ifndef PNG_NO_READ_APNG
 +#  define PNG_READ_APNG_SUPPORTED
 +#  define PNG_APNG_SUPPORTED
 +#endif
- #ifndef PNG_NO_READ_OPT_PLTE
- #  define PNG_READ_OPT_PLTE_SUPPORTED /* only affects support of the */
- #endif                      /* optional PLTE chunk in RGB and RGBA images */
-@@ -1091,6 +1095,12 @@
- #    define PNG_zTXt_SUPPORTED
+ #ifndef PNG_NO_READ_bKGD
+ #  define PNG_READ_bKGD_SUPPORTED
+ #  define PNG_bKGD_SUPPORTED
+@@ -1170,6 +1173,14 @@
+ #    define PNG_TEXT_SUPPORTED
  #  endif
  #endif
 +#ifndef PNG_NO_WRITE_APNG
-+#  define PNG_WRITE_APNG_SUPPORTED
++#  ifndef PNG_WRITE_APNG_SUPPORTED
++#    define PNG_WRITE_APNG_SUPPORTED
++#  endif
 +#  ifndef PNG_APNG_SUPPORTED
 +#    define PNG_APNG_SUPPORTED
 +#  endif
 +#endif
- #if defined(PNG_WRITE_iTXt_SUPPORTED) || defined(PNG_WRITE_tEXt_SUPPORTED) || \
-     defined(PNG_WRITE_zTXt_SUPPORTED)
- #  define PNG_WRITE_TEXT_SUPPORTED
+ 
+ #ifdef PNG_WRITE_tIME_SUPPORTED
+ #  ifndef PNG_NO_CONVERT_tIME
 Index: pngpread.c
 ===================================================================
 --- pngpread.c
 +++ pngpread.c
-@@ -205,6 +205,11 @@
- #if defined(PNG_READ_zTXt_SUPPORTED)
+@@ -206,6 +206,11 @@
+ #ifdef PNG_READ_zTXt_SUPPORTED
        PNG_CONST PNG_zTXt;
  #endif
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +      PNG_CONST PNG_acTL;
 +      PNG_CONST PNG_fcTL;
 +      PNG_CONST PNG_fdAT;
 +#endif
  #endif /* PNG_USE_LOCAL_ARRAYS */
+ 
     /* First we make sure we have enough data for the 4 byte chunk name
-     * and the 4 byte chunk length before proceeding with decoding the
-@@ -230,6 +235,103 @@
+@@ -232,6 +237,103 @@
        png_ptr->mode |= PNG_HAVE_CHUNK_HEADER;
     }
  
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +   if (png_ptr->num_frames_read > 0 && 
 +       png_ptr->num_frames_read < info_ptr->num_frames)
 +   {
 +      if (!png_memcmp(png_ptr->chunk_name, png_IDAT, 4))
 +      {
-+         /* discard trailing IDATs for the first frame */
++         /* Discard trailing IDATs for the first frame */
 +         if (png_ptr->mode & PNG_HAVE_fcTL || png_ptr->num_frames_read > 1)
 +            png_error(png_ptr, "out of place IDAT");
 +         
@@ -804,7 +824,7 @@ Index: pngpread.c
 +         
 +         if (!(png_ptr->mode & PNG_HAVE_fcTL))
 +         {
-+            /* discard trailing fdATs for frames other than the first */
++            /* Discard trailing fdATs for frames other than the first */
 +            if (png_ptr->num_frames_read < 2)
 +               png_error(png_ptr, "out of place fdAT");
 +            
@@ -874,21 +894,21 @@ Index: pngpread.c
     if (!png_memcmp(png_ptr->chunk_name, png_IDAT, 4))
       if (png_ptr->mode & PNG_AFTER_IDAT)
          png_ptr->mode |= PNG_HAVE_CHUNK_AFTER_IDAT;
-@@ -325,6 +427,9 @@
+@@ -327,6 +429,9 @@
              png_error(png_ptr, "Too many IDAT's found");
        }
  
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +      png_have_info(png_ptr, info_ptr);
 +#endif
        png_ptr->idat_size = png_ptr->push_length;
        png_ptr->mode |= PNG_HAVE_IDAT;
        png_ptr->process_mode = PNG_READ_IDAT_MODE;
-@@ -555,6 +660,38 @@
+@@ -557,6 +662,38 @@
     }
  
  #endif
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +   else if (!png_memcmp(png_ptr->chunk_name, png_acTL, 4))
 +   {
 +      if (png_ptr->push_length + 4 > png_ptr->buffer_size)
@@ -896,7 +916,7 @@ Index: pngpread.c
 +         png_push_save_buffer(png_ptr);
 +         return;
 +      }
-+      
++
 +      png_handle_acTL(png_ptr, info_ptr, png_ptr->push_length);
 +   }
 +   else if (!png_memcmp(png_ptr->chunk_name, png_fcTL, 4))
@@ -906,7 +926,7 @@ Index: pngpread.c
 +         png_push_save_buffer(png_ptr);
 +         return;
 +      }
-+      
++
 +      png_handle_fcTL(png_ptr, info_ptr, png_ptr->push_length);
 +   }
 +   else if (!png_memcmp(png_ptr->chunk_name, png_fdAT, 4))
@@ -916,20 +936,20 @@ Index: pngpread.c
 +         png_push_save_buffer(png_ptr);
 +         return;
 +      }
-+      
++
 +      png_handle_fdAT(png_ptr, info_ptr, png_ptr->push_length);
 +   }
 +#endif /* PNG_READ_APNG_SUPPORTED */
     else
     {
        if (png_ptr->push_length + 4 > png_ptr->buffer_size)
-@@ -729,13 +866,17 @@
+@@ -731,13 +868,17 @@
  png_push_read_IDAT(png_structp png_ptr)
  {
  #ifdef PNG_USE_LOCAL_ARRAYS
 -   PNG_CONST PNG_IDAT;
 +   PNG_IDAT;
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +   PNG_fdAT;
 +   PNG_IEND;
 +#endif
@@ -943,12 +963,12 @@ Index: pngpread.c
        {
           png_push_save_buffer(png_ptr);
           return;
-@@ -747,15 +888,62 @@
+@@ -749,15 +890,62 @@
        png_crc_read(png_ptr, png_ptr->chunk_name, 4);
        png_ptr->mode |= PNG_HAVE_CHUNK_HEADER;
  
 -      if (png_memcmp(png_ptr->chunk_name, png_IDAT, 4))
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +      if (png_memcmp(png_ptr->chunk_name, (png_bytep)png_fdAT, 4)
 +          && png_ptr->num_frames_read > 0)
 +      {
@@ -979,15 +999,15 @@ Index: pngpread.c
 +      else 
 +#endif
 +      if (png_memcmp(png_ptr->chunk_name, png_IDAT, 4)
-+#if defined(PNG_READ_APNG_SUPPORTED)
-+                && (png_ptr->num_frames_read == 0) 
++#ifdef PNG_READ_APNG_SUPPORTED
++                && (png_ptr->num_frames_read == 0)
 +#endif
-+                )
++         )
        {
           png_ptr->process_mode = PNG_READ_CHUNK_MODE;
           if (!(png_ptr->flags & PNG_FLAG_ZLIB_FINISHED))
              png_error(png_ptr, "Not enough compressed data");
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +         if (png_ptr->frame_end_fn != NULL)
 +            (*(png_ptr->frame_end_fn))(png_ptr, png_ptr->num_frames_read);
 +         png_ptr->num_frames_read++;
@@ -997,8 +1017,8 @@ Index: pngpread.c
  
        png_ptr->idat_size = png_ptr->push_length;
 +      
-+#if defined(PNG_READ_APNG_SUPPORTED)
-+      if(png_ptr->num_frames_read > 0)
++#ifdef PNG_READ_APNG_SUPPORTED
++      if (png_ptr->num_frames_read > 0)
 +      {
 +         png_ensure_sequence_number(png_ptr, 4);
 +         png_ptr->idat_size -= 4;
@@ -1007,11 +1027,11 @@ Index: pngpread.c
     }
     if (png_ptr->idat_size && png_ptr->save_buffer_size)
     {
-@@ -1716,6 +1904,17 @@
+@@ -1719,6 +1907,17 @@
     png_set_read_fn(png_ptr, progressive_ptr, png_push_fill_buffer);
  }
  
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +void PNGAPI
 +png_set_progressive_frame_fn(png_structp png_ptr,
 +   png_progressive_frame_ptr frame_info_fn,
@@ -1029,23 +1049,23 @@ Index: pngset.c
 ===================================================================
 --- pngset.c
 +++ pngset.c
-@@ -320,6 +320,11 @@
+@@ -266,6 +266,11 @@
        info_ptr->rowbytes = (png_size_t)0;
     else
        info_ptr->rowbytes = PNG_ROWBYTES(info_ptr->pixel_depth, width);
-+   
-+#if defined(PNG_APNG_SUPPORTED)
++
++#ifdef PNG_APNG_SUPPORTED
 +   /* for non-animated png. this may be overritten from an acTL chunk later */
 +   info_ptr->num_frames = 1;
 +#endif
  }
  
- #if defined(PNG_oFFs_SUPPORTED)
-@@ -1007,6 +1012,142 @@
+ #ifdef PNG_oFFs_SUPPORTED
+@@ -960,6 +965,142 @@
  }
  #endif /* PNG_sPLT_SUPPORTED */
  
-+#if defined(PNG_APNG_SUPPORTED)
++#ifdef PNG_APNG_SUPPORTED
 +png_uint_32 PNGAPI
 +png_set_acTL(png_structp png_ptr, png_infop info_ptr, 
 +    png_uint_32 num_frames, png_uint_32 num_plays)
@@ -1054,26 +1074,26 @@ Index: pngset.c
 +
 +    if (png_ptr == NULL || info_ptr == NULL)
 +    {
-+        png_warning(png_ptr, 
++        png_warning(png_ptr,
 +                    "Call to png_set_acTL() with NULL png_ptr "
 +                    "or info_ptr ignored");
 +        return (0);
 +    }
 +    if (num_frames == 0)
 +    {
-+        png_warning(png_ptr, 
++        png_warning(png_ptr,
 +                    "Ignoring attempt to set acTL with num_frames zero");
 +        return (0);
 +    }
 +    if (num_frames > PNG_UINT_31_MAX)
 +    {
-+        png_warning(png_ptr, 
++        png_warning(png_ptr,
 +                    "Ignoring attempt to set acTL with num_frames > 2^31-1");
 +        return (0);
 +    }
 +    if (num_plays > PNG_UINT_31_MAX)
 +    {
-+        png_warning(png_ptr, 
++        png_warning(png_ptr,
 +                    "Ignoring attempt to set acTL with num_plays "
 +                    "> 2^31-1");
 +        return (0);
@@ -1099,7 +1119,7 @@ Index: pngset.c
 +
 +    if (png_ptr == NULL || info_ptr == NULL)
 +    {
-+        png_warning(png_ptr, 
++        png_warning(png_ptr,
 +                    "Call to png_set_fcTL() with NULL png_ptr or info_ptr "
 +                    "ignored");
 +        return (0);
@@ -1108,10 +1128,10 @@ Index: pngset.c
 +    png_ensure_fcTL_is_valid(png_ptr, width, height, x_offset, y_offset, 
 +                             delay_num, delay_den, dispose_op, blend_op);
 +    
-+    if (blend_op == PNG_BLEND_OP_OVER) 
++    if (blend_op == PNG_BLEND_OP_OVER)
 +    {
 +        if (!(png_ptr->color_type & PNG_COLOR_MASK_ALPHA) &&
-+            !(png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS))) 
++            !(png_get_valid(png_ptr, info_ptr, PNG_INFO_tRNS)))
 +        {
 +          png_warning(png_ptr, "PNG_BLEND_OP_OVER is meaningless "
 +                               "and wasteful for opaque images, ignored");
@@ -1181,18 +1201,18 @@ Index: pngset.c
 +}
 +#endif /* PNG_APNG_SUPPORTED */
 +
- #if defined(PNG_UNKNOWN_CHUNKS_SUPPORTED)
+ #ifdef PNG_HANDLE_AS_UNKNOWN_SUPPORTED
  void PNGAPI
  png_set_unknown_chunks(png_structp png_ptr,
 Index: pngrutil.c
 ===================================================================
 --- pngrutil.c
 +++ pngrutil.c
-@@ -424,6 +424,11 @@
+@@ -425,6 +425,11 @@
     filter_type = buf[11];
     interlace_type = buf[12];
  
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +   png_ptr->first_frame_width = width;
 +   png_ptr->first_frame_height = height;
 +#endif
@@ -1200,11 +1220,11 @@ Index: pngrutil.c
     /* Set internal variables */
     png_ptr->width = width;
     png_ptr->height = height;
-@@ -2230,6 +2235,168 @@
+@@ -2227,6 +2232,168 @@
  }
  #endif
  
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +void /* PRIVATE */
 +png_handle_acTL(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
 +{
@@ -1369,12 +1389,12 @@ Index: pngrutil.c
  /* This function is called when we haven't found a handler for a
     chunk.  If there isn't a problem with the chunk itself (ie bad
     chunk name, CRC, or a critical chunk), the chunk is silently ignored
-@@ -3249,4 +3416,84 @@
+@@ -3240,4 +3407,84 @@
  
     png_ptr->flags |= PNG_FLAG_ROW_INIT;
  }
 +
-+#if defined(PNG_READ_APNG_SUPPORTED)
++#ifdef PNG_READ_APNG_SUPPORTED
 +/* This function is to be called after the main IDAT set has been read and
 + * before a new IDAT is read. It resets some parts of png_ptr
 + * to make them usable by the read functions again */
@@ -1443,7 +1463,7 @@ Index: pngrutil.c
 +        png_ptr->iwidth = png_ptr->width;
 +        png_ptr->irowbytes = png_ptr->rowbytes + 1;
 +    }
-+    
++
 +    png_ptr->flags &= ~PNG_FLAG_ZLIB_FINISHED;
 +    if (inflateReset(&(png_ptr->zstream)) != Z_OK)
 +        png_error(png_ptr, "inflateReset failed");
@@ -1458,11 +1478,11 @@ Index: pngwutil.c
 ===================================================================
 --- pngwutil.c
 +++ pngwutil.c
-@@ -511,6 +511,11 @@
+@@ -515,6 +515,11 @@
     /* Write the chunk */
     png_write_chunk(png_ptr, (png_bytep)png_IHDR, buf, (png_size_t)13);
  
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +   png_ptr->first_frame_width = width;
 +   png_ptr->first_frame_height = height;
 +#endif
@@ -1470,25 +1490,25 @@ Index: pngwutil.c
     /* Initialize zlib with PNG info */
     png_ptr->zstream.zalloc = png_zalloc;
     png_ptr->zstream.zfree = png_zfree;
-@@ -633,6 +638,9 @@
+@@ -638,6 +643,9 @@
  {
  #ifdef PNG_USE_LOCAL_ARRAYS
     PNG_IDAT;
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +   PNG_fdAT;
 +#endif
  #endif
-    png_debug(1, "in png_write_IDAT");
  
-@@ -677,7 +685,28 @@
+    png_debug(1, "in png_write_IDAT");
+@@ -683,7 +691,28 @@
              "Invalid zlib compression method or flags in IDAT");
     }
  
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +   if(png_ptr->num_frames_written == 0)
 +#endif
     png_write_chunk(png_ptr, (png_bytep)png_IDAT, data, length);
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +   else
 +   {
 +      png_byte buf[4];
@@ -1509,11 +1529,11 @@ Index: pngwutil.c
     png_ptr->mode |= PNG_HAVE_IDAT;
  }
  
-@@ -1719,6 +1748,70 @@
+@@ -1750,6 +1779,70 @@
  }
  #endif
  
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +void /* PRIVATE */
 +png_write_acTL(png_structp png_ptr,
 +   png_uint_32 num_frames, png_uint_32 num_plays)
@@ -1580,21 +1600,23 @@ Index: pngwutil.c
  /* Initializes the row writing capability of libpng */
  void /* PRIVATE */
  png_write_start_row(png_structp png_ptr)
-@@ -2122,6 +2215,8 @@
- #if defined(PNG_WRITE_WEIGHTED_FILTER_SUPPORTED)
-    int num_p_filters = (int)png_ptr->num_prev_filters;
- #endif
-+   if (png_ptr->row_number == 0) 
-+      filter_to_do &= ~(PNG_FILTER_UP | PNG_FILTER_AVG | PNG_FILTER_PAETH); /* they use previous row */
+@@ -2155,8 +2248,8 @@
+ #ifndef PNG_WRITE_WEIGHTED_FILTER_SUPPORTED
+   if (png_ptr->row_number == 0 && filter_to_do == PNG_ALL_FILTERS)
+   {
+-      /* These will never be selected so we need not test them. */
+-      filter_to_do &= ~(PNG_FILTER_UP | PNG_FILTER_PAETH);
++      /* These use previous row */
++      filter_to_do &= ~(PNG_FILTER_UP | PNG_FILTER_AVG | PNG_FILTER_PAETH);
+   }
+ #endif 
  
-    png_debug(1, "in png_write_find_filter");
-    /* Find out how many bytes offset each pixel is */
-@@ -2788,4 +2883,39 @@
+@@ -2825,4 +2918,39 @@
     }
  #endif
  }
 +
-+#if defined(PNG_WRITE_APNG_SUPPORTED)
++#ifdef PNG_WRITE_APNG_SUPPORTED
 +void /* PRIVATE */
 +png_write_reset(png_structp png_ptr)
 +{
@@ -1633,7 +1655,7 @@ Index: pngrtran.c
 ===================================================================
 --- pngrtran.c
 +++ pngrtran.c
-@@ -1321,7 +1321,7 @@
+@@ -1346,7 +1346,7 @@
         * pixels.  This check added to libpng-1.2.19
         */
  #if (PNG_WARN_UNINITIALIZED_ROW==1)
