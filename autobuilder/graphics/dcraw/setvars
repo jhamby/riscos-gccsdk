@@ -1,13 +1,9 @@
 
 ab_package() {
   ab_create_command_app dcraw Apps/Graphics
-
   ab_add_commands $S/*$AB_EXEEXT
 
-  rman -f HTML dcparse.1 > $A/dcparse,faf
-  rman -f HTML dcraw.1 > $A/dcraw,faf
-
-  cp $H/ReadMe-jmb $A/\!Help
+  ab_docs -h $H/ReadMe dcparse.1 dcraw.1
 
   $AB_HOME/add-riscpkg -unixlib
 }
