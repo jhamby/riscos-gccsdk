@@ -1,8 +1,8 @@
 
 ab_package() {
   ab_create_app TuxMath Apps/Games
+  ab_makerun src/tuxmath$AB_EXEEXT
 
-  cp -av src/tuxmath$AB_EXEEXT $A/tuxmath$AB_EXEEXT
   cat doc/README.txt $H/RISCOSNotes > $A/\!Help
 
   cp -r doc $A/

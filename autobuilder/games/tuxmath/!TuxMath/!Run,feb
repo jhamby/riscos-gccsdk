@@ -1,6 +1,6 @@
 | Run file for TuxMath
 
-Wimpslot -min 9024K -max 9024K
+WIMPSLOT
 
 Set TuxMath$Dir <Obey$Dir>
 Set SDL$TuxMath$BackBuffer 1
