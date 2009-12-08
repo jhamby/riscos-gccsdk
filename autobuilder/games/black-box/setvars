@@ -3,9 +3,9 @@ export LIBS="-lpng -lz -lvorbisidec -lvorbisfile"
 
 ab_package() {
   ab_create_app Blackbox Apps/Games
+  ab_makerun $S/src/black-box$AB_EXEEXT blackbox
 
-  cp -av $S/src/black-box$AB_EXEEXT $A/blackbox$AB_EXEEXT
-  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/README $A/
+  ab_docs $S/AUTHORS $S/ChangeLog $S/COPYING $S/README
 
   mkdir -p $A/data
   cp -r $S/data/gfx $S/data/sound $A/data

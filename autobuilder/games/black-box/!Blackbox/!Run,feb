@@ -1,5 +1,0 @@
-
-Set BlackBox$Dir <Obey$Dir>
-
-WimpSlot -min 1536K -max 1536K
-<BlackBox$Dir>.BlackBox >null: 2>null:
