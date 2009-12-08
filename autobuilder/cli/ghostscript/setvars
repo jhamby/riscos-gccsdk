@@ -1,6 +1,4 @@
-AB_URL=http://kent.dl.sourceforge.net/sourceforge/ghostscript/ghostscript-8.50-gpl.tar.bz2
-
-AB_CATEGORY=Command
+AB_URL=http://ghostscript.com/releases/ghostscript-8.64.tar.bz2
 
 # Get Ghostscript fonts:
 if [ ! -e fonts/ghostscript-fonts-std-6.0.tar.gz ] ; then
@@ -18,19 +16,22 @@ cp $H/gdevgdi.c src
 
 # Generate makefiles (including Makefile.in)
 rm -f configure.ac Makefile.in
-ln -s src/configure.ac .
-ln -s src/Makefile.in .
+ln -s base/configure.ac .
+ln -s base/Makefile.in .
 autoconf
 
 ab_package () {
-  cp -r $H/\!GhostScr $D
-  cp $S/bin/gs$AB_EXEEXT $D/\!GhostScr/gs$AB_EXEEXT
-  cp $S/LICENSE $D/\!GhostScr/LICENSE
-  cp -r $S/doc $D/\!GhostScr/8_50
-  cp -r $S/Resource $D/\!GhostScr/8_50
-  cp -r $S/lib $D/\!GhostScr/8_50
-  rm $D/\!GhostScr/8_50/lib/*.bat
-  rm $D/\!GhostScr/8_50/lib/*.pl
-  ( cd $D/\!GhostScr ; tar -xzf $S/fonts/ghostscript-fonts-std-6.0.tar.gz )
-  ( cd $D/\!GhostScr ; tar -xzf $S/fonts/ghostscript-fonts-other-6.0.tar.gz )
+  ab_create_app GhostScr Apps/Graphics
+  ab_makerun $S/bin/gs$AB_EXEEXT
+
+  cp $S/LICENSE $A
+
+  mkdir -p $AB/8_64
+  cp -r $S/doc $A/8_64
+  cp -r $S/Resource $A/8_64
+  cp -r $S/lib $A/8_64
+  rm $A/8_64/lib/*.bat
+  rm $A/8_64/lib/*.pl
+  ( cd $A ; tar -xzf $S/fonts/ghostscript-fonts-std-6.0.tar.gz )
+  ( cd $A ; tar -xzf $S/fonts/ghostscript-fonts-other-6.0.tar.gz )
 }

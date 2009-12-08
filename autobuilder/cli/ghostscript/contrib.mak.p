@@ -1,24 +1,9 @@
---- src/contrib.mak.org	2002-10-17 01:26:34.000000000 +0200
-+++ src/contrib.mak	2006-05-28 00:56:01.000000000 +0200
-@@ -850,3 +850,40 @@
- $(GLOBJ)gdevsunr.$(OBJ) : $(GLSRC)gdevsunr.c $(PDEVH)
- 	$(GLCC) $(GLO_)gdevsunr.$(OBJ) $(C_) $(GLSRC)gdevsunr.c
+--- contrib/contrib.mak.orig	2009-12-07 19:26:09.000000000 -0800
++++ contrib/contrib.mak	2009-12-07 19:27:49.000000000 -0800
+@@ -256,6 +256,28 @@
+ 	$(GLCC) $(GLO_)gdevgdi.$(OBJ) $(C_) $(CONTRIBSRC)gdevgdi.c
  
-+### ---------------- The Samsung SmartGDI laser printer devices --------- ###
-+### Note : this driver is used by Samsung SmartGDI compatible printers.   ###
-+###
-+
-+GDIMONO=$(GLOBJ)gdevgdi.$(OBJ) $(HPPCL)
-+
-+$(DD)gdi.dev: $(GDIMONO) $(DD)page.dev
-+	$(SETPDEV) $(DD)gdi $(GDIMONO)
-+
-+$(DD)samsunggdi.dev: $(GDIMONO) $(DD)page.dev
-+	$(SETPDEV) $(DD)samsunggdi $(GDIMONO)
-+
-+$(GLOBJ)gdevgdi.$(OBJ): $(GLSRC)gdevgdi.c $(PDEVH) $(gdevpcl_h)
-+	$(GLCC) $(GLO_)gdevgdi.$(OBJ) $(C_) $(GLSRC)gdevgdi.c
-+
+ 
 +### ---------------- RISC OS Sprite files ---------------- ###
 +
 +spr_=$(GLOBJ)gdevspr.$(OBJ)
@@ -41,3 +26,6 @@
 +$(GLOBJ)gdevspr.$(OBJ) : $(GLSRC)gdevspr.c $(PDEVH)
 +	$(GLCC) $(GLO_)gdevspr.$(OBJ) $(C_) $(GLSRC)gdevspr.c
 +
+ ### ---------------- The Brother HL-1240/HL-1250 printers --------------- ###
+ ### These printers are ljet4-compatible, plus support for source tray     ###
+ ### selection and special 1200x600 dpi mode.                              ###
