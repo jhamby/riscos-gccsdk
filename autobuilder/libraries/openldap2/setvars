@@ -1,7 +1,0 @@
-# We go for at least version 2.3.20 as this version has fixes for proper
-# cross-compiling.
-
-AB_URL=ftp://ftp.openldap.org/pub/OpenLDAP/openldap-release/openldap-2.4.17.tgz
-AB_INSTALL=env
-
-AB_CONFLAGS="--enable-x-compile --with-yielding_select=no"
