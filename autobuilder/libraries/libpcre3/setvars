@@ -5,9 +5,9 @@ AB_LICENCE=Free
 ab_package()
 {
   # Developer package
-  ab_create_app LibPcre3 Apps/Library
+  ab_create_app LibPcre3 Apps/Library libpcre3-dev
 
-  # Run time libraries
+  # Shared libraries
   slibdir=$D/libpcre3/Resources/\!SharedLibs/lib
   mkdir -p $slibdir
 

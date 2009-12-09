@@ -1,10 +1,7 @@
 AB_INSTALL=yes
-AB_PACKAGES="zlib1g-dev"
-
-
 
 ab_package() {
-  ab_create_app ZLib1g Apps/Library
+  ab_create_app ZLib1g Apps/Library zlib1g-dev
 
   cp README $A\!Help
 
