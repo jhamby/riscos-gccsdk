@@ -186,3 +186,14 @@ diff -u -r1.165.2.1 pkcs11.c
  
      /* clean up the default OID table */
      SECOID_Shutdown();
+--- configure.in.orig   2009-08-18 14:04:47.000000000 -0700
++++ configure.in        2009-08-18 15:39:23.000000000 -0700
+@@ -5585,6 +5615,8 @@
+ 
+ if test -z "$GNU_CC" && test "$OS_ARCH" = "WINNT" -o "$OS_ARCH" = "WINCE" -o "$OS_ARCH" = "OS2"; then
+     SQLITE_LIBS='$(DIST)/lib/$(LIB_PREFIX)sqlite3.$(IMPORT_LIB_SUFFIX)'
++elif test "$OS_ARCH" = "RISCOS"; then
++    SQLITE_LIBS='$(DIST)/lib/$(LIB_PREFIX)sqlite3.$(LIB_SUFFIX)'
+ else
+     SQLITE_LIBS='-L$(LIBS_DIR)'" -lsqlite3"
+ fi

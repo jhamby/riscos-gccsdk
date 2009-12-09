@@ -4,7 +4,7 @@ Set Thunderbird$Dir <Obey$Dir>
 Set Thunderbird$Path <Thunderbird$Dir>.
 
 | Large enough to contain the binary
-WIMPSLOT
+WimpSlot -min 23000k -max 23000k
 Set thunderbird-bin$heap ""
 
 | Control font behaviour
