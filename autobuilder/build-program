@@ -60,6 +60,12 @@ ab_package() {
 }
 
 ab_make() {
+  if [ "$AB_MAKE" == "$GCCSDK_INSTALL_ENV/ro-make" ] &&
+     ! [ -e Makefile ] && ! [ -e makefile ] ; then
+    echo "Autobuilder: No known build method" 1>&2
+    exit 1
+  fi
+
   eval $AB_MAKE
   return
 }
@@ -199,6 +205,13 @@ ab_package_source() {
   # Ensure no RISC OS files left behind
   find . -name "*${AB_EXEEXT}" -type f -print0 | xargs -0 rm -f
   find . -name "*,faf" -type f -print0 | xargs -0 rm -f
+
+  # Ensure really did clean
+  if [ -n "$(find . -name "*.o" -type f -print0 || true)" ] ||
+     [ -n "$(find . -name "*.a" -type f -print0 || true)" ] ; then
+    echo "Autobuilder: Appear to be object or library files left over after clean before packing source" 1>2
+    exit 1
+  fi
 
   # Remove man3 links
   rm -f $S/man3 $S/man/man3
@@ -469,13 +482,8 @@ else
       echo "Autobuilder: Calling configure command: $AB_PRECONF $AB_CONFIG $AB_CONFLAGS"
     fi
     eval $AB_PRECONF $AB_CONFIG $AB_CONFLAGS
-  elif [ -e Makefile ] || [ -e makefile ] ; then
-    :
-  elif [ "$AB_MAKE" == "$GCCSDK_INSTALL_ENV/ro-make" ] ; then
-    echo "Autobuilder: No known build method"
-    exit 1
   fi
- 
+
   if [ -e $AB_HOME/$AB_PACKAGEDIR/post-configure ] ; then
     echo "Autobuilder: Calling post-configure"
     . $AB_HOME/$AB_PACKAGEDIR/post-configure
@@ -585,6 +593,7 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
   for package in $AB_PACKAGES ; do
     if [ -d "$package" ] ; then
+      unset section
       if [ -e "$package/RiscPkg/Control,fff" ] ; then
         section=`grep "Section: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
       fi
