@@ -3,13 +3,13 @@ AB_CONFLAGS=--without-ssl
 AB_ROVERISON=2
 
 ab_package() {
- ab_create_command_app Wget Apps/Network
- ab_add_commands $S/src/*$AB_EXEEXT
+  ab_create_command_app Wget Apps/Network
+  ab_add_commands $S/src/*$AB_EXEEXT
 
- ab_docs -h $S/doc/wget.info $S/README $S/AUTHORS $S/COPYING $S/MAILING-LIST
- ab_docs $S/NEWS $S/ChangeLog
+  ab_docs -h $S/doc/wget.info $S/README $S/AUTHORS $S/COPYING $S/MAILING-LIST
+  ab_docs $S/NEWS $S/ChangeLog
 
- $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib
 }
 
 autoconf
