@@ -110,28 +110,38 @@ else
 
     sed --in-place "/^Checksum/,$"d files
     debdir=$debarchive/$(grep Directory files | cut -d ' ' -f 2)
-    orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
-    if [ -z "$orig" ] ; then
-      file=$(grep \.tar\.gz files | cut -d ' ' -f 4)
-      orig=$(sed s#\.tar\.gz#\.orig\.tar\.gz# <<< $file)
-      wget -nv $debdir/$file -O $orig
+
+    orig=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4)
+    if [ -n "$orig" ] ; then
+      wget -nv $debdir/$orig
+      wget -nv $debdir/$(grep \.debian\.tar\.gz files | cut -d ' ' -f 4)
+
+      tar xfj *.orig.tar.bz2
+      tar xfz *.debian.tar.gz
     else
-      wget -nv $debdir/$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
-      wget -nv $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
+      orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
+      if [ -z "$orig" ] ; then
+        file=$(grep \.tar\.gz files | cut -d ' ' -f 4)
+        orig=$(sed s#\.tar\.gz#\.orig\.tar\.gz# <<< $file)
+        wget -nv $debdir/$file -O $orig
+      else
+        wget -nv $debdir/$orig
+        wget -nv $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
+      fi
+
+      tar xfz *.orig.tar.gz
+
+      targetname=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+      origname=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut -b 3-)
+
+      # Have to check that targetname is not already a directory
+      # to stop problems on case insensitive systems like cygwin.
+      if [ "$targetname" != "$origname" ] && ! [ -d $targetname ] ; then
+        mv $origname $targetname
+      fi
+
+      zcat *.diff.gz | patch -p0 || true
     fi
-
-    tar xfz *.orig.tar.gz
-
-    targetname=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
-    origname=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut -b 3-)
-
-    # Have to check that targetname is not already a directory
-    # to stop problems on case insensitive systems like cygwin.
-    if [ "$targetname" != "$origname" ] && ! [ -d $targetname ] ; then
-      mv $origname $targetname
-    fi
-
-    zcat *.diff.gz | patch -p0 || true
   fi
 fi
 
