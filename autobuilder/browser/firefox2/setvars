@@ -21,8 +21,6 @@ AB_ROVERSION=2
 # Disable any Autobuilder configure/make.  We drive it all ourselves.
 AB_PRECONF=:
 
-AB_MAKE=:
-
 # Avoid using glib 1.2
 export GLIB_CONFIG=/bin/true
 

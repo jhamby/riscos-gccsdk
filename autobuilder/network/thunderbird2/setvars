@@ -19,8 +19,6 @@ AB_CATEGORY=Mail
 # Disable any Autobuilder configure/make.  We drive it all ourselves.
 AB_PRECONF=:
 
-AB_MAKE=:
-
 # Avoid using glib 1.2
 export GLIB_CONFIG=/bin/true
 
@@ -44,9 +42,9 @@ ab_make () {
   $GCCSDK_INSTALL_ENV/ro-config
 
   # Start the offical build procedure:
-  #We can't call the offical build target because that will rerun configure without all
-  #all clever hacks & tricks in $GCCSDK_INSTALL_ENV/ro-config.
-  $GCCSDK_INSTALL_ENV/ro-make 
+  # We can't call the offical build target because that will rerun configure without all
+  # all the clever hacks & tricks in $GCCSDK_INSTALL_ENV/ro-config.
+  $GCCSDK_INSTALL_ENV/ro-make -j4
 }
 
 mozilla_patch () {

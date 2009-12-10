@@ -205,13 +205,8 @@ ab_package_source() {
   # Ensure no RISC OS files left behind
   find . -name "*${AB_EXEEXT}" -type f -print0 | xargs -0 rm -f
   find . -name "*,faf" -type f -print0 | xargs -0 rm -f
-
-  # Ensure really did clean
-  if [ -n "$(find . -name "*.o" -type f -print0 || true)" ] ||
-     [ -n "$(find . -name "*.a" -type f -print0 || true)" ] ; then
-    echo "Autobuilder: Appear to be object or library files left over after clean before packing source" 1>2
-    exit 1
-  fi
+  find . -name "*.o" -type f -print0 | xargs -0 rm -f
+  find . -name "*.a" -type f -print0 | xargs -0 rm -f
 
   # Remove man3 links
   rm -f $S/man3 $S/man/man3
