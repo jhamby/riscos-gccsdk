@@ -12,11 +12,11 @@ AB_INSTALL=no
 AB_MAKE="CC=/usr/bin/cc $AB_MAKE vapis"
 
 ab_package() {
-  valadir=$D/Apps/Development/\!Vala
-  mkdir -p $valadir/vapi
+  ab_create_app Vala Apps/Develop
 
-  mv $S/Source/Build/\!Vala/vapi $valadir
-  mv $S/Source/Build/\!Vala/lib $valadir
+  mkdir $A/vapi/
+  cp -av $S/Source/Build/\!Vala/vapi $A/vapi/
+  cp -av $S/Source/Build/\!Vala/lib $A/vapi/
 
   $AB_HOME/add-riscpkg -package "oslibvapis" \
     -depends vala
