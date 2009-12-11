@@ -1,6 +1,6 @@
---- Source_Files/Misc/thread_priority_sdl_posix.cpp.orig	2008-09-04 11:40:36.804000000 +0100
-+++ Source_Files/Misc/thread_priority_sdl_posix.cpp	2008-09-04 11:26:54.011000000 +0100
-@@ -28,7 +28,12 @@
+--- Source_Files/Misc/thread_priority_sdl_posix.cpp.orig	2008-10-24 02:52:50.000000000 +0100
++++ Source_Files/Misc/thread_priority_sdl_posix.cpp	2009-12-10 10:47:34.278998400 +0000
+@@ -41,7 +41,12 @@
        return false;
      
      theSchedulingParameters.sched_priority = 
