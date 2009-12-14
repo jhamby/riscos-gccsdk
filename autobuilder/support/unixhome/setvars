@@ -1,5 +1,4 @@
 AB_NOREMOTE=yes
-
 AB_PVERSION=1.03
 
 cp $H/!UnixHome/c/SetHome $S/SetHome.c
@@ -12,5 +11,5 @@ ab_package() {
 
   cp -av $S/SetHome$AB_EXEEXT $A
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -package UnixFont -unixlib
 }
