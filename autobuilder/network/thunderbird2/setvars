@@ -2,7 +2,6 @@ AB_CVS_ROOT=:pserver:anonymous@cvs-mirror.mozilla.org:/cvsroot
 # See <URL:http://developer.mozilla.org/en/docs/CVS_Tags> for CVS branch/tag info.
 AB_CVS_TAGORBRANCH=THUNDERBIRD_2_0_0_23_RELEASE
 AB_CVS_MODULE=mozilla/client.mk
-AB_ZIPNAME=thunderbird
 AB_PVERSION=2.0.0.23
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"

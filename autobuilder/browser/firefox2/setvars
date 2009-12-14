@@ -5,7 +5,6 @@ AB_CVS_TAGORBRANCH=MOZILLA_1_8_BRANCH
 #AB_CVS_TAGORBRANCH=FIREFOX_2_0_0_20_RELEASE
 
 AB_CVS_MODULE=mozilla/client.mk
-AB_ZIPNAME=firefox
 AB_PVERSION=2.0.0.22pre
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_LICENCE="Mozilla Public License"
