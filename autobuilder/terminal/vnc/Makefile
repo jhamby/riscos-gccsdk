@@ -25,3 +25,6 @@ CFLAGS=-O2 -I. -I../include -I$(GCCSDK_INSTALL_ENV)/include -I../libvncauth/
 LDFLAGS=-static -L/$(GCCSDK_INSTALL_ENV)/lib -lXmu -lXaw3d -lXext -lXt -lSM -lICE -lCX11 -lDesk -ljpeg -lz
 
 vncviewer: $(OBJS)
+
+clean:
+	rm -f vncviewer *.o

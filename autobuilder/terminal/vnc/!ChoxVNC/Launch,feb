@@ -1,4 +1,4 @@
 
-Wimpslot -min 2300k -max 2300k
+WIMPSLOT
 
 <ChoxVNC$Dir>.vncviewer %*0 ><ChoxVNC$Dir>.stdout 2><ChoxVNC$Dir>.stderr
