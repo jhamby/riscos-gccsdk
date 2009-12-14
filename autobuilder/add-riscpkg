@@ -18,7 +18,7 @@ D=$AB_DIR/package/${AB_SUBPACKAGE}
 # Parse parameters
 
 depends=""
-package="$AB_ZIPNAME"
+package="$AB_SUBPACKAGE"
 section="$AB_CATEGORY"
 
 # Scan the boot file for variables etc,

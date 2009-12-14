@@ -69,7 +69,7 @@ if [ -d "$AB_OUTPUTLIB" ] ; then
   tar cfvz $AB_OUTPUTLIB/$RO_PKG.tgz $files
 
   # Process to turn into RISC OS format filenames for zipping
-  
+
   for file in $(find) ; do
    if echo $file | grep "\.h$" > /dev/null ; then
      filename=$(basename $file | sed s#\.h\$##)

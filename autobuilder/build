@@ -2,7 +2,6 @@
 
 AB_PACKAGES=""
 export AB_DEBUG=no     # Leave source
-export AB_PACKONLY=no  # Zip only from current directory
 export AB_NOFETCH=no   # Using existing source fetched from last time
 AB_VERBOSE=no          # Echo output
 AB_DEPS=yes            # Build dependencies first
@@ -31,9 +30,6 @@ for param in $@ ; do
             ;;
           D)
             AB_THISDEBUG=yes
-            ;;
-          p)
-            AB_PACKONLY=yes
             ;;
           f)
             AB_NOFETCH=yes
@@ -182,11 +178,6 @@ export GCCSDK_INSTALL_CROSSBIN
 # build location
 AB_TMPDIR=$PWD
 
-
-# Change to autobuilder home
-if [ "$AB_PACKONLY" != "yes" ] ; then
-  cd $AB_HOME
-fi
 
 # If a specific package is named, build that; otherwise everything
 if [ "$AB_PACKAGES" == "" ] ; then

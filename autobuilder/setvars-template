@@ -12,7 +12,7 @@
 #AB_CVS_ROOT=
 #AB_CVS_MODULE=
 #AB_CVS_TAGORBRANCH=
-#     Note: consider defining "AB_ZIPNAME=xxx-cvs-$(date +%Y%m%d)" as well.
+#     Note: consider defining "AB_PVERSION=cvs-$(date +%Y%m%d)" as well.
 #
 #  2. Either via SVN:
 #     For both AOF or ELF based builds:

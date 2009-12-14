@@ -1,10 +1,6 @@
 #!/bin/bash -e
 
-if [ "$AB_PACKONLY" != "yes" ] ; then
-  echo "Autobuilder: Building package: $AB_PACKAGE"
-else
-  echo "Autobuilder: Zipping package: $AB_PACKAGE"
-fi
+echo "Autobuilder: Building package: $AB_PACKAGE"
 
 if [ -z "$GCCSDK_INSTALL_ENV" ] ; then
   echo "Do not call this script directly" 1>&2
@@ -18,7 +14,6 @@ AB_PVERSION=
 AB_PRECONF=
 AB_INSTALL=no
 AB_CATEGORY=
-export AB_ZIPNAME=
 AB_COPYSOURCE=yes
 AB_DISTCLEAN=
 AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
@@ -287,21 +282,7 @@ ab_makerun() {
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
 export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
 
-if [ "$AB_PACKONLY" == "yes" ] ; then
-
-  AB_DIR=.
-  D=$AB_DIR/package
-  S=$PWD
-
-  if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
-    echo "Autobuilder: Calling preprocess"
-    . $AB_HOME/$AB_PACKAGEDIR/preprocess
-  fi
-
-  echo "Autobuilder: Calling setvars"
-  . $AB_HOME/$AB_PACKAGEDIR/setvars
-
-else
+if true; then
 
   # Build directory
   if [ "$AB_NOFETCH" == "yes" ] ; then
@@ -318,7 +299,6 @@ else
   cd $AB_DIR
 
   if [ -e $AB_HOME/$AB_PACKAGEDIR/alias ] ; then
-    AB_ZIPNAME=$AB_PACKAGE
     echo "Autobuilder: Calling alias"
     . $AB_HOME/$AB_PACKAGEDIR/alias
   fi
@@ -439,11 +419,11 @@ else
   # explictly set by the package
   if [ -z "$AB_PVERSION" ] ; then
     AB_PVERSION=$(echo $AB_FULLNAME | sed -e s#$AB_PACKAGE-## -e "s/[^-]*-//" -e "s/~//")
-  fi
 
-  if [ -z "$AB_PVERSION" ] ; then
-    AB_PVERSION=1
-  fi 
+    if [ -z "$AB_PVERSION" ] ; then
+      AB_PVERSION=1
+    fi
+  fi
 
   if [ "$AB_TRY" != yes ] ; then
     echo "Autobuilder: Calling setvars"
@@ -460,12 +440,10 @@ else
     fi
   fi
 
-  if [ -z "$AB_ZIPNAME" ] ; then
-    AB_ZIPNAME=$AB_PACKAGE
+  if [ -n "$AB_ZIPNAME" ] ; then
+    echo "AB_ZIPNAME (set to \"$AB_ZIPNAME\") is no longer used.  Instead, set AB_PVERSION, and use ab_create_app, etc" 1>&2
+    exit 1
   fi
-
-  AB_PACKAGENAME=${AB_ZIPNAME}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
-  AB_ZIP=${AB_DIR}/$AB_PACKAGENAME.zip
 
   export AB_DIR
 
@@ -514,10 +492,11 @@ else
     export AB_OUTPUTLIB
     export AB_INSTALLDOCS
 
-    export RO_PKG=$AB_PACKAGENAME
+    #export RO_PKG=$AB_PACKAGENAME
+    export RO_PKG=${AB_PACKAGE}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
     $AB_HOME/ro-libpack
   fi
-fi # Package only
+fi
 
 
 export AB_MAINTAINER
@@ -536,7 +515,6 @@ export AB_DEBNAME
 if [ "$AB_MANPAGE" != "" ] ; then
   for AB_PAGE in $AB_MANPAGE ; do
     rman -f HTML $S/$AB_PAGE > $D/$(basename $AB_PAGE),faf
-    #addzip -j $AB_ZIP $S/$AB_PAGE,faf
   done
 fi
 
@@ -545,23 +523,11 @@ ab_package
 if [ "$AB_NOPACKAGE" == "" ] ; then
 
   if [ "$AB_CATEGORY" == "" ] ; then
-    echo "Autobuilder: No category specified, not packaging"
+    echo "Autobuilder: No category specified, not packaging" 1>&2
     exit 1
   fi
 
   echo "Autobuilder: Packaging files"
-  if [ "$AB_PACKONLY" == "yes" ] ; then
-
-    if [ -n "$AB_ZIPNAME" ] ; then
-      echo "Autobuilder: Packaging as $AB_ZIPNAME$AB_TARGET"
-      AB_ZIP=$AB_ZIPNAME$AB_TARGET.zip
-    else
-      AB_ZIP=$AB_PACKAGE$AB_TARGET.zip
-    fi
-
-  else
-    echo "Autobuilder: Packaging as $AB_ZIPNAME"
-  fi
 
   cd $D
   if [ "$AB_ELFBUILD" == "yes" ] ; then
@@ -587,6 +553,8 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
   rm -f $AB_HOME/last-zips
 
   for package in $AB_PACKAGES ; do
+    echo "Autobuilder: Packaging as $package"
+
     if [ -d "$package" ] ; then
       unset section
       if [ -e "$package/RiscPkg/Control,fff" ] ; then
@@ -596,6 +564,12 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
         section="$AB_CATEGORY"
       fi
       AB_PZIP=${AB_DIR}/${package}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}.zip
+
+      # Used for source zip name
+      if [ -z "$AB_ZIP" ] ; then
+        AB_ZIP=$AB_PZIP
+      fi
+
       # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
       if [ -e $AB_PZIP ] ; then
         rm $AB_PZIP
@@ -635,7 +609,6 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 fi
 
 cd $AB_DIR/..
-[ "$AB_PACKONLY" == "yes" ] || [ "$AB_NOFETCH" == "yes" ] || [ "$AB_DEBUG" == "yes" ] || rm -rf $AB_DIR
+[ "$AB_NOFETCH" == "yes" ] || [ "$AB_DEBUG" == "yes" ] || rm -rf $AB_DIR
 
-# Note that the following echo is a cookie for 'build' script to acknowledge a successful build.
 echo "Autobuilder: Package stage completed"
