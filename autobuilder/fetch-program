@@ -117,7 +117,9 @@ else
       wget -nv $debdir/$(grep \.debian\.tar\.gz files | cut -d ' ' -f 4)
 
       tar xfj *.orig.tar.bz2
-      tar xfz *.debian.tar.gz
+      subdir=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package)
+      tar xfz *.debian.tar.gz -C $subdir
+
     else
       orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
       if [ -z "$orig" ] ; then
