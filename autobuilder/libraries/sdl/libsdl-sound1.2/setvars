@@ -1,9 +1,8 @@
-AB_ZIPNAME=libsdl-sound1.2-dev
 AB_INSTALL=yes
 
 ab_package()
 {
-  ab_create_app SDLSound Apps/Library
+  ab_create_app SDLSound Apps/Library libsdl-sound1.2-dev
 
   HERE=`pwd`
   cd $A
@@ -25,7 +24,7 @@ ab_package()
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib -unixsound \
+  $AB_HOME/add-riscpkg -unixlib -unixsound \
     -depends "libsdl1.2-dev" -depends "libflac-dev" \
     -depends "libmikmod-dev" -depends "libogg-dev" \
     -depends "libvorbis-dev"

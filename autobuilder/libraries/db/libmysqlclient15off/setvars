@@ -1,4 +1,4 @@
-AB_ZIPNAME=libmysqlclient
+#AB_ZIPNAME=libmysqlclient
 
 AB_INSTALL=yes
 

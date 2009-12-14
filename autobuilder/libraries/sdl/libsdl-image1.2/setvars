@@ -1,11 +1,9 @@
-AB_ZIPNAME=libsdl-image1.2-dev
 AB_CONFLAGS="--enable-tif --enable-xmf --disable-png-shared --disable-tiff-shared"
 
 AB_INSTALL=yes
 
-ab_package()
-{
-  ab_create_app SDLImage Apps/Library
+ab_package() {
+  ab_create_app SDLImage Apps/Library libsdl-image1.2-dev
 
   HERE=`pwd`
   cd $A
@@ -30,7 +28,7 @@ ab_package()
   cp $S/showimage.c $A/doc
   cp $S/showimage$AB_EXEEXT $A
 
-  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
+  $AB_HOME/add-riscpkg -unixlib \
     -depends "libjpeg62-dev" -depends "libpng12-dev" \
     -depends "libtiff4-dev" -depends "libsdl1.2-dev"
 }

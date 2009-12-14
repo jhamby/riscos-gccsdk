@@ -1,4 +1,3 @@
-AB_ZIPNAME=libsdl-net1.2-dev
 AB_INSTALL=yes
 
 # Package version needs help as download doesn't have same name
@@ -9,7 +8,7 @@ export SED=sed
 
 ab_package()
 {
-  ab_create_app SDLNet Apps/Library 
+  ab_create_app SDLNet Apps/Library libsdl-net1.2-dev
 
   HERE=`pwd`
   cd $A
@@ -31,6 +30,6 @@ ab_package()
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
+  $AB_HOME/add-riscpkg -unixlib \
     -depends "libsdl1.2-dev" -depver "1.2.13-2"
 }

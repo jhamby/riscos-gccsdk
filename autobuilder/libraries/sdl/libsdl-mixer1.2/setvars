@@ -1,15 +1,10 @@
-AB_ZIPNAME=libsdl-mixer1.2-dev
-
 AB_INSTALL=yes
-AB_ROVERSION=2
-
 
 # Use internal mikmod modules, disable smpeg as we don't build it
 AB_CONFLAGS="--disable-music-libmikmod --disable-music-mp3 --enable-music-ogg-tremor --disable-music-ogg-shared --disable-music-midi"
 
-ab_package()
-{
-  ab_create_app SDLMixer Apps/Library
+ab_package() {
+  ab_create_app SDLMixer Apps/Library libsdl-mixer1.2-dev
 
   cd $A
 
@@ -33,7 +28,7 @@ ab_package()
   cp $S/playwave.c $A/doc
   cp $S/playmus.c $A/doc
 
-  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib \
+  $AB_HOME/add-riscpkg -unixlib \
     -depends "tremor-dev" -depends "libsdl1.2-dev"
 }
 

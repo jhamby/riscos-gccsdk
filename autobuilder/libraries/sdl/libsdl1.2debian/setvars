@@ -1,5 +1,3 @@
-AB_ZIPNAME=libsdl1.2-dev
-
 AB_ROVERSION=2
 
 AB_INSTALLDOCS="COPYING README README.RISCOS README-SDL.txt WhatsNew"
@@ -11,7 +9,7 @@ AB_INSTALL=yes
 # zip built due to AB_INSTALL=yes
 
 ab_package() {
-  ab_create_app SDL Apps/Library
+  ab_create_app SDL Apps/Library libsdl1.2-dev
 
   HERE=`pwd`
   cd $A
@@ -36,7 +34,5 @@ ab_package() {
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -package "libsdl1.2-dev" \
-    -unixlib 
- 
+  $AB_HOME/add-riscpkg -unixlib 
 }

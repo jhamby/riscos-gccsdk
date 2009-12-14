@@ -1,12 +1,9 @@
 AB_INSTALL=yes
-AB_ZIPNAME=bzip2
-
 AB_PRECONF=:
-
 
 ab_package() {
   cp -f $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT
-  ab_create_command_app bzip2 Apps/Utilities
+  ab_create_command_app bzip2 Apps/Utilities bzip2
   ab_add_commands $S/bzip2$AB_EXEEXT $S/bunzip2$AB_EXEEXT $S/bzip2recover$AB_EXEEXT
 
   mkdir -p $A/docs

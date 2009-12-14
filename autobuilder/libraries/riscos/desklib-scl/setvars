@@ -1,6 +1,6 @@
 AB_SVN=svn://svn.riscos.info/DeskLib/trunk/
 AB_SVN_AOF=svn://svn.riscos.info/DeskLib/branches/aof/
-AB_ZIPNAME=desklib-svn-$(date +%Y%m%d)
+AB_PVERSION=svn-$(date +%Y%m%d)
 
 AB_INSTALL=yes
 

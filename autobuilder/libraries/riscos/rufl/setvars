@@ -1,4 +1,4 @@
 AB_SVN=svn://semichrome.net/trunk/rufl
-AB_ZIPNAME=rufl-svn-$(date +%Y%m%d)
+AB_PVERSION=svn-$(date +%Y%m%d)
 
 AB_INSTALL=yes

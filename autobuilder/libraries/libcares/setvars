@@ -4,7 +4,7 @@
 
 AB_CVS_ROOT=:pserver:anonymous@cool.haxx.se:/cvsroot/curl
 AB_CVS_MODULE=curl/ares
-AB_ZIPNAME=libcares-cvs-$(date +%Y%m%d)
+AB_PVERSION=cvs-$(date +%Y%m%d)
 
 AB_INSTALL=yes
 
