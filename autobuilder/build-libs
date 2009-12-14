@@ -55,7 +55,7 @@ function getnext() {
     if [ -e $lib/setvars ] ; then
       name=$(sed s#$base/## <<< $lib)
 
-      if [ -s $lib/last-success ] ; then
+      if [ -s $lib/last-success ] || [ -e $lib/last-success -a "$list" = "false" ] ; then
         if $opt; then
           if grep -E -q "desklib|oslib" <<< $name ; then
             continue
