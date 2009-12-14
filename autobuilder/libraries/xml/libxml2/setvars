@@ -1,12 +1,9 @@
-AB_ZIPNAME=libxml2-dev
-
 AB_INSTALL=yes
-
 AB_CONFLAGS="--enable-ipv6=no --with-python=no"
 
 ab_package()
 {
-  ab_create_app LibXML2 Apps/Library
+  ab_create_app LibXML2 Apps/Library libxml2-dev
 
   HERE=`pwd`
   cd $A
@@ -28,7 +25,7 @@ ab_package()
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib
+  $AB_HOME/add-riscpkg -unixlib
 }
 
 

@@ -48,18 +48,16 @@ done
 
 popd > /dev/null
 
-if [ ! -z "$AB_INSTALLDOCS" ] ; then
-  for file in $AB_INSTALLDOCS ; do
-     if [ -e $file ] ; then
-       if echo $file | grep "/" > /dev/null ; then
-         filename=$(basename $file)
-         dirname=$(echo $file | sed s#/$filename\$##)
-         mkdir -p $AB_DIR/package/doc/$RO_PKG/$dirname
-       fi
-       cp -av $file $AB_DIR/package/doc/$RO_PKG/$file
-     fi
-  done
-fi
+for file in $AB_INSTALLDOCS ; do
+  if [ -e $file ] ; then
+    if echo $file | grep "/" > /dev/null ; then
+      filename=$(basename $file)
+      dirname=$(echo $file | sed s#/$filename\$##)
+      mkdir -p $AB_DIR/package/doc/$RO_PKG/$dirname
+    fi
+    cp -av $file $AB_DIR/package/doc/$RO_PKG/$file
+  fi
+done
 
 cd $AB_DIR/package
 

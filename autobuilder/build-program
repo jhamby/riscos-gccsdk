@@ -33,7 +33,7 @@ H=$AB_HOME/$AB_PACKAGEDIR
 
 rm -f $AB_HOME/last-zips
 
-# Make $CC, $CXX available 
+# Make $CC, $CXX available
 eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
 eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
 
@@ -44,7 +44,7 @@ addzip() {
   fi
   result=$($GCCSDK_INSTALL_ENV/bin/zip -, -9 $@ -x "*/CVS/*" -x "*/\.svn/*" -x "*~" -x "*~,fff" 2>&1)
   echo $result
-  if echo $result | grep "zip warning" > /dev/null ; then
+  if echo $result | grep -q "zip warning"; then
     exit 1
   fi
 }
@@ -311,6 +311,11 @@ if true; then
 
   AB_FULLNAME=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut -b 3-)
 
+  if [ "$(wc -w <<<$AB_FULLNAME)" != "1" ] ; then
+    echo "Autobuilder: Could not determine package name.  Found \"$AB_FULLNAME\"" 1>&2
+    exit 1
+  fi
+
   # Run any preprocess script to unpack it in any special way
   if [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
     cd $AB_FULLNAME
@@ -492,7 +497,6 @@ if true; then
     export AB_OUTPUTLIB
     export AB_INSTALLDOCS
 
-    #export RO_PKG=$AB_PACKAGENAME
     export RO_PKG=${AB_PACKAGE}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}
     $AB_HOME/ro-libpack
   fi
