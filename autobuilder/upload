@@ -18,9 +18,9 @@ cat=$(basename $(dirname $bin))
 
 path=/var/www/info/downloads/packages
 
-ssh mkdir -p $path/arm/$cat
+echo mkdir -p $path/arm/$cat | ssh www.riscos.info
 scp $bin www.riscos.info:$path/arm/$cat/
-ssh mkdir -p $path/arm/$cat
+echo mkdir -p $path/src/$cat | ssh www.riscos.info
 scp $src www.riscos.info:$path/src/$cat/
 
 echo "cd $path; ./build-index" | ssh www.riscos.info
