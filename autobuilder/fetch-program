@@ -56,7 +56,7 @@ else
     apt-get source $AB_PACKAGE
   else
     # Slower method.  Fetch packages file ourself and parse it.
-    debarchive=http://mirrors.kernel.org/debian
+    debarchive=http://ftp.uk.debian.org/debian
 
     # Old file
     rm -f ../Sources.bz2
@@ -70,12 +70,13 @@ else
       for section in main contrib; do
         Sources=../Sources-${dist}-${section}.bz2
 
-        if ! [ -e $Sources ] ||
+        if ! [ -s $Sources ] ||
              [ $(($(date +"%s") - $(date -r $Sources +"%s"))) -gt $((24 * 60 * 60)) ] ; then
 
           echo "Autobuilder: Fetching new Sources.bz2 (${dist}/${section})"
 
           rm -f $Sources
+
           wget -nv $debarchive/dists/${dist}/${section}/source/Sources.bz2 -O $Sources
           touch $Sources
 
