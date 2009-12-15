@@ -1,3 +1,11 @@
+Tue Dec 15 18:18:11 2009  Lee Noar  <leenoar@sky.com>
+
+	* gcccompat/galloca.c: Bug 174 Fix. If GCC determines
+	that a call to __gcc_alloca can never be reached, it will
+	optimise it away. However, __gcc_alloca_restore is still
+	called and crashes because a block was never allocated.
+	Fix by exiting if a chunk isn't found.
+
 Thu Nov 26 10:13:45 PST 2009  Peter Naulls  <peter@chocky.org>
 
 	* time/ctime.c, time/stdtime.c, time/asctime.c, include/time.h,

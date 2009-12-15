@@ -187,7 +187,14 @@ __gcc_alloca_restore (unsigned int fp, unsigned int block)
       free (chunk);
       chunk = next_chunk;
     }
-  assert (chunk != NULL);
+
+  /* Bug 174: If GCC determines that a call to __gcc_alloca can never be reached,
+     it will optimise it away. However, the subsequent call to __gcc_alloca_restore
+     is left intact and, as a block was never allocated, crashes because
+     chunk == NULL . */
+  if (chunk == NULL)
+    return;
+
   assert (chunk->block == block);
   assert (chunk->fp == callee_fp);
 
