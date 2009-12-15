@@ -1,8 +1,8 @@
-AB_CATEGORY=Audio
-
 ab_package () {
-	cp -a -v $H/\!MP3Info $D/
-	cp -a -v $S/mp3info $D/mp3info$AB_EXEEXT
-	cp -a -v $S/gmp3info $D/\!MP3Info/gmp3info$AB_EXEEXT
-	cp -a -v $S/README $S/LICENSE $D/
+  ab_create_command_app MP3Info Apps/Audio
+  ab_add_commands $S/mp3info $S/gmp3info 
+
+  ab_docs $S/README $S/LICENSE
+
+  $AB_HOME/add-riscpkg -unixlib
 }

@@ -1,8 +1,10 @@
 
-AB_CATEGORY=Audio
-
 ab_package() {
-  cp -av $S/simplefrontend/stwolame$AB_EXEEXT $D
-  cp -av $S/COPYING $S/README $D
+  ab_create_command_app TwoLame Apps/Audio
+
+  ab_add_commands $S/simplefrontend/stwolame$AB_EXEEXT
+  ab_docs $S/COPYING $S/README
+
+  $AB_HOME/add-riscpkg -unixlib
 }
 

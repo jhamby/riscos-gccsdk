@@ -1,19 +1,13 @@
-AB_CATEGORY=Library
-AB_ZIPNAME=libmikmod-dev
-
 AB_CONFLAGS="--disable-esd"
 
 AB_INSTALL=yes
 
 
 ab_package() {
-  AD=$D/Apps/Library/\!LibMikMod
-  mkdir -p $AD
-  cp $H/\!LibMikMod/\!* $AD
+  ab_create_app LibMikMod Apps/Library libmikmod-dev
 
   HERE=`pwd`
-
-  cd $AD
+  cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
@@ -31,7 +25,7 @@ ab_package() {
   cd $HERE
 
   # Copy HTML documentation
-  cp -av $S/docs/mikmod.html $AD/doc
+  cp -av $S/docs/mikmod.html $A/doc
 
-  $AB_HOME/add-riscpkg -package $AB_ZIPNAME -unixlib -unixsound
+  $AB_HOME/add-riscpkg -unixlib -unixsound
 }

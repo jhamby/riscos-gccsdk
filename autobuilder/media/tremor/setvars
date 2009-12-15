@@ -1,25 +1,18 @@
 AB_SVN=http://svn.xiph.org/trunk/Tremor
 TREMOR_VERSION=1.0.2
-AB_ZIPNAME=tremor-dev
-# Case doesn't match package name so alter package name
-AB_PACKAGE="Tremor"
 
 # Fake version as SVN version seems to be stable
 AB_PVERSION=$TREMOR_VERSION
 
-AB_CATEGORY=Library
 AB_INSTALL=yes
 
 ./autogen.sh
 
 ab_package() {
-  AD=$D/Apps/Library/\!Tremor
-  mkdir -p $AD
-  cp $H/\!Tremor/\!* $AD
+  ab_create_app Tremor Apps/Library libtremor-dev
 
   HERE=`pwd`
-
-  cd $AD
+  cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
@@ -37,8 +30,8 @@ ab_package() {
   cd $HERE
 
   # Copy HTML documentation
-  cp $S/doc/* $AD/doc
-  cp $S/ivorbisfile_example.c $AD/doc
+  cp $S/doc/* $A/doc
+  cp $S/ivorbisfile_example.c $A/doc
 
-  $AB_HOME/add-riscpkg -package tremor-dev -unixlib
+  $AB_HOME/add-riscpkg -unixlib
 }

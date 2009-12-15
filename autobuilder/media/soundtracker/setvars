@@ -1,23 +1,23 @@
 
-AB_CATEGORY=Audio
-
 AB_CONFLAGS="--disable-nls --disable-esd --disable-asm --disable-gnome"
-
-AB_MANPAGE=debian/soundtracker.1
 
 ab_make() {
   sed s#"PREFIX .*\$"#"PREFIX \"<Soundtracker\$Dir>\""# < config.h > config.h.new
   mv config.h.new config.h
 
   eval $AB_MAKE
-  return
 }
 
 
 ab_package() {
-  cp -av $H/\!Soundtracker $D
-  cp -av $S/app/soundtracker$AB_EXEEXT $D/\!Soundtracker
-  mkdir -p $D/\!Soundtracker/share/soundtracker
-  cp -av $S/*.xpm $S/*.png $D/\!Soundtracker/share/soundtracker 
+  ab_create_app Soundtracker Apps/Audio
+  ab_makerun $S/app/soundtracker
+
+  ab_docs debian/soundtracker.1
+
+  mkdir -p $A/share/soundtracker
+  cp -av $S/*.xpm $S/*.png $A/share/soundtracker 
+
+  $AB_HOME/add-riscpkg -unixlib
 }
 

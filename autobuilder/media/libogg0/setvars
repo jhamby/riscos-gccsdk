@@ -1,15 +1,11 @@
-AB_CATEGORY=Library
-AB_ZIPNAME=libogg-dev
 AB_INSTALL=yes
 
 ab_package() {
-  AD=$D/Apps/Library/\!LibOGG
-  mkdir -p $AD
-  cp $H/\!LibOGG/\!* $AD
+  ab_create_app LibOGG Apps/Library libogg-dev
 
   HERE=`pwd`
 
-  cd $AD
+  cd $A
 
   unzip $AB_OUTPUTLIB/$RO_PKG.zip
 
@@ -27,7 +23,7 @@ ab_package() {
   cd $HERE
 
   # Copy HTML documentation
-  cp -r $S/doc $AD
+  cp -r $S/doc $A
 
-  $AB_HOME/add-riscpkg -package libogg-dev -unixlib -unixsound
+  $AB_HOME/add-riscpkg -unixlib -unixsound
 }
