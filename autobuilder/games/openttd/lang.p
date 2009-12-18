@@ -106,6 +106,18 @@ Index: src/lang/unfinished/thai.txt
  STR_OSNAME_SUNOS                                                :SunOS
  
  # Abandon game
+Index: src/lang/unfinished/frisian.txt
+===================================================================
+--- src/lang/unfinished/frisian.txt	(revision 17960)
++++ src/lang/unfinished/frisian.txt	(working copy)
+@@ -883,6 +883,7 @@
+ STR_OSNAME_MORPHOS                                              :MorphOS
+ STR_OSNAME_AMIGAOS                                              :AmigaOS
+ STR_OSNAME_OS2                                                  :OS/2
++STR_OSNAME_RISCOS                                               :RISC OS
+ STR_OSNAME_SUNOS                                                :SunOS
+ 
+ # Abandon game
 Index: src/lang/unfinished/macedonian.txt
 ===================================================================
 --- src/lang/unfinished/macedonian.txt	(revision 17960)

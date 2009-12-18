@@ -1,6 +1,6 @@
 Index: src/video/sdl_v.cpp
 ===================================================================
---- src/video/sdl_v.cpp	(revision 17960)
+--- src/video/sdl_v.cpp	(revision 18527)
 +++ src/video/sdl_v.cpp	(working copy)
 @@ -25,6 +25,13 @@
  #include "sdl_v.h"
@@ -16,7 +16,7 @@ Index: src/video/sdl_v.cpp
  static FVideoDriver_SDL iFVideoDriver_SDL;
  
  static SDL_Surface *_sdl_screen;
-@@ -327,7 +334,6 @@
+@@ -329,7 +336,6 @@
  
  	for (map = _vk_mapping; map != endof(_vk_mapping); ++map) {
  		if ((uint)(sym->sym - map->vk_from) <= map->vk_count) {
@@ -24,7 +24,7 @@ Index: src/video/sdl_v.cpp
  			break;
  		}
  	}
-@@ -346,6 +352,9 @@
+@@ -348,6 +354,9 @@
  	if (sym->scancode == 49) key = WKC_BACKSPACE;
  #elif defined(__sgi__)
  	if (sym->scancode == 22) key = WKC_BACKQUOTE;
@@ -34,31 +34,30 @@ Index: src/video/sdl_v.cpp
  #else
  	if (sym->scancode == 49) key = WKC_BACKQUOTE;
  #endif
-@@ -370,11 +379,23 @@
- 			if (_cursor.fix_at) {
- 				int dx = ev.motion.x - _cursor.pos.x;
- 				int dy = ev.motion.y - _cursor.pos.y;
+@@ -375,6 +384,12 @@
+ 				if (_last_fix_at) {
+ 					dx = ev.motion.x - _screen.width / 2;
+ 					dy = ev.motion.y - _screen.height / 2;
 +#if defined __riscos__
-+			if (_fullscreen) {
-+				dx = ev.motion.xrel;
-+				dy = ev.motion.yrel;
-+			}
++					if (_fullscreen) {
++						dx = ev.motion.xrel;
++						dy = ev.motion.yrel;
++					}
 +#endif
+ 				} else {
+ 					/* Mouse hasn't been warped yet, so our movement is
+ 					 * relative to the old position. */
+@@ -385,6 +400,9 @@
  				if (dx != 0 || dy != 0) {
- 					_cursor.delta.x += dx;
- 					_cursor.delta.y += dy;
+ 					_cursor.delta.x = dx;
+ 					_cursor.delta.y = dy;
 +#if defined __riscos__
-+				if (!_fullscreen) {
- 					SDL_CALL SDL_WarpMouse(_cursor.pos.x, _cursor.pos.y);
- 				}
-+#else
-+					SDL_CALL SDL_WarpMouse(_cursor.pos.x, _cursor.pos.y);
++				if (!_fullscreen)
 +#endif
-+				}
+ 					SDL_CALL SDL_WarpMouse(_screen.width / 2, _screen.height / 2);
+ 				}
  			} else {
- 				_cursor.delta.x = ev.motion.x - _cursor.pos.x;
- 				_cursor.delta.y = ev.motion.y - _cursor.pos.y;
-@@ -431,6 +452,12 @@
+@@ -450,6 +468,12 @@
  				UndrawMouseCursor(); // mouse left the window, undraw cursor
  				_cursor.in_window = false;
  			}
@@ -71,7 +70,7 @@ Index: src/video/sdl_v.cpp
  			break;
  
  		case SDL_QUIT:
-@@ -444,6 +471,39 @@
+@@ -463,6 +487,39 @@
  			} else {
  				HandleKeypress(ConvertSdlKeyIntoMy(&ev.key.keysym));
  			}

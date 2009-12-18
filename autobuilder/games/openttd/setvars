@@ -1,6 +1,9 @@
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"                                                                    
 AB_LICENCE="GPLv2"
-AB_ROVERSION=2
+AB_ROVERSION=1
+#AB_PVERSION
+
+AB_SVN=svn://svn.openttd.org/trunk
 
 (unset CC; unset CXX; ./configure)
 make -C objs/lang
@@ -25,19 +28,26 @@ ab_package () {
   cp -av $S/bin/data/*.grf $A/data/
   cp -av $S/bin/data/*.dat $A/data/
   cp -av $S/bin/data/*.obg $A/data/
-  #cp -av $S/bin/data/*.obs $A/data/
+  cp -av $S/bin/data/*.obs $A/data/
   cp -av $S/bin/scripts    $A/
 
-  for doc in docs/Manual.txt docs/multiplayer.txt COPYING known-bugs.txt readme.txt; do
-    cp -av $S/$doc $A/docs/
-  done
-
+  ab_docs docs/Manual.txt docs/multiplayer.txt COPYING known-bugs.txt readme.txt
   cat readme.txt >> $A/\!Help
 
   cp -av $S/bin/lang/*.lng $A/lang/
 
   cp -av $S/frontend$AB_EXEEXT $A/Resources/Installer/\!RunImage$AB_EXEEXT
   cp -av $S/objs/release/openttd $A/\!RunImage$AB_EXEEXT
+
+  wget --progress=bar http://bundles.openttdcoop.org/opengfx/releases/opengfx-0.2.0.zip -O opengfx.zip
+  unzip opengfx.zip
+  cp -av opengfx-0.2.0/*.grf opengfx-0.2.0/*.obg $A/data
+
+  wget --progress=bar  http://bundles.openttdcoop.org/opensfx/releases/opensfx-0.2.0.zip -O opensfx.zip
+  mkdir opensfx
+  (cd opensfx; unzip ../opensfx.zip)
+  tar xfv opensfx/opensfx-0.2.0.tar -C opensfx
+  cp -av opensfx/opensfx-0.2.0/*.cat opensfx/opensfx-0.2.0/*.obs $A/data
 
   $AB_HOME/add-riscpkg -unixlib
 }

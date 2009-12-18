@@ -28,19 +28,21 @@ Index: src/ini.cpp
  
  #ifdef WIN32
  # include <shellapi.h>
---- src/network/core/os_abstraction.h.orig	2009-03-14 17:32:18.000000000 -0700
-+++ src/network/core/os_abstraction.h	2009-11-03 19:17:36.000000000 -0800
-@@ -62,7 +62,7 @@
+Index: src/network/core/os_abstraction.h
+===================================================================
+--- src/network/core/os_abstraction.h	(revision 17960)
++++ src/network/core/os_abstraction.h	(working copy)
+@@ -156,7 +156,7 @@
  #		include <net/if.h>
  /* According to glibc/NEWS, <ifaddrs.h> appeared in glibc-2.3. */
- #		if !defined(__sgi__) && !defined(SUNOS) && !defined(__MORPHOS__) && !defined(__BEOS__) && !defined(__INNOTEK_LIBC__) \
+ #		if !defined(__sgi__) && !defined(SUNOS) && !defined(__MORPHOS__) && !defined(__BEOS__) && !defined(__HAIKU__) && !defined(__INNOTEK_LIBC__) \
 -		   && !(defined(__GLIBC__) && (__GLIBC__ <= 2) && (__GLIBC_MINOR__ <= 2)) && !defined(__dietlibc__) && !defined(HPUX)
-+		   && !(defined(__GLIBC__) && (__GLIBC__ <= 2) && (__GLIBC_MINOR__ <= 2)) && !defined(__dietlibc__) && !defined(HPUX) && !defined(__riscos__)
++		   && !(defined(__GLIBC__) && (__GLIBC__ <= 2) && (__GLIBC_MINOR__ <= 2)) && !defined(__dietlibc__) && !defined(HPUX) && !defined(__riscos)
  /* If for any reason ifaddrs.h does not exist on your system, comment out
   *   the following two lines and an alternative way will be used to fetch
   *   the list of IPs from the system. */
-@@ -91,6 +91,11 @@
- 	typedef int socklen_t;
+@@ -189,6 +189,11 @@
+ 	#define IPV6_V6ONLY 27
  #endif
  
 +#ifdef __riscos__
@@ -51,26 +53,32 @@ Index: src/ini.cpp
  #if defined(PSP)
  #	include <sys/socket.h>
  #	include <netinet/in.h>
---- src/stdafx.h.orig	2009-05-10 14:33:55.000000000 -0700
-+++ src/stdafx.h	2009-11-03 19:41:09.000000000 -0800
-@@ -66,6 +66,11 @@
+Index: src/screenshot.cpp
+===================================================================
+--- src/screenshot.cpp	(revision 17960)
++++ src/screenshot.cpp	(working copy)
+@@ -78,7 +78,9 @@
+ struct RgbTriplet {
+ 	byte b, g, r;
+ };
++#ifndef __riscos__
+ assert_compile(sizeof(RgbTriplet) == 3);
++#endif
+ 
+ /**
+  * Generic .BMP writer
+Index: src/stdafx.h
+===================================================================
+--- src/stdafx.h	(revision 17960)
++++ src/stdafx.h	(working copy)
+@@ -69,6 +69,10 @@
  	#define strcasecmp stricmp
  #endif
  
 +#if defined(__riscos__)
 +	#define strcasestr strstr
-+	#define _stricmp strcasecmp
 +#endif
 +
  #if defined(PSP)
  	#include <psptypes.h>
  	#include <pspdebug.h>
-@@ -372,7 +377,7 @@
- 	#define _stricmp strcasecmp
- #endif
- 
--#if !defined(MORPHOS) && !defined(OPENBSD) && !defined(__NDS__) && !defined(__DJGPP__)
-+#if !defined(MORPHOS) && !defined(OPENBSD) && !defined(__NDS__) && !defined(__DJGPP__) && !defined(__riscos__)
- 	/* NDS, MorphOS & OpenBSD don't know wchars, the rest does :( */
- 	#define HAS_WCHAR
- #endif /* !defined(MORPHOS) && !defined(OPENBSD) && !defined(__NDS__) */
