@@ -10,6 +10,9 @@ ab_package() {
   cp -av images $A/data
   cp -av tcltk/*.tcl $A/data
   cp -av lib $A/data
+
+  cp -av $GCCSDK_INSTALL_ENV/lib/tcl8.4 $A/
+  cp -av $GCCSDK_INSTALL_ENV/lib/tk8.4 $A/
   
   $AB_HOME/add-riscpkg -unixlib 
 }

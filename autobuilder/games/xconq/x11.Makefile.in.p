@@ -31,7 +31,7 @@
  bindir = $(exec_prefix)/bin
  libdir = $(exec_prefix)/lib
 -datadir = $(prefix)/share/xconq
-+datadir = "<Xconq\$$Dir>/data"
++datadir = "/Xconq:/data"
  mandir = $(prefix)/man
  man6dir = $(mandir)/man6
  infodir = $(prefix)/info
