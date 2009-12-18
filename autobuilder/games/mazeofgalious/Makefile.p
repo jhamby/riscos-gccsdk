@@ -5,7 +5,7 @@
  
  %.o: %.cpp
 -	c++ -c -g3 -O0 $< -o $@ `sdl-config --cflags` -I/usr/local/include/SDL
-+	$(CXX) -c -g3 -O0 $< -o $@ `sdl-config --cflags` -I$(GCCSDK_INSTALL_ENV)/include
++	$(CXX) -c -O3 $< -o $@ `sdl-config --cflags` -I$(GCCSDK_INSTALL_ENV)/include
  
  # dynamically linked binary:
  mog: $(OBJS)
