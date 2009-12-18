@@ -1,13 +1,18 @@
-OpenTTD, RISC OS port version 0.7.3
-Peter Naulls - 4th Nov 2009
+OpenTTD, RISC OS port version 0.7.5 (approx)
+Peter Naulls - 25th Dev 2009
 
 This is a RISC OS port of OpenTTD, which is itself a clone of Transport
 Tycoon Deluxe.
 
 The original port of version of 0.4.1 in 2005 was by David Llewellyn-Jones.
-This is an updated port to version 0.7.3.  There are no functional
-changes for RISC OS, but the 0.7.3 is version has substantial improvements
-and runs considerably faster on RISC OS.
+
+I made an updated port to version 0.7.3 in November 2009, which was
+functionally similar for RISC OS, but ran considerably faster.
+
+This is a development snapshot, made for the 2009 riscos.info Christmas
+games release.  The main difference with this version is that it now
+includes 100% free graphics and sound replacements, and no long requires
+separate data file downloads.
 
 The website for the RISC OS version of OpenTTD is:
 
@@ -16,9 +21,6 @@ http://www.riscos.info/index.php/OpenTTD
 OpenTTD is built with the GCCSDK Autobuilder; refer to that for source
 and patches.
 
-IMPORTANT: OpenTTD requires original game data files to work (see below).
-Free replacements are nearly complete and will be included in the next
-release.
 
 
 The text below is David's introduction to version 0.4.1
