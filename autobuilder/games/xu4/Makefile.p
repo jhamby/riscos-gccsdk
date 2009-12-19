@@ -13,7 +13,7 @@
  DEBUGCXXFLAGS=-ggdb1 -rdynamic
 -CXXFLAGS=$(FEATURES) -Wall -I. $(UIFLAGS) $(shell xml2-config --cflags) -DICON_FILE=\"$(datadir)/pixmaps/u4.bmp\" -DVERSION=\"$(VERSION)\" $(DEBUGCXXFLAGS)
 +CXXFLAGS=$(FEATURES) -Wall -I. $(UIFLAGS) $(shell xml2-config --cflags) -DICON_FILE=\"$(datadir)/pixmaps/u4.bmp\" -DVERSION=\"$(VERSION)\" $(DEBUGCXXFLAGS) \
-+ -I$(GCCSDK_INSTALL_ENV)/include
++ -I$(GCCSDK_INSTALL_ENV)/include -O2
  CFLAGS=$(CXXFLAGS)
  LIBS=$(UILIBS) $(shell xml2-config --libs) -lpng
  INSTALL=install
