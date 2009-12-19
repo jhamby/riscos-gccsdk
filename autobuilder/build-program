@@ -249,10 +249,15 @@ cp() {
 ab_makerun() {
   local app=$1
   local dest=$2
+  local run=$3
   local aif
 
   if [ -z "$dest" ] ; then
     dest=$app
+  fi
+
+  if [ -z "$run" ] ; then
+    run=$A/\!Run
   fi
 
   aif=$(basename $dest | sed "s#,e1f\$#,ff8#")
@@ -263,18 +268,18 @@ ab_makerun() {
 
   $GCCSDK_INSTALL_ENV/ro-path elf2aif $app $A/$aif
 
-  if [ -e $A/\!Run,feb ] ; then
-    mv $A/\!Run,feb $A/\!Run
+  if [ -e $run,feb ] ; then
+    mv $run,feb $run
   else
     # Create standard !Run
 
-    echo -e "WIMPSLOT\n" > $A/\!Run
-    echo -e "Set $AA\$Dir <Obey\$Dir>\n" >> $A/\!Run
-    echo "Run <$AA\$Dir>.$(basename $(sed "s#,ff8##" <<< $dest)) >null: 2><Obey\$Dir>.stderr" >> $A/\!Run
+    echo -e "WIMPSLOT\n" > $run
+    echo -e "Set $AA\$Dir <Obey\$Dir>\n" >> $run
+    echo "Run <$AA\$Dir>.$(basename $(sed "s#,ff8##" <<< $dest)) >null: 2><Obey\$Dir>.stderr" >> $run
   fi
 
-  $GCCSDK_INSTALL_ENV/bin/makerun $A/$aif $A/\!Run $A/\!Run,feb
-  rm -f $A/\!Run
+  $GCCSDK_INSTALL_ENV/bin/makerun $A/$aif $run $run,feb
+  rm -f $run
 }
 
 

@@ -1,10 +1,11 @@
+
 ab_package() {
   ab_create_app Defenguin Apps/Games
+  ab_makerun defendguin !RunImage$AB_EXEEXT
 
-  cp -av defendguin$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
   cat docs/README.txt $H/RISCOSNotes > $A/\!Help
 
-  cp -av docs/*.txt $A
+  ab_docs docs/*.txt
 
   mkdir -p $A/data
   cp -r data/images data/music data/sounds $A/data

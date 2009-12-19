@@ -1,6 +1,6 @@
 | Run file for Defendguin
 
-Wimpslot -min 8448K -max 8448K
+WIMPSLOT
 
 Set Defenguin$Dir <Obey$Dir>
 Run <Defenguin$Dir>.!RunImage --fullscreen 2>null:
