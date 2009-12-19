@@ -1,16 +1,14 @@
---- Source_Files/shell.cpp.orig	2009-12-07 15:33:00.000000000 -0800
-+++ Source_Files/shell.cpp	2009-12-07 15:33:52.000000000 -0800
-@@ -346,13 +346,21 @@
+--- Source_Files/shell.cpp.orig	2009-12-18 18:44:28.000000000 -0800
++++ Source_Files/shell.cpp	2009-12-18 18:43:29.000000000 -0800
+@@ -346,13 +346,19 @@
  	local_data_dir.CreateDirectory();
  	local_data_dir += login;
  
-++#elif defined(__riscos__)
++#elif defined(__riscos__)
 +
-+        default_data_dir = "<Alephone$Dir>";
-+        const char *home = getenv("HOME");
-+        if (home)
-+               local_data_dir = home;
-+        local_data_dir += ".alephone";
++        default_data_dir = "/<AlephOne$Dir>/";
++        local_data_dir = "/<Choices$Write>/AlephOne/";
++        local_data_dir.CreateDirectory();
 +
  #else
  	default_data_dir = "";
