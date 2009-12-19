@@ -27,3 +27,5 @@ deps=`grep Depends: packentry | sed -e 's/^.*Depends: //'`
 for a in $deps; do
  echo $a | grep [a-zA-Z].* | sed -e 's/,//'
 done
+
+rm -f packentry
