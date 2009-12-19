@@ -6,7 +6,7 @@
  
 -override CFLAGS += -Wall `sdl-config --cflags` $(OPTIONS)
 +#override CFLAGS += -Wall `sdl-config --cflags` $(OPTIONS)
-+CFLAGS+= -Wall -I$(GCCSDK_INSTALL_ENV)/include $(OPTIONS)
++CFLAGS+= -Wall -I$(GCCSDK_INSTALL_ENV)/include $(OPTIONS) -O2
 -LDFLAGS	=
 +LDFLAGS	= -static
  
