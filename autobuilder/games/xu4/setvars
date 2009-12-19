@@ -1,5 +1,6 @@
 AB_URL=http://mesh.dl.sourceforge.net/sourceforge/xu4/xu4-1.0beta3.tar.gz
 AB_PVERSION=`grep "VERSION" src/Makefile.common | cut -d'=' -f 2`
+AB_ROVERSION=2
 
 # Get data files
 wget http://mesh.dl.sourceforge.net/sourceforge/xu4/ultima4-1.01.zip
@@ -11,10 +12,9 @@ AB_PVERSION=`grep "VERSION" src/Makefile.common | cut -d'=' -f 2`
 
 ab_package() {
   ab_create_app xu4 Apps/Games
+  ab_makerun src/u4$AB_EXEEXT !RunImage$AB_EXEEXT
 
   cp -av README AUTHORS COPYING $A
-
-  cp -av src/u4$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
 
   mkdir -p $A/pixmaps
   cp -av icons/u4.bmp $A/pixmaps/u4.bmp
@@ -34,7 +34,6 @@ ab_package() {
   cp -av conf/*.xml $A/conf
   mkdir -p $A/conf/dtd
   cp -av conf/dtd/*.dtd $A/conf/dtd
-  mkdir -p $A/graphics
   mkdir -p $A/graphics/ega
   mkdir -p $A/graphics/vga
   cp -av graphics/ega/*.png $A/graphics/ega

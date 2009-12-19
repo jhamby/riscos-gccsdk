@@ -1,6 +1,6 @@
 | Run file for XU4
 
-Wimpslot -min 7200K -max 7200K
+WIMPSLOT
 
 | Try to load the sound
 | If the load fails the game should continue with no sound
@@ -8,4 +8,4 @@ RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
 
 Set XU4$Dir <Obey$Dir>
 
-Run <XU4$Dir>.!RunImage  >null: 2>null:
+Run <XU4$Dir>.!RunImage >null: 2>null:
