@@ -25,6 +25,8 @@ AB_CONFLAGS="--os=unix --with-zlib=$GCCSDK_INSTALL_ENV/lib/libz.a --prefix-dir=/
 ab_package () {
   ab_create_app OpenTTD Apps/Games
 
+  ab_makerun $S/objs/release/openttd $A/\!RunImage $A/Resources/RunGame
+
   cp -av $S/bin/data/*.grf $A/data/
   cp -av $S/bin/data/*.dat $A/data/
   cp -av $S/bin/data/*.obg $A/data/
@@ -37,7 +39,6 @@ ab_package () {
   cp -av $S/bin/lang/*.lng $A/lang/
 
   cp -av $S/frontend$AB_EXEEXT $A/Resources/Installer/\!RunImage$AB_EXEEXT
-  cp -av $S/objs/release/openttd $A/\!RunImage$AB_EXEEXT
 
   wget --progress=bar:force http://bundles.openttdcoop.org/opengfx/releases/opengfx-0.2.0.zip -O opengfx.zip
   unzip opengfx.zip
