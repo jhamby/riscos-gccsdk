@@ -18,9 +18,11 @@ Major changes:
     More information can be found in !GCC.docs.asasm.
   - Possibility to create RISC OS modules without having to use
     SharedCLibrary.
+  - Limited profile support (gcc option -pg).
 
 Bug fixes:
   - Shareble library fixes (SOModule and code generation).
+  - Several C++ exception fixes.
   - UnixLib:
     - Better leafname determination of program name.  Fixes Bug #169
       <URL:http://www.riscos.info/bugzilla3/show_bug.cgi?id=169> (reported by
@@ -51,6 +53,7 @@ Cross compile related changes and bug fixes:
   - Fix for linking a module binary on a 64-bit host triggering an assert.
   - gdbserver: development start of remote, gdb based, RISC OS debugger for
     ELF binaries.
+  - Porting tools: several bug fixes and improvements.
 
 GCCSDK GCC 4.1.1 Release 1b (released 06 January 2009)
 ===========================
