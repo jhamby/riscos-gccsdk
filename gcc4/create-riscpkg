@@ -30,7 +30,7 @@ RPKG_DRENDERER_NAME=DRenderer
 GCCSDK_UNPACKED=$GCCSDK_RELEASE_AREA/kits
 GCCSDK_RISCPKG=$GCCSDK_RELEASE_AREA/riscpkg
 
-# Location in kites folder
+# Location in kits folder
 BKIT_GCCCORE_NAME=gccsdk-gcc-core-bin-$GCCSDK_FULL_RELEASE_NAME
 BKIT_GCCGPP_NAME=gccsdk-gcc-g++-bin-$GCCSDK_FULL_RELEASE_NAME
 BKIT_SYSTEM_NAME=system
@@ -44,9 +44,15 @@ RPKG_SHAREDLIBSGPP_NAME=SharedLibs-C++
 
 GCCSDK_MAINTAINER="GCCSDK mailing list <gcc@gccsdk.riscos.info>"
 
-if [ ! -f $GCCSDK_INSTALL_ENV/bin/zip ] ; then
-   echo Unable to create RISC OS Packages because of missing zip executable.
-   exit 1
+ZIP=$GCCSDK_INSTALL_ENV/bin/zip
+if ! [ -f "$ZIP" ] ; then
+  echo Unable to create RISC OS Packages because of missing zip executable 1>&2
+  exit 1
+fi
+
+if ! [ -e $GCCSDK_UNPACKED ] ; then
+  echo Please run `dirname $0`/create-gcckit first 1>&2
+  exit 1
 fi
 
 # Standard header for copyright
@@ -179,7 +185,7 @@ cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/libunixlib/COPYING >> RiscPk
 set_file_types
 
 # Zip it all up
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_GCCCORE_NAME\_$GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION.zip *
+$ZIP -, -9rq ../$RPKG_GCCCORE_NAME\_$GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION.zip *
 
 cd ..
 rm -rf temp
@@ -216,7 +222,7 @@ gpl_copyright
 
 set_file_types
 
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_GCCGPP_NAME\_$GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION.zip *
+$ZIP -, -9rq ../$RPKG_GCCGPP_NAME\_$GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION.zip *
 
 cd ..
 rm -rf temp
@@ -268,7 +274,7 @@ echo '<Packages$@Resources.!SharedLibs>.!Sprites' > Sprites/\!sharedlibs
 
 set_file_types
 
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_SHAREDLIBS_NAME\_$RPKG_SHAREDLIBS_VERSION.zip *
+$ZIP -, -9rq ../$RPKG_SHAREDLIBS_NAME\_$RPKG_SHAREDLIBS_VERSION.zip *
 
 cd ..
 rm -rf temp
@@ -310,7 +316,7 @@ cat $GCCSDK_UNPACKED/$BKIT_SHAREDLIBSCORE_NAME/\!SharedLibs/docs/COPYRIGHT >> Ri
 
 set_file_types
 
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_SHAREDLIBSC_NAME\_$RPKG_SHAREDLIBSC_VERSION.zip *
+$ZIP -, -9rq ../$RPKG_SHAREDLIBSC_NAME\_$RPKG_SHAREDLIBSC_VERSION.zip *
 
 cd ..
 rm -rf temp
@@ -345,7 +351,7 @@ gpl_copyright
 
 set_file_types
 
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_SHAREDLIBSGPP_NAME\_$RPKG_SHAREDLIBSGPP_VERSION.zip *
+$ZIP -, -9rq ../$RPKG_SHAREDLIBSGPP_NAME\_$RPKG_SHAREDLIBSGPP_VERSION.zip *
 
 cd ..
 rm -rf temp
@@ -358,7 +364,7 @@ cd temp
 
 unixlibdir=System/310/Modules
 mkdir -p $unixlibdir
-cp $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!System/310/Modules/SharedULib,ffa $unixlibdir
+cp $GCCSDK_UNPACKED/$BKIT_SYSTEM_NAME/\!System/310/Modules/SharedULib,ffa $unixlibdir
 
 mkdir RiscPkg
 
@@ -391,7 +397,7 @@ cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/libunixlib/COPYING >> RiscPk
 
 set_file_types
 
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_UNIXLIB_NAME\_$RPKG_UNIXLIB_VERSION.zip *
+$ZIP -, -9rq ../$RPKG_UNIXLIB_NAME\_$RPKG_UNIXLIB_VERSION.zip *
 
 cd ..
 rm -rf temp
@@ -406,7 +412,7 @@ cd temp
 drenddir=System/310/Modules
 mkdir -p $drenddir
 
-cp $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!System/310/Modules/DRenderer,ffa $drenddir
+cp $GCCSDK_UNPACKED/$BKIT_SYSTEM_NAME/\!System/310/Modules/DRenderer,ffa $drenddir
 
 mkdir RiscPkg
 
@@ -431,7 +437,10 @@ lgpl_copyright
 
 set_file_types
 
-$GCCSDK_CROSS_PREFIX/bin/zip -, -9rq ../$RPKG_DRENDERER_NAME\_$RPKG_DRENDERER_VERSION.zip *
+$ZIP -, -9rq ../$RPKG_DRENDERER_NAME\_$RPKG_DRENDERER_VERSION.zip *
 
 cd ..
 rm -rf temp
+
+echo "Package creation complete.  Contents of $GCCSDK_RISCPKG:"
+ls -l $GCCSDK_RISCPKG
