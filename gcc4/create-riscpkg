@@ -19,9 +19,9 @@ source $GCCSDK_ROOT/setup-gccsdk-params
 RPKG_VERSION=1
 
 # Non GCCSDK named packages
-RPKG_SHAREDLIBS_NAME=SharedLibs
-RPKG_UNIXLIB_NAME=SharedUnixLibrary
-RPKG_DRENDERER_NAME=DRenderer
+RPKG_SHAREDLIBS_NAME=sharedlibs
+RPKG_UNIXLIB_NAME=sharedunixlibrary
+RPKG_DRENDERER_NAME=drenderer
 
 # Set versions
 . ./riscpkg-versions
@@ -37,10 +37,10 @@ BKIT_SYSTEM_NAME=system
 BKIT_SHAREDLIBSCORE_NAME=gccsdk-sharedlibs-core
 BKIT_SHAREDLIBSGPP_NAME=gccsdk-sharedlibs-g++
 
-RPKG_GCCCORE_NAME=GCCSDK4
-RPKG_GCCGPP_NAME=GCCSDK4-C++
-RPKG_SHAREDLIBSC_NAME=SharedLibs-C
-RPKG_SHAREDLIBSGPP_NAME=SharedLibs-C++
+RPKG_GCCCORE_NAME=gcc4
+RPKG_GCCGPP_NAME=gcc4-c++
+RPKG_SHAREDLIBSC_NAME=sharedlibs-c
+RPKG_SHAREDLIBSGPP_NAME=sharedlibs-c++
 
 GCCSDK_MAINTAINER="GCCSDK mailing list <gcc@gccsdk.riscos.info>"
 
@@ -148,13 +148,13 @@ mkdir RiscPkg
 echo "Package: $RPKG_GCCCORE_NAME" > RiscPkg/Control
 echo "Version: $GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
-echo "Section: Programming" >> RiscPkg/Control
+echo "Section: Develop" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
 echo "Depends: $RPKG_SHAREDLIBSC_NAME (>= $RPKG_SHAREDLIBSC_VERSION)" >> RiscPkg/Control
 echo "Conflicts: GCC-Common" >> RiscPkg/Control
-echo "Description: The GNU GCCSDK including the C Compiler and various tools" >> RiscPkg/Control
+echo "Description: RISC OS port of the GNU Compiler Connection including the C Compiler and core tools" >> RiscPkg/Control
 
 # Create copyright
 echo "GCC4 Core components" > RiscPkg/Copyright
@@ -205,12 +205,12 @@ mkdir RiscPkg
 echo "Package: $RPKG_GCCGPP_NAME" > RiscPkg/Control
 echo "Version: $GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
-echo "Section: Programming" >> RiscPkg/Control
+echo "Section: Develop" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
 echo "Depends: $RPKG_GCCCORE_NAME (>=$GCCSDK_FULL_RELEASE_NAME), $RPKG_SHAREDLIBSGPP_NAME (>=$RPKG_SHAREDLIBSGPP_VERSION)" >> RiscPkg/Control
-echo "Description: The GNU C++ Compiler" >> RiscPkg/Control
+echo "Description: RISC OS port of the GNU C++ Compiler" >> RiscPkg/Control
 
 # Create copyright
 echo "GCC4 C++ Compiler" > RiscPkg/Copyright
@@ -370,23 +370,15 @@ mkdir RiscPkg
 
 echo "Package: SharedUnixLibrary" > RiscPkg/Control
 echo "Priority: Required" >> RiscPkg/Control
-echo "Section: Library" >> RiscPkg/Control
+echo "Section: Support" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Version: $RPKG_UNIXLIB_VERSION" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
-echo "Description: A C run-time library for RISC OS." >> RiscPkg/Control
-echo " This is the standard run-time library used by GCC on RISC OS." >> RiscPkg/Control
+echo "Description: A C runtime support module for UnixLib." >> RiscPkg/Control
+echo " This package provides the SharedULib module, which provides essential" >> RiscPkg/Control
+echo " services to UnixLib that are not possible in a user space application." >> RiscPkg/Control
 echo " ." >> RiscPkg/Control
-echo " In addition to the standard C library, UnixLib includes many features" >> RiscPkg/Control
-echo " which make it easier to port UNIX programs to RISC OS.  These include:" >> RiscPkg/Control
-echo " - filename translation;" >> RiscPkg/Control
-echo " - regular expressions;" >> RiscPkg/Control
-echo " - sockets; and" >> RiscPkg/Control
-echo " - pthreads." >> RiscPkg/Control
-echo " ." >> RiscPkg/Control
-echo " The package UnixLib contains the files needed to run programs that have" >> RiscPkg/Control
-echo " been compiled with UnixLib (currently just the module SharedULib)." >> RiscPkg/Control
 
 # Create copyright
 echo "UnixLib" > RiscPkg/Copyright
@@ -418,7 +410,7 @@ mkdir RiscPkg
 
 echo "Package: $RPKG_DRENDERER_NAME" > RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
-echo "Section: Module" >> RiscPkg/Control
+echo "Section: Support" >> RiscPkg/Control
 echo "Maintainer: Alan Buckley <alan_baa@hotmail.com>" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Version: $RPG_DRENDERER_VERSION" >> RiscPkg/Control
