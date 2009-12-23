@@ -511,11 +511,9 @@ WSSize		:
 
 <p>When you want to distribute your compiled program it might be necessary to accompany it with an ELF loader and possibly also a set of shared libraries used by your program. This is not necessary when your program is a static ELF binary which has been converted with <a href="elf2aif">elf2aif</a> or when it is using SharedCLibrary as runtime library (as for both cases your program is an Absolute (filetype &amp;FF8) file with AIF header) or when it is a RISC&nbsp;OS module (filetype &amp;FFA).
 
-<p>The ELF loader and the default set of shared libraries (UnixLib, libgcc and the dynamic loader) are bundled in the form of the !SharedLibs application. In the <a href="http://www.riscos.info/downloads/gccsdk/latest/">download area of the GCCSDK website</a> there is separate 'core' !SharedLibs ZIP file available (also containing a !System holding the most recent modules required by UnixLib) which can be downloaded by the users of your program. In case your program is a C++ program, an additional 'g++' !SharedLibs ZIP needs to be downloaded and its contents copied on top of the 'core' !SharedLibs application as this will add the necessary C++ shared libraries.
+<p>The ELF loader and the default set of shared libraries (UnixLib, libgcc and the dynamic loader) are bundled in the form of the !SharedLibs application.  In the <a href="http://www.riscos.info/index.php/GCC_for_RISC_OS#Download">download section of the GCC page</a> there is separate 'core' !SharedLibs ZIP file available which can be downloaded by the users of your program.  You will also need the C support and possibly also the C++ support additions.
 
 <p>We strongly recommend that you instruct your users to download !SharedLibs ZIP file(s) themselves instead of providing a copy of a possibly outdated version together with your program.
-
-<p>Over time we anticipate that a more managed download and upgrade facility will be used like <a href="http://www.riscpkg.org/">RiscPkg</a> but details and instructions are not available at the time of writing.
 
 <h4>1.9. Troubleshooting</h4>
 
