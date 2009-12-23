@@ -119,6 +119,13 @@ scan_boot_file() {
 # Set file types of all files not already set to be html or text
 # as current version of RiscPkg needs this
 set_file_types() {
+  local elf=$(find . -name \*,e1f)
+
+  for exe in $elf; do
+    $GCCSDK_INSTALL_CROSSBIN/elf2aif $exe $(sed s#,e1f#,ff8# <<< $exe)
+    rm -f $exe
+  done
+
   find . -iname \*.html -type f -execdir mv {} {},faf \;
   find . ! -iname \*,??? -type f -execdir mv {} {},fff \;
 }
@@ -136,11 +143,11 @@ cd $GCCSDK_RISCPKG
 
 mkdir temp
 cd temp
-mkdir -p Apps/Development
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC Apps/Development
+mkdir -p Apps/Develop
+cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC Apps/Develop
 
 # Add Examples
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/Examples Apps/Development/\!GCC
+cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/Examples Apps/Develop/\!GCC
 
 mkdir RiscPkg
 
@@ -196,8 +203,8 @@ rm -rf temp
 
 mkdir temp
 cd temp
-mkdir -p Apps/Development
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/\!GCC Apps/Development
+mkdir -p Apps/Develop
+cp -r $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/\!GCC Apps/Develop
 
 mkdir RiscPkg
 
