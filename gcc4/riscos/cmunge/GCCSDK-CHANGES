@@ -7,7 +7,7 @@ handler and no-SCL support.
 More detailed overview of the changes made so far:
 
   - GCCSDK specific build structure changes.
-  - Miding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
+  - Hiding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
   - Marked "[with GCCSDK 4 changes]" Module_FullVersionAndDate of VersionNum
     which makes startup message and generated files are marked as such.
   - -tgcc option supports ELF object format and no longer AOF object format.
