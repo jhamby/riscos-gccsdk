@@ -7,9 +7,9 @@ Nicholas Clark and Peter Burwood.
 These contributors have expressed "no interest" in any further licensing or
 copyright in regards to UnixLib.
 
-Other sections are (c) 1999-2006 Nick Burrett, John Tytgat, Peter Naulls,
-Peter Teichmann, Alex Waugh, Christian Ludlam, Theo Markettos, Graham Shaw,
-James Bursa and John-Mark Bell.
+Other sections are (c) 1999-2009 Nick Burrett, John Tytgat, Peter Naulls,
+Lee Noar, Peter Teichmann, Alex Waugh, Christian Ludlam, Theo Markettos,
+Graham Shaw, James Bursa and John-Mark Bell.
 
 In January 2005, permission was obtained from all relevant contributors
 by Peter Naulls to license all past and present contributions to UnixLib
@@ -86,7 +86,7 @@ http://www.fsf.org/licenses/why-not-lgpl.html
 
 ===========================================================================
 
- Copyright (c) 1995-2005 UnixLib Developers
+ Copyright (c) 1995-2009 UnixLib Developers
  All rights reserved.
  
  Redistribution and use in source and binary forms, with or without
