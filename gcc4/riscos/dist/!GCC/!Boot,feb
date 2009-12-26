@@ -1,12 +1,12 @@
 | !Boot file for GCCSDK 4
-| Copyright (c) GCCSDK Developers 2007-2008
+| Copyright (c) GCCSDK Developers 2007-2009
 
 Set GCC$Dir <Obey$Dir>
 
 IconSprites <GCC$Dir>.!Sprites
 
 Set GCC$Help <GCC$Dir>.docs.index/html
-Set GCC$Version "4.1.1 pre-release 2"
+Set GCC$Version "4.1.1 Release 2"
 Set GCC$Web "http://gccsdk.riscos.info/"
 Set GCC$Title "GCC"
 Set GCC$Publisher "GCCSDK Developers"
