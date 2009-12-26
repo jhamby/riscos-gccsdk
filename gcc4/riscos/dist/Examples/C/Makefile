@@ -1,6 +1,7 @@
-# Simple C programs which are compiled 3 times, once using static UnixLib
-# as runtime library, once using shared UnixLib and finally using
-# ShareCLibrary.
+# Simple C programs which are compiled 3 times:
+#   1) using SharedCLibrary as runtime library
+#   2) using static UnixLib as runtime library
+#   3) using shared UnixLib as runtime library
 
 CC = gcc
 # Compile + link flags for SharedCLibrary as runtime library:
