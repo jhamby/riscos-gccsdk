@@ -377,7 +377,8 @@ above.
 
 The packages are output to release-area/riscpkg.
 
-No additional tools are required for this script.
+The 'zip' tool is required to be present in $GCCSDK_INSTALL_ENV/bin to run
+this script.
 
 The compilers and base GCC use the version numbers of the GCCSDK, however
 the support modules, shared library loader, C and C++ shared libraries
