@@ -116,14 +116,17 @@ scan_boot_file() {
   done
 }
 
+# Convert static ELF binaries to AIF binaries.
 # Set file types of all files not already set to be html or text
 # as current version of RiscPkg needs this
 set_file_types() {
   local elf=$(find . -name \*,e1f)
 
   for exe in $elf; do
-    $GCCSDK_INSTALL_CROSSBIN/elf2aif $exe $(sed s#,e1f#,ff8# <<< $exe)
-    rm -f $exe
+    if file $exe | grep -q statically ; then
+      $GCCSDK_INSTALL_CROSSBIN/elf2aif $exe $(sed s#,e1f#,ff8# <<< $exe)
+      rm -f $exe
+    fi
   done
 
   find . -iname \*.html -type f -execdir mv {} {},faf \;
