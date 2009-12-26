@@ -165,7 +165,7 @@ slim_gcc_tree() {
             mv $f $f,ff8
           fi
         elif echo $filetype | grep -q dynamically ; then
-          # Dynamically linke ELF binary (using shared libraries):
+          # Dynamically linked ELF binary (using shared libraries):
           $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-strip $f
           # Take the opportunity to add ,e1f suffix to ELF binaries:
           if ! echo $f | grep -q ",e1f" ; then
