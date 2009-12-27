@@ -1,5 +1,5 @@
---- pango/opentype/hb-ot-layout-gdef-private.hh.orig	2009-11-17 16:35:44.000000000 +0000
-+++ pango/opentype/hb-ot-layout-gdef-private.hh	2009-12-20 19:28:27.000000000 +0000
+--- pango/opentype/hb-ot-layout-gdef-private.hh.orig	2009-11-26 00:44:17.000000000 +0000
++++ pango/opentype/hb-ot-layout-gdef-private.hh	2009-12-27 12:49:36.000000000 +0000
 @@ -101,7 +101,7 @@
    private:
    USHORT	caretValueFormat;	/* Format identifier--format = 1 */
@@ -27,23 +27,7 @@
  ASSERT_SIZE (CaretValueFormat3, 6);
  
  struct CaretValue
-@@ -175,13 +175,13 @@
-   }
- 
-   private:
--  union {
-+  union PACKED {
-   USHORT		format;		/* Format identifier */
-   CaretValueFormat1	format1[];
-   CaretValueFormat2	format2[];
-   CaretValueFormat3	format3[];
-   } u;
--};
-+} PACKED;
- ASSERT_SIZE (CaretValue, 2);
- 
- struct LigGlyph
-@@ -209,7 +209,7 @@
+@@ -208,7 +208,7 @@
  		carets;			/* Offset array of CaretValue tables
  					 * --from beginning of LigGlyph table
  					 * --in increasing coordinate order */
@@ -52,7 +36,7 @@
  ASSERT_SIZE (LigGlyph, 2);
  
  struct LigCaretList
-@@ -261,7 +261,7 @@
+@@ -260,7 +260,7 @@
    LongOffsetArrayOf<Coverage>
  		coverage;		/* Array of long offsets to mark set
  					 * coverage tables */
@@ -61,17 +45,12 @@
  ASSERT_SIZE (MarkGlyphSetsFormat1, 4);
  
  struct MarkGlyphSets
-@@ -284,11 +284,11 @@
-   }
- 
-   private:
--  union {
-+  union PACKED {
-   USHORT		format;		/* Format identifier */
-   MarkGlyphSetsFormat1	format1[];
-   } u;
+@@ -366,7 +366,7 @@
+ 					 * definitions--from beginning of GDEF
+ 					 * header (may be NULL).  Introduced
+ 					 * in version 00010002. */
 -};
 +} PACKED;
- ASSERT_SIZE (MarkGlyphSets, 2);
+ ASSERT_SIZE_VAR (GDEF, 12, OffsetTo<MarkGlyphSets>);
  
  
