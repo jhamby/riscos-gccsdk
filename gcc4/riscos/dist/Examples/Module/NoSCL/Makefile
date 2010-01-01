@@ -11,7 +11,7 @@ ASMFLAGS    = $(CCFLAGS)
 LINK        = gcc
 LINKFLAGS   = -nostdlib -lgcc -mmodule
 CMHG        = cmunge
-CMHGFLAGS   = -tgcc -32bit -znoscl
+CMHGFLAGS   = -tgcc -32bit -zbase -znoscl
 
 OBJS = gccmodule.o module.o
 
