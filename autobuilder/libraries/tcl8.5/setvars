@@ -1,0 +1,10 @@
+cd unix
+
+AB_CONFLAGS=--disable-load
+
+AB_INSTALL=yes
+
+AB_INSTALLTARGET="install install-private-headers"
+
+mkdir -p $D/lib/tcl8.5/http1.0/
+
