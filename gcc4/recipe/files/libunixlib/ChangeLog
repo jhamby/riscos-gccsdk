@@ -1,3 +1,16 @@
+Fri Jan  1 19:59:01 2010  Lee Noar  <leenoar@sky.com>
+
+	* pthread/_context.s(__pthread_callback): Load PIC
+	register directly rather than depending on caller
+	to pass it - should be more reliable/stable.
+	* pthread/_yield.s(pthread_yield): Fix problem where
+	PIC register may contain a GOT that doesn't belong to
+	UnixLib causing registers to be dumped where they
+	shouldn't be. Also, simplify by using registers for PIC
+	code that don't need to be saved/restored.
+	* signal/_signal.s(__h_cback): __pthread_callback loads
+	the PIC register itself now, so no need to pass it in.
+
 Tue Dec 15 18:18:11 2009  Lee Noar  <leenoar@sky.com>
 
 	* gcccompat/galloca.c: Bug 174 Fix. If GCC determines

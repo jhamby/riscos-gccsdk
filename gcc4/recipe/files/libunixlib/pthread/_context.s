@@ -325,14 +325,22 @@ pthread_call_every:
 @ Entered in SVC or IRQ mode with IRQs disabled.
 
 @ The operating system will eventually be returning to USR mode.
-@ In the shared library, we assume that the caller has passed the GOT
-@ pointer in v4.
 	.global	__pthread_callback
 
 	NAME	__pthread_callback
 __pthread_callback:
-	LDR	a3, .L2	@=__ul_global
- PICEQ "LDR	a3, [v4, a3]"
+	@ Use ip for temporary PIC register as all other registers
+	@ are used further down.
+ PICEQ "LDR	v5, .L2+12"
+.LPIC2:
+ PICEQ "ADD	v5, pc, v5"		@ v5 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v5, {v5, ip}"		@ v5 = Object index, ip = GOT ptr array location
+ PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
+ PICEQ "LDR	ip, [ip, v5, LSL#4]"	@ ip = GOT ptr
+ 
+	LDR	a3, .L2			@=__ul_global
+ PICEQ "LDR	a3, [ip, a3]"
+ 
 	@ If we are in a critical region, do not switch threads and
 	@ exit quicky.
 	LDR	a1, [a3, #GBL_PTH_WORKSEMAPHORE]
@@ -353,23 +361,22 @@ __pthread_callback:
 	STR	a1, [a3, #GBL_PTH_CALLBACK_SEMAPHORE]
 
 	@ Setup a stack for the context switcher
+ PICEQ "MOV	v4, ip"
 	BL	__setup_signalhandler_stack
 
 	@ Save regs to thread's save area
 	LDR	a1, .L2+4	@=__pthread_running_thread
- PICEQ "LDR	a1, [v4, a1]"
+ PICEQ "LDR	a1, [ip, a1]"
 	LDR	a1, [a1]
 	LDR	a1, [a1, #__PTHREAD_CONTEXT_OFFSET]	@ __pthread_running_thread->saved_context
 
 	@ Copy integer regs
 	LDR	a2, .L2+8	@=__cbreg
- PICEQ "MOV	ip, v4"		@ Preserve GOT pointer
- PICEQ "LDR	a2, [v4, a2]"
+ PICEQ "LDR	a2, [ip, a2]"
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
- PICEQ "MOV	v4, ip"		@ Restore GOT pointer
 	@ Copy SPSR
 	LDR	a3, [a2]
 	STR	a3, [a1], #4
@@ -388,6 +395,9 @@ __pthread_callback:
 	STR	a2, [a1]
 #endif
 
+	@ Switch to normal PIC register so that call to C function
+	@ doesn't corrupt it.
+ PICEQ "MOV	v4, ip"
 	@ Call the scheduler to switch to another thread
 	BL	__pthread_context_switch
 
@@ -409,7 +419,7 @@ __pthread_callback:
 
 	CHGMODE	a2, SVC_Mode+IFlag	@ Force SVC mode, IRQs off
 
-	LDR	a2, .L2	@=__ul_global
+	LDR	a2, .L2		@=__ul_global
  PICEQ "LDR	a2, [v4, a2]"
 
 	@ Indicate that this context switch was successful
@@ -467,6 +477,7 @@ skip_contextswitch:
 	WORD	__ul_global
 	WORD	__pthread_running_thread
 	WORD	__cbreg
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC2+4)"
 	DECLARE_FUNCTION __pthread_callback
 
 @ entry:

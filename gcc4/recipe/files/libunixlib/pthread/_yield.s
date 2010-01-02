@@ -13,26 +13,23 @@
 pthread_yield:
 	@ Setup an APCS-32 stack frame so this will appear in a backtrace
 	MOV	ip, sp
- PICNE "STMFD	sp!, {fp, ip, lr, pc}"
- PICEQ "STMFD	sp!, {v4-v5, fp, ip, lr, pc}"
+	STMFD	sp!, {fp, ip, lr, pc}
 
 	SUB	fp, ip, #4
 
- PICEQ "LDR	v4, .L0+8"
+ PICEQ "LDR	a1, .L0+8"
 .LPIC0:
- PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT (private)
+ PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	a1, {a1, a4}"		@ a1 = Object index, a4 = GOT array location
+ PICEQ "LDR	a4, [a4, #0]"		@ a4 = GOT array
+ PICEQ "LDR	a4, [a4, a1, LSL#4]"	@ a4 = GOT (private)
 
 	@ If the thread system isn't running then yielding is pointless
-	LDR	a2, .L0	@=__ul_global
- PICEQ "LDR	a2, [v4, a2]"
+	LDR	a2, .L0		@=__ul_global
+ PICEQ "LDR	a2, [a4, a2]"
 	LDR	a1, [a2, #GBL_PTH_SYSTEM_RUNNING]
 	CMP	a1, #0
- PICEQ "LDMEQDB fp, {v4-v5, fp, sp, pc}"
- PICEQ "LDMFD	sp!, {v4-v5}"
- PICNE "LDMEQDB	fp, {fp, sp, pc}"
+	LDMEQDB	fp, {fp, sp, pc}
 
 	@ Check that a context switch can take place
 	LDR	a1, [a2, #GBL_PTH_WORKSEMAPHORE]
@@ -40,15 +37,17 @@ pthread_yield:
 	ADRNE	a1, failmessage
 	BLNE	__pthread_fatal_error
 
+	@ Load __cbreg here before a4 is corrupted by CHGMODE below.
+	LDR	a1, .L0+4	@=__cbreg
+ PICEQ "LDR	a1, [a4, a1]"
+
 	MRS	a3, CPSR	@ Get a USR mode, IRQs enabled CPSR
 	@ Change to SVC mode, IRQs disabled to ensure the regs don't get
 	@ overwitten by a real callback
 	SWI	XOS_EnterOS
 	CHGMODE	a4, SVC_Mode+IFlag
-	@ Save regs to callback save area
-	LDR	a1, .L0+4	@=__cbreg
- PICEQ "LDR	a1, [v4, a1]"
 
+	@ Save regs to callback save area
 	ADD	a1, a1, #13*4
 
 	@ Using an STMDB instruction to save all relevant registers can trigger

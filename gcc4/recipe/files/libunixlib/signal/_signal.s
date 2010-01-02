@@ -855,7 +855,6 @@ __h_cback:
  PICEQ "LDR	a3, [ip, a3]"
 	LDR	a1, [a3, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
- PICEQ "MOVNE	v4, ip"
 	BNE	__pthread_callback
 	B	__h_cback_common
 
