@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.9: Input/Output <stdio.h>.
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __STDIO_H
@@ -140,7 +140,6 @@ extern int feof (FILE *__stream) __THROW;
 /* Return the error indicator for stream.  */
 extern int ferror (FILE *__stream) __THROW;
 
-extern int fisatty (FILE *__stream) __THROW;
 extern void clearerr (FILE *__stream) __THROW;
 
 #define feof(stream) ((stream)->__eof != 0)

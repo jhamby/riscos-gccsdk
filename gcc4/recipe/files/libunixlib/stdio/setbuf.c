@@ -1,5 +1,5 @@
 /* UnixLib setbuffer(), setlinebuf(), setbuf() and setvbuf() implementation.
-   Copyright 2000-2008 UnixLib Developers.  */
+   Copyright 2000-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -14,7 +14,7 @@
 void
 setbuffer (FILE * stream, char *buf, size_t size)
 {
-  setvbuf (stream, buf, (buf) ? _IOFBF : _IONBF, size);
+  setvbuf (stream, buf, buf ? _IOFBF : _IONBF, size);
 }
 
 /* Make stream be line buffered, and allocate the buffer.  */
@@ -28,19 +28,14 @@ setlinebuf (FILE * stream)
 void
 setbuf (FILE * f, char *buf)
 {
-  setvbuf (f, buf, (buf) ? _IOFBF : _IONBF, BUFSIZ);
+  setvbuf (f, buf, buf ? _IOFBF : _IONBF, BUFSIZ);
 }
 
 static int
-do_buffer (unsigned char **base, unsigned char **ptr, int *cnt,
+do_buffer (unsigned char **base,
 	   size_t *bufsize, unsigned int *userbuf,
 	   char *buf, int flag, size_t newbufsize)
 {
-  if (*base && !*userbuf)
-    free (*base);
-
-  *userbuf = 0;
-  *cnt = 0;
   if (flag == _IOFBF || flag == _IOLBF)
     {
       if (newbufsize == 0)
@@ -48,21 +43,26 @@ do_buffer (unsigned char **base, unsigned char **ptr, int *cnt,
 	  (void) __set_errno (EINVAL);
 	  return EOF;
 	}
-      *bufsize = newbufsize;
-      if (buf != NULL)
-	*userbuf = 1;
-      else
-	buf = malloc (newbufsize);
-      *base = (unsigned char *)buf;
-      *ptr = *base;
+
       if (buf == NULL)
-	return EOF;
+	{
+	  if ((buf = malloc (newbufsize)) == NULL)
+	    return EOF;
+	  *userbuf = 0;
+	}
+      else
+	*userbuf = 1;
+      *bufsize = newbufsize;
+      *base = (unsigned char *)buf;
     }
   else if (flag == _IONBF)
     {
-      *base = NULL;
-      *ptr = NULL;
       *bufsize = 0;
+      if (!*userbuf)
+	free (*base);
+      else
+	*userbuf = 0;
+      *base = NULL;
     }
   else
     {
@@ -76,8 +76,6 @@ do_buffer (unsigned char **base, unsigned char **ptr, int *cnt,
 int
 setvbuf (FILE * stream, char *buf, int flag, size_t bufsiz)
 {
-  unsigned int userbuf;
-
   PTHREAD_UNSAFE
 
   if (!__validfp (stream))
@@ -94,22 +92,26 @@ setvbuf (FILE * stream, char *buf, int flag, size_t bufsiz)
      any old contents of the buffer will be lost.  */
   if (stream->__mode.__bits.__read)
     {
-      userbuf = stream->__iuserbuf;
+      unsigned int userbuf = stream->__iuserbuf;
 
-      if (do_buffer (&stream->i_base, &stream->i_ptr, &stream->i_cnt,
+      if (do_buffer (&stream->i_base,
 		     &stream->__bufsize, &userbuf, buf, flag, bufsiz) == EOF)
 	return EOF;
 
+      stream->i_ptr = stream->i_base;
+      stream->i_cnt = 0;
       stream->__iuserbuf = userbuf;
     }
   if (stream->__mode.__bits.__write)
     {
-      userbuf = stream->__ouserbuf;
+      unsigned int userbuf = stream->__ouserbuf;
 
-      if (do_buffer (&stream->o_base, &stream->o_ptr, &stream->o_cnt,
+      if (do_buffer (&stream->o_base,
 		     &stream->__bufsize, &userbuf, buf, flag, bufsiz) == EOF)
 	return EOF;
 
+      stream->o_ptr = stream->o_base;
+      stream->o_cnt = stream->__bufsize;
       stream->__ouserbuf = userbuf;
     }
 

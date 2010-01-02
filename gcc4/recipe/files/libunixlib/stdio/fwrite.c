@@ -1,5 +1,5 @@
 /* UnixLib fwrite() implementation.
-   Copyright 2001-2008 UnixLib Developers.  */
+   Copyright 2001-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -19,7 +19,7 @@
 size_t
 fwrite (const void *data, size_t size, size_t count, FILE *stream)
 {
-  size_t to_write, bytes, total_bytes = 0;
+  size_t to_write, total_bytes = 0;
 
   PTHREAD_UNSAFE
 
@@ -43,7 +43,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 
   if (stream->o_base != NULL)
     {
-  /* The special file descriptor of -1 is used when writing to a
+      /* The special file descriptor of -1 is used when writing to a
 	 memory buffer, such as the function 'sprintf' would.  In this
 	 circumstance, if we have been requested to write more data than
 	 the buffer contains, truncate it.  */
@@ -68,7 +68,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	  /* Write it out in a loop, as recommended.  */
 	  while (to_write)
 	    {
-	      bytes = write (stream->fd, data, to_write);
+	      size_t bytes = write (stream->fd, data, to_write);
 	      if (bytes == -1)
 		{
 		  stream->__error = 1;
@@ -82,43 +82,68 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	}
       else
 	{
-	  /* The data is small enough to place in the output
-	     buffer.  */
+	  /* The data is small enough to place in the output buffer.  */
+	  size_t bytes;
+
+	  /* Increment the file pointers (part 1). */
+	  total_bytes += to_write;
 #ifdef DEBUG
 	  debug_printf (", buffering");
 #endif
-	  bytes = to_write;
-	  if (to_write >= 16)
+	  if (stream->__linebuf)
 	    {
-	      memcpy (stream->o_ptr, data, to_write);
-	      to_write -= bytes;
+	      /* Find the last \n and use that as end of the part to at least
+		 flush it.  */
+	      if (((const unsigned char *)data)[to_write - 1] == '\n')
+		bytes = to_write;
+	      else
+		{
+		  const unsigned char *last_nl = memrchr (data, '\n', to_write);
+		  bytes = last_nl ? last_nl + 1 - (const unsigned char *)data : to_write;
+
+		  /* Mark there is at least one line buffered stdio stream
+		     which has an unflushed buffer so that we can force flush
+		     it when reading from a tty attached stream.  */
+		  __ul_global.fls_lbstm_on_rd = 1;
+		}
 	    }
 	  else
-	    {
-	      /* Try the fast case.  */
-	      unsigned char *b = (unsigned char *)data;
-	      unsigned char *p = stream->o_ptr;
-	      while (to_write-- > 0)
-	        *p++ = *b++;
-	    }
+	    bytes = to_write;
 
-	  /* Increment the file pointers. */
-	  stream->o_ptr += bytes;
-	  stream->o_cnt -= bytes;
-	  total_bytes += bytes;
-	  /* If we're line buffered, look for a newline and
-	     flush everything.  */
-	  if (stream->__linebuf && stream->o_ptr[-1] == '\n')
+	  do
 	    {
+	      /* Increment the file pointers (part 2). */
+	      stream->o_cnt -= bytes;
+
+	      if (bytes >= 16)
+		{
+		  memcpy (stream->o_ptr, data, bytes);
+		  data = (const void *)((const unsigned char *)data + bytes);
+		  stream->o_ptr += bytes;
+		}
+	      else
+		{
+		  /* Try the fast case.  */
+		  unsigned char *p = stream->o_ptr;
+		  size_t nbytes = bytes;
+		  while (nbytes-- > 0)
+		    *p++ = *(const unsigned char *)data++;
+		  stream->o_ptr = p;
+		}
+
+	      to_write -= bytes;
+	      if ((bytes = to_write) != 0)
+		{
 #ifdef DEBUG
-	      debug_printf (", flushing\n");
+		  debug_printf (", flushing\n");
 #endif
-	      __flsbuf (EOF, stream);
-	    }
+		  __flsbuf (EOF, stream);
+		}
 #ifdef DEBUG
-          else
-	    debug_printf ("\n");
+	      else
+		debug_printf ("\n");
 #endif
+	    } while (bytes);
 	}
     }
   else
@@ -130,6 +155,8 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	 We don't have to worry about all that buffer crap :-) */
       while (to_write)
 	{
+	  size_t bytes;
+
 	  /* This check is for (v)snprintf with a NULL buffer */
 	  if (stream->fd == -1)
 	    bytes = to_write;

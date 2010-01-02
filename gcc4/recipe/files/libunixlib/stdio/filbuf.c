@@ -1,5 +1,5 @@
 /* UnixLib buffer stream handling.
-   Copyright 2000-2008 UnixLib Developers.  */
+   Copyright 2000-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -23,13 +23,13 @@ check_stream (FILE *stream)
   /* To the best of my knowledge this fuction is only called by getc() and
      fread(). In fread() feof() is never true. */
   if (stream->__eof)
-  {
-    /* getc() has just decremented i_cnt to -1.
-       If we don't restore it to 0 ftell() returns <off by one (more)>
-       whenever program attempts getc() at feof() */
-    stream->i_cnt = 0;
-    return EOF;
-  }
+    {
+      /* getc() has just decremented i_cnt to -1.
+	 If we don't restore it to 0 ftell() returns <off by one (more)>
+	 whenever program attempts getc() at feof() */
+      stream->i_cnt = 0;
+      return EOF;
+    }
   if (stream->__error)
     return EOF;
 
@@ -84,6 +84,7 @@ fill_buffer (FILE *stream)
       return EOF;
     }
 
+  stream->__offset += count;
   return count;
 }
 
@@ -99,6 +100,11 @@ __filbuf (FILE *stream)
   if (check_stream (stream) == EOF)
     return EOF;
 
+  /* When we have possibly unflushed data in one of our line buffered streams
+     and we're reading from a tty attached stream, flush all those streams.  */
+  if (__ul_global.fls_lbstm_on_rd && isatty (fileno (stream)) && __flslbbuf ())
+    return EOF;
+
   if (stream->__pushedback)
     {
       /* Return the character pushed back by ungetc. Restore
@@ -112,7 +118,6 @@ __filbuf (FILE *stream)
   if (count == EOF)
     return EOF;
 
-  stream->__offset += count;
   if (stream->i_base == NULL)
     /* No buffer, so return the char we read.  */
     return (stream->__eof || stream->__error) ? EOF : *stream->i_ptr;
@@ -134,6 +139,11 @@ __peek_char (FILE *stream)
   if (check_stream (stream) == EOF)
     return EOF;
 
+  /* When we have possibly unflushed data in one of our line buffered streams
+     and we're reading from a tty attached stream, flush all those streams.  */
+  if (__ul_global.fls_lbstm_on_rd && isatty (fileno (stream)) && __flslbbuf ())
+    return EOF;
+
   if (stream->__pushedback)
     return stream->__pushedchar;
 
@@ -146,7 +156,6 @@ __peek_char (FILE *stream)
   if (count == EOF)
     return EOF;
 
-  stream->__offset += count;
   if (stream->i_base == NULL)
     /* No buffer, so return the char we read.  */
     return (stream->__eof || stream->__error) ? EOF : *stream->i_ptr;

@@ -286,7 +286,7 @@
 .set	PROC_ARGV, 4			@ = __u->argv
 
 	@ Entries into the __ul_global structure.  Must be kept in sync with
-	@ sys/_syslib.s.
+	@ incl-local/internal/unix.h and sys/_syslib.s.
 .set	GBL_UNIXLIB_CLI, 0		@ = __ul_global.cli
 
 .set	GBL_TIME_LOW, 4			@ = __ul_global.time[0]
@@ -320,6 +320,7 @@
 .set	GBL_MAIN, 100			@ = __ul_global.main
 .set	GBL_ESCAPEDISABLED, 104		@ = __ul_global.escape_disabled
 .set	GBL_CRT1_FLAGS,	108		@ = __ul_global.crt1_flags
+.set	GBL_FLS_LBSTM_ON_RD, 112	@ = __ul_global.fls_lbstm_on_rd
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
 	@ sys/_syslib.s.

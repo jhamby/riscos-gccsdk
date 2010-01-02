@@ -1,5 +1,5 @@
 /* UnixLib low-level stream implementation.
-   Copyright 2001-2008 UnixLib Developers.  */
+   Copyright 2001-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stddef.h>
@@ -51,7 +51,6 @@ __newstream (void)
 
   __invalidate (stream);
   stream->__magic = _IOMAGIC;
-  stream->__offset = (fpos_t)0;
 
   return stream;
 }

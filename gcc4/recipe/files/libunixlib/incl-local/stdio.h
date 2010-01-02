@@ -1,5 +1,5 @@
 /* Internal UnixLib stdio.h
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __STDIO_H
@@ -15,7 +15,7 @@ __BEGIN_DECLS
 #define _IOMAGIC 0xfe000000
 
 /* Nonzero if stream is a valid stream.  */
-#define __validfp(stream) (stream != NULL && stream->__magic == _IOMAGIC)
+#define __validfp(stream) ((stream) != NULL && (stream)->__magic == _IOMAGIC)
 
 /* Invalidate a stream.  */
 extern void __invalidate (FILE *__stream) __THROW __nonnull ((1));
@@ -26,6 +26,8 @@ extern FILE *__newstream (void) __THROW __wur;
 /* Initialise a new stream.  */
 extern FILE *__stream_init (int __fd, FILE *__stream)
      __THROW __nonnull ((2)) __wur;
+
+extern int __flslbbuf (void) __THROW __wur;
 
 /* Dissect the given mode string into an __io_mode.  */
 extern __io_mode __getmode (const char *__mode) __THROW __nonnull ((1));

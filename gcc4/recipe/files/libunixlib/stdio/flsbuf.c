@@ -1,5 +1,5 @@
-/* __flsbuf ()
- * Copyright (c) 2000-2008 UnixLib Developers
+/* __flslbbuf (), __flsbuf ()
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <errno.h>
@@ -16,11 +16,36 @@
 #  include <sys/debug.h>
 #endif
 
+
+/* Flush all line buffered output streams.  */
+int
+__flslbbuf (void)
+{
+  int lossage = 0;
+  FILE *stream;
+
+  PTHREAD_UNSAFE
+
+  for (stream = __iob_head; stream != NULL; stream = stream->next)
+    {
+      if (__validfp (stream)
+	  && stream->__mode.__bits.__write
+	  && stream->__linebuf)
+	lossage |= __flsbuf (EOF, stream);
+    }
+  if (lossage)
+    return EOF;
+
+  __ul_global.fls_lbstm_on_rd = 0;
+  return 0;
+}
+
+
 /* __flsbuf(EOF, f) flushes output without adding c.  */
 int
 __flsbuf (int c, FILE *stream)
 {
-  unsigned char *buffer;
+  const unsigned char *buffer;
 
   PTHREAD_UNSAFE
 
@@ -67,7 +92,7 @@ __flsbuf (int c, FILE *stream)
     return 0;
 
   /* Write out the last character.  */
-  buffer = (unsigned char *)&c;
+  buffer = (const unsigned char *)&c;
   if (write (stream->fd, buffer, 1) < 1)
     {
       stream->__error = 1;

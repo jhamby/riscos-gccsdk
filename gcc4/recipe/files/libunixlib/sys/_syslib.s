@@ -1439,6 +1439,11 @@ __ul_global:
 	@ Flags word passed from (g)crt1_riscos.o
 	@ Currently bit 0 indicates whether profiling should be enabled.
 	.word	0						@ offset = 108
+
+	@ __ul_global.fls_lbstm_on_rd
+	@ When non-zero, flush all line buffered stdio stream using __flslbbuf
+	@ when reading from a stdio stream attached to a tty.
+	.word	0						@ offset = 112
 	DECLARE_OBJECT __ul_global
 
 

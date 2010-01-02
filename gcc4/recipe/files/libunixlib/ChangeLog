@@ -1,3 +1,38 @@
+Sat Jan  2 18:15:54 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/newstream.c(__newstream): Zero reinitialisation is not needed.
+	* stdio/putc.c(fputc): Mark we have unflushed data in a line buffered
+	stream.
+	(putc): Make strong alias of fputc.
+	(putc_unlocked): Make strong alias of fputc_unlocked.
+	* stdio/flsbuf.c(__flslbbuf): Added.
+	(__flsbuf): Constify.
+	* stdio/getc.c(getc): Make strong alias of fgetc
+	* stdio/stdio.c(__stdioinit): Simplify code by calling setvbuf (and
+	have stdout's o_cnt value fixed by this).
+	(__stdioexit): Reset __stdin, __stdout, __stderr as the latter can get
+	tested for in debug_vsnprintf.
+	* stdio/setbuf.c(do_buffer): Don't change any stream fields before
+	having done all parameter checks, avoid possible double free for one
+	of such cases.
+	(setvbuf): Make sure FILE::o_cnt is always number of bytes free in
+	buffer.
+	* stdio/puts.c(puts): Call fputc() iso putchar() as shortcut.
+	* stdio/fwrite.c(fwrite): Flush line buffered streams for any newline
+	instead only when the last character is a newline
+	* stdio/getc.c(fgetc): Flush all line buffered streams when reading
+	from a stream attached to a tty.
+	* stdio/filbuf.c(__filbuf, __peek_char): Likewise.
+	* stdio/fread.c(fread): Likewise.
+	Simplify code, only update FILE::__offset when no error has happened.
+	* stdio/fflush.c(fflush): Reset line buffer flush indicator.
+	* include/stdio.h(fisatty): Remove declaration, we don't have this
+	implemented nor this is a reasonable standard call.
+	* incl-local/stdio.h(__flslbbuf): Add declaration.
+	* incl-local/internal/unix.h(ul_global::fls_lbstm_on_rd): Added.
+	* incl-local/internal/asm_dec.s(GBL_FLS_LBSTM_ON_RD): Likewise.
+	* sys/_syslib.s: Likewise.
+
 Fri Jan  1 19:59:01 2010  Lee Noar  <leenoar@sky.com>
 
 	* pthread/_context.s(__pthread_callback): Load PIC

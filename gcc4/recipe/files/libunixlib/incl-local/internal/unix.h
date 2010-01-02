@@ -169,14 +169,11 @@ struct ul_global
   void *signalhandler_sp;
 
   char **last_environ;
-
   void *malloc_state;
-
   int (*main) (int, char *[], char **);
-
   int escape_disabled;
-
   unsigned int crt1_flags;
+  unsigned int fls_lbstm_on_rd;
 };
 
 /* This structure must be kept in perfect synchronisation with:

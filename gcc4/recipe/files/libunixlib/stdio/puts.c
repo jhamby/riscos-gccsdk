@@ -1,5 +1,5 @@
 /* puts ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <stdio.h>
@@ -12,7 +12,7 @@ puts (const char *s)
 {
   PTHREAD_UNSAFE
 
-  if (fputs (s, stdout) || putchar ('\n') == EOF)
+  if (fputs (s, stdout) || fputc ('\n', stdout) == EOF)
     return EOF;
 
   return 0;

@@ -1,5 +1,5 @@
 /* UnixLib fflush() implementation.
-   Copyright 2000-2008 UnixLib Developers.  */
+   Copyright 2000-2010 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <errno.h>
@@ -22,6 +22,11 @@ fflush (FILE *stream)
 	  if (__validfp (stream) && stream->__mode.__bits.__write)
 	    lossage |= __flsbuf (EOF, stream);
 	}
+
+      /* When all our stdio streams have been flushed successfully, we don't
+	 have to worry about pending data in our line buffered ones.  */
+      if (!lossage)
+	__ul_global.fls_lbstm_on_rd = 0;
 
       return lossage ? EOF : 0;
     }
