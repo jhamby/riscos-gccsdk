@@ -115,11 +115,22 @@ else
     orig=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4)
     if [ -n "$orig" ] ; then
       wget -nv $debdir/$orig
-      wget -nv $debdir/$(grep \.debian\.tar\.gz files | cut -d ' ' -f 4)
+
+      deb=$(grep \.debian\.tar\.gz files | cut -d ' ' -f 4)
+      if [ -z "$deb" ] ; then
+        deb=$(grep \.debian\.tar\.bz2 files | cut -d ' ' -f 4)
+
+        if [ -z "$deb" ] ; then
+          echo "Autobuilder: could not find Debian additional files to download" 1>&2
+          exit 1
+        fi
+      fi
+
+      wget -nv $debdir/$deb
 
       tar xfj *.orig.tar.bz2
       subdir=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package)
-      tar xfz *.debian.tar.gz -C $subdir
+      tar xfz $deb -C $subdir || tar xfj $deb -C $subdir
 
     else
       orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
