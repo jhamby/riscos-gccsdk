@@ -736,44 +736,6 @@ Index: pngwrite.c
 +#endif /* PNG_WRITE_APNG_SUPPORTED */
 +
  #endif /* PNG_WRITE_SUPPORTED */
-Index: pngconf.h
-===================================================================
---- pngconf.h
-+++ pngconf.h
-@@ -756,7 +756,6 @@
- 
- #endif /* PNG_WRITE_SUPPORTED */
- 
--#define PNG_NO_ERROR_NUMBERS
- #ifndef PNG_1_0_X
- #  ifndef PNG_NO_ERROR_NUMBERS
- #    define PNG_ERROR_NUMBERS_SUPPORTED
-@@ -944,6 +943,10 @@
- #  define PNG_NO_READ_tEXt
- #  define PNG_NO_READ_zTXt
- #endif
-+#ifndef PNG_NO_READ_APNG
-+#  define PNG_READ_APNG_SUPPORTED
-+#  define PNG_APNG_SUPPORTED
-+#endif
- #ifndef PNG_NO_READ_bKGD
- #  define PNG_READ_bKGD_SUPPORTED
- #  define PNG_bKGD_SUPPORTED
-@@ -1170,6 +1173,14 @@
- #    define PNG_TEXT_SUPPORTED
- #  endif
- #endif
-+#ifndef PNG_NO_WRITE_APNG
-+#  ifndef PNG_WRITE_APNG_SUPPORTED
-+#    define PNG_WRITE_APNG_SUPPORTED
-+#  endif
-+#  ifndef PNG_APNG_SUPPORTED
-+#    define PNG_APNG_SUPPORTED
-+#  endif
-+#endif
- 
- #ifdef PNG_WRITE_tIME_SUPPORTED
- #  ifndef PNG_NO_CONVERT_tIME
 Index: pngpread.c
 ===================================================================
 --- pngpread.c
@@ -1664,3 +1626,31 @@ Index: pngrtran.c
  #else
        png_warning(png_ptr, "Uninitialized row");
  #endif
+--- pngconf.h.orig	2010-01-03 14:19:31.000000000 -0800
++++ pngconf.h	2010-01-03 14:21:33.000000000 -0800
+@@ -943,6 +943,10 @@
+ #  define PNG_NO_READ_tEXt
+ #  define PNG_NO_READ_zTXt
+ #endif
++#ifndef PNG_NO_READ_APNG
++#  define PNG_READ_APNG_SUPPORTED
++#  define PNG_APNG_SUPPORTED
++#endif
+ #ifndef PNG_NO_READ_bKGD
+ #  define PNG_READ_bKGD_SUPPORTED
+ #  define PNG_bKGD_SUPPORTED
+@@ -1169,6 +1173,14 @@
+ #    define PNG_TEXT_SUPPORTED
+ #  endif
+ #endif
++#ifndef PNG_NO_WRITE_APNG
++#  ifndef PNG_WRITE_APNG_SUPPORTED
++#    define PNG_WRITE_APNG_SUPPORTED
++#  endif
++#  ifndef PNG_APNG_SUPPORTED
++#    define PNG_APNG_SUPPORTED
++#  endif
++#endif
+ 
+ #ifdef PNG_WRITE_tIME_SUPPORTED
+ #  ifndef PNG_NO_CONVERT_tIME
