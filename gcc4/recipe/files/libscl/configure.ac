@@ -114,7 +114,7 @@ AC_CHECK_TOOL(RANLIB, ranlib, ranlib-not-found-in-path-error)
 AC_PROG_MAKE_SET
 # Get 'install' or 'install-sh' and its variants
 AC_PROG_INSTALL
-AC_PROG_LIBTOOL
+LT_INIT([disable-shared])
 
 # Calculate toolexeclibdir
 # Also toolexecdir, though it's only used in toolexeclibdir
