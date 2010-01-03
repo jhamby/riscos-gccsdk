@@ -1,0 +1,8 @@
+cd unix
+
+AB_INSTALL=yes
+
+export CFLAGS="-I$GCCSDK_INSTALL_ENV/include/tcl8.5/ -O3"
+AB_CONFLAGS="--with-tcl=$GCCSDK_INSTALL_ENV/lib/tcl8.5/"
+
+mkdir -p $D/lib/tk8.5/

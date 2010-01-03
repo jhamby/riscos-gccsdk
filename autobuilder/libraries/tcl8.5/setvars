@@ -1,6 +1,6 @@
 cd unix
 
-AB_CONFLAGS=--disable-load
+AB_CONFLAGS="--disable-load --includedir=$GCCSDK_INSTALL_ENV/include/tcl8.5/"
 
 AB_INSTALL=yes
 
