@@ -18,7 +18,7 @@
  	@$(INSTALL_DATA) tkConfig.sh "$(CONFIG_INSTALL_DIR)"/tkConfig.sh
  	@if test "$(STUB_LIB_FILE)" != "" ; then \
 -	    echo "Installing $(STUB_LIB_FILE) to $(LIB_INSTALL_DIR)/"; \
-+	    echo "Installing $(STUB_LIB_FILE) to $(TK_LIBRARY/"; \
++	    echo "Installing $(STUB_LIB_FILE) to $(TK_LIBRARY)/"; \
  	    @INSTALL_STUB_LIB@ ; \
  	fi
  	@EXTRA_INSTALL_BINARIES@

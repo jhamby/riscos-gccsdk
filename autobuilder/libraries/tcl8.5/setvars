@@ -1,3 +1,6 @@
+# Undo Debian patch
+sed -i "s#\.\./unix/##" generic/tclPort.h
+
 cd unix
 
 AB_CONFLAGS="--disable-load --includedir=$GCCSDK_INSTALL_ENV/include/tcl8.5/"
