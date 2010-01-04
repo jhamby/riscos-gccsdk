@@ -368,6 +368,8 @@ if true; then
   if [ -d debian/patches ] ; then
     if [ -e debian/patches/series ] ; then
       patches=$(cat debian/patches/series)
+    elif [ -e debian/patches/00list ] ; then
+      patches=$(cat debian/patches/00list)
     else
       patches=$(cd debian/patches; find . -type f | sort -n || true)
     fi
@@ -380,15 +382,17 @@ if true; then
       for AB_PATCH_LEVEL in 0 1 2 ; do
         if [ -z "$AB_PATCH_SUCCESS" ] ; then
           echo "  ...trying level $AB_PATCH_LEVEL"
-          if cat $AB_PATCH | patch -E --dry-run -p$AB_PATCH_LEVEL -l 1> /dev/null 2>&1 ; then
+          if patch -E --dry-run -p$AB_PATCH_LEVEL -l >/dev/null 2>&1 < $AB_PATCH; then
             # Patching at this level seems to work out.  Do it now for real:
-            cat $AB_PATCH | patch -E -p$AB_PATCH_LEVEL -l
+            patch -E -p$AB_PATCH_LEVEL -l < $AB_PATCH
             AB_PATCH_SUCCESS="yes"
           fi
         fi
       done
       if [ -z "$AB_PATCH_SUCCESS" ] ; then
         echo "  ...FAILED"
+        echo "Autobuilder: Debian patches failed" 1>&2
+        #exit 1
       else
         echo "  ...success !"
       fi
