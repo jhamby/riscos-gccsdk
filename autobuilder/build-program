@@ -377,6 +377,16 @@ if true; then
     for AB_PATCH in $patches; do
       echo "Autobuilder: Debian patch: $AB_PATCH"
       AB_PATCH=debian/patches/$AB_PATCH
+
+      if ! [ -e $AB_PATCH ] ; then
+        AB_PATCH=$AB_PATCH.dpatch
+
+        if ! [ -e $AB_PATCH ] ; then
+          echo "Autobuilder: Patch \"$AB_PATCH\" not found" 1>&2
+          exit 1
+        fi
+      fi
+
       # Not all patches are at the same level. Do some heuristic (see simple-patchsys.mk).
       AB_PATCH_SUCCESS=""
       for AB_PATCH_LEVEL in 0 1 2 ; do
