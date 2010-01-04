@@ -364,19 +364,24 @@ if true; then
   S=$PWD
   echo "Autobuilder: source directory is $S"
 
+  AB_PATCH_DIR=debian/patches
+  if ! [ -d "$AB_PATCH_DIR" ] ; then
+    AB_PATCH_DIR=debian/patch
+  fi
+
   # Apply any Debian patches
-  if [ -d debian/patches ] ; then
-    if [ -e debian/patches/series ] ; then
-      patches=$(cat debian/patches/series)
+  if [ -d "$AB_PATCH_DIR" ] ; then
+    if [ -e $AB_PATCH_DIR/series ] ; then
+      patches=$(grep -v ^# $AB_PATCH_DIR/series)
     elif [ -e debian/patches/00list ] ; then
-      patches=$(cat debian/patches/00list)
+      patches=$(grep -v ^# $AB_PATCH_DIR/00list)
     else
-      patches=$(cd debian/patches; find . -type f | sort -n || true)
+      patches=$(cd $AB_PATCH_DIR; find . -type f | sort -n || true)
     fi
 
     for AB_PATCH in $patches; do
       echo "Autobuilder: Debian patch: $AB_PATCH"
-      AB_PATCH=debian/patches/$AB_PATCH
+      AB_PATCH=$AB_PATCH_DIR/$AB_PATCH
 
       if ! [ -e $AB_PATCH ] ; then
         AB_PATCH=$AB_PATCH.dpatch
