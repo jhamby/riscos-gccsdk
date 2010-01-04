@@ -9,7 +9,12 @@ AB_CONFLAGS="\
 AB_CATEGORY=Develop
 
 ab_package() {
-  cp $S/subversion/svn/svn$AB_EXEEXT $S/COPYING $D
+  ab_create_command_app Subversion Apps/Develop
+
+  ab_add_commands $S/subversion/svn/svn$AB_EXEEXT
+  ab_docs $S/COPYING
+
+  $AB_HOME/add-riscpkg -unixlib
 }
 
 export LIBS=-lexpat
