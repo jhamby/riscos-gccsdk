@@ -10,6 +10,8 @@ export ac_cv_func_posix_getgrgid_r=no
 
 AB_CONFLAGS=--with-pcre=system
 
+mkdir -p $D/bin
+
 # Package script uses installed library
 # zip built due to AB_INSTALL=yes
 
