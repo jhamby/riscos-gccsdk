@@ -8,6 +8,9 @@ dest=
 if [ "$1" == "cp" ] ; then
   command=/bin/cp
   shift
+elif [ "$1" == "mv" ] ; then
+  command=/bin/mv
+  shift
 else
   command=/usr/bin/install
 fi
@@ -36,6 +39,10 @@ for param in $@ ; do
     fi
   fi
   dest=$param
+
+  if [ -n "$RO_PKG" ] && [ "$command" == "/bin/mv" ] ; then
+    dest=$(sed s#GCCSDK_ENV/#$AB_DIR/package/# <<< $dest)
+  fi
 done
 
 dest=$(sed -e s#//#/#g -e s#/\$## -e s#/usr/share/#GCCSDK_ENV/share/# <<< $dest)
@@ -90,7 +97,7 @@ else
     dest=$(echo $dest | sed s#GCCSDK_ENV/#$AB_DIR/package/#)
     echo "RISC OS Cross installer: $installparams $dest"
     /bin/mkdir -p $(dirname $dest)
-    exec $command $installparams $dest
+    $command $installparams $dest
   fi
 
   if echo "$dest" | grep -q -E "GCCSDK_ENV/share/man|GCCSDK_ENV/man" ; then
