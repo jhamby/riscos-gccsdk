@@ -113,7 +113,6 @@ VERSION {
      __unixlib_siginfo_handler;
      __unixlib_raise_signal;
      __vfprintf;
-     __write_backtrace;
 
      _printf;
      _fprintf;
