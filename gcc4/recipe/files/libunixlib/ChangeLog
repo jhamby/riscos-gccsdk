@@ -1,3 +1,7 @@
+Wed Jan  6 00:24:46 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* vscript(__write_backtrace): Export symbol as it is public API.
+
 Sat Jan  2 18:15:54 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/newstream.c(__newstream): Zero reinitialisation is not needed.
