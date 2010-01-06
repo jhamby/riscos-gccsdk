@@ -57,6 +57,7 @@ else
   else
     # Slower method.  Fetch packages file ourself and parse it.
     debarchive=http://ftp.uk.debian.org/debian
+    #debarchive=http://mirrors.kernel.org/debian
 
     # Old file
     rm -f ../Sources.bz2
@@ -83,6 +84,12 @@ else
         else
           echo "Autobuilder: Using existing Sources.bz2 (${dist}/${section})"
         fi
+      done
+    done
+
+    for dist in testing stable; do
+      for section in main contrib; do
+        Sources=../Sources-${dist}-${section}.bz2
 
         if bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
           # Found ok
