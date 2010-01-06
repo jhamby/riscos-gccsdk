@@ -153,7 +153,7 @@ extern void *realloc (void *__ptr, size_t __newsize);
 
 /* Cause abnormal program termination.  This function raises the
    signal SIGABRT.  */
-extern void abort (void) __attribute__ ((__volatile__));
+extern void abort (void) __attribute__ ((__noreturn__));
 
 /* Register the function 'function' to be called at normal program
    termination.  The function is called with no arguments.  */
@@ -162,7 +162,7 @@ extern int atexit (void (*__function) (void));
 /* Terminate a process with status 'status'. This function does
    not return.  This function executes all functions registered
    with atexit().  */
-extern void exit (int __status) __attribute__ ((__volatile__));
+extern void exit (int __status) __attribute__ ((__noreturn__));
 
 /* Return a string that is the value of the environment variable
    'name'.  */

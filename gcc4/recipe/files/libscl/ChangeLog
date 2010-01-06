@@ -1,3 +1,8 @@
+Wed Jan  6 02:45:58 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/stdlib(exit, _Exit): Change attribute __volatile__ into
+	__noreturn__.
+
 Sun Aug  9 02:12:45 CEST 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos/stubs.s(_clib_initialisemodule): A couple of micro
