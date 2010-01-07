@@ -1,0 +1,164 @@
+RISC OS port of the Subversion client
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+"The goal of the Subversion project is to build a version control
+system that is a compelling replacement for CVS in the open source
+community.  The software is released under an Apache/BSD-style open
+source license."
+This file details RISC OS specific aspects, for more information about
+Subversion in general, please see http://subversion.tigris.org or
+http://svnbook.red-bean.com/
+
+This port can access remote repositories via the http and https
+protocols, the custom svn protocol, svn tunnelled over ssh (svn+ssh),
+and local repositories with the file protocol.
+
+Important Note
+~~~~~~~~~~~~~~
+This version of the Subversion client for RISC OS (1.6.5) is maintained 
+by the GCCSDK team.  Alex Waugh should not be contacted about it.
+Please report problems here:
+
+  http://www.riscos.info/index.php/Bug_Reporting
+
+Usage
+~~~~~
+Make sure !SVN has been booted, then use it as you would use the command
+line client under unix. All filenames should be specified in unix
+format, rather than RISC OS format, eg svn diff foo/bar.c rather than
+svn diff foo.c.bar
+
+Prerequisites
+~~~~~~~~~~~~~
+Theo Markettos' CryptRandom module.
+http://www.chiark.greenend.org.uk/~theom/riscos/crypto/
+
+If you see a message such as the following when trying to run Subversion
+then it is beacuse the CryptRandom module cannot be found.
+svn: RA layer failed to init socket layer
+svn: network socket initialization failed
+
+John-Mark Bell's iconv module
+http://netsurf.sourceforge.net/iconv/iconv_latest.zip (Subversion will
+work without this module, but may give errors if it needs to convert
+between character sets, e.g. if filenames have top-bit-set characters
+in them).
+
+The SharedUnixLibrary module
+ftp://gccsdk.riscos.info/pub/gcc/latest/system.zip
+
+Log mesages
+~~~~~~~~~~~
+You should generally use the -m or -F options on the command line to
+specify log messages when committing files. It is possible to use
+Justin Fletcher's EE program to allow you to edit log messages in your
+favorite text editor, however this is disable by default because there
+are currently a couple of unresolved issues which can give confusing
+error messages. If you wish to enable this, then uncomment the line in
+!SVN.!Boot.
+
+
+Local repositories
+~~~~~~~~~~~~~~~~~~
+Local repositories can be created with the svnadmin program and
+accessed with the file:// protocol. Only FSFS type repositories are
+supported, BDB types are not.
+
+For example:
+*dir ADFS::4.$
+*svnadmin create testrepos
+*svn co file:///ADFS::4/$/testrepos testwc
+*dir testwc
+*svn up
+
+Note that local repositories have only had minimal testing so far, so
+use at your own risk, and always make regular backups.
+
+
+Filetypes
+~~~~~~~~~
+There are two possible ways for Subversion to store filetypes, either
+storing them as properties, or as a ,xyz type extension to the
+filename. The former is recommended unless you have a specific need to
+use the latter.
+
+***IMPORTANT*** Versions prior to 1.03 only supported filetypes as
+filename extensions, but 1.03 and later support both, with the default
+as stoing filetypes as properties. Therefore if you are using
+Subversion on an existing repository that has filetypes stored as
+extensions you should ensure that you set the svn$filetypeext variable
+or convert your repository.
+
+
+Filetypes as properties
+Subversion supports properties, which allow arbitrary metadata to be
+attached to a file. This can be used to store the filetype in the same
+manner as the executable bit is stored on the Unix svn client. When you
+add a file, svn will automatically set the svn:riscosfiletype property
+to the hexadecimal value of the file's filetype. When you check out a
+file from a repository, if it has a svn:riscosfiletype property then
+the filetype will be set according to that, otherwise the filetype will
+be guessed using the mimemap module. If you need to change a file's
+filetype, then instead of just changing the filetype, you need to
+change the property. Subversion will then change the filetype for you.
+e.g. To change the filetype of the ReadMe file to Data (hexadecimal type
+ffd)
+*svn propset svn:riscosfiletype ffd ReadMe
+
+
+Filetypes as an extension
+To use filetypes as extensions, you need to set the svn$filetypeext
+system variable before using svn. e.g.
+*set svn$filetypeext ""
+It does not matter what value the variable is set to, it just has to
+exist. If you wish to turn off the behaviour then unset the variable,
+e.g. *unset svn$filetypeext
+
+If you wish a file's filetype to be retained when it is added to a
+repository, then you should specify its name with a comma and hex
+filetype appended, in the same way as John Tytgat's CVS port works. e.g.
+svn add !Boot
+Adds the file !Boot without any filetype information. When it is checked
+out from the repository, it will have its filetype set to text.
+svn add !Boot,feb
+Adds the file !Boot, with the filetype &feb (Obey). The file will retain
+its filetype when it is checked out.
+
+
+Username
+~~~~~~~~
+If you try to access a repository that requires authentication,
+Subversion will supply a default username of 'riscos' which is not
+usually desired. You can just press return at the password prompt, then
+enter a new username, however if you wish to change the default
+username that is used you can set the UnixEnv$USER system variable.
+*set UnixEnv$USER fred
+
+
+Known problems
+~~~~~~~~~~~~~~
+
+Subversion treats filenames as case sensitive, and if you check out a
+directory that has files with names that differ only in case then
+things will break. If you try to rename a file where the old and new
+names differe only in case than that will also break. This is not a
+RISC OS specific problem, it also happens on any OS that supports case
+insensitive filesystems.
+
+Wildcards do not work in the same way as on Unix. svn add * will not
+add all files in the directory, it will add a file with the name of *,
+which will match the first file in the directory, and svn will get very
+confused.
+
+TODO
+~~~~
+Things that I'm intending to do in the future:
+Keep the RISC OS port up to date
+
+Things that I'm unlikely to be doing:
+Porting the subversion server (this would require a port of Apache2
+first). The standalone svnserve server may be possible though.
+Writing a subversion GUI (this doesn't stop anyone else from writing one
+though)
+
+

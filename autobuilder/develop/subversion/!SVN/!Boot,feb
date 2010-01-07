@@ -1,0 +1,13 @@
+Set SVN$Dir <Obey$Dir>
+
+IconSprites <SVN$Dir>.!Sprites
+
+Set Alias$SVN Wimpslot -Min 4800K |M /<SVN$Dir>.svn %%*0
+Set Alias$svnadmin Wimpslot -Min 2000K |M /<SVN$Dir>.svnadmin %%*0
+
+|Uncomment the following line if you wish to use ee to write log messages
+|Set UnixEnv$SVN_EDITOR <SVN$Dir>.ee -unix
+
+|Uncomment the following if you want to use ,xyz extensions to represent
+|filetypes for all repositories.
+|Set svn$filetypeext ""
