@@ -1,3 +1,8 @@
+Thu Jan  7 13:47:15 PST 2010  Peter Naulls  <peter@chocky.org>
+
+	* pwd/getpwnam_r.c(getpwnam_r): Return values weren't being properly
+	  set in default case.  Rewrite to do what man page says.
+
 Thu Jan  7 21:54:12 2010  Lee Noar  <leenoar@sky.com>
 
 	* Generally:
@@ -49,6 +54,7 @@ Wed Jan  6 00:24:46 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* vscript(__write_backtrace): Export symbol as it is public API.
 
+>>>>>>> .r4424
 Sat Jan  2 18:15:54 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/newstream.c(__newstream): Zero reinitialisation is not needed.
