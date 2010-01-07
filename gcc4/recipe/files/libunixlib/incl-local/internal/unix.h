@@ -1,5 +1,5 @@
 /* Structures for UnixLib's internal process management.
-   Copyright (c) 2002-2007, 2009 UnixLib Developers.  */
+   Copyright (c) 2002-2007, 2009, 2010 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_UNIX_H
 #define __UNIXLIB_UNIX_H 1
@@ -141,6 +141,9 @@ extern struct proc *__u;	/* current process */
 
    Otherwise the compiler will force a lookup on __ul_global for each
    access.  */
+
+struct __pthread_callevery_block;
+
 struct ul_global
 {
   const char *cli;
@@ -174,6 +177,7 @@ struct ul_global
   int escape_disabled;
   unsigned int crt1_flags;
   unsigned int fls_lbstm_on_rd;
+  struct __pthread_callevery_block *pthread_callevery_rma;
 };
 
 /* This structure must be kept in perfect synchronisation with:

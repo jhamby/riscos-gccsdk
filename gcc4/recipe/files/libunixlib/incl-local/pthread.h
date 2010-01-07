@@ -1,6 +1,6 @@
 /* Internal UnixLib pthread.h
  * Written by Alex Waugh
- * Copyright (c) 2002-2008 UnixLib Developers
+ * Copyright (c) 2002-2008, 2010 UnixLib Developers
  */
 
 #ifndef __PTHREAD_H
@@ -128,10 +128,25 @@ struct __pthread_saved_context
 #endif
 };
 
+/* A pointer to this structure (allocated from RMA) is passed to
+   pthread_call_every in r12 so that it can validate the application
+   without accessing its address space.
+   As the filter name also needs to be RMA, it's convenient to use
+   the same block.  */
+struct __pthread_callevery_block
+{
+  unsigned int got;
+  void *sul_upcall_addr;
+  void *sul_upcall_r12;
+  char filter_name[];
+};
+
 extern pthread_t __pthread_thread_list; /* Linked list of all threads */
 
 /* Called once early in program initialisation */
 extern void __pthread_prog_init (void);
+
+extern void __pthread_prog_fini (void);
 
 /* Called if a non recoverable error is detected */
 extern void __pthread_fatal_error (const char *msg);

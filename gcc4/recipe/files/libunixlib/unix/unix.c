@@ -1,5 +1,5 @@
 /* UnixLib process initialisation and finalisation.
-   Copyright (c) 2002-2009 UnixLib Developers.  */
+   Copyright (c) 2002-2010 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -376,11 +376,7 @@ _exit (int return_code)
   __stop_itimers ();
 
   /* pthread timers must be stopped */
-  if (gbl->pthread_system_running)
-    {
-      __pthread_stop_ticker ();
-      gbl->pthread_system_running = 0;
-    }
+  __pthread_prog_fini ();
 
   /* De-register with DigitalRenderer in case of an exception */
   __dsp_exit();

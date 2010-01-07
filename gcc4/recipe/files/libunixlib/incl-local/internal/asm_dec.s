@@ -1,5 +1,5 @@
 @ Global definitions used by all assembler files.
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2009 UnixLib Developers.
+@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2009, 2010 UnixLib Developers.
 
 @ Bits that control which bits are compiled into UnixLib. Note, this must be
 @ kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
@@ -321,6 +321,7 @@
 .set	GBL_ESCAPEDISABLED, 104		@ = __ul_global.escape_disabled
 .set	GBL_CRT1_FLAGS,	108		@ = __ul_global.crt1_flags
 .set	GBL_FLS_LBSTM_ON_RD, 112	@ = __ul_global.fls_lbstm_on_rd
+.set	GBL_PTH_CALLEVERY_RMA, 116	@ = __ul_global.pthread_callevery_rma
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
 	@ sys/_syslib.s.

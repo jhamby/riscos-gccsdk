@@ -1444,6 +1444,12 @@ __ul_global:
 	@ When non-zero, flush all line buffered stdio stream using __flslbbuf
 	@ when reading from a stdio stream attached to a tty.
 	.word	0						@ offset = 112
+
+	@ __ul_global.pthread_callevery_rma
+	@ Pointer to a small block of RMA that contains several values that remain
+	@ constant for the life of the program. This block is passed to the
+	@ call_every handler in r12.
+	.word   0						@ offset = 116
 	DECLARE_OBJECT __ul_global
 
 

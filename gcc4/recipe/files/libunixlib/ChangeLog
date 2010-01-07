@@ -1,3 +1,50 @@
+Thu Jan  7 21:54:12 2010  Lee Noar  <leenoar@sky.com>
+
+	* Generally:
+	Ideally we want to remove the need for pthread_call_every to
+	access the task address space in order to validate it and 
+	decide whether to continue setting the callback or not. Once
+	pthread_call_every knows that it has the right task it is free
+	to access its variables.
+	Previously, the GOT pointer was passed around the interrupt
+	functions in r12 and used to access __ul_global to retrieve
+	the SUL upcall handler address and r12 value, however, despite
+	the WimpPoll filters, this was still prone to crashes in
+	pthread_call_every (especially in the shared library).
+	To overcome this, a small block of RMA is allocated during
+	initialisation containing the SUL upcall handler address, r12
+	value and in the case of the shared library, UnixLib's GOT.
+	These remain constant throughout the life of the program. A
+	pointer to this RMA block is instead passed to the interrupt
+	routines, in r12, allowing pthread_call_every safe access to
+	the data it needs to make a decision on whether it has the right
+	task.
+
+	* Specifically:
+	* pthread/_context.s(__pthread_start_ticker): Move filter name
+	copy to initialisation function - we only need to do this once,
+	and it will reduce RMA fragmentation.
+	(pthread_call_every): Use upcall address and r12 value in RMA
+	block passed in r12 to determine if we have the correct task.
+	Generally ensure pointer to RMA block is passed to interrupt
+	routines and change code where necessary to use GOT from RMA
+	block.
+	* unix/unix.c(_exit): Slightly more work to do when shutting down
+	pthreads, so call a function instead.
+	* pthread/pthinit.c(__pthread_prog_init): Allocate a small block
+	of RMA to hold items of data that remain constant over the life of
+	the program. A pointer to this block will be passed to
+	pthread_call_every in r12.
+	(__pthread_prog_fini): New function to close down pthreads, ie,
+	stop timers and free RMA block. Called by _exit as mentioned above.
+	* incl-local/internal/unix.h(ul_global): Add pthread_callevery_rma
+	member.
+	* incl-local/internal/asm_dec.s: Define GBL_PTH_CALLEVERY_RMA.
+	* incl-local/pthread.h(__pthread_callevery_block): Declare new
+	structure to define layout of RMA block as passed to
+	pthread_call_every.
+	* sys/_syslib.s(__ul_global): Add pthread_callevery_rma.
+
 Wed Jan  6 00:24:46 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* vscript(__write_backtrace): Export symbol as it is public API.
