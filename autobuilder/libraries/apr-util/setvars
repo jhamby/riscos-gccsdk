@@ -1,6 +1,8 @@
 AB_INSTALL=yes
 
-AB_CONFLAGS="--without-berkeley-db --with-apr=$GCCSDK_INSTALL_ENV --disable-util-dso"
+AB_CONFLAGS="--with-apr=$GCCSDK_INSTALL_ENV --disable-util-dso --with-dbm=db46 \
+             --with-berkeley-db --without-gdbm --without-sqlite2"
+
 AB_MAKE="$AB_MAKE installbuilddir=$GCCSDK_INSTALL_ENV"
 
 export apr_cv_process_shared_works=no
