@@ -1,3 +1,8 @@
+Fri Jan  8 20:45:12 2010   Lee Noar <leenoar@sky.com>
+
+	* configure.ac: Fix build error:
+	m4_copy: won't overwrite defined macro: _AC_ARG_VAR_PRECIOUS
+
 Wed Jan  6 02:45:58 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/stdlib(exit, _Exit): Change attribute __volatile__ into

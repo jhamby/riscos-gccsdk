@@ -101,7 +101,15 @@ m4_rename([_AC_ARG_VAR_PRECIOUS],[real_PRECIOUS])
 m4_define([_AC_ARG_VAR_PRECIOUS],[])
 AC_PROG_CC
 AC_PROG_CPP
-m4_rename([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
+
+# The following line is the equivalent of:
+#
+# m4_rename_force([glibcxx_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
+#
+# however, m4_rename_force is only defined in newer versions of autoconf and 
+# not in autoconf2.59.
+m4_ifdef([_AC_ARG_VAR_PRECIOUS], [m4_undefine([_AC_ARG_VAR_PRECIOUS])])m4_rename([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
+
 AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 
