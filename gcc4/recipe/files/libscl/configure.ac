@@ -104,7 +104,7 @@ AC_PROG_CPP
 
 # The following line is the equivalent of:
 #
-# m4_rename_force([glibcxx_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
+# m4_rename_force([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
 #
 # however, m4_rename_force is only defined in newer versions of autoconf and 
 # not in autoconf2.59.

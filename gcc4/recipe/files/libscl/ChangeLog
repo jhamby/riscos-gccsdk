@@ -1,3 +1,7 @@
+Fri Jan  8 20:55:19 2010   Lee Noar <leenoar@sky.com>
+
+	* configure.ac: Fix comment.
+
 Fri Jan  8 20:45:12 2010   Lee Noar <leenoar@sky.com>
 
 	* configure.ac: Fix build error:
