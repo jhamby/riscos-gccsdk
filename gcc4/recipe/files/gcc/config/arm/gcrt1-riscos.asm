@@ -53,7 +53,7 @@ _start:
 	@ On entry to _start, a1 is set by the dynamic loader to the start of
 	@ free memory after it has claimed what it requires. This value is stored
 	@ in the data block which is then passed to the runtime library.
-	LDR	a2, =rt_data
+	LDR	a2, =crt1_data
 	STR	a1, [a2, #12]
 	MOV	a1, a2
 #endif
@@ -74,14 +74,16 @@ _start:
 #ifndef __TARGET_SCL__
 	.data
 
-rt_data:
-	.word	_init
-	.word	_fini
-	.word	__executable_start
-	.word	0
-	.word	__data_start
-	.word	main
-	.word	1	@ Always 1 indicating that profiling should be enabled
+crt1_data:
+	.word	_init			@ #0
+	.word	_fini			@ #4
+	.word	__executable_start	@ #8
+	.word	0			@ #12 - Free memory pointer
+	.word	__data_start		@ #16
+	.word	main			@ #20
+	.word	1			@ #24 - Always 1 indicating that profiling should be enabled
+	.word	0			@ #28 - Reserved for dynamic linker use
+	.word	0			@ #32 - Reserved for dynamic linker use
 #endif
 
 # end of gcrt1-riscos.asm
