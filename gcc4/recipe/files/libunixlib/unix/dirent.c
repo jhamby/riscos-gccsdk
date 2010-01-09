@@ -1,5 +1,5 @@
 /* Perform operations on a directory.
-   Copyright (c) 2002, 2003, 2004, 2005, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 2002-2010 UnixLib Developers.  */
 
 #include <dirent.h>
 #include <errno.h>
@@ -705,8 +705,8 @@ closedir (DIR *stream)
 
 int
 scandir (const char *dir, struct dirent ***namelist,
-	    int (*sdselect)(const struct dirent *),
-	    int (*cmp)(const struct dirent **, const struct dirent **))
+	 int (*sdselect)(const struct dirent *),
+	 int (*cmp)(const struct dirent **, const struct dirent **))
 {
   DIR *dp;
   struct dirent **v = NULL;
@@ -771,7 +771,7 @@ scandir (const char *dir, struct dirent ***namelist,
   (void) __set_errno(save);
 
   /* Sort the list if we have a comparison function to sort with.  */
-  if (cmp != NULL)
+  if (cmp != NULL && v != NULL)
     qsort(v, i, sizeof(*v), (int (*)(const void *,const void *))cmp);
   *namelist = v;
   return i;

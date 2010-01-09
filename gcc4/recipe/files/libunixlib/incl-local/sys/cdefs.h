@@ -1,12 +1,12 @@
 /* Internal UnixLib sys/cdefs.h
- * Copyright (c) 2008, 2009 UnixLib Developers
+ * Copyright (c) 2008-2010 UnixLib Developers
  */
 
-#ifndef __SYS_CDEFS_H
+#ifndef _SYS_CDEFS_H
 #include_next <sys/cdefs.h>
 #endif
 
-#if !defined(__INTERNAL_SYS_CDEFS_H) && defined(__SYS_CDEFS_H)
+#if !defined(__INTERNAL_SYS_CDEFS_H) && defined(_SYS_CDEFS_H)
 #define	__INTERNAL_SYS_CDEFS_H
 
 __BEGIN_DECLS

@@ -1,83 +1,89 @@
-/* UnixLib declaration of its features.
-   Copyright (c) 2004, 2005, 2006, 2008 UnixLib Developers.  */
+/*
+ * File taken from glibc 2.11.
+ * Following changes were made:
+ *   - _FEATURES_H -> __UNIXLIB_FEATURES_H
+ */
 
-/* This file is derived from GNU Libc 2.2.4, features.h  We are attempting
-   to closely match the macros defined within it in order to maintain
-   a decent level of compatibility.  A desire to do this forces me to
-   include the following license:
-
-   Copyright (C) 1992,93,94,95,96,97,98,99, 2000 Free Software Foundation, Inc.
+/* Copyright (C) 1991-1993,1995-2006,2007,2009 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Library General Public License as
-   published by the Free Software Foundation; either version 2 of the
-   License, or (at your option) any later version.
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
 
    The GNU C Library is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   Lesser General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with the GNU C Library; see the file COPYING.LIB.  If not,
-   write to the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, write to the Free
+   Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+   02111-1307 USA.  */
 
-#ifndef __UNIXLIB_FEATURES_H
-#define __UNIXLIB_FEATURES_H 1
-
+#ifndef	__UNIXLIB_FEATURES_H
+#define	__UNIXLIB_FEATURES_H	1
 
 /* These are defined by the user (or the compiler)
    to specify the desired environment:
 
-   __STRICT_ANSI__      ISO Standard C.
-   _ISOC99_SOURCE       Extensions to ISO C89 from ISO C99.
-   _POSIX_SOURCE        IEEE Std 1003.1.
-   _POSIX_C_SOURCE      If ==1, like _POSIX_SOURCE; if >=2 add IEEE Std 1003.2;
-                        if >=199309L, add IEEE Std 1003.1b-1993;
-                        if >=199506L, add IEEE Std 1003.1c-1995
-   _XOPEN_SOURCE        Includes POSIX and XPG things.  Set to 500 if
-                        Single Unix conformance is wanted, to 600 for the
-                        upcoming sixth revision.
+   __STRICT_ANSI__	ISO Standard C.
+   _ISOC99_SOURCE	Extensions to ISO C89 from ISO C99.
+   _POSIX_SOURCE	IEEE Std 1003.1.
+   _POSIX_C_SOURCE	If ==1, like _POSIX_SOURCE; if >=2 add IEEE Std 1003.2;
+			if >=199309L, add IEEE Std 1003.1b-1993;
+			if >=199506L, add IEEE Std 1003.1c-1995;
+			if >=200112L, all of IEEE 1003.1-2004
+			if >=200809L, all of IEEE 1003.1-2008
+   _XOPEN_SOURCE	Includes POSIX and XPG things.  Set to 500 if
+			Single Unix conformance is wanted, to 600 for the
+			sixth revision, to 700 for the seventh revision.
    _XOPEN_SOURCE_EXTENDED XPG things and X/Open Unix extensions.
-   _LARGEFILE_SOURCE    Some more functions for correct standard I/O.
-   _LARGEFILE64_SOURCE  Additional functionality from LFS for large files.
-   _FILE_OFFSET_BITS=N  Select default filesystem interface.
-   _BSD_SOURCE          ISO C, POSIX, and 4.3BSD things.
-   _SVID_SOURCE         ISO C, POSIX, and SVID things.
-   _GNU_SOURCE          All of the above, plus GNU extensions.
-   _REENTRANT           Select additionally reentrant object.
-   _THREAD_SAFE         Same as _REENTRANT, often used by other systems.
+   _LARGEFILE_SOURCE	Some more functions for correct standard I/O.
+   _LARGEFILE64_SOURCE	Additional functionality from LFS for large files.
+   _FILE_OFFSET_BITS=N	Select default filesystem interface.
+   _BSD_SOURCE		ISO C, POSIX, and 4.3BSD things.
+   _SVID_SOURCE		ISO C, POSIX, and SVID things.
+   _ATFILE_SOURCE	Additional *at interfaces.
+   _GNU_SOURCE		All of the above, plus GNU extensions.
+   _REENTRANT		Select additionally reentrant object.
+   _THREAD_SAFE		Same as _REENTRANT, often used by other systems.
+   _FORTIFY_SOURCE	If set to numeric value > 0 additional security
+			measures are defined, according to level.
 
    The `-ansi' switch to the GNU C compiler defines __STRICT_ANSI__.
    If none of these are defined, the default is to have _SVID_SOURCE,
    _BSD_SOURCE, and _POSIX_SOURCE set to one and _POSIX_C_SOURCE set to
-   199506L.  If more than one of these are defined, they accumulate.
+   200112L.  If more than one of these are defined, they accumulate.
    For example __STRICT_ANSI__, _POSIX_SOURCE and _POSIX_C_SOURCE
    together give you ISO C, 1003.1, and 1003.2, but nothing else.
 
    These are defined by this file and are used by the
    header files to decide what to declare or define:
 
-   __USE_ISOC99         Define ISO C99 things.
-   __USE_POSIX          Define IEEE Std 1003.1 things.
-   __USE_POSIX2         Define IEEE Std 1003.2 things.
-   __USE_POSIX199309    Define IEEE Std 1003.1, and .1b things.
-   __USE_POSIX199506    Define IEEE Std 1003.1, .1b, .1c and .1i things.
-   __USE_XOPEN          Define XPG things.
-   __USE_XOPEN_EXTENDED Define X/Open Unix things.
-   __USE_UNIX98         Define Single Unix V2 things.
+   __USE_ISOC99		Define ISO C99 things.
+   __USE_ISOC95		Define ISO C90 AMD1 (C95) things.
+   __USE_POSIX		Define IEEE Std 1003.1 things.
+   __USE_POSIX2		Define IEEE Std 1003.2 things.
+   __USE_POSIX199309	Define IEEE Std 1003.1, and .1b things.
+   __USE_POSIX199506	Define IEEE Std 1003.1, .1b, .1c and .1i things.
+   __USE_XOPEN		Define XPG things.
+   __USE_XOPEN_EXTENDED	Define X/Open Unix things.
+   __USE_UNIX98		Define Single Unix V2 things.
    __USE_XOPEN2K        Define XPG6 things.
-   __USE_LARGEFILE      Define correct standard I/O things.
-   __USE_LARGEFILE64    Define LFS things with separate names.
-   __USE_FILE_OFFSET64  Define 64bit interface as default.
-   __USE_BSD            Define 4.3BSD things.
-   __USE_SVID           Define SVID things.
-   __USE_MISC           Define things common to BSD and System V Unix.
-   __USE_GNU            Define GNU extensions.
-   __USE_REENTRANT      Define reentrant/thread-safe *_r functions.
-   __FAVOR_BSD          Favor 4.3BSD things in cases of conflict.
+   __USE_XOPEN2K8       Define XPG7 things.
+   __USE_LARGEFILE	Define correct standard I/O things.
+   __USE_LARGEFILE64	Define LFS things with separate names.
+   __USE_FILE_OFFSET64	Define 64bit interface as default.
+   __USE_BSD		Define 4.3BSD things.
+   __USE_SVID		Define SVID things.
+   __USE_MISC		Define things common to BSD and System V Unix.
+   __USE_ATFILE		Define *at interfaces and AT_* constants for them.
+   __USE_GNU		Define GNU extensions.
+   __USE_REENTRANT	Define reentrant/thread-safe *_r functions.
+   __USE_FORTIFY_LEVEL	Additional security measures used, according to level.
+   __FAVOR_BSD		Favor 4.3BSD things in cases of conflict.
 
    The macros `__GNU_LIBRARY__', `__GLIBC__', and `__GLIBC_MINOR__' are
    defined by this file unconditionally.  `__GNU_LIBRARY__' is provided
@@ -92,29 +98,52 @@
 
 
 /* Undefine everything, so we get a clean slate.  */
-#undef  __USE_ISOC99
-#undef  __USE_POSIX
-#undef  __USE_POSIX2
-#undef  __USE_POSIX199309
-#undef  __USE_POSIX199506
-#undef  __USE_XOPEN
-#undef  __USE_XOPEN_EXTENDED
-#undef  __USE_UNIX98
-#undef  __USE_XOPEN2K
-#undef  __USE_LARGEFILE
-#undef  __USE_LARGEFILE64
-#undef  __USE_FILE_OFFSET64
-#undef  __USE_BSD
-#undef  __USE_SVID
-#undef  __USE_MISC
-#undef  __USE_GNU
-#undef  __USE_REENTRANT
-#undef  __FAVOR_BSD
-#undef  __KERNEL_STRICT_NAMES
+#undef	__USE_ISOC99
+#undef	__USE_ISOC95
+#undef	__USE_POSIX
+#undef	__USE_POSIX2
+#undef	__USE_POSIX199309
+#undef	__USE_POSIX199506
+#undef	__USE_XOPEN
+#undef	__USE_XOPEN_EXTENDED
+#undef	__USE_UNIX98
+#undef	__USE_XOPEN2K
+#undef	__USE_XOPEN2K8
+#undef	__USE_LARGEFILE
+#undef	__USE_LARGEFILE64
+#undef	__USE_FILE_OFFSET64
+#undef	__USE_BSD
+#undef	__USE_SVID
+#undef	__USE_MISC
+#undef	__USE_ATFILE
+#undef	__USE_GNU
+#undef	__USE_REENTRANT
+#undef	__USE_FORTIFY_LEVEL
+#undef	__FAVOR_BSD
+#undef	__KERNEL_STRICT_NAMES
 
+/* Suppress kernel-name space pollution unless user expressedly asks
+   for it.  */
+#ifndef _LOOSE_KERNEL_NAMES
+# define __KERNEL_STRICT_NAMES
+#endif
 
 /* Always use ISO C things.  */
 #define	__USE_ANSI	1
+
+/* Convenience macros to test the versions of glibc and gcc.
+   Use them like this:
+   #if __GNUC_PREREQ (2,8)
+   ... code requiring gcc 2.8 or later ...
+   #endif
+   Note - they won't work for gcc1 or glibc1, since the _MINOR macros
+   were not defined then.  */
+#if defined __GNUC__ && defined __GNUC_MINOR__
+# define __GNUC_PREREQ(maj, min) \
+	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
+#else
+# define __GNUC_PREREQ(maj, min) 0
+#endif
 
 
 /* If _BSD_SOURCE was defined by the user, favor BSD over POSIX.  */
@@ -122,27 +151,29 @@
     !(defined _POSIX_SOURCE || defined _POSIX_C_SOURCE || \
       defined _XOPEN_SOURCE || defined _XOPEN_SOURCE_EXTENDED || \
       defined _GNU_SOURCE || defined _SVID_SOURCE)
-# define __FAVOR_BSD    1
+# define __FAVOR_BSD	1
 #endif
 
 /* If _GNU_SOURCE was defined by the user, turn on all the other features.  */
 #ifdef _GNU_SOURCE
 # undef  _ISOC99_SOURCE
-# define _ISOC99_SOURCE 1
+# define _ISOC99_SOURCE	1
 # undef  _POSIX_SOURCE
-# define _POSIX_SOURCE  1
+# define _POSIX_SOURCE	1
 # undef  _POSIX_C_SOURCE
-# define _POSIX_C_SOURCE        199506L
+# define _POSIX_C_SOURCE	200809L
 # undef  _XOPEN_SOURCE
-# define _XOPEN_SOURCE  600
+# define _XOPEN_SOURCE	700
 # undef  _XOPEN_SOURCE_EXTENDED
-# define _XOPEN_SOURCE_EXTENDED 1
-# undef  _LARGEFILE64_SOURCE
-# define _LARGEFILE64_SOURCE    1
+# define _XOPEN_SOURCE_EXTENDED	1
+# undef	 _LARGEFILE64_SOURCE
+# define _LARGEFILE64_SOURCE	1
 # undef  _BSD_SOURCE
-# define _BSD_SOURCE    1
+# define _BSD_SOURCE	1
 # undef  _SVID_SOURCE
-# define _SVID_SOURCE   1
+# define _SVID_SOURCE	1
+# undef  _ATFILE_SOURCE
+# define _ATFILE_SOURCE	1
 #endif
 
 /* If nothing (other than _GNU_SOURCE) is defined,
@@ -151,8 +182,8 @@
      !defined _POSIX_SOURCE && !defined _POSIX_C_SOURCE && \
      !defined _XOPEN_SOURCE && !defined _XOPEN_SOURCE_EXTENDED && \
      !defined _BSD_SOURCE && !defined _SVID_SOURCE)
-# define _BSD_SOURCE    1
-# define _SVID_SOURCE   1
+# define _BSD_SOURCE	1
+# define _SVID_SOURCE	1
 #endif
 
 /* This is to enable the ISO C99 extension.  Also recognize the old macro
@@ -161,19 +192,30 @@
    standard is widely adopted.  */
 #if (defined _ISOC99_SOURCE || defined _ISOC9X_SOURCE \
      || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L))
-# define __USE_ISOC99   1
+# define __USE_ISOC99	1
+#endif
+
+/* This is to enable the ISO C90 Amendment 1:1995 extension.  */
+#if (defined _ISOC99_SOURCE || defined _ISOC9X_SOURCE \
+     || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199409L))
+# define __USE_ISOC95	1
 #endif
 
 /* If none of the ANSI/POSIX macros are defined, use POSIX.1 and POSIX.2
    (and IEEE Std 1003.1b-1993 unless _XOPEN_SOURCE is defined).  */
-#if (!defined __STRICT_ANSI__ && !defined _POSIX_SOURCE && \
-     !defined _POSIX_C_SOURCE)
-# define _POSIX_SOURCE  1
+#if ((!defined __STRICT_ANSI__ || (_XOPEN_SOURCE - 0) >= 500) && \
+     !defined _POSIX_SOURCE && !defined _POSIX_C_SOURCE)
+# define _POSIX_SOURCE	1
 # if defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) < 500
-#  define _POSIX_C_SOURCE       2
+#  define _POSIX_C_SOURCE	2
+# elif defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) < 600
+#  define _POSIX_C_SOURCE	199506L
+# elif defined _XOPEN_SOURCE && (_XOPEN_SOURCE - 0) < 700
+#  define _POSIX_C_SOURCE	200112L
 # else
-#  define _POSIX_C_SOURCE       199506L
+#  define _POSIX_C_SOURCE	200809L
 # endif
+# define __USE_POSIX_IMPLICITLY	1
 #endif
 
 #if defined _POSIX_SOURCE || _POSIX_C_SOURCE >= 1 || defined _XOPEN_SOURCE
@@ -194,98 +236,128 @@
 
 #if (_POSIX_C_SOURCE - 0) >= 200112L
 # define __USE_XOPEN2K		1
+# undef __USE_ISOC99
+# define __USE_ISOC99		1
 #endif
 
-#ifdef  _XOPEN_SOURCE
-# define __USE_XOPEN    1
+#if (_POSIX_C_SOURCE - 0) >= 200809L
+# define __USE_XOPEN2K8		1
+# undef  _ATFILE_SOURCE
+# define _ATFILE_SOURCE	1
+#endif
+
+#ifdef	_XOPEN_SOURCE
+# define __USE_XOPEN	1
 # if (_XOPEN_SOURCE - 0) >= 500
-#  define __USE_XOPEN_EXTENDED  1
-#  define __USE_UNIX98  1
+#  define __USE_XOPEN_EXTENDED	1
+#  define __USE_UNIX98	1
 #  undef _LARGEFILE_SOURCE
-#  define _LARGEFILE_SOURCE     1
+#  define _LARGEFILE_SOURCE	1
 #  if (_XOPEN_SOURCE - 0) >= 600
-#   define __USE_XOPEN2K        1
+#   if (_XOPEN_SOURCE - 0) >= 700
+#    define __USE_XOPEN2K8	1
+#   endif
+#   define __USE_XOPEN2K	1
 #   undef __USE_ISOC99
-#   define __USE_ISOC99         1
+#   define __USE_ISOC99		1
 #  endif
 # else
 #  ifdef _XOPEN_SOURCE_EXTENDED
-#   define __USE_XOPEN_EXTENDED 1
+#   define __USE_XOPEN_EXTENDED	1
 #  endif
 # endif
 #endif
 
 #ifdef _LARGEFILE_SOURCE
-# define __USE_LARGEFILE        1
+# define __USE_LARGEFILE	1
 #endif
 
 #ifdef _LARGEFILE64_SOURCE
-# define __USE_LARGEFILE64      1
+# define __USE_LARGEFILE64	1
 #endif
 
 #if defined _FILE_OFFSET_BITS && _FILE_OFFSET_BITS == 64
-# define __USE_FILE_OFFSET64    1
+# define __USE_FILE_OFFSET64	1
 #endif
 
 #if defined _BSD_SOURCE || defined _SVID_SOURCE
-# define __USE_MISC     1
+# define __USE_MISC	1
 #endif
 
-#ifdef  _BSD_SOURCE
-# define __USE_BSD      1
+#ifdef	_BSD_SOURCE
+# define __USE_BSD	1
 #endif
 
-#ifdef  _SVID_SOURCE
-# define __USE_SVID     1
+#ifdef	_SVID_SOURCE
+# define __USE_SVID	1
 #endif
 
-#ifdef  _GNU_SOURCE
-# define __USE_GNU      1
+#ifdef	_ATFILE_SOURCE
+# define __USE_ATFILE	1
+#endif
+
+#ifdef	_GNU_SOURCE
+# define __USE_GNU	1
 #endif
 
 #if defined _REENTRANT || defined _THREAD_SAFE
-# define __USE_REENTRANT        1
+# define __USE_REENTRANT	1
+#endif
+
+#if defined _FORTIFY_SOURCE && _FORTIFY_SOURCE > 0 \
+    && __GNUC_PREREQ (4, 1) && defined __OPTIMIZE__ && __OPTIMIZE__ > 0
+# if _FORTIFY_SOURCE > 1
+#  define __USE_FORTIFY_LEVEL 2
+# else
+#  define __USE_FORTIFY_LEVEL 1
+# endif
+#else
+# define __USE_FORTIFY_LEVEL 0
 #endif
 
 /* We do support the IEC 559 math functionality, real and complex.  */
-#define __STDC_IEC_559__                1
-#define __STDC_IEC_559_COMPLEX__        1
+#define __STDC_IEC_559__		1
+#define __STDC_IEC_559_COMPLEX__	1
 
-#if 0
-/* wchar_t uses ISO 10646-1 (2nd ed., published 2000-09-15) / Unicode 3.0.  */
-//#define __STDC_ISO_10646__              200009L
-#endif
+/* wchar_t uses ISO 10646-1 (2nd ed., published 2000-09-15) / Unicode 3.1.  */
+#define __STDC_ISO_10646__		200009L
 
 /* Major and minor version number of the UnixLib C library package.  Use
    these macros to test for features in specific releases.  */
 #define __ULIBC__       5
 #define __ULIBC_MINOR__ 0
-
-/* Convenience macros to test the versions of glibc and gcc.
-   Use them like this:
-   #if __GNUC_PREREQ (2,8)
-   ... code requiring gcc 2.8 or later ...
-   #endif
-   Note - they won't work for gcc1 or glibc1, since the _MINOR macros
-   were not defined then.  */
-#if defined __GNUC__ && defined __GNUC_MINOR__
-# define __GNUC_PREREQ(maj, min) \
-	((__GNUC__ << 16) + __GNUC_MINOR__ >= ((maj) << 16) + (min))
-#else
-# define __GNUC_PREREQ(maj, min) 0
-#endif
-
 #define __ULIBC_PREREQ(maj, min) \
 	((__ULIBC__ << 16) + __ULIBC_MINOR__ >= ((maj) << 16) + (min))
+#if 0
+/* This macro indicates that the installed library is the GNU C Library.
+   For historic reasons the value now is 6 and this will stay from now
+   on.  The use of this variable is deprecated.  Use __GLIBC__ and
+   __GLIBC_MINOR__ now (see below) when you want to test for a specific
+   GNU C library version and use the values in <gnu/lib-names.h> to get
+   the sonames of the shared libraries.  */
+#undef  __GNU_LIBRARY__
+#define __GNU_LIBRARY__ 6
+
+/* Major and minor version number of the GNU C library package.  Use
+   these macros to test for features in specific releases.  */
+#define	__GLIBC__	2
+#define	__GLIBC_MINOR__	11
+
+#define __GLIBC_PREREQ(maj, min) \
+	((__GLIBC__ << 16) + __GLIBC_MINOR__ >= ((maj) << 16) + (min))
+#endif
 
 /* Decide whether a compiler supports the long long datatypes.  */
-#if defined __GNUC__
+#if defined __GNUC__ \
+    || (defined __PGI && defined __i386__ ) \
+    || (defined __INTEL_COMPILER && (defined __i386__ || defined __ia64__)) \
+    || (defined __STDC_VERSION__ && __STDC_VERSION__ >= 199901L)
 # define __GLIBC_HAVE_LONG_LONG	1
 #endif
 
 /* This is here only because every header file already includes this one.  */
 #ifndef __ASSEMBLER__
-# ifndef __SYS_CDEFS_H
+# ifndef _SYS_CDEFS_H
 #  include <sys/cdefs.h>
 # endif
 
@@ -300,7 +372,8 @@
 
 /* Decide whether we can define 'extern inline' functions in headers.  */
 #if __GNUC_PREREQ (2, 7) && defined __OPTIMIZE__ \
-    && !defined __OPTIMIZE_SIZE__ && !defined __NO_INLINE__
+    && !defined __OPTIMIZE_SIZE__ && !defined __NO_INLINE__ \
+    && defined __extern_inline
 # define __USE_EXTERN_INLINES	1
 #endif
 
@@ -309,49 +382,44 @@
    Get the definitions of all the appropriate `__stub_FUNCTION' symbols.
    <gnu/stubs.h> contains `#define __stub_FUNCTION' when FUNCTION is a stub
    that will always return failure (and set errno to ENOSYS).  */
+#if 0
+#include <gnu/stubs.h>
+#endif
 #include <unixlib/stubs.h>
-
-/* Default to recognising Image filesystems as directories.  Some programs
-   may wish to expose them as files for the purpose of compression
-   or direct manipulation of the contents.  Set to one in this case.  */
-extern int __feature_imagefs_is_file; /* Note: this is a weak symbol.  */
 
 /* Include the UnixLib build options.  */
 #include <unixlib/buildoptions.h>
 
-#ifdef __STRICT_ANSI__
-#define inline __inline__
-#endif
+#ifndef __ASSEMBLER__
+/* Default to recognising Image filesystems as directories.  Some programs
+   may wish to expose them as files for the purpose of compression
+   or direct manipulation of the contents.  Set to one in this case.
+   Note: this is a weak symbol.  */
+extern int __feature_imagefs_is_file;
 
 /* When defined, specifies the <program name> part of the UnixLib OS
    variables.  Otherwise, the leaf filename part of main()'s argv[0] is
    used.
-
    Note: this is a weak symbol.  */
 extern const char * const __program_name __attribute__ ((__weak__));
 
 /* When defined, the memory pool will be created in the WimpSlot area
    instead of a dynamic area (on RISC OS versions supporting dynamic
    areas). Its value is unimportant.
-
    Note: this is a weak symbol.  */
 extern int __dynamic_no_da __attribute__ ((__weak__));
 
 /* When a dynamic area is created as memory pool, __dynamic_da_name can
    be used to specify its name.  When this variable is not defined, the
    dynamic area name will be <program name> + "$Heap".
-
    Note: this is a weak symbol.  */
 extern const char * const __dynamic_da_name __attribute__ ((__weak__));
 
 /* When defined, indicates the maximum size in bytes of the dynamic area
    used for the heap. If undefined, UnixLib defaults to 32MB.
-
    Note: this is a weak symbol.  */
 extern int __dynamic_da_max_size __attribute__ ((__weak__));
-
-#ifndef __SYS_CDEFS_H
-# include <sys/cdefs.h>
 #endif
 
-#endif
+
+#endif	/* features.h  */

@@ -1,5 +1,5 @@
 /* tgetent (), tgetnum (), tgetflag (), tgetstr(), tgoto (), tputs ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <errno.h>
@@ -258,13 +258,12 @@ tgetent (char *bp, const char *name)
 static int
 t_tgetnam (unsigned char **t1, unsigned char **t2)
 {
-  unsigned char *tp1 = *t1, *tp2 = *t2;
-
+  unsigned char *tp2 = *t2;
   while (*tp2 == '|' || isspace (*tp2))
     tp2++;
   if (*tp2 == ':')
     return 0;
-  tp1 = tp2;
+  unsigned char *tp1 = tp2;
   while (*tp2 != '|' && *tp2 != ':')
     tp2++;
 

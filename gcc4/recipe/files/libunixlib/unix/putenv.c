@@ -1,5 +1,5 @@
 /* putenv ()
- * Copyright (c) 2000-2009 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <stdlib.h>
@@ -147,7 +147,7 @@ putenv (char *string)
       if (dollar && dollar < equal)
         {
           char *name = alloca(equal - string + 1);
-          strncpy(name, string, equal - string);
+          memcpy(name, string, equal - string);
           name[equal - string] = '\0';
 
           return __addenv_to_os (name, equal + 1, 1);

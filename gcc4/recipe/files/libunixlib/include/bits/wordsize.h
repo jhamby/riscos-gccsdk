@@ -1,6 +1,11 @@
-/* Copyright (C) 1996, 1997, 1998, 2000 Free Software Foundation, Inc.
+/*
+ * File taken from glibc 2.11.
+ * Following changes were made:
+ *   - None.
+ */
+
+/* Copyright (C) 1999 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
-   Contributed by Ulrich Drepper <drepper@gnu.ai.mit.edu>, 1996.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -17,46 +22,4 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#include <ctype.h>
-#include <wctype.h>
-
-int
-iswspace (wint_t wc)
-{
-  return isspace(wc);
-}
-
-
-int
-iswalpha (wint_t wc)
-{
-  return isalpha(wc);
-}
-
-
-int
-iswalnum (wint_t wc)
-{
-  return isalnum(wc);
-}
-
-
-int
-iswprint (wint_t wc)
-{
-  return isprint(wc);
-}
-
-
-wint_t
-towupper (wint_t wc)
-{
-  return toupper(wc);
-}
-
-
-wint_t
-towlower (wint_t wc)
-{
-  return tolower(wc);
-}
+#define __WORDSIZE	32

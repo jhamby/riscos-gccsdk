@@ -1,5 +1,5 @@
 /* Thread specific keys.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.
+   Copyright (c) 2002-2010 UnixLib Developers.
    Written by Alex Waugh.  */
 
 #include <errno.h>
@@ -19,32 +19,27 @@ static struct __pthread_key *keys = NULL;
 int
 pthread_key_create (pthread_key_t *key, void (*destructor) (void*))
 {
-  struct __pthread_key *newkey;
-  int retval = 0;
-
   if (key == NULL)
     return EINVAL;
 
   __pthread_disable_ints ();
-  newkey = malloc_unlocked (__ul_global.malloc_state,
-			    sizeof (struct __pthread_key));
+  struct __pthread_key *newkey = malloc_unlocked (__ul_global.malloc_state,
+						  sizeof (struct __pthread_key));
+  int retval;
   if (newkey == NULL)
     retval = ENOMEM;
+  else if (nextkey >= PTHREAD_KEYS_MAX)
+    retval = EAGAIN;
   else
     {
-      if (nextkey >= PTHREAD_KEYS_MAX)
-	retval = EAGAIN;
-      else
-	{
-	  newkey->next = keys;
-	  keys = newkey;
-	  newkey->keyid = nextkey++;
-	  newkey->destructor = destructor;
-	}
+      newkey->next = keys;
+      keys = newkey;
+      *key = newkey->keyid = nextkey++;
+      newkey->destructor = destructor;
+      retval = 0;
     }
   __pthread_enable_ints ();
 
-  *key = newkey->keyid;
   return retval;
 }
 

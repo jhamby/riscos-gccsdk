@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <errno.h>
@@ -283,7 +283,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
   char tempbuf[256];
   char *out_end, *out;
   char *temp;
-  int flag, skip;
+  int flag;
   const char *const in_buf = buffer; /* = NULL if we malloc the buffer.  */
   const char *input;
 
@@ -400,7 +400,7 @@ __unixify (const char *ro_path, int unixify_flags, char *buffer,
     }
 
   flag = 0;
-  while ((skip = get_directory_name (input, tempbuf)) != 0)
+  while (get_directory_name (input, tempbuf) != 0)
     {
 #ifdef DEBUG
       printf ("input = '%s', tempbuf = '%s'\n", input, tempbuf);

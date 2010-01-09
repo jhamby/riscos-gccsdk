@@ -1,5 +1,5 @@
 /* Perform delivery of a signal to a process.
-   Copyright (c) 1996-2008 UnixLib Developers.
+   Copyright (c) 1996-2010 UnixLib Developers.
    Written by Nick Burrett.  */
 
 #include <errno.h>
@@ -459,7 +459,6 @@ post_signal (struct unixlib_sigstate *ss, int signo)
   act;
   __sighandler_t handler;
   sigset_t pending, signal_mask;
-  int ss_suspended;
   int errbuf_valid;
 
   /* The error buffer is only valid for this signal and not the next.  */
@@ -480,7 +479,6 @@ post_signal:
   __u->usage.ru_nsignals++;
 
   handler = SIG_DFL;
-  ss_suspended = 0;
   signal_mask = sigmask (signo);
 
   if (handler != SIG_DFL)
@@ -549,7 +547,6 @@ post_signal:
 	     SIGCONT clears stop signals and resumes the process.  */
 	  ss->pending &= ~stop_signals;
 	  /* Resume all our children.  */
-	  ss_suspended = 1;
 	  sulproc->status.stopped = 0;
 	  sulproc->status.reported = 0;
 	}

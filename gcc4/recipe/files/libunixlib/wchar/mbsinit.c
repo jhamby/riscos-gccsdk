@@ -31,5 +31,5 @@
 int
 mbsinit (const mbstate_t *ps)
 {
-  return ps == NULL || ps->count == 0;
+  return ps == NULL || ps->__count == 0;
 }

@@ -21,7 +21,7 @@
 
 /* Determine number of column positions required for CH.  */
 int
-wcwidth (wint_t ch)
+wcwidth (wchar_t ch)
 {
   return 1;
 }

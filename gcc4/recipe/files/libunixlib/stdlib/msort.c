@@ -241,7 +241,9 @@ qsort_r (void *b, size_t n, size_t s, __compar_d_fn_t cmp, void *arg)
 #endif
 
       /* It's somewhat large, so malloc it.  */
+#if 0
       int save = errno;
+#endif
       tmp = malloc (size);
 #if 0
       __set_errno (save);

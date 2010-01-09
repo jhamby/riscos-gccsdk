@@ -50,7 +50,7 @@ mbrtowc (wchar_t *pwc, const char *s, size_t n, mbstate_t *ps)
 
   if (n > 0)
     {
-      if (ps->count == 0)
+      if (ps->__count == 0)
 	{
 	  unsigned char byte = (unsigned char) *s++;
 	  ++used;
@@ -67,39 +67,38 @@ mbrtowc (wchar_t *pwc, const char *s, size_t n, mbstate_t *ps)
 	  if ((byte & 0xc0) == 0x80 || (byte & 0xfe) == 0xfe)
 	    {
 	      /* Oh, oh.  An encoding error.  */
-	      /* __set_errno (EILSEQ); */
-	      return (size_t) -1;
+	      return  __set_errno (EILSEQ);
 	    }
 
 	  if ((byte & 0xe0) == 0xc0)
 	    {
 	      /* We expect two bytes.  */
-	      ps->count = 1;
-	      ps->value = byte & 0x1f;
+	      ps->__count = 1;
+	      ps->__value.__wch = byte & 0x1f;
 	    }
 	  else if ((byte & 0xf0) == 0xe0)
 	    {
 	      /* We expect three bytes.  */
-	      ps->count = 2;
-	      ps->value = byte & 0x0f;
+	      ps->__count = 2;
+	      ps->__value.__wch = byte & 0x0f;
 	    }
 	  else if ((byte & 0xf8) == 0xf0)
 	    {
 	      /* We expect four bytes.  */
-	      ps->count = 3;
-	      ps->value = byte & 0x07;
+	      ps->__count = 3;
+	      ps->__value.__wch = byte & 0x07;
 	    }
 	  else if ((byte & 0xfc) == 0xf8)
 	    {
 	      /* We expect five bytes.  */
-	      ps->count = 4;
-	      ps->value = byte & 0x03;
+	      ps->__count = 4;
+	      ps->__value.__wch = byte & 0x03;
 	    }
 	  else
 	    {
 	      /* We expect six bytes.  */
-	      ps->count = 5;
-	      ps->value = byte & 0x01;
+	      ps->__count = 5;
+	      ps->__value.__wch = byte & 0x01;
 	    }
 	}
 
@@ -108,25 +107,24 @@ mbrtowc (wchar_t *pwc, const char *s, size_t n, mbstate_t *ps)
       while (used < n)
 	{
 	  /* The second to sixths byte must be of the form 10xxxxxx.  */
-	  unsigned char byte = (unsigned char) *s++;
+	  unsigned char byte = (const unsigned char) *s++;
 	  ++used;
 
 	  if ((byte & 0xc0) != 0x80)
 	    {
 	      /* Oh, oh.  An encoding error.  */
-	      /* __set_errno (EILSEQ); */
-	      return (size_t) -1;
+	      return __set_errno (EILSEQ);
 	    }
 
-	  ps->value <<= 6;
-	  ps->value |= byte & 0x3f;
+	  ps->__value.__wch <<= 6;
+	  ps->__value.__wch |= byte & 0x3f;
 
-	  if (--ps->count == 0)
+	  if (--ps->__count == 0)
 	    {
 	      /* The character is finished.  */
 	      if (pwc != NULL)
-		*pwc = (wchar_t) ps->value;
-	      return ps->value ? used : 0;
+		*pwc = (wchar_t) ps->__value.__wch;
+	      return ps->__value.__wch ? used : 0;
 	    }
 	}
     }

@@ -1,6 +1,6 @@
 /* __standard_time ()
  * Written by Nick Burrett on 13 July 1997.
- * Copyright (c) 1997-2008 UnixLib Developers
+ * Copyright (c) 1997-2010 UnixLib Developers
  */
 
 #include <time.h>
@@ -31,7 +31,7 @@ __standard_time (const char *riscos_time, char *local_buffer)
   __os_swi (Territory_ConvertDateAndTime, regs);
   p = (char *)regs[1];
   *p++ = '\n';
-  *p++ = '\0';
+  *p = '\0';
 
   return result;
 }

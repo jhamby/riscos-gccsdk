@@ -75,15 +75,14 @@ env (const char *program_name, const char *variable, char *buffer,
      size_t bufsiz)
 {
   char envvar[128];
-  char *base_ptr, *ptr, *result;
+  char *base_ptr, *result;
 
   base_ptr = stpcpy (envvar, __UNIX_ENV_PREFIX);
-  result = 0;
   if (program_name != NULL)
     {
-      ptr = stpcpy (base_ptr, program_name);
+      char *ptr = stpcpy (base_ptr, program_name);
       *ptr++ = '$';
-      ptr = stpcpy (ptr, variable);
+      stpcpy (ptr, variable);
 
 #ifdef DEBUG
       debug_printf ("-- features.c (env): Looking for '%s'.\n", envvar);
@@ -91,10 +90,12 @@ env (const char *program_name, const char *variable, char *buffer,
 
       result = __getenv_from_os (envvar, buffer, bufsiz, NULL);
     }
+  else
+    result = NULL;
 
   if (!result)
     {
-      ptr = stpcpy (base_ptr, variable);
+      stpcpy (base_ptr, variable);
 
 #ifdef DEBUG
       debug_printf ("-- features.c (env): Looking for '%s'.\n", envvar);

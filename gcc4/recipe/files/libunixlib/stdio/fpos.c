@@ -1,6 +1,6 @@
 /* UnixLib fgetpos(), fsetpos(), fseek(), fseeko(), ftell(), ftello(),
    rewind() implementation.
-   Copyright 2001-2008 UnixLib Developers.  */
+   Copyright 2001-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -64,7 +64,6 @@ fseek (FILE * stream, long offset, int w)
   if (stream->__error)
     return EOF;
 
-  result = 0;
   switch (w)
     {
     case SEEK_SET:

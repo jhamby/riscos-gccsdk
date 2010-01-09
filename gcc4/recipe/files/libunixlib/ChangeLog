@@ -1,3 +1,39 @@
+Sat Jan  9 20:22:18 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdlib/system.c(system): Avoid store which is never going to be
+	read.
+	* stdlib/msort.c(qsort_r): Likewise.
+	* stdio/fpos.c(fseek): Likewise.
+	* unix/features.c(env): Likewise.
+	* unix/unix.c(__unixinit): Likewise.
+	* signal/post.c(post_signal): Likewise.
+	* termios/termcap.c(t_tgetnam): Likewise.
+	* common/unixify.c(__unixify): Likewise.
+	* stdio/popen.c(__pexec): Avoid NULL dereference.
+	* unix/dirent.c(scandir): Likewise.
+	* pthread/key.c(pthread_key_create): Likewise.
+	* common/serial.c(__get_file_ino): Likewise.
+	* time/clk_gettime.c(clock_gettime): case CLOCK_REALTIME, tv_nsec is
+	no longer garbage.
+	* unix/putenv.c(putenv): strncpy() -> memcpy() micro-optimisation.
+	* time/stdtime.c(__standard_time): Avoid pointless ptr arithmetic.
+	* include/wchar.h: Upgrade with glibc 2.11 version.
+	* include/wctypes.h: Likewise.
+	* include/sys/cdefs.h: Likewise.
+	* include/features.h: Likewise.
+	* include/features.h: Likewise.
+	* include/bits/wchar.h: Add glibc 2.11 version.
+	* include/bits/wordsize.h: Likewise.
+	* include/stdio.h(__FILE): Typedef.
+	* wchar/mbsinit.c(mbsinit): Follow wchar.h/wctypes.h header changes.
+	* wchar/wcwidth.c(wcwidth): Likewise.
+	* wchar/wctype.c(towupper,towlower): Likewise.
+	* wchar/mbrtowc.c(mbrtowc): Likewise.
+	* incl-local/sys/cdefs.h: Follow sys/cdef.h changes.
+	* pwd/getpwnam_r.c(getpwnam_r): Avoid 1 line if statements.
+	* incl-local/internal/os.h(__ul_seterr): It is allowed to call this
+	with NULL argument.
+
 Thu Jan  7 13:47:15 PST 2010  Peter Naulls  <peter@chocky.org>
 
 	* pwd/getpwnam_r.c(getpwnam_r): Return values weren't being properly
@@ -54,7 +90,6 @@ Wed Jan  6 00:24:46 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* vscript(__write_backtrace): Export symbol as it is public API.
 
->>>>>>> .r4424
 Sat Jan  2 18:15:54 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/newstream.c(__newstream): Zero reinitialisation is not needed.

@@ -1,7 +1,7 @@
 /* getpwnam_r ()
  * Search for an entry with a matching username (re-entrant version).
  * Written by Nick Burrett, 10 December 1997.
- * Copyright (c) 1997-2008 UnixLib Developers
+ * Copyright (c) 1997-2010 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -32,7 +32,8 @@ getpwnam_r (const char *name, struct passwd *result_buf, char *buffer,
     {
       p = __pwddefault ();
 
-      if (result_buf) memcpy (result_buf, p, sizeof(struct passwd));
+      if (result_buf)
+	memcpy (result_buf, p, sizeof(struct passwd));
     }
   else
     {
@@ -47,9 +48,11 @@ getpwnam_r (const char *name, struct passwd *result_buf, char *buffer,
       fclose (stream);
    }
 
-  if (p == NULL) return -1;
-  if (result != NULL) *result = result_buf;
-  if (buffer != NULL) strncpy (buffer, result ? (*result)->pw_passwd : p->pw_passwd, buflen);
+  if (p == NULL)
+    return -1;
+  if (result != NULL)
+    *result = result_buf;
+  strncpy (buffer, result ? (*result)->pw_passwd : p->pw_passwd, buflen);
 
   return 0;
 }

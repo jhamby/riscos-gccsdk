@@ -1,5 +1,5 @@
 /* __get_file_ino ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -23,7 +23,6 @@ __get_file_ino (const char *directory, const char *filename)
   char tmp[_POSIX_PATH_MAX + _POSIX_NAME_MAX];
   char pathname[_POSIX_PATH_MAX + _POSIX_NAME_MAX];
   const char *name;
-  int hash, ino, regs[10];
 
   if (directory != NULL)
     {
@@ -36,11 +35,10 @@ __get_file_ino (const char *directory, const char *filename)
 	*dst++ = *directory++;
       if (filename != NULL)
 	{
-	  int filetype;
-
-	  if (dst[-1] != ':' && dst <= name_end)
+	  if (dst > tmp && dst[-1] != ':' && dst <= name_end)
 	    *dst++ = '/';
 	  /* Convert Unix filename to RISC OS filename and append.  */
+	  int filetype;
 	  if (! __riscosify_std (filename, 0, dst, name_end - dst, &filetype))
 	    return -1;
 	}
@@ -61,6 +59,7 @@ __get_file_ino (const char *directory, const char *filename)
      function would fall over because of this.
      This way sucessive readdir()s on ../../../.. will get you to root !  */
 
+  int regs[10];
   regs[0] = 37;
   regs[1] = (int) name;
   regs[2] = (int) pathname;
@@ -71,11 +70,11 @@ __get_file_ino (const char *directory, const char *filename)
   if (! __os_swi (OS_FSControl, regs))
     name = pathname;
 
-  ino = 0;
+  int ino = 0;
   while (*name)
     {
       ino = (ino << 4) + *name++;
-      hash = ino & 0xf0000000;
+      int hash = ino & 0xf0000000;
       if (hash)
 	{
 	  ino = ino ^ (hash >> 24);

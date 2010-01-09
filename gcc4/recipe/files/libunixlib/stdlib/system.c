@@ -1,6 +1,6 @@
 /* system ()
  * Written by Nick Burrett, 6 October 1996.
- * Copyright 1996-2008 UnixLib Developers
+ * Copyright 1996-2010 UnixLib Developers
  */
 
 #include <errno.h>
@@ -19,7 +19,7 @@
 int
 system (const char *line)
 {
-  int status, save;
+  int status;
   pid_t pid;
   struct sigaction sa, intr, quit;
   sigset_t block, omask;
@@ -41,7 +41,7 @@ system (const char *line)
   if (sigaction (SIGQUIT, &sa, &quit))
     {
       /* Bit of an error, restore SIGINT and preserve the errno.  */
-      save = errno;
+      int save = errno;
       (void) sigaction (SIGINT, &intr, (struct sigaction *) NULL);
       return __set_errno (save);
     }
@@ -49,11 +49,10 @@ system (const char *line)
   /* Block SIGCHLD.  */
   sigemptyset (&block);
   sigaddset (&block, SIGCHLD);
-  save = errno;
   if (sigprocmask (SIG_BLOCK, &block, &omask))
     {
       /* Awkward error, so restore signal handlers and return.  */
-      save = errno;
+      int save = errno;
       sigaction (SIGINT, &intr, (struct sigaction *) NULL);
       sigaction (SIGQUIT, &quit, (struct sigaction *) NULL);
       return __set_errno (save);
@@ -63,8 +62,6 @@ system (const char *line)
   pid = vfork ();
   if (pid == (pid_t) 0)
     {
-      char *path;
-
       /* Restore the signals.  */
       sigaction (SIGINT, &intr, (struct sigaction *) NULL);
       sigaction (SIGQUIT, &quit, (struct sigaction *) NULL);
@@ -72,6 +69,7 @@ system (const char *line)
       sigprocmask (SIG_SETMASK, &omask, (sigset_t *) NULL);
 
       /* Execute the shell.  */
+      const char *path;
       if (!(path = getenv ("SHELL")))
 	{
 	  if (*line == '*')
@@ -81,9 +79,7 @@ system (const char *line)
 	}
       else
 	{
-	  char *shell;
-
-	  shell = strrchr (path, '/');
+	  const char *shell = strrchr (path, '/');
 	  if (shell)
 	    shell++;
 	  else
@@ -100,9 +96,9 @@ system (const char *line)
 
   /* Got here on a vfork failure. So restore signals and the blocking
      mask then exit. */
-  if ((sigaction (SIGINT, &intr, (struct sigaction *) NULL) |
-       sigaction (SIGQUIT, &quit, (struct sigaction *) NULL) |
-       sigprocmask (SIG_SETMASK, &omask, (sigset_t *) NULL)) != 0)
+  if ((sigaction (SIGINT, &intr, (struct sigaction *) NULL)
+       | sigaction (SIGQUIT, &quit, (struct sigaction *) NULL)
+       | sigprocmask (SIG_SETMASK, &omask, (sigset_t *) NULL)) != 0)
     return -1;
 
   return status;

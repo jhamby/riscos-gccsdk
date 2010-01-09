@@ -1,5 +1,5 @@
 /* UnixLib popen() and pclose() implementation.
-   Copyright 2001-2008 UnixLib Developers.  */
+   Copyright 2001-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -34,27 +34,26 @@ static struct pwr *__pwr = NULL;
 static void
 __pexec (const char *command)
 {
-  char *shell, *path;
-
-  if (!(path = getenv ("SHELL")))
+  int status;
+  const char *path;
+  if ((path = getenv ("SHELL")) == NULL)
     {
-      int status;
-
       if (*command == '*')
 	status = execl (command, 0);
       else
 	status = execl ("*", "", command, 0);
-      if (status)
-	_exit (1);
     }
-
-  shell = strrchr (path, '/');
-  if (shell)
-    shell++;
   else
-    shell = path;
-  if (execl (path, shell, "-c", command, 0))
-    _exit (1);
+    {
+      const char *shell = strrchr (path, '/');
+      if (shell)
+	shell++;
+      else
+	shell = path;
+      status = execl (path, shell, "-c", command, 0);
+    }
+  if (status)
+    _exit (EXIT_FAILURE);
 }
 
 FILE *

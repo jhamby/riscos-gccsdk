@@ -286,15 +286,11 @@ __unixinit (void)
       cli[__cli_size] = '\0';
       if (__cli_size < cli_size)
 	{
-	  _kernel_oserror *err;
-
 	  /* Append DDEUtils command line.  */
 	  cli[__cli_size] = ' ';
 	  regs[0] = (int) cli + __cli_size + 1;
-	  if ((err = __os_swi (DDEUtils_GetCl, regs)) != NULL)
-	    {
-	      __unixlib_fatal ("Cannot get command line");
-	    }
+	  if (__os_swi (DDEUtils_GetCl, regs) != NULL)
+	    __unixlib_fatal ("Cannot get command line");
 	}
     }
 
