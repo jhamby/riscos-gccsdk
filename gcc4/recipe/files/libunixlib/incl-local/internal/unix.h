@@ -173,9 +173,7 @@ struct ul_global
 
   char **last_environ;
   void *malloc_state;
-  int (*main) (int, char *[], char **);
   int escape_disabled;
-  unsigned int crt1_flags;
   unsigned int fls_lbstm_on_rd;
   struct __pthread_callevery_block *pthread_callevery_rma;
 };

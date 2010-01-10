@@ -317,11 +317,9 @@
 
 .set	GBL_LASTENVIRON, 92		@ = __ul_global.last_environ
 .set	GBL_MALLOC_STATE, 96		@ = __ul_global.malloc_state
-.set	GBL_MAIN, 100			@ = __ul_global.main
-.set	GBL_ESCAPEDISABLED, 104		@ = __ul_global.escape_disabled
-.set	GBL_CRT1_FLAGS,	108		@ = __ul_global.crt1_flags
-.set	GBL_FLS_LBSTM_ON_RD, 112	@ = __ul_global.fls_lbstm_on_rd
-.set	GBL_PTH_CALLEVERY_RMA, 116	@ = __ul_global.pthread_callevery_rma
+.set	GBL_ESCAPEDISABLED, 100		@ = __ul_global.escape_disabled
+.set	GBL_FLS_LBSTM_ON_RD, 104	@ = __ul_global.fls_lbstm_on_rd
+.set	GBL_PTH_CALLEVERY_RMA, 108	@ = __ul_global.pthread_callevery_rma
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
 	@ sys/_syslib.s.
@@ -350,3 +348,14 @@
 .set	CHUNK_RETURN, 20	@ Return address after freeing this chunk
 
 .set	CHUNK_OVERHEAD, 24	@ Size of chunk header
+
+	@ Entries in the data block passed from crt1.o
+.set	CRT1_EXEC_INIT, 0	@ Ptr to program _init section
+.set	CRT1_EXEC_FINI, 4	@ Ptr to program _fini section
+.set	CRT1_EXEC_START, 8	@ Ptr to R/O base
+.set	CRT1_FREE_MEM, 12	@ Ptr to where free memory begins
+.set	CRT1_DATA_START, 16	@ Ptr to R/W base
+.set	CRT1_MAIN, 20		@ Ptr to main()
+.set	CRT1_FLAGS, 24
+.set	CRT1_RESERVED1, 28
+.set	CRT1_RESERVED2, 32

@@ -1,5 +1,5 @@
 @ Provide program entry and initialise the UnixLib world
-@ Copyright (c) 2002-2009 UnixLib Developers
+@ Copyright (c) 2002-2010 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -74,10 +74,12 @@ __main:
 	@ a1+20 = main
 	@ a1+24 = Flags
 	@	   bit 0 set = enable profiling
+	@ a1+28 = Reserved for dynamic linker use
+	@ a1+32 = Reserved for dynamic linker use
 
 	MOV	v1, a1
 
- PICEQ "LDR	v4, .L0+40"
+ PICEQ "LDR	v4, .L0+36"
 .LPIC0:
  PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
  PICEQ "LDMIA	v4, {v4, ip}"		@ v4 = Object index, ip = GOT ptr array location
@@ -108,31 +110,19 @@ __main:
 	STR	a1, [ip, #GBL_TIME_LOW]		@ __ul_global.time (low word)
 	STR	a2, [ip, #GBL_TIME_HIGH]	@ __ul_global.time (high word)
 
-	@ Store the pointer to the program's _init & _fini functions for
-	@ calling later. This applies to both static and shared libs.
-	LDMIA	v1!, {a1, a2}
-	LDR	a3, .L0+24			@ exec_init
- PICEQ "LDR	a3, [v4, a3]"
-	STR	a1, [a3, #0]
-
-	LDR	a3, .L0+28			@ exec_fini
- PICEQ "LDR	a3, [v4, a3]"
-	STR	a2, [a3, #0]
-
 	@ For the shared library, fill in the linker generated values that
-	@ are passed in on the stack by crt1.o. These are only known at runtime.
- PICEQ "LDMIA	v1!, {a1-a4}"
- PICNE "ADD	v1, v1, #4 * 4"
+	@ are passed to us by crt1.o. These are only known at runtime.
+ PICEQ "LDR	a1, [v1, #CRT1_EXEC_START]"
+ PICEQ "LDR	a2, [v1, #CRT1_FREE_MEM]"
+ PICEQ "LDR	a3, [v1, #CRT1_DATA_START]"
  PICEQ "STR	a1, [fp, #MEM_ROBASE]"		@ __executable_start
  PICEQ "STR	a2, [fp, #MEM_RWLOMEM]"
  PICEQ "STR	a3, [fp, #MEM_RWBASE]"		@ __data_start
 
-	@ Also store the pointer to the program's main function for calling later.
- PICEQ "STR	a4, [ip, #GBL_MAIN]"
-
-	@ Now the crt1 flags word
-	LDR	a1, [v1, #0]
-	STR	a1, [ip, #GBL_CRT1_FLAGS]
+	@ Save the address of the crt1_data for later
+	LDR	a1, .L0+32			@ crt1_data
+ PICEQ "LDR	a1, [v4, a1]"
+	STR	v1, [a1, #0]
 
 	@ Obtain the application space limit.  Note that this is different
 	@ to the permitted RAM limit returned by OS_GetEnv, i.e. MEM_APPSPACE_HIMEM
@@ -427,48 +417,45 @@ no_dynamic_area:
 	@ calling this function.
 	BL	__unixinit
 
-	LDR	ip, .L0+0		@ =__ul_global
- PICEQ "LDR	ip, [v4, ip]"
-	LDR	a1, [ip, #GBL_CRT1_FLAGS]
+	LDR	v2, .L0+32		@=crt1_data
+ PICEQ "LDR	v2, [v4, v2]"
+	LDR	v2, [v2, #0]
+
+	LDR	a1, [v2, #CRT1_FLAGS]
 	TST	a1, #1
 	BLNE	__gmon_start__
 
 	@ Use the Dynamic Loader to call the _init functions of all
 	@ shared libraries. This also reqisters the _fini functions
 	@ with atexit().
- PICEQ "LDR	a1, .L0+44"		@ _dl_call_ctors
+ PICEQ "LDR	a1, .L0+40"		@ _dl_call_ctors
  PICEQ "LDR	a1, [v4, a1]"
  PICEQ "TEQ	a1, #0"
  PICEQ "BLNE	_dl_call_ctors"
 
+	@ Call the program's _init function.
+	LDR	a1, [v2, #CRT1_EXEC_INIT]
+	MOV	lr, pc
+	MOV	pc, a1
+
 	@ Make sure the _fini function of the executable is called at program
 	@ exit.
-	LDR	a1, .L0+28		@ exec_fini
- PICEQ "LDR	a1, [v4, a1]"
-	LDR	a1, [a1, #0]
+	LDR	a1, [v2, #CRT1_EXEC_FINI]
 	BL	atexit
 
-	@ Call the program's _init function.
-	LDR	a1, .L0+24		@ exec_init
- PICEQ "LDR	a1, [v4, a1]"
-	MOV	lr, pc
-	LDR	pc, [a1, #0]
-
 	@ Check if we have a non-NULL main() routine.
-	LDR	ip, .L0+0		@ =__ul_global
- PICEQ "LDR	ip, [v4, ip]"
-	LDR	v1, [ip, #GBL_MAIN]
+	LDR	v1, [v2, #CRT1_MAIN]
 	TEQ	v1, #0
 	ADREQ	a1, no_main_routine
 	BEQ	__unixlib_fatal
 
 	@ Load in a1, a2 and a3 registers the main() parameters, i.e.
 	@ argc, argv and, for Unix systems compatibility, environ.
-	LDR	lr, .L0+32		@ = __u
+	LDR	lr, .L0+24		@ = __u
  PICEQ "LDR	lr, [v4, lr]"
 	LDR	lr, [lr, #0]		@ Points to ___u structure.
 	LDMIA	lr, {a1-a2}		@ PROC_ARGC = 0, PROC_ARGV = 4
-	LDR	a3, .L0+36		@ = environ
+	LDR	a3, .L0+28		@ = environ
  PICEQ "LDR	a3, [v4, a3]"
 	LDR	a3, [a3, #0]
 
@@ -484,12 +471,11 @@ no_dynamic_area:
 	WORD	rmensure1		@ offset 12
 	WORD	rmensure2		@ offset 16
 	WORD	rmensure3		@ offset 20
-	WORD	exec_init		@ offset 24
-	WORD	exec_fini		@ offset 28
-	WORD	__u			@ offset 32
-	WORD	environ			@ offset 36
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
- PICEQ ".word	_dl_call_ctors(GOT)"	@ offset 44
+	WORD	__u			@ offset 24
+	WORD	environ			@ offset 28
+	WORD	crt1_data		@ offset 32
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)" @ offset 36
+ PICEQ ".word	_dl_call_ctors(GOT)"	@ offset 40
  PICEQ ".weak _dl_call_ctors"
 no_main_routine:
 	.asciz	"There is no main function"
@@ -1276,11 +1262,9 @@ __calling_environment:
 	.space	204
 	DECLARE_OBJECT __calling_environment
 
-	@ Pointers to the _init & _fini functions of the executable.
-exec_init:
+crt1_data:
 	.space	4
-exec_fini:
-	.space	4
+	DECLARE_OBJECT crt1_data
 
 	.data
 
@@ -1420,36 +1404,20 @@ __ul_global:
 	@ The global malloc state (opaque type).
 	.word	0						@ offset = 96
 
-	@ __ul_global.main
-	@ A pointer to call the program's main function.  It gets the argc,
-	@ argv and, for Unix systems compatibility also environ as parameters.
-	@ Note that this copy of the environment will not get updated by getenv
-	@ nor setenv. 
-#ifdef PIC
-	.word	0
-#else
-	.word	main						@ offset = 100
-#endif
-
 	@ __ul_global.escape_disabled
 	@ Non-zero if the escape key was disabled on program initialisation.
-	.word	0						@ offset = 104
-
-	@ __ul_global.crt1_flags
-	@ Flags word passed from (g)crt1_riscos.o
-	@ Currently bit 0 indicates whether profiling should be enabled.
-	.word	0						@ offset = 108
+	.word	0						@ offset = 100
 
 	@ __ul_global.fls_lbstm_on_rd
 	@ When non-zero, flush all line buffered stdio stream using __flslbbuf
 	@ when reading from a stdio stream attached to a tty.
-	.word	0						@ offset = 112
+	.word	0						@ offset = 104
 
 	@ __ul_global.pthread_callevery_rma
 	@ Pointer to a small block of RMA that contains several values that remain
 	@ constant for the life of the program. This block is passed to the
 	@ call_every handler in r12.
-	.word   0						@ offset = 116
+	.word   0						@ offset = 108
 	DECLARE_OBJECT __ul_global
 
 

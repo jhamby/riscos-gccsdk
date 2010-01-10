@@ -1,3 +1,18 @@
+Sun Jan 10 18:29:47 2010  Lee Noar  <leenoar@sky.com>
+
+	* sys/_syslib.s: Simplify initialisation code by observing
+	that since the call to main() was inlined from unix/unix.c
+	to here, __ul_global.main is no longer referenced outside of
+	this file. We can eliminate it by using the original pointer
+	in the crt1 data block.
+	Also, do the same for __ul_global.crt1_flags.
+	Remove these entries from __ul_global.
+	* incl-local/internal/asm_dec.s: Remove GBL_MAIN and
+	GBL_CRT1_FLAGS. Define constants to describe layout of
+	crt1 data block.
+	* incl-local/internal/unix.h(__ul_global): Remove members
+	main and crt1_flags.
+
 Sun Jan 10 18:42:00 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/wchar_t(wcscasecmp,wcsncasecmp,wcscoll,wcsxfrm,wcschrnul,
