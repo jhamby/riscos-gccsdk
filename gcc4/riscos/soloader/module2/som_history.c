@@ -1,6 +1,6 @@
 /* som_history.c
  *
- * Copyright 2009 GCCSDK Developers
+ * Copyright 2009, 2010 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -21,7 +21,6 @@ som_history_add_client(som_client *client)
   som_object *object;
   som_client_history *client_hist;
   int object_count = 0;
-  _kernel_oserror *err;
 
   /* Work out how many shared objects the client was linked to.  */
   for (object = linklist_first_som_object (&client->object_list);
@@ -30,14 +29,14 @@ som_history_add_client(som_client *client)
     object_count++;
 
   /* Allocate enough space to hold details of client and all objects.  */
-  if ((err = som_alloc (sizeof (*client_hist) + sizeof (som_object_history) * object_count,
-		   (void **) (void *) &client_hist)) != NULL)
+  if (som_alloc (sizeof (*client_hist) + sizeof (som_object_history) * object_count,
+	        (void **) (void *) &client_hist) != NULL)
     return;
   memset (client_hist, 0, sizeof (*client_hist));
 
   /* Record the client's name.  */
-  if ((err = som_alloc (strlen (client->name) + 1,
-			(void **) (void *) &client_hist->name)) != NULL)
+  if (som_alloc (strlen (client->name) + 1,
+		(void **) (void *) &client_hist->name) != NULL)
     goto error;
   strcpy (client_hist->name, client->name);
 
@@ -51,8 +50,8 @@ som_history_add_client(som_client *client)
 		(som_object_history *) &client_hist->object_history[object_count];
 
       /* Record this object's name.  */
-      if ((err = som_alloc (strlen (object->name) + 1,
-			    (void **) (void *) &obj_hist->name)) != NULL)
+      if (som_alloc (strlen (object->name) + 1,
+		    (void **) (void *) &obj_hist->name) != NULL)
         goto error;
       strcpy (obj_hist->name, object->name);
 

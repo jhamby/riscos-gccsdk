@@ -1,3 +1,17 @@
+Sun Jan 10 13:36:01 2010  Lee Noar  <leenoar@sky.com>
+
+	* som_history.c(som_history_add_client): Remove
+	unused variable.
+	* somanager.cmhg: Remove unused errors.
+	Rename somerr_dl_no_got to somerr_no_got_loader.
+	Add somerr_no_got_client, somerr_no_seg_client,
+	somerr_no_seg_loader.
+	* som_runcom.c(register_dynamic_loader, register_client):
+	The dynamic segment always seems to follow the R/W
+	segment, however don't rely on it. Use two independent
+	loops to find the required segments in the right order.
+	Small improvements to error checking.
+
 Sun Nov 22 16:06:14 2009  Lee Noar  <leenoar@sky.com>
 
 	* som_register.c(deregister_shared_object): Don't

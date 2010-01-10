@@ -98,49 +98,48 @@ register_dynamic_loader (runcom_state *state)
       objinfo.base_addr = state->elf_loader.base_addr;
 
       /* Go through the program headers extracting the info we need. */
-      /* This relies on the DYNAMIC segment following the loadable segments.
-         This always seems to be the case.  */
+      /* The dynamic segment always seems to follow the data segment,
+	 however, we won't rely on it. Use two independent loops to find
+	 the required segments in the right order.  */
       Elf32_Phdr *phdr;
       int phnum;
       for (phdr = state->elf_loader.prog_headers, phnum = state->elf_loader.elf_header.e_phnum;
-	   phnum != 0;
+	   phnum != 0 && (phdr->p_type != PT_LOAD || (phdr->p_flags & PF_W) == 0);
 	   ++phdr, --phnum)
-	{
-	  switch (phdr->p_type)
-	    {
-	      case PT_LOAD:
-		/* A writable, loadable segment is a data segment. */
-		if ((phdr->p_flags & PF_W) != 0)
-		  {
-		    objinfo.public_rw_ptr = state->elf_loader.base_addr + phdr->p_vaddr;
-		    objinfo.rw_size = phdr->p_memsz;
-		    objinfo.bss_offset = phdr->p_filesz;
-		    objinfo.bss_size = phdr->p_memsz - phdr->p_filesz;
-		  }
-		break;
-	      case PT_DYNAMIC:
-		{
-		  objinfo.dyn_offset = phdr->p_vaddr + state->elf_loader.base_addr
-				       - objinfo.public_rw_ptr;
-		  objinfo.dyn_size = phdr->p_memsz;
+	/* */;
 
-		  /* Find the GOT of the loader. */
-		  const unsigned int *dt;
-		  for (dt = (const unsigned int *) (state->elf_loader.base_addr + phdr->p_vaddr);
-		       dt[0] != DT_NULL && dt[0] != DT_PLTGOT;
-		       dt += 2)
-		    /* */;
-		  if (dt[0] == DT_PLTGOT)
-		    objinfo.got_offset = dt[1] + state->elf_loader.base_addr
-					 - objinfo.public_rw_ptr;
-		  else
-		    {
-		      err = somerr_dl_no_got;
-		      goto error;
-		    }
-		}
-	     }
-	}
+      if (phnum == 0)
+	return somerr_no_seg_loader;
+
+      objinfo.public_rw_ptr = state->elf_loader.base_addr + phdr->p_vaddr;
+      objinfo.rw_size = phdr->p_memsz;
+      objinfo.bss_offset = phdr->p_filesz;
+      objinfo.bss_size = phdr->p_memsz - phdr->p_filesz;
+
+      for (phdr = state->elf_loader.prog_headers, phnum = state->elf_loader.elf_header.e_phnum;
+	   phnum != 0 && phdr->p_type != PT_DYNAMIC;
+	   ++phdr, --phnum)
+	/* */;
+
+      if (phnum == 0)
+	return somerr_no_seg_loader;
+
+      objinfo.dyn_offset = phdr->p_vaddr + state->elf_loader.base_addr
+			   - objinfo.public_rw_ptr;
+      objinfo.dyn_size = phdr->p_memsz;
+
+      /* Find the GOT of the loader. */
+      const unsigned int *dt;
+      for (dt = (const unsigned int *) (state->elf_loader.base_addr + phdr->p_vaddr);
+	   dt[0] != DT_NULL && dt[0] != DT_PLTGOT;
+	   dt += 2)
+	/* */;
+
+      if (dt[0] == DT_NULL)
+	return somerr_no_got_loader;
+
+      objinfo.got_offset = dt[1] + state->elf_loader.base_addr
+			   - objinfo.public_rw_ptr;
 
       /* INTERP_NAME is a pointer to the actual string within the ELF file,
          so it's safe to use it without worrying about it disappearing.  */
@@ -180,47 +179,48 @@ register_client (runcom_state *state)
 {
   som_objinfo objinfo;
 
-  objinfo.base_addr = 0;
-
-  /* This relies on the DYNAMIC segment following the loadable segments.
-     This always seems to be the case.  */
+  /* The dynamic segment always seems to follow the data segment,
+     however, we won't rely on it. Use two independent loops to find
+     the required segments in the right order. */
   Elf32_Phdr *phdr;
   int phnum;
   for (phdr = state->elf_prog.prog_headers, phnum = state->elf_prog.elf_header.e_phnum;
-       phnum != 0;
+       phnum != 0 && (phdr->p_type != PT_LOAD || (phdr->p_flags & PF_W) == 0);
        ++phdr, --phnum)
-    {
-      /* Look for a writable, loadable segment, ie, a data segment.  */
-      switch (phdr->p_type)
-        {
-          case PT_LOAD:
-	    if ((phdr->p_flags & PF_W) != 0)
-	      {
-		objinfo.public_rw_ptr = (som_PTR) phdr->p_vaddr;
-		objinfo.private_rw_ptr = (som_PTR) phdr->p_vaddr;
-		objinfo.rw_size = phdr->p_memsz;
-		objinfo.bss_offset = phdr->p_filesz;
-		objinfo.bss_size = phdr->p_memsz - phdr->p_filesz;
-	      }
-            break;
-          case PT_DYNAMIC:
-	    {
-	      objinfo.dyn_offset = (som_PTR) phdr->p_vaddr - objinfo.public_rw_ptr;
-	      objinfo.dyn_size = phdr->p_memsz;
+    /* */;
 
-	      /* Find the GOT of the client.  */
-	      const unsigned int *dt;
-	      for (dt = (const unsigned int *) phdr->p_vaddr;
-		   dt[0] != DT_NULL && dt[0] != DT_PLTGOT;
-		   dt += 2)
-		/* */;
-	      if (dt[0] == DT_PLTGOT)
-		objinfo.got_offset = (som_PTR) dt[1] - objinfo.public_rw_ptr;
-	      break;
-	    }
-	}
-    }
+  if (phnum == 0)
+    return somerr_no_seg_client;
 
+  objinfo.public_rw_ptr = (som_PTR) phdr->p_vaddr;
+  objinfo.private_rw_ptr = (som_PTR) phdr->p_vaddr;
+  objinfo.rw_size = phdr->p_memsz;
+  objinfo.bss_offset = phdr->p_filesz;
+  objinfo.bss_size = phdr->p_memsz - phdr->p_filesz;
+
+  for (phdr = state->elf_prog.prog_headers, phnum = state->elf_prog.elf_header.e_phnum;
+       phnum != 0 && phdr->p_type != PT_DYNAMIC;
+       ++phdr, --phnum)
+    /* */;
+
+  if (phnum == 0)
+    return somerr_no_seg_client;
+
+  objinfo.dyn_offset = (som_PTR) phdr->p_vaddr - objinfo.public_rw_ptr;
+  objinfo.dyn_size = phdr->p_memsz;
+      
+  /* Find the GOT of the client.  */
+  const unsigned int *dt;
+  for (dt = (const unsigned int *) phdr->p_vaddr;
+       dt[0] != DT_NULL && dt[0] != DT_PLTGOT;
+       dt += 2)
+    /* */;
+
+  if (dt[0] == DT_NULL)
+    return somerr_no_got_client;
+
+  objinfo.got_offset = (som_PTR) dt[1] - objinfo.public_rw_ptr;
+      
   objinfo.name = state->elf_prog_name;
 
   _kernel_oserror *err;
@@ -645,7 +645,7 @@ command_run (const char *arg_string, int argc)
 			   state->elf_prog_name)) != NULL)
     goto error;
 
-  /* Make sure that after calling os_start_app() succesfully, we call
+  /* Make sure that after calling os_start_app() successfully, we call
      som_start_app() and don't return from this routine anymore (even for an
      error message) as otherwise we get "Not a heap block: FileSwitch
      FreeArea" error (RO 6.06).  */

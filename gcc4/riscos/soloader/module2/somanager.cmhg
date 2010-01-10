@@ -57,12 +57,7 @@ swi-decoding-table: SOM, Alloc, Free, AllocLib, RegisterObject,
 
 error-chunk-base-number: 0x81DC00
 
-error-identifiers: somerr_no_client_memory ("Unable to register client, out of memory"),
-  somerr_no_object_memory("Unable to register shared object, out of memory"),
-  somerr_client_not_found("Unable to register shared object, client not found"),
-  somerr_already_reg("Client already registered"),
-  somerr_failed_reg("Client registration failed"),
-  somerr_bad_reason("Bad reason code for Shared Object Manager SWI"),
+error-identifiers: somerr_client_not_found("Unable to register shared object, client not found"),
   somerr_unknown_client("Client not registered"),
   somerr_object_not_found("Object not found"),
   somerr_no_memory("Shared Object Manager failed to allocate memory"),
@@ -71,9 +66,12 @@ error-identifiers: somerr_no_client_memory ("Unable to register client, out of m
   somerr_file_error("Error during file operation in Shared Object Manager"),
   somerr_invalid_elf("Not a valid ELF file for this platform"),
   somerr_wimpslot_too_small("Wimpslot not big enough to run ELF program."),
-  somerr_dl_no_got("Unable to locate GOT of dynamic loader."),
+  somerr_no_got_loader("Unable to locate GOT of dynamic loader."),
+  somerr_no_got_client("Unable to locate GOT of client."),
   somerr_symlink_bad_ID("Symlink typed file does not contain correct ID."),
   somerr_symlink_overflow("Shared Object Manager symlink overflow."),
-  somerr_no_exec("ELF file is not an executable.")
+  somerr_no_exec("ELF file is not an executable."),
+  somerr_no_seg_client("Unable to locate required segment in client."),
+  somerr_no_seg_loader("Unable to locate required segment in dynamic loader.")
 
 generic-veneers: som_call_every som_callback
