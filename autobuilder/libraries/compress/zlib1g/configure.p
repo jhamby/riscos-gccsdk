@@ -1,5 +1,19 @@
---- configure.orig	2010-01-08 14:41:37.000000000 -0800
-+++ configure	2010-01-08 14:41:56.000000000 -0800
+--- configure.org	2010-01-10 18:03:32.000000000 +0100
++++ configure	2010-01-10 18:01:05.000000000 +0100
+@@ -180,11 +180,11 @@
+   esac
+ fi
+ 
++
++if test $shared -eq 1; then
+ SHAREDLIB=${SHAREDLIB-"libz$shared_ext"}
+ SHAREDLIBV=${SHAREDLIBV-"libz$shared_ext.$VER"}
+ SHAREDLIBM=${SHAREDLIBM-"libz$shared_ext.$VER1"}
+-
+-if test $shared -eq 1; then
+   echo Checking for shared library support...
+   # we must test in two steps (cc then ld), required at least on SunOS 4.x
+   if test "`($CC -w -c $SFLAGS $test.c) 2>&1`" = "" &&
 @@ -220,18 +220,20 @@
  
  EOF

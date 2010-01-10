@@ -1,5 +1,9 @@
 AB_INSTALL=yes
 
+if [ "$RO_SHAREDLIBS" != "yes" ] ; then
+  AB_CONFLAGS=--static
+fi
+
 ab_package() {
   ab_create_app ZLib1g Apps/Library zlib1g-dev
 
