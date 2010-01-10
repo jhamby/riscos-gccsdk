@@ -1,6 +1,6 @@
 ; This file is part of SOManager.
 ;
-; Copyright (C) 2006, 2009 GCCSDK Developers
+; Copyright (C) 2006-2010 GCCSDK Developers
 ;
 ; This program is free software; you can redistribute it and/or modify
 ; it under the terms of the GNU General Public License as published by
@@ -18,7 +18,7 @@
 
 title-string: SOManager
 
-help-string: Shared Object Manager 2.02 (c) GCCSDK Developers
+help-string: Shared Object Manager 2.03 (c) GCCSDK Developers
 
 initialisation-code: module_initialise
 

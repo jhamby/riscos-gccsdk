@@ -1,3 +1,8 @@
+Sun Jan 10 17:06:20 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* somanager.cmhg: Increase version number to 2.03 as
+	changes were made since GCCSDK GCC 4.1.1 Release 2.
+
 Sun Jan 10 13:36:01 2010  Lee Noar  <leenoar@sky.com>
 
 	* som_history.c(som_history_add_client): Remove
