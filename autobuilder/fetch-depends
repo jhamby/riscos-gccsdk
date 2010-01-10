@@ -1,4 +1,4 @@
-#/!bin/bash -e
+#!/bin/bash -e
 # Fetch the dependencies from the Debian database
 # for systems without apt-cache
 
@@ -17,15 +17,15 @@ if ! [ -e $packindex ] ||
 fi
 
 if bzgrep -A20 "^Package:.* $PACKAGE$" $packindex > packentry ; then
-   sed -n 0,/^$/p --in-place packentry
-   sed -n 0,/^--$/p --in-place packentry
+  sed -n 0,/^$/p --in-place packentry
+  sed -n 0,/^--$/p --in-place packentry
 else
-   echo "" > packentry
+  echo "" > packentry
 fi
 
 deps=`grep Depends: packentry | sed -e 's/^.*Depends: //'`
 for a in $deps; do
- echo $a | grep [a-zA-Z].* | sed -e 's/,//'
+  echo $a | grep [a-zA-Z].* | sed -e 's/,//'
 done
 
 rm -f packentry
