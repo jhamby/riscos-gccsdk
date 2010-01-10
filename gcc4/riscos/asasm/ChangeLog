@@ -1,3 +1,21 @@
+Sun Jan 10 04:41:35 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Version 1.48
+	* decode.c(decode): Avoid variable being written but not read
+	afterwards.  Follow constification of macro functions.
+	* error.c(doline): Likewise.
+	* rname.c(riscos_to_unix): Likewise.
+	* whileif.c(if_skip,while_skip): Likewise.
+	* variables.c(declare_var,c_lcl): Warn when same variable get
+	defined but when type changes, give an error.
+	* value.c,value.h(valueTagAsString): Added.
+	* value.h(ValueSingle,ValueDouble,ValueExtended,ValuePacked): Removed.
+	* macros.c,macros.h(macroCurrent,macroFind,macroCall,Macro::next,
+	MacroStack::macro): Constify.
+	* output.c(writeElfSH): Drop return value.
+	* asm.c(asm_label): Use NULL iso 0.
+	* lex.c(lexReadLocal): Likewise.
+
 Tue Oct  6 02:22:15 CEST 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* storate.c(c_alloc): Revert previous change as it introduces a

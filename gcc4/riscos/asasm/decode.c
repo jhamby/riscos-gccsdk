@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1035,7 +1035,7 @@ decode (Lex * label)
       if (inputLook () && !isspace (inputGet ()))
 	goto illegal;
       skipblanks ();
-      symbol = asm_label (label);
+      asm_label (label);
       c_if ();
       break;
     case '|':
@@ -1053,7 +1053,7 @@ decode (Lex * label)
     default:
     illegal:
       { /* Is it a macro call? */
-	Macro *m;
+	const Macro *m;
 	if (macro)
 	  {
 	    inputRollback ();

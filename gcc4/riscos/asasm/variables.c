@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -106,40 +106,29 @@ assign_var (Symbol *sym, ValueTag type)
 }
 
 
-/* Contents pointed by ptr has to remain valid all the time.
+/**
+ * (Re)define local or global variable.
+ * When variable exists we'll give a warning when its type is the same,
+ * when type is different an error is given.
+ * Contents pointed by ptr has to remain valid all the time.
  */
 static void
-declare_var (const char *ptr, int len, const ValueTag type, BOOL local)
+declare_var (const char *ptr, int len, ValueTag type)
 {
-  Lex var;
-  Symbol *sym;
-
-  var = lexTempLabel (ptr, len);
-  if (local == FALSE && (sym = symbolFind (&var)) != NULL)
+  Lex var = lexTempLabel (ptr, len);
+  Symbol *sym = symbolFind (&var);
+  if (sym != NULL)
     {
-      error (ErrorWarning, TRUE, "Redeclaration of variable '%.*s'",
-	     var.LexId.len, var.LexId.str);
-      return;
-    }
-  else
-    sym = NULL;
-  /* *Will* occur for locals redeclared as globals, hence just a warning */
-  if (sym)
-    {
-      const char *c;
-      if (sym->value.Tag.v == ValueConst)
-	c = "symbol";
-      else if (local == FALSE && sym->value.Tag.t)
-	c = "variable";
-      else
-        c = NULL;
-      if (c)
+      if (sym->value.Tag.t != type)
 	{
 	  error (ErrorError, TRUE, "'%.*s' is already declared as a %s",
-	         len, ptr, c);
+	         len, ptr, valueTagAsString (sym->value.Tag.t));
 	  inputRest ();
 	  return;
 	}
+      error (ErrorWarning, TRUE, "Redeclaration of %s variable '%.*s'",
+	     valueTagAsString (sym->value.Tag.t),
+	     var.LexId.len, var.LexId.str);
     }
   else
     {
@@ -174,12 +163,11 @@ var_inputSymbol (int *len)
 void
 c_gbl (ValueTag type, Lex * label)
 {
-  const char *ptr;
-  int len;
-
   if (label->tag != LexNone)
     error (ErrorWarning, TRUE, "Label not allowed here - ignoring");
   skipblanks ();
+  const char *ptr;
+  int len;
   if (!inputComment ())
     ptr = var_inputSymbol (&len);
   else
@@ -192,19 +180,13 @@ c_gbl (ValueTag type, Lex * label)
       error (ErrorError, TRUE, "Missing variable name");
       return;
     }
-  declare_var (ptr, len, type, FALSE);
+  declare_var (ptr, len, type);
 }
 
 
 void
-c_lcl (ValueTag type, Lex * label)
+c_lcl (ValueTag type, Lex *label)
 {
-  const char *ptr;
-  int len;
-  varPos *p;
-  Symbol *sym;
-  Lex l;
-
   if (!macroSP)
     {
       error (ErrorError, TRUE, "Local variables not allowed outside macros");
@@ -214,6 +196,8 @@ c_lcl (ValueTag type, Lex * label)
   if (label->tag != LexNone)
     error (ErrorWarning, TRUE, "Label not allowed here - ignoring");
   skipblanks ();
+  const char *ptr;
+  int len;
   if (!inputComment ())
     ptr = var_inputSymbol (&len);
   else
@@ -226,21 +210,16 @@ c_lcl (ValueTag type, Lex * label)
       error (ErrorError, TRUE, "Missing variable name");
       return;
     }
-  l = lexTempLabel (ptr, len);
-  sym = symbolFind (&l);
+  Lex l = lexTempLabel (ptr, len);
+  Symbol *sym = symbolFind (&l);
+  varPos *p;
   if ((p = malloc (sizeof (varPos))) == NULL)
     goto nomem;
   p->next = varList;
   if ((p->name = strndup (ptr, len)) == NULL)
     goto nomem;
   p->symptr = sym;
-  if (sym)
-    {
-      memcpy (&p->symbol, sym, sizeof (Symbol));
-      assign_var (sym, type);
-    }
-  else
-    declare_var (ptr, len, type, TRUE);
+  declare_var (ptr, len, type);
   varList = p;
   return;
 
@@ -252,7 +231,6 @@ nomem:
 void
 c_set (ValueTag type, Lex * label)
 {
-  Value value;
   const char *c;
   Symbol *sym = symbolFind (label);
   if (sym == NULL || sym->value.Tag.t == ValueIllegal)
@@ -269,7 +247,7 @@ c_set (ValueTag type, Lex * label)
       return;
     }
   exprBuild ();
-  value = exprEval (sym->value.Tag.t);
+  Value value = exprEval (sym->value.Tag.t);
   value.Tag.v = sym->value.Tag.v;
   sym->type = SYMBOL_DEFINED;
   switch (value.Tag.t)
@@ -332,7 +310,7 @@ var_define (const char *def)
 
   const char *i = strchr (def, '=');
   len = i ? i - def : (int)strlen (def);
-  declare_var (def, len, ValueString, FALSE);
+  declare_var (def, len, ValueString);
   var = lexTempLabel (def, len);
   if (!i)
     i = "";

@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Nick Burrett
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -324,7 +324,7 @@ countRels (Symbol * ap)
   return i;
 }
 
-static int
+static void
 writeElfSH (int nmoffset, int type, int flags, int size,
             int link, int info, int addralign, int entsize, int *offset)
 {
@@ -342,7 +342,9 @@ writeElfSH (int nmoffset, int type, int flags, int size,
   sect_hdr.sh_entsize = entsize;
   if (type != SHT_NOBITS)
     *offset += size;
-  return fwrite (&sect_hdr, 1, sizeof (sect_hdr), objfile);
+  if (fwrite (&sect_hdr, sizeof (sect_hdr), 1, objfile) != 1)
+    errorLine (0, NULL, ErrorSerious, FALSE,
+	      "Internal writeElfSH: error when writing chunk file header");
 }
 
 void
@@ -350,13 +352,12 @@ outputElf (void)
 {
   int noareas = countAreas ();
   int norels;
-  int written, offset, obj_area_size, pad, strsize;
+  int offset, pad, strsize;
   int elfIndex, nsyms, shstrsize;
   int i, sectionSize, sectionType;
   Symbol *ap;
 
   /* We must call relocFix() before anything else.  */
-  obj_area_size = 0;
   for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     ap->area.info->norelocs = relocFix (ap);
   norels = countRels(areaHeadSymbol);
@@ -396,29 +397,27 @@ outputElf (void)
       elf_head.e_shnum = (noareas + norels) + 4;
       elf_head.e_shstrndx = (noareas + norels) + 3;
       
-      written = fwrite (&elf_head, 1, sizeof (elf_head), objfile);
+      fwrite (&elf_head, 1, sizeof (elf_head), objfile);
       
       offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
     }
   shstrsize = 0;
   
   /* Section headers - index 0 */
-  written += writeElfSH(shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
+  writeElfSH(shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
   shstrsize += 1; /* Null */
 
   /* Symbol table - index 1 */
   int stringSizeNeeded;
   nsyms = symbolFix(&stringSizeNeeded);
-  written += writeElfSH(shstrsize, SHT_SYMTAB, 0,
-                        (nsyms + 1) * sizeof (Elf32_Sym),
-                        2, 0, 4, sizeof (Elf32_Sym), &offset);
+  writeElfSH(shstrsize, SHT_SYMTAB, 0, (nsyms + 1) * sizeof (Elf32_Sym),
+	     2, 0, 4, sizeof (Elf32_Sym), &offset);
   shstrsize += 8; /* .symtab */
 
   strsize = stringSizeNeeded + 1; /* Add extra NUL terminator at start. */
 
   /* String table - index 2 */
-  written += writeElfSH(shstrsize, SHT_STRTAB, 0, FIX (strsize),
-                        0, 0, 1, 0, &offset);
+  writeElfSH(shstrsize, SHT_STRTAB, 0, FIX (strsize), 0, 0, 1, 0, &offset);
   shstrsize += 8; /* .strtab */
 
   /* Area headers - index 3 */
@@ -455,8 +454,7 @@ outputElf (void)
 
   /* Section head string table */
   shstrsize += 10; /* .shstrtab */
-  written += writeElfSH(shstrsize-10, SHT_STRTAB, 0, shstrsize, 0,
-                        0, 1, 0, &offset);
+  writeElfSH(shstrsize-10, SHT_STRTAB, 0, shstrsize, 0, 0, 1, 0, &offset);
 
   /* Write out the sections */
   /* Symbol table */

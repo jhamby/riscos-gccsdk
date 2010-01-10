@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2008 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -130,7 +130,7 @@ doline (int t, long int line, int sameline)
       TB (t, line, errbuf, inputName);
       if (get_file (NULL, NULL))
 	{
-	  const char *file = inputName, *nfile;
+	  const char *nfile;
 	  long int diffline = 0, nline, i;
 	  do
 	    {
@@ -148,7 +148,6 @@ doline (int t, long int line, int sameline)
 		}
 	      diffline = 1;
 	      sameline = 0;
-	      file = nfile;
 	      line = nline;
 	    }
 	  while (i);

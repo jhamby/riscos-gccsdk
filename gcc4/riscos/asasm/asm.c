@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -88,7 +88,7 @@ asm_label (const Lex *label)
 {
   Symbol *symbol;
   if (label->tag != LexId)
-    return 0;
+    return NULL;
   symbol = symbolAdd (label);
   if (areaCurrentSymbol)
     {

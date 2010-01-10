@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -237,6 +237,44 @@ valueEqual(const Value *a, const Value *b)
     }
 
   return FALSE;
+}
+
+
+const char *
+valueTagAsString (ValueTag tag)
+{
+  const char *str;
+  switch (tag)
+    {
+      case ValueIllegal:
+        str = "illegal";
+        break;
+      case ValueInt:
+        str = "integer";
+        break;
+      case ValueFloat:
+        str = "float";
+        break;
+      case ValueString:
+        str = "string";
+        break;
+      case ValueBool:
+        str = "bool";
+        break;
+      case ValueCode:
+        str = "code";
+        break;
+      case ValueLateLabel:
+        str = "label";
+        break;
+      case ValueAddr:
+        str = "address";
+        break;
+      default:
+        str = "unknown";
+        break;
+    }
+  return str;
 }
 
 

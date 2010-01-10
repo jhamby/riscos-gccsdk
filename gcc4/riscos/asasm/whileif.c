@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -56,7 +56,6 @@ static BOOL whileReEval (void);
 static void
 if_skip (const char *onerror)
 {
-  char *str;
   int c;
   int nested = 0;
   int tmp_inputExpand = inputExpand;
@@ -66,7 +65,7 @@ if_skip (const char *onerror)
       if (inputLook () && !isspace (c = inputGet ()))
 	{
 	  char del = c == '|' ? c : 0;
-	  str = inputSymbol (&c, del);
+	  inputSymbol (&c, del);
 	  if (del && inputLook () == del)
 	    inputSkip ();
 	}
@@ -152,13 +151,14 @@ c_endif (Lex * label)
 static void
 while_skip (void)
 {
-  char *str;
-  int c;
   int nested = 0;
   while (inputNextLine ())
     {
       if (inputLook () && !isspace (inputGet ()))
-	str = inputSymbol (&c, 0);
+	{
+	  int c;
+	  inputSymbol (&c, 0);
+	}
       skipblanks ();
       if (inputGetLower () == 'w')
 	{

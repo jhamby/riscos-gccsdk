@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,12 +48,7 @@ typedef enum
   ValueAddr      = 64,
 
   ValueConst     = 0,		/* only for variables */
-  ValueAll       = 127,		/* cheat */
-
-  ValueSingle    = 1 << 28,	/* for use in literal pool */
-  ValueDouble    = 3 << 28,
-  ValueExtended  = 5 << 28,	/* inaccurate */
-  ValuePacked    = 7 << 28	/* inaccurate */
+  ValueAll       = 127		/* cheat */
 } ValueTag;
 
 typedef struct
@@ -116,6 +111,7 @@ typedef union
 Value valueLateToCode (int offset, LateInfo *late);
 Value valueCopy (Value value);
 BOOL valueEqual (const Value *a, const Value *b);
+const char *valueTagAsString (ValueTag tag);
 #ifdef DEBUG
 void valuePrint(const Value *v);
 #endif

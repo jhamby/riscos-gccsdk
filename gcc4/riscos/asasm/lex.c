@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2009 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -248,7 +248,7 @@ lexReadLocal (int *len, int *label)
   if (!isdigit (inputLook ()))
     {
       error (ErrorSerious, TRUE, "Missing local label number");
-      return 0;
+      return NULL;
     }
   *label = inputGet () - '0';
   if (isdigit (inputLook ()))
@@ -257,7 +257,7 @@ lexReadLocal (int *len, int *label)
   if (len && strncmp (rout_id, name, *len))
     {
       error (ErrorError, TRUE, "Local label name (%s) does not match routine name (%s)", rout_id, name );
-      return 0;
+      return NULL;
     }
 
   return name;

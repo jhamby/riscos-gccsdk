@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,7 +45,7 @@ static Macro *macroList = NULL;
 MacroStack macroStack[MACRO_DEPTH];
 int macroSP = 0;
 
-Macro *macroCurrent = NULL;
+const Macro *macroCurrent = NULL;
 long int macroCurrentCallNo = 0;
 const char *macroPtr = NULL;
 char *macroArgs[MACRO_LIMIT] = {0};
@@ -77,22 +77,20 @@ macroPop (void)
 }
 
 
-Macro *
-macroFind (size_t len, char *name)
+const Macro *
+macroFind (size_t len, const char *name)
 {
-  Macro *m = macroList;
-  while (m)
+  for (const Macro *m = macroList; m != NULL; m = m->next)
     {
       if (strlen (m->name) == len && !strncmp (name, m->name, len))
 	return m;
-      m = m->next;
     }
-  return 0;
+  return NULL;
 }
 
 
 void
-macroCall (Macro * m, Lex * label)
+macroCall (const Macro *m, Lex *label)
 {
   int i;
   const char *c;
@@ -107,7 +105,7 @@ macroCall (Macro * m, Lex * label)
   macroStack[macroSP].macro = macroCurrent;
   macroStack[macroSP].callno = macroCurrentCallNo;
   macroStack[macroSP].offset = macroPtr;
-  memcpy ((char *) macroStack[macroSP].args, macroArgs, sizeof (macroArgs));
+  memcpy (macroStack[macroSP].args, macroArgs, sizeof (macroArgs));
   macroStack[macroSP].whilestack = whileCurrent;
   macroStack[macroSP].if_depth = if_depth;
   macroStack[macroSP++].lineno = inputLineNo;
@@ -118,7 +116,8 @@ macroCall (Macro * m, Lex * label)
   whileCurrent = 0;
   if_depth = 0;
 
-  for (i = MACRO_LIMIT; i; macroArgs[--i] = 0);
+  for (i = MACRO_LIMIT; i; macroArgs[--i] = 0)
+    /* */;
   if (label->tag == LexId)
     {
       if (m->labelarg)
@@ -193,14 +192,14 @@ macroCall (Macro * m, Lex * label)
 BOOL
 macroGetLine (char *buf)	/* returns 0 if already at end of macro */
 {
-  /* Hardcoded buffer size (4K) */
-  int p = 0;
-  if (macroPtr == 0 || *macroPtr == '\0')
+  if (macroPtr == NULL || *macroPtr == '\0')
     {
       macroPop ();
       if (macroSP == 0)
 	return FALSE;
     }
+  /* Hardcoded buffer size (4K) */
+  int p = 0;
   while (1)
     {
       if (*macroPtr == '\0')
@@ -227,9 +226,7 @@ macroGetLine (char *buf)	/* returns 0 if already at end of macro */
 	  p += strlen (arg);
 	}
       else
-	{
-	  buf[p++] = *macroPtr;
-	}
+	buf[p++] = *macroPtr;
       macroPtr++;
     }
   buf[p] = 0;

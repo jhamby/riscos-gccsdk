@@ -11,8 +11,6 @@
 
    Last modified: 16 August 2002 <T.E.Baldwin99@memebers.leeds.ac.uk>  */
 
-/* The master file resides at gccsdk/gcc/gcc/config/arm/rname.c */
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -181,7 +179,7 @@ riscos_to_unix (const char *filename, char *output)
   const char *i;
   char tempbuf[256];
   char *temp;
-  int flag = 0, skip;
+  int flag = 0;
 
   o = output;
   i = filename;
@@ -278,7 +276,7 @@ riscos_to_unix (const char *filename, char *output)
     }
 #endif
 
-  while ((skip = get_directory_name (i, tempbuf)))
+  while (get_directory_name (i, tempbuf))
     {
 #ifdef DEBUG
       printf ("i = '%s', tempbuf = '%s'\n", i, tempbuf);

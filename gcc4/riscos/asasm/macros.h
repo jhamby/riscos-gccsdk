@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,7 +35,7 @@
 
 typedef struct Macro
 {
-  struct Macro *next;
+  const struct Macro *next;
   char *name;
   const char *file;
   char *buf;
@@ -48,7 +48,7 @@ Macro;
 
 typedef struct MacroStack
 {
-  Macro *macro;
+  const Macro *macro;
   long int callno;
   const char *offset;		/* Filled in for *current* macro */
   long int lineno;		/* Return to this line... */
@@ -61,12 +61,12 @@ MacroStack;
 extern int macroSP;
 extern MacroStack macroStack[10];
 extern char *macroArgs[16];
-extern Macro *macroCurrent;
+extern const Macro *macroCurrent;
 extern const char *macroPtr;
 extern long int macroCurrentCallNo;
 
-Macro *macroFind (size_t len, char *);
-void macroCall (Macro *, Lex *);
+const Macro *macroFind (size_t len, const char *);
+void macroCall (const Macro *, Lex *);
 BOOL macroGetLine (char *buf);	/* returns 0 if end of macro */
 
 BOOL macroAdd (Macro *);
