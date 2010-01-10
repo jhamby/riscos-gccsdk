@@ -1,5 +1,5 @@
 /* Static linked ELF to AIF convertor for ARM binaries
-   Copyright (c) 2006, 2007, 2009 GCCSDK Developers
+   Copyright (c) 2006-2010 GCCSDK Developers
 
    Written by John Tytgat.
 
@@ -239,7 +239,7 @@ e2a_loadphentry (FILE * elfhandle, const Elf32_External_Phdr * phentryP)
 {
   phdr_list_t *phdr_prevP = (phdr_list_t *) & elf_phdrlistP;
   phdr_list_t *phdr_curP, *phdr_nextP;
-  uint32_t paddr, pmemsize, pfilesize;
+  uint32_t paddr, pmemsize;
 
   /* Don't support virtual and physical addresses to be different.  */
   if (RdLong (phentryP->p_vaddr) != (paddr = RdLong (phentryP->p_paddr)))
@@ -249,8 +249,7 @@ e2a_loadphentry (FILE * elfhandle, const Elf32_External_Phdr * phentryP)
 	       elf_filename);
       return EXIT_FAILURE;
     }
-  if ((pmemsize = RdLong (phentryP->p_memsz)) < (pfilesize =
-						 RdLong (phentryP->p_filesz)))
+  if ((pmemsize = RdLong (phentryP->p_memsz)) < RdLong (phentryP->p_filesz))
     {
       fprintf (stderr,
 	       "More data in file than need to be loaded in memory ?\n");
@@ -370,7 +369,7 @@ e2a_copy (FILE * elfhandle, FILE * aifhandle)
   if (prev_addr != load_addr
       && (exec_addr < prev_addr
 	  || exec_addr >= prev_addr + RdLong (phdrP->phdr.p_filesz))
-      && (flags & (PF_R | PF_W | PF_X) == (PF_R | PF_X)))
+      && ((flags & (PF_R | PF_W | PF_X)) == (PF_R | PF_X)))
     {
       fprintf (stderr, "Unsupported case of entry address\n");
       return EXIT_FAILURE;
@@ -642,7 +641,6 @@ convert_end:
 	      fprintf (stderr, "Failed to delete file '%s'\n", aiffilename);
 	      status = EXIT_FAILURE;
 	    }
-	  aiffile_exists = false;
 	}
     }
   else if (temp_aiffilename != NULL)

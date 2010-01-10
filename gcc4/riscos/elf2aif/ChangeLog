@@ -1,3 +1,10 @@
+Sun Jan 10 05:08:02 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/elf2aif.c(e2a_loadphentry,e2a_convert): Don't write to variables
+	which won't be read afterwards.
+	(e2a_copy): Fix flags test.
+	* configure.ac: Version 0.05.
+
 Sun Jan  4 02:03:21 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/elf2aif.c: Make AIF output file executable when running on a
