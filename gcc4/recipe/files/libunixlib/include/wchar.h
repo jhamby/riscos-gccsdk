@@ -170,6 +170,7 @@ extern int wcsncmp (__const wchar_t *__s1, __const wchar_t *__s2, size_t __n)
      __THROW __attribute_pure__;
 __END_NAMESPACE_STD
 
+#if 0
 #ifdef __USE_XOPEN2K8
 /* Compare S1 and S2, ignoring case.  */
 extern int wcscasecmp (__const wchar_t *__s1, __const wchar_t *__s2) __THROW;
@@ -178,7 +179,6 @@ extern int wcscasecmp (__const wchar_t *__s1, __const wchar_t *__s2) __THROW;
 extern int wcsncasecmp (__const wchar_t *__s1, __const wchar_t *__s2,
 			size_t __n) __THROW;
 
-#if 0
 /* Similar to the two functions above but take the information from
    the provided locale and not the global locale.  */
 # include <xlocale.h>
@@ -191,6 +191,7 @@ extern int wcsncasecmp_l (__const wchar_t *__s1, __const wchar_t *__s2,
 #endif
 #endif
 
+#if 0
 __BEGIN_NAMESPACE_STD
 /* Compare S1 and S2, both interpreted as appropriate to the
    LC_COLLATE category of the current locale.  */
@@ -201,6 +202,7 @@ extern int wcscoll (__const wchar_t *__s1, __const wchar_t *__s2) __THROW;
 extern size_t wcsxfrm (wchar_t *__restrict __s1,
 		       __const wchar_t *__restrict __s2, size_t __n) __THROW;
 __END_NAMESPACE_STD
+#endif
 
 #ifdef __USE_XOPEN2K8
 #if 0
@@ -246,11 +248,13 @@ extern wchar_t *wcsrchr (__const wchar_t *__wcs, wchar_t __wc)
 #endif
 __END_NAMESPACE_STD
 
+#if 0
 #ifdef __USE_GNU
 /* This function is similar to `wcschr'.  But it returns a pointer to
    the closing NUL wide character in case C is not found in S.  */
 extern wchar_t *wcschrnul (__const wchar_t *__s, wchar_t __wc)
      __THROW __attribute_pure__;
+#endif
 #endif
 
 __BEGIN_NAMESPACE_STD
@@ -294,6 +298,7 @@ extern wchar_t *wcstok (wchar_t *__restrict __s,
 extern size_t wcslen (__const wchar_t *__s) __THROW __attribute_pure__;
 __END_NAMESPACE_STD
 
+#if 0
 #ifdef __USE_XOPEN
 /* Another name for `wcsstr' from XPG4.  */
 # ifdef __CORRECT_ISO_CPP_WCHAR_H_PROTO
@@ -312,6 +317,7 @@ extern wchar_t *wcswcs (__const wchar_t *__haystack, __const wchar_t *__needle)
 /* Return the number of wide characters in S, but at most MAXLEN.  */
 extern size_t wcsnlen (__const wchar_t *__s, size_t __maxlen)
      __THROW __attribute_pure__;
+#endif
 #endif
 
 
@@ -337,21 +343,25 @@ extern int wmemcmp (__const wchar_t *__restrict __s1,
 extern wchar_t *wmemcpy (wchar_t *__restrict __s1,
 			 __const wchar_t *__restrict __s2, size_t __n) __THROW;
 
+#if 0
 /* Copy N wide characters of SRC to DEST, guaranteeing
    correct behavior for overlapping strings.  */
 extern wchar_t *wmemmove (wchar_t *__s1, __const wchar_t *__s2, size_t __n)
      __THROW;
+#endif
 
 /* Set N wide characters of S to C.  */
 extern wchar_t *wmemset (wchar_t *__s, wchar_t __c, size_t __n) __THROW;
 __END_NAMESPACE_STD
 
+#if 0
 #ifdef __USE_GNU
 /* Copy N wide characters of SRC to DEST and return pointer to following
    wide character.  */
 extern wchar_t *wmempcpy (wchar_t *__restrict __s1,
 			  __const wchar_t *__restrict __s2, size_t __n)
      __THROW;
+#endif
 #endif
 
 
@@ -452,13 +462,16 @@ extern int wcswidth (__const wchar_t *__s, size_t __n) __THROW;
 #endif	/* Use X/Open.  */
 
 
+#if 0
 __BEGIN_NAMESPACE_STD
 /* Convert initial portion of the wide string NPTR to `double'
    representation.  */
 extern double wcstod (__const wchar_t *__restrict __nptr,
 		      wchar_t **__restrict __endptr) __THROW;
 __END_NAMESPACE_STD
+#endif
 
+#if 0
 #ifdef __USE_ISOC99
 __BEGIN_NAMESPACE_C99
 /* Likewise for `float' and `long double' sizes of floating-point numbers.  */
@@ -468,8 +481,10 @@ extern long double wcstold (__const wchar_t *__restrict __nptr,
 			    wchar_t **__restrict __endptr) __THROW;
 __END_NAMESPACE_C99
 #endif /* C99 */
+#endif
 
 
+#if 0
 __BEGIN_NAMESPACE_STD
 /* Convert initial portion of wide string NPTR to `long int'
    representation.  */
@@ -482,7 +497,9 @@ extern unsigned long int wcstoul (__const wchar_t *__restrict __nptr,
 				  wchar_t **__restrict __endptr, int __base)
      __THROW;
 __END_NAMESPACE_STD
+#endif
 
+#if 0
 #if defined __USE_ISOC99 || (defined __GNUC__ && defined __USE_GNU)
 __BEGIN_NAMESPACE_C99
 /* Convert initial portion of wide string NPTR to `long long int'
@@ -500,7 +517,9 @@ extern unsigned long long int wcstoull (__const wchar_t *__restrict __nptr,
 					int __base) __THROW;
 __END_NAMESPACE_C99
 #endif /* ISO C99 or GCC and GNU.  */
+#endif
 
+#if 0
 #if defined __GNUC__ && defined __USE_GNU
 /* Convert initial portion of wide string NPTR to `long long int'
    representation.  */
@@ -516,6 +535,7 @@ extern unsigned long long int wcstouq (__const wchar_t *__restrict __nptr,
 				       wchar_t **__restrict __endptr,
 				       int __base) __THROW;
 #endif /* GCC and use GNU.  */
+#endif
 
 #if 0
 #ifdef __USE_GNU
@@ -584,6 +604,7 @@ extern wchar_t *wcpncpy (wchar_t *__dest, __const wchar_t *__src, size_t __n)
 
 /* Wide character I/O functions.  */
 
+#if 0
 #ifdef	__USE_XOPEN2K8
 /* Like OPEN_MEMSTREAM, but the stream is wide oriented and produces
    a wide character string.  */
@@ -866,6 +887,7 @@ extern size_t wcsftime (wchar_t *__restrict __s, size_t __maxsize,
 			__const wchar_t *__restrict __format,
 			__const struct tm *__restrict __tp) __THROW;
 __END_NAMESPACE_C99
+#endif
 
 # if 0
 # ifdef __USE_GNU

@@ -27,9 +27,10 @@
 static mbstate_t internal;
 
 size_t
-mbrlen (const char *s, size_t n, mbstate_t *ps)
+__mbrlen (const char *s, size_t n, mbstate_t *ps)
 {
   PTHREAD_UNSAFE
 
   return mbrtowc (NULL, s, n, ps ? ps : &internal);
 }
+strong_alias (__mbrlen, mbrlen)

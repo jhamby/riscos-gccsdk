@@ -173,6 +173,7 @@ extern int iswupper (wint_t __wc) __THROW;
    in the previous subclause.  */
 extern int iswxdigit (wint_t __wc) __THROW;
 
+#if 0
 /* Test for any wide character that corresponds to a standard blank
    wide character or a locale-specific set of wide characters for
    which `iswalnum' is false.  */
@@ -191,6 +192,7 @@ extern wctype_t wctype (__const char *__property) __THROW;
 /* Determine whether the wide-character WC has the property described by
    DESC.  */
 extern int iswctype (wint_t __wc, wctype_t __desc) __THROW;
+#endif
 __END_NAMESPACE_C99
 
 
@@ -230,6 +232,7 @@ __END_DECLS
 
 __BEGIN_DECLS
 
+#if 0
 __BEGIN_NAMESPACE_C99
 /* Construct value that describes a mapping between wide characters
    identified by the string argument PROPERTY.  */
@@ -238,6 +241,7 @@ extern wctrans_t wctrans (__const char *__property) __THROW;
 /* Map the wide character WC using the mapping described by DESC.  */
 extern wint_t towctrans (wint_t __wc, wctrans_t __desc) __THROW;
 __END_NAMESPACE_C99
+#endif
 
 #if 0
 # ifdef __USE_XOPEN2K8

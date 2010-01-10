@@ -1,3 +1,14 @@
+Sun Jan 10 18:42:00 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/wchar_t(wcscasecmp,wcsncasecmp,wcscoll,wcsxfrm,wcschrnul,
+	wcswcs,wcsnlen,wmemmove,wmempcpy,wcstod,wcstof,wcstold,wcstol,wcstoul,
+	wcstoll,wcstoull,wcstoq,wcstouq,open_wmemstream,all wide I/O stream
+	calls): Disabled prototype as we don't have an implementation for
+	those.
+	* include/wctype.h(iswblank,wctype,iswctype,wctrans,iswctrans):
+	Likewise.
+	* wchar/mbrlen.c(__mbrlen): Define.
+
 Sat Jan  9 20:22:18 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/system.c(system): Avoid store which is never going to be
