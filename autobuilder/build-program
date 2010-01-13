@@ -380,6 +380,11 @@ if true; then
     fi
 
     for AB_PATCH in $patches; do
+      # Skip any options.  Assume we'll be able to apply them anyway
+      if [ "${AB_PATCH:0:1}" == "-" ] ; then
+        continue;
+      fi
+
       echo "Autobuilder: Debian patch: $AB_PATCH"
       AB_PATCH=$AB_PATCH_DIR/$AB_PATCH
 
