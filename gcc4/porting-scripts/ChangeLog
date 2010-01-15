@@ -1,6 +1,11 @@
+Fri Jan 15 12:03:00 PST 2010  Peter Naulls  <peter@chocky.org>
+
+	* arm-unknown-riscos-gcc, gcc, g++, cpp, cc, c++: Install additional
+          symlinks to ensure use of the wrappers, and avoid more patches.
+
 Fri Jan 15 09:46:14 PST 2010  Peter Naulls  <peter@chocky.org>
 
-        * ro-config, ro-path, arm-unknown-{cpp,gcc,g++}: Relegate
+        * ro-config, ro-path, arm-unknown-riscos-{cpp,gcc,g++}: Relegate
           the problem of adding linker and include paths to wrapper
           scripts instead of adding them during configuration, which
           in any case isn't always possible.  This ensures correct order,

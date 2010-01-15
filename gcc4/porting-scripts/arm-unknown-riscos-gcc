@@ -1,8 +1,20 @@
 #!/bin/bash -e
 
-cmd=$(sed s#GCCSDK_ENV#GCCSDK_BIN# <<< $0)
+cmd=$0
 
-if $(grep -q -- -cpp <<< $0) ; then
+if [ "$cmd" == "GCCSDK_ENV/cc" ] ; then
+  cmd=GCCSDK_ENV/gcc
+elif [ "$cmd" == "GCCSDK_ENV/c++" ] ; then
+  cmd=GCCSDK_ENV/g++
+fi
+
+if grep -q arm-unknown- <<< $cmd; then
+  cmd=$(sed s#GCCSDK_ENV#GCCSDK_BIN# <<< $cmd)
+else
+  cmd=$(sed s#GCCSDK_ENV/#GCCSDK_BIN/arm-unknown-riscos-# <<< $cmd)
+fi
+
+if $(grep -q -- -cpp <<< $cmd) ; then
   libs=""
 else
   libs="-Wl,-rpath-link,GCCSDK_ENV/lib"
