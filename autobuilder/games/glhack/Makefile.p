@@ -7,7 +7,7 @@
 -CC = gcc
 -LFLAGS = -L/usr/X11R6/lib
 +#CC = gcc
-+LFLAGS = -L$(GCCSDK_INSTALL_ENV)/lib
++LFLAGS =
  WINSRC = $(WINTTYSRC) $(WINX11SRC)
  WINOBJ = $(WINTTYOBJ) $(WINX11OBJ)
  WINTTYLIB = /usr/lib/libncurses.a
@@ -16,7 +16,7 @@
  # CFLAGS = -g -I../include
  
 -CFLAGS = -O -I../include
-+CFLAGS = -O2 -I../include -I $(GCCSDK_INSTALL_ENV)/include
++CFLAGS = -O2 -I../include
  LFLAGS = 
  
  # The Qt and Be window systems are written in C++, while the rest of

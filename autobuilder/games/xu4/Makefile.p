@@ -13,7 +13,7 @@
  DEBUGCXXFLAGS=-ggdb1 -rdynamic
 -CXXFLAGS=$(FEATURES) -Wall -I. $(UIFLAGS) $(shell xml2-config --cflags) -DICON_FILE=\"$(datadir)/pixmaps/u4.bmp\" -DVERSION=\"$(VERSION)\" $(DEBUGCXXFLAGS)
 +CXXFLAGS=$(FEATURES) -Wall -I. $(UIFLAGS) $(shell xml2-config --cflags) -DICON_FILE=\"$(datadir)/pixmaps/u4.bmp\" -DVERSION=\"$(VERSION)\" $(DEBUGCXXFLAGS) \
-+ -I$(GCCSDK_INSTALL_ENV)/include -O2
++ -O2
  CFLAGS=$(CXXFLAGS)
  LIBS=$(UILIBS) $(shell xml2-config --libs) -lpng
  INSTALL=install
@@ -21,7 +21,7 @@
  ifeq ($(STATIC_GCC_LIBS),true)
      LDFLAGS+=-L. -static-libgcc
  endif
-+LDFLAGS+=-L$(GCCSDK_INSTALL_ENV)/lib -static -lz
++LDFLAGS+= -static -lz
  
  include Makefile.common
  
