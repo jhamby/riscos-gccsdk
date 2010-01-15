@@ -203,9 +203,6 @@ ab_package_source() {
   find . -name "*.o" -type f -print0 | xargs -0 rm -f
   find . -name "*.a" -type f -print0 | xargs -0 rm -f
 
-  # Remove man3 links
-  rm -f $S/man3 $S/man/man3
-
   mkdir -p $S/riscos
   /bin/cp -r $H/* $S/riscos || true
   rm -f $S/riscos/last-failure
@@ -500,14 +497,6 @@ if true; then
 
   echo "Autobuilder: Running make command: $AB_MAKE"
   ab_make
-
-  # Ensure links in man pages work when creating HTML with rman 
-  if ! [ -e $S/man3 ] ; then
-    ln -s . $S/man3
-  fi
-  if [ -e $S/man ] && ! [ -e $S/man/man3 ] ; then
-    ln -s . $S/man/man3
-  fi
 
   if [ -e install-sh ] && ! [ -h install-sh ] ; then
     mv install-sh install.sh-old
