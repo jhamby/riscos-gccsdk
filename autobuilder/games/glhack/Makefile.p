@@ -1,16 +1,5 @@
 --- src/Makefile.orig	2009-08-25 08:26:23.000000000 -0700
 +++ src/Makefile	2009-08-25 08:31:01.000000000 -0700
-@@ -1,8 +1,8 @@
- #	NetHack Makefile.
- #	SCCS Id: @(#)Makefile.src	3.4	2002/03/02
- 
--CC = gcc
--LFLAGS = -L/usr/X11R6/lib
-+#CC = gcc
-+LFLAGS =
- WINSRC = $(WINTTYSRC) $(WINX11SRC)
- WINOBJ = $(WINTTYOBJ) $(WINX11OBJ)
- WINTTYLIB = /usr/lib/libncurses.a
 @@ -159,7 +159,7 @@
  # flags for debugging:
  # CFLAGS = -g -I../include
