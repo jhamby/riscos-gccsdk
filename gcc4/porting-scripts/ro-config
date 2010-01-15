@@ -289,11 +289,10 @@ rm $tmpoutconfigure
 
 
 # Set tool chain variables picked up by configure
-export CC="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-gcc"
-export CPP="GCCSDK_BIN/arm-unknown-riscos-cpp"
+export CC="${ro_distcc}GCCSDK_ENV/arm-unknown-riscos-gcc"
+export CPP="GCCSDK_ENV/arm-unknown-riscos-cpp"
 export RAWCPP=$CPP
-export CPPFLAGS="-isystem GCCSDK_ENV/include"
-export CXX="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-g++"
+export CXX="${ro_distcc}GCCSDK_ENV/arm-unknown-riscos-g++"
 export LD="GCCSDK_BIN/arm-unknown-riscos-ld"
 
 # Only set optimization if CFLAGS not already set
@@ -303,16 +302,16 @@ fi
 
 if [ "$RO_SHAREDLIBS" == yes ] ; then
   export CFLAGS+=
-  export LDFLAGS="-LGCCSDK_ENV/lib $AB_LDFLAGS -LGCCSDK_BIN/../arm-unknown-riscos/lib -Wl,-rpath-link,GCCSDK_ENV/lib"
+  export LDFLAGS="$AB_LDFLAGS"
 else
   export CFLAGS+=" -static "
-  export LDFLAGS="-LGCCSDK_ENV/lib -static $AB_LDFLAGS"
+  export LDFLAGS="-static $AB_LDFLAGS"
 fi
 
 export CC_FOR_BUILD=/usr/bin/cc
 
 export config_BUILD_CC=/usr/bin/cc
-export config_TARGET_CC="${ro_distcc}GCCSDK_BIN/arm-unknown-riscos-gcc"
+export config_TARGET_CC="${ro_distcc}GCCSDK_ENV/arm-unknown-riscos-gcc"
 
 #export AR=GCCSDK_BIN/arm-unknown-riscos-ar
 export AR=GCCSDK_ENV/ro-ar

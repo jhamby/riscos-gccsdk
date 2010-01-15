@@ -6,11 +6,11 @@ export GCCSDK_INSTALL_CROSSBIN=GCCSDK_BIN
 export GCCSDK_INSTALL_ENV=GCCSDK_ENV
 
 if [ -z "$CC" ] ; then
-  export CC=GCCSDK_BIN/arm-unknown-riscos-gcc
+  export CC=GCCSDK_ENV/arm-unknown-riscos-gcc
 fi
 
 if [ -z "$CXX" ] ; then
-  export CXX=GCCSDK_BIN/arm-unknown-riscos-g++
+  export CXX=GCCSDK_ENV/arm-unknown-riscos-g++
 fi
 
 if [ -z "$ASASM" ] ; then

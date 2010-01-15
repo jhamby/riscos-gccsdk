@@ -1,0 +1,20 @@
+#!/bin/bash -e
+
+cmd=$(sed s#GCCSDK_ENV#GCCSDK_BIN# <<< $0)
+
+if $(grep -q -- -cpp <<< $0) ; then
+  libs=""
+else
+  libs="-Wl,-rpath-link,GCCSDK_ENV/lib"
+
+  for param in "$@"; do
+    if [ "$param" == "-c" ] ; then
+      libs=""
+      break
+    fi
+  done
+
+  libs="$libs -LGCCSDK_ENV/lib -LGCCSDK_BIN/../arm-unknown-riscos/lib"
+fi
+
+exec $cmd "$@" -isystem GCCSDK_ENV/include $libs
