@@ -26,12 +26,15 @@ if [ -z "$GCCSDK_BUILD" ] ; then
 fi
 
 for f in `ls $GCCSDK_ROOT/porting-scripts` ; do
-  sed -e s:GCCSDK_ENV:$GCCSDK_INSTALL_ENV:g -e s:GCCSDK_BIN:$GCCSDK_INSTALL_CROSSBIN:g -e s:GCCSDK_BUILD:$GCCSDK_BUILD:g < $GCCSDK_ROOT/porting-scripts/$f > $GCCSDK_INSTALL_ENV/$f
-  test -x $GCCSDK_ROOT/porting-scripts/$f && chmod 755 $GCCSDK_INSTALL_ENV/$f
+  if [ -L $GCCSDK_ROOT/porting-scripts/$f ] ; then
+    cp -a $GCCSDK_ROOT/porting-scripts/$f $GCCSDK_INSTALL_ENV
+  else
+    sed -e s:GCCSDK_ENV:$GCCSDK_INSTALL_ENV:g -e s:GCCSDK_BIN:$GCCSDK_INSTALL_CROSSBIN:g -e s:GCCSDK_BUILD:$GCCSDK_BUILD:g < $GCCSDK_ROOT/porting-scripts/$f > $GCCSDK_INSTALL_ENV/$f
+    test -x $GCCSDK_ROOT/porting-scripts/$f && chmod 755 $GCCSDK_INSTALL_ENV/$f
+  fi
 done
 
 ln -sf $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-strip $GCCSDK_INSTALL_ENV/strip
-ln -sf $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc $GCCSDK_INSTALL_ENV/cc
 
 # Create libraries needed to fool configure tests
 for lib in c pthread gcc_s; do 
