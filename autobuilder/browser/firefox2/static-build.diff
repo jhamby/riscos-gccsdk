@@ -157,9 +157,9 @@ diff -u -r3.487.2.9 rules.mk
 +DLL_SUFFIX  = a
  AR          = ar cr $@ 
  LDOPTS     += -L$(SOURCE_LIB_DIR)
--MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
+-MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so) -o
 +MKSHLIB     = $(GCCSDK_INSTALL_CROSSBIN)/arm-unknown-riscos-ar cr
-+#MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
++#MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so) -o
  
  OS_RELEASE =
  OS_TARGET  = RISCOS

@@ -42,7 +42,7 @@ LIB_SUFFIX  = a
 DLL_SUFFIX  = so
 AR          = ar cr $@ 
 LDOPTS     += -L$(SOURCE_LIB_DIR)
-MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so)
+MKSHLIB     = $(CC) $(DSO_LDOPTS) -Wl,-soname -Wl,$(@:$(OBJDIR)/%.so=%.so) -o
 
 OS_RELEASE =
 OS_TARGET  = RISCOS

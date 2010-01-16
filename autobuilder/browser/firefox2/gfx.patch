@@ -1,45 +1,3 @@
-Index: gfx/src/Makefile.in
-===================================================================
-RCS file: /cvsroot/mozilla/gfx/src/Makefile.in,v
-retrieving revision 1.139
-diff -u -r1.139 Makefile.in
---- gfx/src/Makefile.in	20 Feb 2005 03:21:03 -0000	1.139
-+++ gfx/src/Makefile.in	12 Sep 2009 04:06:42 -0000
-@@ -75,7 +75,7 @@
- DIRS	    += mac
- endif
- 
--ifneq (,$(filter beos os2 mac windows,$(MOZ_GFX_TOOLKIT)))
-+ifneq (,$(filter beos os2 mac windows riscos,$(MOZ_GFX_TOOLKIT)))
- DIRS        += $(MOZ_GFX_TOOLKIT)
- endif
- 
-@@ -106,6 +106,9 @@
-  ifdef MOZ_ENABLE_PHOTON
-  DIRS        += photon
-  endif
-+ ifdef MOZ_ENABLE_RISCOS
-+ DIRS        += xlib
-+ endif
- 
- endif
- 
-@@ -129,13 +132,13 @@
- REQUIRES += uconv
- endif
- 
--ifneq (,$(filter gtk gtk2 xlib os2,$(MOZ_WIDGET_TOOLKIT)))
-+ifneq (,$(filter gtk gtk2 xlib os2 riscos,$(MOZ_WIDGET_TOOLKIT)))
- CPPSRCS += \
-         nsRegionImpl.cpp \
-         $(NULL)
- endif
- 
--ifneq (,$(filter gtk gtk2 xlib beos windows os2,$(MOZ_WIDGET_TOOLKIT)))
-+ifneq (,$(filter gtk gtk2 xlib beos windows os2 riscos,$(MOZ_WIDGET_TOOLKIT)))
- CPPSRCS += imgScaler.cpp
- endif
- 
 Index: gfx/src/shared/gfxImageFrame.cpp
 ===================================================================
 RCS file: /cvsroot/mozilla/gfx/src/shared/gfxImageFrame.cpp,v
@@ -1820,3 +1778,49 @@ diff -u -r1.56 Makefile.in
  EXTRA_DSO_LDOPTS += \
  		$(LIBS_DIR) \
  		-lxlibrgb \
+Index: gfx/src/Makefile.in
+===================================================================
+RCS file: /cvsroot/mozilla/gfx/src/Makefile.in,v
+retrieving revision 1.139
+diff -u -r1.139 Makefile.in
+--- gfx/src/Makefile.in	20 Feb 2005 03:21:03 -0000	1.139
++++ gfx/src/Makefile.in	15 Jan 2010 23:53:47 -0000
+@@ -75,7 +75,11 @@
+ DIRS	    += mac
+ endif
+ 
+-ifneq (,$(filter beos os2 mac windows,$(MOZ_GFX_TOOLKIT)))
++ifeq ($(MOZ_GFX_TOOLKIT),riscos)
++DIRS        += xlibrgb xprintutil
++endif
++
++ifneq (,$(filter beos os2 mac windows riscos,$(MOZ_GFX_TOOLKIT)))
+ DIRS        += $(MOZ_GFX_TOOLKIT)
+ endif
+ 
+@@ -106,6 +110,9 @@
+  ifdef MOZ_ENABLE_PHOTON
+  DIRS        += photon
+  endif
++ ifdef MOZ_ENABLE_RISCOS
++ DIRS        += xlib
++ endif
+ 
+ endif
+ 
+@@ -129,13 +136,13 @@
+ REQUIRES += uconv
+ endif
+ 
+-ifneq (,$(filter gtk gtk2 xlib os2,$(MOZ_WIDGET_TOOLKIT)))
++ifneq (,$(filter gtk gtk2 xlib os2 riscos,$(MOZ_WIDGET_TOOLKIT)))
+ CPPSRCS += \
+         nsRegionImpl.cpp \
+         $(NULL)
+ endif
+ 
+-ifneq (,$(filter gtk gtk2 xlib beos windows os2,$(MOZ_WIDGET_TOOLKIT)))
++ifneq (,$(filter gtk gtk2 xlib beos windows os2 riscos,$(MOZ_WIDGET_TOOLKIT)))
+ CPPSRCS += imgScaler.cpp
+ endif
+ 

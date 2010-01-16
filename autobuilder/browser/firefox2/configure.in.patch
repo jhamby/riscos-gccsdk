@@ -80,15 +80,6 @@ diff -u -r1.1503.2.119 configure.in
  then
      AC_DEFINE(MOZ_X11)
      MOZ_X11=1
-@@ -5585,6 +5615,8 @@
- 
- if test -z "$GNU_CC" && test "$OS_ARCH" = "WINNT" -o "$OS_ARCH" = "WINCE" -o "$OS_ARCH" = "OS2"; then
-     SQLITE_LIBS='$(DIST)/lib/$(LIB_PREFIX)sqlite3.$(IMPORT_LIB_SUFFIX)'
-+elif test "$OS_ARCH" = "RISCOS"; then
-+    SQLITE_LIBS='$(DIST)/lib/$(LIB_PREFIX)sqlite3.a'
- else
-     SQLITE_LIBS='-L$(LIBS_DIR)'" -lsqlite3"
- fi
 --- configure.in.orig	2009-10-13 08:49:54.000000000 -0700
 +++ configure.in	2009-10-13 08:54:28.000000000 -0700
 @@ -3770,7 +3770,6 @@
