@@ -1,3 +1,7 @@
+Sun Jan 17 15:23:22 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* error.c(doline): Fix RISC OS native build.  Bug #188.
+
 Sun Jan 10 04:41:35 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac: Version 1.48

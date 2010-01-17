@@ -144,7 +144,7 @@ doline (int t, long int line, int sameline)
 		   *   t=ThrowbackInfo;
 		   * here without Zap spewing forth "Information for file"... :-|
 		   */
-		  TB (t, line, errbuf, file);
+		  TB (t, line, errbuf, nfile);
 		}
 	      diffline = 1;
 	      sameline = 0;
