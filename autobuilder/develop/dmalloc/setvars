@@ -7,7 +7,9 @@ AB_INSTALL=yes
 ab_make() {
   eval $AB_MAKE
 
-  LIBDIR=`$GCCSDK_INSTALL_CROSSBIN/gcc -print-search-dirs | grep install: | cut -d " " -f 2-``$GCCSDK_INSTALL_CROSSBIN/gcc -print-multi-os-directory`
+  LIBDIR=`$GCCSDK_INSTALL_ENV/gcc -print-search-dirs | grep install: | cut -d " " -f 2-``$GCCSDK_INSTALL_ENV/gcc -print-multi-os-directory`
+
+  mkdir -p $D/lib
 
   # Rename all malloc/free/... to __unixlib_real_xxx in UnixLib
   echo "Creating memory-edit-dmalloc for unixlib.o..."
