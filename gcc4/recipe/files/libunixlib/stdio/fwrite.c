@@ -132,7 +132,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 		}
 
 	      to_write -= bytes;
-	      if ((bytes = to_write) != 0)
+	      if ((bytes = to_write) != 0 || stream->o_ptr[-1] == '\n')
 		{
 #ifdef DEBUG
 		  debug_printf (", flushing\n");

@@ -1,3 +1,8 @@
+Thu Jan 21 02:11:44 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/fwrite.c(fwrite): Fix missing case of flushing line buffered
+	stream when last byte equals newline.  Bug #189.
+
 Sun Jan 10 18:29:47 2010  Lee Noar  <leenoar@sky.com>
 
 	* sys/_syslib.s: Simplify initialisation code by observing
