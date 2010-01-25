@@ -16,7 +16,12 @@ ab_package() {
    cp -av AUTHORS COPYING COPYING.SDL README $A/
 
    # Compile the RISC OS wrapper creation utility
+   # It must be copied and deleted as it can't be stored in the appplication
+   # with the .c extension or it stops games loading
+   cp -f $A/c/aowrapper $A/aowrapper.c 
    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc $A/aowrapper.c -static -o $A/aowrapper$AB_EXEEXT
+   # Need to move aowrapper.c or it interferes with game loading
+   rm -f $A/aowrapper.c
 
    $AB_HOME/add-riscpkg -unixlib -unixhome -unixsound \
       -copyrightfile $S/COPYING

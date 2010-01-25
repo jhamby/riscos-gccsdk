@@ -3,7 +3,7 @@
   An Open Source 3D action game
 
   Copyright (C) 1995 Bungie Software Corporation
-  Portions Copyright (C) 2000-2002 Christian Bauer, Loren Petrich,
+  Portions Copyright (C) 2000-2005 Christian Bauer, Loren Petrich,
     Chris Pruett, Rhys Hill, Ben Thompson, Woody Zenfell, Mihai Pararita,
     Bo Lindbergh et al.
   Expat XML Library Copyright (C) 1998, 1999 James Clark
@@ -64,7 +64,6 @@ RISC OS port status
 
 The current status of the RISC OS port is as follows:
  - No OpenGL support.
- - No LUA scripting support.
  - No gamma support
  - Network support is compiled in but not tested.
 
@@ -197,7 +196,7 @@ Aleph One can be extended with custom map, physics, shape and sound files
 which can be selected in the "Environment" section of the preferences menu.
 Aleph One/SDL looks for these files in two places:
 
-  !UnixHome.home.alephone
+  <Choices$Write>.alephone
  and
   !AlephOne
 
@@ -231,9 +230,9 @@ Films and saved games
 
 Saved games and films are stored in
 
-!UnixHome.home.alephone.Saved Games
+<Choices$Write>.alephone.Saved Games
   and
-!UnixHome.home.alephone.Recordings
+<Choices$Write>.alephone.Recordings
 
 If you want to restore games or replay films you have downloaded (or copied
 from another computer), you have to copy them into these directories or
@@ -248,7 +247,7 @@ Aleph One/SDL supports selectable user interface themes which determine the
 look of the game's dialog boxes (but not the title menu which is a fixed
 picture). The themes are stored in
 
-!UnixHome.home.alephone.Themes
+<Choices$Write>.alephone.Themes
   and
 !AlephOne.Themes
 
@@ -300,8 +299,8 @@ The Marathon Markup Language (MML) is a subset of the Extensible Markup
 Language (XML). MML scripts can be used to configure some aspects of
 Aleph One. These scripts are stored in
 
-!UnixHome.home.alephone.MML
-!UnixHome.home.alephone.Scripts
+<Choices$Write>.alephone.MML
+<Choices$Write>.alephone.Scripts
 
 Upon startup, Aleph One reads and parses all scripts found in these
 directories, in alphabetical order. For a description of their contents and
@@ -383,5 +382,7 @@ Happy carnage!
 Christian Bauer <Christian.Bauer@uni-mainz.de>
 
 RISC OS port by Alan Buckley (8 July 2004)
-Latest version 20051119 ported and added to the Autobuilder by
+Version 20051119 ported and added to the Autobuilder by
 Alan Buckley <alan_baa@hotmail.com> (4th Sept 2008) 
+Version 20091015 ported by Peter Naulls and Alan Buckley
+(22nd Jan 2009)
