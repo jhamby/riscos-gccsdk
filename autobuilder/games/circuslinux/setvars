@@ -13,4 +13,4 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
 }
 
-export LIBS="-ljpeg -lpng -ltiff -lz -logg -lvorbis -lvorbisfile"
+export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec"
