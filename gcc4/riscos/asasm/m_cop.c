@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,7 +48,7 @@ coprocessor (BOOL CopOnly, WORD ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,in
   if (cop == CP_NUMBER (1))
     {
       if (option_pedantic)
-	error (ErrorInfo, TRUE, "Coprocessor 1 is the floating point unit. Use a floating point mnemonic if possible");
+	error (ErrorInfo, "Coprocessor 1 is the floating point unit. Use a floating point mnemonic if possible");
     }
   else
     cpuWarn (ARM3);
@@ -60,7 +60,7 @@ coprocessor (BOOL CopOnly, WORD ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,in
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%scoprocessor number", InsertCommaAfter);
+    error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   if (maxop > 7)
     ir |= CP_DCODE (help_copInt (maxop, "coprocessor opcode"));
   else
@@ -72,7 +72,7 @@ coprocessor (BOOL CopOnly, WORD ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,in
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdata operand", InsertCommaAfter);
+    error (ErrorError, "%sdata operand", InsertCommaAfter);
   ir |= CopOnly ? CPDST_OP (getCopReg ()) : CPDST_OP (getCpuReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -81,7 +81,7 @@ coprocessor (BOOL CopOnly, WORD ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,in
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   ir |= CPLHS_OP (getCopReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -90,7 +90,7 @@ coprocessor (BOOL CopOnly, WORD ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,in
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   ir |= CPRHS_OP (getCopReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -151,7 +151,7 @@ coprocessorr (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%scoprocessor number", InsertCommaAfter);
+    error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= (help_copInt (15, "coprocessor opcode") << 4);
   skipblanks ();
   if (inputLook () == ',')
@@ -160,7 +160,7 @@ coprocessorr (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%scoprocessor opcode", InsertCommaAfter);
+    error (ErrorError, "%scoprocessor opcode", InsertCommaAfter);
   ir |= CPDST_OP (getCpuReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -169,7 +169,7 @@ coprocessorr (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   ir |= CPLHS_OP (getCpuReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -178,7 +178,7 @@ coprocessorr (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   ir |= CPRHS_OP (getCopReg ());
 
   putIns (ir);

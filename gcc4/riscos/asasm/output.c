@@ -50,10 +50,6 @@
 #  include <errno.h>
 #endif
 
-#ifdef __riscos__
-#  include "depend.h"
-#endif
-
 static FILE *objfile;
 
 #define FIX(n) ((3+(int)(n))&~3)
@@ -121,15 +117,11 @@ outputInit (const char *outfile)
       if ((objfile = fopen (outname, "wb")) == NULL)
 	{
 #if !defined(__TARGET_SCL__)
-	  error (ErrorAbort, FALSE, PACKAGE_NAME " can't write %s: %s",
-		 outname, strerror (errno));
+	  errorAbort (PACKAGE_NAME " can't write %s: %s", outname, strerror (errno));
 #else
-	  error (ErrorAbort, FALSE, PACKAGE_NAME " can't write %s", outname);
+	  errorAbort (PACKAGE_NAME " can't write %s", outname);
 #endif
 	}
-#ifdef __riscos__
-      dependOpen (outname);
-#endif
     }
   else
     {
@@ -160,6 +152,8 @@ outputFinish (void)
       }
 #endif
     }
+  if (outname[0])
+    dependWrite (outname);
 }
 
 void
@@ -248,8 +242,7 @@ outputAof (void)
 
   if (written != (sizeof (chunk_header) + 5 * sizeof (chunk_entry)))
     {
-      errorLine (0, NULL, ErrorSerious, FALSE,
-		 "Internal outputAof: error when writing chunk file header");
+      errorAbortLine (0, NULL, "Internal outputAof: error when writing chunk file header");
       return;
     }
 
@@ -263,8 +256,7 @@ outputAof (void)
       aof_entry.Size = armword (FIX (ap->value.ValueInt.i));
       aof_entry.noRelocations = armword(ap->area.info->norelocs);
       if (aof_entry.noRelocations != 0 && !AREA_IMAGE (ap->area.info))
-	errorLine (0, NULL, ErrorSerious, FALSE,
-		   "Internal outputAof: relocations in uninitialised area");
+	errorAbortLine (0, NULL, "Internal outputAof: relocations in uninitialised area");
       aof_entry.Unused = 0;
       fwrite (&aof_entry, 1, sizeof (aof_entry), objfile);
     }
@@ -272,16 +264,14 @@ outputAof (void)
 /******** Chunk 1 Identification *********/
   if (idfn_size != fwrite (GET_IDFN, 1, idfn_size, objfile))
     {
-      errorLine (0, NULL, ErrorSerious, FALSE,
-		 "Internal outputAof: error when writing identification");
+      errorAbortLine (0, NULL, "Internal outputAof: error when writing identification");
       return;
     }
 /******** Chunk 2 String Table ***********/
   unsigned int strt_size = armword(stringSizeNeeded + 4);
   if (fwrite (&strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
-      errorLine (0, NULL, ErrorSerious, FALSE,
-		 "Internal outputAof: error when writing string table size");
+      errorAbortLine (0, NULL, "Internal outputAof: error when writing string table size");
       return;
     }
   symbolStringOutput (objfile);
@@ -299,8 +289,7 @@ outputAof (void)
 	  if ((size_t)ap->value.ValueInt.i !=
 	      fwrite (ap->area.info->image, 1, ap->value.ValueInt.i, objfile))
 	    {
-	      errorLine (0, NULL, ErrorSerious, FALSE,
-		"Internal outputAof: error when writing %s image", ap->str);
+	      errorAbortLine (0, NULL, "Internal outputAof: error when writing %s image", ap->str);
 	      return;
 	    }
 	  /* Word align the written area.  */
@@ -343,8 +332,7 @@ writeElfSH (int nmoffset, int type, int flags, int size,
   if (type != SHT_NOBITS)
     *offset += size;
   if (fwrite (&sect_hdr, sizeof (sect_hdr), 1, objfile) != 1)
-    errorLine (0, NULL, ErrorSerious, FALSE,
-	      "Internal writeElfSH: error when writing chunk file header");
+    errorAbortLine (0, NULL, "Internal writeElfSH: error when writing chunk file header");
 }
 
 void
@@ -474,8 +462,7 @@ outputElf (void)
           if ((size_t)ap->value.ValueInt.i !=
               fwrite (ap->area.info->image, 1, ap->value.ValueInt.i, objfile))
             {
-              errorLine (0, NULL, ErrorSerious, FALSE,
-                "Internal outputElf: error when writing %s image", ap->str);
+              errorAbortLine (0, NULL, "Internal outputElf: error when writing %s image", ap->str);
               return;
             }
 	  /* Word align the written area.  */

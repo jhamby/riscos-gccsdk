@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,7 @@
 
 #include "config.h"
 #include <setjmp.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -39,6 +40,7 @@
 #include "area.h"
 #include "asm.h"
 #include "error.h"
+#include "filestack.h"
 #include "include.h"
 #include "input.h"
 #include "main.h"
@@ -46,9 +48,7 @@
 #include "output.h"
 #include "symbol.h"
 #include "targetcpu.h"
-#ifdef __riscos__
 #include "depend.h"
-#endif
 #include "variables.h"
 
 jmp_buf asmContinue;
@@ -79,8 +79,9 @@ int num_predefines = 0;
 
 
 const char *ProgName = NULL;
-const char *ObjFileName = NULL;
+static const char *ObjFileName = NULL;
 const char *SourceFileName = NULL;
+
 
 static void
 as_help (void)
@@ -105,9 +106,7 @@ as_help (void)
 #endif
 	   "-autocast      -ac         Enable casting from integer to float.\n"
 	   "-target        -t          Target ARM CPU (ARM2...SA110).\n"
-#ifdef __riscos__
 	   "-depend <file> -d <file>   Write 'make' source file dependency information to 'file'.\n"
-#endif
 	   "-noalign       -na         Don't auto-align words and halfwords.\n"
 	   "-nolocal       -nl         No builtin LOCAL support.\n"
 	   "-objasm        -obj        More compatibility with ObjAsm.\n"
@@ -360,7 +359,6 @@ main (int argc, char **argv)
 	      return EXIT_FAILURE;
 	    }
 	}
-#ifdef __riscos__
       else if (IS_ARG ("-depend", "-d"))
 	{
 	  if (--argc)
@@ -378,7 +376,6 @@ main (int argc, char **argv)
 	      return EXIT_FAILURE;
 	    }
 	}
-#endif
 #ifndef NO_ELF_SUPPORT
       else if (!strcmp (*argv, "-elf"))
 	set_option_aof (0);
@@ -422,17 +419,14 @@ main (int argc, char **argv)
     {
       asmAbortValid = FALSE;
       fprintf (stderr, "%s: Aborted\n", ProgName);
-      inputFinish (NULL);
+      while (gCurPObjP != NULL)
+	FS_PopPObject (true);
     }
   else
     {
       asmAbortValid = TRUE;
       symbolInit ();
       inputInit (SourceFileName);
-      errorInit (SourceFileName);
-#ifdef __riscos__
-      dependInit (SourceFileName);
-#endif
 
       /* ... do the assembly ... */
       outputInit (ObjFileName);
@@ -442,7 +436,7 @@ main (int argc, char **argv)
       setjmp (asmContinue); asmContinueValid = TRUE;
       assemble ();
       areaFinish ();
-      inputFinish (NULL);
+      
       if (setjmp (asmContinue))
 	fprintf (stdout, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
       else
@@ -454,14 +448,8 @@ main (int argc, char **argv)
 #endif
 	    outputAof();
 	}
-#ifdef __riscos__
-      dependPut ("\n", "", "");
-#endif
     }
   outputFinish ();
-#ifdef __riscos__
-  dependFinish ();
-#endif
   errorFinish ();
   finished = 1;
   return returnExitStatus ();

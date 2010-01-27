@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2006 GCCSDK Developers
+ * Copyright (c) 2001-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,8 +50,12 @@
 
 #define SYMBOL_SUPPORTEDBITS 0x1B7F /** Mask for the symbol bits which are AOF defined symbols bits and can be passed on in the AOF output file.  */
 
-/* The following are 'as' internal SYMBOL attribute values only and should
+/* The following are 'asasm' internal SYMBOL attribute values only and should
    not be used in the AOF output file.  */
+
+#define SYMBOL_MACRO_LOCAL	0x00010000 /** Set when symbol is only known as
+  a local macro variable.  */
+
 #define SYMBOL_KEEP		0x01000000
 #define SYMBOL_AREA		0x02000000
 #define SYMBOL_NOTRESOLVED	0x04000000
@@ -71,7 +75,7 @@
 typedef struct SYMBOL
 {
   struct SYMBOL *next;  /** Linked symbols all having the same hash value.  */
-  unsigned int type;
+  unsigned int type; /** Cfr. SYMBOL_* bits.  */
   Value value;
   union
   {
@@ -83,8 +87,7 @@ typedef struct SYMBOL
   int used;		/** -1 when not used; for area symbols: at outputAof/outputElf stage, this will be the area number counted from 0; for other symbols, 0 when symbol is needed in output. This will become the symbol index at symbolFix stage.  */
   int len;		/** length of str[] without its NUL terminator.  */
   char str[1];		/** symbol name as NUL terminated string */
-}
-Symbol;
+} Symbol;
 
 void symbolInit (void);
 Symbol *symbolAdd (const Lex *l);

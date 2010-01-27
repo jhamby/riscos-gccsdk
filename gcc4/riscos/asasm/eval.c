@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2008 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,29 +45,33 @@ ememcmp (Value * lv, const Value * rv)
 
 
 #define COMPARE(OP) \
-      if(lvalue->Tag.t == ValueFloat && rvalue->Tag.t == ValueFloat) { \
-	lvalue->ValueBool.b = lvalue->ValueFloat.f OP rvalue->ValueFloat.f; \
-	lvalue->Tag.t = ValueBool; \
-	return TRUE; \
-      }	  \
-      if(lvalue->Tag.t == ValueString && rvalue->Tag.t == ValueString) { \
-	lvalue->ValueBool.b = ememcmp(lvalue,rvalue) OP 0; \
-	lvalue->Tag.t = ValueBool; \
-	return TRUE; \
-      }	  \
-      if(!(lvalue->Tag.t & (ValueInt|ValueAddr|ValueLateLabel)) || \
-	 !(rvalue->Tag.t & (ValueInt|ValueAddr|ValueLateLabel))) \
-	{ fprintf (stderr, ": %i %i\n", lvalue->Tag.t, rvalue->Tag.t);return FALSE;} \
- \
-      help_evalSubLate(lvalue,rvalue); \
- /* Might not be a ValueInt, but ValueLate* has i at the same place */ \
-      if(!(lvalue->Tag.t & (ValueInt | ValueAddr))) \
-	return FALSE; \
- \
-      lvalue->ValueBool.b = lvalue->ValueInt.i OP rvalue->ValueInt.i; \
+  if (lvalue->Tag.t == ValueFloat && rvalue->Tag.t == ValueFloat) \
+    { \
+      lvalue->ValueBool.b = lvalue->ValueFloat.f OP rvalue->ValueFloat.f; \
       lvalue->Tag.t = ValueBool; \
-      return TRUE		/* Last ; is where macro is used */
-
+      return TRUE; \
+    }	  \
+  if (lvalue->Tag.t == ValueString && rvalue->Tag.t == ValueString) \
+    { \
+      lvalue->ValueBool.b = ememcmp(lvalue,rvalue) OP 0; \
+      lvalue->Tag.t = ValueBool; \
+      return TRUE; \
+    } \
+  if (!(lvalue->Tag.t & (ValueInt | ValueAddr | ValueLateLabel)) \
+      || !(rvalue->Tag.t & (ValueInt | ValueAddr | ValueLateLabel))) \
+    { \
+      fprintf (stderr, ": %i %i\n", lvalue->Tag.t, rvalue->Tag.t); \
+      return FALSE; \
+    } \
+  \
+  help_evalSubLate(lvalue,rvalue); \
+  /* Might not be a ValueInt, but ValueLate* has i at the same place */ \
+  if (!(lvalue->Tag.t & (ValueInt | ValueAddr))) \
+    return FALSE; \
+  \
+  lvalue->ValueBool.b = lvalue->ValueInt.i OP rvalue->ValueInt.i; \
+  lvalue->Tag.t = ValueBool; \
+  return TRUE /* Last ; is where macro is used */
 
 BOOL
 evalBinop (Operator op, Value * lvalue, const Value * rvalue)
@@ -142,10 +146,7 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
 	{
 	  char *c;
 	  if ((c = malloc (lvalue->ValueString.len + rvalue->ValueString.len)) == NULL)
-	    {
-	      errorOutOfMem("evalBinop");
-	      return FALSE;
-	    }
+	    errorOutOfMem();
 	  memcpy (c, lvalue->ValueString.s, lvalue->ValueString.len);
 	  memcpy (c + lvalue->ValueString.len,
 		  rvalue->ValueString.s, rvalue->ValueString.len);
@@ -170,8 +171,8 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
 	    lvalue->Tag.t = ValueInt;
 	  return TRUE;
 	}
-      if (!(lvalue->Tag.t & (ValueInt | ValueLateLabel)) ||
-	  !(rvalue->Tag.t & (ValueInt | ValueLateLabel)))
+      if (!(lvalue->Tag.t & (ValueInt | ValueLateLabel))
+	  || !(rvalue->Tag.t & (ValueInt | ValueLateLabel)))
 	return FALSE;
 
       help_evalSubLate (lvalue, rvalue);
@@ -179,9 +180,9 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
       lvalue->ValueInt.i -= rvalue->ValueInt.i;
       return TRUE;
     case Op_and:
-      if ((lvalue->Tag.t == ValueAddr && rvalue->Tag.t == ValueInt) ||
-	  (lvalue->Tag.t == ValueInt && rvalue->Tag.t == ValueAddr) ||
-	  (lvalue->Tag.t == ValueInt && rvalue->Tag.t == ValueInt))
+      if ((lvalue->Tag.t == ValueAddr && rvalue->Tag.t == ValueInt)
+	  || (lvalue->Tag.t == ValueInt && rvalue->Tag.t == ValueAddr)
+	  || (lvalue->Tag.t == ValueInt && rvalue->Tag.t == ValueInt))
 	{
 	  lvalue->ValueInt.i &= rvalue->ValueInt.i;
 	  return TRUE;
@@ -238,7 +239,7 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
 	    lvalue->ValueBool.b == rvalue->ValueBool.b;
 	  return TRUE;
 	}
-      COMPARE ( ==);
+      COMPARE (==);
     case Op_ne:
       if (lvalue->Tag.t == ValueBool && rvalue->Tag.t == ValueBool)
 	{
@@ -275,146 +276,137 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
 	}
       return TRUE;
     default:
-      error (ErrorError, TRUE, "Illegal binary operator");
+      error (ErrorError, "Illegal binary operator");
       break;
     }
-  error (ErrorError, TRUE, "Internal evalBinop: illegal fall through");
+  error (ErrorError, "Internal evalBinop: illegal fall through");
   return FALSE;
 }
 
 BOOL
-evalUnop (Operator op, Value * value)
+evalUnop (Operator op, Value *value)
 {
   switch (op)
     {
-    case Op_fattr:
-      if (value->Tag.t != ValueString)
-	return FALSE;
-      error (ErrorError, TRUE, "%s not implemented", "fattr");
-      return TRUE;
-    case Op_fexec:
-      if (value->Tag.t != ValueString)
-	return FALSE;
-      /* TODO: Real exec address. For now, just fill with zeros */
-      value->ValueInt.i = 0;
-      value->Tag.t = ValueInt;
-      return TRUE;
-    case Op_fload:
-      if (value->Tag.t != ValueString)
-	return FALSE;
-      /* TODO: Real load address. For now, type everything as text */
-      value->ValueInt.i = 0xFFFfff00;
-      value->Tag.t = ValueInt;
-      return TRUE;
-    case Op_fsize:
-      {
-      if (value->Tag.t != ValueString)
-	return FALSE;
-      char *s;
-      if ((s = strndup(value->ValueString.s, value->ValueString.len)) == NULL)
-        {
-          errorOutOfMem("evalUnop");
-          return FALSE;
-        }
-      FILE *fp;
-      if ((fp = getInclude (s, NULL)) == NULL)
-	{
-	  error (ErrorError, TRUE, "Cannot open file \"%s\"", s ? s : "");
-	  free (s);
+      case Op_fattr:
+	if (value->Tag.t != ValueString)
 	  return FALSE;
-	}
-      if (fseek (fp, 0l, SEEK_END))
-	{
-	  error (ErrorError, TRUE, "Cannot seek to end of file \"%s\"", s ? s : "");
-	  free (s);
+	error (ErrorError, "%s not implemented", "fattr");
+	break;
+      case Op_fexec:
+	if (value->Tag.t != ValueString)
 	  return FALSE;
-	}
-      if (-1 == (value->ValueInt.i = (int) ftell (fp)))
-	{
-	  error (ErrorError, TRUE, "Cannot find size of file \"%s\"", s ? s : "");
-	  free (s);
+	/* TODO: Real exec address. For now, just fill with zeros */
+	value->ValueInt.i = 0;
+	value->Tag.t = ValueInt;
+	break;
+      case Op_fload:
+	if (value->Tag.t != ValueString)
 	  return FALSE;
-	}
-      fclose (fp);
-      free (s);
-      value->Tag.t = ValueInt;
-      return TRUE;
-      }
-    case Op_lnot:
-      if (value->Tag.t != ValueBool)
-	return FALSE;
-      value->ValueBool.b = !value->ValueBool.b;
-      return TRUE;
-    case Op_not:
-      if (value->Tag.t != ValueInt)
-	return FALSE;
-      value->ValueInt.i = ~value->ValueInt.i;
-      return TRUE;
-    case Op_neg:
-      if (value->Tag.t == ValueFloat)
-	value->ValueFloat.f = -value->ValueFloat.f;
-      else
+	/* TODO: Real load address. For now, type everything as text */
+	value->ValueInt.i = 0xFFFfff00;
+	value->Tag.t = ValueInt;
+	break;
+      case Op_fsize:
 	{
-	  if (!(value->Tag.t & (ValueInt | ValueLateLabel)))
+	  if (value->Tag.t != ValueString)
 	    return FALSE;
-	  help_evalNegLate (value);
-	  value->ValueInt.i = -value->ValueInt.i;
+	  char *s;
+	  if ((s = strndup(value->ValueString.s, value->ValueString.len)) == NULL)
+	    errorOutOfMem();
+	  FILE *fp;
+	  if ((fp = getInclude (s, NULL)) == NULL)
+	    {
+	      error (ErrorError, "Cannot open file \"%s\"", s ? s : "");
+	      free (s);
+	      return FALSE;
+	    }
+	  if (fseek (fp, 0l, SEEK_END))
+	    {
+	      error (ErrorError, "Cannot seek to end of file \"%s\"", s ? s : "");
+	      free (s);
+	      return FALSE;
+	    }
+	  value->ValueInt.i = (int) ftell (fp);
+	  if (value->ValueInt.i == -1)
+	    {
+	      error (ErrorError, "Cannot find size of file \"%s\"", s ? s : "");
+	      free (s);
+	      return FALSE;
+	    }
+	  fclose (fp);
+	  free (s);
+	  value->Tag.t = ValueInt;
 	}
-      return TRUE;
-    case Op_index:
-      if (value->Tag.t != ValueAddr && value->Tag.t != ValueInt)
-	return FALSE;
-      value->Tag.t = ValueInt;
-      return TRUE;
-    case Op_len:
-      if (value->Tag.t != ValueString)
-	return FALSE;
-      value->Tag.t = ValueInt;
-      return TRUE;
-    case Op_str:
-      {
-	char num[32];
-	switch (value->Tag.t)
-	  {
-	  case ValueInt:
-	    sprintf (num, "%i", value->ValueInt.i);
-	    break;
-	  case ValueFloat:
-	    sprintf (num, "%f", value->ValueFloat.f);
-	    break;
-	  default:
-	    return FALSE;
-	  }
-	if ((value->ValueString.s = strdup (num)) == NULL)
-	  {
-	    errorOutOfMem("evalUnop");
-	    return FALSE;
-	  }
-	value->ValueString.len = strlen (num);
-	value->Tag.t = ValueString;
-      }
-      return TRUE;
-    case Op_chr:
-      {
-	char num[2];
+	break;
+      case Op_lnot:
+	if (value->Tag.t != ValueBool)
+	  return FALSE;
+	value->ValueBool.b = !value->ValueBool.b;
+	break;
+      case Op_not:
 	if (value->Tag.t != ValueInt)
 	  return FALSE;
-	if ((num[0] = value->ValueInt.i) == 0)
-	  error (ErrorWarning, TRUE, ":CHR:0 is a problem...");
-	num[1] = 0;
-	if ((value->ValueString.s = strdup (num)) == NULL)
+	value->ValueInt.i = ~value->ValueInt.i;
+	break;
+      case Op_neg:
+	if (value->Tag.t == ValueFloat)
+	  value->ValueFloat.f = -value->ValueFloat.f;
+	else
 	  {
-	    errorOutOfMem("evalUnop");
-	    return FALSE;
+	    if (!(value->Tag.t & (ValueInt | ValueLateLabel)))
+	      return FALSE;
+	    help_evalNegLate (value);
+	    value->ValueInt.i = -value->ValueInt.i;
 	  }
-	value->ValueString.len = 1;
-	value->Tag.t = ValueString;
-      }
-      return TRUE;
-    default:
-      error (ErrorError, TRUE, "Illegal unary operator");
-      break;
+	break;
+      case Op_index:
+	if (value->Tag.t != ValueAddr && value->Tag.t != ValueInt)
+	  return FALSE;
+	value->Tag.t = ValueInt;
+	break;
+      case Op_len:
+	if (value->Tag.t != ValueString)
+	  return FALSE;
+	value->Tag.t = ValueInt;
+	break;
+      case Op_str:
+	{
+	  char num[32];
+	  switch (value->Tag.t)
+	    {
+	      case ValueInt:
+		sprintf (num, "%i", value->ValueInt.i);
+		break;
+	      case ValueFloat:
+		sprintf (num, "%f", value->ValueFloat.f);
+		break;
+	      default:
+		return FALSE;
+	    }
+	  if ((value->ValueString.s = strdup (num)) == NULL)
+	    errorOutOfMem();
+	  value->ValueString.len = strlen (num);
+	  value->Tag.t = ValueString;
+	}
+	break;
+      case Op_chr:
+	{
+	  char num[2];
+	  if (value->Tag.t != ValueInt)
+	    return FALSE;
+	  if ((num[0] = value->ValueInt.i) == 0)
+	    error (ErrorWarning, ":CHR:0 is a problem...");
+	  num[1] = 0;
+	  if ((value->ValueString.s = strdup (num)) == NULL)
+	    errorOutOfMem ();
+	  value->ValueString.len = 1;
+	  value->Tag.t = ValueString;
+	}
+	break;
+      default:
+	errorAbort ("Internal evalUnop: illegal fall through");
+	break;
     }
-  error (ErrorSerious, FALSE, "Internal evalUnop: illegal fall through");
-  return FALSE;
+  return TRUE;
 }

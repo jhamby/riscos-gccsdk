@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -69,7 +69,7 @@ prim (void)
       else if (isUnop (lex.LexOperator.op))
 	codeOperator (lex.LexOperator.op);
       else
-	error (ErrorError, TRUE, "Illegal unop");
+	error (ErrorError, "Illegal unop");
       break;
     case LexDelim:
       if (lex.LexDelim.delim == '(')
@@ -77,18 +77,18 @@ prim (void)
 	  expr (1);
 	  lex = lexGetPrim ();
 	  if (lex.tag != LexDelim || lex.LexDelim.delim != ')')
-	    error (ErrorError, TRUE, "Missing ')'");
+	    error (ErrorError, "Missing ')'");
 	}
       else if (lex.LexDelim.delim == ')')
-	error (ErrorError, TRUE, "Missing '('");
+	error (ErrorError, "Missing '('");
       else
-	error (ErrorError, TRUE, "Illegal delimiter '%c'", lex.LexDelim.delim);
+	error (ErrorError, "Illegal delimiter '%c'", lex.LexDelim.delim);
       break;
     case LexBool:
       codeBool (lex.LexBool.value);
       break;
     default:
-      error (ErrorError, TRUE, "Illegal expression");
+      error (ErrorError, "Illegal expression");
       break;
     }
 }

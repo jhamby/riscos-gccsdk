@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,7 +52,7 @@ dstmem (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%scoprocessor number", InsertCommaAfter);
+    error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= CPDST_OP (getCopReg ());
   ir = help_copAddr (ir, FALSE);
   putIns (ir);
@@ -68,7 +68,7 @@ void
 m_ldc2 (WORD cc)
 {
   if ((cc & NV) != AL)
-    error (ErrorError, TRUE, "LDC2 cannot be conditional");
+    error (ErrorError, "LDC2 cannot be conditional");
   dstmem (cc | 0x0c100000 | NV);
 }
 
@@ -82,6 +82,6 @@ void
 m_stc2 (WORD cc)
 {
   if ((cc & NV) != AL)
-    error (ErrorError, TRUE, "STC2 cannot be conditional");
+    error (ErrorError, "STC2 cannot be conditional");
   dstmem (cc | 0x0c000000 | NV);
 }

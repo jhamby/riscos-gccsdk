@@ -1,7 +1,7 @@
 /* 
  * AS an assembler for ARM
  * Copyright (c) 1998 Nick Burrett
- * Copyright (c) 2001-2006 GCCSDK Developers
+ * Copyright (c) 2001-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,26 +25,33 @@
 #define os_header_included
 
 #include "config.h"
+#include <error.h>
 #include <string.h>
 
 #ifndef __riscos__
 /* UNIX specific information.  */
-#  define CanonicalisePath(path) strdup(path)
+static inline const char *
+CanonicalisePath (const char *path)
+{
+  const char *rsltP;
+  if ((rsltP = strdup (path)) == NULL)
+    errorOutOfMem ();
+  return rsltP;
+}
 #else
 
 #include <kernel.h>
 
-extern int switonum (const char *swi);
+int switonum (const char *swi);
 
-extern int OSCanonicalisePath (const char *path,
-			       char *buffer, int bufferSize,
-			       char *systemVar, char *defaultPath);
+int OSCanonicalisePath (const char *path,
+			char *buffer, int bufferSize,
+			char *systemVar, char *defaultPath);
 
-extern _kernel_oserror *ThrowbackStart (void);
-extern _kernel_oserror *ThrowbackSendStart (const char *filename);
-extern _kernel_oserror *ThrowbackSendError (int level, long int lineno,
-					    const char *error);
-extern _kernel_oserror *ThrowbackEnd (void);
+_kernel_oserror *ThrowbackStart (void);
+_kernel_oserror *ThrowbackSendStart (const char *filename);
+_kernel_oserror *ThrowbackSendError (int level, int lineno, const char *error);
+_kernel_oserror *ThrowbackEnd (void);
 
 #define Throwback_ReasonProcessing	0
 #define Throwback_ReasonErrorDetails	1
@@ -55,20 +62,20 @@ extern _kernel_oserror *ThrowbackEnd (void);
 #define ThrowbackError			1
 #define ThrowbackSeriousError		2
 
-extern char *CanonicalisePath (const char *path);
+char *CanonicalisePath (const char *path);
 
 #endif /* !__riscos__ */
 
 #ifndef HAVE_STRNDUP
-extern char *strndup (const char *str, size_t len);
+char *strndup (const char *str, size_t len);
 #endif
 
 #ifndef HAVE_STRDUP
-extern char *strdup (const char *str);
+char *strdup (const char *str);
 #endif
 
 #ifndef HAVE_STRNCASECMP
-extern int strncasecmp(const char *str1, const char *str2, size_t n);
+int strncasecmp(const char *str1, const char *str2, size_t n);
 #endif
 
 #endif

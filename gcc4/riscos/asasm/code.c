@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -54,14 +54,12 @@ BOOL exprNotConst;
 LateInfo *
 codeNewLateInfo (Symbol *symbol)
 {
-  if (LateHeapPtr < CODE_SIZELATE)
-    {
-      LateHeap[LateHeapPtr].next = 0;
-      LateHeap[LateHeapPtr].factor = 1;
-      LateHeap[LateHeapPtr].symbol = symbol;
-    }
-  else
-    errorOutOfMem ("codeNewLateInfo");
+  if (LateHeapPtr >= CODE_SIZELATE)
+    errorOutOfMem ();
+
+  LateHeap[LateHeapPtr].next = 0;
+  LateHeap[LateHeapPtr].factor = 1;
+  LateHeap[LateHeapPtr].symbol = symbol;
   return &LateHeap[LateHeapPtr++];
 }
 
@@ -81,7 +79,7 @@ codeOperator (Operator op)
       Program[FirstFreeIns++].CodeOperator.op = op;
     }
   else
-    error (ErrorSerious, FALSE, "Internal codeOp: overflow");
+    errorAbort ("Internal codeOp: overflow");
 }
 
 void
@@ -113,10 +111,10 @@ codeSymbol (Symbol *symbol)
 		  symbol->used = 0; /* Mark as used.  */
 		}
 	      else
-		error (ErrorSerious, FALSE, "Internal codeSymbol: overflow (n)");
+		errorAbort ("Internal codeSymbol: overflow (n)");
 	      break;
 	    default:
-	      error (ErrorSerious, FALSE, "Internal codeSymbol: illegal symbol value");
+	      errorAbort ("Internal codeSymbol: illegal symbol value");
 	      break;
 	    }
 	}
@@ -128,7 +126,7 @@ codeSymbol (Symbol *symbol)
 	}
     }
   else
-    error (ErrorSerious, FALSE, "Internal codeSymbol: overflow (1)");
+    errorAbort ("Internal codeSymbol: overflow (1)");
 }
 
 void
@@ -141,7 +139,7 @@ codePosition (Symbol *area)
       codeOperator (Op_add);
     }
   else
-    error (ErrorError, FALSE, "'.' found, but no area is defined");
+    errorAbort ("'.' found, but no area is defined");
 }
 
 void
@@ -162,7 +160,7 @@ codeString (int len, const char *str)
       Program[FirstFreeIns++].CodeValue.value.ValueString.s = str;
     }
   else
-    error (ErrorSerious, FALSE, "Internal codeString: overflow");
+    errorAbort ("Internal codeString: overflow");
 }
 
 void
@@ -175,7 +173,7 @@ codeInt (int value)
       Program[FirstFreeIns++].CodeValue.value.ValueInt.i = value;
     }
   else
-    error (ErrorSerious, FALSE, "Internal codeInt: overflow");
+    errorAbort ("Internal codeInt: overflow");
 }
 
 void
@@ -188,7 +186,7 @@ codeFloat (FLOAT value)
       Program[FirstFreeIns++].CodeValue.value.ValueFloat.f = value;
     }
   else
-    error (ErrorSerious, FALSE, "Internal codeFloat: overflow");
+    errorAbort ("Internal codeFloat: overflow");
 }
 
 void
@@ -201,7 +199,7 @@ codeBool (BOOL value)
       Program[FirstFreeIns++].CodeValue.value.ValueBool.b = value;
     }
   else
-    error (ErrorSerious, FALSE, "Internal codeBool: overflow");
+    errorAbort ("Internal codeBool: overflow");
 }
 
 
@@ -249,13 +247,11 @@ codeEvalLowest (int size, const Code *program)
 		    return FALSE;
 		  break;
 		case ValueAddr:
-		  error (ErrorSerious, FALSE,
-			 "Register offset labels must be defined before use");
+		  errorAbort ("Register offset labels must be defined before use");
 		  break;
 		default:
-		  error (ErrorSerious, FALSE,
-			 "Internal codeEvalLow: illegal value for symbol %s",
-			 program[Pp].CodeSymbol.symbol->str);
+		  errorAbort ("Internal codeEvalLow: illegal value for symbol %s",
+			      program[Pp].CodeSymbol.symbol->str);
 		  break;
 		}
 	    }
@@ -267,7 +263,7 @@ codeEvalLowest (int size, const Code *program)
 	    }
 	  break;
 	default:
-	  error (ErrorSerious, FALSE, "Internal codeEvalLow: illegal expression");
+	  errorAbort ("Internal codeEvalLow: illegal expression");
 	  break;
 	}
     }
@@ -302,7 +298,7 @@ codeEvalLow (ValueTag legal, int size, Code *program)
 	{
 	  FLOAT f = Result.ValueInt.i;
 	  if (option_fussy > 1)
-	    error (ErrorInfo, TRUE, "Changing integer %d to float %1.1f", Result.ValueInt.i, f);
+	    error (ErrorInfo, "Changing integer %d to float %1.1f", Result.ValueInt.i, f);
 	  Result.Tag.t = ValueFloat;
 	  Result.ValueFloat.f = f;
 	}
@@ -315,13 +311,14 @@ codeEvalLow (ValueTag legal, int size, Code *program)
 Code *
 codeCopy (int len, const Code *code)
 {
-  int i;
-  Code *newCode = malloc (len * sizeof (Code));
-  if (newCode)
-    for (i = 0; i < len; i++)
-      {
-	switch (newCode[i].Tag = code[i].Tag)
-	  {
+  Code *newCode;
+  if ((newCode = malloc (len * sizeof (Code))) == NULL)
+    errorOutOfMem ();
+
+  for (int i = 0; i < len; i++)
+    {
+      switch (newCode[i].Tag = code[i].Tag)
+	{
 	  case CodeOperator:
 	    newCode[i].CodeOperator.op = code[i].CodeOperator.op;
 	    break;
@@ -331,10 +328,8 @@ codeCopy (int len, const Code *code)
 	  case CodeSymbol:
 	    newCode[i].CodeSymbol.symbol = code[i].CodeSymbol.symbol;
 	    break;
-	  }
-      }
-  else
-    errorOutOfMem ("codeCopy");
+	}
+    }
   return newCode;
 }
 

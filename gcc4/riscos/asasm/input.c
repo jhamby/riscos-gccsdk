@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,8 +23,9 @@
 #include "config.h"
 #include <assert.h>
 #include <ctype.h>
-#include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #ifdef HAVE_STDINT_H
@@ -48,13 +49,10 @@
 
 #define MAX_LINE (4096)
 
-FILE *asmfile;
-long int inputLineNo;
 BOOL inputExpand = TRUE;
 BOOL inputRewind = FALSE;
-const char *inputName = NULL; /**< Malloced block holding the current filename, is NUL terminated.  */
 
-static char *input_buff = NULL;
+static char input_buff[MAX_LINE + 256];
 static char *input_pos, *input_mark;
 static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 
@@ -149,7 +147,7 @@ inputUnGet (char c)
   else if (*input_pos || c)
     {
       /* printf("char = '%c' \"%s\" \"%s\"\n", c, input_pos, input_buff); */
-      error (ErrorSerious, FALSE, "Internal inputUnGet: illegal character");
+      errorAbort ("Internal inputUnGet: illegal character");
     }
 }
 
@@ -162,7 +160,7 @@ inputPutBack (char c)
   else if (*input_pos || c)
     {
       /* printf("char = '%c' \"%s\" \"%s\"\n", c, input_pos, input_buff); */
-      error (ErrorSerious, FALSE, "Internal inputPutBack: illegal character");
+      errorAbort ("Internal inputPutBack: illegal character");
     }
 }
 
@@ -181,7 +179,7 @@ inputSkipN (int n)
   while (*input_pos && n--)
     input_pos++;
   if (n > (*input_pos ? -1 : 0))	/* Fix to allow skip to end of string */
-    error (ErrorSerious, FALSE, "Internal inputSkipN: trying to skip more characters than are available");
+    errorAbort ("Internal inputSkipN: trying to skip more characters than are available");
 }
 
 
@@ -197,11 +195,13 @@ inputRest (void)
 }
 
 
-char *
+#if DEBUG
+const char *
 inputLine (void)
 {
   return input_buff;
 }
+#endif
 
 
 char
@@ -241,64 +241,19 @@ inputRollback (void)
   input_pos = input_mark;
 }
 
+
 void
 inputInit (const char *infile)
 {
-  /* 256 bytes of overflow */
-  if (input_buff == NULL
-      && (input_buff = (char *) malloc (MAX_LINE + 256)) == NULL)
-    errorOutOfMem("inputInit");
-
-  if (infile != NULL && strcmp (infile, "-"))
-    {
-      if ((asmfile = fopen (infile, "r")) == NULL)
-        {
-#if defined(__TARGET_UNIXLIB__)
-	  /* Try again but this time with(out) suffix swapping.  */
-	  __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
-           asmfile = fopen (infile, "r");
-	  __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
-#endif
-        }
-
-      if (asmfile == NULL)
-	errorLine (0, NULL, ErrorAbort, FALSE, "AS can't read %s: %s",
-	           infile, strerror (errno));
-      else
-	{
-	  free ((void *)inputName);
-	  inputName = CanonicalisePath (infile);
-
-	  static char buffer[16 * 1024];
-	  setvbuf (asmfile, buffer, _IOFBF, sizeof (buffer));
-	}
-    }
-  else
-    asmfile = stdin;
-
-  inputLineNo = 0;
-  skiprest ();
-}
-
-
-/**
- * Close the current input file handle and optionally replace it with a new
- * given one.
- * \param newAsmFile When non-NULL, the new current input file handle.
- */
-void
-inputFinish (FILE *newAsmFile)
-{
-  if (asmfile && asmfile != stdin)
-    fclose (asmfile);
-  asmfile = newAsmFile;
+  if (!strcmp (infile, "-"))
+    infile = NULL;
+  FS_PushFilePObject (infile == NULL ? NULL : infile);
 }
 
 
 /**
  * Read a line from the input file into file global |workBuff|, with some
  * minimal error checking.
- * Application global |inputLineNo| is incremented for each line read
  *
  * Any empty line and any line starting with '#' followed by space and
  * one or more digits is discarded.  The '#' exception is to be able to
@@ -309,18 +264,18 @@ inputFinish (FILE *newAsmFile)
  *   Application global |input_pos| is a pointer to this.
  *
  * InputArgSub() then performs any required argument substitution
+ * \return FALSE when there is no input to be read, TRUE otherwise.
  */
 BOOL
 inputNextLine (void)
 {
-  int l;
   if (inputRewind)
     {
       inputRewind = FALSE;
       goto ret;
     }
-  if (asmfile == NULL)
-    goto retBad;
+  if (gCurPObjP == NULL)
+    return FALSE;
 
   if (num_predefines)
     {
@@ -335,7 +290,8 @@ inputNextLine (void)
          {
            const char *space = strchr(predefine, ' ');
            const char *type = strstr(predefine, " SET");
-           if (!space) error (ErrorError, TRUE, "Invalid predefine");
+           if (!space)
+	     error (ErrorError, "Invalid predefine");
 
            if (type && (type[4] == 'L' || type[4] == 'S' || type[4] == 'I')) 
              {
@@ -353,36 +309,32 @@ inputNextLine (void)
          }
 
        toggle = !toggle;
-       if (num == num_predefines) num_predefines = 0;
+       if (num == num_predefines)
+	 num_predefines = 0;
     }
   else
     {
-      inputLineNo++;
-      if (macroCurrent && macroGetLine (workBuff))
-        goto ret;
-      while (fgets (workBuff, MAX_LINE, asmfile) == NULL)
-        {
-          if (option_pedantic)
-	    error (ErrorWarning, TRUE, "No END found in this file");
-          if ((asmfile = pop_file ()) == NULL)
-	    {
-retBad:
-	      inputLineNo = -inputLineNo;
-	      return FALSE;
-	    }
-        }
+      while (gCurPObjP->GetLine (workBuff, sizeof (workBuff)))
+	{
+	  if (gCurPObjP->type == POType_eFile && option_pedantic)
+	    error (ErrorWarning, "No END found in this file");
+	  FS_PopPObject (false);
+	  if (gCurPObjP == NULL)
+	    return FALSE;
+	}
+      gCurPObjP->lineNum++;
     }
 
-  l = strlen (workBuff);
-  if (l)
+  size_t l = strlen (workBuff);
+  if (l >= 2)
     {
-      /* If we start the line with a '#' followed by a space and one or
-       * more digits then treat the whole line as a comment.
-       * Like: # 5 "lib1funcs-aof.S"
-       * FIXME: We could do better by using the digits as line number and
-       * the next argument as a file reference of the file before
-       * preprocessing.
-       */
+      /* Only needed to process gcc preprocessed assembler files.
+         If we start the line with a '#' followed by a space and one or
+         more digits then treat the whole line as a comment.
+         Like: # 5 "lib1funcs-aof.S"
+         FIXME: We could do better by using the digits as line number and
+         the next argument as a file reference of the file before
+         preprocessing.  */
       if (workBuff[0] == '#' && workBuff[1] == ' ')
 	{
 	  int i;
@@ -394,20 +346,10 @@ retBad:
 	      return TRUE;
 	    }
 	}
-
-      if (workBuff[l - 1] != '\n')
-	{
-	  if ((l = getc (asmfile)) != EOF && l != '\n')
-	    {
-	      error (ErrorSerious, TRUE, "Line truncated");
-	      while ((l = getc (asmfile)) != EOF && l != '\n');
-	    }
-	}
-      else
-	workBuff[l - 1] = 0;
     }
 
 ret:
+  /* printf("Line %04d: <%s>\n", FS_GetCurLineNumber (), workBuff); fflush(stdout); */
   if (!inputExpand)
     {
       strcpy (input_pos = input_buff, workBuff);
@@ -459,7 +401,7 @@ inputEnvSub(int *ptr, int *trunc)
   if (env == NULL)
     {
       /* No such variable defined. Warn, though we may want to error. */
-      error (ErrorWarning, TRUE, "Unknown environment variable '%s'", temp);
+      error (ErrorWarning, "Unknown environment variable '%s'", temp);
       input_buff[(*ptr)++] = '<';
       return TRUE;
     }
@@ -467,12 +409,12 @@ inputEnvSub(int *ptr, int *trunc)
   len = strlen (env);
 
   /* Substitute variable's value, providing it won't truncate */
-  if ((*ptr) + len >= MAX_LINE)
+  if (*ptr + len >= MAX_LINE)
     *trunc = 1;
   else
     {
-      memcpy(input_buff + (*ptr), env, len);
-      (*ptr) += len;
+      memcpy(input_buff + *ptr, env, len);
+      *ptr += len;
     }
 
   /* Next input to process is the character after the '>' */
@@ -534,7 +476,7 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
   else if (inString == FALSE)
     {
       /* Must be an id if we're not in a string literal */
-      error (ErrorWarning, TRUE, "Non-ID in $ expansion");
+      error (ErrorWarning, "Non-ID in $ expansion");
       input_buff[(*ptr)++] = '$';
       /* Restore input_pos, so we reprocess the current input */
       input_pos = rb;
@@ -547,32 +489,29 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
       switch (sym->value.Tag.t)
 	{
 	case ValueInt:
-	  sprintf (input_buff + (*ptr), "%i", sym->value.ValueInt.i);
-	  (*ptr) += strlen (input_buff + (*ptr));
+	  *ptr += sprintf (&input_buff[*ptr], "%i", sym->value.ValueInt.i);
 	  break;
 	case ValueFloat:
-	  sprintf (input_buff + (*ptr), "%f", sym->value.ValueFloat.f);
-	  (*ptr) += strlen (input_buff + (*ptr));
+	  *ptr += sprintf (&input_buff[*ptr], "%f", sym->value.ValueFloat.f);
 	  break;
 	case ValueString:
-	  if ((*ptr) + sym->value.ValueString.len >= MAX_LINE)
-	    (*ptr) = MAX_LINE + 1;
+	  if (*ptr + sym->value.ValueString.len >= MAX_LINE)
+	    *ptr = MAX_LINE + 1;
 	  else
 	    {
-	      memcpy (input_buff + (*ptr), sym->value.ValueString.s,
+	      memcpy (input_buff + *ptr, sym->value.ValueString.s,
                       sym->value.ValueString.len);
-	      (*ptr) += sym->value.ValueString.len;
+	      *ptr += sym->value.ValueString.len;
 	    }
 	  break;
 	case ValueBool:
-	  strcpy (input_buff + (*ptr), 
-                  sym->value.ValueBool.b ? "{TRUE}" : "{FALSE}");
-	  (*ptr) += strlen (input_buff + (*ptr));
+	  strcpy (&input_buff[*ptr], sym->value.ValueBool.b ? "{TRUE}" : "{FALSE}");
+	  *ptr += strlen (&input_buff[*ptr]);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
 	case ValueAddr:
-	  error (ErrorError, TRUE, "$ expansion '%.*s' is a pointer",
+	  error (ErrorError, "$ expansion '%.*s' is a pointer",
 		 label.LexId.len, label.LexId.str);
           /* This one's fatal */
           return FALSE;
@@ -583,11 +522,11 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
     }
   else
     {
-    unknown:
+unknown:
       if (inString == FALSE)
         {
           /* Not in string literal, so this is an error */
-          error (ErrorError, TRUE, "Unknown value '%.*s' for $ expansion",
+          error (ErrorError, "Unknown value '%.*s' for $ expansion",
 		 label.LexId.len, label.LexId.str);
           input_buff[(*ptr)++] = '$';
           /* Restore input_pos so we reprocess current input */
@@ -602,50 +541,46 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
           assert(label.tag == LexId || label.tag == LexNone);
 
           /* Unknown symbol, but in string literal, so output verbatim */
-          if ((*ptr) + 1 + label_len >= MAX_LINE)
-            (*ptr) = MAX_LINE + 1;
+          if (*ptr + 1 + label_len >= MAX_LINE)
+            *ptr = MAX_LINE + 1;
           else
             {
               input_buff[(*ptr)++] = '$';
               if (label.tag == LexId)
-                memcpy (input_buff + (*ptr), label.LexId.str, label.LexId.len);
-              (*ptr) += label_len;
+                memcpy (&input_buff[*ptr], label.LexId.str, label.LexId.len);
+              *ptr += label_len;
               return TRUE;
             }
         }
     }
 
   /* substitution complete or not found; copy the rest of the line */
-  while (*input_pos && (*ptr) < MAX_LINE)
+  while (*input_pos && *ptr < MAX_LINE)
     input_buff[(*ptr)++] = *input_pos++;
-  if ((*ptr) >= MAX_LINE)
+  if (*ptr >= MAX_LINE)
     {
       *trunc = 1;
       input_buff[MAX_LINE - 1] = 0;
     }
   else
-   input_buff[(*ptr)] = 0;
+   input_buff[*ptr] = 0;
 
   /* Restore input position and write offset */
   input_pos = rb;
-  (*ptr) = len;
+  *ptr = len;
   /* Copy expanded string to input_pos, so it's reprocessed next time.
-   * This allows variable values to contain substituted components. */
+     This allows variable values to contain substituted components.  */
   strcpy(input_pos, input_buff + len);
 
   return TRUE;
 }
 
 
-
-/****************************************************************
-* copy the line from |workBuff| to |input_buff|, while performing any
-* substitutions.
-*
-* Returns TRUE if successful
-*
-****************************************************************/
-
+/**
+ * Copy the line from |workBuff| to |input_buff|, while performing any
+ * substitutions.
+ * \returns TRUE if successful
+ */
 static BOOL
 inputArgSub (void)
 {
@@ -653,7 +588,6 @@ inputArgSub (void)
   char c;
 
   input_pos = workBuff;
-
 
   /* process all characters in the line */
   while (*input_pos && ptr < MAX_LINE)
@@ -733,8 +667,7 @@ inputArgSub (void)
 	    }
 	  break;
 
-	/* Do variable substitution - $
-	*/
+	/* Do variable substitution - $ */
 	case '$':
 	  input_pos++;
           if (inputVarSub(&ptr, &trunc, FALSE) == FALSE)
@@ -743,9 +676,9 @@ inputArgSub (void)
     }
   if (ptr >= MAX_LINE || trunc)
     {
-    truncated:
+truncated:
       (input_pos = input_buff)[MAX_LINE - 1] = 0;
-      error (ErrorSerious, TRUE, "Line expansion truncated");
+      errorAbort ("Line expansion truncated");
       return FALSE;
     }
 finished:

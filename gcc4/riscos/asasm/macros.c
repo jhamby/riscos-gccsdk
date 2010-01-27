@@ -32,129 +32,97 @@
 
 #include "commands.h"
 #include "error.h"
+#include "filestack.h"
 #include "input.h"
 #include "macros.h"
 #include "os.h"
 #include "variables.h"
 
-#define MACRO_LIMIT (16)
-#define MACRO_DEPTH (10)
+static Macro *macroList;
 
-static Macro *macroList = NULL;
+static bool Macro_GetLine (char *bufP, size_t bufSize);
 
-MacroStack macroStack[MACRO_DEPTH];
-int macroSP = 0;
-
-const Macro *macroCurrent = NULL;
-long int macroCurrentCallNo = 0;
-const char *macroPtr = NULL;
-char *macroArgs[MACRO_LIMIT] = {0};
-
-
-static void
-macroPop (void)
+void
+FS_PopMacroPObject (bool noCheck)
 {
-  int p;
+  if (gCurPObjP->type != POType_eMacro)
+    errorAbort ("Internal FS_PopMacroPObject: unexpected call");
 
-  if (!macroSP)
-    error (ErrorAbort, FALSE, "Internal macroPop: unexpected call");
-  testUnmatched ();
-  for (p = MACRO_LIMIT; p; free ((void *) macroArgs[--p]))
-    /* */;
-  var_restoreLocals ();
-  inputLineNo = macroStack[--macroSP].lineno + 1;
-  whileCurrent = macroStack[macroSP].whilestack;
-  if_depth = macroStack[macroSP].if_depth;
-  if (macroSP)
-    {
-      memcpy (macroArgs, macroStack[macroSP].args, sizeof (macroArgs));
-      macroCurrent = macroStack[macroSP].macro;
-      macroPtr = macroStack[macroSP].offset;
-      macroCurrentCallNo = macroStack[macroSP].callno;
-    }
-  else
-    macroCurrent = NULL;
+  FS_PopIfWhile (noCheck);
+
+  for (int p = 0; p < MACRO_ARG_LIMIT; ++p)
+    free ((void *) gCurPObjP->d.macro.args[p]);
+
+  var_restoreLocals (gCurPObjP->d.macro.varListP);
 }
 
 
-const Macro *
-macroFind (size_t len, const char *name)
+/**
+ * Similar to FS_PushFilePObject().
+ */
+static void
+FS_PushMacroPObject (const Macro *m, const char *args[MACRO_ARG_LIMIT])
 {
-  for (const Macro *m = macroList; m != NULL; m = m->next)
-    {
-      if (strlen (m->name) == len && !strncmp (name, m->name, len))
-	return m;
-    }
-  return NULL;
+  if (gCurPObjP == &gPOStack[PARSEOBJECT_STACK_SIZE - 1])
+    errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
+
+  gCurPObjP[1].type = POType_eMacro;
+
+  gCurPObjP[1].d.macro.macro = m;
+  gCurPObjP[1].d.macro.curPtr = m->buf;
+  memcpy (gCurPObjP[1].d.macro.args, args, sizeof (args));
+  gCurPObjP[1].d.macro.varListP = NULL;
+  
+  gCurPObjP[1].name = m->file;
+  gCurPObjP[1].lineNum = m->startline;
+  
+  gCurPObjP[1].if_depth = 0;
+  gCurPObjP[1].whilestack = NULL;
+  gCurPObjP[1].GetLine = Macro_GetLine;
+
+  /* Increase current file stack pointer.  All is ok now.  */
+  ++gCurPObjP;
 }
 
 
 void
-macroCall (const Macro *m, Lex *label)
+macroCall (const Macro *m, const Lex *label)
 {
-  int i;
-  const char *c;
-  int len;
-  static long int macroCallNo = 0;
+  const char *args[MACRO_ARG_LIMIT];
 
-  if (macroSP == MACRO_DEPTH)
-    {
-      error (ErrorSerious, TRUE, "Too many nested macro calls");
-      return;
-    }
-  macroStack[macroSP].macro = macroCurrent;
-  macroStack[macroSP].callno = macroCurrentCallNo;
-  macroStack[macroSP].offset = macroPtr;
-  memcpy (macroStack[macroSP].args, macroArgs, sizeof (macroArgs));
-  macroStack[macroSP].whilestack = whileCurrent;
-  macroStack[macroSP].if_depth = if_depth;
-  macroStack[macroSP++].lineno = inputLineNo;
-  macroCurrent = m;
-  macroCurrentCallNo = macroCallNo++;
-  macroPtr = m->buf;
-  inputLineNo = m->startline;
-  whileCurrent = 0;
-  if_depth = 0;
-
-  for (i = MACRO_LIMIT; i; macroArgs[--i] = 0)
-    /* */;
+  int marg = 0;
   if (label->tag == LexId)
     {
       if (m->labelarg)
 	{
-	  c = label->LexId.str;
-	  if (c[i] == '#')
-	    ++i;
-	  while (isalnum (c[i]) || c[i] == '_')
-	    i++;
-	  if ((macroArgs[0] = strndup (label->LexId.str, i)) == NULL)
-	    {
-	      errorOutOfMem("macroCall");
-	      return;
-	    }
-	  i = 1;
+	  const char *c = label->LexId.str;
+	  int len;
+	  for (len = (c[0] == '#') ? 1 : 0; isalnum (c[len]) || c[len] == '_'; ++len)
+	    /* */;
+	  if ((args[marg++] = strndup (label->LexId.str, len)) == NULL)
+	    errorOutOfMem();
 	}
       else
 	{
-	  macroPop ();
-	  error (ErrorError, TRUE, "Label argument not allowed");
+	  error (ErrorError, "Label argument not allowed");
+	  return;
 	}
     }
   else if (m->labelarg)
-    macroArgs[i++] = 0;		/* Null label argument */
+    args[marg++] = NULL;		/* Null label argument */
 
   skipblanks ();
   while (!inputComment ())
     {
-      if (i == m->numargs)
+      if (marg == m->numargs)
 	{
-	  macroPop ();
-	  inputLineNo--;	/* because of the +1 in macroPop() */
-	  error (ErrorError, TRUE, "Too many arguments");
+	  error (ErrorError, "Too many arguments");
 	  skiprest ();
 	  break;
 	}
       inputMark ();
+      const char *c;
+      int len;
       if (inputLook () == '"')
 	{
 	  inputSkip ();
@@ -169,94 +137,75 @@ macroCall (const Macro *m, Lex *label)
 	  while (len > 0 && (c[len - 1] == ' ' || c[len - 1] == '\t'))
 	    len--;
 	}
-      if ((macroArgs[i++] = strndup (c, len)) == NULL)
-        {
-          errorOutOfMem("macroCall");
-	  break;
-	}
+      if ((args[marg++] = strndup (c, len)) == NULL)
+	errorOutOfMem();
       if (inputLook () == ',')
 	inputSkip ();
       else
 	break;
       skipblanks ();
     }
+
+  for (/* */; marg < MACRO_ARG_LIMIT; ++marg)
+    args[marg] = NULL;
+
 #ifdef DEBUG
   printf ("Macro call = %s\n", inputLine ());
-  for (i = 0; i < MACRO_LIMIT; ++i)
-    if (macroArgs[i])
-      printf ("  Arg %i = <%s>\n", i, macroArgs[i]);
+  for (int i = 0; i < MACRO_ARG_LIMIT; ++i)
+    printf ("  Arg %i = <%s>\n", i, args[i] ? args[i] : "NULL");
 #endif
+
+  FS_PushMacroPObject (m, args);
 }
 
 
-BOOL
-macroGetLine (char *buf)	/* returns 0 if already at end of macro */
+static bool
+Macro_GetLine (char *bufP, size_t bufSize)
 {
-  if (macroPtr == NULL || *macroPtr == '\0')
+  const char *curPtr = gCurPObjP->d.macro.curPtr;
+  
+  const char * const bufStartP = bufP;
+  const char * const bufEndP = bufP + bufSize - 1;
+  while (*curPtr != '\0' && bufP != bufEndP)
     {
-      macroPop ();
-      if (macroSP == 0)
-	return FALSE;
-    }
-  /* Hardcoded buffer size (4K) */
-  int p = 0;
-  while (1)
-    {
-      if (*macroPtr == '\0')
-	{
-	  macroPop ();
-	  break;
-	}
-      if (*macroPtr == '\n')
-	{
-	  macroPtr++;
-	  break;
-	}
-      if (p == 4095)
-	goto linetoolong;
-      if (*macroPtr >= MACRO_ARG0 && *macroPtr <= MACRO_ARG15)
+      if (MACRO_ARG0 <= *curPtr && *curPtr <= MACRO_ARG15)
 	{
 	  /* Argument substitution */
-	  const char *arg = macroArgs[*macroPtr - MACRO_ARG0];
-	  if (arg == 0)
-	    arg = "";
-	  if (p + strlen (arg) > 4095)
-	    goto linetoolong;
-	  strcpy (buf + p, arg);
-	  p += strlen (arg);
+	  const char *argP = gCurPObjP->d.macro.args[*curPtr - MACRO_ARG0];
+	  if (argP == NULL)
+	    argP = "";
+	  size_t argLen = strlen (argP);
+	  if (bufEndP < bufP + argLen)
+	    errorAbort ("Line too long");
+	  memcpy (bufP, argP, argLen);
+	  bufP += argLen;
+	  ++curPtr;
+	}
+      else if (*curPtr == '\n')
+	{
+	  ++curPtr;
+	  break;
 	}
       else
-	buf[p++] = *macroPtr;
-      macroPtr++;
+	*bufP++ = *curPtr++;
     }
-  buf[p] = 0;
-#ifdef DEBUG
-  printf ("M-> %s\n", buf);
-#endif
-  return TRUE;
+  *bufP = '\0';
 
-linetoolong:
-  error (ErrorSerious, TRUE, "Line truncated");
-  buf[p] = '\0';
-  while (*macroPtr != '\n' && *macroPtr != '\0')
-    macroPtr++;
-  return TRUE;
+  gCurPObjP->d.macro.curPtr = curPtr;
+
+  return bufP == bufStartP;
 }
 
 
-BOOL
-macroAdd (Macro * m)
+const Macro *
+macroFind (size_t len, const char *name)
 {
-  Macro *p;
-  if ((p = malloc (sizeof (Macro))) == NULL)
+  for (const Macro *m = macroList; m != NULL; m = m->next)
     {
-      errorOutOfMem ("macroAdd");
-      return FALSE;
+      if (!strncmp (name, m->name, len) && m->name[len] == '\0')
+	return m;
     }
-  *p = *m;			/* Block copy */
-  p->next = macroList;
-  macroList = p;
-  return TRUE;
+  return NULL;
 }
 
 
@@ -266,59 +215,50 @@ macroAdd (Macro * m)
 static BOOL
 c_mend (void)
 {
-  char c;
-  if (isspace (inputLook ()))
-    {
-      skipblanks ();
-      if (inputGetLower () != 'm')
-	return FALSE;
-      if (inputGetLower () != 'e')
-	return FALSE;
-      if (inputGetLower () != 'n')
-	return FALSE;
-      if (inputGetLower () != 'd')
-	return FALSE;
-      c = inputLook ();
-      return c == '\0' || isspace (c);
-    }
-  else
+  if (!isspace (inputLook ()))
     return FALSE;
+
+  skipblanks ();
+  if (inputGetLower () != 'm')
+    return FALSE;
+  if (inputGetLower () != 'e')
+    return FALSE;
+  if (inputGetLower () != 'n')
+    return FALSE;
+  if (inputGetLower () != 'd')
+    return FALSE;
+  char c = inputLook ();
+  return c == '\0' || isspace (c);
 }
 
 
 void
-c_macro (Lex * label)
+c_macro (const Lex *label)
 {
-  int len, bufptr = 0, buflen = 0, i;
-  char *ptr, *buf = NULL, c;
   Macro m;
-
   memset(&m, 0, sizeof(Macro));
+
+  char *buf = NULL;
 
   inputExpand = FALSE;
   if (label->tag != LexNone)
-    error (ErrorWarning, TRUE, "Label not allowed here - ignoring");
+    error (ErrorWarning, "Label not allowed here - ignoring");
   skipblanks ();
   if (!inputComment ())
-    error (ErrorWarning, TRUE, "Skipping characters following MACRO");
+    error (ErrorWarning, "Skipping characters following MACRO");
   if (!inputNextLine ())
-    {
-      error (ErrorSerious, TRUE, "End of file found within macro definition");
-      return;
-    }
+    errorAbort ("End of file found within macro definition");
   if (inputComment ())
-    goto missingname;
+    errorAbort ("Missing macro name");
   if (inputLook () == '$')
     inputSkip ();
-  ptr = inputSymbol (&len, 0);
+  int len;
+  char *ptr = inputSymbol (&len, 0);
   if (len)
     {
       m.labelarg = m.numargs = 1;
       if ((m.args[0] = strndup (ptr, len)) == NULL)
-        {
-          errorOutOfMem("c_macro");
-	  goto lookforMEND;
-	}
+	errorOutOfMem ();
     }
   skipblanks ();
   if (inputLook () == '|')
@@ -326,30 +266,26 @@ c_macro (Lex * label)
       inputSkip ();
       ptr = inputSymbol (&len, '|');
       if (inputGet () != '|')
-	error (ErrorError, TRUE, "Macro name continues over newline");
+	error (ErrorError, "Macro name continues over newline");
     }
   else
     ptr = inputSymbol (&len, 0);
   if (!len)
-    goto missingname;
+    errorAbort ("Missing macro name");
   if (macroFind (len, ptr))
     {
-      ptr[len] = 0;		/* nasty hack */
-      error (ErrorError, TRUE, "Macro %s is already defined", ptr);
+      error (ErrorError, "Macro %.*s is already defined", len, ptr);
       goto lookforMEND;
     }
   if ((m.name = strndup (ptr, len)) == NULL)
-    {
-      errorOutOfMem("c_macro");
-      goto lookforMEND;
-    }
-  m.startline = inputLineNo;
+    errorOutOfMem ();
+  m.startline = FS_GetCurLineNumber ();
   skipblanks ();
   while (!inputComment ())
     {
-      if (m.numargs == MACRO_LIMIT)
+      if (m.numargs == MACRO_ARG_LIMIT)
 	{
-	  error (ErrorError, TRUE, "Too many arguments in macro definition");
+	  error (ErrorError, "Too many arguments in macro definition");
 	  skiprest ();
 	  break;
 	}
@@ -358,13 +294,11 @@ c_macro (Lex * label)
 	inputSkip ();
       ptr = inputSymbol (&len, ',');
       if ((m.args[m.numargs++] = strndup (ptr, len)) == NULL)
-        {
-          errorOutOfMem("c_macro");
-	  goto lookforMEND;
-	}
+	errorOutOfMem ();
       if (inputLook () == ',')
 	inputSkip ();
     }
+  int bufptr = 0, buflen = 0;
   do
     {
       if (!inputNextLine ())
@@ -373,6 +307,7 @@ c_macro (Lex * label)
       if (c_mend ())
 	break;
       inputRollback ();
+      char c;
       while ((c = inputGet ()) != 0)
 	{
 	  inputMark ();
@@ -385,31 +320,27 @@ c_macro (Lex * label)
 		  ptr = inputSymbol (&len, '\0');
 		  if (inputLook () == '.')
 		    inputSkip ();
-		  i = 0;
-		  while (i < m.numargs &&
-			 !(strlen (m.args[i]) == (size_t)len && !strncmp (ptr, m.args[i], len))
-		    )
-		    i++;
+		  int i;
+		  for (i = 0;
+		       i < m.numargs
+		         && (strlen (m.args[i]) != (size_t)len
+		             || memcmp (ptr, m.args[i], len));
+		       ++i)
+		    /* */;
 		  if (i < m.numargs)
 		    c = MACRO_ARG0 + i;
 		  else
 		    {
-		      /*
-		         error(ErrorWarning, TRUE, "Unknown macro argument encountered");
-		       */
+		      /* error(ErrorWarning, TRUE, "Unknown macro argument encountered"); */
 		      inputRollback ();
 		    }
 		}
 	    }
 	  if (bufptr + 2 >= buflen)
 	    {
-	      char *tmp = realloc (buf, buflen += 1024);
-	      if (!tmp)
-		{
-		  errorOutOfMem ("c_macro");
-		  free (buf);
-		  goto lookforMEND;
-		}
+	      char *tmp;;
+	      if ((tmp = realloc (buf, buflen += 1024)) == NULL)
+		errorOutOfMem ();
 	      buf = tmp;
 	    }
 	  buf[bufptr++] = c;
@@ -420,39 +351,47 @@ c_macro (Lex * label)
   while (1);
   if (buf)
     buf[bufptr] = 0;
-  m.file = inputName;
+  m.file = FS_GetCurFileName ();
   if ((m.buf = buf ? buf : strdup("")) == NULL)
-    errorOutOfMem("c_macro");
-  macroAdd (&m);
-  return;
+    errorOutOfMem ();
 
-missingname:
-  error (ErrorSerious, TRUE, "Missing macro name");
+  Macro *p;
+  if ((p = malloc (sizeof (Macro))) == NULL)
+    errorOutOfMem ();
+  *p = m;
+  p->next = macroList;
+  macroList = p;
+
+  return;
 
 lookforMEND:
   do
     {
       if (!inputNextLine ())
 	{
-	noMEND:
-	  error (ErrorSerious, TRUE, "End of file found while looking for MEND");
+noMEND:
+	  errorAbort ("End of file found while looking for MEND");
 	  break;
 	}
     }
-  while (!c_mend ());
+  while (!c_mend ())
+    /* */;
+
   free (buf);
-  free (m.name);
-  for (len = MACRO_LIMIT; len; free ((void *) m.args[--len]));
+  free ((void *)m.name);
+  for (int i = 0; i < MACRO_ARG_LIMIT; ++i)
+    free ((void *) m.args[i]);
 }
 
 
 void
-c_mexit (Lex * label)
+c_mexit (const Lex *label)
 {
   if (label->tag != LexNone)
-    error (ErrorWarning, TRUE, "Label not allowed here - ignoring");
-  if (macroSP)
-    macroPop ();
+    error (ErrorWarning, "Label not allowed here - ignoring");
+
+  if (gCurPObjP->type != POType_eMacro)
+    error (ErrorError, "MEXIT found outside a macro");
   else
-    error (ErrorSerious, TRUE, "MEXIT found outside a macro");
+    FS_PopMacroPObject (false);
 }

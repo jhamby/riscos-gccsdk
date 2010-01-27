@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developersrs
+ * Copyright (c) 2000-2010 GCCSDK Developersrs
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,7 +41,7 @@
 static void
 putAlign (int align, const char *msg)
 {
-  error (ErrorInfo, TRUE, "Unaligned %s", msg);
+  error (ErrorInfo, "Unaligned %s", msg);
   if (areaCurrentSymbol)
     while (areaCurrentSymbol->value.ValueInt.i & align)
       areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = 0;
@@ -80,7 +80,7 @@ putData (int size, WORD data)
 	    putAlign (3, "word");
 	  break;
 	default:
-	  error (ErrorSerious, TRUE, "Internal putData: illegal size");
+	  errorAbort ("Internal putData: illegal size");
 	  break;
 	}
     }
@@ -102,7 +102,7 @@ putData (int size, WORD data)
     }
   else if (data)
     {
-      error (ErrorError, TRUE, "Trying to define a non-zero value in an uninitialised area");
+      error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
       return;
     }
   areaCurrentSymbol->value.ValueInt.i += size;
@@ -148,7 +148,7 @@ putDataFloat (int size, FLOAT data)
 	putAlign (3, "float double");
       break;
     default:
-      error (ErrorSerious, TRUE, "Internal putDataFloat: illegal size %d", size);
+      errorAbort ("Internal putDataFloat: illegal size %d", size);
       break;
     }
 
@@ -161,7 +161,7 @@ putDataFloat (int size, FLOAT data)
     }
   else if (data)
     {
-      error (ErrorError, TRUE, "Trying to define a non-zero value in an uninitialised area");
+      error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
       return;
     }
 }
@@ -192,5 +192,5 @@ putIns (WORD ins)
       areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = (ins >> 24) & 0xff;
     }
   else
-    error (ErrorError, TRUE, "Trying to define code an uninitialised area");
+    error (ErrorError, "Trying to define code an uninitialised area");
 }

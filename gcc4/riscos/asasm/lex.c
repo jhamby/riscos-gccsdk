@@ -126,7 +126,7 @@ lexint (int base)
 	    {
 	      inputSkipN (2);
 	      if ((base = c - '0') < 2 || base > 9)
-		error (ErrorError, TRUE, "Illegal base %d", base);
+		error (ErrorError, "Illegal base %d", base);
 	    }
 	}
     }
@@ -152,17 +152,20 @@ lexfloat (int r)
   FLOAT exponent = 0.0;
   FLOAT signexp = 1.;
 
-  if (inputGet () == '.')
-    {				/* Fraction part */
-      FLOAT frac = 0.1;
-      char c;
-      while (isdigit (c = inputGet ()))
-	{
-	  res = res + frac * ((FLOAT) c - (FLOAT) '0');
-	  frac /= 10.0;
-	}
-      if (c == 'e' || c == 'E')
-	{			/* Exponent part */
+  if (inputGet () != '.')
+    errorAbort ("Internal lexfloat: parse error");
+
+  /* Fraction part */
+  FLOAT frac = 0.1;
+  char c;
+  while (isdigit (c = inputGet ()))
+    {
+      res = res + frac * ((FLOAT) c - (FLOAT) '0');
+      frac /= 10.0;
+    }
+  /* Exponent part */
+  if (c == 'e' || c == 'E')
+    {			
 	  if (inputLook () == '-')
 	    {
 	      inputSkip ();
@@ -174,9 +177,6 @@ lexfloat (int r)
 	    exponent = exponent * 10.0 + ((FLOAT) c - (FLOAT) '0');
 	}
       inputUnGet (c);
-    }
-  else
-    error (ErrorError, TRUE, "Internal lexfloat: parse error");
   return res * pow (10.0, signexp * exponent);
 }
 
@@ -194,7 +194,7 @@ lexGetIdInternal (BOOL genError)
       result.tag = LexId;
       result.LexId.str = inputSymbol (&result.LexId.len, '|');
       if (inputGet () != '|')
-	error (ErrorError, TRUE, "Identifier continues over newline");
+	error (ErrorError, "Identifier continues over newline");
       result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
     }
   else
@@ -217,7 +217,7 @@ lexGetIdInternal (BOOL genError)
       else
 	{
 	  if (genError)
-	    error (ErrorError, TRUE, "Missing identifier");
+	    error (ErrorError, "Missing identifier");
 	  result.tag = LexNone;
 	}
     }
@@ -244,19 +244,15 @@ lexGetIdNoError (void)
 static char *
 lexReadLocal (int *len, int *label)
 {
-  char *name;
   if (!isdigit (inputLook ()))
-    {
-      error (ErrorSerious, TRUE, "Missing local label number");
-      return NULL;
-    }
+    errorAbort ("Missing local label number");
   *label = inputGet () - '0';
   if (isdigit (inputLook ()))
     *label = (*label * 10) + (inputGet () - '0');
-  name = inputSymbol (len, 0);
+  char *name = inputSymbol (len, 0);
   if (len && strncmp (rout_id, name, *len))
     {
-      error (ErrorError, TRUE, "Local label name (%s) does not match routine name (%s)", rout_id, name );
+      error (ErrorError, "Local label name (%s) does not match routine name (%s)", rout_id, name );
       return NULL;
     }
 
@@ -280,7 +276,7 @@ lexMakeLocal (int dir)
     case -1:
       if ((i = rout_lblno[label] - 1) < 0)
 	{
-	  error (ErrorError, FALSE, "Missing local label (bwd) with ID %02i", label);
+	  errorAbort ("Missing local label (bwd) with ID %02i", label);
 	  return result;
 	}
       break;
@@ -297,9 +293,8 @@ lexMakeLocal (int dir)
   result.LexId.len = strlen (id);
   result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
   if (!result.LexId.str)
-    errorOutOfMem ("lexMakeLocal");
-  else
-    result.tag = LexId;
+    errorOutOfMem ();
+  result.tag = LexId;
   return result;
 }
 
@@ -321,10 +316,7 @@ lexGetLocal (void)
       result.LexId.str = strdup (id);
       result.LexId.len = strlen (id);
       if (!result.LexId.str)
-	{
-	  errorOutOfMem ("lexGetLocal");
-	  return result;
-	}
+	errorOutOfMem ();
       result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
       result.tag = LexId;
       return result;
@@ -366,7 +358,7 @@ lexGetPrim (void)
       result.LexOperator.pri = PRI (10);
       break;
     case '?':
-      error (ErrorError, TRUE, "Sorry, '?' not implemented");
+      errorAbort ("Sorry, '?' not implemented"); // FIXME:
     case '(':
     case ')':
       result.tag = LexDelim;
@@ -402,19 +394,16 @@ lexGetPrim (void)
       result.tag = LexInt;
       str = inputSymbol (&len, '\'');
       if (inputGet () != '\'')
-	error (ErrorError, TRUE, "Character continues over newline");
+	error (ErrorError, "Character continues over newline");
       result.LexInt.value = lexChar2Int (TRUE, len, str);
       break;
     case '"':
       result.tag = LexString;
       str = inputSymbol (&len, '"');
       if ((str = strndup (str, len)) == NULL)
-        {
-          errorOutOfMem("lexGetPrim");
-          break;
-        }
+	errorOutOfMem();
       if (inputGet () != '"')
-	error (ErrorError, TRUE, "String continues over newline");
+	error (ErrorError, "String continues over newline");
       if (option_objasm)
 	{
 	  char *s1, *s2;
@@ -425,14 +414,11 @@ lexGetPrim (void)
 	      s1 = inputSymbol (&l1, '"');
 	      if (inputGet () != '"')
 		{
-		  error (ErrorError, TRUE, "String continues over newline");
+		  error (ErrorError, "String continues over newline");
 		  break;
 		}
 	      if ((s2 = malloc (len + l1 + 1)) == NULL)
-		{
-		  errorOutOfMem ("macroAdd");
-		  break;
-		}
+		errorOutOfMem ();
 	      memcpy (s2, str, len);
 	      s2[len] = '"';
 	      memcpy (s2 + len + 1, s1, l1);
@@ -523,7 +509,7 @@ lexGetPrim (void)
       result.tag = LexId;
       result.LexId.str = inputSymbol (&result.LexId.len, '|');
       if (inputGet () != '|')
-	error (ErrorError, TRUE, "Identifier continues over newline");
+	error (ErrorError, "Identifier continues over newline");
       result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
 
       break;
@@ -556,16 +542,16 @@ lexGetPrim (void)
 	    inputSkip ();
 
 	    if (option_pedantic) /* TODO: */
-	      error (ErrorWarning, TRUE, "Range qualifiers in local label names are not implemented. "
-					 "Ignored 't' in local label name");
+	      error (ErrorWarning,
+	             "Range qualifiers in local label names are not implemented. Ignored 't' in local label name");
 	    break;
 	  case 'a':
 	    inputSkip ();
 	    break;
 	  default:
 	    if (option_pedantic) /* TODO: */
-	      error (ErrorWarning, TRUE, "Range qualifiers in local label names are not implemented. "
-					 "'all macro levels' is assumed");
+	      error (ErrorWarning,
+	             "Range qualifiers in local label names are not implemented. 'all macro levels' is assumed");
 	    break;
 	  }
 	return lexMakeLocal (dir);

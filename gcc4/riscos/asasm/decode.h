@@ -25,9 +25,7 @@
 
 #include "symbol.h"
 
-extern int returnvalue;
-
 BOOL notinput (const char *str);
-int decode (Lex * label);
+void decode (Lex *label);
 
 #endif

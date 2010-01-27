@@ -67,8 +67,7 @@ addInclude (const char *path)
       if (incDirPP == NULL)
         {
           incDirMaxSize = incDirCurSize = 0;
-	  errorOutOfMem ("addInclude");
-	  return -1;
+	  errorOutOfMem ();
         }
       incDirMaxSize = newDirMaxSize;
     }
@@ -76,7 +75,7 @@ addInclude (const char *path)
   newPath = strdup (path);
   if (newPath == NULL)
     {
-      errorOutOfMem ("addInclude");
+      errorOutOfMem ();
       return -1;
     }
   /* Strip trailing DIR separator */
@@ -101,7 +100,7 @@ addInclude (const char *path)
  * \return When non-NULL, a std C file stream pointer.
  */
 static FILE *
-openInclude (const char *filename, char **strdupFilename)
+openInclude (const char *filename, const char **strdupFilename)
 {
   FILE *fp;
   if ((fp = fopen (filename, "r")) == NULL)
@@ -119,7 +118,13 @@ openInclude (const char *filename, char **strdupFilename)
       if (fp == NULL)
 	*strdupFilename = NULL;
       else
-        *strdupFilename = CanonicalisePath (filename);
+	{
+	  if ((*strdupFilename = CanonicalisePath (filename)) == NULL)
+	    {
+	      fclose (fp);
+	      fp = NULL;
+	    }
+	}
     }
   
   return fp;
@@ -135,7 +140,7 @@ openInclude (const char *filename, char **strdupFilename)
  * \return When non-NULL, a std C file stream pointer.
  */
 FILE *
-getInclude (const char *file, char **strdupFilename)
+getInclude (const char *file, const char **strdupFilename)
 {
   if (strdupFilename)
     *strdupFilename = NULL;
@@ -148,6 +153,8 @@ getInclude (const char *file, char **strdupFilename)
   FILE *fp;
   if ((fp = openInclude (filename, strdupFilename)) != NULL)
     return fp;
+
+  /* Try to find the file via the user supplied include paths.  */
 #ifndef __riscos__
   if (filename[0] == '.' && filename[1] == '/')
     filename += 2; /* Skip ./ */

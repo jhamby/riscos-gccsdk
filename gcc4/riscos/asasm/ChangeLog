@@ -1,3 +1,29 @@
+Wed Jan 27 00:31:34 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* filestack.c/filestack.h: Merged the macro, external linked,
+	'if'/'while' code all together so that nested usage works and
+	results also in much cleaner code (too many changes to mention in
+	detail).
+	* depend.c: Proper dependency generation (all input files are
+	taken into account).
+	* symbol.h(SYMBOL_MACRO_LOCAL): Set when symbol is only defined
+	as macro local variable.
+	* m_cpuctrl.c(fixBranchT,fixAdrl,fixInt): Drop inputLineNo parameter.
+	* help_cop.c(fixCopOffset): Likewise.
+	* decode.h(returnvalue): Removed.
+	(decode): Made return parameter void.
+	* error.c(source,errorInit): Remove.
+	(TB): Rename to DoThrowback.
+	* error.c/error.h(errorAbort,errorAbortLine): Created to report the
+	final error and use this where applicable.
+	(ErrorSerious): Removed.
+	(error): Drop c parameter.
+	(errorLine): Drop c parameter.
+	(errorOutOfMem): Drop fn parameter.
+	* riscos_c.c(CanonicalisePath): Constify return pointer.
+	* regression/Makefile: Added comments.
+	* regression/tests_pass/variables.s: Added.
+
 Sun Jan 17 15:23:22 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* error.c(doline): Fix RISC OS native build.  Bug #188.

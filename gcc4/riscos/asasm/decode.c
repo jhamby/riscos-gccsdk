@@ -45,8 +45,6 @@
 #include "whileif.h"
 
 BOOL ignoreInput = FALSE;
-int returnvalue = 0;
-
 
 BOOL
 notinput (const char *str)
@@ -88,90 +86,119 @@ checkchr (char chr)
 }
 
 
-#define C_FINISH_STR(string,fun)	    \
-	if (checkstr(string)) goto illegal; \
-	symbol=asm_label(label);	    \
-	macro=FALSE; fun();		    \
-	break;
+#define C_FINISH_STR(string, fun) \
+  if (checkstr(string)) \
+    goto illegal; \
+  symbol = asm_label(label); \
+  macro = FALSE; \
+  fun(); \
+  break;
 
-#define C_FINISH_FLOW(string,fun)	   \
-	if(checkstr(string)) goto illegal; \
-	macro=FALSE; fun(label);	   \
-	break;
+#define C_FINISH_FLOW(string, fun) \
+  if (checkstr(string)) \
+    goto illegal; \
+  macro = FALSE; \
+  fun(label); \
+  break;
 
-#define C_FINISH_VAR(fun)			 \
-	c=inputGetUC();			 \
-	if (checkspace()) goto illegal;		 \
-	macro=FALSE;				 \
-	switch (c) {				 \
-	  case 'a': fun(ValueInt,label); break;	 \
-	  case 'l': fun(ValueBool,label); break; \
-	  case 's': fun(ValueString,label); break; \
-	  default: macro=TRUE; goto illegal;	 \
-	} break;
+#define C_FINISH_VAR(fun) \
+  c = inputGetUC(); \
+  if (checkspace()) \
+    goto illegal; \
+  macro = FALSE; \
+  switch (c) \
+    { \
+      case 'a': \
+        fun(ValueInt, label); \
+	break; \
+      case 'l': \
+        fun(ValueBool, label); \
+	break; \
+      case 's': \
+        fun(ValueString, label); \
+	break; \
+      default: \
+        macro = TRUE; \
+	goto illegal; \
+    } \
+  break;
 
-#define C_FINISH_CHR(chr,fun)		 \
-	if (checkchr(chr)) goto illegal; \
-	symbol=asm_label(label);	 \
-	macro=FALSE; fun();		 \
-	break;
+#define C_FINISH_CHR(chr, fun) \
+  if (checkchr(chr)) \
+    goto illegal; \
+  symbol = asm_label(label); \
+  macro = FALSE; \
+  fun(); \
+  break;
 
-#define C_FINISH(fun)			\
-	if (checkspace()) goto illegal;	\
-	symbol=asm_label(label);	\
-	macro=FALSE; fun();		\
-	break;
+#define C_FINISH(fun) \
+  if (checkspace()) \
+    goto illegal; \
+  symbol = asm_label(label); \
+  macro = FALSE; \
+  fun(); \
+  break;
 
-#define C_FINISH_SYMBOL(fun)		\
-	if (checkspace()) goto illegal;	\
-	symbol=asm_label(label);	\
-	macro=FALSE; fun(symbol);	\
-	break;
+#define C_FINISH_SYMBOL(fun) \
+  if (checkspace()) \
+    goto illegal; \
+  symbol = asm_label(label); \
+  macro = FALSE; \
+  fun(symbol); \
+  break;
 
-#define C_FINISH_CHR_SYMBOL(chr,fun)	 \
-	if (checkchr(chr)) goto illegal; \
-	symbol=asm_label(label);	 \
-	macro=FALSE; fun(symbol);	 \
-	break;
+#define C_FINISH_CHR_SYMBOL(chr, fun) \
+  if (checkchr(chr)) \
+    goto illegal; \
+  symbol = asm_label(label); \
+  macro = FALSE; \
+  fun(symbol); \
+  break;
 
-#define M_FINISH_STR(string,fun,opt)	    \
-	if (notinput(string)) goto illegal; \
-	if (optionError==(option=opt()))    \
-	  goto illegal;			    \
-	skipblanks();			    \
-	symbol=asm_label(label);	    \
-	macro=FALSE; fun(option);	    \
-	break;
+#define M_FINISH_STR(string, fun, opt) \
+  if (notinput(string)) \
+    goto illegal; \
+  if (optionError == (option = opt())) \
+    goto illegal; \
+  skipblanks(); \
+  symbol = asm_label(label); \
+  macro = FALSE; \
+  fun(option); \
+  break;
 
-#define M_FINISH_CHR(chr,fun,opt)	   \
-	if (inputGetUC()!=chr) goto illegal; \
-	if (optionError==(option=opt()))   \
-	  goto illegal;			   \
-	skipblanks();			   \
-	symbol=asm_label(label);	   \
-	macro=FALSE; fun(option);	   \
-	break;
+#define M_FINISH_CHR(chr, fun, opt) \
+  if (inputGetUC() != chr) \
+    goto illegal; \
+  if (optionError == (option = opt())) \
+    goto illegal; \
+  skipblanks(); \
+  symbol = asm_label(label); \
+  macro = FALSE; \
+  fun(option); \
+  break;
 
-#define M_FINISH_LFM(fun)	   \
-	if (inputGetUC()!='m')	   \
-	  goto illegal;		   \
-	option=optionCondLfmSfm(); \
-	if(optionError==option)	   \
-	  goto illegal;		   \
-	symbol=asm_label(label);   \
-	macro=FALSE; fun(option);  \
-	break;
+#define M_FINISH_LFM(fun) \
+  if (inputGetUC() != 'm') \
+    goto illegal; \
+  option = optionCondLfmSfm(); \
+  if (optionError == option) \
+    goto illegal; \
+  symbol = asm_label(label); \
+  macro = FALSE; \
+  fun(option); \
+  break;
 
-#define M_FINISH(fun,opt)		 \
-	if (optionError==(option=opt())) \
-	  goto illegal;			 \
-	skipblanks();			 \
-	symbol=asm_label(label);	 \
-	macro=FALSE; fun(option);	 \
-	break;
+#define M_FINISH(fun, opt) \
+  if (optionError == (option = opt())) \
+    goto illegal; \
+  skipblanks(); \
+  symbol = asm_label(label); \
+  macro=FALSE; \
+  fun(option); \
+  break;
 
-int
-decode (Lex * label)
+void
+decode (Lex *label)
 {
   int c;
   BOOL macro = TRUE;
@@ -1051,7 +1078,7 @@ decode (Lex * label)
       c_endif (label);
       break;
     default:
-    illegal:
+illegal:
       { /* Is it a macro call? */
 	const Macro *m;
 	if (macro)
@@ -1064,8 +1091,7 @@ decode (Lex * label)
 		inputSkip ();
 		ci = inputSymbol (&l, '|');
 		if (inputGet () != '|')
-		  error (ErrorError, TRUE,
-			 "Identifier continues over newline");
+		  error (ErrorError, "Identifier continues over newline");
 	      }
 	    else
 	      ci = inputSymbol (&l, '\0');
@@ -1078,13 +1104,12 @@ decode (Lex * label)
 	else
 	  {
 	    inputRollback ();
-	    error (ErrorError, FALSE, "Illegal line \"%s\"", inputRest ());
+	    errorAbort ("Illegal line \"%s\"", inputRest ());
 	  }
       break;
       }
     }
   skipblanks ();
   if (!inputComment ())
-    error (ErrorError, FALSE, "Skipping extra characters '%s'", inputRest ());
-  return returnvalue;
+    errorAbort ("Skipping extra characters '%s'", inputRest ());
 }

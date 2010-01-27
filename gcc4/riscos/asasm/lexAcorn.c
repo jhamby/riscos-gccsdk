@@ -63,7 +63,10 @@ lexAcornUnop (Lex *lex)
 	*lex = lexGetPrim ();
 	if (lex->tag != LexId)
 	  goto illegal;
-	lex->LexInt.value = symbolFind (lex) != NULL;
+	/* :def: only returns {TRUE} when the symbol is defined and it is not
+	   a macro local variable.  */
+	const Symbol *symP = symbolFind (lex);
+	lex->LexInt.value =  symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
 	lex->tag = LexBool;
 	return;
       case 'f':
@@ -191,7 +194,7 @@ lexAcornPrim (Lex *lex)
 	FINISH_STR_PRIM ("ndian}"); /* {endian} */
 	lex->tag = LexString;
 	if ((lex->LexString.str = strdup ("little")) == NULL)
-	  errorOutOfMem ("lexAcornPrim");
+	  errorOutOfMem ();
 	lex->LexString.len = sizeof ("little")-1;
 	return;
       case 'f':

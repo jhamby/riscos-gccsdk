@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developersrs
+ * Copyright (c) 2000-2010 GCCSDK Developersrs
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -304,7 +304,7 @@ optionCondSP (void)
     {
       inputSkip ();
       if (option_pedantic)
-	error (ErrorInfo, TRUE, "S is implicit in test instructions");
+	error (ErrorInfo, "S is implicit in test instructions");
     }
   if (inputLookUC () == 'p')
     {

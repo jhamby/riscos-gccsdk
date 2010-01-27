@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developersrs
+ * Copyright (c) 2000-2010 GCCSDK Developersrs
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -53,8 +53,7 @@ dstmem (WORD ir)
   if ((ir & 0x90) == 0x90)
     {
       if (cpuWarn (ARM7M) == FALSE && (ir & 0x20) && targetCPU < ARM10)
-	error (ErrorWarning, TRUE,
-	"Half-word ops only work correctly when accessed location is cached");
+	error (ErrorWarning, "Half-word ops only work correctly when accessed location is cached");
       half = TRUE;
     }
   dst = getCpuReg ();
@@ -66,7 +65,7 @@ dstmem (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "Inserting missing comma before address");
+    error (ErrorError, "Inserting missing comma before address");
   switch (inputLook ())
     {
     case '[':			/* ldr reg,[ */
@@ -98,7 +97,7 @@ dstmem (WORD ir)
 		  {
 		  case ValueInt:
 		  case ValueAddr:
-		    ir = fixCpuOffset (inputLineNo, ir, offset.ValueInt.i);
+		    ir = fixCpuOffset (0, ir, offset.ValueInt.i);
 		    break;
 		  case ValueCode:
 		  case ValueLateLabel:
@@ -107,7 +106,7 @@ dstmem (WORD ir)
 		    relocCpuOffset (ir, &offset);
 		    break;
 		  default:
-		    error (ErrorError, TRUE, "Illegal offset expression");
+		    error (ErrorError, "Illegal offset expression");
 		    break;
 		  }
 
@@ -133,7 +132,7 @@ dstmem (WORD ir)
 		if (inputLook () == '#')
 		  {
 		    /* Edge case - #XX */
-		    error (ErrorError, TRUE, "Unknown register definition in offset field");
+		    error (ErrorError, "Unknown register definition in offset field");
 		  }
 		ir |= ((ir & 0x90) == 0x90) ? 0 : REG_FLAG;
 		ir = getRhs (TRUE, ((ir & 0x90) == 0x90) ? FALSE : TRUE, ir);
@@ -148,7 +147,7 @@ dstmem (WORD ir)
 	    if (half)
 	      ir |= (1 << 22);	/* For H/SH/SB - I bit is inverted */
 	    if (pre)
-	      error (ErrorError, TRUE, "Illegal character '%c' after base", inputLook ());
+	      error (ErrorError, "Illegal character '%c' after base", inputLook ());
 	  }
 	if (pre)
 	  {
@@ -158,7 +157,7 @@ dstmem (WORD ir)
 		skipblanks ();
 	      }
 	    else
-	      error (ErrorError, TRUE, "Inserting missing ] after address");
+	      error (ErrorError, "Inserting missing ] after address");
 	  }
 	else
 	  {
@@ -166,14 +165,14 @@ dstmem (WORD ir)
 	    if (!offValue)
 	      pre = TRUE;
 	    else if (dst == op)
-	      error (ErrorError, TRUE, "Post increment is not sane where base and destination register are the same");
+	      error (ErrorError, "Post increment is not sane where base and destination register are the same");
 	  }
 	if (inputLook () == '!')
 	  {
 	    if (pre)
 	      ir |= WB_FLAG;
 	    else
-	      error (ErrorError, TRUE, "Writeback not allowed with post-index");
+	      error (ErrorError, "Writeback not allowed with post-index");
 	    inputSkip ();
 	    skipblanks ();
 	  }
@@ -181,7 +180,7 @@ dstmem (WORD ir)
 	  {
 	    ir |= PRE_FLAG;
 	    if (trans)
-	      error (ErrorError, TRUE, "Translate not allowed with pre-index");
+	      error (ErrorError, "Translate not allowed with pre-index");
 	  }
       }
       break;
@@ -196,7 +195,7 @@ dstmem (WORD ir)
 	  litInt (4, &value);
 	}
       else
-	error (ErrorError, FALSE, "You can't store into a constant");
+	errorAbort ("You can't store into a constant");
       break;
     default:			/* ldr reg,label */
       /* We're dealing with one of the following:
@@ -215,7 +214,7 @@ dstmem (WORD ir)
 	{
 	case ValueAddr:
 	  ir |= LHS_OP (offset.ValueAddr.r);
-	  ir = fixCpuOffset (inputLineNo, ir, offset.ValueAddr.i);
+	  ir = fixCpuOffset (0, ir, offset.ValueAddr.i);
 	  break;
 	default:
 	  /* No, so it's either a PC-relative or based area.
@@ -237,7 +236,7 @@ dstmem (WORD ir)
 	    {
 	    case ValueInt:
 	      ir |= LHS_OP (15);
-	      ir = fixCpuOffset (inputLineNo, ir, offset.ValueInt.i);
+	      ir = fixCpuOffset (0, ir, offset.ValueInt.i);
 	      break;
 	    case ValueCode:
 	    case ValueLateLabel:
@@ -247,10 +246,10 @@ dstmem (WORD ir)
 	      break;
 	    case ValueAddr:
 	      ir |= LHS_OP (offset.ValueAddr.r);
-	      ir = fixCpuOffset (inputLineNo, ir, offset.ValueAddr.i);
+	      ir = fixCpuOffset (0, ir, offset.ValueAddr.i);
 	      break;
 	    default:
-	      error (ErrorError, TRUE, "Illegal address expression");
+	      error (ErrorError, "Illegal address expression");
 	      break;
 	    }
 	  break;
@@ -291,7 +290,7 @@ m_pld (void)
   skipblanks();
 
   if (inputGet () != '[')
-    error (ErrorError, TRUE, "Expected '[' after PLD instruction");
+    error (ErrorError, "Expected '[' after PLD instruction");
 
   skipblanks();
   op = getCpuReg (); /* Base register */
@@ -308,7 +307,7 @@ m_pld (void)
     {
       skipblanks();
       if (inputGet () != ',')
-	error (ErrorError, TRUE, "Expected ',' or ']' in PLD instruction");
+	error (ErrorError, "Expected ',' or ']' in PLD instruction");
 
       skipblanks();
 
@@ -324,10 +323,10 @@ m_pld (void)
 	    {
 	    case ValueInt:
 	    case ValueAddr:
-	      ir = fixCpuOffset (inputLineNo, ir, offset.ValueInt.i);
+	      ir = fixCpuOffset (0, ir, offset.ValueInt.i);
 	      break;
 	    default:
-	      error (ErrorError, TRUE, "Illegal offset expression");
+	      error (ErrorError, "Illegal offset expression");
 	      break;
 	    }
 
@@ -350,7 +349,7 @@ m_pld (void)
 	  if (inputLook () == '#')
 	    {
 	      /* Edge case - #XX */
-	      error (ErrorError, TRUE, "Unknown register definition in offset field");
+	      error (ErrorError, "Unknown register definition in offset field");
 	    }
 	  ir = getRhs(TRUE, TRUE, ir) | REG_FLAG;
 	}
@@ -361,7 +360,7 @@ m_pld (void)
 	  skipblanks ();
 	}
       else
-	error (ErrorError, TRUE, "Expected closing ]");
+	error (ErrorError, "Expected closing ]");
     }
   putIns(ir);
 }
@@ -387,7 +386,7 @@ dstreglist (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "Inserting missing comma before reglist");
+    error (ErrorError, "Inserting missing comma before reglist");
   if (inputLook () == '#')
     {				/* constant */
       exprBuild ();
@@ -395,14 +394,14 @@ dstreglist (WORD ir)
       switch (mask.Tag.t)
 	{
 	case ValueInt:
-	  ir |= fixMask (inputLineNo, mask.ValueInt.i);
+	  ir |= fixMask (0, mask.ValueInt.i);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
 	  relocMask (&mask);
 	  break;
 	default:
-	  error (ErrorError, TRUE, "Illegal mask expression");
+	  error (ErrorError, "Illegal mask expression");
 	  break;
 	}
     }
@@ -411,7 +410,7 @@ dstreglist (WORD ir)
       if (inputLook () == '{')
 	inputSkip ();
       else
-	error (ErrorError, TRUE, "Inserting missing '{' before reglist");
+	error (ErrorError, "Inserting missing '{' before reglist");
       op = 0;
       do
 	{
@@ -427,7 +426,7 @@ dstreglist (WORD ir)
 	      skipblanks ();
 	      if (low > high)
 		{
-		  error (ErrorInfo, TRUE, "Register interval in wrong order r%d-r%d", low, high);
+		  error (ErrorInfo, "Register interval in wrong order r%d-r%d", low, high);
 		  c = low;
 		  low = high;
 		  high = c;
@@ -438,21 +437,21 @@ dstreglist (WORD ir)
 	      high = low;
 	      break;
 	    default:
-	      error (ErrorError, TRUE, "Illegal character '%c' in register list", c);
+	      error (ErrorError, "Illegal character '%c' in register list", c);
 	      high = 15;
 	      break;
 	    }
 	  if (1 << low < op)
-	    error (ErrorInfo, TRUE, "Registers in wrong order");
+	    error (ErrorInfo, "Registers in wrong order");
 	  if (((1 << (high + 1)) - (1 << low)) & op)
-	    error (ErrorInfo, TRUE, "Register occurs more than once in register list");
+	    error (ErrorInfo, "Register occurs more than once in register list");
 	  op |= (1 << (high + 1)) - (1 << low);
 	}
       while ((c = inputGet ()) == ',');
       if (c != '}')
 	{
 	  inputUnGet (c);
-	  error (ErrorError, TRUE, "Inserting missing '}' after reglist");
+	  error (ErrorError, "Inserting missing '}' after reglist");
 	}
       ir |= op;
     }
@@ -461,7 +460,7 @@ dstreglist (WORD ir)
     {
       inputSkip ();
       if ((ir & WB_FLAG) && !(ir & (1 << 15)))
-	error (ErrorInfo, TRUE, "Writeback together with force user");
+	error (ErrorInfo, "Writeback together with force user");
       ir |= FORCE_FLAG;
       skipblanks ();
     }
@@ -496,7 +495,7 @@ m_swp (WORD cc)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   ir |= RHS_OP (getCpuReg ());	/* Note wrong order swp dst,rhs,[lsh] */
   skipblanks ();
   if (inputLook () == ',')
@@ -505,14 +504,14 @@ m_swp (WORD cc)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   if (inputLook () == '[')
     {
       inputSkip ();
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "Inserting missing '['");
+    error (ErrorError, "Inserting missing '['");
   ir |= DST_MUL (getCpuReg ());
   skipblanks ();
   if (inputLook () == ']')
@@ -521,6 +520,6 @@ m_swp (WORD cc)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "Inserting missing ']'");
+    error (ErrorError, "Inserting missing ']'");
   putIns (ir);
 }

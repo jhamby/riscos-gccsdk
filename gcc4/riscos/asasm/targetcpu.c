@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2008 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -99,7 +99,7 @@ cpuWarn (TargetCPU_t type)	/* true if warning is output */
 {
   if (targetCPU >= type)
     return FALSE;
-  error (ErrorWarning, TRUE, "Instruction unsupported on target CPU");
+  error (ErrorWarning, "Instruction unsupported on target CPU");
   return TRUE;
 }
 
@@ -107,7 +107,6 @@ void
 set_cpuvar (void)
 {
    char buffer[40];
-
    snprintf (buffer, sizeof(buffer), "TARGET_CPU=%s", targetName);
    var_define (buffer);
 }

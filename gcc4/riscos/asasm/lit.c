@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -30,6 +30,7 @@
 
 #include "area.h"
 #include "error.h"
+#include "filestack.h"
 #include "fix.h"
 #include "input.h"
 #include "lit.h"
@@ -65,33 +66,27 @@ litListNew (LitList *next, int offset)
     }
   else
     newLitList = malloc (sizeof (LitList));
-  if (newLitList)
-    {
-      newLitList->next = next;
-      newLitList->offset = offset;
-      newLitList->lineno = inputLineNo;
-    }
-  else
-    errorOutOfMem ("litListNew");
+  if (newLitList == NULL)
+    errorOutOfMem ();
+  newLitList->next = next;
+  newLitList->offset = offset;
+  newLitList->lineno = FS_GetCurLineNumber ();
   return newLitList;
 }
 
 static LitInfo *
 litInfoNew (LitInfo *more, RelocTag tag, WORD extra, const Value *value)
 {
-  LitInfo *newLitList = malloc (sizeof (LitInfo));
-  if (newLitList)
-    {
-      newLitList->next = more;
-      newLitList->used = 0;
-      newLitList->reloc.Tag = tag;
-      newLitList->reloc.lineno = -1; /* Will be the lineno of LTORG when encountered.  */
-      newLitList->reloc.offset = -1;
-      newLitList->reloc.extra = extra;
-      newLitList->reloc.value = valueCopy (*value);
-    }
-  else
-    errorOutOfMem ("litInfoNew");
+  LitInfo *newLitList;;
+  if ((newLitList = malloc (sizeof (LitInfo))) == NULL)
+    errorOutOfMem ();
+  newLitList->next = more;
+  newLitList->used = 0;
+  newLitList->reloc.Tag = tag;
+  newLitList->reloc.lineno = -1; /* Will be the lineno of LTORG when encountered.  */
+  newLitList->reloc.offset = -1;
+  newLitList->reloc.extra = extra;
+  newLitList->reloc.value = valueCopy (*value);
   return newLitList;
 }
 
@@ -114,7 +109,7 @@ litInt (int size, const Value *value)
     litNew (RelocImmN, size, areaCurrentSymbol->value.ValueInt.i,
 	    areaCurrentSymbol->value.ValueInt.i - 4095, value);
   else
-    error (ErrorError, TRUE, "No area defined");
+    error (ErrorError, "No area defined");
 }
 
 void
@@ -152,7 +147,7 @@ litOrg (LitInfo *li)
 	}
       if (li->reloc.lineno < 0)
 	{
-	  li->reloc.lineno = inputLineNo;
+	  li->reloc.lineno = FS_GetCurLineNumber ();
 	  if (fp)
 	    putDataFloat (li->reloc.extra, li->reloc.value.ValueFloat.f);
 	  else

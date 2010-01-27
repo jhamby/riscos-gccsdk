@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,17 +37,17 @@
 #define SHIFT_REG(s) (((s)<<8) | (1<<4))
 #define SHIFT_IMM(s) (((s)&31)<<7)
 
-WORD fixShiftImm (long int lineno, WORD shiftop, int shift);
-WORD fixImm8s4 (long int lineno, WORD ir, int im);
-WORD fixImmFloat (long int lineno, WORD ir, FLOAT im);
-WORD fixSwi (long int lineno, int im);
-WORD fixBranch (long int lineno, int im);
-WORD fixBranchT (long int lineno, int im);
-WORD fixAdr (long int lineno, WORD ir, int im);
-void fixAdrl (long int lineno, WORD * ir, WORD * ir2, int im, int warn);
-WORD fixCopOffset (long int lineno, WORD ir, int offset);
-WORD fixCpuOffset (long int lineno, WORD ir, int offset);
-WORD fixMask (long int lineno, int mask);
-WORD fixInt (long int lineno, int size, int value);
+WORD fixShiftImm (int lineno, WORD shiftop, int shift);
+WORD fixImm8s4 (int lineno, WORD ir, int im);
+WORD fixImmFloat (int lineno, WORD ir, FLOAT im);
+WORD fixSwi (int lineno, int im);
+WORD fixBranch (int lineno, int im);
+WORD fixBranchT (int lineno, int im);
+WORD fixAdr (int lineno, WORD ir, int im);
+void fixAdrl (int lineno, WORD * ir, WORD * ir2, int im, int warn);
+WORD fixCopOffset (int lineno, WORD ir, int offset);
+WORD fixCpuOffset (int lineno, WORD ir, int offset);
+WORD fixMask (int lineno, int mask);
+WORD fixInt (int lineno, int size, int value);
 
 #endif

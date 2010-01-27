@@ -6,7 +6,7 @@
 #ifndef rname_header_included
 #define rname_header_included
 
-extern char *rname(const char *name);
-extern char *riscos_to_unix (const char *, char *);
+char *rname(const char *name);
+char *riscos_to_unix (const char *, char *);
 
 #endif

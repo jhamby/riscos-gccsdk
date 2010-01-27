@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,19 +28,28 @@ typedef enum
 {
   ErrorInfo,
   ErrorWarning,
-  ErrorError,
-  ErrorSerious,
-  ErrorAbort
+  ErrorError, /**< Too many of these are considered as fatal.  */
+  ErrorAbort /**< Fatal and last error message.  */
 } ErrorTag;
 
 extern const char InsertCommaAfter[];
 
-void errorInit (const char *filename);
 void errorFinish (void);
-void errorLine (long int lineno, const char *file,
-		ErrorTag e, BOOL c, const char *format, ...);
-void error (ErrorTag e, BOOL c, const char *format, ...);
-void errorOutOfMem (const char *fn);
+
+void errorLine (int lineno, const char *file,
+		ErrorTag e, const char *format, ...)
+  __attribute__ ((__format__ (__printf__, 4, 5)));
+void error (ErrorTag e, const char *format, ...)
+  __attribute__ ((__format__ (__printf__, 2, 3)));
+
+void errorAbortLine (int lineno, const char *file, const char *format, ...)
+  __attribute__ ((noreturn))
+  __attribute__ ((__format__ (__printf__, 3, 4)));
+void errorAbort (const char *format, ...)
+  __attribute__ ((noreturn))
+  __attribute__ ((__format__ (__printf__, 1, 2)));
+
+void errorOutOfMem (void) __attribute__ ((noreturn));
 
 int returnExitStatus (void);
 

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@ void c_local (Lex * label);
 
 int localTest (const char *);
 void localMunge (Lex *);
-void localFindLocal (int local, const char **file, long int *lineno);
-void localFindRout (const char *rout, const char **file, long int *lineno);
+void localFindLocal (int local, const char **file, int *lineno);
+void localFindRout (const char *rout, const char **file, int *lineno);
 
 #endif

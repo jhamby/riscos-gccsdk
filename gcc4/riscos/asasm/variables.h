@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,13 +23,22 @@
 #ifndef variables_header_included
 #define variables_header_included
 
+#include "lex.h"
 #include "symbol.h"
 
-void c_gbl (ValueTag, Lex *);	/* global variable declaration */
-void c_lcl (ValueTag, Lex *);	/* local variable declaration */
-void c_set (ValueTag, Lex *);	/* variable assignment */
+typedef struct varPos
+{
+  struct varPos *next;
+  char *name;
+  Symbol *symptr;
+  Symbol symbol;
+} varPos;
 
-void var_restoreLocals (void);	/* called on macro exit */
+void c_gbl (ValueTag, const Lex *);	/* global variable declaration */
+void c_lcl (ValueTag, const Lex *);	/* local variable declaration */
+void c_set (ValueTag, const Lex *);	/* variable assignment */
+
+void var_restoreLocals (varPos *);	/* called on macro exit */
 void var_define (const char *);
 
 #endif

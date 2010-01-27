@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2008 GCCSDK Developersrs
+ * Copyright (c) 2001-2010 GCCSDK Developersrs
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -72,7 +72,7 @@ static const char *ErrorFile;
  * \returns When non-NULL, pointer to malloced buffer holding the canonicalised
  * filename (caller needs to free).  NULL in case of an error.
  */
-char *
+const char *
 CanonicalisePath (const char *path1)
 {
 #if __TARGET_UNIXLIB__
@@ -93,16 +93,13 @@ CanonicalisePath (const char *path1)
   int size = 1 - OSCanonicalisePath (filename, 0, 0, 0, 0);
   char *buffer;
   if ((buffer = malloc (size)) == NULL)
-    {
-      errorOutOfMem("CanonicalisePath");
-      return NULL;
-    }
+    errorOutOfMem ();
   size = OSCanonicalisePath (filename, buffer, size, 0, 0);
-  if (size == 1)
-    return buffer;
-
-  error (ErrorAbort, TRUE, "Internal error in CanonicalisePath");
-  return NULL;			/* keep the compiler happy */
+  if (size != 1)
+    errorAbort ("Internal error in CanonicalisePath");
+  if (buffer == NULL)
+    errorOutOfMem ();
+  return buffer;
 }
 
 /**
@@ -141,7 +138,7 @@ ThrowbackSendStart (const char *filename)
  * \param errstr nul terminated description of error
  */
 _kernel_oserror *
-ThrowbackSendError (int level, long int lineno, const char *errstr)
+ThrowbackSendError (int level, int lineno, const char *errstr)
 {
   _kernel_swi_regs regs;
 

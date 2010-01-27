@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2003-2006 GCCSDK Developers
+ * Copyright (c) 2003-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,7 +52,7 @@ typedef struct RELOC
 {
   struct RELOC *more;
   RelocTag Tag;
-  long int lineno;	/* For error messages */
+  int lineno;		/* For error messages */
   const char *file;	/* ditto */
   int offset;		/* Offset in area */
   WORD extra;		/* e.g. shiftop in ShiftImm, size in RelocImmN, e.t.c. */

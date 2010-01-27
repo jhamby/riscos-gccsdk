@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2004-2008 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -21,60 +21,29 @@
 
 #include <stdio.h>
 
-#include "error.h"
 #include "depend.h"
+#include "error.h"
+#include "filestack.h"
 #include "main.h"
-
-static FILE *dependFile;
-static const char *sourceFileName;
 
 const char *DependFileName = NULL;
 
 void
-dependInit (const char *srcFileName)
+dependWrite (const char *objname)
 {
-  sourceFileName = srcFileName;
-}
-
-
-void
-dependFinish (void)
-{
-  if (dependFile != NULL)
-    {
-      fclose(dependFile);
-      dependFile = NULL;
-    }
-}
-
-
-void
-dependPut (const char *pre, const char *name, const char *post)
-{
-  if (dependFile == NULL)
-    return;
-  fprintf (dependFile, "%s%s%s", pre, name, post);
-  /* may need further processing */
-}
-
-
-void
-dependOpen (const char *objname)
-{
-  if (dependFile != NULL || DependFileName == NULL)
+  if (DependFileName == NULL)
     return;
 
+  FILE *dependFile;
   if ((dependFile = fopen (DependFileName, "w")) == NULL)
-    {
-      error (ErrorSerious, FALSE, "Failed to open dependencies file \"%s\"",
-             DependFileName);
-      DependFileName = NULL;
-    }
-  else
-    {
-      if (objname[0] == '@' && objname[1] == '.')
-	objname += 2;
-      dependPut ("", objname, ":");
-      dependPut (" ", sourceFileName, "");
-    }
+    errorAbort ("Failed to open dependencies file \"%s\"", DependFileName);
+
+  if (objname[0] == '@' && objname[1] == '.')
+    objname += 2;
+  fprintf (dependFile, "%s:", objname);
+  for (const FileNameList *fnListP = gFileNameListP; fnListP != NULL; fnListP = fnListP->nextP)
+    fprintf (dependFile, " \\\n\t%s", fnListP->fileName);
+
+  fputc ('\n', dependFile);
+  fclose (dependFile);
 }

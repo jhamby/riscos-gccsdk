@@ -1,6 +1,8 @@
 # Simple regression tester:
 #
-# Make sure 'asasm' can be found in your PATH when executing this Makefile.
+# Make sure 'asasm' can be found in your PATH when executing this Makefile
+# or that you specify it with the variable AS via the 'make' command line.
+#
 # Tests which are supposed to pass are located in the 'tests_pass' directory.
 # Tests which are known to fail (but are supposed to work) are located in
 # the 'tests_fail' directory.
@@ -12,13 +14,18 @@
 #
 # For testing all test cases which are known to pass:
 #   $ make
+# Or
+#   $ make AS=my_asasm
 #
 # For testing one particular test (including a failing one):
 #   $ make output_actual/<specific_test>.o
+# Or
+#   $ make AS=my_asm output_actual/<specific_test>.o
 #
 # To clean up after testing:
 #   $ make clean
 
+# Environment variables needed in the tests:
 export HDR_PATH := $(CURDIR)/hdr
 export APCS := APCS-32
 
@@ -32,7 +39,8 @@ MKDIR = mkdir
 
 check_PROGRAMS_PASS := $(wildcard tests_pass/*.s)
 check_PROGRAMS_FAIL := $(wildcard tests_fail/*.s)
-ref_PROGRAMS = $(check_PROGRAMS_PASS:tests_pass/%.s=output_reference/%.o) $(check_PROGRAMS_FAIL:tests_fail/%.s=output_reference/%.o)
+ref_PROGRAMS = $(check_PROGRAMS_PASS:tests_pass/%.s=output_reference/%.o) \
+	$(check_PROGRAMS_FAIL:tests_fail/%.s=output_reference/%.o)
 act_PROGRAMS = $(check_PROGRAMS_PASS:tests_pass/%.s=output_actual/%.o)
 
 VPATH = tests_pass:tests_fail

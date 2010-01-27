@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) Andy Duplain, August 1992.
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,8 +23,66 @@
 #ifndef filestack_header_included
 #define filestack_header_included
 
-extern int push_file (FILE *fp);
-extern FILE *pop_file (void);
-extern int get_file (const char **file, long int *line);
+#include <stdbool.h>
+#include <stdio.h>
+#include "macros.h"
+#include "whileif.h"
+
+/* Linked list of filenames used during assembling.  They remain valid until
+   the very end of execution.  */
+typedef struct FileNameList
+{
+  struct FileNameList *nextP;
+  char fileName[1]; /**< Canonicalised path in host's OS filename format.  */
+} FileNameList;
+extern FileNameList *gFileNameListP;
+
+typedef struct
+{
+  FILE *fhandle;
+} FilePObject;
+
+#define PARSEOBJECT_STACK_SIZE (32)
+
+/* The object to parse, either file or macro (latter basically assembler stored
+   in memory.  */
+typedef enum
+{
+  POType_eFile,
+  POType_eMacro
+} POType_e;
+typedef struct
+{
+  POType_e type;
+  union
+    {
+      FilePObject file;
+      MacroPObject macro;
+    } d;
+
+  const char *name; /**< Current file name, or file name of current macro).
+    Can be NULL. Prefer FS_GetCurFileName() to read. */
+  int lineNum; /**< Current line number. Prefer FS_GetCurLineNumber() to read. */
+  
+  int if_depth; /**< Current level of 'if' depth for this object.  */
+  WhileBlock *whilestack; /**< Current level of nested 'while' structures.  */
+
+  /**
+   * Fills given buffer with one NUL terminated line.
+   * \param bufP Buffer to fill.
+   * \param bufSize Buffer size, the maximum which get filled.
+   * \return true when failure or EOD, false otherwise.
+   */
+  bool (*GetLine)(char *bufP, size_t bufSize);
+} PObject;
+
+extern PObject gPOStack[PARSEOBJECT_STACK_SIZE];
+extern PObject *gCurPObjP; /**< Current parsable object.  */
+
+void FS_PushFilePObject (const char *fileName);
+void FS_PopPObject (bool noCheck);
+
+const char *FS_GetCurFileName (void);
+int FS_GetCurLineNumber (void);
 
 #endif

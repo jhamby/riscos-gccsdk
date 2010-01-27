@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -49,7 +49,7 @@ m_nop (void)
     {
       WORD op = getCpuReg ();
       if (op == 15)
-	error (ErrorError, TRUE, "Cannot use R15 in NOP");
+	error (ErrorError, "Cannot use R15 in NOP");
       putIns (0xE1A00000 | DST_OP (op) | RHS_OP (op));
     }
   else
@@ -71,7 +71,7 @@ dstlhsrhs (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   op = getCpuReg ();
   ir |= LHS_OP (op);
   skipblanks ();
@@ -81,7 +81,7 @@ dstlhsrhs (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   ir = getRhs (FALSE, TRUE, ir);
   putIns (ir);
 }
@@ -99,7 +99,7 @@ dstrhs (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   ir = getRhs (FALSE, TRUE, ir);
   putIns (ir);
 }
@@ -191,9 +191,9 @@ lhsrhs (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   if ((ir & P_FLAG) && option_apcs_32bit)
-    error (ErrorWarning, TRUE, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
+    error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
   ir = getRhs (FALSE, TRUE, ir);
   putIns (ir);
 }
@@ -237,7 +237,7 @@ onlyregs (BOOL acc, WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   lhs = getCpuReg ();
   skipblanks ();
   if (inputLook () == ',')
@@ -246,16 +246,16 @@ onlyregs (BOOL acc, WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   rhs = getCpuReg ();
   if (dst == lhs)
     {
       if (dst == rhs)
-	error (ErrorError, TRUE, "Destination and left operand are the same register %d", dst);
+	error (ErrorError, "Destination and left operand are the same register %d", dst);
       else
 	{
 	  if (option_fussy)
-	    error (ErrorInfo, TRUE, "Changing order of operands in %s", acc ? "MLA" : "MUL");
+	    error (ErrorInfo, "Changing order of operands in %s", acc ? "MLA" : "MUL");
 	  int t = lhs;
 	  lhs = rhs;
 	  rhs = t;
@@ -272,7 +272,7 @@ onlyregs (BOOL acc, WORD ir)
 	  skipblanks ();
 	}
       else
-	error (ErrorError, TRUE, "%srhs", InsertCommaAfter);
+	error (ErrorError, "%srhs", InsertCommaAfter);
       ir |= ACC_MUL (getCpuReg ());
       skipblanks ();
     }
@@ -312,7 +312,7 @@ l_onlyregs (WORD ir, const char *op)
           skipblanks ();
         }
       else
-        error (ErrorError, TRUE, "%sdst_h", InsertCommaAfter);
+        error (ErrorError, "%sdst_h", InsertCommaAfter);
     }
   else
     {
@@ -327,7 +327,7 @@ l_onlyregs (WORD ir, const char *op)
               skipblanks ();
             }
           else
-            error (ErrorError, TRUE, "%sdst_l", InsertCommaAfter);
+            error (ErrorError, "%sdst_l", InsertCommaAfter);
         }
       else
         dstl = 0;
@@ -341,7 +341,7 @@ l_onlyregs (WORD ir, const char *op)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst_l", InsertCommaAfter);
+    error (ErrorError, "%sdst_l", InsertCommaAfter);
   lhs = getCpuReg ();
   skipblanks ();
   if (inputLook () == ',')
@@ -350,20 +350,20 @@ l_onlyregs (WORD ir, const char *op)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   rhs = getCpuReg ();
   if (issmull)
     {
       if (dstl == dsth)
-        error (ErrorError, TRUE, "Destination high and low are the same register %d", dstl);
+        error (ErrorError, "Destination high and low are the same register %d", dstl);
       if (dstl == lhs || dsth == lhs)
         {
           if (dstl == rhs || dsth == rhs)
-            error (ErrorError, TRUE, "Left operand register %d also occurs in destination", lhs);
+            error (ErrorError, "Left operand register %d also occurs in destination", lhs);
           else
 	    {
 	      if (option_fussy)
-	        error (ErrorInfo, TRUE, "Changing order of operands in %s", op);
+	        error (ErrorInfo, "Changing order of operands in %s", op);
 	      int t = lhs;
 	      lhs = rhs;
 	      rhs = t;
@@ -373,7 +373,7 @@ l_onlyregs (WORD ir, const char *op)
   else
      {
        if (dsth == 15 || lhs == 15 || rhs == 15)
-         error (ErrorError, TRUE, "Cannot use R15 with %s", op);
+         error (ErrorError, "Cannot use R15 with %s", op);
      }
   if (!issmull && (issmlaxy || issmlawy))
     {
@@ -383,10 +383,10 @@ l_onlyregs (WORD ir, const char *op)
           skipblanks ();
         }
       else
-        error (ErrorError, TRUE, "%dst_l", InsertCommaAfter);
+        error (ErrorError, "%sdst_l", InsertCommaAfter);
       dstl = getCpuReg ();
       if (dstl == 15)
-        error (ErrorError, TRUE, "Cannot use R15 with %s", op);
+        error (ErrorError, "Cannot use R15 with %s", op);
     }
 
   ir |= dstl << 12 | dsth << 16 | lhs | rhs << 8;
@@ -531,13 +531,13 @@ m_clz (WORD cc)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
 
   rhs = getCpuReg ();
   ir |= RHS_OP (rhs);
 
   if (dst == 15 || rhs == 15)
-    error(ErrorError, TRUE, "Use of R15 in CLZ is unpredictable");
+    error(ErrorError, "Use of R15 in CLZ is unpredictable");
 
   putIns (ir);
 }
@@ -558,7 +558,7 @@ q_onlyregs (WORD ir, const char *op)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   lhs = getCpuReg ();
   skipblanks ();
   if (inputLook () == ',')
@@ -567,10 +567,10 @@ q_onlyregs (WORD ir, const char *op)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   rhs = getCpuReg ();
   if (dst == 15 || lhs == 15 || rhs == 15)
-    error (ErrorError, TRUE, "Cannot use R15 with %s", op);
+    error (ErrorError, "Cannot use R15 with %s", op);
 
   ir |= dst << 12 | lhs | rhs << 16;
   putIns (ir);

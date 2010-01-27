@@ -25,53 +25,43 @@
 
 #include "global.h"
 #include "lex.h"
+#include "variables.h"
 #include "whileif.h"
 
-#define MACRO_ARG0  16
-#define MACRO_ARG15 31
+#define MACRO_ARG_LIMIT (16)
 /* These delimit a block of 16 consecutive character codes which cannot
  * appear in the assembler source
  */
+#define MACRO_ARG0  16
+#define MACRO_ARG15 31
 
 typedef struct Macro
 {
   const struct Macro *next;
-  char *name;
+  const char *name;
   const char *file;
-  char *buf;
+  const char *buf;
   unsigned int labelarg:8,	/* 0 or 1 of these */
     numargs:8;			/* and up to 16 in total */
-  char *args[16];
-  long int startline;
-}
-Macro;
+  char *args[MACRO_ARG_LIMIT];
+  int startline;
+} Macro;
 
-typedef struct MacroStack
+typedef struct
 {
   const Macro *macro;
-  long int callno;
-  const char *offset;		/* Filled in for *current* macro */
-  long int lineno;		/* Return to this line... */
-  WhileBlock *whilestack;
-  int if_depth;
-  char *args[16];
-}
-MacroStack;
+  const char *curPtr; /**< Current pointer inside macro buffer Macro::buf.  */
+  const char *args[MACRO_ARG_LIMIT];
+  varPos *varListP; /**< Linked list of local variables defined in this macro.  */
+} MacroPObject;
 
-extern int macroSP;
-extern MacroStack macroStack[10];
-extern char *macroArgs[16];
-extern const Macro *macroCurrent;
-extern const char *macroPtr;
-extern long int macroCurrentCallNo;
+void FS_PopMacroPObject (bool noCheck);
 
 const Macro *macroFind (size_t len, const char *);
-void macroCall (const Macro *, Lex *);
+void macroCall (const Macro *, const Lex *);
 BOOL macroGetLine (char *buf);	/* returns 0 if end of macro */
 
-BOOL macroAdd (Macro *);
-
-void c_macro (Lex *);		/* start of macro definition */
-void c_mexit (Lex *);
+void c_macro (const Lex *);	/* start of macro definition */
+void c_mexit (const Lex *);
 
 #endif

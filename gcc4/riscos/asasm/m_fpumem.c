@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developersrs
+ * Copyright (c) 2000-2010 GCCSDK Developersrs
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -41,7 +41,7 @@ static void
 dstmem (WORD ir)
 {
   if (option_apcs_softfloat)
-    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+    error (ErrorWarning, "soft-float code uses hard FP instructions");
     
   ir |= DST_OP (getFpuReg ());
   ir = help_copAddr (ir, FALSE);
@@ -65,13 +65,12 @@ static void
 dstmemx (WORD ir)
 {
   BOOL stack_ia = FALSE;
-  BOOL stack;
   Value im;
 
   if (option_apcs_softfloat)
-    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+    error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  stack = (BOOL) ! isspace (inputLook ());
+  BOOL stack = (BOOL) ! isspace (inputLook ());
   if (stack)
     {
       char c1, c2;
@@ -86,7 +85,7 @@ dstmemx (WORD ir)
       else if (c1 == 'F' && c2 == 'D')
 	stack_ia = (ir & 0x100000) ? TRUE : FALSE;
       else
-	error (ErrorError, TRUE, "Illegal stack type for %cfm (%c%c)",
+	error (ErrorError, "Illegal stack type for %cfm (%c%c)",
 	       (ir & 0x100000) ? 'l' : 's', c1, c2);
       inputSkipN (2);
       if (stack_ia)
@@ -95,7 +94,7 @@ dstmemx (WORD ir)
   if (inputLook () && !isspace (inputLook ()))
     {
       inputRollback ();
-      error (ErrorError, FALSE, "Illegal line \"%s\"", inputRest ());
+      errorAbort ("Illegal line \"%s\"", inputRest ());
       return;
     }
   skipblanks ();
@@ -104,17 +103,17 @@ dstmemx (WORD ir)
   if (inputLook () == ',')
     inputSkip ();
   else
-    error (ErrorError, TRUE, "Inserting comma after dst");
+    error (ErrorError, "Inserting comma after dst");
   skipblanks ();
   exprBuild ();
   im = exprEval (ValueInt);
   if (im.Tag.t == ValueInt)
     {
       if (im.ValueInt.i < 1 || im.ValueInt.i > 4)
-	error (ErrorError, TRUE, "Number of fp registers out of range");
+	error (ErrorError, "Number of fp registers out of range");
     }
   else
-    error (ErrorError, TRUE, "Illegal %cfm expression", (ir & 0x100000) ? 'l' : 's');
+    error (ErrorError, "Illegal %cfm expression", (ir & 0x100000) ? 'l' : 's');
   ir |= (im.ValueInt.i & 1) << 15;
   ir |= (im.ValueInt.i & 2) << 21;
   if (stack)

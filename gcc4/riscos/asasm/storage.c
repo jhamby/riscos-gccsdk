@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,7 +44,7 @@ storageValue (void)
 {
   if (!storageD)
     {
-      error (ErrorError, TRUE, "No storage declared (# or @ before ^)");
+      error (ErrorError, "No storage declared (# or @ before ^)");
       storageV.Tag.t = ValueAddr;
       storageV.ValueAddr.i = 0;
       storageV.ValueAddr.r = 15;
@@ -71,7 +71,7 @@ c_record (void)
       break;
     default:
       storageV.ValueAddr.i = 0;
-      error (ErrorError, FALSE, "^ cannot evaluate its offset expression");
+      errorAbort ("^ cannot evaluate its offset expression");
       break;
     }
   if (inputLook () == ',')
@@ -100,16 +100,16 @@ c_alloc (Symbol * sym)
       if (value.ValueInt.i >= 0)
 	{
 	  if (option_pedantic > 1 && value.ValueInt.i == 0)
-	    error (ErrorInfo, TRUE, "You are reserving zero bytes?");
+	    error (ErrorInfo, "You are reserving zero bytes?");
 	  storageV.ValueAddr.i += value.ValueInt.i;
 	  /* ValueInt & ValueAddr have i in the same place */
 	  value.ValueAddr.r = storageV.ValueAddr.r;
 	}
       else
-	error (ErrorError, TRUE, "Cannot reserve negative amount of space %d", value.ValueInt.i);
+	error (ErrorError, "Cannot reserve negative amount of space %d", value.ValueInt.i);
       break;
     default:
-      error (ErrorError, FALSE, "Illegal expression after #");
+      errorAbort ("Illegal expression after #");
       break;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2008 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,14 +32,14 @@
 #include "option.h"
 
 WORD
-fixShiftImm (long int lineno, WORD shiftop, int shift)
+fixShiftImm (int lineno, WORD shiftop, int shift)
 {
   switch (shiftop)
     {
     case LSL:
       if (shift < 0 || shift > 31)
 	{
-	  errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate shift %d", shift);
+	  errorLine (lineno, NULL, ErrorError, "Illegal immediate shift %d", shift);
 	  shift = 1;
 	}
       break;
@@ -48,7 +48,7 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
 	shiftop = LSL;
       else if (shift < 1 || shift > 32)
 	{
-	  errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate shift %d", shift);
+	  errorLine (lineno, NULL, ErrorError, "Illegal immediate shift %d", shift);
 	  shift = 1;
 	}
       break;
@@ -57,7 +57,7 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
 	shiftop = LSL;
       else if (shift < 1 || shift > 32)
 	{
-	  errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate shift %d", shift);
+	  errorLine (lineno, NULL, ErrorError, "Illegal immediate shift %d", shift);
 	  shift = 1;
 	}
       break;
@@ -66,19 +66,19 @@ fixShiftImm (long int lineno, WORD shiftop, int shift)
 	shiftop = LSL;
       else if (shift < 1 || shift > 31)
 	{
-	  errorLine (lineno, NULL, ErrorError, TRUE, "Illegal immediate shift %d", shift);
+	  errorLine (lineno, NULL, ErrorError, "Illegal immediate shift %d", shift);
 	  shift = 1;
 	}
       break;
     default:
-      errorLine (lineno, NULL, ErrorSerious, FALSE, "Internal fixShiftImm: unknown shift type");
+      errorAbortLine (lineno, NULL, "Internal fixShiftImm: unknown shift type");
       break;
     }
   return SHIFT_IMM (shift) | SHIFT_OP (shiftop);
 }
 
 WORD
-fixImm8s4 (long int lineno, WORD ir, int im)
+fixImm8s4 (int lineno, WORD ir, int im)
 {
   static const char op3[] = "Changing \"%s R_, R_, #%d\" to \"%s R_, R_, #%d\"";
   static const char op2[] = "Changing \"%s R_, #%d\" to \"%s R_, #%d\"";
@@ -118,7 +118,7 @@ fixImm8s4 (long int lineno, WORD ir, int im)
   i8s4 = help_cpuImm8s4 (im2);
   if (i8s4 == -1)
     {
-      errorLine (lineno, NULL, ErrorError, TRUE,
+      errorLine (lineno, NULL, ErrorError,
 		 "Illegal immediate constant %d (0x%08x)", im, im);
       return ir;
     }
@@ -167,18 +167,18 @@ fixImm8s4 (long int lineno, WORD ir, int im)
       optype = op3; m1 = "BIC"; m2 = "AND";
       break;
     default:
-      errorLine (lineno, NULL, ErrorSerious, FALSE, "Internal fixImm8s4: unknown mnemonic");
+      errorAbortLine (lineno, NULL, "Internal fixImm8s4: unknown mnemonic");
       return ir;
    }
 
   if (option_fussy > 1)
-    errorLine (lineno, NULL, ErrorInfo, TRUE, optype, m1, im, m2, im2);
+    errorLine (lineno, NULL, ErrorInfo, optype, m1, im, m2, im2);
 
   return ir | i8s4;
 }
 
 WORD
-fixImmFloat (long int lineno, WORD ir, FLOAT im)
+fixImmFloat (int lineno, WORD ir, FLOAT im)
 {
   static const char op3[] = "Changing \"%s F_, F_, #%.1f\" to \"%s F_, F_, #%.1f\"";
   static const char op2[] = "Changing \"%s F_, #%.1f\" to \"%s F_, #%.1f\"";
@@ -195,7 +195,7 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
   if (f == -1)
     {
       /* Even the inverse cannot be represented.  */
-      errorLine (lineno, NULL, ErrorError, TRUE,
+      errorLine (lineno, NULL, ErrorError,
 		 "Illegal immediate constant %g", im);
       return ir;
     }
@@ -239,19 +239,19 @@ fixImmFloat (long int lineno, WORD ir, FLOAT im)
       optype = op2; m1 = "CNFE"; m2 = "CMFE";
       break;
     default:
-      errorLine (lineno, NULL, ErrorSerious, FALSE, "Internal fixImmFloat: unknown mnemonic");
+      errorAbortLine (lineno, NULL, "Internal fixImmFloat: unknown mnemonic");
       return ir;
       break;
     }
 
   if (option_fussy > 1)
-    errorLine (lineno, NULL, ErrorInfo, TRUE, optype, m1, im, m2, -im);
+    errorLine (lineno, NULL, ErrorInfo, optype, m1, im, m2, -im);
 
   return ir | f;
 }
 
 WORD
-fixAdr (long int lineno, WORD ir, int im)	/* !!! mov and mvn should be possible */
+fixAdr (int lineno, WORD ir, int im)	/* !!! mov and mvn should be possible */
 {
   int i8s4;
   if (im < 0)
@@ -263,14 +263,14 @@ fixAdr (long int lineno, WORD ir, int im)	/* !!! mov and mvn should be possible 
     ir |= 0x00800000;		/* add */
   i8s4 = help_cpuImm8s4 (im);
   if (i8s4 == -1)
-    errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d (0x%08x) is illegal for adr", im, im);
+    errorLine (lineno, NULL, ErrorError, "Offset %d (0x%08x) is illegal for adr", im, im);
   else
     ir |= i8s4;
   return ir;
 }
 
 void
-fixAdrl (long int lineno, WORD * ir, WORD * ir2, int im, int warn)
+fixAdrl (int lineno, WORD * ir, WORD * ir2, int im, int warn)
 {
   int i8s4;
   if (im < 0)
@@ -285,7 +285,7 @@ fixAdrl (long int lineno, WORD * ir, WORD * ir2, int im, int warn)
   if (i8s4 != -1)
     {
       if (warn && option_fussy && (im == 0 || (*ir & 0x00400000) || help_cpuImm8s4 (im - 4) != -1))
-	errorLine (lineno, NULL, ErrorInfo, TRUE, "ADRL not required for offset %d (0x%08x)", im, im);
+	errorLine (lineno, NULL, ErrorInfo, "ADRL not required for offset %d (0x%08x)", im, im);
       *ir |= i8s4;
     }
   else
@@ -296,39 +296,39 @@ fixAdrl (long int lineno, WORD * ir, WORD * ir2, int im, int warn)
       *ir |= (32 - (shift & 30)) << 7 | (im >> (shift & 0xFF));
       i8s4 = help_cpuImm8s4 (im & ~(0xFF << shift));
       if (i8s4 == -1)
-	errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d (0x%08x) is illegal for adrl", im, im);
+	errorLine (lineno, NULL, ErrorError, "Offset %d (0x%08x) is illegal for adrl", im, im);
       else
 	*ir2 |= i8s4;
     }
 }
 
 WORD
-fixSwi (long int lineno, int im)
+fixSwi (int lineno, int im)
 {
   if ((im & 0xffffff) != im)
-    errorLine (lineno, NULL, ErrorError, TRUE, "Illegal swi number %d(0x%08x)", im, im);
+    errorLine (lineno, NULL, ErrorError, "Illegal swi number %d(0x%08x)", im, im);
   return im & 0xffffff;
 }
 
 WORD
-fixBranch (long int lineno, int im)
+fixBranch (int lineno, int im)
 {
   if (im & 3)
-    errorLine (lineno, NULL, ErrorError, TRUE, "Branch value is not a multiple of four");
+    errorLine (lineno, NULL, ErrorError, "Branch value is not a multiple of four");
   return (im >> 2) & 0xffffff;
 }
 
 WORD
-fixBranchT (long int lineno, int im)
+fixBranchT (int lineno, int im)
 {
   if (im & 1)
-    errorLine (lineno, NULL, ErrorError, TRUE, "Branch value is not a multiple of two");
+    errorLine (lineno, NULL, ErrorError, "Branch value is not a multiple of two");
 
   return ((im >> 2) & 0xffffff) | ((im & 2) << 23);
 }
 
 WORD
-fixCopOffset (long int lineno, WORD ir, int offset)
+fixCopOffset (int lineno, WORD ir, int offset)
 {
   BOOL up;
   if (offset < 0)
@@ -339,9 +339,9 @@ fixCopOffset (long int lineno, WORD ir, int offset)
   else
     up = TRUE;
   if (offset & 3)
-    errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d is not a word offset", offset);
+    errorLine (lineno, NULL, ErrorError, "Offset %d is not a word offset", offset);
   if (offset > 1020)
-    errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d is too large", offset);
+    errorLine (lineno, NULL, ErrorError, "Offset %d is too large", offset);
   ir |= (offset >> 2) & 0xff;
   if (up)
     ir |= UP_FLAG;
@@ -349,7 +349,7 @@ fixCopOffset (long int lineno, WORD ir, int offset)
 }
 
 WORD
-fixCpuOffset (long int lineno, WORD ir, int offset)
+fixCpuOffset (int lineno, WORD ir, int offset)
 {
   BOOL up;
   if (offset < 0)
@@ -362,13 +362,13 @@ fixCpuOffset (long int lineno, WORD ir, int offset)
   if ((ir & 0x90) == 0x90)
     {
       if (offset > 255)
-	errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d is too large", offset);
+	errorLine (lineno, NULL, ErrorError, "Offset %d is too large", offset);
       ir |= (offset & 0xF) | (offset & 0xF0) << 4;
     }
   else
     {
       if (offset > 4095)
-	errorLine (lineno, NULL, ErrorError, TRUE, "Offset %d is too large", offset);
+	errorLine (lineno, NULL, ErrorError, "Offset %d is too large", offset);
       ir |= offset & 0xfff;
     }
   if (up)
@@ -377,10 +377,10 @@ fixCpuOffset (long int lineno, WORD ir, int offset)
 }
 
 WORD
-fixMask (long int lineno, int mask)
+fixMask (int lineno, int mask)
 {
   if (mask < 0 || mask > 0xffff)
-    errorLine (lineno, NULL, ErrorError, TRUE, "Illegal value for register mask 0x%x", mask);
+    errorLine (lineno, NULL, ErrorError, "Illegal value for register mask 0x%x", mask);
   return mask & 0xffff;
 }
 
@@ -393,28 +393,28 @@ fixMask (long int lineno, int mask)
  * fits in given word size.
  */
 WORD
-fixInt (long int lineno, int size, int value)
+fixInt (int lineno, int size, int value)
 {
   switch (size)
     {
       case 1:
 	if (value < -128 || value >= 256)
 	  {
-	    errorLine (lineno, NULL, ErrorError, TRUE, "Expression %d too big for %i bits", value, 8);
+	    errorLine (lineno, NULL, ErrorError, "Expression %d too big for %i bits", value, 8);
 	    value &= 0xff;
 	  }
 	break;
       case 2:
 	if (value < -32768 || value >= 65536)
 	  {
-	    errorLine (lineno, NULL, ErrorError, TRUE, "Expression %d too big for %i bits", value, 16);
+	    errorLine (lineno, NULL, ErrorError, "Expression %d too big for %i bits", value, 16);
 	    value &= 0xffff;
 	  }
 	break;
       case 4:
 	break;
       default:
-	errorLine (lineno, NULL, ErrorSerious, TRUE, "Internal fixInt: size %d is not legal", size);
+	errorAbortLine (lineno, NULL, "Internal fixInt: size %d is not legal", size);
 	break;
     }
   return value;

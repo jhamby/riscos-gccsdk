@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2006 GCCSDK Developers
+ * Copyright (c) 2001-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -73,9 +73,9 @@ extern Symbol *areaEntrySymbol; /** Symbol of area which has been marked as ENTR
 extern int areaEntryOffset;
 extern Symbol *areaHeadSymbol; /** Start of the linked list of all area symbols seen so far.  */
 
-extern void areaError (void);		/* report "No area defined" */
-extern void areaInit (void);
-extern void areaFinish (void);
-extern void areaGrow (Area *area, int mingrow);
+void areaError (void);		/* report "No area defined" */
+void areaInit (void);
+void areaFinish (void);
+void areaGrow (Area *area, int mingrow);
 
 #endif

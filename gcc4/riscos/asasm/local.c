@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,6 +31,7 @@
 
 #include "asm.h"
 #include "error.h"
+#include "filestack.h"
 #include "input.h"
 #include "local.h"
 #include "main.h"
@@ -42,7 +43,7 @@ typedef struct localPos
     struct localPos *next;
     int local;
     const char *file;
-    long int lineno;
+    int lineno;
   }
 localPos;
 
@@ -52,7 +53,7 @@ typedef struct routPos
     struct routPos *next;
     const char *id;
     const char *file;
-    long int lineno;
+    int lineno;
   }
 routPos;
 
@@ -84,48 +85,41 @@ c_rout (Lex *label)
     {
       char *new_rout_id = malloc (16);
       if (new_rout_id)
-        {
-          sprintf (new_rout_id, "Local$$%i", rout_null++);
-          rout_id = new_rout_id;
-        }
+	{
+	  sprintf (new_rout_id, "Local$$%i", rout_null++);
+	  rout_id = new_rout_id;
+	}
     }
   if (rout_id == NULL || p == NULL)
-    errorOutOfMem ("c_rout");
-  else
-    {
-      if (routListEnd)
-	routListEnd->next = p;
-      routListEnd = p;
-      if (!routList)
-	routList = p;
-      p->id = rout_id;
-      p->file = inputName;
-      p->lineno = inputLineNo;
-    }
+    errorOutOfMem ();
+  if (routListEnd)
+    routListEnd->next = p;
+  routListEnd = p;
+  if (!routList)
+    routList = p;
+  p->id = rout_id;
+  p->file = FS_GetCurFileName ();
+  p->lineno = FS_GetCurLineNumber ();
 }
 
 
 void
 c_local (Lex *label)
 {
-  localPos *p;
-
   if (label && label->tag != LexNone)
-    error (ErrorWarning, TRUE, "Label not allowed here - ignoring");
+    error (ErrorWarning, "Label not allowed here - ignoring");
   localCurrent++;
+  localPos *p;
   if ((p = malloc (sizeof (localPos))) == NULL)
-    errorOutOfMem("c_local");
-  else
-    {
-      if (localListEnd)
-	localListEnd->next = p;
-      localListEnd = p;
-      if (!localList)
-	localList = p;
-      p->local = localCurrent;
-      p->file = inputName;
-      p->lineno = inputLineNo;
-    }
+    errorOutOfMem ();
+  if (localListEnd)
+    localListEnd->next = p;
+  localListEnd = p;
+  if (!localList)
+    localList = p;
+  p->local = localCurrent;
+  p->file = FS_GetCurFileName ();
+  p->lineno = FS_GetCurLineNumber ();
 }
 
 
@@ -153,16 +147,13 @@ localMunge (Lex *label)
       label->LexId.str = strdup (id);
       label->LexId.len = strlen (id);
       if (!label->LexId.str)
-	{
-	  errorOutOfMem ("lexGetId");
-	  label->tag = LexNone;
-	}
+	errorOutOfMem ();
     }
 }
 
 
 void
-localFindLocal (int local, const char **file, long int *lineno)
+localFindLocal (int local, const char **file, int *lineno)
 {
   localPos *p;
   for (p = localList; p && p->local != local; p = p->next)
@@ -181,7 +172,7 @@ localFindLocal (int local, const char **file, long int *lineno)
 
 
 void
-localFindRout (const char *rout, const char **file, long int *lineno)
+localFindRout (const char *rout, const char **file, int *lineno)
 {
   routPos *p;
   for (p = routList; p && strcmp (p->id, rout); p = p->next)

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,24 +42,20 @@
 static WORD
 getCpuRegInternal (BOOL genError)
 {
-  Lex lexSym;
-  Symbol *sym;
-
-  lexSym = genError ? lexGetId () : lexGetIdNoError ();
+  Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
   if (lexSym.tag == LexNone)
     return genError ? 0 : INVALID_REG;
 
-  sym = symbolGet (&lexSym);
-
+  const Symbol *sym = symbolGet (&lexSym);
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_CPUREG)
 	return sym->value.ValueInt.i;
-      else if (genError)
-	error (ErrorError, TRUE, "'%s' (=%d) is not a %s register", sym->str, sym->value, "cpu");
+      if (genError)
+	error (ErrorError, "'%s' is not a %s register", sym->str, "cpu");
     }
   else if (genError)
-    error (ErrorError, TRUE, "Undefined register %s", sym->str);
+    error (ErrorError, "Undefined register %s", sym->str);
   return genError ? 0 : INVALID_REG;
 }
 
@@ -78,70 +74,57 @@ getCpuRegNoError (void)
 WORD
 getFpuReg (void)
 {
-  Lex lexSym;
-  Symbol *sym;
-
-  lexSym = lexGetId ();
+  Lex lexSym = lexGetId ();
   if (lexSym.tag == LexNone)
     return 0;
 
-  sym = symbolGet (&lexSym);
-
+  Symbol *sym = symbolGet (&lexSym);
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_FPUREG)
 	return sym->value.ValueInt.i;
-      else
-	error (ErrorError, TRUE, "'%s' (=%d) is not a %s register", sym->str, sym->value, "fpu");
+      error (ErrorError, "'%s' is not a %s register", sym->str, "fpu");
     }
   else
-    error (ErrorError, TRUE, "Undefined float register %s", sym->str);
+    error (ErrorError, "Undefined float register %s", sym->str);
   return 0;
 }
 
 WORD
 getCopReg (void)
 {
-  Symbol *sym;
   Lex lexSym = lexGetId ();
-
   if (lexSym.tag == LexNone)
     return 0;
 
-  sym = symbolGet (&lexSym);
-
+  Symbol *sym = symbolGet (&lexSym);
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_COPREG)
 	return sym->value.ValueInt.i;
-      else
-	error (ErrorError, TRUE, "'%s' (=%d) is not a %s register", sym->str, sym->value, "cop");
+      error (ErrorError, "'%s' is not a %s register", sym->str, "cop");
     }
   else
-    error (ErrorError, TRUE, "Undefined coprocessor register %s", sym->str);
+    error (ErrorError, "Undefined coprocessor register %s", sym->str);
   return 0;
 }
 
 WORD
 getCopNum (void)
 {
-  Symbol *sym;
   Lex lexSym = lexGetId ();
-
   if (lexSym.tag == LexNone)
     return 0;
 
-  sym = symbolGet (&lexSym);
-
+  Symbol *sym = symbolGet (&lexSym);
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_COPNUM)
 	return sym->value.ValueInt.i;
-      else
-	error (ErrorError, TRUE, "'%s' (=%d) is not a coprocessor number", sym->str, sym->value);
+      error (ErrorError, "'%s' is not a coprocessor number", sym->str);
     }
   else
-    error (ErrorError, TRUE, "Undefined coprocessor number %s", sym->str);
+    error (ErrorError, "Undefined coprocessor number %s", sym->str);
   return 0;
 }
 
@@ -151,76 +134,76 @@ getShiftOp (void)
   WORD r = 0;
   switch (inputLookLower ())
     {
-    case 'a':
-      if (inputLookNLower (1) == 's')
+      case 'a':
+	if (inputLookNLower (1) == 's')
 	{
 	  switch (inputLookNLower (2))
 	    {
-	    case 'l':
-	      r = ASL;
-	      inputSkipN (3);
-	      break;
-	    case 'r':
-	      r = ASR;
-	      inputSkipN (3);
-	      break;
-	    default:
-	      goto illegal;
+	      case 'l':
+		r = ASL;
+		inputSkipN (3);
+		break;
+	      case 'r':
+		r = ASR;
+		inputSkipN (3);
+		break;
+	      default:
+		goto illegal;
 	    }
 	}
-      else
-	goto illegal;
-      break;
-    case 'l':
-      if (inputLookNLower (1) == 's')
-	{
-	  switch (inputLookNLower (2))
-	    {
-	    case 'l':
-	      r = LSL;
-	      inputSkipN (3);
-	      break;
-	    case 'r':
-	      r = LSR;
-	      inputSkipN (3);
-	      break;
-	    default:
-	      goto illegal;
-	    }
-	}
-      else
-	goto illegal;
-      break;
-    case 'r':
-      switch (inputLookNLower (1))
-	{
-	case 'o':
-	  if (inputLookNLower (2) == 'r')
-	    {
-	      r = ROR;
-	      inputSkipN (3);
-	      break;
-	    }
-	  else
-	    goto illegal;
-	case 'r':
-	  if (inputLookNLower (2) == 'x')
-	    {
-	      r = RRX;
-	      inputSkipN (2);
-	      inputSkip ();
-	      break;
-	    }
-	  else
-	    goto illegal;
-	default:
+	else
 	  goto illegal;
+	break;
+      case 'l':
+	if (inputLookNLower (1) == 's')
+	{
+	  switch (inputLookNLower (2))
+	    {
+	      case 'l':
+		r = LSL;
+		inputSkipN (3);
+		break;
+	      case 'r':
+		r = LSR;
+		inputSkipN (3);
+		break;
+	      default:
+		goto illegal;
+	    }
 	}
-      break;
-    default:
-    illegal:
-      error (ErrorError, TRUE, "Illegal shiftop %c%c%c", inputLook (), inputLookN (1), inputLookN (2));
-      break;
+	else
+	  goto illegal;
+	break;
+      case 'r':
+	switch (inputLookNLower (1))
+	{
+	  case 'o':
+	    if (inputLookNLower (2) == 'r')
+	      {
+		r = ROR;
+		inputSkipN (3);
+		break;
+	      }
+	    else
+	      goto illegal;
+	  case 'r':
+	    if (inputLookNLower (2) == 'x')
+	      {
+		r = RRX;
+		inputSkipN (2);
+		inputSkip ();
+		break;
+	      }
+	    else
+	      goto illegal;
+	  default:
+	    goto illegal;
+	}
+	break;
+      default:
+illegal:
+	error (ErrorError, "Illegal shiftop %c%c%c", inputLook (), inputLookN (1), inputLookN (2));
+	break;
     }
   return r;
 }
@@ -229,11 +212,9 @@ getShiftOp (void)
 static WORD
 getShift (BOOL immonly)
 {
-  WORD shift;
   WORD op = 0;
   Value im;
-  shift = getShiftOp ();
-
+  WORD shift = getShiftOp ();
   if (shift != RRX)
     {
       skipblanks ();
@@ -245,22 +226,22 @@ getShift (BOOL immonly)
 	  switch (im.Tag.t)
 	    {
 	    case ValueInt:
-	      op = fixShiftImm (inputLineNo, shift, im.ValueInt.i);	/* !! Fixed !! */
+	      op = fixShiftImm (0, shift, im.ValueInt.i); /* !! Fixed !! */
 	      break;
 	    case ValueCode:
 	    case ValueLateLabel:
 	      relocShiftImm (shift, &im);
-	      op = SHIFT_OP (shift);	/* !! Fixed !! */
+	      op = SHIFT_OP (shift); /* !! Fixed !! */
 	      break;
 	    default:
-	      error (ErrorError, TRUE, "Illegal shift expression");
+	      error (ErrorError, "Illegal shift expression");
 	      break;
 	    }
 	}
       else
 	{
 	  if (immonly)
-	    error (ErrorError, TRUE, "Only shift immediate allowed here");
+	    error (ErrorError, "Only shift immediate allowed here");
 	  else
 	    op = SHIFT_REG (getCpuReg ()) | SHIFT_OP (shift);
 	}
@@ -289,29 +270,29 @@ getRhs (BOOL immonly, BOOL shift, WORD ir)
 	      Lex rotator = lexGetPrim ();
 
 	      if (im.ValueInt.i < 0 || im.ValueInt.i >= 256)
-	        error (ErrorError, TRUE, "Immediate value out of range: 0x%x", im.ValueInt.i);
+	        error (ErrorError, "Immediate value out of range: 0x%x", im.ValueInt.i);
 
 	      if (rotator.LexInt.value < 0 || rotator.LexInt.value > 30
 		  || (rotator.LexInt.value % 2) == 1)
-	        error (ErrorError, TRUE, "Bad rotator %d", rotator.LexInt.value);
+	        error (ErrorError, "Bad rotator %d", rotator.LexInt.value);
 
 	      ir |= (rotator.LexInt.value >> 1) << 8;
 	    }
 	case ValueAddr:
-	  ir = fixImm8s4 (inputLineNo, ir, im.ValueInt.i);
+	  ir = fixImm8s4 (0, ir, im.ValueInt.i);
 	  break;
 	case ValueString:
 	  if (im.ValueString.len != 1)
-	    error (ErrorError, TRUE, "String too long to be an immediate expression");
+	    error (ErrorError, "String too long to be an immediate expression");
 	  else
-	    ir = fixImm8s4 (inputLineNo, ir, im.ValueString.s[0]);
+	    ir = fixImm8s4 (0, ir, im.ValueString.s[0]);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
 	  relocImm8s4 (ir, &im);
 	  break;
 	default:
-	  error (ErrorError, TRUE, "Illegal immediate expression");
+	  error (ErrorError, "Illegal immediate expression");
 	  break;
 	}
     }

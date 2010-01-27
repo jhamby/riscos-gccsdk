@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,16 +22,8 @@
 #ifndef depend_header_included
 #define depend_header_included
 
-#include <stdio.h>
-
 extern const char *DependFileName;
 
-void dependInit (const char *srcFileName);
-void dependFinish (void);
-
-void dependPut (const char *pre, const char *name, const char *post);
-void dependOpen (const char *objname);
-
-#define dependWrite(c) dependPut(" ", (c), "")
+void dependWrite (const char *objname);
 
 #endif

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2006 GCCSDK Developers
+ * Copyright (c) 2001-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,21 +32,16 @@
 #define FLIP(x) (isupper((x)) ? tolower((x)) : islower((x)) ? toupper((x)) : ((x)))
 #define TOLOWER(x) tolower((x))
 
-extern FILE *asmfile;
-extern long int inputLineNo;	/* Do not change, only read! */
 extern BOOL inputExpand;
 extern BOOL inputRewind;
-extern const char *inputName;
 
 #define MAX_PREDEFINES 10
 extern const char *predefines[MAX_PREDEFINES];
 extern int num_predefines;
 
 void inputInit (const char *infile);
-void inputFinish (FILE *newAsmFile);
 
-/* Debug only:
- */
+/* Debug only: */
 const char *inputGiveRestLine(void);
 
 BOOL inputNextLine (void);
@@ -68,7 +63,9 @@ void inputUnGet (char c);
 void inputPutBack (char c);
 char inputSkipLook (void);
 char *inputRest (void);
-char *inputLine (void);
+#if DEBUG
+const char *inputLine (void);
+#endif
 void inputSkip (void);
 void inputSkipN (int n);
 char *inputSymbol (int *ilen, char del);

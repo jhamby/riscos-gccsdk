@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developersrs
+ * Copyright (c) 2000-2010 GCCSDK Developersrs
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -78,17 +78,17 @@ getFloatRhs (WORD ir)
       switch (im.Tag.t)
 	{
 	case ValueInt:
-	  ir = fixImmFloat (inputLineNo, ir, (FLOAT) im.ValueInt.i);
+	  ir = fixImmFloat (0, ir, (FLOAT) im.ValueInt.i);
 	  break;
 	case ValueFloat:
-	  ir = fixImmFloat (inputLineNo, ir, im.ValueFloat.f);
+	  ir = fixImmFloat (0, ir, im.ValueFloat.f);
 	  break;
 	case ValueLateLabel:
 	case ValueCode:
 	  relocImmFloat (ir, &im);
 	  break;
 	default:
-	  error (ErrorError, TRUE, "Illegal float immediate");
+	  error (ErrorError, "Illegal float immediate");
 	  break;
 	}
     }
@@ -103,12 +103,10 @@ getFloatRhs (WORD ir)
 static void
 dstlhsrhs (WORD ir)
 {
-  WORD op;
-
   if (option_apcs_softfloat)
-    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+    error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  op = getFpuReg ();
+  WORD op = getFpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
   if (inputLook () == ',')
@@ -117,7 +115,7 @@ dstlhsrhs (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   op = getFpuReg ();
   ir |= LHS_OP (op);
   skipblanks ();
@@ -127,7 +125,7 @@ dstlhsrhs (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   putIns (getFloatRhs (ir));
 }
 
@@ -219,7 +217,7 @@ dstrhs (WORD ir)
   WORD op;
 
   if (option_apcs_softfloat)
-    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+    error (ErrorWarning, "soft-float code uses hard FP instructions");
 
   op = getFpuReg ();
   ir |= DST_OP (op);
@@ -230,7 +228,7 @@ dstrhs (WORD ir)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   putIns (getFloatRhs (ir));
 }
 
@@ -335,11 +333,10 @@ m_nrm (WORD cc)
 void
 m_fix (WORD cc)
 {
-  WORD ir = M_FIX | cc;
-
   if (option_apcs_softfloat)
-    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+    error (ErrorWarning, "soft-float code uses hard FP instructions");
 
+  WORD ir = M_FIX | cc;
   ir |= DST_OP (getCpuReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -348,18 +345,17 @@ m_fix (WORD cc)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   putIns (getFloatRhs (ir));
 }
 
 void
 m_flt (WORD cc)
 {
-  WORD ir = M_FLT | cc;
-
   if (option_apcs_softfloat)
-    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+    error (ErrorWarning, "soft-float code uses hard FP instructions");
 
+  WORD ir = M_FLT | cc;
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -368,7 +364,7 @@ m_flt (WORD cc)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   ir |= DST_OP (getCpuReg ());
   putIns (ir);
 }
@@ -376,12 +372,10 @@ m_flt (WORD cc)
 static void
 flagtransfer (WORD ir)
 {
-  WORD op;
-
   if (option_apcs_softfloat)
-    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+    error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  op = getCpuReg ();
+  WORD op = getCpuReg ();
   ir |= DST_OP (op);
   putIns (ir);
 }
@@ -414,7 +408,7 @@ static void
 comparelow (WORD ir)		/* No precision and no rounding allowed ? */
 {
   if (option_apcs_softfloat)
-    error (ErrorWarning, TRUE, "soft-float code uses hard FP instructions");
+    error (ErrorWarning, "soft-float code uses hard FP instructions");
 
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
@@ -424,7 +418,7 @@ comparelow (WORD ir)		/* No precision and no rounding allowed ? */
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   putIns (getFloatRhs (ir));
 }
 

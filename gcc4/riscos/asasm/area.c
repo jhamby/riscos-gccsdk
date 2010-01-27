@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -53,31 +53,24 @@ Symbol *areaHeadSymbol = NULL;
 void
 areaError (void)
 {
-  static BOOL reported = FALSE;
-  if (!reported)
-    {
-      reported = TRUE;
-      error (ErrorSerious, TRUE, "No area defined");
-    }
+  errorAbort ("No area defined");
 }
 
 
 static Area *
 areaNew (int type)
 {
-  Area *res = malloc (sizeof (Area));
-  if (res)
-    {
-      res->next = areaHeadSymbol;
-      res->type = type;
-      res->imagesize = 0;
-      res->image = NULL;
-      res->norelocs = 0;
-      res->relocs = NULL;
-      res->lits = NULL;
-    }
-  else
-    errorOutOfMem ("areaNew");
+  Area *res;
+  if ((res = malloc (sizeof (Area))) == NULL)
+    errorOutOfMem ();
+
+  res->next = areaHeadSymbol;
+  res->type = type;
+  res->imagesize = 0;
+  res->image = NULL;
+  res->norelocs = 0;
+  res->relocs = NULL;
+  res->lits = NULL;
   return res;
 }
 
@@ -114,8 +107,7 @@ areaGrow (Area *area, int mingrow)
   while (inc > mingrow && !areaImage (area, area->imagesize + inc))
     inc /= 2;
   if (inc <= mingrow && !areaImage (area, area->imagesize + mingrow))
-    error (ErrorSerious, FALSE,
-	   "Internal areaGrow: out of memory, minsize = %d", mingrow);
+    errorAbort ("Internal areaGrow: out of memory, minsize = %d", mingrow);
 }
 
 void
@@ -142,7 +134,7 @@ c_entry (void)
   if (areaCurrentSymbol)
     {
       if (areaEntrySymbol)
-	error (ErrorError, FALSE, "More than one ENTRY");
+	error (ErrorError, "More than one ENTRY");
       else
 	{
 	  areaEntrySymbol = areaCurrentSymbol;
@@ -150,7 +142,7 @@ c_entry (void)
 	}
     }
   else
-    error (ErrorError, FALSE, "No area selected before ENTRY");
+    errorAbort ("No area selected before ENTRY");
 }
 
 
@@ -182,13 +174,13 @@ c_align (void)
 	  alignValue = value.ValueInt.i;
 	  if (alignValue <= 0 || (alignValue & (alignValue - 1)))
 	    {
-	      error (ErrorError, TRUE, "ALIGN value is not a power of two");
+	      error (ErrorError, "ALIGN value is not a power of two");
 	      alignValue = 1<<0;
 	    }
 	}
       else
 	{
-	  error (ErrorError, TRUE, "Unrecognized ALIGN value");
+	  error (ErrorError, "Unrecognized ALIGN value");
 	  alignValue = 1<<0;
 	}
 
@@ -206,19 +198,19 @@ c_align (void)
 	      offsetValue = valueO.ValueInt.i;
 	      if (offsetValue < 0)
 		{
-		  error (ErrorError, TRUE, "ALIGN offset value is out-of-bounds");
+		  error (ErrorError, "ALIGN offset value is out-of-bounds");
 		  offsetValue = 0;
 		}
 	    }
 	  else
 	    {
-	      error (ErrorError, TRUE, "Unrecognized ALIGN offset value");
+	      error (ErrorError, "Unrecognized ALIGN offset value");
 	      offsetValue = 0;
 	    }
 	}
       else
 	{
-	  error (ErrorError, TRUE, "Unrecognized ALIGN offset value");
+	  error (ErrorError, "Unrecognized ALIGN offset value");
 	  offsetValue = 0;
 	}
     }
@@ -266,23 +258,22 @@ c_reserve (void)
 	areaCurrentSymbol->area.info->image[i] = 0;
     }
   else
-    error (ErrorError, TRUE, "Unresolved reserve not possible");
+    error (ErrorError, "Unresolved reserve not possible");
 }
 
 
 void
 c_area (void)
 {
-  Symbol *sym;
   int oldtype = 0;
   int newtype = 0;
   int c;
   int rel_specified = 0, data_specified = 0;
+  
   Lex lex = lexGetId ();
-
-  sym = symbolGet (&lex);
+  Symbol *sym = symbolGet (&lex);
   if (sym->type & SYMBOL_DEFINED)
-    error (ErrorError, TRUE, "Redefinition of label to area %s", sym->str);
+    error (ErrorError, "Redefinition of label to area %s", sym->str);
   else if (sym->type & SYMBOL_AREA)
     oldtype = sym->area.info->type;
   else
@@ -300,25 +291,25 @@ c_area (void)
       if (!strncmp ("ABS", attribute.LexId.str, attribute.LexId.len))
 	{
 	  if (rel_specified)
-	    error (ErrorError, TRUE, "Conflicting area attributes ABS vs REL");
+	    error (ErrorError, "Conflicting area attributes ABS vs REL");
 	  newtype |= AREA_ABS;
 	}
       else if (!strncmp ("REL", attribute.LexId.str, attribute.LexId.len))
 	{
 	  if (newtype & AREA_ABS)
-	    error (ErrorError, TRUE, "Conflicting area attributes ABS vs REL");
+	    error (ErrorError, "Conflicting area attributes ABS vs REL");
 	  rel_specified = 1;
 	}
       else if (!strncmp ("CODE", attribute.LexId.str, attribute.LexId.len))
 	{
 	  if (data_specified)
-	    error (ErrorError, TRUE, "Conflicting area attributes CODE vs DATA");
+	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
 	  newtype |= AREA_CODE;
 	}
       else if (!strncmp ("DATA", attribute.LexId.str, attribute.LexId.len))
 	{
 	  if (newtype & AREA_CODE)
-	    error (ErrorError, TRUE, "Conflicting area attributes CODE vs DATA");
+	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
 	  data_specified = 1;
 	}
       else if (!strncmp ("COMDEF", attribute.LexId.str, attribute.LexId.len))
@@ -350,25 +341,25 @@ c_area (void)
 	  Value value;
 
 	  if (newtype & 0xFF)
-	    error (ErrorError, TRUE, "You can't specify ALIGN attribute more than once");
+	    error (ErrorError, "You can't specify ALIGN attribute more than once");
 	  skipblanks ();
 	  if (inputGet () != '=')
-	    error (ErrorError, TRUE, "Malformed ALIGN attribute specification");
+	    error (ErrorError, "Malformed ALIGN attribute specification");
 	  skipblanks ();
 	  exprBuild ();
 	  value = exprEval (ValueInt);
 	  if (value.Tag.t == ValueInt)
 	    {
 	      if (value.ValueInt.i < 2 || value.ValueInt.i > 12)
-		error (ErrorError, TRUE, "ALIGN attribute value must be between 2 (incl) and 12 (incl)");
+		error (ErrorError, "ALIGN attribute value must be between 2 (incl) and 12 (incl)");
 	      else
 		newtype |= value.ValueInt.i;
 	    }
 	  else
-	    error (ErrorError, TRUE, "Unrecognized ALIGN attribute value");
+	    error (ErrorError, "Unrecognized ALIGN attribute value");
 	}
       else
-	error (ErrorError, TRUE, "Illegal area attribute %s", attribute.LexId.str);
+	error (ErrorError, "Illegal area attribute %s", attribute.LexId.str);
       skipblanks ();
     }
   inputUnGet (c);
@@ -404,22 +395,22 @@ c_area (void)
     }
   else if (newtype & (AREA_32BITAPCS | AREA_REENTRANT | AREA_EXTFPSET | AREA_NOSTACKCHECK))
     {
-      error (ErrorError, TRUE, "Attribute REENTRANT may not be set for a DATA area");
+      error (ErrorError, "Attribute REENTRANT may not be set for a DATA area");
     }
 
   if ((newtype & AREA_READONLY) && (newtype & AREA_UDATA))
-    error (ErrorError, TRUE, "Attributes READONLY and NOINIT are mutually exclusive");
+    error (ErrorError, "Attributes READONLY and NOINIT are mutually exclusive");
 
   if ((newtype & AREA_LINKONCE) && !(newtype & AREA_COMMONDEF))
-    error (ErrorError, TRUE, "Attribute LINKONCE must appear as part of a COMDEF");
+    error (ErrorError, "Attribute LINKONCE must appear as part of a COMDEF");
 
   if (!(newtype & AREA_CODE) && (newtype & AREA_REENTRANT))
-    error (ErrorError, TRUE, "Attribute REENTRANT may not be set for DATA area");
+    error (ErrorError, "Attribute REENTRANT may not be set for DATA area");
   if ((newtype & AREA_CODE) && (newtype & AREA_BASED))
-    error (ErrorError, TRUE, "Attribute BASED may not be set for CODE area");
+    error (ErrorError, "Attribute BASED may not be set for CODE area");
 
   if (newtype && oldtype && newtype != oldtype)
-    error (ErrorError, TRUE, "Changing attribute of area %s", sym->str);
+    error (ErrorError, "Changing attribute of area %s", sym->str);
   sym->area.info->type |= newtype;
   areaCurrentSymbol = sym;
 }

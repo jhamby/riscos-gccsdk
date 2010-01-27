@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,13 +50,13 @@ help_copInt (int max, const char *msg)
     {
       if (i.ValueInt.i < 0 || i.ValueInt.i > max)
 	{
-	  error (ErrorError, TRUE, "%d is not a legal %s", i.ValueInt.i, msg);
+	  error (ErrorError, "%d is not a legal %s", i.ValueInt.i, msg);
 	  return 0;
 	}
     }
   else
     {
-      error (ErrorError, TRUE, "Illegal expression as %s", msg);
+      error (ErrorError, "Illegal expression as %s", msg);
       return 0;
     }
   return i.ValueInt.i;
@@ -75,7 +75,7 @@ help_copAddr (WORD ir, BOOL stack)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "Inserting missing comma before address");
+    error (ErrorError, "Inserting missing comma before address");
   switch (inputLook ())
     {
     case '[':
@@ -95,7 +95,7 @@ help_copAddr (WORD ir, BOOL stack)
 	{			/* either [base,XX] or [base],XX */
 	  if (stack)
 	    {
-	      error (ErrorError, TRUE, "Cannot specify both offset and stack type");
+	      error (ErrorError, "Cannot specify both offset and stack type");
 	      break;
 	    }
 	  inputSkip ();
@@ -109,14 +109,14 @@ help_copAddr (WORD ir, BOOL stack)
 	      switch (offset.Tag.t)
 		{
 		case ValueInt:
-		  ir = fixCopOffset (inputLineNo, ir, offset.ValueInt.i);
+		  ir = fixCopOffset (0, ir, offset.ValueInt.i);
 		  break;
 		case ValueCode:
 		case ValueLateLabel:
 		  relocCopOffset (ir, &offset);
 		  break;
 		default:
-		  error (ErrorError, TRUE, "Illegal offset expression");
+		  error (ErrorError, "Illegal offset expression");
 		  break;
 		}
 	      if (!pre)
@@ -130,23 +130,23 @@ help_copAddr (WORD ir, BOOL stack)
 	      offset = exprEval (ValueInt);
 	      offValue = TRUE;
 	      if (offset.Tag.t != ValueInt)
-	        error (ErrorError, TRUE, "Illegal option value");
+	        error (ErrorError, "Illegal option value");
 	      if (offset.ValueInt.i < -128 || offset.ValueInt.i > 256)
-		error (ErrorError, TRUE, "Option value too large");
+		error (ErrorError, "Option value too large");
 	      ir |= (offset.ValueInt.i & 0xFF) | UP_FLAG;
 	      skipblanks ();
 	      if (inputLook () != '}')
-		error (ErrorError, TRUE, "Missing '}' in option");
+		error (ErrorError, "Missing '}' in option");
 	      inputSkip ();
 	    }
 	  else
-	    error (ErrorError, TRUE, "Coprocessor memory instructions cannot use register offset");
+	    error (ErrorError, "Coprocessor memory instructions cannot use register offset");
 	  skipblanks ();
 	}
       else
 	{			/* cop_reg,[base] if this way */
 	  if (pre)
-	    error (ErrorError, TRUE, "Illegal character '%c' after base", inputLook ());
+	    error (ErrorError, "Illegal character '%c' after base", inputLook ());
 	  if (!stack)
 	    ir |= UP_FLAG;	/* changes #-0 to #+0 :-) */
 	}
@@ -158,7 +158,7 @@ help_copAddr (WORD ir, BOOL stack)
 	      skipblanks ();
 	    }
 	  else
-	    error (ErrorError, TRUE, "Inserting missing ] after address");
+	    error (ErrorError, "Inserting missing ] after address");
 	}
       else if (!stack && !offValue)
 	{
@@ -169,7 +169,7 @@ help_copAddr (WORD ir, BOOL stack)
 	  if (pre || stack)
 	    ir |= WB_FLAG;
 	  else
-	    error (ErrorError, TRUE, "Writeback is implied with post-index");
+	    error (ErrorError, "Writeback is implied with post-index");
 	  inputSkip ();
 	  skipblanks ();
 	}
@@ -184,7 +184,7 @@ help_copAddr (WORD ir, BOOL stack)
       inputSkip ();
       if (stack)
 	{
-	  error (ErrorError, TRUE, "Literal cannot be used when stack type is specified");
+	  error (ErrorError, "Literal cannot be used when stack type is specified");
 	  break;
 	}
       ir |= PRE_FLAG | LHS_OP (15);
@@ -205,7 +205,7 @@ help_copAddr (WORD ir, BOOL stack)
 	      litInt (8, &offset);
 	      break;
 	    default:
-	      error (ErrorWarning, TRUE,
+	      error (ErrorWarning,
 		     "Extended and packed not supported; using double");
 	      ir = (ir & ~PRECISION_MEM_PACKED) | PRECISION_MEM_DOUBLE;
 	      litInt (8, &offset);
@@ -221,7 +221,7 @@ help_copAddr (WORD ir, BOOL stack)
     default:
       if (stack)
 	{
-	  error (ErrorError, TRUE, "Address cannot be used when stack type is specified");
+	  error (ErrorError, "Address cannot be used when stack type is specified");
 	  break;
 	}
       /*  cop_reg,Address */
@@ -235,18 +235,18 @@ help_copAddr (WORD ir, BOOL stack)
       switch (offset.Tag.t)
 	{
 	case ValueInt:
-	  ir = fixCopOffset (inputLineNo, ir | LHS_OP (15), offset.ValueInt.i);
+	  ir = fixCopOffset (0, ir | LHS_OP (15), offset.ValueInt.i);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
 	  relocCopOffset (ir | LHS_OP (15), &offset);
 	  break;
 	case ValueAddr:
-	  ir = fixCopOffset (inputLineNo, ir | LHS_OP (offset.ValueAddr.r),
+	  ir = fixCopOffset (0, ir | LHS_OP (offset.ValueAddr.r),
 			     offset.ValueAddr.i);
 	  break;
 	default:
-	  error (ErrorError, TRUE, "Illegal address expression");
+	  error (ErrorError, "Illegal address expression");
 	  break;
 	}
       break;

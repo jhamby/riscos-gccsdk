@@ -22,6 +22,7 @@
 #include "config.h"
 #include <setjmp.h>
 #include <stdarg.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -45,19 +46,12 @@ const char InsertCommaAfter[] = "Inserting missing comma after ";
 
 static int no_errors = 0;
 static int no_warnings = 0;
-static const char *source = NULL; /* Can remain NULL when reading from stdin */
 
 #ifdef __riscos__
 static int ThrowbackStarted;
 #endif
 
 static char errbuf[2048];
-
-void
-errorInit (const char *filename)
-{
-  source = (filename == NULL || !strcmp(filename, "-")) ? NULL : filename;
-}
 
 
 void
@@ -73,11 +67,12 @@ errorFinish (void)
 #endif
 }
 
-#ifdef __riscos__
+
 static void
-TB (int level, long int lineno, const char *errstr, const char *file)
+DoThrowback (int level, int lineno, const char *errstr, const char *file)
 {
-  if (!option_throwback || source == NULL)
+#ifdef __riscos__
+  if (!option_throwback)
     return;
 
   if (!ThrowbackStarted)
@@ -92,10 +87,13 @@ TB (int level, long int lineno, const char *errstr, const char *file)
       if ((err = ThrowbackSendError (level, lineno, errstr)) != NULL && option_verbose > 1)
         fprintf (stderr, "ThrowbackSendError error: %s\n", err->errmess);
     }
-}
 #else
-#define TB(x,y,z,f)
+  level = level;
+  lineno = lineno;
+  errstr = errstr;
+  file = file;
 #endif
+}
 
 
 int
@@ -105,64 +103,23 @@ returnExitStatus (void)
 }
 
 
-static void
-fixup (ErrorTag t)
+static void __attribute__ ((noreturn))
+fixup (void)
 {
-  skiprest ();
-  if (t == ErrorAbort || no_errors > MAXERR || !asmContinueValid)
+  if (!asmContinueValid)
     {
       if (asmAbortValid)
         longjmp (asmAbort, 1);
+      else
+	abort ();	
     }
   else
     longjmp (asmContinue, 1);
 }
 
+
 static void
-doline (int t, long int line, int sameline)
-{
-#ifndef __riscos__
-  t = t;
-#endif
-
-  if (line > 0)
-    {
-      TB (t, line, errbuf, inputName);
-      if (get_file (NULL, NULL))
-	{
-	  const char *nfile;
-	  long int diffline = 0, nline, i;
-	  do
-	    {
-	      fprintf (stderr, "%s at line %li", diffline ? "\n " : (" " + sameline), line);
-	      if ((i = get_file (&nfile, &nline)) != 0)
-		fprintf (stderr, " in file '%s'", nfile);
-	      if (diffline)
-		{
-		  sprintf (errbuf, "  included from here");
-		  /* I'd like to be able to put
-		   *   t=ThrowbackInfo;
-		   * here without Zap spewing forth "Information for file"... :-|
-		   */
-		  TB (t, line, errbuf, nfile);
-		}
-	      diffline = 1;
-	      sameline = 0;
-	      line = nline;
-	    }
-	  while (i);
-	  fputc ('\n', stderr);
-	}
-    }
-  else
-    {
-      fprintf (stderr, "  at line %li\n", line);
-      TB (t, line < 0 ? -line : line, errbuf, inputName);
-    }
-}
-
-void
-error (ErrorTag e, BOOL c, const char *format,...)
+errorCore (ErrorTag e, const char *format, va_list ap)
 {
   const char *str;
   int t = 0;
@@ -188,66 +145,106 @@ error (ErrorTag e, BOOL c, const char *format,...)
         t = ThrowbackError;
 #endif
         break;
+      case ErrorAbort:
       default:
-        str = "Serious error";
+        str = "Fatal error";
         no_errors++;
 #ifdef __riscos__
         t = ThrowbackSeriousError;
 #endif
         break;
     }
-  va_list ap;
-  va_start (ap, format);
-  vsprintf (errbuf, format, ap);
-  va_end (ap);
+  vsnprintf (errbuf, sizeof (errbuf), format, ap);
   fprintf (stderr, "%s: %s", str, errbuf);
-  long int line = inputLineNo;
-  if (macroSP)
+  if (gCurPObjP != NULL)
     {
-      int i = macroSP;
-      const char *name = macroCurrent->name;
-      const char *file = macroCurrent->file;
-      BOOL sameline = TRUE;
-      do
+      const PObject *pObjP = gCurPObjP;
+      switch (pObjP->type)
 	{
-	  TB (t, line, errbuf, file);
-	  fprintf (stderr, "%s at line %li in macro %s", " " + sameline, line, name);
-	  if (file != inputName)
-	    fprintf (stderr, " in file '%s'\n", file);
-	  else
-	    fputc ('\n', stderr);
-	  sameline = FALSE;
-	  /* I'd like to be able to put
-	   *   t=ThrowbackInfo;
-	   * here without Zap spewing forth "Information for file"... :-|
-	   */
-	  if (!--i)
+	  case POType_eFile:
+	    fprintf (stderr, " at line %d in file %s\n",
+	             pObjP->lineNum, pObjP->name ? pObjP->name : "stdout");
 	    break;
-	  name = macroStack[i].macro->name;
-	  file = macroStack[i].macro->file;
-	  line = macroStack[i].lineno;
-	  sprintf (errbuf, i ? "  in macro %s" : "  called from here", name);
+	  case POType_eMacro:
+	    fprintf (stderr, " in macro %s at line %d in file %s\n",
+		     pObjP->d.macro.macro->name, pObjP->lineNum,
+	             pObjP->name ? pObjP->name : "stdout");
+	    break;
 	}
-      while (i);
-      line = macroStack[0].lineno;
+      if (pObjP->name)
+	DoThrowback (t, pObjP->lineNum, errbuf, pObjP->name);
+
+      while (pObjP != &gPOStack[0])
+	{
+	  --pObjP;
+	  switch (pObjP->type)
+	    {
+	      case POType_eFile:
+		fprintf (stderr, "  called from line %d from file %s\n",
+		         pObjP->lineNum, pObjP->name ? pObjP->name : "stdout");
+		break;
+	      case POType_eMacro:
+		fprintf (stderr, "  called from macro %s at line %d in file %s\n",
+			 pObjP->d.macro.macro->name, pObjP->lineNum,
+			 pObjP->name ? pObjP->name : "stdout");
+		break;
+	    }
+	  if (pObjP->name)
+	    DoThrowback (t, pObjP->lineNum, errbuf, pObjP->name);
+	}
     }
-  doline (t, line, !macroSP);
-#ifdef DEBUG
-  printf ("--> %s\n", inputLine ());
-#endif
-  if (!c || no_errors > MAXERR)
-    fixup (e);
 }
 
 
+/**
+ * ErrorAbort or too many ErrorError won't make this function return.
+ */
 void
-errorLine (long int lineno, const char *file,
-	   ErrorTag e, BOOL c, const char *format,...)
+error (ErrorTag e, const char *format, ...)
+{
+  va_list ap;
+  va_start (ap, format);
+  errorCore (e, format, ap);
+  va_end (ap);
+
+  if (e == ErrorAbort || no_errors > MAXERR)
+    fixup ();
+  else if (e == ErrorError)
+    skiprest ();
+}
+
+
+/**
+ * Gives fatal error and does not return.
+ */
+void
+errorAbort (const char *format, ...)
+{
+  va_list ap;
+  va_start (ap, format);
+  errorCore (ErrorAbort, format, ap);
+  va_end (ap);
+
+  fixup ();
+}
+
+
+/**
+ * Gives fatal out-of-memory error and does not return.
+ */
+void
+errorOutOfMem (void)
+{
+  errorAbort ("Out of memory");
+}
+
+
+static void
+errorCoreLine (int lineno, const char *file, ErrorTag e,
+	       const char *format, va_list ap)
 {
   const char *str;
-#ifdef __riscos__
-  int t;
-#endif
+  int t = 0;
   switch (e)
     {
       case ErrorInfo:
@@ -270,6 +267,7 @@ errorLine (long int lineno, const char *file,
 #endif
         no_errors++;
         break;
+      case ErrorAbort:
       default:
         str = "Fatal error";
 #ifdef __riscos__
@@ -279,27 +277,48 @@ errorLine (long int lineno, const char *file,
         break;
     }
 
+  vsprintf (errbuf, format, ap);
+  fprintf (stderr, "%s: %s", str, errbuf);
+
+  if (lineno == 0)
+    lineno = FS_GetCurLineNumber ();
+  fprintf (stderr, " at line %d", lineno);
+  if (file == NULL)
+    file = FS_GetCurFileName ();
+  fprintf (stderr, " in file '%s'\n", file);
+
+  DoThrowback (t, lineno, errbuf, file);
+}
+
+/**
+ * ErrorAbort or too many ErrorError won't make this function return.
+ */
+void
+errorLine (int lineno, const char *file,
+	   ErrorTag e, const char *format, ...)
+{
   va_list ap;
   va_start (ap, format);
-  vsprintf (errbuf, format, ap);
+  errorCoreLine (lineno, file, e, format, ap);
   va_end (ap);
-  fprintf (stderr, "%s: %s", str, errbuf);
-  if (lineno > 0)
-    fprintf (stderr, " at line %li", lineno);
-  if (!file)
-    file = inputName;
-  if (file != inputName && source != NULL)
-    fprintf (stderr, " in file '%s'\n", source);
-  else
-    fputc ('\n', stderr);
-  TB (t, lineno, errbuf, file);
-  if (!c || no_errors > MAXERR)
-    fixup (e);
+                 
+  if (e == ErrorAbort || no_errors > MAXERR)
+    fixup ();
+  else if (e == ErrorError)
+    skiprest ();
 }
 
 
+/**
+ * Gives fatal error for given lineno and file and does not return.
+ */
 void
-errorOutOfMem (const char *fn)
+errorAbortLine (int lineno, const char *file, const char *format, ...)
 {
-  error (ErrorSerious, FALSE, "Internal %s: out of memory", fn);
+  va_list ap;
+  va_start (ap, format);
+  errorCoreLine (lineno, file, ErrorAbort, format, ap);
+  va_end (ap);
+                 
+  fixup ();
 }

@@ -24,6 +24,6 @@
 #define include_header_included
 
 int addInclude (const char *incpath);
-FILE *getInclude (const char *filename, char **strdupFilename);
+FILE *getInclude (const char *filename, const char **strdupFilename);
 
 #endif

@@ -3,7 +3,7 @@
  * Copyright (c) Andy Duplain, August 1992.
  *     Added line numbers  Niklas Röjemo
  *     Added filenames     Darren Salt
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,7 @@
  */
 
 #include "config.h"
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
@@ -34,78 +35,192 @@
 
 #include "error.h"
 #include "filestack.h"
+#include "include.h"
 #include "input.h"
+#include "main.h"
+#include "os.h"
 #include "whileif.h"
 
-#define STACKSIZE  (10)
+FileNameList *gFileNameListP; // FIXME: needs freeing !
 
-typedef struct FileStack
-  {
-    FILE *file;
-    char *name;
-    long int line, no;
-    int if_depth;
-    WhileBlock *whilestack;
-  }
-FileStack;
+PObject gPOStack[PARSEOBJECT_STACK_SIZE];
+PObject *gCurPObjP; /**< Current parsable object.  */
 
-static FileStack stack[STACKSIZE];
-static int top = 0;
+static bool File_GetLine(char *bufP, size_t bufSize);
 
-int
-push_file (FILE * fp)
+/**
+ * In order to have permanent storage of filenames.
+ * \param fileNameP Pointer to malloced filename.
+ * \return pointer to same filename, no ownership.
+ */
+static const char *
+StoreFileName (const char *fileNameP)
 {
-  if (top == STACKSIZE)
+  if (fileNameP == NULL)
+    return NULL;
+
+  /* Check if we have already that filename stored.  */
+  FileNameList *resultP;
+  for (resultP = gFileNameListP;
+       resultP != NULL && strcmp (resultP->fileName, fileNameP);
+       resultP = resultP->nextP)
+    /* */;
+  if (resultP == NULL)
     {
-      error (ErrorSerious, TRUE, "Maximum file nesting level reached (%d)", STACKSIZE);
-      return -1;
+      if ((resultP = malloc (offsetof (FileNameList, fileName) + strlen (fileNameP) + 1)) == NULL)
+	errorOutOfMem ();
+      resultP->nextP = gFileNameListP;
+      strcpy (resultP->fileName, fileNameP);
+      gFileNameListP = resultP;
     }
-  stack[top].line = inputLineNo;
-  /* Need to duplicate this, in case it's destroyed under us */
-  stack[top].name = strdup(inputName);
-  if (stack[top].name == NULL)
-    {
-      error (ErrorSerious, TRUE, "No space for filename string");
-      return -1;
-    }
-  stack[top].if_depth = if_depth;
-  stack[top].whilestack = whileCurrent;
-  stack[top++].file = fp;
-  whileCurrent = 0;
-  if_depth = 0;
-  return 0;
+  free ((void *)fileNameP);
+
+  return resultP->fileName;
 }
 
-FILE *
-pop_file (void)
-{
-  testUnmatched ();
-  if (top)
-    {
-      inputLineNo = stack[--top].line;
-      if (inputName != NULL)
-	free((void *)inputName);
-      inputName = stack[top].name;
-      whileCurrent = stack[top].whilestack;
-      if_depth = stack[top].if_depth;
-      return stack[top].file;
-    }
-  return NULL;
-}
 
-int
-get_file (const char **file, long int *line)
+/**
+ * Opens given file for immediate parsing.  Cancel using FS_PopPObject().
+ * \param fileName Filename of assembler file to parse.  May only be NULL when
+ * at level 0 and this means reading from stdin.
+ * Similar to FS_PushMacroPObject().
+ */
+void
+FS_PushFilePObject (const char *fileName)
 {
-  static int f;
+  if (gCurPObjP == &gPOStack[PARSEOBJECT_STACK_SIZE - 1])
+    errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
 
-  if (!file)
+  if (gCurPObjP == NULL)
     {
-      f = top;
+      /* The first assembler file is special.  We're not going to use any
+         include paths and we can also read from stdin.  */
+      if (fileName != NULL)
+	{
+	  if ((gPOStack[0].d.file.fhandle = fopen (fileName, "r")) == NULL)
+	    {
+#if defined(__TARGET_UNIXLIB__)
+	      /* Try again but this time with(out) suffix swapping.  */
+	      __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
+	      gPOStack[0].d.file.fhandle = fopen (fileName, "r");
+	      __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
+#endif
+	    }
+
+	  if (gPOStack[0].d.file.fhandle == NULL)
+	    gPOStack[0].name = NULL;
+	  else if ((gPOStack[0].name = StoreFileName (CanonicalisePath (fileName))) == NULL)
+	    {
+	      fclose (gPOStack[0].d.file.fhandle);
+	      gPOStack[0].d.file.fhandle = NULL;
+	    }
+	}
+      else
+	{
+	  /* Read from stdin.  */
+	  gPOStack[0].d.file.fhandle = stdin;
+	  gPOStack[0].name = NULL;
+	}
+      if (gPOStack[0].d.file.fhandle != NULL)
+	gCurPObjP = &gPOStack[-1];
     }
   else
     {
-      *file = stack[f].name;
-      *line = stack[f].line;
+      const char *fileNameP;
+      gCurPObjP[1].d.file.fhandle = getInclude (fileName, &fileNameP);
+      gCurPObjP[1].name = StoreFileName (fileNameP);
     }
-  return f-- >= 0;
+  if (gCurPObjP == NULL || gCurPObjP[1].d.file.fhandle == NULL)
+    {
+      error (ErrorError, "Cannot open file \"%s\"", fileName);
+      return;
+    }
+  gCurPObjP[1].lineNum = 0;
+  gCurPObjP[1].if_depth = 0;
+  gCurPObjP[1].whilestack = NULL;
+  gCurPObjP[1].GetLine = File_GetLine;
+
+  /* Increase current file stack pointer.  All is ok now.  */
+  ++gCurPObjP;
+
+  skiprest ();
+}
+
+
+static void
+FS_PopFilePObject (bool noCheck)
+{
+  FS_PopIfWhile (noCheck);
+
+  if (!noCheck && option_verbose)
+    fprintf (stderr, "Returning from include file \"%s\"\n", gCurPObjP->name);
+
+  gCurPObjP->name = NULL;
+  fclose (gCurPObjP->d.file.fhandle);
+  gCurPObjP->d.file.fhandle = NULL;
+}
+
+
+/**
+ * \param noCheck When true, no checking will be performed.
+ */
+void
+FS_PopPObject (bool noCheck)
+{
+  if (gCurPObjP == NULL)
+    return;
+
+  switch (gCurPObjP->type)
+    {
+      case POType_eFile:
+	FS_PopFilePObject (noCheck);
+	break;
+      case POType_eMacro:
+	FS_PopMacroPObject (noCheck);
+	break;
+      default:
+	errorAbort ("Internal FS_PopPObject: unknown case");
+    }
+
+  if (gCurPObjP == &gPOStack[0])
+    gCurPObjP = NULL;
+  else
+    --gCurPObjP;
+}
+
+
+/**
+ * Always return a non-NULL pointer of main filename.
+ */
+const char *
+FS_GetCurFileName (void)
+{
+  if (gCurPObjP == NULL)
+    return SourceFileName ? SourceFileName : "<stdin>";
+  return gCurPObjP->name;
+}
+
+
+/**
+ * Get current linenumber.
+ */
+int
+FS_GetCurLineNumber (void)
+{
+  return gCurPObjP ? gCurPObjP->lineNum : 0;
+}
+
+
+static bool
+File_GetLine(char *bufP, size_t bufSize)
+{
+  if (fgets (bufP, bufSize, gCurPObjP->d.file.fhandle) == NULL
+      || bufP[0] == '\0')
+    return true;
+
+  size_t lineLen = strlen (bufP);
+  if (bufP[lineLen - 1] != '\n')
+    errorAbort ("Line too long");
+  bufP[lineLen - 1] = '\0';
+  return false;
 }

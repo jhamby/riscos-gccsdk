@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -72,14 +72,14 @@ m_branch (WORD cc)
   switch (im.Tag.t)
     {
     case ValueInt:
-      ir |= fixBranch (inputLineNo, im.ValueInt.i);
+      ir |= fixBranch (0, im.ValueInt.i);
       break;
     case ValueCode:
     case ValueLateLabel:
       relocBranch (&im);
       break;
     default:
-      error (ErrorError, TRUE, "Illegal branch destination");
+      error (ErrorError, "Illegal branch destination");
       break;
     }
   putIns (ir);
@@ -101,7 +101,7 @@ m_blx (WORD cc)
       inputRollback ();
 
       if (cc != AL)
-        error (ErrorError, TRUE, "BLX <target_addr> must be unconditional");
+        error (ErrorError, "BLX <target_addr> must be unconditional");
 
       ir = NV | 0x0A000000;
 
@@ -124,21 +124,19 @@ m_blx (WORD cc)
       switch (im.Tag.t)
 	{
 	case ValueInt:
-	  ir |= fixBranchT (inputLineNo, im.ValueInt.i);
+	  ir |= fixBranchT (0, im.ValueInt.i);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
 	  relocBranchT (&im);
 	  break;
 	default:
-	  error (ErrorError, TRUE, "Illegal branch destination");
+	  error (ErrorError, "Illegal branch destination");
 	  break;
 	}
     }
   else
-    {			/* BLX <Rm> */
-      ir = cc | 0x012FFF30 | RHS_OP (reg);
-    }
+    ir = cc | 0x012FFF30 | RHS_OP (reg); /* BLX <Rm> */
 
   putIns (ir);
 }
@@ -150,7 +148,7 @@ m_bx (WORD cc)
 
   cpuWarn (XSCALE);
   if (dst == 15)
-    error (ErrorWarning, TRUE, "Use of PC with BX is discouraged");
+    error (ErrorWarning, "Use of PC with BX is discouraged");
 
   putIns (cc | 0x012fff10 | dst);
 }
@@ -158,50 +156,45 @@ m_bx (WORD cc)
 void
 m_swi (WORD cc)
 {
-  Value im;
-  WORD ir = cc | 0x0F000000;
   if (inputLook () == '#')
     {
       inputSkip ();
-      error (ErrorInfo, TRUE, "SWI is always immediate");
+      error (ErrorInfo, "SWI is always immediate");
     }
   exprBuild ();
-  im = exprEval (ValueInt | ValueAddr | ValueString | ValueCode | 
-                 ValueLateLabel);
+  Value im = exprEval (ValueInt | ValueAddr | ValueString | ValueCode
+		 | ValueLateLabel);
+  WORD ir = cc | 0x0F000000;
   switch (im.Tag.t)
     {
-    case ValueInt:
-      ir |= fixSwi (inputLineNo, im.ValueInt.i);
-      break;
-    case ValueAddr:
-      ir |= fixSwi (inputLineNo, im.ValueAddr.i);
-      break;
-    case ValueCode:
-    case ValueLateLabel:
-      relocSwi (&im);
-      break;
-    case ValueString:
+      case ValueInt:
+	ir |= fixSwi (0, im.ValueInt.i);
+	break;
+      case ValueAddr:
+	ir |= fixSwi (0, im.ValueAddr.i);
+	break;
+      case ValueCode:
+      case ValueLateLabel:
+	relocSwi (&im);
+	break;
+      case ValueString:
 #ifdef __riscos__
-      {
-      const char *s;
-      if ((s = strndup(im.ValueString.s, im.ValueString.len)) == NULL)
-        errorOutOfMem("m_swi");
-      else
-        {
-          ir |= switonum (s);
-          free((void *)s);
-          if (ir == 0xFFFFFFFF)
-	    error (ErrorError, TRUE, "Unknown SWI name");
+	{
+	  const char *s;
+	  if ((s = strndup(im.ValueString.s, im.ValueString.len)) == NULL)
+	    errorOutOfMem ();
+	  ir |= switonum (s);
+	  free((void *)s);
+	  if (ir == 0xFFFFFFFF)
+	    error (ErrorError, "Unknown SWI name");
 	}
-      }
 #else
-      error (ErrorError, TRUE,
-	     "RISC OS is required to look up the SWI name");
+	error (ErrorError, "RISC OS is required to look up the SWI name");
 #endif
-      break;
-    default:
-      error (ErrorError, TRUE, "Illegal SWI expression");
-      break;
+	break;
+      default:
+	error (ErrorError, "Illegal SWI expression");
+	break;
     }
   putIns (ir);
 }
@@ -209,25 +202,20 @@ m_swi (WORD cc)
 void
 m_bkpt (void)
 {
-  Value im;
-  WORD ir = 0xE1200070;
-  WORD val;
-
   cpuWarn (XSCALE);
 
   if (inputLook () == '#')
     {
       inputSkip ();
-      error (ErrorInfo, TRUE, "BKPT is always immediate");
+      error (ErrorInfo, "BKPT is always immediate");
     }
   exprBuild ();
-  im = exprEval (ValueInt);
+  Value im = exprEval (ValueInt);
   if (im.Tag.t != ValueInt)
-    {
-      error (ErrorError, TRUE, "Illegal BKPT expression");
-    }
-  val = fixInt (inputLineNo, 2, im.ValueInt.i);
+    error (ErrorError, "Illegal BKPT expression");
+  WORD val = fixInt (0, 2, im.ValueInt.i);
 
+  WORD ir = 0xE1200070;
   ir |= ((val & 0xFFF0) << 4) | (val & 0xF);
 
   putIns (ir);
@@ -250,9 +238,9 @@ m_adr (WORD cc)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%sdst", InsertCommaAfter);
+    error (ErrorError, "%sdst", InsertCommaAfter);
   /* The label will expand to either a field in a based map or a PC-relative 
-   * expression */
+     expression.  */
   exprBuild ();
   /* Try the field first */
   im = exprEval (ValueAddr);
@@ -264,15 +252,15 @@ m_adr (WORD cc)
       ir |= LHS_OP (im.ValueAddr.r);
       /* Manufacture the offset as per normal */
       if (cc & 1)
-	fixAdrl (inputLineNo, &ir, &ir2, im.ValueInt.i, 0); /* don't warn ? */
+	fixAdrl (0, &ir, &ir2, im.ValueInt.i, 0); /* don't warn ? */
       else
-	ir = fixAdr (inputLineNo, ir, im.ValueInt.i);
+	ir = fixAdr (0, ir, im.ValueInt.i);
       break;
     default:
       /* Not a field, so append " - . - 8" to the expression, and treat it as
-       * PC-relative */
+         PC-relative.  */
       /* TODO: It may also be a late field but there's no simple way of
-       * handling this when performing relocation */
+         handling this when performing relocation.  */
       codePosition (areaCurrentSymbol);	/* It's relative */
       codeOperator (Op_sub);
       codeInt (8);
@@ -282,9 +270,9 @@ m_adr (WORD cc)
 	{
 	case ValueInt:
 	  if (cc & 1)
-	    fixAdrl (inputLineNo, &ir, &ir2, im.ValueInt.i, 0);	/* don't warn ? */
+	    fixAdrl (0, &ir, &ir2, im.ValueInt.i, 0);	/* don't warn ? */
 	  else
-	    ir = fixAdr (inputLineNo, ir, im.ValueInt.i);
+	    ir = fixAdr (0, ir, im.ValueInt.i);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
@@ -294,7 +282,7 @@ m_adr (WORD cc)
 	    relocAdr (ir, &im);
 	  break;
 	default:
-	  error (ErrorError, TRUE, "Illegal ADR%s expression", (cc & 1) ? "L" : "");
+	  error (ErrorError, "Illegal ADR%s expression", (cc & 1) ? "L" : "");
 	  break;
 	}
       break;
@@ -345,11 +333,11 @@ m_stack (void)
 	      reg = 2;
 	      break;
 	    default:
-	      error (ErrorError, TRUE, "Illegal register class %c", c);
+	      error (ErrorError, "Illegal register class %c", c);
 	      break;
 	    }
 	  if (regs[reg] != -1)
-	    error (ErrorError, TRUE, "Register class %c duplicated", c);
+	    error (ErrorError, "Register class %c duplicated", c);
 	  if (inputLook () == '=')
 	    {
 	      inputSkip ();
@@ -358,7 +346,7 @@ m_stack (void)
 	      if (im.Tag.t != ValueInt)
 		im.ValueInt.i = 0;
 	      if ((unsigned) im.ValueInt.i > lim[reg])
-		error (ErrorError, TRUE, "Too many registers to stack for class %c", c);
+		error (ErrorError, "Too many registers to stack for class %c", c);
 	      regs[reg] = (signed) im.ValueInt.i;
 	    }
 	  else
@@ -368,7 +356,7 @@ m_stack (void)
 	  if (c == ',')
 	    inputSkip ();
 	  else if (c)
-	    error (ErrorError, TRUE, "%sregister class %c", InsertCommaAfter, c);
+	    error (ErrorError, "%sregister class %c", InsertCommaAfter, c);
 	}
       while (c);
       if (c)
@@ -393,11 +381,17 @@ m_stack (void)
 static void
 apcsEpi (WORD cc, const int *pop_inst, const char *op)
 {
-  static const int
-    pfp_inst[] = {0x00000000, 0x0CBDC203, 0x0CFD4206, 0x0CFDC209, 0x0CBD420C};
+  static const int pfp_inst[] =
+    {
+      0x00000000,
+      0x0CBDC203,
+      0x0CFD4206,
+      0x0CFDC209,
+      0x0CBD420C
+    };
 
   if (regs[0] == -1)
-    error (ErrorError, TRUE, "Cannot assemble %s without an earlier STACK", op);
+    error (ErrorError, "Cannot assemble %s without an earlier STACK", op);
 
   if (regs[2] > 0)
     putIns (pfp_inst[regs[2]] | cc);
@@ -409,9 +403,17 @@ apcsEpi (WORD cc, const int *pop_inst, const char *op)
 void
 m_ret (WORD cc)
 {
-  static const int
-    pop_inst[] = {0x095BA800, 0x095BA810, 0x095BA830, 0x095BA870, 0x095BA8F0,
-		  0x095BA9F0, 0x095BABF0};
+  static const int pop_inst[] =
+    {
+      0x095BA800,
+      0x095BA810,
+      0x095BA830,
+      0x095BA870,
+      0x095BA8F0,
+      0x095BA9F0,
+      0x095BABF0
+    };
+
   apcsEpi (cc, pop_inst, "RET");
 }
 
@@ -420,9 +422,17 @@ m_ret (WORD cc)
 void
 m_tail (WORD cc)
 {
-  static const int
-    pop_inst[] = {0x091B6800, 0x091B6810, 0x091B6830, 0x091B6870, 0x091B68F0,
-		  0x091B69F0, 0x091B6BF0};
+  static const int pop_inst[] =
+    {
+      0x091B6800,
+      0x091B6810,
+      0x091B6830,
+      0x091B6870,
+      0x091B68F0,
+      0x091B69F0,
+      0x091B6BF0
+    };
+
   apcsEpi (cc, pop_inst, "TAIL");
   skipblanks ();
   if (inputLook ())
@@ -448,7 +458,7 @@ getpsr (BOOL only_all)
       saved = 1 << 22;
       break;
     default:
-      error (ErrorError, TRUE, "Not a PSR name");
+      error (ErrorError, "Not a PSR name");
       return 0;
     }
   if (inputGetLower () == 'p' &&
@@ -467,7 +477,7 @@ getpsr (BOOL only_all)
 	return saved | (only_all ? 0xF0000 : 0x90000);
       if (only_all)
 	{
-	  error (ErrorError, TRUE, "Partial PSR access not allowed");
+	  error (ErrorError, "Partial PSR access not allowed");
 	  return 0;
 	}
       if (!strcmp (w, "ctl"))
@@ -496,20 +506,20 @@ getpsr (BOOL only_all)
 	      p = 19;
 	      break;
 	    default:
-	      error (ErrorError, TRUE, "Unrecognised PSR subset");
+	      error (ErrorError, "Unrecognised PSR subset");
 	      break;
 	    }
 	  if (p)
 	    {
 	      if (saved & (1 << p))
-		error (ErrorError, TRUE, "PSR mask bit '%c' already specified", c);
+		error (ErrorError, "PSR mask bit '%c' already specified", c);
 	      saved |= 1 << p;
 	    }
 	}
       return saved;
     }
   else
-    error (ErrorError, TRUE, "Not a PSR name");
+    error (ErrorError, "Not a PSR name");
   return 0;
 }
 
@@ -526,7 +536,7 @@ m_msr (WORD cc)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   if (inputLook () == '#')
     {
       Value im;
@@ -536,10 +546,10 @@ m_msr (WORD cc)
       if (im.Tag.t == ValueInt)
 	{
 	  cc |= 0x02000000;
-	  cc |= fixImm8s4 (inputLineNo, cc, im.ValueInt.i);
+	  cc |= fixImm8s4 (0, cc, im.ValueInt.i);
 	}
       else
-	error (ErrorError, TRUE, "Illegal immediate expression");
+	error (ErrorError, "Illegal immediate expression");
     }
   else
     cc |= getCpuReg ();
@@ -559,7 +569,7 @@ m_mrs (WORD cc)
       skipblanks ();
     }
   else
-    error (ErrorError, TRUE, "%slhs", InsertCommaAfter);
+    error (ErrorError, "%slhs", InsertCommaAfter);
   cc |= getpsr (TRUE);
   putIns (cc);
 }

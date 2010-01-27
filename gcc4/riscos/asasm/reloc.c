@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2008 GCCSDK Developersrs
+ * Copyright (c) 2000-2010 GCCSDK Developersrs
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,6 +35,7 @@
 #include "elf.h"
 #include "error.h"
 #include "eval.h"
+#include "filestack.h"
 #include "fix.h"
 #include "get.h"
 #include "global.h"
@@ -79,18 +80,14 @@ static Reloc *
 relocNew (Reloc *more, RelocTag tag, int offset, const Value *value)
 {
   Reloc *newReloc;
-  if ((newReloc = malloc (sizeof (Reloc))) != NULL)
-    {
-      newReloc->more = more;
-      newReloc->Tag = tag;
-      newReloc->lineno = inputLineNo;
-      newReloc->file = inputName;
-      newReloc->offset = offset;
-      /* fprintf (stderr, "relocNew: line=%d, offset=%d\n", inputLineNo, offset); */
-      newReloc->value = valueCopy (*value);
-    }
-  else
-    errorOutOfMem ("relocNew2");
+  if ((newReloc = malloc (sizeof (Reloc))) == NULL)
+    errorOutOfMem ();
+  newReloc->more = more;
+  newReloc->Tag = tag;
+  newReloc->lineno = FS_GetCurLineNumber ();
+  newReloc->file = FS_GetCurFileName ();
+  newReloc->offset = offset;
+  newReloc->value = valueCopy (*value);
   return newReloc;
 }
 
@@ -239,7 +236,7 @@ relocLate2Reloc (Reloc *r, Value *value)
 	}
     }
   if (size > r->value.ValueCode.len)
-    errorLine (r->lineno, r->file, ErrorSerious, FALSE, "Overflow in relocation data");
+    errorAbortLine (r->lineno, r->file, "Overflow in relocation data");
   r->value.ValueCode.len = size;
   return norelocs;
 }
@@ -255,12 +252,12 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
   switch (value->Tag.t)
     {
     case ValueIllegal:
-      errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot evaluate expression (illegal)");
+      errorLine (r->lineno, r->file, ErrorError, "Cannot evaluate expression (illegal)");
       r->Tag = RelocNone;
       return 0;
 
     case ValueCode:
-      errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot evaluate expression (code)");
+      errorLine (r->lineno, r->file, ErrorError, "Cannot evaluate expression (code)");
       r->Tag = RelocNone;
       return 0;
 
@@ -300,11 +297,11 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 	      }
 	    else if (late->factor < 0)
 	      {
-		errorLine (r->lineno, r->file, ErrorError, TRUE, "Only positive relocation allowed");
+		errorLine (r->lineno, r->file, ErrorError, "Only positive relocation allowed");
 		late->factor = 1;
 	      }
 	  if (thisF)
-	    errorLine (r->lineno, r->file, ErrorError, TRUE, "Unbalanced relocation (%d)", thisF);
+	    errorLine (r->lineno, r->file, ErrorError, "Unbalanced relocation (%d)", thisF);
 	  break;
 	  }
 
@@ -319,13 +316,13 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 		  if (!(late->symbol->type & SYMBOL_AREA))
 		    late->symbol->used++;
 		  else if (r->extra != 4)
-		    errorLine (r->lineno, r->file, ErrorError, TRUE,
+		    errorLine (r->lineno, r->file, ErrorError,
 			       "8/16 bits field cannot be allocated with area (%s)",
 			       late->symbol->str);
 		}
 	      else if (late->factor < 0)
 		{
-		  errorLine (r->lineno, r->file, ErrorError, TRUE, "Only positive relocation allowed");
+		  errorLine (r->lineno, r->file, ErrorError, "Only positive relocation allowed");
 		  late->factor = 1;
 		}
 	    }
@@ -344,7 +341,7 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 	  }
 
 	default:
-	  errorLine (r->lineno, r->file, ErrorError, TRUE, "Linker cannot handle %s", reloc2String (r->Tag));
+	  errorLine (r->lineno, r->file, ErrorError, "Linker cannot handle %s", reloc2String (r->Tag));
 	  r->Tag = RelocNone;
 	  return 0;
 	}			/* ValueLateLabel */
@@ -356,7 +353,7 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
       break;
 
     default:
-      errorLine (r->lineno, r->file, ErrorSerious, FALSE, "Illegal ValueTag in relocEval");
+      errorAbortLine (r->lineno, r->file, "Illegal ValueTag in relocEval");
       break;
     }
 
@@ -496,7 +493,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	      break;
 	    }
 	  default:
-	    errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot handle %s when value is %s", reloc2String (r->Tag), "int");
+	    errorLine (r->lineno, r->file, ErrorError, "Cannot handle %s when value is %s", reloc2String (r->Tag), "int");
 	    r->Tag = RelocNone;
 	    return;
 	}
@@ -538,13 +535,13 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	      break;
 	    }
 	  default:
-	    errorLine (r->lineno, r->file, ErrorError, TRUE, "Cannot handle %s when value is %s", reloc2String (r->Tag), "float");
+	    errorLine (r->lineno, r->file, ErrorError, "Cannot handle %s when value is %s", reloc2String (r->Tag), "float");
 	    break;
 	}
 	r->Tag = RelocNone;
 	break;
       default:
-	errorLine (r->lineno, r->file, ErrorError, TRUE, "Internal relocWrite: illegal value");
+	errorAbortLine (r->lineno, r->file, "Internal relocWrite: illegal value");
 	r->Tag = RelocNone;
 	break;
     }
@@ -571,7 +568,7 @@ relocFix (const Symbol *area)
 	  norelocs += relocEval (relocs, &value, area);
 	  break;
 	default:
-	  errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal relocFix: not a legal value");
+	  errorAbortLine (relocs->lineno, relocs->file, "Internal relocFix: not a legal value");
 	  relocs->Tag = RelocNone;
 	  break;
 	}
@@ -586,7 +583,6 @@ void
 relocAOFOutput (FILE *outfile, const Symbol *area)
 {
   Reloc *relocs;
-
   for (relocs = area->area.info->relocs; relocs; relocs = relocs->more)
     {
       int ip;
@@ -608,14 +604,16 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	      How = HOW2_INIT | HOW2_BYTE;
 	      break;
 	    default:
-	      errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Linker cannot handle RelocImmN with size %d", relocs->extra);
+	      errorAbortLine (relocs->lineno, relocs->file, "Linker cannot handle RelocImmN with size %d", relocs->extra);
 	      continue;
 	    }
 	  break;
 	case RelocCpuOffset:
 	  if ((relocs->extra & 0x0F000000) < 0x04000000)
-	    errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE,
-		       "Linker cannot handle ARMv4 extended LDR/STR");
+	    errorAbortLine (relocs->lineno, relocs->file,
+			    "Linker cannot handle ARMv4 extended LDR/STR");
+	  // FIXME: determine 'How' !
+	  break;
 	case RelocCopOffset:
 	  if (relocs->value.Tag.t == ValueCode
 	      && (relocs->value.ValueCode.c->CodeSymbol.symbol->type & SYMBOL_AREA)
@@ -636,7 +634,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	case RelocNone:
 	  continue;
 	default:
-	  errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Linker cannot handle this");
+	  errorAbortLine (relocs->lineno, relocs->file, "Linker cannot handle this");
 	  continue;
 	}
       areloc.Offset = armword(relocs->offset);
@@ -647,7 +645,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	    {
 	      if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag.t != ValueInt)
 		{
-		  errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal relocsOutput: not an int");
+		  errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
 		  loop = 0;
 		}
 	      else
@@ -656,7 +654,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	  else
 	    loop = 1;
 	  if (relocs->value.ValueCode.c[ip].Tag != CodeSymbol)
-	    errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal error in relocsOutput");
+	    errorAbortLine (relocs->lineno, relocs->file, "Internal error in relocsOutput");
 	  areloc.How = How | relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
 	  if (!(relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
 	    areloc.How |= HOW2_SYMBOL;
@@ -693,14 +691,17 @@ relocELFOutput (FILE *outfile, const Symbol *area)
               How = HOW2_INIT | HOW2_BYTE;
               break;
             default:
-              errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Linker cannot handle RelocImmN with size %d", relocs->extra);
+              errorAbortLine (relocs->lineno, relocs->file,
+                              "Linker cannot handle RelocImmN with size %d", relocs->extra);
               continue;
             }
           break;
         case RelocCpuOffset:
           if ((relocs->extra & 0x0F000000) < 0x04000000)
-            errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE,
-                       "Linker cannot handle ARMv4 extended LDR/STR");
+            errorAbortLine (relocs->lineno, relocs->file,
+			    "Linker cannot handle ARMv4 extended LDR/STR");
+	  // FIXME: determine 'How' !
+	  break;
         case RelocCopOffset:
           if (relocs->value.Tag.t == ValueCode
               && (relocs->value.ValueCode.c->CodeSymbol.symbol->type & SYMBOL_AREA)
@@ -721,7 +722,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
         case RelocNone:
           continue;
         default:
-          errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Linker cannot handle this");
+          errorAbortLine (relocs->lineno, relocs->file, "Linker cannot handle this");
           continue;
         }
       areloc.r_offset = armword(relocs->offset);
@@ -732,7 +733,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
             {
               if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag.t != ValueInt)
 		{
-                  errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal relocsOutput: not an int");
+                  errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
 		  loop = 0;
 		}
               else
@@ -741,7 +742,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
           else
             loop = 1;
           if (relocs->value.ValueCode.c[ip].Tag != CodeSymbol)
-            errorLine (relocs->lineno, relocs->file, ErrorSerious, TRUE, "Internal error in relocsOutput");
+            errorAbortLine (relocs->lineno, relocs->file, "Internal error in relocsOutput");
 
           How |= relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
           if (!(relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))

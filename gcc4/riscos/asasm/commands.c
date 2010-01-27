@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2008 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,8 +22,9 @@
  */
 
 #include "config.h"
-#include <stdlib.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <ctype.h>
 #include <string.h>
 #ifdef HAVE_STDINT_H
@@ -34,10 +35,10 @@
 #include <math.h>
 
 #include "area.h"
+#include "asm.h"
 #include "code.h"
 #include "commands.h"
 #include "decode.h"
-#include "depend.h"
 #include "error.h"
 #include "expr.h"
 #include "filestack.h"
@@ -59,16 +60,14 @@
 static void
 c_define (const char *msg, Symbol *sym, ValueTag legal)
 {
-  Value value;
-
   if (!sym)
-    error (ErrorError, FALSE, "Missing label before %s", msg);
+    errorAbort ("Missing label before %s", msg);
   sym->type |= SYMBOL_ABSOLUTE;
   exprBuild ();
-  value = exprEval (legal);
+  Value value = exprEval (legal);
   if (value.Tag.t == ValueIllegal)
     {
-      error (ErrorError, TRUE, "Illegal %s", msg);
+      error (ErrorError, "Illegal %s", msg);
       sym->value.Tag.t = ValueInt;
       sym->value.ValueInt.i = 0;
     }
@@ -95,7 +94,7 @@ c_fn (Symbol *symbol)
   if (no < 0 || no > 7)
     {
       symbol->value.ValueInt.i = 0;
-      error (ErrorError, TRUE, "Illegal %s register %d (using 0)", "fpu", no);
+      error (ErrorError, "Illegal %s register %d (using 0)", "fpu", no);
     }
 }
 
@@ -109,7 +108,7 @@ c_rn (Symbol *symbol)
   if (no < 0 || no > 15)
     {
       symbol->value.ValueInt.i = 0;
-      error (ErrorError, TRUE, "Illegal %s register %d (using 0)", "cpu", no);
+      error (ErrorError, "Illegal %s register %d (using 0)", "cpu", no);
     }
 }
 
@@ -123,7 +122,7 @@ c_cn (Symbol *symbol)
   if (no < 0 || no > 15)
     {
       symbol->value.ValueInt.i = 0;
-      error (ErrorError, TRUE, "Illegal %s register %d (using 0)", "cop", no);
+      error (ErrorError, "Illegal %s register %d (using 0)", "cop", no);
     }
 }
 
@@ -136,7 +135,7 @@ c_cp (Symbol *symbol)
   if (no < 0 || no > 15)
     {
       symbol->value.ValueInt.i = 0;
-      error (ErrorError, TRUE, "Illegal coprocessor number %d (using 0)", no);
+      error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
     }
 }
 
@@ -166,7 +165,7 @@ defineint (int size)
 	{
 	case ValueInt:
 	case ValueAddr:
-	  word = fixInt (inputLineNo, size, value.ValueInt.i);
+	  word = fixInt (0, size, value.ValueInt.i);
 	  putData (size, word);
 	  break;
 	case ValueString:
@@ -186,7 +185,7 @@ defineint (int size)
 	  putData (size, word);
 	  break;
 	default:
-	  error (ErrorError, TRUE, "Illegal %s expression", "int");
+	  error (ErrorError, "Illegal %s expression", "int");
 	  break;
 	}
       skipblanks ();
@@ -219,7 +218,7 @@ c_head (void)
 	}
       break;
     default:
-      error (ErrorError, TRUE, "Illegal %s expression", "string");
+      error (ErrorError, "Illegal %s expression", "string");
       break;
     }
   if (areaCurrentSymbol)
@@ -277,7 +276,7 @@ definereal (int size)
 	  putDataFloat (size, 0.0);
 	  break;
 	default:
-	  error (ErrorError, TRUE, "Illegal %s expression", "float");
+	  error (ErrorError, "Illegal %s expression", "float");
 	  break;
 	}
       skipblanks ();
@@ -297,7 +296,8 @@ c_dcfd (void)
 void
 c_dcfe (void)
 {
-  error (ErrorError, FALSE, "Not implemented: dcf%c %s", 'e', inputRest ());
+  // FIXME:
+  error (ErrorError, "Not implemented: dcf%c %s", 'e', inputRest ());
 }
 
 
@@ -311,20 +311,20 @@ c_dcfs (void)
 void
 c_dcfp (void)
 {
-  error (ErrorError, FALSE, "Not implemented: dcf%c %s", 'p', inputRest ());
+  // FIXME:
+  error (ErrorError, "Not implemented: dcf%c %s", 'p', inputRest ());
 }
 
 
 static void
 symFlag (unsigned int flags, const char *err)
 {
-  Symbol *sym;
   Lex lex = lexGetId ();
   if (lex.tag != LexId)
     return;
-  sym = symbolGet (&lex);
+  Symbol *sym = symbolGet (&lex);
   if (localTest (sym->str))
-    error (ErrorError, TRUE, "Local labels cannot be %s", err);
+    error (ErrorError, "Local labels cannot be %s", err);
   else
     sym->type |= flags;
 }
@@ -354,15 +354,13 @@ c_keep (void)
 void
 c_import (void)
 {
-  int c;
-  Symbol *sym;
-
   Lex lex = lexGetId ();
   if (lex.tag != LexId)
     return;
 
-  sym = symbolGet (&lex);
+  Symbol *sym = symbolGet (&lex);
   sym->type |= SYMBOL_REFERENCE | SYMBOL_DECLARED;
+  int c;
   while ((c = inputGet ()) == ',')
     {
       Lex attribute = lexGetId ();
@@ -375,7 +373,7 @@ c_import (void)
 	  skipblanks ();
 	  if ((c = inputGet ()) != '=')
 	    {
-	      error (ErrorError, TRUE, "COMMON attribute needs size specification");
+	      error (ErrorError, "COMMON attribute needs size specification");
 	      inputUnGet (c);
 	    }
 	  else
@@ -390,7 +388,7 @@ c_import (void)
 	          sym->type |= SYMBOL_COMMON;
 	          break;
 	        default:
-	          error (ErrorError, TRUE, "Illegal COMMON attribute expression");
+	          error (ErrorError, "Illegal COMMON attribute expression");
 	          break;
 	        }
 	    }
@@ -398,7 +396,7 @@ c_import (void)
       else if (!strncmp ("FPREGARGS", attribute.LexId.str, attribute.LexId.len))
 	sym->type |= SYMBOL_FPREGARGS;
       else
-	error (ErrorError, TRUE, "Illegal IMPORT attribute %s", attribute.LexId.str);
+	error (ErrorError, "Illegal IMPORT attribute %s", attribute.LexId.str);
       skipblanks ();
     }
   inputUnGet (c);
@@ -411,17 +409,11 @@ c_import (void)
 void
 c_get (void)
 {
-  if (macroSP)
-    {
-      error (ErrorSerious, TRUE, "Cannot use GET within a macro");
-      skiprest ();
-      return;
-    }
   inputExpand = FALSE;
 
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
-    errorOutOfMem ("c_get");
+    errorOutOfMem ();
   char *cptr;
   for (cptr = filename; *cptr && !isspace (*cptr); cptr++)
     /* */;
@@ -431,78 +423,43 @@ c_get (void)
       while (*cptr && isspace (*cptr))
 	cptr++;
       if (*cptr && *cptr != ';')
-	error (ErrorError, FALSE, "Skipping extra characters '%s' after filename", cptr);
-    }
-  FILE *getfp;
-  char *newInputName;
-  if ((getfp = getInclude (filename, &newInputName)) == NULL)
-    {
-      error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
-      free (filename);
-      return;
+	error (ErrorError, "Skipping extra characters '%s' after filename", cptr);
     }
 
-  free ((void *)inputName);
-  inputName = newInputName;
-  push_file (asmfile);
-  inputLineNo = 0;
-
-#ifdef __riscos__
-  dependWrite (filename);
-#endif
-  asmfile = getfp;
+  FS_PushFilePObject (filename);
   if (option_verbose)
-    fprintf (stderr, "Including file \"%s\" as \"%s\"\n", filename, inputName);
-  free (filename);
+    fprintf (stderr, "Including file \"%s\" as \"%s\"\n", filename, gCurPObjP->name);
 }
 
 
 void
 c_lnk (void)
 {
-  if (macroSP)
-    {
-      error (ErrorSerious, TRUE, "Cannot use LNK within a macro");
-      skiprest ();
-      return;
-    }
   inputExpand = FALSE;
-
-  /* Support LNK inside one IF statement.  */
-  if (if_depth)
-    if_depth--;
-  testUnmatched ();
 
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
-    errorOutOfMem ("c_lnk");
-#ifdef __riscos__
-  dependWrite (filename);
-#endif
+    errorOutOfMem ();
   char *cptr;
   for (cptr = filename; *cptr && !isspace (*cptr); cptr++)
     /* */;
-  *cptr = '\0';
-  inputNextLine ();
-  char *newInputName;
-  FILE *lnkfp = getInclude (filename, &newInputName);
-  if (!lnkfp)
+  if (*cptr)
     {
-      error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
-      free (filename);
-      return;
+      *cptr++ = '\0';		/* must be a space */
+      while (*cptr && isspace (*cptr))
+	cptr++;
+      if (*cptr && *cptr != ';')
+	error (ErrorError, "Skipping extra characters '%s' after filename", cptr);
     }
-  skiprest ();
 
-  inputFinish (lnkfp);
-  inputLineNo = 0;
-
-  free ((void *)inputName);
-  inputName = newInputName;
-
+  /* Terminate all outstanding macro calls and finish the current file.  */
+  while (gCurPObjP->type == POType_eMacro)
+    FS_PopPObject (true);
+  FS_PopPObject (true);
+  
+  FS_PushFilePObject (filename);
   if (option_verbose)
-    fprintf (stderr, "Linking to file \"%s\" as \"%s\"\n", filename, inputName);
-  free (filename);
+    fprintf (stderr, "Linking to file \"%s\" as \"%s\"\n", filename, gCurPObjP->name);
 }
 
 
@@ -511,7 +468,7 @@ c_idfn (void)
 {
   free ((void *)idfn_text);
   if ((idfn_text = strdup (inputRest ())) == NULL)
-    errorOutOfMem("c_idfn");
+    errorOutOfMem();
   skiprest ();
 }
 
@@ -522,24 +479,24 @@ c_bin (void)
   inputExpand = FALSE;
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
-    errorOutOfMem ("c_bin");
+    errorOutOfMem ();
   char *cptr;
   for (cptr = filename; *cptr && !isspace (*cptr); cptr++)
     /* */;
   *cptr = '\0';
 
-  char *newFilename;
+  const char *newFilename;
   FILE *binfp = getInclude (filename, &newFilename);
   if (!binfp)
     {
-      error (ErrorError, TRUE, "Cannot open file \"%s\"", filename);
+      error (ErrorError, "Cannot open file \"%s\"", filename);
       free (filename);
-      free (newFilename);
+      free ((void *)newFilename);
       return;
     }
   if (option_verbose)
     fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", filename, newFilename);
-  free (newFilename);
+  free ((void *)newFilename);
   /* Include binary file.  */
   while (!feof (binfp))
     putData (1, getc (binfp));
@@ -550,70 +507,44 @@ c_bin (void)
 void
 c_end (void)
 {
-  if (macroCurrent)
-    {
-      error (ErrorSerious, TRUE, "Cannot use END within a macro");
-      return;
-    }
-  FILE *fp = pop_file ();
-  if (!fp)
-    returnvalue = 1;
-  else
-    {
-      fclose (asmfile);
-      asmfile = fp;
-      if (option_verbose)
-	fprintf (stderr, "Returning from include file\n");
-    }
+  if (gCurPObjP->type == POType_eMacro)
+    errorAbort ("Cannot use END within a macro");
+  FS_PopPObject (false);
 }
 
 
 void
 c_assert (void)
 {
-  Value value;
-
   exprBuild ();
-  value = exprEval (ValueBool);
+  Value value = exprEval (ValueBool);
   if (value.Tag.t != ValueBool)
-    error (ErrorError, TRUE, "ASSERT expression must be boolean");
+    error (ErrorError, "ASSERT expression must be boolean");
   else if (!value.ValueBool.b)
-    error (ErrorError, TRUE, "Assertion failed");
+    error (ErrorError, "Assertion failed");
 }
 
 void
 c_info (void)
 {
-  Value value, message;
-
   exprBuild ();
-  value = exprEval (ValueInt | ValueFloat);
+  Value value = exprEval (ValueInt | ValueFloat);
 
   skipblanks();
   if (inputGet () != ',')
-    error (ErrorError, TRUE, "Missing , in INFO directive");
+    error (ErrorError, "Missing , in INFO directive");
 
   exprBuild();
-  message = exprEval (ValueString);
+  Value message = exprEval (ValueString);
   if (message.Tag.t != ValueString)
-    error (ErrorError, TRUE, "INFO message must be a string");
+    error (ErrorError, "INFO message must be a string");
 
   if (value.Tag.t != ValueInt && value.Tag.t != ValueFloat)
-    error (ErrorError, TRUE, "INFO expression must be arithmetic");
+    error (ErrorError, "INFO expression must be arithmetic");
   else if (value.Tag.t == ValueInt)
-    {
-      if (value.ValueInt.i != 0)
-	error (ErrorError, TRUE, message.ValueString.s);
-      else
-	error (ErrorWarning, TRUE, message.ValueString.s);
-    }
+    error (value.ValueInt.i != 0 ? ErrorError : ErrorWarning, "%s", message.ValueString.s);
   else
-    {
-      if (fabs(value.ValueFloat.f) < 0.00001)
-	error (ErrorWarning, TRUE, message.ValueString.s);
-      else
-	error (ErrorError, TRUE, message.ValueString.s);
-    }
+    error (fabs(value.ValueFloat.f) < 0.00001 ? ErrorWarning : ErrorError, "%s", message.ValueString.s);
 }
 
 void
