@@ -1,3 +1,7 @@
+Sun Jan 31 15:57:37 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gen-auto.pl: Get rid of GCCSDK_SRCDIR.
+
 Thu Jan 21 02:11:44 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/fwrite.c(fwrite): Fix missing case of flushing line buffered

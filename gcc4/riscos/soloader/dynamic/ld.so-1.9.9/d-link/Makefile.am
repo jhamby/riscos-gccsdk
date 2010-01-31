@@ -28,7 +28,7 @@ ld_1_9_9_so_SOURCES = \
 		hash.c \
 		readelflib1.c \
 		vsprintf.c \
-		../../../../../srcdir/libunixlib/common/riscosify.c \
+		../../../../../srcdir/gcc/libunixlib/common/riscosify.c \
 		riscos/resolve.s \
 		riscos/elfinterp.c \
 		riscos/stkovf.s \

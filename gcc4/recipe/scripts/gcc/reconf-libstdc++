@@ -1,0 +1,5 @@
+#!/bin/bash -e
+# Auto-generate 'libstdc++' as we've patched it.
+# Copyright (c) 2007-2010 GCCSDK Developers
+
+( cd libstdc++-v3 && aclocal -I . -I .. -I ../config && autoheader && automake -a && autoconf )

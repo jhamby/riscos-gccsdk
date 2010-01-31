@@ -1,21 +1,15 @@
-The RISC OS Software Development Kit [GCCSDK GCC 4.1.1 Release 2]
+The RISC OS Software Development Kit [GCCSDK GCC 4.1.1 Release 3 - Development]
 ====================================
 
-This is a lightweight build environment which combines a GCC 4.1.1 release,
-binutils 2.17 release, UnixLib 5.0 and libscl 2.0 into one directory which can
-be used to build a RISC OS cross-compiler and native RISC OS compiler with
-target 'arm-unknown-riscos'.
+This is a lightweight build environment which currently combines GCC 4.1.1
+release, binutils 2.17 release, UnixLib 5.0 and libscl 2.0 into one directory
+which can be used to build a RISC OS cross-compiler and native RISC OS compiler
+with target 'arm-unknown-riscos' (APCS-32 compliant).
 
-We don't have the GCC and binutils sources stored in our SVN server so you need
-to get those sources from their official repositories (see paragraph 2.1.,
-point 1 how you can do that easily).  Only patches to those sources and full
-copies of new files are stored in the gccsdk SVN repository.
-
-We expect that the current set of GCCSDK patches for GCC and binutils can
-be applied to later versions than GCC 4.1.1 and binutils 2.17 as is, or at
-least with a minimum of changes of those patches.  However this still needs to
-be verified if that's really going to be the case as we're currently focusing
-to get all GCCSDK specific development done for GCC 4.1.1 and binutils 2.17.
+We don't have the GCC and binutils sources stored in our SVN server and these
+will be automatically downloaded during building from their official
+repositories.  Only patches to those sources and full copies of new files and
+build system are stored in the GCCSDK SVN repository.
 
 
 0. Required build tools
@@ -24,10 +18,10 @@ to get all GCCSDK specific development done for GCC 4.1.1 and binutils 2.17.
 The following is a non exhaustive list of programs which are needed to compile
 and work with GCCSDK on top of a typical recent standard Unix distribution:
 
-- automake v1.9.x (*no* other version than the latest in the 1.9.x series which
-  is currently 1.9.6, Debian package 'automake1.9')
-- autoconf v2.59 (*no* other version, Debian package 'autoconf2.59')
 - autogen v5.5.4 (or later)
+- autoconf at least v2.58
+- m4 v1.4.11 (other versions might work too)
+- bison v2.3 (other versions might work too)
 - svn v1.2 or later (only to be used to checkout GCCSDK source code from
   svn.riscos.info Subversion server)
 - gcc & g++ v3.4.x or v4.x (other versions might work too)
@@ -35,6 +29,10 @@ and work with GCCSDK on top of a typical recent standard Unix distribution:
 - libtool v1.5.22 (other versions might work too)
 - patch v2.5.9 (other versions might work too)
 - makeinfo v4.8 (other versions might work too, Debian package 'texinfo')
+- wget (to fetch the binutils, gcc and autoconf/automake sources)
+
+Specific versions of automake and autoconf are also needed but they will
+be automatically downloaded, built & installed localy and used.
 
 When you want to build Ada:
 
@@ -43,7 +41,7 @@ When you want to build Ada:
 - MPFR library (Debian package 'libmpfr-dev')
 - GNAT 4.1 (Debian package 'gnat-4.1')
 
-When you want to run the gcc testsuite, you need at least:
+When you want to run the GCC testsuite, you need at least:
 
 - DejaGnu
 - Tcl
@@ -62,8 +60,6 @@ To check out GCCSDK 4 build code:
   $ cd gccsdk4
   $ svn co svn://svn.riscos.info/gccsdk/trunk/gcc4
 
-We have now in 'gcc4' directory the GCCSDK 4 code.
-
 
 2. Build and using cross compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -80,25 +76,15 @@ porting tools, and you can jump straight to step 3 "Using the cross compiler".
 2.1. Build setup
 ~~~~~~~~~~~~~~~~
 
-What follows documents the more involved manual build prodecure. This
+What follows documents the more involved semi-manual build prodecure. This
 might be required if you have problems with the build and need to 
 debug issues. It is also relevant if you want to make improvements 
 to GCCSDK.
 
-Currently it is probably necessary to define LTCONFIG_VERSION as:
-
-  $ export LTCONFIG_VERSION=1.4a-GCC3.0
-
-It has also proven helpful to define WANT_AUTOMAKE on cygwin as:
-
-  $ export WANT_AUTOMAKE=1.9
-
-Note that if you have an up-to-date file 'gccsdk-params', you can simply do:
-
-  $ source gccsdk-params
-
-which not only defines LTCONFIG_VERSION but also GCCSDK_INSTALL_CROSSBIN
-and GCCSDK_INSTALL_ENV which will be needed later on.
+You need to have a valid 'gccsdk-params' file.  If you don't have it, run
+'./build-world' once which will generate one which you can or have to
+finetune as this file determines where the cross compiler is going to be
+installed.
 
 The build steps are the following:
 
@@ -117,76 +103,84 @@ compiler" section.
 2.2. Build cross-compiler
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The 'setup-gccsdk-params' file contains several definitions as environment
-variables which aren't supposed to be changed.  Like with GCCSDK 3.4.6, we
-recommend setting up $GCCSDK_INSTALL_CROSSBIN which then can be used by
-'setup-gccsdk-params' files to determine where the cross-compiler will be
-installed during 'make install' (note: $GCCSDK_INSTALL_CROSSBIN actually
-specifies the pathname 'bin' subdirectory of the directory where the complete
-cross-compiler will be installed).  GCCSDK_INSTALL_CROSSBIN is usually defined
-by the user file 'gccsdk-params' which you can simply source in your shell.
+This is done by:
 
-1. As the GCC and binutils sources are not in SVN, you need a copy of those.
-   Place an official GCC 4.1 release in 'orig.gcc' directory and official
-   binutils 2.17 release in 'orig.binutils' by running:
+  $ make
 
-     $ ./download-gcc-binutils gcc
-     $ ./download-gcc-binutils binutils
+Or if you want to catch the full output in a log file, you do this by:
 
-   You only need to do this once as the contents of 'orig.gcc' and
-   'orig.binutils' is considered read-only from now on and used in the scripts
-   'create-srcdir' (see step 3) and 'create-patch' (to update or create
-   patches).
+  $ make 2>&1 | tee build-output-cross.txt
 
-2. Combine the contents of 'orig.gcc', parts of 'orig.binutils', UnixLib 5.0
-   and libscl 2.0 support into 'srcdir' directory, do the configuration and
-   apply the necessary patches for the arm-unknown-riscos target by running:
+This makefile will build the cross-compiler in several big steps.  After
+each successful step, an empty file gets written in the 'buildstepsdir'
+directory.  The filename of each file in 'buildstepsdir' follows a
+simple name convention: <type>-<subtype>
 
-     $ ./create-srcdir
+Following <type> values are in use:
 
-   At this point the source tree at 'srcdir' is used to do the real build.
+  cross     : Build & installation of that part of cross-compiler is done.
+              Parts are 'binutils', 'gcc-bootstrap' and 'gcc-full'.
+  ronative  : Build & installation of that part of the RISC OS native compiler
+              is done.  Parts are 'binutils' and 'gcc-full'.
+  src       : Source downloaded in srcdir.orig directory.  Those sources are
+              binutils, gcc, autoconf & automake (possibly different versions
+              for binutils and gcc).
+  tool      : Build & installed tool needed during the build.  Thost tools are
+              currently autoconf and automake.
+  clean     : Removes temporary build produced files but not the installed
+              compiler.
+  distclean : Removes temporary build produced files including the installed
+              compiler.
 
-3. Build and install the cross-compiler into $GCCSDK_INSTALL_CROSSBIN/..
-   directory:
+The 'make' command will always fully rebuild the next uncompleted step even if
+that step was nearly done (nothing will be reused of that step).  If you
+want to avoid this (especially during developing or debugging), you can
+restart that step where it left off:
 
-     $ ./build-it > build-output.txt 2>&1
+  1. Make sure the environment variables mentioned in 'gccsdk-params' are
+     defined in your shell:
 
-   Note that 'build-it' can take some useful options, use -h option to have an
-   option list.
+       $ source gccsdk-params
 
-   The 'build-it' script does roughly the following:
+  2. Figure our where the build directory is of the step you want to restart
+     (should be a subdirectory of 'builddir').
+     The easiest way to find this out is to look at the end of the failed
+     build output, for a line similar to:
 
-   1. Run 'configure' which will check the build systems for availability of
-      prerequisites and figure out the build options to use.  This configure
-      step will be done in several subdirectories of gcc/binutils/libunixlib/
-      ...
-   2. Run 'make'
-   3. Run 'make install' to install the successful built binaries
-   4. Move to 'srcdir/riscos' and call a similar named 'build-it' script to
-      build the RISC OS specific binaries.
+     make[4]: Leaving directory `/home/riscos/gcc4/builddir/cross-gcc-full/arm-unknown-riscos/libunixlib'
 
-   When the configuration part has been successfully done during ./build-it,
-   you can restart the gcc/binutils/libunixlib/libscl specific build parts by:
+     The build directory to go is builddir/cross-gcc-full/arm-unknown-riscos/libunixlib:
 
-     $ cd builddir-cross
-     $ make
-     $ make install
+       $ cd builddir/cross-gcc-full/arm-unknown-riscos/libunixlib
 
-   Instead of restarting the build with 'make' at the top-level, you can also
-   restart parts of the build by going to the appropriate subdirectory inside
-   builddir-cross and do 'make' followed by 'make install' there.  E.g. for
-   rebuilding libunixlib:
+  3. Completing the build step is usually just a matter of:
 
-     $ cd builddir-cross/arm-unknown-riscos/libunixlib
-     $ make
-     $ make install
+       $ make install
 
-   When you want specific compiler options for target libraries, you can
-   specify them like (e.g. taking the options "-O3 -march=armv4"):
+     Sometimes the already built binaries are needed to complete the
+     buildstep.  Examples are:
 
-     $ cd builddir-cross
-     $ make CFLAGS_FOR_TARGET="-O3 -march=armv4" CXXFLAGS_FOR_TARGET="-O3 -march=armv4"
-     $ make install
+     - When building RISC OS native compiler (i.e. not the cross-compiler),
+       the cross-compiler is used.  So you need to do something like:
+
+         $ PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH make install
+
+     - When autoconf/automake tools are used to recreate 'configure',
+       makefile, etc by gcc and/or binutils, you need exact versions of these
+       tools.  Those specific versions of autoconf/automake are also built
+       and locally installed (instead of relying them to be present and
+       installed on the host system).
+
+       Depending of the versions of binutils and gcc, the required autoconf
+       and automake versions can be different, so if reconfiguring and/or
+       regenerating of the makefile is needed for one of the binutils
+       components, use:
+
+         $ PATH=<path-to-builddir>/cross-buildtool-binutils/bin:$PATH make install
+     
+       For one of the gcc components, use:
+
+         $ PATH=<path-to-builddir>/cross-buildtool-gcc/bin:$PATH make install
 
 2.3. Build porting tools
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -195,19 +189,9 @@ The files in the subdirectory 'porting-scripts' can help you to easily use the
 cross-compiler for porting of existing programs.  More information can be
 found in the 'PortingTools.html' file how this works.
 
-To install those scripts (This will have already been done in step 1.1):
+To (re)install those scripts:
 
-  1. Define GCCSDK_INSTALL_ENV as the directory where those porting scripts can
-     be installed.  E.g.:
-
-       $ export GCCSDK_INSTALL_ENV=/home/riscos/env
-
-     GCCSDK_INSTALL_CROSSBIN still needs to be defined where the cross-compiler
-     has been instaled (see above).
-
-  2. Run 'install-env':
-
-       $ ./install-env
+  $ ./install-env
 
 Note that the GCCSDK Autobuilder framework will use these porting-scripts in
 order to do its job, cfr. <URL:http://www.riscos.info/index.php/Using_GCCSDK>
@@ -219,9 +203,11 @@ for more information.
 
 The cross-compiler can be used on its own.  The recommended way is to
 define the environment variable GCCSDK_INSTALL_CROSSBIN.
+
   $ export GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin
 
 Add add this environment value to your PATH.
+
   $ PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
 
 Then use it as you would the GCC compiler normally.
@@ -277,29 +263,39 @@ To use throwback:
 
 The native RISC OS compiler and associated programs like the ELF loader (part
 of !SharedLibs) are built using the previously built cross-compiler.  It is
-using the same 'build-it' script with "riscos" instead of "cross" as argument.
-The intermediate build results are stored in 'builddir-riscos' instead of
-'builddir-cross'.
+using the same Makefile driven build using the 'ronative' target.
 
-   $ ./build-it riscos > build-output.txt 2>&1
-
-Note that 'build-it' can take some useful options, use -h option to have an
-option list.
-
-If you want to restart the native RISC OS compiler build, you need to ensure
-that the cross-compiler can be found in your path, so you can do:
-
-   $ PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
+   $ make ronative 2>&1 | tee build-output-ronative.txt
 
 The RISC OS GCC release consists of several kits.  These are prepared using:
 
    $ ./create-gcckit
 
 And you can find the result in the 'release-area' subdirectory.  The directory
-and file structure there are exactly what will be packaged in a couple of zip
-files.  This packaging in zip files happens by:
+and file structure there are exactly what will be packaged as either a set
+of plain zip files (the old style of distributing RISC OS native compiler)
+or either as a set of packages suitable for use with the RISC OS Packaging
+Project (which are also zip files, cfr. <URL:http://www.riscpkg.org>).
 
-   $ ./create-gcckit -pkg
+For both cases the 'zip' tool is required to be present in
+$GCCSDK_INSTALL_ENV/bin.
+
+  1. Packaging in zip files happens by:
+
+       $ ./create-gcckit -pkg
+
+     The packages are output to release-area/kits.
+
+  2. A set of packages suitable for use with the RISC OS Packaging Project
+     can be created by running:
+
+       $ ./create-riscpkg
+
+     The packages are output to release-area/riscpkg.
+
+     The compilers and base GCC use the version numbers of the GCCSDK, however
+     the support modules, shared library loader, C and C++ shared libraries
+     need their versions set by editing the 'riscpkg-versions' script.
 
 
 5. Developing GCCSDK
@@ -307,17 +303,7 @@ files.  This packaging in zip files happens by:
 
 Developer changes can and should first be done in 'srcdir' directory and you
 can then rebuild parts of GCCSDK by going to the appropriate subdirectory
-inside 'builddir-cross' (or 'builddir-riscos' if your changes are appropriate
-for the native RISC OS compiler) and issue a 'make' or 'make install' there.
-
-Autotools configuration files changes need to be made in the files
-configure.ac and Makefile.am or when those are not yet existing, in the
-configure.in and Makefile.in files instead.  The already existing 'Makefile'
-will detect those autotool configuration file changes and normally
-automatically regenerates all related files but as this is not happening when
-doing a full build from scratch (e.g. after 'create-srcdir'), we're doing a
-forced Autotools regeneration of some parts of GCCSDK using scripts inside
-the recipe/scripts directory which are executed at the end of 'create-srcdir'.
+inside 'builddir' and issue a 'make' or 'make install' there (cfr. point 2.2).
 
 When those changes are ready to be commited, either patches need to be created
 (in recipe/patches directory) or either full file copy needs to be made (in
@@ -413,5 +399,5 @@ important contributions from many people in the original GCC 3.x GCCSDK;
 in particular, endless improvements to UnixLib which made it practical to
 run a wide range of software on RISC OS.  See those versions for full details.
 
-Copyright (c) 2005, 2006, 2007, 2008, 2009 GCCSDK Developers
+Copyright (c) 2005-2010 GCCSDK Developers
 <URL:http://gccsdk.riscos.info/>

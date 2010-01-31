@@ -208,29 +208,30 @@ create_gcc_tree() {
   # GCC & binutils documentation: we remove the info & man pages as they are not
   # really useful on RISC OS but create and use those HTML versions instead.
   remove_if_there $GCCSDK_UNPACKED/\!GCC/share
-  if [ ! -f $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/ld/ld.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html -o ! -d $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE ] ; then
+  if [ ! -f $GCCSDK_BUILDDIR/ronative-gcc-full/libiberty/libiberty.html -o ! -d $GCCSDK_BUILDDIR/ronative-binutils/doc/binutils.html -o ! -d $GCCSDK_BUILDDIR/ronative-binutils/gas/doc/as.html -o ! -d $GCCSDK_BUILDDIR/ronative-binutils/ld/ld.html -o ! -d $GCCSDK_BUILDDIR/ronative-binutils/gprof/gprof.html -o ! -d $GCCSDK_BUILDDIR/ronative-gcc-full/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE ] ; then
     # Build the HTML documentation:
-    cd $GCCSDK_RISCOS_BUILDDIR && PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make html
+    cd $GCCSDK_BUILDDIR/ronative-binutils && PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make html
+    cd $GCCSDK_BUILDDIR/ronative-gcc-full && PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make html
     # Fix documentation: in binutils, gas and ld we have both index.html and
     # Index.html. We rename Index.html to Index2.html.
-    for d in `echo $GCCSDK_RISCOS_BUILDDIR/{gas/doc/as.html,binutils/doc/binutils.html,ld/ld.html}` ; do
+    for d in `echo $GCCSDK_BUILDDIR/ronative-binutils/{gas/doc/as.html,binutils/doc/binutils.html,ld/ld.html}` ; do
       sed s/Index.html/Index2.html/ < $d/index.html > $d/index_fixed.html && mv $d/index_fixed.html $d/index.html
       test ! -f $d/Index.html || mv $d/Index.html $d/Index2.html
     done
     # gas also has ABORT.html and Abort.html
-    d=$GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html
+    d=$GCCSDK_BUILDDIR/ronative-binutils/gas/doc/as.html
     test ! -f $d/ABORT.html || mv $d/ABORT.html $d/ABORT2.html
     for f in `echo $d/{Abort.html,Align.html,index.html,Pseudo-Ops.html}` ; do
        sed --in-place s/ABORT.html/ABORT2.html/ $f
     done
   fi
   # Copy documentation:
-  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/libiberty && cp -r $GCCSDK_RISCOS_BUILDDIR/libiberty/libiberty.html $GCCSDK_UNPACKED/\!GCC/docs/libiberty
-  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/binutils && cp -r $GCCSDK_RISCOS_BUILDDIR/binutils/doc/binutils.html/* $GCCSDK_UNPACKED/\!GCC/docs/binutils
-  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/gas && cp -r $GCCSDK_RISCOS_BUILDDIR/gas/doc/as.html/* $GCCSDK_UNPACKED/\!GCC/docs/gas
-  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/ld && cp -r $GCCSDK_RISCOS_BUILDDIR/ld/ld.html/* $GCCSDK_UNPACKED/\!GCC/docs/ld
-  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/gprof && cp -r $GCCSDK_RISCOS_BUILDDIR/gprof/gprof.html/* $GCCSDK_UNPACKED/\!GCC/docs/gprof
-  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/gcc && cp -r $GCCSDK_RISCOS_BUILDDIR/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE/* $GCCSDK_UNPACKED/\!GCC/docs/gcc
+  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/libiberty && cp -r $GCCSDK_BUILDDIR/ronative-gcc-full/libiberty/libiberty.html $GCCSDK_UNPACKED/\!GCC/docs/libiberty
+  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/binutils && cp -r $GCCSDK_BUILDDIR/ronative-binutils/binutils/doc/binutils.html/* $GCCSDK_UNPACKED/\!GCC/docs/binutils
+  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/gas && cp -r $GCCSDK_BUILDDIR/ronative-binutils/gas/doc/as.html/* $GCCSDK_UNPACKED/\!GCC/docs/gas
+  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/ld && cp -r $GCCSDK_BUILDDIR/ronative-binutils/ld/ld.html/* $GCCSDK_UNPACKED/\!GCC/docs/ld
+  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/gprof && cp -r $GCCSDK_BUILDDIR/ronative-binutils/gprof/gprof.html/* $GCCSDK_UNPACKED/\!GCC/docs/gprof
+  mkdir -p $GCCSDK_UNPACKED/\!GCC/docs/gcc && cp -r $GCCSDK_BUILDDIR/ronative-gcc-full/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE/* $GCCSDK_UNPACKED/\!GCC/docs/gcc
   # Some parts of the documentation are not useful or even irrelevant for RISC OS developers:
   remove_if_there "`echo $GCCSDK_UNPACKED/\!GCC/docs/gcc/{cppinternals,gccinstall,gccint}`"
   remove_if_there "`echo $GCCSDK_UNPACKED/\!GCC/info/{configure.info,dir,dir.old,gccinstall.info}`"
@@ -258,10 +259,10 @@ create_gcc_tree() {
   cp $GCCSDK_RISCOS/mkresfs/{ChangeLog,AUTHORS,COPYING} $GCCSDK_UNPACKED/\!GCC/docs/mkresfs
   # Copy UnixLib documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
-  cp $GCCSDK_SRCDIR/libunixlib/{ChangeLog,contrib/Help,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
+  cp $GCCSDK_SRCDIR/gcc/libunixlib/{ChangeLog,contrib/Help,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
   # Copy SCL documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/libscl
-  cp $GCCSDK_SRCDIR/libscl/{ChangeLog,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/libscl
+  cp $GCCSDK_SRCDIR/gcc/libscl/{ChangeLog,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/libscl
   # Copy SharedLibs documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/SharedLibs
   cp $GCCSDK_RISCOS/soloader/dist/\!SharedLibs/docs/{\!ReadMe,Technical} $GCCSDK_UNPACKED/\!GCC/docs/SharedLibs

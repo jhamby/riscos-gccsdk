@@ -1,8 +1,9 @@
 #!/usr/bin/perl
 # Create UnixLib Makefile.am and include/unixlib/stubs.h.
-# Copyright (c) 2005, 2006, 2007, 2008 UnixLib developers
+# Copyright (c) 2005-2010 UnixLib developers
 
-$sourceunixlibtree = "$ENV{'GCCSDK_SRCDIR'}/libunixlib" ;
+use File::Basename;
+$sourceunixlibtree = dirname($0);
 
 if (! -e "$sourceunixlibtree/sys/_syslib.s") {
   die "$sourceunixlibtree looks invalid as UnixLib source directory\n";

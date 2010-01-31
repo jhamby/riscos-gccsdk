@@ -1,19 +1,30 @@
-
-if [ -n "$GCCSDK_ROOT" ] ; then
-  params=$GCCSDK_ROOT/gccsdk-params
-else
-  params=$(dirname $0)/gccsdk-params
+if [ ! -n "$GCCSDK_ROOT" ] ; then
+  pushd `dirname $0` > /dev/null
+  GCCSDK_ROOT=`pwd`
+  popd > /dev/null
 fi
 
+if [ -z "$GCCSDK_ROOT" ] || [ ! -d $GCCSDK_ROOT ] ; then
+  echo \$GCCSDK_ROOT is wrongly defined \(being \'$GCCSDK_ROOT\'\)
+  return 1
+fi
+
+params=$GCCSDK_ROOT/gccsdk-params
 if [ -e "$params" ] ; then
   . $params
 else
-  echo "# This is required by the build" > $params
-  echo "export LTCONFIG_VERSION=1.4a-GCC3.0" >> $params 
+  # Used to be /home/riscos
+  work_dir=`dirname $GCCSDK_ROOT`
+
+  echo "# -- Following section is user configurable:" > $params
   echo "# This is where the cross compiler will be installed.  It needs to end in 'bin'." >> $params
-  echo "export GCCSDK_INSTALL_CROSSBIN=/home/riscos/cross/bin" >> $params
-  echo "# This is where the porting tools and any libraries you build will be installed"  >> $params
-  echo "export GCCSDK_INSTALL_ENV=/home/riscos/env" >> $params
+  echo "export GCCSDK_INSTALL_CROSSBIN=$work_dir/cross/bin" >> $params
+  echo "# This is where the porting tools and any libraries you build will be installed."  >> $params
+  echo "export GCCSDK_INSTALL_ENV=$work_dir/env" >> $params
+  echo "" >> $params
+  echo "# -- Do not change following section:" >> $params
+  echo "# Required by the build." >> $params
+  echo "export LTCONFIG_VERSION=1.4a-GCC3.0" >> $params 
 
   echo ""
   echo "It looks like this is the first time you're running the GCCSDK build."
@@ -23,11 +34,6 @@ else
   echo ""
   cat $params
   echo ""
-  exit 0
-fi
-
-if [ -z "$GCCSDK_ROOT" ] || [ ! -d $GCCSDK_ROOT ] ; then
-  echo \$GCCSDK_ROOT is wrongly defined \(being \'$GCCSDK_ROOT\'\)
   return 1
 fi
 
@@ -35,61 +41,34 @@ fi
 # gcc/binutils sources ready to start compiling.
 export GCCSDK_SRCDIR=$GCCSDK_ROOT/srcdir
 
-# Where to install the cross-compiler and native RISC OS compiler.
-# For determining the install directory of the cross-compiler, if
-# GCCSDK_INSTALL_CROSSBIN is defined we use its value.
-if [ ! -z "$GCCSDK_INSTALL_CROSSBIN" ] ; then
-  # Check if it ends on '.../bin':
-  if [ "`basename $GCCSDK_INSTALL_CROSSBIN`" != "bin" ] ; then
-    echo \$GCCSDK_INSTALL_CROSSBIN does not end with \'bin\' sub-directory and has as value \'$GCCSDK_INSTALL_CROSSBIN\'
-    return 1
-  fi
-
-  GCCSDK_CROSS_PREFIX=$GCCSDK_INSTALL_CROSSBIN/..
-  # Shorten path:
-  test ! -d $GCCSDK_CROSS_PREFIX && mkdir -p $GCCSDK_CROSS_PREFIX
-  pushd $GCCSDK_CROSS_PREFIX > /dev/null
-  GCCSDK_CROSS_PREFIX=`pwd`
-  popd > /dev/null
-else
-  echo Warning: \$GCCSDK_INSTALL_CROSSBIN is not defined, using \$GCCSDK_ROOT/cross/bin instead.
-  GCCSDK_CROSS_PREFIX=$GCCSDK_ROOT/cross
+# GCCSDK_INSTALL_CROSSBIN/GCCSDK_CROSS_PREFIX is the place where the cross-compiler will be installed:
+# Check if GCCSDK_INSTALL_CROSSBIN ends on '/bin':
+if [ "`basename $GCCSDK_INSTALL_CROSSBIN`" != "bin" ] ; then
+  echo \$GCCSDK_INSTALL_CROSSBIN does not end with \'bin\' sub-directory and has as value \'$GCCSDK_INSTALL_CROSSBIN\'
+  return 1
 fi
+export GCCSDK_CROSS_PREFIX=$GCCSDK_INSTALL_CROSSBIN/..
+# Shorten path:
+test ! -d $GCCSDK_CROSS_PREFIX && mkdir -p $GCCSDK_CROSS_PREFIX
+pushd $GCCSDK_CROSS_PREFIX > /dev/null
+GCCSDK_CROSS_PREFIX=`pwd`
+popd > /dev/null
 # The install directory of the native RISC OS compiler is a
-# subdirectory of our release directory.
-GCCSDK_RELEASE_AREA=$GCCSDK_ROOT/release-area
-GCCSDK_RISCOS_PREFIX=$GCCSDK_RELEASE_AREA/full
-GCCSDK_RISCOS_GCCPREFIX=$GCCSDK_RISCOS_PREFIX/\!GCC
-GCCSDK_RISCOS_DSOPREFIX=$GCCSDK_RISCOS_PREFIX/\!SharedLibs
-GCCSDK_RISCOS_SYSTEMPREFIX=$GCCSDK_RISCOS_PREFIX/system
+# subdirectory of our release-area/full directory.
+export GCCSDK_RELEASE_AREA=$GCCSDK_ROOT/release-area
+export GCCSDK_RISCOS_PREFIX=$GCCSDK_RELEASE_AREA/full
 
 # Where are we building (not in $GCCSDK_SRCDIR !):
-GCCSDK_CROSS_BUILDDIR=$GCCSDK_ROOT/builddir-cross
-GCCSDK_RISCOS_BUILDDIR=$GCCSDK_ROOT/builddir-riscos
+export GCCSDK_BUILDDIR=$GCCSDK_ROOT/builddir
 
 # Currently supported versions of gcc and binutils:
-GCCSDK_SUPPORTED_GCC_RELEASE=4.1.1
-GCCSDK_SUPPORTED_BINUTILS_RELEASE=2.17
+export GCCSDK_SUPPORTED_GCC_RELEASE=4.1.1
+export GCCSDK_SUPPORTED_BINUTILS_RELEASE=2.17
 
 # Release name:
-GCCSDK_RELEASE_NAME=Rel2
-GCCSDK_FULL_RELEASE_NAME=$GCCSDK_SUPPORTED_GCC_RELEASE-$GCCSDK_RELEASE_NAME
-
-# This is the name of the target we're interested in:
-GCCSDK_TARGET_NAME=arm-unknown-riscos
-
-# GCCSDK_GCCORIG : directory containing the original & unchanged gcc sources
-GCCSDK_GCCORIG=$GCCSDK_ROOT/orig.gcc
-# GCCSDK_BINUTILSORIG : directory containing the original & unchanged binutils
-GCCSDK_BINUTILSORIG=$GCCSDK_ROOT/orig.binutils
+export GCCSDK_RELEASE_NAME=Rel2
+export GCCSDK_FULL_RELEASE_NAME=$GCCSDK_SUPPORTED_GCC_RELEASE-$GCCSDK_RELEASE_NAME
 
 # GCCSDK_RISCOS : directory containing RISC OS related sources (cmunge, soloader, etc)
-GCCSDK_RISCOS=$GCCSDK_ROOT/riscos
+export GCCSDK_RISCOS=$GCCSDK_ROOT/riscos
 
-# GCCSDK_RECIPE_PATCHES : patches of gcc/binutils
-GCCSDK_RECIPE_PATCHES=$GCCSDK_ROOT/recipe/patches
-# GCCSDK_RECIPE_FILES : full copies of files which need to be copied in the
-# resulting $GCCSDK_SRCDIR source tree.
-GCCSDK_RECIPE_FILES=$GCCSDK_ROOT/recipe/files
-# GCCSDK_RECIPE_SCRIPTS : scripts to be run
-GCCSDK_RECIPE_SCRIPTS=$GCCSDK_ROOT/recipe/scripts

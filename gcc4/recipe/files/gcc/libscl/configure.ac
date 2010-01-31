@@ -122,7 +122,9 @@ AC_CHECK_TOOL(RANLIB, ranlib, ranlib-not-found-in-path-error)
 AC_PROG_MAKE_SET
 # Get 'install' or 'install-sh' and its variants
 AC_PROG_INSTALL
-LT_INIT([disable-shared])
+# FIXME: change following two lines into: LT_INIT([disable-shared])
+AC_DISABLE_SHARED
+AC_PROG_LIBTOOL
 
 # Calculate toolexeclibdir
 # Also toolexecdir, though it's only used in toolexeclibdir

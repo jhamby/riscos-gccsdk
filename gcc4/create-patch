@@ -1,14 +1,19 @@
 #!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2006-2008 GCCSDK Developers
+# Copyright (c) 2006-2009 GCCSDK Developers
 
 # Arguments:
-#  $1: file to patch (relative to $GCCSDK_SRCDIR)
+#  $1: file to patch (relative to $GCCSDK_ROOT/srcdir)
 
+WD=`pwd`
 pushd `dirname $0` > /dev/null
 GCCSDK_ROOT=`pwd`
 popd > /dev/null
-source $GCCSDK_ROOT/setup-gccsdk-params
+##source $GCCSDK_ROOT/setup-gccsdk-params
+GCCSDK_SUBTREE=`basename $WD`
+GCCSDK_SRCDIR=$GCCSDK_ROOT/srcdir/$GCCSDK_SUBTREE
+GCCSDK_RECIPE_PATCHES=$GCCSDK_ROOT/recipe/patches/$GCCSDK_SUBTREE
+GCCSDK_RECIPE_FILES=$GCCSDK_ROOT/recipe/files/$GCCSDK_SUBTREE
 
 if [ "x"$1 == "x" ] ; then
   echo "Syntax: create-patch <file-in-gccsdk-dir-to-create-patch-from>"
@@ -26,11 +31,10 @@ fi
 # a patch from, we search for the original file in the unchanged gcc / binutils
 # distributions.
 if [ ! -f $GCCSDK_PATCHFORFILE_ABS.orig ] ; then
-  # Originial file does not exist, find it.
-  if [ -f $GCCSDK_GCCORIG/$GCCSDK_PATCHFORFILE_REL ] ; then
-    cp $GCCSDK_GCCORIG/$GCCSDK_PATCHFORFILE_REL $GCCSDK_PATCHFORFILE_ABS.orig
-  elif [ -f $GCCSDK_BINUTILSORIG/$GCCSDK_PATCHFORFILE_REL ] ; then
-    cp $GCCSDK_BINUTILSORIG/$GCCSDK_PATCHFORFILE_REL $GCCSDK_PATCHFORFILE_ABS.orig
+  # Originial file does not exist, find it.  FIXME: the wildcard is a bit dodgy.
+  CANDIDATE=`ls $GCCSDK_ROOT/srcdir.orig/$GCCSDK_SUBTREE-*/$GCCSDK_PATCHFORFILE_REL 2>/dev/null || true`
+  if [ -f "$CANDIDATE" ] ; then
+    cp $CANDIDATE $GCCSDK_PATCHFORFILE_ABS.orig
   fi
 fi
 

@@ -5,7 +5,7 @@
    # expandable list at autoconf time; the second provides an expandable list
    # (i.e., shell variable) at configure time.
 -  m4_define([glibcxx_SUBDIRS],[include libmath libsupc++ src po testsuite])
-+  m4_define([glibcxx_SUBDIRS],[include riscos libsupc++ po testsuite])
++  m4_define([glibcxx_SUBDIRS],[include riscos libmath libsupc++ src po testsuite])
    SUBDIRS='glibcxx_SUBDIRS'
  
    # These need to be absolute paths, yet at the same time need to
@@ -26,14 +26,4 @@
    AC_SUBST(CFLAGS)
    AC_SUBST(CXXFLAGS)
  
-@@ -1038,8 +1046,8 @@ AC_DEFUN([GLIBCXX_ENABLE_CLOCALE], [
-           #endif
-           int main()
-           {
--              const char __one[] = "Äuglein Augmen";
--              const char __two[] = "Äuglein";
-+              const char __one[] = "ï¿½glein Augmen";
-+              const char __two[] = "ï¿½glein";
-               int i;
-               int j;
-               __locale_t        loc;
+

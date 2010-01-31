@@ -1,22 +1,9 @@
 #!/bin/bash -e
 
-function error_handler {
-  echo ""
-  echo "Looks like the build failed.  You might want to check out the README for what to do now."
-  echo ""
-  echo "If 'build-cross-output.txt' exists, this will contain a record of the failure.  You can send the end of it to the GCCSDK mailing list for help."
-  echo "Once you fix the problem, you can simply run this script again."
-  echo ""
-  exit 1
-}
-
-trap error_handler ERR
-
-
-GCCSDK_ROOT=`pwd`
+cd `dirname $0`
 
 for tool in \
-  gcc make libtool automake-1.9 autogen patch makeinfo ; do
+  gcc make m4 autoconf libtool bison autogen patch makeinfo wget help2man ; do
 
   if ! type $tool >/dev/null 2>&1 ; then
     echo "'$tool' couldn't be found.  This needs to be installed for GCCSDK".
@@ -24,21 +11,24 @@ for tool in \
   fi
 done
 
+function error_handler {
+  echo ""
+  echo "Looks like the build failed.  You might want to check out the README for what to do now."
+  echo ""
+  echo "If 'build-cross-output.txt' exists, this will contain a record of the failure.  You can send the end of it to the GCCSDK mailing list for help."
+  echo "Once you fix the problem, you can simply run this script again.  Note doing this will overwrite 'build-cross-output.txt' log file."
+  echo ""
+  exit 1
+}
 
-. setup-gccsdk-params
+. ./setup-gccsdk-params
 
-if ! [ -e orig.gcc ] ; then
-  ./download-gcc-binutils gcc
-fi
+trap error_handler ERR
 
-if ! [ -e orig.binutils ] ; then
-  ./download-gcc-binutils binutils
-fi
-
-./create-srcdir
-
-./build-it 2>&1 | tee build-cross-output.txt
+make 2>&1 | tee build-cross-output.txt
+test ${PIPESTATUS[0]} -ne 0 && error_handler
 
 ./install-env
 
-echo "Built and installed GCCSDK cross compiler ok.  Check out the README for examples of how to use the cross compiler or autobuilder"
+echo ""
+echo "Built and installed GCCSDK cross compiler ok.  Check out the README for examples of how to use the cross compiler or Autobuilder."

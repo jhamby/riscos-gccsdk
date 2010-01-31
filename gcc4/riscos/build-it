@@ -60,16 +60,21 @@ for param in $@ ; do
   esac
 done
 
+GCCSDK_TARGET_NAME=arm-unknown-riscos
 if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
   # Build binaries suited for cross-compilation
-  GCCSDK_BUILDDIR=$GCCSDK_CROSS_BUILDDIR
+  GCCSDK_BUILDDIR=$GCCSDK_BUILDDIR/cross
   GCCSDK_PREFIX=$GCCSDK_CROSS_PREFIX
   GCCSDK_CONFIGURE_ARGS="--target=$GCCSDK_TARGET_NAME"
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # Build binaries suites for native RISC OS usage
-  GCCSDK_BUILDDIR=$GCCSDK_RISCOS_BUILDDIR
+  GCCSDK_RISCOS_GCCPREFIX=$GCCSDK_RISCOS_PREFIX/\!GCC
+  GCCSDK_RISCOS_DSOPREFIX=$GCCSDK_RISCOS_PREFIX/\!SharedLibs
+  GCCSDK_RISCOS_SYSTEMPREFIX=$GCCSDK_RISCOS_PREFIX/system
+
+  GCCSDK_BUILDDIR=$GCCSDK_BUILDDIR/ronative
   GCCSDK_PREFIX=$GCCSDK_RISCOS_GCCPREFIX
-  GCCSDK_CONFIGURE_ARGS="--build=`$GCCSDK_SRCDIR/config.guess` --host=$GCCSDK_TARGET_NAME --target=$GCCSDK_TARGET_NAME"
+  GCCSDK_CONFIGURE_ARGS="--build=`$GCCSDK_SRCDIR/binutils/config.guess` --host=$GCCSDK_TARGET_NAME --target=$GCCSDK_TARGET_NAME"
 
   # Make sure our cross-compiler binaries can be found.
   PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
@@ -171,7 +176,7 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   cp $GCCSDK_RISCOS_GCCPREFIX/bin/sul $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules/SharedULib,ffa
   #   2. Copy UnixLib/SharedUnixLibrary license:
   mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
-  cp $GCCSDK_SRCDIR/libunixlib/COPYING $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
+  cp $GCCSDK_SRCDIR/gcc/libunixlib/COPYING $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
   # syslogd module:
   #   1. Build & install syslogd (FIXME: we can not build this yet)
   echo +++ Building syslogd - skipped

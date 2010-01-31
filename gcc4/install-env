@@ -1,6 +1,6 @@
 #!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2006-2008 GCCSDK Developers
+# Copyright (c) 2006-2009 GCCSDK Developers
 
 pushd `dirname $0` > /dev/null
 GCCSDK_ROOT=`pwd`
@@ -21,9 +21,7 @@ if [ ! -d $GCCSDK_INSTALL_ENV ] ; then
 fi
 
 # Calculate build
-if [ -z "$GCCSDK_BUILD" ] ; then
-  GCCSDK_BUILD=`$GCCSDK_SRCDIR/config.guess`
-fi
+GCCSDK_BUILD=`$GCCSDK_SRCDIR/gcc/config.guess`
 
 for f in `ls $GCCSDK_ROOT/porting-scripts` ; do
   if [ -L $GCCSDK_ROOT/porting-scripts/$f ] ; then

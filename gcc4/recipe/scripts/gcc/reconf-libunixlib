@@ -1,0 +1,12 @@
+#!/bin/bash -e
+# Auto-generate libunixlib
+# Copyright (c) 2007-2010 GCCSDK Developers
+
+# Generate the Makefile.am files:
+./libunixlib/gen-auto.pl
+
+# Patch libtool.m4:
+( cd libunixlib && cp libtool-org.m4 libtool.m4 && patch -p0 < libtool.m4.p )
+
+# Run the autotools:
+( cd libunixlib && aclocal -I ./ && autoheader && automake -a && autoconf )
