@@ -13,8 +13,8 @@
    GUnixFDMessage *message;
  
    if (level != SOL_SOCKET ||
--      level != SCM_RIGHTS)
-+      level != 1 /*SCM_RIGHTS*/)
+-      type != SCM_RIGHTS)
++      type != 1 /*SCM_RIGHTS*/)
      return NULL;
    
    if (size % 4 > 0)
