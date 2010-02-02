@@ -33,6 +33,10 @@
 #endif
 #include <string.h>
 
+#if defined(__TARGET_UNIXLIB__)
+#include <unixlib/local.h>
+#endif
+
 #include "error.h"
 #include "filestack.h"
 #include "include.h"

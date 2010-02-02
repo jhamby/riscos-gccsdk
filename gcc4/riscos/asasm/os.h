@@ -62,7 +62,7 @@ _kernel_oserror *ThrowbackEnd (void);
 #define ThrowbackError			1
 #define ThrowbackSeriousError		2
 
-char *CanonicalisePath (const char *path);
+const char *CanonicalisePath (const char *path);
 
 #endif /* !__riscos__ */
 

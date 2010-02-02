@@ -1,3 +1,12 @@
+Tue Feb 2  18:29:10 2010  Lee Noar  <leenoar@sky.com>
+
+	Fix build errors:
+
+	* filestack.c: #include header that defines riscosify related
+	bits.
+	* os.h: Make sure declaration of CanonicalisePath matches
+	definition.
+
 Wed Jan 27 00:31:34 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* filestack.c/filestack.h: Merged the macro, external linked,
