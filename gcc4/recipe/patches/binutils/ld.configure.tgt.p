@@ -1,10 +1,10 @@
---- ld/configure.tgt.orig	2006-09-25 03:09:46.000000000 +0200
-+++ ld/configure.tgt	2006-09-25 03:15:04.000000000 +0200
-@@ -63,6 +63,7 @@
- arm*b-*-linux-*eabi)	targ_emul=armelfb_linux_eabi ;;
- arm*b-*-linux-*)	targ_emul=armelfb_linux; targ_extra_emuls=armelfb ;;
- arm*-*-linux-*eabi)	targ_emul=armelf_linux_eabi ;;
-+arm*-*-riscos*)		targ_emul=armelf_riscos; targ_extra_emuls="armelf_linux armelf" ;;
- arm*-*-linux-*)	        targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
- arm*-*-uclinux*)	targ_emul=armelf_linux; targ_extra_emuls=armelf ;;
- arm-*-vxworks)		targ_emul=armelf_vxworks ;;
+--- ld/configure.tgt.orig	2009-08-06 19:38:03.000000000 +0200
++++ ld/configure.tgt	2010-01-31 16:59:25.552640063 +0100
+@@ -86,6 +86,7 @@ arm*-*-linux-*)	        targ_emul=armelf
+ 			targ_extra_emuls="armelf armelfb armelfb_linux"
+ 			targ_extra_libpath="armelfb_linux"
+ 			;;
++arm*-*-riscos*)		targ_emul=armelf_riscos ;;
+ arm*-*-uclinux*eabi)	targ_emul=armelf_linux_eabi
+ 			targ_extra_emuls=armelfb_linux_eabi
+ 			targ_extra_libpath=$targ_extra_emuls

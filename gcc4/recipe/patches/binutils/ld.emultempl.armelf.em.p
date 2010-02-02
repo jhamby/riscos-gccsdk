@@ -1,17 +1,19 @@
---- ld/emultempl/armelf.em.orig	2007-03-04 03:51:48.000000000 +0100
-+++ ld/emultempl/armelf.em	2007-02-19 02:10:06.000000000 +0100
-@@ -35,6 +35,7 @@
- static char *target2_type = "${TARGET2_TYPE}";
- static int fix_v4bx = 0;
- static int use_blx = 0;
+--- ld/emultempl/armelf.em.orig	2010-01-31 22:55:49.605013495 +0100
++++ ld/emultempl/armelf.em	2010-02-02 02:44:57.245033622 +0100
+@@ -41,6 +41,7 @@ static int fix_cortex_a8 = -1;
+ static int no_enum_size_warning = 0;
+ static int no_wchar_size_warning = 0;
+ static int pic_veneer = 0;
 +static int riscos_module = 0;
  
  static void
  gld${EMULATION_NAME}_before_parse (void)
-@@ -66,6 +67,15 @@
-       }
-   }
+@@ -53,6 +54,22 @@ gld${EMULATION_NAME}_before_parse (void)
+ }
  
+ static void
++arm_elf_after_open (void)
++{
 +  /* Add __RelocCode code section to the first input bfd struct we find. This section
 +     can be picked up by our linker script. */
 +  if (riscos_module
@@ -21,13 +23,18 @@
 +      riscos_module = 0;
 +    }
 +
-   /* Call the standard elf routine.  */
-   gld${EMULATION_NAME}_after_open ();
- }
-@@ -142,6 +152,18 @@
++  /* Call the standard elf routine.  */
++  gld${EMULATION_NAME}_after_open ();
++}
++
++static void
+ arm_elf_before_allocation (void)
+ {
+   bfd_elf32_arm_set_byteswap_code (&link_info, byteswap_code);
+@@ -85,6 +102,19 @@ arm_elf_before_allocation (void)
+       bfd_elf32_arm_allocate_interworking_sections (& link_info);
+     }
  
-   /* We have seen it all. Allocate it, and carry on.  */
-   bfd_elf32_arm_allocate_interworking_sections (& link_info);
 +
 +  /* Allocate the right size of our __RelocCode section based on the
 +     relocations in all our output bfd's.  */
@@ -37,45 +44,46 @@
 +	{
 +	  einfo (_("%P: failed to allocate RISC OS module relocation code\n"));
 +	  riscos_module = 0;
-+          return;
++	  return;
 +	}
 +    }
++
+   /* Call the standard elf routine.  */
+   gld${EMULATION_NAME}_before_allocation ();
  }
- 
- static void
-@@ -229,6 +251,9 @@
- #define OPTION_TARGET2			305
- #define OPTION_FIX_V4BX			306
- #define OPTION_USE_BLX			307
-+#define OPTION_FPIC_1			308
-+#define OPTION_FPIC_2			309
-+#define OPTION_RISCOS_MODULE		310
+@@ -525,6 +555,9 @@ PARSE_AND_LIST_PROLOGUE='
+ #define OPTION_NO_WCHAR_SIZE_WARNING	313
+ #define OPTION_FIX_CORTEX_A8		314
+ #define OPTION_NO_FIX_CORTEX_A8		315
++#define OPTION_FPIC_1			316
++#define OPTION_FPIC_2			317
++#define OPTION_RISCOS_MODULE		318
  '
  
  PARSE_AND_LIST_SHORTOPTS=p
-@@ -242,6 +267,9 @@
-   { "target2", required_argument, NULL, OPTION_TARGET2},
-   { "fix-v4bx", no_argument, NULL, OPTION_FIX_V4BX},
-   { "use-blx", no_argument, NULL, OPTION_USE_BLX},
+@@ -546,6 +579,9 @@ PARSE_AND_LIST_LONGOPTS='
+   { "no-wchar-size-warning", no_argument, NULL, OPTION_NO_WCHAR_SIZE_WARNING},
+   { "fix-cortex-a8", no_argument, NULL, OPTION_FIX_CORTEX_A8 },
+   { "no-fix-cortex-a8", no_argument, NULL, OPTION_NO_FIX_CORTEX_A8 },
 +  { "fpic", no_argument, NULL, OPTION_FPIC_1},
 +  { "fPIC", no_argument, NULL, OPTION_FPIC_2},
 +  { "ro-module-reloc", no_argument, NULL, OPTION_RISCOS_MODULE},
  '
  
  PARSE_AND_LIST_OPTIONS='
-@@ -252,6 +280,9 @@
-   fprintf (file, _("     --target2=<type>         Specify definition of R_ARM_TARGET2\n"));
-   fprintf (file, _("     --fix-v4bx               Rewrite BX rn as MOV pc, rn for ARMv4\n"));
-   fprintf (file, _("     --use-blx                Enable use of BLX instructions\n"));
+@@ -573,6 +609,9 @@ PARSE_AND_LIST_OPTIONS='
+                            the linker should choose suitable defaults.\n"
+  		   ));
+   fprintf (file, _("  --[no-]fix-cortex-a8        Disable/enable Cortex-A8 Thumb-2 branch erratum fix\n"));
 +  fprintf (file, _("      -fpic                   Generate original PLT entries\n"));
 +  fprintf (file, _("      -fPIC                   Generate RISC OS PLT entries\n"));
 +  fprintf (file, _("     --ro-module-reloc        Add RISC OS module relocation code & data\n"));
  '
  
  PARSE_AND_LIST_ARGS_CASES='
-@@ -286,6 +317,18 @@
-     case OPTION_USE_BLX:
-       use_blx = 1;
+@@ -652,10 +691,23 @@ PARSE_AND_LIST_ARGS_CASES='
+     case OPTION_NO_FIX_CORTEX_A8:
+       fix_cortex_a8 = 0;
        break;
 +
 +    case OPTION_FPIC_1:
@@ -91,4 +99,9 @@
 +      break;
  '
  
- # We have our own after_open and before_allocation functions, but they call
+ # We have our own before_allocation etc. functions, but they call
+ # the standard routines, so give them a different name.
++LDEMUL_AFTER_OPEN=arm_elf_after_open
+ LDEMUL_BEFORE_ALLOCATION=arm_elf_before_allocation
+ LDEMUL_AFTER_ALLOCATION=gld${EMULATION_NAME}_after_allocation
+ LDEMUL_CREATE_OUTPUT_SECTION_STATEMENTS=arm_elf_create_output_section_statements

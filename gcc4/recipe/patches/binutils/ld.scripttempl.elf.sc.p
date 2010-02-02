@@ -1,6 +1,6 @@
---- ld/scripttempl/elf.sc.orig	2009-03-28 15:17:46.000000000 +0100
-+++ ld/scripttempl/elf.sc	2009-03-28 14:53:36.000000000 +0100
-@@ -236,6 +236,14 @@ else
+--- ld/scripttempl/elf.sc.orig	2009-10-09 15:12:35.000000000 +0200
++++ ld/scripttempl/elf.sc	2010-01-31 17:12:41.882517838 +0100
+@@ -268,6 +268,14 @@ else
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
  
@@ -15,15 +15,15 @@
  cat <<EOF
  OUTPUT_FORMAT("${OUTPUT_FORMAT}", "${BIG_OUTPUT_FORMAT}",
  	      "${LITTLE_OUTPUT_FORMAT}")
-@@ -256,6 +264,7 @@ SECTIONS
+@@ -288,6 +296,7 @@ SECTIONS
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+PROVIDE (__executable_start = ${TEXT_START_ADDR}); . = ${TEXT_BASE_ADDRESS};}}}
-   ${CREATE_SHLIB+${RELOCATING+. = ${SHLIB_TEXT_START_ADDR:-0} + SIZEOF_HEADERS;}}
-   ${CREATE_PIE+${RELOCATING+. = ${SHLIB_TEXT_START_ADDR:-0} + SIZEOF_HEADERS;}}
+   ${CREATE_SHLIB+${RELOCATING+. = ${SHLIB_TEXT_START_ADDR} + SIZEOF_HEADERS;}}
+   ${CREATE_PIE+${RELOCATING+. = ${SHLIB_TEXT_START_ADDR} + SIZEOF_HEADERS;}}
 +  ${CREATE_SHLIB-${RISCOS_ROBASE}}
-   ${CREATE_SHLIB-${INTERP}}
    ${INITIAL_READONLY_SECTIONS}
-   ${TEXT_DYNAMIC+${DYNAMIC}}
-@@ -362,6 +371,8 @@ cat <<EOF
+   .note.gnu.build-id : { *(.note.gnu.build-id) }
+ EOF
+@@ -434,6 +443,8 @@ cat <<EOF
    .eh_frame     ${RELOCATING-0} : ONLY_IF_RO { KEEP (*(.eh_frame)) }
    .gcc_except_table ${RELOCATING-0} : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }
  
@@ -32,7 +32,7 @@
    /* Adjust the address for the data segment.  We want to adjust up to
       the same address within the page on the next page up.  */
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+. = ${DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}}
-@@ -412,6 +423,11 @@ cat <<EOF
+@@ -484,6 +495,11 @@ cat <<EOF
  
    ${DATA_PLT+${PLT_BEFORE_GOT-${PLT}}}
  
@@ -44,7 +44,7 @@
    .data         ${RELOCATING-0} :
    {
      ${RELOCATING+${DATA_START_SYMBOLS}}
-@@ -437,8 +453,10 @@ cat <<EOF
+@@ -508,8 +524,10 @@ cat <<EOF
    ${BSS_PLT+${PLT}}
    .bss          ${RELOCATING-0} :
    {
@@ -56,19 +56,19 @@
     *(COMMON)
     /* Align here to ensure that the .bss section occupies space up to
        _end.  Align after .bss to ensure correct alignment even if the
-@@ -446,6 +464,7 @@ cat <<EOF
+@@ -517,6 +535,7 @@ cat <<EOF
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */
     ${RELOCATING+. = ALIGN(. != 0 ? ${ALIGNMENT} : 1);}
 +   ${RELOCATING+${CREATE_SHLIB-${RISCOS_ZILIMIT}}}
    }
+   ${OTHER_BSS_SECTIONS}
    ${RELOCATING+${OTHER_BSS_END_SYMBOLS}}
-   ${RELOCATING+. = ALIGN(${ALIGNMENT});}
-@@ -454,6 +473,7 @@ cat <<EOF
+@@ -526,6 +545,7 @@ cat <<EOF
    ${RELOCATING+${OTHER_END_SYMBOLS}}
-   ${RELOCATING+${END_SYMBOLS-_end = .; PROVIDE (end = .);}}
+   ${RELOCATING+${END_SYMBOLS-${USER_LABEL_PREFIX}_end = .; PROVIDE (${USER_LABEL_PREFIX}end = .);}}
    ${RELOCATING+${DATA_SEGMENT_END}}
 +  ${RELOCATING+${CREATE_SHLIB-${RISCOS_RWLIMIT}}}
+ EOF
  
-   /* Stabs debugging sections.  */
-   .stab          0 : { *(.stab) }
+ if test -n "${NON_ALLOC_DYN}"; then
