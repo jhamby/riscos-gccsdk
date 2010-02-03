@@ -1,0 +1,13 @@
+Notes for RISC OS port of fontconfig
+
+The fontconfig data files are in the fonts subdirectory.
+The configuration file is set to look for truetype fonts
+in UnixFont:truetype.
+
+This application is used for:
+The configuration files.
+The command line utilities
+The library for developing.
+
+These are shipped separately and can be dropped on top of
+each other.

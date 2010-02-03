@@ -1,0 +1,98 @@
+AB_CATEGORY=Fonts
+AB_PACKAGES="fontconfig-config fontconfig libfontconfig1-dev"
+AB_CONFLAGS=\''--with-confdir=/\<UnixFC\$$Dir\>/fonts'\'
+AB_INSTALL=env
+# Only install library files
+AB_INSTALLTARGET="-C src install"
+
+ab_package() {
+
+  ab_create_command_app UnixFC Apps/Fonts fontconfig-config
+  cp -avf $H/\!Boot,feb $A
+  cp -av $H/\!Sprites,ff9 $A
+
+  mkdir -p $A/fonts
+  cp -av $S/README $A/
+  cp -av $S/fonts.dtd $A/fonts
+  # Put correct directories in font file
+  sed -e "s#@FC_DEFAULT_FONTS@#/UnixFont:truetype#" \
+     -e "s#~/.fonts#/\&lt;Choices\$Write\&gt;/UnixFC#" \
+     -e "s#@FC_FONTPATH@##" \
+     -e "s#@FC_CACHEDIR@#/UnixFC:cache#" \
+     -e "s#~/.fontconfig#\&lt;Choices\$Write\&gt;/fontconfig_cache#" \
+     $S/fonts.conf.in > $A/fonts/fonts.conf
+
+  mkdir -p $A/fonts/conf.avail
+  mkdir -p $A/fonts/conf.d
+
+  AVAIL_CONF="$S/conf.d/10-autohint.conf $S/conf.d/10-no-sub-pixel.conf
+    $S/conf.d/10-sub-pixel-bgr.conf $S/conf.d/10-sub-pixel-rgb.conf
+    $S/conf.d/10-sub-pixel-vbgr.conf $S/conf.d/10-sub-pixel-vrgb.conf
+    $S/conf.d/10-unhinted.conf $S/conf.d/20-fix-globaladvance.conf
+    $S/conf.d/20-unhint-small-vera.conf $S/conf.d/25-unhint-nonlatin.conf
+    $S/conf.d/30-metric-aliases.conf $S/conf.d/30-urw-aliases.conf
+    $S/conf.d/40-nonlatin.conf $S/conf.d/45-latin.conf
+    $S/conf.d/49-sansserif.conf $S/conf.d/50-user.conf
+    $S/conf.d/51-local.conf $S/conf.d/60-latin.conf
+    $S/conf.d/65-fonts-persian.conf $S/conf.d/65-khmer.conf
+    $S/conf.d/65-nonlatin.conf $S/conf.d/69-unifont.conf
+    $S/conf.d/70-no-bitmaps.conf
+    $S/conf.d/70-yes-bitmaps.conf $S/conf.d/80-delicious.conf
+    $S/conf.d/90-synthetic.conf"
+
+  CONFD_CONF="$S/conf.d/20-fix-globaladvance.conf $S/conf.d/20-unhint-small-vera.conf
+    $S/conf.d/30-metric-aliases.conf $S/conf.d/30-urw-aliases.conf
+    $S/conf.d/40-nonlatin.conf $S/conf.d/45-latin.conf
+    $S/conf.d/49-sansserif.conf $S/conf.d/50-user.conf
+    $S/conf.d/51-local.conf $S/conf.d/60-latin.conf
+    $S/conf.d/65-fonts-persian.conf $S/conf.d/65-nonlatin.conf
+    $S/conf.d/69-unifont.conf $S/conf.d/80-delicious.conf
+    $S/conf.d/90-synthetic.conf
+    $S/conf.d/README"
+
+  cp -av $AVAIL_CONF $A/fonts/conf.avail
+  cp -av $CONFD_CONF $A/fonts/conf.d
+
+  ab_docs AUTHORS ChangeLog COPYING README
+  cp -av $H/\!RISCOS $A/docs
+
+  $AB_HOME/add-riscpkg -package "fontconfig-config"
+
+  #fontconfig - all programs fc-* to /usr/bin
+  ab_create_command_app UnixFC Apps/Fonts fontconfig
+  ab_add_commands $S/fc-*/*$AB_EXEEXT
+
+  mkdir -p $A/docs
+  cp -av $S/doc/fontconfig-user.html $A/docs
+  cp -av $S/doc/fontconfig-user.pdf $A/docs
+  cp -av $S/doc/fontconfig-user.txt $A/docs
+  ab_docs $S/fc-*/fc-*.1
+
+  $AB_HOME/add-riscpkg -package fontconfig \
+    -unixlib -depends "fontconfig-config"
+
+  # Remove/move automatically created stuff not needed
+  rm $A/\!Run,feb
+  rm $A/\!Help,feb
+  mv $A/\!Boot,feb $A/BinBoot,feb
+  rm "$D/fontconfig/SysVars/UnixFC=24Dir,fff"
+
+  #libfontconfig1-dev
+  ab_create_app UnixFC Apps/Fonts libfontconfig1-dev
+
+  mkdir -p $A/fontconfig
+  cp -av $S/fontconfig/*.h $A/fontconfig
+  cp -av $S/src/.libs/libfontconfig*.a $A
+  #cp -av $S/src/.libs/libfontconfig*.so $A
+
+  mkdir -p $A/docs
+  cp -av $S/doc/fontconfig-devel.pdf $A/docs
+  cp -av $S/doc/fontconfig-devel.txt $A/docs
+  cp -av $S/doc/fontconfig-devel $A/docs
+
+  $AB_HOME/add-riscpkg -package libfontconfig1-dev \
+    -unixlib -depends "fontconfig-config"
+
+  rm -rf $D/libfontconfig1-dev/SysVars
+  rm $A/\!Boot,feb
+}
