@@ -63,6 +63,9 @@ SKIT_GCC_NAME=gccsdk-gcc-src-$GCCSDK_FULL_RELEASE_NAME
 #   8. Source used to build riscos tools:
 SKIT_RISCOS_NAME=gccsdk-riscos-tools-src-$GCCSDK_FULL_RELEASE_NAME
 
+# FIXME: needs to be linked to Makefile's TARGET
+GCCSDK_TARGET_NAME=arm-unknown-riscos
+
 # In $GCCSDK_RELEASE_AREA/full we will have the full unpacked binary kits.
 # We first make sure that this gets fully populated, then we make a copy to
 # $GCCSDK_RELEASE_AREA/kits and use that to distribute to all the binary
