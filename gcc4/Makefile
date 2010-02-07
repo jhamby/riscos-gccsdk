@@ -50,9 +50,9 @@ GCC_CONFIG_ARGS := --disable-threads --disable-multilib --disable-shared --with-
 BINUTILS_CONFIG_ARGS := --disable-multilib --disable-shared
 endif
 # Note: --with-pkgversion & --with-bugurl is only supported from binutils 2.18 (?) & gcc 4.3 onwards.
-GCC_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 3 Alpha 1' \
+GCC_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 3 Development' \
 	--with-bugurl=http://gccsdk.riscos.info/
-BINUTILS_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 3 Alpha 1' \
+BINUTILS_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 3 Development' \
 	--with-bugurl=http://gccsdk.riscos.info/
 BINUTILS_CONFIG_ARGS += --enable-maintainer-mode --enable-interwork --disable-werror --with-gcc --disable-nls
 GCC_CONFIG_ARGS += --enable-maintainer-mode --enable-interwork --disable-nls
