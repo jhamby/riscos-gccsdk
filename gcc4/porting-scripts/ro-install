@@ -123,7 +123,7 @@ else
     /bin/mkdir -p $dest
 
     # Convert man pages to HTML:
-    ln -s . man3
+    ln -sf . man3 || true
     for manpage in $installparams ; do
       if [ -z "$destbasename" ] ; then
         # Derive destination basename from source (the source should be one file)
@@ -142,6 +142,6 @@ else
         zcat $manpage | rman -f HTML > $dest/$manoutputname_nogz,faf
       fi
     done
-    rm -f man3
+    rm -f man3 || true
   fi
 fi
