@@ -1,5 +1,5 @@
---- ./chunk.c.org	2004-10-19 15:51:21.000000000 +0100
-+++ ./chunk.c	2006-10-11 22:47:05.690000000 +0100
+--- chunk.c.orig	2010-02-09 00:22:53.205189992 +0100
++++ chunk.c	2010-02-09 00:23:07.665189087 +0100
 @@ -163,6 +163,9 @@
  static	unsigned long	func_free_c = 0;	/* count the frees */
  static	unsigned long	func_delete_c = 0;	/* count the deletes */
@@ -10,7 +10,7 @@
  /**************************** skip list routines *****************************/
  
  /*
-@@ -1003,6 +1006,7 @@
+@@ -1005,6 +1008,7 @@
    char		where_buf[MAX_FILE_LENGTH + 64];
    char		where_buf2[MAX_FILE_LENGTH + 64];
    const char	*prev_file;
@@ -26,7 +26,7 @@
      user_size = slot_p->sa_user_size;
      if (user_pnt == NULL) {
        get_pnt_info(slot_p, &pnt_info);
-@@ -1039,17 +1044,19 @@
+@@ -1040,17 +1045,19 @@
    if (start_user == NULL) {
      dmalloc_message("  from '%s' prev access '%s'",
  		    _dmalloc_chunk_desc_pnt(where_buf, sizeof(where_buf),
@@ -50,7 +50,7 @@
    }
    
    /*
-@@ -1130,7 +1137,8 @@
+@@ -1134,7 +1141,8 @@
  		      (unsigned long)other_p->sa_mem, other_p->sa_user_size,
  		      _dmalloc_chunk_desc_pnt(where_buf, sizeof(where_buf),
  					      other_p->sa_file,
@@ -60,7 +60,7 @@
      }
    }
    /* find the next pointer in case it ran under */
-@@ -1144,7 +1152,8 @@
+@@ -1149,7 +1157,8 @@
  		      (unsigned long)other_p->sa_mem, other_p->sa_user_size,
  		      _dmalloc_chunk_desc_pnt(where_buf, sizeof(where_buf),
  					      other_p->sa_file,
@@ -69,8 +69,8 @@
 +					      other_p->sa_callers));
      }
    }
- }
-@@ -1867,9 +1876,21 @@
+   
+@@ -1921,9 +1930,21 @@
   * line -> Line number or 0.
   */
  char	*_dmalloc_chunk_desc_pnt(char *buf, const int buf_size,
@@ -94,7 +94,7 @@
      (void)loc_snprintf(buf, buf_size, "unknown");
    }
    else if (line == DMALLOC_DEFAULT_LINE) {
-@@ -2394,6 +2415,7 @@
+@@ -2432,6 +2453,7 @@
    
    slot_p->sa_file = file;
    slot_p->sa_line = line;
@@ -102,7 +102,7 @@
    slot_p->sa_use_iter = _dmalloc_iter_c;
  #if LOG_PNT_SEEN_COUNT
    slot_p->sa_seen_c++;
-@@ -2435,7 +2457,7 @@
+@@ -2473,7 +2495,7 @@
      dmalloc_message("*** %s: at '%s' for %ld bytes, got '%s'",
  		    trans_log,
  		    _dmalloc_chunk_desc_pnt(where_buf, sizeof(where_buf),
@@ -111,7 +111,7 @@
  		    size, display_pnt(pnt_info.pi_user_start, slot_p, disp_buf,
  				      sizeof(disp_buf)));
    }
-@@ -2507,7 +2529,7 @@
+@@ -2545,7 +2567,7 @@
      /* does the user want a specific message? */
      dmalloc_message("WARNING: tried to free(0) from '%s'",
  		    _dmalloc_chunk_desc_pnt(where_buf, sizeof(where_buf),
@@ -120,7 +120,7 @@
  #endif
      
      /*
-@@ -2563,11 +2585,12 @@
+@@ -2643,11 +2665,12 @@
    if (BIT_IS_SET(_dmalloc_flags, DEBUG_LOG_TRANS)) {
      dmalloc_message("*** free: at '%s' pnt '%s': size %u, alloced at '%s'",
  		    _dmalloc_chunk_desc_pnt(where_buf, sizeof(where_buf), file,
@@ -135,7 +135,7 @@
    }
    
  #if MEMORY_TABLE_TOP_LOG
-@@ -2578,6 +2601,7 @@
+@@ -2658,6 +2681,7 @@
    /* update the file/line -- must be after _dmalloc_table_delete */
    slot_p->sa_file = file;
    slot_p->sa_line = line;
@@ -143,7 +143,7 @@
    
    /* monitor current allocation level */
    alloc_current -= slot_p->sa_user_size;
-@@ -2777,6 +2801,7 @@
+@@ -2858,6 +2882,7 @@
       */
      slot_p->sa_file = file;
      slot_p->sa_line = line;
@@ -151,7 +151,7 @@
    }
    
    if (BIT_IS_SET(_dmalloc_flags, DEBUG_LOG_TRANS)) {
-@@ -2793,10 +2818,11 @@
+@@ -2874,10 +2899,11 @@
      dmalloc_message("*** %s: at '%s' from '%#lx' (%u bytes) file '%s' to '%#lx' (%lu bytes)",
  		    trans_log,
  		    _dmalloc_chunk_desc_pnt(where_buf, sizeof(where_buf),
@@ -165,7 +165,7 @@
  		    (unsigned long)new_user_pnt, new_size);
    }
    
-@@ -3012,7 +3038,8 @@
+@@ -3093,7 +3119,8 @@
  			slot_p->sa_user_size,
  			_dmalloc_chunk_desc_pnt(where_buf, sizeof(where_buf),
  						slot_p->sa_file,
@@ -175,15 +175,13 @@
  	
  	if ((! freed_b)
  	    && BIT_IS_SET(_dmalloc_flags, DEBUG_LOG_NONFREE_SPACE)) {
-@@ -3132,3 +3159,99 @@
-   
-   return mem_count;
+@@ -3278,3 +3305,114 @@
+   SET_POINTER(max_pnt_np, alloc_max_pnts);
+   SET_POINTER(max_one_p, alloc_one_max);
  }
 +
 +
-+#define __UNIXLIB_INTERNALS
-+#include <unixlib/local.h>
-+
++#include <swis.h>
 +
 +/**
 + * Get the names of caller functions.
@@ -193,13 +191,28 @@
 + * count       number of names to get
 + */
 +static void
-+get_callers(const char *callers[], unsigned int skip, unsigned int count)
++get_callers (const char *callers[], unsigned int skip, unsigned int count)
 +{
-+  int *fp = __backtrace_getfp(), *oldfp = NULL;
++  register unsigned int *fpreg __asm ("fp");
++  const unsigned int *fp = fpreg;
++  const unsigned int *oldfp = NULL;
 +  unsigned int frame;
++  unsigned int is32bit;
++  int features;
 +
 +  for (frame = 0; frame != count; frame++)
 +    callers[frame] = NULL;
++
++  /* Running as USR26 or USR32 ?  */
++  __asm__ volatile ("SUBS	%[is32bit], r0, r0\n\t" /* Set at least one status flag. */
++		    "TEQ	pc, pc\n\t"
++		    "MOVEQ	%[is32bit], #1\n\t"
++		    : [is32bit] "=r" (is32bit)
++		    : /* no inputs */
++		    : "cc");
++
++  if (_swix (0x6d /* OS_PlatformFeatures */, _IN(0) | _OUT(0), 0, &features))
++    features = 0;
 +
 +  /* fp[0]  => pc
 +     fp[-1] => lr
@@ -208,7 +221,7 @@
 +
 +  /* Skip unwanted frames. */
 +  for (frame = 0; fp != NULL && frame != skip; frame++)
-+  {
++    {
 +      /* Check that FP is different.  */
 +      if (fp == oldfp)
 +	return;
@@ -218,11 +231,11 @@
 +	return;
 +
 +      oldfp = fp;
-+      fp = (int *)fp[-3];
-+  }
++      fp = (unsigned int *)fp[-3];
++    }
 +
 +  for (frame = 0; fp != NULL && frame != count; frame++)
-+  {
++    {
 +      unsigned int *pc;
 +
 +      /* Check that FP is different.  */
@@ -234,10 +247,12 @@
 +	break;
 +
 +      /* Retrieve PC counter.  */
-+      if (__32bit)
++      if (is32bit)
 +	pc = (unsigned int *)(fp[0] & 0xfffffffc);
 +      else
 +	pc = (unsigned int *)(fp[0] & 0x03fffffc);
++      if (!(features & 0x8))
++	pc++;
 +
 +      if (!__valid_address(pc, pc))
 +	break;
@@ -261,7 +276,7 @@
 +
 +	  /* Function name sanity check.  */
 +	  if (name != NULL
-+	      && (!__valid_address(name, (name + 256))
++	      && (!__valid_address(name, name + 256)
 +		  || strnlen(name, 256) == 256))
 +	    name = NULL;
 +
@@ -272,6 +287,6 @@
 +	}
 +
 +      oldfp = fp;
-+      fp = (int *)fp[-3];
-+  }
++      fp = (unsigned int *)fp[-3];
++    }
 +}
