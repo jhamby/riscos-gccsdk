@@ -1,6 +1,7 @@
 AB_PACKAGES="libpcre3-dev libpcre3"
 AB_INSTALL=yes
 AB_LICENCE=Free
+AB_CONFLAGS="$AB_CONFLAGS --enable-utf8 --enable-unicode-properties"
 
 ab_package()
 {
@@ -40,6 +41,8 @@ ab_package()
   SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
   for SLIB in $SLIBS ; do
      ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
+     LNAME=`echo $SLIB | cut -d '.' -f 1-2`
+     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
      LNAME=`echo $SLIB | cut -d '.' -f 1-3`
      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
      LNAME=`echo $SLIB | cut -d '.' -f 1-4`
