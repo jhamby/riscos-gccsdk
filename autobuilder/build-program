@@ -149,6 +149,8 @@ ab_docs() {
 
   mkdir -p $A/docs
 
+  ln -s . man3
+
   for doc in $@; do
     case $doc in
       -h)
@@ -174,6 +176,8 @@ ab_docs() {
         ;;
     esac
   done
+
+  rm -f man3
 
   if ! [ -e $A/\!Help ] && ! [ -e $A/\!Help,feb ] && ! [ -e $A/\!Help,faf ] ; then
     echo "Filer_OpenDir <Obey\$Dir>.docs" > $A/\!Help,feb
@@ -547,9 +551,12 @@ export AB_CATEGORY
 export AB_DEBNAME
 
 if [ "$AB_MANPAGE" != "" ] ; then
+  ln -s . man3
+
   for AB_PAGE in $AB_MANPAGE ; do
     rman -f HTML $S/$AB_PAGE > $D/$(basename $AB_PAGE),faf
   done
+  rm -f man3
 fi
 
 ab_package
