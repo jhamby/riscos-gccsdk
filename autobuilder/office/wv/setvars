@@ -1,2 +1,4 @@
 AB_INSTALL=yes
 
+AB_MAKE="$AB_MAKE -f GNUmakefile"
+
