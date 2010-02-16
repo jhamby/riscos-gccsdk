@@ -1,5 +1,5 @@
 
-AB_URL=http://www.parallelrealities.co.uk/download/edgar/edgar-0.45-1.tar.gz
+AB_URL=http://www.parallelrealities.co.uk/download/edgar/edgar-0.46-1.tar.gz
 
 /usr/bin/gcc -O2 src/pak_creator.c -o pak -lz
 touch pak_creator.o
