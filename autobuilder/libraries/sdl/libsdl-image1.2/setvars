@@ -1,4 +1,4 @@
-AB_CONFLAGS="--enable-tif --enable-xmf --disable-png-shared --disable-tiff-shared"
+AB_CONFLAGS="--enable-tif --enable-xmf --disable-png-shared --disable-tiff-shared --disable-jpg-shared"
 
 AB_INSTALL=yes
 
