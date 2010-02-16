@@ -3,7 +3,7 @@ AB_URL=http://switch.dl.sourceforge.net/sourceforge/stratagus/stratagus-2.2.4-sr
 AB_CONFLAGS="--without-x --with-extra-includes=$GCCSDK_INSTALL_ENV/include/lua50"
 
 ab_package() {
-  ab_create_app Strategus Apps/Games
+  ab_create_app Stratagus Apps/Games
 
   cp -av $S/doc $A/
   cp -av $S/stratagus $A/stratagus$AB_EXEEXT
