@@ -12,7 +12,7 @@
  LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lz -llibintl -lm
  else
 -LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lz
-+LFLAGS = -static `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lz -lintl -lpng -lfreetype -lvorbisidec -lvorbisfile
++LFLAGS = -static `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lz -lintl -lpng -ljpeg -lfreetype -lvorbisidec -lvorbisfile
  endif
  
  PAK_OBJS   = pak_creator.o
