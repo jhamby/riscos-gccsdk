@@ -1,0 +1,11 @@
+
+ab_package() {
+  ab_create_app Flobopuyo Apps/Games
+
+  ab_makerun $S/flobopuyo
+
+  cp -av $S/COPYING $S/TODO $S/data $A
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+
