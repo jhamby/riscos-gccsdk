@@ -1,0 +1,21 @@
+
+ab_package() {
+  ab_create_app LBreakout2 Apps/Games
+  mv $S/client/lbreakout2$AB_EXEEXT $S/client/lbreakout2
+  ab_makerun $S/client/lbreakout2
+  ab_makerun $S/server/lbreakout2server$AB_EXEEXT
+
+  mkdir -p $A/data/lbreakout2
+  cp -av $S/client/gfx $S/client/gui_theme $S/client/levels $S/client/sounds $A/data/lbreakout2
+
+  mkdir $A/doc
+  cp -av $S/docs/*.jpg $S/docs/index.html $A/doc/
+  cp -av AUTHORS ChangeLog COPYING README TODO $A
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+
+export LIBS="-lvorbisidec"
+
+AB_CONFLAGS=\''--datadir=/\<LBreakout2\$$Dir\>/data'\'
+
