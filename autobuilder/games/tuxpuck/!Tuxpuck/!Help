@@ -1,0 +1,24 @@
+TuxPuck - www.efd.lth.se/~d00jkr/tuxpuck/
+=========================================
+ Written by Jacob "noork" Kroon
+ Email : d00jkr@efd.lth.se
+ IRC : Try looking for "noork" in #sdl or #tuxpuck at irc.openprojects.net
+ ICQ : 7246560
+
+ Graphics by m0ns00n
+ Email : m0ns00n@gmx.net
+ Website : http://m0ns00n.fr.fm
+
+- Usage
+
+ MOUSE	Move the pad
+ F	Toggle fullscreen
+ F1	Toggle sound on/off
+ F5/F6	Change mouse speed
+
+This version created by the GCCSDK Autobuilder for details see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+It also requires that the SharedUnixLibrary which is available from:
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip
