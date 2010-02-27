@@ -1,3 +1,7 @@
+Sat Feb 27 15:52:45 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gen-auto.pl: Fix comment.
+
 Sun Jan 31 15:57:37 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-auto.pl: Get rid of GCCSDK_SRCDIR.

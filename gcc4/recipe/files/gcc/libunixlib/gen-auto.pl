@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-# Create UnixLib Makefile.am and include/unixlib/stubs.h.
+# Create UnixLib Makefile.am, configure.ac and include/unixlib/stubs.h.
 # Copyright (c) 2005-2010 UnixLib developers
 
 use File::Basename;
