@@ -7,6 +7,7 @@ GCCSDK GCC 4.1.1 Release 3 (released xxx)
 
 Major changes:
   - Binutils 2.20
+  - Improved profiling support
 
 GCCSDK GCC 4.1.1 Release 2 (released 27 December 2009)
 ==========================
