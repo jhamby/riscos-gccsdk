@@ -1,4 +1,4 @@
-/* Machine-dependent definitions for profiling support.  ARM version.
+/* Machine-dependent definitions for profiling support.  RISC OS version.
    Copyright (C) 1996, 1997, 1998 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -17,9 +17,10 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-/* GCC for the ARM cannot compile __builtin_return_address(N) for N != 0, 
+/* GCC for the ARM cannot compile __builtin_return_address(N) for N != 0,
    so we must use an assembly stub.  */
 
+#include <kernel.h>
 #include <sys/cdefs.h>
 #ifndef NO_UNDERSCORES
 /* The asm symbols for C functions are `_function'.
@@ -43,8 +44,8 @@ static void mcount_internal (u_long frompc, u_long selfpc)
 /* if (this_fp!=0) {
 	r0 = this_fp
 	r1 = this_lr
-  	r1 = [r1-4] which is caller's lr 
-	if (r1!=0) 
+	r1 = [r1-4] which is caller's lr
+	if (r1!=0)
 		r1 = caller's lr
 	call mcount_internal(this_lr, caller's_lr)
    }
@@ -58,10 +59,154 @@ void _mcount (void)							\
 {									\
   __asm__("stmdb	sp!, {r0, r1, r2, r3, r14};"			\
 	  "movs		fp, fp;"				      	\
-	  "ldrne	r0, [fp, #-4];"					\
-	  "movne	r1, r14;"					\
-	  "blne		mcount_internal;"				\
+	  "beq		0f;"						\
+	  "teq		r0, r0;"					\
+	  "teq		pc, pc;"					\
+	  "ldr		r0, [fp, #-4];"					\
+	  "bicne	r0, r0, #0xFC000000;"				\
+	  "moveq	r1, r14;"					\
+	  "bicne	r1, r14, #0xFC000000;"				\
+	  "bl		mcount_internal;"				\
+	  "0:"								\
 	  "ldmia	sp!, {r0, r1, r2, r3, r14}");			\
 }
 
 extern struct gmonparam _gmonparam attribute_hidden;
+
+#define HAL_IRQEnable		1
+#define HAL_IRQDisable		2
+#define HAL_IRQClear		3
+#define HAL_IRQSource		4
+#define HAL_Timers		12
+#define HAL_TimerSetPeriod	16
+#define HAL_TimerPeriod		17
+
+/* Pointers to HAL functions. These allow the routines to be called
+   directly avoiding the SWI mechanism, but they must be called from
+   a privileged mode.  */
+typedef struct profiler_hal_routines
+{
+  void *hal_irq_source;
+  void *hal_irq_enable;
+  void *hal_irq_disable;
+  void *hal_irq_clear;
+  unsigned int static_base;
+} profiler_hal_routines;
+
+/* Flag indicating whether any sample overflowed when the
+   interrupt routine incremented it.  */
+#define INT_HANDLER_FLAG_OVERFLOWED 1
+
+/* Flag indicating whether the interrupt handler should record
+   any samples. Set and cleared by the WIMP filters.  */
+#define INT_HANDLER_FLAG_DISABLED_BY_FILTER 2
+
+/* Flag indicating whether the user disabled profiling using
+   moncontrol().  */
+#define INT_HANDLER_FLAG_DISABLED_BY_USER 4
+
+typedef struct handler_data_t
+{
+  /* The order of these four members is important as the interrupt
+     handler uses an LDMIA to load them.  */
+  unsigned int samples;
+  unsigned int nsamples;
+  unsigned int pc_offset;
+  unsigned int pc_scale;
+
+  unsigned int timer_number;
+  unsigned int timer_device;
+
+  unsigned int flags;
+
+  profiler_hal_routines hal_routines;
+} handler_data_t;
+
+/* Flag indicating whether the WIMP filters were installed.  */
+#define PROFILER_FLAG_FILTER_INSTALLED		1
+
+/* Flag indicating whether the interrupt handler is installed
+   (using SWI OS_ClaimProcessorVector).  */
+#define PROFILER_FLAG_HANDLER_INSTALLED		2
+
+/* Flag indicating whether this is the first time that profiling was enabled.  */
+#define PROFILER_FLAG_FIRST_TIME		4
+
+typedef struct profiler_data_t
+{
+  /* ID number and base address of dynamic area used for recording samples.  */
+  int da_number;
+  unsigned int da_base;
+
+  /* ID number of hardware timer.  */
+  unsigned int timer_number;
+
+  /* Device ID of hardware timer, used by IRQ system.  */
+  unsigned int timer_device;
+
+  /* Number of machine ticks between interrupts.  */
+  unsigned int timer_period;
+
+  /* How many interrupts per second we require. Currently 100.  */
+  unsigned int timer_frequency;
+
+  /* Address of RMA block used to store code and data of interrupt handler
+     and filter name.  */
+  void *rma_block;
+
+  /* Address in RMA where the interrupt handler code was copied.  */
+  void *handler_code;
+
+  /* Address in RMA where the interrupt handler's data was placed.
+     This should be directly after the code.  */
+  handler_data_t *handler_data;
+
+  /* Address in RMA where filter name is stored.  */
+  char *filter_name;
+
+  unsigned int flags;
+} profiler_data_t;
+
+extern struct profiler_data_t profiler attribute_hidden;
+
+struct ul_global;
+
+extern _kernel_oserror *
+__profile_enable (struct ul_global *,
+		  struct profiler_data_t *) attribute_hidden;
+
+extern void
+__profile_disable (struct ul_global *,
+		   struct profiler_data_t *) attribute_hidden;
+
+int
+__profile_frequency (void) attribute_hidden;
+
+extern void *
+__hal_get_routine_address (int routine_num,
+			   void **sb) attribute_hidden;
+
+/* Given a hardware timer ID number, return IRQ device number.  */
+extern int
+__hal_timer_device (int timer) attribute_hidden;
+
+/* Return maximum number of ticks timer is capable of producing per second.  */
+extern unsigned int
+__hal_timer_granularity (int timer) attribute_hidden;
+
+/* Return the number of hardware timers available.  */
+extern int
+__hal_timers (void) attribute_hidden;
+
+/* Machine specific function to initialise profiling timer and memory.  */
+extern char *
+gmon_machine_init (int da_size) attribute_hidden;
+
+/* Return non-zero if a sample overflowed during profiling.  */
+extern unsigned int
+gmon_machine_sample_overflowed (void) attribute_hidden;
+
+/* Low level clean up; removes interrupt handler, dynamic area and WIMP
+   filters.  */
+extern void
+gmon_machine_cleanup (void) attribute_hidden;

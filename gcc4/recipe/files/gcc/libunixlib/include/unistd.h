@@ -510,15 +510,13 @@ extern int revoke (__const char *__file) __THROW;
 #endif
 
 
-#if 0
 /* Enable statistical profiling, writing samples of the PC into at most
    SIZE bytes of SAMPLE_BUFFER; every processor clock tick while profiling
    is enabled, the system examines the user PC and increments
    SAMPLE_BUFFER[((PC - OFFSET) / 2) * SCALE / 65536].  If SCALE is zero,
    disable profiling.  Returns zero on success, -1 on error.  */
-extern int profil (unsigned short int *__sample_buffer, size_t __size,
-		   size_t __offset, unsigned int __scale) __THROW;
-#endif
+extern int __profil (unsigned short int *__sample_buffer, size_t __size,
+		     size_t __offset, unsigned int __scale) __THROW;
 
 
 #if 0

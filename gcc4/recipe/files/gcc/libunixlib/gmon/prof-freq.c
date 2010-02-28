@@ -1,4 +1,4 @@
-/* Return frequency of ticks reported by profil.  Generic version. */
+/* Return frequency of ticks reported by profil.  RISC OS version. */
 /*-
  * Copyright (c) 1983, 1992, 1993
  *	The Regents of the University of California.  All rights reserved.
@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/cdefs.h>
+#include <internal/machine-gmon.h>
 
 int
 __profile_frequency (void)
@@ -40,6 +41,6 @@ __profile_frequency (void)
    * Discover the tick frequency of the machine, if something goes wrong,
    * we return 0, an impossible hertz.
    */
-  return 0;
+  return profiler.timer_frequency;
 }
 libc_hidden_def (__profile_frequency)

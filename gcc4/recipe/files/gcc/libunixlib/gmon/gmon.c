@@ -42,10 +42,7 @@
 #include <unistd.h>
 #include <sys/cdefs.h>
 
-/*#define DEBUG 1*/
-#ifdef DEBUG
-#  include <sys/debug.h>
-#endif
+#include <internal/machine-gmon.h>
 
 /*  Head of basic-block list or NULL. */
 struct __bb *__bb_head attribute_hidden;
@@ -88,14 +85,21 @@ __moncontrol (mode)
   if (mode)
     {
       /* start */
-/*      __profil((void *) p->kcount, p->kcountsize, p->lowpc, s_scale);*/
-      p->state = GMON_PROF_ON;
+      if (__profil((void *) p->kcount, p->kcountsize, p->lowpc, s_scale) < 0)
+	  p->state = GMON_PROF_ERROR;
+      else
+	{
+	  p->state = GMON_PROF_ON;
+	}
     }
   else
     {
       /* stop */
-/*      __profil(NULL, 0, 0, 0);*/
-      p->state = GMON_PROF_OFF;
+      __profil(NULL, 0, 0, 0);
+      if (gmon_machine_sample_overflowed ())
+	p->state = GMON_PROF_ERROR;
+      else
+        p->state = GMON_PROF_OFF;
     }
 }
 weak_alias (__moncontrol, moncontrol)
@@ -135,16 +139,15 @@ __monstartup (lowpc, highpc)
     p->tolimit = MAXARCS;
   p->tossize = p->tolimit * sizeof(struct tostruct);
 
-  cp = calloc (p->kcountsize + p->fromssize + p->tossize, 1);
-  if (! cp)
+  if ((cp = gmon_machine_init (p->kcountsize
+			       + p->fromssize
+			       + p->tossize)) == NULL)
     {
-#ifdef DEBUG
-      debug_printf ("monstartup: out of memory\n");
-#endif
       p->tos = NULL;
       p->state = GMON_PROF_ERROR;
       return;
     }
+
   p->tos = (struct tostruct *)cp;
   cp += p->tossize;
   p->kcount = (HISTCOUNTER *)cp;
@@ -378,7 +381,8 @@ __write_profiling (void)
 {
   int save = _gmonparam.state;
   _gmonparam.state = GMON_PROF_OFF;
-  if (save == GMON_PROF_ON)
+  if (save == GMON_PROF_ON
+      || gmon_machine_sample_overflowed ())
     write_gmon ();
   _gmonparam.state = save;
 }
@@ -388,10 +392,7 @@ _mcleanup (void)
 {
   __moncontrol (0);
 
-  if (_gmonparam.state != GMON_PROF_ERROR)
+  if (_gmonparam.state != GMON_PROF_ERROR
+      || gmon_machine_sample_overflowed ())
     write_gmon ();
-
-  /* free the memory. */
-  if (_gmonparam.tos != NULL)
-    free (_gmonparam.tos);
 }

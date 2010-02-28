@@ -119,10 +119,10 @@ extern struct __bb *__bb_head;
  */
 #define	ARCINDEX	u_long
 
-/* 
+/*
  * Maximum number of arcs we want to allow.
- * Used to be max representable value of ARCINDEX minus 2, but now 
- * that ARCINDEX is a long, that's too large; we don't really want 
+ * Used to be max representable value of ARCINDEX minus 2, but now
+ * that ARCINDEX is a long, that's too large; we don't really want
  * to allow a 48 gigabyte table.
  * The old value of 1<<16 wasn't high enough in practice for large C++
  * programs; will 1<<20 be adequate for long?  FIXME
@@ -192,6 +192,10 @@ __BEGIN_DECLS
 /* Set up data structures and start profiling.  */
 extern void __monstartup (u_long __lowpc, u_long __highpc) __THROW;
 extern void monstartup (u_long __lowpc, u_long __highpc) __THROW;
+
+/* MODE is 0 to stop profiling, non 0 to start.  */
+extern void __moncontrol (int mode);
+extern void moncontrol (int mode);
 
 /* Clean up profiling and write out gmon.out.  */
 extern void _mcleanup (void) __THROW;

@@ -166,11 +166,13 @@
 .set	XOS_AddCallBack, 0x000054 + X_Bit
 .set	XOS_SerialOp, 0x000057 + X_Bit
 .set	XOS_DynamicArea, 0x000066 + X_Bit
+.set	XOS_ClaimProcessorVector, 0x000069 + X_Bit
 .set	XOS_PlatformFeatures, 0x00006D + X_Bit
 .set	XOS_SynchroniseCodeAreas, 0x00006E + X_Bit
 .set	XOS_CallASWI, 0x00006F + X_Bit
 .set	XOS_AMBControl, 0x000070 + X_Bit
 .set	XOS_CallASWIR12, 0x000071 + X_Bit
+.set	XOS_Hardware, 0x00007A + X_Bit
 .set	XOS_ConvertHex8, 0x0000D4 + X_Bit
 .set	XOS_ConvertInteger1, 0x0000D9 + X_Bit
 .set	XOS_ConvertInteger2, 0x0000DA + X_Bit

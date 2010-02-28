@@ -1,3 +1,32 @@
+Sun Feb 28 16:47:11 2010  Lee Noar  <leenoar@sky.com>
+
+	Improve profiling support:
+
+	* unix/unix.c(_exit): Call gmon_machine_cleanup() to perform
+	any low-level cleanup, rather than have it called by atexit
+	handlers.
+	* include/sys/gmon.h: Declare moncontrol function.
+	* include/unistd.h: Reactivate declaration of profil function.
+	* gmon/_profile.s: New file. Implement low level routines such
+	as IRQ handler, wimp filters and handle their installation.
+	* gmon/machine-gmon.c: New file. Handle memory management, initialise
+	RISC OS specific structures, set up hardware timer, find HAL routines.
+	* gmon/profil.c: New file. Implement the profil function.
+	* gmon/gmon.c(__moncontrol): Call __profil() as necessary to start or
+	stop profiling.
+	(__monstartup): Call machine specific function to initialise
+	profiling system.
+	(__write_profiling,_mcleanup): Write the gmon.out file even if a
+	sample overflowed, the results may still be of use.
+	* gmon/prof-freq.c(__profile_frequency): Return the frequency of the
+	timer.
+	* incl-local/internal/machine-gmon.h(_mcount): Fix bug whereby, on a
+	26 bit OS, status bits were not cleared from addresses.
+	Add RISC OS specific structure and function declarations required
+	by the implementation.
+	* incl-local/internal/asm_dec.s: Add XOS_Hardware and
+	XOS_ClaimProcessorVector.
+
 Sat Feb 27 15:52:45 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-auto.pl: Fix comment.
@@ -82,7 +111,7 @@ Thu Jan  7 21:54:12 2010  Lee Noar  <leenoar@sky.com>
 
 	* Generally:
 	Ideally we want to remove the need for pthread_call_every to
-	access the task address space in order to validate it and 
+	access the task address space in order to validate it and
 	decide whether to continue setting the callback or not. Once
 	pthread_call_every knows that it has the right task it is free
 	to access its variables.
@@ -251,7 +280,7 @@ Sun Aug  2 07:44:06 PDT 2009  Peter Naulls  <peter@chocky.org>
 	* sys/errlist.c: Add entry for EOVERFLOW.
 	* libm-dbl64/s_finite.c, libm-dbl64/s_isinf.c, libm-dbl64/s_isnan.c,
           libm-flt32/s_isinff.c, libm-flt32/s_finitef.c libm-flt32/s_isnanf.c:
-	Remove hidden_def, since it seems to serve no purpose, and 
+	Remove hidden_def, since it seems to serve no purpose, and
         causes linking errors.
 
 Fri Jul 31 14:20:29 PDT 2009  Peter Naulls  <peter@chocky.org>
@@ -630,7 +659,7 @@ Wed Aug  6 20:34:09 2008  Lee Noar  <leenoar@sky.com>
 Sun Jul  6 17:12:39 PDT 2008  Peter Naulls  <peter@chocky.org>
 
 	* common/riscosify.c: Add defines for a cut-down version of
-	__riscosify for the benefit libdl, which only needs to handle a single 
+	__riscosify for the benefit libdl, which only needs to handle a single
 	case.  This doesn't change the behaviour of the code for UnixLib or
 	SCL.
 
@@ -684,7 +713,7 @@ Thu May  1 20:08:23 PDT 2008  Peter Naulls  <peter@chocky.org>
 
 Wed Apr 23 22:23:03 PDT 2008  Peter Naulls  <peter@chocky.org>
 
-	* unix/custom.c, include/unixlib/local.h: New function to 
+	* unix/custom.c, include/unixlib/local.h: New function to
 	  allow opaque setting of custom select() function.
 
 Sun Apr  6 01:47:47 CEST 2008  John Tytgat  <John.Tytgat@aaug.net>
@@ -852,7 +881,7 @@ Tue Jan 29 22:46:43 PST 2008  Peter Naulls  <peter@chocky.org>
 	* unix/statfs.c, include/sys/vfs.h, include/statfs.h: Dummy
 	statfs implementation.
 
-Sun Jan 27 19:29:25 PST 2008  Peter Naulls  <peter@chocky.org>	
+Sun Jan 27 19:29:25 PST 2008  Peter Naulls  <peter@chocky.org>
 
 	* stdio/fpurge.c, include/stdio.h: Added hopefully correct fpurge
 	implementation.
@@ -1886,7 +1915,7 @@ Mon Dec 04 01:59:39 2006  John-Mark Bell  <jmb@netsurf-browser.org>
 
 Tue Nov 21 21:45:22 2006  Alex Waugh  <alex@alexwaugh.com>
 
-	* source/unix/sync.c (fsync): Don't error on files open with 
+	* source/unix/sync.c (fsync): Don't error on files open with
 	  O_RDWR
 
 Sat Oct 21 22:38:13 CET 2006  John Tytgat  <John.Tytgat@aaug.net>
@@ -2133,7 +2162,7 @@ Sun Jan 29 00:29:13 2006  John Tytgat  <John.Tytgat@aaug.net>
 Wed Dec 14 21:07:03 2005  Peter Naulls  <peter@chocky.org>
 
 	* !Help: Update version to 4.2
-	* source/sound/dsp.c: Buffer calculation improvements 
+	* source/sound/dsp.c: Buffer calculation improvements
 	  from Alan Buckley.
 	* source/clib/local.h, source/common/unixify.c:
           New __unixify_ext function.
@@ -2368,7 +2397,7 @@ Tue May  3 15:56:47 2005  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* clib/sys/queue.h: Update to more recent version including more
 	  queue types.
-	
+
 Mon May  2 14:51:58 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* module/sul.s (sul_fork): For consistency, shrink parent pid to
@@ -2413,7 +2442,7 @@ Sun May  1 11:22:00 2005  Nick Burrett  <nick@sqrt.co.uk>
 	* stdlib/strtoul.c: Likewise.
 	* stdlib/atoi.c: New file, split from strtol.c.
 	* stdlib/atol.c: New file, split from strtol.c.
-	
+
 Sat Apr 30 16:15:13 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unix/features.c (__get_program_name): For ELF, dereference weak
@@ -2434,7 +2463,7 @@ Sat Apr 30 14:55:04 2005  Nick Burrett  <nick@sqrt.co.uk>
 	* common/_riscosify.s: Likewise.
 	* signal/_signal.s: Likewise.
 	* sys/_syslib.s: Likewise.
-	
+
 Sat Apr 30 13:32:23 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unixlib/asm_dec.s: Move MACRO definitions to aid ELF conversion ...
@@ -2485,7 +2514,7 @@ Fri Apr 29 13:43:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 	compile-time warnings.
 	* resolv/resolv.h (struct res_sym): Likewise for 'name' and
 	'humanname'.
-	
+
 	Norcroft fixes from Stefan Bellon.
 	* pthread/atfork.c: Include malloc.h.
 	* pthread/key.c: Include malloc.h.
@@ -2500,7 +2529,7 @@ Fri Apr 29 11:02:07 2005  Nick Burrett  <nick@sqrt.co.uk>
 	split from MEM_UNIXLIB_BREAK.
 	* unixlib/unix.h (struct ul_memory): Add 'dalomem'
 	Remove the ambiguity of '__unixlib_break' by replacing it with
-	'rwbreak' and 'dabreak'. 
+	'rwbreak' and 'dabreak'.
 	* debug/debug.c (__debug): Add code to show the dynamic area
 	memory limits.
 	* resource/initialise.c (__resource_initialise): Use new variables.
@@ -2642,7 +2671,7 @@ Wed Apr 27 12:14:41 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* sys/_syslib.s (__main): Call __ul_malloc_init.
 	(__ul_global): Add entries for '__mutex' and 'malloc_state'.
-	
+
 	* malloc.h (malloc_unlocked): Add prototype.
 	(free_unlocked, realloc_unlocked): Add prototypes.
 	(malloc_trim_unlocked): Add prototype.
@@ -2742,7 +2771,7 @@ Mon Apr 25 13:32:29 2005  Stefan Bellon  <sbellon@sbellon.de>
 	* string/strchrnul.c: Likewise.
 	* string/strndup.c: Likewise.
 	* string/strnlen.c: Likewise.
-	
+
 Sun Apr 24 22:11:02 2005  Alex Waugh  <alex@alexwaugh.com>
 
 	* unix/unix.c (convert_command_line): Prevent >> type redirections
@@ -2935,7 +2964,7 @@ Fri Apr 22 15:33:14 2005  Nick Burrett  <nick@sqrt.co.uk>
 	(__pthread_init): Delete function and move useful functionality
 	into __pthread_prog_init.
 	* pthread.h (__pthread_init): Delete prototype.
-	
+
 	Compilation fixes.
 	* common/fdname.c (__fd_to_name): Add explicit cast for malloc.
 	* common/riscosify.c (__sfixinit): Likewise.
@@ -3015,7 +3044,7 @@ Wed Apr 20 18:10:04 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* psignal.c: Move into signal subdirectory.
 
-	* termcap.c: Move into termios subdirectory. 
+	* termcap.c: Move into termios subdirectory.
 
 Wed Apr 20 17:54:40 2005  Nick Burrett  <nick@sqrt.co.uk>
 
@@ -3066,11 +3095,11 @@ Wed Apr 20 14:15:44 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unixlib/buildoptions.h: Add comment to remind us why defining
 	__UNIXLIB_ERRNO_THREADED is a bad idea.
-	
+
 Tue Apr 19 19:52:29 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* iconv.h (EILSEQ): Kill definition.
-	
+
 Tue Apr 19 19:28:59 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	Make threaded 'errno' a compile time option.
@@ -3137,14 +3166,14 @@ Mon Apr 18 18:03:56 2005  Nick Burrett  <nick@sqrt.co.uk>
 	* errno.c: Delete file.
 	* sys/_syslib.s (errno): Define when not compiling with thread
 	support.
-	
+
 	* pthread/pthinit.c (__pthread_prog_init): Die if __pthread_new_node
 	fails.
 
 	* gdtoa/gdtoaimp.h (ACQUIRE_DTOA_LOCK): Check __pthread_system_running
 	rather than __pthread_running_thread.
 	(FREE_DTOA_LOCK): Likewise.
-	
+
 	* common/fdname.c (__fd_to_name): Don't set errno.
 	* common/objattr.c (__object_get_attrs): Likewise.
 	(__object_set_attrs): Likewise.
@@ -3190,7 +3219,7 @@ Mon Apr 18 18:03:56 2005  Nick Burrett  <nick@sqrt.co.uk>
 	* scl/_kosargs.s: Likewise.
 	* scl/_kgetenv.s: Likewise.
 	* scl/_kernel.s: Likewise.
-	
+
 	* unix/unix.c (__unixinit): Drop call to '__seterr'.
 	* scl/_kosbput.s: Likewise.
 	* scl/_kosbyte.s: Likewise.
@@ -3206,7 +3235,7 @@ Mon Apr 18 18:03:56 2005  Nick Burrett  <nick@sqrt.co.uk>
 	* sys/_os.s (__os_vdu): Define _kernel_oswrch to the same function.
 	Set return value to zero on success.
 	(__os_word): Simarly for _kernel_osword.
-	
+
 Mon Apr 18 14:44:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* unix/getpagesiz.s: Delete file.
@@ -3240,7 +3269,7 @@ Mon Apr 18 12:26:48 2005  Peter Naulls  <peter@chocky.org>
 	* source/unix/rmdir.c, clib/unixlib/unix.h: Improve language.
 	* clib/unixlib/dev.h, source/unix/custom.c: Add a function to
 	  hide some internal structures from programs trying to override
-	  file descriptor handling. 
+	  file descriptor handling.
 
 Thu Apr 14 23:59:26 2005  John-Mark Bell  <jmb@netsurf-browser.org>
 
@@ -3422,7 +3451,7 @@ Thu Apr 14 13:12:07 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* pthinit.c: Renamed from init.c for ELF compatibility.
 	* pthsignal.c: Renamed from signal.c for ELF compatibility.
-	
+
 Wed Apr 13 20:17:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 
 	* sys/cdefs.h (__NTH): Declare for non-GCC compilers.
@@ -3449,7 +3478,7 @@ Wed Apr 13 20:17:24 2005  Nick Burrett  <nick@sqrt.co.uk>
 	* ulimit.h: New file.
 	* unistd.h (nice): Add prototype.
 	* resource/ulimit.c: Include ulimit.h.
-	
+
 	* alloca.h (alloca): Remove __THROW.  Add GCC variant.
 	* assert.h (assert): Add noreturn attribute.
 	(__ASSERT_CAST): Define with better C++ support.
@@ -4037,10 +4066,10 @@ Mon Jan  3 16:28:34 2005  Alex Waugh  <alex@alexwaugh.com>
 
 Mon Dec 27 19:38:27 2004  John-Mark Bell  <jmb@netsurf-browser.org>
 
-	* source/sys/_swi.s: Simplify _BLOCK and _RETURN handling. 
+	* source/sys/_swi.s: Simplify _BLOCK and _RETURN handling.
 	  Modify return of PC to work on <ARMv3.
 	* source/test/test1-swi.c: Improve test case.
-	  
+
 Sun Dec 26 18:09:45 2004  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* source/sys/_swi.s: Clean implementation of this file.
@@ -4071,7 +4100,7 @@ Thu Dec 23 20:51:31 2004  Peter Naulls  <peter@chocky.org>
 	  to prevent blocking, and better support for some ioctls.
 	* source/signal/signal.c, source/sys/_syslib.s: Fix typos.
 	* source/unix/unix.c: Ensure DigitalRenderer deregister on
-	  an abort.  
+	  an abort.
 
 Mon Dec 20 16:18:55 2004  Peter Naulls  <peter@chocky.org>
 
@@ -4100,7 +4129,7 @@ Thu Dec 16 11:32:48 2004  Peter Naulls  <peter@chocky.org>
 	  setting CBREAK/RAW.
 	* source/unix/tty.c: Do ICRNL only when INLCR is not set.
 	  Don't clear all the flags when CBREAK is set (corrects
-	  returning CR instead of LF in non-canonical mode).   
+	  returning CR instead of LF in non-canonical mode).
 
 Wed Dec 15 17:54:07 2004  Peter Naulls  <peter@chocky.org>
 
@@ -4414,7 +4443,7 @@ Fri Sep 17 19:20:35 2004  Peter Naulls  <peter@chocky.org>
 	* source/clib/netdb.h: Hide getaddrinfo declaration.
 	* source/clib/stat.h, source/unix/stat.c: Make stat/stat64
 	  more like glibc to avoid problems with forward declarations.
-	* source/signal/signal.c: Remove warning.  
+	* source/signal/signal.c: Remove warning.
 
 Fri Sep 17 19:20:35 2004  John-Mark Bell  <jmb@netsurf-browser.org>
 
@@ -4422,7 +4451,7 @@ Fri Sep 17 19:20:35 2004  John-Mark Bell  <jmb@netsurf-browser.org>
 	  source/clib/pthread.h: Semaphore support.
 	* source/clib/netdb.h, source/netlib/getnameinfo.c: getnameinfo
 	  support.
-	* source/clib/resource.h: define values that are implemented.  
+	* source/clib/resource.h: define values that are implemented.
 
 Sun Sep 12 09:20:31 2004  Peter Naulls  <peter@chocky.org>
 
@@ -4443,7 +4472,7 @@ Thu Sep  9 13:54:55 2004  Peter Naulls  <peter@chocky.org>
 	* source/termios/tcsetattr.c: Fix setting of VMIN/VTIME
 	* source/unix/ioctl.c: NULL arguments to ioctl are ok.
 	* source/unix/tty.c: Implement usage of VTIME, correct setting/usage
-	  of VMIN. 
+	  of VMIN.
 
 Wed Sep  8 18:04:02 2004  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -4515,8 +4544,8 @@ Tue Sep  7 16:03:14 2004  John Tytgat  <John.Tytgat@aaug.net>
 	* source/unix/unix.c: Removed __unixlib_cli declaration; Be more
 	  paranoid on the validity of __u as it might be an UnixLib$env value
 	  picked up by another TaskWindow UnixLib based process doing fork()s.
-	* source/unix/tty.c (__ttyioctl): Removed excessive break usage. 
-	
+	* source/unix/tty.c (__ttyioctl): Removed excessive break usage.
+
 Mon Sep  6 09:35:03 2004  Peter Naulls  <peter@chocky.org>
 
 	* source/clib/pthread.h: Fix spelling mistakes. Add comment about
@@ -4608,7 +4637,7 @@ Sat Jun 12 09:36:14 2004  Peter Naulls  <peter@chocky.org>
 	  source/sys/_vfork.s, source/sys/brk.c, source/sys/debug.c,
 	  source/sys/exec.c, source/sys/stackalloc.c, source/unix/unix.c:
 	  Rename __base, __lomem, __himem, and other unixlib internal
-	  values delcared in unix.h as per discussion GCCSDK mailing list. 
+	  values delcared in unix.h as per discussion GCCSDK mailing list.
 
 Sun Jun  6 13:22:36 2004  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -4771,7 +4800,7 @@ Wed Mar 17 20:00:14 2004  John Tytgat  <John.Tytgat@aaug.net>
 	  it what the documentation is saying).  Also don't set DDEUtils'
 	  Prefix at startup with "@" because this triggers bugs in its path
 	  handling on some versions of DDEUtils module.
-	
+
 Tue Mar 16 19:03:59 2004  Nick Burrett  <nick@dsvr.net>
 
 	* unixlib/unix.h (__exec_cli): Add prototype.
@@ -5103,7 +5132,7 @@ Tue Aug 19 00:34:27 2003  John Tytgat  <John.Tytgat@aaug.net>
 	* unix/features.c: Made __sfix_default non writable; get_program_name()
 	  no longer corrupts fname_buf for very long program names.
 	* common/riscosifyc.c: Removed.  It shouldn't be necessary.
-	
+
 Fri Aug 15 16:13:01 2003  John Tytgat  <John.Tytgat@aaug.net>
 
 	* clib/unixlib/features.h: _feature_imagefs_is_file is now a WEAK
@@ -6176,7 +6205,7 @@ Tue Nov 26 21:46:52 2002  Nick Burrett  <nick@dsvr.net>
 	C99 dialect functions.
 	* stdlib/strtof.c: New file.
 	* stdlib/strtold.c: New file.
-	
+
 	32-bit float type C99 dialect math functions.
 	* math/fmodf.c: New file.
 	* math/frexpf.c: New file.
@@ -6199,7 +6228,7 @@ Tue Nov 26 21:46:52 2002  Nick Burrett  <nick@dsvr.net>
 	* math/_sinhf.s: New file.
 	* math/_tanf.s: New file.
 	* math/_tanhf.s: New file.
-	
+
 	* math/fmod.c: Suport long double float type C99 math functions.
 	* math/frexp.c: Likewise.
 	* math/modf.c: Likewise.
@@ -6230,7 +6259,7 @@ Tue Nov 26 21:46:52 2002  Nick Burrett  <nick@dsvr.net>
 	* unix/unix.c (_Exit): New function.
 	(exit): Split into _Exit.  Call atexit functions here, then
 	call _Exit to perform the final termination code.
-	
+
 	* stdlib.h (_Exit): New prototype.
 	(atoll): New prototype.
 	(strtof): New prototype.
@@ -6341,7 +6370,7 @@ Mon Aug 19 12:50:40 2002  John Tytgat  <John.Tytgat@aaug.net>
 	* objs/Makefile,fe1: module 'string' dependency was wrong; Made
 	Norcroft C compiler selection the default.
 	* unistd.h: Added missing #endif to fix 18-Aug-2002 19:32:36 change.
-	
+
 Sun Aug 18 22:19:01 2002  John Tytgat  <John.Tytgat@aaug.net>
 
 	crypt implementation -- derived from glibc 2.2.5.
@@ -6362,7 +6391,7 @@ Sun Aug 18 22:19:01 2002  John Tytgat  <John.Tytgat@aaug.net>
 	* crypt/md5.c: New file.
 	* crypt/md5-crypt.c: New file.
 	* crypt/md5.h: New file.
-	
+
 Sun Aug 18 20:54:03 2002  John Tytgat  <John.Tytgat@aaug.net>
 			  Nick Burrett  <nick@dsvr.net>
 
@@ -6376,7 +6405,7 @@ Sun Aug 18 20:54:03 2002  John Tytgat  <John.Tytgat@aaug.net>
 	* unix/dirent.c (opendir): Likewise.
 	(readdir_r): Likewise.
 	(rewinddir): Likewise.
-	
+
 Sun Aug 18 19:32:36 2002  Nick Burrett  <nick@dsvr.net>
 
 	* string/swab.c: New file.
@@ -6388,7 +6417,7 @@ Sun Aug 18 16:15:25 2002  Nick Burrett  <nick@dsvr.net>
 	* All header files: Include <unixlib/features.h>.  Use __BEGIN_DECLS
 	and __END_DECLS for the extern "C" decls.
 	* unix/tty.c (_BSD_SOURCE): Declare.
-	
+
 Sat Aug 17 13:58:36 2002  Nick Burrett  <nick@dsvr.net>
 
 	* unix/fstat.c (fstat): Fix bad cast.
@@ -6400,7 +6429,7 @@ Sat Aug 17 12:02:23 2002  Nick Burrett  <nick@dsvr.net>
 Sat Aug 17 11:59:58 2002  Nick Burrett  <nick@dsvr.net>
 
 	* netdb.h (h_errno): Declare.
-	
+
 Sat Aug 17 11:58:29 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	* unix/fstat.c (fstat): Return true extent, rather than file
@@ -6426,7 +6455,7 @@ Mon Aug  5 10:15:40 2002  Peter Naulls  <peter@chocky.org>
 	to jump over recent NAME entry.
 
 	* netlib/connect.c (connect): Update debugging code.
-	
+
 Mon Aug  5 10:09:40 2002  Nick Burrett  <nick@dsvr.net>
 
 	* unix/unix.c (verify_redirection): A space is not permitted between
@@ -6439,12 +6468,12 @@ Mon Aug  5 10:07:11 2002  Peter Naulls  <peter@chocky.org>
 
 	* unix/fcntl.c (fcntl): Third argument to _sioctl is an address to
 	an argument.
-	
+
 Wed Jul 31 15:16:14 2002  Nick Burrett  <nick@dsvr.net>
 
 	* unix/unix.c (check_io_redir): Cope with [fd]>>.
 	(get_io_redir): Likewise.
-	
+
 Fri Jul 26 13:32:38 2002  Nick Burrett  <nick@dsvr.net>
 
 	* stdint.h: Add missing #endif
@@ -6454,7 +6483,7 @@ Fri Jul 26 11:00:15 2002  Nick Burrett  <nick@dsvr.net>
 
 	* stdio/fpos.c (fseek): Set errno to EINVAL if the offset to
 	SEEK_SET is negative, but don't set the stream error.
-	
+
 Fri Jul 26 10:47:36 2002  Nick Burrett  <nick@dsvr.net>
 
 	* sys/_vfork.s (vfork): No need to save sp around __vfork call.
@@ -6466,7 +6495,7 @@ Fri Jul 26 10:41:47 2002  Peter Naulls  <peter@chocky.org>
 	* common/stat.c (__stat): If ImageFS is to be treated as a
 	directory, then fudge directory size and set hard links to 2.
 	Otherwise don't fudge directory size and set hard links to 1.
-	
+
 Fri Jul 26 10:35:30 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	* unix/fcntl.c (fcntl): When F_SETFL is called on a socket,
@@ -6529,14 +6558,14 @@ Sat Jun 15 13:56:57 2002  Nick Burrett  <nick@dsvr.net>
 	* stat/mkfifo.c: New file.
 	* sys/stat.h (mknod). Add prototype.
 	(mkfifo): Add prototype.
-	
+
 	* unistd/chown.c: Move here from directory unix to reduce number of
 	files in the directory.
 	* unistd/fchown.c: Likewise.
 	* unistd/link.c: Likewise.
 	* unistd/readlink.c: New file. Function split from link.c
 	* unistd/symlink.c: Likewise.
-	
+
 Wed Jun 12 15:34:06 2002  Nick Burrett  <nick@dsvr.net>
 
 	* stdlib/rand.c (srand): Call rand, not lrand.
@@ -6603,7 +6632,7 @@ Mon Jun 10 17:31:46 2002  Nick Burrett  <nick@dsvr.net>
 Mon Jun 10 13:08:23 2002  Stefan Bellon  <sbellon@sbellon.de>
 
 	* unix/dev.c (__fsopen): Support PipeFS.
-	
+
 Mon Jun 10 13:01:48 2002  Nick Burrett  <nick@dsvr.net>
 			  Stefan Bellon  <sbellon@sbellon.de>
 
@@ -6640,7 +6669,7 @@ Mon Jun 10 10:56:10 2002  Maarten Bezemer  <veger2002@hotmail.com>
 
 	* stdio/tmpfile.c (tempnam): A logic error prevents `dir' being
 	used as a suitable temporary directory.
-	
+
 Thu Apr 18 08:39:08 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	* stdio/printf.c (vsnprintf): Honour the length parameter even
@@ -6661,7 +6690,7 @@ Wed Apr 03 09:41:27 2002  Nick Burrett  <nick@dsvr.net>
 	* netlib/host.c (gethostbyname2): New function.  Move the
 	main work of gethostbyname into here.
 	(gethostbyname): This is implmented in terms of gethostbyname2.
-	
+
 Wed Apr 03 08:45:18 2002  Peter Naulls  <peter@chocky.org>
 
 	* memcmp.c (memcmp): Fix compiler warnings.
@@ -6675,7 +6704,7 @@ Wed Apr 03 08:45:18 2002  Peter Naulls  <peter@chocky.org>
 	* sys/errlist.c (sys_errlist): Constify.
 	* uname.c (__uname): Return pointer to empty buffer in read/write
 	space.
-	
+
 Tue Apr 02 20:01:07 2002  Nick Burrett  <nick@dsvr.net>
 
 	* unix/unix.c (verify_redirection): Add logic to cope with
@@ -6723,7 +6752,7 @@ Mon Feb 11 13:15:03 2002  Alex Waugh  <alex@alexwaugh.com>
 	* strtoll.c (strtoll): Likewise.
 	* strtoul.c (strtoul): Likewise.
 	* strtoull.c (strtoull): Likewise.
-	
+
 Mon Feb 11 13:10:28 2002  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/printf.c (vfprintfsub): Incorrect argument for `wcrtomb'.
@@ -6751,10 +6780,10 @@ Thu Feb  7 10:17:01 2002  Peter Naulls  <peter@chocky.org>
 
 	* math.h (exp2, exp10, round, lround, llround, drem): Prototype.
 	* machine/ieee754.h (__ieee754_exp): Prototype.
-	
+
 	* fcntl.h (O_NOCTTY): Define.
 	* assert.h (assert): Remove __noreturn__.
-	
+
 Tue Jan 31 16:18:22 2002  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* getopt.h: Don't include the GNU specific getopt long stuff.
@@ -6804,12 +6833,12 @@ Sat Jan 12 16:15:07 2002  Alex Waugh  <alex@alexwaugh.com>
 
 	* unix/dev.c (__fsopen): When opening a file O_RDWR, return
 	ENOENT when file does not exist.
-	
+
 Sat Jan 12 16:09:05 2002  Peter Naulls  <peter@chocky.org>
 
 	* unix/fcntl.c (fcntl): Restrict flags that can be altered
 	by F_SETFL.
-	
+
 Sat Jan 12 16:06:35 2002  Peter Naulls  <peter@chocky.org>
 
 	* termios/tcsetattr.c (tcsetattr): Mask out hardware state.
@@ -6891,7 +6920,7 @@ Fri Sep 14 15:00:02 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	* poll.h: New header file.
 	* pthread.h: New header file.
 	* syslog.h: New header file.
-	
+
 	* sys/exec.c (execve): Delete code in __TTY_STATIC_BUFS.
 	(__exret): Likewise.
 	* unix/tty.c (__ttyopen): Likewise.
@@ -6907,16 +6936,16 @@ Fri Sep 14 15:00:02 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	* unix/syslog.c (openlog): Likewise.
 	* unix/pselect.c: Include time.h.
 	* unix/select.c (select): Change __FD_SETSIZE to FD_SETSIZE.
-	
+
 	* unixlib/features.h: Added macros as a placeholder for part two
 	of the header file cleanup.
-	
+
 	* strings.h (index, rindex): Moved here from string.h.
 	(bcmp, bcopy, bzero, strcasecmp, strncasecmp): Likewise.
 	* inttypes.h (imaxdiv_t): Define.
-	
+
 	* ctype.h (_toupper, _tolower): Declare.
-	* div.c (lldiv): New function.	
+	* div.c (lldiv): New function.
 	* ctypeproc.c (_tolower): New function.
 	(_toupper): New function.
 
@@ -6933,11 +6962,11 @@ Tue Sep 11 17:53:37 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	* sys/ioctl.h (FIOSLEEPTW): Define.
 	* termios/tcsetattr.c (tcsetattr): Use NOFLSH, ECHO, TOSTOP.
 	* termios/tcgetattr.c (tcgetattr): Likewise.
-	
+
 Tue Sep 11 16:44:59 2001  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* net/if.h: New file.  Renamed from sys/if.h.
-	
+
 Tue Sep 11 16:07:13 2001  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* termios.h: Re-synced with FreeBSD 4.3.
@@ -6948,13 +6977,13 @@ Tue Sep 11 16:07:13 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	V* macros rather than the C* macros.
 	t_flushc gets its value from VDISCARD, not VFLUSH.
 	t_brkc gets its value from VEOL, not CBRK.
-	
+
 Tue Sep 11 15:19:41 2001  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* sys/child.c: Delete file.
 	* objs/Makefile (SYS): Remove sys.o.child.
 	(sys.o.child): Delete dependency.
-	
+
 Tue Sep 11 15:15:37 2001  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/write.c: Include <unixlib/features.h> for the
@@ -6988,11 +7017,11 @@ Tue Sep 11 15:15:37 2001  John Tytgat  <John.Tytgat@aaug.net>
 	loaded indirectly by including the other header files.
 	* unixlib/local.h: Decl. of __sfixinit() & __sdirinit().
 	* unix/features.c: Moved decl. of __sfixinit() & __sdirinit()
-	
+
 Tue Sep 11 14:57:01 2001  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* objs/Makefile (GRP): User group files.
-	
+
 Tue Sep 11 14:40:33 2001  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unistd.h (usleep): New decl.
@@ -7013,7 +7042,7 @@ Tue Sep 11 14:32:08 2001  Alex Waugh  <ajw498@ecs.soton.ac.uk>
 
 	* pwd/pwdread.c (__pwdread): Make local buffer static to
 	avoid referencing problems.
-	
+
 Tue Sep 11 14:18:32 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* unix/select.c (select): Use recommended setting of R1 for
@@ -7029,7 +7058,7 @@ Tue Sep 11 14:04:13 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	(malloc_update_mallinfo): Likewise.
 	(malloc_stats): Likewise.
 	(mALLOPt): Likewise.
-	
+
 	* signal/_coredump.s: Change AREA C$$data to C$$zidata.
 	* sys/_alloca.s: Likewise.
 	* sys/_vfork.s: Likewise.
@@ -7045,7 +7074,7 @@ Tue Sep 11 14:04:13 2001  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* time/setitmr.c (remove_ticker): Add inline attribute.
 	(add_ticker): Likewise.
-	
+
 Tue Sep 11 13:55:54 2001  Alex Waugh  <ajw498@ecs.soton.ac.uk>
 
 	* sysexits.h: New header file.
@@ -7078,11 +7107,11 @@ Thu Sep  6 15:51:33 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	* signal/_syslib.s (__main): Don't change __stack_limit/__rwlimit
 	after dynamic area setup [from Ian Jeffray].
 	Fix inverse-logic bug when deleting UnixLib$env [from Ian Jeffray].
-	
+
 Wed Sep  5 17:32:19 2001  Alex Waugh  <ajw498@ecs.soton.ac.uk>
 
 	* unix/syslog.c (vsyslog): Bug fix.
-	
+
 Wed Sep  5 17:26:15 2001  John Tytgat  <John.Tytgat@aaug.net>
 
 	* objs/Makefile,fe1: Added info on how to build APCS-R and
@@ -7109,7 +7138,7 @@ Tue Sep  4 17:31:42 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	* unixlib/unix.h: Renamed from sys/unix.h.
 
 	Fixup all source files for the above change.
-	
+
 Mon Sep  3 13:21:31 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* unix/tty.c (__tty_console_gwinsz): If a WIMP program, then
@@ -7117,13 +7146,13 @@ Mon Sep  3 13:21:31 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 	variables.
 	(__ttyioctl): Turn TIOCLGET and TIOCLSET into dummy ioctls.
 	Fix typo in TIOCSETP to allow setting of CBREAK.
-	
+
 Mon Sep  3 13:07:28 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* unix/unix.c (check_io_redir): Print sensible error message
 	upon I/O redirection failure.
 	(convert_command_line): Null terminate command line.
-	
+
 Mon Sep  3 13:01:42 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* sys/termios.h: New header.
@@ -7193,7 +7222,7 @@ Sat Sep  1 14:43:32 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	* sys/exec.c (execve): Inline call to __reset.
 	(__exret): Call __env_read and __env_unixlib rather than
 	__write_environment_handler.
-	
+
 	* sys/unix.h: Merge sys/syslib.h into here.
 	(__unixinit): Delete decl.
 	(__unixexit): Delete decl.
@@ -7236,7 +7265,7 @@ Sat Sep  1 14:43:32 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	* unix/tty.c, unix/write.c, unix/writev.c: Likewise.
 
 	* time/setitmr.c (check_ticker): Optimise.
-	
+
 Thu Aug 16 11:23:16 2001  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* sys/_syslib.s (sigstk): Delete.
@@ -7258,7 +7287,7 @@ Thu Aug 16 10:17:58 2001  Alex Waugh <ajw498@ecs.soton.ac.uk>
 	(vsyslog): Use Doggysoft's SysLog module.
 	(openlog): Remove old socket code.
 	(closelog): Likewise.
-	
+
 Thu Aug 16 10:07:01 2001  Alex Waugh <ajw498@ecs.soton.ac.uk>
 
 	* common/unixify.c (__unixify): Ensure we allocate enough buffer
@@ -7273,17 +7302,17 @@ Wed Aug 15 15:25:34 2001  Nick Burrett  <nick.burrett@btinternet.com>
 	* tmpfile.c (tmpfile): Fix logic error with the inlined fcntl.
 	We were previously taking the action of failure, which cannot
 	possibly happen.
-	
+
 Thu Aug  9 08:46:48 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* assert.c (__assert_fail): Change exp to const char*.
 	* assert.h (__assert_fail): Likewise.
-	
+
 Wed Aug  8 19:41:10 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* kernel.h (struct stack_chunk): Fix GCC warning.
 	* math.h (double, ldexp, scalb): Likewise.
-	
+
 Wed Aug  8 09:52:58 2001  Peter Burwood  <pjb@arcangel.dircon.co.uk>
 			  Nick Burrett  <nick.burrett@btinternet.com>
 
@@ -7295,7 +7324,7 @@ Wed Aug  8 09:52:58 2001  Peter Burwood  <pjb@arcangel.dircon.co.uk>
 	(__h_sigsys): Alter to call __h_cback directly rather than via
 	SWI OS_CallBack.
 	* sys/os.c: Delete file.
-	
+
 Wed Aug  8 09:44:05 2001  Nick Burrett  <nick.burrett@btinternet.com>
 
 	Work towards a drop-in replacement for the SharedCLibrary.
@@ -7355,7 +7384,7 @@ Tue Aug  7 16:13:28 2001  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* conform: New directory.  This is a testsuite extracted from
 	glibc 2.2.3 that tests the conformancy of C library headers.
-	
+
 Tue Aug  7 10:07:03 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* sys/_swi.s (__swihack): New.  Missing from initial checkin.
@@ -7368,13 +7397,13 @@ Tue Aug  7 09:14:12 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 	(_FLAGS, _IN, _INR, _OUT, _OUTR, _BLOCK, _RETURN, _C, _N, _Z): Add
 	supporting macros.
 	* Makefile (SYS_ASM): Add _swis.o.
-	
+
 Mon Aug  6 09:16:22 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* signal/_signal.s (__h_sigint): Unset escape condition flag
 	if escape not pressed.
 	(__h_cback): Tidy up.
-	
+
 Mon Aug  6 09:11:55 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* unix/unix.c (convert_command_line): Fix off-by-one error
@@ -7394,7 +7423,7 @@ Sat Aug 04 11:46:43 2001  Peter Naulls  <peter@erble.freeserve.co.uk>
 
 	* time/times.c (times): Add NULL check on argument.
 	* unix/tty.c (__ttyioctl): Fix the FIXMEs in TIOCGETP and TIOCSETP.
-	
+
 Thu Aug 02 09:22:31 2001  Nick Burrett  <nick@dsvr.net>
 
 	* vfork.c: Unset debugging mode.
@@ -7410,7 +7439,7 @@ Thu Aug 02 15:55:07 2001  John Tytgat  <John.Tytgat@aaug.net>
         * unix/tty.c: Likewise.
         * sys/exec.c: Renamed os_cli to __os_cli.
 	* time/time.c: Renamed from os_word to __os_word.
-	
+
 Thu Aug 02 14:26:42 2001  Nick Burrett  <nick@dsvr.net>
 
 	* sys/exec.c (execve, __exret): Revert last change.  Was infact
@@ -7838,7 +7867,7 @@ Wed Jan 12 16:50:51 2000  Nick Burrett  <nick.burrett@btinternet.com>
 
 	* sys/_syslib.s (__real_break): Declare here.
 	* sys/brk.c (__real_break): Declare extern.
-	
+
 	* stdio/freopen.c (freopen): Set EINVAL if filename is NULL.
 
 	* signal/signame.c (sys_siglist): Define signals at compile time.
@@ -7861,11 +7890,11 @@ Wed Jan 12 16:50:51 2000  Nick Burrett  <nick.burrett@btinternet.com>
 	(__pipewrite): Likewise.
 	(__pipeclose): Likewise.
 	(__fsclose): Likewise.
-	
+
 	* sys/unix.h (__unixlib_fatal): Add GCC's __noreturn__ attribute.
-	
+
 	* sys/brk.c (brk): Inline getrlimit call.
-	
+
 	* stdio/freopen.c (freopen): Check validity of `mode' here.
 	* stdio/fopen.c (fopen): Likewise.
 	* stdio/newstream.c (__getmode): Remove check for mode == NULL.
@@ -7959,7 +7988,7 @@ Tue Nov 16 13:30:56 1999  Nick Burrett  <nick.burrett@btinternet.com>
 	* math-asm/_fraiseexc.s: New file.
 	* math-asm/_fsetexcpt.s: New file.
 	* math-asm/_ftstexcpt.s: New file.
-	
+
 	* math.h: Include machine/nan.h.
 	(FP_NAN, FP_INFINITE, FP_ZERO, FP_SUBNORMAL, FP_NORMAL): Define.
 	(fpclassify): Declare.
@@ -7982,7 +8011,7 @@ Tue Nov 16 13:30:56 1999  Nick Burrett  <nick.burrett@btinternet.com>
 	* math/nearbyint.c: New file.
 	* math/remquo.c: New file.
 	* math/trunc.c: New file.
-	
+
 	* math/exp.c: New file.
 	* math/exp2.c: New file.
 	* math/exp10.c: New file.
@@ -8026,14 +8055,14 @@ Tue Nov 16 13:25:15 1999  Nick Burrett  <nick.burrett@btinternet.com>
 	* common/attrib.c (__set_protection): Re-write to open up better
 	optimisation by the compiler.
 	(__get_protection): Likewise.
-	
+
 	* sys/os.c (__seterr): Inlined string copy to remove function
 	prologue overhead and re-ordered lines for better opimisation by
 	the compiler.
-	
+
 	* unix/unix.c (initialise_unix_io): Replace `dup' with `fcntl'.
 	(check_fd_redirection): Replace `dup2' with `fcntl'.
-	
+
 	* unix/write.c (write): Raise SIGPIPE if __FEATURE_DEV_PIPE is
 	defined.
 
@@ -8087,9 +8116,9 @@ Fri Sep 24 16:38:35 1999  Nick Burrett  <nick.burrett@btinternet.com>
 	(__sockopen): Define if `__FEATURE_SOCKET' is defined.
 	(__sockclose, __sockread, __sockwrite, __socklseek): Likewise.
 	(__sockioctl, __sockselect): Likewise.
-	
+
 	* sys/_udiv.s: Fix typo in C$code.
-	
+
 	* signal/_coredump.s (__write_corefile): We output a stack backtrace
 	rather than an corefile.
 	* signal/post.c (__unixlib_internal_post_signal): `sigwakeup' doesn't
@@ -8120,10 +8149,10 @@ Tue Sep 21 11:38:03 1999  Nick Burrett  <nick.burrett@btinternet.com>
 	* stdio/freopen.c: Likewise.
 	* stdio/fopen.c: Likewise.
 	* stdio/fclose.c: Likewise.
-	
+
 	* stdio/fpos.c (ftell): On streams open for read/write, flush the
 	output buffer before attempting to calculate the file position.
-	
+
 	* Changelog: Tidy up.
 
 Fri Aug 20 09:28:15 1999  Nick Burrett  <nick.burrett@btinternet.com>
@@ -8495,7 +8524,7 @@ Nick Burrett  <nick.burrett@btinternet.com>
 	(__ttyioctl, case TIOCEXCL): Do nothing.
 	(__ttyioctl, case TIOCNXCL): Likewise.
 	(__ttyioctl, case TIOCFLUSH): Flush input/output buffers.
-	
+
 	* unix/tty.c (__ttyiraw): Set variables iflag, oflag and lflag to type
 	tcflag_t.
 	(__ttyicanon): Likewise.
@@ -8935,7 +8964,7 @@ Peter Burwood  <pjb@arcangel.dircon.co.uk>
 	it reduces code size.
 	(__sdirinit): Moved with suffix initialisation code to
 	common/riscosify.c.
-	
+
 Fri Sep 19 13:40:41 1997 CL0045
 Nick Burrett  <nick.burrett@btinternet.com>
 
@@ -8949,7 +8978,7 @@ Nick Burrett  <nick.burrett@btinternet.com>
 
 	* unix/stat.c (__stat): Remove #ifdef DEV_SOCKET
 	* unix/dev.c (__dev): Likewise.
-	
+
 
 Thu Sep 18 23:40:22 1997 CL0044
 Nicholas Clark  <nickc@liv.ac.uk>
@@ -8989,7 +9018,7 @@ Nick Burrett  <nick.burrett@btinternet.com>
 	(assert): Fix to reflect above. Define a GCC specific version.
 	* assert.c (__fail): Delete.
 	(__assert_fail): New function.
-	
+
 	* clib/dirent.h (__dir_stream): Make __magic an unsigned int.
 	(DIRSIZ): Remove
 
@@ -9038,7 +9067,7 @@ Nicholas Clark  <nickc@liv.ac.uk>
 
 	* unix/getcwd.c: use filename character conversion table
 	use new __unixify() function rather than static function to convert path
-	
+
 	* unix/unix.c: 	call __sfixinit() in riscosify() to initialise special
 	suffix list
 
@@ -9366,7 +9395,7 @@ Sun Aug 03 15:45:24 1997 CL0025
 Nick Burrett  <nick.burrett@btinternet.com>
 
 	* clib/signal.h (sigaddset, sigdelset, sigismember): Fix typos
-	
+
 	* signal/_signal.s (__h_error): Fix LDM typo that would otherwise
 	cause an Address Exception if raise ever returned.
 
@@ -9388,11 +9417,11 @@ Sat Aug 02 17:13:24 1997 CL0024
 Nick Burrett  <nick.burrett@btinternet.com>
 
 	* time/broken.c: fix off-by-one error with tm_mon.
-	
+
 	* time/tzset.c: don't overwrite the tzname string constants.
-	
+
 	* time/settod.c: remove some comments
-	
+
 	* clib/signal.h: Define macro versions of sigaddset, sigdelset,
 	sigismember. Prefix all variable names with '__'.
 
@@ -9403,20 +9432,20 @@ Nick Burrett  <nick.burrett@btinternet.com>
 
 	* signal/post.c, signal/signal.c, signal/sigprocmsk.c: Remove
 	inline_sigfuncs and code associated with it.
-	
+
 	* clib/netdb.h: re-written
-	
+
 	* clib/socketlib.h: removed
 	* clib/unixlib/local.h: declare __net_readline
-	
+
 	* netlib/readline.c (__socketlib_readline): remove static buffer
 	and redeclare as __net_readline.
-	
+
 	* netlib/host.c (__gethostent): use __net_readline
 	* netlib/net.c (__getnetent): use __net_readline
 	* netlib/proto.c (__getprotoent): use __net_readline
 	* netlib/serv.c (__getservent): use __net_readline
-	
+
 	* netlib/h_errno.c: new file
 
 Sat Aug 02 12:54:29 1997 CL0023
@@ -9441,22 +9470,22 @@ Fri Aug 01 20:22:01 1997 CL0022
 Nick Burrett  <nick.burrett@btinternet.com>
 
 	* clib/sys/utsname.h: New header
-	
+
 	* unix/uname.c: uname() function for <sys/utsname.h>
-	
+
 	* unix/glob.c: don't explicitly set errno to zero
-	
+
 	* clib/unixlib/types.h: more exact definitions of  __int8_t,
 	__int16_t etc. for GCC.
-	
+
 	* strtol.c: remove strtoul(). Use __set_errno
-	
+
 	* strtoul.c: define strtoul()
-	
+
 	* strspn.c, stpcpy.c, strcat.c, strchr.c, strcmp.c, strcpy.c,
 	strichr.c, stricmp.c: move functions into their own separate
 	compilation units
-	
+
 	* strcspn.c, strpbrk.c, stpncpy.c, strncat.c, strrchr.c, index.c,
 	strncmp.c, strncpy.c, strrichr.c, strnicmp.c: new files
 
@@ -9485,29 +9514,29 @@ Mon Jul 28 21:57:20 1997 CL0021
 Nicholas Clark  <nickc@liv.ac.uk>
 
 	* clib/string.h: Removed #ifdef 0 from strxfrm and strcol
-	
+
 	* locale/setlocale.c: setlocale(,"") equivalent to setlocale(,"C").
 	  comment in perl source:
-	
+
 	  Ultrix setlocale(..., "") fails if there are no environment
 	  variables from which to get a locale name.
-	
+
 	  implication: most Unixes accept "" without complaint.
-	
+
 	* clib/unixlib/local.h: __attribute to __attrib
 
 	* time/c.calendconv: Fixed 3 off-by-ones in __tz
 	  Check the SWI with Mon 1st Jan 1900.
-	
+
 	* time/c.gmtime: gmtoff == 0 whether localtime on daylight saving!
 
 Sat Jul 26 17:03:30 1997 CL0019
 Nick Burrett  <nick.burrett@btinternet.com>
 
 	* sys/syslib.c: Call setlocale() to initialise ctype tables
-	
+
 	* locale/setlocale.c: Re-build ctype tables for category LC_ALL.
-	
+
 	* locale/localeconv.c: Perform malloc memory check and prevent
 	memory leak.
 
@@ -9652,7 +9681,7 @@ Nick Burrett  <nick.burrett@btinternet.com>
 	* ctime.c: Removed.
 	* mktime.c: Removed.
 	* unix/time.c: Removed.
-	
+
 	* clib/locale.h: New file.
 	* clib/time.h: Prototype some internal functions.
 	* time/_clock.s: New file.
@@ -9672,7 +9701,7 @@ Nick Burrett  <nick.burrett@btinternet.com>
 
 	* locale/setlocale.c: New file.
 	* locale/localeconv.c: New file.
-	
+
 	* unix/sysconf.c [_SC_CLK_TCK]: Return CLOCKS_PER_SEC, not 60.
 
 Sat Jul 12 00:00:00 1997 CL0013
@@ -9713,7 +9742,7 @@ Peter Burwood  <pjb@arcangel.dircon.co.uk>
 	* clib/stdio.h [FILE]: Add __string_istream flag.
 	(__underflow): Rename to __peekchar.
 	[__UNIXLIB_INTERNALS]: Add.
-	
+
 	* clib/unixlib/fd.h [BADF]: Ensure an out-of-range fd will return
 	true instead of false.
 
@@ -9732,7 +9761,7 @@ Peter Burwood  <pjb@arcangel.dircon.co.uk>
 	* unix/unix.c: Local version of strtoul.
 	[__sfix_default]: Created. Allows sfix string to be writable.
 	(default_outfd): Fix assignment bug.
-	
+
 	* clib/stdlib.h (malloc_trim): Add prototype.
 
 Thu Jun 26 00:00:00 1997 CL0009
@@ -9741,7 +9770,7 @@ Peter Burwood  <pjb@arcangel.dircon.co.uk>
 	* resource/initialise.c: Use u_char* when performing arithmetic on
 	__lomem and __break. Correct error where a non-dynamic area program
 	had its data limit set to 1/4 of its real value.
-	
+
 	* sys/exec.c: realloc bug fixes.
 	* sys/mman.c: Fix bad use of strncpy.
 	* sys/_kernel.s (_kernel_osfile): New function.
@@ -9774,7 +9803,7 @@ Peter Burwood  <pjb@arcangel.dircon.co.uk>
 	[__UNIXLIB_INTERNALS]: Use.
 	* clib/unixlib/sigstate.h [__SIG_INVALID_P]: New macro.
 	* signal/coredump.c (__backtrace): Don't restore exit handler.
-	
+
 	* signal/init.c: Use __set_errno and __SIG_INVALID_P.
 	* signal/kill.c: Likewise.
 	* signal/post.c: Likewise.

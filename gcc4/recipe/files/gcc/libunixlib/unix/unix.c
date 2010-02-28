@@ -24,6 +24,7 @@
 #include <internal/unix.h>
 #include <internal/sigstate.h>
 #include <internal/swiparams.h>
+#include <internal/machine-gmon.h>
 #include <pthread.h>
 
 /*#define DEBUG 1*/
@@ -367,6 +368,10 @@ _exit (int return_code)
   struct ul_global *gbl = &__ul_global;
   struct __sul_process *sulproc = gbl->sulproc;
   int status;
+
+  /* Disable profiling. If profiling was not enabled, then this function
+     will have nothing to do.  */
+  gmon_machine_cleanup ();
 
   /* Interval timers must be stopped.  */
   __stop_itimers ();
