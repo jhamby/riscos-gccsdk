@@ -18,7 +18,7 @@ BINUTILS_VERSION=$(GCCSDK_SUPPORTED_BINUTILS_RELEASE)
 AUTOCONF_FOR_GCC_VERSION=2.59
 AUTOMAKE_FOR_GCC_VERSION=1.9.6
 GCC_VERSION=$(GCCSDK_SUPPORTED_GCC_RELEASE)
-NEWLIB_VERSION=1.17.0
+NEWLIB_VERSION=1.18.0
 GDB_VERSION=6.8
 
 # Notes:
@@ -100,13 +100,13 @@ buildstepsdir/all-done: buildstepsdir/cross-done
 
 # Builds the cross compiler:
 cross: $(GCCSDK_INTERNAL_GETENV)
-buildstepsdir/cross-done: buildstepsdir/cross-gcc-full \
+buildstepsdir/cross-done: buildstepsdir/cross-gcc \
 	buildstepsdir/cross-riscostools
 	touch buildstepsdir/cross-done
 
 # Builds the native RISC OS compiler (gcc and binutils):
 ronative: $(GCCSDK_INTERNAL_GETENV)
-buildstepsdir/ronative-done: buildstepsdir/ronative-gcc-full \
+buildstepsdir/ronative-done: buildstepsdir/ronative-gcc \
 	buildstepsdir/ronative-binutils \
 	buildstepsdir/ronative-riscostools
 	touch buildstepsdir/ronative-done
@@ -174,60 +174,34 @@ buildstepsdir/tool-automake-for-gcc: buildstepsdir/src-automake-for-gcc
 	cd $(BUILDDIR)/tool-automake-for-gcc && $(SRCDIR)/automake-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
 	touch buildstepsdir/tool-automake-for-gcc
 
-# Build minimal (bootstrap) gcc cross (without target runtime support):
-ifneq ($(TARGET),arm-unknown-riscos)
-buildstepsdir/cross-gcc-bootstrap: buildstepsdir/src-gcc buildstepsdir/cross-binutils
-	-rm -rf $(BUILDDIR)/cross-gcc-bootstrap
-	mkdir -p $(BUILDDIR)/cross-gcc-bootstrap
-	cd $(BUILDDIR)/cross-gcc-bootstrap && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/gcc/configure $(CROSS_CONFIG_ARGS) $(GCC_CONFIG_ARGS) --enable-languages="c" --without-headers && $(MAKE) all-gcc && $(MAKE) install-gcc
-	touch buildstepsdir/cross-gcc-bootstrap
-else
-buildstepsdir/cross-gcc-bootstrap: buildstepsdir/src-gcc buildstepsdir/cross-binutils
-	-rm -rf $(BUILDDIR)/cross-gcc-bootstrap
-	touch buildstepsdir/cross-gcc-bootstrap
-endif
+# Build gcc cross:
+buildstepsdir/cross-gcc: buildstepsdir/src-gcc buildstepsdir/cross-binutils
+	-rm -rf $(BUILDDIR)/cross-gcc
+	mkdir -p $(BUILDDIR)/cross-gcc
+	cd $(BUILDDIR)/cross-gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/gcc/configure $(CROSS_CONFIG_ARGS) $(GCC_CONFIG_ARGS) --enable-languages=$(GCC_LANGUAGES) && $(MAKE) $(GCC_BUILD_FLAGS) && $(MAKE) install
+	touch buildstepsdir/cross-gcc
 
-# Build full gcc cross (we need target runtime support by now):
-ifneq ($(TARGET),arm-unknown-riscos)
-buildstepsdir/cross-gcc-full: buildstepsdir/cross-newlib
-endif
-buildstepsdir/cross-gcc-full: buildstepsdir/cross-gcc-bootstrap
-	-rm -rf $(BUILDDIR)/cross-gcc-full
-	mkdir -p $(BUILDDIR)/cross-gcc-full
-	cd $(BUILDDIR)/cross-gcc-full && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/gcc/configure $(CROSS_CONFIG_ARGS) $(GCC_CONFIG_ARGS) --enable-languages=$(GCC_LANGUAGES) && $(MAKE) $(GCC_BUILD_FLAGS) && $(MAKE) install
-	touch buildstepsdir/cross-gcc-full
-
-# Build full gcc ronative (we need target runtime support by now):
-ifneq ($(TARGET),arm-unknown-riscos)
-buildstepsdir/ronative-gcc-full: buildstepsdir/ronative-newlib
-endif
-buildstepsdir/ronative-gcc-full: buildstepsdir/cross-done
-	-rm -rf $(BUILDDIR)/ronative-gcc-full
-	mkdir -p $(BUILDDIR)/ronative-gcc-full
-	cd $(BUILDDIR)/ronative-gcc-full && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/gcc/configure $(RONATIVE_CONFIG_ARGS) $(GCC_CONFIG_ARGS) --enable-languages=$(GCC_LANGUAGES) && $(MAKE) $(GCC_BUILD_FLAGS) && $(MAKE) install
-	touch buildstepsdir/ronative-gcc-full
-
-# Build newlib with minimal gcc:
-buildstepsdir/cross-newlib: buildstepsdir/src-newlib buildstepsdir/cross-gcc-bootstrap
-	-rm -rf $(BUILDDIR)/cross-newlib
-	mkdir -p $(BUILDDIR)/cross-newlib
-	cd $(BUILDDIR)/cross-newlib && PATH="$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/newlib/configure $(CROSS_CONFIG_ARGS) $(NEWLIB_CONFIG_ARGS) --enable-languages=$(GCC_LANGUAGES) && $(MAKE) $(GCC_BUILD_FLAGS) && $(MAKE) install
-	touch buildstepsdir/cross-newlib
+# Build gcc ronative:
+buildstepsdir/ronative-gcc: buildstepsdir/cross-done
+	-rm -rf $(BUILDDIR)/ronative-gcc
+	mkdir -p $(BUILDDIR)/ronative-gcc
+	cd $(BUILDDIR)/ronative-gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/gcc/configure $(RONATIVE_CONFIG_ARGS) $(GCC_CONFIG_ARGS) --enable-languages=$(GCC_LANGUAGES) && $(MAKE) $(GCC_BUILD_FLAGS) && $(MAKE) install
+	touch buildstepsdir/ronative-gcc
 
 # Build gdb:
-buildstepsdir/cross-gdb: buildstepsdir/src-gdb buildstepsdir/cross-gcc-full
+buildstepsdir/cross-gdb: buildstepsdir/src-gdb buildstepsdir/cross-gcc
 	-rm -rf $(BUILDDIR)/cross-gdb
 	mkdir -p $(BUILDDIR)/cross-gdb
 	cd $(BUILDDIR)/cross-gdb && PATH="$(PREFIX_CROSS)/bin:$(PATH)" && $(ORIGSRCDIR)/gdb/configure $(CROSS_CONFIG_ARGS) $(GDB_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
 	touch buildstepsdir/cross-gdb
 
 # Build the RISC OS related tools (cmunge, elf2aif, asasm, etc) cross:
-buildstepsdir/cross-riscostools: buildstepsdir/cross-gcc-full
+buildstepsdir/cross-riscostools: buildstepsdir/cross-gcc
 	cd $(RISCOSTOOLSDIR) && ./build-it cross
 	touch buildstepsdir/cross-riscostools
 
 # Build the RISC OS related tools (cmunge, elf2aif, asasm, etc) ronative:
-buildstepsdir/ronative-riscostools: buildstepsdir/ronative-gcc-full
+buildstepsdir/ronative-riscostools: buildstepsdir/ronative-gcc
 	cd $(RISCOSTOOLSDIR) && ./build-it riscos
 	touch buildstepsdir/ronative-riscostools
 
