@@ -10,7 +10,7 @@ sinclude(../config/no-executables.m4)
 
 AC_PREREQ(2.59)
 AC_INIT([Stubs for the RISC OS SharedCLibrary Runtime Library], 2.0, [http://gccsdk.riscos.info/], [libscl])
-AC_CONFIG_SRCDIR([riscos/stubs.s])
+AC_CONFIG_SRCDIR([crt/crt0-scl.s])
 AC_CONFIG_HEADER(config.h)
 
 AC_CONFIG_AUX_DIR(..)

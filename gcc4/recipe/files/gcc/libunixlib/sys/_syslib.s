@@ -62,7 +62,7 @@ rmensure3:
 	NAME	__main
 
 __main:
-	@ (g)crt1-riscos.o passes several values in memory addressed as an offset
+	@ (g)crt0.o passes several values in memory addressed as an offset
 	@ from a1. Offsets 0, 4 and 24 are used by both the static and DSO library,
 	@ the others are used by the DSO only.
 	@

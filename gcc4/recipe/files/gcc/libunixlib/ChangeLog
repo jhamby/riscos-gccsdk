@@ -1,3 +1,12 @@
+Sat Mar  6 15:14:41 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	Give UnixLib its own crt0.s (like other runtime libraries have).
+
+	* crt/crt0.s, crt/gcrt0.s: Added (based on what we had in
+	gcc/config/arm/(g)crt1-riscos.asm).
+	* gen-auto.pl: Add crt0.s and gcrt0.s to the build.
+	* sys/_syslib.s: Update comment.
+
 Sun Feb 28 16:47:11 2010  Lee Noar  <leenoar@sky.com>
 
 	Improve profiling support:

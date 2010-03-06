@@ -1,3 +1,14 @@
+Sat Mar  6 15:14:41 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	Give SharedCLibrary stub its own crt0.s (like other runtime libraries
+	have).
+
+	* riscos/stubs: Rename to...
+	* crt/crt0-scl.s: ...this and add the libscl specific bits of the
+	recipe/files/gcc/gcc/config/arm/crt1-riscos.asm (i.e. add _start
+	function).
+	* configure.ac, Makefile.am: Update.
+
 Fri Jan  8 20:55:19 2010   Lee Noar <leenoar@sky.com>
 
 	* configure.ac: Fix comment.

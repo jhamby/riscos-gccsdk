@@ -39,7 +39,7 @@ MULTILIB_DIRNAMES = scl fpu module
 MULTILIB_MATCHES = mhard-float=mfloat-abi?hard
 MULTILIB_EXCLUSIONS = mlibscl/!mhard-float/!mmodule !mlibscl/!mhard-float/mmodule mlibscl/!mhard-float/mmodule !mlibscl/mhard-float/mmodule
 
-EXTRA_MULTILIB_PARTS = gcrt1-riscos.o crt1-riscos.o crtbegin.o crtend.o crtbeginS.o crtendS.o crti.o crtn.o
+EXTRA_MULTILIB_PARTS = crtbegin.o crtend.o crtbeginS.o crtendS.o crti.o crtn.o
 
 # Compile crtbeginS.o and crtendS.o with pic (but not module versions
 # as that causes a compile error and they're not used anyway).
@@ -99,14 +99,6 @@ SHLIB_INSTALL = \
 	$(LN_S) $(SHLIB_SONAME) $$(DESTDIR)$$(slibdir)/@multilib_dir@/$(SHLIB_NAME)
 
 # Assemble startup files.
-$(T)gcrt1-riscos.o: $(srcdir)/config/arm/gcrt1-riscos.asm $(GCC_PASSES)
-	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(MULTILIB_CFLAGS) $(INCLUDES) \
-	-c -o $(T)gcrt1-riscos.o -x assembler-with-cpp $(srcdir)/config/arm/gcrt1-riscos.asm
-
-$(T)crt1-riscos.o: $(srcdir)/config/arm/crt1-riscos.asm $(GCC_PASSES)
-	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(MULTILIB_CFLAGS) $(INCLUDES) \
-	-c -o $(T)crt1-riscos.o -x assembler-with-cpp $(srcdir)/config/arm/crt1-riscos.asm
-
 $(T)crti.o: $(srcdir)/config/arm/crti.asm $(GCC_PASSES)
 	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(MULTILIB_CFLAGS) $(INCLUDES) \
 	-c -o $(T)crti.o -x assembler-with-cpp $(srcdir)/config/arm/crti.asm

@@ -41,13 +41,6 @@
 #undef  FPUTYPE_DEFAULT
 #define FPUTYPE_DEFAULT FPUTYPE_FPA_EMU3
 
-#if 0
-/* When we have a static build, make sure that the linker doesn't search
-   for shared libraries, i.e. force -static as default.  */
-#define DRIVER_SELF_SPECS \
-"%{!shared:-static}"
-#endif
-
 /* RISC OS uses the APCS-32 ABI.  */
 #undef ARM_DEFAULT_ABI
 #define ARM_DEFAULT_ABI ARM_ABI_APCS32
@@ -66,7 +59,7 @@
 #undef SUBTARGET_EXTRA_ASM_SPEC
 #define SUBTARGET_EXTRA_ASM_SPEC \
      "%{!mfpu:%{mhard-float|mfloat-abi=hard:-mfpu=fpa; :-mfpu=softfpa}}" \
-     "%{fpic:-k} %{fPIC:-k}"
+     "%{fpic|fPIC: -k}"
 
 #undef SUBTARGET_EXTRA_LINK_SPEC
 #ifdef CROSS_COMPILE
@@ -114,10 +107,9 @@
    provides part of the support for getting C++ file-scope static
    object constructed before entering `main'.  */
 #undef STARTFILE_SPEC
-#define STARTFILE_SPEC "%{!mmodule:crti.o%s \
-			%{!shared:%{pg:gcrt1-riscos.o%s;:crt1-riscos.o%s}} \
-			%{!shared:crtbegin.o%s} \
-			%{shared:crtbeginS.o%s}}"
+#define STARTFILE_SPEC	" %{!mmodule:crti.o%s}" \
+			" %{!shared:%{mmodule|mlibscl:crt0-scl.o%s;:%{pg:gcrt0.o%s;:crt0.o%s}}}" \
+			" %{!mmodule:%{shared:crtbeginS.o%s;:crtbegin.o%s}}"
 
 /* Provide a ENDFILE_SPEC appropriate for GNU/Linux.  Here we tack on
    the GNU/Linux magical crtend.o file (see crtstuff.c) which
@@ -125,9 +117,7 @@
    object constructed before entering `main', followed by a normal
    GNU/Linux "finalizer" file, `crtn.o'.  */
 #undef ENDFILE_SPEC
-#define ENDFILE_SPEC   "%{!mmodule:%{!shared:crtend.o%s} \
-			%{shared:crtendS.o%s} \
-			crtn.o%s}"
+#define ENDFILE_SPEC	" %{!mmodule:%{shared:crtendS.o%s;:crtend.o%s} crtn.o%s}"
 
 #undef  LINK_SPEC
 #define LINK_SPEC "%{h*} %{version:-v} \

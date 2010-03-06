@@ -1,6 +1,6 @@
 @ Stub routines for linking with the SharedCLibrary
 @ Copyright (c) 1997-2005 Nick Burrett
-@ Copyright (c) 2005-2009 UnixLib Developers
+@ Copyright (c) 2005-2010 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,13 @@
 	.word	\ptrname
 #endif
 	.endm
+
+#ifndef __TARGET_MODULE__
+	.global	_start
+	.type	_start, %function
+_start:
+	B	__main
+#endif
 
 	.text
 

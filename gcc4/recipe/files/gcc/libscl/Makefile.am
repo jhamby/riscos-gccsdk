@@ -37,7 +37,7 @@ gcccompat_src = \
 # FIXME: math_src: not done yet
 riscos_src = \
 	riscos/chunkid01.s riscos/chunkid02.s riscos/chunkid04.s \
-	riscos/chunkid05.s riscos/chunkstub.s riscos/stubs.s \
+	riscos/chunkid05.s riscos/chunkstub.s \
 	riscos/redirect_setjmp.s
 stdio_src = \
 	stdio/fdopen.c stdio/fileno.c
@@ -86,6 +86,11 @@ libc_headers = 	\
 
 toolexeclib_LIBRARIES = libscl.a
 libscl_a_SOURCES = $(gcccompat_src) $(riscos_src) $(stdio_src) $(string_src)
+
+toolexeclib_DATA = crt0-scl.o
+
+crt0-scl.o: crt/crt0-scl.s
+	$(CCASCOMPILE) -o crt0-scl.o -c `test -f 'crt/crt0-scl.s' || echo '$(srcdir)/'`crt/crt0-scl.s
 
 install-data-local: install-headers
 
