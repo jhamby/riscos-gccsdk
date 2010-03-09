@@ -1,3 +1,9 @@
+Tue Mar  9 02:33:58 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdlib/atol.c(atol), stdlib/atoll.c(atoll), stdlib/atof.c(atof),
+	stdlib/atoi.c(atoi): Force no-inline when including stdlib.h
+	avoiding redefinition.
+
 Sat Mar  6 15:14:41 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	Give UnixLib its own crt0.s (like other runtime libraries have).
