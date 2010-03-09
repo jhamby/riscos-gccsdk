@@ -393,8 +393,15 @@ __write_backtrace_thread (const unsigned int *fp)
 void
 __write_backtrace (int signo)
 {
+#ifdef __ARM_EABI__
+  /* Workaround for llvm bug #6552.  */
+  unsigned int *fp;
+  
+  __asm__ volatile ("MOV %[fp], fp\n\t"
+		    : [fp] "=r" (fp));
+#else
   register const unsigned int *fp __asm ("fp");
-  pthread_t th;
+#endif
 
   PTHREAD_UNSAFE
 
@@ -418,6 +425,7 @@ __write_backtrace (int signo)
   __write_backtrace_thread (fp);
 
   /* And then the other suspended threads if any.  */
+  pthread_t th;
   for (th = __pthread_thread_list; th != NULL; th = th->next)
     {
       if (th == __pthread_running_thread)

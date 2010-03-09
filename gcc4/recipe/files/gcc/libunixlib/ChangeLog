@@ -1,3 +1,7 @@
+Tue Mar  9 02:46:33 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* signal/post.c (__write_backtrace): Workaround for llvm bug #6552.
+
 Tue Mar  9 02:42:34 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gcccompat/_b_return.s, gcccompat/_galloca.s, gcccompat/galloca.c
