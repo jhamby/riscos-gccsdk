@@ -1,8 +1,10 @@
 @ __builtin_return_address
 @ This source is used by SCL and UnixLib libraries.
-@ Copyright (c) 2002-2009 UnixLib Developers
+@ Copyright (c) 2002-2010 UnixLib Developers
 
 #include "internal/asm_dec.s"
+
+#ifndef __ARM_EABI__
 
 	.text
 
@@ -71,5 +73,7 @@ __builtin_return_address:
 #endif
  PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __builtin_return_address
+
+#endif
 
 	.end

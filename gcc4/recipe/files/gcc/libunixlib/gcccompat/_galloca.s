@@ -2,9 +2,11 @@
 @ These functions tie-in directly with both UnixLib/SCL and the GCC compiler.
 @ Change one, change the other.
 @ This source is used by SCL and UnixLib libraries.
-@ Copyright (c) 2005, 2006, 2007, 2008 UnixLib Developers
+@ Copyright (c) 2005-2010 UnixLib Developers
 
 #include "internal/asm_dec.s"
+
+#ifndef __ARM_EABI__
 
 	.text
 
@@ -22,5 +24,7 @@ __gcc_alloca_free:
 	ldmfd	sp!, {a1, a2}
 	mov	pc, ip
 	DECLARE_FUNCTION __gcc_alloca_free
+
+#endif
 
 	.end

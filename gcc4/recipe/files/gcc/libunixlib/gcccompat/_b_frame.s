@@ -1,8 +1,10 @@
 @ __builtin_frame_address
 @ This source is used by SCL and UnixLib libraries.
-@ Copyright (c) 2002-2009 UnixLib Developers
+@ Copyright (c) 2002-2010 UnixLib Developers
 
 #include "internal/asm_dec.s"
+
+#ifndef __ARM_EABI__
 
 	.text
 
@@ -139,5 +141,7 @@ __builtin_frame_address_loop_end:
 	LDMEA	fp, {v1, v2, fp, sp, pc}	@ a1 => fp
 	
 	DECLARE_FUNCTION __builtin_frame_address
+
+#endif
 
 	.end

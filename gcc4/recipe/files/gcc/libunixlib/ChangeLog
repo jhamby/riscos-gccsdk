@@ -1,3 +1,9 @@
+Tue Mar  9 02:42:34 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gcccompat/_b_return.s, gcccompat/_galloca.s, gcccompat/galloca.c
+	gcccompat/_eh_support.s, gcccompat/_b_frame.s: Disable code for
+	EABI builds.
+
 Tue Mar  9 02:33:58 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/atol.c(atol), stdlib/atoll.c(atoll), stdlib/atof.c(atof),

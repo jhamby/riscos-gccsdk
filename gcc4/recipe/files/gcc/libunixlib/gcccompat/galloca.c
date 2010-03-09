@@ -1,7 +1,9 @@
 /* Implementation of all alloca related functions for GCC 4
-   Copyright (c) 2005, 2006, 2007, 2008 UnixLib Developers
+   Copyright (c) 2005-2010 UnixLib Developers
    Written by Nick Burrett <nick@sqrt.co.uk>
    Reworked by John Tytgat <John.Tytgat@aaug.net>  */
+
+#ifndef __ARM_EABI__
 
 #include <stdio.h>
 #include <stddef.h>
@@ -446,3 +448,5 @@ __gcc_alloca_return_address (unsigned int fp)
 
   return return_addr;
 }
+
+#endif

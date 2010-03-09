@@ -1,8 +1,10 @@
 @ Exception handling support
 @ This source is used by the call frame C++ exception handling code.
-@ Copyright (c) 2009 UnixLib Developers
+@ Copyright (c) 2009-2010 UnixLib Developers
 
 #include "internal/asm_dec.s"
+
+#ifndef __ARM_EABI__
 
 	.text
  
@@ -161,5 +163,7 @@ __ehs_trim_stack:
 	LDMFD	sp!, {a1-a4, ip}
 	MOV	pc, ip
 	DECLARE_FUNCTION __ehs_trim_stack
+
+#endif
 
 	.end
