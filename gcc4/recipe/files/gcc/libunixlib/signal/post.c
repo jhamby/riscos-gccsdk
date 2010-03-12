@@ -393,15 +393,7 @@ __write_backtrace_thread (const unsigned int *fp)
 void
 __write_backtrace (int signo)
 {
-#ifdef __ARM_EABI__
-  /* Workaround for llvm bug #6552.  */
-  unsigned int *fp;
-  
-  __asm__ volatile ("MOV %[fp], fp\n\t"
-		    : [fp] "=r" (fp));
-#else
   register const unsigned int *fp __asm ("fp");
-#endif
 
   PTHREAD_UNSAFE
 
