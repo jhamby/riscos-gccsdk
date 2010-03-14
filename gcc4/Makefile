@@ -72,10 +72,10 @@ ROOT := $(shell pwd)
 PREFIX_CROSS := $(GCCSDK_CROSS_PREFIX)
 PREFIX_RONATIVE := $(GCCSDK_RISCOS_PREFIX)/\!GCC
 BUILDDIR := $(GCCSDK_BUILDDIR)
-PREFIX_BUILDTOOL_BINUTILS := $(BUILDDIR)/cross-buildtool-binutils
-PREFIX_BUILDTOOL_GCC := $(BUILDDIR)/cross-buildtool-gcc
+PREFIX_BUILDTOOL_BINUTILS := $(BUILDDIR)/installed-buildtools-for-binutils
+PREFIX_BUILDTOOL_GCC := $(BUILDDIR)/installed-buildtools-for-gcc
 SRCDIR := $(GCCSDK_SRCDIR)
-ORIGSRCDIR := $(GCCSDK_SRCDIR).orig
+SRCORIGDIR := $(GCCSDK_SRCDIR).orig
 SCRIPTSDIR := $(ROOT)/scripts
 RECIPEDIR := $(ROOT)/recipe
 RISCOSTOOLSDIR := $(GCCSDK_RISCOS)
@@ -122,7 +122,7 @@ buildstepsdir/distclean-done:
 	-rm -rf $(BUILDDIR)
 	-rm -rf $(SRCDIR)
 	-rm -rf buildstepsdir
-	-rm -rf $(ORIGSRCDIR) $(PREFIX_CROSS) $(PREFIX_RONATIVE)
+	-rm -rf $(SRCORIGDIR) $(PREFIX_CROSS) $(PREFIX_RONATIVE)
 
 # Respawn Makefile again after having loaded all our GCCSDK environment variables.
 ifeq ($(GCCSDK_INTERNAL_GETENV),getenv)
@@ -130,69 +130,69 @@ getenv:
 	@bash -c ". ./setup-gccsdk-params && $(MAKE) $(patsubst %,buildstepsdir/%-done,$(MAKECMDGOALS)) GCCSDK_INTERNAL_GETENV="
 endif
 
-# -- Building
+# -- Configure & building:
 
-# Build autoconf-for-binutils tool:
-buildstepsdir/tool-autoconf-for-binutils: buildstepsdir/src-autoconf-for-binutils
-	-rm -rf $(BUILDDIR)/tool-autoconf-for-binutils
-	mkdir -p $(BUILDDIR)/tool-autoconf-for-binutils
-	cd $(BUILDDIR)/tool-autoconf-for-binutils && $(SRCDIR)/autoconf-for-binutils/configure --prefix=$(PREFIX_BUILDTOOL_BINUTILS) && $(MAKE) && $(MAKE) install
-	touch buildstepsdir/tool-autoconf-for-binutils
+# Configure & build autoconf-for-binutils tool:
+buildstepsdir/buildtool-autoconf-for-binutils: buildstepsdir/src-autoconf-for-binutils
+	-rm -rf $(BUILDDIR)/buildtool-autoconf-for-binutils
+	mkdir -p $(BUILDDIR)/buildtool-autoconf-for-binutils
+	cd $(BUILDDIR)/buildtool-autoconf-for-binutils && $(SRCDIR)/autoconf-for-binutils/configure --prefix=$(PREFIX_BUILDTOOL_BINUTILS) && $(MAKE) && $(MAKE) install
+	touch buildstepsdir/buildtool-autoconf-for-binutils
 
-# Build automake-for-binutils tool:
-buildstepsdir/tool-automake-for-binutils: buildstepsdir/src-automake-for-binutils
-	-rm -rf $(BUILDDIR)/tool-automake-for-binutils
-	mkdir -p $(BUILDDIR)/tool-automake-for-binutils
-	cd $(BUILDDIR)/tool-automake-for-binutils && $(SRCDIR)/automake-for-binutils/configure --prefix=$(PREFIX_BUILDTOOL_BINUTILS) && $(MAKE) && $(MAKE) install
-	touch buildstepsdir/tool-automake-for-binutils
+# Configure & build autoconf-for-gcc tool:
+buildstepsdir/buildtool-autoconf-for-gcc: buildstepsdir/src-autoconf-for-gcc
+	-rm -rf $(BUILDDIR)/buildtool-autoconf-for-gcc
+	mkdir -p $(BUILDDIR)/buildtool-autoconf-for-gcc
+	cd $(BUILDDIR)/buildtool-autoconf-for-gcc && $(SRCDIR)/autoconf-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
+	touch buildstepsdir/buildtool-autoconf-for-gcc
 
-# Build binutils cross:
+# Configure & build automake-for-binutils tool:
+buildstepsdir/buildtool-automake-for-binutils: buildstepsdir/src-automake-for-binutils
+	-rm -rf $(BUILDDIR)/buildtool-automake-for-binutils
+	mkdir -p $(BUILDDIR)/buildtool-automake-for-binutils
+	cd $(BUILDDIR)/buildtool-automake-for-binutils && $(SRCDIR)/automake-for-binutils/configure --prefix=$(PREFIX_BUILDTOOL_BINUTILS) && $(MAKE) && $(MAKE) install
+	touch buildstepsdir/buildtool-automake-for-binutils
+
+# Configure & build automake-for-gcc tool:
+buildstepsdir/buildtool-automake-for-gcc: buildstepsdir/src-automake-for-gcc
+	-rm -rf $(BUILDDIR)/buildtool-automake-for-gcc
+	mkdir -p $(BUILDDIR)/buildtool-automake-for-gcc
+	cd $(BUILDDIR)/buildtool-automake-for-gcc && $(SRCDIR)/automake-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
+	touch buildstepsdir/buildtool-automake-for-gcc
+
+# Configure & build binutils cross:
 buildstepsdir/cross-binutils: buildstepsdir/src-binutils
 	-rm -rf $(BUILDDIR)/cross-binutils
 	mkdir -p $(BUILDDIR)/cross-binutils
 	cd $(BUILDDIR)/cross-binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PATH)" && $(SRCDIR)/binutils/configure $(CROSS_CONFIG_ARGS) $(BINUTILS_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
 	touch buildstepsdir/cross-binutils
 
-# Build binutils ronative:
+# Configure & build binutils ronative:
 buildstepsdir/ronative-binutils: buildstepsdir/src-binutils buildstepsdir/cross-done
 	-rm -rf $(BUILDDIR)/ronative-binutils
 	mkdir -p $(BUILDDIR)/ronative-binutils
 	cd $(BUILDDIR)/ronative-binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/binutils/configure $(RONATIVE_CONFIG_ARGS) $(BINUTILS_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
 	touch buildstepsdir/ronative-binutils
 
-# Build autoconf-for-gcc tool:
-buildstepsdir/tool-autoconf-for-gcc: buildstepsdir/src-autoconf-for-gcc
-	-rm -rf $(BUILDDIR)/tool-autoconf-for-gcc
-	mkdir -p $(BUILDDIR)/tool-autoconf-for-gcc
-	cd $(BUILDDIR)/tool-autoconf-for-gcc && $(SRCDIR)/autoconf-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
-	touch buildstepsdir/tool-autoconf-for-gcc
-
-# Build automake-for-gcc tool:
-buildstepsdir/tool-automake-for-gcc: buildstepsdir/src-automake-for-gcc
-	-rm -rf $(BUILDDIR)/tool-automake-for-gcc
-	mkdir -p $(BUILDDIR)/tool-automake-for-gcc
-	cd $(BUILDDIR)/tool-automake-for-gcc && $(SRCDIR)/automake-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
-	touch buildstepsdir/tool-automake-for-gcc
-
-# Build gcc cross:
+# Configure & build gcc cross:
 buildstepsdir/cross-gcc: buildstepsdir/src-gcc buildstepsdir/cross-binutils
 	-rm -rf $(BUILDDIR)/cross-gcc
 	mkdir -p $(BUILDDIR)/cross-gcc
 	cd $(BUILDDIR)/cross-gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/gcc/configure $(CROSS_CONFIG_ARGS) $(GCC_CONFIG_ARGS) --enable-languages=$(GCC_LANGUAGES) && $(MAKE) $(GCC_BUILD_FLAGS) && $(MAKE) install
 	touch buildstepsdir/cross-gcc
 
-# Build gcc ronative:
+# Configure & build gcc ronative:
 buildstepsdir/ronative-gcc: buildstepsdir/cross-done
 	-rm -rf $(BUILDDIR)/ronative-gcc
 	mkdir -p $(BUILDDIR)/ronative-gcc
 	cd $(BUILDDIR)/ronative-gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/gcc/configure $(RONATIVE_CONFIG_ARGS) $(GCC_CONFIG_ARGS) --enable-languages=$(GCC_LANGUAGES) && $(MAKE) $(GCC_BUILD_FLAGS) && $(MAKE) install
 	touch buildstepsdir/ronative-gcc
 
-# Build gdb:
+# Configure & build gdb:
 buildstepsdir/cross-gdb: buildstepsdir/src-gdb buildstepsdir/cross-gcc
 	-rm -rf $(BUILDDIR)/cross-gdb
 	mkdir -p $(BUILDDIR)/cross-gdb
-	cd $(BUILDDIR)/cross-gdb && PATH="$(PREFIX_CROSS)/bin:$(PATH)" && $(ORIGSRCDIR)/gdb/configure $(CROSS_CONFIG_ARGS) $(GDB_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
+	cd $(BUILDDIR)/cross-gdb && PATH="$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCORIGDIR)/gdb/configure $(CROSS_CONFIG_ARGS) $(GDB_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
 	touch buildstepsdir/cross-gdb
 
 # Build the RISC OS related tools (cmunge, elf2aif, asasm, etc) cross:
@@ -208,77 +208,77 @@ buildstepsdir/ronative-riscostools: buildstepsdir/ronative-gcc
 # -- Source unpacking.
 
 # Unpack autoconf-for-binutils source:
-buildstepsdir/src-autoconf-for-binutils: $(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
-	-rm -rf $(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION) $(SRCDIR)/autoconf
-	cd $(ORIGSRCDIR) && tar xfj autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
+buildstepsdir/src-autoconf-for-binutils: $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
+	-rm -rf $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION) $(SRCDIR)/autoconf-for-binutils
+	cd $(SRCORIGDIR) && tar xfj autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
 	-mkdir -p $(SRCDIR)/autoconf-for-binutils
-	cp -T -p -r $(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION) $(SRCDIR)/autoconf-for-binutils
+	cp -T -p -r $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION) $(SRCDIR)/autoconf-for-binutils
 	## cd $(SRCDIR)/autoconf-for-binutils && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
 	-mkdir -p buildstepsdir
 	touch buildstepsdir/src-autoconf-for-binutils
 
-# Unpack automake-for-binutils source:
-buildstepsdir/src-automake-for-binutils: $(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
-	-rm -rf $(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION) $(SRCDIR)/automake
-	cd $(ORIGSRCDIR) && tar xfj automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
-	-mkdir -p $(SRCDIR)/automake-for-binutils
-	cp -T -p -r $(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION) $(SRCDIR)/automake-for-binutils
-	## cd $(SRCDIR)/automake-for-binutils && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
-	-mkdir -p buildstepsdir
-	touch buildstepsdir/src-automake-for-binutils
-
-# Unpack binutils source:
-buildstepsdir/src-binutils: $(ORIGSRCDIR)/binutils-$(BINUTILS_VERSION).tar.bz2 buildstepsdir/tool-autoconf-for-binutils buildstepsdir/tool-automake-for-binutils
-	-rm -rf $(ORIGSRCDIR)/binutils-$(BINUTILS_VERSION) $(SRCDIR)/binutils
-	cd $(ORIGSRCDIR) && tar xfj binutils-$(BINUTILS_VERSION).tar.bz2
-	-mkdir -p $(SRCDIR)/binutils
-	cp -T -p -r $(ORIGSRCDIR)/binutils-$(BINUTILS_VERSION) $(SRCDIR)/binutils
-	cd $(SRCDIR)/binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
-	-mkdir -p buildstepsdir
-	touch buildstepsdir/src-binutils
-
-# Unpack autoconf-for-binutils source:
-buildstepsdir/src-autoconf-for-gcc: $(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2
-	-rm -rf $(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION) $(SRCDIR)/autoconf
-	cd $(ORIGSRCDIR) && tar xfj autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2
+# Unpack autoconf-for-gcc source:
+buildstepsdir/src-autoconf-for-gcc: $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2
+	-rm -rf $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION) $(SRCDIR)/autoconf-for-gcc
+	cd $(SRCORIGDIR) && tar xfj autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2
 	-mkdir -p $(SRCDIR)/autoconf-for-gcc
-	cp -T -p -r $(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION) $(SRCDIR)/autoconf-for-gcc
+	cp -T -p -r $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION) $(SRCDIR)/autoconf-for-gcc
 	## cd $(SRCDIR)/autoconf-for-gcc && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
 	-mkdir -p buildstepsdir
 	touch buildstepsdir/src-autoconf-for-gcc
 
+# Unpack automake-for-binutils source:
+buildstepsdir/src-automake-for-binutils: $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
+	-rm -rf $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION) $(SRCDIR)/automake-for-binutils
+	cd $(SRCORIGDIR) && tar xfj automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
+	-mkdir -p $(SRCDIR)/automake-for-binutils
+	cp -T -p -r $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION) $(SRCDIR)/automake-for-binutils
+	## cd $(SRCDIR)/automake-for-binutils && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
+	-mkdir -p buildstepsdir
+	touch buildstepsdir/src-automake-for-binutils
+
 # Unpack automake-for-gcc source:
-buildstepsdir/src-automake-for-gcc: $(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
-	-rm -rf $(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION) $(SRCDIR)/automake
-	cd $(ORIGSRCDIR) && tar xfj automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
+buildstepsdir/src-automake-for-gcc: $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
+	-rm -rf $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION) $(SRCDIR)/automake-for-gcc
+	cd $(SRCORIGDIR) && tar xfj automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
 	-mkdir -p $(SRCDIR)/automake-for-gcc
-	cp -T -p -r $(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION) $(SRCDIR)/automake-for-gcc
+	cp -T -p -r $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION) $(SRCDIR)/automake-for-gcc
 	## cd $(SRCDIR)/automake-for-gcc && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
 	-mkdir -p buildstepsdir
 	touch buildstepsdir/src-automake-for-gcc
 
+# Unpack binutils source:
+buildstepsdir/src-binutils: $(SRCORIGDIR)/binutils-$(BINUTILS_VERSION).tar.bz2 buildstepsdir/buildtool-autoconf-for-binutils buildstepsdir/buildtool-automake-for-binutils
+	-rm -rf $(SRCORIGDIR)/binutils-$(BINUTILS_VERSION) $(SRCDIR)/binutils
+	cd $(SRCORIGDIR) && tar xfj binutils-$(BINUTILS_VERSION).tar.bz2
+	-mkdir -p $(SRCDIR)/binutils
+	cp -T -p -r $(SRCORIGDIR)/binutils-$(BINUTILS_VERSION) $(SRCDIR)/binutils
+	cd $(SRCDIR)/binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
+	-mkdir -p buildstepsdir
+	touch buildstepsdir/src-binutils
+
 # Unpack gcc source:
-buildstepsdir/src-gcc: $(ORIGSRCDIR)/gcc-$(GCC_VERSION).tar.bz2 buildstepsdir/tool-autoconf-for-gcc buildstepsdir/tool-automake-for-gcc
-	-rm -rf $(ORIGSRCDIR)/gcc-$(GCC_VERSION) $(SRCDIR)/gcc
-	cd $(ORIGSRCDIR) && tar xfj gcc-$(GCC_VERSION).tar.bz2
+buildstepsdir/src-gcc: $(SRCORIGDIR)/gcc-$(GCC_VERSION).tar.bz2 buildstepsdir/buildtool-autoconf-for-gcc buildstepsdir/buildtool-automake-for-gcc
+	-rm -rf $(SRCORIGDIR)/gcc-$(GCC_VERSION) $(SRCDIR)/gcc
+	cd $(SRCORIGDIR) && tar xfj gcc-$(GCC_VERSION).tar.bz2
 	-mkdir -p $(SRCDIR)/gcc
-	cp -T -p -r $(ORIGSRCDIR)/gcc-$(GCC_VERSION) $(SRCDIR)/gcc
+	cp -T -p -r $(SRCORIGDIR)/gcc-$(GCC_VERSION) $(SRCDIR)/gcc
 	cd $(SRCDIR)/gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
 	-mkdir -p buildstepsdir
 	touch buildstepsdir/src-gcc
 
 # Unpack newlib source:
-buildstepsdir/src-newlib: $(ORIGSRCDIR)/newlib-$(NEWLIB_VERSION).tar.gz
-	-rm -rf $(ORIGSRCDIR)/newlib-$(NEWLIB_VERSION) $(SRCDIR)/newlib
-	cd $(ORIGSRCDIR) && tar xfz newlib-$(NEWLIB_VERSION).tar.gz
+buildstepsdir/src-newlib: $(SRCORIGDIR)/newlib-$(NEWLIB_VERSION).tar.gz
+	-rm -rf $(SRCORIGDIR)/newlib-$(NEWLIB_VERSION) $(SRCDIR)/newlib
+	cd $(SRCORIGDIR) && tar xfz newlib-$(NEWLIB_VERSION).tar.gz
 	# FIXME: add stuff
 	-mkdir -p buildstepsdir
 	touch buildstepsdir/src-newlib
 
 # Unpack gdb source:
-buildstepsdir/src-gdb: $(ORIGSRCDIR)/gdb-$(GDB_VERSION).tar.bz2
-	-rm -rf $(ORIGSRCDIR)/gdb-$(GDB_VERSION) $(SRCDIR)/gdb
-	cd $(ORIGSRCDIR) && tar xfj gdb-$(GDB_VERSION).tar.bz2
+buildstepsdir/src-gdb: $(SRCORIGDIR)/gdb-$(GDB_VERSION).tar.bz2
+	-rm -rf $(SRCORIGDIR)/gdb-$(GDB_VERSION) $(SRCDIR)/gdb
+	cd $(SRCORIGDIR) && tar xfj gdb-$(GDB_VERSION).tar.bz2
 	# FIXME: add stuff
 	-mkdir -p buildstepsdir
 	touch buildstepsdir/src-gdb
@@ -286,54 +286,54 @@ buildstepsdir/src-gdb: $(ORIGSRCDIR)/gdb-$(GDB_VERSION).tar.bz2
 # -- Source downloading.
 
 # Download autoconf source to be used to build binutils:
-$(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2:
-	-rm $(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
-	-mkdir -p $(ORIGSRCDIR)
-	cd $(ORIGSRCDIR) && wget -c http://ftp.gnu.org/gnu/autoconf/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
+$(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2:
+	-rm $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
+	-mkdir -p $(SRCORIGDIR)
+	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/autoconf/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
 
 # Download automake source to be used to build automake:
-$(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2:
-	-rm $(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
-	-mkdir -p $(ORIGSRCDIR)
-	cd $(ORIGSRCDIR) && wget -c http://ftp.gnu.org/gnu/automake/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
+$(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2:
+	-rm $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
+	-mkdir -p $(SRCORIGDIR)
+	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/automake/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
 
 ifneq ($(AUTOCONF_FOR_BINUTILS_VERSION),$(AUTOCONF_FOR_GCC_VERSION))
 # Download autoconf source to be used to build gcc:
-$(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2:
-	-rm $(ORIGSRCDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2
-	-mkdir -p $(ORIGSRCDIR)
-	cd $(ORIGSRCDIR) && wget -c http://ftp.gnu.org/gnu/autoconf/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2
+$(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2:
+	-rm $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2
+	-mkdir -p $(SRCORIGDIR)
+	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/autoconf/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2
 endif
 
 ifneq ($(AUTOMAKE_FOR_BINUTILS_VERSION),$(AUTOMAKE_FOR_GCC_VERSION))
 # Download automake source to be used to build gcc:
-$(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2:
-	-rm $(ORIGSRCDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
-	-mkdir -p $(ORIGSRCDIR)
-	cd $(ORIGSRCDIR) && wget -c http://ftp.gnu.org/gnu/automake/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
+$(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2:
+	-rm $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
+	-mkdir -p $(SRCORIGDIR)
+	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/automake/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
 endif
 
 # Download binutils source:
-$(ORIGSRCDIR)/binutils-$(BINUTILS_VERSION).tar.bz2:
-	-rm $(ORIGSRCDIR)/binutils-$(BINUTILS_VERSION).tar.bz2
-	-mkdir -p $(ORIGSRCDIR)
-	cd $(ORIGSRCDIR) && wget -c http://ftp.gnu.org/gnu/binutils/binutils-$(BINUTILS_VERSION).tar.bz2
+$(SRCORIGDIR)/binutils-$(BINUTILS_VERSION).tar.bz2:
+	-rm $(SRCORIGDIR)/binutils-$(BINUTILS_VERSION).tar.bz2
+	-mkdir -p $(SRCORIGDIR)
+	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/binutils/binutils-$(BINUTILS_VERSION).tar.bz2
 
 # Download gcc source:
-$(ORIGSRCDIR)/gcc-$(GCC_VERSION).tar.bz2:
-	-rm $(ORIGSRCDIR)/gcc-$(GCC_VERSION).tar.bz2
-	-mkdir -p $(ORIGSRCDIR)
-	cd $(ORIGSRCDIR) && wget -c http://ftp.gnu.org/gnu/gcc/gcc-$(GCC_VERSION)/gcc-$(GCC_VERSION).tar.bz2
+$(SRCORIGDIR)/gcc-$(GCC_VERSION).tar.bz2:
+	-rm $(SRCORIGDIR)/gcc-$(GCC_VERSION).tar.bz2
+	-mkdir -p $(SRCORIGDIR)
+	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/gcc/gcc-$(GCC_VERSION)/gcc-$(GCC_VERSION).tar.bz2
 
 # Download newlib source:
-$(ORIGSRCDIR)/newlib-$(NEWLIB_VERSION).tar.gz:
-	-rm $(ORIGSRCDIR)/newlib-$(NEWLIB_VERSION).tar.gz
-	-mkdir -p $(ORIGSRCDIR)
-	cd $(ORIGSRCDIR) && wget -c http://sources.redhat.com/pub/newlib/newlib-$(NEWLIB_VERSION).tar.gz
+$(SRCORIGDIR)/newlib-$(NEWLIB_VERSION).tar.gz:
+	-rm $(SRCORIGDIR)/newlib-$(NEWLIB_VERSION).tar.gz
+	-mkdir -p $(SRCORIGDIR)
+	cd $(SRCORIGDIR) && wget -c http://sources.redhat.com/pub/newlib/newlib-$(NEWLIB_VERSION).tar.gz
 
 # Download gdb source:
-$(ORIGSRCDIR)/gdb-$(GDB_VERSION).tar.bz2:
-	-rm $(ORIGSRCDIR)/gdb-$(GDB_VERSION).tar.bz2
-	-mkdir -p $(ORIGSRCDIR)
-	cd $(ORIGSRCDIR) && wget -c http://ftp.gnu.org/gnu/gdb/gdb-$(GDB_VERSION).tar.bz2
+$(SRCORIGDIR)/gdb-$(GDB_VERSION).tar.bz2:
+	-rm $(SRCORIGDIR)/gdb-$(GDB_VERSION).tar.bz2
+	-mkdir -p $(SRCORIGDIR)
+	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/gdb/gdb-$(GDB_VERSION).tar.bz2
 

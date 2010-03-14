@@ -125,7 +125,7 @@ Following <type> values are in use:
   src       : Source downloaded in srcdir.orig directory.  Those sources are
               binutils, gcc, autoconf & automake (possibly different versions
               for binutils and gcc).
-  tool      : Build & installed tool needed during the build.  Thost tools are
+  buildtool : Build & installed tool needed during the build.  Those tools are
               currently autoconf and automake.
   clean     : Removes temporary build produced files but not the installed
               compiler.
@@ -176,11 +176,11 @@ restart that step where it left off:
        regenerating of the makefile is needed for one of the binutils
        components, use:
 
-         $ PATH=<path-to-builddir>/cross-buildtool-binutils/bin:$PATH make install
+         $ PATH=<path-to-builddir>/installed-buildtools-for-binutils/bin:$PATH make install
      
        For one of the gcc components, use:
 
-         $ PATH=<path-to-builddir>/cross-buildtool-gcc/bin:$PATH make install
+         $ PATH=<path-to-builddir>/installed-buildtools-for-gcc/bin:$PATH make install
 
 2.3. Build porting tools
 ~~~~~~~~~~~~~~~~~~~~~~~~
