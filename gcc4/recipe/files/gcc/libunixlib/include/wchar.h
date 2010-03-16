@@ -402,7 +402,7 @@ __END_NAMESPACE_STD
    locales must use ASCII encoding for the values in the ASCII range
    and because the wchar_t encoding is always ISO 10646.  */
 extern wint_t __btowc_alias (int __c) __asm ("btowc");
-extern __inline __attribute__ ((__gnu_inline__)) /*__extern_inline*/ wint_t
+__extern_inline wint_t
 __NTH (btowc (int __c))
 { return (__builtin_constant_p (__c) && __c >= '\0' && __c <= '\x7f'
 	  ? (wint_t) __c : __btowc_alias (__c)); }

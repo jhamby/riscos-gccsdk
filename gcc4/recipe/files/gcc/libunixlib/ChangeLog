@@ -1,3 +1,11 @@
+Wed Mar 17 00:19:35 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/stdlib.h: Replace 'extern __inline' by '__extern_inline'.
+	* include/bits/cmathcalls.h: Likewise.
+	* include/bits/wchar.h: Likewise.
+	* stdlib/atol.c, stdlib/atoll.c, stdlib/atof.c,	stdlib/atoi.c:
+	Reverted previous change (r4509).
+
 Fri Mar 12 01:29:34 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* signal/post.c (__write_backtrace): Revert workaround as llvm bug

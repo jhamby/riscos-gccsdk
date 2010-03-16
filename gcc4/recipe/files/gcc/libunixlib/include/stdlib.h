@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.10: General Utilities <stdlib.h>.
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __STDLIB_H
@@ -272,17 +272,17 @@ __END_NAMESPACE_C99
 /* Define inline functions which call the internal entry points.  */
 
 __BEGIN_NAMESPACE_STD
-extern __inline double
+__extern_inline double
 __NTH (atof (__const char *__nptr))
 {
   return strtod (__nptr, (char **) NULL);
 }
-extern __inline int
+__extern_inline int
 __NTH (atoi (__const char *__nptr))
 {
   return (int) strtol (__nptr, (char **) NULL, 10);
 }
-extern __inline long int
+__extern_inline long int
 __NTH (atol (__const char *__nptr))
 {
   return strtol (__nptr, (char **) NULL, 10);
@@ -291,7 +291,7 @@ __END_NAMESPACE_STD
 
 # if defined __USE_MISC || defined __USE_ISOC99
 __BEGIN_NAMESPACE_C99
-__extension__ extern __inline long long int
+__extension__ __extern_inline long long int
 __NTH (atoll (__const char *__nptr))
 {
   return strtoll (__nptr, (char **) NULL, 10);
