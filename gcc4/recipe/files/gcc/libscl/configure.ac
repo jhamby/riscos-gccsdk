@@ -101,14 +101,7 @@ m4_rename([_AC_ARG_VAR_PRECIOUS],[real_PRECIOUS])
 m4_define([_AC_ARG_VAR_PRECIOUS],[])
 AC_PROG_CC
 AC_PROG_CPP
-
-# The following line is the equivalent of:
-#
-# m4_rename_force([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
-#
-# however, m4_rename_force is only defined in newer versions of autoconf and 
-# not in autoconf2.59.
-m4_ifdef([_AC_ARG_VAR_PRECIOUS], [m4_undefine([_AC_ARG_VAR_PRECIOUS])])m4_rename([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
+m4_rename([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
 
 AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
@@ -122,9 +115,6 @@ AC_CHECK_TOOL(RANLIB, ranlib, ranlib-not-found-in-path-error)
 AC_PROG_MAKE_SET
 # Get 'install' or 'install-sh' and its variants
 AC_PROG_INSTALL
-# FIXME: change following two lines into: LT_INIT([disable-shared])
-AC_DISABLE_SHARED
-AC_PROG_LIBTOOL
 
 # Calculate toolexeclibdir
 # Also toolexecdir, though it's only used in toolexeclibdir
