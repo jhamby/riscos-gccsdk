@@ -1,0 +1,14 @@
+| This file is part of !RiscPkg.
+| Copyright © 2003-2005 Graham Shaw.            
+| Distribution and use are subject to the GNU General Public License,
+| a copy of which may be found in the file !RiscPkg.Copyright.
+
+If "<RiscPkg$Dir>"="" Then Set RiscPkg$Dir <Obey$Dir>
+If "<RiscPkg$Dir>"="<Obey$Dir>" AND "<RiscPkg$Help>"="" Then Set RiscPkg$Help <RiscPkg$Dir>.doc.index/html
+If "<RiscPkg$Dir>"="<Obey$Dir>" AND "<RiscPkg$Version>"="" Then Set RiscPkg$Version 0.3.1
+If "<RiscPkg$Dir>"="<Obey$Dir>" AND "<RiscPkg$Web>"="" Then Set RiscPkg$Web http://www.riscpkg.org/
+If "<RiscPkg$Dir>"="<Obey$Dir>" AND "<RiscPkg$Title>"="" Then Set RiscPkg$Title RiscPkg
+If "<RiscPkg$Dir>"="<Obey$Dir>" AND "<RiscPkg$Publisher>"="" Then Set RiscPkg$Publisher The RISC OS Packaging Project
+If "<RiscPkg$Dir>"="<Obey$Dir>" AND "<RiscPkg$Description>"="" Then Set RiscPkg$Description A package manager for RISC OS
+If "<RiscPkg$Dir>"="<Obey$Dir>" Then IconSprites <RiscPkg$Dir>.!Sprites
+If "<Packages$Dir>"="" Then IconSprites <RiscPkg$Dir>.Resources.!Packages.!Sprites

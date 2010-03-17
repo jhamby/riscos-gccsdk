@@ -1,0 +1,25 @@
+
+AB_SVN=http://source.riscpkg.org/svn/RiscPkg/trunk
+
+cd \!RiscPkg
+
+ab_package() {
+  ab_create_app RiscPkg Apps/Admin
+
+  ab_makerun $S/!RunImage
+
+  mkdir -p $A/doc
+  mkdir -p $A/icon
+  mkdir -p $A/resources
+
+  cp -v $S/Copyright $S/History $S/README $A
+
+  cp -v $S/doc/* $A/doc
+  cp -av $S/Resources/* $A/resources
+  cp -v $S/icon/* $A/icon
+
+  $AB_HOME/add-riscpkg -unixlib
+
+}
+
+
