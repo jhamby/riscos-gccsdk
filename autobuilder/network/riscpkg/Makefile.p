@@ -18,7 +18,7 @@
 + -lssl \
 + -lrtk
  
-+.PHONE: all
++.PHONY: all
  all: !RunImage
  
  !RunImage: $(CCSRC:.cc=.o)
