@@ -1,6 +1,6 @@
---- !RiscPkg/Makefile.orig	2010-03-15 20:49:39.000000000 +0000
-+++ !RiscPkg/Makefile	2010-03-17 20:46:28.000000000 +0000
-@@ -9,14 +9,29 @@
+--- !RiscPkg/Makefile.orig	2010-03-18 02:20:21.000000000 +0000
++++ !RiscPkg/Makefile	2010-03-18 02:21:54.000000000 +0000
+@@ -9,14 +9,27 @@
  
  LIB = \
   -lstdc++ \
@@ -18,7 +18,7 @@
 + -lssl \
 + -lrtk
  
-+.PHONY: all
++.PHONE: all
  all: !RunImage
  
  !RunImage: $(CCSRC:.cc=.o)
@@ -33,4 +33,3 @@
 +
 +.PHONY: distclean
 +distclean: clean
-+	find . -name ".svn" -exec rm -rf {} \;
