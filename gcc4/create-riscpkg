@@ -19,9 +19,9 @@ source $GCCSDK_ROOT/setup-gccsdk-params
 RPKG_VERSION=1
 
 # Non GCCSDK named packages
-RPKG_SHAREDLIBS_NAME=sharedlibs
-RPKG_UNIXLIB_NAME=sharedunixlibrary
-RPKG_DRENDERER_NAME=drenderer
+RPKG_SHAREDLIBS_NAME=SharedLibs
+RPKG_UNIXLIB_NAME=SharedUnixLibrary
+RPKG_DRENDERER_NAME=DRenderer
 
 # Set versions
 . ./riscpkg-versions
@@ -37,10 +37,10 @@ BKIT_SYSTEM_NAME=system
 BKIT_SHAREDLIBSCORE_NAME=gccsdk-sharedlibs-core
 BKIT_SHAREDLIBSGPP_NAME=gccsdk-sharedlibs-g++
 
-RPKG_GCCCORE_NAME=gcc4
-RPKG_GCCGPP_NAME=gcc4-c++
-RPKG_SHAREDLIBSC_NAME=sharedlibs-c
-RPKG_SHAREDLIBSGPP_NAME=sharedlibs-c++
+RPKG_GCCCORE_NAME=GCC4
+RPKG_GCCGPP_NAME=GCC4-C++
+RPKG_SHAREDLIBSC_NAME=SharedLibs-C
+RPKG_SHAREDLIBSGPP_NAME=SharedLibs-C++
 
 GCCSDK_MAINTAINER="GCCSDK mailing list <gcc@gccsdk.riscos.info>"
 
@@ -146,11 +146,11 @@ cd $GCCSDK_RISCPKG
 
 mkdir temp
 cd temp
-mkdir -p Apps/Develop
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC Apps/Develop
+mkdir -p Apps/Development
+cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC Apps/Development
 
 # Add Examples
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/Examples Apps/Develop/\!GCC
+cp -r $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/Examples Apps/Development/\!GCC
 
 mkdir RiscPkg
 
@@ -158,7 +158,7 @@ mkdir RiscPkg
 echo "Package: $RPKG_GCCCORE_NAME" > RiscPkg/Control
 echo "Version: $GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
-echo "Section: Develop" >> RiscPkg/Control
+echo "Section: Development" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
@@ -206,8 +206,8 @@ rm -rf temp
 
 mkdir temp
 cd temp
-mkdir -p Apps/Develop
-cp -r $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/\!GCC Apps/Develop
+mkdir -p Apps/Development
+cp -r $GCCSDK_UNPACKED/$BKIT_GCCGPP_NAME/\!GCC Apps/Development
 
 mkdir RiscPkg
 
@@ -215,7 +215,7 @@ mkdir RiscPkg
 echo "Package: $RPKG_GCCGPP_NAME" > RiscPkg/Control
 echo "Version: $GCCSDK_FULL_RELEASE_NAME-$RPKG_VERSION" >> RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
-echo "Section: Develop" >> RiscPkg/Control
+echo "Section: Development" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Licence: Free" >> RiscPkg/Control
