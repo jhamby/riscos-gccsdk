@@ -1,15 +1,19 @@
 
-AB_CATEGORY=Develop
+AB_CATEGORY=Development
 
 AB_PRECONF="CFLAGS=\"-DNO_ARCHIVES -DSYS_SIGLIST_DECLARED -O2\""
 
 ab_package() {
 
-  mkdir -p $D/Apps/$AB_CATEGORY/\!GCC/bin/
-  mkdir -p $D/Apps/$AB_CATEGORY/\!GCC/docs/
+  A=$D/$AB_PACKAGE/Apps/$AB_CATEGORY/\!GCC
+  mkdir -p $A/bin/
+  mkdir -p $A/docs/
 
-  cp $S/make$AB_EXEEXT $D/Apps/$AB_CATEGORY\/!GCC/bin/
-  rman -f HTML $S/make.1 > $D/Apps/$AB_CATEGORY/\!GCC/docs/make.html,faf
+
+  cp $S/make$AB_EXEEXT $A/bin
+  rman -f HTML $S/make.1 > $A/docs/make.html,faf
+
+  export AB_SUBPACKAGE=$AB_PACKAGE
 
   $AB_HOME/add-riscpkg -unixlib
 }
