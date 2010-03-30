@@ -20,6 +20,7 @@ D=$AB_DIR/package/${AB_SUBPACKAGE}
 depends=""
 package="$AB_SUBPACKAGE"
 section="$AB_CATEGORY"
+pkgname=""
 
 # Scan the boot file for variables etc,
 scan_boot_file() {
@@ -38,7 +39,7 @@ boot_vars="yes"
 for param in $@ ; do
   case "$param" in
   -unixlib)
-     depends="$depends, UnixLib"
+     depends="$depends, SharedUnixLibrary (>= 1.11)"
      ;;
   -unixsound)
      depends="$depends, DRenderer"
@@ -104,6 +105,9 @@ for param in $@ ; do
      -section)
          section="$param"
          ;;
+     -name)
+         pkgname="$param"
+         ;;
      *)
        echo "add-riscpkg: Invalid parameter $last_param"
        exit 1
@@ -114,6 +118,12 @@ for param in $@ ; do
      ;;
   esac
 done
+
+# Create default package name if not specified by uppercasing the first letter,
+# the first letter after "Lib" and the first letter after every "-"
+if [ -z "$pkgname" ] ; then
+   pkgname=`echo "$package" | sed -e 's/^\([a-z]\)/\u\1/' -e 's/^\(Lib\)\(.\)/\1\u\2/' -e 's/\(-\)\(.\)/\1\u\2/g'`
+fi
 
 # Create SysVars from entries in !Boot file
 if [ "$boot_vars" == "yes" ] && [ ! -z "$boot_file" ] ; then     
@@ -165,7 +175,7 @@ if [ -e "$H/RiscPkg/Control" ] ; then
   has_depends=`grep "^Depends:" $H/RiscPkg/Control` || true
 fi
 
-echo "Package: $package" > $D/RiscPkg/Control
+echo "Package: $pkgname" > $D/RiscPkg/Control
 echo "Version: $AB_PVERSION-$AB_ROVERSION" >> $D/RiscPkg/Control
 echo "Section: $section" >> $D/RiscPkg/Control
 echo "Priority: Optional" >> $D/RiscPkg/Control
