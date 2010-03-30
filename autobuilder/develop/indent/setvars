@@ -2,7 +2,7 @@
 /usr/bin/cc -o man/texinfo2man man/texinfo2man.c
 
 ab_package() {
-  ab_create_command_app Indent Apps/Develop
+  ab_create_command_app Indent Apps/Development
   ab_add_commands $S/src/indent$AB_EXEEXT
 
   cp -av $S/COPYING $A/
