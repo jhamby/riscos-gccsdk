@@ -33,7 +33,7 @@ and work with GCCSDK on top of a typical recent standard Unix distribution:
 - wget (to fetch the binutils, gcc and autoconf/automake sources)
 
 Specific versions of automake and autoconf are also needed but they will
-be automatically downloaded, built & installed localy and used.
+be automatically downloaded, built & installed locally and used.
 
 When you want to build Ada:
 
@@ -77,7 +77,7 @@ porting tools, and you can jump straight to step 3 "Using the cross compiler".
 2.1. Build setup
 ~~~~~~~~~~~~~~~~
 
-What follows documents the more involved semi-manual build prodecure. This
+What follows documents the more involved semi-manual build procedure. This
 might be required if you have problems with the build and need to 
 debug issues. It is also relevant if you want to make improvements 
 to GCCSDK.
@@ -243,7 +243,7 @@ the #include line is being searched for.
 3.2. Throwback
 ~~~~~~~~~~~~~~
 
-When used in conjuction with the SysLogD module, the cross-compiler can
+When used in conjunction with the SysLogD module, the cross-compiler can
 produce throwback messages on a RISC OS machine when cross-compiling on
 a different machine. This allows you to edit in RISC OS files stored on
 a network filing system, cross-compile, and get throwback as if the
@@ -306,7 +306,7 @@ Developer changes can and should first be done in 'srcdir' directory and you
 can then rebuild parts of GCCSDK by going to the appropriate subdirectory
 inside 'builddir' and issue a 'make' or 'make install' there (cfr. point 2.2).
 
-When those changes are ready to be commited, either patches need to be created
+When those changes are ready to be committed, either patches need to be created
 (in recipe/patches directory) or either full file copy needs to be made (in
 recipe/files directory).
 
