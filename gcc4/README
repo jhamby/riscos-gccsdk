@@ -29,6 +29,7 @@ and work with GCCSDK on top of a typical recent standard Unix distribution:
 - libtool v1.5.22 (other versions might work too)
 - patch v2.5.9 (other versions might work too)
 - makeinfo v4.8 (other versions might work too, Debian package 'texinfo')
+- help2man
 - wget (to fetch the binutils, gcc and autoconf/automake sources)
 
 Specific versions of automake and autoconf are also needed but they will
