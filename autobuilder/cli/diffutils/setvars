@@ -1,8 +1,11 @@
 
-AB_CATEGORY=Command
-
 AB_MANPAGE="man/cmp.1 man/diff.1 man/diff3.1 man/sdiff.1"
 
 ab_package() {
-  cp $S/src/*$AB_EXEEXT $S/COPYING $D
+  ab_create_command_app DiffUtils Apps/Utilities
+  ab_add_commands  $S/src/*$AB_EXEEXT
+  
+  cp $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib
 }
