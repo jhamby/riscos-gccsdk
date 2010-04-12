@@ -1,10 +1,13 @@
 
-AB_CATEGORY=Command
-
 AB_MANPAGE=man/mawk.1
 
 AB_MAKE="$AB_MAKE mawk"
 
 ab_package() {
-  cp $S/mawk$AB_EXEEXT $S/COPYING $D
+  ab_create_command_app Mawk Apps/Utilities
+  ab_add_commands $S/mawk$AB_EXEEXT
+
+  cp $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib
 }
