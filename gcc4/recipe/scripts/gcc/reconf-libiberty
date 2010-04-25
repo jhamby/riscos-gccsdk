@@ -1,0 +1,5 @@
+#!/bin/bash -e
+# Auto-generate 'libiberty' as we've patched it.
+# Copyright (c) 2010 GCCSDK Developers
+
+( cd libiberty && autoconf )
