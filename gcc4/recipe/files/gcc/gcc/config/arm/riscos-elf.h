@@ -100,7 +100,24 @@
 #define LIB_SPEC \
   "%{!nostdlib:%{mlibscl:-lscl; :-lunixlib }}"
 
-#define LIBGCC_SPEC	"-lgcc"
+/* In general:
+     When building with --enable-shared:
+       libgcc.a = support rotuines, not including EH
+       libgcc_eh.a = EH support routines
+       libgcc_s.so = support routines, including EH
+     When building with --disable-shared:
+       libgcc.a = support routines including EH
+   Even when --enable-shared is used, the SCL cases are all forced
+   to a --disable-shared alike mode and don't have a libgcc_eh.a built.
+   For the non-SCL cases, we only link with libgcc_s.so when linking with
+   shared libraries as we can't have text relocations coming from libgcc.a.  */
+#ifdef ENABLE_SHARED_LIBGCC
+#  define REAL_LIBGCC_SPEC \
+     "%{mmodule|mlibscl:-lgcc;:%{static|static-libgcc:-lgcc -lgcc_eh;:-lgcc_s%{!shared: -lgcc}}}"
+#else
+#  define REAL_LIBGCC_SPEC \
+     "-lgcc"
+#endif
 
 /* Provide a STARTFILE_SPEC appropriate for GNU/Linux.  Here we add
    the GNU/Linux magical crtbegin.o file (see crtstuff.c) which
