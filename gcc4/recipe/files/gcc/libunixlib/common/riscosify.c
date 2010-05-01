@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 /* #define DEBUG */
 
 #ifdef __TARGET_SOLOADER__
-#define __TARGET_SCL__
+#  define __TARGET_SCL__
 #endif
 
 #ifdef __TARGET_SCL__
@@ -36,7 +36,14 @@
 
 #endif
 
-#include <assert.h>
+#ifdef __TARGET_SOLOADER__
+/* We don't have a sensible assert() implementation.  */
+#  undef __UNIXLIB_PARANOID
+#endif
+
+#if __UNIXLIB_PARANOID
+#  include <assert.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <swis.h>
@@ -45,25 +52,24 @@
 
 #ifdef __TARGET_SOLOADER__
 #  include <unixlib/local.h>
-#define memcpy _dl_memcpy
-#define malloc _dl_malloc
-#define strncmp _dl_strncmp
-#define strcat _dl_strcat
-#define strcpy _dl_strcpy
-#define strchr _dl_strchr
-#define getenv _dl_getenv
+#  define memcpy _dl_memcpy
+#  define malloc _dl_malloc
+#  define strncmp _dl_strncmp
+#  define strcat _dl_strcat
+#  define strcpy _dl_strcpy
+#  define strchr _dl_strchr
+#  define getenv _dl_getenv
 
-#define __riscosify_scl _dl_riscosify_dl
-#define __riscosify_std _dl_riscosify_std
-#define __riscosify     _dl_riscosify
-#define __sfixinit _dl_sfixinit 
-#define __sfixfind _dl_sfixfind
+#  define __riscosify_scl _dl_riscosify_dl
+#  define __riscosify_std _dl_riscosify_std
+#  define __riscosify     _dl_riscosify
+#  define __sfixinit _dl_sfixinit 
+#  define __sfixfind _dl_sfixfind
 
-#define __filename_char_map _dl_filename_char_map
+#  define __filename_char_map _dl_filename_char_map
 extern const char _dl_filename_char_map[256];
 
-#define __get_riscosify_control() (0)
-
+#  define __get_riscosify_control() (0)
 #endif
 
 /* Special directory list.  */

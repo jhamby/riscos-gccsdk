@@ -1,3 +1,8 @@
+Sun May  2 00:58:38 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* common/riscosify.c: Fix the __TARGET_SOLOADER__ case when build
+	option __UNIX_PARANOID is set.
+
 Wed Mar 17 00:19:35 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/stdlib.h: Replace 'extern __inline' by '__extern_inline'.
