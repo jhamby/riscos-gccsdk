@@ -1,0 +1,86 @@
+|--------------------------------------------------------------------------
+|
+|   Copyright (c) 2002, Colin Granville
+|
+|   All rights reserved.
+|
+|   Redistribution and use in source and binary forms, with or
+|   without modification, are permitted provided that the following 
+|   conditions are met:
+|
+|      * Redistributions of source code must retain the above copyright 
+|        notice, this list of conditions and the following disclaimer.
+|
+|      * Redistributions in binary form must reproduce the above 
+|        copyright notice, this list of conditions and the following 
+|        disclaimer in the documentation and/or other materials 
+|        provided with the distribution.
+|
+|      * The name Colin Granville may not be used to endorse or promote 
+|        products derived from this software without specific prior 
+|        written permission.
+|
+|   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
+|   "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT 
+|   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS 
+|   FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE 
+|   COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, 
+|   INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+|   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR 
+|   SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) 
+|   HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, 
+|   STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+|   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED 
+|   OF THE POSSIBILITY OF SUCH DAMAGE.
+|
+|--------------------------------------------------------------------------
+
+run <obey$dir>.!boot
+
+RMEnsure UtilityModule 3.10 Error This application is only suitable for use with RISC OS 3.10 or later versions
+
+RMEnsure FilterManager 0.00 RMLoad System:modules.FilterMgr
+RMEnsure FilterManager 0.08 Error You Need filter manager 0.08 or later
+
+RMEnsure BorderUtils 0.05 RMEnsure WindowManager 3.17  RMLoad System:modules.BorderUtil
+
+| 32 bit compatible SharedCLibrary modules (required for 32bit compatible version)
+RMEnsure UtilityModule  3.70 RMEnsure CallASWI 0.02 RMLoad System:Modules.CallASWI
+RMEnsure UtilityModule  3.70 RMEnsure CallASWI 0.02 Error You need CallASWI 0.02 or later to run !PDF
+RMEnsure FPEmulator     4.03 Rmload System:Modules.FPEmulator
+RMEnsure FPEmulator     4.03 Error You need FPEMulator 4.03 or later to run !PDF
+RMEnsure SharedCLibrary 5.17 RMLoad System:Modules.clib
+RMEnsure SharedCLibrary 5.34 Error You need SharedCLibrary 5.34 or later to run !PDF
+| End 32bit compatible SharedCLibrary modules
+
+RMEnsure Toolbox    0.00  RMLoad System:modules.toolbox.toolbox
+RMEnsure Toolbox    1.36  Error You need toolbox 1.36 or later to run !PDF
+RMEnsure Window     0.00  RMLoad System:modules.toolbox.window
+RMEnsure Window     1.31  Error You need window 1.31 or later to run !PDF
+RMEnsure Menu       0.00  RMLoad System:modules.toolbox.menu
+RMEnsure Menu       0.13  Error You need menu 0.13 or later to run !PDF
+RMEnsure ToolAction 0.00  RMLoad System:modules.toolbox.toolaction
+RMEnsure ToolAction 0.15  Error You need toolaction 0.15 or later to run !PDF
+RMEnsure Scale      0.00  RMLoad System:modules.toolbox.scale
+RMEnsure Scale      0.00  Error You need scale 0.00 or later to run !PDF
+RMEnsure SaveAs     0.00  RMLoad System:modules.toolbox.SaveAs
+RMEnsure SaveAs     0.00  Error You need SaveAs to run !PDF
+RMENSURE ProgInfo   0.00  RMLOAD System:modules.toolbox.proginfo
+RMENSURE Proginfo   0.14  ERROR You need ProgInfo 0.14 or later to run !PDF
+RMENSURE FileInfo   0.00  RMLOAD System:modules.toolbox.FileInfo
+RMENSURE FileInfo   0.00  ERROR You need FileInfo to run !PDF
+RMEnsure Iconbar    0.00  RMLoad System:modules.toolbox.iconbar
+RMEnsure Iconbar    1.13  Error You need iconbar 1.13 or later to run !PDF
+
+RMEnsure DrawFile   0.00  RMLoad System:modules.DrawFile
+RMEnsure DrawFile   0.00  Error You need DrawFile to run !PDF
+
+unset PDF$NoFontBlending
+RMEnsure FontManager  3.37 set PDF$NoFontBlending 1
+Set PDF$DynamicAreaSize -1
+
+wimpslot -min 2200k -max 2200k
+|run <PDF$dir>.!runimage %*0 1 > <PDF$dir>.^.log 2>&1
+|run <PDF$dir>.!runimage %*0 1> Pipe:$.PDF.log 2>&1
+
+run <PDF$dir>.!runimage %*0

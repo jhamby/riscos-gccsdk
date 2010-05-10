@@ -1,0 +1,20 @@
+
+AB_SVN=svn://svn.riscos.info/pdf/trunk
+
+AB_MAKE="$AB_MAKE -f Makefile.cross"
+
+ab_package() {
+  ab_create_app PDF Apps/Office
+
+  ab_makerun $S/pdf/!RunImage$AB_EXEEXT
+
+  cp -av $S/!PDF/Documents $A
+  cp -av $S/!PDF/!Boot,feb $S/!PDF/!Help,feb $S/!PDF/Messages $A
+  cp -av $S/!PDF/Res,fae $S/!PDF/Sprites22,ff9 $A
+  cp -av $S/!PDF/!Sprites22,ff9 $S/!PDF/!Sprites,ff9 $S/!PDF/Sprites,ff9 $A
+
+  $AB_HOME/add-riscpkg -unixlib
+
+}
+
+
