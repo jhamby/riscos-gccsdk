@@ -1,5 +1,5 @@
 /* realpath ()
- * Copyright 2002-2008 UnixLib Developers
+ * Copyright 2002-2010 UnixLib Developers
  */
 
 #include <errno.h>
@@ -16,22 +16,21 @@
 char *
 realpath (const char *file_name, char *resolved_name)
 {
-  char buffer[PATH_MAX];
-  int r[10];
-  int filetype;
-
   if (file_name == NULL || resolved_name == NULL)
     {
       __set_errno (EINVAL);
       return NULL;
     }
 
+  int filetype;
   if (__riscosify_std (file_name, 0, resolved_name, PATH_MAX, &filetype) == NULL)
     {
       __set_errno (ENAMETOOLONG);
       return NULL;
     }
 
+  char buffer[PATH_MAX];
+  int r[10];
   r[0] = 37; /* Canonicalise path */
   r[1] = (int) resolved_name;
   r[2] = (int) buffer;

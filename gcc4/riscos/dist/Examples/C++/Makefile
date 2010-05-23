@@ -1,38 +1,59 @@
-# Simple C++ programs which are compiled 2 times:
-#  1) using static UnixLib as runtime library
-#  2) using shared UnixLib as runtime library
+# Simple C++ programs which are compiled 3 times:
+#  1) using SharedCLibrary as runtime library
+#  2) using static UnixLib as runtime library (both in ELF and AIF output)
+#  3) using shared UnixLib as runtime library
 
 CXX = g++
-CXXFLAGS = -O3
-# Difference between using the static or shared UnixLib runtime library
-# is only made when linking:
-LDFLAGS_ULST = -static -Wl,-s
-LDFLAGS_ULSO = -Wl,-s
+# Compile + link flags for SharedCLibrary as runtime library:
+CXXFLAGS_SCL = -mlibscl -O3
+# Compile + link flags for static UnixLib as runtime library. Note that
+# '-static' option is a linker option and should not be specified when
+# only compiling.  The '-Wl,-s' option instructs the linker to strip
+# the resulting ELF binary resulting in smaller binaries (not without
+# runtime difference as the ELF loader will not load the symbol and
+# debugging information).
+CXXFLAGS_ULST = -static -Wl,-s -O3
+# Compile + link flags for shared UnixLib as runtime library (default):
+CXXFLAGS_ULSO = -Wl,-s -O3
 
-all: template_static_ul template_shared_ul \
-	exception_static_ul exception_shared_ul \
-	helloworld_static_ul helloworld_shared_ul
+ELF2AIF = elf2aif
 
-TEMP_OBJ = template.o
-template_static_ul: $(TEMP_OBJ)
-	$(CXX) $(LDFLAGS_ULST) -o $@ $(TEMP_OBJ)
+all: template_scl template_static_ul template_static_ul_aif template_shared_ul \
+	exception_scl exception_static_ul exception_static_ul_aif exception_shared_ul \
+	helloworld_scl helloworld_static_ul helloworld_static_ul_aif helloworld_shared_ul
 
-template_shared_ul: $(TEMP_OBJ)
-	$(CXX) $(LDFLAGS_ULSO) -o $@ $(TEMP_OBJ)
+template_scl: template.cc
+	$(CXX) $(CXXFLAGS_SCL) -o $@ template.cc
 
-EXC_OBJ = exception.o
-exception_static_ul: $(EXC_OBJ)
-	$(CXX) $(LDFLAGS_ULST) -o $@ $(EXC_OBJ)
+template_static_ul: template.cc
+	$(CXX) $(CXXFLAGS_ULST) -o $@ template.cc
 
-exception_shared_ul: $(EXC_OBJ)
-	$(CXX) $(LDFLAGS_ULSO) -o $@ $(EXC_OBJ)
+template_static_ul_aif: template_static_ul
+	$(ELF2AIF) $< $@
 
-HLLW_OBJ = helloworld.o
-helloworld_static_ul: $(HLLW_OBJ)
-	$(CXX) $(LDFLAGS_ULST) -o $@ $(HLLW_OBJ)
+template_shared_ul: template.cc
+	$(CXX) $(CXXFLAGS_ULSO) -o $@ template.cc
 
-helloworld_shared_ul: $(HLLW_OBJ)
-	$(CXX) $(LDFLAGS_ULSO) -o $@ $(HLLW_OBJ)
+exception_scl: exception.cc
+	$(CXX) $(CXXFLAGS_SCL) -o $@ exception.cc
 
-.cc.o:
-	$(CXX) $(CXXFLAGS) -o $@ -c $<
+exception_static_ul: exception.cc
+	$(CXX) $(CXXFLAGS_ULST) -o $@ exception.cc
+
+exception_static_ul_aif: exception_static_ul
+	$(ELF2AIF) $< $@
+
+exception_shared_ul: exception.cc
+	$(CXX) $(CXXFLAGS_ULSO) -o $@ exception.cc
+
+helloworld_scl: helloworld.cc
+	$(CXX) $(CXXFLAGS_SCL) -o $@ helloworld.cc
+
+helloworld_static_ul: helloworld.cc
+	$(CXX) $(CXXFLAGS_ULST) -o $@ helloworld.cc
+
+helloworld_static_ul_aif: helloworld_static_ul
+	$(ELF2AIF) $< $@
+
+helloworld_shared_ul: helloworld.cc
+	$(CXX) $(CXXFLAGS_ULSO) -o $@ helloworld.cc

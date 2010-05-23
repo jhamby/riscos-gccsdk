@@ -1,5 +1,5 @@
 /* Internal UnixLib setjmp.h
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __SETJMP_H
@@ -11,9 +11,13 @@
 
 __BEGIN_DECLS
 
+#ifndef __TARGET_SCL__
+
 /* Internal functions.  */
 extern void __sigsetjmp_helper (sigjmp_buf __state, int __savesigs);
 extern void __siglongjmp_helper (const sigjmp_buf __state, int __savesigs);
+
+#endif
 
 __END_DECLS
 

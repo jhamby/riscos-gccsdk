@@ -1,6 +1,10 @@
 /* This is an internal UnixLib header file for implementing the signal
    handlers.  These functions cannot be used in a user program.
-   Copyright 2000-2008 UnixLib Developers.  */
+   Copyright 2000-2010 UnixLib Developers.  */
+
+#ifdef __TARGET_SCL__
+#  error "SCL has no sigstate support"
+#endif
 
 #ifndef __INTERNAL_SIGSTATE_H
 #define __INTERNAL_SIGSTATE_H 1

@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 1999-2003 Robin Watts/Justin Fletcher
- * Copyright (c) 2007-2009 GCCSDK Developers
+ * Copyright (c) 2007-2010 GCCSDK Developers
  */
 
 #include <stdarg.h>
@@ -462,24 +462,6 @@ $label  ADR$cc.L $reg, $object\n\
 		    "\n");
     }
 
-  output_comment("Now the REAL module header\n");
-
-  if (opt.toolchain == tc_gcc)
-  {
-    /* Put module header and all data in .init section and defining _start
-       symbol here.  This means that the linker will start with this (and
-       place it at front) and work further on it to get all the implied
-       unresolved symbols resolved.  */
-    fputs("\t.section\t\".init\",\"x\"\n"
-	  "\t.global\t_start\n"
-	  "\t.type\t_start, %function\n"
-	  "_start:\n", file);
-  }
-  else
-    fprintf(file, "\tAREA\t|!Header$$code|, CODE, READONLY%s%s\n\n",
-		  (opt.apcs & APCS_REENTRANT) ? ", PIC, REENTRANT" : "",
-		  (opt.apcs & APCS_FPE3) ? ", FP3" : "");
-
   /* Things that everyone needs */
   if (!opt.no_scl)
     output_import("_Lib$Reloc$Off$DP");
@@ -489,6 +471,24 @@ static void mod_header(void)
 {
   if (opt.mode_errors)
     return;
+
+  output_comment("Now the REAL module header\n");
+
+  if (opt.toolchain == tc_gcc)
+  {
+    /* Put module header in .init section and defining _start
+       symbol here.  This means that the linker will start with this (and
+       place it at front) and work further on it to get all the implied
+       unresolved symbols resolved.  */
+    fputs("\t.section\t\".riscos.module.header\",\"ax\"\n"
+	  "\t.global\t_start\n"
+	  "\t.type\t_start, %function\n"
+	  "_start:\n", file);
+  }
+  else
+    fprintf(file, "\tAREA\t|!Header$$code|, CODE, READONLY%s%s\n\n",
+		  (opt.apcs & APCS_REENTRANT) ? ", PIC, REENTRANT" : "",
+		  (opt.apcs & APCS_FPE3) ? ", FP3" : "");
 
   output_export("__module_header");
   output_label("__module_header"); fputc('\n', file);
@@ -552,6 +552,12 @@ static void mod_header(void)
   {}
   else
     output_word_as_str("_CMUNGE_module_flags\t-_CMUNGE_origin", "Module flags offset");
+
+  if (opt.toolchain == tc_gcc)
+  {
+    /* Put the rest of the module code in .text section.  */
+    fputs("\t.section\t.text\n", file);
+  }
 }
 
 static void strings(void)
@@ -1666,9 +1672,9 @@ veneers(void)
 
   first = 1;
   /* JRF: Note: we use the number in r9 to indicate the routine that is
-   being entered, as number increasing by 1 (previously we
-                                             increased it by 4), so that we can use the top bit to
-   mean that the entry point can return an error. */
+   being entered, as number increasing by 1 (previously we increased it
+   by 4), so that we can use the top bit to mean that the entry point
+   can return an error. */
   /* Events */
   for (l = opt.events, n = 0; l != NULL; l = l->next, ++n)
     {

@@ -1,5 +1,5 @@
-/* tmpfile (), tmpnam (), tmpnam_r (), mktemp (), mkstemp (), tempnam ()
- * Copyright (c) 2000-2008 UnixLib Developers
+/* tmpfile (), tmpnam (), tmpnam_r (), mktemp (), tempnam ()
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <string.h>
@@ -29,7 +29,6 @@ generate_temporary_filename (char *buf, const char *dir,
   const unsigned int maxidx = (sizeof (letters) - 1) * (sizeof (letters) - 1)
     * (sizeof (letters) - 1) * (sizeof (letters) - 1)
     * (sizeof (letters) - 1) * (sizeof (letters) - 1);
-  int loop = 0;
 
   /* Create a pathname, include 'dir' if not null. */
   if (dir)
@@ -50,6 +49,7 @@ generate_temporary_filename (char *buf, const char *dir,
     }
 
   idx = __ul_global.time[0] % maxidx;
+  int loop = 0;
   while (1)
     {
       if (idx >= maxidx)
@@ -92,17 +92,13 @@ generate_temporary_filename (char *buf, const char *dir,
 FILE *
 tmpfile (void)
 {
-  FILE *result;
-  const char *name;
-
   PTHREAD_UNSAFE
 
-  name = tmpnam (NULL);
+  const char *name = tmpnam (NULL);
 
+  FILE *result;
   if ((result = fopen (name, "wb+")) == NULL)
-    {
-      unlink (name);
-    }
+    unlink (name);
   else
     {
 #if 1
@@ -155,24 +151,14 @@ mktemp (char *file_template)
   return generate_temporary_filename (file_template, 0, file_template);
 }
 
-int
-mkstemp (char *file_template)
-{
-  return open (mktemp (file_template), O_RDWR | O_CREAT | O_TRUNC, 0666);
-}
-
 char *
 tempnam (const char *dir, const char *prefix)
 {
-  const char *d;
-  char buf[L_tmpnam], *b;
-  char pref[12];
-
   /* There are 4 strategies for choosing the temporary directory.  */
 
   /* 1. Use the name in the environment variable 'TMPDIR', if it is
      defined.  */
-  d = getenv ("TMPDIR");
+  const char *d = getenv ("TMPDIR");
   if (d != NULL && !__isdir (d))
     d = NULL;
 
@@ -194,14 +180,11 @@ tempnam (const char *dir, const char *prefix)
       return NULL;
     }
 
+  char pref[12];
   sprintf (pref, "%.4sXXXXXX", (prefix) ? prefix : "temp");
 
+  char buf[L_tmpnam];
   if (generate_temporary_filename (buf, d, pref))
-    {
-      /* Copy the temporary file into a malloc buffer and return it.  */
-      b = (char *) malloc (strlen (buf) + 1);
-      strcpy (b, buf);
-      return b;
-    }
+    return strdup (buf);
   return NULL;
 }

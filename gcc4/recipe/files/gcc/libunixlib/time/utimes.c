@@ -1,5 +1,5 @@
 /* utimes ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <utime.h>
@@ -12,13 +12,11 @@
    the modification time of 'file' to tvp[1].
 
    On RISC OS, we just alter the modification time.  */
-
 int
 utimes (const char *file, const struct timeval tvp[2])
 {
-  struct utimbuf time_buf;
-
   /* We must convert the micro-seconds to seconds.  */
+  struct utimbuf time_buf;
   time_buf.modtime = (tvp[1].tv_usec / 1000) + tvp[1].tv_sec;
   return utime (file, &time_buf);
 }

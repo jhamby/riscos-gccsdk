@@ -1,7 +1,11 @@
 /* Internal UnixLib pthread.h
  * Written by Alex Waugh
- * Copyright (c) 2002-2008, 2010 UnixLib Developers
+ * Copyright (c) 2002-2010, 2010 UnixLib Developers
  */
+
+#ifdef __TARGET_SCL__
+#  error "SCL has no pthread support"
+#endif
 
 #ifndef __PTHREAD_H
 #include_next <pthread.h>
@@ -32,6 +36,8 @@ struct __pthread_thread
      offsets defined in internal/asm_dec.s.
      If you change the ordering of any of the elements above this
      comment then make sure the offsets are kept in sync. */
+
+  char errbuf_valid; /* Non-zero when errbuf field is valid.  */
 
   struct __pthread_thread *next; /* Linked list of all threads */
   enum __pthread_state state; /* Running/blocked/idle/etc. */
@@ -102,7 +108,7 @@ extern pthread_t __pthread_running_thread; /* Currently running thread */
 #define PTHREAD_MAGIC 0x52485450
 
 #define __pthread_invalid(thread) \
-	(thread == NULL || thread->magic != PTHREAD_MAGIC)
+	((thread) == NULL || (thread)->magic != PTHREAD_MAGIC)
 
 /* Holds data about a thread specific key */
 struct __pthread_key

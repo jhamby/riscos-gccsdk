@@ -11,6 +11,8 @@
 
 __BEGIN_DECLS
 
+#ifndef __TARGET_SCL__
+
 /* Magic number to fill __magic.  */
 #define _IOMAGIC 0xfe000000
 
@@ -50,6 +52,8 @@ extern FILE *__iob_head;
    use only.  */
 extern int __vfprintf (FILE *__restrict __stream,
 		       const char *__restrict __format, __gnuc_va_list __arg);
+
+#endif
 
 __END_DECLS
 

@@ -1,15 +1,19 @@
 /* iconv_open (), iconv (), iconv_close ()
  * Written by Peter Naulls
- * Copyright (c) 2004-2008 UnixLib Developers
+ * Copyright (c) 2004-2010 UnixLib Developers
  */
 
-#include <stdlib.h>
-#include <swis.h>
 #include <errno.h>
 #include <iconv.h>
+#ifndef __TARGET_SCL__
+#  include <pthread.h>
+#endif
+#include <stdlib.h>
+#include <swis.h>
 
-#include <pthread.h>
-#include <internal/unix.h>
+#ifndef __TARGET_SCL__
+#  include <internal/unix.h>
+#endif
 #include <internal/os.h>
 
 #define ERROR_BASE 0x81b900
@@ -21,7 +25,7 @@
 
 
 static int
-iconv_error (_kernel_oserror *err)
+iconv_error (const _kernel_oserror *err)
 {
   int uerr;
 
@@ -56,12 +60,11 @@ iconv_error (_kernel_oserror *err)
 iconv_t
 iconv_open (const char *tocode, const char *fromcode)
 {
-  iconv_t ret;
-  _kernel_oserror *err;
-  int regs[10];
-
+#ifndef __TARGET_SCL__
   PTHREAD_SAFE_CANCELLATION
+#endif
 
+  const _kernel_oserror *err;
   err = __os_cli ("RMEnsure Iconv 0.04 RMload System:Modules.Iconv");
   if (err)
     return (iconv_t) __ul_seterr (err, 1);
@@ -70,6 +73,7 @@ iconv_open (const char *tocode, const char *fromcode)
   if (err)
     return (iconv_t) __ul_seterr (err, 1);
 
+  int regs[10];
   regs[0] = (int) tocode;
   regs[1] = (int) fromcode;
   err = __os_swi (Iconv_Open, regs);
@@ -84,17 +88,17 @@ size_t
 iconv (iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf,
        size_t *outbytesleft)
 {
-  int regs[10];
-  _kernel_oserror *err;
-
+#ifndef __TARGET_SCL__
   PTHREAD_SAFE_CANCELLATION
+#endif
 
+  int regs[10];
   regs[0] = (int) cd;
   regs[1] = (int) inbuf;
   regs[2] = (int) inbytesleft;
   regs[3] = (int) outbuf;
   regs[4] = (int) outbytesleft;
-  err = __os_swi (Iconv_Iconv, regs);
+  const _kernel_oserror *err = __os_swi (Iconv_Iconv, regs);
   if (err)
     return (size_t) iconv_error (err);
   return regs[0];
@@ -102,15 +106,15 @@ iconv (iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf,
 
 
 int
-iconv_close(iconv_t cd)
+iconv_close (iconv_t cd)
 {
-  int regs[10];
-  _kernel_oserror *err;
-
+#ifndef __TARGET_SCL__
   PTHREAD_SAFE_CANCELLATION
+#endif
 
+  int regs[10];
   regs[0] = (int) cd;
-  err = __os_swi (Iconv_Close, regs);
+  const _kernel_oserror *err = __os_swi (Iconv_Close, regs);
   if (err)
     return iconv_error (err);
 

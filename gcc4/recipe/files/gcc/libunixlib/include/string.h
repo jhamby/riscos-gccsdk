@@ -1,6 +1,7 @@
 /*
  * ANSI Standard 4.11: String Handling <string.h>.
- * Copyright (c) 2000-2007 UnixLib Developers
+ * Copyright (c) 1997-2005 Nick Burrett
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __STRING_H
@@ -81,7 +82,11 @@ extern int strncmp (const char *__s1, __const char *__s2, size_t __n)
 extern int strcoll (const char *__s1, __const char *__s2)
      __THROW __attribute_pure__ __nonnull ((1, 2)) __wur;
 
-/* Put a transformation of SRC into no more than N bytes of DEST.  */
+/* Transforms 'src' using the collation transformation
+   determined by the locale currently selected for collation,
+   and stores the transformed string in the array 'dest'. Up
+   to 'n' characters are stored (including terminating NUL
+   character).  */
 extern size_t strxfrm (char *__restrict __dest,
 		       const char *__restrict __src, size_t __n)
      __THROW __nonnull ((2));

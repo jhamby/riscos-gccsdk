@@ -1,1 +1,0 @@
-../../libunixlib/string/stricmp.c

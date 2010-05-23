@@ -1,6 +1,7 @@
 /*
  * ANSI Standard 4.4: Localisation <locale.h>
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 1997-2005 Nick Burrett
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef	__LOCALE_H
@@ -15,21 +16,37 @@ __BEGIN_DECLS
 /* Locale information types.
    If you change these values, then you better fix setlocale().  */
 
+#ifndef __TARGET_SCL__
 /* String collation (functions 'strcoll' and 'strxfrm').  */
-#define LC_COLLATE 0
+#  define LC_COLLATE 0
 /* Classification and conversion of characters, multibyte and
    wide characters.  */
-#define LC_CTYPE 1
+#  define LC_CTYPE 1
 /* Localisable natural-language messages.  */
-#define LC_MESSAGES 2
+#  define LC_MESSAGES 2
 /* Formatting of monetary values.  */
-#define LC_MONETARY 3
+#  define LC_MONETARY 3
 /* Formatting of numeric values that are not monetary. */
-#define LC_NUMERIC 4
+#  define LC_NUMERIC 4
 /* Formatting of data and time values.  */
-#define LC_TIME 5
+#  define LC_TIME 5
 /* Entire locale.  */
-#define LC_ALL 6
+#  define LC_ALL 6
+#else
+/* String collation (functions 'strcoll' and 'strxfrm').  */
+#  define LC_COLLATE 1
+/* Classification and conversion of characters, multibyte and
+   wide characters.  */
+#  define LC_CTYPE 2
+/* Formatting of monetary values.  */
+#  define LC_MONETARY 4
+/* Formatting of numeric values that are not monetary. */
+#  define LC_NUMERIC 8
+/* Formatting of data and time values.  */
+#  define LC_TIME 16
+/* Entire locale.  */
+#  define LC_ALL 31
+#endif
 
 struct lconv
 {

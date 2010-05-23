@@ -138,15 +138,6 @@ slim_gcc_tree() {
   remove_if_there $GCCSDK_UNPACKED/\!GCC/lib/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
   remove_if_there $GCCSDK_UNPACKED/\!GCC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
 
-  # Remove the softfloat libscl.  This is useless and a fallout of the multilib
-  # configuration madness.
-  remove_if_there $GCCSDK_UNPACKED/\!GCC/$GCCSDK_TARGET_NAME/lib/libscl.a
-
-  # Remove the shared libgcc_so.so for each of the libscl configurations:
-  # Commented out as we're going to remove all remaining shared libraries anyway.
-  ##remove_if_there $GCCSDK_UNPACKED/\!GCC/lib/scl/fpu/libgcc_s.so
-  ##remove_if_there $GCCSDK_UNPACKED/\!GCC/lib/scl/fpu/module/libgcc_s.so
-
   # Remove all shared libraries (even the fpu ones) as we have them shipped in !SharedLibs:
   cd $GCCSDK_UNPACKED/\!GCC
   find . -name "*.so*" -print0 | xargs -0 rm -f
@@ -263,9 +254,6 @@ create_gcc_tree() {
   # Copy UnixLib documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
   cp $GCCSDK_SRCDIR/gcc/libunixlib/{ChangeLog,contrib/Help,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
-  # Copy SCL documentation:
-  create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/libscl
-  cp $GCCSDK_SRCDIR/gcc/libscl/{ChangeLog,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/libscl
   # Copy SharedLibs documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/SharedLibs
   cp $GCCSDK_RISCOS/soloader/dist/\!SharedLibs/docs/{\!ReadMe,Technical} $GCCSDK_UNPACKED/\!GCC/docs/SharedLibs

@@ -53,16 +53,4 @@
  	$(INSTALL_DATA) macro_list $(DESTDIR)$(itoolsdatadir)/macro_list
  	if [ x$(STMP_FIXPROTO) != x ] ; then \
  	  $(INSTALL_SCRIPT) $(mkinstalldirs) \
-@@ -3856,6 +3865,12 @@
- 	  echo "append LDFLAGS \" \$$newlib_ldflags\"" >> ./tmp0; \
- 	else true; \
- 	fi
-+	@if [ -d $(objdir)/../$(target_subdir)/libunixlib ] \
-+	    && [ "${host}" != "${target}" ]; then \
-+	  echo "set CFLAGS_FOR_TARGET \"-I\$$srcdir/../libunixlib/include -L$(objdir)/../$(target_subdir)/libunixlib/ -static\"" >> ./tmp0; \
-+	  echo "set LDFLAGS_FOR_TARGET \"-L$(objdir)/../$(target_subdir)/libunixlib/\"" >> ./tmp0; \
-+	else true; \
-+	fi
- 	@if [ -d $(objdir)/../ld ] ; then \
- 	  echo "append LDFLAGS \" -L$(objdir)/../ld\"" >> ./tmp0; \
- 	else true; \
+

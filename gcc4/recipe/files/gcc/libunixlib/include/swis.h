@@ -11,13 +11,6 @@
 
 #include <kernel.h>
 
-__BEGIN_DECLS
-
-extern int _swi (int __swi_no, unsigned int, ...);
-extern _kernel_oserror *_swix (int __swi_no, unsigned int, ...);
-
-__END_DECLS
-
 #define _FLAGS     0x10 /*use with _RETURN() or _OUT()*/
 #define _IN(i)     (1U << (i))
 #define _INR(i,j)  (~0 << (i) ^ ~0 << ((j) + 1))
@@ -29,7 +22,14 @@ __END_DECLS
 #define _Z         (1U << 30)
 #define _N         (1U << 31)
 
-#define XOS_Bit                        0x020000
+#define XOS_Bit                        0x020000 /* Deprecated, use _swix() instead of _swi().  */
+
+__BEGIN_DECLS
+
+extern int _swi (int __swi_no, unsigned int __mask, ...);
+extern _kernel_oserror *_swix (int __swi_no, unsigned int __mask, ...);
+
+__END_DECLS
 
 #define OS_WriteI                      0x000100
 

@@ -1,5 +1,5 @@
---- configure.in.orig	2008-05-10 23:25:14.000000000 +0200
-+++ configure.in	2008-05-10 23:25:04.000000000 +0200
+--- configure.in.orig	2010-03-19 23:20:39.943948056 +0100
++++ configure.in	2010-03-19 23:20:31.963950563 +0100
 @@ -21,10 +21,27 @@
  sinclude(config/acx.m4)
  
@@ -29,18 +29,17 @@
  # Get 'install' or 'install-sh' and its variants.
  AC_PROG_INSTALL
  ACX_PROG_LN
-@@ -142,7 +159,9 @@
+@@ -142,7 +159,8 @@ libgcj="target-libffi \
  # these libraries are built for the target environment, and are built after
  # the host libraries and the host tools (which may be a cross compiler)
  #
 -target_libraries="target-libiberty \
 +target_libraries="target-libunixlib \
-+		target-libscl \
 +		target-libiberty \
  		target-libgloss \
  		target-newlib \
  		target-libstdc++-v3 \
-@@ -817,6 +836,14 @@
+@@ -817,6 +835,14 @@ case "${target}" in
      ;;
  esac
  
@@ -48,14 +47,14 @@
 +  arm-riscos*-* | arm-*-riscos)
 +    ;;
 +  *)
-+    noconfigdirs="$noconfigdirs target-libunixlib target-libscl"
++    noconfigdirs="$noconfigdirs target-libunixlib"
 +    ;;
 +esac
 +
  # If we aren't building newlib, then don't build libgloss, since libgloss
  # depends upon some newlib header files.
  case "${noconfigdirs}" in
-@@ -1005,9 +1032,9 @@
+@@ -1005,9 +1031,9 @@ if test "${build}" != "${host}" ; then
    # If we are doing a Canadian Cross, in which the host and build systems
    # are not the same, we set reasonable default values for the tools.
  
@@ -67,7 +66,7 @@
    CXXFLAGS=${CXXFLAGS-"-g -O2"}
    CC_FOR_BUILD=${CC_FOR_BUILD-gcc}
    BUILD_PREFIX=${build_alias}-
-@@ -1440,7 +1467,7 @@
+@@ -1440,7 +1466,7 @@ if test x"${with_headers}" != x && test 
      "") x=${prefix} ;;
      *) x=${exec_prefix} ;;
      esac
@@ -76,7 +75,7 @@
    fi
  fi
  
-@@ -1460,7 +1487,7 @@
+@@ -1460,7 +1486,7 @@ if test x"${with_libs}" != x && test x"$
      *) x=${exec_prefix} ;;
      esac
      for l in ${with_libs}; do
@@ -85,7 +84,7 @@
      done
    fi
  fi
-@@ -1608,7 +1635,7 @@
+@@ -1608,7 +1634,7 @@ esac
  
  # Some systems (e.g., one of the i386-aix systems the gas testers are
  # using) don't handle "\$" correctly, so don't use it here.
@@ -94,7 +93,7 @@
  build_tooldir=${tooldir}
  
  # Create a .gdbinit file which runs the one in srcdir
-@@ -1875,40 +1902,86 @@
+@@ -1875,40 +1901,86 @@ serialization_dependencies=serdep.tmp
  AC_SUBST_FILE(serialization_dependencies)
  
  # Base args.  Strip norecursion, cache-file, srcdir, host, build,
@@ -215,7 +214,7 @@
  
  # Add in --program-transform-name, after --program-prefix and
  # --program-suffix have been applied to it.  Autoconf has already
-@@ -1951,7 +2024,7 @@
+@@ -1951,7 +2023,7 @@ target_configargs=${baseargs}
  # sorts of decisions they want to make on this basis.  Please consider
  # this option to be deprecated.  FIXME.
  if test x${is_cross_compiler} = xyes ; then
@@ -224,7 +223,7 @@
  fi
  
  # Default to --enable-multilib.
-@@ -2028,6 +2101,10 @@
+@@ -2028,6 +2100,10 @@ case " $target_configdirs " in
     ;;
    esac
    ;;
@@ -235,7 +234,7 @@
  esac
  
  # Allow the user to override the flags for
-@@ -2128,7 +2205,7 @@
+@@ -2128,7 +2204,7 @@ changequote(,)
      # For an installed makeinfo, we require it to be from texinfo 4.2 or
      # higher, else we use the "missing" dummy.
      if ${MAKEINFO} --version \
@@ -244,7 +243,7 @@
        :
      else
        MAKEINFO="$MISSING makeinfo"
-@@ -2211,7 +2288,7 @@
+@@ -2211,7 +2287,7 @@ GCC_TARGET_TOOL(lipo, LIPO_FOR_TARGET, L
  GCC_TARGET_TOOL(nm, NM_FOR_TARGET, NM, [binutils/nm-new])
  GCC_TARGET_TOOL(objdump, OBJDUMP_FOR_TARGET, OBJDUMP, [binutils/objdump])
  GCC_TARGET_TOOL(ranlib, RANLIB_FOR_TARGET, RANLIB, [binutils/ranlib])

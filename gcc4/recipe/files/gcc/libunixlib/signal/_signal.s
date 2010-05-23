@@ -1,5 +1,5 @@
 @ Signal exception handling
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Developers
+@ Copyright (c) 2002-2010 UnixLib Developers
 
 @ This file handles all the hairy exceptions that can occur when a
 @ program runs. This includes hardware exceptions like data abort and
@@ -70,128 +70,6 @@ __raise:
 .L0:
 	WORD	__ul_global
 	DECLARE_FUNCTION __raise
-
-@-----------------------------------------------------------------------
-@ int __ul_seterr (const _kernel_oserror *err, int seterrno)
-@
-@ On entry:
-@	a1 = RISC OS error block or NULL
-@	a2 = non-zero if errno should be set,
-@	     zero if errno should not be set
-@ On exit:
-@	APCS-32 compliant.
-@       a1 = -1 if err on entry was non-NULL, else 0
-@       a2-a4, ip corrupted.
-@
-@ Set UnixLib's errno to EOPSYS and copy the error from err to UnixLib's
-@ error buffer.
-@
-	.global	__ul_seterr
-	NAME	__ul_seterr
-__ul_seterr:
-	TEQ	a1, #0			@ quick exit when no error
-	MOVEQ	pc, lr
-
-	STMFD	sp!, {v1-v5, lr}	@ Stack working registers
-
- PICEQ "LDR	v4, .L1+4"
-.LPIC8:
- PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT (private)
-
-	CMP	a2, #0
-	BEQ	seterr01		@ user requested not to set errno
-	MOV	a3, #EOPSYS
-	__set_errno	a3, a2		@ Set errno = EOPSYS
-
-seterr01:
-	LDR	a2, .L1			@=__pthread_running_thread
- PICEQ "LDR	a2, [v4, a2]"
-	LDR	a2, [a2]
-        @ If __pthread_running_thread == NULL then something has gone
-        @ wrong during initialisation, or we have an inconsistent build,
-        @ or something has written over UnixLib's memory.  Whichever
-        @ way, we're screwed.  Better report the problem and quit fast.
-        CMP     a2, #0
-        ADREQ   a1, seterr_fatal
-        BEQ     __unixlib_fatal
-	ADD	a2, a2, #__PTHREAD_ERRBUF_OFFSET
-
-	@ Copy the error to UnixLib's buffer.
-
-	@ If errnum is zero, we cheat and make it 1 so that at least
-	@ _kernel_last_oserror returns that error message and not NULL.
-	@ FIXME: better have a boolean somewhere saying we filled in
-	@ a real error message but that requires changes to pthread_t
-	@ structure which has implications.
-	LDMIA	a1!, {a4, v1-v5, ip, lr}
-	TEQ	a4, #0
-	MOVEQ	a4, #1
-	STMIA	a2!, {a4, v1-v5, ip, lr}
-
-	MOV	a3, #__ul_errbuf__size - 8*4
-seterr00:
-	LDMIA	a1!, {a4, v1-v5, ip, lr}
-	STMIA	a2!, {a4, v1-v5, ip, lr}
-	SUBS	a3, a3, #8*4
-	BNE	seterr00
-
-	MOV	a1, #0			@ ensure zero-terminated.
-	STRB	a1, [a2, #-1]
-
-        MVN     a1, #0
-	LDMFD	sp!, {v1-v5, pc}
-
-seterr_fatal:
-	.asciz	"UnixLib inconsistency found: __pthread_running_thread == NULL.  Exiting"
-	.align
-.L1:
-	WORD	__pthread_running_thread
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC8+4)"
-	DECLARE_FUNCTION __ul_seterr
-
-@-----------------------------------------------------------------------
-@ _kernel_oserror *_kernel_last_oserror (void)
-@
-@ On exit:
-@	APCS-32 compliant.
-@	a1 returns ptr to last RISC OS error for current thread or
-@	   0 when non did happen.
-@	a2 corrupted.
-@
-@ Provide access to the last operating system error.  This is a
-@ SharedCLibrary compatibility function.  It appears in here because
-@ it is associated with the __seterr function above.  It is also not
-@ very big.
-@
-	.global	_kernel_last_oserror
-	NAME	_kernel_last_oserror
-_kernel_last_oserror:
- PICEQ "LDR	a2, .L15"		@ _GLOBAL_OFFET_TABLE_+4
-.LPIC9:
- PICEQ "ADD	a2, pc, a2"
- PICEQ "LDMIA	a2, {a2, a3}"
- PICEQ "LDR	a3, [a3, #0]"
- PICEQ "LDR	a2, [a3, a2, LSL#4]"
-
-	LDR	a1, .L1			@=__pthread_running_thread
- PICEQ "LDR	a1, [a2, a1]"
-	LDR	a1, [a1, #0]
-	LDR	a2, [a1, #__PTHREAD_ERRBUF_OFFSET]!
-	TEQ	a2, #0
-	MOVEQ	a1, #0
-	MOV	pc, lr
-.L15:
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC9+4)"
-	DECLARE_FUNCTION _kernel_last_oserror
-
-	@ The following code is in a writable area because we need access to
-	@ the callback register save area without corrupting any registers
-	@ or needing to stack any registers. Thus, the callback register
-	@ save area must be within the reach of PC offset addressing.
-	.text
 
 @-----------------------------------------------------------------------
 @ The hardware exception handlers (PRM 1-111).
@@ -540,7 +418,7 @@ __h_error:
 	__set_errno	a2, a1
 
 	@ Copy error buffer into thread specific storage
-	LDR	a1, .L6+20	@=__pthread_running_thread
+	LDR	a1, .L6+16	@=__pthread_running_thread
  PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1]
 	ADD	a1, a1, #__PTHREAD_ERRBUF_OFFSET
@@ -578,8 +456,10 @@ __h_error:
 	WORD	__ul_callbackfp
 	WORD	__ul_errbuf_errblock
 	WORD	__ul_errbuf_valid
-	WORD	__ul_fp_registers
 	WORD	__pthread_running_thread
+#ifndef __SOFTFP__
+	WORD	__ul_fp_registers
+#endif
 
 unrecoverable_error:
 	@ Bit 31-was set, therefore it was a hardware error.
@@ -598,7 +478,7 @@ unrecoverable_error:
 	BNE	non_fp_exception
 
 	@ Store FP registers.
-	LDR	a1, .L6+16	@=__ul_fp_registers
+	LDR	a1, .L6+20	@=__ul_fp_registers
  PICEQ "LDR	a1, [v4, a1]"
 	RFS	a2		@ Read FP status register
 	STR	a2, [a1], #4
@@ -1324,9 +1204,11 @@ __ul_errbuf_valid:
 	.word	0	@ Valid flag for errbuf
 	DECLARE_OBJECT __ul_errbuf_valid
 
+#ifndef __SOFTFP__
 	.global	__ul_fp_registers
 __ul_fp_registers:
 	.space	68	@ (4 + 8*8)  FPSR and 8 double-precision registers
 	DECLARE_OBJECT __ul_fp_registers
+#endif
 
 	.end

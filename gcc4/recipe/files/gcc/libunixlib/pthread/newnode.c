@@ -1,5 +1,5 @@
 /* Internal thread node creation.
-   Copyright (c) 2002-2008 UnixLib Developers.
+   Copyright (c) 2002-2010 UnixLib Developers.
    Written by Martin Piper and Alex Waugh.  */
 
 #include <stdlib.h>
@@ -30,9 +30,9 @@
 pthread_t
 __pthread_new_node (pthread_t node)
 {
-  struct ul_global *gbl = &__ul_global;
   if (node == NULL)
     {
+      struct ul_global *gbl = &__ul_global;
       node = malloc_unlocked (gbl->malloc_state,
 			      sizeof (struct __pthread_thread));
       if (node == NULL)
@@ -62,6 +62,7 @@ __pthread_new_node (pthread_t node)
   node->thread_errno = 0;
   node->errbuf.errnum = 0;
   node->errbuf.errmess[0] = '\0';
+  node->errbuf_valid = '\0';
   node->next = NULL;
   node->stack = NULL;
   node->keys = NULL;

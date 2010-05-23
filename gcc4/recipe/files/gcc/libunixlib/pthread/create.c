@@ -1,5 +1,5 @@
 /* Thread creation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.
+   Copyright (c) 2002-2010 UnixLib Developers.
    Written by Martin Piper and Alex Waugh.  */
 
 /*#define PTHREAD_DEBUG*/
@@ -22,14 +22,12 @@
 static void
 __pthread_create (pthread_t thread)
 {
-  void *ret = NULL;
-
 #ifdef PTHREAD_DEBUG
   debug_printf ("-- __pthread_create: About to start thread %d\n", thread);
 #endif
 
   /* Go into the thread properly.  */
-  ret = (*thread->start_routine) (thread->arg);
+  void *ret = (*thread->start_routine) (thread->arg);
 
 #ifdef PTHREAD_DEBUG
   debug_printf ("-- __pthread_create: Thread %d has returned\n", thread);
@@ -44,14 +42,12 @@ int
 pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
 		void * (*start_routine) (void *), void *arg)
 {
-  pthread_t thread;
-  struct ul_global *gbl = &__ul_global;
-
   if (threadin == NULL || start_routine == NULL)
     return EINVAL;
 
   /* If the pthread subsystem wasn't running before, set the flag to
      indicate that it should be now.  */
+  struct ul_global *gbl = &__ul_global;
   if (! gbl->pthread_system_running)
     gbl->pthread_system_running = 1;
 
@@ -63,8 +59,7 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
 
   /* Allocate memory for a new thread, without adding the thread to
      any lists.  */
-  thread = __pthread_new_node (NULL);
-
+  pthread_t thread = __pthread_new_node (NULL);
   if (thread == NULL)
     {
       __pthread_enable_ints ();

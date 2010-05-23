@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.h.orig	2008-06-13 00:29:16.000000000 +0200
-+++ gcc/config/arm/arm.h	2008-06-12 20:59:28.000000000 +0200
+--- gcc/config/arm/arm.h.orig	2010-05-09 17:53:26.751447616 +0200
++++ gcc/config/arm/arm.h	2010-05-09 17:51:21.662023430 +0200
 @@ -167,6 +167,12 @@ extern GTY(()) rtx aof_pic_label;
  #define SUBTARGET_CPP_SPEC      ""
  #endif
@@ -252,7 +252,27 @@
  
  #define THUMB_REGNO_MODE_OK_FOR_BASE_P(REGNO, MODE)		\
    (TEST_REGNO (REGNO, <=, LAST_LO_REGNUM)			\
-@@ -2012,8 +2046,8 @@ typedef struct
+@@ -1931,6 +1965,11 @@ typedef struct
+ #define ASM_OUTPUT_LABELREF(FILE, NAME)		\
+    arm_asm_output_labelref (FILE, NAME)
+ 
++#ifdef TARGET_RISCOSELF
++/* Defining CTORS_SECTION_ASM_OP makes the asm() hacksin crtstuff.c generate
++   code which breaks the module case (cfr. "Hack: force cc1 to switch to .data
++   section early," comment).  */
++#else
+ /* The EABI specifies that constructors should go in .init_array.
+    Other targets use .ctors for compatibility.  */
+ #ifndef ARM_EABI_CTORS_SECTION_OP
+@@ -1976,6 +2015,7 @@ typedef struct
+ #   define DTORS_SECTION_ASM_OP ARM_DTORS_SECTION_OP
+ # endif /* !defined (__ARM_EABI__) */
+ #endif /* !defined (IN_LIBCC2) */
++#endif
+ 
+ /* True if the operating system can merge entities with vague linkage
+    (e.g., symbols in COMDAT group) during dynamic linking.  */
+@@ -2012,8 +2052,8 @@ typedef struct
  #define ARM_REG_OK_FOR_BASE_P(X)		\
    (REGNO (X) <= LAST_ARM_REGNUM			\
     || REGNO (X) >= FIRST_PSEUDO_REGISTER	\

@@ -1,5 +1,5 @@
 /* Common stat operation.
-   Copyright (c) 2002, 2003, 2004, 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2002-2010 UnixLib Developers.  */
 
 #include <time.h>
 #include <sys/stat.h>
@@ -11,10 +11,8 @@
 void
 __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct stat *buf)
 {
-  __mode_t mode;
-
   /* Calculate the file mode.  */
-  mode = __get_protection (attr);
+  __mode_t mode = __get_protection (attr);
 
   switch (objtype)
     {
@@ -113,10 +111,8 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
 
   if ((((unsigned int) loadaddr) >> 20) == 0xfff)	/* date stamped file */
     {
-      time_t filetime;
-
-      filetime = __cvt_riscos_time ((unsigned int)(loadaddr & 0xff),
-                                    (unsigned int)execaddr);
+      time_t filetime = __cvt_riscos_time ((unsigned int)(loadaddr & 0xff),
+					   (unsigned int)execaddr);
 
       buf->st_atime = buf->st_mtime = buf->st_ctime = filetime;
     }

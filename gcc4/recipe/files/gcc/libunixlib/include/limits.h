@@ -1,6 +1,6 @@
 /*
  * ANSI Standard 4.14/2.2.4.2: Limits of integral types <limits.h>
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __LIMITS_H
@@ -108,12 +108,20 @@
 
 /* Number of files one process can have open at once.
    Keep in sync with <stdio.h>, FOPEN_MAX.  */
-#define	_POSIX_OPEN_MAX		64
+#ifdef __TARGET_SCL__
+#  define _POSIX_OPEN_MAX	8
+#else
+#  define _POSIX_OPEN_MAX	64
+#endif
 #define OPEN_MAX _POSIX_OPEN_MAX
 
 /* Number of bytes in a filename.
    Keep in sync with <stdio.h>, FILENAME_MAX.  */
-#define	_POSIX_NAME_MAX		252
+#ifdef __TARGET_SCL__
+#  define _POSIX_NAME_MAX	80
+#else
+#  define _POSIX_NAME_MAX	252
+#endif
 #define NAME_MAX _POSIX_NAME_MAX
 
 /* Number of bytes in a pathname.  */

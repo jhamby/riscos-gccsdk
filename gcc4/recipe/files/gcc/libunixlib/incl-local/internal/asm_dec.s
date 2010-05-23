@@ -1,5 +1,5 @@
 @ Global definitions used by all assembler files.
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2009, 2010 UnixLib Developers.
+@ Copyright (c) 2002-2010 UnixLib Developers.
 
 @ Bits that control which bits are compiled into UnixLib. Note, this must be
 @ kept in sync with <sys/syslib.h>, <signal.h> and <errno.h>.
@@ -7,6 +7,7 @@
 	@ Include the UnixLib build options.
 #include "unixlib/buildoptions.h"
 
+#ifndef __TARGET_SCL__
 	@ The offset of various members of the __pthread_thread structure
 	@ This should be kept in sync with pthread.h.
 .set	__PTHREAD_MAGIC_OFFSET, 0
@@ -14,6 +15,7 @@
 .set	__PTHREAD_ALLOCA_OFFSET, 8
 .set	__PTHREAD_ERRNO_OFFSET, 12
 .set	__PTHREAD_ERRBUF_OFFSET, 16
+#endif
 
 .set	USR_Mode, 0x0
 .set	FIQ_Mode, 0x1
@@ -46,6 +48,7 @@
 .set	EXIT_SUCCESS, 0
 .set	EXIT_FAILURE, 1
 
+#ifndef __TARGET_SCL__
 	@ Keep the signal list in sync with <signal.h> contents.
 .set	SIGHUP, 1	@   hangup
 .set	SIGINT, 2	@   terminal interrupt
@@ -103,6 +106,7 @@
 .set	SharedUnixLibrary_Error_NotRecentEnough, SharedUnixLibrary_ErrorChunk + 0x3D
 .set	SharedUnixLibrary_Error_NotEnoughMem, SharedUnixLibrary_ErrorChunk + 0x3E
 .set	SharedUnixLibrary_Error_NoCallASWI, SharedUnixLibrary_ErrorChunk + 0x3F
+#endif
 
 .set	OS_WriteC, 0x000000
 .set	OS_WriteS, 0x000001
@@ -182,84 +186,6 @@
 
 .set	XFPEmulator_Version, 0x040480 + X_Bit
 
-.set	Socket_Creat, 0x41200
-.set	Socket_Bind, 0x41201
-.set	Socket_Listen, 0x41202
-.set	Socket_Accept, 0x41203
-.set	Socket_Connect, 0x41204
-.set	Socket_Recv, 0x41205
-.set	Socket_Recvfrom, 0x41206
-.set	Socket_Recvmsg, 0x41207
-.set	Socket_Send, 0x41208
-.set	Socket_Sendto, 0x41209
-.set	Socket_Sendmsg, 0x4120A
-.set	Socket_Shutdown, 0x4120B
-.set	Socket_Setsockopt, 0x4120C
-.set	Socket_Getsockopt, 0x4120D
-.set	Socket_Getpeername, 0x4120E
-.set	Socket_Getsockname, 0x4120F
-.set	Socket_Close, 0x41210
-.set	Socket_Select, 0x41211
-.set	Socket_Ioctl, 0x41212
-.set	Socket_Read, 0x41213
-.set	Socket_Write, 0x41214
-.set	Socket_Stat, 0x41215
-.set	Socket_Readv, 0x41216
-.set	Socket_Writev, 0x41217
-.set	Socket_Gettsize, 0x41218
-.set	Socket_Sendtosm, 0x41219
-.set	Socket_Sysctl, 0x4121A
-.set	Socket_Accept_1, 0x4121B
-.set	Socket_Recvfrom_1, 0x4121C
-.set	Socket_Recvmsg_1, 0x4121D
-.set	Socket_Sendmsg_1, 0x4121E
-.set	Socket_Getpeername_1, 0x4121F
-.set	Socket_Getsockname_1, 0x41220
-.set	Socket_InternalLookup, 0x41221
-.set	Socket_Version, 0x41222
-
-.set	Internet_GetHostByName, 0x46000
-.set	Internet_GetHostByAddr, 0x46001
-
-.set	XSocket_Creat, Socket_Creat + X_Bit
-.set	XSocket_Bind, Socket_Bind + X_Bit
-.set	XSocket_Listen, Socket_Listen + X_Bit
-.set	XSocket_Accept, Socket_Accept + X_Bit
-.set	XSocket_Connect, Socket_Connect + X_Bit
-.set	XSocket_Recv, Socket_Recv + X_Bit
-.set	XSocket_Recvfrom, Socket_Recvfrom + X_Bit
-.set	XSocket_Recvmsg, Socket_Recvmsg + X_Bit
-.set	XSocket_Send, Socket_Send + X_Bit
-.set	XSocket_Sendto, Socket_Sendto + X_Bit
-.set	XSocket_Sendmsg, Socket_Sendmsg + X_Bit
-.set	XSocket_Shutdown, Socket_Shutdown + X_Bit
-.set	XSocket_Setsockopt, Socket_Setsockopt + X_Bit
-.set	XSocket_Getsockopt, Socket_Getsockopt + X_Bit
-.set	XSocket_Getpeername, Socket_Getpeername + X_Bit
-.set	XSocket_Getsockname, Socket_Getsockname + X_Bit
-.set	XSocket_Close, Socket_Close + X_Bit
-.set	XSocket_Select, Socket_Select + X_Bit
-.set	XSocket_Ioctl, Socket_Ioctl + X_Bit
-.set	XSocket_Read, Socket_Read + X_Bit
-.set	XSocket_Write, Socket_Write + X_Bit
-.set	XSocket_Stat, Socket_Stat + X_Bit
-.set	XSocket_Readv, Socket_Readv + X_Bit
-.set	XSocket_Writev, Socket_Writev + X_Bit
-.set	XSocket_Gettsize, Socket_Gettsize + X_Bit
-.set	XSocket_Sendtosm, Socket_Sendtosm + X_Bit
-.set	XSocket_Sysctl, Socket_Sysctl + X_Bit
-.set	XSocket_Accept_1, Socket_Accept_1 + X_Bit
-.set	XSocket_Recvfrom_1, Socket_Recvfrom_1 + X_Bit
-.set	XSocket_Recvmsg_1, Socket_Recvmsg_1 + X_Bit
-.set	XSocket_Sendmsg_1, Socket_Sendmsg_1 + X_Bit
-.set	XSocket_Getpeername_1, Socket_Getpeername_1 + X_Bit
-.set	XSocket_Getsockname_1, Socket_Getsockname_1 + X_Bit
-.set	XSocket_InternalLookup, Socket_InternalLookup + X_Bit
-.set	XSocket_Version, Socket_Version + X_Bit
-
-.set	XInternet_GetHostByName, Internet_GetHostByName + X_Bit
-.set	XInternet_GetHostByAddr, Internet_GetHostByAddr + X_Bit
-
 .set	XMessageTrans_ErrorLookup, 0x041506 + X_Bit
 
 .set	XTaskWindow_TaskInfo, 0x043380 + X_Bit
@@ -282,6 +208,7 @@
 .set	SharedUnixLibrary_Initialise, 0x55c84
 .set	XSharedUnixLibrary_Initialise, 0x55c84 + X_Bit
 
+#ifndef __TARGET_SCL__
 	@ Entries into the struct proc structure.  Must be kept in sync with
 	@ incl-local/internal/unix.h.
 .set	PROC_ARGC, 0			@ = __u->argc
@@ -337,6 +264,7 @@
 .set	MEM_DALIMIT, 40		@ = __ul_memory.dalimit
 .set	MEM_APPSPACE_LIMIT, 44	@ = __ul_memory.appspace_limit
 .set	MEM_OLD_HIMEM, 48	@ = __ul_memory.old_himem
+#endif
 
 	@ Entries in the struct __stack_chunk.  Must be kept in sync with
 	@ unix.h definition.
@@ -347,11 +275,16 @@
 .set	CHUNK_PREV, 8		@ Ptr to previous chunk
 .set	CHUNK_SIZE, 12		@ Size of chunk, including header
 .set	CHUNK_DEALLOC, 16	@ Function to call to free the chunk
+#if __TARGET_SCL__
+.set	CHUNK_OVERHEAD, 48	@ Size of chunk header
+#else
 .set	CHUNK_RETURN, 20	@ Return address after freeing this chunk
 
 .set	CHUNK_OVERHEAD, 24	@ Size of chunk header
+#endif
 
-	@ Entries in the data block passed from crt1.o
+#ifndef __TARGET_SCL__
+	@ Entries in the data block passed from crt/(g)crt0.o
 .set	CRT1_EXEC_INIT, 0	@ Ptr to program _init section
 .set	CRT1_EXEC_FINI, 4	@ Ptr to program _fini section
 .set	CRT1_EXEC_START, 8	@ Ptr to R/O base
@@ -361,3 +294,4 @@
 .set	CRT1_FLAGS, 24
 .set	CRT1_RESERVED1, 28
 .set	CRT1_RESERVED2, 32
+#endif

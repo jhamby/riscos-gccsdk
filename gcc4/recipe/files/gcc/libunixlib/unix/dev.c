@@ -1,5 +1,5 @@
 /* Low-level device handling.
-   Copyright (c) 2002-2009 UnixLib Developers.  */
+   Copyright (c) 2002-2010 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <dirent.h>
@@ -10,6 +10,7 @@
 #include <string.h>
 #include <sys/param.h>
 #include <sys/select.h>
+#include <sys/socket.h>
 #include <sys/stat.h>
 #include <swis.h>
 #include <unistd.h>

@@ -1,11 +1,11 @@
 /* gmtime_r ()
  * Written by Nick Burrett on 12 July 1997.
- * Copyright (c) 1997-2006 UnixLib Developers
+ * Copyright (c) 1997-2010 UnixLib Developers
  */
 
-#include <time.h>
 #include <kernel.h>
 #include <swis.h>
+#include <time.h>
 
 struct tm *
 gmtime_r (const time_t *tp, struct tm *resultp)
@@ -15,8 +15,10 @@ gmtime_r (const time_t *tp, struct tm *resultp)
 
    /* GMT conversion rather than localtime - whether local time is on daylight
       saving is irrelevalant */
-   t->tm_gmtoff = 0;
    t->tm_isdst = 0;
+#ifndef __TARGET_SCL__
+   t->tm_gmtoff = 0;
    t->tm_zone = "GMT";
+#endif
    return t;
 }

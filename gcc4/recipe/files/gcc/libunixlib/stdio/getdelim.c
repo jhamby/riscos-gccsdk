@@ -1,18 +1,22 @@
 /* getdelim (), getline ()
  * Written by Nick Burrett, 27 October 1996.
- * Copyright (c) 1996-2008 UnixLib Developers
+ * Copyright (c) 1996-2010 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stddef.h>
+#include <limits.h>
+#ifndef __TARGET_SCL__
+#  include <pthread.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <limits.h>
 #include <sys/types.h>
 
-#include <pthread.h>
-#include <internal/unix.h>
+#ifndef __TARGET_SCL__
+#  include <internal/unix.h>
+#endif
 
 /* Read up to (and including) a terminator from stream into *lineptr
    (and null-terminate it). *lineptr is a pointer returned from malloc
@@ -21,21 +25,22 @@
    null terminator), or -1 on error or EOF.  */
 
 ssize_t
-getdelim (char **lineptr, size_t * n, int terminator, FILE * stream)
+getdelim (char **lineptr, size_t *n, int terminator, FILE *stream)
 {
-  char *line, *p;
-  size_t size, copy;
-
+#ifndef __TARGET_SCL__
   PTHREAD_UNSAFE
 
   /* Validity check.  */
   if (!__validfp (stream) || lineptr == NULL || n == NULL)
     return __set_errno (EINVAL);
+#endif
 
   if (ferror (stream))
     return -1;
 
   /* Make sure we have a line buffer to start with.  */
+  char *line;
+  size_t size;
   if (*lineptr == NULL || *n < 2)
     {
       line = realloc (*lineptr, MAX_CANON);
@@ -44,17 +49,15 @@ getdelim (char **lineptr, size_t * n, int terminator, FILE * stream)
       *lineptr = line;
       *n = MAX_CANON;
     }
-
-  line = *lineptr;
+  else
+    line = *lineptr;
   size = *n;
 
-  copy = size;
-  p = line;
+  size_t copy = size;
+  char *p = line;
 
   for (;;)
     {
-      size_t len;
-
       /* Get the characters, byte by byte, into buffer line until
 	 we reach the termination character, or we run out of buffer
 	 space.  */
@@ -77,7 +80,7 @@ getdelim (char **lineptr, size_t * n, int terminator, FILE * stream)
 	}
 
       /* Need to enlarge the line buffer.  */
-      len = p - line;
+      size_t len = p - line;
       size *= 2;
       line = realloc (line, size);
       /* Bit of a memory problem, break out of while() and return
@@ -98,7 +101,7 @@ getdelim (char **lineptr, size_t * n, int terminator, FILE * stream)
 }
 
 ssize_t
-getline (char **lineptr, size_t * n, FILE * stream)
+getline (char **lineptr, size_t *n, FILE *stream)
 {
   return getdelim (lineptr, n, '\n', stream);
 }

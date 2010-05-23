@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __STDINT_H
@@ -103,26 +103,26 @@ typedef unsigned long int uintmax_t;
 #define INT64_MAX		(9223372036854775807LL)
 
 /* Maximum of unsigned integral types.  */
-#define UINT8_MAX		(255U)
-#define UINT16_MAX		(65535U)
+#define UINT8_MAX		(255)
+#define UINT16_MAX		(65535)
 #define UINT32_MAX		(4294967295U)
 #define UINT64_MAX		(18446744073709551615ULL)
 
 
 /* Minimum of signed integral types having a minimum size.  */
 #define INT_LEAST8_MIN		(-128)
-#define INT_LEAST16_MIN	(-32767-1)
-#define INT_LEAST32_MIN	(-2147483647-1)
-#define INT_LEAST64_MIN	(-9223372036854775807LL-1)
+#define INT_LEAST16_MIN		(-32767-1)
+#define INT_LEAST32_MIN		(-2147483647-1)
+#define INT_LEAST64_MIN		(-9223372036854775807LL-1)
 
 /* Maximum of signed integral types having a minimum size.  */
 #define INT_LEAST8_MAX		(127)
-#define INT_LEAST16_MAX	(32767)
-#define INT_LEAST32_MAX	(2147483647)
-#define INT_LEAST64_MAX	(9223372036854775807LL)
+#define INT_LEAST16_MAX		(32767)
+#define INT_LEAST32_MAX		(2147483647)
+#define INT_LEAST64_MAX		(9223372036854775807LL)
 
 /* Maximum of unsigned integral types having a minimum size.  */
-#define UINT_LEAST8_MAX	(255U)
+#define UINT_LEAST8_MAX		(255U)
 #define UINT_LEAST16_MAX	(65535U)
 #define UINT_LEAST32_MAX	(4294967295U)
 #define UINT_LEAST64_MAX	(18446744073709551615ULL)
@@ -141,9 +141,9 @@ typedef unsigned long int uintmax_t;
 
 /* Maximum of fast unsigned integral types having a minimum size.  */
 #define UINT_FAST8_MAX		(255U)
-#define UINT_FAST16_MAX	(4294967295U)
-#define UINT_FAST32_MAX	(4294967295U)
-#define UINT_FAST64_MAX	(18446744073709551615ULL)
+#define UINT_FAST16_MAX		(4294967295U)
+#define UINT_FAST32_MAX		(4294967295U)
+#define UINT_FAST64_MAX		(18446744073709551615ULL)
 
 
 /* Values to test for integral types holding `void *' pointer.  */
@@ -195,8 +195,8 @@ typedef unsigned long int uintmax_t;
 #define INT64_C(c)	c ## LL
 
 /* Unsigned.  */
-#define UINT8_C(c)	c ## U
-#define UINT16_C(c)	c ## U
+#define UINT8_C(c)	c
+#define UINT16_C(c)	c
 #define UINT32_C(c)	c ## U
 #define UINT64_C(c)	c ## ULL
 

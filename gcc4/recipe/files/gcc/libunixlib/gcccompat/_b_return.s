@@ -20,6 +20,34 @@
 	@ or calls to alloca.
 	.global	__builtin_return_address
 	NAME	__builtin_return_address
+#if __TARGET_SCL__
+	@ There's no PIC in SCL code.
+__builtin_return_address:
+	STMFD	sp!, {lr}
+
+	BL	__builtin_frame_address
+
+	MOVS	a2, a1
+	LDMEQFD	sp!, {pc}
+
+	LDR	a1, [a2, #-4]		@ Load return address from the stack frame.
+	TEQ	a1, a1			@ 32bit mode check
+	TEQ	pc, pc
+	BICNE	a1, a1, #0xfc000003	@ If running 26bit, clear PSR bits.
+
+	@ If the return address in the frame points to the
+	@ '__gcc_alloca_free' function, then we have outstanding alloca
+	@ blocks so the return address needs to be found in one of the
+	@ 'struct alloca_chunk' blocks.
+	LDR	lr, .L1
+	TEQ	a1, lr
+	MOVEQ	a1, a2
+	BLEQ	__gcc_alloca_return_address
+
+	LDMFD	sp!, {pc}
+.L1:
+	.word	__gcc_alloca_free
+#elif __TARGET_UNIXLIB__
 __builtin_return_address:
  PICNE "STMFD	sp!, {lr}"
  PICEQ "STMFD	sp!, {v4, lr}"
@@ -52,7 +80,6 @@ __builtin_return_address:
 	MOVEQ	a1, a2
 	BLEQ	__gcc_alloca_return_address
 
-#if __TARGET_UNIXLIB__
 	@ If the return address in the frame points to the
 	@ '__free_stack_chunk' function, then the real return address has
 	@ to be found at sl[CHUNK_RETURN].
@@ -61,17 +88,17 @@ __builtin_return_address:
  PICEQ "LDR	lr, [v4, lr]"
 	TEQ	a1, lr
 	LDREQ	a1, [a2, #CHUNK_RETURN]
-#endif
 
  PICNE "LDMFD	sp!, {pc}"
  PICEQ "LDMFD	sp!, {v4, pc}"
 .L1:
 	WORD	__gcc_alloca_free
-#if __TARGET_UNIXLIB__
 .L2:
 	WORD	__free_stack_chunk
-#endif
  PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
+#else
+#  error "Unsupported runtime"
+#endif
 	DECLARE_FUNCTION __builtin_return_address
 
 #endif

@@ -1,32 +1,34 @@
-/* Make a directory on disk.
-   Copyright (c) 2005, 2007, 2008 UnixLib Developers.  */
+/* Create a directory.
+   Copyright (c) 2005-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
-#include <unistd.h>
+#include <pthread.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <unistd.h>
 
 #include <unixlib/local.h>
 #include <internal/os.h>
 #include <internal/local.h>
 #include <internal/swiparams.h>
+#include <internal/unix.h>
 
 int
 mkdir (const char *ux_path, __mode_t mode)
 {
-  int regs[6], objtype;
-  _kernel_oserror *err;
-  char path[_POSIX_PATH_MAX];
-  int riscosify_control, rtrn_get_attrs;
+  PTHREAD_UNSAFE_CANCELLATION
 
   /* We don't want to do suffix swapping for directory objects.  */
-  riscosify_control = __get_riscosify_control ();
+  const int riscosify_control = __get_riscosify_control ();
   __set_riscosify_control (riscosify_control | __RISCOSIFY_NO_SUFFIX);
 
-  rtrn_get_attrs = __object_get_attrs (ux_path, path, sizeof (path),
-                                       &objtype, NULL, NULL, NULL, NULL, NULL)
-                   && errno != ENOENT;
+  char path[_POSIX_PATH_MAX];
+  int objtype;
+  int rtrn_get_attrs = __object_get_attrs (ux_path, path, sizeof (path),
+					   &objtype,
+					   NULL, NULL, NULL, NULL, NULL)
+			  && errno != ENOENT;
 
   /* Restore suffix swapping status.  */
   __set_riscosify_control (riscosify_control);
@@ -39,8 +41,9 @@ mkdir (const char *ux_path, __mode_t mode)
     return __set_errno (EEXIST);
 
   /* Create the directory, with default number of entries per directory.  */
+  int regs[6];
   regs[4] = 0;
-  err = __os_file (OSFILE_CREATEDIRECTORY, path, regs);
+  const _kernel_oserror *err = __os_file (OSFILE_CREATEDIRECTORY, path, regs);
   if (err)
     {
       /* Match with "Not found" RISC OS error */

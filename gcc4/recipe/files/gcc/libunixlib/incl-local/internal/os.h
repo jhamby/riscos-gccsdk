@@ -89,7 +89,7 @@ extern _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
    If 'seterrno' is non-zero, then UnixLib's errno is also set to EOPSYS.
    This function returns -1 if there is an error to allow to function
    to be used as a return value in error situations */
-extern int __ul_seterr (const _kernel_oserror *_err, int __seterrno)
+extern int __ul_seterr (const _kernel_oserror *__err, int __seterrno)
      __THROW;
 
 __END_DECLS

@@ -1,6 +1,7 @@
 /*
  * ISO C99 Standard: 7.23 Date and Time <time.h>.
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 1997-2005 Nick Burrett
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __TIME_H
@@ -99,17 +100,19 @@ extern time_t time (time_t *__result) __THROW;
 
 struct tm
 {
-  int tm_sec; 	/* seconds (0 - 59) */
-  int tm_min; 	/* minutes (0 - 59) */
-  int tm_hour;	/* hours (0 - 23) */
-  int tm_mday;	/* day of month (1 - 31) */
-  int tm_mon; 	/* month of year (0 - 11) */
-  int tm_year;	/* year - 1900 */
-  int tm_wday;	/* day of week (Sunday = 0) */
-  int tm_yday;	/* day of year (0 - 365) */
-  int tm_isdst;	/* 1 - DST in effect,0 - not,-1 - not known */
-  int tm_gmtoff;	/* offset east of UTC (GMT) in seconds */
-  const char *tm_zone;	/* abbreviation of timezone name */
+  int tm_sec; 	/* Number of seconds after the minute (0 through 59).  */
+  int tm_min; 	/* Number of minutes after the hour (0 through 59).  */
+  int tm_hour;	/* Number of hours past midnight (0 through 23).  */
+  int tm_mday;	/* Day of the month (1 through 31).  */
+  int tm_mon; 	/* Number of months since January (0 through 11).  */
+  int tm_year;	/* Number of years 1900.  */
+  int tm_wday;	/* Number of days since Sunday (0 through 6).  */
+  int tm_yday;	/* Number of days since January 1 (0 through 365).  */
+  int tm_isdst;	/* 1 - DST in effect, 0 - not, -1 - not known */
+#ifndef __TARGET_SCL__
+  int tm_gmtoff;	/* Offset east of UTC (GMT) in seconds.  */
+  const char *tm_zone;	/* Abbreviation of timezone name.  */
+#endif
 };
 
 /* Convert the broken-down time value into a string in a standard
@@ -117,7 +120,8 @@ struct tm
 extern char *asctime (const struct tm *__brokentime) __THROW;
 
 /* Similar to asctime except that the time value is specified
-   as a time_t calendar time value.  */
+   as a time_t calendar time value.  It is equivalent to asctime
+   (localtime (time)).*/
 extern char *ctime (const time_t *__timer) __THROW;
 
 /* Return the number of seconds elapsed between time1 and time 0
@@ -135,6 +139,7 @@ extern time_t mktime (struct tm *__brokentime) __THROW;
 extern size_t strftime (char *__restrict __s, size_t __size,
 			const char *__restrict __format,
        	      	        const struct tm *__restrict __brokentime) __THROW;
+
 /* Convert the calendar time 'time' to broken-down time,
    expressed relative to the user's specified time zone. */
 extern struct tm *localtime (const time_t *__timer) __THROW;

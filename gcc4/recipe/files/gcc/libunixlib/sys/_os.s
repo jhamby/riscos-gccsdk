@@ -162,18 +162,6 @@ __os_byte:
 	MOV	pc, lr
 	DECLARE_FUNCTION __os_byte
 
-	.global	__os_word
-	.global	_kernel_osword
-	NAME	__os_word
-__os_word:
-_kernel_osword:
-	SWI	XOS_Word
-	MOVVC	a1, #0
-	MVNVS	a1, #0
-	MOV	pc, lr
-	DECLARE_FUNCTION __os_word
-	DECLARE_FUNCTION _kernel_osword
-
 	.global	__os_prhex
 	NAME	__os_prhex
 __os_prhex:

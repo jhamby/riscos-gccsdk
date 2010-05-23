@@ -1,5 +1,5 @@
---- gcc/mklibgcc.in.orig	2010-04-18 18:53:15.595875380 +0200
-+++ gcc/mklibgcc.in	2010-04-18 18:52:50.543376465 +0200
+--- gcc/mklibgcc.in.orig	2010-05-03 01:05:34.854529940 +0200
++++ gcc/mklibgcc.in	2010-05-03 01:04:58.664531597 +0200
 @@ -73,7 +73,8 @@ fi
  # Build lines.
  
@@ -10,7 +10,19 @@
  make_compile='$(MAKE) GCC_FOR_TARGET="$(GCC_FOR_TARGET)" \
  	  AR_FOR_TARGET="$(AR_FOR_TARGET)" \
  	  AR_CREATE_FOR_TARGET="$(AR_CREATE_FOR_TARGET)" \
-@@ -173,7 +174,7 @@ for ml in $MULTILIBS; do
+@@ -170,10 +171,19 @@ for ml in $MULTILIBS; do
+   libunwind_a=
+   libunwind_so=
+ 
++  # SCL configurations do not support any threading so fall back on single
++  # thread mode (by undefining HAVE_GTHR_DEFAULT, include gthr.h results in
++  # including gthr-single.h instead of gthr-posix.h).
++  if echo $flags | grep -q -- -mlibscl ; then
++    gcc_compile="$gcc_compile -UHAVE_GTHR_DEFAULT"
++  else
++    gcc_compile=`echo ${gcc_compile} | sed -e 's/ -UHAVE_GTHR_DEFAULT//'`
++  fi
++
    if [ "$LIBUNWIND" ]; then
      libunwind_a=$dir/libunwind.a
    fi
@@ -19,7 +31,7 @@
      libgcc_eh_a=$dir/libgcc_eh.a
      libgcc_s_so=$dir/libgcc_s${SHLIB_EXT}
      if [ "$LIBUNWIND" ]; then
-@@ -827,7 +828,7 @@ for ml in $MULTILIBS; do
+@@ -827,7 +837,7 @@ for ml in $MULTILIBS; do
    echo '	$(INSTALL_DATA)' ${dir}/libgcov.a ${ldir}/
    echo '	$(RANLIB_FOR_TARGET)' ${ldir}/libgcov.a
  

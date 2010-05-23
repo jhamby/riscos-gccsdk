@@ -1,5 +1,5 @@
 /* Set Unix-style environment variables.
-   Copyright (c) 2005, 2007, 2008, 2009 UnixLib Developers.  */
+   Copyright (c) 2005-2010 UnixLib Developers.  */
 
 #include <stdlib.h>
 #include <string.h>
@@ -16,7 +16,6 @@
 int
 __addenv_to_os (const char *name, const char *value, int replace)
 {
-  _kernel_oserror *err;
   int regs[10];
 
   if (!replace)
@@ -37,6 +36,7 @@ __addenv_to_os (const char *name, const char *value, int replace)
   regs[2] = strlen (value);
   regs[3] = 0;
   regs[4] = 4;
+  const _kernel_oserror *err;
   if ((err = __os_swi (OS_SetVarVal, regs)) != NULL)
     return __ul_seterr (err, 1);
 
@@ -48,16 +48,14 @@ __addenv_to_os (const char *name, const char *value, int replace)
 static int
 __remenv_from_os (const char *name)
 {
-  _kernel_oserror *err;
   int regs[10];
-
   regs[0] = (int) name;
   regs[1] = 0;
   regs[2] = -1;
   regs[3] = 0;
   regs[4] = 0;
   /* Do not set the errno if the variable was not found. */
-  err = __os_swi (OS_SetVarVal, regs);
+  const _kernel_oserror *err = __os_swi (OS_SetVarVal, regs);
   return err ? -1 : 0;
 }
 
@@ -92,7 +90,7 @@ unsetenv (const char *name)
       if (environ != NULL)
 	{
 	  const size_t len = strlen (name);
-	  const char **ep;
+	  char **ep;
 	  const char *env;
 
 	  for (ep = environ; (env = *ep) != NULL; ep++)
@@ -121,13 +119,12 @@ unsetenv (const char *name)
 int
 clearenv (void)
 {
-  struct ul_global *gbl = &__ul_global;
-
   /* We do not remove names from the global OS environment with clearenv.
      If the user wants to remove a global name, they should use unsetenv.  */
 
   PTHREAD_UNSAFE
 
+  struct ul_global *gbl = &__ul_global;
   if (environ == gbl->last_environ && environ != NULL)
     {
       /* We allocated this environment so we can free it.  */

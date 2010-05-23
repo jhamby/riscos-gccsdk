@@ -1,6 +1,7 @@
 /* UnixLib internal #defines's.  */
 
-/* The following is an extract from gcc's lib1funcs.asm.  */
+/* The following is an extract from gcc's lib1funcs.asm.
+     - Added __ARM_ARCH__/__ARM_ARCH_STR__ 7/"7" case.   */
 
 /* Copyright 1995, 1996, 1998, 1999, 2000, 2003, 2004, 2005
    Free Software Foundation, Inc.
@@ -62,6 +63,18 @@ Boston, MA 02110-1301, USA.  */
 # define __ARM_ARCH__ 6
 # undef __ARM_ARCH_STR__
 # define __ARM_ARCH_STR__ "6"
+#endif
+
+#if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) \
+	|| defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__)
+# undef __ARM_ARCH__
+# define __ARM_ARCH__ 7
+# undef __ARM_ARCH_STR__
+# define __ARM_ARCH_STR__ "7"
+#endif
+
+#if !defined(__ARM_ARCH__) || !defined(__ARM_ARCH_STR__)
+# error Unable to determine architecture.
 #endif
 
 #endif

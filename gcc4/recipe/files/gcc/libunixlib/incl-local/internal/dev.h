@@ -1,5 +1,9 @@
 /* UnixLib internal device implementation.
-   Copyright (c) 2002-2005, 2008, 2009 UnixLib Developers.  */
+   Copyright (c) 2002-2010 UnixLib Developers.  */
+
+#ifdef __TARGET_SCL__
+#  error "SCL has no dev support"
+#endif
 
 #ifndef __INTERNAL_DEV_H
 #define __INTERNAL_DEV_H
@@ -122,7 +126,6 @@ extern __off_t __dsplseek (struct __unixlib_fd *__fd, __off_t __lpos, int __when
 extern int __dspioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
 
 /* /dev/custom support */
-
 struct dev *__unixlib_getdev(int fd);
 
 extern void *__customopen (struct __unixlib_fd *__fd, const char *file, int __mode);

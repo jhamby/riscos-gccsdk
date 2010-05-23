@@ -1,8 +1,12 @@
 /* Signal number definitions.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006 UnixLib Developers.  */
+ * Copyright (c) 1997-2005 Nick Burrett
+ * Copyright (c) 2002-2010 UnixLib Developers.
+ */
 
 #ifndef __BITS_SIGNUM_H
 #define __BITS_SIGNUM_H
+
+#ifndef __TARGET_SCL__
 
 /* Keep the following in sync with asm_dec.s. */
 /* Hangup (POSIX).  */
@@ -96,5 +100,62 @@
 /* Ignore signal.  */
 #define SIG_IGN ((__sighandler_t) 1)
 
+#else
+
+/* Defined signals.  */
+
+/* Indicates an error detected by the program itself and reported
+   by calling abort().  */
+#define SIGABRT 1
+
+/* Fatal arithmetic error i.e. all arithmetic errors, including
+   division by zero and overflow.  */
+#define SIGFPE 2
+
+/* Illegal instruction.  */
+#define SIGILL 3
+
+/* The program interrupt signal is sent when the user types the
+   INTR character, usually Escape.  */
+#define SIGINT 4
+
+/* Signal generated when a program tries to read/write outside the
+   memory that is allocated to it, or to write memory that can only
+   be read.  */
+#define SIGSEGV 5
+
+/* Generic signal used to cause program termination.  */
+#define SIGTERM 6
+
+/* Stack overflow.  */
+#define SIGSTAK 7
+
+/* User definable signal.  */
+#define SIGUSR1 8
+
+/* User definable signal.  */
+#define SIGUSR2 9
+
+/* Operating system error.  */
+#define SIGOSERROR 10
+
+/* Total number of signals defined. This should be one greater than
+   the largest defined signal number.  */
+#define _NSIG 11
+#define NSIG _NSIG
+
+void __SIG_DFL(int);
+void __SIG_ERR(int);
+void __SIG_IGN(int);
+
+/* Specifies the default action for the particular signal.  */
+#define SIG_DFL __SIG_DFL
+
+/* Used to flag error return from signal.  */
+#define SIG_ERR __SIG_ERR
+
+/* Specifies that the signal should be ignored.  */
+#define SIG_IGN __SIG_IGN
+#endif
 
 #endif /* __BITS_SIGNAL_H */

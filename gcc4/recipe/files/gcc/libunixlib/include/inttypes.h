@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __INTTYPES_H
@@ -241,6 +241,12 @@ typedef struct
   long long int quot;         /* Quotient.  */
   long long int rem;          /* Remainder.  */
 } imaxdiv_t;
+
+#ifdef __TARGET_SCL__
+extern intmax_t imaxabs(intmax_t __i);
+
+extern intmax_t imaxdiv(intmax_t __numer, intmax_t __denom);
+#endif
 
 /* Like `strtol' but convert to `intmax_t'.  */
 extern intmax_t strtoimax (const char *__restrict __nptr,

@@ -208,6 +208,7 @@ enum
 # endif
 
 /* Return nonzero value if X is not +-Inf or NaN.  */
+#ifndef __TARGET_SCL__
 # ifdef __NO_LONG_DOUBLE_MATH
 #  define isfinite(x) \
      (sizeof (x) == sizeof (float) ? __finitef (x) : __finite (x))
@@ -218,10 +219,14 @@ enum
       : sizeof (x) == sizeof (double)					      \
       ? __finite (x) : __finitel (x))
 # endif
+#else
+#  define isfinite(x) (fpclassify (x) >= FP_ZERO)
+#endif
 
 /* Return nonzero value if X is neither zero, subnormal, Inf, nor NaN.  */
 # define isnormal(x) (fpclassify (x) == FP_NORMAL)
 
+#ifndef __TARGET_SCL__
 /* Return nonzero value if X is a NaN.  We could use `fpclassify' but
    we already have this functions `__isnan' and it is faster.  */
 # ifdef __NO_LONG_DOUBLE_MATH
@@ -234,8 +239,12 @@ enum
        : sizeof (x) == sizeof (double)                                       \
        ? __isnan (x) : __isnanl (x))
 # endif
+#else
+#  define isnan(x) (fpclassify (x) == FP_NAN)
+#endif
 
 /* Return nonzero value is X is positive or negative infinity.  */
+#ifndef __TARGET_SCL__
 # ifdef __NO_LONG_DOUBLE_MATH
 #  define isinf(x) \
       (sizeof (x) == sizeof (float) ? __isinff (x) : __isinf (x))
@@ -246,6 +255,9 @@ enum
        : sizeof (x) == sizeof (double)                                       \
        ? __isinf (x) : __isinfl (x))
 # endif
+#else
+#  define isinf(x) (fpclassify (x) == FP_INFINITE)
+#endif
 
 /* Bitmasks for the math_errhandling macro.  */
 # define MATH_ERRNO	1	/* errno set by math functions.  */

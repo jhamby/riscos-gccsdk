@@ -1,14 +1,13 @@
 /* signame.c: Define signals for sys_siglist.
-   Copyright (c) 2000-2008 UnixLib Developers.  */
+   Copyright (c) 2000-2010 UnixLib Developers.  */
 
 #include <signal.h>
-
-#include <internal/sigstate.h>
 
 int sys_nsig = NSIG;
 
 const char * const sys_siglist[NSIG] =
 {
+#ifndef __TARGET_SCL__
   "Signal 0",			/* 0. NULL SIGNAL */
   "Hangup",			/* 1. SIGHUP */
   "Interrupt",			/* 2. SIGINT */
@@ -43,4 +42,17 @@ const char * const sys_siglist[NSIG] =
   "User defined signal 2",	/* 31. SIGUSR2 */
   "Resource lost",		/* 32. SIGLOST */
   "RISC OS error"		/* 33. SIGOSERROR */
+#else
+  "Signal 0",			/* 0. NULL SIGNAL */
+  "Aborted",			/* 1. SIGABRT */
+  "Floating point exception",	/* 2. SIGFPE */
+  "Illegal Instruction",	/* 3. SIGILL */
+  "Interrupt",			/* 4. SIGINT */
+  "Segmentation fault",		/* 5. SIGSEGV */
+  "Terminated",			/* 6. SIGTERM */
+  "Stack overflow",		/* 7. SIGSTAK */
+  "User defined signal 1",	/* 8. SIGUSR1 */
+  "User defined signal 2",	/* 9. SIGUSR2 */
+  "RISC OS error"		/* 10. SIGOSERROR */
+#endif
 };

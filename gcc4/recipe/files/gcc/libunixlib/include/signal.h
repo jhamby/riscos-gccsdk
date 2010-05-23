@@ -1,6 +1,7 @@
 /*
  * ANSI, POSIX and BSD signal handling.
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 1997-2005 Nick Burrett
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __SIGNAL_H
@@ -17,8 +18,10 @@
 #include <stddef.h>
 #endif
 
-#define __need_pthread_t
-#include <pthread.h>
+#ifndef __TARGET_SCL__
+#  define __need_pthread_t
+#  include <pthread.h>
+#endif
 
 __BEGIN_DECLS
 
@@ -33,8 +36,14 @@ typedef __sighandler_t sighandler_t;
 extern int sys_nsig;		/* = NSIG */
 extern const char * const sys_siglist[NSIG];	/* signal messages */
 
-
+/* Define the function 'action' to be called when 'signum' is raised.  */
 extern __sighandler_t signal (int __sig, __sighandler_t __handler) __THROW;
+
+/* Sends the signal 'sig' to the executing program. Returns zero on
+   success, non-zero on failure.  */
+extern int raise (int __sig) __THROW;
+
+#ifndef __TARGET_SCL__
 
 /* Send signal 'sig' to process number 'pid'.  If pid is zero,
    send sig to all processes in the current process's process group.
@@ -45,9 +54,6 @@ extern int kill (__pid_t __pid, int __sig) __THROW;
    If pgrp is zero, send sig to all processes in the current
    process's process group.  */
 extern int killpg (__pid_t __pgrp, int __sig) __THROW;
-
-/* Raise signal sig.  */
-extern int raise (int __sig) __THROW;
 
 /* Print a message describing the meaning of the given signal number.  */
 extern void psignal (int __sig, const char *__s) __THROW;
@@ -232,6 +238,8 @@ extern int pthread_sigmask (int how, const sigset_t *set,
 /* Suspend thread until delivery of a signal.
    This function is a cancellation point.  */
 extern int sigwait (const sigset_t *__restrict set, int *sig);
+
+#endif
 
 __END_DECLS
 

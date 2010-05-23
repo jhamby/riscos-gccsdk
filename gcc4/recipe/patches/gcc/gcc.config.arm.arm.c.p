@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.c.orig	2009-03-28 15:17:24.000000000 +0100
-+++ gcc/config/arm/arm.c	2009-04-06 01:29:46.000000000 +0200
+--- gcc/config/arm/arm.c.orig	2010-05-09 18:12:08.403949186 +0200
++++ gcc/config/arm/arm.c	2010-05-09 18:11:57.463951393 +0200
 @@ -112,6 +112,7 @@ static tree arm_handle_isr_attribute (tr
  #if TARGET_DLLIMPORT_DECL_ATTRIBUTES
  static tree arm_handle_notshared_attribute (tree *, tree, tree, int, bool *);
@@ -948,10 +948,10 @@
 -	  if (GET_CODE (x) == SYMBOL_REF
 -	      && (CONSTANT_POOL_ADDRESS_P (x)
 -		  || SYMBOL_REF_LOCAL_P (x)))
--	    fputs ("(GOTOFF)", asm_out_file);
--	  else if (GET_CODE (x) == LABEL_REF)
 +	  if (TARGET_MODULE) /* -mmodule */
  	    fputs ("(GOTOFF)", asm_out_file);
+-	  else if (GET_CODE (x) == LABEL_REF)
+-	    fputs ("(GOTOFF)", asm_out_file);
 -	  else
 +	  else if (flag_pic == 2) /* -fPIC */
  	    fputs ("(GOT)", asm_out_file);
@@ -968,7 +968,25 @@
  	}
        fputc ('\n', asm_out_file);
        return true;
-@@ -11947,7 +12366,7 @@ arm_debugger_arg_offset (int value, rtx 
+@@ -11303,6 +11722,9 @@ arm_assemble_integer (rtx x, unsigned in
+ static void
+ arm_elf_asm_constructor (rtx symbol, int priority ATTRIBUTE_UNUSED)
+ {
++#ifdef TARGET_RISCOSELF
++  default_named_section_asm_out_constructor (symbol, priority);
++#else
+   if (!TARGET_AAPCS_BASED)
+     {
+       default_named_section_asm_out_constructor (symbol, priority);
+@@ -11315,6 +11737,7 @@ arm_elf_asm_constructor (rtx symbol, int
+   fputs ("\t.word\t", asm_out_file);
+   output_addr_const (asm_out_file, symbol);
+   fputs ("(target1)\n", asm_out_file);
++#endif
+ }
+ #endif
+ 
+@@ -11947,7 +12370,7 @@ arm_debugger_arg_offset (int value, rtx 
  
    /* If we are using the stack pointer to point at the
       argument, then an offset of 0 is correct.  */
@@ -977,7 +995,7 @@
        && REGNO (addr) == SP_REGNUM)
      return 0;
  
-@@ -13503,17 +13922,33 @@ arm_init_machine_status (void)
+@@ -13503,17 +13926,33 @@ arm_init_machine_status (void)
  #if ARM_FT_UNKNOWN != 0
    machine->func_type = ARM_FT_UNKNOWN;
  #endif
@@ -1012,7 +1030,7 @@
    return get_hard_reg_initial_val (Pmode, LR_REGNUM);
  }
  
-@@ -13619,7 +14054,7 @@ thumb_expand_prologue (void)
+@@ -13619,7 +14058,7 @@ thumb_expand_prologue (void)
    if (flag_pic)
      arm_load_pic_register (live_regs_mask);
  
@@ -1021,7 +1039,7 @@
      emit_move_insn (gen_rtx_REG (Pmode, ARM_HARD_FRAME_POINTER_REGNUM),
  		    stack_pointer_rtx);
  
-@@ -13653,7 +14088,7 @@ thumb_expand_prologue (void)
+@@ -13653,7 +14092,7 @@ thumb_expand_prologue (void)
  	     it now.  */
  	  for (regno = LAST_ARG_REGNUM + 1; regno <= LAST_LO_REGNUM; regno++)
  	    if (live_regs_mask & (1 << regno)
@@ -1030,7 +1048,7 @@
  		     && (regno == THUMB_HARD_FRAME_POINTER_REGNUM)))
  	      break;
  
-@@ -13711,7 +14146,7 @@ thumb_expand_prologue (void)
+@@ -13711,7 +14150,7 @@ thumb_expand_prologue (void)
  	}
      }
  
@@ -1039,7 +1057,7 @@
      {
        amount = offsets->outgoing_args - offsets->locals_base;
  
-@@ -13768,7 +14203,7 @@ thumb_expand_epilogue (void)
+@@ -13768,7 +14207,7 @@ thumb_expand_epilogue (void)
    offsets = arm_get_frame_offsets ();
    amount = offsets->outgoing_args - offsets->saved_regs;
  
@@ -1048,7 +1066,7 @@
      {
        emit_insn (gen_movsi (stack_pointer_rtx, hard_frame_pointer_rtx));
        amount = offsets->locals_base - offsets->saved_regs;
-@@ -15057,7 +15492,7 @@ arm_set_return_address (rtx source, rtx 
+@@ -15057,7 +15496,7 @@ arm_set_return_address (rtx source, rtx 
      emit_move_insn (gen_rtx_REG (Pmode, LR_REGNUM), source);
    else
      {
@@ -1057,7 +1075,7 @@
  	addr = plus_constant(hard_frame_pointer_rtx, -4);
        else
  	{
-@@ -15100,7 +15535,7 @@ thumb_set_return_address (rtx source, rt
+@@ -15100,7 +15539,7 @@ thumb_set_return_address (rtx source, rt
        offsets = arm_get_frame_offsets ();
  
        /* Find the saved regs.  */
@@ -1066,7 +1084,7 @@
  	{
  	  delta = offsets->soft_frame - offsets->saved_args;
  	  reg = THUMB_HARD_FRAME_POINTER_REGNUM;
-@@ -15157,13 +15592,97 @@ arm_shift_truncation_mask (enum machine_
+@@ -15157,13 +15596,97 @@ arm_shift_truncation_mask (enum machine_
    return mode == SImode ? 255 : 0;
  }
  
@@ -1165,7 +1183,7 @@
      return regno;
  
    /* TODO: Legacy targets output FPA regs as registers 16-23 for backwards
-@@ -15171,9 +15690,12 @@ arm_dbx_register_number (unsigned int re
+@@ -15171,9 +15694,12 @@ arm_dbx_register_number (unsigned int re
    if (IS_FPA_REGNUM (regno))
      return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
  

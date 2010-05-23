@@ -1,5 +1,5 @@
---- ld/scripttempl/elf.sc.orig	2009-10-09 15:12:35.000000000 +0200
-+++ ld/scripttempl/elf.sc	2010-01-31 17:12:41.882517838 +0100
+--- ld/scripttempl/elf.sc.orig	2010-04-27 23:32:57.538121791 +0200
++++ ld/scripttempl/elf.sc	2010-04-27 23:32:26.085621378 +0200
 @@ -268,6 +268,14 @@ else
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
@@ -23,7 +23,17 @@
    ${INITIAL_READONLY_SECTIONS}
    .note.gnu.build-id : { *(.note.gnu.build-id) }
  EOF
-@@ -434,6 +443,8 @@ cat <<EOF
+@@ -398,6 +407,9 @@ if test -z "${NON_ALLOC_DYN}"; then
+ fi
+ 
+ cat <<EOF
++  /* RISC OS module header: */
++  .riscos.module.header : { *(.riscos.module.header) }
++
+   .init         ${RELOCATING-0} : 
+   { 
+     ${RELOCATING+${INIT_START}}
+@@ -434,6 +446,8 @@ cat <<EOF
    .eh_frame     ${RELOCATING-0} : ONLY_IF_RO { KEEP (*(.eh_frame)) }
    .gcc_except_table ${RELOCATING-0} : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }
  
@@ -32,7 +42,7 @@
    /* Adjust the address for the data segment.  We want to adjust up to
       the same address within the page on the next page up.  */
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+. = ${DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}}
-@@ -484,6 +495,11 @@ cat <<EOF
+@@ -484,6 +498,11 @@ cat <<EOF
  
    ${DATA_PLT+${PLT_BEFORE_GOT-${PLT}}}
  
@@ -44,7 +54,7 @@
    .data         ${RELOCATING-0} :
    {
      ${RELOCATING+${DATA_START_SYMBOLS}}
-@@ -508,8 +524,10 @@ cat <<EOF
+@@ -508,8 +527,10 @@ cat <<EOF
    ${BSS_PLT+${PLT}}
    .bss          ${RELOCATING-0} :
    {
@@ -56,7 +66,7 @@
     *(COMMON)
     /* Align here to ensure that the .bss section occupies space up to
        _end.  Align after .bss to ensure correct alignment even if the
-@@ -517,6 +535,7 @@ cat <<EOF
+@@ -517,6 +538,7 @@ cat <<EOF
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */
     ${RELOCATING+. = ALIGN(. != 0 ? ${ALIGNMENT} : 1);}
@@ -64,7 +74,7 @@
    }
    ${OTHER_BSS_SECTIONS}
    ${RELOCATING+${OTHER_BSS_END_SYMBOLS}}
-@@ -526,6 +545,7 @@ cat <<EOF
+@@ -526,6 +548,7 @@ cat <<EOF
    ${RELOCATING+${OTHER_END_SYMBOLS}}
    ${RELOCATING+${END_SYMBOLS-${USER_LABEL_PREFIX}_end = .; PROVIDE (${USER_LABEL_PREFIX}end = .);}}
    ${RELOCATING+${DATA_SEGMENT_END}}

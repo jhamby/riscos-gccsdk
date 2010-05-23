@@ -8,17 +8,14 @@
 time_t
 timegm (struct tm *tm)
 {
-  time_t ret;
-  char *tz;
-
-  tz = getenv("TZ");
-  setenv("TZ", "", 1);
-  tzset();
-  ret = mktime(tm);
+  char *tz = getenv ("TZ");
+  setenv ("TZ", "", 1);
+  tzset ();
+  time_t ret = mktime (tm);
   if (tz)
-    setenv("TZ", tz, 1);
+    setenv ("TZ", tz, 1);
   else
-    unsetenv("TZ");
-  tzset();
+    unsetenv ("TZ");
+  tzset ();
   return ret;
 }

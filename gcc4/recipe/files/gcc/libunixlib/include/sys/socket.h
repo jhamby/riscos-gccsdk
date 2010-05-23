@@ -2,6 +2,8 @@
  * File taken from glibc 2.7
  * Following changes were made:
  *  - Added SOMAXCONN constant.
+ *  - Added SCL socketclose, socketstat, socketioctl, socketread, socketreadv,
+ *    socketwrite, socketwritev prototypes for TCPIPLibs compatibility.
  */
 
 /* Declarations of socket constants, types, and functions.
@@ -245,6 +247,25 @@ extern int isfdtype (int __fd, int __fdtype) __THROW;
 /* Define some macros helping to catch buffer overflows.  */
 #if __USE_FORTIFY_LEVEL > 0 && defined __extern_always_inline
 # include <bits/socket2.h>
+#endif
+
+#ifdef __TARGET_SCL__
+#  include <sys/uio.h>
+#  include <sys/stat.h>
+/* Only to provide backwards compatible support for SCL & TCPIPLibs.  */
+extern int socketclose (int __d) __asm ("close");
+extern int socketstat (int __s, struct stat *__buf)
+  __asm ("stat") __THROW __nonnull ((2));
+extern int socketioctl (int __s, unsigned long __cmd, void *__arg)
+  __asm ("ioctl") __THROW;
+extern ssize_t socketread (int __s, void *__buf, size_t __len)
+  __asm ("read") __nonnull ((2)) __wur;
+extern ssize_t socketreadv (int __s, const struct iovec *__iov, int __iovcnt)
+  __asm ("readv") __THROW;
+extern ssize_t socketwrite (int __s, const void *__buf, size_t __len)
+  __asm ("write") __nonnull ((2)) __wur;
+extern ssize_t socketwritev (int __s, const struct iovec *__iov, int __iovcnt)
+  __asm ("writev");
 #endif
 
 __END_DECLS

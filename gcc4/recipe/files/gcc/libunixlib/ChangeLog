@@ -10,6 +10,182 @@ Sun May  2 00:58:38 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 	* common/riscosify.c: Fix the __TARGET_SOLOADER__ case when build
 	option __UNIX_PARANOID is set.
 
+Thu May 13 16:20:41 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* recipe/files/gcc/libunixlib/crt/crt0-scl.s(_start): Merge into __main
+	eliminating the latter symbol.
+	Removed unnecessary .text lines.
+	(c_run): Renamed to __c_run.
+	( ___main): Renamed to __main; Register _fini with atexit() after the
+	call to _init instead of before so when we have an exit called in
+	_init, the _fini is not called.
+	(_start,__c_run): Add size info.
+	(__gccmain): Added for the module case (being the the equivalent of
+	__main for absolute files.
+
+Sun May  9 17:02:23 2010   Lee Noar  <leenoar@sky.com>
+
+	* crt/crt0-scl.s: Fix .type parameter to match function it
+	belongs to.
+
+	Fixes for C++ exception handling in SCL (not module code):
+
+	* gcccompat/_b_return.s: Add separate implementation of
+	__builtin_return_address for SCL. This differs from the UnixLib
+	version in that an SCL stack chunk does not contain a return
+	address for when a stack chunk is freed. Instead it creates a
+	dummy stack frame to store it.
+	* gcccompat/_b_frame.s: Add separate implementation of
+	__builtin_frame_address for SCL to help simplify the code.
+	* gcccompat/_eh_support.s(__ehs_return_address): The SCL presents
+	a problem for __ehs_return_address because it can't know what the
+	address of the stack chunk freeing routine is as we do for
+	__free_stack_chunk in UnixLib. It needs to be able to test for it
+	so that it can substitute the real return address. To overcome this
+	a new function, __ehs_init, is called to determine the start and end
+	addresses of the SCL. This only needs to be done once - the results
+	are saved for future use. If a return address is found to lie within
+	the SCL, then it is assumed to be the stack chunk freeing routine.
+	Where UnixLib stores the real return address in the stack chunk, the
+	SCL creates a dummy frame to store it instead. Because of these
+	differences, __ehs_return_address is divided into two separate
+	implementations to simplify the code.
+	(__ehs_trim_stack): In UnixLib, there is already a __trim_stack function
+	we can use to clean up after C++ exception handling. It only requires
+	a wrapper to save any registers it may use. For the SCL, we have to
+	do the work ourselves, i.e., terminating the stack chain at the current
+	chunk and freeing any unused chunks using the SCL supplied routine.
+	* incl-local/internal/asm_dec.s: Make CHUNK_OVERHEAD 48 for SCL so that
+	512 + CHUNK_OVERHEAD adds up to 560. Remove redundant CHUNK_DEALLOC
+	definition.
+
+Tue Apr 20 02:46:32 2010 John Tytgat  <John.Tytgat@aaug.net>
+
+	Merge libscl into libunixlib:
+	* configure.ac: Added (generated from gen-auto.pl + added
+	BUILDING_SCL conditional); don't enable shared library building when
+	configured for SCL building via multilib.
+	* {,test/*/}Makefile.am: Added.
+	* configure.template: Removed.
+	* crt/crt0-scl.s: Moved from libscl/crt to here.
+	* ctype/ctypeproc.c: Split into ctype/ctype.c, ctype/isalnum.c,
+	ctype/isalpha.c, ctype/isascii.c, ctype/iscntrl.c, ctype/isdigit.c,
+	ctype/isgraph.c, ctype/islower., ctype/isprint.c, ctype/ispunct.c,
+	ctype/isspace.c, ctype/isupper.c, ctype/isxdigit.c, ctype/toascii.c,
+	ctype/_tolower.c, ctype/tolower.c, ctype/_toupper.c, ctype/toupper.c
+	* ctype/ctype.c: Removed, contents is at ctypetable.c.
+	* locale/ctypetable.c: Move to...
+	* ctype/ctypetable.c: ...here.
+	* include/ctype.h(__ctype,__ctype_lower,__ctype_upper): Made const
+	pointers.
+	* stdlib/div.c: Split off ldiv and lldiv into...
+	* stdlib/ldiv.c, stdlib/lldiv.c: Added.
+	* include/ctype.h: Support SCL.
+	(isprint): Fixed.
+	* test/ctype: Added test.
+	* include/*.h: Merge libscl header contents.
+	* ChangeLog-SCL: libscl ChangeLog just before its merge.
+	* scl/chunkid02.s(__ignore_signal_handler,__error_signal_marker,
+	__default_signal_handler): No longer export these symbols.
+	* incl-local/internal/defines.h: Added arch 7 case.
+	* scl/chunkid02.s: Define fseeko/ftello.
+	* incl-local/internal/scl-macros.s(DefSCLGbl): Added.
+	* string/strsignal.c,include/bits/signum.h,signal/signame.c: Enable
+	for SCL usage.
+	* include/stdint.h(UINT8_MAX,UINT16_MAX,UINT8_C,UINT16_C): Make signed
+	instead of unsigned.
+	* wchar/wctype.c: Reimplemented and added iswcntrl, iswdigit,
+	iswgraph, iswpunct, iswxdigit.
+	* include/errno.h,sys/errlist.c: Merge SCL/UL errno codes.
+	* unix/dev.c,unix/select.c,unix/fcntl.c: Add include socket.h and
+	do minor source cleanup.
+	* locale/iconv.c: Enable for SCL usage.
+	* stdio/getdelim.c: Likewise
+	* incl-local/internal/fd.h: Poison for SCL usage.
+	* incl-local/internal/dev.h: Likewise.
+	* incl-local/internal/sigstate.h: Likewise.
+	* wchar/wcstod.c,wchar/wcstof.c,wchar/wcstol.c,wchar/wcstold.c,
+	wchar/wcsxfrm.c: Removed dummy implementations.
+	* incl-local/errno.h,signal/_signal.s,signal/post.c(__ul_fp_registers):
+	Disable in soft-float builds.
+	* signal/_signal.s(_kernel_last_oserror): Move to...
+	* kernel/koserror.c: ...here as C implementation.  Invalidate RISC OS
+	error block when called.
+	* kernel/ksetenv.s,kernel/kosbyte.s,kernel/koscli.s,kernel/kosbput.s,
+	kernel/kosgbpb.s,kernel/kosfind.s,kernel/kosargs.s: call __ul_seterr
+	with non-zero seterr parameter.
+	* signal/_signal.s(__ul_seterr): Move to...
+	* unix/seterr.c: ...here as C implementation.  Add support for SCL
+	usage.
+	* incl-local/pthread.h: Poison for SCL use.
+	(pthread::errbuf_valid): Added.
+	(__pthread_invalid): Better macro parameter protection.
+	* pthread/newnode.c(__pthread_new_node): initialise
+	pthread_t::errbuf_valid.
+	* test/scl/Makefile.am,test/scl/test-kernel_oserror.c: Add test for
+	_kernel_last_oserror code.
+	* scl/chunkid01.s(_stub_errorBuffer,_stub_errorNumber): Export.
+	* incl-local/internal/os.h(__ul_seterr): Fix parameter typo.
+	* include/errno.h(EOPSYS): Added for SCL use.
+	* sys/errlist.c(EOPSYS): Likewise.
+	* unix/getdomain.c(setdomainname): Move implementation to...
+	* unix/setdomain.c: ...here.
+	* unix/gethostnam.c(sethostname): Move implementation to...
+	* unix/sethostnam.c: ...here.
+	* sys/_os.s(__os_word): Remove.
+	(_kernel_osword): Move to...
+	* kernel/kosword: ...here.  Add call to __ul_seterr when there is an
+	error.
+	* time/time.c(time): use _kernel_osworld instead of __os_word.
+	* time/clk_gettime.c(clock_gettime): Likewise.
+	* time/ctime.c(ctime): Reimplement using ctime_r.
+	(ctime_r): Move to...
+	* time/ctime_r.c: ...here.
+	* time/asctime.c(asctime): Reimplement using asctime_r.
+	(asctime_r): Move to...
+	* time/asctime_r.c: ...here.
+	* time/localtime.c(localtime): Reimplement using localtime_r.
+	* time/gtime.c(gtime): Reimplement using gmtime_r.
+	* time/gmtime_r.c(gmtime_r): Enable for SCL usage.
+	* time/localtime_r.c(localtime_r): Likewise.
+	* time/ftime(ftime): Likewise.
+	* time/tzset(tzet): Likewise.
+	* time/dysize.c: Reimplement.
+	* time/mktime.c(timelocal): Made strong alias of mktime.
+	* include/sys/netdb.h: Remove, was an internal header.
+	* include/unistd.h(ttyname_r): Add prototype.
+	* unix/open.c(ttyname): Move to...
+	* unix/ttyname_r: ...here as ttyname_r.
+	* unix/ttyname(ttyname): Added.
+	* include/feature.h(__NO_LONG_DOUBLE_MATH): Define it here (instead of
+	gen-auto.pl/Makefile.am) as it is used in our public include/math.h.
+	* include/resolv.h: Move to...
+	* incl-local/resolv.h: ...here and make it fetch include/resolv.h.
+	* include/resolv/resolv.h: Move to...
+	* include/resolv.h: ...here.
+	* stdio/{fdopen.c,fileno.c,fopen.c}: Prefixed with ul_.
+	* unix/{close.c,ioctl.c,lseek.c,read.c,readv.c,select.c,write.c,
+	writev.c}: Likewise.
+	* netlib/{getaddrinfo.c,in6_addr.c,inet_lnaof.c,inet_mkad.c,
+	inet_netof.c,inet_netwo.c,inet_ntoa.c,net.c,proto.c,readline.c,
+	serv.c,socketpair.c}: Likewise.
+	* resolv/*.c: Likewise.
+	* stdio/{scl_fdopen.c,scl_fileno}: Added.
+	* unix/{scl_close.c,scl_ioctl.c,scl_lseek.c,scl_read.c,scl_readv.c,
+	scl_select.c,scl_write.c,scl_writev.c}: Likewise.
+	* revolv/scl_gethostbyname.c: Likewise.
+	* incl-local/bits/netdb.h: Removed.
+	* incl-local/internal/elf-macros.s(NetSWI,NetSWIsimple,NetSWI0,
+	NetSWIsimple0): Removed, no longer needed as we're using inline
+	assembler now.
+	* incl-local/internal/asm_dec.s: Removed socket SWI numbers.
+	* incl-local/sys/socket.h: turn socket SWI prototypes into inline
+	assembler routines.
+	* include/stdio.h(mktemp,mkstemp): Moved prototypes to...
+	* include/stdlib.h: ...here.
+	* stdio/tmpfile.c(mkstemp): Moved implementation to...
+	* stdlib/mkstemp.c: ...here.
+
 Wed Mar 17 00:19:35 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/stdlib.h: Replace 'extern __inline' by '__extern_inline'.

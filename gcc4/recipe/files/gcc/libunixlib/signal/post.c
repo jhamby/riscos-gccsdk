@@ -400,6 +400,7 @@ __write_backtrace (int signo)
   if (signo != 0)
     fprintf (stderr, "\nFatal signal received: %s\n\n", strsignal (signo));
 
+#ifndef __SOFTFP__
   if (signo == SIGFPE)
     {
       fprintf(stderr, "  f0: %f  f1: %f  f2: %f  f3: %f\n"
@@ -410,6 +411,7 @@ __write_backtrace (int signo)
 		      __ul_fp_registers.f[5], __ul_fp_registers.f[7],
 		      __ul_fp_registers.fpsr);
     }
+#endif
 
   /* Dump first the details of the current thread.  */
   fprintf (stderr, "Stack backtrace:\n\nRunning thread %p\n",

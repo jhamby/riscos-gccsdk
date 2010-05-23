@@ -1,7 +1,7 @@
 ====================================================================
 SysLogD Documentation
 --------------------------------------------------------------------
-Version: v0.04
+Version: v0.05
 Authors: John Tytgat / BASS
          Alex Waugh
 
@@ -14,7 +14,7 @@ application or using RISC OS Select's built in Syslog module.
 Additionally it can produce throwback from messages created by the
 gccsdk cross compiler.
 
-It should work with RISC OS 3.1 up to RISC OS 5.  It has only been
+It should work with RISC OS 3.1 up to RISC OS 6.  It has only been
 tested with the Acorn Internet 5 stack.
 
 Install
@@ -23,9 +23,9 @@ Install
 Copy SysLogD into the Boot:Choices.Boot.PreDesk directory and for
 RISC OS 3, RISC OS 4 and RISC OS 5 users make sure that the
 DoggySoft's !SysLog application gets Filer_Run'ed (the log file is
-written at <SysLog$LogDir>.SysLogD).  RISC OS Select users should
-not use DoggySoft's !SysLog but use the standard built in Syslog
-module.
+written at <SysLog$LogDir>.SysLogD).  RISC OS Select or RISC OS 6
+users should not use DoggySoft's !SysLog but use the standard built
+in Syslog module.
 
 From version 0.03 onwards, pre RISC OS 5 users should install
 the 32 bit versions of system resources (especially the
@@ -74,6 +74,8 @@ v0.03 (22 Jan 2003) :
   - Used Acorn's CMHG again as CMunge is not yet 32-bit compatible.
 v0.04 (16 Jul 2007) :
   - Added throwback support for use with the gccsdk.
+v0.05 (21 Apr 2010) :
+  - GCCSDK 4 build changes
 
 Recompiling
 -----------
@@ -84,18 +86,7 @@ report any problems and bugfixes to the source code to the author
 
 You need the following for its recompilation :
 
-- Acorn C compiler version 5.
-- The o.inetlibzm and o.socklibzm object files and their
-  accompagning header files which are available from Acorn's
-  SocketLib distribution.  You can find a copy in the archives
-  of the Acorn FTP site (e.g. CDROM archives) and/or the
-  RISCOS Ltd. website : <URL:http://www.riscos.com/>
-  You can also find a copy in Castle's 26/32bit Acorn C/C++
-  Tools <URL:http://www.castle.uk.co/castle/software.htm>.
-- Version 0.02 only :
-    - CMunge : a free alternative to CMHG written by Robin Watts
-      <URL:mailto:Robin@wss.co.uk> and Justin Fletcher
-      <URL:justin@riscos.com>.
+- GCCSDK GCC 4.1.1 Release 3 <http://gccsdk.riscos.info/>
 
 Copyright
 ---------

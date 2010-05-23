@@ -2,6 +2,7 @@
    Copyright (c) 2005-2010 UnixLib Developers.  */
 
 #include <errno.h>
+#include <kernel.h>
 #include <stdint.h>
 #include <time.h>
 
@@ -16,9 +17,8 @@ clock_gettime (clockid_t clk_id, struct timespec *tp)
         {
 	  unsigned int buf[2];
 	  buf[0] = 3;
-	  _kernel_oserror *err;
-	  if ((err = __os_word (14, buf)) != NULL)
-	    return __ul_seterr (err, 1);
+	  if (_kernel_osword (14, (int *)buf) < 0)
+	    return -1;
 
 	  /* The number of centiseconds that have elapsed between the starts
 	     of RISC OS and Unix times is 0x336e996a00.  */

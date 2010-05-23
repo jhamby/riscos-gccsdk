@@ -1,0 +1,24 @@
+Simple test case to verify that the constructor/destructor calls are done
+when the SharedCLibrary is used (absolute and module case).  You should
+see output similar to:
+
+--8<--
+*run test_abs 
+*** foo::foo(): 0 -> 1
+*** main() - begin
+*** foo::foo(): 1 -> 2
+*** main() - end
+*** foo::~foo(): 2 -> 1
+*** foo::~foo(): 1 -> 0
+*run test_mod 
+*** foo::foo(): 0 -> 1
+*** gccmodule_init()
+*** main() - begin
+*** foo::foo(): 1 -> 2
+*** main() - end
+*** foo::~foo(): 2 -> 1
+*rmkill testgccmodule
+*** gccmodule_final()
+*** foo::~foo(): 1 -> 0
+--8<--
+

@@ -1,13 +1,9 @@
 @ UnixLib assembler helper macros
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007 UnixLib Developers
-
-	@ Turn on macro extensions, allowing the use of LOCAL.
-@	.altmacro
+@ Copyright (c) 2002-2010 UnixLib Developers
 
 	@ Macro for embedding function names in code, just before
 	@ the function prologue.
 	.macro	NAME	name
-@	LOCAL t0, t1
 0:
 	.asciz	"\name"
 	.align
@@ -24,7 +20,6 @@
 	@ Exit condition
 	@   val = -1
 	@   Rerrno destroyed
-
 	.macro	__set_errno	val, Rerrno
 #if __UNIXLIB_ERRNO_THREADED
 	ldr	\Rerrno, 0f	@=__pthread_running_thread
@@ -67,44 +62,6 @@
 #endif
 1:
 	.endm
-
-	@ NetSWI, NetSWIsimple, NetSWI0 and NetSWIsimple0 are macros to call
-	@ one of the networking (TCP/IP) SWIs.
-
-	@ Calls networking (TCP/IP) SWI.
-	.macro	NetSWI	swiname
-	swi	\swiname
-	blvs	__net_error
-	.endm
-
-
-	@ Calls networking (TCP/IP) SWI and returns to lr.
-	.macro	NetSWIsimple	swiname
-	swi	\swiname
-	movvc	pc, lr
-	b	__net_error
-	.endm
-
-	@ Calls networking (TCP/IP) SWI.
-	@ Returns 0 in R0 for success, a non zero errno in R0 when
-	@ error happened.
-	.macro	NetSWI0	swiname
-	swi	\swiname
-	movvc	a1, #0
-	blvs	__net_error
-	.endm
-
-
-	@ Calls networking (TCP/IP) SWI and returns to lr.
-	@ Returns 0 in R0 for success, a non zero errno in R0 when
-	@ error happened.
-	.macro	NetSWIsimple0	swiname
-	swi	\swiname
-	movvc	a1, #0
-	movvc	pc, lr
-	b	__net_error
-	.endm
-
 
 	@ Macro to change processor modes and interrupt flags
 	@ Works in 26bit or 32bit modes, on all architectures

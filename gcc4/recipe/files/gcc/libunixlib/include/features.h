@@ -355,6 +355,9 @@
 # define __GLIBC_HAVE_LONG_LONG	1
 #endif
 
+/* 'long double' routines are aliased to 'double' ones.  */
+#define __NO_LONG_DOUBLE_MATH 1
+
 /* This is here only because every header file already includes this one.  */
 #ifndef __ASSEMBLER__
 # ifndef _SYS_CDEFS_H

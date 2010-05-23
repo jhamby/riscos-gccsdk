@@ -1,5 +1,5 @@
 /* Internal UnixLib errno.h
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __ERRNO_H
@@ -30,11 +30,13 @@ extern struct
   int valid;
 } __ul_errbuf;
 
+#ifndef __SOFTFP__
 extern struct
 {
   int fpsr;
   double f[8];
 } __ul_fp_registers;
+#endif
 
 __END_DECLS
 

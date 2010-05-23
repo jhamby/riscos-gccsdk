@@ -1,13 +1,13 @@
 /* Get time.
-   Copyright (c) 2003-2008 UnixLib Developers.  */
+   Copyright (c) 2003-2010 UnixLib Developers.  */
 
 #include <errno.h>
+#include <kernel.h>
 #include <stdint.h>
 #include <time.h>
 #include <sys/time.h>
 
 #include <internal/os.h>
-#include <unixlib/local.h>
 
 /* The `gettimeofday' function returns the current date and time in
    the `struct timeval' structure indicated by TP.  Information about
@@ -31,23 +31,20 @@
 int
 gettimeofday (struct timeval *tv, struct timezone *tz)
 {
-  unsigned int buf[2];
-  _kernel_oserror *err;
-  uint64_t centisec, sec;
-
   if (tv == NULL)
     return __set_errno (EINVAL);
 
+  unsigned int buf[2];
   buf[0] = 3;
-  if ((err = __os_word(14, buf)) != NULL)
-    return __ul_seterr (err, 1);
+  if (_kernel_osword (14, buf) < 0)
+    return -1;
 
   /* The number of centiseconds that have elapsed between the starts
      of RISC OS and Unix times is 0x336e996a00.  */
-  centisec = (uint64_t)buf[0] + (((uint64_t)(buf[1] & 0xFF))<<32)
-	     - 0x336e996a00ULL;
+  uint64_t centisec = (uint64_t)buf[0] + (((uint64_t)(buf[1] & 0xFF))<<32)
+			- 0x336e996a00ULL;
 
-  sec = (centisec / 10ULL) / 10ULL;
+  uint64_t sec = (centisec / 10ULL) / 10ULL;
   tv->tv_sec = (time_t)sec;
   tv->tv_usec = 10000 * (suseconds_t)(centisec - sec * 100ULL);
 

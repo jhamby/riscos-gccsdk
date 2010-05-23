@@ -9,14 +9,6 @@
  static const char *convert_filename (const char *, int, int);
  #endif
  
-@@ -1073,6 +1073,7 @@
-    {"--imacros", "-imacros", "a"},
-    {"--include", "-include", "a"},
-    {"--include-barrier", "-I-", 0},
-+   {"--include-cross-directory-after", "-icrossdirafter", "a"},
-    {"--include-directory", "-I", "aj"},
-    {"--include-directory-after", "-idirafter", "a"},
-    {"--include-prefix", "-iprefix", "a"},
 @@ -2978,7 +2983,7 @@
  
  const char **outfiles;

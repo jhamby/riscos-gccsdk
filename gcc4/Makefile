@@ -30,13 +30,14 @@ GDB_VERSION=6.8
 #      not necessary the gcc version we're building here.
 ifeq ($(TARGET),arm-unknown-riscos)
 # Case GCCSDK arm-unknown-riscos target:
+# Variations: --disable-shared vs --enable-shared=libunixlib,libgcc,libstdc++
 GCC_CONFIG_ARGS := \
 	--enable-threads=posix \
 	--enable-sjlj-exceptions=no \
 	--enable-c99 \
 	--enable-cmath \
-	--enable-shared=libunixlib,libgcc,libstdc++ \
 	--enable-multilib \
+	--enable-shared=libunixlib,libgcc,libstdc++ \
 	--disable-c-mbchar \
 	--disable-libstdcxx-pch \
 	--disable-tls \
@@ -59,14 +60,15 @@ GCC_CONFIG_ARGS += --enable-maintainer-mode --enable-interwork --disable-nls
 NEWLIB_CONFIG_ARGS += --enable-interwork --disable-multilib --disable-shared --disable-nls
 GDB_CONFIG_ARGS += --enable-interwork --disable-multilib --disable-werror --disable-nls
 
-# When debugging/testing/validating the compiler add "-enable-checking=all",
+# When debugging/testing/validating the compiler add "--enable-checking=all",
 # otherwise add "--enable-checking=release" or even "--enable-checking=no"
 GCC_CONFIG_ARGS += --enable-checking=no
 # Configure args shared between different targets:
 # For debugging:
 # FIXME: add to GCC_BUILD_FLAGS for optimized ARM libraries: CFLAGS_FOR_TARGET="-O3 -march=armv5" CXXFLAGS_FOR_TARGET="-O3 -march=armv5"
 # Or perhaps better, at GCC configure time something like --with-arch=armv6 --with-tune=cortex-a8 --with-float=softfp --with-fpu=vfp ?
-# GCC_BUILD_FLAGS = CFLAGS="-O0 -g" LIBCFLAGS="-O0 -g" LIBCXXFLAGS="-O0 -g"
+##GCC_BUILD_FLAGS = CFLAGS="-O0 -g" LIBCFLAGS="-O0 -g" LIBCXXFLAGS="-O0 -g"
+##BINUTILS_BUILD_FLAGS = CFLAGS="-O0 -g"
 
 ROOT := $(shell pwd)
 PREFIX_CROSS := $(GCCSDK_CROSS_PREFIX)
@@ -164,14 +166,14 @@ buildstepsdir/buildtool-automake-for-gcc: buildstepsdir/src-automake-for-gcc
 buildstepsdir/cross-binutils: buildstepsdir/src-binutils
 	-rm -rf $(BUILDDIR)/cross-binutils
 	mkdir -p $(BUILDDIR)/cross-binutils
-	cd $(BUILDDIR)/cross-binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PATH)" && $(SRCDIR)/binutils/configure $(CROSS_CONFIG_ARGS) $(BINUTILS_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
+	cd $(BUILDDIR)/cross-binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PATH)" && $(SRCDIR)/binutils/configure $(CROSS_CONFIG_ARGS) $(BINUTILS_CONFIG_ARGS) && $(MAKE) $(BINUTILS_BUILD_FLAGS) && $(MAKE) install
 	touch buildstepsdir/cross-binutils
 
 # Configure & build binutils ronative:
 buildstepsdir/ronative-binutils: buildstepsdir/src-binutils buildstepsdir/cross-done
 	-rm -rf $(BUILDDIR)/ronative-binutils
 	mkdir -p $(BUILDDIR)/ronative-binutils
-	cd $(BUILDDIR)/ronative-binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/binutils/configure $(RONATIVE_CONFIG_ARGS) $(BINUTILS_CONFIG_ARGS) && $(MAKE) && $(MAKE) install
+	cd $(BUILDDIR)/ronative-binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PREFIX_CROSS)/bin:$(PATH)" && $(SRCDIR)/binutils/configure $(RONATIVE_CONFIG_ARGS) $(BINUTILS_CONFIG_ARGS) && $(MAKE) $(BINUTILS_BUILD_FLAGS) && $(MAKE) install
 	touch buildstepsdir/ronative-binutils
 
 # Configure & build gcc cross:

@@ -1,5 +1,9 @@
 /* UnixLib internal file descriptor interface definition.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.  */
+   Copyright (c) 2002-2010 UnixLib Developers.  */
+
+#ifdef __TARGET_SCL__
+#  error "SCL has no fd support"
+#endif
 
 #ifndef __INTERNAL_FD_H
 #define __INTERNAL_FD_H 1

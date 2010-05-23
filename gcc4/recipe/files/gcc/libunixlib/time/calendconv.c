@@ -1,6 +1,6 @@
 /* __calendar_convert ()
  * Written by Nick Burrett on 13 July 1997.
- * Copyright (c) 1997-2008 UnixLib Developers
+ * Copyright (c) 1997-2010 UnixLib Developers
  */
 
 #include <time.h>
@@ -9,7 +9,6 @@
 #include <swis.h>
 
 #include <internal/os.h>
-#include <internal/local.h>
 
 /* #define DEBUG */
 #ifdef DEBUG
@@ -24,11 +23,8 @@ static struct tm __tz[1];
 struct tm *
 __calendar_convert (int swinum, const time_t *tp, struct tm *tz)
 {
-  unsigned int riscos_time[2];
-  unsigned int ordinals_buffer[15];
-  int regs[10];
-
   /* Convert to 5-byte time.  */
+  unsigned int riscos_time[2];
   __cvt_unix_time (*tp, &riscos_time[1], &riscos_time[0]);
 
 #ifdef DEBUG
@@ -37,6 +33,8 @@ __calendar_convert (int swinum, const time_t *tp, struct tm *tz)
 		*tp, riscos_time[1], riscos_time[0]);
 #endif
 
+  unsigned int ordinals_buffer[15];
+  int regs[10];
   regs[0] = __locale_territory[LC_TIME];
   regs[1] = (int)riscos_time;
   regs[2] = (int)ordinals_buffer;

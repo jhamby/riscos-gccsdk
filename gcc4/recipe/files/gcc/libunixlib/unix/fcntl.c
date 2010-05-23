@@ -1,29 +1,28 @@
 /* UnixLib fcntl() implementation.
-   Copyright (c) 2000-2008 UnixLib Developers.  */
+   Copyright (c) 2000-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
+#include <netdb.h>
+#include <pthread.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <sys/socket.h>
 #include <unistd.h>
-#include <netdb.h>
 
 #include <internal/unix.h>
 #include <internal/fd.h>
 #include <internal/dev.h>
-#include <pthread.h>
 
 int
 fcntl (int fd, int cmd, ...)
 {
-  struct __unixlib_fd *file_desc;
-
   PTHREAD_UNSAFE_CANCELLATION
 
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  file_desc = getfd (fd);
+  struct __unixlib_fd *file_desc = getfd (fd);
 
   switch (cmd)
     {
@@ -31,10 +30,8 @@ fcntl (int fd, int cmd, ...)
       {
 	/* Duplicate the file descriptor.  */
 	va_list ap;
-	int duplicate_fd;
-
 	va_start (ap, cmd);
-	duplicate_fd = va_arg (ap, int);
+	int duplicate_fd = va_arg (ap, int);
 	va_end (ap);
 
 	/* Check the new file descriptor for validity.  */
@@ -67,16 +64,14 @@ fcntl (int fd, int cmd, ...)
       {
 	/* Set close-on-exec flag */
 	va_list ap;
-
 	va_start(ap, cmd);
-
 	if (va_arg (ap, int))
 	  file_desc->fflag |= O_EXECCL;
 	else
 	  file_desc->fflag &= ~O_EXECCL;
 	va_end(ap);
 	return 0;
-	}
+      }
 
     case F_GETFL:
       return file_desc->fflag;
@@ -84,11 +79,8 @@ fcntl (int fd, int cmd, ...)
     case F_SETFL:
       {
 	va_list ap;
-	int modify = O_APPEND | O_NONBLOCK | O_ASYNC;
-	int newfflag;
-
 	va_start (ap, cmd);
-	newfflag = va_arg (ap, int);
+	int newfflag = va_arg (ap, int);
 	va_end (ap);
 
 	if (file_desc->devicehandle->type == DEV_SOCKET)
@@ -106,6 +98,7 @@ fcntl (int fd, int cmd, ...)
 	       }
 	  }
 
+	const int modify = O_APPEND | O_NONBLOCK | O_ASYNC;
 	file_desc->fflag = (file_desc->fflag & ~modify) | (newfflag & modify);
       }
       return 0;
@@ -116,10 +109,8 @@ fcntl (int fd, int cmd, ...)
     case F_SETUNL:
       {
 	va_list ap;
-	int arg;
-
 	va_start (ap, cmd);
-	arg = va_arg (ap, int);
+	int arg = va_arg (ap, int);
 	va_end (ap);
 
 	if (arg)
@@ -135,10 +126,8 @@ fcntl (int fd, int cmd, ...)
     case F_GETLK:
       {
 	va_list ap;
-	struct flock *arg;
-
 	va_start (ap, cmd);
-	arg = va_arg (ap, struct flock *);
+	struct flock *arg = va_arg (ap, struct flock *);
 	va_end (ap);
 
 	arg->l_type = F_UNLCK;
@@ -148,7 +137,8 @@ fcntl (int fd, int cmd, ...)
     case F_SETLK:
     case F_SETLKW:
       return 0; /* Dummy functionality */
-    }
 
-  return __set_errno (EINVAL);
+    default:
+      return __set_errno (EINVAL);
+    }
 }

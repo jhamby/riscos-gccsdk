@@ -1,5 +1,6 @@
 /*
  * ANSI Standard 4.9: Input/Output <stdio.h>.
+ * Copyright (c) 1997-2005 Nick Burrett
  * Copyright (c) 2000-2010 UnixLib Developers
  */
 
@@ -48,8 +49,10 @@ typedef struct __iobuf __FILE;
 #define __need___va_list
 #include <stdarg.h>
 
-#define __need_pthread_t
-#include <pthread.h>
+#ifndef __TARGET_SCL__
+#  define __need_pthread_t
+#  include <pthread.h>
+#endif
 
 __BEGIN_NAMESPACE_STD
 typedef __off_t fpos_t;
@@ -59,11 +62,23 @@ __END_NAMESPACE_STD
 
 /* Maximum number of files that can be open at once.
    Keep in sync with <limits.h>, _POSIX_OPEN_MAX.  */
-#define FOPEN_MAX	64
+#ifdef __TARGET_SCL__
+#  define FOPEN_MAX	8
+#else
+#  define FOPEN_MAX	64
+#endif
+#ifdef __TARGET_SCL__
+/* Number of open files that is supported by SCL.  */
+#  define _SYS_OPEN 16
+#endif
 
 /* Maximum length of a filename.
    Keep in sync with <limits.h>, _POSIX_NAME_MAX.  */
-#define FILENAME_MAX	252
+#ifdef __TARGET_SCL__
+#  define FILENAME_MAX	80
+#else
+#  define FILENAME_MAX	252
+#endif
 
 /* Default buffer size.  */
 #define BUFSIZ		4096
@@ -88,6 +103,22 @@ __END_NAMESPACE_STD
 #endif
 
 /* The mode of file input/output. */
+#ifdef __TARGET_SCL__
+struct __iobuf
+{
+  unsigned char *__ptr;
+  int __icnt;
+  int __ocnt;
+  int __flag;
+  /* Following fields are internal.  */
+  unsigned char *__base;
+  int __file;
+  long __pos;
+  int __bufsiz;
+  int __signature;
+  struct __extradata *__extrap;
+};
+#else
 typedef union
 {
   struct
@@ -129,45 +160,77 @@ struct __iobuf
   pthread_mutex_t lock; /* For multi-threaded I/O.  */
   FILE *next; /* next FILE in the linked list */
 };
+#endif
 
-/* fill buffer */
+/* fill buffer (for internal use only).  */
 extern int __filbuf (FILE *__stream) __THROW;
-/* flush buffer */
+/* flush buffer (for internal use only).  */
 extern int __flsbuf (int __c, FILE *__stream) __THROW;
 
+#ifdef __TARGET_SCL__
+/* Standard streams.  */
+extern FILE __iob[];
+
+#  define stdin (&__iob[0])
+#  define stdout (&__iob[1])
+#  define stderr (&__iob[2])
+
+#  define _IOEOF	0x40
+#  define _IOERR	0x80
+/* Full buffering.  */
+#  define _IOFBF	0x100
+/* Line buffering.  */
+#  define _IOLBF	0x200
+/* No buffering.  */
+#  define _IONBF	0x400
+/* Default buffer size.  */
+#  define BUFSIZ	(4096)
+#else
 /* Standard streams.  ANSI says these are macros.  */
 extern FILE *__stdin, *__stdout, *__stderr;
-#define stdin __stdin
-#define stdout __stdout
-#define stderr __stderr
+#  define stdin __stdin
+#  define stdout __stdout
+#  define stderr __stderr
 
-#define _IOBF		0000070
+#  define _IOBF		0000070
 
 /* The possibilities for the third argument to setvbuf.  */
 
 /* No buffering.  */
-#define _IONBF		0000010
+#  define _IONBF	0000010
 /* Line buffering.  */
-#define _IOLBF		0000020
+#  define _IOLBF	0000020
 /* Full buffering.  */
-#define _IOFBF		0000040
+#  define _IOFBF	0000040
+#endif
 
 __BEGIN_NAMESPACE_STD
 
-/* Return the EOF indicator for stream.  */
+/* Return nonzero if the end-of-file indicator for stream 'stream' is set.  */
 extern int feof (FILE *__stream) __THROW;
+#ifdef __TARGET_SCL__
+#  define feof(stream) ((stream)->__flag & _IOEOF)
+#else
+#  define feof(stream) ((stream)->__eof != 0)
+#endif
 
-/* Return the error indicator for stream.  */
+/* Return nonzero if the error indicator for the stream 'stream' is set.  */
 extern int ferror (FILE *__stream) __THROW;
+#ifdef __TARGET_SCL__
+#  define ferror(stream) ((stream)->__flag & _IOERR)
+#else
+#  define ferror(stream) ((stream)->__error != 0)
+#endif
 
+/* Clears the end-of-file and error indicators for the stream
+   'stream'.  */
 extern void clearerr (FILE *__stream) __THROW;
 
-#define feof(stream) ((stream)->__eof != 0)
-#define ferror(stream) ((stream)->__error != 0)
-
 #ifdef __USE_MISC
+#  ifndef __TARGET_SCL__
 /* Faster versions when locking is not required.  */
 extern void clearerr_unlocked (FILE *__stream) __THROW;
+#  endif
 #endif
 
 /* Print a message describing the meaning of the value of errno.
@@ -179,74 +242,101 @@ extern void perror (const char *__s);
 extern FILE *fopen (const char *__restrict __filename,
 		    const char *__restrict __mode);
 
-/* Open a file, replacing an existing stream with it.
+/* Close the stream 'stream', ignoring any errors. Then 'filename'
+   is opened with 'mode' with the same stream object 'stream'.
+   Returns NULL on failure.  Usually used to connect to standard
+   streams e.g. stdin, stdout or stderr.
    This function is a cancellation point.  */
 extern FILE *freopen (const char *__restrict __filename,
 		      const char *__restrict __mode,
 		      FILE *__restrict __stream);
 
-/* Close stream, or all streams if stream is null.
+/* Cause 'stream' to be closed (or when 'stream' is NULL, all streams to
+   be closed) and the connection to the corresponding file to be broken.
+   All buffered output is written and buffered input is discarded.
+   Returns 0 on success, EOF if an error was detected.
    This function is a cancellation point.  */
 extern int fclose (FILE *__stream);
 
-/* Flush stream, or all streams if stream is null.
+/* Cause any buffered output on 'stream' to be delivered to the file.
+   If 'stream' is null, then fflush causes buffered output on all open
+   output streams. Returns EOF if a write error occurs, zero otherwise.
    This function is a cancellation point.  */
 extern int fflush (FILE *__stream);
 
 /* Clears the buffer of a given stream. */
 extern int fpurge (FILE *__stream);
 
-/* Read chunks of generic data from stream.  This function is a cancellation
-   point.  */
+/* Read up to 'count' objects of size 'size' into the array 'ptr',
+   from the stream 'stream'. Return the number of objects actually
+   read.
+   This function is a cancellation point.  */
 extern size_t fread (void *__restrict __ptr, size_t __size,
-		     size_t __n, FILE *__restrict __stream);
+		     size_t __count, FILE *__restrict __stream);
 
-/* Write chunks of generic data to stream.
+/* Write up to 'count' objects of size 'size' from the array 'ptr',
+   to the stream 'stream'. The return value is normally 'count' if the
+   call succeeds.
    This function is a cancellation point.  */
 extern size_t fwrite (const void *__restrict __ptr, size_t __size,
-		      size_t __n, FILE *__restrict __stream);
+		      size_t __count, FILE *__restrict __stream);
 
 /* If buf is null, make stream unbuffered.
    If not null, use buffer buf of size BUFSIZ.  */
 extern void setbuf (FILE *__restrict __stream, char *__restrict __buf) __THROW;
 
-/* Make stream use buffering mode 'mode'.
-   If buf is not NULL, use n bytes of it for buffering;
-   else allocate an internal buffer n bytes long.  */
+/* Specify that the stream 'stream' should have the buffering mode
+   'mode', which can be either _IOFBF (full buffering), _IOLBF (line
+   buffering) or _IONBF (unbuffered input/output).
+   If 'buf' is NULL, then setvbuf allocates a buffer itself using
+   malloc. This is freed when the stream is closed.
+   Otherwise 'buf' is a character array of 'size' characters.  */
 extern int setvbuf (FILE *__restrict __stream, char *__restrict __buf,
-		    int __modes, size_t __n) __THROW;
+		    int __mode, size_t __size) __THROW;
 
-/* Push a character back onto the input buffer of stream.
+/* Pushes back the character 'c' onto the input stream 'stream'.
+   The next input from 'stream' will read 'c' before anything else.
+   If 'c' is EOF, ungetc does nothing and just returns EOF.
    This function is a cancellation point.  */
 extern int ungetc (int __c, FILE *__stream);
 
-/* Get stream's position.
+/* Store the value of the file position indicator for the
+   stream 'stream' in the fpos_t object pointed to by 'position'.
+   fgetpos returns zero on success.
    This function is a cancellation point.  */
 extern int fgetpos (FILE *__stream, fpos_t *__pos);
 
-/* Set stream's position.
+/* Set the file position indicator for the stream 'stream' to the
+   position 'position', which must be set by a previous call to
+   fgetpos.
    This function is a cancellation point.  */
 extern int fsetpos (FILE *__stream, const fpos_t *__pos);
 
-/* Seek to a certain position on stream.
+/* Change the file position of the stream 'stream'. 'whence'
+   must be one of the constants SEEK_SET, SEEK_CUR, SEEK_END,
+   to indicate the meaning of the relative 'offset'.
    This function is a cancellation point.  */
 extern int fseek (FILE *__stream, long int __off, int __whence);
 
-/* Return the current position of stream.
+/* Return the current file position of the stream 'stream'.
+   If a failure occurs, -1 is returned.
    This function is a cancellation point.  */
-extern long ftell (FILE *__stream);
+extern long ftell (FILE *__stream) __wur;
 
-/* Rewind to the beginning of stream.
+/* Positions the stream 'stream' at the beginning of the file.
+   Equivalent to fseek (stream, 0, SEEK_SET).
    This function is a cancellation point.  */
 extern void rewind (FILE *__stream);
 __END_NAMESPACE_STD
 
 #if defined __USE_LARGEFILE || defined __USE_XOPEN2K
-/* This function is a cancellation point.  */
+/* Seek to a position in given stream.
+   This function is a cancellation point.  */
 extern int fseeko (FILE *__stream, __off_t __off, int __whence);
 
-/* This function is a cancellation point.  */
-extern __off_t ftello (FILE *__stream) __nonnull ((1));
+/* Get the current position of stream.
+   This function is a cancellation point.  */
+extern __off_t ftello (FILE *__stream) __nonnull ((1)) __wur;
 #endif
 
 __BEGIN_NAMESPACE_STD
@@ -256,7 +346,10 @@ extern int getc (FILE *__stream) __nonnull ((1));
 /* This function is a cancellation point.  */
 extern int getchar (void);
 
-/* Read a character from stream.  This function is a cancellation point.   */
+/* Read the next character as an unsigned char from the stream
+   'stream' and return its value, converted to an int.  EOF
+   is returned on read error/end-of-file.
+   This function is a cancellation point.   */
 extern int fgetc (FILE *__stream) __nonnull ((1));
 __END_NAMESPACE_STD
 
@@ -266,24 +359,41 @@ __END_NAMESPACE_STD
 
 #if defined __USE_POSIX || defined __USE_MISC
 
+#  ifndef __TARGET_SCL__
 /* These functions are cancellation points.  */
 extern int getc_unlocked (FILE *__stream) __nonnull ((1));
 extern int getchar_unlocked (void);
+#  endif
 
 /* Read a character from stream.  */
-#define getc_unlocked(f) \
+#  ifdef __TARGET_SCL__
+#    define getc(p) \
+	(--((p)->__icnt) >= 0 ? *((p)->__ptr)++ : __filbuf(p))
+#    define getc_unlocked(p) getc(p)
+#  else
+#    define getc_unlocked(f) \
 	((--((f)->i_cnt) >= 0 ? *((f)->i_ptr)++ : __filbuf(f)))
-#define getchar_unlocked() getc_unlocked(stdin)
+#  endif
+#  define getchar_unlocked() getc_unlocked(stdin)
 
+#  ifdef __TARGET_SCL__
 extern int fputc_unlocked (int __c, FILE *__stream) __nonnull ((2));
 
 extern int putc_unlocked (int __c, FILE *__stream) __nonnull ((2));
+#  endif
 #endif
 
 __BEGIN_NAMESPACE_STD
 
-/* Write a character to stream.  This function is a cancellation point.  */
+/* Convert the character 'c' to type unsigned char and writes it
+   to stream 'stream'.  EOF is returned if an error occurs;
+   otherwise the character 'c' is returned.
+   This function is a cancellation point.  */
 extern int putc (int __c, FILE *__stream) __nonnull ((2));
+#ifdef __TARGET_SCL__
+#  define putc(ch, p) \
+	(--((p)->__ocnt) >= 0 ? (*((p)->__ptr)++ = (ch)) : __flsbuf(ch,p))
+#endif
 
 /* Write a character to stream.  This function is a cancellation point.  */
 extern int fputc (int __c, FILE *__stream) __nonnull ((2));
@@ -291,7 +401,10 @@ extern int fputc (int __c, FILE *__stream) __nonnull ((2));
 /* Write a character to stdout.  This function is a cancellation point.  */
 extern int putchar (int __c);
 
-/* Get a newline-terminated string of finite length from stream.
+/* Read chars from the stream 'stream' up to and including a
+   newline character and stores them in the string 's'. A NUL
+   character is added to mark the end of the string.  The number
+   of characters to read at most is 'count - 1'.
    This function is a cancellation point.  */
 extern char *fgets (char *__s, int __n, FILE *__stream)
      __nonnull ((1, 3));
@@ -299,7 +412,8 @@ extern char *fgets (char *__s, int __n, FILE *__stream)
 /* Get a newline-terminated string from stdin, removing the newline.  */
 extern char *gets (char *__s);
 
-/* Write a string to stream.  */
+/* Write the string 's' top the stream 'stream'. The terminating NUL
+   character is not written, and a newline character is not added, either.  */
 extern int fputs (const char *__restrict __s, FILE *__restrict __stream)
      __THROW __nonnull ((1, 2));
 
@@ -309,8 +423,10 @@ extern int puts (const char *__s) __THROW __nonnull ((1));
 __END_NAMESPACE_STD
 
 #ifdef __USE_GNU
+#  ifdef __TARGET_SCL__
 extern char *fgets_unlocked (char *__restrict __s, int __n,
 			     FILE *__restrict __stream);
+#  endif
 #define fgets_unlocked fgets
 #endif
 
@@ -323,16 +439,31 @@ extern int vsprintf (char *__restrict __s,
 		     const char *__restrict __format, __gnuc_va_list __arg)
      __THROW;
 
-/* Write formatted output to stream from arg list arg.  This function
-   is a cancellation point.  Thread-safe version.  */
+/* Write formatted output to stream from arg list arg.
+   This function is a cancellation point.  Thread-safe version.  */
 extern int vfprintf (FILE *__restrict __stream,
 		     const char *__restrict __format, __gnuc_va_list __arg);
 
-/* Write formatted output to stdio from arg list arg.  This function
-   is a cancellation point.  */
+/* Write formatted output to stdio from arg list arg.
+   This function is a cancellation point.  */
 extern int vprintf (const char *__restrict __format, __gnuc_va_list __arg);
 
-/* Write formatted output to s.  */
+#ifdef __TARGET_SCL__
+extern int __gcc_vsprintf (char *__restrict __s,
+			   const char *__restrict __format,
+                           __gnuc_va_list *__arg);
+#define vsprintf(__s,__fmt,__ap) (__gcc_vsprintf(__s, __fmt, &__ap))
+extern int __gcc_vfprintf (FILE *__restrict __stream,
+                           const char *__restrict __format,
+                           __gnuc_va_list *__arg);
+#define vfprintf(__s,__fmt,__ap) (__gcc_vfprintf(__s, __fmt, &__ap))
+extern int __gcc_vprintf (const char *__restrict __format,
+                          __gnuc_va_list *__arg);
+#define vprintf(__fmt,__ap) (__gcc_vprintf(__fmt, &__ap))
+#endif
+
+/* Similar to printf except the output is stored in the array
+   's'. A NUL terminating character is also written.  */
 extern int sprintf (char *__restrict __s,
 		    const char *__restrict __format, ...) __THROW;
 
@@ -352,6 +483,14 @@ extern int vsnprintf (char *__restrict __s, size_t __limit,
 		      const char *__restrict __format,
 		      __gnuc_va_list __arg)
      __THROW __attribute__ ((__format__ (__printf__, 3, 0)));
+#ifdef __TARGET_SCL__
+extern int __gcc_vsnprintf (char *__restrict __s, size_t __limit,
+			    const char *__restrict __format,
+			    __gnuc_va_list *__arg)
+     __attribute__ ((__format__ (__printf__, 3, 0)));
+#define vsnprintf(__s,__limit,__fmt,__ap) \
+	(__gcc_vsnprintf(__s,__limit,__fmt, &__ap))
+#endif
 __END_NAMESPACE_C99
 #endif
 
@@ -368,27 +507,32 @@ extern int vasprintf (char **__restrict __ptr,
 #endif
 
 __BEGIN_NAMESPACE_STD
-/* Write formatted output to stream.  This function is a cancellation
-   point.  */
+/* Print the optional arguments under control of the template
+   string 'format' to the stream stdout. Returns the number of characters
+   printed, or a negative value if there was an output error.
+   This function is a cancellation point.  */
+extern int printf (const char *__restrict __format, ...);
+
+/* Similar to printf except the output is written to the stream
+   'stream' instead of stdout.
+   This function is a cancellation point.  */
 extern int fprintf (FILE *__restrict __stream,
 		    const char *__restrict __format, ...);
 
-/* Write formatted output to stdout.  This function is a cancellation
-   point.  */
-extern int printf (const char *__restrict __format, ...);
+/* Read formatted input from the stream stdin under control
+   of the template 'format'. Returns the number of successful
+   assignments.
+   This function is a cancellation point.  */
+extern int scanf (const char *__restrict __format, ...);
 
-/* Read formatted input from s.  */
+/* Similar to scanf but reads from the array 'string'.  */
 extern int sscanf (const char *__restrict __s,
 		   const char *__restrict __format, ...) __THROW;
 
-/* Read formatted input from stream.  This function is a cancellation
-   point.  */
+/* Similar to scanf but reads from the stream 'stream'.
+   This function is a cancellation point.  */
 extern int fscanf (FILE *__restrict __stream,
 		   const char *__restrict __format, ...);
-
-/* Read formatted input from stdin.  This function is a cancellation
-   point.  */
-extern int scanf (const char *__restrict __format, ...);
 
 __END_NAMESPACE_STD
 
@@ -411,35 +555,66 @@ extern int vsscanf (const char *__restrict __s,
 		    const char *__restrict __format, __gnuc_va_list __ap)
      __THROW __attribute__ ((__format__ (__scanf__, 2, 0)));
 
+#ifdef __TARGET_SCL__
+extern int __gcc_vscanf (const char *__restrict __format,
+                         __gnuc_va_list *__ap)
+     __attribute__ ((__format__ (__scanf__, 1, 0)));
+#define vscanf(__fmt,__ap) (__gcc_vscanf(__fmt, &__ap))
+extern int __gcc_vfscanf (FILE *__restrict __stream,
+			  const char *__restrict __format,
+                          __gnuc_va_list *__ap)
+     __attribute__ ((__format__ (__scanf__, 2, 0)));
+#define vfscanf(__s,__fmt,__ap) (__gcc_vfscanf(__s, __fmt, &__ap))
+extern int __gcc_vsscanf (const char *__restrict __s,
+                          const char *__restrict __format,
+                          __gnuc_va_list *__ap)
+     __attribute__ ((__format__ (__scanf__, 2, 0)));
+#define vsscanf(__s,__fmt,__ap) (__gcc_vsscanf(__s, __fmt, &__ap))
+#endif
+
 __END_NAMESPACE_C99
 #endif
 
 /* How long an array of chars must be to be passed to tmpnam.  */
-#define L_tmpnam	255
+#ifdef __TARGET_SCL__
+#  define L_tmpnam	20
+#else
+#  define L_tmpnam	255
+#endif
 
 /* The minimum number of unique filenames generated by tmpnam.  */
-#define TMP_MAX 	217672836
+#ifdef __TARGET_SCL
+#  define TMP_MAX	1000000000
+#else
+#  define TMP_MAX 	217672836
+#endif
 
 __BEGIN_NAMESPACE_STD
 /* Remove file filename.  */
 extern int remove (const char *__filename) __THROW;
 
-/* Rename file oldname to newname.  */
-extern int rename(const char *__old, const char *__newname) __THROW;
+/* Rename a file called 'oldname' to 'newname'. If rename fails
+   it returns -1.  */
+extern int rename(const char *__oldname, const char *__newname) __THROW;
 
-/* Create a temporary file and open it read/write.
+/* Create a temporary binary file for updade mode, as if calling
+   fopen with mode "wb+".  The file is deleted automatically when
+   it is closed or when the program terminates.
    This function is a cancellation point.  */
 extern FILE *tmpfile (void);
 
-
-/* Generate a temporary filename.  */
-extern char *tmpnam (char *__s) __THROW;
+/* Construct and return a file name that is a valid and does not
+   name any existing file. If 'result' is null, the return value
+   points to an internal static string. Otherwise, 'result' points
+   to an array of at least L_tmpnam chars.  */
+extern char *tmpnam (char *__result) __THROW;
 
 __END_NAMESPACE_STD
 
+#ifndef __TARGET_SCL__
 #ifdef __USE_MISC
 /* Re-entrant version of tmpnam(). 's' must not be null.  */
-extern char *tmpnam_r (char *__s) __THROW;
+extern char *tmpnam_r (char *__result) __THROW __nonnull ((1));
 #endif
 
 #if defined __USE_SVID || defined __USE_XOPEN
@@ -448,12 +623,7 @@ extern char *tmpnam_r (char *__s) __THROW;
 extern char *tempnam (const char *__dir, const char *__prefix)
      __THROW __attribute_malloc__;
 #endif
-
-/* Generate a unique temporary file name for temp.  */
-extern char *mktemp(char *__temp) __THROW;
-
-/* As for mktemp but returns an open file descriptor on the file.  */
-extern int mkstemp(char *__temp) __THROW;
+#endif
 
 /* System V enhancements.  */
 
@@ -495,24 +665,29 @@ extern FILE *fdopen (int __fd, const char *__modes) __THROW;
 
 /* Return the system file descriptor for stream.  */
 extern int fileno (FILE *__stream) __THROW;
-#define fileno(f)	((f)->fd)
+#  ifndef __TARGET_SCL__
+#    define fileno(f)	((f)->fd)
 
-#define L_ctermid 16
+#    define L_ctermid 16
 
 /* Return the name of the controlling terminal.  */
 extern char *ctermid (char *__s) __THROW;
+#  endif
 
 #endif
 
 #ifdef __USE_XOPEN
+#  ifndef __TARGET_SCL__
 /* Return the name of the current user.  */
 extern char *cuserid (char *__s);
+#  endif
 #endif
 
 /* POSIX 2 enhancements.  */
 
 #if (defined __USE_POSIX2 || defined __USE_SVID  || defined __USE_BSD || \
      defined __USE_MISC)
+#  ifndef __TARGET_SCL__
 /* Create a new stream connected to a pipe running the given command.
    This function is a cancellation point.  */
 extern FILE *popen (const char *__command, const char *__modes);
@@ -520,6 +695,7 @@ extern FILE *popen (const char *__command, const char *__modes);
 /* Close a stream opened by popen and return the status of its child.
    This function is a cancellation point.  */
 extern int pclose (FILE *__stream);
+#  endif
 #endif
 
 /* GNU extenstions.  */

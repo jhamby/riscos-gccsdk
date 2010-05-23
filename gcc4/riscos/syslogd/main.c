@@ -3,15 +3,13 @@
  * Contributions by Alex Waugh.
  */
 
+#define _BSD_SOURCE /* for strdup() */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
 #include <swis.h>
-
-#include <inetlib.h> /* connect() */
-#include <socklib.h> /* socket() */
-#include <unixlib.h> /* strdup() */
 
 #include <netdb.h> /* struct servent */
 #include <sys/ioctl.h> /* socketioctl() */
@@ -29,12 +27,12 @@ static _kernel_oserror *release_eventv(void *pw);
 static _kernel_oserror *enable_eventv(void);
 static _kernel_oserror *disable_eventv(void);
 
-int sock = -1; /* Socket number we're listening too */
-int callback_queue = 0;
+static int sock = -1; /* Socket number we're listening too */
+static int callback_queue = 0;
 
 /* Buffers for reading from the socket, and preparing the log message. */
-char logbuffer[1024+32];
-char readbuffer[1024+1];
+static char logbuffer[1024+32];
+static char readbuffer[1024+1];
 
 struct filenamemapping {
   char *ro;
@@ -44,14 +42,14 @@ struct filenamemapping {
   struct filenamemapping *next;
 };
 
-struct filenamemapping *mappings = NULL;
+static struct filenamemapping *mappings = NULL;
 
 #define kLogName "SysLogD"
 #define kLogPrio 32
 
-static _kernel_oserror socket_failed_to_create = { 0, "Can not open datagram socket"};
-static _kernel_oserror socket_failed_to_nonblock = { 0, "Can not make socket non blocking"};
-static _kernel_oserror alloc_failure = { 0, "Unable to allocate memory"};
+static const _kernel_oserror socket_failed_to_create = { 0, "Can not open datagram socket"};
+static const _kernel_oserror socket_failed_to_nonblock = { 0, "Can not make socket non blocking"};
+static const _kernel_oserror alloc_failure = { 0, "Unable to allocate memory"};
 
 /* Nicked from syslog.h @ BSD 4.3 */
 #define	LOG_EMERG	0	/* system is unusable */
@@ -67,7 +65,8 @@ static _kernel_oserror alloc_failure = { 0, "Unable to allocate memory"};
 
 #define	LOG_PRI(p)	((p) & LOG_PRIMASK)
 
-static const char *prioritynames[LOG_PRIMASK + 1] = {
+static const char * const prioritynames[LOG_PRIMASK + 1] =
+{
   "emerg",
   "alert",
   "crit",
@@ -76,7 +75,7 @@ static const char *prioritynames[LOG_PRIMASK + 1] = {
   "notice",
   "info",
   "debug"
-  };
+};
 
 /* facility codes */
 #define	LOG_KERN	(0<<3)	/* kernel messages */
@@ -107,34 +106,36 @@ static const char *prioritynames[LOG_PRIMASK + 1] = {
 				/* facility of pri */
 #define	LOG_FAC(p)	(((p) & LOG_FACMASK) >> 3)
 
-typedef struct _code {
+typedef struct _code
+{
   const char	*c_name;
   int   	c_val;
-  } CODE;
+} CODE;
 
-static const CODE facilitynames[] = {
-	"auth",		LOG_AUTH,
-	"authpriv",	LOG_AUTHPRIV,
-	"cron", 	LOG_CRON,
-	"daemon",	LOG_DAEMON,
-	"ftp",		LOG_FTP,
-	"kern",		LOG_KERN,
-	"lpr",		LOG_LPR,
-	"mail",		LOG_MAIL,
-	"mark", 	-1,	             	/* INTERNAL */
-	"news",		LOG_NEWS,
-	"security",	LOG_AUTH,		/* DEPRECATED */
-	"syslog",	LOG_SYSLOG,
-	"user",		LOG_USER,
-	"uucp",		LOG_UUCP,
-	"local0",	LOG_LOCAL0,
-	"local1",	LOG_LOCAL1,
-	"local2",	LOG_LOCAL2,
-	"local3",	LOG_LOCAL3,
-	"local4",	LOG_LOCAL4,
-	"local5",	LOG_LOCAL5,
-	"local6",	LOG_LOCAL6,
-	"local7",	LOG_LOCAL7,
+static const CODE facilitynames[] =
+{
+  { "auth",	LOG_AUTH },
+  { "authpriv",	LOG_AUTHPRIV },
+  { "cron", 	LOG_CRON },
+  { "daemon",	LOG_DAEMON },
+  { "ftp",	LOG_FTP },
+  { "kern",	LOG_KERN },
+  { "lpr",	LOG_LPR },
+  { "mail",	LOG_MAIL },
+  { "mark", 	-1 },	             	/* INTERNAL */
+  { "news",	LOG_NEWS },
+  { "security",	LOG_AUTH },		/* DEPRECATED */
+  { "syslog",	LOG_SYSLOG },
+  { "user",	LOG_USER },
+  { "uucp",	LOG_UUCP },
+  { "local0",	LOG_LOCAL0 },
+  { "local1",	LOG_LOCAL1 },
+  { "local2",	LOG_LOCAL2 },
+  { "local3",	LOG_LOCAL3 },
+  { "local4",	LOG_LOCAL4 },
+  { "local5",	LOG_LOCAL5 },
+  { "local6",	LOG_LOCAL6 },
+  { "local7",	LOG_LOCAL7 }
 };
 
 static const char *syslog_getfacility(int p);
@@ -150,49 +151,59 @@ static const char *syslog_getfacility(int p);
 #define THROWBACK_REASON_ERROR_DETAILS 1
 #define THROWBACK_REASON_INFO_DETAILS  2
 
-#define DDEUtils_ThrowbackStart 0x42587
-#define DDEUtils_ThrowbackSend  0x42588
-#define DDEUtils_ThrowbackEnd   0x42589
+static inline _kernel_oserror *
+xsyslog_logmessage (const char *__name, const char *__msg, int __priority)
+{
+  register const char *name __asm ("r0") = __name;
+  register const char *msg __asm ("r1") = __msg;
+  register int priority __asm ("r2") = __priority;
+  register _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("SWI\t%[SWI_XSysLog_LogMessage]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+                    : "r" (name), "r" (msg), "r" (priority),
+		      [SWI_XSysLog_LogMessage] "i" (SysLog_LogMessage | (1<<17))
+		    : "r14", "cc");
+  return err;
+}
+
 
 /* Initialisation routine */
-_kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
-/* ===========================================================================
- */
+_kernel_oserror *
+SysLogD_Init (const char *cmd_fail __attribute__ ((unused)),
+	      int podule_base __attribute__ ((unused)), void *pw)
 {
-  struct servent *servptr;
-  struct sockaddr_in name;
-  int port, on = 1;
-  _kernel_oserror *e;
-  FILE *file;
-
   xsyslog_logmessage(kLogName, "SysLogD begins...", kLogPrio);
 
-  servptr = getservbyname("syslog", "udp");
+  struct servent *servptr = getservbyname("syslog", "udp");
+  int port;
   if (servptr == NULL)
     port = 514;
   else
     port = servptr->s_port;
 
+  struct sockaddr_in name;
   name.sin_family = AF_INET;
   name.sin_addr.s_addr = htons(INADDR_ANY);
   name.sin_port = htons(port);
   
   /* Create socket */
   if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
-    return &socket_failed_to_create;
+    return (_kernel_oserror *)&socket_failed_to_create;
 
   /* Make socket async & nonblocking and bind it */
+  int on = 1;
   if (socketioctl(sock, FIOASYNC, &on) < 0
       || socketioctl(sock, FIONBIO, &on) < 0
       || bind(sock, (struct sockaddr *)&name, sizeof(name)) < 0)
     {
       socketclose(sock);
       sock = -1;
-      return &socket_failed_to_nonblock;
+      return (_kernel_oserror *)&socket_failed_to_nonblock;
     }
 
   /* Read mappings list and create linked list of the filename mappings */
-  file = fopen("Choices:syslogd.mappings", "r");
+  FILE *file = fopen("Choices:syslogd.mappings", "r");
   if (file)
     {
       while (fgets(readbuffer, sizeof(readbuffer), file))
@@ -206,7 +217,7 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
             {
               fclose(file);
               socketclose(sock);
-              return &alloc_failure;
+              return (_kernel_oserror *)&alloc_failure;
             }
 
           ch = readbuffer;
@@ -230,18 +241,18 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
               free(mapping);
               fclose(file);
               socketclose(sock);
-              return &alloc_failure;
+              return (_kernel_oserror *)&alloc_failure;
             }
 
-          mapping->unixlen = (rofilename - readbuffer) - 1;
-          mapping->unix = strdup(readbuffer);
+          mapping->unixlen = rofilename - readbuffer - 1;
+          mapping->unix = strdup (readbuffer);
           if (mapping->unix == NULL)
             {
               free(mapping->ro);
               free(mapping);
               fclose(file);
               socketclose(sock);
-              return &alloc_failure;
+              return (_kernel_oserror *)&alloc_failure;
             }
 
           /* Add on to linked list */
@@ -253,7 +264,8 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
   fclose(file);
 
   /* Claim event */
-  if ((e = claim_eventv(pw)) != NULL)
+  _kernel_oserror *e;
+  if ((e = claim_eventv (pw)) != NULL)
     {
       socketclose(sock);
       return e;
@@ -269,9 +281,9 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
 }
 
 /* Finalisation routine */
-        _kernel_oserror *SysLogD_Final(int fatal, int podule, void *pw)
-/*      ===============================================================
- */
+_kernel_oserror *
+SysLogD_Final (int fatal __attribute__ ((unused)),
+	       int podule __attribute__ ((unused)), void *pw)
 {
   xsyslog_logmessage(kLogName, "SysLogD ends...", kLogPrio);
 
@@ -317,59 +329,48 @@ _kernel_oserror *SysLogD_Init(const char *cmd_fail, int podule_base, void *pw)
 #define Internet_Event 19
 #define Socket_Async_Event 1
 
-static  _kernel_oserror *claim_eventv(void *pw)
-/*      =======================================
- */
+static _kernel_oserror *
+claim_eventv (void *pw)
 {
   _kernel_swi_regs r;
-
   r.r[0] = EventV;
   r.r[1] = (int)eventv_handler_entry;
   r.r[2] = (int)pw;
   return _kernel_swi(XOS_Bit | OS_Claim, &r, &r);
 }
 
-static  _kernel_oserror *release_eventv(void *pw)
-/*      =======================================
- */
+static _kernel_oserror *
+release_eventv (void *pw)
 {
   _kernel_swi_regs r;
-
   r.r[0] = EventV;
   r.r[1] = (int)eventv_handler_entry;
   r.r[2] = (int)pw;
   return _kernel_swi(XOS_Bit | OS_Release, &r, &r);
 }
 
-static  _kernel_oserror *enable_eventv(void)
-/*      ====================================
- */
+static _kernel_oserror *
+enable_eventv (void)
 {
   _kernel_swi_regs r;
-
   r.r[0] = Event_Enable;
   r.r[1] = Internet_Event;
   return _kernel_swi(XOS_Bit | OS_Byte, &r, &r);
 }
 
-static  _kernel_oserror *disable_eventv(void)
-/*      =====================================
- */
+static _kernel_oserror *
+disable_eventv (void)
 {
   _kernel_swi_regs r;
-
   r.r[0] = Event_Disable;
   r.r[1] = Internet_Event;
   return _kernel_swi(XOS_Bit | OS_Byte, &r, &r);
 }
 
 /* 0 to claim event, non-0 if not to claim the event */
-        int eventv_handler(_kernel_swi_regs *r, void *pw)
-/*      =================================================
- */
+int
+eventv_handler (_kernel_swi_regs *r, void *pw)
 {
-  int irqs_disabled;
-
   /* Check for Internet Event & our socket has input, if not, pass it on */
   if (r->r[0] != Internet_Event
       || r->r[1] != Socket_Async_Event
@@ -379,7 +380,7 @@ static  _kernel_oserror *disable_eventv(void)
   /* Don't know if IRQs are enabled or disabled here.  We play it extremely
    * save here.
    */
-  irqs_disabled = _kernel_irqs_disabled();
+  const int irqs_disabled = _kernel_irqs_disabled();
   if (irqs_disabled == 0)
     _kernel_irqs_off();
   if (callback_queue == 0)
@@ -399,9 +400,8 @@ static  _kernel_oserror *disable_eventv(void)
   return 0;
 }
 
-static void translate(char *dst, char *src, int len)
-/*     =============================================
- */
+static void
+translate (char *dst, const char *src, int len)
 {
   while (len--)
     {
@@ -422,12 +422,11 @@ static void translate(char *dst, char *src, int len)
 }
 
 /* 0 to claim event, non-0 if not to claim the event */
-int callback_handler(_kernel_swi_regs *r, void *pw)
-/* ================================================
- */
+int
+callback_handler (_kernel_swi_regs *r __attribute__ ((unused)),
+		  void *pw __attribute__ ((unused)))
 {
   int bytesread;
-
   while ((bytesread = socketread(sock, readbuffer, sizeof(readbuffer) - 1)) > 0)
     {
       int from = 0;
@@ -443,12 +442,11 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
        */
       if (readbuffer[from] == '<')
         {
-          int i;
-
-          for (i = from + 1; (i < bytesread) && isdigit(readbuffer[i]); i++)
+	  int i;
+          for (i = from + 1; i < bytesread && isdigit(readbuffer[i]); i++)
             /* no body */;
 
-          if ((i < bytesread) && (readbuffer[i] == '>'))
+          if (i < bytesread && readbuffer[i] == '>')
             {
               /* priority & facility detected */
               readbuffer[i] = '\0';
@@ -463,7 +461,7 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
         }
 
       tag = strstr(readbuffer + from, "throwback ");
-      if ((facility == LOG_FAC(LOG_USER)) && (tag != NULL))
+      if (facility == LOG_FAC(LOG_USER) && tag != NULL)
         {
           char *filename = tag + sizeof("throwback");
           char *linenum;
@@ -526,9 +524,9 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
               char *dot = strrchr(filename, '.');
               char *slash = strrchr(filename, '/');
               char *suffixes = getenv("UnixEnv$gcc$sfix");
-              char *dst;
 
               /* Translate everything up to the last slash */
+              char *dst;
               if (slash)
                 {
                   translate(newfilename, filename, (slash + 1) - filename);
@@ -536,17 +534,14 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
                   filename = slash + 1;
                 }
               else
-                {
-                  dst = newfilename;
-                }
+                dst = newfilename;
 
               if (dot && suffixes)
                 {
-                  char *suffix;
                   suffixes = strdup(suffixes);
 
                   /* Search suffix list for a match */
-                  suffix = strtok(suffixes, ":");
+                  char *suffix = strtok(suffixes, ":");
                   while (suffix)
                     {
                       if (strcmp(suffix, dot + 1) == 0)
@@ -569,11 +564,14 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
           if (_swix(DDEUtils_ThrowbackStart, 0))
             break;
 
-          if (_swix(DDEUtils_ThrowbackSend, _IN(0) | _IN(2), THROWBACK_REASON_PROCESSING, filename))
+          if (_swix(DDEUtils_ThrowbackSend, _IN(0) | _IN(2),
+	      THROWBACK_REASON_PROCESSING, filename))
             break;
 
           seriousness = (priority == LOG_ERR) ? THROWBACK_ERROR : THROWBACK_WARNING;
-          if (_swix(DDEUtils_ThrowbackSend, _IN(0) | _INR(2,5), THROWBACK_REASON_ERROR_DETAILS, filename, atoi(linenum), seriousness, msg))
+          if (_swix(DDEUtils_ThrowbackSend, _IN(0) | _INR(2,5),
+		    THROWBACK_REASON_ERROR_DETAILS, filename,
+		    atoi(linenum), seriousness, msg))
             break;
 
           if (_swix(DDEUtils_ThrowbackEnd, 0))
@@ -582,7 +580,6 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
       else
         {
           snprintf(logbuffer + to, sizeof(logbuffer) - to, "%s", readbuffer + from);
-
           xsyslog_logmessage(kLogName, logbuffer, priority);
         }
     }
@@ -593,13 +590,11 @@ int callback_handler(_kernel_swi_regs *r, void *pw)
 }
 
 /* syslog facility retrieving code */
-static  const char *syslog_getfacility(int p)
-/*      =====================================
- */
+static const char *
+syslog_getfacility(int p)
 {
-  int facility = LOG_FAC(p), i;
-
-  for (i = 0; i < sizeof(facilitynames) / sizeof(CODE); i++)
+  int facility = LOG_FAC(p);
+  for (int i = 0; i < sizeof(facilitynames) / sizeof(CODE); i++)
     {
       if (facility == (facilitynames[i].c_val >> 3))
         return facilitynames[i].c_name;

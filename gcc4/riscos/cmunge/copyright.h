@@ -10,6 +10,6 @@
 
 #define Copyright_CMunge \
   "Copyright (c) 1999-2006 Robin Watts/Justin Fletcher\n" \
-  "Copyright (c) 2007-2009 GCCSDK Developers and contributors"
+  "Copyright (c) 2007-2010 GCCSDK Developers and contributors"
 
 #endif
