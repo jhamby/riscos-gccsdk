@@ -1,3 +1,10 @@
+Sun May 23 23:46:28 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* scl/redirect_setjmp.s: libscl -> scl
+	* include/setjmp.h: Likewise.
+	* gcccompat/galloca.c: Likewise.
+	* incl-local/internal/scl-macros.s: Likewise.
+
 Sun May 23 20:02:32 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	Fix & test case supplied by Jeffrey Lee <me@phlamethrower.co.uk>:

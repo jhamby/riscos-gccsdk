@@ -18,8 +18,8 @@
 __BEGIN_DECLS
 
 #ifdef __TARGET_SCL__
-/* SCL needs 22 words, the libscl stubs require one word extra to properly
-   unroll alloca() memory blocks.  */
+/* SCL itself needs 22 words for its jmpbuf but the SCL stubs require one word
+   extra to properly unroll alloca() memory blocks.  */
 #  define __JMP_BUF_SIZE 23
 #else
 #  ifdef __SOFTFP__

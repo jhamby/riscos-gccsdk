@@ -1,5 +1,5 @@
 @ Stub routines for linking with the SharedCLibrary
-@ Copyright (c) 2007-2008 UnixLib Developers
+@ Copyright (c) 2007-2010 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -36,9 +36,9 @@
 	@ setjmp's buffer so that we can restore it at longjmp time.
 	.global	setjmp
 setjmp:
-	ldr	r1, =__libscl_chunk_head
+	ldr	r1, =__scl_chunk_head
 	str	r1, [r0, #22*4]
-	b	__libscl_redirected_setjmp
+	b	__scl_redirected_setjmp
 
 	@ This is a small wrapper for the real SharedCLibrary longjmp
 	@ implementation restoring the head of the alloca() chain based
@@ -48,11 +48,11 @@ longjmp:
 	mov	v1, a1
 	mov	v2, a2
 	ldr	a1, [a1, #22*4]
-	ldr	a2, =__libscl_chunk_head
+	ldr	a2, =__scl_chunk_head
 	teq	a1, a2
 	blne	__gcc_alloca_longjmp_free
 	mov	a1, v1
 	mov	a2, v2
-	b	__libscl_redirected_longjmp
+	b	__scl_redirected_longjmp
 
 	.end

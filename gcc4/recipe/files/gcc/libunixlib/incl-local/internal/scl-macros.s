@@ -1,4 +1,4 @@
-@ libscl specific macros used by all its assembler files.
+@ SCL stubs specific macros used by all its assembler files.
 @ Copyright (c) 2008-2010 UnixLib Developers
 @ All rights reserved.
 

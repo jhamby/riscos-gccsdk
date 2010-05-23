@@ -38,14 +38,14 @@ struct alloca_chunk
    but they are never referenced directly, so they aren't going to appear
    in any header file.  */
 
-/* These routines are exported from UnixLib and libscl and can be referenced
-   from gcc generated code directly.  */
+/* These routines are exported from UnixLib and can be referenced from gcc
+   generated code directly.  */
 extern unsigned int __gcc_alloca_save (void);
 extern void __gcc_alloca_restore (unsigned int fp, unsigned int block);
 extern void __gcc_alloca_free (void);
 extern void *__gcc_alloca (size_t size);
 
-/* These routines are helper routines and internal to UnixLib and libscl.  */
+/* These routines are helper routines and internal to UnixLib.  */
 extern unsigned int __gcc_alloca_free_1 (void);
 extern void __gcc_alloca_thread_free_all (void);
 extern void __gcc_alloca_longjmp_free (struct alloca_chunk *new_chunk, struct alloca_chunk *cur_chunk);
@@ -119,18 +119,18 @@ set_chunk_head (struct alloca_chunk *head)
 #elif __TARGET_SCL__
 /* Return head node.  SharedCLibrary applications store the head node in
    static variable.  */
-struct alloca_chunk *__libscl_chunk_head;
+struct alloca_chunk *__scl_chunk_head;
 
 static inline struct alloca_chunk *
 get_chunk_head (void)
 {
-  return __libscl_chunk_head;
+  return __scl_chunk_head;
 }
 
 static inline void
 set_chunk_head (struct alloca_chunk *head)
 {
-  __libscl_chunk_head = head;
+  __scl_chunk_head = head;
 }
 #else
 #  error "Unsupported run-time library."
