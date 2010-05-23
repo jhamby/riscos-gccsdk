@@ -1,3 +1,10 @@
+Sun May 23 20:02:32 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	Fix & test case supplied by Jeffrey Lee <me@phlamethrower.co.uk>:
+	* gcccompat/galloca.c (__gcc_alloca_restore): Don't restore chunk
+	belonging to parent frame.  Solves bug 205.
+	* test/alloca: Added test case.
+
 Sun May  2 00:58:38 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* common/riscosify.c: Fix the __TARGET_SOLOADER__ case when build

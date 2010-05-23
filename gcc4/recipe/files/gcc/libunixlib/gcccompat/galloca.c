@@ -190,14 +190,14 @@ __gcc_alloca_restore (unsigned int fp, unsigned int block)
       chunk = next_chunk;
     }
 
-  /* Bug 174: If GCC determines that a call to __gcc_alloca can never be reached,
-     it will optimise it away. However, the subsequent call to __gcc_alloca_restore
-     is left intact and, as a block was never allocated, crashes because
-     chunk == NULL . */
-  if (chunk == NULL)
+  /* If GCC determines that a call to __gcc_alloca can never be reached,
+     it will optimise it away. However, the subsequent call to
+     __gcc_alloca_restore is left intact so we'll end up with either chunk
+     being NULL or find a chunk with a different block number (for a
+     __gcc_alloca done in a parent stack frame).  */
+  if (chunk == NULL || chunk->block != block)
     return;
 
-  assert (chunk->block == block);
   assert (chunk->fp == callee_fp);
 
   /* Delete chunk with id block.  */
