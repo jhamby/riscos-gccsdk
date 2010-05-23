@@ -1,34 +1,43 @@
---- src/system/load_save.c.orig	2009-12-03 13:46:15.000000000 -0800
-+++ src/system/load_save.c	2009-12-03 13:51:06.000000000 -0800
-@@ -75,9 +75,13 @@
+--- src/system/load_save.c.orig	2010-05-23 21:01:52.000000000 +0100
++++ src/system/load_save.c	2010-05-23 22:21:50.000000000 +0100
+@@ -78,11 +78,17 @@
  			exit(1);
  		}
  
-+#ifdef __riscos__
-+		snprintf(dir, sizeof(dir), "/<Choices$Write>/Edgar/");
-+#else
++		#ifdef __riscos__
++			snprintf(dir, sizeof(dir), "/<Choices$Write>/Edgar/");
++		#else
++
  		userHome = pass->pw_dir;
  
- 		snprintf(dir, sizeof(dir), "%s/.parallelrealities", userHome);
-+#endif
++		#endif
++
+ 		#ifdef __AMIGA__
+ 			snprintf(dir, sizeof(dir), "parallelrealities");
+-		#else
++		#elif !(defined __riscos__)
+ 			snprintf(dir, sizeof(dir), "%s/.parallelrealities", userHome);
+ 		#endif
  
- 		if ((mkdir(dir, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) != 0) && (errno != EEXIST))
- 		{
-@@ -86,6 +90,7 @@
- 			exit(1);
- 		}
+@@ -95,7 +101,7 @@
  
-+#ifndef __riscos__
- 		snprintf(dir, sizeof(dir), "%s/.parallelrealities/edgar", userHome);
+ 		#ifdef __AMIGA__
+ 			snprintf(dir, sizeof(dir), "parallelrealities/edgar");
+-		#else
++		#elif !(defined __riscos__)
+ 			snprintf(dir, sizeof(dir), "%s/.parallelrealities/edgar", userHome);
+ 		#endif
  
- 		if ((mkdir(dir, S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH) != 0) && (errno != EEXIST))
-@@ -96,6 +101,9 @@
- 		}
+@@ -108,10 +114,12 @@
  
- 		snprintf(gameSavePath, sizeof(gameSavePath), "%s/.parallelrealities/edgar/", userHome);
-+#else
-+		snprintf(gameSavePath, sizeof(gameSavePath), "%s", dir);
-+#endif
+ 		#ifdef __AMIGA__
+ 			snprintf(gameSavePath, sizeof(gameSavePath), "parallelrealities/edgar/");
+-		#else
++		#elif !(defined __riscos__)
+ 			snprintf(gameSavePath, sizeof(gameSavePath), "%s/.parallelrealities/edgar/", userHome);
++		#else
++			snprintf(gameSavePath, sizeof(gameSavePath), "%s", dir);
+ 		#endif
  
  		snprintf(tempFile, sizeof(tempFile), "%stmpsave", gameSavePath);
- 
+

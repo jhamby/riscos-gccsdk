@@ -1,5 +1,5 @@
 
-AB_URL=http://www.parallelrealities.co.uk/download/blobwars/blobwars-1.16-1.tar.gz
+AB_URL=http://www.parallelrealities.co.uk/download/blobwars/blobwars-1.17-1.tar.gz
 
 /usr/bin/g++ -O2 src/pak.cpp src/CFileData.cpp -o pak `sdl-config --libs` -lSDL_mixer -lSDL_image -lSDL_ttf -lSDL_net -lz
 make buildpak

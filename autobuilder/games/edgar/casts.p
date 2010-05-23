@@ -29,17 +29,6 @@
  {
  	int i, j, index, animationIndex, graphicsIndex, sprites[256];
  	char path[MAX_PATH_LENGTH], *line, *token, *savePtr1, *savePtr2;
---- ./src/system/pak.c.orig	2009-11-25 13:55:51.000000000 -0800
-+++ ./src/system/pak.c	2009-11-25 13:57:51.000000000 -0800
-@@ -357,7 +357,7 @@
- 		{
- 			fclose(fp);
- 
--			snprintf((unsigned char *)filename, MAX_PATH_LENGTH, "%spakdata", getGameSavePath());
-+			snprintf((char *)filename, MAX_PATH_LENGTH, "%spakdata", getGameSavePath());
- 
- 			printf("Writing to %s\n", filename);
- 
 --- ./src/boss/blob_boss.c.orig	2009-11-25 13:59:52.000000000 -0800
 +++ ./src/boss/blob_boss.c	2009-11-25 14:00:21.000000000 -0800
 @@ -357,7 +357,7 @@
