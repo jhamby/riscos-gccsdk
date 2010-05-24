@@ -27,8 +27,8 @@ AM_CPPFLAGS = -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
 # The __GNU_LIBRARY__ definition is for matching the expectation of the couple
 # of GNU C Library files we're using.
 # The NO_LONG_DOUBLE definition here and the __NO_LONG_DOUBLE_MATH definition
-# include features.h results in having the 'long double' math routines aliased
-# as the normal 'double' onces.
+# in features.h results in having the 'long double' math routines aliased as
+# the normal 'double' onces.
 AM_CFLAGS = -D__GNU_LIBRARY__ -DNO_LONG_DOUBLE -D_GNU_SOURCE=1 -std=c99 $(LIBM_FLAGS)
 
 # Assembler files rely heavily on the C preprocessor to keep structures

@@ -1,3 +1,9 @@
+Mon May 24 03:28:14 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* scl/chunkid02.s(acosl,asinl,atan2l,atanl,ceill,cosl,expl,floorl,
+	log10l,logl,modfl,powl,sinl,tanl,coshl,sinhl,tanhl,frexpl,sqrtl,fabsl,
+	fmodl,bcmp): Added.
+
 Sun May 23 23:46:28 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* scl/redirect_setjmp.s: libscl -> scl

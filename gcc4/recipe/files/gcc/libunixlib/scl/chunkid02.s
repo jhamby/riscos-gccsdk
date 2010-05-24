@@ -46,78 +46,129 @@ clib_vectors_begin:
 	DefSCLFnc	UncaughtTrapHandler
 	DefSCLFnc	EventHandler
 	DefSCLFnc	UnhandledEventHandler
+
 	.global	__rt_stkovf_split_small
 	.global	x$stack_overflow
 __rt_stkovf_split_small:
-x$stack_overflow:		MOV	PC, #0
+x$stack_overflow:
+	MOV	PC, #0
+
 	.global	__rt_stkovf_split_big
 	.global	x$stack_overflow_1
 __rt_stkovf_split_big:
-x$stack_overflow_1:		MOV	PC, #0
+x$stack_overflow_1:
+	MOV	PC, #0
+
 	.global	__rt_udiv
 	.global	x$udivide
 __rt_udiv:
-x$udivide:			MOV	PC, #0
+x$udivide:
+	MOV	PC, #0
+
 	.global	x$uremainder
-x$uremainder:			MOV	PC, #0
+x$uremainder:
+	MOV	PC, #0
+
 	.global	__rt_sdiv
 	.global	x$divide
 __rt_sdiv:
-x$divide:			MOV	PC, #0
+x$divide:
+	MOV	PC, #0
+
 	.global	__rt_divtest
 	.global	x$divtest
 __rt_divtest:
-x$divtest:			MOV	PC, #0
+x$divtest:
+	MOV	PC, #0
+
 	.global	x$remainder
-x$remainder:			MOV	PC, #0
+x$remainder:
+	MOV	PC, #0
+
 	.global	x$multiply
-x$multiply:			MOV	PC, #0
+x$multiply:
+	MOV	PC, #0
+
 	.global	__rt_rd1chk
 	.global	_rd1chk
 __rt_rd1chk:
-_rd1chk:			MOV	PC, #0
+_rd1chk:
+	MOV	PC, #0
+
 	.global	__rt_rd2chk
 	.global	_rd2chk
 __rt_rd2chk:
-_rd2chk:			MOV	PC, #0
+_rd2chk:
+	MOV	PC, #0
+
 	.global	__rt_rd4chk
 	.global	_rd4chk
 __rt_rd4chk:
-_rd4chk:			MOV	PC, #0
+_rd4chk:
+	MOV	PC, #0
+
 	.global	__rt_wR1chk
 	.global	_wR1chk
 __rt_wR1chk:
-_wR1chk:			MOV	PC, #0
+_wR1chk:
+	MOV	PC, #0
+
 	.global	__rt_wR2chk
 	.global	_wR2chk
 __rt_wR2chk:
-_wR2chk:			MOV	PC, #0
+_wR2chk:
+	MOV	PC, #0
+
 	.global	__rt_wR4chk
 	.global	_wR4chk
 __rt_wR4chk:
-_wR4chk:			MOV	PC, #0
+_wR4chk:
+	MOV	PC, #0
+
 	.global	_main
-_main:				MOV	PC, #0
+_main:
+	MOV	PC, #0
+
 	.global	_exit
-_exit:				MOV	PC, #0
+_exit:
+	MOV	PC, #0
+
 	.global	_clib_initialise
-_clib_initialise:		MOV	PC, #0
+_clib_initialise:
+	MOV	PC, #0
+
 	.global	_backtrace
-_backtrace:			MOV	PC, #0
+_backtrace:
+	MOV	PC, #0
+
 	.global	_count
-_count:				MOV	PC, #0
+_count:
+	MOV	PC, #0
+
 	.global	_count1
-_count1:			MOV	PC, #0
+_count1:
+	MOV	PC, #0
+
 	.global	_stfp
-_stfp:				MOV	PC, #0
+_stfp:
+	MOV	PC, #0
+
 	.global	_ldfp
-_ldfp:				MOV	PC, #0
+_ldfp:
+	MOV	PC, #0
+
 	.global	_printf
-_printf:			MOV	PC, #0
+_printf:
+	MOV	PC, #0
+
 	.global	_fprintf
-_fprintf:			MOV	PC, #0
+_fprintf:
+	MOV	PC, #0
+
 	.global	_sprintf
-_sprintf:			MOV	PC, #0
+_sprintf:
+	MOV	PC, #0
+
 	DefSCLFnc	clock
 	DefSCLFnc	difftime
 	DefSCLFnc	mktime
@@ -133,7 +184,13 @@ _sprintf:			MOV	PC, #0
 	DefSCLFnc	strncpy
 	DefSCLFnc	strcat
 	DefSCLFnc	strncat
-	DefSCLFnc	memcmp	@ FIXME: define bcmp alias ?
+
+	@ Entry
+	@ int bcmp(const void *s1, const void *s2, size_t n);
+	DefSCLGbl	bcmp
+	@ int memcmp(const void *s1, const void *s2, size_t n);
+	DefSCLFnc	memcmp
+
 	DefSCLFnc	strcmp
 	DefSCLFnc	strncmp
 	DefSCLFnc	memchr
@@ -173,8 +230,11 @@ _sprintf:			MOV	PC, #0
 	DefSCLFnc	remove
 	DefSCLFnc	rename
 	DefSCLFnc	tmpfile
+
 	.global	__old_tmpnam
-__old_tmpnam:			MOV	PC, #0
+__old_tmpnam:
+	MOV	PC, #0
+
 	DefSCLFnc	fclose
 	DefSCLFnc	fflush
 	DefSCLFnc	fopen
@@ -187,31 +247,46 @@ __old_tmpnam:			MOV	PC, #0
 	DefSCLFnc	scanf
 	DefSCLFnc	fscanf
 	DefSCLFnc	sscanf
+
 	.global	__gcc_vprintf
 	.global	vprintf
 __gcc_vprintf:
-vprintf:			MOV	PC, #0
+vprintf:
+	MOV	PC, #0
+
 	.global	__gcc_vfprintf
 	.global	vfprintf
 __gcc_vfprintf:
-vfprintf:			MOV	PC, #0
+vfprintf:
+	MOV	PC, #0
+
 	.global	__gcc_vsprintf
 	.global	vsprintf
 __gcc_vsprintf:
-vsprintf:			MOV	PC, #0
+vsprintf:
+	MOV	PC, #0
+
 	.global	_vfprintf
-_vfprintf:			MOV	PC, #0
+_vfprintf:
+	MOV	PC, #0
+
 	DefSCLFnc	fgetc
 	DefSCLFnc	fgets
 	DefSCLFnc	fputc
 	DefSCLFnc	fputs
+
 	.global	__filbuf
-__filbuf:			MOV	PC, #0
+__filbuf:
+	MOV	PC, #0
+
 	DefSCLFnc	getc
 	DefSCLFnc	getchar
 	DefSCLFnc	gets
+
 	.global	__flsbuf
-__flsbuf:			MOV	PC, #0
+__flsbuf:
+	MOV	PC, #0
+
 	DefSCLFnc	putc
 	DefSCLFnc	putchar
 	DefSCLFnc	puts
@@ -220,12 +295,18 @@ __flsbuf:			MOV	PC, #0
 	DefSCLFnc	fwrite
 	DefSCLFnc	fgetpos
 
+	@ Entry
+	@ int fseeko(FILE *stream, off_t offset, int whence);
 	DefSCLGbl	fseeko
+	@ int fseek(FILE *stream, long offset, int whence);
 	DefSCLFnc	fseek
 
 	DefSCLFnc	fsetpos
 
+	@ Entry
+	@ off_t ftello(FILE *stream);
 	DefSCLGbl	ftello
+	@ long ftell(FILE *stream);
 	DefSCLFnc	ftell
 
 	DefSCLFnc	rewind
@@ -242,37 +323,147 @@ __flsbuf:			MOV	PC, #0
 	@ Entry
 	@ int setjmp (jmp_buf __state);
 	.global	__libscl_redirected_setjmp
-__libscl_redirected_setjmp:
+__scl_redirected_setjmp:
 	MOV	PC, #0
 
 	@ Entry
 	@ void longjmp (jmp_buf __state, int __value);
 	.global	__libscl_redirected_longjmp
-__libscl_redirected_longjmp:
+__scl_redirected_longjmp:
 	MOV	PC, #0
 
+	@ Entry
+	@ long double acosl(long double x);
+	DefSCLGbl	acosl
+	@ double acos(double x);
 	DefSCLFnc	acos
+
+	@ Entry
+	@ long double asinl(long double x);
+	DefSCLGbl	asinl
+	@ double asin(double x);
 	DefSCLFnc	asin
+
+	@ Entry
+	@ long double atanl(long double x);
+	DefSCLGbl	atanl
+	@ double atan(double x);
 	DefSCLFnc	atan
+
+	@ Entry
+	@ long double atan2l(long double y, long double x);
+	DefSCLGbl	atan2l
+	@ double atan2(double y, double x);
 	DefSCLFnc	atan2
+
+	@ Entry
+	@ long double cosl(long double x);
+	DefSCLGbl	cosl
+	@ double cos(double x);
 	DefSCLFnc	cos
+
+	@ Entry
+	@ long double sinl(long double x);
+	DefSCLGbl	sinl
+	@ double sin(double x);
 	DefSCLFnc	sin
+
+	@ Entry
+	@ long double tanl(long double x);
+	DefSCLGbl	tanl
+	@ double tan(double x);
 	DefSCLFnc	tan
+
+	@ Entry
+	@ long double coshl(long double x);
+	DefSCLGbl	coshl
+	@ double cosh(double x);
 	DefSCLFnc	cosh
+
+	@ Entry
+	@ long double sinhl(long double x);
+	DefSCLGbl	sinhl
+	@ double sinh(double x);
 	DefSCLFnc	sinh
+
+	@ Entry
+	@ long double tanhl(long double x);
+	DefSCLGbl	tanhl
+	@ double tanh(double x);
 	DefSCLFnc	tanh
+
+	@ Entry
+	@ long double expl(long double x);
+	DefSCLGbl	expl
+	@ double exp(double x);
 	DefSCLFnc	exp
+
+	@ Entry
+	@ long double frexpl(long double x, int *exp);
+	DefSCLGbl	frexpl
+	@ double frexp(double x, int *exp);
 	DefSCLFnc	frexp
+
+	@ Entry
+	@ long double ldexpl(long double x, int exp);
+	DefSCLGbl	ldexpl
+	@ double ldexp(double x, int exp);
 	DefSCLFnc	ldexp
+
+	@ Entry
+	@ long double logl(long double x);
+	DefSCLGbl	logl
+	@ double log(double x);
 	DefSCLFnc	log
+
+	@ Entry
+	@ long double log10l(long double x);
+	DefSCLGbl	log10l
+	@ double log10(double x);
 	DefSCLFnc	log10
+
+	@ Entry
+	@ long double modfl(long double x, long double *iptr);
+	DefSCLGbl	modfl
+	@ double modf(double x, double *iptr);
 	DefSCLFnc	modf
+
+	@ Entry
+	@ long double powl(long double x, long double y);
+	DefSCLGbl	powl
+	@ double pow(double x, double y);
 	DefSCLFnc	pow
+
+	@ Entry
+	@ long double sqrtl(long double x);
+	DefSCLGbl	sqrtl
+	@ double sqrt(double x);
 	DefSCLFnc	sqrt
+
+	@ Entry
+	@ long double ceill(long double x);
+	DefSCLGbl	ceill
+	@ double ceil(double x);
 	DefSCLFnc	ceil
+
+	@ Entry
+	@ long double fabsl(long double x);
+	DefSCLGbl	fabsl
+	@ double fabs(double x);
 	DefSCLFnc	fabs
+
+	@ Entry
+	@ long double floorl(long double x);
+	DefSCLGbl	floorl
+	@ double floor(double x);
 	DefSCLFnc	floor
+
+	@ Entry
+	@ long double fmodl(long double x, long double y);
+	DefSCLGbl	fmodl
+	@ double fmod(double x, double y);
 	DefSCLFnc	fmod
+
 	DefSCLFnc	setlocale
 	DefSCLFnc	isalnum
 	DefSCLFnc	isalpha
@@ -287,12 +478,19 @@ __libscl_redirected_longjmp:
 	DefSCLFnc	isxdigit
 	DefSCLFnc	tolower
 	DefSCLFnc	toupper
+
 	.global	__assert
-__assert:			MOV	PC, #0
+__assert:
+	MOV	PC, #0
+
 	.global	_memcpy
-_memcpy:			MOV	PC, #0
+_memcpy:
+	MOV	PC, #0
+
 	.global	_memset
-_memset:			MOV	PC, #0
+_memset:
+	MOV	PC, #0
+
 	DefSCLFnc	localeconv
 	DefSCLFnc	mblen
 	DefSCLFnc	mbtowc
@@ -301,8 +499,10 @@ _memset:			MOV	PC, #0
 	DefSCLFnc	wcstombs
 	DefSCLFnc	strxfrm
 	DefSCLFnc	strcoll
+
 	.global	_clib_finalisemodule
-_clib_finalisemodule:		MOV	PC, #0
+_clib_finalisemodule:
+	MOV	PC, #0
 
 	@ Entry 180
 	@ const char *_clib_version(void);
