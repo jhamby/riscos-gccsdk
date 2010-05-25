@@ -169,6 +169,7 @@ extern int signgam;
 */
 
 /* All floating-point numbers can be put in one of these categories.  */
+#ifndef __TARGET_SCL__
 enum
   {
     FP_NAN,
@@ -182,6 +183,21 @@ enum
     FP_NORMAL
 # define FP_NORMAL FP_NORMAL
   };
+#else
+enum
+  {
+    FP_ZERO,
+# define FP_ZERO FP_ZERO
+    FP_SUBNORMAL,
+# define FP_SUBNORMAL FP_SUBNORMAL
+    FP_NORMAL,
+# define FP_NORMAL FP_NORMAL
+    FP_INFINITE,
+# define FP_INFINITE FP_INFINITE
+    FP_NAN
+# define FP_NAN FP_NAN
+  };
+#endif
 
 /* Return number of classification appropriate for X.  */
 # ifdef __NO_LONG_DOUBLE_MATH
@@ -220,7 +236,7 @@ enum
       ? __finite (x) : __finitel (x))
 # endif
 #else
-#  define isfinite(x) (fpclassify (x) >= FP_ZERO)
+#  define isfinite(x) (fpclassify (x) <= FP_NORMAL)
 #endif
 
 /* Return nonzero value if X is neither zero, subnormal, Inf, nor NaN.  */

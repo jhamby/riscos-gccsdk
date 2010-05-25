@@ -11,6 +11,7 @@
 	.word	0xff000000 + (1b - 0b)
 	.endm
 
+#ifndef __TARGET_SCL__
 	@ Assembler equivalent of __set_errno in errno.h.
 	@ #define __set_errno(val) (errno = (val), -1)
 	@ Entry condition
@@ -62,6 +63,7 @@
 #endif
 1:
 	.endm
+#endif
 
 	@ Macro to change processor modes and interrupt flags
 	@ Works in 26bit or 32bit modes, on all architectures
@@ -93,6 +95,7 @@
 	.size	\name, . - \name
 	.endm
 
+#ifndef __TARGET_SCL__
 	@ Macro to define a word of data either with a GOT relocation for
 	@ the shared library or with no relocation for the static library.
 	.macro	WORD name
@@ -116,3 +119,4 @@
 	\instr
 #endif
 	.endm
+#endif

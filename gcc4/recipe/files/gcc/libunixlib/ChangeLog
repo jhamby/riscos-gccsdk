@@ -1,3 +1,49 @@
+Tue May 25 03:34:56 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* scl/scl_acosf.s(acosf): Added (moved from libscl and converted
+	assembler from ObjAsm to GAS syntax).
+	* scl/scl_atan2f.s(atan2f): Likewise.
+	* scl/scl_atanf.s(atanf): Likewise.
+	* scl/scl_ceilf.s(ceilf): Likewise.
+	* scl/scl_copysign.s(copysign,copysignl): Likewise.
+	* scl/scl_copysignf.s(copysignf): Likewise.
+	* scl/scl_cosf.s(cosf): Likewise.
+	* scl/scl_coshf.s(coshf): Likewise.
+	* scl/scl_expf.s(expf): Likewise.
+	* scl/scl_fabsf.s(fabsf): Likewise.
+	* scl/scl_floorf.s(floorf): Likewise.
+	* scl/scl_hypotf.s(hypotf): Likewise.
+	* scl/scl_ldexpf.s(ldexpf): Likewise.
+	* scl/scl_log10f.s(log10f): Likewise.
+	* scl/scl_logf.s(logf): Likewise.
+	* scl/scl_modff.s(modff): Likewise.
+	* scl/scl_powf.s(powf): Likewise.
+	* scl/scl_signbit.s(__signbit,__signbitf,__signbitl): Likewise.
+	* scl/scl_sinf.s(sinf): Likewise.
+	* scl/scl_sinhf.s(sinhf): Likewise.
+	* scl/scl_tanf.s(tanf): Likewise.
+	* scl/scl_tanhf.s(tanhf): Likewise.
+	* scl/scl_fpclassify.s(__fpclassify): Added.
+	* scl/scl_fpclassifyf.s(__fpclassifyf): Likewise.
+	* scl/redirect_setjmp.s(setjmp,longjmp): Type as function.
+	* scl/chunkid01.s: Significant cleanup.
+	* scl/chunkid02.s: Likewise.
+	* scl/chunkid04.s: Likewise.
+	* scl/chunkid05.s: Likewise.
+	* include/math.h(FP_ZERO,FP_SUBNORMAL,FP_NORMAL,FP_INFINITE,FP_NAN):
+	For the SCL target, have the same values as SCL assumes.
+	* README: Move 'Building' paragraph to...
+	* README-DEV: ...here.  Also added APCS-32 calling conventions section.
+	* incl-local/internal/elf-macros.s: Disable errno related macros for
+	SCL target.
+	* incl-local/internal/scl-macros.s: Add non-SCL target test.  Add FP_*
+	SCL values.
+	(DefSCLGbl): Removed.
+	(DefSCLFncB,DefSCLFncE,DefSCLFncS): Added.
+	* sys/_syslib.s(__unixlib_get_fpstatus,__unixlib_set_fpstatus): Remove.
+	* include/fpu_control.h: Sync with glibc 2.11 version and adapt it for
+	softfloat builds.
+
 Mon May 24 03:28:14 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* scl/chunkid02.s(acosl,asinl,atan2l,atanl,ceill,cosl,expl,floorl,

@@ -742,7 +742,32 @@ scl_src = \
 	scl/chunkid04.s \
 	scl/chunkid05.s \
 	scl/chunkstub.s \
-	scl/redirect_setjmp.s
+	scl/redirect_setjmp.s \
+	scl/scl_acosf.s \
+	scl/scl_asinf.s \
+	scl/scl_atan2f.s \
+	scl/scl_atanf.s \
+	scl/scl_ceilf.s \
+	scl/scl_fpclassifyf.s \
+	scl/scl_fpclassify.s \
+	scl/scl_copysignf.s \
+	scl/scl_copysign.s \
+	scl/scl_cosf.s \
+	scl/scl_coshf.s \
+	scl/scl_expf.s \
+	scl/scl_fabsf.s \
+	scl/scl_floorf.s \
+	scl/scl_hypotf.s \
+	scl/scl_ldexpf.s \
+	scl/scl_log10f.s \
+	scl/scl_logf.s \
+	scl/scl_modff.s \
+	scl/scl_powf.s \
+	scl/scl_signbit.s \
+	scl/scl_sinf.s \
+	scl/scl_sinhf.s \
+	scl/scl_tanf.s \
+	scl/scl_tanhf.s
 else
 scl_src =
 endif

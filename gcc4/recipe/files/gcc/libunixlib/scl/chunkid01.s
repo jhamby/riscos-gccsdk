@@ -1,6 +1,6 @@
 @ Chunk 1 stub routines for linking with the SharedCLibrary
 @ Copyright (c) 1997-2005 Nick Burrett
-@ Copyright (c) 2005-2008 UnixLib Developers
+@ Copyright (c) 2005-2010 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -42,106 +42,154 @@
 kernel_vectors:
 kernel_vectors_begin:
 
-	.global	_kernel_init
-_kernel_init:			MOV	PC, #0
-	.global	_kernel_exit
-_kernel_exit:			MOV	PC, #0
-	.global	_kernel_setreturncode
-_kernel_setreturncode:		MOV	PC, #0
-	.global	_kernel_exittraphandler
-_kernel_exittraphandler:	MOV	PC, #0
-	.global	_kernel_unwind
-_kernel_unwind:			MOV	PC, #0
-	.global	_kernel_procname
-_kernel_procname:		MOV	PC, #0
-	.global	_kernel_language
-_kernel_language:		MOV	PC, #0
-	.global	_kernel_command_string
-_kernel_command_string:		MOV	PC, #0
-	.global	_kernel_hostos
-_kernel_hostos:			MOV	PC, #0
-	.global	_kernel_swi
-_kernel_swi:			MOV	PC, #0
-	.global	_kernel_osbyte
-_kernel_osbyte:			MOV	PC, #0
-	.global	_kernel_osrdch
-_kernel_osrdch:			MOV	PC, #0
-	.global	_kernel_oswrch
-_kernel_oswrch:			MOV	PC, #0
-	.global	_kernel_osbget
-_kernel_osbget:			MOV	PC, #0
-	.global	_kernel_osbput
-_kernel_osbput:			MOV	PC, #0
-	.global	_kernel_osgbpb
-_kernel_osgbpb:			MOV	PC, #0
-	.global	_kernel_osword
-_kernel_osword:			MOV	PC, #0
-	.global	_kernel_osfind
-_kernel_osfind:			MOV	PC, #0
-	.global	_kernel_osfile
-_kernel_osfile:			MOV	PC, #0
-	.global	_kernel_osargs
-_kernel_osargs:			MOV	PC, #0
-	.global	_kernel_oscli
-_kernel_oscli:			MOV	PC, #0
-	.global	_kernel_last_oserror
-_kernel_last_oserror:		MOV	PC, #0
-	.global	_kernel_system
-_kernel_system:			MOV	PC, #0
-	.global	_kernel_getenv
-_kernel_getenv:			MOV	PC, #0
-	.global	_kernel_setenv
-_kernel_setenv:			MOV	PC, #0
-	.global	_kernel_register_allocs
-_kernel_register_allocs:	MOV	PC, #0
-	.global	_kernel_alloc
-_kernel_alloc:			MOV	PC, #0
-	.global	_kernel_stkovf_split_0frame
-_kernel_stkovf_split_0frame:	MOV	PC, #0
-	.global	_kernel_stkovf_split
-_kernel_stkovf_split:		MOV	PC, #0
-	.global	_kernel_stkovf_copyargs
-_kernel_stkovf_copyargs:	MOV	PC, #0
-	.global	_kernel_stkovf_copy0args
-_kernel_stkovf_copy0args:	MOV	PC, #0
-	.global	_kernel_udiv
-_kernel_udiv:			MOV	PC, #0
-	.global	_kernel_urem
-_kernel_urem:			MOV	PC, #0
-	.global	__rt_udiv10
-__rt_udiv10:
-	.global	_kernel_udiv10
-_kernel_udiv10:			MOV	PC, #0
-	.global	_kernel_sdiv
-_kernel_sdiv:			MOV	PC, #0
-	.global	_kernel_srem
-_kernel_srem:			MOV	PC, #0
-	.global	__rt_sdiv10
-__rt_sdiv10:
+	@ Entry 0
+	DefSCLFncS	_kernel_init
+
+	@ Entry 1
+	DefSCLFncS	_kernel_exit
+
+	@ Entry 2
+	DefSCLFncS	_kernel_setreturncode
+
+	@ Entry 3
+	DefSCLFncS	_kernel_exittraphandler
+
+	@ Entry 4
+	DefSCLFncS	_kernel_unwind
+
+	@ Entry 5
+	DefSCLFncS	_kernel_procname
+
+	@ Entry 6
+	DefSCLFncS	_kernel_language
+
+	@ Entry 7
+	DefSCLFncS	_kernel_command_string
+
+	@ Entry 8
+	DefSCLFncS	_kernel_hostos
+
+	@ Entry 9
+	DefSCLFncS	_kernel_swi
+
+	@ Entry 10
+	DefSCLFncS	_kernel_osbyte
+
+	@ Entry 11
+	DefSCLFncS	_kernel_osrdch
+
+	@ Entry 12
+	DefSCLFncS	_kernel_oswrch
+
+	@ Entry 13
+	DefSCLFncS	_kernel_osbget
+
+	@ Entry 14
+	DefSCLFncS	_kernel_osbput
+
+	@ Entry 15
+	DefSCLFncS	_kernel_osgbpb
+
+	@ Entry 16
+	DefSCLFncS	_kernel_osword
+
+	@ Entry 17
+	DefSCLFncS	_kernel_osfind
+
+	@ Entry 18
+	DefSCLFncS	_kernel_osfile
+
+	@ Entry 19
+	DefSCLFncS	_kernel_osargs
+
+	@ Entry 20
+	DefSCLFncS	_kernel_oscli
+
+	@ Entry 21
+	DefSCLFncS	_kernel_last_oserror
+
+	@ Entry 22
+	DefSCLFncS	_kernel_system
+
+	@ Entry 23
+	DefSCLFncS	_kernel_getenv
+
+	@ Entry 24
+	DefSCLFncS	_kernel_setenv
+
+	@ Entry 25
+	DefSCLFncS	_kernel_register_allocs
+
+	@ Entry 26
+	DefSCLFncS	_kernel_alloc
+
+	@ Entry 27
+	DefSCLFncS	_kernel_stkovf_split_0frame
+
+	@ Entry 28
+	DefSCLFncS	_kernel_stkovf_split
+
+	@ Entry 29
+	DefSCLFncS	_kernel_stkovf_copyargs
+
+	@ Entry 30
+	DefSCLFncS	_kernel_stkovf_copy0args
+
+	@ Entry 31
+	DefSCLFncS	_kernel_udiv
+
+	@ Entry 32
+	DefSCLFncS	_kernel_urem
+
+	@ Entry 33
+	DefSCLFncS	__rt_udiv10
+	.global _kernel_udiv10
+_kernel_udiv10 = __rt_udiv10
+
+	@ Entry 34
+	DefSCLFncS	_kernel_sdiv
+
+	@ Entry 35
+	DefSCLFncS	_kernel_srem
+
+	@ Entry 36
+	DefSCLFncS	__rt_sdiv10
 	.global	_kernel_sdiv10
-_kernel_sdiv10:			MOV	PC, #0
-	.global	_kernel_fpavailable
-_kernel_fpavailable:		MOV	PC, #0
-	.global	_kernel_moduleinit
-_kernel_moduleinit:		MOV	PC, #0
-	.global	_kernel_irqs_on
-_kernel_irqs_on:		MOV	PC, #0
-	.global	_kernel_irqs_off
-_kernel_irqs_off:		MOV	PC, #0
-	.global	_kernel_irqs_disabled
-_kernel_irqs_disabled:		MOV	PC, #0
-	.global	_kernel_entermodule
-_kernel_entermodule:		MOV	PC, #0
-	.global	_kernel_escape_seen
-_kernel_escape_seen:		MOV	PC, #0
-	.global	_kernel_current_stack_chunk
-_kernel_current_stack_chunk:	MOV	PC, #0
-	.global	_kernel_swi_c
-_kernel_swi_c:			MOV	PC, #0
-	.global	_kernel_register_slotextend
-_kernel_register_slotextend:	MOV	PC, #0
-	.global	_kernel_raise_error
-_kernel_raise_error:		MOV	PC, #0
+_kernel_sdiv10 = __rt_sdiv10
+
+	@ Entry 37
+	DefSCLFncS	_kernel_fpavailable
+
+	@ Entry 38
+	DefSCLFncS	_kernel_moduleinit
+
+	@ Entry 39
+	DefSCLFncS	_kernel_irqs_on
+
+	@ Entry 40
+	DefSCLFncS	_kernel_irqs_off
+
+	@ Entry 41
+	DefSCLFncS	_kernel_irqs_disabled
+
+	@ Entry 42
+	DefSCLFncS	_kernel_entermodule
+
+	@ Entry 43
+	DefSCLFncS	_kernel_escape_seen
+
+	@ Entry 44
+	DefSCLFncS	_kernel_current_stack_chunk
+
+	@ Entry 45
+	DefSCLFncS	_kernel_swi_c
+
+	@ Entry 46
+	DefSCLFncS	_kernel_register_slotextend
+
+	@ Entry 47
+	DefSCLFncS	_kernel_raise_error
+
 kernel_vectors_end:
 	.space	kernel_vectors_end - kernel_vectors_begin
 	.size	kernel_vectors, . - kernel_vectors

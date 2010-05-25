@@ -35,6 +35,7 @@
 	@ implementation storing the head of the alloca() chain in the
 	@ setjmp's buffer so that we can restore it at longjmp time.
 	.global	setjmp
+	.type	setjmp, %function
 setjmp:
 	ldr	r1, =__scl_chunk_head
 	str	r1, [r0, #22*4]
@@ -44,6 +45,7 @@ setjmp:
 	@ implementation restoring the head of the alloca() chain based
 	@ on the 22nd word in the supplied buffer.
 	.global	longjmp
+	.type	longjmp, %function
 longjmp:
 	mov	v1, a1
 	mov	v2, a2

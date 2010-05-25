@@ -1,6 +1,6 @@
 @ Chunk 5 stub routines for linking with the SharedCLibrary
 @ Copyright (c) 1997-2005 Nick Burrett
-@ Copyright (c) 2005-2008 UnixLib Developers
+@ Copyright (c) 2005-2010 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,7 @@ extra_vectors_begin:
 	@   3 (FP_INFINITY) = Value is an infinity FP value
 	@   4 (FP_NAN) = Value is Not-A-Number (NAN) FP value
 	@ Note: FP values are passed in FP registers.
-	@.global	__fpclassifyf
-__fpclassifyf_FIXME_float_arg:	MOV	PC, #0
+	MOV	PC, #0
 
 	@ Entry 1
 	@ int __fpclassifyd(double);
@@ -65,8 +64,6 @@ __fpclassifyf_FIXME_float_arg:	MOV	PC, #0
 	@   3 (FP_INFINITY) = Value is an infinity FP value
 	@   4 (FP_NAN) = Value is Not-A-Number (NAN) FP value
 	@ Note: FP values are passed in FP registers.
-	.global	__fpclassifyd
-__fpclassifyd:
 	MOV	PC, #0
 
 	@ Entry 2
@@ -74,8 +71,6 @@ __fpclassifyd:
 	@ Returns the value of the sign bit for the floating point argument
 	@ passed. 1 if the sign bit is set, 0 if the sign bit is clear.
 	@ Note: FP values are passed in FP registers.
-	.global	__signbitf
-__signbitf:
 	MOV	PC, #0
 
 	@ Entry 3
@@ -83,8 +78,6 @@ __signbitf:
 	@ Returns the value of the sign bit for the floating point argument
 	@ passed. 1 if the sign bit is set, 0 if the sign bit is clear.
 	@ Note: FP values are passed in FP registers.
-	.global	__signbitd
-__signbitd:
 	MOV	PC, #0
 
 	@ Entry 4
@@ -93,7 +86,7 @@ __signbitd:
 	@ whose magnitude is that of x. Effectively, copies the sign of y
 	@ into x and returns it.
 	@ Note: FP values are passed in FP registers.
-	DefSCLFnc	copysign
+	MOV	PC, #0
 
 	@ Entry 5
 	@ floats copysignf(float x, float y);
@@ -101,10 +94,7 @@ __signbitd:
 	@ whose magnitude is that of x. Effectively, copies the sign of y
 	@ into x and returns it.
 	@ Note: FP values are passed in FP registers.
-	@.global	copysignf
-copysignf_not_used:
 	MOV	PC, #0
-
 
 	@ Entry 6
 	@ double nan(const char *tag);
@@ -181,8 +171,6 @@ fminf_FIXME_float_arg:
 	@ Entry 16
 	@ float fabsf(float x);
 	@ Returns the absolute value of the argument.
-	@.global	fabsf
-fabsf_not_used:
 	MOV	PC, #0
 
 	@ Entry 17
@@ -197,8 +185,6 @@ fabsf_not_used:
 	@ Returns the square root of the sum of the squares of x and y,
 	@ without undue overflow or underflow.
 	@ A range error may occur.
-	@.global	hypotf
-hypotf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 19
@@ -295,9 +281,7 @@ hypotf_FIXME_float_arg:
 	@ Returns the number of bytes which have been written to the output
 	@ buffer, or would have been written if the buffer had been long
 	@ enough.
-	.global	_snprintf
-_snprintf:
-	MOV	PC, #0
+	DefSCLFncS	_snprintf
 
 	@ Entry 31
 	@ int snprintf(char *output, size_t max, const char *format, ...);
@@ -315,11 +299,9 @@ _snprintf:
 	@ Returns the number of bytes which have been written to the output
 	@ buffer, or would have been written if the buffer had been long
 	@ enough.
+	DefSCLFnc	vsnprintf
 	.global	__gcc_vsnprintf
-	.global	vsnprintf
-__gcc_vsnprintf:
-vsnprintf:
-	MOV	PC, #0
+__gcc_vsnprintf = vsnprintf
 
 	@ Entry 33
 	@ int vfscanf(FILE *f, const char *format, va_list);
@@ -327,11 +309,9 @@ vsnprintf:
 	@ Consult the C specification for details of the format parameters.
 	@ Returns the number of arguments processed, or EOF if failed before
 	@ any conversion.
+	DefSCLFnc	vfscanf
 	.global	__gcc_vfscanf
-	.global	vfscanf
-__gcc_vfscanf:
-vfscanf:
-	MOV	PC, #0
+__gcc_vfscanf = vfscanf
 
 	@ Entry 34
 	@ int vscanf(const char *format, va_list);
@@ -339,11 +319,9 @@ vfscanf:
 	@ Consult the C specification for details of the format parameters.
 	@ Returns the number of arguments processed, or EOF if failed before
 	@ any conversion.
+	DefSCLFnc	vscanf
 	.global	__gcc_vscanf
-	.global	vscanf
-__gcc_vscanf:
-vscanf:
-	MOV	PC, #0
+__gcc_vscanf = vscanf
 
 	@ Entry 35
 	@ int vsscanf(const char *string, const char *format, va_list);
@@ -351,24 +329,18 @@ vscanf:
 	@ Consult the C specification for details of the format parameters.
 	@ Returns the number of arguments processed, or EOF if failed before
 	@ any conversion.
+	DefSCLFnc	vsscanf
 	.global	__gcc_vsscanf
-	.global	vsscanf
-__gcc_vsscanf:
-vsscanf:
-	MOV	PC, #0
+__gcc_vsscanf = vsscanf
 
 	@ Entry 36
 	@ float ceilf(float x);
 	@ Returns the smallest integer not less than x.
-	@.global	ceilf
-ceilf_not_used:
 	MOV	PC, #0
 
 	@ Entry 37
 	@ float floorf(float x);
 	@ Returns the largest integer not less than x.
-	@.global	floorf
-floorf_not_used:
 	MOV	PC, #0
 
 	@ Entry 38
@@ -450,7 +422,8 @@ lroundf_FIXME_float_arg:
 	@ Entry 49
 	@ float truncf(float x);
 	@ Rounds its argument to the integer value, nearest to but no larger
-	@ in magnitude than the argument.	@.global	truncf
+	@ in magnitude than the argument.
+	@.global	truncf
 truncf_FIXME_float_arg:
 	MOV	PC, #0
 
@@ -538,289 +511,338 @@ remainderf_FIXME_float_arg:
 	@ Displays an error to stderr in response to an assertion, and then
 	@ calls abort().
 	@ Never returns.
-	.global	__assert2
-__assert2:
-	MOV	PC, #0
+	DefSCLFncS	__assert2
 
 	@ Entry 62
-	@ void _Exit(int status),
+	@ void _Exit(int status);
 	@ Terminates the program immediately, without calling the 'atexit'
 	@ functions. This may mean under a C++ environment that destructors
 	@ are not invoked. File descriptors opened by the standard stream
 	@ functions will be closed.
-	.global	_Exit
-_Exit:
-	MOV	PC, #0
+	DefSCLFncS	_Exit
 
 	@ Entry 63
-	@
-	@.global	acosf
-acosf_not_used:
+	@ Arc cosine function
+	@ float acosf(float x);
 	MOV	PC, #0
 
 	@ Entry 64
-	@
-	@.global	asinf
-asinf_not_used:
+	@ Arc sine function
+	@ float asinf(float x);
 	MOV	PC, #0
 
 	@ Entry 65
-	@
-	@.global	atanf
-atanf_not_used:
+	@ Arc tangent function
+	@ float atanf(float x);
 	MOV	PC, #0
 
 	@ Entry 66
-	@
-	@.global	atan2f
-atan2f_not_used:
+	@ Arc tangent function of two variables
+	@ float atan2f(float y, float x);
 	MOV	PC, #0
 
 	@ Entry 67
-	@
-	@.global	cosf
-cosf_not_used:
+	@ Cosine function
+	@ float cosf(float x);
 	MOV	PC, #0
 
 	@ Entry 68
-	@
-	@.global	sinf
-sinf_not_used:
+	@ Sine function
+	@ float sinf(float x);
 	MOV	PC, #0
 
 	@ Entry 69
-	@
-	@.global	tanf
-tanf_not_used:
+	@ Tangent function
+	@ float tanf(float x);
 	MOV	PC, #0
 
 	@ Entry 70
-	@
+	@ Inverse hyperbolic cosine function
+	@ double acosh(double x);
 	DefSCLFnc	acosh
+	@ long double acoshl(long double x);
+	DefSCLFncAlias	acoshl acosh
 
 	@ Entry 71
-	@
-	@.global	acoshf
-acoshf_FIXME_float_arg:
+	@ Inverse hyperbolic cosine function
+	@ float acoshf(float x);
 	MOV	PC, #0
 
 	@ Entry 72
-	@
+	@ Inverse hyperbolic sine function
+	@ double asinh(double x);
 	DefSCLFnc	asinh
+	@ long double asinhl(long double x);
+	DefSCLFncAlias	asinhl asinh
 
 	@ Entry 73
-	@
-	@.global	asinhf
-asinhf_FIXME_float_arg:
+	@ Inverse hyperbolic sine function
+	@ float asinhf(float x);
 	MOV	PC, #0
 
 	@ Entry 74
-	@
+	@ Inverse hyperbolic tangent function
+	@ double atanh(double x);
 	DefSCLFnc	atanh
+	@ long double atanhl(long double x);
+	DefSCLFncAlias	atanhl atanh
 
 	@ Entry 75
-	@
-	@.global	atanhf
-atanhf_FIXME_float_arg:
+	@ Inverse hyperbolic tangent function
+	@ float atanhf(float x);
 	MOV	PC, #0
 
 	@ Entry 76
-	@
-	@.global	expf
-expf_not_used:
+	@ Base-e exponential function
+	@ float expf(float x);
 	MOV	PC, #0
 
 	@ Entry 77
-	@
+	@ Base-2 exponential function
+	@ double exp2(double x);
 	DefSCLFnc	exp2
+	@ long double exp2l(long double x);
+	DefSCLFncAlias	exp2l exp2
 
 	@ Entry 78
-	@
+	@ Base-2 exponential function
+	@ float exp2f(float x);
 	@.global	exp2f
 exp2f_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 79
-	@
+	@ Exponential minus 1
+	@ double expm1(double x);
 	DefSCLFnc	expm1
+	@ long double expm1l(long double x);
+	DefSCLFncAlias	expm1l expm1
 
 	@ Entry 80
-	@
+	@ float expm1f(float x);
 	@.global	expm1f
 expm1f_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 81
-	@
+	@ Convert floating-point number to fractional and integral components
+	@ float frexpf(float x, int *exp);
 	@.global	frexpf
 frexpf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 82
-	@
+	@ Get integer exponent of a floating-point value
+	@ int ilogb(double x);
 	DefSCLFnc	ilogb
+	@ int ilogbl(long double x);
+	DefSCLFncAlias	ilogbl ilogb
 
 	@ Entry 83
-	@
+	@ Get integer exponent of a floating-point value
+	@ int ilogbf(float x);
 	@.global	ilogbf
 ilogbf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 84
-	@
-	@.global	ldexpf
-ldexpf_FIXME_float_arg:
+	@ Multiply floating-point number by integral power of 2
+	@ float ldexpf(float x, int exp);
 	MOV	PC, #0
 
 	@ Entry 85
-	@
-	@.global	logf
-logf_not_used:
+	@ Natural logarithmic function
+	@ float logf(float x);
 	MOV	PC, #0
 
 	@ Entry 86
-	@
-	@.global	log10f
-log10f_FIXME_float_arg:
+	@ Base-10 logarithmic function
+	@ float log10f(float x);
 	MOV	PC, #0
 
 	@ Entry 87
-	@
+	@ Logarithm of 1 plus argument
+	@ double log1p(double x);
 	DefSCLFnc	log1p
+	@ long double log1pl(long double x);
+	DefSCLFncAlias	log1pl log1p
 
 	@ Entry 88
-	@
+	@ Logarithm of 1 plus argument
+	@ float log1pf(float x);
 	@.global	log1pf
 log1pf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 89
-	@
+	@ Base-2 logarithmic function
+	@ double log2(double x);
 	DefSCLFnc	log2
+	@ long double log2l(long double x);
+	DefSCLFncAlias	log2l log2
 
 	@ Entry 90
-	@
+	@ Base-2 logarithmic function
+	@ float log2f(float x);
 	@.global	log2f
 log2f_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 91
-	@
+	@ Get exponent of a floating-point value
+	@ double logb(double x);
 	DefSCLFnc	logb
+	@ long double logbl(long double x);
+	DefSCLFncAlias	logbl logb
 
 	@ Entry 92
-	@
+	@ Get exponent of a floating-point value
+	@ float logbf(float x);
 	@.global	logbf
 logbf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 93
-	@
-	@.global	modff
-modff_not_used:
+	@ Extract signed integral and fractional values from floating-point number
+	@ float modff(float x, float *iptr);
 	MOV	PC, #0
 
 	@ Entry 94
-	@
+	@ Floating-point remainder function
+	@ float fmodf(float x, float y);
 	@.global	fmodf
 fmodf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 95
-	@
+	@ Multiply floating-point number by integral power of radix
+	@ double scalbn(double x, int exp);
 	DefSCLFnc	scalbn
+	@ long double scalbnl(long double x, int exp);
+	DefSCLFncAlias	scalbnl scalbn
 
 	@ Entry 96
-	@
+	@ Multiply floating-point number by integral power of radix
+	@ float scalbnf(float x, int exp);
 	@.global	scalbnf
 scalbnf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 97
-	@
+	@ Multiply floating-point number by integral power of radix
+	@ long double scalblnl(long double x, long int exp);
+	DefSCLFnc	scalblnl
+	@ double scalbln(double x, long int exp);
 	DefSCLFnc	scalbln
 
 	@ Entry 98
-	@
+	@ Multiply floating-point number by integral power of radix
+	@ float scalblnf(float x, long int exp);
 	@.global	scalblnf
 scalblnf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 99
-	@
+	@ Cube root function
+	@ double cbrt(double x);
 	DefSCLFnc	cbrt
+	@ long double cbrtl(long double x);
+	DefSCLFncAlias	cbrtl cbrt
 
 	@ Entry 100
-	@
+	@ Cube root function
+	@ float cbrtf(float x);
 	@.global	cbrtf
 cbrtf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 101
-	@
-	@.global	powf
-powf_not_used:
+	@ Power function
+	@ float powf(float x, float y);
 	MOV	PC, #0
 
 	@ Entry 102
-	@
+	@ Square root function
+	@ float sqrtf(float x);
 	@.global	sqrtf
 sqrtf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 103
-	@
+	@ Error function
+	@ double erf(double x);
 	DefSCLFnc	erf
+	@ long double erfl(long double x);
+	DefSCLFncAlias	erfl erf
 
 	@ Entry 104
-	@
+	@ Error function
+	@ float erff(float x);
 	@.global	erff
 erff_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 105
-	@
+	@ Complementary error function
+	@ double erfc(double x);
 	DefSCLFnc	erfc
+	@ long double erfcl(long double x);
+	DefSCLFncAlias	erfcl erfc
 
 	@ Entry 106
-	@
+	@ Complementary error function
+	@ float erfcf(float x);
 	@.global	erfcf
 erfcf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 107
-	@
+	@ Log gamma function
+	@ double lgamma(double x);
 	DefSCLFnc	lgamma
+	@ long double lgammal(long double x);
+	DefSCLFncAlias	lgammal lgamma
 
 	@ Entry 108
-	@
+	@ Log gamma function
+	@ float lgammaf(float x);
 	@.global	lgammaf
 lgammaf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 109
-	@
+	@ True gamma function
+	@ double tgamma(double x);
 	DefSCLFnc	tgamma
+	@ long double tgammal(long double x);
+	DefSCLFncAlias	tgammal tgamma
 
 	@ Entry 110
-	@
+	@ True gamma function
+	@ float tgammaf(float x);
 	@.global	tgammaf
 tgammaf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 111
-	@
+	@ Floating-point number manipulation
+	@ double nexttoward(double x, long double y);
 	DefSCLFnc	nexttoward
+	@ long double nexttowardl(long double x, long double y);
+	DefSCLFncAlias	nexttowardl nexttoward
 
 	@ Entry 112
-	@
+	@ Floating-point number manipulation
+	@ float nexttowardf(float x, long double y);
 	@.global	nexttowardf
 nexttowardf_FIXME_float_arg:
 	MOV	PC, #0
 
 	@ Entry 113
-	@
-	DefSCLFnc	fmaf
+	@ Floating-point multiply and add
+	@ float fmaf(float x, float y, float z);
+fmaf_FIXME_float_arg:
+	MOV	PC, #0
 
 extra_vectors_end:
 	.space	extra_vectors_end - extra_vectors_begin

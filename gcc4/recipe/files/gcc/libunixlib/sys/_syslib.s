@@ -1214,26 +1214,6 @@ __unixlib_fatal_got_msg:
  PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC8+4)"
 	DECLARE_FUNCTION __unixlib_fatal
 
-	.global	__unixlib_get_fpstatus
-	NAME	__unixlib_get_fpstatus
-__unixlib_get_fpstatus:
-#ifndef __SOFTFP__
-	rfs	r0
-#else
-	mov	r0, #0
-#endif
-	mov	pc, lr
-	DECLARE_FUNCTION __unixlib_get_fpstatus
-
-	.global	__unixlib_set_fpstatus
-	NAME	__unixlib_set_fpstatus
-__unixlib_set_fpstatus:
-#ifndef __SOFTFP__
-	wfs	r0
-#endif
-	mov	pc, lr
-	DECLARE_FUNCTION __unixlib_set_fpstatus
-
 	@ int __valid_address (const void *lower, const void *upper)
 	@ Return non-zero value when address range <lower> - <upper> (excl)
 	@ is a valid address range.

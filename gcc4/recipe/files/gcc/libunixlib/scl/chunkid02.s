@@ -42,492 +42,668 @@
 clib_vectors:
 clib_vectors_begin:
 
-	DefSCLFnc	TrapHandler
-	DefSCLFnc	UncaughtTrapHandler
-	DefSCLFnc	EventHandler
-	DefSCLFnc	UnhandledEventHandler
+	@ Entry 0
+	DefSCLFncS	TrapHandler
 
-	.global	__rt_stkovf_split_small
+	@ Entry 1
+	DefSCLFncS	UncaughtTrapHandler
+
+	@ Entry 2
+	DefSCLFncS	EventHandler
+
+	@ Entry 3
+	DefSCLFncS	UnhandledEventHandler
+
+	@ Entry 4
+	DefSCLFncS	__rt_stkovf_split_small
 	.global	x$stack_overflow
-__rt_stkovf_split_small:
-x$stack_overflow:
-	MOV	PC, #0
+x$stack_overflow = __rt_stkovf_split_small
 
-	.global	__rt_stkovf_split_big
+	@ Entry 5
+	DefSCLFncS	__rt_stkovf_split_big
 	.global	x$stack_overflow_1
-__rt_stkovf_split_big:
-x$stack_overflow_1:
-	MOV	PC, #0
+x$stack_overflow_1 = __rt_stkovf_split_big
 
-	.global	__rt_udiv
+	@ Entry 6
+	DefSCLFncS	__rt_udiv
 	.global	x$udivide
-__rt_udiv:
-x$udivide:
-	MOV	PC, #0
+x$udivide = __rt_udiv
 
-	.global	x$uremainder
-x$uremainder:
-	MOV	PC, #0
+	@ Entry 7
+	DefSCLFncS	x$uremainder
 
-	.global	__rt_sdiv
+	@ Entry 8
+	DefSCLFncS	__rt_sdiv
 	.global	x$divide
-__rt_sdiv:
-x$divide:
-	MOV	PC, #0
+x$divide = __rt_sdiv
 
-	.global	__rt_divtest
+	@ Entry 9
+	DefSCLFncS	__rt_divtest
 	.global	x$divtest
-__rt_divtest:
-x$divtest:
-	MOV	PC, #0
+x$divtest = __rt_divtest
 
-	.global	x$remainder
-x$remainder:
-	MOV	PC, #0
+	@ Entry 10
+	DefSCLFncS	x$remainder
 
-	.global	x$multiply
-x$multiply:
-	MOV	PC, #0
+	@ Entry 11
+	DefSCLFncS	x$multiply
 
-	.global	__rt_rd1chk
+	@ Entry 12
+	DefSCLFncS	__rt_rd1chk
 	.global	_rd1chk
-__rt_rd1chk:
-_rd1chk:
-	MOV	PC, #0
+_rd1chk = __rt_rd1chk
 
-	.global	__rt_rd2chk
+	@ Entry 13
+	DefSCLFncS	__rt_rd2chk
 	.global	_rd2chk
-__rt_rd2chk:
-_rd2chk:
-	MOV	PC, #0
+_rd2chk = __rt_rd2chk
 
-	.global	__rt_rd4chk
+	@ Entry 14
+	DefSCLFncS	__rt_rd4chk
 	.global	_rd4chk
-__rt_rd4chk:
-_rd4chk:
-	MOV	PC, #0
+_rd4chk = __rt_rd4chk
 
-	.global	__rt_wR1chk
+	@ Entry 15
+	DefSCLFncS	__rt_wR1chk
 	.global	_wR1chk
-__rt_wR1chk:
-_wR1chk:
-	MOV	PC, #0
+_wR1chk = __rt_wR1chk
 
-	.global	__rt_wR2chk
+	@ Entry 16
+	DefSCLFncS	__rt_wR2chk
 	.global	_wR2chk
-__rt_wR2chk:
-_wR2chk:
-	MOV	PC, #0
+_wR2chk = __rt_wR2chk
 
-	.global	__rt_wR4chk
+	@ Entry 17
+	DefSCLFncS	__rt_wR4chk
 	.global	_wR4chk
-__rt_wR4chk:
-_wR4chk:
-	MOV	PC, #0
+_wR4chk = __rt_wR4chk
 
-	.global	_main
-_main:
-	MOV	PC, #0
+	@ Entry 18
+	DefSCLFncS	_main
 
-	.global	_exit
-_exit:
-	MOV	PC, #0
+	@ Entry 19
+	DefSCLFncS	_exit
 
-	.global	_clib_initialise
-_clib_initialise:
-	MOV	PC, #0
+	@ Entry 20
+	DefSCLFncS	_clib_initialise
 
-	.global	_backtrace
-_backtrace:
-	MOV	PC, #0
+	@ Entry 21
+	DefSCLFncS	_backtrace
 
-	.global	_count
-_count:
-	MOV	PC, #0
+	@ Entry 22
+	DefSCLFncS	_count
 
-	.global	_count1
-_count1:
-	MOV	PC, #0
+	@ Entry 23
+	DefSCLFncS	_count1
 
-	.global	_stfp
-_stfp:
-	MOV	PC, #0
+	@ Entry 24
+	DefSCLFncS	_stfp
 
-	.global	_ldfp
-_ldfp:
-	MOV	PC, #0
+	@ Entry 25
+	DefSCLFncS	_ldfp
 
-	.global	_printf
-_printf:
-	MOV	PC, #0
+	@ Entry 26
+	DefSCLFncS	_printf
 
-	.global	_fprintf
-_fprintf:
-	MOV	PC, #0
+	@ Entry 27
+	DefSCLFncS	_fprintf
 
-	.global	_sprintf
-_sprintf:
-	MOV	PC, #0
+	@ Entry 28
+	DefSCLFncS	_sprintf
 
+	@ Entry 29
 	DefSCLFnc	clock
+
+	@ Entry 30
 	DefSCLFnc	difftime
+
+	@ Entry 31
 	DefSCLFnc	mktime
+
+	@ Entry 32
 	DefSCLFnc	time
+
+	@ Entry 33
 	DefSCLFnc	asctime
+
+	@ Entry 34
 	DefSCLFnc	ctime
+
+	@ Entry 35
 	DefSCLFnc	gmtime
+
+	@ Entry 36
 	DefSCLFnc	localtime
+
+	@ Entry 37
 	DefSCLFnc	strftime
+
+	@ Entry 38
 	DefSCLFnc	memcpy
+
+	@ Entry 39
 	DefSCLFnc	memmove
+
+	@ Entry 40
 	DefSCLFnc	strcpy
+
+	@ Entry 41
 	DefSCLFnc	strncpy
+
+	@ Entry 42
 	DefSCLFnc	strcat
+
+	@ Entry 43
 	DefSCLFnc	strncat
 
-	@ Entry
-	@ int bcmp(const void *s1, const void *s2, size_t n);
-	DefSCLGbl	bcmp
+	@ Entry 44
 	@ int memcmp(const void *s1, const void *s2, size_t n);
 	DefSCLFnc	memcmp
+	@ int bcmp(const void *s1, const void *s2, size_t n);
+	DefSCLFncAlias	bcmp memcmp
 
+	@ Entry 45
 	DefSCLFnc	strcmp
+
+	@ Entry 46
 	DefSCLFnc	strncmp
+
+	@ Entry 47
 	DefSCLFnc	memchr
+
+	@ Entry 48
 	DefSCLFnc	strchr
+
+	@ Entry 49
 	DefSCLFnc	strcspn
+
+	@ Entry 50
 	DefSCLFnc	strpbrk
+
+	@ Entry 51
 	DefSCLFnc	strrchr
+
+	@ Entry 52
 	DefSCLFnc	strspn
+
+	@ Entry 53
 	DefSCLFnc	strstr
+
+	@ Entry 54
 	DefSCLFnc	strtok
+
+	@ Entry 55
 	DefSCLFnc	memset
+
+	@ Entry 56
 	DefSCLFnc	strerror
+
+	@ Entry 57
 	DefSCLFnc	strlen
+
+	@ Entry 58
 	DefSCLFnc	atof
+
+	@ Entry 59
 	DefSCLFnc	atoi
+
+	@ Entry 60
 	DefSCLFnc	atol
+
+	@ Entry 61
 	DefSCLFnc	strtod
+
+	@ Entry 62
 	DefSCLFnc	strtol
+
+	@ Entry 63
 	DefSCLFnc	strtoul
+
+	@ Entry 64
 	DefSCLFnc	rand
+
+	@ Entry 65
 	DefSCLFnc	srand
+
+	@ Entry 66
 	DefSCLFnc	calloc
+
+	@ Entry 67
 	DefSCLFnc	free
+
+	@ Entry 68
 	DefSCLFnc	malloc
+
+	@ Entry 69
 	DefSCLFnc	realloc
+
+	@ Entry 70
 	DefSCLFnc	abort
+
+	@ Entry 71
 	DefSCLFnc	atexit
+
+	@ Entry 72
 	DefSCLFnc	exit
+
+	@ Entry 73
 	DefSCLFnc	getenv
+
+	@ Entry 74
 	DefSCLFnc	system
+
+	@ Entry 75
 	DefSCLFnc	bsearch
+
+	@ Entry 76
 	DefSCLFnc	qsort
+
+	@ Entry 77
 	DefSCLFnc	abs
+
+	@ Entry 78
 	DefSCLFnc	div
+
+	@ Entry 79
 	DefSCLFnc	labs
+
+	@ Entry 80
 	DefSCLFnc	ldiv
+
+	@ Entry 81
 	DefSCLFnc	remove
+
+	@ Entry 82
 	DefSCLFnc	rename
+
+	@ Entry 83
 	DefSCLFnc	tmpfile
 
-	.global	__old_tmpnam
-__old_tmpnam:
-	MOV	PC, #0
+	@ Entry 84
+	DefSCLFncS	__old_tmpnam
 
+	@ Entry 85
 	DefSCLFnc	fclose
+
+	@ Entry 86
 	DefSCLFnc	fflush
+
+	@ Entry 87
 	DefSCLFnc	fopen
+
+	@ Entry 88
 	DefSCLFnc	freopen
+
+	@ Entry 89
 	DefSCLFnc	setbuf
+
+	@ Entry 90
 	DefSCLFnc	setvbuf
+
+	@ Entry 91
 	DefSCLFnc	printf
+
+	@ Entry 92
 	DefSCLFnc	fprintf
+
+	@ Entry 93
 	DefSCLFnc	sprintf
+
+	@ Entry 94
 	DefSCLFnc	scanf
+
+	@ Entry 95
 	DefSCLFnc	fscanf
+
+	@ Entry 96
 	DefSCLFnc	sscanf
 
+	@ Entry 97
+	DefSCLFnc	vprintf
 	.global	__gcc_vprintf
-	.global	vprintf
-__gcc_vprintf:
-vprintf:
-	MOV	PC, #0
+__gcc_vprintf = vprintf
 
+	@ Entry 98
+	DefSCLFnc	vfprintf
 	.global	__gcc_vfprintf
-	.global	vfprintf
-__gcc_vfprintf:
-vfprintf:
-	MOV	PC, #0
+__gcc_vfprintf = vfprintf
 
+	@ Entry 99
+	DefSCLFnc	vsprintf
 	.global	__gcc_vsprintf
-	.global	vsprintf
-__gcc_vsprintf:
-vsprintf:
-	MOV	PC, #0
+__gcc_vsprintf = vsprintf
 
-	.global	_vfprintf
-_vfprintf:
-	MOV	PC, #0
+	@ Entry 100
+	DefSCLFncS	_vfprintf
 
+	@ Entry 101
 	DefSCLFnc	fgetc
+
+	@ Entry 102
 	DefSCLFnc	fgets
+
+	@ Entry 103
 	DefSCLFnc	fputc
+
+	@ Entry 104
 	DefSCLFnc	fputs
 
-	.global	__filbuf
-__filbuf:
-	MOV	PC, #0
+	@ Entry 105
+	DefSCLFncS	__filbuf
 
+	@ Entry 106
 	DefSCLFnc	getc
+
+	@ Entry 107
 	DefSCLFnc	getchar
+
+	@ Entry 108
 	DefSCLFnc	gets
 
-	.global	__flsbuf
-__flsbuf:
-	MOV	PC, #0
+	@ Entry 109
+	DefSCLFncS	__flsbuf
 
+	@ Entry 110
 	DefSCLFnc	putc
+
+	@ Entry 111
 	DefSCLFnc	putchar
+
+	@ Entry 112
 	DefSCLFnc	puts
+
+	@ Entry 113
 	DefSCLFnc	ungetc
+
+	@ Entry 114
 	DefSCLFnc	fread
+
+	@ Entry 115
 	DefSCLFnc	fwrite
+
+	@ Entry 116
 	DefSCLFnc	fgetpos
 
-	@ Entry
-	@ int fseeko(FILE *stream, off_t offset, int whence);
-	DefSCLGbl	fseeko
+	@ Entry 117
 	@ int fseek(FILE *stream, long offset, int whence);
 	DefSCLFnc	fseek
+	@ int fseeko(FILE *stream, off_t offset, int whence);
+	DefSCLFncAlias	fseeko fseek
 
+	@ Entry 118
 	DefSCLFnc	fsetpos
 
-	@ Entry
-	@ off_t ftello(FILE *stream);
-	DefSCLGbl	ftello
+	@ Entry 119
 	@ long ftell(FILE *stream);
 	DefSCLFnc	ftell
+	@ off_t ftello(FILE *stream);
+	DefSCLFncAlias	ftello ftell
 
+	@ Entry 120
 	DefSCLFnc	rewind
+
+	@ Entry 121
 	DefSCLFnc	clearerr
+
+	@ Entry 122
 	DefSCLFnc	feof
+
+	@ Entry 123
 	DefSCLFnc	ferror
+
+	@ Entry 124
 	DefSCLFnc	perror
-	DefSCLFnc	__ignore_signal_handler
-	DefSCLFnc	__error_signal_marker
-	DefSCLFnc	__default_signal_handler
+
+	@ Entry 125
+	DefSCLFncS	__ignore_signal_handler
+
+	@ Entry 126
+	DefSCLFncS	__error_signal_marker
+
+	@ Entry 127
+	DefSCLFncS	__default_signal_handler
+
+	@ Entry 128
 	DefSCLFnc	signal
+
+	@ Entry 129
 	DefSCLFnc	raise
 
-	@ Entry
+	@ Entry 130
 	@ int setjmp (jmp_buf __state);
-	.global	__libscl_redirected_setjmp
-__scl_redirected_setjmp:
-	MOV	PC, #0
+	DefSCLFncS	__scl_redirected_setjmp
 
-	@ Entry
+	@ Entry 131
 	@ void longjmp (jmp_buf __state, int __value);
-	.global	__libscl_redirected_longjmp
-__scl_redirected_longjmp:
-	MOV	PC, #0
+	DefSCLFncS	__scl_redirected_longjmp
 
-	@ Entry
-	@ long double acosl(long double x);
-	DefSCLGbl	acosl
+	@ Entry 132
 	@ double acos(double x);
 	DefSCLFnc	acos
+	@ long double acosl(long double x);
+	DefSCLFncAlias	acosl acos
 
-	@ Entry
-	@ long double asinl(long double x);
-	DefSCLGbl	asinl
+	@ Entry 133
 	@ double asin(double x);
 	DefSCLFnc	asin
+	@ long double asinl(long double x);
+	DefSCLFncAlias	asinl asin
 
-	@ Entry
-	@ long double atanl(long double x);
-	DefSCLGbl	atanl
+	@ Entry 134
 	@ double atan(double x);
 	DefSCLFnc	atan
+	@ long double atanl(long double x);
+	DefSCLFncAlias	atanl atan
 
-	@ Entry
-	@ long double atan2l(long double y, long double x);
-	DefSCLGbl	atan2l
+	@ Entry 135
 	@ double atan2(double y, double x);
 	DefSCLFnc	atan2
+	@ long double atan2l(long double y, long double x);
+	DefSCLFncAlias	atan2l atan2
 
-	@ Entry
-	@ long double cosl(long double x);
-	DefSCLGbl	cosl
+	@ Entry 136
 	@ double cos(double x);
 	DefSCLFnc	cos
+	@ long double cosl(long double x);
+	DefSCLFncAlias	cosl cos
 
-	@ Entry
-	@ long double sinl(long double x);
-	DefSCLGbl	sinl
+	@ Entry 137
 	@ double sin(double x);
 	DefSCLFnc	sin
+	@ long double sinl(long double x);
+	DefSCLFncAlias	sinl sin
 
-	@ Entry
-	@ long double tanl(long double x);
-	DefSCLGbl	tanl
+	@ Entry 138
 	@ double tan(double x);
 	DefSCLFnc	tan
+	@ long double tanl(long double x);
+	DefSCLFncAlias	tanl tan
 
-	@ Entry
-	@ long double coshl(long double x);
-	DefSCLGbl	coshl
+	@ Entry 139
 	@ double cosh(double x);
 	DefSCLFnc	cosh
+	@ long double coshl(long double x);
+	DefSCLFncAlias	coshl cosh
 
-	@ Entry
-	@ long double sinhl(long double x);
-	DefSCLGbl	sinhl
+	@ Entry 140
 	@ double sinh(double x);
 	DefSCLFnc	sinh
+	@ long double sinhl(long double x);
+	DefSCLFncAlias	sinhl sinh
 
-	@ Entry
-	@ long double tanhl(long double x);
-	DefSCLGbl	tanhl
+	@ Entry 141
 	@ double tanh(double x);
 	DefSCLFnc	tanh
+	@ long double tanhl(long double x);
+	DefSCLFncAlias	tanhl tanh
 
-	@ Entry
-	@ long double expl(long double x);
-	DefSCLGbl	expl
+	@ Entry 142
 	@ double exp(double x);
 	DefSCLFnc	exp
+	@ long double expl(long double x);
+	DefSCLFncAlias	expl exp
 
-	@ Entry
-	@ long double frexpl(long double x, int *exp);
-	DefSCLGbl	frexpl
+	@ Entry 143
 	@ double frexp(double x, int *exp);
 	DefSCLFnc	frexp
+	@ long double frexpl(long double x, int *exp);
+	DefSCLFncAlias	frexpl frexp
 
-	@ Entry
-	@ long double ldexpl(long double x, int exp);
-	DefSCLGbl	ldexpl
+	@ Entry 144
 	@ double ldexp(double x, int exp);
 	DefSCLFnc	ldexp
+	@ long double ldexpl(long double x, int exp);
+	DefSCLFncAlias	ldexpl ldexp
 
-	@ Entry
-	@ long double logl(long double x);
-	DefSCLGbl	logl
+	@ Entry 145
 	@ double log(double x);
 	DefSCLFnc	log
+	@ long double logl(long double x);
+	DefSCLFncAlias	logl log
 
-	@ Entry
-	@ long double log10l(long double x);
-	DefSCLGbl	log10l
+	@ Entry 146
 	@ double log10(double x);
 	DefSCLFnc	log10
+	@ long double log10l(long double x);
+	DefSCLFncAlias	log10l log10
 
-	@ Entry
-	@ long double modfl(long double x, long double *iptr);
-	DefSCLGbl	modfl
+	@ Entry 147
 	@ double modf(double x, double *iptr);
 	DefSCLFnc	modf
+	@ long double modfl(long double x, long double *iptr);
+	DefSCLFncAlias	modfl modf
 
-	@ Entry
-	@ long double powl(long double x, long double y);
-	DefSCLGbl	powl
+	@ Entry 148
 	@ double pow(double x, double y);
 	DefSCLFnc	pow
+	@ long double powl(long double x, long double y);
+	DefSCLFncAlias	powl pow
 
-	@ Entry
-	@ long double sqrtl(long double x);
-	DefSCLGbl	sqrtl
+	@ Entry 149
 	@ double sqrt(double x);
 	DefSCLFnc	sqrt
+	@ long double sqrtl(long double x);
+	DefSCLFncAlias	sqrtl sqrt
 
-	@ Entry
-	@ long double ceill(long double x);
-	DefSCLGbl	ceill
+	@ Entry 150
 	@ double ceil(double x);
 	DefSCLFnc	ceil
+	@ long double ceill(long double x);
+	DefSCLFncAlias	ceill ceil
 
-	@ Entry
-	@ long double fabsl(long double x);
-	DefSCLGbl	fabsl
+	@ Entry 151
 	@ double fabs(double x);
 	DefSCLFnc	fabs
+	@ long double fabsl(long double x);
+	DefSCLFncAlias	fabsl fabs
 
-	@ Entry
-	@ long double floorl(long double x);
-	DefSCLGbl	floorl
+	@ Entry 152
 	@ double floor(double x);
 	DefSCLFnc	floor
+	@ long double floorl(long double x);
+	DefSCLFncAlias	floorl floor
 
-	@ Entry
-	@ long double fmodl(long double x, long double y);
-	DefSCLGbl	fmodl
+	@ Entry 153
 	@ double fmod(double x, double y);
 	DefSCLFnc	fmod
+	@ long double fmodl(long double x, long double y);
+	DefSCLFncAlias	fmodl fmod
 
+	@ Entry 154
 	DefSCLFnc	setlocale
+
+	@ Entry 155
 	DefSCLFnc	isalnum
+
+	@ Entry 156
 	DefSCLFnc	isalpha
+
+	@ Entry 157
 	DefSCLFnc	iscntrl
+
+	@ Entry 158
 	DefSCLFnc	isdigit
+
+	@ Entry 159
 	DefSCLFnc	isgraph
+
+	@ Entry 160
 	DefSCLFnc	islower
+
+	@ Entry 161
 	DefSCLFnc	isprint
+
+	@ Entry 162
 	DefSCLFnc	ispunct
+
+	@ Entry 163
 	DefSCLFnc	isspace
+
+	@ Entry 164
 	DefSCLFnc	isupper
+
+	@ Entry 165
 	DefSCLFnc	isxdigit
+
+	@ Entry 166
 	DefSCLFnc	tolower
+
+	@ Entry 167
 	DefSCLFnc	toupper
 
-	.global	__assert
-__assert:
-	MOV	PC, #0
+	@ Entry 168
+	DefSCLFncS	__assert
 
-	.global	_memcpy
-_memcpy:
-	MOV	PC, #0
+	@ Entry 169
+	DefSCLFncS	_memcpy
 
-	.global	_memset
-_memset:
-	MOV	PC, #0
+	@ Entry 170
+	DefSCLFncS	_memset
 
+	@ Entry 171
 	DefSCLFnc	localeconv
+
+	@ Entry 172
 	DefSCLFnc	mblen
+
+	@ Entry 173
 	DefSCLFnc	mbtowc
+
+	@ Entry 174
 	DefSCLFnc	wctomb
+
+	@ Entry 175
 	DefSCLFnc	mbstowcs
+
+	@ Entry 176
 	DefSCLFnc	wcstombs
+
+	@ Entry 177
 	DefSCLFnc	strxfrm
+
+	@ Entry 178
 	DefSCLFnc	strcoll
 
-	.global	_clib_finalisemodule
-_clib_finalisemodule:
-	MOV	PC, #0
+	@ Entry 179
+	DefSCLFncS	_clib_finalisemodule
 
 	@ Entry 180
 	@ const char *_clib_version(void);
-	.global	_clib_version
-_clib_version:
-	MOV	PC, #0
+	DefSCLFncS	_clib_version
 
-	.global	_Clib_Finalise
-_Clib_Finalise:
-	MOV	PC, #0
+	@ Entry 181
+	DefSCLFncS	_Clib_Finalise
 
 	@ Entry 182
 	DefSCLFnc	tmpnam
 
 	@ Entry 183
 	@ int _swi(int swi_number, unsigned int flags, ...);
-	.global	_swi
-_swi:
-	MOV	PC, #0
+	DefSCLFncS	_swi
 
 	@ Entry 184
 	@ _kernel_oserror *_swix(int swi_number, unsigned int mask, ...);
-	.global	_swix
-_swix:
-	MOV	PC, #0
+	DefSCLFncS	_swix
 
 clib_vectors_end:
 	.space	clib_vectors_end - clib_vectors_begin
