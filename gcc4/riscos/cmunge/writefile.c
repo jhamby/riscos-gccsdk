@@ -373,7 +373,7 @@ static void asm_header(void)
     output_export("Image__RO_Base");
     if (opt.toolchain == tc_gcc)
     {
-      fputs("\t.section .rodata\n"
+      fputs("\t.section\t.rodata\n"
 	    "\t.align 2\n"
 	    "\t.type Image__RO_Base, %object\n"
 	    "\t.size Image__RO_Base, 4\n", file);
@@ -552,12 +552,6 @@ static void mod_header(void)
   {}
   else
     output_word_as_str("_CMUNGE_module_flags\t-_CMUNGE_origin", "Module flags offset");
-
-  if (opt.toolchain == tc_gcc)
-  {
-    /* Put the rest of the module code in .text section.  */
-    fputs("\t.section\t.text\n", file);
-  }
 }
 
 static void strings(void)
@@ -2043,6 +2037,13 @@ errors(void)
     return;
 
   fputc('\n', file);
+
+  if (opt.toolchain == tc_gcc)
+  {
+    /* Put the generated error messages in read-only data section.  */
+    fputs("\t.section\t.rodata\n"
+	  "\t.align 2\n", file);
+  }
   output_comment_vargs("Error messages, based at &%08x\n", error);
   for (l = opt.errors; l != NULL; l = l->next)
     {
