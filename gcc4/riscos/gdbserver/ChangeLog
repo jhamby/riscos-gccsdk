@@ -1,0 +1,4 @@
+Tue May 25 23:40:12 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/socket.h: Add include unistd.h for ssize_t type.
+

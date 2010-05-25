@@ -2,6 +2,7 @@
 #define src_socket_h_
 
 #include <stdint.h>
+#include <unistd.h>
 
 int socket_open_client(const char *host, int port);
 int socket_open_server(int port);
