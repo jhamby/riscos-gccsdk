@@ -89,7 +89,9 @@
 .set	SIGOSERROR, 33	@   RISC OS error
 
 .set	EOPSYS, 88	@ RISC OS error, same value as EOPSYS in errno.h
+#endif
 
+@ Make the SUL SWI details available for both SCL and UnixLib target builds:
 .set	SharedUnixLibrary_SWIChunk, 0x55c80	@Range 0x55c80 - &55cc0 (excl) is allocated.
 .set	SharedUnixLibrary_ErrorChunk, 0x81a400	@Range 0x81a400 - &81a40 (excl) is allocated.
 @ The beginning of the error range is used by the SUL module.  The end of
@@ -106,7 +108,6 @@
 .set	SharedUnixLibrary_Error_NotRecentEnough, SharedUnixLibrary_ErrorChunk + 0x3D
 .set	SharedUnixLibrary_Error_NotEnoughMem, SharedUnixLibrary_ErrorChunk + 0x3E
 .set	SharedUnixLibrary_Error_NoCallASWI, SharedUnixLibrary_ErrorChunk + 0x3F
-#endif
 
 .set	OS_WriteC, 0x000000
 .set	OS_WriteS, 0x000001

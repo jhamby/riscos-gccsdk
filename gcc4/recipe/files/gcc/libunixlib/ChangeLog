@@ -1,3 +1,8 @@
+Thu May 27 01:03:22 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/asm_dec.s: Make the SUL SWI details available
+	for both SCL and UnixLib target builds.
+
 Tue May 25 03:34:56 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* scl/scl_acosf.s(acosf): Added (moved from libscl and converted
