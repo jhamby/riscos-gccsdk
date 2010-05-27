@@ -80,7 +80,7 @@ if [ ! -d $GCCSDK_UNPACKED/\!GCC/bin ] ; then
 fi
 
 # Do suffix swapping of all the .c/.cc/.tcc/.cmhg/.s/.h/.o/.adb/.ads/.ali files
-# (don't do this for .so/.a/.la suffixes).
+# (don't do this for .so/.a suffixes).
 # Has one argument specifying the directory where the suffix swapping needs to happen.
 do_suffix_swapping() {
   pushd $1 > /dev/null
@@ -138,9 +138,13 @@ slim_gcc_tree() {
   remove_if_there $GCCSDK_UNPACKED/\!GCC/lib/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
   remove_if_there $GCCSDK_UNPACKED/\!GCC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
 
-  # Remove all shared libraries (even the fpu ones) as we have them shipped in !SharedLibs:
+  # Remove all shared libraries as we have them shipped in !SharedLibs:
   cd $GCCSDK_UNPACKED/\!GCC
   find . -name "*.so*" -print0 | xargs -0 rm -f
+
+  # Remove all .la files (we don't have libtools on RISC OS):
+  cd $GCCSDK_UNPACKED/\!GCC
+  find . -name "*.la" -print0 | xargs -0 rm -f
 
   # Strip the RISC OS binaries which are using shared libraries (we won't need
   # the debug info nor the symbols).  Create AIF RISC OS binaries of the
@@ -288,8 +292,7 @@ create_sharedlibscore_kit() {
 create_gccgpp_kit() {
   cd $SRC_BKIT_GCC_UNPACKED
   create_empty_dir $GCCSDK_KITS/$BKIT_GCCGPP_NAME
-  for obj in $GCCSDK_TARGET_NAME/lib/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
-             $GCCSDK_TARGET_NAME/lib/fpu/{libstdc++.la,libsupc++.la,libstdc++.a,libsupc++.a} \
+  for obj in $GCCSDK_TARGET_NAME/lib/{libstdc++.a,libsupc++.a} \
              bin/g++\,* \
              include/c++ ; do
     mkdir -p $GCCSDK_KITS/$BKIT_GCCGPP_NAME/`basename $SRC_BKIT_GCC_UNPACKED`/`dirname $obj`

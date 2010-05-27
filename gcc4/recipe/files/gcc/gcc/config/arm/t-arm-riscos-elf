@@ -31,18 +31,17 @@ dp-bit.c: $(srcdir)/config/fp-bit.c
 
 # The following multilib configurations are defined:
 #   . : unixlib, soft-float, application
-#   ./fpu : unixlib, hard-float, application
 #   ./scl/fpu : scl, hard-float, application
 #   ./scl/fpu/module : scl, hard-float, module
 MULTILIB_OPTIONS = mlibscl mhard-float mmodule
 MULTILIB_DIRNAMES = scl fpu module
 MULTILIB_MATCHES = mhard-float=mfloat-abi?hard
-MULTILIB_EXCLUSIONS = mlibscl/!mhard-float/!mmodule !mlibscl/!mhard-float/mmodule mlibscl/!mhard-float/mmodule !mlibscl/mhard-float/mmodule
+MULTILIB_EXCLUSIONS = mlibscl/!mhard-float/!mmodule !mlibscl/mhard-float/!mmodule !mlibscl/!mhard-float/mmodule !mlibscl/mhard-float/mmodule mlibscl/!mhard-float/mmodule
 
 EXTRA_MULTILIB_PARTS = crtbegin.o crtend.o crtbeginS.o crtendS.o crti.o crtn.o
 
 # Compile crtbeginS.o and crtendS.o with pic (but not module versions
-# as that causes a compile error and they're not used anyway).
+# as that causes a compile error).
 ifeq (,$(findstring mmodule,$(CRTSTUFF_CFLAGS)))
 CRTSTUFF_T_CFLAGS_S = -fPIC
 endif
