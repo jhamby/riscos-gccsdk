@@ -1,3 +1,11 @@
+Fri May 28 21:00:46 2010  Lee Noar  <leenoar@sky.com>
+
+	* gcccompat/_eh_support.s(__ehs_return_address,__ehs_stack_limit,
+	__ehs_trim_stack): Make sure a processor flag is set for the
+	32bit test just in case the module is running a USR mode section
+	of code.
+	* gcccompat/_b_frame.s(__builtin_frame_address): Likewise.
+
 Fri May 28 20:28:12 2010  Lee Noar  <leenoar@sky.com>
 
 	Fixes for C++ exception handling in SCL module code:

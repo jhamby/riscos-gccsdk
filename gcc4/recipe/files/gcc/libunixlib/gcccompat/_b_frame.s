@@ -129,6 +129,7 @@ __builtin_frame_address:
 #if __TARGET_MODULE__
 	@ Check processor mode to determine type of stack. Only USR mode
 	@ uses a chunked stack.
+	TEQ	a1, a1
 	TEQ	pc, pc
 	MRSEQ	v2, cpsr
 	MOVNE	v2, pc

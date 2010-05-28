@@ -171,6 +171,7 @@ __ehs_return_address:
 #if __TARGET_MODULE__
 	@ Check the processor mode to see if we have a chunked stack. If we do,
 	@ then there are more tests to be done.
+	TEQ	a1, a1
 	TEQ	pc, pc
 	MRSEQ	ip, cpsr
 	MOVNE	ip, pc
@@ -227,6 +228,7 @@ __ehs_return_address:
 __ehs_stack_limit:
 #if __TARGET_MODULE__
 	@ Check the processor mode to see if we have a chunked stack.
+	TEQ	a1, a1
 	TEQ	pc, pc
 	MRSEQ	a2, cpsr
 	MOVNE	a2, pc
@@ -287,6 +289,7 @@ __ehs_trim_stack:
 #if __TARGET_MODULE__
 	@ Check the processor mode to see if we have a chunked stack. If not,
 	@ then there are no chunks to be freed.
+	TEQ	a1, a1
 	TEQ	pc, pc
 	MRSEQ	v1, cpsr
 	MOVNE	v1, pc
