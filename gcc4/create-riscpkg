@@ -184,12 +184,8 @@ echo "-----------------" >> RiscPkg/Copyright
 cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/mkresfs/COPYING >> RiscPkg/Copyright
 echo "" >> RiscPkg/Copyright
 
-echo "libscl  copyright" >> RiscPkg/Copyright
-echo "-----------------" >> RiscPkg/Copyright
-cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/libscl/COPYING >> RiscPkg/Copyright
-echo "" >> RiscPkg/Copyright
-
-# UnixLib has its own copyright file
+echo "UnixLib / SCL stubs copyright" >> RiscPkg/Copyright
+echo "-----------------------------" >> RiscPkg/Copyright
 cat  $GCCSDK_UNPACKED/$BKIT_GCCCORE_NAME/\!GCC/docs/libunixlib/COPYING >> RiscPkg/Copyright
 
 set_file_types
