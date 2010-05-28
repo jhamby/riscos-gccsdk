@@ -125,6 +125,17 @@ __builtin_frame_address:
 	LDMEQEA	fp, {v1, v2, fp, sp, pc}
 
 	MOV	a1, fp
+
+#if __TARGET_MODULE__
+	@ Check processor mode to determine type of stack. Only USR mode
+	@ uses a chunked stack.
+	TEQ	pc, pc
+	MRSEQ	v2, cpsr
+	MOVNE	v2, pc
+	TST	v2, #3
+	BNE	__builtin_frame_address_flat_stack
+#endif
+
 	@ We must cope with a variety of UnixLib and SharedCLibrary stacks
 	@ occuring within a program.
 	LDR	v2, __stackchunk_magic_number
@@ -191,6 +202,20 @@ __builtin_frame_address_loop_end:
 	CMP	a1, a2
 	LDRLT	a1, [a1, #-12]
 	LDMEA	fp, {v1, v2, fp, sp, pc}	@ a1 => fp
+	
+#if __TARGET_MODULE__
+__builtin_frame_address_flat_stack:
+	MOV	a3, #0
+0:
+	@ a1 = current fp
+	LDR	a1, [a1, #-12]	@ a1 = next fp
+	ADD	a3, a3, #1
+	CMP	a3, a4
+	BLE	0b
+
+	LDMEA	fp, {v1, v2, fp, sp, pc}	@ a1 => fp
+#endif
+
 #else
 #  error "Unsupported runtime"
 #endif

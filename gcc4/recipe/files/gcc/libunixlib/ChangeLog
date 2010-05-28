@@ -1,3 +1,14 @@
+Fri May 28 20:28:12 2010  Lee Noar  <leenoar@sky.com>
+
+	Fixes for C++ exception handling in SCL module code:
+
+	* gcccompat/_eh_support.s(__ehs_return_address,__ehs_stack_limit,
+	__ehs_trim_stack):  A module usually runs in SVC mode which has a
+	flat stack (i.e. no chunks), however, some sections of code, for
+	example, module start code can run in USR mode. Check the processor
+	mode to determine which type of stack we have and process accordingly.
+	* gcccompat/_b_frame.s(__builtin_frame_address): Likewise.
+
 Thu May 27 01:03:22 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/asm_dec.s: Make the SUL SWI details available

@@ -2,6 +2,11 @@
 @ This source is used by the call frame C++ exception handling code.
 @ Copyright (c) 2009-2010 UnixLib Developers
 
+@ The SharedCLibrary versions of these routines may be called in either
+@ USR mode or, in the case of a module, SVC mode. In the latter case,
+@ the stack is flat rather than chunked, so a runtime check on the
+@ processor mode is used to determine which stack type to expect.
+
 #include "internal/asm_dec.s"
 
 #ifndef __ARM_EABI__
@@ -163,6 +168,16 @@ __ehs_return_address:
 	MOVEQ	a1, v1
 	BLEQ	__gcc_alloca_return_address
 
+#if __TARGET_MODULE__
+	@ Check the processor mode to see if we have a chunked stack. If we do,
+	@ then there are more tests to be done.
+	TEQ	pc, pc
+	MRSEQ	ip, cpsr
+	MOVNE	ip, pc
+	TST	ip, #3
+	LDMNEEA	fp, {v1, fp, sp, pc}
+#endif
+
 	@ We can't determine the exact address of the stack chunk freeing function
 	@ in the SCL in order to test for it here as we do in the UnixLib code.
 	@ Instead, we check if the address lies within the SCL at all and if it
@@ -210,6 +225,15 @@ __ehs_return_address:
 	.global	__ehs_stack_limit
 	NAME	__ehs_stack_limit
 __ehs_stack_limit:
+#if __TARGET_MODULE__
+	@ Check the processor mode to see if we have a chunked stack.
+	TEQ	pc, pc
+	MRSEQ	a2, cpsr
+	MOVNE	a2, pc
+	TST	a2, #3
+	MOVNE	a1, sl
+	MOVNE	pc, lr
+#endif
 	SUB	a2, sl, #512 + CHUNK_OVERHEAD
 	LDR	a4, =STACKCHUNK_MAGIC_NUMBER
 
@@ -259,6 +283,16 @@ __ehs_trim_stack:
 	@ otherwise the handler will be overwritten.
 	LDR	ip, [sp, #-4]
 	STMFD	sp!, {a1-a4, v1, ip}
+
+#if __TARGET_MODULE__
+	@ Check the processor mode to see if we have a chunked stack. If not,
+	@ then there are no chunks to be freed.
+	TEQ	pc, pc
+	MRSEQ	v1, cpsr
+	MOVNE	v1, pc
+	TST	v1, #3
+	BNE	1f
+#endif
 
 	@ Find the base of the current chunk.
 	SUB	v1, sl, #512 + CHUNK_OVERHEAD
