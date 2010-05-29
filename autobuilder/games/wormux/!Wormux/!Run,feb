@@ -1,5 +1,5 @@
-WimpSlot -min 6104k -max 6104k
+WIMPSLOT
 
 Set Wormux$Dir <Obey$Dir>
 
-Run <Wormux$Dir>.wormux >null: 2><Obey$Dir>.stderr
+Run <Wormux$Dir>.wormux >null: 2>null:

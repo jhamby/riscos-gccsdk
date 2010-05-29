@@ -1,8 +1,8 @@
 | Run file for Barrage
 
-Wimpslot -min 2284K -max 2284K
+WIMPSLOT
 
 Set Barrage$Dir <Obey$Dir>
 
 | Note -w option runs in a window on the desktop
-Run <Barrage$Dir>.barrage -w >null: 2><Obey$Dir>.stderr
+Run <Barrage$Dir>.barrage -w >null: 2>null:

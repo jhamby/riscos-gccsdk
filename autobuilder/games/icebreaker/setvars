@@ -3,7 +3,7 @@ AB_PRECONF=:
 ab_package() {
   ab_create_app IceBreaker Apps/Games
 
-  cp -av icebreaker $A/
+  ab_makerun icebreaker 
   cat $S/README >> $A/\!Help
 
   cp -av $S/ChangeLog $S/LICENSE $S/TODO $S/README $A/

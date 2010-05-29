@@ -3,5 +3,5 @@
 WIMPSLOT
 
 Set Defenguin$Dir <Obey$Dir>
-Run <Defenguin$Dir>.!RunImage --fullscreen 2>null:
+Run <Defenguin$Dir>.!RunImage >null: 2>null:
 

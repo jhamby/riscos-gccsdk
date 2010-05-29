@@ -4,6 +4,6 @@ Set IceBreaker$Dir <Obey$Dir>
 RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
 RMEnsure DigitalRenderer 0.51 Error IceBreaker requires version 0.51 of the DigitalRenderer module
 
-WimpSlot -min 2048k -max 2048k
+WIMPSLOT
 
 <IceBreaker$Dir>.icebreaker >null: 2>null:

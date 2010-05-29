@@ -5,9 +5,10 @@ AB_MAKE="$AB_MAKE all xlincity$AB_EXEEXT"
 
 ab_package() {
   ab_create_app LinCity Apps/Games
+  
+  ab_makerun $S/xlincity$AB_EXEEXT
 
-  cp -av $S/help $S/icons $S/messages $S/opening $S/colour.pal $S/xlincity$AB_EXEEXT \
-         $A
+  cp -av $S/help $S/icons $S/messages $S/opening $S/colour.pal $A
   cp -av $S/README $A/\!Help
 
   $AB_HOME/add-riscpkg -unixlib

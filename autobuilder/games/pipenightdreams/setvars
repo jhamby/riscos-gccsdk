@@ -2,7 +2,7 @@
 ab_package() {
   ab_create_app PipeNight Apps/Games
 
-  cp -av src/pipenightdreams$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
+  ab_makerun $S/src/pipenightdreams
 
   cp -av AUTHORS ChangeLog COPYING README $A
 

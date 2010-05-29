@@ -1,5 +1,5 @@
 
 Set SDLRoids$Dir <Obey$Dir>
-WimpSlot -min 2880K -max 2880K
+WIMPSLOT
 
-<SDLRoids$Dir>.sdlroids
+<SDLRoids$Dir>.sdlroids >null: 2>null:

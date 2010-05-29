@@ -14,4 +14,4 @@ Unset HasLargeWimpSlot
 
 WIMPSLOT
 
-<RocksNDmds$Dir>.rocksndiamonds >RocksNDmds:stdout 2>RocksNDmds:stderr
+<RocksNDmds$Dir>.rocksndiamonds >null: 2>null:

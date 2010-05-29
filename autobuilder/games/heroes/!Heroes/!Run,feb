@@ -9,7 +9,7 @@ Set HEROES_PREFIX Heroes:
 RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
 RMEnsure DigitalRenderer 0.51 Error Heroes requires version 0.51 of the DigitalRenderer module
 
-WimpSlot -min 2000k -max 2000k
+WIMPSLOT
 
 | Windowed    <no switch>
 | Double size -2
@@ -17,4 +17,4 @@ WimpSlot -min 2000k -max 2000k
 | Fullscreen  -F
 | High quality sound -i
 
-<Heroes$Dir>.heroes >null: 2>null: -J -F -i
+<Heroes$Dir>.heroes >null: 2>null: -J -i

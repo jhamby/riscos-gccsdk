@@ -6,4 +6,4 @@ Set Xconq$Path <Obey$Dir>.
 Set TCL_LIBRARY /XConq:/tcl8.4/
 Set TK_LIBRARY /XConq:/tk8.4/
 
-Run <Xconq$Dir>.xconq ><Obey$Dir>.stdout 2><Obey$Dir>.stderr
+Run <Xconq$Dir>.xconq >null: 2>null:

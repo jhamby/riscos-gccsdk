@@ -1,6 +1,6 @@
 | Run file for Flobopuyo
 
-Wimpslot -min 2048K -max 2048K
+WIMPSLOT
 
 Set Flobopuyo$Dir <Obey$Dir>
 

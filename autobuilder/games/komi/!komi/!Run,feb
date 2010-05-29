@@ -6,6 +6,6 @@ RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
 
 Set komi$dir <Obey$dir>
 
-Wimpslot -min 4096K -max 4096K
+WIMPSLOT
 
-<komi$dir>.komi --fullscreen --nosound
+<komi$dir>.komi >null: 2>null:

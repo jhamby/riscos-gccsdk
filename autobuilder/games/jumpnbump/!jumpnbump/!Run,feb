@@ -7,5 +7,5 @@ Set jumpnbump$Path <Obey$Dir>.
 RMEnsure DigitalRenderer 0.00 RMLoad System:Modules.DRenderer
 RMEnsure DigitalRenderer 0.09 Error You need DigitalRenderer. 
 
-WimpSlot -Min 2048k -Max 2048k
-Run <jumpnbump$Dir>.!RunImage -scaleup
+WIMPSLOT
+Run <jumpnbump$Dir>.jumpnbump -scaleup >null: 2>null:

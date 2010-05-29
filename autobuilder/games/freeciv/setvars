@@ -17,8 +17,8 @@ ab_package() {
   find $A/data/ -name "Makefile*" | xargs rm
 
   cp AUTHORS COPYING NEWS doc/HOWTOPLAY doc/README $A/doc
-  cp client/civclient$AB_EXEEXT $A/
-  cp server/civserver$AB_EXEEXT $A/../\!CivServer/
+  cp client/freeciv-sdl$AB_EXEEXT $A/
+  cp server/freeciv-server$AB_EXEEXT $A/../\!CivServer/
 
   $AB_HOME/add-riscpkg -unixlib -unixsound \
          -nobootvars -depends ttf-dejavu-core

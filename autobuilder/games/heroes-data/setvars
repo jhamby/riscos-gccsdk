@@ -5,9 +5,10 @@ ab_make() {
 ab_package() {
   ab_create_app Heroes Apps/Games
 
-  cp -r levels $A
-  cp -r pics $A
-  cp -r tilesets $A
+  mkdir -p $A/share/heroes
+  cp -r levels $A/share/heroes
+  cp -r pics $A/share/heroes
+  cp -r tilesets $A/share/heroes
   
   $AB_HOME/add-riscpkg
 }

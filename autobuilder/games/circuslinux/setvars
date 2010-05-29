@@ -1,7 +1,7 @@
 ab_package() {
   ab_create_app CircusLnx Apps/Games
 
-  cp -av circuslinux$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
+  ab_makerun circuslinux
 
   cat $S/README.txt >> $A/\!Help
 

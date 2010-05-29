@@ -4,5 +4,5 @@ Set RockD$Dir <Obey$Dir>
 RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer
 RMEnsure DigitalRenderer 0.51 Error RockDodger requires version 0.51 of the DigitalRenderer module
 
-WimpSlot -min 18304k -max 18304k
-<RockD$Dir>.rockdodger >null: 2>null:
+WIMPSLOT
+<RockD$Dir>.rockdodger -w >null: 2>null:

@@ -1,7 +1,7 @@
 ab_package() {
   ab_create_app GemDropX Apps/Games
 
-  cp -av gemdropx$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
+  ab_makerun gemdropx 
   cat README.txt $H/RISCOSNotes >$A/\!Help
 
   cp -av AUTHORS.txt CHANGES.txt COPYING.txt ICON.txt $A

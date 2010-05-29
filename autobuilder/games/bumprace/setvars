@@ -2,7 +2,7 @@
 ab_package() {
   ab_create_app BumpRace Apps/Games
 
-  cp -av src/bumprace$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
+  ab_makerun src/bumprace$AB_EXEEXT
 
   cp -av AUTHORS $ChangeLog COPYING FAQ README $A/
 

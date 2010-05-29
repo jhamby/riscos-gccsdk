@@ -1,7 +1,7 @@
 ab_package() {
   ab_create_app komi Apps/Games
 
-  cp -av komi$AB_EXEEXT $A/
+  ab_makerun komi
   cat README.txt $H/RISCOSNotes > $A/\!Help
 
   cp -av CHANGELOG.txt $A/CHANGES

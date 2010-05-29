@@ -3,12 +3,12 @@ AB_URL=http://kent.dl.sourceforge.net/sourceforge/glhack/glhack-1.2.tar.gz
 ab_package() {
   ab_create_app GLHack Apps/Games
 
+  ab_makerun src/glhack
   mkdir -p $A/Docs
   mkdir -p $A/locks
   mkdir -p $A/usr
   mkdir -p $A/var/save
 
-  cp $S/src/glhack$AB_EXEEXT $A/usr
   cp $S/dat/*.png $A/usr
   cp $S/dat/glface*.lst $A/usr
   cp $S/dat/license $A/usr

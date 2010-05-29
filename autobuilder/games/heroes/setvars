@@ -2,8 +2,8 @@
 ab_package() {
   ab_create_app Heroes Apps/Games
 
-  cp src/heroes,e1f $A
-  cp src/heroeslvl,e1f $A
+  ab_makerun src/heroes$AB_EXEEXT
+  cp src/heroeslvl$AB_EXEEXT $A
   cp doc/heroes.html $A/docs
   cp AUTHORS ChangeLog COPYING README THANKS TODO $A/docs
 

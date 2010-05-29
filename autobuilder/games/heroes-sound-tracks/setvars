@@ -6,9 +6,9 @@ ab_make() {
 ab_package() {
   ab_create_app Heroes Apps/Games
 
-  mkdir -p $A/mod
-  cp *.xm $A/mod
-  cp sound.conf $A/mod
+  mkdir -p $A/share/heroes/mod
+  cp *.xm $A/share/heroes/mod
+  cp sound.conf $A/share/heroes/mod
   
   $AB_HOME/add-riscpkg
 }

@@ -1,6 +1,6 @@
 AB_URL=ftp://ftp.usa.openbsd.org/pub/OpenBSD/distfiles/Tutris-1.0.1.tar.gz
 
-export LIBS="-lpng -lz"
+export LIBS="-lSDL_image -lpng -ljpeg -lz"
 
 AB_CONFLAGS=\''--datadir=/\<Tutris\$$Dir\>/data'\'
 

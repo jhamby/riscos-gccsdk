@@ -3,7 +3,7 @@ AB_CONFLAGS="--disable-sdl-client --disable-replay --disable-xp-mapedit --datadi
 ab_package () {
   ab_create_app Xpilot-ng Apps/Games
 
-  cp -av $S/src/client/x11/xpilot-ng-x11$AB_EXEEXT $A/
+  ab_makerun $S/src/client/x11/xpilot-ng-x11$AB_EXEEXT
 
   mkdir -p $A/docs
   cp -av $S/COPYING $S/README $A/docs

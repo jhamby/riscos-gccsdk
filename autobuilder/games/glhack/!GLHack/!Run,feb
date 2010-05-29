@@ -1,4 +1,4 @@
 Set GLHack$Dir <Obey$Dir>
 
-WimpSlot -min 4096k -max 4096k
-Run <GLHack$Dir>.usr.glhack --windowed ><GLHack$Dir>.stdout 2><GLHack$Dir>.stderr
+WIMPSLOT
+Run <GLHack$Dir>.glhack --windowed >null: 2>null:

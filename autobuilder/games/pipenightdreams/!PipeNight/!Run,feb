@@ -1,6 +1,6 @@
 | Run file for Pipe Night Dreams
 
-Wimpslot -min 8256K -max 8256K
+WIMPSLOT
 
 Set PipeNight$Dir <Obey$Dir>
 Set SDL$PipeNight$TaskName "PipeNightDreams"
@@ -8,4 +8,4 @@ Set SDL$PipeNight$TaskName "PipeNightDreams"
 | Close does nothing so hide close icon
 Set SDL$PipeNight$CloseAction 0
 
-Run <PipeNight$Dir>.!RunImage >null: 2>null:
+Run <PipeNight$Dir>.pipenightdreams --datadir /<PipeNight$Dir>/games/pipenightdreams >null: 2>null:

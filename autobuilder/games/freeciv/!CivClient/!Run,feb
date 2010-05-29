@@ -12,4 +12,4 @@ Set FREECIV_PATH /FreeCiv:/data/
 Set SDL$civclient$TaskName Freeciv Client
 
 WimpSlot -min 8192k -max 8192k
-<FreeCiv$Dir>.civclient ><Obey$Dir>.stdout 2><Obey$Dir>.stderr
+<FreeCiv$Dir>.freeciv-sdl ><Obey$Dir>.stdout 2><Obey$Dir>.stderr

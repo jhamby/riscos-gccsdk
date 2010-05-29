@@ -1,7 +1,7 @@
 ab_package() {
   ab_create_app Toppler Apps/Games
 
-  cp -av toppler$AB_EXEEXT $A/!RunImage$AB_EXEEXT
+  ab_makerun toppler$AB_EXEEXT
 
   cp -av AUTHORS ChangeLog COPYING NEWS README $A/
 

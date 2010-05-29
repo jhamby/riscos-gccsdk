@@ -2,7 +2,7 @@ ab_package()
 {
   ab_create_app RockDodger Apps/Games
 
-  cp -av rockdodger $A/rockdodger$AB_EXEEXT
+  ab_makerun $S/rockdodger
   cp -av COPYING $A
 
   mkdir -p $A/data

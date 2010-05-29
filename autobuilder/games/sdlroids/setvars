@@ -3,7 +3,7 @@ AB_URL=http://surfnet.dl.sourceforge.net/sourceforge/sdlroids/sdlroids-1.3.4.tar
 ab_package() {
   ab_create_app SDLRoids Apps/Games
 
-  cp -av sdlroids$AB_EXEEXT $A
+  ab_makerun $S/sdlroids
 
   mkdir -p $A/data/sdlroids
   cp -r bmp $A/data/sdlroids

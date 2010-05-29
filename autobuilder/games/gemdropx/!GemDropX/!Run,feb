@@ -1,10 +1,10 @@
 | Run file for GemDropX
 
-Wimpslot -min 6144K -max 6144K
+WIMPSLOT
 
 Set GemDropX$Dir <Obey$Dir>
 
 | Close does nothing so hide close icon
 Set SDL$GemDropX$CloseAction 0
 
-Run <GemDropX$Dir>.!RunImage >null: 2>null:
+Run <GemDropX$Dir>.gemdropx >null: 2>null:

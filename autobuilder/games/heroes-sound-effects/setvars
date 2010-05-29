@@ -6,9 +6,9 @@ ab_make() {
 ab_package() {
   ab_create_app Heroes Apps/Games
 
-  mkdir -p $A/sfx
-  cp *.wav $A/sfx
-  cp sfx.conf $A/sfx
+  mkdir -p $A/share/heroes/sfx
+  cp *.wav $A/share/heroes/sfx
+  cp sfx.conf $A/share/heroes/sfx
   
   $AB_HOME/add-riscpkg
 }

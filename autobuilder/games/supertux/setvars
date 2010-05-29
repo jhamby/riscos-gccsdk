@@ -1,7 +1,8 @@
+
 ab_package() {
   ab_create_app SuperTux Apps/Games
 
-  cp -av src/supertux$AB_EXEEXT $A/supertux$AB_EXEEXT
+  ab_makerun $S/src/supertux$AB_EXEEXT
 
   cp -av AUTHORS ChangeLog COPYING LEVELDESIGN NEWS README $A/
 

@@ -8,7 +8,7 @@ CC=/usr/bin/gcc make gobpack
 ab_package() {
   ab_create_app jumpnbump Apps/Games
 
-  cp -av $S/jumpnbump $A/\!RunImage$AB_EXEEXT
+  ab_makerun jumpnbump
  
   cp -av $S/README $A/\!Help
   cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/LINKS $A/
