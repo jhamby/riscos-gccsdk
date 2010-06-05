@@ -52,29 +52,35 @@ library's data. This requires that the -fPIC command line switch be passed to
 GCC so that it can generate special code to handle the access of this data. Note
 that -fpic is not the same as -fPIC.
 
+Linking generally
+-----------------
+GCC automatically searches for dependant libraries within any directories defined
+by the RISC OS path GCCSOLib:. When !SharedLibs is first run it adds its own library
+directory (i.e. SharedLibs:lib) to this path so that GCC can find any libraries
+it holds. This includes the shared versions of the runtime libraries.
+It is important to use the correct compiler driver to perform the linking, ie, gcc
+for code written in C and g++ for code written in C++. This ensures that the
+correct options and dependant libraries are added to the linker command line.
+If a project mixes C and C++, then g++ must be used to perform the link.
+
 Linking code for shared libraries
 ---------------------------------
 As for Linux, when linking a shared library, it is necessary to specify the
--shared flag. It is also important to use the correct compiler driver to perform
-the linking, ie, gcc for libraries written in C and g++ for libraries written in
-C++. This ensures that the correct options and dependant libraries are added to
-the linker command line.
-
+-shared flag to indicate that this is intended to be a shared library.
 In addition to a filename, a library can also have an internal name embedded
 within it. This is called its soname. It is advisable when linking a shared
 library to give it a soname using the linker flag:
 
- -soname=lib<name>/so/<major version>
+ -soname=lib<name>.so.<major version>
 
 or
 
- -Wl,-soname=lib<name>/so/<major version>
+ -Wl,-soname=lib<name>.so.<major version>
 
 if using gcc to perform the linking. The major version number is optional. You
-should use the RISC OS naming convention e.g. libname/so/1 rather than
-libname.so.1 as the dynamic loader will use this name when searching for
-dependant libraries. The only filename conversion performed by the dynamic
-loader is to change filenames ending with .so to /so .
+should use the Unix naming convention e.g. libname.so.1 for the soname as the
+dynamic loader will translate it to RISC OS format when searching for dependant
+libraries.
 
 Shared library naming
 ---------------------
@@ -109,7 +115,8 @@ symlinks is supplied.
 
 Note that it is not mandatory to use the naming convention described above,
 libraries can simply be called lib<name>/so and placed in !SharedLibs.lib,
-however, this is not very flexible.
+however, this is not very flexible as it doesn't allow multiple versions
+of the same library.
 
 Compiling code for dynamically linked executable
 ------------------------------------------------
@@ -127,9 +134,7 @@ what type of libraries it finds at link time. If a shared version of any
 required library is found then GCC will default to dynamic linking. On the other
 hand, if only archive (static) libraries are available, then GCC will default to
 static linking. If static linking is required regardless of what libraries are
-available, then this can be forced using the -static option. The shared versions
-of the runtime libraries are stored in !SharedLibs and this must have been run so
-that GCC can see them.
+available, then this can be forced using the -static option.
 
 C++ code
 --------
