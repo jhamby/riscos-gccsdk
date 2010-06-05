@@ -269,6 +269,11 @@ every occurrence of _kernel_oserror is replaced by os_error.
     
     extern int Image__RO_Base;
 
+  * title-string: ModuleName
+
+    This defines the module name.  Note that you must register the module
+    name before you distribute it.
+
   * help-string: <module-name> <version-number> <comment>
   
     This defines the help string in the module header. The name of the module
@@ -277,6 +282,15 @@ every occurrence of _kernel_oserror is replaced by os_error.
     
     The version-number field should be in the form d.dd where d is a decimal
     digit.
+
+  * date-string: <DD MMM YYYY>
+
+    The date-string is optional and should only be included if you feel that a
+    date is a different reference to the version number. Certain ports from
+    other platforms may wish to indicate their source base date using this
+    field.
+
+    You will probably never need this field.
 
   * command-keyword-table: <C-function-name> <command-description>+
 
@@ -362,6 +376,10 @@ every occurrence of _kernel_oserror is replaced by os_error.
     256, but CMunge will accept any alignment so that you can re-use areas
     of the blocks. You should inform the allocations service of any use of
     'sub-blocks'.
+
+  * error-base: <number>
+
+    An alias for error-chunk-base-number.
   
   * error-identifiers: <error description> ...
     
@@ -582,6 +600,10 @@ every occurrence of _kernel_oserror is replaced by os_error.
     setup, so will need to be written in assembler. For proper operation of
     the C library, it is essential that your routine call 
     _clib_initialisemodule before it returns.
+
+  * library-enter-code: <symbol-name>
+
+    Is an alias for library-initialisation-code.
 
   * international-help-file: <pathname>
 
