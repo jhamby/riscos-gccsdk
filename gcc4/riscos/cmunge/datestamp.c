@@ -14,18 +14,21 @@
 
 void DateStamp(void) {
 
-  char *date, *date0;
-  char *s;
+  char *date;
+  const char *date0;
+  const char *s;
   char datebuf[24];
   int i;
 
   if (opt.mode_errors)
     return; /* No work is required if we're only generating error blocks */
 
-  i = 32;
   if (opt.datestring)
     i = 4 + strlen(opt.datestring)+1;
+  else
+    i = 32;
   date0 = date = Malloc(strlen(opt.help)+i);
+
   s = opt.help;
 
   /* Skip whitespace */
@@ -76,7 +79,7 @@ void DateStamp(void) {
 
   if (opt.datestring) {
     char *dptr = datebuf;
-    char *iptr = opt.datestring;
+    const char *iptr = opt.datestring;
     char c;
     int wrong = 0;
     *dptr++ = ' ';

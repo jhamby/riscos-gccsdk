@@ -1151,7 +1151,7 @@ void WriteHeader(void) {
 #else
     /* JRF: Changed my mind; we should emulate CMHG as closely as possible */
     {
-      char *str = opt.help;
+      const char *str = opt.help;
       fprintf(file, "#define Module_Help\t\t\"");
       while (*str!='\0' && *str!='\t')
       {

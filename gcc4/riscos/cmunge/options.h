@@ -133,7 +133,7 @@ typedef struct {
   const char   *service;	/* service-call-handler */
   int_list      services;	/* service-call-handler */
   char         *title;		/* title-string */
-  char         *help;		/* help-string */
+  const char   *help;		/* help-string */
   const char   *helpfn;		/* help-handler */
   help_list     commands;	/* command-keyword-table */
   int           command_codesupplied; /* commands include handler routines */
