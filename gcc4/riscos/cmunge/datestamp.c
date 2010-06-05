@@ -37,7 +37,7 @@ void DateStamp(void) {
   /* Copy name, counting chars */
   i = 0;
   do {
-    while (!isspace(*s)) {
+    while (*s && !isspace(*s)) {
       *date++ = *s++;
       i++;
     }
