@@ -52,7 +52,7 @@ apcsoptions_t apcsoptions[] = {
  Returns:      new flags
  ******************************************************************/
 unsigned long apcscli_parse(unsigned long flags, const char *arg,
-                            void (*errfunc)(char *format, ...))
+                            void (*errfunc)(const char *format, ...))
 {
   if (*arg == '3') arg++;
   while (*arg)
