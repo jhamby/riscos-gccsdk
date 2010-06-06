@@ -82,10 +82,10 @@ Index: src/lang/unfinished/persian.txt
  STR_OSNAME_SUNOS                                                :SunOS
  
  # Abandon game
-Index: src/lang/unfinished/malay.txt
+Index: src/lang/malay.txt
 ===================================================================
---- src/lang/unfinished/malay.txt	(revision 17960)
-+++ src/lang/unfinished/malay.txt	(working copy)
+--- src/lang/malay.txt	(revision 17960)
++++ src/lang/malay.txt	(working copy)
 @@ -871,6 +871,7 @@
  STR_OSNAME_MORPHOS                                              :MorphOS
  STR_OSNAME_AMIGAOS                                              :AmigaOS

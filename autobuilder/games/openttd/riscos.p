@@ -58,11 +58,11 @@ Index: src/screenshot.cpp
 --- src/screenshot.cpp	(revision 17960)
 +++ src/screenshot.cpp	(working copy)
 @@ -78,7 +78,9 @@
- struct RgbTriplet {
- 	byte b, g, r;
+ struct RgbQuad {
+ 	byte blue, green, red, reserved;
  };
 +#ifndef __riscos__
- assert_compile(sizeof(RgbTriplet) == 3);
+ assert_compile(sizeof(RgbQuad) == 4);
 +#endif
  
  /**
