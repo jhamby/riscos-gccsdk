@@ -1,5 +1,5 @@
 /* Modify file attributes of an open file.
-   Copyright (c) 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2005-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -40,10 +40,7 @@ int fchmod (int fd, mode_t mode)
   regs[5] = __set_protection (mode);
   err = __os_file (OSFILE_WRITECATINFO_ATTR, name, regs);
   if (err)
-    {
-      __ul_seterr (err, 0);
-      return __set_errno (EPERM);
-    }
+    return __ul_seterr (err, EPERM);
 
   return 0;
 }

@@ -112,7 +112,7 @@ newstream (const char *name, __off_t offset)
   err = __os_swi (OS_FSControl, regs);
   if (err)
     {
-      __ul_seterr (err, 1);
+      __ul_seterr (err, EOPSYS);
       invalidate (stream);
       return NULL;
     }
@@ -130,7 +130,7 @@ newstream (const char *name, __off_t offset)
   err = __os_swi (OS_FSControl, regs);
   if (err != NULL || regs[5] != 1)
     {
-      __ul_seterr (err, 1);
+      __ul_seterr (err, EOPSYS);
       free (stream->dd_name_can);
       invalidate (stream);
       return NULL;
@@ -385,10 +385,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
  
                   err = __os_swi (OS_GBPB, regs);
                   if (err)
-                    {
-                      __ul_seterr (err, 0);
-                      return EIO;
-                    }
+		    return __ul_seterr (err, EIO);
 
 #ifdef DEBUG
                   fprintf (stderr,

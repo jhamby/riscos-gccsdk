@@ -105,8 +105,6 @@ void
 __free_process (struct __sul_process *process)
 {
   struct __sul_process *sulproc = __ul_global.sulproc;
-  struct __sul_process *child;
-  struct __sul_process *next_child;
 
   /* Close all file descriptors.  */
   if (process->file_descriptors)
@@ -146,6 +144,7 @@ __free_process (struct __sul_process *process)
     }
 
   /* Free all zombie children of this process */
+  struct __sul_process *child, *next_child;
   for (child = process->children; child != NULL; child = next_child)
     {
       next_child = child->next_child;
@@ -174,8 +173,7 @@ __free_process (struct __sul_process *process)
 void
 __unixinit (void)
 {
-  int __cli_size, cli_size, regs[10];
-  char *cli;
+  int regs[10];
   struct ul_global *gbl = &__ul_global;
   struct __sul_process *sulproc = gbl->sulproc;
 
@@ -266,8 +264,6 @@ __unixinit (void)
 
   /* Get command line.  __ul_global.cli's pointing to the command line block
      returned by OS_GetEnv in __main ().  */
-  __cli_size = strlen (gbl->cli);
-
 #ifdef DEBUG
   debug_printf ("-- __unixinit (getting cli) __ul_global.cli=%s\n", gbl->cli);
 #endif
@@ -279,8 +275,9 @@ __unixinit (void)
   if (__os_swi (DDEUtils_GetCLSize, regs) != NULL)
     regs[0] = 0;
 
-  cli_size = __cli_size + regs[0];
-  cli = malloc (cli_size + 2);
+  int __cli_size = strlen (gbl->cli);
+  int cli_size = __cli_size + regs[0];
+  char *cli = malloc (cli_size + 2);
   if (cli != NULL)
     {
       memcpy (cli, gbl->cli, __cli_size);
@@ -336,9 +333,7 @@ exit (int status)
      whilst calling the functions. Anything calling atexit from an already
      registered function is on dodgy ground anyway. */
   while (__atexit_function_count-- > 0)
-    {
-      __funcall ((*__atexit_function_array[__atexit_function_count]), ());
-    }
+    __funcall ((*__atexit_function_array[__atexit_function_count]), ());
 
   _Exit (status);
 }
@@ -450,7 +445,6 @@ _exit (int return_code)
   if (sulproc->status.execed || !sulproc->status.forked)
     {
       int regs[10];
-
       (void) __os_swi(SOM_DeregisterClient, regs);
     }
 #endif
@@ -624,7 +618,6 @@ check_io_redir (const char *p, int fd, int mode)
 {
   char fn[256];
   char *ptr = fn;
-  const char *space;
 
   if (isdigit (p[-1]))
     fd = get_fd_redirection (p);
@@ -640,7 +633,7 @@ check_io_redir (const char *p, int fd, int mode)
   while (*p && isspace (*p))
     p++;
 
-  space = find_terminator (p);
+  const char *space = find_terminator (p);
   strncpy (fn, p, space - p);
   /* Zero terminate the filename.  */
   fn[space - p] = '\0';
@@ -676,28 +669,23 @@ check_io_redir (const char *p, int fd, int mode)
 static void
 get_io_redir (const char *cli)
 {
-  const char *p = cli;
-  int mode;
-
   /* By default, we redirect file descriptor 0 (stdin).  */
 #ifdef DEBUG
   debug_printf ("-- get_io_redir: checking <\n");
 #endif
-  while ((p = find_redirection_type (p, '<')))
+  for (const char *p = cli; (p = find_redirection_type (p, '<')) != NULL; ++p)
     {
       /* A redirector `<>' means read/write.  */
-      mode = (p[1] == '>') ? O_RDWR : O_RDONLY;
+      int mode = (p[1] == '>') ? O_RDWR : O_RDONLY;
       check_io_redir (p, STDIN_FILENO, mode);
-      p++;
     }
-
-  p = cli;
+  
   /* By default, we redirect file descriptor 1 (stdout).  */
-  mode = O_WRONLY | O_CREAT;
+  const int mode = O_WRONLY | O_CREAT;
 #ifdef DEBUG
   debug_printf ("-- get_io_redir: checking >\n");
 #endif
-  while ((p = find_redirection_type (p, '>')) != NULL)
+  for (const char *p = cli; (p = find_redirection_type (p, '>')) != NULL; ++p)
     {
       if (p[-1] != '<')
 	{
@@ -723,7 +711,6 @@ get_io_redir (const char *cli)
 		check_io_redir (p, STDOUT_FILENO, mode | O_TRUNC);
 	    }
 	}
-      p++;
     }
 }
 
@@ -732,8 +719,6 @@ get_io_redir (const char *cli)
 static int
 verify_redirection (const char *redir)
 {
-  int x;
-
 #ifdef DEBUG
   debug_printf ("-- verify_redirection: %s\n", redir);
 #endif
@@ -770,7 +755,7 @@ verify_redirection (const char *redir)
      "2>foo"
      "2<foo"
   */
-  x = 0;
+  int x = 0;
   if (isdigit (redir[x]))
     {
       while (redir[x] && isdigit (redir[x]))
@@ -874,16 +859,14 @@ find_redirection_type (const char *cmdline, char redirection_type)
 static void
 convert_command_line (struct proc *process, const char *cli, int cli_size)
 {
-  int argc;
-  char **argv, *temp;
   _kernel_oserror *err = NULL;
 
   /* A temporary buffer for the command line arguments, holds a
      particular argument prior to it being added to the argv array.  */
-  temp = (char *) malloc (cli_size + 1);
+  char *temp = (char *) malloc (cli_size + 1);
 
-  argc = 0;
-  argv = (char **) malloc ((argc + 2) * sizeof (char *));
+  int argc = 0;
+  char **argv = (char **) malloc ((argc + 2) * sizeof (char *));
   if (temp == NULL || argv == NULL)
     goto fatal;
   while (*cli)
@@ -1074,7 +1057,6 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
     {
       int regs[10];
       char *canon_argv0, *input_argv0, *uargv0;
-      int filetype;
 
       regs[0] = 37;
       regs[1] = (int) argv[0];
@@ -1094,6 +1076,7 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
       if ((err = __os_swi (OS_FSControl, regs)) != NULL)
         goto fatal;
 
+      int filetype;
       if (__os_file (OSFILE_READCATINFO, canon_argv0, regs) != NULL
           || regs[0] != 1)
         {
@@ -1125,6 +1108,6 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
   return;
 
 fatal:
-  __ul_seterr (err, 0);
+  __ul_seterr (err, EOPSYS);
   __unixlib_fatal ("Failed to process command line");
 }

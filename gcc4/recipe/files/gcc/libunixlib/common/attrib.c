@@ -1,6 +1,6 @@
 /* __set_protection (), __get_protection ()
  * Written by Nick Burrett, 3 May 1997.
- * Copyright (c) 1997-2006 UnixLib Developers
+ * Copyright (c) 1997-2010 UnixLib Developers
  */
 
 #include <sys/stat.h>
@@ -9,7 +9,8 @@
 
 /* Convert a file mode into a attribute mask suitable for
    passing to RISC OS.  */
-int __set_protection (__mode_t mode)
+int
+__set_protection (__mode_t mode)
 {
   int attribute;
 
@@ -23,7 +24,8 @@ int __set_protection (__mode_t mode)
 
 /* Convert a RISC OS attribute mask into a 'stat' compatible
    file access mode.  */
-__mode_t __get_protection (int attribute)
+__mode_t
+__get_protection (int attribute)
 {
   __mode_t mode;
 

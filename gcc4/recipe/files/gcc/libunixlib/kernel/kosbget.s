@@ -15,7 +15,7 @@ _kernel_osbget:
 	MOVCS	a1, #-1		@ We have EOF. Return -1
 	LDMCSFD	sp!, {pc}
 
-	MOV	a2, #1
+	MOV	a2, #EOPSYS
 	BL	__ul_seterr
 	MOV	a1, #-2		@ Error occurred. Return -2
 	LDMFD	sp!, {pc}

@@ -1,5 +1,5 @@
 @ _kernel_getenv
-@ Copyright (c) 2000-2008 UnixLib Developers
+@ Copyright (c) 2000-2010 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -19,7 +19,7 @@ _kernel_getenv:
 	LDMVCFD	sp!, {v1, pc}
 
 	MOV	v1, a1
-	MOV	a2, #1
+	MOV	a2, #EOPSYS
 	BL	__ul_seterr
 	MOV	a1, v1
 	LDMFD	sp!, {v1, pc}

@@ -1,5 +1,5 @@
 /* Execute a new program.
-   Copyright (c) 2002-2008 UnixLib Developers.  */
+   Copyright (c) 2002-2010 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -389,7 +389,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
                      || getfd (1)->devicehandle->type == DEV_PIPE)) ?
         (int) getfd (1)->devicehandle->handle : -1;
       if ((err = __os_swi (OS_ChangeRedirection, regs)) != NULL)
-        return __ul_seterr (err, 1);
+        return __ul_seterr (err, EOPSYS);
       gbl->changeredir0 = regs[0];
       gbl->changeredir1 = regs[1];
 
@@ -401,11 +401,11 @@ execve (const char *execname, char *const argv[], char *const envp[])
           int handle = (int) getfd (1)->devicehandle->handle;
 
           if ((err = __os_args (0, handle, 0, regs)) != NULL)
-            return __ul_seterr (err, 1);
+            return __ul_seterr (err, EOPSYS);
           gbl->rewindpipeoffset = regs[2];
           if ((err = __os_args (2, handle, 0, regs)) != NULL
               || (err = __os_args (1, handle, regs[2], NULL)) != NULL)
-            return __ul_seterr (err, 1);
+            return __ul_seterr (err, EOPSYS);
         }
     }
 

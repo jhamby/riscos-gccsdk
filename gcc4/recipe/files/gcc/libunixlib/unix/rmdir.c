@@ -1,5 +1,5 @@
 /* Remove a directory from disk.
-   Copyright (c) 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2005-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -61,8 +61,7 @@ rmdir (const char *ux_directory)
       if (err)
 	{
 	  /* Problem: Let's pretend that it's not empty.  */
-	  __ul_seterr (err, 0);
-	  return __set_errno (ENOTEMPTY);
+	  return __ul_seterr (err, ENOTEMPTY);
 	}
       if (regs[3] > 0)
 	return __set_errno (ENOTEMPTY);

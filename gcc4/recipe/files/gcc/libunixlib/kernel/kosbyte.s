@@ -20,7 +20,7 @@ _kernel_osbyte:
 	LDMFD	sp!, {pc}
 
 err:
-	MOV	a2, #1
+	MOV	a2, #EOPSYS
 	BL	__ul_seterr
 	MOV	a1, #-2
 	LDMFD	sp!, {pc}

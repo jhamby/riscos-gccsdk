@@ -17,7 +17,7 @@ _kernel_osargs:
 	MOVNE	a1, a3
 	LDMFD	sp!, {pc}
 error:
-	MOV	a2, #1
+	MOV	a2, #EOPSYS
 	BL	__ul_seterr
 	MOV	a1, #-2
 	LDMFD	sp!, {pc}

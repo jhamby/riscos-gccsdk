@@ -51,14 +51,14 @@ mkdir (const char *ux_path, __mode_t mode)
           || strstr(err->errmess, "not found"))
         return __set_errno (ENOENT);
 
-      return __ul_seterr (err, 1);
+      return __ul_seterr (err, EOPSYS);
     }
 
   /* Set the file access permission bits.  */
   regs[5] = __set_protection (mode);
   err = __os_file (OSFILE_WRITECATINFO_ATTR, path, regs);
   if (err)
-    return  __ul_seterr (err, 1);
+    return  __ul_seterr (err, EOPSYS);
 
   return 0;
 }

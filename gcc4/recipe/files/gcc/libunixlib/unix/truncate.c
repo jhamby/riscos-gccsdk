@@ -1,5 +1,5 @@
 /* Truncate a file to a specified length.
-   Copyright (c) 2005, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 2005-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -31,7 +31,7 @@ ftruncate (int fd, off_t length)
   err = __os_args (3, (int) file_desc->devicehandle->handle,
 		   (int) length, NULL);
   if (err)
-    return __ul_seterr (err, 1);
+    return __ul_seterr (err, EOPSYS);
 
   return 0;
 }
@@ -52,14 +52,14 @@ truncate (const char *ux_file, off_t length)
   /* Open the file.  */
   err = __os_fopen (0xc0, file, &fd);
   if (err)
-    return __ul_seterr (err, 1);
+    return __ul_seterr (err, EOPSYS);
 
   /* Truncate and close it.  */
   err = __os_args (3, fd, (int) length, NULL);
   __os_fclose (fd);
 
   if (err)
-    return __ul_seterr (err, 1);
+    return __ul_seterr (err, EOPSYS);
 
   return 0;
 }

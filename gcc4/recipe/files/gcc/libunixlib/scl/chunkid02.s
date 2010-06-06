@@ -236,7 +236,11 @@ _wR4chk = __rt_wR4chk
 	DefSCLFnc	memset
 
 	@ Entry 56
-	DefSCLFnc	strerror
+	@ char *strerror(int errnum);
+	@ We have our own strerror() implementation which accepts more errno
+	@ values than the SCL does.  Export this stub entry as different
+	@ function.
+	DefSCLFncS	__scl_org_strerror
 
 	@ Entry 57
 	DefSCLFnc	strlen

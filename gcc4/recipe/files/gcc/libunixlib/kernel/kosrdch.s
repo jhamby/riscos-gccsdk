@@ -1,5 +1,5 @@
 @ _kernel_osrdch
-@ Copyright (c) 2000-2008 UnixLib Developers
+@ Copyright (c) 2000-2010 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -20,7 +20,7 @@ _kernel_osrdch:
 	LDMFD	sp!, {pc}
 
 error:
-	MOV	a2, #1
+	MOV	a2, #EOPSYS
 	BL	__ul_seterr
 	MOV	a1, #-2
 	LDMFD	sp!, {pc}

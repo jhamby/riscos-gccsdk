@@ -1,5 +1,5 @@
 @ _kernel_swi_c
-@ Copyright (c) 2000-2008 UnixLib Developers
+@ Copyright (c) 2000-2010 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -29,7 +29,7 @@ _kernel_swi_c:
 
 error:
 	MOV	v1, a1
-	MOV	a2, #1
+	MOV	a2, #EOPSYS
 	BL	__ul_seterr
 	MOV	a1, v1
 	LDMIA	sp!, {a3-a4, v1-v6, pc}

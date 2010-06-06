@@ -1,5 +1,5 @@
 /* Synchronise unwritten data in buffers to disk.
-   Copyright (c) 2004, 2005, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 2004-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <unistd.h>
@@ -44,7 +44,7 @@ fsync (int fd)
   /* Ensure data has been written to the file.  */
   err = __os_args (255, (int) file_desc->devicehandle->handle, 0, NULL);
   if (err)
-    return __ul_seterr (err, 1);
+    return __ul_seterr (err, EOPSYS);
 
   return 0;
 }

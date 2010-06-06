@@ -17,7 +17,6 @@ __net_error (int rtrn, const _kernel_oserror *err)
   if (err == NULL)
     return rtrn;
 
-  __ul_seterr (err, 0);
-  return __set_errno (err->errnum & 0xFF);
+  return __ul_seterr (err, err->errnum & 0xFF);
 }
 

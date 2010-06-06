@@ -1,5 +1,5 @@
 /* __socket_valid ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <errno.h>
@@ -12,7 +12,8 @@
 
 /* Return 0 if 'socket' is both a valid file descriptor  and refers to a
    socket device.  Sets errno and return -1 if not.  */
-int __socket_valid (int socket)
+int
+__socket_valid (int socket)
 {
   PTHREAD_UNSAFE
 

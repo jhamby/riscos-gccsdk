@@ -16,7 +16,7 @@
  *
  * FIXME: I don't believe that 8-bit currently works properly.
  *
- * Copyright (c) 2004-2008 UnixLib Developers
+ * Copyright (c) 2004-2010 UnixLib Developers
  */
 
 #include <swis.h>
@@ -165,7 +165,7 @@ __dspopen (struct __unixlib_fd *fd, const char *file, int mode)
   if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer")) != NULL
       || (err = __os_cli("RMEnsure DigitalRenderer 0.51 Error 16_10F Sound support requires DigitalRenderer 0.51 or newer")) != NULL
       || (err = set_defaults(fd, 2, 2, 44100, 0)) != NULL)
-    return (void *) __ul_seterr (err, 1);
+    return (void *) __ul_seterr (err, EOPSYS);
 
   return (void *) 1; /* Dummy value */
 }
@@ -182,7 +182,7 @@ __dspclose (struct __unixlib_fd *fd)
       regs.r[0] = 0;
       if ((err = _kernel_swi(DigitalRenderer_NumBuffers, &regs, &regs)) != NULL
           || (err = _kernel_swi(DigitalRenderer_Deactivate, &regs, &regs)) != NULL)
-        return __ul_seterr (err, 1);
+        return __ul_seterr (err, EOPSYS);
 
       dr_registered = 0;
     }
@@ -219,7 +219,7 @@ __dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
 	{
 	  if ((err = _kernel_swi (DigitalRenderer_StreamStatistics,
 				  &regs, &regs)) != NULL)
-	    return __ul_seterr (err, 1);
+	    return __ul_seterr (err, EOPSYS);
 
 	  if (regs.r[0] < dr_buffers)
 	    break;
@@ -242,7 +242,7 @@ __dspwrite (struct __unixlib_fd *fd, const void *data, int nbyte)
 			     ? DigitalRenderer_Stream16BitSamples
 			     : DigitalRenderer_StreamSamples,
 			     &regs, &regs)) != NULL)
-        return __ul_seterr (err, 1);
+        return __ul_seterr (err, EOPSYS);
 
       left -= buffer_byte_size;
     }

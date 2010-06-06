@@ -149,15 +149,11 @@ __getdevtype (const char *filename, int ro_control)
 void *
 __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 {
-  int regs[10], fd, sftype, fflag = file_desc->fflag;
+  int regs[10], sftype, fflag = file_desc->fflag;
   char file[MAXPATHLEN + 2];	/* Want two chars for ".^" below.  */
-  __mode_t access_mode;
-  _kernel_oserror *err;
-  char *end_of_filename;	/* Location useful for CREAT failure tests.  */
-
-  end_of_filename = __riscosify_std (filename,
-				     fflag & (O_CREAT | O_WRONLY | O_RDWR),
-				     file, sizeof (file) - 2, &sftype);
+  char *end_of_filename = __riscosify_std (filename,
+					   fflag & (O_CREAT | O_WRONLY | O_RDWR),
+					   file, sizeof (file) - 2, &sftype);
   if (end_of_filename == NULL)
     return (void *) __set_errno (ENAMETOOLONG);
 
@@ -173,7 +169,8 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 #endif
 
   /* Get file vital statistics.  */
-  if ((err = __os_file (OSFILE_READCATINFO, file, regs)))
+  _kernel_oserror *err;
+  if ((err = __os_file (OSFILE_READCATINFO, file, regs)) != NULL)
     goto os_err;
 
   if (regs[0])
@@ -201,7 +198,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       /* Remove creation bits.  */
       fflag &= ~O_CREAT;
 
-      access_mode = __get_protection (regs[5]);
+      __mode_t access_mode = __get_protection (regs[5]);
       if (((fflag & O_ACCMODE) == O_RDONLY && !(access_mode & S_IRUSR))
 	  || ((fflag & O_ACCMODE) == O_WRONLY && !(access_mode & S_IWUSR))
 	  || ((fflag & O_ACCMODE) == O_RDWR
@@ -213,9 +210,10 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       /* We try to do our best to get at the filing system name
          by canonicalising the filename if possible, otherwise checking
          for pipe: anyway.
-         NOTE: This is an ugly hack to make opening non-existent files
-         for reading on PipeFS work.  We should handle PipeFS though
-         a proper device ioctl.  */
+         FIXME: This is an ugly hack (= who's says the too-small buffer will
+	 be filled in correctly for the first 16 bytes ?) to make opening
+	 non-existent files for reading on PipeFS work.  We should handle
+	 PipeFS though a proper device ioctl.  */
 
       /* We don't need the full filename, just need to check that the first
          few characters begin with 'pipe'.  */
@@ -248,7 +246,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
          difference between text and binary files. */
       regs[2] = (sftype == __RISCOSIFY_FILETYPE_NOTFOUND) ? 0xfff : sftype;
       regs[4] = regs[5] = 0;
-      if ((err = __os_file (OSFILE_CREATEEMPTYFILE_FILETYPE, file, regs)))
+      if ((err = __os_file (OSFILE_CREATEEMPTYFILE_FILETYPE, file, regs)) != NULL)
 	{
 	  /* Could not create.  Cannot assume component of name does not
 	     exist, as errors such as "directory full" end up here.  */
@@ -285,6 +283,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
     }
 
   /* Open the file.  */
+  int fd;
   {
     int openmode;
 
@@ -359,7 +358,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
   return (void *) fd;
 
 os_err:
-  return (void *) __ul_seterr (err, 1);
+  return (void *) __ul_seterr (err, EOPSYS);
 }
 
 int
@@ -395,7 +394,7 @@ __fsclose (struct __unixlib_fd *file_desc)
     }
 
   free (buffer);
-  return (!err) ? 0 : __ul_seterr (err, 1);
+  return (!err) ? 0 : __ul_seterr (err, EOPSYS);
 }
 
 int
@@ -425,7 +424,7 @@ __fsread (struct __unixlib_fd *file_desc, void *data, int nbyte)
 
       if ((err = __os_fread ((int) file_desc->devicehandle->handle,
 			     data, nbyte, regs)) != NULL)
-	return __ul_seterr (err, 1);
+	return __ul_seterr (err, EOPSYS);
 
       return nbyte - regs[3];
     }
@@ -443,7 +442,7 @@ __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 #endif
   if ((err = __os_fwrite ((int) file_desc->devicehandle->handle,
 			  data, nbyte, regs)) != NULL)
-    return __ul_seterr (err, 1);
+    return __ul_seterr (err, EOPSYS);
 
   return nbyte - regs[3];
 }
@@ -479,7 +478,7 @@ __fslseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
   else
     return __set_errno (EINVAL);
 
-  return (!err) ? (__off_t) regs[2] : __ul_seterr (err, 1);
+  return (!err) ? (__off_t) regs[2] : __ul_seterr (err, EOPSYS);
 }
 
 int
@@ -553,9 +552,8 @@ __fsfstat (int fd, struct stat *buf)
   err = __os_file (OSFILE_READCATINFO, buffer, regs);
   if (err)
     {
-      __ul_seterr (err, 0);
       free (buffer);
-      return __set_errno (EIO);
+      return __ul_seterr (err, EIO);
     }
   buf->st_ino = __get_file_ino (NULL, buffer);
   free (buffer);
@@ -568,10 +566,7 @@ __fsfstat (int fd, struct stat *buf)
          but we want the current extent of the file */
       err = __os_args (2, (int) file_desc->devicehandle->handle, 0, argsregs);
       if (err)
-	{
-	  __ul_seterr (err, 0);
-	  return __set_errno (EIO);
-	}
+	return __ul_seterr (err, EIO);
       regs[4] = argsregs[2];
     }
 
@@ -894,7 +889,7 @@ __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
       /* Try to load the module. Ignore any errors */
       if ((err = __os_cli ("RMEnsure CryptRandom 0.12 RMLoad System:Modules.CryptRand")) != NULL
 	  || (err = __os_cli ("RMEnsure CryptRandom 0.12 Error 16_10F /dev/random support requires CryptRand 0.12 or newer")) != NULL)
-	return (void *) __ul_seterr (err, 1);
+	return (void *) __ul_seterr (err, EOPSYS);
 
       /* If still not available, then the open must fail */
       if (__os_swi (CryptRandom_Stir, regs))
@@ -913,7 +908,7 @@ __randomread (struct __unixlib_fd *file_desc, void *data, int nbyte)
   regs[0] = (int) data;
   regs[1] = nbyte;
   if ((err = __os_swi (CryptRandom_Block, regs)) != NULL)
-    return __ul_seterr (err, 1);
+    return __ul_seterr (err, EOPSYS);
 
   return nbyte;
 }

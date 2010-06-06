@@ -1,5 +1,5 @@
 /* __object_get_attrs ()
- * Copyright (c) 2000-2009 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <errno.h>
@@ -56,10 +56,7 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
   err = __os_file (OSFILE_READCATINFO_NOPATH, buffer, regs);
 #endif
   if (err)
-    {
-      __ul_seterr (err, 0);
-      return __set_errno (EIO);
-    }
+    return __ul_seterr (err, EIO);
 
   /* Does the file has a filetype (at this point we aren't even sure that
      the file exists but that's not a problem, see next 'if' on regs[0]
@@ -124,10 +121,7 @@ __object_get_lattrs (const char *ux_file, char *buffer, size_t buf_len,
   err = __os_file (OSFILE_READCATINFO_NOPATH, buffer, regs);
 
   if (err)
-    {
-      __ul_seterr (err, 0);
-      return __set_errno (EIO);
-    }
+    return __ul_seterr (err, EIO);
 
   /* Does the file have a filetype (at this point we aren't even sure that
      the file exists but that's not a problem, see next 'if' on regs[0]
@@ -206,8 +200,7 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
 #if __UNIXLIB_SYMLINKS
 	  free (target);
 #endif
-	  __ul_seterr (err, 0);
-	  return __set_errno (EIO);
+	  return __ul_seterr (err, EIO);
 	}
     }
 
@@ -220,8 +213,7 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
 #if __UNIXLIB_SYMLINKS
 	  free (target);
 #endif
-	  __ul_seterr (err, 0);
-	  return __set_errno (EIO);
+	  return __ul_seterr (err, EIO);
 	}
     }
 

@@ -38,7 +38,7 @@ __addenv_to_os (const char *name, const char *value, int replace)
   regs[4] = 4;
   const _kernel_oserror *err;
   if ((err = __os_swi (OS_SetVarVal, regs)) != NULL)
-    return __ul_seterr (err, 1);
+    return __ul_seterr (err, EOPSYS);
 
   return 0;
 }

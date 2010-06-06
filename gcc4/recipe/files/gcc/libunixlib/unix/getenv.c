@@ -1,5 +1,5 @@
 /* Manipulate Unix-style environment variables.
-   Copyright (c) 2004, 2005, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 2004-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -142,7 +142,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
       /* The variable isn't a macro and OS_ReadVarVal returned an error.
 	 Do not set the errno if the variable was not found. */
       if (regs[2] != 0)
-	__ul_seterr (err, 1);
+	__ul_seterr (err, EOPSYS);
       return NULL;
     }
   else
@@ -158,7 +158,7 @@ __getenv_from_os (const char *name, char *buf, size_t buflen, char **call)
 	{
 	  /* Do not set the errno if the variable was not found. */
 	  if (regs[2] != 0)
-	    __ul_seterr (err, 1);
+	    __ul_seterr (err, EOPSYS);
 	  return NULL;
 	}
     }

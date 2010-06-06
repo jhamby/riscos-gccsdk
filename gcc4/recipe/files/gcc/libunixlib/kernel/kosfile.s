@@ -1,5 +1,5 @@
 @ _kernel_osfile
-@ Copyright (c) 2000-2008 UnixLib Developers
+@ Copyright (c) 2000-2010 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -17,7 +17,7 @@ _kernel_osfile:
 	STMNEIA ip, {a3, a4, v1, v2}
 	LDMVCFD	sp!, {v1-v3, pc}
 
-	MOV	a2, #1
+	MOV	a2, #EOPSYS
 	BL	__ul_seterr
 	MOV	a1, #-2
 	LDMFD	sp!, {v1-v3, pc}

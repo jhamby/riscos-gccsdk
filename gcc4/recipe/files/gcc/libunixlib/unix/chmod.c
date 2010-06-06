@@ -1,5 +1,5 @@
 /* Change permissions of a file.
-   Copyright (c) 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2005-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -26,10 +26,7 @@ chmod (const char *ux_file, mode_t mode)
   regs[5] = __set_protection (mode);
   err = __os_file (OSFILE_WRITECATINFO_ATTR, file, regs);
   if (err)
-    {
-      __ul_seterr (err, 0);
-      return __set_errno (EPERM);
-    }
+    return __ul_seterr (err, EPERM);
 
   return 0;
 }

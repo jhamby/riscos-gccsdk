@@ -1,5 +1,5 @@
 /* Map or unmap memory.
-   Copyright (c) 1996, 1997, 2005, 2006, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 1996-2010 UnixLib Developers.  */
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
 /* sys/mman.c: Written by Peter Burwood, 1 November 1996, June 1997  */
@@ -300,7 +300,7 @@ munmap (caddr_t addr, size_t len)
   mmaps[i].addr = 0;
   mmaps[i].number = -1;
   if ((err = __os_swi (OS_DynamicArea, regs)) != NULL)
-    return __ul_seterr (err, 1); /* Failed to delete area.  */
+    return __ul_seterr (err, EOPSYS); /* Failed to delete area.  */
 
   return 0;
 }
@@ -389,12 +389,12 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 	 return an error.  */
       if (new_len < old_len)
 	{
-	  __ul_seterr (err, 1);
+	  __ul_seterr (err, EOPSYS);
 	  /* Soldier on since we did manage to remap the memory.  */
 	  return addr;
 	}
       if ((may_move & MREMAP_MAYMOVE) == 0)
-	return (caddr_t) __ul_seterr (err, 1); /* XXX Should we return ENOMEM ? */
+	return (caddr_t) __ul_seterr (err, EOPSYS); /* XXX Should we return ENOMEM ? */
 
       /* Create a new mmap section to replace this section and copy over the
 	 data.  */
@@ -418,7 +418,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 	 old area failing. We also soldier on, since we did manage
 	 to remap the memory.  */
       if (err)
-	__ul_seterr (err, 1);
+	__ul_seterr (err, EOPSYS);
       addr = new_addr;
     }
 

@@ -1,6 +1,6 @@
 /* symlinks.c
  *
- * Copyright 2007-2009 UnixLib Developers
+ * Copyright 2007-2010 UnixLib Developers
  *
  * Given a filename, determine if it is a symlink file. If so extract the
  * target file and check again. Repeat until the target filename is not a
@@ -26,11 +26,12 @@ read_link_file_info (const char *filename, int *filetype, int *type)
 
   regs.r[0] = 23;
   regs.r[1] = (int) filename;
-  if (_kernel_swi (XOS_Bit | OS_File, &regs, &regs) != NULL)
+  _kernel_oserror *err;
+  if ((err = _kernel_swi (XOS_Bit | OS_File, &regs, &regs)) != NULL)
     {
       *filetype = 0;
       *type = 0;
-      return __set_errno (ENOENT);
+      return __ul_seterr (err, ENOENT);
     }
 
   *filetype = regs.r[6];
@@ -46,22 +47,18 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 {
   static char *buffer = NULL; /* We're reusing our buffer.  */
   static size_t bufsize = 0;
-  int link_count = 0;
-  int fd = -1;
-  int regs[10];
 
   if (strlen (filename_in) + 1 > fn_out_size)
     return __set_errno (ENAMETOOLONG);
 
   strcpy (filename_out, filename_in);
 
+  int fd = -1;
+  int regs[10];
+  int link_count = 0;
   while (1)
     {
       int type, filetype;
-      size_t size;
-      char *sep;
-      char id[4];
-
       if (read_link_file_info (filename_out, &filetype, &type) != 0)
         break;
 
@@ -74,17 +71,20 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 	  break;
 	}
 
-      if (__os_fopen (0x4F, filename_out, &fd) != NULL)
+      _kernel_oserror *err;
+      if ((err = __os_fopen (0x4F, filename_out, &fd)) != NULL)
 	{
-	  __set_errno (ENOENT);
+	  __ul_seterr (err, ENOENT);
 	  break;
 	}
 
-      if (__os_fread (fd, id, 4, regs) != NULL
+      size_t size;
+      char id[4];
+      if ((err = __os_fread (fd, id, 4, regs)) != NULL
 	  || *(unsigned int *)id != SYMLINK_ID
-	  || __os_fread (fd, &size, 4, regs) != NULL)
+	  || (err = __os_fread (fd, &size, 4, regs)) != NULL)
 	{
-	  __set_errno (EIO);
+	  __ul_seterr (err, EIO);
 	  break;
 	}
 
@@ -108,9 +108,9 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 	    }
 	}
 
-      if (__os_fread (fd, buffer, size, regs) != NULL)
+      if ((err = __os_fread (fd, buffer, size, regs)) != NULL)
 	{
-	  __set_errno (EIO);
+	  __ul_seterr (err, EIO);
 	  break;
 	}
 
@@ -128,6 +128,7 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 	 Note that "ADFS::doh.$ + bar => ADFS::doh.$.bar" (which would be an
 	 exception on case 2) can not happen as the root can not be a link
 	 file.  */
+      char *sep;
       if (strchr (buffer, ':') != NULL
           || (sep = strrchr (filename_out, '.')) == NULL
 	     && (sep = strrchr (filename_out, ':')) == NULL)

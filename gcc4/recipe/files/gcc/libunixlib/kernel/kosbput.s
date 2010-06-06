@@ -14,7 +14,7 @@ _kernel_osbput:
 	MOVVC	a1, #0
 	LDMVCFD	sp!, {pc}
 
-	MOV	a2, #1
+	MOV	a2, #EOPSYS
 	BL	__ul_seterr
 	MOV	a1, #-2
 	LDMFD	sp!, {pc}

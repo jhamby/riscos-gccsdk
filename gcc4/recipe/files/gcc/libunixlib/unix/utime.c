@@ -1,5 +1,5 @@
 /* Change access and/or modification times of an inode.
-   Copyright (c) 2005, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 2005-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -34,7 +34,7 @@ utime (const char *ux_filename, const struct utimbuf *times)
   regs[5] = attr;
   err = __os_file (OSFILE_WRITECATINFO_ALL, filename, regs);
   if (err)
-    return __ul_seterr (err, 1);
+    return __ul_seterr (err, EOPSYS);
 
   return 0;
 }

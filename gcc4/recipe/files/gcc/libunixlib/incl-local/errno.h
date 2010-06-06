@@ -9,17 +9,28 @@
 #if !defined(__INTERNAL_ERRNO_H) && defined(__ERRNO_H)
 #define __INTERNAL_ERRNO_H
 
+#ifndef __TARGET_SCL__
+#  include <pthread.h>
+#endif
+
 __BEGIN_DECLS
 
-/* This macro should be used whenever errno is to be set. This permits
-   us to easily make setting the errno call a function if necessary if
-   threads ever appear.  We also give a return value so we can use
-   return __set_errno () which can allow function tail calling.  */
+/* This macro should be used whenever errno is to be set.
+   We also give a return value so we can use return __set_errno() which can
+   allow function tail calling.
+   If errno needs to be set because of a RISC OS error (and we still have a
+   ptr to the RISC OS error block, use __ul_seterr() instead.  */
 
-#if __UNIXLIB_ERRNO_THREADED
-#define __set_errno(val) (__pthread_running_thread->thread_errno = (val), -1)
+#ifdef __TARGET_SCL__
+/* SharedCLibrary */
+extern int _stub_errorBuffer;
+#  define __set_errno(val) (errno = (val), _stub_errorBuffer = 0, -1)
+#elif __UNIXLIB_ERRNO_THREADED
+/* UnixLib - errno is  threaded */
+#  define __set_errno(val) (__pthread_running_thread->thread_errno = (val), __pthread_running_thread->errbuf_valid = 0, -1)
 #else
-#define __set_errno(val) (errno = (val), -1)
+/* UnixLib - errno is global */
+#  define __set_errno(val) (errno = (val), __pthread_running_thread->errbuf_valid = 0, -1)
 #endif
 
 extern struct

@@ -1,5 +1,5 @@
 /* Get the current working directory.
-   Copyright (c) 2004, 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2004-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -56,7 +56,7 @@ getcwd (char *buffer, size_t size)
     free ((void *)ro_path);
   if (err)
     {
-      __ul_seterr (err, 1);
+      __ul_seterr (err, EOPSYS);
       return NULL;
     }
 

@@ -52,8 +52,7 @@ iconv_error (const _kernel_oserror *err)
       break;
     }
 
-  __ul_seterr (err, 0);
-  return __set_errno (uerr);
+  return __ul_seterr (err, uerr);
 }
 
 
@@ -67,11 +66,11 @@ iconv_open (const char *tocode, const char *fromcode)
   const _kernel_oserror *err;
   err = __os_cli ("RMEnsure Iconv 0.04 RMload System:Modules.Iconv");
   if (err)
-    return (iconv_t) __ul_seterr (err, 1);
+    return (iconv_t) __ul_seterr (err, EOPSYS);
 
   err = __os_cli ("RMEnsure Iconv 0.04 Error 16_10F iconv support requires the Iconv module 0.04 or newer");
   if (err)
-    return (iconv_t) __ul_seterr (err, 1);
+    return (iconv_t) __ul_seterr (err, EOPSYS);
 
   int regs[10];
   regs[0] = (int) tocode;

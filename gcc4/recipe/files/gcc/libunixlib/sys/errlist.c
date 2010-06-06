@@ -2,10 +2,16 @@
  * Copyright (c) 2000-2010 UnixLib Developers
  */
 
-#include <string.h>
 #include <errno.h>
+#include <kernel.h>
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#endif
+#include <string.h>
+
+#ifdef __TARGET_SCL__
+extern int _stub_errorBuffer;
+extern _kernel_oserror _stub_errorNumber;
 #endif
 
 int sys_nerr = __SYS_NERR + 1;
@@ -117,7 +123,7 @@ const char *sys_errlist[__SYS_NERR + 1] =
   "Function not implemented",			/* ENOSYS */
   "RISC OS error",				/* EOPSYS */
   "Signal Received",				/* ESIG, as flagged by SIG_ERR */
-  "Invalid multibyte sequence"			/* (90) EILSEQ */
+  "Invalid multibyte sequence",			/* (90) EILSEQ */
   "Value too large for defined data type"       /* EOVERFLOW */
 #endif
 };
@@ -130,11 +136,18 @@ strerror (int errnum)
       (void) __set_errno (EINVAL);
       return (char *) "Unknown Error";
     }
-#ifndef __TARGET_SCL__
-  if (errnum == EOPSYS)
+
+  /* If the current error is EOPSYS and we have a valid RISC OS error block
+     recorded, give that as result.  */
+  if (errno == EOPSYS
+      && errnum == EOPSYS
+#ifdef __TARGET_SCL__
+      && _stub_errorBuffer)
+    return _stub_errorNumber.errmess;
+#else
+      && __pthread_running_thread->errbuf_valid)
     return __pthread_running_thread->errbuf.errmess;
 #endif
-
   return (char *) sys_errlist[errnum];
 }
 
@@ -142,13 +155,36 @@ int
 strerror_r (int errnum, char *strerrbuf, size_t buflen)
 {
   if (errnum < 0 || errnum >= sys_nerr)
-    return EINVAL;
+    return __set_errno (EINVAL);
+
+  /* If the error string gets requested from the current errno value and we
+     have a valid RISC OS error block recorded, append the RISC OS error to
+     the result.  */
+  if (errnum == errno
+#ifdef __TARGET_SCL__
+      && _stub_errorBuffer)
+#else
+      && __pthread_running_thread->errbuf_valid)
+#endif
+    {
+      int r = snprintf (strerrbuf, buflen, "%s (0x%x %s)",
+			sys_errlist[errnum],
+#ifdef __TARGET_SCL__
+			_stub_errorNumber.errnum,
+			_stub_errorNumber.errmess
+#else
+			__pthread_running_thread->errbuf.errnum,
+			__pthread_running_thread->errbuf.errmess
+#endif
+		       );
+      return r < 0 || r == buflen ? __set_errno (ERANGE) : 0;
+    }
 
   const char *errmess = strerror (errnum);
 
   size_t len = strlen (errmess);
   if (len >= buflen)
-    return ERANGE;
+    return __set_errno (ERANGE);
 
   memcpy (strerrbuf, errmess, len + 1);
 

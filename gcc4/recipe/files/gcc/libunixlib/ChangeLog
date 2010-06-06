@@ -1,3 +1,72 @@
+Sun Jun  6 23:04:35 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/seterr.c(__ul_seterr): Allow to set non-EOPSYS error value
+	(helps to eliminate an additional __set_errno call obscuring the
+	recorded RISC OS error).
+	* kernel/ksetenv.s(_kernel_setenv): Follow __ul_seterr API change.
+	* kernel/kswi_c.s(_kernel_swi_c): Likewise.
+	* kernel/kosbyte.s(_kernel_osbyte): Likewise.
+	* kernel/koscli.s(_kernel_oscli): Likewise.
+	* kernel/kosgbpb.s(_kernel_osgbpb): Likewise.
+	* kernel/kosbput.s(_kernel_osbput): Likewise.
+	* kernel/kosword.s(_kernel_osword): Likewise.
+	* kernel/kosfile.s(_kernel_osfile): Likewise.
+	* kernel/kosrdch.s(_kernel_osrdch): Likewise.
+	* kernel/kosfind.s(_kernel_osfind): Likewise.
+	* kernel/kosbget.s(_kernel_osbget): Likewise.
+	* kernel/kgetenv.s(_kernel_getenv): Likewise.
+	* kernel/kosargs.s(_kernel_osargs): Likewise.
+	* kernel/kswi.s(_kernel_swi): Likewise.
+	* stdio/rename.c(rename): Likewise.
+	* unix/getenv.c(getenv): Likewise.
+	* unix/setenv.c(setenv): Likewise.
+	* unix/unix.c(convert_command_line): Likewise.
+	* unix/dirent.c(newstream,readdir_r): Likewise.
+	* unix/truncate.c(truncate): Likewise.
+	* unix/chmod.c(chmod): Likewise.
+	* unix/unlink.c(unlink): Likewise.
+	* unix/getcwd.c(getcwd): Likewise.
+	* unix/utime.c(utime): Likewise.
+	* unix/fchmod.c(fchmod): Likewise.
+	* unix/mkdir.c(mkdir): Likewise.
+	* unix/gethostnam.c(gethostname): Likewise.
+	* unix/sync.c(sync): Likewise.
+	* unix/rmdir.c(rmdir): Likewise.
+	* unix/chdir.c(chdir): Likewise.
+	* unix/dev.c(__fsopen,__fsclose,__fsread,__fswrite,__fslseek,
+	__fsfstat): Likewise.
+	* sound/dsp.c(__dspopen,__dspclose,__dspwrite): Likewise.
+	* locale/iconv.c(iconv_error,iconv_open): Likewise.
+	* netlib/net_error.c(__net_error): Likewise.
+	* common/objattr.c(__object_get_attrs,__object_get_lattrs,
+	__object_set_attrs): Likewise.
+	* common/symlinks.c(read_link_file_info,__resolve_symlinks): Likewise.
+	* resolv/scl_gethostbyname.c(gethostbyname): Likewise.
+	* sys/exec.c(execve): Likewise.
+	* sys/mman.c(munmap,mremap): Likewise.
+	* incl-local/errno.h(__set_errno): Reset RISC OS error copy we might
+	have.
+	* sys/errlist.c(sys_errlist): Fixed typo (last 2 sys_errlist entries
+	were wrong).
+	(strerror): Only return RISC OS error copy when it is
+	marked as valid.
+	(strerror_r): Add copy of RISC OS error in given buffer when it is
+	valid.
+	* scl/chunkid02.s(strerror,__strerror): Rename to __scl_org_strerror
+	(as we have our own strerror implementation).
+	* stdlib/errno.c(errno): Don't define when __UNIXLIB_ERRNO_THREADED
+	is defined.
+	* resolv/scl_gethostbyname.c(gethostbyname): Don't assign R0 to ulerrno.
+	* unix/unix.c: Minor cleanups.
+	* unix/dev.c: Likewise.
+	* common/symlinks.c(read_link_file_info,__resolve_symlinks): Likewise.
+	* common/sockvalid.c(__socket_valid): Likewise.
+	* common/attrib.c(__set_protection,__get_protection): Likewise.
+	* pwd/getpw.c(getpw): Likewise.
+	* pwd/getpwuid_r.c(getpwduid_r): Likewise.
+	* common/fdname.c(__fd_to_name): Don't call __ul_seterr.
+	* test/errno/errno.c: Added.
+
 Fri May 28 21:00:46 2010  Lee Noar  <leenoar@sky.com>
 
 	* gcccompat/_eh_support.s(__ehs_return_address,__ehs_stack_limit,

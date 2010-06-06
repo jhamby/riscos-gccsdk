@@ -1,5 +1,5 @@
 /* Delete a file from disk.
-   Copyright (c) 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2005-2010 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -62,7 +62,7 @@ unlink (const char *ux_file)
     {
       /* FIXME: Should check for EROFS but this would involve
 	 opening/closing the file.  */
-      return __ul_seterr (err, 1);
+      return __ul_seterr (err, EOPSYS);
     }
 
   __unlinksuffix (file);

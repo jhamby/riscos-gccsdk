@@ -20,7 +20,7 @@ _kernel_osgbpb:
 	LDMCSFD	sp!, {v1, v2, v3, v4, pc}
 
 _kernel_osgbpb_err:
-	MOV	a2, #1
+	MOV	a2, #EOPSYS
 	BL	__ul_seterr
 	MOV	a1, #-2
 	LDMFD	sp!, {v1, v2, v3, v4, pc}
