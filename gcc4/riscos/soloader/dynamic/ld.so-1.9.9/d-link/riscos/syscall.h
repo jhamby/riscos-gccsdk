@@ -82,44 +82,49 @@ extern inline int _dl_munmap(char * addr, int size);
 
 static inline void print_text(char *s)
 {
-  asm volatile ("mov r0,%0;\n\t"
-		"swi 0x2;\n"
+  asm volatile ("	mov r0, %[s];\n"
+		"	swi %[OS_Write0];\n"
 		: /* no outputs */
-		: "r" (s)
+		: [s] "r" (s),
+		  [OS_Write0] "i" (0x2)
 		: "a1", "cc");
 }
 
 static inline void print_hex(unsigned int v)
 {
-  asm volatile ("mov r0,%0;\n\t"
-		"sub r1,sp,#20;\n\t"
-		"mov r2,#20;\n\t"
-		"swi 0xd4;\n\t"
-		"mov r2,#0;\n\t"
-		"strb r2,[r1,#0];\n\t"
-		"swi 0x2;\n"
+  asm volatile ("	mov r0, %[v];\n"
+		"	sub r1, sp, #20;\n"
+		"	mov r2, #20;\n"
+		"	swi %[OS_ConvertHex4];\n"
+		"	mov r2, #0;\n"
+		"	strb r2, [r1, #0];\n"
+		"	swi %[OS_Write0];\n"
 		: /* no outputs */
-		: "r" (v)
+		: [v] "r" (v),
+		  [OS_ConvertHex4] "i" (0xD4),
+		  [OS_Write0] "i" (0x2)
 		: "a1", "a2", "a3", "cc");
 }
 
 static inline void print_nl(void)
 {
-  asm volatile ("swi 0x10a;\n\t"
-		"swi 0x10d;\n\t");
+  asm volatile ("	swi 0x10a;\n"
+		"	swi 0x10d;\n");
 }
 
 static inline void print_dec(unsigned int v)
 {
-  asm volatile ("mov r0,%0;\n\t"
-  		"sub r1,sp,#20;\n\t"
-		"mov r2,#20;\n\t"
-		"swi 0xdc;\n\t"
-		"mov r2,#0;\n\t"
-		"strb r2,[r1,#0];\n\t"
-		"swi 0x2;\n"
+  asm volatile ("	mov r0, %[v];\n"
+  		"	sub r1, sp, #20;\n"
+		"	mov r2, #20;\n"
+		"	swi %[OS_ConvertInteger4];\n"
+		"	mov r2, #0;\n"
+		"	strb r2, [r1, #0];\n"
+		"	swi %[OS_Write0];\n"
 		: /* no outputs */
-		: "r" (v)
+		: [v] "r" (v),
+		  [OS_ConvertInteger4] "i" (0xDC),
+		  [OS_Write0] "i" (0x2)
 		: "a1", "a2", "a3", "cc");
 }
 
@@ -185,11 +190,12 @@ static inline unsigned int _dl_check_system_files(char *name)
 {
 unsigned int res;
 
-  asm volatile(	"mov	r0,%[arg_in];\n\t"
-		"swi	%[swi_name];\n\t"
-		"mov	%[arg_out],r0;\n\t"
-		: [arg_out] "=r" (res)
-		: [arg_in] "r" (name), [swi_name] "i" (XSOM_HANDLE_FROM_NAME)
+  asm volatile ("	mov	r0, %[name];\n"
+		"	swi	%[XSOM_HandleFromName];\n"
+		"	mov	%[result], r0;\n"
+		: [result] "=r" (res)
+		: [name] "r" (name),
+		  [XSOM_HandleFromName] "i" (XSOM_HANDLE_FROM_NAME)
 		: "a1", "cc");
   return res;
 }
@@ -198,11 +204,11 @@ static inline unsigned int _dl_generate_runtime_array(void)
 {
 unsigned int err_flag;
 
-  asm volatile( "swi	%[swi_name];\n\t"
-		"movvc	%[err_flag], #0;\n\t"
-		"movvs	%[err_flag], #1;\n\t"
+  asm volatile ("	swi	%[XSOM_GenerateRuntimeArray];\n"
+		"	movvc	%[err_flag], #0;\n"
+		"	movvs	%[err_flag], #1;\n"
 		: [err_flag] "=r" (err_flag)
-		: [swi_name] "i" (XSOM_GENERATE_RUNTIME_ARRAY)
+		: [XSOM_GenerateRuntimeArray] "i" (XSOM_GENERATE_RUNTIME_ARRAY)
 		: "a1", "cc");
   return err_flag;
 }
@@ -214,13 +220,15 @@ static inline struct elf_resolve *_dl_next_object(void **handle)
 {
 struct elf_resolve *res;
 
-  asm volatile ("mov	r0,%[reason];\n\t"
-		"mov	r1,%[handle_i];\n\t"
-		"swi	%[swi_name];\n\t"
-		"mov	%[res],r0;\n\t"
-		"mov	%[handle_o],r1;\n\t"
+  asm volatile ("	mov	r0, %[reason];\n"
+		"	mov	r1, %[handle_i];\n"
+		"	swi	%[XSOM_IterateObjects];\n"
+		"	mov	%[res], r0;\n"
+		"	mov	%[handle_o], r1;\n"
 		: [res] "=r" (res), [handle_o] "=r" (*handle)
-		: [handle_i] "1" (*handle), [swi_name] "i" (XSOM_ITERATE_OBJECTS), [reason] "I" (SOM_ITERATE_REASON_NEXT)
+		: [handle_i] "1" (*handle),
+		  [XSOM_IterateObjects] "i" (XSOM_ITERATE_OBJECTS),
+		  [reason] "I" (SOM_ITERATE_REASON_NEXT)
 		: "a1", "a2", "cc");
   return res;
 }
@@ -232,12 +240,13 @@ static inline struct elf_resolve *_dl_first_object(void **handle)
 {
 struct elf_resolve *res;
 
-  asm volatile ("mov	r0,%[reason];\n\t"
-		"swi	%[swi_name];\n\t" /* SWI "XSOM_IterateObjects" */
-		"mov	%[res],r0;\n\t"
-		"mov	%[handle],r1;\n\t"
+  asm volatile ("	mov	r0, %[reason];\n"
+		"	swi	%[XSOM_IterateObjects];\n"
+		"	mov	%[res], r0;\n"
+		"	mov	%[handle], r1;\n"
 		: [res] "=r" (res), [handle] "=r" (*handle)
-		: [swi_name] "i" (XSOM_ITERATE_OBJECTS), [reason] "I" (SOM_ITERATE_REASON_FIRST)
+		: [XSOM_IterateObjects] "i" (XSOM_ITERATE_OBJECTS),
+		  [reason] "I" (SOM_ITERATE_REASON_FIRST)
 		: "a1", "a2", "cc");
   return res;
 }
@@ -246,11 +255,12 @@ static inline unsigned int _dl_handle_from_addr(void *addr)
 {
 unsigned int res;
 
-  asm volatile ("mov	r0,%[arg];\n\t"
-		"swi	%[swi_name];\n\t"	/* SWI "XSOM_HandleFromAddr" */
-		"mov	%[res],r0;\n\t"
+  asm volatile ("	mov	r0, %[arg];\n"
+		"	swi	%[XSOM_HandleFromAddr];\n"
+		"	mov	%[res], r0;\n"
 		: [res] "=r" (res)
-		: [arg] "r" (addr), [swi_name] "i" (XSOM_HANDLE_FROM_ADDR)
+		: [arg] "r" (addr),
+		  [XSOM_HandleFromAddr] "i" (XSOM_HANDLE_FROM_ADDR)
 		: "a1", "cc");
   return res;
 }
@@ -259,11 +269,12 @@ static inline unsigned int *_dl_got_from_addr(void *addr)
 {
 unsigned int *got;
 
-  asm volatile ("mov	r0,%[arg];\n\t"
-		"swi	%[swi_name];\n\t"
-		"mov	%[got],r0;\n\t"
+  asm volatile ("	mov	r0,%[arg];\n"
+		"	swi	%[XSOM_GOTFromAddr];\n"
+		"	mov	%[got], r0;\n"
 		: [got] "=r" (got)
-		: [arg] "r" (addr), [swi_name] "i" (XSOM_GOT_FROM_ADDR)
+		: [arg] "r" (addr),
+		  [XSOM_GOTFromAddr] "i" (XSOM_GOT_FROM_ADDR)
 		: "a1", "cc");
   return got;
 }
@@ -272,61 +283,66 @@ static inline char *_dl_resolve_symlinks(const char *filename)
 {
 char *res;
 
-  asm volatile ("mov	r0, %[filename];\n\t"
-		"swi	%[swi_name];\n\t"
-		"movvc	%[res], r0;\n\t"
-		"movvs	%[res], #0;\n\t"
+  asm volatile ("	mov	r0, %[filename];\n"
+		"	swi	%[XSOM_ResolveLinks];\n"
+		"	movvc	%[res], r0;\n"
+		"	movvs	%[res], #0;\n"
 		: [res] "=r" (res)
-		: [filename] "r" (filename), [swi_name] "i" (XSOM_RESOLVE_SYMLINKS)
+		: [filename] "r" (filename),
+		  [XSOM_ResolveLinks] "i" (XSOM_RESOLVE_SYMLINKS)
 		: "a1", "cc");
   return res;
 }
 
 static inline void _dl_som_free(void *addr)
 {
-  asm volatile ("mov	r0, %[addr];\n\t"
-		"swi	%[swi_name];\n\t"
+  asm volatile ("	mov	r0, %[addr];\n"
+		"	swi	%[XSOM_Free];\n"
 		: /* no outputs */
-		: [addr] "r" (addr), [swi_name] "i" (XSOM_FREE)
+		: [addr] "r" (addr),
+		  [XSOM_Free] "i" (XSOM_FREE)
 		: "a1", "cc");
 }
 
 static inline void _dl_exit(int status)
 {
-  asm volatile ("swi	%[swi_name];\n\t"	/* SWI "XSOM_DeregisterClient" */
-		"ldr	r0,1f;\n\t"
-		"ldr	r1,0f;\n\t"
-		"mov	r2,%0;\n\t"
-		"swi	0x11;\n"			/* SWI "OS_Exit" */
-		"0:\n\t"
-		".word	0x58454241\n"
-		"1:\n\t"
-		".word	0\n\t"
-		".asciz	\"Dynamic Loader error\"\n\t"
-		".align\n"
+  asm volatile ("	swi	%[XSOM_DeregisterClient];\n"
+		"	ldr	r0, 1f;\n"
+		"	ldr	r1, 0f;\n"
+		"	mov	r2, %[status];\n"
+		"	swi	%[OS_Exit];\n"
+		"0:\n"
+		"	.word	0x58454241\n"
+		"1:\n"
+		"	.word	0\n"
+		"	.asciz	\"Dynamic Loader error\"\n"
+		"	.align\n"
 		: /* no outputs */
-		: "r" (status), [swi_name] "i" (XSOM_DEREGISTER_CLIENT));
+		: [status] "r" (status),
+		  [XSOM_DeregisterClient] "i" (XSOM_DEREGISTER_CLIENT),
+		  [OS_Exit] "i" (0x11));
 }
 
 static inline void _dl_generate_error(const os_error *err)
 {
-  asm volatile ("swi	%[som_deregister_client];\n\t"
-		"mov	r0, %0;\n\t"
-		"swi	%[os_generate_error];\n\t"
+  asm volatile ("	swi	%[XSOM_DeregisterClient];\n"
+		"	mov	r0, %[err];\n"
+		"	swi	%[OS_GenerateError];\n"
 		: /* no outputs */
-		: "r" (err),
-		  [som_deregister_client] "i" (XSOM_DEREGISTER_CLIENT),
-		  [os_generate_error] "i" (0x2b)
+		: [err] "r" (err),
+		  [XSOM_DeregisterClient] "i" (XSOM_DEREGISTER_CLIENT),
+		  [OS_GenerateError] "i" (0x2b)
 		: "r0", "cc");
 }
 
 static inline void _dl_close(int fd)
 {
-   asm volatile ("mov r1,%0;\n\t"
-		"mov r0,#0;\n\t"
-		"swi 0x2000d;\n\t"	/* SWI "XOS_Find",0 */
+  asm volatile ("	mov r1, %[fd];\n"
+		"	mov r0, #0;\n"
+		"	swi %[XOS_Find];\n"
 		: /* no outputs */
-		: "r" (fd)
+		: [fd] "r" (fd),
+		  [XOS_Find] "i" (0x2000d)
 		: "a1","a2");
 }
 
@@ -334,12 +350,13 @@ static inline int _dl_alloc_lib(unsigned int size)
 {
 int addr;
 
-  asm volatile ("mov r0,%1;\n\t"
-		"swi %[swi_name];\n\t"	/* SWI "XSOM_AllocLib" */
-		"movvs %0,#0;\n\t"
-		"movvc %0,r0;\n\t"
-		: "=r" (addr)
-		: "r" (size), [swi_name] "i" (XSOM_ALLOC_LIB)
+  asm volatile ("	mov r0, %[size];\n"
+		"	swi %[XSOM_AllocLib];\n"
+		"	movvs %[addr], #0;\n"
+		"	movvc %[addr], r0;\n"
+		: [addr] "=r" (addr)
+		: [size] "r" (size),
+		  [XSOM_AllocLib] "i" (XSOM_ALLOC_LIB)
 		: "a1", "cc");
   return addr;
 }
@@ -364,21 +381,25 @@ struct object_info
 */
 static inline void _dl_register_lib(unsigned int handle,struct object_info *buffer)
 {
-  asm volatile ("mov	r0,%3;\n\t"
-		"mov	r1,%0;\n\t"
-		"mov	r2,%1;\n\t"
-		"swi	%[swi_name];\n\t"	/* SWI "XSOM_RegisterObject" */
+  asm volatile ("	mov	r0, %[reason_code_REGISTER_LIBRARY];\n"
+		"	mov	r1, %[handle];\n"
+		"	mov	r2, %[buffer];\n"
+		"	swi	%[XSOM_RegisterObject];\n"
 		: /* no outputs */
-		: "r" (handle), "r" (buffer), [swi_name] "i" (XSOM_REGISTER_OBJECT), "I" (SOM_REGISTER_LIBRARY)
+		: [handle] "r" (handle),
+		  [buffer] "r" (buffer),
+		  [XSOM_RegisterObject] "i" (XSOM_REGISTER_OBJECT),
+		  [reason_code_REGISTER_LIBRARY] "I" (SOM_REGISTER_LIBRARY)
 		: "a1", "a2", "a3", "cc");
 }
 
 static inline void _dl_deregister_lib(unsigned int handle)
 {
-  asm volatile ("mov	r0,%0;\n\t"
-		"swi	%[swi_name];\n\t"	/* SWI "XSOM_DeregisterSharedObject" */
+  asm volatile ("	mov	r0, %[handle];\n"
+		"	swi	%[XSOM_DeregisterSharedObject];\n"
 		: /* no outputs */
-		: "r" (handle), [swi_name] "i" (XSOM_DEREGISTER_OBJECT)
+		: [handle] "r" (handle),
+		  [XSOM_DeregisterSharedObject] "i" (XSOM_DEREGISTER_OBJECT)
 		: "a1", "cc");
 }
 
@@ -390,14 +411,17 @@ static inline int _dl_query_object_global(unsigned int handle,struct object_info
 {
 int result;
 
-  asm volatile ("mov	r0,%1;\n\t"
-		"mov	r1,%2;\n\t"
-		"mov	r2,%3;\n\t"
-		"swi	%[swi_name];\n\t"	/* SWI "XSOM_QueryObject" */
-		"movvs	%0, #-1;\n\t"
-		"movvc	%0, #0;\n\t"
-		: "=r" (result)
-		: "r" (handle), "r" (buffer), "I" (SOM_QUERY_OBJECT_GLOBAL), [swi_name] "i" (XSOM_QUERY_OBJECT)
+  asm volatile ("	mov	r0, %[handle];\n"
+		"	mov	r1, %[buffer];\n"
+		"	mov	r2, %[reason_code_QUERY_GLOBAL];\n"
+		"	swi	%[XSOM_QueryObject];\n"
+		"	movvs	%[result], #-1;\n"
+		"	movvc	%[result], #0;\n"
+		: [result] "=r" (result)
+		: [handle] "r" (handle),
+		  [buffer] "r" (buffer),
+		  [reason_code_QUERY_GLOBAL] "I" (SOM_QUERY_OBJECT_GLOBAL),
+		  [XSOM_QueryObject] "i" (XSOM_QUERY_OBJECT)
 		: "a1", "a2", "a3", "cc", "memory");
   return result;
 }
@@ -410,14 +434,17 @@ static inline int _dl_query_object_client(unsigned int handle,struct object_info
 {
 int result;
 
-  asm volatile ("mov	r0,%1;\n\t"
-		"mov	r1,%2;\n\t"
-		"mov	r2,%3;\n\t"
-		"swi	%[swi_name];\n\t"	/* SWI "XSOM_QueryObject" */
-		"movvs	%0, #-1;\n\t"
-		"movvc	%0, #0;\n\t"
-		: "=r" (result)
-		: "r" (handle), "r" (buffer), "I" (SOM_QUERY_OBJECT_CLIENT), [swi_name] "i" (XSOM_QUERY_OBJECT)
+  asm volatile ("	mov	r0, %[handle];\n"
+		"	mov	r1, %[buffer];\n"
+		"	mov	r2, %[reason_code_QUERY_CLIENT];\n"
+		"	swi	%[XSOM_QueryObject];\n"
+		"	movvs	%[result], #-1;\n"
+		"	movvc	%[result], #0;\n"
+		: [result] "=r" (result)
+		: [handle] "r" (handle),
+		  [buffer] "r" (buffer),
+		  [reason_code_QUERY_CLIENT] "I" (SOM_QUERY_OBJECT_CLIENT),
+		  [XSOM_QueryObject] "i" (XSOM_QUERY_OBJECT)
 		: "a1", "a2", "a3", "cc", "memory");
   return result;
 }
@@ -430,21 +457,25 @@ static inline int _dl_mmap(void * rqd_addr, unsigned int size,
 {
 int addr = 0;
 
-  asm volatile ("mov	r0, %1;\n\t"
-  		"swi	%[swi_name];\n\t"	/* SWI "XSOM_Alloc" */
-  		"movvs	%0, #-1;\n\t"
-  		"bvs	0f;\n\t"
-  		"mov	%0, r0;\n\t"
+  asm volatile ("	mov	r0, %[size];\n"
+  		"	swi	%[XSOM_Alloc];\n"
+  		"	movvs	%[addr], #-1;\n"
+  		"	bvs	0f;\n"
+  		"	mov	%[addr], r0;\n"
 
-  		"mov	r4, %3;\n\t"
-		"mov	r3, %1;\n\t"
-		"mov	r2, r0;\n\t"
-		"mov	r1, %2;\n\t"
-		"mov	r0, #3;\n\t"
-		"swi	0x2000c;\n\t"	/* SWI "XOS_GBPB",3 */
+  		"	mov	r4, %[offset];\n"
+		"	mov	r3, %[size];\n"
+		"	mov	r2, r0;\n"
+		"	mov	r1, %[fd];\n"
+		"	mov	r0, #3;\n"
+		"	swi	%[XOS_GBPB];\n"
 		"0:\n"
-		: "=r" (addr)
-		: "r" (size), "r" (fd), "rI" (f_offset), [swi_name] "i" (XSOM_ALLOC)
+		: [addr] "=r" (addr)
+		: [size] "r" (size),
+		  [fd] "r" (fd),
+		  [offset] "rI" (f_offset),
+		  [XSOM_Alloc] "i" (XSOM_ALLOC),
+		  [XOS_GBPB] "i" (0x2000C)
 		: "a1", "a2", "a3", "a4", "v1", "cc");
 
   return addr;
@@ -455,28 +486,32 @@ static inline int _dl_write(int fd, const char * buf, int len)
   int status;
 
   /* Only used for output to console? Trap fd == 2 and fd == 1 and write directly to console */
-  asm volatile ("teq	%1,#1;\n\t"
-		"teqne	%1,#2;\n\t"
-		"bne	0f;\n\t"
-		"mov	r0,%2;\n\t"
-  		"mov	r1,%3;\n\t"
-  		"swi	0x20046;\n\t" /* SWI "XOS_WriteN" */
-  		"sub	r1,r1,#1;\n\t"
-  		"ldrb	r0,[r0,r1];\n\t"
-  		"cmp	r0,#10;\n\t"
-  		"swieq	0x10d;\n\t" /* if last character is newline, then output carriage return as well */
-		"b	1f\n"
-		"0:\t\n"
-		"cmp	%1,#0;\n\t"
-		"bmi	1f;\t\n"
-		"mov	r3,%3;\n\t"
-		"mov	r2,%2;\n\t"
-		"mov	r1,%1;\n\t"
-		"mov	r0,#2;\n\t"
-		"swi	0x2000c;\n" /* SWI "XOS_GBPB",2 */
-		"1:\n\t"
-		: "=r" (status)
-		: "r" (fd), "r" (buf), "r" (len)
+  asm volatile ("	teq	%[fd], #1;\n"
+		"	teqne	%[fd], #2;\n"
+		"	bne	0f;\n"
+		"	mov	r0, %[buffer];\n"
+  		"	mov	r1, %[len];\n"
+  		"	swi	%[XOS_WriteN];\n"
+  		"	sub	r1, r1, #1;\n"
+  		"	ldrb	r0, [r0, r1];\n"
+  		"	cmp	r0, #10;\n"
+  		"	swieq	0x10d;\n" /* if last character is newline, then output carriage return as well */
+		"	b	1f\n"
+		"0:\n"
+		"	cmp	%1, #0;\n"
+		"	bmi	1f;\n"
+		"	mov	r3, %[len];\n"
+		"	mov	r2, %[buffer];\n"
+		"	mov	r1, %[fd];\n"
+		"	mov	r0, #2;\n"
+		"	swi	%[XOS_GBPB];\n"
+		"1:\n"
+		: [status] "=r" (status)
+		: [fd] "r" (fd),
+		  [buffer] "r" (buf),
+		  [len] "r" (len),
+		  [XOS_GBPB] "i" (0x2000C),
+		  [XOS_WriteN] "i" (0x20046)
 		: "a1", "a2", "a3", "a4", "v1", "cc");
 
   return status;
@@ -487,19 +522,22 @@ static inline int _dl_read(int fd, const char * buf, int len)
 {
   int status;
 
-  asm volatile ("cmp	%1,#-1;\n\t"
-		"movmi	%0,#-1;\n\t"
-		"bmi	0f;\t\n\t"
-		"mov	r3,%3;\n\t"
-		"mov	r2,%2;\n\t"
-		"mov	r1,%1;\n\t"
-		"mov	r0,#4;\n\t"
-		"swi	0x2000c;\n" /* SWI "XOS_GBPB",4 */
-		"movvs	%0,#-1;\n\t"
-		"movvc	%0,#0;\n\t"
+  asm volatile ("	cmp	%[fd], #-1;\n"
+		"	movmi	%[status], #-1;\n"
+		"	bmi	0f;\t\n"
+		"	mov	r3, %[len];\n"
+		"	mov	r2, %[buffer];\n"
+		"	mov	r1, %[fd];\n"
+		"	mov	r0,#4;\n"
+		"	swi	%[XOS_GBPB];\n"
+		"	movvs	%[status], #-1;\n"
+		"	movvc	%[status], #0;\n"
 		"0:\n\t"
-		: "=r" (status)
-		: "r" (fd), "r" (buf), "r" (len)
+		: [status] "=r" (status)
+		: [fd] "r" (fd),
+		  [buffer] "r" (buf),
+		  [len] "r" (len),
+		  [XOS_GBPB] "i" (0x2000c)
 		: "a1", "a2", "a3", "a4", "v1", "cc");
 
   return status;
@@ -509,14 +547,16 @@ static inline int _dl_set_file_pos(int fd, int pos)
 {
 int status;
 
-  asm volatile ("mov	r0,#1;\n\t"
-		"mov	r1,%1;\n\t"
-		"mov	r2,%2;\n\t"
-		"swi	0x20009;\n\t" /* SWI "XOS_Args",1 */
-		"movvs	%0, #-1;\n\t"
-		"movvc	%0, #0;\n\t"
-		: "=r" (status)
-		: "r" (fd), "r" (pos)
+  asm volatile ("	mov	r0, #1;\n"
+		"	mov	r1, %[fd];\n"
+		"	mov	r2, %[pos];\n"
+		"	swi	%[XOS_Args];\n"
+		"	movvs	%[status], #-1;\n"
+		"	movvc	%[status], #0;\n"
+		: [status] "=r" (status)
+		: [fd] "r" (fd),
+		  [pos] "r" (pos),
+		  [XOS_Args] "i" (0x20009)
 		: "a1", "a2", "a3", "cc");
   return status;
 }
@@ -525,12 +565,13 @@ static inline int _dl_munmap(char * addr, int size)
 {
 int ret;
 
-  asm volatile ("mov	r0,%1;\n\t"
-		"swi	%[swi_name];\n\t"
-		"movvc	%0,#0;\n\t"
-		"movvs	%0,#-1;\n\t"
-		: "=r" (ret)
-		: "r" (addr), [swi_name] "i" (XSOM_FREE)
+  asm volatile ("	mov	r0, %[addr];\n"
+		"	swi	%[XSOM_Free];\n"
+		"	movvc	%[result], #0;\n"
+		"	movvs	%[result], #-1;\n"
+		: [result] "=r" (ret)
+		: [addr] "r" (addr),
+		  [XSOM_Free] "i" (XSOM_FREE)
 		: "a1", "cc");
 
   return ret;
