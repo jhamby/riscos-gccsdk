@@ -15,3 +15,14 @@
  		--include-header "eggdbus/eggdbustypes.h"						\
  		--include-header "eggdbus/eggdbusinterface.h"						\
  		--include-header "eggdbus/eggdbusinterfaceproxy.h"					\
+--- docs/man/Makefile.in.orig	2010-06-05 11:16:16.544755510 +0100
++++ docs/man/Makefile.in	2010-06-05 11:18:36.907288856 +0100
+@@ -442,7 +442,7 @@
+ 
+ 
+ @MAN_PAGES_ENABLED_TRUE@%.1 : %.xml
+-@MAN_PAGES_ENABLED_TRUE@	$(XSLTPROC) -nonet http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
++@MAN_PAGES_ENABLED_TRUE@	$(XSLTPROC) http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
+ 
+ clean-local:
+ 	rm -f *~ *.1

@@ -1,7 +1,7 @@
 --- Configure.orig	2009-07-24 12:51:28.000000000 -0700
 +++ Configure	2009-07-24 12:53:00.000000000 -0700
 @@ -1,4 +1,4 @@
--#!/usr/local/bin/perl
+-:
 +#!/usr/bin/perl
  eval 'exec perl -S $0 ${1+"$@"}'
      if $running_under_some_shell;

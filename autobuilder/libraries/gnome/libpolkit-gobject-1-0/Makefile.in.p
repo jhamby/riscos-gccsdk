@@ -22,3 +22,15 @@
  all: all-recursive
  
  .SUFFIXES:
+--- docs/man/Makefile.in.orig	2010-06-05 11:36:41.707204489 +0100
++++ docs/man/Makefile.in	2010-06-05 11:36:53.107196736 +0100
+@@ -545,7 +545,7 @@
+ 
+ 
+ @MAN_PAGES_ENABLED_TRUE@%.8 %.1 : %.xml
+-@MAN_PAGES_ENABLED_TRUE@	$(XSLTPROC) -nonet --stringparam man.base.url.for.relative.links $(datadir)/gtk-doc/html/polkit-1/ --xinclude http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
++@MAN_PAGES_ENABLED_TRUE@	$(XSLTPROC) --stringparam man.base.url.for.relative.links $(datadir)/gtk-doc/html/polkit-1/ --xinclude http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
+ 
+ clean-local:
+ 	rm -f *~ *.1 *.8
+

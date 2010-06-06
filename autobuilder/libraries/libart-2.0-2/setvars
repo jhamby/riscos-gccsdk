@@ -1,5 +1,3 @@
 
 AB_INSTALL=yes
 
-AB_MAKE="gcc gen_art_config.c -o gen_art_config; $AB_MAKE"
-

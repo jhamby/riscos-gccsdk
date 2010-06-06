@@ -2,6 +2,7 @@
 AB_INSTALL=yes
 
 echo "all install:" > data/fonts/Makefile.in
+mkdir debian
 echo "all install:" > debian/changelog.in
 
 autoreconf -fi

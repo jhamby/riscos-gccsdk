@@ -20,3 +20,14 @@
  @POLKIT_AUTHDB_DEFAULT_TRUE@am__append_1 = polkit-read-auth-helper polkit-set-default-helper
  @KIT_BUILD_TESTS_TRUE@TESTS = polkit-dbus-test$(EXEEXT)
  @KIT_BUILD_TESTS_TRUE@check_PROGRAMS = $(am__EXEEXT_1)
+--- doc/man/Makefile.in.orig	2010-06-05 12:47:09.914752856 +0100
++++ doc/man/Makefile.in	2010-06-05 12:48:32.027302617 +0100
+@@ -554,7 +554,7 @@
+ 
+ 
+ @MAN_PAGES_ENABLED_TRUE@%.1 %.5 %.8 : %.xml
+-@MAN_PAGES_ENABLED_TRUE@	$(XSLTPROC) -nonet http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
++@MAN_PAGES_ENABLED_TRUE@	$(XSLTPROC) http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
+ 
+ clean-local:
+ 	rm -f *~ *.1 *.5 *.8

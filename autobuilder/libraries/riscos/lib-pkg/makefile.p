@@ -6,7 +6,7 @@
  
 -CPPFLAGS = -Irtk: -Izlib:zlib -Ilibcurl: -Ilibpkg_build:
 +#CPPFLAGS = -Irtk: -Izlib:zlib -Ilibcurl: -Ilibpkg_build:
-+CPPFLAGS = -I$(GCCSDK_INSTALL_ENV)/zlib -I$(GCCSDK_INSTALL_ENV) -I..
++CPPFLAGS = -I$(GCCSDK_INSTALL_ENV)/zlib -I$(GCCSDK_INSTALL_ENV)/include -I..
  CXXFLAGS = -mthrowback -munixlib -mpoke-function-name \
   -Wall -W -Wno-unused -Wno-uninitialized -O2
  

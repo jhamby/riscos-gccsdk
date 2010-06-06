@@ -18,7 +18,7 @@
  	rm -rf $(PREFIX)
  	mkdir $(PREFIX)
  	ln -s !RTK $(subst .,/,$(PREFIX)).!RTK
-@@ -33,3 +33,6 @@
+@@ -33,3 +33,20 @@
  dist-doc:
  	rm -f $(PREFIX).doc.zip
  	zip -r $(PREFIX).doc.zip !RTK -i@!RTK/include.doc

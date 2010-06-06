@@ -1,9 +1,9 @@
---- src/video/riscos/SDL_riscosASM.S.orig	2008-01-06 10:37:17.000000000 -0800
-+++ src/video/riscos/SDL_riscosASM.S	2008-01-06 10:52:16.000000000 -0800
+--- src/video/riscos/SDL_riscosASM.S.orig	2010-06-04 22:28:42.798530036 +0100
++++ src/video/riscos/SDL_riscosASM.S	2010-06-04 22:41:20.591027278 +0100
 @@ -1,75 +1,79 @@
 -;
 -;    SDL - Simple DirectMedia Layer
--;    Copyright (C) 1997-2004 Sam Lantinga
+-;    Copyright (C) 1997-2009 Sam Lantinga
 -;
 -;    This library is free software; you can redistribute it and/or
 -;    modify it under the terms of the GNU Library General Public
@@ -95,11 +95,11 @@
                  B       ucp64lp
  
 -00              ;tail strip of 1-15 pixels
-+L00:             @tail strip of 1-15 pixels
++L00:            @tail strip of 1-15 pixels
  
                  LDR     v1,[ip],#4
 -01              SUBS    a2,a2,#1
-+L01:             SUBS    a2,a2,#1
++L01:            SUBS    a2,a2,#1
                  STR     v1,[lr],#4
                  LDRHI   v1,[ip],#4
 -                BHI     %01
@@ -113,7 +113,7 @@
 +                BNE     L00
  
 -02              SUBS    a4,a4,#1                ;height--
-+L02:             SUBS    a4,a4,#1                @height--
++L02:            SUBS    a4,a4,#1                @height--
                  LDRHI   v1,[sp,#Arg6]
 -                LDRHI   a2,[sp]                 ;reload width
 -                BLS     %03
@@ -137,5 +137,5 @@
                  B       ucp64lp
  
 -03              LDMFD   sp!,{a2,v1-v6,sl,fp,pc}
-+L03:             LDMFD   sp!,{a2,v1-v6,sl,fp,pc}
++L03:            LDMFD   sp!,{a2,v1-v6,sl,fp,pc}
  
