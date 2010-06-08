@@ -1,3 +1,26 @@
+Wed Jun  9 00:05:06 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/putenv.c(__addenv_to_env): No need to call __set_errno(ENOMEM)
+	after a failed malloc/realloc call.
+	* grp/getgroups.c(setgroups): Likewise.
+	* common/objattr.c(__object_get_attrs,__object_set_attrs): Likewise.
+	* common/symlinks.c(__resolve_symlinks): Likewise.
+	* include/unistd.h(lseek64): Consistent declaration like other 64-bit
+	variants.
+	* unix/reopen.c(__reopen): Minor code cleanup.
+	* unix/pipe.c(pipe): Likewise.
+	* unix/dup2.c(dup2): Likewise.
+	* unix/fchmod.c(fchmod): Likewise.
+	* unix/ul_lseek.c(lseek64): Likewise.
+	* unix/gethostnam.c(gethostname): Likewise.
+	* unix/sync.c(fsync): Likewise.
+	* grp/getgroups.c(initgroups): Likewise.
+	* grp/getgrnam_r.c(getgrnam_r): Likewise.
+	* grp/getgrgid_r.c(getgrgid_r): Likewise.
+	* unistd/fchdir.c(fchdir):  Likewise.
+	* unistd/fchown.c(fchown): Likewise.
+	* pwd/getpwnam_r.c(getpwnam_r): Likewise.
+
 Tue Jun  8 23:26:50 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac(AC_OUTPUT): Add test/errno.  Solves bug 207.

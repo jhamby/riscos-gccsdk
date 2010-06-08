@@ -18,16 +18,14 @@ int
 getpwnam_r (const char *name, struct passwd *result_buf, char *buffer,
             size_t buflen, struct passwd **result)
 {
-  FILE *stream;
-  struct passwd *p;
-
   PTHREAD_SAFE_CANCELLATION
 
   if (result_buf == NULL || buffer == NULL)
     return __set_errno (EINVAL);
 
-  stream = fopen ("/etc/passwd", "r");
+  FILE *stream = fopen ("/etc/passwd", "r");
 
+  struct passwd *p;
   if (stream == NULL)
     {
       p = __pwddefault ();
@@ -37,12 +35,10 @@ getpwnam_r (const char *name, struct passwd *result_buf, char *buffer,
     }
   else
     {
-      p = __pwdread (stream, result_buf, buffer, buflen);
-      while (p != NULL)
+      while ((p = __pwdread (stream, result_buf, buffer, buflen)) != NULL)
         {
           if (strcmp (result_buf->pw_name, name) == 0)
             break;
-          p = __pwdread (stream, result_buf, buffer, buflen);
         }
 
       fclose (stream);

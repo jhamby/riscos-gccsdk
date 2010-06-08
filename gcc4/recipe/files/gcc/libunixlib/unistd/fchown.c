@@ -1,5 +1,5 @@
 /* fchown ()
- * Copyright (c) 2002-2008 UnixLib Developers
+ * Copyright (c) 2002-2010 UnixLib Developers
  */
 
 #include <errno.h>
@@ -14,15 +14,13 @@
 int
 fchown (int fd, uid_t owner, gid_t group)
 {
-  struct __unixlib_fd *file_desc;
-
   PTHREAD_UNSAFE
 
   if (BADF (fd))
     return __set_errno (EBADF);
 
   /* Get the file name associated with the file descriptor.  */
-  file_desc = getfd (fd);
+  struct __unixlib_fd *file_desc = getfd (fd);
 
   if (file_desc->devicehandle->type != DEV_RISCOS)
     return __set_errno (EINVAL);

@@ -1,7 +1,7 @@
 /* getgroups (), setgroups (), initgroups ()
  * Supplementary group reading and setting functions.
  *
- * Copyright (c) 2002-2008 UnixLib Developers
+ * Copyright (c) 2002-2010 UnixLib Developers
  */
 
 
@@ -62,7 +62,7 @@ setgroups (int ngroups, const gid_t *gidset)
     {
       g_gidset = malloc (ngroups * sizeof (gid_t));
       if (g_gidset == NULL)
-        return __set_errno (ENOMEM);
+        return -1;
       memcpy (g_gidset, gidset, ngroups * sizeof (gid_t));
     }
 
@@ -76,12 +76,12 @@ int
 initgroups (const char *name, gid_t basegid)
 {
   struct group *grp;
-  int ngroups=0;
+  int ngroups = 0;
   gid_t gidset[MAX_GROUPS];
 
   PTHREAD_UNSAFE_CANCELLATION
 
-  while ((grp = getgrent ()) !=NULL)
+  while ((grp = getgrent ()) != NULL)
     {
       char **mem;
 

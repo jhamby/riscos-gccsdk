@@ -73,7 +73,7 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
 
       /* Failed to allocate the environment.  */
       if (new_environ == NULL)
-        return __set_errno (ENOMEM);
+        return -1;
 
       if (string)
         {
@@ -88,7 +88,7 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
             {
               if (environ != gbl->last_environ)
                 free (new_environ);
-              return __set_errno (ENOMEM);
+              return -1;
             }
 
           memcpy (new_environ[envcnt], name, namelen);
@@ -117,7 +117,7 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
                  on failure.  Likely memory leak here, but we must not try
                  to free the old string, since it may not have been malloc'ed.  */
               if (str == NULL)
-                return __set_errno (ENOMEM);
+                return -1;
               *ep = str;
             }
 

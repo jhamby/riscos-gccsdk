@@ -37,9 +37,8 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
 #if __UNIXLIB_SYMLINKS
   {
     char *target;
-
     if ((target = malloc (buf_len)) == NULL)
-      return __set_errno (ENOMEM);
+      return -1;
 
     if (__resolve_symlinks (buffer, target, buf_len) != 0)
       {
@@ -85,9 +84,10 @@ __object_get_attrs (const char *ux_file, char *buffer, size_t buf_len,
     *attr = regs[5];
 
   /* Fail if file doesn't exist or (if specified) filetype is different.  */
-  if (regs[0] == 0 ||
-      ((regs[0] == 1 || (regs[0] == 3 && __get_feature_imagefs_is_file ())) &&
-       sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
+  if (regs[0] == 0
+      || ((regs[0] == 1
+	   || (regs[0] == 3 && __get_feature_imagefs_is_file ()))
+          && sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
     return __set_errno (ENOENT);
 
   return 0;
@@ -150,9 +150,10 @@ __object_get_lattrs (const char *ux_file, char *buffer, size_t buf_len,
     *attr = regs[5];
 
   /* Fail if file doesn't exist or (if specified) filetype is different.  */
-  if (regs[0] == 0 ||
-      ((regs[0] == 1 || (regs[0] == 3 && __get_feature_imagefs_is_file ())) &&
-       sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
+  if (regs[0] == 0
+      || ((regs[0] == 1
+           || (regs[0] == 3 && __get_feature_imagefs_is_file ()))
+          && sftype != __RISCOSIFY_FILETYPE_NOTFOUND && sftype != aftype))
     return __set_errno (ENOENT);
 
   return 0;
@@ -167,9 +168,6 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
 {
   _kernel_oserror *err;
   int regs[10], sftype;
-#if __UNIXLIB_SYMLINKS
-  char *target;
-#endif
 
   if (ux_file == NULL)
     return __set_errno (EINVAL);
@@ -178,8 +176,9 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
     return __set_errno (ENAMETOOLONG);
 
 #if __UNIXLIB_SYMLINKS
+  char *target;
   if ((target = malloc (buf_len)) == NULL)
-    return __set_errno (ENOMEM);
+    return -1;
 
   if (__resolve_symlinks (buffer, target, buf_len) != 0)
     {

@@ -1,5 +1,5 @@
 /* UnixLib __reopen() implementation.
-   Copyright (c) 2000, 2001, 2002, 2003, 2004, 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2000-2010 UnixLib Developers.  */
 
 #include <stdarg.h>
 #include <errno.h>
@@ -15,16 +15,15 @@
 int
 __reopen (int fd, const char *file, int oflag, ...)
 {
-  va_list ap;
-  int mode;
-
   PTHREAD_UNSAFE
 
   if (BADF (fd))
     return __set_errno (EBADF);
 
+  int mode;
   if (oflag & O_CREAT)
     {
+      va_list ap;
       va_start (ap, oflag);
       mode = va_arg (ap, int);
       va_end (ap);

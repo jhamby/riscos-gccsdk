@@ -1,5 +1,5 @@
 /* dup2 ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <errno.h>
@@ -11,8 +11,6 @@
 int
 dup2 (int fd1, int fd2)
 {
-  int save;
-
   if ((unsigned int) fd2 >= __ul_global.sulproc->maxfd)
     return __set_errno (EINVAL);
 
@@ -23,7 +21,7 @@ dup2 (int fd1, int fd2)
     return fd2;
 
   /* Close the new file descriptor, if it is open.  */
-  save = errno;
+  int save = errno;
   close (fd2);
   (void) __set_errno (save);
 

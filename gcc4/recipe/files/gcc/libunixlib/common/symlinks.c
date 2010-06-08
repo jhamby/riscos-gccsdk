@@ -103,7 +103,6 @@ __resolve_symlinks (const char *filename_in, char *filename_out,
 	  if ((buffer = malloc (bufsize)) == NULL)
 	    {
 	      bufsize = 0;
-	      __set_errno (ENOMEM);
 	      break;
 	    }
 	}

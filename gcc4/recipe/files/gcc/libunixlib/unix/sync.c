@@ -23,15 +23,13 @@ sync (void)
 int
 fsync (int fd)
 {
-  _kernel_oserror *err;
-  struct __unixlib_fd *file_desc;
 
   PTHREAD_UNSAFE_CANCELLATION
 
   if (BADF (fd))
     return __set_errno (EBADF);
 
-  file_desc = getfd (fd);
+  struct __unixlib_fd *file_desc = getfd (fd);
 
   /* Must be only for write */
   if (!(file_desc->fflag & (O_WRONLY | O_RDWR)))
@@ -42,8 +40,8 @@ fsync (int fd)
     return __set_errno (EINVAL);
 
   /* Ensure data has been written to the file.  */
-  err = __os_args (255, (int) file_desc->devicehandle->handle, 0, NULL);
-  if (err)
+  _kernel_oserror *err;
+  if ((err = __os_args (255, (int) file_desc->devicehandle->handle, 0, NULL)) != NULL)
     return __ul_seterr (err, EOPSYS);
 
   return 0;

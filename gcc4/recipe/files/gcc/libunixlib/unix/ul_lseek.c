@@ -30,5 +30,5 @@ lseek (int fd, off_t offset, int whence)
 off_t
 lseek64 (int fd, off_t offset, int whence)
 {
-  return lseek(fd, offset, whence);
+  return lseek (fd, offset, whence);
 }

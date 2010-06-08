@@ -1,7 +1,7 @@
 /* getgrnam_r ()
  * Search for an entry with a matching group name (re-entrant version).
  *
- * Copyright (c) 2002-2008 UnixLib Developers
+ * Copyright (c) 2002-2010 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -18,24 +18,20 @@ int
 getgrnam_r (const char *name, struct group *result_buf, char *buffer,
 	    size_t buflen, struct group **result)
 {
-  FILE *stream;
-  struct group *grp;
-
   PTHREAD_SAFE_CANCELLATION
 
   if (result_buf == NULL || buffer == NULL)
     return __set_errno (EINVAL);
 
-  stream = fopen ("/etc/group", "r");
+  FILE *stream = fopen ("/etc/group", "r");
   if (stream == NULL)
     return -1;
 
-  grp = __grpread (stream, result_buf, buffer, buflen);
-  while (grp != NULL)
+  struct group *grp;
+  while ((grp = __grpread (stream, result_buf, buffer, buflen)) != NULL)
     {
       if (strcmp (result_buf->gr_name, name) == 0)
         break;
-      grp = __grpread (stream, result_buf, buffer, buflen);
     }
 
   fclose (stream);

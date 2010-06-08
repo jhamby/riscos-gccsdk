@@ -59,7 +59,7 @@ gethostname (char *name, size_t len)
     {
       /* Brain dead behaviour requires copying as much of name as possible
 	 into buffer and not zero terminating.  */
-      strncpy (name, hostname, len);
+      memcpy (name, hostname, len);
       return __set_errno (ENAMETOOLONG);
     }
 
