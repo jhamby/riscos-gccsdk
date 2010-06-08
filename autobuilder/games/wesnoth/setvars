@@ -26,6 +26,6 @@ ab_package() {
 BOOST_DIR=`echo $GCCSDK_INSTALL_ENV/include/*/boost | cut -d ' ' -f 1`
 BOOST_INC=`dirname $BOOST_DIR`
 
-export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec -lintl"
-AB_CONFLAGS="--without-x --with-boost=$BOOST_INC --with-zlib-prefix=$GCCSDK_INSTALL_ENV"
+export LIBS="-L$GCCSDK_INSTALL_ENV/lib -ljpeg -lpng -ltiff -lz -lvorbisidec -lintl"
+AB_CONFLAGS="--without-x --without-fribidi --disable-sdltest --with-boost=$BOOST_INC --with-zlib-prefix=$GCCSDK_INSTALL_ENV"
 
