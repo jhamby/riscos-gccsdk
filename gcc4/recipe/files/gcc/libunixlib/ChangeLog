@@ -1,3 +1,8 @@
+Tue Jun  8 23:26:50 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac(AC_OUTPUT): Add test/errno.  Solves bug 207.
+	* README-DEV: Added section Testcases.
+
 Sun Jun  6 23:04:35 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/seterr.c(__ul_seterr): Allow to set non-EOPSYS error value

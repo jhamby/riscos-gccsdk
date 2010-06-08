@@ -8,6 +8,26 @@ which runtime sanity checks needs to be done, etc are specified at
 libunixlib/include/unixlib/buildoptions.h.
 
 
+Testcases
+~~~~~~~~~
+
+It is always good to expand on relevant testcases when refactoring/fixing
+code so that we check for possible regressions.  Such testcases are stored
+in the subdirectory 'libunixlib/test' and when you make an additional
+subdirectory there, don't forget to adapt configure.ac's AC_OUTPUT statement
+(last line).
+
+These testcases are built & run (using QEMU) in
+builddir/cross-gcc/arm-unknown-riscos/{./,fpu/scl/,fpu/scl/module/}libunixlib
+directory:
+
+[ Setup 'User-mode emulation' QEMU, see http://www.riscos.info/index.php/QEMU ]
+
+  $ source gccsdk-params
+  $ cd builddir/cross-gcc/arm-unknown-riscos/libunixlib
+  $ PATH=$GCCSDK_INSTALL_ENV/bin:<path-to-builddir>/installed-buildtools-for-gcc/bin:$PATH make check
+
+
 Calling conventions
 ~~~~~~~~~~~~~~~~~~~
 
