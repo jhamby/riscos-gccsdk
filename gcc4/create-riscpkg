@@ -376,7 +376,7 @@ mkdir RiscPkg
 
 echo "Package: SharedUnixLibrary" > RiscPkg/Control
 echo "Priority: Required" >> RiscPkg/Control
-echo "Section: Support" >> RiscPkg/Control
+echo "Section: Library" >> RiscPkg/Control
 echo "Maintainer: $GCCSDK_MAINTAINER" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Version: $RPKG_UNIXLIB_VERSION" >> RiscPkg/Control
@@ -416,7 +416,7 @@ mkdir RiscPkg
 
 echo "Package: $RPKG_DRENDERER_NAME" > RiscPkg/Control
 echo "Priority: Optional" >> RiscPkg/Control
-echo "Section: Support" >> RiscPkg/Control
+echo "Section: Library" >> RiscPkg/Control
 echo "Maintainer: Alan Buckley <alan_baa@hotmail.com>" >> RiscPkg/Control
 echo "Standards-Version: 0.1.0" >> RiscPkg/Control
 echo "Version: $RPG_DRENDERER_VERSION" >> RiscPkg/Control
