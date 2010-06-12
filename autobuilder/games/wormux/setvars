@@ -15,6 +15,6 @@ ab_package() {
   $AB_HOME/add-riscpkg -unixlib
 }
 
-export LIBS="-lintl -lcurl -lvorbisidec -ljpeg"
+export LIBS="-lintl -lcurl -lvorbisidec -ljpeg -lcares"
 
 AB_CONFLAGS=\''--datadir=/\<Wormux\$$Dir\>/data --with-datadir-name=/\<Wormux\$$Dir\>/data'\'

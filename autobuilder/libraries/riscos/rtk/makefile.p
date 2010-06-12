@@ -26,7 +26,7 @@
 +install:
 +	cp !RTK/rtk.a $(GCCSDK_INSTALL_ENV)/lib/librtk.a
 +	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/util
-+	cp !RTK/rtk/graphics/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/util
++	cp !RTK/rtk/util/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/util
 +	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/graphics
 +	cp !RTK/rtk/graphics/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/graphics
 +	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/os

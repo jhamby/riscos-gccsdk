@@ -16,3 +16,5 @@ ab_package() {
   
   $AB_HOME/add-riscpkg -unixlib 
 }
+
+AB_CONFLAGS='--with-tclconfig=$GCCSDK_INSTALL_ENV/lib/tcl8.4'
