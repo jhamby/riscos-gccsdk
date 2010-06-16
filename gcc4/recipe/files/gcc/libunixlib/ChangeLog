@@ -1,3 +1,18 @@
+Wed Jun 16 15:17:11 2010  Lee Noar  <leenoar@sky.com>
+
+	* crt/(g)crt0.s(_start): Store pointers to shared library static
+	object initialisation/finalisation routines.
+	* sys/_syslib.s: Remove the reference to _dl_call_ctors by allowing
+	the dynamic loader to pass in the address of a suitable function.
+	Call/register dynamic loader supplied shared library init/fini
+	functions (if not NULL).
+	(__check_stack): Don't rely on caller for PIC register. In the
+	shared library, the stack chunk dealloc function and return address
+	can and will be higher than application address space so don't use
+	them for stack validation.
+	* incl-local/internal/asm_dec.s: Rename CRT1_RESERVED1 and
+	CRT1_RESERVED2 as CRT1_LIB_INIT and CRT1_LIB_FINI respectively.
+
 Wed Jun  9 00:05:06 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/putenv.c(__addenv_to_env): No need to call __set_errno(ENOMEM)

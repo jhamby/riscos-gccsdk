@@ -74,8 +74,8 @@ __main:
 	@ a1+20 = main
 	@ a1+24 = Flags
 	@	   bit 0 set = enable profiling
-	@ a1+28 = Reserved for dynamic linker use
-	@ a1+32 = Reserved for dynamic linker use
+	@ a1+28 = Ptr to shared libraries initialisation function - may be NULL                                                                                     
+	@ a1+32 = Ptr to shared libraries finalisation function - may be NULL                                                                                       
 
 	MOV	v1, a1
 
@@ -425,19 +425,35 @@ no_dynamic_area:
 	TST	a1, #1
 	BLNE	__gmon_start__
 
-	@ Use the Dynamic Loader to call the _init functions of all
-	@ shared libraries. This also reqisters the _fini functions
-	@ with atexit().
- PICEQ "LDR	a1, .L0+40"		@ _dl_call_ctors
- PICEQ "LDR	a1, [v4, a1]"
- PICEQ "TEQ	a1, #0"
- PICEQ "BLNE	_dl_call_ctors"
+	@ Normally, the dynamic loader would take care of shared library
+	@ initialisation, but UnixLib has to be initialised first so that
+	@ the library initialisers can use its resources.
 
+	@ --- Shared Libraries Initialisation ---
+	@ Use the Dynamic Loader to call the _init functions of all
+	@ shared libraries. This may also reqister the _fini functions
+	@ with atexit().
+ PICEQ "LDR	a1, [v2, #CRT1_LIB_INIT]"
+ PICEQ "TEQ	a1, #0"
+ PICEQ "MOVNE	lr, pc"
+ PICEQ "MOVNE	pc, a1"
+
+	@ --- Shared Libraries Finalisation ---
+	@ If the dynamic loader passed a shared library finalisation
+	@ function, then register it for calling at program exit. This
+	@ may be NULL, in which case we assume the LIB_INIT function
+	@ above did the job for us.
+ PICEQ "LDR	a1, [v2, #CRT1_LIB_FINI]"
+ PICEQ "TEQ	a1, #0"
+ PICEQ "BLNE	atexit"
+
+	@ --- Executable Initialisation ---
 	@ Call the program's _init function.
 	LDR	a1, [v2, #CRT1_EXEC_INIT]
 	MOV	lr, pc
 	MOV	pc, a1
 
+	@ --- Executable Finalisation ---
 	@ Make sure the _fini function of the executable is called at program
 	@ exit.
 	LDR	a1, [v2, #CRT1_EXEC_FINI]
@@ -461,7 +477,7 @@ no_dynamic_area:
 
 	MOV	lr, pc			@ Jump to supplied main() program
 	MOV	pc, v1
-	
+
 	@ C programs always terminate by calling exit.
 	B	exit
 .L0:
@@ -475,8 +491,6 @@ no_dynamic_area:
 	WORD	environ			@ offset 28
 	WORD	crt1_data		@ offset 32
  PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)" @ offset 36
- PICEQ ".word	_dl_call_ctors(GOT)"	@ offset 40
- PICEQ ".weak _dl_call_ctors"
 no_main_routine:
 	.asciz	"There is no main function"
 	.align
@@ -945,20 +959,28 @@ signalhandler_overflow:
 #if __UNIXLIB_EXTREMELY_PARANOID
 	@ Check every stack chunk in the chain to ensure it contains
 	@ sensible values.
-	@ v4 set by caller to UnixLib GOT pointer
 	.global	__check_stack
+	.hidden __check_stack
 	NAME	__check_stack
 __check_stack:
 	MOV	ip, sp
-	STMFD	sp!, {a1, a2, a3, a4, v1, v2, fp, ip, lr, pc}
+ PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, fp, ip, lr, pc}"
+ PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, fp, ip, lr, pc}"
 	SUB	fp, ip, #4
 
-	LDR	a1, .L5	@=__ul_global
+ PICEQ "LDR	v4, .L5+8"
+.LPIC9:
+ PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
+ PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT ptr array location
+ PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT ptr array
+ PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT ptr
+
+	LDR	a1, .L5				@=__ul_global
  PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	TEQ	a1, #0
 	BLNE	__pthread_disable_ints
-	LDR	a1, .L5+4	@=__ul_memory
+	LDR	a1, .L5+4			@=__ul_memory
  PICEQ "LDR	a1, [v4, a1]"
 	LDR	a2, [a1, #MEM_STACK]		@ __ul_memory.stack
 	LDR	a3, [a1, #MEM_APPSPACE_HIMEM]	@ __ul_memory.appspace_limit
@@ -977,15 +999,17 @@ __check_stack_l2:
 __check_stack_l3:
 	CMP	a1, #0
 	BNE	__check_stack_l4
-	LDR	a1, .L5	@=__ul_global
+	LDR	a1, .L5				@=__ul_global
  PICEQ "LDR	a1, [v4, a1]"
 	LDR	a1, [a1, #GBL_PTH_SYSTEM_RUNNING]
 	CMP	a1, #0
 	BLNE	__pthread_enable_ints
-	LDMEA	fp, {a1, a2, a3, a4, v1, v2, fp, sp, pc}
+ PICNE "LDMEA	fp, {a1, a2, a3, a4, v1, v2, fp, sp, pc}"
+ PICEQ "LDMEA	fp, {a1, a2, a3, a4, v1, v2, v4, fp, sp, pc}"
 .L5:
 	WORD	__ul_global
 	WORD	__ul_memory
+ PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC9+4)"
 __check_stack_l4:
 	BL	__check_chunk
 	LDR	a1, [a1, #CHUNK_PREV]
@@ -1038,8 +1062,11 @@ __check_chunk_l1:
 	BICNE	v1, v1, #0xfc000003
 	CMP	v1, a4
 	BCC	stack_corrupt
-	CMP	v1, a3
-	BCS	stack_corrupt
+
+	@ In the shared library, the address of the dealloc function
+	@ can be higher than application space.
+ PICNE "CMP	v1, a3"
+ PICNE "BCS	stack_corrupt"
 
 	LDR	v1, [a1, #CHUNK_RETURN]
 	TEQ	a1, a1
@@ -1047,8 +1074,12 @@ __check_chunk_l1:
 	BICNE	v1, v1, #0xfc000003
 	CMP	v1, a4
 	BCC	stack_corrupt
-	CMP	v1, a3
-	BCS	stack_corrupt
+
+	@ In the shared library, the chunk return address can be
+	@ higher than application space.
+ PICNE "CMP	v1, a3"
+ PICNE "BCS	stack_corrupt"
+
 __check_chunk_l2:
 	MOV	pc, lr
 	DECLARE_FUNCTION __check_stack

@@ -293,6 +293,8 @@
 .set	CRT1_DATA_START, 16	@ Ptr to R/W base
 .set	CRT1_MAIN, 20		@ Ptr to main()
 .set	CRT1_FLAGS, 24
-.set	CRT1_RESERVED1, 28
-.set	CRT1_RESERVED2, 32
+.set	CRT1_LIB_INIT, 28	@ Ptr to function to initialise shared libaries
+				@ before main() called - can be NULL.
+.set	CRT1_LIB_FINI, 32	@ Ptr to function to finalise shared libraries
+				@ at program exit - can be NULL.
 #endif

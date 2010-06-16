@@ -1,16 +1,23 @@
 # Copyright (C) 2007-2010 UnixLib Developers
-	
+
+#include "internal/asm_dec.s"
+
 	.file		"crt0.S"
 
 	.global	_start
 	.type	_start, %function
 _start:
-	@ On entry to _start, a1 is set by the dynamic loader to the start of
-	@ free memory after it has claimed what it requires. This value is stored
+	@ On entry:
+	@  a1 = Ptr to start of free memory
+	@  a2 = Ptr to shared libraries initialisation function
+	@  a3 = Ptr to shared libraries finalisation function
+	@ These values are passed to us by the dynamic loader and stored
 	@ in the data block which is then passed to the runtime library.
-	LDR	a2, =crt1_data
-	STR	a1, [a2, #12]
-	MOV	a1, a2
+	LDR	a4, =crt1_data
+	STR	a1, [a4, #CRT1_FREE_MEM]
+	STR	a2, [a4, #CRT1_LIB_INIT]
+	STR	a3, [a4, #CRT1_LIB_FINI]
+	MOV	a1, a4
 	
 	@ On RISC OS the main entry point to the run-time library is
 	@ always called __main.
@@ -27,7 +34,9 @@ crt1_data:
 	.word	__data_start		@ #16
 	.word	main			@ #20
 	.word	0			@ #24 - Always 0 indicating that profiling should be disabled.
-	.word	0			@ #28 - Reserved for dynamic linker use
-	.word	0			@ #32 - Reserved for dynamic linker use
+	.word	0			@ #28 - Pointer to function that can be used to call all shared
+					@	library static object ctors - can be NULL.
+	.word	0			@ #32 - Pointer to function that can be used to call all shared
+					@	library static object dtors - can be NULL.
 
 # end of crt0.S
