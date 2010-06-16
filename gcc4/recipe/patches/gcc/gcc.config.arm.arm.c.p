@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.c.orig	2010-05-09 18:12:08.403949186 +0200
-+++ gcc/config/arm/arm.c	2010-05-09 18:11:57.463951393 +0200
+--- gcc/config/arm/arm.c.orig	2010-06-15 19:09:34.000000000 +0100
++++ gcc/config/arm/arm.c	2010-06-15 19:07:27.000000000 +0100
 @@ -112,6 +112,7 @@ static tree arm_handle_isr_attribute (tr
  #if TARGET_DLLIMPORT_DECL_ATTRIBUTES
  static tree arm_handle_notshared_attribute (tree *, tree, tree, int, bool *);
@@ -688,7 +688,7 @@
  		  && cfun->static_chain_decl != NULL
  		  && ! cfun->machine->uses_anonymous_args) ? 4 : 0;
  
-@@ -10548,15 +10823,76 @@ arm_compute_initial_elimination_offset (
+@@ -10548,15 +10823,101 @@ arm_compute_initial_elimination_offset (
      }
  }
  
@@ -696,9 +696,34 @@
 +static int
 +arm_leaf_function_p (void)
 +{
++#ifdef TARGET_RISCOSELF
++  /* This function is designed to cache the result of leaf_function_p()
++     on the first call and then return the cached result on future calls.
++     However, it would seem that the first call isn't always correct and
++     as this result is used to determine whether stack checking is
++     required, we end up with non-leaf functions without any stack
++     checking at all. If a number of these functions call each other, it
++     leads to a corrupt stack.
++     We could forget the cached result (as newer versions of GCC do) and
++     just call leaf_function_p() every time, but the result tends to change
++     constantly for the same function while GCC rearranges code and
++     optimises things away, etc, and of course right at the crucial point
++     where the need for stack checking is being determined, we get the
++     wrong result.
++     So I've used a more conservative approach. After initially deciding
++     that a function is leaf, GCC can change its mind and change a leaf
++     function into a non-leaf function, but once it becomes a non-leaf
++     function, it stays like that. This may lead to some leaf functions
++     gaining a stack frame and stack check when they don't need them, but
++     at least we shouldn't get non-leaf functions without stack checks.  */
++  int leaf = leaf_function_p ();
++  
++  if (cfun->machine->leaf < 0 || (cfun->machine->leaf == 1 && leaf == 0))
++    cfun->machine->leaf = leaf;
++#else
 +  if (cfun->machine->leaf < 0)
 +    cfun->machine->leaf = leaf_function_p ();
-+  
++#endif
 +  return cfun->machine->leaf;
 +}
 +
@@ -736,7 +761,7 @@
 +  /* If we are not targeting the APCS, we will not use a stack frame.  */
 +  if (! TARGET_APCS_FRAME)
 +    return false;
-+  
++
 +  /* If we are not optimising, or we call alloca, we will always
 +     setup a frame.  */
 +  if (current_function_calls_alloca
@@ -744,13 +769,13 @@
 +      || current_function_has_nonlocal_label
 +      || ! optimize)
 +    return true;
-+  
++
 +  /* A frame will need to be setup for the cases where there are external
 +     function calls within the current function or there is a need
 +     for definite stack checking.  */
 +  if (! arm_leaf_function_p () || arm_stack_check_needed ())
 +    return true;
-+  
++
 +  return false;
 +}
 +
@@ -768,7 +793,7 @@
    unsigned long live_regs_mask;
    unsigned long func_type;
    int fp_offset = 0;
-@@ -10571,6 +10907,15 @@ arm_expand_prologue (void)
+@@ -10571,6 +10932,15 @@ arm_expand_prologue (void)
    if (IS_NAKED (func_type))
      return;
  
@@ -784,7 +809,7 @@
    /* Make a copy of c_f_p_a_s as we may need to modify it locally.  */
    args_to_push = current_function_pretend_args_size;
  
-@@ -10578,8 +10923,9 @@ arm_expand_prologue (void)
+@@ -10578,8 +10948,9 @@ arm_expand_prologue (void)
    live_regs_mask = arm_compute_save_reg_mask ();
  
    ip_rtx = gen_rtx_REG (SImode, IP_REGNUM);
@@ -795,7 +820,7 @@
      {
        if (IS_INTERRUPT (func_type))
  	{
-@@ -10699,7 +11045,7 @@ arm_expand_prologue (void)
+@@ -10699,7 +11070,7 @@ arm_expand_prologue (void)
       can be done with a single instruction.  */
    if ((func_type == ARM_FT_ISR || func_type == ARM_FT_FIQ)
        && (live_regs_mask & (1 << LR_REGNUM)) != 0
@@ -804,7 +829,7 @@
      emit_insn (gen_rtx_SET (SImode,
  			    gen_rtx_REG (SImode, LR_REGNUM),
  			    gen_rtx_PLUS (SImode,
-@@ -10800,13 +11146,67 @@ arm_expand_prologue (void)
+@@ -10800,13 +11171,67 @@ arm_expand_prologue (void)
  	}
      }
  
@@ -875,7 +900,7 @@
        if (IS_NESTED (func_type))
  	{
  	  /* Recover the static chain register.  */
-@@ -10815,8 +11215,11 @@ arm_expand_prologue (void)
+@@ -10815,8 +11240,11 @@ arm_expand_prologue (void)
  	    insn = gen_rtx_REG (SImode, 3);
  	  else /* if (current_function_pretend_args_size == 0) */
  	    {
@@ -889,7 +914,7 @@
  	      insn = gen_frame_mem (SImode, insn);
  	    }
  
-@@ -10826,18 +11229,14 @@ arm_expand_prologue (void)
+@@ -10826,18 +11254,14 @@ arm_expand_prologue (void)
  	}
      }
  
@@ -910,7 +935,7 @@
        do
  	{
  	  last = last ? NEXT_INSN (last) : get_insns ();
-@@ -10848,13 +11247,27 @@ arm_expand_prologue (void)
+@@ -10848,13 +11272,27 @@ arm_expand_prologue (void)
        /* If the frame pointer is needed, emit a special barrier that
  	 will prevent the scheduler from moving stores to the frame
  	 before the stack adjustment.  */
@@ -941,7 +966,7 @@
      arm_load_pic_register (0UL);
  
    /* If we are profiling, make sure no instructions are scheduled before
-@@ -11252,14 +11665,20 @@ arm_assemble_integer (rtx x, unsigned in
+@@ -11252,14 +11690,20 @@ arm_assemble_integer (rtx x, unsigned in
        if (NEED_GOT_RELOC && flag_pic && making_const_table &&
  	  (GET_CODE (x) == SYMBOL_REF || GET_CODE (x) == LABEL_REF))
  	{
@@ -968,7 +993,7 @@
  	}
        fputc ('\n', asm_out_file);
        return true;
-@@ -11303,6 +11722,9 @@ arm_assemble_integer (rtx x, unsigned in
+@@ -11303,6 +11747,9 @@ arm_assemble_integer (rtx x, unsigned in
  static void
  arm_elf_asm_constructor (rtx symbol, int priority ATTRIBUTE_UNUSED)
  {
@@ -978,7 +1003,7 @@
    if (!TARGET_AAPCS_BASED)
      {
        default_named_section_asm_out_constructor (symbol, priority);
-@@ -11315,6 +11737,7 @@ arm_elf_asm_constructor (rtx symbol, int
+@@ -11315,6 +11762,7 @@ arm_elf_asm_constructor (rtx symbol, int
    fputs ("\t.word\t", asm_out_file);
    output_addr_const (asm_out_file, symbol);
    fputs ("(target1)\n", asm_out_file);
@@ -986,7 +1011,7 @@
  }
  #endif
  
-@@ -11947,7 +12370,7 @@ arm_debugger_arg_offset (int value, rtx 
+@@ -11947,7 +12395,7 @@ arm_debugger_arg_offset (int value, rtx 
  
    /* If we are using the stack pointer to point at the
       argument, then an offset of 0 is correct.  */
@@ -995,7 +1020,7 @@
        && REGNO (addr) == SP_REGNUM)
      return 0;
  
-@@ -13503,17 +13926,33 @@ arm_init_machine_status (void)
+@@ -13503,17 +13951,33 @@ arm_init_machine_status (void)
  #if ARM_FT_UNKNOWN != 0
    machine->func_type = ARM_FT_UNKNOWN;
  #endif
@@ -1030,7 +1055,7 @@
    return get_hard_reg_initial_val (Pmode, LR_REGNUM);
  }
  
-@@ -13619,7 +14058,7 @@ thumb_expand_prologue (void)
+@@ -13619,7 +14083,7 @@ thumb_expand_prologue (void)
    if (flag_pic)
      arm_load_pic_register (live_regs_mask);
  
@@ -1039,7 +1064,7 @@
      emit_move_insn (gen_rtx_REG (Pmode, ARM_HARD_FRAME_POINTER_REGNUM),
  		    stack_pointer_rtx);
  
-@@ -13653,7 +14092,7 @@ thumb_expand_prologue (void)
+@@ -13653,7 +14117,7 @@ thumb_expand_prologue (void)
  	     it now.  */
  	  for (regno = LAST_ARG_REGNUM + 1; regno <= LAST_LO_REGNUM; regno++)
  	    if (live_regs_mask & (1 << regno)
@@ -1048,7 +1073,7 @@
  		     && (regno == THUMB_HARD_FRAME_POINTER_REGNUM)))
  	      break;
  
-@@ -13711,7 +14150,7 @@ thumb_expand_prologue (void)
+@@ -13711,7 +14175,7 @@ thumb_expand_prologue (void)
  	}
      }
  
@@ -1057,7 +1082,7 @@
      {
        amount = offsets->outgoing_args - offsets->locals_base;
  
-@@ -13768,7 +14207,7 @@ thumb_expand_epilogue (void)
+@@ -13768,7 +14232,7 @@ thumb_expand_epilogue (void)
    offsets = arm_get_frame_offsets ();
    amount = offsets->outgoing_args - offsets->saved_regs;
  
@@ -1066,7 +1091,7 @@
      {
        emit_insn (gen_movsi (stack_pointer_rtx, hard_frame_pointer_rtx));
        amount = offsets->locals_base - offsets->saved_regs;
-@@ -15057,7 +15496,7 @@ arm_set_return_address (rtx source, rtx 
+@@ -15057,7 +15521,7 @@ arm_set_return_address (rtx source, rtx 
      emit_move_insn (gen_rtx_REG (Pmode, LR_REGNUM), source);
    else
      {
@@ -1075,7 +1100,7 @@
  	addr = plus_constant(hard_frame_pointer_rtx, -4);
        else
  	{
-@@ -15100,7 +15539,7 @@ thumb_set_return_address (rtx source, rt
+@@ -15100,7 +15564,7 @@ thumb_set_return_address (rtx source, rt
        offsets = arm_get_frame_offsets ();
  
        /* Find the saved regs.  */
@@ -1084,7 +1109,7 @@
  	{
  	  delta = offsets->soft_frame - offsets->saved_args;
  	  reg = THUMB_HARD_FRAME_POINTER_REGNUM;
-@@ -15157,13 +15596,97 @@ arm_shift_truncation_mask (enum machine_
+@@ -15157,13 +15621,97 @@ arm_shift_truncation_mask (enum machine_
    return mode == SImode ? 255 : 0;
  }
  
@@ -1183,7 +1208,7 @@
      return regno;
  
    /* TODO: Legacy targets output FPA regs as registers 16-23 for backwards
-@@ -15171,9 +15694,12 @@ arm_dbx_register_number (unsigned int re
+@@ -15171,9 +15719,12 @@ arm_dbx_register_number (unsigned int re
    if (IS_FPA_REGNUM (regno))
      return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
  
