@@ -123,7 +123,7 @@
 #define ALLOW_ZERO_PLTGOT
 
 
-static char * _dl_malloc_addr;
+static unsigned char * _dl_malloc_addr;
 
 char * _dl_library_path = 0; /* Where we look for libraries */
 char *_dl_preload = 0; /* Things to be loaded before the libs. */
@@ -132,8 +132,7 @@ static char * _dl_not_lazy = 0;
 static char * _dl_warn = 0; /* Used by ldd */
 static char * _dl_trace_loaded_objects = 0;
 static int (*_dl_elf_main)(int, char **, char**);
-
-static int (*_dl_elf_init)(void);
+static void _dl_call_ctors(void);
 
 void * (*_dl_malloc_function)(int size) = NULL;
 void (*_dl_stkovf_split_small_function)(void) = NULL;
@@ -152,7 +151,7 @@ unsigned int * _dl_envp;
  * platforms we may need to increase this to 8, but this is good enough for
  * now.  This is typically called after DL_MALLOC.
  */
-#define REALIGN() malloc_buffer = (char *) (((unsigned int) malloc_buffer + 3) & ~(3))
+#define REALIGN() malloc_buffer = (unsigned char *) (((unsigned int) malloc_buffer + 3) & ~(3))
 
 
 #define ELF_HASH(RESULT,NAME) { \
@@ -865,10 +864,11 @@ void _dl_boot(int args)
   START();
 }
 
-void _dl_call_ctors(void)
+static void _dl_call_ctors(void)
 {
 struct elf_resolve *tpnt;
 int (*_dl_atexit)(void *);
+int (*_dl_elf_init)(void);
 
   _dl_atexit = (int (*)(void *)) _dl_find_hash("atexit", NULL, NULL, NULL, 0);
 
@@ -961,7 +961,7 @@ static const os_error error_nomem = { 0, "Insufficient memory for application" }
 void * _dl_malloc(int size)
 {
   void * retval;
-  register char *stack_limit asm("r10");
+  register unsigned char *stack_limit asm("r10");
 
   if(_dl_malloc_function)
   	return (*_dl_malloc_function)(size);
@@ -976,7 +976,7 @@ void * _dl_malloc(int size)
    * Align memory to 4 byte boundary.  Some platforms require this, others
    * simply get better performance.
    */
-  _dl_malloc_addr = (char *) (((unsigned int) _dl_malloc_addr + 3) & ~(3));
+  _dl_malloc_addr = (unsigned char *) (((unsigned int) _dl_malloc_addr + 3) & ~(3));
 
   return retval;
 }

@@ -28,11 +28,10 @@
  * Ensure the following inlines use the same PIC register as the
  * C code.
  */
-//#define GET_GOT(X)     __asm__("\tmovl %%ebx,%0\n\t" : "=a" (X))
 #define GET_GOT(X)     __asm__("\tmov %0,r7\n\t" : "=r" (X))
 
 #define	SET_GOT(GOT)	\
-	asm volatile("\t" \
+   asm volatile("\t" \
 		"mov	r7,%0\n\t" \
 		: \
 		: "r" (GOT))
@@ -75,36 +74,23 @@
 	  _dl_exit(1);		\
 	}
 
-/*	case R_386_32:		\
-	  *REL += SYMBOL;		\
-	  break;		\
-	case R_386_PC32:		\
-	  *REL += SYMBOL - (unsigned int) REL;		\
-	  break;		\
-	case R_386_GLOB_DAT:		\
-	case R_386_JMP_SLOT:		\
-	  *REL = SYMBOL;		\
-	  break;		\*/
-
 /*
  * Transfer control to the user's application, once the dynamic loader
- * is done. We pass _dl_malloc_addr to Unixlib so that it knows where
- * free memory starts and it doesn't overwrite any data belonging to the
- * dynamic loader.
+ * is done. We pass _dl_malloc_addr to the runtime library so that it knows
+ * where free memory starts and it doesn't overwrite any data belonging to the
+ * dynamic loader. We also pass the address of a function that can be used
+ * to call all of the static object constructors in the shared libraries.
  */
-
-/*#define START()		\
-	__asm__ volatile ("leave\n\t" \
-		    "jmp *%%eax\n\t"	\
-		    : "=a" (status) :	\
-		    "d" (_dl_interpreter_exit), "a" (_dl_elf_main))*/
 #define START() \
-	__asm__ volatile ("\t" \
-			"mov a1,%1\n" \
-			"mov pc,%0\n" \
+      __asm__ volatile ("	mov a1, %[free_mem];\n" \
+			"	mov a2, %[ctors];\n" \
+			"	mov a3, #0;\n" \
+			"	mov pc, %[main];\n" \
 			: /* no outputs */ \
-			: "r" (_dl_elf_main), "r" (_dl_malloc_addr) \
-			: "a1")
+			: [main] "r" (_dl_elf_main), \
+			  [free_mem] "r" (_dl_malloc_addr), \
+			  [ctors] "r" (_dl_call_ctors) \
+			: "a1", "a2", "a3")
 
 
 
