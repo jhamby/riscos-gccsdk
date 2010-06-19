@@ -1,6 +1,6 @@
---- gcc/config/arm/arm-protos.h.orig	2007-12-21 00:05:01.000000000 +0100
-+++ gcc/config/arm/arm-protos.h	2007-12-20 20:15:27.000000000 +0100
-@@ -124,9 +124,13 @@
+--- gcc/config/arm/arm-protos.h.orig	2010-06-19 15:13:24.579605316 +0200
++++ gcc/config/arm/arm-protos.h	2010-06-19 15:12:59.340603918 +0200
+@@ -124,6 +124,8 @@ extern const char * arm_output_load_gr (
  extern const char *vfp_output_fstmx (rtx *);
  extern void arm_set_return_address (rtx, rtx);
  extern int arm_eliminable_register (rtx);
@@ -9,12 +9,7 @@
  
  extern bool arm_output_addr_const_extra (FILE *, rtx);
  
-+extern int arm_function_arg_regno_p (int regno);
-+
- #if defined TREE_CODE
- extern rtx arm_function_arg (CUMULATIVE_ARGS *, enum machine_mode, tree, int);
- extern void arm_init_cumulative_args (CUMULATIVE_ARGS *, tree, rtx, tree);
-@@ -190,4 +194,12 @@
+@@ -190,4 +192,12 @@ extern void arm_pr_long_calls (struct cp
  extern void arm_pr_no_long_calls (struct cpp_reader *);
  extern void arm_pr_long_calls_off (struct cpp_reader *);
  
