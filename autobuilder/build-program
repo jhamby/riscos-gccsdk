@@ -149,7 +149,7 @@ ab_docs() {
 
   mkdir -p $A/docs
 
-  ln -s . man3
+  ln -sf . man3
 
   for doc in $@; do
     case $doc in
@@ -551,7 +551,7 @@ export AB_CATEGORY
 export AB_DEBNAME
 
 if [ "$AB_MANPAGE" != "" ] ; then
-  ln -s . man3
+  ln -sf . man3
 
   for AB_PAGE in $AB_MANPAGE ; do
     rman -f HTML $S/$AB_PAGE > $D/$(basename $AB_PAGE),faf
