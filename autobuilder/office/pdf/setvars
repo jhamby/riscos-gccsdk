@@ -1,7 +1,11 @@
-
+AB_CATEGORY=Document
+AB_LICENCE=Free
 AB_SVN=svn://svn.riscos.info/pdf/trunk
 
 AB_MAKE="$AB_MAKE -f Makefile.cross"
+
+v=`grep -e"[0-9]" -m1 History`
+AB_PVERSION=`echo $v-svn-$(date +%Y%m%d)`
 
 ab_package() {
   ab_create_app PDF Apps/Office
@@ -13,8 +17,8 @@ ab_package() {
   cp -av $S/!PDF/Res,fae $S/!PDF/Sprites22,ff9 $A
   cp -av $S/!PDF/!Sprites22,ff9 $S/!PDF/!Sprites,ff9 $S/!PDF/Sprites,ff9 $A
 
-  $AB_HOME/add-riscpkg -unixlib
-
+  $AB_HOME/add-riscpkg -unixlib -name PDF \
+        -copyrightfile LICENCES/README
 }
 
 
