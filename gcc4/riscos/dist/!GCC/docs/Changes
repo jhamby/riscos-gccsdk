@@ -6,7 +6,7 @@ GCCSDK GCC 4.1.1 Release 3 (released xxx)
 ==========================
 
 Major changes:
-  - Binutils 2.20
+  - Binutils 2.20.1
   - Improved profiling support
   - Support for C++ when using SharedCLibrary (including module code)
   - SharedCLibrary stubs have limited network support

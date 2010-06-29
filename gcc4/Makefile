@@ -3,9 +3,10 @@
 #
 # Needed:
 #   - apt-get install flex bison libgmp3-dev libmpfr-dev texinfo build-essential
-#   - binutils 2.17 & gcc 4.1 needs automake1.9.6 autoconf2.59
-#     bintuils 2.20 & gcc 4.4 needs automake1.11 autoconf2.64
-#     automake/autoconf will be fetched & built automatically.
+#   - binutils 2.17 & gcc 4.1 need automake 1.9.6 and autoconf 2.59.
+#     binutils 2.20.1 needs automake 1.11.1, while gcc 4.4 needs automake 1.11.
+#     Both binutils 2.20.1 and gcc 4.4 need autoconf 2.64.
+#     Note the required automake/autoconf sources will be fetched & built automatically.
 #   - gdb requires libncurses5-dev
 
 # TARGET can have following values: arm-unknown-riscos (stable), arm-unknown-eabi (work in progress)
@@ -13,7 +14,7 @@ TARGET=arm-unknown-riscos
 GCC_LANGUAGES="c,c++"
 
 AUTOCONF_FOR_BINUTILS_VERSION=2.64
-AUTOMAKE_FOR_BINUTILS_VERSION=1.11
+AUTOMAKE_FOR_BINUTILS_VERSION=1.11.1
 BINUTILS_VERSION=$(GCCSDK_SUPPORTED_BINUTILS_RELEASE)
 AUTOCONF_FOR_GCC_VERSION=2.59
 AUTOMAKE_FOR_GCC_VERSION=1.9.6
