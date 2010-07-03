@@ -3,7 +3,7 @@ AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
 AB_DEBNAME=freeciv-client-sdl
 
-AB_CONFLAGS="--enable-client=sdl --enable-debug=no"
+AB_CONFLAGS="--enable-client=sdl --enable-debug=no --enable-ipv6=no"
 
 export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -lSDL"
 

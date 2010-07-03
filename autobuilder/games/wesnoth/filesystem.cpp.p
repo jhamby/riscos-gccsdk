@@ -1,5 +1,5 @@
---- src/filesystem.cpp.orig	2009-08-24 17:29:51.000000000 -0700
-+++ src/filesystem.cpp	2009-08-24 17:30:05.000000000 -0700
+--- src/filesystem.cpp.orig	2010-06-27 16:54:02.117585088 +0100
++++ src/filesystem.cpp	2010-06-27 16:54:53.140156223 +0100
 @@ -43,6 +43,10 @@
  BPath be_path;
  #endif
@@ -11,18 +11,38 @@
  // for getenv
  #include <cerrno>
  #include <fstream>
-@@ -511,6 +515,10 @@
+@@ -465,8 +469,10 @@
+ void set_preferences_dir(std::string path)
+ {
+ #ifndef PREFERENCES_DIR
++#ifndef __riscos__
+ const std::string PREFERENCES_DIR = ".wesnoth" + std::string(game_config::version).substr(0,3);
+ #endif
++#endif
+ #ifdef _WIN32
+ 	if(path.empty()) {
+ 		game_config::preferences_dir = get_cwd() + "/userdata";
+@@ -496,6 +502,7 @@
+ 	}
+ 
+ #else /*_WIN32*/
++#ifndef __riscos__
+ 	if (path.empty()) {
+ 		path = PREFERENCES_DIR;
+ 	}
+@@ -510,6 +517,11 @@
+ 		home_str = current_dir;
  
  	const std::string home(home_str);
- 
-+#ifdef __riscos__
-+	static const std::string dir_path =  "/WesnothUser:/wesnoth";
-+#else /* !defined(__riscos__) */
++#endif
 +
++#ifdef __riscos__
++	game_config::preferences_dir = "/WesnothUser:/wesnoth";;
++#else /* !defined(__riscos__) */
+ 
  #ifndef __AMIGAOS4__
  	game_config::preferences_dir = home + std::string("/") + path;
- #else
-@@ -519,6 +527,7 @@
+@@ -519,6 +531,7 @@
  
  #endif /*_WIN32*/
  	user_data_dir = setup_user_data_dir();
@@ -30,7 +50,7 @@
  }
  
  
-@@ -664,17 +673,24 @@
+@@ -664,17 +677,24 @@
  		throw io_exception("Could not open file for writing: '" + fname + "'");
  	}
  
@@ -55,7 +75,7 @@
  }
  
  
-@@ -939,6 +955,29 @@
+@@ -939,6 +959,29 @@
  			paths_.push_back(path);
  		}
  	}
@@ -85,7 +105,7 @@
  }
  
  void binary_paths_manager::cleanup()
-@@ -973,6 +1012,12 @@
+@@ -973,6 +1016,12 @@
  
  	init_binary_paths();
  
@@ -98,7 +118,7 @@
  	foreach (const std::string &path, binary_paths)
  	{
  		res.push_back(get_user_data_dir() + "/" + path + type + "/");
-@@ -981,6 +1026,7 @@
+@@ -981,6 +1030,7 @@
  			res.push_back(game_config::path + "/" + path + type + "/");
  		}
  	}
@@ -106,7 +126,7 @@
  
  	// not found in "/type" directory, try main directory
  	res.push_back(get_user_data_dir());
-@@ -994,6 +1040,19 @@
+@@ -994,6 +1044,19 @@
  std::string get_binary_file_location(const std::string& type, const std::string& filename)
  {
  	DBG_FS << "Looking for '" << filename << "'.\n";

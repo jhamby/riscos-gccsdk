@@ -1,7 +1,7 @@
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"                                                                    
 AB_LICENCE="GPLv2"
 AB_ROVERSION=1
-AB_PVERSION=0.7.5-svn-$(date +%Y%m%d)
+AB_PVERSION=1.0.2-svn-$(date +%Y%m%d)
 
 AB_SVN=svn://svn.openttd.org/trunk
 
