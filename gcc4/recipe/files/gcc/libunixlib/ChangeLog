@@ -1,3 +1,9 @@
+Sat Jul  3 19:20:39 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/sys/socket.h (__SOCKADDR_ARG, __CONST_SOCKADDR_ARG): Add
+	temporary workaround for llvm-gcc bug
+	(http://llvm.org/bugs/show_bug.cgi?id=7422).
+
 Wed Jun 16 15:17:11 2010  Lee Noar  <leenoar@sky.com>
 
 	* crt/(g)crt0.s(_start): Store pointers to shared library static

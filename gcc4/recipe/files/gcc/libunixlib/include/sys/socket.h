@@ -4,6 +4,7 @@
  *  - Added SOMAXCONN constant.
  *  - Added SCL socketclose, socketstat, socketioctl, socketread, socketreadv,
  *    socketwrite, socketwritev prototypes for TCPIPLibs compatibility.
+ *  - Add workaround for http://llvm.org/bugs/show_bug.cgi?id=7422
  */
 
 /* Declarations of socket constants, types, and functions.
@@ -74,7 +75,8 @@ enum
    uses with any of the listed types to be allowed without complaint.
    G++ 2.7 does not support transparent unions so there we want the
    old-style declaration, too.  */
-#if defined __cplusplus || !__GNUC_PREREQ (2, 7) || !defined __USE_GNU
+/* The __llvm__ test is to avoid bug http://llvm.org/bugs/show_bug.cgi?id=7422 */
+#if defined __llvm__ || defined __cplusplus || !__GNUC_PREREQ (2, 7) || !defined __USE_GNU
 # define __SOCKADDR_ARG		struct sockaddr *__restrict
 # define __CONST_SOCKADDR_ARG	__const struct sockaddr *
 #else
