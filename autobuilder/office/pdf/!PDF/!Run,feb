@@ -79,7 +79,7 @@ unset PDF$NoFontBlending
 RMEnsure FontManager  3.37 set PDF$NoFontBlending 1
 Set PDF$DynamicAreaSize -1
 
-wimpslot -min 2200k -max 2200k
+WIMPSLOT
 |run <PDF$dir>.!runimage %*0 1 > <PDF$dir>.^.log 2>&1
 |run <PDF$dir>.!runimage %*0 1> Pipe:$.PDF.log 2>&1
 
