@@ -1,6 +1,6 @@
---- gcc/gcc.c.orig	2007-07-03 00:58:30.000000000 +0200
-+++ gcc/gcc.c	2007-06-28 01:13:39.000000000 +0200
-@@ -343,7 +343,7 @@
+--- gcc/gcc.c.orig	2010-07-04 16:15:06.756904121 +0200
++++ gcc/gcc.c	2010-07-04 16:14:32.714402060 +0200
+@@ -343,7 +343,7 @@ static void fatal_error (int);
  static void init_gcc_specs (struct obstack *, const char *, const char *,
  			    const char *);
  #endif
@@ -9,7 +9,18 @@
  static const char *convert_filename (const char *, int, int);
  #endif
  
-@@ -2978,7 +2983,7 @@
+@@ -439,8 +439,8 @@ or with constant text in a single argume
+ 	SUFFIX characters following %O as they would following, for
+ 	example, `.o'.
+  %I	Substitute any of -iprefix (made from GCC_EXEC_PREFIX), -isysroot
+-	(made from TARGET_SYSTEM_ROOT), and -isystem (made from COMPILER_PATH
+-	and -B options) as necessary.
++	(made from TARGET_SYSTEM_ROOT), -isystem (made from COMPILER_PATH
++	and -B options) and -imultilib as necessary.
+  %s     current argument is the name of a library or startup file of some sort.
+         Search for that file in a standard list of directories
+ 	and substitute the full name found.
+@@ -2978,7 +2978,7 @@ static int added_libraries;
  
  const char **outfiles;
  
@@ -18,7 +29,7 @@
  
  /* Convert NAME to a new name if it is the standard suffix.  DO_EXE
     is true if we should look for an executable suffix.  DO_OBJ
-@@ -2988,6 +2993,9 @@
+@@ -2988,6 +2988,9 @@ static const char *
  convert_filename (const char *name, int do_exe ATTRIBUTE_UNUSED,
  		  int do_obj ATTRIBUTE_UNUSED)
  {
@@ -28,7 +39,7 @@
  #if defined(HAVE_TARGET_EXECUTABLE_SUFFIX)
    int i;
  #endif
-@@ -3031,6 +3039,7 @@
+@@ -3031,6 +3034,7 @@ convert_filename (const char *name, int 
  #endif
  
    return name;
@@ -36,7 +47,7 @@
  }
  #endif
  
-@@ -3734,7 +3744,7 @@
+@@ -3734,7 +3738,7 @@ warranty; not even for MERCHANTABILITY o
  		    }
  		}
  #endif
@@ -45,7 +56,7 @@
  	      if (p[1] == 0)
  		argv[i + 1] = convert_filename (argv[i + 1], ! have_c, 0);
  	      else
-@@ -4084,7 +4094,7 @@
+@@ -4084,7 +4088,7 @@ warranty; not even for MERCHANTABILITY o
  	}
        else
  	{
@@ -54,3 +65,19 @@
  	  argv[i] = convert_filename (argv[i], 0, access (argv[i], F_OK));
  #endif
  
+@@ -4885,6 +4889,15 @@ do_spec_1 (const char *spec, int inswitc
+ 	    {
+ 	      struct prefix_list *pl = include_prefixes.plist;
+ 
++	      if (multilib_dir)
++		{
++		  do_spec_1 ("-imultilib", 1, NULL);
++		  /* Make this a separate argument.  */
++		  do_spec_1 (" ", 0, NULL);
++		  do_spec_1 (multilib_dir, 1, NULL);
++		  do_spec_1 (" ", 0, NULL);
++		}
++
+ 	      if (gcc_exec_prefix)
+ 		{
+ 		  do_spec_1 ("-iprefix", 1, NULL);
