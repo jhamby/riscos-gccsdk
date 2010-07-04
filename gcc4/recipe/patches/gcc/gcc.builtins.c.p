@@ -1,6 +1,6 @@
---- gcc/builtins.c.orig	2006-12-26 16:46:44.000000000 +0100
-+++ gcc/builtins.c	2006-12-26 16:46:14.000000000 +0100
-@@ -505,6 +505,38 @@
+--- gcc/builtins.c.orig	2006-10-06 19:06:52.000000000 +0200
++++ gcc/builtins.c	2010-07-04 19:34:06.794404986 +0200
+@@ -536,6 +536,38 @@ expand_builtin_return_addr (enum built_i
  {
    int i;
  

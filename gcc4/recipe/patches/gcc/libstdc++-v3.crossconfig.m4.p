@@ -1,6 +1,6 @@
---- libstdc++-v3/crossconfig.m4.orig	2010-04-17 16:19:01.485384391 +0200
-+++ libstdc++-v3/crossconfig.m4	2010-04-17 16:06:46.625383771 +0200
-@@ -305,6 +305,35 @@ case "${host}" in
+--- libstdc++-v3/crossconfig.m4.orig	2006-12-12 15:18:36.000000000 +0100
++++ libstdc++-v3/crossconfig.m4	2010-07-04 19:34:10.416905223 +0200
+@@ -304,6 +304,35 @@ case "${host}" in
      AC_DEFINE(HAVE_SINHF)
      AC_DEFINE(HAVE_SINHL)
      ;;

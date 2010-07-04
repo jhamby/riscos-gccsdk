@@ -1,5 +1,5 @@
---- gcc/gcc.c.orig	2010-07-04 16:15:06.756904121 +0200
-+++ gcc/gcc.c	2010-07-04 16:14:32.714402060 +0200
+--- gcc/gcc.c.orig	2006-11-07 15:26:21.000000000 +0100
++++ gcc/gcc.c	2010-07-04 19:34:09.936904419 +0200
 @@ -343,7 +343,7 @@ static void fatal_error (int);
  static void init_gcc_specs (struct obstack *, const char *, const char *,
  			    const char *);
@@ -47,7 +47,7 @@
  }
  #endif
  
-@@ -3734,7 +3738,7 @@ warranty; not even for MERCHANTABILITY o
+@@ -3737,7 +3741,7 @@ warranty; not even for MERCHANTABILITY o
  		    }
  		}
  #endif
@@ -56,7 +56,7 @@
  	      if (p[1] == 0)
  		argv[i + 1] = convert_filename (argv[i + 1], ! have_c, 0);
  	      else
-@@ -4084,7 +4088,7 @@ warranty; not even for MERCHANTABILITY o
+@@ -4087,7 +4091,7 @@ warranty; not even for MERCHANTABILITY o
  	}
        else
  	{
@@ -65,7 +65,7 @@
  	  argv[i] = convert_filename (argv[i], 0, access (argv[i], F_OK));
  #endif
  
-@@ -4885,6 +4889,15 @@ do_spec_1 (const char *spec, int inswitc
+@@ -4888,6 +4892,15 @@ do_spec_1 (const char *spec, int inswitc
  	    {
  	      struct prefix_list *pl = include_prefixes.plist;
  

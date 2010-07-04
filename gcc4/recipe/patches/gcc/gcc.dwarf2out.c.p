@@ -1,6 +1,6 @@
---- gcc/dwarf2out.c.orig	2006-09-24 23:03:43.000000000 +0200
-+++ gcc/dwarf2out.c	2006-09-24 23:08:22.000000000 +0200
-@@ -1691,6 +1694,13 @@
+--- gcc/dwarf2out.c.orig	2006-12-27 23:23:55.000000000 +0100
++++ gcc/dwarf2out.c	2010-07-04 19:34:09.884398568 +0200
+@@ -1697,6 +1697,13 @@ dwarf2out_frame_debug_expr (rtx expr, co
  		  cfa_temp.reg = REGNO (dest);
  		  cfa_temp.offset = INTVAL (XEXP (src, 1));
  		}

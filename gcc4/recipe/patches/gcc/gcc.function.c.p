@@ -1,6 +1,6 @@
---- gcc/function.c.orig	2006-09-25 00:14:48.000000000 +0200
-+++ gcc/function.c	2006-09-24 23:57:44.000000000 +0200
-@@ -4380,6 +4380,18 @@
+--- gcc/function.c.orig	2006-11-28 13:01:45.000000000 +0100
++++ gcc/function.c	2010-07-04 19:34:09.926901748 +0200
+@@ -4387,6 +4387,18 @@ expand_function_end (void)
    force_next_line_note ();
    emit_line_note (input_location);
  

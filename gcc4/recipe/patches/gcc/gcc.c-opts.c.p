@@ -1,5 +1,5 @@
---- gcc/c-opts.c.orig	2010-07-04 16:15:11.274402439 +0200
-+++ gcc/c-opts.c	2010-07-04 16:14:32.714402060 +0200
+--- gcc/c-opts.c.orig	2007-01-05 16:55:45.000000000 +0100
++++ gcc/c-opts.c	2010-07-04 19:34:09.564525148 +0200
 @@ -79,6 +79,9 @@ static const char *deps_file;
  /* The prefix given by -iprefix, if any.  */
  static const char *iprefix;
@@ -24,7 +24,7 @@
    cpp_opts = cpp_get_options (parse_in);
    cpp_opts->dollars_in_ident = DOLLARS_IN_IDENTIFIERS;
    cpp_opts->objc = c_dialect_objc ();
-@@ -816,6 +826,10 @@ c_common_handle_option (size_t scode, co
+@@ -820,6 +830,10 @@ c_common_handle_option (size_t scode, co
        defer_opt (code, arg);
        break;
  
@@ -35,7 +35,7 @@
      case OPT_iprefix:
        iprefix = arg;
        break;
-@@ -970,7 +984,7 @@ c_common_post_options (const char **pfil
+@@ -979,7 +993,7 @@ c_common_post_options (const char **pfil
  
    sanitize_cpp_opts ();
  

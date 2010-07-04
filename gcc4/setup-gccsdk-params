@@ -62,11 +62,11 @@ export GCCSDK_RISCOS_PREFIX=$GCCSDK_RELEASE_AREA/full
 export GCCSDK_BUILDDIR=$GCCSDK_ROOT/builddir
 
 # Currently supported versions of gcc and binutils:
-export GCCSDK_SUPPORTED_GCC_RELEASE=4.1.1
+export GCCSDK_SUPPORTED_GCC_RELEASE=4.1.2
 export GCCSDK_SUPPORTED_BINUTILS_RELEASE=2.20.1
 
 # Release name:
-export GCCSDK_RELEASE_NAME=Rel3dev
+export GCCSDK_RELEASE_NAME=Rel1dev
 export GCCSDK_FULL_RELEASE_NAME=$GCCSDK_SUPPORTED_GCC_RELEASE-$GCCSDK_RELEASE_NAME
 
 # GCCSDK_RISCOS : directory containing RISC OS related sources (cmunge, soloader, etc)

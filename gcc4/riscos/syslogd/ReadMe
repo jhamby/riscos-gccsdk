@@ -86,7 +86,7 @@ report any problems and bugfixes to the source code to the author
 
 You need the following for its recompilation :
 
-- GCCSDK GCC 4.1.1 Release 3 <http://gccsdk.riscos.info/>
+- GCCSDK GCC 4.1.2 Release 1 <http://gccsdk.riscos.info/>
 
 Copyright
 ---------

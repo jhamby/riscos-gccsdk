@@ -1,5 +1,5 @@
---- configure.in.orig	2010-03-19 23:20:39.943948056 +0100
-+++ configure.in	2010-03-19 23:20:31.963950563 +0100
+--- configure.in.orig	2006-11-21 18:48:36.000000000 +0100
++++ configure.in	2010-07-04 19:34:06.694401747 +0200
 @@ -21,10 +21,27 @@
  sinclude(config/acx.m4)
  
@@ -66,7 +66,7 @@
    CXXFLAGS=${CXXFLAGS-"-g -O2"}
    CC_FOR_BUILD=${CC_FOR_BUILD-gcc}
    BUILD_PREFIX=${build_alias}-
-@@ -1440,7 +1466,7 @@ if test x"${with_headers}" != x && test 
+@@ -1446,7 +1472,7 @@ if test x"${with_headers}" != x && test 
      "") x=${prefix} ;;
      *) x=${exec_prefix} ;;
      esac
@@ -75,7 +75,7 @@
    fi
  fi
  
-@@ -1460,7 +1486,7 @@ if test x"${with_libs}" != x && test x"$
+@@ -1466,7 +1492,7 @@ if test x"${with_libs}" != x && test x"$
      *) x=${exec_prefix} ;;
      esac
      for l in ${with_libs}; do
@@ -84,7 +84,7 @@
      done
    fi
  fi
-@@ -1608,7 +1634,7 @@ esac
+@@ -1614,7 +1640,7 @@ esac
  
  # Some systems (e.g., one of the i386-aix systems the gas testers are
  # using) don't handle "\$" correctly, so don't use it here.
@@ -93,7 +93,7 @@
  build_tooldir=${tooldir}
  
  # Create a .gdbinit file which runs the one in srcdir
-@@ -1875,40 +1901,86 @@ serialization_dependencies=serdep.tmp
+@@ -1881,40 +1907,86 @@ serialization_dependencies=serdep.tmp
  AC_SUBST_FILE(serialization_dependencies)
  
  # Base args.  Strip norecursion, cache-file, srcdir, host, build,
@@ -214,7 +214,7 @@
  
  # Add in --program-transform-name, after --program-prefix and
  # --program-suffix have been applied to it.  Autoconf has already
-@@ -1951,7 +2023,7 @@ target_configargs=${baseargs}
+@@ -1957,7 +2029,7 @@ target_configargs=${baseargs}
  # sorts of decisions they want to make on this basis.  Please consider
  # this option to be deprecated.  FIXME.
  if test x${is_cross_compiler} = xyes ; then
@@ -223,7 +223,7 @@
  fi
  
  # Default to --enable-multilib.
-@@ -2028,6 +2100,10 @@ case " $target_configdirs " in
+@@ -2034,6 +2106,10 @@ case " $target_configdirs " in
     ;;
    esac
    ;;
@@ -234,7 +234,7 @@
  esac
  
  # Allow the user to override the flags for
-@@ -2128,7 +2204,7 @@ changequote(,)
+@@ -2134,7 +2210,7 @@ changequote(,)
      # For an installed makeinfo, we require it to be from texinfo 4.2 or
      # higher, else we use the "missing" dummy.
      if ${MAKEINFO} --version \
@@ -243,7 +243,7 @@
        :
      else
        MAKEINFO="$MISSING makeinfo"
-@@ -2211,7 +2287,7 @@ GCC_TARGET_TOOL(lipo, LIPO_FOR_TARGET, L
+@@ -2217,7 +2293,7 @@ GCC_TARGET_TOOL(lipo, LIPO_FOR_TARGET, L
  GCC_TARGET_TOOL(nm, NM_FOR_TARGET, NM, [binutils/nm-new])
  GCC_TARGET_TOOL(objdump, OBJDUMP_FOR_TARGET, OBJDUMP, [binutils/objdump])
  GCC_TARGET_TOOL(ranlib, RANLIB_FOR_TARGET, RANLIB, [binutils/ranlib])

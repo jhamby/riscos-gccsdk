@@ -1,5 +1,5 @@
---- gcc/config/arm/arm.md.orig	2008-05-16 22:26:25.000000000 +0200
-+++ gcc/config/arm/arm.md	2008-05-18 16:19:28.000000000 +0200
+--- gcc/config/arm/arm.md.orig	2006-09-27 19:10:22.000000000 +0200
++++ gcc/config/arm/arm.md	2010-07-04 19:34:08.694402306 +0200
 @@ -31,6 +31,7 @@
  ;; Register numbers
  (define_constants
@@ -35,7 +35,7 @@
        return \"bl\\t%__interwork_r7_call_via_%1\";
      else
        return \"bl\\t%__interwork_r11_call_via_%1\";
-@@ -10173,4 +10176,5 @@
+@@ -10184,4 +10187,5 @@
  (include "iwmmxt.md")
  ;; Load the VFP co-processor patterns
  (include "vfp.md")

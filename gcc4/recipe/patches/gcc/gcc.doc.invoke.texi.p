@@ -1,5 +1,5 @@
---- gcc/doc/invoke.texi.orig	2008-06-05 01:42:53.000000000 +0200
-+++ gcc/doc/invoke.texi	2008-06-05 01:39:23.000000000 +0200
+--- gcc/doc/invoke.texi.orig	2006-09-25 23:21:58.000000000 +0200
++++ gcc/doc/invoke.texi	2010-07-04 19:34:09.616906960 +0200
 @@ -395,6 +395,7 @@ Objective-C and Objective-C++ Dialects}.
  @gccoptlist{-mapcs-frame  -mno-apcs-frame @gol
  -mabi=@var{name} @gol
@@ -8,7 +8,7 @@
  -mapcs-float  -mno-apcs-float @gol
  -mapcs-reentrant  -mno-apcs-reentrant @gol
  -msched-prolog  -mno-sched-prolog @gol
-@@ -7206,7 +7207,8 @@ architectures:
+@@ -7205,7 +7206,8 @@ architectures:
  @item -mabi=@var{name}
  @opindex mabi
  Generate code for the specified ABI@.  Permissible values are: @samp{apcs-gnu},
@@ -18,7 +18,7 @@
  
  @item -mapcs-frame
  @opindex mapcs-frame
-@@ -7220,8 +7222,6 @@ leaf functions.  The default is @option{
+@@ -7219,8 +7221,6 @@ leaf functions.  The default is @option{
  @opindex mapcs
  This is a synonym for @option{-mapcs-frame}.
  
@@ -27,7 +27,7 @@
  @item -mapcs-stack-check
  @opindex mapcs-stack-check
  Generate code to check the amount of stack space available upon entry to
-@@ -7230,9 +7230,16 @@ insufficient space available then either
+@@ -7229,9 +7229,16 @@ insufficient space available then either
  @samp{__rt_stkovf_split_small} or @samp{__rt_stkovf_split_big} will be
  called, depending upon the amount of stack space required.  The run time
  system is required to provide these functions.  The default is
@@ -46,7 +46,7 @@
  @item -mapcs-float
  @opindex mapcs-float
  Pass floating point arguments using the float point registers.  This is
-@@ -7242,6 +7249,7 @@ arithmetic is going to be performed by t
+@@ -7241,6 +7248,7 @@ arithmetic is going to be performed by t
  @option{-mno-apcs-float}, since integer only code is slightly increased in
  size if @option{-mapcs-float} is used.
  

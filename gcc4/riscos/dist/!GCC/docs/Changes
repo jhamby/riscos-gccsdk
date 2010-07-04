@@ -2,10 +2,11 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !GCC.docs.UnixLib.Changes too.
 
-GCCSDK GCC 4.1.1 Release 3 (released xxx)
+GCCSDK GCC 4.1.2 Release 1 (released xxx)
 ==========================
 
 Major changes:
+  - GCC 4.1.2
   - Binutils 2.20.1
   - Improved profiling support
   - Support for C++ when using SharedCLibrary (including module code)
