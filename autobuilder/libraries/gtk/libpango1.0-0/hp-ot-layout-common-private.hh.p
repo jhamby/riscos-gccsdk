@@ -42,7 +42,7 @@
    IndexArray	featureIndex;	/* Array of indices into the FeatureList */
 -};
 +} PACKED;
- ASSERT_SIZE_DATA (LangSys, 6, "\0\0\xFF\xFF");
+ ASSERT_SIZE (LangSys, 6);
  
  
 @@ -252,7 +252,7 @@
@@ -87,7 +87,7 @@
  					 * range */
 -};
 +} PACKED;
- ASSERT_SIZE_DATA (CoverageRangeRecord, 6, "\000\001");
+ ASSERT_SIZE (CoverageRangeRecord, 6);
  
  struct CoverageFormat2
 @@ -399,7 +399,7 @@
@@ -114,7 +114,7 @@
    USHORT	classValue;	/* Applied to all glyphs in the range */
 -};
 +} PACKED;
- ASSERT_SIZE_DATA (ClassRangeRecord, 6, "\000\001");
+ ASSERT_SIZE (ClassRangeRecord, 6);
  
  struct ClassDefFormat2
 @@ -514,7 +514,7 @@

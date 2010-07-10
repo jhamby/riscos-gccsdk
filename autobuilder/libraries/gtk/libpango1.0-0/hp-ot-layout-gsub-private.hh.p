@@ -87,7 +87,7 @@
    private:
 -  union {
 +  union PACKED {
-   USHORT			format;
+   USHORT			sub_format;
    SingleSubst			single[VAR];
    MultipleSubst			multiple[VAR];
 @@ -864,7 +864,7 @@

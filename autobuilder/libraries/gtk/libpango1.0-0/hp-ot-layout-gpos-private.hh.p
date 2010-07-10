@@ -168,7 +168,7 @@
    private:
 -  union {
 +  union PACKED {
-   USHORT		format;
+   USHORT		sub_format;
    SinglePos		single[VAR];
    PairPos		pair[VAR];
 @@ -1478,7 +1478,7 @@
