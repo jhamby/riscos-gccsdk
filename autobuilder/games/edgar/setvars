@@ -15,5 +15,5 @@ ab_package() {
   mkdir $A/doc
   cp -av $S/doc/* $A/doc/
 
-  $AB_HOME/add-riscpkg -unixlib  
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile doc/license
 }
