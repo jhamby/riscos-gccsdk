@@ -16,5 +16,5 @@ ab_package() {
 
 
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile doc/license
 }
