@@ -1,5 +1,5 @@
 AB_INSTALL=yes
-AB_INSTALLTARGET=install-lib
+AB_INSTALLTARGET=install
 
 AB_MANPAGE="cjpeg.1 djpeg.1 jpegtran.1 rdjpgcom.1 wrjpgcom.1"
 
@@ -38,7 +38,7 @@ ab_package() {
   cp $S/libjpeg.doc $A/\!Help
   cp $S/libjpeg.doc $S/README $A/doc
 
-  $AB_HOME/add-riscpkg -package libjpeg62-dev -section Library -unixlib
+  $AB_HOME/add-riscpkg -package libjpeg62-dev -name LibJPEG62-Dev -section Library -unixlib
 
   cd $HERE
 }
