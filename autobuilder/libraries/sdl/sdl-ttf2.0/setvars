@@ -25,8 +25,8 @@ ab_package() {
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -unixlib \
-    -depends "libfreetype6-dev" \
-    -depends "libsdl1.2-dev"
+  $AB_HOME/add-riscpkg -unixlib -name LibSDLTTF2.0-Dev \
+    -depends "LibFreetype6-Dev" \
+    -depends "LibSDL1.2-Dev"
 }
 

@@ -23,6 +23,6 @@ ab_package() {
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -unixlib -depends zlib1g-dev
+  $AB_HOME/add-riscpkg -unixlib -name LibTIFF4-Dev -depends ZLib1g-Dev
 }
 

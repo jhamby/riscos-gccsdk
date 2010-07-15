@@ -24,8 +24,8 @@ ab_package()
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound \
-    -depends "libsdl1.2-dev" -depends "libflac-dev" \
-    -depends "libmikmod-dev" -depends "libogg-dev" \
-    -depends "libvorbis-dev"
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name LibSDLSound1.2-Dev \
+    -depends "LibSDL1.2-Dev" -depends "LibFlac-Dev" \
+    -depends "LibMikmod-Dev" -depends "LibOGG-Dev" \
+    -depends "LibVorbis-Dev"
 }

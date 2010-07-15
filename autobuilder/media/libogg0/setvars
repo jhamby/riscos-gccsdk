@@ -25,5 +25,5 @@ ab_package() {
   # Copy HTML documentation
   cp -r $S/doc $A
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound
+  $AB_HOME/add-riscpkg -name LibOGG-Dev -unixlib -unixsound
 }

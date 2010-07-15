@@ -27,5 +27,5 @@ ab_package() {
   cp -r examples $A/doc
   cp ChangeLog FAQ $A/doc
 
-  $AB_HOME/add-riscpkg -package zlib1g-dev -unixlib
+  $AB_HOME/add-riscpkg -package zlib1g-dev -name ZLib1g-Dev -unixlib
 }

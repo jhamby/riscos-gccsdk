@@ -41,5 +41,5 @@ ab_package() {
   # for a riscpkg version number so replace it
   AB_PVERSION=`echo "$AB_PVERSION" | sed "s/~/-/"`
 
-  $AB_HOME/add-riscpkg -unixlib -depends "zlib1g-dev"
+  $AB_HOME/add-riscpkg -unixlib -name LibPNG12-Dev -depends "ZLib1g-Dev"
 }

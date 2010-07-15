@@ -24,6 +24,6 @@ ab_package() {
 
   cd $HERE
 
-  $AB_HOME/add-riscpkg -unixlib \
-    -depends "libsdl1.2-dev"
+  $AB_HOME/add-riscpkg -unixlib -name LibSDLGFX1.2-Dev \
+    -depends "LibSDL1.2-Dev"
 }
