@@ -1,0 +1,19 @@
+
+AB_URL=http://lessermatters.homeunix.com/LemmingsSDL/lemsrc260210.tar.bz2
+AB_PVERSION=0.9.3
+
+cp $H/Makefile .
+
+ab_package() {
+  ab_create_app Lemmings Apps/Games
+  
+  ab_makerun $S/lemmings
+  
+  wget --progress=bar:force http://lessermatters.homeunix.com/LemmingsSDL/LemmingsSDL_linux260210.tar.bz2 -O lemmings.bz2
+  tar -jxvf lemmings.bz2
+  cp -av LemmingsSDL_linux/data $A
+  
+  $AB_HOME/add-riscpkg -unixlib
+  
+}
+

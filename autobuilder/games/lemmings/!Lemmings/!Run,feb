@@ -1,0 +1,8 @@
+| Run file for Lemmings
+
+WIMPSLOT
+
+Set Lemmings$Dir <Obey$Dir>
+
+| Note 'fs 0' option runs in a window on the desktop
+Run <Lemmings$Dir>.lemmings fs 0 >null: 2><Lemmings$Dir>.stderr

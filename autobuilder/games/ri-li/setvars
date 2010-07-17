@@ -1,0 +1,22 @@
+
+ab_package() {
+  ab_create_app Ri-Li Apps/Games
+  mv $S/src/Ri_li$AB_EXEEXT $S/src/Ri_li
+  ab_makerun $S/src/Ri_li
+
+  mkdir $A/ri-li
+  cp -av $S/data/* $A/ri-li
+  cp -av $S/Sounds $A/ri-li
+
+  mkdir $A/doc
+  cp -av AUTHORS COPYING COPYING.Music NEWS README $A/doc
+
+  $AB_HOME/add-riscpkg -unixlib
+
+}
+
+export LIBS="-lSDL_mixer -logg -lvorbisfile -lvorbis"
+
+AB_CONFLAGS=\''--datadir=/<Ri-Li\$$Dir>'\'
+
+
