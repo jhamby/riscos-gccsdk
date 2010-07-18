@@ -85,8 +85,7 @@ RISCOSTOOLSDIR := $(GCCSDK_RISCOS)
 
 # Configure args unique for cross-compiling & unique to building for RISC OS native
 CROSS_CONFIG_ARGS := --target=$(TARGET) --prefix=$(PREFIX_CROSS)
-# Note: --build argument can only be determined when SRCDIR is populated.
-RONATIVE_CONFIG_ARGS = --build=`$(SRCDIR)/gcc/config.guess` --host=$(TARGET) --target=$(TARGET) --prefix=$(PREFIX_RONATIVE)
+RONATIVE_CONFIG_ARGS := --host=$(TARGET) --target=$(TARGET) --prefix=$(PREFIX_RONATIVE)
 
 # To respawn Makefile with setup-gccsdk-param environment loaded.
 GCCSDK_INTERNAL_GETENV=getenv
