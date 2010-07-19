@@ -2,11 +2,10 @@
 # project.  However, it is not part of curl build process so it is built
 # separately.
 
-AB_CVS_ROOT=:pserver:anonymous@cool.haxx.se:/cvsroot/curl
-AB_CVS_MODULE=curl/ares
-AB_PVERSION=cvs-$(date +%Y%m%d)
+AB_GIT=git://github.com/bagder/c-ares.git
+AB_PVERSION=git-$(date +%Y%m%d)
 
 AB_INSTALL=yes
 
-cd ares 
+# cd c-ares 
 ./buildconf
