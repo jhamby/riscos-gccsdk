@@ -14,5 +14,5 @@ ab_package() {
   cp -av $S/gpl-2.0.txt $A/doc/
   cp -av $S/crazeespodreadme.txt $A/doc
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile $S/gpl-2.0.txt
 }
