@@ -2,6 +2,7 @@
    Copyright (c) 2010 UnixLib Developers.  */
 
 #include <errno.h>
+#include <string.h>
 #include <unistd.h>
 
 #include <internal/dev.h>

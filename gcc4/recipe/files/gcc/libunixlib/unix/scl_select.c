@@ -3,6 +3,7 @@
  */
 
 #include <sys/select.h>
+#include <sys/socket.h>
 
 /* FIXME: only supports socket fd ! */
 

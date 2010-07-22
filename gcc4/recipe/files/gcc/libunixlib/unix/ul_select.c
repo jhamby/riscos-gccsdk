@@ -237,12 +237,12 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 
       while (fd-- > 0)
 	{
-	  const struct __unixlib_fd *file_desc = getfd (fd);
+	  struct __unixlib_fd *file_desc = getfd (fd);
 
           if (file_desc->devicehandle)
             {
-              int (*select_func) (struct __unixlib_fd *__fd, int __fd1, fd_set *__read,
-                  fd_set *__write, fd_set *__except) =
+              int (*select_func) (struct __unixlib_fd *, int, fd_set *,
+				  fd_set *, fd_set *) =
                   __dev[file_desc->devicehandle->type < NDEV ? file_desc->devicehandle->type : DEV_NULL].select;
 
               fd_set *read_p = (readfds && FD_ISSET(fd, readfds)) ? &new_readfds : NULL;

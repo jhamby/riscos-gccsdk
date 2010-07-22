@@ -1,15 +1,11 @@
 /* UnixLib internal function declarations.
-   Copyright (c) 2002-2005, 2008, 2009 UnixLib Developers.  */
+   Copyright (c) 2002-2010 UnixLib Developers.  */
 
 #ifndef __INTERNAL_LOCAL_H
 #define __INTERNAL_LOCAL_H 1
 
 #ifndef __UNIXLIB_TYPES_H
 #include <unixlib/types.h>
-#endif
-
-#ifndef __INTERNAL_FD_H
-#include <internal/fd.h>
 #endif
 
 #define __need_FILE
@@ -70,22 +66,6 @@ extern void __cvt_unix_time (__time_t __unix_time, unsigned int *__high,
 /* Return 0 if 'socket' is both a valid file descriptor
    and refers to a socket device.  Return -1 if not.  */
 extern int __socket_valid (int __socket);
-
-/* Open a file descriptor with given filename.  Returns the file descriptor
-   on success, -1 on failure.  */
-extern int __open_fn (int __fd, const char *__file, int __oflag, int __mode);
-
-/* Open a file descriptor with given RISC OS file handle.  Returns the file
-   descriptor on success, -1 on failure. UnixLib will never close this
-   handle, only read/write from it.  */
-extern int __open_fh (int __fd, int __fh, int __oflag, int __mode);
-
-/* Close a file descriptor.  Returns zero on success, -1 on failure.  */
-extern int __close (struct __unixlib_fd *file_desc);
-
-/* Re-open a file descriptor.  Returns the file descriptor on success,
-   -1 on failure.  */
-extern int __reopen (int __fd, const char *__file, int __oflag, ...);
 
 /* Read a line from a file and remove any comments.  */
 extern char *__net_readline (FILE *__file, char *__buffer, int __length);

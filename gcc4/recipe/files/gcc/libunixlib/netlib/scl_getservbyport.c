@@ -12,7 +12,7 @@ getservbyport (int __port, const char *__proto)
   /* Given port number is network byte order, the
      InetServices_GetServiceByPort SWI needs host order.  */
   register int port __asm ("r0") = ntohs (__port);
-  register int proto __asm ("r1") = __proto;
+  register int proto __asm ("r1") = (int) __proto;
   struct servent *rtrn;
   __asm volatile ("SWI\t%[SWI_XInetServices_GetServiceByPort]\n\t"
 		  "MOVVC\t%[rtrn], r2\n\t"

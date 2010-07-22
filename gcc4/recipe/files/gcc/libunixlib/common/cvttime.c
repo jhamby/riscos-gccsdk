@@ -1,5 +1,5 @@
 /* __cvt_riscos_time (), __cvt_unix_time ()
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <unixlib/local.h>
@@ -17,7 +17,8 @@
    of RISC OS and Unix times is 0x336e996a00.  */
 
 /* Convert RISC OS format 5 byte time into Unix format time.  */
-__time_t __cvt_riscos_time (unsigned int high, unsigned int low)
+__time_t
+__cvt_riscos_time (unsigned int high, unsigned int low)
 {
   unsigned int tc;
 
@@ -41,7 +42,8 @@ __time_t __cvt_riscos_time (unsigned int high, unsigned int low)
 }
 
 /* Convert Unix time into RISC OS five byte time.  */
-void __cvt_unix_time (__time_t unix_time, unsigned int *high, unsigned int *low)
+void
+__cvt_unix_time (__time_t unix_time, unsigned int *high, unsigned int *low)
 {
   unsigned int ra,rb,rc,rd,re;
 

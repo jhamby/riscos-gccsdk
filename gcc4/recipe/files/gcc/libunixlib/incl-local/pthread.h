@@ -14,6 +14,8 @@
 #if !defined(__INTERNAL_PTHREAD_H) && defined(__PTHREAD_H)
 #define __INTERNAL_PTHREAD_H
 
+#include <kernel.h>
+
 /* Hold all details about the thread. A pthread_t points to one of these structures */
 struct __pthread_thread
 {
@@ -26,11 +28,7 @@ struct __pthread_thread
 
   int thread_errno; /* Value of errno for this thread */
 
-  struct
-  {
-    int errnum;
-    char errmess[252];
-  } errbuf; /* Last RISC OS error from error handler */
+  _kernel_oserror errbuf; /* Last RISC OS error from error handler */
 
   /* WARNING: Various assembly files refer to this structure, using
      offsets defined in internal/asm_dec.s.

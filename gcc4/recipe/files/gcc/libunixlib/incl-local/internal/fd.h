@@ -53,6 +53,22 @@ struct __unixlib_fd
    onwards.  */
 extern int __alloc_file_descriptor (int start);
 
+/* Open a file descriptor with given filename.  Returns the file descriptor
+   on success, -1 on failure.  */
+extern int __open_fn (int __fd, const char *__file, int __oflag, int __mode);
+
+/* Open a file descriptor with given RISC OS file handle.  Returns the file
+   descriptor on success, -1 on failure. UnixLib will never close this
+   handle, only read/write from it.  */
+extern int __open_fh (int __fd, int __fh, int __oflag, int __mode);
+
+/* Close a file descriptor.  Returns zero on success, -1 on failure.  */
+extern int __close (struct __unixlib_fd *file_desc);
+
+/* Re-open a file descriptor.  Returns the file descriptor on success,
+   -1 on failure.  */
+extern int __reopen (int __fd, const char *__file, int __oflag, ...);
+
 __END_DECLS
 
 #endif

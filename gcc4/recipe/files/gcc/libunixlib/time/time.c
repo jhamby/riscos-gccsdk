@@ -4,6 +4,7 @@
 #include <kernel.h>
 #include <time.h>
 
+#include <internal/local.h>
 #include <internal/os.h>
 
 /* #define DEBUG */

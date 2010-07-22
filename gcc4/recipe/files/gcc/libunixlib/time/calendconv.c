@@ -8,6 +8,7 @@
 #include <string.h>
 #include <swis.h>
 
+#include <internal/local.h>
 #include <internal/os.h>
 
 /* #define DEBUG */

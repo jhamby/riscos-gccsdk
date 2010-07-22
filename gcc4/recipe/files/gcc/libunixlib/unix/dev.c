@@ -72,8 +72,8 @@ const struct dev __dev[NDEV] = {
 
   /* DEV_CUSTOM */
   {__customopen, __customclose, __customread, __customwrite,
-   __customlseek, __customioctl, __customselect, __customstat, __customfstat,
-   __customlstat}
+   __customlseek, __customioctl, __customselect, __nullstat, __nullfstat,
+   __nullstat}
 };
 
 /* Map of special device names to device types.  */

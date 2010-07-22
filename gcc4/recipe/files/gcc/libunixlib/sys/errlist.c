@@ -7,6 +7,7 @@
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
 #endif
+#include <stdio.h>
 #include <string.h>
 
 #ifdef __TARGET_SCL__

@@ -5,6 +5,8 @@
 
 #include <time.h>
 
+#include <internal/local.h>
+
 char *
 ctime_r (const time_t *timer, char *buffer)
 {

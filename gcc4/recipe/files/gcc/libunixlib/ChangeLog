@@ -1,3 +1,28 @@
+Thu Jul 22 16:16:53 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/custom.c (__unixlib_getdev): Made static.
+	(__customstat,__customfstat,__customlstat): Remove.
+	Source cleanup.
+	* unix/ul_select.c (select): Unconstify.
+	* unix/scl_select.c: Add include sys/socket.h.
+	* unix/ttyname_r.c: Add include string.h.
+	* unix/dev.c: Directly route __customstat/__customfstat/__customlstat
+	to __nullstat/__nullfstat/__nullstat.
+	* time.time.c: Add include internal/local.h.
+	* time/calendconv.c: Likewise.
+	* time/ctime_r.c: Likewise.
+	* netlib/scl_getservbyport.c (getservbyport): Add cast.
+	* scl/scl_fpclassify.s (__fpclassify): Remove S from TEQEQS.
+	* common/cvttime.c: Reformat.
+	* incl-local/internal/local.h: Remove include internal/fd.h.
+	(__open_fn,__open_fh,__close,__reopen): Move prototypes to...
+	* incl-local/internal/fd.h: ...here.
+	* incl-local/internal/dev.h (__customstat,__customfstat,
+	__customlstat): Remove prototypes.
+	* incl-local/pthread.h: Add include kernel.h.
+	(struct __pthread_thread): Use _kernel_oserror type.
+	* sys/errlist.c: Add include stdio.h.
+
 Sat Jul  3 19:20:39 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/sys/socket.h (__SOCKADDR_ARG, __CONST_SOCKADDR_ARG): Add

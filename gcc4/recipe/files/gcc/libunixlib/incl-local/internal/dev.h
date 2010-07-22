@@ -126,8 +126,6 @@ extern __off_t __dsplseek (struct __unixlib_fd *__fd, __off_t __lpos, int __when
 extern int __dspioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
 
 /* /dev/custom support */
-struct dev *__unixlib_getdev(int fd);
-
 extern void *__customopen (struct __unixlib_fd *__fd, const char *file, int __mode);
 extern int __customclose (struct __unixlib_fd *__fd);
 extern int __customread (struct __unixlib_fd *__fd, void *__data, int __nbyte);
@@ -135,9 +133,6 @@ extern int __customwrite (struct __unixlib_fd *__fd, const void *__data, int __n
 extern __off_t __customlseek (struct __unixlib_fd *__fd, __off_t __lpos, int __whence);
 extern int __customioctl (struct __unixlib_fd *__fd, unsigned long __request, void *__arg);
 extern int __customselect (struct __unixlib_fd *__fd, int __fd1, fd_set *__read, fd_set *__write, fd_set *__except);
-extern int __customstat (const char *filename, struct stat *buf);
-extern int __customfstat (int fd, struct stat *buf);
-extern int __customlstat (const char *filename, struct stat *buf);
 
 __END_DECLS
 
