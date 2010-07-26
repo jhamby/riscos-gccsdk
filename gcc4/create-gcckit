@@ -75,7 +75,7 @@ GCCSDK_UNPACKED=$GCCSDK_RELEASE_AREA/full
 # Do a sanity check to see if the native RISC OS compiler has been built.
 if [ ! -d $GCCSDK_UNPACKED/\!GCC/bin ] ; then
   echo "The native RISC OS compiler doesn't seem to be built at $GCCSDK_UNPACKED/\!GCC/bin."
-  echo "Use './build-it riscos' for doing this."
+  echo "Use 'make ronative' for doing this."
   exit 1
 fi
 
