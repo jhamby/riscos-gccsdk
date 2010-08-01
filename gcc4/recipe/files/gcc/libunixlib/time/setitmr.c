@@ -1,5 +1,5 @@
 /* setitimer ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -88,7 +88,7 @@ static const struct timer_control timer_controls[__MAX_ITIMERS] =
 };
 
 int
-setitimer (enum __itimer_which which, const struct itimerval *new_timer,
+setitimer (__itimer_which_t which, const struct itimerval *new_timer,
 	   struct itimerval *old_timer)
 {
   struct itimerval *itimer;

@@ -1,3 +1,12 @@
+Sun Aug  1 22:43:42 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/sys/time.h (__itimer_which_t): Added for C++ support.
+	(getitimer, setitimer): enum __itimer_which -> __itimer_which_t.
+	(setitimer): Add __restrict.
+	(utimes): Add __nonnull.
+	* time/getitmr.c (getitimer): enum __itimer_which -> __itimer_which_t.
+	* time/setitmr.c (setitimer): Likewise.
+
 Thu Jul 22 16:16:53 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/custom.c (__unixlib_getdev): Made static.

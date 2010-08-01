@@ -1,5 +1,5 @@
 /* getitimer ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <stddef.h>
@@ -17,7 +17,7 @@
    Set *value to the current setting of timer 'which'.
    Return 0 on success, -1 on errors.  */
 int
-getitimer (enum __itimer_which which, struct itimerval *value)
+getitimer (__itimer_which_t which, struct itimerval *value)
 {
   /* We can't implement interval timers whilst executing in a task
      window nor whilst running as a WIMP program.  */

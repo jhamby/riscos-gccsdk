@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __SYS_TIME_H
@@ -112,19 +112,30 @@ struct itimerval
     struct timeval it_value;
   };
 
+#if defined __USE_GNU && !defined __cplusplus
+/* Use the nicer parameter type only in GNU mode and not for C++ since the
+   strict C++ rules prevent the automatic promotion.  */
+typedef enum __itimer_which __itimer_which_t;
+#else
+typedef int __itimer_which_t;
+#endif
+
 /* Set *VALUE to the current setting of timer WHICH.
    Return 0 on success, -1 on errors.  */
-extern int getitimer (enum __itimer_which, struct itimerval *) __THROW;
+extern int getitimer (__itimer_which_t __which,
+		      struct itimerval *__value) __THROW;
 
 /* Set the timer WHICH to *NEW.  If OLD is not NULL,
    set *OLD to the old value of timer WHICH.
    Returns 0 on success, -1 on errors.  */
-extern int setitimer (enum __itimer_which, const struct itimerval *__new_timer,
-		      struct itimerval *__old_timer) __THROW;
+extern int setitimer (__itimer_which_t __which,
+		      const struct itimerval *__restrict __new,
+		      struct itimerval *__restrict __old) __THROW;
 
 /* Change the access time of FILE to TVP[0] and
    the modification time of FILE to TVP[1].  */
-extern int utimes (const char *, const struct timeval __tvp[2]) __THROW;
+extern int utimes (const char *, const struct timeval __tvp[2])
+	__THROW __nonnull ((1));
 
 #ifdef __USE_BSD
 /* Convenience macros for operations on timevals.
