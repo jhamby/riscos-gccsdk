@@ -1,0 +1,12 @@
+ab_package() {
+  ab_create_app Bugsquish Apps/Games
+  ab_makerun $S/bugsquish
+
+  cp -av $S/data $A
+
+  mkdir $A/doc
+  cp -av $S/CHANGES.txt $S/COPYING.txt $S/README.txt $S/TODO.txt $A/doc/
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+

@@ -1,0 +1,16 @@
+
+ab_package() {
+  ab_create_app Ceferino Apps/Games
+  ab_makerun $S/src/ceferino$AB_EXEEXT
+
+  cp -av $S/src/ceferinoeditor$AB_EXEEXT $A
+  cp -av $S/src/ceferinosetup$AB_EXEEXT $A
+  cp -av $S/data $A
+
+  mkdir $A/doc
+  cp -av $S/ChangeLog $S/COPYING $S/README $A/doc/
+
+  $AB_HOME/add-riscpkg -unixlib
+}
+
+export LIBS="-lintl -ljpeg -lpng -lz -lvorbisidec"

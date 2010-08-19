@@ -1,7 +1,7 @@
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"                                                                    
 AB_LICENCE="GPLv2"
 AB_ROVERSION=1
-AB_PVERSION=1.0.2-svn-$(date +%Y%m%d)
+AB_PVERSION=1.0.3-svn-$(date +%Y%m%d)
 
 AB_SVN=svn://svn.openttd.org/trunk
 
@@ -50,10 +50,10 @@ ab_package () {
   unzip opensfx.zip
   cp -av opensfx-0.2.3/*.cat opensfx-0.2.3/*.obs $A/data
 
-  wget --progress=bar:force http://bundles.openttdcoop.org/openmsx/releases/openmsx-0.2.1.zip -O openmsx.zip
+  wget --progress=bar:force http://bundles.openttdcoop.org/openmsx/releases/0.3.0/openmsx-0.3.0.zip -O openmsx.zip
   unzip openmsx.zip
   mkdir -p $A/gm
-  cp -av openmsx-0.2.1/*.mid openmsx-0.2.1/*.obm $A/gm
+  cp -av openmsx-0.3.0/*.mid openmsx-0.3.0/*.obm $A/gm
 
   $AB_HOME/add-riscpkg -unixlib
 }
