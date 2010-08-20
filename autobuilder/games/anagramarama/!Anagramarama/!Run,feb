@@ -1,0 +1,7 @@
+| Run file for Anagramarama
+
+WIMPSLOT
+
+Set Anagramarama$Dir <Obey$Dir>
+
+Run <Anagramarama$Dir>.ag en_GB >null: 2><Anagramarama$Dir>.stderr

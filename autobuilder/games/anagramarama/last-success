@@ -1,0 +1,208 @@
+Autobuilder: Building package: anagramarama
+Autobuilder: Fetching source for anagramarama
+Autobuilder: source directory is /linux1/gccsdk/build-static/anagramarama/trunk
+Autobuilder: RISC OS patch: /linux1/gccsdk/autobuilder/games/anagramarama/ag.c.p
+patching file src/ag.c
+Autobuilder: RISC OS patch: /linux1/gccsdk/autobuilder/games/anagramarama/makefile.linux.p
+patching file makefile.linux
+Autobuilder: Calling setvars
+Autobuilder: Running make command: /linux1/gccsdk/env/ro-make -f makefile.linux
+gcc -Wall -funroll-loops -fomit-frame-pointer -pipe -O3 -c -o src/dlb.o src/dlb.c
+gcc -Wall -funroll-loops -fomit-frame-pointer -pipe -O3 -c -o src/linked.o src/linked.c
+gcc -Wall -funroll-loops -fomit-frame-pointer -pipe -O3 -c -o src/sprite.o src/sprite.c
+gcc -Wall -funroll-loops -fomit-frame-pointer -pipe -O3 -c -o src/ag.o src/ag.c
+gcc -Wall -static `sdl-config --cflags --libs` -funroll-loops -fomit-frame-pointer -pipe -O3 -lSDL_mixer -lvorbisidec -o ag src/dlb.o src/linked.o src/sprite.o src/ag.o
+`/linux1/gccsdk/autobuilder/games/anagramarama/!Anagramarama/!Sprites22,ff9' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/!Sprites22,ff9'
+`/linux1/gccsdk/autobuilder/games/anagramarama/!Anagramarama/!Run,feb' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/!Run,feb'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/background.bmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/background.bmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/Thumbs.db' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/Thumbs.db'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/letterBank.bmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/letterBank.bmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/entries' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/entries'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/text-base/letterBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/text-base/letterBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/text-base/Thumbs.db.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/text-base/Thumbs.db.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/text-base/numberBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/text-base/numberBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/text-base/background.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/text-base/background.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/text-base/smallLetterBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/text-base/smallLetterBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/all-wcprops' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/all-wcprops'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/tmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/tmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/tmp/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/tmp/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/tmp/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/tmp/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/tmp/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/tmp/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/prop-base/letterBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/prop-base/letterBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/prop-base/Thumbs.db.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/prop-base/Thumbs.db.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/prop-base/numberBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/prop-base/numberBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/prop-base/background.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/prop-base/background.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/.svn/prop-base/smallLetterBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/.svn/prop-base/smallLetterBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/numberBank.bmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/numberBank.bmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/images/smallLetterBank.bmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/images/smallLetterBank.bmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/wordlist.txt' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/wordlist.txt'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/entries' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/entries'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/text-base/wordlist.txt.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/text-base/wordlist.txt.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/all-wcprops' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/all-wcprops'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/tmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/tmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/tmp/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/tmp/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/tmp/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/tmp/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/tmp/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/tmp/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/en_GB/.svn/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/en_GB/.svn/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn/entries' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn/entries'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn/all-wcprops' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn/all-wcprops'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn/tmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn/tmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn/tmp/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn/tmp/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn/tmp/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn/tmp/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn/tmp/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn/tmp/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/.svn/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/.svn/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/background.bmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/background.bmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/Thumbs.db' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/Thumbs.db'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/letterBank.bmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/letterBank.bmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/entries' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/entries'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/text-base/letterBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/text-base/letterBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/text-base/Thumbs.db.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/text-base/Thumbs.db.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/text-base/numberBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/text-base/numberBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/text-base/background.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/text-base/background.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/text-base/smallLetterBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/text-base/smallLetterBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/all-wcprops' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/all-wcprops'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/tmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/tmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/tmp/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/tmp/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/tmp/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/tmp/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/tmp/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/tmp/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/prop-base/letterBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/prop-base/letterBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/prop-base/Thumbs.db.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/prop-base/Thumbs.db.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/prop-base/numberBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/prop-base/numberBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/prop-base/background.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/prop-base/background.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/.svn/prop-base/smallLetterBank.bmp.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/.svn/prop-base/smallLetterBank.bmp.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/numberBank.bmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/numberBank.bmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/images/smallLetterBank.bmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/images/smallLetterBank.bmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/wordlist.txt' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/wordlist.txt'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/entries' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/entries'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/text-base/wordlist.txt.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/text-base/wordlist.txt.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/all-wcprops' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/all-wcprops'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/tmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/tmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/tmp/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/tmp/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/tmp/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/tmp/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/tmp/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/tmp/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/i18n/pt_BR/.svn/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/i18n/pt_BR/.svn/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/found.wav' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/found.wav'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/clearword.wav' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/clearword.wav'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/badword.wav' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/badword.wav'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/shuffle.wav' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/shuffle.wav'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/clock-tick.wav' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/clock-tick.wav'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/foundbig.wav' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/foundbig.wav'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/click-answer.wav' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/click-answer.wav'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/entries' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/entries'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base/found.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base/found.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base/clearword.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base/clearword.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base/duplicate.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base/duplicate.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base/badword.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base/badword.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base/shuffle.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base/shuffle.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base/click-answer.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base/click-answer.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base/foundbig.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base/foundbig.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base/click-shuffle.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base/click-shuffle.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/text-base/clock-tick.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/text-base/clock-tick.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/all-wcprops' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/all-wcprops'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/tmp' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/tmp'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/tmp/text-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/tmp/text-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/tmp/props' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/tmp/props'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/tmp/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/tmp/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base/found.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base/found.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base/clearword.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base/clearword.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base/duplicate.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base/duplicate.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base/badword.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base/badword.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base/shuffle.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base/shuffle.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base/click-answer.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base/click-answer.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base/foundbig.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base/foundbig.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base/click-shuffle.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base/click-shuffle.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/.svn/prop-base/clock-tick.wav.svn-base' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/.svn/prop-base/clock-tick.wav.svn-base'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/duplicate.wav' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/duplicate.wav'
+`/linux1/gccsdk/build-static/anagramarama/trunk/audio/click-shuffle.wav' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama/audio/click-shuffle.wav'
+`/linux1/gccsdk/build-static/anagramarama/trunk/gpl.txt' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama//doc/gpl.txt'
+`/linux1/gccsdk/build-static/anagramarama/trunk/readme' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/Apps/Games/!Anagramarama//doc/readme'
+add-riscpkg: Adding files for the RISC OS Packaging Project
+`/linux1/gccsdk/autobuilder/games/anagramarama/RiscPkg/Control' -> `/linux1/gccsdk/build-static/anagramarama/package/anagramarama/RiscPkg/Control'
+add-riscpkg: Setting filetypes...
+add-riskpkg: Finished
+Autobuilder: Packaging files
+Autobuilder: Packaging as anagramarama
+adding: Apps/ (stored 0%) adding: Apps/Games/ (stored 0%) adding: Apps/Games/!Anagramarama/ (stored 0%) adding: Apps/Games/!Anagramarama/!Boot,feb (deflated 31%) adding: Apps/Games/!Anagramarama/!Sprites22,ff9 (deflated 60%) adding: Apps/Games/!Anagramarama/audio/ (stored 0%) adding: Apps/Games/!Anagramarama/audio/click-answer.wav,fff (deflated 21%) adding: Apps/Games/!Anagramarama/audio/duplicate.wav,fff (deflated 36%) adding: Apps/Games/!Anagramarama/audio/clock-tick.wav,fff (deflated 44%) adding: Apps/Games/!Anagramarama/audio/found.wav,fff (deflated 46%) adding: Apps/Games/!Anagramarama/audio/clearword.wav,fff (deflated 3%) adding: Apps/Games/!Anagramarama/audio/shuffle.wav,fff (deflated 59%) adding: Apps/Games/!Anagramarama/audio/badword.wav,fff (deflated 36%) adding: Apps/Games/!Anagramarama/audio/foundbig.wav,fff (deflated 32%) adding: Apps/Games/!Anagramarama/audio/click-shuffle.wav,fff (deflated 54%) adding: Apps/Games/!Anagramarama/i18n/ (stored 0%) adding: Apps/Games/!Anagramarama/i18n/en_GB/ (stored 0%) adding: Apps/Games/!Anagramarama/i18n/en_GB/images/ (stored 0%) adding: Apps/Games/!Anagramarama/i18n/en_GB/images/smallLetterBank.bmp,fff (deflated 68%) adding: Apps/Games/!Anagramarama/i18n/en_GB/images/Thumbs.db,fff (deflated 45%) adding: Apps/Games/!Anagramarama/i18n/en_GB/images/letterBank.bmp,fff (deflated 98%) adding: Apps/Games/!Anagramarama/i18n/en_GB/images/numberBank.bmp,fff (deflated 70%) adding: Apps/Games/!Anagramarama/i18n/en_GB/images/background.bmp,fff (deflated 95%) adding: Apps/Games/!Anagramarama/i18n/en_GB/wordlist.txt,fff (deflated 66%) adding: Apps/Games/!Anagramarama/i18n/pt_BR/ (stored 0%) adding: Apps/Games/!Anagramarama/i18n/pt_BR/images/ (stored 0%) adding: Apps/Games/!Anagramarama/i18n/pt_BR/images/smallLetterBank.bmp,fff (deflated 68%) adding: Apps/Games/!Anagramarama/i18n/pt_BR/images/Thumbs.db,fff (deflated 43%) adding: Apps/Games/!Anagramarama/i18n/pt_BR/images/letterBank.bmp,fff (deflated 98%) adding: Apps/Games/!Anagramarama/i18n/pt_BR/images/numberBank.bmp,fff (deflated 70%) adding: Apps/Games/!Anagramarama/i18n/pt_BR/images/background.bmp,fff (deflated 94%) adding: Apps/Games/!Anagramarama/i18n/pt_BR/wordlist.txt,fff (deflated 73%) adding: Apps/Games/!Anagramarama/!Run,feb (deflated 32%) adding: Apps/Games/!Anagramarama/doc/ (stored 0%) adding: Apps/Games/!Anagramarama/doc/readme,fff (deflated 36%) adding: Apps/Games/!Anagramarama/doc/gpl.txt,fff (deflated 62%) adding: Apps/Games/!Anagramarama/ag,ff8 (deflated 50%) adding: RiscPkg/ (stored 0%) adding: RiscPkg/Copyright,fff (deflated 42%) adding: RiscPkg/Control,fff (deflated 31%) adding: SysVars/ (stored 0%) adding: SysVars/Anagramarama=24Dir,fff (deflated 3%)
+-rw-r--r-- 1 cgransden cgransden 890573 2010-08-20 20:55 /linux1/gccsdk/autobuilder/autobuilder_packages/Games/anagramarama_0.3-1.zip
+Autobuilder: Packaging source
+make: *** No rule to make target `distclean'. Stop.
+rm -f src/*.o
+  adding: ag (deflated 63%)
+  adding: audio/ (stored 0%)
+  adding: audio/found.wav (deflated 46%)
+  adding: audio/clearword.wav (deflated 3%)
+  adding: audio/badword.wav (deflated 36%)
+  adding: audio/shuffle.wav (deflated 59%)
+  adding: audio/clock-tick.wav (deflated 44%)
+  adding: audio/foundbig.wav (deflated 32%)
+  adding: audio/click-answer.wav (deflated 21%)
+  adding: audio/duplicate.wav (deflated 36%)
+  adding: audio/click-shuffle.wav (deflated 54%)
+  adding: gpl.txt (deflated 62%)
+  adding: i18n/ (stored 0%)
+  adding: i18n/en_GB/ (stored 0%)
+  adding: i18n/en_GB/images/ (stored 0%)
+  adding: i18n/en_GB/images/background.bmp (deflated 95%)
+  adding: i18n/en_GB/images/Thumbs.db (deflated 45%)
+  adding: i18n/en_GB/images/letterBank.bmp (deflated 98%)
+  adding: i18n/en_GB/images/numberBank.bmp (deflated 70%)
+  adding: i18n/en_GB/images/smallLetterBank.bmp (deflated 68%)
+  adding: i18n/en_GB/wordlist.txt (deflated 66%)
+  adding: i18n/pt_BR/ (stored 0%)
+  adding: i18n/pt_BR/images/ (stored 0%)
+  adding: i18n/pt_BR/images/background.bmp (deflated 94%)
+  adding: i18n/pt_BR/images/Thumbs.db (deflated 43%)
+  adding: i18n/pt_BR/images/letterBank.bmp (deflated 98%)
+  adding: i18n/pt_BR/images/numberBank.bmp (deflated 70%)
+  adding: i18n/pt_BR/images/smallLetterBank.bmp (deflated 68%)
+  adding: i18n/pt_BR/wordlist.txt (deflated 73%)
+  adding: makefile.BEOS (deflated 54%)
+  adding: makefile.linux (deflated 56%)
+  adding: makefile.WIN32 (deflated 60%)
+  adding: readme (deflated 36%)
+  adding: riscos/ (stored 0%)
+  adding: riscos/!Anagramarama/ (stored 0%)
+  adding: riscos/!Anagramarama/!Sprites22,ff9 (deflated 60%)
+  adding: riscos/!Anagramarama/!Run,feb (deflated 34%)
+  adding: riscos/RiscPkg/ (stored 0%)
+  adding: riscos/RiscPkg/Control (deflated 29%)
+  adding: riscos/setvars (deflated 30%)
+  adding: riscos/ag.c.p (deflated 71%)
+  adding: riscos/makefile.linux.p (deflated 54%)
+  adding: src/ (stored 0%)
+  adding: src/ag.h (deflated 58%)
+  adding: src/dlb.c (deflated 62%)
+  adding: src/linked.h (deflated 45%)
+  adding: src/linked.c (deflated 65%)
+  adding: src/dlb.h (deflated 45%)
+  adding: src/sprite.h (deflated 53%)
+  adding: src/ag.c (deflated 75%)
+  adding: src/sprite.c (deflated 68%)
+Autobuilder: Package stage completed

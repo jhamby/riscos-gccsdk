@@ -1,0 +1,20 @@
+
+AB_SVN=http://anagramarama.googlecode.com/svn/trunk/
+
+AB_PVERSION=0.3
+
+AB_MAKE="$AB_MAKE -f makefile.linux"
+
+ab_package() {
+  ab_create_app Anagramarama Apps/Games
+  ab_makerun $S/ag
+
+  cp -av $S/i18n $A
+  cp -av $S/audio $A
+
+  mkdir $A/doc
+  cp -av $S/gpl.txt $S/readme $A/doc
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile gpl.txt
+}
+
