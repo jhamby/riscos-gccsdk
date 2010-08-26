@@ -327,10 +327,6 @@ extern unsigned int __decstrtoui (const char *__string, const char **__end)
 /* UnixLib's prefix for global RISC OS environment variables.  */
 #define __UNIX_ENV_PREFIX "UnixEnv$"
 
-/* Put value into the OS environment. Will not overwrite an existing
-   variable of the same name if replace is 0 */
-extern int __addenv_to_os (const char *name, const char *value, int replace);
-
 /* Add NAME=VALUE to the environment. If NAME is already in the environment,
    only add when replace is non-zero.  If string is non-NULL then it is
    used directly, otherwise a copy of name and value is used. */
@@ -343,10 +339,6 @@ extern int __addenv_to_env (char *string, const char *__name,
    If buf is NULL and call is not NULL then an enumeration is taking place.  */
 extern char *__getenv_from_os (const char *__name, char *__buf,
 			       size_t __buflen, char **call)
-	__nonnull ((1)) __wur;
-
-/* Return the integer value of NAME, from the RISC OS global environment.  */
-extern int __intenv (const char *__name)
 	__nonnull ((1)) __wur;
 
 /* Get the leaf name from the command line used to run the program

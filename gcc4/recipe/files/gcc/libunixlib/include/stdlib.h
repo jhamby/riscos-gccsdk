@@ -86,10 +86,8 @@ extern char *getenv (const char *__name) __THROW __nonnull ((1)) __wur;
 __END_NAMESPACE_STD
 
 #if defined __USE_SVID || defined __USE_XOPEN
-#  ifndef __TARGET_SCL__
 /* Put string, which is of the form "NAME=VALUE" in the environment.  */
 extern int putenv (char *__string) __THROW __nonnull ((1));
-#  endif
 #endif
 
 #if defined __USE_BSD || defined __USE_XOPEN2K
@@ -98,10 +96,8 @@ extern int putenv (char *__string) __THROW __nonnull ((1));
 extern int setenv (const char *__name, const char *__value, int __replace)
      __THROW __nonnull ((2));
 
-#  ifndef __TARGET_SCL__
 /* Remove NAME from the environment.  */
 extern int unsetenv (const char *__name) __THROW;
-#  endif
 #endif
 
 #ifdef __USE_MISC

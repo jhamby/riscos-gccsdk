@@ -1,14 +1,16 @@
-/* putenv ()
+/* putenv () for UnixLib
  * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <pthread.h>
 #include <unistd.h>
 
+#include <internal/local.h>
+#include <internal/os.h>
 #include <internal/unix.h>
-#include <pthread.h>
 
 /* Add NAME=VALUE to the environment. If NAME is already in the environment,
    only add when replace is non-zero.  If string is non-NULL then it is
@@ -17,10 +19,6 @@ int
 __addenv_to_env (char *string, const char *name, const char *value, int replace)
 {
   struct ul_global *gbl = &__ul_global;
-  char **ep = NULL;
-  size_t envcnt = 0;
-  size_t namelen;
-  size_t valuelen;
 
   PTHREAD_UNSAFE
 
@@ -30,11 +28,11 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
 		gbl->last_environ);
 #endif
 
+  size_t namelen;
+  size_t valuelen;
   if (string)
     {
-      char *equals;
-
-      equals = strchr (string, '=');
+      const char *equals = strchr (string, '=');
       if (equals == NULL)
         return __set_errno (EINVAL);
 
@@ -49,15 +47,17 @@ __addenv_to_env (char *string, const char *name, const char *value, int replace)
     }
 
   /* Search environment for old value.  */
+  char **ep;
+  size_t envcnt = 0;
   if (environ != NULL)
     {
 
-      for (ep = environ; *ep; ++ep)
+      for (ep = environ; *ep != NULL; ++ep, ++envcnt)
         if (!strncmp (*ep, name, namelen) && (*ep)[namelen] == '=')
           break;
-        else
-          ++envcnt;
     }
+  else
+    ep = NULL;
 
   if (environ == NULL || *ep == NULL)  /* Did not find old value.  */
     {
@@ -137,22 +137,18 @@ int
 putenv (char *string)
 {
   const char *equal = strchr (string, '=');
-
   if (!equal)
     return unsetenv (string);
-  else
+
+  const char *dollar = strchr (string, '$');
+  if (dollar && dollar < equal)
     {
-      const char *dollar = strchr (string, '$');
+      char *name = alloca (equal - string + 1);
+      memcpy(name, string, equal - string);
+      name[equal - string] = '\0';
 
-      if (dollar && dollar < equal)
-        {
-          char *name = alloca(equal - string + 1);
-          memcpy(name, string, equal - string);
-          name[equal - string] = '\0';
-
-          return __addenv_to_os (name, equal + 1, 1);
-        }
-      else
-        return __addenv_to_env (string, NULL, NULL, 1);
+      return __addenv_to_os (name, equal + 1, 1);
     }
+
+  return __addenv_to_env (string, NULL, NULL, 1);
 }

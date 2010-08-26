@@ -68,6 +68,8 @@ common_src = \
 	common/_taskhandle.s \
 	common/__stat.c
 endif
+common_src += \
+	common/env.c
 
 if BUILDING_SCL
 crypt_src =
@@ -1078,9 +1080,12 @@ unix_src = \
 	unix/scl_close.c \
 	unix/scl_ioctl.c \
 	unix/scl_lseek.c \
+	unix/scl_putenv.c \
 	unix/scl_read.c \
 	unix/scl_readv.c \
 	unix/scl_select.c \
+	unix/scl_setenv.c \
+	unix/scl_unsetenv.c \
 	unix/scl_write.c \
 	unix/scl_writev.c
 else
@@ -1089,6 +1094,7 @@ unix_src = \
 	unix/alphasort.c \
 	unix/chdir.c \
 	unix/chmod.c \
+	unix/ul_clearenv.c \
 	unix/ul_close.c \
 	unix/creat.c \
 	unix/custom.c \
@@ -1103,7 +1109,7 @@ unix_src = \
 	unix/fstat.c \
 	unix/getcwd.c \
 	unix/getdtables.c \
-	unix/getenv.c \
+	unix/ul_getenv.c \
 	unix/getopt.c \
 	unix/getopt1.c \
 	unix/getsubopt.c \
@@ -1121,13 +1127,14 @@ unix_src = \
 	unix/poll.c \
 	unix/proc.c \
 	unix/pselect.c \
-	unix/putenv.c \
+	unix/ul_putenv.c \
 	unix/ul_read.c \
 	unix/ul_readv.c \
 	unix/reopen.c \
 	unix/rmdir.c \
+	unix/ul_unsetenv.c \
 	unix/ul_select.c \
-	unix/setenv.c \
+	unix/ul_setenv.c \
 	unix/stat.c \
 	unix/statfs.c \
 	unix/sync.c \

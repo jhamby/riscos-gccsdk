@@ -15,6 +15,18 @@
 #include <internal/fd.h>
 #include <pthread.h>
 
+/* Return the integer value of NAME, from the RISC OS global environment.  */
+static unsigned int
+__intenv (const char *name)
+{
+  char intbuf[16];
+
+  if (__getenv_from_os (name, intbuf, sizeof (intbuf), NULL) != NULL)
+    return __decstrtoui (intbuf, NULL);
+  else
+    return 0;
+}
+
 int
 pipe (int *p)
 {
@@ -48,11 +60,10 @@ pipe (int *p)
   file_desc_0->devicehandle->refcount = 2;
   file_desc_0->devicehandle->type = DEV_PIPE;
 
-  int pcnt;
+  unsigned int pcnt;
   char file[24] = "/tmp/pipe";
   {
-    int i;
-    pcnt = i = __intenv ("UnixLib$pcnt");
+    unsigned int i = pcnt = __intenv ("UnixLib$pcnt");
     char num_buf[11];
     char *s = num_buf + sizeof (num_buf);
     *--s = '\0';

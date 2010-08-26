@@ -188,19 +188,6 @@ __getenv_from_env (const char *name)
   return NULL;
 }
 
-
-/* Return the integer value of NAME, from the RISC OS global environment.  */
-int
-__intenv (const char *name)
-{
-  char intbuf[16];
-
-  if (__getenv_from_os (name, intbuf, sizeof (intbuf), NULL) != NULL)
-    return (int) __decstrtoui (intbuf, NULL);
-  else
-    return 0;
-}
-
 /* Lookup an environment variable. If the name contains a $ then we assume
    it is a RISC OS system variable and get it's value from the OS. If the
    name doesn't contain a $ then we look the value up in the program's

@@ -55,7 +55,6 @@ VERSION {
      __h_sigvtalrm;
      __h_sigvtalrm_init;
      __h_sigvtalrm_sema;
-     __intenv;
      __internal_sbrk;
      __init_des_r;
      __init_des;

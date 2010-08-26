@@ -21,6 +21,14 @@
 
 __BEGIN_DECLS
 
+/* Put value into the OS environment. Will not overwrite an existing
+   variable of the same name if replace is 0 */
+extern int __addenv_to_os (const char *name, const char *value, int replace);
+
+/* Remove NAME from the OS environment (always succeeds and can be used for
+   tail calls from unsetenv().  */
+extern int __remenv_from_os (const char *name);
+
 /* Generate a file serial number. This should distinguish the file from
    all other files on the same device.  */
 extern __ino_t __get_file_ino (const char *__directory,

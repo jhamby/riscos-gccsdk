@@ -1,3 +1,25 @@
+Thu Aug 26 03:36:17 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/getenv (__intenv): Move to...
+	* unix/pipe.c: ...here.  Changed return type to unsigned int.
+	(pipe): Follow return tyep change.
+	* incl-local/internal/unix.h (__intenv): Remove prototype.
+	* vscript (__intenv): Remove.
+	* unix/getenv.c: Moved remaining part to...
+	* unix/ul_getenv.c: ...here.
+	* unix/setenv.c (__addenv_to_os): Moved to common/env.c as new file.
+	(__remenv_from_os): Likewise.
+	(unsetenv): Moved to unix/ul_unsetenv.c.  Tail call __remenv_from_os.
+	(clearenv): Moved to unix/ul_clearenv.c.
+	Moved remaining part to...
+	* unix/ul_setenv.c: ...here.
+	* unix/putenv.c: Move to...
+	* unix/ul_putenv.c: ...here. Minor cleanup.
+	* unix/scl_setenv.c: Added.
+	* unix/scl_unsetenv.c: Likewise.
+	* unix/scl_putenv.c: Likewise.
+	* test/env/basicenvtest.c: Added.
+
 Sun Aug  1 22:43:42 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/sys/time.h (__itimer_which_t): Added for C++ support.
