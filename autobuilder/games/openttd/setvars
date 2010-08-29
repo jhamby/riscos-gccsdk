@@ -18,7 +18,7 @@ $CC -I$GCCSDK_INSTALL_ENV/include -I$GCCSDK_INSTALL_ENV/include  $GCCSDK_INSTALL
  os/riscos/frontend.c os/riscos/rev.c -O2 -o frontend$AB_EXEEXT -static
 
 
-export CFLAGS=-I/home/riscos/env/include
+export CFLAGS=-I$GCCSDK_INSTALL_ENV/include
 AB_CONFLAGS="--os=unix --with-zlib=$GCCSDK_INSTALL_ENV/lib/libz.a --prefix-dir=/OpenTTD:
              --data-dir= --without-shared-dir --personal-dir=/OpenTTDChoices:/ --with-freetype=0 --with-fontconfig=0 --with-icu=0 --with-allegro=0 --with-lzo2=$GCCSDK_INSTALL_ENV/lib/liblzo2.a --with-midi=0"
 
@@ -41,19 +41,18 @@ ab_package () {
 
   cp -av $S/frontend$AB_EXEEXT $A/Resources/Installer/\!RunImage$AB_EXEEXT
 
-  wget --progress=bar:force http://bundles.openttdcoop.org/opengfx/releases/opengfx-0.2.4.zip -O opengfx.zip
+  wget --progress=bar:force http://bundles.openttdcoop.org/opengfx/nightlies/r513/opengfx-nightly-r513.zip -O opengfx.zip
   unzip opengfx.zip
-  tar xfv opengfx-0.2.4/opengfx-0.2.4.tar -C opengfx-0.2.4
-  cp -av opengfx-0.2.4/opengfx-0.2.4/*.grf opengfx-0.2.4/opengfx-0.2.4/*.obg $A/data
+  cp -av opengfx-nightly/*.grf opengfx-nightly/*.obg $A/data
 
   wget --progress=bar:force http://bundles.openttdcoop.org/opensfx/releases/opensfx-0.2.3.zip -O opensfx.zip
   unzip opensfx.zip
   cp -av opensfx-0.2.3/*.cat opensfx-0.2.3/*.obs $A/data
 
-  wget --progress=bar:force http://bundles.openttdcoop.org/openmsx/releases/0.3.0/openmsx-0.3.0.zip -O openmsx.zip
+  wget --progress=bar:force http://bundles.openttdcoop.org/openmsx/releases/LATEST/openmsx-0.3.1.zip -O openmsx.zip
   unzip openmsx.zip
   mkdir -p $A/gm
-  cp -av openmsx-0.3.0/*.mid openmsx-0.3.0/*.obm $A/gm
+  cp -av openmsx-0.3.1/*.mid openmsx-0.3.1/*.obm $A/gm
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }

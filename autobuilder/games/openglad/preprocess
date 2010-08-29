@@ -1,0 +1,3 @@
+for cfg in $(find . -name "openglad.cfg") ; do
+ sed -i -e 's/\/path\/to\/data\/dir\//\/<OpenGlad\$Dir>\//g' $cfg
+done

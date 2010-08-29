@@ -1,0 +1,24 @@
+
+AB_SVN=https://snowstorm.svn.sourceforge.net/svnroot/snowstorm/openglad/trunk
+
+AB_PVERSION=0.98.1
+sh ./autogen.sh
+
+export LIBS='-lSDL_mixer -lvorbisidec'
+
+ab_package() {
+  ab_create_app OpenGlad Apps/Games
+  ab_makerun $S/src/openglad$AB_EXEEXT
+
+  cp -av $S/src/openscen$AB_EXEEXT $A
+  cp -av $S/glad.hlp $S/graphics.001 $S/levels.001 $S/openglad.cfg $A
+  cp -av $S/scen.txt $S/start.tex $A
+  cp -av $S/sound $S/scen $S/pix $A
+
+  mkdir $A/doc
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/INSTALL $S/NEWS  $A/doc
+  cp -av $S/README $S/cheats.txt $S/classes.txt $A/doc
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}
+
