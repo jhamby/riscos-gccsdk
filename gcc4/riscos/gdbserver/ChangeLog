@@ -1,3 +1,9 @@
+Sat Sep  4 16:55:56 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	Switch to autoconf/automake buildsystem.
+	* build, Makefile, src/Makefile, src/header.h: Remove.
+	* configure.ac, Makefile.am, src/Makefile.am: Added.
+
 Tue May 25 23:40:12 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/socket.h: Add include unistd.h for ssize_t type.
