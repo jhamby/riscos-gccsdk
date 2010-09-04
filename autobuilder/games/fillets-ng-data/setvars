@@ -1,0 +1,15 @@
+
+ab_make() {
+  echo "Data only - no make required"
+}
+
+cp -av $H/Makefile $S
+
+ab_package() {
+  ab_create_app Fillets-ng Apps/Games
+
+  cp -av doc font images music script sound  $A
+  
+  $AB_HOME/add-riscpkg
+}
+

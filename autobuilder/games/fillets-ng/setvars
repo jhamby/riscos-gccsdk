@@ -1,0 +1,16 @@
+
+ab_package() {
+  ab_create_app Fillets-ng Apps/Games
+
+  ab_makerun src/game/fillets$AB_EXEEXT
+
+  mkdir -p $A/doc
+  cp -av AUTHORS ChangeLog COPYING INSTALL NEWS README TODO $A/doc
+
+  $AB_HOME/add-riscpkg -unixlib  \
+     -depends fillets-ng-data
+}
+
+AB_CONFLAGS="--without-x"
+
+export LIBS='-lvorbisidec -ljpeg -lpng -lz -lfreetype'

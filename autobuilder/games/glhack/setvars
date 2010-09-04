@@ -17,7 +17,7 @@ ab_package() {
 
   rman -f HTML $S/doc/glhack.6 > $A/Docs/glhack.html,faf
  
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile dat/license
 }
 
 
