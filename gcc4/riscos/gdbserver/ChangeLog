@@ -2,3 +2,102 @@ Tue May 25 23:40:12 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/socket.h: Add include unistd.h for ssize_t type.
 
+2009-04-02 23:54  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/header.h, src/module.c, src/session.c, src/socket.c: More
+	  debug, as ^C is still failing to get through.
+	  Ensure that accept()ed sockets are flagged as non-blocking,
+	  asynchronous, and trigger Upcall 6 in TaskWindows.
+
+2009-03-30 23:53  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/session.c: We also clobber r14 (thanks joty)
+
+2009-03-30 23:50  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/gdb.c, src/session.c: Drain client socket of data on
+	  accept().
+	  It would appear that any data written to the client socket before
+	  accept() is called is never reported through the Internet Event.
+	  Thus, we have to drain the socket manually, else we'll miss
+	  client input.
+	  Remove previous hack around this issue.
+
+2009-03-30 23:47  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/socket.c: More debug
+
+2009-03-30 12:45  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/gdb.c, src/header.cmhg, src/header.h, src/module.c,
+	  src/session.c, src/session.h, src/session_asm.s: Improve
+	  detection of Wimp task handle. Using a pre-filter is no good, as
+	  the debuggee may call Wimp_StartTask prior to calling Wimp_Poll.
+	  In that case, we picked up the secondary task's task handle and
+	  not the debuggee's. Now we just intercept Wimp_Initialise and add
+	  a callback to handle the task handle on exit from the OS.
+
+2009-03-29 18:30  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/session_asm.s: Don't trap FPA instructions.
+
+2009-03-28 13:13  John Tytgat  <John.Tytgat@aaug.net>
+
+	* ., build: Ignore build generated files and directories.
+
+2009-03-28 02:42  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/session.c: Small micro optimisation avoiding an extra fetch
+	  indirection.
+
+2009-03-21 15:44  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* TODO: Module name is allocated.
+
+2009-03-21 03:46  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* TODO: More things to fix
+
+2009-03-21 03:24  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* README: Fix documentation bugs
+
+2009-03-21 03:13  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* TODO, src/header.cmhg, src/header.h, src/module.c, src/session.c,
+	  src/session.h: Support for debugging Wimp applications.
+
+2009-03-20 18:23  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/debug.h, src/gdb.c, src/module.c, src/session.c: Silence
+	  debug
+
+2009-03-20 18:02  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/asmutils.h, src/asmutils.s, src/gdb.c: Hack around 26bit PSR
+	  flags nonsense
+
+2009-03-20 17:50  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* TODO, src/Makefile, src/gdb.c, src/gdb.h, src/header.h,
+	  src/session.c, src/step.c, src/step.h: Implement single stepping.
+	  Lose some debug output.
+
+2009-03-19 20:54  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/gdb.c, src/gdb.h, src/regs.h, src/session.c: More typesafe
+	  register save buffer definition.
+
+2009-03-19 02:22  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* docs, docs/Architecture, docs/Protocol: Add some documentation
+
+2009-03-19 01:32  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* ., COPYING, Makefile, README, TODO, build, build/Makefile.common,
+	  build/Makefile.config, src, src/Makefile, src/asmutils.h,
+	  src/asmutils.s, src/gdb.c, src/gdb.h, src/header.cmhg,
+	  src/header.h, src/module.c, src/session.c, src/session.h,
+	  src/session_asm.s, src/socket.c, src/socket.h, src/utils.h:
+	  Import about 80% of a GDB remote debug client.
+
