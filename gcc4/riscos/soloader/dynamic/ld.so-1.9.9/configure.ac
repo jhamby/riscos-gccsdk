@@ -1,4 +1,4 @@
-AC_PREREQ(2.59)
+AC_PREREQ(2.64)
 
 AC_INIT([RISC OS Dynamic Loader], [1.9.9], [http://gccsdk.riscos.info/])
 AM_INIT_AUTOMAKE([1.9 foreign])

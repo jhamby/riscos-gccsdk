@@ -64,12 +64,17 @@ done
 # versions for autoconf/automake and avoid subtle build problems.
 PATH=$GCCSDK_BUILDDIR/installed-buildtools-for-binutils/bin:$PATH
 
+# Make sure our cross-compiler binaries can be found.
+PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
+
 GCCSDK_TARGET_NAME=arm-unknown-riscos
+GCCSDK_CROSS_CONFIGURE_ARGS="--target=$GCCSDK_TARGET_NAME"
+GCCSDK_RISCOS_CONFIGURE_ARGS="--host=$GCCSDK_TARGET_NAME --target=$GCCSDK_TARGET_NAME"
 if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
   # Build binaries suited for cross-compilation
   GCCSDK_BUILDDIR=$GCCSDK_BUILDDIR/cross
   GCCSDK_PREFIX=$GCCSDK_CROSS_PREFIX
-  GCCSDK_CONFIGURE_ARGS="--target=$GCCSDK_TARGET_NAME"
+  GCCSDK_CONFIGURE_ARGS=$GCCSDK_CROSS_CONFIGURE_ARGS
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # Build binaries suited for native RISC OS usage
   GCCSDK_RISCOS_GCCPREFIX=$GCCSDK_RISCOS_PREFIX/\!GCC
@@ -78,10 +83,7 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
 
   GCCSDK_BUILDDIR=$GCCSDK_BUILDDIR/ronative
   GCCSDK_PREFIX=$GCCSDK_RISCOS_GCCPREFIX
-  GCCSDK_CONFIGURE_ARGS="--build=`$GCCSDK_SRCDIR/binutils/config.guess` --host=$GCCSDK_TARGET_NAME --target=$GCCSDK_TARGET_NAME"
-
-  # Make sure our cross-compiler binaries can be found.
-  PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
+  GCCSDK_CONFIGURE_ARGS=$GCCSDK_RISCOS_CONFIGURE_ARGS
 else
   echo Error: called $0 with unknown build action $GCCSDK_BUILD_ACTION
   exit 1
@@ -94,12 +96,14 @@ for roapp in asasm cmunge elf2aif ln mkresfs ; do
     test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && autoreconf --install )
     create_empty_dir $GCCSDK_BUILDDIR/$roapp
     cd $GCCSDK_BUILDDIR/$roapp
-    export CFLAGS=""
     if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
       # These apps are using SCL as runtime library:
       case $roapp in
         cmunge | elf2aif | ln)
           export CFLAGS="-O3 -mlibscl"
+          ;;
+        *)
+          unset CFLAGS
           ;;
       esac
     fi
@@ -109,6 +113,8 @@ for roapp in asasm cmunge elf2aif ln mkresfs ; do
 done
 
 if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
+  # Only for cross-compilation:
+
   if [ "$GCCSDK_BUILD_ISSTATIC" != "YES" ] ; then
     # Dynamic loader:
     echo +++ Building Dynamic Linker V1.9.9
@@ -116,14 +122,30 @@ if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; t
     test -f $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 || ( cd $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 && autoreconf --install )
     create_empty_dir $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
     cd $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
-    export CFLAGS="-O4 -Wall"
-    $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9/configure --host=$GCCSDK_TARGET_NAME --prefix=$GCCSDK_CROSS_PREFIX/$GCCSDK_TARGET_NAME $GCCSDK_CONFIGURE_ARGS
+    $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9/configure --prefix=$GCCSDK_CROSS_PREFIX/$GCCSDK_TARGET_NAME $GCCSDK_RISCOS_CONFIGURE_ARGS
     make BUILD_CROSS=1 $GCCSDK_MAKE_ARGS install
   fi
+
+  # GDBServer module:
+  echo +++ Building GDBServer
+  test -f $GCCSDK_RISCOS/gdbserver/configure || ( cd $GCCSDK_RISCOS/gdbserver && autoreconf --install )
+  create_empty_dir $GCCSDK_BUILDDIR/gdbserver
+  cd $GCCSDK_BUILDDIR/gdbserver
+  $GCCSDK_RISCOS/gdbserver/configure --prefix=$GCCSDK_PREFIX --bindir=$GCCSDK_PREFIX/module $GCCSDK_RISCOS_CONFIGURE_ARGS
+  make $GCCSDK_MAKE_ARGS install
+
+  # syslogd module:
+  echo +++ Building syslogd
+  test -f $GCCSDK_RISCOS/syslogd/configure || ( cd $GCCSDK_RISCOS/syslogd && autoreconf --install )
+  create_empty_dir $GCCSDK_BUILDDIR/syslogd
+  cd $GCCSDK_BUILDDIR/syslogd
+  $GCCSDK_RISCOS/syslogd/configure --prefix=$GCCSDK_PREFIX --bindir=$GCCSDK_PREFIX/module $GCCSDK_RISCOS_CONFIGURE_ARGS
+  make $GCCSDK_MAKE_ARGS install
 
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # These only make sense in the native RISC OS build:
 
+  # Shared library support:
   if [ "$GCCSDK_BUILD_ISSTATIC" != "YES" ] ; then
     # SOManager module:
     if [ ! -f $GCCSDK_RELEASE_AREA/\!SharedLibs/SOManager,ffa ] ; then
@@ -131,7 +153,6 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
       test -f $GCCSDK_RISCOS/soloader/module2/configure || ( cd $GCCSDK_RISCOS/soloader/module2 && autoreconf --install )
       create_empty_dir $GCCSDK_BUILDDIR/soloader/somanager
       cd $GCCSDK_BUILDDIR/soloader/somanager
-      export CFLAGS=""
       $GCCSDK_RISCOS/soloader/module2/configure --prefix=$GCCSDK_RISCOS_DSOPREFIX --bindir=$GCCSDK_RISCOS_DSOPREFIX $GCCSDK_CONFIGURE_ARGS
       make $GCCSDK_MAKE_ARGS install
     fi
@@ -142,7 +163,6 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
       test -f $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 || ( cd $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9 && autoreconf --install )
       create_empty_dir $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
       cd $GCCSDK_BUILDDIR/soloader/dynamic/ld.so-1.9.9
-      export CFLAGS="-O4 -Wall"
       $GCCSDK_RISCOS/soloader/dynamic/ld.so-1.9.9/configure --prefix=$GCCSDK_RISCOS_DSOPREFIX $GCCSDK_CONFIGURE_ARGS
       make $GCCSDK_MAKE_ARGS install
     fi
@@ -173,35 +193,22 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # !System modules:
   create_empty_dir $GCCSDK_RISCOS_SYSTEMPREFIX
   mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules
-  # Copy !System skeleton:
+
+  # *** Copy !System skeleton:
   svn export -q --force $GCCSDK_RISCOS/dist/\!System $GCCSDK_RISCOS_SYSTEMPREFIX/\!System
-  # SharedUnixLibrary module:
+
+  # *** SharedUnixLibrary module:
   #   1. Copy SharedUnixLibrary module from !GCC/bin to !System:
   cp $GCCSDK_RISCOS_GCCPREFIX/bin/sul $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules/SharedULib,ffa
   #   2. Copy UnixLib/SharedUnixLibrary license:
   mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
   cp $GCCSDK_SRCDIR/gcc/libunixlib/COPYING $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
-  # syslogd module:
-  #   1. Build & install syslogd (FIXME: we can not build this yet)
-  echo +++ Building syslogd - skipped
-  #   2. Copy documentation, license:
-  #      FIXME: enable this when we can build syslogd and have a copy stored in !System.
-  ##mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/syslogd
-  ##cp $GCCSDK_RISCOS/syslogd/ReadMe $GCCSDK_RISCOS_SYSTEMPREFIX/docs/syslogd
-  # DRenderer module:
+
+  # *** DRenderer module:
   #   1. Build & install drenderer (FIXME: we can not build this yet)
   #      Currently we have a binary copy in riscos/dist/!System/310/Modules.
   echo +++ Building drenderer - skipped
   #   2. Copy license and documentation:
   mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/DRenderer
   cp $GCCSDK_RISCOS/drenderer/{COPYING,DocDRender} $GCCSDK_RISCOS_SYSTEMPREFIX/docs/DRenderer
-  # gdbserver module:
-  #   1. Build & install gdb server:
-  echo +++ Building gdbserver
-  cd $GCCSDK_RISCOS/gdbserver
-  make
-  cp GDBServer,ffa $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules
-  #   2. Copy license and documentation:
-  mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/GDBServer
-  cp $GCCSDK_RISCOS/gdbserver/{COPYING,README} $GCCSDK_RISCOS_SYSTEMPREFIX/docs/GDBServer
 fi

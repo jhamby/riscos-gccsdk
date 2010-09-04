@@ -1,4 +1,4 @@
-AC_PREREQ(2.59)
+AC_PREREQ(2.64)
 AC_INIT([cmunge],[0.76],[http://gccsdk.riscos.info/])
 
 AC_PROG_CC

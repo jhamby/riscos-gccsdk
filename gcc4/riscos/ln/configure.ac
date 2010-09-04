@@ -1,4 +1,4 @@
-AC_PREREQ(2.59)
+AC_PREREQ(2.64)
 AC_INIT([ln],[1.03],[http://gccsdk.riscos.info/])
 
 # AC_CANONICAL_TARGET will make sure that when having host != target the ln
