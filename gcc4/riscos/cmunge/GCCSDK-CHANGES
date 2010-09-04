@@ -8,8 +8,11 @@ More detailed overview of the changes made so far:
 
   - GCCSDK specific build structure changes.
   - Hiding RISC OS specific build files (Makefile,fe1, !Mk*,fd7 files)
-  - Marked "[with GCCSDK 4 changes]" Module_FullVersionAndDate of VersionNum
-    which makes startup message and generated files are marked as such.
+  - Added to Module_FullVersionAndDate of VersionNum the substring
+    "[with GCCSDK 4 changes including r" followed by the Subversion revision
+    number of the code base used to make the cmunge binary.
+    This will be visible in the startup message and generated files will be
+    similary marked as well.
   - -tgcc option supports ELF object format and no longer AOF object format.
   - Added 'pdriver-handler' keyword for those wanting to create printer driver
     module code. Added an example for this new feature.

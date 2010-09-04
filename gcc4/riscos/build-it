@@ -1,6 +1,6 @@
 #!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2007-2009 GCCSDK Developers
+# Copyright (c) 2007-2010 GCCSDK Developers
 #
 # Builds the RISC OS specific binaries in GCCSDK, either for cross-compilation
 # usage, either a native RISC OS binaries.
@@ -60,6 +60,10 @@ for param in $@ ; do
   esac
 done
 
+# Use autotools we've built for building binutils.  This ensures we can rely on fixed
+# versions for autoconf/automake and avoid subtle build problems.
+PATH=$GCCSDK_BUILDDIR/installed-buildtools-for-binutils/bin:$PATH
+
 GCCSDK_TARGET_NAME=arm-unknown-riscos
 if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; then
   # Build binaries suited for cross-compilation
@@ -67,7 +71,7 @@ if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; t
   GCCSDK_PREFIX=$GCCSDK_CROSS_PREFIX
   GCCSDK_CONFIGURE_ARGS="--target=$GCCSDK_TARGET_NAME"
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
-  # Build binaries suites for native RISC OS usage
+  # Build binaries suited for native RISC OS usage
   GCCSDK_RISCOS_GCCPREFIX=$GCCSDK_RISCOS_PREFIX/\!GCC
   GCCSDK_RISCOS_DSOPREFIX=$GCCSDK_RISCOS_PREFIX/\!SharedLibs
   GCCSDK_RISCOS_SYSTEMPREFIX=$GCCSDK_RISCOS_PREFIX/system
