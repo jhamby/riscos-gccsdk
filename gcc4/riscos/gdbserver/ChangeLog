@@ -1,3 +1,16 @@
+Sun Sep  5 20:44:13 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* asmutils.h, debug.h, gdb.c, gdb.h, module.c, regs.h, session.c,
+	  session.h, socket.c, socket.h, step.c, step.h: Use GNU style
+	  source formatting. Replase UNUSED() by __attribute__ ((unused)).
+	* utils.h: Remove.
+	* README: Update the build instructions.
+
+Sun Sep  5 19:18:53 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* docs/Protocol: Update remote protocol URL.
+	* docs/Architecture: Add gdb debug suggestion.
+
 Sun Sep  5 17:55:25 CET 2010  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* session.c (session_is_connected): client socket handle may be zero.

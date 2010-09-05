@@ -3,10 +3,11 @@
 
 #include <stdint.h>
 
-typedef struct cpu_registers {
+typedef struct cpu_registers
+{
 #define N_REGS 16
-	uint32_t r[N_REGS];
-	uint32_t cpsr;
+  uint32_t r[N_REGS];
+  uint32_t cpsr;
 } cpu_registers;
 
 #endif

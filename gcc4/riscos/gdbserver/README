@@ -13,7 +13,7 @@ Requirements
 
   For compilation, GDBServer requires the following tools:
 
-    + A C99 capable C compiler
+    + GCCSDK GCC 4.1.1 or later.
     + GNU make or compatible
 
   In use, GDBServer requires the following tools:
@@ -24,9 +24,14 @@ Requirements
 Compilation
 -----------
 
-  If necessary, modify the toolchain settings in the Makefile.
-  Invoke make:
-  		$ make
+  This project uses autotools:
+
+	$ cd gdbserver
+	$ autoreconf --install
+	$ cd <builddir>
+	$ <gdbserver source dir>/configure --prefix=<installation dir> --host=arm-unknown-riscos
+	$ make
+	$ make install
 
 Usage
 -----
