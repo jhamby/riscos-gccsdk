@@ -73,3 +73,11 @@ Anatomy of a debug session
   Debuggee exit is detected through the environment handlers. These cause
   the debugging session to be terminated and cleaned up.
 
+Debugging
+---------
+
+  To catch the communication which gdb has with GDBServer in a log file:
+ 
+    (gdb) set remotelogfile <log file>
+
+

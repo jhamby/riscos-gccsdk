@@ -1,8 +1,9 @@
 GDB server protocol
 ===================
 
-Protocol documentation may be found in appendix D of the GDB manual:
-  http://sources.redhat.com/gdb/current/onlinedocs/gdb_34.html
+Protocol documentation may be found in the GDB manual:
+
+  http://sourceware.org/gdb/download/onlinedocs/gdb/Remote-Protocol.html
 
 The receive state machine implemented in gdb.c looks like this:
 
