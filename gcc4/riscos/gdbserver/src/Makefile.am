@@ -1,5 +1,6 @@
 # GDBServer -- a RISC OS remote debug server for the GNU debugger (gdb)
 # Copyright 2009 J-M Bell
+# Copyright 2010 GCCSDK Developers
 
 bin_PROGRAMS=GDBServer
 
@@ -7,11 +8,11 @@ OURWARNFLAGS=-Wall -Wextra -Wundef -Wpointer-arith -Wcast-align \
 	-Wwrite-strings -Wstrict-prototypes -Wmissing-prototypes \
 	-Wmissing-declarations -Wnested-externs -Werror -pedantic
 
-GDBServer_SOURCES=gdb.c module.c session.c socket.c step.c \
+GDBServer_SOURCES=debug.c gdb.c module.c session.c socket.c step.c \
 	asmutils.s session_asm.s \
 	header.cmhg
 BUILT_SOURCES=header.h
-GDBServer_CFLAGS=-O3 -mmodule $(OURWARNFLAGS) -std=gnu99
+GDBServer_CFLAGS=-O3 -mmodule $(OURWARNFLAGS) -std=gnu99 -DCONFIG_DEBUG
 GDBServer_CCASFLAGS=-O3 -mmodule $(OURWARNFLAGS) -std=gnu99
 GDBServer_LDFLAGS=-mmodule
 

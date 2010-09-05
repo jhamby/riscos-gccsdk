@@ -104,7 +104,7 @@ gdb_process_input (gdb_ctx *ctx, const uint8_t *data, size_t len)
 	    {
 	    case 3:
 	      /* Tell client to interrupt application */
-	      debug ("Received interrupt%s\n", "");
+	      dprintf ("Received interrupt\n");
 	      ctx->brk (ctx->pw);
 	      break;
 	    case '$':
@@ -344,8 +344,8 @@ process_packet (gdb_ctx * ctx)
       break;
 
     default:
-      debug ("Unsupported packet '%.*s'\n",
-	     ctx->data_len, (char *)ctx->data_buf);
+      dprintf ("Unsupported packet '%.*s'\n",
+	       ctx->data_len, (const char *)ctx->data_buf);
 
       send_packet (ctx, (const uint8_t *)"", 0);
       break;

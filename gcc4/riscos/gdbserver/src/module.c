@@ -111,7 +111,7 @@ command_handler (const char *arg_string, int argc __attribute__ ((unused)),
 	/* 10 seconds */
 	init_timeout += 1000;
 
-	debug ("Waiting 10s for debugger%s\n", "");
+	dprintf ("Waiting 10s for debugger\n");
 
 	/* Register callback which will trigger when the kernel
 	 * threads out but before the application is entered.
@@ -147,7 +147,7 @@ internet_handler (_kernel_swi_regs * r, void *pw __attribute__ ((unused)))
     {
     case 1: /* Input pending */
       {
-	debug ("Input on %d\n", r->r[2]);
+	dprintf ("Input on %d\n", r->r[2]);
 
 	/* Work out what socket this is. */
 	session_ctx *session = session_find_by_socket (r->r[2]);
@@ -160,7 +160,7 @@ internet_handler (_kernel_swi_regs * r, void *pw __attribute__ ((unused)))
 
     case 2: /* OOB data pending */
       /* Ignore this */
-      debug ("OOB on %d\n", r->r[2]);
+      dprintf ("OOB on %d\n", r->r[2]);
       break;
 
     case 3: /* Socket closed */
@@ -203,7 +203,7 @@ post_run_handler (_kernel_swi_regs *r __attribute__ ((unused)),
     }
   else if (now >= init_timeout)
     {
-      debug ("timed out%s\n", "");
+      dprintf ("timed out\n");
 
       /* Do not destroy the session here. 
        * It will be cleaned up by the exit handler
@@ -214,7 +214,7 @@ post_run_handler (_kernel_swi_regs *r __attribute__ ((unused)),
       return NULL;
     }
 
-  debug ("done%s\n", "");
+  dprintf ("done\n");
 
   init_timeout = 0;
   init_session = NULL;

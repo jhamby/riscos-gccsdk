@@ -1,12 +1,20 @@
 #ifndef src_debug_h_
 #define src_debug_h_
 
-#ifndef NDEBUG
-#include <stdio.h>
-
-#define debug printf
+#ifdef CONFIG_DEBUG
+#  ifdef CONFIG_DEBUG_REPORTER
+void dprintf (const char *msg, ...)
+  __attribute__ ((__format__ (__printf__, 1, 2)));
+#  else
+#    include <stdio.h>
+#    define dprintf printf
+#  endif
 #else
-#define debug(format, ...) ((void) 0)
+static inline void
+  __attribute__ ((__format__ (__printf__, 1, 2)))
+dprintf (const char *msg __attribute__ ((unused)), ...)
+{
+}
 #endif
 
 #endif

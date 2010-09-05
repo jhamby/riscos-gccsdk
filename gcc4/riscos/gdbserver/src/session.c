@@ -251,7 +251,7 @@ session_break (uintptr_t ctx)
 {
   session_ctx *session = (session_ctx *) ctx;
 
-  debug ("Current break state: %d\n", session->brk);
+  dprintf ("Current break state: %d\n", session->brk);
 
   /* Ignore any attempts to break while we're paused */
   if (session->brk == 1)
@@ -259,7 +259,7 @@ session_break (uintptr_t ctx)
 
   if (session == session_get_current ())
     {
-      debug ("Session is current%s", "");
+      dprintf ("Session is current");
 
       /* Inject bkpt, so debuggee breaks on resumption */
       if (session_set_bkpt (ctx, session->cur_pc | BKPT_ONE_SHOT) == 0)
@@ -499,11 +499,9 @@ post_wimp_initialise_handler (_kernel_swi_regs *r __attribute__ ((unused)),
   uint32_t task;
   _kernel_oserror *error = _swix (Wimp_ReadSysInfo, _IN (0) | _OUT (0), 5, &task);
   if (error != NULL)
-    {
-      debug ("Wimp_ReadSysInfo: 0x%x %s\n", error->errnum, error->errmess);
-    }
+    dprintf ("Wimp_ReadSysInfo: 0x%x %s\n", error->errnum, error->errmess);
 
-  debug ("Task handle: 0x%0x\n", task);
+  dprintf ("Task handle: 0x%0x\n", task);
 
   if (task == 0)
     return NULL;
@@ -512,10 +510,8 @@ post_wimp_initialise_handler (_kernel_swi_regs *r __attribute__ ((unused)),
   error = _swix (Filter_RegisterPreFilter, _INR (0, 3),
 		 session_filter_name, session_pre_poll, pw, task);
   if (error != NULL)
-    {
-      debug ("Filter_RegisterPreFilter: 0x%x %s\n",
+    dprintf ("Filter_RegisterPreFilter: 0x%x %s\n",
 	     error->errnum, error->errmess);
-    }
 
   /* Install post poll filter so that:
    *
@@ -526,10 +522,8 @@ post_wimp_initialise_handler (_kernel_swi_regs *r __attribute__ ((unused)),
   error = _swix (Filter_RegisterPostFilter, _INR (0, 4),
 		 session_filter_name, session_post_poll, pw, task, 0);
   if (error != NULL)
-    {
-      debug ("XFilter_RegisterPostFilter: 0x%x %s\n",
+    dprintf ("XFilter_RegisterPostFilter: 0x%x %s\n",
 	     error->errnum, error->errmess);
-    }
 
   /* Helpfully, our filters will only ever be passed the bottom N bits of
    * the task handle. I'm going to assume that N=16. If it doesn't, fix 
@@ -555,7 +549,7 @@ session_post_poll_handler (_kernel_swi_regs *r __attribute__ ((unused)),
 {
   session_ctx *session = session_find_by_task_handle (r->r[2]);
 
-  debug ("Post poll: 0x%x (%p)\n", r->r[2], (void *) session);
+  dprintf ("Post poll: 0x%x (%p)\n", r->r[2], (void *) session);
 
   if (session != NULL)
     {
@@ -573,7 +567,7 @@ session_post_poll_handler (_kernel_swi_regs *r __attribute__ ((unused)),
 
       if (session->brk)
 	{
-	  debug ("Setting breakpoint at 0x%x\n", session->cur_pc);
+	  dprintf ("Setting breakpoint at 0x%x\n", session->cur_pc);
 	  session_set_bkpt ((uintptr_t) session,
 			    session->cur_pc | BKPT_ONE_SHOT);
 	}
@@ -606,13 +600,13 @@ session_find_by_task_handle (uint32_t task)
 session_ctx *
 session_find_by_socket (int socket)
 {
-  debug ("Want socket %d\n", socket);
+  dprintf ("Want socket %d\n", socket);
 
   int i;
   for (i = 0; i < MAX_SESSIONS; i++)
     {
-      debug ("%d: %d: %d: %d\n", i, sessions[i].in_use,
-	     sessions[i].data.tcp.server, sessions[i].data.tcp.client);
+      dprintf ("%d: %d: %d: %d\n", i, sessions[i].in_use,
+	       sessions[i].data.tcp.server, sessions[i].data.tcp.client);
 
       if (sessions[i].in_use && sessions[i].type == SESSION_TCP
 	  && (sessions[i].data.tcp.server == socket
@@ -642,7 +636,7 @@ session_tcp_process_input (session_ctx * session, int socket)
       if (session->data.tcp.client == -1)
 	return 0;
 
-      debug ("New client on %d\n", session->data.tcp.client);
+      dprintf ("New client on %d\n", session->data.tcp.client);
 
       session->gdb = gdb_ctx_create (session_tcp_send_for_gdb,
 				     session_break, session_continue,
@@ -661,7 +655,7 @@ session_tcp_process_input (session_ctx * session, int socket)
   ssize_t read;
   while ((read = socket_recv (socket, buf, sizeof (buf))) > 0)
     {
-      debug ("-> %.*s\n", (int) read, buf);
+      dprintf ("-> %.*s\n", (int) read, (const char *)buf);
 
       gdb_process_input (session->gdb, buf, read);
     }
@@ -674,7 +668,7 @@ session_tcp_notify_closed (session_ctx * session, int socket)
 {
   if (socket == session->data.tcp.client)
     {
-      debug ("Client %d disconnected\n", session->data.tcp.client);
+      dprintf ("Client %d disconnected\n", session->data.tcp.client);
 
       socket_close (session->data.tcp.client);
 
@@ -698,8 +692,8 @@ session_tcp_initialise (session_ctx * session)
       return NULL;
     }
 
-  debug ("Listening on %ld (%d)\n", TCP_BASE_PORT + session - sessions,
-	 session->data.tcp.server);
+  dprintf ("Listening on %ld (%d)\n", TCP_BASE_PORT + session - sessions,
+	   session->data.tcp.server);
 
   return session;
 }
@@ -722,7 +716,7 @@ session_tcp_send_for_gdb (uintptr_t ctx, const uint8_t * data, size_t len)
   if (session->data.tcp.client < 0)
     return 0;
 
-  debug ("<- %.*s\n", (int) len, data);
+  dprintf ("<- %.*s\n", (int) len, (const char *)data);
 
   for (size_t towrite = len;
        towrite;
