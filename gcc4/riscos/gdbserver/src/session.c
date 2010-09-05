@@ -398,7 +398,7 @@ int session_is_connected(session_ctx *ctx)
 	if (ctx->in_use) {
 		switch (ctx->type) {
 		case SESSION_TCP:
-			return ctx->data.tcp.client > 0;
+			return ctx->data.tcp.client >= 0;
 		}
 	}
 
