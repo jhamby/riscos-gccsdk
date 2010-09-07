@@ -26,7 +26,7 @@ Compilation
 
   This project uses autotools:
 
-	$ cd gdbserver
+	$ cd <gdbserver source dir>
 	$ autoreconf --install
 	$ cd <builddir>
 	$ <gdbserver source dir>/configure --prefix=<installation dir> --host=arm-unknown-riscos

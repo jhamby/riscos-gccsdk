@@ -101,6 +101,11 @@ command_handler (const char *arg_string, int argc __attribute__ ((unused)),
     {
     case CMD_GDB: /* *GDB <filename> [<args>] */
       {
+	/* Check if there is already another pending debug session on which
+	   we're waiting for.  */
+	if (init_session)
+	  return kErr_AlreadyWaitingForGDB;
+
 	/* Open a new session. */
 	init_session = session_ctx_create (SESSION_TCP);
 	if (init_session == NULL)
@@ -122,17 +127,24 @@ command_handler (const char *arg_string, int argc __attribute__ ((unused)),
 	 */
 	_swix (OS_AddCallBack, _INR (0, 1), post_run, pw);
 
-	/* Run application, passing it arguments. */
-	if (_swix (OS_FSControl, _INR (0, 1), 4, arg_string) != NULL)
+	/* Run application, passing it arguments.  */
+	_kernel_oserror *err = _swix (OS_FSControl, _INR (0, 1), 4, arg_string);
+	dprintf ("OS_FSControl 4: err %p (%d, %s)\n", (void *)err,
+		 err ? err->errnum : 0, err ? err->errmess : "");
+
+	/* Remove the callback in case we still have one outstanding.  */
+	_swix (OS_RemoveCallBack, _INR (0, 1), post_run, pw);
+
+	/* It might be that we have a time-out and only after that an
+	   error got detected and returned to here.  Then init_session is
+	   NULL.  */
+	if (init_session)
 	  {
-	    /* Remove the callback if the run failed */
-	    _swix (OS_RemoveCallBack, _INR (0, 1), post_run, pw);
-
 	    session_ctx_destroy (init_session);
-
-	    init_timeout = 0;
 	    init_session = NULL;
 	  }
+	init_timeout = 0;
+	return err;
       }
       break;
     }
@@ -141,18 +153,17 @@ command_handler (const char *arg_string, int argc __attribute__ ((unused)),
 }
 
 int
-internet_handler (_kernel_swi_regs * r, void *pw __attribute__ ((unused)))
+internet_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
 {
   switch (r->r[1])
     {
     case 1: /* Input pending */
       {
-	dprintf ("Input on %d\n", r->r[2]);
-
-	/* Work out what socket this is. */
+	/* Work out what socket this is.  */
 	session_ctx *session = session_find_by_socket (r->r[2]);
 	if (session == NULL)
 	  return 1;
+	dprintf ("Input on %d\n", r->r[2]);
 
 	return session_tcp_process_input (session, r->r[2]);
       }
@@ -165,7 +176,7 @@ internet_handler (_kernel_swi_regs * r, void *pw __attribute__ ((unused)))
 
     case 3: /* Socket closed */
       {
-	/* If it's one of our clients, then tidy up */
+	/* If it's one of our clients, then tidy up.  */
 	session_ctx *session = session_find_by_socket (r->r[2]);
 	if (session == NULL)
 	  return 1;
@@ -181,12 +192,14 @@ internet_handler (_kernel_swi_regs * r, void *pw __attribute__ ((unused)))
   return 0;
 }
 
+/**
+ * Called as callback just after running the application, i.e. before its
+ * startup.
+ */
 _kernel_oserror *
 post_run_handler (_kernel_swi_regs *r __attribute__ ((unused)),
 		  void *pw __attribute__ ((unused)))
 {
-  session_ctx *session = init_session;
-
   /* Wait (with timeout) for the debugger to connect 
    * 
    * Then we can set breakpoints as appropriate before
@@ -194,27 +207,37 @@ post_run_handler (_kernel_swi_regs *r __attribute__ ((unused)),
    */
   uint32_t now;
   _swix (OS_ReadMonotonicTime, _OUT (0), &now);
-  if (now < init_timeout && !session_is_connected (init_session))
-    {
-      /* Force pending callbacks to run */
-      trigger_callbacks ();
-      /* Then add ourselves back to the pending callback chain */
-      return _swix (OS_AddCallBack, _INR (0, 1), post_run, pw);
-    }
-  else if (now >= init_timeout)
-    {
-      dprintf ("timed out\n");
 
-      /* Do not destroy the session here. 
-       * It will be cleaned up by the exit handler
-       */
+  if (now >= init_timeout)
+    {
+      dprintf ("post_run_handler(): timed out\n");
+
+      /* It might be that service call 0x2A (New Application) has kicked in
+	 so, restore environment.  If we didn't had that service call, restoring
+	 the environment is harmless.  */
+      session_restore_environment (init_session);
+
+      /* After a timeout, we don't have any hooks in the application anymore so
+         basically it will run or fail to start but we don't have anything
+         to do with.  */
+      session_ctx_destroy (init_session);
       init_timeout = 0;
       init_session = NULL;
 
       return NULL;
     }
 
-  dprintf ("done\n");
+  if (!session_is_connected (init_session))
+    {
+      /* Force pending callbacks to run */
+      trigger_callbacks ();
+      /* Then add ourselves back to the pending callback chain */
+      return _swix (OS_AddCallBack, _INR (0, 1), post_run, pw);
+    }
+  
+  dprintf ("post_run_handler(): gdb is attached\n");
+
+  session_ctx *session = init_session;
 
   init_timeout = 0;
   init_session = NULL;
@@ -236,30 +259,25 @@ mod_service (int service, _kernel_swi_regs *r __attribute__ ((unused)),
     case 0x2a:			/* New Application */
       if (init_session != NULL)
 	{
-	  /* New debuggee starting, set up the environment */
+	  /* New debuggee starting, set up the environment.  */
+	  dprintf ("mod_service(): set our environment.\n");
 	  session_change_environment (init_session, pw);
 	}
       break;
     }
 }
 
-_kernel_oserror *
-appexit_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
-{
-  session_ctx *session = (session_ctx *) r->r[0];
-
-  session_restore_environment (session);
-
-  session_ctx_destroy (session);
-
-  return NULL;
-}
-
+/**
+ * Application error handler got called but as we've overruled its error
+ * handler, error_veneer get called, which calls apperror finally calling
+ * apperror_handler.
+ */
 _kernel_oserror *
 apperror_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
 {
   static _kernel_oserror error;
   session_ctx *session = (session_ctx *) r->r[0];
+  dprintf ("apperror_handler(): ctx %p\n", (void *)session);
 
   session_restore_environment (session);
 
@@ -270,10 +288,34 @@ apperror_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
   return &error;
 }
 
+/**
+ * Application exit_veneer handler got called but as we've overruled its exit
+ * handler, exit_veneer get called, which calls appexit finally calling
+ * appexit_handler.
+ */
+_kernel_oserror *
+appexit_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
+{
+  session_ctx *session = (session_ctx *) r->r[0];
+  dprintf ("appexit_handler(): ctx %p\n", (void *)session);
+
+  session_restore_environment (session);
+
+  session_ctx_destroy (session);
+
+  return NULL;
+}
+
+/**
+ * Application upcall handler got called but as we've overruled its upcall
+ * handler, upcall_veneer get called, which calls appupcall finally calling
+ * appupcall_handler.
+ */
 _kernel_oserror *
 appupcall_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
 {
   session_ctx *session = (session_ctx *) r->r[0];
+  dprintf ("appupcall_handler(): ctx %p\n", (void *)session);
 
   session_restore_environment (session);
 

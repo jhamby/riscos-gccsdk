@@ -19,6 +19,7 @@ session_set_current:
 	STR	r0, current_session
 	MOV	pc, lr
 
+@ --------------------------------------------------------------------
 
 	@ Previous SWI vector handler
 prev_swi_vector:
@@ -73,6 +74,7 @@ swi_handler:
 	LDMIA	r13!, {r0-r12, r14}
 	LDR	pc, prev_swi_vector	@ pass on to previous claimant
 
+@ --------------------------------------------------------------------
 
 	@ Previous IRQ vector handler
 prev_irq_vector:
@@ -104,6 +106,7 @@ irq_handler:
 	LDMIA	r13!, {r0, r1}
 	LDR	pc, prev_irq_vector	@ pass on to previous claimant
 
+@ --------------------------------------------------------------------
 
 	@ Previous data abort handler
 prev_dabort_vector:
@@ -205,6 +208,7 @@ dabort_handler:
 
 	MOVS	pc, r14			@ Return to sender
 
+@ --------------------------------------------------------------------
 
 	@ Previous prefetch abort handler
 prev_prefetch_vector:
@@ -306,6 +310,7 @@ prefetch_handler:
 
 	MOVS	pc, r14			@ Return to sender
 
+@ --------------------------------------------------------------------
 
 	@ Previous undefined instruction abort handler
 prev_undef_vector:
@@ -421,6 +426,7 @@ undef_handler:
 
 	MOVS	pc, r14			@ Return to sender
 
+@ --------------------------------------------------------------------
 
 .set XOS_EnterOS, 0x20016
 .set OS_GenerateError, 0x2b
@@ -440,6 +446,8 @@ error_veneer:
 	LDR	r12, [r13], #4
 	SWI	OS_GenerateError	@ Exit, generating error
 
+@ --------------------------------------------------------------------
+
 	@ Exit handler
 	.globl exit_veneer
 exit_veneer:
@@ -454,6 +462,8 @@ exit_veneer:
 	LDMIA	r13!, {r0, r12}
 	SWI	OS_Exit			@ Exit
 
+@ --------------------------------------------------------------------
+
 	@ Upcall handler
 	.globl upcall_veneer
 upcall_veneer:
@@ -466,4 +476,3 @@ upcall_veneer:
 	BL	appupcall		@ Call handler (r0->ctx, r12->pw)
 	LDMIA	r13!, {r0, r12, r14}
 	MOV	pc, lr			@ Return to caller
-

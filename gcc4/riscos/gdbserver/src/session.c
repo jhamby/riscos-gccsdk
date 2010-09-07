@@ -39,6 +39,8 @@ struct session_ctx
 
   void *pw;
 
+  /* Keep fields above this comment in sync with session_asm.s */
+
   struct
   {
     uint32_t addr;
@@ -47,8 +49,6 @@ struct session_ctx
   } env_ctx[3];			/* Error, Exit, Upcall */
 
   uint8_t buffer[256];
-
-  /* Keep fields above this comment in sync with session_asm.s */
 
   session_type type;
   uint8_t in_use;
@@ -67,9 +67,9 @@ struct session_ctx
 
   gdb_ctx *gdb;
 
-  session_bkpt *bkpts;
+  session_bkpt *bkpts; /* Linked list.  */
 
-  session_bkpt *free_bkpts;
+  session_bkpt *free_bkpts; /* Linked list.  */
 };
 
 static session_ctx sessions[MAX_SESSIONS];
@@ -81,21 +81,19 @@ static cpu_registers *session_get_regs (uintptr_t ctx);
 static int session_set_bkpt (uintptr_t ctx, uint32_t address);
 static int session_clear_bkpt (uintptr_t ctx, uint32_t address);
 
-static session_bkpt *session_find_bkpt (session_ctx * ctx, uint32_t address);
+static session_bkpt *session_find_bkpt (session_ctx *ctx, uint32_t address);
 
 static session_ctx *session_find_by_task_handle (uint32_t task);
 
-static session_ctx *session_tcp_initialise (session_ctx * session);
-static void session_tcp_finalise (session_ctx * session);
-static size_t session_tcp_send_for_gdb (uintptr_t ctx, const uint8_t * data,
+static session_ctx *session_tcp_initialise (session_ctx *session);
+static void session_tcp_finalise (session_ctx *session);
+static size_t session_tcp_send_for_gdb (uintptr_t ctx, const uint8_t *data,
 					size_t len);
 
 void
 session_fini (void)
 {
-  int i;
-
-  for (i = 0; i < MAX_SESSIONS; i++)
+  for (int i = 0; i < MAX_SESSIONS; i++)
     {
       if (sessions[i].in_use)
 	session_ctx_destroy (&sessions[i]);
@@ -114,30 +112,32 @@ session_ctx_create (session_type type)
   if (i == MAX_SESSIONS)
     return NULL;
 
+  sessions[i].type = type;
   sessions[i].in_use = 1;
-  sessions[i].task_handle = 0;
-  /* Start session with debuggee paused */
-  sessions[i].brk = 1;
+  sessions[i].brk = 1; /* Start session with debuggee paused.  */
+  /* sessions[i].task_handle = 0; */
 
   switch (type)
     {
-    case SESSION_TCP:
-      return session_tcp_initialise (&sessions[i]);
+      case SESSION_TCP:
+ 	return session_tcp_initialise (&sessions[i]);
     }
 
   return NULL;
 }
 
 void
-session_ctx_destroy (session_ctx * ctx)
+session_ctx_destroy (session_ctx *ctx)
 {
+  dprintf ("session_ctx_destroy(): ctx %p\n", (void *)ctx);
   if (ctx->gdb != NULL)
     gdb_ctx_destroy (ctx->gdb);
 
   switch (ctx->type)
     {
-    case SESSION_TCP:
-      session_tcp_finalise (ctx);
+      case SESSION_TCP:
+	session_tcp_finalise (ctx);
+	break;
     }
 
   while (ctx->bkpts != NULL)
@@ -156,19 +156,27 @@ session_ctx_destroy (session_ctx * ctx)
 
   if (ctx->task_handle != 0)
     {
-      _swix (Filter_DeRegisterPreFilter, _INR (0, 3),
-	     session_filter_name, session_pre_poll,
-	     ctx->pw, ctx->task_handle);
-      _swix (Filter_DeRegisterPostFilter, _INR (0, 4),
-	     session_filter_name, session_post_poll,
-	     ctx->pw, ctx->task_handle, 0);
-    }
+      const _kernel_oserror *e;
+      e = _swix (Filter_DeRegisterPreFilter, _INR (0, 3),
+		 session_filter_name, session_pre_poll,
+		 ctx->pw, ctx->task_handle);
+      if (e)
+	dprintf ("session_ctx_destroy(): deregister filter failed: 0x%x %s\n",
+		 e->errnum, e->errmess);
 
-  memset (ctx, 0, sizeof (session_ctx));
+      e = _swix (Filter_DeRegisterPostFilter, _INR (0, 4),
+		 session_filter_name, session_post_poll,
+		 ctx->pw, ctx->task_handle, 0);
+      if (e)
+	dprintf ("session_ctx_destroy(): deregister filter failed: 0x%x %s\n",
+		 e->errnum, e->errmess);
+    }
 
   /* Invalidate the current session */
   if (session_get_current () == ctx)
     session_set_current (NULL);
+
+  memset (ctx, 0, sizeof (session_ctx));
 }
 
 void
@@ -216,18 +224,13 @@ post_abort_handler (_kernel_swi_regs *r __attribute__ ((unused)),
 {
   session_ctx *ctx = session_get_current ();
 
+  dprintf ("post_abort_handler(): ctx %p\n", (void *)ctx);
+  
   /** \todo retrieve break status from the ctx, then improve this */
 
   /* Emit break status */
-  if (ctx->data.tcp.client >= 0)
-    {
-      const uint8_t *msg = (const uint8_t *) "$S05#b8";
-      size_t towrite = 7;
-
-      while (towrite)
-	towrite = socket_send (ctx->data.tcp.client,
-			       msg + 7 - towrite, towrite);
-    }
+  session_tcp_send_for_gdb ((uintptr_t)ctx,
+			    (const uint8_t *)"$S05#b8", sizeof ("$S05#b8")-1);
 
   return NULL;
 }
@@ -419,14 +422,14 @@ session_find_bkpt (session_ctx * ctx, uint32_t address)
 }
 
 bool
-session_is_connected (session_ctx * ctx)
+session_is_connected (const session_ctx *ctx)
 {
   if (ctx->in_use)
     {
       switch (ctx->type)
 	{
-	case SESSION_TCP:
-	  return ctx->data.tcp.client >= 0;
+	  case SESSION_TCP:
+	    return ctx->data.tcp.client >= 0;
 	}
     }
 
@@ -434,34 +437,51 @@ session_is_connected (session_ctx * ctx)
 }
 
 void
-session_change_environment (session_ctx * ctx, void *pw)
+session_change_environment (session_ctx *ctx, void *pw)
 {
   ctx->pw = pw;
 
-  _swix (OS_ChangeEnvironment, _INR (0, 3) | _OUTR (1, 3),
-	 6, error_veneer, ctx, ctx->buffer,
-	 &ctx->env_ctx[0].addr, &ctx->env_ctx[0].r12, &ctx->env_ctx[0].buf);
+  const _kernel_oserror *e;
+  e = _swix (OS_ChangeEnvironment, _INR (0, 3) | _OUTR (1, 3),
+	     6, error_veneer, ctx, ctx->buffer,
+	     &ctx->env_ctx[0].addr, &ctx->env_ctx[0].r12, &ctx->env_ctx[0].buf);
+  if (e)
+    dprintf ("session_change_environment() err 0x%x %s\n", e->errnum, e->errmess);
 
-  _swix (OS_ChangeEnvironment, _INR (0, 3) | _OUTR (1, 3),
-	 11, exit_veneer, ctx, ctx->buffer,
-	 &ctx->env_ctx[1].addr, &ctx->env_ctx[1].r12, &ctx->env_ctx[1].buf);
-
-  _swix (OS_ChangeEnvironment, _INR (0, 3) | _OUTR (1, 3),
-	 16, upcall_veneer, ctx, ctx->buffer,
-	 &ctx->env_ctx[2].addr, &ctx->env_ctx[2].r12, &ctx->env_ctx[2].buf);
+  e = _swix (OS_ChangeEnvironment, _INR (0, 3) | _OUTR (1, 3),
+	     11, exit_veneer, ctx, ctx->buffer,
+	     &ctx->env_ctx[1].addr, &ctx->env_ctx[1].r12, &ctx->env_ctx[1].buf);
+  if (e)
+    dprintf ("session_change_environment() err 0x%x %s\n", e->errnum, e->errmess);
+  
+  e = _swix (OS_ChangeEnvironment, _INR (0, 3) | _OUTR (1, 3),
+	     16, upcall_veneer, ctx, ctx->buffer,
+	     &ctx->env_ctx[2].addr, &ctx->env_ctx[2].r12, &ctx->env_ctx[2].buf);
+  if (e)
+    dprintf ("session_change_environment() err 0x%x %s\n", e->errnum, e->errmess);
 }
 
 void
-session_restore_environment (session_ctx * ctx)
+session_restore_environment (session_ctx *ctx)
 {
-  _swix (OS_ChangeEnvironment, _INR (0, 3),
-	 6, ctx->env_ctx[0].addr, ctx->env_ctx[0].r12, ctx->env_ctx[0].buf);
+  const _kernel_oserror *e;
+  e = _swix (OS_ChangeEnvironment, _INR (0, 3),
+	     6, ctx->env_ctx[0].addr, ctx->env_ctx[0].r12, ctx->env_ctx[0].buf);
+  if (e)
+    dprintf ("session_restore_environment() err 0x%x %s\n", e->errnum, e->errmess);
+  ctx->env_ctx[0].addr = ctx->env_ctx[0].r12 = ctx->env_ctx[0].buf = 0;
+  
+  e = _swix (OS_ChangeEnvironment, _INR (0, 3),
+	     11, ctx->env_ctx[1].addr, ctx->env_ctx[1].r12, ctx->env_ctx[1].buf);
+  if (e)
+    dprintf ("session_restore_environment() err 0x%x %s\n", e->errnum, e->errmess);
+  ctx->env_ctx[1].addr = ctx->env_ctx[1].r12 = ctx->env_ctx[1].buf = 0;
 
-  _swix (OS_ChangeEnvironment, _INR (0, 3),
-	 11, ctx->env_ctx[1].addr, ctx->env_ctx[1].r12, ctx->env_ctx[1].buf);
-
-  _swix (OS_ChangeEnvironment, _INR (0, 3),
-	 16, ctx->env_ctx[2].addr, ctx->env_ctx[2].r12, ctx->env_ctx[2].buf);
+  e = _swix (OS_ChangeEnvironment, _INR (0, 3),
+	     16, ctx->env_ctx[2].addr, ctx->env_ctx[2].r12, ctx->env_ctx[2].buf);
+  if (e)
+    dprintf ("session_restore_environment() err 0x%x %s\n", e->errnum, e->errmess);
+  ctx->env_ctx[2].addr = ctx->env_ctx[2].r12 = ctx->env_ctx[2].buf = 0;
 }
 
 void
@@ -600,15 +620,16 @@ session_find_by_task_handle (uint32_t task)
 session_ctx *
 session_find_by_socket (int socket)
 {
-  dprintf ("Want socket %d\n", socket);
+  /* dprintf ("Want socket %d\n", socket); */
 
   int i;
   for (i = 0; i < MAX_SESSIONS; i++)
     {
-      dprintf ("%d: %d: %d: %d\n", i, sessions[i].in_use,
-	       sessions[i].data.tcp.server, sessions[i].data.tcp.client);
+      /* dprintf ("%d: %d: %d: %d\n", i, sessions[i].in_use,
+	       sessions[i].data.tcp.server, sessions[i].data.tcp.client); */
 
-      if (sessions[i].in_use && sessions[i].type == SESSION_TCP
+      if (sessions[i].in_use
+          && sessions[i].type == SESSION_TCP
 	  && (sessions[i].data.tcp.server == socket
 	      || sessions[i].data.tcp.client == socket))
 	break;
@@ -709,7 +730,7 @@ session_tcp_finalise (session_ctx * session)
 }
 
 static size_t
-session_tcp_send_for_gdb (uintptr_t ctx, const uint8_t * data, size_t len)
+session_tcp_send_for_gdb (uintptr_t ctx, const uint8_t *data, size_t len)
 {
   session_ctx *session = (session_ctx *) ctx;
 

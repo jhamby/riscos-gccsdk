@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -39,7 +40,7 @@ struct gdb_ctx
 static gdb_ctx ctxs[N_CTX];
 
 static void process_packet (gdb_ctx *ctx);
-static void send_packet (gdb_ctx *ctx, const uint8_t *buf, size_t len);
+static void send_packet (gdb_ctx *ctx, const char *buf, size_t len);
 
 static const char hexDigits[] = "0123456789abcdef";
 
@@ -165,11 +166,13 @@ process_packet (gdb_ctx * ctx)
   if (ctx->data_len == 0)
     return;
 
+  bool support_request = true;
   switch (ctx->data_buf[0])
     {
     case '?':
+      /* Indicate the reason the target halted.  */
       /** \todo Make sure we return the correct signal number */
-      send_packet (ctx, (const uint8_t *)"S05", sizeof ("S05")-1);
+      send_packet (ctx, "S05", sizeof ("S05")-1);
       break;
 
     case 'c':
@@ -213,7 +216,7 @@ process_packet (gdb_ctx * ctx)
 	    *p++ = hexDigits[b & 0xf];
 	  }
 
-	send_packet (ctx, buf, p - buf);
+	send_packet (ctx, (const char *)buf, p - buf);
       }
       break;
 
@@ -250,18 +253,19 @@ process_packet (gdb_ctx * ctx)
 	      }
 	  }
 
-	send_packet (ctx, (const uint8_t *)"OK", sizeof ("OK")-1);
+	send_packet (ctx, "OK", sizeof ("OK")-1);
       }
       break;
 
     case 'H':
       {
+	/* Set thread for operation.  */
 	uint8_t type = ctx->data_buf[1];
 	int thread = strtol ((const char *)&ctx->data_buf[2], NULL, 16);
 	if ((thread == -1 || thread == 0) && (type == 'c' || type == 'g'))
-	  send_packet (ctx, (const uint8_t *)"OK", sizeof ("OK")-1);
+	  send_packet (ctx, "OK", sizeof ("OK")-1);
 	else
-	  send_packet (ctx, (const uint8_t *)"E00", sizeof ("E00")-1);
+	  send_packet (ctx, "E00", sizeof ("E00")-1);
       }
       break;
 
@@ -282,7 +286,7 @@ process_packet (gdb_ctx * ctx)
 	    addr++;
 	  }
 
-	send_packet (ctx, buf, p - buf);
+	send_packet (ctx, (const char *)buf, p - buf);
       }
       break;
 
@@ -306,8 +310,27 @@ process_packet (gdb_ctx * ctx)
 
 	flush_caches ();
 
-	send_packet (ctx, (const uint8_t *)"OK", 2);
+	send_packet (ctx, "OK", 2);
       }
+      break;
+
+    case 'q':
+      /* General query packet.  */
+      if (ctx->data_len == 1 && ctx->data_buf[0] == 'C')
+	{
+	  /* Return current thread ID.  */
+	  send_packet (ctx, "QC00", sizeof ("QC00")-1);
+	}
+      else
+	{
+	  /** \todo unsupported query.  */
+	  support_request = false;
+	}
+      break;
+
+    case 's':
+      /** \todo parse addr, if any (and update PC) */
+      ctx->step (ctx->pw);
       break;
 
     case 'z':
@@ -321,7 +344,7 @@ process_packet (gdb_ctx * ctx)
 	/* We only support type 0 and ARM instructions */
 	if (type != '0' || length != 4)
 	  {
-	    send_packet (ctx, (const uint8_t *)"", sizeof ("")-1);
+	    send_packet (ctx, "", sizeof ("")-1);
 	    break;
 	  }
 
@@ -332,40 +355,43 @@ process_packet (gdb_ctx * ctx)
 	  success = ctx->set_bkpt (ctx->pw, addr);
 
 	if (success == 0)
-	  send_packet (ctx, (const uint8_t *)"E00", sizeof ("E00")-1);
+	  send_packet (ctx, "E00", sizeof ("E00")-1);
 	else
-	  send_packet (ctx, (const uint8_t *)"OK", sizeof ("OK")-1);
+	  send_packet (ctx, "OK", sizeof ("OK")-1);
       }
       break;
 
-    case 's':
-		/** \todo parse addr, if any (and update PC) */
-      ctx->step (ctx->pw);
-      break;
-
     default:
+      support_request = false;
+      break;
+    }
+
+  if (!support_request)
+    {
       dprintf ("Unsupported packet '%.*s'\n",
 	       ctx->data_len, (const char *)ctx->data_buf);
-
-      send_packet (ctx, (const uint8_t *)"", 0);
-      break;
+      send_packet (ctx, "", 0);
     }
 }
 
 static void
-send_packet (gdb_ctx * ctx, const uint8_t * buf, size_t len)
+send_packet (gdb_ctx *ctx, const char *buf, size_t len)
 {
-  const uint8_t *p;
-  uint8_t cksum = 0;
-  for (p = buf; p < buf + len; p++)
-    cksum += *p;
+  uint8_t *reply = ctx->last_packet;
+  *reply++ = '$';
 
-  ctx->last_packet[0] = '$';
-  if (len)
-    memcpy (&ctx->last_packet[1], buf, len);
-  ctx->last_packet[len + 1] = '#';
-  ctx->last_packet[len + 2] = hexDigits[cksum >> 4];
-  ctx->last_packet[len + 3] = hexDigits[cksum & 0xf];
+  uint8_t cksum = 0;
+  for (const uint8_t *p = (const uint8_t *)buf;
+       p != (const uint8_t *)buf + len;
+       ++p)
+    {
+      *reply++ = *p;
+      cksum += *p;
+    }
+
+  *reply++ = '#';
+  *reply++ = hexDigits[cksum >> 4];
+  *reply++ = hexDigits[cksum & 0xf];
 
   ctx->last_packet_len = len + 4;
 

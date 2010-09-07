@@ -1,3 +1,21 @@
+Tue Sep  7 02:29:40 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/session.c (session_ctx_create): assign session_ctx::type.
+	(post_abort_handler): use session_tcp_send_for_gdb().
+	(session_is_connected): constify parameter.
+	(session_restore_environment): Reset previous environment values after
+	restore.
+	* src/header.cmhg (error-chunk-base-number,error-identifiers): Define.
+	* src/constants.h: Added.
+	* src/module.c (command_handler): Check for multiple gdb session
+	connects.  Only destroy init_session when it hasn't been done before.
+	(post_run_handler): With timeout, restore environment and destroy
+	session (as you don't have a garantee the exit handler will be called
+	as RISC OS can still bail out with an error before that.
+	* src/gdb.c (gdb_process_input): Implement query thread ID.
+	(send_packet): Simplify.
+	Various minor cleanups and debug related changes.
+
 Sun Sep  5 23:22:38 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/socket.c: Use SCL socket code.

@@ -18,7 +18,7 @@ void session_ctx_destroy (session_ctx * ctx);
 void session_handle_break (session_ctx * ctx, int reason);
 void session_wait_for_continue (session_ctx * ctx);
 
-bool session_is_connected (session_ctx * ctx);
+bool session_is_connected (const session_ctx *ctx);
 
 void session_change_environment (session_ctx * ctx, void *pw);
 void session_restore_environment (session_ctx * ctx);
