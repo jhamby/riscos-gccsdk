@@ -1,3 +1,7 @@
+Wed Sep  8 19:11:00 BST  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* src/gdb.c (process_packet): Fix parsing of qC packet.
+
 Tue Sep  7 02:29:40 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/session.c (session_ctx_create): assign session_ctx::type.

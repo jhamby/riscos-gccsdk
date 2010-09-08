@@ -316,7 +316,7 @@ process_packet (gdb_ctx * ctx)
 
     case 'q':
       /* General query packet.  */
-      if (ctx->data_len == 1 && ctx->data_buf[0] == 'C')
+      if (ctx->data_len == 2 && ctx->data_buf[1] == 'C')
 	{
 	  /* Return current thread ID.  */
 	  send_packet (ctx, "QC00", sizeof ("QC00")-1);
