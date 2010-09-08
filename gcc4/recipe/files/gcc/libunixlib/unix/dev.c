@@ -185,14 +185,19 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       if (regs[0] == 2
 	  || (regs[0] == 3 && !__get_feature_imagefs_is_file ()))
 	{
-	  /* Directory or image file.  Set errno if the user
-	     specified write access.  */
-	  if ((fflag & O_ACCMODE) == O_WRONLY)
+	  /* Directory or image file.  Set errno if the user specified write
+	     access.  */
+	  if ((fflag & O_ACCMODE) != O_RDONLY)
 	    return (void *) __set_errno (EISDIR);
 
 	  file_desc->dflag |= FILE_ISDIR;
-	  /* For directories, owner read access might be disabled.  */
-	  regs[5] |= 1;
+
+#ifdef DEBUG
+	  debug_printf ("open directory (read only): file=%s\n", file);
+#endif
+	  DIR *dir = opendir (filename);
+	  /* When dir is NULL, errno is already set so no need to set it again.  */
+	  return (dir == NULL) ? (void *) -1 : (void *) dir;
 	}
 
       /* Remove creation bits.  */
@@ -210,7 +215,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       /* We try to do our best to get at the filing system name
          by canonicalising the filename if possible, otherwise checking
          for pipe: anyway.
-         FIXME: This is an ugly hack (= who's says the too-small buffer will
+         FIXME: This is an ugly hack (= who says the too-small buffer will
 	 be filled in correctly for the first 16 bytes ?) to make opening
 	 non-existent files for reading on PipeFS work.  We should handle
 	 PipeFS though a proper device ioctl.  */
@@ -284,67 +289,52 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
   /* Open the file.  */
   int fd;
-  {
-    int openmode;
-
-    if (fflag & O_TRUNC)
-      err = __os_fopen (openmode = OSFILE_OPENOUT, file, &fd);
-    else
-      {
-	switch (fflag & O_ACCMODE)
-	  {
+  int openmode;
+  if (fflag & O_TRUNC)
+    err = __os_fopen (openmode = OSFILE_OPENOUT, file, &fd);
+  else
+    {
+      switch (fflag & O_ACCMODE)
+	{
 	  case O_RDWR:
 	  case O_WRONLY:
 	    err = __os_fopen (openmode = OSFILE_OPENUP, file, &fd);
 	    break;
 	  case O_RDONLY:
-	    if (file_desc->dflag & FILE_ISDIR)
-	      {
-		DIR *dir;
-
-#ifdef DEBUG
-		debug_printf ("open directory (read only): file=%s\n", file);
-#endif
-		dir = opendir (filename);
-		return (dir == NULL) ? (void *) -1 : (void *) dir;
-	      }
-	    else
-	      err = __os_fopen (openmode = OSFILE_OPENIN, file, &fd);
+	    err = __os_fopen (openmode = OSFILE_OPENIN, file, &fd);
 	    break;
 	  default:
 	    return (void *) __set_errno (EINVAL);
-	  }
-      }
+	}
+    }
 
-    if (err)
-      goto os_err;
+  if (err)
+    goto os_err;
 
-    /* Now set the protection. This must be done after the file is opened,
-       so that the file can be created for writing but set to read only.
-       RCS needs to do that.  However, ShareFS objects to having file
-       attributes changed while a file is open, so it needs to be closed
-       first then reopened  */
+  /* Now set the protection. This must be done after the file is opened,
+     so that the file can be created for writing but set to read only.
+     RCS needs to do that.  However, ShareFS objects to having file
+     attributes changed while a file is open, so it needs to be closed
+     first then reopened  */
+  if (fflag & O_CREAT)
+    {
+      mode &= ~(__ul_global.sulproc->umask & 0777);
+      regs[5] = __set_protection (mode);
 
-    if (fflag & O_CREAT)
-      {
-	mode &= ~(__ul_global.sulproc->umask & 0777);
-	regs[5] = __set_protection (mode);
+      /* Write the object attributes.  */
+      if (__os_file (OSFILE_WRITECATINFO_ATTR, file, regs))
+	{
+	  /* Now try closing it first if that failed */
+	  __os_fclose (fd);
 
-	/* Write the object attributes.  */
-	if (__os_file (OSFILE_WRITECATINFO_ATTR, file, regs))
-	  {
-	    /* Now try closing it first if that failed */
-	    __os_fclose (fd);
+	  regs[5] = __set_protection (mode);
+	  if ((err = __os_file (OSFILE_WRITECATINFO_ATTR, file, regs)) != NULL)
+	    goto os_err;
 
-	    regs[5] = __set_protection (mode);
-	    if ((err = __os_file (OSFILE_WRITECATINFO_ATTR, file, regs)))
-	      goto os_err;
-
-	    if ((err = __os_fopen (openmode, file, &fd)))
-	      goto os_err;
-	  }
-      }
-  }
+	  if ((err = __os_fopen (openmode, file, &fd)) != NULL)
+	    goto os_err;
+	}
+    }
 
   regs[0] = 254;
   regs[1] = (int) fd;

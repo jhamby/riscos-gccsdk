@@ -1316,7 +1316,6 @@ libc_headers = \
 	sys/ioctl.h \
 	sys/mman.h \
 	sys/mount.h \
-	sys/netdb.h \
 	sys/param.h \
 	sys/poll.h \
 	sys/queue.h \
@@ -1470,7 +1469,7 @@ install-data-local: install-headers
 
 install-headers:
 	$(mkinstalldirs) $(DESTDIR)${tooldir}/include
-	for dir in arpa bits net netinet resolv rpc string sys unixlib; do \
+	for dir in arpa bits net netinet rpc string sys unixlib; do \
 	  $(mkinstalldirs) $(DESTDIR)${tooldir}/include/$${dir} ; done
 	for file in ${libc_headers}; do \
 	  $(INSTALL_DATA) $(srcdir)/include/$${file} $(DESTDIR)${tooldir}/include/$${file} ; done

@@ -1,3 +1,10 @@
+Thu Sep  9 00:21:32 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/dev.c (__fsopen): give error EISDIR when directory is opened
+	for O_RDWR.  Reported by John-Mark Bell.
+	* Makefile.am: Removed unexisting sys/netdb.h for install.  Avoid
+	creating emtpy resolv include subdirectory.
+
 Thu Aug 26 03:36:17 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/getenv (__intenv): Move to...
