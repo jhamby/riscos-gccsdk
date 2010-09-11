@@ -19,8 +19,6 @@
 size_t
 fwrite (const void *data, size_t size, size_t count, FILE *stream)
 {
-  size_t to_write, total_bytes = 0;
-
   PTHREAD_UNSAFE
 
   /* Check for any errors.  */
@@ -33,7 +31,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
   if (ferror (stream))
     return (size_t) 0;
 
-  to_write = size * count;
+  size_t to_write = size * count;
   if (to_write == 0)
     return (size_t) 0;
 
@@ -41,12 +39,13 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
   debug_printf ("-- fwrite(%d): to_write=%d", stream->fd, to_write);
 #endif
 
+  size_t total_bytes = 0;
   if (stream->o_base != NULL)
     {
-      /* The special file descriptor of -1 is used when writing to a
-	 memory buffer, such as the function 'sprintf' would.  In this
-	 circumstance, if we have been requested to write more data than
-	 the buffer contains, truncate it.  */
+      /* The special file descriptor of -1 is used when writing to a memory
+	 buffer, such as the function 'sprintf' would (cfr __vsnprintf
+	 implementation).  In this circumstance, if we have been requested
+	 to write more data than the buffer contains, truncate it.  */
       if (stream->fd == -1 && to_write > stream->o_cnt)
 	{
 	  to_write = stream->o_cnt;
@@ -132,7 +131,8 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 		}
 
 	      to_write -= bytes;
-	      if ((bytes = to_write) != 0 || stream->o_ptr[-1] == '\n')
+	      if ((bytes = to_write) != 0
+		  || stream->fd != -1 && stream->o_ptr[-1] == '\n')
 		{
 #ifdef DEBUG
 		  debug_printf (", flushing\n");

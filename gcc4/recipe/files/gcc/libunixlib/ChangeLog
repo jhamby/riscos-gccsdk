@@ -1,6 +1,11 @@
+Sat Sep 11 18:37:46 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/fwrite.c (fwrite): Do not call __flsbuf when fd is -1 as this
+	is a magic value.
+
 Thu Sep  9 00:21:32 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
-	* unix/dev.c (__fsopen): give error EISDIR when directory is opened
+	* unix/dev.c (__fsopen): Give error EISDIR when directory is opened
 	for O_RDWR.  Reported by John-Mark Bell.
 	* Makefile.am: Removed unexisting sys/netdb.h for install.  Avoid
 	creating emtpy resolv include subdirectory.
