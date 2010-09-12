@@ -118,12 +118,10 @@ buildstepsdir/clean-done:
 	-rm -rf $(BUILDDIR)
 	-rm -rf $(SRCDIR)
 	-rm -rf buildstepsdir
+	-svn status --no-ignore | grep "^I       " | cut -b 9- | grep -v -E "^(gccsdk-params|srcdir\.orig|release-area)$$" | xargs rm -rf
 
 distclean: $(GCCSDK_INTERNAL_GETENV)
-buildstepsdir/distclean-done:
-	-rm -rf $(BUILDDIR)
-	-rm -rf $(SRCDIR)
-	-rm -rf buildstepsdir
+buildstepsdir/distclean-done: clean
 	-rm -rf $(SRCORIGDIR) $(PREFIX_CROSS) $(PREFIX_RONATIVE)
 
 # Respawn Makefile again after having loaded all our GCCSDK environment variables.
