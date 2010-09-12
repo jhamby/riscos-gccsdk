@@ -26,7 +26,7 @@ static uint32_t shift_value (uint32_t value, uint32_t type, uint32_t amount,
 /**
  * Simulate a single-stepped instruction
  *
- * \param instruction  Instruction to simulate (assumed at regs->r[15])
+ * \param instruction  Instruction to simulate (assumed at regs->detail.r[15])
  * \param regs         Current register states
  * \return Address of instruction after the one being stepped
  *
@@ -58,7 +58,7 @@ step_instruction (uint32_t instruction, const cpu_registers * regs)
   };
 
   const uint32_t cond = instruction >> 28;
-  const uint32_t flags = (regs->cpsr >> 28) & cond_masks[cond];
+  const uint32_t flags = (regs->detail.cpsr >> 28) & cond_masks[cond];
 
   /* Consider the condition code first */
   uint32_t execute;
@@ -116,7 +116,7 @@ step_instruction (uint32_t instruction, const cpu_registers * regs)
     }
 
   /* Either unexecuted or an SWI. Either way, just increment the PC. */
-  return regs->r[15] + 4;
+  return regs->detail.r[15] + 4;
 }
 
 static uint32_t
@@ -134,10 +134,10 @@ step_nv (uint32_t instruction, const cpu_registers * regs)
       imm = (imm << 8) >> (8 - 2);
       imm |= (instruction >> 23) & 0x2;
 
-      return regs->r[15] + 8 + imm;
+      return regs->detail.r[15] + 8 + imm;
     }
 
-  return regs->r[15] + 4;
+  return regs->detail.r[15] + 4;
 }
 
 static uint32_t
@@ -186,7 +186,7 @@ step_data_processing (uint32_t instruction, const cpu_registers * regs)
   uint32_t opcode2;
 
   if (rd != 15)
-    return regs->r[15] + 4;
+    return regs->detail.r[15] + 4;
 
   /* Cannot be TST, TEQ, CMP, CMN, as Rd == 0 for those */
 
@@ -203,15 +203,15 @@ step_data_processing (uint32_t instruction, const cpu_registers * regs)
       const uint32_t rs = (instruction >> 8) & 0xf;
       const uint32_t type = (instruction >> 5) & 0x3;
       const uint32_t reg = instruction & 0x10;
-      const uint32_t carry = (regs->cpsr >> 29) & 0x1;
+      const uint32_t carry = (regs->detail.cpsr >> 29) & 0x1;
 
       uint32_t amount;
       if (reg)
-	amount = regs->r[rs] & 0xff;
+	amount = regs->detail.r[rs] & 0xff;
       else
 	amount = (instruction >> 7) & 0x1f;
 
-      opcode2 = regs->r[rm];
+      opcode2 = regs->detail.r[rm];
 
       if (rm == 15)
 	opcode2 += 8;		/* PC + 8 */
@@ -232,8 +232,8 @@ step_data_processing (uint32_t instruction, const cpu_registers * regs)
     opcode2 = ~opcode2;
   else
     {
-      uint32_t rn = regs->r[(instruction >> 16) & 0xf];
-      const uint32_t carry = (regs->cpsr >> 29) & 0x1;
+      uint32_t rn = regs->detail.r[(instruction >> 16) & 0xf];
+      const uint32_t carry = (regs->detail.cpsr >> 29) & 0x1;
 
       if (((instruction >> 16) & 0xf) == 15)
 	rn += 8;		/* PC + 8 */
@@ -277,7 +277,7 @@ step_misc_non_dp (uint32_t instruction, const cpu_registers * regs)
   if ((type == 0x1 || type == 0x2) && ((instruction >> 20) & 0xf) == 0x2)
     {
       /* BX | BLX (reg) */
-      uint32_t rm = regs->r[instruction & 0xf];
+      uint32_t rm = regs->detail.r[instruction & 0xf];
 
       if ((instruction & 0xf) == 15)
 	rm += 8;
@@ -286,7 +286,7 @@ step_misc_non_dp (uint32_t instruction, const cpu_registers * regs)
     }
 
   /* Don't care about the rest */
-  return regs->r[15] + 4;
+  return regs->detail.r[15] + 4;
 }
 
 static uint32_t
@@ -296,7 +296,7 @@ step_mul_ld_st (uint32_t instruction __attribute__ ((unused)),
   /* xxxx 000x xxxx xxxx xxxx xxxx 1xx1 xxxx */
 
   /* None of these affect PC */
-  return regs->r[15] + 4;
+  return regs->detail.r[15] + 4;
 }
 
 static uint32_t
@@ -310,23 +310,23 @@ step_ldr_str (uint32_t instruction, const cpu_registers * regs)
   if ((instruction & 0x02000010) == 0x02000010)
     {
       /* Undefined */
-      return regs->r[15] + 4;
+      return regs->detail.r[15] + 4;
     }
 
   if ((instruction & 0x00500000) != 0x00100000 ||
       (instruction & 0x01200000) == 0x00200000)
     {
       /* Anything other than LDR */
-      return regs->r[15] + 4;
+      return regs->detail.r[15] + 4;
     }
 
   const uint32_t rd = (instruction >> 12) & 0xf;
 
   if (rd != 15)
-    return regs->r[15] + 4;
+    return regs->detail.r[15] + 4;
 
   const uint32_t reg = (instruction >> 24) & 0x2;
-  uint32_t rn = regs->r[(instruction >> 16) & 0xf];
+  uint32_t rn = regs->detail.r[(instruction >> 16) & 0xf];
   uint32_t offset, address;
 
   if (((instruction >> 16) & 0xf) == 15)
@@ -336,13 +336,13 @@ step_ldr_str (uint32_t instruction, const cpu_registers * regs)
     {
       const uint32_t amount = (instruction >> 7) & 0x1f;
       const uint32_t type = (instruction >> 5) & 0x3;
-      const uint32_t rm = regs->r[(instruction & 0xf)];
+      const uint32_t rm = regs->detail.r[(instruction & 0xf)];
 
       if (amount != 0)
 	{
 	  /* Shifted register offset */
 	  offset = shift_value (rm, type, amount,
-				(regs->cpsr >> 29) & 0x1, 0);
+				(regs->detail.cpsr >> 29) & 0x1, 0);
 	}
       else
 	{
@@ -393,10 +393,10 @@ step_ldm_stm (uint32_t instruction, const cpu_registers * regs)
   if (((instruction >> 20) & 0x1) == 0 || ((instruction >> 15) & 0x1) == 0)
     {
       /* STM, or LDM without PC */
-      return regs->r[15] + 4;
+      return regs->detail.r[15] + 4;
     }
 
-  const uint32_t rn = regs->r[(instruction >> 16) & 0xf];
+  const uint32_t rn = regs->detail.r[(instruction >> 16) & 0xf];
   const uint32_t pu = (instruction >> 23) & 0x3;
   uint32_t rbits = (instruction & 0xffff);
   uint32_t n_regs = 0;
@@ -432,7 +432,7 @@ step_branch (uint32_t instruction, const cpu_registers * regs)
   /* Sign extend and shift left 2 bits */
   imm = (imm << 8) >> (8 - 2);
 
-  return regs->r[15] + 8 + imm;
+  return regs->detail.r[15] + 8 + imm;
 }
 
 static uint32_t
@@ -442,7 +442,7 @@ step_coprocessor (uint32_t instruction __attribute__ ((unused)),
   /* xxxx 11xx xxxx xxxx xxxx xxxx xxxx xxxx */
 
   /* These don't affect PC */
-  return regs->r[15] + 4;;
+  return regs->detail.r[15] + 4;;
 }
 
 static uint32_t

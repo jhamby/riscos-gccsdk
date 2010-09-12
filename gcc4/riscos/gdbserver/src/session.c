@@ -208,9 +208,9 @@ session_handle_break (session_ctx * ctx, int reason)
     }
 
   /* If this was a breakpoint, and it's one-shot, then clear it */
-  const session_bkpt *bkpt = session_find_bkpt (ctx, ctx->regs.r[15]);
+  const session_bkpt *bkpt = session_find_bkpt (ctx, ctx->regs.detail.r[15]);
   if (bkpt != NULL && (bkpt->address & BKPT_ONE_SHOT))
-    session_clear_bkpt ((uintptr_t) ctx, ctx->regs.r[15]);
+    session_clear_bkpt ((uintptr_t) ctx, ctx->regs.detail.r[15]);
 
   /* Add a callback to emit the break status */
   _swix (OS_AddCallBack, _INR (0, 1), post_abort, ctx->pw);
@@ -288,7 +288,7 @@ static int
 session_step (uintptr_t ctx)
 {
   session_ctx *session = (session_ctx *) ctx;
-  uint32_t instruction = *(const uint32_t *) session->regs.r[15];
+  uint32_t instruction = *(const uint32_t *) session->regs.detail.r[15];
   uint32_t next = step_instruction (instruction, &session->regs);
 
   /* Inject bkpt, so debuggee breaks on resumption */
