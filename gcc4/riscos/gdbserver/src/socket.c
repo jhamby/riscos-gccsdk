@@ -52,6 +52,9 @@ socket_open_server (int port)
   if (sock == -1)
     return -1;
 
+  int one = 1;
+  setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one));
+
   struct sockaddr_in s;
   memset (&s, 0, sizeof (struct sockaddr_in));
   s.sin_family = AF_INET;
@@ -65,7 +68,6 @@ socket_open_server (int port)
       return -1;
     }
 
-  int one = 1;
   ioctl (sock, FIOSLEEPTW, &one);
   ioctl (sock, FIOASYNC, &one);
   ioctl (sock, FIONBIO, &one);

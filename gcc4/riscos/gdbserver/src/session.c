@@ -236,7 +236,7 @@ post_abort_handler (_kernel_swi_regs *r __attribute__ ((unused)),
 }
 
 void
-session_wait_for_continue (session_ctx * ctx)
+session_wait_for_continue (session_ctx *ctx)
 {
   /* Ensure we're stopped */
   ctx->brk = 1;
@@ -640,8 +640,13 @@ session_find_by_socket (int socket)
   return &sessions[i];
 }
 
+
+/**
+ * \return 0 to indicated we did some processing, non-0 to indicate
+ * non-processing.
+ */
 int
-session_tcp_process_input (session_ctx * session, int socket)
+session_tcp_process_input (session_ctx *session, int socket)
 {
   if (session->type != SESSION_TCP)
     return 1;
@@ -649,7 +654,7 @@ session_tcp_process_input (session_ctx * session, int socket)
   if (socket == session->data.tcp.server)
     {
       /* If it's a server socket, accept the connection and
-       * begin a new debug session with the client */
+	 begin a new debug session with the client.  */
       if (session->data.tcp.client >= 0)
 	return 0;
 
@@ -670,8 +675,10 @@ session_tcp_process_input (session_ctx * session, int socket)
       /* Use client socket for read */
       socket = session->data.tcp.client;
     }
+  else if (socket != session->data.tcp.client)
+    dprintf ("session_tcp_process_input(): assert failed - socket mismatch\n");
 
-  /* If there's data on the socket, drive state machine */
+  /* If there's data on the socket, drive state machine.  */
   static uint8_t buf[1024];
   ssize_t read;
   while ((read = socket_recv (socket, buf, sizeof (buf))) > 0)
@@ -680,33 +687,36 @@ session_tcp_process_input (session_ctx * session, int socket)
 
       gdb_process_input (session->gdb, buf, read);
     }
+  if (gdb_got_killed (session->gdb))
+    {
+      /* We got a request to kill the communication.  */
+      dprintf ("Got request to kill communication.\n");
+      socket_close (session->data.tcp.client);
+      session->data.tcp.client = -1;
+    }
 
   return 0;
 }
 
 void
-session_tcp_notify_closed (session_ctx * session, int socket)
+session_tcp_notify_closed (session_ctx *session, int socket)
 {
   if (socket == session->data.tcp.client)
     {
       dprintf ("Client %d disconnected\n", session->data.tcp.client);
 
       socket_close (session->data.tcp.client);
-
       session->data.tcp.client = -1;
     }
 }
 
 static session_ctx *
-session_tcp_initialise (session_ctx * session)
+session_tcp_initialise (session_ctx *session)
 {
 #define TCP_BASE_PORT 4900
 
-  session->data.tcp.server = -1;
   session->data.tcp.client = -1;
-
-  session->data.tcp.server =
-    socket_open_server (TCP_BASE_PORT + session - sessions);
+  session->data.tcp.server = socket_open_server (TCP_BASE_PORT + session - sessions);
   if (session->data.tcp.server == -1)
     {
       session_ctx_destroy (session);

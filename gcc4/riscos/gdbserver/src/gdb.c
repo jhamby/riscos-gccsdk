@@ -6,7 +6,7 @@
 #include "debug.h"
 #include "gdb.h"
 
-typedef enum gdb_state
+typedef enum
 {
   WAITING_FOR_PACKET,
   READ_PACKET_DATA,
@@ -23,9 +23,8 @@ struct gdb_ctx
   uint8_t checksum;
   uint8_t refcksum;
 
-  uint8_t last_packet[256];
-  uint8_t last_packet_len;
-
+  unsigned got_killed:1;
+  
   gdb_send_cb send;
   gdb_break_cb brk;
   gdb_continue_cb cont;
@@ -93,6 +92,15 @@ gdb_ctx_destroy (gdb_ctx *ctx)
   memset (ctx, 0, sizeof (gdb_ctx));
 }
 
+/**
+ * \return true when we got the 'kill request'. false otherwise.
+ */
+bool
+gdb_got_killed (gdb_ctx *ctx)
+{
+  return ctx->got_killed != 0;
+}
+
 void
 gdb_process_input (gdb_ctx *ctx, const uint8_t *data, size_t len)
 {
@@ -157,9 +165,9 @@ gdb_process_input (gdb_ctx *ctx, const uint8_t *data, size_t len)
 }
 
 static void
-process_packet (gdb_ctx * ctx)
+process_packet (gdb_ctx *ctx)
 {
-  uint8_t buf[256];
+  uint8_t buf[512];
   uint8_t *p = buf;
 
   /* Empty packet */
@@ -182,12 +190,13 @@ process_packet (gdb_ctx * ctx)
 
     case 'g':
       {
+	/* Read general registers.  */
 	const cpu_registers *regs = ctx->get_regs (ctx->pw);
 	int config = cpuconfig ();
 
-	for (size_t i = 0; i < N_REGS; i++)
+        for (size_t i = 0; i < sizeof (regs->raw) / sizeof (regs->raw[0]); ++i)
 	  {
-	    uint32_t val = regs->r[i];
+	    uint32_t val = regs->raw[i];
 
 	    if (config == 26)
 	      {
@@ -207,15 +216,7 @@ process_packet (gdb_ctx * ctx)
 		*p++ = hexDigits[b & 0xf];
 	      }
 	  }
-
-	for (int j = 0; j < 4; j++)
-	  {
-	    uint8_t b = (regs->cpsr >> (8 * j)) & 0xff;
-
-	    *p++ = hexDigits[b >> 4];
-	    *p++ = hexDigits[b & 0xf];
-	  }
-
+	
 	send_packet (ctx, (const char *)buf, p - buf);
       }
       break;
@@ -226,30 +227,18 @@ process_packet (gdb_ctx * ctx)
 
 	p = &ctx->data_buf[1];
 
-	for (size_t i = 0;
-	     i < N_REGS && p - ctx->data_buf <= ctx->data_len - 8; i++)
+        for (size_t i = 0;
+	     i < sizeof (regs->raw) / sizeof (regs->raw[0])
+	        && p - ctx->data_buf <= ctx->data_len;
+	     ++i)
 	  {
-	    regs->r[i] = 0;
-	    for (int j = 0; j < 4; j++)
-	      {
-		uint8_t b;
-
-		b = hexToInt (*p++) << 4;
-		b |= hexToInt (*p++);
-
-		regs->r[i] |= b << (8 * j);
-	      }
-	  }
-
-	if (p - ctx->data_buf <= ctx->data_len - 8)
-	  {
-	    regs->cpsr = 0;
+	    regs->raw[i] = 0;
 	    for (int j = 0; j < 4; j++)
 	      {
 		uint8_t b = hexToInt (*p++) << 4;
 		b |= hexToInt (*p++);
 
-		regs->cpsr |= b << (8 * j);
+		regs->raw[i] |= b << (8 * j);
 	      }
 	  }
 
@@ -269,12 +258,28 @@ process_packet (gdb_ctx * ctx)
       }
       break;
 
+    case 'k':
+      /* Kill request.  */
+      ctx->got_killed = 1;
+      break;
+
     case 'm':
       {
+	/* "m" <addr> "," <length>
+	   Read 'length' bytes of memory starting at address <addr>.  */
+	support_request = false;
+
 	char *comma;
 	uint32_t addr = strtoul ((const char *)&ctx->data_buf[1], &comma, 16);
+	if (*comma != ',')
+	  break;
 	uint32_t length = strtoul (comma + 1, NULL, 16);
 
+	if (length > sizeof (buf) / 2)
+	  {
+	    dprintf ("Packet m request was about to overflow our buffer.\n");
+	    break;
+	  }
 	while (length--)
 	  {
 	    /** \todo This may abort. */
@@ -283,13 +288,15 @@ process_packet (gdb_ctx * ctx)
 	    *p++ = hexDigits[b >> 4];
 	    *p++ = hexDigits[b & 0xf];
 
-	    addr++;
+	    ++addr;
 	  }
 
 	send_packet (ctx, (const char *)buf, p - buf);
+
+	support_request = true;
       }
       break;
-
+	
     case 'M':
       {
 	char *comma;
@@ -310,22 +317,70 @@ process_packet (gdb_ctx * ctx)
 
 	flush_caches ();
 
-	send_packet (ctx, "OK", 2);
+	send_packet (ctx, "OK", sizeof ("OK")-1);
       }
       break;
 
     case 'q':
-      /* General query packet.  */
-      if (ctx->data_len == 2 && ctx->data_buf[1] == 'C')
-	{
-	  /* Return current thread ID.  */
-	  send_packet (ctx, "QC00", sizeof ("QC00")-1);
-	}
-      else
-	{
-	  /** \todo unsupported query.  */
-	  support_request = false;
-	}
+      {
+	/* General query packet.  */
+	size_t len;
+	for (len = 1; len != ctx->data_len && ctx->data_buf[len] != ':'; ++len)
+	  /* */;
+	switch (len)
+	  {
+	    case 1 + sizeof ("C")-1:
+	      /* Return current thread ID.  */
+	      if (ctx->data_buf[1] == 'C')
+		send_packet (ctx, "QC1", sizeof ("QC1")-1);
+	      else
+		support_request = false;
+	      break;
+
+	    case 1 + sizeof ("Offsets")-1:
+	    /* case 1 + sizeof ("TStatus")-1: */
+	      if (!strcmp ((const char *)&ctx->data_buf[1], "Offsets"))
+		{
+		  /* Indicate Text and Data relocation offset from its original
+		     address.  */
+		  send_packet (ctx, "Text=0;Data=0;Bss=0", sizeof ("Text=0;Data=0;Bss=0")-1);
+		}
+	      else if (!strcmp ((const char *)&ctx->data_buf[1], "TStatus"))
+		{
+		  /* We're asked if there is a trace experiment running right
+		     now.  We reply no trace is running nor has one been run
+		     yet.  */
+		  send_packet (ctx, "T0;tnotrun:0", sizeof ("T0;tnotrun:0")-1);
+		}
+	      else
+		support_request = false;
+	      break;
+
+	    case 1 + sizeof ("Symbol::")-1:
+	    /* case 1 + sizeof ("Attached")-1: */
+	      if (!strcmp ((const char *)&ctx->data_buf[1], "Symbol::"))
+		{
+		  /* GDB is prepared to server symbol lookup requests.  We're
+		     not interested in atm.  */
+		  send_packet (ctx, "OK", sizeof ("OK")-1);
+		}
+	      else if (!strcmp ((const char *)&ctx->data_buf[1], "Attached"))
+	        {
+		  /* Return whether remote server attached to an existing process
+		     or created a new process.  We always create a new
+		     process.  */
+		  send_packet (ctx, "0", sizeof ("0")-1);
+	        }
+	      else
+	        support_request = false;
+	      break;
+
+	    default:
+	      /** \todo unsupported query.  */
+	      support_request = false;
+	      break;
+	  }
+      }
       break;
 
     case 's':
@@ -370,30 +425,30 @@ process_packet (gdb_ctx * ctx)
     {
       dprintf ("Unsupported packet '%.*s'\n",
 	       ctx->data_len, (const char *)ctx->data_buf);
-      send_packet (ctx, "", 0);
+      send_packet (ctx, "", sizeof ("")-1);
     }
 }
 
 static void
 send_packet (gdb_ctx *ctx, const char *buf, size_t len)
 {
-  uint8_t *reply = ctx->last_packet;
-  *reply++ = '$';
-
+  ctx->send (ctx->pw, (const uint8_t *)"$", sizeof ("$")-1);
+  
   uint8_t cksum = 0;
-  for (const uint8_t *p = (const uint8_t *)buf;
-       p != (const uint8_t *)buf + len;
-       ++p)
+  if (len)
     {
-      *reply++ = *p;
-      cksum += *p;
+      for (const uint8_t *p = (const uint8_t *)buf;
+	   p != (const uint8_t *)buf + len;
+	   ++p)
+	cksum += *p;
+      ctx->send (ctx->pw, (const uint8_t *)buf, len);
     }
 
-  *reply++ = '#';
-  *reply++ = hexDigits[cksum >> 4];
-  *reply++ = hexDigits[cksum & 0xf];
-
-  ctx->last_packet_len = len + 4;
-
-  ctx->send (ctx->pw, ctx->last_packet, ctx->last_packet_len);
+  const uint8_t checksum[] =
+    {
+      '#',
+      hexDigits[cksum >> 4],
+      hexDigits[cksum & 0xf]
+    };
+  ctx->send (ctx->pw, checksum, sizeof (checksum));
 }

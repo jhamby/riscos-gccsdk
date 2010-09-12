@@ -1,3 +1,21 @@
+Sun Sep 12 18:59:20 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/regs.h (cpu_registers): Add FPA registers. Make union with 'raw'
+	access.
+	* src/session.c (session_tcp_process_input): Check if gdb has killed our
+	process.
+	* src/module.c (internet_handler): Don't eat OOB and unknown internet
+	event codes.
+	* src/socket.c (socket_open_server): Set SO_REUSEADDR.
+	* src/gdb.c (gdb_ctx): Remove last_packet, last_packet_len.  Add
+	got_killed.
+	(gdb_got_killed): Add.
+	(process_packet): Increase buf to 512 bytes. Simplify 'g'/'G'
+	processing. Support 'k'. Make 'm' more bulletproof. More 'q' support.
+	(send_packet): Avoid temporary buffer (at expense of call multiple
+	times the send routine).
+	* src/gdb.h (gdb_got_killed): Added.
+
 Wed Sep  8 19:11:00 BST  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* src/gdb.c (process_packet): Fix parsing of qC packet.

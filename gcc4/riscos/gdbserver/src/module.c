@@ -152,6 +152,10 @@ command_handler (const char *arg_string, int argc __attribute__ ((unused)),
   return NULL;
 }
 
+
+/**
+ * \return 0 to claim Internet event, non-0 to pass on.
+ */
 int
 internet_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
 {
@@ -161,11 +165,11 @@ internet_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
       {
 	/* Work out what socket this is.  */
 	session_ctx *session = session_find_by_socket (r->r[2]);
-	if (session == NULL)
-	  return 1;
-	dprintf ("Input on %d\n", r->r[2]);
-
-	return session_tcp_process_input (session, r->r[2]);
+	if (session != NULL)
+	  {
+	    /* dprintf ("Input on %d\n", r->r[2]); */
+	    return session_tcp_process_input (session, r->r[2]);
+	  }
       }
       break;
 
@@ -178,18 +182,18 @@ internet_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
       {
 	/* If it's one of our clients, then tidy up.  */
 	session_ctx *session = session_find_by_socket (r->r[2]);
-	if (session == NULL)
-	  return 1;
-
-	session_tcp_notify_closed (session, r->r[2]);
+	dprintf ("Socket %d closed...\n", r->r[2]);
+	if (session != NULL)
+	  {
+	    dprintf ("...matching one of our sessions.\n");
+	    session_tcp_notify_closed (session, r->r[2]);
+	    return 0;
+	  }
       }
-      break;
-
-    default: /* Don't care */
       break;
     }
 
-  return 0;
+  return 1;
 }
 
 /**

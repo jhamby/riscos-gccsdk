@@ -1,6 +1,7 @@
 #ifndef src_gdb_h_
 #define src_gdb_h_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "regs.h"
@@ -21,8 +22,9 @@ gdb_ctx *gdb_ctx_create (gdb_send_cb send, gdb_break_cb brk,
 			 gdb_set_bkpt_cb set_bkpt,
 			 gdb_clear_bkpt_cb clear_bkpt, gdb_step_cb step,
 			 uintptr_t pw);
-void gdb_ctx_destroy (gdb_ctx * ctx);
+void gdb_ctx_destroy (gdb_ctx *ctx);
 
-void gdb_process_input (gdb_ctx * ctx, const uint8_t * data, size_t len);
+void gdb_process_input (gdb_ctx *ctx, const uint8_t * data, size_t len);
+bool gdb_got_killed (gdb_ctx *ctx);
 
 #endif
