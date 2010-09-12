@@ -143,16 +143,28 @@ else
       orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
       if [ -z "$orig" ] ; then
         file=$(grep \.tar\.gz files | cut -d ' ' -f 4)
-        orig=$(sed s#\.tar\.gz#\.orig\.tar\.gz# <<< $file)
+        if [ -n "$file" ] ; then
+          archtype="gz"
+          orig=$(sed s#\.tar\.gz#\.orig\.tar\.gz# <<< $file)
+        else
+          archtype="bz2"
+          file=$(grep \.tar\.bz2 files | cut -d ' ' -f 4)
+          orig=$(sed s#\.tar\.bz2#\.orig\.tar\.bz2# <<< $file)
+        fi
         wget -nv $debdir/$file -O $orig
       else
+        archtype="gz"
         wget -nv $debdir/$orig
         wget -nv $debdir/$(grep \.diff\.gz files | cut -d ' ' -f 4)
       fi
 
-      tar xfz *.orig.tar.gz
-
-      targetname=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+      if [ $archtype = "gz" ] ; then
+        tar xfz *.orig.tar.gz
+        targetname=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+      else
+        tar xfj *.orig.tar.bz2
+        targetname=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+      fi
       origname=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut -b 3-)
 
       # Have to check that targetname is not already a directory
@@ -165,5 +177,4 @@ else
     fi
   fi
 fi
-
 
