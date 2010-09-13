@@ -23,7 +23,9 @@ ab_package()
   rm -rf include
 
   # Copy shared libs to shared libs package
+  if [ "$RO_SHAREDLIBS" == "yes" ]; then
   mv lib/*.so.* $slibdir
+  fi
 
   # Move static libs to correct place in static package
   mv lib/*.a .
