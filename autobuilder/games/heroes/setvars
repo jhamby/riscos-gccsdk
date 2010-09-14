@@ -11,7 +11,7 @@ ab_package() {
   cp src/etc/heroesrc $A/share/heroes/etc
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
-     -depends heroes-data
+     -depends Heroes-Data
 }
 
 # export LIBS doesn't work so hack configure

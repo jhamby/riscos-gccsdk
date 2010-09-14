@@ -10,5 +10,5 @@ ab_package() {
   cp -r data/images $A/data
   cp -r data/sounds $A/data
 
-  $AB_HOME/add-riscpkg -unixhome -unixsound
+  $AB_HOME/add-riscpkg -unixhome -unixsound -name GemDropX
 }

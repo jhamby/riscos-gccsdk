@@ -10,7 +10,7 @@ ab_package() {
   cp -r data/gfx $A/data/bumprace
   cp -r data/sound $A/data/bumprace
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome -name BumpRace
 }
 
 export LIBS="-ljpeg -lpng -ltiff -lz  -lvorbisidec -lintl"

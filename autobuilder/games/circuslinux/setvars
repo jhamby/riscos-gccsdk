@@ -10,7 +10,7 @@ ab_package() {
   mkdir -p $A/data
   cp -r $S/data/images $S/data/music $S/data/sounds $A/data
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome -name CircusLinux
 }
 
 export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec"

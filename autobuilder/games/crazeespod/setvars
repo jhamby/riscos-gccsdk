@@ -1,13 +1,13 @@
 
 AB_URL=http://www.cloudsprinter.com/random/crazeespod.src.zip
 
-AB_PVERSION=0.1.0
+AB_PVERSION=0.1.1
 
 ab_package() {
   ab_create_app CrazeeSpod Apps/Games
   ab_makerun $S/CrazeeSpod
 
-  cp -av $S/lgfx $A
+  cp -av $S/gfx $A
   cp -av $S/sfx $A
 
   mkdir $A/doc
