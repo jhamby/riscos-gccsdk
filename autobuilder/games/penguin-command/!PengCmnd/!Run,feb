@@ -1,6 +1,6 @@
 | Run file for Penguin Command
 
-Wimpslot -min 12768K -max 12768K
+WimpSlot -min 2780k -max 2780k
 
 RMEnsure DigitalRenderer 0.51 RMLoad System:modules.DRenderer
 
@@ -13,4 +13,5 @@ Set SDL$PengCmnd$CloseAction 0
 Set PengCmnd$Dir <Obey$Dir>
 Set PengCmnd$Path <PengCmnd$Dir>.
 
-Run <PengCmnd$Dir>.!RunImage >null: 2>null:
+| Note -w option runs in a window on the desktop
+Run <PengCmnd$Dir>.penguin-command -w >null: 2>null:

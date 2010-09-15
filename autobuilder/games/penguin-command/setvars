@@ -2,7 +2,8 @@
 ab_package() {
   ab_create_app PengCmnd Apps/Games
 
-  cp -av src/penguin-command$AB_EXEEXT $A/\!RunImage$AB_EXEEXT
+  ab_makerun $S/src/penguin-command$AB_EXEEXT
+
   cat README $H/RISCOSNotes > $A/\!Help
 
   cp -av AUTHORS $ChangeLog COPYING $A
