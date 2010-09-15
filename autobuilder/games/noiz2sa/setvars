@@ -13,9 +13,10 @@ ab_package() {
   ab_makerun $S/noiz2sa$AB_EXEEXT
  
   cat $S/../readme_e.txt >> $A/!Help
+  cp -av $S/../debian/copyright $A
   
   mkdir -p $A/data
   cp -av $S/../noiz2sa_share/* $A/data/
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound
+  $AB_HOME/add-riscpkg -unixlib -unixsound -copyrightfile
 }
