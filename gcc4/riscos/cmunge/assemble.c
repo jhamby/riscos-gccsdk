@@ -46,8 +46,7 @@ void AssembleFile(void) {
         break;
       case tc_gcc:
       case tc_lcc:
-        sprintf(buf, GCC_BINARY_NAME " -xassembler -mmodule %s %s -c %s -o %s",
-                          (CODE32) ? "-apcs32 -apcsfpv3" : "",
+        sprintf(buf, GCC_BINARY_NAME " -xassembler -mmodule %s -c %s -o %s",
                           throwback ? "-mthrowback" : "",
                           opt.sfile, opt.ofile);
         break;
