@@ -1,9 +1,14 @@
 Things that need doing before this can be released
 --------------------------------------------------
 
- + Break requests are pretty temperamental
- + The memory access commands are quite capable of taking out the machine. 
-   GDB itself may need teaching about our stack structure to avoid this 
-   happening when the user attempts to get a backtrace.
- + Error checking/handling (there's not much at present)
++ Break requests are pretty temperamental
++ The memory access commands are quite capable of taking out the machine. 
+  GDB itself may need teaching about our stack structure to avoid this 
+  happening when the user attempts to get a backtrace.
++ Error checking/handling (there's not much at present)
 
++ The *gdb implementation is using OS_AddCallBack to get called back when
+  the RISC OS binary is loaded.  This is very dubious and actually breaks
+  for binaries loaded via Sunfish.  It looks it is working but as soon as you
+  read the memory word at 0x8000, RISC OS stiffs (while reading word at 0x0
+  works).

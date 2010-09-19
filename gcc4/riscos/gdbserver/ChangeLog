@@ -1,3 +1,39 @@
+Sun Sep 19 23:46:56 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* TODO: Add item about AddCallBack use during debugee startup.
+	* src/gdb.h (gdb_got_killed): Constify parameter.
+	* src/session_asm.s (SESSION_CTX_OFFSET_*): Define and use them. Call
+	session_dabort/session_prefetch/session_undef instead of
+	session_handle_break.  Add some SWI 0x100 debug output.
+	* src/regs.h: Update comments.
+	* src/session.c: Add STATIC_ASSERT. Add "_cb" suffix for the gdb
+	backend callback routines.
+	(session_ctx_create): Initialize r15 to 0x8000.
+	(session_ctx_destroy): Invalidate current session at start iso end.
+	(post_abort_handler): Merge into session_handle_break.
+	(session_wait_for_continue): Add check on gdb 'k' command.  Add check
+	whether session is still connected and if not, call OS_Exit.
+	(session_restore_environment): Temporary unset current session.
+	(changeenv_vector_handler): Added (prevents debugee changing the
+	environment.
+	(internet_event_handler): Added (from src/module.c).
+	(session_tcp_process_input): Made static. Remove the gdb_got_killed
+	check (now done at session_wait_for_continue).
+	(session_tcp_notify_closed): Drop socket parameter.  Now always called
+	to close client socket.
+	(session_tcp_finalise): Reset server and client socket to -1.
+	* src/header.cmhg (changeenv_vector,session_dabort,session_prefetch,
+	session_undef): Added.
+	(internet): Renamed to internet_event.
+	(post_abort): Removed.
+	* src/module.c (module_initialise,module_finalize): Added.
+	(mod_init,mod_fini): Use module_initialise,module_finalize.
+	(internet_handler): Moved to src/session.c.
+	* src/session.h (session_handle_break,session_find_by_socket,
+	session_tcp_process_input,session_tcp_notify_closed): Removed
+	prototypes.
+	* src/gdb.c: Added "_fnc" postfix for gdb backend callbacks.
+
 Sun Sep 12 22:51:20 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/step.c: Follow previous cpu_registers (regs.h) changes.

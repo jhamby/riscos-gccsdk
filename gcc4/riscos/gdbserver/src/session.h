@@ -15,7 +15,6 @@ void session_fini (void);
 session_ctx *session_ctx_create (session_type type);
 void session_ctx_destroy (session_ctx * ctx);
 
-void session_handle_break (session_ctx * ctx, int reason);
 void session_wait_for_continue (session_ctx * ctx);
 
 bool session_is_connected (const session_ctx *ctx);
@@ -26,11 +25,6 @@ void session_restore_environment (session_ctx * ctx);
 void session_wimp_initialise (session_ctx * ctx);
 
 void session_get_error (session_ctx * ctx, _kernel_oserror * error);
-
-session_ctx *session_find_by_socket (int socket);
-
-int session_tcp_process_input (session_ctx * ctx, int socket);
-void session_tcp_notify_closed (session_ctx * ctx, int socket);
 
 /* Assembler routines */
 

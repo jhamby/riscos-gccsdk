@@ -15,13 +15,17 @@ command-keyword-table: command_handler
 			invalid-syntax: "Syntax: *GDB <filename> [<args>]",
 			help-text: "*GDB runs the specified binary under GDB.\n")
 
-event-handler: internet 19
+event-handler: internet_event 19
 
-generic-veneers: post_run, appexit, apperror, appupcall, post_abort,
-		 post_wimp_initialise, session_pre_poll, session_post_poll
+vector-handlers: changeenv_vector
+
+generic-veneers: post_run,
+	appexit, apperror, appupcall,
+	post_wimp_initialise,
+	session_pre_poll, session_post_poll,
+	session_dabort, session_prefetch, session_undef
 
 service-call-handler: mod_service &2a
 
 error-chunk-base-number: kGDBServer_ErrorBase
 error-identifiers: kErr_AlreadyWaitingForGDB("Already waiting for a GDB to connect")
-

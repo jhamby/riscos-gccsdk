@@ -25,13 +25,13 @@ struct gdb_ctx
 
   unsigned got_killed:1;
   
-  gdb_send_cb send;
-  gdb_break_cb brk;
-  gdb_continue_cb cont;
-  gdb_get_regs_cb get_regs;
-  gdb_set_bkpt_cb set_bkpt;
-  gdb_clear_bkpt_cb clear_bkpt;
-  gdb_step_cb step;
+  gdb_send_cb send_fnc;
+  gdb_break_cb brk_fnc;
+  gdb_continue_cb cont_fnc;
+  gdb_get_regs_cb get_regs_fnc;
+  gdb_set_bkpt_cb set_bkpt_fnc;
+  gdb_clear_bkpt_cb clear_bkpt_fnc;
+  gdb_step_cb step_fnc;
   uintptr_t pw;
 };
 
@@ -63,7 +63,7 @@ gdb_ctx_create (gdb_send_cb send, gdb_break_cb brk,
   int i;
   for (i = 0; i < N_CTX; i++)
     {
-      if (ctxs[i].send == NULL)
+      if (ctxs[i].send_fnc == NULL)
 	break;
     }
   if (i == N_CTX)
@@ -73,13 +73,13 @@ gdb_ctx_create (gdb_send_cb send, gdb_break_cb brk,
 
   ctx->state = WAITING_FOR_PACKET;
 
-  ctx->send = send;
-  ctx->brk = brk;
-  ctx->cont = cont;
-  ctx->get_regs = get_regs;
-  ctx->set_bkpt = set_bkpt;
-  ctx->clear_bkpt = clear_bkpt;
-  ctx->step = step;
+  ctx->send_fnc = send;
+  ctx->brk_fnc = brk;
+  ctx->cont_fnc = cont;
+  ctx->get_regs_fnc = get_regs;
+  ctx->set_bkpt_fnc = set_bkpt;
+  ctx->clear_bkpt_fnc = clear_bkpt;
+  ctx->step_fnc = step;
   ctx->pw = pw;
 
   return ctx;
@@ -96,7 +96,7 @@ gdb_ctx_destroy (gdb_ctx *ctx)
  * \return true when we got the 'kill request'. false otherwise.
  */
 bool
-gdb_got_killed (gdb_ctx *ctx)
+gdb_got_killed (const gdb_ctx *ctx)
 {
   return ctx->got_killed != 0;
 }
@@ -114,7 +114,7 @@ gdb_process_input (gdb_ctx *ctx, const uint8_t *data, size_t len)
 	    case 3:
 	      /* Tell client to interrupt application */
 	      dprintf ("Received interrupt\n");
-	      ctx->brk (ctx->pw);
+	      ctx->brk_fnc (ctx->pw);
 	      break;
 	    case '$':
 	      ctx->checksum = 0;
@@ -148,10 +148,10 @@ gdb_process_input (gdb_ctx *ctx, const uint8_t *data, size_t len)
 	  ctx->data_buf[ctx->data_len] = '\0';
 
 	  if (ctx->checksum != ctx->refcksum)
-	    ctx->send (ctx->pw, (const uint8_t *)"-", sizeof ("-")-1);
+	    ctx->send_fnc (ctx->pw, (const uint8_t *)"-", sizeof ("-")-1);
 	  else
 	    {
-	      ctx->send (ctx->pw, (const uint8_t *)"+", sizeof ("+")-1);
+	      ctx->send_fnc (ctx->pw, (const uint8_t *)"+", sizeof ("+")-1);
 	      process_packet (ctx);
 	    }
 
@@ -185,13 +185,13 @@ process_packet (gdb_ctx *ctx)
 
     case 'c':
       /** \todo parse addr, if any (and update PC) */
-      ctx->cont (ctx->pw);
+      ctx->cont_fnc (ctx->pw);
       break;
 
     case 'g':
       {
 	/* Read general registers.  */
-	const cpu_registers *regs = ctx->get_regs (ctx->pw);
+	const cpu_registers *regs = ctx->get_regs_fnc (ctx->pw);
 	int config = cpuconfig ();
 
         for (size_t i = 0; i < sizeof (regs->raw) / sizeof (regs->raw[0]); ++i)
@@ -223,7 +223,7 @@ process_packet (gdb_ctx *ctx)
 
     case 'G':
       {
-	cpu_registers *regs = ctx->get_regs (ctx->pw);
+	cpu_registers *regs = ctx->get_regs_fnc (ctx->pw);
 
 	p = &ctx->data_buf[1];
 
@@ -385,7 +385,7 @@ process_packet (gdb_ctx *ctx)
 
     case 's':
       /** \todo parse addr, if any (and update PC) */
-      ctx->step (ctx->pw);
+      ctx->step_fnc (ctx->pw);
       break;
 
     case 'z':
@@ -394,10 +394,18 @@ process_packet (gdb_ctx *ctx)
 	char *comma;
 	uint8_t type = ctx->data_buf[1];
 	uint32_t addr = strtoul ((const char *)&ctx->data_buf[3], &comma, 16);
-	uint32_t length = strtoul (comma + 1, NULL, 16);
+	uint32_t kind = strtoul (comma + 1, NULL, 16);
 
-	/* We only support type 0 and ARM instructions */
-	if (type != '0' || length != 4)
+	/* Type '0' : memory breakpoint
+	   Type '1' : hardware breakpoint
+	   Type '2' : write watchpoint
+	   Type '3' : read watchpoint
+	   Type '4' : access watchpoint
+	   Kind '2' : 16-bit Thumb
+	   Kind '3' : 32-bit Thumb-2
+	   Kind '4' : 32-bit ARM
+	   We only support type 0 and ARM instructions.  */
+	if (type != '0' || kind != 4)
 	  {
 	    send_packet (ctx, "", sizeof ("")-1);
 	    break;
@@ -405,9 +413,9 @@ process_packet (gdb_ctx *ctx)
 
 	int success;
 	if (ctx->data_buf[0] == 'z')
-	  success = ctx->clear_bkpt (ctx->pw, addr);
+	  success = ctx->clear_bkpt_fnc (ctx->pw, addr);
 	else
-	  success = ctx->set_bkpt (ctx->pw, addr);
+	  success = ctx->set_bkpt_fnc (ctx->pw, addr);
 
 	if (success == 0)
 	  send_packet (ctx, "E00", sizeof ("E00")-1);
@@ -432,7 +440,7 @@ process_packet (gdb_ctx *ctx)
 static void
 send_packet (gdb_ctx *ctx, const char *buf, size_t len)
 {
-  ctx->send (ctx->pw, (const uint8_t *)"$", sizeof ("$")-1);
+  ctx->send_fnc (ctx->pw, (const uint8_t *)"$", sizeof ("$")-1);
   
   uint8_t cksum = 0;
   if (len)
@@ -441,7 +449,7 @@ send_packet (gdb_ctx *ctx, const char *buf, size_t len)
 	   p != (const uint8_t *)buf + len;
 	   ++p)
 	cksum += *p;
-      ctx->send (ctx->pw, (const uint8_t *)buf, len);
+      ctx->send_fnc (ctx->pw, (const uint8_t *)buf, len);
     }
 
   const uint8_t checksum[] =
@@ -450,5 +458,5 @@ send_packet (gdb_ctx *ctx, const char *buf, size_t len)
       hexDigits[cksum >> 4],
       hexDigits[cksum & 0xf]
     };
-  ctx->send (ctx->pw, checksum, sizeof (checksum));
+  ctx->send_fnc (ctx->pw, checksum, sizeof (checksum));
 }

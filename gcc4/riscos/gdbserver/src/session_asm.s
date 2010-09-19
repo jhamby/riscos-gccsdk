@@ -1,3 +1,14 @@
+@ --------------------------------------------------------------------
+
+	@ Offset values in session_ctx structure:
+	.set SESSION_CTX_OFFSET_CUR_PC, 0
+	.set SESSION_CTX_OFFSET_REGS, 4
+	.set SESSION_CTX_OFFSET_REGS_FPA, SESSION_CTX_OFFSET_REGS + 16*4
+	.set SESSION_CTX_OFFSET_REGS_CPSR, SESSION_CTX_OFFSET_REGS_FPA + 8*3*4 + 4
+	.set SESSION_CTX_OFFSET_PW, SESSION_CTX_OFFSET_REGS_CPSR + 4
+
+@ --------------------------------------------------------------------
+
 	@ Globals in this file are written back into the module itself.
 	@ This will prevent it being put into ROM. If that is required, then
 	@ this file (and this file alone) will need to be reworked to store
@@ -54,7 +65,7 @@ swi_handler:
 	STMIA	r13, {r13, r14}^	@ Save USR r13 + r14
 	NOP
 
-	STR	r14, [r0]		@ save return address into session
+	STR	r14, [r0, #SESSION_CTX_OFFSET_CUR_PC]	@ save return address into session
 
 	LDR	r1, [r14, #-4]		@ read SWI instruction
 	BIC	r1, r1, #0xff000000	@ clear uninteresting bits
@@ -101,8 +112,8 @@ irq_handler:
 	MOVNE	r0, #0
 	LDREQ	r0, current_session
 	TEQ	r0, #0			@ current_session == NULL => bail
-	SUBNE	r1, r14, #4
-	STRNE	r1, [r0]		@ save return address into session
+	SUBNE	r1, r14, #4		@ save return address into session
+	STRNE	r1, [r0, #SESSION_CTX_OFFSET_CUR_PC]
 	LDMIA	r13!, {r0, r1}
 	LDR	pc, prev_irq_vector	@ pass on to previous claimant
 
@@ -136,27 +147,26 @@ dabort_handler:
 	STMIB	r0, {r0-r14}^		@ Save USR mode's r0-r14
 	NOP
 	LDR	r1, [r13]
-	STR	r1, [r0, #4]		@ Fix up saved r0
+	STR	r1, [r0, #SESSION_CTX_OFFSET_REGS + 0*4] @ Fix up saved r0
 
-	SUB	r1, r14, #8		@ Retrieve aborted PC
-	STR	r1, [r0, #16*4]		@ Save it
+	SUB	r1, r14, #8		@ Retrieve aborted PC and save it.
+	STR	r1, [r0, #SESSION_CTX_OFFSET_REGS + 15*4]
 
 	MRS	r1, SPSR
-	STR	r1, [r0, #17*4]		@ Save SPSR
+	STR	r1, [r0, #SESSION_CTX_OFFSET_REGS_CPSR]	@ Save SPSR
 
 	@ If the abort was from a privileged mode, replace the saved 
 	@ USR mode r13/r14 with the ones from the appropriate mode.
 	ANDS	r14, r1, #0xf		@ Extract mode bits from SPSR
-	ADDNE	r0, r0, #14*4		@ r0 -> save_area[r13]
 	MRSNE	r1, CPSR
 	BICNE	r1, r1, #0xf
 	ORRNE	r14, r1, r14
 	MSRNE	CPSR_c, r14		@ Switch to privileged mode
 	NOPNE
-	STMNEIA	r0, {r13, r14}		@ Save r13 + r14
+	STRNE	r13, [r0, #SESSION_CTX_OFFSET_REGS + 13*4]
+	STRNE	r14, [r0, #SESSION_CTX_OFFSET_REGS + 14*4]
 	ORRNE	r1, r1, #0x7
 	MSRNE	CPSR_c, r1		@ Back to ABT mode
-	SUBNE	r0, r0, #14*4
 	
 	@ TODO: Save FP regs?
 
@@ -166,30 +176,27 @@ dabort_handler:
 	ORR	r14, r14, #0x3		@ SVC
 	MSR	CPSR_c, r14
 
-	@ Call break handler -- APCS calling conventions
-	STMFD	r13!, {r0-r3, ip, r14}
-	@ r0 -> current_session
-	MOV	r1, #0			@ Data abort
-	BL	session_handle_break
-	LDMIA	r13!, {r0-r3, ip, r14}
+	STMFD	R13!, {ip, r14}
+	LDR	ip, [r0, #SESSION_CTX_OFFSET_PW]
+	SWI	0x100 + 'D'		@ FIXME: DEBUG
+	BL	session_dabort		@ Call break handler
+	LDMFD	R13!, {ip, r14}
 
 	@ Return to ABT + ~I
 	MSR	CPSR_c, r1
 
 	@ Restore aborted mode registers from save block
 	LDR	r0, current_session
-	TEQ	r0, #0
-	BEQ	.			@ Should never happen
 
 	@ TODO: Load FP regs?
 
-	LDR	r1, [r0, #17*4]		@ Load SPSR
+	LDR	r1, [r0, #SESSION_CTX_OFFSET_REGS_CPSR]	@ Load SPSR
 	MSR	SPSR, r1
 
-	LDR	r14, [r0, #16*4]	@ Load PC to resume at
+	LDR	r14, [r0, #SESSION_CTX_OFFSET_REGS + 15*4] @ Load PC to resume at
 	STR	r14, [r13, #2*4]	@ Save it for later
 
-	ADD	r0, r0, #14*4		@ r0 -> save_area[r13]
+	ADD	r0, r0, #SESSION_CTX_OFFSET_REGS + 13*4	@ r0 -> save_area[r13]
 	ANDS	r14, r1, #0xf
 	LDMEQIA	r0, {r13, r14}^		@ Load USR r13-r14
 	MRSNE	r1, CPSR
@@ -200,7 +207,7 @@ dabort_handler:
 	LDMNEIA	r0, {r13, r14}		@ Load r13 + r14
 	ORRNE	r1, r1, #0x7
 	MSRNE	CPSR_c, r1		@ Back to ABT mode
-	SUB	r0, r0, #14*4		@ r0 -> session_ctx
+	SUB	r0, r0, #SESSION_CTX_OFFSET_REGS + 13*4	@ r0 -> session_ctx
 	LDMIB	r0, {r0-r12}		@ Load general registers
 
 	ADD	r13, r13, #2*4		@ Balance stack
@@ -238,27 +245,26 @@ prefetch_handler:
 	STMIB	r0, {r0-r14}^		@ Save USR mode's r0-r14
 	NOP
 	LDR	r1, [r13]
-	STR	r1, [r0, #4]		@ Fix up saved r0
+	STR	r1, [r0, #SESSION_CTX_OFFSET_REGS + 0*4] @ Fix up saved r0
 
-	SUB	r1, r14, #4		@ Retrieve aborted PC
-	STR	r1, [r0, #16*4]		@ Save it
+	SUB	r1, r14, #4		@ Retrieve aborted PC and save it.
+	STR	r1, [r0, #SESSION_CTX_OFFSET_REGS + 15*4]
 
 	MRS	r1, SPSR
-	STR	r1, [r0, #17*4]		@ Save SPSR
+	STR	r1, [r0, #SESSION_CTX_OFFSET_REGS_CPSR]	@ Save SPSR
 
 	@ If the abort was from a privileged mode, replace the saved 
 	@ USR mode r13/r14 with the ones from the appropriate mode.
 	ANDS	r14, r1, #0xf		@ Extract mode bits from SPSR
-	ADDNE	r0, r0, #14*4		@ r0 -> save_area[r13]
 	MRSNE	r1, CPSR
 	BICNE	r1, r1, #0xf
 	ORRNE	r14, r1, r14
 	MSRNE	CPSR_c, r14		@ Switch to privileged mode
 	NOPNE
-	STMNEIA	r0, {r13, r14}		@ Save r13 + r14
+	STRNE	r13, [r0, #SESSION_CTX_OFFSET_REGS + 13*4]
+	STRNE	r14, [r0, #SESSION_CTX_OFFSET_REGS + 14*4]
 	ORRNE	r1, r1, #0x7
 	MSRNE	CPSR_c, r1		@ Back to ABT mode
-	SUBNE	r0, r0, #14*4
 	
 	@ TODO: Save FP regs?
 
@@ -268,30 +274,27 @@ prefetch_handler:
 	ORR	r14, r14, #0x3		@ SVC
 	MSR	CPSR_c, r14
 
-	@ Call break handler -- APCS calling conventions
-	STMFD	r13!, {r0-r3, ip, r14}
-	@ r0 -> current_session
-	MOV	r1, #1			@ Prefetch abort
-	BL	session_handle_break
-	LDMIA	r13!, {r0-r3, ip, r14}
+	STMFD	R13!, {ip, r14}
+	LDR	ip, [r0, #SESSION_CTX_OFFSET_PW]
+	SWI	0x100 + 'P'		@ FIXME: DEBUG
+	BL	session_prefetch	@ Call break handler
+	LDMFD	R13!, {ip, r14}
 
 	@ Return to ABT + ~I
 	MSR	CPSR_c, r1
 
 	@ Restore aborted mode registers from save block
 	LDR	r0, current_session
-	TEQ	r0, #0
-	BEQ	.			@ Should never happen
 
 	@ TODO: Load FP regs?
 
-	LDR	r1, [r0, #17*4]		@ Load SPSR
+	LDR	r1, [r0, #SESSION_CTX_OFFSET_REGS_CPSR]	@ Load SPSR
 	MSR	SPSR, r1
 
-	LDR	r14, [r0, #16*4]	@ Load PC to resume at
+	LDR	r14, [r0, #SESSION_CTX_OFFSET_REGS + 15*4] @ Load PC to resume at
 	STR	r14, [r13, #2*4]	@ Save it for later
 
-	ADD	r0, r0, #14*4		@ r0 -> save_area[r13]
+	ADD	r0, r0, #SESSION_CTX_OFFSET_REGS + 13*4	@ r0 -> save_area[r13]
 	ANDS	r14, r1, #0xf
 	LDMEQIA	r0, {r13, r14}^		@ Load USR r13-r14
 	MRSNE	r1, CPSR
@@ -302,7 +305,7 @@ prefetch_handler:
 	LDMNEIA	r0, {r13, r14}		@ Load r13 + r14
 	ORRNE	r1, r1, #0x7
 	MSRNE	CPSR_c, r1		@ Back to ABT mode
-	SUB	r0, r0, #14*4		@ r0 -> session_ctx
+	SUB	r0, r0, #SESSION_CTX_OFFSET_REGS + 13*4	@ r0 -> session_ctx
 	LDMIB	r0, {r0-r12}		@ Load general registers
 
 	ADD	r13, r13, #2*4		@ Balance stack
@@ -354,27 +357,26 @@ undef_handler:
 	STMIB	r0, {r0-r14}^		@ Save USR mode's r0-r14
 	NOP
 	LDR	r1, [r13]
-	STR	r1, [r0, #4]		@ Fix up saved r0
+	STR	r1, [r0, #SESSION_CTX_OFFSET_REGS + 0*4] @ Fix up saved r0
 
-	SUB	r1, r14, #4		@ Retrieve aborted PC
-	STR	r1, [r0, #16*4]		@ Save it
+	SUB	r1, r14, #4		@ Retrieve aborted PC and save it.
+	STR	r1, [r0, #SESSION_CTX_OFFSET_REGS + 15*4]
 
 	MRS	r1, SPSR
-	STR	r1, [r0, #17*4]		@ Save SPSR
+	STR	r1, [r0, #SESSION_CTX_OFFSET_REGS_CPSR]	@ Save SPSR
 
 	@ If the abort was from a privileged mode, replace the saved 
 	@ USR mode r13/r14 with the ones from the appropriate mode.
 	ANDS	r14, r1, #0xf		@ Extract mode bits from SPSR
-	ADDNE	r0, r0, #14*4		@ r0 -> save_area[r13]
 	MRSNE	r1, CPSR
 	BICNE	r1, r1, #0xf
 	ORRNE	r14, r1, r14
 	MSRNE	CPSR_c, r14		@ Switch to privileged mode
 	NOPNE
-	STMNEIA	r0, {r13, r14}		@ Save r13 + r14
+	STRNE	r13, [r0, #SESSION_CTX_OFFSET_REGS + 13*4]
+	STRNE	r14, [r0, #SESSION_CTX_OFFSET_REGS + 14*4]
 	ORRNE	r1, r1, #0xb
 	MSRNE	CPSR_c, r1		@ Back to UND mode
-	SUBNE	r0, r0, #14*4
 	
 	@ TODO: Save FP regs?
 
@@ -384,30 +386,27 @@ undef_handler:
 	ORR	r14, r14, #0x3		@ SVC
 	MSR	CPSR_c, r14
 
-	@ Call break handler -- APCS calling conventions
-	STMFD	r13!, {r0-r3, ip, r14}
-	@ r0 -> current_session
-	MOV	r1, #2			@ Undefined instruction abort
-	BL	session_handle_break
-	LDMIA	r13!, {r0-r3, ip, r14}
+	STMFD	R13!, {ip, r14}
+	LDR	ip, [r0, #SESSION_CTX_OFFSET_PW]
+	SWI	0x100 + 'U'		@ FIXME: DEBUG
+	BL	session_undef		@ Call break handler
+	LDMFD	R13!, {ip, r14}
 
 	@ Return to UND + ~I
 	MSR	CPSR_c, r1
 
 	@ Restore aborted mode registers from save block
 	LDR	r0, current_session
-	TEQ	r0, #0
-	BEQ	.			@ Should never happen
 
 	@ TODO: Load FP regs?
 
-	LDR	r1, [r0, #17*4]		@ Load SPSR
+	LDR	r1, [r0, #SESSION_CTX_OFFSET_REGS_CPSR]	@ Load SPSR
 	MSR	SPSR, r1
 
-	LDR	r14, [r0, #16*4]	@ Load PC to resume at
+	LDR	r14, [r0, #SESSION_CTX_OFFSET_REGS + 15*4] @ Load PC to resume at
 	STR	r14, [r13, #2*4]	@ Save it for later
 
-	ADD	r0, r0, #14*4		@ r0 -> save_area[r13]
+	ADD	r0, r0, #SESSION_CTX_OFFSET_REGS + 13*4	@ r0 -> save_area[r13]
 	ANDS	r14, r1, #0xf
 	LDMEQIA	r0, {r13, r14}^		@ Load USR r13-r14
 	MRSNE	r1, CPSR
@@ -418,7 +417,7 @@ undef_handler:
 	LDMNEIA	r0, {r13, r14}		@ Load r13 + r14
 	ORRNE	r1, r1, #0xb
 	MSRNE	CPSR_c, r1		@ Back to UND mode
-	SUB	r0, r0, #14*4		@ r0 -> session_ctx
+	SUB	r0, r0, #SESSION_CTX_OFFSET_REGS + 13*4	@ r0 -> session_ctx
 	LDMIB	r0, {r0-r12}		@ Load general registers
 
 	ADD	r13, r13, #2*4		@ Balance stack
@@ -436,13 +435,20 @@ undef_handler:
 	.globl error_veneer
 error_veneer:
 	STR	r12, [r13, #-4]!
-	LDR	r12, [r0, #18*4]	@ Retrieve module private word
+	LDR	r12, [r0, #SESSION_CTX_OFFSET_PW] @ Retrieve module private word
 	SWI	XOS_EnterOS		@ Up into SVC mode
+
+	SWI	0x100 + 'E'		@ FIXME: DEBUG
+
 	BL	apperror		@ Call handler (r0->ctx, r12->pw)
+
+	SWI	0x100 + 'e'		@ FIXME: DEBUG
+
 	MRS	r12, CPSR
 	BIC	r12, r12, #0xf
 	MSR	CPSR_c, r12		@ Back into USR mode
 	NOP
+
 	LDR	r12, [r13], #4
 	SWI	OS_GenerateError	@ Exit, generating error
 
@@ -453,12 +459,19 @@ error_veneer:
 exit_veneer:
 	STMFD	r13!, {r0, r12}
 	MOV	r0, r12
-	LDR	r12, [r12, #18*4]	@ Retrieve module private word
+	LDR	r12, [r12, #SESSION_CTX_OFFSET_PW] @ Retrieve module private word
 	SWI	XOS_EnterOS		@ Up into SVC mode
+
+	SWI	0x100 + 'X'		@ FIXME: DEBUG
+
 	BL	appexit			@ Call handler (r0->ctx, r12->pw)
+
+	SWI	0x100 + 'x'		@ FIXME: DEBUG
+
 	MRS	r12, CPSR
 	BIC	r12, r12, #0xf
 	MSR	CPSR_c, r12		@ Back into USR mode
+
 	LDMIA	r13!, {r0, r12}
 	SWI	OS_Exit			@ Exit
 
@@ -472,7 +485,13 @@ upcall_veneer:
 
 	STMFD	r13!, {r0, r12, r14}
 	MOV	r0, r12
-	LDR	r12, [r12, #18*4]	@ Retrieve module private word
+	LDR	r12, [r12, #SESSION_CTX_OFFSET_PW] @ Retrieve module private word
+
+	SWI	0x100 + 'U'		@ FIXME: DEBUG
+
 	BL	appupcall		@ Call handler (r0->ctx, r12->pw)
+
+	SWI	0x100 + 'u'		@ FIXME: DEBUG
+
 	LDMIA	r13!, {r0, r12, r14}
 	MOV	pc, lr			@ Return to caller

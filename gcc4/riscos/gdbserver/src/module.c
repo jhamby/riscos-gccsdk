@@ -13,47 +13,198 @@
 static session_ctx *init_session;
 static uint32_t init_timeout;
 
+/** Initialisation state.  */
+typedef enum
+{
+  InitState_None,
+  InitState_EventVClaimed,
+  InitState_ChangeEnvVClaimed,
+  InitState_EventEnabled,
+  InitState_UndefInstrClaimed,
+  InitState_SWIHandlerClaimed,
+  InitState_PrefetchClaimed,
+  InitState_DAbortClaimed,
+  InitState_IRQClaimed
+} InitState_e;
+static InitState_e init_state = InitState_None;
+
+/**
+ * Do the full module initialisation.  When failed, call module_finalise() to
+ * undo the (possible) partial initialisation.
+ */
+static _kernel_oserror *
+module_initialise (void *pw)
+{
+  /* Further on, we're claiming CPU vectors. Disable IRQs while we do this.  */
+  _kernel_irqs_off ();
+
+  _kernel_oserror *e = NULL;
+  uint32_t prev_handler;
+  switch (init_state)
+    {
+      case InitState_None: /* InitState_None -> InitState_EventVClaimed */
+	if ((e = _swix (OS_Claim, _INR (0, 2), 0x10 /* EventV */,
+			internet_event, pw)) != NULL)
+	  break;
+        ++init_state;
+        /* Fall through.  */
+
+      case InitState_EventVClaimed: /* InitState_EventVClaimed -> InitState_ChangeEnvVClaimed */
+	if ((e = _swix (OS_Claim, _INR (0, 2), 0x1E /* ChangeEnvironmentV */,
+			changeenv_vector, pw)) != NULL)
+	  break;
+        ++init_state;
+        /* Fall through.  */
+
+      case InitState_ChangeEnvVClaimed: /* InitState_ChangeEnvVClaimed -> InitState_EventEnabled */
+	if ((e = _swix (OS_Byte, _INR (0, 1), 14 /* Enable event */, 19)) != NULL)
+	  break;
+        ++init_state;
+        /* Fall through.  */
+
+      case InitState_EventEnabled: /* InitState_EventEnabled -> InitState_UndefInstrClaimed */
+	if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
+			1 | (1 << 8), undef_handler, &prev_handler)) != NULL)
+	  break;
+	set_prev_undef_handler (prev_handler);
+        ++init_state;
+        /* Fall through.  */
+
+      case InitState_UndefInstrClaimed: /* InitState_UndefInstrClaimed -> InitState_SWIHandlerClaimed */
+        if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
+			2 | (1 << 8), swi_handler, &prev_handler)) != NULL)
+	  break;
+	set_prev_swi_handler (prev_handler);
+        ++init_state;
+        /* Fall through.  */
+
+      case InitState_SWIHandlerClaimed: /* InitState_SWIHandlerClaimed -> InitState_PrefetchClaimed */
+        if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
+			3 | (1 << 8), prefetch_handler, &prev_handler)) != NULL)
+	  break;
+	set_prev_prefetch_handler (prev_handler);
+        ++init_state;
+        /* Fall through.  */
+
+      case InitState_PrefetchClaimed: /* InitState_PrefetchClaimed -> InitState_DAbortClaimed */
+        if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
+			4 | (1 << 8), dabort_handler, &prev_handler)) != NULL)
+	  break;
+	set_prev_dabort_handler (prev_handler);
+        ++init_state;
+        /* Fall through.  */
+
+      case InitState_DAbortClaimed: /* InitState_DAbortClaimed -> InitState_IRQClaimed */
+#if 0
+	if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
+			6 | (1 << 8), irq_handler, &prev_handler)) != NULL)
+	set_prev_irq_handler (prev_handler);
+#endif
+        ++init_state;
+        /* Fall through.  */
+
+      case InitState_IRQClaimed: /* Fully initialised.  */
+	break;
+    }
+
+  _kernel_irqs_on ();
+  return e;
+}
+
+/**
+ * Counter the (possibly partial) module initialisation as much as possible.
+ * When failed, the module should be marked as 'dead' and can not be further
+ * deactivated.
+ */
+static _kernel_oserror *
+module_finalise (void *pw)
+{
+  /* Further on, we're releasing CPU vectors. Disable IRQs while we do this.  */
+  _kernel_irqs_off ();
+
+  _kernel_oserror *e = NULL;
+  uint32_t prev_handler;
+  switch (init_state)
+    {
+      case InitState_IRQClaimed: /* InitState_IRQClaimed -> InitState_DAbortClaimed */
+#if 0
+	prev_handler = get_prev_irq_handler ();
+	if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 2), 6, prev_handler,
+			irq_handler)) != NULL)
+	  break;
+#endif
+      --init_state;
+        /* Fall through.  */
+
+      case InitState_DAbortClaimed: /* InitState_DAbortClaimed -> InitState_PrefetchClaimed */
+	prev_handler = get_prev_dabort_handler ();
+	if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 2), 4, prev_handler,
+			dabort_handler)) != NULL)
+	  break;
+        --init_state;
+        /* Fall through.  */
+
+      case InitState_PrefetchClaimed: /* InitState_PrefetchClaimed -> InitState_SWIHandlerClaimed */
+	prev_handler = get_prev_prefetch_handler ();
+	if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 2), 3, prev_handler,
+			prefetch_handler)) != NULL)
+	  break;
+        --init_state;
+        /* Fall through.  */
+
+      case InitState_SWIHandlerClaimed: /* InitState_SWIHandlerClaimed -> InitState_UndefInstrClaimed */
+	prev_handler = get_prev_swi_handler ();
+	if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 2), 2, prev_handler,
+			swi_handler)) != NULL)
+	  break;
+        --init_state;
+        /* Fall through.  */
+
+      case InitState_UndefInstrClaimed: /* InitState_UndefInstrClaimed -> InitState_EventEnabled */
+	prev_handler = get_prev_undef_handler ();
+	if ((e = _swix (OS_ClaimProcessorVector, _INR (0, 2), 1, prev_handler,
+			undef_handler)) != NULL)
+	  break;
+        --init_state;
+        /* Fall through.  */
+
+      case InitState_EventEnabled: /* InitState_EventEnabled -> InitState_ChangeEnvVClaimed */
+	if ((e = _swix (OS_Byte, _INR (0, 1), 13 /* Disable event */, 19)) != NULL)
+	  break;
+        --init_state;
+        /* Fall through.  */
+
+      case InitState_ChangeEnvVClaimed: /* InitState_ChangeEnvVClaimed -> InitState_EventVClaimed */
+	if ((e = _swix (OS_Release, _INR (0, 2), 0x1E, changeenv_vector, pw)) != NULL)
+	  break;
+        --init_state;
+        /* Fall through.  */
+
+      case InitState_EventVClaimed: /* InitState_EventVClaimed -> InitState_None */
+	if ((e = _swix (OS_Release, _INR (0, 2), 0x10, internet_event, pw)) != NULL)
+	  break;
+        --init_state;
+        /* Fall through.  */
+
+      case InitState_None: /* Fully finalised.  */
+	break;
+    }
+
+  _kernel_irqs_on ();
+  return e;
+}
+
 _kernel_oserror *
 mod_init (const char *tail __attribute__ ((unused)),
 	  int podule_base __attribute__ ((unused)),
 	  void *pw)
 {
-  _kernel_oserror *e = _swix (OS_Claim, _INR (0, 2), 0x10 /* EventV */ , internet, pw);
-  if (e != NULL)
-    return e;
-
-  /* Don't really care if this fails */
-  _swix (OS_Byte, _INR (0, 1), 14 /* Enable event */ , 19);
-
-  /* Claim CPU vectors. Disable IRQs while we do this. */
-  _swix (OS_IntOff, _IN (0), 0);
-
-  uint32_t prev_handler;
-
-  _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
-	 1 | (1 << 8), undef_handler, &prev_handler);
-  set_prev_undef_handler (prev_handler);
-
-  _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
-	 2 | (1 << 8), swi_handler, &prev_handler);
-  set_prev_swi_handler (prev_handler);
-
-  _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
-	 3 | (1 << 8), prefetch_handler, &prev_handler);
-  set_prev_prefetch_handler (prev_handler);
-
-  _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
-	 4 | (1 << 8), dabort_handler, &prev_handler);
-  set_prev_dabort_handler (prev_handler);
-
-  _swix (OS_ClaimProcessorVector, _INR (0, 1) | _OUT (1),
-	 6 | (1 << 8), irq_handler, &prev_handler);
-  set_prev_irq_handler (prev_handler);
-
-  _swix (OS_IntOn, _IN (0), 0);
-
-  return NULL;
+  _kernel_oserror *e;
+  if ((e = module_initialise (pw)) != NULL)
+    module_finalise (pw);
+  return e;
 }
+
 
 _kernel_oserror *
 mod_fini (int fatal __attribute__ ((unused)),
@@ -62,35 +213,7 @@ mod_fini (int fatal __attribute__ ((unused)),
 {
   session_fini ();
 
-  /* Release CPU vectors. Disable IRQs while we do this. */
-  _swix (OS_IntOff, _IN (0), 0);
-
-  uint32_t prev_handler;
-  prev_handler = get_prev_undef_handler ();
-  _swix (OS_ClaimProcessorVector, _INR (0, 2),
-	 1, prev_handler, undef_handler);
-
-  prev_handler = get_prev_swi_handler ();
-  _swix (OS_ClaimProcessorVector, _INR (0, 2), 2, prev_handler, swi_handler);
-
-  prev_handler = get_prev_prefetch_handler ();
-  _swix (OS_ClaimProcessorVector, _INR (0, 2),
-	 3, prev_handler, prefetch_handler);
-
-  prev_handler = get_prev_dabort_handler ();
-  _swix (OS_ClaimProcessorVector, _INR (0, 2),
-	 4, prev_handler, dabort_handler);
-
-  prev_handler = get_prev_irq_handler ();
-  _swix (OS_ClaimProcessorVector, _INR (0, 2), 6, prev_handler, irq_handler);
-
-  _swix (OS_IntOn, _IN (0), 0);
-
-  _swix (OS_Byte, _INR (0, 1), 13 /* Disable event */ , 19);
-
-  _swix (OS_Release, _INR (0, 2), 0x10, internet, pw);
-
-  return NULL;
+  return module_finalise (pw);
 }
 
 _kernel_oserror *
@@ -152,50 +275,6 @@ command_handler (const char *arg_string, int argc __attribute__ ((unused)),
   return NULL;
 }
 
-
-/**
- * \return 0 to claim Internet event, non-0 to pass on.
- */
-int
-internet_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
-{
-  switch (r->r[1])
-    {
-    case 1: /* Input pending */
-      {
-	/* Work out what socket this is.  */
-	session_ctx *session = session_find_by_socket (r->r[2]);
-	if (session != NULL)
-	  {
-	    /* dprintf ("Input on %d\n", r->r[2]); */
-	    return session_tcp_process_input (session, r->r[2]);
-	  }
-      }
-      break;
-
-    case 2: /* OOB data pending */
-      /* Ignore this */
-      dprintf ("OOB on %d\n", r->r[2]);
-      break;
-
-    case 3: /* Socket closed */
-      {
-	/* If it's one of our clients, then tidy up.  */
-	session_ctx *session = session_find_by_socket (r->r[2]);
-	dprintf ("Socket %d closed...\n", r->r[2]);
-	if (session != NULL)
-	  {
-	    dprintf ("...matching one of our sessions.\n");
-	    session_tcp_notify_closed (session, r->r[2]);
-	    return 0;
-	  }
-      }
-      break;
-    }
-
-  return 1;
-}
-
 /**
  * Called as callback just after running the application, i.e. before its
  * startup.
@@ -248,7 +327,7 @@ post_run_handler (_kernel_swi_regs *r __attribute__ ((unused)),
 
   session_set_current (session);
 
-  /* Drop into the break handler */
+  /* Drop into the break handler and this never returns.  */
   session_wait_for_continue (session);
 
   return NULL;

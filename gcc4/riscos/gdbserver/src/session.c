@@ -32,6 +32,12 @@ typedef struct session_bkpt
   uint32_t instruction;
 } session_bkpt;
 
+#define STATIC_ASSERT(cond,tag) \
+  enum { STATIC_ASSERT__ ## tag = 1/(!!(cond)) };
+
+/* When following assert fails, adjust session_asm.s.  */
+STATIC_ASSERT(sizeof (cpu_registers) == 168, sizeof_cpu_registers_is_unexpected)
+
 struct session_ctx
 {
   uint32_t cur_pc;
@@ -39,7 +45,8 @@ struct session_ctx
 
   void *pw;
 
-  /* Keep fields above this comment in sync with session_asm.s */
+  /* Keep fields above this comment in sync with session_asm.s (see
+     SESSION_CTX_OFFSET_*).  */
 
   struct
   {
@@ -74,21 +81,26 @@ struct session_ctx
 
 static session_ctx sessions[MAX_SESSIONS];
 
-static int session_break (uintptr_t ctx);
-static int session_continue (uintptr_t ctx);
-static int session_step (uintptr_t ctx);
-static cpu_registers *session_get_regs (uintptr_t ctx);
-static int session_set_bkpt (uintptr_t ctx, uint32_t address);
-static int session_clear_bkpt (uintptr_t ctx, uint32_t address);
+static session_ctx *session_find_by_task_handle (uint32_t task);
+
+/* gdb callbacks: */
+static int session_break_cb (uintptr_t ctx);
+static int session_continue_cb (uintptr_t ctx);
+static int session_step_cb (uintptr_t ctx);
+static cpu_registers *session_get_regs_cb (uintptr_t ctx);
+static int session_set_bkpt_cb (uintptr_t ctx, uint32_t address);
+static int session_clear_bkpt_cb (uintptr_t ctx, uint32_t address);
 
 static session_bkpt *session_find_bkpt (session_ctx *ctx, uint32_t address);
 
-static session_ctx *session_find_by_task_handle (uint32_t task);
-
+/* session tcp transport code: */
 static session_ctx *session_tcp_initialise (session_ctx *session);
 static void session_tcp_finalise (session_ctx *session);
+static int session_tcp_process_input (session_ctx *ctx, int socket);
+static void session_tcp_notify_closed (session_ctx *ctx);
 static size_t session_tcp_send_for_gdb (uintptr_t ctx, const uint8_t *data,
 					size_t len);
+static session_ctx *session_tcp_find_by_socket (int socket);
 
 void
 session_fini (void)
@@ -117,6 +129,8 @@ session_ctx_create (session_type type)
   sessions[i].brk = 1; /* Start session with debuggee paused.  */
   /* sessions[i].task_handle = 0; */
 
+  sessions[i].regs.detail.r[15] = 0x8000;
+  
   switch (type)
     {
       case SESSION_TCP:
@@ -130,6 +144,11 @@ void
 session_ctx_destroy (session_ctx *ctx)
 {
   dprintf ("session_ctx_destroy(): ctx %p\n", (void *)ctx);
+
+  /* Invalidate the current session.  */
+  if (session_get_current () == ctx)
+    session_set_current (NULL);
+
   if (ctx->gdb != NULL)
     gdb_ctx_destroy (ctx->gdb);
 
@@ -172,91 +191,151 @@ session_ctx_destroy (session_ctx *ctx)
 		 e->errnum, e->errmess);
     }
 
-  /* Invalidate the current session */
-  if (session_get_current () == ctx)
-    session_set_current (NULL);
-
   memset (ctx, 0, sizeof (session_ctx));
 }
 
-void
-session_handle_break (session_ctx * ctx, int reason)
+static session_ctx *
+session_find_by_task_handle (uint32_t task)
 {
-  enum
-  {
-    DATA = 0,
-    PREFETCH = 1,
-    UNDEF = 2
-  };
+  int i;
+  for (i = 0; i < MAX_SESSIONS; i++)
+    {
+      if (sessions[i].in_use && sessions[i].task_handle == task)
+	break;
+    }
+  if (i == MAX_SESSIONS)
+    return NULL;
 
-  /* Important: This function (and those called by it), *must* not
-   * attempt to access non-automatic variables (i.e. globals) or call
-   * SCL functions.
-   * The magic words at the bottom of the SVC stack are not set up
-   * by our exception handlers so relocations will fail.
-   */
+  return &sessions[i];
+}
+
+enum
+{
+  DATA = 0,
+  PREFETCH = 1,
+  UNDEF = 2
+};
+
+/**
+ * Core handling routine for DataAbort, Prefetch and UndefinedInstruction.
+ */
+static _kernel_oserror *
+session_handle_break (int reason)
+{
+  session_ctx *ctx = session_get_current ();
+
+  /* vvv FIXME: hack to avoid infinite loop.  */
+  if (!session_is_connected (ctx))
+    {
+      session_set_current (NULL);
+      return NULL;
+    }
 
   /** \todo determine reason for break & store it in the ctx */
   switch (reason)
     {
-    case DATA:
-      break;
-    case PREFETCH:
-      break;
-    case UNDEF:
-      break;
+      case DATA:
+	break;
+      case PREFETCH:
+	break;
+      case UNDEF:
+	break;
     }
 
-  /* If this was a breakpoint, and it's one-shot, then clear it */
+  /* If this was a breakpoint, and it's one-shot, then clear it.  */
   const session_bkpt *bkpt = session_find_bkpt (ctx, ctx->regs.detail.r[15]);
   if (bkpt != NULL && (bkpt->address & BKPT_ONE_SHOT))
-    session_clear_bkpt ((uintptr_t) ctx, ctx->regs.detail.r[15]);
+    session_clear_bkpt_cb ((uintptr_t) ctx, ctx->regs.detail.r[15]);
 
-  /* Add a callback to emit the break status */
-  _swix (OS_AddCallBack, _INR (0, 1), post_abort, ctx->pw);
+  /* Emit break status.  */
+  switch (ctx->type)
+    {
+      case SESSION_TCP:
+	session_tcp_send_for_gdb ((uintptr_t)ctx, (const uint8_t *)"$S05#b8",
+				  sizeof ("$S05#b8")-1);
+	break;
+    }
 
   session_wait_for_continue (ctx);
-}
-
-_kernel_oserror *
-post_abort_handler (_kernel_swi_regs *r __attribute__ ((unused)),
-		    void *pw __attribute__ ((unused)))
-{
-  session_ctx *ctx = session_get_current ();
-
-  dprintf ("post_abort_handler(): ctx %p\n", (void *)ctx);
-  
-  /** \todo retrieve break status from the ctx, then improve this */
-
-  /* Emit break status */
-  session_tcp_send_for_gdb ((uintptr_t)ctx,
-			    (const uint8_t *)"$S05#b8", sizeof ("$S05#b8")-1);
 
   return NULL;
+}
+
+/**
+ * Called when our current session caused a data abort.
+ */
+_kernel_oserror *
+session_dabort_handler (_kernel_swi_regs *r __attribute__ ((unused)),
+			void *pw __attribute__ ((unused)))
+{
+  return session_handle_break (DATA);
+}
+
+/**
+ * Called when our current session caused a prefetch abort.
+ */
+_kernel_oserror *
+session_prefetch_handler (_kernel_swi_regs *r __attribute__ ((unused)),
+			  void *pw __attribute__ ((unused)))
+{
+  return session_handle_break (PREFETCH);
+}
+
+/**
+ * Called when our current session encountered an undefined instruction.
+ */
+_kernel_oserror *
+session_undef_handler (_kernel_swi_regs *r __attribute__ ((unused)),
+		       void *pw __attribute__ ((unused)))
+{
+  return session_handle_break (UNDEF);
 }
 
 void
 session_wait_for_continue (session_ctx *ctx)
 {
-  /* Ensure we're stopped */
+  /* Ensure we're stopped.  */
   ctx->brk = 1;
 
-  /* Simply sit in a loop waiting for the session to be continued */
-  while (ctx->brk)
+  /* Simply sit in a loop waiting for the session to be continued.  */
+  while (ctx->brk && session_is_connected (ctx))
     {
-      /* Trigger callbacks, so the Internet stack doesn't deadlock */
+      /* Trigger callbacks, so the Internet stack doesn't deadlock.  */
       trigger_callbacks ();
+
+      if (gdb_got_killed (ctx->gdb))
+	{
+	  /* We got a request to kill the communication.  */
+	  switch (ctx->type)
+	    {
+	      case SESSION_TCP:
+		session_tcp_notify_closed (ctx);
+		break;
+	    }
+	}
+    }
+
+  if (!session_is_connected (ctx))
+    {
+      dprintf ("session_wait_for_continue(): no longer connected -> OS_Exit\n");
+      __asm__ volatile ("SWI\t%[SWI_OS_Exit]\n\t" /* OS_Exit */
+			:
+			: [SWI_OS_Exit] "i" (OS_Exit)
+			: "r14", "cc");
     }
 }
 
+/**
+ * gdb backend callback.
+ */
 static int
-session_break (uintptr_t ctx)
+session_break_cb (uintptr_t ctx)
 {
   session_ctx *session = (session_ctx *) ctx;
 
   dprintf ("Current break state: %d\n", session->brk);
 
-  /* Ignore any attempts to break while we're paused */
+  /* Ignore any attempts to break while we're paused.  */
   if (session->brk == 1)
     return 0;
 
@@ -264,8 +343,8 @@ session_break (uintptr_t ctx)
     {
       dprintf ("Session is current");
 
-      /* Inject bkpt, so debuggee breaks on resumption */
-      if (session_set_bkpt (ctx, session->cur_pc | BKPT_ONE_SHOT) == 0)
+      /* Inject bkpt, so debuggee breaks on resumption.  */
+      if (session_set_bkpt_cb (ctx, session->cur_pc | BKPT_ONE_SHOT) == 0)
 	return 0;
     }
 
@@ -274,8 +353,11 @@ session_break (uintptr_t ctx)
   return 1;
 }
 
+/**
+ * gdb backend callback.
+ */
 static int
-session_continue (uintptr_t ctx)
+session_continue_cb (uintptr_t ctx)
 {
   session_ctx *session = (session_ctx *) ctx;
 
@@ -284,15 +366,18 @@ session_continue (uintptr_t ctx)
   return 1;
 }
 
+/**
+ * gdb backend callback.
+ */
 static int
-session_step (uintptr_t ctx)
+session_step_cb (uintptr_t ctx)
 {
   session_ctx *session = (session_ctx *) ctx;
   uint32_t instruction = *(const uint32_t *) session->regs.detail.r[15];
   uint32_t next = step_instruction (instruction, &session->regs);
 
-  /* Inject bkpt, so debuggee breaks on resumption */
-  if (session_set_bkpt (ctx, next | BKPT_ONE_SHOT) == 0)
+  /* Inject bkpt, so debuggee breaks on resumption.  */
+  if (session_set_bkpt_cb (ctx, next | BKPT_ONE_SHOT) == 0)
     return 0;
 
   session->brk = 0;
@@ -300,16 +385,22 @@ session_step (uintptr_t ctx)
   return 1;
 }
 
+/**
+ * gdb backend callback.
+ */
 static cpu_registers *
-session_get_regs (uintptr_t ctx)
+session_get_regs_cb (uintptr_t ctx)
 {
   session_ctx *session = (session_ctx *) ctx;
 
   return &session->regs;
 }
 
+/**
+ * gdb backend callback.
+ */
 static int
-session_set_bkpt (uintptr_t ctx, uint32_t address)
+session_set_bkpt_cb (uintptr_t ctx, uint32_t address)
 {
   session_ctx *session = (session_ctx *) ctx;
 
@@ -362,8 +453,11 @@ session_set_bkpt (uintptr_t ctx, uint32_t address)
   return 1;
 }
 
+/**
+ * gdb backend callback.
+ */
 static int
-session_clear_bkpt (uintptr_t ctx, uint32_t address)
+session_clear_bkpt_cb (uintptr_t ctx, uint32_t address)
 {
   session_ctx *session = (session_ctx *) ctx;
 
@@ -464,6 +558,11 @@ session_change_environment (session_ctx *ctx, void *pw)
 void
 session_restore_environment (session_ctx *ctx)
 {
+  /* Temporary make our session non-current as this puts
+     changeenv_vector_handler() in pass through mode.  */
+  session_ctx *current_ctx = session_get_current ();
+  session_set_current (NULL);
+
   const _kernel_oserror *e;
   e = _swix (OS_ChangeEnvironment, _INR (0, 3),
 	     6, ctx->env_ctx[0].addr, ctx->env_ctx[0].r12, ctx->env_ctx[0].buf);
@@ -482,31 +581,84 @@ session_restore_environment (session_ctx *ctx)
   if (e)
     dprintf ("session_restore_environment() err 0x%x %s\n", e->errnum, e->errmess);
   ctx->env_ctx[2].addr = ctx->env_ctx[2].r12 = ctx->env_ctx[2].buf = 0;
+
+  session_set_current (current_ctx);
+}
+
+/**
+ * Called when an application changes its environment.
+ * \return VECTOR_CLAIM to claim, VECTOR_PASSON to pass on the vector call.
+ */
+int
+changeenv_vector_handler (_kernel_swi_regs *r,
+			  void *pw __attribute__ ((unused)))
+{
+  session_ctx *ctx = session_get_current ();
+  if (ctx == NULL)
+    return VECTOR_PASSON;
+
+  dprintf ("changeenv_vector_handler: r0 %d, r1 0x%x, r2 0x%x, r3 0x%x\n",
+	   r->r[0], r->r[1], r->r[2], r->r[3]);
+
+  /* Prevent the debugee overruling the error, exit and upcall environment as
+     during debugging we want to be in full control.  */
+  int idx;
+  switch (r->r[0])
+    {
+      case 6: /* Error.  */
+	idx = 0;
+	break;
+      case 11: /* Exit.  */
+	idx = 1;
+	break;
+      case 16: /* Upcall.  */
+	idx = 2;
+	break;
+      default:
+	return VECTOR_PASSON;
+    }
+
+  const int prev_r1 = ctx->env_ctx[idx].addr;
+  if (r->r[1] != 0)
+    ctx->env_ctx[idx].addr = r->r[1];
+  r->r[1] = prev_r1;
+
+  const int prev_r2 = ctx->env_ctx[idx].r12;
+  if (r->r[2] != 0)
+    ctx->env_ctx[idx].r12 = r->r[2];
+  r->r[2] = prev_r2;
+
+  const int prev_r3 = ctx->env_ctx[idx].buf;
+  if (r->r[3] != 0)
+    ctx->env_ctx[idx].buf = r->r[3];
+  r->r[3] = prev_r3;
+
+  return VECTOR_CLAIM;
 }
 
 void
-session_wimp_initialise (session_ctx * ctx)
+session_wimp_initialise (session_ctx *ctx)
 {
   /* Important: This function (and those called by it), *must* not
-   * attempt to access non-automatic variables (i.e. globals) or call
-   * SCL functions.
-   * The magic words at the bottom of the SVC stack are not set up
-   * by our exception handlers so relocations will fail.
-   */
+     attempt to access non-automatic variables (i.e. globals) or call
+     SCL functions.
+     The magic words at the bottom of the SVC stack are not set up
+     by our exception handlers so relocations will fail.  */
 
-  /* Ignore this if we already have a task handle */
+  /* Ignore this if we already have a task handle. */
   if (ctx->task_handle != 0)
     return;
 
-  /* Add a callback to grab the task handle and register filters */
-  /* It would appear that using _swix() here breaks things. */
-  __asm__ volatile ("MOV r0, %[callback]\n\t"
-		    "MOV r1, %[pw]\n\t"
-		    "SWI 0x20054\n\t"	/* XOS_AddCallBack */
+  /* Add a callback to grab the task handle and register filters.
+     It would appear that using _swix() here breaks things.  */
+  __asm__ volatile ("MOV\tr0, %[callback]\n\t"
+		    "MOV\tr1, %[pw]\n\t"
+		    "SWI\t%[SWI_XOS_AddCallBack]\n\t"
 		    : /* No outputs */
 		    : [callback] "r" (post_wimp_initialise),
-		      [pw] "r" (ctx->pw)
-		    : "r0", "r1", "r14", "cc");
+		      [pw] "r" (ctx->pw),
+		      [SWI_XOS_AddCallBack] "i" (OS_AddCallBack | (1<<17))
+		    : "r0", "r1", "r14", "cc", "memory");
 }
 
 _kernel_oserror *
@@ -557,7 +709,7 @@ _kernel_oserror *
 session_pre_poll_handler (_kernel_swi_regs *r __attribute__ ((unused)),
 			  void *pw __attribute__ ((unused)))
 {
-  /* Invalidate current_session, as we're about to leave it */
+  /* Invalidate current_session, as we're about to leave it.  */
   session_set_current (NULL);
 
   return NULL;
@@ -588,8 +740,8 @@ session_post_poll_handler (_kernel_swi_regs *r __attribute__ ((unused)),
       if (session->brk)
 	{
 	  dprintf ("Setting breakpoint at 0x%x\n", session->cur_pc);
-	  session_set_bkpt ((uintptr_t) session,
-			    session->cur_pc | BKPT_ONE_SHOT);
+	  session_set_bkpt_cb ((uintptr_t) session,
+			       session->cur_pc | BKPT_ONE_SHOT);
 	}
     }
 
@@ -602,50 +754,56 @@ session_get_error (session_ctx * ctx, _kernel_oserror * error)
   memcpy (error, ctx->buffer + 4, sizeof (_kernel_oserror));
 }
 
-static session_ctx *
-session_find_by_task_handle (uint32_t task)
+/* ------------------------------------------------------------------------ */
+
+/**
+ * \return 0 to claim Internet event, non-0 to pass on.
+ */
+int
+internet_event_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
 {
-  int i;
-  for (i = 0; i < MAX_SESSIONS; i++)
+  switch (r->r[1])
     {
-      if (sessions[i].in_use && sessions[i].task_handle == task)
-	break;
+    case 1: /* Input pending */
+      {
+	/* Work out what socket this is.  */
+	session_ctx *session = session_tcp_find_by_socket (r->r[2]);
+	if (session != NULL)
+	  {
+	    /* dprintf ("Input on %d\n", r->r[2]); */
+	    return session_tcp_process_input (session, r->r[2]);
+	  }
+      }
+      break;
+
+    case 2: /* OOB data pending */
+      /* Ignore this */
+      dprintf ("OOB on %d\n", r->r[2]);
+      break;
+
+    case 3: /* Socket closed */
+      {
+	/* If it's one of our clients, then tidy up.  */
+	session_ctx *session = session_tcp_find_by_socket (r->r[2]);
+	dprintf ("Socket %d closed...\n", r->r[2]);
+	if (session != NULL && r->r[2] == session->data.tcp.client)
+	  {
+	    dprintf ("...matching one of our sessions.\n");
+	    session_tcp_notify_closed (session);
+	    return 0;
+	  }
+      }
+      break;
     }
-  if (i == MAX_SESSIONS)
-    return NULL;
 
-  return &sessions[i];
+  return 1;
 }
-
-session_ctx *
-session_find_by_socket (int socket)
-{
-  /* dprintf ("Want socket %d\n", socket); */
-
-  int i;
-  for (i = 0; i < MAX_SESSIONS; i++)
-    {
-      /* dprintf ("%d: %d: %d: %d\n", i, sessions[i].in_use,
-	       sessions[i].data.tcp.server, sessions[i].data.tcp.client); */
-
-      if (sessions[i].in_use
-          && sessions[i].type == SESSION_TCP
-	  && (sessions[i].data.tcp.server == socket
-	      || sessions[i].data.tcp.client == socket))
-	break;
-    }
-  if (i == MAX_SESSIONS)
-    return NULL;
-
-  return &sessions[i];
-}
-
 
 /**
  * \return 0 to indicated we did some processing, non-0 to indicate
  * non-processing.
  */
-int
+static int
 session_tcp_process_input (session_ctx *session, int socket)
 {
   if (session->type != SESSION_TCP)
@@ -665,9 +823,9 @@ session_tcp_process_input (session_ctx *session, int socket)
       dprintf ("New client on %d\n", session->data.tcp.client);
 
       session->gdb = gdb_ctx_create (session_tcp_send_for_gdb,
-				     session_break, session_continue,
-				     session_get_regs, session_set_bkpt,
-				     session_clear_bkpt, session_step,
+				     session_break_cb, session_continue_cb,
+				     session_get_regs_cb, session_set_bkpt_cb,
+				     session_clear_bkpt_cb, session_step_cb,
 				     (uintptr_t) session);
       if (session->gdb == NULL)
 	return 0;
@@ -676,7 +834,10 @@ session_tcp_process_input (session_ctx *session, int socket)
       socket = session->data.tcp.client;
     }
   else if (socket != session->data.tcp.client)
-    dprintf ("session_tcp_process_input(): assert failed - socket mismatch\n");
+    {
+      dprintf ("session_tcp_process_input(): assert failed - socket mismatch\n");
+      return 1;
+    }
 
   /* If there's data on the socket, drive state machine.  */
   static uint8_t buf[1024];
@@ -687,27 +848,17 @@ session_tcp_process_input (session_ctx *session, int socket)
 
       gdb_process_input (session->gdb, buf, read);
     }
-  if (gdb_got_killed (session->gdb))
-    {
-      /* We got a request to kill the communication.  */
-      dprintf ("Got request to kill communication.\n");
-      socket_close (session->data.tcp.client);
-      session->data.tcp.client = -1;
-    }
 
   return 0;
 }
 
-void
-session_tcp_notify_closed (session_ctx *session, int socket)
+static void
+session_tcp_notify_closed (session_ctx *session)
 {
-  if (socket == session->data.tcp.client)
-    {
-      dprintf ("Client %d disconnected\n", session->data.tcp.client);
+  dprintf ("Client %d disconnected\n", session->data.tcp.client);
 
-      socket_close (session->data.tcp.client);
-      session->data.tcp.client = -1;
-    }
+  socket_close (session->data.tcp.client);
+  session->data.tcp.client = -1;
 }
 
 static session_ctx *
@@ -730,13 +881,19 @@ session_tcp_initialise (session_ctx *session)
 }
 
 static void
-session_tcp_finalise (session_ctx * session)
+session_tcp_finalise (session_ctx *session)
 {
   if (session->data.tcp.server >= 0)
-    socket_close (session->data.tcp.server);
+    {
+      socket_close (session->data.tcp.server);
+      session->data.tcp.server = -1;
+    }
 
   if (session->data.tcp.client >= 0)
-    socket_close (session->data.tcp.client);
+    {
+      socket_close (session->data.tcp.client);
+      session->data.tcp.client = -1;
+    }
 }
 
 static size_t
@@ -756,4 +913,27 @@ session_tcp_send_for_gdb (uintptr_t ctx, const uint8_t *data, size_t len)
     /* */;
 
   return 0;
+}
+
+static session_ctx *
+session_tcp_find_by_socket (int socket)
+{
+  /* dprintf ("Want socket %d\n", socket); */
+
+  int i;
+  for (i = 0; i < MAX_SESSIONS; i++)
+    {
+      /* dprintf ("%d: %d: %d: %d\n", i, sessions[i].in_use,
+	       sessions[i].data.tcp.server, sessions[i].data.tcp.client); */
+
+      if (sessions[i].in_use
+          && sessions[i].type == SESSION_TCP
+	  && (sessions[i].data.tcp.server == socket
+	      || sessions[i].data.tcp.client == socket))
+	break;
+    }
+  if (i == MAX_SESSIONS)
+    return NULL;
+
+  return &sessions[i];
 }

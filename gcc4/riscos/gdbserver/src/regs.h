@@ -3,8 +3,12 @@
 
 #include <stdint.h>
 
-/* The order of these registers is determined by gdb.  */
-/* FIXME: vfpv2, vfpv3, neon support */
+/* The order of these registers is determined by gdb:
+     - 16 main ARM registers r0-r15
+     - 8 FPA registers f0-f7
+     - FPA status register
+     - CPSR register
+   FIXME: vfpv2, vfpv3, neon support  */
 typedef union
 {
   struct

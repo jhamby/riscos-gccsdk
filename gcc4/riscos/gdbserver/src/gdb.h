@@ -25,6 +25,6 @@ gdb_ctx *gdb_ctx_create (gdb_send_cb send, gdb_break_cb brk,
 void gdb_ctx_destroy (gdb_ctx *ctx);
 
 void gdb_process_input (gdb_ctx *ctx, const uint8_t * data, size_t len);
-bool gdb_got_killed (gdb_ctx *ctx);
+bool gdb_got_killed (const gdb_ctx *ctx);
 
 #endif
