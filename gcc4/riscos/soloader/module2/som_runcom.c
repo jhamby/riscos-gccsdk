@@ -645,10 +645,11 @@ command_run (const char *arg_string, int argc)
 			   state->elf_prog_name)) != NULL)
     goto error;
 
-  /* Make sure that after calling os_start_app() successfully, we call
-     som_start_app() and don't return from this routine anymore (even for an
-     error message) as otherwise we get "Not a heap block: FileSwitch
-     FreeArea" error (RO 6.06).  */
+  /* Make sure that after calling os_start_app() successfully, we have to
+     either call som_start_app(), either call OS_GenerateError.  But for sure
+     don't return from this routine anymore (even for an error message) as
+     otherwise we get "Not a heap block: FileSwitch FreeArea" error
+     (at least on RISC OS 6.06).  */
 
   /* Finished with command line.  */
   som_free (state->elf_prog_name);

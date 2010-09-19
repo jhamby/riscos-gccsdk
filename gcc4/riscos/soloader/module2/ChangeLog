@@ -1,3 +1,11 @@
+Sun Sep 19 12:11:03 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_runcom.c(command_run): Update comments.
+
+Sat Sep 10 18:46:57 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Require autoconf 2.64 at least.
+
 Sun Jan 10 17:06:20 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* somanager.cmhg: Increase version number to 2.03 as
