@@ -18,5 +18,5 @@ ab_package() {
   mkdir -p $A/data
   cp -av $S/../noiz2sa_share/* $A/data/
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -copyrightfile
+  $AB_HOME/add-riscpkg -unixlib -unixsound -copyrightfile $S/../debian/copyright
 }
