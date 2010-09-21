@@ -14,7 +14,7 @@ ab_package() {
   rm $A/games/pipenightdreams/images/pipes_space/back04/board_back.jpg
   cp $A/games/pipenightdreams/images/pipes_space/back01/board_back.jpg $A/games/pipenightdreams/images/pipes_space/back04/board_back.jpg
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -name PipeNightDreams
 }
 
 export LIBS="-lSDL_image -ljpeg -lpng -ltiff -lz"

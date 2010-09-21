@@ -11,7 +11,7 @@ ab_package() {
   cp -av ChangeLog COPYING README $A/
 
   $AB_HOME/add-riscpkg -unixlib -unixsound \
-     -copyrightfile $S/COPYING
+     -copyrightfile $S/COPYING -name SDLRoids
 }
 
 export LIBS="-lvorbisidec"

@@ -11,5 +11,5 @@ ab_package() {
   mkdir -p $A/data
   cp -r $S/*.wav $S/*.bmp $A/data
 
-  $AB_HOME/add-riscpkg -unixhome -unixlib
+  $AB_HOME/add-riscpkg -unixhome -unixlib -name IceBreaker
 }

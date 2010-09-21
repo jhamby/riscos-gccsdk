@@ -8,5 +8,5 @@ ab_package()
   mkdir -p $A/data
   cp data/*.{bmp,png,wav,mod} $A/data
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome -name RockDodger
 }

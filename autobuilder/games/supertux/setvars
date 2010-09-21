@@ -9,7 +9,7 @@ ab_package() {
   mkdir -p $A/data/supertux
   cp -r data/* $A/data/supertux
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome
+  $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome -name SuperTux
 }
 
 export LIBS="-ljpeg -lpng -ltiff -lz  -logg -lvorbis -lvorbisfile"

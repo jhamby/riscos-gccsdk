@@ -11,7 +11,7 @@ ab_package() {
   cp -r data/* $A/data/tuxmath
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
-  -depends ttf-sil-andika
+  -depends ttf-sil-andika -name TuxMath
 }
 
 export LIBS="-ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lfreetype"
