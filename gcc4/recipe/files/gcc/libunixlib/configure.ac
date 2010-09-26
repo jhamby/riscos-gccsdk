@@ -116,9 +116,11 @@ AC_PROG_MAKE_SET
 # Get 'install' or 'install-sh' and its variants
 AC_PROG_INSTALL
 
-# Conditional to be used to figure out if we're building SharedCLibrary
-# or UnixLib:
-AM_CONDITIONAL([BUILDING_SCL], [echo $CC | grep -- -mlibscl])
+dnl Conditional to be used to figure out if we're building SharedCLibrary
+dnl or UnixLib:
+AM_CONDITIONAL([UNIXLIB_BUILDING_SCL], [echo $CC | grep -- -mlibscl])
+dnl Conditional to figure out if we want support for chunked stacks or not:
+AM_CONDITIONAL([UNIXLIB_CHUNKED_STACK], [test x"${target}" = xarm-unknown-riscos])
 
 # Calculate toolexeclibdir
 # Also toolexecdir, though it's only used in toolexeclibdir

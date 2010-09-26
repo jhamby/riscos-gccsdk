@@ -137,12 +137,13 @@ __main:
 	STR	a2, [fp, #MEM_RWBREAK]		@ __ul_memory.rwbreak = __ul_memory.rwlomem
 	STR	a2, [fp, #MEM_STACK_LIMIT]	@ __ul_memory.stack_limit = __ul_memory.rwlomem
 
+	LDR	sp, [fp, #MEM_APPSPACE_HIMEM]
+
+#if __UNIXLIB_CHUNKED_STACK
 	@ The stack is allocated in chunks in the wimpslot, with the first
 	@ 4KB chunk immediately below 'appspace_himem'.  We cannot place it
 	@ in a dynamic area because GCC might generate trampolines.  In USR32
 	@ mode we could however.
-
-	LDR	sp, [fp, #MEM_APPSPACE_HIMEM]
 
 	@ 8 bytes are needed above the initial chunk
 	@ for the stackalloc heap
@@ -176,6 +177,22 @@ __main:
 	STR	a2, [a1, #CHUNK_MAGIC]
 	MOV	a2, #4096
 	STR	a2, [a1, #CHUNK_SIZE]
+#else
+	@ Flat stack in application space: reserve 4 KByte for signal handler
+	@ and what's below is for application stack.
+	@ FIXME: this is far from ideal.  We probably want to move this to a
+	@ DA.
+	STR	sp, [ip, #GBL_SIGNALHANDLER_SP]
+
+	SUB	sp, sp, #4096
+
+	@ Check we have at least 4 KByte of application stack space.
+	SUB	a3, sp, #4096
+	STR	a3, [fp, #MEM_STACK]	@ __ul_memory.stack = bottom of stack
+	CMP	a3, a2
+	MOVCC	a1, #ERR_NO_MEMORY
+	BCC	__exit_with_error_num	@ No room for stack, exit.
+#endif
 
 	MOV	v1, ip		@ Temporary variable
 
@@ -409,8 +426,10 @@ no_dynamic_area:
 	BL	__env_read
 	@ Install the UnixLib environment handlers
 	BL	__env_unixlib
+#if __UNIXLIB_CHUNKED_STACK
 	@ Initialise the stack heap in application space
 	BL	__stackalloc_init
+#endif
 
 	@ Initialise the UnixLib library
 	@ NOTE:	 No calls to brk, sbrk, or malloc should occur before
@@ -785,6 +804,7 @@ handlers:
 	.text
 #endif
 
+#if __UNIXLIB_CHUNKED_STACK
 	@ Same as the SCL's magic number, for compatibility in libgcc
 __stackchunk_magic_number:
 	.word	0xF60690FF
@@ -1167,6 +1187,7 @@ no_chunk_to_free:
 	ADD	sl, sl, #512+CHUNK_OVERHEAD
 	MOV	pc, lr
 	DECLARE_FUNCTION __free_stack_chunk
+#endif
 
 	@ Globally used panic button.
 	@ void __unixlib_fatal(const char *message) __attribute__ ((__noreturn__))

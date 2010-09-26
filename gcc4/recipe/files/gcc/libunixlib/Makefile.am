@@ -30,23 +30,33 @@ AM_CPPFLAGS = -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
 # in features.h results in having the 'long double' math routines aliased as
 # the normal 'double' onces.
 AM_CFLAGS = -D__GNU_LIBRARY__ -DNO_LONG_DOUBLE -D_GNU_SOURCE=1 -std=c99 $(LIBM_FLAGS)
+if UNIXLIB_CHUNKED_STACK
+AM_CFLAGS += -D__UNIXLIB_CHUNKED_STACK=1
+else
+AM_CFLAGS += -D__UNIXLIB_CHUNKED_STACK=0
+endif
 
 # Assembler files rely heavily on the C preprocessor to keep structures
 # referred to by both languages in sync.
 AM_CCASFLAGS = -xassembler-with-cpp -isystem $(top_srcdir)/include -I $(top_srcdir)/incl-local
+if UNIXLIB_CHUNKED_STACK
+AM_CCASFLAGS += -D__UNIXLIB_CHUNKED_STACK=1
+else
+AM_CCASFLAGS += -D__UNIXLIB_CHUNKED_STACK=0
+endif
 
 SUBDIRS = test
 
 includedir = $(prefix)
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 assert_src =
 else
 assert_src = \
  	assert/assert.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 common_src =
 else
 common_src = \
@@ -71,7 +81,7 @@ endif
 common_src += \
 	common/env.c
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 crypt_src =
 else
 crypt_src = \
@@ -82,7 +92,7 @@ crypt_src = \
 	crypt/md5.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 ctype_src =
 else
 ctype_src = \
@@ -106,7 +116,7 @@ ctype_src = \
 	ctype/toupper.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 debug_src =
 else
 debug_src = \
@@ -114,7 +124,7 @@ debug_src = \
 	debug/dvsprintf.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 fenv_src =
 else
 fenv_src = \
@@ -132,7 +142,7 @@ fenv_src = \
 	fenv/ftestexcept.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 gcccompat_src =
 else
 gcccompat_src =
@@ -144,7 +154,7 @@ gcccompat_src += \
 	gcccompat/_eh_support.s \
 	gcccompat/_galloca.s
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 gdtoa_src =
 else
 gdtoa_src = \
@@ -194,7 +204,7 @@ gdtoa_src = \
 	gdtoa/_ldtoa.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 gmon_src =
 else
 gmon_src = \
@@ -207,7 +217,7 @@ gmon_src = \
 	gmon/_profile.s
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 grp_src =
 else
 grp_src = \
@@ -223,7 +233,7 @@ grp_src = \
 	grp/grpread.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 inttypes_src =
 else
 inttypes_src = \
@@ -232,7 +242,7 @@ inttypes_src = \
 endif
 
 # UnixLib implementation of SharedCLibrary _kernel_*() routines:
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 kernel_src =
 else
 kernel_src = \
@@ -255,7 +265,7 @@ kernel_src = \
 	kernel/kswi_c.s
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 libm_complex_src =
 else
 libm_complex_src = \
@@ -271,7 +281,7 @@ libm_complex_src = \
 	libm-complex/crealf.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 libm_dbl64_src =
 else
 libm_dbl64_src = \
@@ -351,7 +361,7 @@ libm_dbl64_src = \
 	libm-dbl64/w_exp.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 libm_flt32_src =
 else
 libm_flt32_src = \
@@ -421,7 +431,7 @@ libm_flt32_src = \
 	libm-flt32/w_expf.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 libm_generic_src =
 else
 libm_generic_src = \
@@ -534,7 +544,7 @@ libm_generic_src = \
 	libm-generic/w_tgammaf.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 libm_support_src =
 else
 libm_support_src = \
@@ -544,7 +554,7 @@ libm_support_src = \
 	libm-support/s_signgam.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 locale_src =
 else
 locale_src = \
@@ -558,14 +568,14 @@ endif
 locale_src += \
 	locale/iconv.c
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 misc_src =
 else
 misc_src = \
 	misc/dirname.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 netlib_src = \
 	netlib/scl_getservbyname.c \
 	netlib/scl_getservbyport.c
@@ -605,7 +615,7 @@ netlib_src += \
 	netlib/socket.c
 
 # No pthread support for SharedCLibrary:
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 pthread_scr =
 else
 pthread_src = \
@@ -644,7 +654,7 @@ pthread_src = \
 	pthread/_yield.s
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 pwd_src =
 else
 pwd_src = \
@@ -661,7 +671,7 @@ pwd_src = \
 	pwd/pwdread.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 regexp_src =
 else
 regexp_src = \
@@ -671,7 +681,7 @@ regexp_src = \
 	regexp/regfree.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 resolv_src = \
 	resolv/scl_gethostbyname.c
 else
@@ -703,7 +713,7 @@ resolv_src = \
 	resolv/ul_res_send.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 resource_src =
 else
 resource_src = \
@@ -729,7 +739,7 @@ resource_src = \
 	resource/ulimit.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 sched_src =
 else
 sched_src = \
@@ -737,7 +747,7 @@ sched_src = \
 endif
 
 # SharedCLibrary stub interface:
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 scl_src = \
 	scl/chunkid01.s \
 	scl/chunkid02.s \
@@ -774,7 +784,7 @@ else
 scl_src =
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 search_src =
 else
 search_src = \
@@ -785,7 +795,7 @@ search_src = \
 	search/tsearch.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 signal_src =
 else
 signal_src = \
@@ -819,14 +829,14 @@ endif
 signal_src += \
 	signal/signame.c
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 sound_src =
 else
 sound_src = \
 	sound/dsp.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 stat_src =
 else
 stat_src = \
@@ -834,7 +844,7 @@ stat_src = \
 	stat/mknod.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 stdio_src = \
 	stdio/scl_fdopen.c \
 	stdio/scl_fileno.c
@@ -881,7 +891,7 @@ endif
 stdio_src += \
 	stdio/getdelim.c
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 stdlib_src =
 else
 stdlib_src = \
@@ -924,7 +934,7 @@ stdlib_src = \
 	stdlib/_rand48.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 string_src =
 else
 string_src = \
@@ -969,7 +979,7 @@ string_src += \
 	string/_ffs.s \
 	string/_ffsll.s
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 sys_src =
 else
 sys_src = \
@@ -998,7 +1008,7 @@ endif
 sys_src += \
 	sys/errlist.c
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 termios_src =
 else
 termios_src = \
@@ -1021,7 +1031,7 @@ termios_src = \
 	termios/termcap.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 time_src =
 else
 time_src = \
@@ -1058,7 +1068,7 @@ time_src += \
 	time/tzset.c \
 	time/utimes.c
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 unistd_src =
 else
 unistd_src = \
@@ -1075,7 +1085,7 @@ unistd_src = \
 	unistd/symlink.c
 endif
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 unix_src = \
 	unix/scl_close.c \
 	unix/scl_ioctl.c \
@@ -1164,7 +1174,7 @@ unix_src += \
 	unix/seterr.c \
 	unix/sethostnam.c
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 wchar_src =
 else
 wchar_src = \
@@ -1412,9 +1422,35 @@ libm_la_LDFLAGS = -Wc,-nostdlib -version-info 1:0:0
 
 toolexeclib_LTLIBRARIES = libunixlib.la libm.la
 
+if UNIXLIB_CHUNKED_STACK
+# These rules are copied direct from a generated Makefile.
+# The only difference is that stack checking is turned off for these targets.
+# Automake doesn't seem to provide a per-object file flag setting function.
+brk.lo: sys/brk.c
+	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
+	-MT brk.lo -MD -MP -MF "$(DEPDIR)/brk.Tpo" -c -o brk.lo \
+	`test -f 'sys/brk.c' || echo '$(srcdir)/'`sys/brk.c; \
+	then mv -f "$(DEPDIR)/brk.Tpo" "$(DEPDIR)/brk.Plo"; \
+	else rm -f "$(DEPDIR)/brk.Tpo"; exit 1; fi
+
+stackalloc.lo: sys/stackalloc.c
+	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
+	-MT stackalloc.lo -MD -MP -MF "$(DEPDIR)/stackalloc.Tpo" -c -o stackalloc.lo \
+	`test -f 'sys/stackalloc.c' || echo '$(srcdir)/'`sys/stackalloc.c; \
+	then mv -f "$(DEPDIR)/stackalloc.Tpo" "$(DEPDIR)/stackalloc.Plo"; \
+	else rm -f "$(DEPDIR)/stackalloc.Tpo"; exit 1; fi
+
+dvsprintf.lo: debug/dvsprintf.c
+	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
+	-MT dvsprintf.lo -MD -MP -MF "$(DEPDIR)/dvsprintf.Tpo" -c -o dvsprintf.lo \
+	`test -f 'debug/dvsprintf.c' || echo '$(srcdir)/'`debug/dvsprintf.c; \
+	then mv -f "$(DEPDIR)/dvsprintf.Tpo" "$(DEPDIR)/dvsprintf.Plo"; \
+	else rm -f "$(DEPDIR)/dvsprintf.Tpo"; exit 1; fi
+endif
+
 # crt ----------------------
 
-if BUILDING_SCL
+if UNIXLIB_BUILDING_SCL
 toolexeclib_DATA = crt0-scl.o
 else
 toolexeclib_DATA = crt0.o gcrt0.o
@@ -1440,30 +1476,6 @@ sul.o: module/sul.s
 # a raw binary
 sul$(EXEEXT): sul.o
 	$(STRIP) -O binary -o sul$(EXEEXT) sul.o
-
-# These rules are copied direct from a generated Makefile.
-# The only difference is that stack checking is turned off for these targets.
-# Automake doesn't seem to provide a per-object file flag setting function.
-brk.lo: sys/brk.c
-	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
-	-MT brk.lo -MD -MP -MF "$(DEPDIR)/brk.Tpo" -c -o brk.lo \
-	`test -f 'sys/brk.c' || echo '$(srcdir)/'`sys/brk.c; \
-	then mv -f "$(DEPDIR)/brk.Tpo" "$(DEPDIR)/brk.Plo"; \
-	else rm -f "$(DEPDIR)/brk.Tpo"; exit 1; fi
-
-stackalloc.lo: sys/stackalloc.c
-	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
-	-MT stackalloc.lo -MD -MP -MF "$(DEPDIR)/stackalloc.Tpo" -c -o stackalloc.lo \
-	`test -f 'sys/stackalloc.c' || echo '$(srcdir)/'`sys/stackalloc.c; \
-	then mv -f "$(DEPDIR)/stackalloc.Tpo" "$(DEPDIR)/stackalloc.Plo"; \
-	else rm -f "$(DEPDIR)/stackalloc.Tpo"; exit 1; fi
-
-dvsprintf.lo: debug/dvsprintf.c
-	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
-	-MT dvsprintf.lo -MD -MP -MF "$(DEPDIR)/dvsprintf.Tpo" -c -o dvsprintf.lo \
-	`test -f 'debug/dvsprintf.c' || echo '$(srcdir)/'`debug/dvsprintf.c; \
-	then mv -f "$(DEPDIR)/dvsprintf.Tpo" "$(DEPDIR)/dvsprintf.Plo"; \
-	else rm -f "$(DEPDIR)/dvsprintf.Tpo"; exit 1; fi
 
 install-data-local: install-headers
 

@@ -88,9 +88,8 @@ __pthread_new_node (pthread_t node)
 struct __stack_chunk *
 __pthread_new_stack (void)
 {
-  struct __stack_chunk *stack;
-
-  stack = __stackalloc (PTHREAD_STACK_MIN);
+#if __UNIXLIB_CHUNKED_STACK
+  struct __stack_chunk *stack = __stackalloc (PTHREAD_STACK_MIN);
   if (stack == NULL)
     {
 #ifdef DEBUG_PTHREAD
@@ -107,4 +106,7 @@ __pthread_new_stack (void)
   stack->returnaddr = NULL;
 
   return stack;
+#else
+  return NULL; /* FIXME: code missing.  */
+#endif
 }

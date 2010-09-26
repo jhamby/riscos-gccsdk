@@ -1,5 +1,5 @@
 /* Context switching/scheduling.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2008 UnixLib Developers.
+   Copyright (c) 2002-2010 UnixLib Developers.
    Written by Martin Piper and Alex Waugh */
 
 #include <stdlib.h>
@@ -9,7 +9,7 @@
 #include <malloc.h>
 
 #include <internal/os.h>
-#include <internal/unix.h> /* for __stackalloc */
+#include <internal/unix.h>
 
 /* #define PTHREAD_DEBUG
 #define PTHREAD_DEBUG_CONTEXT
@@ -44,7 +44,11 @@ __pthread_cleanup_idle (pthread_t node)
 
   if (node->stack)
     {
+#if __UNIXLIB_CHUNKED_STACK
       __free_stack_chain (node->stack);
+#else
+      /* FIXME: code missing.  */
+#endif
       node->stack = NULL;
     }
 
@@ -65,9 +69,6 @@ __pthread_cleanup_idle (pthread_t node)
 void
 __pthread_context_switch (void)
 {
-  pthread_t next;
-  int iter = 0;
-
 #ifdef PTHREAD_DEBUG_CONTEXT
   debug_printf ("-- __pthread_context_switch: __pthread_running_thread=%08x\n",
 		__pthread_running_thread);
@@ -78,9 +79,10 @@ __pthread_context_switch (void)
   __pthread_running_thread->thread_errno = errno;
 #endif
 
-  next = __pthread_running_thread->next;
+  pthread_t next = __pthread_running_thread->next;
 
   /* Loop around the list looking for a thread that is running.  */
+  int iter = 0;
   do
     {
 #ifdef PTHREAD_DEBUG_CONTEXT
@@ -130,9 +132,7 @@ __pthread_context_switch (void)
               /* Remove this thread from the list of threads waiting on the
                  condition variable.  */
               if (__pthread_running_thread->cond->waiting == __pthread_running_thread)
-                {
-                  __pthread_running_thread->cond->waiting = __pthread_running_thread->nextwait;
-                }
+		__pthread_running_thread->cond->waiting = __pthread_running_thread->nextwait;
               else
                 {
                   pthread_t thread = __pthread_running_thread->cond->waiting;

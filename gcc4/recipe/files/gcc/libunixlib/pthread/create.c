@@ -70,8 +70,12 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
 
   if (thread->saved_context == NULL || thread->stack == NULL)
     {
+#if __UNIXLIB_CHUNKED_STACK
       if (thread->stack != NULL)
         __free_stack_chain (thread->stack);
+#else
+      /* FIXME: code missing.  */
+#endif
 
       if (thread->saved_context != NULL)
 	free_unlocked (gbl->malloc_state, thread->saved_context);
@@ -85,7 +89,6 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
       return EAGAIN;
     }
 
-
   if (attr != NULL)
     thread->detachstate = attr->detachstate;
 
@@ -97,10 +100,12 @@ pthread_create (pthread_t *threadin, const pthread_attr_t *attr,
   thread->saved_context->r[13] = (int)((char *)thread->stack
 				       + PTHREAD_STACK_MIN);
 
+#if __UNIXLIB_CHUNKED_STACK
   /* Set stack-limit register.  */
   thread->saved_context->r[10] = (int)((char *)thread->stack
 				       + 512
 				       + sizeof (struct __stack_chunk));
+#endif
 
   /* Set the frame pointer to zero.  During stack backtraces, a frame
      pointer of zero means that this is the top-level stack frame.  */

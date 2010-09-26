@@ -267,8 +267,9 @@
 .set	MEM_OLD_HIMEM, 48	@ = __ul_memory.old_himem
 #endif
 
+#if __UNIXLIB_CHUNKED_STACK
 	@ Entries in the struct __stack_chunk.  Must be kept in sync with
-	@ unix.h definition.
+	@ internal/unix.h definition.
 	@ First 20 bytes equals SCL's _kernel_stack_chunk structure declared
 	@ in kernel.h.
 .set	CHUNK_MAGIC, 0		@ Magic number to help detect if someone overwrites the stack
@@ -282,6 +283,7 @@
 .set	CHUNK_RETURN, 20	@ Return address after freeing this chunk
 
 .set	CHUNK_OVERHEAD, 24	@ Size of chunk header
+#endif
 #endif
 
 #ifndef __TARGET_SCL__

@@ -1,5 +1,5 @@
 /* Non-contiguous stack chunk allocator.
-   Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008 UnixLib Devlopers.
+   Copyright (c) 2002-2010 UnixLib Devlopers.
    Written by Alex Waugh, January 2002. */
 
 /****************************************************************************
@@ -34,6 +34,74 @@
 #ifdef DEBUG
 #  include <sys/debug.h>
 #endif
+
+/* Increase 'appspace_himem' (and hence the wimpslot, if needed) by incr bytes.
+   'appspace_limit' contains the actual wimpslot size, which may be greater
+   than or equal-to 'appspace_himem'.  */
+unsigned int
+__stackalloc_incr_wimpslot (unsigned int incr)
+{
+  struct ul_memory *mem = &__ul_memory;
+  struct ul_global *gbl = &__ul_global;
+
+  /* If the amount requested does not exceed the current application space
+     limit, then we can satisfy the request easily.  */
+  if (mem->appspace_himem + incr <= mem->appspace_limit)
+    {
+#ifdef DEBUG
+      debug_printf ("-- __stackalloc_incr_wimpslot: no need to increase\n");
+#endif
+      mem->appspace_himem += incr;
+      return mem->appspace_himem;
+    }
+
+  /* We need to increase the application space size.  */
+  unsigned int new_wimpslot = mem->appspace_himem + incr;
+
+  /* The amount requested is rounded up to the next 32K in order to
+     reduce the number of calls that we make to Wimp_SlotSize during
+     the execution of the application.  */
+  new_wimpslot = (new_wimpslot
+		  + __DA_WIMPSLOT_ALIGNMENT) & ~__DA_WIMPSLOT_ALIGNMENT;
+
+#ifdef DEBUG
+  debug_printf ("-- __stackalloc_incr_wimpslot: attempting to"
+		"increase wimpslot to %d\n", new_wimpslot);
+#endif
+
+  struct __sul_process *sulproc = gbl->sulproc;
+  new_wimpslot = (unsigned int) sulproc->sul_wimpslot (sulproc->pid,
+						       (void *) new_wimpslot);
+  if (new_wimpslot == 0)
+    {
+#ifdef DEBUG
+      debug_printf ("-- __stackalloc_incr_wimpslot: request failed\n");
+#endif
+      return 0;
+    }
+
+#ifdef DEBUG
+  debug_printf ("-- __stackalloc_incr_wimpslot: increased wimpslot to %08x\n",
+		new_wimpslot);
+#endif
+
+  /* Application space limit has been successfully increased.  */
+  mem->appspace_limit = new_wimpslot;
+
+  /* But check that application space has been increased by enough.  */
+  if (mem->appspace_himem + incr > mem->appspace_limit)
+    {
+#ifdef DEBUG
+      debug_printf ("-- __stackalloc_incr_wimpslot: wimpslot not increased by enough\n");
+#endif
+      return 0;
+    }
+
+  mem->appspace_himem += incr;
+  return mem->appspace_himem;
+}
+
+#if __UNIXLIB_CHUNKED_STACK
 
 #define BLOCK_FREE 0
 #define BLOCK_DATA_SIZE 4096
@@ -81,9 +149,7 @@ static __inline void
 REMOVE_FROM_FREELIST (struct block *remove)
 {
   if (freelist == remove)
-    {
-      freelist = remove->contents.free.nextfreeblock;
-    }
+    freelist = remove->contents.free.nextfreeblock;
   else
     {
       struct block *blcklist = freelist;
@@ -98,79 +164,12 @@ REMOVE_FROM_FREELIST (struct block *remove)
 /* The adding to the freelist could perhaps be a bit more intelligent and
    add free blocks in an order such that when the freelist is searched
    blocks higher in the heap will be found first, which should help reduce
-   fragmentation in a multithreaded program */
+   fragmentation in a multithreaded program.  */
 static __inline void
 ADD_TO_FREELIST (struct block *add)
 {
   add->contents.free.nextfreeblock = freelist;
   freelist = add;
-}
-
-/* Increase 'appspace_himem' (and hence the wimpslot, if needed) by incr bytes.
-   'appspace_limit' contains the actual wimpslot size, which may be greater
-   than or equal-to 'appspace_himem'.  */
-unsigned int
-__stackalloc_incr_wimpslot (unsigned int incr)
-{
-  struct ul_memory *mem = &__ul_memory;
-  struct ul_global *gbl = &__ul_global;
-  struct __sul_process *sulproc = gbl->sulproc;
-  unsigned int new_wimpslot;
-
-  /* If the amount requested does not exceed the current application space
-     limit, then we can satisfy the request easily.  */
-  if (mem->appspace_himem + incr <= mem->appspace_limit)
-    {
-#ifdef DEBUG
-      debug_printf ("-- __stackalloc_incr_wimpslot: no need to increase\n");
-#endif
-      mem->appspace_himem += incr;
-      return mem->appspace_himem;
-    }
-
-  /* We need to increase the application space size.  */
-  new_wimpslot = mem->appspace_himem + incr;
-
-  /* The amount requested is rounded up to the next 32K in order to
-     reduce the number of calls that we make to Wimp_SlotSize during
-     the execution of the application.  */
-  new_wimpslot = (new_wimpslot
-		  + __DA_WIMPSLOT_ALIGNMENT) & ~__DA_WIMPSLOT_ALIGNMENT;
-
-#ifdef DEBUG
-  debug_printf ("-- __stackalloc_incr_wimpslot: attempting to"
-		"increase wimpslot to %d\n", new_wimpslot);
-#endif
-
-  new_wimpslot = (unsigned int) sulproc->sul_wimpslot (sulproc->pid,
-						       (void *) new_wimpslot);
-  if (new_wimpslot == 0)
-    {
-#ifdef DEBUG
-      debug_printf ("-- __stackalloc_incr_wimpslot: request failed\n");
-#endif
-      return 0;
-    }
-
-#ifdef DEBUG
-  debug_printf ("-- __stackalloc_incr_wimpslot: increased wimpslot to %08x\n",
-		new_wimpslot);
-#endif
-
-  /* Application space limit has been successfully increased.  */
-  mem->appspace_limit = new_wimpslot;
-
-  /* But check that application space has been increased by enough.  */
-  if (mem->appspace_himem + incr > mem->appspace_limit)
-    {
-#ifdef DEBUG
-      debug_printf ("-- __stackalloc_incr_wimpslot: wimpslot not increased by enough\n");
-#endif
-      return 0;
-    }
-
-  mem->appspace_himem += incr;
-  return mem->appspace_himem;
 }
 
 /* Try to increase the stack heap upwards.  */
@@ -180,9 +179,9 @@ incr_upwards (int blocksneeded)
   struct ul_memory *mem = &__ul_memory;
   int realblocksneeded = blocksneeded;
   struct block *topblock = dummytopblock - 1;
-  unsigned int incr;
   int foreign_incr = mem->appspace_himem != mem->old_himem;
 
+  unsigned int incr;
   if (foreign_incr)
     {
       /* Someone else has increased himem, or there is our parent in the way.
@@ -242,9 +241,6 @@ incr_downwards (int blocksneeded)
   struct ul_memory *mem = &__ul_memory;
   int realblocksneeded = blocksneeded;
   struct block *bottomblock = dummybottomblock + 1;
-  struct block *newbottomblock;
-  unsigned int new__stack;
-  unsigned int incr;
 
   if (bottomblock->size == BLOCK_FREE)
     {
@@ -252,10 +248,10 @@ incr_downwards (int blocksneeded)
       realblocksneeded -= bottomblock->contents.free.numconsecutiveblocks;
     }
 
-  newbottomblock = bottomblock - realblocksneeded;
+  struct block *newbottomblock = bottomblock - realblocksneeded;
 
-  incr = realblocksneeded * sizeof (struct block);
-  new__stack = mem->stack - incr;
+  unsigned int incr = realblocksneeded * sizeof (struct block);
+  unsigned int new__stack = mem->stack - incr;
 
 #ifdef DEBUG
   debug_printf ("incr_downwards: incr=%08x"
@@ -263,15 +259,12 @@ incr_downwards (int blocksneeded)
 		incr, mem->stack, mem->stack_limit);
 #endif
 
-  if (new__stack >= mem->stack_limit
-      && new__stack <= mem->stack)
+  if (new__stack >= mem->stack_limit && new__stack <= mem->stack)
     {
       mem->stack = new__stack;
 
       if (realblocksneeded != blocksneeded)
-        {
-          REMOVE_FROM_FREELIST (bottomblock);
-        }
+        REMOVE_FROM_FREELIST (bottomblock);
 
       /* Setup a new dummy block at the bottom of the heap */
       dummybottomblock = newbottomblock - 1;
@@ -296,13 +289,12 @@ __stackalloc_trim (void)
 {
   struct ul_memory *mem = &__ul_memory;
   struct ul_global *gbl = &__ul_global;
-  struct block *bottomblock;
 
   if (gbl->pthread_system_running)
     __pthread_disable_ints ();
 
   /* Find start of the last real block in the heap */
-  bottomblock = dummybottomblock + 1;
+  struct block *bottomblock = dummybottomblock + 1;
 
   if (bottomblock->size != BLOCK_FREE)
     {
@@ -334,9 +326,6 @@ __stackalloc_trim (void)
 void
 __stackalloc_init (void)
 {
-  struct ul_memory *mem = &__ul_memory;
-  struct block *initialblock;
-
   /* The initial stack chunk is set up in _syslib.s
      __ul_memory.stack points 8 bytes below the base of the initial chunk
      There are also 8 bytes spare above the initial chunk */
@@ -349,11 +338,12 @@ __stackalloc_init (void)
 #endif
 
   /* Record the value of himem when the initial stack chunk was setup */
+  struct ul_memory *mem = &__ul_memory;
   mem->old_himem = mem->appspace_himem;
 
   mem->appspace_himem = mem->appspace_limit;
 
-  initialblock = (struct block *) (mem->stack + 4);
+  struct block *initialblock = (struct block *) (mem->stack + 4);
   initialblock->size = 1;
   initialblock->startofcon = NULL;
 
@@ -371,17 +361,12 @@ void *
 __stackalloc (size_t size)
 {
   struct ul_global *gbl = &__ul_global;
-  int blocksneeded, blocksleft;
-  struct block *blocklist;
-  struct block *blocktoalloc;
-  struct block *lastblocktoalloc;
-  void *returnptr;
 
   if (gbl->pthread_system_running)
     __pthread_disable_ints ();
 
   /* Convert size into number of blocks */
-  blocksneeded = size + BLOCK_DATA_SIZE - 1;
+  int blocksneeded = size + BLOCK_DATA_SIZE - 1;
   blocksneeded &= ~(BLOCK_DATA_SIZE - 1);
   /* BLOCK_DATA_SIZE should be a power of two so
      this should optimise to a shift.  */
@@ -393,8 +378,8 @@ __stackalloc (size_t size)
 
   /* Search through freelist to find the first smallest block
      that is large enough for this request.  */
-  blocklist = freelist;
-  blocktoalloc = NULL;
+  struct block *blocklist = freelist;
+  struct block *blocktoalloc = NULL;
   while (blocklist)
     {
       if (blocklist->contents.free.numconsecutiveblocks == blocksneeded)
@@ -404,21 +389,17 @@ __stackalloc (size_t size)
           blocktoalloc = blocklist;
           break;
         }
-      else
-        {
-          if (blocklist->contents.free.numconsecutiveblocks > blocksneeded)
-            {
-              if (blocktoalloc == NULL
-		  || (blocklist->contents.free.numconsecutiveblocks
-		      < blocktoalloc->contents.free.numconsecutiveblocks))
-                {
-                  /* We have found a block that is smaller then the
-		     best so far, but still bigger than needed so
-		     carry on searching.  */
-                  blocktoalloc = blocklist;
-                }
-            }
-        }
+      if (blocklist->contents.free.numconsecutiveblocks > blocksneeded)
+	{
+	  if (blocktoalloc == NULL
+	      || (blocklist->contents.free.numconsecutiveblocks
+		  < blocktoalloc->contents.free.numconsecutiveblocks))
+	    {
+	      /* We have found a block that is smaller then the best so far,
+		 but still bigger than needed so carry on searching.  */
+	      blocktoalloc = blocklist;
+	    }
+	}
       blocklist = blocklist->contents.free.nextfreeblock;
     }
 
@@ -446,16 +427,13 @@ __stackalloc (size_t size)
     {
       /* A suitable block was found, so use it */
       REMOVE_FROM_FREELIST (blocktoalloc);
-      blocksleft = blocktoalloc->contents.free.numconsecutiveblocks - blocksneeded;
+      int blocksleft = blocktoalloc->contents.free.numconsecutiveblocks - blocksneeded;
       if (blocksleft > 0)
         {
           /* The block is bigger than we need, so add the remainder
 	     back to the freelist.  */
-          struct block *newfreeblock;
-          struct block *lastfreeblock;
-
-          newfreeblock = blocktoalloc + blocksneeded;
-          lastfreeblock = blocktoalloc
+          struct block *newfreeblock = blocktoalloc + blocksneeded;
+          struct block *lastfreeblock = blocktoalloc
 	    + blocktoalloc->contents.free.numconsecutiveblocks - 1;
 
           ADD_TO_FREELIST (newfreeblock);
@@ -468,11 +446,11 @@ __stackalloc (size_t size)
   /* At this point, blocktoalloc contains a block of exactly
      the right size, and is not in the freelist.  */
   blocktoalloc->size = blocksneeded;
-  lastblocktoalloc = blocktoalloc + blocksneeded - 1;
+  struct block *lastblocktoalloc = blocktoalloc + blocksneeded - 1;
   lastblocktoalloc->startofcon = NULL;
 
-  returnptr = ((char*)blocktoalloc)
-    + offsetof (struct block, contents.allocated);
+  void *returnptr = (char *)blocktoalloc
+		      + offsetof (struct block, contents.allocated);
 #ifdef DEBUG
   debug_printf ("-- __stackalloc: returning %08x\n", returnptr);
 #endif
@@ -488,11 +466,6 @@ void
 __stackfree (void *ptr)
 {
   struct ul_global *gbl = &__ul_global;
-  struct block *blocktofree;
-  struct block *prevblock;
-  struct block *startblock;
-  struct block *nextblock;
-  struct block *lastblock;
 
   if (gbl->pthread_system_running)
     __pthread_disable_ints ();
@@ -502,12 +475,12 @@ __stackfree (void *ptr)
 #endif
 
   /* Find start of block this ptr refers to.  */
-  blocktofree = (struct block *)(void *)((u_char *)ptr
-					 - offsetof (struct block,
-						     contents.allocated));
+  struct block *blocktofree =
+    (struct block *)(void *)((u_char *)ptr
+			     - offsetof (struct block, contents.allocated));
 
-  prevblock = blocktofree - 1;
-  startblock = prevblock->startofcon;
+  struct block *prevblock = blocktofree - 1;
+  struct block *startblock = prevblock->startofcon;
   if (startblock == NULL)
     {
       /* Block below this is not free, so we need to add this
@@ -530,7 +503,7 @@ __stackfree (void *ptr)
 
   startblock->contents.free.numconsecutiveblocks += blocktofree->size;
 
-  nextblock = blocktofree + blocktofree->size;
+  struct block *nextblock = blocktofree + blocktofree->size;
   if (nextblock->size == BLOCK_FREE)
     {
       /* Block above this is free, so coalesce with it.
@@ -543,10 +516,12 @@ __stackfree (void *ptr)
       startblock->contents.free.numconsecutiveblocks += nextblock->contents.free.numconsecutiveblocks;
     }
 
-  lastblock = startblock + startblock->contents.free.numconsecutiveblocks - 1;
+  struct block *lastblock = startblock + startblock->contents.free.numconsecutiveblocks - 1;
   lastblock->startofcon = startblock;
   blocktofree->size = BLOCK_FREE;
 
   if (gbl->pthread_system_running)
     __pthread_enable_ints ();
 }
+
+#endif

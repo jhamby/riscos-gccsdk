@@ -48,5 +48,13 @@ This difference in APCS-32 implementation becomes important for the SCL stub
 interface code as SCL assumes a Norcroft APCS-32 implementation so some float
 argument juggling is sometimes needed.
 
+
+Development
+~~~~~~~~~~~
+
+Start support for non-chunked stacks for AAPCS (build option
+__UNIXLIB_CHUNKED_STACK).  Pthread support is currently broken for this
+feature.
+
 -EOF-
 

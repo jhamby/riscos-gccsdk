@@ -368,6 +368,7 @@ extern void __unixlib_signal_initialise (struct proc *__p)
 extern void __resource_initialise (struct proc *__p)
 	__nonnull ((1));
 
+#if __UNIXLIB_CHUNKED_STACK
 /* Stack manipulation */
 
 #define STACK_CHUNK_MAGIC 0xf60690ff
@@ -389,6 +390,7 @@ extern void *__stackalloc (size_t __size) __wur;
 extern void __stackfree (void *__ptr);
 extern int __stackalloc_trim (void);
 extern void __free_stack_chain (void *__ptr) __nonnull ((1));
+#endif
 extern unsigned int __stackalloc_incr_wimpslot (unsigned int __incr) __wur;
 
 /* Initialise the UnixLib world.  */
