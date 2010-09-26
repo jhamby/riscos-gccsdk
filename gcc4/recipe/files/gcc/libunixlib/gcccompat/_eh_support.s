@@ -9,8 +9,6 @@
 
 #include "internal/asm_dec.s"
 
-#ifndef __ARM_EABI__
-
 	.text
  
 #define STACKCHUNK_MAGIC_NUMBER 0xF60690FF
@@ -344,8 +342,6 @@ __ehs_trim_stack:
 	DECLARE_FUNCTION __ehs_trim_stack
 #else
 #  error "Unsupported runtime"
-#endif
-
 #endif
 
 	.end

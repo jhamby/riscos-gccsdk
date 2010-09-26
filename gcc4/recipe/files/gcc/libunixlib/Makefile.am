@@ -147,12 +147,14 @@ gcccompat_src =
 else
 gcccompat_src =
 endif
+if UNIXLIB_CHUNKED_STACK
 gcccompat_src += \
 	gcccompat/galloca.c \
 	gcccompat/_b_frame.s \
 	gcccompat/_b_return.s \
 	gcccompat/_eh_support.s \
 	gcccompat/_galloca.s
+endif
 
 if UNIXLIB_BUILDING_SCL
 gdtoa_src =

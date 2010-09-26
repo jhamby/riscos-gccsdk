@@ -4,8 +4,6 @@
 
 #include "internal/asm_dec.s"
 
-#ifndef __ARM_EABI__
-
 	.text
 
 	@ void * __builtin_return_adress (unsigned int level)
@@ -100,7 +98,5 @@ __builtin_return_address:
 #  error "Unsupported runtime"
 #endif
 	DECLARE_FUNCTION __builtin_return_address
-
-#endif
 
 	.end

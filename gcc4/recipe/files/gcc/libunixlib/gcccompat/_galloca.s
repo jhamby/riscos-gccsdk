@@ -6,8 +6,6 @@
 
 #include "internal/asm_dec.s"
 
-#ifndef __ARM_EABI__
-
 	.text
 
 	.global	__gcc_alloca_free
@@ -24,7 +22,5 @@ __gcc_alloca_free:
 	ldmfd	sp!, {a1, a2}
 	mov	pc, ip
 	DECLARE_FUNCTION __gcc_alloca_free
-
-#endif
 
 	.end

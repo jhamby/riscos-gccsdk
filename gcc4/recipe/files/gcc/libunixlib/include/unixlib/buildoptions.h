@@ -1,28 +1,9 @@
 /* This file 'buildoptions.h' contains the default UnixLib build options.  */
 
-/* Set to 1 if alloca() should call abort() if no memory can be allocated.
-   Otherwise set it to 0.  */
-#ifndef __UNIXLIB_ALLOCA_FATAL
-#  define __UNIXLIB_ALLOCA_FATAL	1
-#endif
-
 /* Set to 1 if runtime paranoid checks need to be performed. Otherwise
    set it to 0.  */
 #ifndef __UNIXLIB_PARANOID
 #  define __UNIXLIB_PARANOID		0
-#endif
-
-/* Set to 1 if we should check that the entire stack chunk chain is
-   valid each time the stack is extended/shrunk. Otherwise set it to 0.  */
-#ifndef __UNIXLIB_EXTREMELY_PARANOID
-#  define __UNIXLIB_EXTREMELY_PARANOID	0
-#endif
-
-/* Set to 1 if we should check that the magic number is valid each
-   time the stack is extended/shrunk. Otherwise set it to 0.
-   Only relevant when __UNIXLIB_CHUNKED_STACK is set.  */
-#ifndef __UNIXLIB_STACK_CHECK_MAGIC
-#  define __UNIXLIB_STACK_CHECK_MAGIC	1
 #endif
 
 /* Set to 1 if DDEUtils' Prefix needs to be set at the beginning of
@@ -40,9 +21,7 @@
    variable.  It is currently inadvisable to set this option as many
    applications rely on 'errno' being a real variable rather than a
    macro.  GCC's builtin math functions also rely on this.  */
-#ifndef __UNIXLIB_ERRNO_THREADED
-#  define __UNIXLIB_ERRNO_THREADED	0
-#endif
+#define __UNIXLIB_ERRNO_THREADED	0
 
 /* Set to 1 if we want to support symlinks.  */
 #ifndef __UNIXLIB_SYMLINKS
@@ -52,6 +31,31 @@
 /* Set to 1 if we want to have chunked stack support (needed for APCS-32,
    not needed for EABI).  */
 #ifndef __UNIXLIB_CHUNKED_STACK
-#  define __UNIXLIB_CHUNKED_STACK	1
+#  ifdef __ARM_EABI__
+#    define __UNIXLIB_CHUNKED_STACK	0
+#  else
+#    define __UNIXLIB_CHUNKED_STACK	1
+#  endif
+#endif
+
+/* Following options are only relevant for chunked stack builds.  */
+#if __UNIXLIB_CHUNKED_STACK
+
+/* Set to 1 if alloca() should call abort() if no memory can be allocated.
+   Otherwise set it to 0.  */
+#  ifndef __UNIXLIB_ALLOCA_FATAL
+#    define __UNIXLIB_ALLOCA_FATAL		1
+#  endif
+
+/* Set to 1 if we should check that the entire stack chunk chain is
+   valid each time the stack is extended/shrunk. Otherwise set it to 0.  */
+#  ifndef __UNIXLIB_EXTREMELY_PARANOID
+#    define __UNIXLIB_EXTREMELY_PARANOID	0
+#  endif
+
+#endif /* __UNIXLIB_CHUNKED_STACK */
+
+#if __UNIXLIB_CHUNKED_STACK && defined (___ARM_EABI__)
+#  error "EABI based target can not have chunked stacks."
 #endif
 

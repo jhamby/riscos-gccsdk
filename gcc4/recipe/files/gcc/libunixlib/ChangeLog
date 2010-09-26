@@ -1,3 +1,16 @@
+Sun Sep 26 20:50:20 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* gcccompat/_b_return.s: Remove __ARM_EABI__ check.
+	* gcccompat/_galloca.s: Likewise.
+	* gcccompat/galloca.c: Likewise.
+	* gcccompat/_eh_support.s: Likewise.
+	* gcccompat/_b_frame.s: Likewise.
+	* Makefile.am: Don't build gcccompat/* sources for non chunked stack
+	builds.
+	* include/unixlib/buildoptions.h: Add check on EABI and chunked stack
+	combination.  Moved related chunk build options inside a
+	__UNIXLIB_CHUNKED_STACK check.
+
 Sun Sep 26 18:59:59 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/bits/sched.h: Fix check on include guard for features.h.

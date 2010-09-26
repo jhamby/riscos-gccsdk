@@ -3,8 +3,6 @@
    Written by Nick Burrett <nick@sqrt.co.uk>
    Reworked by John Tytgat <John.Tytgat@aaug.net>  */
 
-#ifndef __ARM_EABI__
-
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -449,4 +447,3 @@ __gcc_alloca_return_address (unsigned int fp)
   return return_addr;
 }
 
-#endif

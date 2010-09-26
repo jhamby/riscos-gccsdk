@@ -4,8 +4,6 @@
 
 #include "internal/asm_dec.s"
 
-#ifndef __ARM_EABI__
-
 	.text
 
 __stackchunk_magic_number:
@@ -221,7 +219,5 @@ __builtin_frame_address_flat_stack:
 #  error "Unsupported runtime"
 #endif
 	DECLARE_FUNCTION __builtin_frame_address
-
-#endif
 
 	.end
