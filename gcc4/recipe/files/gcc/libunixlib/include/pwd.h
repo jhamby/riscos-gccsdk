@@ -1,12 +1,12 @@
 /*
  * POSIX Standard 9.2.2 User Database Access <pwd.h>.
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef __PWD_H
 #define __PWD_H
 
-#ifndef __UNIXLIB_FEATURES
+#ifndef __UNIXLIB_FEATURES_H
 #include <features.h>
 #endif
 

@@ -1,7 +1,7 @@
 /*
  * pthread.h - IEEE Std 1003.1-2001 threads
  * Written by Alex Waugh
- * Copyright (c) 2002-2008 UnixLib Developers
+ * Copyright (c) 2002-2010 UnixLib Developers
  */
 
 #ifndef __PTHREAD_H
@@ -19,7 +19,7 @@
 #include <sched.h>
 #include <bits/sched.h> /* for struct sched_param */
 
-#ifndef __UNIXLIB_FEATURES
+#ifndef __UNIXLIB_FEATURES_H
 #include <features.h>
 #endif
 

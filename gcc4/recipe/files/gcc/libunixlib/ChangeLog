@@ -1,3 +1,11 @@
+Sun Sep 26 18:59:59 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/bits/sched.h: Fix check on include guard for features.h.
+	* include/sys/resource.h: Likewise.
+	* include/pwd.h: Likewise.
+	* include/sched.h: Likewise.
+	* include/pthread.h: Likewise.
+
 Sun Sep 26 18:16:46 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* kernel/kcurskch.s ( _kernel_current_stack_chunk): Return NULL for

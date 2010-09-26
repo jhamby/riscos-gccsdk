@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2010 UnixLib Developers
  */
 
 #ifndef	__SYS_RESOURCE_H
@@ -64,7 +64,7 @@ struct rusage
 
 #ifdef __SYS_RESOURCE_H
 
-#ifndef __UNIXLIB_FEATURES_h
+#ifndef __UNIXLIB_FEATURES_H
 #include <features.h>
 #endif
 
