@@ -1,0 +1,25 @@
+AB_GIT=git://git.denx.de/u-boot.git
+
+AB_INSTALL=no
+
+AB_LICENCE=Free
+
+ab_make () {
+  export HOSTLDFLAGS=-static
+  $AB_MAKE tools
+  $GCCSDK_INSTALL_ENV/ro-path elf2aif tools/mkimage tools/mkimage,ff8
+}
+
+AB_CATEGORY=Command
+
+AB_PVERSION=git-$(date +%Y%m%d)
+
+ab_package() {
+  ab_create_command_app MkImage Apps/File
+  ab_add_commands $S/tools/mkimage,ff8
+
+  cp -av $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}
+

@@ -1,0 +1,7 @@
+License: Free
+Description: Create U-Boot images
+ The mkimage tool is used to add metadata headers, checksums, etc.
+ to files in order to allow u-boot to safely use those files at
+ runtime. And since u-boot is the bootloader of choice for OMAP3
+ boards, a RISC OS port of the mkimage tool is a rather handy thing
+ to have.
