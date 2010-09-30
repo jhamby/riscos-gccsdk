@@ -14,6 +14,7 @@ else
 fi
 AB_GIT=$(grep ^AB_GIT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
 AB_URL=$(grep ^AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
+AB_HG=$(grep ^AB_HG $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
 AB_NOREMOTE=$(grep ^AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
 
 if [ "$AB_CVS_ROOT" != "" ] ; then
@@ -33,6 +34,9 @@ elif [ "$AB_SVN" != "" ] ; then
 
 elif [ "$AB_GIT" != "" ] ; then
   git clone $AB_GIT
+
+elif [ "$AB_HG" != "" ] ; then
+  hg clone $AB_HG
 
 elif [ "$AB_URL" != "" ] ; then
   wget -U "GCCSDK Autobuilder for RISC OS" -nv $AB_URL
