@@ -26,14 +26,8 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
 
 #include "gdtoaimp.h"
 
@@ -67,12 +61,16 @@ strtoIg(CONST char *s00, char **se, FPI *fpi, Long *exp, Bigint **B, int *rvp)
 	if (rv & STRTOG_Inexlo) {
 		swap = 0;
 		b1 = increment(b1);
-		if (fpi->sudden_underflow
-		 && (rv & STRTOG_Retmask) == STRTOG_Zero) {
-			b1->x[0] = 0;
-			b1->x[nw1] = 1L << nb11;
-			rv1 += STRTOG_Normal - STRTOG_Zero;
-			rv1 &= ~STRTOG_Underflow;
+		if ((rv & STRTOG_Retmask) == STRTOG_Zero) {
+			if (fpi->sudden_underflow) {
+				b1->x[0] = 0;
+				b1->x[nw1] = 1L << nb11;
+				rv1 += STRTOG_Normal - STRTOG_Zero;
+				rv1 &= ~STRTOG_Underflow;
+				goto swapcheck;
+				}
+			rv1 &= STRTOG_Inexlo | STRTOG_Underflow | STRTOG_Zero;
+			rv1 |= STRTOG_Inexhi | STRTOG_Denormal;
 			goto swapcheck;
 			}
 		if (b1->wds > nw

@@ -40,7 +40,7 @@ static const unsigned char encoding_byte[] =
 static mbstate_t internal;
 
 size_t
-__wcsrtombs (dst, src, len, ps)
+wcsrtombs (dst, src, len, ps)
      char *dst;
      const wchar_t **src;
      size_t len;

@@ -26,23 +26,17 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
 
 #include "gdtoaimp.h"
 
  Bigint *
 s2b
 #ifdef KR_headers
-	(s, nd0, nd, y9) CONST char *s; int nd0, nd; ULong y9;
+	(s, nd0, nd, y9, dplen) CONST char *s; int dplen, nd0, nd; ULong y9;
 #else
-	(CONST char *s, int nd0, int nd, ULong y9)
+	(CONST char *s, int nd0, int nd, ULong y9, int dplen)
 #endif
 {
 	Bigint *b;
@@ -66,10 +60,10 @@ s2b
 		s += 9;
 		do b = multadd(b, 10, *s++ - '0');
 			while(++i < nd0);
-		s++;
+		s += dplen;
 		}
 	else
-		s += 10;
+		s += dplen + 9;
 	for(; i < nd; i++)
 		b = multadd(b, 10, *s++ - '0');
 	return b;

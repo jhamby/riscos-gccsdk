@@ -38,9 +38,7 @@
 static char sccsid[] = "@(#)vfprintf.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
 #include <sys/cdefs.h>
-#if 0
-__FBSDID("$FreeBSD: src/lib/libc/stdio/vfprintf.c,v 1.68 2004/08/26 06:25:28 des Exp $");
-#endif
+/* UnixLib change: __FBSDID("$FreeBSD: src/lib/libc/stdio/vfprintf.c,v 1.68 2004/08/26 06:25:28 des Exp $"); */
 
 /*
  * Actual printf innards.
@@ -387,11 +385,7 @@ __wcsconv(wchar_t *wcsarg, int prec)
 	} else {
 		p = wcsarg;
 		mbs = initial;
-		/* NAB FIXME.  */
-#if 0
 		nbytes = wcsrtombs(NULL, (const wchar_t **)&p, 0, &mbs);
-#endif
-		nbytes = -1;
 		if (nbytes == (size_t)-1)
 			return (NULL);
 	}
@@ -882,17 +876,19 @@ reswitch:	switch (ch) {
 				prec++;
 			if (dtoaresult != NULL)
 				freedtoa(dtoaresult);
+#if 0 /* UnixLib change begin */
 			if (flags & LONGDBL) {
 				fparg.ldbl = GETARG(long double);
 				dtoaresult = cp =
 				    __hldtoa(fparg.ldbl, xdigs, prec,
 				    &expt, &signflag, &dtoaend);
 			} else {
+#endif /* UnixLib change end */
 				fparg.dbl = GETARG(double);
 				dtoaresult = cp =
 				    __hdtoa(fparg.dbl, xdigs, prec,
 				    &expt, &signflag, &dtoaend);
-			}
+/* UnixLib change:			} */
 			if (prec < 0)
 				prec = dtoaend - cp;
 			if (expt == INT_MAX)
@@ -920,19 +916,21 @@ fp_begin:
 				prec = DEFPREC;
 			if (dtoaresult != NULL)
 				freedtoa(dtoaresult);
+#if 0 /* UnixLib change begin */
 			if (flags & LONGDBL) {
 				fparg.ldbl = GETARG(long double);
 				dtoaresult = cp =
 				    __ldtoa(&fparg.ldbl, expchar ? 2 : 3, prec,
 				    &expt, &signflag, &dtoaend);
 			} else {
+#endif /* UnixLib change end */
 				fparg.dbl = GETARG(double);
 				dtoaresult = cp =
 				    dtoa(fparg.dbl, expchar ? 2 : 3, prec,
 				    &expt, &signflag, &dtoaend);
 				if (expt == 9999)
 					expt = INT_MAX;
-			}
+/* UnixLib change:			} */
 fp_common:
 			if (signflag)
 				sign = '-';
@@ -1463,9 +1461,11 @@ reswitch:	switch (ch) {
 		case 'f':
 		case 'g':
 		case 'G':
+#if 0 /* UnixLib change begin */
 			if (flags & LONGDBL)
 				ADDTYPE(T_LONG_DOUBLE);
 			else
+#endif /* UnixLib change end */
 				ADDTYPE(T_DOUBLE);
 			break;
 #endif /* !NO_FLOATING_POINT */

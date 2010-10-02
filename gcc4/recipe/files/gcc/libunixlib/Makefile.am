@@ -202,8 +202,7 @@ gdtoa_src = \
 	gdtoa/strtorxL.c \
 	gdtoa/sum.c \
 	gdtoa/ulp.c \
-	gdtoa/_hdtoa.c \
-	gdtoa/_ldtoa.c
+	gdtoa/_hdtoa.c
 endif
 
 if UNIXLIB_BUILDING_SCL

@@ -26,14 +26,12 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
+
+/* $FreeBSD$ */
+
+#include <ctype.h>
 
 #include "gdtoaimp.h"
 
@@ -77,8 +75,14 @@ hexnan( CONST char **sp, FPI *fpi, ULong *x0)
 	x1 = xe = x;
 	havedig = hd0 = i = 0;
 	s = *sp;
+
+	/* FreeBSD local: Accept (but ignore) the '0x' prefix. */
+	if (s[1] == '0' && (s[2] == 'x' || s[2] == 'X'))
+		s += 2;
+
 	while(c = *(CONST unsigned char*)++s) {
 		if (!(h = hexdig[c])) {
+#if 0
 			if (c <= ' ') {
 				if (hd0 < havedig) {
 					if (x < x1 && i < 8)
@@ -98,7 +102,8 @@ hexnan( CONST char **sp, FPI *fpi, ULong *x0)
 				*sp = s + 1;
 				break;
 				}
-			return STRTOG_NaN;
+#endif
+			break;
 			}
 		havedig++;
 		if (++i > 8) {
@@ -109,9 +114,7 @@ hexnan( CONST char **sp, FPI *fpi, ULong *x0)
 			}
 		*x = (*x << 4) | h & 0xf;
 		}
-	if (!havedig)
-		return STRTOG_NaN;
-	if (x < x1 && i < 8)
+	if (havedig && x < x1 && i < 8)
 		L_shift(x, x1, i);
 	if (x > x0) {
 		x1 = x0;
@@ -125,6 +128,7 @@ hexnan( CONST char **sp, FPI *fpi, ULong *x0)
 		if ( (i = nbits & (ULbits-1)) !=0)
 			*xe &= ((ULong)0xffffffff) >> (ULbits - i);
 		}
+	if (havedig) {
 	for(x1 = xe;; --x1) {
 		if (*x1 != 0)
 			break;
@@ -133,5 +137,22 @@ hexnan( CONST char **sp, FPI *fpi, ULong *x0)
 			break;
 			}
 		}
+	}
+
+	/*
+	 * FreeBSD local: Accept all the sequences allowed by C99 and update
+	 * the tail pointer correctly. Don't accept any invalid sequences.
+	 */
+	if (c == '\0')	/* nan() calls this, too; tolerate a missing ')' */
+		return STRTOG_NaNbits;
+	if (c != ')') {
+		while(c = *(CONST unsigned char*)++s) {
+			if (c == ')')
+				break;
+			if (!isalnum(c) && c != '_')
+				return STRTOG_NaNbits;
+		}
+	}
+	*sp = s + 1;
 	return STRTOG_NaNbits;
 	}

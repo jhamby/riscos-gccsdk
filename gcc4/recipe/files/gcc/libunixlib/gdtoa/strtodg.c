@@ -26,10 +26,8 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	dmg@acm.org
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
 
 #include "gdtoaimp.h"
 
@@ -91,7 +89,7 @@ increment(Bigint *b)
 	return b;
 	}
 
- int
+ void
 #ifdef KR_headers
 decrement(b) Bigint *b;
 #else
@@ -121,7 +119,6 @@ decrement(Bigint *b)
 		*x++ = y & 0xffff;
 		} while(borrow && x < xe);
 #endif
-	return STRTOG_Inexlo;
 	}
 
  static int
@@ -208,9 +205,9 @@ rvOK
 		goto ret;
 		}
 	switch(rd) {
-	  case 1:
+	  case 1: /* round down (toward -Infinity) */
 		goto trunc;
-	  case 2:
+	  case 2: /* round up (toward +Infinity) */
 		break;
 	  default: /* round near */
 		k = bdif - 1;
@@ -239,7 +236,7 @@ rvOK
 			inex = STRTOG_Inexhi;
 			b = increment(b);
 			if ( (j = nb & kmask) !=0)
-				j = 32 - j;
+				j = ULbits - j;
 			if (hi0bits(b->x[b->wds - 1]) != j) {
 				if (!lostbits)
 					lostbits = b->x[0] & 1;
@@ -325,15 +322,36 @@ strtodg
 #endif
 {
 	int abe, abits, asub;
-	int bb0, bb2, bb5, bbe, bd2, bd5, bbbits, bs2;
-	int c, denorm, dsign, e, e1, e2, emin, esign, finished, i, inex, irv;
+	int bb0, bb2, bb5, bbe, bd2, bd5, bbbits, bs2, c, decpt, denorm;
+	int dsign, e, e1, e2, emin, esign, finished, i, inex, irv;
 	int j, k, nbits, nd, nd0, nf, nz, nz0, rd, rvbits, rve, rve1, sign;
 	int sudden_underflow;
 	CONST char *s, *s0, *s1;
 	double adj, adj0, rv, tol;
 	Long L;
-	ULong y, z;
+	ULong *b, *be, y, z;
 	Bigint *ab, *bb, *bb1, *bd, *bd0, *bs, *delta, *rvb, *rvb0;
+#ifdef USE_LOCALE /*{{*/
+#ifdef NO_LOCALE_CACHE
+	char *decimalpoint = localeconv()->decimal_point;
+	int dplen = strlen(decimalpoint);
+#else
+	char *decimalpoint;
+	static char *decimalpoint_cache;
+	static int dplen;
+	if (!(s0 = decimalpoint_cache)) {
+		s0 = localeconv()->decimal_point;
+		if ((decimalpoint_cache = (char*)malloc(strlen(s0) + 1))) {
+			strcpy(decimalpoint_cache, s0);
+			s0 = decimalpoint_cache;
+			}
+		dplen = strlen(s0);
+		}
+	decimalpoint = (char*)s0;
+#endif /*NO_LOCALE_CACHE*/
+#else  /*USE_LOCALE}{*/
+#define dplen 1
+#endif /*USE_LOCALE}}*/
 
 	irv = STRTOG_Zero;
 	denorm = sign = nz0 = nz = 0;
@@ -385,19 +403,24 @@ strtodg
 	sudden_underflow = fpi->sudden_underflow;
 	s0 = s;
 	y = z = 0;
-	for(nd = nf = 0; (c = *s) >= '0' && c <= '9'; nd++, s++)
+	for(decpt = nd = nf = 0; (c = *s) >= '0' && c <= '9'; nd++, s++)
 		if (nd < 9)
 			y = 10*y + c - '0';
 		else if (nd < 16)
 			z = 10*z + c - '0';
 	nd0 = nd;
 #ifdef USE_LOCALE
-	if (c == *localeconv()->decimal_point)
+	if (c == *decimalpoint) {
+		for(i = 1; decimalpoint[i]; ++i)
+			if (s[i] != decimalpoint[i])
+				goto dig_done;
+		s += i;
+		c = *s;
 #else
-	if (c == '.')
-#endif
-		{
+	if (c == '.') {
 		c = *++s;
+#endif
+		decpt = 1;
 		if (!nd) {
 			for(; c == '0'; c = *++s)
 				nz++;
@@ -426,7 +449,7 @@ strtodg
 				nz = 0;
 				}
 			}
-		}
+		}/*}*/
  dig_done:
 	e = 0;
 	if (c == 'e' || c == 'E') {
@@ -471,7 +494,8 @@ strtodg
 		if (!nz && !nz0) {
 #ifdef INFNAN_CHECK
 			/* Check for Nan and Infinity */
-			switch(c) {
+			if (!decpt)
+			 switch(c) {
 			  case 'i':
 			  case 'I':
 				if (match(&s,"nf")) {
@@ -632,7 +656,14 @@ strtodg
 					dval(rv) *= tinytens[j];
 			}
 		}
-
+#ifdef IBM
+	/* e2 is a correction to the (base 2) exponent of the return
+	 * value, reflecting adjustments above to avoid overflow in the
+	 * native arithmetic.  For native IBM (base 16) arithmetic, we
+	 * must multiply e2 by 4 to change from base 16 to 2.
+	 */
+	e2 <<= 2;
+#endif
 	rvb = d2b(dval(rv), &rve, &rvbits);	/* rv = rvb * 2^rve */
 	rve += e2;
 	if ((j = rvbits - nbits) > 0) {
@@ -642,16 +673,8 @@ strtodg
 		}
 	bb0 = 0;	/* trailing zero bits in rvb */
 	e2 = rve + rvbits - nbits;
-	if (e2 > fpi->emax) {
-		rvb->wds = 0;
-		irv = STRTOG_Infinite | STRTOG_Overflow | STRTOG_Inexhi;
-#ifndef NO_ERRNO
-		errno = ERANGE;
-#endif
- infnanexp:
-		*exp = fpi->emax + 1;
-		goto ret;
-		}
+	if (e2 > fpi->emax + 1)
+		goto huge;
 	rve1 = rve + rvbits - nbits;
 	if (e2 < (emin = fpi->emin)) {
 		denorm = 1;
@@ -685,7 +708,7 @@ strtodg
 
 	/* Put digits into bd: true value = bd * 10^e */
 
-	bd0 = s2b(s0, nd0, nd, y);
+	bd0 = s2b(s0, nd0, nd, y, dplen);
 
 	for(;;) {
 		bd = Balloc(bd0->k);
@@ -823,10 +846,8 @@ strtodg
 				break;
 			if (dsign) {
 				rvb = increment(rvb);
-				if ( (j = rvbits >> kshift) !=0)
-					j = 32 - j;
-				if (hi0bits(rvb->x[(rvb->wds - 1) >> kshift])
-						!= j)
+				j = kmask & (ULbits - (rvbits & kmask));
+				if (hi0bits(rvb->x[rvb->wds - 1]) != j)
 					rvbits++;
 				irv = STRTOG_Normal | STRTOG_Inexhi;
 				}
@@ -965,9 +986,11 @@ strtodg
 		Bfree(bs);
 		Bfree(delta);
 		}
-	if (!denorm && rvbits < nbits) {
-		j = nbits - rvbits;
-		rvb = lshift(rvb, j);
+	if (!denorm && (j = nbits - rvbits)) {
+		if (j > 0)
+			rvb = lshift(rvb, j);
+		else
+			rshift(rvb, -j);
 		rve -= j;
 		}
 	*exp = rve;
@@ -976,17 +999,57 @@ strtodg
 	Bfree(bs);
 	Bfree(bd0);
 	Bfree(delta);
+	if (rve > fpi->emax) {
+		switch(fpi->rounding & 3) {
+		  case FPI_Round_near:
+			goto huge;
+		  case FPI_Round_up:
+			if (!sign)
+				goto huge;
+			break;
+		  case FPI_Round_down:
+			if (sign)
+				goto huge;
+		  }
+		/* Round to largest representable magnitude */
+		Bfree(rvb);
+		rvb = 0;
+		irv = STRTOG_Normal | STRTOG_Inexlo;
+		*exp = fpi->emax;
+		b = bits;
+		be = b + ((fpi->nbits + 31) >> 5);
+		while(b < be)
+			*b++ = -1;
+		if ((j = fpi->nbits & 0x1f))
+			*--be >>= (32 - j);
+		goto ret;
+ huge:
+		rvb->wds = 0;
+		irv = STRTOG_Infinite | STRTOG_Overflow | STRTOG_Inexhi;
+#ifndef NO_ERRNO
+		errno = ERANGE;
+#endif
+ infnanexp:
+		*exp = fpi->emax + 1;
+		}
  ret:
 	if (denorm) {
 		if (sudden_underflow) {
 			rvb->wds = 0;
 			irv = STRTOG_Underflow | STRTOG_Inexlo;
+#ifndef NO_ERRNO
+			errno = ERANGE;
+#endif
 			}
 		else  {
 			irv = (irv & ~STRTOG_Retmask) |
 				(rvb->wds > 0 ? STRTOG_Denormal : STRTOG_Zero);
-			if (irv & STRTOG_Inexact)
+			if (irv & STRTOG_Inexact) {
 				irv |= STRTOG_Underflow;
+#ifndef NO_ERRNO
+				errno = ERANGE;
+#endif
+				}
 			}
 		}
 	if (se)

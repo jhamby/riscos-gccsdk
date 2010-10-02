@@ -26,14 +26,8 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
 
 #include "gdtoaimp.h"
 
@@ -55,15 +49,20 @@ THIS SOFTWARE.
 
  char*
 #ifdef KR_headers
-g_xLfmt(buf, V, ndig, bufsize) char *buf; char *V; int ndig; unsigned bufsize;
+g_xLfmt(buf, V, ndig, bufsize) char *buf; char *V; int ndig; size_t bufsize;
 #else
-g_xLfmt(char *buf, void *V, int ndig, unsigned bufsize)
+g_xLfmt(char *buf, void *V, int ndig, size_t bufsize)
 #endif
 {
-	static FPI fpi = { 64, 1-16383-64+1, 32766 - 16383 - 64 + 1, 1, 0 };
+	static FPI fpi0 = { 64, 1-16383-64+1, 32766 - 16383 - 64 + 1, 1, 0 };
 	char *b, *s, *se;
 	ULong bits[2], *L, sign;
 	int decpt, ex, i, mode;
+#ifdef Honor_FLT_ROUNDS
+#include "gdtoa_fltrnds.h"
+#else
+#define fpi &fpi0
+#endif
 
 	if (ndig < 0)
 		ndig = 0;
@@ -109,6 +108,6 @@ g_xLfmt(char *buf, void *V, int ndig, unsigned bufsize)
 			return 0;
 		mode = 0;
 		}
-	s = gdtoa(&fpi, ex, bits, &i, mode, ndig, &decpt, &se);
-	return g__fmt(buf, s, se, decpt, sign);
+	s = gdtoa(fpi, ex, bits, &i, mode, ndig, &decpt, &se);
+	return g__fmt(buf, s, se, decpt, sign, bufsize);
 	}

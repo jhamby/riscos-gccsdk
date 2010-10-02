@@ -26,7 +26,7 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* $FreeBSD: src/contrib/gdtoa/gdtoaimp.h,v 1.7 2005/01/18 18:56:18 das Exp $ */
+/* $FreeBSD$ */
 
 /* This is a variation on dtoa.c that converts arbitary binary
    floating-point formats to and from decimal notation.  It uses
@@ -35,13 +35,8 @@ THIS SOFTWARE.
    double-precision arithmetic (any of IEEE, VAX D_floating,
    or IBM mainframe arithmetic).
 
-   Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
+   Please send bug reports to David M. Gay (dmg at acm dot org,
+   with " at " changed at "@" and " dot " changed to ".").
  */
 
 /* On a machine with IEEE extended-precision registers, it is
@@ -63,7 +58,7 @@ THIS SOFTWARE.
  * biased rounding (add half and chop).
  *
  * Inspired loosely by William D. Clinger's paper "How to Read Floating
- * Point Numbers Accurately" [Proc. ACM SIGPLAN '90, pp. 92-101].
+ * Point Numbers Accurately" [Proc. ACM SIGPLAN '90, pp. 112-126].
  *
  * Modifications:
  *
@@ -133,20 +128,22 @@ THIS SOFTWARE.
  *	conversions of IEEE doubles in single-threaded executions with
  *	8-byte pointers, PRIVATE_MEM >= 7400 appears to suffice; with
  *	4-byte pointers, PRIVATE_MEM >= 7112 appears adequate.
- * #define INFNAN_CHECK on IEEE systems to cause strtod to check for
- *	Infinity and NaN (case insensitively).  On some systems (e.g.,
- *	some HP systems), it may be necessary to #define NAN_WORD0
- *	appropriately -- to the most significant word of a quiet NaN.
- *	(On HP Series 700/800 machines, -DNAN_WORD0=0x7ff40000 works.)
+ * #define NO_INFNAN_CHECK if you do not wish to have INFNAN_CHECK
+ *	#defined automatically on IEEE systems.  On such systems,
+ *	when INFNAN_CHECK is #defined, strtod checks
+ *	for Infinity and NaN (case insensitively).
  *	When INFNAN_CHECK is #defined and No_Hex_NaN is not #defined,
  *	strtodg also accepts (case insensitively) strings of the form
- *	NaN(x), where x is a string of hexadecimal digits and spaces;
- *	if there is only one string of hexadecimal digits, it is taken
- *	for the fraction bits of the resulting NaN; if there are two or
- *	more strings of hexadecimal digits, each string is assigned
- *	to the next available sequence of 32-bit words of fractions
- *	bits (starting with the most significant), right-aligned in
- *	each sequence.
+ *	NaN(x), where x is a string of hexadecimal digits (optionally
+ *	preceded by 0x or 0X) and spaces; if there is only one string
+ *	of hexadecimal digits, it is taken for the fraction bits of the
+ *	resulting NaN; if there are two or more strings of hexadecimal
+ *	digits, each string is assigned to the next available sequence
+ *	of 32-bit words of fractions bits (starting with the most
+ *	significant), right-aligned in each sequence.
+ *	Unless GDTOA_NON_PEDANTIC_NANCHECK is #defined, input "NaN(...)"
+ *	is consumed even when ... has the wrong form (in which case the
+ *	"(...)" is consumed but ignored).
  * #define MULTIPLE_THREADS if the system offers preemptively scheduled
  *	multiple threads.  In this case, you must provide (or suitably
  *	#define) two locks, acquired by ACQUIRE_DTOA_LOCK(n) and freed
@@ -158,7 +155,7 @@ THIS SOFTWARE.
  *	dtoa.  You may do so whether or not MULTIPLE_THREADS is #defined.
  * #define IMPRECISE_INEXACT if you do not care about the setting of
  *	the STRTOG_Inexact bits in the special case of doing IEEE double
- *	precision conversions (which could also be done by the strtog in
+ *	precision conversions (which could also be done by the strtod in
  *	dtoa.c).
  * #define NO_HEX_FP to disable recognition of C9x's hexadecimal
  *	floating-point constants.
@@ -177,7 +174,14 @@ THIS SOFTWARE.
 
 #ifndef GDTOAIMP_H_INCLUDED
 #define GDTOAIMP_H_INCLUDED
+
+#define	Long	int
+
 #include "gdtoa.h"
+#include "gd_qnan.h"
+#ifdef Honor_FLT_ROUNDS
+#include <fenv.h>
+#endif
 
 #ifdef DEBUG
 #include "stdio.h"
@@ -187,9 +191,11 @@ THIS SOFTWARE.
 #include "limits.h"
 #include "stdlib.h"
 #include "string.h"
+/* UnixLib change: #include "libc_private.h" */
 
+/* UnixLib change: #include "namespace.h" */
 #include <pthread.h>
-#include <internal/unix.h>
+/* UnixLib change: #include "un-namespace.h" */
 
 #ifdef KR_headers
 #define Char char
@@ -203,9 +209,13 @@ extern Char *MALLOC ANSI((size_t));
 #define MALLOC malloc
 #endif
 
+#if 0 /* UnixLib change */
 #define INFNAN_CHECK
 #define USE_LOCALE
+#define NO_LOCALE_CACHE
 #define Honor_FLT_ROUNDS
+#define Trust_FLT_ROUNDS
+#endif /* UnixLib change */
 
 #undef IEEE_Arith
 #undef Avoid_Underflow
@@ -466,22 +476,25 @@ extern double rnd_prod(double, double), rnd_quot(double, double);
 #define ALL_ON 0xffff
 #endif
 
+#if 1 /* UnixLib change */
+#ifndef MULTIPLE_THREADS
+#define ACQUIRE_DTOA_LOCK(n)	/*nothing*/
+#define FREE_DTOA_LOCK(n)	/*nothing*/
+#endif
+#else
 #define MULTIPLE_THREADS
 extern pthread_mutex_t __gdtoa_locks[2];
+#define ACQUIRE_DTOA_LOCK(n)	do {				\
+	if (__isthreaded)					\
+		_pthread_mutex_lock(&__gdtoa_locks[n]);		\
+} while(0)
+#define FREE_DTOA_LOCK(n)	do {				\
+	if (__isthreaded)					\
+		_pthread_mutex_unlock(&__gdtoa_locks[n]);	\
+} while(0)
+#endif
 
-#define ACQUIRE_DTOA_LOCK(n)					\
-	do {							\
-		if (__ul_global.pthread_system_running)		\
-			pthread_mutex_lock(&__gdtoa_locks[n]);	\
-	} while(0)
-
-#define FREE_DTOA_LOCK(n)						\
-	do {								\
-		if (__ul_global.pthread_system_running)		\
-			pthread_mutex_unlock(&__gdtoa_locks[n]);	\
-	} while(0)
-
-#define Kmax 15
+#define Kmax 9
 
  struct
 Bigint {
@@ -560,6 +573,7 @@ extern void memcpy_D2A ANSI((void*, const void*, size_t));
 #define	hexdig_init_D2A	__hexdig_init_D2A
 #define	hexnan		__hexnan_D2A
 #define	hi0bits		__hi0bits_D2A
+#define	hi0bits_D2A	__hi0bits_D2A
 #define	i2b		__i2b_D2A
 #define	increment	__increment_D2A
 #define	lo0bits		__lo0bits_D2A
@@ -602,14 +616,14 @@ extern void memcpy_D2A ANSI((void*, const void*, size_t));
  extern int cmp ANSI((Bigint*, Bigint*));
  extern void copybits ANSI((ULong*, int, Bigint*));
  extern Bigint *d2b ANSI((double, int*, int*));
- extern int decrement ANSI((Bigint*));
+ extern void decrement ANSI((Bigint*));
  extern Bigint *diff ANSI((Bigint*, Bigint*));
  extern char *dtoa ANSI((double d, int mode, int ndigits,
 			int *decpt, int *sign, char **rve));
  extern void freedtoa ANSI((char*));
  extern char *gdtoa ANSI((FPI *fpi, int be, ULong *bits, int *kindp,
 			  int mode, int ndigits, int *decpt, char **rve));
- extern char *g__fmt ANSI((char*, char*, char*, int, ULong));
+ extern char *g__fmt ANSI((char*, char*, char*, int, ULong, size_t));
  extern int gethex ANSI((CONST char**, FPI*, Long*, Bigint**, int));
  extern void hexdig_init_D2A(Void);
  extern int hexnan ANSI((CONST char**, FPI*, ULong*));
@@ -621,13 +635,13 @@ extern void memcpy_D2A ANSI((void*, const void*, size_t));
  extern int match ANSI((CONST char**, char*));
  extern Bigint *mult ANSI((Bigint*, Bigint*));
  extern Bigint *multadd ANSI((Bigint*, int, int));
- extern char *nrv_alloc ANSI((CONST char*, char **, int));
+ extern char *nrv_alloc ANSI((char*, char **, int));
  extern Bigint *pow5mult ANSI((Bigint*, int));
  extern int quorem ANSI((Bigint*, Bigint*));
  extern double ratio ANSI((Bigint*, Bigint*));
  extern void rshift ANSI((Bigint*, int));
  extern char *rv_alloc ANSI((int));
- extern Bigint *s2b ANSI((CONST char*, int, int, ULong));
+ extern Bigint *s2b ANSI((CONST char*, int, int, ULong, int));
  extern Bigint *set_ones ANSI((Bigint*, int));
  extern char *strcp ANSI((char*, const char*));
  extern int strtodg ANSI((CONST char*, char**, FPI*, Long*, ULong*));
@@ -659,30 +673,42 @@ extern void memcpy_D2A ANSI((void*, const void*, size_t));
 #ifdef __cplusplus
 }
 #endif
-
-
+/*
+ * NAN_WORD0 and NAN_WORD1 are only referenced in strtod.c.  Prior to
+ * 20050115, they used to be hard-wired here (to 0x7ff80000 and 0,
+ * respectively), but now are determined by compiling and running
+ * qnan.c to generate gd_qnan.h, which specifies d_QNAN0 and d_QNAN1.
+ * Formerly gdtoaimp.h recommended supplying suitable -DNAN_WORD0=...
+ * and -DNAN_WORD1=...  values if necessary.  This should still work.
+ * (On HP Series 700/800 machines, -DNAN_WORD0=0x7ff40000 works.)
+ */
 #ifdef IEEE_Arith
+#ifndef NO_INFNAN_CHECK
+#undef INFNAN_CHECK
+#define INFNAN_CHECK
+#endif
 #ifdef IEEE_MC68k
 #define _0 0
 #define _1 1
+#ifndef NAN_WORD0
+#define NAN_WORD0 d_QNAN0
+#endif
+#ifndef NAN_WORD1
+#define NAN_WORD1 d_QNAN1
+#endif
 #else
 #define _0 1
 #define _1 0
+#ifndef NAN_WORD0
+#define NAN_WORD0 d_QNAN1
+#endif
+#ifndef NAN_WORD1
+#define NAN_WORD1 d_QNAN0
+#endif
 #endif
 #else
 #undef INFNAN_CHECK
 #endif
-
-#ifdef INFNAN_CHECK
-
-#ifndef NAN_WORD0
-#define NAN_WORD0 0x7ff80000
-#endif
-
-#ifndef NAN_WORD1
-#define NAN_WORD1 0
-#endif
-#endif	/* INFNAN_CHECK */
 
 #undef SI
 #ifdef Sudden_Underflow

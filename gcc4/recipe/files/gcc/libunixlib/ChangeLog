@@ -1,3 +1,33 @@
+Sun Oct  3 01:49:42 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdlib/strtoul.c, stdlib/strtoull.c, stdlib/strtoll.c,
+	stdlib/random.c, dlib/strtol.c, stdio/floatio.h, gdtoa/dmisc.c,
+	gdtoa/dtoa.c, gdtoa/fpmath.h, gdtoa/g_ddfmt.c, gdtoa/g_dfmt.c,
+	gdtoa/gdtoa.c, gdtoa/gdtoa.h, gdtoa/gdtoaimp.h, gdtoa/gethex.c,
+	gdtoa/g_ffmt.c, gdtoa/g__fmt.c, gdtoa/glue.c, gdtoa/gmisc.c,
+	gdtoa/g_Qfmt.c, gdtoa/g_xfmt.c, gdtoa/g_xLfmt.c, gdtoa/hd_init.c,
+	gdtoa/_hdtoa.c, gdtoa/hexnan.c, gdtoa/misc.c, gdtoa/README,
+	gdtoa/smisc.c, gdtoa/strtod.c, gdtoa/strtodg.c, gdtoa/strtodI.c,
+	gdtoa/strtof.c, gdtoa/strtoId.c, gdtoa/strtoIdd.c, gdtoa/strtoIf.c,
+	gdtoa/strtoIg.c, gdtoa/strtoIQ.c, gdtoa/strtoIx.c, gdtoa/strtoIxL.c,
+	gdtoa/strtopd.c, gdtoa/strtopdd.c, gdtoa/strtopf.c, gdtoa/strtopQ.c,
+	gdtoa/strtopx.c, gdtoa/strtopxL.c, gdtoa/strtord.c, gdtoa/strtordd.c,
+	gdtoa/strtorf.c, gdtoa/strtorQ.c, gdtoa/strtorx.c, gdtoa/strtorxL.c,
+	gdtoa/sum.c, gdtoa/ulp.c: Updated with FreeBSD trunk.
+	* gdtoa/gd_qnan.h: Added.
+	* gdtoa/fpmath.h: Update comments.
+	(union IEEEl2bits,mask_nbit_l,LDBL_MANH_SIZE,LDBL_MANL_SIZE,
+	LDBL_TO_ARRAY32): Removed.
+	* gdtoa/_ldtoa.c: Removed.
+	* stdio/vfprintf.c (__vfprintf): Enable call to wcsrtombs.  Disable
+	calls to __hldtoa and __ldtoa.
+	* wchar/wcsrtombs.c (__wcsrtombs): Rename to wcsrtombs.
+	* include/endian.h: Softfloat (non VFP) build means __FLOAT_BIT_ORDER
+	being __LITTLE_ENDIAN.  Add case for VFP mode.
+	* include/ieee754.h: Update comments.
+	(union ieee854_long_double): Remove.
+	* Makefile.am (gdtoa/_ldtoa.c): Removed.
+
 Sun Sep 26 20:50:20 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gcccompat/_b_return.s: Remove __ARM_EABI__ check.

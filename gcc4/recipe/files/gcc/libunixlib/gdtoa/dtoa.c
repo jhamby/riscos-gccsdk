@@ -26,21 +26,15 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
 
 #include "gdtoaimp.h"
 
 /* dtoa for IEEE arithmetic (dmg): convert double to ASCII string.
  *
  * Inspired by "How to Print Floating-Point Numbers Accurately" by
- * Guy L. Steele, Jr. and Jon L. White [Proc. ACM SIGPLAN '90, pp. 92-101].
+ * Guy L. Steele, Jr. and Jon L. White [Proc. ACM SIGPLAN '90, pp. 112-126].
  *
  * Modifications:
  *	1. Rather than iterating, we use a simple numeric overestimate
@@ -72,7 +66,6 @@ THIS SOFTWARE.
  */
 
 #ifdef Honor_FLT_ROUNDS
-#define Rounding rounding
 #undef Check_FLT_ROUNDS
 #define Check_FLT_ROUNDS
 #else
@@ -133,12 +126,22 @@ dtoa
 	Bigint *b, *b1, *delta, *mlo, *mhi, *S;
 	double d2, ds, eps;
 	char *s, *s0;
-#ifdef Honor_FLT_ROUNDS
-	int rounding;
-#endif
 #ifdef SET_INEXACT
 	int inexact, oldinexact;
 #endif
+#ifdef Honor_FLT_ROUNDS /*{*/
+	int Rounding;
+#ifdef Trust_FLT_ROUNDS /*{{ only define this if FLT_ROUNDS really works! */
+	Rounding = Flt_Rounds;
+#else /*}{*/
+	Rounding = 1;
+	switch(fegetround()) {
+	  case FE_TOWARDZERO:	Rounding = 0; break;
+	  case FE_UPWARD:	Rounding = 2; break;
+	  case FE_DOWNWARD:	Rounding = 3;
+	  }
+#endif /*}}*/
+#endif /*}*/
 
 #ifndef MULTIPLE_THREADS
 	if (dtoa_result) {
@@ -184,12 +187,12 @@ dtoa
 	inexact = 1;
 #endif
 #ifdef Honor_FLT_ROUNDS
-	if ((rounding = Flt_Rounds) >= 2) {
+	if (Rounding >= 2) {
 		if (*sign)
-			rounding = rounding == 2 ? 0 : 2;
+			Rounding = Rounding == 2 ? 0 : 2;
 		else
-			if (rounding != 2)
-				rounding = 0;
+			if (Rounding != 2)
+				Rounding = 0;
 		}
 #endif
 
@@ -322,7 +325,7 @@ dtoa
 	s = s0 = rv_alloc(i);
 
 #ifdef Honor_FLT_ROUNDS
-	if (mode > 1 && rounding != 1)
+	if (mode > 1 && Rounding != 1)
 		leftright = 0;
 #endif
 
@@ -459,7 +462,7 @@ dtoa
 			if (i == ilim) {
 #ifdef Honor_FLT_ROUNDS
 				if (mode > 1)
-				switch(rounding) {
+				switch(Rounding) {
 				  case 0: goto ret1;
 				  case 2: goto bump_up;
 				  }
@@ -527,7 +530,7 @@ dtoa
 	spec_case = 0;
 	if ((mode < 2 || leftright)
 #ifdef Honor_FLT_ROUNDS
-			&& rounding == 1
+			&& Rounding == 1
 #endif
 				) {
 		if (!word1(d) && !(word0(d) & Bndry_mask)
@@ -620,7 +623,7 @@ dtoa
 #ifndef ROUND_BIASED
 			if (j1 == 0 && mode != 1 && !(word1(d) & 1)
 #ifdef Honor_FLT_ROUNDS
-				&& rounding >= 1
+				&& Rounding >= 1
 #endif
 								   ) {
 				if (dig == '9')
@@ -648,7 +651,7 @@ dtoa
 					}
 #ifdef Honor_FLT_ROUNDS
 				if (mode > 1)
-				 switch(rounding) {
+				 switch(Rounding) {
 				  case 0: goto accept_dig;
 				  case 2: goto keep_dig;
 				  }
@@ -666,7 +669,7 @@ dtoa
 				}
 			if (j1 > 0) {
 #ifdef Honor_FLT_ROUNDS
-				if (!rounding)
+				if (!Rounding)
 					goto accept_dig;
 #endif
 				if (dig == '9') { /* possible if i == 1 */
@@ -709,7 +712,7 @@ dtoa
 	/* Round off last digit */
 
 #ifdef Honor_FLT_ROUNDS
-	switch(rounding) {
+	switch(Rounding) {
 	  case 0: goto trimzeros;
 	  case 2: goto roundoff;
 	  }

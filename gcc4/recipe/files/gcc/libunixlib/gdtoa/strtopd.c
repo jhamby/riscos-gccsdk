@@ -26,14 +26,8 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
 
 #include "gdtoaimp.h"
 
@@ -48,8 +42,13 @@ strtopd(CONST char *s, char **sp, double *d)
 	ULong bits[2];
 	Long exp;
 	int k;
+#ifdef Honor_FLT_ROUNDS
+#include "gdtoa_fltrnds.h"
+#else
+#define fpi &fpi0
+#endif
 
-	k = strtodg(s, sp, &fpi0, &exp, bits);
+	k = strtodg(s, sp, fpi, &exp, bits);
 	ULtod((ULong*)d, bits, exp, k);
 	return k;
 	}

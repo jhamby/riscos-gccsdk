@@ -26,14 +26,8 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
 
 #include "gdtoaimp.h"
 
@@ -61,7 +55,9 @@ Balloc
 #endif
 
 	ACQUIRE_DTOA_LOCK(0);
-	if ( (rv = freelist[k]) !=0) {
+	/* The k > Kmax case does not need ACQUIRE_DTOA_LOCK(0), */
+	/* but this case seems very unlikely. */
+	if (k <= Kmax && (rv = freelist[k]) !=0) {
 		freelist[k] = rv->next;
 		}
 	else {
@@ -71,7 +67,7 @@ Balloc
 #else
 		len = (sizeof(Bigint) + (x-1)*sizeof(ULong) + sizeof(double) - 1)
 			/sizeof(double);
-		if (pmem_next - private_mem + len <= PRIVATE_mem) {
+		if (k <= Kmax && pmem_next - private_mem + len <= PRIVATE_mem) {
 			rv = (Bigint*)pmem_next;
 			pmem_next += len;
 			}
@@ -95,10 +91,14 @@ Bfree
 #endif
 {
 	if (v) {
-		ACQUIRE_DTOA_LOCK(0);
-		v->next = freelist[v->k];
-		freelist[v->k] = v;
-		FREE_DTOA_LOCK(0);
+		if (v->k > Kmax)
+			free((void*)v);
+		else {
+			ACQUIRE_DTOA_LOCK(0);
+			v->next = freelist[v->k];
+			freelist[v->k] = v;
+			FREE_DTOA_LOCK(0);
+			}
 		}
 	}
 
@@ -143,7 +143,7 @@ lo0bits
 	if (!(x & 1)) {
 		k++;
 		x >>= 1;
-		if (!x & 1)
+		if (!x)
 			return 32;
 		}
 	*y = x;
@@ -208,7 +208,7 @@ multadd
 	}
 
  int
-hi0bits
+hi0bits_D2A
 #ifdef KR_headers
 	(x) register ULong x;
 #else
@@ -686,7 +686,10 @@ d2b
 #endif
 {
 	Bigint *b;
-	int de, i, k;
+#ifndef Sudden_Underflow
+	int i;
+#endif
+	int de, k;
 	ULong *x, y, z;
 #ifdef VAX
 	ULong d0, d1;
@@ -723,7 +726,10 @@ d2b
 			}
 		else
 			x[0] = y;
-		i = b->wds = (x[1] = z) !=0 ? 2 : 1;
+#ifndef Sudden_Underflow
+		i =
+#endif
+		     b->wds = (x[1] = z) !=0 ? 2 : 1;
 		}
 	else {
 #ifdef DEBUG
@@ -732,7 +738,10 @@ d2b
 #endif
 		k = lo0bits(&z);
 		x[0] = z;
-		i = b->wds = 1;
+#ifndef Sudden_Underflow
+		i =
+#endif
+		    b->wds = 1;
 		k += 32;
 		}
 #else

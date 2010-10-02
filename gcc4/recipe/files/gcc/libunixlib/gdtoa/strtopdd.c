@@ -26,14 +26,8 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
 
 #include "gdtoaimp.h"
 
@@ -45,9 +39,9 @@ strtopdd(CONST char *s, char **sp, double *dd)
 #endif
 {
 #ifdef Sudden_Underflow
-	static FPI fpi = { 106, 1-1023, 2046-1023-106+1, 1, 1 };
+	static FPI fpi0 = { 106, 1-1023, 2046-1023-106+1, 1, 1 };
 #else
-	static FPI fpi = { 106, 1-1023-53+1, 2046-1023-106+1, 1, 0 };
+	static FPI fpi0 = { 106, 1-1023-53+1, 2046-1023-106+1, 1, 0 };
 #endif
 	ULong bits[4];
 	Long exp;
@@ -57,8 +51,13 @@ strtopdd(CONST char *s, char **sp, double *dd)
 		ULong L[4];
 		} U;
 	U *u;
+#ifdef Honor_FLT_ROUNDS
+#include "gdtoa_fltrnds.h"
+#else
+#define fpi &fpi0
+#endif
 
-	rv = strtodg(s, sp, &fpi, &exp, bits);
+	rv = strtodg(s, sp, fpi, &exp, bits);
 	u = (U*)dd;
 	switch(rv & STRTOG_Retmask) {
 	  case STRTOG_NoNumber:
@@ -173,8 +172,8 @@ strtopdd(CONST char *s, char **sp, double *dd)
 		break;
 
 	  case STRTOG_NaN:
-		u->L[_0] = u->L[2+_0] = 0x7fffffff;
-		u->L[_1] = u->L[2+_1] = (ULong)-1;
+		u->L[0] = u->L[2] = d_QNAN0;
+		u->L[1] = u->L[3] = d_QNAN1;
 	  }
 	if (rv & STRTOG_Neg) {
 		u->L[  _0] |= 0x80000000L;

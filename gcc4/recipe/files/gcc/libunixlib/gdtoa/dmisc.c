@@ -26,14 +26,8 @@ THIS SOFTWARE.
 
 ****************************************************************/
 
-/* Please send bug reports to
-	David M. Gay
-	Bell Laboratories, Room 2C-463
-	600 Mountain Avenue
-	Murray Hill, NJ 07974-0636
-	U.S.A.
-	dmg@bell-labs.com
- */
+/* Please send bug reports to David M. Gay (dmg at acm dot org,
+ * with " at " changed at "@" and " dot " changed to ".").	*/
 
 #include "gdtoaimp.h"
 
@@ -68,7 +62,7 @@ rv_alloc(int i)
 #ifdef KR_headers
 nrv_alloc(s, rve, n) char *s, **rve; int n;
 #else
-nrv_alloc(CONST char *s, char **rve, int n)
+nrv_alloc(char *s, char **rve, int n)
 #endif
 {
 	char *rv, *t;

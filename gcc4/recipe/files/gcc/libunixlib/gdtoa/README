@@ -56,7 +56,9 @@ two letters:
 		whose sum is the desired value
 
 For decimal -> binary conversions, there are three families of
-helper routines: one for round-nearest:
+helper routines: one for round-nearest (or the current rounding
+mode on IEEE-arithmetic systems that provide the C99 fegetround()
+function, if compiled with -DHonor_FLT_ROUNDS):
 
 	strtof
 	strtod
@@ -144,18 +146,33 @@ appropriate depends on the compiler; for this to work, it may be
 necessary to #include "float.h" or another system-dependent header
 file.
 
-The values returned for NaNs may be signaling NaNs on some systems,
-since the rules for distinguishing signaling from quiet NaNs are
-system-dependent.  You can easily fix this by suitably modifying the
-ULto* routines in strtor*.c.
+Source file strtodnrp.c gives a strtod that does not require 53-bit
+rounding precision on systems (such as Intel IA32 systems) that may
+suffer double rounding due to use of extended-precision registers.
+For some conversions this variant of strtod is less efficient than the
+one in strtod.c when the latter is run with 53-bit rounding precision.
+
+The values that the strto* routines return for NaNs are determined by
+gd_qnan.h, which the makefile generates by running the program whose
+source is qnan.c.  Note that the rules for distinguishing signaling
+from quiet NaNs are system-dependent.  For cross-compilation, you need
+to determine arith.h and gd_qnan.h suitably, e.g., using the
+arithmetic of the target machine.
 
 C99's hexadecimal floating-point constants are recognized by the
 strto* routines (but this feature has not yet been heavily tested).
 Compiling with NO_HEX_FP #defined disables this feature.
 
-The strto* routines do not (yet) recognize C99's NaN(...) syntax; the
-strto* routines simply regard '(' as the first unprocessed input
-character.
+When compiled with -DINFNAN_CHECK, the strto* routines recognize C99's
+NaN and Infinity syntax.  Moreover, unless No_Hex_NaN is #defined, the
+strto* routines also recognize C99's NaN(...) syntax: they accept
+(case insensitively) strings of the form NaN(x), where x is a string
+of hexadecimal digits and spaces; if there is only one string of
+hexadecimal digits, it is taken for the fraction bits of the resulting
+NaN; if there are two or more strings of hexadecimal digits, each
+string is assigned to the next available sequence of 32-bit words of
+fractions bits (starting with the most significant), right-aligned in
+each sequence.
 
 For binary -> decimal conversions, I've provided just one family
 of helper routines:
@@ -176,6 +193,9 @@ in the buffer, if the buffer was long enough, or 0.  Other forms of
 conversion are easily done with the help of gdtoa(), such as %e or %f
 style and conversions with direction of rounding specified (so that, if
 desired, the decimal value is either >= or <= the binary value).
+On IEEE-arithmetic systems that provide the C99 fegetround() function,
+if compiled with -DHonor_FLT_ROUNDS, these routines honor the current
+rounding mode.
 
 For an example of more general conversions based on dtoa(), see
 netlib's "printf.c from ampl/solvers".
@@ -213,7 +233,7 @@ for intermediate quantities, and MALLOC (see gdtoaimp.h) is called only
 if the private pool does not suffice.   2000 is large enough that MALLOC
 is called only under very unusual circumstances (decimal -> binary
 conversion of very long strings) for conversions to and from double
-precision.  For systems with preemptivaly scheduled multiple threads
+precision.  For systems with preemptively scheduled multiple threads
 or for conversions to extended or quad, it may be appropriate to
 #define PRIVATE_MEM nnnn, where nnnn is a suitable value > 2000.
 For extended and quad precisions, -DPRIVATE_MEM=20000 is probably
@@ -317,7 +337,21 @@ Compiling g__fmt.c, strtod.c, and strtodg.c with -DUSE_LOCALE causes
 the decimal-point character to be taken from the current locale; otherwise
 it is '.'.
 
-Please send comments to
+Source files dtoa.c and strtod.c in this directory are derived from
+netlib's "dtoa.c from fp" and are meant to function equivalently.
+When compiled with Honor_FLT_ROUNDS #defined (on systems that provide
+FLT_ROUNDS and fegetround() as specified in the C99 standard), they
+honor the current rounding mode.  Because FLT_ROUNDS is buggy on some
+(Linux) systems -- not reflecting calls on fesetround(), as the C99
+standard says it should -- when Honor_FLT_ROUNDS is #defined, the
+current rounding mode is obtained from fegetround() rather than from
+FLT_ROUNDS, unless Trust_FLT_ROUNDS is also #defined.
 
-	David M. Gay
-	dmg@acm.org
+Compile with -DUSE_LOCALE to use the current locale; otherwise
+decimal points are assumed to be '.'.  With -DUSE_LOCALE, unless
+you also compile with -DNO_LOCALE_CACHE, the details about the
+current "decimal point" character string are cached and assumed not
+to change during the program's execution.
+
+Please send comments to	David M. Gay (dmg at acm dot org, with " at "
+changed at "@" and " dot " changed to ".").
