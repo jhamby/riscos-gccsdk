@@ -1,3 +1,8 @@
+Sun Oct  3 17:08:22 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* signal/post.c: Minor cleanups.
+	* gdtoa/arith.h: Add ARM/VFP case.
+
 Sun Oct  3 14:28:27 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/math.h: Only include bits/huge_vall.h when

@@ -27,14 +27,11 @@
 static const char *
 extract_name (const unsigned int *pc)
 {
-  int address;
-  const char *name;
-
   if ((unsigned int) pc < 0x8000)
     return NULL;
 
-  name = NULL;
-  for (address = 0; address > -8; address--)
+  const char *name = NULL;
+  for (int address = 0; address > -8; address--)
     {
       if ((pc[address] & 0xffffff00) == 0xff000000)
 	{
@@ -74,10 +71,6 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 {
   struct ul_memory *mem = &__ul_memory;
 
-  /* Zero if we are to execute the signal handler routine on a user
-     supplied stack.  Non-zero if we are to use the normal system stack.  */
-  int system_stack;
-
   /* Case the function pointer to a standard void pointer here to reduce
      compiler warnings and number of places we have to apply this cast.  */
   unsigned int handler_addr = (unsigned int) handler;
@@ -113,9 +106,11 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
   debug_printf ("-- sigsetup: handler=%08x (%s)\n", handler_addr,
 		extract_name ((unsigned int *) handler_addr));
 #endif
-  system_stack = ((ss->signalstack.ss_flags & SA_DISABLE)
-		  || ss->signalstack.ss_size == 0
-		  || ss->signalstack.ss_sp == 0) ? 1 : 0;
+  /* Zero if we are to execute the signal handler routine on a user
+     supplied stack.  Non-zero if we are to use the normal system stack.  */
+  int system_stack = (ss->signalstack.ss_flags & SA_DISABLE) != 0
+		     || ss->signalstack.ss_size == 0
+		     || ss->signalstack.ss_sp == 0;
 
   /* The user has requested to execute the signal on a sigstack
      but it can only be executed on the system stack. Return failure.  */
@@ -219,11 +214,8 @@ write_termination (int signo)
 static void
 __write_backtrace_thread (const unsigned int *fp)
 {
-  int features;
-  const unsigned int *oldfp = NULL;
-  unsigned int is32bit;
-
   /* Running as USR26 or USR32 ?  */
+  unsigned int is32bit;
   __asm__ volatile ("SUBS	%[is32bit], r0, r0\n\t" /* Set at least one status flag. */
 		    "TEQ	pc, pc\n\t"
 		    "MOVEQ	%[is32bit], #1\n\t"
@@ -231,6 +223,7 @@ __write_backtrace_thread (const unsigned int *fp)
 		    : /* no inputs */
 		    : "cc");
 
+  int features;
   if (_swix (OS_PlatformFeatures, _IN(0) | _OUT(0), 0, &features))
     features = 0;
 
@@ -238,6 +231,7 @@ __write_backtrace_thread (const unsigned int *fp)
      fp[-1] => lr
      fp[-2] => sp
      fp[-3] => previous fp  */
+  const unsigned int *oldfp = NULL;
   while (fp != NULL)
     {
       unsigned int *pc, *lr;
@@ -283,13 +277,10 @@ __write_backtrace_thread (const unsigned int *fp)
 
       /* Retrieve function name.  */
       if (!__valid_address (pc - 7, pc))
-	{
-	  fputs ("[invalid address]\n", stderr);
-	}
+	fputs ("[invalid address]\n", stderr);
       else
 	{
 	  const char *name = extract_name (pc);
-
 	  if (!name)
 	    fputs (" ?()\n", stderr);
 	  else
@@ -303,7 +294,8 @@ __write_backtrace_thread (const unsigned int *fp)
 	{
 	  const char * const rname[16] =
 	    { "a1", "a2", "a3", "a4", "v1", "v2", "v3", "v4",
-	      "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc" };
+	      "v5", "v6", "sl", "fp", "ip", "sp", "lr", "pc"
+	    };
 
 	  /* At &oldfp[1] = cpsr, a1-a4, v1-v6, sl, fp, ip, sp, lr, pc */
 	  fprintf (stderr, "\n  Register dump at %08x:\n",
@@ -311,9 +303,7 @@ __write_backtrace_thread (const unsigned int *fp)
 
 	  if (__valid_address (oldfp, oldfp + 17))
 	    {
-	      int reg;
-
-	      for (reg = 0; reg < 16; reg++)
+	      for (int reg = 0; reg < 16; reg++)
 		{
 		  if ((reg & 0x3) == 0)
 		    fputs ("\n   ", stderr);
@@ -352,21 +342,20 @@ __write_backtrace_thread (const unsigned int *fp)
 
 	  if (pc > (unsigned int *)0x8000 && __valid_address (pc - 5, pc + 3))
 	    {
-	      unsigned int *diss;
-
-	      for (diss = pc - 5; diss <= pc + 3; diss++)
+	      for (unsigned int *diss = pc - 5; diss <= pc + 3; diss++)
 		{
 		  const char *ins;
 		  int length;
-		  unsigned char c[4];
-
 		  _swix (Debugger_Disassemble, _INR(0,1) | _OUTR(1,2),
 			 *diss, diss, &ins, &length);
 
-		  c[3] = (*diss >> 24);
-		  c[2] = (*diss >> 16) & 0xFF;
-		  c[1] = (*diss >>  8) & 0xFF;
-		  c[0] = (*diss >>  0) & 0xFF;
+		  const unsigned char c[4] =
+		    {
+		      (*diss >>  0) & 0xFF,
+		      (*diss >>  8) & 0xFF,
+		      (*diss >> 16) & 0xFF,
+		      (*diss >> 24)
+		    };
 		  fprintf (stderr, "\n  %08x : %c%c%c%c : %08x : ",
 		    (unsigned int) diss,
 		    (c[0] >= ' ' && c[0] != 127) ? c[0] : '.',
@@ -378,9 +367,7 @@ __write_backtrace_thread (const unsigned int *fp)
 		}
 	    }
 	  else
-	    {
-	      fputs ("\n  [Disassembly not available]", stderr);
-	    }
+	    fputs ("\n  [Disassembly not available]", stderr);
 
 	  fputs ("\n\n", stderr);
 	}
@@ -419,8 +406,7 @@ __write_backtrace (int signo)
   __write_backtrace_thread (fp);
 
   /* And then the other suspended threads if any.  */
-  pthread_t th;
-  for (th = __pthread_thread_list; th != NULL; th = th->next)
+  for (pthread_t th = __pthread_thread_list; th != NULL; th = th->next)
     {
       if (th == __pthread_running_thread)
         continue;
@@ -459,12 +445,9 @@ post_signal (struct unixlib_sigstate *ss, int signo)
     stop, ignore, core, term, handle
   }
   act;
-  __sighandler_t handler;
-  sigset_t pending, signal_mask;
-  int errbuf_valid;
 
   /* The error buffer is only valid for this signal and not the next.  */
-  errbuf_valid = __ul_errbuf.valid;
+  const int errbuf_valid = __ul_errbuf.valid;
   __ul_errbuf.valid = 0;
 
   /* 0 is the special signo used for posting any pending signals.  */
@@ -480,8 +463,8 @@ post_signal:
   /* Increment the number of signals this process has received.  */
   __u->usage.ru_nsignals++;
 
-  handler = SIG_DFL;
-  signal_mask = sigmask (signo);
+  __sighandler_t handler = SIG_DFL;
+  const sigset_t signal_mask = sigmask (signo);
 
   if (handler != SIG_DFL)
     /* Run the preemption-provided handler.  */
@@ -489,7 +472,6 @@ post_signal:
   else
     {
       /* Do normal handling.  */
-
       handler = ss->actions[signo].sa_handler;
 #ifdef DEBUG
       {
@@ -603,11 +585,10 @@ post_signal:
 
     case term:			/* Time to die.  */
     case core:			/* and leave a rotting corpse.  */
-    death:
+death:
       /* Stop all other threads in our task.  */
       /* No more user instructions will be executed. */
       {
-	int regs[10];
 	int status = W_EXITCODE (0, signo);
 
 	/* Do a core dump if desired. Only set the wait status bit saying
@@ -619,24 +600,22 @@ post_signal:
 	if (__get_taskhandle ()
 	    && !gbl->taskwindow && isatty (fileno (stderr)))
 	  {
+	    int regs[10];
 	    regs[0] = (int)__u->argv[0];
 	    __os_swi (Wimp_CommandWindow, regs);
 	  }
 
 	if (errbuf_valid)
-	  {
-	    fprintf(stderr, "\nError 0x%x: %s\n  pc: %08x\n",
-			    __ul_errbuf.errnum, __ul_errbuf.errmess,
-			    (int)((int *)__ul_errbuf.pc - 1));
-	  }
+	  fprintf(stderr, "\nError 0x%x: %s\n  pc: %08x\n",
+			  __ul_errbuf.errnum, __ul_errbuf.errmess,
+			  (int)((int *)__ul_errbuf.pc - 1));
 
 	if (act == term)
 	  write_termination (signo);
 	else if (act == core)
 	  {
-	    _kernel_oserror *roerr;
-
 	    __write_backtrace (signo);
+	    _kernel_oserror *roerr;
 	    if ((roerr = __unixlib_write_coredump (NULL)) != NULL)
 	      fprintf (stderr, "Failed to coredump: %s\n", roerr->errmess);
 	    status |= WCOREFLAG;
@@ -651,8 +630,6 @@ post_signal:
     case handle:
       /* Call a handler for this signal.  */
       {
-	sigset_t blocked;
-	int flags;
 #ifdef DEBUG
 	debug_printf ("-- post_signal: handle\n");
 #endif
@@ -661,9 +638,9 @@ post_signal:
 	sigdelset (&ss->pending, signo);
 
 	/* Block SIGNO and requested signals while running the handler.  */
-	blocked = ss->blocked;
+	sigset_t blocked = ss->blocked;
 	ss->blocked |= signal_mask | ss->actions[signo].sa_mask;
-	flags = ss->actions[signo].sa_flags;
+	int flags = ss->actions[signo].sa_flags;
 	/* Re-instate the default signal handler.  We do this before executing
 	   the signal handler because a new handler might be setup whilst
 	   executing the signal handler.  */
@@ -698,14 +675,18 @@ post_pending:
 		" Pending %08x, blocked %08x\n",
 		ss->pending, ss->blocked);
 #endif
-  if (!__u->stopped && (pending = ss->pending & ~ss->blocked))
+  if (!__u->stopped)
     {
-      for (signo = 1; signo < NSIG; ++signo)
-	if (sigismember (&pending, signo))
-	  {
-	    sigdelset (&ss->pending, signo);
-	    goto post_signal;
-	  }
+       const sigset_t pending = ss->pending & ~ss->blocked;
+       if (pending)
+	{
+	  for (signo = 1; signo < NSIG; ++signo)
+	    if (sigismember (&pending, signo))
+	      {
+		sigdelset (&ss->pending, signo);
+		goto post_signal;
+	      }
+	}
     }
 
   ss->currently_handling = 0;
@@ -719,8 +700,6 @@ post_pending:
 void
 __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 {
-  const char *err;
-
   PTHREAD_UNSAFE
 
 #ifdef DEBUG
@@ -738,6 +717,7 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 
      It is unlikely that we can recover from errors here, so print an
      error message and die.  */
+  const char *err;
   if (__u == NULL)
     {
       err = "UnixLib process structure is non-existent.";
@@ -761,9 +741,7 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 
   /* Mark signo as pending to be delivered.  */
   if (signo != 0)
-    {
-      sigaddset (&ss->pending, signo);
-    }
+    sigaddset (&ss->pending, signo);
 
   if (!ss->currently_handling)
     {
@@ -792,7 +770,8 @@ __unixlib_raise_signal (struct unixlib_sigstate *ss, int signo)
 #endif
 
   return;
- error:
+
+error:
   __os_nl ();
   __os_print (err);
   __os_print ("  Exiting.");

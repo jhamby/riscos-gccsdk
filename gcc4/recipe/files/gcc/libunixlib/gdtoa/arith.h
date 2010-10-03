@@ -5,12 +5,13 @@
  * architecture.  See contrib/gdtoa/gdtoaimp.h for details.
  */
 
-#include <endian.h>
+#if __ARM_EABI__
+/* ARM/VFP.  */
+#  define IEEE_8087
+#  define Arith_Kind_ASL 1
+#else
+/* ARM/FPA.  */
+#  define IEEE_MC68k
+#  define Arith_Kind_ASL 2
+#endif
 
-/* Soft-float ABI.  */
-/*#define IEEE_8087
-  #define Arith_Kind_ASL 1*/
-
-/* ARM/FPA hard-float ABI.  */
-#define IEEE_MC68k
-#define Arith_Kind_ASL 2
