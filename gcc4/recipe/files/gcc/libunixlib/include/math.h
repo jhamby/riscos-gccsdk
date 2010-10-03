@@ -1,3 +1,6 @@
+/* glibc changes: Added __NO_LONG_DOUBLE_MATCH test for bits/huge_vall.h
+   include.  */
+
 /* Declarations for math functions.
    Copyright (C) 1991-1993,1995-1999,2001,2002 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
@@ -34,7 +37,9 @@ __BEGIN_DECLS
 
 #ifdef	 __USE_ISOC99
 # include <bits/huge_valf.h>
+#if !defined __NO_LONG_DOUBLE_MATH
 # include <bits/huge_vall.h>
+#endif
 
 /* Get machine-dependent NAN value (returned for some domain errors).  */
 # include <bits/nan.h>

@@ -1,3 +1,12 @@
+Sun Oct  3 14:28:27 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/math.h: Only include bits/huge_vall.h when
+	__NO_LONG_DOUBLE_MATH is not defined.
+	* include/bits/huge_val.h(HUGE_VAL): Fix ARM/FPA case when explicit
+	values were used.  Implement ARM/VFP case.
+	* include/bits/huge_vall.h: Removed.
+	* Makefile.am(bits/huge_vall.h): Removed.
+
 Sun Oct  3 11:42:13 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/defines.h(__ARM_ARCH__,__ARM_ARCH_STR__): Added

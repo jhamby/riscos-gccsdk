@@ -1,6 +1,9 @@
+/* Copy from glibc 2.11: merged ARM/FPA and ARM/VFP cases together.  */
+
 /* `HUGE_VAL' constant for IEEE 754 machines (where it is infinity).
    Used by <stdlib.h> and <math.h> functions for overflow.
-   Copyright (C) 1992, 1995, 1996, 1997, 1999, 2000, 2004
+   ARM version.
+   Copyright (C) 1992, 95, 96, 97, 98, 99, 2000, 2004
    Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -26,15 +29,24 @@
 /* IEEE positive infinity (-HUGE_VAL is negative infinity).  */
 
 #if __GNUC_PREREQ(3,3)
-# define HUGE_VAL	(__builtin_huge_val())
+# define HUGE_VAL  (__builtin_huge_val())
 #elif __GNUC_PREREQ(2,96)
-# define HUGE_VAL	(__extension__ 0x1.0p2047)
+# define HUGE_VAL (__extension__ 0x1.0p2047)
 #elif defined __GNUC__
 
+#if __ARM_EABI__
+/* ARM/VFP.  */
 # define HUGE_VAL \
   (__extension__							      \
    ((union { unsigned __l __attribute__((__mode__(__DI__))); double __d; })   \
     { __l: 0x7ff0000000000000ULL }).__d)
+#else
+/* ARM/FPA.  */
+# define HUGE_VAL \
+  (__extension__							      \
+   ((union { unsigned __l __attribute__((__mode__(__DI__))); double __d; })   \
+    { __l: 0x000000007ff00000ULL }).__d)
+#endif
 
 #else /* not GCC */
 
@@ -42,12 +54,23 @@
 
 typedef union { unsigned char __c[8]; double __d; } __huge_val_t;
 
+#if __ARM_EABI__
+/* ARM/VFP.  */
 # if __BYTE_ORDER == __BIG_ENDIAN
 #  define __HUGE_VAL_bytes	{ 0x7f, 0xf0, 0, 0, 0, 0, 0, 0 }
 # endif
 # if __BYTE_ORDER == __LITTLE_ENDIAN
 #  define __HUGE_VAL_bytes	{ 0, 0, 0, 0, 0, 0, 0xf0, 0x7f }
 # endif
+#else
+/* ARM/FPA.  */
+# if __BYTE_ORDER == __BIG_ENDIAN
+#  define __HUGE_VAL_bytes	{ 0, 0, 0, 0, 0x7f, 0xf0, 0, 0 }
+# endif
+# if __BYTE_ORDER == __LITTLE_ENDIAN
+#  define __HUGE_VAL_bytes	{ 0, 0, 0xf0, 0x7f, 0, 0, 0, 0 }
+# endif
+#endif
 
 static __huge_val_t __huge_val = { __HUGE_VAL_bytes };
 # define HUGE_VAL	(__huge_val.__d)

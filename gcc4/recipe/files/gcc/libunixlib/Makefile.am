@@ -1238,7 +1238,6 @@ libc_headers = \
 	bits/fenv.h \
 	bits/huge_val.h \
 	bits/huge_valf.h \
-	bits/huge_vall.h \
 	bits/in.h \
 	bits/inf.h \
 	bits/libc-lock.h \
