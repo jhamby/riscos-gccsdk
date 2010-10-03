@@ -1,3 +1,8 @@
+Sun Oct  3 11:42:13 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/defines.h(__ARM_ARCH__,__ARM_ARCH_STR__): Added
+	tests on __ARM_ARCH_6T2__,__ARM_ARCH_6M__ and __ARM_ARCH_7EM__.
+
 Sun Oct  3 01:49:42 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/strtoul.c, stdlib/strtoull.c, stdlib/strtoll.c,

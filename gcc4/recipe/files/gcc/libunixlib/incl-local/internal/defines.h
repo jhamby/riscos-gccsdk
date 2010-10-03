@@ -58,7 +58,8 @@ Boston, MA 02110-1301, USA.  */
 
 #if defined(__ARM_ARCH_6__) || defined(__ARM_ARCH_6J__) \
 	|| defined(__ARM_ARCH_6K__) || defined(__ARM_ARCH_6Z__) \
-	|| defined(__ARM_ARCH_6ZK__)
+	|| defined(__ARM_ARCH_6ZK__) || defined(__ARM_ARCH_6T2__) \
+	|| defined(__ARM_ARCH_6M__)
 # undef __ARM_ARCH__
 # define __ARM_ARCH__ 6
 # undef __ARM_ARCH_STR__
@@ -66,7 +67,8 @@ Boston, MA 02110-1301, USA.  */
 #endif
 
 #if defined(__ARM_ARCH_7__) || defined(__ARM_ARCH_7A__) \
-	|| defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__)
+	|| defined(__ARM_ARCH_7R__) || defined(__ARM_ARCH_7M__) \
+	|| defined(__ARM_ARCH_7EM__)
 # undef __ARM_ARCH__
 # define __ARM_ARCH__ 7
 # undef __ARM_ARCH_STR__
