@@ -54,5 +54,5 @@ ab_package () {
   mkdir -p $A/gm
   cp -av openmsx-0.3.1/*.mid openmsx-0.3.1/*.obm $A/gm
 
-  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -name OpenTTD
 }

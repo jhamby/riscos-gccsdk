@@ -8,7 +8,7 @@ ab_package() {
   cp data.zip $A/data.zip,ffd
   cat README $H/RISCOSNotes > $A/\!Help
 
-  $AB_HOME/add-riscpkg -unixlib -unixsound
+  $AB_HOME/add-riscpkg -unixlib -unixsound -name XRick
 }
 
 
