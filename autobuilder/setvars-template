@@ -25,10 +25,13 @@
 #  3. Either via git:
 #AB_GIT=
 #
-#  4. Either via an URL:
+#  4. Either via Mercurial:
+#AB_HG=
+#
+#  5. Either via an URL:
 #AB_URL=
 #
-#  5. Either somewhere on a filing system:
+#  6. Either somewhere on a filing system:
 #AB_NOREMOTE=yes
 #     Note: consider defining "AB_ZIPNAME=xxx-local-$(date +%Y%m%d)" as well.
 #
