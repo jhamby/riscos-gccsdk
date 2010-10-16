@@ -1,5 +1,3 @@
-		GET config.h
-
 		AREA |C$$code|, CODE, READONLY
 
 		; Addressing mode 4 - Load/Store multiple

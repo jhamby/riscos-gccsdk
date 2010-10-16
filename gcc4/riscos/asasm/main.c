@@ -97,6 +97,7 @@ as_help (void)
 	   "-D<variable>               Define a string variable.\n"
 	   "-D<variable>=<value>       Define a string variable to a certain value.\n"
 	   "-PD <value>                Predefine a value using SETI/SETS/SETL syntax.\n"
+	   "-PreDefine <value>         Same as -PD option.\n"
 	   "-pedantic      -p          Display extra warnings.\n"
 	   "-verbose       -v          Display progress information.\n"
 	   "-fussy         -f          Display conversion information.  Can be specified more than once for more conversion information.\n"
@@ -235,7 +236,7 @@ main (int argc, char **argv)
 	  else
 	    var_define (argv[0] + 2);
 	}
-      else if (strcmp(argv[0], "-PD") == 0)
+      else if (!strcmp(argv[0], "-PD") || !strcmp(argv[0], "-PreDefine"))
         {
           if (--argc)
             {
@@ -248,9 +249,7 @@ main (int argc, char **argv)
               predefines[num_predefines++] = *++argv;
             }
           else
-            {
-              fprintf (stderr, "%s: Missing argument after -PD\n", ProgName);
-            }
+            fprintf (stderr, "%s: Missing argument after -PD/-PreDefine\n", ProgName);
         }
       else if (IS_ARG ("-o", "-To"))
 	{

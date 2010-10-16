@@ -1,5 +1,3 @@
-		GET	config.h
-
 		AREA |C$$code|,CODE,READONLY
 
 		; Addressing Mode 1 - Data processing operands

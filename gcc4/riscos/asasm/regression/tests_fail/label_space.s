@@ -1,7 +1,5 @@
 ; label space '?' operator is not implemented in asasm.
 
-	GET	config.h
-
 	^	&1000
 Space1	#	16
 Space2	#	8

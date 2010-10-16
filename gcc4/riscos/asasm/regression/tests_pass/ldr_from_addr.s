@@ -1,5 +1,3 @@
-		GET config.h
-
 		AREA	Code, CODE, READONLY
 
 		^	0
@@ -13,4 +11,6 @@ bar		#	4
 		LDR	r0,[r1]
 		STR	r0,[r1,#4]
 	]
+
+		END
 

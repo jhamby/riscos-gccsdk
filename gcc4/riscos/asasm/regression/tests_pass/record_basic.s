@@ -1,5 +1,3 @@
-		GET config.h
-
 		AREA |C$$code|, CODE, READONLY
 
 		; Basic record test

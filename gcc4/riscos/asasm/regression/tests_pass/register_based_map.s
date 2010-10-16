@@ -1,5 +1,3 @@
-	GET	config.h
-
 	AREA	Code, CODE, READONLY
 
 		^	0, r12
@@ -24,4 +22,6 @@ sizeof_map	*	@
 
 ;		^	0, r9
 ;baz		#	4
+
+	END
 

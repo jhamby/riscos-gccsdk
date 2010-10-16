@@ -45,23 +45,22 @@ act_PROGRAMS = $(check_PROGRAMS_PASS:tests_pass/%.s=output_actual/%.o)
 
 VPATH = tests_pass:tests_fail
 
+.PHONY: all clean
+
 all: $(act_PROGRAMS)
-	@$(ECHO) All tests were OK
+	@$(ECHO) "All tests were OK (do 'make clean' if you want to re-do them)"
 
 clean:
 	-rm -fr output_actual
 	-rm -fr output_reference
-	-rm -f config.h
 
 output_actual/%.o: %.s output_reference/%.o Makefile
 	@$(ECHO) +++ $< : Assemble actual and compare with reference
 	@$(MKDIR) -p output_actual
-	@$(ECHO) $(ECHOFLAGS) "\tGBLL REFERENCE\nREFERENCE\tSETL\t{FALSE}\n\tEND" >config.h
-	@$(AS) $(ASFLAGS) -o $@ $<
+	@$(AS) $(ASFLAGS) -PD "REFERENCE SETL {FALSE}" -o $@ $<
 	@$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual/%=output_reference/%) || (mv $@ $(@:%.o=%_failed.o) && false)
 
 output_reference/%.o: %.s Makefile
 	@$(ECHO) +++ $< : Create reference $@
 	@$(MKDIR) -p output_reference
-	@$(ECHO) $(ECHOFLAGS) "\tGBLL REFERENCE\nREFERENCE\tSETL\t{TRUE}\n\tEND" >config.h
-	@$(AS) $(ASFLAGS) -o $@ $<
+	@$(AS) $(ASFLAGS) -PD "REFERENCE SETL {TRUE}" -o $@ $<

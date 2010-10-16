@@ -279,38 +279,35 @@ inputNextLine (void)
 
   if (num_predefines)
     {
-       static int toggle = 0;
-       static int num = 0;
+      /* Each predefine will inject the following two lines:
+           "        GBLx MyVariable"
+           "MyVariable SETx MyValue"
+         with x = 'L', 'S' or 'A'  */
 
-       const char *predefine = predefines[num];
+      static bool toggle = false;
 
-       /* Predefine.  We insert the values into the input stream before the main code */
-       /* Would benefit from buffer overrun checks */
-       if (!toggle)
-         {
-           const char *space = strchr(predefine, ' ');
-           const char *type = strstr(predefine, " SET");
-           if (!space)
-	     error (ErrorError, "Invalid predefine");
+      const char *predefine = predefines[num_predefines - 1];
 
-           if (type && (type[4] == 'L' || type[4] == 'S' || type[4] == 'I')) 
-             {
-               sprintf(workBuff, "\tGBL%c ", type[4]);
-               strncat(workBuff, predefine, space - predefine);
-               strcat(workBuff, "\n");
-             }
-           else
-             *workBuff = '\0';
-         }
-       else
-         {
-           sprintf(workBuff, "%s\n", predefine);
-           num++;
-         }
-
-       toggle = !toggle;
-       if (num == num_predefines)
-	 num_predefines = 0;
+      /* Predefine.  We insert the values into the input stream before the
+         main code.  Would benefit from buffer overrun checks.  */
+      if (!toggle)
+        {
+          const char *type = strstr(predefine, " SET");
+          if (type && (type[4] == 'L' || type[4] == 'S' || type[4] == 'A')) 
+            sprintf(workBuff, "\tGBL%c %.*s\n", type[4], (int)(type - predefine), predefine);
+          else
+	    {
+	      error (ErrorError, "Invalid predefine '%s'", predefine);
+              *workBuff = '\0';
+	    }
+        }
+      else
+	{
+          sprintf(workBuff, "%s\n", predefine);
+	  --num_predefines;
+	}
+      
+      toggle = !toggle;
     }
   else
     {

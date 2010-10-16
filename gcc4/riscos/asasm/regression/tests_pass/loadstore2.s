@@ -1,5 +1,3 @@
-		GET config.h
-
 		AREA |C$$code|, CODE, READONLY
 
 		; Addressing Mode 2 - Load/Store Word or Unsigned Byte

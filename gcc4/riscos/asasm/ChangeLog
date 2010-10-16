@@ -1,3 +1,15 @@
+Sat Oct 16 19:25:14 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression: Removed the need of creating config.h by using asasm's
+	-PD option.
+	* regression/tests_pass/apcs.s, regression/hdr/APCS-32/Common: Made
+	test stronger by assuring the GET command succeeded.
+	* input.c (inputNextLine): Simplified code a little bit. Integer
+	variable setting happens with SETA, not SETI.
+	* main.c: Improve objasm compatibility by supporting -PreDefine as an
+	alias to -PD.
+	* variables.c (var_type): Integer variable type is 'A', not 'I'.
+
 Sat Oct 16 18:06:47 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_fail/register_based_map_fail.s,

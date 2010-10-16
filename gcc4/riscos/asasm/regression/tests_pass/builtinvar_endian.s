@@ -1,7 +1,5 @@
 ; Tests {ENDIAN}
 
-		GET config.h
-
 		AREA	TestData, DATA, READONLY
 
 	[ :LNOT: REFERENCE

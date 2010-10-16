@@ -57,7 +57,7 @@ var_type (ValueTag type)
   switch (type)
     {
       case ValueInt:
-	return 'I';
+	return 'A';
       case ValueBool:
 	return 'L';
       case ValueString:

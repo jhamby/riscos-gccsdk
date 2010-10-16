@@ -1,7 +1,5 @@
 ; Tests local & global variables for regressions.
 
-		GET	config.h
-
 		AREA |C$$data|, DATA, READONLY
 
 	[ :LNOT: REFERENCE
