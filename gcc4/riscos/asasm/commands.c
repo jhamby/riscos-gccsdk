@@ -524,6 +524,15 @@ c_assert (void)
     error (ErrorError, "Assertion failed");
 }
 
+/**
+ * Implementation for:
+ *   ! <arithmetic expression>, <string expression>
+ *   INFO <arithmetic expression>, <string expression>
+ *
+ * When <arithmetic expression> evaluates to 0, <string expression> is
+ * outputed as is.  When it evaluates to non-0, <string expression> is given
+ * as error.
+ */
 void
 c_info (void)
 {
@@ -532,26 +541,37 @@ c_info (void)
 
   skipblanks();
   if (inputGet () != ',')
-    error (ErrorError, "Missing , in INFO directive");
+    {
+      error (ErrorError, "Missing , in INFO directive");
+      return;
+    }
 
   exprBuild();
   Value message = exprEval (ValueString);
   if (message.Tag.t != ValueString)
-    error (ErrorError, "INFO message must be a string");
+    {
+      error (ErrorError, "INFO message must be a string");
+      return;
+    }
 
   if (value.Tag.t != ValueInt && value.Tag.t != ValueFloat)
     error (ErrorError, "INFO expression must be arithmetic");
-  else if (value.Tag.t == ValueInt)
-    error (value.ValueInt.i != 0 ? ErrorError : ErrorWarning, "%s", message.ValueString.s);
   else
-    error (fabs(value.ValueFloat.f) < 0.00001 ? ErrorWarning : ErrorError, "%s", message.ValueString.s);
+    {
+      bool giveErr = (value.Tag.t == ValueInt && value.ValueInt.i != 0)
+	               || (value.Tag.t == ValueFloat && fabs (value.ValueFloat.f) >= 0.00001);
+      if (giveErr)
+        error (ErrorError, "%.*s", message.ValueString.len, message.ValueString.s);
+      else
+	printf ("%.*s\n", message.ValueString.len, message.ValueString.s);
+    }
 }
 
 void
 c_opt (void)
 {
   inputRest();
-  /* Do nothing.  This is for compatiblity with objasm */
+  /* Do nothing.  This is for compatiblity with objasm.  */
 }
 
 void

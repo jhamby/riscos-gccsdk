@@ -91,36 +91,39 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
 	{
 	case ValueInt:
 	  lvalue->ValueInt.i *= rvalue->ValueInt.i;
-	  return true;
+	  break;
 	case ValueFloat:
 	  lvalue->ValueFloat.f *= rvalue->ValueFloat.f;
-	  return true;
+	  break;
 	default:
-	  abort ();
+	  abort (); // FIXME:
 	  break;
 	}
-      return false;
+      break;
+
     case Op_div:
       if (lvalue->Tag.t != rvalue->Tag.t)
 	return false;
-      switch (lvalue->Tag.t)
+      switch (lvalue->Tag.t) // FIXME: check div by 0
 	{
 	case ValueInt:
 	  lvalue->ValueInt.i /= rvalue->ValueInt.i;
-	  return true;
+	  break;
 	case ValueFloat:
 	  lvalue->ValueFloat.f /= rvalue->ValueFloat.f;
-	  return true;
+	  break;
 	default:
-	  abort ();
+	  abort (); // FIXME:
 	  break;
 	}
-      return false;
+      break;
+
     case Op_mod:
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
 	return false;
-      lvalue->ValueInt.i %= rvalue->ValueInt.i;
-      return true;
+      lvalue->ValueInt.i %= rvalue->ValueInt.i; // FIXME: check mod by 0
+      break;
+
     case Op_add:
       if (lvalue->Tag.t == ValueFloat && rvalue->Tag.t == ValueFloat)
 	{
@@ -132,29 +135,34 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
 	  lvalue->ValueAddr.i += rvalue->ValueInt.i;
 	  return true;
 	}
-      if ((lvalue->Tag.t & (ValueInt | ValueLateLabel)) &&
-	  (rvalue->Tag.t & (ValueInt | ValueLateLabel)))
+      if ((lvalue->Tag.t & (ValueInt | ValueLateLabel))
+	  && (rvalue->Tag.t & (ValueInt | ValueLateLabel)))
 	{
 	  help_evalAddLate (lvalue, rvalue);
 	  /* Might not be a ValueInt, but ValueLate* has i at the same place */
 	  lvalue->ValueInt.i += rvalue->ValueInt.i;
 	  return true;
 	}
-      /* FALL THROUGH */
-    case Op_concat:		/* fall thru from Op_add */
-      if (lvalue->Tag.t == ValueString && rvalue->Tag.t == ValueString)
-	{
-	  char *c;
-	  if ((c = malloc (lvalue->ValueString.len + rvalue->ValueString.len)) == NULL)
-	    errorOutOfMem();
-	  memcpy (c, lvalue->ValueString.s, lvalue->ValueString.len);
-	  memcpy (c + lvalue->ValueString.len,
-		  rvalue->ValueString.s, rvalue->ValueString.len);
-	  lvalue->ValueString.s = c;	/* string concatenation */
-	  lvalue->ValueString.len += rvalue->ValueString.len;
-	  return true;
-	}
       return false;
+
+    case Op_concat: /* :CC: */
+      {
+        if (lvalue->Tag.t != ValueString || rvalue->Tag.t != ValueString)
+	  {
+	    error (ErrorError, "Bad operand type for :CC:");
+	    return false;
+	  }
+	char *c;
+	if ((c = malloc (lvalue->ValueString.len + rvalue->ValueString.len)) == NULL)
+	  errorOutOfMem();
+	memcpy (c, lvalue->ValueString.s, lvalue->ValueString.len);
+	memcpy (c + lvalue->ValueString.len,
+		rvalue->ValueString.s, rvalue->ValueString.len);
+	lvalue->ValueString.s = c;
+	lvalue->ValueString.len += rvalue->ValueString.len;
+      }
+      break;
+
     case Op_sub:
       if (lvalue->Tag.t == ValueFloat && rvalue->Tag.t == ValueFloat)
 	{
@@ -178,7 +186,7 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
       help_evalSubLate (lvalue, rvalue);
       /* Might not be a ValueInt, but ValueLate* has i at the same place */
       lvalue->ValueInt.i -= rvalue->ValueInt.i;
-      return true;
+      break;
     case Op_and:
       if ((lvalue->Tag.t == ValueAddr && rvalue->Tag.t == ValueInt)
 	  || (lvalue->Tag.t == ValueInt && rvalue->Tag.t == ValueAddr)
@@ -192,38 +200,39 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
 	return false;
       lvalue->ValueInt.i |= rvalue->ValueInt.i;
-      return true;
+      break;
     case Op_xor:
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
 	return false;
       lvalue->ValueInt.i ^= rvalue->ValueInt.i;
-      return true;
+      break;
     case Op_asr:
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
 	return false;
-      lvalue->ValueInt.i = ((signed int) lvalue->ValueInt.i) >> rvalue->ValueInt.i;
-      return true;
+      lvalue->ValueInt.i = ((signed int) lvalue->ValueInt.i) >> rvalue->ValueInt.i; // FIXME: non predicatable code
+      break;
     case Op_sr:
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
 	return false;
       lvalue->ValueInt.i = ((ARMWord) lvalue->ValueInt.i) >> rvalue->ValueInt.i;
-      return true;
+      break;
     case Op_sl:
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
 	return false;
       lvalue->ValueInt.i <<= rvalue->ValueInt.i;
-      return true;
+      break;
     case Op_ror:
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
 	return false;
       lvalue->ValueInt.i = (((ARMWord) lvalue->ValueInt.i) >> rvalue->ValueInt.i) |
 	((lvalue->ValueInt.i) << (32 - rvalue->ValueInt.i));
+      break;
     case Op_rol:
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
 	return false;
       lvalue->ValueInt.i = ((lvalue->ValueInt.i) << rvalue->ValueInt.i) |
 	(((ARMWord) lvalue->ValueInt.i) >> (32 - rvalue->ValueInt.i));
-      return true;
+      break;
     case Op_le:
       COMPARE (<=);
     case Op_ge:
@@ -243,8 +252,7 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
     case Op_ne:
       if (lvalue->Tag.t == ValueBool && rvalue->Tag.t == ValueBool)
 	{
-	  lvalue->ValueBool.b =
-	    lvalue->ValueBool.b != rvalue->ValueBool.b;
+	  lvalue->ValueBool.b = lvalue->ValueBool.b != rvalue->ValueBool.b;
 	  return true;
 	}
       COMPARE (!=);
@@ -252,35 +260,58 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
       if (lvalue->Tag.t != ValueBool || rvalue->Tag.t != ValueBool)
 	return false;
       lvalue->ValueBool.b = lvalue->ValueBool.b && rvalue->ValueBool.b;
-      return true;
+      break;
     case Op_lor:
       if (lvalue->Tag.t != ValueBool || rvalue->Tag.t != ValueBool)
 	return false;
       lvalue->ValueBool.b = lvalue->ValueBool.b || rvalue->ValueBool.b;
-      return true;
-    case Op_left:
-      if (lvalue->Tag.t != ValueString || rvalue->Tag.t != ValueInt
-	  || rvalue->ValueInt.i < 0)
-	return false;
-      if (lvalue->ValueString.len > rvalue->ValueInt.i)
-	lvalue->ValueString.len = rvalue->ValueInt.i;
-      return true;
-    case Op_right:
-      if (lvalue->Tag.t != ValueString || rvalue->Tag.t != ValueInt
-	  || rvalue->ValueInt.i < 0)
-	return false;
-      if (lvalue->ValueString.len > rvalue->ValueInt.i)
+      break;
+
+    case Op_left: /* :LEFT: */
+      if (lvalue->Tag.t != ValueString || rvalue->Tag.t != ValueInt)
 	{
-	  lvalue->ValueString.s += lvalue->ValueString.len - rvalue->ValueInt.i;
-	  lvalue->ValueString.len = rvalue->ValueInt.i;
+	  error (ErrorError, "Bad operand type for :LEFT:");
+	  return false;
 	}
-      return true;
+      if (rvalue->ValueInt.i < 0 || rvalue->ValueInt.i > lvalue->ValueString.len)
+	{
+	  error (ErrorError, "Wrong number of characters (%d) specified for :LEFT:",
+	         rvalue->ValueInt.i);
+	  return false;
+	}
+      lvalue->ValueString.len = rvalue->ValueInt.i;
+      break;
+
+    case Op_right: /* :RIGHT: */
+      {
+        if (lvalue->Tag.t != ValueString || rvalue->Tag.t != ValueInt)
+	  {
+	    error (ErrorError, "Bad operand type for :RIGHT:");
+	    return false;
+	  }
+        if (rvalue->ValueInt.i < 0 || rvalue->ValueInt.i > lvalue->ValueString.len)
+	  {
+	    error (ErrorError, "Wrong number of characters (%d) specified for :RIGHT:",
+	           rvalue->ValueInt.i);
+	    return false;
+	  }
+	char *c;
+	if ((c = malloc (rvalue->ValueInt.i)) == NULL)
+	  errorOutOfMem ();
+	memcpy (c,
+	        lvalue->ValueString.s + lvalue->ValueString.len - rvalue->ValueInt.i,
+	        rvalue->ValueInt.i);
+        lvalue->ValueString.s = c;
+        lvalue->ValueString.len = rvalue->ValueInt.i;
+      }
+      break;
+
     default:
       error (ErrorError, "Illegal binary operator");
-      break;
+      return false;
     }
-  error (ErrorError, "Internal evalBinop: illegal fall through");
-  return false;
+
+  return true;
 }
 
 bool
@@ -370,43 +401,68 @@ evalUnop (Operator op, Value *value)
 	  return false;
 	value->Tag.t = ValueInt;
 	break;
-      case Op_str:
-	{
-	  char num[32];
-	  switch (value->Tag.t)
-	    {
-	      case ValueInt:
-		sprintf (num, "%i", value->ValueInt.i);
-		break;
-	      case ValueFloat:
-		sprintf (num, "%f", value->ValueFloat.f);
-		break;
-	      default:
-		return false;
-	    }
-	  if ((value->ValueString.s = strdup (num)) == NULL)
-	    errorOutOfMem();
-	  value->ValueString.len = strlen (num);
-	  value->Tag.t = ValueString;
-	}
+
+      case Op_str: /* :STR: */
+	if (value->Tag.t == ValueBool)
+	  {
+	    char *c;
+	    if ((c = malloc (1)) == NULL)
+	      errorOutOfMem ();
+	    *c = value->ValueBool.b ? 'T' : 'F';
+	    value->Tag.t = ValueString;
+            value->ValueString.s = c;
+	    value->ValueString.len = 1;
+	  }
+	else
+	  {
+	    char num[32];
+	    switch (value->Tag.t)
+	      {
+	        case ValueInt:
+		 sprintf (num, "%.8X", value->ValueInt.i);
+		  break;
+	        case ValueFloat:
+		  sprintf (num, "%f", value->ValueFloat.f);
+		  break;
+	        default:
+	          error (ErrorError, "Bad operand type for :STR:");
+		  return false;
+	      }
+	    size_t len = strlen (num);
+	    char *c;
+	    if ((c = malloc (len)) == NULL)
+	      errorOutOfMem();
+	    memcpy (c, num, len);
+	    value->Tag.t = ValueString;
+	    value->ValueString.s = c;
+	    value->ValueString.len = len;
+	  }
 	break;
-      case Op_chr:
+
+      case Op_chr: /* :CHR: */
 	{
-	  char num[2];
 	  if (value->Tag.t != ValueInt)
-	    return false;
-	  if ((num[0] = value->ValueInt.i) == 0)
-	    error (ErrorWarning, ":CHR:0 is a problem...");
-	  num[1] = 0;
-	  if ((value->ValueString.s = strdup (num)) == NULL)
+	    {
+	      error (ErrorError, "Bad operand type for :CHR:");
+	      return false;
+	    }
+	  if (value->ValueInt.i < 0 || value->ValueInt.i >= 256)
+	    error (ErrorWarning, "Value %d will be truncated for :CHR: use",
+	           value->ValueInt.i);
+	  char *c;
+	  if ((c = malloc (1)) == NULL)
 	    errorOutOfMem ();
+	  *c = value->ValueInt.i;
+	  value->ValueString.s = c;
 	  value->ValueString.len = 1;
 	  value->Tag.t = ValueString;
 	}
 	break;
+
       default:
 	errorAbort ("Internal evalUnop: illegal fall through");
-	break;
+	return false;
     }
+
   return true;
 }

@@ -76,7 +76,7 @@ typedef union
   {				/* ValueString */
     ValueType Tag;
     int len; /* Size string without its NUL terminator.  */
-    const char *s; /* Malloced memory block and string is NUL terminated.  */
+    const char *s; /* Malloced memory block and string is *NOT* NUL terminated.  */
   } ValueString;
   struct
   {				/* ValueBool */

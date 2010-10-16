@@ -1,3 +1,22 @@
+Sun Oct 17 01:33:47 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/operator_string.s: Added.  Tests :LEFT:,
+	:RIGHT:, :CC:, :LEN:, :STR:.
+	* regression/tests_pass/operator_index.s: Added.  Tests :INDEX:.
+	* regression/tests_pass/info.s: Changed into a pure test on ! and INFO.
+	* regression/Makefile: Update comment & output.
+	* commands.c (c_info): Better error behaviour.  When arithmetic
+	expression evaluates to 0, output string expression via stdout as is,
+	not as warning.
+	* error.c (errorCore): When not in parse context, add extra newline
+	to stderr output.
+	* value.h (ValueString): Update comment that NUL termination of string
+	is not garanteed.
+	* reloc.c: Fix identation.
+	* eval.c (evalBinop): Fix/update/clean Op_concat, Op_left, Op_right
+	case.
+	(evalUnop): Fix/update/clean Op_str, Op_chr.
+
 Sat Oct 16 19:25:14 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression: Removed the need of creating config.h by using asasm's

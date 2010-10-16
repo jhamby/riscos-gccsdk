@@ -278,66 +278,61 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 	case RelocBranch:
 	case RelocBranchT:
 	  {
-	    LateInfo *late;
 	    int thisF = 0;
 
-	  for (late = value->ValueLate.late; late; late = late->next)
-	    if (late->symbol == area)
-	      {
-		thisF = late->factor;
-		late->factor = 0;
-		break;
-	      }
-	  for (late = value->ValueLate.late; late; late = late->next)
-	    if (late->factor > 0)
-	      {
-		if (!(late->symbol->type & SYMBOL_AREA))
-		  late->symbol->used++;
-		thisF += late->factor;
-	      }
-	    else if (late->factor < 0)
-	      {
-		errorLine (r->lineno, r->file, ErrorError, "Only positive relocation allowed");
-		late->factor = 1;
-	      }
-	  if (thisF)
-	    errorLine (r->lineno, r->file, ErrorError, "Unbalanced relocation (%d)", thisF);
-	  break;
+	    for (LateInfo *late = value->ValueLate.late; late; late = late->next)
+	      if (late->symbol == area)
+	        {
+		  thisF = late->factor;
+		  late->factor = 0;
+		  break;
+	        }
+	    for (LateInfo *late = value->ValueLate.late; late; late = late->next)
+	      if (late->factor > 0)
+	        {
+		  if (!(late->symbol->type & SYMBOL_AREA))
+		    late->symbol->used++;
+		  thisF += late->factor;
+	        }
+	      else if (late->factor < 0)
+	        {
+		  errorLine (r->lineno, r->file, ErrorError, "Only positive relocation allowed");
+		  late->factor = 1;
+	        }
+	    if (thisF)
+	      errorLine (r->lineno, r->file, ErrorError, "Unbalanced relocation (%d)", thisF);
+	    break;
 	  }
 
 	case RelocImmN:
 	  {
-	    LateInfo *late;
-
-	  for (late = value->ValueLate.late; late; late = late->next)
-	    {
-	      if (late->factor > 0)
-		{
-		  if (!(late->symbol->type & SYMBOL_AREA))
-		    late->symbol->used++;
-		  else if (r->extra != 4)
-		    errorLine (r->lineno, r->file, ErrorError,
-			       "8/16 bits field cannot be allocated with area (%s)",
-			       late->symbol->str);
-		}
-	      else if (late->factor < 0)
-		{
-		  errorLine (r->lineno, r->file, ErrorError, "Only positive relocation allowed");
-		  late->factor = 1;
-		}
-	    }
-	  break;
+	    for (LateInfo *late = value->ValueLate.late; late; late = late->next)
+	      {
+	        if (late->factor > 0)
+		  {
+		    if (!(late->symbol->type & SYMBOL_AREA))
+		      late->symbol->used++;
+		    else if (r->extra != 4)
+		      errorLine (r->lineno, r->file, ErrorError,
+			         "8/16 bits field cannot be allocated with area (%s)",
+			         late->symbol->str);
+		  }
+	        else if (late->factor < 0)
+		  {
+		    errorLine (r->lineno, r->file, ErrorError, "Only positive relocation allowed");
+		    late->factor = 1;
+		  }
+	      }
+	    break;
 	  }
 
 	case RelocAdr:
 	case RelocAdrl:
 	  {
-	    LateInfo *late;
-
-	  for (late = value->ValueLate.late; late; late = late->next)
-	    if (late->factor > 0 && !(late->symbol->type & SYMBOL_AREA))
-	      late->symbol->used++;
-	  break;
+	    for (LateInfo *late = value->ValueLate.late; late; late = late->next)
+	      if (late->factor > 0 && !(late->symbol->type & SYMBOL_AREA))
+	        late->symbol->used++;
+	    break;
 	  }
 
 	default:

@@ -220,7 +220,7 @@ decode (Lex *label)
     case '#':
       C_FINISH_SYMBOL (c_alloc);	/* reserve space in the current record */
     case '!':
-      C_FINISH(c_info);		/* INFO shorthand */
+      C_FINISH (c_info);	/* INFO shorthand */
     case 'a':
       switch (inputGetUC ())
 	{

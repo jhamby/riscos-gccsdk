@@ -22,7 +22,7 @@
 # Or
 #   $ make AS=my_asm output_actual/<specific_test>.o
 #
-# To clean up after testing:
+# To clean up after testing or to re-do all tests again:
 #   $ make clean
 
 # Environment variables needed in the tests:
@@ -48,7 +48,7 @@ VPATH = tests_pass:tests_fail
 .PHONY: all clean
 
 all: $(act_PROGRAMS)
-	@$(ECHO) "All tests were OK (do 'make clean' if you want to re-do them)"
+	@$(ECHO) "*** All tests were OK (do 'make clean' if you want to re-do them)"
 
 clean:
 	-rm -fr output_actual

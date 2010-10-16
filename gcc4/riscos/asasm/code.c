@@ -203,7 +203,9 @@ codeBool (bool value)
 }
 
 
-/* true if codeEvalLowest succeeded */
+/**
+ * \return true if succeeded.
+ */
 static bool
 codeEvalLowest (int size, const Code *program)
 {

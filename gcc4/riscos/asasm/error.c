@@ -193,6 +193,8 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 	    DoThrowback (t, pObjP->lineNum, errbuf, pObjP->name);
 	}
     }
+  else
+    fputc ('\n', stderr);
 }
 
 
