@@ -1,3 +1,13 @@
+Sat Oct 16 18:06:47 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_fail/register_based_map_fail.s,
+	regression/tests_fail/ldr_from_expr_fail.s: Add missing END.
+	* regression/tests_fail/label_space.s: Added (shows missing
+	support for label space operator).
+	* global.h: Add missing config.h include.
+	* output.h, Makefile.am: Add subversion revision number we
+	used for build.
+
 Sat Oct 16 17:08:12 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Rename BOOL/TRUE/FALSE to ISO C99's bool/true/false.

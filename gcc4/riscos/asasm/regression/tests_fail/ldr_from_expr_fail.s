@@ -1,4 +1,4 @@
-	GET	config.h	
+	GET	config.h
 
 	AREA	Code, CODE, READONLY
 
@@ -7,11 +7,11 @@ baz	#	4
 marray	#	256
 
 	[ :LNOT: REFERENCE
-		; Late label in same area 
+		; Late label in same area
 		; (=> PC relative expression)
 		LDR	r0, foo
 		LDR	r0, array + 10
-		; Late label in different area based on r9 
+		; Late label in different area based on r9
 		; (=> R9 relative expression)
 		LDR	r0, bar
 		LDR	r0, barray + 10
@@ -53,3 +53,4 @@ bat	DCD	0xf8
 
 oarray	%	256
 
+	END

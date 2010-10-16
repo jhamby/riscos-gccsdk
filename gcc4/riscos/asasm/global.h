@@ -23,6 +23,8 @@
 #ifndef global_header_included
 #define global_header_included
 
+#include "config.h"
+
 #ifdef HAVE_STDINT_H
 #include <stdint.h>
 #elif HAVE_INTTYPES_H
