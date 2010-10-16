@@ -49,14 +49,14 @@
 
 #define MAX_LINE (4096)
 
-BOOL inputExpand = TRUE;
-BOOL inputRewind = FALSE;
+bool inputExpand = true;
+bool inputRewind = false;
 
 static char input_buff[MAX_LINE + 256];
 static char *input_pos, *input_mark;
 static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 
-static BOOL inputArgSub (void);
+static bool inputArgSub (void);
 
 /* For debug only.  */
 const char *
@@ -86,9 +86,9 @@ inputLookUC (void)
 }
 
 /**
- * \return TRUE if next input character is NUL or start of a comment.
+ * \return true if next input character is NUL or start of a comment.
  */
-BOOL
+bool
 inputComment (void)
 {
   const int c = *input_pos;
@@ -264,18 +264,18 @@ inputInit (const char *infile)
  *   Application global |input_pos| is a pointer to this.
  *
  * InputArgSub() then performs any required argument substitution
- * \return FALSE when there is no input to be read, TRUE otherwise.
+ * \return false when there is no input to be read, true otherwise.
  */
-BOOL
+bool
 inputNextLine (void)
 {
   if (inputRewind)
     {
-      inputRewind = FALSE;
+      inputRewind = false;
       goto ret;
     }
   if (gCurPObjP == NULL)
-    return FALSE;
+    return false;
 
   if (num_predefines)
     {
@@ -320,7 +320,7 @@ inputNextLine (void)
 	    error (ErrorWarning, "No END found in this file");
 	  FS_PopPObject (false);
 	  if (gCurPObjP == NULL)
-	    return FALSE;
+	    return false;
 	}
       gCurPObjP->lineNum++;
     }
@@ -343,7 +343,7 @@ inputNextLine (void)
 	  if (i > 2 && workBuff[i] == ' ')
 	    {
 	      (input_pos = input_buff)[0] = 0;
-	      return TRUE;
+	      return true;
 	    }
 	}
     }
@@ -353,7 +353,7 @@ ret:
   if (!inputExpand)
     {
       strcpy (input_pos = input_buff, workBuff);
-      return TRUE;
+      return true;
     }
   return inputArgSub ();
 }
@@ -366,7 +366,7 @@ ret:
 * ptr points to the next position to write to input_buff
 * trunc points to a location to receive the truncation state
 *
-* Returns TRUE if successful.
+* Returns true if successful.
 *
 * input_pos will be updated to point to the next input character to process
 * *ptr will be updated
@@ -374,7 +374,7 @@ ret:
 *
 ****************************************************************/
 
-static BOOL
+static bool
 inputEnvSub(int *ptr, int *trunc)
 {
   char *rb = input_pos;
@@ -389,7 +389,7 @@ inputEnvSub(int *ptr, int *trunc)
     {
       /* Not a variable, had a lone '<' or "<>" */
       input_buff[(*ptr)++] = '<';
-      return TRUE;
+      return true;
     }
 
   /* Clone variable name into a temporary buffer */
@@ -403,7 +403,7 @@ inputEnvSub(int *ptr, int *trunc)
       /* No such variable defined. Warn, though we may want to error. */
       error (ErrorWarning, "Unknown environment variable '%s'", temp);
       input_buff[(*ptr)++] = '<';
-      return TRUE;
+      return true;
     }
 
   len = strlen (env);
@@ -421,7 +421,7 @@ inputEnvSub(int *ptr, int *trunc)
   /* Unlike $ substitution, we don't reprocess the substituted string */
   input_pos = rb + 1;
 
-  return TRUE;
+  return true;
 }
 
 /****************************************************************
@@ -432,7 +432,7 @@ inputEnvSub(int *ptr, int *trunc)
 * trunc points to a location to receive the truncation state
 * inString flags whether the variable we're processing is in a string literal
 *
-* Returns TRUE if successful.
+* Returns true if successful.
 *
 * input_pos will be updated to point to the next input character to process
 * *ptr will be updated
@@ -440,8 +440,8 @@ inputEnvSub(int *ptr, int *trunc)
 *
 ****************************************************************/
 
-static BOOL
-inputVarSub(int *ptr, int *trunc, BOOL inString)
+static bool
+inputVarSub(int *ptr, int *trunc, bool inString)
 {
   char *rb = input_pos; /* Remember input position */
   int len = *ptr;       /* And initial write offset */
@@ -453,7 +453,7 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
     {
       input_buff[(*ptr)++] = '$';
       input_pos++;
-      return TRUE;
+      return true;
     }
 
   /* replace symbol by its definition */
@@ -469,11 +469,11 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
         {
           input_buff[(*ptr)++] = '$';
           input_buff[(*ptr)++] = *label.LexId.str;
-          return TRUE;
+          return true;
        }
       sym = symbolFind (&label);
     }
-  else if (inString == FALSE)
+  else if (inString == false)
     {
       /* Must be an id if we're not in a string literal */
       error (ErrorWarning, "Non-ID in $ expansion");
@@ -481,7 +481,7 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
       /* Restore input_pos, so we reprocess the current input */
       input_pos = rb;
       /* Not a fatal error */
-      return TRUE;
+      return true;
     }
 
   if (sym)
@@ -505,7 +505,7 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
 	    }
 	  break;
 	case ValueBool:
-	  strcpy (&input_buff[*ptr], sym->value.ValueBool.b ? "{TRUE}" : "{FALSE}");
+	  strcpy (&input_buff[*ptr], sym->value.ValueBool.b ? "{true}" : "{false}");
 	  *ptr += strlen (&input_buff[*ptr]);
 	  break;
 	case ValueCode:
@@ -514,7 +514,7 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
 	  error (ErrorError, "$ expansion '%.*s' is a pointer",
 		 label.LexId.len, label.LexId.str);
           /* This one's fatal */
-          return FALSE;
+          return false;
 	  break;
 	default:
           goto unknown;
@@ -523,7 +523,7 @@ inputVarSub(int *ptr, int *trunc, BOOL inString)
   else
     {
 unknown:
-      if (inString == FALSE)
+      if (inString == false)
         {
           /* Not in string literal, so this is an error */
           error (ErrorError, "Unknown value '%.*s' for $ expansion",
@@ -532,7 +532,7 @@ unknown:
           /* Restore input_pos so we reprocess current input */
           input_pos = rb;
           /* Not a fatal error */
-          return TRUE;
+          return true;
         }
       else
         {
@@ -549,7 +549,7 @@ unknown:
               if (label.tag == LexId)
                 memcpy (&input_buff[*ptr], label.LexId.str, label.LexId.len);
               *ptr += label_len;
-              return TRUE;
+              return true;
             }
         }
     }
@@ -572,16 +572,16 @@ unknown:
      This allows variable values to contain substituted components.  */
   strcpy(input_pos, input_buff + len);
 
-  return TRUE;
+  return true;
 }
 
 
 /**
  * Copy the line from |workBuff| to |input_buff|, while performing any
  * substitutions.
- * \returns TRUE if successful
+ * \returns true if successful
  */
-static BOOL
+static bool
 inputArgSub (void)
 {
   int ptr = 0, trunc = 0, len;
@@ -617,8 +617,8 @@ inputArgSub (void)
 	/* characters enclosed between <...> in ObjAsm mode */
 	case '<':
           input_pos++;
-          if (inputEnvSub(&ptr, &trunc) == FALSE)
-            return FALSE;
+          if (inputEnvSub(&ptr, &trunc) == false)
+            return false;
           break;
 	case '|':
 	  do
@@ -643,14 +643,14 @@ inputArgSub (void)
 	      char cc = *input_pos++;
 	      if (cc == '$')
 	        {
-	          if (inputVarSub(&ptr, &trunc, TRUE) == FALSE)
-                    return FALSE;
+	          if (inputVarSub(&ptr, &trunc, true) == false)
+                    return false;
                   continue;
                 }
               else if (cc == '<' && option_objasm)
                 {
-                  if (inputEnvSub(&ptr, &trunc) == FALSE)
-                    return FALSE;
+                  if (inputEnvSub(&ptr, &trunc) == false)
+                    return false;
                   continue;
                 }
 
@@ -670,8 +670,8 @@ inputArgSub (void)
 	/* Do variable substitution - $ */
 	case '$':
 	  input_pos++;
-          if (inputVarSub(&ptr, &trunc, FALSE) == FALSE)
-            return FALSE;
+          if (inputVarSub(&ptr, &trunc, false) == false)
+            return false;
 	}
     }
   if (ptr >= MAX_LINE || trunc)
@@ -679,11 +679,11 @@ inputArgSub (void)
 truncated:
       (input_pos = input_buff)[MAX_LINE - 1] = 0;
       errorAbort ("Line expansion truncated");
-      return FALSE;
+      return false;
     }
 finished:
   (input_pos = input_buff)[ptr] = 0;
-  return TRUE;
+  return true;
 }
 
 

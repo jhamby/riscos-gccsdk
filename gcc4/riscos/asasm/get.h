@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,15 +23,16 @@
 #ifndef get_header_included
 #define get_header_included
 
+#include <stdbool.h>
+
 #include "global.h"
 
-WORD getCpuReg (void);
-WORD getCpuRegNoError (void);
-WORD getFpuReg (void);
-WORD getCopReg (void);
-WORD getCopNum (void);
-WORD getRhs (BOOL immonly, BOOL shift, WORD ir);
-
+ARMWord getCpuReg (void);
+ARMWord getCpuRegNoError (void);
+ARMWord getFpuReg (void);
+ARMWord getCopReg (void);
+ARMWord getCopNum (void);
+ARMWord getRhs (bool immonly, bool shift, ARMWord ir);
 
 #define DST_OP(op) ((op)<<12)
 #define LHS_OP(op) ((op)<<16)

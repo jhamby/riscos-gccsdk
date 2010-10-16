@@ -56,7 +56,7 @@ void
 c_record (void)
 {
   Value value;
-  storageD = TRUE;
+  storageD = true;
   exprBuild ();
   value = exprEval (ValueInt | ValueAddr);
   storageV.ValueAddr.r = 15;

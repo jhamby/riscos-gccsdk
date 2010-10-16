@@ -43,12 +43,12 @@
 #include "value.h"
 #include "whileif.h"
 
-static BOOL ignore_else = FALSE;
+static bool ignore_else = false;
 
 static void if_skip (const char *onerror);
 static void while_skip (void);
 static void whileFree (void);
-static BOOL whileReEval (void);
+static bool whileReEval (void);
 
 static void
 if_skip (const char *onerror)
@@ -56,7 +56,7 @@ if_skip (const char *onerror)
   int c;
   int nested = 0;
   int tmp_inputExpand = inputExpand;
-  inputExpand = FALSE;
+  inputExpand = false;
   while (inputNextLine ())
    {
       if (inputLook () && !isspace (c = inputGet ()))
@@ -89,8 +89,8 @@ if_skip (const char *onerror)
   return;
 
 skipped:
-  ignore_else = TRUE;
-  inputRewind = TRUE;
+  ignore_else = true;
+  inputRewind = true;
   inputExpand = tmp_inputExpand;
 }
 
@@ -104,7 +104,7 @@ c_if (void)
   Value flag = exprEval (ValueBool);
   if (flag.Tag.t != ValueBool)
     {
-      error (ErrorError, "IF expression must be boolean (treating as TRUE)");
+      error (ErrorError, "IF expression must be boolean (treating as true)");
       return;
     }
   if (!flag.ValueBool.b)
@@ -120,12 +120,12 @@ c_else (Lex *label)
   if (label->tag != LexNone)
     {
       error (ErrorError, "Label not allowed with |");
-      ignore_else = FALSE;
+      ignore_else = false;
       return;
     }
   if (!ignore_else)
     if_skip ("No matching ]");
-  ignore_else = FALSE;
+  ignore_else = false;
 }
 
 
@@ -138,7 +138,7 @@ c_endif (Lex *label)
     gCurPObjP->if_depth--;
   if (label->tag != LexNone)
     error (ErrorError, "Label not allowed with ]");
-  ignore_else = FALSE;
+  ignore_else = false;
 }
 
 
@@ -187,18 +187,18 @@ c_while (Lex *label)
   Value flag = exprEval (ValueBool);
   if (flag.Tag.t != ValueBool)
     {
-      error (ErrorError, "WHILE expression must be boolean (treating as FALSE)");
+      error (ErrorError, "WHILE expression must be boolean (treating as false)");
       while_skip ();
       return;
     }
   if (!exprNotConst)
     {
-      error (ErrorError, "WHILE expression is constant (treating as FALSE)");
+      error (ErrorError, "WHILE expression is constant (treating as false)");
       while_skip ();
       return;
     }
 #ifdef DEBUG
-  printf("c_while() : expr is <%s>\n", flag.ValueBool.b ? "TRUE" : "FALSE");
+  printf("c_while() : expr is <%s>\n", flag.ValueBool.b ? "true" : "false");
 #endif
   if (!flag.ValueBool.b)
     {
@@ -241,7 +241,7 @@ whileFree (void)
 }
 
 
-static BOOL
+static bool
 whileReEval (void)
 {
   inputThisInstead (gCurPObjP->whilestack->expr);
@@ -249,11 +249,11 @@ whileReEval (void)
   Value flag = exprEval (ValueBool);
   if (flag.Tag.t != ValueBool)
     {
-      error (ErrorError, "WHILE expression must be boolean (treating as FALSE)");
-      return FALSE;
+      error (ErrorError, "WHILE expression must be boolean (treating as false)");
+      return false;
     }
 #ifdef DEBUG
-  printf("whileReEval() : expr is <%s>\n", flag.ValueBool.b ? "TRUE" : "FALSE");
+  printf("whileReEval() : expr is <%s>\n", flag.ValueBool.b ? "true" : "false");
 #endif
   if (flag.ValueBool.b)
     {
@@ -262,17 +262,17 @@ whileReEval (void)
 	  case WhileInFile:
 	    fseek (gCurPObjP->d.file.fhandle, gCurPObjP->whilestack->ptr.file.offset, SEEK_SET);
 	    gCurPObjP->lineNum = gCurPObjP->whilestack->lineno;
-	    return TRUE;
+	    return true;
 	  case WhileInMacro:
 	    gCurPObjP->d.macro.curPtr = gCurPObjP->whilestack->ptr.macro.offset;
 	    gCurPObjP->lineNum = gCurPObjP->whilestack->lineno;
-	    return TRUE;
+	    return true;
 	  default:
 	    errorAbort ("Internal whileReEval: unrecognised WHILE type");
 	    break;
 	}
     }
-  return FALSE;
+  return false;
 }
 
 

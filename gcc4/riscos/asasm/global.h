@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,14 +23,13 @@
 #ifndef global_header_included
 #define global_header_included
 
-typedef unsigned int WORD;
-typedef double FLOAT;
-
-#ifndef BOOL
-#define BOOL int
+#ifdef HAVE_STDINT_H
+#include <stdint.h>
+#elif HAVE_INTTYPES_H
+#include <inttypes.h>
 #endif
 
-#define TRUE 1
-#define FALSE 0
+typedef uint32_t ARMWord;
+typedef double ARMFloat;
 
 #endif

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -40,8 +40,8 @@ extern const char *idfn_text;
 #endif
 
 #if defined(WORDS_BIGENDIAN)
-WORD armword (WORD val);
-WORD ourword (WORD val);
+ARMWord armword (ARMWord val);
+ARMWord ourword (ARMWord val);
 #else
 #define armword(x) (x)
 #define ourword(x) (x)

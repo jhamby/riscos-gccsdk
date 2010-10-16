@@ -38,52 +38,52 @@
 #include "main.h"
 
 static void
-dstmem (WORD ir)
+dstmem (ARMWord ir)
 {
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
     
   ir |= DST_OP (getFpuReg ());
-  ir = help_copAddr (ir, FALSE);
+  ir = help_copAddr (ir, false);
   putIns (ir);
 }
 
 void
-m_stf (WORD cc)
+m_stf (ARMWord cc)
 {
   dstmem (0x0c000100 | cc);
 }
 
 void
-m_ldf (WORD cc)
+m_ldf (ARMWord cc)
 {
   dstmem (0x0c100100 | cc);
 }
 
 
 static void
-dstmemx (WORD ir)
+dstmemx (ARMWord ir)
 {
-  BOOL stack_ia = FALSE;
+  bool stack_ia = false;
   Value im;
 
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  BOOL stack = (BOOL) ! isspace (inputLook ());
+  bool stack = (bool) ! isspace (inputLook ());
   if (stack)
     {
       char c1, c2;
       c1 = toupper (inputLook ());
       c2 = toupper (inputLookN (1));
       if (c1 == 'D' && c2 == 'B')
-	stack_ia = FALSE;
+	stack_ia = false;
       else if (c1 == 'I' && c2 == 'A')
-	stack_ia = TRUE;
+	stack_ia = true;
       else if (c1 == 'E' && c2 == 'A')
-	stack_ia = (ir & 0x100000) ? FALSE : TRUE;
+	stack_ia = (ir & 0x100000) ? false : true;
       else if (c1 == 'F' && c2 == 'D')
-	stack_ia = (ir & 0x100000) ? TRUE : FALSE;
+	stack_ia = (ir & 0x100000) ? true : false;
       else
 	error (ErrorError, "Illegal stack type for %cfm (%c%c)",
 	       (ir & 0x100000) ? 'l' : 's', c1, c2);
@@ -125,13 +125,13 @@ dstmemx (WORD ir)
 }
 
 void
-m_sfm (WORD cc)
+m_sfm (ARMWord cc)
 {
   dstmemx (0x0c000200 | cc);
 }
 
 void
-m_lfm (WORD cc)
+m_lfm (ARMWord cc)
 {
   dstmemx (0x0c100200 | cc);
 }

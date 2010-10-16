@@ -23,6 +23,7 @@
 #define main_header_included
 
 #include <setjmp.h>
+#include <stdbool.h>
 
 /* asasm options:  */
 extern int option_verbose;
@@ -45,8 +46,8 @@ extern const char *ProgName;
 extern const char *SourceFileName;
 
 extern jmp_buf asmContinue;
-extern BOOL asmContinueValid;
+extern bool asmContinueValid;
 extern jmp_buf asmAbort;
-extern BOOL asmAbortValid;
+extern bool asmAbortValid;
 
 #endif

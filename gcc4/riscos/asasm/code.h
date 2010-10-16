@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,8 @@
 #ifndef code_header_included
 #define code_header_included
 
+#include <stdbool.h>
+
 #include "global.h"
 #include "lex.h"
 #include "reloc.h"
@@ -43,27 +45,24 @@ typedef union CODE
   {
     CodeTag Tag;
     Operator op;
-  }
-  CodeOperator;
+  } CodeOperator;
   struct
   {
     CodeTag Tag;
     Value value;
-  }
-  CodeValue;
+  } CodeValue;
   struct
   {
     CodeTag Tag;
     Symbol *symbol;
-  }
-  CodeSymbol;
+  } CodeSymbol;
 } Code;
 
 #define CODE_SIZECODE  (1024)
 #define CODE_SIZESTACK (1024)
 #define CODE_SIZELATE  (1024)
 
-extern BOOL exprNotConst;
+extern bool exprNotConst;
 
 void codeInit (void);
 
@@ -73,14 +72,14 @@ void codeInt (int value);
 void codePosition (Symbol *area);
 void codeStorage (void);
 void codeString (int len, const char *str);
-void codeFloat (FLOAT value);
-void codeBool (BOOL value);
+void codeFloat (ARMFloat value);
+void codeBool (bool value);
 
 Value codeEvalLow (ValueTag legal, int size, Code *program);
 Value codeEval (ValueTag legal);
 
 LateInfo *codeNewLateInfo (Symbol *symbol);
 Code *codeCopy (int len, const Code *code);
-BOOL codeEqual (int len, const Code *a, const Code *b);
+bool codeEqual (int len, const Code *a, const Code *b);
 
 #endif

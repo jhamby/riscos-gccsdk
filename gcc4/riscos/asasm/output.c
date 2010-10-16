@@ -63,8 +63,8 @@ static char outname[MAXNAME + 1];
 
 #if defined(WORDS_BIGENDIAN)
 /* Convert to ARM byte-sex.  */
-WORD
-armword (WORD val)
+ARMWord
+armword (ARMWord val)
 {
   return (val >> 24) |
          ((val >> 8) & 0xff00)   |
@@ -73,8 +73,8 @@ armword (WORD val)
 }
 
 /* Convert from ARM byte-sex.  */
-WORD
-ourword (WORD val)
+ARMWord
+ourword (ARMWord val)
 {
   return  (val >> 24) |
          ((val >> 8) & 0xff00)   |

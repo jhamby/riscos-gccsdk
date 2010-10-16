@@ -94,13 +94,13 @@ as_target (const char *target)
 }
 
 
-BOOL
+bool
 cpuWarn (TargetCPU_t type)	/* true if warning is output */
 {
   if (targetCPU >= type)
-    return FALSE;
+    return false;
   error (ErrorWarning, "Instruction unsupported on target CPU");
-  return TRUE;
+  return true;
 }
 
 void

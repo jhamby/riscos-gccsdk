@@ -1,3 +1,8 @@
+Sat Oct 16 17:08:12 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Rename BOOL/TRUE/FALSE to ISO C99's bool/true/false.
+	* Rename WORD/FLOAT into ARMWord/ARMFloat.
+
 Tue Feb 2  18:29:10 2010  Lee Noar  <leenoar@sky.com>
 
 	Fix build errors:
@@ -147,7 +152,7 @@ Mon Jan 26 01:46:49 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 	__set_riscosify_control and __get_riscosify_control routines; Use
 	static 16K input buffer instead of malloced one.
 	(inputFinish): Support setting new input stream.
-	(inputComment): Change return type from int into BOOL.
+	(inputComment): Change return type from int into bool.
 	* input.h: Likewise.
 	* include.c(openInclude): Drop mode parameter; Don't use the internal
 	UnixLib __set_riscosify_control and __get_riscosify_control routines.
@@ -739,7 +744,7 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 2005-05-20 09:11  Nick Burrett  <nick@sqrt.co.uk>
 
 	* lexAcorn.c, main.c, main.h: RMA module support. Accept '-module'
-	option and set 'MODULE' to TRUE if switch passed on command line.
+	option and set 'MODULE' to true if switch passed on command line.
 
 2005-05-13 20:48  Peter Naulls  <peter@chocky.org>
 

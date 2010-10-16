@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,9 +23,11 @@
 #ifndef help_lex_header_included
 #define help_lex_header_included
 
+#include <stdbool.h>
+
 #include "global.h"
 
-WORD lexGetCharFromString (int *ilen, const char **istr);
-WORD lexChar2Int (BOOL rev, int len, const char *str);
+ARMWord lexGetCharFromString (int *ilen, const char **istr);
+ARMWord lexChar2Int (bool rev, int len, const char *str);
 
 #endif

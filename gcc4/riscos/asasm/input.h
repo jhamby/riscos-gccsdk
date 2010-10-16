@@ -24,6 +24,7 @@
 #define input_header_included
 
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "global.h"
@@ -32,8 +33,8 @@
 #define FLIP(x) (isupper((x)) ? tolower((x)) : islower((x)) ? toupper((x)) : ((x)))
 #define TOLOWER(x) tolower((x))
 
-extern BOOL inputExpand;
-extern BOOL inputRewind;
+extern bool inputExpand;
+extern bool inputRewind;
 
 #define MAX_PREDEFINES 10
 extern const char *predefines[MAX_PREDEFINES];
@@ -44,12 +45,12 @@ void inputInit (const char *infile);
 /* Debug only: */
 const char *inputGiveRestLine(void);
 
-BOOL inputNextLine (void);
+bool inputNextLine (void);
 
 void skipblanks (void);
 void skiprest (void);
 
-BOOL inputComment (void);
+bool inputComment (void);
 char inputLook (void);
 char inputLookLower (void);
 char inputLookUC (void);

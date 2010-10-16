@@ -55,7 +55,7 @@ typedef struct RELOC
   int lineno;		/* For error messages */
   const char *file;	/* ditto */
   int offset;		/* Offset in area */
-  WORD extra;		/* e.g. shiftop in ShiftImm, size in RelocImmN, e.t.c. */
+  ARMWord extra;	/* e.g. shiftop in ShiftImm, size in RelocImmN, etc. */
   Value value;
 } Reloc;
 
@@ -65,16 +65,16 @@ void relocAOFOutput (FILE *outfile, const Symbol *area);
 void relocELFOutput (FILE *outfile, const Symbol *area);
 #endif
 
-void relocShiftImm (WORD shiftop, const Value *shift);
-void relocImm8s4 (WORD ir, const Value *im8s4);
-void relocImmFloat (WORD ir, const Value *value);
+void relocShiftImm (ARMWord shiftop, const Value *shift);
+void relocImm8s4 (ARMWord ir, const Value *im8s4);
+void relocImmFloat (ARMWord ir, const Value *value);
 void relocBranch (const Value *offset);
 void relocBranchT (const Value *offset);
 void relocSwi (const Value *code);
-void relocCpuOffset (WORD ir, const Value *offset);
-void relocCopOffset (WORD ir, const Value *offset);
-void relocAdr (WORD ir, const Value *addr);
-void relocAdrl (WORD ir, const Value *addr);
+void relocCpuOffset (ARMWord ir, const Value *offset);
+void relocCopOffset (ARMWord ir, const Value *offset);
+void relocAdr (ARMWord ir, const Value *addr);
+void relocAdrl (ARMWord ir, const Value *addr);
 void relocMask (const Value *mask);
 void relocInt (int size, const Value *value);
 void relocFloat (int size, const Value *value);

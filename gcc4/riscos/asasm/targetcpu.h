@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,8 @@
 
 #ifndef targetcpu_header_included
 #define targetcpu_header_included
+
+#include <stdbool.h>
 
 #include "global.h"
 
@@ -46,7 +48,7 @@ extern TargetCPU_t targetCPU;
 
 int as_target (const char *target);
 
-BOOL cpuWarn (TargetCPU_t);
+bool cpuWarn (TargetCPU_t);
 
 void set_cpuvar (void);
 

@@ -37,7 +37,7 @@ char2digit (char c)
   return c - '0';
 }
 
-WORD
+ARMWord
 lexGetCharFromString (int *ilen, const char **istr)
 {
   const char *str = *istr;
@@ -181,8 +181,8 @@ lexGetCharFromString (int *ilen, const char **istr)
   return c;
 }
 
-WORD
-lexChar2Int (BOOL rev, int len, const char *str)
+ARMWord
+lexChar2Int (bool rev, int len, const char *str)
 {
   char c[4];
   int i;

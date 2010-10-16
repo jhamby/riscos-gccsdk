@@ -80,7 +80,7 @@ assign_var (Symbol *sym, ValueTag type)
 	sym->value.ValueInt.i = 0;
 	break;
       case ValueBool:
-	sym->value.ValueBool.b = FALSE;
+	sym->value.ValueBool.b = false;
 	break;
       case ValueString:
 	sym->value.ValueString.len = 0;
@@ -220,7 +220,7 @@ c_lcl (ValueTag type, const Lex *label)
   gCurPObjP->d.macro.varListP = p;
 
   /* When symbol is already known, it remains a global variable (and :DEF:
-     returns {TRUE} for it).  */
+     returns {true} for it).  */
   declare_var (ptr, len, type, sym == NULL);
 }
 

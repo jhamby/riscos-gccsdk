@@ -44,45 +44,45 @@
 #include "variables.h"
 #include "whileif.h"
 
-BOOL ignoreInput = FALSE;
+bool ignoreInput = false;
 
-BOOL
+bool
 notinput (const char *str)
 {
   for (; *str;)
     if (*str++ != inputGetUC ())
-      return TRUE;
-  return FALSE;
+      return true;
+  return false;
 }
 
 
-static BOOL
+static bool
 checkspace (void)
 {
   if (inputLook () && !isspace (inputGet ()))
-    return TRUE;
+    return true;
   skipblanks ();
-  return FALSE;
+  return false;
 }
 
 
-static BOOL
+static bool
 checkstr (const char *str)
 {
   if (notinput (str) || (inputLook () && !isspace (inputGet ())))
-    return TRUE;
+    return true;
   skipblanks ();
-  return FALSE;
+  return false;
 }
 
 
-static BOOL
+static bool
 checkchr (char chr)
 {
   if (inputGetUC () != chr || (inputLook () && !isspace (inputGet ())))
-    return TRUE;
+    return true;
   skipblanks ();
-  return FALSE;
+  return false;
 }
 
 
@@ -90,14 +90,14 @@ checkchr (char chr)
   if (checkstr(string)) \
     goto illegal; \
   symbol = asm_label(label); \
-  macro = FALSE; \
+  macro = false; \
   fun(); \
   break;
 
 #define C_FINISH_FLOW(string, fun) \
   if (checkstr(string)) \
     goto illegal; \
-  macro = FALSE; \
+  macro = false; \
   fun(label); \
   break;
 
@@ -105,7 +105,7 @@ checkchr (char chr)
   c = inputGetUC(); \
   if (checkspace()) \
     goto illegal; \
-  macro = FALSE; \
+  macro = false; \
   switch (c) \
     { \
       case 'a': \
@@ -118,7 +118,7 @@ checkchr (char chr)
         fun(ValueString, label); \
 	break; \
       default: \
-        macro = TRUE; \
+        macro = true; \
 	goto illegal; \
     } \
   break;
@@ -127,7 +127,7 @@ checkchr (char chr)
   if (checkchr(chr)) \
     goto illegal; \
   symbol = asm_label(label); \
-  macro = FALSE; \
+  macro = false; \
   fun(); \
   break;
 
@@ -135,7 +135,7 @@ checkchr (char chr)
   if (checkspace()) \
     goto illegal; \
   symbol = asm_label(label); \
-  macro = FALSE; \
+  macro = false; \
   fun(); \
   break;
 
@@ -143,7 +143,7 @@ checkchr (char chr)
   if (checkspace()) \
     goto illegal; \
   symbol = asm_label(label); \
-  macro = FALSE; \
+  macro = false; \
   fun(symbol); \
   break;
 
@@ -151,7 +151,7 @@ checkchr (char chr)
   if (checkchr(chr)) \
     goto illegal; \
   symbol = asm_label(label); \
-  macro = FALSE; \
+  macro = false; \
   fun(symbol); \
   break;
 
@@ -162,7 +162,7 @@ checkchr (char chr)
     goto illegal; \
   skipblanks(); \
   symbol = asm_label(label); \
-  macro = FALSE; \
+  macro = false; \
   fun(option); \
   break;
 
@@ -173,7 +173,7 @@ checkchr (char chr)
     goto illegal; \
   skipblanks(); \
   symbol = asm_label(label); \
-  macro = FALSE; \
+  macro = false; \
   fun(option); \
   break;
 
@@ -184,7 +184,7 @@ checkchr (char chr)
   if (optionError == option) \
     goto illegal; \
   symbol = asm_label(label); \
-  macro = FALSE; \
+  macro = false; \
   fun(option); \
   break;
 
@@ -193,7 +193,7 @@ checkchr (char chr)
     goto illegal; \
   skipblanks(); \
   symbol = asm_label(label); \
-  macro=FALSE; \
+  macro=false; \
   fun(option); \
   break;
 
@@ -201,8 +201,8 @@ void
 decode (Lex *label)
 {
   int c;
-  BOOL macro = TRUE;
-  WORD option;
+  bool macro = true;
+  ARMWord option;
   Symbol *symbol;
   inputMark ();
   switch (inputGetUC ())

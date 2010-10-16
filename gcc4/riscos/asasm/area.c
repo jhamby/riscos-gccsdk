@@ -75,7 +75,7 @@ areaNew (int type)
 }
 
 
-static BOOL
+static bool
 areaImage (Area * area, int newsize)
 {
   unsigned char *newImage;
@@ -87,10 +87,10 @@ areaImage (Area * area, int newsize)
     {
       area->imagesize = newsize;
       area->image = newImage;
-      return TRUE;
+      return true;
     }
   else
-    return FALSE;
+    return false;
 }
 
 
@@ -329,7 +329,7 @@ c_area (void)
 	newtype |= AREA_REENTRANT;
       else if (!strncmp ("BASED", attribute.LexId.str, attribute.LexId.len))
 	{
-	  WORD reg;
+	  ARMWord reg;
 	  skipblanks ();
 	  reg = getCpuReg ();
 	  newtype |= AREA_BASED | AREA_READONLY | (reg << 24);

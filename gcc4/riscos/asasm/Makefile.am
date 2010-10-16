@@ -20,7 +20,7 @@ tooldir = $(exec_prefix)/$(target_alias)
 
 .PHONY: install-exec-local
 
-# Local install exec hook to install a copy of elf2aif copy in <target>/bin
+# Local install exec hook to install a copy of asasm copy in <target>/bin
 # directory where gcc's collect2 will look.
 install-exec-local: $(bin_PROGRAMS)
 	$(mkdir_p) "$(DESTDIR)$(tooldir)/bin"

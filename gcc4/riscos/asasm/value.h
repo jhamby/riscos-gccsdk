@@ -23,6 +23,8 @@
 #ifndef value_header_included
 #define value_header_included
 
+#include <stdbool.h>
+
 #include "global.h"
 
 struct SYMBOL;		/* Cannot include symbol.h as it needs value.h */
@@ -64,53 +66,46 @@ typedef union
   {				/* ValueInt */
     ValueType Tag;
     int i;
-  }
-  ValueInt;
+  } ValueInt;
   struct
   {				/* ValueFloat */
     ValueType Tag;
-    FLOAT f;
-  }
-  ValueFloat;
+    ARMFloat f;
+  } ValueFloat;
   struct
   {				/* ValueString */
     ValueType Tag;
     int len; /* Size string without its NUL terminator.  */
     const char *s; /* Malloced memory block and string is NUL terminated.  */
-  }
-  ValueString;
+  } ValueString;
   struct
   {				/* ValueBool */
     ValueType Tag;
-    BOOL b;
-  }
-  ValueBool;
+    bool b;
+  } ValueBool;
   struct
   {				/* ValueCode */
     ValueType Tag;
     int len;
     union CODE *c;
-  }
-  ValueCode;
+  } ValueCode;
   struct
   {				/* ValueLateLabel */
     ValueType Tag;		/* Must start identical with ValueInt */
     int i;
     struct LATEINFO *late;
-  }
-  ValueLate;
+  } ValueLate;
   struct
   {				/* ValueAddr */
     ValueType Tag;
     int i;
     int r;
-  }
-  ValueAddr;
+  } ValueAddr;
 } Value;
 
 Value valueLateToCode (int offset, LateInfo *late);
 Value valueCopy (Value value);
-BOOL valueEqual (const Value *a, const Value *b);
+bool valueEqual (const Value *a, const Value *b);
 const char *valueTagAsString (ValueTag tag);
 #ifdef DEBUG
 void valuePrint(const Value *v);

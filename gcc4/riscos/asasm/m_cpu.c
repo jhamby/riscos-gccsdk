@@ -47,7 +47,7 @@ m_nop (void)
 {
   if (!inputComment ())
     {
-      WORD op = getCpuReg ();
+      ARMWord op = getCpuReg ();
       if (op == 15)
 	error (ErrorError, "Cannot use R15 in NOP");
       putIns (0xE1A00000 | DST_OP (op) | RHS_OP (op));
@@ -59,9 +59,9 @@ m_nop (void)
 /** DATA dst=lhs<op>rhs **/
 
 static void
-dstlhsrhs (WORD ir)
+dstlhsrhs (ARMWord ir)
 {
-  WORD op;
+  ARMWord op;
   op = getCpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
@@ -82,14 +82,14 @@ dstlhsrhs (WORD ir)
     }
   else
     error (ErrorError, "%slhs", InsertCommaAfter);
-  ir = getRhs (FALSE, TRUE, ir);
+  ir = getRhs (false, true, ir);
   putIns (ir);
 }
 
 static void
-dstrhs (WORD ir)
+dstrhs (ARMWord ir)
 {
-  WORD op;
+  ARMWord op;
   op = getCpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
@@ -100,78 +100,78 @@ dstrhs (WORD ir)
     }
   else
     error (ErrorError, "%sdst", InsertCommaAfter);
-  ir = getRhs (FALSE, TRUE, ir);
+  ir = getRhs (false, true, ir);
   putIns (ir);
 }
 
 void
-m_adc (WORD cc)
+m_adc (ARMWord cc)
 {
   dstlhsrhs (cc | M_ADC);
 }
 
 void
-m_add (WORD cc)
+m_add (ARMWord cc)
 {
   dstlhsrhs (cc | M_ADD);
 }
 
 void
-m_and (WORD cc)
+m_and (ARMWord cc)
 {
   dstlhsrhs (cc | M_AND);
 }
 
 void
-m_bic (WORD cc)
+m_bic (ARMWord cc)
 {
   dstlhsrhs (cc | M_BIC);
 }
 
 void
-m_eor (WORD cc)
+m_eor (ARMWord cc)
 {
   dstlhsrhs (cc | M_EOR);
 }
 
 void
-m_mov (WORD cc)
+m_mov (ARMWord cc)
 {
   dstrhs (cc | M_MOV);
 }
 
 void
-m_mvn (WORD cc)
+m_mvn (ARMWord cc)
 {
   dstrhs (cc | M_MVN);
 }
 
 void
-m_orr (WORD cc)
+m_orr (ARMWord cc)
 {
   dstlhsrhs (cc | M_ORR);
 }
 
 void
-m_rsb (WORD cc)
+m_rsb (ARMWord cc)
 {
   dstlhsrhs (cc | M_RSB);
 }
 
 void
-m_rsc (WORD cc)
+m_rsc (ARMWord cc)
 {
   dstlhsrhs (cc | M_RSC);
 }
 
 void
-m_sbc (WORD cc)
+m_sbc (ARMWord cc)
 {
   dstlhsrhs (cc | M_SBC);
 }
 
 void
-m_sub (WORD cc)
+m_sub (ARMWord cc)
 {
   dstlhsrhs (cc | M_SUB);
 }
@@ -179,9 +179,9 @@ m_sub (WORD cc)
 /** DATA test **/
 
 static void
-lhsrhs (WORD ir)
+lhsrhs (ARMWord ir)
 {
-  WORD op;
+  ARMWord op;
   op = getCpuReg ();
   ir |= LHS_OP (op);
   skipblanks ();
@@ -194,30 +194,30 @@ lhsrhs (WORD ir)
     error (ErrorError, "%slhs", InsertCommaAfter);
   if ((ir & P_FLAG) && option_apcs_32bit)
     error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
-  ir = getRhs (FALSE, TRUE, ir);
+  ir = getRhs (false, true, ir);
   putIns (ir);
 }
 
 void
-m_cmn (WORD cc)
+m_cmn (ARMWord cc)
 {
   lhsrhs (cc | M_CMN);
 }
 
 void
-m_cmp (WORD cc)
+m_cmp (ARMWord cc)
 {
   lhsrhs (cc | M_CMP);
 }
 
 void
-m_teq (WORD cc)
+m_teq (ARMWord cc)
 {
   lhsrhs (cc | M_TEQ);
 }
 
 void
-m_tst (WORD cc)
+m_tst (ARMWord cc)
 {
   lhsrhs (cc | M_TST);
 }
@@ -225,9 +225,9 @@ m_tst (WORD cc)
 /** DATA 1a **/
 
 static void
-onlyregs (BOOL acc, WORD ir)
+onlyregs (bool acc, ARMWord ir)
 {
-  WORD dst, rhs, lhs;
+  ARMWord dst, rhs, lhs;
   dst = getCpuReg ();
   ir |= DST_MUL (dst);
   skipblanks ();
@@ -280,21 +280,21 @@ onlyregs (BOOL acc, WORD ir)
 }
 
 void
-m_mla (WORD cc)
+m_mla (ARMWord cc)
 {
-  onlyregs (TRUE, cc | M_MLA);
+  onlyregs (true, cc | M_MLA);
 }
 
 void
-m_mul (WORD cc)
+m_mul (ARMWord cc)
 {
-  onlyregs (FALSE, cc | M_MUL);
+  onlyregs (false, cc | M_MUL);
 }
 
 static void
-l_onlyregs (WORD ir, const char *op)
+l_onlyregs (ARMWord ir, const char *op)
 {
-  WORD dstl, dsth, lhs, rhs;
+  ARMWord dstl, dsth, lhs, rhs;
   /* This bit only set for smulxx */
   int issmull = !(ir & 0x01000000);
   int issmlaxy = ((ir & 0x00600000) == 0);
@@ -394,131 +394,131 @@ l_onlyregs (WORD ir, const char *op)
 }
 
 void
-m_smlabb (WORD cc)
+m_smlabb (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLABB, "SMLABB");
 }
 
 void
-m_smlabt (WORD cc)
+m_smlabt (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLABT, "SMLABT");
 }
 
 void
-m_smlatb (WORD cc)
+m_smlatb (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLATB, "SMLATB");
 }
 
 void
-m_smlatt (WORD cc)
+m_smlatt (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLATT, "SMLATT");
 }
 
 void
-m_smlalbb (WORD cc)
+m_smlalbb (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLALBB, "SMLALBB");
 }
 
 void
-m_smlalbt (WORD cc)
+m_smlalbt (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLALBT, "SMLALBT");
 }
 
 void
-m_smlaltb (WORD cc)
+m_smlaltb (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLALTB, "SMLALTB");
 }
 
 void
-m_smlaltt (WORD cc)
+m_smlaltt (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLALTT, "SMLALTT");
 }
 
 void
-m_smlawb (WORD cc)
+m_smlawb (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLAWB, "SMLAWB");
 }
 
 void
-m_smlawt (WORD cc)
+m_smlawt (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLAWT, "SMLAWT");
 }
 
 void
-m_smulbb (WORD cc)
+m_smulbb (ARMWord cc)
 {
   l_onlyregs (cc | M_SMULBB, "SMULBB");
 }
 
 void
-m_smulbt (WORD cc)
+m_smulbt (ARMWord cc)
 {
   l_onlyregs (cc | M_SMULBT, "SMULBT");
 }
 
 void
-m_smultb (WORD cc)
+m_smultb (ARMWord cc)
 {
   l_onlyregs (cc | M_SMULTB, "SMULTB");
 }
 
 void
-m_smultt (WORD cc)
+m_smultt (ARMWord cc)
 {
   l_onlyregs (cc | M_SMULTT, "SMULTT");
 }
 
 void
-m_smulwb (WORD cc)
+m_smulwb (ARMWord cc)
 {
   l_onlyregs (cc | M_SMULWB, "SMULWB");
 }
 
 void
-m_smulwt (WORD cc)
+m_smulwt (ARMWord cc)
 {
   l_onlyregs (cc | M_SMULWT, "SMULWT");
 }
 
 void
-m_smull (WORD cc)
+m_smull (ARMWord cc)
 {
   l_onlyregs (cc | M_SMULL, "SMULL");
 }
 
 void
-m_smlal (WORD cc)
+m_smlal (ARMWord cc)
 {
   l_onlyregs (cc | M_SMLAL, "SMLAL");
 }
 
 void
-m_umull (WORD cc)
+m_umull (ARMWord cc)
 {
   l_onlyregs (cc | M_UMULL, "UMULL");
 }
 
 void
-m_umlal (WORD cc)
+m_umlal (ARMWord cc)
 {
   l_onlyregs (cc | M_UMLAL, "UMLAL");
 }
 
 
 void
-m_clz (WORD cc)
+m_clz (ARMWord cc)
 {
-  WORD ir = cc | M_CLZ;
-  WORD dst, rhs;
+  ARMWord ir = cc | M_CLZ;
+  ARMWord dst, rhs;
 
   cpuWarn (XSCALE);
 
@@ -543,9 +543,9 @@ m_clz (WORD cc)
 }
 
 static void
-q_onlyregs (WORD ir, const char *op)
+q_onlyregs (ARMWord ir, const char *op)
 {
-  WORD dst, lhs, rhs;
+  ARMWord dst, lhs, rhs;
 
   cpuWarn (XSCALE);
   skipblanks ();
@@ -577,25 +577,25 @@ q_onlyregs (WORD ir, const char *op)
 }
 
 void
-m_qadd (WORD cc)
+m_qadd (ARMWord cc)
 {
   q_onlyregs (cc | M_QADD, "QADD");
 }
 
 void
-m_qdadd (WORD cc)
+m_qdadd (ARMWord cc)
 {
   q_onlyregs (cc | M_QDADD, "QDADD");
 }
 
 void
-m_qdsub (WORD cc)
+m_qdsub (ARMWord cc)
 {
   q_onlyregs (cc | M_QDSUB, "QDSUB");
 }
 
 void
-m_qsub (WORD cc)
+m_qsub (ARMWord cc)
 {
   q_onlyregs (cc | M_QSUB, "QSUB");
 }

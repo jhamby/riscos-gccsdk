@@ -44,17 +44,17 @@
 
 
 static void
-dstmem (WORD ir)
+dstmem (ARMWord ir)
 {
   int dst, op;
-  BOOL trans = FALSE, half = FALSE;
-  BOOL pre, offValue = FALSE;
+  bool trans = false, half = false;
+  bool pre, offValue = false;
   Value offset;
   if ((ir & 0x90) == 0x90)
     {
-      if (cpuWarn (ARM7M) == FALSE && (ir & 0x20) && targetCPU < ARM10)
+      if (cpuWarn (ARM7M) == false && (ir & 0x20) && targetCPU < ARM10)
 	error (ErrorWarning, "Half-word ops only work correctly when accessed location is cached");
-      half = TRUE;
+      half = true;
     }
   dst = getCpuReg ();
   ir |= DST_OP (dst);
@@ -77,12 +77,12 @@ dstmem (WORD ir)
 	skipblanks ();
 	if (inputLook () == ']')
 	  {
-	    pre = FALSE;
+	    pre = false;
 	    inputSkip ();
 	    skipblanks ();
 	  }
 	else
-	  pre = TRUE;
+	  pre = true;
 	if (inputLook () == ',')
 	  {			/* either [base,XX] or [base],XX */
 	    inputSkip ();
@@ -92,7 +92,7 @@ dstmem (WORD ir)
 		inputSkip ();
 		exprBuild ();
 		offset = exprEval (ValueInt | ValueAddr | ValueCode | ValueLateLabel);
-		offValue = TRUE;
+		offValue = true;
 		switch (offset.Tag.t)
 		  {
 		  case ValueInt:
@@ -135,9 +135,9 @@ dstmem (WORD ir)
 		    error (ErrorError, "Unknown register definition in offset field");
 		  }
 		ir |= ((ir & 0x90) == 0x90) ? 0 : REG_FLAG;
-		ir = getRhs (TRUE, ((ir & 0x90) == 0x90) ? FALSE : TRUE, ir);
+		ir = getRhs (true, ((ir & 0x90) == 0x90) ? false : true, ir);
 		/* Reg {,shiftop {#shift}} */
-		offValue = TRUE;
+		offValue = true;
 	      }
 	    skipblanks ();
 	  }
@@ -163,7 +163,7 @@ dstmem (WORD ir)
 	  {
 	    /* If offset value was never set, then make it a pre-index load */
 	    if (!offValue)
-	      pre = TRUE;
+	      pre = true;
 	    else if (dst == op)
 	      error (ErrorError, "Post increment is not sane where base and destination register are the same");
 	  }
@@ -261,7 +261,7 @@ dstmem (WORD ir)
 
 
 void
-m_ldr (WORD cc)
+m_ldr (ARMWord cc)
 {
   /* Bit 27 set => LDRD */
   dstmem ((cc & ~(1 << 27)) |
@@ -271,7 +271,7 @@ m_ldr (WORD cc)
 
 
 void
-m_str (WORD cc)
+m_str (ARMWord cc)
 {
   /* Bit 27 set => STRD */
   dstmem ((cc & ~(1 << 27)) |
@@ -283,7 +283,7 @@ void
 m_pld (void)
 {
   int op;
-  WORD ir = 0xf450f000 | PRE_FLAG;
+  ARMWord ir = 0xf450f000 | PRE_FLAG;
 
   cpuWarn (XSCALE);
 
@@ -351,7 +351,7 @@ m_pld (void)
 	      /* Edge case - #XX */
 	      error (ErrorError, "Unknown register definition in offset field");
 	    }
-	  ir = getRhs(TRUE, TRUE, ir) | REG_FLAG;
+	  ir = getRhs(true, true, ir) | REG_FLAG;
 	}
 
       if (inputLook () == ']')
@@ -367,7 +367,7 @@ m_pld (void)
 
 
 static void
-dstreglist (WORD ir)
+dstreglist (ARMWord ir)
 {
   int op, low, high, c;
   Value mask;
@@ -469,21 +469,21 @@ dstreglist (WORD ir)
 
 
 void
-m_ldm (WORD cc)
+m_ldm (ARMWord cc)
 {
   dstreglist (cc | 0x08100000);
 }
 
 
 void
-m_stm (WORD cc)
+m_stm (ARMWord cc)
 {
   dstreglist (cc | 0x08000000);
 }
 
 
 void
-m_swp (WORD cc)
+m_swp (ARMWord cc)
 {
   int ir = cc | 0x01000090;
   cpuWarn (ARM250);

@@ -39,8 +39,8 @@
 #include "reloc.h"
 #include "symbol.h"
 
-static WORD
-getCpuRegInternal (BOOL genError)
+static ARMWord
+getCpuRegInternal (bool genError)
 {
   Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
   if (lexSym.tag == LexNone)
@@ -59,19 +59,19 @@ getCpuRegInternal (BOOL genError)
   return genError ? 0 : INVALID_REG;
 }
 
-WORD
+ARMWord
 getCpuReg (void)
 {
-  return getCpuRegInternal (TRUE);
+  return getCpuRegInternal (true);
 }
 
-WORD
+ARMWord
 getCpuRegNoError (void)
 {
-  return getCpuRegInternal (FALSE);
+  return getCpuRegInternal (false);
 }
 
-WORD
+ARMWord
 getFpuReg (void)
 {
   Lex lexSym = lexGetId ();
@@ -90,7 +90,7 @@ getFpuReg (void)
   return 0;
 }
 
-WORD
+ARMWord
 getCopReg (void)
 {
   Lex lexSym = lexGetId ();
@@ -109,7 +109,7 @@ getCopReg (void)
   return 0;
 }
 
-WORD
+ARMWord
 getCopNum (void)
 {
   Lex lexSym = lexGetId ();
@@ -128,10 +128,10 @@ getCopNum (void)
   return 0;
 }
 
-static WORD
+static ARMWord
 getShiftOp (void)
 {
-  WORD r = 0;
+  ARMWord r = 0;
   switch (inputLookLower ())
     {
       case 'a':
@@ -209,12 +209,12 @@ illegal:
 }
 
 
-static WORD
-getShift (BOOL immonly)
+static ARMWord
+getShift (bool immonly)
 {
-  WORD op = 0;
+  ARMWord op = 0;
   Value im;
-  WORD shift = getShiftOp ();
+  ARMWord shift = getShiftOp ();
   if (shift != RRX)
     {
       skipblanks ();
@@ -251,8 +251,8 @@ getShift (BOOL immonly)
   return op;
 }
 
-WORD
-getRhs (BOOL immonly, BOOL shift, WORD ir)
+ARMWord
+getRhs (bool immonly, bool shift, ARMWord ir)
 {
   Value im;
   if (inputLook () == '#')

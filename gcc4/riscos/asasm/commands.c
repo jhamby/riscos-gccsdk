@@ -154,7 +154,7 @@ static void
 defineint (int size)
 {
   Value value;
-  WORD word = 0;
+  ARMWord word = 0;
   int c;
   do
     {
@@ -177,7 +177,7 @@ defineint (int size)
 		putData (1, lexGetCharFromString (&len, &str));
 	    }
 	  else
-	    putData (size, lexChar2Int (FALSE, value.ValueString.len, value.ValueString.s));
+	    putData (size, lexChar2Int (false, value.ValueString.len, value.ValueString.s));
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
@@ -265,7 +265,7 @@ definereal (int size)
       switch (value.Tag.t)
 	{
 	case ValueInt:
-	  putDataFloat (size, (FLOAT) value.ValueInt.i);
+	  putDataFloat (size, value.ValueInt.i);
 	  break;
 	case ValueFloat:
 	  putDataFloat (size, value.ValueFloat.f);
@@ -409,7 +409,7 @@ c_import (void)
 void
 c_get (void)
 {
-  inputExpand = FALSE;
+  inputExpand = false;
 
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
@@ -435,7 +435,7 @@ c_get (void)
 void
 c_lnk (void)
 {
-  inputExpand = FALSE;
+  inputExpand = false;
 
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
@@ -476,7 +476,7 @@ c_idfn (void)
 void
 c_bin (void)
 {
-  inputExpand = FALSE;
+  inputExpand = false;
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ();

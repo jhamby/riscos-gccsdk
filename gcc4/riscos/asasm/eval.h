@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,11 +23,13 @@
 #ifndef eval_header_included
 #define eval_header_included
 
+#include <stdbool.h>
+
 #include "global.h"
 #include "lex.h"
 #include "value.h"
 
-BOOL evalBinop (Operator op, Value * lvalue, const Value * rvalue);
-BOOL evalUnop (Operator op, Value * value);
+bool evalBinop (Operator op, Value *lvalue, const Value *rvalue);
+bool evalUnop (Operator op, Value *value);
 
 #endif

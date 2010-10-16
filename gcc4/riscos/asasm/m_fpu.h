@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,7 +25,7 @@
 
 #include "global.h"
 
-WORD fpuImm (FLOAT d) __attribute__ ((__const__));
+ARMWord fpuImm (ARMFloat d) __attribute__ ((__const__));
 
 #define M_FMNEM 0x0ef08110
 

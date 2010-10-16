@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,9 +23,11 @@
 #ifndef decode_header_included
 #define decode_header_included
 
-#include "symbol.h"
+#include <stdbool.h>
 
-BOOL notinput (const char *str);
+#include "lex.h"
+
+bool notinput (const char *str);
 void decode (Lex *label);
 
 #endif

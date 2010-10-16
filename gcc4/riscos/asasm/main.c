@@ -52,9 +52,9 @@
 #include "variables.h"
 
 jmp_buf asmContinue;
-BOOL asmContinueValid = FALSE;
+bool asmContinueValid = false;
 jmp_buf asmAbort;
-BOOL asmAbortValid = FALSE;
+bool asmAbortValid = false;
 
 /* AS options :
  */
@@ -331,7 +331,7 @@ main (int argc, char **argv)
 #endif
 		   " Assembler " VERSION " (" __DATE__ ") [GCCSDK]\n");
 
-	  fprintf (stderr, "Copyright (c) 1992-2009 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
+	  fprintf (stderr, "Copyright (c) 1992-2010 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
 	  return EXIT_SUCCESS;
 	}
       else if (IS_ARG ("-H", "-h")
@@ -417,14 +417,14 @@ main (int argc, char **argv)
 
   if (setjmp (asmAbort))
     {
-      asmAbortValid = FALSE;
+      asmAbortValid = false;
       fprintf (stderr, "%s: Aborted\n", ProgName);
       while (gCurPObjP != NULL)
 	FS_PopPObject (true);
     }
   else
     {
-      asmAbortValid = TRUE;
+      asmAbortValid = true;
       symbolInit ();
       inputInit (SourceFileName);
 
@@ -433,7 +433,7 @@ main (int argc, char **argv)
 
       /* ... tidy up and write the ELF/AOF output.  */
       areaInit ();
-      setjmp (asmContinue); asmContinueValid = TRUE;
+      setjmp (asmContinue); asmContinueValid = true;
       assemble ();
       areaFinish ();
       

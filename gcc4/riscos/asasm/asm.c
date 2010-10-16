@@ -76,7 +76,7 @@ assemble (void)
       else
 	asm_label (&label);
 
-      inputExpand = TRUE;
+      inputExpand = true;
     }
 }
 

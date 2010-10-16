@@ -31,8 +31,8 @@
 #include "m_fpu.h"
 #include "option.h"
 
-WORD
-fixShiftImm (int lineno, WORD shiftop, int shift)
+ARMWord
+fixShiftImm (int lineno, ARMWord shiftop, int shift)
 {
   switch (shiftop)
     {
@@ -77,14 +77,14 @@ fixShiftImm (int lineno, WORD shiftop, int shift)
   return SHIFT_IMM (shift) | SHIFT_OP (shiftop);
 }
 
-WORD
-fixImm8s4 (int lineno, WORD ir, int im)
+ARMWord
+fixImm8s4 (int lineno, ARMWord ir, int im)
 {
   static const char op3[] = "Changing \"%s R_, R_, #%d\" to \"%s R_, R_, #%d\"";
   static const char op2[] = "Changing \"%s R_, #%d\" to \"%s R_, #%d\"";
   const char *m1, *m2, *optype;
   int i8s4;
-  WORD mnemonic;
+  ARMWord mnemonic;
   int im2;
 
   i8s4 = help_cpuImm8s4 (im);
@@ -177,14 +177,14 @@ fixImm8s4 (int lineno, WORD ir, int im)
   return ir | i8s4;
 }
 
-WORD
-fixImmFloat (int lineno, WORD ir, FLOAT im)
+ARMWord
+fixImmFloat (int lineno, ARMWord ir, ARMFloat im)
 {
   static const char op3[] = "Changing \"%s F_, F_, #%.1f\" to \"%s F_, F_, #%.1f\"";
   static const char op2[] = "Changing \"%s F_, #%.1f\" to \"%s F_, #%.1f\"";
   const char *m1, *m2, *optype;
   int f;
-  WORD mnemonic;
+  ARMWord mnemonic;
 
   f = fpuImm (im);
   if (f != -1)
@@ -250,8 +250,8 @@ fixImmFloat (int lineno, WORD ir, FLOAT im)
   return ir | f;
 }
 
-WORD
-fixAdr (int lineno, WORD ir, int im)	/* !!! mov and mvn should be possible */
+ARMWord
+fixAdr (int lineno, ARMWord ir, int im)	/* !!! mov and mvn should be possible */
 {
   int i8s4;
   if (im < 0)
@@ -270,7 +270,7 @@ fixAdr (int lineno, WORD ir, int im)	/* !!! mov and mvn should be possible */
 }
 
 void
-fixAdrl (int lineno, WORD * ir, WORD * ir2, int im, int warn)
+fixAdrl (int lineno, ARMWord * ir, ARMWord * ir2, int im, int warn)
 {
   int i8s4;
   if (im < 0)
@@ -302,7 +302,7 @@ fixAdrl (int lineno, WORD * ir, WORD * ir2, int im, int warn)
     }
 }
 
-WORD
+ARMWord
 fixSwi (int lineno, int im)
 {
   if ((im & 0xffffff) != im)
@@ -310,7 +310,7 @@ fixSwi (int lineno, int im)
   return im & 0xffffff;
 }
 
-WORD
+ARMWord
 fixBranch (int lineno, int im)
 {
   if (im & 3)
@@ -318,7 +318,7 @@ fixBranch (int lineno, int im)
   return (im >> 2) & 0xffffff;
 }
 
-WORD
+ARMWord
 fixBranchT (int lineno, int im)
 {
   if (im & 1)
@@ -327,17 +327,17 @@ fixBranchT (int lineno, int im)
   return ((im >> 2) & 0xffffff) | ((im & 2) << 23);
 }
 
-WORD
-fixCopOffset (int lineno, WORD ir, int offset)
+ARMWord
+fixCopOffset (int lineno, ARMWord ir, int offset)
 {
-  BOOL up;
+  bool up;
   if (offset < 0)
     {
       offset = -offset;
-      up = FALSE;
+      up = false;
     }
   else
-    up = TRUE;
+    up = true;
   if (offset & 3)
     errorLine (lineno, NULL, ErrorError, "Offset %d is not a word offset", offset);
   if (offset > 1020)
@@ -348,17 +348,17 @@ fixCopOffset (int lineno, WORD ir, int offset)
   return ir;
 }
 
-WORD
-fixCpuOffset (int lineno, WORD ir, int offset)
+ARMWord
+fixCpuOffset (int lineno, ARMWord ir, int offset)
 {
-  BOOL up;
+  bool up;
   if (offset < 0)
     {
       offset = -offset;
-      up = FALSE;
+      up = false;
     }
   else
-    up = TRUE;
+    up = true;
   if ((ir & 0x90) == 0x90)
     {
       if (offset > 255)
@@ -376,7 +376,7 @@ fixCpuOffset (int lineno, WORD ir, int offset)
   return ir;
 }
 
-WORD
+ARMWord
 fixMask (int lineno, int mask)
 {
   if (mask < 0 || mask > 0xffff)
@@ -392,7 +392,7 @@ fixMask (int lineno, int mask)
  * When the check fails, an error is given and the value is truncated so it
  * fits in given word size.
  */
-WORD
+ARMWord
 fixInt (int lineno, int size, int value)
 {
   switch (size)

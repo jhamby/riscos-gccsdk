@@ -63,10 +63,10 @@ help_copInt (int max, const char *msg)
 }
 
 
-WORD
-help_copAddr (WORD ir, BOOL stack)
+ARMWord
+help_copAddr (ARMWord ir, bool stack)
 {
-  BOOL pre, offValue = FALSE;
+  bool pre, offValue = false;
   Value offset;
   skipblanks ();
   if (inputLook () == ',')
@@ -85,12 +85,12 @@ help_copAddr (WORD ir, BOOL stack)
       skipblanks ();
       if (inputLook () == ']')
 	{
-	  pre = FALSE;
+	  pre = false;
 	  inputSkip ();
 	  skipblanks ();
 	}
       else
-	pre = TRUE;
+	pre = true;
       if (inputLook () == ',')
 	{			/* either [base,XX] or [base],XX */
 	  if (stack)
@@ -105,7 +105,7 @@ help_copAddr (WORD ir, BOOL stack)
 	      inputSkip ();
 	      exprBuild ();
 	      offset = exprEval (ValueInt | ValueCode | ValueLateLabel);
-	      offValue = TRUE;
+	      offValue = true;
 	      switch (offset.Tag.t)
 		{
 		case ValueInt:
@@ -128,7 +128,7 @@ help_copAddr (WORD ir, BOOL stack)
 	      skipblanks ();
 	      exprBuild ();
 	      offset = exprEval (ValueInt);
-	      offValue = TRUE;
+	      offValue = true;
 	      if (offset.Tag.t != ValueInt)
 	        error (ErrorError, "Illegal option value");
 	      if (offset.ValueInt.i < -128 || offset.ValueInt.i > 256)
@@ -162,7 +162,7 @@ help_copAddr (WORD ir, BOOL stack)
 	}
       else if (!stack && !offValue)
 	{
-	  pre = TRUE;		/* make [base] into [base,#0] */
+	  pre = true;		/* make [base] into [base,#0] */
 	}
       if (inputLook () == '!')
 	{
@@ -175,7 +175,7 @@ help_copAddr (WORD ir, BOOL stack)
 	}
       else if (stack)
 	{
-	  pre = TRUE;		/* [base] in stack context => [base,#0] */
+	  pre = true;		/* [base] in stack context => [base,#0] */
 	}
       if (pre)
 	ir |= PRE_FLAG;

@@ -33,10 +33,10 @@
 #include "main.h"
 #include "option.h"
 
-static WORD
+static ARMWord
 getCond (void)
 {
-  WORD cc = AL;
+  ARMWord cc = AL;
   switch (inputLookUC ())
     {
     case 'a':
@@ -166,10 +166,10 @@ getCond (void)
 }
 
 
-static WORD
-getDir (BOOL ldm)
+static ARMWord
+getDir (bool ldm)
 {
-  WORD dir = optionError;
+  ARMWord dir = optionError;
   switch (inputLookUC ())
     {
     case 'd':
@@ -229,7 +229,7 @@ getDir (BOOL ldm)
 }
 
 
-static WORD
+static ARMWord
 getPrec (int P)
 {
   switch (inputGetUC ())
@@ -247,7 +247,7 @@ getPrec (int P)
 }
 
 
-static WORD
+static ARMWord
 getRound (void)
 {
   switch (inputLookUC ())
@@ -266,8 +266,8 @@ getRound (void)
 }
 
 
-static WORD
-isOK (WORD option)
+static ARMWord
+isOK (ARMWord option)
 {
   if (inputLook () && !isspace (inputGet ()))
     return optionError;
@@ -276,17 +276,17 @@ isOK (WORD option)
 }
 
 
-WORD
+ARMWord
 optionCond (void)
 {
   return isOK (getCond ());
 }
 
 
-WORD
+ARMWord
 optionCondS (void)
 {
-  WORD option = getCond ();
+  ARMWord option = getCond ();
   if (inputLookUC () == 's')
     {
       option |= S_FLAG;
@@ -296,10 +296,10 @@ optionCondS (void)
 }
 
 
-WORD
+ARMWord
 optionCondSP (void)
 {
-  WORD option = getCond () | S_FLAG;
+  ARMWord option = getCond () | S_FLAG;
   if (inputLookUC () == 's')
     {
       inputSkip ();
@@ -315,10 +315,10 @@ optionCondSP (void)
 }
 
 
-WORD
+ARMWord
 optionCondB (void)
 {
-  WORD option = getCond ();
+  ARMWord option = getCond ();
   if (inputLookUC () == 'b')
     {
       option |= B_FLAG;
@@ -328,11 +328,11 @@ optionCondB (void)
 }
 
 
-WORD
+ARMWord
 optionCondBT (void)		/* also does signed byte,
 				   (un)signed halfword and doubleword */
 {
-  WORD option = getCond ();
+  ARMWord option = getCond ();
   if (inputLookUC () == 's')
     {
       option |= 0xD0;
@@ -377,68 +377,68 @@ optionCondBT (void)		/* also does signed byte,
 }
 
 
-WORD
+ARMWord
 optionCondDirLdm (void)
 {
-  WORD option = getCond ();
-  if (optionError == (option |= getDir (TRUE)))
+  ARMWord option = getCond ();
+  if (optionError == (option |= getDir (true)))
     return optionError;
   return isOK (option);
 }
 
 
-WORD
+ARMWord
 optionCondDirStm (void)
 {
-  WORD option = getCond ();
-  if (optionError == (option |= getDir (FALSE)))
+  ARMWord option = getCond ();
+  if (optionError == (option |= getDir (false)))
     return optionError;
   return isOK (option);
 }
 
 
-WORD
+ARMWord
 optionCondLfmSfm (void)
 {
   return getCond ();
 }
 
 
-WORD
+ARMWord
 optionCondPrecRound (void)
 {
-  WORD option = getCond ();
-  if (optionError == (option |= getPrec (FALSE)))
+  ARMWord option = getCond ();
+  if (optionError == (option |= getPrec (false)))
     return optionError;
   return isOK (option | getRound ());
 }
 
 
-WORD
+ARMWord
 optionCondOptPrecRound (void)
 {
-  WORD optionCC = getCond ();
-  WORD optionPrec = getPrec (FALSE);
+  ARMWord optionCC = getCond ();
+  ARMWord optionPrec = getPrec (false);
   if (optionError == optionPrec)
     optionPrec = PRECISION_EXTENDED;
   return isOK (optionCC | optionPrec | getRound ());
 }
 
 
-WORD
+ARMWord
 optionCondPrec_P (void)
 {
-  WORD option = getCond ();
-  if (optionError == (option |= getPrec (TRUE)))
+  ARMWord option = getCond ();
+  if (optionError == (option |= getPrec (true)))
     return optionError;
   return isOK (option);
 }
 
 
-WORD
+ARMWord
 optionCondL (void)
 {
-  WORD option = getCond ();
+  ARMWord option = getCond ();
   if (inputLookUC () == 'l')
     {
       option |= L_FLAG;
@@ -452,15 +452,15 @@ optionCondL (void)
 
 
 
-WORD
+ARMWord
 optionCondOptRound (void)
 {
-  WORD optionCC = getCond ();
+  ARMWord optionCC = getCond ();
   return isOK (optionCC | PRECISION_SINGLE | getRound ());
 }
 
 
-WORD
+ARMWord
 optionLinkCond (void)		/* 'b' is matched before call */
 {
   if (inputLookUC () != 'l')
@@ -499,7 +499,7 @@ optionLinkCond (void)		/* 'b' is matched before call */
 }
 
 
-WORD
+ARMWord
 optionExceptionCond (void)
 {
   if (inputLookUC () != 'e')
@@ -523,10 +523,10 @@ optionExceptionCond (void)
 }
 
 
-WORD
+ARMWord
 optionAdrL (void)
 {
-  WORD option = getCond ();
+  ARMWord option = getCond ();
   if (inputLookUC () == 'l')
     {
       option |= 1;

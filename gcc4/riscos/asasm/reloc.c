@@ -110,21 +110,21 @@ relocOp (int word, const Value *value, RelocTag tag)
 
 
 void
-relocShiftImm (WORD shiftop, const Value *shift)
+relocShiftImm (ARMWord shiftop, const Value *shift)
 {
   relocOp (shiftop, shift, RelocShiftImm);
 }
 
 
 void
-relocImm8s4 (WORD ir, const Value *im8s4)
+relocImm8s4 (ARMWord ir, const Value *im8s4)
 {
   relocOp (ir, im8s4, RelocImm8s4);
 }
 
 
 void
-relocImmFloat (WORD ir, const Value *value)
+relocImmFloat (ARMWord ir, const Value *value)
 {
   relocOp (ir, value, RelocImmFloat);
 }
@@ -152,28 +152,28 @@ relocSwi (const Value *code)
 
 
 void
-relocCpuOffset (WORD ir, const Value *offset)
+relocCpuOffset (ARMWord ir, const Value *offset)
 {
   relocOp (ir, offset, RelocCpuOffset);
 }
 
 
 void
-relocCopOffset (WORD ir, const Value *offset)
+relocCopOffset (ARMWord ir, const Value *offset)
 {
   relocOp (ir, offset, RelocCopOffset);
 }
 
 
 void
-relocAdr (WORD ir, const Value *addr)
+relocAdr (ARMWord ir, const Value *addr)
 {
   relocOp (ir, addr, RelocAdr);
 }
 
 
 void
-relocAdrl (WORD ir, const Value *addr)
+relocAdrl (ARMWord ir, const Value *addr)
 {
   relocOp (ir, addr, RelocAdrl);
 }
@@ -378,7 +378,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	         instruction, while in AOF this needs to happen for a "B 0".  */
 	      int bv = (!option_aof && value->Tag.t == ValueLateLabel) ?
 		value->ValueInt.i + offset : value->ValueInt.i;
-	      WORD w = fixBranch (r->lineno, bv);
+	      ARMWord w = fixBranch (r->lineno, bv);
 	      image[offset + 2] = (w >> 16) & 0xff;
 	      image[offset + 1] = (w >> 8) & 0xff;
 	      image[offset + 0] = w & 0xff;
@@ -386,7 +386,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    }
 	  case RelocBranchT:
 	    {
-	      WORD w = READWORD (image, offset);
+	      ARMWord w = READWORD (image, offset);
 	      w |= fixBranchT (r->lineno, value->ValueInt.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
@@ -396,7 +396,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    }
 	  case RelocCpuOffset:
 	    {
-	      WORD w = READWORD (image, offset);
+	      ARMWord w = READWORD (image, offset);
 	      /* fprintf (stderr, "RelocCpuOffset: tag = %d, lineno = %d, offset = %d, val=%s\n",
 			  value->Tag.t, r->lineno, value->ValueInt.i,
 			  (value->Tag.t == ValueLateLabel) ? value->ValueLate.late->symbol->str : "-"); */
@@ -429,7 +429,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    }
 	  case RelocCopOffset:
 	    {
-	      WORD w = READWORD (image, offset);
+	      ARMWord w = READWORD (image, offset);
 	      w = fixCopOffset (r->lineno, w, value->ValueInt.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
@@ -440,7 +440,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	  case RelocImmN:
 	    {
 	      /* fprintf (stderr, "RelocImmN: lineno = %d\n", r->lineno); */
-	      WORD w = fixInt (r->lineno, r->extra, value->ValueInt.i);
+	      ARMWord w = fixInt (r->lineno, r->extra, value->ValueInt.i);
 	      switch (r->extra)
 		{
 		  case 4:
@@ -458,7 +458,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	  case RelocAdr:
 	    {
 	      /* fprintf (stderr, "RelocAdr: lineno = %d\n", r->lineno); */
-	      WORD w = READWORD (image, offset);
+	      ARMWord w = READWORD (image, offset);
 	      w = fixAdr (r->lineno, w, value->ValueInt.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
@@ -468,8 +468,8 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    }
 	  case RelocAdrl:
 	    {
-	      WORD w = READWORD (image, offset);
-	      WORD w1 = (value->Tag.t == ValueLateLabel) ? value->ValueLate.late->symbol->type & SYMBOL_DEFINED : 1;
+	      ARMWord w = READWORD (image, offset);
+	      ARMWord w1 = (value->Tag.t == ValueLateLabel) ? value->ValueLate.late->symbol->type & SYMBOL_DEFINED : 1;
 	      /* warn if symbol is defined or isn't a late label */
 	      fixAdrl (r->lineno, &w, &w1, value->ValueInt.i, w1);
 	      image[offset + 3] = (w >> 24) & 0xff;
@@ -484,7 +484,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    }
 	  case RelocImm8s4:
 	    {
-	      WORD w = READWORD (image, offset);
+	      ARMWord w = READWORD (image, offset);
 	      w = fixImm8s4 (r->lineno, w, value->ValueInt.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
@@ -526,7 +526,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    break;
 	  case RelocImmFloat:
 	    {
-	      WORD w = READWORD (image, offset);
+	      ARMWord w = READWORD (image, offset);
 	      w = fixImmFloat (r->lineno, w, value->ValueFloat.f);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;

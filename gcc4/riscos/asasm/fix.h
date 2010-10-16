@@ -37,17 +37,17 @@
 #define SHIFT_REG(s) (((s)<<8) | (1<<4))
 #define SHIFT_IMM(s) (((s)&31)<<7)
 
-WORD fixShiftImm (int lineno, WORD shiftop, int shift);
-WORD fixImm8s4 (int lineno, WORD ir, int im);
-WORD fixImmFloat (int lineno, WORD ir, FLOAT im);
-WORD fixSwi (int lineno, int im);
-WORD fixBranch (int lineno, int im);
-WORD fixBranchT (int lineno, int im);
-WORD fixAdr (int lineno, WORD ir, int im);
-void fixAdrl (int lineno, WORD * ir, WORD * ir2, int im, int warn);
-WORD fixCopOffset (int lineno, WORD ir, int offset);
-WORD fixCpuOffset (int lineno, WORD ir, int offset);
-WORD fixMask (int lineno, int mask);
-WORD fixInt (int lineno, int size, int value);
+ARMWord fixShiftImm (int lineno, ARMWord shiftop, int shift);
+ARMWord fixImm8s4 (int lineno, ARMWord ir, int im);
+ARMWord fixImmFloat (int lineno, ARMWord ir, ARMFloat im);
+ARMWord fixSwi (int lineno, int im);
+ARMWord fixBranch (int lineno, int im);
+ARMWord fixBranchT (int lineno, int im);
+ARMWord fixAdr (int lineno, ARMWord ir, int im);
+void fixAdrl (int lineno, ARMWord *ir, ARMWord *ir2, int im, int warn);
+ARMWord fixCopOffset (int lineno, ARMWord ir, int offset);
+ARMWord fixCpuOffset (int lineno, ARMWord ir, int offset);
+ARMWord fixMask (int lineno, int mask);
+ARMWord fixInt (int lineno, int size, int value);
 
 #endif

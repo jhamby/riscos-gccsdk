@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2006 GCCSDK Developers
+ * Copyright (c) 2001-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,8 +31,7 @@ typedef struct
   unsigned int Size;		/* Size of area, must be divisible by four */
   unsigned int noRelocations;	/* Size of relocation table */
   unsigned int Unused;		/* Unused, must be zero */
-}
-AofEntry;
+} AofEntry;
 
 #define AofHeaderID 0xc5e2d080
 
@@ -44,8 +43,7 @@ typedef struct
   unsigned int noSymbols;		/* size of Symbol Table if such exist            */
   unsigned int EntryArea;		/* Where to start execution, 0 no entry          */
   unsigned int EntryOffset;		/* otherwise start at Area[EntryArea]+AreaOffset */
-}
-AofHeader;
+} AofHeader;
 
 #define aofHeaderSize(max) \
         (sizeof (AofHeader) + \
@@ -104,9 +102,7 @@ typedef struct
 {
   unsigned int Offset;		/* Offset in area of the field to be relocated */
   unsigned int How;		/* How relocation is done */
-}
-AofReloc;
-
+} AofReloc;
 
 /* Defined with local scope */
 #define TYPE_LOCAL     0x01
@@ -133,8 +129,6 @@ typedef struct
   unsigned int Type;
   unsigned int Value;		/* Value if constant, Size if common, otherwise Offset */
   unsigned int AreaName;
-}
-AofSymbol;
-
+} AofSymbol;
 
 #endif

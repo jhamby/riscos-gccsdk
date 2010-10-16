@@ -212,21 +212,21 @@ macroFind (size_t len, const char *name)
 /* Macro builder code */
 
 
-static BOOL
+static bool
 c_mend (void)
 {
   if (!isspace (inputLook ()))
-    return FALSE;
+    return false;
 
   skipblanks ();
   if (inputGetLower () != 'm')
-    return FALSE;
+    return false;
   if (inputGetLower () != 'e')
-    return FALSE;
+    return false;
   if (inputGetLower () != 'n')
-    return FALSE;
+    return false;
   if (inputGetLower () != 'd')
-    return FALSE;
+    return false;
   char c = inputLook ();
   return c == '\0' || isspace (c);
 }
@@ -240,7 +240,7 @@ c_macro (const Lex *label)
 
   char *buf = NULL;
 
-  inputExpand = FALSE;
+  inputExpand = false;
   if (label->tag != LexNone)
     error (ErrorWarning, "Label not allowed here - ignoring");
   skipblanks ();
@@ -331,7 +331,7 @@ c_macro (const Lex *label)
 		    c = MACRO_ARG0 + i;
 		  else
 		    {
-		      /* error(ErrorWarning, TRUE, "Unknown macro argument encountered"); */
+		      /* error(ErrorWarning, true, "Unknown macro argument encountered"); */
 		      inputRollback ();
 		    }
 		}

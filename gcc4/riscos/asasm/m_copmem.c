@@ -42,7 +42,7 @@
 
 
 static void
-dstmem (WORD ir)
+dstmem (ARMWord ir)
 {
   ir |= CP_NUMBER (getCopNum ());
   skipblanks ();
@@ -54,18 +54,18 @@ dstmem (WORD ir)
   else
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= CPDST_OP (getCopReg ());
-  ir = help_copAddr (ir, FALSE);
+  ir = help_copAddr (ir, false);
   putIns (ir);
 }
 
 void
-m_ldc (WORD cc)
+m_ldc (ARMWord cc)
 {
   dstmem (cc | 0x0c100000);
 }
 
 void
-m_ldc2 (WORD cc)
+m_ldc2 (ARMWord cc)
 {
   if ((cc & NV) != AL)
     error (ErrorError, "LDC2 cannot be conditional");
@@ -73,13 +73,13 @@ m_ldc2 (WORD cc)
 }
 
 void
-m_stc (WORD cc)
+m_stc (ARMWord cc)
 {
   dstmem (cc | 0x0c000000);
 }
 
 void
-m_stc2 (WORD cc)
+m_stc2 (ARMWord cc)
 {
   if ((cc & NV) != AL)
     error (ErrorError, "STC2 cannot be conditional");

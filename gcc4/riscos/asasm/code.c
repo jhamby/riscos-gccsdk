@@ -48,7 +48,7 @@ static int LateHeapPtr;
 
 static int Sp;			/* Used by codeEvalLow and codeEvalLowest */
 
-BOOL exprNotConst;
+bool exprNotConst;
 
 
 LateInfo *
@@ -67,7 +67,7 @@ void
 codeInit (void)
 {
   FirstFreeIns = LateHeapPtr = 0;
-  exprNotConst = FALSE;
+  exprNotConst = false;
 }
 
 void
@@ -90,7 +90,7 @@ codeSymbol (Symbol *symbol)
       if ((symbol->type & SYMBOL_DEFINED) && !(symbol->type & SYMBOL_AREA))
 	{
 	  if (symbol->value.Tag.v != ValueIllegal)
-	    exprNotConst = TRUE;
+	    exprNotConst = true;
 	  switch (symbol->value.Tag.t)
 	    {
 	    case ValueInt:
@@ -177,7 +177,7 @@ codeInt (int value)
 }
 
 void
-codeFloat (FLOAT value)
+codeFloat (ARMFloat value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -190,7 +190,7 @@ codeFloat (FLOAT value)
 }
 
 void
-codeBool (BOOL value)
+codeBool (bool value)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -203,8 +203,8 @@ codeBool (BOOL value)
 }
 
 
-/* TRUE if codeEvalLowest succeeded */
-static BOOL
+/* true if codeEvalLowest succeeded */
+static bool
 codeEvalLowest (int size, const Code *program)
 {
   int Pp;
@@ -216,12 +216,12 @@ codeEvalLowest (int size, const Code *program)
 	  if (isUnop (program[Pp].CodeOperator.op))
 	    {
 	      if (!evalUnop (program[Pp].CodeOperator.op, &Stack[Sp]))
-		return FALSE;
+		return false;
 	    }
 	  else
 	    {
 	      if (!evalBinop (program[Pp].CodeOperator.op, &Stack[Sp - 1], &Stack[Sp]))
-		return FALSE;
+		return false;
 	      Sp--;
 	    }
 	  break;
@@ -244,7 +244,7 @@ codeEvalLowest (int size, const Code *program)
 		case ValueCode:
 		  if (!codeEvalLowest (program[Pp].CodeSymbol.symbol->value.ValueCode.len,
 				       program[Pp].CodeSymbol.symbol->value.ValueCode.c))
-		    return FALSE;
+		    return false;
 		  break;
 		case ValueAddr:
 		  errorAbort ("Register offset labels must be defined before use");
@@ -267,7 +267,7 @@ codeEvalLowest (int size, const Code *program)
 	  break;
 	}
     }
-  return TRUE;
+  return true;
 }
 
 Value
@@ -296,7 +296,7 @@ codeEvalLow (ValueTag legal, int size, Code *program)
     {
       if (option_autocast && (legal & ValueFloat) && Result.Tag.t == ValueInt)
 	{
-	  FLOAT f = Result.ValueInt.i;
+	  ARMFloat f = Result.ValueInt.i;
 	  if (option_fussy > 1)
 	    error (ErrorInfo, "Changing integer %d to float %1.1f", Result.ValueInt.i, f);
 	  Result.Tag.t = ValueFloat;
@@ -333,29 +333,29 @@ codeCopy (int len, const Code *code)
   return newCode;
 }
 
-BOOL
+bool
 codeEqual (int len, const Code *a, const Code *b)
 {
   int i;
   for (i = 0; i < len; i++)
     {
       if (a[i].Tag != b[i].Tag)
-	return FALSE;
+	return false;
       switch (a[i].Tag)
 	{
 	case CodeOperator:
 	  if (a[i].CodeOperator.op != b[i].CodeOperator.op)
-	    return FALSE;
+	    return false;
 	  break;
 	case CodeValue:
 	  if (!valueEqual (&a[i].CodeValue.value, &b[i].CodeValue.value))
-	    return FALSE;
+	    return false;
 	  break;
 	case CodeSymbol:
 	  if (a[i].CodeSymbol.symbol != b[i].CodeSymbol.symbol)
-	    return FALSE;
+	    return false;
 	  break;
 	}
     }
-  return TRUE;
+  return true;
 }

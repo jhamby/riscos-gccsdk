@@ -42,8 +42,8 @@
 #include "value.h"
 #include "main.h"
 
-WORD
-fpuImm (FLOAT d)
+ARMWord
+fpuImm (ARMFloat d)
 {
   if (d == 0.0)
     return 0;
@@ -65,8 +65,8 @@ fpuImm (FLOAT d)
   return -1;
 }
 
-static WORD
-getFloatRhs (WORD ir)
+static ARMWord
+getFloatRhs (ARMWord ir)
 {
   Value im;
   if (inputLook () == '#')
@@ -78,7 +78,7 @@ getFloatRhs (WORD ir)
       switch (im.Tag.t)
 	{
 	case ValueInt:
-	  ir = fixImmFloat (0, ir, (FLOAT) im.ValueInt.i);
+	  ir = fixImmFloat (0, ir, im.ValueInt.i);
 	  break;
 	case ValueFloat:
 	  ir = fixImmFloat (0, ir, im.ValueFloat.f);
@@ -101,12 +101,12 @@ getFloatRhs (WORD ir)
 /** DATA dyadic **/
 
 static void
-dstlhsrhs (WORD ir)
+dstlhsrhs (ARMWord ir)
 {
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  WORD op = getFpuReg ();
+  ARMWord op = getFpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
   if (inputLook () == ',')
@@ -131,79 +131,79 @@ dstlhsrhs (WORD ir)
 
 
 void
-m_adf (WORD cc)
+m_adf (ARMWord cc)
 {
   dstlhsrhs (M_ADF | cc);
 }
 
 void
-m_dvf (WORD cc)
+m_dvf (ARMWord cc)
 {
   dstlhsrhs (M_DVF | cc);
 }
 
 void
-m_fdv (WORD cc)
+m_fdv (ARMWord cc)
 {
   dstlhsrhs (M_FDV | cc);
 }
 
 void
-m_fml (WORD cc)
+m_fml (ARMWord cc)
 {
   dstlhsrhs (M_FML | cc);
 }
 
 void
-m_frd (WORD cc)
+m_frd (ARMWord cc)
 {
   dstlhsrhs (M_FRD | cc);
 }
 
 void
-m_muf (WORD cc)
+m_muf (ARMWord cc)
 {
   dstlhsrhs (M_MUF | cc);
 }
 
 void
-m_pol (WORD cc)
+m_pol (ARMWord cc)
 {
   dstlhsrhs (M_POL | cc);
 }
 
 void
-m_pow (WORD cc)
+m_pow (ARMWord cc)
 {
   dstlhsrhs (M_POW | cc);
 }
 
 void
-m_rdf (WORD cc)
+m_rdf (ARMWord cc)
 {
   dstlhsrhs (M_RDF | cc);
 }
 
 void
-m_rmf (WORD cc)
+m_rmf (ARMWord cc)
 {
   dstlhsrhs (M_RMF | cc);
 }
 
 void
-m_rpw (WORD cc)
+m_rpw (ARMWord cc)
 {
   dstlhsrhs (M_RPW | cc);
 }
 
 void
-m_rsf (WORD cc)
+m_rsf (ARMWord cc)
 {
   dstlhsrhs (M_RSF | cc);
 }
 
 void
-m_suf (WORD cc)
+m_suf (ARMWord cc)
 {
   dstlhsrhs (M_SUF | cc);
 }
@@ -212,9 +212,9 @@ m_suf (WORD cc)
 /** DATA monadic **/
 
 static void
-dstrhs (WORD ir)
+dstrhs (ARMWord ir)
 {
-  WORD op;
+  ARMWord op;
 
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
@@ -233,97 +233,97 @@ dstrhs (WORD ir)
 }
 
 void
-m_abs (WORD cc)
+m_abs (ARMWord cc)
 {
   dstrhs (M_ABS | cc);
 }
 
 void
-m_acs (WORD cc)
+m_acs (ARMWord cc)
 {
   dstrhs (M_ACS | cc);
 }
 
 void
-m_asn (WORD cc)
+m_asn (ARMWord cc)
 {
   dstrhs (M_ASN | cc);
 }
 
 void
-m_atn (WORD cc)
+m_atn (ARMWord cc)
 {
   dstrhs (M_ATN | cc);
 }
 
 void
-m_cos (WORD cc)
+m_cos (ARMWord cc)
 {
   dstrhs (M_COS | cc);
 }
 
 void
-m_exp (WORD cc)
+m_exp (ARMWord cc)
 {
   dstrhs (M_EXP | cc);
 }
 
 void
-m_lgn (WORD cc)
+m_lgn (ARMWord cc)
 {
   dstrhs (M_LGN | cc);
 }
 
 void
-m_log (WORD cc)
+m_log (ARMWord cc)
 {
   dstrhs (M_LOG | cc);
 }
 
 void
-m_mnf (WORD cc)
+m_mnf (ARMWord cc)
 {
   dstrhs (M_MNF | cc);
 }
 
 void
-m_mvf (WORD cc)
+m_mvf (ARMWord cc)
 {
   dstrhs (M_MVF | cc);
 }
 
 void
-m_rnd (WORD cc)
+m_rnd (ARMWord cc)
 {
   dstrhs (M_RND | cc);
 }
 
 void
-m_sin (WORD cc)
+m_sin (ARMWord cc)
 {
   dstrhs (M_SIN | cc);
 }
 
 void
-m_sqt (WORD cc)
+m_sqt (ARMWord cc)
 {
   dstrhs (M_SQT | cc);
 }
 
 void
-m_tan (WORD cc)
+m_tan (ARMWord cc)
 {
   dstrhs (M_TAN | cc);
 }
 
 void
-m_urd (WORD cc)
+m_urd (ARMWord cc)
 {
   dstrhs (M_URD | cc);
 }
 
 void
-m_nrm (WORD cc)
+m_nrm (ARMWord cc)
 {
   dstrhs (M_NRM | cc);
 }
@@ -331,12 +331,12 @@ m_nrm (WORD cc)
 /** REGISTER TRANSFER **/
 
 void
-m_fix (WORD cc)
+m_fix (ARMWord cc)
 {
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  WORD ir = M_FIX | cc;
+  ARMWord ir = M_FIX | cc;
   ir |= DST_OP (getCpuReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -350,12 +350,12 @@ m_fix (WORD cc)
 }
 
 void
-m_flt (WORD cc)
+m_flt (ARMWord cc)
 {
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  WORD ir = M_FLT | cc;
+  ARMWord ir = M_FLT | cc;
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
   if (inputLook () == ',')
@@ -370,42 +370,42 @@ m_flt (WORD cc)
 }
 
 static void
-flagtransfer (WORD ir)
+flagtransfer (ARMWord ir)
 {
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  WORD op = getCpuReg ();
+  ARMWord op = getCpuReg ();
   ir |= DST_OP (op);
   putIns (ir);
 }
 
 void
-m_wfs (WORD cc)
+m_wfs (ARMWord cc)
 {
   flagtransfer (M_WFS | cc);
 }
 
 void
-m_rfs (WORD cc)
+m_rfs (ARMWord cc)
 {
   flagtransfer (M_RFS | cc);
 }
 
 void
-m_wfc (WORD cc)
+m_wfc (ARMWord cc)
 {
   flagtransfer (M_WFC | cc);
 }
 
 void
-m_rfc (WORD cc)
+m_rfc (ARMWord cc)
 {
   flagtransfer (M_RFC | cc);
 }
 
 static void
-comparelow (WORD ir)		/* No precision and no rounding allowed ? */
+comparelow (ARMWord ir)		/* No precision and no rounding allowed ? */
 {
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
@@ -423,13 +423,13 @@ comparelow (WORD ir)		/* No precision and no rounding allowed ? */
 }
 
 void
-m_cmf (WORD cc)
+m_cmf (ARMWord cc)
 {
   comparelow (M_CMF | cc);
 }
 
 void
-m_cnf (WORD cc)
+m_cnf (ARMWord cc)
 {
   comparelow (M_CNF | cc);
 }

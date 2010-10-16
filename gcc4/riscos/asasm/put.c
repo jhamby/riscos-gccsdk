@@ -55,7 +55,7 @@ putAlign (int align, const char *msg)
  * \entry data Data value to be written.
  */
 void
-putData (int size, WORD data)
+putData (int size, ARMWord data)
 {
   if (!areaCurrentSymbol)
     {
@@ -115,8 +115,10 @@ putData (int size, WORD data)
  * \entry data Float value to be written.
  */
 void
-putDataFloat (int size, FLOAT data)
+putDataFloat (int size, ARMFloat data)
 {
+  /* FIXME: this wrongly assumes that the native float/double layout corresponds
+     with the ARM FPA layout.  */
   union
   {
     double d;
@@ -124,11 +126,8 @@ putDataFloat (int size, FLOAT data)
     struct
       {
 	char c[8];		/* endianness? */
-      }
-    u;
-  }
-  translate;
-  int i;
+      } u;
+  } translate;
 
   if (!areaCurrentSymbol)
     {
@@ -156,7 +155,7 @@ putDataFloat (int size, FLOAT data)
     {
       if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.ValueInt.i + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
-      for (i = 0; i < size; i++)
+      for (int i = 0; i < size; i++)
 	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = translate.u.c[i];
     }
   else if (data)
@@ -172,7 +171,7 @@ putDataFloat (int size, FLOAT data)
  * \entry ins ARM instruction value to be written.
  */
 void
-putIns (WORD ins)
+putIns (ARMWord ins)
 {
   if (!areaCurrentSymbol)
     {

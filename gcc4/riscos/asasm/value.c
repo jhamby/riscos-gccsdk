@@ -171,7 +171,7 @@ valueFree(Value *value)
     }
 }
 
-static BOOL
+static bool
 lateInfoEqual(const LateInfo *a, const LateInfo *b)
 {
   for (/* */; a || b; a = a->next, b = b->next)
@@ -179,12 +179,12 @@ lateInfoEqual(const LateInfo *a, const LateInfo *b)
       if (!a || !b
 	  || a->factor != b->factor
 	  || a->symbol != b->symbol)
-	return FALSE;
+	return false;
     }
-  return TRUE;
+  return true;
 }
 
-BOOL
+bool
 valueEqual(const Value *a, const Value *b)
 {
   if (a->Tag.t == ValueLateLabel)
@@ -211,7 +211,7 @@ valueEqual(const Value *a, const Value *b)
 	if (b->Tag.t == ValueLateLabel)
 	  {
 	    Value v = valueLateToCode(b->ValueLate.i,b->ValueLate.late);
-	    BOOL res = a->ValueCode.len == v.ValueCode.len && codeEqual(a->ValueCode.len,a->ValueCode.c,v.ValueCode.c);
+	    bool res = a->ValueCode.len == v.ValueCode.len && codeEqual(a->ValueCode.len,a->ValueCode.c,v.ValueCode.c);
 	    valueFree(&v);
 	    return res;
 	  }
@@ -228,7 +228,7 @@ valueEqual(const Value *a, const Value *b)
 	break;
     }
 
-  return FALSE;
+  return false;
 }
 
 
@@ -292,7 +292,7 @@ valuePrint(const Value *v)
 	printf("<%.*s> (string)\n", v->ValueString.len, v->ValueString.s);
 	break;
       case ValueBool:
-	printf("<%s> (bool)\n", v->ValueBool.b ? "TRUE" : "FALSE");
+	printf("<%s> (bool)\n", v->ValueBool.b ? "true" : "false");
 	break;
       case ValueCode:
 	printf("(code)\n");

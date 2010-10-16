@@ -50,7 +50,7 @@ const char Pri[2][10] =
 };
 
 static Lex nextbinop;
-static BOOL nextbinopvalid = FALSE;
+static bool nextbinopvalid = false;
 
 /**
  * A simple and fast generic string hasher based on Peter K. Pearson's
@@ -145,48 +145,49 @@ lexint (int base)
 }
 
 
-static FLOAT
+static ARMFloat
 lexfloat (int r)
 {
-  FLOAT res = r;
-  FLOAT exponent = 0.0;
-  FLOAT signexp = 1.;
+  double res = r;
+  double exponent = 0.0;
+  double signexp = 1.;
 
   if (inputGet () != '.')
     errorAbort ("Internal lexfloat: parse error");
 
   /* Fraction part */
-  FLOAT frac = 0.1;
+  double frac = 0.1;
   char c;
   while (isdigit (c = inputGet ()))
     {
-      res = res + frac * ((FLOAT) c - (FLOAT) '0');
+      res = res + frac * (c - '0');
       frac /= 10.0;
     }
   /* Exponent part */
   if (c == 'e' || c == 'E')
     {			
-	  if (inputLook () == '-')
-	    {
-	      inputSkip ();
-	      signexp = -1.;
-	    }
-	  else if (inputLook () == '+')
-	    inputSkip ();
-	  while (isdigit (c = inputGet ()))
-	    exponent = exponent * 10.0 + ((FLOAT) c - (FLOAT) '0');
+      if (inputLook () == '-')
+	{
+	  inputSkip ();
+	  signexp = -1.;
 	}
-      inputUnGet (c);
+      else if (inputLook () == '+')
+	inputSkip ();
+      while (isdigit (c = inputGet ()))
+	exponent = exponent * 10.0 + (c - '0');
+    }
+
+  inputUnGet (c);
   return res * pow (10.0, signexp * exponent);
 }
 
 
 static Lex
-lexGetIdInternal (BOOL genError)
+lexGetIdInternal (bool genError)
 {
   char c;
   Lex result;
-  nextbinopvalid = FALSE;
+  nextbinopvalid = false;
 
   skipblanks ();
   if ((c = inputGet ()) == '|')
@@ -230,14 +231,14 @@ lexGetIdInternal (BOOL genError)
 Lex
 lexGetId (void)
 {
-  return lexGetIdInternal (TRUE);
+  return lexGetIdInternal (true);
 }
 
 
 Lex
 lexGetIdNoError (void)
 {
-  return lexGetIdInternal (FALSE);
+  return lexGetIdInternal (false);
 }
 
 
@@ -304,7 +305,7 @@ lexGetLocal (void)
 {
   Lex result;
   result.tag = LexNone;
-  nextbinopvalid = FALSE;
+  nextbinopvalid = false;
   if (isdigit (inputLook ()))
     {
       char *name, id[1024];
@@ -333,7 +334,7 @@ lexGetPrim (void)
   int len;
   Lex result;
 
-  nextbinopvalid = FALSE;
+  nextbinopvalid = false;
   skipblanks ();
   switch (c = inputGet ())
     {
@@ -395,7 +396,7 @@ lexGetPrim (void)
       str = inputSymbol (&len, '\'');
       if (inputGet () != '\'')
 	error (ErrorError, "Character continues over newline");
-      result.LexInt.value = lexChar2Int (TRUE, len, str);
+      result.LexInt.value = lexChar2Int (true, len, str);
       break;
     case '"':
       result.tag = LexString;
@@ -584,7 +585,7 @@ lexGetBinop (void)
   int c;
   if (nextbinopvalid)
     {
-      nextbinopvalid = FALSE;
+      nextbinopvalid = false;
       return nextbinop;
     }
   skipblanks ();
@@ -735,7 +736,7 @@ lexNextPri ()
   if (!nextbinopvalid)
     {
       nextbinop = lexGetBinop ();
-      nextbinopvalid = TRUE;
+      nextbinopvalid = true;
     }
   if (nextbinop.tag == LexOperator)
     return nextbinop.LexOperator.pri;
@@ -794,7 +795,7 @@ lexPrint(const Lex *lex)
       printf("Label <%d> ", lex->Lex00Label.value);
       break;
     case LexBool:
-      printf("Bool <%d> ", lex->Lex00Label.value);
+      printf("bool <%d> ", lex->Lex00Label.value);
       break;
     case LexNone:
       printf("None ");

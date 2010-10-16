@@ -41,7 +41,7 @@
 #include "targetcpu.h"
 
 static void
-coprocessor (BOOL CopOnly, WORD ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,info} */
+coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,info} */
 {
   int cop = CP_NUMBER (getCopNum ());
 
@@ -103,45 +103,45 @@ coprocessor (BOOL CopOnly, WORD ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,in
 }
 
 void
-m_cdp (WORD cc)			/* cdp CC p#,cpop,cpdst,cplhs,cprhs {,info} */
+m_cdp (ARMWord cc)			/* cdp CC p#,cpop,cpdst,cplhs,cprhs {,info} */
 {
-  coprocessor (TRUE, cc | 0x0e000000, 15);
+  coprocessor (true, cc | 0x0e000000, 15);
 }
 
 void
 m_cdp2 (void)
 {
-  coprocessor (TRUE, 0xfe000000, 15);
+  coprocessor (true, 0xfe000000, 15);
 }
 
 /** REGISTER TRANSFER **/
 
 void
-m_mcr (WORD cc)
+m_mcr (ARMWord cc)
 {
-  coprocessor (FALSE, cc | 0x0e000010, 7);
+  coprocessor (false, cc | 0x0e000010, 7);
 }
 
 void
 m_mcr2 (void)
 {
-  coprocessor (FALSE, 0xfe000010, 7);
+  coprocessor (false, 0xfe000010, 7);
 }
 
 void
-m_mrc (WORD cc)
+m_mrc (ARMWord cc)
 {
-  coprocessor (FALSE, cc | 0x0e100010, 7);
+  coprocessor (false, cc | 0x0e100010, 7);
 }
 
 void
 m_mrc2 (void)
 {
-  coprocessor (FALSE, 0xfe100010, 7);
+  coprocessor (false, 0xfe100010, 7);
 }
 
 static void
-coprocessorr (WORD ir)
+coprocessorr (ARMWord ir)
 {
   ir |= CP_NUMBER (getCopNum ());
   skipblanks ();
@@ -185,13 +185,13 @@ coprocessorr (WORD ir)
 }
 
 void
-m_mcrr (WORD cc)
+m_mcrr (ARMWord cc)
 {
   coprocessorr (cc | 0x0C400000);
 }
 
 void
-m_mrrc (WORD cc)
+m_mrrc (ARMWord cc)
 {
   coprocessorr (cc | 0x0C500000);
 }

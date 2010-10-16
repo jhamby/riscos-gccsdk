@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,8 +25,8 @@
 
 #include "global.h"
 
-void putData (int size, WORD data);
-void putDataFloat (int size, FLOAT data);
-void putIns (WORD ins);
+void putData (int size, ARMWord data);
+void putDataFloat (int size, ARMFloat data);
+void putIns (ARMWord ins);
 
 #endif

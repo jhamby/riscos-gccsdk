@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2006 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,6 +23,8 @@
 #ifndef help_cop_header_included
 #define help_cop_header_included
 
+#include <stdbool.h>
+
 #define CP_NUMBER(n) ((n)<< 8)
 #define CP_DCODE(n)  ((n)<<20)
 #define CP_RTRAN(n)  ((n)<<21)
@@ -35,6 +37,6 @@
 
 int help_copInt (int max, const char *msg);
 
-WORD help_copAddr (WORD ir, BOOL stack);
+ARMWord help_copAddr (ARMWord ir, bool stack);
 
 #endif

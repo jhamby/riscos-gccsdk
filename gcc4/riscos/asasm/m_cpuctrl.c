@@ -49,10 +49,10 @@
 /** CONTROL **/
 
 void
-m_branch (WORD cc)
+m_branch (ARMWord cc)
 {
   Value im;
-  WORD ir = cc | 0x0A000000;
+  ARMWord ir = cc | 0x0A000000;
   switch (inputLook ())
     {
     case '#':
@@ -86,11 +86,11 @@ m_branch (WORD cc)
 }
 
 void
-m_blx (WORD cc)
+m_blx (ARMWord cc)
 {
   Value im;
-  WORD reg;
-  WORD ir;
+  ARMWord reg;
+  ARMWord ir;
 
   cpuWarn (XSCALE);
 
@@ -142,7 +142,7 @@ m_blx (WORD cc)
 }
 
 void
-m_bx (WORD cc)
+m_bx (ARMWord cc)
 {
   int dst = getCpuReg();
 
@@ -154,7 +154,7 @@ m_bx (WORD cc)
 }
 
 void
-m_swi (WORD cc)
+m_swi (ARMWord cc)
 {
   if (inputLook () == '#')
     {
@@ -164,7 +164,7 @@ m_swi (WORD cc)
   exprBuild ();
   Value im = exprEval (ValueInt | ValueAddr | ValueString | ValueCode
 		 | ValueLateLabel);
-  WORD ir = cc | 0x0F000000;
+  ARMWord ir = cc | 0x0F000000;
   switch (im.Tag.t)
     {
       case ValueInt:
@@ -213,9 +213,9 @@ m_bkpt (void)
   Value im = exprEval (ValueInt);
   if (im.Tag.t != ValueInt)
     error (ErrorError, "Illegal BKPT expression");
-  WORD val = fixInt (0, 2, im.ValueInt.i);
+  ARMWord val = fixInt (0, 2, im.ValueInt.i);
 
-  WORD ir = 0xE1200070;
+  ARMWord ir = 0xE1200070;
   ir |= ((val & 0xFFF0) << 4) | (val & 0xF);
 
   putIns (ir);
@@ -225,9 +225,9 @@ m_bkpt (void)
 /** EXTENSION **/
 
 void
-m_adr (WORD cc)
+m_adr (ARMWord cc)
 {
-  WORD ir = cc & ~1, ir2 = 0;	/* bit 0 set to indicate ADRL */
+  ARMWord ir = cc & ~1, ir2 = 0;	/* bit 0 set to indicate ADRL */
   Value im;
   ir |= DST_OP (getCpuReg ());
   ir |= LHS_OP (15) | IMM_RHS;	/* pc */
@@ -379,7 +379,7 @@ m_stack (void)
 /** APCS epilogue **/
 
 static void
-apcsEpi (WORD cc, const int *pop_inst, const char *op)
+apcsEpi (ARMWord cc, const int *pop_inst, const char *op)
 {
   static const int pfp_inst[] =
     {
@@ -401,7 +401,7 @@ apcsEpi (WORD cc, const int *pop_inst, const char *op)
 /* APCS epilogue - return */
 
 void
-m_ret (WORD cc)
+m_ret (ARMWord cc)
 {
   static const int pop_inst[] =
     {
@@ -420,7 +420,7 @@ m_ret (WORD cc)
 /* APCS epilogue - tail call */
 
 void
-m_tail (WORD cc)
+m_tail (ARMWord cc)
 {
   static const int pop_inst[] =
     {
@@ -442,10 +442,10 @@ m_tail (WORD cc)
 
 /* PSR access */
 
-static WORD
-getpsr (BOOL only_all)
+static ARMWord
+getpsr (bool only_all)
 {
-  WORD saved;
+  ARMWord saved;
   char w[4];
 
   skipblanks ();
@@ -525,10 +525,10 @@ getpsr (BOOL only_all)
 
 
 void
-m_msr (WORD cc)
+m_msr (ARMWord cc)
 {
   cpuWarn (ARM6);
-  cc |= getpsr (FALSE) | 0x0120F000;
+  cc |= getpsr (false) | 0x0120F000;
   skipblanks ();
   if (inputLook () == ',')
     {
@@ -558,7 +558,7 @@ m_msr (WORD cc)
 
 
 void
-m_mrs (WORD cc)
+m_mrs (ARMWord cc)
 {
   cpuWarn (ARM6);
   cc |= getCpuReg () << 12 | 0x01000000;
@@ -570,6 +570,6 @@ m_mrs (WORD cc)
     }
   else
     error (ErrorError, "%slhs", InsertCommaAfter);
-  cc |= getpsr (TRUE);
+  cc |= getpsr (true);
   putIns (cc);
 }

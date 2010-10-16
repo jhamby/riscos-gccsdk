@@ -83,11 +83,11 @@ symbolNew (int len, const char *str)
   return result;
 }
 
-static BOOL
+static bool
 EqSymLex (const Symbol *str, const Lex *lx)
 {
   if (str->len != lx->LexId.len)
-    return FALSE;
+    return false;
   return !memcmp(str->str, lx->LexId.str, str->len);
 }
 
@@ -419,7 +419,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 			v = (int) value.ValueFloat.f;
 			break;
 		      case ValueString:
-			v = lexChar2Int (FALSE, value.ValueString.len, value.ValueString.s);
+			v = lexChar2Int (false, value.ValueString.len, value.ValueString.s);
 			break;
 		      case ValueBool:
 			v = value.ValueBool.b;
@@ -558,7 +558,7 @@ symbolSymbolELFOutput (FILE *outfile)
 			v = (int) value.ValueFloat.f;
 			break;
 		      case ValueString:
-			v = lexChar2Int (FALSE, value.ValueString.len, value.ValueString.s);
+			v = lexChar2Int (false, value.ValueString.len, value.ValueString.s);
 			break;
 		      case ValueBool:
 			v = value.ValueBool.b;

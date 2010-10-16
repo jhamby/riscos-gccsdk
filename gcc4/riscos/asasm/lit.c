@@ -40,7 +40,7 @@
 static LitList *cache = NULL;
 
 static LitInfo *
-litFind (LitInfo *p, RelocTag tag, WORD extra, int notbefore, const Value *value)
+litFind (LitInfo *p, RelocTag tag, ARMWord extra, int notbefore, const Value *value)
 {
   for (; p; p = p->next)
     {
@@ -75,7 +75,7 @@ litListNew (LitList *next, int offset)
 }
 
 static LitInfo *
-litInfoNew (LitInfo *more, RelocTag tag, WORD extra, const Value *value)
+litInfoNew (LitInfo *more, RelocTag tag, ARMWord extra, const Value *value)
 {
   LitInfo *newLitList;;
   if ((newLitList = malloc (sizeof (LitInfo))) == NULL)
@@ -91,7 +91,7 @@ litInfoNew (LitInfo *more, RelocTag tag, WORD extra, const Value *value)
 }
 
 static void
-litNew (RelocTag tag, WORD extra, int offset, int notbefore, const Value *value)
+litNew (RelocTag tag, ARMWord extra, int offset, int notbefore, const Value *value)
 {
   LitInfo *p = litFind (areaCurrentSymbol->area.info->lits, tag, extra, notbefore, value);
   if (!p)
@@ -121,7 +121,7 @@ litOrg (LitInfo *li)
     {
       LitList *nll;
       unsigned char *image = areaCurrentSymbol->area.info->image;
-      BOOL fp;
+      bool fp;
       if (li->reloc.lineno < 0)
 	{
 	  li->reloc.offset = areaCurrentSymbol->value.ValueInt.i;
@@ -130,7 +130,7 @@ litOrg (LitInfo *li)
       fp = li->reloc.value.Tag.t == ValueFloat;
       for (ll = li->used; ll; ll = nll)
 	{
-	  WORD w;
+	  ARMWord w;
 	  int offset = ll->offset;
 	  nll = ll->next;
 	  ll->next = cache;

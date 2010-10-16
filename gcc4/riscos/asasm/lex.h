@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2009 GCCSDK Developers
+ * Copyright (c) 2002-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,8 @@
 
 #ifndef lex_header_included
 #define lex_header_included
+
+#include <stdbool.h>
 
 #include "global.h"
 
@@ -48,7 +50,7 @@ typedef enum
    (op)==Op_fattr || (op)==Op_lnot  || (op)==Op_not   || \
    (op)==Op_neg   || (op)==Op_index || (op)==Op_len   || \
    (op)==Op_str   || (op)==Op_chr)
-BOOL (isUnop) (Operator);
+bool (isUnop) (Operator);
 
 extern const char Pri[2][10];
 #define PRI(n) Pri[option_objasm][n-1]
@@ -71,7 +73,7 @@ typedef enum
 
 typedef union
 {
-  LexTag tag;			/* LexPosition, LexStorage, LexNone */
+  LexTag tag;
   struct
   {
     LexTag tag;
@@ -93,7 +95,7 @@ typedef union
   struct
   {
     LexTag tag;
-    FLOAT value;
+    ARMFloat value;
   } LexFloat;			/* LexFloat */
   struct
   {
@@ -114,7 +116,7 @@ typedef union
   struct
   {
     LexTag tag;
-    BOOL value;
+    bool value;
   } LexBool;			/* LexBool */
 } Lex;
 

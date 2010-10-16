@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2009 GCCSDK Developers
+ * Copyright (c) 2000-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -63,7 +63,7 @@ lexAcornUnop (Lex *lex)
 	*lex = lexGetPrim ();
 	if (lex->tag != LexId)
 	  goto illegal;
-	/* :def: only returns {TRUE} when the symbol is defined and it is not
+	/* :def: only returns {true} when the symbol is defined and it is not
 	   a macro local variable.  */
 	const Symbol *symP = symbolFind (lex);
 	lex->LexInt.value =  symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
@@ -200,7 +200,7 @@ lexAcornPrim (Lex *lex)
       case 'f':
 	FINISH_STR_PRIM ("alse}"); /* {false} */
 	lex->tag = LexBool;
-	lex->LexInt.value = FALSE;
+	lex->LexInt.value = false;
 	return;
       case 'm':
 	FINISH_STR_PRIM ("odule}"); /* {module} */
@@ -219,7 +219,7 @@ lexAcornPrim (Lex *lex)
       case 't':
 	FINISH_STR_PRIM ("rue}"); /* {true} */
 	lex->tag = LexBool;
-	lex->LexInt.value = TRUE;
+	lex->LexInt.value = true;
 	return;
       case 'v':
 	FINISH_STR_PRIM ("ar}"); /* {var} */
@@ -233,7 +233,7 @@ lexAcornPrim (Lex *lex)
       case 'a':
 	FINISH_STR_PRIM ("sasm}"); /* {asasm} */
 	lex->tag = LexBool;
-	lex->LexInt.value = TRUE;
+	lex->LexInt.value = true;
 	return;
     }
 
