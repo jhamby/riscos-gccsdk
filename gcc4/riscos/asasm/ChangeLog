@@ -1,3 +1,10 @@
+Sun Oct 17 17:24:54 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpuctrl.c (m_swi): Improve SWI name processing.
+	* help_cop.c (help_copAddr): Replace abort() by error(ErrorAbort, ...).
+	* variables.c (assign_var): Likewise.  Improve empty string case.
+	* value.c (valueCopy): Fix case of copying strings containing NUL char.
+
 Sun Oct 17 14:58:42 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos_c.c, main.c, main.h (option_dde): Remove @/Prefix$Dir hack.

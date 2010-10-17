@@ -180,11 +180,11 @@ m_swi (ARMWord cc)
       case ValueString:
 #ifdef __riscos__
 	{
-	  const char *s;
-	  if ((s = strndup(im.ValueString.s, im.ValueString.len)) == NULL)
-	    errorOutOfMem ();
-	  ir |= switonum (s);
-	  free((void *)s);
+	  /* ValueString are not NUL terminated.  */
+	  char swiname[im.ValueString.len + 1];
+	  memcpy (swiname, im.ValueString.s, im.ValueString.len);
+	  swiname[im.ValueString.len] = '\0';
+	  ir |= switonum (swiname);
 	  if (ir == 0xFFFFFFFF)
 	    error (ErrorError, "Unknown SWI name");
 	}

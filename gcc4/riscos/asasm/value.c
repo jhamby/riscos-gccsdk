@@ -113,26 +113,34 @@ valueCopy (Value value)
 {
   switch (value.Tag.t)
     {
-    case ValueIllegal:
-    case ValueInt:
-    case ValueFloat:
-    case ValueBool:
-    case ValueAddr:
-      break;
-    case ValueString:
-      if ((value.ValueString.s = strndup (value.ValueString.s, value.ValueString.len)) == NULL)
-	errorOutOfMem ();
-      break;
-    case ValueCode:
-      value.ValueCode.c = codeCopy (value.ValueCode.len, value.ValueCode.c);
-      break;
-    case ValueLateLabel:
-      value = valueLateToCode (value.ValueLate.i, value.ValueLate.late);
-      break;
-    default:
-      errorAbort ("Internal valueCopy: illegal value");
-      value.Tag.t = ValueIllegal;
-      break;
+      case ValueIllegal:
+      case ValueInt:
+      case ValueFloat:
+      case ValueBool:
+      case ValueAddr:
+        break;
+
+      case ValueString:
+	{
+	  char *c;
+	  if ((c = malloc (value.ValueString.len)) == NULL)
+	    errorOutOfMem ();
+	  memcpy (c, value.ValueString.s, value.ValueString.len);
+	  value.ValueString.s = c;
+	}
+        break;
+
+      case ValueCode:
+        value.ValueCode.c = codeCopy (value.ValueCode.len, value.ValueCode.c);
+        break;
+
+      case ValueLateLabel:
+        value = valueLateToCode (value.ValueLate.i, value.ValueLate.late);
+        break;
+
+      default:
+        errorAbort ("Internal valueCopy: illegal value");
+        break;
     }
 
   return value;

@@ -174,9 +174,7 @@ help_copAddr (ARMWord ir, bool stack)
 	  skipblanks ();
 	}
       else if (stack)
-	{
-	  pre = true;		/* [base] in stack context => [base,#0] */
-	}
+	pre = true;		/* [base] in stack context => [base,#0] */
       if (pre)
 	ir |= PRE_FLAG;
       break;
@@ -214,7 +212,7 @@ help_copAddr (ARMWord ir, bool stack)
 	    }
 	  break;
 	default:
-	  abort ();
+	  error (ErrorAbort, "Internal error: help_copAddr");
 	  break;
 	}
       break;

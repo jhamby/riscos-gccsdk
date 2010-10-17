@@ -293,7 +293,7 @@ errorCoreLine (int lineno, const char *file, ErrorTag e,
 }
 
 /**
- * ErrorAbort or too many ErrorError won't make this function return.
+ * An ErrorAbort or too many ErrorError's won't make this function return.
  */
 void
 errorLine (int lineno, const char *file,

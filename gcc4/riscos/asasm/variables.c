@@ -84,11 +84,12 @@ assign_var (Symbol *sym, ValueTag type)
 	break;
       case ValueString:
 	sym->value.ValueString.len = 0;
-	if ((sym->value.ValueString.s = calloc (1, 1)) == NULL)
+	/* We don't do malloc(0) as this can on some systems return NULL.  */
+	if ((sym->value.ValueString.s = malloc (1)) == NULL)
 	  errorOutOfMem ();
 	break;
       default:
-	abort ();
+	error (ErrorAbort, "Internal error: assign_var");
 	break;
     }
 }
