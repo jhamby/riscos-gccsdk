@@ -73,50 +73,66 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
 {
   switch (op)
     {
-    case Op_mul:
+    case Op_mul: /* * */
       if ((lvalue->Tag.t == ValueAddr && rvalue->Tag.t == ValueInt)
 	  || (lvalue->Tag.t == ValueInt && rvalue->Tag.t == ValueAddr))
+	lvalue->ValueInt.i *= rvalue->ValueInt.i;
+      else if (lvalue->Tag.t == rvalue->Tag.t
+	       && lvalue->Tag.t == ValueInt)
+	lvalue->ValueInt.i *= rvalue->ValueInt.i;
+      else if (lvalue->Tag.t == rvalue->Tag.t
+	       && lvalue->Tag.t == ValueFloat)
+	lvalue->ValueFloat.f *= rvalue->ValueFloat.f;
+      else
 	{
-	  lvalue->ValueInt.i *= rvalue->ValueInt.i;
-	  return true;
-	}
-      if (lvalue->Tag.t != rvalue->Tag.t)
-	return false;
-      switch (lvalue->Tag.t)
-	{
-	case ValueInt:
-	  lvalue->ValueInt.i *= rvalue->ValueInt.i;
-	  break;
-	case ValueFloat:
-	  lvalue->ValueFloat.f *= rvalue->ValueFloat.f;
-	  break;
-	default:
-	  abort (); // FIXME:
-	  break;
+	  error (ErrorError, "Bad operand type for multiplication");
+	  return false;
 	}
       break;
 
-    case Op_div:
-      if (lvalue->Tag.t != rvalue->Tag.t)
-	return false;
-      switch (lvalue->Tag.t) // FIXME: check div by 0
+    case Op_div: /* / */
+      if (lvalue->Tag.t == rvalue->Tag.t && lvalue->Tag.t == ValueInt)
 	{
-	case ValueInt:
-	  lvalue->ValueInt.i /= rvalue->ValueInt.i;
-	  break;
-	case ValueFloat:
+	  if (rvalue->ValueInt.i == 0)
+	    {
+	      error (ErrorError, "Division by zero");
+	      return false;
+	    }
+	  /* Division is *unsigned*.  */
+	  lvalue->ValueInt.i = (unsigned)lvalue->ValueInt.i / (unsigned)rvalue->ValueInt.i;
+	}
+      else if (lvalue->Tag.t == rvalue->Tag.t && lvalue->Tag.t == ValueFloat)
+	{
+	  if (rvalue->ValueFloat.f == 0.)
+	    {
+	      error (ErrorError, "Division by zero");
+	      return false;
+	    }
 	  lvalue->ValueFloat.f /= rvalue->ValueFloat.f;
-	  break;
-	default:
-	  abort (); // FIXME:
-	  break;
+	}
+      else
+	{
+	  error (ErrorError, "Bad operand type for division");
+	  return false;
 	}
       break;
 
-    case Op_mod:
-      if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
-	return false;
-      lvalue->ValueInt.i %= rvalue->ValueInt.i; // FIXME: check mod by 0
+    case Op_mod: /* :MOD: */
+      if (lvalue->Tag.t == ValueInt && rvalue->Tag.t == ValueInt)
+	{
+	  if (rvalue->ValueInt.i == 0)
+	    {
+	      error (ErrorError, "Division by zero");
+	      return false;
+	    }
+	  /* Modulo is *unsigned*.  */
+	  lvalue->ValueInt.i = (unsigned)lvalue->ValueInt.i % (unsigned)rvalue->ValueInt.i;
+	}
+      else
+	{
+	  error (ErrorError, "Bad operand type for modulo");
+	  return false;
+	}
       break;
 
     case Op_add:

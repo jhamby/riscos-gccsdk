@@ -1,3 +1,9 @@
+Sun Oct 17 05:40:33 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/operator_multiplication.s: Added.  Tests
+	multiplication, division and modulo operators.
+	* eval.c (evalBinop): Fix and cleanup Op_mul, Op_div and Op_mod.
+
 Sun Oct 17 04:52:15 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/operator_shift.s: Added.  Tests the shift
