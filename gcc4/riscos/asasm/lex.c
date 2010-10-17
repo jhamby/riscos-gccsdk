@@ -643,9 +643,7 @@ lexGetBinop (void)
 	      result.LexOperator.op = Op_asr;
 	    }
 	  else
-	    {
-	      result.LexOperator.op = Op_sr;
-	    }
+	    result.LexOperator.op = Op_sr;
 	  break;
 	case '=':
 	  inputSkip ();

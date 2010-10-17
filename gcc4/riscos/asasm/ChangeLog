@@ -1,3 +1,10 @@
+Sun Oct 17 04:52:15 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/operator_shift.s: Added.  Tests the shift
+	operators.
+	* eval.c (evalBinop): Fix and cleanup Op_rol, Op_ror, Op_sl, Op_sr,
+	Op_asr operator code.
+
 Sun Oct 17 03:08:27 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/operator_relational.s: Added.  Tests the

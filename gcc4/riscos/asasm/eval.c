@@ -201,32 +201,63 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
 	return false;
       lvalue->ValueInt.i ^= rvalue->ValueInt.i;
       break;
-    case Op_asr:
-      if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
-	return false;
-      lvalue->ValueInt.i = ((signed int) lvalue->ValueInt.i) >> rvalue->ValueInt.i; // FIXME: non predicatable code
+
+    case Op_asr: /* >>> */
+      {
+        if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
+	  {
+	    error (ErrorError, "Bad operand type for >>>");
+	    return false;
+	  }
+        unsigned numbits = (unsigned)rvalue->ValueInt.i >= 32 ? 1 : 32 - (unsigned)rvalue->ValueInt.i;
+        unsigned mask = 1U << (numbits - 1);
+        ARMWord nosign = ((ARMWord) lvalue->ValueInt.i) >> (32 - numbits);
+        lvalue->ValueInt.i = (nosign ^ mask) - mask;
+      }
       break;
-    case Op_sr:
+
+    case Op_sr: /* >> :SHR: */
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
-	return false;
-      lvalue->ValueInt.i = ((ARMWord) lvalue->ValueInt.i) >> rvalue->ValueInt.i;
+	{
+	  error (ErrorError, "Bad operand type for >> or :SHR:");
+	  return false;
+	}
+      lvalue->ValueInt.i = (unsigned)rvalue->ValueInt.i >= 32 ? 0 : ((ARMWord) lvalue->ValueInt.i) >> rvalue->ValueInt.i;
       break;
-    case Op_sl:
+
+    case Op_sl: /* << :SHL: */
       if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
-	return false;
-      lvalue->ValueInt.i <<= rvalue->ValueInt.i;
+	{
+	  error (ErrorError, "Bad operand type for << or :SHR:");
+	  return false;
+	}
+      lvalue->ValueInt.i = (unsigned)rvalue->ValueInt.i >= 32 ? 0 : ((ARMWord) lvalue->ValueInt.i) << rvalue->ValueInt.i;
       break;
+
     case Op_ror:
-      if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
-	return false;
-      lvalue->ValueInt.i = (((ARMWord) lvalue->ValueInt.i) >> rvalue->ValueInt.i) |
-	((lvalue->ValueInt.i) << (32 - rvalue->ValueInt.i));
+      {
+        if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
+	  {
+	    error (ErrorError, "Bad operand type for :ROR:");
+	    return false;
+	  }
+	unsigned numbits = rvalue->ValueInt.i & 31;
+        lvalue->ValueInt.i = (((ARMWord) lvalue->ValueInt.i) >> numbits)
+			       | (lvalue->ValueInt.i << (32 - numbits));
+      }
       break;
+
     case Op_rol:
-      if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
-	return false;
-      lvalue->ValueInt.i = ((lvalue->ValueInt.i) << rvalue->ValueInt.i) |
-	(((ARMWord) lvalue->ValueInt.i) >> (32 - rvalue->ValueInt.i));
+      {
+        if (lvalue->Tag.t != ValueInt || rvalue->Tag.t != ValueInt)
+	  {
+	    error (ErrorError, "Bad operand type for :ROL:");
+	    return false;
+	  }
+	unsigned numbits = rvalue->ValueInt.i & 31;
+        lvalue->ValueInt.i = (lvalue->ValueInt.i << numbits)
+				| (((ARMWord) lvalue->ValueInt.i) >> (32 - numbits));
+      }
       break;
 
     case Op_le: /* <= */
