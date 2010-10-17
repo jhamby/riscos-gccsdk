@@ -48,9 +48,6 @@ static int LateHeapPtr;
 
 static int Sp;			/* Used by codeEvalLow and codeEvalLowest */
 
-bool exprNotConst;
-
-
 LateInfo *
 codeNewLateInfo (Symbol *symbol)
 {
@@ -67,7 +64,6 @@ void
 codeInit (void)
 {
   FirstFreeIns = LateHeapPtr = 0;
-  exprNotConst = false;
 }
 
 void
@@ -89,8 +85,6 @@ codeSymbol (Symbol *symbol)
     {
       if ((symbol->type & SYMBOL_DEFINED) && !(symbol->type & SYMBOL_AREA))
 	{
-	  if (symbol->value.Tag.v != ValueIllegal)
-	    exprNotConst = true;
 	  switch (symbol->value.Tag.t)
 	    {
 	    case ValueInt:

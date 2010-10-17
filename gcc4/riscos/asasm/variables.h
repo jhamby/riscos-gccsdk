@@ -26,19 +26,23 @@
 #include "lex.h"
 #include "symbol.h"
 
+/**
+ * Created for each local variable encountered in a macro as we need to restore
+ * it.
+ */
 typedef struct varPos
 {
   struct varPos *next;
-  char *name;
-  Symbol *symptr;
-  Symbol symbol;
+  Symbol *symptr; /**< Non-NULL when macro caller has this variable already defined.  */
+  Symbol symbol; /**< When symptr is non-NULL, the previous symbol object.  */
+  char name[]; /**< NUL terminated symbol name.  */
 } varPos;
 
 void c_gbl (ValueTag, const Lex *);	/* global variable declaration */
 void c_lcl (ValueTag, const Lex *);	/* local variable declaration */
 void c_set (ValueTag, const Lex *);	/* variable assignment */
 
-void var_restoreLocals (varPos *);	/* called on macro exit */
+void var_restoreLocals (const varPos *);	/* called on macro exit */
 void var_define (const char *);
 
 #endif

@@ -146,8 +146,8 @@ valueCopy (Value value)
   return value;
 }
 
-static void
-valueFree(Value *value)
+void
+valueFree (Value *value)
 {
   switch (value->Tag.t)
     {
@@ -157,22 +157,23 @@ valueFree(Value *value)
       case ValueBool:
       case ValueAddr: /* Needed here? */
 	break;
+
       case ValueString:
-	if (value->Tag.v == ValueString)
-	  {
-	    free((void *)value->ValueString.s);
-	    value->ValueString.s = NULL;
-	  }
-	else
-	  errorAbort ("Internal valueFree: cannot handle %s", "string");
+	free ((void *)value->ValueString.s);
+	value->ValueString.len = 0;
+	value->ValueString.s = NULL;
 	break;
+
       case ValueCode:
-	free(value->ValueCode.c);
+	free (value->ValueCode.c);
+	value->ValueCode.len = 0;
 	value->ValueCode.c = NULL;
 	break;
+
       case ValueLateLabel:
 	errorAbort ("Internal valueFree: cannot handle %s", "late label");
 	break;
+
       default:
 	errorAbort ("Internal valueFree: illegal value");
 	break;

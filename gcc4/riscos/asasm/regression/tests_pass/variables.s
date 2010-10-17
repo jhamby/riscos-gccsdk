@@ -6,6 +6,17 @@
 	; *** TESTCASE:
 
 ; Macro / local variables:
+
+		; Simple invocation of a macro.
+TestMacro0
+		MACRO
+		MTestMacro
+		LCLA	TestMacro0Var
+TestMacro0Var	SETA	42
+		DCD	TestMacro0Var
+		MEND
+		MTestMacro
+
 TestMacro1
 		MACRO
 		MTestMacro1
@@ -18,7 +29,7 @@ TestMacro1
 		=	"nok"
 		]
 		=	"\n"
-		; Setting variable should update its value:
+		; Setting a local variable should update its value:
 		=	"TestMacro1b: "
 TestMacro1Var	SETA	11
 		[ TestMacro1Var = 11
@@ -27,8 +38,8 @@ TestMacro1Var	SETA	11
 		=	"nok"
 		]
 		=	"\n"
-		; Call another macro which also defines & uses the
-		; TestMacro1Var local variable
+		; Call another macro which also defines & uses the same
+		; TestMacro1Var local variable.
 		MTestMacro2
 		; We expect that our local variable still has its same
 		; value:
@@ -53,7 +64,7 @@ TestMacro1Var	SETA	11
 		]
 		=	"\n"
 		; Setting variable should update its value:
-		=	"TestMacro1b: "
+		=	"TestMacro2b: "
 TestMacro1Var	SETA	22
 		[ TestMacro1Var = 22
 		=	"ok"
@@ -214,7 +225,7 @@ TestArith3Var2	SETA 22 + 20
 		=	"nok"
 		]
 		=	"\n"
-		; TestArith3Var2 is still also defined as global variable
+		; TestArith3Var2 remains defined as global variable
 		; so :DEF: should still return {TRUE}.
 		=	"MTestArith2d: "
 		[ :DEF:TestArith3Var2
@@ -266,11 +277,13 @@ TestStr1
 	|
 
 	; *** REFERENCE:
+TestMacro0
+		DCD 42
 TestMacro1
 		=	"TestMacro1a: ok\n"
 		=	"TestMacro1b: ok\n"
 		=	"TestMacro2a: ok\n"
-		=	"TestMacro1b: ok\n"
+		=	"TestMacro2b: ok\n"
 		=	"TestMacro1c: ok\n"
 TestArith1
 		=	"TestArith1: ok\n"

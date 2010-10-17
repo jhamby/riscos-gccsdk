@@ -57,18 +57,22 @@ lexAcornUnop (Lex *lex)
     {
       case 'c':
 	FINISH_STR ("hr:", Op_chr, 10); /* :chr: */
+
       case 'd':
 	if (notinput ("ef:")) /* :def: */
 	  goto illegal;
 	*lex = lexGetPrim ();
-	if (lex->tag != LexId)
-	  goto illegal;
-	/* :def: only returns {true} when the symbol is defined and it is not
-	   a macro local variable.  */
-	const Symbol *symP = symbolFind (lex);
-	lex->LexInt.value =  symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
-	lex->tag = LexBool;
-	return;
+	if (lex->tag == LexId)
+	  {
+	    /* :DEF: only returns {TRUE} when the symbol is defined and it is
+	       not a macro local variable.  */
+	    const Symbol *symP = symbolFind (lex);
+	    lex->LexInt.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
+	    lex->tag = LexBool;
+	    return;
+	  }
+	break;
+
       case 'f':
 	switch (inputGetLower ())
 	  {
@@ -105,7 +109,7 @@ illegal:
 
 
 void
-lexAcornBinop (Lex * lex)
+lexAcornBinop (Lex *lex)
 {
   lex->tag = LexOperator;
   switch (inputGetLower ())
@@ -134,11 +138,11 @@ lexAcornBinop (Lex * lex)
 	      FINISH_STR ("r:", Op_lor, 1); /* :lor: */
 	  }
 	break;
-    case 'm':
+      case 'm':
 	FINISH_STR ("od:", Op_mod, 10); /* :mod: */
-    case 'o':
+      case 'o':
 	FINISH_STR ("r:", Op_or, 7); /* :or: */
-    case 'r':
+      case 'r':
 	switch (inputGetLower ())
 	  {
 	    case 'i':
@@ -154,7 +158,7 @@ lexAcornBinop (Lex * lex)
 	      break;
 	  }
 	break;
-    case 's':
+      case 's':
 	switch (inputGetLower ())
 	  {
 	    case 'h':

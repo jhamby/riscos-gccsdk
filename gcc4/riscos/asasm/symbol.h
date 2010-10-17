@@ -78,11 +78,10 @@ typedef struct SYMBOL
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
   Value value;
   union
-  {
-    struct SYMBOL *ptr;
-    struct AREA *info;
-  }
-  area;
+    {
+      struct SYMBOL *ptr;
+      struct AREA *info;
+    } area;
   unsigned int offset;	/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
   int used;		/** -1 when not used; for area symbols: at outputAof/outputElf stage, this will be the area number counted from 0; for other symbols, 0 when symbol is needed in output. This will become the symbol index at symbolFix stage.  */
   int len;		/** length of str[] without its NUL terminator.  */
@@ -93,6 +92,7 @@ void symbolInit (void);
 Symbol *symbolAdd (const Lex *l);
 Symbol *symbolGet (const Lex *l);
 Symbol *symbolFind (const Lex *l);
+void symbolRemove (const Lex *l);
 
 int symbolFix (int *stringSizeNeeded);
 void symbolStringOutput (FILE *outfile);

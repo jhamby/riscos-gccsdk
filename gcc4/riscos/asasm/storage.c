@@ -36,13 +36,12 @@
 #include "storage.h"
 #include "value.h"
 
-static int storageD = 0;
 static Value storageV;
 
 Value
 storageValue (void)
 {
-  if (!storageD)
+  if (storageV.Tag.t != ValueAddr)
     {
       error (ErrorError, "No storage declared (# or @ before ^)");
       storageV.Tag.t = ValueAddr;
@@ -55,24 +54,21 @@ storageValue (void)
 void
 c_record (void)
 {
-  Value value;
-  storageD = true;
   exprBuild ();
-  value = exprEval (ValueInt | ValueAddr);
-  storageV.ValueAddr.r = 15;
+  Value value = exprEval (ValueInt | ValueAddr);
   storageV.Tag.t = ValueAddr;
   switch (value.Tag.t)
     {
-    case ValueInt:
-      storageV.ValueAddr.i = value.ValueInt.i;
-      break;
-    case ValueAddr:
-      storageV.ValueAddr.i = value.ValueAddr.i;
-      break;
-    default:
-      storageV.ValueAddr.i = 0;
-      errorAbort ("^ cannot evaluate its offset expression");
-      break;
+      case ValueInt:
+        storageV.ValueAddr.i = value.ValueInt.i;
+        break;
+      case ValueAddr:
+        storageV.ValueAddr.i = value.ValueAddr.i;
+        break;
+      default:
+        storageV.ValueAddr.i = 0;
+        errorAbort ("^ cannot evaluate its offset expression");
+        break;
     }
   if (inputLook () == ',')
     {
@@ -80,12 +76,13 @@ c_record (void)
       skipblanks ();
       storageV.ValueAddr.r = getCpuReg ();
     }
+  else
+    storageV.ValueAddr.r = 15;
 }
 
 void
-c_alloc (Symbol * sym)
+c_alloc (Symbol *sym)
 {
-  Value value;
   if (sym)
     {
       sym->type |= SYMBOL_ABSOLUTE | SYMBOL_DEFINED;
@@ -93,7 +90,7 @@ c_alloc (Symbol * sym)
       sym->value = storageValue ();
     }
   exprBuild ();
-  value = exprEval (ValueInt);
+  Value value = exprEval (ValueInt);
   switch (value.Tag.t)
     {
     case ValueInt:
@@ -103,7 +100,7 @@ c_alloc (Symbol * sym)
 	    error (ErrorInfo, "You are reserving zero bytes?");
 	  storageV.ValueAddr.i += value.ValueInt.i;
 	  /* ValueInt & ValueAddr have i in the same place */
-	  value.ValueAddr.r = storageV.ValueAddr.r;
+	  value.ValueAddr.r = storageV.ValueAddr.r; // FIXME: what's the point doing this?
 	}
       else
 	error (ErrorError, "Cannot reserve negative amount of space %d", value.ValueInt.i);

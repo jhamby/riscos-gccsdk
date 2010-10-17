@@ -58,7 +58,7 @@ if_skip (const char *onerror)
   int tmp_inputExpand = inputExpand;
   inputExpand = false;
   while (inputNextLine ())
-   {
+    {
       if (inputLook () && !isspace (c = inputGet ()))
 	{
 	  char del = c == '|' ? c : 0;
@@ -72,16 +72,17 @@ if_skip (const char *onerror)
 	continue;
       switch (c)
 	{
-	case ']':
-	  if (nested-- == 0)
-	    goto skipped;
-	  break;
-	case '|':
-	  if (nested == 0)
-	    goto skipped;
-	  break;
-	case '[':
-	  nested++;
+	  case ']':
+	    if (nested-- == 0)
+	      goto skipped;
+	    break;
+	  case '|':
+	    if (nested == 0)
+	      goto skipped;
+	    break;
+	  case '[':
+	    nested++;
+	    break;
 	}
     }
   error (ErrorError, "%s", onerror);
@@ -177,10 +178,8 @@ while_skip (void)
 
 
 void
-c_while (Lex *label)
+c_while (Lex *label __attribute__ ((unused)))
 {
-  label = label;
-
   inputMark ();
   /* Evaluate expression */
   exprBuild ();
@@ -191,12 +190,15 @@ c_while (Lex *label)
       while_skip ();
       return;
     }
+#if 0
+  /* FIXME: this needs to be implemented differently.  */
   if (!exprNotConst)
     {
       error (ErrorError, "WHILE expression is constant (treating as false)");
       while_skip ();
       return;
     }
+#endif
 #ifdef DEBUG
   printf("c_while() : expr is <%s>\n", flag.ValueBool.b ? "true" : "false");
 #endif

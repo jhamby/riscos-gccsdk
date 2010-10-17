@@ -1,3 +1,36 @@
+Sun Oct 17 22:35:00 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (symbolFree): Added.
+	(symbolRemove): Added.
+	(symbolFix): Don't check on sym->value.Tag.v, this doesn't make sense.
+	Information to determine a symbol needs to be dumped in output, needs
+	to be derived from other bits.
+	* symbol.h (symbolRemove): Declare.
+	* code.c (exprNotConst): Removed.
+	* code.h (exprNotConst): Likewise.
+	* local.c: Fix indentation.
+	* storage.c (storageD): Removed, test on storageV.Tag.t instead.
+	* storage.h: Fix whitespace.
+	* variables.c (c_lcl): Follow the varPos changes. When symbol is
+	defined for the first time, don't bother updating varPos::symbol.
+	Fix local symbol indication for declare_var() when symbol is already
+	known as local symbol.
+	(var_restoreLocals): Restore of local symbol which was defined for the
+	first time, was wrong. We really need to remove its entry from the
+	symbolTable instead of invalidating it. Follow the varPos changes.
+	Constify argument.
+	* variables.h (varPos): Move symbol name to end of structure so we have
+	to do one allocation less.
+	(var_restoreLocals): Constify argument.
+	* value.c (valueFree): Case ValueString, don't bother checking for
+	Tag.v.  Export it.
+	* value.h (valueFree): Add prototype.
+	* whileif.c (c_while): No longer check on constant expression.  We need
+	to find something better for this.
+	* lexAcorn.c (lexAcornUnop): Reorder :DEF: case.
+	* regression/tests_pass/variables.s: Update test case for the case we're
+	fixing here.
+
 Sun Oct 17 17:24:54 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_cpuctrl.c (m_swi): Improve SWI name processing.

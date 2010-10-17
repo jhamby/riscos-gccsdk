@@ -39,23 +39,21 @@
 #include "variables.h"
 
 typedef struct localPos
-  {
-    struct localPos *next;
-    int local;
-    const char *file;
-    int lineno;
-  }
-localPos;
+{
+  struct localPos *next;
+  int local;
+  const char *file;
+  int lineno;
+} localPos;
 
 
 typedef struct routPos
-  {
-    struct routPos *next;
-    const char *id;
-    const char *file;
-    int lineno;
-  }
-routPos;
+{
+  struct routPos *next;
+  const char *id;
+  const char *file;
+  int lineno;
+} routPos;
 
 
 int rout_lblno[100] = {0};

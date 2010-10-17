@@ -47,7 +47,7 @@
    and it is defined, or imported and referenced in the code.  */
 int (SYMBOL_AOF_OUTPUT) (const Symbol *);	/* typedef it */
 #define SYMBOL_AOF_OUTPUT(sym) \
-  (((sym)->type & (SYMBOL_EXPORT|SYMBOL_KEEP)) \
+  (((sym)->type & (SYMBOL_EXPORT | SYMBOL_KEEP)) \
    && (((sym)->type & SYMBOL_DEFINED) || (sym)->used > -1))
 
 /* For ELF, we output all used & defined or referenced symbols (except register
@@ -83,12 +83,19 @@ symbolNew (int len, const char *str)
   return result;
 }
 
+static void
+symbolFree (Symbol *symP)
+{
+  valueFree (&symP->value);
+  free (symP);
+}
+
 static bool
 EqSymLex (const Symbol *str, const Lex *lx)
 {
   if (str->len != lx->LexId.len)
     return false;
-  return !memcmp(str->str, lx->LexId.str, str->len);
+  return !memcmp (str->str, lx->LexId.str, str->len);
 }
 
 void
@@ -211,12 +218,12 @@ symbolAdd (const Lex *l)
     errorAbort ("Internal symbolAdd: non-ID");
 
   Symbol **isearch;
-  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &((*isearch)->next))
+  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &(*isearch)->next)
     {
       Symbol *search = *isearch;
       if (EqSymLex (search, l))
 	{
-	  if ((search->type & SYMBOL_DEFINED) && !SYMBOL_GETREG(search->type))
+	  if ((search->type & SYMBOL_DEFINED) && !SYMBOL_GETREG (search->type))
 	    error (ErrorError, "Redefinition of %.*s", l->LexId.len, l->LexId.str);
 	  else
 	    {
@@ -245,16 +252,16 @@ symbolGet (const Lex *l)
 {
   Symbol **isearch = NULL;
   if (l->tag != LexId)
-    {
+    { /* FIXME: what's this case ? */
       if (l->tag != LexNone)
 	errorAbort ("Internal symbolGet: non-ID");
-      for (isearch = &symbolTable[0]; *isearch; isearch = &((*isearch)->next))
+      for (isearch = &symbolTable[0]; *isearch; isearch = &(*isearch)->next)
 	/* */;
       *isearch = symbolNew (sizeof("|Dummy|")-1, "|Dummy|"); /* FIXME: *isearch is written again further on, so memory leak here ? */
     }
   else
     {
-      for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &((*isearch)->next))
+      for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &(*isearch)->next)
 	{
 	  if (EqSymLex (*isearch, l))
 	    return *isearch;
@@ -269,16 +276,37 @@ symbolGet (const Lex *l)
 Symbol *
 symbolFind (const Lex *l)
 {
-  if (l->tag != LexId)
+  if (l->tag != LexId) /* FIXME: what's this case ? */
     return NULL;
 
   Symbol **isearch;
-  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &((*isearch)->next))
+  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &(*isearch)->next)
     {
       if (EqSymLex (*isearch, l))
 	return *isearch;
     }
   return NULL;
+}
+
+
+/**
+ * Removes symbol from symbol table.
+ */
+void
+symbolRemove (const Lex *l)
+{
+  Symbol **isearch;
+  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &(*isearch)->next)
+    {
+      if (EqSymLex (*isearch, l))
+	{
+	  Symbol *toFreeP = *isearch;
+	  *isearch = toFreeP->next;
+	  symbolFree (toFreeP);
+	  return;
+	}
+    }
+  error (ErrorAbort, "Internal error: symbolRemove");
 }
 
 
@@ -294,9 +322,7 @@ symbolFix (int *stringSizeNeeded)
 {
   int nosym = 0;
   int strsize = 0;		/* Always contains its length */
-  int i;
-
-  for (i = 0; i < SYMBOL_TABLESIZE; i++)
+  for (int i = 0; i < SYMBOL_TABLESIZE; i++)
     {
       Symbol *sym;
       for (sym = symbolTable[i]; sym; sym = sym->next)
@@ -316,12 +342,13 @@ symbolFix (int *stringSizeNeeded)
 		  if (option_pedantic)
 		    errorLine (0, NULL, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
 		}
-	      if (SYMBOL_OUTPUT (sym) && sym->value.Tag.v == ValueConst)
+	      if (SYMBOL_OUTPUT (sym))
 		{
-		  int label = -1, ii;
 		  if (localTest (sym->str))
 		    {
 		      void *area; /* FIXME: this is not usefully used. Why ? */
+		      int label = -1;
+		      int ii;
 		      char routine[1024];
 		      *routine = 0;
 		      if (sscanf (sym->str, localFormat, &area, &label, &ii, &routine) > 2)

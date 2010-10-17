@@ -21,6 +21,8 @@
  */
 
 #include "config.h"
+
+#include <assert.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -63,7 +65,7 @@ var_type (ValueTag type)
       case ValueString:
 	return 'S';
       default:
-	return '?';
+	break;
     }
   return '?';
 }
@@ -98,8 +100,9 @@ assign_var (Symbol *sym, ValueTag type)
 /**
  * (Re)define local or global variable.
  * When variable exists we'll give a warning when its type is the same,
- * when type is different an error is given.
- * Contents pointed by ptr has to remain valid all the time.
+ * when type is different an error is given instead.
+ * \param localMacro Is true when variable is a local macro variable. Used to
+ * implement :DEF:.
  */
 static void
 declare_var (const char *ptr, int len, ValueTag type, bool localMacro)
@@ -203,26 +206,22 @@ c_lcl (ValueTag type, const Lex *label)
       return;
     }
 
+  /* Link our local variable into the current macro so we can restore this
+     at the end of macro invocation.  */
   Lex l = lexTempLabel (ptr, len);
   Symbol *sym = symbolFind (&l);
   varPos *p;
-  if ((p = malloc (sizeof (varPos))) == NULL
-      || (p->name = strndup (ptr, len)) == NULL)
+  if ((p = malloc (sizeof (varPos) + len + 1)) == NULL)
     errorOutOfMem ();
+  memcpy (p->name, ptr, len + 1);
   p->next = gCurPObjP->d.macro.varListP;
-  p->symptr = sym;
-  if (sym)
+  if ((p->symptr = sym) != NULL)
     p->symbol = *sym;
-  else
-    {
-      p->symbol.type = 0;
-      p->symbol.value.Tag.t = ValueIllegal;
-    }
   gCurPObjP->d.macro.varListP = p;
 
   /* When symbol is already known, it remains a global variable (and :DEF:
-     returns {true} for it).  */
-  declare_var (ptr, len, type, sym == NULL);
+     returns {TRUE} for it).  */
+  declare_var (ptr, len, type, sym == NULL || (sym->type & SYMBOL_MACRO_LOCAL));
 }
 
 
@@ -257,45 +256,45 @@ c_set (ValueTag type, const Lex *label)
 #ifdef DEBUG
       case ValueString:
 	printf ("c_set: string: <%.*s>\n", value.ValueString.len, value.ValueString.s);
+	/* Fall through.  */
 #endif
-	default:
+      default:
 	sym->value = valueCopy (value);
 	break;
     }
 }
 
 
+/**
+ * Called at the end of each MACRO execution to restore all its local
+ * variables.
+ */
 void
-var_restoreLocals (varPos *p)
+var_restoreLocals (const varPos *p)
 {
   while (p != NULL)
     {
       if (p->symptr)
 	{
-	  if (p->symptr->value.Tag.t == ValueString)
-	    free ((void *)p->symptr->value.ValueString.s);
+	  /* Variable existed before we (temporarily) overruled it, so
+	     restore it to its original value.  */
+	  valueFree (&p->symptr->value);
+	  assert (p->symptr->next == p->symbol.next);
 	  *p->symptr = p->symbol;
 	}
       else
 	{
 	  Lex l = lexTempLabel (p->name, strlen (p->name));
-	  Symbol *sym;
-	  if ((sym = symbolFind (&l)) != NULL)
-	    {
-	      sym->type = 0;	/* undefined */
-	      sym->value.Tag.t = ValueIllegal;
-	    }
+	  symbolRemove (&l);
 	}
-      varPos *q = p->next;
-      free (p->name);
-      free (p);
+
+      const varPos *q = p->next;
+      free ((void *)p);
       p = q;
     }
 }
 
 
-/* Contents pointed by def has to remain valid all the time.
- */
 void
 var_define (const char *def)
 {
@@ -307,11 +306,13 @@ var_define (const char *def)
     i = "";
   else
     i++;
+
   Value value;
   value.Tag.t = ValueString;
   value.Tag.v = ValueString;
   value.ValueString.len = strlen (i);
   value.ValueString.s = i;
+
   /* FIXME: symbolFind() can return NULL here, no ? */
   symbolFind (&var)->value = valueCopy (value);
 }

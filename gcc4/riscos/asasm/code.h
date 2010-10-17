@@ -42,27 +42,25 @@ typedef union CODE
 {
   CodeTag Tag;
   struct
-  {
-    CodeTag Tag;
-    Operator op;
-  } CodeOperator;
+    {
+      CodeTag Tag;
+      Operator op;
+    } CodeOperator;
   struct
-  {
-    CodeTag Tag;
-    Value value;
-  } CodeValue;
+    {
+      CodeTag Tag;
+      Value value;
+    } CodeValue;
   struct
-  {
-    CodeTag Tag;
-    Symbol *symbol;
-  } CodeSymbol;
+    {
+      CodeTag Tag;
+      Symbol *symbol;
+    } CodeSymbol;
 } Code;
 
 #define CODE_SIZECODE  (1024)
 #define CODE_SIZESTACK (1024)
 #define CODE_SIZELATE  (1024)
-
-extern bool exprNotConst;
 
 void codeInit (void);
 

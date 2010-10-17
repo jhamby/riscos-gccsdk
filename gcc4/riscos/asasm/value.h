@@ -62,49 +62,50 @@ typedef struct
 typedef union
 {
   ValueType Tag;
-  struct
-  {				/* ValueInt */
-    ValueType Tag;
-    int i;
-  } ValueInt;
-  struct
-  {				/* ValueFloat */
-    ValueType Tag;
-    ARMFloat f;
-  } ValueFloat;
-  struct
-  {				/* ValueString */
-    ValueType Tag;
-    int len; /* Size string without its NUL terminator.  */
-    const char *s; /* Malloced memory block and string is *NOT* NUL terminated.  */
-  } ValueString;
-  struct
-  {				/* ValueBool */
-    ValueType Tag;
-    bool b;
-  } ValueBool;
-  struct
-  {				/* ValueCode */
-    ValueType Tag;
-    int len;
-    union CODE *c;
-  } ValueCode;
-  struct
-  {				/* ValueLateLabel */
-    ValueType Tag;		/* Must start identical with ValueInt */
-    int i;
-    struct LATEINFO *late;
-  } ValueLate;
-  struct
-  {				/* ValueAddr */
-    ValueType Tag;
-    int i;
-    int r;
-  } ValueAddr;
+  struct			/* ValueInt */
+    {
+      ValueType Tag;
+      int i;
+    } ValueInt;
+  struct			/* ValueFloat */
+    {
+      ValueType Tag;
+      ARMFloat f;
+    } ValueFloat;
+  struct			/* ValueString */
+    {
+      ValueType Tag;
+      int len;			/**< Size string.  */
+      const char *s;		/**< Malloced memory block and string contents is *NOT* NUL terminated.  */
+    } ValueString;
+  struct			/* ValueBool */
+    {
+      ValueType Tag;
+      bool b;
+    } ValueBool;
+  struct			/* ValueCode */
+    {
+      ValueType Tag;
+      int len;
+      union CODE *c;
+    } ValueCode;
+  struct			/* ValueLateLabel */
+    {
+      ValueType Tag;		/* Must start identical with ValueInt */
+      int i;
+      struct LATEINFO *late;
+    } ValueLate;
+  struct			/* ValueAddr */
+    {
+      ValueType Tag;
+      int i;
+      int r;
+    } ValueAddr;
 } Value;
 
 Value valueLateToCode (int offset, LateInfo *late);
 Value valueCopy (Value value);
+void valueFree (Value *value);
 bool valueEqual (const Value *a, const Value *b);
 const char *valueTagAsString (ValueTag tag);
 #ifdef DEBUG
