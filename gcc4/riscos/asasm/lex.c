@@ -598,8 +598,18 @@ lexGetBinop (void)
       break;
     case '/':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_div;
-      result.LexOperator.pri = PRI (10);
+      switch (inputLook ())
+	{
+	case '=': /* /= */
+	  inputSkip ();
+	  result.LexOperator.op = Op_ne;
+	  result.LexOperator.pri = PRI (3);
+	  break;
+	default:
+	  result.LexOperator.op = Op_div;
+	  result.LexOperator.pri = PRI (10);
+	  break;
+	}
       break;
     case '%':
       result.tag = LexOperator;

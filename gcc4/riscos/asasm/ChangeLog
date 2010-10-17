@@ -1,3 +1,13 @@
+Sun Oct 17 03:08:27 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/operator_relational.s: Added.  Tests the
+	relational operators.
+	* eval.c (COMPARE): Cleaned up, simplified and report proper operand
+	type mistake if so. Compare integers unsigned.
+	(ememcmp): Simplified.
+	(evalBinop): Cleanup relational operators.
+	* lex.c (lexGetBinop): Support /=.
+
 Sun Oct 17 01:33:47 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/operator_string.s: Added.  Tests :LEFT:,

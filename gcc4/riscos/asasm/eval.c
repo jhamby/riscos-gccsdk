@@ -38,40 +38,35 @@ ememcmp (Value * lv, const Value * rv)
   const int lvl = lv->ValueString.len;
   const int rvl = rv->ValueString.len;
   int a = memcmp (lv->ValueString.s, rv->ValueString.s, lvl < rvl ? lvl : rvl);
-  if (a == 0 && lvl != rvl)
-    a = lvl - rvl;
-  return a;
+  return a ? a : lvl - rvl;
 }
 
+#define STRINGIFY(OP)	#OP
 
 #define COMPARE(OP) \
-  if (lvalue->Tag.t == ValueFloat && rvalue->Tag.t == ValueFloat) \
+  do \
     { \
-      lvalue->ValueBool.b = lvalue->ValueFloat.f OP rvalue->ValueFloat.f; \
+      if (lvalue->Tag.t == ValueFloat && rvalue->Tag.t == ValueFloat) \
+        lvalue->ValueBool.b = lvalue->ValueFloat.f OP rvalue->ValueFloat.f; \
+      else if (lvalue->Tag.t == ValueString && rvalue->Tag.t == ValueString) \
+        lvalue->ValueBool.b = ememcmp(lvalue, rvalue) OP 0; \
+      else if ((lvalue->Tag.t & (ValueInt | ValueAddr | ValueLateLabel)) \
+               || (rvalue->Tag.t & (ValueInt | ValueAddr | ValueLateLabel))) \
+        { \
+          help_evalSubLate(lvalue, rvalue); \
+          /* Might not be a ValueInt, but ValueLate* has i at the same place */ \
+          if (!(lvalue->Tag.t & (ValueInt | ValueAddr))) \
+            return false; \
+	  /* Comparing of integers happens *unsigned* ! */ \
+          lvalue->ValueBool.b = (uint32_t)lvalue->ValueInt.i OP (uint32_t)rvalue->ValueInt.i; \
+        } \
+      else \
+        { \
+	  error (ErrorError, "Bad operand types for " STRINGIFY(OP)); \
+          return false; \
+        } \
       lvalue->Tag.t = ValueBool; \
-      return true; \
-    }	  \
-  if (lvalue->Tag.t == ValueString && rvalue->Tag.t == ValueString) \
-    { \
-      lvalue->ValueBool.b = ememcmp(lvalue,rvalue) OP 0; \
-      lvalue->Tag.t = ValueBool; \
-      return true; \
-    } \
-  if (!(lvalue->Tag.t & (ValueInt | ValueAddr | ValueLateLabel)) \
-      || !(rvalue->Tag.t & (ValueInt | ValueAddr | ValueLateLabel))) \
-    { \
-      fprintf (stderr, ": %i %i\n", lvalue->Tag.t, rvalue->Tag.t); \
-      return false; \
-    } \
-  \
-  help_evalSubLate(lvalue,rvalue); \
-  /* Might not be a ValueInt, but ValueLate* has i at the same place */ \
-  if (!(lvalue->Tag.t & (ValueInt | ValueAddr))) \
-    return false; \
-  \
-  lvalue->ValueBool.b = lvalue->ValueInt.i OP rvalue->ValueInt.i; \
-  lvalue->Tag.t = ValueBool; \
-  return true /* Last ; is where macro is used */
+    } while (0)
 
 bool
 evalBinop (Operator op, Value * lvalue, const Value * rvalue)
@@ -233,29 +228,37 @@ evalBinop (Operator op, Value * lvalue, const Value * rvalue)
       lvalue->ValueInt.i = ((lvalue->ValueInt.i) << rvalue->ValueInt.i) |
 	(((ARMWord) lvalue->ValueInt.i) >> (32 - rvalue->ValueInt.i));
       break;
-    case Op_le:
+
+    case Op_le: /* <= */
       COMPARE (<=);
-    case Op_ge:
+      break;
+
+    case Op_ge: /* >= */
       COMPARE (>=);
-    case Op_lt:
+      break;
+
+    case Op_lt: /* < */
       COMPARE (<);
-    case Op_gt:
+      break;
+
+    case Op_gt: /* > */
       COMPARE (>);
-    case Op_eq:
+      break;
+
+    case Op_eq: /* = == */
       if (lvalue->Tag.t == ValueBool && rvalue->Tag.t == ValueBool)
-	{
-	  lvalue->ValueBool.b =
-	    lvalue->ValueBool.b == rvalue->ValueBool.b;
-	  return true;
-	}
-      COMPARE (==);
-    case Op_ne:
+	lvalue->ValueBool.b = lvalue->ValueBool.b == rvalue->ValueBool.b;
+      else
+        COMPARE (==);
+      break;
+
+    case Op_ne: /* <> /= != */
       if (lvalue->Tag.t == ValueBool && rvalue->Tag.t == ValueBool)
-	{
-	  lvalue->ValueBool.b = lvalue->ValueBool.b != rvalue->ValueBool.b;
-	  return true;
-	}
-      COMPARE (!=);
+	lvalue->ValueBool.b = lvalue->ValueBool.b != rvalue->ValueBool.b;
+      else
+        COMPARE (!=);
+      break;
+
     case Op_land:
       if (lvalue->Tag.t != ValueBool || rvalue->Tag.t != ValueBool)
 	return false;
