@@ -82,19 +82,11 @@ CanonicalisePath (const char *path1)
   const char *path = path1;
 #endif
   
-  char filename[1024];
-  if (option_dde && *path == '@')
-    {				/* Replace @ with <Prefix$Dir> if dde flags */
-      strcpy (filename, "<Prefix$Dir>");
-      strcat (filename, path + 1);
-    }
-  else
-    strcpy (filename, path);
-  int size = 1 - OSCanonicalisePath (filename, 0, 0, 0, 0);
+  int size = 1 - OSCanonicalisePath (path, 0, 0, 0, 0);
   char *buffer;
   if ((buffer = malloc (size)) == NULL)
     errorOutOfMem ();
-  size = OSCanonicalisePath (filename, buffer, size, 0, 0);
+  size = OSCanonicalisePath (path, buffer, size, 0, 0);
   if (size != 1)
     errorAbort ("Internal error in CanonicalisePath");
   if (buffer == NULL)

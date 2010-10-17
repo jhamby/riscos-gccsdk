@@ -30,7 +30,6 @@ extern int option_verbose;
 extern int option_pedantic;
 extern int option_fussy;
 extern int option_throwback;
-extern int option_dde;
 extern int option_autocast;
 extern int option_align;
 extern int option_local;

@@ -21,6 +21,7 @@
  */
 
 #include "config.h"
+
 #include <setjmp.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -62,7 +63,6 @@ int option_verbose = 0;
 int option_pedantic = 0;
 int option_fussy = 0;
 int option_throwback = 0;
-int option_dde = 0;
 int option_autocast = 0;
 int option_align = 1;
 int option_local = 1;
@@ -89,19 +89,19 @@ as_help (void)
   fprintf (stderr,
 	   DEFAULT_IDFN
 	   "\n"
-	   "Usage: %s [option]... <asmfile>\n"
+	   "Usage: %s [option]... <asmfile> <objfile>\n"
+	   "       %s [option]... -o <objfile> <asmfile>\n"
 	   "\n"
 	   "Options:\n"
-	   "-o objfile                 Specifies destination AOF file.\n"
+	   "-o objfile                 Specifies destination AOF/ELF file.\n"
 	   "-I<directory>              Search 'directory' for included assembler files.\n"
 	   "-D<variable>               Define a string variable.\n"
 	   "-D<variable>=<value>       Define a string variable to a certain value.\n"
-	   "-PD <value>                Predefine a value using SETI/SETS/SETL syntax.\n"
+	   "-PD <value>                Predefine a value using SETA/SETS/SETL syntax.\n"
 	   "-PreDefine <value>         Same as -PD option.\n"
 	   "-pedantic      -p          Display extra warnings.\n"
 	   "-verbose       -v          Display progress information.\n"
 	   "-fussy         -f          Display conversion information.  Can be specified more than once for more conversion information.\n"
-	   "-dde                       Replace '@' in filenames with <Prefix$Dir>.\n"
 #ifdef __riscos__
 	   "-throwback     -tb         Throwback errors to a text editor.\n"
 #endif
@@ -128,27 +128,16 @@ as_help (void)
 #endif
 	   "-aof                       Output AOF file.\n"
 	   "\n",
-	   ProgName);
+	   ProgName, ProgName);
 }
 
-
-#ifdef __riscos__
-static char *prefix;
-#endif
-
-static int finished = 0;
-
+static bool finished = false;
 
 static void
-restore_prefix (void)
+atexit_handler (void)
 {
   if (!finished || returnExitStatus () != EXIT_SUCCESS)
     outputRemove ();
-#ifdef __riscos__
-  if (prefix)
-    _kernel_setenv ("Prefix$Dir", prefix);
-#endif
-  /* workaround for throwback/Prefix$Dir problem */
 }
 
 static void
@@ -198,18 +187,13 @@ set_option_aof (int writeaof)
 int
 main (int argc, char **argv)
 {
-#ifdef __riscos__
-  ProgName = getenv ("Prefix$Dir");
-  /* There's a strange problem with Prefix$Dir becoming unset if
-   * throwback is used...
-   */
-  prefix = ProgName ? strdup (ProgName) : 0;
-#endif
-  atexit (restore_prefix);
+  atexit (atexit_handler);
+
   setlocale (LC_ALL, "");
+
   ProgName = *argv++;
 
-#define IS_ARG(ln,sn) !strcmp(*argv,ln) || !strcmp(*argv,sn)
+#define IS_ARG(ln, sn) (!strcmp(*argv, ln) || !strcmp(*argv, sn))
 
   if (argc == 1)
     {
@@ -236,7 +220,7 @@ main (int argc, char **argv)
 	  else
 	    var_define (argv[0] + 2);
 	}
-      else if (!strcmp(argv[0], "-PD") || !strcmp(argv[0], "-PreDefine"))
+      else if (IS_ARG ("-PD", "-PreDefine"))
         {
           if (--argc)
             {
@@ -249,7 +233,10 @@ main (int argc, char **argv)
               predefines[num_predefines++] = *++argv;
             }
           else
-            fprintf (stderr, "%s: Missing argument after -PD/-PreDefine\n", ProgName);
+	    {
+              fprintf (stderr, "%s: Missing argument after -PD/-PreDefine\n", ProgName);
+	      return EXIT_FAILURE;
+	    }
         }
       else if (IS_ARG ("-o", "-To"))
 	{
@@ -305,8 +292,6 @@ main (int argc, char **argv)
 	set_option_apcs_softfloat (0);
       else if (!strcmp (*argv, "-module"))
 	option_rma_module = 1;
-      else if (!strcmp (*argv, "-dde"))
-	option_dde++;
       else if (!strncmp (*argv, "-I", 2))
 	{
 	  const char *inclDir = *argv + 2;
@@ -324,13 +309,9 @@ main (int argc, char **argv)
 	}
       else if (IS_ARG ("-version", "-ver"))
 	{
-	  fprintf (stderr, "AS AOF"
-#ifndef NO_ELF_SUPPORT
-		   "/ELF"
-#endif
-		   " Assembler " VERSION " (" __DATE__ ") [GCCSDK]\n");
-
-	  fprintf (stderr, "Copyright (c) 1992-2010 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
+	  fprintf (stderr,
+	           DEFAULT_IDFN "\n"
+	           "Copyright (c) 1992-2010 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
 	  return EXIT_SUCCESS;
 	}
       else if (IS_ARG ("-H", "-h")
@@ -385,10 +366,15 @@ main (int argc, char **argv)
 	{
 	  if (SourceFileName != NULL)
 	    {
-	      fprintf (stderr, "%s: Only one input file allowed (%s & %s specified)\n", ProgName, SourceFileName, *argv);
-	      return EXIT_FAILURE;
+	      if (ObjFileName != NULL)
+		{
+		  fprintf (stderr, "%s: Only one input file allowed\n", ProgName);
+		  return EXIT_FAILURE;
+		}
+	      ObjFileName = *argv;
 	    }
-	  SourceFileName = *argv;
+	  else
+	    SourceFileName = *argv;
 	}
       else
 	fprintf (stderr, "%s: Illegal flag %s ignored\n", ProgName, *argv);
@@ -410,9 +396,18 @@ main (int argc, char **argv)
 
   set_cpuvar ();
 
-  /* When the command line has been sorted, get on with the job in hand */
+  if (SourceFileName == NULL)
+    {
+      fprintf (stderr, "%s: No input filename specified\n", ProgName);
+      return EXIT_FAILURE;
+    }
   if (ObjFileName == NULL)
-    ObjFileName = SourceFileName;
+    {
+      fprintf (stderr, "%s: No output filename specified\n", ProgName);
+      return EXIT_FAILURE;
+    }
+  
+  /* When the command line has been sorted, get on with the job in hand */
 
   if (setjmp (asmAbort))
     {
@@ -450,6 +445,6 @@ main (int argc, char **argv)
     }
   outputFinish ();
   errorFinish ();
-  finished = 1;
+  finished = true; /* No longer enforce removing output file.  */
   return returnExitStatus ();
 }
