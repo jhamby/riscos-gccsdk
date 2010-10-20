@@ -102,7 +102,8 @@ void symbolSymbolELFOutput (FILE *outfile);
 #endif
 
 #ifdef DEBUG
-void symbolPrint (void);
+void symbolPrint (const Symbol *sym);
+void symbolPrintAll (void);
 #endif
 
 #endif

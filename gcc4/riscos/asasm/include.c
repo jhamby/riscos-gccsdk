@@ -83,7 +83,7 @@ addInclude (const char *path)
   if (newPath[len] == DIR)
     newPath[len] = '\0';
   incDirPP[incDirCurSize++] = newPath;
-#if (defined DEBUG) && (DEBUG > 0)
+#ifdef DEBUG
   fprintf (stderr, "addInclude: added %s\n", newPath);
 #endif
 
@@ -183,7 +183,7 @@ getInclude (const char *file, const char **strdupFilename)
       snprintf (incpath, sizeof (incpath), "%s%c%s", incDirPP[i], DIR, filename);
       incpath[sizeof (incpath) - 1] = '\0';
 
-#if (defined DEBUG) && (DEBUG > 0)
+#ifdef DEBUG
       fprintf (stderr, "getInclude: Searching for %s\n", incpath);
 #endif
 

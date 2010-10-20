@@ -115,27 +115,23 @@ litInt (int size, const Value *value)
 void
 litOrg (LitInfo *li)
 {
-  LitList *ll;
-
   for (; li; li = li->next)
     {
-      LitList *nll;
       unsigned char *image = areaCurrentSymbol->area.info->image;
-      bool fp;
       if (li->reloc.lineno < 0)
 	{
 	  li->reloc.offset = areaCurrentSymbol->value.ValueInt.i;
 	  relocAdd (&li->reloc);
 	}
-      fp = li->reloc.value.Tag.t == ValueFloat;
-      for (ll = li->used; ll; ll = nll)
+      bool fp = li->reloc.value.Tag == ValueFloat;
+      LitList *nll;
+      for (LitList *ll = li->used; ll; ll = nll)
 	{
-	  ARMWord w;
 	  int offset = ll->offset;
 	  nll = ll->next;
 	  ll->next = cache;
 	  cache = ll;
-	  w = (image[offset + 3] << 24) | (image[offset + 2] << 16) | (image[offset + 1] << 8) | image[offset + 0];
+	  ARMWord w = (image[offset + 3] << 24) | (image[offset + 2] << 16) | (image[offset + 1] << 8) | image[offset + 0];
 	  if (fp)
 	    w = fixCopOffset (ll->lineno, w, li->reloc.offset - ll->offset - 8);
 	  else

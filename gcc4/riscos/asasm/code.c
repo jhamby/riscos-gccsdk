@@ -21,6 +21,8 @@
  */
 
 #include "config.h"
+
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
@@ -39,14 +41,24 @@
 #include "option.h"
 #include "storage.h"
 
+#ifdef DEBUG
+#  define DEBUG_CODE
+#endif
+
+#ifdef DEBUG_CODE
+static void codePrint (int size, const Code *program);
+#endif
+
+#define CODE_SIZECODE  (1024)
+#define CODE_SIZESTACK (1024)
+#define CODE_SIZELATE  (1024)
+
 static Code Program[CODE_SIZECODE];
 static int FirstFreeIns;
 static Value Stack[CODE_SIZESTACK];
 
 static LateInfo LateHeap[CODE_SIZELATE];
 static int LateHeapPtr;
-
-static int Sp;			/* Used by codeEvalLow and codeEvalLowest */
 
 LateInfo *
 codeNewLateInfo (Symbol *symbol)
@@ -85,7 +97,7 @@ codeSymbol (Symbol *symbol)
     {
       if ((symbol->type & SYMBOL_DEFINED) && !(symbol->type & SYMBOL_AREA))
 	{
-	  switch (symbol->value.Tag.t)
+	  switch (symbol->value.Tag)
 	    {
 	    case ValueInt:
 	    case ValueFloat:
@@ -99,8 +111,7 @@ codeSymbol (Symbol *symbol)
 	    case ValueCode:
 	      if (FirstFreeIns + symbol->value.ValueCode.len <= CODE_SIZECODE)
 		{
-		  int i;
-		  for (i = 0; i < symbol->value.ValueCode.len; i++)
+		  for (int i = 0; i < symbol->value.ValueCode.len; i++)
 		    Program[FirstFreeIns++] = symbol->value.ValueCode.c[i];
 		  symbol->used = 0; /* Mark as used.  */
 		}
@@ -139,8 +150,13 @@ codePosition (Symbol *area)
 void
 codeStorage (void)
 {
-  Value value = storageValue ();	/* Must be ValueInt */
-  codeInt (value.ValueInt.i);
+  if (FirstFreeIns < CODE_SIZECODE)
+    {
+      Program[FirstFreeIns].Tag = CodeValue;
+      Program[FirstFreeIns++].CodeValue.value = storageValue ();
+    }
+  else
+    errorAbort ("Internal codeStorage: overflow");
 }
 
 void
@@ -149,7 +165,7 @@ codeString (int len, const char *str)
   if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].CodeValue.value.Tag.t = ValueString;
+      Program[FirstFreeIns].CodeValue.value.Tag = ValueString;
       Program[FirstFreeIns].CodeValue.value.ValueString.len = len;
       Program[FirstFreeIns++].CodeValue.value.ValueString.s = str;
     }
@@ -163,7 +179,7 @@ codeInt (int value)
   if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].CodeValue.value.Tag.t = ValueInt;
+      Program[FirstFreeIns].CodeValue.value.Tag = ValueInt;
       Program[FirstFreeIns++].CodeValue.value.ValueInt.i = value;
     }
   else
@@ -176,7 +192,7 @@ codeFloat (ARMFloat value)
   if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].CodeValue.value.Tag.t = ValueFloat;
+      Program[FirstFreeIns].CodeValue.value.Tag = ValueFloat;
       Program[FirstFreeIns++].CodeValue.value.ValueFloat.f = value;
     }
   else
@@ -189,7 +205,7 @@ codeBool (bool value)
   if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].CodeValue.value.Tag.t = ValueBool;
+      Program[FirstFreeIns].CodeValue.value.Tag = ValueBool;
       Program[FirstFreeIns++].CodeValue.value.ValueBool.b = value;
     }
   else
@@ -198,71 +214,140 @@ codeBool (bool value)
 
 
 /**
+ * \param sp Full incrementing stack index.  On entry and first use of
+ * codeEvalLowest this needs to be -1.  On exit, when 0 then Stack[0] is result,
+ * otherwise there is no result.
  * \return true if succeeded.
  */
 static bool
-codeEvalLowest (int size, const Code *program)
+codeEvalLowest (int size, const Code *program, int *sp)
 {
-  int Pp;
-  for (Pp = 0; Pp < size; Pp++)
+#ifdef DEBUG_CODE
+  printf ("vvv codeEvalLowest\n");
+#endif
+  for (int i = 0; i < size; i++)
     {
-      switch (program[Pp].Tag)
+#ifdef DEBUG_CODE
+      /* Dump stack entries.  */
+      printf ("Stack: ");
+      for (int s = 0; s <= *sp; ++s)
 	{
-	case CodeOperator:
-	  if (isUnop (program[Pp].CodeOperator.op))
-	    {
-	      if (!evalUnop (program[Pp].CodeOperator.op, &Stack[Sp]))
-		return false;
-	    }
-	  else
-	    {
-	      if (!evalBinop (program[Pp].CodeOperator.op, &Stack[Sp - 1], &Stack[Sp]))
-		return false;
-	      Sp--;
-	    }
-	  break;
-	case CodeValue:
-	  Stack[++Sp] = program[Pp].CodeValue.value;
-	  break;
-	case CodeSymbol:
-	  if ((program[Pp].CodeSymbol.symbol->type & SYMBOL_DEFINED)
-	      && !(program[Pp].CodeSymbol.symbol->type & SYMBOL_AREA))
-	    {
-	      /* This can happen in the relocation phase. */
-	      switch (program[Pp].CodeSymbol.symbol->value.Tag.t)
-		{
-		case ValueInt:
-		case ValueFloat:
-		case ValueString:
-		case ValueBool:
-		  Stack[++Sp] = program[Pp].CodeSymbol.symbol->value;
-		  break;
-		case ValueCode:
-		  if (!codeEvalLowest (program[Pp].CodeSymbol.symbol->value.ValueCode.len,
-				       program[Pp].CodeSymbol.symbol->value.ValueCode.c))
-		    return false;
-		  break;
-		case ValueAddr:
-		  errorAbort ("Register offset labels must be defined before use");
-		  break;
-		default:
-		  errorAbort ("Internal codeEvalLow: illegal value for symbol %s",
-			      program[Pp].CodeSymbol.symbol->str);
-		  break;
-		}
-	    }
-	  else
-	    {			/* Undefined or area or late register */
-	      Stack[++Sp].Tag.t = ValueLateLabel;
-	      Stack[Sp].ValueLate.i = 0;
-	      Stack[Sp].ValueLate.late = codeNewLateInfo (program[Pp].CodeSymbol.symbol);
-	    }
-	  break;
-	default:
-	  errorAbort ("Internal codeEvalLow: illegal expression");
-	  break;
+	  printf ("[");
+	  valuePrint (&Stack[s]);
+	  printf ("] ");
 	}
+      printf (" : doing operation ");
+#endif
+      switch (program[i].Tag)
+	{
+	  case CodeOperator:
+	    if (isUnop (program[i].CodeOperator.op))
+	      {
+#ifdef DEBUG_CODE
+		printf ("[%s] ", OperatorAsStr (program[i].CodeOperator.op));
+#endif
+		assert (*sp >= 0);
+		if (!evalUnop (program[i].CodeOperator.op, &Stack[*sp]))
+		  return false;
+		/* No stack adjusting is needed, as one operand is consumed,
+		   one result is produced.  */
+	      }
+	    else
+	      {
+#ifdef DEBUG_CODE
+		printf ("[%s] ", OperatorAsStr (program[i].CodeOperator.op));
+#endif
+		assert (*sp - 1 >= 0);
+		if (!evalBinop (program[i].CodeOperator.op, &Stack[*sp - 1], &Stack[*sp]))
+		  return false;
+		/* Stack adjusting by one, as two operands are consumed, one
+		   result is produced.  */
+		--(*sp);
+	      }
+	    break;
+
+	  case CodeValue:
+#ifdef DEBUG_CODE
+	    printf ("[Push: ");
+	    valuePrint (&program[i].CodeValue.value);
+	    printf ("] ");
+#endif
+	    Stack[++(*sp)] = program[i].CodeValue.value;
+	    break;
+
+	  case CodeSymbol:
+	    if ((program[i].CodeSymbol.symbol->type & SYMBOL_DEFINED)
+	        && !(program[i].CodeSymbol.symbol->type & SYMBOL_AREA))
+	      {
+		/* This can happen in the relocation phase.  */
+		switch (program[i].CodeSymbol.symbol->value.Tag)
+		  {
+		    case ValueInt:
+		    case ValueFloat:
+		    case ValueString:
+		    case ValueBool:
+#ifdef DEBUG_CODE
+		      printf ("[Symbol %.*s value push: ",
+			      program[i].CodeSymbol.symbol->len,
+			      program[i].CodeSymbol.symbol->str);
+		      valuePrint (&program[i].CodeSymbol.symbol->value);
+		      printf ("] ");
+#endif
+		      Stack[++(*sp)] = program[i].CodeSymbol.symbol->value;
+		      break;
+
+		    case ValueCode:
+#ifdef DEBUG_CODE
+		      printf ("[Code]...\n");
+#endif
+		      if (!codeEvalLowest (program[i].CodeSymbol.symbol->value.ValueCode.len,
+					   program[i].CodeSymbol.symbol->value.ValueCode.c,
+					   sp))
+			return false;
+		      break;
+
+		    case ValueAddr:
+		      errorAbort ("Register offset labels must be defined before use");
+		      break;
+
+		    default:
+		      errorAbort ("Internal codeEvalLow: illegal value for symbol %s",
+				  program[i].CodeSymbol.symbol->str);
+		      break;
+		  }
+	      }
+	    else
+	      { /* Undefined or area or late register.  */
+#ifdef DEBUG_CODE
+		printf ("[Late symbol %.*s value push] ",
+			program[i].CodeSymbol.symbol->len,
+			program[i].CodeSymbol.symbol->str);
+#endif
+		Stack[++(*sp)].Tag = ValueLateLabel;
+		Stack[*sp].ValueLate.i = 0;
+		Stack[*sp].ValueLate.late = codeNewLateInfo (program[i].CodeSymbol.symbol);
+	      }
+	    break;
+
+	  default:
+	    errorAbort ("Internal codeEvalLow: illegal expression");
+	    break;
+	}
+#ifdef DEBUG_CODE
+      printf ("\n");
+#endif
     }
+#ifdef DEBUG_CODE
+  printf ("Final stack result: ");
+  for (int s = 0; s <= *sp; ++s)
+    {
+      printf ("[");
+      valuePrint (&Stack[s]);
+      printf ("] ");
+    }
+  printf ("\n^^^\n");
+#endif
+    
   return true;
 }
 
@@ -275,32 +360,46 @@ codeEval (ValueTag legal)
 Value
 codeEvalLow (ValueTag legal, int size, Code *program)
 {
+#ifdef DEBUG_CODE
+  printf ("Code: ");
+  codePrint (size, program);
+  printf ("\n");
+#endif
+
+  int sp = -1;
   Value Result;
-  Sp = -1;
-  if (!codeEvalLowest (size, program))
+  if (!codeEvalLowest (size, program, &sp))
     {
-      Result.Tag.t = ValueCode;
+      Result.Tag = ValueCode;
       Result.ValueCode.len = size;
       Result.ValueCode.c = program;
     }
-  else if (Sp == 0)
+  else if (sp == 0)
     Result = Stack[0];
   else
-    Result.Tag.t = ValueIllegal;
-
-  if (!(Result.Tag.t & legal))
     {
-      if (option_autocast && (legal & ValueFloat) && Result.Tag.t == ValueInt)
+      assert (0); /* <= FIXME: I've added a CantHappen as I would like to know if this possible.  */
+      Result.Tag = ValueIllegal;
+    }
+
+  if (!(Result.Tag & legal))
+    {
+      if (option_autocast && (legal & ValueFloat) && Result.Tag == ValueInt)
 	{
 	  ARMFloat f = Result.ValueInt.i;
 	  if (option_fussy > 1)
 	    error (ErrorInfo, "Changing integer %d to float %1.1f", Result.ValueInt.i, f);
-	  Result.Tag.t = ValueFloat;
+	  Result.Tag = ValueFloat;
 	  Result.ValueFloat.f = f;
 	}
       else
-	Result.Tag.t = ValueIllegal;
+	Result.Tag = ValueIllegal;
     }
+#ifdef DEBUG_CODE
+  printf ("Code result:\n");
+  valuePrint (&Result);
+#endif
+
   return Result;
 }
 
@@ -326,14 +425,14 @@ codeCopy (int len, const Code *code)
 	    break;
 	}
     }
+
   return newCode;
 }
 
 bool
 codeEqual (int len, const Code *a, const Code *b)
 {
-  int i;
-  for (i = 0; i < len; i++)
+  for (int i = 0; i < len; i++)
     {
       if (a[i].Tag != b[i].Tag)
 	return false;
@@ -353,5 +452,64 @@ codeEqual (int len, const Code *a, const Code *b)
 	  break;
 	}
     }
+
   return true;
 }
+
+#ifdef DEBUG_CODE
+static void
+codePrint (int size, const Code *program)
+{
+  for (int i = 0; i < size; i++)
+    {
+      switch (program[i].Tag)
+	{
+	  case CodeOperator:
+	    if (isUnop (program[i].CodeOperator.op))
+	      printf ("[%s] ", OperatorAsStr (program[i].CodeOperator.op));
+	    else
+	      printf ("[%s] ", OperatorAsStr (program[i].CodeOperator.op));
+	    break;
+
+	  case CodeValue:
+	    printf ("[");
+	    valuePrint (&program[i].CodeValue.value);
+	    printf ("] ");
+	    break;
+
+	  case CodeSymbol:
+	    if ((program[i].CodeSymbol.symbol->type & SYMBOL_DEFINED)
+	        && !(program[i].CodeSymbol.symbol->type & SYMBOL_AREA))
+	      {
+		switch (program[i].CodeSymbol.symbol->value.Tag)
+		  {
+		    case ValueInt:
+		    case ValueFloat:
+		    case ValueString:
+		    case ValueBool:
+		      printf ("[Symbol %.*s : ",
+			      program[i].CodeSymbol.symbol->len,
+			      program[i].CodeSymbol.symbol->str);
+		      valuePrint (&program[i].CodeSymbol.symbol->value);
+		      printf ("] ");
+		      break;
+
+		    case ValueCode:
+		      printf ("[Code: << ");
+		      codePrint (program[i].CodeSymbol.symbol->value.ValueCode.len,
+				 program[i].CodeSymbol.symbol->value.ValueCode.c);
+		      printf (">>] ");
+		      break;
+		  }
+	      }
+	    else
+	      {
+		printf ("[Late Symbol %.*s : ",
+			program[i].CodeSymbol.symbol->len,
+			program[i].CodeSymbol.symbol->str);
+	      }
+	    break;
+	}
+    }
+}
+#endif

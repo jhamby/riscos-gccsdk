@@ -31,8 +31,8 @@ extern const char *rout_id;
 extern const char localFormat[];
 extern int localCurrent;
 
-void c_rout (Lex * label);
-void c_local (Lex * label);
+void c_rout (const Lex * label);
+void c_local (const Lex *label);
 
 int localTest (const char *);
 void localMunge (Lex *);

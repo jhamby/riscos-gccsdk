@@ -31,7 +31,6 @@
 #include "expr.h"
 #include "get.h"
 #include "input.h"
-#include "lex.h"
 #include "main.h"
 #include "storage.h"
 #include "value.h"
@@ -41,29 +40,36 @@ static Value storageV;
 Value
 storageValue (void)
 {
-  if (storageV.Tag.t != ValueAddr)
+  if (storageV.Tag != ValueAddr)
     {
-      error (ErrorError, "No storage declared (# or @ before ^)");
-      storageV.Tag.t = ValueAddr;
+      error (ErrorError, "No storage declared (# or @ before ^)"); /* FIXME: I don't think this should give an error.  */
+      storageV.Tag = ValueAddr;
       storageV.ValueAddr.i = 0;
-      storageV.ValueAddr.r = 15;
+      storageV.ValueAddr.r = -1;
     }
-  return valueCopy (storageV);
+  if (storageV.ValueAddr.r == -1)
+    {
+      Value value;
+      value.Tag = ValueInt;
+      value.ValueInt.i = storageV.ValueAddr.i;
+      return value;
+    }
+  return storageV;
 }
 
+/**
+ * Implementation for '^'.
+ */
 void
 c_record (void)
 {
   exprBuild ();
-  Value value = exprEval (ValueInt | ValueAddr);
-  storageV.Tag.t = ValueAddr;
-  switch (value.Tag.t)
+  Value value = exprEval (ValueInt);
+  storageV.Tag = ValueAddr;
+  switch (value.Tag)
     {
       case ValueInt:
         storageV.ValueAddr.i = value.ValueInt.i;
-        break;
-      case ValueAddr:
-        storageV.ValueAddr.i = value.ValueAddr.i;
         break;
       default:
         storageV.ValueAddr.i = 0;
@@ -77,9 +83,12 @@ c_record (void)
       storageV.ValueAddr.r = getCpuReg ();
     }
   else
-    storageV.ValueAddr.r = 15;
+    storageV.ValueAddr.r = -1;
 }
 
+/**
+ * Implementation for '#'.
+ */
 void
 c_alloc (Symbol *sym)
 {
@@ -89,24 +98,26 @@ c_alloc (Symbol *sym)
       sym->area.ptr = NULL;
       sym->value = storageValue ();
     }
+  /* FIXME: we should store in the symbol how many bytes it represents in the
+     output file in order to implement '?'.  */
+
+  /* Determine how much we should allocate.  */
   exprBuild ();
   Value value = exprEval (ValueInt);
-  switch (value.Tag.t)
+  switch (value.Tag)
     {
-    case ValueInt:
-      if (value.ValueInt.i >= 0)
-	{
-	  if (option_pedantic > 1 && value.ValueInt.i == 0)
-	    error (ErrorInfo, "You are reserving zero bytes?");
-	  storageV.ValueAddr.i += value.ValueInt.i;
-	  /* ValueInt & ValueAddr have i in the same place */
-	  value.ValueAddr.r = storageV.ValueAddr.r; // FIXME: what's the point doing this?
-	}
-      else
-	error (ErrorError, "Cannot reserve negative amount of space %d", value.ValueInt.i);
-      break;
-    default:
-      errorAbort ("Illegal expression after #");
-      break;
+      case ValueInt:
+        if (value.ValueInt.i >= 0)
+	  {
+	    if (option_pedantic && value.ValueInt.i == 0)
+	      error (ErrorInfo, "You are reserving zero bytes?");
+	    storageV.ValueAddr.i += value.ValueInt.i;
+	  }
+        else
+	  error (ErrorError, "Cannot reserve negative amount of space %d", value.ValueInt.i);
+        break;
+      default:
+        error (ErrorError, "Illegal expression after #");
+        break;
     }
 }

@@ -104,8 +104,7 @@ expr (int pri)
 
   while (lexNextPri () == pri)
     {
-      Lex op;
-      op = lexGetBinop ();
+      Lex op = lexGetBinop ();
       if (pri == 10)
 	prim ();
       else

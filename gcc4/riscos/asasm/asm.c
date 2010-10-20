@@ -51,10 +51,8 @@ assemble (void)
      true, then expand the input line into where necessary.  */
   while (gCurPObjP != NULL && inputNextLine ())
     {
-      Lex label;
-      Symbol *symbol;
-
       /* ignore blank lines and comments */
+      Lex label;
       if (inputLook () && !isspace (inputLook ()) && !inputComment ())
 	{
 	  /* Deal with any label */
@@ -66,10 +64,12 @@ assemble (void)
 	    inputSkip ();
 	}
       else
-	{
-	  label.tag = LexNone;
-	  symbol = NULL;
-	}
+	label.tag = LexNone;
+#ifdef DEBUG
+      printf ("%s: %d: ", FS_GetCurFileName (), FS_GetCurLineNumber ());
+      lexPrint (&label);
+      printf ("\n");
+#endif
       skipblanks ();
       if (!inputComment ())
 	decode (&label);
@@ -100,7 +100,7 @@ asm_label (const Lex *label)
   else
     {
       symbol->type = 0;
-      symbol->value.Tag.t = ValueIllegal;
+      symbol->value.Tag = ValueIllegal;
     }
   return symbol;
 }

@@ -1,3 +1,8 @@
+	[ :LNOT: :DEF:EXTENSION
+	GBLL	EXTENSION
+EXTENSION SETL	{FALSE}
+	]
+
 	AREA Data, DATA, READONLY
 
 	[ :LNOT:REFERENCE
@@ -11,7 +16,7 @@
 	DCD &80:SHR:-1
 
 	; >>
-	[ {TRUE}	; Extension
+	[ EXTENSION
 	DCD &80000000>>0
 	DCD &80000000>>4
 	DCD &80000000 >> 31
@@ -21,7 +26,7 @@
 	]
 
 	; >>>
-	[ {TRUE}	; Extension
+	[ EXTENSION
 	DCD &80000000>>>0
 	DCD &08000000 >>> 4
 	DCD &80000000 >>> 8
@@ -41,7 +46,7 @@
 	DCD &80:SHL:-1
 
 	; <<
-	[ {TRUE}	; Extension
+	[ EXTENSION
 	DCD 1<<0
 	DCD 1<<4
 	DCD 1 << 31
@@ -76,7 +81,7 @@
 	DCD 0
 
 	; >>
-	[ {TRUE}	; Extension
+	[ EXTENSION
 	DCD &80000000
 	DCD &08000000
 	DCD &00000001
@@ -86,7 +91,7 @@
 	]
 
 	; >>>
-	[ {TRUE}	; Extension
+	[ EXTENSION
 	DCD &80000000
 	DCD &00800000
 	DCD &FF800000
@@ -106,7 +111,7 @@
 	DCD 0
 
 	; <<
-	[ {TRUE}	; Extension
+	[ EXTENSION
 	DCD 1
 	DCD &10
 	DCD &80000000

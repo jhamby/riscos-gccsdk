@@ -1,3 +1,8 @@
+	[ :LNOT: :DEF:EXTENSION
+	GBLL	EXTENSION
+EXTENSION SETL	{FALSE}
+	]
+
 	AREA Data, DATA, READONLY
 
 	[ :LNOT: REFERENCE
@@ -40,7 +45,7 @@
 	= ">", :STR:(4/3), "<"
 	= ">", :STR:{FALSE}, "<"
 	= ">", :STR:{TRUE}, "<"
-	[ {TRUE}
+	[ EXTENSION
 	= ">", :STR:(1./3.), "<"
 	]
 
@@ -84,7 +89,7 @@
 	= ">00000001<"
 	= ">F<"
 	= ">T<"
-	[ {TRUE}
+	[ EXTENSION
 	= ">0.333333<"
 	]
 

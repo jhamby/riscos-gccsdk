@@ -70,7 +70,7 @@ static localPos *localListEnd;
 
 
 void
-c_rout (Lex *label)
+c_rout (const Lex *label)
 {
   routPos *p = malloc (sizeof (localPos));
   memset (rout_lblno, 0, sizeof (rout_lblno));
@@ -102,7 +102,7 @@ c_rout (Lex *label)
 
 
 void
-c_local (Lex *label)
+c_local (const Lex *label)
 {
   if (label && label->tag != LexNone)
     error (ErrorWarning, "Label not allowed here - ignoring");
@@ -131,9 +131,10 @@ localTest (const char *s)
 void
 localMunge (Lex *label)
 {
-  int i;
   if (!option_local)
     return;
+
+  int i;
   if (label->LexId.str[i = label->LexId.len - 2] == '$'
       && (label->LexId.str[i + 1] == 'L' || label->LexId.str[i + 1] == 'l'))
     {

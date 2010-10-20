@@ -93,7 +93,7 @@ dstmem (ARMWord ir)
 		exprBuild ();
 		offset = exprEval (ValueInt | ValueAddr | ValueCode | ValueLateLabel);
 		offValue = true;
-		switch (offset.Tag.t)
+		switch (offset.Tag)
 		  {
 		  case ValueInt:
 		  case ValueAddr:
@@ -210,7 +210,7 @@ dstmem (ARMWord ir)
       /* Firstly, see if it's a field in a register-based map */
       exprBuild ();
       offset = exprEval (ValueAddr);
-      switch (offset.Tag.t)
+      switch (offset.Tag)
 	{
 	case ValueAddr:
 	  ir |= LHS_OP (offset.ValueAddr.r);
@@ -232,7 +232,7 @@ dstmem (ARMWord ir)
 	  codeInt (8);
 	  codeOperator (Op_sub);
 	  offset = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueAddr);
-	  switch (offset.Tag.t)
+	  switch (offset.Tag)
 	    {
 	    case ValueInt:
 	      ir |= LHS_OP (15);
@@ -264,9 +264,9 @@ void
 m_ldr (ARMWord cc)
 {
   /* Bit 27 set => LDRD */
-  dstmem ((cc & ~(1 << 27)) |
-    (((cc & 0x90) == 0x90) ? (cc & (1 << 27)) ? 0 : (1 << 20)
-			   : ((1 << 20) | (1 << 26))));
+  dstmem ((cc & ~(1 << 27))
+          | (((cc & 0x90) == 0x90) ? (cc & (1 << 27)) ? 0 : (1 << 20)
+	                           : ((1 << 20) | (1 << 26))));
 }
 
 
@@ -274,15 +274,15 @@ void
 m_str (ARMWord cc)
 {
   /* Bit 27 set => STRD */
-  dstmem ((cc & ~(1 << 27)) |
-    (((cc & 0x90) == 0x90) ? (cc & (1 << 27)) ? 0x20 : 0 : (1 << 26)));
+  dstmem ((cc & ~(1 << 27))
+          | (((cc & 0x90) == 0x90) ? (cc & (1 << 27)) ? 0x20 : 0
+	                           : (1 << 26)));
 }
 
 
 void
 m_pld (void)
 {
-  int op;
   ARMWord ir = 0xf450f000 | PRE_FLAG;
 
   cpuWarn (XSCALE);
@@ -293,7 +293,7 @@ m_pld (void)
     error (ErrorError, "Expected '[' after PLD instruction");
 
   skipblanks();
-  op = getCpuReg (); /* Base register */
+  int op = getCpuReg (); /* Base register */
   ir |= LHS_OP (op);
   skipblanks();
 
@@ -313,13 +313,10 @@ m_pld (void)
 
       if (inputLook () == '#')
 	{
-	  Value offset;
-
 	  inputSkip ();
 	  exprBuild ();
-	  offset = exprEval (ValueInt | ValueCode);
-
-	  switch (offset.Tag.t)
+	  Value offset = exprEval (ValueInt | ValueCode);
+	  switch (offset.Tag)
 	    {
 	    case ValueInt:
 	    case ValueAddr:
@@ -370,7 +367,6 @@ static void
 dstreglist (ARMWord ir)
 {
   int op, low, high, c;
-  Value mask;
   op = getCpuReg ();
   ir |= BASE_MULTI (op);
   skipblanks ();
@@ -390,8 +386,8 @@ dstreglist (ARMWord ir)
   if (inputLook () == '#')
     {				/* constant */
       exprBuild ();
-      mask = exprEval (ValueInt | ValueCode | ValueLateLabel);
-      switch (mask.Tag.t)
+      Value mask = exprEval (ValueInt | ValueCode | ValueLateLabel);
+      switch (mask.Tag)
 	{
 	case ValueInt:
 	  ir |= fixMask (0, mask.ValueInt.i);

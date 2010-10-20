@@ -58,12 +58,13 @@ static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 
 static bool inputArgSub (void);
 
-/* For debug only.  */
+#if DEBUG
 const char *
-inputGiveRestLine(void)
+inputGiveRestLine (void)
 {
   return input_pos;
 }
+#endif
 
 char
 inputLook (void)
@@ -483,7 +484,7 @@ inputVarSub(int *ptr, int *trunc, bool inString)
 
   if (sym)
     {
-      switch (sym->value.Tag.t)
+      switch (sym->value.Tag)
 	{
 	case ValueInt:
 	  *ptr += sprintf (&input_buff[*ptr], "%i", sym->value.ValueInt.i);
@@ -582,7 +583,6 @@ static bool
 inputArgSub (void)
 {
   int ptr = 0, trunc = 0, len;
-  char c;
 
   input_pos = workBuff;
 
@@ -597,6 +597,7 @@ inputArgSub (void)
 	input_buff[ptr++] = *input_pos++;
 
       /* process special characters */
+      char c;
       switch (c = *input_pos)
 	{
 

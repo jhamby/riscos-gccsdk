@@ -1,7 +1,13 @@
+	[ :LNOT: :DEF:EXTENSION
+	GBLL	EXTENSION
+EXTENSION SETL	{FALSE}
+	]
+
 	AREA Data, DATA, READONLY
 
 	[ :LNOT:REFERENCE
 
+	; =
 	= "|"
 	= :STR:(3=5)
 	= :STR:(5=3)
@@ -16,7 +22,8 @@
 	= :STR:({TRUE}={FALSE})
 	= :STR:({TRUE}={TRUE})
 
-	[ {TRUE}	; Extension
+	; ==
+	[ EXTENSION
 	= "|"
 	= :STR:(3==5)
 	= :STR:(5==3)
@@ -32,6 +39,7 @@
 	= :STR:({TRUE}={TRUE})
 	]
 
+	; <>
 	= "|"
 	= :STR:(3<>5)
 	= :STR:(5<>3)
@@ -46,7 +54,8 @@
 	= :STR:({TRUE}={FALSE})
 	= :STR:({TRUE}={TRUE})
 
-	[ {TRUE}	; Extension
+	; !=
+	[ EXTENSION
 	= "|"
 	= :STR:(3!=5)
 	= :STR:(5!=3)
@@ -62,6 +71,7 @@
 	= :STR:({TRUE}={TRUE})
 	]
 
+	; /=
 	= "|"
 	= :STR:(3/=5)
 	= :STR:(5/=3)
@@ -76,6 +86,14 @@
 	= :STR:({TRUE}={FALSE})
 	= :STR:({TRUE}={TRUE})
 
+	; :LEOR:
+	= "|"
+	= :STR:({FALSE} :LEOR: {FALSE})
+	= :STR:({FALSE}:LEOR:{TRUE})
+	= :STR:({TRUE}:LEOR:{FALSE})
+	= :STR:({TRUE}:LEOR:{TRUE})
+
+	; >
 	= "|"
 	= :STR:(3>5)
 	= :STR:(5>3)
@@ -86,6 +104,7 @@
 	= :STR:("ABC">"ABCD")
 	= :STR:("ABCD">"ABC")
 
+	; >=
 	= "|"
 	= :STR:(3>=5)
 	= :STR:(5>=3)
@@ -96,6 +115,7 @@
 	= :STR:("ABC">="ABCD")
 	= :STR:("ABCD">="ABC")
 
+	; <
 	= "|"
 	= :STR:(3<5)
 	= :STR:(5<3)
@@ -106,6 +126,7 @@
 	= :STR:("ABC"<"ABCD")
 	= :STR:("ABCD"<"ABC")
 
+	; <=
 	= "|"
 	= :STR:(3<=5)
 	= :STR:(5<=3)
@@ -119,14 +140,15 @@
 	|
 
 	= "|FFFTFTFFTFFT"	; =
-	[ {TRUE}	; Extension
+	[ EXTENSION
 	= "|FFFTFTFFTFFT"	; ==
 	]
 	= "|TTTFTFTTTFFT"	; <>
-	[ {TRUE}	; Extension
+	[ EXTENSION
 	= "|TTTFTFTTTFFT"	; !=
 	]
 	= "|TTTFTFTTTFFT"	; /=
+	= "|FTTF"		; :LEOR:
 	= "|FTTFFFFT"		; >
 	= "|FTTTFTFT"		; >=
 	= "|TFFFTFTF"		; <

@@ -53,11 +53,11 @@ typedef struct WhileBlock
 } WhileBlock;
 
 void c_if (void);
-void c_else (Lex *);
-void c_endif (Lex *);
+void c_else (const Lex *);
+void c_endif (const Lex *);
 
-void c_while (Lex *);
-void c_wend (Lex *);
+void c_while (const Lex *);
+void c_wend (const Lex *);
 
 void FS_PopIfWhile (bool noCheck);
 

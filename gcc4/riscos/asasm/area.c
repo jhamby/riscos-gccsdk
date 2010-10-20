@@ -166,10 +166,9 @@ c_align (void)
   else
     {				/* an expression follows */
       /* Determine align value */
-      Value value;
       exprBuild ();
-      value = exprEval (ValueInt);
-      if (value.Tag.t == ValueInt)
+      Value value = exprEval (ValueInt);
+      if (value.Tag == ValueInt)
 	{
 	  alignValue = value.ValueInt.i;
 	  if (alignValue <= 0 || (alignValue & (alignValue - 1)))
@@ -190,10 +189,9 @@ c_align (void)
 	offsetValue = 0;
       else if (inputGet () == ',')
 	{
-	  Value valueO;
 	  exprBuild ();
-	  valueO = exprEval (ValueInt);
-	  if (valueO.Tag.t == ValueInt)
+	  Value valueO = exprEval (ValueInt);
+	  if (valueO.Tag == ValueInt)
 	    {
 	      offsetValue = valueO.ValueInt.i;
 	      if (offsetValue < 0)
@@ -235,8 +233,6 @@ c_align (void)
 void
 c_reserve (void)
 {
-  Value value;
-
   if (!areaCurrentSymbol)
     {
       areaError ();
@@ -244,8 +240,8 @@ c_reserve (void)
     }
 
   exprBuild ();
-  value = exprEval (ValueInt);
-  if (value.Tag.t == ValueInt)
+  Value value = exprEval (ValueInt);
+  if (value.Tag == ValueInt)
     {
       int i = areaCurrentSymbol->value.ValueInt.i;
 
@@ -267,7 +263,6 @@ c_area (void)
 {
   int oldtype = 0;
   int newtype = 0;
-  int c;
   int rel_specified = 0, data_specified = 0;
   
   Lex lex = lexGetId ();
@@ -279,12 +274,13 @@ c_area (void)
   else
     {
       sym->type = SYMBOL_AREA | SYMBOL_DECLARED;
-      sym->value.Tag.t = ValueInt;
+      sym->value.Tag = ValueInt;
       sym->value.ValueInt.i = 0;
       sym->area.info = areaNew (0);
       areaHeadSymbol = sym;
     }
   skipblanks ();
+  int c;
   while ((c = inputGet ()) == ',')
     {
       Lex attribute = lexGetId ();
@@ -338,8 +334,6 @@ c_area (void)
 	newtype |= AREA_LINKONCE;
       else if (!strncmp ("ALIGN", attribute.LexId.str, attribute.LexId.len))
 	{
-	  Value value;
-
 	  if (newtype & 0xFF)
 	    error (ErrorError, "You can't specify ALIGN attribute more than once");
 	  skipblanks ();
@@ -347,8 +341,8 @@ c_area (void)
 	    error (ErrorError, "Malformed ALIGN attribute specification");
 	  skipblanks ();
 	  exprBuild ();
-	  value = exprEval (ValueInt);
-	  if (value.Tag.t == ValueInt)
+	  Value value = exprEval (ValueInt);
+	  if (value.Tag == ValueInt)
 	    {
 	      if (value.ValueInt.i < 2 || value.ValueInt.i > 12)
 		error (ErrorError, "ALIGN attribute value must be between 2 (incl) and 12 (incl)");

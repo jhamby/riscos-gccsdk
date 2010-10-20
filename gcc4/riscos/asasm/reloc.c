@@ -218,9 +218,7 @@ relocLate2Reloc (Reloc *r, Value *value)
 {
   int size = 0;
   int norelocs = 0;
-  LateInfo *late;
-
-  for (late = value->ValueLate.late; late; late = late->next)
+  for (LateInfo *late = value->ValueLate.late; late; late = late->next)
     {
       if (late->factor > 0)
 	{			/* kludge: apparently <0 for area symbols */
@@ -228,7 +226,7 @@ relocLate2Reloc (Reloc *r, Value *value)
 	  if (late->factor > 1)
 	    {
 	      r->value.ValueCode.c[size].Tag = CodeValue;
-	      r->value.ValueCode.c[size].CodeValue.value.Tag.t = ValueInt;
+	      r->value.ValueCode.c[size].CodeValue.value.Tag = ValueInt;
 	      r->value.ValueCode.c[size++].CodeValue.value.ValueInt.i = late->factor;
 	    }
 	  r->value.ValueCode.c[size].Tag = CodeSymbol;
@@ -249,7 +247,7 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 
   codeInit ();
   *value = codeEvalLow (ValueAll, r->value.ValueCode.len, r->value.ValueCode.c);
-  switch (value->Tag.t)
+  switch (value->Tag)
     {
     case ValueIllegal:
       errorLine (r->lineno, r->file, ErrorError, "Cannot evaluate expression (illegal)");
@@ -361,7 +359,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 {
   const int offset = r->offset;
   
-  switch (value->Tag.t)
+  switch (value->Tag)
     {
       case ValueLateLabel:
       case ValueInt:
@@ -371,7 +369,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    {
 	      /* The R_ARM_PC24 ELF reloc needs to happen for a "B + PC - 8"
 	         instruction, while in AOF this needs to happen for a "B 0".  */
-	      int bv = (!option_aof && value->Tag.t == ValueLateLabel) ?
+	      int bv = (!option_aof && value->Tag == ValueLateLabel) ?
 		value->ValueInt.i + offset : value->ValueInt.i;
 	      ARMWord w = fixBranch (r->lineno, bv);
 	      image[offset + 2] = (w >> 16) & 0xff;
@@ -395,7 +393,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	      /* fprintf (stderr, "RelocCpuOffset: tag = %d, lineno = %d, offset = %d, val=%s\n",
 			  value->Tag.t, r->lineno, value->ValueInt.i,
 			  (value->Tag.t == ValueLateLabel) ? value->ValueLate.late->symbol->str : "-"); */
-	      if (value->Tag.t == ValueLateLabel)
+	      if (value->Tag == ValueLateLabel)
 		{
 		  const Symbol *sym = value->ValueLate.late->symbol;
 		  if ((sym->type & SYMBOL_AREA)
@@ -464,7 +462,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	  case RelocAdrl:
 	    {
 	      ARMWord w = READWORD (image, offset);
-	      ARMWord w1 = (value->Tag.t == ValueLateLabel) ? value->ValueLate.late->symbol->type & SYMBOL_DEFINED : 1;
+	      ARMWord w1 = (value->Tag == ValueLateLabel) ? value->ValueLate.late->symbol->type & SYMBOL_DEFINED : 1;
 	      /* warn if symbol is defined or isn't a late label */
 	      fixAdrl (r->lineno, &w, &w1, value->ValueInt.i, w1);
 	      image[offset + 3] = (w >> 24) & 0xff;
@@ -492,7 +490,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    r->Tag = RelocNone;
 	    return;
 	}
-	if (value->Tag.t == ValueInt || r->value.ValueCode.len == 0)	/* Value is known */
+	if (value->Tag == ValueInt || r->value.ValueCode.len == 0)	/* Value is known */
 	  r->Tag = RelocNone;
 	break;
       case ValueFloat:
@@ -547,13 +545,11 @@ int
 relocFix (const Symbol *area)
 {
   unsigned char *image = area->area.info->image;
-  Reloc *relocs;
   int norelocs = 0;
-
-  for (relocs = area->area.info->relocs; relocs; relocs = relocs->more)
+  for (Reloc *relocs = area->area.info->relocs; relocs; relocs = relocs->more)
     {
       Value value;
-      switch (relocs->value.Tag.t)
+      switch (relocs->value.Tag)
 	{
 	case ValueInt:
 	case ValueFloat:
@@ -610,7 +606,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	  // FIXME: determine 'How' !
 	  break;
 	case RelocCopOffset:
-	  if (relocs->value.Tag.t == ValueCode
+	  if (relocs->value.Tag == ValueCode
 	      && (relocs->value.ValueCode.c->CodeSymbol.symbol->type & SYMBOL_AREA)
 	      && (relocs->value.ValueCode.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
 	    How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
@@ -638,7 +634,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	  int loop;
 	  if (relocs->value.ValueCode.c[ip].Tag == CodeValue)
 	    {
-	      if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag.t != ValueInt)
+	      if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag != ValueInt)
 		{
 		  errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
 		  loop = 0;
@@ -698,7 +694,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  // FIXME: determine 'How' !
 	  break;
         case RelocCopOffset:
-          if (relocs->value.Tag.t == ValueCode
+          if (relocs->value.Tag == ValueCode
               && (relocs->value.ValueCode.c->CodeSymbol.symbol->type & SYMBOL_AREA)
               && (relocs->value.ValueCode.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
             How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
@@ -726,7 +722,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  int loop, symbol, type;
           if (relocs->value.ValueCode.c[ip].Tag == CodeValue)
             {
-              if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag.t != ValueInt)
+              if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag != ValueInt)
 		{
                   errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
 		  loop = 0;

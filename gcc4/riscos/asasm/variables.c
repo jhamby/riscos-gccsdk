@@ -46,6 +46,7 @@
 #include "lex.h"
 #include "lit.h"
 #include "macros.h"
+#include "main.h"
 #include "output.h"
 #include "os.h"
 #include "put.h"
@@ -74,8 +75,7 @@ var_type (ValueTag type)
 static void
 assign_var (Symbol *sym, ValueTag type)
 {
-  sym->value.Tag.t = type;
-  sym->value.Tag.v = type;
+  sym->value.Tag = type;
   switch (type)
     {
       case ValueInt:
@@ -111,16 +111,17 @@ declare_var (const char *ptr, int len, ValueTag type, bool localMacro)
   Symbol *sym = symbolFind (&var);
   if (sym != NULL)
     {
-      if (sym->value.Tag.t != type)
+      if (sym->value.Tag != type)
 	{
 	  error (ErrorError, "'%.*s' is already declared as a %s",
-	         len, ptr, valueTagAsString (sym->value.Tag.t));
+	         len, ptr, valueTagAsString (sym->value.Tag));
 	  inputRest ();
 	  return;
 	}
-      error (ErrorWarning, "Redeclaration of %s variable '%.*s'",
-	     valueTagAsString (sym->value.Tag.t),
-	     var.LexId.len, var.LexId.str);
+      if (option_pedantic)
+        error (ErrorWarning, "Redeclaration of %s variable '%.*s'",
+	       valueTagAsString (sym->value.Tag),
+	       var.LexId.len, var.LexId.str);
     }
   else
     sym = symbolAdd (&var);
@@ -228,29 +229,22 @@ c_lcl (ValueTag type, const Lex *label)
 void
 c_set (ValueTag type, const Lex *label)
 {
-  const char *c;
   Symbol *sym = symbolFind (label);
-  if (sym == NULL || sym->value.Tag.t == ValueIllegal)
-    c = "undefined";
-  else if (sym->value.Tag.v == ValueConst)
-    c = "not a variable";
-  else
-    c = NULL;
-  if (c)
+  assert (sym->value.Tag != ValueIllegal);
+  if (sym == NULL)
     {
-      error (ErrorError, "'%.*s' is %s", label->LexId.len, label->LexId.str, c);
+      error (ErrorError, "'%.*s' is undefined", label->LexId.len, label->LexId.str);
       inputRest ();
       return;
     }
   exprBuild ();
-  Value value = exprEval (sym->value.Tag.t);
-  value.Tag.v = sym->value.Tag.v;
+  Value value = exprEval (sym->value.Tag);
   sym->type |= SYMBOL_DEFINED;
-  switch (value.Tag.t)
+  switch (value.Tag)
     {
       case ValueIllegal:
 	error (ErrorError, "Illegal SET%c", var_type (type));
-	sym->value.Tag.t = ValueInt;
+	sym->value.Tag = ValueInt;
 	sym->value.ValueInt.i = 0;
 	break;
 #ifdef DEBUG
@@ -308,8 +302,7 @@ var_define (const char *def)
     i++;
 
   Value value;
-  value.Tag.t = ValueString;
-  value.Tag.v = ValueString;
+  value.Tag = ValueString;
   value.ValueString.len = strlen (i);
   value.ValueString.s = i;
 

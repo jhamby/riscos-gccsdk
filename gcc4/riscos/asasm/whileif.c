@@ -103,7 +103,7 @@ c_if (void)
 
   exprBuild ();
   Value flag = exprEval (ValueBool);
-  if (flag.Tag.t != ValueBool)
+  if (flag.Tag != ValueBool)
     {
       error (ErrorError, "IF expression must be boolean (treating as true)");
       return;
@@ -114,7 +114,7 @@ c_if (void)
 
 
 void
-c_else (Lex *label)
+c_else (const Lex *label)
 {
   if (!gCurPObjP->if_depth)
     error (ErrorError, "Mismatched |");
@@ -131,7 +131,7 @@ c_else (Lex *label)
 
 
 void
-c_endif (Lex *label)
+c_endif (const Lex *label)
 {
   if (!gCurPObjP->if_depth)
     errorAbort ("Mismatched ]");
@@ -178,13 +178,13 @@ while_skip (void)
 
 
 void
-c_while (Lex *label __attribute__ ((unused)))
+c_while (const Lex *label __attribute__ ((unused)))
 {
   inputMark ();
   /* Evaluate expression */
   exprBuild ();
   Value flag = exprEval (ValueBool);
-  if (flag.Tag.t != ValueBool)
+  if (flag.Tag != ValueBool)
     {
       error (ErrorError, "WHILE expression must be boolean (treating as false)");
       while_skip ();
@@ -249,7 +249,7 @@ whileReEval (void)
   inputThisInstead (gCurPObjP->whilestack->expr);
   exprBuild ();
   Value flag = exprEval (ValueBool);
-  if (flag.Tag.t != ValueBool)
+  if (flag.Tag != ValueBool)
     {
       error (ErrorError, "WHILE expression must be boolean (treating as false)");
       return false;
@@ -279,10 +279,8 @@ whileReEval (void)
 
 
 void
-c_wend (Lex *label)
+c_wend (const Lex *label __attribute__ ((unused)))
 {
-  label = label;
-
   if (!gCurPObjP->whilestack)
     {
       error (ErrorError, "Mismatched WEND");

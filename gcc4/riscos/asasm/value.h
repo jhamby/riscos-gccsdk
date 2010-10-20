@@ -53,53 +53,47 @@ typedef enum
   ValueAll       = 127		/* cheat */
 } ValueTag;
 
-typedef struct
-{
-  ValueTag t;
-  ValueTag v;			/* var type: ValueIllegal (const), ValueInt, ValueString */
-} ValueType;
-
 typedef union
 {
-  ValueType Tag;
+  ValueTag Tag;
   struct			/* ValueInt */
     {
-      ValueType Tag;
+      ValueTag Tag;
       int i;
     } ValueInt;
   struct			/* ValueFloat */
     {
-      ValueType Tag;
+      ValueTag Tag;
       ARMFloat f;
     } ValueFloat;
   struct			/* ValueString */
     {
-      ValueType Tag;
+      ValueTag Tag;
       int len;			/**< Size string.  */
       const char *s;		/**< Malloced memory block and string contents is *NOT* NUL terminated.  */
     } ValueString;
   struct			/* ValueBool */
     {
-      ValueType Tag;
+      ValueTag Tag;
       bool b;
     } ValueBool;
   struct			/* ValueCode */
     {
-      ValueType Tag;
+      ValueTag Tag;
       int len;
       union CODE *c;
     } ValueCode;
   struct			/* ValueLateLabel */
     {
-      ValueType Tag;		/* Must start identical with ValueInt */
+      ValueTag Tag;		/* Must start identical with ValueInt */
       int i;
       struct LATEINFO *late;
     } ValueLate;
   struct			/* ValueAddr */
     {
-      ValueType Tag;
+      ValueTag Tag;
       int i;
-      int r;
+      int r;			/* When = 0 - 15 (inc), it is register based. -1 otherwise.  */
     } ValueAddr;
 } Value;
 
@@ -109,6 +103,6 @@ void valueFree (Value *value);
 bool valueEqual (const Value *a, const Value *b);
 const char *valueTagAsString (ValueTag tag);
 #ifdef DEBUG
-void valuePrint(const Value *v);
+void valuePrint (const Value *v);
 #endif
 #endif

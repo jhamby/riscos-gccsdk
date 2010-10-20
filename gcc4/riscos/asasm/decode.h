@@ -28,6 +28,6 @@
 #include "lex.h"
 
 bool notinput (const char *str);
-void decode (Lex *label);
+void decode (const Lex *label);
 
 #endif

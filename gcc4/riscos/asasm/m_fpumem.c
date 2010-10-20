@@ -65,7 +65,6 @@ static void
 dstmemx (ARMWord ir)
 {
   bool stack_ia = false;
-  Value im;
 
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
@@ -106,8 +105,8 @@ dstmemx (ARMWord ir)
     error (ErrorError, "Inserting comma after dst");
   skipblanks ();
   exprBuild ();
-  im = exprEval (ValueInt);
-  if (im.Tag.t == ValueInt)
+  Value im = exprEval (ValueInt);
+  if (im.Tag == ValueInt)
     {
       if (im.ValueInt.i < 1 || im.ValueInt.i > 4)
 	error (ErrorError, "Number of fp registers out of range");

@@ -106,7 +106,7 @@ cpuWarn (TargetCPU_t type)	/* true if warning is output */
 void
 set_cpuvar (void)
 {
-   char buffer[40];
-   snprintf (buffer, sizeof(buffer), "TARGET_CPU=%s", targetName);
-   var_define (buffer);
+  char buffer[40];
+  snprintf (buffer, sizeof(buffer), "TARGET_CPU=%s", targetName);
+  var_define (buffer);
 }

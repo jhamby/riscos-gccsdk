@@ -65,10 +65,10 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
   sym->type |= SYMBOL_ABSOLUTE;
   exprBuild ();
   Value value = exprEval (legal);
-  if (value.Tag.t == ValueIllegal)
+  if (value.Tag == ValueIllegal)
     {
       error (ErrorError, "Illegal %s", msg);
-      sym->value.Tag.t = ValueInt;
+      sym->value.Tag = ValueInt;
       sym->value.ValueInt.i = 0;
     }
   else
@@ -153,15 +153,14 @@ c_ltorg (void)
 static void
 defineint (int size)
 {
-  Value value;
-  ARMWord word = 0;
   int c;
   do
     {
+      ARMWord word = 0;
       skipblanks ();
       exprBuild ();
-      value = exprEval (ValueInt | ValueString | ValueCode | ValueLateLabel | ValueAddr);
-      switch (value.Tag.t)
+      Value value = exprEval (ValueInt | ValueString | ValueCode | ValueLateLabel | ValueAddr);
+      switch (value.Tag)
 	{
 	case ValueInt:
 	case ValueAddr:
@@ -170,7 +169,7 @@ defineint (int size)
 	  break;
 	case ValueString:
 	  if (size == 1)
-	    {			/* Lay out a string */
+	    { /* Lay out a string */
 	      int len = value.ValueString.len;
 	      const char *str = value.ValueString.s;
 	      while (len > 0)
@@ -198,14 +197,11 @@ defineint (int size)
 void
 c_head (void)
 {
-  int i;
-  Value value;
-
-  i = areaCurrentSymbol ? areaCurrentSymbol->value.ValueInt.i : 0;
+  int i = areaCurrentSymbol ? areaCurrentSymbol->value.ValueInt.i : 0;
   skipblanks ();
   exprBuild ();
-  value = exprEval (ValueString);
-  switch (value.Tag.t)
+  Value value = exprEval (ValueString);
+  switch (value.Tag)
     {
     case ValueString:
       if (areaCurrentSymbol)
@@ -255,14 +251,13 @@ c_dcd (void)
 static void
 definereal (int size)
 {
-  Value value;
   int c;
   do
     {
       skipblanks ();
       exprBuild ();
-      value = exprEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
-      switch (value.Tag.t)
+      Value value = exprEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
+      switch (value.Tag)
 	{
 	case ValueInt:
 	  putDataFloat (size, value.ValueInt.i);
@@ -378,10 +373,9 @@ c_import (void)
 	    }
 	  else
 	    {
-	      Value size;
 	      exprBuild ();
-	      size = exprEval (ValueInt);
-	      switch (size.Tag.t)
+	      Value size = exprEval (ValueInt);
+	      switch (size.Tag)
 	        {
 	        case ValueInt:
 		  sym->value = valueCopy (size);
@@ -518,7 +512,7 @@ c_assert (void)
 {
   exprBuild ();
   Value value = exprEval (ValueBool);
-  if (value.Tag.t != ValueBool)
+  if (value.Tag != ValueBool)
     error (ErrorError, "ASSERT expression must be boolean");
   else if (!value.ValueBool.b)
     error (ErrorError, "Assertion failed");
@@ -548,18 +542,18 @@ c_info (void)
 
   exprBuild();
   Value message = exprEval (ValueString);
-  if (message.Tag.t != ValueString)
+  if (message.Tag != ValueString)
     {
       error (ErrorError, "INFO message must be a string");
       return;
     }
 
-  if (value.Tag.t != ValueInt && value.Tag.t != ValueFloat)
+  if (value.Tag != ValueInt && value.Tag != ValueFloat)
     error (ErrorError, "INFO expression must be arithmetic");
   else
     {
-      bool giveErr = (value.Tag.t == ValueInt && value.ValueInt.i != 0)
-	               || (value.Tag.t == ValueFloat && fabs (value.ValueFloat.f) >= 0.00001);
+      bool giveErr = (value.Tag == ValueInt && value.ValueInt.i != 0)
+	               || (value.Tag == ValueFloat && fabs (value.ValueFloat.f) >= 0.00001);
       if (giveErr)
         error (ErrorError, "%.*s", message.ValueString.len, message.ValueString.s);
       else

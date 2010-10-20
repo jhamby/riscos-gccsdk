@@ -51,7 +51,6 @@
 void
 m_branch (ARMWord cc)
 {
-  Value im;
   ARMWord ir = cc | 0x0A000000;
   switch (inputLook ())
     {
@@ -62,14 +61,16 @@ m_branch (ARMWord cc)
       break;
     default:
       exprBuild ();
-      codePosition (areaCurrentSymbol);	/* It's relative */
+      /* The branch instruction has its offset as relative, while the given
+	 label is absolute, so calculate "<label> - . - 8".  */
+      codePosition (areaCurrentSymbol);
       codeOperator (Op_sub);
       codeInt (8);
       codeOperator (Op_sub);
       break;
     }
-  im = exprEval (ValueInt | ValueCode | ValueLateLabel);
-  switch (im.Tag.t)
+  Value im = exprEval (ValueInt | ValueCode | ValueLateLabel);
+  switch (im.Tag)
     {
     case ValueInt:
       ir |= fixBranch (0, im.ValueInt.i);
@@ -88,14 +89,11 @@ m_branch (ARMWord cc)
 void
 m_blx (ARMWord cc)
 {
-  Value im;
-  ARMWord reg;
-  ARMWord ir;
-
   cpuWarn (XSCALE);
 
   inputMark ();
-  reg = getCpuRegNoError ();
+  ARMWord reg = getCpuRegNoError ();
+  ARMWord ir;
   if (reg == INVALID_REG)
     {			/* BLXcc <target_addr> */
       inputRollback ();
@@ -114,14 +112,16 @@ m_blx (ARMWord cc)
 	  break;
 	default:
 	  exprBuild ();
+	  /* The branch instruction has its offset as relative, while the given
+	     label is absolute, so calculate "<label> - . - 8".  */
 	  codePosition (areaCurrentSymbol);
 	  codeOperator (Op_sub);
 	  codeInt (8);
 	  codeOperator (Op_sub);
 	  break;
 	}
-      im = exprEval (ValueInt | ValueCode | ValueLateLabel);
-      switch (im.Tag.t)
+      Value im = exprEval (ValueInt | ValueCode | ValueLateLabel);
+      switch (im.Tag)
 	{
 	case ValueInt:
 	  ir |= fixBranchT (0, im.ValueInt.i);
@@ -144,9 +144,9 @@ m_blx (ARMWord cc)
 void
 m_bx (ARMWord cc)
 {
-  int dst = getCpuReg();
-
   cpuWarn (XSCALE);
+
+  int dst = getCpuReg();
   if (dst == 15)
     error (ErrorWarning, "Use of PC with BX is discouraged");
 
@@ -165,7 +165,7 @@ m_swi (ARMWord cc)
   Value im = exprEval (ValueInt | ValueAddr | ValueString | ValueCode
 		 | ValueLateLabel);
   ARMWord ir = cc | 0x0F000000;
-  switch (im.Tag.t)
+  switch (im.Tag)
     {
       case ValueInt:
 	ir |= fixSwi (0, im.ValueInt.i);
@@ -211,7 +211,7 @@ m_bkpt (void)
     }
   exprBuild ();
   Value im = exprEval (ValueInt);
-  if (im.Tag.t != ValueInt)
+  if (im.Tag != ValueInt)
     error (ErrorError, "Illegal BKPT expression");
   ARMWord val = fixInt (0, 2, im.ValueInt.i);
 
@@ -228,7 +228,6 @@ void
 m_adr (ARMWord cc)
 {
   ARMWord ir = cc & ~1, ir2 = 0;	/* bit 0 set to indicate ADRL */
-  Value im;
   ir |= DST_OP (getCpuReg ());
   ir |= LHS_OP (15) | IMM_RHS;	/* pc */
   skipblanks ();
@@ -243,8 +242,8 @@ m_adr (ARMWord cc)
      expression.  */
   exprBuild ();
   /* Try the field first */
-  im = exprEval (ValueAddr);
-  switch (im.Tag.t)
+  Value im = exprEval (ValueAddr);
+  switch (im.Tag)
     {
     case ValueAddr:
       /* Fix up the base register */
@@ -266,7 +265,7 @@ m_adr (ARMWord cc)
       codeInt (8);
       codeOperator (Op_sub);
       im = exprEval (ValueInt | ValueCode | ValueLateLabel);
-      switch (im.Tag.t)
+      switch (im.Tag)
 	{
 	case ValueInt:
 	  if (cc & 1)
@@ -305,7 +304,7 @@ void
 m_stack (void)
 {
   static const unsigned int lim[3] = {4, 6, 4};
-  static const unsigned int
+  static const ARMWord
     arg_regs[]  = {0x00000000, 0xE92D0001, 0xE92D0003, 0xE92D0007, 0xE92D000F},
     push_inst[] = {0xE92DD800, 0xE92DD810, 0xE92DD830, 0xE92DD870,
 		   0xE92DD8F0, 0xE92DD9F0, 0xE92DDBF0},
@@ -343,7 +342,7 @@ m_stack (void)
 	      inputSkip ();
 	      exprBuild ();
 	      im = exprEval (ValueInt);
-	      if (im.Tag.t != ValueInt)
+	      if (im.Tag != ValueInt)
 		im.ValueInt.i = 0;
 	      if ((unsigned) im.ValueInt.i > lim[reg])
 		error (ErrorError, "Too many registers to stack for class %c", c);
@@ -381,7 +380,7 @@ m_stack (void)
 static void
 apcsEpi (ARMWord cc, const int *pop_inst, const char *op)
 {
-  static const int pfp_inst[] =
+  static const ARMWord pfp_inst[] =
     {
       0x00000000,
       0x0CBDC203,
@@ -539,11 +538,10 @@ m_msr (ARMWord cc)
     error (ErrorError, "%slhs", InsertCommaAfter);
   if (inputLook () == '#')
     {
-      Value im;
       inputSkip ();
       exprBuild ();
-      im = exprEval (ValueInt);
-      if (im.Tag.t == ValueInt)
+      Value im = exprEval (ValueInt);
+      if (im.Tag == ValueInt)
 	{
 	  cc |= 0x02000000;
 	  cc |= fixImm8s4 (0, cc, im.ValueInt.i);

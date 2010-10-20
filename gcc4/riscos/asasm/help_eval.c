@@ -36,45 +36,45 @@
 static void
 fixValueTag (Value *value)
 {
-  LateInfo **c;
   /* Remove symbols with factor == 0  */
+  LateInfo **c;
   for (c = &value->ValueLate.late; *c;)
     {
       if (!(*c)->factor)
 	*c = (*c)->next;
       else
-	c = &((*c)->next);
+	c = &(*c)->next;
     }				/* Decide type of value */
-  value->Tag.t = (value->ValueLate.late) ? ValueLateLabel : ValueInt;
+  value->Tag = (value->ValueLate.late) ? ValueLateLabel : ValueInt;
 }
 
 void
-help_evalNegLate (Value * value)
+help_evalNegLate (Value *value)
 {
-  LateInfo *l;
-  if (value->Tag.t & ValueLateLabel)
-    for (l = value->ValueLate.late; l; l = l->next)
+  if (value->Tag & ValueLateLabel)
+    for (LateInfo *l = value->ValueLate.late; l; l = l->next)
       l->factor = -l->factor;
 }
 
 void
-help_evalSubLate (Value * lvalue, const Value * rvalue)
+help_evalSubLate (Value *lvalue, const Value *rvalue)
 {
-  LateInfo *l, *r, *rnext;
-  if (rvalue->Tag.t == ValueInt)	/* No late info in rvalue */
+  if (rvalue->Tag == ValueInt)	/* No late info in rvalue */
     return;
-  if (lvalue->Tag.t == ValueInt)
+  if (lvalue->Tag == ValueInt)
     {				/* No late info in lvalue */
-      lvalue->Tag.t = rvalue->Tag.t;	/* Just move rvalue late info to lvalue */
+      lvalue->Tag = rvalue->Tag;	/* Just move rvalue late info to lvalue */
       lvalue->ValueLate.late = rvalue->ValueLate.late;
       /* But remember to change sign */
       help_evalNegLate (lvalue);
       return;
     }
   /* Both lvalue and rvalue have late info */
-  for (r = rvalue->ValueLate.late; r; r = rnext)
+  LateInfo *rnext;
+  for (LateInfo *r = rvalue->ValueLate.late; r; r = rnext)
     {
       rnext = r->next;
+      LateInfo *l;
       for (l = lvalue->ValueLate.late; l; l = l->next)
 	{
 	  if (l->symbol == r->symbol)
@@ -95,21 +95,22 @@ help_evalSubLate (Value * lvalue, const Value * rvalue)
 }
 
 void
-help_evalAddLate (Value * lvalue, const Value * rvalue)
+help_evalAddLate (Value *lvalue, const Value *rvalue)
 {
-  LateInfo *l, *r, *rnext;
-  if (rvalue->Tag.t == ValueInt)	/* Nothing late info in rvalue */
+  if (rvalue->Tag == ValueInt)	/* Nothing late info in rvalue */
     return;
-  if (lvalue->Tag.t == ValueInt)
+  if (lvalue->Tag == ValueInt)
     {				/* No late info in lvalue */
-      lvalue->Tag.t = rvalue->Tag.t;	/* Just move rvalue late to lvalue */
+      lvalue->Tag = rvalue->Tag;	/* Just move rvalue late to lvalue */
       lvalue->ValueLate.late = rvalue->ValueLate.late;
       return;
     }
   /* Both lvalue and rvalue have late info */
-  for (r = rvalue->ValueLate.late; r; r = rnext)
+  LateInfo *rnext;
+  for (LateInfo *r = rvalue->ValueLate.late; r; r = rnext)
     {
       rnext = r->next;
+      LateInfo *l;
       for (l = lvalue->ValueLate.late; l; l = l->next)
 	{
 	  if (l->symbol == r->symbol)

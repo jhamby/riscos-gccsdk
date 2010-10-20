@@ -36,12 +36,11 @@
 
 /* Code demands at least one Lateinfo */
 Value
-valueLateToCode(int offset, LateInfo *late)
+valueLateToCode (int offset, LateInfo *late)
 {
   LateInfo *l;
   int factor;
   int size;
-
   for (size = 1, l = late; l != NULL; l= l->next)
     {
       if ((factor = l->factor) == -1 || factor == 1)
@@ -57,17 +56,16 @@ valueLateToCode(int offset, LateInfo *late)
     }
 
   Value value;
-  value.Tag.v = ValueConst;
   if ((value.ValueCode.c = malloc(size*sizeof(Code))) == NULL)
     errorOutOfMem ();
 
-  value.Tag.t = ValueCode;
+  value.Tag = ValueCode;
   value.ValueCode.len = size;
   size = 0;
   if (offset != 0)
     {
       value.ValueCode.c[size  ].Tag = CodeValue;
-      value.ValueCode.c[size  ].CodeValue.value.Tag.t = ValueInt;
+      value.ValueCode.c[size  ].CodeValue.value.Tag = ValueInt;
       value.ValueCode.c[size++].CodeValue.value.ValueInt.i = offset;
     }
   for (l = late; l != NULL; l = l->next)
@@ -92,7 +90,7 @@ valueLateToCode(int offset, LateInfo *late)
 	  value.ValueCode.c[size  ].Tag = CodeSymbol;
 	  value.ValueCode.c[size++].CodeSymbol.symbol = l->symbol;
 	  value.ValueCode.c[size  ].Tag = CodeValue;
-	  value.ValueCode.c[size  ].CodeValue.value.Tag.t = ValueInt;
+	  value.ValueCode.c[size  ].CodeValue.value.Tag = ValueInt;
 	  value.ValueCode.c[size++].CodeValue.value.ValueInt.i = factor;
 	  value.ValueCode.c[size  ].Tag = CodeOperator;
 	  value.ValueCode.c[size++].CodeOperator.op = Op_mul;
@@ -111,7 +109,7 @@ valueLateToCode(int offset, LateInfo *late)
 Value
 valueCopy (Value value)
 {
-  switch (value.Tag.t)
+  switch (value.Tag)
     {
       case ValueIllegal:
       case ValueInt:
@@ -149,7 +147,7 @@ valueCopy (Value value)
 void
 valueFree (Value *value)
 {
-  switch (value->Tag.t)
+  switch (value->Tag)
     {
       case ValueIllegal:
       case ValueInt:
@@ -181,7 +179,7 @@ valueFree (Value *value)
 }
 
 static bool
-lateInfoEqual(const LateInfo *a, const LateInfo *b)
+lateInfoEqual (const LateInfo *a, const LateInfo *b)
 {
   for (/* */; a || b; a = a->next, b = b->next)
     {
@@ -194,30 +192,30 @@ lateInfoEqual(const LateInfo *a, const LateInfo *b)
 }
 
 bool
-valueEqual(const Value *a, const Value *b)
+valueEqual (const Value *a, const Value *b)
 {
-  if (a->Tag.t == ValueLateLabel)
+  if (a->Tag == ValueLateLabel)
     {
       /* Prevent valueEqual(ValueLateLabel,ValueCode) */
       const Value *t = a; a = b; b = t;
     }
 
-  switch (a->Tag.t)
+  switch (a->Tag)
     {
       case ValueIllegal:
-	return b->Tag.t == ValueIllegal;
+	return b->Tag == ValueIllegal;
       case ValueInt:
-	return b->Tag.t == ValueInt && a->ValueInt.i == b->ValueInt.i;
+	return b->Tag == ValueInt && a->ValueInt.i == b->ValueInt.i;
       case ValueFloat:
-	return b->Tag.t == ValueFloat && a->ValueFloat.f == b->ValueFloat.f;
+	return b->Tag == ValueFloat && a->ValueFloat.f == b->ValueFloat.f;
       case ValueString:
-	return b->Tag.t == ValueString
+	return b->Tag == ValueString
 		 && a->ValueString.len == b->ValueString.len
 		 && !memcmp(a->ValueString.s, b->ValueString.s, a->ValueString.len);
       case ValueBool:
-	return b->Tag.t == ValueBool && a->ValueBool.b  == b->ValueBool.b;
+	return b->Tag == ValueBool && a->ValueBool.b  == b->ValueBool.b;
       case ValueCode:
-	if (b->Tag.t == ValueLateLabel)
+	if (b->Tag == ValueLateLabel)
 	  {
 	    Value v = valueLateToCode(b->ValueLate.i,b->ValueLate.late);
 	    bool res = a->ValueCode.len == v.ValueCode.len && codeEqual(a->ValueCode.len,a->ValueCode.c,v.ValueCode.c);
@@ -225,11 +223,11 @@ valueEqual(const Value *a, const Value *b)
 	    return res;
 	  }
 	else
-	  return b->Tag.t == ValueCode
+	  return b->Tag == ValueCode
 		   && a->ValueCode.len == b->ValueCode.len
 		   && codeEqual(a->ValueCode.len,a->ValueCode.c,b->ValueCode.c);
       case ValueLateLabel:
-	return b->Tag.t == ValueLateLabel
+	return b->Tag == ValueLateLabel
 		 && a->ValueLate.i == b->ValueLate.i
 		 && lateInfoEqual(a->ValueLate.late,b->ValueLate.late);
       default:
@@ -281,39 +279,39 @@ valueTagAsString (ValueTag tag)
 
 #ifdef DEBUG
 void
-valuePrint(const Value *v)
+valuePrint (const Value *v)
 {
   if (v == NULL)
     return;
-  printf("Value %d:%d : ", v->Tag.t, v->Tag.v);
-  switch (v->Tag.t)
+  printf ("Value %d: ", v->Tag);
+  switch (v->Tag)
     {
       case ValueIllegal:
-	printf("<illegal>\n");
+	printf ("<illegal>");
 	break;
       case ValueInt:
-	printf("<%d> (int)\n", v->ValueInt.i);
+	printf ("<%d> (int)", v->ValueInt.i);
 	break;
       case ValueFloat:
-	printf("<%g> (float)\n", v->ValueFloat.f);
+	printf ("<%g> (float)", v->ValueFloat.f);
 	break;
       case ValueString:
-	printf("<%.*s> (string)\n", v->ValueString.len, v->ValueString.s);
+	printf ("<%.*s> (string)", v->ValueString.len, v->ValueString.s);
 	break;
       case ValueBool:
-	printf("<%s> (bool)\n", v->ValueBool.b ? "true" : "false");
+	printf ("<%s> (bool)", v->ValueBool.b ? "true" : "false");
 	break;
       case ValueCode:
-	printf("(code)\n");
+	printf ("(code)");
 	break;
       case ValueLateLabel:
-	printf("(late label)\n");
+	printf ("(late label)");
 	break;
       case ValueAddr:
-	printf("(addr)\n");
+	printf ("offset 0x%x, reg %d (addr)", v->ValueAddr.i, v->ValueAddr.r);
 	break;
       default:
-	printf("???\n");
+	printf ("???");
 	break;
     }
 }

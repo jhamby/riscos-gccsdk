@@ -1,3 +1,66 @@
+Thu Oct 21 02:01:34 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+  
+	* regression/tests_pass/record_basic.s: Enabled the disabled sub-tests
+	as they are now supported and working.
+	* regression/tests_fail/record_basic_fail.s: Removed.
+	* regression/Makefile (EXTENSION): Define as assembler boolean.
+	* regression/tests_pass/operator_string.s (EXTENSION): Test on it for
+	features which objasm does not know about.
+	* regression/tests_pass/operator_shift.s: Likewise.
+	* regression/tests_pass/operator_relational.s: Likewise.  Add :LEOR:
+	test.
+	* regression/tests_pass/operator_index.s: Add :BASE: tests.
+	* regression/tests_pass/operator_boolean.s: Added.
+	* regression/tests_pass/operator_addition_logical.s: Likewise.
+	* regression/tests_pass/operator_unary.s: Likewise.
+	* symbol.c (symbolPrintAll): Added.
+	(symbolPrint): Made used by symbolPrintAll.
+	* symbol.h (symbolPrintAll, symbolPrint): Add/tune prototype.
+	* code.h (CODE_SIZECODE, CODE_SIZESTACK, CODE_SIZELATE): Move to...
+	* code.c: ...here.
+	(codePrint): Added, and other DEBUG code as well.
+	(Sp): Removed.
+	(codeStorage): Make difference between register based record and a non
+	register based one.
+	* decode.c: Whitespace changes.
+	(decode): Constify parameter.
+	* decode.h (decode): Constify parameter.
+	* local.c (c_rout, c_local): Constify parameter.
+	* local.h (c_rout, c_local): Likewise.
+	* whileif.c (c_else, c_endif, c_while, c_wend): Likewise.
+	* whileif.h (c_else, c_endif, c_while, c_wend): Likewise.
+	* input.c (inputGiveRestLine): Disable for non-debug builds.
+	* input.h (inputGiveRestLien): Likewise.
+	* storage.c (storageValue, c_record): Make difference between
+	(non)register based record.
+	(c_record): drop expecting ValueAddr as result.
+	* variables.c (assign_var): Make warning on redefinition a pedantic
+	one.
+	(c_set): Simplify.
+	* lexAcorn.c (lexAcornUnop): Add :BASE: support.
+	* eval.c (evalBinop): Fix Op_add, Op_sub, Op_and, Op_or, Op_xor,
+	Op_land, Op_lor, Op_lnot, Op_not, Op_neg, Op_index, Op_len. Add Op_base.
+	* lex.c (OperatorAsStr): 
+	* value.h (ValueType): Drop and change its use in Value by ValueTag.
+	* commands.c: Follow the ValueType removal in Value.
+	* symbol.c: Likewise.
+	* code.c: Likewise.
+	* m_cpuctrl.c: Likewise.
+	* help_cop.c: Likewise.
+	* m_cpumem.c: Likewise.
+	* storage.c: Likewise.
+	* area.c: Likewise.
+	* variables.c: Likewise.
+	* value.c: Likewise.
+	* whileif.c: Likewise.
+	* input.c: Likewise.
+	* help_eval.c: Likewise.
+	* reloc.c: Likewise.
+	* get.c: Likewise.
+	* asm.c: Likewise.
+	* eval.c: Likewise.
+	Several minor cleanups.
+  
 Sun Oct 17 22:35:00 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (symbolFree): Added.

@@ -186,30 +186,32 @@ lexChar2Int (bool rev, int len, const char *str)
 {
   char c[4];
   int i;
-
   for (i = 0; len && i < 4; ++i)
     c[i] = lexGetCharFromString (&len, &str);
 
+  ARMWord result;
   switch (i)
     {
       case 0:
 	error (ErrorError, "Empty character");
-	return 0;
+	result = 0;
+	break;
       case 1:
-	return c[0];
+	result = c[0];
+	break;
       case 2:
-	return (rev) ? (c[1] << 8) | c[0]
-	             : (c[0] << 8) | c[1];
+	result = (rev) ? (c[1] << 8) | c[0]
+	               : (c[0] << 8) | c[1];
+	break;
       case 3:
-	return (rev) ? (c[2] << 16) | (c[1] << 8) | c[0]
-	             : (c[0] << 16) | (c[1] << 8) | c[2];
+	result = (rev) ? (c[2] << 16) | (c[1] << 8) | c[0]
+	               : (c[0] << 16) | (c[1] << 8) | c[2];
+	break;
       case 4:
-	return (rev) ? (c[3] << 24) | (c[2] << 16) | (c[1] << 8) | c[0]
-	             : (c[0] << 24) | (c[1] << 16) | (c[2] << 8) | c[3];
-      default:
-	error (ErrorError,  "Multi character bigger than 4 bytes (%d)", i);
-	return 0;
+	result = (rev) ? (c[3] << 24) | (c[2] << 16) | (c[1] << 8) | c[0]
+	               : (c[0] << 24) | (c[1] << 16) | (c[2] << 8) | c[3];
+	break;
     }
 
-  return 0;
+  return result;
 }

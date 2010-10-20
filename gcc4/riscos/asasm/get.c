@@ -213,7 +213,6 @@ static ARMWord
 getShift (bool immonly)
 {
   ARMWord op = 0;
-  Value im;
   ARMWord shift = getShiftOp ();
   if (shift != RRX)
     {
@@ -222,8 +221,8 @@ getShift (bool immonly)
 	{
 	  inputSkip ();
 	  exprBuild ();
-	  im = exprEval (ValueInt | ValueCode | ValueLateLabel);
-	  switch (im.Tag.t)
+	  Value im = exprEval (ValueInt | ValueCode | ValueLateLabel);
+	  switch (im.Tag)
 	    {
 	    case ValueInt:
 	      op = fixShiftImm (0, shift, im.ValueInt.i); /* !! Fixed !! */
@@ -254,14 +253,13 @@ getShift (bool immonly)
 ARMWord
 getRhs (bool immonly, bool shift, ARMWord ir)
 {
-  Value im;
   if (inputLook () == '#')
     {
       ir |= IMM_RHS;
       inputSkip ();
       exprBuild ();
-      im = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueString | ValueAddr);
-      switch (im.Tag.t)
+      Value im = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueString | ValueAddr);
+      switch (im.Tag)
 	{
 	case ValueInt:
 	  if (inputLook () == ',')

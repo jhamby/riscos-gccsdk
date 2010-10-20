@@ -68,14 +68,13 @@ fpuImm (ARMFloat d)
 static ARMWord
 getFloatRhs (ARMWord ir)
 {
-  Value im;
   if (inputLook () == '#')
     {
       inputSkip ();
       exprBuild ();
       ir |= 8;			/* Immediate Float */
-      im = exprEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
-      switch (im.Tag.t)
+      Value im = exprEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
+      switch (im.Tag)
 	{
 	case ValueInt:
 	  ir = fixImmFloat (0, ir, im.ValueInt.i);

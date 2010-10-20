@@ -58,10 +58,6 @@ typedef union CODE
     } CodeSymbol;
 } Code;
 
-#define CODE_SIZECODE  (1024)
-#define CODE_SIZESTACK (1024)
-#define CODE_SIZELATE  (1024)
-
 void codeInit (void);
 
 void codeOperator (Operator op);

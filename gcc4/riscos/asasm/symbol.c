@@ -54,7 +54,7 @@ int (SYMBOL_AOF_OUTPUT) (const Symbol *);	/* typedef it */
    or coprocessor names).  */
 int (SYMBOL_ELF_OUTPUT) (const Symbol *);	/* typedef it */
 #define SYMBOL_ELF_OUTPUT(sym) \
-  (SYMBOL_AOF_OUTPUT(sym) || (sym)->value.Tag.t == ValueCode)
+  (SYMBOL_AOF_OUTPUT(sym) || (sym)->value.Tag == ValueCode)
 
 #ifndef NO_ELF_SUPPORT
 #define SYMBOL_OUTPUT(sym) \
@@ -74,8 +74,8 @@ symbolNew (int len, const char *str)
     errorOutOfMem ();
   result->next = NULL;
   result->type = result->offset = 0;
-  result->value.Tag.t = ValueIllegal;
-  result->value.Tag.v = ValueConst;
+  result->value.Tag = ValueIllegal;
+  result->area.ptr /* = result->area.info */ = NULL;
   result->used = -1;
   result->len = len;
   memcpy (result->str, str, len);
@@ -201,7 +201,7 @@ symbolInit (void)
 
       Symbol *s = symbolAdd (&l);
       s->type |= SYMBOL_ABSOLUTE | SYMBOL_DECLARED | predefines[i].type;
-      s->value.Tag.t = ValueInt;
+      s->value.Tag = ValueInt;
       s->value.ValueInt.i = predefines[i].value;
       s->area.ptr = NULL;
     }
@@ -381,7 +381,7 @@ symbolFix (int *stringSizeNeeded)
 	}
     }
 #ifdef DEBUG
-  symbolPrint ();
+  /* symbolPrintAll (); */
 #endif
   /* printf("Number of symbols selected: %d, size needed %d bytes\n", nosym, strsize); */
   *stringSizeNeeded = strsize;
@@ -418,9 +418,8 @@ symbolSymbolAOFOutput (FILE *outfile)
 	      asym.Name = sym->offset + 4; /* + 4 to skip the initial length */
 	      if (sym->type & SYMBOL_DEFINED)
 		{
-		  int v;
 		  Value value;
-		  if (sym->value.Tag.t == ValueCode)
+		  if (sym->value.Tag == ValueCode)
 		    {
 		      codeInit ();
 		      value = codeEvalLow (ValueAll, sym->value.ValueCode.len,
@@ -429,7 +428,8 @@ symbolSymbolAOFOutput (FILE *outfile)
 		  else
 		    value = sym->value;
 
-		  switch (value.Tag.t)
+		  int v;
+		  switch (value.Tag)
 		    {
 		      case ValueIllegal:
 			errorLine (0, NULL, ErrorError,
@@ -485,7 +485,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 			break;
 		      default:
 			errorAbortLine (0, NULL,
-			                "Internal symbolSymbolAOFOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+			                "Internal symbolSymbolAOFOutput: not possible (%s) (0x%x)", sym->str, value.Tag);
 			v = 0;
 			break;
 		    }
@@ -560,9 +560,8 @@ symbolSymbolELFOutput (FILE *outfile)
 	      asym.st_name = sym->offset + 1; /* + 1 to skip the initial & extra NUL */
 	      if (sym->type & SYMBOL_DEFINED)
 		{
-		  int v;
 		  Value value;
-		  if (sym->value.Tag.t == ValueCode)
+		  if (sym->value.Tag == ValueCode)
 		    {
 		      codeInit ();
 		      value = codeEvalLow (ValueAll, sym->value.ValueCode.len, sym->value.ValueCode.c);
@@ -570,7 +569,8 @@ symbolSymbolELFOutput (FILE *outfile)
 		    }
 		  else
 		    value = sym->value;
-		  switch (value.Tag.t)
+		  int v;
+		  switch (value.Tag)
 		    {
 		      case ValueIllegal:
 			errorLine (0, NULL, ErrorError, "Symbol %s cannot be evaluated", sym->str);
@@ -620,7 +620,7 @@ symbolSymbolELFOutput (FILE *outfile)
 			  }
 			break;
 		      default:
-			errorAbortLine (0, NULL, "Internal symbolELFSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag.t);
+			errorAbortLine (0, NULL, "Internal symbolELFSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag);
 			v = 0;
 			break;
 		    }
@@ -675,81 +675,86 @@ symbolSymbolELFOutput (FILE *outfile)
 #endif
 
 #ifdef DEBUG
+void
+symbolPrint (const Symbol *sym)
+{
+  static const char *symkind[4] = { "UNKNOWN", "LOCAL", "REFERENCE", "GLOBAL" };
+  printf ("\"%.*s\": %s /",
+	  sym->len, sym->str, symkind[SYMBOL_KIND(sym->type)]);
+  assert (strlen (sym->str) == (size_t)sym->len);
+  /* Dump the symbol attributes:  */
+  if (sym->type & SYMBOL_ABSOLUTE)
+    printf ("absolute/");
+  if (sym->type & SYMBOL_NOCASE)
+    printf ("caseinsensitive/");
+  if (sym->type & SYMBOL_WEAK)
+    printf ("weak/");
+  if (sym->type & SYMBOL_STRONG)
+    printf ("strong/");
+  if (sym->type & SYMBOL_COMMON)
+    printf ("common/");
+  if (sym->type & SYMBOL_DATUM)
+    printf ("datum/");
+  if (sym->type & SYMBOL_FPREGARGS)
+    printf ("fp args in regs/");
+  if (sym->type & SYMBOL_LEAF)
+    printf ("leaf/");
+  if (sym->type & SYMBOL_THUMB)
+    printf ("thumb/");
+  /* Internal attributes: */
+  printf (" * /");
+  if (sym->type & SYMBOL_KEEP)
+    printf ("keep/");
+  if (sym->type & SYMBOL_AREA)
+    printf ("area/");
+  if (sym->type & SYMBOL_NOTRESOLVED)
+    printf ("not resolved/");
+  if (sym->type & SYMBOL_BASED)
+    printf ("based/");
+  switch (SYMBOL_GETREG(sym->type))
+    {
+      case 0: /* No register, nor coprocessor number.  */
+	break;
+      case SYMBOL_CPUREG:
+	printf ("cpu reg/");
+	break;
+      case SYMBOL_FPUREG:
+	printf ("fpu reg/");
+	break;
+      case SYMBOL_COPREG:
+	printf ("coproc reg/");
+	break;
+      case SYMBOL_COPNUM:
+	printf ("coproc num/");
+	break;
+      default:
+	printf ("??? 0x%x/", SYMBOL_GETREG(sym->type));
+	break;
+    }
+  if (sym->type & SYMBOL_DECLARED)
+    printf ("declared/");
+  
+  printf (" * %p, offset 0x%x, used %d: ",
+	  (void *)sym->area.ptr, sym->offset, sym->used);
+  valuePrint (&sym->value);
+}
+
 /**
- * Lists all symbols collected so far together with all its attributes.
+   * Lists all symbols collected so far together with all its attributes.
  */
 void
-symbolPrint (void)
+symbolPrintAll (void)
 {
   for (int i = 0; i < SYMBOL_TABLESIZE; i++)
     {
-      const Symbol *sym;
-      for (sym = symbolTable[i]; sym; sym = sym->next)
+      for (const Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
 	  /* We skip all internally defined register names and coprocessor
 	     numbers.  */
 	  if (SYMBOL_GETREG(sym->type))
 	    continue;
 
-	  static const char *symkind[4] = { "UNKNOWN", "LOCAL", "REFERENCE", "GLOBAL" };
-	  printf ("\"%.*s\": %s /",
-		  sym->len, sym->str, symkind[SYMBOL_KIND(sym->type)]);
-	  assert (strlen (sym->str) == sym->len);
-	  /* Dump the symbol attributes:  */
-	  if (sym->type & SYMBOL_ABSOLUTE)
-	    printf ("absolute/");
-	  if (sym->type & SYMBOL_NOCASE)
-	    printf ("caseinsensitive/");
-	  if (sym->type & SYMBOL_WEAK)
-	    printf ("weak/");
-	  if (sym->type & SYMBOL_STRONG)
-	    printf ("strong/");
-	  if (sym->type & SYMBOL_COMMON)
-	    printf ("common/");
-	  if (sym->type & SYMBOL_DATUM)
-	    printf ("datum/");
-	  if (sym->type & SYMBOL_FPREGARGS)
-	    printf ("fp args in regs/");
-	  if (sym->type & SYMBOL_LEAF)
-	    printf ("leaf/");
-	  if (sym->type & SYMBOL_THUMB)
-	    printf ("thumb/");
-	  /* Internal attributes: */
-	  printf (" * /");
-	  if (sym->type & SYMBOL_KEEP)
-	    printf ("keep/");
-	  if (sym->type & SYMBOL_AREA)
-	    printf ("area/");
-	  if (sym->type & SYMBOL_NOTRESOLVED)
-	    printf ("not resolved/");
-	  if (sym->type & SYMBOL_BASED)
-	    printf ("based/");
-	  switch (SYMBOL_GETREG(sym->type))
-	    {
-	      case 0: /* No register, nor coprocessor number.  */
-		break;
-	      case SYMBOL_CPUREG:
-		printf ("cpu reg/");
-		break;
-	      case SYMBOL_FPUREG:
-		printf ("fpu reg/");
-		break;
-	      case SYMBOL_COPREG:
-		printf ("coproc reg/");
-		break;
-	      case SYMBOL_COPNUM:
-		printf ("coproc num/");
-		break;
-	      default:
-		printf ("??? 0x%x/", SYMBOL_GETREG(sym->type));
-		break;
-	    }
-	  if (sym->type & SYMBOL_DECLARED)
-	    printf ("declared/");
-	  
-	  printf (" * %p, offset 0x%x, used %d: ",
-		  (void *)sym->area.ptr, sym->offset, sym->used);
-	  valuePrint (&sym->value);
+	  symbolPrint (sym);
 	}
     }
 }

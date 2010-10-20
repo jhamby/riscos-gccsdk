@@ -55,11 +55,14 @@ lexAcornUnop (Lex *lex)
   lex->tag = LexOperator;
   switch (inputGetLower ())
     {
+      case 'b':
+	FINISH_STR ("ase:", Op_base, 10); /* :BASE: */
+
       case 'c':
-	FINISH_STR ("hr:", Op_chr, 10); /* :chr: */
+	FINISH_STR ("hr:", Op_chr, 10); /* :CHR: */
 
       case 'd':
-	if (notinput ("ef:")) /* :def: */
+	if (notinput ("ef:")) /* :DEF: */
 	  goto illegal;
 	*lex = lexGetPrim ();
 	if (lex->tag == LexId)
@@ -77,30 +80,34 @@ lexAcornUnop (Lex *lex)
 	switch (inputGetLower ())
 	  {
 	    case 'a':
-	      FINISH_STR ("ttr:", Op_fattr, 10); /* :fattr: */
+	      FINISH_STR ("ttr:", Op_fattr, 10); /* :FATTR: */
 	    case 'e':
-	      FINISH_STR ("xec:", Op_fexec, 10); /* :fexec: */
+	      FINISH_STR ("xec:", Op_fexec, 10); /* :FEXEC: */
 	    case 'l':
-	      FINISH_STR ("oad:", Op_fload, 10); /* :fload: */
+	      FINISH_STR ("oad:", Op_fload, 10); /* :FLOAD: */
 	    case 's':
-	      FINISH_STR ("ize:", Op_fsize, 10); /* :fsize: */
+	      FINISH_STR ("ize:", Op_fsize, 10); /* :FSIZE: */
 	  }
 	break;
+
       case 'i':
-	FINISH_STR ("ndex:", Op_index, 10); /* :index: */
+	FINISH_STR ("ndex:", Op_index, 10); /* :INDEX: */
+
       case 'l':
 	switch (inputGetLower ())
 	  {
 	    case 'e':
-	      FINISH_STR ("n:", Op_len, 10); /* :len: */
+	      FINISH_STR ("n:", Op_len, 10); /* :LEN: */
 	    case 'n':
-	      FINISH_STR ("ot:", Op_lnot, 10); /* :lnot: */
+	      FINISH_STR ("ot:", Op_lnot, 10); /* :LONT: */
 	  }
 	break;
+
       case 'n':
-	FINISH_STR ("ot:", Op_not, 10); /* :not: */
+	FINISH_STR ("ot:", Op_not, 10); /* :NOT: */
+
       case 's':
-	FINISH_STR ("tr:", Op_str, 10); /* :str: */
+	FINISH_STR ("tr:", Op_str, 10); /* :STR: */
     }
 
 illegal:

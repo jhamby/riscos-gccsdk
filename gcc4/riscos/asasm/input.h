@@ -42,8 +42,9 @@ extern int num_predefines;
 
 void inputInit (const char *infile);
 
-/* Debug only: */
-const char *inputGiveRestLine(void);
+#if DEBUG
+const char *inputGiveRestLine (void);
+#endif
 
 bool inputNextLine (void);
 
