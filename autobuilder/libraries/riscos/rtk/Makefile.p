@@ -1,30 +1,41 @@
---- !RTK/Makefile.orig	2010-03-15 21:13:26.000000000 +0000
-+++ !RTK/Makefile	2010-03-15 21:31:19.000000000 +0000
-@@ -3,7 +3,7 @@
- # Distribution and use are subject to the GNU Lesser General Public License,
- # a copy of which may be found in the file !RTK.Copyright.
+--- Makefile.orig	2010-03-15 21:18:33.000000000 +0000
++++ Makefile	2010-03-15 21:30:38.000000000 +0000
+@@ -5,7 +5,7 @@
  
--AR = libfile
-+AR = ar
+ PREFIX = RTK-0.7.1
  
- DOXYFILES = \
-  Doxyfile \
-@@ -26,12 +26,12 @@
- 	make -C rtk clean
+-all: bin doc dist
++all: bin doc install #dist
  
- rtk.a: rtk/timestamp
--	$(AR) -c rtk.a $(wildcard rtk/util/*.o)
--	$(AR) -i rtk.a $(wildcard rtk/graphics/*.o)
--	$(AR) -i rtk.a $(wildcard rtk/os/*.o)
--	$(AR) -i rtk.a $(wildcard rtk/desktop/*.o)
--	$(AR) -i rtk.a $(wildcard rtk/events/*.o)
--	$(AR) -i rtk.a $(wildcard rtk/transfer/*.o)
-+	$(AR) cr rtk.a $(wildcard rtk/util/*.o) \
-+	$(wildcard rtk/graphics/*.o) \
-+	$(wildcard rtk/os/*.o) \
-+	$(wildcard rtk/desktop/*.o) \
-+	$(wildcard rtk/events/*.o) \
-+	$(wildcard rtk/transfer/*.o)
+ bin:
+ 	make -C !RTK bin
+@@ -17,7 +17,7 @@
  
- rtk/timestamp: always
- 	make -C rtk
+ dist-src:
+ 	rm -f $(PREFIX).src.zip
+-	rm -f $(PREFIX).!RTK
++	rm -f $(PREFIX).!RTK
+ 	rm -rf $(PREFIX)
+ 	mkdir $(PREFIX)
+ 	ln -s !RTK $(subst .,/,$(PREFIX)).!RTK
+@@ -33,3 +33,20 @@
+ dist-doc:
+ 	rm -f $(PREFIX).doc.zip
+ 	zip -r $(PREFIX).doc.zip !RTK -i@!RTK/include.doc
++
++install:
++	cp !RTK/rtk.a $(GCCSDK_INSTALL_ENV)/lib/librtk.a
++	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/util
++	cp !RTK/rtk/util/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/util
++	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/graphics
++	cp !RTK/rtk/graphics/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/graphics
++	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/os
++	cp !RTK/rtk/os/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/os
++	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/desktop
++	cp !RTK/rtk/desktop/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/desktop
++	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/events
++	cp !RTK/rtk/events/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/events
++	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/transfer
++	cp !RTK/rtk/transfer/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/transfer
++	mkdir -p $(GCCSDK_INSTALL_ENV)/include/rtk/swi
++	cp !RTK/rtk/swi/*.h $(GCCSDK_INSTALL_ENV)/include/rtk/swi
