@@ -359,11 +359,11 @@ c_import (void)
   while ((c = inputGet ()) == ',')
     {
       Lex attribute = lexGetId ();
-      if (!strncmp ("NOCASE", attribute.LexId.str, attribute.LexId.len))
+      if (!strncmp ("NOCASE", attribute.Data.Id.str, attribute.Data.Id.len))
 	sym->type |= SYMBOL_NOCASE;
-      else if (!strncmp ("WEAK", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("WEAK", attribute.Data.Id.str, attribute.Data.Id.len))
 	sym->type |= SYMBOL_WEAK;
-      else if (!strncmp ("COMMON", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len))
         {
 	  skipblanks ();
 	  if ((c = inputGet ()) != '=')
@@ -387,10 +387,10 @@ c_import (void)
 	        }
 	    }
 	}
-      else if (!strncmp ("FPREGARGS", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("FPREGARGS", attribute.Data.Id.str, attribute.Data.Id.len))
 	sym->type |= SYMBOL_FPREGARGS;
       else
-	error (ErrorError, "Illegal IMPORT attribute %s", attribute.LexId.str);
+	error (ErrorError, "Illegal IMPORT attribute %s", attribute.Data.Id.str);
       skipblanks ();
     }
   inputUnGet (c);

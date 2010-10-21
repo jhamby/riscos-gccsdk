@@ -95,11 +95,11 @@ macroCall (const Macro *m, const Lex *label)
     {
       if (m->labelarg)
 	{
-	  const char *c = label->LexId.str;
+	  const char *c = label->Data.Id.str;
 	  int len;
 	  for (len = (c[0] == '#') ? 1 : 0; isalnum (c[len]) || c[len] == '_'; ++len)
 	    /* */;
-	  if ((args[marg++] = strndup (label->LexId.str, len)) == NULL)
+	  if ((args[marg++] = strndup (label->Data.Id.str, len)) == NULL)
 	    errorOutOfMem();
 	}
       else

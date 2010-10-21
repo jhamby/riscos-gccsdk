@@ -48,13 +48,13 @@ prim (void)
       codeSymbol (symbolGet (&lex));
       break;
     case LexInt:
-      codeInt (lex.LexInt.value);
+      codeInt (lex.Data.Int.value);
       break;
     case LexString:
-      codeString (lex.LexString.len, lex.LexString.str);
+      codeString (lex.Data.String.len, lex.Data.String.str);
       break;
     case LexFloat:
-      codeFloat (lex.LexFloat.value);
+      codeFloat (lex.Data.Float.value);
       break;
     case LexStorage:
       codeStorage ();
@@ -64,28 +64,28 @@ prim (void)
       break;
     case LexOperator:
       prim ();
-      if (lex.LexOperator.op == Op_none)
+      if (lex.Data.Operator.op == Op_none)
 	/* */;
-      else if (isUnop (lex.LexOperator.op))
-	codeOperator (lex.LexOperator.op);
+      else if (isUnop (lex.Data.Operator.op))
+	codeOperator (lex.Data.Operator.op);
       else
 	error (ErrorError, "Illegal unop");
       break;
     case LexDelim:
-      if (lex.LexDelim.delim == '(')
+      if (lex.Data.Delim.delim == '(')
 	{
 	  expr (1);
 	  lex = lexGetPrim ();
-	  if (lex.tag != LexDelim || lex.LexDelim.delim != ')')
+	  if (lex.tag != LexDelim || lex.Data.Delim.delim != ')')
 	    error (ErrorError, "Missing ')'");
 	}
-      else if (lex.LexDelim.delim == ')')
+      else if (lex.Data.Delim.delim == ')')
 	error (ErrorError, "Missing '('");
       else
-	error (ErrorError, "Illegal delimiter '%c'", lex.LexDelim.delim);
+	error (ErrorError, "Illegal delimiter '%c'", lex.Data.Delim.delim);
       break;
     case LexBool:
-      codeBool (lex.LexBool.value);
+      codeBool (lex.Data.Bool.value);
       break;
     default:
       error (ErrorError, "Illegal expression");
@@ -109,7 +109,7 @@ expr (int pri)
 	prim ();
       else
 	expr (pri + 1);
-      codeOperator (op.LexOperator.op);
+      codeOperator (op.Data.Operator.op);
     }
 }
 

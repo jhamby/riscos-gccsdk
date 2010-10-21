@@ -193,10 +193,10 @@ lexGetIdInternal (bool genError)
   if ((c = inputGet ()) == '|')
     {
       result.tag = LexId;
-      result.LexId.str = inputSymbol (&result.LexId.len, '|');
+      result.Data.Id.str = inputSymbol (&result.Data.Id.len, '|');
       if (inputGet () != '|')
 	error (ErrorError, "Identifier continues over newline");
-      result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
+      result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
     }
   else
     {
@@ -212,8 +212,8 @@ lexGetIdInternal (bool genError)
       if (isalpha (c) || c == '.' || c == '_' || c == '#')
 	{
 	  result.tag = LexId;
-	  result.LexId.str = inputSymbol (&result.LexId.len, 0);
-	  result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
+	  result.Data.Id.str = inputSymbol (&result.Data.Id.len, 0);
+	  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
 	}
       else
 	{
@@ -222,7 +222,7 @@ lexGetIdInternal (bool genError)
 	  result.tag = LexNone;
 	}
     }
-  if (result.tag == LexId && result.LexId.len > 1)
+  if (result.tag == LexId && result.Data.Id.len > 1)
     localMunge (&result);
   return result;
 }
@@ -290,10 +290,10 @@ lexMakeLocal (int dir)
     }
   char id[1024];
   sprintf (id, localFormat, areaCurrentSymbol, label, i, rout_id);
-  result.LexId.str = strdup (id);
-  result.LexId.len = strlen (id);
-  result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
-  if (!result.LexId.str)
+  result.Data.Id.str = strdup (id);
+  result.Data.Id.len = strlen (id);
+  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
+  if (!result.Data.Id.str)
     errorOutOfMem ();
   result.tag = LexId;
   return result;
@@ -314,11 +314,11 @@ lexGetLocal (void)
       if (!name)
 	return result;
       sprintf (id, localFormat, areaCurrentSymbol, label, rout_lblno[label]++, rout_id);
-      result.LexId.str = strdup (id);
-      result.LexId.len = strlen (id);
-      if (!result.LexId.str)
+      result.Data.Id.str = strdup (id);
+      result.Data.Id.len = strlen (id);
+      if (!result.Data.Id.str)
 	errorOutOfMem ();
-      result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
+      result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
       result.tag = LexId;
       return result;
     }
@@ -340,26 +340,26 @@ lexGetPrim (void)
     {
     case '+':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_none; /* +XYZ */
-      result.LexOperator.pri = PRI (10);
+      result.Data.Operator.op = Op_none; /* +XYZ */
+      result.Data.Operator.pri = PRI (10);
       break;
 
     case '-':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_neg; /* -XYZ */
-      result.LexOperator.pri = PRI (10);
+      result.Data.Operator.op = Op_neg; /* -XYZ */
+      result.Data.Operator.pri = PRI (10);
       break;
 
     case '!':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_lnot; /* !XYZ */
-      result.LexOperator.pri = PRI (10);
+      result.Data.Operator.op = Op_lnot; /* !XYZ */
+      result.Data.Operator.pri = PRI (10);
       break;
 
     case '~':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_not; /* ~XYZ */
-      result.LexOperator.pri = PRI (10);
+      result.Data.Operator.op = Op_not; /* ~XYZ */
+      result.Data.Operator.pri = PRI (10);
       break;
 
     case '?':
@@ -368,7 +368,7 @@ lexGetPrim (void)
     case '(':
     case ')':
       result.tag = LexDelim;
-      result.LexDelim.delim = c;
+      result.Data.Delim.delim = c;
       break;
 
     case ':':
@@ -377,7 +377,7 @@ lexGetPrim (void)
 
     case '&':
       result.tag = LexInt;
-      result.LexInt.value = lexint (16);
+      result.Data.Int.value = lexint (16);
       break;
 
     case '0':
@@ -392,11 +392,11 @@ lexGetPrim (void)
     case '9':
       inputUnGet (c);
       result.tag = LexInt;
-      result.LexInt.value = lexint (10);
+      result.Data.Int.value = lexint (10);
       if (inputLook () == '.')
 	{
 	  result.tag = LexFloat;
-	  result.LexFloat.value = lexfloat (result.LexInt.value);
+	  result.Data.Float.value = lexfloat (result.Data.Int.value);
 	}
       break;
 
@@ -405,7 +405,7 @@ lexGetPrim (void)
       str = inputSymbol (&len, '\'');
       if (inputGet () != '\'')
 	error (ErrorError, "Character continues over newline");
-      result.LexInt.value = lexChar2Int (true, len, str);
+      result.Data.Int.value = lexChar2Int (true, len, str);
       break;
 
     case '"':
@@ -513,16 +513,16 @@ lexGetPrim (void)
 	  len -= s1 - s2;
 	  str = realloc (str, len);	/* try to reduce size of block */
 	}
-      result.LexString.str = str;
-      result.LexString.len = len;
+      result.Data.String.str = str;
+      result.Data.String.len = len;
       break;
 
     case '|':
       result.tag = LexId;
-      result.LexId.str = inputSymbol (&result.LexId.len, '|');
+      result.Data.Id.str = inputSymbol (&result.Data.Id.len, '|');
       if (inputGet () != '|')
 	error (ErrorError, "Identifier continues over newline");
-      result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
+      result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
       break;
 
     case '.':
@@ -581,15 +581,15 @@ lexGetPrim (void)
       if (isalpha (c) || c == '_')
 	{
 	  result.tag = LexId;
-	  result.LexId.str = inputSymbol (&result.LexId.len, 0);
-	  result.LexId.hash = lexHashStr (result.LexId.str, result.LexId.len);
+	  result.Data.Id.str = inputSymbol (&result.Data.Id.len, 0);
+	  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
 	}
       else
 	result.tag = LexNone;
       break;
     }
 
-  if (result.tag == LexId && result.LexId.len > 1)
+  if (result.tag == LexId && result.Data.Id.len > 1)
     localMunge (&result);
   return result;
 }
@@ -609,8 +609,8 @@ lexGetBinop (void)
     {
     case '*':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_mul; /* * */
-      result.LexOperator.pri = PRI (10);
+      result.Data.Operator.op = Op_mul; /* * */
+      result.Data.Operator.pri = PRI (10);
       break;
 
     case '/':
@@ -619,38 +619,38 @@ lexGetBinop (void)
 	{
 	case '=': /* /= */
 	  inputSkip ();
-	  result.LexOperator.op = Op_ne;
-	  result.LexOperator.pri = PRI (3); /* /= */
+	  result.Data.Operator.op = Op_ne;
+	  result.Data.Operator.pri = PRI (3); /* /= */
 	  break;
 	default:
-	  result.LexOperator.op = Op_div; /* / */
-	  result.LexOperator.pri = PRI (10);
+	  result.Data.Operator.op = Op_div; /* / */
+	  result.Data.Operator.pri = PRI (10);
 	  break;
 	}
       break;
 
     case '%':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_mod; /* % */
-      result.LexOperator.pri = PRI (10);
+      result.Data.Operator.op = Op_mod; /* % */
+      result.Data.Operator.pri = PRI (10);
       break;
 
     case '+':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_add; /* + */
-      result.LexOperator.pri = PRI (9);
+      result.Data.Operator.op = Op_add; /* + */
+      result.Data.Operator.pri = PRI (9);
       break;
 
     case '-':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_sub; /* - */
-      result.LexOperator.pri = PRI (9);
+      result.Data.Operator.op = Op_sub; /* - */
+      result.Data.Operator.pri = PRI (9);
       break;
 
     case '^':
       result.tag = LexOperator;
-      result.LexOperator.op = Op_xor; /* ^ */
-      result.LexOperator.pri = PRI (6);
+      result.Data.Operator.op = Op_xor; /* ^ */
+      result.Data.Operator.pri = PRI (6);
       break;
 
     case '>':
@@ -658,25 +658,25 @@ lexGetBinop (void)
       switch (inputLook ())
 	{
 	case '>':
-	  result.LexOperator.pri = PRI (5);
+	  result.Data.Operator.pri = PRI (5);
 	  if (inputSkipLook () == '>')
 	    {
 	      inputSkip ();
-	      result.LexOperator.op = Op_asr; /* >>> */
+	      result.Data.Operator.op = Op_asr; /* >>> */
 	    }
 	  else
-	    result.LexOperator.op = Op_sr; /* >> */
+	    result.Data.Operator.op = Op_sr; /* >> */
 	  break;
 
 	case '=':
 	  inputSkip ();
-	  result.LexOperator.op = Op_ge;
-	  result.LexOperator.pri = PRI (4); /* >= */
+	  result.Data.Operator.op = Op_ge;
+	  result.Data.Operator.pri = PRI (4); /* >= */
 	  break;
 
 	default:
-	  result.LexOperator.op = Op_gt;
-	  result.LexOperator.pri = PRI (4); /* > */
+	  result.Data.Operator.op = Op_gt;
+	  result.Data.Operator.pri = PRI (4); /* > */
 	  break;
 	}
       break;
@@ -687,25 +687,25 @@ lexGetBinop (void)
 	{
 	case '<':
 	  inputSkip ();
-	  result.LexOperator.op = Op_sl; /* << */
-	  result.LexOperator.pri = PRI (5);
+	  result.Data.Operator.op = Op_sl; /* << */
+	  result.Data.Operator.pri = PRI (5);
 	  break;
 
 	case '=':
 	  inputSkip ();
-	  result.LexOperator.op = Op_le; /* <= */
-	  result.LexOperator.pri = PRI (4);
+	  result.Data.Operator.op = Op_le; /* <= */
+	  result.Data.Operator.pri = PRI (4);
 	  break;
 
 	case '>':
 	  inputSkip ();
-	  result.LexOperator.op = Op_ne; /* <> */
-	  result.LexOperator.pri = PRI (3);
+	  result.Data.Operator.op = Op_ne; /* <> */
+	  result.Data.Operator.pri = PRI (3);
 	  break;
 
 	default:
-	  result.LexOperator.op = Op_lt; /* < */
-	  result.LexOperator.pri = PRI (4);
+	  result.Data.Operator.op = Op_lt; /* < */
+	  result.Data.Operator.pri = PRI (4);
 	  break;
 	}
       break;
@@ -714,8 +714,8 @@ lexGetBinop (void)
       if (inputLook () == '=')
 	inputSkip ();
       result.tag = LexOperator;
-      result.LexOperator.pri = PRI (3);
-      result.LexOperator.op = Op_eq; /* = == */
+      result.Data.Operator.pri = PRI (3);
+      result.Data.Operator.op = Op_eq; /* = == */
       break;
 
     case '!':
@@ -723,8 +723,8 @@ lexGetBinop (void)
 	{
 	  inputSkip ();
 	  result.tag = LexOperator;
-	  result.LexOperator.pri = PRI (3);
-	  result.LexOperator.op = Op_ne; /* != */
+	  result.Data.Operator.pri = PRI (3);
+	  result.Data.Operator.op = Op_ne; /* != */
 	}
       else
 	result.tag = LexNone;
@@ -735,13 +735,13 @@ lexGetBinop (void)
       if (inputLook () == '|')
 	{
 	  inputSkip ();
-	  result.LexOperator.pri = PRI (1);
-	  result.LexOperator.op = Op_lor; /* || */
+	  result.Data.Operator.pri = PRI (1);
+	  result.Data.Operator.op = Op_lor; /* || */
 	}
       else
 	{
-	  result.LexOperator.pri = PRI (7);
-	  result.LexOperator.op = Op_or; /* | */
+	  result.Data.Operator.pri = PRI (7);
+	  result.Data.Operator.op = Op_or; /* | */
 	}
       break;
 
@@ -750,13 +750,13 @@ lexGetBinop (void)
       if (inputLook () == '&')
 	{
 	  inputSkip ();
-	  result.LexOperator.pri = PRI (2);
-	  result.LexOperator.op = Op_land; /* && */
+	  result.Data.Operator.pri = PRI (2);
+	  result.Data.Operator.op = Op_land; /* && */
 	}
       else
 	{
-	  result.LexOperator.pri = PRI (8);
-	  result.LexOperator.op = Op_and; /* & */
+	  result.Data.Operator.pri = PRI (8);
+	  result.Data.Operator.op = Op_and; /* & */
 	}
       break;
 
@@ -781,7 +781,7 @@ lexNextPri ()
       nextbinop = lexGetBinop ();
       nextbinopvalid = true;
     }
-  return (nextbinop.tag == LexOperator) ? nextbinop.LexOperator.pri : -1;
+  return (nextbinop.tag == LexOperator) ? nextbinop.Data.Operator.pri : -1;
 }
 
 Lex
@@ -789,9 +789,9 @@ lexTempLabel (const char *ptr, int len)
 {
   Lex var;
   var.tag = LexId;
-  var.LexId.str = ptr;
-  var.LexId.len = len;
-  var.LexId.hash = lexHashStr (ptr, len);
+  var.Data.Id.str = ptr;
+  var.Data.Id.len = len;
+  var.Data.Id.hash = lexHashStr (ptr, len);
   return var;
 }
 
@@ -807,19 +807,19 @@ lexPrint (const Lex *lex)
   switch (lex->tag)
     {
     case LexId:
-      printf ("Id <%.*s> ", lex->LexId.len, lex->LexId.str);
+      printf ("Id <%.*s> ", lex->Data.Id.len, lex->Data.Id.str);
       break;
     case LexString:
-      printf ("Str <%.*s> ", lex->LexString.len, lex->LexString.str);
+      printf ("Str <%.*s> ", lex->Data.String.len, lex->Data.String.str);
       break;
     case LexInt:
-      printf ("Int <%d> ", lex->LexInt.value);
+      printf ("Int <%d> ", lex->Data.Int.value);
       break;
     case LexFloat:
-      printf ("Flt <%g> ", lex->LexFloat.value);
+      printf ("Flt <%g> ", lex->Data.Float.value);
       break;
     case LexOperator:
-      printf ("Op <%d, %d> ", lex->LexOperator.op, lex->LexOperator.pri);
+      printf ("Op <%d, %d> ", lex->Data.Operator.op, lex->Data.Operator.pri);
       break;
     case LexPosition:
       printf ("Pos ");
@@ -828,13 +828,13 @@ lexPrint (const Lex *lex)
       printf ("Stor ");
       break;
     case LexDelim:
-      printf ("Delim <%d> ", lex->LexDelim.delim);
+      printf ("Delim <%d> ", lex->Data.Delim.delim);
       break;
     case Lex00Label:
-      printf ("Label <%d> ", lex->Lex00Label.value);
+      printf ("Label <%d> ", lex->Data.Label.value);
       break;
     case LexBool:
-      printf("bool <%d> ", lex->Lex00Label.value);
+      printf("bool <%d> ", lex->Data.Label.value);
       break;
     case LexNone:
       printf ("None ");

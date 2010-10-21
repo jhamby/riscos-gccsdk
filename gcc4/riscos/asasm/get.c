@@ -270,11 +270,11 @@ getRhs (bool immonly, bool shift, ARMWord ir)
 	      if (im.Data.Int.i < 0 || im.Data.Int.i >= 256)
 	        error (ErrorError, "Immediate value out of range: 0x%x", im.Data.Int.i);
 
-	      if (rotator.LexInt.value < 0 || rotator.LexInt.value > 30
-		  || (rotator.LexInt.value % 2) == 1)
-	        error (ErrorError, "Bad rotator %d", rotator.LexInt.value);
+	      if (rotator.Data.Int.value < 0 || rotator.Data.Int.value > 30
+		  || (rotator.Data.Int.value % 2) == 1)
+	        error (ErrorError, "Bad rotator %d", rotator.Data.Int.value);
 
-	      ir |= (rotator.LexInt.value >> 1) << 8;
+	      ir |= (rotator.Data.Int.value >> 1) << 8;
 	    }
 	case ValueAddr:
 	  ir = fixImm8s4 (0, ir, im.Data.Int.i);

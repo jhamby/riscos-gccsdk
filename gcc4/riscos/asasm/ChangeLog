@@ -1,11 +1,17 @@
+Thu Oct 21 22:19:35 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* lex.h (Lex): Change union into struct and have only one Tag entry.
+	* commands.c, symbol.c, local.c, area.c, variables.c, expr.c, macros.c,
+	input.c, lexAcorn.c, get.c, lex.c: Follow Lex change.
+
 Thu Oct 21 22:02:28 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* value.h (Value): Change union into struct and have only one Tag
 	entry.
 	* commands.c, symbol.c, put.c, code.c, m_cpuctrl.c, help_cop.c,
-	m_cpumem.c, storage.c, area.c, variables.c, value.c, value.h,
-	output.c, m_fpumem.c, m_fpu.c, whileif.c, input.c, help_eval.c,
-	reloc.c, get.c, asm.c, eval.c, lit.c: Follow Value change.
+	m_cpumem.c, storage.c, area.c, variables.c, value.c, output.c,
+	m_fpumem.c, m_fpu.c, whileif.c, input.c, help_eval.c, reloc.c, get.c,
+	asm.c, eval.c, lit.c: Follow Value change.
 
 Thu Oct 21 02:01:34 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
   

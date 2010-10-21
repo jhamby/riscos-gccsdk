@@ -38,15 +38,15 @@
 #define FINISH_STR(string,Op,Pri)	\
   if (notinput(string))			\
     goto illegal;			\
-  lex->LexOperator.op = Op;		\
-  lex->LexOperator.pri = PRI(Pri);	\
+  lex->Data.Operator.op = Op;		\
+  lex->Data.Operator.pri = PRI(Pri);	\
   return;
 
 #define FINISH_CHR(Op,Pri)		\
   if (inputGet()!=':')			\
     goto illegal;			\
-  lex->LexOperator.op = Op;		\
-  lex->LexOperator.pri = PRI(Pri);	\
+  lex->Data.Operator.op = Op;		\
+  lex->Data.Operator.pri = PRI(Pri);	\
   return;
 
 void
@@ -70,7 +70,7 @@ lexAcornUnop (Lex *lex)
 	    /* :DEF: only returns {TRUE} when the symbol is defined and it is
 	       not a macro local variable.  */
 	    const Symbol *symP = symbolFind (lex);
-	    lex->LexInt.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
+	    lex->Data.Int.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
 	    lex->tag = LexBool;
 	    return;
 	  }
@@ -199,24 +199,24 @@ lexAcornPrim (Lex *lex)
       case 'c':
 	FINISH_STR_PRIM ("onfig}"); /* {config} */
 	lex->tag = LexInt;
-	lex->LexInt.value = option_apcs_32bit ? 32 : 26;
+	lex->Data.Int.value = option_apcs_32bit ? 32 : 26;
 	return;
       case 'e':
 	FINISH_STR_PRIM ("ndian}"); /* {endian} */
 	lex->tag = LexString;
-	if ((lex->LexString.str = strdup ("little")) == NULL)
+	if ((lex->Data.String.str = strdup ("little")) == NULL)
 	  errorOutOfMem ();
-	lex->LexString.len = sizeof ("little")-1;
+	lex->Data.String.len = sizeof ("little")-1;
 	return;
       case 'f':
 	FINISH_STR_PRIM ("alse}"); /* {false} */
 	lex->tag = LexBool;
-	lex->LexInt.value = false;
+	lex->Data.Int.value = false;
 	return;
       case 'm':
 	FINISH_STR_PRIM ("odule}"); /* {module} */
 	lex->tag = LexBool;
-	lex->LexInt.value = option_rma_module;
+	lex->Data.Int.value = option_rma_module;
 	return;
       case 'p':
 	FINISH_STR_PRIM ("c}"); /* {pc} */
@@ -225,12 +225,12 @@ lexAcornPrim (Lex *lex)
       case 's':
 	FINISH_STR_PRIM ("oftfloat}"); /* {softfloat} */
 	lex->tag = LexBool;
-	lex->LexInt.value = option_apcs_softfloat;
+	lex->Data.Int.value = option_apcs_softfloat;
 	return;
       case 't':
 	FINISH_STR_PRIM ("rue}"); /* {true} */
 	lex->tag = LexBool;
-	lex->LexInt.value = true;
+	lex->Data.Int.value = true;
 	return;
       case 'v':
 	FINISH_STR_PRIM ("ar}"); /* {var} */
@@ -239,12 +239,12 @@ lexAcornPrim (Lex *lex)
       case 'o':
 	FINISH_STR_PRIM ("pt}"); /* {opt} */
 	lex->tag = LexInt;
-	lex->LexInt.value = 2;
+	lex->Data.Int.value = 2;
 	return;
       case 'a':
 	FINISH_STR_PRIM ("sasm}"); /* {asasm} */
 	lex->tag = LexBool;
-	lex->LexInt.value = true;
+	lex->Data.Int.value = true;
 	return;
     }
 

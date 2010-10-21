@@ -121,7 +121,7 @@ declare_var (const char *ptr, int len, ValueTag type, bool localMacro)
       if (option_pedantic)
         error (ErrorWarning, "Redeclaration of %s variable '%.*s'",
 	       valueTagAsString (sym->value.Tag),
-	       var.LexId.len, var.LexId.str);
+	       var.Data.Id.len, var.Data.Id.str);
     }
   else
     sym = symbolAdd (&var);
@@ -233,7 +233,7 @@ c_set (ValueTag type, const Lex *label)
   assert (sym->value.Tag != ValueIllegal);
   if (sym == NULL)
     {
-      error (ErrorError, "'%.*s' is undefined", label->LexId.len, label->LexId.str);
+      error (ErrorError, "'%.*s' is undefined", label->Data.Id.len, label->Data.Id.str);
       inputRest ();
       return;
     }

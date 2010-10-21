@@ -76,53 +76,48 @@ typedef enum
   LexNone
 } LexTag;
 
-typedef union
+typedef struct
 {
   LexTag tag;
-  struct
+  union
     {
-      LexTag tag;
-      const char *str;		/* *NOT* NUL terminated.  */
-      int len;
-      int hash;
-    } LexId;			/* LexId */
-  struct
-    {
-      LexTag tag;
-      const char *str;
-      int len;
-    } LexString;		/* LexString */
-  struct
-    {
-      LexTag tag;
-      int value;
-    } LexInt;			/* LexInt */
-  struct
-    {
-      LexTag tag;
-      ARMFloat value;
-    } LexFloat;			/* LexFloat */
-  struct
-    {
-      LexTag tag;
-      Operator op;
-      int pri;
-    } LexOperator;		/* LexOperator */
-  struct
-    {
-      LexTag tag;
-      char delim;
-    } LexDelim;			/* LexDelim */
-  struct
-    {
-      LexTag tag;
-      int value;
-    } Lex00Label;		/* Lex00Label */
-  struct
-    {
-      LexTag tag;
-      bool value;
-    } LexBool;			/* LexBool */
+      struct			/* LexId */
+        {
+          const char *str;	/* *NOT* NUL terminated.  */
+          int len;
+          int hash;
+        } Id;
+      struct			/* LexString */
+        {
+          const char *str;
+          int len;
+        } String;
+      struct			/* LexInt */
+        {
+          int value;
+        } Int;
+      struct			/* LexFloat */
+        {
+          ARMFloat value;
+        } Float;
+      struct			/* LexOperator */
+        {
+          Operator op;
+          int pri;
+        } Operator;
+      struct			/* LexDelim */
+        {
+          char delim;
+        } Delim;
+      struct			/* Lex00Label */
+        {
+          int value;
+        } Label;
+      struct			/* LexBool */
+        {
+          bool value;
+        } Bool;
+    } Data;
 } Lex;
 
 Lex lexGetLabel (void);

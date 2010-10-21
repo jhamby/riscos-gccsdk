@@ -463,10 +463,10 @@ inputVarSub(int *ptr, int *trunc, bool inString)
       if (*input_pos == '.')
         input_pos++;
       /* Leave $[Ll].* alone, if we're wanting local labels */
-      if (option_local && label.LexId.len == 1 && toupper (*label.LexId.str) == 'L')
+      if (option_local && label.Data.Id.len == 1 && toupper (*label.Data.Id.str) == 'L')
         {
           input_buff[(*ptr)++] = '$';
-          input_buff[(*ptr)++] = *label.LexId.str;
+          input_buff[(*ptr)++] = *label.Data.Id.str;
           return true;
        }
       sym = symbolFind (&label);
@@ -510,7 +510,7 @@ inputVarSub(int *ptr, int *trunc, bool inString)
 	case ValueLateLabel:
 	case ValueAddr:
 	  error (ErrorError, "$ expansion '%.*s' is a pointer",
-		 label.LexId.len, label.LexId.str);
+		 label.Data.Id.len, label.Data.Id.str);
           /* This one's fatal */
           return false;
 	  break;
@@ -525,7 +525,7 @@ unknown:
         {
           /* Not in string literal, so this is an error */
           error (ErrorError, "Unknown value '%.*s' for $ expansion",
-		 label.LexId.len, label.LexId.str);
+		 label.Data.Id.len, label.Data.Id.str);
           input_buff[(*ptr)++] = '$';
           /* Restore input_pos so we reprocess current input */
           input_pos = rb;
@@ -534,7 +534,7 @@ unknown:
         }
       else
         {
-          int label_len = label.tag == LexId ? label.LexId.len : 0;
+          int label_len = label.tag == LexId ? label.Data.Id.len : 0;
 
           assert(label.tag == LexId || label.tag == LexNone);
 
@@ -545,7 +545,7 @@ unknown:
             {
               input_buff[(*ptr)++] = '$';
               if (label.tag == LexId)
-                memcpy (&input_buff[*ptr], label.LexId.str, label.LexId.len);
+                memcpy (&input_buff[*ptr], label.Data.Id.str, label.Data.Id.len);
               *ptr += label_len;
               return true;
             }

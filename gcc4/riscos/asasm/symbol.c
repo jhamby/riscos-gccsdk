@@ -93,9 +93,9 @@ symbolFree (Symbol *symP)
 static bool
 EqSymLex (const Symbol *str, const Lex *lx)
 {
-  if (str->len != lx->LexId.len)
+  if (str->len != lx->Data.Id.len)
     return false;
-  return !memcmp (str->str, lx->LexId.str, str->len);
+  return !memcmp (str->str, lx->Data.Id.str, str->len);
 }
 
 void
@@ -195,9 +195,9 @@ symbolInit (void)
   l.tag = LexId;
   for (int i = 0; predefines[i].name != NULL; i++)
     {
-      l.LexId.str = predefines[i].name;
-      l.LexId.len = predefines[i].len;
-      l.LexId.hash = lexHashStr (l.LexId.str, l.LexId.len);
+      l.Data.Id.str = predefines[i].name;
+      l.Data.Id.len = predefines[i].len;
+      l.Data.Id.hash = lexHashStr (l.Data.Id.str, l.Data.Id.len);
 
       Symbol *s = symbolAdd (&l);
       s->type |= SYMBOL_ABSOLUTE | SYMBOL_DECLARED | predefines[i].type;
@@ -218,20 +218,20 @@ symbolAdd (const Lex *l)
     errorAbort ("Internal symbolAdd: non-ID");
 
   Symbol **isearch;
-  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &(*isearch)->next)
+  for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
     {
       Symbol *search = *isearch;
       if (EqSymLex (search, l))
 	{
 	  if ((search->type & SYMBOL_DEFINED) && !SYMBOL_GETREG (search->type))
-	    error (ErrorError, "Redefinition of %.*s", l->LexId.len, l->LexId.str);
+	    error (ErrorError, "Redefinition of %.*s", l->Data.Id.len, l->Data.Id.str);
 	  else
 	    {
 	      if (search->type & SYMBOL_AREA)
 	        {
 	          if (areaCurrentSymbol->value.Data.Int.i != 0)
 		    error (ErrorError, "Symbol %.*s is already defined as area with incompatible definition",
-		           l->LexId.len, l->LexId.str);
+		           l->Data.Id.len, l->Data.Id.str);
 		}
 	      else
 		{
@@ -241,7 +241,7 @@ symbolAdd (const Lex *l)
 	    }
 	}
     }
-  *isearch = symbolNew (l->LexId.len, l->LexId.str);
+  *isearch = symbolNew (l->Data.Id.len, l->Data.Id.str);
   (*isearch)->type |= SYMBOL_DEFINED;
   return *isearch;
 }
@@ -261,14 +261,14 @@ symbolGet (const Lex *l)
     }
   else
     {
-      for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &(*isearch)->next)
+      for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
 	{
 	  if (EqSymLex (*isearch, l))
 	    return *isearch;
 	}
     }
 
-  *isearch = symbolNew (l->LexId.len, l->LexId.str);
+  *isearch = symbolNew (l->Data.Id.len, l->Data.Id.str);
   return *isearch;
 }
 
@@ -280,7 +280,7 @@ symbolFind (const Lex *l)
     return NULL;
 
   Symbol **isearch;
-  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &(*isearch)->next)
+  for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
     {
       if (EqSymLex (*isearch, l))
 	return *isearch;
@@ -296,7 +296,7 @@ void
 symbolRemove (const Lex *l)
 {
   Symbol **isearch;
-  for (isearch = &symbolTable[l->LexId.hash]; *isearch; isearch = &(*isearch)->next)
+  for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
     {
       if (EqSymLex (*isearch, l))
 	{

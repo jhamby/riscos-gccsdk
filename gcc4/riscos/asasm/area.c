@@ -284,55 +284,55 @@ c_area (void)
   while ((c = inputGet ()) == ',')
     {
       Lex attribute = lexGetId ();
-      if (!strncmp ("ABS", attribute.LexId.str, attribute.LexId.len))
+      if (!strncmp ("ABS", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (rel_specified)
 	    error (ErrorError, "Conflicting area attributes ABS vs REL");
 	  newtype |= AREA_ABS;
 	}
-      else if (!strncmp ("REL", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("REL", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (newtype & AREA_ABS)
 	    error (ErrorError, "Conflicting area attributes ABS vs REL");
 	  rel_specified = 1;
 	}
-      else if (!strncmp ("CODE", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("CODE", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (data_specified)
 	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
 	  newtype |= AREA_CODE;
 	}
-      else if (!strncmp ("DATA", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("DATA", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (newtype & AREA_CODE)
 	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
 	  data_specified = 1;
 	}
-      else if (!strncmp ("COMDEF", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("COMDEF", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_COMMONDEF;
-      else if (!strncmp ("COMMON", attribute.LexId.str, attribute.LexId.len)
-	       || !strncmp ("COMREF", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len)
+	       || !strncmp ("COMREF", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_COMMONREF | AREA_UDATA;
-      else if (!strncmp ("NOINIT", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("NOINIT", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_UDATA;
-      else if (!strncmp ("READONLY", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("READONLY", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_READONLY;
-      else if (!strncmp ("PIC", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("PIC", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_PIC;
-      else if (!strncmp ("DEBUG", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("DEBUG", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_DEBUG;
-      else if (!strncmp ("REENTRANT", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("REENTRANT", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_REENTRANT;
-      else if (!strncmp ("BASED", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("BASED", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  ARMWord reg;
 	  skipblanks ();
 	  reg = getCpuReg ();
 	  newtype |= AREA_BASED | AREA_READONLY | (reg << 24);
 	}
-      else if (!strncmp ("LINKONCE", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("LINKONCE", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_LINKONCE;
-      else if (!strncmp ("ALIGN", attribute.LexId.str, attribute.LexId.len))
+      else if (!strncmp ("ALIGN", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (newtype & 0xFF)
 	    error (ErrorError, "You can't specify ALIGN attribute more than once");
@@ -353,7 +353,7 @@ c_area (void)
 	    error (ErrorError, "Unrecognized ALIGN attribute value");
 	}
       else
-	error (ErrorError, "Illegal area attribute %s", attribute.LexId.str);
+	error (ErrorError, "Illegal area attribute %s", attribute.Data.Id.str);
       skipblanks ();
     }
   inputUnGet (c);

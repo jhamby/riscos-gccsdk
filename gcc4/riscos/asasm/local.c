@@ -77,7 +77,7 @@ c_rout (const Lex *label)
   if (label->tag == LexId)
     {
       asm_label (label);
-      rout_id = strndup (label->LexId.str, label->LexId.len);
+      rout_id = strndup (label->Data.Id.str, label->Data.Id.len);
     }
   else
     {
@@ -135,17 +135,17 @@ localMunge (Lex *label)
     return;
 
   int i;
-  if (label->LexId.str[i = label->LexId.len - 2] == '$'
-      && (label->LexId.str[i + 1] == 'L' || label->LexId.str[i + 1] == 'l'))
+  if (label->Data.Id.str[i = label->Data.Id.len - 2] == '$'
+      && (label->Data.Id.str[i + 1] == 'L' || label->Data.Id.str[i + 1] == 'l'))
     {
       char id[1024];
       sprintf (id, "Local$$%i$$", localCurrent);
-      id[strlen (id) + label->LexId.len - 2] = 0;
-      memcpy (id + strlen (id), label->LexId.str, label->LexId.len - 2);
+      id[strlen (id) + label->Data.Id.len - 2] = 0;
+      memcpy (id + strlen (id), label->Data.Id.str, label->Data.Id.len - 2);
 
-      label->LexId.str = strdup (id);
-      label->LexId.len = strlen (id);
-      if (!label->LexId.str)
+      label->Data.Id.str = strdup (id);
+      label->Data.Id.len = strlen (id);
+      if (!label->Data.Id.str)
 	errorOutOfMem ();
     }
 }
