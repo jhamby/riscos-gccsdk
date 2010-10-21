@@ -47,9 +47,9 @@ help_copInt (int max, const char *msg)
   Value i = exprEval (ValueInt);
   if (i.Tag == ValueInt)
     {
-      if (i.ValueInt.i < 0 || i.ValueInt.i > max)
+      if (i.Data.Int.i < 0 || i.Data.Int.i > max)
 	{
-	  error (ErrorError, "%d is not a legal %s", i.ValueInt.i, msg);
+	  error (ErrorError, "%d is not a legal %s", i.Data.Int.i, msg);
 	  return 0;
 	}
     }
@@ -58,7 +58,7 @@ help_copInt (int max, const char *msg)
       error (ErrorError, "Illegal expression as %s", msg);
       return 0;
     }
-  return i.ValueInt.i;
+  return i.Data.Int.i;
 }
 
 
@@ -112,7 +112,7 @@ help_copAddr (ARMWord ir, bool stack)
 	          switch (offset.Tag)
 		    {
 		      case ValueInt:
-		        ir = fixCopOffset (0, ir, offset.ValueInt.i);
+		        ir = fixCopOffset (0, ir, offset.Data.Int.i);
 		        break;
 		      case ValueCode:
 		      case ValueLateLabel:
@@ -134,9 +134,9 @@ help_copAddr (ARMWord ir, bool stack)
 	          offValue = true;
 	          if (offset.Tag != ValueInt)
 	            error (ErrorError, "Illegal option value");
-	          if (offset.ValueInt.i < -128 || offset.ValueInt.i > 256)
+	          if (offset.Data.Int.i < -128 || offset.Data.Int.i > 256)
 		    error (ErrorError, "Option value too large");
-	          ir |= (offset.ValueInt.i & 0xFF) | UP_FLAG;
+	          ir |= (offset.Data.Int.i & 0xFF) | UP_FLAG;
 	          skipblanks ();
 	          if (inputLook () != '}')
 		    error (ErrorError, "Missing '}' in option");
@@ -195,7 +195,7 @@ help_copAddr (ARMWord ir, bool stack)
 	    {
 	      case ValueInt:
 	        offset.Tag = ValueFloat;
-	        offset.ValueFloat.f = offset.ValueInt.i;
+	        offset.Data.Float.f = offset.Data.Int.i;
 	        /* Fall through.  */
 	      case ValueFloat:
 	        /* note that litFloat==litInt, so there's no litFloat */
@@ -238,15 +238,15 @@ help_copAddr (ARMWord ir, bool stack)
           switch (offset.Tag)
 	    {
 	      case ValueInt:
-	        ir = fixCopOffset (0, ir | LHS_OP (15), offset.ValueInt.i);
+	        ir = fixCopOffset (0, ir | LHS_OP (15), offset.Data.Int.i);
 	        break;
 	      case ValueCode:
 	      case ValueLateLabel:
 	        relocCopOffset (ir | LHS_OP (15), &offset);
 	        break;
 	      case ValueAddr:
-	        ir = fixCopOffset (0, ir | LHS_OP (offset.ValueAddr.r),
-				   offset.ValueAddr.i);
+	        ir = fixCopOffset (0, ir | LHS_OP (offset.Data.Addr.r),
+				   offset.Data.Addr.i);
 	        break;
 	      default:
 	        error (ErrorError, "Illegal address expression");

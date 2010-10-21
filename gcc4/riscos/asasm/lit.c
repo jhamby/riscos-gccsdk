@@ -106,8 +106,8 @@ void
 litInt (int size, const Value *value)
 {
   if (areaCurrentSymbol)
-    litNew (RelocImmN, size, areaCurrentSymbol->value.ValueInt.i,
-	    areaCurrentSymbol->value.ValueInt.i - 4095, value);
+    litNew (RelocImmN, size, areaCurrentSymbol->value.Data.Int.i,
+	    areaCurrentSymbol->value.Data.Int.i - 4095, value);
   else
     error (ErrorError, "No area defined");
 }
@@ -120,7 +120,7 @@ litOrg (LitInfo *li)
       unsigned char *image = areaCurrentSymbol->area.info->image;
       if (li->reloc.lineno < 0)
 	{
-	  li->reloc.offset = areaCurrentSymbol->value.ValueInt.i;
+	  li->reloc.offset = areaCurrentSymbol->value.Data.Int.i;
 	  relocAdd (&li->reloc);
 	}
       bool fp = li->reloc.value.Tag == ValueFloat;
@@ -145,9 +145,9 @@ litOrg (LitInfo *li)
 	{
 	  li->reloc.lineno = FS_GetCurLineNumber ();
 	  if (fp)
-	    putDataFloat (li->reloc.extra, li->reloc.value.ValueFloat.f);
+	    putDataFloat (li->reloc.extra, li->reloc.value.Data.Float.f);
 	  else
-	    putData (li->reloc.extra, li->reloc.value.ValueInt.i);
+	    putData (li->reloc.extra, li->reloc.value.Data.Int.i);
 	}
       li->used = 0;
     }

@@ -108,18 +108,18 @@ dstmemx (ARMWord ir)
   Value im = exprEval (ValueInt);
   if (im.Tag == ValueInt)
     {
-      if (im.ValueInt.i < 1 || im.ValueInt.i > 4)
+      if (im.Data.Int.i < 1 || im.Data.Int.i > 4)
 	error (ErrorError, "Number of fp registers out of range");
     }
   else
     error (ErrorError, "Illegal %cfm expression", (ir & 0x100000) ? 'l' : 's');
-  ir |= (im.ValueInt.i & 1) << 15;
-  ir |= (im.ValueInt.i & 2) << 21;
+  ir |= (im.Data.Int.i & 1) << 15;
+  ir |= (im.Data.Int.i & 2) << 21;
   if (stack)
     ir |= stack_ia ? 0x800000 : 0x1000000;
   ir = help_copAddr (ir, stack);
   if (stack && (!stack_ia || (ir & 0x200000)))
-    ir |= 3 * im.ValueInt.i;
+    ir |= 3 * im.Data.Int.i;
   putIns (ir);
 }
 

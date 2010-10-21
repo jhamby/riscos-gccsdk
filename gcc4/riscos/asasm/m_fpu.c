@@ -77,10 +77,10 @@ getFloatRhs (ARMWord ir)
       switch (im.Tag)
 	{
 	case ValueInt:
-	  ir = fixImmFloat (0, ir, im.ValueInt.i);
+	  ir = fixImmFloat (0, ir, im.Data.Int.i);
 	  break;
 	case ValueFloat:
-	  ir = fixImmFloat (0, ir, im.ValueFloat.f);
+	  ir = fixImmFloat (0, ir, im.Data.Float.f);
 	  break;
 	case ValueLateLabel:
 	case ValueCode:

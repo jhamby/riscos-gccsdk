@@ -56,48 +56,48 @@ valueLateToCode (int offset, LateInfo *late)
     }
 
   Value value;
-  if ((value.ValueCode.c = malloc(size*sizeof(Code))) == NULL)
+  if ((value.Data.Code.c = malloc(size*sizeof(Code))) == NULL)
     errorOutOfMem ();
 
   value.Tag = ValueCode;
-  value.ValueCode.len = size;
+  value.Data.Code.len = size;
   size = 0;
   if (offset != 0)
     {
-      value.ValueCode.c[size  ].Tag = CodeValue;
-      value.ValueCode.c[size  ].CodeValue.value.Tag = ValueInt;
-      value.ValueCode.c[size++].CodeValue.value.ValueInt.i = offset;
+      value.Data.Code.c[size  ].Tag = CodeValue;
+      value.Data.Code.c[size  ].CodeValue.value.Tag = ValueInt;
+      value.Data.Code.c[size++].CodeValue.value.Data.Int.i = offset;
     }
   for (l = late; l != NULL; l = l->next)
     {
       if ((factor = l->factor) == -1 || factor == 1)
 	{
-	  value.ValueCode.c[size  ].Tag = CodeSymbol;
-	  value.ValueCode.c[size++].CodeSymbol.symbol = l->symbol;
+	  value.Data.Code.c[size  ].Tag = CodeSymbol;
+	  value.Data.Code.c[size++].CodeSymbol.symbol = l->symbol;
 	  if (size != 1)
 	    { /* Add offset */
-	      value.ValueCode.c[size  ].Tag = CodeOperator;
-	      value.ValueCode.c[size++].CodeOperator.op = (factor > 0) ? Op_add : Op_sub;
+	      value.Data.Code.c[size  ].Tag = CodeOperator;
+	      value.Data.Code.c[size++].CodeOperator.op = (factor > 0) ? Op_add : Op_sub;
 	    }
 	  else if (factor == -1)
 	    {
-	      value.ValueCode.c[size  ].Tag = CodeOperator;
-	      value.ValueCode.c[size++].CodeOperator.op = Op_neg;
+	      value.Data.Code.c[size  ].Tag = CodeOperator;
+	      value.Data.Code.c[size++].CodeOperator.op = Op_neg;
 	    }
 	}
       else if (factor != 0)
 	{
-	  value.ValueCode.c[size  ].Tag = CodeSymbol;
-	  value.ValueCode.c[size++].CodeSymbol.symbol = l->symbol;
-	  value.ValueCode.c[size  ].Tag = CodeValue;
-	  value.ValueCode.c[size  ].CodeValue.value.Tag = ValueInt;
-	  value.ValueCode.c[size++].CodeValue.value.ValueInt.i = factor;
-	  value.ValueCode.c[size  ].Tag = CodeOperator;
-	  value.ValueCode.c[size++].CodeOperator.op = Op_mul;
+	  value.Data.Code.c[size  ].Tag = CodeSymbol;
+	  value.Data.Code.c[size++].CodeSymbol.symbol = l->symbol;
+	  value.Data.Code.c[size  ].Tag = CodeValue;
+	  value.Data.Code.c[size  ].CodeValue.value.Tag = ValueInt;
+	  value.Data.Code.c[size++].CodeValue.value.Data.Int.i = factor;
+	  value.Data.Code.c[size  ].Tag = CodeOperator;
+	  value.Data.Code.c[size++].CodeOperator.op = Op_mul;
 	  if (size != 3)
 	    { /* Add offset */
-	      value.ValueCode.c[size  ].Tag = CodeOperator;
-	      value.ValueCode.c[size++].CodeOperator.op = Op_add;
+	      value.Data.Code.c[size  ].Tag = CodeOperator;
+	      value.Data.Code.c[size++].CodeOperator.op = Op_add;
 	    }
 	}
     }
@@ -121,19 +121,19 @@ valueCopy (Value value)
       case ValueString:
 	{
 	  char *c;
-	  if ((c = malloc (value.ValueString.len)) == NULL)
+	  if ((c = malloc (value.Data.String.len)) == NULL)
 	    errorOutOfMem ();
-	  memcpy (c, value.ValueString.s, value.ValueString.len);
-	  value.ValueString.s = c;
+	  memcpy (c, value.Data.String.s, value.Data.String.len);
+	  value.Data.String.s = c;
 	}
         break;
 
       case ValueCode:
-        value.ValueCode.c = codeCopy (value.ValueCode.len, value.ValueCode.c);
+        value.Data.Code.c = codeCopy (value.Data.Code.len, value.Data.Code.c);
         break;
 
       case ValueLateLabel:
-        value = valueLateToCode (value.ValueLate.i, value.ValueLate.late);
+        value = valueLateToCode (value.Data.Late.i, value.Data.Late.late);
         break;
 
       default:
@@ -157,15 +157,15 @@ valueFree (Value *value)
 	break;
 
       case ValueString:
-	free ((void *)value->ValueString.s);
-	value->ValueString.len = 0;
-	value->ValueString.s = NULL;
+	free ((void *)value->Data.String.s);
+	value->Data.String.len = 0;
+	value->Data.String.s = NULL;
 	break;
 
       case ValueCode:
-	free (value->ValueCode.c);
-	value->ValueCode.len = 0;
-	value->ValueCode.c = NULL;
+	free (value->Data.Code.c);
+	value->Data.Code.len = 0;
+	value->Data.Code.c = NULL;
 	break;
 
       case ValueLateLabel:
@@ -205,31 +205,31 @@ valueEqual (const Value *a, const Value *b)
       case ValueIllegal:
 	return b->Tag == ValueIllegal;
       case ValueInt:
-	return b->Tag == ValueInt && a->ValueInt.i == b->ValueInt.i;
+	return b->Tag == ValueInt && a->Data.Int.i == b->Data.Int.i;
       case ValueFloat:
-	return b->Tag == ValueFloat && a->ValueFloat.f == b->ValueFloat.f;
+	return b->Tag == ValueFloat && a->Data.Float.f == b->Data.Float.f;
       case ValueString:
 	return b->Tag == ValueString
-		 && a->ValueString.len == b->ValueString.len
-		 && !memcmp(a->ValueString.s, b->ValueString.s, a->ValueString.len);
+		 && a->Data.String.len == b->Data.String.len
+		 && !memcmp(a->Data.String.s, b->Data.String.s, a->Data.String.len);
       case ValueBool:
-	return b->Tag == ValueBool && a->ValueBool.b  == b->ValueBool.b;
+	return b->Tag == ValueBool && a->Data.Bool.b  == b->Data.Bool.b;
       case ValueCode:
 	if (b->Tag == ValueLateLabel)
 	  {
-	    Value v = valueLateToCode(b->ValueLate.i,b->ValueLate.late);
-	    bool res = a->ValueCode.len == v.ValueCode.len && codeEqual(a->ValueCode.len,a->ValueCode.c,v.ValueCode.c);
+	    Value v = valueLateToCode(b->Data.Late.i,b->Data.Late.late);
+	    bool res = a->Data.Code.len == v.Data.Code.len && codeEqual(a->Data.Code.len,a->Data.Code.c,v.Data.Code.c);
 	    valueFree(&v);
 	    return res;
 	  }
 	else
 	  return b->Tag == ValueCode
-		   && a->ValueCode.len == b->ValueCode.len
-		   && codeEqual(a->ValueCode.len,a->ValueCode.c,b->ValueCode.c);
+		   && a->Data.Code.len == b->Data.Code.len
+		   && codeEqual(a->Data.Code.len,a->Data.Code.c,b->Data.Code.c);
       case ValueLateLabel:
 	return b->Tag == ValueLateLabel
-		 && a->ValueLate.i == b->ValueLate.i
-		 && lateInfoEqual(a->ValueLate.late,b->ValueLate.late);
+		 && a->Data.Late.i == b->Data.Late.i
+		 && lateInfoEqual(a->Data.Late.late,b->Data.Late.late);
       default:
 	errorAbort ("Internal valueEqual: illegal value");
 	break;
@@ -290,16 +290,16 @@ valuePrint (const Value *v)
 	printf ("<illegal>");
 	break;
       case ValueInt:
-	printf ("<%d> (int)", v->ValueInt.i);
+	printf ("<%d> (int)", v->Data.Int.i);
 	break;
       case ValueFloat:
-	printf ("<%g> (float)", v->ValueFloat.f);
+	printf ("<%g> (float)", v->Data.Float.f);
 	break;
       case ValueString:
-	printf ("<%.*s> (string)", v->ValueString.len, v->ValueString.s);
+	printf ("<%.*s> (string)", v->Data.String.len, v->Data.String.s);
 	break;
       case ValueBool:
-	printf ("<%s> (bool)", v->ValueBool.b ? "true" : "false");
+	printf ("<%s> (bool)", v->Data.Bool.b ? "true" : "false");
 	break;
       case ValueCode:
 	printf ("(code)");
@@ -308,7 +308,7 @@ valuePrint (const Value *v)
 	printf ("(late label)");
 	break;
       case ValueAddr:
-	printf ("offset 0x%x, reg %d (addr)", v->ValueAddr.i, v->ValueAddr.r);
+	printf ("offset 0x%x, reg %d (addr)", v->Data.Addr.i, v->Data.Addr.r);
 	break;
       default:
 	printf ("???");

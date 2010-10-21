@@ -100,7 +100,7 @@ relocOp (int word, const Value *value, RelocTag tag)
       Reloc *newReloc;
 
       newReloc = relocNew (areaCurrentSymbol->area.info->relocs, tag,
-			   areaCurrentSymbol->value.ValueInt.i, value);
+			   areaCurrentSymbol->value.Data.Int.i, value);
       newReloc->extra = word;
       areaCurrentSymbol->area.info->relocs = newReloc;
     }
@@ -218,24 +218,24 @@ relocLate2Reloc (Reloc *r, Value *value)
 {
   int size = 0;
   int norelocs = 0;
-  for (LateInfo *late = value->ValueLate.late; late; late = late->next)
+  for (LateInfo *late = value->Data.Late.late; late; late = late->next)
     {
       if (late->factor > 0)
 	{			/* kludge: apparently <0 for area symbols */
 	  norelocs += late->factor;	/* late->factor cannot be less that 0 here */
 	  if (late->factor > 1)
 	    {
-	      r->value.ValueCode.c[size].Tag = CodeValue;
-	      r->value.ValueCode.c[size].CodeValue.value.Tag = ValueInt;
-	      r->value.ValueCode.c[size++].CodeValue.value.ValueInt.i = late->factor;
+	      r->value.Data.Code.c[size].Tag = CodeValue;
+	      r->value.Data.Code.c[size].CodeValue.value.Tag = ValueInt;
+	      r->value.Data.Code.c[size++].CodeValue.value.Data.Int.i = late->factor;
 	    }
-	  r->value.ValueCode.c[size].Tag = CodeSymbol;
-	  r->value.ValueCode.c[size++].CodeSymbol.symbol = late->symbol;
+	  r->value.Data.Code.c[size].Tag = CodeSymbol;
+	  r->value.Data.Code.c[size++].CodeSymbol.symbol = late->symbol;
 	}
     }
-  if (size > r->value.ValueCode.len)
+  if (size > r->value.Data.Code.len)
     errorAbortLine (r->lineno, r->file, "Overflow in relocation data");
-  r->value.ValueCode.len = size;
+  r->value.Data.Code.len = size;
   return norelocs;
 }
 
@@ -246,7 +246,7 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
   int norelocs = 0;
 
   codeInit ();
-  *value = codeEvalLow (ValueAll, r->value.ValueCode.len, r->value.ValueCode.c);
+  *value = codeEvalLow (ValueAll, r->value.Data.Code.len, r->value.Data.Code.c);
   switch (value->Tag)
     {
     case ValueIllegal:
@@ -265,7 +265,7 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 	case RelocCpuOffset:
 	case RelocCopOffset:
 /*
-   for (late = value->ValueLate.late; late; late = late->next)
+   for (late = value->Data.Late.late; late; late = late->next)
    if(late->symbol == area) {
    late->factor = 0;
    break;
@@ -278,14 +278,14 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 	  {
 	    int thisF = 0;
 
-	    for (LateInfo *late = value->ValueLate.late; late; late = late->next)
+	    for (LateInfo *late = value->Data.Late.late; late; late = late->next)
 	      if (late->symbol == area)
 	        {
 		  thisF = late->factor;
 		  late->factor = 0;
 		  break;
 	        }
-	    for (LateInfo *late = value->ValueLate.late; late; late = late->next)
+	    for (LateInfo *late = value->Data.Late.late; late; late = late->next)
 	      if (late->factor > 0)
 	        {
 		  if (!(late->symbol->type & SYMBOL_AREA))
@@ -304,7 +304,7 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 
 	case RelocImmN:
 	  {
-	    for (LateInfo *late = value->ValueLate.late; late; late = late->next)
+	    for (LateInfo *late = value->Data.Late.late; late; late = late->next)
 	      {
 	        if (late->factor > 0)
 		  {
@@ -327,7 +327,7 @@ relocEval (Reloc *r, Value *value, const Symbol *area)
 	case RelocAdr:
 	case RelocAdrl:
 	  {
-	    for (LateInfo *late = value->ValueLate.late; late; late = late->next)
+	    for (LateInfo *late = value->Data.Late.late; late; late = late->next)
 	      if (late->factor > 0 && !(late->symbol->type & SYMBOL_AREA))
 	        late->symbol->used++;
 	    break;
@@ -370,7 +370,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	      /* The R_ARM_PC24 ELF reloc needs to happen for a "B + PC - 8"
 	         instruction, while in AOF this needs to happen for a "B 0".  */
 	      int bv = (!option_aof && value->Tag == ValueLateLabel) ?
-		value->ValueInt.i + offset : value->ValueInt.i;
+		value->Data.Int.i + offset : value->Data.Int.i;
 	      ARMWord w = fixBranch (r->lineno, bv);
 	      image[offset + 2] = (w >> 16) & 0xff;
 	      image[offset + 1] = (w >> 8) & 0xff;
@@ -380,7 +380,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	  case RelocBranchT:
 	    {
 	      ARMWord w = READWORD (image, offset);
-	      w |= fixBranchT (r->lineno, value->ValueInt.i);
+	      w |= fixBranchT (r->lineno, value->Data.Int.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
 	      image[offset + 1] = (w >> 8) & 0xff;
@@ -391,29 +391,29 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    {
 	      ARMWord w = READWORD (image, offset);
 	      /* fprintf (stderr, "RelocCpuOffset: tag = %d, lineno = %d, offset = %d, val=%s\n",
-			  value->Tag.t, r->lineno, value->ValueInt.i,
-			  (value->Tag.t == ValueLateLabel) ? value->ValueLate.late->symbol->str : "-"); */
+			  value->Tag.t, r->lineno, value->Data.Int.i,
+			  (value->Tag.t == ValueLateLabel) ? value->Data.Late.late->symbol->str : "-"); */
 	      if (value->Tag == ValueLateLabel)
 		{
-		  const Symbol *sym = value->ValueLate.late->symbol;
+		  const Symbol *sym = value->Data.Late.late->symbol;
 		  if ((sym->type & SYMBOL_AREA)
 		      && (sym->area.info->type & AREA_BASED))
 		    {
 		      /* fprintf (stderr, "  --- based: off = %d, adjusted = %d\n",
 				  offset,
-				  value->ValueInt.i + offset + 8); */
-		      /* value->ValueInt.i += offset + 8; */
+				  value->Data.Int.i + offset + 8); */
+		      /* value->Data.Int.i += offset + 8; */
 		      w = fixCpuOffset (r->lineno, w,
-					value->ValueInt.i + offset + 8);
+					value->Data.Int.i + offset + 8);
 		      w &= ~LHS_OP(15);
 		      w |= LHS_OP((sym->area.info->type & 0x0f000000) >> 24);
-		      /* r->offset = value->ValueInt.i + offset + 8; */
+		      /* r->offset = value->Data.Int.i + offset + 8; */
 		    }
 		  else
-		    w = fixCpuOffset (r->lineno, w, value->ValueInt.i);
+		    w = fixCpuOffset (r->lineno, w, value->Data.Int.i);
 		}
 	      else
-		w = fixCpuOffset (r->lineno, w, value->ValueInt.i);
+		w = fixCpuOffset (r->lineno, w, value->Data.Int.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
 	      image[offset + 1] = (w >> 8) & 0xff;
@@ -423,7 +423,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	  case RelocCopOffset:
 	    {
 	      ARMWord w = READWORD (image, offset);
-	      w = fixCopOffset (r->lineno, w, value->ValueInt.i);
+	      w = fixCopOffset (r->lineno, w, value->Data.Int.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
 	      image[offset + 1] = (w >> 8) & 0xff;
@@ -433,7 +433,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	  case RelocImmN:
 	    {
 	      /* fprintf (stderr, "RelocImmN: lineno = %d\n", r->lineno); */
-	      ARMWord w = fixInt (r->lineno, r->extra, value->ValueInt.i);
+	      ARMWord w = fixInt (r->lineno, r->extra, value->Data.Int.i);
 	      switch (r->extra)
 		{
 		  case 4:
@@ -452,7 +452,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    {
 	      /* fprintf (stderr, "RelocAdr: lineno = %d\n", r->lineno); */
 	      ARMWord w = READWORD (image, offset);
-	      w = fixAdr (r->lineno, w, value->ValueInt.i);
+	      w = fixAdr (r->lineno, w, value->Data.Int.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
 	      image[offset + 1] = (w >> 8) & 0xff;
@@ -462,9 +462,9 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	  case RelocAdrl:
 	    {
 	      ARMWord w = READWORD (image, offset);
-	      ARMWord w1 = (value->Tag == ValueLateLabel) ? value->ValueLate.late->symbol->type & SYMBOL_DEFINED : 1;
+	      ARMWord w1 = (value->Tag == ValueLateLabel) ? value->Data.Late.late->symbol->type & SYMBOL_DEFINED : 1;
 	      /* warn if symbol is defined or isn't a late label */
-	      fixAdrl (r->lineno, &w, &w1, value->ValueInt.i, w1);
+	      fixAdrl (r->lineno, &w, &w1, value->Data.Int.i, w1);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
 	      image[offset + 1] = (w >> 8) & 0xff;
@@ -478,7 +478,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	  case RelocImm8s4:
 	    {
 	      ARMWord w = READWORD (image, offset);
-	      w = fixImm8s4 (r->lineno, w, value->ValueInt.i);
+	      w = fixImm8s4 (r->lineno, w, value->Data.Int.i);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
 	      image[offset + 1] = (w >> 8) & 0xff;
@@ -490,7 +490,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	    r->Tag = RelocNone;
 	    return;
 	}
-	if (value->Tag == ValueInt || r->value.ValueCode.len == 0)	/* Value is known */
+	if (value->Tag == ValueInt || r->value.Data.Code.len == 0)	/* Value is known */
 	  r->Tag = RelocNone;
 	break;
       case ValueFloat:
@@ -510,9 +510,9 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 		    } u;
 		} translate;		/* Do endianness issues affect this struct? */
 	      if (r->extra == 4)
-		translate.f = (float) value->ValueFloat.f;
+		translate.f = (float) value->Data.Float.f;
 	      else
-		translate.d = (double) value->ValueFloat.f;
+		translate.d = (double) value->Data.Float.f;
 	      for (i = 0; i < r->extra; i++)
 		image[offset + i] = translate.u.c[i];
 	    }
@@ -520,7 +520,7 @@ relocWrite (Reloc *r, const Value *value, unsigned char *image)
 	  case RelocImmFloat:
 	    {
 	      ARMWord w = READWORD (image, offset);
-	      w = fixImmFloat (r->lineno, w, value->ValueFloat.f);
+	      w = fixImmFloat (r->lineno, w, value->Data.Float.f);
 	      image[offset + 3] = (w >> 24) & 0xff;
 	      image[offset + 2] = (w >> 16) & 0xff;
 	      image[offset + 1] = (w >> 8) & 0xff;
@@ -607,8 +607,8 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	  break;
 	case RelocCopOffset:
 	  if (relocs->value.Tag == ValueCode
-	      && (relocs->value.ValueCode.c->CodeSymbol.symbol->type & SYMBOL_AREA)
-	      && (relocs->value.ValueCode.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
+	      && (relocs->value.Data.Code.c->CodeSymbol.symbol->type & SYMBOL_AREA)
+	      && (relocs->value.Data.Code.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
 	    How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
 	  else
 	    How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
@@ -629,25 +629,25 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	  continue;
 	}
       areloc.Offset = armword(relocs->offset);
-      for (ip = 0; ip < relocs->value.ValueCode.len; ip++)
+      for (ip = 0; ip < relocs->value.Data.Code.len; ip++)
 	{
 	  int loop;
-	  if (relocs->value.ValueCode.c[ip].Tag == CodeValue)
+	  if (relocs->value.Data.Code.c[ip].Tag == CodeValue)
 	    {
-	      if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag != ValueInt)
+	      if (relocs->value.Data.Code.c[ip].CodeValue.value.Tag != ValueInt)
 		{
 		  errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
 		  loop = 0;
 		}
 	      else
-		loop = relocs->value.ValueCode.c[ip++].CodeValue.value.ValueInt.i;
+		loop = relocs->value.Data.Code.c[ip++].CodeValue.value.Data.Int.i;
 	    }
 	  else
 	    loop = 1;
-	  if (relocs->value.ValueCode.c[ip].Tag != CodeSymbol)
+	  if (relocs->value.Data.Code.c[ip].Tag != CodeSymbol)
 	    errorAbortLine (relocs->lineno, relocs->file, "Internal error in relocsOutput");
-	  areloc.How = How | relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
-	  if (!(relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
+	  areloc.How = How | relocs->value.Data.Code.c[ip].CodeSymbol.symbol->used;
+	  if (!(relocs->value.Data.Code.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
 	    areloc.How |= HOW2_SYMBOL;
 	  areloc.How = armword(areloc.How);
 	  while (loop--)
@@ -695,8 +695,8 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  break;
         case RelocCopOffset:
           if (relocs->value.Tag == ValueCode
-              && (relocs->value.ValueCode.c->CodeSymbol.symbol->type & SYMBOL_AREA)
-              && (relocs->value.ValueCode.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
+              && (relocs->value.Data.Code.c->CodeSymbol.symbol->type & SYMBOL_AREA)
+              && (relocs->value.Data.Code.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
             How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
           else
             How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
@@ -717,26 +717,26 @@ relocELFOutput (FILE *outfile, const Symbol *area)
           continue;
         }
       areloc.r_offset = armword(relocs->offset);
-      for (ip = 0; ip < relocs->value.ValueCode.len; ip++)
+      for (ip = 0; ip < relocs->value.Data.Code.len; ip++)
         {
 	  int loop, symbol, type;
-          if (relocs->value.ValueCode.c[ip].Tag == CodeValue)
+          if (relocs->value.Data.Code.c[ip].Tag == CodeValue)
             {
-              if (relocs->value.ValueCode.c[ip].CodeValue.value.Tag != ValueInt)
+              if (relocs->value.Data.Code.c[ip].CodeValue.value.Tag != ValueInt)
 		{
                   errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
 		  loop = 0;
 		}
               else
-                loop = relocs->value.ValueCode.c[ip++].CodeValue.value.ValueInt.i;
+                loop = relocs->value.Data.Code.c[ip++].CodeValue.value.Data.Int.i;
             }
           else
             loop = 1;
-          if (relocs->value.ValueCode.c[ip].Tag != CodeSymbol)
+          if (relocs->value.Data.Code.c[ip].Tag != CodeSymbol)
             errorAbortLine (relocs->lineno, relocs->file, "Internal error in relocsOutput");
 
-          How |= relocs->value.ValueCode.c[ip].CodeSymbol.symbol->used;
-          if (!(relocs->value.ValueCode.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
+          How |= relocs->value.Data.Code.c[ip].CodeSymbol.symbol->used;
+          if (!(relocs->value.Data.Code.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
             How |= HOW2_SYMBOL;
 
           symbol = (How & HOW3_SIDMASK) + 1;

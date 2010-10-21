@@ -38,21 +38,21 @@ fixValueTag (Value *value)
 {
   /* Remove symbols with factor == 0  */
   LateInfo **c;
-  for (c = &value->ValueLate.late; *c;)
+  for (c = &value->Data.Late.late; *c;)
     {
       if (!(*c)->factor)
 	*c = (*c)->next;
       else
 	c = &(*c)->next;
     }				/* Decide type of value */
-  value->Tag = (value->ValueLate.late) ? ValueLateLabel : ValueInt;
+  value->Tag = (value->Data.Late.late) ? ValueLateLabel : ValueInt;
 }
 
 void
 help_evalNegLate (Value *value)
 {
   if (value->Tag & ValueLateLabel)
-    for (LateInfo *l = value->ValueLate.late; l; l = l->next)
+    for (LateInfo *l = value->Data.Late.late; l; l = l->next)
       l->factor = -l->factor;
 }
 
@@ -64,18 +64,18 @@ help_evalSubLate (Value *lvalue, const Value *rvalue)
   if (lvalue->Tag == ValueInt)
     {				/* No late info in lvalue */
       lvalue->Tag = rvalue->Tag;	/* Just move rvalue late info to lvalue */
-      lvalue->ValueLate.late = rvalue->ValueLate.late;
+      lvalue->Data.Late.late = rvalue->Data.Late.late;
       /* But remember to change sign */
       help_evalNegLate (lvalue);
       return;
     }
   /* Both lvalue and rvalue have late info */
   LateInfo *rnext;
-  for (LateInfo *r = rvalue->ValueLate.late; r; r = rnext)
+  for (LateInfo *r = rvalue->Data.Late.late; r; r = rnext)
     {
       rnext = r->next;
       LateInfo *l;
-      for (l = lvalue->ValueLate.late; l; l = l->next)
+      for (l = lvalue->Data.Late.late; l; l = l->next)
 	{
 	  if (l->symbol == r->symbol)
 	    {
@@ -86,8 +86,8 @@ help_evalSubLate (Value *lvalue, const Value *rvalue)
       /* And remember to change sign */
       if (!l)
 	{			/* Didn't find it */
-	  l = lvalue->ValueLate.late;
-	  (lvalue->ValueLate.late = r)->next = l;
+	  l = lvalue->Data.Late.late;
+	  (lvalue->Data.Late.late = r)->next = l;
 	  r->factor = -r->factor;
 	}
     }
@@ -102,16 +102,16 @@ help_evalAddLate (Value *lvalue, const Value *rvalue)
   if (lvalue->Tag == ValueInt)
     {				/* No late info in lvalue */
       lvalue->Tag = rvalue->Tag;	/* Just move rvalue late to lvalue */
-      lvalue->ValueLate.late = rvalue->ValueLate.late;
+      lvalue->Data.Late.late = rvalue->Data.Late.late;
       return;
     }
   /* Both lvalue and rvalue have late info */
   LateInfo *rnext;
-  for (LateInfo *r = rvalue->ValueLate.late; r; r = rnext)
+  for (LateInfo *r = rvalue->Data.Late.late; r; r = rnext)
     {
       rnext = r->next;
       LateInfo *l;
-      for (l = lvalue->ValueLate.late; l; l = l->next)
+      for (l = lvalue->Data.Late.late; l; l = l->next)
 	{
 	  if (l->symbol == r->symbol)
 	    {
@@ -121,8 +121,8 @@ help_evalAddLate (Value *lvalue, const Value *rvalue)
 	}			/* New symbol for lvalue, so move from rvalue late info */
       if (!l)
 	{			/* Didn't find it */
-	  l = lvalue->ValueLate.late;
-	  (lvalue->ValueLate.late = r)->next = l;
+	  l = lvalue->Data.Late.late;
+	  (lvalue->Data.Late.late = r)->next = l;
 	}
     }
   fixValueTag (lvalue);

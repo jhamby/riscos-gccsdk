@@ -69,7 +69,7 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
     {
       error (ErrorError, "Illegal %s", msg);
       sym->value.Tag = ValueInt;
-      sym->value.ValueInt.i = 0;
+      sym->value.Data.Int.i = 0;
     }
   else
     sym->value = valueCopy (value);
@@ -90,10 +90,10 @@ c_fn (Symbol *symbol)
 {
   c_define ("float register", symbol, ValueInt);
   symbol->type |= SYMBOL_FPUREG;
-  int no = symbol->value.ValueInt.i;
+  int no = symbol->value.Data.Int.i;
   if (no < 0 || no > 7)
     {
-      symbol->value.ValueInt.i = 0;
+      symbol->value.Data.Int.i = 0;
       error (ErrorError, "Illegal %s register %d (using 0)", "fpu", no);
     }
 }
@@ -104,10 +104,10 @@ c_rn (Symbol *symbol)
 {
   c_define ("register", symbol, ValueInt);
   symbol->type |= SYMBOL_CPUREG;
-  int no = symbol->value.ValueInt.i;
+  int no = symbol->value.Data.Int.i;
   if (no < 0 || no > 15)
     {
-      symbol->value.ValueInt.i = 0;
+      symbol->value.Data.Int.i = 0;
       error (ErrorError, "Illegal %s register %d (using 0)", "cpu", no);
     }
 }
@@ -118,10 +118,10 @@ c_cn (Symbol *symbol)
 {
   c_define ("coprocessor register", symbol, ValueInt);
   symbol->type |= SYMBOL_COPREG;
-  int no = symbol->value.ValueInt.i;
+  int no = symbol->value.Data.Int.i;
   if (no < 0 || no > 15)
     {
-      symbol->value.ValueInt.i = 0;
+      symbol->value.Data.Int.i = 0;
       error (ErrorError, "Illegal %s register %d (using 0)", "cop", no);
     }
 }
@@ -131,10 +131,10 @@ c_cp (Symbol *symbol)
 {
   c_define ("coprocessor number", symbol, ValueInt);
   symbol->type |= SYMBOL_COPNUM;
-  int no = symbol->value.ValueInt.i;
+  int no = symbol->value.Data.Int.i;
   if (no < 0 || no > 15)
     {
-      symbol->value.ValueInt.i = 0;
+      symbol->value.Data.Int.i = 0;
       error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
     }
 }
@@ -164,19 +164,19 @@ defineint (int size)
 	{
 	case ValueInt:
 	case ValueAddr:
-	  word = fixInt (0, size, value.ValueInt.i);
+	  word = fixInt (0, size, value.Data.Int.i);
 	  putData (size, word);
 	  break;
 	case ValueString:
 	  if (size == 1)
 	    { /* Lay out a string */
-	      int len = value.ValueString.len;
-	      const char *str = value.ValueString.s;
+	      int len = value.Data.String.len;
+	      const char *str = value.Data.String.s;
 	      while (len > 0)
 		putData (1, lexGetCharFromString (&len, &str));
 	    }
 	  else
-	    putData (size, lexChar2Int (false, value.ValueString.len, value.ValueString.s));
+	    putData (size, lexChar2Int (false, value.Data.String.len, value.Data.String.s));
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
@@ -197,7 +197,7 @@ defineint (int size)
 void
 c_head (void)
 {
-  int i = areaCurrentSymbol ? areaCurrentSymbol->value.ValueInt.i : 0;
+  int i = areaCurrentSymbol ? areaCurrentSymbol->value.Data.Int.i : 0;
   skipblanks ();
   exprBuild ();
   Value value = exprEval (ValueString);
@@ -206,8 +206,8 @@ c_head (void)
     case ValueString:
       if (areaCurrentSymbol)
 	{
-	  int len = value.ValueString.len;
-	  const char *str = value.ValueString.s;
+	  int len = value.Data.String.len;
+	  const char *str = value.Data.String.s;
 	  while (len > 0)
 	    putData (1, lexGetCharFromString (&len, &str));
 	  putData (1, 0);
@@ -219,9 +219,9 @@ c_head (void)
     }
   if (areaCurrentSymbol)
     {
-      while (areaCurrentSymbol->value.ValueInt.i & 3)
-	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = 0;
-      putData (4, 0xFF000000 + (areaCurrentSymbol->value.ValueInt.i - i));
+      while (areaCurrentSymbol->value.Data.Int.i & 3)
+	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
+      putData (4, 0xFF000000 + (areaCurrentSymbol->value.Data.Int.i - i));
     }
   else
     areaError ();
@@ -260,10 +260,10 @@ definereal (int size)
       switch (value.Tag)
 	{
 	case ValueInt:
-	  putDataFloat (size, value.ValueInt.i);
+	  putDataFloat (size, value.Data.Int.i);
 	  break;
 	case ValueFloat:
-	  putDataFloat (size, value.ValueFloat.f);
+	  putDataFloat (size, value.Data.Float.f);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
@@ -514,7 +514,7 @@ c_assert (void)
   Value value = exprEval (ValueBool);
   if (value.Tag != ValueBool)
     error (ErrorError, "ASSERT expression must be boolean");
-  else if (!value.ValueBool.b)
+  else if (!value.Data.Bool.b)
     error (ErrorError, "Assertion failed");
 }
 
@@ -552,12 +552,12 @@ c_info (void)
     error (ErrorError, "INFO expression must be arithmetic");
   else
     {
-      bool giveErr = (value.Tag == ValueInt && value.ValueInt.i != 0)
-	               || (value.Tag == ValueFloat && fabs (value.ValueFloat.f) >= 0.00001);
+      bool giveErr = (value.Tag == ValueInt && value.Data.Int.i != 0)
+	               || (value.Tag == ValueFloat && fabs (value.Data.Float.f) >= 0.00001);
       if (giveErr)
-        error (ErrorError, "%.*s", message.ValueString.len, message.ValueString.s);
+        error (ErrorError, "%.*s", message.Data.String.len, message.Data.String.s);
       else
-	printf ("%.*s\n", message.ValueString.len, message.ValueString.s);
+	printf ("%.*s\n", message.Data.String.len, message.Data.String.s);
     }
 }
 

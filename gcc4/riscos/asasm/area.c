@@ -138,7 +138,7 @@ c_entry (void)
       else
 	{
 	  areaEntrySymbol = areaCurrentSymbol;
-	  areaEntryOffset = areaCurrentSymbol->value.ValueInt.i;
+	  areaEntryOffset = areaCurrentSymbol->value.Data.Int.i;
 	}
     }
   else
@@ -170,7 +170,7 @@ c_align (void)
       Value value = exprEval (ValueInt);
       if (value.Tag == ValueInt)
 	{
-	  alignValue = value.ValueInt.i;
+	  alignValue = value.Data.Int.i;
 	  if (alignValue <= 0 || (alignValue & (alignValue - 1)))
 	    {
 	      error (ErrorError, "ALIGN value is not a power of two");
@@ -193,7 +193,7 @@ c_align (void)
 	  Value valueO = exprEval (ValueInt);
 	  if (valueO.Tag == ValueInt)
 	    {
-	      offsetValue = valueO.ValueInt.i;
+	      offsetValue = valueO.Data.Int.i;
 	      if (offsetValue < 0)
 		{
 		  error (ErrorError, "ALIGN offset value is out-of-bounds");
@@ -214,18 +214,18 @@ c_align (void)
     }
   /* We have to align on alignValue + offsetValue */
 
-  unaligned = (offsetValue - areaCurrentSymbol->value.ValueInt.i) % alignValue;
+  unaligned = (offsetValue - areaCurrentSymbol->value.Data.Int.i) % alignValue;
   if (unaligned || offsetValue >= alignValue)
     {
       int bytesToStuff = (unaligned < 0) ? alignValue + unaligned : unaligned;
 
       bytesToStuff += (offsetValue / alignValue)*alignValue;
 
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.ValueInt.i + bytesToStuff))
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + bytesToStuff))
 	areaGrow (areaCurrentSymbol->area.info, bytesToStuff);
 
       for (; bytesToStuff; --bytesToStuff)
-	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = 0;
+	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
     }
 }
 
@@ -243,14 +243,14 @@ c_reserve (void)
   Value value = exprEval (ValueInt);
   if (value.Tag == ValueInt)
     {
-      int i = areaCurrentSymbol->value.ValueInt.i;
+      int i = areaCurrentSymbol->value.Data.Int.i;
 
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, i + value.ValueInt.i))
-	areaGrow (areaCurrentSymbol->area.info, value.ValueInt.i);
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, i + value.Data.Int.i))
+	areaGrow (areaCurrentSymbol->area.info, value.Data.Int.i);
 
-      areaCurrentSymbol->value.ValueInt.i += value.ValueInt.i;
+      areaCurrentSymbol->value.Data.Int.i += value.Data.Int.i;
 
-      for (; i < areaCurrentSymbol->value.ValueInt.i; i++)
+      for (; i < areaCurrentSymbol->value.Data.Int.i; i++)
 	areaCurrentSymbol->area.info->image[i] = 0;
     }
   else
@@ -275,7 +275,7 @@ c_area (void)
     {
       sym->type = SYMBOL_AREA | SYMBOL_DECLARED;
       sym->value.Tag = ValueInt;
-      sym->value.ValueInt.i = 0;
+      sym->value.Data.Int.i = 0;
       sym->area.info = areaNew (0);
       areaHeadSymbol = sym;
     }
@@ -344,10 +344,10 @@ c_area (void)
 	  Value value = exprEval (ValueInt);
 	  if (value.Tag == ValueInt)
 	    {
-	      if (value.ValueInt.i < 2 || value.ValueInt.i > 12)
+	      if (value.Data.Int.i < 2 || value.Data.Int.i > 12)
 		error (ErrorError, "ALIGN attribute value must be between 2 (incl) and 12 (incl)");
 	      else
-		newtype |= value.ValueInt.i;
+		newtype |= value.Data.Int.i;
 	    }
 	  else
 	    error (ErrorError, "Unrecognized ALIGN attribute value");

@@ -90,7 +90,7 @@ asm_label (const Lex *label)
   Symbol *symbol = symbolAdd (label);
   if (areaCurrentSymbol)
     {
-      symbol->value = valueLateToCode (areaCurrentSymbol->value.ValueInt.i,
+      symbol->value = valueLateToCode (areaCurrentSymbol->value.Data.Int.i,
 				       codeNewLateInfo (areaCurrentSymbol));
       symbol->type |= SYMBOL_ABSOLUTE;
       /* If the current area is a based area, then set the based bit.  */

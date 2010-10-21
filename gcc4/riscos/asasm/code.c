@@ -109,10 +109,10 @@ codeSymbol (Symbol *symbol)
 	      symbol->used = 0; /* Mark as used.  */
 	      break;
 	    case ValueCode:
-	      if (FirstFreeIns + symbol->value.ValueCode.len <= CODE_SIZECODE)
+	      if (FirstFreeIns + symbol->value.Data.Code.len <= CODE_SIZECODE)
 		{
-		  for (int i = 0; i < symbol->value.ValueCode.len; i++)
-		    Program[FirstFreeIns++] = symbol->value.ValueCode.c[i];
+		  for (int i = 0; i < symbol->value.Data.Code.len; i++)
+		    Program[FirstFreeIns++] = symbol->value.Data.Code.c[i];
 		  symbol->used = 0; /* Mark as used.  */
 		}
 	      else
@@ -140,7 +140,7 @@ codePosition (Symbol *area)
   if (area)
     {
       codeSymbol (area);
-      codeInt (area->value.ValueInt.i);
+      codeInt (area->value.Data.Int.i);
       codeOperator (Op_add);
     }
   else
@@ -166,8 +166,8 @@ codeString (int len, const char *str)
     {
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].CodeValue.value.Tag = ValueString;
-      Program[FirstFreeIns].CodeValue.value.ValueString.len = len;
-      Program[FirstFreeIns++].CodeValue.value.ValueString.s = str;
+      Program[FirstFreeIns].CodeValue.value.Data.String.len = len;
+      Program[FirstFreeIns++].CodeValue.value.Data.String.s = str;
     }
   else
     errorAbort ("Internal codeString: overflow");
@@ -180,7 +180,7 @@ codeInt (int value)
     {
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].CodeValue.value.Tag = ValueInt;
-      Program[FirstFreeIns++].CodeValue.value.ValueInt.i = value;
+      Program[FirstFreeIns++].CodeValue.value.Data.Int.i = value;
     }
   else
     errorAbort ("Internal codeInt: overflow");
@@ -193,7 +193,7 @@ codeFloat (ARMFloat value)
     {
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].CodeValue.value.Tag = ValueFloat;
-      Program[FirstFreeIns++].CodeValue.value.ValueFloat.f = value;
+      Program[FirstFreeIns++].CodeValue.value.Data.Float.f = value;
     }
   else
     errorAbort ("Internal codeFloat: overflow");
@@ -206,7 +206,7 @@ codeBool (bool value)
     {
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].CodeValue.value.Tag = ValueBool;
-      Program[FirstFreeIns++].CodeValue.value.ValueBool.b = value;
+      Program[FirstFreeIns++].CodeValue.value.Data.Bool.b = value;
     }
   else
     errorAbort ("Internal codeBool: overflow");
@@ -300,8 +300,8 @@ codeEvalLowest (int size, const Code *program, int *sp)
 #ifdef DEBUG_CODE
 		      printf ("[Code]...\n");
 #endif
-		      if (!codeEvalLowest (program[i].CodeSymbol.symbol->value.ValueCode.len,
-					   program[i].CodeSymbol.symbol->value.ValueCode.c,
+		      if (!codeEvalLowest (program[i].CodeSymbol.symbol->value.Data.Code.len,
+					   program[i].CodeSymbol.symbol->value.Data.Code.c,
 					   sp))
 			return false;
 		      break;
@@ -324,8 +324,8 @@ codeEvalLowest (int size, const Code *program, int *sp)
 			program[i].CodeSymbol.symbol->str);
 #endif
 		Stack[++(*sp)].Tag = ValueLateLabel;
-		Stack[*sp].ValueLate.i = 0;
-		Stack[*sp].ValueLate.late = codeNewLateInfo (program[i].CodeSymbol.symbol);
+		Stack[*sp].Data.Late.i = 0;
+		Stack[*sp].Data.Late.late = codeNewLateInfo (program[i].CodeSymbol.symbol);
 	      }
 	    break;
 
@@ -371,8 +371,8 @@ codeEvalLow (ValueTag legal, int size, Code *program)
   if (!codeEvalLowest (size, program, &sp))
     {
       Result.Tag = ValueCode;
-      Result.ValueCode.len = size;
-      Result.ValueCode.c = program;
+      Result.Data.Code.len = size;
+      Result.Data.Code.c = program;
     }
   else if (sp == 0)
     Result = Stack[0];
@@ -386,11 +386,11 @@ codeEvalLow (ValueTag legal, int size, Code *program)
     {
       if (option_autocast && (legal & ValueFloat) && Result.Tag == ValueInt)
 	{
-	  ARMFloat f = Result.ValueInt.i;
+	  ARMFloat f = Result.Data.Int.i;
 	  if (option_fussy > 1)
-	    error (ErrorInfo, "Changing integer %d to float %1.1f", Result.ValueInt.i, f);
+	    error (ErrorInfo, "Changing integer %d to float %1.1f", Result.Data.Int.i, f);
 	  Result.Tag = ValueFloat;
-	  Result.ValueFloat.f = f;
+	  Result.Data.Float.f = f;
 	}
       else
 	Result.Tag = ValueIllegal;
@@ -496,8 +496,8 @@ codePrint (int size, const Code *program)
 
 		    case ValueCode:
 		      printf ("[Code: << ");
-		      codePrint (program[i].CodeSymbol.symbol->value.ValueCode.len,
-				 program[i].CodeSymbol.symbol->value.ValueCode.c);
+		      codePrint (program[i].CodeSymbol.symbol->value.Data.Code.len,
+				 program[i].CodeSymbol.symbol->value.Data.Code.c);
 		      printf (">>] ");
 		      break;
 		  }

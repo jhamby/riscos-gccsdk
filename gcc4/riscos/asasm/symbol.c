@@ -202,7 +202,7 @@ symbolInit (void)
       Symbol *s = symbolAdd (&l);
       s->type |= SYMBOL_ABSOLUTE | SYMBOL_DECLARED | predefines[i].type;
       s->value.Tag = ValueInt;
-      s->value.ValueInt.i = predefines[i].value;
+      s->value.Data.Int.i = predefines[i].value;
       s->area.ptr = NULL;
     }
 }
@@ -229,7 +229,7 @@ symbolAdd (const Lex *l)
 	    {
 	      if (search->type & SYMBOL_AREA)
 	        {
-	          if (areaCurrentSymbol->value.ValueInt.i != 0)
+	          if (areaCurrentSymbol->value.Data.Int.i != 0)
 		    error (ErrorError, "Symbol %.*s is already defined as area with incompatible definition",
 		           l->LexId.len, l->LexId.str);
 		}
@@ -422,8 +422,8 @@ symbolSymbolAOFOutput (FILE *outfile)
 		  if (sym->value.Tag == ValueCode)
 		    {
 		      codeInit ();
-		      value = codeEvalLow (ValueAll, sym->value.ValueCode.len,
-		                           sym->value.ValueCode.c);
+		      value = codeEvalLow (ValueAll, sym->value.Data.Code.len,
+		                           sym->value.Data.Code.c);
 		    }
 		  else
 		    value = sym->value;
@@ -438,18 +438,18 @@ symbolSymbolAOFOutput (FILE *outfile)
 			break;
 		      case ValueInt:
 			case ValueAddr:	/* nasty hack */
-			  v = value.ValueInt.i;
+			  v = value.Data.Int.i;
 			break;
 		      case ValueFloat:
 			errorLine (0, NULL, ErrorError,
 			           "Linker does not understand float constants (%s)", sym->str);
-			v = (int) value.ValueFloat.f;
+			v = (int) value.Data.Float.f;
 			break;
 		      case ValueString:
-			v = lexChar2Int (false, value.ValueString.len, value.ValueString.s);
+			v = lexChar2Int (false, value.Data.String.len, value.Data.String.s);
 			break;
 		      case ValueBool:
-			v = value.ValueBool.b;
+			v = value.Data.Bool.b;
 			break;
 		      case ValueCode:
 			errorLine (0, NULL, ErrorError,
@@ -457,17 +457,17 @@ symbolSymbolAOFOutput (FILE *outfile)
 			v = 0;
 			break;
 		      case ValueLateLabel:
-			if (!value.ValueLate.late->next	/* Only one late label */
-			    && value.ValueLate.late->factor == 1	/* ... occuring one time */
-			    && (value.ValueLate.late->symbol->type & SYMBOL_AREA))
+			if (!value.Data.Late.late->next	/* Only one late label */
+			    && value.Data.Late.late->factor == 1	/* ... occuring one time */
+			    && (value.Data.Late.late->symbol->type & SYMBOL_AREA))
 			  {		/* ... and it is an area */
 			    if (sym->type & SYMBOL_ABSOLUTE)
 			      {	/* Change absolute to relative */
 				sym->type &= ~SYMBOL_ABSOLUTE;
-				v = value.ValueLate.i;
-				sym->area.ptr = value.ValueLate.late->symbol;
+				v = value.Data.Late.i;
+				sym->area.ptr = value.Data.Late.late->symbol;
 			      }
-			    else if (sym->area.ptr != value.ValueLate.late->symbol)
+			    else if (sym->area.ptr != value.Data.Late.late->symbol)
 			      {
 				errorLine (0, NULL, ErrorError,
 					   "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
@@ -498,7 +498,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 	      else
 		{
 		  asym.Type = sym->type | TYPE_REFERENCE;
-		  asym.Value = (sym->type & SYMBOL_COMMON) ? sym->value.ValueInt.i : 0;
+		  asym.Value = (sym->type & SYMBOL_COMMON) ? sym->value.Data.Int.i : 0;
 		  asym.AreaName = 0;
 		}
 	      asym.Name     = armword (asym.Name);
@@ -564,7 +564,7 @@ symbolSymbolELFOutput (FILE *outfile)
 		  if (sym->value.Tag == ValueCode)
 		    {
 		      codeInit ();
-		      value = codeEvalLow (ValueAll, sym->value.ValueCode.len, sym->value.ValueCode.c);
+		      value = codeEvalLow (ValueAll, sym->value.Data.Code.len, sym->value.Data.Code.c);
 		      type = STT_NOTYPE; /* No information to base type on */
 		    }
 		  else
@@ -578,34 +578,34 @@ symbolSymbolELFOutput (FILE *outfile)
 			break;
 		      case ValueInt:
 			case ValueAddr: /* nasty hack */
-			  v = value.ValueInt.i;
+			  v = value.Data.Int.i;
 			break;
 		      case ValueFloat:
 			errorLine (0, NULL, ErrorError, "Linker does not understand float constants (%s)", sym->str);
-			v = (int) value.ValueFloat.f;
+			v = (int) value.Data.Float.f;
 			break;
 		      case ValueString:
-			v = lexChar2Int (false, value.ValueString.len, value.ValueString.s);
+			v = lexChar2Int (false, value.Data.String.len, value.Data.String.s);
 			break;
 		      case ValueBool:
-			v = value.ValueBool.b;
+			v = value.Data.Bool.b;
 			break;
 		      case ValueCode:
 			errorLine (0, NULL, ErrorError, "Linker does not understand code constants (%s)", sym->str);
 			v = 0;
 			break;
 		      case ValueLateLabel:
-			if (!value.ValueLate.late->next /* Only one late label */
-			    && value.ValueLate.late->factor == 1 /* ... occuring one time */
-			    && (value.ValueLate.late->symbol->type & SYMBOL_AREA))
+			if (!value.Data.Late.late->next /* Only one late label */
+			    && value.Data.Late.late->factor == 1 /* ... occuring one time */
+			    && (value.Data.Late.late->symbol->type & SYMBOL_AREA))
 			  { /* ... and it is an area */
 			    if (sym->type & SYMBOL_ABSOLUTE)
 			      { /* Change absolute to relative */
 				sym->type &= ~SYMBOL_ABSOLUTE;
-				v = value.ValueLate.i;
-				sym->area.ptr = value.ValueLate.late->symbol;
+				v = value.Data.Late.i;
+				sym->area.ptr = value.Data.Late.late->symbol;
 			      }
-			    else if (sym->area.ptr != value.ValueLate.late->symbol)
+			    else if (sym->area.ptr != value.Data.Late.late->symbol)
 			      {
 			        errorLine (0, NULL, ErrorError, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
 			        v = 0;

@@ -43,8 +43,8 @@ putAlign (int align, const char *msg)
 {
   error (ErrorInfo, "Unaligned %s", msg);
   if (areaCurrentSymbol)
-    while (areaCurrentSymbol->value.ValueInt.i & align)
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = 0;
+    while (areaCurrentSymbol->value.Data.Int.i & align)
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
   else
     areaError ();
 }
@@ -65,18 +65,18 @@ putData (int size, ARMWord data)
   if (option_align)
     {
       if (AREA_NOSPACE (areaCurrentSymbol->area.info,
-			areaCurrentSymbol->value.ValueInt.i + size))
+			areaCurrentSymbol->value.Data.Int.i + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
       switch (size)
 	{
 	case 1:
 	  break;
 	case 2:
-	  if (areaCurrentSymbol->value.ValueInt.i & 1)
+	  if (areaCurrentSymbol->value.Data.Int.i & 1)
 	    putAlign (1, "halfword");
 	  break;
 	case 4:
-	  if (areaCurrentSymbol->value.ValueInt.i & 3)
+	  if (areaCurrentSymbol->value.Data.Int.i & 3)
 	    putAlign (3, "word");
 	  break;
 	default:
@@ -87,17 +87,17 @@ putData (int size, ARMWord data)
 
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.ValueInt.i + size))
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
       switch (size)
 	{
 	case 4:
-	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i + 3] = (data >> 24) & 0xff;
-	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i + 2] = (data >> 16) & 0xff;
+	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i + 3] = (data >> 24) & 0xff;
+	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i + 2] = (data >> 16) & 0xff;
 	case 2:
-	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i + 1] = (data >> 8) & 0xff;
+	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i + 1] = (data >> 8) & 0xff;
 	case 1:
-	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i + 0] = data & 0xff;
+	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i + 0] = data & 0xff;
 	}
     }
   else if (data)
@@ -105,7 +105,7 @@ putData (int size, ARMWord data)
       error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
       return;
     }
-  areaCurrentSymbol->value.ValueInt.i += size;
+  areaCurrentSymbol->value.Data.Int.i += size;
 }
 
 
@@ -138,12 +138,12 @@ putDataFloat (int size, ARMFloat data)
     {
     case 4:
       translate.f = (float) data;
-      if (areaCurrentSymbol->value.ValueInt.i & 3)
+      if (areaCurrentSymbol->value.Data.Int.i & 3)
 	putAlign (3, "float single");
       break;
     case 8:
       translate.d = (double) data;
-      if (areaCurrentSymbol->value.ValueInt.i & 3)
+      if (areaCurrentSymbol->value.Data.Int.i & 3)
 	putAlign (3, "float double");
       break;
     default:
@@ -153,10 +153,10 @@ putDataFloat (int size, ARMFloat data)
 
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.ValueInt.i + size))
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
       for (int i = 0; i < size; i++)
-	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = translate.u.c[i];
+	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = translate.u.c[i];
     }
   else if (data)
     {
@@ -178,17 +178,17 @@ putIns (ARMWord ins)
       areaError ();
       return;
     }
-  if (areaCurrentSymbol->value.ValueInt.i & 3)
+  if (areaCurrentSymbol->value.Data.Int.i & 3)
     putAlign (3, "instruction");
 
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.ValueInt.i + 4))
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + 4))
 	areaGrow (areaCurrentSymbol->area.info, 4);
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = ins & 0xff;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = (ins >> 8) & 0xff;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = (ins >> 16) & 0xff;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.ValueInt.i++] = (ins >> 24) & 0xff;
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = ins & 0xff;
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = (ins >> 8) & 0xff;
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = (ins >> 16) & 0xff;
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = (ins >> 24) & 0xff;
     }
   else
     error (ErrorError, "Trying to define code an uninitialised area");

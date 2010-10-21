@@ -53,48 +53,44 @@ typedef enum
   ValueAll       = 127		/* cheat */
 } ValueTag;
 
-typedef union
+typedef struct
 {
   ValueTag Tag;
-  struct			/* ValueInt */
+  union
     {
-      ValueTag Tag;
-      int i;
-    } ValueInt;
-  struct			/* ValueFloat */
-    {
-      ValueTag Tag;
-      ARMFloat f;
-    } ValueFloat;
-  struct			/* ValueString */
-    {
-      ValueTag Tag;
-      int len;			/**< Size string.  */
-      const char *s;		/**< Malloced memory block and string contents is *NOT* NUL terminated.  */
-    } ValueString;
-  struct			/* ValueBool */
-    {
-      ValueTag Tag;
-      bool b;
-    } ValueBool;
-  struct			/* ValueCode */
-    {
-      ValueTag Tag;
-      int len;
-      union CODE *c;
-    } ValueCode;
-  struct			/* ValueLateLabel */
-    {
-      ValueTag Tag;		/* Must start identical with ValueInt */
-      int i;
-      struct LATEINFO *late;
-    } ValueLate;
-  struct			/* ValueAddr */
-    {
-      ValueTag Tag;
-      int i;
-      int r;			/* When = 0 - 15 (inc), it is register based. -1 otherwise.  */
-    } ValueAddr;
+      struct			/* ValueInt */
+        {
+          int i;		/* Must start identical with ValueAddr & ValueLate */
+        } Int;
+      struct			/* ValueFloat */
+        {
+          ARMFloat f;
+        } Float;
+      struct			/* ValueString */
+        {
+          int len;		/**< Size string.  */
+          const char *s;	/**< Malloced memory block and string contents is *NOT* NUL terminated.  */
+        } String;
+      struct			/* ValueBool */
+        {
+          bool b;
+        } Bool;
+      struct			/* ValueCode */
+        {
+          int len;
+          union CODE *c;
+        } Code;
+      struct			/* ValueLateLabel */
+        {
+          int i;		/* Must start identical with ValueInt & ValueAddr */
+          struct LATEINFO *late;
+        } Late;
+      struct			/* ValueAddr */
+        {
+	  int i;		/* Must start identical with ValueInt & ValueLate */
+          int r;		/* When = 0 - 15 (inc), it is register based. -1 otherwise.  */
+        } Addr;
+    } Data;
 } Value;
 
 Value valueLateToCode (int offset, LateInfo *late);

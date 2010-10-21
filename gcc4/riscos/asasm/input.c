@@ -487,23 +487,23 @@ inputVarSub(int *ptr, int *trunc, bool inString)
       switch (sym->value.Tag)
 	{
 	case ValueInt:
-	  *ptr += sprintf (&input_buff[*ptr], "%i", sym->value.ValueInt.i);
+	  *ptr += sprintf (&input_buff[*ptr], "%i", sym->value.Data.Int.i);
 	  break;
 	case ValueFloat:
-	  *ptr += sprintf (&input_buff[*ptr], "%f", sym->value.ValueFloat.f);
+	  *ptr += sprintf (&input_buff[*ptr], "%f", sym->value.Data.Float.f);
 	  break;
 	case ValueString:
-	  if (*ptr + sym->value.ValueString.len >= MAX_LINE)
+	  if (*ptr + sym->value.Data.String.len >= MAX_LINE)
 	    *ptr = MAX_LINE + 1;
 	  else
 	    {
-	      memcpy (input_buff + *ptr, sym->value.ValueString.s,
-                      sym->value.ValueString.len);
-	      *ptr += sym->value.ValueString.len;
+	      memcpy (input_buff + *ptr, sym->value.Data.String.s,
+                      sym->value.Data.String.len);
+	      *ptr += sym->value.Data.String.len;
 	    }
 	  break;
 	case ValueBool:
-	  strcpy (&input_buff[*ptr], sym->value.ValueBool.b ? "{true}" : "{false}");
+	  strcpy (&input_buff[*ptr], sym->value.Data.Bool.b ? "{true}" : "{false}");
 	  *ptr += strlen (&input_buff[*ptr]);
 	  break;
 	case ValueCode:

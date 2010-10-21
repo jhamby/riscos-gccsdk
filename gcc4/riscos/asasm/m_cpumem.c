@@ -97,7 +97,7 @@ dstmem (ARMWord ir)
 		  {
 		  case ValueInt:
 		  case ValueAddr:
-		    ir = fixCpuOffset (0, ir, offset.ValueInt.i);
+		    ir = fixCpuOffset (0, ir, offset.Data.Int.i);
 		    break;
 		  case ValueCode:
 		  case ValueLateLabel:
@@ -213,8 +213,8 @@ dstmem (ARMWord ir)
       switch (offset.Tag)
 	{
 	case ValueAddr:
-	  ir |= LHS_OP (offset.ValueAddr.r);
-	  ir = fixCpuOffset (0, ir, offset.ValueAddr.i);
+	  ir |= LHS_OP (offset.Data.Addr.r);
+	  ir = fixCpuOffset (0, ir, offset.Data.Addr.i);
 	  break;
 	default:
 	  /* No, so it's either a PC-relative or based area.
@@ -236,7 +236,7 @@ dstmem (ARMWord ir)
 	    {
 	    case ValueInt:
 	      ir |= LHS_OP (15);
-	      ir = fixCpuOffset (0, ir, offset.ValueInt.i);
+	      ir = fixCpuOffset (0, ir, offset.Data.Int.i);
 	      break;
 	    case ValueCode:
 	    case ValueLateLabel:
@@ -245,8 +245,8 @@ dstmem (ARMWord ir)
 	      relocCpuOffset (ir |= LHS_OP (15), &offset);
 	      break;
 	    case ValueAddr:
-	      ir |= LHS_OP (offset.ValueAddr.r);
-	      ir = fixCpuOffset (0, ir, offset.ValueAddr.i);
+	      ir |= LHS_OP (offset.Data.Addr.r);
+	      ir = fixCpuOffset (0, ir, offset.Data.Addr.i);
 	      break;
 	    default:
 	      error (ErrorError, "Illegal address expression");
@@ -320,7 +320,7 @@ m_pld (void)
 	    {
 	    case ValueInt:
 	    case ValueAddr:
-	      ir = fixCpuOffset (0, ir, offset.ValueInt.i);
+	      ir = fixCpuOffset (0, ir, offset.Data.Int.i);
 	      break;
 	    default:
 	      error (ErrorError, "Illegal offset expression");
@@ -390,7 +390,7 @@ dstreglist (ARMWord ir)
       switch (mask.Tag)
 	{
 	case ValueInt:
-	  ir |= fixMask (0, mask.ValueInt.i);
+	  ir |= fixMask (0, mask.Data.Int.i);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:

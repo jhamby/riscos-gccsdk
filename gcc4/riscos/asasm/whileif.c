@@ -108,7 +108,7 @@ c_if (void)
       error (ErrorError, "IF expression must be boolean (treating as true)");
       return;
     }
-  if (!flag.ValueBool.b)
+  if (!flag.Data.Bool.b)
     if_skip ("No matching | or ]");
 }
 
@@ -200,9 +200,9 @@ c_while (const Lex *label __attribute__ ((unused)))
     }
 #endif
 #ifdef DEBUG
-  printf("c_while() : expr is <%s>\n", flag.ValueBool.b ? "true" : "false");
+  printf("c_while() : expr is <%s>\n", flag.Data.Bool.b ? "true" : "false");
 #endif
-  if (!flag.ValueBool.b)
+  if (!flag.Data.Bool.b)
     {
       while_skip ();
       return;
@@ -255,9 +255,9 @@ whileReEval (void)
       return false;
     }
 #ifdef DEBUG
-  printf("whileReEval() : expr is <%s>\n", flag.ValueBool.b ? "true" : "false");
+  printf("whileReEval() : expr is <%s>\n", flag.Data.Bool.b ? "true" : "false");
 #endif
-  if (flag.ValueBool.b)
+  if (flag.Data.Bool.b)
     {
       switch (gCurPObjP->whilestack->tag)
 	{

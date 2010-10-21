@@ -206,7 +206,7 @@ outputAof (void)
     {
       ap->area.info->norelocs = relocFix (ap);
       if (AREA_IMAGE (ap->area.info))
-	obj_area_size += FIX (ap->value.ValueInt.i)
+	obj_area_size += FIX (ap->value.Data.Int.i)
 	  + ap->area.info->norelocs * sizeof (AofReloc);
     }
 
@@ -253,7 +253,7 @@ outputAof (void)
     {
       aof_entry.Name = armword (ap->offset + 4); /* +4 because of extra length entry */
       aof_entry.Type = armword (ap->area.info->type);
-      aof_entry.Size = armword (FIX (ap->value.ValueInt.i));
+      aof_entry.Size = armword (FIX (ap->value.Data.Int.i));
       aof_entry.noRelocations = armword(ap->area.info->norelocs);
       if (aof_entry.noRelocations != 0 && !AREA_IMAGE (ap->area.info))
 	errorAbortLine (0, NULL, "Internal outputAof: relocations in uninitialised area");
@@ -286,14 +286,14 @@ outputAof (void)
     {
       if (AREA_IMAGE (ap->area.info))
 	{
-	  if ((size_t)ap->value.ValueInt.i !=
-	      fwrite (ap->area.info->image, 1, ap->value.ValueInt.i, objfile))
+	  if ((size_t)ap->value.Data.Int.i !=
+	      fwrite (ap->area.info->image, 1, ap->value.Data.Int.i, objfile))
 	    {
 	      errorAbortLine (0, NULL, "Internal outputAof: error when writing %s image", ap->str);
 	      return;
 	    }
 	  /* Word align the written area.  */
-	  for (pad = EXTRA (ap->value.ValueInt.i); pad; --pad)
+	  for (pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
 	    fputc (0, objfile);
 	  relocAOFOutput (objfile, ap);
 	}
@@ -423,7 +423,7 @@ outputElf (void)
       if (ap == areaEntrySymbol)
         areaFlags |= SHF_ENTRYSECT;
       areaFlags |= SHF_ALLOC;
-      sectionSize = FIX (ap->value.ValueInt.i);
+      sectionSize = FIX (ap->value.Data.Int.i);
       sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
       writeElfSH(shstrsize, sectionType, areaFlags, sectionSize,
                  0, 0, 4, 0, &offset);
@@ -459,14 +459,14 @@ outputElf (void)
     {
       if (AREA_IMAGE (ap->area.info))
         {
-          if ((size_t)ap->value.ValueInt.i !=
-              fwrite (ap->area.info->image, 1, ap->value.ValueInt.i, objfile))
+          if ((size_t)ap->value.Data.Int.i !=
+              fwrite (ap->area.info->image, 1, ap->value.Data.Int.i, objfile))
             {
               errorAbortLine (0, NULL, "Internal outputElf: error when writing %s image", ap->str);
               return;
             }
 	  /* Word align the written area.  */
-	  for (pad = EXTRA (ap->value.ValueInt.i); pad; --pad)
+	  for (pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
 	    fputc (0, objfile);
           if (ap->area.info->norelocs)
             relocELFOutput (objfile, ap);

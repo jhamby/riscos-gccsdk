@@ -79,15 +79,15 @@ assign_var (Symbol *sym, ValueTag type)
   switch (type)
     {
       case ValueInt:
-	sym->value.ValueInt.i = 0;
+	sym->value.Data.Int.i = 0;
 	break;
       case ValueBool:
-	sym->value.ValueBool.b = false;
+	sym->value.Data.Bool.b = false;
 	break;
       case ValueString:
-	sym->value.ValueString.len = 0;
+	sym->value.Data.String.len = 0;
 	/* We don't do malloc(0) as this can on some systems return NULL.  */
-	if ((sym->value.ValueString.s = malloc (1)) == NULL)
+	if ((sym->value.Data.String.s = malloc (1)) == NULL)
 	  errorOutOfMem ();
 	break;
       default:
@@ -245,11 +245,11 @@ c_set (ValueTag type, const Lex *label)
       case ValueIllegal:
 	error (ErrorError, "Illegal SET%c", var_type (type));
 	sym->value.Tag = ValueInt;
-	sym->value.ValueInt.i = 0;
+	sym->value.Data.Int.i = 0;
 	break;
 #ifdef DEBUG
       case ValueString:
-	printf ("c_set: string: <%.*s>\n", value.ValueString.len, value.ValueString.s);
+	printf ("c_set: string: <%.*s>\n", value.Data.String.len, value.Data.String.s);
 	/* Fall through.  */
 #endif
       default:
@@ -303,8 +303,8 @@ var_define (const char *def)
 
   Value value;
   value.Tag = ValueString;
-  value.ValueString.len = strlen (i);
-  value.ValueString.s = i;
+  value.Data.String.len = strlen (i);
+  value.Data.String.s = i;
 
   /* FIXME: symbolFind() can return NULL here, no ? */
   symbolFind (&var)->value = valueCopy (value);

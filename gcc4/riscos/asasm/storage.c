@@ -44,14 +44,16 @@ storageValue (void)
     {
       error (ErrorError, "No storage declared (# or @ before ^)"); /* FIXME: I don't think this should give an error.  */
       storageV.Tag = ValueAddr;
-      storageV.ValueAddr.i = 0;
-      storageV.ValueAddr.r = -1;
+      storageV.Data.Addr.i = 0;
+      storageV.Data.Addr.r = -1;
     }
-  if (storageV.ValueAddr.r == -1)
+  if (storageV.Data.Addr.r == -1)
     {
-      Value value;
-      value.Tag = ValueInt;
-      value.ValueInt.i = storageV.ValueAddr.i;
+      const Value value =
+	{
+	  .Tag = ValueInt,
+	  .Data.Int.i = storageV.Data.Addr.i
+	};
       return value;
     }
   return storageV;
@@ -69,10 +71,10 @@ c_record (void)
   switch (value.Tag)
     {
       case ValueInt:
-        storageV.ValueAddr.i = value.ValueInt.i;
+        storageV.Data.Addr.i = value.Data.Int.i;
         break;
       default:
-        storageV.ValueAddr.i = 0;
+        storageV.Data.Addr.i = 0;
         errorAbort ("^ cannot evaluate its offset expression");
         break;
     }
@@ -80,10 +82,10 @@ c_record (void)
     {
       inputSkip ();
       skipblanks ();
-      storageV.ValueAddr.r = getCpuReg ();
+      storageV.Data.Addr.r = getCpuReg ();
     }
   else
-    storageV.ValueAddr.r = -1;
+    storageV.Data.Addr.r = -1;
 }
 
 /**
@@ -107,14 +109,14 @@ c_alloc (Symbol *sym)
   switch (value.Tag)
     {
       case ValueInt:
-        if (value.ValueInt.i >= 0)
+        if (value.Data.Int.i >= 0)
 	  {
-	    if (option_pedantic && value.ValueInt.i == 0)
+	    if (option_pedantic && value.Data.Int.i == 0)
 	      error (ErrorInfo, "You are reserving zero bytes?");
-	    storageV.ValueAddr.i += value.ValueInt.i;
+	    storageV.Data.Addr.i += value.Data.Int.i;
 	  }
         else
-	  error (ErrorError, "Cannot reserve negative amount of space %d", value.ValueInt.i);
+	  error (ErrorError, "Cannot reserve negative amount of space %d", value.Data.Int.i);
         break;
       default:
         error (ErrorError, "Illegal expression after #");

@@ -50,7 +50,7 @@ getCpuRegInternal (bool genError)
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_CPUREG)
-	return sym->value.ValueInt.i;
+	return sym->value.Data.Int.i;
       if (genError)
 	error (ErrorError, "'%s' is not a %s register", sym->str, "cpu");
     }
@@ -82,7 +82,7 @@ getFpuReg (void)
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_FPUREG)
-	return sym->value.ValueInt.i;
+	return sym->value.Data.Int.i;
       error (ErrorError, "'%s' is not a %s register", sym->str, "fpu");
     }
   else
@@ -101,7 +101,7 @@ getCopReg (void)
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_COPREG)
-	return sym->value.ValueInt.i;
+	return sym->value.Data.Int.i;
       error (ErrorError, "'%s' is not a %s register", sym->str, "cop");
     }
   else
@@ -120,7 +120,7 @@ getCopNum (void)
   if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
       if (SYMBOL_GETREG (sym->type) == SYMBOL_COPNUM)
-	return sym->value.ValueInt.i;
+	return sym->value.Data.Int.i;
       error (ErrorError, "'%s' is not a coprocessor number", sym->str);
     }
   else
@@ -225,7 +225,7 @@ getShift (bool immonly)
 	  switch (im.Tag)
 	    {
 	    case ValueInt:
-	      op = fixShiftImm (0, shift, im.ValueInt.i); /* !! Fixed !! */
+	      op = fixShiftImm (0, shift, im.Data.Int.i); /* !! Fixed !! */
 	      break;
 	    case ValueCode:
 	    case ValueLateLabel:
@@ -267,8 +267,8 @@ getRhs (bool immonly, bool shift, ARMWord ir)
 	      inputSkip ();
 	      Lex rotator = lexGetPrim ();
 
-	      if (im.ValueInt.i < 0 || im.ValueInt.i >= 256)
-	        error (ErrorError, "Immediate value out of range: 0x%x", im.ValueInt.i);
+	      if (im.Data.Int.i < 0 || im.Data.Int.i >= 256)
+	        error (ErrorError, "Immediate value out of range: 0x%x", im.Data.Int.i);
 
 	      if (rotator.LexInt.value < 0 || rotator.LexInt.value > 30
 		  || (rotator.LexInt.value % 2) == 1)
@@ -277,13 +277,13 @@ getRhs (bool immonly, bool shift, ARMWord ir)
 	      ir |= (rotator.LexInt.value >> 1) << 8;
 	    }
 	case ValueAddr:
-	  ir = fixImm8s4 (0, ir, im.ValueInt.i);
+	  ir = fixImm8s4 (0, ir, im.Data.Int.i);
 	  break;
 	case ValueString:
-	  if (im.ValueString.len != 1)
+	  if (im.Data.String.len != 1)
 	    error (ErrorError, "String too long to be an immediate expression");
 	  else
-	    ir = fixImm8s4 (0, ir, im.ValueString.s[0]);
+	    ir = fixImm8s4 (0, ir, im.Data.String.s[0]);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:

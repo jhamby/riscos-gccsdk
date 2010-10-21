@@ -73,7 +73,7 @@ m_branch (ARMWord cc)
   switch (im.Tag)
     {
     case ValueInt:
-      ir |= fixBranch (0, im.ValueInt.i);
+      ir |= fixBranch (0, im.Data.Int.i);
       break;
     case ValueCode:
     case ValueLateLabel:
@@ -124,7 +124,7 @@ m_blx (ARMWord cc)
       switch (im.Tag)
 	{
 	case ValueInt:
-	  ir |= fixBranchT (0, im.ValueInt.i);
+	  ir |= fixBranchT (0, im.Data.Int.i);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
@@ -168,10 +168,10 @@ m_swi (ARMWord cc)
   switch (im.Tag)
     {
       case ValueInt:
-	ir |= fixSwi (0, im.ValueInt.i);
+	ir |= fixSwi (0, im.Data.Int.i);
 	break;
       case ValueAddr:
-	ir |= fixSwi (0, im.ValueAddr.i);
+	ir |= fixSwi (0, im.Data.Addr.i);
 	break;
       case ValueCode:
       case ValueLateLabel:
@@ -181,9 +181,9 @@ m_swi (ARMWord cc)
 #ifdef __riscos__
 	{
 	  /* ValueString are not NUL terminated.  */
-	  char swiname[im.ValueString.len + 1];
-	  memcpy (swiname, im.ValueString.s, im.ValueString.len);
-	  swiname[im.ValueString.len] = '\0';
+	  char swiname[im.Data.String.len + 1];
+	  memcpy (swiname, im.Data.String.s, im.Data.String.len);
+	  swiname[im.Data.String.len] = '\0';
 	  ir |= switonum (swiname);
 	  if (ir == 0xFFFFFFFF)
 	    error (ErrorError, "Unknown SWI name");
@@ -213,7 +213,7 @@ m_bkpt (void)
   Value im = exprEval (ValueInt);
   if (im.Tag != ValueInt)
     error (ErrorError, "Illegal BKPT expression");
-  ARMWord val = fixInt (0, 2, im.ValueInt.i);
+  ARMWord val = fixInt (0, 2, im.Data.Int.i);
 
   ARMWord ir = 0xE1200070;
   ir |= ((val & 0xFFF0) << 4) | (val & 0xF);
@@ -248,12 +248,12 @@ m_adr (ARMWord cc)
     case ValueAddr:
       /* Fix up the base register */
       ir &= ~LHS_OP (15);
-      ir |= LHS_OP (im.ValueAddr.r);
+      ir |= LHS_OP (im.Data.Addr.r);
       /* Manufacture the offset as per normal */
       if (cc & 1)
-	fixAdrl (0, &ir, &ir2, im.ValueInt.i, 0); /* don't warn ? */
+	fixAdrl (0, &ir, &ir2, im.Data.Int.i, 0); /* don't warn ? */
       else
-	ir = fixAdr (0, ir, im.ValueInt.i);
+	ir = fixAdr (0, ir, im.Data.Int.i);
       break;
     default:
       /* Not a field, so append " - . - 8" to the expression, and treat it as
@@ -269,9 +269,9 @@ m_adr (ARMWord cc)
 	{
 	case ValueInt:
 	  if (cc & 1)
-	    fixAdrl (0, &ir, &ir2, im.ValueInt.i, 0);	/* don't warn ? */
+	    fixAdrl (0, &ir, &ir2, im.Data.Int.i, 0);	/* don't warn ? */
 	  else
-	    ir = fixAdr (0, ir, im.ValueInt.i);
+	    ir = fixAdr (0, ir, im.Data.Int.i);
 	  break;
 	case ValueCode:
 	case ValueLateLabel:
@@ -343,10 +343,10 @@ m_stack (void)
 	      exprBuild ();
 	      im = exprEval (ValueInt);
 	      if (im.Tag != ValueInt)
-		im.ValueInt.i = 0;
-	      if ((unsigned) im.ValueInt.i > lim[reg])
+		im.Data.Int.i = 0;
+	      if ((unsigned) im.Data.Int.i > lim[reg])
 		error (ErrorError, "Too many registers to stack for class %c", c);
-	      regs[reg] = (signed) im.ValueInt.i;
+	      regs[reg] = (signed) im.Data.Int.i;
 	    }
 	  else
 	    regs[reg] = (signed) lim[reg];
@@ -544,7 +544,7 @@ m_msr (ARMWord cc)
       if (im.Tag == ValueInt)
 	{
 	  cc |= 0x02000000;
-	  cc |= fixImm8s4 (0, cc, im.ValueInt.i);
+	  cc |= fixImm8s4 (0, cc, im.Data.Int.i);
 	}
       else
 	error (ErrorError, "Illegal immediate expression");
