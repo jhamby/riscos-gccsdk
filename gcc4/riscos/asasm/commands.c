@@ -63,8 +63,7 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
   if (!sym)
     errorAbort ("Missing label before %s", msg);
   sym->type |= SYMBOL_ABSOLUTE;
-  exprBuild ();
-  Value value = exprEval (legal);
+  Value value = exprBuildAndEval (legal);
   if (value.Tag == ValueIllegal)
     {
       error (ErrorError, "Illegal %s", msg);
@@ -158,8 +157,7 @@ defineint (int size)
     {
       ARMWord word = 0;
       skipblanks ();
-      exprBuild ();
-      Value value = exprEval (ValueInt | ValueString | ValueCode | ValueLateLabel | ValueAddr);
+      Value value = exprBuildAndEval (ValueInt | ValueString | ValueCode | ValueLateLabel | ValueAddr);
       switch (value.Tag)
 	{
 	case ValueInt:
@@ -199,8 +197,7 @@ c_head (void)
 {
   int i = areaCurrentSymbol ? areaCurrentSymbol->value.Data.Int.i : 0;
   skipblanks ();
-  exprBuild ();
-  Value value = exprEval (ValueString);
+  Value value = exprBuildAndEval (ValueString);
   switch (value.Tag)
     {
     case ValueString:
@@ -255,8 +252,7 @@ definereal (int size)
   do
     {
       skipblanks ();
-      exprBuild ();
-      Value value = exprEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
+      Value value = exprBuildAndEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
       switch (value.Tag)
 	{
 	case ValueInt:
@@ -373,8 +369,7 @@ c_import (void)
 	    }
 	  else
 	    {
-	      exprBuild ();
-	      Value size = exprEval (ValueInt);
+	      Value size = exprBuildAndEval (ValueInt);
 	      switch (size.Tag)
 	        {
 	        case ValueInt:
@@ -510,8 +505,7 @@ c_end (void)
 void
 c_assert (void)
 {
-  exprBuild ();
-  Value value = exprEval (ValueBool);
+  Value value = exprBuildAndEval (ValueBool);
   if (value.Tag != ValueBool)
     error (ErrorError, "ASSERT expression must be boolean");
   else if (!value.Data.Bool.b)
@@ -530,8 +524,7 @@ c_assert (void)
 void
 c_info (void)
 {
-  exprBuild ();
-  Value value = exprEval (ValueInt | ValueFloat);
+  Value value = exprBuildAndEval (ValueInt | ValueFloat);
 
   skipblanks();
   if (inputGet () != ',')
@@ -540,8 +533,7 @@ c_info (void)
       return;
     }
 
-  exprBuild();
-  Value message = exprEval (ValueString);
+  Value message = exprBuildAndEval (ValueString);
   if (message.Tag != ValueString)
     {
       error (ErrorError, "INFO message must be a string");

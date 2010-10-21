@@ -1,3 +1,11 @@
+Fri Oct 22 00:17:59 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* expr.c (exprBuildAndEval): Added.
+	* expr.h (exprBuildAndEval): Added.
+	* commands.c, m_cpuctrl.c, help_cop.c, m_cpumem.c, storage.c,
+	area.c, variables.c, m_fpumem.c, m_fpu.c, whileif.c, get.c: Replace
+	exprBuild() and exprEval() by exprBuildAndEval() where possible.
+
 Thu Oct 21 22:38:11 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* code.h (Code): Change union into struct and have only one Tag entry.

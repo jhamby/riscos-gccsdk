@@ -43,8 +43,7 @@
 int
 help_copInt (int max, const char *msg)
 {
-  exprBuild ();
-  Value i = exprEval (ValueInt);
+  Value i = exprBuildAndEval (ValueInt);
   if (i.Tag == ValueInt)
     {
       if (i.Data.Int.i < 0 || i.Data.Int.i > max)
@@ -106,8 +105,7 @@ help_copAddr (ARMWord ir, bool stack)
 	      if (inputLook () == '#')
 	        {
 	          inputSkip ();
-	          exprBuild ();
-	          Value offset = exprEval (ValueInt | ValueCode | ValueLateLabel);
+	          Value offset = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel);
 	          offValue = true;
 	          switch (offset.Tag)
 		    {
@@ -129,8 +127,7 @@ help_copAddr (ARMWord ir, bool stack)
 	        {
 	          inputSkip ();
 	          skipblanks ();
-	          exprBuild ();
-	          Value offset = exprEval (ValueInt);
+	          Value offset = exprBuildAndEval (ValueInt);
 	          offValue = true;
 	          if (offset.Tag != ValueInt)
 	            error (ErrorError, "Illegal option value");
@@ -189,8 +186,7 @@ help_copAddr (ARMWord ir, bool stack)
 	      break;
 	    }
           ir |= PRE_FLAG | LHS_OP (15);
-          exprBuild ();
-          Value offset = exprEval (ValueInt | ValueFloat | ValueLateLabel);
+          Value offset = exprBuildAndEval (ValueInt | ValueFloat | ValueLateLabel);
           switch (offset.Tag)
 	    {
 	      case ValueInt:

@@ -65,8 +65,7 @@ storageValue (void)
 void
 c_record (void)
 {
-  exprBuild ();
-  Value value = exprEval (ValueInt);
+  Value value = exprBuildAndEval (ValueInt);
   storageV.Tag = ValueAddr;
   switch (value.Tag)
     {
@@ -104,8 +103,7 @@ c_alloc (Symbol *sym)
      output file in order to implement '?'.  */
 
   /* Determine how much we should allocate.  */
-  exprBuild ();
-  Value value = exprEval (ValueInt);
+  Value value = exprBuildAndEval (ValueInt);
   switch (value.Tag)
     {
       case ValueInt:

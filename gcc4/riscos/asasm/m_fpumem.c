@@ -104,8 +104,7 @@ dstmemx (ARMWord ir)
   else
     error (ErrorError, "Inserting comma after dst");
   skipblanks ();
-  exprBuild ();
-  Value im = exprEval (ValueInt);
+  Value im = exprBuildAndEval (ValueInt);
   if (im.Tag == ValueInt)
     {
       if (im.Data.Int.i < 1 || im.Data.Int.i > 4)

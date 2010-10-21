@@ -220,8 +220,7 @@ getShift (bool immonly)
       if (inputLook () == '#')
 	{
 	  inputSkip ();
-	  exprBuild ();
-	  Value im = exprEval (ValueInt | ValueCode | ValueLateLabel);
+	  Value im = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel);
 	  switch (im.Tag)
 	    {
 	    case ValueInt:
@@ -257,8 +256,7 @@ getRhs (bool immonly, bool shift, ARMWord ir)
     {
       ir |= IMM_RHS;
       inputSkip ();
-      exprBuild ();
-      Value im = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueString | ValueAddr);
+      Value im = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel | ValueString | ValueAddr);
       switch (im.Tag)
 	{
 	case ValueInt:

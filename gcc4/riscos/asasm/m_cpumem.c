@@ -90,8 +90,7 @@ dstmem (ARMWord ir)
 	    if (inputLook () == '#')
 	      {
 		inputSkip ();
-		exprBuild ();
-		offset = exprEval (ValueInt | ValueAddr | ValueCode | ValueLateLabel);
+		offset = exprBuildAndEval (ValueInt | ValueAddr | ValueCode | ValueLateLabel);
 		offValue = true;
 		switch (offset.Tag)
 		  {
@@ -190,8 +189,7 @@ dstmem (ARMWord ir)
 	  Value value;
 	  ir |= PRE_FLAG | LHS_OP (15);
 	  inputSkip ();
-	  exprBuild ();
-	  value = exprEval (ValueInt | ValueString | ValueCode | ValueLateLabel);
+	  value = exprBuildAndEval (ValueInt | ValueString | ValueCode | ValueLateLabel);
 	  litInt (4, &value);
 	}
       else
@@ -208,8 +206,7 @@ dstmem (ARMWord ir)
       ir |= PRE_FLAG;
 
       /* Firstly, see if it's a field in a register-based map */
-      exprBuild ();
-      offset = exprEval (ValueAddr);
+      offset = exprBuildAndEval (ValueAddr);
       switch (offset.Tag)
 	{
 	case ValueAddr:
@@ -314,8 +311,7 @@ m_pld (void)
       if (inputLook () == '#')
 	{
 	  inputSkip ();
-	  exprBuild ();
-	  Value offset = exprEval (ValueInt | ValueCode);
+	  Value offset = exprBuildAndEval (ValueInt | ValueCode);
 	  switch (offset.Tag)
 	    {
 	    case ValueInt:
@@ -385,8 +381,7 @@ dstreglist (ARMWord ir)
     error (ErrorError, "Inserting missing comma before reglist");
   if (inputLook () == '#')
     {				/* constant */
-      exprBuild ();
-      Value mask = exprEval (ValueInt | ValueCode | ValueLateLabel);
+      Value mask = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel);
       switch (mask.Tag)
 	{
 	case ValueInt:

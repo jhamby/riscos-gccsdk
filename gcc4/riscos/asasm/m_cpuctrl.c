@@ -55,7 +55,8 @@ m_branch (ARMWord cc)
   switch (inputLook ())
     {
     case '#':
-      inputSkip ();
+      inputSkip ();	/* FIXME: what's this ?? */
+      /* Fall through.  */
     case '"':
       exprBuild ();
       break;
@@ -106,7 +107,8 @@ m_blx (ARMWord cc)
       switch (inputLook ())
 	{
 	case '#':
-	  inputSkip ();
+	  inputSkip ();	/* FIXME: what's this ??? */
+	  /* Fall through.  */
 	case '"':
 	  exprBuild ();
 	  break;
@@ -161,9 +163,8 @@ m_swi (ARMWord cc)
       inputSkip ();
       error (ErrorInfo, "SWI is always immediate");
     }
-  exprBuild ();
-  Value im = exprEval (ValueInt | ValueAddr | ValueString | ValueCode
-		 | ValueLateLabel);
+  Value im = exprBuildAndEval (ValueInt | ValueAddr | ValueString | ValueCode
+			       | ValueLateLabel);
   ARMWord ir = cc | 0x0F000000;
   switch (im.Tag)
     {
@@ -209,8 +210,7 @@ m_bkpt (void)
       inputSkip ();
       error (ErrorInfo, "BKPT is always immediate");
     }
-  exprBuild ();
-  Value im = exprEval (ValueInt);
+  Value im = exprBuildAndEval (ValueInt);
   if (im.Tag != ValueInt)
     error (ErrorError, "Illegal BKPT expression");
   ARMWord val = fixInt (0, 2, im.Data.Int.i);
@@ -240,9 +240,8 @@ m_adr (ARMWord cc)
     error (ErrorError, "%sdst", InsertCommaAfter);
   /* The label will expand to either a field in a based map or a PC-relative 
      expression.  */
-  exprBuild ();
   /* Try the field first */
-  Value im = exprEval (ValueAddr);
+  Value im = exprBuildAndEval (ValueAddr);
   switch (im.Tag)
     {
     case ValueAddr:
@@ -340,8 +339,7 @@ m_stack (void)
 	  if (inputLook () == '=')
 	    {
 	      inputSkip ();
-	      exprBuild ();
-	      im = exprEval (ValueInt);
+	      im = exprBuildAndEval (ValueInt);
 	      if (im.Tag != ValueInt)
 		im.Data.Int.i = 0;
 	      if ((unsigned) im.Data.Int.i > lim[reg])
@@ -539,8 +537,7 @@ m_msr (ARMWord cc)
   if (inputLook () == '#')
     {
       inputSkip ();
-      exprBuild ();
-      Value im = exprEval (ValueInt);
+      Value im = exprBuildAndEval (ValueInt);
       if (im.Tag == ValueInt)
 	{
 	  cc |= 0x02000000;

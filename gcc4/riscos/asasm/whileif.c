@@ -101,8 +101,7 @@ c_if (void)
 {
   gCurPObjP->if_depth++;
 
-  exprBuild ();
-  Value flag = exprEval (ValueBool);
+  Value flag = exprBuildAndEval (ValueBool);
   if (flag.Tag != ValueBool)
     {
       error (ErrorError, "IF expression must be boolean (treating as true)");
@@ -182,8 +181,7 @@ c_while (const Lex *label __attribute__ ((unused)))
 {
   inputMark ();
   /* Evaluate expression */
-  exprBuild ();
-  Value flag = exprEval (ValueBool);
+  Value flag = exprBuildAndEval (ValueBool);
   if (flag.Tag != ValueBool)
     {
       error (ErrorError, "WHILE expression must be boolean (treating as false)");
@@ -247,8 +245,7 @@ static bool
 whileReEval (void)
 {
   inputThisInstead (gCurPObjP->whilestack->expr);
-  exprBuild ();
-  Value flag = exprEval (ValueBool);
+  Value flag = exprBuildAndEval (ValueBool);
   if (flag.Tag != ValueBool)
     {
       error (ErrorError, "WHILE expression must be boolean (treating as false)");

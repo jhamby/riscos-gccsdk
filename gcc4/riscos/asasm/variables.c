@@ -237,8 +237,7 @@ c_set (ValueTag type, const Lex *label)
       inputRest ();
       return;
     }
-  exprBuild ();
-  Value value = exprEval (sym->value.Tag);
+  Value value = exprBuildAndEval (sym->value.Tag);
   sym->type |= SYMBOL_DEFINED;
   switch (value.Tag)
     {

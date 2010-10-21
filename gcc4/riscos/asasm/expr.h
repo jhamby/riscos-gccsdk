@@ -25,7 +25,8 @@
 
 #include "value.h"
 
-void exprBuild (void);		/* Parse the input */
+void exprBuild (void);
 Value exprEval (ValueTag legal);
+Value exprBuildAndEval (ValueTag legal);
 
 #endif

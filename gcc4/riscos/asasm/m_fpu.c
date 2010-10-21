@@ -71,9 +71,8 @@ getFloatRhs (ARMWord ir)
   if (inputLook () == '#')
     {
       inputSkip ();
-      exprBuild ();
       ir |= 8;			/* Immediate Float */
-      Value im = exprEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
+      Value im = exprBuildAndEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
       switch (im.Tag)
 	{
 	case ValueInt:

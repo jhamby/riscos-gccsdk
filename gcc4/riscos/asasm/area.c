@@ -166,8 +166,7 @@ c_align (void)
   else
     {				/* an expression follows */
       /* Determine align value */
-      exprBuild ();
-      Value value = exprEval (ValueInt);
+      Value value = exprBuildAndEval (ValueInt);
       if (value.Tag == ValueInt)
 	{
 	  alignValue = value.Data.Int.i;
@@ -189,8 +188,7 @@ c_align (void)
 	offsetValue = 0;
       else if (inputGet () == ',')
 	{
-	  exprBuild ();
-	  Value valueO = exprEval (ValueInt);
+	  Value valueO = exprBuildAndEval (ValueInt);
 	  if (valueO.Tag == ValueInt)
 	    {
 	      offsetValue = valueO.Data.Int.i;
@@ -239,8 +237,7 @@ c_reserve (void)
       return;
     }
 
-  exprBuild ();
-  Value value = exprEval (ValueInt);
+  Value value = exprBuildAndEval (ValueInt);
   if (value.Tag == ValueInt)
     {
       int i = areaCurrentSymbol->value.Data.Int.i;
@@ -340,8 +337,7 @@ c_area (void)
 	  if (inputGet () != '=')
 	    error (ErrorError, "Malformed ALIGN attribute specification");
 	  skipblanks ();
-	  exprBuild ();
-	  Value value = exprEval (ValueInt);
+	  Value value = exprBuildAndEval (ValueInt);
 	  if (value.Tag == ValueInt)
 	    {
 	      if (value.Data.Int.i < 2 || value.Data.Int.i > 12)

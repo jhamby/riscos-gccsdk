@@ -114,6 +114,10 @@ expr (int pri)
 }
 
 
+/**
+ * Parses the expression found at the current input and builds up an
+ * (code) expression stream.
+ */
 void
 exprBuild (void)
 {
@@ -122,8 +126,20 @@ exprBuild (void)
 }
 
 
+/**
+ * Evaluates the current (code) expression stream.
+ * \param legal Or'd ValueTag values which are allowed as result.
+ */
 Value
 exprEval (ValueTag legal)
 {
   return codeEval (legal);
+}
+
+
+Value
+exprBuildAndEval (ValueTag legal)
+{
+  exprBuild ();
+  return exprEval (legal);
 }
