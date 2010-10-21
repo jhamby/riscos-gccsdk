@@ -38,24 +38,15 @@ typedef enum
   CodeSymbol
 } CodeTag;
 
-typedef union CODE
+typedef struct Code
 {
   CodeTag Tag;
-  struct
+  union
     {
-      CodeTag Tag;
-      Operator op;
-    } CodeOperator;
-  struct
-    {
-      CodeTag Tag;
-      Value value;
-    } CodeValue;
-  struct
-    {
-      CodeTag Tag;
-      Symbol *symbol;
-    } CodeSymbol;
+      Operator op;	/* CodeOperator */
+      Value value;	/* CodeValue */
+      Symbol *symbol;	/* CodeSymbol */
+    } Data;
 } Code;
 
 void codeInit (void);

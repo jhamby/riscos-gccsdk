@@ -29,7 +29,7 @@
 
 struct SYMBOL;		/* Cannot include symbol.h as it needs value.h */
 
-union CODE;
+struct Code;
 
 typedef struct LATEINFO
 {
@@ -78,7 +78,7 @@ typedef struct
       struct			/* ValueCode */
         {
           int len;
-          union CODE *c;
+          struct Code *c;
         } Code;
       struct			/* ValueLateLabel */
         {

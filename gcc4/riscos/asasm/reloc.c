@@ -226,11 +226,11 @@ relocLate2Reloc (Reloc *r, Value *value)
 	  if (late->factor > 1)
 	    {
 	      r->value.Data.Code.c[size].Tag = CodeValue;
-	      r->value.Data.Code.c[size].CodeValue.value.Tag = ValueInt;
-	      r->value.Data.Code.c[size++].CodeValue.value.Data.Int.i = late->factor;
+	      r->value.Data.Code.c[size].Data.value.Tag = ValueInt;
+	      r->value.Data.Code.c[size++].Data.value.Data.Int.i = late->factor;
 	    }
 	  r->value.Data.Code.c[size].Tag = CodeSymbol;
-	  r->value.Data.Code.c[size++].CodeSymbol.symbol = late->symbol;
+	  r->value.Data.Code.c[size++].Data.symbol = late->symbol;
 	}
     }
   if (size > r->value.Data.Code.len)
@@ -607,8 +607,8 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	  break;
 	case RelocCopOffset:
 	  if (relocs->value.Tag == ValueCode
-	      && (relocs->value.Data.Code.c->CodeSymbol.symbol->type & SYMBOL_AREA)
-	      && (relocs->value.Data.Code.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
+	      && (relocs->value.Data.Code.c->Data.symbol->type & SYMBOL_AREA)
+	      && (relocs->value.Data.Code.c->Data.symbol->area.info->type & AREA_BASED))
 	    How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
 	  else
 	    How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
@@ -634,20 +634,20 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	  int loop;
 	  if (relocs->value.Data.Code.c[ip].Tag == CodeValue)
 	    {
-	      if (relocs->value.Data.Code.c[ip].CodeValue.value.Tag != ValueInt)
+	      if (relocs->value.Data.Code.c[ip].Data.value.Tag != ValueInt)
 		{
 		  errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
 		  loop = 0;
 		}
 	      else
-		loop = relocs->value.Data.Code.c[ip++].CodeValue.value.Data.Int.i;
+		loop = relocs->value.Data.Code.c[ip++].Data.value.Data.Int.i;
 	    }
 	  else
 	    loop = 1;
 	  if (relocs->value.Data.Code.c[ip].Tag != CodeSymbol)
 	    errorAbortLine (relocs->lineno, relocs->file, "Internal error in relocsOutput");
-	  areloc.How = How | relocs->value.Data.Code.c[ip].CodeSymbol.symbol->used;
-	  if (!(relocs->value.Data.Code.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
+	  areloc.How = How | relocs->value.Data.Code.c[ip].Data.symbol->used;
+	  if (!(relocs->value.Data.Code.c[ip].Data.symbol->type & SYMBOL_AREA))
 	    areloc.How |= HOW2_SYMBOL;
 	  areloc.How = armword(areloc.How);
 	  while (loop--)
@@ -695,8 +695,8 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  break;
         case RelocCopOffset:
           if (relocs->value.Tag == ValueCode
-              && (relocs->value.Data.Code.c->CodeSymbol.symbol->type & SYMBOL_AREA)
-              && (relocs->value.Data.Code.c->CodeSymbol.symbol->area.info->type & AREA_BASED))
+              && (relocs->value.Data.Code.c->Data.symbol->type & SYMBOL_AREA)
+              && (relocs->value.Data.Code.c->Data.symbol->area.info->type & AREA_BASED))
             How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
           else
             How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
@@ -722,21 +722,21 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  int loop, symbol, type;
           if (relocs->value.Data.Code.c[ip].Tag == CodeValue)
             {
-              if (relocs->value.Data.Code.c[ip].CodeValue.value.Tag != ValueInt)
+              if (relocs->value.Data.Code.c[ip].Data.value.Tag != ValueInt)
 		{
                   errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
 		  loop = 0;
 		}
               else
-                loop = relocs->value.Data.Code.c[ip++].CodeValue.value.Data.Int.i;
+                loop = relocs->value.Data.Code.c[ip++].Data.value.Data.Int.i;
             }
           else
             loop = 1;
           if (relocs->value.Data.Code.c[ip].Tag != CodeSymbol)
             errorAbortLine (relocs->lineno, relocs->file, "Internal error in relocsOutput");
 
-          How |= relocs->value.Data.Code.c[ip].CodeSymbol.symbol->used;
-          if (!(relocs->value.Data.Code.c[ip].CodeSymbol.symbol->type & SYMBOL_AREA))
+          How |= relocs->value.Data.Code.c[ip].Data.symbol->used;
+          if (!(relocs->value.Data.Code.c[ip].Data.symbol->type & SYMBOL_AREA))
             How |= HOW2_SYMBOL;
 
           symbol = (How & HOW3_SIDMASK) + 1;

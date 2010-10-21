@@ -1,3 +1,8 @@
+Thu Oct 21 22:38:11 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* code.h (Code): Change union into struct and have only one Tag entry.
+	* code.c, value.c, value.h, reloc.c: Follow Code change.
+
 Thu Oct 21 22:19:35 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* lex.h (Lex): Change union into struct and have only one Tag entry.

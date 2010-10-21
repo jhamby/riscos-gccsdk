@@ -65,39 +65,39 @@ valueLateToCode (int offset, LateInfo *late)
   if (offset != 0)
     {
       value.Data.Code.c[size  ].Tag = CodeValue;
-      value.Data.Code.c[size  ].CodeValue.value.Tag = ValueInt;
-      value.Data.Code.c[size++].CodeValue.value.Data.Int.i = offset;
+      value.Data.Code.c[size  ].Data.value.Tag = ValueInt;
+      value.Data.Code.c[size++].Data.value.Data.Int.i = offset;
     }
   for (l = late; l != NULL; l = l->next)
     {
       if ((factor = l->factor) == -1 || factor == 1)
 	{
 	  value.Data.Code.c[size  ].Tag = CodeSymbol;
-	  value.Data.Code.c[size++].CodeSymbol.symbol = l->symbol;
+	  value.Data.Code.c[size++].Data.symbol = l->symbol;
 	  if (size != 1)
 	    { /* Add offset */
 	      value.Data.Code.c[size  ].Tag = CodeOperator;
-	      value.Data.Code.c[size++].CodeOperator.op = (factor > 0) ? Op_add : Op_sub;
+	      value.Data.Code.c[size++].Data.op = (factor > 0) ? Op_add : Op_sub;
 	    }
 	  else if (factor == -1)
 	    {
 	      value.Data.Code.c[size  ].Tag = CodeOperator;
-	      value.Data.Code.c[size++].CodeOperator.op = Op_neg;
+	      value.Data.Code.c[size++].Data.op = Op_neg;
 	    }
 	}
       else if (factor != 0)
 	{
 	  value.Data.Code.c[size  ].Tag = CodeSymbol;
-	  value.Data.Code.c[size++].CodeSymbol.symbol = l->symbol;
+	  value.Data.Code.c[size++].Data.symbol = l->symbol;
 	  value.Data.Code.c[size  ].Tag = CodeValue;
-	  value.Data.Code.c[size  ].CodeValue.value.Tag = ValueInt;
-	  value.Data.Code.c[size++].CodeValue.value.Data.Int.i = factor;
+	  value.Data.Code.c[size  ].Data.value.Tag = ValueInt;
+	  value.Data.Code.c[size++].Data.value.Data.Int.i = factor;
 	  value.Data.Code.c[size  ].Tag = CodeOperator;
-	  value.Data.Code.c[size++].CodeOperator.op = Op_mul;
+	  value.Data.Code.c[size++].Data.op = Op_mul;
 	  if (size != 3)
 	    { /* Add offset */
 	      value.Data.Code.c[size  ].Tag = CodeOperator;
-	      value.Data.Code.c[size++].CodeOperator.op = Op_add;
+	      value.Data.Code.c[size++].Data.op = Op_add;
 	    }
 	}
     }
