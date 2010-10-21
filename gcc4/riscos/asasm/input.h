@@ -70,7 +70,7 @@ const char *inputLine (void);
 #endif
 void inputSkip (void);
 void inputSkipN (int n);
-char *inputSymbol (int *ilen, char del);
+char *inputSymbol (size_t *ilen, char del);
 
 void inputMark (void);
 void inputRollback (void);

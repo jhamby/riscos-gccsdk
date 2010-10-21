@@ -121,7 +121,7 @@ declare_var (const char *ptr, int len, ValueTag type, bool localMacro)
       if (option_pedantic)
         error (ErrorWarning, "Redeclaration of %s variable '%.*s'",
 	       valueTagAsString (sym->value.Tag),
-	       var.Data.Id.len, var.Data.Id.str);
+	       (int)var.Data.Id.len, var.Data.Id.str);
     }
   else
     sym = symbolAdd (&var);
@@ -133,7 +133,7 @@ declare_var (const char *ptr, int len, ValueTag type, bool localMacro)
 
 
 static const char *
-var_inputSymbol (int *len)
+var_inputSymbol (size_t *len)
 {
   char delim;
   if (inputLook () == '|')
@@ -162,7 +162,7 @@ c_gbl (ValueTag type, const Lex *label)
     error (ErrorWarning, "Label not allowed here - ignoring");
   skipblanks ();
   const char *ptr;
-  int len;
+  size_t len;
   if (!inputComment ())
     ptr = var_inputSymbol (&len);
   else
@@ -193,7 +193,7 @@ c_lcl (ValueTag type, const Lex *label)
     error (ErrorWarning, "Label not allowed here - ignoring");
   skipblanks ();
   const char *ptr;
-  int len;
+  size_t len;
   if (!inputComment ())
     ptr = var_inputSymbol (&len);
   else
@@ -233,7 +233,8 @@ c_set (ValueTag type, const Lex *label)
   assert (sym->value.Tag != ValueIllegal);
   if (sym == NULL)
     {
-      error (ErrorError, "'%.*s' is undefined", label->Data.Id.len, label->Data.Id.str);
+      error (ErrorError, "'%.*s' is undefined",
+	     (int)label->Data.Id.len, label->Data.Id.str);
       inputRest ();
       return;
     }

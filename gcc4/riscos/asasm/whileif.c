@@ -53,16 +53,18 @@ static bool whileReEval (void);
 static void
 if_skip (const char *onerror)
 {
-  int c;
-  int nested = 0;
   int tmp_inputExpand = inputExpand;
   inputExpand = false;
+
+  int nested = 0;
   while (inputNextLine ())
     {
+      int c;
       if (inputLook () && !isspace (c = inputGet ()))
 	{
+	  size_t len;
 	  char del = c == '|' ? c : 0;
-	  inputSymbol (&c, del);
+	  inputSymbol (&len, del);
 	  if (del && inputLook () == del)
 	    inputSkip ();
 	}
@@ -70,6 +72,7 @@ if_skip (const char *onerror)
       c = inputGet ();
       if (inputLook () && !isspace (inputGet ()))
 	continue;
+
       switch (c)
 	{
 	  case ']':
@@ -150,8 +153,8 @@ while_skip (void)
     {
       if (inputLook () && !isspace (inputGet ()))
 	{
-	  int c;
-	  inputSymbol (&c, 0);
+	  size_t len;
+	  inputSymbol (&len, 0);
 	}
       skipblanks ();
       if (inputGetLower () == 'w')

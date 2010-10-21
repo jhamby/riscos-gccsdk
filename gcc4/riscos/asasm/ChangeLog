@@ -1,3 +1,14 @@
+Fri Oct 22 01:34:52 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.h (Symbol): Change type of len from int to size_t.
+	* value.h (Value): Likewise for Value::String::len, Value::Code::len.
+	* lex.h (Lex): Likewise for Lex::String::len, Lex::Id::len.
+	* commands.c, symbol.c, code.c, decode.c, variables.c, macros.c,
+	whileif.c, input.c, help_lex.c, input.h, reloc.c, eval.c, lex.c: Deal
+	with the fallout.
+	* help_lex.c (lexChar2Int): Avoid compiler warning.
+	* lex.c (lexHashStr): Work with unsigned types.
+
 Fri Oct 22 00:17:59 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* expr.c (exprBuildAndEval): Added.

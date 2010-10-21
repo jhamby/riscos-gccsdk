@@ -192,6 +192,7 @@ lexChar2Int (bool rev, int len, const char *str)
   ARMWord result;
   switch (i)
     {
+      default:
       case 0:
 	error (ErrorError, "Empty character");
 	result = 0;

@@ -216,7 +216,7 @@ relocAdd (Reloc *newReloc)
 static int
 relocLate2Reloc (Reloc *r, Value *value)
 {
-  int size = 0;
+  size_t size = 0;
   int norelocs = 0;
   for (LateInfo *late = value->Data.Late.late; late; late = late->next)
     {
@@ -573,13 +573,9 @@ relocFix (const Symbol *area)
 void
 relocAOFOutput (FILE *outfile, const Symbol *area)
 {
-  Reloc *relocs;
-  for (relocs = area->area.info->relocs; relocs; relocs = relocs->more)
+  for (const Reloc *relocs = area->area.info->relocs; relocs; relocs = relocs->more)
     {
-      int ip;
       unsigned int How;
-      AofReloc areloc;
-
       switch (relocs->Tag)
 	{
 	case RelocImmN:
@@ -628,8 +624,9 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	  errorAbortLine (relocs->lineno, relocs->file, "Linker cannot handle this");
 	  continue;
 	}
+      AofReloc areloc;
       areloc.Offset = armword(relocs->offset);
-      for (ip = 0; ip < relocs->value.Data.Code.len; ip++)
+      for (size_t ip = 0; ip < relocs->value.Data.Code.len; ip++)
 	{
 	  int loop;
 	  if (relocs->value.Data.Code.c[ip].Tag == CodeValue)
@@ -660,13 +657,9 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 void
 relocELFOutput (FILE *outfile, const Symbol *area)
 {
-  Reloc *relocs;
-  for (relocs = area->area.info->relocs; relocs; relocs = relocs->more)
+  for (const Reloc *relocs = area->area.info->relocs; relocs; relocs = relocs->more)
     {
-      int ip;
       unsigned int How;
-      Elf32_Rel areloc;
-
       switch (relocs->Tag)
         {
         case RelocImmN:
@@ -716,8 +709,9 @@ relocELFOutput (FILE *outfile, const Symbol *area)
           errorAbortLine (relocs->lineno, relocs->file, "Linker cannot handle this");
           continue;
         }
+      Elf32_Rel areloc;
       areloc.r_offset = armword(relocs->offset);
-      for (ip = 0; ip < relocs->value.Data.Code.len; ip++)
+      for (size_t ip = 0; ip < relocs->value.Data.Code.len; ip++)
         {
 	  int loop, symbol, type;
           if (relocs->value.Data.Code.c[ip].Tag == CodeValue)

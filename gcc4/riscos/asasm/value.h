@@ -24,6 +24,7 @@
 #define value_header_included
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "global.h"
 
@@ -60,7 +61,7 @@ typedef struct
     {
       struct			/* ValueInt */
         {
-          int i;		/* Must start identical with ValueAddr & ValueLate */
+          int i;		/* Must start identical with ValueAddr's i, ValueString's len & ValueLate's i.  */
         } Int;
       struct			/* ValueFloat */
         {
@@ -68,8 +69,8 @@ typedef struct
         } Float;
       struct			/* ValueString */
         {
-          int len;		/**< Size string.  */
-          const char *s;	/**< Malloced memory block and string contents is *NOT* NUL terminated.  */
+	  size_t len;		/**< Size string.  Must start identical with ValueInt's i, ValueAddr's i & ValueLate's i.  */
+	  const char *s;	/**< Malloced memory block and string contents is *NOT* NUL terminated.  */
         } String;
       struct			/* ValueBool */
         {
@@ -77,17 +78,17 @@ typedef struct
         } Bool;
       struct			/* ValueCode */
         {
-          int len;
+          size_t len;
           struct Code *c;
         } Code;
       struct			/* ValueLateLabel */
         {
-          int i;		/* Must start identical with ValueInt & ValueAddr */
+          int i;		/* Must start identical with ValueInt's i, ValueString's len & ValueAddr's i.  */
           struct LATEINFO *late;
         } Late;
       struct			/* ValueAddr */
         {
-	  int i;		/* Must start identical with ValueInt & ValueLate */
+	  int i;		/* Must start identical with ValueInt's i, ValueStrings's len & ValueLate's i.  */
           int r;		/* When = 0 - 15 (inc), it is register based. -1 otherwise.  */
         } Addr;
     } Data;

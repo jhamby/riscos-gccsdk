@@ -122,7 +122,7 @@ macroCall (const Macro *m, const Lex *label)
 	}
       inputMark ();
       const char *c;
-      int len;
+      size_t len;
       if (inputLook () == '"')
 	{
 	  inputSkip ();
@@ -202,7 +202,7 @@ macroFind (size_t len, const char *name)
 {
   for (const Macro *m = macroList; m != NULL; m = m->next)
     {
-      if (!strncmp (name, m->name, len) && m->name[len] == '\0')
+      if (!memcmp (name, m->name, len) && m->name[len] == '\0')
 	return m;
     }
   return NULL;
@@ -252,7 +252,7 @@ c_macro (const Lex *label)
     errorAbort ("Missing macro name");
   if (inputLook () == '$')
     inputSkip ();
-  int len;
+  size_t len;
   char *ptr = inputSymbol (&len, 0);
   if (len)
     {
@@ -274,7 +274,7 @@ c_macro (const Lex *label)
     errorAbort ("Missing macro name");
   if (macroFind (len, ptr))
     {
-      error (ErrorError, "Macro %.*s is already defined", len, ptr);
+      error (ErrorError, "Macro %.*s is already defined", (int)len, ptr);
       goto lookforMEND;
     }
   if ((m.name = strndup (ptr, len)) == NULL)
@@ -316,7 +316,7 @@ c_macro (const Lex *label)
 	      if (inputLook () == '$')
 		inputSkip ();
 	      else
-		{		/* Token? Check list and substitute */
+		{ /* Token? Check list and substitute */
 		  ptr = inputSymbol (&len, '\0');
 		  if (inputLook () == '.')
 		    inputSkip ();

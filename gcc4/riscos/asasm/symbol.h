@@ -84,7 +84,7 @@ typedef struct SYMBOL
     } area;
   unsigned int offset;	/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
   int used;		/** -1 when not used; for area symbols: at outputAof/outputElf stage, this will be the area number counted from 0; for other symbols, 0 when symbol is needed in output. This will become the symbol index at symbolFix stage.  */
-  int len;		/** length of str[] without its NUL terminator.  */
+  size_t len;		/** length of str[] without its NUL terminator.  */
   char str[1];		/** symbol name as NUL terminated string */
 } Symbol;
 

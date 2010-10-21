@@ -1084,7 +1084,7 @@ illegal:
 	if (macro)
 	  {
 	    inputRollback ();
-	    int l;
+	    size_t l;
 	    char *ci;
 	    if (inputLook () == '|')
 	      {

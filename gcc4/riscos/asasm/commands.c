@@ -547,9 +547,9 @@ c_info (void)
       bool giveErr = (value.Tag == ValueInt && value.Data.Int.i != 0)
 	               || (value.Tag == ValueFloat && fabs (value.Data.Float.f) >= 0.00001);
       if (giveErr)
-        error (ErrorError, "%.*s", message.Data.String.len, message.Data.String.s);
+        error (ErrorError, "%.*s", (int)message.Data.String.len, message.Data.String.s);
       else
-	printf ("%.*s\n", message.Data.String.len, message.Data.String.s);
+	printf ("%.*s\n", (int)message.Data.String.len, message.Data.String.s);
     }
 }
 

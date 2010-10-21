@@ -111,7 +111,7 @@ codeSymbol (Symbol *symbol)
 	    case ValueCode:
 	      if (FirstFreeIns + symbol->value.Data.Code.len <= CODE_SIZECODE)
 		{
-		  for (int i = 0; i < symbol->value.Data.Code.len; i++)
+		  for (size_t i = 0; i < symbol->value.Data.Code.len; ++i)
 		    Program[FirstFreeIns++] = symbol->value.Data.Code.c[i];
 		  symbol->used = 0; /* Mark as used.  */
 		}

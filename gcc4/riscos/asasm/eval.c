@@ -376,7 +376,7 @@ evalBinop (Operator op, Value *lvalue, const Value *rvalue)
 	  error (ErrorError, "Bad operand type for :LEFT:");
 	  return false;
 	}
-      if (rvalue->Data.Int.i < 0 || rvalue->Data.Int.i > lvalue->Data.String.len)
+      if (rvalue->Data.Int.i < 0 || (size_t)rvalue->Data.Int.i > lvalue->Data.String.len)
 	{
 	  error (ErrorError, "Wrong number of characters (%d) specified for :LEFT:",
 	         rvalue->Data.Int.i);
@@ -392,7 +392,7 @@ evalBinop (Operator op, Value *lvalue, const Value *rvalue)
 	    error (ErrorError, "Bad operand type for :RIGHT:");
 	    return false;
 	  }
-        if (rvalue->Data.Int.i < 0 || rvalue->Data.Int.i > lvalue->Data.String.len)
+        if (rvalue->Data.Int.i < 0 || (size_t)rvalue->Data.Int.i > lvalue->Data.String.len)
 	  {
 	    error (ErrorError, "Wrong number of characters (%d) specified for :RIGHT:",
 	           rvalue->Data.Int.i);

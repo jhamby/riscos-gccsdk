@@ -510,7 +510,7 @@ inputVarSub(int *ptr, int *trunc, bool inString)
 	case ValueLateLabel:
 	case ValueAddr:
 	  error (ErrorError, "$ expansion '%.*s' is a pointer",
-		 label.Data.Id.len, label.Data.Id.str);
+		 (int)label.Data.Id.len, label.Data.Id.str);
           /* This one's fatal */
           return false;
 	  break;
@@ -525,7 +525,7 @@ unknown:
         {
           /* Not in string literal, so this is an error */
           error (ErrorError, "Unknown value '%.*s' for $ expansion",
-		 label.Data.Id.len, label.Data.Id.str);
+		 (int)label.Data.Id.len, label.Data.Id.str);
           input_buff[(*ptr)++] = '$';
           /* Restore input_pos so we reprocess current input */
           input_pos = rb;
@@ -686,7 +686,7 @@ finished:
 
 
 char *
-inputSymbol (int *ilen, char del)
+inputSymbol (size_t *ilen, char del)
 {
   char *p = input_pos;
   int c;

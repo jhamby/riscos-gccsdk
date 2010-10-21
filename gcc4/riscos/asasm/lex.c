@@ -58,10 +58,10 @@ static bool nextbinopvalid = false;
  * \param s string to hash
  * \param maxn maximum number of chars to consider
  */
-int
-lexHashStr (const char *s, int maxn)
+unsigned int
+lexHashStr (const char *s, size_t maxn)
 {
-  static const unsigned char hashtab[] =
+  static const unsigned char hashtab[256] =
   {
     1, 87, 49, 12, 176, 178, 102, 166, 121, 193, 6, 84, 249, 230, 44, 163,
     14, 197, 213, 181, 161, 85, 218, 80, 64, 239, 24, 226, 236, 142, 38, 200,
@@ -83,11 +83,11 @@ lexHashStr (const char *s, int maxn)
 
   const unsigned char *p;
   unsigned char h = 0;
-  int i;
+  size_t i;
   for (i = 0, p = (const unsigned char *)s; *p && i < maxn; i++, p++)
     h = hashtab[h ^ *p];
 
-  int rh = h;
+  unsigned int rh = h;
 
   if (SYMBOL_TABLESIZE > 256 && *s)
     {
@@ -243,7 +243,7 @@ lexGetIdNoError (void)
 
 
 static char *
-lexReadLocal (int *len, int *label)
+lexReadLocal (size_t *len, int *label)
 {
   if (!isdigit (inputLook ()))
     errorAbort ("Missing local label number");
@@ -267,35 +267,38 @@ lexMakeLocal (int dir)
   Lex result;
   result.tag = LexNone;
 
-  int label, len;
+  size_t len;
+  int label;
   if (!lexReadLocal (&len, &label))
     return result;
+
   int i = 0;
   switch (dir)
     {
-    case -1:
-      if ((i = rout_lblno[label] - 1) < 0)
-	{
-	  errorAbort ("Missing local label (bwd) with ID %02i", label);
-	  return result;
-	}
-      break;
-    case 0:
-      if ((i = rout_lblno[label] - 1) < 0)
-        i++;
-      break;
-    case 1:
-      i = rout_lblno[label];
-      break;
+      case -1:
+        if ((i = rout_lblno[label] - 1) < 0)
+	  {
+	    errorAbort ("Missing local label (bwd) with ID %02i", label);
+	    return result;
+	  }
+        break;
+      case 0:
+        if ((i = rout_lblno[label] - 1) < 0)
+          i++;
+        break;
+      case 1:
+        i = rout_lblno[label];
+        break;
     }
   char id[1024];
   sprintf (id, localFormat, areaCurrentSymbol, label, i, rout_id);
+
+  result.tag = LexId;
   result.Data.Id.str = strdup (id);
-  result.Data.Id.len = strlen (id);
-  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
   if (!result.Data.Id.str)
     errorOutOfMem ();
-  result.tag = LexId;
+  result.Data.Id.len = strlen (id);
+  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
   return result;
 }
 
@@ -303,23 +306,25 @@ lexMakeLocal (int dir)
 Lex
 lexGetLocal (void)
 {
-  Lex result;
-  result.tag = LexNone;
   nextbinopvalid = false;
   if (isdigit (inputLook ()))
     {
-      char *name, id[1024];
-      int len, label;
-      name = lexReadLocal (&len, &label);
+      Lex result;
+      result.tag = LexNone;
+      size_t len;
+      int label;
+      char *name = lexReadLocal (&len, &label);
       if (!name)
 	return result;
+      char id[1024];
       sprintf (id, localFormat, areaCurrentSymbol, label, rout_lblno[label]++, rout_id);
+
+      result.tag = LexId;
       result.Data.Id.str = strdup (id);
-      result.Data.Id.len = strlen (id);
       if (!result.Data.Id.str)
 	errorOutOfMem ();
+      result.Data.Id.len = strlen (id);
       result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
-      result.tag = LexId;
       return result;
     }
   return lexGetId ();
@@ -330,7 +335,7 @@ Lex
 lexGetPrim (void)
 {
   char *str;
-  int len;
+  size_t len;
   Lex result;
 
   nextbinopvalid = false;
@@ -418,7 +423,7 @@ lexGetPrim (void)
       if (option_objasm)
 	{
 	  char *s1, *s2;
-	  int l1;
+	  size_t l1;
 	  while (inputLook () == '"')
 	    {
 	      inputSkip ();

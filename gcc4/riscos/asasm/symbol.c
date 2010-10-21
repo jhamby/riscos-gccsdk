@@ -224,14 +224,15 @@ symbolAdd (const Lex *l)
       if (EqSymLex (search, l))
 	{
 	  if ((search->type & SYMBOL_DEFINED) && !SYMBOL_GETREG (search->type))
-	    error (ErrorError, "Redefinition of %.*s", l->Data.Id.len, l->Data.Id.str);
+	    error (ErrorError, "Redefinition of %.*s",
+		   (int)l->Data.Id.len, l->Data.Id.str);
 	  else
 	    {
 	      if (search->type & SYMBOL_AREA)
 	        {
 	          if (areaCurrentSymbol->value.Data.Int.i != 0)
 		    error (ErrorError, "Symbol %.*s is already defined as area with incompatible definition",
-		           l->Data.Id.len, l->Data.Id.str);
+		           (int)l->Data.Id.len, l->Data.Id.str);
 		}
 	      else
 		{

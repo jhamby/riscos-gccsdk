@@ -24,6 +24,7 @@
 #define lex_header_included
 
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "global.h"
 
@@ -84,13 +85,13 @@ typedef struct
       struct			/* LexId */
         {
           const char *str;	/* *NOT* NUL terminated.  */
-          int len;
+          size_t len;
           int hash;
         } Id;
       struct			/* LexString */
         {
           const char *str;
-          int len;
+          size_t len;
         } String;
       struct			/* LexInt */
         {
@@ -131,7 +132,7 @@ int lexNextPri (void);
 
 Lex lexTempLabel (const char *, int);
 
-int lexHashStr (const char *s, int maxn);
+unsigned int lexHashStr (const char *s, size_t maxn);
 
 #ifdef DEBUG
 void lexPrint (const Lex *lex);
