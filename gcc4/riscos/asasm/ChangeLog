@@ -1,3 +1,33 @@
+Sun Oct 24 00:15:15 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (decode): Get rid of macro variable.
+
+Sat Oct 23 23:53:10 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c: Fix compiler warning.
+	* value.c: Likewise.
+	* lex.c: Likewise.
+	* code.c: Likewise.
+	(codeEvalLow): Removed assert.  This can happen.
+	* decode.c (decode): Only process uppercase mnemonics.  Reformat. Don't
+	output the ending newline in abort messages.
+	(ignoreInput): Removed.
+	* option.c (getCond,getDir,getPrec,getRound,optionCondS,optionCondSP,
+	optionCondB,optionCondBT,optionCondL,optionLinkCond,optionExceptionCond,
+	optionAdrL): Upcase input only.
+	* lexAcorn.c: Likewise.
+	* main.c,main.h: Drop -upper option.
+	* error.c: Don't output linenumber nor filename when we're still at
+	line number 0.
+	* area.c: Follow the inputComment to Input_IsEolOrCommentStart rename.
+	* macros.c: Likewise.
+	* m_cpu.c (m_nop): Likewise.
+	* asm.c: Likewise.
+	* variables.c: Likewise.
+	(c_set): Don't call inputRest on error as this is already going to
+	happen later on.
+	* regression/tests_pass/operator_shift.s: Fixed case typo.
+
 Sat Oct 23 16:08:30 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (symbolNew): Swap parameters.

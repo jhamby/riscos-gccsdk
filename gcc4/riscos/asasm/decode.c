@@ -111,7 +111,6 @@ checkchr (char chr)
       if (checkstr (string)) \
         goto illegal; \
       symbol = asm_label (label); \
-      macro = false; \
       fun (); \
     } while (0)
 
@@ -120,7 +119,6 @@ checkchr (char chr)
     { \
       if (checkstr (string)) \
         goto illegal; \
-      macro = false; \
       fun (label); \
     } while (0)
 
@@ -130,7 +128,6 @@ checkchr (char chr)
       int c = inputGet (); \
       if (checkspace ()) \
         goto illegal; \
-      macro = false; \
       switch (c) \
         { \
           case 'A': \
@@ -143,7 +140,6 @@ checkchr (char chr)
             fun (ValueString, label); \
             break; \
           default: \
-            macro = true; \
             goto illegal; \
         } \
     } while (0)
@@ -154,7 +150,6 @@ checkchr (char chr)
       if (checkchr (chr)) \
         goto illegal; \
       symbol = asm_label (label); \
-      macro = false; \
       fun (); \
     } while (0)
 
@@ -164,7 +159,6 @@ checkchr (char chr)
       if (checkspace ()) \
         goto illegal; \
       symbol = asm_label (label); \
-      macro = false; \
       fun (); \
     } while (0)
 
@@ -174,7 +168,6 @@ checkchr (char chr)
       if (checkspace ()) \
         goto illegal; \
       symbol = asm_label (label); \
-      macro = false; \
       fun (symbol); \
     } while (0)
 
@@ -184,7 +177,6 @@ checkchr (char chr)
       if (checkchr (chr)) \
         goto illegal; \
       symbol = asm_label (label); \
-      macro = false; \
       fun (symbol); \
     } while (0)
 
@@ -198,7 +190,6 @@ checkchr (char chr)
         goto illegal; \
       skipblanks(); \
       symbol = asm_label (label); \
-      macro = false; \
       fun (option); \
     } while (0)
 
@@ -212,7 +203,6 @@ checkchr (char chr)
         goto illegal; \
       skipblanks (); \
       symbol = asm_label (label); \
-      macro = false; \
       fun (option); \
     } while (0)
 
@@ -225,7 +215,6 @@ checkchr (char chr)
       if (optionError == option) \
         goto illegal; \
       symbol = asm_label (label); \
-      macro = false; \
       fun (option); \
     } while (0)
 
@@ -237,7 +226,6 @@ checkchr (char chr)
         goto illegal; \
       skipblanks (); \
       symbol = asm_label (label); \
-      macro = false; \
       fun (option); \
     } while (0)
 
@@ -246,7 +234,6 @@ decode (const Lex *label)
 {
   char * const inputMark = Input_GetMark ();
 
-  bool macro = true;
   Symbol *symbol;
   switch (inputGet ())
     {
@@ -1307,26 +1294,20 @@ decode (const Lex *label)
 
       default:
 illegal:
-        { /* Is it a macro call? */
-          const Macro *m;
-          if (macro)
+        { /* Mnemonic is not recognized, maybe it is a macro.  */
+          Input_RollBackToMark (inputMark);
+          size_t l;
+          char *ci;
+          if (inputLook () == '|')
             {
-              Input_RollBackToMark (inputMark);
-              size_t l;
-              char *ci;
-              if (inputLook () == '|')
-                {
-                  inputSkip ();
-                  ci = inputSymbol (&l, '|');
-                  if (inputGet () != '|')
-                    error (ErrorError, "Identifier continues over newline");
-                }
-              else
-                ci = inputSymbol (&l, '\0');
-              m = macroFind (l, ci);
+              inputSkip ();
+              ci = inputSymbol (&l, '|');
+              if (inputGet () != '|')
+                error (ErrorError, "Identifier continues over newline");
             }
           else
-            m = NULL;
+            ci = inputSymbol (&l, '\0');
+          const Macro *m = macroFind (l, ci);
           if (m)
             macroCall (m, label);
           else
