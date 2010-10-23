@@ -53,7 +53,7 @@ assemble (void)
     {
       /* ignore blank lines and comments */
       Lex label;
-      if (inputLook () && !isspace (inputLook ()) && !inputComment ())
+      if (inputLook () && !isspace (inputLook ()) && !Input_IsEolOrCommentStart ())
 	{
 	  /* Deal with any label */
 	  label = isdigit (inputLook ())? lexGetLocal () : lexGetId ();
@@ -71,7 +71,7 @@ assemble (void)
       printf ("\n");
 #endif
       skipblanks ();
-      if (!inputComment ())
+      if (!Input_IsEolOrCommentStart ())
 	decode (&label);
       else
 	asm_label (&label);

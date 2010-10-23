@@ -296,7 +296,7 @@ valuePrint (const Value *v)
 	printf ("<%g> (float)", v->Data.Float.f);
 	break;
       case ValueString:
-	printf ("<%.*s> (string)", v->Data.String.len, v->Data.String.s);
+	printf ("<%.*s> (string)", (int)v->Data.String.len, v->Data.String.s);
 	break;
       case ValueBool:
 	printf ("<%s> (bool)", v->Data.Bool.b ? "true" : "false");

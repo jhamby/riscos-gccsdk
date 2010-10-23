@@ -64,17 +64,16 @@ m_ldf (ARMWord cc)
 static void
 dstmemx (ARMWord ir)
 {
-  bool stack_ia = false;
-
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  bool stack = (bool) ! isspace (inputLook ());
+  char * const inputMark = Input_GetMark ();
+  bool stack_ia = false;
+  bool stack = !isspace (inputLook ());
   if (stack)
     {
-      char c1, c2;
-      c1 = toupper (inputLook ());
-      c2 = toupper (inputLookN (1));
+      char c1 = toupper (inputLook ());
+      char c2 = toupper (inputLookN (1));
       if (c1 == 'D' && c2 == 'B')
 	stack_ia = false;
       else if (c1 == 'I' && c2 == 'A')
@@ -92,8 +91,7 @@ dstmemx (ARMWord ir)
     }
   if (inputLook () && !isspace (inputLook ()))
     {
-      inputRollback ();
-      errorAbort ("Illegal line \"%s\"", inputRest ());
+      errorAbort ("Can't parse \"%s\" of SFM/LFM", inputMark);
       return;
     }
   skipblanks ();

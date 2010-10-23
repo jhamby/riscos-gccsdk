@@ -682,7 +682,7 @@ symbolPrint (const Symbol *sym)
 {
   static const char *symkind[4] = { "UNKNOWN", "LOCAL", "REFERENCE", "GLOBAL" };
   printf ("\"%.*s\": %s /",
-	  sym->len, sym->str, symkind[SYMBOL_KIND(sym->type)]);
+	  (int)sym->len, sym->str, symkind[SYMBOL_KIND(sym->type)]);
   assert (strlen (sym->str) == (size_t)sym->len);
   /* Dump the symbol attributes:  */
   if (sym->type & SYMBOL_ABSOLUTE)

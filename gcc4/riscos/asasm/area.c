@@ -158,7 +158,7 @@ c_align (void)
     }
 
   skipblanks ();
-  if (inputComment ())
+  if (Input_IsEolOrCommentStart ())
     {				/* no expression follows */
       alignValue = 1<<2;
       offsetValue = 0;
@@ -184,7 +184,7 @@ c_align (void)
 
       /* Determine offset value */
       skipblanks ();
-      if (inputComment ())
+      if (Input_IsEolOrCommentStart ())
 	offsetValue = 0;
       else if (inputGet () == ',')
 	{
@@ -384,9 +384,7 @@ c_area (void)
 	newtype |= AREA_SOFTFLOAT;
     }
   else if (newtype & (AREA_32BITAPCS | AREA_REENTRANT | AREA_EXTFPSET | AREA_NOSTACKCHECK))
-    {
-      error (ErrorError, "Attribute REENTRANT may not be set for a DATA area");
-    }
+    error (ErrorError, "Attribute REENTRANT may not be set for a DATA area");
 
   if ((newtype & AREA_READONLY) && (newtype & AREA_UDATA))
     error (ErrorError, "Attributes READONLY and NOINIT are mutually exclusive");

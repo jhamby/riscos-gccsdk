@@ -115,7 +115,6 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
 	{
 	  error (ErrorError, "'%.*s' is already declared as a %s",
 	         (int)len, ptr, valueTagAsString (sym->value.Tag));
-	  inputRest ();
 	  return NULL;
 	}
       if (option_pedantic)
@@ -164,7 +163,7 @@ c_gbl (ValueTag type, const Lex *label)
   skipblanks ();
   const char *ptr;
   size_t len;
-  if (!inputComment ())
+  if (!Input_IsEolOrCommentStart ())
     ptr = var_inputSymbol (&len);
   else
     {
@@ -186,7 +185,6 @@ c_lcl (ValueTag type, const Lex *label)
   if (gCurPObjP->type != POType_eMacro)
     {
       error (ErrorError, "Local variables not allowed outside macros");
-      inputRest ();
       return;
     }
 
@@ -195,7 +193,7 @@ c_lcl (ValueTag type, const Lex *label)
   skipblanks ();
   const char *ptr;
   size_t len;
-  if (!inputComment ())
+  if (!Input_IsEolOrCommentStart ())
     ptr = var_inputSymbol (&len);
   else
     {
@@ -227,18 +225,20 @@ c_lcl (ValueTag type, const Lex *label)
 }
 
 
+/**
+ * SETA, SETL, SETS implementation.
+ */
 void
 c_set (ValueTag type, const Lex *label)
 {
   Symbol *sym = symbolFind (label);
-  assert (sym->value.Tag != ValueIllegal);
   if (sym == NULL)
     {
       error (ErrorError, "'%.*s' is undefined",
 	     (int)label->Data.Id.len, label->Data.Id.str);
-      inputRest ();
       return;
     }
+  assert (sym->value.Tag != ValueIllegal);
   Value value = exprBuildAndEval (sym->value.Tag);
   sym->type |= SYMBOL_DEFINED;
   switch (value.Tag)
@@ -250,7 +250,8 @@ c_set (ValueTag type, const Lex *label)
 	break;
 #ifdef DEBUG
       case ValueString:
-	printf ("c_set: string: <%.*s>\n", value.Data.String.len, value.Data.String.s);
+	printf ("c_set: string: <%.*s>\n",
+		(int)value.Data.String.len, value.Data.String.s);
 	/* Fall through.  */
 #endif
       default:

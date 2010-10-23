@@ -53,7 +53,7 @@ bool inputExpand = true;
 bool inputRewind = false;
 
 static char input_buff[MAX_LINE + 256];
-static char *input_pos, *input_mark;
+static char *input_pos;
 static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 
 static bool inputArgSub (void);
@@ -76,24 +76,17 @@ inputLook (void)
 char
 inputLookLower (void)
 {
-  return tolower (*input_pos);
-}
-
-char
-inputLookUC (void)
-{
-  char x = *input_pos;
-  return option_uc ? FLIP (x) : tolower (x);
+  return tolower ((unsigned char)*input_pos);
 }
 
 /**
  * \return true if next input character is NUL or start of a comment.
  */
 bool
-inputComment (void)
+Input_IsEolOrCommentStart (void)
 {
-  const int c = *input_pos;
-  return c == 0 || c == ';';
+  const char c = *input_pos;
+  return c == '\0' || c == ';';
 }
 
 
@@ -107,14 +100,7 @@ inputLookN (int n)		/* Unsafe */
 char
 inputLookNLower (int n)		/* Unsafe */
 {
-  return tolower (input_pos[n]);
-}
-
-char
-inputLookNUC (int n)		/* Unsafe */
-{
-  char x = input_pos[n];
-  return option_uc ? FLIP (x) : tolower (x);
+  return tolower ((unsigned char)input_pos[n]);
 }
 
 char
@@ -128,14 +114,7 @@ char
 inputGetLower (void)
 {
   char c = *input_pos ? *input_pos++ : *input_pos;
-  return tolower (c);
-}
-
-char
-inputGetUC (void)
-{
-  char x = *input_pos ? *input_pos++ : *input_pos;
-  return option_uc ? FLIP (x) : tolower (x);
+  return tolower ((unsigned char)c);
 }
 
 
@@ -149,19 +128,6 @@ inputUnGet (char c)
     {
       /* printf("char = '%c' \"%s\" \"%s\"\n", c, input_pos, input_buff); */
       errorAbort ("Internal inputUnGet: illegal character");
-    }
-}
-
-/* return char |c| to position pointed to by |input_pos| */
-void
-inputPutBack (char c)
-{
-  if (input_pos[-1] == c)
-    input_pos--;
-  else if (*input_pos || c)
-    {
-      /* printf("char = '%c' \"%s\" \"%s\"\n", c, input_pos, input_buff); */
-      errorAbort ("Internal inputPutBack: illegal character");
     }
 }
 
@@ -184,6 +150,9 @@ inputSkipN (int n)
 }
 
 
+/**
+ * Returns the rest of the line of the current input and consumes it.
+ */
 char *
 inputRest (void)
 {
@@ -216,7 +185,7 @@ void
 skipblanks (void)
 {
   char *p = input_pos;
-  while (*p && isspace (*p))
+  while (*p && isspace ((unsigned char)*p))
     p++;
   input_pos = p;
 }
@@ -225,21 +194,30 @@ skipblanks (void)
 void
 skiprest (void)
 {
-  (input_pos = input_mark = input_buff)[0] = 0;
+  input_buff[0] = 0;
+  input_pos = input_buff;
 }
 
 
-void
-inputMark (void)
+/**
+ * Returns the position of the current input pointer.  Only to be use to
+ * restore the current input pointer using Input_RollBackToMark().
+ */
+char *
+Input_GetMark (void)
 {
-  input_mark = input_pos;
+  return input_pos;
 }
 
 
+/**
+ * Restore the current input pointer with a value returned from Input_GetMark().
+ */
 void
-inputRollback (void)
+Input_RollBackToMark (char *mark)
 {
-  input_pos = input_mark;
+  assert (mark >= input_buff && mark < input_buff + sizeof (input_buff));
+  input_pos = mark;
 }
 
 
@@ -739,5 +717,6 @@ inputSymbol (size_t *ilen, char del)
 void
 inputThisInstead (const char *p)
 {
-  strcpy (input_pos = input_mark = input_buff, p);
+  strcpy (input_buff, p);
+  input_pos = input_buff;
 }

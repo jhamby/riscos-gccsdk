@@ -28,6 +28,7 @@
 #include <inttypes.h>
 #endif
 #include <stdio.h>
+#include <string.h>
 
 #include "asm.h"
 #include "commands.h"
@@ -44,1072 +45,1309 @@
 #include "variables.h"
 #include "whileif.h"
 
-bool ignoreInput = false;
 
 bool
 notinput (const char *str)
 {
-  for (; *str;)
-    if (*str++ != inputGetUC ())
+  while (*str)
+    if (*str++ != inputGet ())
       return true;
   return false;
 }
 
 
+/**
+ * Checks there is still input remaining (comments are not considered as
+ * valid input here) and if so, check there is at least one space at the
+ * current input and if so, discard that and all subsequent spaces.
+ * \return true when condition is not fulfilled, false otherwise.
+ */
 static bool
 checkspace (void)
 {
-  if (inputLook () && !isspace (inputGet ()))
+  if (Input_IsEolOrCommentStart ())
+    return false;
+  char c = inputGet ();
+  if (!isspace ((unsigned int)c))
     return true;
   skipblanks ();
   return false;
 }
 
 
+/**
+ * Checks there is at least the given string + space at the current input and
+ * if so, discard that and all subsequent spaces.
+ * \param str string to check for at current input.
+ * \return true when condition is not fulfilled, false otherwise.
+ */
 static bool
 checkstr (const char *str)
 {
-  if (notinput (str) || (inputLook () && !isspace (inputGet ())))
+  if (notinput (str))
     return true;
-  skipblanks ();
-  return false;
+  return checkspace ();
 }
 
 
+/**
+ * Checks there is at least the given character + space at the current input
+ * and if so, discard that and all subsequent spaces.
+ * \param chr Character to check for at current input.
+ * \return true when condition is not fulfilled, false otherwise.
+ */
 static bool
 checkchr (char chr)
 {
-  if (inputGetUC () != chr || (inputLook () && !isspace (inputGet ())))
+  if (inputGet () != chr)
     return true;
-  skipblanks ();
-  return false;
+  return checkspace ();
 }
 
 
 #define C_FINISH_STR(string, fun) \
-  if (checkstr (string)) \
-    goto illegal; \
-  symbol = asm_label (label); \
-  macro = false; \
-  fun (); \
-  break;
+  do \
+    { \
+      if (checkstr (string)) \
+        goto illegal; \
+      symbol = asm_label (label); \
+      macro = false; \
+      fun (); \
+    } while (0)
 
 #define C_FINISH_FLOW(string, fun) \
-  if (checkstr (string)) \
-    goto illegal; \
-  macro = false; \
-  fun (label); \
-  break;
+  do \
+    { \
+      if (checkstr (string)) \
+        goto illegal; \
+      macro = false; \
+      fun (label); \
+    } while (0)
 
 #define C_FINISH_VAR(fun) \
-  c = inputGetUC (); \
-  if (checkspace ()) \
-    goto illegal; \
-  macro = false; \
-  switch (c) \
+  do \
     { \
-      case 'a': \
-        fun (ValueInt, label); \
-	break; \
-      case 'l': \
-        fun (ValueBool, label); \
-	break; \
-      case 's': \
-        fun (ValueString, label); \
-	break; \
-      default: \
-        macro = true; \
-	goto illegal; \
-    } \
-  break;
+      int c = inputGet (); \
+      if (checkspace ()) \
+        goto illegal; \
+      macro = false; \
+      switch (c) \
+        { \
+          case 'A': \
+            fun (ValueInt, label); \
+            break; \
+          case 'L': \
+            fun (ValueBool, label); \
+            break; \
+          case 'S': \
+            fun (ValueString, label); \
+            break; \
+          default: \
+            macro = true; \
+            goto illegal; \
+        } \
+    } while (0)
 
 #define C_FINISH_CHR(chr, fun) \
-  if (checkchr (chr)) \
-    goto illegal; \
-  symbol = asm_label (label); \
-  macro = false; \
-  fun (); \
-  break;
+  do \
+    { \
+      if (checkchr (chr)) \
+        goto illegal; \
+      symbol = asm_label (label); \
+      macro = false; \
+      fun (); \
+    } while (0)
 
 #define C_FINISH(fun) \
-  if (checkspace ()) \
-    goto illegal; \
-  symbol = asm_label (label); \
-  macro = false; \
-  fun (); \
-  break;
+  do \
+    { \
+      if (checkspace ()) \
+        goto illegal; \
+      symbol = asm_label (label); \
+      macro = false; \
+      fun (); \
+    } while (0)
 
 #define C_FINISH_SYMBOL(fun) \
-  if (checkspace ()) \
-    goto illegal; \
-  symbol = asm_label (label); \
-  macro = false; \
-  fun (symbol); \
-  break;
+  do \
+    { \
+      if (checkspace ()) \
+        goto illegal; \
+      symbol = asm_label (label); \
+      macro = false; \
+      fun (symbol); \
+    } while (0)
 
 #define C_FINISH_CHR_SYMBOL(chr, fun) \
-  if (checkchr (chr)) \
-    goto illegal; \
-  symbol = asm_label (label); \
-  macro = false; \
-  fun (symbol); \
-  break;
+  do \
+    { \
+      if (checkchr (chr)) \
+        goto illegal; \
+      symbol = asm_label (label); \
+      macro = false; \
+      fun (symbol); \
+    } while (0)
 
 #define M_FINISH_STR(string, fun, opt) \
-  if (notinput (string)) \
-    goto illegal; \
-  if (optionError == (option = opt ())) \
-    goto illegal; \
-  skipblanks(); \
-  symbol = asm_label (label); \
-  macro = false; \
-  fun (option); \
-  break;
+  do \
+    { \
+      if (notinput (string)) \
+        goto illegal; \
+      ARMWord option; \
+      if (optionError == (option = opt ())) \
+        goto illegal; \
+      skipblanks(); \
+      symbol = asm_label (label); \
+      macro = false; \
+      fun (option); \
+    } while (0)
 
 #define M_FINISH_CHR(chr, fun, opt) \
-  if (inputGetUC () != chr) \
-    goto illegal; \
-  if (optionError == (option = opt ())) \
-    goto illegal; \
-  skipblanks (); \
-  symbol = asm_label (label); \
-  macro = false; \
-  fun (option); \
-  break;
+  do \
+    { \
+      if (inputGet () != chr) \
+        goto illegal; \
+      ARMWord option; \
+      if (optionError == (option = opt ())) \
+        goto illegal; \
+      skipblanks (); \
+      symbol = asm_label (label); \
+      macro = false; \
+      fun (option); \
+    } while (0)
 
 #define M_FINISH_LFM(fun) \
-  if (inputGetUC () != 'm') \
-    goto illegal; \
-  option = optionCondLfmSfm (); \
-  if (optionError == option) \
-    goto illegal; \
-  symbol = asm_label (label); \
-  macro = false; \
-  fun (option); \
-  break;
+  do \
+    { \
+      if (inputGet () != 'M') \
+        goto illegal; \
+      ARMWord option = optionCondLfmSfm (); \
+      if (optionError == option) \
+        goto illegal; \
+      symbol = asm_label (label); \
+      macro = false; \
+      fun (option); \
+    } while (0)
 
 #define M_FINISH(fun, opt) \
-  if (optionError == (option = opt ())) \
-    goto illegal; \
-  skipblanks (); \
-  symbol = asm_label (label); \
-  macro = false; \
-  fun (option); \
-  break;
+  do \
+    { \
+      ARMWord option; \
+      if (optionError == (option = opt ())) \
+        goto illegal; \
+      skipblanks (); \
+      symbol = asm_label (label); \
+      macro = false; \
+      fun (option); \
+    } while (0)
 
 void
 decode (const Lex *label)
 {
-  int c;
-  bool macro = true;
-  ARMWord option;
-  Symbol *symbol;
-  inputMark ();
-  switch (inputGetUC ())
-    {
-    case '%':
-      C_FINISH (c_reserve);	/* reserve space */
-    case '*':
-      C_FINISH_SYMBOL (c_equ);	/* equ */
-    case '&':
-      C_FINISH (c_dcd);		/* DCD    32 */
-    case '=':
-      C_FINISH (c_dcb);		/* DCB     8 */
-    case '^':
-      C_FINISH (c_record);	/* start of new record layout */
-    case '#':
-      C_FINISH_SYMBOL (c_alloc);	/* reserve space in the current record */
-    case '!':
-      C_FINISH (c_info);	/* INFO shorthand */
-    case 'a':
-      switch (inputGetUC ())
-	{
-	case 'b':
-	  M_FINISH_CHR ('s', m_abs, optionCondPrecRound);	/* abs CC P R */
-	case 'c':
-	  M_FINISH_CHR ('s', m_acs, optionCondPrecRound);	/* acs CC P R */
-	case 'd':
-	  switch (inputGetUC ())
-	    {
-	    case 'c':
-	      M_FINISH (m_adc, optionCondS);	/* adc CC s */
-	    case 'd':
-	      M_FINISH (m_add, optionCondS);	/* add CC s */
-	    case 'f':
-	      M_FINISH (m_adf, optionCondPrecRound);	/* adf CC P R */
-	    case 'r':
-	      M_FINISH (m_adr, optionAdrL);	/* adr CC */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'n':
-	  M_FINISH_CHR ('d', m_and, optionCondS);	/* and CC S */
-	case 'l':
-	  C_FINISH_STR ("ign", c_align);	/* .align */
-	case 'r':
-	  C_FINISH_STR ("ea", c_area);	/* AREA */
-	case 's':
-	  switch (inputGetUC ())
-	    {
-	    case 's':
-	      C_FINISH_STR ("ert", c_assert);	/* ASSERT */
-	    case 'n':
-	      M_FINISH (m_asn, optionCondPrecRound);	/* asn CC P R */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 't':
-	  M_FINISH_CHR ('n', m_atn, optionCondPrecRound);	/* atn CC P R */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'b':
-      switch (c = inputGet ())
-	{
-	case 'i':
-	case 'I':
-	  switch (inputGetUC ())
-	    {
-	    case 'c':
-	      M_FINISH (m_bic, optionCondS);	/* bic CC s */
-	    case 'n':
-	      C_FINISH (c_bin);	/* bin */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'k':
-	case 'K':
-	  C_FINISH_STR("pt", m_bkpt);	/* bkpt */
-	case 'l':
-	case 'L':
-	  if (inputLookUC () == 'x')
-	    {
-	      inputSkip ();
-	      M_FINISH (m_blx, optionCond);	/* blx CC */
-	    }
-	  else
-	    {
-	      inputUnGet (c);
-	      M_FINISH (m_branch, optionLinkCond);	/* bl CC */
-	    }
-	  break;
-	case 'x':
-	case 'X':
-	  M_FINISH (m_bx, optionCond);	/* bx CC */
-	default:
-	  inputUnGet (c);
-	  M_FINISH (m_branch, optionLinkCond);	/* b CC */
-	  break;
-	}
-      break;
-    case 'c':
-      switch (inputGetUC ())
-	{
-	case 'd':
-	  switch (inputGetUC ())
-	    {
-	    case 'p':
-	      switch ((c = inputGet ()))
-		{
-		case '2':
-		  C_FINISH (m_cdp2);	/* cdp2 */
-		default:
-		  inputUnGet (c);
-		  M_FINISH (m_cdp, optionCond);	/* cdp CC */
-		}
-	      break;
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'l':
-	  M_FINISH_CHR ('z', m_clz, optionCond);	/* clz CC */
-	case 'm':
-	  switch (inputGetUC ())
-	    {
-	    case 'f':
-	      M_FINISH (m_cmf, optionExceptionCond);	/* cmf CC  or cmfe CC */
-	    case 'n':
-	      M_FINISH (m_cmn, optionCondSP);	/* cmn CC SP */
-	    case 'p':
-	      M_FINISH (m_cmp, optionCondSP);	/* cmp CC sp */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'n':
-	  switch (c = inputGet ())
-	    {
-	    case 'f':
-	    case 'F':
-	      M_FINISH (m_cnf, optionExceptionCond);	/* cnf CC or cnfe CC */
-	    default:
-	      inputUnGet (c);
-	      C_FINISH_SYMBOL (c_cn);	/* CN */
-	      break;
-	    }
-	  break;
-	case 'o':
-	  switch (inputGetUC ())
-	    {
-	    case 's':
-	      M_FINISH (m_cos, optionCondPrecRound);	/* cos CC P R */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'p':
-	  C_FINISH_SYMBOL (c_cp);	/* CP */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'd':
-      switch (inputGetUC ())
-	{
-	case 'v':
-	  M_FINISH_CHR ('f', m_dvf, optionCondPrecRound);	/* dvf CC s */
-	case 'c':
-	  switch (inputGetUC ())
-	    {
-	    case 'b':
-	      C_FINISH (c_dcb);	/* DCB     8 */
-	    case 'd':
-	      C_FINISH (c_dcd);	/* DCD     32 */
-	    case 'f':
-	      switch (inputGetUC ())
-		{
-		case 'd':
-		  C_FINISH (c_dcfd);	/* DCFD   64 float */
-		case 'e':
-		  C_FINISH (c_dcfe);	/* DCFE   80 float */
-		case 'p':
-		  C_FINISH (c_dcfp);	/* DCFP   80 packed bcd */
-		case 's':
-		  C_FINISH (c_dcfs);	/* DCFS   32 float */
-		}
-	      break;
-	    case 'w':
-	      C_FINISH (c_dcw);	/* DCW     16 */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'e':
-      switch (inputGetUC ())
-	{
-	case 'n':
-	  switch (inputGetUC ())
-	    {
-	    case 'd':
-	      C_FINISH (c_end);	/* END */
-	    case 't':
-	      inputRollback ();
-	      if (inputGet () != 'E')
-		goto illegal;
-	      if (inputGet () != 'N')
-		goto illegal;
-	      if (inputGet () != 'T')
-		goto illegal;
-	      if (inputGet () != 'R')
-		goto illegal;
-	      if (inputGet () != 'Y')
-		goto illegal;
+  char * const inputMark = Input_GetMark ();
 
-              C_FINISH(c_entry);	/* ENTRY (must be all caps) */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'o':
-	  M_FINISH_CHR ('r', m_eor, optionCondS);	/* eor CC s */
-	case 'q':
-	  C_FINISH_CHR_SYMBOL ('u', c_equ);	/* equ */
-	case 'x':
-	  switch (inputGetUC ())
-	    {
-	    case 'p':
-	      switch (c = inputGet ())
+  bool macro = true;
+  Symbol *symbol;
+  switch (inputGet ())
+    {
+      case '%':
+        C_FINISH (c_reserve); /* Reserve space.  */
+        break;
+
+      case '*':
+        C_FINISH_SYMBOL (c_equ); /* EQU */
+        break;
+
+      case '&':
+        C_FINISH (c_dcd); /* DCD (32 bits) */
+        break;
+        
+      case '=':
+        C_FINISH (c_dcb); /* DCB (8 bits) */
+        break;
+        
+      case '^':
+        C_FINISH (c_record); /* Start of new record layout.  */
+        break;
+        
+      case '#':
+        C_FINISH_SYMBOL (c_alloc); /* Reserve space in the current record.  */
+        break;
+        
+      case '!':
+        C_FINISH (c_info); /* INFO shorthand */
+        break;
+        
+      case 'A':
+        switch (inputGet ())
+          {
+            case 'B':
+              M_FINISH_CHR ('S', m_abs, optionCondPrecRound); /* ABS CC P R */
+              break;
+            case 'C':
+              M_FINISH_CHR ('S', m_acs, optionCondPrecRound); /* ACS CC P R */
+              break;
+            case 'D':
+              switch (inputGet ())
+                {
+                  case 'C':
+                    M_FINISH (m_adc, optionCondS); /* ADC CC s */
+                    break;
+                  case 'D':
+                    M_FINISH (m_add, optionCondS); /* ADD CC s */
+                    break;
+                  case 'F':
+                    M_FINISH (m_adf, optionCondPrecRound); /* ADF CC P R */
+                    break;
+                  case 'R':
+                    M_FINISH (m_adr, optionAdrL); /* ADR CC */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'N':
+              M_FINISH_CHR ('D', m_and, optionCondS); /* AND CC S */
+              break;
+            case 'L':
+              C_FINISH_STR ("IGN", c_align); /* ALIGN */
+              break;
+            case 'R':
+              C_FINISH_STR ("EA", c_area); /* AREA */
+              break;
+            case 'S':
+              switch (inputGet ())
+                {
+                  case 'S':
+                    C_FINISH_STR ("ERT", c_assert); /* ASSERT */
+                    break;
+                  case 'N':
+                    M_FINISH (m_asn, optionCondPrecRound); /* ASN CC P R */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'T':
+              M_FINISH_CHR ('N', m_atn, optionCondPrecRound); /* ATN CC P R */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'B':
+        {
+          int c;
+          switch (c = inputGet ())
+            {
+              case 'I':
+                switch (inputGet ())
+                  {
+                    case 'C':
+                      M_FINISH (m_bic, optionCondS); /* BIC CC s */
+                      break;
+                    case 'N':
+                      C_FINISH (c_bin); /* BIN */
+                      break;
+                    default:
+                      goto illegal;
+                  }
+                break;
+              case 'K':
+                C_FINISH_STR ("PT", m_bkpt); /* BKPT */
+                break;
+              case 'L':
 		{
-		case 'o':
-		case 'O':
-		  C_FINISH_STR ("rt", c_globl);		/* EXPORT */
-		default:
-		  inputUnGet (c);
-		  M_FINISH (m_exp, optionCondPrecRound);	/* exp CC P R */
-		  break;
-		}
-	      break;
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'f':
-      switch (inputGetUC ())
-	{
-	case 'd':
-	  M_FINISH_CHR ('v', m_fdv, optionCondPrecRound);	/* fdv CC P R */
-	case 'i':
-	  M_FINISH_CHR ('x', m_fix, optionCondOptRound);	/* fix CC [P] R */
-	case 'l':
-	  M_FINISH_CHR ('t', m_flt, optionCondPrecRound);	/* flt CC P R */
-	case 'm':
-	  M_FINISH_CHR ('l', m_fml, optionCondPrecRound);	/* fml CC P R */
-	case 'n':
-	  C_FINISH_SYMBOL (c_fn);	/* FN */
-	case 'r':
-	  M_FINISH_CHR ('d', m_frd, optionCondPrecRound);	/* frd CC P R */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'g':
-      switch (inputGetUC ())
-	{
-	case 'b':		/* gbla, gbll, gbls */
-	  if (inputGetUC () == 'l')
-	    {
-	      C_FINISH_VAR (c_gbl)
-	    }
-	  else
-	    goto illegal;
-	case 'e':
-	  C_FINISH_CHR ('t', c_get); /* GET */
-	case 'l':
-	  C_FINISH_STR ("obl", c_globl);	/* globl  */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'h':
-      C_FINISH_STR ("ead", c_head);
-      break;
-    case 'i':
-      switch (inputGetUC ())
-	{
-	case 'd':
-	  C_FINISH_STR ("fn", c_idfn);	/* idfn */
-	case 'n':
-	  switch (inputGetUC ())
-	    {
-	    case 'c':
-	      C_FINISH_STR ("clude", c_get);	/* INCLUDE */
-	    case 'f':
-	      C_FINISH_STR("o", c_info);	/* INFO */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'm':
-	  C_FINISH_STR ("port", c_import);	/* IMPORT */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'k':
-      C_FINISH_STR ("eep", c_keep);	/* KEEP */
-    case 'l':
-      switch (inputGetUC ())
-	{
-	case 'c':		/* lcla, lcll, lcls */
-	  if (inputGetUC () == 'l')
-	    {
-	      C_FINISH_VAR (c_lcl)
-	    }
-	  else
-	    goto illegal;
-	case 'd':
-	  switch (inputGetUC ())
-	    {
-	    case 'c':
-	      switch ((c = inputGet ()))
-		{
-		case '2':
-		  M_FINISH (m_ldc2, optionCondL);	/* ldc2 l */
-		default:
-		  inputUnGet (c);
-		  M_FINISH (m_ldc, optionCondL);	/* ldc CC l */
-		}
-	      break;
-	    case 'f':
-	      M_FINISH (m_ldf, optionCondPrec_P);	/* ldf CC P */
-	    case 'm':
-	      M_FINISH (m_ldm, optionCondDirLdm);	/* ldm CC TYPE */
-	    case 'r':
-	      M_FINISH (m_ldr, optionCondBT);	/* ldr CC BYTE */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'f':
-	  M_FINISH_LFM (m_lfm);	/* lfm CC (TYPE) */
-	case 'g':
-	  M_FINISH_CHR ('n', m_lgn, optionCondPrecRound);	/* lgn CC P R */
-	case 'n':
-	  C_FINISH_CHR ('k', c_lnk);	/* lnk */
-	case 'o':
-	  switch (inputGetUC ())
-	    {
-	    case 'c':
-	      if (!option_local)
-		goto illegal;
-	      C_FINISH_FLOW ("al", c_local);	/* local */
-	    case 'g':
-	      M_FINISH (m_log, optionCondPrecRound);	/* log CC P R */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 't':
-	  C_FINISH_STR ("org", c_ltorg);	/* ltorg */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'm':
-      switch (inputGetUC ())
-	{
-	case 'a':
-	  C_FINISH_FLOW ("cro", c_macro);	/* macro */
-	case 'c':
-	  switch (inputGetUC ())
-	    {
-	    case 'r':
-	      switch ((c = inputGet ()))
-		{
-		case '2':
-		  C_FINISH (m_mcr2);	/* mcr2 */
-		case 'r':
-		case 'R':
-		  M_FINISH (m_mcrr, optionCond);	/* mcrr CC */
-		default:
-		  inputUnGet (c);
-		  M_FINISH (m_mcr, optionCond);	/* mcr CC */
-		}
-	      break;
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'e':
-	  C_FINISH_FLOW ("xit", c_mexit);	/* mexit */
-	case 'l':
-	  M_FINISH_CHR ('a', m_mla, optionCondS);	/* mla CC s */
-	case 'n':
-	  M_FINISH_CHR ('f', m_mnf, optionCondPrecRound);	/* mnf CC P R */
-	case 'o':
-	  M_FINISH_CHR ('v', m_mov, optionCondS);	/* mov CC s */
-	case 'r':
-	  switch (inputGetUC ())
-	    {
-	    case 'c':
-	      switch ((c = inputGet ()))
-		{
-		case '2':
-		  C_FINISH (m_mrc2);	/* mrc2 */
-		default:
-		  inputUnGet (c);
-		  M_FINISH (m_mrc, optionCond);	/* mrc CC */
-		}
-	      break;
-	    case 'r':
-	      M_FINISH_CHR ('c', m_mrrc, optionCond);	/* mrrc CC */
-	    case 's':
-	      M_FINISH (m_mrs, optionCond);	/* mrs CC */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 's':
-	  M_FINISH_CHR ('r', m_msr, optionCond);	/* msr CC */
-	case 'u':
-	  switch (inputGetUC ())
-	    {
-	    case 'f':
-	      M_FINISH (m_muf, optionCondPrecRound);	/* muf CC P R */
-	    case 'l':
-	      M_FINISH (m_mul, optionCondS);	/* mul CC s */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'v':
-	  switch (inputGetUC ())
-	    {
-	    case 'f':
-	      M_FINISH (m_mvf, optionCondPrecRound);	/* mvf CC P R */
-	    case 'n':
-	      M_FINISH (m_mvn, optionCondS);	/* mvn CC s */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'n':
-      switch (inputGetUC ())
-	{
-	case 'o':
-	  C_FINISH_STR ("p", m_nop);	/* nop */
-	case 'r':
-	  M_FINISH_STR ("m", m_nrm, optionCondPrecRound);	/* nrm CC P R */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'o':
-      switch (inputGetUC ())
-	{
-	case 'p':
-	  C_FINISH_STR ("t", c_opt);	/* opt */
-	case 'r':
-	  M_FINISH_STR ("r", m_orr, optionCondS);	/* orr CC s */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'p':
-      switch (inputGetUC ())
-	{
-	case 'l':
-	  C_FINISH_STR ("d", m_pld);	/* pld */
-	case 'o':
-	  switch (inputGetUC ())
-	    {
-	    case 'l':
-	      M_FINISH (m_pol, optionCondPrecRound);	/* pol CC P R */
-	    case 'w':
-	      M_FINISH (m_pow, optionCondPrecRound);	/* pow CC P R */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'q':
-      switch (inputGetUC ())
-	{
-	case 'a':
-	  M_FINISH_STR ("dd", m_qadd, optionCond);	/* qadd CC */
-	case 'd':
-	  switch (inputGetUC ())
-	    {
-	    case 'a':
-	      M_FINISH_STR ("dd", m_qdadd, optionCond);	/* qdadd CC */
-	    case 's':
-	      M_FINISH_STR ("ub", m_qdsub, optionCond);	/* qdsub CC */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 's':
-	  M_FINISH_STR("ub", m_qsub, optionCond);	/* qsub CC */
-	}
-      break;
-    case 'r':
-      switch (inputGetUC ())
-	{
-	case 'd':
-	  M_FINISH_CHR ('f', m_rdf, optionCondPrecRound);	/* rdf CC P R */
-	case 'e':
-	  M_FINISH_CHR ('t', m_ret, optionCond);	/* ret CC */
-	case 'f':
-	  switch (inputGetUC ())
-	    {
-	    case 'c':
-	      M_FINISH (m_rfc, optionCond);	/* rfc CC */
-	    case 's':
-	      M_FINISH (m_rfs, optionCond);	/* rfs CC */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'm':
-	  M_FINISH_CHR ('f', m_rmf, optionCondPrecRound);	/* rmf CC P R */
-	case 'n':
-	  switch (c = inputGet ())
-	    {
-	    case 'd':
-	    case 'D':
-	      M_FINISH (m_rnd, optionCondPrecRound);	/* rnd CC P R */
-	    default:
-	      inputUnGet (c);
-	      C_FINISH_SYMBOL (c_rn);	/* rn */
-	      break;
-	    }
-	  break;
-	case 'o':
-	  C_FINISH_FLOW ("ut", c_rout);		/* rout */
-	case 'p':
-	  M_FINISH_CHR ('w', m_rpw, optionCondPrecRound);	/* rpw CC P R */
-	case 's':
-	  switch (inputGetUC ())
-	    {
-	    case 'b':
-	      M_FINISH (m_rsb, optionCondS);	/* rsb CC s */
-	    case 'c':
-	      M_FINISH (m_rsc, optionCondS);	/* rsc CC s */
-	    case 'f':
-	      M_FINISH (m_rsf, optionCondPrecRound);	/* rsf CC P R */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	default:
-	  goto illegal;
-	}
-      break;
-    case 's':
-      switch (inputGetUC ())
-	{
-	case 'b':
-	  M_FINISH_CHR ('c', m_sbc, optionCondS);	/* sbc CC s */
-	case 'e':		/* seta, setl, sets */
-	  if (inputGetUC () == 't')
-	    {
-	      C_FINISH_VAR (c_set)
-	    }
-	  else
-	    goto illegal;
-	case 'f':
-	  M_FINISH_LFM (m_sfm);	/* sfm CC (TYPE) */
-	case 'i':
-	  M_FINISH_CHR ('n', m_sin, optionCondPrecRound);	/* sin CC P R */
-	case 'm':
-	  switch (inputGetUC ())
-	    {
-	    case 'u':
-	      switch (inputGetUC ())
-		{
-		case 'l':
-		  switch (inputGetUC ())
+		  if (inputLook () == 'X')
 		    {
-		    case 'l':
-		      M_FINISH (m_smull, optionCondS);	/* smull CC */
-		    case 'b':
-		      switch (inputGetUC ())
-			{
-			case 'b':
-			  M_FINISH (m_smulbb, optionCond); /* smulbb CC */
-			case 't':
-			  M_FINISH (m_smulbt, optionCond); /* smulbt CC */
-			default:
-			  goto illegal;
-			}
-		      break;
-		    case 't':
-		      switch (inputGetUC ())
-			{
-			case 'b':
-			  M_FINISH (m_smultb, optionCond); /* smultb CC */
-			case 't':
-			  M_FINISH (m_smultt, optionCond); /* smultt CC */
-			default:
-			  goto illegal;
-			}
-		      break;
-		    case 'w':
-		      switch (inputGetUC ())
-			{
-			case 'b':
-			  M_FINISH (m_smulwb, optionCond); /* smulwb CC */
-			case 't':
-			  M_FINISH (m_smulwt, optionCond); /* smulwt CC */
-			default:
-			  goto illegal;
-			}
-		      break;
+		      inputSkip ();
+                      M_FINISH (m_blx, optionCond); /* BLX CC */
 		    }
-		  break;
+                  else
+                    {
+                      inputUnGet (c);
+                      M_FINISH (m_branch, optionLinkCond); /* BL CC */
+                    }
 		}
-	      break;
-	    case 'l':
-	      switch (inputGetUC ())
-		{
-		case 'a':
-		  switch (inputGetUC ())
-		    {
-		    case 'l':
-		      switch ((c = inputGet ()))
-			{
-			case 'b':
-			case 'B':
-			  switch (inputGetUC ())
-			    {
-			    case 'b':
-			      M_FINISH (m_smlalbb, optionCond); /* smlalbb CC */
-			    case 't':
-			      M_FINISH (m_smlalbt, optionCond); /* smlalbt CC */
-			    default:
-			      goto illegal;
-			    }
-			  break;
-			case 't':
-			case 'T':
-			  switch (inputGetUC ())
-			    {
-			    case 'b':
-			      M_FINISH (m_smlaltb, optionCond); /* smlaltb CC */
-			    case 't':
-			      M_FINISH (m_smlaltt, optionCond); /* smlaltt CC */
-			    default:
-			      goto illegal;
-			    }
-			  break;
-			default:
-			  inputUnGet (c);
-			  M_FINISH (m_smlal, optionCondS); /* smlal CC S */
-			}
-		      break;
-		    case 'b':
-		      switch (inputGetUC ())
-			{
-			case 'b':
-			  M_FINISH (m_smlabb, optionCond); /* smlabb CC */
-			case 't':
-			  M_FINISH (m_smlabt, optionCond); /* smlabt CC */
-			default:
-			  goto illegal;
-			}
-		      break;
-		    case 't':
-		      switch (inputGetUC ())
-			{
-			case 'b':
-			  M_FINISH (m_smlatb, optionCond); /* smlatb CC */
-			case 't':
-			  M_FINISH (m_smlatt, optionCond); /* smlatt CC */
-			default:
-			  goto illegal;
-			}
-		      break;
-		    case 'w':
-		      switch (inputGetUC ())
-			{
-			case 'b':
-			  M_FINISH (m_smlawb, optionCond); /* smlawb CC */
-			case 't':
-			  M_FINISH (m_smlawt, optionCond); /* smlawt CC */
-			default:
-			  goto illegal;
-			}
-		      break;
-		    }
-		  break;
-		default:
-		  goto illegal;
-		}
-	      break;
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'q':
-	  M_FINISH_CHR ('t', m_sqt, optionCondPrecRound);	/* sqt CC P R */
-	case 't':
-	  switch (inputGetUC ())
-	    {
-	    case 'a':
-	      C_FINISH_STR ("ck", m_stack);	/* stack CC */
-	    case 'c':
-	      switch ((c = inputGet ()))
-		{
-		case '2':
-		  M_FINISH (m_stc2, optionCondL);	/* stc2 l */
-		default:
-		  inputUnGet (c);
-		  M_FINISH (m_stc, optionCondL);	/* stc CC l */
-		}
-	      break;
-	    case 'f':
-	      M_FINISH (m_stf, optionCondPrec_P);	/* stf CC P */
-	    case 'm':
-	      M_FINISH (m_stm, optionCondDirStm);	/* stm CC TYPE */
-	    case 'r':
-	      switch (c = inputGet ())
-		{
-		case 'o':
-		case 'O':
-		  C_FINISH_STR ("ng", c_strong);	/* STRONG */
-		default:
-		  inputUnGet (c);
-		  M_FINISH (m_str, optionCondBT);	/* str CC BYTE */
-		  break;
-		}
-	      break;
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'u':
-	  switch (inputGetUC ())
-	    {
-	    case 'b':
-               switch (c = inputGet ())
-                 {
-                 case 't':
-                 case 'T':
-                   C_FINISH (c_title);                  /* SUBT */
-                 default:
-                   inputUnGet (c);
-                   M_FINISH (m_sub, optionCondS);	/* sub CC s */
-                 }
-               break;
-	    case 'f':
-	      M_FINISH (m_suf, optionCondPrecRound);	/* suf CC P R */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'w':
-	  switch (inputGetUC ())
-	    {
-	    case 'i':
-	      M_FINISH (m_swi, optionCond);	/* swi CC */
-	    case 'p':
-	      M_FINISH (m_swp, optionCondB);	/* swp CC BYTE */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	default:
-	  goto illegal;
-	}
-      break;
-    case 't':
-      switch (inputGetUC ())
-	{
-	case 'a':
-	  switch (inputGetUC ())
-	    {
-	    case 'i':
-	      M_FINISH_CHR ('l', m_tail, optionCond);	/* tail CC */
-	    case 'n':
-	      M_FINISH (m_tan, optionCondPrecRound);	/* tan CC P R */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'e':
-	  M_FINISH_CHR ('q', m_teq, optionCondSP);	/* teq CC sp */
-	case 's':
-	  M_FINISH_CHR ('t', m_tst, optionCondSP);	/* tst CC sp */
-	case 't':
-	  C_FINISH_CHR ('l', c_title);			/* TTL */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'u':
-      switch (inputGetUC ())
-	{
-	case 'm':
-	  switch (inputGetUC ())
-	    {
-	    case 'u':
-	      M_FINISH_STR ("ll", m_umull, optionCondS);	/* umull CC */
-	    case 'l':
-	      M_FINISH_STR ("al", m_umlal, optionCondS);	/* umlal CC */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'r':
-	  M_FINISH_CHR ('d', m_urd, optionCondPrecRound);	/* urd CC P R */
-	default:
-	  goto illegal;
-	}
-      break;
-    case 'w':
-      switch (inputGetUC ())
-	{
-	case 'e':
-	  C_FINISH_FLOW ("nd", c_wend);		/* wend */
-	case 'f':
-	  switch (inputGetUC ())
-	    {
-	    case 'c':
-	      M_FINISH (m_wfc, optionCond);	/* wfc CC */
-	    case 's':
-	      M_FINISH (m_wfs, optionCond);	/* wfs CC */
-	    default:
-	      goto illegal;
-	    }
-	  break;
-	case 'h':
-	  C_FINISH_FLOW ("ile", c_while);	/* while */
-	default:
-	  goto illegal;
-	}
-      break;
-    case '[':
-      if (inputLook () && !isspace (inputGet ()))
-	goto illegal;
-      skipblanks ();
-      asm_label (label);
-      c_if ();
-      break;
-    case '|':
-      if (inputLook () && !isspace (inputGet ()))
-	goto illegal;
-      skipblanks ();
-      c_else (label);
-      break;
-    case ']':
-      if (inputLook () && !isspace (inputGet ()))
-	goto illegal;
-      skipblanks ();
-      c_endif (label);
-      break;
-    default:
+                break;
+              case 'X':
+                M_FINISH (m_bx, optionCond);  /* BX CC */
+                break;
+              default:
+                inputUnGet (c);
+                M_FINISH (m_branch, optionCond); /* B CC */
+                break;
+            }
+        }
+        break;
+
+      case 'C':
+        switch (inputGet ())
+          {
+            case 'D':
+              switch (inputGet ())
+                {
+                  case 'P':
+                    {
+                      int c;
+                      switch ((c = inputGet ()))
+                        {
+                          case '2':
+                            C_FINISH (m_cdp2); /* CDP2 */
+                            break;
+                          default:
+                            inputUnGet (c);
+                            M_FINISH (m_cdp, optionCond); /* CDP CC */
+                            break;
+                        }
+                    }
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'L':
+              M_FINISH_CHR ('Z', m_clz, optionCond); /* CLZ CC */
+              break;
+            case 'M':
+              switch (inputGet ())
+                {
+                  case 'F':
+                    M_FINISH (m_cmf, optionExceptionCond); /* CMF CC  or CMFE CC */
+                    break;
+                  case 'N':
+                    M_FINISH (m_cmn, optionCondSP); /* CMN CC SP */
+                    break;
+                  case 'P':
+                    M_FINISH (m_cmp, optionCondSP); /* CMP CC SP */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'N':
+              {
+                int c;
+                switch (c = inputGet ())
+                  {
+                    case 'F':
+                      M_FINISH (m_cnf, optionExceptionCond); /* CNF CC or CNFE CC */
+                      break;
+                    default:
+                      inputUnGet (c);
+                      C_FINISH_SYMBOL (c_cn); /* CN */
+                      break;
+                  }
+              }
+              break;
+            case 'O':
+              switch (inputGet ())
+                {
+                  case 'S':
+                    M_FINISH (m_cos, optionCondPrecRound); /* COS CC P R */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'P':
+              C_FINISH_SYMBOL (c_cp); /* CP */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'D':
+        switch (inputGet ())
+          {
+            case 'V':
+              M_FINISH_CHR ('F', m_dvf, optionCondPrecRound); /* DVF CC S */
+              break;
+            case 'C':
+              switch (inputGet ())
+                {
+                  case 'B':
+                    C_FINISH (c_dcb); /* DCB (8 bits) */
+                    break;
+                  case 'D':
+                    C_FINISH (c_dcd); /* DCD (32 bits) */
+                    break;
+                  case 'F':
+                    switch (inputGet ())
+                      {
+                        case 'D':
+                          C_FINISH (c_dcfd); /* DCFD (64 bits float) */
+                          break;
+                        case 'E':
+                          C_FINISH (c_dcfe); /* DCFE (96 bits float) */
+                          break;
+                        case 'P':
+                          C_FINISH (c_dcfp); /* DCFP (80 bits packed BCD) */
+                          break;
+                        case 'S':
+                          C_FINISH (c_dcfs); /* DCFS (32 bits float) */
+                          break;
+                      }
+                    break;
+                  case 'W':
+                    C_FINISH (c_dcw); /* DCW (16 bits) */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'E':
+        switch (inputGet ())
+          {
+            case 'N':
+              switch (inputGet ())
+                {
+                  case 'D':
+                    C_FINISH (c_end); /* END */
+                    break;
+                  case 'T':
+                    C_FINISH_STR ("RY", c_entry); /* ENTRY */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'O':
+              M_FINISH_CHR ('R', m_eor, optionCondS); /* EOR CC S */
+              break;
+            case 'Q':
+              C_FINISH_CHR_SYMBOL ('U', c_equ); /* EQU */
+              break;
+            case 'X':
+              switch (inputGet ())
+                {
+                  case 'P':
+                    {
+                      int c;
+                      switch (c = inputGet ())
+                        {
+                          case 'O':
+                            C_FINISH_STR ("RT", c_globl); /* EXPORT */
+                            break;
+                          default:
+                            inputUnGet (c);
+                            M_FINISH (m_exp, optionCondPrecRound); /* EXP CC P R */
+                            break;
+                        }
+                    }
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'F':
+        switch (inputGet ())
+          {
+            case 'D':
+              M_FINISH_CHR ('V', m_fdv, optionCondPrecRound); /* FDV CC P R */
+              break;
+            case 'I':
+              M_FINISH_CHR ('X', m_fix, optionCondOptRound); /* FIX CC [P] R */
+              break;
+            case 'L':
+              M_FINISH_CHR ('T', m_flt, optionCondPrecRound); /* FLT CC P R */
+              break;
+            case 'M':
+              M_FINISH_CHR ('L', m_fml, optionCondPrecRound); /* FML CC P R */
+              break;
+            case 'N':
+              C_FINISH_SYMBOL (c_fn); /* FN */
+              break;
+            case 'R':
+              M_FINISH_CHR ('D', m_frd, optionCondPrecRound); /* FRD CC P R */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'G':
+        switch (inputGet ())
+          {
+            case 'B': /* GBLA, GBLL, GBLS */
+              if (inputGet () != 'L')
+                goto illegal;
+              C_FINISH_VAR (c_gbl);
+              break;
+            case 'E':
+              C_FINISH_CHR ('T', c_get); /* GET */
+              break;
+            case 'L':
+              C_FINISH_STR ("OBL", c_globl); /* GLOBL  */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'H':
+        C_FINISH_STR ("EAD", c_head); /* HEAD */
+        break;
+
+      case 'I':
+        switch (inputGet ())
+          {
+            case 'D':
+              C_FINISH_STR ("FN", c_idfn); /* IDFN */
+              break;
+            case 'N':
+              switch (inputGet ())
+                {
+                  case 'C':
+                    C_FINISH_STR ("LUDE", c_get); /* INCLUDE */
+                    break;
+                  case 'F':
+                    C_FINISH_STR("O", c_info); /* INFO */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'M':
+              C_FINISH_STR ("PORT", c_import); /* IMPORT */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'K':
+        C_FINISH_STR ("EEP", c_keep); /* KEEP */
+        break;        
+
+      case 'L':
+        switch (inputGet ())
+          {
+            case 'C': /* LCLA, LCLL, LCLS */
+              if (inputGet () != 'L')
+                goto illegal;
+              C_FINISH_VAR (c_lcl);
+              break;
+            case 'D':
+              switch (inputGet ())
+                {
+                  case 'C':
+                    {
+                      int c;
+                      switch ((c = inputGet ()))
+                        {
+                          case '2':
+                            M_FINISH (m_ldc2, optionCondL); /* LDC2 L */
+                            break;
+                          default:
+                            inputUnGet (c);
+                            M_FINISH (m_ldc, optionCondL); /* LDC CC l */
+                            break;
+                        }
+                    }
+                    break;
+                  case 'F':
+                    M_FINISH (m_ldf, optionCondPrec_P); /* LDF CC P */
+                    break;
+                  case 'M':
+                    M_FINISH (m_ldm, optionCondDirLdm); /* LDM CC TYPE */
+                    break;
+                  case 'R':
+                    M_FINISH (m_ldr, optionCondBT); /* LDR CC BYTE */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'F':
+              M_FINISH_LFM (m_lfm); /* LFM CC (TYPE) */
+              break;
+            case 'G':
+              M_FINISH_CHR ('N', m_lgn, optionCondPrecRound); /* LGN CC P R */
+              break;
+            case 'N':
+              C_FINISH_CHR ('K', c_lnk); /* LNK */
+              break;
+            case 'O':
+              switch (inputGet ())
+                {
+                  case 'C':
+                    if (!option_local)
+                      goto illegal;
+                    C_FINISH_FLOW ("AL", c_local); /* LOCAL */
+                    break;
+                  case 'G':
+                    M_FINISH (m_log, optionCondPrecRound); /* LOG CC P R */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'T':
+              C_FINISH_STR ("ORG", c_ltorg); /* LTORG */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'M':
+        switch (inputGet ())
+          {
+            case 'A':
+              C_FINISH_FLOW ("CRO", c_macro); /* MACRO */
+              break;
+            case 'C':
+              switch (inputGet ())
+                {
+                  case 'R':
+                    {
+                      int c;
+                      switch ((c = inputGet ()))
+                        {
+                          case '2':
+                            C_FINISH (m_mcr2); /* MCR2 */
+                            break;
+                          case 'R':
+                            M_FINISH (m_mcrr, optionCond); /* MCRR CC */
+                            break;
+                          default:
+                            inputUnGet (c);
+                            M_FINISH (m_mcr, optionCond); /* MCR CC */
+                            break;
+                        }
+                    }
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'E':
+              C_FINISH_FLOW ("XIT", c_mexit); /* MEXIT */
+              break;
+            case 'L':
+              M_FINISH_CHR ('A', m_mla, optionCondS); /* MLA CC s */
+              break;
+            case 'N':
+              M_FINISH_CHR ('F', m_mnf, optionCondPrecRound); /* MNF CC P R */
+              break;
+            case 'O':
+              M_FINISH_CHR ('V', m_mov, optionCondS); /* MOV CC s */
+              break;
+            case 'R':
+              switch (inputGet ())
+                {
+                  case 'C':
+                    {
+                      int c;
+                      switch ((c = inputGet ()))
+                        {
+                          case '2':
+                            C_FINISH (m_mrc2); /* MRC2 */
+                            break;
+                          default:
+                            inputUnGet (c);
+                            M_FINISH (m_mrc, optionCond); /* MRC CC */
+                            break;
+                        }
+                    }
+                    break;
+                  case 'R':
+                    M_FINISH_CHR ('C', m_mrrc, optionCond); /* MRRC CC */
+                    break;
+                  case 'S':
+                    M_FINISH (m_mrs, optionCond); /* MRS CC */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'S':
+              M_FINISH_CHR ('R', m_msr, optionCond); /* MSR CC */
+              break;
+            case 'U':
+              switch (inputGet ())
+                {
+                  case 'F':
+                    M_FINISH (m_muf, optionCondPrecRound); /* MUF CC P R */
+                    break;
+                  case 'L':
+                    M_FINISH (m_mul, optionCondS); /* MUL CC s */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'V':
+              switch (inputGet ())
+                {
+                  case 'F':
+                    M_FINISH (m_mvf, optionCondPrecRound); /* MVF CC P R */
+                    break;
+                  case 'N':
+                    M_FINISH (m_mvn, optionCondS); /* MVN CC s */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'N':
+        switch (inputGet ())
+          {
+            case 'O':
+              C_FINISH_CHR ('P', m_nop); /* NOP */
+              break;
+            case 'R':
+              M_FINISH_CHR ('M', m_nrm, optionCondPrecRound); /* NRM CC P R */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'O':
+        switch (inputGet ())
+          {
+            case 'P':
+              C_FINISH_CHR ('T', c_opt); /* OPT */
+              break;
+            case 'R':
+              M_FINISH_CHR ('R', m_orr, optionCondS); /* ORR CC s */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'P':
+        switch (inputGet ())
+          {
+            case 'L':
+              C_FINISH_CHR ('D', m_pld); /* PLD */
+              break;
+            case 'O':
+              switch (inputGet ())
+                {
+                  case 'L':
+                    M_FINISH (m_pol, optionCondPrecRound); /* POL CC P R */
+                    break;
+                  case 'W':
+                    M_FINISH (m_pow, optionCondPrecRound); /* POW CC P R */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'Q':
+        switch (inputGet ())
+          {
+            case 'A':
+              M_FINISH_STR ("DD", m_qadd, optionCond); /* QADD CC */
+              break;
+            case 'D':
+              switch (inputGet ())
+                {
+                  case 'A':
+                    M_FINISH_STR ("DD", m_qdadd, optionCond); /* QDADD CC */
+                    break;
+                  case 'S':
+                    M_FINISH_STR ("UB", m_qdsub, optionCond); /* QDSUB CC */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'S':
+              M_FINISH_STR("UB", m_qsub, optionCond); /* QSUB CC */
+              break;
+          }
+        break;
+
+      case 'R':
+        switch (inputGet ())
+          {
+            case 'D':
+              M_FINISH_CHR ('F', m_rdf, optionCondPrecRound); /* RDF CC P R */
+              break;
+            case 'E':
+              M_FINISH_CHR ('T', m_ret, optionCond); /* RET CC */
+              break;
+            case 'F':
+              switch (inputGet ())
+                {
+                  case 'C':
+                    M_FINISH (m_rfc, optionCond); /* RFC CC */
+                    break;
+                  case 'S':
+                    M_FINISH (m_rfs, optionCond); /* RFS CC */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'M':
+              M_FINISH_CHR ('F', m_rmf, optionCondPrecRound); /* RMF CC P R */
+              break;
+            case 'N':
+              {
+                int c;
+                switch (c = inputGet ())
+                  {
+                    case 'D':
+                      M_FINISH (m_rnd, optionCondPrecRound); /* RND CC P R */
+                      break;
+                    default:
+                      inputUnGet (c);
+                      C_FINISH_SYMBOL (c_rn); /* RN */
+                      break;
+                  }
+              }
+              break;
+            case 'O':
+              C_FINISH_FLOW ("UT", c_rout); /* ROUT */
+              break;
+            case 'P':
+              M_FINISH_CHR ('W', m_rpw, optionCondPrecRound); /* RPW CC P R */
+              break;
+            case 'S':
+              switch (inputGet ())
+                {
+                  case 'B':
+                    M_FINISH (m_rsb, optionCondS); /* RSB CC s */
+                    break;
+                  case 'C':
+                    M_FINISH (m_rsc, optionCondS); /* RSC CC s */
+                    break;
+                  case 'F':
+                    M_FINISH (m_rsf, optionCondPrecRound); /* RSF CC P R */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'S':
+        switch (inputGet ())
+          {
+            case 'B':
+              M_FINISH_CHR ('C', m_sbc, optionCondS); /* SBC CC s */
+              break;
+            case 'E': /* SETA, SETL, SETS */
+              if (inputGet () != 'T')
+                goto illegal;
+              C_FINISH_VAR (c_set);
+              break;
+            case 'F':
+              M_FINISH_LFM (m_sfm); /* SFM CC (TYPE) */
+              break;
+            case 'I':
+              M_FINISH_CHR ('N', m_sin, optionCondPrecRound); /* SIN CC P R */
+              break;
+            case 'M':
+              switch (inputGet ())
+                {
+                  case 'U': /* SMU... */
+                    if (inputGet () != 'L')
+                      goto illegal;
+                    /* SMUL... */
+                    switch (inputGet ())
+                      {
+                        case 'L':
+                          M_FINISH (m_smull, optionCondS);  /* SMULL CC */
+                          break;
+                        case 'B':
+                          switch (inputGet ())
+                            {
+                              case 'B':
+                                M_FINISH (m_smulbb, optionCond); /* SMULBB CC */
+                                break;
+                              case 'T':
+                                M_FINISH (m_smulbt, optionCond); /* SMULBT CC */
+                                break;
+                              default:
+                                goto illegal;
+                            }
+                          break;
+                        case 'T':
+                          switch (inputGet ())
+                            {
+                              case 'B':
+                                M_FINISH (m_smultb, optionCond); /* SMULTB CC */
+                                break;
+                              case 'T':
+                                M_FINISH (m_smultt, optionCond); /* SMULTT CC */
+                                break;
+                              default:
+                                goto illegal;
+                            }
+                          break;
+                        case 'W':
+                          switch (inputGet ())
+                            {
+                              case 'B':
+                                M_FINISH (m_smulwb, optionCond); /* SMULWB CC */
+                                break;
+                              case 'T':
+                                M_FINISH (m_smulwt, optionCond); /* SMULWT CC */
+                                break;
+                              default:
+                                goto illegal;
+                            }
+                          break;
+                        default:
+                          goto illegal;
+                      }
+                    break;
+                  case 'L': /* SML... */
+                    if (inputGet () != 'A')
+                      goto illegal;
+                    switch (inputGet ())
+                      {
+                        case 'L': /* SMLAL... */
+                          {
+                            int c;
+                            switch ((c = inputGet ()))
+                              {
+                                case 'B':
+                                  switch (inputGet ())
+                                    {
+                                      case 'B':
+                                        M_FINISH (m_smlalbb, optionCond); /* SMLALBB CC */
+                                        break;
+                                      case 'T':
+                                        M_FINISH (m_smlalbt, optionCond); /* SMLALBT CC */
+                                        break;
+                                      default:
+                                        goto illegal;
+                                    }
+                                  break;
+                                case 'T':
+                                  switch (inputGet ())
+                                    {
+                                      case 'B':
+                                        M_FINISH (m_smlaltb, optionCond); /* SMLALTB CC */
+                                        break;
+                                      case 'T':
+                                        M_FINISH (m_smlaltt, optionCond); /* SMLALTT CC */
+                                        break;
+                                      default:
+                                        goto illegal;
+                                    }
+                                  break;
+                                default:
+                                  inputUnGet (c);
+                                  M_FINISH (m_smlal, optionCondS); /* SMLAL CC S */
+                                  break;
+                              }
+                          }
+                          break;
+                        case 'B': /* SMLAB... */
+                          switch (inputGet ())
+                            {
+                              case 'B':
+                                M_FINISH (m_smlabb, optionCond); /* SMLABB CC */
+                                break;
+                              case 'T':
+                                M_FINISH (m_smlabt, optionCond); /* SMLABT CC */
+                                break;
+                              default:
+                                goto illegal;
+                            }
+                          break;
+                        case 'T': /* SMLAT... */
+                          switch (inputGet ())
+                            {
+                              case 'B':
+                                M_FINISH (m_smlatb, optionCond); /* SMLATB CC */
+                                break;
+                              case 'T':
+                                M_FINISH (m_smlatt, optionCond); /* SMLATT CC */
+                                break;
+                              default:
+                                goto illegal;
+                            }
+                          break;
+                        case 'W': /* SMLAW... */
+                          switch (inputGet ())
+                            {
+                              case 'B':
+                                M_FINISH (m_smlawb, optionCond); /* SMLAWB CC */
+                                break;
+                              case 'T':
+                                M_FINISH (m_smlawt, optionCond); /* SMLAWT CC */
+                                break;
+                              default:
+                                goto illegal;
+                            }
+                          break;
+                      }
+                    break;
+                }
+              break;
+            case 'Q':
+              M_FINISH_CHR ('T', m_sqt, optionCondPrecRound); /* SQT CC P R */
+              break;
+            case 'T':
+              switch (inputGet ())
+                {
+                  case 'A':
+                    C_FINISH_STR ("CK", m_stack); /* STACK CC */
+                    break;
+                  case 'C':
+                    {
+                      int c;
+                      switch ((c = inputGet ()))
+                        {
+                          case '2':
+                            M_FINISH (m_stc2, optionCondL); /* STC2 l */
+                            break;
+                          default:
+                            inputUnGet (c);
+                            M_FINISH (m_stc, optionCondL); /* STC CC l */
+                            break;
+                        }
+                    }
+                    break;
+                  case 'F':
+                    M_FINISH (m_stf, optionCondPrec_P); /* STF CC P */
+                    break;
+                  case 'M':
+                    M_FINISH (m_stm, optionCondDirStm); /* STM CC TYPE */
+                    break;
+                  case 'R':
+                    {
+                      int c;
+                      switch (c = inputGet ())
+                        {
+                          case 'O':
+                            C_FINISH_STR ("NG", c_strong); /* STRONG */
+                            break;
+                          default:
+                            inputUnGet (c);
+                            M_FINISH (m_str, optionCondBT); /* STR CC BYTE */
+                            break;
+                        }
+                    }
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'U': /* SU... */
+              switch (inputGet ())
+                {
+                  case 'B':
+                    {
+                      int c;
+                      switch (c = inputGet ())
+                        {
+                          case 'T':
+                            C_FINISH (c_title); /* SUBT */
+                            break;
+                          default:
+                            inputUnGet (c);
+                            M_FINISH (m_sub, optionCondS); /* SUB CC s */
+                            break;
+                        }
+                    }
+                    break;
+                  case 'F':
+                    M_FINISH (m_suf, optionCondPrecRound); /* SUF CC P R */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'W': /* SW... */
+              switch (inputGet ())
+                {
+                  case 'I':
+                    M_FINISH (m_swi, optionCond); /* SWI CC */
+                    break;
+                  case 'P':
+                    M_FINISH (m_swp, optionCondB); /* SWP CC BYTE */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'T':
+        switch (inputGet ())
+          {
+            case 'A':
+              switch (inputGet ())
+                {
+                  case 'I':
+                    M_FINISH_CHR ('L', m_tail, optionCond); /* TAIL CC */
+                    break;
+                  case 'N':
+                    M_FINISH (m_tan, optionCondPrecRound); /* TAN CC P R */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'E':
+              M_FINISH_CHR ('Q', m_teq, optionCondSP); /* TEQ CC sp */
+              break;
+            case 'S':
+              M_FINISH_CHR ('T', m_tst, optionCondSP); /* TST CC sp */
+              break;
+            case 'T':
+              C_FINISH_CHR ('L', c_title); /* TTL */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'U':
+        switch (inputGet ())
+          {
+            case 'M':
+              switch (inputGet ())
+                {
+                  case 'U':
+                    M_FINISH_STR ("LL", m_umull, optionCondS); /* UMULL CC */
+                    break;
+                  case 'L':
+                    M_FINISH_STR ("AL", m_umlal, optionCondS); /* UMLAL CC */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'R':
+              M_FINISH_CHR ('D', m_urd, optionCondPrecRound); /* URD CC P R */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case 'W':
+        switch (inputGet ())
+          {
+            case 'E':
+              C_FINISH_FLOW ("ND", c_wend); /* WEND */
+              break;
+            case 'F':
+              switch (inputGet ())
+                {
+                  case 'C':
+                    M_FINISH (m_wfc, optionCond); /* WFC CC */
+                    break;
+                  case 'S':
+                    M_FINISH (m_wfs, optionCond); /* WFS CC */
+                    break;
+                  default:
+                    goto illegal;
+                }
+              break;
+            case 'H':
+              C_FINISH_FLOW ("ILE", c_while); /* WHILE */
+              break;
+            default:
+              goto illegal;
+          }
+        break;
+
+      case '[':
+        if (inputLook () && !isspace (inputGet ()))
+          goto illegal;
+        skipblanks ();
+        asm_label (label);
+        c_if ();
+        break;
+
+      case '|':
+        if (inputLook () && !isspace (inputGet ()))
+          goto illegal;
+        skipblanks ();
+        c_else (label);
+        break;
+
+      case ']':
+        if (inputLook () && !isspace (inputGet ()))
+          goto illegal;
+        skipblanks ();
+        c_endif (label);
+        break;
+
+      default:
 illegal:
-      { /* Is it a macro call? */
-	const Macro *m;
-	if (macro)
-	  {
-	    inputRollback ();
-	    size_t l;
-	    char *ci;
-	    if (inputLook () == '|')
-	      {
-		inputSkip ();
-		ci = inputSymbol (&l, '|');
-		if (inputGet () != '|')
-		  error (ErrorError, "Identifier continues over newline");
-	      }
-	    else
-	      ci = inputSymbol (&l, '\0');
-	    m = macroFind (l, ci);
-	  }
-	else
-	  m = NULL;
-	if (m)
-	  macroCall (m, label);
-	else
-	  {
-	    inputRollback ();
-	    errorAbort ("Illegal line \"%s\"", inputRest ());
-	  }
-      break;
-      }
+        { /* Is it a macro call? */
+          const Macro *m;
+          if (macro)
+            {
+              Input_RollBackToMark (inputMark);
+              size_t l;
+              char *ci;
+              if (inputLook () == '|')
+                {
+                  inputSkip ();
+                  ci = inputSymbol (&l, '|');
+                  if (inputGet () != '|')
+                    error (ErrorError, "Identifier continues over newline");
+                }
+              else
+                ci = inputSymbol (&l, '\0');
+              m = macroFind (l, ci);
+            }
+          else
+            m = NULL;
+          if (m)
+            macroCall (m, label);
+          else
+            {
+              Input_RollBackToMark (inputMark);
+	      const char *line = inputRest ();
+	      size_t len = strlen (line);
+	      if (len != 0 && line[len - 1] == '\n')
+		--len;
+              errorAbort ("Illegal line \"%.*s\"", (int)len, line);
+            }
+        }
+        break;
     }
   skipblanks ();
-  if (!inputComment ())
-    errorAbort ("Skipping extra characters '%s'", inputRest ());
+  if (!Input_IsEolOrCommentStart ())
+    {
+      const char *line = inputRest ();
+      size_t len = strlen (line);
+      if (len != 0 && line[len - 1] == '\n')
+	--len;
+      errorAbort ("Skipping extra characters '%.*s'", (int)len, line);
+    }
 }

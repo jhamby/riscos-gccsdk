@@ -288,7 +288,7 @@ codeEvalLowest (int size, const Code *program, int *sp)
 		    case ValueBool:
 #ifdef DEBUG_CODE
 		      printf ("[Symbol %.*s value push: ",
-			      program[i].Data.symbol->len,
+			      (int)program[i].Data.symbol->len,
 			      program[i].Data.symbol->str);
 		      valuePrint (&program[i].Data.symbol->value);
 		      printf ("] ");
@@ -320,7 +320,7 @@ codeEvalLowest (int size, const Code *program, int *sp)
 	      { /* Undefined or area or late register.  */
 #ifdef DEBUG_CODE
 		printf ("[Late symbol %.*s value push] ",
-			program[i].Data.symbol->len,
+			(int)program[i].Data.symbol->len,
 			program[i].Data.symbol->str);
 #endif
 		Stack[++(*sp)].Tag = ValueLateLabel;
@@ -377,10 +377,7 @@ codeEvalLow (ValueTag legal, int size, Code *program)
   else if (sp == 0)
     Result = Stack[0];
   else
-    {
-      assert (0); /* <= FIXME: I've added a CantHappen as I would like to know if this possible.  */
-      Result.Tag = ValueIllegal;
-    }
+    Result.Tag = ValueIllegal;
 
   if (!(Result.Tag & legal))
     {
@@ -488,7 +485,7 @@ codePrint (int size, const Code *program)
 		    case ValueString:
 		    case ValueBool:
 		      printf ("[Symbol %.*s : ",
-			      program[i].Data.symbol->len,
+			      (int)program[i].Data.symbol->len,
 			      program[i].Data.symbol->str);
 		      valuePrint (&program[i].Data.symbol->value);
 		      printf ("] ");
@@ -505,7 +502,7 @@ codePrint (int size, const Code *program)
 	    else
 	      {
 		printf ("[Late Symbol %.*s : ",
-			program[i].Data.symbol->len,
+			(int)program[i].Data.symbol->len,
 			program[i].Data.symbol->str);
 	      }
 	    break;

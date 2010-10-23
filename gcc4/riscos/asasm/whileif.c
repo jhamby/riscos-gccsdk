@@ -182,7 +182,7 @@ while_skip (void)
 void
 c_while (const Lex *label __attribute__ ((unused)))
 {
-  inputMark ();
+  char * const inputMark = Input_GetMark ();
   /* Evaluate expression */
   Value flag = exprBuildAndEval (ValueBool);
   if (flag.Tag != ValueBool)
@@ -213,7 +213,7 @@ c_while (const Lex *label __attribute__ ((unused)))
   if ((whileNew = malloc (sizeof (WhileBlock))) == NULL)
     errorOutOfMem ();
   /* Copy expression */
-  inputRollback ();
+  Input_RollBackToMark (inputMark);
   if ((whileNew->expr = strdup (inputRest ())) == NULL)
     errorOutOfMem ();
   /* Put on stack */

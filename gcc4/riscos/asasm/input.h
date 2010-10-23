@@ -30,7 +30,6 @@
 #include "global.h"
 #include "macros.h"
 
-#define FLIP(x) (isupper((x)) ? tolower((x)) : islower((x)) ? toupper((x)) : ((x)))
 #define TOLOWER(x) tolower((x))
 
 extern bool inputExpand;
@@ -51,18 +50,14 @@ bool inputNextLine (void);
 void skipblanks (void);
 void skiprest (void);
 
-bool inputComment (void);
+bool Input_IsEolOrCommentStart (void);
 char inputLook (void);
 char inputLookLower (void);
-char inputLookUC (void);
 char inputLookN (int n);
 char inputLookNLower (int n);
-char inputLookNUC (int n);
 char inputGet (void);
 char inputGetLower (void);
-char inputGetUC (void);
 void inputUnGet (char c);
-void inputPutBack (char c);
 char inputSkipLook (void);
 char *inputRest (void);
 #if DEBUG
@@ -72,8 +67,8 @@ void inputSkip (void);
 void inputSkipN (int n);
 char *inputSymbol (size_t *ilen, char del);
 
-void inputMark (void);
-void inputRollback (void);
+char *Input_GetMark (void);
+void Input_RollBackToMark (char *mark);
 
 void inputThisInstead (const char *);
 

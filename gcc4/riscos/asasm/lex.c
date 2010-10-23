@@ -200,13 +200,7 @@ lexGetIdInternal (bool genError)
     }
   else
     {
-#if 0	/* inputUnGet validates operation against input_buff,
-	which we may not be using at this point.
-	*/
       inputUnGet (c);
-#else
-      inputPutBack(c);
-#endif
 
       /* Note: we allow identifiers to begin with '#'.  */
       if (isalpha (c) || c == '.' || c == '_' || c == '#')
@@ -812,10 +806,10 @@ lexPrint (const Lex *lex)
   switch (lex->tag)
     {
     case LexId:
-      printf ("Id <%.*s> ", lex->Data.Id.len, lex->Data.Id.str);
+      printf ("Id <%.*s> ", (int)lex->Data.Id.len, lex->Data.Id.str);
       break;
     case LexString:
-      printf ("Str <%.*s> ", lex->Data.String.len, lex->Data.String.str);
+      printf ("Str <%.*s> ", (int)lex->Data.String.len, lex->Data.String.str);
       break;
     case LexInt:
       printf ("Int <%d> ", lex->Data.Int.value);

@@ -37,131 +37,116 @@ static ARMWord
 getCond (void)
 {
   ARMWord cc = AL;
-  switch (inputLookUC ())
+  switch (inputLook ())
     {
-    case 'a':
-      switch (inputLookNUC (1))
+    case 'A':
+      switch (inputLookN (1))
 	{
-	case 'l':
+	case 'L':
 	  cc = AL;
 	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'c':
-      switch (inputLookNUC (1))
+    case 'C':
+      switch (inputLookN (1))
 	{
-	case 'c':
+	case 'C':
 	  cc = CC;
-	  inputSkipN (2);
 	  break;
-	case 's':
+	case 'S':
 	  cc = CS;
-	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'e':
-      switch (inputLookNUC (1))
+    case 'E':
+      switch (inputLookN (1))
 	{
-	case 'q':
+	case 'Q':
 	  cc = EQ;
-	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'g':
-      switch (inputLookNUC (1))
+    case 'G':
+      switch (inputLookN (1))
 	{
-	case 'e':
+	case 'E':
 	  cc = GE;
-	  inputSkipN (2);
 	  break;
-	case 't':
+	case 'T':
 	  cc = GT;
-	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'h':
-      switch (inputLookNUC (1))
+    case 'H':
+      switch (inputLookN (1))
 	{
-	case 'i':
+	case 'I':
 	  cc = HI;
-	  inputSkipN (2);
 	  break;
-	case 's':
+	case 'S':
 	  cc = HS;
-	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'l':
-      switch (inputLookNUC (1))
+    case 'L':
+      switch (inputLookN (1))
 	{
-	case 'e':
+	case 'E':
 	  cc = LE;
-	  inputSkipN (2);
 	  break;
-	case 'o':
+	case 'O':
 	  cc = LO;
-	  inputSkipN (2);
 	  break;
-	case 's':
+	case 'S':
 	  cc = LS;
-	  inputSkipN (2);
 	  break;
-	case 't':
+	case 'T':
 	  cc = LT;
-	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'm':
-      switch (inputLookNUC (1))
+    case 'M':
+      switch (inputLookN (1))
 	{
-	case 'i':
+	case 'I':
 	  cc = MI;
-	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'n':
-      switch (inputLookNUC (1))
+    case 'N':
+      switch (inputLookN (1))
 	{
-	case 'e':
+	case 'E':
 	  cc = NE;
-	  inputSkipN (2);
 	  break;
-	case 'v':
+	case 'V':
 	  cc = NV;
-	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'p':
-      switch (inputLookNUC (1))
+    case 'P':
+      switch (inputLookN (1))
 	{
-	case 'l':
+	case 'L':
 	  cc = PL;
-	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'v':
-      switch (inputLookNUC (1))
+    case 'V':
+      switch (inputLookN (1))
 	{
-	case 'c':
+	case 'C':
 	  cc = VC;
-	  inputSkipN (2);
 	  break;
-	case 's':
+	case 'S':
 	  cc = VS;
-	  inputSkipN (2);
 	  break;
 	}
       break;
     }
+  if (cc != AL)
+    inputSkipN (2);
   return cc;
 }
 
@@ -170,55 +155,55 @@ static ARMWord
 getDir (bool ldm)
 {
   ARMWord dir = optionError;
-  switch (inputLookUC ())
+  switch (inputLook ())
     {
-    case 'd':
-      switch (inputLookNUC (1))
+    case 'D':
+      switch (inputLookN (1))
 	{
-	case 'b':
+	case 'B':
 	  dir = DB;
 	  inputSkipN (2);
 	  break;
-	case 'a':
+	case 'A':
 	  dir = DA;
 	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'e':
-      switch (inputLookNUC (1))
+    case 'E':
+      switch (inputLookN (1))
 	{
-	case 'd':
+	case 'D':
 	  dir = (ldm ? IB : DA);
 	  inputSkipN (2);
 	  break;
-	case 'a':
+	case 'A':
 	  dir = (ldm ? DB : IA);
 	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'f':
-      switch (inputLookNUC (1))
+    case 'F':
+      switch (inputLookN (1))
 	{
-	case 'd':
+	case 'D':
 	  dir = (ldm ? IA : DB);
 	  inputSkipN (2);
 	  break;
-	case 'a':
+	case 'A':
 	  dir = (ldm ? DA : IB);
 	  inputSkipN (2);
 	  break;
 	}
       break;
-    case 'i':
-      switch (inputLookNUC (1))
+    case 'I':
+      switch (inputLookN (1))
 	{
-	case 'b':
+	case 'B':
 	  dir = IB;
 	  inputSkipN (2);
 	  break;
-	case 'a':
+	case 'A':
 	  dir = IA;
 	  inputSkipN (2);
 	  break;
@@ -232,16 +217,16 @@ getDir (bool ldm)
 static ARMWord
 getPrec (int P)
 {
-  switch (inputGetUC ())
+  switch (inputGet ())
     {
-    case 's':
-      return P ? PRECISION_MEM_SINGLE : PRECISION_SINGLE;
-    case 'd':
-      return P ? PRECISION_MEM_DOUBLE : PRECISION_DOUBLE;
-    case 'e':
-      return P ? PRECISION_MEM_EXTENDED : PRECISION_EXTENDED;
-    case 'p':
-      return P ? PRECISION_MEM_PACKED : optionError;
+      case 'S':
+        return P ? PRECISION_MEM_SINGLE : PRECISION_SINGLE;
+      case 'D':
+        return P ? PRECISION_MEM_DOUBLE : PRECISION_DOUBLE;
+      case 'E':
+        return P ? PRECISION_MEM_EXTENDED : PRECISION_EXTENDED;
+      case 'P':
+        return P ? PRECISION_MEM_PACKED : optionError;
     }
   return optionError;
 }
@@ -250,17 +235,17 @@ getPrec (int P)
 static ARMWord
 getRound (void)
 {
-  switch (inputLookUC ())
+  switch (inputLook ())
     {
-    case 'p':
-      inputSkip ();
-      return ROUND_PLUSINF;
-    case 'm':
-      inputSkip ();
-      return ROUND_MINUSINF;
-    case 'z':
-      inputSkip ();
-      return ROUND_ZERO;
+      case 'P':
+        inputSkip ();
+        return ROUND_PLUSINF;
+      case 'M':
+        inputSkip ();
+        return ROUND_MINUSINF;
+      case 'Z':
+        inputSkip ();
+        return ROUND_ZERO;
     }
   return ROUND_NEAREST;
 }
@@ -287,7 +272,7 @@ ARMWord
 optionCondS (void)
 {
   ARMWord option = getCond ();
-  if (inputLookUC () == 's')
+  if (inputLook () == 'S')
     {
       option |= S_FLAG;
       inputSkip ();
@@ -300,13 +285,13 @@ ARMWord
 optionCondSP (void)
 {
   ARMWord option = getCond () | S_FLAG;
-  if (inputLookUC () == 's')
+  if (inputLook () == 'S')
     {
       inputSkip ();
       if (option_pedantic)
 	error (ErrorInfo, "S is implicit in test instructions");
     }
-  if (inputLookUC () == 'p')
+  if (inputLook () == 'P')
     {
       option |= P_FLAG;
       inputSkip ();
@@ -319,7 +304,7 @@ ARMWord
 optionCondB (void)
 {
   ARMWord option = getCond ();
-  if (inputLookUC () == 'b')
+  if (inputLook () == 'B')
     {
       option |= B_FLAG;
       inputSkip ();
@@ -328,20 +313,20 @@ optionCondB (void)
 }
 
 
+/* also does signed byte, (un)signed halfword and doubleword */
 ARMWord
-optionCondBT (void)		/* also does signed byte,
-				   (un)signed halfword and doubleword */
+optionCondBT (void)
 {
   ARMWord option = getCond ();
-  if (inputLookUC () == 's')
+  if (inputLook () == 'S')
     {
       option |= 0xD0;
       inputSkip ();
-      switch (inputLookUC ())
+      switch (inputLook ())
 	{
-	case 'h':
+	case 'H':
 	  option |= 0x20;	/* fall through to 'b' */
-	case 'b':
+	case 'B':
 	  inputSkip ();
 	  break;
 	default:
@@ -351,24 +336,24 @@ optionCondBT (void)		/* also does signed byte,
     }
   else
     {
-      switch (inputLookUC ())
+      switch (inputLook ())
 	{
-	case 'd':
+	case 'D':
 	  option |= 0xD0 | (1 << 27);	/* Use bit 27 as a flag
 					 * for doubleword access */
 	  inputSkip ();
 	  break;
-	case 'h':
+	case 'H':
 	  option |= 0xB0;
 	  inputSkip ();
 	  break;
-	case 'b':
+	case 'B':
 	  option |= B_FLAG;
 	  inputSkip ();
 	  break;
 	}
     }
-  if (inputLookUC () == 't')
+  if (inputLook () == 'T')
     {
       option |= T_FLAG;
       inputSkip ();
@@ -439,7 +424,7 @@ ARMWord
 optionCondL (void)
 {
   ARMWord option = getCond ();
-  if (inputLookUC () == 'l')
+  if (inputLook () == 'L')
     {
       option |= L_FLAG;
       inputSkip ();
@@ -460,40 +445,37 @@ optionCondOptRound (void)
 }
 
 
+/* 'B' is matched before call */
 ARMWord
-optionLinkCond (void)		/* 'b' is matched before call */
+optionLinkCond (void)
 {
-  if (inputLookUC () != 'l')
-    {				/* Only b.CC possible  */
-      return isOK (getCond ());
-    }
-  else
+  if (inputLook () != 'L')
+    return isOK (getCond ()); /* Only b.CC possible  */
+
+  inputSkip ();		/* bl.CC or b.l?  */
+  switch (inputLook ())
     {
-      inputSkip ();		/* bl.CC or b.l?  */
-      switch (inputLookUC ())
-	{
-	case 'e':		/* b.le or bl.eq */
-	  inputSkip ();
-	  switch (inputLookUC ())
-	    {
-	    case 'q':		/* Only bl.eq */
+      case 'E':		/* b.le or bl.eq */
+	inputSkip ();
+	switch (inputLook ())
+	  {
+	    case 'Q':		/* Only bl.eq */
 	      inputSkip ();
 	      return isOK (EQ | LINK_BIT);
 	    default:		/* Only b.le */
 	      return isOK (LE);
-	    }
-	case 'o':		/* Only b.lo possible */
-	  inputSkip ();
-	  return isOK (LO);
-	case 's':		/* Only b.ls possible */
-	  inputSkip ();
-	  return isOK (LS);
-	case 't':		/* Only b.lt possible */
-	  inputSkip ();
-	  return isOK (LT);
-	default:		/* Only bl.CC possible */
-	  return isOK (getCond () | LINK_BIT);
-	}
+	  }
+      case 'O':		/* Only b.lo possible */
+	inputSkip ();
+	return isOK (LO);
+      case 'S':		/* Only b.ls possible */
+	inputSkip ();
+	return isOK (LS);
+      case 'T':		/* Only b.lt possible */
+	inputSkip ();
+	return isOK (LT);
+      default:		/* Only bl.CC possible */
+	return isOK (getCond () | LINK_BIT);
     }
   return optionError;
 }
@@ -502,24 +484,17 @@ optionLinkCond (void)		/* 'b' is matched before call */
 ARMWord
 optionExceptionCond (void)
 {
-  if (inputLookUC () != 'e')
-    {				/* Only cmf.CC possible  */
-      return isOK (getCond ());
-    }
-  else
-    {				/* cmf.eq or cmfe.CC */
+  if (inputLook () != 'E')
+    return isOK (getCond ()); /* Only cmf.CC possible  */
+  /* cmf.eq or cmfe.CC */
+  inputSkip ();
+  if (inputLook () == 'Q')
+    { /* Only cmf.eq */
       inputSkip ();
-      if (inputLookUC () == 'q')
-	{			/* Only cmf.eq */
-	  inputSkip ();
-	  return isOK (EQ);
-	}
-      else
-	{			/* Only cmfe.CC */
-	  return isOK (getCond () | EXEPTION_BIT);
-	}
+      return isOK (EQ);
     }
-  return optionError;
+  /* Only cmfe.CC */
+  return isOK (getCond () | EXEPTION_BIT);
 }
 
 
@@ -527,7 +502,7 @@ ARMWord
 optionAdrL (void)
 {
   ARMWord option = getCond ();
-  if (inputLookUC () == 'l')
+  if (inputLook () == 'L')
     {
       option |= 1;
       inputSkip ();

@@ -112,7 +112,7 @@ macroCall (const Macro *m, const Lex *label)
     args[marg++] = NULL;		/* Null label argument */
 
   skipblanks ();
-  while (!inputComment ())
+  while (!Input_IsEolOrCommentStart ())
     {
       if (marg == m->numargs)
 	{
@@ -120,7 +120,6 @@ macroCall (const Macro *m, const Lex *label)
 	  skiprest ();
 	  break;
 	}
-      inputMark ();
       const char *c;
       size_t len;
       if (inputLook () == '"')
@@ -132,7 +131,6 @@ macroCall (const Macro *m, const Lex *label)
 	}
       else
 	{
-	  /*inputRollback(); */
 	  c = inputSymbol (&len, ',');
 	  while (len > 0 && (c[len - 1] == ' ' || c[len - 1] == '\t'))
 	    len--;
@@ -244,11 +242,11 @@ c_macro (const Lex *label)
   if (label->tag != LexNone)
     error (ErrorWarning, "Label not allowed here - ignoring");
   skipblanks ();
-  if (!inputComment ())
+  if (!Input_IsEolOrCommentStart ())
     error (ErrorWarning, "Skipping characters following MACRO");
   if (!inputNextLine ())
     errorAbort ("End of file found within macro definition");
-  if (inputComment ())
+  if (Input_IsEolOrCommentStart ())
     errorAbort ("Missing macro name");
   if (inputLook () == '$')
     inputSkip ();
@@ -281,7 +279,7 @@ c_macro (const Lex *label)
     errorOutOfMem ();
   m.startline = FS_GetCurLineNumber ();
   skipblanks ();
-  while (!inputComment ())
+  while (!Input_IsEolOrCommentStart ())
     {
       if (m.numargs == MACRO_ARG_LIMIT)
 	{
@@ -303,14 +301,14 @@ c_macro (const Lex *label)
     {
       if (!inputNextLine ())
 	goto noMEND;
-      inputMark ();
+      char * const inputMark = Input_GetMark ();
       if (c_mend ())
 	break;
-      inputRollback ();
+      Input_RollBackToMark (inputMark);
       char c;
       while ((c = inputGet ()) != 0)
 	{
-	  inputMark ();
+	  char * const inputMark = Input_GetMark ();
 	  if (c == '$')
 	    {
 	      if (inputLook () == '$')
@@ -332,7 +330,7 @@ c_macro (const Lex *label)
 		  else
 		    {
 		      /* error(ErrorWarning, true, "Unknown macro argument encountered"); */
-		      inputRollback ();
+		      Input_RollBackToMark (inputMark);
 		    }
 		}
 	    }

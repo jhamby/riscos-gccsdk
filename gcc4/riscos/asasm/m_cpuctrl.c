@@ -92,12 +92,12 @@ m_blx (ARMWord cc)
 {
   cpuWarn (XSCALE);
 
-  inputMark ();
+  char * const inputMark = Input_GetMark ();
   ARMWord reg = getCpuRegNoError ();
   ARMWord ir;
   if (reg == INVALID_REG)
-    {			/* BLXcc <target_addr> */
-      inputRollback ();
+    { /* BLXcc <target_addr> */
+      Input_RollBackToMark (inputMark);
 
       if (cc != AL)
         error (ErrorError, "BLX <target_addr> must be unconditional");
@@ -442,82 +442,85 @@ m_tail (ARMWord cc)
 static ARMWord
 getpsr (bool only_all)
 {
-  ARMWord saved;
-  char w[4];
-
   skipblanks ();
+
+  /* Read "CPSR" or "SPSR".  */
+  ARMWord saved;
   switch (inputGetLower ())
     {
-    case 'c':
-      saved = 0;
-      break;
-    case 's':
-      saved = 1 << 22;
-      break;
-    default:
+      case 'c':
+        saved = 0;
+        break;
+      case 's':
+        saved = 1 << 22;
+        break;
+      default:
+        error (ErrorError, "Not a PSR name");
+        return 0;
+    }
+  if (inputGetLower () != 'p'
+      || inputGetLower () != 's'
+      || inputGetLower () != 'r')
+    {
       error (ErrorError, "Not a PSR name");
       return 0;
     }
-  if (inputGetLower () == 'p' &&
-      inputGetLower () == 's' &&
-      inputGetLower () == 'r')
+
+  if (inputLook () != '_')
+    return saved | (only_all ? 0xF0000 : 0x90000);
+  
+  char * const inputMark = Input_GetMark ();
+  inputSkip ();
+  char w[4];
+  w[0] = inputGetLower ();
+  w[1] = inputGetLower ();
+  w[2] = inputGetLower ();
+  w[3] = 0;
+  if (!strcmp (w, "all"))
+    return saved | (only_all ? 0xF0000 : 0x90000);
+  if (only_all)
     {
-      if (inputLook () != '_')
-	return saved | (only_all ? 0xF0000 : 0x90000);
-      inputMark ();
-      inputSkip ();
-      w[0] = inputGetLower ();
-      w[1] = inputGetLower ();
-      w[2] = inputGetLower ();
-      w[3] = 0;
-      if (!strcmp (w, "all"))
-	return saved | (only_all ? 0xF0000 : 0x90000);
-      if (only_all)
-	{
-	  error (ErrorError, "Partial PSR access not allowed");
-	  return 0;
-	}
-      if (!strcmp (w, "ctl"))
-	return saved | 0x10000;
-      if (!strcmp (w, "flg"))
-	return saved | 0x80000;
-      inputRollback ();
-      while (strchr ("_cCxXsSfF", inputLook ()))
-	{
-	  int p = 0;
-	  char c;
-	  if (inputLook () == '_')
-	    inputSkip ();
-	  switch (c = inputGetLower ())
-	    {
-	    case 'c':
-	      p = 16;
-	      break;
-	    case 'x':
-	      p = 17;
-	      break;
-	    case 's':
-	      p = 18;
-	      break;
-	    case 'f':
-	      p = 19;
-	      break;
-	    default:
-	      error (ErrorError, "Unrecognised PSR subset");
-	      break;
-	    }
-	  if (p)
-	    {
-	      if (saved & (1 << p))
-		error (ErrorError, "PSR mask bit '%c' already specified", c);
-	      saved |= 1 << p;
-	    }
-	}
-      return saved;
+      error (ErrorError, "Partial PSR access not allowed");
+      return 0;
     }
-  else
-    error (ErrorError, "Not a PSR name");
-  return 0;
+  if (!strcmp (w, "ctl"))
+    return saved | 0x10000;
+  if (!strcmp (w, "flg"))
+    return saved | 0x80000;
+  Input_RollBackToMark (inputMark);
+  while (strchr ("_cCxXsSfF", inputLook ()))
+    {
+      if (inputLook () == '_')
+        inputSkip ();
+      int p;
+      char c;
+      switch (c = inputGetLower ())
+	{
+	  case 'c':
+	    p = 16;
+	    break;
+	  case 'x':
+	    p = 17;
+	    break;
+	  case 's':
+	    p = 18;
+	    break;
+	  case 'f':
+	    p = 19;
+	    break;
+	  default:
+	    p = 0;
+	    error (ErrorError, "Unrecognised PSR subset");
+	    break;
+	}
+      if (p)
+        {
+          if (saved & (1 << p))
+	    error (ErrorError, "PSR mask bit '%c' already specified", c);
+	  saved |= 1 << p;
+	}
+    }
+  return saved;
 }
 
 

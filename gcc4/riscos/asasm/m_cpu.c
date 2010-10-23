@@ -45,7 +45,7 @@
 void
 m_nop (void)
 {
-  if (!inputComment ())
+  if (!Input_IsEolOrCommentStart ())
     {
       ARMWord op = getCpuReg ();
       if (op == 15)

@@ -67,7 +67,6 @@ int option_autocast = 0;
 int option_align = 1;
 int option_local = 1;
 int option_objasm = 0;
-int option_uc = 0;
 int option_apcs_32bit = -1; /* -1 = option not specified.  */
 int option_apcs_fpv3 = -1; /* -1 = option not specified.  */
 int option_apcs_softfloat = -1; /* -1 = option not specified.  */
@@ -111,7 +110,6 @@ as_help (void)
 	   "-noalign       -na         Don't auto-align words and halfwords.\n"
 	   "-nolocal       -nl         No builtin LOCAL support.\n"
 	   "-objasm        -obj        More compatibility with ObjAsm.\n"
-	   "-upper         -up         Mnemonics must be in upper case.\n"
 	   "-help          -h -H -?    Display this help.\n"
 	   "-version       -ver        Display the version number.\n"
 	   "-From asmfile              Source assembler file (ObjAsm compatibility).\n"
@@ -265,8 +263,6 @@ main (int argc, char **argv)
 	option_local = 0;
       else if (IS_ARG ("-objasm", "-obj"))
 	option_objasm = 1; /* Used as index in lex.c.  */
-      else if (IS_ARG ("-upper", "-up"))
-	option_uc++;
       else if (IS_ARG ("-pedantic", "-p"))
 	option_pedantic++;
       else if (IS_ARG ("-target", "-t"))

@@ -34,7 +34,6 @@ extern int option_autocast;
 extern int option_align;
 extern int option_local;
 extern int option_objasm;
-extern int option_uc;
 extern int option_apcs_32bit;
 extern int option_apcs_fpv3;
 extern int option_apcs_softfloat;

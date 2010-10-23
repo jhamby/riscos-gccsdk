@@ -162,8 +162,12 @@ errorCore (ErrorTag e, const char *format, va_list ap)
       switch (pObjP->type)
 	{
 	  case POType_eFile:
-	    fprintf (stderr, " at line %d in file %s\n",
-	             pObjP->lineNum, pObjP->name ? pObjP->name : "stdout");
+	    /* When lineNum is zero, we're processing the -PD options.  */
+	    if (pObjP->lineNum != 0)
+	      fprintf (stderr, " at line %d in file %s\n",
+	               pObjP->lineNum, pObjP->name ? pObjP->name : "stdout");
+	    else
+	      fputc ('\n', stderr);
 	    break;
 	  case POType_eMacro:
 	    fprintf (stderr, " in macro %s at line %d in file %s\n",
@@ -180,8 +184,12 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 	  switch (pObjP->type)
 	    {
 	      case POType_eFile:
-		fprintf (stderr, "  called from line %d from file %s\n",
-		         pObjP->lineNum, pObjP->name ? pObjP->name : "stdout");
+		/* When lineNum is zero, we're processing the -PD options.  */
+		if (pObjP->lineNum != 0)
+		  fprintf (stderr, "  called from line %d from file %s\n",
+		           pObjP->lineNum, pObjP->name ? pObjP->name : "stdout");
+		else
+		  fputc ('\n', stderr);
 		break;
 	      case POType_eMacro:
 		fprintf (stderr, "  called from macro %s at line %d in file %s\n",
@@ -200,6 +208,8 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 
 /**
  * ErrorAbort or too many ErrorError won't make this function return.
+ * ErrorError will consume the rest of the line and set the current
+ * input pointer to a NUL character.
  */
 void
 error (ErrorTag e, const char *format, ...)
