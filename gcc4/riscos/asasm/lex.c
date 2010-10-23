@@ -790,13 +790,13 @@ lexNextPri ()
 }
 
 Lex
-lexTempLabel (const char *ptr, int len)
+lexTempLabel (const char *str, size_t len)
 {
-  Lex var;
-  var.tag = LexId;
-  var.Data.Id.str = ptr;
-  var.Data.Id.len = len;
-  var.Data.Id.hash = lexHashStr (ptr, len);
+  const Lex var =
+    {
+      .tag = LexId,
+      .Data.Id = { .str = str, .len = len, .hash = lexHashStr (str, len) }
+    };
   return var;
 }
 

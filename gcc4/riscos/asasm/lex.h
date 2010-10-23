@@ -86,7 +86,7 @@ typedef struct
         {
           const char *str;	/* *NOT* NUL terminated.  */
           size_t len;
-          int hash;
+          unsigned int hash;
         } Id;
       struct			/* LexString */
         {
@@ -130,7 +130,7 @@ Lex lexGetPrim (void);
 Lex lexGetBinop (void);
 int lexNextPri (void);
 
-Lex lexTempLabel (const char *, int);
+Lex lexTempLabel (const char *str, size_t len);
 
 unsigned int lexHashStr (const char *s, size_t maxn);
 

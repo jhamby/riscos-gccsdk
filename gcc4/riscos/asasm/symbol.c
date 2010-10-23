@@ -67,7 +67,7 @@ int (SYMBOL_ELF_OUTPUT) (const Symbol *);	/* typedef it */
 static Symbol *symbolTable[SYMBOL_TABLESIZE];
 
 static Symbol *
-symbolNew (int len, const char *str)
+symbolNew (const char *str, size_t len)
 {
   Symbol *result;
   if ((result = (Symbol *) malloc (sizeof (Symbol) + len)) == NULL)
@@ -242,7 +242,7 @@ symbolAdd (const Lex *l)
 	    }
 	}
     }
-  *isearch = symbolNew (l->Data.Id.len, l->Data.Id.str);
+  *isearch = symbolNew (l->Data.Id.str, l->Data.Id.len);
   (*isearch)->type |= SYMBOL_DEFINED;
   return *isearch;
 }
@@ -254,11 +254,12 @@ symbolGet (const Lex *l)
   Symbol **isearch = NULL;
   if (l->tag != LexId)
     { /* FIXME: what's this case ? */
+      assert (0);
       if (l->tag != LexNone)
 	errorAbort ("Internal symbolGet: non-ID");
       for (isearch = &symbolTable[0]; *isearch; isearch = &(*isearch)->next)
 	/* */;
-      *isearch = symbolNew (sizeof("|Dummy|")-1, "|Dummy|"); /* FIXME: *isearch is written again further on, so memory leak here ? */
+      *isearch = symbolNew ("|Dummy|", sizeof("|Dummy|")-1); /* FIXME: *isearch is written again further on, so memory leak here ? */
     }
   else
     {
@@ -269,7 +270,7 @@ symbolGet (const Lex *l)
 	}
     }
 
-  *isearch = symbolNew (l->Data.Id.len, l->Data.Id.str);
+  *isearch = symbolNew (l->Data.Id.str, l->Data.Id.len);
   return *isearch;
 }
 

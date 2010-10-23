@@ -104,8 +104,8 @@ assign_var (Symbol *sym, ValueTag type)
  * \param localMacro Is true when variable is a local macro variable. Used to
  * implement :DEF:.
  */
-static void
-declare_var (const char *ptr, int len, ValueTag type, bool localMacro)
+static Symbol *
+declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
 {
   Lex var = lexTempLabel (ptr, len);
   Symbol *sym = symbolFind (&var);
@@ -114,9 +114,9 @@ declare_var (const char *ptr, int len, ValueTag type, bool localMacro)
       if (sym->value.Tag != type)
 	{
 	  error (ErrorError, "'%.*s' is already declared as a %s",
-	         len, ptr, valueTagAsString (sym->value.Tag));
+	         (int)len, ptr, valueTagAsString (sym->value.Tag));
 	  inputRest ();
-	  return;
+	  return NULL;
 	}
       if (option_pedantic)
         error (ErrorWarning, "Redeclaration of %s variable '%.*s'",
@@ -129,6 +129,7 @@ declare_var (const char *ptr, int len, ValueTag type, bool localMacro)
   if (localMacro)
     sym->type |= SYMBOL_MACRO_LOCAL;
   assign_var (sym, type);
+  return sym;
 }
 
 
@@ -293,19 +294,27 @@ void
 var_define (const char *def)
 {
   const char *i = strchr (def, '=');
-  int len = i ? i - def : (int)strlen (def);
-  declare_var (def, len, ValueString, false);
-  Lex var = lexTempLabel (def, len);
-  if (!i)
-    i = "";
+  size_t len = i != NULL ? (size_t)(i - def) : strlen (def);
+  Symbol *sym = declare_var (def, len, ValueString, false);
+  if (sym == NULL)
+    return;
+
+  size_t datLen;
+  if (i == NULL)
+    {
+      i = "";
+      datLen = 0;
+    }
   else
-    i++;
-
-  Value value;
-  value.Tag = ValueString;
-  value.Data.String.len = strlen (i);
-  value.Data.String.s = i;
-
-  /* FIXME: symbolFind() can return NULL here, no ? */
-  symbolFind (&var)->value = valueCopy (value);
+    {
+      ++i; /* Skip '=' */
+      datLen = strlen (i);
+    }
+  const Value value =
+    {
+      .Tag = ValueString,
+      .Data.String.s = i,
+      .Data.String.len = datLen
+    };
+  sym->value = valueCopy (value);
 }

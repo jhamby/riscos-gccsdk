@@ -1,3 +1,16 @@
+Sat Oct 23 16:08:30 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (symbolNew): Swap parameters.
+	(symbolGet): Add assert on case which is not believed to happen.
+	* area.c (c_area): Change type of rel_specified and data_specified to
+	bool.
+	* variables.c (declare_var): Return Symbol ptr (or NULL in case of
+	failure).
+	(var_define): Make use of it.
+	* lex.c (lexTempLabel): Make use of C99 initializer. Swap parameters.
+	* lex.h (Lex): Make Lex::Id.hash unsigned int.
+	(lexTempLable): Follow swap parameters.
+
 Fri Oct 22 01:34:52 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.h (Symbol): Change type of len from int to size_t.

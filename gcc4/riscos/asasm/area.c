@@ -258,10 +258,7 @@ c_reserve (void)
 void
 c_area (void)
 {
-  int oldtype = 0;
-  int newtype = 0;
-  int rel_specified = 0, data_specified = 0;
-  
+  int oldtype = 0;  
   Lex lex = lexGetId ();
   Symbol *sym = symbolGet (&lex);
   if (sym->type & SYMBOL_DEFINED)
@@ -277,6 +274,9 @@ c_area (void)
       areaHeadSymbol = sym;
     }
   skipblanks ();
+
+  int newtype = 0;
+  bool rel_specified = false, data_specified = false;
   int c;
   while ((c = inputGet ()) == ',')
     {
@@ -291,7 +291,7 @@ c_area (void)
 	{
 	  if (newtype & AREA_ABS)
 	    error (ErrorError, "Conflicting area attributes ABS vs REL");
-	  rel_specified = 1;
+	  rel_specified = true;
 	}
       else if (!strncmp ("CODE", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
@@ -303,7 +303,7 @@ c_area (void)
 	{
 	  if (newtype & AREA_CODE)
 	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
-	  data_specified = 1;
+	  data_specified = true;
 	}
       else if (!strncmp ("COMDEF", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_COMMONDEF;
