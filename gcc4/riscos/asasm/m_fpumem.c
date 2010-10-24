@@ -67,7 +67,7 @@ dstmemx (ARMWord ir)
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  char * const inputMark = Input_GetMark ();
+  const char * const inputMark = Input_GetMark ();
   bool stack_ia = false;
   bool stack = !isspace (inputLook ());
   if (stack)

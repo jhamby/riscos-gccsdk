@@ -32,7 +32,6 @@
 
 #define TOLOWER(x) tolower((x))
 
-extern bool inputExpand;
 extern bool inputRewind;
 
 #define MAX_PREDEFINES 10
@@ -46,6 +45,7 @@ const char *inputGiveRestLine (void);
 #endif
 
 bool inputNextLine (void);
+bool inputNextLineNoSubst (void);
 
 void skipblanks (void);
 void skiprest (void);
@@ -59,16 +59,16 @@ char inputGet (void);
 char inputGetLower (void);
 void inputUnGet (char c);
 char inputSkipLook (void);
-char *inputRest (void);
+const char *inputRest (void);
 #if DEBUG
 const char *inputLine (void);
 #endif
 void inputSkip (void);
 void inputSkipN (int n);
-char *inputSymbol (size_t *ilen, char del);
+const char *inputSymbol (size_t *ilen, char del);
 
-char *Input_GetMark (void);
-void Input_RollBackToMark (char *mark);
+const char *Input_GetMark (void);
+void Input_RollBackToMark (const char *mark);
 
 void inputThisInstead (const char *);
 

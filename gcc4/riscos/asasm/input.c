@@ -49,11 +49,10 @@
 
 #define MAX_LINE (4096)
 
-bool inputExpand = true;
 bool inputRewind = false;
 
 static char input_buff[MAX_LINE + 256];
-static char *input_pos;
+static const char *input_pos;
 static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 
 static bool inputArgSub (void);
@@ -153,14 +152,12 @@ inputSkipN (int n)
 /**
  * Returns the rest of the line of the current input and consumes it.
  */
-char *
+const char *
 inputRest (void)
 {
-  char *t = input_pos;
-  char *p = input_pos - 1;
-  while (*++p)
-    /* */;
-  input_pos = p;
+  const char * const t = input_pos;
+  while (*input_pos)
+    ++input_pos;
   return t;
 }
 
@@ -184,7 +181,7 @@ inputSkipLook (void)
 void
 skipblanks (void)
 {
-  char *p = input_pos;
+  const char *p = input_pos;
   while (*p && isspace ((unsigned char)*p))
     p++;
   input_pos = p;
@@ -203,7 +200,7 @@ skiprest (void)
  * Returns the position of the current input pointer.  Only to be use to
  * restore the current input pointer using Input_RollBackToMark().
  */
-char *
+const char *
 Input_GetMark (void)
 {
   return input_pos;
@@ -214,7 +211,7 @@ Input_GetMark (void)
  * Restore the current input pointer with a value returned from Input_GetMark().
  */
 void
-Input_RollBackToMark (char *mark)
+Input_RollBackToMark (const char *mark)
 {
   assert (mark >= input_buff && mark < input_buff + sizeof (input_buff));
   input_pos = mark;
@@ -237,55 +234,51 @@ inputInit (const char *infile)
  * Any empty line and any line starting with '#' followed by space and
  * one or more digits is discarded.  The '#' exception is to be able to
  * parse C preprocessed assembler files.
- *
- * If file global |inputExpand| is not set,
- *   then workBuff is copied into application global |input_buff|.
- *   Application global |input_pos| is a pointer to this.
- *
- * InputArgSub() then performs any required argument substitution
  * \return false when there is no input to be read, true otherwise.
  */
-bool
-inputNextLine (void)
+static bool
+inputNextLineCore (void)
 {
   if (inputRewind)
     {
+      /* Reuse the existing workBuff contents.  */
       inputRewind = false;
-      goto ret;
+      return true;
     }
+
   if (gCurPObjP == NULL)
     return false;
 
   if (num_predefines)
     {
       /* Each predefine will inject the following two lines:
-           "        GBLx MyVariable"
-           "MyVariable SETx MyValue"
-         with x = 'L', 'S' or 'A'  */
+	   "        GBLx MyVariable"
+	   "MyVariable SETx MyValue"
+	 with x = 'L', 'S' or 'A'  */
 
       static bool toggle = false;
 
       const char *predefine = predefines[num_predefines - 1];
 
       /* Predefine.  We insert the values into the input stream before the
-         main code.  Would benefit from buffer overrun checks.  */
+	 main code.  Would benefit from buffer overrun checks.  */
       if (!toggle)
-        {
-          const char *type = strstr(predefine, " SET");
-          if (type && (type[4] == 'L' || type[4] == 'S' || type[4] == 'A')) 
-            sprintf(workBuff, "\tGBL%c %.*s\n", type[4], (int)(type - predefine), predefine);
-          else
+	{
+	  const char *type = strstr (predefine, " SET");
+	  if (type && (type[4] == 'L' || type[4] == 'S' || type[4] == 'A')) 
+	    sprintf (workBuff, "\tGBL%c %.*s", type[4], (int)(type - predefine), predefine);
+	  else
 	    {
 	      error (ErrorError, "Invalid predefine '%s'", predefine);
-              *workBuff = '\0';
+	      *workBuff = '\0';
 	    }
-        }
+	}
       else
 	{
-          sprintf(workBuff, "%s\n", predefine);
+	  strcpy (workBuff, predefine);
 	  --num_predefines;
 	}
-      
+  
       toggle = !toggle;
     }
   else
@@ -305,252 +298,228 @@ inputNextLine (void)
   if (l >= 2)
     {
       /* Only needed to process gcc preprocessed assembler files.
-         If we start the line with a '#' followed by a space and one or
-         more digits then treat the whole line as a comment.
-         Like: # 5 "lib1funcs-aof.S"
-         FIXME: We could do better by using the digits as line number and
-         the next argument as a file reference of the file before
-         preprocessing.  */
+	 If we start the line with a '#' followed by a space and one or
+	 more digits then treat the whole line as a comment.
+	 Like: # 5 "lib1funcs-aof.S"
+	 FIXME: We could do better by using the digits as line number and
+	 the next argument as a file reference of the file before
+	 preprocessing.  */
       if (workBuff[0] == '#' && workBuff[1] == ' ')
 	{
 	  int i;
-	  for (i = 2; workBuff[i] != '\0' && isdigit(workBuff[i]); ++i)
+	  for (i = 2; workBuff[i] != '\0' && isdigit ((unsigned char)workBuff[i]); ++i)
 	    /* */;
 	  if (i > 2 && workBuff[i] == ' ')
 	    {
-	      (input_pos = input_buff)[0] = 0;
+	      input_buff[0] = 0;
 	      return true;
 	    }
 	}
     }
 
-ret:
-  /* printf("Line %04d: <%s>\n", FS_GetCurLineNumber (), workBuff); fflush(stdout); */
-  if (!inputExpand)
-    {
-      strcpy (input_pos = input_buff, workBuff);
-      return true;
-    }
-  return inputArgSub ();
+  return true;
+}
+
+/**
+ * Read one line of input into input_buff buffer.  No variable expansion is
+ * done.  input_pos is reset to the beginning of the buffer.
+ * \return false for failure, true for success.
+ */
+bool
+inputNextLineNoSubst (void)
+{
+  if (!inputNextLineCore ())
+    return false;
+  
+  /* printf("Line %04d: <%s> [NO EXPANSION]\n", FS_GetCurLineNumber (), workBuff); */
+  strcpy (input_buff, workBuff);
+  input_pos = input_buff;
+  return true;
+}
+
+/**
+ * Read one line of input into input_buff buffer and perform a variable
+ * expansion.  input_pos is reset to the beginning of the buffer.
+ * \return false for failure, true for success.
+ */
+bool
+inputNextLine (void)
+{
+  if (!inputNextLineCore ())
+    return false;
+
+  /* printf("Line %04d: <%s>\n", FS_GetCurLineNumber (), workBuff); */
+  bool status = inputArgSub ();
+  /* printf("  -> <%s> (status %d)\n", input_buff, status); */
+  input_pos = input_buff;
+  return status;
 }
 
 
-/****************************************************************
-* Perform environment variable substitution (objasm compatibility mode only)
-*
-* input_pos points to the first input character after the <
-* ptr points to the next position to write to input_buff
-* trunc points to a location to receive the truncation state
-*
-* Returns true if successful.
-*
-* input_pos will be updated to point to the next input character to process
-* *ptr will be updated
-* *trunc will be set to 1 if the input is truncated 
-*
-****************************************************************/
-
-static bool
-inputEnvSub(int *ptr, int *trunc)
+/**
+ * Perform environment variable substitution (objasm compatibility mode only).
+ * \param inPP On entry, pointer to the input pointer to environment variable
+ * which is '>' or control character/space limited.  On exit, the input pointer
+ * will be updated reflecting the characters used.
+ * \param outOffset On entry, offset in input_buff buffer.  On exit, offset
+ * will be updated reflecting the written charactes in input_buff.
+ *
+ * Buffer overflow will be deteced by the caller when not all the input has
+ * been consumed together with *outOffsetP == sizeof (input_buff).
+ */
+static void
+inputEnvSub (const char **inPP, size_t *outOffsetP)
 {
-  char *rb = input_pos;
-  char *temp;
-  char *env;
-  int len;
-
-  /* Find end of variable */
-  while (*rb != 0 && *rb != '>' && *rb > 32)
-    rb++;
-  if (*rb != '>' || rb == input_pos)
+  /* Find end of variable.  */
+  const char *inP = *inPP;
+  while (*inP != '\0' && *inP != '>' && *inP > 32)
+    ++inP;
+  if (*inP != '>' || inP == *inPP)
     {
-      /* Not a variable, had a lone '<' or "<>" */
-      input_buff[(*ptr)++] = '<';
-      return true;
+      /* Not a variable, had a lone '<' or "<>".  Only copy '<' to buffer.
+	 Note that <> is an extension which means the same as !=.  */
+      if (*outOffsetP < sizeof (input_buff))
+	input_buff[(*outOffsetP)++] = '<';
+      return;
     }
 
-  /* Clone variable name into a temporary buffer */
-  temp = alloca (rb - input_pos + 1);
-  memcpy (temp, input_pos, rb - input_pos);
-  temp[rb - input_pos] = '\0';
-
-  env = getenv (temp);
+  /* Clone variable name into a temporary buffer.  */
+  char *temp = alloca (inP - *inPP + 1);
+  memcpy (temp, *inPP, inP - *inPP);
+  temp[inP - *inPP] = '\0';
+  char *env = getenv (temp);
   if (env == NULL)
     {
-      /* No such variable defined. Warn, though we may want to error. */
+      /* No such variable defined. Warn, though we may want to error.  */
       error (ErrorWarning, "Unknown environment variable '%s'", temp);
-      input_buff[(*ptr)++] = '<';
-      return true;
+      if (*outOffsetP < sizeof (input_buff))
+	input_buff[(*outOffsetP)++] = '<';
+      return;
     }
 
-  len = strlen (env);
+  /* Substitute variable's value, providing it won't truncate.  */
+  size_t len = strlen (env);
+  if (*outOffsetP + len >= MAX_LINE)
+    len = MAX_LINE - *outOffsetP;
+  memcpy(input_buff + *outOffsetP, env, len);
+  *outOffsetP += len;
 
-  /* Substitute variable's value, providing it won't truncate */
-  if (*ptr + len >= MAX_LINE)
-    *trunc = 1;
-  else
-    {
-      memcpy(input_buff + *ptr, env, len);
-      *ptr += len;
-    }
-
-  /* Next input to process is the character after the '>' */
-  /* Unlike $ substitution, we don't reprocess the substituted string */
-  input_pos = rb + 1;
-
-  return true;
+  *inPP = inP + 1;
 }
 
-/****************************************************************
-* Perform variable substitution.
-*
-* input_pos points to the first input character after the $
-* ptr points to the next position to write to input_buff
-* trunc points to a location to receive the truncation state
-* inString flags whether the variable we're processing is in a string literal
-*
-* Returns true if successful.
-*
-* input_pos will be updated to point to the next input character to process
-* *ptr will be updated
-* *trunc will be set to 1 if the input is truncated 
-*
-****************************************************************/
 
-static bool
-inputVarSub(int *ptr, int *trunc, bool inString)
+/**
+ * Perform variable substitution.
+ * \param inPP On entry, pointer to the input pointer to first input character
+ * after the $.
+ * On exit, the input pointer will be updated reflecting the characters used.
+ * \param outOffset On entry, offset in input_buff buffer.  On exit, offset
+ * will be updated reflecting the written charactes in input_buff.
+ * \param inString Flags whether the variable we're processing is in a string
+ * literal.
+ *
+ * Buffer overflow will be deteced by the caller when not all the input has
+ * been consumed together with *outOffsetP == sizeof (input_buff).
+ *
+ * Corrupts input_pos.
+ */
+static void
+inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
 {
-  char *rb = input_pos; /* Remember input position */
-  int len = *ptr;       /* And initial write offset */
-  Lex label;
-  Symbol *sym = NULL;
+  const char *inP = *inPP;
 
-  /* $$ -> $ */
-  if (*input_pos == '$')
+  /* $$ -> $.  */
+  if (*inP == '$')
     {
-      input_buff[(*ptr)++] = '$';
-      input_pos++;
-      return true;
+      if (*outOffsetP < sizeof (input_buff))
+	{
+	  input_buff[(*outOffsetP)++] = '$';
+	  ++(*inPP);
+	}
+      return;
     }
 
-  /* replace symbol by its definition */
-  label = lexGetIdNoError ();
-
-  if (label.tag == LexId)
+  /* Replace symbol by its definition.  */
+  input_pos = inP;
+  Lex label = lexGetIdNoError ();
+  if (label.tag != LexId)
     {
-      /* Skip any . after the id - it indicates concatenation (e.g. $foo.bar) */
-      if (*input_pos == '.')
-        input_pos++;
-      /* Leave $[Ll].* alone, if we're wanting local labels */
-      if (option_local && label.Data.Id.len == 1 && toupper (*label.Data.Id.str) == 'L')
-        {
-          input_buff[(*ptr)++] = '$';
-          input_buff[(*ptr)++] = *label.Data.Id.str;
-          return true;
-       }
-      sym = symbolFind (&label);
-    }
-  else if (inString == false)
-    {
-      /* Must be an id if we're not in a string literal */
-      error (ErrorWarning, "Non-ID in $ expansion");
-      input_buff[(*ptr)++] = '$';
-      /* Restore input_pos, so we reprocess the current input */
-      input_pos = rb;
-      /* Not a fatal error */
-      return true;
+      if (!inString)
+	error (ErrorWarning, "Non-ID in $ expansion");
+      if (*outOffsetP < sizeof (input_buff))
+	input_buff[(*outOffsetP)++] = '$';
+      return;
     }
 
+  /* Leave $[Ll].* alone, if we're wanting local labels */
+  if (option_local && label.Data.Id.len == 1 && toupper (*label.Data.Id.str) == 'L')
+    {
+      if (*outOffsetP < sizeof (input_buff))
+	input_buff[(*outOffsetP)++] = '$';
+      return;
+    }
+
+  Symbol *sym = symbolFind (&label);
   if (sym)
     {
+      char buf[32];
+      const char *toCopy;
+      size_t toCopyLen;
       switch (sym->value.Tag)
 	{
-	case ValueInt:
-	  *ptr += sprintf (&input_buff[*ptr], "%i", sym->value.Data.Int.i);
-	  break;
-	case ValueFloat:
-	  *ptr += sprintf (&input_buff[*ptr], "%f", sym->value.Data.Float.f);
-	  break;
-	case ValueString:
-	  if (*ptr + sym->value.Data.String.len >= MAX_LINE)
-	    *ptr = MAX_LINE + 1;
-	  else
-	    {
-	      memcpy (input_buff + *ptr, sym->value.Data.String.s,
-                      sym->value.Data.String.len);
-	      *ptr += sym->value.Data.String.len;
-	    }
-	  break;
-	case ValueBool:
-	  strcpy (&input_buff[*ptr], sym->value.Data.Bool.b ? "{true}" : "{false}");
-	  *ptr += strlen (&input_buff[*ptr]);
-	  break;
-	case ValueCode:
-	case ValueLateLabel:
-	case ValueAddr:
-	  error (ErrorError, "$ expansion '%.*s' is a pointer",
-		 (int)label.Data.Id.len, label.Data.Id.str);
-          /* This one's fatal */
-          return false;
-	  break;
-	default:
-          goto unknown;
+	  case ValueInt:
+	    toCopyLen = sprintf (buf, "%.8X", sym->value.Data.Int.i);
+	    toCopy = buf;
+	    break;
+	  case ValueFloat:
+	    toCopyLen = sprintf (buf, "%f", sym->value.Data.Float.f);
+	    toCopy = buf;
+	    break;
+	  case ValueString:
+	    toCopyLen = sym->value.Data.String.len;
+	    toCopy = sym->value.Data.String.s;
+	    break;
+	  case ValueBool:
+	    toCopyLen = 1;
+	    toCopy = (sym->value.Data.Bool.b) ? "T" : "F";
+	    break;
+	  default:
+	    if (!inString)
+	      {
+		error (ErrorError, "$ expansion of '%.*s' can't be done",
+		       (int)label.Data.Id.len, label.Data.Id.str);
+		return;
+	      }
+	    toCopyLen = 0;
+	    toCopy = NULL;
+	    break;
+	}
+      if (toCopy)
+	{
+	  if (*outOffsetP + toCopyLen >= MAX_LINE)
+	    toCopyLen = MAX_LINE - *outOffsetP;
+	  memcpy (&input_buff[*outOffsetP], toCopy, toCopyLen);
+	  *outOffsetP += toCopyLen;
+
+	  /* Update our input ptr with what we have successfully consumed.  */
+	  inP = input_pos;
+	  /* Skip any . after the id - it indicates concatenation (e.g.
+	     $foo.bar).  */
+	  if (*inP == '.')
+	    ++inP;
+	  *inPP = inP;
+	  return;
 	}
     }
-  else
+  if (!inString)
     {
-unknown:
-      if (inString == false)
-        {
-          /* Not in string literal, so this is an error */
-          error (ErrorError, "Unknown value '%.*s' for $ expansion",
-		 (int)label.Data.Id.len, label.Data.Id.str);
-          input_buff[(*ptr)++] = '$';
-          /* Restore input_pos so we reprocess current input */
-          input_pos = rb;
-          /* Not a fatal error */
-          return true;
-        }
-      else
-        {
-          int label_len = label.tag == LexId ? label.Data.Id.len : 0;
-
-          assert(label.tag == LexId || label.tag == LexNone);
-
-          /* Unknown symbol, but in string literal, so output verbatim */
-          if (*ptr + 1 + label_len >= MAX_LINE)
-            *ptr = MAX_LINE + 1;
-          else
-            {
-              input_buff[(*ptr)++] = '$';
-              if (label.tag == LexId)
-                memcpy (&input_buff[*ptr], label.Data.Id.str, label.Data.Id.len);
-              *ptr += label_len;
-              return true;
-            }
-        }
+      /* Not in string literal, so this is an error.  */
+      error (ErrorError, "Unknown value '%.*s' for $ expansion",
+	     (int)label.Data.Id.len, label.Data.Id.str);
     }
-
-  /* substitution complete or not found; copy the rest of the line */
-  while (*input_pos && *ptr < MAX_LINE)
-    input_buff[(*ptr)++] = *input_pos++;
-  if (*ptr >= MAX_LINE)
-    {
-      *trunc = 1;
-      input_buff[MAX_LINE - 1] = 0;
-    }
-  else
-   input_buff[*ptr] = 0;
-
-  /* Restore input position and write offset */
-  input_pos = rb;
-  *ptr = len;
-  /* Copy expanded string to input_pos, so it's reprocessed next time.
-     This allows variable values to contain substituted components.  */
-  strcpy(input_pos, input_buff + len);
-
-  return true;
+  if (*outOffsetP < sizeof (input_buff))
+    input_buff[(*outOffsetP)++] = '$';
 }
-
 
 /**
  * Copy the line from |workBuff| to |input_buff|, while performing any
@@ -560,118 +529,103 @@ unknown:
 static bool
 inputArgSub (void)
 {
-  int ptr = 0, trunc = 0, len;
+  size_t outOffset = 0;
+  const char *inP = workBuff;
 
-  input_pos = workBuff;
-
-  /* process all characters in the line */
-  while (*input_pos && ptr < MAX_LINE)
+  /* Process all characters in the line.  */
+  while (*inP && outOffset < sizeof (input_buff))
     {
-      /* copy each input character, until a special symbol is found */
-      while (*input_pos && *input_pos != '"' && *input_pos != '\''
-             && *input_pos != '|' && *input_pos != '$'
-	     && *input_pos != ';' && (*input_pos != '<' || !option_objasm)
-	     && ptr < MAX_LINE)
-	input_buff[ptr++] = *input_pos++;
+      /* Copy each input character, until a special symbol is found.  */
+      while (*inP
+	     && *inP != '"' && *inP != '\''
+	     && *inP != '|' && *inP != '$'
+	     && *inP != ';' && *inP != '<'
+	     && outOffset < sizeof (input_buff))
+	input_buff[outOffset++] = *inP++;
 
-      /* process special characters */
+      /* Process special characters.  */
       char c;
-      switch (c = *input_pos)
+      switch (c = *inP)
 	{
-
-	/* comment follows; just copy it all */
-	case ';':
-	  len = strlen (input_pos);
-	  if (ptr + len >= MAX_LINE)
-	    {
-	      memcpy (input_buff + ptr, input_pos, MAX_LINE - ptr - len);
-	      goto truncated;
+	  case ';':
+	    { /* Comment follows; just copy it all.  */
+	      size_t len = strlen (inP) + 1;
+	      if (outOffset + len >= MAX_LINE)
+		len = MAX_LINE - outOffset - len;
+	      memcpy (input_buff + outOffset, inP, len);
+	      outOffset += len;
+	      inP += len;
 	    }
-	  strcpy (input_buff + ptr, input_pos);
-	  goto finished;
+	    break;
 
-	/* characters enclosed between <...> in ObjAsm mode */
-	case '<':
-          input_pos++;
-          if (inputEnvSub(&ptr, &trunc) == false)
-            return false;
-          break;
-	case '|':
-	  do
-	    {
-	      input_buff[ptr++] = *input_pos++;
-	    }
-	  while (*input_pos && *input_pos != c && ptr < MAX_LINE);
-	  if (*input_pos == c)
-	    {
-	      input_buff[ptr++] = c;
-	      input_pos++;
-	    }
-	  break;
-	case '\'':
-	  if (option_objasm)
-	    input_buff[ptr++] = *input_pos++;	/* some special case stuff */
-	  /* fall through to '"' */
-	case '\"':
-	  //printf("string here: \"%s\"\n", input_pos);
-	  do
-	    {
-	      char cc = *input_pos++;
-	      if (cc == '$')
-	        {
-	          if (inputVarSub(&ptr, &trunc, true) == false)
-                    return false;
-                  continue;
-                }
-              else if (cc == '<' && option_objasm)
-                {
-                  if (inputEnvSub(&ptr, &trunc) == false)
-                    return false;
-                  continue;
-                }
+	  case '<': /* Characters enclosed between <...> in ObjAsm mode.  */
+	    ++inP;
+	    inputEnvSub (&inP, &outOffset);
+	    break;
 
-              input_buff[ptr++] = cc;
+	  case '|': /* Copy "|xxx|" as is.  */
+	    if (outOffset < sizeof (input_buff))
+	      input_buff[outOffset++] = *inP++;
+	    while (outOffset < sizeof (input_buff) && *inP)
+	      {
+		input_buff[outOffset++] = *inP++;
+		if (*inP == c)
+		  break;
+	      }
+	    /* We don't check on unmatched |.  */
+	    break;
 
-	      if (cc == '\\' && *input_pos)
-		input_buff[ptr++] = *input_pos++;
-	    }
-	  while (*input_pos && *input_pos != c && ptr < MAX_LINE);
-	  if (*input_pos == c)
-	    {
-	      input_buff[ptr++] = c;
-	      input_pos++;
-	    }
-	  break;
+	  case '\'':
+	  case '\"':
+	    /* String: variable substitution is warning-less when it it
+	       fails.  */
+	    if (outOffset < sizeof (input_buff))
+	      input_buff[outOffset++] = *inP++;
+	    while (outOffset < sizeof (input_buff) && *inP)
+	      {
+		char cc = *inP++;
+		if (cc == '$')
+		  inputVarSub (&inP, &outOffset, true);
+		else if (cc == '<')
+		  inputEnvSub (&inP, &outOffset);
+		else
+		  {
+		    input_buff[outOffset++] = cc;
+		    if (cc == c)
+		      break;
+		  }
+	      }
+	    /* We don't check on unmatched '/".  */
+	    break;
 
-	/* Do variable substitution - $ */
-	case '$':
-	  input_pos++;
-          if (inputVarSub(&ptr, &trunc, false) == false)
-            return false;
+	  case '$': /* Do variable substitution - $ */
+	    ++inP;
+	    inputVarSub (&inP, &outOffset, false);
+	    break;
 	}
     }
-  if (ptr >= MAX_LINE || trunc)
+  if (*inP)
     {
-truncated:
-      (input_pos = input_buff)[MAX_LINE - 1] = 0;
-      errorAbort ("Line expansion truncated");
+      /* There are still unprocessed characters, so we overflowed.  */
+      errorAbort ("Line expansion resulted in overflow - line ignored");
+      input_buff[0] = 0;
       return false;
     }
-finished:
-  (input_pos = input_buff)[ptr] = 0;
+
+  input_buff[outOffset] = 0;
   return true;
 }
 
 
-char *
+const char *
 inputSymbol (size_t *ilen, char del)
 {
-  char *p = input_pos;
+  const char *p = input_pos;
   int c;
 
   if (del)
     {
-      if (option_objasm && (del == '\'' || del == '\"'))
+      if (del == '\'' || del == '\"')
 	{
 	  if (del == '\'')
 	    ++p;		/* some special case stuff... */
@@ -692,9 +646,9 @@ inputSymbol (size_t *ilen, char del)
     {
       /* We do allow labels beginning with '#' */
       if (*p == '#')
-        ++p;
+	++p;
       while ((c = *p) != 0
-             && (isalnum (c)
+	     && (isalnum (c)
 		 || c == '_'
 		 || (c == '$'
 		     && option_local

@@ -232,7 +232,7 @@ checkchr (char chr)
 void
 decode (const Lex *label)
 {
-  char * const inputMark = Input_GetMark ();
+  const char * const inputMark = Input_GetMark ();
 
   Symbol *symbol;
   switch (inputGet ())
@@ -1297,8 +1297,8 @@ illegal:
         { /* Mnemonic is not recognized, maybe it is a macro.  */
           Input_RollBackToMark (inputMark);
           size_t l;
-          char *ci;
-          if (inputLook () == '|')
+          const char *ci;
+          if (inputLook () == '|') /* FIXME: use lexGetId ! */
             {
               inputSkip ();
               ci = inputSymbol (&l, '|');
@@ -1313,22 +1313,12 @@ illegal:
           else
             {
               Input_RollBackToMark (inputMark);
-	      const char *line = inputRest ();
-	      size_t len = strlen (line);
-	      if (len != 0 && line[len - 1] == '\n')
-		--len;
-              errorAbort ("Illegal line \"%.*s\"", (int)len, line);
+              errorAbort ("Illegal line \"%s\"", inputRest ());
             }
         }
         break;
     }
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
-    {
-      const char *line = inputRest ();
-      size_t len = strlen (line);
-      if (len != 0 && line[len - 1] == '\n')
-	--len;
-      errorAbort ("Skipping extra characters '%.*s'", (int)len, line);
-    }
+    errorAbort ("Skipping extra characters '%s'", inputRest ());
 }

@@ -167,11 +167,11 @@ defineint (int size)
 	  break;
 	case ValueString:
 	  if (size == 1)
-	    { /* Lay out a string */
-	      int len = value.Data.String.len;
+	    { /* Lay out a string.  */
+	      size_t len = value.Data.String.len;
 	      const char *str = value.Data.String.s;
-	      while (len > 0)
-		putData (1, lexGetCharFromString (&len, &str));
+	      for (size_t i = 0; i < len; ++i)
+		putData (1, str[i]);
 	    }
 	  else
 	    putData (size, lexChar2Int (false, value.Data.String.len, value.Data.String.s));
@@ -195,7 +195,6 @@ defineint (int size)
 void
 c_head (void)
 {
-  int i = areaCurrentSymbol ? areaCurrentSymbol->value.Data.Int.i : 0;
   skipblanks ();
   Value value = exprBuildAndEval (ValueString);
   switch (value.Tag)
@@ -203,10 +202,10 @@ c_head (void)
     case ValueString:
       if (areaCurrentSymbol)
 	{
-	  int len = value.Data.String.len;
+	  size_t len = value.Data.String.len;
 	  const char *str = value.Data.String.s;
-	  while (len > 0)
-	    putData (1, lexGetCharFromString (&len, &str));
+	  for (size_t i = 0; i < len; ++i)
+	    putData (1, str[i]);
 	  putData (1, 0);
 	}
       break;
@@ -216,6 +215,7 @@ c_head (void)
     }
   if (areaCurrentSymbol)
     {
+      int i = areaCurrentSymbol->value.Data.Int.i;
       while (areaCurrentSymbol->value.Data.Int.i & 3)
 	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
       putData (4, 0xFF000000 + (areaCurrentSymbol->value.Data.Int.i - i));
@@ -398,8 +398,6 @@ c_import (void)
 void
 c_get (void)
 {
-  inputExpand = false;
-
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ();
@@ -424,8 +422,6 @@ c_get (void)
 void
 c_lnk (void)
 {
-  inputExpand = false;
-
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ();
@@ -465,7 +461,6 @@ c_idfn (void)
 void
 c_bin (void)
 {
-  inputExpand = false;
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ();

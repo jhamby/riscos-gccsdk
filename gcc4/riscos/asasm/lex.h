@@ -58,7 +58,7 @@ const char *OperatorAsStr (Operator op);
 bool (isUnop) (Operator);
 
 extern const char Pri[2][10];
-#define PRI(n) Pri[option_objasm][n-1]
+#define PRI(n) Pri[1 /* FIXME: entry 0 is no longer used.  */][n-1]
 
 typedef enum
 {

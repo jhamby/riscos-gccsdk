@@ -110,8 +110,6 @@ lexint (int base)
       char c;
       if ((c = inputLook ()) == '0')
 	{
-	  if (!option_objasm)
-	    base = 8;
 	  if ((c = inputSkipLook ()) == 'x' || c == 'X')
 	    {
 	      base = 16;
@@ -190,8 +188,9 @@ lexGetIdInternal (bool genError)
   skipblanks ();
   char c;
   Lex result;
-  if ((c = inputGet ()) == '|')
+  if ((c = inputLook ()) == '|')
     {
+      inputSkip ();
       result.tag = LexId;
       result.Data.Id.str = inputSymbol (&result.Data.Id.len, '|');
       if (inputGet () != '|')
@@ -200,8 +199,6 @@ lexGetIdInternal (bool genError)
     }
   else
     {
-      inputUnGet (c);
-
       /* Note: we allow identifiers to begin with '#'.  */
       if (isalpha (c) || c == '.' || c == '_' || c == '#')
 	{
@@ -236,7 +233,7 @@ lexGetIdNoError (void)
 }
 
 
-static char *
+static const char *
 lexReadLocal (size_t *len, int *label)
 {
   if (!isdigit (inputLook ()))
@@ -244,7 +241,7 @@ lexReadLocal (size_t *len, int *label)
   *label = inputGet () - '0';
   if (isdigit (inputLook ()))
     *label = (*label * 10) + (inputGet () - '0');
-  char *name = inputSymbol (len, 0);
+  const char *name = inputSymbol (len, 0);
   if (len && strncmp (rout_id, name, *len))
     {
       error (ErrorError, "Local label name (%s) does not match routine name (%s)", rout_id, name );
@@ -307,7 +304,7 @@ lexGetLocal (void)
       result.tag = LexNone;
       size_t len;
       int label;
-      char *name = lexReadLocal (&len, &label);
+      const char *name = lexReadLocal (&len, &label);
       if (!name)
 	return result;
       char id[1024];
@@ -328,8 +325,6 @@ lexGetLocal (void)
 Lex
 lexGetPrim (void)
 {
-  char *str;
-  size_t len;
   Lex result;
 
   nextbinopvalid = false;
@@ -400,23 +395,28 @@ lexGetPrim (void)
       break;
 
     case '\'': /* FIXME: test 'abcd' alike integers.  */
-      result.tag = LexInt;
-      str = inputSymbol (&len, '\'');
-      if (inputGet () != '\'')
-	error (ErrorError, "Character continues over newline");
-      result.Data.Int.value = lexChar2Int (true, len, str);
+      {
+        result.tag = LexInt;
+	size_t len;
+        const char *str = inputSymbol (&len, '\'');
+        if (inputGet () != '\'')
+	  error (ErrorError, "Character continues over newline");
+        result.Data.Int.value = lexChar2Int (true, len, str);
+      }
       break;
 
     case '"':
-      result.tag = LexString;
-      str = inputSymbol (&len, '"');
-      if ((str = strndup (str, len)) == NULL)
-	errorOutOfMem();
-      if (inputGet () != '"')
+      {
+        result.tag = LexString;
+        size_t len;
+        const char *strOrg = inputSymbol (&len, '"');
+        char *str;
+        if ((str = strndup (strOrg, len)) == NULL)
+	  errorOutOfMem();
+        if (inputGet () != '"')
 	error (ErrorError, "String continues over newline");
-      if (option_objasm)
-	{
-	  char *s1, *s2;
+	  const char *s1;
+	  char *s2;
 	  size_t l1;
 	  while (inputLook () == '"')
 	    {
@@ -432,7 +432,7 @@ lexGetPrim (void)
 	      memcpy (s2, str, len);
 	      s2[len] = '"';
 	      memcpy (s2 + len + 1, s1, l1);
-	      free (str);
+	      free ((void *)str);
 	      str = s2;
 	      len += l1 + 1;
 	    }
@@ -511,9 +511,9 @@ lexGetPrim (void)
 	  *s2 = 0;
 	  len -= s1 - s2;
 	  str = realloc (str, len);	/* try to reduce size of block */
-	}
-      result.Data.String.str = str;
-      result.Data.String.len = len;
+        result.Data.String.str = str;
+        result.Data.String.len = len;
+      }
       break;
 
     case '|':

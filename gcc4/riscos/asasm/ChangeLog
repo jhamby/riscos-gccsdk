@@ -1,3 +1,40 @@
+Sun Oct 24 17:04:18 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/variable_substitution.s: Added.
+	* regression/Makefile: Drop asasm's -objasm option.
+	* commands.c (defineint, c_head): Follow the lexGetCharFromString
+	removal.
+	(c_get,c_lnk,c_bin): Follow the inputExpoand removal.
+	* decode.c (decode): Revert the end newline removal in error message
+	as this not necessary when we make sure our predefines don't have
+	newlines.  Follow constify of Input_GetMark() return value.
+	* m_cpuctrl.c: Follow constify of Input_GetMark() return value.
+	* m_fpumem.c: Likewise.
+	* macros.c (c_mend): Check for upcase MEND.
+	(c_macro): Follow the inputExpand removal and call inputNextLineNoSubst
+	instead of inputNextLine.  Follow constify of Input_GetMark() and
+	inputSymbol return value.
+	* whileif.c (ifskip): Follow the inputExpand removal and call
+	inputNextLineNoSubst instead of inputNextLine.
+	(while_skip): Check for upcase WHILE/WEND.
+	(c_while): Follow constify of Input_GetMark() and inputSymbol return
+	value.
+	* lexAcorn.c (lexAcornPrim): Follow constify of Input_GetMark return
+	value.
+	* input.c (inputExpand): Remove.
+	(input_pos,inputRest,Input_RollBackToMark): Constify.
+	(inputNextLineNoSubst, inputNextLineCore): Refactored out of
+	inputNextLine.
+	(inputEnvSub,inputVarSub,inputArgSub): Simplified.
+	(inputSymbol): Follow the option_objasm removal.
+	* input.h (inputExpand): Remove.
+	(inputNextLineNoSubst): Add.
+	(Input_GetMark,Input_RollBackToMark): Constify.
+	* help_lex.c (lexGetCharFromString): Removed.
+	(lexChar2Int): Follow the lexGetCharFromString removal.
+	* asm.c (assemble): Follow inputExpand removal.  Simplify.
+	* main.c, main.h (option_objasm): Remove.
+
 Sun Oct 24 00:15:15 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (decode): Get rid of macro variable.

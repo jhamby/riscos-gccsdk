@@ -53,11 +53,8 @@ static bool whileReEval (void);
 static void
 if_skip (const char *onerror)
 {
-  int tmp_inputExpand = inputExpand;
-  inputExpand = false;
-
   int nested = 0;
-  while (inputNextLine ())
+  while (inputNextLineNoSubst ())
     {
       int c;
       if (inputLook () && !isspace (c = inputGet ()))
@@ -89,13 +86,11 @@ if_skip (const char *onerror)
 	}
     }
   error (ErrorError, "%s", onerror);
-  inputExpand = tmp_inputExpand;
   return;
 
 skipped:
   ignore_else = true;
   inputRewind = true;
-  inputExpand = tmp_inputExpand;
 }
 
 
@@ -151,22 +146,24 @@ while_skip (void)
   int nested = 0;
   while (inputNextLine ())
     {
+      /* Skip label (if there is one).  */
       if (inputLook () && !isspace (inputGet ()))
 	{
 	  size_t len;
 	  inputSymbol (&len, 0);
 	}
       skipblanks ();
-      if (inputGetLower () == 'w')
+      /* Look for WHILE and WEND.  */
+      if (inputGet () == 'W')
 	{
-	  switch (inputGetLower ())
+	  switch (inputGet ())
 	    {
-	      case 'h':		/* WHILE? */
-		if (!(notinput ("ile") || (inputLook () && !isspace (inputGet ()))))
+	      case 'H':	/* WHILE? */
+		if (!(notinput ("ILE") || (inputLook () && !isspace (inputGet ()))))
 		  nested++;
 		break;
-	      case 'e':		/* WEND? */
-		if (!(notinput ("nd") || (inputLook () && !isspace (inputGet ())))
+	      case 'E':	/* WEND? */
+		if (!(notinput ("ND") || (inputLook () && !isspace (inputGet ())))
 		    && nested-- == 0)
 		  return;
 	        break;
@@ -178,11 +175,10 @@ while_skip (void)
 }
 
 
-
 void
 c_while (const Lex *label __attribute__ ((unused)))
 {
-  char * const inputMark = Input_GetMark ();
+  const char * const inputMark = Input_GetMark ();
   /* Evaluate expression */
   Value flag = exprBuildAndEval (ValueBool);
   if (flag.Tag != ValueBool)

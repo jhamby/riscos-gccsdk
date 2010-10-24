@@ -203,7 +203,7 @@ illegal:
 void
 lexAcornPrim (Lex *lex)
 {
-  char * const inputMark = Input_GetMark ();
+  const char * const inputMark = Input_GetMark ();
   switch (inputGet ())
     {
       case 'C':

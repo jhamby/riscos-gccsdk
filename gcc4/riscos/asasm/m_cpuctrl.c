@@ -92,7 +92,7 @@ m_blx (ARMWord cc)
 {
   cpuWarn (XSCALE);
 
-  char * const inputMark = Input_GetMark ();
+  const char * const inputMark = Input_GetMark ();
   ARMWord reg = getCpuRegNoError ();
   ARMWord ir;
   if (reg == INVALID_REG)
@@ -469,7 +469,7 @@ getpsr (bool only_all)
   if (inputLook () != '_')
     return saved | (only_all ? 0xF0000 : 0x90000);
   
-  char * const inputMark = Input_GetMark ();
+  const char * const inputMark = Input_GetMark ();
   inputSkip ();
   char w[4];
   w[0] = inputGetLower ();

@@ -47,18 +47,20 @@
 void
 assemble (void)
 {
-  /* Read each line from the input into input.c:workBuff, if inputExpand is
-     true, then expand the input line into where necessary.  */
+  /* Process input line-by-line.  */
   while (gCurPObjP != NULL && inputNextLine ())
     {
-      /* ignore blank lines and comments */
-      Lex label;
-      if (inputLook () && !isspace (inputLook ()) && !Input_IsEolOrCommentStart ())
-	{
-	  /* Deal with any label */
-	  label = isdigit (inputLook ())? lexGetLocal () : lexGetId ();
+      /* Ignore blank lines and comments.  */
+      if (Input_IsEolOrCommentStart ())
+	continue;
 
-	  /* Check for local label here */
+      Lex label;
+      if (!isspace ((unsigned char)inputLook ()))
+	{
+	  /* Deal with any label. */
+	  label = isdigit ((unsigned char)inputLook ()) ? lexGetLocal () : lexGetId ();
+
+	  /* Check for local label here.  */
 	  skipblanks ();
 	  if (inputLook () == ':')
 	    inputSkip ();
@@ -75,8 +77,6 @@ assemble (void)
 	decode (&label);
       else
 	asm_label (&label);
-
-      inputExpand = true;
     }
 }
 

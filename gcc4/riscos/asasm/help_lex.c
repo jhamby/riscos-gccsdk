@@ -38,179 +38,30 @@ char2digit (char c)
 }
 
 ARMWord
-lexGetCharFromString (int *ilen, const char **istr)
-{
-  const char *str = *istr;
-  int len = *ilen;
-  char c;
-
-  if (*str == '\\' && !option_objasm)
-    {				/* An escape character */
-      if (--len < 1)
-	{
-	  error (ErrorError, "No character after '\\'");
-	  c = 0;
-	  str++;
-	}
-      else
-	{
-	  switch (*++str)
-	    {			/* Is it one of the special characters ? */
-	    case 'a':
-	      str++;
-	      len--;
-	      c = '\a';
-	      break;
-	    case 'b':
-	      str++;
-	      len--;
-	      c = '\b';
-	      break;
-	    case 'f':
-	      str++;
-	      len--;
-	      c = '\f';
-	      break;
-	    case 'n':
-	      str++;
-	      len--;
-	      c = '\n';
-	      break;
-	    case 'r':
-	      str++;
-	      len--;
-	      c = '\r';
-	      break;
-	    case 't':
-	      str++;
-	      len--;
-	      c = '\t';
-	      break;
-	    case 'v':
-	      str++;
-	      len--;
-	      c = '\v';
-	      break;
-	    case '\'':
-	      str++;
-	      len--;
-	      c = '\'';
-	      break;
-	    case '"':
-	      str++;
-	      len--;
-	      c = '"';
-	      break;
-	    case '\\':
-	      str++;
-	      len--;
-	      c = '\\';
-	      break;
-	    case 'x':
-	      str++;
-	      len--;
-	      switch (len)
-		{		/* It is an hex character */
-		case 0:
-		case 1:
-		  error (ErrorError, "Not two hex digits after \\x");
-		  str += len;
-		  len = 0;
-		  c = 0;
-		  break;
-		default:
-		  if (isxdigit (str[0]) && isxdigit (str[1]))
-		    c = char2digit (str[0]) * 16 + char2digit (str[1]);
-		  else
-		    {
-		      error (ErrorError, "Illegal hex digit after \\x");
-		      c = 0;
-		    }
-		  len -= 2;
-		  str += 2;
-		  break;
-		}
-	      break;
-	    case '0':
-	    case '1':
-	    case '2':
-	    case '3':
-	    case '4':
-	    case '5':
-	    case '6':
-	    case '7':
-	      switch (len)
-		{		/* It is a octal character */
-		case 0:
-		case 1:
-		case 2:
-		  error (ErrorError, "Not three octal digits after \\");
-		  str += len;
-		  len = 0;
-		  c = 0;
-		  break;
-		default:
-		  if (str[0] >= '0' && str[0] <= '9'
-		      && str[1] >= '0' && str[1] <= '9'
-		      && str[2] >= '0' && str[2] <= '9')
-		    c = (str[0] - '0') * 64 + (str[1] - '0') * 8 + str[2] - '0';
-		  else
-		    {
-		      error (ErrorError, "Illegal octal character after \\");
-		      c = 0;
-		    }
-		  len -= 3;
-		  str += 3;
-		  break;
-		}
-	      break;
-	    default:		/* Do not understand */
-	      error (ErrorError, "Illegal character after \\");
-	      c = *str++;
-	      break;
-	    }
-	}
-    }
-  else
-    {				/* An ordinary character */
-      c = *str++;
-      len--;
-    }
-  *istr = str;
-  *ilen = len;
-  return c;
-}
-
-ARMWord
 lexChar2Int (bool rev, int len, const char *str)
 {
-  char c[4];
-  int i;
-  for (i = 0; len && i < 4; ++i)
-    c[i] = lexGetCharFromString (&len, &str);
-
   ARMWord result;
-  switch (i)
+  switch (len)
     {
-      default:
       case 0:
 	error (ErrorError, "Empty character");
 	result = 0;
 	break;
       case 1:
-	result = c[0];
+	result = str[0];
 	break;
       case 2:
-	result = (rev) ? (c[1] << 8) | c[0]
-	               : (c[0] << 8) | c[1];
+	result = (rev) ? (str[1] << 8) | str[0]
+	               : (str[0] << 8) | str[1];
 	break;
       case 3:
-	result = (rev) ? (c[2] << 16) | (c[1] << 8) | c[0]
-	               : (c[0] << 16) | (c[1] << 8) | c[2];
+	result = (rev) ? (str[2] << 16) | (str[1] << 8) | str[0]
+	               : (str[0] << 16) | (str[1] << 8) | str[2];
 	break;
+      default:
       case 4:
-	result = (rev) ? (c[3] << 24) | (c[2] << 16) | (c[1] << 8) | c[0]
-	               : (c[0] << 24) | (c[1] << 16) | (c[2] << 8) | c[3];
+	result = (rev) ? (str[3] << 24) | (str[2] << 16) | (str[1] << 8) | str[0]
+	               : (str[0] << 24) | (str[1] << 16) | (str[2] << 8) | str[3];
 	break;
     }
 

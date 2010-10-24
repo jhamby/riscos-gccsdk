@@ -209,49 +209,51 @@ macroFind (size_t len, const char *name)
 
 /* Macro builder code */
 
-
+/**
+ * \return true when MEND is read.
+ */
 static bool
 c_mend (void)
 {
-  if (!isspace (inputLook ()))
+  if (!isspace ((unsigned char)inputLook ()))
     return false;
 
   skipblanks ();
-  if (inputGetLower () != 'm')
-    return false;
-  if (inputGetLower () != 'e')
-    return false;
-  if (inputGetLower () != 'n')
-    return false;
-  if (inputGetLower () != 'd')
+  if (inputGet () != 'M' || inputGet () != 'E'
+      || inputGet () != 'N' || inputGet () != 'D')
     return false;
   char c = inputLook ();
-  return c == '\0' || isspace (c);
+  return c == '\0' || isspace ((unsigned char)c);
 }
 
 
+/**
+ * Processes:
+ *         MACRO
+ * $<lbl> <marco name> [$<param1>[=<default value>]]*
+ */
 void
 c_macro (const Lex *label)
 {
+  if (label->tag != LexNone)
+    error (ErrorWarning, "Label not allowed here - ignoring");
+
   Macro m;
   memset(&m, 0, sizeof(Macro));
 
   char *buf = NULL;
 
-  inputExpand = false;
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
     error (ErrorWarning, "Skipping characters following MACRO");
-  if (!inputNextLine ())
+  if (!inputNextLineNoSubst ())
     errorAbort ("End of file found within macro definition");
   if (Input_IsEolOrCommentStart ())
     errorAbort ("Missing macro name");
   if (inputLook () == '$')
     inputSkip ();
   size_t len;
-  char *ptr = inputSymbol (&len, 0);
+  const char *ptr = inputSymbol (&len, 0);
   if (len)
     {
       m.labelarg = m.numargs = 1;
@@ -299,16 +301,16 @@ c_macro (const Lex *label)
   int bufptr = 0, buflen = 0;
   do
     {
-      if (!inputNextLine ())
+      if (!inputNextLineNoSubst ())
 	goto noMEND;
-      char * const inputMark = Input_GetMark ();
+      const char * const inputMark = Input_GetMark ();
       if (c_mend ())
 	break;
       Input_RollBackToMark (inputMark);
       char c;
       while ((c = inputGet ()) != 0)
 	{
-	  char * const inputMark = Input_GetMark ();
+	  const char * const inputMark2 = Input_GetMark ();
 	  if (c == '$')
 	    {
 	      if (inputLook () == '$')
@@ -330,7 +332,7 @@ c_macro (const Lex *label)
 		  else
 		    {
 		      /* error(ErrorWarning, true, "Unknown macro argument encountered"); */
-		      Input_RollBackToMark (inputMark);
+		      Input_RollBackToMark (inputMark2);
 		    }
 		}
 	    }
