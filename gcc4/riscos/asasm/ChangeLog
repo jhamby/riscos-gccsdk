@@ -1,3 +1,8 @@
+Sun Oct 24 18:16:54 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* tests_fail/load_constant.s: Add case of missing constant load
+	optimisation.
+
 Sun Oct 24 17:04:18 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/variable_substitution.s: Added.
