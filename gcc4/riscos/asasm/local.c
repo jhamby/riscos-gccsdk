@@ -24,9 +24,9 @@
 #include <string.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "asm.h"
@@ -69,6 +69,9 @@ static localPos *localList;
 static localPos *localListEnd;
 
 
+/**
+ * Implements ROUT.
+ */
 void
 c_rout (const Lex *label)
 {
@@ -101,10 +104,14 @@ c_rout (const Lex *label)
 }
 
 
+/**
+ * Implements LOCAL.
+ * Is an ObjAsm extension.
+ */
 void
 c_local (const Lex *label)
 {
-  if (label && label->tag != LexNone)
+  if (label->tag != LexNone)
     error (ErrorWarning, "Label not allowed here - ignoring");
   localCurrent++;
   localPos *p;
@@ -121,7 +128,7 @@ c_local (const Lex *label)
 }
 
 
-int
+bool
 localTest (const char *s)
 {
   return !memcmp (s, localFormat + 1, sizeof ("Local$$")-1);

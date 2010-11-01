@@ -45,7 +45,7 @@
 #define AREA_THUMB		0x00100000 /* Code area only */
 #define AREA_HALFWORD		0x00200000 /* Code area only */
 #define AREA_INTERWORK		0x00400000 /* Code area only */
-#define AREA_BASED		0x00100000 /* Data area only */
+#define AREA_BASED		0x00100000 /* Data area only */ /* FIXME: what support is needed for this ? */
 #define AREA_STUBDATA		0x00200000 /* Data area only */
 #define AREA_RESERVED22		0x00400000
 #define AREA_RESERVED23		0x00800000
@@ -77,5 +77,7 @@ void areaError (void);		/* report "No area defined" */
 void areaInit (void);
 void areaFinish (void);
 void areaGrow (Area *area, int mingrow);
+
+bool Area_IsImplicit (const Symbol *sym);
 
 #endif

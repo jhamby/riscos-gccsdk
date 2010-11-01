@@ -23,9 +23,9 @@
 #include "config.h"
 #include <ctype.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "error.h"
@@ -69,7 +69,7 @@ dstmemx (ARMWord ir)
 
   const char * const inputMark = Input_GetMark ();
   bool stack_ia = false;
-  bool stack = !isspace (inputLook ());
+  bool stack = !isspace ((unsigned char)inputLook ());
   if (stack)
     {
       char c1 = toupper (inputLook ());
@@ -89,7 +89,7 @@ dstmemx (ARMWord ir)
       if (stack_ia)
 	ir |= 0x800000;
     }
-  if (inputLook () && !isspace (inputLook ()))
+  if (inputLook () && !isspace ((unsigned char)inputLook ()))
     {
       errorAbort ("Can't parse \"%s\" of SFM/LFM", inputMark);
       return;

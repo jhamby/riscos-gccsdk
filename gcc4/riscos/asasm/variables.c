@@ -29,9 +29,9 @@
 #include <ctype.h>
 #include <string.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "area.h"
@@ -155,6 +155,9 @@ var_inputSymbol (size_t *len)
 }
 
 
+/**
+ * Implements GBLL, GBLA and GBLS.
+ */
 void
 c_gbl (ValueTag type, const Lex *label)
 {
@@ -179,6 +182,9 @@ c_gbl (ValueTag type, const Lex *label)
 }
 
 
+/**
+ * Implements LCLL, LCLA and LCLS.
+ */
 void
 c_lcl (ValueTag type, const Lex *label)
 {
@@ -314,8 +320,7 @@ var_define (const char *def)
   const Value value =
     {
       .Tag = ValueString,
-      .Data.String.s = i,
-      .Data.String.len = datLen
+      .Data.String = { .len = datLen, .s = i }
     };
   sym->value = valueCopy (value);
 }

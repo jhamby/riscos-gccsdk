@@ -29,9 +29,9 @@
 #include <string.h>
 #include <errno.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #ifdef __TARGET_UNIXLIB__
@@ -446,12 +446,14 @@ inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
     {
       if (!inString)
 	error (ErrorWarning, "Non-ID in $ expansion");
+      else if (option_pedantic)
+	error (ErrorWarning, "No $ expansion - did you perhaps mean $$");
       if (*outOffsetP < sizeof (input_buff))
 	input_buff[(*outOffsetP)++] = '$';
       return;
     }
 
-  /* Leave $[Ll].* alone, if we're wanting local labels */
+  /* Leave $[Ll].* alone, if we're wanting local labels.  */
   if (option_local && label.Data.Id.len == 1 && toupper (*label.Data.Id.str) == 'L')
     {
       if (*outOffsetP < sizeof (input_buff))
@@ -514,9 +516,12 @@ inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
   if (!inString)
     {
       /* Not in string literal, so this is an error.  */
-      error (ErrorError, "Unknown value '%.*s' for $ expansion",
+      error (ErrorError, "Unknown variable '%.*s' for $ expansion",
 	     (int)label.Data.Id.len, label.Data.Id.str);
     }
+  else if (option_pedantic)
+    error (ErrorWarning, "No $ expansion as variable '%.*s' is not defined",
+	   (int)label.Data.Id.len, label.Data.Id.str);
   if (*outOffsetP < sizeof (input_buff))
     input_buff[(*outOffsetP)++] = '$';
 }

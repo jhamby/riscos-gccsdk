@@ -94,7 +94,7 @@ typedef struct
     } Data;
 } Value;
 
-Value valueLateToCode (int offset, LateInfo *late);
+Value valueLateToCode (int offset, const LateInfo *late);
 Value valueCopy (Value value);
 void valueFree (Value *value);
 bool valueEqual (const Value *a, const Value *b);

@@ -26,9 +26,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "aoffile.h"
@@ -137,14 +137,9 @@ codeSymbol (Symbol *symbol)
 void
 codePosition (Symbol *area)
 {
-  if (area)
-    {
-      codeSymbol (area);
-      codeInt (area->value.Data.Int.i);
-      codeOperator (Op_add);
-    }
-  else
-    errorAbort ("'.' found, but no area is defined");
+  codeSymbol (area);
+  codeInt (area->value.Data.Int.i);
+  codeOperator (Op_add);
 }
 
 void
@@ -401,13 +396,13 @@ codeEvalLow (ValueTag legal, int size, Code *program)
 }
 
 Code *
-codeCopy (int len, const Code *code)
+codeCopy (size_t len, const Code *code)
 {
   Code *newCode;
   if ((newCode = malloc (len * sizeof (Code))) == NULL)
     errorOutOfMem ();
 
-  for (int i = 0; i < len; i++)
+  for (size_t i = 0; i < len; i++)
     {
       switch (newCode[i].Tag = code[i].Tag)
 	{
@@ -427,9 +422,9 @@ codeCopy (int len, const Code *code)
 }
 
 bool
-codeEqual (int len, const Code *a, const Code *b)
+codeEqual (size_t len, const Code *a, const Code *b)
 {
-  for (int i = 0; i < len; i++)
+  for (size_t i = 0; i < len; i++)
     {
       if (a[i].Tag != b[i].Tag)
 	return false;

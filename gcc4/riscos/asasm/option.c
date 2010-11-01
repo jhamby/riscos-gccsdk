@@ -23,9 +23,9 @@
 #include "config.h"
 #include <ctype.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "error.h"
@@ -254,7 +254,7 @@ getRound (void)
 static ARMWord
 isOK (ARMWord option)
 {
-  if (inputLook () && !isspace (inputGet ()))
+  if (inputLook () && !isspace ((unsigned char)inputGet ()))
     return optionError;
   else
     return option;

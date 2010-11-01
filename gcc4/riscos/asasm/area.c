@@ -21,6 +21,8 @@
  */
 
 #include "config.h"
+
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -41,6 +43,12 @@
 #include "main.h"
 #include "symbol.h"
 
+static void Area_Ensure (void);
+
+/* Area name which will be used where there needs one to be created but has
+   not been explicitely done by the user so far.  */
+#define IMPLICIT_AREA_NAME "$$$$$$$"
+
 #define DOUBLE_UP_TO (128*1024)
 #define GROWSIZE      (16*1024)
 
@@ -50,15 +58,8 @@ int areaEntryOffset;
 Symbol *areaHeadSymbol = NULL;
 
 
-void
-areaError (void)
-{
-  errorAbort ("No area defined");
-}
-
-
 static Area *
-areaNew (int type)
+areaNew (Symbol *sym, int type)
 {
   Area *res;
   if ((res = malloc (sizeof (Area))) == NULL)
@@ -71,32 +72,42 @@ areaNew (int type)
   res->norelocs = 0;
   res->relocs = NULL;
   res->lits = NULL;
+
+  areaHeadSymbol = sym;
+
   return res;
 }
 
 
 static bool
-areaImage (Area * area, int newsize)
+areaImage (Area *area, int newsize)
 {
   unsigned char *newImage;
   if (area->imagesize)
     newImage = realloc (area->image, newsize);
   else
     newImage = malloc (newsize);
-  if (newImage)
-    {
-      area->imagesize = newsize;
-      area->image = newImage;
-      return true;
-    }
-  else
+  if (!newImage)
     return false;
+
+  area->imagesize = newsize;
+  area->image = newImage;
+  return true;
 }
 
 
 void
 areaGrow (Area *area, int mingrow)
 {
+  /* When we want to grow an implicit area, it is time to give an error as
+     this is not something we want to output.  */
+  if (area->imagesize == 0)
+    {
+      assert (areaCurrentSymbol->area.info == area);
+      if (!strcmp (areaCurrentSymbol->str, IMPLICIT_AREA_NAME))
+	error (ErrorError, "No area defined");
+    }
+
   int inc;
   if (area->imagesize && area->imagesize < DOUBLE_UP_TO)
     inc = area->imagesize;
@@ -113,7 +124,7 @@ areaGrow (Area *area, int mingrow)
 void
 areaInit (void)
 {
-  areaCurrentSymbol = NULL;
+  Area_Ensure ();
 }
 
 /**
@@ -149,15 +160,8 @@ c_entry (void)
 void
 c_align (void)
 {
-  int alignValue, offsetValue, unaligned;
-
-  if (!areaCurrentSymbol)
-    {
-      areaError ();
-      return;
-    }
-
   skipblanks ();
+  int alignValue, offsetValue;
   if (Input_IsEolOrCommentStart ())
     {				/* no expression follows */
       alignValue = 1<<2;
@@ -212,7 +216,7 @@ c_align (void)
     }
   /* We have to align on alignValue + offsetValue */
 
-  unaligned = (offsetValue - areaCurrentSymbol->value.Data.Int.i) % alignValue;
+  int unaligned = (offsetValue - areaCurrentSymbol->value.Data.Int.i) % alignValue;
   if (unaligned || offsetValue >= alignValue)
     {
       int bytesToStuff = (unaligned < 0) ? alignValue + unaligned : unaligned;
@@ -231,12 +235,6 @@ c_align (void)
 void
 c_reserve (void)
 {
-  if (!areaCurrentSymbol)
-    {
-      areaError ();
-      return;
-    }
-
   Value value = exprBuildAndEval (ValueInt);
   if (value.Tag == ValueInt)
     {
@@ -255,12 +253,46 @@ c_reserve (void)
 }
 
 
+/**
+ * Ensures there is an active area (i.e. areaCurrentSymbol is non-NULL).
+ * When the user didn't specify an area yet, there will be one created called
+ * "$$$$$$$".
+ */
+static void
+Area_Ensure (void)
+{
+  assert (areaCurrentSymbol == NULL);
+  const Lex lex = lexTempLabel (IMPLICIT_AREA_NAME, sizeof (IMPLICIT_AREA_NAME)-1);
+  Symbol *sym = symbolGet (&lex);
+  if (sym->type & SYMBOL_DEFINED)
+    error (ErrorError, "Redefinition of label to area %s", sym->str);
+  else if (!(sym->type & SYMBOL_AREA))
+    {
+      sym->type = SYMBOL_AREA | SYMBOL_DECLARED;
+      sym->value.Tag = ValueInt;
+      sym->value.Data.Int.i = 0;
+      sym->area.info = areaNew (sym, AREA_CODE | AREA_READONLY | AREA_INIT);
+    }
+
+  areaCurrentSymbol = sym;
+}
+
+
+bool
+Area_IsImplicit (const Symbol *sym)
+{
+  return !strcmp (sym->str, IMPLICIT_AREA_NAME);
+}
+
+
 void
 c_area (void)
 {
-  int oldtype = 0;  
   Lex lex = lexGetId ();
+  if (lex.tag != LexId)
+    return;
   Symbol *sym = symbolGet (&lex);
+  int oldtype = 0;  
   if (sym->type & SYMBOL_DEFINED)
     error (ErrorError, "Redefinition of label to area %s", sym->str);
   else if (sym->type & SYMBOL_AREA)
@@ -270,8 +302,7 @@ c_area (void)
       sym->type = SYMBOL_AREA | SYMBOL_DECLARED;
       sym->value.Tag = ValueInt;
       sym->value.Data.Int.i = 0;
-      sym->area.info = areaNew (0);
-      areaHeadSymbol = sym;
+      sym->area.info = areaNew (sym, 0);
     }
   skipblanks ();
 
@@ -322,9 +353,8 @@ c_area (void)
 	newtype |= AREA_REENTRANT;
       else if (!strncmp ("BASED", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
-	  ARMWord reg;
 	  skipblanks ();
-	  reg = getCpuReg ();
+	  ARMWord reg = getCpuReg ();
 	  newtype |= AREA_BASED | AREA_READONLY | (reg << 24);
 	}
       else if (!strncmp ("LINKONCE", attribute.Data.Id.str, attribute.Data.Id.len))

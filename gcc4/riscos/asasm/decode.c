@@ -21,15 +21,18 @@
  */
 
 #include "config.h"
+
+#include <assert.h>
 #include <ctype.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 #include <stdio.h>
 #include <string.h>
 
+#include "area.h"
 #include "asm.h"
 #include "commands.h"
 #include "decode.h"
@@ -110,7 +113,25 @@ checkchr (char chr)
     { \
       if (checkstr (string)) \
         goto illegal; \
-      symbol = asm_label (label); \
+      labelSymbol = asm_label (label); \
+      fun (); \
+    } while (0)
+
+#define C_FINISH_CHR(chr, fun) \
+  do \
+    { \
+      if (checkchr (chr)) \
+        goto illegal; \
+      labelSymbol = asm_label (label); \
+      fun (); \
+    } while (0)
+
+#define C_FINISH(fun) \
+  do \
+    { \
+      if (checkspace ()) \
+        goto illegal; \
+      labelSymbol = asm_label (label); \
       fun (); \
     } while (0)
 
@@ -119,6 +140,7 @@ checkchr (char chr)
     { \
       if (checkstr (string)) \
         goto illegal; \
+      labelSymbol = NULL; \
       fun (label); \
     } while (0)
 
@@ -128,6 +150,7 @@ checkchr (char chr)
       int c = inputGet (); \
       if (checkspace ()) \
         goto illegal; \
+      labelSymbol = NULL; \
       switch (c) \
         { \
           case 'A': \
@@ -144,31 +167,13 @@ checkchr (char chr)
         } \
     } while (0)
 
-#define C_FINISH_CHR(chr, fun) \
-  do \
-    { \
-      if (checkchr (chr)) \
-        goto illegal; \
-      symbol = asm_label (label); \
-      fun (); \
-    } while (0)
-
-#define C_FINISH(fun) \
-  do \
-    { \
-      if (checkspace ()) \
-        goto illegal; \
-      symbol = asm_label (label); \
-      fun (); \
-    } while (0)
-
 #define C_FINISH_SYMBOL(fun) \
   do \
     { \
       if (checkspace ()) \
         goto illegal; \
-      symbol = asm_label (label); \
-      fun (symbol); \
+      labelSymbol = asm_label (label); \
+      fun (labelSymbol); \
     } while (0)
 
 #define C_FINISH_CHR_SYMBOL(chr, fun) \
@@ -176,8 +181,8 @@ checkchr (char chr)
     { \
       if (checkchr (chr)) \
         goto illegal; \
-      symbol = asm_label (label); \
-      fun (symbol); \
+      labelSymbol = asm_label (label); \
+      fun (labelSymbol); \
     } while (0)
 
 #define M_FINISH_STR(string, fun, opt) \
@@ -189,7 +194,7 @@ checkchr (char chr)
       if (optionError == (option = opt ())) \
         goto illegal; \
       skipblanks(); \
-      symbol = asm_label (label); \
+      labelSymbol = asm_label (label); \
       fun (option); \
     } while (0)
 
@@ -202,7 +207,7 @@ checkchr (char chr)
       if (optionError == (option = opt ())) \
         goto illegal; \
       skipblanks (); \
-      symbol = asm_label (label); \
+      labelSymbol = asm_label (label); \
       fun (option); \
     } while (0)
 
@@ -214,7 +219,7 @@ checkchr (char chr)
       ARMWord option = optionCondLfmSfm (); \
       if (optionError == option) \
         goto illegal; \
-      symbol = asm_label (label); \
+      labelSymbol = asm_label (label); \
       fun (option); \
     } while (0)
 
@@ -225,16 +230,25 @@ checkchr (char chr)
       if (optionError == (option = opt ())) \
         goto illegal; \
       skipblanks (); \
-      symbol = asm_label (label); \
+      labelSymbol = asm_label (label); \
       fun (option); \
     } while (0)
 
+/**
+ * Decode one assembler line.
+ * \param label A non-NULL ptr to the starting label.  Its tag is LexId when
+ * there was one found, it's LexNone when there wasn't one.
+ */
 void
 decode (const Lex *label)
 {
   const char * const inputMark = Input_GetMark ();
 
-  Symbol *symbol;
+  const int startOffset = areaCurrentSymbol ? areaCurrentSymbol->value.Data.Int.i : 0;
+  const Value startStorage = storageValue ();
+  const int startStorageOffset = startStorage.Tag == ValueInt ? startStorage.Data.Int.i : startStorage.Data.Addr.i;
+
+  Symbol *labelSymbol;
   switch (inputGet ())
     {
       case '%':
@@ -467,15 +481,11 @@ decode (const Lex *label)
                         case 'D':
                           C_FINISH (c_dcfd); /* DCFD (64 bits float) */
                           break;
-                        case 'E':
-                          C_FINISH (c_dcfe); /* DCFE (96 bits float) */
-                          break;
-                        case 'P':
-                          C_FINISH (c_dcfp); /* DCFP (80 bits packed BCD) */
-                          break;
                         case 'S':
                           C_FINISH (c_dcfs); /* DCFS (32 bits float) */
                           break;
+                        default:
+                          goto illegal;
                       }
                     break;
                   case 'W':
@@ -869,6 +879,8 @@ decode (const Lex *label)
             case 'S':
               M_FINISH_STR("UB", m_qsub, optionCond); /* QSUB CC */
               break;
+            default:
+              goto illegal;
           }
         break;
 
@@ -1093,6 +1105,8 @@ decode (const Lex *label)
                                 goto illegal;
                             }
                           break;
+                        default:
+                          goto illegal;
                       }
                     break;
                 }
@@ -1271,30 +1285,21 @@ decode (const Lex *label)
         break;
 
       case '[':
-        if (inputLook () && !isspace (inputGet ()))
-          goto illegal;
-        skipblanks ();
-        asm_label (label);
-        c_if ();
+	C_FINISH_FLOW ("", c_if); /* '[' */
         break;
 
       case '|':
-        if (inputLook () && !isspace (inputGet ()))
-          goto illegal;
-        skipblanks ();
-        c_else (label);
+	C_FINISH_FLOW ("", c_else); /* '|' */
         break;
 
       case ']':
-        if (inputLook () && !isspace (inputGet ()))
-          goto illegal;
-        skipblanks ();
-        c_endif (label);
+	C_FINISH_FLOW ("", c_endif); /* ']' */
         break;
 
       default:
 illegal:
-        { /* Mnemonic is not recognized, maybe it is a macro.  */
+        {
+	  /* Mnemonic is not recognized, maybe it is a macro.  */
           Input_RollBackToMark (inputMark);
           size_t l;
           const char *ci;
@@ -1318,6 +1323,21 @@ illegal:
         }
         break;
     }
+
+  /* Determine the code size associated with the label on this line (if any).  */
+  if (labelSymbol != NULL)
+    {
+      assert (labelSymbol->codeSize == 0);
+      const Value currentStorage = storageValue ();
+      const int currentStorageOffset = currentStorage.Tag == ValueInt ? currentStorage.Data.Int.i : currentStorage.Data.Addr.i;
+      /* Either we have an increase in code/data in our current area, either
+         we have an increase in storage map, either non of the previous (like
+	 with "<lbl> * <value>" input).  */
+      assert (areaCurrentSymbol->value.Data.Int.i - startOffset == 0 || currentStorageOffset - startStorageOffset == 0);
+      labelSymbol->codeSize = areaCurrentSymbol->value.Data.Int.i - startOffset
+				+ currentStorageOffset - startStorageOffset;
+    }
+  
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
     errorAbort ("Skipping extra characters '%s'", inputRest ());

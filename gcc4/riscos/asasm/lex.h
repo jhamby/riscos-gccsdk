@@ -31,7 +31,7 @@
 typedef enum
 {
   Op_fload = 0, Op_fexec, Op_fsize, Op_fattr,	/* unop */
-  Op_lnot, Op_not, Op_neg, Op_none,	/* unop */
+  Op_lnot, Op_not, Op_neg, Op_none,		/* unop */
   Op_base, Op_index, Op_len, Op_str, Op_chr,	/* unop */
   Op_left, Op_right,		/* 10 (9) */
   Op_mul, Op_div, Op_mod,	/* 10 (9) */
@@ -51,10 +51,10 @@ const char *OperatorAsStr (Operator op);
 #endif
 
 #define isUnop(op) \
-  ((op) == Op_fload || (op) == Op_fexec || (op) == Op_fsize || \
-   (op) == Op_fattr || (op) == Op_lnot  || (op) == Op_not   || \
-   (op) == Op_neg   || (op) == Op_base  || (op) == Op_index || \
-   (op) == Op_len   || (op) == Op_str   || (op) == Op_chr)
+  ((op) == Op_fload || (op) == Op_fexec || (op) == Op_fsize \
+   || (op) == Op_fattr || (op) == Op_lnot  || (op) == Op_not \
+   || (op) == Op_neg   || (op) == Op_base  || (op) == Op_index \
+   || (op) == Op_len   || (op) == Op_str   || (op) == Op_chr)
 bool (isUnop) (Operator);
 
 extern const char Pri[2][10];
@@ -131,8 +131,6 @@ Lex lexGetBinop (void);
 int lexNextPri (void);
 
 Lex lexTempLabel (const char *str, size_t len);
-
-unsigned int lexHashStr (const char *s, size_t maxn);
 
 #ifdef DEBUG
 void lexPrint (const Lex *lex);

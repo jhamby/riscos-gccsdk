@@ -23,9 +23,9 @@
 #include "config.h"
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "area.h"
@@ -105,11 +105,8 @@ litNew (RelocTag tag, ARMWord extra, int offset, int notbefore, const Value *val
 void
 litInt (int size, const Value *value)
 {
-  if (areaCurrentSymbol)
-    litNew (RelocImmN, size, areaCurrentSymbol->value.Data.Int.i,
-	    areaCurrentSymbol->value.Data.Int.i - 4095, value);
-  else
-    error (ErrorError, "No area defined");
+  litNew (RelocImmN, size, areaCurrentSymbol->value.Data.Int.i,
+	  areaCurrentSymbol->value.Data.Int.i - 4095, value);
 }
 
 void

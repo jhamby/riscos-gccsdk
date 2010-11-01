@@ -27,9 +27,9 @@
 #include <string.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "area.h"
@@ -58,7 +58,7 @@ static bool nextbinopvalid = false;
  * \param s string to hash
  * \param maxn maximum number of chars to consider
  */
-unsigned int
+static unsigned int
 lexHashStr (const char *s, size_t maxn)
 {
   static const unsigned char hashtab[256] =
@@ -180,8 +180,8 @@ lexfloat (int r)
 }
 
 
-static Lex
-lexGetIdInternal (bool genError)
+Lex
+lexGetIdNoError (void)
 {
   nextbinopvalid = false;
 
@@ -207,11 +207,7 @@ lexGetIdInternal (bool genError)
 	  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
 	}
       else
-	{
-	  if (genError)
-	    error (ErrorError, "Missing identifier");
-	  result.tag = LexNone;
-	}
+	result.tag = LexNone;
     }
   if (result.tag == LexId && result.Data.Id.len > 1)
     localMunge (&result);
@@ -222,14 +218,10 @@ lexGetIdInternal (bool genError)
 Lex
 lexGetId (void)
 {
-  return lexGetIdInternal (true);
-}
-
-
-Lex
-lexGetIdNoError (void)
-{
-  return lexGetIdInternal (false);
+  Lex result = lexGetIdNoError ();
+  if (result.tag != LexId)
+    error (ErrorError, "Missing identifier");
+  return result;
 }
 
 
@@ -357,7 +349,30 @@ lexGetPrim (void)
       break;
 
     case '?':
-      errorAbort ("Sorry, '?' not implemented"); // FIXME:
+      {
+        /* Retrieve the code size associated with symbol.  */
+      	Lex label = lexGetPrim ();
+	if (label.tag != LexId)
+	  {
+	    error (ErrorError, "Bad operand for the ? operator");
+	    result.tag = LexNone;
+	  }
+	else
+	  {
+	    const Symbol *symP = symbolFind (&label);
+	    if (symP != NULL)
+	      {
+		result.tag = LexInt;
+		result.Data.Int.value = symP->codeSize;
+	      }
+	    else
+	      {
+		error (ErrorError, "? is not supported for not-yet defined labels");
+		result.tag = LexNone;
+	      }
+	  }
+      }
+      break;
 
     case '(':
     case ')':
@@ -553,7 +568,6 @@ lexGetPrim (void)
 	  {
 	  case 't':
 	    inputSkip ();
-
 	    if (option_pedantic) /* TODO: */
 	      error (ErrorWarning,
 	             "Range qualifiers in local label names are not implemented. Ignored 't' in local label name");

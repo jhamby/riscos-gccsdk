@@ -52,7 +52,7 @@ typedef struct WhileBlock
   int lineno;
 } WhileBlock;
 
-void c_if (void);
+void c_if (const Lex *);
 void c_else (const Lex *);
 void c_endif (const Lex *);
 

@@ -64,7 +64,7 @@ Value codeEvalLow (ValueTag legal, int size, Code *program);
 Value codeEval (ValueTag legal);
 
 LateInfo *codeNewLateInfo (Symbol *symbol);
-Code *codeCopy (int len, const Code *code);
-bool codeEqual (int len, const Code *a, const Code *b);
+Code *codeCopy (size_t len, const Code *code);
+bool codeEqual (size_t len, const Code *a, const Code *b);
 
 #endif

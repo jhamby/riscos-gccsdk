@@ -21,14 +21,15 @@
  */
 
 #include "config.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "aoffile.h"
@@ -75,6 +76,7 @@ symbolNew (const char *str, size_t len)
   result->next = NULL;
   result->type = result->offset = 0;
   result->value.Tag = ValueIllegal;
+  result->codeSize = 0;
   result->area.ptr /* = result->area.info */ = NULL;
   result->used = -1;
   result->len = len;
@@ -103,7 +105,7 @@ symbolInit (void)
 {
   static const struct {
     const char *name;
-    int len;
+    size_t len;
     int value;
     int type;
   } predefines[] = {
@@ -191,13 +193,9 @@ symbolInit (void)
     { NULL, 0, 0, 0 }
   };
 
-  Lex l;
-  l.tag = LexId;
   for (int i = 0; predefines[i].name != NULL; i++)
     {
-      l.Data.Id.str = predefines[i].name;
-      l.Data.Id.len = predefines[i].len;
-      l.Data.Id.hash = lexHashStr (l.Data.Id.str, l.Data.Id.len);
+      const Lex l = lexTempLabel (predefines[i].name, predefines[i].len);
 
       Symbol *s = symbolAdd (&l);
       s->type |= SYMBOL_ABSOLUTE | SYMBOL_DECLARED | predefines[i].type;
@@ -248,26 +246,20 @@ symbolAdd (const Lex *l)
 }
 
 
+/**
+ * \return Always a non-NULL value pointing to symbol representing given Lex
+ * object.
+ */
 Symbol *
 symbolGet (const Lex *l)
 {
+  assert (l->tag == LexId);
+
   Symbol **isearch = NULL;
-  if (l->tag != LexId)
-    { /* FIXME: what's this case ? */
-      assert (0);
-      if (l->tag != LexNone)
-	errorAbort ("Internal symbolGet: non-ID");
-      for (isearch = &symbolTable[0]; *isearch; isearch = &(*isearch)->next)
-	/* */;
-      *isearch = symbolNew ("|Dummy|", sizeof("|Dummy|")-1); /* FIXME: *isearch is written again further on, so memory leak here ? */
-    }
-  else
+  for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
     {
-      for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
-	{
-	  if (EqSymLex (*isearch, l))
-	    return *isearch;
-	}
+      if (EqSymLex (*isearch, l))
+	return *isearch;
     }
 
   *isearch = symbolNew (l->Data.Id.str, l->Data.Id.len);
@@ -297,6 +289,8 @@ symbolFind (const Lex *l)
 void
 symbolRemove (const Lex *l)
 {
+  assert (l->tag == LexId);
+
   Symbol **isearch;
   for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
     {
@@ -326,14 +320,16 @@ symbolFix (int *stringSizeNeeded)
   int strsize = 0;		/* Always contains its length */
   for (int i = 0; i < SYMBOL_TABLESIZE; i++)
     {
-      Symbol *sym;
-      for (sym = symbolTable[i]; sym; sym = sym->next)
+      for (Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
 	  if (sym->type & SYMBOL_AREA)
 	    {
-	      sym->offset = strsize;
-	      strsize += sym->len + 1;
-	      nosym++;
+	      if (!Area_IsImplicit (sym))
+		{
+		  sym->offset = strsize;
+		  strsize += sym->len + 1;
+		  nosym++;
+		}
 	    }
 	  else
 	    {
@@ -401,7 +397,8 @@ symbolStringOutput (FILE *outfile)	/* Count already output */
     {
       for (const Symbol *sym = symbolTable[i]; sym != NULL; sym = sym->next)
 	{
-	  if (SYMBOL_OUTPUT (sym) || (sym->type & SYMBOL_AREA))
+	  if (SYMBOL_OUTPUT (sym)
+	      || ((sym->type & SYMBOL_AREA) && !Area_IsImplicit (sym)))
 	    fwrite (sym->str, 1, sym->len + 1, outfile);
 	}
     }
@@ -511,12 +508,17 @@ symbolSymbolAOFOutput (FILE *outfile)
 	    }
 	  else if (sym->type & SYMBOL_AREA)
 	    {
-	      AofSymbol asym;
-	      asym.Name = armword (sym->offset + 4); /* + 4 to skip the initial length */
-	      asym.Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL);
-	      asym.Value = armword (0);
-	      asym.AreaName = armword (sym->offset + 4); /* + 4 to skip the initial length */
-	      fwrite (&asym, sizeof (AofSymbol), 1, outfile);
+	      if (!Area_IsImplicit (sym))
+		{
+	          const AofSymbol asym =
+		    {
+		      .Name = armword (sym->offset + 4), /* + 4 to skip the initial length */
+		      .Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL),
+		      .Value = armword (0),
+		      .AreaName = armword (sym->offset + 4) /* + 4 to skip the initial length */
+		    };
+		  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
+		}
 	    }
 	}
     }
@@ -529,6 +531,9 @@ findAreaIndex (const struct AREA *area)
   int i = 3;
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
+      if (Area_IsImplicit (ap))
+	continue;
+
       if (area == (const struct AREA *)ap)
         return i;
       i++;
@@ -543,13 +548,15 @@ void
 symbolSymbolELFOutput (FILE *outfile)
 {
   /* Output the undefined symbol */
-  Elf32_Sym asym;
-  asym.st_name = 0;
-  asym.st_value = 0;
-  asym.st_size = 0;
-  asym.st_info = 0;
-  asym.st_other = 0;
-  asym.st_shndx = 0;
+  Elf32_Sym asym =
+    {
+      .st_name = 0,
+      .st_value = 0,
+      .st_size = 0,
+      .st_info = 0,
+      .st_other = 0,
+      .st_shndx = 0
+    };
   fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 
   for (int i = 0; i < SYMBOL_TABLESIZE; i++)
@@ -663,13 +670,14 @@ symbolSymbolELFOutput (FILE *outfile)
 	    }
 	  else if (sym->type & SYMBOL_AREA)
 	    {
-	      int bind = (sym->type & SYMBOL_GLOBAL) ? STB_GLOBAL : STB_LOCAL;
-	      int type = STT_SECTION;
-	      asym.st_info = ELF32_ST_INFO(bind, type);
-	      asym.st_name = sym->offset + 1; /* + 1 to skip initial & extra NUL */
-	      asym.st_value = 0;
-	      asym.st_shndx = findAreaIndex ((const struct AREA *)sym);
-	      fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+	      if (!Area_IsImplicit (sym))
+		{
+		  asym.st_info = ELF32_ST_INFO((sym->type & SYMBOL_GLOBAL) ? STB_GLOBAL : STB_LOCAL, STT_SECTION);
+		  asym.st_name = sym->offset + 1; /* + 1 to skip initial & extra NUL */
+		  asym.st_value = 0;
+		  asym.st_shndx = findAreaIndex ((const struct AREA *)sym);
+		  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+		}
 	    }
 	}
     }

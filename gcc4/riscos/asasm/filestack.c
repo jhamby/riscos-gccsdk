@@ -27,14 +27,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 #include <string.h>
 
 #if defined(__TARGET_UNIXLIB__)
-#include <unixlib/local.h>
+#  include <unixlib/local.h>
 #endif
 
 #include "error.h"

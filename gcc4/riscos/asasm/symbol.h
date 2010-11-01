@@ -57,9 +57,8 @@
   a local macro variable.  */
 
 #define SYMBOL_KEEP		0x01000000
-#define SYMBOL_AREA		0x02000000
+#define SYMBOL_AREA		0x02000000 /* Symbol is actually an area name.  */
 #define SYMBOL_NOTRESOLVED	0x04000000
-#define SYMBOL_BASED		0x08000000 /** Symbol is defined in a based area.  */
 
 #define SYMBOL_CPUREG		0x10000000
 #define SYMBOL_FPUREG		0x20000000
@@ -77,6 +76,7 @@ typedef struct SYMBOL
   struct SYMBOL *next;  /** Linked symbols all having the same hash value.  */
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
   Value value;
+  size_t codeSize; /** Size of the code associated with this symbol.  */
   union
     {
       struct SYMBOL *ptr;

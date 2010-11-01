@@ -21,15 +21,16 @@
  */
 
 #include "config.h"
+
 #include <setjmp.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "area.h"
@@ -88,19 +89,9 @@ asm_label (const Lex *label)
     return NULL;
 
   Symbol *symbol = symbolAdd (label);
-  if (areaCurrentSymbol)
-    {
-      symbol->value = valueLateToCode (areaCurrentSymbol->value.Data.Int.i,
-				       codeNewLateInfo (areaCurrentSymbol));
-      symbol->type |= SYMBOL_ABSOLUTE;
-      /* If the current area is a based area, then set the based bit.  */
-      if (areaCurrentSymbol->area.info->type & AREA_BASED)
-	symbol->type |= SYMBOL_BASED;
-    }
-  else
-    {
-      symbol->type = 0;
-      symbol->value.Tag = ValueIllegal;
-    }
+  symbol->value = valueLateToCode (areaCurrentSymbol->value.Data.Int.i,
+				   codeNewLateInfo (areaCurrentSymbol));
+  symbol->type |= SYMBOL_ABSOLUTE;
+
   return symbol;
 }

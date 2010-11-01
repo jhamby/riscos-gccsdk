@@ -28,9 +28,9 @@
 #include <ctype.h>
 #include <string.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 #include <math.h>
 
@@ -80,7 +80,7 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
 void
 c_equ (Symbol *symbol)
 {
-  c_define ("equ", symbol, ValueAll);
+  c_define ("EQU", symbol, ValueAll);
 }
 
 
@@ -142,10 +142,7 @@ c_cp (Symbol *symbol)
 void
 c_ltorg (void)
 {
-  if (areaCurrentSymbol)
-    litOrg (areaCurrentSymbol->area.info->lits);
-  else
-    areaError ();
+  litOrg (areaCurrentSymbol->area.info->lits);
 }
 
 
@@ -192,6 +189,10 @@ defineint (int size)
 }
 
 
+/**
+ * Implements "HEAD" : APCS function name signature.
+ * ObjAsm extension.
+ */
 void
 c_head (void)
 {
@@ -199,8 +200,7 @@ c_head (void)
   Value value = exprBuildAndEval (ValueString);
   switch (value.Tag)
     {
-    case ValueString:
-      if (areaCurrentSymbol)
+      case ValueString:
 	{
 	  size_t len = value.Data.String.len;
 	  const char *str = value.Data.String.s;
@@ -208,20 +208,16 @@ c_head (void)
 	    putData (1, str[i]);
 	  putData (1, 0);
 	}
-      break;
-    default:
-      error (ErrorError, "Illegal %s expression", "string");
-      break;
+        break;
+      default:
+        error (ErrorError, "Illegal %s expression", "string");
+        break;
     }
-  if (areaCurrentSymbol)
-    {
-      int i = areaCurrentSymbol->value.Data.Int.i;
-      while (areaCurrentSymbol->value.Data.Int.i & 3)
-	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
-      putData (4, 0xFF000000 + (areaCurrentSymbol->value.Data.Int.i - i));
-    }
-  else
-    areaError ();
+
+  int i = areaCurrentSymbol->value.Data.Int.i;
+  while (areaCurrentSymbol->value.Data.Int.i & 3)
+    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
+  putData (4, 0xFF000000 + (areaCurrentSymbol->value.Data.Int.i - i));
 }
 
 
@@ -277,21 +273,9 @@ definereal (int size)
 }
 
 
-void
-c_dcfd (void)
-{
-  definereal (8);
-}
-
-
-void
-c_dcfe (void)
-{
-  // FIXME:
-  error (ErrorError, "Not implemented: dcf%c %s", 'e', inputRest ());
-}
-
-
+/**
+ * Implements DCFS (IEEE Single Precision).
+ */
 void
 c_dcfs (void)
 {
@@ -299,11 +283,13 @@ c_dcfs (void)
 }
 
 
+/**
+ * Implements DCFD (IEEE Double Precision).
+ */
 void
-c_dcfp (void)
+c_dcfd (void)
 {
-  // FIXME:
-  error (ErrorError, "Not implemented: dcf%c %s", 'p', inputRest ());
+  definereal (8);
 }
 
 
@@ -402,12 +388,12 @@ c_get (void)
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ();
   char *cptr;
-  for (cptr = filename; *cptr && !isspace (*cptr); cptr++)
+  for (cptr = filename; *cptr && !isspace ((unsigned char)*cptr); cptr++)
     /* */;
   if (*cptr)
     {
-      *cptr++ = '\0';		/* must be a space */
-      while (*cptr && isspace (*cptr))
+      *cptr++ = '\0'; /* must be a space */
+      while (*cptr && isspace ((unsigned char)*cptr))
 	cptr++;
       if (*cptr && *cptr != ';')
 	error (ErrorError, "Skipping extra characters '%s' after filename", cptr);
@@ -426,12 +412,12 @@ c_lnk (void)
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ();
   char *cptr;
-  for (cptr = filename; *cptr && !isspace (*cptr); cptr++)
+  for (cptr = filename; *cptr && !isspace ((unsigned char)*cptr); cptr++)
     /* */;
   if (*cptr)
     {
-      *cptr++ = '\0';		/* must be a space */
-      while (*cptr && isspace (*cptr))
+      *cptr++ = '\0'; /* must be a space */
+      while (*cptr && isspace ((unsigned char)*cptr))
 	cptr++;
       if (*cptr && *cptr != ';')
 	error (ErrorError, "Skipping extra characters '%s' after filename", cptr);
@@ -465,7 +451,7 @@ c_bin (void)
   if ((filename = strdup (inputRest ())) == NULL)
     errorOutOfMem ();
   char *cptr;
-  for (cptr = filename; *cptr && !isspace (*cptr); cptr++)
+  for (cptr = filename; *cptr && !isspace ((unsigned char)*cptr); cptr++)
     /* */;
   *cptr = '\0';
 

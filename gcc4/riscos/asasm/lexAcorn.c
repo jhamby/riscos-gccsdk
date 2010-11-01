@@ -22,9 +22,9 @@
 
 #include "config.h"
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 #include <string.h>
 
@@ -70,10 +70,12 @@ lexAcornUnop (Lex *lex)
 	    /* :DEF: only returns {TRUE} when the symbol is defined and it is
 	       not a macro local variable.  */
 	    const Symbol *symP = symbolFind (lex);
-	    lex->Data.Int.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
+	    lex->Data.Bool.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
 	    lex->tag = LexBool;
 	    return;
 	  }
+	else
+	  error (ErrorError, "Bad operand for :DEF:");
 	break;
 
       case 'F':

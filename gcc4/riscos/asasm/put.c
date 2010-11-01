@@ -22,9 +22,9 @@
 
 #include "config.h"
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "area.h"
@@ -42,11 +42,9 @@ static void
 putAlign (int align, const char *msg)
 {
   error (ErrorInfo, "Unaligned %s", msg);
-  if (areaCurrentSymbol)
-    while (areaCurrentSymbol->value.Data.Int.i & align)
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
-  else
-    areaError ();
+
+  while (areaCurrentSymbol->value.Data.Int.i & align)
+    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
 }
 
 /**
@@ -57,11 +55,6 @@ putAlign (int align, const char *msg)
 void
 putData (int size, ARMWord data)
 {
-  if (!areaCurrentSymbol)
-    {
-      areaError ();
-      return;
-    }
   if (option_align)
     {
       if (AREA_NOSPACE (areaCurrentSymbol->area.info,
@@ -129,11 +122,6 @@ putDataFloat (int size, ARMFloat data)
       } u;
   } translate;
 
-  if (!areaCurrentSymbol)
-    {
-      areaError ();
-      return;
-    }
   switch (size)
     {
     case 4:
@@ -159,10 +147,7 @@ putDataFloat (int size, ARMFloat data)
 	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = translate.u.c[i];
     }
   else if (data)
-    {
-      error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
-      return;
-    }
+    error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
 }
 
 
@@ -173,11 +158,6 @@ putDataFloat (int size, ARMFloat data)
 void
 putIns (ARMWord ins)
 {
-  if (!areaCurrentSymbol)
-    {
-      areaError ();
-      return;
-    }
   if (areaCurrentSymbol->value.Data.Int.i & 3)
     putAlign (3, "instruction");
 

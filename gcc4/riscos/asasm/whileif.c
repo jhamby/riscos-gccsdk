@@ -26,9 +26,9 @@
 #include <string.h>
 #include <ctype.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "code.h"
@@ -57,7 +57,7 @@ if_skip (const char *onerror)
   while (inputNextLineNoSubst ())
     {
       int c;
-      if (inputLook () && !isspace (c = inputGet ()))
+      if (inputLook () && !isspace ((unsigned char)(c = inputGet ())))
 	{
 	  size_t len;
 	  char del = c == '|' ? c : 0;
@@ -67,7 +67,7 @@ if_skip (const char *onerror)
 	}
       skipblanks ();
       c = inputGet ();
-      if (inputLook () && !isspace (inputGet ()))
+      if (inputLook () && !isspace ((unsigned char)inputGet ()))
 	continue;
 
       switch (c)
@@ -94,9 +94,15 @@ skipped:
 }
 
 
+/**
+ * Implements '['
+ */
 void
-c_if (void)
+c_if (const Lex *label)
 {
+  if (label->tag != LexNone)
+    error (ErrorWarning, "Label not allowed here - ignoring");
+
   gCurPObjP->if_depth++;
 
   Value flag = exprBuildAndEval (ValueBool);
@@ -115,12 +121,10 @@ c_else (const Lex *label)
 {
   if (!gCurPObjP->if_depth)
     error (ErrorError, "Mismatched |");
+
   if (label->tag != LexNone)
-    {
-      error (ErrorError, "Label not allowed with |");
-      ignore_else = false;
-      return;
-    }
+    error (ErrorWarning, "Label not allowed here - ignoring");
+
   if (!ignore_else)
     if_skip ("No matching ]");
   ignore_else = false;
@@ -134,8 +138,10 @@ c_endif (const Lex *label)
     errorAbort ("Mismatched ]");
   else
     gCurPObjP->if_depth--;
+
   if (label->tag != LexNone)
-    error (ErrorError, "Label not allowed with ]");
+    error (ErrorWarning, "Label not allowed here - ignoring");
+
   ignore_else = false;
 }
 
@@ -147,7 +153,7 @@ while_skip (void)
   while (inputNextLine ())
     {
       /* Skip label (if there is one).  */
-      if (inputLook () && !isspace (inputGet ()))
+      if (inputLook () && !isspace ((unsigned char)inputGet ()))
 	{
 	  size_t len;
 	  inputSymbol (&len, 0);
@@ -159,11 +165,11 @@ while_skip (void)
 	  switch (inputGet ())
 	    {
 	      case 'H':	/* WHILE? */
-		if (!(notinput ("ILE") || (inputLook () && !isspace (inputGet ()))))
+		if (!(notinput ("ILE") || (inputLook () && !isspace ((unsigned char)inputGet ()))))
 		  nested++;
 		break;
 	      case 'E':	/* WEND? */
-		if (!(notinput ("ND") || (inputLook () && !isspace (inputGet ())))
+		if (!(notinput ("ND") || (inputLook () && !isspace ((unsigned char)inputGet ())))
 		    && nested-- == 0)
 		  return;
 	        break;
@@ -175,9 +181,15 @@ while_skip (void)
 }
 
 
+/**
+ * Implements WHILE.
+ */
 void
-c_while (const Lex *label __attribute__ ((unused)))
+c_while (const Lex *label)
 {
+  if (label->tag != LexNone)
+    error (ErrorWarning, "Label not allowed here - ignoring");
+
   const char * const inputMark = Input_GetMark ();
   /* Evaluate expression */
   Value flag = exprBuildAndEval (ValueBool);
@@ -274,14 +286,21 @@ whileReEval (void)
 }
 
 
+/**
+ * Implements WEND.
+ */
 void
-c_wend (const Lex *label __attribute__ ((unused)))
+c_wend (const Lex *label)
 {
   if (!gCurPObjP->whilestack)
     {
       error (ErrorError, "Mismatched WEND");
       return;
     }
+
+  if (label->tag != LexNone)
+    error (ErrorWarning, "Label not allowed here - ignoring");
+
   switch (gCurPObjP->whilestack->tag)
     {
       case WhileInFile:

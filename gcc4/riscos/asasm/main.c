@@ -30,12 +30,12 @@
 #include <ctype.h>
 #include <locale.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 #ifdef __riscos__
-#include <kernel.h>
+#  include <kernel.h>
 #endif
 
 #include "area.h"

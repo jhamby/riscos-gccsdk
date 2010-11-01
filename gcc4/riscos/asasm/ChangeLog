@@ -1,3 +1,66 @@
+Mon Nov  1 14:20:09 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+  
+	* regression/tests_pass/operator_index.s: Add (commented out)
+	unsupported case.
+	* regression/tests_fail/label_space.s: Extended.  There are now only
+	two unsupported cases left.
+	* commands.c (c_ltorg, c_head): Count on areaCurrentSymbol being
+	valid.
+	(c_dcfe, c_dcfp): Removed.
+	* commands.h (c_dcfe,c_dcfp): Removed.
+	* symbol.c (symbolNew): Support Symbol::codeSize.
+	(symbolInit): Make use of lexTempLabel.
+	(symbolGet): Assume given Lex object is always a LexId.
+	(symbolRemove): Likewise.
+	(symbolFix,symbolStringOutput,symbolSymbolAOFOutput,findAreaIndex,
+	symbolSymbolELFOutput): Skip implicit area.
+	* put.c (putAlign,putData,putDataFloat,putIns): Count on
+	areaCurrentSymbol being valid.
+	* symbol.h (SYMBOL_BASED): Removed.
+	(Symbol::codeSize): Added.
+	* code.c (codePosition): Cound on area parameter always being defined.
+	(codeCopy,codeEqual): Use size_t i.s.o. int.
+	* code.h (codeCopy,codeEqual): Use size_t i.s.o. int.
+	* decode.c (C_FINISH_FLOW,C_FINISH_VAR): Reset symbol label to NULL.
+	(decode): Assign Symbol::codeSize of all parsed labels. Drop DCFE,
+	DCFP (non)support.  Added some missing 'default' cases. Implemented
+	'if'/'else'/'endif' using C_FINISH_FLOW macro.
+	* local.c (c_local): Assume label parameter can never be NULL.
+	(localTest): Change return type into bool.
+	* local.h (localTest): Change return type into bool.
+	* storage.c (storageV): Default value is a zero non-reg (instead of
+	giving an error).
+	* area.c: Introduce concept of default area.  When this results in
+	a non-zero size afterwards, this is an error.
+	(Area_Ensure): Added.
+	(Area_IsImplicit): Added.
+	(areaNew): Add Symbol parameter which is used to name the area.
+	(c_align,c_reserve): Count on areaCurrentSymbol being valid.
+	(c_area): Bail out when there is no area name defined.
+	* area.h (Area_IsImplicit): Added.
+	* value.c (valueLateToCode): Constify and rework code slightly.
+	* value.h (valueLateToCode): Consitfy.
+	* output.c (countAreas,outputAof,countRels,outputElf): Skip implicit
+	area.
+	* whileif.c (c_if): Add Lex label parameter and check on it.
+	(c_else,c_endif): Change label presence check into a warning (like
+	in all other cases).
+	(c_while, c_wend): Add Lex label check.
+	* whileif.h (c_if): Add Lex label parameter.
+	* input.c (inputVarSub): Add warning when there was no $ expansion
+	done.
+	* reloc.c (relocOp, relocAdd): Count on areaCurrentSymbol being valid.
+	* lit.c (litInt): Likewise.
+	* lexAcorn.c (lexAcornUpop): Fix for :DEF:.
+	* asm.c (asm_label): Count on areaCurrentSymbol being valid. Drop
+	SYMBOL_BASED (non ?) support.
+	* lex.c (lexHashStr): Make local.
+	(lexGetIdInternal): Make this the lexGetIdNoError implementation and
+	let lexGetId give an error when we didn't get a LexId.
+	(lexGetPrim): Add support for '?' for labels already defined (no
+	late label support).
+	* lex.h (lexHashStr): Remove.
+
 Mon Oct 25 01:04:28 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/string.s: Added.

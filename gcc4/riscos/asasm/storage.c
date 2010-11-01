@@ -21,10 +21,12 @@
  */
 
 #include "config.h"
+
+#include <assert.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "error.h"
@@ -35,18 +37,16 @@
 #include "storage.h"
 #include "value.h"
 
-static Value storageV;
+static Value storageV =
+{
+  .Tag = ValueAddr,
+  .Data.Addr = { .i = 0, .r = -1 }
+};
 
 Value
 storageValue (void)
 {
-  if (storageV.Tag != ValueAddr)
-    {
-      error (ErrorError, "No storage declared (# or @ before ^)"); /* FIXME: I don't think this should give an error.  */
-      storageV.Tag = ValueAddr;
-      storageV.Data.Addr.i = 0;
-      storageV.Data.Addr.r = -1;
-    }
+  assert (storageV.Tag == ValueAddr);
   if (storageV.Data.Addr.r == -1)
     {
       const Value value =
@@ -96,11 +96,8 @@ c_alloc (Symbol *sym)
   if (sym)
     {
       sym->type |= SYMBOL_ABSOLUTE | SYMBOL_DEFINED;
-      sym->area.ptr = NULL;
       sym->value = storageValue ();
     }
-  /* FIXME: we should store in the symbol how many bytes it represents in the
-     output file in order to implement '?'.  */
 
   /* Determine how much we should allocate.  */
   Value value = exprBuildAndEval (ValueInt);

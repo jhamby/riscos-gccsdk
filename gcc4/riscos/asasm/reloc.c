@@ -24,9 +24,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "aoffile.h"
@@ -95,17 +95,10 @@ relocNew (Reloc *more, RelocTag tag, int offset, const Value *value)
 static void
 relocOp (int word, const Value *value, RelocTag tag)
 {
-  if (areaCurrentSymbol)
-    {
-      Reloc *newReloc;
-
-      newReloc = relocNew (areaCurrentSymbol->area.info->relocs, tag,
-			   areaCurrentSymbol->value.Data.Int.i, value);
-      newReloc->extra = word;
-      areaCurrentSymbol->area.info->relocs = newReloc;
-    }
-  else
-    areaError ();
+  Reloc *newReloc = relocNew (areaCurrentSymbol->area.info->relocs, tag,
+			      areaCurrentSymbol->value.Data.Int.i, value);
+  newReloc->extra = word;
+  areaCurrentSymbol->area.info->relocs = newReloc;
 }
 
 
@@ -203,13 +196,8 @@ relocFloat (int size, const Value *value)
 void
 relocAdd (Reloc *newReloc)
 {
-  if (areaCurrentSymbol)
-    {
-      newReloc->more = areaCurrentSymbol->area.info->relocs;
-      areaCurrentSymbol->area.info->relocs = newReloc;
-    }
-  else
-    areaError ();
+  newReloc->more = areaCurrentSymbol->area.info->relocs;
+  areaCurrentSymbol->area.info->relocs = newReloc;
 }
 
 

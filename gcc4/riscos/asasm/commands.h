@@ -47,8 +47,6 @@ void c_dcw (void);		/* 16 bits int */
 void c_dcd (void);		/* 32 bits int */
 void c_dcfs (void);		/* 32 bits float */
 void c_dcfd (void);		/* 64 bits float */
-void c_dcfe (void);		/* 80 bits float */
-void c_dcfp (void);		/* 80 bits packed bcd float */
 void c_dcs (void);		/* asci string */
 void c_dcz (void);		/* zero-terminated ascii string */
 void c_entry (void);

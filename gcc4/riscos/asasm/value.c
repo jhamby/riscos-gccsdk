@@ -21,12 +21,14 @@
  */
 
 #include "config.h"
+
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #ifdef HAVE_STDINT_H
-#include <stdint.h>
+#  include <stdint.h>
 #elif HAVE_INTTYPES_H
-#include <inttypes.h>
+#  include <inttypes.h>
 #endif
 
 #include "code.h"
@@ -36,14 +38,13 @@
 
 /* Code demands at least one Lateinfo */
 Value
-valueLateToCode (int offset, LateInfo *late)
+valueLateToCode (int offset, const LateInfo *late)
 {
-  LateInfo *l;
-  int factor;
-  int size;
-  for (size = 1, l = late; l != NULL; l= l->next)
+  size_t size = 1;
+  for (const LateInfo *l = late; l != NULL; l= l->next)
     {
-      if ((factor = l->factor) == -1 || factor == 1)
+      const int factor = l->factor;
+      if (l->factor == -1 || factor == 1)
 	size += 2;
       else if (factor != 0)
 	size += 4;
@@ -55,53 +56,61 @@ valueLateToCode (int offset, LateInfo *late)
 	size++;				/* ... but must insert an unary - */
     }
 
-  Value value;
-  if ((value.Data.Code.c = malloc(size*sizeof(Code))) == NULL)
+  Code *codeP;
+  if ((codeP = malloc (size*sizeof(Code))) == NULL)
     errorOutOfMem ();
 
-  value.Tag = ValueCode;
-  value.Data.Code.len = size;
-  size = 0;
+  size_t size2 = 0;
   if (offset != 0)
     {
-      value.Data.Code.c[size  ].Tag = CodeValue;
-      value.Data.Code.c[size  ].Data.value.Tag = ValueInt;
-      value.Data.Code.c[size++].Data.value.Data.Int.i = offset;
+      codeP[size2  ].Tag = CodeValue;
+      codeP[size2  ].Data.value.Tag = ValueInt;
+      codeP[size2++].Data.value.Data.Int.i = offset;
     }
-  for (l = late; l != NULL; l = l->next)
+  for (const LateInfo *l = late; l != NULL; l = l->next)
     {
-      if ((factor = l->factor) == -1 || factor == 1)
+      const int factor = l->factor;
+      if (factor == -1 || factor == 1)
 	{
-	  value.Data.Code.c[size  ].Tag = CodeSymbol;
-	  value.Data.Code.c[size++].Data.symbol = l->symbol;
+	  codeP[size2  ].Tag = CodeSymbol;
+	  codeP[size2++].Data.symbol = l->symbol;
 	  if (size != 1)
 	    { /* Add offset */
-	      value.Data.Code.c[size  ].Tag = CodeOperator;
-	      value.Data.Code.c[size++].Data.op = (factor > 0) ? Op_add : Op_sub;
+	      codeP[size2  ].Tag = CodeOperator;
+	      codeP[size2++].Data.op = (factor > 0) ? Op_add : Op_sub;
 	    }
 	  else if (factor == -1)
 	    {
-	      value.Data.Code.c[size  ].Tag = CodeOperator;
-	      value.Data.Code.c[size++].Data.op = Op_neg;
+	      codeP[size2  ].Tag = CodeOperator;
+	      codeP[size2++].Data.op = Op_neg;
 	    }
 	}
       else if (factor != 0)
 	{
-	  value.Data.Code.c[size  ].Tag = CodeSymbol;
-	  value.Data.Code.c[size++].Data.symbol = l->symbol;
-	  value.Data.Code.c[size  ].Tag = CodeValue;
-	  value.Data.Code.c[size  ].Data.value.Tag = ValueInt;
-	  value.Data.Code.c[size++].Data.value.Data.Int.i = factor;
-	  value.Data.Code.c[size  ].Tag = CodeOperator;
-	  value.Data.Code.c[size++].Data.op = Op_mul;
+	  codeP[size2  ].Tag = CodeSymbol;
+	  codeP[size2++].Data.symbol = l->symbol;
+
+	  codeP[size2  ].Tag = CodeValue;
+	  codeP[size2  ].Data.value.Tag = ValueInt;
+	  codeP[size2++].Data.value.Data.Int.i = factor;
+
+	  codeP[size2  ].Tag = CodeOperator;
+	  codeP[size2++].Data.op = Op_mul;
+
 	  if (size != 3)
 	    { /* Add offset */
-	      value.Data.Code.c[size  ].Tag = CodeOperator;
-	      value.Data.Code.c[size++].Data.op = Op_add;
+	      codeP[size2  ].Tag = CodeOperator;
+	      codeP[size2++].Data.op = Op_add;
 	    }
 	}
     }
+  assert (size == size2);
 
+  const Value value =
+    {
+      .Tag = ValueCode,
+      .Data.Code = { .len = size, .c = codeP }
+    };
   return value;
 }
 
@@ -211,25 +220,26 @@ valueEqual (const Value *a, const Value *b)
       case ValueString:
 	return b->Tag == ValueString
 		 && a->Data.String.len == b->Data.String.len
-		 && !memcmp(a->Data.String.s, b->Data.String.s, a->Data.String.len);
+		 && !memcmp (a->Data.String.s, b->Data.String.s, a->Data.String.len);
       case ValueBool:
 	return b->Tag == ValueBool && a->Data.Bool.b  == b->Data.Bool.b;
       case ValueCode:
 	if (b->Tag == ValueLateLabel)
 	  {
-	    Value v = valueLateToCode(b->Data.Late.i,b->Data.Late.late);
-	    bool res = a->Data.Code.len == v.Data.Code.len && codeEqual(a->Data.Code.len,a->Data.Code.c,v.Data.Code.c);
-	    valueFree(&v);
+	    Value v = valueLateToCode(b->Data.Late.i, b->Data.Late.late);
+	    bool res = a->Data.Code.len == v.Data.Code.len
+			 && codeEqual (a->Data.Code.len, a->Data.Code.c, v.Data.Code.c);
+	    valueFree (&v);
 	    return res;
 	  }
 	else
 	  return b->Tag == ValueCode
 		   && a->Data.Code.len == b->Data.Code.len
-		   && codeEqual(a->Data.Code.len,a->Data.Code.c,b->Data.Code.c);
+		   && codeEqual (a->Data.Code.len, a->Data.Code.c, b->Data.Code.c);
       case ValueLateLabel:
 	return b->Tag == ValueLateLabel
 		 && a->Data.Late.i == b->Data.Late.i
-		 && lateInfoEqual(a->Data.Late.late,b->Data.Late.late);
+		 && lateInfoEqual (a->Data.Late.late, b->Data.Late.late);
       default:
 	errorAbort ("Internal valueEqual: illegal value");
 	break;

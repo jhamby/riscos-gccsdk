@@ -167,10 +167,15 @@ outputRemove (void)
 static int
 countAreas (void)
 {
-  Symbol *ap;
   int i = 0;
-  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
-    ap->used = i++;
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+    {
+      /* Skip the implicit area.  */
+      if (Area_IsImplicit (ap))
+	continue;
+      
+      ap->used = i++;
+    }
   return i;
 }
 
@@ -193,7 +198,6 @@ outputAof (void)
   int noareas = countAreas ();
   unsigned int idfn_size;
   int offset, pad, written, obj_area_size;
-  Symbol *ap;
   ChunkFileHeader chunk_header;
   ChunkFileHeaderEntry chunk_entry;
   AofHeader aof_head;
@@ -202,12 +206,16 @@ outputAof (void)
   /* We must call relocFix() before anything else.  */
   obj_area_size = 0;
   /* avoid problems with no areas.  */
-  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
+      /* Skip the implicit area.  */
+      if (Area_IsImplicit (ap))
+	continue;
+      
       ap->area.info->norelocs = relocFix (ap);
       if (AREA_IMAGE (ap->area.info))
 	obj_area_size += FIX (ap->value.Data.Int.i)
-	  + ap->area.info->norelocs * sizeof (AofReloc);
+			  + ap->area.info->norelocs * sizeof (AofReloc);
     }
 
   int stringSizeNeeded;
@@ -249,12 +257,16 @@ outputAof (void)
 /******** Chunk 0 Header ********/
   fwrite (&aof_head, 1, sizeof (aof_head), objfile);
 
-  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
+      /* Skip the implicit area.  */
+      if (Area_IsImplicit (ap))
+	continue;
+      
       aof_entry.Name = armword (ap->offset + 4); /* +4 because of extra length entry */
       aof_entry.Type = armword (ap->area.info->type);
       aof_entry.Size = armword (FIX (ap->value.Data.Int.i));
-      aof_entry.noRelocations = armword(ap->area.info->norelocs);
+      aof_entry.noRelocations = armword (ap->area.info->norelocs);
       if (aof_entry.noRelocations != 0 && !AREA_IMAGE (ap->area.info))
 	errorAbortLine (0, NULL, "Internal outputAof: relocations in uninitialised area");
       aof_entry.Unused = 0;
@@ -282,16 +294,16 @@ outputAof (void)
   symbolSymbolAOFOutput (objfile);
 
 /******** Chunk 4 Area *****************/
-  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
+      /* Skip the implicit area.  */
+      if (Area_IsImplicit (ap))
+	continue;
+      
       if (AREA_IMAGE (ap->area.info))
 	{
-	  if ((size_t)ap->value.Data.Int.i !=
-	      fwrite (ap->area.info->image, 1, ap->value.Data.Int.i, objfile))
-	    {
-	      errorAbortLine (0, NULL, "Internal outputAof: error when writing %s image", ap->str);
-	      return;
-	    }
+	  if (fwrite (ap->area.info->image, ap->value.Data.Int.i, 1, objfile) != 1)
+	    errorAbortLine (0, NULL, "Internal outputAof: error when writing %s image", ap->str);
 	  /* Word align the written area.  */
 	  for (pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
 	    fputc (0, objfile);
@@ -302,13 +314,15 @@ outputAof (void)
 
 #ifndef NO_ELF_SUPPORT
 static int
-countRels (Symbol * ap)
+countRels (const Symbol *ap)
 {
   int i = 0;
-  while (ap)
+  for (/* */; ap != NULL; ap = ap->area.info->next)
     {
-      if (ap->area.info->norelocs) i++;
-      ap = ap->area.info->next;
+      if (Area_IsImplicit (ap))
+	continue;
+      if (ap->area.info->norelocs)
+	i++;
     }
   return i;
 }
@@ -343,12 +357,17 @@ outputElf (void)
   int offset, pad, strsize;
   int elfIndex, nsyms, shstrsize;
   int i, sectionSize, sectionType;
-  Symbol *ap;
 
   /* We must call relocFix() before anything else.  */
-  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
-    ap->area.info->norelocs = relocFix (ap);
-  norels = countRels(areaHeadSymbol);
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+    {
+      /* Skip the implicit area.  */
+      if (Area_IsImplicit (ap))
+	continue;
+      
+      ap->area.info->norelocs = relocFix (ap);
+    }
+  norels = countRels (areaHeadSymbol);
 
     {
       Elf32_Ehdr elf_head;
@@ -409,10 +428,13 @@ outputElf (void)
   shstrsize += 8; /* .strtab */
 
   /* Area headers - index 3 */
-  
   elfIndex = 3;
-  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
+      /* Skip the implicit area.  */
+      if (Area_IsImplicit (ap))
+	continue;
+      
       int areaFlags = 0;
       if (ap->area.info->type & AREA_CODE)
         areaFlags |= SHF_EXECINSTR;
@@ -455,8 +477,12 @@ outputElf (void)
     fputc (0, objfile);
 
   /* Areas */
-  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
+      /* Skip the implicit area.  */
+      if (Area_IsImplicit (ap))
+	continue;
+      
       if (AREA_IMAGE (ap->area.info))
         {
           if ((size_t)ap->value.Data.Int.i !=
@@ -477,8 +503,12 @@ outputElf (void)
   fputc (0, objfile);
   fwrite (".symtab", 1, sizeof(".symtab"), objfile);
   fwrite (".strtab", 1, sizeof(".strtab"), objfile);
-  for (ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
+      /* Skip the implicit area.  */
+      if (Area_IsImplicit (ap))
+	continue;
+      
       fwrite (ap->str, 1, ap->len + 1, objfile);
       if (ap->area.info->norelocs)
         {
