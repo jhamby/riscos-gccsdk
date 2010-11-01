@@ -207,6 +207,8 @@ symbolInit (void)
 
 
 /**
+ * Adds a new symbol definition.  When the symbol was already defined, this is
+ * flagged as an error unless it is an area symbol of zero size.
  * \return pointer to Symbol, never NULL.
  */
 Symbol *

@@ -95,7 +95,7 @@ c_alloc (Symbol *sym)
 {
   if (sym)
     {
-      sym->type |= SYMBOL_ABSOLUTE | SYMBOL_DEFINED;
+      assert ((sym->type & (SYMBOL_ABSOLUTE | SYMBOL_DEFINED)) == (SYMBOL_ABSOLUTE | SYMBOL_DEFINED));
       sym->value = storageValue ();
     }
 

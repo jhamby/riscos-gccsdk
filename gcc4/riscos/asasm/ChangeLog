@@ -1,3 +1,9 @@
+Mon Nov  1 15:24:53 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* storage.c (c_alloc): Simplify.
+	* lex.h: Fix comment.
+	* symbol.c (symbolAdd): Add description.
+
 Mon Nov  1 14:20:09 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
   
 	* regression/tests_pass/operator_index.s: Add (commented out)

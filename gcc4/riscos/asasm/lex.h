@@ -71,7 +71,7 @@ typedef enum
 				/* == != <= >= */
   LexPosition,			/* . representing current position */
   LexStorage,			/* @ representing current storage counter */
-  LexDelim,			/* ()[]{}, */
+  LexDelim,			/* () */
   Lex00Label,			/* local (numeric) label */
   LexBool,			/* {TRUE} or {FALSE} */
   LexNone
