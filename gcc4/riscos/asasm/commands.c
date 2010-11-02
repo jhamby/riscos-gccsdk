@@ -22,6 +22,7 @@
  */
 
 #include "config.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,10 +36,7 @@
 #include <math.h>
 
 #include "area.h"
-#include "asm.h"
-#include "code.h"
 #include "commands.h"
-#include "decode.h"
 #include "error.h"
 #include "expr.h"
 #include "filestack.h"
@@ -47,9 +45,7 @@
 #include "include.h"
 #include "input.h"
 #include "lex.h"
-#include "lit.h"
 #include "local.h"
-#include "macros.h"
 #include "main.h"
 #include "os.h"
 #include "output.h"
@@ -76,15 +72,20 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
   sym->area.ptr = NULL;
 }
 
-
-void
+/**
+ * Implements EQU and *.
+ */
+bool
 c_equ (Symbol *symbol)
 {
   c_define ("EQU", symbol, ValueAll);
+  return false;
 }
 
-
-void
+/**
+ * Implements FN.
+ */
+bool
 c_fn (Symbol *symbol)
 {
   c_define ("float register", symbol, ValueInt);
@@ -95,10 +96,13 @@ c_fn (Symbol *symbol)
       symbol->value.Data.Int.i = 0;
       error (ErrorError, "Illegal %s register %d (using 0)", "fpu", no);
     }
+  return false;
 }
 
-
-void
+/**
+ * Implements RN.
+ */
+bool
 c_rn (Symbol *symbol)
 {
   c_define ("register", symbol, ValueInt);
@@ -109,10 +113,13 @@ c_rn (Symbol *symbol)
       symbol->value.Data.Int.i = 0;
       error (ErrorError, "Illegal %s register %d (using 0)", "cpu", no);
     }
+  return false;
 }
 
-
-void
+/**
+ * Implements CN.
+ */
+bool
 c_cn (Symbol *symbol)
 {
   c_define ("coprocessor register", symbol, ValueInt);
@@ -123,9 +130,13 @@ c_cn (Symbol *symbol)
       symbol->value.Data.Int.i = 0;
       error (ErrorError, "Illegal %s register %d (using 0)", "cop", no);
     }
+  return false;
 }
 
-void
+/**
+ * Implements CP.
+ */
+bool
 c_cp (Symbol *symbol)
 {
   c_define ("coprocessor number", symbol, ValueInt);
@@ -136,15 +147,18 @@ c_cp (Symbol *symbol)
       symbol->value.Data.Int.i = 0;
       error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
     }
+  return false;
 }
 
-
-void
+/**
+ * Implements LTORG.
+ */
+bool
 c_ltorg (void)
 {
   litOrg (areaCurrentSymbol->area.info->lits);
+  return false;
 }
-
 
 static void
 defineint (int size)
@@ -188,12 +202,11 @@ defineint (int size)
   inputUnGet (c);
 }
 
-
 /**
  * Implements "HEAD" : APCS function name signature.
  * ObjAsm extension.
  */
-void
+bool
 c_head (void)
 {
   skipblanks ();
@@ -218,27 +231,37 @@ c_head (void)
   while (areaCurrentSymbol->value.Data.Int.i & 3)
     areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
   putData (4, 0xFF000000 + (areaCurrentSymbol->value.Data.Int.i - i));
+  return false;
 }
 
-
-void
+/**
+ * Implements DCB and = (8 bit integer).
+ */
+bool
 c_dcb (void)
 {
   defineint (1);
+  return false;
 }
 
-
-void
+/**
+ * Implements DCW (16 bit integer).
+ */
+bool
 c_dcw (void)
 {
   defineint (2);
+  return false;
 }
 
-
-void
+/**
+ * Implements DCD and & (32 bit integer).
+ */
+bool
 c_dcd (void)
 {
   defineint (4);
+  return false;
 }
 
 static void
@@ -272,26 +295,25 @@ definereal (int size)
   inputUnGet (c);
 }
 
-
 /**
  * Implements DCFS (IEEE Single Precision).
  */
-void
+bool
 c_dcfs (void)
 {
   definereal (4);
+  return false;
 }
-
 
 /**
  * Implements DCFD (IEEE Double Precision).
  */
-void
+bool
 c_dcfd (void)
 {
   definereal (8);
+  return false;
 }
-
 
 static void
 symFlag (unsigned int flags, const char *err)
@@ -306,34 +328,45 @@ symFlag (unsigned int flags, const char *err)
     sym->type |= flags;
 }
 
-
-void
+/**
+ * Implements EXPORT / GLOBL.
+ */
+bool
 c_globl (void)
 {
   symFlag (SYMBOL_REFERENCE | SYMBOL_DECLARED, "exported");
+  return false;
 }
 
-
-void
+/**
+ * Implements STRONG.
+ */
+bool
 c_strong (void)
 {
   symFlag (SYMBOL_STRONG, "marked 'strong'");
+  return false;
 }
 
-
-void
+/**
+ * Implements KEEP.
+ */
+bool
 c_keep (void)
 {
   symFlag (SYMBOL_KEEP | SYMBOL_DECLARED, "marked 'keep'");
+  return false;
 }
 
-
-void
+/**
+ * Implements IMPORT.
+ */
+bool
 c_import (void)
 {
   Lex lex = lexGetId ();
   if (lex.tag != LexId)
-    return;
+    return false; /* FIXME: give error msg ? */
 
   Symbol *sym = symbolGet (&lex);
   sym->type |= SYMBOL_REFERENCE | SYMBOL_DECLARED;
@@ -375,13 +408,13 @@ c_import (void)
       skipblanks ();
     }
   inputUnGet (c);
+  return false;
 }
-
 
 /**
  * Called for GET / INCLUDE
  */
-void
+bool
 c_get (void)
 {
   char *filename;
@@ -402,10 +435,13 @@ c_get (void)
   FS_PushFilePObject (filename);
   if (option_verbose)
     fprintf (stderr, "Including file \"%s\" as \"%s\"\n", filename, gCurPObjP->name);
+  return false;
 }
 
-
-void
+/**
+ * Implements LNK.
+ */
+bool
 c_lnk (void)
 {
   char *filename;
@@ -431,20 +467,26 @@ c_lnk (void)
   FS_PushFilePObject (filename);
   if (option_verbose)
     fprintf (stderr, "Linking to file \"%s\" as \"%s\"\n", filename, gCurPObjP->name);
+  return false;
 }
 
-
-void
+/**
+ * Implements IDFN.
+ */
+bool
 c_idfn (void)
 {
   free ((void *)idfn_text);
   if ((idfn_text = strdup (inputRest ())) == NULL)
     errorOutOfMem();
   skiprest ();
+  return false;
 }
 
-
-void
+/**
+ * Implements BIN.
+ */
+bool
 c_bin (void)
 {
   char *filename;
@@ -462,7 +504,7 @@ c_bin (void)
       error (ErrorError, "Cannot open file \"%s\"", filename);
       free (filename);
       free ((void *)newFilename);
-      return;
+      return false;
     }
   if (option_verbose)
     fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", filename, newFilename);
@@ -471,19 +513,25 @@ c_bin (void)
   while (!feof (binfp))
     putData (1, getc (binfp));
   fclose (binfp);
+  return false;
 }
 
-
-void
+/**
+ * Implements END.
+ */
+bool
 c_end (void)
 {
   if (gCurPObjP->type == POType_eMacro)
     errorAbort ("Cannot use END within a macro");
   FS_PopPObject (false);
+  return false;
 }
 
-
-void
+/**
+ * Implements ASSERT.
+ */
+bool
 c_assert (void)
 {
   Value value = exprBuildAndEval (ValueBool);
@@ -491,6 +539,7 @@ c_assert (void)
     error (ErrorError, "ASSERT expression must be boolean");
   else if (!value.Data.Bool.b)
     error (ErrorError, "Assertion failed");
+  return false;
 }
 
 /**
@@ -502,7 +551,7 @@ c_assert (void)
  * outputed as is.  When it evaluates to non-0, <string expression> is given
  * as error.
  */
-void
+bool
 c_info (void)
 {
   Value value = exprBuildAndEval (ValueInt | ValueFloat);
@@ -511,14 +560,14 @@ c_info (void)
   if (inputGet () != ',')
     {
       error (ErrorError, "Missing , in INFO directive");
-      return;
+      return false;
     }
 
   Value message = exprBuildAndEval (ValueString);
   if (message.Tag != ValueString)
     {
       error (ErrorError, "INFO message must be a string");
-      return;
+      return false;
     }
 
   if (value.Tag != ValueInt && value.Tag != ValueFloat)
@@ -532,18 +581,27 @@ c_info (void)
       else
 	printf ("%.*s\n", (int)message.Data.String.len, message.Data.String.s);
     }
+  return false;
 }
 
-void
+/**
+ * Implements OPT.
+ */
+bool
 c_opt (void)
 {
   inputRest();
   /* Do nothing.  This is for compatiblity with objasm.  */
+  return false;
 }
 
-void
+/**
+ * Implements SUBT (subtitle) / TTL (title).
+ */
+bool
 c_title (void)
 {
   inputRest();
   /* Do nothing right now.  This command is for the benefit of error reporting */
+  return false;
 }

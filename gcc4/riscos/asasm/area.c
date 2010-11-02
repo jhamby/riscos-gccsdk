@@ -139,7 +139,10 @@ areaFinish (void)
     litOrg (areaCurrentSymbol->area.info->lits);
 }
 
-void
+/**
+ * Implements ENTRY.
+ */
+bool
 c_entry (void)
 {
   if (areaCurrentSymbol)
@@ -154,10 +157,14 @@ c_entry (void)
     }
   else
     errorAbort ("No area selected before ENTRY");
+  return false;
 }
 
 
-void
+/**
+ * Implements ALIGN.
+ */
+bool
 c_align (void)
 {
   skipblanks ();
@@ -229,10 +236,14 @@ c_align (void)
       for (; bytesToStuff; --bytesToStuff)
 	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
     }
+  return false;
 }
 
 
-void
+/**
+ * Implements '%'.
+ */
+bool
 c_reserve (void)
 {
   Value value = exprBuildAndEval (ValueInt);
@@ -250,6 +261,7 @@ c_reserve (void)
     }
   else
     error (ErrorError, "Unresolved reserve not possible");
+  return false;
 }
 
 
@@ -285,12 +297,15 @@ Area_IsImplicit (const Symbol *sym)
 }
 
 
-void
+/**
+ * Implements AREA.
+ */
+bool
 c_area (void)
 {
   Lex lex = lexGetId ();
   if (lex.tag != LexId)
-    return;
+    return false; /* FIXME: need for error msg here ? */
   Symbol *sym = symbolGet (&lex);
   int oldtype = 0;  
   if (sym->type & SYMBOL_DEFINED)
@@ -431,4 +446,5 @@ c_area (void)
     error (ErrorError, "Changing attribute of area %s", sym->str);
   sym->area.info->type |= newtype;
   areaCurrentSymbol = sym;
+  return false;
 }

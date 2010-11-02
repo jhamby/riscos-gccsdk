@@ -27,13 +27,12 @@
 #  include <inttypes.h>
 #endif
 
-#include "area.h"
 #include "error.h"
 #include "expr.h"
 #include "get.h"
 #include "help_cop.h"
 #include "input.h"
-#include "mnemonics.h"
+#include "m_copmem.h"
 #include "option.h"
 #include "put.h"
 #include "reloc.h"
@@ -58,30 +57,59 @@ dstmem (ARMWord ir)
   putIns (ir);
 }
 
-void
-m_ldc (ARMWord cc)
+/**
+ * Implements LDC.
+ */
+bool
+m_ldc (void)
 {
+  ARMWord cc = optionCondL ();
+  if (cc == optionError)
+    return true;
   dstmem (cc | 0x0c100000);
+  return false;
 }
 
-void
-m_ldc2 (ARMWord cc)
+/**
+ * Implements LDC2.
+ */
+bool
+m_ldc2 (void)
 {
+  ARMWord cc = optionCondL ();
+  if (cc == optionError)
+    return true;
   if ((cc & NV) != AL)
     error (ErrorError, "LDC2 cannot be conditional");
-  dstmem (cc | 0x0c100000 | NV);
+  else
+    dstmem (cc | 0x0c100000 | NV);
+  return false;
 }
 
-void
-m_stc (ARMWord cc)
+/**
+ * Implements STC.
+ */
+bool
+m_stc (void)
 {
+  ARMWord cc = optionCondL ();
+  if (cc == optionError)
+    return true;
   dstmem (cc | 0x0c000000);
+  return false;
 }
 
-void
-m_stc2 (ARMWord cc)
+/**
+ * Implements STC2.
+ */
+bool
+m_stc2 (void)
 {
+  ARMWord cc = optionCondL ();
+  if (cc == optionError)
+    return true;
   if ((cc & NV) != AL)
     error (ErrorError, "STC2 cannot be conditional");
   dstmem (cc | 0x0c000000 | NV);
+  return false;
 }

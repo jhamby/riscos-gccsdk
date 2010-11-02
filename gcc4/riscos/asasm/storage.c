@@ -62,7 +62,7 @@ storageValue (void)
 /**
  * Implementation for '^'.
  */
-void
+bool
 c_record (void)
 {
   Value value = exprBuildAndEval (ValueInt);
@@ -85,12 +85,13 @@ c_record (void)
     }
   else
     storageV.Data.Addr.r = -1;
+  return false;
 }
 
 /**
  * Implementation for '#'.
  */
-void
+bool
 c_alloc (Symbol *sym)
 {
   if (sym)
@@ -117,4 +118,5 @@ c_alloc (Symbol *sym)
         error (ErrorError, "Illegal expression after #");
         break;
     }
+  return false;
 }

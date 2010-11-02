@@ -36,7 +36,6 @@
 #include "local.h"
 #include "main.h"
 #include "os.h"
-#include "variables.h"
 
 typedef struct localPos
 {
@@ -72,7 +71,7 @@ static localPos *localListEnd;
 /**
  * Implements ROUT.
  */
-void
+bool
 c_rout (const Lex *label)
 {
   routPos *p = malloc (sizeof (localPos));
@@ -101,6 +100,7 @@ c_rout (const Lex *label)
   p->id = rout_id;
   p->file = FS_GetCurFileName ();
   p->lineno = FS_GetCurLineNumber ();
+  return false;
 }
 
 
@@ -108,7 +108,7 @@ c_rout (const Lex *label)
  * Implements LOCAL.
  * Is an ObjAsm extension.
  */
-void
+bool
 c_local (const Lex *label)
 {
   if (label->tag != LexNone)
@@ -125,6 +125,7 @@ c_local (const Lex *label)
   p->local = localCurrent;
   p->file = FS_GetCurFileName ();
   p->lineno = FS_GetCurLineNumber ();
+  return false;
 }
 
 

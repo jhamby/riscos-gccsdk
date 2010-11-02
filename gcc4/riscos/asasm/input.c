@@ -40,9 +40,7 @@
 
 #include "error.h"
 #include "filestack.h"
-#include "global.h"
 #include "input.h"
-#include "lex.h"
 #include "macros.h"
 #include "main.h"
 #include "os.h"
@@ -195,6 +193,14 @@ skiprest (void)
   input_pos = input_buff;
 }
 
+bool
+notinput (const char *str)
+{
+  while (*str)
+    if (*str++ != inputGet ())
+      return true;
+  return false;
+}
 
 /**
  * Returns the position of the current input pointer.  Only to be use to

@@ -339,8 +339,8 @@ optionCondBT (void)
       switch (inputLook ())
 	{
 	case 'D':
-	  option |= 0xD0 | (1 << 27);	/* Use bit 27 as a flag
-					 * for doubleword access */
+	  /* Use bit 27 as a flag for doubleword access */
+	  option |= 0xD0 | (1 << 27);
 	  inputSkip ();
 	  break;
 	case 'H':

@@ -232,7 +232,7 @@ c_mend (void)
  *         MACRO
  * $<lbl> <marco name> [$<param1>[=<default value>]]*
  */
-void
+bool
 c_macro (const Lex *label)
 {
   if (label->tag != LexNone)
@@ -362,7 +362,7 @@ c_macro (const Lex *label)
   p->next = macroList;
   macroList = p;
 
-  return;
+  return false;
 
 lookforMEND:
   do
@@ -381,13 +381,14 @@ noMEND:
   free ((void *)m.name);
   for (int i = 0; i < MACRO_ARG_LIMIT; ++i)
     free ((void *) m.args[i]);
+  return false;
 }
 
 
 /**
  * Implements MEXIT.
  */
-void
+bool
 c_mexit (const Lex *label)
 {
   if (label->tag != LexNone)
@@ -397,4 +398,5 @@ c_mexit (const Lex *label)
     error (ErrorError, "MEXIT found outside a macro");
   else
     FS_PopMacroPObject (false);
+  return false;
 }

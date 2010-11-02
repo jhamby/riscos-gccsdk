@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -22,6 +22,8 @@
 
 #ifndef m_cpu_header_included
 #define m_cpu_header_included
+
+#include <stdbool.h>
 
 #define M_MNEM 0x01e00000
 
@@ -73,5 +75,50 @@
 #define M_QDADD  0x01400050
 #define M_QDSUB  0x01600050
 #define M_QSUB   0x01200050
+
+bool m_adc (void);
+bool m_add (void);
+bool m_and (void);
+bool m_bic (void);
+bool m_clz (void);
+bool m_cmn (void);
+bool m_cmp (void);
+bool m_eor (void);
+bool m_mla (void);
+bool m_mov (void);
+bool m_mul (void);
+bool m_mvn (void);
+bool m_nop (void);
+bool m_orr (void);
+bool m_qadd (void);
+bool m_qdadd (void);
+bool m_qdsub (void);
+bool m_qsub (void);
+bool m_rsb (void);
+bool m_rsc (void);
+bool m_sbc (void);
+bool m_smull (void);
+bool m_smulbb (void);
+bool m_smulbt (void);
+bool m_smultb (void);
+bool m_smultt (void);
+bool m_smulwb (void);
+bool m_smulwt (void);
+bool m_smlal (void);
+bool m_smlalbb (void);
+bool m_smlalbt (void);
+bool m_smlaltb (void);
+bool m_smlaltt (void);
+bool m_smlabb (void);
+bool m_smlabt (void);
+bool m_smlatb (void);
+bool m_smlatt (void);
+bool m_smlawb (void);
+bool m_smlawt (void);
+bool m_sub (void);
+bool m_teq (void);
+bool m_tst (void);
+bool m_umull (void);
+bool m_umlal (void);
 
 #endif

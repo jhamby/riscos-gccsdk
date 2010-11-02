@@ -93,11 +93,10 @@ skipped:
   inputRewind = true;
 }
 
-
 /**
  * Implements '['
  */
-void
+bool
 c_if (const Lex *label)
 {
   if (label->tag != LexNone)
@@ -109,14 +108,17 @@ c_if (const Lex *label)
   if (flag.Tag != ValueBool)
     {
       error (ErrorError, "IF expression must be boolean (treating as true)");
-      return;
+      return false;
     }
   if (!flag.Data.Bool.b)
     if_skip ("No matching | or ]");
+  return false;
 }
 
-
-void
+/**
+ * Implements '|'
+ */
+bool
 c_else (const Lex *label)
 {
   if (!gCurPObjP->if_depth)
@@ -128,10 +130,13 @@ c_else (const Lex *label)
   if (!ignore_else)
     if_skip ("No matching ]");
   ignore_else = false;
+  return false;
 }
 
-
-void
+/**
+ * Implements ']'
+ */
+bool
 c_endif (const Lex *label)
 {
   if (!gCurPObjP->if_depth)
@@ -143,6 +148,7 @@ c_endif (const Lex *label)
     error (ErrorWarning, "Label not allowed here - ignoring");
 
   ignore_else = false;
+  return false;
 }
 
 
@@ -184,7 +190,7 @@ while_skip (void)
 /**
  * Implements WHILE.
  */
-void
+bool
 c_while (const Lex *label)
 {
   if (label->tag != LexNone)
@@ -197,7 +203,7 @@ c_while (const Lex *label)
     {
       error (ErrorError, "WHILE expression must be boolean (treating as false)");
       while_skip ();
-      return;
+      return false;
     }
 #if 0
   /* FIXME: this needs to be implemented differently.  */
@@ -214,7 +220,7 @@ c_while (const Lex *label)
   if (!flag.Data.Bool.b)
     {
       while_skip ();
-      return;
+      return false;
     }
 
   WhileBlock *whileNew;
@@ -239,6 +245,7 @@ c_while (const Lex *label)
 	break;
     }
   gCurPObjP->whilestack = whileNew;
+  return false;
 }
 
 
@@ -289,13 +296,13 @@ whileReEval (void)
 /**
  * Implements WEND.
  */
-void
+bool
 c_wend (const Lex *label)
 {
   if (!gCurPObjP->whilestack)
     {
       error (ErrorError, "Mismatched WEND");
-      return;
+      return false;
     }
 
   if (label->tag != LexNone)
@@ -306,13 +313,14 @@ c_wend (const Lex *label)
       case WhileInFile:
       case WhileInMacro:
 	if (whileReEval ())
-	  return;
+	  return false;
 	break;
       default:
 	errorAbort ("Internal c_wend: unrecognised WHILE type");
 	break;
     }
   whileFree ();
+  return false;
 }
 
 

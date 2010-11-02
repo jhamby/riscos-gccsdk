@@ -52,12 +52,12 @@ typedef struct WhileBlock
   int lineno;
 } WhileBlock;
 
-void c_if (const Lex *);
-void c_else (const Lex *);
-void c_endif (const Lex *);
+bool c_if (const Lex *);
+bool c_else (const Lex *);
+bool c_endif (const Lex *);
 
-void c_while (const Lex *);
-void c_wend (const Lex *);
+bool c_while (const Lex *);
+bool c_wend (const Lex *);
 
 void FS_PopIfWhile (bool noCheck);
 

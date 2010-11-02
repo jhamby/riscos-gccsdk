@@ -1,8 +1,7 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2010 GCCSDK Developers
- *
+ * Copyright (c) 2010 GCCSDK Developers
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,27 +16,19 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * local.h
+ * m_cpumem.h
  */
 
-#ifndef local_header_included
-#define local_header_included
+#ifndef m_cpumem_header_included
+#define m_cpumem_header_included
 
 #include <stdbool.h>
-#include "lex.h"
 
-extern int rout_lblno[100];
-extern const char *rout_id;
-
-extern const char localFormat[];
-extern int localCurrent;
-
-bool c_local (const Lex *label);
-bool c_rout (const Lex *label);
-
-bool localTest (const char *);
-void localMunge (Lex *);
-void localFindLocal (int local, const char **file, int *lineno);
-void localFindRout (const char *rout, const char **file, int *lineno);
+bool m_ldm (void);
+bool m_ldr (void);
+bool m_pld (void);
+bool m_stm (void);
+bool m_str (void);
+bool m_swp (void);
 
 #endif

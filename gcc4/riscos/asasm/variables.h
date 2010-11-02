@@ -23,6 +23,7 @@
 #ifndef variables_header_included
 #define variables_header_included
 
+#include <stdbool.h>
 #include "lex.h"
 #include "symbol.h"
 
@@ -38,9 +39,9 @@ typedef struct varPos
   char name[]; /**< NUL terminated symbol name.  */
 } varPos;
 
-void c_gbl (ValueTag, const Lex *);	/* global variable declaration */
-void c_lcl (ValueTag, const Lex *);	/* local variable declaration */
-void c_set (ValueTag, const Lex *);	/* variable assignment */
+bool c_gbl (const Lex *);
+bool c_lcl (const Lex *);
+bool c_set (const Lex *);
 
 void var_restoreLocals (const varPos *);	/* called on macro exit */
 void var_define (const char *);

@@ -27,7 +27,6 @@
 
 #include "global.h"
 
-ARMWord lexGetCharFromString (int *ilen, const char **istr);
 ARMWord lexChar2Int (bool rev, int len, const char *str);
 
 #endif

@@ -37,7 +37,7 @@
 #include "global.h"
 #include "input.h"
 #include "lit.h"
-#include "mnemonics.h"
+#include "m_cpumem.h"
 #include "option.h"
 #include "put.h"
 #include "targetcpu.h"
@@ -260,30 +260,39 @@ dstmem (ARMWord ir)
 /**
  * Implements LDR<cond>[B].
  */
-void
-m_ldr (ARMWord cc)
+bool
+m_ldr (void)
 {
+  ARMWord cc = optionCondBT ();
+  if (cc == optionError)
+    return true;
   /* Bit 27 set => LDRD */
   dstmem ((cc & ~(1 << 27))
           | (((cc & 0x90) == 0x90) ? (cc & (1 << 27)) ? 0 : (1 << 20)
 	                           : ((1 << 20) | (1 << 26))));
+  return false;
 }
-
 
 /**
  * Implements STR<cond>[B].
  */
-void
-m_str (ARMWord cc)
+bool
+m_str (void)
 {
+  ARMWord cc = optionCondBT ();
+  if (cc == optionError)
+    return true;
   /* Bit 27 set => STRD */
   dstmem ((cc & ~(1 << 27))
           | (((cc & 0x90) == 0x90) ? (cc & (1 << 27)) ? 0x20 : 0
 	                           : (1 << 26)));
+  return false;
 }
 
-
-void
+/**
+ * Implements PLD.
+ */
+bool
 m_pld (void)
 {
   ARMWord ir = 0xf450f000 | PRE_FLAG;
@@ -362,6 +371,7 @@ m_pld (void)
 	error (ErrorError, "Expected closing ]");
     }
   putIns(ir);
+  return false;
 }
 
 
@@ -465,23 +475,41 @@ dstreglist (ARMWord ir)
 }
 
 
-void
-m_ldm (ARMWord cc)
+/**
+ * Implements LDM.
+ */
+bool
+m_ldm (void)
 {
+  ARMWord cc = optionCondDirLdm ();
+  if (cc == optionError)
+    return true;
   dstreglist (cc | 0x08100000);
+  return false;
 }
 
-
-void
-m_stm (ARMWord cc)
+/**
+ * Implements STM.
+ */
+bool
+m_stm (void)
 {
+  ARMWord cc = optionCondDirStm ();
+  if (cc == optionError)
+    return true;
   dstreglist (cc | 0x08000000);
+  return false;
 }
 
-
-void
-m_swp (ARMWord cc)
+/**
+ * Implements SWP.
+ */
+bool
+m_swp (void)
 {
+  ARMWord cc = optionCondB ();
+  if (cc == optionError)
+    return true;
   int ir = cc | 0x01000090;
   cpuWarn (ARM250);
   ir |= DST_OP (getCpuReg ());
@@ -519,4 +547,5 @@ m_swp (ARMWord cc)
   else
     error (ErrorError, "Inserting missing ']'");
   putIns (ir);
+  return false;
 }

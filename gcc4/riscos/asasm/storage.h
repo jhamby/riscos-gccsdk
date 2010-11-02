@@ -23,11 +23,13 @@
 #ifndef storage_header_included
 #define storage_header_included
 
+#include <stdbool.h>
 #include "value.h"
 #include "symbol.h"
 
 Value storageValue (void);
-void c_record (void);
-void c_alloc (Symbol *sym);
+
+bool c_record (void);
+bool c_alloc (Symbol *sym);
 
 #endif

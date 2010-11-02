@@ -23,6 +23,7 @@
 #ifndef macros_header_included
 #define macros_header_included
 
+#include <stdbool.h>
 #include "global.h"
 #include "lex.h"
 #include "variables.h"
@@ -61,7 +62,7 @@ const Macro *macroFind (size_t len, const char *);
 void macroCall (const Macro *, const Lex *);
 bool macroGetLine (char *buf);	/* returns 0 if end of macro */
 
-void c_macro (const Lex *);	/* start of macro definition */
-void c_mexit (const Lex *);
+bool c_macro (const Lex *);
+bool c_mexit (const Lex *);
 
 #endif

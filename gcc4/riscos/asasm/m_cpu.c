@@ -27,14 +27,12 @@
 #  include <inttypes.h>
 #endif
 
-#include "area.h"
 #include "error.h"
 #include "expr.h"
 #include "get.h"
 #include "global.h"
 #include "input.h"
 #include "main.h"
-#include "mnemonics.h"
 #include "m_cpu.h"
 #include "option.h"
 #include "put.h"
@@ -42,7 +40,10 @@
 
 /** DATA none (or optional register) **/
 
-void
+/**
+ * Implements NOP.
+ */
+bool
 m_nop (void)
 {
   if (!Input_IsEolOrCommentStart ())
@@ -54,6 +55,7 @@ m_nop (void)
     }
   else
     putIns (0xE1A00000);
+  return false;
 }
 
 /** DATA dst=lhs<op>rhs **/
@@ -104,76 +106,161 @@ dstrhs (ARMWord ir)
   putIns (ir);
 }
 
-void
-m_adc (ARMWord cc)
+
+/**
+ * Implements ADC.
+ */
+bool
+m_adc (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_ADC);
+  return false;
 }
 
-void
-m_add (ARMWord cc)
+/**
+ * Implements ADD.
+ */
+bool
+m_add (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_ADD);
+  return false;
 }
 
-void
-m_and (ARMWord cc)
+/**
+ * Implements AND.
+ */
+bool
+m_and (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_AND);
+  return false;
 }
 
-void
-m_bic (ARMWord cc)
+/**
+ * Implements BIC.
+ */
+bool
+m_bic (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_BIC);
+  return false;
 }
 
-void
-m_eor (ARMWord cc)
+/**
+ * Implements EOR.
+ */
+bool
+m_eor (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_EOR);
+  return false;
 }
 
-void
-m_mov (ARMWord cc)
+/**
+ * Implements MOV.
+ */
+bool
+m_mov (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstrhs (cc | M_MOV);
+  return false;
 }
 
-void
-m_mvn (ARMWord cc)
+/**
+ * Implements MVN.
+ */
+bool
+m_mvn (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstrhs (cc | M_MVN);
+  return false;
 }
 
-void
-m_orr (ARMWord cc)
+/**
+ * Implements ORR.
+ */
+bool
+m_orr (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_ORR);
+  return false;
 }
 
-void
-m_rsb (ARMWord cc)
+/**
+ * Implements RSB.
+ */
+bool
+m_rsb (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_RSB);
+  return false;
 }
 
-void
-m_rsc (ARMWord cc)
+/**
+ * Implements RSC.
+ */
+bool
+m_rsc (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_RSC);
+  return false;
 }
 
-void
-m_sbc (ARMWord cc)
+/**
+ * Implements SBC.
+ */
+bool
+m_sbc (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_SBC);
+  return false;
 }
 
-void
-m_sub (ARMWord cc)
+/**
+ * Implements SUB.
+ */
+bool
+m_sub (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   dstlhsrhs (cc | M_SUB);
+  return false;
 }
 
 /** DATA test **/
@@ -198,28 +285,56 @@ lhsrhs (ARMWord ir)
   putIns (ir);
 }
 
-void
-m_cmn (ARMWord cc)
+/**
+ * Implements CMN.
+ */
+bool
+m_cmn (void)
 {
+  ARMWord cc = optionCondSP ();
+  if (cc == optionError)
+    return true;
   lhsrhs (cc | M_CMN);
+  return false;
 }
 
-void
-m_cmp (ARMWord cc)
+/**
+ * Implements CMP.
+ */
+bool
+m_cmp (void)
 {
+  ARMWord cc = optionCondSP ();
+  if (cc == optionError)
+    return true;
   lhsrhs (cc | M_CMP);
+  return false;
 }
 
-void
-m_teq (ARMWord cc)
+/**
+ * Implements TEQ.
+ */
+bool
+m_teq (void)
 {
+  ARMWord cc = optionCondSP ();
+  if (cc == optionError)
+    return true;
   lhsrhs (cc | M_TEQ);
+  return false;
 }
 
-void
-m_tst (ARMWord cc)
+/**
+ * Implements TST.
+ */
+bool
+m_tst (void)
 {
+  ARMWord cc = optionCondSP ();
+  if (cc == optionError)
+    return true;
   lhsrhs (cc | M_TST);
+  return false;
 }
 
 /** DATA 1a **/
@@ -279,16 +394,30 @@ onlyregs (bool acc, ARMWord ir)
   putIns (ir);
 }
 
-void
-m_mla (ARMWord cc)
+/**
+ * Implements MLA.
+ */
+bool
+m_mla (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   onlyregs (true, cc | M_MLA);
+  return false;
 }
 
-void
-m_mul (ARMWord cc)
+/**
+ * Implements MUL.
+ */
+bool
+m_mul (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   onlyregs (false, cc | M_MUL);
+  return false;
 }
 
 static void
@@ -393,130 +522,277 @@ l_onlyregs (ARMWord ir, const char *op)
   putIns (ir);
 }
 
-void
-m_smlabb (ARMWord cc)
+/**
+ * Implements SMULL.
+ */
+bool
+m_smull (void)
 {
-  l_onlyregs (cc | M_SMLABB, "SMLABB");
-}
-
-void
-m_smlabt (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMLABT, "SMLABT");
-}
-
-void
-m_smlatb (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMLATB, "SMLATB");
-}
-
-void
-m_smlatt (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMLATT, "SMLATT");
-}
-
-void
-m_smlalbb (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMLALBB, "SMLALBB");
-}
-
-void
-m_smlalbt (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMLALBT, "SMLALBT");
-}
-
-void
-m_smlaltb (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMLALTB, "SMLALTB");
-}
-
-void
-m_smlaltt (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMLALTT, "SMLALTT");
-}
-
-void
-m_smlawb (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMLAWB, "SMLAWB");
-}
-
-void
-m_smlawt (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMLAWT, "SMLAWT");
-}
-
-void
-m_smulbb (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMULBB, "SMULBB");
-}
-
-void
-m_smulbt (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMULBT, "SMULBT");
-}
-
-void
-m_smultb (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMULTB, "SMULTB");
-}
-
-void
-m_smultt (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMULTT, "SMULTT");
-}
-
-void
-m_smulwb (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMULWB, "SMULWB");
-}
-
-void
-m_smulwt (ARMWord cc)
-{
-  l_onlyregs (cc | M_SMULWT, "SMULWT");
-}
-
-void
-m_smull (ARMWord cc)
-{
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   l_onlyregs (cc | M_SMULL, "SMULL");
+  return false;
 }
 
-void
-m_smlal (ARMWord cc)
+/**
+ * Implements SMULBB.
+ */
+bool
+m_smulbb (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMULBB, "SMULBB");
+  return false;
+}
+
+/**
+ * Implements SMULBT.
+ */
+bool
+m_smulbt (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMULBT, "SMULBT");
+  return false;
+}
+
+/**
+ * Implements SMULTB.
+ */
+bool
+m_smultb (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMULTB, "SMULTB");
+  return false;
+}
+
+/**
+ * Implements SMULTT.
+ */
+bool
+m_smultt (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMULTT, "SMULTT");
+  return false;
+}
+
+/**
+ * Implements SMULWB.
+ */
+bool
+m_smulwb (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMULWB, "SMULWB");
+  return false;
+}
+
+/**
+ * Implements SMULWT.
+ */
+bool
+m_smulwt (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMULWT, "SMULWT");
+  return false;
+}
+
+/**
+ * Implements SMLAL.
+ */
+bool
+m_smlal (void)
+{
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   l_onlyregs (cc | M_SMLAL, "SMLAL");
+  return false;
 }
 
-void
-m_umull (ARMWord cc)
+/**
+ * Implements SMLALBB.
+ */
+bool
+m_smlalbb (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLALBB, "SMLALBB");
+  return false;
+}
+
+/**
+ * Implements SMLALBT.
+ */
+bool
+m_smlalbt (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLALBT, "SMLALBT");
+  return false;
+}
+
+/**
+ * Implements SMLALTB.
+ */
+bool
+m_smlaltb (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLALTB, "SMLALTB");
+  return false;
+}
+
+/**
+ * Implements SMLALTT.
+ */
+bool
+m_smlaltt (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLALTT, "SMLALTT");
+  return false;
+}
+
+/**
+ * Implements SMLABB.
+ */
+bool
+m_smlabb (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLABB, "SMLABB");
+  return false;
+}
+
+/**
+ * Implements SMLABT.
+ */
+bool
+m_smlabt (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLABT, "SMLABT");
+  return false;
+}
+
+/**
+ * Implements SMLATB.
+ */
+bool
+m_smlatb (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLATB, "SMLATB");
+  return false;
+}
+
+/**
+ * Implements SMLATT.
+ */
+bool
+m_smlatt (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLATT, "SMLATT");
+  return false;
+}
+
+/**
+ * Implements SMLAWB.
+ */
+bool
+m_smlawb (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLAWB, "SMLAWB");
+  return false;
+}
+
+/**
+ * Implements SMLAWT.
+ */
+bool
+m_smlawt (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  l_onlyregs (cc | M_SMLAWT, "SMLAWT");
+  return false;
+}
+
+/**
+ * Implements UMULL.
+ */
+bool
+m_umull (void)
+{
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   l_onlyregs (cc | M_UMULL, "UMULL");
+  return false;
 }
 
-void
-m_umlal (ARMWord cc)
+/**
+ * Implements UMLAL.
+ */
+bool
+m_umlal (void)
 {
+  ARMWord cc = optionCondS ();
+  if (cc == optionError)
+    return true;
   l_onlyregs (cc | M_UMLAL, "UMLAL");
+  return false;
 }
 
 
-void
-m_clz (ARMWord cc)
+/**
+ * Implements CLZ.
+ */
+bool
+m_clz (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
   ARMWord ir = cc | M_CLZ;
   ARMWord dst, rhs;
 
@@ -540,6 +816,7 @@ m_clz (ARMWord cc)
     error(ErrorError, "Use of R15 in CLZ is unpredictable");
 
   putIns (ir);
+  return false;
 }
 
 static void
@@ -576,26 +853,54 @@ q_onlyregs (ARMWord ir, const char *op)
   putIns (ir);
 }
 
-void
-m_qadd (ARMWord cc)
+/**
+ * Implements QADD.
+ */
+bool
+m_qadd (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
   q_onlyregs (cc | M_QADD, "QADD");
+  return false;
 }
 
-void
-m_qdadd (ARMWord cc)
+/**
+ * Implements QDADD.
+ */
+bool
+m_qdadd (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
   q_onlyregs (cc | M_QDADD, "QDADD");
+  return false;
 }
 
-void
-m_qdsub (ARMWord cc)
+/**
+ * Implements QDSUB.
+ */
+bool
+m_qdsub (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
   q_onlyregs (cc | M_QDSUB, "QDSUB");
+  return false;
 }
 
-void
-m_qsub (ARMWord cc)
+/**
+ * Implements QSUB.
+ */
+bool
+m_qsub (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
   q_onlyregs (cc | M_QSUB, "QSUB");
+  return false;
 }

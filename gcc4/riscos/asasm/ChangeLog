@@ -1,3 +1,16 @@
+Tue Nov  2 14:28:09 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (decode): Converted into a table lookup and push any
+	additional mnemonic parsing (like condition codes) to the mnemonic
+	implementation itself.
+	* area.c, area.h, commands.c, commands.h, decode.h, help_lex.c,
+	help_lex.h, input.c, input.h, local.c, local.h, macros.c, macros.h
+	m_cop.c, m_cop.h, m_copmem.c, m_copmem.h, m_cpu.c, m_cpuctrl.c,
+	m_cpuctrl.h, m_cpu.h, m_cpumem.c, m_cpumem.h, m_fpu.c, m_fpu.h,
+	m_fpumem.c, m_fpumem.h, option.c, storage.c, storage.h, variables.c,
+	variables.h, whileif.c, whileif.h: Follow above changes.
+	* mnemonics.h: Removed.
+
 Mon Nov  1 15:24:53 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* storage.c (c_alloc): Simplify.

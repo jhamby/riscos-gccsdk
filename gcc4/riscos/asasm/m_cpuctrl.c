@@ -21,6 +21,7 @@
  */
 
 #include "config.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -39,7 +40,7 @@
 #include "global.h"
 #include "help_cpu.h"
 #include "input.h"
-#include "mnemonics.h"
+#include "m_cpuctrl.h"
 #include "option.h"
 #include "os.h"
 #include "put.h"
@@ -48,8 +49,8 @@
 
 /** CONTROL **/
 
-void
-m_branch (ARMWord cc)
+static bool
+branch_shared (ARMWord cc)
 {
   ARMWord ir = cc | 0x0A000000;
   switch (inputLook ())
@@ -85,11 +86,31 @@ m_branch (ARMWord cc)
       break;
     }
   putIns (ir);
+  return false;
 }
 
-void
-m_blx (ARMWord cc)
+/**
+ * Implements B and BL.
+ */
+bool
+m_branch (void)
 {
+  ARMWord cc = optionLinkCond ();
+  if (cc == optionError)
+    return true;
+  return branch_shared (cc);
+}
+
+/**
+ * Implements BLX.
+ */
+bool
+m_blx (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
   cpuWarn (XSCALE);
 
   const char * const inputMark = Input_GetMark ();
@@ -141,11 +162,19 @@ m_blx (ARMWord cc)
     ir = cc | 0x012FFF30 | RHS_OP (reg); /* BLX <Rm> */
 
   putIns (ir);
+  return false;
 }
 
-void
-m_bx (ARMWord cc)
+/**
+ * Implements BX.
+ */
+bool
+m_bx (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
   cpuWarn (XSCALE);
 
   int dst = getCpuReg();
@@ -153,11 +182,19 @@ m_bx (ARMWord cc)
     error (ErrorWarning, "Use of PC with BX is discouraged");
 
   putIns (cc | 0x012fff10 | dst);
+  return false;
 }
 
-void
-m_swi (ARMWord cc)
+/**
+ * Implements SWI.
+ */
+bool
+m_swi (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
   if (inputLook () == '#')
     {
       inputSkip ();
@@ -198,9 +235,13 @@ m_swi (ARMWord cc)
 	break;
     }
   putIns (ir);
+  return false;
 }
 
-void
+/**
+ * Implements BKPT.
+ */
+bool
 m_bkpt (void)
 {
   cpuWarn (XSCALE);
@@ -219,14 +260,20 @@ m_bkpt (void)
   ir |= ((val & 0xFFF0) << 4) | (val & 0xF);
 
   putIns (ir);
+  return false;
 }
 
 
-/** EXTENSION **/
-
-void
-m_adr (ARMWord cc)
+/**
+ * Implements ADR.
+ */
+bool
+m_adr (void)
 {
+  ARMWord cc = optionAdrL ();
+  if (cc == optionError)
+    return true;
+
   ARMWord ir = cc & ~1, ir2 = 0;	/* bit 0 set to indicate ADRL */
   ir |= DST_OP (getCpuReg ());
   ir |= LHS_OP (15) | IMM_RHS;	/* pc */
@@ -288,18 +335,20 @@ m_adr (ARMWord cc)
   putIns (ir);
   if (cc & 1)
     putIns (ir2);
+  return false;
 }
 
 
-/** APCS prologue **/
-
-static signed int regs[3] = {-1, -1, -1};
 /* [0] Stack args       0 = no, 1..4 = a1-an; -1 = RET or TAIL will cause error
  * [1] Stack reg vars 0 = no, 1..6 = v1-vn
  * [2] Stack fp vars    0 = no, 1..4 = f4-f(3+n)
  */
+static signed int regs[3] = {-1, -1, -1};
 
-void
+/**
+ * Implements STACK : APCS prologue
+ */
+bool
 m_stack (void)
 {
   static const unsigned int lim[3] = {4, 6, 4};
@@ -370,6 +419,7 @@ m_stack (void)
   if (regs[2] > 0)
     putIns (pfp_inst[regs[2]]);
   putIns (0xE24CB004 + 4 * regs[0]);
+  return false;
 }
 
 
@@ -395,10 +445,12 @@ apcsEpi (ARMWord cc, const int *pop_inst, const char *op)
   putIns (pop_inst[regs[1]] | cc);
 }
 
-/* APCS epilogue - return */
-
-void
-m_ret (ARMWord cc)
+/**
+ * Implements RET : APCS epilogue - return
+ * ObjAsm extension.
+ */
+bool
+m_ret (void)
 {
   static const int pop_inst[] =
     {
@@ -411,13 +463,19 @@ m_ret (ARMWord cc)
       0x095BABF0
     };
 
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
   apcsEpi (cc, pop_inst, "RET");
+  return false;
 }
 
-/* APCS epilogue - tail call */
-
-void
-m_tail (ARMWord cc)
+/**
+ * Implements TAIL : APCS epilogue - tail call
+ */
+bool
+m_tail (void)
 {
   static const int pop_inst[] =
     {
@@ -430,10 +488,15 @@ m_tail (ARMWord cc)
       0x091B6BF0
     };
 
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
   apcsEpi (cc, pop_inst, "TAIL");
   skipblanks ();
   if (inputLook ())
-    m_branch (cc);
+    branch_shared (cc);
+  return false;
 }
 
 
@@ -523,10 +586,16 @@ getpsr (bool only_all)
   return saved;
 }
 
-
-void
-m_msr (ARMWord cc)
+/**
+ * Implements MSR.
+ */
+bool
+m_msr (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
   cpuWarn (ARM6);
   cc |= getpsr (false) | 0x0120F000;
   skipblanks ();
@@ -552,12 +621,19 @@ m_msr (ARMWord cc)
   else
     cc |= getCpuReg ();
   putIns (cc);
+  return false;
 }
 
-
-void
-m_mrs (ARMWord cc)
+/**
+ * Implements MRS.
+ */
+bool
+m_mrs (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
   cpuWarn (ARM6);
   cc |= getCpuReg () << 12 | 0x01000000;
   skipblanks ();
@@ -570,4 +646,5 @@ m_mrs (ARMWord cc)
     error (ErrorError, "%slhs", InsertCommaAfter);
   cc |= getpsr (true);
   putIns (cc);
+  return false;
 }

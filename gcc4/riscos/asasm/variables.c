@@ -54,24 +54,6 @@
 #include "value.h"
 #include "variables.h"
 
-static char
-var_type (ValueTag type)
-{
-  switch (type)
-    {
-      case ValueInt:
-	return 'A';
-      case ValueBool:
-	return 'L';
-      case ValueString:
-	return 'S';
-      default:
-	break;
-    }
-  return '?';
-}
-
-
 static void
 assign_var (Symbol *sym, ValueTag type)
 {
@@ -157,12 +139,31 @@ var_inputSymbol (size_t *len)
 
 /**
  * Implements GBLL, GBLA and GBLS.
+ * Global variable declaration
  */
-void
-c_gbl (ValueTag type, const Lex *label)
+bool
+c_gbl (const Lex *label)
 {
+  int c = inputGet ();
+  ValueTag type;
+  switch (c)
+    {
+      case 'L':
+	type = ValueBool;
+        break;
+      case 'A':
+	type = ValueInt;
+	break;
+      case 'S':
+	type = ValueString;
+	break;
+      default:
+	return true;
+    }
+
   if (label->tag != LexNone)
     error (ErrorWarning, "Label not allowed here - ignoring");
+
   skipblanks ();
   const char *ptr;
   size_t len;
@@ -176,22 +177,41 @@ c_gbl (ValueTag type, const Lex *label)
   if (!len)
     {
       error (ErrorError, "Missing variable name");
-      return;
+      return false;
     }
   declare_var (ptr, len, type, false);
+  return false;
 }
 
 
 /**
  * Implements LCLL, LCLA and LCLS.
+ * Local variable declaration
  */
-void
-c_lcl (ValueTag type, const Lex *label)
+bool
+c_lcl (const Lex *label)
 {
+  int c = inputGet ();
+  ValueTag type;
+  switch (c)
+    {
+      case 'L':
+	type = ValueBool;
+        break;
+      case 'A':
+	type = ValueInt;
+	break;
+      case 'S':
+	type = ValueString;
+	break;
+      default:
+	return true;
+    }
+
   if (gCurPObjP->type != POType_eMacro)
     {
       error (ErrorError, "Local variables not allowed outside macros");
-      return;
+      return false;
     }
 
   if (label->tag != LexNone)
@@ -209,7 +229,7 @@ c_lcl (ValueTag type, const Lex *label)
   if (!len)
     {
       error (ErrorError, "Missing variable name");
-      return;
+      return false;
     }
 
   /* Link our local variable into the current macro so we can restore this
@@ -228,29 +248,54 @@ c_lcl (ValueTag type, const Lex *label)
   /* When symbol is already known, it remains a global variable (and :DEF:
      returns {TRUE} for it).  */
   declare_var (ptr, len, type, sym == NULL || (sym->type & SYMBOL_MACRO_LOCAL));
+  return false;
 }
 
 
 /**
  * SETA, SETL, SETS implementation.
+ * Variable assignment
  */
-void
-c_set (ValueTag type, const Lex *label)
+bool
+c_set (const Lex *label)
 {
+  int c = inputGet ();
+  ValueTag type;
+  switch (c)
+    {
+      case 'L':
+	type = ValueBool;
+        break;
+      case 'A':
+	type = ValueInt;
+	break;
+      case 'S':
+	type = ValueString;
+	break;
+      default:
+	return true;
+    }
+
   Symbol *sym = symbolFind (label);
   if (sym == NULL)
     {
       error (ErrorError, "'%.*s' is undefined",
 	     (int)label->Data.Id.len, label->Data.Id.str);
-      return;
+      return false;
     }
   assert (sym->value.Tag != ValueIllegal);
+  if (type != sym->value.Tag)
+    {
+      error (ErrorError, "Wrong type for symbol '%.*s'",
+	     (int)label->Data.Id.len, label->Data.Id.str);
+      return false;
+    }
   Value value = exprBuildAndEval (sym->value.Tag);
   sym->type |= SYMBOL_DEFINED;
   switch (value.Tag)
     {
       case ValueIllegal:
-	error (ErrorError, "Illegal SET%c", var_type (type));
+	error (ErrorError, "Illegal SET%c", c);
 	sym->value.Tag = ValueInt;
 	sym->value.Data.Int.i = 0;
 	break;
@@ -264,6 +309,7 @@ c_set (ValueTag type, const Lex *label)
 	sym->value = valueCopy (value);
 	break;
     }
+  return false;
 }
 
 

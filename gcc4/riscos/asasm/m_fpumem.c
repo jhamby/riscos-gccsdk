@@ -33,7 +33,8 @@
 #include "get.h"
 #include "help_cop.h"
 #include "input.h"
-#include "mnemonics.h"
+#include "m_fpumem.h"
+#include "option.h"
 #include "put.h"
 #include "main.h"
 
@@ -48,16 +49,30 @@ dstmem (ARMWord ir)
   putIns (ir);
 }
 
-void
-m_stf (ARMWord cc)
+/**
+ * Implements STF.
+ */
+bool
+m_stf (void)
 {
+  ARMWord cc = optionCondPrec_P ();
+  if (cc == optionError)
+    return true;
   dstmem (0x0c000100 | cc);
+  return false;
 }
 
-void
-m_ldf (ARMWord cc)
+/**
+ * Implements LDF.
+ */
+bool
+m_ldf (void)
 {
+  ARMWord cc = optionCondPrec_P ();
+  if (cc == optionError)
+    return true;
   dstmem (0x0c100100 | cc);
+  return false;
 }
 
 
@@ -120,14 +135,28 @@ dstmemx (ARMWord ir)
   putIns (ir);
 }
 
-void
-m_sfm (ARMWord cc)
+/**
+ * Implements SFM.
+ */
+bool
+m_sfm (void)
 {
+  ARMWord cc = optionCondLfmSfm ();
+  if (cc == optionError)
+    return true;
   dstmemx (0x0c000200 | cc);
+  return false;
 }
 
-void
-m_lfm (ARMWord cc)
+/**
+ * Implements LFM.
+ */
+bool
+m_lfm (void)
 {
+  ARMWord cc = optionCondLfmSfm ();
+  if (cc == optionError)
+    return true;
   dstmemx (0x0c100200 | cc);
+  return false;
 }

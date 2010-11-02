@@ -23,6 +23,7 @@
 #ifndef m_fpu_header_included
 #define m_fpu_header_included
 
+#include <stdbool.h>
 #include "global.h"
 
 ARMWord fpuImm (ARMFloat d) __attribute__ ((__const__));
@@ -69,5 +70,43 @@ ARMWord fpuImm (ARMFloat d) __attribute__ ((__const__));
 #define M_NRM 0x0ef08100
 #define M_LFM 0x0c100200
 #define M_SFM 0x0c000200
+
+bool m_abs (void);
+bool m_acs (void);
+bool m_adf (void);
+bool m_asn (void);
+bool m_atn (void);
+bool m_cmf (void);
+bool m_cnf (void);
+bool m_cos (void);
+bool m_dvf (void);
+bool m_exp (void);
+bool m_fdv (void);
+bool m_fix (void);
+bool m_flt (void);
+bool m_fml (void);
+bool m_frd (void);
+bool m_lgn (void);
+bool m_log (void);
+bool m_mnf (void);
+bool m_muf (void);
+bool m_mvf (void);
+bool m_nrm (void);
+bool m_pol (void);
+bool m_pow (void);
+bool m_rdf (void);
+bool m_rfc (void);
+bool m_rfs (void);
+bool m_rmf (void);
+bool m_rnd (void);
+bool m_rpw (void);
+bool m_rsf (void);
+bool m_sin (void);
+bool m_sqt (void);
+bool m_suf (void);
+bool m_tan (void);
+bool m_urd (void);
+bool m_wfs (void);
+bool m_wfc (void);
 
 #endif

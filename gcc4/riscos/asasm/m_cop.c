@@ -27,14 +27,13 @@
 #  include <inttypes.h>
 #endif
 
-#include "area.h"
 #include "error.h"
 #include "expr.h"
 #include "get.h"
 #include "help_cop.h"
 #include "input.h"
 #include "main.h"
-#include "mnemonics.h"
+#include "m_cop.h"
 #include "option.h"
 #include "put.h"
 #include "reloc.h"
@@ -102,42 +101,76 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {
   putIns (ir);
 }
 
-void
-m_cdp (ARMWord cc)			/* cdp CC p#,cpop,cpdst,cplhs,cprhs {,info} */
+/**
+ * Implements CDP.
+ * cdp CC p#,cpop,cpdst,cplhs,cprhs {,info}
+ */
+bool
+m_cdp (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
   coprocessor (true, cc | 0x0e000000, 15);
+  return false;
 }
 
-void
+/**
+ * Implements CDP2.
+ */
+bool
 m_cdp2 (void)
 {
   coprocessor (true, 0xfe000000, 15);
+  return false;
 }
 
 /** REGISTER TRANSFER **/
 
-void
-m_mcr (ARMWord cc)
+/**
+ * Implements MCR.
+ */
+bool
+m_mcr (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
   coprocessor (false, cc | 0x0e000010, 7);
+  return false;
 }
 
-void
+/**
+ * Implements MCR2.
+ */
+bool
 m_mcr2 (void)
 {
   coprocessor (false, 0xfe000010, 7);
+  return false;
 }
 
-void
-m_mrc (ARMWord cc)
+/**
+ * Implements MRC.
+ */
+bool
+m_mrc (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
   coprocessor (false, cc | 0x0e100010, 7);
+  return false;
 }
 
-void
+/**
+ * Implements MRC2.
+ */
+bool
 m_mrc2 (void)
 {
   coprocessor (false, 0xfe100010, 7);
+  return false;
 }
 
 static void
@@ -184,14 +217,28 @@ coprocessorr (ARMWord ir)
   putIns (ir);
 }
 
-void
-m_mcrr (ARMWord cc)
+/**
+ * Implements MCRR.
+ */
+bool
+m_mcrr (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
   coprocessorr (cc | 0x0C400000);
+  return false;
 }
 
-void
-m_mrrc (ARMWord cc)
+/**
+ * Implements MRRC.
+ */
+bool
+m_mrrc (void)
 {
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
   coprocessorr (cc | 0x0C500000);
+  return false;
 }

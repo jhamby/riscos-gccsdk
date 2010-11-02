@@ -20,22 +20,8 @@
  * help_lex.c
  */
 
-#include <ctype.h>
-
 #include "error.h"
-#include "global.h"
 #include "help_lex.h"
-#include "main.h"
-
-static int
-char2digit (char c)
-{
-  if (c > 'a')
-    return c + 10 - 'a';
-  if (c > 'A')
-    return c + 10 - 'A';
-  return c - '0';
-}
 
 ARMWord
 lexChar2Int (bool rev, int len, const char *str)

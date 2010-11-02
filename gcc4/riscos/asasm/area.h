@@ -23,6 +23,7 @@
 #ifndef area_header_included
 #define area_header_included
 
+#include <stdbool.h>
 #include "symbol.h"
 #include "reloc.h"
 #include "lit.h"
@@ -79,5 +80,10 @@ void areaFinish (void);
 void areaGrow (Area *area, int mingrow);
 
 bool Area_IsImplicit (const Symbol *sym);
+
+bool c_align (void);
+bool c_area (void);
+bool c_reserve (void);
+bool c_entry (void);
 
 #endif
