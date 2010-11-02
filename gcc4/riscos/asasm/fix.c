@@ -82,19 +82,16 @@ fixImm8s4 (int lineno, ARMWord ir, int im)
 {
   static const char op3[] = "Changing \"%s R_, R_, #%d\" to \"%s R_, R_, #%d\"";
   static const char op2[] = "Changing \"%s R_, #%d\" to \"%s R_, #%d\"";
-  const char *m1, *m2, *optype;
-  int i8s4;
-  ARMWord mnemonic;
-  int im2;
 
-  i8s4 = help_cpuImm8s4 (im);
+  int i8s4 = help_cpuImm8s4 (im);
   if (i8s4 != -1)
     return ir | i8s4;
 
-  mnemonic = ir & M_MNEM;
+  ARMWord mnemonic = ir & M_MNEM;
 
   /* Immediate constant was illegal.  Try the inverse or
      two complement (depending on opcode).  */
+  int im2;
   switch (mnemonic)
     {
     case M_ADD:
@@ -124,6 +121,7 @@ fixImm8s4 (int lineno, ARMWord ir, int im)
     }
 
   ir &= ~M_MNEM;
+  const char *m1, *m2, *optype;
   switch (mnemonic)
     {			/* try changing opcode */
     case M_ADD:

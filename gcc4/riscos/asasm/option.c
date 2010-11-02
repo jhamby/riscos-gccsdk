@@ -272,11 +272,8 @@ ARMWord
 optionCondS (void)
 {
   ARMWord option = getCond ();
-  if (inputLook () == 'S')
-    {
-      option |= S_FLAG;
-      inputSkip ();
-    }
+  if (Input_Match ('S', false))
+    option |= S_FLAG;
   return isOK (option);
 }
 
@@ -285,17 +282,10 @@ ARMWord
 optionCondSP (void)
 {
   ARMWord option = getCond () | S_FLAG;
-  if (inputLook () == 'S')
-    {
-      inputSkip ();
-      if (option_pedantic)
-	error (ErrorInfo, "S is implicit in test instructions");
-    }
-  if (inputLook () == 'P')
-    {
-      option |= P_FLAG;
-      inputSkip ();
-    }
+  if (Input_Match ('S', false) && option_pedantic)
+    error (ErrorInfo, "S is implicit in test instructions");
+  if (Input_Match ('P', false))
+    option |= P_FLAG;
   return isOK (option);
 }
 
@@ -304,11 +294,8 @@ ARMWord
 optionCondB (void)
 {
   ARMWord option = getCond ();
-  if (inputLook () == 'B')
-    {
-      option |= B_FLAG;
-      inputSkip ();
-    }
+  if (Input_Match ('B', false))
+    option |= B_FLAG;
   return isOK (option);
 }
 
@@ -318,10 +305,9 @@ ARMWord
 optionCondBT (void)
 {
   ARMWord option = getCond ();
-  if (inputLook () == 'S')
+  if (Input_Match ('S', false))
     {
       option |= 0xD0;
-      inputSkip ();
       switch (inputLook ())
 	{
 	case 'H':
@@ -353,11 +339,8 @@ optionCondBT (void)
 	  break;
 	}
     }
-  if (inputLook () == 'T')
-    {
-      option |= T_FLAG;
-      inputSkip ();
-    }
+  if (Input_Match ('T', false))
+    option |= T_FLAG;
   return isOK (option);
 }
 
@@ -424,11 +407,8 @@ ARMWord
 optionCondL (void)
 {
   ARMWord option = getCond ();
-  if (inputLook () == 'L')
-    {
-      option |= L_FLAG;
-      inputSkip ();
-    }
+  if (Input_Match ('L', false))
+    option |= L_FLAG;
   return isOK (option);
 }
 
@@ -484,15 +464,11 @@ optionLinkCond (void)
 ARMWord
 optionExceptionCond (void)
 {
-  if (inputLook () != 'E')
+  if (!Input_Match ('E', false))
     return isOK (getCond ()); /* Only cmf.CC possible  */
   /* cmf.eq or cmfe.CC */
-  inputSkip ();
-  if (inputLook () == 'Q')
-    { /* Only cmf.eq */
-      inputSkip ();
-      return isOK (EQ);
-    }
+  if (Input_Match ('Q', false))
+    return isOK (EQ); /* Only cmf.eq */
   /* Only cmfe.CC */
   return isOK (getCond () | EXEPTION_BIT);
 }
@@ -502,10 +478,7 @@ ARMWord
 optionAdrL (void)
 {
   ARMWord option = getCond ();
-  if (inputLook () == 'L')
-    {
-      option |= 1;
-      inputSkip ();
-    }
+  if (Input_Match ('L', false))
+    option |= 1;
   return isOK (option);
 }

@@ -54,6 +54,10 @@
 #include "value.h"
 #include "variables.h"
 
+#ifdef DEBUG
+//#  define DEBUG_VARIABLES
+#endif
+
 static void
 assign_var (Symbol *sym, ValueTag type)
 {
@@ -89,7 +93,7 @@ assign_var (Symbol *sym, ValueTag type)
 static Symbol *
 declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
 {
-  Lex var = lexTempLabel (ptr, len);
+  const Lex var = lexTempLabel (ptr, len);
   Symbol *sym = symbolFind (&var);
   if (sym != NULL)
     {
@@ -117,20 +121,11 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
 static const char *
 var_inputSymbol (size_t *len)
 {
-  char delim;
-  if (inputLook () == '|')
-    {
-      inputSkip ();
-      delim = '|';
-    }
-  else
-    delim = 0;
+  char delim = Input_Match ('|', false) ? '|' : '\0';
   const char *sym = inputSymbol (len, delim);
   if (delim == '|')
     {
-      if (inputLook () == '|')
-	inputSkip ();
-      else
+      if (!Input_Match ('|', false))
 	error (ErrorError, "Unterminated |label|");
     }
   return sym;
@@ -234,7 +229,7 @@ c_lcl (const Lex *label)
 
   /* Link our local variable into the current macro so we can restore this
      at the end of macro invocation.  */
-  Lex l = lexTempLabel (ptr, len);
+  const Lex l = lexTempLabel (ptr, len);
   Symbol *sym = symbolFind (&l);
   varPos *p;
   if ((p = malloc (sizeof (varPos) + len + 1)) == NULL)
@@ -299,7 +294,7 @@ c_set (const Lex *label)
 	sym->value.Tag = ValueInt;
 	sym->value.Data.Int.i = 0;
 	break;
-#ifdef DEBUG
+#ifdef DEBUG_VARIABLES
       case ValueString:
 	printf ("c_set: string: <%.*s>\n",
 		(int)value.Data.String.len, value.Data.String.s);

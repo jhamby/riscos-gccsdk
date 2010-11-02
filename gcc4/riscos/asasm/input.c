@@ -627,6 +627,26 @@ inputArgSub (void)
   return true;
 }
 
+/**
+ * Try to read character c from input followed (optionally) by zero or more
+ * space characters.
+ * \param c Character which is expected to be in input stream. If so, discard
+ * it.
+ * \param spacesToo Try to discard zero or more spaces as well.
+ * \return true when character c was next characters in input stream. false
+ * otherwise.
+ */
+bool
+Input_Match (char c, bool spacesToo)
+{
+  if (c == '\0' || *input_pos != c)
+    return false;
+  ++input_pos;
+  if (spacesToo)
+    while (isspace ((unsigned char)*input_pos))
+      ++input_pos;
+  return true;
+}
 
 const char *
 inputSymbol (size_t *ilen, char del)

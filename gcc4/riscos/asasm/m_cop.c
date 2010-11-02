@@ -53,51 +53,27 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {
     cpuWarn (ARM3);
   ir |= cop;
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   if (maxop > 7)
     ir |= CP_DCODE (help_copInt (maxop, "coprocessor opcode"));
   else
     ir |= CP_RTRAN (help_copInt (maxop, "coprocessor opcode"));
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdata operand", InsertCommaAfter);
   ir |= CopOnly ? CPDST_OP (getCopReg ()) : CPDST_OP (getCpuReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   ir |= CPLHS_OP (getCopReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   ir |= CPRHS_OP (getCopReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-      ir |= CP_INFO (help_copInt (7, "coprocessor info"));
-    }
+  if (Input_Match (',', true))
+    ir |= CP_INFO (help_copInt (7, "coprocessor info"));
   putIns (ir);
 }
 
@@ -178,39 +154,19 @@ coprocessorr (ARMWord ir)
 {
   ir |= CP_NUMBER (getCopNum ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= (help_copInt (15, "coprocessor opcode") << 4);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%scoprocessor opcode", InsertCommaAfter);
   ir |= CPDST_OP (getCpuReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   ir |= CPLHS_OP (getCpuReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   ir |= CPRHS_OP (getCopReg ());
 

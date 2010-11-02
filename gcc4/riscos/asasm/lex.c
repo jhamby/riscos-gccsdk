@@ -146,35 +146,27 @@ lexint (int base)
 static ARMFloat
 lexfloat (int r)
 {
-  double res = r;
-  double exponent = 0.0;
-  double signexp = 1.;
-
-  if (inputGet () != '.')
-    errorAbort ("Internal lexfloat: parse error");
-
   /* Fraction part */
+  unsigned char c;
+  double res = r;
   double frac = 0.1;
-  char c;
-  while (isdigit (c = inputGet ()))
+  while (isdigit (c = (unsigned char)inputGet ()))
     {
       res = res + frac * (c - '0');
       frac /= 10.0;
     }
   /* Exponent part */
+  double exponent = 0.0;
+  double signexp = 1.;
   if (c == 'e' || c == 'E')
-    {			
-      if (inputLook () == '-')
-	{
-	  inputSkip ();
-	  signexp = -1.;
-	}
-      else if (inputLook () == '+')
-	inputSkip ();
-      while (isdigit (c = inputGet ()))
+    {
+      if (Input_Match ('-', false))
+	signexp = -1.;
+      else
+	Input_Match ('+', false);
+      while (isdigit (c = (unsigned char)inputGet ()))
 	exponent = exponent * 10.0 + (c - '0');
     }
-
   inputUnGet (c);
   return res * pow (10.0, signexp * exponent);
 }
@@ -402,7 +394,7 @@ lexGetPrim (void)
       inputUnGet (c);
       result.tag = LexInt;
       result.Data.Int.value = lexint (10);
-      if (inputLook () == '.')
+      if (Input_Match ('.', false))
 	{
 	  result.tag = LexFloat;
 	  result.Data.Float.value = lexfloat (result.Data.Int.value);
@@ -433,9 +425,8 @@ lexGetPrim (void)
 	  const char *s1;
 	  char *s2;
 	  size_t l1;
-	  while (inputLook () == '"')
+	  while (Input_Match ('"', false))
 	    {
-	      inputSkip ();
 	      s1 = inputSymbol (&l1, '"');
 	      if (inputGet () != '"')
 		{
@@ -724,17 +715,15 @@ lexGetBinop (void)
       break;
 
     case '=':
-      if (inputLook () == '=')
-	inputSkip ();
+      Input_Match ('=', false); /* Deals with '==' */
       result.tag = LexOperator;
       result.Data.Operator.pri = PRI (3);
       result.Data.Operator.op = Op_eq; /* = == */
       break;
 
     case '!':
-      if (inputLook () == '=')
+      if (Input_Match ('=', false))
 	{
-	  inputSkip ();
 	  result.tag = LexOperator;
 	  result.Data.Operator.pri = PRI (3);
 	  result.Data.Operator.op = Op_ne; /* != */
@@ -745,9 +734,8 @@ lexGetBinop (void)
 
     case '|':
       result.tag = LexOperator;
-      if (inputLook () == '|')
+      if (Input_Match ('|', false))
 	{
-	  inputSkip ();
 	  result.Data.Operator.pri = PRI (1);
 	  result.Data.Operator.op = Op_lor; /* || */
 	}
@@ -760,9 +748,8 @@ lexGetBinop (void)
 
     case '&':
       result.tag = LexOperator;
-      if (inputLook () == '&')
+      if (Input_Match ('&', false))
 	{
-	  inputSkip ();
 	  result.Data.Operator.pri = PRI (2);
 	  result.Data.Operator.op = Op_land; /* && */
 	}

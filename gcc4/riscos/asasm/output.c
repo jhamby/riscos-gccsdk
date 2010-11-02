@@ -22,6 +22,7 @@
  */
 
 #include "config.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -332,12 +333,11 @@ writeElfSH (int nmoffset, int type, int flags, int size,
             int link, int info, int addralign, int entsize, int *offset)
 {
   Elf32_Shdr sect_hdr;
-
   sect_hdr.sh_name = nmoffset;
   sect_hdr.sh_type = type;
   sect_hdr.sh_flags = flags;
   sect_hdr.sh_addr = 0;
-  sect_hdr.sh_offset = type==SHT_NULL?0:*offset;
+  sect_hdr.sh_offset = type == SHT_NULL ? 0 : *offset;
   sect_hdr.sh_size = size;
   sect_hdr.sh_link = link;
   sect_hdr.sh_info = info;
@@ -464,11 +464,11 @@ outputElf (void)
 
   /* Section head string table */
   shstrsize += 10; /* .shstrtab */
-  writeElfSH(shstrsize-10, SHT_STRTAB, 0, shstrsize, 0, 0, 1, 0, &offset);
+  writeElfSH (shstrsize-10, SHT_STRTAB, 0, shstrsize, 0, 0, 1, 0, &offset);
 
   /* Write out the sections */
   /* Symbol table */
-  symbolSymbolELFOutput(objfile);
+  symbolSymbolELFOutput (objfile);
 
   /* String table */
   fputc (0, objfile);

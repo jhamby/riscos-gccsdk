@@ -56,6 +56,8 @@ if_skip (const char *onerror)
   int nested = 0;
   while (inputNextLineNoSubst ())
     {
+      // FIXME: this doesn't look like a bullet proof label skip + nested if
+      // test code !
       int c;
       if (inputLook () && !isspace ((unsigned char)(c = inputGet ())))
 	{

@@ -67,9 +67,8 @@ fpuImm (ARMFloat d)
 static ARMWord
 getFloatRhs (ARMWord ir)
 {
-  if (inputLook () == '#')
+  if (Input_Match ('#', false))
     {
-      inputSkip ();
       ir |= 8;			/* Immediate Float */
       Value im = exprBuildAndEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
       switch (im.Tag)
@@ -106,22 +105,12 @@ dstlhsrhs (ARMWord ir)
   ARMWord op = getFpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   op = getFpuReg ();
   ir |= LHS_OP (op);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   putIns (getFloatRhs (ir));
 }
@@ -302,20 +291,13 @@ m_suf (void)
 static void
 dstrhs (ARMWord ir)
 {
-  ARMWord op;
-
   if (option_apcs_softfloat)
     error (ErrorWarning, "soft-float code uses hard FP instructions");
 
-  op = getFpuReg ();
+  ARMWord op = getFpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   putIns (getFloatRhs (ir));
 }
@@ -536,12 +518,7 @@ comparelow (ARMWord ir)		/* No precision and no rounding allowed ? */
 
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   putIns (getFloatRhs (ir));
 }
@@ -590,12 +567,7 @@ m_fix (void)
   ARMWord ir = M_FIX | cc;
   ir |= DST_OP (getCpuReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   putIns (getFloatRhs (ir));
   return false;
@@ -617,12 +589,7 @@ m_flt (void)
   ARMWord ir = M_FLT | cc;
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   ir |= DST_OP (getCpuReg ());
   putIns (ir);

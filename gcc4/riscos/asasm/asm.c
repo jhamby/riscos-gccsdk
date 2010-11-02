@@ -42,6 +42,10 @@
 #include "input.h"
 #include "lex.h"
 
+#ifdef DEBUG
+//#  define DEBUG_ASM
+#endif
+
 /**
  * Parse the input file, and perform the assembly.
  */
@@ -68,7 +72,7 @@ assemble (void)
 	}
       else
 	label.tag = LexNone;
-#ifdef DEBUG
+#ifdef DEBUG_ASM
       printf ("%s: %d: ", FS_GetCurFileName (), FS_GetCurLineNumber ());
       lexPrint (&label);
       printf ("\n");

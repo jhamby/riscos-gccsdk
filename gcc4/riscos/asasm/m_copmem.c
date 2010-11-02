@@ -45,12 +45,7 @@ dstmem (ARMWord ir)
 {
   ir |= CP_NUMBER (getCopNum ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= CPDST_OP (getCopReg ());
   ir = help_copAddr (ir, false);

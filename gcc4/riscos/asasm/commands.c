@@ -318,7 +318,7 @@ c_dcfd (void)
 static void
 symFlag (unsigned int flags, const char *err)
 {
-  Lex lex = lexGetId ();
+  const Lex lex = lexGetId ();
   if (lex.tag != LexId)
     return;
   Symbol *sym = symbolGet (&lex);

@@ -46,9 +46,8 @@
 static void
 dstmem (ARMWord ir)
 {
-  int dst, op;
   bool trans = false, half = false;
-  bool pre, offValue = false;
+  bool offValue = false;
   Value offset;
   if ((ir & 0x90) == 0x90)
     {
@@ -56,40 +55,25 @@ dstmem (ARMWord ir)
 	error (ErrorWarning, "Half-word ops only work correctly when accessed location is cached");
       half = true;
     }
-  dst = getCpuReg ();
+  int dst = getCpuReg ();
   ir |= DST_OP (dst);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
-    error (ErrorError, "Inserting missing comma before address");
+  if (!Input_Match (',', true))
+    error (ErrorError, "%sdst", InsertCommaAfter);
   switch (inputLook ())
     {
     case '[':			/* ldr reg,[ */
       {
 	inputSkip ();
 	skipblanks ();
-	op = getCpuReg ();	/* Base register */
+	int op = getCpuReg ();	/* Base register */
 	ir |= LHS_OP (op);
 	skipblanks ();
-	if (inputLook () == ']')
-	  {
-	    pre = false;
-	    inputSkip ();
-	    skipblanks ();
-	  }
-	else
-	  pre = true;
-	if (inputLook () == ',')
+	bool pre = !Input_Match (']', true);
+	if (Input_Match (',', true))
 	  {			/* either [base,XX] or [base],XX */
-	    inputSkip ();
-	    skipblanks ();
-	    if (inputLook () == '#')
+	    if (Input_Match ('#', false))
 	      {
-		inputSkip ();
 		offset = exprBuildAndEval (ValueInt | ValueAddr | ValueCode | ValueLateLabel);
 		offValue = true;
 		switch (offset.Tag)
@@ -117,18 +101,11 @@ dstmem (ARMWord ir)
 	    else
 	      {
 		ir |= UP_FLAG;
-		if (inputLook () == '+')
-		  {
-		    inputSkip ();
-		    skipblanks ();
-		  }
-		else if (inputLook () == '-')
-		  {
-		    inputSkip ();
-		    skipblanks ();
-		    ir &= ~UP_FLAG;
-		  }
-		if (inputLook () == '#')
+		if (Input_Match ('-', true))
+		  ir &= ~UP_FLAG;
+		else
+		  Input_Match ('+', true);
+		if (Input_Match ('#', false))
 		  {
 		    /* Edge case - #XX */
 		    error (ErrorError, "Unknown register definition in offset field");
@@ -150,12 +127,7 @@ dstmem (ARMWord ir)
 	  }
 	if (pre)
 	  {
-	    if (inputLook () == ']')
-	      {
-		inputSkip ();
-		skipblanks ();
-	      }
-	    else
+	    if (!Input_Match (']', true))
 	      error (ErrorError, "Inserting missing ] after address");
 	  }
 	else
@@ -166,14 +138,12 @@ dstmem (ARMWord ir)
 	    else if (dst == op)
 	      error (ErrorError, "Post increment is not sane where base and destination register are the same");
 	  }
-	if (inputLook () == '!')
+	if (Input_Match ('!', true))
 	  {
 	    if (pre)
 	      ir |= WB_FLAG;
 	    else
 	      error (ErrorError, "Writeback not allowed with post-index");
-	    inputSkip ();
-	    skipblanks ();
 	  }
 	if (pre)
 	  {
@@ -256,9 +226,16 @@ dstmem (ARMWord ir)
   putIns (ir);
 }
 
-
 /**
- * Implements LDR<cond>[B].
+ * Implements LDR:
+ *   LDR[<cond>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDR[<cond>]T <Rd>, <address mode 2> | <pc relative label>
+ *   LDR[<cond>]B <Rd>, <address mode 2> | <pc relative label>
+ *   LDR[<cond>]BT <Rd>, <address mode 2> | <pc relative label>
+ *   LDR[<cond>]D <Rd>, <address mode 3> | <pc relative label>
+ *   LDR[<cond>]H <Rd>, <address mode 3> | <pc relative label>
+ *   LDR[<cond>]SB <Rd>, <address mode 3> | <pc relative label>
+ *   LDR[<cond>]SH <Rd>, <address mode 3> | <pc relative label>
  */
 bool
 m_ldr (void)
@@ -272,6 +249,18 @@ m_ldr (void)
 	                           : ((1 << 20) | (1 << 26))));
   return false;
 }
+
+#if 0
+// FIXME:
+/**
+ * Implements LDREX.
+ *   LDREX[<cond>] <Rd>, [<Rn>]
+ */
+bool
+m_ldrex (void)
+{
+}
+#endif
 
 /**
  * Implements STR<cond>[B].
@@ -288,6 +277,18 @@ m_str (void)
 	                           : (1 << 26)));
   return false;
 }
+
+#if 0
+// FIXME:
+/**
+ * Implements STREX.
+ *   STREX[<cond>] <Rd>, [<Rn>]
+ */
+bool
+m_strex (void)
+{
+}
+#endif
 
 /**
  * Implements PLD.
@@ -309,10 +310,8 @@ m_pld (void)
   ir |= LHS_OP (op);
   skipblanks();
 
-  if (inputLook () == ']')
+  if (Input_Match (']', true))
     {			/* [base] */
-      inputSkip();
-      skipblanks();
       ir |= UP_FLAG;	/* 0 nicer than -0 */
     }
   else
@@ -323,9 +322,8 @@ m_pld (void)
 
       skipblanks();
 
-      if (inputLook () == '#')
+      if (Input_Match ('#', false))
 	{
-	  inputSkip ();
 	  Value offset = exprBuildAndEval (ValueInt | ValueCode);
 	  switch (offset.Tag)
 	    {
@@ -338,23 +336,16 @@ m_pld (void)
 	      break;
 	    }
 
-	    /* UP_FLAG is fixed in fixCpuOffset */
+	  /* UP_FLAG is fixed in fixCpuOffset */
 	}
       else
 	{
 	  ir |= UP_FLAG;
-	  if (inputLook () == '+')
-	    {
-	      inputSkip ();
-	      skipblanks ();
-	    }
-	  else if (inputLook () == '-')
-	    {
-	      inputSkip ();
-	      skipblanks ();
-	      ir &= ~UP_FLAG;
-	    }
-	  if (inputLook () == '#')
+	  if (Input_Match ('-', true))
+	    ir &= ~UP_FLAG;
+	  else
+	    Input_Match ('+', true);
+	  if (Input_Match ('#', false))
 	    {
 	      /* Edge case - #XX */
 	      error (ErrorError, "Unknown register definition in offset field");
@@ -362,12 +353,7 @@ m_pld (void)
 	  ir = getRhs(true, true, ir) | REG_FLAG;
 	}
 
-      if (inputLook () == ']')
-	{
-	  inputSkip ();
-	  skipblanks ();
-	}
-      else
+      if (!Input_Match (']', true))
 	error (ErrorError, "Expected closing ]");
     }
   putIns(ir);
@@ -382,20 +368,11 @@ dstreglist (ARMWord ir)
   op = getCpuReg ();
   ir |= BASE_MULTI (op);
   skipblanks ();
-  if (inputLook () == '!')
-    {
-      inputSkip ();
-      ir |= WB_FLAG;
-      skipblanks ();
-    }
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (Input_Match ('!', true))
+    ir |= WB_FLAG;
+  if (!Input_Match (',', true))
     error (ErrorError, "Inserting missing comma before reglist");
-  if (inputLook () == '#')
+  if (Input_Match ('#', false))
     {				/* constant */
       Value mask = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel);
       switch (mask.Tag)
@@ -414,9 +391,7 @@ dstreglist (ARMWord ir)
     }
   else
     {
-      if (inputLook () == '{')
-	inputSkip ();
-      else
+      if (!Input_Match ('{', false))
 	error (ErrorError, "Inserting missing '{' before reglist");
       op = 0;
       do
@@ -463,13 +438,11 @@ dstreglist (ARMWord ir)
       ir |= op;
     }
   skipblanks ();
-  if (inputLook () == '^')
+  if (Input_Match ('^', true))
     {
-      inputSkip ();
       if ((ir & WB_FLAG) && !(ir & (1 << 15)))
 	error (ErrorInfo, "Writeback together with force user");
       ir |= FORCE_FLAG;
-      skipblanks ();
     }
   putIns (ir);
 }
@@ -514,37 +487,17 @@ m_swp (void)
   cpuWarn (ARM250);
   ir |= DST_OP (getCpuReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   ir |= RHS_OP (getCpuReg ());	/* Note wrong order swp dst,rhs,[lsh] */
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
-  if (inputLook () == '[')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match ('[', true))
     error (ErrorError, "Inserting missing '['");
   ir |= DST_MUL (getCpuReg ());
   skipblanks ();
-  if (inputLook () == ']')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (']', true))
     error (ErrorError, "Inserting missing ']'");
   putIns (ir);
   return false;

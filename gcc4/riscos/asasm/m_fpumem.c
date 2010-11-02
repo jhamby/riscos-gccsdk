@@ -112,11 +112,8 @@ dstmemx (ARMWord ir)
   skipblanks ();
   ir |= DST_OP (getFpuReg ());
   skipblanks ();
-  if (inputLook () == ',')
-    inputSkip ();
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "Inserting comma after dst");
-  skipblanks ();
   Value im = exprBuildAndEval (ValueInt);
   if (im.Tag == ValueInt)
     {

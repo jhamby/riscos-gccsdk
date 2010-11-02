@@ -21,6 +21,7 @@
  */
 
 #include "config.h"
+
 #ifdef HAVE_STDINT_H
 #  include <stdint.h>
 #elif HAVE_INTTYPES_H
@@ -37,6 +38,10 @@
 #include "macros.h"
 #include "os.h"
 #include "variables.h"
+
+#ifdef DEBUG
+//#  define DEBUG_MACRO
+#endif
 
 static Macro *macroList;
 
@@ -122,9 +127,8 @@ macroCall (const Macro *m, const Lex *label)
 	}
       const char *c;
       size_t len;
-      if (inputLook () == '"')
+      if (Input_Match ('"', false))
 	{
-	  inputSkip ();
 	  c = inputSymbol (&len, '"');	/* handles "x\"y", but not "x""y" */
 	  inputSkip ();
 	  skipblanks ();
@@ -137,17 +141,14 @@ macroCall (const Macro *m, const Lex *label)
 	}
       if ((args[marg++] = strndup (c, len)) == NULL)
 	errorOutOfMem();
-      if (inputLook () == ',')
-	inputSkip ();
-      else
+      if (!Input_Match (',', true))
 	break;
-      skipblanks ();
     }
 
   for (/* */; marg < MACRO_ARG_LIMIT; ++marg)
     args[marg] = NULL;
 
-#ifdef DEBUG
+#ifdef DEBUG_MACRO
   printf ("Macro call = %s\n", inputLine ());
   for (int i = 0; i < MACRO_ARG_LIMIT; ++i)
     printf ("  Arg %i = <%s>\n", i, args[i] ? args[i] : "NULL");
@@ -250,8 +251,7 @@ c_macro (const Lex *label)
     errorAbort ("End of file found within macro definition");
   if (Input_IsEolOrCommentStart ())
     errorAbort ("Missing macro name");
-  if (inputLook () == '$')
-    inputSkip ();
+  Input_Match ('$', false);
   size_t len;
   const char *ptr = inputSymbol (&len, 0);
   if (len)
@@ -261,9 +261,8 @@ c_macro (const Lex *label)
 	errorOutOfMem ();
     }
   skipblanks ();
-  if (inputLook () == '|')
+  if (Input_Match ('|', false))
     {
-      inputSkip ();
       ptr = inputSymbol (&len, '|');
       if (inputGet () != '|')
 	error (ErrorError, "Macro name continues over newline");
@@ -289,14 +288,11 @@ c_macro (const Lex *label)
 	  skiprest ();
 	  break;
 	}
-      skipblanks ();
-      if (inputLook () == '$')
-	inputSkip ();
+      Input_Match ('$', false);
       ptr = inputSymbol (&len, ',');
       if ((m.args[m.numargs++] = strndup (ptr, len)) == NULL)
 	errorOutOfMem ();
-      if (inputLook () == ',')
-	inputSkip ();
+      Input_Match (',', true);
     }
   int bufptr = 0, buflen = 0;
   do
@@ -313,13 +309,10 @@ c_macro (const Lex *label)
 	  const char * const inputMark2 = Input_GetMark ();
 	  if (c == '$')
 	    {
-	      if (inputLook () == '$')
-		inputSkip ();
-	      else
+	      if (!Input_Match ('$', false))
 		{ /* Token? Check list and substitute */
 		  ptr = inputSymbol (&len, '\0');
-		  if (inputLook () == '.')
-		    inputSkip ();
+		  Input_Match ('.', false);
 		  int i;
 		  for (i = 0;
 		       i < m.numargs

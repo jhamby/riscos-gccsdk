@@ -195,11 +195,8 @@ m_swi (void)
   if (cc == optionError)
     return true;
 
-  if (inputLook () == '#')
-    {
-      inputSkip ();
-      error (ErrorInfo, "SWI is always immediate");
-    }
+  if (Input_Match ('#', false))
+    error (ErrorInfo, "SWI is always immediate");
   Value im = exprBuildAndEval (ValueInt | ValueAddr | ValueString | ValueCode
 			       | ValueLateLabel);
   ARMWord ir = cc | 0x0F000000;
@@ -246,11 +243,8 @@ m_bkpt (void)
 {
   cpuWarn (XSCALE);
 
-  if (inputLook () == '#')
-    {
-      inputSkip ();
-      error (ErrorInfo, "BKPT is always immediate");
-    }
+  if (Input_Match ('#', false))
+    error (ErrorInfo, "BKPT is always immediate");
   Value im = exprBuildAndEval (ValueInt);
   if (im.Tag != ValueInt)
     error (ErrorError, "Illegal BKPT expression");
@@ -278,12 +272,7 @@ m_adr (void)
   ir |= DST_OP (getCpuReg ());
   ir |= LHS_OP (15) | IMM_RHS;	/* pc */
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   /* The label will expand to either a field in a based map or a PC-relative 
      expression.  */
@@ -385,9 +374,8 @@ m_stack (void)
 	    }
 	  if (regs[reg] != -1)
 	    error (ErrorError, "Register class %c duplicated", c);
-	  if (inputLook () == '=')
+	  if (Input_Match ('=', false))
 	    {
-	      inputSkip ();
 	      im = exprBuildAndEval (ValueInt);
 	      if (im.Tag != ValueInt)
 		im.Data.Int.i = 0;
@@ -553,8 +541,7 @@ getpsr (bool only_all)
   Input_RollBackToMark (inputMark);
   while (strchr ("_cCxXsSfF", inputLook ()))
     {
-      if (inputLook () == '_')
-        inputSkip ();
+      Input_Match ('_', false);
       int p;
       char c;
       switch (c = inputGetLower ())
@@ -599,16 +586,10 @@ m_msr (void)
   cpuWarn (ARM6);
   cc |= getpsr (false) | 0x0120F000;
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
-  if (inputLook () == '#')
+  if (Input_Match ('#', false))
     {
-      inputSkip ();
       Value im = exprBuildAndEval (ValueInt);
       if (im.Tag == ValueInt)
 	{
@@ -637,12 +618,7 @@ m_mrs (void)
   cpuWarn (ARM6);
   cc |= getCpuReg () << 12 | 0x01000000;
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   cc |= getpsr (true);
   putIns (cc);

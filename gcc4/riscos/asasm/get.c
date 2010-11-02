@@ -42,7 +42,7 @@
 static ARMWord
 getCpuRegInternal (bool genError)
 {
-  Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
+  const Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
   if (lexSym.tag == LexNone)
     return genError ? 0 : INVALID_REG;
 
@@ -74,7 +74,7 @@ getCpuRegNoError (void)
 ARMWord
 getFpuReg (void)
 {
-  Lex lexSym = lexGetId ();
+  const Lex lexSym = lexGetId ();
   if (lexSym.tag == LexNone)
     return 0;
 
@@ -93,7 +93,7 @@ getFpuReg (void)
 ARMWord
 getCopReg (void)
 {
-  Lex lexSym = lexGetId ();
+  const Lex lexSym = lexGetId ();
   if (lexSym.tag == LexNone)
     return 0;
 
@@ -112,7 +112,7 @@ getCopReg (void)
 ARMWord
 getCopNum (void)
 {
-  Lex lexSym = lexGetId ();
+  const Lex lexSym = lexGetId ();
   if (lexSym.tag == LexNone)
     return 0;
 
@@ -217,9 +217,8 @@ getShift (bool immonly)
   if (shift != RRX)
     {
       skipblanks ();
-      if (inputLook () == '#')
+      if (Input_Match ('#', false))
 	{
-	  inputSkip ();
 	  Value im = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel);
 	  switch (im.Tag)
 	    {
@@ -252,17 +251,15 @@ getShift (bool immonly)
 ARMWord
 getRhs (bool immonly, bool shift, ARMWord ir)
 {
-  if (inputLook () == '#')
+  if (Input_Match ('#', false))
     {
       ir |= IMM_RHS;
-      inputSkip ();
       Value im = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel | ValueString | ValueAddr);
       switch (im.Tag)
 	{
 	case ValueInt:
-	  if (inputLook () == ',')
+	  if (Input_Match (',', false))
 	    {
-	      inputSkip ();
 	      Lex rotator = lexGetPrim ();
 
 	      if (im.Data.Int.i < 0 || im.Data.Int.i >= 256)
@@ -296,12 +293,10 @@ getRhs (bool immonly, bool shift, ARMWord ir)
     {
       ir |= getCpuReg ();
       skipblanks ();
-      if (inputLook () == ',')
+      if (Input_Match (',', true))
 	{
 	  if (!shift)
 	    return ir;		/* will cause a 'skip rest of line' error */
-	  inputSkip ();
-	  skipblanks ();
 	  ir |= getShift (immonly);
 	}
       else

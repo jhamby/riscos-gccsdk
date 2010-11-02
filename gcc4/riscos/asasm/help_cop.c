@@ -68,12 +68,7 @@ ARMWord
 help_copAddr (ARMWord ir, bool stack)
 {
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "Inserting missing comma before address");
   switch (inputLook ())
     {
@@ -83,28 +78,17 @@ help_copAddr (ARMWord ir, bool stack)
           skipblanks ();
           ir |= LHS_OP (getCpuReg ());	/* Base register */
           skipblanks ();
-	  bool pre;
-          if (inputLook () == ']')
-	    {
-	      pre = false;
-	      inputSkip ();
-	      skipblanks ();
-	    }
-          else
-	    pre = true;
+	  bool pre = !Input_Match (']', true);
           bool offValue = false;
-          if (inputLook () == ',')
+	  if (Input_Match (',', true))
 	    {			/* either [base,XX] or [base],XX */
 	      if (stack)
 	        {
 	          error (ErrorError, "Cannot specify both offset and stack type");
 	          break;
 	        }
-	      inputSkip ();
-	      skipblanks ();
-	      if (inputLook () == '#')
+	      if (Input_Match ('#', false))
 	        {
-	          inputSkip ();
 	          Value offset = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel);
 	          offValue = true;
 	          switch (offset.Tag)
@@ -123,10 +107,8 @@ help_copAddr (ARMWord ir, bool stack)
 	          if (!pre)
 		    ir |= WB_FLAG; /* If postfix, set writeback */
 	        }
-	      else if (inputLook () == '{')
+	      else if (Input_Match ('{', false))
 	        {
-	          inputSkip ();
-	          skipblanks ();
 	          Value offset = exprBuildAndEval (ValueInt);
 	          offValue = true;
 	          if (offset.Tag != ValueInt)
@@ -135,9 +117,8 @@ help_copAddr (ARMWord ir, bool stack)
 		    error (ErrorError, "Option value too large");
 	          ir |= (offset.Data.Int.i & 0xFF) | UP_FLAG;
 	          skipblanks ();
-	          if (inputLook () != '}')
+		  if (!Input_Match ('}', false))
 		    error (ErrorError, "Missing '}' in option");
-	          inputSkip ();
 	        }
 	      else
 	        error (ErrorError, "Coprocessor memory instructions cannot use register offset");
@@ -152,24 +133,17 @@ help_copAddr (ARMWord ir, bool stack)
 	    }
           if (pre)
 	    {
-	      if (inputLook () == ']')
-	        {
-	          inputSkip ();
-	          skipblanks ();
-	        }
-	      else
+	      if (!Input_Match (']', true))
 	        error (ErrorError, "Inserting missing ] after address");
 	    }
           else if (!stack && !offValue)
 	    pre = true;		/* make [base] into [base,#0] */
-	  if (inputLook () == '!')
+	  if (Input_Match ('!', true))
 	    {
 	      if (pre || stack)
 	        ir |= WB_FLAG;
 	      else
 	        error (ErrorError, "Writeback is implied with post-index");
-	      inputSkip ();
-	      skipblanks ();
 	    }
           else if (stack)
 	    pre = true;		/* [base] in stack context => [base,#0] */

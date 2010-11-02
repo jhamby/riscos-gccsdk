@@ -30,7 +30,7 @@ typedef enum
 {
   RelocShiftImm,	/* An immediate shift constant 0-32 may need patching of shiftop */
   RelocImm8s4,		/* An immediate constant 8 bits rotated by 4 bits */
-  RelocImmFloat,	/* An immediate constant float (only 0.0 1.0 2.0, 3.0, 4.0, 5.0, 10.0 or 0.5) */
+  RelocImmFloat,	/* An immediate constant float (only 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 10.0 or 0.5) */
   RelocBranch,		/* Branch immediate */
   RelocBranchT,		/* Thumb branch immediate */
   RelocSwi,		/* SWI immediate */

@@ -42,7 +42,7 @@
 #include "storage.h"
 
 #ifdef DEBUG
-#  define DEBUG_CODE
+//#  define DEBUG_CODE
 #endif
 
 #ifdef DEBUG_CODE
@@ -491,6 +491,9 @@ codePrint (int size, const Code *program)
 		      codePrint (program[i].Data.symbol->value.Data.Code.len,
 				 program[i].Data.symbol->value.Data.Code.c);
 		      printf (">>] ");
+		      break;
+		    default:
+		      printf ("[???] ");
 		      break;
 		  }
 	      }

@@ -272,7 +272,7 @@ symbolGet (const Lex *l)
 Symbol *
 symbolFind (const Lex *l)
 {
-  if (l->tag != LexId) /* FIXME: what's this case ? */
+  if (l->tag != LexId)
     return NULL;
 
   Symbol **isearch;
@@ -721,8 +721,6 @@ symbolPrint (const Symbol *sym)
     printf ("area/");
   if (sym->type & SYMBOL_NOTRESOLVED)
     printf ("not resolved/");
-  if (sym->type & SYMBOL_BASED)
-    printf ("based/");
   switch (SYMBOL_GETREG(sym->type))
     {
       case 0: /* No register, nor coprocessor number.  */

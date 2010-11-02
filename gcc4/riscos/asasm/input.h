@@ -40,6 +40,8 @@ extern int num_predefines;
 
 void inputInit (const char *infile);
 
+bool Input_Match (char c, bool spacesToo);
+
 #if DEBUG
 const char *inputGiveRestLine (void);
 #endif

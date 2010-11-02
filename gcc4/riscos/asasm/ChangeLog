@@ -1,3 +1,17 @@
+Tue Nov  2 22:39:16 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* input.c (Input_Match): Added and use this instead of
+	"if (inputLook() == ...) + inputSkip() + optional skipblanks()".
+	* input.h (Input_Match): Declare.
+	* asm.c, fix.c, get.c, help_cop.c, lex.c, macros.c, m_cop.c, m_copmem.c,
+	m_cpu.c, m_cpuctrl.c, m_cpumem.c, m_fpu.c, m_fpumem.c, option.c,
+	storage.c, variables.c, whileif.c: Use Input_Match.
+	* commands.c, output.c, reloc.h: Minor change.
+	* symbol.c: Remove FIXME.
+	(symbolPrint): Fix build.
+	* code.c (codePrint): Print ??? for undetermined case.
+	* lex.h (lexGetLabel): Remove.
+
 Tue Nov  2 14:28:09 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (decode): Converted into a table lookup and push any
@@ -5,10 +19,10 @@ Tue Nov  2 14:28:09 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 	implementation itself.
 	* area.c, area.h, commands.c, commands.h, decode.h, help_lex.c,
 	help_lex.h, input.c, input.h, local.c, local.h, macros.c, macros.h
-	m_cop.c, m_cop.h, m_copmem.c, m_copmem.h, m_cpu.c, m_cpuctrl.c,
-	m_cpuctrl.h, m_cpu.h, m_cpumem.c, m_cpumem.h, m_fpu.c, m_fpu.h,
-	m_fpumem.c, m_fpumem.h, option.c, storage.c, storage.h, variables.c,
-	variables.h, whileif.c, whileif.h: Follow above changes.
+	m_cop.c, m_copmem.c, m_cpu.c, m_cpuctrl.c, m_cpu.h, m_cpumem.c,
+	m_fpu.c, m_fpu.h, m_fpumem.c, option.c, storage.c, storage.h,
+	variables.c, variables.h, whileif.c, whileif.h: Follow above changes.
+	* m_cop.h, m_copmem.h, m_cpuctrl.h, m_cpumem.h, m_fpumem.h: Added.
 	* mnemonics.h: Removed.
 
 Mon Nov  1 15:24:53 CET 2010  John Tytgat  <John.Tytgat@aaug.net>

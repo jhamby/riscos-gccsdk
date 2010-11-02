@@ -67,22 +67,12 @@ dstlhsrhs (ARMWord ir)
   op = getCpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   op = getCpuReg ();
   ir |= LHS_OP (op);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   ir = getRhs (false, true, ir);
   putIns (ir);
@@ -95,12 +85,7 @@ dstrhs (ARMWord ir)
   op = getCpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   ir = getRhs (false, true, ir);
   putIns (ir);
@@ -272,12 +257,7 @@ lhsrhs (ARMWord ir)
   op = getCpuReg ();
   ir |= LHS_OP (op);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   if ((ir & P_FLAG) && option_apcs_32bit)
     error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
@@ -346,21 +326,11 @@ onlyregs (bool acc, ARMWord ir)
   dst = getCpuReg ();
   ir |= DST_MUL (dst);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   lhs = getCpuReg ();
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   rhs = getCpuReg ();
   if (dst == lhs)
@@ -381,12 +351,7 @@ onlyregs (bool acc, ARMWord ir)
   skipblanks ();
   if (acc)
     {
-      if (inputLook () == ',')
-	{
-	  inputSkip ();
-	  skipblanks ();
-	}
-      else
+      if (!Input_Match (',', true))
 	error (ErrorError, "%srhs", InsertCommaAfter);
       ir |= ACC_MUL (getCpuReg ());
       skipblanks ();
@@ -435,12 +400,7 @@ l_onlyregs (ARMWord ir, const char *op)
       cpuWarn (ARM7M);
       skipblanks ();
       dstl = getCpuReg ();
-      if (inputLook () == ',')
-        {
-          inputSkip ();
-          skipblanks ();
-        }
-      else
+      if (!Input_Match (',', true))
         error (ErrorError, "%sdst_h", InsertCommaAfter);
     }
   else
@@ -450,12 +410,7 @@ l_onlyregs (ARMWord ir, const char *op)
       if (issmlalxy)
         {
           dstl = getCpuReg ();
-          if (inputLook () == ',')
-            {
-              inputSkip ();
-              skipblanks ();
-            }
-          else
+	  if (!Input_Match (',', true))
             error (ErrorError, "%sdst_l", InsertCommaAfter);
         }
       else
@@ -464,21 +419,11 @@ l_onlyregs (ARMWord ir, const char *op)
 
   dsth = getCpuReg ();
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst_l", InsertCommaAfter);
   lhs = getCpuReg ();
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   rhs = getCpuReg ();
   if (issmull)
@@ -506,12 +451,7 @@ l_onlyregs (ARMWord ir, const char *op)
      }
   if (!issmull && (issmlaxy || issmlawy))
     {
-      if (inputLook () == ',')
-        {
-          inputSkip ();
-          skipblanks ();
-        }
-      else
+      if (!Input_Match (',', true))
         error (ErrorError, "%sdst_l", InsertCommaAfter);
       dstl = getCpuReg ();
       if (dstl == 15)
@@ -801,12 +741,7 @@ m_clz (void)
   dst = getCpuReg ();
   ir |= DST_OP (dst);
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
 
   rhs = getCpuReg ();
@@ -829,21 +764,11 @@ q_onlyregs (ARMWord ir, const char *op)
 
   dst = getCpuReg ();
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   lhs = getCpuReg ();
   skipblanks ();
-  if (inputLook () == ',')
-    {
-      inputSkip ();
-      skipblanks ();
-    }
-  else
+  if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   rhs = getCpuReg ();
   if (dst == 15 || lhs == 15 || rhs == 15)

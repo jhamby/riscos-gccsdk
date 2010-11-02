@@ -121,7 +121,6 @@ typedef struct
     } Data;
 } Lex;
 
-Lex lexGetLabel (void);
 Lex lexGetLocal (void);
 Lex lexGetId (void);
 Lex lexGetIdNoError (void);
