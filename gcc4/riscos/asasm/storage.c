@@ -77,7 +77,7 @@ c_record (void)
         errorAbort ("^ cannot evaluate its offset expression");
         break;
     }
-  storageV.Data.Addr.r = (Input_Match (',', true)) ? getCpuReg () : -1;
+  storageV.Data.Addr.r = (Input_Match (',', true)) ? (int)getCpuReg () : -1;
   return false;
 }
 

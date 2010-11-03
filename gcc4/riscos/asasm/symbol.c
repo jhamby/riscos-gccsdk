@@ -201,7 +201,6 @@ symbolInit (void)
       s->type |= SYMBOL_ABSOLUTE | SYMBOL_DECLARED | predefines[i].type;
       s->value.Tag = ValueInt;
       s->value.Data.Int.i = predefines[i].value;
-      s->area.ptr = NULL;
     }
 }
 
@@ -438,8 +437,8 @@ symbolSymbolAOFOutput (FILE *outfile)
 			v = 0;
 			break;
 		      case ValueInt:
-			case ValueAddr:	/* nasty hack */
-			  v = value.Data.Int.i;
+		      case ValueAddr:	/* nasty hack */
+			v = value.Data.Int.i;
 			break;
 		      case ValueFloat:
 			errorLine (0, NULL, ErrorError,
@@ -588,8 +587,8 @@ symbolSymbolELFOutput (FILE *outfile)
 			v = 0;
 			break;
 		      case ValueInt:
-			case ValueAddr: /* nasty hack */
-			  v = value.Data.Int.i;
+		      case ValueAddr: /* nasty hack */
+			v = value.Data.Int.i;
 			break;
 		      case ValueFloat:
 			errorLine (0, NULL, ErrorError, "Linker does not understand float constants (%s)", sym->str);
@@ -640,7 +639,7 @@ symbolSymbolELFOutput (FILE *outfile)
 		    asym.st_shndx = 0;
 		  else
 		    /* Inefficient, needs fixing later */
-		    asym.st_shndx = findAreaIndex(sym->area.info);
+		    asym.st_shndx = findAreaIndex (sym->area.info);
 		}
 	      else
 		{
@@ -674,7 +673,7 @@ symbolSymbolELFOutput (FILE *outfile)
 	    {
 	      if (!Area_IsImplicit (sym))
 		{
-		  asym.st_info = ELF32_ST_INFO((sym->type & SYMBOL_GLOBAL) ? STB_GLOBAL : STB_LOCAL, STT_SECTION);
+		  asym.st_info = ELF32_ST_INFO ((sym->type & SYMBOL_GLOBAL) ? STB_GLOBAL : STB_LOCAL, STT_SECTION);
 		  asym.st_name = sym->offset + 1; /* + 1 to skip initial & extra NUL */
 		  asym.st_value = 0;
 		  asym.st_shndx = findAreaIndex ((const struct AREA *)sym);
@@ -721,7 +720,7 @@ symbolPrint (const Symbol *sym)
     printf ("area/");
   if (sym->type & SYMBOL_NOTRESOLVED)
     printf ("not resolved/");
-  switch (SYMBOL_GETREG(sym->type))
+  switch (SYMBOL_GETREG (sym->type))
     {
       case 0: /* No register, nor coprocessor number.  */
 	break;
@@ -761,7 +760,7 @@ symbolPrintAll (void)
 	{
 	  /* We skip all internally defined register names and coprocessor
 	     numbers.  */
-	  if (SYMBOL_GETREG(sym->type))
+	  if (SYMBOL_GETREG (sym->type))
 	    continue;
 
 	  symbolPrint (sym);

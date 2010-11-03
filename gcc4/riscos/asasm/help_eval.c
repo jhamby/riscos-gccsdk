@@ -37,14 +37,14 @@ static void
 fixValueTag (Value *value)
 {
   /* Remove symbols with factor == 0  */
-  LateInfo **c;
-  for (c = &value->Data.Late.late; *c;)
+  for (LateInfo **c = &value->Data.Late.late; *c;)
     {
       if (!(*c)->factor)
 	*c = (*c)->next;
       else
 	c = &(*c)->next;
-    }				/* Decide type of value */
+    }
+  /* Decide type of value */
   value->Tag = (value->Data.Late.late) ? ValueLateLabel : ValueInt;
 }
 

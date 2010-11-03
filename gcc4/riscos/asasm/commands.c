@@ -69,7 +69,6 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
   else
     sym->value = valueCopy (value);
   sym->type |= SYMBOL_DEFINED | SYMBOL_DECLARED;
-  sym->area.ptr = NULL;
 }
 
 /**
@@ -227,6 +226,7 @@ c_head (void)
         break;
     }
 
+  /* Align.  */
   int i = areaCurrentSymbol->value.Data.Int.i;
   while (areaCurrentSymbol->value.Data.Int.i & 3)
     areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;

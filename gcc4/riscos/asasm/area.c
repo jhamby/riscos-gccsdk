@@ -145,7 +145,9 @@ areaFinish (void)
 bool
 c_entry (void)
 {
-  if (areaCurrentSymbol)
+  if (!strcmp (areaCurrentSymbol->str, IMPLICIT_AREA_NAME))
+    error (ErrorError, "No area selected before ENTRY");
+  else
     {
       if (areaEntrySymbol)
 	error (ErrorError, "More than one ENTRY");
@@ -155,8 +157,7 @@ c_entry (void)
 	  areaEntryOffset = areaCurrentSymbol->value.Data.Int.i;
 	}
     }
-  else
-    errorAbort ("No area selected before ENTRY");
+
   return false;
 }
 

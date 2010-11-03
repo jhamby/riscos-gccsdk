@@ -399,8 +399,6 @@ main (int argc, char **argv)
       return EXIT_FAILURE;
     }
   
-  /* When the command line has been sorted, get on with the job in hand */
-
   if (setjmp (asmAbort))
     {
       asmAbortValid = false;
@@ -413,13 +411,10 @@ main (int argc, char **argv)
       asmAbortValid = true;
       symbolInit ();
       inputInit (SourceFileName);
-
-      /* ... do the assembly ... */
       outputInit (ObjFileName);
-
-      /* ... tidy up and write the ELF/AOF output.  */
       areaInit ();
       setjmp (asmContinue); asmContinueValid = true;
+      /* Do the assembly.  */
       assemble ();
       areaFinish ();
       
@@ -427,6 +422,7 @@ main (int argc, char **argv)
 	fprintf (stdout, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
       else
         {
+	  /* Write the ELF/AOF output.  */
 #ifndef NO_ELF_SUPPORT
 	  if (!option_aof)
 	    outputElf();

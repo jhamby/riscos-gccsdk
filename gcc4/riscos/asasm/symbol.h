@@ -80,7 +80,7 @@ typedef struct SYMBOL
   union
     {
       struct SYMBOL *ptr;
-      struct AREA *info;
+      struct AREA *info; /** When SYMBOL_AREA is set.  */
     } area;
   unsigned int offset;	/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
   int used;		/** -1 when not used; for area symbols: at outputAof/outputElf stage, this will be the area number counted from 0; for other symbols, 0 when symbol is needed in output. This will become the symbol index at symbolFix stage.  */

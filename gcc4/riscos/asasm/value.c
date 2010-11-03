@@ -44,7 +44,7 @@ valueLateToCode (int offset, const LateInfo *late)
   for (const LateInfo *l = late; l != NULL; l= l->next)
     {
       const int factor = l->factor;
-      if (l->factor == -1 || factor == 1)
+      if (factor == -1 || factor == 1)
 	size += 2;
       else if (factor != 0)
 	size += 4;
