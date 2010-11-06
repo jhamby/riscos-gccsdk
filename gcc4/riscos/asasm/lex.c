@@ -178,31 +178,18 @@ lexGetIdNoError (void)
   nextbinopvalid = false;
 
   skipblanks ();
-  char c;
+
   Lex result;
-  if ((c = inputLook ()) == '|')
+  if ((result.Data.Id.str = Input_Symbol (&result.Data.Id.len)) != NULL)
     {
-      inputSkip ();
       result.tag = LexId;
-      result.Data.Id.str = inputSymbol (&result.Data.Id.len, '|');
-      if (inputGet () != '|')
-	error (ErrorError, "Identifier continues over newline");
       result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
+      if (result.Data.Id.len > 1)
+        localMunge (&result);
     }
   else
-    {
-      /* Note: we allow identifiers to begin with '#'.  */
-      if (isalpha (c) || c == '.' || c == '_' || c == '#')
-	{
-	  result.tag = LexId;
-	  result.Data.Id.str = inputSymbol (&result.Data.Id.len, 0);
-	  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
-	}
-      else
-	result.tag = LexNone;
-    }
-  if (result.tag == LexId && result.Data.Id.len > 1)
-    localMunge (&result);
+    result.tag = LexNone;
+
   return result;
 }
 
@@ -279,10 +266,10 @@ lexMakeLocal (int dir)
 
 
 Lex
-lexGetLocal (void)
+Lex_GetDefiningLabel (void)
 {
   nextbinopvalid = false;
-  if (isdigit (inputLook ()))
+  if (isdigit ((unsigned char)inputLook ()))
     {
       Lex result;
       result.tag = LexNone;
@@ -522,14 +509,6 @@ lexGetPrim (void)
       }
       break;
 
-    case '|':
-      result.tag = LexId;
-      result.Data.Id.str = inputSymbol (&result.Data.Id.len, '|');
-      if (inputGet () != '|')
-	error (ErrorError, "Identifier continues over newline");
-      result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
-      break;
-
     case '.':
       result.tag = LexPosition;
       break;
@@ -581,20 +560,20 @@ lexGetPrim (void)
       break;
 
     default:
+      /* Try to read a symbol.  */
       inputUnGet (c);
-      if (isalpha (c) || c == '_')
+      if ((result.Data.Id.str = Input_Symbol (&result.Data.Id.len)) != NULL)
 	{
-	  result.tag = LexId;
-	  result.Data.Id.str = inputSymbol (&result.Data.Id.len, 0);
 	  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
+	  if (result.Data.Id.len > 1)
+	    localMunge (&result);
+	  result.tag = LexId;
 	}
       else
 	result.tag = LexNone;
       break;
     }
 
-  if (result.tag == LexId && result.Data.Id.len > 1)
-    localMunge (&result);
   return result;
 }
 

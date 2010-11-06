@@ -118,20 +118,6 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
 }
 
 
-static const char *
-var_inputSymbol (size_t *len)
-{
-  char delim = Input_Match ('|', false) ? '|' : '\0';
-  const char *sym = inputSymbol (len, delim);
-  if (delim == '|')
-    {
-      if (!Input_Match ('|', false))
-	error (ErrorError, "Unterminated |label|");
-    }
-  return sym;
-}
-
-
 /**
  * Implements GBLL, GBLA and GBLS.
  * Global variable declaration
@@ -162,19 +148,10 @@ c_gbl (const Lex *label)
   skipblanks ();
   const char *ptr;
   size_t len;
-  if (!Input_IsEolOrCommentStart ())
-    ptr = var_inputSymbol (&len);
+  if ((ptr = Input_Symbol (&len)) == NULL)
+    error (ErrorError, "Missing variable name");
   else
-    {
-      len = 0;
-      ptr = NULL;
-    }
-  if (!len)
-    {
-      error (ErrorError, "Missing variable name");
-      return false;
-    }
-  declare_var (ptr, len, type, false);
+    declare_var (ptr, len, type, false);
   return false;
 }
 
@@ -214,14 +191,7 @@ c_lcl (const Lex *label)
   skipblanks ();
   const char *ptr;
   size_t len;
-  if (!Input_IsEolOrCommentStart ())
-    ptr = var_inputSymbol (&len);
-  else
-    {
-      ptr = NULL;
-      len = 0;
-    }
-  if (!len)
+  if ((ptr = Input_Symbol (&len)) == NULL)
     {
       error (ErrorError, "Missing variable name");
       return false;

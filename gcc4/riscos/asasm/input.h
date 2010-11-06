@@ -32,8 +32,6 @@
 
 #define TOLOWER(x) tolower((x))
 
-extern bool inputRewind;
-
 #define MAX_PREDEFINES 10
 extern const char *predefines[MAX_PREDEFINES];
 extern int num_predefines;
@@ -69,6 +67,8 @@ const char *inputLine (void);
 #endif
 void inputSkip (void);
 void inputSkipN (int n);
+
+const char *Input_Symbol (size_t *ilen);
 const char *inputSymbol (size_t *ilen, char del);
 
 const char *Input_GetMark (void);

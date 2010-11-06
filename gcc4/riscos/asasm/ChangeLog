@@ -1,3 +1,35 @@
+Sat Nov  6 23:34:12 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (decode): Use Input_Symbol for fetching macro name.
+	(decode_finalcheck): Added.
+	* decode.h (decode_finalcheck): Added.
+	* variables.c (var_inputSymbol): Removed.
+	(c_gbl, c_lcl): Use Input_Symbol instead of var_inputSymbol.
+	* macros.c (macroFind): Swap parameter order.
+	(c_macro): Use Input_Symbol.
+	* macros.h (macroFind): Swap parameter order.
+	* whileif.c (ignore_else): Removed.
+	(if_skip): Add closeOnly parameter, make it more robust against wrong
+	input, use Lex_GetDefiningLabel() to determing label definition.
+	(c_if): Cosmetic change.
+	(c_else): Ignore mismatched |, follow if_skip changes.
+	(c_endif): Ignore mismatched ], follow if_skip changes.
+	(while_skip): Use Lex_GetDefiningLabel() to determine label definition,
+	support comment char after WHILE and WEND.
+	(FS_PopIfWhile): Don't use errorAbort as this results in an infinite
+	loop here.
+	* input.c (inputRewind): Removed.
+	(Input_Symbol): Added.  Should replace inputSymbol() over time.
+	* input.h (inputRewind): Removed.
+	(Input_Symbol): Added.
+	* asm.c (assemble): Use Lex_GetDefiningLabel().
+	* lex.c (lexGetIdNoError): Use Input_Symbol.
+	(Lex_GetDefiningLabel): Renamed from lexGetLocal.
+	(lexGetPrim): Simply the symbol case, use Input_Symbol.
+	* lex.h (Lex_GetDefiningLabel): Renamed from lexGetLocal.
+	(lexGetIdMunge): Removed.
+	* regression/tests_pass/if_else.s: Added.
+
 Sat Nov  6 20:37:32 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* output.c (outputAof): Fix zero sized AREA case.

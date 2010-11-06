@@ -43,60 +43,76 @@
 #include "value.h"
 #include "whileif.h"
 
-static bool ignore_else = false;
-
-static void if_skip (const char *onerror);
+static bool if_skip (const char *onerror, bool closeOnly);
 static void while_skip (void);
 static void whileFree (void);
 static bool whileReEval (void);
 
-static void
-if_skip (const char *onerror)
+/**
+ * Skip following assembler lines because of
+ * either a failed '[' test, so until we find the corresponding matching '|' or ']',
+ * either we had a successful '[' test and we reached the '|' part.
+ * \param onerror Error message to given when no matching '|' or ']' can be found
+ * in the current parse object.
+ * \param closeOnly When true, expect only ']' to match.
+ */
+static bool
+if_skip (const char *onerror, bool closeOnly)
 {
+  /* We will now skip input lines until a matching '|' or ']'.  This means
+     we have to do the final decode check ourselves.  */
+  decode_finalcheck ();
+
   int nested = 0;
   while (inputNextLineNoSubst ())
     {
-      // FIXME: this doesn't look like a bullet proof label skip + nested if
-      // test code !
-      int c;
-      if (inputLook () && !isspace ((unsigned char)(c = inputGet ())))
+      /* Check for label and skip it.  */
+      Lex label;
+      if (!isspace ((unsigned char)inputLook ()))
 	{
-	  size_t len;
-	  char del = c == '|' ? c : 0;
-	  inputSymbol (&len, del);
-	  if (del && inputLook () == del)
-	    inputSkip ();
+	  label = Lex_GetDefiningLabel ();
 	}
+      else
+	label.tag = LexNone;
       skipblanks ();
-      c = inputGet ();
-      if (inputLook () && !isspace ((unsigned char)inputGet ()))
+
+      /* Check for a single character mnemonic.  */
+      char c = inputGet ();
+      if (!isspace ((unsigned char)inputLook ()) && !Input_IsEolOrCommentStart ())
 	continue;
 
       switch (c)
 	{
 	  case ']':
 	    if (nested-- == 0)
-	      goto skipped;
+	      return c_endif (&label);
 	    break;
 	  case '|':
 	    if (nested == 0)
-	      goto skipped;
+	      {
+		if (label.tag != LexNone)
+		  error (ErrorWarning, "Label not allowed here - ignoring");
+		if (!closeOnly)
+		  return false;
+		error (ErrorError, "Spurious '|' is being ignored");
+	      }
 	    break;
 	  case '[':
+	    if (label.tag != LexNone)
+	      error (ErrorWarning, "Label not allowed here - ignoring");
 	    nested++;
 	    break;
 	}
     }
+  /* We reached the end of the current parsing object without finding a matching
+     '|' nor ']'.  */
   error (ErrorError, "%s", onerror);
-  return;
-
-skipped:
-  ignore_else = true;
-  inputRewind = true;
+  return false;
 }
 
 /**
  * Implements '['
+ * Only called from decode().
  */
 bool
 c_if (const Lex *label)
@@ -107,77 +123,92 @@ c_if (const Lex *label)
   gCurPObjP->if_depth++;
 
   Value flag = exprBuildAndEval (ValueBool);
+  bool skipToEndIf;
   if (flag.Tag != ValueBool)
     {
       error (ErrorError, "IF expression must be boolean (treating as true)");
-      return false;
+      skipToEndIf = false;
     }
-  if (!flag.Data.Bool.b)
-    if_skip ("No matching | or ]");
+  else
+    skipToEndIf = !flag.Data.Bool.b;
+
+  if (skipToEndIf)
+    return if_skip ("No matching | or ]", false);
+
   return false;
 }
 
 /**
  * Implements '|'
+ * The previous '[' evaluated to {TRUE} and we're now about to enter the 'else'
+ * clause which we have to ignore.
+ * Only called from decode().
  */
 bool
 c_else (const Lex *label)
 {
   if (!gCurPObjP->if_depth)
-    error (ErrorError, "Mismatched |");
+    {
+      error (ErrorError, "Mismatched |");
+      return false;
+    }
 
   if (label->tag != LexNone)
     error (ErrorWarning, "Label not allowed here - ignoring");
 
-  if (!ignore_else)
-    if_skip ("No matching ]");
-  ignore_else = false;
-  return false;
+  return if_skip ("No matching ]", true);
 }
 
 /**
  * Implements ']'
+ * Called from decode() (the previous lines were being assembled) and
+ * if_skip() (the previous lines were being skipped).
  */
 bool
 c_endif (const Lex *label)
 {
   if (!gCurPObjP->if_depth)
-    errorAbort ("Mismatched ]");
-  else
-    gCurPObjP->if_depth--;
+    {
+      error (ErrorError, "Mismatched ]");
+      return false;
+    }
+
+  gCurPObjP->if_depth--;
 
   if (label->tag != LexNone)
     error (ErrorWarning, "Label not allowed here - ignoring");
 
-  ignore_else = false;
   return false;
 }
 
 
+/**
+ * Skip following assembler input lines until we find matching WEND.
+ */
 static void
 while_skip (void)
 {
   int nested = 0;
-  while (inputNextLine ())
+  while (inputNextLine ()) /* FIXME: call inputNextLineNoSubst() instead, like in if_skip() ? */
     {
       /* Skip label (if there is one).  */
-      if (inputLook () && !isspace ((unsigned char)inputGet ()))
-	{
-	  size_t len;
-	  inputSymbol (&len, 0);
-	}
+      if (!isspace ((unsigned char)inputLook ()))
+	(void) Lex_GetDefiningLabel ();
       skipblanks ();
+
       /* Look for WHILE and WEND.  */
       if (inputGet () == 'W')
 	{
 	  switch (inputGet ())
 	    {
 	      case 'H':	/* WHILE? */
-		if (!(notinput ("ILE") || (inputLook () && !isspace ((unsigned char)inputGet ()))))
+		if (!notinput ("ILE")
+		    && (isspace ((unsigned char)inputLook ()) || Input_IsEolOrCommentStart ()))
 		  nested++;
 		break;
 	      case 'E':	/* WEND? */
-		if (!(notinput ("ND") || (inputLook () && !isspace ((unsigned char)inputGet ())))
+		if (!notinput ("ND")
+		    && (isspace ((unsigned char)inputLook ()) || Input_IsEolOrCommentStart ())
 		    && nested-- == 0)
 		  return;
 	        break;
@@ -332,7 +363,7 @@ FS_PopIfWhile (bool noCheck)
   if (gCurPObjP->if_depth)
     {
       if (!noCheck)
-	errorAbort ("Unmatched IF%s", "s" + (gCurPObjP->if_depth > 1));
+	error (ErrorError, "Unmatched IF%s", "s" + (gCurPObjP->if_depth > 1));
       gCurPObjP->if_depth = 0;
     }
 
@@ -340,5 +371,5 @@ FS_PopIfWhile (bool noCheck)
   for (i = 0; gCurPObjP->whilestack != NULL; ++i)
     whileFree ();
   if (i && !noCheck)
-    errorAbort ("Unmatched WHILE%s", "s" + (i > 1));
+    error (ErrorError, "Unmatched WHILE%s", "s" + (i > 1));
 }

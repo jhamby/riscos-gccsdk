@@ -394,18 +394,9 @@ decode (const Lex *label)
     {
       /* Mnemonic is not recognized, maybe it is a macro.  */
       Input_RollBackToMark (inputMark);
-      size_t l;
-      const char *ci;
-      if (inputLook () == '|') /* FIXME: use lexGetId ! */
-        {
-          inputSkip ();
-          ci = inputSymbol (&l, '|');
-          if (inputGet () != '|')
-            error (ErrorError, "Identifier continues over newline");
-        }
-      else
-        ci = inputSymbol (&l, '\0');
-      const Macro *m = macroFind (l, ci);
+      size_t macroNameLen;
+      const char *macroName = Input_Symbol (&macroNameLen);
+      const Macro *m = macroFind (macroName, macroNameLen);
       if (m)
         macroCall (m, label);
       else
@@ -416,7 +407,18 @@ decode (const Lex *label)
     }
 
   /* Sanity check we have consumed the complete line.  */
+  decode_finalcheck ();
+}
+
+
+/**
+ * Checks if the remaining part of the line are only blanks or comment part.
+ */
+void
+decode_finalcheck (void)
+{
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
     errorAbort ("Skipping extra characters '%s'", inputRest ());
 }
+

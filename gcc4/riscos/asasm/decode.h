@@ -28,5 +28,6 @@
 #include "lex.h"
 
 void decode (const Lex *label);
+void decode_finalcheck (void);
 
 #endif

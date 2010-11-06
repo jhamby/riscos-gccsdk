@@ -59,19 +59,13 @@ assemble (void)
       if (Input_IsEolOrCommentStart ())
 	continue;
 
+      /* Read label (if there is one).  */
       Lex label;
       if (!isspace ((unsigned char)inputLook ()))
-	{
-	  /* Deal with any label. */
-	  label = isdigit ((unsigned char)inputLook ()) ? lexGetLocal () : lexGetId ();
-
-	  /* Check for local label here.  */
-	  skipblanks ();
-	  if (inputLook () == ':')
-	    inputSkip ();
-	}
+	label = Lex_GetDefiningLabel ();
       else
 	label.tag = LexNone;
+      skipblanks ();
 #ifdef DEBUG_ASM
       printf ("%s: %d: ", FS_GetCurFileName (), FS_GetCurLineNumber ());
       lexPrint (&label);

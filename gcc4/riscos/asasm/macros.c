@@ -197,7 +197,7 @@ Macro_GetLine (char *bufP, size_t bufSize)
 
 
 const Macro *
-macroFind (size_t len, const char *name)
+macroFind (const char *name, size_t len)
 {
   for (const Macro *m = macroList; m != NULL; m = m->next)
     {
@@ -240,13 +240,15 @@ c_macro (const Lex *label)
     error (ErrorWarning, "Label not allowed here - ignoring");
 
   Macro m;
-  memset(&m, 0, sizeof(Macro));
+  memset (&m, 0, sizeof(Macro));
 
   char *buf = NULL;
 
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
     error (ErrorWarning, "Skipping characters following MACRO");
+
+  /* Read optional '$' + label name.  */
   if (!inputNextLineNoSubst ())
     errorAbort ("End of file found within macro definition");
   if (Input_IsEolOrCommentStart ())
@@ -261,17 +263,11 @@ c_macro (const Lex *label)
 	errorOutOfMem ();
     }
   skipblanks ();
-  if (Input_Match ('|', false))
-    {
-      ptr = inputSymbol (&len, '|');
-      if (inputGet () != '|')
-	error (ErrorError, "Macro name continues over newline");
-    }
-  else
-    ptr = inputSymbol (&len, 0);
-  if (!len)
+
+  /* Read macro name.  */
+  if ((ptr = Input_Symbol (&len)) == NULL)
     errorAbort ("Missing macro name");
-  if (macroFind (len, ptr))
+  if (macroFind (ptr, len))
     {
       error (ErrorError, "Macro %.*s is already defined", (int)len, ptr);
       goto lookforMEND;
@@ -280,6 +276,8 @@ c_macro (const Lex *label)
     errorOutOfMem ();
   m.startline = FS_GetCurLineNumber ();
   skipblanks ();
+
+  /* Read zero or more macro parameters.  */
   while (!Input_IsEolOrCommentStart ())
     {
       if (m.numargs == MACRO_ARG_LIMIT)

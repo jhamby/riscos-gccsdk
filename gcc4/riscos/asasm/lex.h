@@ -121,10 +121,9 @@ typedef struct
     } Data;
 } Lex;
 
-Lex lexGetLocal (void);
+Lex Lex_GetDefiningLabel (void);
 Lex lexGetId (void);
 Lex lexGetIdNoError (void);
-Lex lexGetIdMunge (int);
 Lex lexGetPrim (void);
 Lex lexGetBinop (void);
 int lexNextPri (void);

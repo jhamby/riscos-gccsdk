@@ -21,6 +21,7 @@
  */
 
 #include "config.h"
+
 #include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
@@ -46,8 +47,6 @@
 #include "os.h"
 
 #define MAX_LINE (4096)
-
-bool inputRewind = false;
 
 static char input_buff[MAX_LINE + 256];
 static const char *input_pos;
@@ -245,13 +244,6 @@ inputInit (const char *infile)
 static bool
 inputNextLineCore (void)
 {
-  if (inputRewind)
-    {
-      /* Reuse the existing workBuff contents.  */
-      inputRewind = false;
-      return true;
-    }
-
   if (gCurPObjP == NULL)
     return false;
 
@@ -646,6 +638,56 @@ Input_Match (char c, bool spacesToo)
     while (isspace ((unsigned char)*input_pos))
       ++input_pos;
   return true;
+}
+
+/**
+ * Try to read a symbol.
+ * \return NULL on error, otherwise points to begin of symbol and symbol length
+ * is *ilen bytes.
+ */
+const char *
+Input_Symbol (size_t *ilen)
+{
+  const char *rslt;
+  size_t len;
+  if (*input_pos == '|')
+    {
+      /* Symbol is bracketed between two '|'.  */
+      rslt = ++input_pos;
+      for (len = 0; input_pos[len] != '\0' && input_pos[len] != '|'; ++len)
+	/* */;
+      if (input_pos[len] == '\0')
+	{
+	  error (ErrorError, "Failed to read symbol (forgot second '|' ?)");
+	  *ilen = 0;
+	  return NULL;
+	}
+      ++input_pos; /* Skip second '|'.  */
+    }
+  else
+    {
+      /* Symbol needs to start with a letter (upper- or lowercase), followed by
+	 letter, digits and underscore.  */
+      rslt = input_pos;
+      for (len = 0; input_pos[len] != '\0'; ++len)
+	{
+          if (len == 0)
+	    {
+	      if (!isalnum ((unsigned char)input_pos[len]))
+	        break;
+	    }
+          else
+	    {
+	      if (!isalnum ((unsigned char)input_pos[len])
+	          && !isdigit ((unsigned char)input_pos[len])
+	          && input_pos[len] != '_')
+	        break;
+	    }
+        }
+    }
+  *ilen = len;
+  input_pos += len;
+  return rslt;
 }
 
 const char *

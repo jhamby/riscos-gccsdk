@@ -58,7 +58,7 @@ typedef struct
 
 void FS_PopMacroPObject (bool noCheck);
 
-const Macro *macroFind (size_t len, const char *);
+const Macro *macroFind (const char *, size_t len);
 void macroCall (const Macro *, const Lex *);
 bool macroGetLine (char *buf);	/* returns 0 if end of macro */
 
