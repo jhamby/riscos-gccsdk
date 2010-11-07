@@ -195,7 +195,7 @@ symbolInit (void)
     { "c15", 3, 15, SYMBOL_COPREG }
   };
 
-  for (size_t i = 0; sizeof (predefines)/sizeof (predefines[0]); ++i)
+  for (size_t i = 0; i < sizeof (predefines)/sizeof (predefines[0]); ++i)
     {
       const Lex l = lexTempLabel (predefines[i].name, predefines[i].len);
 
