@@ -1,3 +1,9 @@
+Sun Nov  7 16:26:09 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (symbolInit): Remove the need of a terminator.
+	(symbolAdd): Don't reinitialise existing symbol.
+	(symbolPrintAll): Start each symbol output at beginning of line.
+
 Sat Nov  6 23:34:12 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (decode): Use Input_Symbol for fetching macro name.

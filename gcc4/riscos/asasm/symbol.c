@@ -44,6 +44,10 @@
 #include "output.h"
 #include "symbol.h"
 
+#ifdef DEBUG
+#  define DEBUG_SYMBOL
+#endif
+
 /* For AOF, we output a symbol when it is be exported (or forced exported)
    and it is defined, or imported and referenced in the code.  */
 int (SYMBOL_AOF_OUTPUT) (const Symbol *);	/* typedef it */
@@ -188,12 +192,10 @@ symbolInit (void)
     { "c12", 3, 12, SYMBOL_COPREG },
     { "c13", 3, 13, SYMBOL_COPREG },
     { "c14", 3, 14, SYMBOL_COPREG },
-    { "c15", 3, 15, SYMBOL_COPREG },
-    /* Terminator */
-    { NULL, 0, 0, 0 }
+    { "c15", 3, 15, SYMBOL_COPREG }
   };
 
-  for (int i = 0; predefines[i].name != NULL; i++)
+  for (size_t i = 0; sizeof (predefines)/sizeof (predefines[0]); ++i)
     {
       const Lex l = lexTempLabel (predefines[i].name, predefines[i].len);
 
@@ -234,11 +236,9 @@ symbolAdd (const Lex *l)
 		           (int)l->Data.Id.len, l->Data.Id.str);
 		}
 	      else
-		{
-		  search->type |= SYMBOL_DEFINED;
-		  return search;
-		}
+		search->type |= SYMBOL_DEFINED;
 	    }
+	  return search;
 	}
     }
   *isearch = symbolNew (l->Data.Id.str, l->Data.Id.len);
@@ -379,8 +379,8 @@ symbolFix (int *stringSizeNeeded)
 	    }
 	}
     }
-#ifdef DEBUG
-  /* symbolPrintAll (); */
+#ifdef DEBUG_SYMBOL
+  symbolPrintAll ();
 #endif
   /* printf("Number of symbols selected: %d, size needed %d bytes\n", nosym, strsize); */
   *stringSizeNeeded = strsize;
@@ -691,7 +691,7 @@ symbolPrint (const Symbol *sym)
 {
   static const char *symkind[4] = { "UNKNOWN", "LOCAL", "REFERENCE", "GLOBAL" };
   printf ("\"%.*s\": %s /",
-	  (int)sym->len, sym->str, symkind[SYMBOL_KIND(sym->type)]);
+	  (int)sym->len, sym->str, symkind[SYMBOL_KIND (sym->type)]);
   assert (strlen (sym->str) == (size_t)sym->len);
   /* Dump the symbol attributes:  */
   if (sym->type & SYMBOL_ABSOLUTE)
@@ -764,6 +764,7 @@ symbolPrintAll (void)
 	    continue;
 
 	  symbolPrint (sym);
+	  printf ("\n");
 	}
     }
 }
