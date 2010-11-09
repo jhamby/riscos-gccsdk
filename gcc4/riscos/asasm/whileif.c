@@ -69,25 +69,69 @@ if_skip (const char *onerror, bool closeOnly)
       /* Check for label and skip it.  */
       Lex label;
       if (!isspace ((unsigned char)inputLook ()))
-	{
-	  label = Lex_GetDefiningLabel ();
-	}
+	label = Lex_GetDefiningLabel ();
       else
 	label.tag = LexNone;
       skipblanks ();
 
-      /* Check for a single character mnemonic.  */
-      char c = inputGet ();
-      if (!isspace ((unsigned char)inputLook ()) && !Input_IsEolOrCommentStart ())
-	continue;
-
-      switch (c)
+      /* Check for '[', '|', ']', 'IF', 'ELSE', 'ENDIF'.  */
+      enum { t_unknown, t_if, t_else, t_endif } toktype;
+      int numSkip = 1;
+      char c = inputLookN (0);
+      if (c == '[')
+	toktype = t_if;
+      else if (c == '|')
+	toktype = t_else;
+      else if (c == ']')
+	toktype = t_endif;
+      else
 	{
-	  case ']':
-	    if (nested-- == 0)
-	      return c_endif (&label);
+	  if (c == 'I' && inputLookN (1) == 'F')
+	    {
+	      toktype = t_if;
+	      numSkip = 2;
+	    }
+	  else if (c == 'E')
+	    {
+	      if (inputLookN (1) == 'N'
+		  && inputLookN (2) == 'D'
+		  && inputLookN (3) == 'I'
+		  && inputLookN (4) == 'F')
+		{
+		  toktype = t_endif;
+		  numSkip = 5;
+		}
+	      else if (inputLookN (1) == 'L'
+		       && inputLookN (2) == 'S'
+		       && inputLookN (3) == 'E')
+		{
+		  toktype = t_else;
+		  numSkip = 4;
+		}
+	      else
+		toktype = t_unknown;
+	    }
+	  else
+	    toktype = t_unknown;
+	}
+      if (toktype == t_unknown || (inputLookN (numSkip) && !isspace ((unsigned char)inputLookN (numSkip))))
+	continue;
+      inputSkipN (numSkip);
+      if (toktype != t_if)
+	{
+          skipblanks ();
+          if (!Input_IsEolOrCommentStart ())
+	    error (ErrorError, "Spurious characters after %s token", toktype == t_else ? "ELSE" : "ENDIF");
+	}
+
+      switch (toktype)
+	{
+	  case t_if:
+	    if (label.tag != LexNone)
+	      error (ErrorWarning, "Label not allowed here - ignoring");
+	    nested++;
 	    break;
-	  case '|':
+	  case t_else:
 	    if (nested == 0)
 	      {
 		if (label.tag != LexNone)
@@ -97,10 +141,9 @@ if_skip (const char *onerror, bool closeOnly)
 		error (ErrorError, "Spurious '|' is being ignored");
 	      }
 	    break;
-	  case '[':
-	    if (label.tag != LexNone)
-	      error (ErrorWarning, "Label not allowed here - ignoring");
-	    nested++;
+	  case t_endif:
+	    if (nested-- == 0)
+	      return c_endif (&label);
 	    break;
 	}
     }

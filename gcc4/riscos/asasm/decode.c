@@ -113,7 +113,9 @@ static const decode_table_t oDecodeTable[] =
   { "DCFD", DTABLE_CALLBACK_VOID, { .vd = c_dcfd } }, /* DCFD */
   { "DCFS", DTABLE_CALLBACK_VOID, { .vd = c_dcfs } }, /* DCFS */
   { "DVF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_dvf } }, /* DVF CC P R */
+  { "ELSE", DTABLE_CALLBACK_LEX, { .lbl = c_else } }, /* | ELSE */
   { "END", DTABLE_CALLBACK_VOID, { .vd = c_end } }, /* END */
+  { "ENDIF", DTABLE_CALLBACK_LEX, { .lbl = c_endif } }, /* ] ENDIF */
   { "ENTRY", DTABLE_CALLBACK_VOID, { .vd = c_entry } }, /* ENTRY */
   { "EOR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_eor } }, /* EOR CC S */
   { "EQU", DTABLE_CALLBACK_SYMBOL, { .sym = c_equ } }, /* EQU */
@@ -130,6 +132,7 @@ static const decode_table_t oDecodeTable[] =
   { "GLOBL", DTABLE_CALLBACK_VOID, { .vd = c_globl } }, /* EXPORT / GLOBL */
   { "HEAD", DTABLE_CALLBACK_VOID, { .vd = c_head } }, /* HEAD */
   { "IDFN", DTABLE_CALLBACK_VOID, { .vd = c_idfn } }, /* IDFN */
+  { "IF", DTABLE_CALLBACK_LEX, { .lbl = c_if } }, /* [ IF */
   { "IMPORT", DTABLE_CALLBACK_VOID, { .vd = c_import } }, /* IMPORT */
   { "INCLUDE", DTABLE_CALLBACK_VOID, { .vd = c_get } }, /* GET / INCLUDE */
   { "INFO", DTABLE_CALLBACK_VOID, { .vd = c_info } }, /* INFO */
@@ -233,10 +236,10 @@ static const decode_table_t oDecodeTable[] =
   { "WFC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_wfc } }, /* WFC CC */
   { "WFS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_wfs } }, /* WFS CC */
   { "WHILE", DTABLE_CALLBACK_LEX, { .lbl = c_while } }, /* WHILE */
-  { "[", DTABLE_CALLBACK_LEX, { .lbl = c_if } }, /* [ */
-  { "]", DTABLE_CALLBACK_LEX, { .lbl = c_endif } }, /* ] */
+  { "[", DTABLE_CALLBACK_LEX, { .lbl = c_if } }, /* [ IF */
+  { "]", DTABLE_CALLBACK_LEX, { .lbl = c_endif } }, /* ] ENDIF */
   { "^", DTABLE_CALLBACK_VOID, { .vd = c_record } }, /* Start of new record layout.  */
-  { "|", DTABLE_CALLBACK_LEX, { .lbl = c_else } }, /* | */
+  { "|", DTABLE_CALLBACK_LEX, { .lbl = c_else } }, /* | ELSE */
 };
 #define DECODE_ENTRIES (sizeof (oDecodeTable) / sizeof (oDecodeTable[0]))
 
@@ -325,6 +328,8 @@ decode (const Lex *label)
 	      ++charsMatched;
 	      continue;
 	    }
+	  if (moreMatchingIsNeeded && !moreMatchingIsPossible && low < high)
+	    indexFound = low;
           if (!moreMatchingIsNeeded && !moreMatchingIsPossible)
 	    {
 	      /* We have a full match (it must be unique).  */
