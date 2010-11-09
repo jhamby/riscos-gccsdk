@@ -180,11 +180,10 @@ countAreas (void)
   return i;
 }
 
-static int
-writeEntry (int ID, int type, int size, int *offset)
+static size_t
+writeEntry (int ID, int type, size_t size, size_t *offset)
 {
   ChunkFileHeaderEntry chunk_entry;
-
   chunk_entry.ChunkIDPrefix = armword (ID);
   chunk_entry.ChunkIDType = armword (type);
   chunk_entry.FileOffset = armword (*offset);
@@ -196,23 +195,18 @@ writeEntry (int ID, int type, int size, int *offset)
 void
 outputAof (void)
 {
-  int noareas = countAreas ();
-  unsigned int idfn_size;
-  int offset, pad, written, obj_area_size;
-  ChunkFileHeader chunk_header;
-  ChunkFileHeaderEntry chunk_entry;
-  AofHeader aof_head;
-  AofEntry aof_entry;
-
   /* We must call relocFix() before anything else.  */
-  obj_area_size = 0;
+  int obj_area_size = 0;
+  int noareas = 0;
   /* avoid problems with no areas.  */
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
-      
+
+      ++noareas;
+
       ap->area.info->norelocs = relocFix (ap);
       if (AREA_IMAGE (ap->area.info))
 	obj_area_size += FIX (ap->value.Data.Int.i)
@@ -220,6 +214,7 @@ outputAof (void)
     }
 
   int stringSizeNeeded;
+  AofHeader aof_head;
   aof_head.Type = armword (AofHeaderID);
   aof_head.Version = armword (310);
   aof_head.noAreas = armword (noareas);
@@ -228,42 +223,43 @@ outputAof (void)
   aof_head.EntryOffset = armword (areaEntrySymbol ? areaEntryOffset : 0);
 
   /* Write out the chunk file header.  */
+  ChunkFileHeader chunk_header;
   chunk_header.ChunkField = armword (ChunkFileID);
   chunk_header.maxChunks = armword (5);
   chunk_header.noChunks = armword (5);
-  written = fwrite (&chunk_header, 1, sizeof (chunk_header), objfile);
-  offset = sizeof (chunk_header) + 5 * sizeof (chunk_entry);
+  size_t written = fwrite (&chunk_header, 1, sizeof (chunk_header), objfile);
+  size_t offset = sizeof (chunk_header) + 5*sizeof (ChunkFileHeaderEntry);
 
-  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_HEAD,
-               sizeof (aof_head) + noareas * sizeof (aof_entry), &offset);
+  written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_HEAD,
+			 sizeof (AofHeader) + noareas*sizeof (AofEntry), &offset);
 
-  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_IDFN,
-                        idfn_size = FIX (strlen (GET_IDFN) + 1), &offset);
+  size_t idfn_size = FIX (strlen (GET_IDFN) + 1);
+  written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_IDFN, idfn_size, &offset);
 
-  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_STRT,
-                        FIX (stringSizeNeeded) + 4, &offset);
+  written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_STRT,
+                         FIX (stringSizeNeeded) + 4, &offset);
 
-  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_SYMT,
-                        ourword (aof_head.noSymbols) * sizeof (AofSymbol), &offset);
+  written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_SYMT,
+                         ourword (aof_head.noSymbols)*sizeof (AofSymbol), &offset);
 
-  written += writeEntry(ChunkID_OBJ, ChunkID_OBJ_AREA,
-                        obj_area_size, &offset);
+  written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_AREA,
+                         obj_area_size, &offset);
 
-  if (written != (sizeof (chunk_header) + 5 * sizeof (chunk_entry)))
+  if (written != sizeof (chunk_header) + 5*sizeof (ChunkFileHeaderEntry))
     {
       errorAbortLine (0, NULL, "Internal outputAof: error when writing chunk file header");
       return;
     }
 
-/******** Chunk 0 Header ********/
+  /******** Chunk 0 Header ********/
   fwrite (&aof_head, 1, sizeof (aof_head), objfile);
-
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
-      
+
+      AofEntry aof_entry;
       aof_entry.Name = armword (ap->offset + 4); /* +4 because of extra length entry */
       aof_entry.Type = armword (ap->area.info->type);
       aof_entry.Size = armword (FIX (ap->value.Data.Int.i));
@@ -274,27 +270,27 @@ outputAof (void)
       fwrite (&aof_entry, 1, sizeof (aof_entry), objfile);
     }
 
-/******** Chunk 1 Identification *********/
+  /******** Chunk 1 Identification *********/
   if (idfn_size != fwrite (GET_IDFN, 1, idfn_size, objfile))
     {
       errorAbortLine (0, NULL, "Internal outputAof: error when writing identification");
       return;
     }
-/******** Chunk 2 String Table ***********/
-  unsigned int strt_size = armword(stringSizeNeeded + 4);
+  /******** Chunk 2 String Table ***********/
+  unsigned int strt_size = armword (stringSizeNeeded + 4);
   if (fwrite (&strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
       errorAbortLine (0, NULL, "Internal outputAof: error when writing string table size");
       return;
     }
   symbolStringOutput (objfile);
-  for (pad = EXTRA (stringSizeNeeded); pad; pad--)
+  for (int pad = EXTRA (stringSizeNeeded); pad; pad--)
     fputc (0, objfile);
 
-/******** Chunk 3 Symbol Table ***********/
+  /******** Chunk 3 Symbol Table ***********/
   symbolSymbolAOFOutput (objfile);
 
-/******** Chunk 4 Area *****************/
+  /******** Chunk 4 Area *****************/
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       /* Skip the implicit area.  */
@@ -304,10 +300,10 @@ outputAof (void)
       if (AREA_IMAGE (ap->area.info))
 	{
 	  if (fwrite (ap->area.info->image, 1, ap->value.Data.Int.i, objfile)
-	      != ap->value.Data.Int.i)
+	      != (size_t)ap->value.Data.Int.i)
 	    errorAbortLine (0, NULL, "Internal outputAof: error when writing %s image", ap->str);
 	  /* Word align the written area.  */
-	  for (pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
+	  for (int pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
 	    fputc (0, objfile);
 	  relocAOFOutput (objfile, ap);
 	}

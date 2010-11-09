@@ -257,6 +257,13 @@ decode (const Lex *label)
     assert (strcmp (oDecodeTable[i - 1].mnemonic, oDecodeTable[i].mnemonic) < 0);
 #endif
 
+  /* Deal with empty line quickly.  */
+  if (Input_IsEolOrCommentStart ())
+    {
+      asm_label (label);
+      return;
+    }
+
   const char * const inputMark = Input_GetMark ();
 
   /* Locate mnemonic entry in decode table.  */

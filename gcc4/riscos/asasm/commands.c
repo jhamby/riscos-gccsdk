@@ -93,7 +93,7 @@ c_fn (Symbol *symbol)
   if (no < 0 || no > 7)
     {
       symbol->value.Data.Int.i = 0;
-      error (ErrorError, "Illegal %s register %d (using 0)", "fpu", no);
+      error (ErrorError, "Illegal %s register %d (using 0)", "FPU", no);
     }
   return false;
 }
@@ -110,7 +110,7 @@ c_rn (Symbol *symbol)
   if (no < 0 || no > 15)
     {
       symbol->value.Data.Int.i = 0;
-      error (ErrorError, "Illegal %s register %d (using 0)", "cpu", no);
+      error (ErrorError, "Illegal %s register %d (using 0)", "CPU", no);
     }
   return false;
 }
@@ -127,7 +127,7 @@ c_cn (Symbol *symbol)
   if (no < 0 || no > 15)
     {
       symbol->value.Data.Int.i = 0;
-      error (ErrorError, "Illegal %s register %d (using 0)", "cop", no);
+      error (ErrorError, "Illegal %s register %d (using 0)", "coprocessor", no);
     }
   return false;
 }
@@ -315,17 +315,20 @@ c_dcfd (void)
   return false;
 }
 
-static void
+static bool
 symFlag (unsigned int flags, const char *err)
 {
   const Lex lex = lexGetId ();
   if (lex.tag != LexId)
-    return;
-  Symbol *sym = symbolGet (&lex);
-  if (localTest (sym->str))
-    error (ErrorError, "Local labels cannot be %s", err);
-  else
-    sym->type |= flags;
+    {
+      /* When the symbol is not known yet, it will automatically be created.  */
+      Symbol *sym = symbolGet (&lex);
+      if (localTest (sym->str))
+        error (ErrorError, "Local labels cannot be %s", err);
+      else
+        sym->type |= flags;
+    }
+  return false;
 }
 
 /**
@@ -334,8 +337,7 @@ symFlag (unsigned int flags, const char *err)
 bool
 c_globl (void)
 {
-  symFlag (SYMBOL_REFERENCE | SYMBOL_DECLARED, "exported");
-  return false;
+  return symFlag (SYMBOL_REFERENCE | SYMBOL_DECLARED, "exported");
 }
 
 /**
@@ -344,8 +346,7 @@ c_globl (void)
 bool
 c_strong (void)
 {
-  symFlag (SYMBOL_STRONG, "marked 'strong'");
-  return false;
+  return symFlag (SYMBOL_STRONG, "marked 'strong'");
 }
 
 /**
@@ -354,8 +355,7 @@ c_strong (void)
 bool
 c_keep (void)
 {
-  symFlag (SYMBOL_KEEP | SYMBOL_DECLARED, "marked 'keep'");
-  return false;
+  return symFlag (SYMBOL_KEEP | SYMBOL_DECLARED, "marked 'keep'");
 }
 
 /**
@@ -366,12 +366,11 @@ c_import (void)
 {
   Lex lex = lexGetId ();
   if (lex.tag != LexId)
-    return false; /* FIXME: give error msg ? */
+    return false; /* Error is already given.  */
 
   Symbol *sym = symbolGet (&lex);
   sym->type |= SYMBOL_REFERENCE | SYMBOL_DECLARED;
-  int c;
-  while ((c = inputGet ()) == ',')
+  while (Input_Match (',', false))
     {
       Lex attribute = lexGetId ();
       if (!strncmp ("NOCASE", attribute.Data.Id.str, attribute.Data.Id.len))
@@ -381,23 +380,20 @@ c_import (void)
       else if (!strncmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len))
         {
 	  skipblanks ();
-	  if ((c = inputGet ()) != '=')
-	    {
-	      error (ErrorError, "COMMON attribute needs size specification");
-	      inputUnGet (c);
-	    }
+	  if (Input_Match ('=', false))
+	    error (ErrorError, "COMMON attribute needs size specification");
 	  else
 	    {
 	      Value size = exprBuildAndEval (ValueInt);
 	      switch (size.Tag)
 	        {
-	        case ValueInt:
-		  sym->value = valueCopy (size);
-	          sym->type |= SYMBOL_COMMON;
-	          break;
-	        default:
-	          error (ErrorError, "Illegal COMMON attribute expression");
-	          break;
+		  case ValueInt:
+		    sym->value = valueCopy (size);
+		    sym->type |= SYMBOL_COMMON;
+		    break;
+		  default:
+		    error (ErrorError, "Illegal COMMON attribute expression");
+		    break;
 	        }
 	    }
 	}
@@ -407,7 +403,6 @@ c_import (void)
 	error (ErrorError, "Illegal IMPORT attribute %s", attribute.Data.Id.str);
       skipblanks ();
     }
-  inputUnGet (c);
   return false;
 }
 
@@ -557,7 +552,7 @@ c_info (void)
   Value value = exprBuildAndEval (ValueInt | ValueFloat);
 
   skipblanks();
-  if (inputGet () != ',')
+  if (!Input_Match (',', false))
     {
       error (ErrorError, "Missing , in INFO directive");
       return false;

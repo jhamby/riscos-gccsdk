@@ -267,9 +267,12 @@ c_macro (const Lex *label)
   /* Read macro name.  */
   if ((ptr = Input_Symbol (&len)) == NULL)
     errorAbort ("Missing macro name");
-  if (macroFind (ptr, len))
+  const Macro *prevDefMacro = macroFind (ptr, len);
+  if (prevDefMacro != NULL)
     {
-      error (ErrorError, "Macro %.*s is already defined", (int)len, ptr);
+      error (ErrorError, "Macro '%.*s' is already defined", (int)len, ptr);
+      errorLine (prevDefMacro->startline, prevDefMacro->file, ErrorError,
+		 "Note: Previous macro '%.*s' definition", (int)len, ptr);
       goto lookforMEND;
     }
   if ((m.name = strndup (ptr, len)) == NULL)

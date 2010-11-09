@@ -1,3 +1,25 @@
+Tue Nov  9 12:41:48 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c (c_fn, c_rn, c_cn): Improve error message.
+	(symFlag): Change return type to bool.  Add comment.
+	(c_globl,c_strong,c_keep): Tail call symFlag.
+	(c_import): Fix comment.  Use Input_Match instead of inputGet.
+	* decode.c (decode): Deal with empty lines.
+	* asm.c (assemble): Let decode deal with empty lines.
+	* macros.c (c_macro): Report file and line number of previous
+	defined macro with same name.
+	* output.c (writeEntry, outputAof): Cleanup.
+	* m_cpu.c (lhsrhs): Cleanup.
+	* aoffile.h: Make use of uint32_t instead of unsigned int.
+	* whileif.c (if_skip): Early skip empty lines.
+	* input.c (Input_Symbol): Unbracketed symbol name can not start
+	with digit. Return NULL consistently when we can't read a symbol.
+	* get.c (getTypeInternal): Renamed from getCpuRegInternal and
+	generalise it with type.
+	(getCpuReg, getCpuRegNoError, getFpuReg, getCopReg, getCopNum):
+	Make use of getTypeInternal.
+	* lex.c (lexGetId): Tune error message.
+
 Tue Nov  9 05:01:07 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (oDecodeTable): Add IF/ELSE/ENDIF mnemonics.

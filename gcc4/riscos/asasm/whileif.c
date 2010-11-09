@@ -66,6 +66,10 @@ if_skip (const char *onerror, bool closeOnly)
   int nested = 0;
   while (inputNextLineNoSubst ())
     {
+      /* Ignore blank lines and comments.  */
+      if (Input_IsEolOrCommentStart ())
+	continue;
+
       /* Check for label and skip it.  */
       Lex label;
       if (!isspace ((unsigned char)inputLook ()))

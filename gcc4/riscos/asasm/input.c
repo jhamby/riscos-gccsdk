@@ -673,7 +673,7 @@ Input_Symbol (size_t *ilen)
 	{
           if (len == 0)
 	    {
-	      if (!isalnum ((unsigned char)input_pos[len]))
+	      if (!isalpha ((unsigned char)input_pos[len]))
 	        break;
 	    }
           else
@@ -687,7 +687,7 @@ Input_Symbol (size_t *ilen)
     }
   *ilen = len;
   input_pos += len;
-  return rslt;
+  return len ? rslt : NULL;
 }
 
 const char *

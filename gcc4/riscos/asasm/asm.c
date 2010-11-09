@@ -66,16 +66,14 @@ assemble (void)
       else
 	label.tag = LexNone;
       skipblanks ();
+
 #ifdef DEBUG_ASM
       printf ("%s: %d: ", FS_GetCurFileName (), FS_GetCurLineNumber ());
       lexPrint (&label);
       printf ("\n");
 #endif
-      skipblanks ();
-      if (!Input_IsEolOrCommentStart ())
-	decode (&label);
-      else
-	asm_label (&label);
+
+      decode (&label);
     }
 }
 

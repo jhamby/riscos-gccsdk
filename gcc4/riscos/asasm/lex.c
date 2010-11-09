@@ -199,7 +199,7 @@ lexGetId (void)
 {
   Lex result = lexGetIdNoError ();
   if (result.tag != LexId)
-    error (ErrorError, "Missing identifier");
+    error (ErrorError, "Missing or wrong identifier");
   return result;
 }
 

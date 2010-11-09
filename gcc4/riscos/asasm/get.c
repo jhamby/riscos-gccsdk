@@ -40,92 +40,53 @@
 #include "symbol.h"
 
 static ARMWord
-getCpuRegInternal (bool genError)
+getTypeInternal (bool genError, int type, const char *typeStr)
 {
   const Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
   if (lexSym.tag == LexNone)
     return genError ? 0 : INVALID_REG;
 
-  const Symbol *sym = symbolGet (&lexSym);
-  if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
+  const Symbol *sym = symbolFind (&lexSym);
+  if (sym && (sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
-      if (SYMBOL_GETREG (sym->type) == SYMBOL_CPUREG)
+      if (SYMBOL_GETREG (sym->type) == type)
 	return sym->value.Data.Int.i;
       if (genError)
-	error (ErrorError, "'%s' is not a %s register", sym->str, "cpu");
+	error (ErrorError, "'%s' is not a %s", sym->str, typeStr);
     }
   else if (genError)
-    error (ErrorError, "Undefined register %s", sym->str);
+    error (ErrorError, "Undefined %s %s", typeStr, sym->str);
   return genError ? 0 : INVALID_REG;
 }
 
 ARMWord
 getCpuReg (void)
 {
-  return getCpuRegInternal (true);
+  return getTypeInternal (true, SYMBOL_CPUREG, "CPU register");
 }
 
 ARMWord
 getCpuRegNoError (void)
 {
-  return getCpuRegInternal (false);
+  return getTypeInternal (false, SYMBOL_CPUREG, "CPU register");
 }
 
 ARMWord
 getFpuReg (void)
 {
-  const Lex lexSym = lexGetId ();
-  if (lexSym.tag == LexNone)
-    return 0;
-
-  Symbol *sym = symbolGet (&lexSym);
-  if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
-    {
-      if (SYMBOL_GETREG (sym->type) == SYMBOL_FPUREG)
-	return sym->value.Data.Int.i;
-      error (ErrorError, "'%s' is not a %s register", sym->str, "fpu");
-    }
-  else
-    error (ErrorError, "Undefined float register %s", sym->str);
-  return 0;
+  return getTypeInternal (true, SYMBOL_FPUREG, "FPU register");
 }
 
 ARMWord
 getCopReg (void)
 {
-  const Lex lexSym = lexGetId ();
-  if (lexSym.tag == LexNone)
-    return 0;
-
-  Symbol *sym = symbolGet (&lexSym);
-  if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
-    {
-      if (SYMBOL_GETREG (sym->type) == SYMBOL_COPREG)
-	return sym->value.Data.Int.i;
-      error (ErrorError, "'%s' is not a %s register", sym->str, "cop");
-    }
-  else
-    error (ErrorError, "Undefined coprocessor register %s", sym->str);
-  return 0;
+  return getTypeInternal (true, SYMBOL_COPREG, "coprocessor register");
 }
 
 ARMWord
 getCopNum (void)
 {
-  const Lex lexSym = lexGetId ();
-  if (lexSym.tag == LexNone)
-    return 0;
-
-  Symbol *sym = symbolGet (&lexSym);
-  if ((sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
-    {
-      if (SYMBOL_GETREG (sym->type) == SYMBOL_COPNUM)
-	return sym->value.Data.Int.i;
-      error (ErrorError, "'%s' is not a coprocessor number", sym->str);
-    }
-  else
-    error (ErrorError, "Undefined coprocessor number %s", sym->str);
-  return 0;
+  return getTypeInternal (true, SYMBOL_COPNUM, "coprocessor number");
 }
 
 static ARMWord

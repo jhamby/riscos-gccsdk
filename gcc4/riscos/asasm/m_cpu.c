@@ -253,8 +253,7 @@ m_sub (void)
 static void
 lhsrhs (ARMWord ir)
 {
-  ARMWord op;
-  op = getCpuReg ();
+  ARMWord op = getCpuReg ();
   ir |= LHS_OP (op);
   skipblanks ();
   if (!Input_Match (',', true))
