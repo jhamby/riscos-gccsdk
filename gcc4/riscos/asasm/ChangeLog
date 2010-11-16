@@ -1,3 +1,7 @@
+Tue Nov 16 23:25:13 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/operator_relational.s: Fix the boolean tests.
+
 Tue Nov  9 12:41:48 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c (c_fn, c_rn, c_cn): Improve error message.

@@ -33,10 +33,10 @@ EXTENSION SETL	{FALSE}
 	= :STR:("ABC"=="ABC")
 	= :STR:("ABC"=="ABCD")
 	= :STR:("ABCD"=="ABC")
-	= :STR:({FALSE}={FALSE})
-	= :STR:({FALSE}={TRUE})
-	= :STR:({TRUE}={FALSE})
-	= :STR:({TRUE}={TRUE})
+	= :STR:({FALSE}=={FALSE})
+	= :STR:({FALSE}=={TRUE})
+	= :STR:({TRUE}=={FALSE})
+	= :STR:({TRUE}=={TRUE})
 	]
 
 	; <>
@@ -49,10 +49,10 @@ EXTENSION SETL	{FALSE}
 	= :STR:("ABC"<>"ABC")
 	= :STR:("ABC"<>"ABCD")
 	= :STR:("ABCD"<>"ABC")
-	= :STR:({FALSE}={FALSE})
-	= :STR:({FALSE}={TRUE})
-	= :STR:({TRUE}={FALSE})
-	= :STR:({TRUE}={TRUE})
+	= :STR:({FALSE}<>{FALSE})
+	= :STR:({FALSE}<>{TRUE})
+	= :STR:({TRUE}<>{FALSE})
+	= :STR:({TRUE}<>{TRUE})
 
 	; !=
 	[ EXTENSION
@@ -65,10 +65,10 @@ EXTENSION SETL	{FALSE}
 	= :STR:("ABC"!="ABC")
 	= :STR:("ABC"!="ABCD")
 	= :STR:("ABCD"!="ABC")
-	= :STR:({FALSE}={FALSE})
-	= :STR:({FALSE}={TRUE})
-	= :STR:({TRUE}={FALSE})
-	= :STR:({TRUE}={TRUE})
+	= :STR:({FALSE}!={FALSE})
+	= :STR:({FALSE}!={TRUE})
+	= :STR:({TRUE}!={FALSE})
+	= :STR:({TRUE}!={TRUE})
 	]
 
 	; /=
@@ -81,10 +81,10 @@ EXTENSION SETL	{FALSE}
 	= :STR:("ABC"/="ABC")
 	= :STR:("ABC"/="ABCD")
 	= :STR:("ABCD"/="ABC")
-	= :STR:({FALSE}={FALSE})
-	= :STR:({FALSE}={TRUE})
-	= :STR:({TRUE}={FALSE})
-	= :STR:({TRUE}={TRUE})
+	= :STR:({FALSE}/={FALSE})
+	= :STR:({FALSE}/={TRUE})
+	= :STR:({TRUE}/={FALSE})
+	= :STR:({TRUE}/={TRUE})
 
 	; :LEOR:
 	= "|"
@@ -143,11 +143,11 @@ EXTENSION SETL	{FALSE}
 	[ EXTENSION
 	= "|FFFTFTFFTFFT"	; ==
 	]
-	= "|TTTFTFTTTFFT"	; <>
+	= "|TTTFTFTTFTTF"	; <>
 	[ EXTENSION
-	= "|TTTFTFTTTFFT"	; !=
+	= "|TTTFTFTTFTTF"	; !=
 	]
-	= "|TTTFTFTTTFFT"	; /=
+	= "|TTTFTFTTFTTF"	; /=
 	= "|FTTF"		; :LEOR:
 	= "|FTTFFFFT"		; >
 	= "|FTTTFTFT"		; >=
