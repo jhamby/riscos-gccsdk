@@ -1,4 +1,4 @@
-AB_CATEGORY="Develop"
+AB_CATEGORY="Development"
 AB_MAINTAINER="Jan-Jaap van der Geer <jjvdgeer@c2i.net>"
 AB_LICENCE="Free"
 AB_ROVERSION=0
@@ -50,7 +50,7 @@ ab_package() {
   cp $S/AUTHORS $S/ChangeLog* $S/COPYING $S/INSTALL $S/MAINTAINERS $S/NEWS $S/README $S/THANKS $A/doc
   cp $S/vapi/*.vapi $S/vapi/*.deps $A/vapi
 
-  $AB_HOME/add-riscpkg -package "vala" \
-    -depends unixlib
+  $AB_HOME/add-riscpkg -package "Vala" \
+    -unixlib -copyrightfile COPYING
 }
 
