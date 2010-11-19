@@ -1,10 +1,10 @@
 | Run file for dosbox
 
 | We need a wimpslot of more then 28M so this will
-| only run on an Iyonix
-RMEnsure UtilityModule 5.00 Error This application needs an Iyonix to run
+| only run on RISC OS 5
+RMEnsure UtilityModule 5.00 Error This application needs RISC OS 5 to run
 
-WimpSlot -min 32116K -max 32116K
+WIMPSLOT
 
 Set DosBox$Dir <Obey$Dir>
 

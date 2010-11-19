@@ -1,27 +1,26 @@
---- README.orig	2006-03-29 13:54:41.000000000 +0100
-+++ README	2006-10-27 16:14:35.656250000 +0100
+--- README.orig	2010-05-10 19:58:07.000000000 +0100
++++ README	2010-05-25 20:45:27.000000000 +0100
 @@ -1,5 +1,6 @@
- DOSBox v0.71
- 
+ DOSBox v0.74 Manual (always use the latest version from www.dosbox.com)
+
 +See end of this file for notes specific to RISC OS.
- 
+
+
  =====
- NOTE: 
-@@ -33,6 +34,7 @@
- 13. Building your own version of DOSBox
- 14. Special thanks
- 15. Contact
-+16. RISC OS notes
- 
- 
- ==============
-@@ -1152,3 +1154,73 @@
- See the site: 
- http://dosbox.sourceforge.net
+@@ -35,6 +36,7 @@
+ 15. Building your own version of DOSBox
+ 16. Special thanks
+ 17. Contact
++18. RISC OS notes
+
+
+
+@@ -1466,4 +1468,73 @@
+ http://www.dosbox.com
  for an email address (The Crew-page).
-+
+
 +=================
-+16. RISC OS Notes
++18. RISC OS Notes
 +=================
 +
 +This file is a copy of the README file from within the application
@@ -31,15 +30,16 @@
 +Version 0.62 ported October 2004.
 +Version 0.65 ported November 2006.
 +Version 0.71 ported August 2007.
++Version 0.74 ported November 2010
 +
-+This program is 32 bit compatible and requires RISC OS 3.6+.
++This program is 32 bit compatible and requires RISC OS 5.
 +
 +It requires 48MB of memory (as it emulates a DOS machine with 16MB
-+of ram).
++of ram). Hence the requirement for RISC OS 5.
 +
 +The SharedUnixLibrary module is requried and should be merged with
 +your system modules. It is available from:
-+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip 
++http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip
 +
 +Digital Renderer module must be installed for sound support. It is included
 +in the above system.zip file.
@@ -88,4 +88,4 @@
 +See the other command line options in the main notes above.
 +
 +The DosBox application must have been seen by the filer.
-+
+

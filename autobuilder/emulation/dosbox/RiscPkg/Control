@@ -5,4 +5,4 @@ Description: A x86 emulator with Tandy/Herc/CGA/EGA/VGA graphics, sound and DOS.
  Homepage: http://dosbox.sourceforge.net/ 
  .
  Warning: Versions from 0.71 need more than 28MB of memory so they will only
- run on an Iyonix.
+ run on RISC OS 5

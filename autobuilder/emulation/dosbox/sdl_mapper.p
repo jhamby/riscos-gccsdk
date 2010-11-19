@@ -1,8 +1,8 @@
---- src/gui/sdl_mapper.cpp.orig	2006-10-27 16:19:56.437500000 +0100
-+++ src/gui/sdl_mapper.cpp	2006-10-27 15:27:33.328125000 +0100
-@@ -1634,7 +1634,13 @@
- 	Section_prop * section=static_cast<Section_prop *>(sec);
- 	usescancodes=false;
+--- src/gui/sdl_mapper.cpp.orig	2010-05-10 19:58:06.000000000 +0100
++++ src/gui/sdl_mapper.cpp	2010-11-18 23:46:16.000000000 +0000
+@@ -2397,7 +2397,13 @@
+ 
+ 	usescancodes = false;
  
 +#ifdef __riscos__
 +	// Can't use scan code for RISC OS
@@ -14,3 +14,13 @@
  		usescancodes=true;
  
  		/* Note: table has to be tested/updated for various OSs */
+@@ -2422,7 +2428,7 @@
+ 		sdlkey_map[0x5E]=SDLK_RALT;
+ 		sdlkey_map[0x40]=SDLK_KP5;
+ 		sdlkey_map[0x41]=SDLK_KP6;
+-#elif !defined (WIN32) /* => Linux & BSDs */
++#elif !defined (WIN32) /* => Linux & BSDs */
+ 		bool evdev_input = false;
+-#ifdef C_X11_XKB
++#if defined (C_X11_XKB) && !defined (__riscos__)
+ 		SDL_SysWMinfo info;
