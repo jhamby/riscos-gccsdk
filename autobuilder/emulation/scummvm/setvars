@@ -1,6 +1,6 @@
 
-AB_PVERSION=1.3.0-svn-$(date +%Y%m%d)
-AB_SVN=https://scummvm.svn.sourceforge.net/svnroot/scummvm/scummvm/trunk
+AB_PVERSION=1.2.0-svn-$(date +%Y%m%d)
+AB_SVN=https://scummvm.svn.sourceforge.net/svnroot/scummvm/scummvm/tags/release-1-2-0
 
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
