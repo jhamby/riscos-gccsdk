@@ -1,0 +1,19 @@
+Description: free implementation of LucasArts' SCUMM interpreter
+ ScummVM is a `virtual machine' for several classic graphical
+ point-and-click adventure games.  It is designed to run Adventure Soft's
+ Simon the Sorcerer 1 and 2, Revolution's Beneath A Steel Sky, and games
+ based on LucasArts' SCUMM (Script Creation Utility for Maniac Mansion)
+ system.  SCUMM is used for many games, including Monkey Island,
+ Day of the Tentacle, Sam and Max and more.  See the official compatibility
+ list at <http://www.scummvm.org/compatibility.php> for a full list
+ of supported games.
+ .
+ The game data of two games compatible with ScummVM is included in Debian.
+ These are:
+ .
+  - Beneath a Steel Sky        (package name: beneath-a-steel-sky)
+  - Flight of the Amazon Queen (package name: flight-of-the-amazon-queen)
+ .
+ To actually make use of ScummVM, you'll have to install one of these, or
+ obtain the proprietary game data for another supported game from somewhere
+ else.

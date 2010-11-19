@@ -1,31 +1,29 @@
---- configure.orig	2009-08-21 13:48:06.000000000 -0700
-+++ configure	2009-11-08 09:29:18.000000000 -0800
-@@ -269,8 +269,8 @@
- 	mingw* | *os2-emx | wince)
- 		_exeext=".exe"
- 		;;
+--- configure.orig	2010-11-18 22:17:33.000000000 +0000
++++ configure	2010-11-18 22:20:12.000000000 +0000
+@@ -365,7 +365,7 @@
+ #
+ get_system_exe_extension() {
+ 	case $1 in
 -	arm-riscos)
--		_exeext=",ff8"
 +	arm-*riscos)
-+		_exeext=",e1f"
+ 		_exeext=",ff8"
  		;;
- 	gp2xwiz-linux)
- 		_exeext=".wiz"
-@@ -779,7 +779,7 @@
- 	_host_os=linux
+ 	dreamcast | ds | gamecube | n64 | ps2 | psp | wii)
+@@ -969,7 +969,7 @@
  	_host_cpu=arm
+ 	_host_alias=arm-oe-linux-androideabi
  	;;
 -arm-riscos)
 +arm-*riscos)
  	_host_os=riscos
  	_host_cpu=arm
  	;;
-@@ -1171,7 +1171,7 @@
- if test -n "$_host"; then
- 	# Cross-compiling mode - add your target here if needed
- 	case "$_host" in
--		linupy|arm-riscos)
-+		linupy|arm-*riscos)
- 			echo "Cross-compiling to $_host, forcing endianness, alignment and type sizes"
- 			DEFINES="$DEFINES -DUNIX"
- 			_endian=little
+@@ -1634,7 +1634,7 @@
+ 			add_line_to_config_mk 'USE_ARM_COSTUME_ASM = 1'
+ 			add_line_to_config_mk 'USE_ARM_SCALER_ASM = 1'
+ 			;;
+-		arm-riscos|linupy)
++		arm-*riscos|linupy)
+ 			DEFINES="$DEFINES -DLINUPY"
+ 			_unix=yes
+ 			_need_memalign=yes

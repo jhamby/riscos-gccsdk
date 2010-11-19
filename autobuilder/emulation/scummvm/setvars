@@ -1,4 +1,7 @@
 
+AB_PVERSION=1.3.0-svn-$(date +%Y%m%d)
+AB_SVN=https://scummvm.svn.sourceforge.net/svnroot/scummvm/scummvm/trunk
+
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
 AB_CONFLAGS="--with-sdl-prefix=$GCCSDK_INSTALL_ENV/bin --enable-release"
@@ -10,5 +13,5 @@ ab_package() {
   mkdir -p $A/Docs
   /bin/cp "$H/RISC OS" $S/README $S/COPYING $A/Docs
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }
