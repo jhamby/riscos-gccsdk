@@ -13,5 +13,5 @@ ab_package() {
   mkdir -p $A/Docs
   /bin/cp "$H/RISC OS" $S/README $S/COPYING $A/Docs
 
-  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -name ScummVM
 }

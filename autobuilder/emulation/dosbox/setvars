@@ -10,5 +10,6 @@ ab_package() {
   cp -av $S/README $A/\!Help
 
   $AB_HOME/add-riscpkg -unixlib -unixsound -unixhome \
-    -appdir Apps.Emulation -appname DosBox -dirvar -copyrightfile COPYING
+    -appdir Apps.Emulation -appname DosBox -dirvar \
+    -name DosBox -copyrightfile COPYING
 }
