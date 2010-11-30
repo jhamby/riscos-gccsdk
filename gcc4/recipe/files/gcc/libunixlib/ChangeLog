@@ -1,3 +1,13 @@
+Mon Nov 29 23:23:47 CET 2010  Jeffrey Lee  <me@phlamethrower.co.uk>
+			      John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/sys/mman.h (msync): Update comment.
+	* sys/mman.c (mmap_info): Add flags, fd and offset.
+	(mmap): Remove check DA being enabled for heap usage.
+	(msync): Add basic implementation.
+	(munmap): Flush changes.
+	(mremap): Add check on unsupported case of remapping mapped files.
+
 Sun Oct  3 17:08:22 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* signal/post.c: Minor cleanups.

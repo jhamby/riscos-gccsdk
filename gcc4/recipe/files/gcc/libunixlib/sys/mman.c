@@ -39,9 +39,12 @@ typedef struct mmap_info {
   int	    number;
   size_t    len;
   int	    prot;
+  int       flags;
+  int       fd;
+  off_t     offset;
 } mmap_info;
 
-#define IMMAP { 0, -1, 0, 0 }
+#define IMMAP { 0, -1, 0, 0, 0, -1, 0 }
 #define MAX_MMAPS 8
 static mmap_info mmaps[MAX_MMAPS] = {
   IMMAP, IMMAP, IMMAP, IMMAP, IMMAP, IMMAP, IMMAP, IMMAP
@@ -53,6 +56,7 @@ static mmap_info mmaps[MAX_MMAPS] = {
 extern void __mmap_page_copy (caddr_t dst, caddr_t src, int len);
 
 static char coredump_dir[256];
+
 void
 __init_coredump (const char *dir)
 {
@@ -67,16 +71,14 @@ __init_coredump (const char *dir)
 _kernel_oserror *
 __unixlib_write_coredump (const char *dir)
 {
-  size_t dirlen;
   int regs[6];
   _kernel_oserror *roerr;
   struct ul_memory *mem = &__ul_memory;
-  int i;
 
   if (dir != NULL)
     __init_coredump (dir);
 
-  dirlen = strlen (coredump_dir);
+  size_t dirlen = strlen (coredump_dir);
   if (dirlen == 0)
     return NULL;
 
@@ -111,7 +113,7 @@ __unixlib_write_coredump (const char *dir)
 
   /* Write all mmap DA blocks (when there).  */
   strcpy (coredump_dir + dirlen, ".da_X");
-  for (i = 0; i < MAX_MMAPS; i++)
+  for (int i = 0; i < MAX_MMAPS; i++)
     {
       if (mmaps[i].number != -1)
 	{
@@ -133,9 +135,7 @@ __unixlib_write_coredump (const char *dir)
 void
 __munmap_all (void)
 {
-  int i;
-
-  for (i = 0; i < MAX_MMAPS; i++)
+  for (int i = 0; i < MAX_MMAPS; i++)
     {
       if (mmaps[i].number != -1)
 	munmap (mmaps[i].addr, 0);
@@ -155,18 +155,8 @@ caddr_t
 mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 {
   struct ul_global *gbl = &__ul_global;
-  int regs[10];
-  int i;
 
   PTHREAD_UNSAFE
-
-  /* Only support mmap on files for reading from zero offset.  */
-  if (fd != -1 && (prot != PROT_READ))
-    return (caddr_t) __set_errno (ENOSYS);
-
-  /* Non-zero offset only makes sense for mmap onto files.  */
-  if (offset != 0)
-    return (caddr_t) __set_errno (EINVAL);
 
   /* We don't support MAP_FIXED.  */
   if (flags & MAP_FIXED)
@@ -176,19 +166,16 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   if (flags & MAP_COPY)
     return (caddr_t) __set_errno (ENOSYS);
 
-  /* We only support mmap when dynamic areas are enabled.  */
-  if (gbl->dynamic_num == -1)
-    return (caddr_t) __set_errno (ENOSYS);
+  /* We don't support MAP_PRIVATE. However, we will just use MAP_SHARED instead
+     rather than changing all the user code calling us.  */
 
   /* We only support PROT_READ or PROT_WRITE.  */
   if (((prot & PROT_EXEC) == PROT_EXEC)
       || ((prot & (PROT_READ | PROT_WRITE)) == 0))
     return (caddr_t) __set_errno (ENOSYS);
 
-  /* We don't support MAP_PRIVATE. However, we will just use MAP_SHARED instead
-     rather than changing all the user code calling us. */
-
-  /* find spare mmap_info index */
+  /* Find spare mmap_info index.  */
+  int i;
   for (i = 0; i < MAX_MMAPS; i++)
     {
       if (mmaps[i].number == -1)
@@ -200,73 +187,99 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
     return (caddr_t) __set_errno (ENOMEM);
 
   len = page_align (gbl, len);
+
   /* Create the dynamic area.  */
+  int regs[10];
   regs[0] = 0;
   regs[1] = -1;
   regs[2] = len;
   regs[3] = -1;
-  if (prot & PROT_READ)
-    {
-      if (prot & PROT_WRITE)
-	regs[4] = 0x80;
-      else
-	regs[4] = 0x81;
-    }
-  else
-    regs[4] = 0x82;
-
-  /* We allocate triple the requested memory as the virtual limit to help
-     with mremap which is used by realloc.  */
-  regs[5] = regs[2] * 3;
   regs[6] = 0;
   regs[7] = 0;
   /* The DA name could be the same name used in sys/_syslib.s so Virtualise
      can be enabled/disabled for the area. Using the name with 'X' appended
      is useful though to separate the areas from the more general purpose
      heap.  */
-  {
-    char namebuf[128];
+  char namebuf[128];
 
-    if (&__dynamic_da_name)
-      regs[8] = (int) __dynamic_da_name;
-    else
-      {
-	regs[8] = (int)__get_program_name (__u->argv[0], namebuf,
-					   sizeof(namebuf) - sizeof(" MMap"));
-	strcat (namebuf, " MMap");
-      }
+  if (&__dynamic_da_name)
+    regs[8] = (int) __dynamic_da_name;
+  else
+    {
+      regs[8] = (int)__get_program_name (__u->argv[0], namebuf,
+					 sizeof(namebuf) - sizeof(" MMap"));
+      strcat (namebuf, " MMap");
+    }
 
-    if (__os_swi (OS_DynamicArea, regs))
-      return (caddr_t) __set_errno (ENOMEM);
-  }
+  /* Check whether we're mapping a file or just memory */
+  if (fd != -1)
+    {
+      /* Always use read/write access, otherwise we won't be able to
+	 read/write the file data.  */
+      regs[4] = 0x80;
+
+      /* Assume that mmap'd files won't be enlarged very often */
+      regs[5] = regs[2];
+    }
+  else
+    {
+      /* Non-zero offset only makes sense for mmap onto files.  */
+      if (offset != 0)
+	return (caddr_t) __set_errno (EINVAL);
+
+      if (prot & PROT_READ)
+	{
+	  if (prot & PROT_WRITE)
+	    regs[4] = 0x80;
+	  else
+	    regs[4] = 0x81;
+	}
+      else
+	regs[4] = 0x82;
+
+      /* We allocate triple the requested memory as the virtual limit to help
+	 with mremap which is used by realloc.  */
+      regs[5] = regs[2] * 3;
+    }
+
+  if (__os_swi (OS_DynamicArea, regs))
+    return (caddr_t) __set_errno (ENOMEM);
 
   mmaps[i].number = regs[1];
   mmaps[i].addr	  = (caddr_t)regs[3];
   mmaps[i].len	  = len;
   mmaps[i].prot	  = prot;
+  mmaps[i].flags  = flags;
+  mmaps[i].fd     = fd;
+  mmaps[i].offset = offset;
 
-  /* Simplistic mmap file handling.  Simply read the entire file into memory */
-  if (fd != -1)
+  if (fd == -1)
+    return mmaps[i].addr;
+
+  /* Read in the relevant section of the file */
+  int count = 0;
+
+  off_t oldpos = lseek (fd, 0, SEEK_CUR);
+
+  lseek (fd, offset, SEEK_SET);
+
+  while (count < len)
     {
-      int count = 0;
+      ssize_t size = read (fd, mmaps[i].addr + count, len - count);
 
-      lseek(fd, 0, SEEK_SET);
+      if (size < 0)
+	{
+	  int save_errno = errno;
+	  munmap (mmaps[i].addr, len);
+	  lseek (fd, oldpos, SEEK_SET);
+	  return (caddr_t) __set_errno (save_errno);
+	}
+      else if (size == 0)
+	break;
 
-      while (count < len)
-        {
-          int size = read(fd, mmaps[i].addr + count, len - count);
-
-          if (size < 0)
-            {
-              munmap(mmaps[i].addr, len);
-              return (caddr_t) __set_errno (EINVAL);
-            }
-          else if (size == 0)
-            break;
-
-          count += size;
-        }
+      count += size;
     }
+  lseek (fd, oldpos, SEEK_SET);
 
   return mmaps[i].addr;
 }
@@ -276,14 +289,9 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
 int
 munmap (caddr_t addr, size_t len)
 {
-  int regs[10];
-  int i;
-  _kernel_oserror *err;
-
   PTHREAD_UNSAFE
 
-  len = len; /* XXX don't care about len for now */
-
+  int i;
   for (i = 0; i < MAX_MMAPS; i++)
     {
       if (mmaps[i].addr == addr)
@@ -294,11 +302,27 @@ munmap (caddr_t addr, size_t len)
   if (i == MAX_MMAPS)
     return __set_errno (EINVAL);
 
+  /* Write back file contents if necessary
+     All the docs I've seen suggest that we only need to write
+     stuff back on msync(), but some software (e.g. mkimage)
+     seems to rely on the writeback occuring un munmap().  */
+  if (mmaps[i].fd != -1
+      && (mmaps[i].prot & PROT_WRITE) && !(mmaps[i].flags & MAP_PRIVATE))
+    {
+      /* Assume that the user only wants 'len' bytes writing.  */
+      off_t oldpos = lseek (mmaps[i].fd, 0, SEEK_CUR);
+      lseek (mmaps[i].fd, mmaps[i].offset, SEEK_SET);
+      write (mmaps[i].fd, addr, len);
+      lseek (mmaps[i].fd, oldpos, SEEK_SET);
+    }
+
   /* Unmap by deleting the dynamic area.  */
+  int regs[10];
   regs[0] = 1;
   regs[1] = mmaps[i].number;
   mmaps[i].addr = 0;
   mmaps[i].number = -1;
+  _kernel_oserror *err;
   if ((err = __os_swi (OS_DynamicArea, regs)) != NULL)
     return __ul_seterr (err, EOPSYS); /* Failed to delete area.  */
 
@@ -309,11 +333,10 @@ munmap (caddr_t addr, size_t len)
    extending LEN bytes to PROT.  Returns 0 if successful, -1 for errors
    (and sets errno).  */
 int
-mprotect (caddr_t addr, size_t len, int prot)
+mprotect (caddr_t addr __attribute__ ((__unused__)),
+	  size_t len __attribute__ ((__unused__)),
+	  int prot __attribute__ ((__unused__)))
 {
-  addr = addr;
-  len = len;
-  prot = prot;
   return __set_errno (ENOSYS);
 }
 
@@ -325,19 +348,56 @@ mprotect (caddr_t addr, size_t len, int prot)
 int
 msync (caddr_t addr, size_t len)
 {
-  addr = addr;
-  len = len;
-  return __set_errno (ENOSYS);
+  const struct ul_global *gbl = &__ul_global;
+
+  PTHREAD_UNSAFE
+
+  int i;
+  for (i = 0; i < MAX_MMAPS; i++)
+    {
+      if (mmaps[i].addr <= addr && mmaps[i].addr + mmaps[i].len >= addr)
+	break;
+    }
+
+  /* If we couldn't find the mmap mapping, then return an error.  */
+  if (i == MAX_MMAPS)
+    return __set_errno (EINVAL);
+
+  /* Although it doesn't matter for us, still enforce the requirement for
+     addr to be page aligned.  */
+  if ((size_t)addr & (gbl->pagesize - 1))
+    return __set_errno (EINVAL);
+
+  /* Don't access areas outside the mapped range.  */
+  if (addr + len > mmaps[i].addr + mmaps[i].len)
+    return __set_errno (ENOMEM);
+
+  /* Only valid if this is a file open for non-private writing.  */
+  if (mmaps[i].fd == -1
+      || !(mmaps[i].prot & PROT_WRITE) || (mmaps[i].flags & MAP_PRIVATE))
+    return __set_errno (EINVAL);
+
+  /* If no length specified, flush the whole mapping.  */
+  if (!len)
+    {
+      len = mmaps[i].len;
+      addr = mmaps[i].addr;
+    }
+  off_t oldpos = lseek (mmaps[i].fd, 0, SEEK_CUR);
+  lseek (mmaps[i].fd, mmaps[i].offset + addr - mmaps[i].addr, SEEK_SET);
+  int fail = write (mmaps[i].fd, addr, len) != len;
+  lseek (mmaps[i].fd, oldpos, SEEK_SET);
+
+  return fail ? __set_errno (EIO) : 0;
 }
 
 /* Advise the system about particular usage patterns the program follows
    for the region starting at ADDR and extending LEN bytes.  */
 int
-madvise (caddr_t addr, size_t len, int advice)
+madvise (caddr_t addr __attribute__ ((__unused__)),
+	 size_t len __attribute__ ((__unused__)),
+	 int advice __attribute__ ((__unused__)))
 {
-  addr = addr;
-  len = len;
-  advice = advice;
   return __set_errno (ENOSYS);
 }
 
@@ -349,15 +409,11 @@ madvise (caddr_t addr, size_t len, int advice)
 caddr_t
 mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 {
-  int i;
-  int old_area;
-  caddr_t new_addr;
-  _kernel_oserror *err;
-  int regs[10];
   struct ul_global *gbl = &__ul_global;
 
   PTHREAD_UNSAFE
 
+  int i;
   for (i = 0; i < MAX_MMAPS; i++)
     {
       if (mmaps[i].addr == addr)
@@ -368,6 +424,10 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
   if (i == MAX_MMAPS)
     return (caddr_t) __set_errno (EINVAL);
 
+  /* For simplicity don't allow remapping of mapped files.  */
+  if (mmaps[i].fd != -1)
+    return (caddr_t) __set_errno (ENOSYS);
+
   old_len = page_align (gbl, old_len);
 
   /* Check correct length was passed.  */
@@ -375,6 +435,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
     return (caddr_t) __set_errno (EINVAL);
 
   new_len = page_align (gbl, new_len);
+  int regs[10];
   regs[0] = mmaps[i].number;
   regs[1] = new_len - old_len;
 
@@ -382,7 +443,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
   if (regs[1] == 0)
     return addr;
 
-  err = __os_swi (OS_ChangeDynamicArea, regs);
+  _kernel_oserror *err = __os_swi (OS_ChangeDynamicArea, regs);
   if (err)
     {
       /* If we were trying to reduce the mmap size and that failed, then
@@ -398,10 +459,9 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 
       /* Create a new mmap section to replace this section and copy over the
 	 data.  */
-      old_area = mmaps[i].number;
+      int old_area = mmaps[i].number;
       mmaps[i].number = -1;
-      /* FIXME - get mapping type flags */
-      new_addr = mmap (0, new_len, mmaps[i].prot, MAP_ANON, -1, 0);
+      caddr_t new_addr = mmap (0, new_len, mmaps[i].prot, mmaps[i].flags, -1, 0);
       if (new_addr == (caddr_t)-1)
 	{
 	  /* If mmap failed, then keep the old area.  */
@@ -409,7 +469,7 @@ mremap (caddr_t addr, size_t old_len, size_t new_len, int may_move)
 	  mmaps[i].number = old_area;
 	  return (caddr_t) -1;
 	}
-      /* Fast page copy. */
+      /* Fast page copy.  */
       __mmap_page_copy (new_addr, addr, old_len);
       regs[0] = 1;
       regs[1] = old_area;

@@ -86,7 +86,6 @@ extern int mprotect (__caddr_t __addr, size_t __len, int __prot) __THROW;
 /* Synchronize the region starting at ADDR and extending LEN bytes with the
    file it maps.  Filesystem operations on a file being mapped are
    unpredictable before this is done.  */
-/* Not supported.  */
 extern int msync (__caddr_t __addr, size_t __len) __THROW;
 
 /* Advise the system about particular usage patterns the program follows
