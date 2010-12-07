@@ -255,23 +255,24 @@ c_set (const Lex *label)
 	     (int)label->Data.Id.len, label->Data.Id.str);
       return false;
     }
-  Value value = exprBuildAndEval (sym->value.Tag);
+  const Value *value = exprBuildAndEval (sym->value.Tag);
   sym->type |= SYMBOL_DEFINED;
-  switch (value.Tag)
+  switch (value->Tag)
     {
       case ValueIllegal:
 	error (ErrorError, "Illegal SET%c", c);
-	sym->value.Tag = ValueInt;
-	sym->value.Data.Int.i = 0;
+	sym->value = Value_Int (0);
 	break;
+
 #ifdef DEBUG_VARIABLES
       case ValueString:
 	printf ("c_set: string: <%.*s>\n",
 		(int)value.Data.String.len, value.Data.String.s);
 	/* Fall through.  */
 #endif
+
       default:
-	sym->value = valueCopy (value);
+	Value_Assign (&sym->value, value);
 	break;
     }
   return false;
@@ -333,5 +334,5 @@ var_define (const char *def)
       .Tag = ValueString,
       .Data.String = { .len = datLen, .s = i }
     };
-  sym->value = valueCopy (value);
+  Value_Assign (&sym->value, &value);
 }

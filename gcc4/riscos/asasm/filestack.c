@@ -194,14 +194,14 @@ FS_PopPObject (bool noCheck)
 
 
 /**
- * Always return a non-NULL pointer of main filename.
+ * Always return a non-NULL pointer of filename of the current parsing object.
  */
 const char *
 FS_GetCurFileName (void)
 {
   if (gCurPObjP == NULL)
     return SourceFileName ? SourceFileName : "<stdin>";
-  return gCurPObjP->name;
+  return gCurPObjP->name ? gCurPObjP->name : "<stdin>";
 }
 
 

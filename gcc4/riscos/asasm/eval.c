@@ -20,21 +20,24 @@
  * eval.c
  */
 
+#include "config.h"
+
+#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 
+#include "code.h"
 #include "error.h"
 #include "eval.h"
 #include "global.h"
-#include "help_eval.h"
 #include "include.h"
 #include "main.h"
 #include "os.h"
 
 /* No validation checking on value types! */
 static int
-ememcmp (Value * lv, const Value * rv)
+ememcmp (const Value *lv, const Value *rv)
 {
   const int lvl = lv->Data.String.len;
   const int rvl = rv->Data.String.len;
@@ -43,23 +46,27 @@ ememcmp (Value * lv, const Value * rv)
 }
 
 #define STRINGIFY(OP)	#OP
-
+/* Core implementation for '<', '<=', '>', '>=', '==' and '!='.
+   Works for ValueFloat, ValueString, ValueInt, ValueAdd.  */
 #define COMPARE(OP) \
   do \
     { \
       if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueFloat) \
         lvalue->Data.Bool.b = lvalue->Data.Float.f OP rvalue->Data.Float.f; \
       else if (lvalue->Tag == ValueString && rvalue->Tag == ValueString) \
-        lvalue->Data.Bool.b = ememcmp(lvalue, rvalue) OP 0; \
-      else if ((lvalue->Tag & (ValueInt | ValueAddr | ValueLateLabel)) \
-               || (rvalue->Tag & (ValueInt | ValueAddr | ValueLateLabel))) \
+        lvalue->Data.Bool.b = ememcmp (lvalue, rvalue) OP 0; \
+      else if (lvalue->Tag == ValueInt && rvalue->Tag == ValueInt) \
         { \
-          help_evalSubLate(lvalue, rvalue); \
-          /* Might not be a ValueInt, but ValueLate* has i at the same place */ \
-          if (!(lvalue->Tag & (ValueInt | ValueAddr))) \
-            return false; \
-	  /* Comparing of integers happens *unsigned* ! */ \
+	  /* Comparing integers happens *unsigned* ! */ \
           lvalue->Data.Bool.b = (uint32_t)lvalue->Data.Int.i OP (uint32_t)rvalue->Data.Int.i; \
+        } \
+      else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr) \
+        { \
+	  /* First compare on base register, then its index.  */ \
+	  if (lvalue->Data.Addr.r != rvalue->Data.Addr.r) \
+	    lvalue->Data.Bool.b = lvalue->Data.Addr.r OP rvalue->Data.Addr.r; \
+	  else \
+	    lvalue->Data.Bool.b = lvalue->Data.Addr.i OP rvalue->Data.Addr.i; \
         } \
       else \
         { \
@@ -68,13 +75,15 @@ ememcmp (Value * lv, const Value * rv)
         } \
       lvalue->Tag = ValueBool; \
     } while (0)
-
+		   
 bool
 evalBinop (Operator op, Value *lvalue, const Value *rvalue)
 {
   switch (op)
     {
     case Op_mul: /* * */
+      /* FIXME: ValueAddr * ValueAddr does not make sense.  */
+      /* FIXME: <int> * <float> -> <float> */
       if ((lvalue->Tag == ValueAddr && rvalue->Tag == ValueInt)
 	  || (lvalue->Tag == ValueInt && rvalue->Tag == ValueAddr))
 	lvalue->Data.Int.i *= rvalue->Data.Int.i;
@@ -137,55 +146,61 @@ evalBinop (Operator op, Value *lvalue, const Value *rvalue)
       break;
 
     case Op_add: /* + */
-      /* Note that <addr> + <addr> is not supported (don't think that makes
-         sense).  */
-      if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueFloat)
-	lvalue->Data.Float.f += rvalue->Data.Float.f; /* <float> = <float> + <float> */
-      else if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueInt)
-	lvalue->Data.Float.f += rvalue->Data.Int.i; /* <float> = <float> + <signed int> */
-      else if (lvalue->Tag == ValueInt && rvalue->Tag == ValueFloat)
-	{ /* <float> = <signed int> + <float> */
-	  int val = lvalue->Data.Int.i;
-	  lvalue->Data.Float.f = rvalue->Data.Float.f + val;
-	  lvalue->Tag = ValueFloat;
-	}
-      else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueInt)
-	lvalue->Data.Addr.i += rvalue->Data.Int.i; /* <addr> = <addr> + <int> */
-      else if (lvalue->Tag == ValueInt && rvalue->Tag == ValueAddr)
-	{ /* <addr> = <int> + <addr> */
-	  /* ValueAddr and ValueInt have i at the same place.  */
-	  lvalue->Data.Addr.i += rvalue->Data.Addr.i;
-	  lvalue->Tag = ValueAddr;
-	}
-      else if ((lvalue->Tag & (ValueInt | ValueLateLabel))
-	       && (rvalue->Tag & (ValueInt | ValueLateLabel)))
 	{
-	  help_evalAddLate (lvalue, rvalue);
-	  /* Might not be a ValueInt, but ValueLateLabel has i at the same place.  */
-	  lvalue->Data.Int.i += rvalue->Data.Int.i;
-	}
-      else
-	{
-	  error (ErrorError, "Bad operand type for addition");
-	  return false;
+	  Value rhs;
+	  /* Promotion for ValueFloat and ValueAddr.  */
+	  if ((rvalue->Tag == ValueFloat && lvalue->Tag != ValueFloat)
+	      || (rvalue->Tag == ValueAddr && lvalue->Tag != ValueAddr))
+	    {
+	      rhs = *lvalue;
+	      *lvalue = *rvalue;
+	    }
+	  else
+	    rhs = *rvalue;
+
+	  if (lvalue->Tag == ValueFloat && rhs.Tag == ValueFloat)
+	    lvalue->Data.Float.f += rhs.Data.Float.f; /* <float> + <float> -> <float> */
+	  else if (lvalue->Tag == ValueFloat && rhs.Tag == ValueInt)
+	    lvalue->Data.Float.f += rhs.Data.Int.i; /* <float> + <signed int> -> <float> */
+	  else if (lvalue->Tag == ValueAddr && rhs.Tag == ValueAddr)
+	    {
+	      if (lvalue->Data.Addr.r != rhs.Data.Addr.r)
+		{
+		  error (ErrorError, "Base registers are different in addition ([r%d, #x] + [r%d, #y])",
+		         lvalue->Data.Addr.r, rvalue->Data.Addr.r);
+		  return false;
+		}
+	      /* <addr> + <addr> (same base reg) -> <addr> */
+	      /* FIXME: this is not consistent with Op_sub.  */
+	      lvalue->Data.Addr.i += rhs.Data.Addr.i;
+	    }
+	  else if (lvalue->Tag == ValueAddr && rhs.Tag == ValueInt)
+	    lvalue->Data.Addr.i += rhs.Data.Int.i; /* <addr> + <int> -> <addr> */
+	  else if (lvalue->Tag == ValueInt && rhs.Tag == ValueInt)
+	    lvalue->Data.Int.i += rhs.Data.Int.i; /* <int> + <int> -> <int> */
+	  else
+	    {
+	      error (ErrorError, "Bad operand type for addition");
+	      return false;
+	    }
 	}
       break;
 
     case Op_sub: /* - */
-      /* Note that <int> - <addr> is not supported (don't think that makes
-         sense).  */
       if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueFloat)
-	lvalue->Data.Float.f -= rvalue->Data.Float.f; /* <float> = <float> - <float> */
+	lvalue->Data.Float.f -= rvalue->Data.Float.f; /* <float> - <float> -> <float> */
       else if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueInt)
-	lvalue->Data.Float.f -= rvalue->Data.Int.i; /* <float> = <float> - <signed int> */
+	lvalue->Data.Float.f -= rvalue->Data.Int.i; /* <float> - <signed int> -> <float> */
       else if (lvalue->Tag == ValueInt && rvalue->Tag == ValueFloat)
-	{ /* <float> = <signed int> - <float> */
+	{ /* <signed int> - <float> -> <float> */
 	  int val = lvalue->Data.Int.i;
 	  lvalue->Data.Float.f = val - rvalue->Data.Float.f;
 	  lvalue->Tag = ValueFloat;
 	}
+      else if (lvalue->Tag == ValueInt && rvalue->Tag == ValueInt)
+	lvalue->Data.Int.i -= rvalue->Data.Int.i; /* <int> - <int> -> <int> */
       else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr)
-	{ /* <int> = <addr> - <addr> */
+	{ /* <addr> - <addr> -> <int> */
 	  if (lvalue->Data.Addr.r != rvalue->Data.Addr.r)
 	    {
 	      error (ErrorError, "Base registers are different in subtraction ([r%d, #x] - [r%d, #y])",
@@ -193,17 +208,17 @@ evalBinop (Operator op, Value *lvalue, const Value *rvalue)
 	      return false;
 	    }
 	  /* ValueAddr.i is at the same place as ValueInt.i.  */
-	  lvalue->Data.Addr.i -= rvalue->Data.Addr.i;
+	  lvalue->Data.Int.i -= rvalue->Data.Addr.i;
 	  lvalue->Tag = ValueInt;
 	}
-      else if (lvalue->Tag == ValueAddr && (rvalue->Tag & (ValueInt | ValueAddr)))
-	lvalue->Data.Addr.i -= rvalue->Data.Int.i; /* <addr> = <addr> - <int> */
-      else if ((lvalue->Tag & (ValueInt | ValueLateLabel))
-	       && (rvalue->Tag & (ValueInt | ValueLateLabel)))
-	{
-	  help_evalSubLate (lvalue, rvalue);
-	  /* Might not be a ValueInt, but ValueLateLabel has i at the same place.  */
-	  lvalue->Data.Int.i -= rvalue->Data.Int.i;
+      else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueInt)
+	lvalue->Data.Addr.i -= rvalue->Data.Int.i; /* <addr> - <int> -> <addr> */
+      else if (lvalue->Tag == ValueInt && rvalue->Tag == ValueAddr)
+	{ /* <int> - <addr> -> <addr> */
+	  int val = lvalue->Data.Int.i;
+	  lvalue->Tag = ValueAddr;
+	  lvalue->Data.Addr.i = val - rvalue->Data.Addr.i;
+	  lvalue->Data.Addr.r = rvalue->Data.Addr.r;
 	}
       else
 	{
@@ -417,6 +432,43 @@ evalBinop (Operator op, Value *lvalue, const Value *rvalue)
   return true;
 }
 
+/**
+ * Negates given value.
+ */
+static bool
+Eval_NegValue (Value *value)
+{
+  switch (value->Tag)
+    {
+      case ValueInt:
+	value->Data.Int.i = -value->Data.Int.i;
+	break;
+      case ValueFloat:
+	value->Data.Float.f = -value->Data.Float.f;
+	break;
+      case ValueAddr:
+	value->Data.Addr.i = -value->Data.Addr.i;
+	break;
+      case ValueSymbol:
+	value->Data.Symbol.factor = - value->Data.Symbol.factor;
+	break;
+      case ValueCode:
+	for (size_t i = 0; i != value->Data.Code.len; ++i)
+	  {
+	    /* Negate only the values (not operations).  */
+	    if (value->Data.Code.c[i].Tag == CodeValue)
+	     {
+	        if (!Eval_NegValue (&value->Data.Code.c[i].Data.value))
+		  return false;
+	      }
+	  }
+	break;
+      default:
+	return false;
+    }
+  return true;
+}
+
 bool
 evalUnop (Operator op, Value *value)
 {
@@ -446,7 +498,7 @@ evalUnop (Operator op, Value *value)
 	  if (value->Tag != ValueString)
 	    return false;
 	  char *s;
-	  if ((s = strndup(value->Data.String.s, value->Data.String.len)) == NULL)
+	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
 	    errorOutOfMem();
 	  FILE *fp;
 	  if ((fp = getInclude (s, NULL)) == NULL)
@@ -493,14 +545,7 @@ evalUnop (Operator op, Value *value)
 	break;
 
       case Op_neg: /* - */
-	if (value->Tag == ValueFloat)
-	  value->Data.Float.f = -value->Data.Float.f;
-	else if (value->Tag & (ValueInt | ValueLateLabel))
-	  {
-	    help_evalNegLate (value);
-	    value->Data.Int.i = -value->Data.Int.i;
-	  }
-	else
+	if (!Eval_NegValue (value))
 	  {
 	    error (ErrorError, "Bad operand type for negation");
 	    return false;
@@ -589,6 +634,26 @@ evalUnop (Operator op, Value *value)
 	  value->Data.String.s = c;
 	  value->Data.String.len = 1;
 	  value->Tag = ValueString;
+	}
+	break;
+
+      case Op_size: /* ?<label> */
+	{
+	  if (value->Tag != ValueSymbol)
+	    {
+	      error (ErrorError, "Bad operand type for ? operator");
+	      return false;
+	    }
+	  if (value->Data.Symbol.symbol->type & SYMBOL_DEFINED)
+	    {
+	      value->Tag = ValueInt;
+	      value->Data.Int.i = value->Data.Symbol.symbol->codeSize;
+	    }
+	  else
+	    {
+	      error (ErrorError, "? is not supported for non defined labels");
+	      return false;
+	    }
 	}
 	break;
 

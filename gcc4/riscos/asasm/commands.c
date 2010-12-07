@@ -23,6 +23,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,6 +37,7 @@
 #include <math.h>
 
 #include "area.h"
+#include "code.h"
 #include "commands.h"
 #include "error.h"
 #include "expr.h"
@@ -59,15 +61,14 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
   if (!sym)
     errorAbort ("Missing label before %s", msg);
   sym->type |= SYMBOL_ABSOLUTE;
-  Value value = exprBuildAndEval (legal);
-  if (value.Tag == ValueIllegal)
+  const Value *value = exprBuildAndEval (legal);
+  if (value->Tag == ValueIllegal)
     {
       error (ErrorError, "Illegal %s", msg);
-      sym->value.Tag = ValueInt;
-      sym->value.Data.Int.i = 0;
+      sym->value = Value_Int (0);
     }
   else
-    sym->value = valueCopy (value);
+    Value_Assign (&sym->value, value);
   sym->type |= SYMBOL_DEFINED | SYMBOL_DECLARED;
 }
 
@@ -155,50 +156,8 @@ c_cp (Symbol *symbol)
 bool
 c_ltorg (void)
 {
-  litOrg (areaCurrentSymbol->area.info->lits);
+  Lit_DumpPool ();
   return false;
-}
-
-static void
-defineint (int size)
-{
-  int c;
-  do
-    {
-      ARMWord word = 0;
-      skipblanks ();
-      Value value = exprBuildAndEval (ValueInt | ValueString | ValueCode | ValueLateLabel | ValueAddr);
-      switch (value.Tag)
-	{
-	case ValueInt:
-	case ValueAddr:
-	  word = fixInt (0, size, value.Data.Int.i);
-	  putData (size, word);
-	  break;
-	case ValueString:
-	  if (size == 1)
-	    { /* Lay out a string.  */
-	      size_t len = value.Data.String.len;
-	      const char *str = value.Data.String.s;
-	      for (size_t i = 0; i < len; ++i)
-		putData (1, str[i]);
-	    }
-	  else
-	    putData (size, lexChar2Int (false, value.Data.String.len, value.Data.String.s));
-	  break;
-	case ValueCode:
-	case ValueLateLabel:
-	  relocInt (size, &value);
-	  putData (size, word);
-	  break;
-	default:
-	  error (ErrorError, "Illegal %s expression", "int");
-	  break;
-	}
-      skipblanks ();
-    }
-  while (((c = inputGet ()) != 0) && c == ',');
-  inputUnGet (c);
 }
 
 /**
@@ -209,13 +168,13 @@ bool
 c_head (void)
 {
   skipblanks ();
-  Value value = exprBuildAndEval (ValueString);
-  switch (value.Tag)
+  const Value *value = exprBuildAndEval (ValueString);
+  switch (value->Tag)
     {
       case ValueString:
 	{
-	  size_t len = value.Data.String.len;
-	  const char *str = value.Data.String.s;
+	  size_t len = value->Data.String.len;
+	  const char *str = value->Data.String.s;
 	  for (size_t i = 0; i < len; ++i)
 	    putData (1, str[i]);
 	  putData (1, 0);
@@ -235,13 +194,110 @@ c_head (void)
 }
 
 /**
+ * Reloc updater for DefineInt().
+ */
+bool
+DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
+			const Value *valueP, void *privData, bool final)
+{
+  const int size = *(int *)privData;
+
+  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
+
+  /* ValueString for size = 1 is an odd one case:  */
+  if (!final
+      && size == 1
+      && valueP->Data.Code.len == 1
+      && valueP->Data.Code.c[0].Tag == CodeValue
+      && valueP->Data.Code.c[0].Data.value.Tag == ValueString)
+    {
+      size_t len = valueP->Data.Code.c[0].Data.value.Data.String.len;
+      const char *str = valueP->Data.Code.c[0].Data.value.Data.String.s;
+      /* Lay out a string.  */
+      for (size_t i = 0; i != len; ++i)
+	Put_DataWithOffset (offset + i, 1, str[i]);
+      return false;
+    }
+
+  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
+    {
+      const Code *codeP = &valueP->Data.Code.c[i];
+      if (codeP->Tag != CodeValue)
+	continue;
+      const Value *valP = &codeP->Data.value;
+
+      switch (valP->Tag)
+	{
+	  case ValueInt:
+	    {
+	      ARMWord word = Fix_Int (file, lineno, size, valP->Data.Int.i);
+	      Put_DataWithOffset (offset, size, word);
+	    }
+	    break;
+
+	  case ValueSymbol:
+	    {
+	      if (!final)
+		{
+		  Put_DataWithOffset (offset, size, 0);
+		  return true;
+		}
+#if 0 /* FIXME: is this needed ? */
+	      if (size != 4)
+		{
+		  errorLine (file, lineno, ErrorError, "Wrong data size for relocation");
+		  return true;
+		}
+#endif
+	      int How;
+	      switch (size)
+		{
+		  case 4:
+		    How = HOW2_INIT | HOW2_WORD;
+		    break;
+		    case 2: // FIXME: needed ?
+		      How = HOW2_INIT | HOW2_HALF;
+		    break;
+		    case 1: // FIXME: needed ?
+		      How = HOW2_INIT | HOW2_BYTE;
+		    break;
+		}
+	      Reloc_Create (How, offset, valP);
+	    }
+	    break;
+
+	  default:
+	    return true;
+	}
+    }
+  
+  return false;
+}
+
+static bool
+DefineInt (int size, const char *mnemonic)
+{
+  do
+    {
+      exprBuild ();
+      if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, areaCurrentSymbol->value.Data.Int.i,
+				 ValueInt | ValueString | ValueSymbol | ValueCode,
+				 &size, sizeof (size)))
+	error (ErrorError, "Illegal %s expression", mnemonic);
+
+      skipblanks ();
+    }
+  while (Input_Match (',', false));
+  return false;
+}
+
+/**
  * Implements DCB and = (8 bit integer).
  */
 bool
 c_dcb (void)
 {
-  defineint (1);
-  return false;
+  return DefineInt (1, "DCB or =");
 }
 
 /**
@@ -250,8 +306,7 @@ c_dcb (void)
 bool
 c_dcw (void)
 {
-  defineint (2);
-  return false;
+  return DefineInt (2, "DCW");
 }
 
 /**
@@ -260,39 +315,71 @@ c_dcw (void)
 bool
 c_dcd (void)
 {
-  defineint (4);
+  return DefineInt (4, "DCD");
+}
+
+/**
+ * Reloc updater for DefineReal().
+ */
+bool
+DefineReal_RelocUpdater (const char *file, int lineno, ARMWord offset,
+			 const Value *valueP, void *privData, bool final)
+{
+  const int size = *(int *)privData;
+
+  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
+
+  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
+    {
+      const Code *codeP = &valueP->Data.Code.c[i];
+      if (codeP->Tag != CodeValue)
+	continue;
+      const Value *valP = &codeP->Data.value;
+
+      switch (valP->Tag)
+	{
+	  case ValueInt:
+	    putDataFloat (size, valP->Data.Int.i);
+	    break;
+
+	  case ValueFloat:
+	    putDataFloat (size, valP->Data.Float.f);
+	    break;
+
+	  case ValueSymbol:
+	    if (!final)
+	      {
+		Put_DataWithOffset (offset, size, 0);
+		return true;
+	      }
+	    errorLine (file, lineno, ErrorError, "Can't create relocation");
+	    break;
+
+	  default:
+	    return true;
+	}
+    }
+  
   return false;
 }
 
-static void
-definereal (int size)
+static bool
+DefineReal (int size, const char *mnemonic)
 {
-  int c;
   do
     {
-      skipblanks ();
-      Value value = exprBuildAndEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
-      switch (value.Tag)
-	{
-	case ValueInt:
-	  putDataFloat (size, value.Data.Int.i);
-	  break;
-	case ValueFloat:
-	  putDataFloat (size, value.Data.Float.f);
-	  break;
-	case ValueCode:
-	case ValueLateLabel:
-	  relocFloat (size, &value);
-	  putDataFloat (size, 0.0);
-	  break;
-	default:
-	  error (ErrorError, "Illegal %s expression", "float");
-	  break;
-	}
+      exprBuild ();
+      ValueTag legal = ValueFloat | ValueSymbol | ValueCode;
+      if (option_autocast)
+	legal |= ValueInt;
+      if (Reloc_QueueExprUpdate (DefineReal_RelocUpdater, areaCurrentSymbol->value.Data.Int.i,
+				 legal, &size, sizeof (size)))
+	error (ErrorError, "Illegal %s expression", mnemonic);
+
       skipblanks ();
     }
-  while (((c = inputGet ()) != 0) && c == ',');
-  inputUnGet (c);
+  while (Input_Match (',', false));
+  return false;
 }
 
 /**
@@ -301,8 +388,7 @@ definereal (int size)
 bool
 c_dcfs (void)
 {
-  definereal (4);
-  return false;
+  return DefineReal (4, "DCFS");
 }
 
 /**
@@ -311,8 +397,7 @@ c_dcfs (void)
 bool
 c_dcfd (void)
 {
-  definereal (8);
-  return false;
+  return DefineReal (8, "DCFD");
 }
 
 static bool
@@ -384,11 +469,11 @@ c_import (void)
 	    error (ErrorError, "COMMON attribute needs size specification");
 	  else
 	    {
-	      Value size = exprBuildAndEval (ValueInt);
-	      switch (size.Tag)
+	      const Value *size = exprBuildAndEval (ValueInt);
+	      switch (size->Tag)
 	        {
 		  case ValueInt:
-		    sym->value = valueCopy (size);
+		    Value_Assign (&sym->value, size);
 		    sym->type |= SYMBOL_COMMON;
 		    break;
 		  default:
@@ -529,10 +614,10 @@ c_end (void)
 bool
 c_assert (void)
 {
-  Value value = exprBuildAndEval (ValueBool);
-  if (value.Tag != ValueBool)
+  const Value *value = exprBuildAndEval (ValueBool);
+  if (value->Tag != ValueBool)
     error (ErrorError, "ASSERT expression must be boolean");
-  else if (!value.Data.Bool.b)
+  else if (!value->Data.Bool.b)
     error (ErrorError, "Assertion failed");
   return false;
 }
@@ -549,7 +634,14 @@ c_assert (void)
 bool
 c_info (void)
 {
-  Value value = exprBuildAndEval (ValueInt | ValueFloat);
+  const Value *value = exprBuildAndEval (ValueInt | ValueFloat);
+  if (value->Tag != ValueInt && value->Tag != ValueFloat)
+    {
+      error (ErrorError, "INFO expression must be arithmetic");
+      return false;
+    }
+  bool giveErr = (value->Tag == ValueInt && value->Data.Int.i != 0)
+		   || (value->Tag == ValueFloat && fabs (value->Data.Float.f) >= 0.00001);
 
   skipblanks();
   if (!Input_Match (',', false))
@@ -558,24 +650,17 @@ c_info (void)
       return false;
     }
 
-  Value message = exprBuildAndEval (ValueString);
-  if (message.Tag != ValueString)
+  const Value *message = exprBuildAndEval (ValueString);
+  if (message->Tag != ValueString)
     {
       error (ErrorError, "INFO message must be a string");
       return false;
     }
 
-  if (value.Tag != ValueInt && value.Tag != ValueFloat)
-    error (ErrorError, "INFO expression must be arithmetic");
+  if (giveErr)
+    error (ErrorError, "%.*s", (int)message->Data.String.len, message->Data.String.s);
   else
-    {
-      bool giveErr = (value.Tag == ValueInt && value.Data.Int.i != 0)
-	               || (value.Tag == ValueFloat && fabs (value.Data.Float.f) >= 0.00001);
-      if (giveErr)
-        error (ErrorError, "%.*s", (int)message.Data.String.len, message.Data.String.s);
-      else
-	printf ("%.*s\n", (int)message.Data.String.len, message.Data.String.s);
-    }
+    printf ("%.*s\n", (int)message->Data.String.len, message->Data.String.s);
   return false;
 }
 

@@ -21,6 +21,8 @@
  */
 
 #include "config.h"
+
+#include <assert.h>
 #ifdef HAVE_STDINT_H
 #  include <stdint.h>
 #elif HAVE_INTTYPES_H
@@ -32,73 +34,88 @@
 #include "main.h"
 #include "put.h"
 
-
-/**
- * Align the size of current area.
- * \entry align Align factor - 1, typically 1 (for 2 byte alignment) or 3 (for 4 byte alignment)
- * \entry msg NUL terminated reason for this alignment.
- */
-static void
-putAlign (int align, const char *msg)
-{
-  error (ErrorInfo, "Unaligned %s", msg);
-
-  while (areaCurrentSymbol->value.Data.Int.i & align)
-    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
-}
-
 /**
  * Append 1, 2 or 4 bytes of data at the end of current area.
  * \entry size Size in bytes of the data to be written, should be 1, 2 or 4.
  * \entry data Data value to be written.
  */
 void
-putData (int size, ARMWord data)
+Put_DataWithOffset (size_t offset, size_t size, ARMWord data)
 {
-  if (option_align)
+  assert (offset + size <= areaCurrentSymbol->value.Data.Int.i || offset == areaCurrentSymbol->value.Data.Int.i); // FIXME: Limitation.
+  if (offset == areaCurrentSymbol->value.Data.Int.i)
+    putData (size, data);
+  else
     {
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info,
-			areaCurrentSymbol->value.Data.Int.i + size))
-	areaGrow (areaCurrentSymbol->area.info, size);
       switch (size)
 	{
-	case 1:
-	  break;
-	case 2:
-	  if (areaCurrentSymbol->value.Data.Int.i & 1)
-	    putAlign (1, "halfword");
-	  break;
-	case 4:
-	  if (areaCurrentSymbol->value.Data.Int.i & 3)
-	    putAlign (3, "word");
-	  break;
-	default:
-	  errorAbort ("Internal putData: illegal size");
-	  break;
+	  case 4:
+	    areaCurrentSymbol->area.info->image[offset + 3] = (data >> 24) & 0xff;
+	    areaCurrentSymbol->area.info->image[offset + 2] = (data >> 16) & 0xff;
+	  case 2:
+	    areaCurrentSymbol->area.info->image[offset + 1] = (data >> 8) & 0xff;
+	  case 1:
+	    areaCurrentSymbol->area.info->image[offset + 0] = data & 0xff;
+	    break;
+	  default:
+	    errorAbort ("Internal putData: illegal size");
+	    break;
 	}
     }
+}
 
+void
+putData (size_t size, ARMWord data)
+{
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
+      if (option_align)
+	{
+	  switch (size)
+	    {
+	      case 1:
+		break;
+
+	      case 2:
+		Area_AlignTo (2, "halfword");
+		break;
+
+	      case 4:
+		Area_AlignTo (4, "word");
+		break;
+
+	      default:
+		errorAbort ("Internal putData: illegal size");
+		break;
+	    }
+	}
+
       if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
+
       switch (size)
 	{
-	case 4:
-	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i + 3] = (data >> 24) & 0xff;
-	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i + 2] = (data >> 16) & 0xff;
-	case 2:
-	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i + 1] = (data >> 8) & 0xff;
-	case 1:
-	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i + 0] = data & 0xff;
+	  case 4:
+	    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = data & 0xff;
+	    data >>= 8;
+	    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = data & 0xff;
+	    data >>= 8;
+	    /* Fall through.  */
+	  case 2:
+	    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = data & 0xff;
+	    data >>= 8;
+	    /* Fall through.  */
+	  case 1:
+	    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = data & 0xff;
+	    break;
+
+	  default:
+	    errorAbort ("Internal putData: illegal size");
+	    break;
 	}
     }
   else if (data)
-    {
-      error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
-      return;
-    }
-  areaCurrentSymbol->value.Data.Int.i += size;
+    error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
 }
 
 
@@ -108,7 +125,7 @@ putData (int size, ARMWord data)
  * \entry data Float value to be written.
  */
 void
-putDataFloat (int size, ARMFloat data)
+putDataFloat (size_t size, ARMFloat data)
 {
   /* FIXME: this wrongly assumes that the native float/double layout corresponds
      with the ARM FPA layout.  */
@@ -124,32 +141,45 @@ putDataFloat (int size, ARMFloat data)
 
   switch (size)
     {
-    case 4:
-      translate.f = (float) data;
-      if (areaCurrentSymbol->value.Data.Int.i & 3)
-	putAlign (3, "float single");
-      break;
-    case 8:
-      translate.d = (double) data;
-      if (areaCurrentSymbol->value.Data.Int.i & 3)
-	putAlign (3, "float double");
-      break;
-    default:
-      errorAbort ("Internal putDataFloat: illegal size %d", size);
-      break;
+      case 4:
+	translate.f = (float) data;
+	Area_AlignTo (4, "float single");
+	break;
+      case 8:
+	translate.d = (double) data;
+	Area_AlignTo (4, "float double");
+	break;
+      default:
+	errorAbort ("Internal putDataFloat: illegal size %zd", size);
+	break;
     }
-
+  
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
       if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
-      for (int i = 0; i < size; i++)
+      for (size_t i = 0; i < size; i++)
 	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = translate.u.c[i];
     }
   else if (data)
     error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
 }
 
+void
+Put_InsWithOffset (size_t offset, ARMWord ins)
+{
+  assert (offset + 4 <= areaCurrentSymbol->value.Data.Int.i || offset == areaCurrentSymbol->value.Data.Int.i); // FIXME: Limitation.
+  if (offset == areaCurrentSymbol->value.Data.Int.i)
+    putIns (ins);
+  else
+    {
+      offset = (offset + 3) & -4;
+      areaCurrentSymbol->area.info->image[offset++] = ins & 0xff;
+      areaCurrentSymbol->area.info->image[offset++] = (ins >> 8) & 0xff;
+      areaCurrentSymbol->area.info->image[offset++] = (ins >> 16) & 0xff;
+      areaCurrentSymbol->area.info->image[offset++] = (ins >> 24) & 0xff;
+    }
+}
 
 /**
  * Append ARM instruction at the end of current area.
@@ -158,8 +188,7 @@ putDataFloat (int size, ARMFloat data)
 void
 putIns (ARMWord ins)
 {
-  if (areaCurrentSymbol->value.Data.Int.i & 3)
-    putAlign (3, "instruction");
+  Area_AlignTo (4, "instruction");
 
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
@@ -172,4 +201,23 @@ putIns (ARMWord ins)
     }
   else
     error (ErrorError, "Trying to define code an uninitialised area");
+}
+
+ARMWord
+GetWord (size_t offset)
+{
+  assert (offset <= areaCurrentSymbol->area.info->imagesize - 4);
+  const uint8_t *p = &areaCurrentSymbol->area.info->image[offset];
+  return p[0] + (p[1]<<8) + (p[2]<<16) + (p[3]<<24);
+}
+
+void
+PutWord (size_t offset, ARMWord val)
+{
+  assert (offset <= areaCurrentSymbol->area.info->imagesize - 4);
+  uint8_t *p = &areaCurrentSymbol->area.info->image[offset];
+  p[0] = (val >>  0) & 0xff;
+  p[1] = (val >>  8) & 0xff;
+  p[2] = (val >> 16) & 0xff;
+  p[3] = (val >> 24) & 0xff;
 }

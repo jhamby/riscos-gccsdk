@@ -28,29 +28,20 @@
 
 #include "global.h"
 
-struct SYMBOL;		/* Cannot include symbol.h as it needs value.h */
-
+struct Symbol;		/* Cannot include symbol.h as it needs value.h */
 struct Code;
-
-typedef struct LATEINFO
-{
-  struct LATEINFO *next;
-  int factor;
-  struct SYMBOL *symbol;
-} LateInfo;
 
 typedef enum
 {
-  ValueIllegal   = 0,
-  ValueInt       = 1,
-  ValueFloat     = 2,
-  ValueString    = 4,
-  ValueBool      = 8,
-  ValueCode      = 16,
-  ValueLateLabel = 32,
-  ValueAddr      = 64,
+  ValueIllegal   =   0,
+  ValueInt       =   1,
+  ValueFloat     =   2,
+  ValueString    =   4,
+  ValueBool      =   8,
+  ValueCode      =  16,
+  ValueAddr      =  32,
+  ValueSymbol    =  64,
 
-  ValueConst     = 0,		/* only for variables */
   ValueAll       = 127		/* cheat */
 } ValueTag;
 
@@ -61,7 +52,7 @@ typedef struct
     {
       struct			/* ValueInt */
         {
-          int i;		/* Must start identical with ValueAddr's i, ValueString's len & ValueLate's i.  */
+          int i;		/* Must start identical with ValueAddr's i & ValueString's len.  */
         } Int;
       struct			/* ValueFloat */
         {
@@ -69,7 +60,7 @@ typedef struct
         } Float;
       struct			/* ValueString */
         {
-	  size_t len;		/**< Size string.  Must start identical with ValueInt's i, ValueAddr's i & ValueLate's i.  */
+	  size_t len;		/**< Size string.  Must start identical with ValueInt's i & ValueAddr's i.  */
 	  const char *s;	/**< Malloced memory block and string contents is *NOT* NUL terminated.  */
         } String;
       struct			/* ValueBool */
@@ -81,21 +72,55 @@ typedef struct
           size_t len;
           struct Code *c;
         } Code;
-      struct			/* ValueLateLabel */
+      struct			/* ValueAddr, represents address in the form of "[<r>, #<i>]" */
         {
-          int i;		/* Must start identical with ValueInt's i, ValueString's len & ValueAddr's i.  */
-          struct LATEINFO *late;
-        } Late;
-      struct			/* ValueAddr */
-        {
-	  int i;		/* Must start identical with ValueInt's i, ValueStrings's len & ValueLate's i.  */
+	  int i;		/* Must start identical with ValueInt's i & ValueStrings's len.  */
           int r;		/* When = 0 - 15 (inc), it is register based. -1 otherwise.  */
         } Addr;
+      struct			/* ValueSymbol */
+	{
+	  int factor;		/* Number of times the symbol needs to be taken into account (can be negative, zero, positive).  */
+	  struct Symbol *symbol;
+	} Symbol;
     } Data;
 } Value;
 
-Value valueLateToCode (int offset, const LateInfo *late);
-Value valueCopy (Value value);
+static inline Value
+Value_Int (int i)
+{
+  const Value value =
+    {
+      .Tag = ValueInt,
+      .Data.Int.i = i
+    };
+  return value;
+}
+
+Value Value_Code (size_t len, const struct Code *code);
+
+static inline Value
+Value_Addr (int reg, int i)
+{
+  const Value value =
+    {
+      .Tag = ValueAddr,
+      .Data.Addr = { .i = i, .r = reg }
+    };
+  return value;
+}
+
+static inline Value
+Value_Symbol (struct Symbol *symbol, int factor)
+{
+  const Value value =
+    {
+      .Tag = ValueSymbol,
+      .Data.Symbol = { .factor = factor, .symbol = symbol }
+    };
+  return value;
+}
+
+void Value_Assign (Value *dst, const Value *src);
 void valueFree (Value *value);
 bool valueEqual (const Value *a, const Value *b);
 const char *valueTagAsString (ValueTag tag);

@@ -64,7 +64,7 @@ typedef struct
     Can be NULL. Prefer FS_GetCurFileName() to read. */
   int lineNum; /**< Current line number. Prefer FS_GetCurLineNumber() to read. */
   
-  int if_depth; /**< Current level of 'if' depth for this object.  */
+  int if_depth; /**< Current level of 'if' depth for this object.  */ /* FIXME: it would be nice to keep a stack of linenumbers for each unmatched IF so that we can report 'unmatched if' in a better way */
   WhileBlock *whilestack; /**< Current level of nested 'while' structures.  */
 
   /**

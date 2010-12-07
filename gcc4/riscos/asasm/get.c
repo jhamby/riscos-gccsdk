@@ -40,7 +40,7 @@
 #include "symbol.h"
 
 static ARMWord
-getTypeInternal (bool genError, int type, const char *typeStr)
+getTypeInternal (bool genError, unsigned int type, const char *typeStr)
 {
   const Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
   if (lexSym.tag == LexNone)
@@ -49,7 +49,7 @@ getTypeInternal (bool genError, int type, const char *typeStr)
   const Symbol *sym = symbolFind (&lexSym);
   if (sym && (sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
     {
-      if (SYMBOL_GETREG (sym->type) == type)
+      if (SYMBOL_GETREGTYPE (sym->type) == type)
 	return sym->value.Data.Int.i;
       if (genError)
 	error (ErrorError, "'%s' is not a %s", sym->str, typeStr);
@@ -170,6 +170,18 @@ illegal:
 }
 
 
+/**
+ * Parses:
+ *   1. LSL #<shift_imm>
+ *   2. LSL <Rs>           (not when immonly = false)
+ *   3. LSR #<shift_imm>
+ *   4. LSR <Rs>           (not when immonly = false)
+ *   5. ASR #<shift_imm>
+ *   6. ASR <Rs>           (not when immonly = false)
+ *   7. ROR #<shift_imm>
+ *   8. ROR <Rs>           (not when immonly = false)
+ *   9. RRX
+ */
 static ARMWord
 getShift (bool immonly)
 {
@@ -180,20 +192,15 @@ getShift (bool immonly)
       skipblanks ();
       if (Input_Match ('#', false))
 	{
-	  Value im = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel);
-	  switch (im.Tag)
+	  const Value *im = exprBuildAndEval (ValueInt);
+	  switch (im->Tag)
 	    {
-	    case ValueInt:
-	      op = fixShiftImm (0, shift, im.Data.Int.i); /* !! Fixed !! */
-	      break;
-	    case ValueCode:
-	    case ValueLateLabel:
-	      relocShiftImm (shift, &im);
-	      op = SHIFT_OP (shift); /* !! Fixed !! */
-	      break;
-	    default:
-	      error (ErrorError, "Illegal shift expression");
-	      break;
+	      case ValueInt:
+		op = fixShiftImm (0, shift, im->Data.Int.i); /* !! Fixed !! */
+		break;
+	      default:
+		error (ErrorError, "Illegal shift expression");
+		break;
 	    }
 	}
       else
@@ -209,45 +216,63 @@ getShift (bool immonly)
   return op;
 }
 
+/**
+ * Parses Addressing Mode 1 - Data-processing operands
+ * Parses the <shifter_operand> in
+ * <opcode>{<cond>}{S} <Rd>, <Rn>, <shifter_operand>
+ * With <shifter_operand>:
+ *   1. #<immediate>
+ *   2. <Rm>
+ *   3. <Rm>, LSL #<shift_imm>
+ *   4. <Rm>, LSL <Rs>
+ *   5. <Rm>, LSR #<shift_imm>
+ *   6. <Rm>, LSR <Rs>
+ *   7. <Rm>, ASR #<shift_imm>
+ *   8. <Rm>, ASR <Rs>
+ *   9. <Rm>, ROR #<shift_imm>
+ *  10. <Rm>, ROR <Rs>
+ *  11. <Rm>, RRX
+ */
 ARMWord
 getRhs (bool immonly, bool shift, ARMWord ir)
 {
   if (Input_Match ('#', false))
     {
       ir |= IMM_RHS;
-      Value im = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel | ValueString | ValueAddr);
-      switch (im.Tag)
+      const Value *im = exprBuildAndEval (ValueInt | ValueAddr | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
+      switch (im->Tag)
 	{
-	case ValueInt:
-	  if (Input_Match (',', false))
-	    {
-	      Lex rotator = lexGetPrim ();
+	  case ValueInt:
+	    if (Input_Match (',', false))
+	      {
+		if (im->Data.Int.i < 0 || im->Data.Int.i >= 256)
+		  error (ErrorError, "Immediate value out of range: 0x%x", im->Data.Int.i);
 
-	      if (im.Data.Int.i < 0 || im.Data.Int.i >= 256)
-	        error (ErrorError, "Immediate value out of range: 0x%x", im.Data.Int.i);
+	        Lex rotator = lexGetPrim ();
+	        if (rotator.tag != LexInt
+	            || rotator.Data.Int.value < 0
+	            || rotator.Data.Int.value > 30
+	            || (rotator.Data.Int.value % 2) == 1)
+		  error (ErrorError, "Bad rotator %d", rotator.Data.Int.value);
 
-	      if (rotator.Data.Int.value < 0 || rotator.Data.Int.value > 30
-		  || (rotator.Data.Int.value % 2) == 1)
-	        error (ErrorError, "Bad rotator %d", rotator.Data.Int.value);
+		ir |= (rotator.Data.Int.value >> 1) << 8;
+	      }
+	    /* Fall through.  */
 
-	      ir |= (rotator.Data.Int.value >> 1) << 8;
-	    }
-	case ValueAddr:
-	  ir = fixImm8s4 (0, ir, im.Data.Int.i);
-	  break;
-	case ValueString:
-	  if (im.Data.String.len != 1)
-	    error (ErrorError, "String too long to be an immediate expression");
-	  else
-	    ir = fixImm8s4 (0, ir, im.Data.String.s[0]);
-	  break;
-	case ValueCode:
-	case ValueLateLabel:
-	  relocImm8s4 (ir, &im);
-	  break;
-	default:
-	  error (ErrorError, "Illegal immediate expression");
-	  break;
+	  case ValueAddr: /* This is for "MOV Rx, #@" support.  */
+	    ir = fixImm8s4 (0, ir, im->Data.Int.i);
+	    break;
+
+	  case ValueString:
+	    if (im->Data.String.len != 1)
+	      error (ErrorError, "String too long to be an immediate expression");
+	    else
+	      ir = fixImm8s4 (0, ir, im->Data.String.s[0]);
+	    break;
+
+	  default:
+	    error (ErrorError, "Illegal immediate expression");
+	    break;
 	}
     }
   else

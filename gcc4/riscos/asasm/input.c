@@ -158,7 +158,6 @@ inputRest (void)
   return t;
 }
 
-
 #if DEBUG
 const char *
 inputLine (void)
@@ -166,7 +165,6 @@ inputLine (void)
   return input_buff;
 }
 #endif
-
 
 char
 inputSkipLook (void)
@@ -747,3 +745,40 @@ inputThisInstead (const char *p)
   strcpy (input_buff, p);
   input_pos = input_buff;
 }
+
+void
+Input_ShowLine (void)
+{
+  /* When there is nothing on the filestack, we've done parsing the input
+     files so it does not make sense to mark (the last) input line for errors
+     happening later on.  */
+  if (gCurPObjP == NULL || *input_pos == '\0')
+    return;
+  ptrdiff_t posNoTAB = input_pos - input_buff;
+  size_t posReal, len;
+  for (posReal = 0, len = 0; input_buff[len]; ++len)
+    {
+      if (posNoTAB)
+	{
+	  if (input_buff[len] == '\t')
+	    posReal = (posReal + 8) & -8;
+	  else
+	    ++posReal;
+	  --posNoTAB;
+	}
+      putchar (input_buff[len]);
+    }
+  putchar ('\n');
+  while (posReal--)
+    putchar ('-');
+  puts ("^");
+}
+
+size_t
+Input_GetColumn (void)
+{
+  if (gCurPObjP == NULL)
+    return 0;
+  return input_pos - input_buff;
+}
+

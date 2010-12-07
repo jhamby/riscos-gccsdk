@@ -88,8 +88,8 @@ field3	# 4		; Offset &18 - &1c
 	DCFS	2.
 	DCFS	-2.
 	DCFS	-8.
-	DCFS	8
-	DCFS	2
+	DCFS	8.
+	DCFS	2.
 	]
 	DCD	&1C
 	DCD	&20

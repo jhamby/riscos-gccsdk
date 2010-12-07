@@ -410,25 +410,29 @@ main (int argc, char **argv)
     {
       asmAbortValid = true;
       symbolInit ();
-      inputInit (SourceFileName);
       outputInit (ObjFileName);
       areaInit ();
-      setjmp (asmContinue); asmContinueValid = true;
       /* Do the assembly.  */
-      assemble ();
+      ASM_Assemble (SourceFileName);
       areaFinish ();
-      
-      if (setjmp (asmContinue))
-	fprintf (stdout, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
-      else
-        {
-	  /* Write the ELF/AOF output.  */
-#ifndef NO_ELF_SUPPORT
-	  if (!option_aof)
-	    outputElf();
+
+      /* Don't try to output anything when we have assemble errors.  */
+      if (returnExitStatus () == EXIT_SUCCESS)
+	{
+	  if (setjmp (asmContinue))
+	    fprintf (stderr, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
 	  else
+	    {
+	      asmContinueValid = true;
+	      /* Write the ELF/AOF output.  */
+#ifndef NO_ELF_SUPPORT
+	      if (!option_aof)
+		outputElf();
+	      else
 #endif
-	    outputAof();
+		outputAof();
+	    }
+	  asmContinueValid = false;
 	}
     }
   outputFinish ();

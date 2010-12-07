@@ -78,7 +78,7 @@ c_rout (const Lex *label)
   memset (rout_lblno, 0, sizeof (rout_lblno));
   if (label->tag == LexId)
     {
-      asm_label (label);
+      ASM_DefineLabel (label, 0);
       rout_id = strndup (label->Data.Id.str, label->Data.Id.len);
     }
   else

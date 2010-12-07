@@ -34,8 +34,7 @@
 typedef enum
 {
   CodeOperator,
-  CodeValue,
-  CodeSymbol
+  CodeValue
 } CodeTag;
 
 typedef struct Code
@@ -43,9 +42,8 @@ typedef struct Code
   CodeTag Tag;
   union
     {
-      Operator op;	/* CodeOperator */
-      Value value;	/* CodeValue */
-      Symbol *symbol;	/* CodeSymbol */
+      Operator op;	/* .Tag = CodeOperator */
+      Value value;	/* .Tag = CodeValue */
     } Data;
 } Code;
 
@@ -54,17 +52,29 @@ void codeInit (void);
 void codeOperator (Operator op);
 void codeSymbol (Symbol *symbol);
 void codeInt (int value);
-void codePosition (Symbol *area);
+void codePosition (Symbol *area, int offset);
 void codeStorage (void);
-void codeString (int len, const char *str);
+void codeString (const char *str, size_t len);
 void codeFloat (ARMFloat value);
 void codeBool (bool value);
+void codeAddr (int reg, int offset);
+void Code_AddValueCode (const Value *value);
+void codeValue (const Value *value);
 
-Value codeEvalLow (ValueTag legal, int size, Code *program);
-Value codeEval (ValueTag legal);
+const Value *codeEvalLow (ValueTag legal, size_t size, Code *program, const ARMWord *instrOffsetP);
+const Value *codeEval (ValueTag legal, const ARMWord *instrOffsetP);
 
-LateInfo *codeNewLateInfo (Symbol *symbol);
+bool Code_HasUndefinedSymbols (void);
+Value Code_TakeSnapShot (void);
+void Code_ExpandCurrAreaSymbolAsOffset (Value *value, int offset);
+bool Code_HasUndefSymbols (const Code *code, size_t len);
+
+void Code_Free (Code *code, size_t len);
 Code *codeCopy (size_t len, const Code *code);
 bool codeEqual (size_t len, const Code *a, const Code *b);
+
+#ifdef DEBUG
+void codePrint (size_t size, const Code *program);
+#endif
 
 #endif

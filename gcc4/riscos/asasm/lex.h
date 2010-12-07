@@ -33,6 +33,7 @@ typedef enum
   Op_fload = 0, Op_fexec, Op_fsize, Op_fattr,	/* unop */
   Op_lnot, Op_not, Op_neg, Op_none,		/* unop */
   Op_base, Op_index, Op_len, Op_str, Op_chr,	/* unop */
+  Op_size,					/* unop */
   Op_left, Op_right,		/* 10 (9) */
   Op_mul, Op_div, Op_mod,	/* 10 (9) */
   Op_add, Op_sub, Op_concat,	/*  9 (8) */
@@ -54,7 +55,8 @@ const char *OperatorAsStr (Operator op);
   ((op) == Op_fload || (op) == Op_fexec || (op) == Op_fsize \
    || (op) == Op_fattr || (op) == Op_lnot  || (op) == Op_not \
    || (op) == Op_neg   || (op) == Op_base  || (op) == Op_index \
-   || (op) == Op_len   || (op) == Op_str   || (op) == Op_chr)
+   || (op) == Op_len   || (op) == Op_str   || (op) == Op_chr \
+   || (op) == Op_size)
 bool (isUnop) (Operator);
 
 extern const char Pri[2][10];
@@ -79,7 +81,7 @@ typedef enum
 
 typedef struct
 {
-  LexTag tag;
+  LexTag tag; /* FIXME: change into Tag */
   union
     {
       struct			/* LexId */

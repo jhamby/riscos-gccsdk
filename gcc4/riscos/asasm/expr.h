@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,7 +26,7 @@
 #include "value.h"
 
 void exprBuild (void);
-Value exprEval (ValueTag legal);
-Value exprBuildAndEval (ValueTag legal);
+const Value *exprEval (ValueTag legal);
+const Value *exprBuildAndEval (ValueTag legal);
 
 #endif

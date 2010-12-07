@@ -74,6 +74,9 @@ const char *inputSymbol (size_t *ilen, char del);
 const char *Input_GetMark (void);
 void Input_RollBackToMark (const char *mark);
 
+void Input_ShowLine (void);
+size_t Input_GetColumn (void);
+
 void inputThisInstead (const char *);
 
 #endif

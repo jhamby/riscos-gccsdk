@@ -268,7 +268,7 @@ lexMakeLocal (int dir)
 Lex
 Lex_GetDefiningLabel (void)
 {
-  nextbinopvalid = false;
+  nextbinopvalid = false; /* FIXME: why would this be necessary ? */
   if (isdigit ((unsigned char)inputLook ()))
     {
       Lex result;
@@ -328,29 +328,9 @@ lexGetPrim (void)
       break;
 
     case '?':
-      {
-        /* Retrieve the code size associated with symbol.  */
-      	Lex label = lexGetPrim ();
-	if (label.tag != LexId)
-	  {
-	    error (ErrorError, "Bad operand for the ? operator");
-	    result.tag = LexNone;
-	  }
-	else
-	  {
-	    const Symbol *symP = symbolFind (&label);
-	    if (symP != NULL)
-	      {
-		result.tag = LexInt;
-		result.Data.Int.value = symP->codeSize;
-	      }
-	    else
-	      {
-		error (ErrorError, "? is not supported for not-yet defined labels");
-		result.tag = LexNone;
-	      }
-	  }
-      }
+      result.tag = LexOperator;
+      result.Data.Operator.op = Op_size; /* ?<label> */
+      result.Data.Operator.pri = PRI (10);
       break;
 
     case '(':
@@ -510,7 +490,7 @@ lexGetPrim (void)
       break;
 
     case '.':
-      result.tag = LexPosition;
+      result.tag = LexPosition; // FIXME: check for floating point, e.g. ".5" ?
       break;
 
     case '@':
@@ -785,42 +765,42 @@ lexPrint (const Lex *lex)
     }
   switch (lex->tag)
     {
-    case LexId:
-      printf ("Id <%.*s> ", (int)lex->Data.Id.len, lex->Data.Id.str);
-      break;
-    case LexString:
-      printf ("Str <%.*s> ", (int)lex->Data.String.len, lex->Data.String.str);
-      break;
-    case LexInt:
-      printf ("Int <%d> ", lex->Data.Int.value);
-      break;
-    case LexFloat:
-      printf ("Flt <%g> ", lex->Data.Float.value);
-      break;
-    case LexOperator:
-      printf ("Op <%d, %d> ", lex->Data.Operator.op, lex->Data.Operator.pri);
-      break;
-    case LexPosition:
-      printf ("Pos ");
-      break;
-    case LexStorage:
-      printf ("Stor ");
-      break;
-    case LexDelim:
-      printf ("Delim <%d> ", lex->Data.Delim.delim);
-      break;
-    case Lex00Label:
-      printf ("Label <%d> ", lex->Data.Label.value);
-      break;
-    case LexBool:
-      printf("bool <%d> ", lex->Data.Label.value);
-      break;
-    case LexNone:
-      printf ("None ");
-      break;
-    default:
-      printf ("Unknown lex tag 0x%x ", lex->tag);
-      break;
+      case LexId:
+	printf ("Id <%.*s> ", (int)lex->Data.Id.len, lex->Data.Id.str);
+	break;
+      case LexString:
+	printf ("Str <%.*s> ", (int)lex->Data.String.len, lex->Data.String.str);
+	break;
+      case LexInt:
+	printf ("Int <%d> ", lex->Data.Int.value);
+	break;
+      case LexFloat:
+	printf ("Flt <%g> ", lex->Data.Float.value);
+	break;
+      case LexOperator:
+	printf ("Op <%d, %d> ", lex->Data.Operator.op, lex->Data.Operator.pri);
+	break;
+      case LexPosition:
+	printf ("Pos ");
+	break;
+      case LexStorage:
+	printf ("Stor ");
+	break;
+      case LexDelim:
+	printf ("Delim <%d> ", lex->Data.Delim.delim);
+	break;
+      case Lex00Label:
+	printf ("Label <%d> ", lex->Data.Label.value);
+	break;
+      case LexBool:
+	printf("bool <%d> ", lex->Data.Label.value);
+	break;
+      case LexNone:
+	printf ("None ");
+	break;
+      default:
+	printf ("Unknown lex tag 0x%x ", lex->tag);
+	break;
     }
 }
 
@@ -842,6 +822,7 @@ OperatorAsStr (Operator op)
       ":LEN:",		/* Op_len */
       ":STR:",		/* Op_str */
       ":CHR:",		/* Op_chr */
+      ":SIZE:",		/* Op_size */
       ":LEFT:",		/* Op_left */
       ":RIGHT:",	/* Op_right */
       ":MUL:",		/* Op_mul */

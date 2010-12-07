@@ -38,6 +38,8 @@ ARMWord getRhs (bool immonly, bool shift, ARMWord ir);
 #define LHS_OP(op) ((op)<<16)
 #define RHS_OP(op) ( op     )
 
+#define GET_DST_OP(instr)  (((instr)>>12) & 15)
+
 #define DST_MUL(r) ((r)<<16)
 #define LHS_MUL(r) ( r     )
 #define RHS_MUL(r) ((r)<< 8)

@@ -26,7 +26,7 @@
 #include "lex.h"
 #include "symbol.h"
 
-void assemble (void);
-Symbol *asm_label (const Lex *label);
+void ASM_Assemble (const char *asmFile);
+Symbol *ASM_DefineLabel (const Lex *label, int offset);
 
 #endif

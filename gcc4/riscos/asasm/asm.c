@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <setjmp.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -38,9 +39,11 @@
 #include "code.h"
 #include "decode.h"
 #include "error.h"
+#include "expr.h"
 #include "filestack.h"
 #include "input.h"
 #include "lex.h"
+#include "main.h"
 
 #ifdef DEBUG
 //#  define DEBUG_ASM
@@ -48,10 +51,16 @@
 
 /**
  * Parse the input file, and perform the assembly.
+ * \param asmFile Filename to assemble.
  */
 void
-assemble (void)
+ASM_Assemble (const char *asmFile)
 {
+  inputInit (asmFile);
+
+  setjmp (asmContinue); // FIXME: this will be wrong when we're skipping if/while contents.
+  asmContinueValid = true;
+
   /* Process input line-by-line.  */
   while (gCurPObjP != NULL && inputNextLine ())
     {
@@ -75,19 +84,46 @@ assemble (void)
 
       decode (&label);
     }
+
+  asmContinueValid = false;
 }
 
 
+/**
+ * Defines a label being at offset of the current AREA.
+ * \return NULL when give Lex object can not be a label or has been defined
+ * as label before.
+ */
 Symbol *
-asm_label (const Lex *label)
+ASM_DefineLabel (const Lex *label, int offset)
 {
   if (label->tag != LexId)
     return NULL;
 
   Symbol *symbol = symbolAdd (label);
-  symbol->value = valueLateToCode (areaCurrentSymbol->value.Data.Int.i,
-				   codeNewLateInfo (areaCurrentSymbol));
-  symbol->type |= SYMBOL_ABSOLUTE;
+  if (symbol->value.Tag != ValueIllegal)
+    return NULL; /* Label was already defined with a value.  */
+  symbol->type |= SYMBOL_ABSOLUTE; /* FIXME: this feels wrong as labels are relative against the base of their AREA where they are defined in.  */
+  assert (symbol->value.Tag == ValueIllegal);
+  if (areaCurrentSymbol->area.info->type & AREA_BASED)
+    {
+      /* Define label as "ValueAddr AreaBaseReg, #<given area offset>".  */
+      symbol->value = Value_Addr (Area_GetBaseReg (areaCurrentSymbol->area.info), offset);
+    }
+  else
+    {
+      /* Define label as "ValueSymbol(current AREA) + <given area offset>".  */
+      const Code values[] =
+	{
+	    { .Tag = CodeValue,
+	      .Data.value = { .Tag = ValueSymbol, .Data.Symbol = { .factor = 1, .symbol = areaCurrentSymbol } } },
+	    { .Tag = CodeValue,
+	      .Data.value = { .Tag = ValueInt, .Data.Int = { .i = offset } } },
+	    { .Tag = CodeOperator,
+	      .Data.op = Op_add }
+	};
+      symbol->value = Value_Code (sizeof (values)/sizeof (values[0]), values);
+    }
 
   return symbol;
 }

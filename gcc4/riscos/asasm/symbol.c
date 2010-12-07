@@ -201,8 +201,7 @@ symbolInit (void)
 
       Symbol *s = symbolAdd (&l);
       s->type |= SYMBOL_ABSOLUTE | SYMBOL_DECLARED | predefines[i].type;
-      s->value.Tag = ValueInt;
-      s->value.Data.Int.i = predefines[i].value;
+      s->value = Value_Int (predefines[i].value);
     }
 }
 
@@ -224,15 +223,15 @@ symbolAdd (const Lex *l)
       Symbol *search = *isearch;
       if (EqSymLex (search, l))
 	{
-	  if ((search->type & SYMBOL_DEFINED) && !SYMBOL_GETREG (search->type))
-	    error (ErrorError, "Redefinition of %.*s",
+	  if ((search->type & SYMBOL_DEFINED) && !SYMBOL_GETREGTYPE (search->type))
+	    error (ErrorError, "Redefinition of '%.*s'",
 		   (int)l->Data.Id.len, l->Data.Id.str);
 	  else
 	    {
 	      if (search->type & SYMBOL_AREA)
 	        {
 	          if (areaCurrentSymbol->value.Data.Int.i != 0)
-		    error (ErrorError, "Symbol %.*s is already defined as area with incompatible definition",
+		    error (ErrorError, "Symbol '%.*s' is already defined as area with incompatible definition",
 		           (int)l->Data.Id.len, l->Data.Id.str);
 		}
 	      else
@@ -325,6 +324,8 @@ symbolFix (int *stringSizeNeeded)
 	{
 	  if (sym->type & SYMBOL_AREA)
 	    {
+	      /* All AREA symbols are declared and not defined by nature.  */
+	      assert ((sym->type & (SYMBOL_DEFINED | SYMBOL_DECLARED)) == SYMBOL_DECLARED);
 	      if (!Area_IsImplicit (sym))
 		{
 		  sym->offset = strsize;
@@ -339,7 +340,7 @@ symbolFix (int *stringSizeNeeded)
 		  /* Make it a reference symbol.  */
 		  sym->type |= SYMBOL_REFERENCE;
 		  if (option_pedantic)
-		    errorLine (0, NULL, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
+		    errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
 		}
 	      if (SYMBOL_OUTPUT (sym))
 		{
@@ -355,14 +356,14 @@ symbolFix (int *stringSizeNeeded)
 			  const char *file;
 			  int lineno;
 			  localFindRout (routine, &file, &lineno);
-			  errorLine (lineno, file, ErrorError, "Missing local label (fwd) with ID %02i in routine '%s'%s", label, *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
+			  errorLine (file, lineno, ErrorError, "Missing local label (fwd) with ID %02i in routine '%s'%s", label, *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
 			}
 		      else if (sscanf (sym->str + sizeof ("Local$$")-1, "%i$$%s", &ii, routine) > 0)
 			{
 			  const char *file;
 			  int lineno;
 			  localFindLocal (ii, &file, &lineno);
-			  errorLine (lineno, file, ErrorError, "Missing local label '%s'%s", *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
+			  errorLine (file, lineno, ErrorError, "Missing local label '%s'%s", *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
 			}
 		      return 0;
 		    }
@@ -418,78 +419,53 @@ symbolSymbolAOFOutput (FILE *outfile)
 	      asym.Name = sym->offset + 4; /* + 4 to skip the initial length */
 	      if (sym->type & SYMBOL_DEFINED)
 		{
-		  Value value;
+		  const Value *value;
 		  if (sym->value.Tag == ValueCode)
 		    {
 		      codeInit ();
 		      value = codeEvalLow (ValueAll, sym->value.Data.Code.len,
-		                           sym->value.Data.Code.c);
+		                           sym->value.Data.Code.c, NULL);
 		    }
 		  else
-		    value = sym->value;
+		    value = &sym->value;
 
 		  int v;
-		  switch (value.Tag)
+		  switch (value->Tag)
 		    {
 		      case ValueIllegal:
-			errorLine (0, NULL, ErrorError,
+			errorLine (NULL, 0, ErrorError,
 			           "Symbol %s cannot be evaluated", sym->str);
 			v = 0;
 			break;
 		      case ValueInt:
 		      case ValueAddr:	/* nasty hack */
-			v = value.Data.Int.i;
+			v = value->Data.Int.i;
 			break;
 		      case ValueFloat:
-			errorLine (0, NULL, ErrorError,
+			errorLine (NULL, 0, ErrorError,
 			           "Linker does not understand float constants (%s)", sym->str);
-			v = (int) value.Data.Float.f;
+			v = (int) value->Data.Float.f;
 			break;
 		      case ValueString:
-			v = lexChar2Int (false, value.Data.String.len, value.Data.String.s);
+			v = lexChar2Int (false, value->Data.String.len, value->Data.String.s);
 			break;
 		      case ValueBool:
-			v = value.Data.Bool.b;
+			v = value->Data.Bool.b;
 			break;
 		      case ValueCode:
-			errorLine (0, NULL, ErrorError,
+			errorLine (NULL, 0, ErrorError,
 			           "Linker does not understand code constants (%s)", sym->str);
 			v = 0;
 			break;
-		      case ValueLateLabel:
-			if (!value.Data.Late.late->next	/* Only one late label */
-			    && value.Data.Late.late->factor == 1	/* ... occuring one time */
-			    && (value.Data.Late.late->symbol->type & SYMBOL_AREA))
-			  {		/* ... and it is an area */
-			    if (sym->type & SYMBOL_ABSOLUTE)
-			      {	/* Change absolute to relative */
-				sym->type &= ~SYMBOL_ABSOLUTE;
-				v = value.Data.Late.i;
-				sym->area.ptr = value.Data.Late.late->symbol;
-			      }
-			    else if (sym->area.ptr != value.Data.Late.late->symbol)
-			      {
-				errorLine (0, NULL, ErrorError,
-					   "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
-			        v = 0;
-			      }
-			    else
-			      v = 0;
-			  }
-			else
-			  {
-			    errorLine (0, NULL, ErrorError,
-				       "Linker cannot have many late labels for the same symbol (%s)", sym->str);
-			    v = 0;
-			  }
-			break;
 		      default:
-			errorAbortLine (0, NULL,
-			                "Internal symbolSymbolAOFOutput: not possible (%s) (0x%x)", sym->str, value.Tag);
+			errorAbortLine (NULL, 0,
+			                "Internal symbolSymbolAOFOutput: not possible (%s) (0x%x)", sym->str, value->Tag);
 			v = 0;
 			break;
 		    }
 		  asym.Value = v;
+		  /* When it is a non-absolute symbol, we need to specify the
+		     area name to which this symbol is relative to.  */
 		  if ((asym.Type = sym->type) & SYMBOL_ABSOLUTE)
 		    asym.AreaName = 0;
 		  else
@@ -570,67 +546,42 @@ symbolSymbolELFOutput (FILE *outfile)
 	      asym.st_name = sym->offset + 1; /* + 1 to skip the initial & extra NUL */
 	      if (sym->type & SYMBOL_DEFINED)
 		{
-		  Value value;
+		  const Value *value;
 		  if (sym->value.Tag == ValueCode)
 		    {
 		      codeInit ();
-		      value = codeEvalLow (ValueAll, sym->value.Data.Code.len, sym->value.Data.Code.c);
+		      value = codeEvalLow (ValueAll, sym->value.Data.Code.len, sym->value.Data.Code.c, NULL);
 		      type = STT_NOTYPE; /* No information to base type on */
 		    }
 		  else
-		    value = sym->value;
+		    value = &sym->value;
 		  int v;
-		  switch (value.Tag)
+		  switch (value->Tag)
 		    {
 		      case ValueIllegal:
-			errorLine (0, NULL, ErrorError, "Symbol %s cannot be evaluated", sym->str);
+			errorLine (NULL, 0, ErrorError, "Symbol %s cannot be evaluated", sym->str);
 			v = 0;
 			break;
 		      case ValueInt:
 		      case ValueAddr: /* nasty hack */
-			v = value.Data.Int.i;
+			v = value->Data.Int.i;
 			break;
 		      case ValueFloat:
-			errorLine (0, NULL, ErrorError, "Linker does not understand float constants (%s)", sym->str);
-			v = (int) value.Data.Float.f;
+			errorLine (NULL, 0, ErrorError, "Linker does not understand float constants (%s)", sym->str);
+			v = (int) value->Data.Float.f;
 			break;
 		      case ValueString:
-			v = lexChar2Int (false, value.Data.String.len, value.Data.String.s);
+			v = lexChar2Int (false, value->Data.String.len, value->Data.String.s);
 			break;
 		      case ValueBool:
-			v = value.Data.Bool.b;
+			v = value->Data.Bool.b;
 			break;
 		      case ValueCode:
-			errorLine (0, NULL, ErrorError, "Linker does not understand code constants (%s)", sym->str);
+			errorLine (NULL, 0, ErrorError, "Linker does not understand code constants (%s)", sym->str);
 			v = 0;
 			break;
-		      case ValueLateLabel:
-			if (!value.Data.Late.late->next /* Only one late label */
-			    && value.Data.Late.late->factor == 1 /* ... occuring one time */
-			    && (value.Data.Late.late->symbol->type & SYMBOL_AREA))
-			  { /* ... and it is an area */
-			    if (sym->type & SYMBOL_ABSOLUTE)
-			      { /* Change absolute to relative */
-				sym->type &= ~SYMBOL_ABSOLUTE;
-				v = value.Data.Late.i;
-				sym->area.ptr = value.Data.Late.late->symbol;
-			      }
-			    else if (sym->area.ptr != value.Data.Late.late->symbol)
-			      {
-			        errorLine (0, NULL, ErrorError, "Linker cannot have 2 areas for the same symbol (%s)", sym->str);
-			        v = 0;
-			      }
-			    else
-			      v = 0;
-			  }
-			else
-			  {
-			    errorLine (0, NULL, ErrorError, "Linker cannot have many late labels for the same symbol (%s)", sym->str);
-			    v = 0;
-			  }
-			break;
 		      default:
-			errorAbortLine (0, NULL, "Internal symbolELFSymbolOutput: not possible (%s) (0x%x)", sym->str, value.Tag);
+			errorAbortLine (NULL, 0, "Internal symbolELFSymbolOutput: not possible (%s) (0x%x)", sym->str, value->Tag);
 			v = 0;
 			break;
 		    }
@@ -720,24 +671,24 @@ symbolPrint (const Symbol *sym)
     printf ("area/");
   if (sym->type & SYMBOL_NOTRESOLVED)
     printf ("not resolved/");
-  switch (SYMBOL_GETREG (sym->type))
+  switch (SYMBOL_GETREGTYPE (sym->type))
     {
       case 0: /* No register, nor coprocessor number.  */
 	break;
       case SYMBOL_CPUREG:
-	printf ("cpu reg/");
+	printf ("CPU reg/");
 	break;
       case SYMBOL_FPUREG:
-	printf ("fpu reg/");
+	printf ("FPU reg/");
 	break;
       case SYMBOL_COPREG:
-	printf ("coproc reg/");
+	printf ("coprocessor reg/");
 	break;
       case SYMBOL_COPNUM:
-	printf ("coproc num/");
+	printf ("coprocessor num/");
 	break;
       default:
-	printf ("??? 0x%x/", SYMBOL_GETREG(sym->type));
+	printf ("??? 0x%x/", SYMBOL_GETREGTYPE (sym->type));
 	break;
     }
   if (sym->type & SYMBOL_DECLARED)
@@ -760,7 +711,7 @@ symbolPrintAll (void)
 	{
 	  /* We skip all internally defined register names and coprocessor
 	     numbers.  */
-	  if (SYMBOL_GETREG (sym->type))
+	  if (SYMBOL_GETREGTYPE (sym->type))
 	    continue;
 
 	  symbolPrint (sym);

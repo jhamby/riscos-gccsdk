@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2010 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,5 +24,7 @@
 #define help_cpu_header_included
 
 int help_cpuImm8s4 (int value) __attribute__ ((__const__));
+int Help_SplitByImm8s4 (unsigned int cnst, unsigned int *c0, unsigned int *c1,
+			unsigned int *c2, unsigned int *c3);
 
 #endif

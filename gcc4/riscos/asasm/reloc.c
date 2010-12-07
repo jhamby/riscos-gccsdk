@@ -21,6 +21,8 @@
  */
 
 #include "config.h"
+
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
@@ -28,12 +30,14 @@
 #elif HAVE_INTTYPES_H
 #  include <inttypes.h>
 #endif
+#include <string.h>
 
 #include "aoffile.h"
 #include "area.h"
 #include "code.h"
 #include "elf.h"
 #include "error.h"
+#include "expr.h"
 #include "eval.h"
 #include "filestack.h"
 #include "fix.h"
@@ -47,513 +51,181 @@
 #include "reloc.h"
 #include "symbol.h"
 
-#define READWORD(image,offset) \
-  (((image)[(offset)+3]<<24) | ((image)[(offset)+2]<<16) | \
-   ((image)[(offset)+1]<<8 ) |  (image)[(offset)  ])
-
-
-static const char *
-reloc2String (RelocTag tag)
+static RelocQueue *
+Reloc_CreateQueueObj (void)
 {
-  static const char * const relocstr[] =
-  {
-    "RelocShiftImm",
-    "RelocImm8s4",
-    "RelocImmFloat",
-    "RelocBranch",
-    "RelocBranchT",
-    "RelocSWI",
-    "RelocCpuOffset",
-    "RelocCopOffset",
-    "RelocAdr",
-    "RelocAdrl",
-    "RelocImmN",
-    "RelocFloat",
-    "RelocNone"
-  };
+  RelocQueue *rel;
+  if ((rel = malloc (sizeof (RelocQueue))) == NULL)
+    errorOutOfMem ();
 
-  return relocstr[tag];
+  rel->next = areaCurrentSymbol->area.info->relocQueue;
+  rel->file = FS_GetCurFileName ();
+  rel->lineno = FS_GetCurLineNumber ();
+  /* rel->privData = */
+  /* rel->offset = */
+  rel->expr.Tag = ValueIllegal;
+  /* rel->legal = */
+  /* rel->callback = */
+  
+  areaCurrentSymbol->area.info->relocQueue = rel;
+
+  return rel;
 }
 
 
-static Reloc *
-relocNew (Reloc *more, RelocTag tag, int offset, const Value *value)
+/**
+ * Builds & evaluates expression.
+ * Update instruction/data using callback at given offset.
+ * \param callback Will *always* be called twice.  First time with 'final'
+ * being false, second time with 'final' true.
+ * \param legal Valid Value Tags.
+ * \return false for success, true for failure.
+ */
+bool
+Reloc_QueueExprUpdate (RelocUpdater callback, ARMWord offset, ValueTag legal,
+		       void *privData, size_t sizePrivData)
+{
+  Value value; /* We have ownership of this.  */
+  if (Code_HasUndefinedSymbols ())
+    value = Code_TakeSnapShot ();
+  else
+    {
+      /* Evaluate expression.  */
+      const Value *result = codeEval (legal, legal & ValueAddr ? &offset : NULL);
+      if (result->Tag == ValueIllegal)
+	return true; /* This is bad, we even didn't get a ValueCode.  */
+      if (result->Tag == ValueCode)
+	{
+	  value.Tag = ValueIllegal;
+	  Value_Assign (&value, result);
+	}
+      else
+	{
+	  /* Make ValueCode from it.  */
+	  const Code code =
+	    {
+	      .Tag = CodeValue,
+	      .Data.value = *result
+	    };
+	  value = Value_Code (1, &code);
+	}
+    }
+  assert (value.Tag == ValueCode);
+  if (!callback (FS_GetCurFileName (), FS_GetCurLineNumber (), offset, &value,
+		 privData, false))
+    {
+      valueFree (&value);
+      return false; /* Instruction/data update succeeded.  */
+    }
+  
+  /* We have something which the callback didn't like that much.  We'll give
+     it a 2nd try after all labels are defined.  Either the missing labels are
+     defined by then and we can update our area content, either we have
+     to emit a relocation.  */
+  RelocQueue *rel = Reloc_CreateQueueObj ();
+  if (privData == NULL || sizePrivData == 0)
+    rel->privData = NULL;
+  else
+    {
+      if ((rel->privData = malloc (sizePrivData)) == NULL)
+	errorOutOfMem ();
+      memcpy (rel->privData, privData, sizePrivData);
+    }
+  rel->offset = offset;
+  rel->expr = value;
+  rel->legal = legal;
+  rel->callback = callback;
+  return false;
+}
+
+
+Reloc *
+Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
 {
   Reloc *newReloc;
   if ((newReloc = malloc (sizeof (Reloc))) == NULL)
     errorOutOfMem ();
-  newReloc->more = more;
-  newReloc->Tag = tag;
-  newReloc->lineno = FS_GetCurLineNumber ();
-  newReloc->file = FS_GetCurFileName ();
-  newReloc->offset = offset;
-  newReloc->value = valueCopy (*value);
+  newReloc->next = areaCurrentSymbol->area.info->relocs;
+  newReloc->reloc.Offset = offset;
+  newReloc->reloc.How = how;
+  newReloc->value.Tag = ValueIllegal;
+  Value_Assign (&newReloc->value, value);
+
+  areaCurrentSymbol->area.info->relocs = newReloc;
+
+  /* Mark we want this symbol in our output.  */
+  if (newReloc->value.Tag == ValueSymbol)
+    {
+      if ((newReloc->value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0)
+        newReloc->value.Data.Symbol.symbol->used = 0;
+    }
+  else
+    {
+      assert (newReloc->value.Tag == ValueCode);
+      size_t len = newReloc->value.Data.Code.len;
+      const Code *code = newReloc->value.Data.Code.c;
+      for (size_t i = 0; i != len; ++i)
+	{
+	  if (code->Tag == CodeValue
+	      && code->Data.value.Tag == ValueSymbol
+	      && (code->Data.value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0)
+	    code->Data.value.Data.Symbol.symbol->used = 0;
+	}
+    } 
+  
   return newReloc;
 }
 
 
-static void
-relocOp (int word, const Value *value, RelocTag tag)
-{
-  Reloc *newReloc = relocNew (areaCurrentSymbol->area.info->relocs, tag,
-			      areaCurrentSymbol->value.Data.Int.i, value);
-  newReloc->extra = word;
-  areaCurrentSymbol->area.info->relocs = newReloc;
-}
-
-
-void
-relocShiftImm (ARMWord shiftop, const Value *shift)
-{
-  relocOp (shiftop, shift, RelocShiftImm);
-}
-
-
-void
-relocImm8s4 (ARMWord ir, const Value *im8s4)
-{
-  relocOp (ir, im8s4, RelocImm8s4);
-}
-
-
-void
-relocImmFloat (ARMWord ir, const Value *value)
-{
-  relocOp (ir, value, RelocImmFloat);
-}
-
-
-void
-relocBranch (const Value *offset)
-{
-  relocOp (0, offset, RelocBranch);
-}
-
-
-void
-relocBranchT (const Value *offset)
-{
-  relocOp (0, offset, RelocBranchT);
-}
-
-
-void
-relocSwi (const Value *code)
-{
-  relocOp (0, code, RelocSwi);
-}
-
-
-void
-relocCpuOffset (ARMWord ir, const Value *offset)
-{
-  relocOp (ir, offset, RelocCpuOffset);
-}
-
-
-void
-relocCopOffset (ARMWord ir, const Value *offset)
-{
-  relocOp (ir, offset, RelocCopOffset);
-}
-
-
-void
-relocAdr (ARMWord ir, const Value *addr)
-{
-  relocOp (ir, addr, RelocAdr);
-}
-
-
-void
-relocAdrl (ARMWord ir, const Value *addr)
-{
-  relocOp (ir, addr, RelocAdrl);
-}
-
-
-void
-relocMask (const Value *mask)
-{
-  relocOp (0, mask, RelocImmN);
-}
-
-
-void
-relocInt (int size, const Value *value)
-{
-  relocOp (size, value, RelocImmN);
-}
-
-
-void
-relocFloat (int size, const Value *value)
-{
-  relocOp (size, value, RelocFloat);
-}
-
-
-void
-relocAdd (Reloc *newReloc)
-{
-  newReloc->more = areaCurrentSymbol->area.info->relocs;
-  areaCurrentSymbol->area.info->relocs = newReloc;
-}
-
-
-static int
-relocLate2Reloc (Reloc *r, Value *value)
-{
-  size_t size = 0;
-  int norelocs = 0;
-  for (LateInfo *late = value->Data.Late.late; late; late = late->next)
-    {
-      if (late->factor > 0)
-	{			/* kludge: apparently <0 for area symbols */
-	  norelocs += late->factor;	/* late->factor cannot be less that 0 here */
-	  if (late->factor > 1)
-	    {
-	      r->value.Data.Code.c[size].Tag = CodeValue;
-	      r->value.Data.Code.c[size].Data.value.Tag = ValueInt;
-	      r->value.Data.Code.c[size++].Data.value.Data.Int.i = late->factor;
-	    }
-	  r->value.Data.Code.c[size].Tag = CodeSymbol;
-	  r->value.Data.Code.c[size++].Data.symbol = late->symbol;
-	}
-    }
-  if (size > r->value.Data.Code.len)
-    errorAbortLine (r->lineno, r->file, "Overflow in relocation data");
-  r->value.Data.Code.len = size;
-  return norelocs;
-}
-
-
-static int
-relocEval (Reloc *r, Value *value, const Symbol *area)
-{
-  int norelocs = 0;
-
-  codeInit ();
-  *value = codeEvalLow (ValueAll, r->value.Data.Code.len, r->value.Data.Code.c);
-  switch (value->Tag)
-    {
-    case ValueIllegal:
-      errorLine (r->lineno, r->file, ErrorError, "Cannot evaluate expression (illegal)");
-      r->Tag = RelocNone;
-      return 0;
-
-    case ValueCode:
-      errorLine (r->lineno, r->file, ErrorError, "Cannot evaluate expression (code)");
-      r->Tag = RelocNone;
-      return 0;
-
-    case ValueLateLabel:
-      switch (r->Tag)
-	{
-	case RelocCpuOffset:
-	case RelocCopOffset:
-/*
-   for (late = value->Data.Late.late; late; late = late->next)
-   if(late->symbol == area) {
-   late->factor = 0;
-   break;
-   }
+/**
+ * Returns the number of relocations associated with given area.
  */
-	  break;
-
-	case RelocBranch:
-	case RelocBranchT:
-	  {
-	    int thisF = 0;
-
-	    for (LateInfo *late = value->Data.Late.late; late; late = late->next)
-	      if (late->symbol == area)
-	        {
-		  thisF = late->factor;
-		  late->factor = 0;
-		  break;
-	        }
-	    for (LateInfo *late = value->Data.Late.late; late; late = late->next)
-	      if (late->factor > 0)
-	        {
-		  if (!(late->symbol->type & SYMBOL_AREA))
-		    late->symbol->used++;
-		  thisF += late->factor;
-	        }
-	      else if (late->factor < 0)
-	        {
-		  errorLine (r->lineno, r->file, ErrorError, "Only positive relocation allowed");
-		  late->factor = 1;
-	        }
-	    if (thisF)
-	      errorLine (r->lineno, r->file, ErrorError, "Unbalanced relocation (%d)", thisF);
-	    break;
-	  }
-
-	case RelocImmN:
-	  {
-	    for (LateInfo *late = value->Data.Late.late; late; late = late->next)
-	      {
-	        if (late->factor > 0)
-		  {
-		    if (!(late->symbol->type & SYMBOL_AREA))
-		      late->symbol->used++;
-		    else if (r->extra != 4)
-		      errorLine (r->lineno, r->file, ErrorError,
-			         "8/16 bits field cannot be allocated with area (%s)",
-			         late->symbol->str);
-		  }
-	        else if (late->factor < 0)
-		  {
-		    errorLine (r->lineno, r->file, ErrorError, "Only positive relocation allowed");
-		    late->factor = 1;
-		  }
-	      }
-	    break;
-	  }
-
-	case RelocAdr:
-	case RelocAdrl:
-	  {
-	    for (LateInfo *late = value->Data.Late.late; late; late = late->next)
-	      if (late->factor > 0 && !(late->symbol->type & SYMBOL_AREA))
-	        late->symbol->used++;
-	    break;
-	  }
-
-	default:
-	  errorLine (r->lineno, r->file, ErrorError, "Linker cannot handle %s", reloc2String (r->Tag));
-	  r->Tag = RelocNone;
-	  return 0;
-	}			/* ValueLateLabel */
-
-      norelocs = relocLate2Reloc (r, value);
-      break;
-
-    case ValueInt:
-      break;
-
-    default:
-      errorAbortLine (r->lineno, r->file, "Illegal ValueTag in relocEval");
-      break;
-    }
-
-  return norelocs;
-}
-
-
-static void
-relocWrite (Reloc *r, const Value *value, unsigned char *image)
-{
-  const int offset = r->offset;
-  
-  switch (value->Tag)
-    {
-      case ValueLateLabel:
-      case ValueInt:
-	switch (r->Tag)
-	{			/* Write out the value */
-	  case RelocBranch:
-	    {
-	      /* The R_ARM_PC24 ELF reloc needs to happen for a "B + PC - 8"
-	         instruction, while in AOF this needs to happen for a "B 0".  */
-	      int bv = (!option_aof && value->Tag == ValueLateLabel) ?
-		value->Data.Int.i + offset : value->Data.Int.i;
-	      ARMWord w = fixBranch (r->lineno, bv);
-	      image[offset + 2] = (w >> 16) & 0xff;
-	      image[offset + 1] = (w >> 8) & 0xff;
-	      image[offset + 0] = w & 0xff;
-	      break;
-	    }
-	  case RelocBranchT:
-	    {
-	      ARMWord w = READWORD (image, offset);
-	      w |= fixBranchT (r->lineno, value->Data.Int.i);
-	      image[offset + 3] = (w >> 24) & 0xff;
-	      image[offset + 2] = (w >> 16) & 0xff;
-	      image[offset + 1] = (w >> 8) & 0xff;
-	      image[offset + 0] = w & 0xff;
-	      break;
-	    }
-	  case RelocCpuOffset:
-	    {
-	      ARMWord w = READWORD (image, offset);
-	      /* fprintf (stderr, "RelocCpuOffset: tag = %d, lineno = %d, offset = %d, val=%s\n",
-			  value->Tag.t, r->lineno, value->Data.Int.i,
-			  (value->Tag.t == ValueLateLabel) ? value->Data.Late.late->symbol->str : "-"); */
-	      if (value->Tag == ValueLateLabel)
-		{
-		  const Symbol *sym = value->Data.Late.late->symbol;
-		  if ((sym->type & SYMBOL_AREA)
-		      && (sym->area.info->type & AREA_BASED))
-		    {
-		      /* fprintf (stderr, "  --- based: off = %d, adjusted = %d\n",
-				  offset,
-				  value->Data.Int.i + offset + 8); */
-		      /* value->Data.Int.i += offset + 8; */
-		      w = fixCpuOffset (r->lineno, w,
-					value->Data.Int.i + offset + 8);
-		      w &= ~LHS_OP(15);
-		      w |= LHS_OP((sym->area.info->type & 0x0f000000) >> 24);
-		      /* r->offset = value->Data.Int.i + offset + 8; */
-		    }
-		  else
-		    w = fixCpuOffset (r->lineno, w, value->Data.Int.i);
-		}
-	      else
-		w = fixCpuOffset (r->lineno, w, value->Data.Int.i);
-	      image[offset + 3] = (w >> 24) & 0xff;
-	      image[offset + 2] = (w >> 16) & 0xff;
-	      image[offset + 1] = (w >> 8) & 0xff;
-	      image[offset + 0] = w & 0xff;
-	      break;
-	    }
-	  case RelocCopOffset:
-	    {
-	      ARMWord w = READWORD (image, offset);
-	      w = fixCopOffset (r->lineno, w, value->Data.Int.i);
-	      image[offset + 3] = (w >> 24) & 0xff;
-	      image[offset + 2] = (w >> 16) & 0xff;
-	      image[offset + 1] = (w >> 8) & 0xff;
-	      image[offset + 0] = w & 0xff;
-	      break;
-	    }
-	  case RelocImmN:
-	    {
-	      /* fprintf (stderr, "RelocImmN: lineno = %d\n", r->lineno); */
-	      ARMWord w = fixInt (r->lineno, r->extra, value->Data.Int.i);
-	      switch (r->extra)
-		{
-		  case 4:
-		    image[offset + 3] = (w >> 24) & 0xff;
-		    image[offset + 2] = (w >> 16) & 0xff;
-		    /* Fall through */
-		  case 2:
-		    image[offset + 1] = (w >> 8) & 0xff;
-		    /* Fall through */
-		  case 1:
-		    image[offset + 0] = w & 0xff;
-		}
-	      break;
-	    }
-	  case RelocAdr:
-	    {
-	      /* fprintf (stderr, "RelocAdr: lineno = %d\n", r->lineno); */
-	      ARMWord w = READWORD (image, offset);
-	      w = fixAdr (r->lineno, w, value->Data.Int.i);
-	      image[offset + 3] = (w >> 24) & 0xff;
-	      image[offset + 2] = (w >> 16) & 0xff;
-	      image[offset + 1] = (w >> 8) & 0xff;
-	      image[offset + 0] = w & 0xff;
-	      break;
-	    }
-	  case RelocAdrl:
-	    {
-	      ARMWord w = READWORD (image, offset);
-	      ARMWord w1 = (value->Tag == ValueLateLabel) ? value->Data.Late.late->symbol->type & SYMBOL_DEFINED : 1;
-	      /* warn if symbol is defined or isn't a late label */
-	      fixAdrl (r->lineno, &w, &w1, value->Data.Int.i, w1);
-	      image[offset + 3] = (w >> 24) & 0xff;
-	      image[offset + 2] = (w >> 16) & 0xff;
-	      image[offset + 1] = (w >> 8) & 0xff;
-	      image[offset + 0] = w & 0xff;
-	      image[offset + 7] = (w1 >> 24) & 0xff;
-	      image[offset + 6] = (w1 >> 16) & 0xff;
-	      image[offset + 5] = (w1 >> 8) & 0xff;
-	      image[offset + 4] = w1 & 0xff;
-	      break;
-	    }
-	  case RelocImm8s4:
-	    {
-	      ARMWord w = READWORD (image, offset);
-	      w = fixImm8s4 (r->lineno, w, value->Data.Int.i);
-	      image[offset + 3] = (w >> 24) & 0xff;
-	      image[offset + 2] = (w >> 16) & 0xff;
-	      image[offset + 1] = (w >> 8) & 0xff;
-	      image[offset + 0] = w & 0xff;
-	      break;
-	    }
-	  default:
-	    errorLine (r->lineno, r->file, ErrorError, "Cannot handle %s when value is %s", reloc2String (r->Tag), "int");
-	    r->Tag = RelocNone;
-	    return;
-	}
-	if (value->Tag == ValueInt || r->value.Data.Code.len == 0)	/* Value is known */
-	  r->Tag = RelocNone;
-	break;
-      case ValueFloat:
-	switch (r->Tag)
-	{			/* Write out the value */
-	  case RelocImmN:	/* ? */
-	    case RelocFloat:
-	    {
-	      unsigned int i;
-	      union
-		{
-		  double d;
-		  float f;
-		  struct
-		    {
-		      char c[8];
-		    } u;
-		} translate;		/* Do endianness issues affect this struct? */
-	      if (r->extra == 4)
-		translate.f = (float) value->Data.Float.f;
-	      else
-		translate.d = (double) value->Data.Float.f;
-	      for (i = 0; i < r->extra; i++)
-		image[offset + i] = translate.u.c[i];
-	    }
-	    break;
-	  case RelocImmFloat:
-	    {
-	      ARMWord w = READWORD (image, offset);
-	      w = fixImmFloat (r->lineno, w, value->Data.Float.f);
-	      image[offset + 3] = (w >> 24) & 0xff;
-	      image[offset + 2] = (w >> 16) & 0xff;
-	      image[offset + 1] = (w >> 8) & 0xff;
-	      image[offset + 0] = w & 0xff;
-	      break;
-	    }
-	  default:
-	    errorLine (r->lineno, r->file, ErrorError, "Cannot handle %s when value is %s", reloc2String (r->Tag), "float");
-	    break;
-	}
-	r->Tag = RelocNone;
-	break;
-      default:
-	errorAbortLine (r->lineno, r->file, "Internal relocWrite: illegal value");
-	r->Tag = RelocNone;
-	break;
-    }
-}
-
-
 int
 relocFix (const Symbol *area)
 {
-  unsigned char *image = area->area.info->image;
-  int norelocs = 0;
-  for (Reloc *relocs = area->area.info->relocs; relocs; relocs = relocs->more)
+  areaCurrentSymbol = area;
+  for (RelocQueue *relQueue = areaCurrentSymbol->area.info->relocQueue;
+       relQueue != NULL;
+       relQueue = relQueue->next)
     {
-      Value value;
-      switch (relocs->value.Tag)
+      /* Re-evaluate value.  By now we can get a different result which we can
+         use.  */
+      codeInit ();
+      if (relQueue->expr.Tag == ValueCode)
+	Code_AddValueCode (&relQueue->expr); /* We want expansion of ValueCode.  */ /* FIXME: we could use codeEvalLow() instead and run directly using relQueue->expr contents.  */
+      else
+        codeValue (&relQueue->expr);
+      const Value *value = codeEval (relQueue->legal | ValueCode,
+				     relQueue->legal & ValueAddr ? &relQueue->offset : NULL);
+      if (value->Tag == ValueIllegal)
+	errorLine (relQueue->file, relQueue->lineno, ErrorError, "Unable to express relocation");
+      else
 	{
-	case ValueInt:
-	case ValueFloat:
-	  value = relocs->value;
-	  break;
-	case ValueCode:
-	  norelocs += relocEval (relocs, &value, area);
-	  break;
-	default:
-	  errorAbortLine (relocs->lineno, relocs->file, "Internal relocFix: not a legal value");
-	  relocs->Tag = RelocNone;
-	  break;
+	  Code code =
+	    {
+	      .Tag = CodeValue,
+	      .Data.value = *value
+	    };
+	  const Value codeAsValue =
+	    {
+	      .Tag = ValueCode,
+	      .Data.Code = { .len = 1, .c = &code }
+	    };
+	  if (value->Tag != ValueCode)
+	    value = &codeAsValue;
+	  if (relQueue->callback (relQueue->file, relQueue->lineno,
+				  relQueue->offset, value, relQueue->privData, true))
+	    errorLine (relQueue->file, relQueue->lineno, ErrorError, "Unable to express relocation");
 	}
-      if (relocs->Tag != RelocNone)	/* We now have a Value */
-	relocWrite (relocs, &value, image);
     }
+  areaCurrentSymbol = NULL;
+
+  int norelocs = 0;
+  for (const Reloc *relocs = area->area.info->relocs;
+       relocs != NULL;
+       relocs = relocs->next)
+    ++norelocs;
+
   return norelocs;
 }
 
@@ -561,177 +233,112 @@ relocFix (const Symbol *area)
 void
 relocAOFOutput (FILE *outfile, const Symbol *area)
 {
-  for (const Reloc *relocs = area->area.info->relocs; relocs; relocs = relocs->more)
+  for (const Reloc *relocs = area->area.info->relocs; relocs != NULL; relocs = relocs->next)
     {
-      unsigned int How;
-      switch (relocs->Tag)
+      AofReloc areloc =
 	{
-	case RelocImmN:
-	  switch (relocs->extra)
-	    {
-	    case 4:
-	      How = HOW2_INIT | HOW2_WORD;
-	      break;
-	    case 2:
-	      How = HOW2_INIT | HOW2_HALF;
-	      break;
-	    case 1:
-	      How = HOW2_INIT | HOW2_BYTE;
-	      break;
-	    default:
-	      errorAbortLine (relocs->lineno, relocs->file, "Linker cannot handle RelocImmN with size %d", relocs->extra);
-	      continue;
-	    }
-	  break;
-	case RelocCpuOffset:
-	  if ((relocs->extra & 0x0F000000) < 0x04000000)
-	    errorAbortLine (relocs->lineno, relocs->file,
-			    "Linker cannot handle ARMv4 extended LDR/STR");
-	  // FIXME: determine 'How' !
-	  break;
-	case RelocCopOffset:
-	  if (relocs->value.Tag == ValueCode
-	      && (relocs->value.Data.Code.c->Data.symbol->type & SYMBOL_AREA)
-	      && (relocs->value.Data.Code.c->Data.symbol->area.info->type & AREA_BASED))
-	    How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
-	  else
-	    How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
-	  break;
-	case RelocImm8s4:
-	  How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
-	  break;
-	case RelocBranch:
-	case RelocBranchT:
-	case RelocAdr:
-	case RelocAdrl:
-	  How = HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE;
-	  break;
-	case RelocNone:
-	  continue;
-	default:
-	  errorAbortLine (relocs->lineno, relocs->file, "Linker cannot handle this");
-	  continue;
-	}
-      AofReloc areloc;
-      areloc.Offset = armword(relocs->offset);
-      for (size_t ip = 0; ip < relocs->value.Data.Code.len; ip++)
+	  .Offset = armword (relocs->reloc.Offset),
+	  .How = armword (relocs->reloc.How)
+	};
+      if (relocs->value.Tag == ValueSymbol)
 	{
-	  int loop;
-	  if (relocs->value.Data.Code.c[ip].Tag == CodeValue)
-	    {
-	      if (relocs->value.Data.Code.c[ip].Data.value.Tag != ValueInt)
-		{
-		  errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
-		  loop = 0;
-		}
-	      else
-		loop = relocs->value.Data.Code.c[ip++].Data.value.Data.Int.i;
-	    }
-	  else
-	    loop = 1;
-	  if (relocs->value.Data.Code.c[ip].Tag != CodeSymbol)
-	    errorAbortLine (relocs->lineno, relocs->file, "Internal error in relocsOutput");
-	  areloc.How = How | relocs->value.Data.Code.c[ip].Data.symbol->used;
-	  if (!(relocs->value.Data.Code.c[ip].Data.symbol->type & SYMBOL_AREA))
+	  const Value *value = &relocs->value;
+
+	  assert (value->Data.Symbol.symbol->used >= 0);
+	  areloc.How |= value->Data.Symbol.symbol->used;
+	  if (!(value->Data.Symbol.symbol->type & SYMBOL_AREA))
 	    areloc.How |= HOW2_SYMBOL;
-	  areloc.How = armword(areloc.How);
+	  areloc.How = armword (areloc.How);
+	  int loop = value->Data.Symbol.factor;
+	  assert (loop > 0); /* FIXME: I'm sure this can become negative (but not zero).  Where to give an error on that ? */
 	  while (loop--)
 	    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
 	}
+      else
+	{
+	  assert (relocs->value.Tag == ValueCode);
+	  size_t len = relocs->value.Data.Code.len;
+	  const Code *code = relocs->value.Data.Code.c;
+	  for (size_t i = 0; i != len; ++i)
+	    {
+	      if (code->Tag == CodeValue
+	          && code->Data.value.Tag == ValueSymbol)
+		{
+		  const Value *value = &code->Data.value;
+
+		  assert (value->Data.Symbol.symbol->used >= 0);
+		  areloc.How |= value->Data.Symbol.symbol->used;
+		  if (!(value->Data.Symbol.symbol->type & SYMBOL_AREA))
+		    areloc.How |= HOW2_SYMBOL;
+		  areloc.How = armword (areloc.How);
+		  int loop = value->Data.Symbol.factor;
+		  assert (loop > 0); /* FIXME: I'm sure this can become negative (but not zero).  Where to give an error on that ? */
+		  while (loop--)
+		    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
+		}
+	    }
+	}
     }
 }
+
 
 #ifndef NO_ELF_SUPPORT
 void
 relocELFOutput (FILE *outfile, const Symbol *area)
 {
-  for (const Reloc *relocs = area->area.info->relocs; relocs; relocs = relocs->more)
+  for (const Reloc *relocs = area->area.info->relocs; relocs != NULL; relocs = relocs->next)
     {
-      unsigned int How;
-      switch (relocs->Tag)
-        {
-        case RelocImmN:
-          switch (relocs->extra)
-            {
-            case 4:
-              How = HOW2_INIT | HOW2_WORD;
-              break;
-            case 2:
-              How = HOW2_INIT | HOW2_HALF;
-              break;
-            case 1:
-              How = HOW2_INIT | HOW2_BYTE;
-              break;
-            default:
-              errorAbortLine (relocs->lineno, relocs->file,
-                              "Linker cannot handle RelocImmN with size %d", relocs->extra);
-              continue;
-            }
-          break;
-        case RelocCpuOffset:
-          if ((relocs->extra & 0x0F000000) < 0x04000000)
-            errorAbortLine (relocs->lineno, relocs->file,
-			    "Linker cannot handle ARMv4 extended LDR/STR");
-	  // FIXME: determine 'How' !
-	  break;
-        case RelocCopOffset:
-          if (relocs->value.Tag == ValueCode
-              && (relocs->value.Data.Code.c->Data.symbol->type & SYMBOL_AREA)
-              && (relocs->value.Data.Code.c->Data.symbol->area.info->type & AREA_BASED))
-            How = HOW3_INIT | HOW3_INSTR | HOW3_BASED;
-          else
-            How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
-          break;
-        case RelocImm8s4:
-          How = HOW2_INIT | HOW2_SIZE | HOW2_SYMBOL;
-          break;
-        case RelocBranch:
-        case RelocBranchT:
-        case RelocAdr:
-        case RelocAdrl:
-          How = HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE;
-          break;
-        case RelocNone:
-          continue;
-        default:
-          errorAbortLine (relocs->lineno, relocs->file, "Linker cannot handle this");
-          continue;
-        }
-      Elf32_Rel areloc;
-      areloc.r_offset = armword(relocs->offset);
-      for (size_t ip = 0; ip < relocs->value.Data.Code.len; ip++)
-        {
-	  int loop, symbol, type;
-          if (relocs->value.Data.Code.c[ip].Tag == CodeValue)
-            {
-              if (relocs->value.Data.Code.c[ip].Data.value.Tag != ValueInt)
+      Elf32_Rel areloc =
+	{
+	  .r_offset = armword (relocs->reloc.Offset),
+	  .r_info = 0
+	};
+      if (relocs->value.Tag == ValueSymbol)
+	{
+	  const Value *value = &relocs->value;
+
+	  assert (value->Data.Symbol.symbol->used >= 0);
+	  int symbol = value->Data.Symbol.symbol->used + 1;
+	  int type;
+	  if (relocs->reloc.How & HOW3_RELATIVE)
+	    type = R_ARM_PC24;
+	  else
+	    type = R_ARM_ABS32;
+	  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
+	  areloc.r_info = armword (areloc.r_info);
+	  int loop = value->Data.Symbol.factor;
+	  assert (loop > 0); /* FIXME: I'm sure this can become negative (but not zero).  Where to give an error on that ? */
+	  while (loop--)
+	    fwrite (&areloc, 1, sizeof(Elf32_Rel), outfile);
+	}
+      else
+	{
+	  assert (relocs->value.Tag == ValueCode);
+	  size_t len = relocs->value.Data.Code.len;
+	  const Code *code = relocs->value.Data.Code.c;
+	  for (size_t i = 0; i != len; ++i)
+	    {
+	      if (code->Tag == CodeValue
+	          && code->Data.value.Tag == ValueSymbol)
 		{
-                  errorAbortLine (relocs->lineno, relocs->file, "Internal relocsOutput: not an int");
-		  loop = 0;
+		  const Value *value = &code->Data.value;
+
+		  assert (value->Data.Symbol.symbol->used >= 0);
+		  int symbol = value->Data.Symbol.symbol->used + 1;
+		  int type;
+		  if (relocs->reloc.How & HOW3_RELATIVE)
+		    type = R_ARM_PC24;
+		  else
+		    type = R_ARM_ABS32;
+		  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
+		  areloc.r_info = armword (areloc.r_info);
+		  int loop = value->Data.Symbol.factor;
+		  assert (loop > 0); /* FIXME: I'm sure this can become negative (but not zero).  Where to give an error on that ? */
+		  while (loop--)
+		    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
 		}
-              else
-                loop = relocs->value.Data.Code.c[ip++].Data.value.Data.Int.i;
-            }
-          else
-            loop = 1;
-          if (relocs->value.Data.Code.c[ip].Tag != CodeSymbol)
-            errorAbortLine (relocs->lineno, relocs->file, "Internal error in relocsOutput");
-
-          How |= relocs->value.Data.Code.c[ip].Data.symbol->used;
-          if (!(relocs->value.Data.Code.c[ip].Data.symbol->type & SYMBOL_AREA))
-            How |= HOW2_SYMBOL;
-
-          symbol = (How & HOW3_SIDMASK) + 1;
-
-          if (How & HOW3_RELATIVE)
-            type = R_ARM_PC24;
-          else
-            type = R_ARM_ABS32;
-
-          areloc.r_info = ELF32_R_INFO(symbol, type);
-          while (loop--)
-            fwrite (&areloc, 1, sizeof(Elf32_Rel), outfile);
-        }
+	    }
+	}
     }
 }
 #endif

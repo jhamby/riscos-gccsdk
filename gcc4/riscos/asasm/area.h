@@ -24,6 +24,8 @@
 #define area_header_included
 
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "symbol.h"
 #include "reloc.h"
 #include "lit.h"
@@ -46,11 +48,11 @@
 #define AREA_THUMB		0x00100000 /* Code area only */
 #define AREA_HALFWORD		0x00200000 /* Code area only */
 #define AREA_INTERWORK		0x00400000 /* Code area only */
-#define AREA_BASED		0x00100000 /* Data area only */ /* FIXME: what support is needed for this ? */
+#define AREA_BASED		0x00100000 /* Data area only */
 #define AREA_STUBDATA		0x00200000 /* Data area only */
 #define AREA_RESERVED22		0x00400000
 #define AREA_RESERVED23		0x00800000
-#define AREA_MASKBASEREGS	0x0F000000 /* Base regs, data area only */
+#define AREA_MASKBASEREG	0x0F000000 /* Base reg, data area only */
 #define AREA_LINKONCE		0x10000000 /* GNU linkonce (GCCSDK extension) Normally a reserved bit. */
 #define AREA_RESERVED29		0x20000000
 #define AREA_RESERVED30		0x40000000
@@ -58,28 +60,40 @@
 
 #define AREA_IMAGE(x) (!((x)->type & AREA_UDATA))
 #define AREA_NOSPACE(x,v) ((x)->imagesize < v)
+
+struct LITPOOL;
+
 typedef struct AREA
 {
   Symbol *next;			/** The following area symbol.  */
-  unsigned int type;		/* See AREA_ #defines */
-  int imagesize;
-  unsigned char *image;
+  uint32_t type;		/* See AREA_ #defines */
+  size_t imagesize;
+  uint8_t *image;
+
+  RelocQueue *relocQueue;
   int norelocs;
   Reloc *relocs;
-  LitInfo *lits;		/* ldr reg,=value */
+
+  struct LITPOOL *litPool;	/** The current literal pool waiting to be assembled. */
 } Area;
+
+static inline int
+Area_GetBaseReg (const Area *area)
+{
+  return (area->type & AREA_MASKBASEREG) >> 24;
+}
 
 extern Symbol *areaCurrentSymbol; /** Symbol of the area which is currently being processed.  */
 extern Symbol *areaEntrySymbol; /** Symbol of area which has been marked as ENTRY point.  */
 extern int areaEntryOffset;
-extern Symbol *areaHeadSymbol; /** Start of the linked list of all area symbols seen so far.  */
+extern Symbol *areaHeadSymbol; /** Start of the linked list of all area symbols seen so far.  Follow Symbol::area.info->next for next area (*not* Symbol::next !).  */
 
-void areaError (void);		/* report "No area defined" */
 void areaInit (void);
 void areaFinish (void);
-void areaGrow (Area *area, int mingrow);
+void areaGrow (Area *area, size_t mingrow);
 
 bool Area_IsImplicit (const Symbol *sym);
+void Area_AlignTo (int align, const char *msg);
 
 bool c_align (void);
 bool c_area (void);

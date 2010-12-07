@@ -273,19 +273,26 @@ optionCondS (void)
 {
   ARMWord option = getCond ();
   if (Input_Match ('S', false))
-    option |= S_FLAG;
+    option |= PSR_S_FLAG;
   return isOK (option);
 }
 
 
+/**
+ * Used for CMN, CMP, TEQ and TST.
+ */
 ARMWord
 optionCondSP (void)
 {
-  ARMWord option = getCond () | S_FLAG;
+  ARMWord option = getCond () | PSR_S_FLAG;
   if (Input_Match ('S', false) && option_pedantic)
     error (ErrorInfo, "S is implicit in test instructions");
   if (Input_Match ('P', false))
-    option |= P_FLAG;
+    {
+      option |= PSR_P_FLAG;
+      if (option_apcs_32bit)
+	error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
+    }
   return isOK (option);
 }
 
@@ -300,47 +307,74 @@ optionCondB (void)
 }
 
 
-/* also does signed byte, (un)signed halfword and doubleword */
+/**
+ * Supports {<cond>} [ "" | "T" | "B" | "BT" | "D" | "H" | "SB" | "SH" ]
+ * in LDR and STR.
+ * Note STR<cond>SB and STR<cond>SH are not supported, use STR<cond>B and
+ * STR<cond>H instead.
+ */
 ARMWord
-optionCondBT (void)
+optionCondBT (bool isStore)
 {
   ARMWord option = getCond ();
   if (Input_Match ('S', false))
     {
-      option |= 0xD0;
-      switch (inputLook ())
+      if (isStore)
+	option = optionError;
+      else
 	{
-	case 'H':
-	  option |= 0x20;	/* fall through to 'b' */
-	case 'B':
-	  inputSkip ();
-	  break;
-	default:
-	  option = optionError;
-	  break;
+	  /* "LDR<cond>SB" or "LDR<cond>SH".  */
+	  switch (inputLook ())
+	    {
+	      case 'H': /* "LDR<cond>SH".  */
+		option |= H_FLAG;
+	      /* Fall through.  */
+
+	      case 'B': /* "LDR<cond>SB".  */
+		option |= 0x90 | S_FLAG | L_FLAG;
+		inputSkip ();
+	      break;
+
+	      default:
+		option = optionError;
+		break;
+	    }
 	}
     }
   else
     {
+      /* "" | "T" | "B" | "BT" | "D" | "H" */
       switch (inputLook ())
 	{
-	case 'D':
-	  /* Use bit 27 as a flag for doubleword access */
-	  option |= 0xD0 | (1 << 27);
-	  inputSkip ();
-	  break;
-	case 'H':
-	  option |= 0xB0;
-	  inputSkip ();
-	  break;
-	case 'B':
-	  option |= B_FLAG;
-	  inputSkip ();
-	  break;
+	  case 'D': /* "D". Address mode 3.  */
+	    option |= 0x90 | S_FLAG;
+	    if (isStore)
+	      option |= H_FLAG;
+	    inputSkip ();
+	    break;
+
+	  case 'H': /* "H". Address mode 3.  */
+	    option |= 0x90 | H_FLAG;
+	    if (!isStore)
+	      option |= L_FLAG;
+	    inputSkip ();
+	    break;
+
+	  case 'B': /* "B", "BT". Address mode 2.  */
+	    option |= B_FLAG;
+	    inputSkip ();
+	    /* Fall through.  */
+
+	  default: /* "", "T", "B", "BT". Address mode 2.  */
+	    option |= 1<<26;
+	    if (!isStore)
+	      option |= L_FLAG;
+	    if (Input_Match ('T', false))
+	      option |= W_FLAG;
+	    break;
 	}
     }
-  if (Input_Match ('T', false))
-    option |= T_FLAG;
+
   return isOK (option);
 }
 
@@ -408,7 +442,7 @@ optionCondL (void)
 {
   ARMWord option = getCond ();
   if (Input_Match ('L', false))
-    option |= L_FLAG;
+    option |= N_FLAG;
   return isOK (option);
 }
 

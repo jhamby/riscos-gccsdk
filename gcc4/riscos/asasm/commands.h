@@ -52,4 +52,9 @@ bool c_rn (Symbol *symbol);
 bool c_strong (void);
 bool c_title (void);
 
+bool DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
+			     const Value *valueP, void *privData, bool final);
+bool DefineReal_RelocUpdater (const char *file, int lineno, ARMWord offset,
+			      const Value *valueP, void *privData, bool final);
+
 #endif

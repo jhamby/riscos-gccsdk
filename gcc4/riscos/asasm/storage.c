@@ -38,24 +38,17 @@
 #include "value.h"
 
 static Value storageV =
-{
-  .Tag = ValueAddr,
-  .Data.Addr = { .i = 0, .r = -1 }
-};
+  {
+    .Tag = ValueAddr,
+    .Data.Addr = { .i = 0, .r = -1 }
+  };
 
 Value
 storageValue (void)
 {
   assert (storageV.Tag == ValueAddr);
   if (storageV.Data.Addr.r == -1)
-    {
-      const Value value =
-	{
-	  .Tag = ValueInt,
-	  .Data.Int.i = storageV.Data.Addr.i
-	};
-      return value;
-    }
+    return Value_Int (storageV.Data.Addr.i);
   return storageV;
 }
 
@@ -65,12 +58,12 @@ storageValue (void)
 bool
 c_record (void)
 {
-  Value value = exprBuildAndEval (ValueInt);
+  const Value *value = exprBuildAndEval (ValueInt);
   storageV.Tag = ValueAddr;
-  switch (value.Tag)
+  switch (value->Tag)
     {
       case ValueInt:
-        storageV.Data.Addr.i = value.Data.Int.i;
+        storageV.Data.Addr.i = value->Data.Int.i;
         break;
       default:
         storageV.Data.Addr.i = 0;
@@ -94,18 +87,18 @@ c_alloc (Symbol *sym)
     }
 
   /* Determine how much we should allocate.  */
-  Value value = exprBuildAndEval (ValueInt);
-  switch (value.Tag)
+  const Value *value = exprBuildAndEval (ValueInt);
+  switch (value->Tag)
     {
       case ValueInt:
-        if (value.Data.Int.i >= 0)
+        if (value->Data.Int.i >= 0)
 	  {
-	    if (option_pedantic && value.Data.Int.i == 0)
+	    if (option_pedantic && value->Data.Int.i == 0)
 	      error (ErrorInfo, "You are reserving zero bytes?");
-	    storageV.Data.Addr.i += value.Data.Int.i;
+	    storageV.Data.Addr.i += value->Data.Int.i;
 	  }
         else
-	  error (ErrorError, "Cannot reserve negative amount of space %d", value.Data.Int.i);
+	  error (ErrorError, "Cannot reserve negative amount of space %d", value->Data.Int.i);
         break;
       default:
         error (ErrorError, "Illegal expression after #");

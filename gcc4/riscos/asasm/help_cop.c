@@ -43,12 +43,12 @@
 int
 help_copInt (int max, const char *msg)
 {
-  Value i = exprBuildAndEval (ValueInt);
-  if (i.Tag == ValueInt)
+  const Value *i = exprBuildAndEval (ValueInt);
+  if (i->Tag == ValueInt)
     {
-      if (i.Data.Int.i < 0 || i.Data.Int.i > max)
+      if (i->Data.Int.i < 0 || i->Data.Int.i > max)
 	{
-	  error (ErrorError, "%d is not a legal %s", i.Data.Int.i, msg);
+	  error (ErrorError, "%d is not a legal %s", i->Data.Int.i, msg);
 	  return 0;
 	}
     }
@@ -57,7 +57,7 @@ help_copInt (int max, const char *msg)
       error (ErrorError, "Illegal expression as %s", msg);
       return 0;
     }
-  return i.Data.Int.i;
+  return i->Data.Int.i;
 }
 
 
@@ -89,33 +89,29 @@ help_copAddr (ARMWord ir, bool stack)
 	        }
 	      if (Input_Match ('#', false))
 	        {
-	          Value offset = exprBuildAndEval (ValueInt | ValueCode | ValueLateLabel);
+	          const Value *offset = exprBuildAndEval (ValueInt);
 	          offValue = true;
-	          switch (offset.Tag)
+	          switch (offset->Tag)
 		    {
 		      case ValueInt:
-		        ir = fixCopOffset (0, ir, offset.Data.Int.i);
-		        break;
-		      case ValueCode:
-		      case ValueLateLabel:
-		        relocCopOffset (ir, &offset);
+		        ir = fixCopOffset (0, ir, offset->Data.Int.i);
 		        break;
 		      default:
 		        error (ErrorError, "Illegal offset expression");
 		        break;
 		    }
 	          if (!pre)
-		    ir |= WB_FLAG; /* If postfix, set writeback */
+		    ir |= W_FLAG; /* If postfix, set writeback */
 	        }
 	      else if (Input_Match ('{', false))
 	        {
-	          Value offset = exprBuildAndEval (ValueInt);
+	          const Value *offset = exprBuildAndEval (ValueInt);
 	          offValue = true;
-	          if (offset.Tag != ValueInt)
+	          if (offset->Tag != ValueInt)
 	            error (ErrorError, "Illegal option value");
-	          if (offset.Data.Int.i < -128 || offset.Data.Int.i > 256)
+	          if (offset->Data.Int.i < -128 || offset->Data.Int.i > 256)
 		    error (ErrorError, "Option value too large");
-	          ir |= (offset.Data.Int.i & 0xFF) | UP_FLAG;
+	          ir |= (offset->Data.Int.i & 0xFF) | U_FLAG;
 	          skipblanks ();
 		  if (!Input_Match ('}', false))
 		    error (ErrorError, "Missing '}' in option");
@@ -129,7 +125,7 @@ help_copAddr (ARMWord ir, bool stack)
 	      if (pre)
 	        error (ErrorError, "Illegal character '%c' after base", inputLook ());
 	      if (!stack)
-	        ir |= UP_FLAG;	/* changes #-0 to #+0 :-) */
+	        ir |= U_FLAG;	/* changes #-0 to #+0 :-) */
 	    }
           if (pre)
 	    {
@@ -141,14 +137,14 @@ help_copAddr (ARMWord ir, bool stack)
 	  if (Input_Match ('!', true))
 	    {
 	      if (pre || stack)
-	        ir |= WB_FLAG;
+	        ir |= W_FLAG;
 	      else
 	        error (ErrorError, "Writeback is implied with post-index");
 	    }
           else if (stack)
 	    pre = true;		/* [base] in stack context => [base,#0] */
           if (pre)
-	    ir |= PRE_FLAG;
+	    ir |= P_FLAG;
 	}
         break;
       case '=':
@@ -159,20 +155,17 @@ help_copAddr (ARMWord ir, bool stack)
 	      error (ErrorError, "Literal cannot be used when stack type is specified");
 	      break;
 	    }
-          ir |= PRE_FLAG | LHS_OP (15);
-          Value offset = exprBuildAndEval (ValueInt | ValueFloat | ValueLateLabel);
-          switch (offset.Tag)
+          ir |= P_FLAG | LHS_OP (15);
+          const Value *offset = exprBuildAndEval (ValueFloat /* | ValueLateLabel */);
+	  Value real = *offset;
+          switch (offset->Tag)
 	    {
-	      case ValueInt:
-	        offset.Tag = ValueFloat;
-	        offset.Data.Float.f = offset.Data.Int.i;
-	        /* Fall through.  */
 	      case ValueFloat:
 	        /* note that litFloat==litInt, so there's no litFloat */
 		switch (ir & PRECISION_MEM_PACKED)
 	          {
 	            case PRECISION_MEM_SINGLE:
-	              litInt (4, &offset);
+	              Lit_RegisterInt (&real, eLitFloat); /* FIXME: use return value. */
 	              break;
 	            default:
 	              error (ErrorWarning,
@@ -180,7 +173,7 @@ help_copAddr (ARMWord ir, bool stack)
 	              ir = (ir & ~PRECISION_MEM_PACKED) | PRECISION_MEM_DOUBLE;
 		      /* Fall through.  */
 	            case PRECISION_MEM_DOUBLE:
-	              litInt (8, &offset);
+	              Lit_RegisterInt (&real, eLitDouble); /* FIXME: use return value. */
 	              break;
 	          }
 	        break;
@@ -198,25 +191,21 @@ help_copAddr (ARMWord ir, bool stack)
 	      break;
 	    }
           /*  cop_reg,Address */
-          ir |= PRE_FLAG | LHS_OP (15);
+          ir |= P_FLAG | LHS_OP (15);
           exprBuild ();
-          codePosition (areaCurrentSymbol);
+          codePosition (areaCurrentSymbol, areaCurrentSymbol->value.Data.Int.i);
           codeOperator (Op_sub);
           codeInt (8);
           codeOperator (Op_sub);
-          Value offset = exprEval (ValueInt | ValueCode | ValueLateLabel | ValueAddr);
-          switch (offset.Tag)
+          const Value *offset = exprEval (ValueInt | ValueAddr);
+          switch (offset->Tag)
 	    {
 	      case ValueInt:
-	        ir = fixCopOffset (0, ir | LHS_OP (15), offset.Data.Int.i);
-	        break;
-	      case ValueCode:
-	      case ValueLateLabel:
-	        relocCopOffset (ir | LHS_OP (15), &offset);
+	        ir = fixCopOffset (0, ir | LHS_OP (15), offset->Data.Int.i);
 	        break;
 	      case ValueAddr:
-	        ir = fixCopOffset (0, ir | LHS_OP (offset.Data.Addr.r),
-				   offset.Data.Addr.i);
+	        ir = fixCopOffset (0, ir | LHS_OP (offset->Data.Addr.r),
+				   offset->Data.Addr.i);
 	        break;
 	      default:
 	        error (ErrorError, "Illegal address expression");

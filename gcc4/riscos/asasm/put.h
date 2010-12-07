@@ -25,8 +25,13 @@
 
 #include "global.h"
 
-void putData (int size, ARMWord data);
-void putDataFloat (int size, ARMFloat data);
+void putData (size_t size, ARMWord data);
+void Put_DataWithOffset (size_t offset, size_t size, ARMWord data);
+void putDataFloat (size_t size, ARMFloat data);
 void putIns (ARMWord ins);
+void Put_InsWithOffset (size_t offset, ARMWord data);
+
+ARMWord GetWord (size_t offset);
+void PutWord (size_t offset, ARMWord val);
 
 #endif

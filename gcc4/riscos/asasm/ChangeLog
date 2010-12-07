@@ -1,3 +1,10 @@
+Tue Dec  7 23:57:07 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	Start of v2.00 : too many changes to list them in detail, but:
+	- Rewrote relocation code, removal of LateValue.
+	- Significantly reworked the 'Code' evaluation.
+	- Previously known broken test cases are now working.
+
 Tue Nov 16 23:25:13 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/operator_relational.s: Fix the boolean tests.

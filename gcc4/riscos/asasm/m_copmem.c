@@ -54,6 +54,7 @@ dstmem (ARMWord ir)
 
 /**
  * Implements LDC.
+ * LDC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5>
  */
 bool
 m_ldc (void)
@@ -67,6 +68,7 @@ m_ldc (void)
 
 /**
  * Implements LDC2.
+ * LDC2{L} <coproc>, <CRd>, <addressing mode 5>
  */
 bool
 m_ldc2 (void)
@@ -74,6 +76,9 @@ m_ldc2 (void)
   ARMWord cc = optionCondL ();
   if (cc == optionError)
     return true;
+
+  /* FIXME: add arch v5 check. */
+  
   if ((cc & NV) != AL)
     error (ErrorError, "LDC2 cannot be conditional");
   else
@@ -83,6 +88,7 @@ m_ldc2 (void)
 
 /**
  * Implements STC.
+ * STC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5>
  */
 bool
 m_stc (void)
@@ -96,6 +102,7 @@ m_stc (void)
 
 /**
  * Implements STC2.
+ * STC2{L} <coproc>, <CRd>, <addressing mode 5>
  */
 bool
 m_stc2 (void)
@@ -103,6 +110,9 @@ m_stc2 (void)
   ARMWord cc = optionCondL ();
   if (cc == optionError)
     return true;
+
+  /* FIXME: add arch v5 check. */
+  
   if ((cc & NV) != AL)
     error (ErrorError, "STC2 cannot be conditional");
   dstmem (cc | 0x0c000000 | NV);

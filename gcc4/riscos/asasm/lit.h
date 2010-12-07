@@ -23,23 +23,33 @@
 #ifndef lit_header_included
 #define lit_header_included
 
-#include "reloc.h"
+#include "value.h"
 
-typedef struct LITLIST
+typedef enum
 {
-  struct LITLIST *next;
-  int offset;
-  int lineno;
-} LitList;
+  eLitIntUByte,		/* Unsigned byte loading.  */
+  eLitIntSByte,		/* Signed byte loading.  */
+  eLitIntUHalfWord,	/* Unsigned half word loading.  */
+  eLitIntSHalfWord,	/* Signed half word loading.  */
+  eLitIntWord,
+  eLitFloat,
+  eLitDouble
+} Lit_eSize;
 
-typedef struct LITINFO
+typedef struct LITPOOL
 {
-  struct LITINFO *next;
-  LitList *used;
-  Reloc reloc;	/* reloc.lineno == -1 until placed, then line number of LTORG */
-} LitInfo;
+  struct LITPOOL *next;
+  const char *file;	/** Assembler filename where this literal got requested for the first time.  */
+  int lineno;		/** Assembler file linenumber where this literal got requested for the first time.  */
 
-void litInt (int size, const Value *value);
-void litOrg (LitInfo *li);
+  int offset;		/** Area offset where the literal got assembled.  */
+  Value value;		/** Literal value.  */
+
+  Lit_eSize size;
+  bool gotAssembled;	/** This literal is assembled.  */
+} LitPool;
+
+Value Lit_RegisterInt (const Value *value, Lit_eSize size);
+void Lit_DumpPool (void);
 
 #endif

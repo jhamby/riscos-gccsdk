@@ -23,13 +23,15 @@
 #ifndef option_header_included
 #define option_header_included
 
+#include <stdbool.h>
+
 #include "global.h"
 
 ARMWord optionCond (void);
 ARMWord optionCondS (void);
 ARMWord optionCondSP (void);
 ARMWord optionCondB (void);
-ARMWord optionCondBT (void);
+ARMWord optionCondBT (bool isStore);
 ARMWord optionCondDirLdm (void);
 ARMWord optionCondDirStm (void);
 ARMWord optionCondLfmSfm (void);
@@ -65,15 +67,37 @@ ARMWord optionAdrL (void);
 #define HS CS
 #define LO CC
 
-#define S_FLAG ((ARMWord) 1<<20)
+/* Address mode flags (LDR* and STR*): */
 
-#define T_FLAG ((ARMWord) 1<<21)
-#define B_FLAG ((ARMWord) 1<<22)
-#define P_FLAG ((ARMWord)15<<12)
-#define L_FLAG B_FLAG
+/* Address mode 3 only.  */
+#define H_FLAG		((ARMWord)1<<5)
+/* Address mode 3 only.  */
+#define S_FLAG		((ARMWord)1<<6)
+#define L_FLAG		((ARMWord)1<<20)
+/* For the 'T' in LDRBT, LDRT, STRBT or STRT and address writeback into base
+   register.  */
+#define W_FLAG		((ARMWord)1<<21)
+/* Byte or word access for LDR/STR (address mode 2 only).  */
+#define B_FLAG		((ARMWord)1<<22)
+/* Add or subtract offset to base.  */
+#define U_FLAG		((ARMWord)1<<23)
+/* offset addressing or pre-indexed addressing instead of post-indexed
+   addressing  */
+#define P_FLAG		((ARMWord)1<<24)
+/* Use (scaled) register offset/index instead of immediate offset/index.  */
+#define REG_FLAG	((ARMWord)1<<25)
 
-#define LINK_BIT     ((ARMWord)1<<24)
-#define EXEPTION_BIT ((ARMWord)0x00400000)
+/* The 'S' flag to set the PSR bits.  */
+#define PSR_S_FLAG	((ARMWord) 1<<20)
+
+/* For use in TST, TEQ, CMN and CMP.  */
+#define PSR_P_FLAG	((ARMWord)15<<12)
+
+/* For use in LDC/LDC2.  */
+#define N_FLAG		((ARMWord)1<<22)
+
+#define LINK_BIT	((ARMWord)1<<24)
+#define EXEPTION_BIT	((ARMWord)0x00400000)
 
 #define IB ((ARMWord)0x01800000)
 #define IA ((ARMWord)0x00800000)
@@ -94,12 +118,6 @@ ARMWord optionAdrL (void);
 #define ROUND_MINUSINF      ((ARMWord)0x40)
 #define ROUND_ZERO          ((ARMWord)0x60)
 
-#define REG_FLAG ((ARMWord)1<<25)
-#define PRE_FLAG ((ARMWord)1<<24)
-#define UP_FLAG  ((ARMWord)1<<23)
-
-#define WB_FLAG  T_FLAG
-
-#define FORCE_FLAG ((ARMWord)1<<22)
+#define FORCE_FLAG	((ARMWord)1<<22)
 
 #endif

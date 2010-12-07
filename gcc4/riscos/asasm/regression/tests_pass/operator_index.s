@@ -43,14 +43,15 @@ field8	# 128
 	LDR	r0, [r1, #field8]
 	MOV	r0, #field8
 
-; FIXME: following test is not yet supported
 	; Test 4 : late definition
-;;	DCD	:INDEX:late_field1
-;;	DCD	:INDEX:late_field2
-;;	DCD	:BASE:late_field1	; Not supported by objasm.
-;;	LDR	r0, late_field1
-;;	LDR	r0, [r1, #late_field2]
-;;	MOV	r0, #late_field2
+	DCD	:INDEX:late_field1
+	DCD	:INDEX:late_field2
+	[ EXTENSION
+	DCD	:BASE:late_field1	; Not supported by objasm.
+	]
+	LDR	r0, late_field1
+; FIXME	LDR	r0, [r1, #late_field2]
+; FIXME	MOV	r0, #late_field2
 
 	^	12, r11
 	#	8
@@ -80,14 +81,15 @@ late_field2 #	32
 	LDR	r0, [r1, #0x400]
 	MOV	r0, #&400
 
-; FIXME: following test is not yet supported
 	; Test 4 : late definition
-;;	DCD	20
-;;	DCD	36
-;;	DCD	11
-;;	LDR	r0, [r11, #20]
-;;	LDR	r0, [r1, #36]
-;;	MOV	r0, #36
+	DCD	20
+	DCD	36
+	[ EXTENSION
+	DCD	11
+	]
+	LDR	r0, [r11, #20]
+; FIXME	LDR	r0, [r1, #36]
+; FIXME	MOV	r0, #36
 
 	]
 

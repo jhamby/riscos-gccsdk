@@ -37,7 +37,7 @@
 #define SYMBOL_DEFINED   0x0001 /* This is a mask.  */
 #define SYMBOL_EXPORT    0x0002 /* This is a mask.  */
 
-#define SYMBOL_ABSOLUTE  0x0004	/* This is a constant, (not valid if SYMBOL_REFERENCE) */
+#define SYMBOL_ABSOLUTE  0x0004	/* This is an absolute value (e.g. constant) and only valid when SYMBOL_DEFINED is set.  Otherwise its valid is relative to the base AREA where it is defined. */
 #define SYMBOL_NOCASE    0x0008	/* Only if SYMBOL_REFERENCE, case insensitive */
 #define SYMBOL_WEAK      0x0010	/* Only if SYMBOL_REFERENCE, must not be resolved */
 #define SYMBOL_STRONG    0x0020	/* Complicated ??? */
@@ -57,33 +57,38 @@
   a local macro variable.  */
 
 #define SYMBOL_KEEP		0x01000000
-#define SYMBOL_AREA		0x02000000 /* Symbol is actually an area name.  */
+#define SYMBOL_AREA		0x02000000 /* Symbol is actually an area name. When set, SYMBOL_DECLARED is set as well, but not SYMBOL_DEFINED.  */
 #define SYMBOL_NOTRESOLVED	0x04000000
 
 #define SYMBOL_CPUREG		0x10000000
 #define SYMBOL_FPUREG		0x20000000
 #define SYMBOL_COPREG		0x30000000
 #define SYMBOL_COPNUM		0x40000000
-#define SYMBOL_GETREG(x)	((x) & 0x70000000)
+#define SYMBOL_GETREGTYPE(x)	((x) & 0x70000000)
 
 #define SYMBOL_DECLARED		0x80000000
 
 #define SYMBOL_TABLESIZE 1024
 
 
-typedef struct SYMBOL
+typedef struct Symbol
 {
-  struct SYMBOL *next;  /** Linked symbols all having the same hash value.  */
+  struct Symbol *next;  /** Linked symbols all having the same hash value.  */
+
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
-  Value value;
-  size_t codeSize; /** Size of the code associated with this symbol.  */
+  Value value; /** For AREA symbol, this is its current content size.  */
+  size_t codeSize; /** Size of the code associated with this symbol label (for AREA symbol, this is unused).  */
   union
     {
-      struct SYMBOL *ptr;
+      struct Symbol *ptr;
       struct AREA *info; /** When SYMBOL_AREA is set.  */
     } area;
+
+  /* For output: */
   unsigned int offset;	/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
   int used;		/** -1 when not used; for area symbols: at outputAof/outputElf stage, this will be the area number counted from 0; for other symbols, 0 when symbol is needed in output. This will become the symbol index at symbolFix stage.  */
+
+  /* Symbol name: */
   size_t len;		/** length of str[] without its NUL terminator.  */
   char str[1];		/** symbol name as NUL terminated string */
 } Symbol;

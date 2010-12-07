@@ -51,20 +51,19 @@ m_nop (void)
       ARMWord op = getCpuReg ();
       if (op == 15)
 	error (ErrorError, "Cannot use R15 in NOP");
-      putIns (0xE1A00000 | DST_OP (op) | RHS_OP (op));
+      putIns (0xE1A00000 | DST_OP (op) | RHS_OP (op)); /* FIXME: check if this is the correct opcode.  */
     }
   else
     putIns (0xE1A00000);
   return false;
 }
 
-/** DATA dst=lhs<op>rhs **/
+/** DATA dst = lhs <op> rhs **/
 
 static void
 dstlhsrhs (ARMWord ir)
 {
-  ARMWord op;
-  op = getCpuReg ();
+  ARMWord op = getCpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
   if (!Input_Match (',', true))
@@ -81,8 +80,7 @@ dstlhsrhs (ARMWord ir)
 static void
 dstrhs (ARMWord ir)
 {
-  ARMWord op;
-  op = getCpuReg ();
+  ARMWord op = getCpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
   if (!Input_Match (',', true))
@@ -258,8 +256,6 @@ lhsrhs (ARMWord ir)
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
-  if ((ir & P_FLAG) && option_apcs_32bit)
-    error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
   ir = getRhs (false, true, ir);
   putIns (ir);
 }

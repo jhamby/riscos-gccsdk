@@ -69,23 +69,19 @@ getFloatRhs (ARMWord ir)
 {
   if (Input_Match ('#', false))
     {
-      ir |= 8;			/* Immediate Float */
-      Value im = exprBuildAndEval (ValueInt | ValueFloat | ValueLateLabel | ValueCode);
-      switch (im.Tag)
+      ir |= 8; /* Immediate float.  */
+      const Value *im = exprBuildAndEval (ValueInt | ValueFloat);
+      switch (im->Tag)
 	{
-	case ValueInt:
-	  ir = fixImmFloat (0, ir, im.Data.Int.i);
-	  break;
-	case ValueFloat:
-	  ir = fixImmFloat (0, ir, im.Data.Float.f);
-	  break;
-	case ValueLateLabel:
-	case ValueCode:
-	  relocImmFloat (ir, &im);
-	  break;
-	default:
-	  error (ErrorError, "Illegal float immediate");
-	  break;
+	  case ValueInt:
+	    ir = fixImmFloat (0, ir, im->Data.Int.i);
+	    break;
+	  case ValueFloat:
+	    ir = fixImmFloat (0, ir, im->Data.Float.f);
+	    break;
+	  default:
+	    error (ErrorError, "Illegal float immediate");
+	    break;
 	}
     }
   else

@@ -271,8 +271,8 @@ c_macro (const Lex *label)
   if (prevDefMacro != NULL)
     {
       error (ErrorError, "Macro '%.*s' is already defined", (int)len, ptr);
-      errorLine (prevDefMacro->startline, prevDefMacro->file, ErrorError,
-		 "Note: Previous macro '%.*s' definition", (int)len, ptr);
+      errorLine (prevDefMacro->file, prevDefMacro->startline, ErrorError,
+		 "note: Previous definition of macro '%.*s' was here", (int)len, ptr);
       goto lookforMEND;
     }
   if ((m.name = strndup (ptr, len)) == NULL)

@@ -36,13 +36,13 @@ extern const char InsertCommaAfter[];
 
 void errorFinish (void);
 
-void errorLine (int lineno, const char *file,
+void errorLine (const char *file, int lineno,
 		ErrorTag e, const char *format, ...)
   __attribute__ ((__format__ (__printf__, 4, 5)));
 void error (ErrorTag e, const char *format, ...)
   __attribute__ ((__format__ (__printf__, 2, 3)));
 
-void errorAbortLine (int lineno, const char *file, const char *format, ...)
+void errorAbortLine (const char *file, int lineno, const char *format, ...)
   __attribute__ ((noreturn))
   __attribute__ ((__format__ (__printf__, 3, 4)));
 void errorAbort (const char *format, ...)

@@ -112,6 +112,7 @@ static const decode_table_t oDecodeTable[] =
   { "DCD", DTABLE_CALLBACK_VOID, { .vd = c_dcd } }, /* DCD */
   { "DCFD", DTABLE_CALLBACK_VOID, { .vd = c_dcfd } }, /* DCFD */
   { "DCFS", DTABLE_CALLBACK_VOID, { .vd = c_dcfs } }, /* DCFS */
+  { "DCW", DTABLE_CALLBACK_VOID, { .vd = c_dcw } }, /* DCW */
   { "DVF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_dvf } }, /* DVF CC P R */
   { "ELSE", DTABLE_CALLBACK_LEX, { .lbl = c_else } }, /* | ELSE */
   { "END", DTABLE_CALLBACK_VOID, { .vd = c_end } }, /* END */
@@ -260,7 +261,7 @@ decode (const Lex *label)
   /* Deal with empty line quickly.  */
   if (Input_IsEolOrCommentStart ())
     {
-      asm_label (label);
+      ASM_DefineLabel (label, areaCurrentSymbol->value.Data.Int.i);
       return;
     }
 
@@ -350,7 +351,6 @@ decode (const Lex *label)
   bool tryAsMacro;
   if (indexFound != SIZE_MAX)
     {
-      tryAsMacro = false;
       assert (Input_IsEolOrCommentStart ()
               || isspace ((unsigned char)inputLook ())
               || (oDecodeTable[indexFound].flags & DTABLE_PART_MNEMONIC));
@@ -365,19 +365,24 @@ decode (const Lex *label)
       switch (oDecodeTable[indexFound].flags & DTABLE_CALLBACK_MASK)
 	{
 	  case DTABLE_CALLBACK_VOID:
-	    labelSymbol = asm_label (label);
-	    if (oDecodeTable[indexFound].parse_opcode.vd ())
-	      tryAsMacro = true;
+	    {
+	      int offset = areaCurrentSymbol->value.Data.Int.i;
+	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.vd ();
+	      /* Define the label *after* the mnemonic implementation but
+	         with the currnet offset *before* processing the mnemonic.  */
+	      labelSymbol = ASM_DefineLabel (label, offset);
+	    }
 	    break;
 	  case DTABLE_CALLBACK_LEX:
 	    labelSymbol = NULL;
-	    if (oDecodeTable[indexFound].parse_opcode.lbl (label))
-	      tryAsMacro = true;
+	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.lbl (label);
 	    break;
 	  case DTABLE_CALLBACK_SYMBOL:
-	    labelSymbol = asm_label (label);
-	    if (oDecodeTable[indexFound].parse_opcode.sym (labelSymbol))
-	      tryAsMacro = true;
+	    labelSymbol = ASM_DefineLabel (label, areaCurrentSymbol->value.Data.Int.i);
+	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (labelSymbol);
+	    break;
+	  default:
+	    tryAsMacro = false;
 	    break;
 	}
       if (tryAsMacro && labelSymbol)
@@ -412,9 +417,10 @@ decode (const Lex *label)
       if (m)
         macroCall (m, label);
       else
-        {
-          Input_RollBackToMark (inputMark);
-          errorAbort ("Illegal line \"%s\"", inputRest ());
+	{
+	  error (ErrorError, "'%.*s' is not a recognized mnemonic nor known macro",
+		 (int)macroNameLen, macroName);
+	  return;
         }
     }
 
@@ -433,4 +439,3 @@ decode_finalcheck (void)
   if (!Input_IsEolOrCommentStart ())
     errorAbort ("Skipping extra characters '%s'", inputRest ());
 }
-

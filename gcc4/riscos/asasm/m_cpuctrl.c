@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -40,6 +41,8 @@
 #include "global.h"
 #include "help_cpu.h"
 #include "input.h"
+#include "main.h"
+#include "m_cpu.h"
 #include "m_cpuctrl.h"
 #include "option.h"
 #include "os.h"
@@ -50,42 +53,107 @@
 /** CONTROL **/
 
 static bool
-branch_shared (ARMWord cc)
+Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
+		     const Value *valueP, void *privData, bool final)
 {
-  ARMWord ir = cc | 0x0A000000;
+  bool isBLX = *(bool *)privData;
+  ARMWord ir = GetWord (offset);
+  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
+
+  int extraOffset = 0;
+  if (final)
+    {
+      bool unresolvedSym = false, areaSym = false;
+      for (size_t i = 0; i != valueP->Data.Code.len; ++i)
+	{
+	  const Code *codeP = &valueP->Data.Code.c[i];
+	  if (codeP->Tag != CodeValue)
+	    continue;
+	  const Value *valP = &codeP->Data.value;
+
+	  if (valP->Tag == ValueSymbol)
+	    {
+	      if (valP->Data.Symbol.symbol == areaCurrentSymbol)
+		{
+		  if (valP->Data.Symbol.factor != -1)
+		    return true; /* No way we can encode this.  */
+		  areaSym =  true;
+		}
+	      else
+		unresolvedSym = true;
+	    }
+	}
+      if (unresolvedSym != areaSym)
+	return true; /* No way we can encode this.  */
+      /* The R_ARM_PC24 ELF reloc needs to happen for a "B + PC - 8"
+         instruction, while in AOF this needs to happen for a "B 0".  */
+      if (!option_aof && unresolvedSym)
+	extraOffset = offset;
+    }
+  
+  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
+    {
+      const Code *codeP = &valueP->Data.Code.c[i];
+      if (codeP->Tag != CodeValue)
+	continue;
+      const Value *valP = &codeP->Data.value;
+
+      switch (valP->Tag)
+	{
+	  case ValueInt:
+	    {
+	      int intVal = valP->Data.Int.i + extraOffset;
+	      int mask = isBLX ? 1 : 3;
+	      if (intVal & mask)
+		errorLine (file, lineno, ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
+	      ir |= ((intVal >> 2) & 0xffffff) | (isBLX ? (intVal & 2) << 23 : 0);
+	      PutWord (offset, ir);
+	    }
+	    break;
+
+	  case ValueSymbol:
+	    if (!final)
+	      return true;
+	    if (valP->Data.Symbol.symbol != areaCurrentSymbol)
+	      Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP);
+	    break;
+
+	  default:
+	    return true;
+	}
+    }
+
+  return false;
+}
+
+static bool
+branch_shared (ARMWord cc, bool isBLX)
+{
+  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
+
   switch (inputLook ())
     {
-    case '#':
-      inputSkip ();	/* FIXME: what's this ?? */
-      /* Fall through.  */
-    case '"':
-      exprBuild ();
-      break;
-    default:
-      exprBuild ();
-      /* The branch instruction has its offset as relative, while the given
-	 label is absolute, so calculate "<label> - . - 8".  */
-      codePosition (areaCurrentSymbol);
-      codeOperator (Op_sub);
-      codeInt (8);
-      codeOperator (Op_sub);
-      break;
+      case '#':
+	inputSkip ();	/* FIXME: what's this ?? */
+	/* Fall through.  */
+      case '"':
+	exprBuild (); /* FIXME: document/test this */
+	break;
+
+      default:
+	exprBuild ();
+	/* The branch instruction has its offset as relative, while the given
+	   label is absolute, so calculate "<label> - . - 8".  */
+	codePosition (areaCurrentSymbol, offset);
+	codeOperator (Op_sub);
+	codeInt (8);
+	codeOperator (Op_sub);
+	break;
     }
-  Value im = exprEval (ValueInt | ValueCode | ValueLateLabel);
-  switch (im.Tag)
-    {
-    case ValueInt:
-      ir |= fixBranch (0, im.Data.Int.i);
-      break;
-    case ValueCode:
-    case ValueLateLabel:
-      relocBranch (&im);
-      break;
-    default:
-      error (ErrorError, "Illegal branch destination");
-      break;
-    }
-  putIns (ir);
+
+  putIns (cc | 0x0A000000);
+  if (Reloc_QueueExprUpdate (Branch_RelocUpdater, offset, ValueInt | ValueCode | ValueSymbol, &isBLX, sizeof (isBLX)))
+    error (ErrorError, "Illegal branch expression");
   return false;
 }
 
@@ -98,7 +166,7 @@ m_branch (void)
   ARMWord cc = optionLinkCond ();
   if (cc == optionError)
     return true;
-  return branch_shared (cc);
+  return branch_shared (cc, false);
 }
 
 /**
@@ -123,40 +191,7 @@ m_blx (void)
       if (cc != AL)
         error (ErrorError, "BLX <target_addr> must be unconditional");
 
-      ir = NV | 0x0A000000;
-
-      switch (inputLook ())
-	{
-	case '#':
-	  inputSkip ();	/* FIXME: what's this ??? */
-	  /* Fall through.  */
-	case '"':
-	  exprBuild ();
-	  break;
-	default:
-	  exprBuild ();
-	  /* The branch instruction has its offset as relative, while the given
-	     label is absolute, so calculate "<label> - . - 8".  */
-	  codePosition (areaCurrentSymbol);
-	  codeOperator (Op_sub);
-	  codeInt (8);
-	  codeOperator (Op_sub);
-	  break;
-	}
-      Value im = exprEval (ValueInt | ValueCode | ValueLateLabel);
-      switch (im.Tag)
-	{
-	case ValueInt:
-	  ir |= fixBranchT (0, im.Data.Int.i);
-	  break;
-	case ValueCode:
-	case ValueLateLabel:
-	  relocBranchT (&im);
-	  break;
-	default:
-	  error (ErrorError, "Illegal branch destination");
-	  break;
-	}
+      return branch_shared (NV, true);
     }
   else
     ir = cc | 0x012FFF30 | RHS_OP (reg); /* BLX <Rm> */
@@ -177,7 +212,7 @@ m_bx (void)
 
   cpuWarn (XSCALE);
 
-  int dst = getCpuReg();
+  int dst = getCpuReg ();
   if (dst == 15)
     error (ErrorWarning, "Use of PC with BX is discouraged");
 
@@ -197,28 +232,21 @@ m_swi (void)
 
   if (Input_Match ('#', false))
     error (ErrorInfo, "SWI is always immediate");
-  Value im = exprBuildAndEval (ValueInt | ValueAddr | ValueString | ValueCode
-			       | ValueLateLabel);
+  const Value *im = exprBuildAndEval (ValueInt | ValueString);
   ARMWord ir = cc | 0x0F000000;
-  switch (im.Tag)
+  switch (im->Tag)
     {
       case ValueInt:
-	ir |= fixSwi (0, im.Data.Int.i);
+	ir |= fixSwi (0, im->Data.Int.i);
 	break;
-      case ValueAddr:
-	ir |= fixSwi (0, im.Data.Addr.i);
-	break;
-      case ValueCode:
-      case ValueLateLabel:
-	relocSwi (&im);
-	break;
+
       case ValueString:
 #ifdef __riscos__
 	{
-	  /* ValueString are not NUL terminated.  */
-	  char swiname[im.Data.String.len + 1];
-	  memcpy (swiname, im.Data.String.s, im.Data.String.len);
-	  swiname[im.Data.String.len] = '\0';
+	  /* ValueString is not NUL terminated.  */
+	  char swiname[im->Data.String.len + 1];
+	  memcpy (swiname, im->Data.String.s, im->Data.String.len);
+	  swiname[im->Data.String.len] = '\0';
 	  ir |= switonum (swiname);
 	  if (ir == 0xFFFFFFFF)
 	    error (ErrorError, "Unknown SWI name");
@@ -227,6 +255,7 @@ m_swi (void)
 	error (ErrorError, "RISC OS is required to look up the SWI name");
 #endif
 	break;
+
       default:
 	error (ErrorError, "Illegal SWI expression");
 	break;
@@ -245,92 +274,190 @@ m_bkpt (void)
 
   if (Input_Match ('#', false))
     error (ErrorInfo, "BKPT is always immediate");
-  Value im = exprBuildAndEval (ValueInt);
-  if (im.Tag != ValueInt)
-    error (ErrorError, "Illegal BKPT expression");
-  ARMWord val = fixInt (0, 2, im.Data.Int.i);
+  const Value *im = exprBuildAndEval (ValueInt);
+  int i;
+  if (im->Tag != ValueInt)
+    {
+      error (ErrorError, "Illegal BKPT expression");
+      i = 0;
+    }
+  else
+    i = im->Data.Int.i;
+  ARMWord val = Fix_Int (NULL, 0, 2, i);
 
-  ARMWord ir = 0xE1200070;
-  ir |= ((val & 0xFFF0) << 4) | (val & 0xF);
-
+  ARMWord ir = 0xE1200070 | ((val & 0xFFF0) << 4) | (val & 0xF);
   putIns (ir);
   return false;
 }
 
+/**
+ * \param baseReg When >= 0, emit "ADD/SUB Rx, <baseReg>, #xyz" +
+ * "ADD/SUB Rx, Rx, #xyz", otherwise emit "MOV/MVN Rx, #xyz" +
+ * "ORR/BIC Rx, Rx, #xyz"
+ * \param fixedNumInstr When true, we can't change the number of instructions.
+ * When ir & 1 is set and fixedNumInstr is false, we can ignore to emit the
+ * 2nd instruction.  When it is true, we have to.
+ */
+static void
+ADR_RelocUpdaterCore (const char *file, int lineno, size_t offset, int constant,
+		      int baseReg, bool fixedNumInstr)
+{
+  /* Register + offset.  */
+  ARMWord ir = GetWord (offset);
+  bool isADRL = (ir & 1) ? true : false;
+  ir &= ~1;
+
+  /* FIXME: Can clever use of ADD/SUB mixture can cover more constants ? */
+  unsigned int cTry1[4];
+  int numTry1 = Help_SplitByImm8s4 (constant, &cTry1[0], &cTry1[1], &cTry1[2], &cTry1[3]);
+  unsigned int cTry2[4];
+  int numTry2 = Help_SplitByImm8s4 (baseReg >= 0 ? -constant : ~constant, &cTry2[0], &cTry2[1], &cTry2[2], &cTry2[3]);
+  int num;
+  unsigned int *c;
+  ARMWord irop1, irop2;
+  if (numTry1 < numTry2)
+    {
+      num = numTry1;
+      c = cTry1;
+      irop1 = baseReg >= 0 ? M_ADD : M_MOV;
+      irop2 = baseReg >= 0 ? M_ADD : M_ORR;
+    }
+  else
+    {
+      num = numTry2;
+      c = cTry2;
+      irop1 = baseReg >= 0 ? M_SUB : M_MVN;
+      irop2 = baseReg >= 0 ? M_SUB : M_BIC;
+    }
+  if (num == 1 && isADRL)
+    {
+      if (fixedNumInstr)
+	{
+	  errorLine (file, lineno, ErrorInfo, "ADRL not required for offset 0x%08x", constant);
+	  c[1] = 0;
+	  num = 2;
+	}
+      else
+	errorLine (file, lineno, ErrorWarning, "ADRL not required for offset 0x%08x, using ADR instead", constant);
+    }
+  else if ((num == 2 && !isADRL) || num == 3 || num == 4)
+    {
+      if (fixedNumInstr)
+	{
+	  errorLine (file, lineno, ErrorError, "Offset 0x%08x can not be encoded with ADR/ADRL", constant);
+	  num = (isADRL) ? 2 : 1;
+	}
+      else
+	errorLine (file, lineno, ErrorWarning, "Offset 0x%08x can not be encoded in %d instruction sequence, using %d instructions instead", constant, isADRL ? 2 : 1, num);
+    }
+
+  for (int n = 0; n < num; ++n, ++c)
+    {
+      /* Fix up the base register.  */
+      ARMWord irs = ir | (n == 0 ? irop1 : irop2);
+      if (baseReg >= 0 || n != 0)
+        irs = irs | LHS_OP (n == 0 ? baseReg : GET_DST_OP(ir));
+
+      int i8s4 = help_cpuImm8s4 (*c);
+      assert (i8s4 != -1);
+      irs |= i8s4;
+
+      Put_InsWithOffset (offset + n*4, irs);
+    }
+}
 
 /**
- * Implements ADR.
+ * Shared reloc updater for ADR and ADRL.
+ */
+static bool
+ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
+		  const Value *valueP, void *privData, bool final)
+{
+  ARMWord ir = *(const ARMWord *)privData;
+  if (!final)
+    Put_InsWithOffset (offset, ir);
+  const bool userIntendedTwoInstr = (GetWord (offset) & 1) ? true : false;
+
+  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
+  if (valueP->Data.Code.len != 1)
+    {
+      if (userIntendedTwoInstr)
+	Put_InsWithOffset (offset + 4, 0);
+      return true;
+    }
+  
+  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
+    {
+      const Code *codeP = &valueP->Data.Code.c[i];
+      if (codeP->Tag != CodeValue)
+	continue;
+      const Value *valP = &codeP->Data.value;
+
+      switch (valP->Tag)
+	{
+	  case ValueInt:
+	    /* Absolute value : results in MOV/MVN (followed by ADD/SUB in case of
+	       ADRL).  */
+	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Int.i, -1, final);
+	    break;
+
+	  case ValueAddr:
+	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Addr.i, valP->Data.Addr.r, final);
+	    break;
+
+	  case ValueSymbol:
+	    {
+	      /* Wait until the last (final) round as this avoid emitting unnecessary
+		relocations.  */
+	      if (!final)
+		return true;
+	      ADR_RelocUpdaterCore (file, lineno, offset, -(offset + 8), 15, final);
+	      Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP);
+	    }
+	    break;
+
+	  default:
+	    return true;
+	}
+    }
+
+  return false;
+}
+
+/**
+ * Implements ADR / ADRL.
  */
 bool
 m_adr (void)
 {
-  ARMWord cc = optionAdrL ();
-  if (cc == optionError)
+  ARMWord ir = optionAdrL ();
+  if (ir == optionError)
     return true;
 
-  ARMWord ir = cc & ~1, ir2 = 0;	/* bit 0 set to indicate ADRL */
-  ir |= DST_OP (getCpuReg ());
-  ir |= LHS_OP (15) | IMM_RHS;	/* pc */
+  /* When bit 0 is set, we'll emit ADRL (2 instructions).  Don't forget to
+     reset that bit in the ADR_RelocUpdater routine.  */
+  ir |= DST_OP (getCpuReg ()) | IMM_RHS;
+
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
+
   /* The label will expand to either a field in a based map or a PC-relative 
      expression.  */
-  /* Try the field first */
-  Value im = exprBuildAndEval (ValueAddr);
-  switch (im.Tag)
-    {
-    case ValueAddr:
-      /* Fix up the base register */
-      ir &= ~LHS_OP (15);
-      ir |= LHS_OP (im.Data.Addr.r);
-      /* Manufacture the offset as per normal */
-      if (cc & 1)
-	fixAdrl (0, &ir, &ir2, im.Data.Int.i, 0); /* don't warn ? */
-      else
-	ir = fixAdr (0, ir, im.Data.Int.i);
-      break;
-    default:
-      /* Not a field, so append " - . - 8" to the expression, and treat it as
-         PC-relative.  */
-      /* TODO: It may also be a late field but there's no simple way of
-         handling this when performing relocation.  */
-      codePosition (areaCurrentSymbol);	/* It's relative */
-      codeOperator (Op_sub);
-      codeInt (8);
-      codeOperator (Op_sub);
-      im = exprEval (ValueInt | ValueCode | ValueLateLabel);
-      switch (im.Tag)
-	{
-	case ValueInt:
-	  if (cc & 1)
-	    fixAdrl (0, &ir, &ir2, im.Data.Int.i, 0);	/* don't warn ? */
-	  else
-	    ir = fixAdr (0, ir, im.Data.Int.i);
-	  break;
-	case ValueCode:
-	case ValueLateLabel:
-	  if (cc & 1)
-	    relocAdrl (ir, &im);
-	  else
-	    relocAdr (ir, &im);
-	  break;
-	default:
-	  error (ErrorError, "Illegal ADR%s expression", (cc & 1) ? "L" : "");
-	  break;
-	}
-      break;
-    }
-  putIns (ir);
-  if (cc & 1)
-    putIns (ir2);
+  exprBuild ();
+  if (Reloc_QueueExprUpdate (ADR_RelocUpdater,
+			     areaCurrentSymbol->value.Data.Int.i,
+			     ValueAddr | ValueInt | ValueSymbol | ValueCode,
+			     &ir, sizeof (ir)))
+    error (ErrorError, "Illegal %s expression", (ir & 1) ? "ADRL" : "ADR");
+
   return false;
 }
 
 
-/* [0] Stack args       0 = no, 1..4 = a1-an; -1 = RET or TAIL will cause error
- * [1] Stack reg vars 0 = no, 1..6 = v1-vn
- * [2] Stack fp vars    0 = no, 1..4 = f4-f(3+n)
+/* [0] Stack args      0 = no, 1..4 = a1-an; -1 = RET or TAIL will cause error
+ * [1] Stack reg vars  0 = no, 1..6 = v1-vn
+ * [2] Stack fp vars   0 = no, 1..4 = f4-f(3+n)
  */
 static signed int regs[3] = {-1, -1, -1};
 
@@ -352,7 +479,6 @@ m_stack (void)
   if (inputLook ())
     {
       int reg = 0;
-      Value im;
       char c;
       do
 	{
@@ -376,12 +502,21 @@ m_stack (void)
 	    error (ErrorError, "Register class %c duplicated", c);
 	  if (Input_Match ('=', false))
 	    {
-	      im = exprBuildAndEval (ValueInt);
-	      if (im.Tag != ValueInt)
-		im.Data.Int.i = 0;
-	      if ((unsigned) im.Data.Int.i > lim[reg])
-		error (ErrorError, "Too many registers to stack for class %c", c);
-	      regs[reg] = (signed) im.Data.Int.i;
+	      const Value *im = exprBuildAndEval (ValueInt);
+	      int i;
+	      if (im->Tag != ValueInt)
+		{
+		  error (ErrorError, "No number of registers specified");
+		  i = 0;
+		}
+	      else
+		i = im->Data.Int.i;
+	      if ((unsigned)i  > lim[reg])
+		{
+		  error (ErrorError, "Too many registers to stack for class %c", c);
+		  i = 0;
+		}
+	      regs[reg] = i;
 	    }
 	  else
 	    regs[reg] = (signed) lim[reg];
@@ -483,7 +618,7 @@ m_tail (void)
   apcsEpi (cc, pop_inst, "TAIL");
   skipblanks ();
   if (inputLook ())
-    branch_shared (cc);
+    branch_shared (cc, false);
   return false;
 }
 
@@ -590,11 +725,11 @@ m_msr (void)
     error (ErrorError, "%slhs", InsertCommaAfter);
   if (Input_Match ('#', false))
     {
-      Value im = exprBuildAndEval (ValueInt);
-      if (im.Tag == ValueInt)
+      const Value *im = exprBuildAndEval (ValueInt);
+      if (im->Tag == ValueInt)
 	{
 	  cc |= 0x02000000;
-	  cc |= fixImm8s4 (0, cc, im.Data.Int.i);
+	  cc |= fixImm8s4 (0, cc, im->Data.Int.i);
 	}
       else
 	error (ErrorError, "Illegal immediate expression");

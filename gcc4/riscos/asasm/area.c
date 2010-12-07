@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -69,9 +70,12 @@ areaNew (Symbol *sym, int type)
   res->type = type;
   res->imagesize = 0;
   res->image = NULL;
+
+  res->relocQueue = NULL;
   res->norelocs = 0;
   res->relocs = NULL;
-  res->lits = NULL;
+
+  res->litPool = NULL;
 
   areaHeadSymbol = sym;
 
@@ -80,9 +84,9 @@ areaNew (Symbol *sym, int type)
 
 
 static bool
-areaImage (Area *area, int newsize)
+areaImage (Area *area, size_t newsize)
 {
-  unsigned char *newImage;
+  uint8_t *newImage;
   if (area->imagesize)
     newImage = realloc (area->image, newsize);
   else
@@ -97,7 +101,7 @@ areaImage (Area *area, int newsize)
 
 
 void
-areaGrow (Area *area, int mingrow)
+areaGrow (Area *area, size_t mingrow)
 {
   /* When we want to grow an implicit area, it is time to give an error as
      this is not something we want to output.  */
@@ -108,7 +112,7 @@ areaGrow (Area *area, int mingrow)
 	error (ErrorError, "No area defined");
     }
 
-  int inc;
+  size_t inc;
   if (area->imagesize && area->imagesize < DOUBLE_UP_TO)
     inc = area->imagesize;
   else
@@ -118,7 +122,7 @@ areaGrow (Area *area, int mingrow)
   while (inc > mingrow && !areaImage (area, area->imagesize + inc))
     inc /= 2;
   if (inc <= mingrow && !areaImage (area, area->imagesize + mingrow))
-    errorAbort ("Internal areaGrow: out of memory, minsize = %d", mingrow);
+    errorAbort ("Internal areaGrow: out of memory, minsize = %zd", mingrow);
 }
 
 void
@@ -129,6 +133,7 @@ areaInit (void)
 
 /**
  * Do an implicit LTORG at the end of all areas.
+ * Ensure AREA's are linked chronologically (instead of LIFO).
  */
 void
 areaFinish (void)
@@ -136,8 +141,24 @@ areaFinish (void)
   for (areaCurrentSymbol = areaHeadSymbol;
        areaCurrentSymbol != NULL;
        areaCurrentSymbol = areaCurrentSymbol->area.info->next)
-    litOrg (areaCurrentSymbol->area.info->lits);
+    Lit_DumpPool ();
+
+  /* Revert sort the area's so they become listed chronologically.  */
+  Symbol *aSymP = areaHeadSymbol;
+  assert (aSymP != NULL); /* There is always at least one area.  */
+  for (Symbol *nextSymP = aSymP->area.info->next; nextSymP != NULL; /* */)
+    {
+      Symbol *nextNextSymP = nextSymP->area.info->next;
+
+      nextSymP->area.info->next = aSymP;
+      aSymP = nextSymP;
+      
+      nextSymP = nextNextSymP;
+    }
+  areaHeadSymbol->area.info->next = NULL;
+  areaHeadSymbol = aSymP;
 }
+
 
 /**
  * Implements ENTRY.
@@ -178,10 +199,10 @@ c_align (void)
   else
     {				/* an expression follows */
       /* Determine align value */
-      Value value = exprBuildAndEval (ValueInt);
-      if (value.Tag == ValueInt)
+      const Value *value = exprBuildAndEval (ValueInt);
+      if (value->Tag == ValueInt)
 	{
-	  alignValue = value.Data.Int.i;
+	  alignValue = value->Data.Int.i;
 	  if (alignValue <= 0 || (alignValue & (alignValue - 1)))
 	    {
 	      error (ErrorError, "ALIGN value is not a power of two");
@@ -198,12 +219,12 @@ c_align (void)
       skipblanks ();
       if (Input_IsEolOrCommentStart ())
 	offsetValue = 0;
-      else if (inputGet () == ',')
+      else if (Input_Match (',', false))
 	{
-	  Value valueO = exprBuildAndEval (ValueInt);
-	  if (valueO.Tag == ValueInt)
+	  const Value *valueO = exprBuildAndEval (ValueInt);
+	  if (valueO->Tag == ValueInt)
 	    {
-	      offsetValue = valueO.Data.Int.i;
+	      offsetValue = valueO->Data.Int.i;
 	      if (offsetValue < 0)
 		{
 		  error (ErrorError, "ALIGN offset value is out-of-bounds");
@@ -227,17 +248,39 @@ c_align (void)
   int unaligned = (offsetValue - areaCurrentSymbol->value.Data.Int.i) % alignValue;
   if (unaligned || offsetValue >= alignValue)
     {
-      int bytesToStuff = (unaligned < 0) ? alignValue + unaligned : unaligned;
+      size_t bytesToStuff = (unaligned < 0) ? alignValue + unaligned : unaligned;
 
       bytesToStuff += (offsetValue / alignValue)*alignValue;
 
       if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + bytesToStuff))
 	areaGrow (areaCurrentSymbol->area.info, bytesToStuff);
 
-      for (; bytesToStuff; --bytesToStuff)
+      while (bytesToStuff--)
 	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
     }
   return false;
+}
+
+
+/**
+ * \param align Needs to be power of 2 except value 1.
+ */
+void
+Area_AlignTo (int align, const char *msg)
+{
+  assert (align != 1 && (align & (align - 1)) == 0);
+  int off = areaCurrentSymbol->value.Data.Int.i & (align - 1);
+  if (off)
+    {
+      if (msg)
+	error (ErrorInfo, "Unaligned %s", msg);
+
+      int grow = align - off;
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + grow))
+	areaGrow (areaCurrentSymbol->area.info, grow);
+      while (grow--)
+	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = 0;
+    }
 }
 
 
@@ -247,18 +290,18 @@ c_align (void)
 bool
 c_reserve (void)
 {
-  Value value = exprBuildAndEval (ValueInt);
-  if (value.Tag == ValueInt)
+  const Value *value = exprBuildAndEval (ValueInt);
+  if (value->Tag == ValueInt)
     {
-      int i = areaCurrentSymbol->value.Data.Int.i;
+      size_t i = areaCurrentSymbol->value.Data.Int.i;
 
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, i + value.Data.Int.i))
-	areaGrow (areaCurrentSymbol->area.info, value.Data.Int.i);
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, i + value->Data.Int.i))
+	areaGrow (areaCurrentSymbol->area.info, value->Data.Int.i);
 
-      areaCurrentSymbol->value.Data.Int.i += value.Data.Int.i;
+      areaCurrentSymbol->value.Data.Int.i += value->Data.Int.i;
 
-      for (; i < areaCurrentSymbol->value.Data.Int.i; i++)
-	areaCurrentSymbol->area.info->image[i] = 0;
+      while (i != (size_t)areaCurrentSymbol->value.Data.Int.i)
+	areaCurrentSymbol->area.info->image[i++] = 0;
     }
   else
     error (ErrorError, "Unresolved reserve not possible");
@@ -282,8 +325,7 @@ Area_Ensure (void)
   else if (!(sym->type & SYMBOL_AREA))
     {
       sym->type = SYMBOL_AREA | SYMBOL_DECLARED;
-      sym->value.Tag = ValueInt;
-      sym->value.Data.Int.i = 0;
+      sym->value = Value_Int (0);
       sym->area.info = areaNew (sym, AREA_CODE | AREA_READONLY | AREA_INIT);
     }
 
@@ -316,89 +358,100 @@ c_area (void)
   else
     {
       sym->type = SYMBOL_AREA | SYMBOL_DECLARED;
-      sym->value.Tag = ValueInt;
-      sym->value.Data.Int.i = 0;
+      sym->value = Value_Int (0);
       sym->area.info = areaNew (sym, 0);
     }
   skipblanks ();
 
   int newtype = 0;
   bool rel_specified = false, data_specified = false;
-  int c;
-  while ((c = inputGet ()) == ',')
+  while (Input_Match (',', true))
     {
       Lex attribute = lexGetId ();
-      if (!strncmp ("ABS", attribute.Data.Id.str, attribute.Data.Id.len))
+      if (attribute.Data.Id.len == sizeof ("ABS")-1
+	  && !memcmp ("ABS", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (rel_specified)
 	    error (ErrorError, "Conflicting area attributes ABS vs REL");
 	  newtype |= AREA_ABS;
 	}
-      else if (!strncmp ("REL", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("REL")-1
+	       && !memcmp ("REL", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (newtype & AREA_ABS)
 	    error (ErrorError, "Conflicting area attributes ABS vs REL");
 	  rel_specified = true;
 	}
-      else if (!strncmp ("CODE", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("CODE")-1
+	       && !memcmp ("CODE", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (data_specified)
 	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
 	  newtype |= AREA_CODE;
 	}
-      else if (!strncmp ("DATA", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("DATA")-1
+	       && !memcmp ("DATA", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (newtype & AREA_CODE)
 	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
 	  data_specified = true;
 	}
-      else if (!strncmp ("COMDEF", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("COMDEF")-1
+	       && !memcmp ("COMDEF", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_COMMONDEF;
-      else if (!strncmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len)
-	       || !strncmp ("COMREF", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("COMMON")-1 /* == sizeof ("COMREF")-1 */
+	       && (!memcmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len)
+		   || !memcmp ("COMREF", attribute.Data.Id.str, attribute.Data.Id.len)))
 	newtype |= AREA_COMMONREF | AREA_UDATA;
-      else if (!strncmp ("NOINIT", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("NOINIT")-1
+	       && !memcmp ("NOINIT", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_UDATA;
-      else if (!strncmp ("READONLY", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("READONLY")-1
+	       && !memcmp ("READONLY", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_READONLY;
-      else if (!strncmp ("PIC", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("PIC")-1
+	       && !memcmp ("PIC", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_PIC;
-      else if (!strncmp ("DEBUG", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("DEBUG")-1
+	       && !memcmp ("DEBUG", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_DEBUG;
-      else if (!strncmp ("REENTRANT", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("REENTRANT")-1
+	       && !memcmp ("REENTRANT", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_REENTRANT;
-      else if (!strncmp ("BASED", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("BASED")-1
+	       && !memcmp ("BASED", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  skipblanks ();
 	  ARMWord reg = getCpuReg ();
 	  newtype |= AREA_BASED | AREA_READONLY | (reg << 24);
 	}
-      else if (!strncmp ("LINKONCE", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("LINKONCE")-1
+	       && !memcmp ("LINKONCE", attribute.Data.Id.str, attribute.Data.Id.len))
 	newtype |= AREA_LINKONCE;
-      else if (!strncmp ("ALIGN", attribute.Data.Id.str, attribute.Data.Id.len))
+      else if (attribute.Data.Id.len == sizeof ("ALIGN")-1
+	       && !memcmp ("ALIGN", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  if (newtype & 0xFF)
 	    error (ErrorError, "You can't specify ALIGN attribute more than once");
 	  skipblanks ();
-	  if (inputGet () != '=')
+	  if (!Input_Match ('=', false))
 	    error (ErrorError, "Malformed ALIGN attribute specification");
-	  skipblanks ();
-	  Value value = exprBuildAndEval (ValueInt);
-	  if (value.Tag == ValueInt)
+	  const Value *value = exprBuildAndEval (ValueInt);
+	  if (value->Tag == ValueInt)
 	    {
-	      if (value.Data.Int.i < 2 || value.Data.Int.i > 12)
+	      if (value->Data.Int.i < 2 || value->Data.Int.i > 12)
 		error (ErrorError, "ALIGN attribute value must be between 2 (incl) and 12 (incl)");
 	      else
-		newtype |= value.Data.Int.i;
+		newtype |= value->Data.Int.i;
 	    }
 	  else
 	    error (ErrorError, "Unrecognized ALIGN attribute value");
 	}
       else
-	error (ErrorError, "Illegal area attribute %s", attribute.Data.Id.str);
+	error (ErrorError, "Illegal area attribute %.*s",
+	       (int)attribute.Data.Id.len, attribute.Data.Id.str);
       skipblanks ();
     }
-  inputUnGet (c);
 
   /* Any alignment specified ? No, take default alignment (2) */
   if ((newtype & 0xFF) == 0)

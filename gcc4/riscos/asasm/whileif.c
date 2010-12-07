@@ -169,15 +169,15 @@ c_if (const Lex *label)
 
   gCurPObjP->if_depth++;
 
-  Value flag = exprBuildAndEval (ValueBool);
+  const Value *flag = exprBuildAndEval (ValueBool);
   bool skipToEndIf;
-  if (flag.Tag != ValueBool)
+  if (flag->Tag != ValueBool)
     {
       error (ErrorError, "IF expression must be boolean (treating as true)");
       skipToEndIf = false;
     }
   else
-    skipToEndIf = !flag.Data.Bool.b;
+    skipToEndIf = !flag->Data.Bool.b;
 
   if (skipToEndIf)
     return if_skip ("No matching | or ]", false);
@@ -278,8 +278,8 @@ c_while (const Lex *label)
 
   const char * const inputMark = Input_GetMark ();
   /* Evaluate expression */
-  Value flag = exprBuildAndEval (ValueBool);
-  if (flag.Tag != ValueBool)
+  const Value *flag = exprBuildAndEval (ValueBool);
+  if (flag->Tag != ValueBool)
     {
       error (ErrorError, "WHILE expression must be boolean (treating as false)");
       while_skip ();
@@ -295,9 +295,9 @@ c_while (const Lex *label)
     }
 #endif
 #ifdef DEBUG
-  printf("c_while() : expr is <%s>\n", flag.Data.Bool.b ? "true" : "false");
+  printf("c_while() : expr is <%s>\n", flag->Data.Bool.b ? "true" : "false");
 #endif
-  if (!flag.Data.Bool.b)
+  if (!flag->Data.Bool.b)
     {
       while_skip ();
       return false;
@@ -343,16 +343,16 @@ static bool
 whileReEval (void)
 {
   inputThisInstead (gCurPObjP->whilestack->expr);
-  Value flag = exprBuildAndEval (ValueBool);
-  if (flag.Tag != ValueBool)
+  const Value *flag = exprBuildAndEval (ValueBool);
+  if (flag->Tag != ValueBool)
     {
       error (ErrorError, "WHILE expression must be boolean (treating as false)");
       return false;
     }
 #ifdef DEBUG
-  printf("whileReEval() : expr is <%s>\n", flag.Data.Bool.b ? "true" : "false");
+  printf("whileReEval() : expr is <%s>\n", flag->Data.Bool.b ? "true" : "false");
 #endif
-  if (flag.Data.Bool.b)
+  if (flag->Data.Bool.b)
     {
       switch (gCurPObjP->whilestack->tag)
 	{
