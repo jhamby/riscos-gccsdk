@@ -28,6 +28,7 @@
 #elif HAVE_INTTYPES_H
 #  include <inttypes.h>
 #endif
+#include <ieee754.h>
 
 #include "area.h"
 #include "error.h"
@@ -127,27 +128,89 @@ putData (size_t size, ARMWord data)
 void
 putDataFloat (size_t size, ARMFloat data)
 {
-  /* FIXME: this wrongly assumes that the native float/double layout corresponds
-     with the ARM FPA layout.  */
-  union
-  {
-    double d;
-    float f;
-    struct
-      {
-	char c[8];		/* endianness? */
-      } u;
-  } translate;
+  const union ieee754_float flt = { .f = (float)data };
+  const union ieee754_double dbl = { .d = data };
 
+  /* float : ARM/FPA and ARM/VFP.  */
+  const union arm_float
+    {
+      char c[4];
+      struct
+	{
+	  unsigned int mantissa:23;
+	  unsigned int exponent:8;
+	  unsigned int negative:1;
+	} flt;
+    } armflt =
+    {
+      .flt =
+	{
+	  .mantissa = flt.ieee.mantissa,
+	  .exponent = flt.ieee.exponent,
+	  .negative = flt.ieee.negative
+	}
+    };
+  assert (sizeof (armflt) == 4);
+
+  /* double : ARM/FPA.  */
+  const union arm_double_fpa
+    {
+      char c[8];
+      struct
+	{
+	  unsigned int mantissa0:20;
+	  unsigned int exponent:11;
+	  unsigned int negative:1;
+	  unsigned int mantissa1:32;
+	} dbl;
+    } armdbl_fpa =
+    {
+      .dbl =
+	{
+	  .mantissa0 = dbl.ieee.mantissa0,
+	  .exponent = dbl.ieee.exponent,
+	  .negative = dbl.ieee.negative,
+	  .mantissa1 = dbl.ieee.mantissa1
+	}
+    };
+  assert (sizeof (armdbl_fpa) == 8);
+
+#if 0
+  /* FIXME: support VPA ! */
+  /* double : ARM/VFP.  */
+  union arm_double_vfp
+    {
+      char c[8];
+      struct
+	{
+	  unsigned int mantissa1:32;
+	  unsigned int mantissa0:20;
+	  unsigned int exponent:11;
+	  unsigned int negative:1;
+	} dbl;
+    } armdbl_vfp =
+    {
+      .dbl =
+	{
+	  .mantissa1 = dbl.ieee.mantissa1
+	  .mantissa0 = dbl.ieee.mantissa0,
+	  .exponent = dbl.ieee.exponent,
+	  .negative = dbl.ieee.negative,
+	}
+    };
+  assert (sizeof (armdbl_vfp) == 8);
+#endif
+
+  const char *toWrite;
   switch (size)
     {
       case 4:
-	translate.f = (float) data;
 	Area_AlignTo (4, "float single");
+	toWrite = armflt.c;
 	break;
       case 8:
-	translate.d = (double) data;
 	Area_AlignTo (4, "float double");
+	toWrite = armdbl_fpa.c;
 	break;
       default:
 	errorAbort ("Internal putDataFloat: illegal size %zd", size);
@@ -159,7 +222,7 @@ putDataFloat (size_t size, ARMFloat data)
       if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
       for (size_t i = 0; i < size; i++)
-	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = translate.u.c[i];
+	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = toWrite[i];
     }
   else if (data)
     error (ErrorError, "Trying to define a non-zero value in an uninitialised area");

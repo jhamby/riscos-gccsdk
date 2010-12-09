@@ -143,35 +143,6 @@ lexint (int base)
 }
 
 
-static ARMFloat
-lexfloat (int r)
-{
-  /* Fraction part */
-  unsigned char c;
-  double res = r;
-  double frac = 0.1;
-  while (isdigit (c = (unsigned char)inputGet ()))
-    {
-      res = res + frac * (c - '0');
-      frac /= 10.0;
-    }
-  /* Exponent part */
-  double exponent = 0.0;
-  double signexp = 1.;
-  if (c == 'e' || c == 'E')
-    {
-      if (Input_Match ('-', false))
-	signexp = -1.;
-      else
-	Input_Match ('+', false);
-      while (isdigit (c = (unsigned char)inputGet ()))
-	exponent = exponent * 10.0 + (c - '0');
-    }
-  inputUnGet (c);
-  return res * pow (10.0, signexp * exponent);
-}
-
-
 Lex
 lexGetIdNoError (void)
 {
@@ -358,14 +329,22 @@ lexGetPrim (void)
     case '7':
     case '8':
     case '9':
-      inputUnGet (c);
-      result.tag = LexInt;
-      result.Data.Int.value = lexint (10);
-      if (Input_Match ('.', false))
-	{
-	  result.tag = LexFloat;
-	  result.Data.Float.value = lexfloat (result.Data.Int.value);
-	}
+      {
+	inputUnGet (c);
+	const char *mark = Input_GetMark ();
+	result.tag = LexInt;
+	result.Data.Int.value = lexint (10);
+	if (Input_Match ('.', false))
+	  {
+	    Input_RollBackToMark (mark);
+	    result.tag = LexFloat;
+	    char *newMark;
+	    result.Data.Float.value = strtod (mark, &newMark);
+	    if (newMark == mark)
+	      error (ErrorError, "Failed to read floating point value");
+	    inputSkipN (newMark - mark);
+	  }
+      }
       break;
 
     case '\'': /* FIXME: test 'abcd' alike integers.  */
@@ -490,7 +469,23 @@ lexGetPrim (void)
       break;
 
     case '.':
-      result.tag = LexPosition; // FIXME: check for floating point, e.g. ".5" ?
+      {
+	/* Do we have the position mark '.' or start of floating point number ? */
+	if (isdigit ((unsigned char)inputLook ()))
+	  {
+	    /* Looks like a floating point number.  */
+	    inputUnGet (c);
+	    const char *mark = Input_GetMark ();
+	    result.tag = LexFloat;
+	    char *newMark;
+	    result.Data.Float.value = strtod (mark, &newMark);
+	    if (newMark == mark)
+	      error (ErrorError, "Failed to read floating point value");
+	    inputSkipN (newMark - mark);
+	  }
+	else
+	  result.tag = LexPosition;
+      }
       break;
 
     case '@':

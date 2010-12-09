@@ -1,3 +1,12 @@
+Thu Dec  9 01:24:47 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* put.c (putDataFloat): Write out double FPA value correctly on non-ARM
+	hosts.
+	* lex.c (lexfloat): Remove.
+	(lexGetPrim): Use strtod for enhanced precision float reading. Support
+	floating point number starting with a period.
+	* regression/tests_pass/dcfs_dcfd.s: Added.
+
 Tue Dec  7 23:57:07 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	Start of v2.00 : too many changes to list them in detail, but:
