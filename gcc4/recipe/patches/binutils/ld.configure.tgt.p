@@ -1,6 +1,6 @@
---- ld/configure.tgt.orig	2009-08-06 19:38:03.000000000 +0200
-+++ ld/configure.tgt	2010-01-31 16:59:25.552640063 +0100
-@@ -86,6 +86,7 @@ arm*-*-linux-*)	        targ_emul=armelf
+--- ld/configure.tgt.orig	2010-12-01 12:03:47.000000000 +0100
++++ ld/configure.tgt	2010-12-11 02:00:02.872501343 +0100
+@@ -87,6 +87,7 @@ arm*-*-linux-*)	        targ_emul=armelf
  			targ_extra_emuls="armelf armelfb armelfb_linux"
  			targ_extra_libpath="armelfb_linux"
  			;;

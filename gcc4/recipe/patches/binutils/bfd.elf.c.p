@@ -1,6 +1,6 @@
---- bfd/elf.c.orig	2009-09-10 13:47:12.000000000 +0200
-+++ bfd/elf.c	2010-01-31 16:31:08.065017338 +0100
-@@ -3759,9 +3759,18 @@ _bfd_elf_map_sections_to_segments (bfd *
+--- bfd/elf.c.orig	2010-10-29 14:10:24.000000000 +0200
++++ bfd/elf.c	2010-12-11 02:08:00.814996811 +0100
+@@ -3892,8 +3892,17 @@ _bfd_elf_map_sections_to_segments (bfd *
  	    }
  	  else if (! writable
  		   && (hdr->flags & SEC_READONLY) == 0
@@ -10,9 +10,8 @@
 +	   merging them into one. This change forces LD to maintain separate
 +	   segments. Perhaps this functionality should be offered as a command
 +	   line option. */
- 		   && (((last_hdr->lma + last_size - 1)
- 			& ~(maxpagesize - 1))
- 		       != (hdr->lma & ~(maxpagesize - 1))))
+ 		   && (((last_hdr->lma + last_size - 1) & -maxpagesize)
+ 		       != (hdr->lma & -maxpagesize)))
 +#else
 +		  )
 +#endif

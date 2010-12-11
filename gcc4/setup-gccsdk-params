@@ -63,7 +63,7 @@ export GCCSDK_BUILDDIR=$GCCSDK_ROOT/builddir
 
 # Currently supported versions of gcc and binutils:
 export GCCSDK_SUPPORTED_GCC_RELEASE=4.1.2
-export GCCSDK_SUPPORTED_BINUTILS_RELEASE=2.20.1
+export GCCSDK_SUPPORTED_BINUTILS_RELEASE=2.21
 
 # Release name:
 export GCCSDK_RELEASE_NAME=Rel1dev

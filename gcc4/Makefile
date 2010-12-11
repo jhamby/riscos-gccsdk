@@ -4,8 +4,8 @@
 # Needed:
 #   - apt-get install flex bison libgmp3-dev libmpfr-dev texinfo build-essential
 #   - binutils 2.17 & gcc 4.1 need automake 1.9.6 and autoconf 2.59.
-#     binutils 2.20.1 needs automake 1.11.1, while gcc 4.4 needs automake 1.11.
-#     Both binutils 2.20.1 and gcc 4.4 need autoconf 2.64.
+#     binutils 2.21 needs automake 1.11.1, while gcc 4.4 needs automake 1.11.
+#     Both binutils 2.21 and gcc 4.4 need autoconf 2.64.
 #     Note the required automake/autoconf sources will be fetched & built automatically.
 #   - gdb requires libncurses5-dev
 
@@ -52,9 +52,9 @@ GCC_CONFIG_ARGS := --disable-threads --disable-multilib --disable-shared --with-
 BINUTILS_CONFIG_ARGS := --disable-multilib --disable-shared
 endif
 # Note: --with-pkgversion & --with-bugurl is only supported from binutils 2.18 (?) & gcc 4.3 onwards.
-GCC_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 3 Development' \
+GCC_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 1 Development' \
 	--with-bugurl=http://gccsdk.riscos.info/
-BINUTILS_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 3 Development' \
+BINUTILS_CONFIG_ARGS += --with-pkgversion='GCCSDK GCC $(GCC_VERSION) Release 1 Development' \
 	--with-bugurl=http://gccsdk.riscos.info/
 BINUTILS_CONFIG_ARGS += --enable-maintainer-mode --enable-interwork --disable-werror --with-gcc --disable-nls
 GCC_CONFIG_ARGS += --enable-maintainer-mode --enable-interwork --disable-nls

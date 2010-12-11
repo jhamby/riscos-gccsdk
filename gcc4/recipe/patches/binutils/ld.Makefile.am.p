@@ -1,14 +1,14 @@
---- ld/Makefile.am.orig	2009-09-01 22:56:51.000000000 +0200
-+++ ld/Makefile.am	2010-01-31 16:19:42.245014570 +0100
-@@ -127,6 +127,7 @@ ALL_EMULATIONS = \
- 	earmelf.o \
- 	earmelfb.o \
- 	earmelf_fbsd.o \
-+	earmelf_riscos.o \
- 	earmelf_linux.o \
- 	earmelf_linux_eabi.o \
- 	earmelfb_linux.o \
-@@ -620,6 +621,10 @@ earmelf_fbsd.c: $(srcdir)/emulparams/arm
+--- ld/Makefile.am.orig	2010-11-03 04:22:01.000000000 +0100
++++ ld/Makefile.am	2010-12-11 02:19:04.042493950 +0100
+@@ -147,6 +147,7 @@ ALL_EMULATION_SOURCES = \
+ 	earmelfb_linux_eabi.c \
+ 	earmelf_nbsd.c \
+ 	earmelfb_nbsd.c \
++	earmelf_riscos.c \
+ 	earmelf_vxworks.c \
+ 	earmnto.c \
+ 	earmnbsd.c \
+@@ -653,6 +654,10 @@ earmelf_fbsd.c: $(srcdir)/emulparams/arm
    $(ELF_DEPS) $(srcdir)/emultempl/armelf.em \
    $(srcdir)/scripttempl/elf.sc ${GEN_DEPENDS}
  	${GENSCRIPTS} armelf_fbsd "$(tdir_armelf_fbsd)"

@@ -1,6 +1,6 @@
---- bfd/elf32-arm.c.orig	2010-05-08 18:47:17.494886471 +0200
-+++ bfd/elf32-arm.c	2010-05-08 18:46:53.292387829 +0200
-@@ -1911,7 +1911,7 @@ typedef unsigned short int insn16;
+--- bfd/elf32-arm.c.orig	2010-11-18 09:19:05.000000000 +0100
++++ bfd/elf32-arm.c	2010-12-11 02:04:29.784991315 +0100
+@@ -1910,7 +1910,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
     section.  */
@@ -9,7 +9,7 @@
  
  #ifdef FOUR_WORD_PLT
  
-@@ -2011,6 +2011,46 @@ static const bfd_vma elf32_arm_symbian_p
+@@ -2010,6 +2010,46 @@ static const bfd_vma elf32_arm_symbian_p
      0x00000000,         /* dcd   R_ARM_GLOB_DAT(X) */
    };
  
@@ -56,7 +56,7 @@
  #define ARM_MAX_FWD_BRANCH_OFFSET  ((((1 << 23) - 1) << 2) + 8)
  #define ARM_MAX_BWD_BRANCH_OFFSET  ((-((1 << 23) << 2)) + 8)
  #define THM_MAX_FWD_BRANCH_OFFSET  ((1 << 22) -2 + 4)
-@@ -2651,6 +2691,20 @@ struct elf32_arm_link_hash_table
+@@ -2660,6 +2700,20 @@ struct elf32_arm_link_hash_table
    unsigned int bfd_count;
    int top_index;
    asection **input_list;
@@ -77,7 +77,7 @@
  };
  
  /* Create an entry in an ARM ELF linker hash table.  */
-@@ -2804,6 +2858,15 @@ elf32_arm_create_dynamic_sections (bfd *
+@@ -2820,6 +2874,15 @@ elf32_arm_create_dynamic_sections (bfd *
  	}
      }
  
@@ -93,7 +93,7 @@
    if (!htab->splt
        || !htab->srelplt
        || !htab->sdynbss
-@@ -2943,10 +3006,203 @@ elf32_arm_link_hash_table_create (bfd *a
+@@ -2961,10 +3024,203 @@ elf32_arm_link_hash_table_create (bfd *a
        free (ret);
        return NULL;
      }
@@ -297,7 +297,7 @@
  /* Free the derived linker hash table.  */
  
  static void
-@@ -6806,6 +7062,51 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -6933,6 +7189,51 @@ elf32_arm_final_link_relocate (reloc_how
    else
      addend = signed_addend = rel->r_addend;
  
@@ -349,7 +349,7 @@
    switch (r_type)
      {
      case R_ARM_NONE:
-@@ -7743,7 +8044,8 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -7874,7 +8175,8 @@ elf32_arm_final_link_relocate (reloc_how
           define _GLOBAL_OFFSET_TABLE in a different way, as is
           permitted by the ABI, we might have to change this
           calculation.  */
@@ -359,15 +359,18 @@
        return _bfd_final_link_relocate (howto, input_bfd, input_section,
  				       contents, rel->r_offset, value,
  				       rel->r_addend);
-@@ -9298,6 +9600,82 @@ static bfd_boolean
- elf32_arm_final_link (bfd *abfd, struct bfd_link_info *info)
+@@ -9431,10 +9733,86 @@ elf32_arm_final_link (bfd *abfd, struct 
  {
    struct elf32_arm_link_hash_table *globals = elf32_arm_hash_table (info);
+   asection *sec, *osec;
 +  asection *o;
 +  struct bfd_link_order *p;
 +  asection *ro_module_reloccode_section = NULL;
 +  asection *ro_module_relocdata_section = NULL;
-+
+ 
+   if (globals == NULL)
+     return FALSE;
+ 
 +  for (o = abfd->sections; o != NULL; o = o->next)
 +    {
 +      if (strcmp (o->name, ".riscos.module.reloccode") == 0)
@@ -438,11 +441,12 @@
 +
 +      BFD_ASSERT (ro_module_reloccode_section != NULL);
 +      BFD_ASSERT (ro_module_relocdata_section != NULL);
-+     }
- 
++    }
++
    /* Invoke the regular ELF backend linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
-@@ -9328,6 +9706,57 @@ elf32_arm_final_link (bfd *abfd, struct 
+     return FALSE;
+@@ -9481,6 +9859,57 @@ elf32_arm_final_link (bfd *abfd, struct 
  	return FALSE;
      }
  
@@ -500,7 +504,7 @@
    return TRUE;
  }
  
-@@ -10804,6 +11233,18 @@ elf32_arm_check_relocs (bfd *abfd, struc
+@@ -10831,6 +11260,18 @@ elf32_arm_check_relocs (bfd *abfd, struc
  
        eh = (struct elf32_arm_link_hash_entry *) h;
  
@@ -519,7 +523,7 @@
        switch (r_type)
          {
  	  case R_ARM_GOT32:
-@@ -11988,8 +12429,7 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -12029,8 +12470,7 @@ elf32_arm_size_dynamic_sections (bfd * o
  
        if (plt)
  	{
@@ -529,7 +533,7 @@
  	      || !add_dynamic_entry (DT_PLTREL,
  				     htab->use_rel ? DT_REL : DT_RELA)
  	      || !add_dynamic_entry (DT_JMPREL, 0))
-@@ -12014,6 +12454,9 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -12055,6 +12495,9 @@ elf32_arm_size_dynamic_sections (bfd * o
  	    }
  	}
  
@@ -539,7 +543,7 @@
        /* If any dynamic relocs apply to a read-only section,
  	 then we need a DT_TEXTREL entry.  */
        if ((info->flags & DF_TEXTREL) == 0)
-@@ -12110,7 +12553,10 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -12154,7 +12597,10 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  	     in all the symbols for which we are making plt entries.  The
  	     first three entries in .got.plt are reserved; after that
  	     symbols appear in the same order as in .plt.  */
@@ -551,7 +555,7 @@
  
  	  /* Calculate the address of the GOT entry.  */
  	  got_address = (sgot->output_section->vma
-@@ -12202,6 +12648,41 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -12246,6 +12692,41 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  				  elf32_arm_plt_thumb_stub[1], ptr - 2);
  		}
  
@@ -593,7 +597,7 @@
  	      put_arm_insn (htab, output_bfd,
  			    elf32_arm_plt_entry[0]
  			    | ((got_displacement & 0x0ff00000) >> 20),
-@@ -12217,6 +12698,7 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -12261,6 +12742,7 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  #ifdef FOUR_WORD_PLT
  	      bfd_put_32 (output_bfd, elf32_arm_plt_entry[3], ptr + 12);
  #endif
@@ -601,7 +605,7 @@
  	    }
  
  	  /* Fill in the entry in the global offset table.  */
-@@ -12547,6 +13029,27 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -12594,6 +13076,27 @@ elf32_arm_finish_dynamic_sections (bfd *
  	    {
  	      got_displacement = got_address - (plt_address + 16);
  
@@ -629,7 +633,7 @@
  	      plt0_entry = elf32_arm_plt0_entry;
  	      put_arm_insn (htab, output_bfd, plt0_entry[0],
  			    splt->contents + 0);
-@@ -12564,6 +13067,7 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -12611,6 +13114,7 @@ elf32_arm_finish_dynamic_sections (bfd *
  #else
  	      bfd_put_32 (output_bfd, got_displacement, splt->contents + 16);
  #endif
@@ -637,7 +641,7 @@
  	    }
  	}
  
-@@ -13830,7 +14334,7 @@ elf32_arm_is_function_type (unsigned int
+@@ -13784,7 +14288,7 @@ elf32_arm_is_function_type (unsigned int
  /* We use this to override swap_symbol_in and swap_symbol_out.  */
  const struct elf_size_info elf32_arm_size_info =
  {
@@ -646,7 +650,7 @@
    sizeof (Elf32_External_Phdr),
    sizeof (Elf32_External_Shdr),
    sizeof (Elf32_External_Rel),
-@@ -13924,7 +14428,7 @@ const struct elf_size_info elf32_arm_siz
+@@ -13877,7 +14381,7 @@ const struct elf_size_info elf32_arm_siz
  #define elf_backend_may_use_rela_p     0
  #define elf_backend_default_use_rela_p 0
  
