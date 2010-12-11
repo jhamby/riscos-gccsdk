@@ -222,8 +222,13 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
   for (size_t i = 0; i != valueP->Data.Code.len; ++i)
     {
       const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag != CodeValue)
-	continue;
+      if (codeP->Tag == CodeOperator)
+	{
+	  if (codeP->Data.op != Op_add)
+	    return true;
+	  continue;
+	}
+      assert (codeP->Tag == CodeValue);
       const Value *valP = &codeP->Data.value;
 
       switch (valP->Tag)
@@ -262,7 +267,8 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		      How = HOW2_INIT | HOW2_BYTE;
 		    break;
 		}
-	      Reloc_Create (How, offset, valP);
+	      if (Reloc_Create (How, offset, valP) == NULL)
+		return true;
 	    }
 	    break;
 
@@ -332,8 +338,13 @@ DefineReal_RelocUpdater (const char *file, int lineno, ARMWord offset,
   for (size_t i = 0; i != valueP->Data.Code.len; ++i)
     {
       const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag != CodeValue)
-	continue;
+      if (codeP->Tag == CodeOperator)
+	{
+	  if (codeP->Data.op != Op_add)
+	    return true;
+	  continue;
+	}
+      assert (codeP->Tag == CodeValue);
       const Value *valP = &codeP->Data.value;
 
       switch (valP->Tag)

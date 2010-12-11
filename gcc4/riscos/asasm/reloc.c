@@ -142,6 +142,10 @@ Reloc_QueueExprUpdate (RelocUpdater callback, ARMWord offset, ValueTag legal,
 Reloc *
 Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
 {
+  /* Check if we can create a relocation for given value.  */
+  if (value->Tag != ValueSymbol || value->Data.Symbol.factor <= 0)
+    return NULL;
+
   Reloc *newReloc;
   if ((newReloc = malloc (sizeof (Reloc))) == NULL)
     errorOutOfMem ();
@@ -154,24 +158,8 @@ Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
   areaCurrentSymbol->area.info->relocs = newReloc;
 
   /* Mark we want this symbol in our output.  */
-  if (newReloc->value.Tag == ValueSymbol)
-    {
-      if ((newReloc->value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0)
-        newReloc->value.Data.Symbol.symbol->used = 0;
-    }
-  else
-    {
-      assert (newReloc->value.Tag == ValueCode);
-      size_t len = newReloc->value.Data.Code.len;
-      const Code *code = newReloc->value.Data.Code.c;
-      for (size_t i = 0; i != len; ++i)
-	{
-	  if (code->Tag == CodeValue
-	      && code->Data.value.Tag == ValueSymbol
-	      && (code->Data.value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0)
-	    code->Data.value.Data.Symbol.symbol->used = 0;
-	}
-    } 
+  if ((newReloc->value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0)
+    newReloc->value.Data.Symbol.symbol->used = 0;
   
   return newReloc;
 }
@@ -250,7 +238,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	    areloc.How |= HOW2_SYMBOL;
 	  areloc.How = armword (areloc.How);
 	  int loop = value->Data.Symbol.factor;
-	  assert (loop > 0); /* FIXME: I'm sure this can become negative (but not zero).  Where to give an error on that ? */
+	  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 	  while (loop--)
 	    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
 	}
@@ -272,7 +260,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 		    areloc.How |= HOW2_SYMBOL;
 		  areloc.How = armword (areloc.How);
 		  int loop = value->Data.Symbol.factor;
-		  assert (loop > 0); /* FIXME: I'm sure this can become negative (but not zero).  Where to give an error on that ? */
+		  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 		  while (loop--)
 		    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
 		}
@@ -307,7 +295,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
 	  areloc.r_info = armword (areloc.r_info);
 	  int loop = value->Data.Symbol.factor;
-	  assert (loop > 0); /* FIXME: I'm sure this can become negative (but not zero).  Where to give an error on that ? */
+	  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 	  while (loop--)
 	    fwrite (&areloc, 1, sizeof(Elf32_Rel), outfile);
 	}
@@ -333,7 +321,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 		  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
 		  areloc.r_info = armword (areloc.r_info);
 		  int loop = value->Data.Symbol.factor;
-		  assert (loop > 0); /* FIXME: I'm sure this can become negative (but not zero).  Where to give an error on that ? */
+		  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 		  while (loop--)
 		    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
 		}

@@ -67,8 +67,13 @@ Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
       for (size_t i = 0; i != valueP->Data.Code.len; ++i)
 	{
 	  const Code *codeP = &valueP->Data.Code.c[i];
-	  if (codeP->Tag != CodeValue)
-	    continue;
+	  if (codeP->Tag == CodeOperator)
+	    {
+	      if (codeP->Data.op != Op_add)
+		return true;
+	      continue;
+	    }
+	  assert (codeP->Tag == CodeValue);
 	  const Value *valP = &codeP->Data.value;
 
 	  if (valP->Tag == ValueSymbol)
@@ -94,8 +99,13 @@ Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
   for (size_t i = 0; i != valueP->Data.Code.len; ++i)
     {
       const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag != CodeValue)
-	continue;
+      if (codeP->Tag == CodeOperator)
+	{
+	  if (codeP->Data.op != Op_add)
+	    return true;
+	  continue;
+	}
+      assert (codeP->Tag == CodeValue);
       const Value *valP = &codeP->Data.value;
 
       switch (valP->Tag)
@@ -114,8 +124,9 @@ Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	  case ValueSymbol:
 	    if (!final)
 	      return true;
-	    if (valP->Data.Symbol.symbol != areaCurrentSymbol)
-	      Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP);
+	    if (valP->Data.Symbol.symbol != areaCurrentSymbol
+	        && Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+	      return true;
 	    break;
 
 	  default:
@@ -389,8 +400,13 @@ ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
   for (size_t i = 0; i != valueP->Data.Code.len; ++i)
     {
       const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag != CodeValue)
-	continue;
+      if (codeP->Tag == CodeOperator)
+	{
+	  if (codeP->Data.op != Op_add)
+	    return true;
+	  continue;
+	}
+      assert (codeP->Tag == CodeValue);
       const Value *valP = &codeP->Data.value;
 
       switch (valP->Tag)
@@ -412,7 +428,8 @@ ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	      if (!final)
 		return true;
 	      ADR_RelocUpdaterCore (file, lineno, offset, -(offset + 8), 15, final);
-	      Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP);
+	      if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+		return true;
 	    }
 	    break;
 

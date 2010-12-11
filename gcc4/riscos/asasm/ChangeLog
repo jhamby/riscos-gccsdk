@@ -1,3 +1,15 @@
+Sat Dec 11 14:08:06 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c (DefineInt_RelocUpdater, DefineReal_RelocUpdater): Add
+	check on operator Op_add being used. Add check on Reloc_Create return
+	value.
+	* m_cpuctrl.c (Branch_RelocUpdater, ADR_RelocUpdater): Likewise.
+	* m_cpumem.c (DestMem_RelocUpdater): Likewise.
+	* code.c (Code_EvalLowest): Allow ValueSymbol for Op_neg.
+	* reloc.c (Reloc_Create): Add check on negative symbols.  Simplify
+	code.
+	(relocAOFOutput, relocELFOutput): Remove FIXMEs.
+
 Thu Dec  9 01:24:47 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* put.c (putDataFloat): Write out double FPA value correctly on non-ARM
@@ -10,7 +22,7 @@ Thu Dec  9 01:24:47 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 Tue Dec  7 23:57:07 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	Start of v2.00 : too many changes to list them in detail, but:
-	- Rewrote relocation code, removal of LateValue.
+	- Rewrote relocation code, removal of ValueLateLabel.
 	- Significantly reworked the 'Code' evaluation.
 	- Previously known broken test cases are now working.
 

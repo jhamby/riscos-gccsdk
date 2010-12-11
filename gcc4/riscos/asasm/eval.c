@@ -75,7 +75,12 @@ ememcmp (const Value *lv, const Value *rv)
         } \
       lvalue->Tag = ValueBool; \
     } while (0)
-		   
+
+/**
+ * Do <lvalue> = <lvalue> <op> <rvalue>
+ * \return true for success, false for failure (e.g. wrong operand types being
+ * used for given operation).
+ */
 bool
 evalBinop (Operator op, Value *lvalue, const Value *rvalue)
 {
@@ -443,19 +448,24 @@ Eval_NegValue (Value *value)
       case ValueInt:
 	value->Data.Int.i = -value->Data.Int.i;
 	break;
+
       case ValueFloat:
 	value->Data.Float.f = -value->Data.Float.f;
 	break;
+
       case ValueAddr:
 	value->Data.Addr.i = -value->Data.Addr.i;
 	break;
+
       case ValueSymbol:
-	value->Data.Symbol.factor = - value->Data.Symbol.factor;
+	value->Data.Symbol.factor = -value->Data.Symbol.factor;
 	break;
+
       case ValueCode:
 	for (size_t i = 0; i != value->Data.Code.len; ++i)
 	  {
 	    /* Negate only the values (not operations).  */
+	    /* FIXME: this is not always correct.  */
 	    if (value->Data.Code.c[i].Tag == CodeValue)
 	     {
 	        if (!Eval_NegValue (&value->Data.Code.c[i].Data.value))
@@ -463,12 +473,19 @@ Eval_NegValue (Value *value)
 	      }
 	  }
 	break;
+
       default:
 	return false;
     }
+
   return true;
 }
 
+/**
+ * <value> = <op> <value>
+ * \return true for success, false for failure (e.g. wrong operand types being
+ * used for given operation).
+ */
 bool
 evalUnop (Operator op, Value *value)
 {

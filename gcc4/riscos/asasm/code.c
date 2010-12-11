@@ -475,14 +475,15 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 		assert (spStart < *sp); /* At least one entry on the stack.  */
 		if (Stack[*sp - 1].Tag != CodeValue
 		    || (Stack[*sp - 1].Data.value.Tag == ValueSymbol
-		        && program[i].Data.op != Op_size))
+		        && program[i].Data.op != Op_size
+		        && program[i].Data.op != Op_neg))
 		  {
 		    /* We have an unresolved (or even undeclared) symbol
 		       on the stack, or previous operation failed because
 		       of an unresolved (undeclared) symbol.  */
 		    Stack[(*sp)++] = program[i];
 		  }
-		else if (!evalUnop (program[i].Data.op, &Stack[*sp - 1].Data.value)) /* FIXME: shouldn't we expand ValueCode as argument for Op_neg ? */
+		else if (!evalUnop (program[i].Data.op, &Stack[*sp - 1].Data.value))
 		  {
 #ifdef DEBUG_CODE
 		    printf ("FAILED\n");
