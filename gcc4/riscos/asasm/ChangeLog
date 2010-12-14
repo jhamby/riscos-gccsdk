@@ -1,3 +1,9 @@
+Tue Dec 14 02:08:35 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* tests_pass/ldr_from_addr.s: Enhance test.
+	* tests_pass/dcb_dcw_dcd.s: Added.
+	* tests_pass/storage_map.s: Added.
+
 Sat Dec 11 14:08:06 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c (DefineInt_RelocUpdater, DefineReal_RelocUpdater): Add
