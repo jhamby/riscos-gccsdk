@@ -200,8 +200,8 @@ const char *
 FS_GetCurFileName (void)
 {
   if (gCurPObjP == NULL)
-    return SourceFileName ? SourceFileName : "<stdin>";
-  return gCurPObjP->name ? gCurPObjP->name : "<stdin>";
+    return SourceFileName ? SourceFileName : "{standard input}";
+  return gCurPObjP->name ? gCurPObjP->name : "{standard input}";
 }
 
 

@@ -1,3 +1,9 @@
+Wed Dec 15 13:09:16 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* error.c (errorCore): Change "<stdin>" to "{standard input}" like the
+	GNU tools are using.
+	* filestack.c (FS_GetCurFileName): Likewise.
+
 Tue Dec 14 02:08:35 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* tests_pass/ldr_from_addr.s: Enhance test.
