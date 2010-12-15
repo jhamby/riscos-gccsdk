@@ -151,6 +151,9 @@ FS_PushFilePObject (const char *fileName)
 }
 
 
+/**
+ * Similar to FS_PopMacroPObject().
+ */
 static void
 FS_PopFilePObject (bool noCheck)
 {

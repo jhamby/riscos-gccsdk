@@ -70,12 +70,21 @@ if_skip (const char *onerror, bool closeOnly)
       if (Input_IsEolOrCommentStart ())
 	continue;
 
-      /* Check for label and skip it.  */
+      /* Check for label and skip it.
+         Make special exception for '$' starting labels, i.e. macro arguments.  */
       Lex label;
-      if (!isspace ((unsigned char)inputLook ()))
-	label = Lex_GetDefiningLabel ();
-      else
+      if (isspace ((unsigned char)inputLook ()))
 	label.tag = LexNone;
+      else if (inputLook () == '$')
+	{
+	  size_t len;
+	  (void) inputSymbol (&len, '\0');
+	  if (Input_Match ('.', false))
+	    (void) inputSymbol (&len, '\0');
+	  label.tag = LexNone;
+	}
+      else
+	label = Lex_GetDefiningLabel ();
       skipblanks ();
 
       /* Check for '[', '|', ']', 'IF', 'ELSE', 'ENDIF'.  */

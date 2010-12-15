@@ -623,8 +623,8 @@ inputArgSub (void)
  * \param c Character which is expected to be in input stream. If so, discard
  * it.
  * \param spacesToo Try to discard zero or more spaces as well.
- * \return true when character c was next characters in input stream. false
- * otherwise.
+ * \return true when character c was the next character in the input stream,
+ * false otherwise.
  */
 bool
 Input_Match (char c, bool spacesToo)

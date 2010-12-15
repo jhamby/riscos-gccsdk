@@ -306,7 +306,10 @@ errorCoreLine (const char *file, int lineno, ErrorTag e,
     lineno = FS_GetCurLineNumber ();
   if (file == NULL)
     file = FS_GetCurFileName ();
-  fprintf (stderr, "%s:%d: %s: %s\n", file, lineno, str, errbuf);
+  if (lineno == 0)
+    fprintf (stderr, "%s: %s: %s\n", file, str, errbuf);
+  else
+    fprintf (stderr, "%s:%d: %s: %s\n", file, lineno, str, errbuf);
 
   DoThrowback (t, lineno, errbuf, file);
 }

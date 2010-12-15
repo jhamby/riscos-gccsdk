@@ -44,7 +44,8 @@ typedef struct Macro
   const char *buf;
   unsigned int labelarg:8,	/* 0 or 1 of these */
     numargs:8;			/* and up to 16 in total */
-  char *args[MACRO_ARG_LIMIT];
+  const char *args[MACRO_ARG_LIMIT];	/**< Current argument values during macro execution.  */
+  const char *defArgs[MACRO_ARG_LIMIT];	/**< Default argument value.  */
   int startline;
 } Macro;
 
@@ -58,9 +59,8 @@ typedef struct
 
 void FS_PopMacroPObject (bool noCheck);
 
-const Macro *macroFind (const char *, size_t len);
-void macroCall (const Macro *, const Lex *);
-bool macroGetLine (char *buf);	/* returns 0 if end of macro */
+const Macro *Macro_Find (const char *, size_t len);
+void Macro_Call (const Macro *, const Lex *);
 
 bool c_macro (const Lex *);
 bool c_mexit (const Lex *);

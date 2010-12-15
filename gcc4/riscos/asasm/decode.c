@@ -415,9 +415,9 @@ decode (const Lex *label)
       Input_RollBackToMark (inputMark);
       size_t macroNameLen;
       const char *macroName = Input_Symbol (&macroNameLen);
-      const Macro *m = macroFind (macroName, macroNameLen);
+      const Macro *m = Macro_Find (macroName, macroNameLen);
       if (m)
-        macroCall (m, label);
+        Macro_Call (m, label);
       else
 	{
 	  error (ErrorError, "'%.*s' is not a recognized mnemonic nor known macro",

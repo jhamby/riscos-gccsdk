@@ -1,3 +1,25 @@
+Wed Dec 15 18:18:26 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/string.s: Enhance test with string escape
+	characters.
+	* regression/tests_pass/int.s: Added.
+	* symbol.c (symbolFix): Always emit the implicit symbol reference
+	warning.
+	* error.c (errorCoreLine): Don't print linenumber 0.
+	* macro.c (FS_PopMacroPObject): Reset pointer to NULL after freeing.
+	(FS_PushMacroPObject): Copy all macro arguments instead of only the
+	first one.
+	(Macro_Call,Macro_Find): Renamed from macroCall/macroFind.
+	(Macro_Call): Don't error on not using the macro label; Support default
+	argument values; More reliable argument excess check.
+	(c_macro): Support default argument values.
+	* macro.h (Macro): Add defArgs array.
+	(Macro_Call,Macro_Find): Renamed from macroCall/macroFind.
+	(macroGetLine): Remove prototype.
+	* decode.c: Follow the macroFind/macroCall rename.
+	* whileif.c (if_skip): Support macro labels.
+	* regression/tests_pass/macro_args.s: Added.
+
 Wed Dec 15 13:47:41 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (oDecodeTable): Add CODE16/CODE32.

@@ -339,8 +339,7 @@ symbolFix (int *stringSizeNeeded)
 		{
 		  /* Make it a reference symbol.  */
 		  sym->type |= SYMBOL_REFERENCE;
-		  if (option_pedantic)
-		    errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
+		  errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
 		}
 	      if (SYMBOL_OUTPUT (sym))
 		{
