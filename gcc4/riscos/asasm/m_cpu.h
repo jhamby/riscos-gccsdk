@@ -121,4 +121,7 @@ bool m_tst (void);
 bool m_umull (void);
 bool m_umlal (void);
 
+bool c_code16 (void);
+bool c_code32 (void);
+
 #endif

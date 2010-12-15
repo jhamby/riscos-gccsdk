@@ -38,6 +38,20 @@
 #include "put.h"
 #include "targetcpu.h"
 
+bool
+c_code16 (void)
+{
+  error (ErrorError, "Thumb code is not yet supported");
+  return false;
+}
+
+bool
+c_code32 (void)
+{
+  /* Ignore */
+  return false;
+}
+
 /** DATA none (or optional register) **/
 
 /**
