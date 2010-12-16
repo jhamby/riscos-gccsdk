@@ -63,10 +63,6 @@ static routPos *routListEnd;
 
 const char localFormat[] = "|Local$$%p$$%02i$$%i$$%s|";
 
-int localCurrent = 0;
-static localPos *localList;
-static localPos *localListEnd;
-
 
 /**
  * Implements ROUT.
@@ -104,77 +100,10 @@ c_rout (const Lex *label)
 }
 
 
-/**
- * Implements LOCAL.
- * Is an ObjAsm extension.
- */
-bool
-c_local (const Lex *label)
-{
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
-  localCurrent++;
-  localPos *p;
-  if ((p = malloc (sizeof (localPos))) == NULL)
-    errorOutOfMem ();
-  if (localListEnd)
-    localListEnd->next = p;
-  localListEnd = p;
-  if (!localList)
-    localList = p;
-  p->local = localCurrent;
-  p->file = FS_GetCurFileName ();
-  p->lineno = FS_GetCurLineNumber ();
-  return false;
-}
-
-
 bool
 localTest (const char *s)
 {
   return !memcmp (s, localFormat + 1, sizeof ("Local$$")-1);
-}
-
-
-void
-localMunge (Lex *label)
-{
-  if (!option_local)
-    return;
-
-  int i;
-  if (label->Data.Id.str[i = label->Data.Id.len - 2] == '$'
-      && (label->Data.Id.str[i + 1] == 'L' || label->Data.Id.str[i + 1] == 'l'))
-    {
-      char id[1024];
-      sprintf (id, "Local$$%i$$", localCurrent);
-      id[strlen (id) + label->Data.Id.len - 2] = 0;
-      memcpy (id + strlen (id), label->Data.Id.str, label->Data.Id.len - 2);
-
-      label->Data.Id.str = strdup (id);
-      label->Data.Id.len = strlen (id);
-      if (!label->Data.Id.str)
-	errorOutOfMem ();
-    }
-}
-
-
-void
-localFindLocal (int local, const char **file, int *lineno)
-{
-  localPos *p;
-  for (p = localList; p && p->local != local; p = p->next)
-    /* */;
-  if (p)
-    {
-      *file = p->file;
-      *lineno = p->lineno;
-    }
-  else
-    {
-      *file = NULL;
-      *lineno = 0;
-    }
 }
 
 

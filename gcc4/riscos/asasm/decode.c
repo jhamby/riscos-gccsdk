@@ -151,7 +151,6 @@ static const decode_table_t oDecodeTable[] =
   { "LFM", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_lfm } }, /* LFM CC (TYPE) */
   { "LGN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_lgn } }, /* LGN CC P R */
   { "LNK", DTABLE_CALLBACK_VOID, { .vd = c_lnk } }, /* LNK */
-  { "LOCAL", DTABLE_CALLBACK_LEX, { .lbl = c_local } }, /* LOCAL */
   { "LOG", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_log } }, /* LOG CC P R */
   { "LTORG", DTABLE_CALLBACK_VOID, { .vd = c_ltorg } }, /* LTORG */
   { "MACRO", DTABLE_CALLBACK_LEX, { .lbl = c_macro } }, /* MACRO */

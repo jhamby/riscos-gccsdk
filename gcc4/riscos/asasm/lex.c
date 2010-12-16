@@ -155,8 +155,6 @@ lexGetIdNoError (void)
     {
       result.tag = LexId;
       result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
-      if (result.Data.Id.len > 1)
-        localMunge (&result);
     }
   else
     result.tag = LexNone;
@@ -197,8 +195,10 @@ lexReadLocal (size_t *len, int *label)
 static Lex
 lexMakeLocal (int dir)
 {
-  Lex result;
-  result.tag = LexNone;
+  Lex result =
+    {
+      .tag = LexNone
+    };
 
   size_t len;
   int label;
@@ -215,10 +215,12 @@ lexMakeLocal (int dir)
 	    return result;
 	  }
         break;
+
       case 0:
         if ((i = rout_lblno[label] - 1) < 0)
           i++;
         break;
+
       case 1:
         i = rout_lblno[label];
         break;
@@ -540,8 +542,6 @@ lexGetPrim (void)
       if ((result.Data.Id.str = Input_Symbol (&result.Data.Id.len)) != NULL)
 	{
 	  result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
-	  if (result.Data.Id.len > 1)
-	    localMunge (&result);
 	  result.tag = LexId;
 	}
       else

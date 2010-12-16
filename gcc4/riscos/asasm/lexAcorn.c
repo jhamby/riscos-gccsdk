@@ -201,6 +201,7 @@ illegal:
 
 /**
  * Get builtin variable.
+ * FIXME: support CPU/FPU/ARCHITECTURE
  */
 void
 lexAcornPrim (Lex *lex)

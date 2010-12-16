@@ -159,6 +159,7 @@ symbolInit (void)
     { "f5", 2, 5, SYMBOL_FPUREG }, { "F5", 2, 5, SYMBOL_FPUREG },
     { "f6", 2, 6, SYMBOL_FPUREG }, { "F6", 2, 6, SYMBOL_FPUREG },
     { "f7", 2, 7, SYMBOL_FPUREG }, { "F7", 2, 7, SYMBOL_FPUREG },
+    /* FIXME: define single/double precision VFP registers */
     /* Coprocessor numbers */
     { "p0",  2, 0, SYMBOL_COPNUM },
     { "p1",  2, 1, SYMBOL_COPNUM },
@@ -356,13 +357,6 @@ symbolFix (int *stringSizeNeeded)
 			  int lineno;
 			  localFindRout (routine, &file, &lineno);
 			  errorLine (file, lineno, ErrorError, "Missing local label (fwd) with ID %02i in routine '%s'%s", label, *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
-			}
-		      else if (sscanf (sym->str + sizeof ("Local$$")-1, "%i$$%s", &ii, routine) > 0)
-			{
-			  const char *file;
-			  int lineno;
-			  localFindLocal (ii, &file, &lineno);
-			  errorLine (file, lineno, ErrorError, "Missing local label '%s'%s", *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
 			}
 		      return 0;
 		    }

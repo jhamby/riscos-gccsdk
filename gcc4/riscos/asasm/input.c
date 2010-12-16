@@ -449,14 +449,6 @@ inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
       return;
     }
 
-  /* Leave $[Ll].* alone, if we're wanting local labels.  */
-  if (option_local && label.Data.Id.len == 1 && toupper (*label.Data.Id.str) == 'L')
-    {
-      if (*outOffsetP < sizeof (input_buff))
-	input_buff[(*outOffsetP)++] = '$';
-      return;
-    }
-
   Symbol *sym = symbolFind (&label);
   if (sym)
     {
@@ -718,15 +710,8 @@ inputSymbol (size_t *ilen, char del)
       /* We do allow labels beginning with '#' */
       if (*p == '#')
 	++p;
-      while ((c = *p) != 0
-	     && (isalnum (c)
-		 || c == '_'
-		 || (c == '$'
-		     && option_local
-		     && (p[1] == 'l' || p[1] == 'L')
-		     && p[2] != '.'
-		     && p[2] != '_'
-		     && !isalpha (p[2]))))
+      while ((c = (unsigned char)*p) != 0
+	     && (isalnum (c) || c == '_'))
 	{
 	  p++;
 	  if (c == '\\' && *p)

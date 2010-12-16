@@ -1,3 +1,10 @@
+Thu Dec 16 17:35:59 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* local.c: Throw out original AS local variable support, we're only
+	going to support the ObjAsm one.
+	* local.h, input.c, main.c, lex.c: Follow.
+	* decode.c (oDecodeTable): Remove LOCAL.
+
 Thu Dec 16 04:20:50 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* code.c, code.h (Code_HasUndefSymbols): Made static.

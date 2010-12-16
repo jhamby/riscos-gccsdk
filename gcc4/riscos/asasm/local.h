@@ -30,14 +30,10 @@ extern int rout_lblno[100];
 extern const char *rout_id;
 
 extern const char localFormat[];
-extern int localCurrent;
 
-bool c_local (const Lex *label);
 bool c_rout (const Lex *label);
 
 bool localTest (const char *);
-void localMunge (Lex *);
-void localFindLocal (int local, const char **file, int *lineno);
 void localFindRout (const char *rout, const char **file, int *lineno);
 
 #endif
