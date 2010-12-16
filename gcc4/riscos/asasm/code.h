@@ -58,8 +58,7 @@ void codeString (const char *str, size_t len);
 void codeFloat (ARMFloat value);
 void codeBool (bool value);
 void codeAddr (int reg, int offset);
-void Code_AddValueCode (const Value *value);
-void codeValue (const Value *value);
+void codeValue (const Value *value, bool expCode);
 
 const Value *codeEvalLow (ValueTag legal, size_t size, Code *program, const ARMWord *instrOffsetP);
 const Value *codeEval (ValueTag legal, const ARMWord *instrOffsetP);
@@ -67,8 +66,10 @@ const Value *codeEval (ValueTag legal, const ARMWord *instrOffsetP);
 bool Code_HasUndefinedSymbols (void);
 Value Code_TakeSnapShot (void);
 void Code_ExpandCurrAreaSymbolAsOffset (Value *value, int offset);
-bool Code_HasUndefSymbols (const Code *code, size_t len);
 
+#if 0
+void Code_Assign (Code *dst, const Code *src);
+#endif
 void Code_Free (Code *code, size_t len);
 Code *codeCopy (size_t len, const Code *code);
 bool codeEqual (size_t len, const Code *a, const Code *b);

@@ -53,10 +53,11 @@ static void Code_Normalize (Code *values, size_t numElem);
 static bool Code_ExpandCode (const Value *value, int *sp);
 static void Code_ExpandCurrAreaSymbolAsAddr (Value *value, ARMWord instrOffset);
 static bool Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP, int *sp, bool doNormalize);
+static bool Code_HasUndefSymbols (const Code *code, size_t len);
 
-static Code Program[CODE_SIZECODE];
+static Code Program[CODE_SIZECODE]; /**< No ownership of Value objects.  */
 static int FirstFreeIns; /**< Index for Program[] array for first free slot.  */
-static Code Stack[CODE_SIZESTACK];
+static Code Stack[CODE_SIZESTACK]; /**< Ownership of Value object.  */
 
 void
 codeInit (void)
@@ -122,7 +123,7 @@ codeStorage (void)
   if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].Data.value = storageValue ();
+      Program[FirstFreeIns].Data.value = *storageValue ();
       ++FirstFreeIns;
     }
   else
@@ -202,25 +203,22 @@ codeAddr (int reg, int offset)
 }
 
 void
-Code_AddValueCode (const Value *value)
+codeValue (const Value *value, bool expCode)
 {
-  assert (value->Tag == ValueCode);
-  if (value->Data.Code.len + FirstFreeIns < CODE_SIZECODE)
+  if (expCode && value->Tag == ValueCode)
     {
-      memcpy (&Program[FirstFreeIns], value->Data.Code.c, value->Data.Code.len*sizeof (Code));
-      FirstFreeIns += value->Data.Code.len;
+      if (value->Data.Code.len + FirstFreeIns < CODE_SIZECODE)
+	{
+	  memcpy (&Program[FirstFreeIns], value->Data.Code.c, value->Data.Code.len*sizeof (Code));
+	  FirstFreeIns += value->Data.Code.len;
+	}
+      else
+	errorAbort ("Internal codeValue: overflow");
     }
-  else
-    errorAbort ("Internal Code_AddValueCode: overflow");
-}
-
-void
-codeValue (const Value *value)
-{
-  if (FirstFreeIns < CODE_SIZECODE)
+  else if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Value_Assign (&Program[FirstFreeIns].Data.value, value);
+      Program[FirstFreeIns].Data.value = *value;
       ++FirstFreeIns;
     }
   else
@@ -753,6 +751,37 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
   return false;
 }
 
+#if 0
+void
+Code_Assign (Code *dst, const Code *src)
+{
+  if (dst == src)
+    return;
+
+  if (dst->Tag == CodeValue)
+    {
+      if (src->Tag == CodeValue)
+	Value_Assign (&dst->Data.value, &src->Data.value);
+      else
+	{
+	  valueFree (&dst->Data.value);
+	  *dst = *src;
+	}
+    }
+  else
+    {
+      if (src->Tag == CodeValue)
+	{
+	  dst->Tag = CodeValue;
+	  dst->Data.value.Tag = ValueIllegal;
+	  Value_Assign (&dst->Data.value, &src->Data.value);
+	}
+      else
+	*dst = *src;
+    }
+}
+#endif
+
 /**
  * \param instrOffsetP It points to the instruction offset
  * which can be use to convert the current AREA symbol into a ValueAddr
@@ -832,7 +861,7 @@ Code_HasUndefinedSymbols (void)
   return Code_HasUndefSymbols (Program, FirstFreeIns);
 }
 
-bool
+static bool
 Code_HasUndefSymbols (const Code *code, size_t len)
 {
   for (int i = 0; i < len; ++i)

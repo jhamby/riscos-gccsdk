@@ -27,7 +27,7 @@
 #include "value.h"
 #include "symbol.h"
 
-Value storageValue (void);
+const Value *storageValue (void);
 
 bool c_record (void);
 bool c_alloc (Symbol *sym);

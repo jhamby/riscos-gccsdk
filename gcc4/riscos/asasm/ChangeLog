@@ -1,3 +1,18 @@
+Thu Dec 16 04:20:50 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* code.c, code.h (Code_HasUndefSymbols): Made static.
+	(codeValue): Merge Code_AddValueCode code into it.
+	* decode.c (oDecodeTable): Add MAP/FIELD.
+	(decode): Support ValueCode for StorageV values.
+	* m_cpumem.c (DestMem_RelocUpdater): Don't assert on ValueInt result
+	when ValueCode has length non-1, this is just an error.
+	(dstmem): Follow codeValue API change.
+	* storage.c: Support ValueCode as storage base.
+	* regression/tests_pass/record_basic.s: Add MAP/FIELD tests, add test
+	for MAP	argument being a label in the current AREA.
+	* reloc.c (relocFix): Follow codeValue API change.
+	* lit.c (Lit_DumpPool): Likewise.
+
 Wed Dec 15 18:18:26 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/string.s: Enhance test with string escape

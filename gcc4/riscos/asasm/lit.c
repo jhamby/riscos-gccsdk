@@ -233,10 +233,7 @@ Lit_DumpPool (void)
       litP->gotAssembled = true;
 
       codeInit ();
-      if (litP->value.Tag == ValueCode)
-	Code_AddValueCode (&litP->value);
-      else
-	codeValue (&litP->value);
+      codeValue (&litP->value, true);
 
       Symbol *symP = Lit_GetOffsetAsSymbol (litP);
       symP->type |= SYMBOL_DEFINED | SYMBOL_DECLARED;

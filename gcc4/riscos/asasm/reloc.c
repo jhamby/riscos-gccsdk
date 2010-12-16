@@ -179,10 +179,7 @@ relocFix (const Symbol *area)
       /* Re-evaluate value.  By now we can get a different result which we can
          use.  */
       codeInit ();
-      if (relQueue->expr.Tag == ValueCode)
-	Code_AddValueCode (&relQueue->expr); /* We want expansion of ValueCode.  */ /* FIXME: we could use codeEvalLow() instead and run directly using relQueue->expr contents.  */
-      else
-        codeValue (&relQueue->expr);
+      codeValue (&relQueue->expr, true);
       const Value *value = codeEval (relQueue->legal | ValueCode,
 				     relQueue->legal & ValueAddr ? &relQueue->offset : NULL);
       if (value->Tag == ValueIllegal)

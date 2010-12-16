@@ -1,6 +1,6 @@
-		AREA |C$$code|, CODE, READONLY
+	AREA Code1, CODE, READONLY
 
-		; Basic record test
+	; Basic record test
 
 	[ :LNOT: REFERENCE
 		MOV	R0, #0
@@ -10,8 +10,8 @@
 		#	2
 lbl1		#	1
 
-		^	2
-lbl2		#	0
+		MAP	2
+lbl2		FIELD	0
 
 		^	(2*lbl1 + lbl2 + 9) / 5
 lbl3		#	1
@@ -33,8 +33,8 @@ lbl3		#	1
 ; FIXME		LDR	R7, [R1, #|lbl4| + |lbl5| + |lbl6|]	; #7 + 2 + 5
 
 		^	5
-		#	2
-lbl4		#	1
+		MAP	2
+lbl4		FIELD	1
 
 		^	2
 lbl5		#	0
@@ -63,4 +63,39 @@ lbl6		#	1
 ; FIXME		LDR	R7, [R1, #14]
 	]
 
-		END
+	AREA	Code2, CODE, READONLY
+
+	[ :LNOT: REFERENCE
+		%	20
+
+tst2_b		%	32
+		^	tst2_b
+field0		#	4
+field1		#	8
+field2		#	16
+
+		LDR	r1, field1
+		DCD	field1
+
+		LDR	r2, field4
+		DCD	field4
+
+tst2_a		%	32
+		^	tst2_a
+field3		#	4
+field4		#	8
+field5		#	16
+
+	|
+		%	20 + 32
+
+		LDR	r1, {PC} - 32 + 4
+		DCD	{PC} - 4 - 32 + 4
+		
+		LDR	r2, {PC} + 8 + 4
+		DCD	{PC} + 4 + 4
+		
+		%	32
+	]
+
+	END

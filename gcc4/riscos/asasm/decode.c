@@ -34,6 +34,7 @@
 
 #include "area.h"
 #include "asm.h"
+#include "code.h"
 #include "commands.h"
 #include "decode.h"
 #include "error.h"
@@ -75,7 +76,7 @@ typedef struct
 static const decode_table_t oDecodeTable[] =
 {
   { "!", DTABLE_CALLBACK_VOID, { .vd = c_info } }, /* INFO shorthand */
-  { "#", DTABLE_CALLBACK_SYMBOL, { .sym = c_alloc } }, /* Reserve space in the current record.  */
+  { "#", DTABLE_CALLBACK_SYMBOL, { .sym = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
   { "%", DTABLE_CALLBACK_VOID, { .vd = c_reserve } }, /* Reserve space.  */
   { "&", DTABLE_CALLBACK_VOID, { .vd = c_dcd } }, /* DCD */
   { "*", DTABLE_CALLBACK_SYMBOL, { .sym = c_equ } }, /* EQU */
@@ -125,6 +126,7 @@ static const decode_table_t oDecodeTable[] =
   { "EXP", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_exp } }, /* EXP CC P R */
   { "EXPORT", DTABLE_CALLBACK_VOID, { .vd = c_globl } }, /* EXPORT / GLOBL */
   { "FDV", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_fdv } }, /* FDV CC P R */
+  { "FIELD", DTABLE_CALLBACK_SYMBOL, { .sym = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
   { "FIX", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_fix } }, /* FIX CC [P] R */
   { "FLT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_flt } }, /* FLT CC P R */
   { "FML", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_fml } }, /* FML CC P R */
@@ -153,6 +155,7 @@ static const decode_table_t oDecodeTable[] =
   { "LOG", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_log } }, /* LOG CC P R */
   { "LTORG", DTABLE_CALLBACK_VOID, { .vd = c_ltorg } }, /* LTORG */
   { "MACRO", DTABLE_CALLBACK_LEX, { .lbl = c_macro } }, /* MACRO */
+  { "MAP", DTABLE_CALLBACK_VOID, { .vd = c_record } }, /* ^ / MAP : start of new record layout.  */
   { "MCR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mcr } }, /* MCR CC */
   { "MCR2", DTABLE_CALLBACK_VOID, { .vd = m_mcr2 } }, /* MCR2 */
   { "MCRR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mcrr } }, /* MCRR CC */
@@ -241,7 +244,7 @@ static const decode_table_t oDecodeTable[] =
   { "WHILE", DTABLE_CALLBACK_LEX, { .lbl = c_while } }, /* WHILE */
   { "[", DTABLE_CALLBACK_LEX, { .lbl = c_if } }, /* [ IF */
   { "]", DTABLE_CALLBACK_LEX, { .lbl = c_endif } }, /* ] ENDIF */
-  { "^", DTABLE_CALLBACK_VOID, { .vd = c_record } }, /* Start of new record layout.  */
+  { "^", DTABLE_CALLBACK_VOID, { .vd = c_record } }, /* ^ / MAP : start of new record layout.  */
   { "|", DTABLE_CALLBACK_LEX, { .lbl = c_else } }, /* | ELSE */
 };
 #define DECODE_ENTRIES (sizeof (oDecodeTable) / sizeof (oDecodeTable[0]))
@@ -360,8 +363,11 @@ decode (const Lex *label)
         skipblanks ();
 
       const int startOffset = areaCurrentSymbol ? areaCurrentSymbol->value.Data.Int.i : 0;
-      const Value startStorage = storageValue ();
-      const int startStorageOffset = startStorage.Tag == ValueInt ? startStorage.Data.Int.i : startStorage.Data.Addr.i;
+      Value startStorage =
+	{
+	  .Tag = ValueIllegal
+	};
+      Value_Assign (&startStorage, storageValue ());
 
       Symbol *labelSymbol;
       switch (oDecodeTable[indexFound].flags & DTABLE_CALLBACK_MASK)
@@ -375,14 +381,18 @@ decode (const Lex *label)
 	      labelSymbol = ASM_DefineLabel (label, offset);
 	    }
 	    break;
+
 	  case DTABLE_CALLBACK_LEX:
+	    /* Any valid label here will *not* get any size assigned.  */
 	    labelSymbol = NULL;
 	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.lbl (label);
 	    break;
+
 	  case DTABLE_CALLBACK_SYMBOL:
 	    labelSymbol = ASM_DefineLabel (label, areaCurrentSymbol->value.Data.Int.i);
 	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (labelSymbol);
 	    break;
+
 	  default:
 	    tryAsMacro = false;
 	    break;
@@ -397,15 +407,26 @@ decode (const Lex *label)
       if (labelSymbol != NULL)
         {
           assert (labelSymbol->codeSize == 0);
-          const Value currentStorage = storageValue ();
-          const int currentStorageOffset = currentStorage.Tag == ValueInt ? currentStorage.Data.Int.i : currentStorage.Data.Addr.i;
           /* Either we have an increase in code/data in our current area, either
              we have an increase in storage map, either non of the previous (like
 	     with "<lbl> * <value>" input).  */
-          assert (areaCurrentSymbol->value.Data.Int.i - startOffset == 0 || currentStorageOffset - startStorageOffset == 0);
-          labelSymbol->codeSize = areaCurrentSymbol->value.Data.Int.i - startOffset
-				    + currentStorageOffset - startStorageOffset;
+	  if (areaCurrentSymbol->value.Data.Int.i - startOffset != 0)
+	    labelSymbol->codeSize = areaCurrentSymbol->value.Data.Int.i - startOffset;
+	  else
+	    {
+	      codeInit ();
+	      codeValue (storageValue (), false);
+	      codeValue (&startStorage, false);
+	      codeOperator (Op_sub);
+	      const Value *value = codeEval (ValueInt, NULL);
+	      if (value->Tag == ValueInt)
+		labelSymbol->codeSize = value->Data.Int.i;
+	      else
+		error (ErrorError, "Failed to determine label size");
+	    }
         }
+
+      valueFree (&startStorage);
     }
   else
     tryAsMacro = true;

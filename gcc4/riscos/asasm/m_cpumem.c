@@ -77,7 +77,8 @@ DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	    {
 	      /* This can only happen when "LDR Rx, =<constant>" can be turned into
 		 MOV/MVN Rx, #<constant>.  */
-	      assert (valueP->Data.Code.len == 1);
+	      if (valueP->Data.Code.len != 1)
+		return true;
 	      ARMWord newIR = ir & NV;
 	      newIR |= DST_OP (GET_DST_OP (ir));
 	      ARMWord im;
@@ -231,7 +232,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	    }
 
 	  codeInit ();
-	  codeValue (&symValue);
+	  codeValue (&symValue, true);
 	  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
 	  putIns (ir);
 	  if (symValue.Tag != ValueIllegal
@@ -267,10 +268,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	    assert (0);
 	  Value value = Lit_RegisterInt (exprBuildAndEval (ValueInt | ValueSymbol | ValueCode), litSize);
 	  codeInit ();
-	  if (value.Tag == ValueCode)
-	    Code_AddValueCode (&value);
-	  else
-	    codeValue (&value);
+	  codeValue (&value, true);
 	  valueFree (&value);
 	  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
 	  putIns (ir | P_FLAG);
