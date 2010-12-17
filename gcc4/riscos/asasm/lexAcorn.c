@@ -79,7 +79,7 @@ lexAcornUnop (Lex *lex)
 	break;
 
       case 'F':
-	switch (inputGetLower ())
+	switch (inputGet ())
 	  {
 	    case 'A':
 	      FINISH_STR ("TTR:", Op_fattr, 10); /* :FATTR: */

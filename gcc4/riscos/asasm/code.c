@@ -104,12 +104,12 @@ codePosition (Symbol *area, int offset)
 
       const Code values[] =
 	{
-	    { .Tag = CodeValue,
-	      .Data.value = { .Tag = ValueSymbol, .Data.Symbol = { .factor = 1, .symbol = area } } },
-	    { .Tag = CodeValue,
-	      .Data.value = { .Tag = ValueInt, .Data.Int = { .i = offset } } },
-	    { .Tag = CodeOperator,
-	      .Data.op = Op_add }
+	  { .Tag = CodeValue,
+	    .Data.value = { .Tag = ValueSymbol, .Data.Symbol = { .factor = 1, .symbol = area } } },
+	  { .Tag = CodeValue,
+	    .Data.value = { .Tag = ValueInt, .Data.Int = { .i = offset } } },
+	  { .Tag = CodeOperator,
+	    .Data.op = Op_add }
 	};
       Program[FirstFreeIns].Tag = CodeValue;
       Program[FirstFreeIns].Data.value = Value_Code (sizeof (values)/sizeof (values[0]), values);
@@ -864,7 +864,7 @@ Code_HasUndefinedSymbols (void)
 static bool
 Code_HasUndefSymbols (const Code *code, size_t len)
 {
-  for (int i = 0; i < len; ++i)
+  for (size_t i = 0; i < len; ++i)
     {
       switch (code[i].Tag)
 	{

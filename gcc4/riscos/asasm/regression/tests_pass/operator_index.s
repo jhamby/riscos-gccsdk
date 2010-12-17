@@ -13,7 +13,7 @@ foo3	#	16
 max	*	:INDEX:@
 
 	DCD	max
-	DCD	:INDEX:@
+	DCD	:INDEX:{VAR}
 
 	; Test 3
 	^ 0, r12

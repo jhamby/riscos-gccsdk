@@ -162,21 +162,6 @@ outputRemove (void)
     remove (outname);
 }
 
-static int
-countAreas (void)
-{
-  int i = 0;
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
-    {
-      /* Skip the implicit area.  */
-      if (Area_IsImplicit (ap))
-	continue;
-      
-      ap->used = i++;
-    }
-  return i;
-}
-
 static size_t
 writeEntry (int ID, int type, size_t size, size_t *offset)
 {
@@ -346,22 +331,24 @@ writeElfSH (int nmoffset, int type, int flags, int size,
 void
 outputElf (void)
 {
-  int noareas = countAreas ();
-  int norels;
   int offset, pad, strsize;
   int elfIndex, nsyms, shstrsize;
   int i, sectionSize, sectionType;
 
   /* We must call relocFix() before anything else.  */
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  int noareas = 0;
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
       
+      ap->used = noareas++;
+
       ap->area.info->norelocs = relocFix (ap);
     }
-  norels = countRels (areaHeadSymbol);
+
+  int norels = countRels (areaHeadSymbol);
 
     {
       Elf32_Ehdr elf_head;

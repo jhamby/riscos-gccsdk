@@ -292,8 +292,9 @@ symbolRemove (const Lex *l)
 {
   assert (l->tag == LexId);
 
-  Symbol **isearch;
-  for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
+  for (Symbol **isearch = &symbolTable[l->Data.Id.hash];
+       *isearch != NULL;
+       isearch = &(*isearch)->next)
     {
       if (EqSymLex (*isearch, l))
 	{
@@ -303,6 +304,7 @@ symbolRemove (const Lex *l)
 	  return;
 	}
     }
+
   error (ErrorAbort, "Internal error: symbolRemove");
 }
 
@@ -338,29 +340,36 @@ symbolFix (int *stringSizeNeeded)
 	    {
 	      if (SYMBOL_KIND (sym->type) == 0)
 		{
-		  /* Make it a reference symbol.  */
-		  sym->type |= SYMBOL_REFERENCE;
-		  errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
-		}
-	      if (SYMBOL_OUTPUT (sym))
-		{
-		  if (localTest (sym->str))
+		  if (Local_IsLocalLabel (sym->str))
 		    {
-		      void *area; /* FIXME: this is not usefully used. Why ? */
+		      Symbol *area;
 		      int label = -1;
 		      int ii;
 		      char routine[1024];
 		      *routine = 0;
-		      if (sscanf (sym->str, localFormat, &area, &label, &ii, &routine) > 2)
+		      if (sscanf (sym->str, Local_IntLabelFormat, &area, &label, &ii, &routine) > 2)
 			{
 			  const char *file;
 			  int lineno;
-			  localFindRout (routine, &file, &lineno);
-			  errorLine (file, lineno, ErrorError, "Missing local label (fwd) with ID %02i in routine '%s'%s", label, *routine ? routine : "<anonymous>", lineno ? " in block starting" : " (unknown location)");
+			  Local_FindROUT (routine, &file, &lineno);
+			  if (!Local_ROUTIsEmpty (routine) && file != NULL)
+			    errorLine (file, lineno, ErrorError, "In area %s routine %s has missing local label %%f%02i%s",
+				       area->str, routine, label, routine);
+			  else
+			    errorLine (NULL, 0, ErrorError, "In area %s there is a missing local label %%f%02i%s",
+				       area->str, label, Local_ROUTIsEmpty (routine) ? "" : routine);
 			}
-		      return 0;
+		      sym->type |= SYMBOL_REFERENCE;
 		    }
-
+		  else
+		    {
+		      /* Make it a reference symbol.  */
+		      sym->type |= SYMBOL_REFERENCE;
+		      errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
+		    }
+		}
+	      if (SYMBOL_OUTPUT (sym))
+		{
 		  sym->offset = strsize;
 		  strsize += sym->len + 1;
 		  sym->used = nosym++;

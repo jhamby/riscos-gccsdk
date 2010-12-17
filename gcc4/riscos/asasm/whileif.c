@@ -84,7 +84,7 @@ if_skip (const char *onerror, bool closeOnly)
 	  label.tag = LexNone;
 	}
       else
-	label = Lex_GetDefiningLabel ();
+	label = Lex_GetDefiningLabel (true);
       skipblanks ();
 
       /* Check for '[', '|', ']', 'IF', 'ELSE', 'ENDIF'.  */
@@ -249,7 +249,7 @@ while_skip (void)
     {
       /* Skip label (if there is one).  */
       if (!isspace ((unsigned char)inputLook ()))
-	(void) Lex_GetDefiningLabel ();
+	(void) Lex_GetDefiningLabel (true);
       skipblanks ();
 
       /* Look for WHILE and WEND.  */

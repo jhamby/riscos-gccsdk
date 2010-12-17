@@ -123,7 +123,7 @@ typedef struct
     } Data;
 } Lex;
 
-Lex Lex_GetDefiningLabel (void);
+Lex Lex_GetDefiningLabel (bool noCheck);
 Lex lexGetId (void);
 Lex lexGetIdNoError (void);
 Lex lexGetPrim (void);

@@ -1,3 +1,22 @@
+Fri Dec 17 18:30:42 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/operator_index.s: Use once {VAR} instead of @.
+	* regression/tests_pass/local_label.s: Added.
+	* symbol.c (symbolFix): Fix test on unresolved local (forward) label.
+	* local.c, local.h: Cleanup.  Function & global variable rename.
+	* commands.c (symFlag): Follow localTest to Local_IsLocalLabel rename.
+	* expr.c (prim): Invalid Lex object should abort the expression
+	evaluations as otherwise asserts will go off later.
+	* output.c (countAreas): Merge into outputElf
+	* lex.c, lex.h (Lex_ReadLocalLabel, Lex_GetDefiningLabel): Add noCheck
+	parameter which needs to be set when skipping if branch or while body.
+	Clean up the local label code, more work is needed.
+	* whileif.c (if_skip,while_skip): Follow API change of
+	Lex_GetDefiningLabel.
+	* asm.c (ASM_Assemble): Likewise.
+	* lexAcorn.c (lexAcornUnop): Fix tokenizing of :FATTR:, :FEXEC:,
+	:FLOAD: and :FSIZE:.
+
 Thu Dec 16 17:35:59 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* local.c: Throw out original AS local variable support, we're only

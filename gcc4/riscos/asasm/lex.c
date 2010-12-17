@@ -173,60 +173,81 @@ lexGetId (void)
 }
 
 
-static const char *
-lexReadLocal (size_t *len, int *label)
+/**
+ * \return -1 when it wasn't able to read a local label, otherwise a local
+ * label value 0 - 99 (incl).
+ */
+static int
+Lex_ReadLocalLabel (bool noCheck)
 {
   if (!isdigit (inputLook ()))
     errorAbort ("Missing local label number");
-  *label = inputGet () - '0';
+  int label = inputGet () - '0';
   if (isdigit (inputLook ()))
-    *label = (*label * 10) + (inputGet () - '0');
-  const char *name = inputSymbol (len, 0);
-  if (len && strncmp (rout_id, name, *len))
+    label = 10*label + inputGet () - '0';
+
+  /* If a routinename is given, check if thats the one given with ROUT.  */
+  size_t len;
+  const char *name = inputSymbol (&len, 0);
+  if (!noCheck
+      && len
+      && !(!memcmp (Local_CurROUTId, name, len) && Local_CurROUTId[len] == '\0'))
     {
-      error (ErrorError, "Local label name (%s) does not match routine name (%s)", rout_id, name );
-      return NULL;
+      if (Local_ROUTIsEmpty (Local_CurROUTId))
+	error (ErrorError, "Local label can not have a routine name %.*s here", (int)len, name);
+      else
+        error (ErrorError, "Local label with routine name %.*s does not match with current routine name %s", (int)len, name, Local_CurROUTId);
+      return -1;
     }
 
-  return name;
+  return label;
 }
 
+typedef enum
+{
+  eThisLevelOnly,
+  eAllLevels,
+  eThisLevelAndHigher
+} LocalLabel_eSearch;
 
 static Lex
-lexMakeLocal (int dir)
+Lex_MakeLocalLabel (int dir, LocalLabel_eSearch level)
 {
   Lex result =
     {
       .tag = LexNone
     };
 
-  size_t len;
-  int label;
-  if (!lexReadLocal (&len, &label))
+  int label = Lex_ReadLocalLabel (false);
+  if (label < 0)
     return result;
 
-  int i = 0;
+  int i;
   switch (dir)
     {
       case -1:
-        if ((i = rout_lblno[label] - 1) < 0)
+	/* Search backward.  */
+        if ((i = Local_ROUTLblNo[label] - 1) < 0)
 	  {
-	    errorAbort ("Missing local label (bwd) with ID %02i", label);
+	    errorAbort ("Missing local label %%b%02i", label);
 	    return result;
 	  }
         break;
 
+      default:
       case 0:
-        if ((i = rout_lblno[label] - 1) < 0)
+	/* Search backward, when not found, search forward.  */
+        if ((i = Local_ROUTLblNo[label] - 1) < 0)
           i++;
         break;
 
       case 1:
-        i = rout_lblno[label];
+	/* Search forward.  */
+        i = Local_ROUTLblNo[label];
         break;
     }
   char id[1024];
-  sprintf (id, localFormat, areaCurrentSymbol, label, i, rout_id);
+  snprintf (id, sizeof (id), Local_IntLabelFormat, areaCurrentSymbol, label, i, Local_CurROUTId);
 
   result.tag = LexId;
   result.Data.Id.str = strdup (id);
@@ -239,20 +260,25 @@ lexMakeLocal (int dir)
 
 
 Lex
-Lex_GetDefiningLabel (void)
+Lex_GetDefiningLabel (bool noCheck)
 {
   nextbinopvalid = false; /* FIXME: why would this be necessary ? */
+
   if (isdigit ((unsigned char)inputLook ()))
     {
-      Lex result;
-      result.tag = LexNone;
-      size_t len;
-      int label;
-      const char *name = lexReadLocal (&len, &label);
-      if (!name)
+      /* Looks like this is a local label.  */
+      Lex result =
+	{
+	  .tag = LexNone
+	};
+
+      int label = Lex_ReadLocalLabel (noCheck);
+      if (label < 0)
 	return result;
+
       char id[1024];
-      sprintf (id, localFormat, areaCurrentSymbol, label, rout_lblno[label]++, rout_id);
+      snprintf (id, sizeof (id), Local_IntLabelFormat, areaCurrentSymbol, label, Local_ROUTLblNo[label], Local_CurROUTId);
+      Local_ROUTLblNo[label]++;
 
       result.tag = LexId;
       result.Data.Id.str = strdup (id);
@@ -262,6 +288,7 @@ Lex_GetDefiningLabel (void)
       result.Data.Id.hash = lexHashStr (result.Data.Id.str, result.Data.Id.len);
       return result;
     }
+
   return lexGetId ();
 }
 
@@ -496,39 +523,48 @@ lexGetPrim (void)
 
     case '%':
       {
+	/* Local label reference.  */
 	int dir;
 	switch (inputLookLower ())
 	  {
-	  case 'f':
-	    inputSkip ();
-	    dir = 1;
-	    break;
-	  case 'b':
-	    inputSkip ();
-	    dir = -1;
-	    break;
-	  default:
-	    dir = 0;
-	    break;
+	    case 'f':
+	      /* Forward looking.  */
+	      inputSkip ();
+	      dir = 1;
+	      break;
+
+	    case 'b':
+	      /* Backword looking.  */
+	      inputSkip ();
+	      dir = -1;
+	      break;
+
+	    default:
+	      /* Search backwards first, then forward.  */
+	      dir = 0;
+	      break;
 	  }
+	LocalLabel_eSearch level;
 	switch (inputLookLower ())
 	  {
-	  case 't':
-	    inputSkip ();
-	    if (option_pedantic) /* TODO: */
-	      error (ErrorWarning,
-	             "Range qualifiers in local label names are not implemented. Ignored 't' in local label name");
-	    break;
-	  case 'a':
-	    inputSkip ();
-	    break;
-	  default:
-	    if (option_pedantic) /* TODO: */
-	      error (ErrorWarning,
-	             "Range qualifiers in local label names are not implemented. 'all macro levels' is assumed");
-	    break;
+	    case 't':
+	      /* Only at this macro level.  */
+	      inputSkip ();
+	      level = eThisLevelOnly;
+	      break;
+
+	    case 'a':
+	      /* All macro levels.  */
+	      inputSkip ();
+	      level = eAllLevels;
+	      break;
+
+	    default:
+	      /* At this macro level and all upper levels.  */
+	      level = eThisLevelAndHigher;
+	      break;
 	  }
-	return lexMakeLocal (dir);
+	return Lex_MakeLocalLabel (dir, level);
       }
       break;
 
@@ -560,6 +596,7 @@ lexGetBinop (void)
       nextbinopvalid = false;
       return nextbinop;
     }
+
   skipblanks ();
   Lex result;
   int c;

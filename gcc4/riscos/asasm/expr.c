@@ -89,7 +89,7 @@ prim (void)
         codeBool (lex.Data.Bool.value);
         break;
       default:
-        error (ErrorError, "Illegal expression");
+        error (ErrorAbort, "Illegal expression");
         break;
     }
 }

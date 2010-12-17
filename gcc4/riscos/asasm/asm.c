@@ -71,7 +71,7 @@ ASM_Assemble (const char *asmFile)
       /* Read label (if there is one).  */
       Lex label;
       if (!isspace ((unsigned char)inputLook ()))
-	label = Lex_GetDefiningLabel ();
+	label = Lex_GetDefiningLabel (false);
       else
 	label.tag = LexNone;
       skipblanks ();

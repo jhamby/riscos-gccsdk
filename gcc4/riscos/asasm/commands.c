@@ -419,7 +419,7 @@ symFlag (unsigned int flags, const char *err)
     {
       /* When the symbol is not known yet, it will automatically be created.  */
       Symbol *sym = symbolGet (&lex);
-      if (localTest (sym->str))
+      if (Local_IsLocalLabel (sym->str))
         error (ErrorError, "Local labels cannot be %s", err);
       else
         sym->type |= flags;
