@@ -423,7 +423,7 @@ c_area (void)
 	{
 	  skipblanks ();
 	  ARMWord reg = getCpuReg ();
-	  newtype |= AREA_BASED | AREA_READONLY | (reg << 24);
+	  newtype |= AREA_BASED | (reg << 24);
 	}
       else if (attribute.Data.Id.len == sizeof ("LINKONCE")-1
 	       && !memcmp ("LINKONCE", attribute.Data.Id.str, attribute.Data.Id.len))

@@ -1,3 +1,8 @@
+Sat Dec 18 14:42:42 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* area.c (c_area): A BASED area does not need to be marked as READONLY.
+	* aoffile.h (HOW_TYPE2, HOW_TYPE3): Remove.
+
 Sat Dec 18 03:49:09 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_fail/label_space.s: Merge into...
