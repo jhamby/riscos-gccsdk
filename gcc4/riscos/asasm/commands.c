@@ -350,17 +350,17 @@ DefineReal_RelocUpdater (const char *file, int lineno, ARMWord offset,
       switch (valP->Tag)
 	{
 	  case ValueInt:
-	    putDataFloat (size, valP->Data.Int.i);
+	    Put_FloatDataWithOffset (offset, size, valP->Data.Int.i);
 	    break;
 
 	  case ValueFloat:
-	    putDataFloat (size, valP->Data.Float.f);
+	    Put_FloatDataWithOffset (offset, size, valP->Data.Float.f);
 	    break;
 
 	  case ValueSymbol:
 	    if (!final)
 	      {
-		Put_DataWithOffset (offset, size, 0);
+		Put_FloatDataWithOffset (offset, size, 0.);
 		return true;
 	      }
 	    errorLine (file, lineno, ErrorError, "Can't create relocation");

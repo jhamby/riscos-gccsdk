@@ -59,7 +59,7 @@ Put_DataWithOffset (size_t offset, size_t size, ARMWord data)
 	    areaCurrentSymbol->area.info->image[offset + 0] = data & 0xff;
 	    break;
 	  default:
-	    errorAbort ("Internal putData: illegal size");
+	    errorAbort ("Internal Put_DataWithOffset: illegal size");
 	    break;
 	}
     }
@@ -126,7 +126,7 @@ putData (size_t size, ARMWord data)
  * \entry data Float value to be written.
  */
 void
-putDataFloat (size_t size, ARMFloat data)
+Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data)
 {
   const union ieee754_float flt = { .f = (float)data };
   const union ieee754_double dbl = { .d = data };
@@ -222,7 +222,7 @@ putDataFloat (size_t size, ARMFloat data)
       if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
       for (size_t i = 0; i < size; i++)
-	areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = toWrite[i];
+	Put_DataWithOffset (offset + i, 1, toWrite[i]);
     }
   else if (data)
     error (ErrorError, "Trying to define a non-zero value in an uninitialised area");

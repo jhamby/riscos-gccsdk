@@ -1,3 +1,15 @@
+Sat Dec 18 03:49:09 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_fail/label_space.s: Merge into...
+	* regression/tests_pass/operator_questionmark.s: ...here with a couple
+	of fixes.
+	* regression/tests_fail/local_label2.s: Added prototype test but is not
+	yet fully fleshed out.
+	* put.c, put.h (Put_FloatDataWithOffset): Renamed from putDataFloat
+	and add offset parameter.
+	* commands.c (DefineReal_RelocUpdater): Take offset into account.
+	Follow Put_FloatDataWithOffset rename.
+
 Fri Dec 17 18:30:42 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/operator_index.s: Use once {VAR} instead of @.
