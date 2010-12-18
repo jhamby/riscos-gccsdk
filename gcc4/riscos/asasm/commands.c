@@ -43,7 +43,6 @@
 #include "expr.h"
 #include "filestack.h"
 #include "fix.h"
-#include "help_lex.h"
 #include "include.h"
 #include "input.h"
 #include "lex.h"

@@ -38,7 +38,6 @@
 #include "elf.h"
 #include "error.h"
 #include "global.h"
-#include "help_lex.h"
 #include "local.h"
 #include "main.h"
 #include "output.h"
@@ -434,34 +433,17 @@ symbolSymbolAOFOutput (FILE *outfile)
 		  int v;
 		  switch (value->Tag)
 		    {
-		      case ValueIllegal:
-			errorLine (NULL, 0, ErrorError,
-			           "Symbol %s cannot be evaluated", sym->str);
-			v = 0;
-			break;
 		      case ValueInt:
-		      case ValueAddr:	/* nasty hack */
 			v = value->Data.Int.i;
 			break;
-		      case ValueFloat:
-			errorLine (NULL, 0, ErrorError,
-			           "Linker does not understand float constants (%s)", sym->str);
-			v = (int) value->Data.Float.f;
-			break;
-		      case ValueString:
-			v = lexChar2Int (false, value->Data.String.len, value->Data.String.s);
-			break;
+
 		      case ValueBool:
 			v = value->Data.Bool.b;
 			break;
-		      case ValueCode:
-			errorLine (NULL, 0, ErrorError,
-			           "Linker does not understand code constants (%s)", sym->str);
-			v = 0;
-			break;
+
 		      default:
-			errorAbortLine (NULL, 0,
-			                "Internal symbolSymbolAOFOutput: not possible (%s) (0x%x)", sym->str, value->Tag);
+			errorLine (NULL, 0, ErrorError,
+			           "Symbol %s cannot be evaluated for storage in output format", sym->str);
 			v = 0;
 			break;
 		    }
@@ -560,30 +542,17 @@ symbolSymbolELFOutput (FILE *outfile)
 		  int v;
 		  switch (value->Tag)
 		    {
-		      case ValueIllegal:
-			errorLine (NULL, 0, ErrorError, "Symbol %s cannot be evaluated", sym->str);
-			v = 0;
-			break;
 		      case ValueInt:
-		      case ValueAddr: /* nasty hack */
 			v = value->Data.Int.i;
 			break;
-		      case ValueFloat:
-			errorLine (NULL, 0, ErrorError, "Linker does not understand float constants (%s)", sym->str);
-			v = (int) value->Data.Float.f;
-			break;
-		      case ValueString:
-			v = lexChar2Int (false, value->Data.String.len, value->Data.String.s);
-			break;
+
 		      case ValueBool:
 			v = value->Data.Bool.b;
 			break;
-		      case ValueCode:
-			errorLine (NULL, 0, ErrorError, "Linker does not understand code constants (%s)", sym->str);
-			v = 0;
-			break;
+
 		      default:
-			errorAbortLine (NULL, 0, "Internal symbolELFSymbolOutput: not possible (%s) (0x%x)", sym->str, value->Tag);
+			errorLine (NULL, 0, ErrorError,
+			           "Symbol %s cannot be evaluated for storage in output format", sym->str);
 			v = 0;
 			break;
 		    }

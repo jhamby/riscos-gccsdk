@@ -34,7 +34,6 @@
 
 #include "area.h"
 #include "error.h"
-#include "help_lex.h"
 #include "input.h"
 #include "lex.h"
 #include "lexAcorn.h"
@@ -211,7 +210,7 @@ typedef enum
 } LocalLabel_eSearch;
 
 static Lex
-Lex_MakeLocalLabel (int dir, LocalLabel_eSearch level)
+Lex_MakeLocalLabel (int dir, LocalLabel_eSearch level /* FIXME: use this */)
 {
   Lex result =
     {
@@ -292,6 +291,22 @@ Lex_GetDefiningLabel (bool noCheck)
   return lexGetId ();
 }
 
+bool
+Lex_Char2Int (size_t len, const char *str, ARMWord *result)
+{
+  *result = 0;
+
+  if (len > 4)
+    return true;
+
+  for (size_t i = 0; i != 4; ++i)
+    {
+      *result >>= 8;
+      if (i < len)
+	*result |= str[i] << 24;
+    }
+  return false;
+}
 
 Lex
 lexGetPrim (void)
@@ -376,125 +391,36 @@ lexGetPrim (void)
 	}
 	break;
 
-      case '\'': /* FIXME: test 'abcd' alike integers.  */
+      case '\'':
 	{
+	  char in[4];
+	  int i, ci;
+	  for (i = 0; i < 5 && (ci = (unsigned char)inputGet ()) != '\''; ++i)
+	    {
+	      if (ci == '\\')
+		ci = inputGet ();
+	      if (ci == '\0')
+		{
+		  error (ErrorError, "Constant specification continues over newline");
+		  break;
+		}
+	      if (i == 4)
+		{
+		  error (ErrorError, "Illegal constant specification");
+		  break;
+		}
+	      in[i] = ci;
+	    }
+
 	  result.tag = LexInt;
-	  size_t len;
-	  const char *str = inputSymbol (&len, '\'');
-	  if (inputGet () != '\'')
-	    error (ErrorError, "Character continues over newline");
-	  result.Data.Int.value = lexChar2Int (true, len, str);
+	  Lex_Char2Int (i, in, &result.Data.Int.value);
 	}
 	break;
 
       case '"':
 	{
 	  result.tag = LexString;
-	  size_t len;
-	  const char *strOrg = inputSymbol (&len, '"');
-	  char *str;
-	  if ((str = strndup (strOrg, len)) == NULL)
-	    errorOutOfMem();
-	  if (inputGet () != '"')
-	    error (ErrorError, "String continues over newline");
-	  const char *s1;
-	  char *s2;
-	  size_t l1;
-	  while (Input_Match ('"', false))
-	    {
-	      s1 = inputSymbol (&l1, '"');
-	      if (inputGet () != '"')
-		{
-		  error (ErrorError, "String continues over newline");
-		  break;
-		}
-	      if ((s2 = malloc (len + l1 + 1)) == NULL)
-		errorOutOfMem ();
-	      memcpy (s2, str, len);
-	      s2[len] = '"';
-	      memcpy (s2 + len + 1, s1, l1);
-	      free ((void *)str);
-	      str = s2;
-	      len += l1 + 1;
-	    }
-	  /* now deal with \\ */
-	  s1 = s2 = str;
-	  while (*s1)
-	    {
-	      if (*s1 == '\\')
-		{
-		  switch (l1 = *++s1)
-		    {
-		      case '0':
-		      case '1':
-		      case '2':
-		      case '3':
-		      case '4':
-		      case '5':
-		      case '6':
-		      case '7':
-			l1 = *s1++ - '0';
-			if (*s1 >= '0' && *s1 <= '7')
-			  {
-			    l1 = l1 * 8 + *s1++ - '0';
-			    if (*s1 >= '0' && *s1 <= '7')
-			      l1 = l1 * 8 + *s1++ - '0';
-			  }
-			break;
-
-		      case 'x':
-			if (isxdigit (*++s1))
-			  {	  /* implied ASCII-like */
-			    l1 = *s1 - '0' - 7 * (*s1 > '9') - 32 * (*s1 >= 'a');
-			    if (isxdigit (*++s1))
-			      {
-				l1 = l1 * 16 + *s1 - '0' - 7 * (*s1 > '9') - 32 * (*s1 >= 'a');
-				s1++;
-			      }
-			  }
-			break;
-		      case 'a':
-			l1 = 7;
-			s1++;
-			break;
-		      case 'b':
-			l1 = 8;
-			s1++;
-			break;
-		      case 'f':
-			l1 = 12;
-			s1++;
-			break;
-		      case 'n':
-			l1 = 10;
-			s1++;
-			break;
-		      case 'r':
-			l1 = 13;
-			s1++;
-			break;
-		      case 't':
-			l1 = 9;
-			s1++;
-			break;
-		      case 'v':
-			l1 = 11;
-			s1++;
-			break;
-		      default:
-			s1++;
-			break;
-		    }
-		  *s2++ = l1;
-		}
-	      else
-		*s2++ = *s1++;
-	    }
-	  *s2 = 0;
-	  len -= s1 - s2;
-	  str = realloc (str, len);	/* try to reduce size of block */
-	  result.Data.String.str = str;
-	  result.Data.String.len = len;
+	  result.Data.String.str = Input_GetString (&result.Data.String.len);
 	}
 	break;
 

@@ -680,43 +680,176 @@ Input_Symbol (size_t *ilen)
   return len ? rslt : NULL;
 }
 
+
+/**
+ * Reads a string (supporting escape characters etc).
+ * \param len Will contain the length of the returned string.  As a string
+ * can contain NUL characters, you really need to use this length parameter
+ * instead of calculating the length yourself using strlen().
+ * \return ptr to malloc block holding the string contents (caller gets
+ * ownership).
+ */
+char *
+Input_GetString (size_t *len)
+{
+  size_t curLen = 0;
+  size_t maxLen = 8;
+  char *result = malloc (maxLen);
+  if (result == NULL)
+    errorOutOfMem ();
+
+  while (1)
+    {
+      int c = (unsigned char) inputGet ();
+      if (c == '\0')
+	{
+	  /* End of line found without terminating '"', return whatever we
+	     have right now.  */
+	  error (ErrorError, "String continues over newline");
+	  break;
+	}
+      if (c == '"')
+	{
+	  if (inputLook () != '"')
+	    break; /* End of string found.  */
+	  inputSkip ();
+	}
+      if (c == '\\')
+	{
+	  c = (unsigned char) inputGet ();
+	  switch (c)
+	    {
+	      case '0':
+	      case '1':
+	      case '2':
+	      case '3':
+	      case '4':
+	      case '5':
+	      case '6':
+	      case '7':
+		{
+		  /* Octal.  */
+		  c -= '0';
+		  int i = (unsigned char) inputLook ();
+		  if (i >= '0' && i <= '7')
+		    {
+		      c = 8*c + i - '0';
+		      inputSkip ();
+		      i = (unsigned char) inputLook ();
+		      if (i >= '0' && i <= '7')
+			{
+			  c = 8*c + i - '0';
+			  inputSkip ();
+			}
+		    }
+		  break;
+		}
+
+	      case 'x':
+		{
+		  /* Hex.  */
+		  int i = (unsigned char) inputLook ();
+		  if (!isxdigit (i))
+		    {
+		      error (ErrorWarning, "Not a hex escape sequence");
+		      inputUnGet ('x');
+		    }
+		  else
+		    {
+		      i |= 0x20;
+		      c = i >= 'a' ? i - 'a' + 10 : i - '0';
+		      inputSkip ();
+		      i = (unsigned char) inputLook ();
+		      if (!isxdigit (i))
+			error (ErrorWarning, "Not a hex escape sequence");
+		      else
+			{
+			  i |= 0x20;
+			  c = 16*c + (i >= 'a' ? i - 'a' + 10 : i - '0');
+			  inputSkip ();
+			}
+		    }
+		  break;
+		}
+
+	      case 'a':
+		c = 7;
+		break;
+
+	      case 'b':
+		c = 8;
+		break;
+
+	      case 'f':
+		c = 12;
+		break;
+
+	      case 'n':
+		c = 10;
+		break;
+
+	      case 'r':
+		c = 13;
+		break;
+
+	      case 't':
+		c = 9;
+		break;
+
+	      case 'v':
+		c = 11;
+		break;
+
+	      case '\\':
+		c = '\\';
+		break;
+
+	      case '\"':
+		c = '\"';
+		break;
+
+	      default:
+		error (ErrorWarning, "Unknown escape sequence");
+		break;
+	    }
+	}
+      /* Add c to string result.
+         Make sure there is place for at least two characters so we can
+         always safely add a terminating NUL character without doing an
+         additional check.  */
+      if (curLen + 1 == maxLen)
+	{
+	  maxLen *= 2;
+	  result = realloc (result, maxLen);
+	  if (result == NULL)
+	    errorOutOfMem ();
+	}
+      result[curLen++] = c;
+    }
+  result[curLen] = '\0';
+  *len = curLen;
+  
+  return result;
+}
+
+
 const char *
 inputSymbol (size_t *ilen, char del)
 {
   const char *p = input_pos;
-  int c;
 
   if (del)
     {
-      if (del == '\'' || del == '\"')
-	{
-	  if (del == '\'')
-	    ++p;		/* some special case stuff... */
-	  while ((c = *p) != 0 && c != del)
-	    p++;
-	}
-      else
-	{
-	  while ((c = *p) != 0 && c != del)
-	    {
-	      p++;
-	      if (c == '\\' && *p)
-		p++;
-	    }
-	}
+      int c;
+      while ((c = (unsigned char)*p) != 0 && c != del)
+	p++;
     }
   else
     {
-      /* We do allow labels beginning with '#' */
-      if (*p == '#')
-	++p;
+      int c;
       while ((c = (unsigned char)*p) != 0
 	     && (isalnum (c) || c == '_'))
-	{
-	  p++;
-	  if (c == '\\' && *p)
-	    p++;
-	}
+	p++;
     }
   *ilen = p - input_pos;
   input_pos = p;
@@ -766,4 +899,3 @@ Input_GetColumn (void)
     return 0;
   return input_pos - input_buff;
 }
-

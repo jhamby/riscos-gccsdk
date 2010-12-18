@@ -1,3 +1,19 @@
+Sat Dec 18 18:58:17 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/int.s: Add string constant tests.
+	* help_lex.c, help_lex.h: Remove.
+	* commands.c, variables.c, Makefile.am: Follow the removal of
+	help_lex.c and help_lex.h.
+	* input.c, input.h (Input_GetString): Added.
+	(inputSymbol): Simplify as there are less usecases for this routine.
+	* macros.c (Macro_Call, c_macro): Use Input_GetString for double
+	quoted strings instead of inputSymbol.
+	* lex.c (Lex_Char2Int): Added and use it...
+	(lexGetPrim): ...here.  Use Input_GetString for double quoted string
+	lexing.
+	* symbol.c (symbolSymbolAOFOutput, symbolSymbolELFOutput): Restrict
+	the output of symbol to ValueInt and ValueBool.
+
 Sat Dec 18 16:24:41 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* lex.c: Reindent.

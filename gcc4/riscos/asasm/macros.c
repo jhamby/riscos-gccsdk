@@ -134,24 +134,26 @@ Macro_Call (const Macro *m, const Lex *label)
       size_t len;
       if (Input_Match ('"', false))
 	{
-	  arg = inputSymbol (&len, '"');	/* FIXME: handles "x\"y", but not "x""y" */
-	  inputSkip ();
+	  /* Double quoted argument.  */
+	  arg = Input_GetString (&len);
 	}
       else
 	{
+	  /* Unquoted argument.  */
 	  arg = inputSymbol (&len, ',');
 	  /* Discard the white space characters before comma.  */
 	  while (len != 0 && isspace ((unsigned char)arg[len - 1]))
 	    len--;
+	  if ((arg = strndup (arg, len)) == NULL)
+	    errorOutOfMem();
 	}
       if (len == 1 && arg[0] == '|')
 	{
+	  /* Argument '|' means taking the default argument value.  */
+	  free ((void *)arg);
 	  arg = m->defArgs[marg];
-	  len = strlen (arg);
 	}
-      if ((args[marg] = strndup (arg, len)) == NULL)
-	errorOutOfMem();
-      ++marg;
+      args[marg++] = arg;
       skipblanks ();
       if (!Input_Match (',', true))
 	break;
@@ -338,23 +340,24 @@ c_macro (const Lex *label)
 	{
 	  /* There is a default argument value.  */
 	  const char *defarg;
-	  size_t defarglen;
 	  /* If there is a '"' as start of the default argument value, it needs
 	     to be right after the '='.  */
 	  if (Input_Match ('"', false))
 	    {
-	      defarg = inputSymbol (&defarglen, '"');	/* FIXME: handles "x\"y", but not "x""y" */
-	      inputSkip ();
+	      size_t defarglen;
+	      defarg = Input_GetString (&defarglen);
 	      skipblanks ();
 	    }
 	  else
 	    {
 	      /* We do NOT skip spaces, nor do we remove the spaces before
 	         the next comma found.  */
+	      size_t defarglen;
 	      defarg = inputSymbol (&defarglen, ',');
+	      if ((defarg = strndup (defarg, defarglen)) == NULL)
+		errorOutOfMem ();
 	    }
-	  if ((m.defArgs[m.numargs] = strndup (defarg, defarglen)) == NULL)
-	    errorOutOfMem ();
+	  m.defArgs[m.numargs] = defarg;
 	}
       else
 	m.defArgs[m.numargs] = NULL;
