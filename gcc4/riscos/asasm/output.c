@@ -196,19 +196,23 @@ outputAof (void)
     }
 
   int stringSizeNeeded;
-  AofHeader aof_head;
-  aof_head.Type = armword (AofHeaderID);
-  aof_head.Version = armword (310);
-  aof_head.noAreas = armword (noareas);
-  aof_head.noSymbols = armword (symbolFix (&stringSizeNeeded));
-  aof_head.EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->used + 1 : 0);
-  aof_head.EntryOffset = armword (areaEntrySymbol ? areaEntryOffset : 0);
+  const AofHeader aof_head =
+    {
+      .Type = armword (AofHeaderID),
+      .Version = armword (310),
+      .noAreas = armword (noareas),
+      .noSymbols = armword (symbolFix (&stringSizeNeeded)),
+      .EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->used + 1 : 0),
+      .EntryOffset = armword (areaEntrySymbol ? areaEntryOffset : 0)
+    };
 
   /* Write out the chunk file header.  */
-  ChunkFileHeader chunk_header;
-  chunk_header.ChunkField = armword (ChunkFileID);
-  chunk_header.maxChunks = armword (5);
-  chunk_header.noChunks = armword (5);
+  const ChunkFileHeader chunk_header =
+    {
+      .ChunkField = armword (ChunkFileID),
+      .maxChunks = armword (5),
+      .noChunks = armword (5)
+    };
   size_t written = fwrite (&chunk_header, 1, sizeof (chunk_header), objfile);
   size_t offset = sizeof (chunk_header) + 5*sizeof (ChunkFileHeaderEntry);
 
@@ -241,14 +245,16 @@ outputAof (void)
       if (Area_IsImplicit (ap))
 	continue;
 
-      AofEntry aof_entry;
-      aof_entry.Name = armword (ap->offset + 4); /* +4 because of extra length entry */
-      aof_entry.Type = armword (ap->area.info->type);
-      aof_entry.Size = armword (FIX (ap->value.Data.Int.i));
-      aof_entry.noRelocations = armword (ap->area.info->norelocs);
+      const AofEntry aof_entry =
+	{
+	  .Name = armword (ap->offset + 4), /* +4 because of extra length entry */
+          .Type = armword (ap->area.info->type),
+          .Size = armword (FIX (ap->value.Data.Int.i)),
+          .noRelocations = armword (ap->area.info->norelocs),
+          .Unused = 0
+	};
       if (aof_entry.noRelocations != 0 && !AREA_IMAGE (ap->area.info))
 	errorAbortLine (NULL, 0, "Internal outputAof: relocations in uninitialised area");
-      aof_entry.Unused = 0;
       fwrite (&aof_entry, 1, sizeof (aof_entry), objfile);
     }
 
@@ -311,17 +317,19 @@ static void
 writeElfSH (int nmoffset, int type, int flags, int size,
             int link, int info, int addralign, int entsize, int *offset)
 {
-  Elf32_Shdr sect_hdr;
-  sect_hdr.sh_name = nmoffset;
-  sect_hdr.sh_type = type;
-  sect_hdr.sh_flags = flags;
-  sect_hdr.sh_addr = 0;
-  sect_hdr.sh_offset = type == SHT_NULL ? 0 : *offset;
-  sect_hdr.sh_size = size;
-  sect_hdr.sh_link = link;
-  sect_hdr.sh_info = info;
-  sect_hdr.sh_addralign = addralign;
-  sect_hdr.sh_entsize = entsize;
+  Elf32_Shdr sect_hdr =
+    {
+      .sh_name = nmoffset,
+      .sh_type = type,
+      .sh_flags = flags,
+      .sh_addr = 0,
+      .sh_offset = type == SHT_NULL ? 0 : *offset,
+      .sh_size = size,
+      .sh_link = link,
+      .sh_info = info,
+      .sh_addralign = addralign,
+      .sh_entsize = entsize
+    };
   if (type != SHT_NOBITS)
     *offset += size;
   if (fwrite (&sect_hdr, sizeof (sect_hdr), 1, objfile) != 1)

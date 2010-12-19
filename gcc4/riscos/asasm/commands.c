@@ -246,24 +246,20 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		  Put_DataWithOffset (offset, size, 0);
 		  return true;
 		}
-#if 0 /* FIXME: is this needed ? */
-	      if (size != 4)
-		{
-		  errorLine (file, lineno, ErrorError, "Wrong data size for relocation");
-		  return true;
-		}
-#endif
 	      int How;
 	      switch (size)
 		{
+		  case 1:
+		    How = HOW2_INIT | HOW2_BYTE;
+		    break;
+		  case 2:
+		    How = HOW2_INIT | HOW2_HALF;
+		    break;
 		  case 4:
 		    How = HOW2_INIT | HOW2_WORD;
 		    break;
-		    case 2: // FIXME: needed ?
-		      How = HOW2_INIT | HOW2_HALF;
-		    break;
-		    case 1: // FIXME: needed ?
-		      How = HOW2_INIT | HOW2_BYTE;
+		  default:
+		    assert (0);
 		    break;
 		}
 	      if (Reloc_Create (How, offset, valP) == NULL)

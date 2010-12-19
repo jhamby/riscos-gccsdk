@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2006 GCCSDK Developers
+ * Copyright (c) 2001-2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,24 +24,24 @@
 #ifndef chunkfile_header_included
 #define chunkfile_header_included
 
+#include <stdint.h>
+
 /* Format of a chunk file header - first few bytes of a chunk file */
 
 typedef struct
 {
-  unsigned int ChunkIDPrefix;
-  unsigned int ChunkIDType;
-  unsigned int FileOffset;
-  unsigned int Size;
-}
-ChunkFileHeaderEntry;
+  uint32_t ChunkIDPrefix;
+  uint32_t ChunkIDType;
+  uint32_t FileOffset;
+  uint32_t Size;
+} ChunkFileHeaderEntry;
 
 typedef struct
 {
-  unsigned int ChunkField;
-  unsigned int maxChunks;
-  unsigned int noChunks;
-}
-ChunkFileHeader;
+  uint32_t ChunkField;
+  uint32_t maxChunks;
+  uint32_t noChunks;
+} ChunkFileHeader;
 
 #define ChunkFileID (0xC3CBC6C5)
 #define ChunkID_LIB (0x5F42494C)	/* (unsigned)('LIB_') */
@@ -69,8 +69,7 @@ typedef struct
   unsigned int EntryLength;
   unsigned int DataLength;
   char LibData[1];
-}
-LibDirectoryEntry;
+} LibDirectoryEntry;
 
 #define Lib_DataName(ptr) (char *)((ptr)->LibData)
 #define Lib_DataTime(ptr) ((struct lib_TimeStamp *)((ptr)->LibData + \
@@ -79,7 +78,6 @@ LibDirectoryEntry;
 typedef struct
 {
   unsigned char t[8];
-}
-LibTimeStamp;
+} LibTimeStamp;
 
 #endif

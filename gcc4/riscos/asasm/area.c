@@ -184,7 +184,7 @@ c_entry (void)
 
 
 /**
- * Implements ALIGN.
+ * Implements ALIGN [<power-of-2> [, <offset>]]
  */
 bool
 c_align (void)
@@ -273,7 +273,7 @@ Area_AlignTo (int align, const char *msg)
   if (off)
     {
       if (msg)
-	error (ErrorInfo, "Unaligned %s", msg);
+	error (ErrorWarning, "Unaligned %s", msg);
 
       int grow = align - off;
       if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + grow))

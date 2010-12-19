@@ -1,3 +1,20 @@
+Sun Dec 19 03:19:05 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* lit.c (Lit_RegisterInt): Do upfront trunctation + report when this
+	makes a difference.
+	(Lit_GetLitOffsetAsSymbol): Renamed from Lit_GetOffsetAsSymbol.
+	(Lit_DumpPool): Support ValueSymbol/ValueCode as literals.
+	* regression/tests_pass/load_literal.s: Enhance with PC relative
+	loading of literals.
+	* regression/tests_fail/load_constant.s: Move to...
+	* regression/tests_pass/load_literal2.s: ...here as it is now working.
+	* tests_fail/register_based_map_fail.s: Removed, was already working
+	and covered by tests_pass/ldr_from_addr.s.
+	* commands.c (DefineInt_RelocUpdater): Remove FIXMEs.
+	* area.c (Area_AlignTo): Report unaligned status as warning.
+	* reloc.c (relocFix): Fix number of relocations calculation.
+	(relocELFOutput): Fix typo.
+
 Sat Dec 18 18:58:17 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/int.s: Add string constant tests.

@@ -1,7 +1,5 @@
 	[ :LNOT: REFERENCE
 
-	; FIXME: test =ImportedLabel case
-
 	; Simple cases:
 	[ {TRUE}
 		AREA	Code, CODE, READONLY
@@ -38,11 +36,11 @@ ValueAfter	*	&12345678
 		LDR	r9, =&11223344
 		LDR	r10, =&44332211
 
-		; No LTORG -> as this needs to happen at END
+		LTORG
 	]
 
 	; Using maps:
-	[ {FALSE}
+	[ {TRUE}
 		AREA	Data, DATA, READONLY
 
 		^	20
@@ -60,6 +58,8 @@ rcrd2f3		#	8
 		LDR	r0, =rcrd1f2
 		LDR	r1, =rcrd2f2
 		LDR	r2, =rcrd2f3
+
+		; No LTORG -> as this needs to happen at END
 	]
 
 	|
@@ -95,7 +95,7 @@ lbl7		DCD	&44332211
 	]
 
 	; Using maps:
-	[ {FALSE}
+	[ {TRUE}
 		AREA	Data, DATA, READONLY
 
 		AREA	Code, CODE, READONLY

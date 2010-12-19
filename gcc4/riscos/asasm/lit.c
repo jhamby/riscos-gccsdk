@@ -44,11 +44,11 @@
 #include "value.h"
 
 /**
- * Returns a symbol which will be a ValueInt being the offset where the
+ * Returns a symbol which will be a ValueInt/ValueCode being the offset where the
  * given literal will be assembled.
  */
 static Symbol *
-Lit_GetOffsetAsSymbol (const LitPool *literal)
+Lit_GetLitOffsetAsSymbol (const LitPool *literal)
 {
   char intSymbol[48];
   snprintf (intSymbol, sizeof (intSymbol), "$$$$$$$Lit$%p", (void *)literal);
@@ -79,6 +79,37 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 	break;
     }
 
+  /* Upfront truncate ValueInt value to what we're really going to have
+     in our register after loading, before we wrongly match to the untruncated
+     version for a different size value.
+     E.g.  LDRB Rx, =0x808 and LDR Rx, =0x808 can not share the same literal.  */
+  Value truncValue = *value;
+  if (value->Tag == ValueInt)
+    {
+      switch (size)
+	{
+	  case eLitIntUByte:
+	    truncValue.Data.Int.i = (uint8_t)truncValue.Data.Int.i;
+	    break;
+	  case eLitIntSByte:
+	    truncValue.Data.Int.i = (int8_t)truncValue.Data.Int.i;
+	    break;
+	  case eLitIntUHalfWord:
+	    truncValue.Data.Int.i = (uint16_t)truncValue.Data.Int.i;
+	    break;
+	  case eLitIntSHalfWord:
+	    truncValue.Data.Int.i = (int16_t)truncValue.Data.Int.i;
+	    break;
+	}
+      if (truncValue.Data.Int.i != value->Data.Int.i)
+	error (ErrorWarning, "Constant %d has been truncated to %d by the used mnemonic",
+	       value->Data.Int.i, truncValue.Data.Int.i);
+      /* Perhaps representable as MOV/MVN:  */
+      if (help_cpuImm8s4 (truncValue.Data.Int.i) != -1
+          || help_cpuImm8s4 (~truncValue.Data.Int.i) != -1)
+	return Value_Int (truncValue.Data.Int.i);
+    }
+  
   /* Check if we already have the literal assembled in an range of up to
      4095 (address mode 2) or 255 (address mode 3) bytes ago.  */
   for (const LitPool *litPoolP = areaCurrentSymbol->area.info->litPool;
@@ -87,28 +118,28 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
     {
       int offset;
       bool equal;
-      if (litPoolP->value.Tag == ValueInt && value->Tag == ValueInt)
+      if (litPoolP->value.Tag == ValueInt && truncValue.Tag == ValueInt)
 	{
 	  switch (size)
 	    {
 	      case eLitIntUByte:
 	      case eLitIntSByte:
-		if (((litPoolP->value.Data.Int.i >> 0) & 0xFF) == (value->Data.Int.i & 0xFF))
+		if (((litPoolP->value.Data.Int.i >> 0) & 0xFF) == truncValue.Data.Int.i)
 		  {
 		    offset = 0;
 		    equal = true;
 		  }
-		else if (((litPoolP->value.Data.Int.i >> 8) & 0xFF) == (value->Data.Int.i & 0xFF))
+		else if (((litPoolP->value.Data.Int.i >> 8) & 0xFF) == truncValue.Data.Int.i)
 		  {
 		    offset = 1;
 		    equal = true;
 		  }
-		else if (((litPoolP->value.Data.Int.i >> 16) & 0xFF) == (value->Data.Int.i & 0xFF))
+		else if (((litPoolP->value.Data.Int.i >> 16) & 0xFF) == truncValue.Data.Int.i)
 		  {
 		    offset = 2;
 		    equal = true;
 		  }
-		else if (((litPoolP->value.Data.Int.i >> 24) & 0xFF) == (value->Data.Int.i & 0xFF))
+		else if (((litPoolP->value.Data.Int.i >> 24) & 0xFF) == truncValue.Data.Int.i)
 		  {
 		    offset = 3;
 		    equal = true;
@@ -119,12 +150,12 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 
 	      case eLitIntUHalfWord:
 	      case eLitIntSHalfWord:
-		if (((litPoolP->value.Data.Int.i >> 0) & 0xFFFF) == (value->Data.Int.i & 0xFFFF))
+		if (((litPoolP->value.Data.Int.i >> 0) & 0xFFFF) == truncValue.Data.Int.i)
 		  {
 		    offset = 0;
 		    equal = true;
 		  }
-		else if (((litPoolP->value.Data.Int.i >> 16) & 0xFFFF) == (value->Data.Int.i & 0xFFFF))
+		else if (((litPoolP->value.Data.Int.i >> 16) & 0xFFFF) == truncValue.Data.Int.i)
 		  {
 		    offset = 2;
 		    equal = true;
@@ -135,7 +166,7 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 
 	      case eLitIntWord:
 		offset = 0;
-		equal = litPoolP->value.Data.Int.i == value->Data.Int.i;
+		equal = litPoolP->value.Data.Int.i == truncValue.Data.Int.i;
 		break;
 
 	      default:
@@ -146,11 +177,11 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
       else
 	{
 	  offset = 0;
-	  equal = valueEqual (&litPoolP->value, value);
+	  equal = valueEqual (&litPoolP->value, &truncValue);
 	}
       if (equal)
 	{
-	  Symbol *symP = Lit_GetOffsetAsSymbol (litPoolP);
+	  Symbol *symP = Lit_GetLitOffsetAsSymbol (litPoolP);
 	  assert (((symP->type & SYMBOL_DEFINED) != 0) ^ (!litPoolP->gotAssembled));
 	  if ((symP->type & SYMBOL_DEFINED) != 0)
 	    {
@@ -194,11 +225,11 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
   litP->lineno = FS_GetCurLineNumber ();
   litP->offset = 0;
   litP->value.Tag = ValueIllegal;
-  Value_Assign (&litP->value, value);
+  Value_Assign (&litP->value, &truncValue);
   litP->size = size;
   litP->gotAssembled = false;
 
-  return Value_Symbol (Lit_GetOffsetAsSymbol (litP), 1);
+  return Value_Symbol (Lit_GetLitOffsetAsSymbol (litP), 1);
 }
 
 /**
@@ -235,61 +266,83 @@ Lit_DumpPool (void)
       codeInit ();
       codeValue (&litP->value, true);
 
-      Symbol *symP = Lit_GetOffsetAsSymbol (litP);
+      Symbol *symP = Lit_GetLitOffsetAsSymbol (litP);
       symP->type |= SYMBOL_DEFINED | SYMBOL_DECLARED;
 
       /* Check if it is a fixed integer/float which fits an immediate
          representation.  */
-      const Value *constValueP = codeEval (ValueInt | ValueFloat, NULL);
-      if (constValueP->Tag == ValueInt)
+      const Value *constValueP = codeEval (ValueInt | ValueCode | ValueSymbol | ValueFloat, NULL);
+      switch (constValueP->Tag)
 	{
-	  bool isImmediate;
-	  int constant;
-	  switch (litP->size)
+	  case ValueInt:
 	    {
-	      case eLitIntUByte:
-		constant = (int)(uint8_t)constValueP->Data.Int.i;
-		isImmediate = true;
-		break;
+	      bool isImmediate;
+	      int constant;
+	      switch (litP->size)
+		{
+		  case eLitIntUByte:
+		    constant = (int)(uint8_t)constValueP->Data.Int.i;
+		    isImmediate = true;
+		    break;
 
-	      case eLitIntSByte:
-		constant = (int)(int8_t)constValueP->Data.Int.i;
-		isImmediate = true;
-		break;
+		  case eLitIntSByte:
+		    constant = (int)(int8_t)constValueP->Data.Int.i;
+		    isImmediate = true;
+		    break;
 
-	      case eLitIntUHalfWord:
-		constant = (int)(uint16_t)constValueP->Data.Int.i;
-		isImmediate = true;
-		break;
-		
-	      case eLitIntSHalfWord:
-		constant = (int)(int16_t)constValueP->Data.Int.i;
-		isImmediate = true;
-		break;
-		
-	      case eLitIntWord:
-		constant = constValueP->Data.Int.i;
-		isImmediate = true;
-		break;
+		  case eLitIntUHalfWord:
+		    constant = (int)(uint16_t)constValueP->Data.Int.i;
+		    isImmediate = true;
+		    break;
 
-	      default:
-		isImmediate = false;
-		break;
+		  case eLitIntSHalfWord:
+		    constant = (int)(int16_t)constValueP->Data.Int.i;
+		    isImmediate = true;
+		    break;
+
+		  case eLitIntWord:
+		    constant = constValueP->Data.Int.i;
+		    isImmediate = true;
+		    break;
+
+		  default:
+		    isImmediate = false;
+		    break;
+		}
+	      if (constant != constValueP->Data.Int.i)
+		errorLine (litP->file, litP->lineno, ErrorWarning,
+			   "Constant %d has been truncated to %d by the used mnemonic",
+			   constValueP->Data.Int.i, constant);
+
+	      /* Value representable using MOV or MVN ? */
+	      if (isImmediate
+		  && (help_cpuImm8s4 (constant) != -1 || help_cpuImm8s4 (~constant) != -1))
+		{
+		  symP->value = Value_Int (constant);
+		  continue;
+		}
+	      break;
 	    }
 
-	  /* Value representable using MOV or MVN ? */
-	  if (isImmediate
-	      && (help_cpuImm8s4 (constant) != -1 || help_cpuImm8s4 (~constant) != -1))
+	  case ValueCode:
+	  case ValueSymbol:
 	    {
-	      symP->value = Value_Int (constant);
-	      continue;
+	      /* Case:          LDR Rx, =<label>
+	               <label>  ...  */
+	      break;
 	    }
-	}
-      else if (constValueP->Tag == ValueFloat)
-	{
-	  /* FIXME: if immedate -> symP->value is ValueFloat + isImmediate = true */
-	}
 
+//	  case ValueFloat:
+//	    {
+//	      /* FIXME: if immedate -> symP->value is ValueFloat + isImmediate = true */
+//	      break;
+//	    }
+
+	  default:
+	    errorLine (litP->file, litP->lineno, ErrorError, "Unsupported literal case");
+	    break;
+	}
+      
       /* Ensure alignment.  */
       switch (litP->size)
 	{

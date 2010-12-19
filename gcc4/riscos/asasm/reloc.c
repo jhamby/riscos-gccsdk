@@ -166,7 +166,7 @@ Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
 
 
 /**
- * Returns the number of relocations associated with given area.
+ * \return The number of relocations associated with given area.
  */
 int
 relocFix (const Symbol *area)
@@ -205,11 +205,28 @@ relocFix (const Symbol *area)
     }
   areaCurrentSymbol = NULL;
 
+  /* Calculate the number of relocations, i.e. per Reloc object, count all
+     ValueSymbols.  */
   int norelocs = 0;
   for (const Reloc *relocs = area->area.info->relocs;
        relocs != NULL;
        relocs = relocs->next)
-    ++norelocs;
+    {
+      if (relocs->value.Tag == ValueSymbol)
+	norelocs += relocs->value.Data.Symbol.factor;
+      else
+	{
+	  assert (relocs->value.Tag == ValueCode);
+	  size_t len = relocs->value.Data.Code.len;
+	  const Code *code = relocs->value.Data.Code.c;
+	  for (size_t i = 0; i != len; ++i)
+	    {
+	      if (code->Tag == CodeValue
+	          && code->Data.value.Tag == ValueSymbol)
+		norelocs += code->Data.value.Data.Symbol.factor;
+	    }
+	}
+    }
 
   return norelocs;
 }
@@ -237,7 +254,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	  int loop = value->Data.Symbol.factor;
 	  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 	  while (loop--)
-	    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
+	    fwrite (&areloc, 1, sizeof (AofReloc), outfile);
 	}
       else
 	{
@@ -259,7 +276,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 		  int loop = value->Data.Symbol.factor;
 		  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 		  while (loop--)
-		    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
+		    fwrite (&areloc, 1, sizeof (AofReloc), outfile);
 		}
 	    }
 	}
@@ -294,7 +311,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  int loop = value->Data.Symbol.factor;
 	  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 	  while (loop--)
-	    fwrite (&areloc, 1, sizeof(Elf32_Rel), outfile);
+	    fwrite (&areloc, 1, sizeof (Elf32_Rel), outfile);
 	}
       else
 	{
@@ -320,7 +337,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 		  int loop = value->Data.Symbol.factor;
 		  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 		  while (loop--)
-		    fwrite (&areloc, 1, sizeof(AofReloc), outfile);
+		    fwrite (&areloc, 1, sizeof (Elf32_Rel), outfile);
 		}
 	    }
 	}

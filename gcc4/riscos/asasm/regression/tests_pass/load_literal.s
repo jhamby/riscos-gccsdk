@@ -22,6 +22,32 @@
 	LDRH	r6, =&8765
 	LDRH	r7, =&4321
 
+	LTORG
+
+	; PC relative tests:
+	LDRB	r8, =datab
+	LDRSB	r8, =datab	; Reuse.
+	LDRH	r9, =dataw
+	LDRSH	r9, =dataw	; Reuse.
+	LDR	r10, =datad
+	LDR	r10, =datad	; Reuse.
+
+	LDRB	r8, =databp + 16
+	LDRSB	r8, =databp + 16	; Reuse.
+	LDRH	r9, =datawp + 16
+	LDRSH	r9, =datawp + 16	; Reuse.
+	LDR	r10, =datadp + 16
+	LDR	r10, =datadp + 16	; Reuse.
+
+databp	%	2
+datawp	%	2
+datadp	%	12
+
+datab	DCB	0x11
+	ALIGN	2
+dataw	DCW	0x3322
+datad	DCD	0x77665544
+
 	|
 
 	MOV	r1, #0x22
@@ -48,6 +74,41 @@ lbl1	DCD	0x00004455
 lbl2	DCD	0x87654321
 lbl3	DCW	0x6677
 lbl4	DCW	0x9900
+
+	; PC relative tests:
+	LDRB	r8, databa1
+	LDRSB	r8, databa1
+	LDRH	r9, datawa1
+	LDRSH	r9, datawa1
+	LDR	r10, datada1
+	LDR	r10, datada1
+
+	LDRB	r8, databa2
+	LDRSB	r8, databa2
+	LDRH	r9, datawa2
+	LDRSH	r9, datawa2
+	LDR	r10, datada2
+	LDR	r10, datada2
+
+	%	16
+
+datab	DCB	0x11
+	ALIGN	2
+dataw	DCW	0x3322
+datad	DCD	0x77665544
+
+	; Literal addresses:
+	; FIXME: a future optimisation could merge data{b,w,d}a{1,2} together.
+databa1	DCB	datab
+	ALIGN	2
+datawa1	DCW	dataw
+datada1	DCD	datad
+
+databa2	DCB	datab
+	ALIGN	2
+datawa2	DCW	dataw
+datada2	DCD	datad
+
 	]
 
 	END
