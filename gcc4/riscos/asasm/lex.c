@@ -413,7 +413,7 @@ lexGetPrim (void)
 	    }
 
 	  result.tag = LexInt;
-	  Lex_Char2Int (i, in, &result.Data.Int.value);
+	  Lex_Char2Int (i, in, (ARMWord *)&result.Data.Int.value);
 	}
 	break;
 

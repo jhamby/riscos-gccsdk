@@ -1,3 +1,22 @@
+Mon Dec 20 15:53:22 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/dcb_dcw_dcd.s: Added DCI, DCWU and DCDU tests.
+	* regression/tests_pass/dcfs_dcfd.s: Added DCFSU and DCFDU tests.
+	* commands.c (c_head): Fix signature output.
+	(DefineInt_RelocUpdater, DefineInt, c_dcw, c_dcd, DefineReal_RelocUpdater,
+	DefineReal, c_dcfs, c_dcfd): Add support DCWU, DCDU, DCFSU, DCFDU.
+	(c_dci): Added.
+	(c_ltorg): Move to...
+	* lit.c: ...here.
+	* commands.h (c_dci): Add prototype.
+	(c_ltorg): Move prototype to...
+	* lit.h: ...here.
+	* put.c (Put_AlignDataWithOffset): Add.
+	(putData): Rename to Put_Data and implement using Put_DataWithOffset.
+	(Put_FloatDataWithOffset): Add alignBefore parameter.
+	* decode.c (oDecodeTable): Add SPACE, DCI, DCWU, DCDU, DCFSU and DCFDU.
+	* main.c, main.h (option_align): Remove noalign option.
+
 Sun Dec 19 03:19:05 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* lit.c (Lit_RegisterInt): Do upfront trunctation + report when this

@@ -425,3 +425,14 @@ Lit_DumpPool (void)
     }
   Area_AlignTo (4, NULL);
 }
+
+
+/**
+ * Implements LTORG.
+ */
+bool
+c_ltorg (void)
+{
+  Lit_DumpPool ();
+  return false;
+}

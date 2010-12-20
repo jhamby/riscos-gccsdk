@@ -1,3 +1,5 @@
+; Tests DCB, DCW, DCWU, DCD and DCDU
+
 	AREA	Data, DATA, READONLY
 
 	[ :LNOT: REFERENCE
@@ -24,6 +26,13 @@ DExpr3	*	3
 DExpr2	*	2
 DExpr1	*	1
 
+	DCB	&11
+	DCWU	&3322
+	DCDU	&77665544
+	ALIGN
+
+	DCI	2, &22, &FF00EE00
+
 	IMPORT	ExternalLabel1
 	DCD	ExternalLabel1		; Works only for DCD (not DCB,DCW)
 
@@ -49,6 +58,11 @@ DExpr1	*	1
 	DCB	4,3,2,1
 	DCW	4,3,2,1
 	DCD	4,3,2,1
+
+	DCB	&11, &22, &33, &44, &55, &66, &77
+	DCB	0
+
+	DCD	2, &22, &FF00EE00
 
 	IMPORT	ExternalLabel1
 	DCD	ExternalLabel1		; Works only for DCD (not DCB,DCW)

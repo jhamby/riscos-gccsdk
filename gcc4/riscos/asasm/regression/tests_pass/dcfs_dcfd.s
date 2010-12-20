@@ -1,4 +1,4 @@
-; Tests DCFS and DCFD.
+; Tests DCFS, DCFSU, DCFD and DCFDU.
 
 	AREA	Data, DATA, READONLY
 
@@ -13,6 +13,11 @@
 	DCFD	.5
 	DCFD	-0., -32., -32.23345
 	DCFD	-0.E10, 32.E-8  , 64.54E3 , 9233.12094E-4
+
+	; Unaligned floating point constants: DCFSU/DCFDU
+	DCB	&11
+	DCFSU	9233.12094E-4
+	DCFDU	9233.12094E-4
 
 	|
 
@@ -40,6 +45,11 @@
 	DCD	0x3e95798e, 0xe2308c3a	; 32.E-8
 	DCD	0x40ef8380, 0x00000000	; 64.54E3
 	DCD	0x3fed8bc5, 0xcdf766a1	; 9233.12094E-4
+
+	; Unaligned floating point constants: DCFSU/DCFDU
+	DCB	&11
+	DCDU	0x3f6c5e2e
+	DCDU	0x3fed8bc5, 0xcdf766a1
 
 	]
 

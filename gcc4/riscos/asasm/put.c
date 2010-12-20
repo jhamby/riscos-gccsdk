@@ -35,88 +35,75 @@
 #include "main.h"
 #include "put.h"
 
+void
+Put_AlignDataWithOffset (size_t offset, size_t size, ARMWord data, bool alignBefore)
+{
+  if (alignBefore)
+    {
+      switch (size)
+	{
+	  case 2:
+	    Area_AlignTo (2, "halfword");
+	    break;
+
+	  case 4:
+	    Area_AlignTo (4, "word");
+	    break;
+	}
+    }
+
+  Put_DataWithOffset (offset, size, data);
+}
+
+
 /**
- * Append 1, 2 or 4 bytes of data at the end of current area.
+ * Write 1, 2 or 4 bytes of data at given offset in the current area.
+ * The size of the current area will automatically increase when necessary.
+ * \entry offset Offset where data needs to be written in the current area.
  * \entry size Size in bytes of the data to be written, should be 1, 2 or 4.
  * \entry data Data value to be written.
  */
 void
 Put_DataWithOffset (size_t offset, size_t size, ARMWord data)
 {
-  assert (offset + size <= areaCurrentSymbol->value.Data.Int.i || offset == areaCurrentSymbol->value.Data.Int.i); // FIXME: Limitation.
-  if (offset == areaCurrentSymbol->value.Data.Int.i)
-    putData (size, data);
-  else
-    {
-      switch (size)
-	{
-	  case 4:
-	    areaCurrentSymbol->area.info->image[offset + 3] = (data >> 24) & 0xff;
-	    areaCurrentSymbol->area.info->image[offset + 2] = (data >> 16) & 0xff;
-	  case 2:
-	    areaCurrentSymbol->area.info->image[offset + 1] = (data >> 8) & 0xff;
-	  case 1:
-	    areaCurrentSymbol->area.info->image[offset + 0] = data & 0xff;
-	    break;
-	  default:
-	    errorAbort ("Internal Put_DataWithOffset: illegal size");
-	    break;
-	}
-    }
-}
-
-void
-putData (size_t size, ARMWord data)
-{
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
-      if (option_align)
-	{
-	  switch (size)
-	    {
-	      case 1:
-		break;
-
-	      case 2:
-		Area_AlignTo (2, "halfword");
-		break;
-
-	      case 4:
-		Area_AlignTo (4, "word");
-		break;
-
-	      default:
-		errorAbort ("Internal putData: illegal size");
-		break;
-	    }
-	}
-
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + size))
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, offset + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
 
       switch (size)
 	{
 	  case 4:
-	    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = data & 0xff;
-	    data >>= 8;
-	    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = data & 0xff;
-	    data >>= 8;
+	    areaCurrentSymbol->area.info->image[offset + 3] = (data >> 24) & 0xff;
+	    areaCurrentSymbol->area.info->image[offset + 2] = (data >> 16) & 0xff;
 	    /* Fall through.  */
+
 	  case 2:
-	    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = data & 0xff;
-	    data >>= 8;
+	    areaCurrentSymbol->area.info->image[offset + 1] = (data >> 8) & 0xff;
 	    /* Fall through.  */
+
 	  case 1:
-	    areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = data & 0xff;
+	    areaCurrentSymbol->area.info->image[offset + 0] = data & 0xff;
 	    break;
 
 	  default:
-	    errorAbort ("Internal putData: illegal size");
+	    errorAbort ("Internal Put_DataWithOffset: illegal size");
 	    break;
 	}
+
+      /* Increate AREA size when necessary.  */
+      if (offset + size >= areaCurrentSymbol->value.Data.Int.i)
+	areaCurrentSymbol->value.Data.Int.i = offset + size;
     }
   else if (data)
     error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
+}
+
+
+void
+Put_Data (size_t size, ARMWord data)
+{
+  Put_DataWithOffset (areaCurrentSymbol->value.Data.Int.i, size, data);
 }
 
 
@@ -126,7 +113,7 @@ putData (size_t size, ARMWord data)
  * \entry data Float value to be written.
  */
 void
-Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data)
+Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data, bool alignBefore)
 {
   const union ieee754_float flt = { .f = (float)data };
   const union ieee754_double dbl = { .d = data };
@@ -205,15 +192,17 @@ Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data)
   switch (size)
     {
       case 4:
-	Area_AlignTo (4, "float single");
+	if (alignBefore)
+	  Area_AlignTo (4, "float single");
 	toWrite = armflt.c;
 	break;
       case 8:
-	Area_AlignTo (4, "float double");
+	if (alignBefore)
+	  Area_AlignTo (4 /* yes, 4, not 8 */, "float double");
 	toWrite = armdbl_fpa.c;
 	break;
       default:
-	errorAbort ("Internal putDataFloat: illegal size %zd", size);
+	errorAbort ("Internal Put_FloatDataWithOffset: illegal size %zd", size);
 	break;
     }
   

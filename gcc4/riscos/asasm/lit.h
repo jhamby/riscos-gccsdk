@@ -52,4 +52,6 @@ typedef struct LITPOOL
 Value Lit_RegisterInt (const Value *value, Lit_eSize size);
 void Lit_DumpPool (void);
 
+bool c_ltorg (void);
+
 #endif
