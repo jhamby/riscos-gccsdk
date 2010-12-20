@@ -37,7 +37,7 @@
 #define SYMBOL_DEFINED   0x0001 /* This is a mask.  */
 #define SYMBOL_EXPORT    0x0002 /* This is a mask.  */
 
-#define SYMBOL_ABSOLUTE  0x0004	/* This is an absolute value (e.g. constant) and only valid when SYMBOL_DEFINED is set.  Otherwise its valid is relative to the base AREA where it is defined. */
+#define SYMBOL_ABSOLUTE  0x0004	/* This is an absolute value (e.g. constant) and only valid when SYMBOL_DEFINED is set.  Otherwise its value is relative to the base AREA where it is defined. */
 #define SYMBOL_NOCASE    0x0008	/* Only if SYMBOL_REFERENCE, case insensitive */
 #define SYMBOL_WEAK      0x0010	/* Only if SYMBOL_REFERENCE, must not be resolved */
 #define SYMBOL_STRONG    0x0020	/* Complicated ??? */
@@ -80,7 +80,7 @@ typedef struct Symbol
   size_t codeSize; /** Size of the code associated with this symbol label (for AREA symbol, this is unused).  */
   union
     {
-      struct Symbol *ptr;
+      struct Symbol *rel; /* FIXME: we need to support this better, i.e. this symbol (with ValueInt, ValueAddr) is relative to 'ptr' symbol, i.e. only relevant when SYMBOL_ABSOLUTE is *not* defined.  */
       struct AREA *info; /** When SYMBOL_AREA is set.  */
     } area;
 
@@ -105,6 +105,12 @@ void symbolSymbolAOFOutput (FILE *outfile);
 #ifndef NO_ELF_SUPPORT
 void symbolSymbolELFOutput (FILE *outfile);
 #endif
+
+bool c_export (void);
+bool c_import (void);
+bool c_keep (void);
+bool c_strong (void);
+bool c_exportas (void);
 
 #ifdef DEBUG
 void symbolPrint (const Symbol *sym);

@@ -279,13 +279,17 @@ inputNextLineCore (void)
     }
   else
     {
+      const char *curFile = FS_GetCurFileName ();
+      int curLine = FS_GetCurLineNumber ();
       while (gCurPObjP->GetLine (workBuff, sizeof (workBuff)))
 	{
-	  if (gCurPObjP->type == POType_eFile && option_pedantic)
-	    error (ErrorWarning, "No END found in this file");
+	  if (gCurPObjP->type == POType_eFile)
+	    errorLine (curFile, curLine, ErrorWarning, "No END found");
 	  FS_PopPObject (false);
 	  if (gCurPObjP == NULL)
 	    return false;
+	  curFile = FS_GetCurFileName ();
+	  curLine = FS_GetCurLineNumber ();
 	}
       gCurPObjP->lineNum++;
     }

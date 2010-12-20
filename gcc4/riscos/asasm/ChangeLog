@@ -1,3 +1,18 @@
+Mon Dec 20 20:30:15 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c (c_end): Use ErrorError instead of ErrorAbort.
+	(c_incbin): Renamed from c_bin.
+	(symFlag,c_globl,c_strong,c_keep,c_import): Move to...
+	* symbol.c, symbol.h: ...here.  Support for keep all symbols. Support
+	EXPORT arguments.
+	(c_extern): Added.
+	(symbolPrint): Revive relative symbols, more work to do.
+	* decode (oDecodeTable): Add EXTERN, renamed GLOBL to GLOBAL, rename
+	BIN to INCBIN.
+	* m_cpumem.c (m_pld): Use Input_Match instead of inputGet.
+	* variables.c (declare_var): Mark as ABSOLUTE variables.
+	* input.c (inputNextLineCore): Beter reporting of missing END.
+
 Mon Dec 20 15:53:22 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/dcb_dcw_dcd.s: Added DCI, DCWU and DCDU tests.

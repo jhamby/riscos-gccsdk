@@ -379,10 +379,9 @@ m_pld (void)
 
   skipblanks();
 
-  if (inputGet () != '[')
+  if (!Input_Match ('[', true))
     error (ErrorError, "Expected '[' after PLD instruction");
 
-  skipblanks();
   int op = getCpuReg (); /* Base register */
   ir |= LHS_OP (op);
   skipblanks();
@@ -394,22 +393,20 @@ m_pld (void)
   else
     {
       skipblanks();
-      if (inputGet () != ',')
+      if (!Input_Match (',', true))
 	error (ErrorError, "Expected ',' or ']' in PLD instruction");
-
-      skipblanks();
 
       if (Input_Match ('#', false))
 	{
 	  const Value *offset = exprBuildAndEval (ValueInt);
 	  switch (offset->Tag)
 	    {
-	    case ValueInt:
-	      ir = Fix_CPUOffset (NULL, 0, ir, offset->Data.Int.i);
-	      break;
-	    default:
-	      error (ErrorError, "Illegal offset expression");
-	      break;
+	      case ValueInt:
+		ir = Fix_CPUOffset (NULL, 0, ir, offset->Data.Int.i);
+		break;
+	      default:
+		error (ErrorError, "Illegal offset expression");
+		break;
 	    }
 
 	  /* U_FLAG is fixed in Fix_CPUOffset() */

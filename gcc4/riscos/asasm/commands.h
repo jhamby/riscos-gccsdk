@@ -27,7 +27,6 @@
 #include "symbol.h"
 
 bool c_assert (void);
-bool c_bin (void);
 bool c_cn (Symbol *symbol);
 bool c_cp (Symbol *symbol);
 bool c_dcb (void);
@@ -38,18 +37,15 @@ bool c_dcfd (void);
 bool c_dcfs (void);
 bool c_end (void);
 bool c_equ (Symbol *symbol);
-bool c_globl (void);
 bool c_fn (Symbol *symbol);
 bool c_get (void);
 bool c_head (void);
 bool c_idfn (void);
+bool c_incbin (void);
 bool c_info (void);
-bool c_import (void);
-bool c_keep (void);
 bool c_lnk (void);
 bool c_opt (void);
 bool c_rn (Symbol *symbol);
-bool c_strong (void);
 bool c_title (void);
 
 bool DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,

@@ -441,97 +441,6 @@ c_dcfd (void)
   return DefineReal (8, allowUnaligned, allowUnaligned ? "DCFDU" : "DCFD");
 }
 
-static bool
-symFlag (unsigned int flags, const char *err)
-{
-  const Lex lex = lexGetId ();
-  if (lex.tag != LexId)
-    {
-      /* When the symbol is not known yet, it will automatically be created.  */
-      Symbol *sym = symbolGet (&lex);
-      if (Local_IsLocalLabel (sym->str))
-        error (ErrorError, "Local labels cannot be %s", err);
-      else
-        sym->type |= flags;
-    }
-  return false;
-}
-
-/**
- * Implements EXPORT / GLOBL.
- */
-bool
-c_globl (void)
-{
-  return symFlag (SYMBOL_REFERENCE | SYMBOL_DECLARED, "exported");
-}
-
-/**
- * Implements STRONG.
- */
-bool
-c_strong (void)
-{
-  return symFlag (SYMBOL_STRONG, "marked 'strong'");
-}
-
-/**
- * Implements KEEP.
- */
-bool
-c_keep (void)
-{
-  return symFlag (SYMBOL_KEEP | SYMBOL_DECLARED, "marked 'keep'");
-}
-
-/**
- * Implements IMPORT.
- */
-bool
-c_import (void)
-{
-  Lex lex = lexGetId ();
-  if (lex.tag != LexId)
-    return false; /* Error is already given.  */
-
-  Symbol *sym = symbolGet (&lex);
-  sym->type |= SYMBOL_REFERENCE | SYMBOL_DECLARED;
-  while (Input_Match (',', false))
-    {
-      Lex attribute = lexGetId ();
-      if (!strncmp ("NOCASE", attribute.Data.Id.str, attribute.Data.Id.len))
-	sym->type |= SYMBOL_NOCASE;
-      else if (!strncmp ("WEAK", attribute.Data.Id.str, attribute.Data.Id.len))
-	sym->type |= SYMBOL_WEAK;
-      else if (!strncmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len))
-        {
-	  skipblanks ();
-	  if (Input_Match ('=', false))
-	    error (ErrorError, "COMMON attribute needs size specification");
-	  else
-	    {
-	      const Value *size = exprBuildAndEval (ValueInt);
-	      switch (size->Tag)
-	        {
-		  case ValueInt:
-		    Value_Assign (&sym->value, size);
-		    sym->type |= SYMBOL_COMMON;
-		    break;
-		  default:
-		    error (ErrorError, "Illegal COMMON attribute expression");
-		    break;
-	        }
-	    }
-	}
-      else if (!strncmp ("FPREGARGS", attribute.Data.Id.str, attribute.Data.Id.len))
-	sym->type |= SYMBOL_FPREGARGS;
-      else
-	error (ErrorError, "Illegal IMPORT attribute %s", attribute.Data.Id.str);
-      skipblanks ();
-    }
-  return false;
-}
-
 /**
  * Called for GET / INCLUDE
  */
@@ -605,10 +514,10 @@ c_idfn (void)
 }
 
 /**
- * Implements BIN.
+ * Implements INCBIN.
  */
 bool
-c_bin (void)
+c_incbin (void)
 {
   char *filename;
   if ((filename = strdup (inputRest ())) == NULL)
@@ -644,8 +553,9 @@ bool
 c_end (void)
 {
   if (gCurPObjP->type == POType_eMacro)
-    errorAbort ("Cannot use END within a macro");
-  FS_PopPObject (false);
+    error (ErrorError, "Cannot use END within a macro");
+  else
+    FS_PopPObject (false);
   return false;
 }
 
