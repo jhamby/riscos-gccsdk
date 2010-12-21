@@ -65,10 +65,10 @@ m_nop (void)
       ARMWord op = getCpuReg ();
       if (op == 15)
 	error (ErrorError, "Cannot use R15 in NOP");
-      putIns (0xE1A00000 | DST_OP (op) | RHS_OP (op)); /* FIXME: check if this is the correct opcode.  */
+      Put_Ins (0xE1A00000 | DST_OP (op) | RHS_OP (op)); /* FIXME: check if this is the correct opcode.  */
     }
   else
-    putIns (0xE1A00000);
+    Put_Ins (0xE1A00000);
   return false;
 }
 
@@ -88,7 +88,7 @@ dstlhsrhs (ARMWord ir)
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   ir = getRhs (false, true, ir);
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 static void
@@ -100,7 +100,7 @@ dstrhs (ARMWord ir)
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   ir = getRhs (false, true, ir);
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 
@@ -271,7 +271,7 @@ lhsrhs (ARMWord ir)
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   ir = getRhs (false, true, ir);
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**
@@ -365,7 +365,7 @@ onlyregs (bool acc, ARMWord ir)
       ir |= ACC_MUL (getCpuReg ());
       skipblanks ();
     }
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**
@@ -468,7 +468,7 @@ l_onlyregs (ARMWord ir, const char *op)
     }
 
   ir |= dstl << 12 | dsth << 16 | lhs | rhs << 8;
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**
@@ -759,7 +759,7 @@ m_clz (void)
   if (dst == 15 || rhs == 15)
     error(ErrorError, "Use of R15 in CLZ is unpredictable");
 
-  putIns (ir);
+  Put_Ins (ir);
   return false;
 }
 
@@ -784,7 +784,7 @@ q_onlyregs (ARMWord ir, const char *op)
     error (ErrorError, "Cannot use R15 with %s", op);
 
   ir |= dst << 12 | lhs | rhs << 16;
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**

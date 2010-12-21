@@ -43,11 +43,11 @@ Put_AlignDataWithOffset (size_t offset, size_t size, ARMWord data, bool alignBef
       switch (size)
 	{
 	  case 2:
-	    Area_AlignTo (2, "halfword");
+	    offset = Area_AlignTo (offset, 2, "halfword");
 	    break;
 
 	  case 4:
-	    Area_AlignTo (4, "word");
+	    offset = Area_AlignTo (offset, 4, "word");
 	    break;
 	}
     }
@@ -193,12 +193,12 @@ Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data, bool alignBe
     {
       case 4:
 	if (alignBefore)
-	  Area_AlignTo (4, "float single");
+	  offset = Area_AlignTo (offset, 4, "float single");
 	toWrite = armflt.c;
 	break;
       case 8:
 	if (alignBefore)
-	  Area_AlignTo (4 /* yes, 4, not 8 */, "float double");
+	  offset = Area_AlignTo (offset, 4 /* yes, 4, not 8 */, "float double");
 	toWrite = armdbl_fpa.c;
 	break;
       default:
@@ -208,7 +208,7 @@ Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data, bool alignBe
   
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + size))
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, offset + size))
 	areaGrow (areaCurrentSymbol->area.info, size);
       for (size_t i = 0; i < size; i++)
 	Put_DataWithOffset (offset + i, 1, toWrite[i]);
@@ -220,17 +220,23 @@ Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data, bool alignBe
 void
 Put_InsWithOffset (size_t offset, ARMWord ins)
 {
-  assert (offset + 4 <= areaCurrentSymbol->value.Data.Int.i || offset == areaCurrentSymbol->value.Data.Int.i); // FIXME: Limitation.
-  if (offset == areaCurrentSymbol->value.Data.Int.i)
-    putIns (ins);
-  else
+  offset = Area_AlignTo (offset, 4, "instruction");
+
+  if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
-      offset = (offset + 3) & -4;
-      areaCurrentSymbol->area.info->image[offset++] = ins & 0xff;
-      areaCurrentSymbol->area.info->image[offset++] = (ins >> 8) & 0xff;
-      areaCurrentSymbol->area.info->image[offset++] = (ins >> 16) & 0xff;
-      areaCurrentSymbol->area.info->image[offset++] = (ins >> 24) & 0xff;
+      if (AREA_NOSPACE (areaCurrentSymbol->area.info, offset + 4))
+	areaGrow (areaCurrentSymbol->area.info, 4);
+      areaCurrentSymbol->area.info->image[offset + 0] = ins & 0xff;
+      areaCurrentSymbol->area.info->image[offset + 1] = (ins >> 8) & 0xff;
+      areaCurrentSymbol->area.info->image[offset + 2] = (ins >> 16) & 0xff;
+      areaCurrentSymbol->area.info->image[offset + 3] = (ins >> 24) & 0xff;
+
+      /* Increate AREA size when necessary.  */
+      if (offset + 4 >= areaCurrentSymbol->value.Data.Int.i)
+	areaCurrentSymbol->value.Data.Int.i = offset + 4;
     }
+  else
+    error (ErrorError, "Trying to define code an uninitialised area");
 }
 
 /**
@@ -238,21 +244,9 @@ Put_InsWithOffset (size_t offset, ARMWord ins)
  * \entry ins ARM instruction value to be written.
  */
 void
-putIns (ARMWord ins)
+Put_Ins (ARMWord ins)
 {
-  Area_AlignTo (4, "instruction");
-
-  if (AREA_IMAGE (areaCurrentSymbol->area.info))
-    {
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, areaCurrentSymbol->value.Data.Int.i + 4))
-	areaGrow (areaCurrentSymbol->area.info, 4);
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = ins & 0xff;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = (ins >> 8) & 0xff;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = (ins >> 16) & 0xff;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->value.Data.Int.i++] = (ins >> 24) & 0xff;
-    }
-  else
-    error (ErrorError, "Trying to define code an uninitialised area");
+  Put_InsWithOffset (areaCurrentSymbol->value.Data.Int.i, ins);
 }
 
 ARMWord

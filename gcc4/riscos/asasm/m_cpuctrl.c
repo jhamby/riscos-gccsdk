@@ -162,7 +162,7 @@ branch_shared (ARMWord cc, bool isBLX)
 	break;
     }
 
-  putIns (cc | 0x0A000000);
+  Put_Ins (cc | 0x0A000000);
   if (Reloc_QueueExprUpdate (Branch_RelocUpdater, offset, ValueInt | ValueCode | ValueSymbol, &isBLX, sizeof (isBLX)))
     error (ErrorError, "Illegal branch expression");
   return false;
@@ -207,7 +207,7 @@ m_blx (void)
   else
     ir = cc | 0x012FFF30 | RHS_OP (reg); /* BLX <Rm> */
 
-  putIns (ir);
+  Put_Ins (ir);
   return false;
 }
 
@@ -227,7 +227,7 @@ m_bx (void)
   if (dst == 15)
     error (ErrorWarning, "Use of PC with BX is discouraged");
 
-  putIns (cc | 0x012fff10 | dst);
+  Put_Ins (cc | 0x012fff10 | dst);
   return false;
 }
 
@@ -271,7 +271,7 @@ m_swi (void)
 	error (ErrorError, "Illegal SWI expression");
 	break;
     }
-  putIns (ir);
+  Put_Ins (ir);
   return false;
 }
 
@@ -297,7 +297,7 @@ m_bkpt (void)
   ARMWord val = Fix_Int (NULL, 0, 2, i);
 
   ARMWord ir = 0xE1200070 | ((val & 0xFFF0) << 4) | (val & 0xF);
-  putIns (ir);
+  Put_Ins (ir);
   return false;
 }
 
@@ -585,17 +585,17 @@ m_stack (void)
       if (c)
 	inputUnGet (c);
     }
-  putIns (0xE1A0C00D);
+  Put_Ins (0xE1A0C00D);
   if (regs[0] < 0)
     regs[0] = 0;
   if (regs[0])
-    putIns (arg_regs[regs[0]]);
+    Put_Ins (arg_regs[regs[0]]);
   if (regs[1] == -1)
     regs[1] = 0;
-  putIns (push_inst[regs[1]]);
+  Put_Ins (push_inst[regs[1]]);
   if (regs[2] > 0)
-    putIns (pfp_inst[regs[2]]);
-  putIns (0xE24CB004 + 4 * regs[0]);
+    Put_Ins (pfp_inst[regs[2]]);
+  Put_Ins (0xE24CB004 + 4 * regs[0]);
   return false;
 }
 
@@ -618,8 +618,8 @@ apcsEpi (ARMWord cc, const int *pop_inst, const char *op)
     error (ErrorError, "Cannot assemble %s without an earlier STACK", op);
 
   if (regs[2] > 0)
-    putIns (pfp_inst[regs[2]] | cc);
-  putIns (pop_inst[regs[1]] | cc);
+    Put_Ins (pfp_inst[regs[2]] | cc);
+  Put_Ins (pop_inst[regs[1]] | cc);
 }
 
 /**
@@ -790,7 +790,7 @@ m_msr (void)
     }
   else
     cc |= getCpuReg ();
-  putIns (cc);
+  Put_Ins (cc);
   return false;
 }
 
@@ -810,6 +810,6 @@ m_mrs (void)
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   cc |= getpsr (true);
-  putIns (cc);
+  Put_Ins (cc);
   return false;
 }

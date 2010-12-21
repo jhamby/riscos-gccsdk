@@ -187,7 +187,7 @@ c_head (void)
         break;
     }
 
-  Area_AlignTo (4, NULL);
+  Area_AlignTo (areaCurrentSymbol->value.Data.Int.i, 4, NULL);
   Put_Data (4, 0xFF000000 + areaCurrentSymbol->value.Data.Int.i - startAreaOffset);
   return false;
 }

@@ -348,11 +348,11 @@ Lit_DumpPool (void)
 	{
 	  case eLitIntUHalfWord:
 	  case eLitIntSHalfWord:
-	    Area_AlignTo (2, NULL);
+	    Area_AlignTo (areaCurrentSymbol->value.Data.Int.i, 2, NULL);
 	    break;
 
 	  case eLitIntWord:
-	    Area_AlignTo (4, NULL);
+	    Area_AlignTo (areaCurrentSymbol->value.Data.Int.i, 4, NULL);
 	    break;
 
 	  default:
@@ -423,7 +423,7 @@ Lit_DumpPool (void)
 	    break;
 	}
     }
-  Area_AlignTo (4, NULL);
+  Area_AlignTo (areaCurrentSymbol->value.Data.Int.i, 4, NULL);
 }
 
 

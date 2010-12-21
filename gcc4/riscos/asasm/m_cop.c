@@ -74,7 +74,7 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {
   skipblanks ();
   if (Input_Match (',', true))
     ir |= CP_INFO (help_copInt (7, "coprocessor info"));
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**
@@ -170,7 +170,7 @@ coprocessorr (ARMWord ir)
     error (ErrorError, "%slhs", InsertCommaAfter);
   ir |= CPRHS_OP (getCopReg ());
 
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**

@@ -108,7 +108,7 @@ dstlhsrhs (ARMWord ir)
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
-  putIns (getFloatRhs (ir));
+  Put_Ins (getFloatRhs (ir));
 }
 
 
@@ -295,7 +295,7 @@ dstrhs (ARMWord ir)
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
-  putIns (getFloatRhs (ir));
+  Put_Ins (getFloatRhs (ir));
 }
 
 /**
@@ -516,7 +516,7 @@ comparelow (ARMWord ir)		/* No precision and no rounding allowed ? */
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
-  putIns (getFloatRhs (ir));
+  Put_Ins (getFloatRhs (ir));
 }
 
 /**
@@ -565,7 +565,7 @@ m_fix (void)
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
-  putIns (getFloatRhs (ir));
+  Put_Ins (getFloatRhs (ir));
   return false;
 }
 
@@ -588,7 +588,7 @@ m_flt (void)
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
   ir |= DST_OP (getCpuReg ());
-  putIns (ir);
+  Put_Ins (ir);
   return false;
 }
 
@@ -600,7 +600,7 @@ flagtransfer (ARMWord ir)
 
   ARMWord op = getCpuReg ();
   ir |= DST_OP (op);
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**

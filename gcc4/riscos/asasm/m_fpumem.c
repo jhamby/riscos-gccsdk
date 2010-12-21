@@ -46,7 +46,7 @@ dstmem (ARMWord ir)
     
   ir |= DST_OP (getFpuReg ());
   ir = help_copAddr (ir, false);
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**
@@ -129,7 +129,7 @@ dstmemx (ARMWord ir)
   ir = help_copAddr (ir, stack);
   if (stack && (!stack_ia || (ir & 0x200000)))
     ir |= 3 * im->Data.Int.i;
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**

@@ -242,7 +242,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  codeInit ();
 	  codeValue (&symValue, true);
 	  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
-	  putIns (ir);
+	  Put_Ins (ir);
 	  if (symValue.Tag != ValueIllegal
 	      && Reloc_QueueExprUpdate (DestMem_RelocUpdater, offset,
 					ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL, 0))
@@ -279,7 +279,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  codeValue (&value, true);
 	  valueFree (&value);
 	  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
-	  putIns (ir | P_FLAG);
+	  Put_Ins (ir | P_FLAG);
 	  /* The ValueInt | ValueAddr | ValueSymbol | ValueCode tags are what we
 	     support in the LDR instruction.  When we have ValueInt it is
 	     garanteed to be a valid immediate.  */
@@ -300,7 +300,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  exprBuild ();
 	  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
 	  /* Whatever happens, this must be a pre-increment.  */
-	  putIns (ir | P_FLAG);
+	  Put_Ins (ir | P_FLAG);
 	  if (Reloc_QueueExprUpdate (DestMem_RelocUpdater, offset,
 				     ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL, 0))
 	    error (ErrorError, "Illegal %s expression", mnemonic);
@@ -437,7 +437,7 @@ m_pld (void)
       if (!Input_Match (']', true))
 	error (ErrorError, "Expected closing ]");
     }
-  putIns(ir);
+  Put_Ins(ir);
   return false;
 }
 
@@ -518,7 +518,7 @@ dstreglist (ARMWord ir)
 	error (ErrorInfo, "Writeback together with force user");
       ir |= FORCE_FLAG;
     }
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 
@@ -573,6 +573,6 @@ m_swp (void)
   skipblanks ();
   if (!Input_Match (']', true))
     error (ErrorError, "Inserting missing ']'");
-  putIns (ir);
+  Put_Ins (ir);
   return false;
 }

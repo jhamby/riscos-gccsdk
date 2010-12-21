@@ -49,7 +49,7 @@ dstmem (ARMWord ir)
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= CPDST_OP (getCopReg ());
   ir = help_copAddr (ir, false);
-  putIns (ir);
+  Put_Ins (ir);
 }
 
 /**

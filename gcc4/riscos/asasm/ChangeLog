@@ -1,3 +1,13 @@
+Tue Dec 21 22:04:53 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* put.c (Put_Ins): Renamed from putIns.  Reimplement this using
+	Put_InsWithOffset.
+	* put.h (Put_Ins): Renamed from putIns.
+	* m_cpuctrl.c, m_cop.c, m_cpumem.c, m_copmem.c, m_cpu.c, m_fpumem.c,
+	m_fpu.c: Follow putIns to Put_Ins rename.
+	* area.c, area.h (Area_AlignTo): Add offset parameter.
+	* commands.c, lit.c, put.c: Follow new Area_AlignTo API.
+
 Tue Dec 21 06:00:34 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* filestack.c (File_GetLine): Support continuation lines.
