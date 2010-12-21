@@ -1,3 +1,34 @@
+Tue Dec 21 05:32:48 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (oDecodeTable): Add ORG.
+	* m_cpuctrl.c (ADR_RelocUpdaterCore, ADR_RelocUpdater, m_adr): Add
+	absolute area support.
+	* code.c (codePosition): Likewise.
+	* asm.c (ASM_DefineLabel): Likewise.
+	* area.c: Likewise.
+	(c_org): Added.
+	* area.h (Area): Add baseAddr member.
+	* help_cpu.c,help_cpu.h (Help_SplitByImm8s4): Write result in an
+	array, instead of via individual argument pointers.
+	* output.c (outputAof): Support non-zero base area address.
+	* aoffile.h (AofEntry): Renamed Unused member into BaseAddr.
+	* commands.c (c_assert): Small cleanup.
+	* put.c, put.h (PutWord): Remove, use Put_InsWithOffset instead.
+	* macros.c (Macro_GetLine): Support empty line during macro replay.
+	(c_macro): Fix problem whe macro starts with one or more empty lines.
+	* regression/tests_pass/builtinvar_pc.s: Add test case when {PC} is
+	used in an absolute area.
+	* regression/tests_pass/adr.s: Add test case when ADR/ADRL are used
+	in an absolute area.
+	* regression/tests_pass/branch.s: Add test case when branches are used
+	in absolute area.
+	* regression/tests_pass/ldr_from_addr.s: Add test case when LDR is used
+	in absolute area.
+	* regression/tests_pass/load_literal.s: Add disabled test case for
+	LDR literals in absolute area.
+	* regression/tests_pass/variable_substitution.s: More variable & macro
+	argument substitution cases.
+
 Mon Dec 20 20:30:15 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c (c_end): Use ErrorError instead of ErrorAbort.

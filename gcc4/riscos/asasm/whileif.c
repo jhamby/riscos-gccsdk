@@ -87,6 +87,15 @@ if_skip (const char *onerror, bool closeOnly)
 	label = Lex_GetDefiningLabel (true);
       skipblanks ();
 
+      /* Check for 'END'.  */
+      if (inputLookN (0) == 'E'
+	  && inputLookN (1) == 'N'
+          && inputLookN (2) == 'D'
+          && (inputLookN (3) == '\0'
+	      || isspace ((unsigned char)inputLookN (3))
+	      || inputLookN (3) == ';'))
+	break;
+
       /* Check for '[', '|', ']', 'IF', 'ELSE', 'ENDIF'.  */
       enum { t_unknown, t_if, t_else, t_endif } toktype;
       int numSkip = 1;

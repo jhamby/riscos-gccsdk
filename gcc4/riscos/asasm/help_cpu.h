@@ -24,7 +24,6 @@
 #define help_cpu_header_included
 
 int help_cpuImm8s4 (int value) __attribute__ ((__const__));
-int Help_SplitByImm8s4 (unsigned int cnst, unsigned int *c0, unsigned int *c1,
-			unsigned int *c2, unsigned int *c3);
+int Help_SplitByImm8s4 (unsigned int cnst, unsigned int c[4]);
 
 #endif

@@ -57,13 +57,12 @@ ShiftL (unsigned int val, unsigned int shiftPos)
  * the given constant.
  */
 int
-Help_SplitByImm8s4 (unsigned int cnst, unsigned int *c0, unsigned int *c1,
-		    unsigned int *c2, unsigned int *c3)
+Help_SplitByImm8s4 (unsigned int cnst,  unsigned int c[4])
 {
   /* Check the odd case.  */
   if (cnst == 0)
     {
-      *c0 = 0;
+      c[0] = 0;
       return 1;
     }
 
@@ -90,7 +89,7 @@ Help_SplitByImm8s4 (unsigned int cnst, unsigned int *c0, unsigned int *c1,
       unsigned int r0 = cnst & ~m0;
       if (r0 == 0)
 	{
-	  *c0 = cnst & m0;
+	  c[0] = cnst & m0;
 	  return 1; /* Best solution possible, bail out.  */
 	}
       /* Figure out how many bytes we minimally need to mask out the
@@ -108,8 +107,8 @@ Help_SplitByImm8s4 (unsigned int cnst, unsigned int *c0, unsigned int *c1,
       unsigned int r1 = r0 & ~m1;
       if (r1 == 0 /* && instrNeeded > 2 */)
         {
-	  *c0 = cnst & m0;
-          *c1 = r0 & m1;
+	  c[0] = cnst & m0;
+          c[1] = r0 & m1;
           return 2; /* We know 1 instr was not enough, so this is best solution.  */
        }
 
@@ -125,9 +124,9 @@ Help_SplitByImm8s4 (unsigned int cnst, unsigned int *c0, unsigned int *c1,
       unsigned int r2 = r1 & ~m2;
       if (r2 == 0 && instrNeeded > 3)
 	{
-	  *c0 = cnst & m0;
-          *c1 = r0 & m1;
-	  *c2 = r1 & m2;
+	  c[0] = cnst & m0;
+          c[1] = r0 & m1;
+	  c[2] = r1 & m2;
 	  instrNeeded = 3;
 	  continue;
 	}
@@ -136,12 +135,13 @@ Help_SplitByImm8s4 (unsigned int cnst, unsigned int *c0, unsigned int *c1,
       if (instrNeeded > 4)
 	{
 	  /* Worst solution.  */
-	  *c0 = cnst & m0;
-          *c1 = r0 & m1;
-	  *c2 = r1 & m2;
-	  *c3 = r2;
+	  c[0] = cnst & m0;
+          c[1] = r0 & m1;
+	  c[2] = r1 & m2;
+	  c[3] = r2;
 	  instrNeeded = 4;
 	}
     }
+
   return instrNeeded;
 }

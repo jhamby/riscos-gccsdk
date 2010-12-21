@@ -566,10 +566,18 @@ bool
 c_assert (void)
 {
   const Value *value = exprBuildAndEval (ValueBool);
-  if (value->Tag != ValueBool)
-    error (ErrorError, "ASSERT expression must be boolean");
-  else if (!value->Data.Bool.b)
-    error (ErrorError, "Assertion failed");
+  switch (value->Tag)
+    {
+      case ValueBool:
+	if (!value->Data.Bool.b)
+	  error (ErrorError, "Assertion failed");
+	break;
+
+      default:
+	error (ErrorError, "ASSERT expression must be boolean");
+	break;
+    }
+
   return false;
 }
 

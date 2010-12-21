@@ -251,7 +251,7 @@ outputAof (void)
           .Type = armword (ap->area.info->type),
           .Size = armword (FIX (ap->value.Data.Int.i)),
           .noRelocations = armword (ap->area.info->norelocs),
-          .Unused = 0
+          .BaseAddr = armword (ap->area.info->baseAddr)
 	};
       if (aof_entry.noRelocations != 0 && !AREA_IMAGE (ap->area.info))
 	errorAbortLine (NULL, 0, "Internal outputAof: relocations in uninitialised area");

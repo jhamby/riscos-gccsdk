@@ -58,6 +58,8 @@ Symbol *areaEntrySymbol = NULL;
 int areaEntryOffset;
 Symbol *areaHeadSymbol = NULL;
 
+static uint32_t oNextAreaOrg;
+static bool oNextAreaOrgIsSet;
 
 static Area *
 areaNew (Symbol *sym, int type)
@@ -70,6 +72,7 @@ areaNew (Symbol *sym, int type)
   res->type = type;
   res->imagesize = 0;
   res->image = NULL;
+  res->baseAddr = 0;
 
   res->relocQueue = NULL;
   res->norelocs = 0;
@@ -285,7 +288,7 @@ Area_AlignTo (int align, const char *msg)
 
 
 /**
- * Implements '%'.
+ * Implements '%' and 'SPACE'.
  */
 bool
 c_reserve (void)
@@ -352,7 +355,7 @@ c_area (void)
   Symbol *sym = symbolGet (&lex);
   int oldtype = 0;  
   if (sym->type & SYMBOL_DEFINED)
-    error (ErrorError, "Redefinition of label to area %s", sym->str);
+    error (ErrorError, "Redefinition of label as area %s", sym->str);
   else if (sym->type & SYMBOL_AREA)
     oldtype = sym->area.info->type;
   else
@@ -453,6 +456,14 @@ c_area (void)
       skipblanks ();
     }
 
+  /* Pending ORG to be taken into account ? */
+  if (oNextAreaOrgIsSet)
+    {
+      newtype |= AREA_ABS;
+      sym->area.info->baseAddr = oNextAreaOrg;
+      oNextAreaOrgIsSet = false;
+    }
+
   /* Any alignment specified ? No, take default alignment (2) */
   if ((newtype & 0xFF) == 0)
     newtype |= AREA_INIT;
@@ -500,5 +511,36 @@ c_area (void)
     error (ErrorError, "Changing attribute of area %s", sym->str);
   sym->area.info->type |= newtype;
   areaCurrentSymbol = sym;
+  return false;
+}
+
+/**
+ * Implements ORG.
+ */
+bool
+c_org (void)
+{
+  const Value *value = exprBuildAndEval (ValueInt);
+  if (value->Tag == ValueInt)
+    {
+      if (!strcmp (areaCurrentSymbol->str, IMPLICIT_AREA_NAME))
+	{
+	  oNextAreaOrg = value->Data.Int.i;
+	  oNextAreaOrgIsSet = true;
+	}
+      else
+	{
+	  if (areaCurrentSymbol->value.Data.Int.i)
+	    error (ErrorError, "Too late to set ORG of current area");
+	  else
+	    {
+	      areaCurrentSymbol->area.info->type |= AREA_ABS;
+	      areaCurrentSymbol->area.info->baseAddr = value->Data.Int.i;
+	    }
+	}
+    }
+  else
+    error (ErrorError, "ORG needs explicit address");
+
   return false;
 }

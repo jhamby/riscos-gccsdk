@@ -117,7 +117,7 @@ Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	      if (intVal & mask)
 		errorLine (file, lineno, ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
 	      ir |= ((intVal >> 2) & 0xffffff) | (isBLX ? (intVal & 2) << 23 : 0);
-	      PutWord (offset, ir);
+	      Put_InsWithOffset (offset, ir);
 	    }
 	    break;
 
@@ -311,71 +311,109 @@ m_bkpt (void)
  */
 static void
 ADR_RelocUpdaterCore (const char *file, int lineno, size_t offset, int constant,
-		      int baseReg, bool fixedNumInstr)
+		      int baseReg, bool fixedNumInstr, bool isADRL)
 {
-  /* Register + offset.  */
-  ARMWord ir = GetWord (offset);
-  bool isADRL = (ir & 1) ? true : false;
-  ir &= ~1;
-
-  /* FIXME: Can clever use of ADD/SUB mixture can cover more constants ? */
-  unsigned int cTry1[4];
-  int numTry1 = Help_SplitByImm8s4 (constant, &cTry1[0], &cTry1[1], &cTry1[2], &cTry1[3]);
-  unsigned int cTry2[4];
-  int numTry2 = Help_SplitByImm8s4 (baseReg >= 0 ? -constant : ~constant, &cTry2[0], &cTry2[1], &cTry2[2], &cTry2[3]);
-  int num;
-  unsigned int *c;
-  ARMWord irop1, irop2;
-  if (numTry1 < numTry2)
+  /* FIXME: Can clever use of ADD/SUB mixture cover more constants ? */
+  struct
     {
-      num = numTry1;
-      c = cTry1;
-      irop1 = baseReg >= 0 ? M_ADD : M_MOV;
-      irop2 = baseReg >= 0 ? M_ADD : M_ORR;
+      unsigned int try[4];
+      int num;
+    } split[2];
+  split[0].num = Help_SplitByImm8s4 (constant, split[0].try);
+  split[1].num = Help_SplitByImm8s4 (baseReg >= 0 ? -constant : ~constant, split[1].try);
+  bool bestIndex, getOnes;
+  if (split[0].num < split[1].num)
+    {
+      bestIndex = false;
+      getOnes = true;
     }
   else
     {
-      num = numTry2;
-      c = cTry2;
-      irop1 = baseReg >= 0 ? M_SUB : M_MVN;
-      irop2 = baseReg >= 0 ? M_SUB : M_BIC;
-    }
-  if (num == 1 && isADRL)
-    {
-      if (fixedNumInstr)
-	{
-	  errorLine (file, lineno, ErrorInfo, "ADRL not required for offset 0x%08x", constant);
-	  c[1] = 0;
-	  num = 2;
-	}
-      else
-	errorLine (file, lineno, ErrorWarning, "ADRL not required for offset 0x%08x, using ADR instead", constant);
-    }
-  else if ((num == 2 && !isADRL) || num == 3 || num == 4)
-    {
-      if (fixedNumInstr)
-	{
-	  errorLine (file, lineno, ErrorError, "Offset 0x%08x can not be encoded with ADR/ADRL", constant);
-	  num = (isADRL) ? 2 : 1;
-	}
-      else
-	errorLine (file, lineno, ErrorWarning, "Offset 0x%08x can not be encoded in %d instruction sequence, using %d instructions instead", constant, isADRL ? 2 : 1, num);
+      bestIndex = true;
+      getOnes = false;
     }
 
-  for (int n = 0; n < num; ++n, ++c)
+  /* When baseReg is not specified and when we're in an absolute area, we can
+     use PC-relative addressing as well in order to increase our options.  */
+  if (baseReg < 0 && (areaCurrentSymbol->area.info->type & AREA_ABS))
+    {
+      const int newConstant = constant - (areaCurrentSymbol->area.info->baseAddr + offset + 8);
+      split[!bestIndex].num = Help_SplitByImm8s4 (-newConstant, split[!bestIndex].try);
+      if (split[bestIndex].num >= split[!bestIndex].num)
+	{
+	  bestIndex = !bestIndex;
+	  getOnes = false;
+	  baseReg = 15;
+	}
+      split[!bestIndex].num = Help_SplitByImm8s4 (newConstant, split[!bestIndex].try);
+      if (split[bestIndex].num >= split[!bestIndex].num)
+	{
+	  bestIndex = !bestIndex;
+	  getOnes = true;
+	  baseReg = 15;
+	}
+    }
+
+  ARMWord irop1, irop2;
+  if (getOnes)
+    {
+      irop1 = baseReg >= 0 ? M_ADD : M_MOV;
+      irop2 = M_ADD;
+    }
+  else
+    {
+      irop1 = baseReg >= 0 ? M_SUB : M_MVN;
+      irop2 = M_SUB;
+    }
+
+  uint32_t offsetToReport = offset + areaCurrentSymbol->area.info->baseAddr;
+  if (split[bestIndex].num == 1 && isADRL)
+    {
+      if (fixedNumInstr)
+	{
+	  errorLine (file, lineno, ErrorWarning, "ADRL at area offset 0x%08x is not required for addressing 0x%08x", offsetToReport, constant);
+	  split[bestIndex].try[1] = 0;
+	  split[bestIndex].num = 2;
+	}
+      else
+	errorLine (file, lineno, ErrorInfo, "ADRL at area offset 0x%08x is not required for addressing 0x%08x, using ADR instead", offsetToReport, constant);
+    }
+  else if ((split[bestIndex].num == 2 && !isADRL)
+	   || split[bestIndex].num == 3 || split[bestIndex].num == 4)
+    {
+      if (fixedNumInstr)
+	{
+	  errorLine (file, lineno, ErrorError, "%s at area offset 0x%08x can not address 0x%08x", (isADRL) ? "ADRL" : "ADR", offsetToReport, constant);
+	  split[bestIndex].num = (isADRL) ? 2 : 1;
+	}
+      else
+	errorLine (file, lineno, ErrorWarning, "%s at area offset 0x%08x can not address 0x%08x, using %d instruction sequence instead", (isADRL) ? "ADRL" : "ADR", offsetToReport, constant, split[bestIndex].num);
+    }
+
+  ARMWord ir = GetWord (offset);
+  if (split[bestIndex].num == 2 && GET_DST_OP(ir) == 15)
+    errorLine (file, lineno, ErrorError, "ADRL can not be used with register 15 as destination");
+
+  for (int n = 0; n < split[bestIndex].num; ++n)
     {
       /* Fix up the base register.  */
       ARMWord irs = ir | (n == 0 ? irop1 : irop2);
       if (baseReg >= 0 || n != 0)
         irs = irs | LHS_OP (n == 0 ? baseReg : GET_DST_OP(ir));
 
-      int i8s4 = help_cpuImm8s4 (*c);
+      int i8s4 = help_cpuImm8s4 (split[bestIndex].try[n]);
       assert (i8s4 != -1);
       irs |= i8s4;
 
       Put_InsWithOffset (offset + n*4, irs);
     }
 }
+
+typedef struct
+{
+  ARMWord orgInstr;
+  bool userIntendedTwoInstr;
+} ADR_PrivData_t;
 
 /**
  * Shared reloc updater for ADR and ADRL.
@@ -384,19 +422,11 @@ static bool
 ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		  const Value *valueP, void *privData, bool final)
 {
-  ARMWord ir = *(const ARMWord *)privData;
-  if (!final)
-    Put_InsWithOffset (offset, ir);
-  const bool userIntendedTwoInstr = (GetWord (offset) & 1) ? true : false;
+  const ADR_PrivData_t *privDataP = (const ADR_PrivData_t *)privData;
+
+  Put_InsWithOffset (offset, privDataP->orgInstr);
 
   assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
-  if (valueP->Data.Code.len != 1)
-    {
-      if (userIntendedTwoInstr)
-	Put_InsWithOffset (offset + 4, 0);
-      return true;
-    }
-  
   for (size_t i = 0; i != valueP->Data.Code.len; ++i)
     {
       const Code *codeP = &valueP->Data.Code.c[i];
@@ -414,11 +444,11 @@ ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	  case ValueInt:
 	    /* Absolute value : results in MOV/MVN (followed by ADD/SUB in case of
 	       ADRL).  */
-	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Int.i, -1, final);
+	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Int.i, -1, final, privDataP->userIntendedTwoInstr);
 	    break;
 
 	  case ValueAddr:
-	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Addr.i, valP->Data.Addr.r, final);
+	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Addr.i, valP->Data.Addr.r, final, privDataP->userIntendedTwoInstr);
 	    break;
 
 	  case ValueSymbol:
@@ -426,8 +456,12 @@ ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	      /* Wait until the last (final) round as this avoid emitting unnecessary
 		relocations.  */
 	      if (!final)
-		return true;
-	      ADR_RelocUpdaterCore (file, lineno, offset, -(offset + 8), 15, final);
+		{
+		  if (privDataP->userIntendedTwoInstr)
+		    Put_InsWithOffset (offset + 4, 0);
+		  return true;
+		}
+	      ADR_RelocUpdaterCore (file, lineno, offset, -(offset + 8), 15, final, privDataP->userIntendedTwoInstr);
 	      if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
 		return true;
 	    }
@@ -451,12 +485,15 @@ m_adr (void)
   if (ir == optionError)
     return true;
 
-  /* When bit 0 is set, we'll emit ADRL (2 instructions).  Don't forget to
-     reset that bit in the ADR_RelocUpdater routine.  */
-  ir |= DST_OP (getCpuReg ()) | IMM_RHS;
+  /* When bit 0 is set, we'll emit ADRL (2 instructions).  */
+  ADR_PrivData_t privData =
+    {
+      .orgInstr = (ir | DST_OP (getCpuReg ()) | IMM_RHS) & ~1,
+      .userIntendedTwoInstr = (ir & 1) != 0
+    };
 
   skipblanks ();
-  if (!Input_Match (',', true))
+  if (!Input_Match (',', false))
     error (ErrorError, "%sdst", InsertCommaAfter);
 
   /* The label will expand to either a field in a based map or a PC-relative 
@@ -465,8 +502,8 @@ m_adr (void)
   if (Reloc_QueueExprUpdate (ADR_RelocUpdater,
 			     areaCurrentSymbol->value.Data.Int.i,
 			     ValueAddr | ValueInt | ValueSymbol | ValueCode,
-			     &ir, sizeof (ir)))
-    error (ErrorError, "Illegal %s expression", (ir & 1) ? "ADRL" : "ADR");
+			     &privData, sizeof (privData)))
+    error (ErrorError, "Illegal %s expression", (privData.userIntendedTwoInstr & 1) ? "ADRL" : "ADR");
 
   return false;
 }

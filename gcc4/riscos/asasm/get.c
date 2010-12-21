@@ -43,7 +43,7 @@ static ARMWord
 getTypeInternal (bool genError, unsigned int type, const char *typeStr)
 {
   const Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
-  if (lexSym.tag == LexNone)
+  if (lexSym.tag != LexId)
     return genError ? 0 : INVALID_REG;
 
   const Symbol *sym = symbolFind (&lexSym);
@@ -55,7 +55,8 @@ getTypeInternal (bool genError, unsigned int type, const char *typeStr)
 	error (ErrorError, "'%s' is not a %s", sym->str, typeStr);
     }
   else if (genError)
-    error (ErrorError, "Undefined %s %s", typeStr, sym->str);
+    error (ErrorError, "Undefined %s %.*s", typeStr,
+	   (int)lexSym.Data.Id.len, lexSym.Data.Id.str);
   return genError ? 0 : INVALID_REG;
 }
 

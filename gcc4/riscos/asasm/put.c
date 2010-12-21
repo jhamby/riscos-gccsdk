@@ -262,14 +262,3 @@ GetWord (size_t offset)
   const uint8_t *p = &areaCurrentSymbol->area.info->image[offset];
   return p[0] + (p[1]<<8) + (p[2]<<16) + (p[3]<<24);
 }
-
-void
-PutWord (size_t offset, ARMWord val)
-{
-  assert (offset <= areaCurrentSymbol->area.info->imagesize - 4);
-  uint8_t *p = &areaCurrentSymbol->area.info->image[offset];
-  p[0] = (val >>  0) & 0xff;
-  p[1] = (val >>  8) & 0xff;
-  p[2] = (val >> 16) & 0xff;
-  p[3] = (val >> 24) & 0xff;
-}

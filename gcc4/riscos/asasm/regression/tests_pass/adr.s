@@ -126,11 +126,11 @@ dt6lbl3	%	4
 	MOV	r2, #0
 	MOV	r2, #0x2a
 	MOV	r2, #0x23
-	ORR	r2, r2, #0x100	; Can be ADD as well.
+	ADD	r2, r2, #0x100
 
 	MVN	r3, #0x29
 	MVN	r3, #0x22
-	BIC	r3, r3, #0x100	; Can be SUB as well.
+	SUB	r3, r3, #0x100
 	]
 	]
 
@@ -185,6 +185,71 @@ tstlbl6	#	32
 	ADD r5, r7, #20	;ADR
 	ADD r6, r7, #20	;ADRL
 	ADD r6, r6, #0
+	]
+	]
+
+	; Absolute area.
+	[ {TRUE}
+	[ :LNOT: REFERENCE
+	; Explicitly setting 'ORG':
+	AREA	Code11, CODE
+	ORG	&200
+
+	%	16
+01
+	DCD	1
+	ADR	r1, %b01		; SUB r1, pc, #...
+	ADRL	r2, %f02		; ADD r2, pc, #... + ADD r2, r2, #0
+02
+	DCD	2
+
+03
+	DCD	3
+	%	&1100 - {PC}
+	ADR	r3, %b03		; MOV r3, #&200 + 16 + 4*4 + 4
+	ADR	r4, %f04		; MOV r4, #&2200
+	%	&1100 - 8
+04
+	DCD	4
+
+	[ {FALSE}
+	; Implicit 'ORG 0' by setting the ABS AREA attribute:
+	AREA	Code12, CODE, ABS
+
+	%	16
+01
+	DCD	1
+	ADR	r1, %b01		; SUB r1, pc, #...
+	ADR	r2, %f02		; ADD r2, pc, #...
+02
+	DCD	2
+
+03
+	DCD	3
+	%	&1100 - {PC}
+	ADR	r3, %b03		; MOV r3, #&200 + 16 + 4*4 + 4
+	ADR	r4, %f04		; MOV r4, #&2200
+	%	&1100 - 8
+04
+	DCD	4
+	]
+
+	|
+	AREA	Code11, CODE
+	ORG	&200
+	%	16
+	DCD	1
+	ADD	r1, pc, #-8 - 4
+	ADD	r2, pc, #-8 + 8
+	ADD	r2, r2, #0
+	DCD	2
+
+	DCD	3
+	%	&1100 - {PC}
+	MOV	r3, #&200 + 16 + 4*4 + 4
+	MOV	r4, #&2200
+	%	&1100 - 8
+	DCD	4
 	]
 	]
 

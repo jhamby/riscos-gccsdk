@@ -86,9 +86,17 @@ DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		newIR |= M_MOV | IMM_RHS | im;
 	      else if ((im = help_cpuImm8s4 (~valP->Data.Int.i)) != -1)
 		newIR |= M_MVN | IMM_RHS | im;
+	      else if (areaCurrentSymbol->area.info->type & AREA_ABS)
+		{
+		  ARMWord newOffset = valP->Data.Addr.i - (areaCurrentSymbol->area.info->baseAddr + offset + 8);
+		  ir |= LHS_OP (15);
+		  if (isAddrMode3)
+		    ir |= B_FLAG;
+		  newIR = Fix_CPUOffset (file, lineno, ir, newOffset);
+		}
 	      else
-		assert (0);
-	      PutWord (offset, newIR);
+		return true;
+	      Put_InsWithOffset (offset, newIR);
 	    }
 	    break;
 
@@ -98,7 +106,7 @@ DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	      if (isAddrMode3)
 		ir |= B_FLAG;
 	      ir = Fix_CPUOffset (file, lineno, ir, valP->Data.Addr.i);
-	      PutWord (offset, ir);
+	      Put_InsWithOffset (offset, ir);
 	    }
 	    break;
 
@@ -237,7 +245,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  putIns (ir);
 	  if (symValue.Tag != ValueIllegal
 	      && Reloc_QueueExprUpdate (DestMem_RelocUpdater, offset,
-					ValueAddr | ValueSymbol | ValueCode, NULL, 0))
+					ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL, 0))
 	    error (ErrorError, "Illegal %s expression", mnemonic);
 	}
         break;
@@ -294,7 +302,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  /* Whatever happens, this must be a pre-increment.  */
 	  putIns (ir | P_FLAG);
 	  if (Reloc_QueueExprUpdate (DestMem_RelocUpdater, offset,
-				     ValueAddr | ValueSymbol | ValueCode, NULL, 0))
+				     ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL, 0))
 	    error (ErrorError, "Illegal %s expression", mnemonic);
 	}
 	break;

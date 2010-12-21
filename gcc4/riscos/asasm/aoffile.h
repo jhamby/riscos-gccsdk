@@ -32,7 +32,7 @@ typedef struct
   uint32_t Type;
   uint32_t Size;		/* Size of area, must be divisible by four */
   uint32_t noRelocations;	/* Size of relocation table */
-  uint32_t Unused;		/* Unused, must be zero */
+  uint32_t BaseAddr;		/* Base address or 0.  */
 } AofEntry;
 
 #define AofHeaderID 0xc5e2d080

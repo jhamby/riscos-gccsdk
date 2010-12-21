@@ -69,6 +69,7 @@ typedef struct AREA
   uint32_t type;		/* See AREA_ #defines */
   size_t imagesize;
   uint8_t *image;
+  uint32_t baseAddr;
 
   RelocQueue *relocQueue;
   int norelocs;
@@ -97,7 +98,8 @@ void Area_AlignTo (int align, const char *msg);
 
 bool c_align (void);
 bool c_area (void);
-bool c_reserve (void);
 bool c_entry (void);
+bool c_org (void);
+bool c_reserve (void);
 
 #endif

@@ -183,8 +183,10 @@ static bool
 Macro_GetLine (char *bufP, size_t bufSize)
 {
   const char *curPtr = gCurPObjP->d.macro.curPtr;
+
+  if (*curPtr == '\0')
+    return true;
   
-  const char * const bufStartP = bufP;
   const char * const bufEndP = bufP + bufSize - 1;
   while (*curPtr != '\0' && bufP != bufEndP)
     {
@@ -214,7 +216,7 @@ Macro_GetLine (char *bufP, size_t bufSize)
 
   gCurPObjP->d.macro.curPtr = curPtr;
 
-  return bufP == bufStartP;
+  return false;
 }
 
 
@@ -308,7 +310,6 @@ c_macro (const Lex *label)
     }
   if ((m.name = strndup (ptr, len)) == NULL)
     errorOutOfMem ();
-  m.startline = FS_GetCurLineNumber ();
   skipblanks ();
 
   /* Read zero or more macro parameters.  */
@@ -368,7 +369,10 @@ c_macro (const Lex *label)
   decode_finalcheck ();
 
   /* Process the macro body.  */
-  int bufptr = 0, buflen = 0;
+  m.startline = FS_GetCurLineNumber ();
+  size_t bufptr = 0, buflen = 128;
+  if ((buf = malloc (buflen)) == NULL)
+    errorOutOfMem ();
   do
     {
       if (!inputNextLineNoSubst ())
@@ -379,9 +383,9 @@ c_macro (const Lex *label)
 	break;
       Input_RollBackToMark (inputMark);
 
-      char c;
-      while ((c = inputGet ()) != 0)
+      while (1)
 	{
+	  char c = inputGet ();
 	  const char * const inputMark2 = Input_GetMark ();
 	  if (c == '$')
 	    {
@@ -391,38 +395,37 @@ c_macro (const Lex *label)
 		  Input_Match ('.', false);
 		  int i;
 		  for (i = 0;
-		       i < m.numargs
-		         && (strlen (m.args[i]) != (size_t)len
-		             || memcmp (ptr, m.args[i], len));
+		       i != m.numargs && (memcmp (ptr, m.args[i], len)
+					  || m.args[i][len] != '\0');
 		       ++i)
 		    /* */;
-		  if (i < m.numargs)
+		  if (i != m.numargs)
 		    c = MACRO_ARG0 + i;
 		  else
-		    {
-		      /* error(ErrorWarning, true, "Unknown macro argument encountered"); */
-		      Input_RollBackToMark (inputMark2);
-		    }
+		    Input_RollBackToMark (inputMark2);
 		}
 	    }
+	  /* Ensure there is always at least space for 2 extra characters.  */
 	  if (bufptr + 2 >= buflen)
 	    {
-	      char *tmp;;
+	      char *tmp;
 	      if ((tmp = realloc (buf, buflen += 1024)) == NULL)
 		errorOutOfMem ();
 	      buf = tmp;
 	    }
-	  buf[bufptr++] = c;
+	  if (c != '\0')
+	    buf[bufptr++] = c;
+	  else
+	    {
+	      buf[bufptr++] = '\n';
+	      break;
+	    }
 	}
-      if (buf)
-	buf[bufptr++] = 10;	/* cope with blank line */
     }
   while (1);
-  if (buf)
-    buf[bufptr] = 0;
+  buf[bufptr] = '\0';
   m.file = FS_GetCurFileName ();
-  if ((m.buf = buf ? buf : strdup("")) == NULL)
-    errorOutOfMem ();
+  m.buf = buf;
 
   Macro *p;
   if ((p = malloc (sizeof (Macro))) == NULL)

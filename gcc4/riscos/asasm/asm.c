@@ -110,6 +110,8 @@ ASM_DefineLabel (const Lex *label, int offset)
       /* Define label as "ValueAddr AreaBaseReg, #<given area offset>".  */
       symbol->value = Value_Addr (Area_GetBaseReg (areaCurrentSymbol->area.info), offset);
     }
+  else if (areaCurrentSymbol->area.info->type & AREA_ABS)
+    symbol->value = Value_Int (areaCurrentSymbol->area.info->baseAddr + offset);
   else
     {
       /* Define label as "ValueSymbol(current AREA) + <given area offset>".  */

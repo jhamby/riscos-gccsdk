@@ -64,4 +64,60 @@ AString4 SETS	"[" :CC: :CHR:&24 :CC: "AString2.]"
 	=	">[$$AString2.]<"
 
 	]
+
+
+	[ :LNOT: REFERENCE
+	GBLS	var1
+var1	SETS	"vl1"
+
+	GBLS	var2
+var2	SETS	"arg3"
+
+	GBLS	var3
+var3	SETS	"$$arg3"
+
+	MACRO
+	Test	$arg1, $arg2, $arg3
+	=	"tst1 $bla\n"
+	=	"tst2 $$bla\n"
+	=	"tst3 $$$bla\n"
+	=	"tst4 $var1\n"
+	=	"tst5 $$var1\n"
+	=	"tst6 $$$var1\n"
+	=	"tst7 $var2\n"
+	=	"tst8 $$var2\n"
+	=	"tst9 $$$var2\n"
+	=	"tst10 $var3\n"
+	=	"tst11 $$var3\n"
+	=	"tst12 $$$var3\n"
+	=	"tst13 $arg1\n"
+	=	"tst14 $$arg1\n"
+	=	"tst15 $$$arg1\n"
+	=	"tst16 $arg2\n"
+	=	"tst17 $$arg2\n"
+	=	"tst18 $$$arg2\n"
+	MEND
+
+	Test	"mcr1", "var2", "mcr3"
+	|
+	=	"tst1 $bla\n"
+	=	"tst2 $bla\n"
+	=	"tst3 $bla\n"
+	=	"tst4 vl1\n"
+	=	"tst5 vl1\n"
+	=	"tst6 $var1\n"
+	=	"tst7 arg3\n"
+	=	"tst8 arg3\n"
+	=	"tst9 $var2\n"
+	=	"tst10 $arg3\n"
+	=	"tst11 $arg3\n"
+	=	"tst12 $var3\n"
+	=	"tst13 mcr1\n"
+	=	"tst14 $arg1\n"
+	=	"tst15 $mcr1\n"
+	=	"tst16 var2\n"
+	=	"tst17 $arg2\n"
+	=	"tst18 arg3\n"
+	]
+
 	END

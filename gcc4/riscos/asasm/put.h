@@ -33,6 +33,5 @@ void putIns (ARMWord ins);
 void Put_InsWithOffset (size_t offset, ARMWord data);
 
 ARMWord GetWord (size_t offset);
-void PutWord (size_t offset, ARMWord val);
 
 #endif

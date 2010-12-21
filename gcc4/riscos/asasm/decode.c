@@ -176,6 +176,7 @@ static const decode_table_t oDecodeTable[] =
   { "NOP", DTABLE_CALLBACK_VOID, { .vd = m_nop } }, /* NOP */
   { "NRM", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_nrm } }, /* NRM CC P R */
   { "OPT", DTABLE_CALLBACK_VOID, { .vd = c_opt } }, /* OPT */
+  { "ORG", DTABLE_CALLBACK_VOID, { .vd = c_org } }, /* ORG */
   { "ORR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_orr } }, /* ORR CC S */
   { "PLD", DTABLE_CALLBACK_VOID, { .vd = m_pld } }, /* PLD */
   { "POL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_pol } }, /* POL CC P R */
