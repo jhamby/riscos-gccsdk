@@ -2,9 +2,9 @@ The RISC OS Software Development Kit [GCCSDK GCC 4.1.2 Release 1 - Development]
 ====================================
 
 This is a lightweight build environment which currently combines GCC 4.1.2
-release, binutils 2.21 release, UnixLib 5.0 and libscl 2.0 into one directory
-which can be used to build a RISC OS cross-compiler and native RISC OS compiler
-with target 'arm-unknown-riscos' (APCS-32 compliant).
+release, binutils 2.21 release, UnixLib 5.0 into one directory which can be
+used to build a RISC OS cross-compiler and native RISC OS compiler with
+target 'arm-unknown-riscos' (APCS-32 compliant).
 
 We don't have the GCC and binutils sources stored in our SVN server and these
 will be automatically downloaded during building from their official
