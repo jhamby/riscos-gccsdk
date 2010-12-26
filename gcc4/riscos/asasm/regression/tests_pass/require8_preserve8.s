@@ -1,0 +1,14 @@
+; Tests REQUIRE8/PRESERVE8
+; FIXME: we should check the ELF attributes.
+
+	AREA	Code, CODE
+
+	REQUIRE8	; No argument
+	REQUIRE8   {TRUE}
+	REQUIRE8 {FALSE}
+	
+	PRESERVE8
+	PRESERVE8 {FALSE}
+	PRESERVE8 {TRUE}
+
+	END

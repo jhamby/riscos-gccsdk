@@ -35,7 +35,6 @@ extern int option_local;
 extern int option_apcs_32bit;
 extern int option_apcs_fpv3;
 extern int option_apcs_softfloat;
-extern int option_rma_module;
 extern int option_aof;
 
 extern const char *ProgName;

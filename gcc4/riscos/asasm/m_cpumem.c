@@ -444,7 +444,6 @@ m_pld (void)
 static void
 dstreglist (ARMWord ir, bool isPushPop)
 {
-  int op;
   if (isPushPop)
     {
       ir |= BASE_MULTI (13);
@@ -452,8 +451,7 @@ dstreglist (ARMWord ir, bool isPushPop)
     }
   else
     {
-      op = getCpuReg ();
-      ir |= BASE_MULTI (op);
+      ir |= BASE_MULTI (getCpuReg ());
       skipblanks ();
       if (Input_Match ('!', true))
 	ir |= W_FLAG;
@@ -462,7 +460,7 @@ dstreglist (ARMWord ir, bool isPushPop)
     }
   if (!Input_Match ('{', true))
     error (ErrorError, "Inserting missing '{' before reglist");
-  op = 0;
+  int op = 0;
   do
     {
       int low = getCpuReg ();
@@ -498,6 +496,24 @@ dstreglist (ARMWord ir, bool isPushPop)
 	error (ErrorInfo, "Register occurs more than once in register list");
       op |= (1 << (high + 1)) - (1 << low);
     } while (Input_Match (',', true));
+  if (GET_BASE_MULTI (ir) == 13
+      && (ir & W_FLAG))
+    {
+      /* Count number of registers loaded or saved.  */
+      int i, c = 0;
+      for (i = 0; i < 16; ++i)
+	{
+	  if (op & (1<<i))
+	    ++c;
+	}
+      if (c & 1)
+	{
+	  if (gArea_Preserve8 == ePreserve8_Yes)
+	    error (ErrorWarning, "Stack pointer update potentially breaks 8 byte stack alignment");
+	  else if (gArea_Preserve8 == ePreserve8_Guess)
+	    gArea_Preserve8Guessed = false;
+	}
+    }
   if (!Input_Match ('}', false))
     error (ErrorError, "Inserting missing '}' after reglist");
   ir |= op;

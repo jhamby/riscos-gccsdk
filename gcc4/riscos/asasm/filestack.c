@@ -228,7 +228,8 @@ File_GetLine (char *bufP, size_t bufSize)
 	return true;
 
       size_t lineLen = strlen (bufP);
-      if (lineLen > 0 && bufP[lineLen - 1] == '\n')
+      if ((lineLen > 0 && bufP[lineLen - 1] == '\n')
+          || feof (gCurPObjP->d.file.fhandle))
 	{
 	  if (lineLen > 1 && bufP[lineLen - 2] == '\\')
 	    {

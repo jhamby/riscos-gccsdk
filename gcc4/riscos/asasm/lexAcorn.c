@@ -229,12 +229,6 @@ lexAcornPrim (Lex *lex)
 	lex->Data.Int.value = false;
 	return;
 
-      case 'M':
-	FINISH_STR_PRIM ("ODULE}"); /* {MODULE} */
-	lex->tag = LexBool;
-	lex->Data.Int.value = option_rma_module;
-	return;
-
       case 'P':
 	FINISH_STR_PRIM ("C}"); /* {PC} */
 	lex->tag = LexPosition;

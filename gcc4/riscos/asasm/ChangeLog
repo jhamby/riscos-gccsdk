@@ -1,3 +1,18 @@
+Sun Dec 26 16:47:19 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/require8_preserve8.s: New.
+	* decode.c (oDecodeTable): Add PRESERVE8/REQUIRE8.
+	* m_cpumem.c (dstreglist): Add check for when PRESERVE8 is declared.
+	* filestack.c (File_GetLine): Fix no-newline-before-EOF case.
+	* area.c, area.h (c_preserve8, c_require8, gArea_Require8,
+	gArea_Preserve8, gArea_Preserve8Guessed): New.
+	* lexAcorn.c (lexAcornPrim): Drop {MODULE}.
+	* get.h (GET_BASE_MULTI): New.
+	* main.c (option_rma_module, -module): Remove.
+	(main): Support double dash option prefix, add implemented -apcs,
+	more foolproof -From/-o/-To parsing.
+	* main.h (option_rma_module): Remove.
+
 Sun Dec 26 02:54:13 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
   
 	* regression/tests_pass/loadstore3.s: Rename to...

@@ -26,6 +26,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <strings.h>
 #include <stdlib.h>
 #include <ctype.h>
 #include <locale.h>
@@ -67,7 +68,6 @@ int option_autocast = 0;
 int option_apcs_32bit = -1; /* -1 = option not specified.  */
 int option_apcs_fpv3 = -1; /* -1 = option not specified.  */
 int option_apcs_softfloat = -1; /* -1 = option not specified.  */
-int option_rma_module = 0;
 int option_aof = -1; /* -1 = option not specified.  */
 
 const char *predefines[MAX_PREDEFINES];
@@ -93,28 +93,27 @@ as_help (void)
 	   "-I<directory>              Search 'directory' for included assembler files.\n"
 	   "-D<variable>               Define a string variable.\n"
 	   "-D<variable>=<value>       Define a string variable to a certain value.\n"
-	   "-PD <value>                Predefine a value using SETA/SETS/SETL syntax.\n"
-	   "-PreDefine <value>         Same as -PD option.\n"
-	   "-pedantic      -p          Display extra warnings.\n"
-	   "-verbose       -v          Display progress information.\n"
-	   "-fussy         -f          Display conversion information.  Can be specified more than once for more conversion information.\n"
+	   "-PreDefine <value>         Predefine a value using SETA/SETS/SETL syntax.\n"
+	   "-Pedantic                  Display extra warnings.\n"
+	   "-Verbose                   Display progress information.\n"
+	   "-Fussy                     Display conversion information.  Can be specified more than once for more conversion information.\n"
 #ifdef __riscos__
-	   "-throwback     -tb         Throwback errors to a text editor.\n"
+	   "-ThrowBack                 Throwback errors to a text editor.\n"
 #endif
-	   "-autocast      -ac         Enable casting from integer to float.\n"
-	   "-target        -t          Target ARM CPU (ARM2...SA110).\n"
-	   "-depend <file> -d <file>   Write 'make' source file dependency information to 'file'.\n"
-	   "-help          -h -H -?    Display this help.\n"
-	   "-version       -ver        Display the version number.\n"
+	   "-AutoCast                  Enable casting from integer to float.\n"
+	   "-Target                    Target ARM CPU (ARM2...SA110).\n"
+	   "-Depend <file>             Write 'make' source file dependency information to 'file'.\n"
+	   "-Help                      Display this help.\n"
+	   "-VERsion                   Display the version number.\n"
 	   "-From asmfile              Source assembler file (ObjAsm compatibility).\n"
 	   "-To objfile                Destination AOF file (ObjAsm compatibility).\n"
+	   "-Apcs <APCS options>       Specifies one or more APCS options.\n"
 	   "-apcs26                    26-bit APCS AREAs.\n"
 	   "-apcs32                    32-bit APCS AREAs [default].\n"
 	   "-apcsfpv2                  Use floating point v2 AREAs.\n"
 	   "-apcsfpv3                  Use floating point v3 AREAs (SFM, LFM) [default]\n"
 	   "-soft-float                Mark code as using -msoft-float (avoids explicit FP instructions).  This is a GCCSDK extension to the AOF file format.\n"
 	   "-hard-float                Mark code as using -mhard-float (uses explicit FP instructions) [default].\n"
-	   "-module                    Set if building RISC OS RMA modules.\n"
 #ifndef NO_ELF_SUPPORT
 	   "-elf                       Output ELF file [default].\n"
 #endif
@@ -176,6 +175,7 @@ set_option_aof (int writeaof)
   option_aof = writeaof;
 }
 
+
 int
 main (int argc, char **argv)
 {
@@ -185,8 +185,6 @@ main (int argc, char **argv)
 
   ProgName = *argv++;
 
-#define IS_ARG(ln, sn) (!strcmp(*argv, ln) || !strcmp(*argv, sn))
-
   if (argc == 1)
     {
       /* No command line arguments supplied. Print help and exit.  */
@@ -195,95 +193,142 @@ main (int argc, char **argv)
     }
   /* Analyse the command line */
 
+  int numFileNames = 0;
+  const char *fileNames[2];
+  
   for (argc--; argc; argv++, argc--)
     {
-      if (argv[0][0] == '-' && argv[0][1] == 'D')
+      const char *arg = *argv;
+      if (arg[0] != '-')
 	{
-	  if (argv[0][2] == 0)
+	  /* This is not an option.  */
+	  if (numFileNames == 2)
+	    {
+	      fprintf (stderr, "%s: Too many filenames specified\n", ProgName);
+	      return EXIT_FAILURE;
+	    }
+	  fileNames[numFileNames++] = arg;
+	  continue;
+	}
+      ++arg;
+
+      /* Accept single & double dash for options.  */
+      if (arg[0] == '-')
+	++arg;
+      
+      if (arg[0] == 'D')
+	{
+	  if (arg[1] == '\0')
 	    {
 	      if (--argc)
 		var_define (*++argv);
 	      else
 		{
-		  fprintf (stderr, "%s: Missing argument after -D\n", ProgName);
+		  fprintf (stderr, "%s: Missing argument after -%s\n", ProgName, arg);
 		  return EXIT_FAILURE;
 		}
 	    }
 	  else
-	    var_define (argv[0] + 2);
+	    var_define (arg + 1);
 	}
-      else if (IS_ARG ("-PD", "-PreDefine"))
+      else if (!strncasecmp (arg, "PD", sizeof ("PD")-1)
+	       || !strncasecmp (arg, "PreDefine", sizeof ("PreDefine")-1))
         {
-          if (--argc)
+	  const char *val;
+	  if (arg[sizeof ("PD")-1] == '=')
+	    val = arg + sizeof ("PD")-1 + 1;
+	  else if (arg[sizeof ("PreDefine")-1] == '=')
+	    val = arg + sizeof ("PreDefine")-1 + 1;
+	  else if (--argc == 0)
+	    {
+              fprintf (stderr, "%s: Missing argument after -%s\n", ProgName, arg);
+	      return EXIT_FAILURE;
+	    }
+	  else
+	    val = *++argv;
+	    
+          if (num_predefines == MAX_PREDEFINES)
             {
-              if (num_predefines == MAX_PREDEFINES)
-                {
-		  fprintf (stderr, "%s: Too many predefines\n", ProgName);
-		  return EXIT_FAILURE;
-                }
-
-              predefines[num_predefines++] = *++argv;
+	     fprintf (stderr, "%s: Too many predefines\n", ProgName);
+	     return EXIT_FAILURE;
             }
-          else
-	    {
-              fprintf (stderr, "%s: Missing argument after -PD/-PreDefine\n", ProgName);
-	      return EXIT_FAILURE;
-	    }
+          predefines[num_predefines++] = val;
         }
-      else if (IS_ARG ("-o", "-To"))
+      else if (!strcasecmp (arg, "o") || !strcasecmp (arg, "To"))
 	{
-	  if (ObjFileName != NULL)
-	    {
-	      fprintf (stderr, "%s: Only one output file allowed\n", ProgName);
-	      return EXIT_FAILURE;
-	    }
 	  if (--argc)
-	    ObjFileName = *++argv;
+	    {
+	      if (ObjFileName != NULL)
+		{
+		  fprintf (stderr, "%s: Only one output file allowed\n", ProgName);
+		  return EXIT_FAILURE;
+		}
+	      ObjFileName = *++argv;
+	    }
 	  else
 	    {
-	      fprintf (stderr, "%s: Missing filename after -o\n", ProgName);
+	      fprintf (stderr, "%s: Missing filename after -%s\n", ProgName, arg);
 	      return EXIT_FAILURE;
 	    }
 	}
 #ifdef __riscos__
-      else if (IS_ARG ("-throwback", "-tb"))
+      else if (!strcasecmp (arg, "throwback") || !strcasecmp (arg, "tb"))
 	option_throwback++;
 #endif
-      else if (IS_ARG ("-autocast", "-ac"))
+      else if (!strcasecmp (arg, "autocast") || !strcasecmp (arg, "ac"))
 	option_autocast++;
-      else if (IS_ARG ("-pedantic", "-p"))
+      else if (!strcasecmp (arg, "pedantic") || !strcasecmp (arg, "p"))
 	option_pedantic++;
-      else if (IS_ARG ("-target", "-t"))
+      else if (!strcasecmp (arg, "target") || !strcasecmp (arg, "t"))
         {
 	  if (as_target (--argc ? *++argv : NULL) < 0)
 	    return EXIT_FAILURE;
 	}
-      else if (IS_ARG ("-verbose", "-v"))
+      else if (!strcasecmp (arg, "verbose") || !strcasecmp (arg, "v"))
 	option_verbose++;
-      else if (IS_ARG ("-fussy", "-f"))
+      else if (!strcasecmp (arg, "fussy") || !strcasecmp (arg, "f"))
 	option_fussy++;
-      else if (!strcmp (*argv, "-apcs26"))
-	set_option_apcs_32bit (0);
-      else if (!strcmp (*argv, "-apcs32"))
-	set_option_apcs_32bit (1);
-      else if (!strcmp (*argv, "-apcsfpv2"))
-	set_option_apcs_fpv3 (0);
-      else if (!strcmp (*argv, "-apcsfpv3"))
-	set_option_apcs_fpv3 (1);
-      else if (!strcmp (*argv, "-soft-float"))
-	set_option_apcs_softfloat (1);
-      else if (!strcmp (*argv, "-hard-float"))
-	set_option_apcs_softfloat (0);
-      else if (!strcmp (*argv, "-module"))
-	option_rma_module = 1;
-      else if (!strncmp (*argv, "-I", 2))
+      else if ((!strncasecmp (arg, "apcs", sizeof ("apcs")-1)
+	        && (arg[sizeof ("apcs")-1] == '=' || arg[sizeof ("apcs")-1] == '\0'))
+		 || ((arg[0] == 'a' || arg[1] == 'A')
+		     && (arg[sizeof ("a")-1] == '=' || arg[sizeof ("A")-1] == '\0')))
 	{
-	  const char *inclDir = *argv + 2;
+	  const char *val;
+	  if (arg[sizeof ("apcs")-1] == '=')
+	    val = arg + sizeof ("apcs")-1 + 1;
+	  else if (arg[sizeof ("a")-1] == '=')
+	    val = arg + sizeof ("a")-1 + 1;
+	  else if (--argc == 0)
+	    {
+              fprintf (stderr, "%s: Missing argument after -%s\n", ProgName, arg);
+	      return EXIT_FAILURE;
+	    }
+	  else
+	    val = *++argv;
+
+	  fprintf (stderr, "%s: Warning: APCS option not implemented\n", ProgName);
+	  /* FIXME */
+	}
+      else if (!strcasecmp (arg, "apcs26"))
+	set_option_apcs_32bit (0);
+      else if (!strcasecmp (arg, "apcs32"))
+	set_option_apcs_32bit (1);
+      else if (!strcasecmp (arg, "apcsfpv2"))
+	set_option_apcs_fpv3 (0);
+      else if (!strcasecmp (arg, "apcsfpv3"))
+	set_option_apcs_fpv3 (1);
+      else if (!strcasecmp (arg, "soft-float"))
+	set_option_apcs_softfloat (1);
+      else if (!strcasecmp (arg, "hard-float"))
+	set_option_apcs_softfloat (0);
+      else if (arg[0] == 'I' || arg[0] == 'i')
+	{
+	  const char *inclDir = arg + 1;
 	  if (*inclDir == '\0')
 	    {
 	      if (--argc == 0)
 	        {
-	          fprintf(stderr, "%s: Missing include directory after -I\n", ProgName);
+	          fprintf(stderr, "%s: Missing include directory after -%s\n", ProgName, arg);
 	          return EXIT_FAILURE;
 	        }
 	      inclDir = *++argv;
@@ -291,22 +336,20 @@ main (int argc, char **argv)
 	  if (addInclude (inclDir) < 0)
 	    return EXIT_FAILURE;
 	}
-      else if (IS_ARG ("-version", "-ver"))
+      else if (!strcasecmp (arg, "version") || !strcasecmp (arg, "ver"))
 	{
 	  fprintf (stderr,
 	           DEFAULT_IDFN "\n"
 	           "Copyright (c) 1992-2010 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
 	  return EXIT_SUCCESS;
 	}
-      else if (IS_ARG ("-H", "-h")
-	       || IS_ARG ("-help", "-?")
-	       || !strcmp (*argv, "--help"))
+      else if (!strcasecmp (arg, "H") || !strcasecmp (arg, "help") || !strcasecmp (arg, "?"))
 	{
 	  /* We need the `--help' option for gcc's --help -v  */
 	  as_help ();
 	  return EXIT_SUCCESS;
 	}
-      else if (!strcmp (*argv, "-From"))
+      else if (!strcasecmp (arg, "From"))
 	{
 	  if (--argc)
 	    {
@@ -319,11 +362,11 @@ main (int argc, char **argv)
 	    }
 	  else
 	    {
-	      fprintf (stderr, "%s: Missing filename after -From\n", ProgName);
+	      fprintf (stderr, "%s: Missing filename after -%s\n", ProgName, arg);
 	      return EXIT_FAILURE;
 	    }
 	}
-      else if (IS_ARG ("-depend", "-d"))
+      else if (!strcasecmp (arg, "depend") || !strcasecmp (arg, "d"))
 	{
 	  if (--argc)
 	    {
@@ -336,32 +379,18 @@ main (int argc, char **argv)
 	    }
 	  else
 	    {
-	      fprintf (stderr, "%s: Missing filename after -depend\n", ProgName);
+	      fprintf (stderr, "%s: Missing filename after -%s\n", ProgName, arg);
 	      return EXIT_FAILURE;
 	    }
 	}
 #ifndef NO_ELF_SUPPORT
-      else if (!strcmp (*argv, "-elf"))
+      else if (!strcasecmp (arg, "elf"))
 	set_option_aof (0);
 #endif
-      else if (!strcmp (*argv, "-aof"))
+      else if (!strcasecmp (arg, "aof"))
 	set_option_aof (1);
-      else if (**argv != '-')
-	{
-	  if (SourceFileName != NULL)
-	    {
-	      if (ObjFileName != NULL)
-		{
-		  fprintf (stderr, "%s: Only one input file allowed\n", ProgName);
-		  return EXIT_FAILURE;
-		}
-	      ObjFileName = *argv;
-	    }
-	  else
-	    SourceFileName = *argv;
-	}
       else
-	fprintf (stderr, "%s: Illegal flag %s ignored\n", ProgName, *argv);
+	fprintf (stderr, "%s: Unknown option -%s ignored\n", ProgName, arg);
     }
 
   /* Fallback on default options ? */
@@ -382,12 +411,28 @@ main (int argc, char **argv)
 
   if (SourceFileName == NULL)
     {
-      fprintf (stderr, "%s: No input filename specified\n", ProgName);
-      return EXIT_FAILURE;
+      if (numFileNames)
+	SourceFileName = fileNames[--numFileNames];
+      else
+	{
+	  fprintf (stderr, "%s: No input filename specified\n", ProgName);
+	  return EXIT_FAILURE;
+	}
     }
   if (ObjFileName == NULL)
     {
-      fprintf (stderr, "%s: No output filename specified\n", ProgName);
+      if (numFileNames)
+	ObjFileName = fileNames[--numFileNames];
+      else
+	{
+	  fprintf (stderr, "%s: No output filename specified\n", ProgName);
+	  return EXIT_FAILURE;
+	}
+    }
+  if (numFileNames)
+    {
+      while (numFileNames)
+        fprintf (stderr, "%s: Specified unused filename: %s\n", ProgName, fileNames[--numFileNames]);
       return EXIT_FAILURE;
     }
   
