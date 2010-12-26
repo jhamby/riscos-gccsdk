@@ -331,17 +331,16 @@ m_tst (void)
 static void
 onlyregs (bool acc, ARMWord ir)
 {
-  ARMWord dst, rhs, lhs;
-  dst = getCpuReg ();
+  ARMWord dst = getCpuReg ();
   ir |= DST_MUL (dst);
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
-  lhs = getCpuReg ();
+  ARMWord lhs = getCpuReg ();
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
-  rhs = getCpuReg ();
+  ARMWord rhs = getCpuReg ();
   if (dst == lhs)
     {
       if (dst == rhs)

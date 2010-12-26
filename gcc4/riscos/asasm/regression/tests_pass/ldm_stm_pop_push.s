@@ -1,3 +1,5 @@
+; Tests LDM, STM, PUSH and POP.
+
 		AREA |C$$code|, CODE, READONLY
 
 		; Addressing mode 4 - Load/Store multiple
@@ -102,6 +104,14 @@
 		DCD	&E92043FA
 		DCD	&E94083FA
 		DCD	&E90043FA
+	]
+
+	[ :LNOT: REFERENCE
+		POP	{r0-r3, r7-r8}
+		PUSH	{R3-r8, R10, r14}
+	|
+		LDMFD	R13!, {r0-r3, r7-r8}
+		STMFD	R13!, {R3-r8, R10, r14}
 	]
 
 		END

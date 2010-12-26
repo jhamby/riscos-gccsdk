@@ -380,20 +380,10 @@ optionCondBT (bool isStore)
 
 
 ARMWord
-optionCondDirLdm (void)
+optionCondLdmStm (bool isLDM)
 {
   ARMWord option = getCond ();
-  if (optionError == (option |= getDir (true)))
-    return optionError;
-  return isOK (option);
-}
-
-
-ARMWord
-optionCondDirStm (void)
-{
-  ARMWord option = getCond ();
-  if (optionError == (option |= getDir (false)))
+  if (optionError == (option |= getDir (isLDM)))
     return optionError;
   return isOK (option);
 }

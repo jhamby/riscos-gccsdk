@@ -96,77 +96,75 @@ getShiftOp (void)
   ARMWord r = 0;
   switch (inputLookLower ())
     {
-      case 'a':
-	if (inputLookNLower (1) == 's')
+      case 'a': /* ASL, ASR */
 	{
+	  if (inputLookNLower (1) != 's')
+	    goto illegal;
 	  switch (inputLookNLower (2))
 	    {
 	      case 'l':
 		r = ASL;
-		inputSkipN (3);
 		break;
+
 	      case 'r':
 		r = ASR;
-		inputSkipN (3);
 		break;
+
 	      default:
 		goto illegal;
 	    }
+	  inputSkipN (3);
+	  break;
 	}
-	else
-	  goto illegal;
-	break;
-      case 'l':
-	if (inputLookNLower (1) == 's')
+      case 'l': /* LSL, LSR */
 	{
+	  if (inputLookNLower (1) != 's')
+	    goto illegal;
 	  switch (inputLookNLower (2))
 	    {
 	      case 'l':
 		r = LSL;
-		inputSkipN (3);
 		break;
+
 	      case 'r':
 		r = LSR;
-		inputSkipN (3);
 		break;
+
 	      default:
 		goto illegal;
 	    }
+	  inputSkipN (3);
+	  break;
 	}
-	else
-	  goto illegal;
-	break;
-      case 'r':
-	switch (inputLookNLower (1))
+      case 'r': /* ROR, RRX */
 	{
-	  case 'o':
-	    if (inputLookNLower (2) == 'r')
-	      {
+	  switch (inputLookNLower (1))
+	    {
+	      case 'o':
+		if (inputLookNLower (2) != 'r')
+		  goto illegal;
 		r = ROR;
-		inputSkipN (3);
 		break;
-	      }
-	    else
-	      goto illegal;
-	  case 'r':
-	    if (inputLookNLower (2) == 'x')
-	      {
+
+	      case 'r':
+		if (inputLookNLower (2) != 'x')
+		  goto illegal;
 		r = RRX;
-		inputSkipN (2);
-		inputSkip ();
 		break;
-	      }
-	    else
-	      goto illegal;
-	  default:
-	    goto illegal;
+
+	      default:
+		goto illegal;
+	    }
+	  inputSkipN (3);
+	  break;
 	}
-	break;
+
       default:
 illegal:
 	error (ErrorError, "Illegal shiftop %c%c%c", inputLook (), inputLookN (1), inputLookN (2));
 	break;
     }
+
   return r;
 }
 
@@ -265,6 +263,7 @@ getRhs (bool immonly, bool shift, ARMWord ir)
 	    break;
 
 	  case ValueString:
+	    /* FIXME: Use Lex_Char2Int ? */
 	    if (im->Data.String.len != 1)
 	      error (ErrorError, "String too long to be an immediate expression");
 	    else

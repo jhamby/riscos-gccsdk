@@ -1,3 +1,17 @@
+Sun Dec 26 02:54:13 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+  
+	* regression/tests_pass/loadstore3.s: Rename to...
+	* regression/tests_pass/ldm_stm_pop_push.s: ...this.  Add PUSH/POP
+	tests.
+	* decode.c (oDecodeTable): Add PUSH/POP.
+	* m_cpumem.c (dstreglist): Add isPushPop parameter, drop #<num reg>
+	feature.
+	(m_ldm, m_stm): Follow optionCondDirLdm/optionCondDirStm merge.
+	(m_pop,m_push): New.
+	* m_cpumem.h (m_pop, m_push): New.
+	* option.c, option.h (optionCondLdmStm): Merged from optionCondDirLdm
+	and optionCondDirStm.
+
 Tue Dec 21 22:04:53 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* put.c (Put_Ins): Renamed from putIns.  Reimplement this using

@@ -199,7 +199,6 @@ dstmem (ARMWord ir, const char *mnemonic)
 		    }
 		  ir |= isAddrMode3 ? 0 : REG_FLAG;
 		  ir = getRhs (true, !isAddrMode3, ir);
-		  /* Reg {,shiftop {#shift}} */
 		  offValue = true;
 		}
 	      skipblanks ();
@@ -443,74 +442,65 @@ m_pld (void)
 
 
 static void
-dstreglist (ARMWord ir)
+dstreglist (ARMWord ir, bool isPushPop)
 {
-  int op = getCpuReg ();
-  ir |= BASE_MULTI (op);
-  skipblanks ();
-  if (Input_Match ('!', true))
-    ir |= W_FLAG;
-  if (!Input_Match (',', true))
-    error (ErrorError, "Inserting missing comma before reglist");
-  if (Input_Match ('#', false))		/* FIXME: document, test: <reg>!, #<int> */
+  int op;
+  if (isPushPop)
     {
-      /* Constant.  */
-      const Value *mask = exprBuildAndEval (ValueInt);
-      switch (mask->Tag)
-	{
-	  case ValueInt:
-	    ir |= fixMask (0, mask->Data.Int.i);
-	    break;
-	  default:
-	    error (ErrorError, "Illegal mask expression");
-	    break;
-	}
+      ir |= BASE_MULTI (13);
+      ir |= W_FLAG;
     }
   else
     {
-      if (!Input_Match ('{', true))
-	error (ErrorError, "Inserting missing '{' before reglist");
-      op = 0;
-      do
-	{
-	  int low = getCpuReg ();
-	  skipblanks ();
-	  int high;
-	  switch (inputLook ())
-	    {
-	      case '-':
-		inputSkip ();
-		skipblanks ();
-		high = getCpuReg ();
-		skipblanks ();
-		if (low > high)
-		  {
-		    error (ErrorInfo, "Register interval in wrong order r%d-r%d", low, high);
-		    int c = low;
-		    low = high;
-		    high = c;
-		  }
-		break;
-	      case ',':
-	      case '}':
-	        high = low;
-	        break;
-	      default:
-	        error (ErrorError, "Illegal character '%c' in register list", inputLook ());
-	        high = 15;
-	        break;
-	    }
-	  if ((1 << low) < op)
-	    error (ErrorInfo, "Registers in wrong order");
-	  if (((1 << (high + 1)) - (1 << low)) & op)
-	    error (ErrorInfo, "Register occurs more than once in register list");
-	  op |= (1 << (high + 1)) - (1 << low);
-	}
-      while (Input_Match (',', true));
-      if (!Input_Match ('}', false))
-	error (ErrorError, "Inserting missing '}' after reglist");
-      ir |= op;
+      op = getCpuReg ();
+      ir |= BASE_MULTI (op);
+      skipblanks ();
+      if (Input_Match ('!', true))
+	ir |= W_FLAG;
+      if (!Input_Match (',', true))
+	error (ErrorError, "Inserting missing comma before reglist");
     }
+  if (!Input_Match ('{', true))
+    error (ErrorError, "Inserting missing '{' before reglist");
+  op = 0;
+  do
+    {
+      int low = getCpuReg ();
+      skipblanks ();
+      int high;
+      switch (inputLook ())
+	{
+	  case '-':
+	    inputSkip ();
+	    skipblanks ();
+	    high = getCpuReg ();
+	    skipblanks ();
+	    if (low > high)
+	      {
+		error (ErrorInfo, "Register interval in wrong order r%d-r%d", low, high);
+		int c = low;
+		low = high;
+		high = c;
+	      }
+	    break;
+	  case ',':
+	  case '}':
+	    high = low;
+	    break;
+	  default:
+	    error (ErrorError, "Illegal character '%c' in register list", inputLook ());
+	    high = 15;
+	    break;
+        }
+      if ((1 << low) < op)
+	error (ErrorInfo, "Registers in wrong order");
+      if (((1 << (high + 1)) - (1 << low)) & op)
+	error (ErrorInfo, "Register occurs more than once in register list");
+      op |= (1 << (high + 1)) - (1 << low);
+    } while (Input_Match (',', true));
+  if (!Input_Match ('}', false))
+    error (ErrorError, "Inserting missing '}' after reglist");
+  ir |= op;
   skipblanks ();
   if (Input_Match ('^', true))
     {
@@ -528,12 +518,28 @@ dstreglist (ARMWord ir)
 bool
 m_ldm (void)
 {
-  ARMWord cc = optionCondDirLdm ();
+  ARMWord cc = optionCondLdmStm (true);
   if (cc == optionError)
     return true;
-  dstreglist (cc | 0x08100000);
+  dstreglist (cc | 0x08100000, false);
   return false;
 }
+
+
+/**
+ * Implements POP, i.e. LDM<cond>FD sp!, {...}
+ * (= LDM<cond>IA sp!, {...})
+ */
+bool
+m_pop (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  dstreglist (cc | IA | 0x08100000, true);
+  return false;
+}
+
 
 /**
  * Implements STM.
@@ -541,12 +547,28 @@ m_ldm (void)
 bool
 m_stm (void)
 {
-  ARMWord cc = optionCondDirStm ();
+  ARMWord cc = optionCondLdmStm (false);
   if (cc == optionError)
     return true;
-  dstreglist (cc | 0x08000000);
+  dstreglist (cc | 0x08000000, false);
   return false;
 }
+
+
+/**
+ * Implements PUSH, i.e. STM<cond>FD sp!, {...}
+ * (= STM<cond>DB sp!, {...})
+ */
+bool
+m_push (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+  dstreglist (cc | DB | 0x08000000, true);
+  return false;
+}
+
 
 /**
  * Implements SWP.
