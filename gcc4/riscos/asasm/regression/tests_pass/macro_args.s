@@ -33,7 +33,7 @@ $Lab
 	BHS	%b91
 	MEND
 
-ratio	DivMod	r0,r5,r4,r2
+ratio	DivMod	r0,r5,r4,r2	; Invoke DivMod macro
 
 	|
 

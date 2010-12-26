@@ -30,8 +30,6 @@
 #include "global.h"
 #include "macros.h"
 
-#define TOLOWER(x) tolower((x))
-
 #define MAX_PREDEFINES 10
 extern const char *predefines[MAX_PREDEFINES];
 extern int num_predefines;

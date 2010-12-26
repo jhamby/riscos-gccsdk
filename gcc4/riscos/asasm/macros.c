@@ -141,6 +141,13 @@ Macro_Call (const Macro *m, const Lex *label)
 	{
 	  /* Unquoted argument.  */
 	  arg = inputSymbol (&len, ',');
+	  /* Discard comment start.  */
+	  for (size_t i = 0; i != len; ++i)
+	    if (arg[i] == ';')
+	      {
+	        len = i;
+		break;
+	      }
 	  /* Discard the white space characters before comma.  */
 	  while (len != 0 && isspace ((unsigned char)arg[len - 1]))
 	    len--;
