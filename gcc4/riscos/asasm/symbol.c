@@ -803,7 +803,7 @@ symbolPrint (const Symbol *sym)
       if (sym->type & SYMBOL_ABSOLUTE)
 	printf ("absolute/");
       else if (sym->type & SYMBOL_DEFINED)
-	printf ("relative to %s/", sym->area.rel->str);
+	printf ("relative to %s/", sym->area.rel ? sym->area.rel->str : "NULL ???");
     }
   if (sym->type & SYMBOL_NOCASE)
     printf ("caseinsensitive/");

@@ -1,3 +1,14 @@
+Sun Dec 26 19:00:22 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/if_else.s: Add ELIF tests.
+	* symbol.c (symbolPrint): Make more robust.
+	* decode.c (oDecodeTable): Add ARM, ELIF, THUMB and THUMBX.
+	* m_cpu.c, m_cpu.h (c_thumb, c_thumbx): New.
+	* whileif.c (if_skip): Add ELIF support.
+	* whileif.c, whileif.h (c_elif): New.
+	* input.c (Input_Symbol): Allow symbols to start with an underscore
+	character.
+
 Sun Dec 26 16:47:19 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/require8_preserve8.s: New.

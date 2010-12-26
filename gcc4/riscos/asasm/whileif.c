@@ -43,24 +43,35 @@
 #include "value.h"
 #include "whileif.h"
 
-static bool if_skip (const char *onerror, bool closeOnly);
+typedef enum
+{
+  eSkipToElseElifOrEndif, /* Go to matching ELSE, ELIF or ENDIF and enable assembling (with ELIF, only when its argument is {TRUE}).  */
+  eSkipToEndif, /* Go to matching ENDIF and enable assembling.  Ignore matching ELIF.  At matching ELSE, switch to ToDo_eSkipToEndifStrict.  */
+  eSkipToEndifStrict /* Go to matching ENDIF (no matching ELSE, ELIF are allowed) and enable assembling.  */
+} IfSkip_eToDo;
+
+static bool if_skip (const char *onerror, IfSkip_eToDo toDo);
 static void while_skip (void);
 static void whileFree (void);
 static bool whileReEval (void);
 
 /**
- * Skip following assembler lines because of
- * either a failed '[' test, so until we find the corresponding matching '|' or ']',
- * either we had a successful '[' test and we reached the '|' part.
- * \param onerror Error message to given when no matching '|' or ']' can be found
- * in the current parse object.
- * \param closeOnly When true, expect only ']' to match.
+ * Skip following assembler lines.  And this because of
+ * either a failed '[' / 'IF' test, so skip until we find the corresponding
+ * matching '|', 'ELSE', 'ELIF', ']' or 'ENDIF',
+ * either we had a successful '[' / 'IF' test and we now reached the '|',
+ * 'ELSE' or 'ELIF' part.
+ * \param onerror Error message to given when no matching '|', 'ELSE', 'ELIF',
+ * ']' or 'ENDIF' can be found in the current parse object.
+ * \param toDo Specifies what to do when encountering matching '|', 'ELSE',
+ * 'ELIF', ']' and 'ENDIF'.
  */
 static bool
-if_skip (const char *onerror, bool closeOnly)
+if_skip (const char *onerror, IfSkip_eToDo toDo)
 {
-  /* We will now skip input lines until a matching '|' or ']'.  This means
-     we have to do the final decode check ourselves.  */
+  /* We will now skip input lines until a matching '|', 'ELSE', 'ELIF', ']' or
+    'ENDIF'.  This means we have to do the final decode check ourselves
+    for the current line.  */
   decode_finalcheck ();
 
   int nested = 0;
@@ -96,8 +107,8 @@ if_skip (const char *onerror, bool closeOnly)
 	      || inputLookN (3) == ';'))
 	break;
 
-      /* Check for '[', '|', ']', 'IF', 'ELSE', 'ENDIF'.  */
-      enum { t_unknown, t_if, t_else, t_endif } toktype;
+      /* Check for '[', '|', ']', 'IF', 'ELSE', 'ELIF', 'ENDIF'.  */
+      enum { t_unknown, t_if, t_else, t_elif, t_endif } toktype;
       int numSkip = 1;
       char c = inputLookN (0);
       if (c == '[')
@@ -124,6 +135,13 @@ if_skip (const char *onerror, bool closeOnly)
 		  numSkip = 5;
 		}
 	      else if (inputLookN (1) == 'L'
+		       && inputLookN (2) == 'I'
+		       && inputLookN (3) == 'F')
+		{
+		  toktype = t_elif;
+		  numSkip = 4;
+		}
+	      else if (inputLookN (1) == 'L'
 		       && inputLookN (2) == 'S'
 		       && inputLookN (3) == 'E')
 		{
@@ -136,47 +154,95 @@ if_skip (const char *onerror, bool closeOnly)
 	  else
 	    toktype = t_unknown;
 	}
-      if (toktype == t_unknown || (inputLookN (numSkip) && !isspace ((unsigned char)inputLookN (numSkip))))
+      if (toktype == t_unknown
+	  || (inputLookN (numSkip) && !isspace ((unsigned char)inputLookN (numSkip))))
 	continue;
       inputSkipN (numSkip);
-      if (toktype != t_if)
+      if (toktype != t_if && toktype != t_elif)
 	{
           skipblanks ();
           if (!Input_IsEolOrCommentStart ())
 	    error (ErrorError, "Spurious characters after %s token", toktype == t_else ? "ELSE" : "ENDIF");
 	}
 
+      if (label.tag != LexNone)
+	error (ErrorWarning, "Label not allowed here - ignoring");
+
       switch (toktype)
 	{
 	  case t_if:
-	    if (label.tag != LexNone)
-	      error (ErrorWarning, "Label not allowed here - ignoring");
 	    nested++;
 	    break;
+
 	  case t_else:
 	    if (nested == 0)
 	      {
-		if (label.tag != LexNone)
-		  error (ErrorWarning, "Label not allowed here - ignoring");
-		if (!closeOnly)
-		  return false;
-		error (ErrorError, "Spurious '|' is being ignored");
+		/* Matching.  */
+		switch (toDo)
+		  {
+		    case eSkipToElseElifOrEndif:
+		      return false;
+		    case eSkipToEndif:
+		      toDo = eSkipToEndifStrict; /* From now on, we only expect matching ENDIF (no other matching ELSE, nor matching ELIF).  */
+		      break;
+		    case eSkipToEndifStrict:
+		      error (ErrorError, "Spurious '|' or 'ELSE' is being ignored");
+		      break;
+		  }
 	      }
 	    break;
+
+	  case t_elif:
+	    if (nested == 0)
+	      {
+		switch (toDo)
+		  {
+		    case eSkipToElseElifOrEndif:
+		      {
+			const Value *flag = exprBuildAndEval (ValueBool);
+			bool skipToElseElifOrEndIf;
+			if (flag->Tag != ValueBool)
+			  {
+			    error (ErrorError, "ELIF expression must be boolean (treating as true)");
+			    skipToElseElifOrEndIf = false;
+			  }
+			else
+			  skipToElseElifOrEndIf = !flag->Data.Bool.b;
+			if (!skipToElseElifOrEndIf)
+			  return false;
+			break;
+		      }
+		    case eSkipToEndif:
+		      break;
+		    case eSkipToEndifStrict:
+		      error (ErrorError, "Spurious 'ELIF' is being ignored");
+		      break;
+		  }
+	      }
+	    break;
+
 	  case t_endif:
 	    if (nested-- == 0)
-	      return c_endif (&label);
+	      {
+		/* We already have checked the label presence, no need to
+		   complain a 2nd time if there is one.  */
+		const Lex lexNone =
+		  {
+		    .tag = LexNone
+		  };
+	        return c_endif (&lexNone);
+	      }
 	    break;
 	}
     }
   /* We reached the end of the current parsing object without finding a matching
-     '|' nor ']'.  */
+     '|', 'ELSE', 'ELIF', ']' nor 'ENDIF'.  */
   error (ErrorError, "%s", onerror);
   return false;
 }
 
 /**
- * Implements '['
+ * Implements '[' and 'IF'.
  * Only called from decode().
  */
 bool
@@ -188,44 +254,72 @@ c_if (const Lex *label)
   gCurPObjP->if_depth++;
 
   const Value *flag = exprBuildAndEval (ValueBool);
-  bool skipToEndIf;
+  bool skipToElseElifOrEndIf;
   if (flag->Tag != ValueBool)
     {
       error (ErrorError, "IF expression must be boolean (treating as true)");
-      skipToEndIf = false;
+      skipToElseElifOrEndIf = false;
     }
   else
-    skipToEndIf = !flag->Data.Bool.b;
+    skipToElseElifOrEndIf = !flag->Data.Bool.b;
 
-  if (skipToEndIf)
-    return if_skip ("No matching | or ]", false);
+  if (skipToElseElifOrEndIf)
+    return if_skip ("No matching |, ELSE, ELIF, ] nor ENDIF", eSkipToElseElifOrEndif);
 
   return false;
 }
 
+
 /**
- * Implements '|'
- * The previous '[' evaluated to {TRUE} and we're now about to enter the 'else'
- * clause which we have to ignore.
- * Only called from decode().
+ * Implements '|' and 'ELSE' (also indirectly called by 'ELIF').
+ * The previous '[' or 'IF' evaluated to {TRUE} and we're now about to enter
+ * the '|' or 'ELSE' clause which we have to ignore.
+ * The difference between c_else() and c_elif() is that the latter has an
+ * argument we should ignore.
+ * Only called from decode() and c_elif().
  */
 bool
 c_else (const Lex *label)
 {
   if (!gCurPObjP->if_depth)
     {
-      error (ErrorError, "Mismatched |");
+      error (ErrorError, "Mismatched | or ELSE");
       return false;
     }
 
   if (label->tag != LexNone)
     error (ErrorWarning, "Label not allowed here - ignoring");
 
-  return if_skip ("No matching ]", true);
+  return if_skip ("No matching ] nor ENDIF", eSkipToEndifStrict);
 }
 
 /**
- * Implements ']'
+ * Implements 'ELIF'.
+ * The previous '[' or 'IF' evaluated to {TRUE} and we're now about to enter
+ * the 'ELIF' clause which we have to ignore.
+ * The difference between c_else() and c_elif() is that the latter has an
+ * argument we should ignore.
+ * Only called from decode().
+ */
+bool
+c_elif (const Lex *label)
+{
+  skiprest ();
+
+  if (!gCurPObjP->if_depth)
+    {
+      error (ErrorError, "Mismatched ELIF");
+      return false;
+    }
+
+  if (label->tag != LexNone)
+    error (ErrorWarning, "Label not allowed here - ignoring");
+
+  return if_skip ("No matching ] nor ENDIF", eSkipToEndif);
+}
+
+/**
+ * Implements ']' and 'ENDIF'
  * Called from decode() (the previous lines were being assembled) and
  * if_skip() (the previous lines were being skipped).
  */
@@ -234,7 +328,7 @@ c_endif (const Lex *label)
 {
   if (!gCurPObjP->if_depth)
     {
-      error (ErrorError, "Mismatched ]");
+      error (ErrorError, "Mismatched ] or ENDIF");
       return false;
     }
 

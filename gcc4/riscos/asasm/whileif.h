@@ -54,6 +54,7 @@ typedef struct WhileBlock
 
 bool c_if (const Lex *);
 bool c_else (const Lex *);
+bool c_elif (const Lex *);
 bool c_endif (const Lex *);
 
 bool c_while (const Lex *);

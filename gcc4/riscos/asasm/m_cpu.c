@@ -38,13 +38,43 @@
 #include "put.h"
 #include "targetcpu.h"
 
+/**
+ * Implements CODE16.
+ * What follows is in pre-UAL notation.
+ */
 bool
 c_code16 (void)
 {
-  error (ErrorError, "Thumb code is not yet supported");
+  error (ErrorError, "Thumb code is not yet supported"); /* FIXME */
   return false;
 }
 
+/**
+ * Implements THUMB.
+ * What follows in in UAL notation.
+ */
+bool
+c_thumb (void)
+{
+  error (ErrorError, "Thumb code is not yet supported"); /* FIXME */
+  return false;
+}
+
+/**
+ * Implements THUMBX.
+ * What follows is in UAL notation.
+ */
+bool
+c_thumbx (void)
+{
+  error (ErrorError, "Thumb-2EE code is not yet supported"); /* FIXME */
+  return false;
+}
+
+/**
+ * Implements ARM / CODE32.
+ * What follows can be in UAL or pre-UAL notation.
+ */
 bool
 c_code32 (void)
 {

@@ -1,3 +1,5 @@
+; Tests [ | ] IF ELSE ELIF ENDIF
+
 	AREA	Code, CODE, READONLY
 
 	[ :LNOT: REFERENCE
@@ -204,6 +206,44 @@
 		DCD	&230
 	ENDIF
 
+	; Level 1:
+	IF	{TRUE}
+		DCD	&400
+	ELIF	{TRUE}
+		ASSERT {FALSE}, "May not be assembled"
+	ELIF	{TRUE}
+		ASSERT {FALSE}, "May not be assembled"
+	ELSE
+		ASSERT {FALSE}, "May not be assembled"
+	ENDIF
+	IF	{FALSE}
+		ASSERT {FALSE}, "May not be assembled"
+	ELIF	{TRUE}
+		DCD	&401
+	ELIF	{TRUE}
+		ASSERT {FALSE}, "May not be assembled"
+	ELSE
+		ASSERT {FALSE}, "May not be assembled"
+	ENDIF
+	IF	{FALSE}
+		ASSERT {FALSE}, "May not be assembled"
+	ELIF	{FALSE}
+		ASSERT {FALSE}, "May not be assembled"
+	ELIF	{TRUE}
+		DCD	&402
+	ELSE
+		ASSERT {FALSE}, "May not be assembled"
+	ENDIF
+	IF	{FALSE}
+		ASSERT {FALSE}, "May not be assembled"
+	ELIF	{FALSE}
+		ASSERT {FALSE}, "May not be assembled"
+	ELIF	{FALSE}
+		ASSERT {FALSE}, "May not be assembled"
+	ELSE
+		DCD	&403
+	ENDIF
+
 	|
 
 	; Using [ | ]
@@ -238,7 +278,12 @@
 	DCD	&222
 	DCD	&230
 
+	; Level 1:
+	DCD	&400
+	DCD	&401
+	DCD	&402
+	DCD	&403
+
 	]
 
 	END
-

@@ -661,13 +661,15 @@ Input_Symbol (size_t *ilen)
   else
     {
       /* Symbol needs to start with a letter (upper- or lowercase), followed by
-	 letter, digits and underscore.  */
+	 letter, digits and underscore.
+	 We do allow an underscore as starting character as well.  */
       rslt = input_pos;
       for (len = 0; input_pos[len] != '\0'; ++len)
 	{
           if (len == 0)
 	    {
-	      if (!isalpha ((unsigned char)input_pos[len]))
+	      if (!isalpha ((unsigned char)input_pos[len])
+	          && input_pos[len] != '_')
 	        break;
 	    }
           else

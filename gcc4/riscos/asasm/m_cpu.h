@@ -123,5 +123,7 @@ bool m_umlal (void);
 
 bool c_code16 (void);
 bool c_code32 (void);
+bool c_thumb (void);
+bool c_thumbx (void);
 
 #endif
