@@ -1,3 +1,9 @@
+Sun Dec 26 23:40:44 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/cps.s: New.
+	* decode.c (oDecodeTable): Add CPS.
+	* m_cpuctrl.c, m_cpuctrl.h (ARM_MODE_*, m_cps, IsValidMode): New.
+
 Sun Dec 26 20:16:33 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* macros.c (Macro_Call): Don't pass the comment as part of the last macro

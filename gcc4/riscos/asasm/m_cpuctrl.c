@@ -813,3 +813,108 @@ m_mrs (void)
   Put_Ins (cc);
   return false;
 }
+
+/**
+ * Implements CPS.
+ *   CPS<effect> <iflags>{, #<mode>}
+ *   CPS #<mode>
+ * where:
+ *   effect   is one of:
+ *            IE  Interrupt or abort enable.
+ *            ID  Interrupt or abort disable.
+ *   iflags   is a sequence of one or more of:
+ *            a : Enables or disables imprecise aborts.
+ *            i : Enables or disables IRQ interrupts.
+ *            f : Enables or disables FIQ interrupts.
+ *   mode     specifies the number of the mode to change to.
+ */
+bool
+m_cps (void)
+{
+  int imod;
+  if (isspace ((unsigned char)inputLookN (0)))
+    imod = 0<<18;
+  else if (inputLookN (0) == 'I' && inputLookN (1) == 'D'
+	   && isspace ((unsigned char)inputLookN (2)))
+    {
+      inputSkipN (2);
+      imod = 3<<18;
+    }
+  else if (inputLookN (0) == 'I' && inputLookN (1) == 'E'
+	   && isspace ((unsigned char)inputLookN (2)))
+    {
+      inputSkipN (2);
+      imod = 2<<18;
+    }
+  else
+    return true;
+  skipblanks ();
+
+  bool readMode;
+  int iflags = 0;
+  if (imod)
+    {
+      /* Read iflags.  */
+      if (inputLookLower () == 'a')
+	{
+	  inputSkip ();
+	  iflags |= 1<<8;
+	}
+      if (inputLookLower () == 'i')
+	{
+	  inputSkip ();
+	  iflags |= 1<<7;
+	}
+      if (inputLookLower () == 'f')
+	{
+	  inputSkip ();
+	  iflags |= 1<<6;
+	}
+      if (iflags == 0)
+	error (ErrorWarning, "CPS did not have any interrupt disable flags specified");
+      skipblanks ();
+      readMode = Input_Match (',', true);
+    }
+  else
+    readMode = true;
+
+  int mode = 0;
+  if (readMode)
+    {
+      if (!Input_Match ('#', true))
+	{
+	  readMode = false;
+	  error (ErrorError, "CPS needs a mode specified");
+	}
+      else
+	{
+	  const Value *val = exprBuildAndEval (ValueInt);
+          if (val->Tag != ValueInt)
+	    {
+	      readMode = false;
+	      error (ErrorError, "Illegal immediate expression");
+	    }
+	  else
+	    {
+	      mode = val->Data.Int.i;
+	      if (!IsValidARMMode (mode))
+		error (ErrorWarning, "Mode 0x%x is not a valid ARM mode", mode);
+	    }
+	}
+    }
+  assert(!(((imod == (0<<18) || imod == (1<<18)) && !readMode) || (imod == (1<<18) && readMode)) && "We shouldn't be generating this");
+  Put_Ins ((0xF << 28) | (1<<24) | imod | (readMode ? (1<<17) : 0) | iflags | mode);
+  return false;
+}
+
+bool
+IsValidARMMode (int armMode)
+{
+  return armMode == ARM_MODE_USR
+	   || armMode == ARM_MODE_FIQ
+	   || armMode == ARM_MODE_IRQ
+	   || armMode == ARM_MODE_SVC
+	   || armMode == ARM_MODE_ABORT
+	   || armMode == ARM_MODE_UNDEF
+	   || armMode == ARM_MODE_SYSTEM;
+}
