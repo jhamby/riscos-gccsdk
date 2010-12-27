@@ -32,7 +32,7 @@
 
 /* Lowest 8 bits encode the alignment of the start of the area as a power
    of 2 and has a value between 2 and 32.  */
-#define AREA_INIT		0x00000002
+#define AREA_DEFAULT_ALIGNMENT	0x00000002
 #define AREA_ABS		0x00000100
 #define AREA_CODE		0x00000200
 #define AREA_COMMONDEF		0x00000400 /* Common block definition */

@@ -1,3 +1,11 @@
+Mon Dec 27 22:11:02 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/symbols.s: New.
+	* area.h (AREA_DEFAULT_ALIGNMENT): Renamed from AREA_INIT.
+	* area.c (Area_Ensure): Follow AREA_INIT rename to AREA_DEFAULT_ALIGNMENT.
+	(c_area): Area alignment is from 2 up to 31 (incl).
+	* input.c (Input_Symbol): Support double bar symbol name bracketing.
+
 Mon Dec 27 21:35:46 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/asr_lsl_lsr_ror_rrx.s: New.

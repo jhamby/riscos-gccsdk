@@ -698,17 +698,31 @@ Input_Symbol (size_t *ilen)
   size_t len;
   if (*input_pos == '|')
     {
-      /* Symbol is bracketed between two '|'.  */
+      /* Symbol is bracketed between two '|'.  Support double '||' bracketing
+         as well.  */
+      bool isDbl;
+      if (input_pos[1] == '|')
+	{
+	  ++input_pos;
+	  isDbl = true;
+	}
+      else
+	isDbl = false;
       rslt = ++input_pos;
-      for (len = 0; input_pos[len] != '\0' && input_pos[len] != '|'; ++len)
+      for (len = 0;
+	   input_pos[len] != '\0' && !(input_pos[len] == '|' && (!isDbl || input_pos[len + 1] == '|'));
+	   ++len)
 	/* */;
       if (input_pos[len] == '\0')
 	{
-	  error (ErrorError, "Failed to read symbol (forgot second '|' ?)");
+	  error (ErrorError, "Failed to read symbol (forgot second '%s' ?)", isDbl ? "||" : "|");
 	  *ilen = 0;
 	  return NULL;
 	}
-      ++input_pos; /* Skip second '|'.  */
+      if (isDbl)
+	input_pos += 2; /* Skip second '||'  */
+      else
+        input_pos += 1; /* Skip second '|'.  */
     }
   else
     {
