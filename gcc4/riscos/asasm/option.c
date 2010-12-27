@@ -252,19 +252,17 @@ getRound (void)
 
 
 static ARMWord
-isOK (ARMWord option)
+IsEndOfKeyword (ARMWord option)
 {
-  if (inputLook () && !isspace ((unsigned char)inputGet ()))
-    return optionError;
-  else
-    return option;
+  unsigned char c = (unsigned char)inputLook ();
+  return (c != '\0' && !isspace (c) && c != ';') ? optionError : option;
 }
 
 
 ARMWord
 optionCond (void)
 {
-  return isOK (getCond ());
+  return IsEndOfKeyword (getCond ());
 }
 
 
@@ -274,7 +272,18 @@ optionCondS (void)
   ARMWord option = getCond ();
   if (Input_Match ('S', false))
     option |= PSR_S_FLAG;
-  return isOK (option);
+  return IsEndOfKeyword (option);
+}
+
+
+/**
+ * Tries to parse "S" (optionally) followed by condition code.
+ */
+ARMWord
+Option_SCond (void)
+{
+  ARMWord option = Input_Match ('S', false) ? PSR_S_FLAG : 0;
+  return IsEndOfKeyword (option | getCond ());
 }
 
 
@@ -293,7 +302,7 @@ optionCondSP (void)
       if (option_apcs_32bit)
 	error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
     }
-  return isOK (option);
+  return IsEndOfKeyword (option);
 }
 
 
@@ -303,7 +312,7 @@ optionCondB (void)
   ARMWord option = getCond ();
   if (Input_Match ('B', false))
     option |= B_FLAG;
-  return isOK (option);
+  return IsEndOfKeyword (option);
 }
 
 
@@ -375,7 +384,7 @@ optionCondBT (bool isStore)
 	}
     }
 
-  return isOK (option);
+  return IsEndOfKeyword (option);
 }
 
 
@@ -385,7 +394,7 @@ optionCondLdmStm (bool isLDM)
   ARMWord option = getCond ();
   if (optionError == (option |= getDir (isLDM)))
     return optionError;
-  return isOK (option);
+  return IsEndOfKeyword (option);
 }
 
 
@@ -402,7 +411,7 @@ optionCondPrecRound (void)
   ARMWord option = getCond ();
   if (optionError == (option |= getPrec (false)))
     return optionError;
-  return isOK (option | getRound ());
+  return IsEndOfKeyword (option | getRound ());
 }
 
 
@@ -413,7 +422,7 @@ optionCondOptPrecRound (void)
   ARMWord optionPrec = getPrec (false);
   if (optionError == optionPrec)
     optionPrec = PRECISION_EXTENDED;
-  return isOK (optionCC | optionPrec | getRound ());
+  return IsEndOfKeyword (optionCC | optionPrec | getRound ());
 }
 
 
@@ -423,7 +432,7 @@ optionCondPrec_P (void)
   ARMWord option = getCond ();
   if (optionError == (option |= getPrec (true)))
     return optionError;
-  return isOK (option);
+  return IsEndOfKeyword (option);
 }
 
 
@@ -433,7 +442,7 @@ optionCondL (void)
   ARMWord option = getCond ();
   if (Input_Match ('L', false))
     option |= N_FLAG;
-  return isOK (option);
+  return IsEndOfKeyword (option);
 }
 
 
@@ -445,7 +454,7 @@ ARMWord
 optionCondOptRound (void)
 {
   ARMWord optionCC = getCond ();
-  return isOK (optionCC | PRECISION_SINGLE | getRound ());
+  return IsEndOfKeyword (optionCC | PRECISION_SINGLE | getRound ());
 }
 
 
@@ -454,7 +463,7 @@ ARMWord
 optionLinkCond (void)
 {
   if (inputLook () != 'L')
-    return isOK (getCond ()); /* Only b.CC possible  */
+    return IsEndOfKeyword (getCond ()); /* Only b.CC possible  */
 
   inputSkip ();		/* bl.CC or b.l?  */
   switch (inputLook ())
@@ -465,21 +474,21 @@ optionLinkCond (void)
 	  {
 	    case 'Q':		/* Only bl.eq */
 	      inputSkip ();
-	      return isOK (EQ | LINK_BIT);
+	      return IsEndOfKeyword (EQ | LINK_BIT);
 	    default:		/* Only b.le */
-	      return isOK (LE);
+	      return IsEndOfKeyword (LE);
 	  }
       case 'O':		/* Only b.lo possible */
 	inputSkip ();
-	return isOK (LO);
+	return IsEndOfKeyword (LO);
       case 'S':		/* Only b.ls possible */
 	inputSkip ();
-	return isOK (LS);
+	return IsEndOfKeyword (LS);
       case 'T':		/* Only b.lt possible */
 	inputSkip ();
-	return isOK (LT);
+	return IsEndOfKeyword (LT);
       default:		/* Only bl.CC possible */
-	return isOK (getCond () | LINK_BIT);
+	return IsEndOfKeyword (getCond () | LINK_BIT);
     }
   return optionError;
 }
@@ -489,12 +498,12 @@ ARMWord
 optionExceptionCond (void)
 {
   if (!Input_Match ('E', false))
-    return isOK (getCond ()); /* Only cmf.CC possible  */
+    return IsEndOfKeyword (getCond ()); /* Only cmf.CC possible  */
   /* cmf.eq or cmfe.CC */
   if (Input_Match ('Q', false))
-    return isOK (EQ); /* Only cmf.eq */
+    return IsEndOfKeyword (EQ); /* Only cmf.eq */
   /* Only cmfe.CC */
-  return isOK (getCond () | EXEPTION_BIT);
+  return IsEndOfKeyword (getCond () | EXEPTION_BIT);
 }
 
 
@@ -504,5 +513,5 @@ optionAdrL (void)
   ARMWord option = getCond ();
   if (Input_Match ('L', false))
     option |= 1;
-  return isOK (option);
+  return IsEndOfKeyword (option);
 }

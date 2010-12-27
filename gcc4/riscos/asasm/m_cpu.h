@@ -121,6 +121,12 @@ bool m_tst (void);
 bool m_umull (void);
 bool m_umlal (void);
 
+bool m_asr (void);
+bool m_lsl (void);
+bool m_lsr (void);
+bool m_ror (void);
+bool m_rrx (void);
+
 bool c_code16 (void);
 bool c_code32 (void);
 bool c_thumb (void);

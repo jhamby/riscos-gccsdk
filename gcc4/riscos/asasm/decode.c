@@ -94,6 +94,7 @@ static const decode_table_t oDecodeTable[] =
   { "AREA", DTABLE_CALLBACK_VOID, { .vd = c_area } }, /* AREA */
   { "ARM", DTABLE_CALLBACK_VOID, { .vd = c_code32 } }, /* ARM/CODE32 */
   { "ASN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_asn } }, /* ASN CC P R */
+  { "ASR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_asr } }, /* ASR S CC */
   { "ASSERT", DTABLE_CALLBACK_VOID, { .vd = c_assert } }, /* ASSERT */
   { "ATN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_atn } }, /* ATN CC P R */
   { "B", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_branch } }, /* B [L] CC */
@@ -162,6 +163,8 @@ static const decode_table_t oDecodeTable[] =
   { "LGN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_lgn } }, /* LGN CC P R */
   { "LNK", DTABLE_CALLBACK_VOID, { .vd = c_lnk } }, /* LNK */
   { "LOG", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_log } }, /* LOG CC P R */
+  { "LSL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_lsl } }, /* LSL S CC */
+  { "LSR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_lsr } }, /* LSR S CC */
   { "LTORG", DTABLE_CALLBACK_VOID, { .vd = c_ltorg } }, /* LTORG */
   { "MACRO", DTABLE_CALLBACK_NOLEX, { .nolex = c_macro } }, /* MACRO */
   { "MAP", DTABLE_CALLBACK_NOLEX, { .nolex = c_record } }, /* ^ / MAP : start of new record layout.  */
@@ -204,8 +207,10 @@ static const decode_table_t oDecodeTable[] =
   { "RMF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rmf } }, /* RMF CC P R */
   { "RN", DTABLE_CALLBACK_SYMBOL, { .sym = c_rn } }, /* RN */
   { "RND", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rnd } }, /* RND CC P R */
+  { "ROR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_ror } }, /* ROR S CC */
   { "ROUT", DTABLE_CALLBACK_LEX, { .lex = c_rout } }, /* ROUT */
   { "RPW", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rpw } }, /* RPW CC P R */
+  { "RRX", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rrx } }, /* RRX S CC */
   { "RSB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rsb } }, /* RSB CC S */
   { "RSC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rsc } }, /* RSC CC S */
   { "RSF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rsf } }, /* RSF CC P R */
@@ -493,5 +498,5 @@ decode_finalcheck (void)
 {
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
-    errorAbort ("Skipping extra characters '%s'", inputRest ());
+    error (ErrorError, "Skipping extra characters '%s'", inputRest ());
 }

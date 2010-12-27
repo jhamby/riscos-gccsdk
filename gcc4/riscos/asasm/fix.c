@@ -24,6 +24,7 @@
 
 #include "error.h"
 #include "fix.h"
+#include "get.h"
 #include "global.h"
 #include "help_cpu.h"
 #include "main.h"
@@ -32,7 +33,7 @@
 #include "option.h"
 
 ARMWord
-fixShiftImm (int lineno, ARMWord shiftop, int shift)
+Fix_ShiftImm (const char *file, int lineno, ARMWord shiftop, int shift)
 {
   if (shift == 0)
     shiftop = LSL;
@@ -41,33 +42,33 @@ fixShiftImm (int lineno, ARMWord shiftop, int shift)
       case LSL:
         if (shift < 0 || shift > 31)
 	  {
-	    errorLine (NULL, lineno, ErrorError, "Illegal immediate shift %d", shift);
+	    errorLine (file, lineno, ErrorError, "Illegal immediate shift %d", shift);
 	    shift = 0;
 	  }
         break;
       case LSR:
         if (shift < 1 || shift > 32)
 	  {
-	    errorLine (NULL, lineno, ErrorError, "Illegal immediate shift %d", shift);
+	    errorLine (file, lineno, ErrorError, "Illegal immediate shift %d", shift);
 	    shift = 1;
 	  }
         break;
       case ASR:
         if (shift < 1 || shift > 32)
 	  {
-	    errorLine (NULL, lineno, ErrorError, "Illegal immediate shift %d", shift);
+	    errorLine (file, lineno, ErrorError, "Illegal immediate shift %d", shift);
 	    shift = 1;
 	  }
         break;
       case ROR:
         if (shift < 1 || shift > 31)
 	  {
-	    errorLine (NULL, lineno, ErrorError, "Illegal immediate shift %d", shift);
+	    errorLine (file, lineno, ErrorError, "Illegal immediate shift %d", shift);
 	    shift = 1;
 	  }
         break;
       default:
-        errorAbortLine (NULL, lineno, "Internal fixShiftImm: unknown shift type");
+        errorAbortLine (file, lineno, "Internal fixShiftImm: unknown shift type");
         break;
     }
   return SHIFT_IMM (shift) | SHIFT_OP (shiftop);

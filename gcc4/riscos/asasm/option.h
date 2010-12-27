@@ -29,6 +29,7 @@
 
 ARMWord optionCond (void);
 ARMWord optionCondS (void);
+ARMWord Option_SCond (void);
 ARMWord optionCondSP (void);
 ARMWord optionCondB (void);
 ARMWord optionCondBT (bool isStore);

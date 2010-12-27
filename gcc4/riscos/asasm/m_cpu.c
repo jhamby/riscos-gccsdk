@@ -29,6 +29,7 @@
 
 #include "error.h"
 #include "expr.h"
+#include "fix.h"
 #include "get.h"
 #include "global.h"
 #include "input.h"
@@ -865,5 +866,136 @@ m_qsub (void)
   if (cc == optionError)
     return true;
   q_onlyregs (cc | M_QSUB, "QSUB");
+  return false;
+}
+
+static bool
+UALShift (ARMWord shiftType)
+{
+  ARMWord cc = Option_SCond ();
+  if (cc == optionError)
+    return true;
+
+  skipblanks ();
+  ARMWord regD = getCpuReg ();
+  if (regD == INVALID_REG)
+    return false;
+  if (!Input_Match (',', true))
+    {
+      error (ErrorError, "Missing ,");
+      return false;
+    }
+  ARMWord regM = Get_CPURegNoError ();
+  ARMWord regS;
+  if (regM == INVALID_REG)
+    {
+      regM = regD;
+      regS = INVALID_REG;
+    }
+  else
+    {
+      if (!Input_Match (',', true))
+	{
+	  regS = regM;
+	  regM = regD;
+	}
+      else
+	regS = Get_CPURegNoError ();
+    }
+
+  cc |= M_MOV | DST_OP (regD) | regM;
+  if (regS == INVALID_REG)
+    {
+      if (!Input_Match ('#', false))
+	{
+	  error (ErrorError, "Missing immediate constant");
+	  return false;
+	}
+      const Value *im = exprBuildAndEval (ValueInt);
+      if (im->Tag != ValueInt)
+	{
+	  error (ErrorError, "Failed to evaluate immediate constant");
+	  return false;
+	}
+      Put_Ins (cc | Fix_ShiftImm (NULL, 0, shiftType, im->Data.Int.i));
+    }
+  else
+    Put_Ins (cc | SHIFT_REG (regS) | SHIFT_OP (shiftType));
+  
+  return false;
+}
+
+/**
+ * Implements ASR.
+ *   ASR<S><CC> {Rd,} Rm, #<num> : UAL version of MOV<CC><S> Rd, Rm, ASR#<num>
+ *   ASR<S><CC> {Rd,} Rm, Rs : UAL version of MOV<CC><S> Rd, Rm, ASR Rs
+ */
+bool
+m_asr (void)
+{
+  return UALShift (ASR);
+}
+
+/**
+ * Implements LSL.
+ *   LSL<S><CC> {Rd,} Rm, #<num> : UAL version of MOV<CC><S> Rd, Rm, LSL#<num>
+ *   LSL<S><CC> {Rd,} Rm, Rn : UAL version of MOV<CC><S> Rd, Rm, LSL Rs
+ */
+bool
+m_lsl (void)
+{
+  return UALShift (LSL);
+}
+
+/**
+ * Implements LSR.
+ *   LSR<S><CC> {Rd,} Rm, #<num> : UAL version of MOV<CC><S> Rd, Rm, LSR#<num>
+ *   LSR<S><CC> {Rd,} Rm, Rs : UAL version of MOV<CC><S> Rd, Rm, LSR Rs
+ */
+bool
+m_lsr (void)
+{
+  return UALShift (LSR);
+}
+
+/**
+ * Implements ROR.
+ *   ROR<S><CC> {Rd,} Rm, #<num> : UAL version of MOV<CC><S> Rd, Rm, ROR#<num>
+ *   ROR<S><CC> {Rd,} Rm, Rs : UAL version of MOV<CC><S> Rd, Rm, ROR Rs
+ */
+bool
+m_ror (void)
+{
+  return UALShift (ROR);
+}
+
+/**
+ * Implements RRX.
+ *   RRX<S><CC> {Rd,} Rm : UAL version of MOV<CC><S> Rd, Rm, RRX
+ */
+bool
+m_rrx (void)
+{
+  ARMWord cc = Option_SCond ();
+  if (cc == optionError)
+    return true;
+
+  skipblanks ();
+  ARMWord regD = getCpuReg ();
+  if (regD == INVALID_REG)
+    return false;
+  skipblanks ();
+  ARMWord regM;
+  if (Input_Match (',', true))
+    {
+      regM = getCpuReg ();
+      if (regM == INVALID_REG)
+	return false;
+    }
+  else
+    regM = regD;
+
+  Put_Ins (cc | M_MOV | DST_OP (regD) | regM | SHIFT_OP (RRX));
+  
   return false;
 }

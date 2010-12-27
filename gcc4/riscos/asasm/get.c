@@ -43,20 +43,21 @@ static ARMWord
 getTypeInternal (bool genError, unsigned int type, const char *typeStr)
 {
   const Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
-  if (lexSym.tag != LexId)
-    return genError ? 0 : INVALID_REG;
-
-  const Symbol *sym = symbolFind (&lexSym);
-  if (sym && (sym->type & SYMBOL_DEFINED))
+  if (lexSym.tag == LexId)
     {
-      if (SYMBOL_GETREGTYPE (sym->type) == type)
-	return sym->value.Data.Int.i;
-      if (genError)
-	error (ErrorError, "'%s' is not a %s", sym->str, typeStr);
+      const Symbol *sym = symbolFind (&lexSym);
+      if (sym && (sym->type & SYMBOL_DEFINED))
+	{
+	  if (SYMBOL_GETREGTYPE (sym->type) == type)
+	    return sym->value.Data.Int.i;
+	  if (genError)
+	    error (ErrorError, "'%s' is not a %s", sym->str, typeStr);
+	}
+      else if (genError)
+	error (ErrorError, "Undefined %s %.*s", typeStr,
+	  (int)lexSym.Data.Id.len, lexSym.Data.Id.str);
     }
-  else if (genError)
-    error (ErrorError, "Undefined %s %.*s", typeStr,
-	   (int)lexSym.Data.Id.len, lexSym.Data.Id.str);
+
   return genError ? 0 : INVALID_REG;
 }
 
@@ -67,9 +68,13 @@ getCpuReg (void)
 }
 
 ARMWord
-getCpuRegNoError (void)
+Get_CPURegNoError (void)
 {
-  return getTypeInternal (false, SYMBOL_CPUREG, "CPU register");
+  const char * const inputMark = Input_GetMark ();
+  ARMWord reg = getTypeInternal (false, SYMBOL_CPUREG, "CPU register");
+  if (reg == INVALID_REG)
+    Input_RollBackToMark (inputMark);
+  return reg;
 }
 
 ARMWord
@@ -195,7 +200,7 @@ getShift (bool immonly)
 	  switch (im->Tag)
 	    {
 	      case ValueInt:
-		op = fixShiftImm (0, shift, im->Data.Int.i); /* !! Fixed !! */
+		op = Fix_ShiftImm (NULL, 0, shift, im->Data.Int.i); /* !! Fixed !! */
 		break;
 	      default:
 		error (ErrorError, "Illegal shift expression");

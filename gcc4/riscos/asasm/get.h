@@ -28,7 +28,7 @@
 #include "global.h"
 
 ARMWord getCpuReg (void);
-ARMWord getCpuRegNoError (void);
+ARMWord Get_CPURegNoError (void);
 ARMWord getFpuReg (void);
 ARMWord getCopReg (void);
 ARMWord getCopNum (void);
@@ -52,5 +52,17 @@ ARMWord getRhs (bool immonly, bool shift, ARMWord ir);
 #define IMM_RHS   0x02000000
 
 #define INVALID_REG 0xFFFFFFFF
+
+#define RRX 5
+#define LSL 0x00000000
+#define ASL 0x00000000
+#define LSR 0x00000020
+#define ASR 0x00000040
+#define ROR 0x00000060
+#define NO_SHIFT 0
+
+#define SHIFT_OP(s) ((s) == RRX ? ROR : (s))	/* RRX coded as ROR 0 */
+#define SHIFT_REG(s) (((s)<<8) | (1<<4))
+#define SHIFT_IMM(s) (((s)&31)<<7)
 
 #endif

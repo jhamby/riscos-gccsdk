@@ -449,6 +449,7 @@ dstreglist (ARMWord ir, bool isPushPop)
     {
       ir |= BASE_MULTI (13);
       ir |= W_FLAG;
+      skipblanks ();
     }
   else
     {
@@ -629,9 +630,7 @@ typedef enum
   BL_eNSHST = 0x6,
   BL_eUNST = BL_eNSHST,
   BL_eOSH = 0x3,
-  BL_eOSHST = 0x2,
-
-  BL_eIllegal = -1
+  BL_eOSHST = 0x2
 } Barrier_eType;
 
 static Barrier_eType

@@ -640,6 +640,7 @@ Input_Match (char c, bool spacesToo)
  * \param keyword Keyword to match
  * \return true when keyword got matched, the corresponding input characters
  * get consumed. Otherwise, false, and no input characters get consumed.
+ * See also Input_MatchKeywordLower().
  */
 bool
 Input_MatchKeyword (const char *keyword)
@@ -658,6 +659,14 @@ Input_MatchKeyword (const char *keyword)
   return false;
 }
 
+/**
+ * Try to read the keyword case insensitive followed by space, NUL or start
+ * comment character.
+ * \param keyword Keyword to match, needs to be lowercase.
+ * \return true when keyword got matched, the corresponding input characters
+ * get consumed. Otherwise, false, and no input characters get consumed.
+ * See also Input_MatchKeyword().
+ */
 bool
 Input_MatchKeywordLower (const char *keyword)
 {

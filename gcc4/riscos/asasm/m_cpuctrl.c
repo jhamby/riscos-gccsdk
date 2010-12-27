@@ -192,22 +192,17 @@ m_blx (void)
 
   cpuWarn (XSCALE);
 
-  const char * const inputMark = Input_GetMark ();
-  ARMWord reg = getCpuRegNoError ();
-  ARMWord ir;
+  ARMWord reg = Get_CPURegNoError ();
   if (reg == INVALID_REG)
     { /* BLXcc <target_addr> */
-      Input_RollBackToMark (inputMark);
-
       if (cc != AL)
         error (ErrorError, "BLX <target_addr> must be unconditional");
 
       return branch_shared (NV, true);
     }
   else
-    ir = cc | 0x012FFF30 | RHS_OP (reg); /* BLX <Rm> */
+    Put_Ins (cc | 0x012FFF30 | RHS_OP (reg)); /* BLX <Rm> */
 
-  Put_Ins (ir);
   return false;
 }
 
@@ -834,18 +829,10 @@ m_cps (void)
   int imod;
   if (isspace ((unsigned char)inputLookN (0)))
     imod = 0<<18;
-  else if (inputLookN (0) == 'I' && inputLookN (1) == 'D'
-	   && isspace ((unsigned char)inputLookN (2)))
-    {
-      inputSkipN (2);
-      imod = 3<<18;
-    }
-  else if (inputLookN (0) == 'I' && inputLookN (1) == 'E'
-	   && isspace ((unsigned char)inputLookN (2)))
-    {
-      inputSkipN (2);
-      imod = 2<<18;
-    }
+  else if (Input_MatchKeyword ("ID"))
+    imod = 3<<18;
+  else if (Input_MatchKeyword ("IE"))
+    imod = 2<<18;
   else
     return true;
   skipblanks ();

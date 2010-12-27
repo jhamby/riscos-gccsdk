@@ -1,3 +1,25 @@
+Mon Dec 27 21:35:46 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/asr_lsl_lsr_ror_rrx.s: New.
+	* decode.c (oDecodeTable): Add ASR, LSL, LSR, ROR and RRX.
+	(decode): Issue error instead of abort when there are unused input
+	characters left.
+	* get.c (Get_CPURegNoError): Renamed from getCpuRegNoError and make
+	sure if it fails, it doesn't consume any input characters.
+	* m_cpuctrl.c (m_blx): Follow Get_CPURegNoError changes.
+	(m_cps): Use Input_MatchKeyword.
+	* m_cpumem.c (dstreglist): Add skip blanks for POP/PUSH case.
+	(BL_eIllegal): Remove.
+	* option.c (IsEndOfKeyword): Renamed from isOK.
+	(Option_SCond): New.
+	* option.h (Option_SCond): New.
+	* m_cpu.c, m_cpu.h (UALShift, m_asr, m_lsl, m_lsr, m_ror, m_rrx): New.
+	* fix.h (RRX, LSL, ASL, LSR, ASR, ROR, NO_SHIFT, SHIFT_OP, SHIFT_REG,
+	SHIFT_IMM): Move to...
+	* get.h: ...here.
+	* fix.c (Fix_ShiftImm): Renamed from fixShiftImm and added filename
+	parameter.
+
 Mon Dec 27 17:17:04 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/dmb_dsb_isb.s: New.
