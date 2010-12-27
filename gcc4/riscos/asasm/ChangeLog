@@ -1,3 +1,14 @@
+Mon Dec 27 17:17:04 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/dmb_dsb_isb.s: New.
+	* decode.c (oDecodeTable): Add DMB, ISB and DSB.
+	* m_cpumem.c (Barrier_eType, GetBarrierType, m_dmb, m_isb, m_dsb): New.
+	* whileif.c (if_skip): Add extra token for better error reporting.
+	Use Input_MatchKeyword.
+	(c_if, c_else, c_elif): Follow if_skip API change.
+	(c_while): Use Input_MatchKeyword.
+	* input.c, input.h (Input_MatchKeyword, Input_MatchKeywordLower): New.
+
 Mon Dec 27 03:52:29 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c (c_define): Fix SYMBOL_ABSOLUTE.

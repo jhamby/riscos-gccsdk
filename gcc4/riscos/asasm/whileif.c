@@ -50,7 +50,7 @@ typedef enum
   eSkipToEndifStrict /* Go to matching ENDIF (no matching ELSE, ELIF are allowed) and enable assembling.  */
 } IfSkip_eToDo;
 
-static bool if_skip (const char *onerror, IfSkip_eToDo toDo);
+static bool if_skip (const char *onerror, const char *matchingToken, IfSkip_eToDo toDo);
 static void while_skip (void);
 static void whileFree (void);
 static bool whileReEval (void);
@@ -67,12 +67,15 @@ static bool whileReEval (void);
  * 'ELIF', ']' and 'ENDIF'.
  */
 static bool
-if_skip (const char *onerror, IfSkip_eToDo toDo)
+if_skip (const char *onerror, const char *matchingToken, IfSkip_eToDo toDo)
 {
   /* We will now skip input lines until a matching '|', 'ELSE', 'ELIF', ']' or
     'ENDIF'.  This means we have to do the final decode check ourselves
     for the current line.  */
   decode_finalcheck ();
+
+  const char *startFileName = FS_GetCurFileName ();
+  int startLineNumber = FS_GetCurLineNumber ();
 
   int nested = 0;
   while (inputNextLineNoSubst ())
@@ -99,65 +102,28 @@ if_skip (const char *onerror, IfSkip_eToDo toDo)
       skipblanks ();
 
       /* Check for 'END'.  */
-      if (inputLookN (0) == 'E'
-	  && inputLookN (1) == 'N'
-          && inputLookN (2) == 'D'
-          && (inputLookN (3) == '\0'
-	      || isspace ((unsigned char)inputLookN (3))
-	      || inputLookN (3) == ';'))
+      if (Input_MatchKeyword ("END"))
 	break;
 
       /* Check for '[', '|', ']', 'IF', 'ELSE', 'ELIF', 'ENDIF'.  */
-      enum { t_unknown, t_if, t_else, t_elif, t_endif } toktype;
-      int numSkip = 1;
-      char c = inputLookN (0);
-      if (c == '[')
+      enum { t_if, t_else, t_elif, t_endif } toktype;
+      if (Input_MatchKeyword ("["))
 	toktype = t_if;
-      else if (c == '|')
+      else if (Input_MatchKeyword ("|"))
 	toktype = t_else;
-      else if (c == ']')
+      else if (Input_MatchKeyword ("]"))
+	toktype = t_endif;
+      else if (Input_MatchKeyword ("IF"))
+	toktype = t_if;
+      else if (Input_MatchKeyword ("ELSE"))
+	toktype = t_else;
+      else if (Input_MatchKeyword ("ELIF"))
+	toktype = t_elif;
+      else if (Input_MatchKeyword ("ENDIF"))
 	toktype = t_endif;
       else
-	{
-	  if (c == 'I' && inputLookN (1) == 'F')
-	    {
-	      toktype = t_if;
-	      numSkip = 2;
-	    }
-	  else if (c == 'E')
-	    {
-	      if (inputLookN (1) == 'N'
-		  && inputLookN (2) == 'D'
-		  && inputLookN (3) == 'I'
-		  && inputLookN (4) == 'F')
-		{
-		  toktype = t_endif;
-		  numSkip = 5;
-		}
-	      else if (inputLookN (1) == 'L'
-		       && inputLookN (2) == 'I'
-		       && inputLookN (3) == 'F')
-		{
-		  toktype = t_elif;
-		  numSkip = 4;
-		}
-	      else if (inputLookN (1) == 'L'
-		       && inputLookN (2) == 'S'
-		       && inputLookN (3) == 'E')
-		{
-		  toktype = t_else;
-		  numSkip = 4;
-		}
-	      else
-		toktype = t_unknown;
-	    }
-	  else
-	    toktype = t_unknown;
-	}
-      if (toktype == t_unknown
-	  || (inputLookN (numSkip) && !isspace ((unsigned char)inputLookN (numSkip))))
 	continue;
-      inputSkipN (numSkip);
+
       if (toktype != t_if && toktype != t_elif)
 	{
           skipblanks ();
@@ -230,6 +196,9 @@ if_skip (const char *onerror, IfSkip_eToDo toDo)
   /* We reached the end of the current parsing object without finding a matching
      '|', 'ELSE', 'ELIF', ']' nor 'ENDIF'.  */
   error (ErrorError, "%s", onerror);
+  errorLine (startFileName, startLineNumber, ErrorError,
+	     "note: Corresponding %s was here", matchingToken);
+
   return false;
 }
 
@@ -253,14 +222,14 @@ c_if (void)
     skipToElseElifOrEndIf = !flag->Data.Bool.b;
 
   if (skipToElseElifOrEndIf)
-    return if_skip ("No matching |, ELSE, ELIF, ] nor ENDIF", eSkipToElseElifOrEndif);
+    return if_skip ("No matching |, ELSE, ELIF, ] nor ENDIF", "IF", eSkipToElseElifOrEndif);
 
   return false;
 }
 
 
 /**
- * Implements '|' and 'ELSE' (also indirectly called by 'ELIF').
+ * Implements '|' and 'ELSE'.
  * The previous '[' or 'IF' evaluated to {TRUE} and we're now about to enter
  * the '|' or 'ELSE' clause which we have to ignore.
  * The difference between c_else() and c_elif() is that the latter has an
@@ -270,13 +239,13 @@ c_if (void)
 bool
 c_else (void)
 {
-  if (!gCurPObjP->if_depth)
+  if (gCurPObjP->if_depth == 0)
     {
       error (ErrorError, "Mismatched | or ELSE");
       return false;
     }
 
-  return if_skip ("No matching ] nor ENDIF", eSkipToEndifStrict);
+  return if_skip ("No matching ] nor ENDIF", "ELSE", eSkipToEndifStrict);
 }
 
 /**
@@ -290,15 +259,16 @@ c_else (void)
 bool
 c_elif (void)
 {
+  /* Skip the argument of ELIF.  Not of interest now.  */
   skiprest ();
 
-  if (!gCurPObjP->if_depth)
+  if (gCurPObjP->if_depth == 0)
     {
       error (ErrorError, "Mismatched ELIF");
       return false;
     }
 
-  return if_skip ("No matching ] nor ENDIF", eSkipToEndif);
+  return if_skip ("No matching ] nor ENDIF", "ELIF", eSkipToEndif);
 }
 
 /**
@@ -309,7 +279,7 @@ c_elif (void)
 bool
 c_endif (void)
 {
-  if (!gCurPObjP->if_depth)
+  if (gCurPObjP->if_depth == 0)
     {
       error (ErrorError, "Mismatched ] or ENDIF");
       return false;
@@ -336,22 +306,12 @@ while_skip (void)
       skipblanks ();
 
       /* Look for WHILE and WEND.  */
-      if (inputGet () == 'W')
+      if (Input_MatchKeyword ("WHILE"))
+	++nested;
+      else if (Input_MatchKeyword ("WEND"))
 	{
-	  switch (inputGet ())
-	    {
-	      case 'H':	/* WHILE? */
-		if (!notinput ("ILE")
-		    && (isspace ((unsigned char)inputLook ()) || Input_IsEolOrCommentStart ()))
-		  nested++;
-		break;
-	      case 'E':	/* WEND? */
-		if (!notinput ("ND")
-		    && (isspace ((unsigned char)inputLook ()) || Input_IsEolOrCommentStart ())
-		    && nested-- == 0)
-		  return;
-	        break;
-	    }
+	  if (nested-- == 0)
+	    return;
 	}
       skiprest ();
     }

@@ -40,6 +40,7 @@
 #include "help_cpu.h"
 #include "input.h"
 #include "lit.h"
+#include "main.h"
 #include "m_cpu.h"
 #include "m_cpumem.h"
 #include "option.h"
@@ -612,5 +613,120 @@ m_swp (void)
   if (!Input_Match (']', true))
     error (ErrorError, "Inserting missing ']'");
   Put_Ins (ir);
+  return false;
+}
+
+typedef enum
+{
+  BL_eSY = 0xF,
+  BL_eST = 0xE,
+  BL_eISH = 0xB,
+  BL_eSH = BL_eISH,
+  BL_eISHST = 0xA,
+  BL_eSHST = BL_eISHST,
+  BL_eNSH = 0x7,
+  BL_eUN = BL_eNSH,
+  BL_eNSHST = 0x6,
+  BL_eUNST = BL_eNSHST,
+  BL_eOSH = 0x3,
+  BL_eOSHST = 0x2,
+
+  BL_eIllegal = -1
+} Barrier_eType;
+
+static Barrier_eType
+GetBarrierType (void)
+{
+  skipblanks ();
+
+  Barrier_eType result;
+  if (Input_IsEolOrCommentStart ())
+    result = BL_eSY;
+  else if (Input_MatchKeywordLower ("ish"))
+    result = BL_eISH;
+  else if (Input_MatchKeywordLower ("ishst"))
+    result = BL_eISHST;
+  else if (Input_MatchKeywordLower ("nsh"))
+    result = BL_eNSH;
+  else if (Input_MatchKeywordLower ("nshst"))
+    result = BL_eNSHST;
+  else if (Input_MatchKeywordLower ("osh"))
+    result = BL_eOSH;
+  else if (Input_MatchKeywordLower ("oshst"))
+    result = BL_eOSHST;
+  else if (Input_MatchKeywordLower ("sh"))
+    {
+      if (option_pedantic)
+	error (ErrorWarning, "Use barrier type %s instead of %s", "ISH", "SH");
+      result = BL_eSH;
+    }
+  else if (Input_MatchKeywordLower ("shst"))
+    {
+      if (option_pedantic)
+	error (ErrorWarning, "Use barrier type %s instead of %s", "ISHST", "SHST");
+      result = BL_eSHST;
+    }
+  else if (Input_MatchKeywordLower ("sy"))
+    result = BL_eSY;
+  else if (Input_MatchKeywordLower ("st"))
+    result = BL_eST;
+  else if (Input_MatchKeywordLower ("un"))
+    {
+      if (option_pedantic)
+	error (ErrorWarning, "Use barrier type %s instead of %s", "NSH", "UN");
+      result = BL_eUN;
+    }
+  else if (Input_MatchKeywordLower ("unst"))
+    {
+      if (option_pedantic)
+	error (ErrorWarning, "Use barrier type %s instead of %s", "NSHST", "UNST");
+      result = BL_eUNST;
+    }
+  else
+    {
+      error (ErrorError, "Unknown barrier type");
+      result = BL_eSY;
+    }
+
+  return result;
+}
+
+/**
+ * Implements DMB.
+ * ARM DMB is unconditional.
+ */
+bool
+m_dmb (void)
+{
+  Barrier_eType bl = GetBarrierType ();
+  Put_Ins (0xF57FF050 | bl);
+  return false;
+}
+
+
+/**
+ * Implements DSB.
+ * ARM DSB is unconditional.
+ */
+bool
+m_dsb (void)
+{
+  Barrier_eType bl = GetBarrierType ();
+  Put_Ins (0xF57FF040 | bl);
+  return false;
+}
+
+
+/**
+ * Implements ISB.
+ * ARM ISB is unconditional.
+ */
+bool
+m_isb (void)
+{
+  Barrier_eType bl = GetBarrierType ();
+  if (option_pedantic && bl != BL_eSY)
+    error (ErrorWarning, "Using reserved barrier type");
+  Put_Ins (0xF57FF060 | bl);
   return false;
 }

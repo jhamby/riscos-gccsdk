@@ -33,4 +33,8 @@ bool m_stm (void);
 bool m_str (void);
 bool m_swp (void);
 
+bool m_dmb (void);
+bool m_dsb (void);
+bool m_isb (void);
+
 #endif

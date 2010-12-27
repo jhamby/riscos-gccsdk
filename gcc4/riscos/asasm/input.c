@@ -634,6 +634,49 @@ Input_Match (char c, bool spacesToo)
   return true;
 }
 
+
+/**
+ * Try to read the keyword followed by space, NUL or start comment character.
+ * \param keyword Keyword to match
+ * \return true when keyword got matched, the corresponding input characters
+ * get consumed. Otherwise, false, and no input characters get consumed.
+ */
+bool
+Input_MatchKeyword (const char *keyword)
+{
+  int matched = 0;
+  while (input_pos[matched] && input_pos[matched] == keyword[matched])
+    ++matched;
+  if (keyword[matched] == '\0'
+      && (isspace ((unsigned char)input_pos[matched])
+          || input_pos[matched] == ';'
+          || input_pos[matched] == '\0'))
+    {
+      input_pos += matched;
+      return true;
+    }
+  return false;
+}
+
+bool
+Input_MatchKeywordLower (const char *keyword)
+{
+  int matched = 0;
+  while (input_pos[matched]
+	 && tolower ((unsigned char)input_pos[matched]) == keyword[matched])
+    ++matched;
+  if (keyword[matched] == '\0'
+      && (isspace ((unsigned char)input_pos[matched])
+          || input_pos[matched] == ';'
+          || input_pos[matched] == '\0'))
+    {
+      input_pos += matched;
+      return true;
+    }
+  return false;
+}
+
+
 /**
  * Try to read a symbol.
  * \return NULL on error, otherwise points to begin of symbol and symbol length
