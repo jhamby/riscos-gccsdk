@@ -268,6 +268,7 @@ Lit_DumpPool (void)
 
       Symbol *symP = Lit_GetLitOffsetAsSymbol (litP);
       symP->type |= SYMBOL_DEFINED | SYMBOL_DECLARED;
+      symP->area.rel = areaCurrentSymbol;
 
       /* Check if it is a fixed integer/float which fits an immediate
          representation.  */

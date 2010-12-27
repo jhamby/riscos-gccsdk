@@ -62,7 +62,7 @@ void FS_PopMacroPObject (bool noCheck);
 const Macro *Macro_Find (const char *, size_t len);
 void Macro_Call (const Macro *, const Lex *);
 
-bool c_macro (const Lex *);
-bool c_mexit (const Lex *);
+bool c_macro (void);
+bool c_mexit (void);
 
 #endif

@@ -223,15 +223,7 @@ if_skip (const char *onerror, IfSkip_eToDo toDo)
 
 	  case t_endif:
 	    if (nested-- == 0)
-	      {
-		/* We already have checked the label presence, no need to
-		   complain a 2nd time if there is one.  */
-		const Lex lexNone =
-		  {
-		    .tag = LexNone
-		  };
-	        return c_endif (&lexNone);
-	      }
+	      return c_endif ();
 	    break;
 	}
     }
@@ -246,11 +238,8 @@ if_skip (const char *onerror, IfSkip_eToDo toDo)
  * Only called from decode().
  */
 bool
-c_if (const Lex *label)
+c_if (void)
 {
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
-
   gCurPObjP->if_depth++;
 
   const Value *flag = exprBuildAndEval (ValueBool);
@@ -279,16 +268,13 @@ c_if (const Lex *label)
  * Only called from decode() and c_elif().
  */
 bool
-c_else (const Lex *label)
+c_else (void)
 {
   if (!gCurPObjP->if_depth)
     {
       error (ErrorError, "Mismatched | or ELSE");
       return false;
     }
-
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
 
   return if_skip ("No matching ] nor ENDIF", eSkipToEndifStrict);
 }
@@ -302,7 +288,7 @@ c_else (const Lex *label)
  * Only called from decode().
  */
 bool
-c_elif (const Lex *label)
+c_elif (void)
 {
   skiprest ();
 
@@ -311,9 +297,6 @@ c_elif (const Lex *label)
       error (ErrorError, "Mismatched ELIF");
       return false;
     }
-
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
 
   return if_skip ("No matching ] nor ENDIF", eSkipToEndif);
 }
@@ -324,7 +307,7 @@ c_elif (const Lex *label)
  * if_skip() (the previous lines were being skipped).
  */
 bool
-c_endif (const Lex *label)
+c_endif (void)
 {
   if (!gCurPObjP->if_depth)
     {
@@ -333,9 +316,6 @@ c_endif (const Lex *label)
     }
 
   gCurPObjP->if_depth--;
-
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
 
   return false;
 }
@@ -383,11 +363,8 @@ while_skip (void)
  * Implements WHILE.
  */
 bool
-c_while (const Lex *label)
+c_while (void)
 {
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
-
   const char * const inputMark = Input_GetMark ();
   /* Evaluate expression */
   const Value *flag = exprBuildAndEval (ValueBool);
@@ -489,16 +466,13 @@ whileReEval (void)
  * Implements WEND.
  */
 bool
-c_wend (const Lex *label)
+c_wend (void)
 {
   if (!gCurPObjP->whilestack)
     {
       error (ErrorError, "Mismatched WEND");
       return false;
     }
-
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
 
   switch (gCurPObjP->whilestack->tag)
     {

@@ -47,7 +47,7 @@ getTypeInternal (bool genError, unsigned int type, const char *typeStr)
     return genError ? 0 : INVALID_REG;
 
   const Symbol *sym = symbolFind (&lexSym);
-  if (sym && (sym->type & SYMBOL_DEFINED) && (sym->type & SYMBOL_ABSOLUTE))
+  if (sym && (sym->type & SYMBOL_DEFINED))
     {
       if (SYMBOL_GETREGTYPE (sym->type) == type)
 	return sym->value.Data.Int.i;

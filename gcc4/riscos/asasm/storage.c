@@ -53,7 +53,7 @@ storageValue (void)
 }
 
 /**
- * Implementation for '^'.
+ * Implementation for '^' / MAP.
  */
 bool
 c_record (void)
@@ -101,17 +101,22 @@ c_record (void)
 }
 
 /**
- * Implementation for '#'.
+ * Implementation for '#' / FIELD.
  */
 bool
-c_alloc (Symbol *sym)
+c_alloc (const Lex *lex)
 {
-  if (sym)
+  if (lex->tag == LexId)
     {
-      assert ((sym->type & (SYMBOL_ABSOLUTE | SYMBOL_DEFINED)) == (SYMBOL_ABSOLUTE | SYMBOL_DEFINED));
-      Value_Assign (&sym->value, storageValue ());
+      Symbol *sym = symbolAdd (lex);
+      if (sym != NULL && sym->value.Tag == ValueIllegal)
+	{
+	  assert (sym->type & SYMBOL_DEFINED);
+	  sym->type |= SYMBOL_ABSOLUTE;
+	  Value_Assign (&sym->value, storageValue ());
+	}
     }
-
+  
   /* Determine how much we should allocate.  */
   const Value *value = exprBuildAndEval (ValueInt);
   switch (value->Tag)

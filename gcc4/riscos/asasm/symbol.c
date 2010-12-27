@@ -219,8 +219,7 @@ symbolInit (void)
 Symbol *
 symbolAdd (const Lex *l)
 {
-  if (l->tag != LexId)
-    errorAbort ("Internal symbolAdd: non-ID");
+  assert (l->tag == LexId && "Internal symbolAdd: non-ID");
 
   Symbol **isearch;
   for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
@@ -417,7 +416,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 {
   for (int i = 0; i < SYMBOL_TABLESIZE; i++)
     {
-      for (Symbol *sym = symbolTable[i]; sym; sym = sym->next)
+      for (const Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
 	  if (!(sym->type & SYMBOL_AREA) && SYMBOL_AOF_OUTPUT (sym))
 	    {
@@ -543,7 +542,7 @@ symbolSymbolELFOutput (FILE *outfile)
 
   for (int i = 0; i < SYMBOL_TABLESIZE; i++)
     {
-      for (Symbol *sym = symbolTable[i]; sym; sym = sym-> next)
+      for (const Symbol *sym = symbolTable[i]; sym; sym = sym-> next)
 	{
 	  if (!(sym->type & SYMBOL_AREA) && SYMBOL_ELF_OUTPUT (sym))
 	    {
@@ -795,7 +794,7 @@ symbolPrint (const Symbol *sym)
   assert (strlen (sym->str) == (size_t)sym->len);
   /* The Symbol::area.info (or Symbol::area.rel) is non-NULL iff the symbol is
      an area name symbol or we have a relative symbol.  */
-  /* FIXME: assert (!(sym->type & SYMBOL_DEFINED) || ((sym->type & SYMBOL_AREA) || !(sym->type & SYMBOL_ABSOLUTE)) == (sym->area.info != NULL)); */
+  assert (!(sym->type & SYMBOL_DEFINED) || ((sym->type & SYMBOL_AREA) || !(sym->type & SYMBOL_ABSOLUTE)) == (sym->area.info != NULL));
 
   /* Dump the symbol attributes:  */
   if (!(sym->type & SYMBOL_AREA))

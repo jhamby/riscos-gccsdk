@@ -102,16 +102,19 @@ ASM_DefineLabel (const Lex *label, int offset)
 
   Symbol *symbol = symbolAdd (label);
   if (symbol->value.Tag != ValueIllegal)
-    return NULL; /* Label was already defined with a value.  */
-  symbol->type |= SYMBOL_ABSOLUTE; /* FIXME: this feels wrong as labels are relative against the base of their AREA where they are defined in.  */
-  assert (symbol->value.Tag == ValueIllegal);
+    return NULL; /* Label was already defined with a value (error is already given).  */
+
   if (areaCurrentSymbol->area.info->type & AREA_BASED)
     {
       /* Define label as "ValueAddr AreaBaseReg, #<given area offset>".  */
       symbol->value = Value_Addr (Area_GetBaseReg (areaCurrentSymbol->area.info), offset);
+      symbol->area.rel = areaCurrentSymbol;
     }
   else if (areaCurrentSymbol->area.info->type & AREA_ABS)
-    symbol->value = Value_Int (areaCurrentSymbol->area.info->baseAddr + offset);
+    {
+      symbol->value = Value_Int (areaCurrentSymbol->area.info->baseAddr + offset);
+      symbol->type |= SYMBOL_ABSOLUTE;
+    }
   else
     {
       /* Define label as "ValueSymbol(current AREA) + <given area offset>".  */
@@ -125,6 +128,7 @@ ASM_DefineLabel (const Lex *label, int offset)
 	      .Data.op = Op_add }
 	};
       symbol->value = Value_Code (sizeof (values)/sizeof (values[0]), values);
+      symbol->area.rel = areaCurrentSymbol;
     }
 
   return symbol;

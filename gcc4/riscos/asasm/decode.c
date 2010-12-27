@@ -52,23 +52,25 @@
 #include "storage.h"
 
 typedef bool (*po_void)(void);
-typedef bool (*po_lbl)(const Lex *labelP);
+typedef bool (*po_clex)(const Lex *labelP);
 typedef bool (*po_sym)(Symbol *symbolP);
 
-#define DTABLE_CALLBACK_VOID    0
-#define DTABLE_CALLBACK_LEX     1
-#define DTABLE_CALLBACK_SYMBOL  2
-#define DTABLE_CALLBACK_MASK    3 /* This is a mask.  */
-#define DTABLE_PART_MNEMONIC	(1<<2) /* Mnemonic is not full parsed yet.  */
+#define DTABLE_CALLBACK_VOID	0 /* If there is a valid LexId @ column 0, define this as symbol. */
+#define DTABLE_CALLBACK_LEX	1 /* If there is a valid LexId @ column 0, pass it on as parameter.  If it is made a symbol afterwards, assign code size to it.  */
+#define DTABLE_CALLBACK_NOLEX	2 /* If there is a valid LexId @ column 0, complain about it as it is not allowed.  */
+#define DTABLE_CALLBACK_SYMBOL	3 /* If there is a valid LexId @ column 0, turn this into a symbol and pass it on as parameter.  */
+#define DTABLE_CALLBACK_MASK	7 /* This is a mask.  */
+#define DTABLE_PART_MNEMONIC	(1<<3) /* Mnemonic is not full parsed yet.  */
 typedef struct
 {
   const char *mnemonic;
   unsigned int flags;
   union
     {
-      po_void vd; /* Callback with void parameter.  */
-      po_lbl lbl; /* Callback with Lex (representing label) parameter.  */
-      po_sym sym; /* Callback with Symbol (representing label) parameter.  */
+      po_void vd; /* Callback for DTABLE_CALLBACK_VOID.  */
+      po_clex lex; /* Callback for DTABLE_CALLBACK_LEX.  */
+      po_void nolex; /* Callback for DTABLE_CALLBACK_NOLEX.  */
+      po_sym sym; /* Callback for CALLBACK_SYMBOL.  */
     } parse_opcode;
 } decode_table_t;
 
@@ -76,7 +78,7 @@ typedef struct
 static const decode_table_t oDecodeTable[] =
 {
   { "!", DTABLE_CALLBACK_VOID, { .vd = c_info } }, /* INFO shorthand */
-  { "#", DTABLE_CALLBACK_SYMBOL, { .sym = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
+  { "#", DTABLE_CALLBACK_LEX, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
   { "%", DTABLE_CALLBACK_VOID, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
   { "&", DTABLE_CALLBACK_VOID, { .vd = c_dcd } }, /* & / DCD / DCDU */
   { "*", DTABLE_CALLBACK_SYMBOL, { .sym = c_equ } }, /* * / EQU */
@@ -119,10 +121,10 @@ static const decode_table_t oDecodeTable[] =
   { "DCI", DTABLE_CALLBACK_VOID, { .vd = c_dci } }, /* DCI */
   { "DCW", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcw } }, /* DCW / DCWU */
   { "DVF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_dvf } }, /* DVF CC P R */
-  { "ELIF", DTABLE_CALLBACK_LEX, { .lbl = c_elif } }, /* ELIF */
-  { "ELSE", DTABLE_CALLBACK_LEX, { .lbl = c_else } }, /* | ELSE */
+  { "ELIF", DTABLE_CALLBACK_NOLEX, { .nolex = c_elif } }, /* ELIF */
+  { "ELSE", DTABLE_CALLBACK_NOLEX, { .nolex = c_else } }, /* | ELSE */
   { "END", DTABLE_CALLBACK_VOID, { .vd = c_end } }, /* END */
-  { "ENDIF", DTABLE_CALLBACK_LEX, { .lbl = c_endif } }, /* ] ENDIF */
+  { "ENDIF", DTABLE_CALLBACK_NOLEX, { .nolex = c_endif } }, /* ] ENDIF */
   { "ENTRY", DTABLE_CALLBACK_VOID, { .vd = c_entry } }, /* ENTRY */
   { "EOR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_eor } }, /* EOR CC S */
   { "EQU", DTABLE_CALLBACK_SYMBOL, { .sym = c_equ } }, /* * / EQU */
@@ -130,24 +132,24 @@ static const decode_table_t oDecodeTable[] =
   { "EXPORT", DTABLE_CALLBACK_VOID, { .vd = c_export } }, /* EXPORT / GLOBAL */
   { "EXTERN", DTABLE_CALLBACK_VOID, { .vd = c_import } }, /* IMPORT / EXTERN */
   { "FDV", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_fdv } }, /* FDV CC P R */
-  { "FIELD", DTABLE_CALLBACK_SYMBOL, { .sym = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
+  { "FIELD", DTABLE_CALLBACK_LEX, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
   { "FIX", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_fix } }, /* FIX CC [P] R */
   { "FLT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_flt } }, /* FLT CC P R */
   { "FML", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_fml } }, /* FML CC P R */
   { "FN", DTABLE_CALLBACK_SYMBOL, { .sym = c_fn } }, /* FN */
   { "FRD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_frd } }, /* FRD CC P R */
-  { "GBL", DTABLE_CALLBACK_LEX | DTABLE_PART_MNEMONIC, { .lbl = c_gbl } }, /* GBLA, GBLL, GBLS */
+  { "GBL", DTABLE_CALLBACK_NOLEX | DTABLE_PART_MNEMONIC, { .nolex = c_gbl } }, /* GBLA, GBLL, GBLS */
   { "GET", DTABLE_CALLBACK_VOID, { .vd = c_get } }, /* GET */
   { "GLOBAL", DTABLE_CALLBACK_VOID, { .vd = c_export } }, /* EXPORT / GLOBAL */
   { "HEAD", DTABLE_CALLBACK_VOID, { .vd = c_head } }, /* HEAD */
   { "IDFN", DTABLE_CALLBACK_VOID, { .vd = c_idfn } }, /* IDFN */
-  { "IF", DTABLE_CALLBACK_LEX, { .lbl = c_if } }, /* [ IF */
+  { "IF", DTABLE_CALLBACK_NOLEX, { .nolex = c_if } }, /* [ IF */
   { "IMPORT", DTABLE_CALLBACK_VOID, { .vd = c_import } }, /* IMPORT / EXTERN */
   { "INCBIN", DTABLE_CALLBACK_VOID, { .vd = c_incbin } }, /* INCBIN */
   { "INCLUDE", DTABLE_CALLBACK_VOID, { .vd = c_get } }, /* GET / INCLUDE */
   { "INFO", DTABLE_CALLBACK_VOID, { .vd = c_info } }, /* INFO */
   { "KEEP", DTABLE_CALLBACK_VOID, { .vd = c_keep } }, /* KEEP */
-  { "LCL", DTABLE_CALLBACK_LEX | DTABLE_PART_MNEMONIC, { .lbl = c_lcl } }, /* LCLA, LCLL, LCLS */
+  { "LCL", DTABLE_CALLBACK_NOLEX | DTABLE_PART_MNEMONIC, { .nolex = c_lcl } }, /* LCLA, LCLL, LCLS */
   { "LDC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_ldc } }, /* LDC CC L */
   { "LDC2", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_ldc2 } }, /* LDC2 L */
   { "LDF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_ldf } }, /* LDF CC P */
@@ -158,12 +160,12 @@ static const decode_table_t oDecodeTable[] =
   { "LNK", DTABLE_CALLBACK_VOID, { .vd = c_lnk } }, /* LNK */
   { "LOG", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_log } }, /* LOG CC P R */
   { "LTORG", DTABLE_CALLBACK_VOID, { .vd = c_ltorg } }, /* LTORG */
-  { "MACRO", DTABLE_CALLBACK_LEX, { .lbl = c_macro } }, /* MACRO */
-  { "MAP", DTABLE_CALLBACK_VOID, { .vd = c_record } }, /* ^ / MAP : start of new record layout.  */
+  { "MACRO", DTABLE_CALLBACK_NOLEX, { .nolex = c_macro } }, /* MACRO */
+  { "MAP", DTABLE_CALLBACK_NOLEX, { .nolex = c_record } }, /* ^ / MAP : start of new record layout.  */
   { "MCR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mcr } }, /* MCR CC */
   { "MCR2", DTABLE_CALLBACK_VOID, { .vd = m_mcr2 } }, /* MCR2 */
   { "MCRR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mcrr } }, /* MCRR CC */
-  { "MEXIT", DTABLE_CALLBACK_LEX, { .lbl = c_mexit } }, /* MEXIT */
+  { "MEXIT", DTABLE_CALLBACK_NOLEX, { .nolex = c_mexit } }, /* MEXIT */
   { "MLA", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mla } }, /* MLA CC S */
   { "MNF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mnf } }, /* MNF CC P R */
   { "MOV", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mov } }, /* MOV CC s */
@@ -199,13 +201,13 @@ static const decode_table_t oDecodeTable[] =
   { "RMF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rmf } }, /* RMF CC P R */
   { "RN", DTABLE_CALLBACK_SYMBOL, { .sym = c_rn } }, /* RN */
   { "RND", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rnd } }, /* RND CC P R */
-  { "ROUT", DTABLE_CALLBACK_LEX, { .lbl = c_rout } }, /* ROUT */
+  { "ROUT", DTABLE_CALLBACK_LEX, { .lex = c_rout } }, /* ROUT */
   { "RPW", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rpw } }, /* RPW CC P R */
   { "RSB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rsb } }, /* RSB CC S */
   { "RSC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rsc } }, /* RSC CC S */
   { "RSF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rsf } }, /* RSF CC P R */
   { "SBC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_sbc } }, /* SBC CC S */
-  { "SET", DTABLE_CALLBACK_LEX | DTABLE_PART_MNEMONIC, { .lbl = c_set } }, /* SETA, SETL, SETS */
+  { "SET", DTABLE_CALLBACK_LEX | DTABLE_PART_MNEMONIC, { .lex = c_set } }, /* SETA, SETL, SETS */
   { "SFM", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_sfm } }, /* SFM CC (TYPE) */
   { "SIN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_sin } }, /* SIN CC P R */
   { "SMLABB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlabb } }, /* SMLABB CC */
@@ -250,14 +252,14 @@ static const decode_table_t oDecodeTable[] =
   { "UMLAL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_umlal } }, /* UMLAL CC */
   { "UMULL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_umull } }, /* UMULL CC */
   { "URD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_urd } }, /* URD CC P R */
-  { "WEND", DTABLE_CALLBACK_LEX, { .lbl = c_wend } }, /* WEND */
+  { "WEND", DTABLE_CALLBACK_NOLEX, { .nolex = c_wend } }, /* WEND */
   { "WFC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_wfc } }, /* WFC CC */
   { "WFS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_wfs } }, /* WFS CC */
-  { "WHILE", DTABLE_CALLBACK_LEX, { .lbl = c_while } }, /* WHILE */
-  { "[", DTABLE_CALLBACK_LEX, { .lbl = c_if } }, /* [ IF */
-  { "]", DTABLE_CALLBACK_LEX, { .lbl = c_endif } }, /* ] ENDIF */
-  { "^", DTABLE_CALLBACK_VOID, { .vd = c_record } }, /* ^ / MAP : start of new record layout.  */
-  { "|", DTABLE_CALLBACK_LEX, { .lbl = c_else } }, /* | ELSE */
+  { "WHILE", DTABLE_CALLBACK_NOLEX, { .nolex = c_while } }, /* WHILE */
+  { "[", DTABLE_CALLBACK_NOLEX, { .nolex = c_if } }, /* [ IF */
+  { "]", DTABLE_CALLBACK_NOLEX, { .nolex = c_endif } }, /* ] ENDIF */
+  { "^", DTABLE_CALLBACK_NOLEX, { .nolex = c_record } }, /* ^ / MAP : start of new record layout.  */
+  { "|", DTABLE_CALLBACK_NOLEX, { .nolex = c_else } }, /* | ELSE */
 };
 #define DECODE_ENTRIES (sizeof (oDecodeTable) / sizeof (oDecodeTable[0]))
 
@@ -389,20 +391,36 @@ decode (const Lex *label)
 	      int offset = areaCurrentSymbol->value.Data.Int.i;
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.vd ();
 	      /* Define the label *after* the mnemonic implementation but
-	         with the currnet offset *before* processing the mnemonic.  */
+	         with the current offset *before* processing the mnemonic.  */
 	      labelSymbol = ASM_DefineLabel (label, offset);
 	    }
 	    break;
 
 	  case DTABLE_CALLBACK_LEX:
-	    /* Any valid label here will *not* get any size assigned.  */
+	    /* Any valid label here will *not* get any size assigned, unless
+	       the callback turns the lex into a symbol.  */
+	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.lex (label);
+	    labelSymbol = symbolFind (label);
+	    break;
+
+	  case DTABLE_CALLBACK_NOLEX:
+	    if (label->tag != LexNone)
+	      error (ErrorWarning, "Label not allowed here - ignoring");
+	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.nolex ();
 	    labelSymbol = NULL;
-	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.lbl (label);
 	    break;
 
 	  case DTABLE_CALLBACK_SYMBOL:
-	    labelSymbol = ASM_DefineLabel (label, areaCurrentSymbol->value.Data.Int.i);
-	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (labelSymbol);
+	    {
+	      Symbol *symbol = label->tag == LexId ? symbolAdd (label) : NULL;
+	      /* If the symbol is already defined (i.e. has a non illegal value),
+		 don't overwrite it (an error is already given).  */
+	      if (symbol != NULL && symbol->value.Tag != ValueIllegal)
+		symbol = NULL;
+	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (symbol);
+	      /* We don't want to define a label based on this symbol.  */
+	      labelSymbol = NULL;
+	    }
 	    break;
 
 	  default:

@@ -267,11 +267,8 @@ c_mend (void)
  * $<lbl> <marco name> [$<param1>[=<default value>]]*
  */
 bool
-c_macro (const Lex *label)
+c_macro (void)
 {
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
-
   Macro m;
   memset (&m, 0, sizeof(Macro));
 
@@ -468,11 +465,8 @@ noMEND:
  * Implements MEXIT.
  */
 bool
-c_mexit (const Lex *label)
+c_mexit (void)
 {
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
-
   if (gCurPObjP->type != POType_eMacro)
     error (ErrorError, "MEXIT found outside a macro");
   else

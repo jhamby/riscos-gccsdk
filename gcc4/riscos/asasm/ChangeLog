@@ -1,3 +1,27 @@
+Mon Dec 27 03:52:29 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c (c_define): Fix SYMBOL_ABSOLUTE.
+	* symbol.c (symbolAdd): Use assert.
+	(symbolSymbolAOFOutput,symbolSymbolELFOutput): Constify.
+	(symbolPrint): Enalbe SYMBOL_ABSOLUTE assert.
+	* decode.c (DTABLE_CALLBACK_NOLEX): New.
+	(oDecodeTable): Call c_allow with Lex instead of Symbol, check for
+	non-LexId for c_else, c_elif, c_endif, c_gbl, c_if, c_lcl, c_macro,
+	c_record, c_mexit, c_wend, c_while.
+	(decode): Support DTABLE_CALLBACK_NOLEX.  In case of
+	DTABLE_CALLBACK_SYMBOL, don't call ASM_DefineLabel for defining the
+	symbol.
+	* storage (c_alloc): Deal with Lex instead of Symbol parameter.
+	* area.c (c_area): Give warning instead of error when 2nd instance
+	of same area differs in attributes.
+	* variables.c, variables.h (c_gbl, c_lbl): Drop Lex parameter.
+	* macros.c, macros.h (c_macro, c_mexit): Likewise.
+	* whileif.c, whileif.h (c_if, c_else, c_elif, c_endif, c_while, c_wend):
+	Likewise.
+	* get.c (getTypeInternal): Drop SYMBOL_ABSOLUTE check.
+	* asm.c (ASM_DefineLabel): Proper support for SYMBOL_ABSOLUTE.
+	* lit.c (Lit_DumpPool): Likewise.
+
 Sun Dec 26 23:40:44 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/cps.s: New.

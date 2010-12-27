@@ -71,7 +71,6 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
 {
   if (!sym)
     errorAbort ("Missing label before %s", msg);
-  sym->type |= SYMBOL_ABSOLUTE;
   const Value *value = exprBuildAndEval (legal);
   if (value->Tag == ValueIllegal)
     {
@@ -80,7 +79,7 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
     }
   else
     Value_Assign (&sym->value, value);
-  sym->type |= SYMBOL_DEFINED | SYMBOL_DECLARED;
+  sym->type |= SYMBOL_DEFINED | SYMBOL_DECLARED | SYMBOL_ABSOLUTE;
 }
 
 /**
@@ -89,7 +88,7 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
 bool
 c_equ (Symbol *symbol)
 {
-  c_define ("EQU", symbol, ValueAll);
+  c_define ("* or EQU", symbol, ValueAll);
   return false;
 }
 

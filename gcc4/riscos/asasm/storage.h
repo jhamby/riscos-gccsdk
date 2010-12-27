@@ -30,6 +30,6 @@
 const Value *storageValue (void);
 
 bool c_record (void);
-bool c_alloc (Symbol *sym);
+bool c_alloc (const Lex *lex);
 
 #endif

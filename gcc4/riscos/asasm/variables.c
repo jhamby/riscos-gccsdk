@@ -123,7 +123,7 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
  * Global variable declaration
  */
 bool
-c_gbl (const Lex *label)
+c_gbl (void)
 {
   int c = inputGet ();
   ValueTag type;
@@ -142,9 +142,6 @@ c_gbl (const Lex *label)
 	return true;
     }
 
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
-
   skipblanks ();
   const char *ptr;
   size_t len;
@@ -161,7 +158,7 @@ c_gbl (const Lex *label)
  * Local variable declaration
  */
 bool
-c_lcl (const Lex *label)
+c_lcl (void)
 {
   int c = inputGet ();
   ValueTag type;
@@ -186,8 +183,6 @@ c_lcl (const Lex *label)
       return false;
     }
 
-  if (label->tag != LexNone)
-    error (ErrorWarning, "Label not allowed here - ignoring");
   skipblanks ();
   const char *ptr;
   size_t len;

@@ -512,8 +512,9 @@ c_area (void)
     error (ErrorError, "Attribute BASED may not be set for CODE area");
 
   if (newtype && oldtype && newtype != oldtype)
-    error (ErrorError, "Changing attribute of area %s", sym->str);
-  sym->area.info->type |= newtype;
+    error (ErrorWarning, "Change in attribute of area %s will be ignored", sym->str);
+  else
+    sym->area.info->type |= newtype;
   areaCurrentSymbol = sym;
   return false;
 }
