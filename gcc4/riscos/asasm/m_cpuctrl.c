@@ -227,7 +227,10 @@ m_bx (void)
 }
 
 /**
- * Implements SWI.
+ * Implements SVC / SWI.
+ *   SVC/SWI #<24 bit int>
+ *   SVC/SWI <24 bit int>
+ *   SVC/SWI <string>
  */
 bool
 m_swi (void)
@@ -236,9 +239,9 @@ m_swi (void)
   if (cc == optionError)
     return true;
 
-  if (Input_Match ('#', false))
-    error (ErrorInfo, "SWI is always immediate");
-  const Value *im = exprBuildAndEval (ValueInt | ValueString);
+  skipblanks ();
+  ValueTag valueOK = Input_Match ('#', false) ? ValueInt : ValueInt | ValueString;
+  const Value *im = exprBuildAndEval (valueOK);
   ARMWord ir = cc | 0x0F000000;
   switch (im->Tag)
     {
@@ -247,23 +250,23 @@ m_swi (void)
 	break;
 
       case ValueString:
-#ifdef __riscos__
 	{
+#ifdef __riscos__
 	  /* ValueString is not NUL terminated.  */
 	  char swiname[im->Data.String.len + 1];
 	  memcpy (swiname, im->Data.String.s, im->Data.String.len);
 	  swiname[im->Data.String.len] = '\0';
 	  ir |= switonum (swiname);
 	  if (ir == 0xFFFFFFFF)
-	    error (ErrorError, "Unknown SWI name");
-	}
+	    error (ErrorError, "Unknown SVC/SWI name");
 #else
-	error (ErrorError, "RISC OS is required to look up the SWI name");
+	  error (ErrorError, "RISC OS is required to look up the SVC/SWI name");
 #endif
+	}
 	break;
 
       default:
-	error (ErrorError, "Illegal SWI expression");
+	error (ErrorError, "Illegal SVC/SWI expression");
 	break;
     }
   Put_Ins (ir);
@@ -808,6 +811,71 @@ m_mrs (void)
   Put_Ins (cc);
   return false;
 }
+
+
+/**
+ * Implements SEV.
+ *   SEV<cond>
+ */
+bool
+m_sev (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
+  Put_Ins (cc | 0x0320F004);
+  return false;
+}
+
+
+/**
+ * Implements WFE.
+ *   WFE<cond>
+ */
+bool
+m_wfe (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
+  Put_Ins (cc | 0x0320F002);
+  return false;
+}
+
+
+/**
+ * Implements WFI.
+ *   WFI<cond>
+ */
+bool
+m_wfi (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
+  Put_Ins (cc | 0x0320F003);
+  return false;
+}
+
+
+/**
+ * Implements YIELD.
+ *   YIELD<cond>
+ */
+bool
+m_yield (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
+  Put_Ins (cc | 0x0320F001);
+  return false;
+}
+
 
 /**
  * Implements CPS.

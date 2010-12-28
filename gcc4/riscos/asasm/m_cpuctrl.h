@@ -44,6 +44,11 @@ bool m_stack (void);
 bool m_swi (void);
 bool m_tail (void);
 
+bool m_sev (void);
+bool m_wfe (void);
+bool m_wfi (void);
+bool m_yield (void);
+
 bool m_cps (void);
 
 bool IsValidARMMode (int armMode);

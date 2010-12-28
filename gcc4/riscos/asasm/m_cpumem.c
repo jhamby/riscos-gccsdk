@@ -331,17 +331,119 @@ m_ldr (void)
   return dstmem (cc, "LDR");
 }
 
-#if 0
-// FIXME:
+static bool
+LdrStrEx (bool isLoad)
+{
+  enum { wtype = 0x18<<20, dtype = 0x1A<<20, btype = 0x1C<<20, htype = 0x1E<<20 } type;
+  switch (inputLook ())
+    {
+      case 'B':
+	inputSkip ();
+	type = btype;
+        break;
+
+      case 'D':
+	inputSkip ();
+	type = dtype;
+	break;
+
+      case 'H':
+	/* Small hack needed : 'H' can also be the first condition character
+	   of 'HS' or 'HI'.  */
+	if (inputLookN (1) != 'I' && inputLookN (1) != 'S')
+	  {
+	    inputSkip ();
+	    type = htype;
+	    break;
+	  }
+	/* Fall through.  */
+
+      default:
+	type = wtype;
+	break;
+    }
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
+  /* The STREX* versions have an extra Rd register.  */
+  ARMWord regD;
+  if (!isLoad)
+    {
+      skipblanks ();
+      regD = getCpuReg ();
+      if (regD == INVALID_REG)
+	return false;
+      skipblanks ();
+      if (!Input_Match (',', true))
+	{
+	  error (ErrorError, "Missing ,");
+	  return false;
+	}
+    }
+
+  skipblanks ();
+  ARMWord regT = getCpuReg ();
+  if (regT == INVALID_REG)
+    return false;
+  if (type == dtype && (regT & 1))
+    error (ErrorError, "Register needs to be even");
+  skipblanks ();
+  if (!Input_Match (',', true))
+    {
+      error (ErrorError, "Missing ,");
+      return false;
+    }
+
+  if (type == dtype)
+    {
+      skipblanks ();
+      ARMWord regT2 = getCpuReg ();
+      if (regT2 == INVALID_REG)
+	return false;
+      if (regT2 != regT + 1)
+	error (ErrorError, "Registers are not consecutive");
+      skipblanks ();
+      if (!Input_Match (',', true))
+	{
+	  error (ErrorError, "Missing ,");
+	  return false;
+	}
+    }
+  
+  if (!Input_Match ('[', true))
+    {
+      error (ErrorError, "Missing [");
+      return false;
+    }
+  ARMWord regN = getCpuReg ();
+  if (regN == INVALID_REG)
+    return false;
+  skipblanks ();
+  if (!Input_Match (']', false))
+    {
+      error (ErrorError, "Missing ]");
+      return false;
+    }
+  if (isLoad)
+    Put_Ins (cc | 0x00100F9F | type | (regN<<16) | (regT<<12));
+  else
+    Put_Ins (cc | 0x00000F90 | type | (regN<<16) | (regD<<12) | regT);
+  return false;
+}
+
 /**
- * Implements LDREX.
+ * Implements LDREX/LDREXB/LDREXH.
  *   LDREX[<cond>] <Rd>, [<Rn>]
+ *   LDREXB[<cond>] <Rd>, [<Rn>]
+ *   LDREXH[<cond>] <Rd>, [<Rn>]
+ *   LDREXD[<cond>] <Rd>, <Rd2>, [<Rn>]
  */
 bool
 m_ldrex (void)
 {
+  return LdrStrEx (true);
 }
-#endif
 
 /**
  * Implements STR<cond>[B].
@@ -363,17 +465,18 @@ m_str (void)
   return dstmem (cc, "LDR");
 }
 
-#if 0
-// FIXME:
 /**
- * Implements STREX.
+ * Implements STREX/LDREXB/LDREXH.
  *   STREX[<cond>] <Rd>, [<Rn>]
+ *   STREXB[<cond>] <Rd>, [<Rn>]
+ *   STREXH[<cond>] <Rd>, [<Rn>]
+ *   STREXD[<cond>] <Rd>, <Rd2>, [<Rn>]
  */
 bool
 m_strex (void)
 {
+  return LdrStrEx (false);
 }
-#endif
 
 /**
  * Implements PLD.

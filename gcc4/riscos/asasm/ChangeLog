@@ -1,3 +1,15 @@
+Tue Dec 28 02:32:35 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/sev_wfe_wfi_yield.s: New.
+	* regression/tests_pass/ldrex_strex.s: New.
+	* regression/tests_pass/misc.s: Move SWI test to...
+	* regression/tests_pass/swi.s: ...here. Update test for SVC and '#'
+	usage.
+	* decode.c (oDecodeTable): Add LDREX, STREX, SEV, SVC, WFE, WFI, YIELD.
+	* m_cpuctrl.c (m_swi): Fix # usage.
+	(m_sev, m_wfe, m_wfi, m_yield): Added.
+	* m_cpumem.c (LdrStrEx, m_ldrex, m_strex): Added.
+
 Mon Dec 27 22:11:02 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/symbols.s: New.
