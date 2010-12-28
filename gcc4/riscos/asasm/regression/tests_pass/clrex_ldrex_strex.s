@@ -1,4 +1,4 @@
-; Tests LDREX, LDREXB, LDREXH, LDREXD, STREX, STREXB, STREXH, STREXD.
+; Tests CLREX, LDREX, LDREXB, LDREXH, LDREXD, STREX, STREXB, STREXH, STREXD.
 
 	AREA	Code, CODE
 
@@ -329,6 +329,12 @@
 	DCD &e1a61f94 	; strexd	r1, r4, [r6]
 	DCD &e1a61f94 	; strexd	r1, r4, [r6]
 
+	]
+
+	[ :LNOT: REFERENCE
+	CLREX
+	|
+	DCD &f57ff01f
 	]
 
 	END

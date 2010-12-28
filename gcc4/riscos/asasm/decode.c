@@ -104,6 +104,7 @@ static const decode_table_t oDecodeTable[] =
   { "BX", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_bx } }, /* BX CC */
   { "CDP", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_cdp } }, /* CDP CC */
   { "CDP2", DTABLE_CALLBACK_VOID, { .vd = m_cdp2 } }, /* CDP2 */
+  { "CLREX", DTABLE_CALLBACK_VOID, { .vd = m_clrex } }, /* CLREX */
   { "CLZ", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_clz } }, /* CLZ CC */
   { "CMF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_cmf } }, /* CMF CC or CMFE CC */
   { "CMN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_cmn } }, /* CMN CC SP */

@@ -478,6 +478,18 @@ m_strex (void)
   return LdrStrEx (false);
 }
 
+
+/**
+ * Implements CLREX.
+ */
+bool
+m_clrex (void)
+{
+  Put_Ins (0xF57FF01F);
+  return false;
+}
+
+
 /**
  * Implements PLD.
  */

@@ -1,3 +1,10 @@
+Tue Dec 28 14:02:11 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/ldrex_strex.s: Renamed to...
+	* regression/tests_pass/clrex_ldrex_strex.s: ...this. Add CLREX test.
+	* decode.c (oDecodeTable): Add CLREX.
+	* m_cpumem.c, m_cpumem.h (m_clrex): New.
+
 Tue Dec 28 02:32:35 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/sev_wfe_wfi_yield.s: New.

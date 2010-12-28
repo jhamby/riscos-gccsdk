@@ -24,6 +24,7 @@
 
 #include <stdbool.h>
 
+bool m_clrex (void);
 bool m_ldm (void);
 bool m_ldr (void);
 bool m_ldrex (void);
