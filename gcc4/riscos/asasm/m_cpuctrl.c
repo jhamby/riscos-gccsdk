@@ -939,7 +939,7 @@ m_cps (void)
       if (!Input_Match ('#', true))
 	{
 	  readMode = false;
-	  error (ErrorError, "CPS needs a mode specified");
+	  error (ErrorError, "%s needs a mode specified", "CPS");
 	}
       else
 	{
@@ -952,24 +952,15 @@ m_cps (void)
 	  else
 	    {
 	      mode = val->Data.Int.i;
-	      if (!IsValidARMMode (mode))
-		error (ErrorWarning, "Mode 0x%x is not a valid ARM mode", mode);
+	      if (!Option_IsValidARMMode (mode))
+		{
+		  error (ErrorWarning, "Mode 0x%x is not a valid ARM mode", mode);
+		  mode &= 0x1F;
+		}
 	    }
 	}
     }
   assert(!(((imod == (0<<18) || imod == (1<<18)) && !readMode) || (imod == (1<<18) && readMode)) && "We shouldn't be generating this");
   Put_Ins ((0xF << 28) | (1<<24) | imod | (readMode ? (1<<17) : 0) | iflags | mode);
   return false;
-}
-
-bool
-IsValidARMMode (int armMode)
-{
-  return armMode == ARM_MODE_USR
-	   || armMode == ARM_MODE_FIQ
-	   || armMode == ARM_MODE_IRQ
-	   || armMode == ARM_MODE_SVC
-	   || armMode == ARM_MODE_ABORT
-	   || armMode == ARM_MODE_UNDEF
-	   || armMode == ARM_MODE_SYSTEM;
 }

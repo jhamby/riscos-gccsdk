@@ -648,7 +648,10 @@ lexGetBinop (void)
 	    result.Data.Operator.op = Op_ne; /* != */
 	  }
 	else
-	  result.tag = LexNone;
+	  {
+	    inputUnGet (c);
+	    result.tag = LexNone;
+	  }
 	break;
 
       case '|':

@@ -33,7 +33,8 @@ ARMWord Option_SCond (void);
 ARMWord optionCondSP (void);
 ARMWord optionCondB (void);
 ARMWord optionCondBT (bool isStore);
-ARMWord optionCondLdmStm (bool isLDLM);
+ARMWord Option_CondRfeSrs (bool isLoad);
+ARMWord optionCondLdmStm (bool isLDM);
 ARMWord optionCondLfmSfm (void);
 ARMWord optionCondPrecRound (void);
 ARMWord optionCondOptPrecRound (void);
@@ -99,10 +100,10 @@ ARMWord optionAdrL (void);
 #define LINK_BIT	((ARMWord)1<<24)
 #define EXEPTION_BIT	((ARMWord)0x00400000)
 
-#define IB ((ARMWord)0x01800000)
-#define IA ((ARMWord)0x00800000)
-#define DB ((ARMWord)0x01000000)
-#define DA ((ARMWord)0x00000000)
+#define STACKMODE_IB (P_FLAG | U_FLAG)
+#define STACKMODE_IA (         U_FLAG)
+#define STACKMODE_DB (P_FLAG |      0)
+#define STACKMODE_DA (     0 |      0)
 
 #define PRECISION_SINGLE    ((ARMWord)0x00000000)
 #define PRECISION_DOUBLE    ((ARMWord)0x00000080)
@@ -119,5 +120,15 @@ ARMWord optionAdrL (void);
 #define ROUND_ZERO          ((ARMWord)0x60)
 
 #define FORCE_FLAG	((ARMWord)1<<22)
+
+#define ARM_MODE_USR	(0x10)
+#define ARM_MODE_FIQ	(0x11)
+#define ARM_MODE_IRQ	(0x12)
+#define ARM_MODE_SVC	(0x13)
+#define ARM_MODE_ABORT	(0x17)
+#define ARM_MODE_UNDEF	(0x1B)
+#define ARM_MODE_SYSTEM	(0x1F)
+
+bool Option_IsValidARMMode (int armMode);
 
 #endif

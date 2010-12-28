@@ -1,3 +1,15 @@
+Tue Dec 28 17:30:18 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/rfe_srs.s: New.
+	* decode.c (oDecodeTable): Add RFE and SRS.
+	* m_cpuctrl.c (m_cps): Limit mode to 5 bits.
+	* m_cpuctrl.c, m_cpuctrl.h (IsValidARMMode, ARM_MODE_*): Move to...
+	* option.c, option.h: ...here.
+	(GetStackMode): Renamed from getDir.
+	(Option_CondRfeSrs): Added.
+	* m_cpumem.c, m_cpumem.h (m_rfe, m_srs): New.
+	* lex.c (lexGetBinop): Don't eat lonely exclamation marks.
+
 Tue Dec 28 14:02:11 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/ldrex_strex.s: Renamed to...

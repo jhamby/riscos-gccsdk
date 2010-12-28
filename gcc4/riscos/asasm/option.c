@@ -152,65 +152,59 @@ getCond (void)
 
 
 static ARMWord
-getDir (bool ldm)
+GetStackMode (bool isLoad)
 {
-  ARMWord dir = optionError;
+  ARMWord stackMode = optionError;
   switch (inputLook ())
     {
-    case 'D':
-      switch (inputLookN (1))
-	{
-	case 'B':
-	  dir = DB;
-	  inputSkipN (2);
-	  break;
-	case 'A':
-	  dir = DA;
-	  inputSkipN (2);
-	  break;
-	}
-      break;
-    case 'E':
-      switch (inputLookN (1))
-	{
-	case 'D':
-	  dir = (ldm ? IB : DA);
-	  inputSkipN (2);
-	  break;
-	case 'A':
-	  dir = (ldm ? DB : IA);
-	  inputSkipN (2);
-	  break;
-	}
-      break;
-    case 'F':
-      switch (inputLookN (1))
-	{
-	case 'D':
-	  dir = (ldm ? IA : DB);
-	  inputSkipN (2);
-	  break;
-	case 'A':
-	  dir = (ldm ? DA : IB);
-	  inputSkipN (2);
-	  break;
-	}
-      break;
-    case 'I':
-      switch (inputLookN (1))
-	{
-	case 'B':
-	  dir = IB;
-	  inputSkipN (2);
-	  break;
-	case 'A':
-	  dir = IA;
-	  inputSkipN (2);
-	  break;
-	}
-      break;
+      case 'D':
+        switch (inputLookN (1))
+	  {
+	    case 'B':
+	      stackMode = STACKMODE_DB;
+	      break;
+	    case 'A':
+	      stackMode = STACKMODE_DA;
+	      break;
+	  }
+        break;
+      case 'E':
+        switch (inputLookN (1))
+	  {
+	    case 'D':
+	      stackMode = isLoad ? STACKMODE_IB : STACKMODE_DA;
+	      break;
+	    case 'A':
+	      stackMode = isLoad ? STACKMODE_DB : STACKMODE_IA;
+	      break;
+	  }
+        break;
+      case 'F':
+        switch (inputLookN (1))
+	  {
+	    case 'D':
+	      stackMode = isLoad ? STACKMODE_IA : STACKMODE_DB;
+	      break;
+	    case 'A':
+	      stackMode = isLoad ? STACKMODE_DA : STACKMODE_IB;
+	      break;
+	  }
+        break;
+      case 'I':
+        switch (inputLookN (1))
+	  {
+	    case 'B':
+	      stackMode = STACKMODE_IB;
+	      break;
+	    case 'A':
+	      stackMode = STACKMODE_IA;
+	      break;
+	  }
+        break;
     }
-  return dir;
+  if (stackMode != optionError)
+    inputSkipN (2);
+  return stackMode;
 }
 
 
@@ -251,6 +245,13 @@ getRound (void)
 }
 
 
+/**
+ * Checks if the end of the current keyword has been reached.
+ * \param option Value to return when the end of current keyword has been
+ * reached.
+ * \return -1 when end of current keyword has not been reached, otherwise
+ * the given option value.
+ */
 static ARMWord
 IsEndOfKeyword (ARMWord option)
 {
@@ -388,11 +389,23 @@ optionCondBT (bool isStore)
 }
 
 
+/**
+ * Tries to parse address mode used in RFE and SRS.
+ * Note, no condition code are read (that's only possible with Thumb-2).
+ */
+ARMWord
+Option_CondRfeSrs (bool isLoad)
+{
+  ARMWord option = GetStackMode (isLoad);
+  return IsEndOfKeyword (option == optionError ? STACKMODE_IA : option);
+}
+
+
 ARMWord
 optionCondLdmStm (bool isLDM)
 {
   ARMWord option = getCond ();
-  if (optionError == (option |= getDir (isLDM)))
+  if (optionError == (option |= GetStackMode (isLDM)))
     return optionError;
   return IsEndOfKeyword (option);
 }
@@ -514,4 +527,17 @@ optionAdrL (void)
   if (Input_Match ('L', false))
     option |= 1;
   return IsEndOfKeyword (option);
+}
+
+
+bool
+Option_IsValidARMMode (int armMode)
+{
+  return armMode == ARM_MODE_USR
+	   || armMode == ARM_MODE_FIQ
+	   || armMode == ARM_MODE_IRQ
+	   || armMode == ARM_MODE_SVC
+	   || armMode == ARM_MODE_ABORT
+	   || armMode == ARM_MODE_UNDEF
+	   || armMode == ARM_MODE_SYSTEM;
 }

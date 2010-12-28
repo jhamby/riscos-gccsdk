@@ -669,7 +669,7 @@ m_pop (void)
   ARMWord cc = optionCond ();
   if (cc == optionError)
     return true;
-  dstreglist (cc | IA | 0x08100000, true);
+  dstreglist (cc | STACKMODE_IA | 0x08100000, true);
   return false;
 }
 
@@ -698,7 +698,7 @@ m_push (void)
   ARMWord cc = optionCond ();
   if (cc == optionError)
     return true;
-  dstreglist (cc | DB | 0x08000000, true);
+  dstreglist (cc | STACKMODE_DB | 0x08000000, true);
   return false;
 }
 
@@ -842,5 +842,101 @@ m_isb (void)
   if (option_pedantic && bl != BL_eSY)
     error (ErrorWarning, "Using reserved barrier type");
   Put_Ins (0xF57FF060 | bl);
+  return false;
+}
+
+
+/**
+ * Implements RFE.
+ *   RFE{<amode>} <Rn>{!}
+ */
+bool
+m_rfe (void)
+{
+  ARMWord option = Option_CondRfeSrs (true);
+  if (option == optionError)
+    return true;
+
+  skipblanks ();
+  ARMWord regN = getCpuReg ();
+  if (regN == INVALID_REG)
+    return false;
+  if (regN == 15)
+    error (ErrorError, "Using PC as base register is unpredictable");
+
+  skipblanks ();
+  bool updateStack = Input_Match ('!', false);
+
+  if (updateStack)
+    option |= W_FLAG;
+  Put_Ins (0xF8100A00 | option | (regN<<16));
+  return false;
+}
+
+
+/**
+ * Implements SRS.
+ *   SRS{<amode>} SP{!},#<mode>  : UAL syntax
+ *   SRS{<amode>} #<mode>{!}     : pre-UAL syntax
+ */
+bool
+m_srs (void)
+{
+  ARMWord option = Option_CondRfeSrs (false);
+  if (option == optionError)
+    return true;
+
+  skipblanks ();
+  bool isUALSyntax, updateStack;
+  if (!Input_Match ('#', false))
+    {
+      isUALSyntax = true;
+      ARMWord sp = getCpuReg ();
+      if (sp == INVALID_REG)
+	return false;
+      if (sp != 13)
+	{
+	  error (ErrorError, "SRS can only be used with stack register 13 (sp)");
+	  return false;
+	}
+      skipblanks ();
+      updateStack = Input_Match ('!', true);
+      if (!Input_Match (',', true))
+	{
+	  error (ErrorError, "Missing ,");
+	  return false;
+	}
+      if (!Input_Match ('#', false))
+	{
+	  error (ErrorError, "%s needs a mode specified", "SRS");
+	  return false;
+	}
+    }
+  else
+    isUALSyntax = false;
+
+  const Value *im = exprBuildAndEval (ValueInt);
+  if (im->Tag != ValueInt)
+    {
+      error (ErrorError, "Illegal immediate expression");
+      return false;
+    }
+  int mode = im->Data.Int.i;
+  if (!Option_IsValidARMMode (mode))
+    {
+      error (ErrorWarning, "Mode 0x%x is not a valid ARM mode", mode);
+      mode &= 0x1F;
+    }
+
+  if (!isUALSyntax)
+    {
+      skipblanks ();
+      updateStack = Input_Match ('!', false);
+    }
+
+  if (updateStack)
+    option |= W_FLAG;
+  Put_Ins (0xF84D0500 | option | mode);
+
   return false;
 }
