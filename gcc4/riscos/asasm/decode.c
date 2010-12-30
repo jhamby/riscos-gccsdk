@@ -98,10 +98,14 @@ static const decode_table_t oDecodeTable[] =
   { "ASSERT", DTABLE_CALLBACK_VOID, { .vd = c_assert } }, /* ASSERT */
   { "ATN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_atn } }, /* ATN CC P R */
   { "B", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_branch } }, /* B [L] CC */
+  /* FIXME: BFC */
+  /* FIXME: BFI */
   { "BIC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_bic } }, /* BIC CC S */
+  { "BIN", DTABLE_CALLBACK_VOID, { .vd = c_incbin } }, /* BIN / INCBIN */
   { "BKPT", DTABLE_CALLBACK_VOID, { .vd = m_bkpt } }, /* BKPT */
   { "BLX", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_blx } }, /* BLX CC */
   { "BX", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_bx } }, /* BX CC */
+  { "BXJ", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_bxj } }, /* BXJ CC */
   { "CDP", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_cdp } }, /* CDP CC */
   { "CDP2", DTABLE_CALLBACK_VOID, { .vd = m_cdp2 } }, /* CDP2 */
   { "CLREX", DTABLE_CALLBACK_VOID, { .vd = m_clrex } }, /* CLREX */
@@ -116,6 +120,7 @@ static const decode_table_t oDecodeTable[] =
   { "COS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_cos } }, /* COS CC P R */
   { "CP", DTABLE_CALLBACK_SYMBOL, { .sym = c_cp } }, /* CP */
   { "CPS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_cps } }, /* CPS */
+  /* FIXME: DBG */
   { "DCB", DTABLE_CALLBACK_VOID, { .vd = c_dcb } }, /* DCB */
   { "DCD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcd } }, /* & / DCD / DCDU */
   { "DCFD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcfd } }, /* DCFD / DCFDU */
@@ -149,7 +154,7 @@ static const decode_table_t oDecodeTable[] =
   { "IDFN", DTABLE_CALLBACK_VOID, { .vd = c_idfn } }, /* IDFN */
   { "IF", DTABLE_CALLBACK_NOLEX, { .nolex = c_if } }, /* [ IF */
   { "IMPORT", DTABLE_CALLBACK_VOID, { .vd = c_import } }, /* IMPORT / EXTERN */
-  { "INCBIN", DTABLE_CALLBACK_VOID, { .vd = c_incbin } }, /* INCBIN */
+  { "INCBIN", DTABLE_CALLBACK_VOID, { .vd = c_incbin } }, /* BIN / INCBIN */
   { "INCLUDE", DTABLE_CALLBACK_VOID, { .vd = c_get } }, /* GET / INCLUDE */
   { "INFO", DTABLE_CALLBACK_VOID, { .vd = c_info } }, /* INFO */
   { "ISB", DTABLE_CALLBACK_VOID, { .vd = m_isb } }, /* ISB */
@@ -175,6 +180,7 @@ static const decode_table_t oDecodeTable[] =
   { "MCRR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mcrr } }, /* MCRR CC */
   { "MEXIT", DTABLE_CALLBACK_NOLEX, { .nolex = c_mexit } }, /* MEXIT */
   { "MLA", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mla } }, /* MLA CC S */
+  { "MLS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mls } }, /* MLS CC */
   { "MNF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mnf } }, /* MNF CC P R */
   { "MOV", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mov } }, /* MOV CC s */
   { "MRC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mrc } }, /* MRC CC */
@@ -186,21 +192,26 @@ static const decode_table_t oDecodeTable[] =
   { "MUL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mul } }, /* MUL CC S */
   { "MVF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mvf } }, /* MVF CC P R */
   { "MVN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mvn } }, /* MVN CC S */
-  { "NOP", DTABLE_CALLBACK_VOID, { .vd = m_nop } }, /* NOP */
+  { "NOP", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_nop } }, /* NOP [CC] */
   { "NRM", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_nrm } }, /* NRM CC P R */
   { "OPT", DTABLE_CALLBACK_VOID, { .vd = c_opt } }, /* OPT */
   { "ORG", DTABLE_CALLBACK_VOID, { .vd = c_org } }, /* ORG */
   { "ORR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_orr } }, /* ORR CC S */
-  { "PLD", DTABLE_CALLBACK_VOID, { .vd = m_pld } }, /* PLD */
+  /* FIXME: PKH */
+  { "PL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_pl } }, /* PLD, PLDW, PLI */
   { "POL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_pol } }, /* POL CC P R */
   { "POP", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_pop } }, /* POP CC */
   { "POW", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_pow } }, /* POW CC P R */
   { "PRESERVE8", DTABLE_CALLBACK_VOID, { .vd = c_preserve8 } }, /* PRESERVE8 {TRUE}/{FALSE} */
   { "PUSH", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_push } }, /* PUSH CC */
   { "QADD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_qadd } }, /* QADD CC */
+  /* FIXME: QASX */
   { "QDADD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_qdadd } }, /* QDADD CC */
   { "QDSUB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_qdsub } }, /* QDSUB CC */
+  /* FIXME: QSAX */
   { "QSUB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_qsub } }, /* QSUB CC */
+  /* FIXME: RBIT */
+  /* FIXME: REV, REV16, REVSH */
   { "RDF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rdf } }, /* RDF CC P R */
   { "REQUIRE8", DTABLE_CALLBACK_VOID, { .vd = c_require8 } }, /* REQUIRE8 {TRUE}/{FALSE} */
   { "RET", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_ret } }, /* RET CC */
@@ -217,22 +228,35 @@ static const decode_table_t oDecodeTable[] =
   { "RSB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rsb } }, /* RSB CC S */
   { "RSC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rsc } }, /* RSC CC S */
   { "RSF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_rsf } }, /* RSF CC P R */
+  /* FIXME: SADD16/SADD8 */
+  /* FIXME: SASX */
   { "SBC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_sbc } }, /* SBC CC S */
+  /* FIXME: SBFX */
+  /* FIXME: SEL */
   { "SET", DTABLE_CALLBACK_LEX | DTABLE_PART_MNEMONIC, { .lex = c_set } }, /* SETA, SETL, SETS */
+  /* FIXME: SETEND */
   { "SEV", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_sev } }, /* SEV CC */
   { "SFM", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_sfm } }, /* SFM CC (TYPE) */
+  /* FIXME: SHADD16/SHADD8 */
+  /* FIXME: SHASX/SHSAX */
+  /* FIXME: SHSUB16/SHSUB8 */
   { "SIN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_sin } }, /* SIN CC P R */
+  /* FIXME: SMC (SMI ?) */
   { "SMLABB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlabb } }, /* SMLABB CC */
   { "SMLABT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlabt } }, /* SMLABT CC */
+  /* FIXME: SMLAD */
   { "SMLAL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlal } }, /* SMLAL CC S */
   { "SMLALBB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlalbb } }, /* SMLALBB CC */
   { "SMLALBT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlalbt } }, /* SMLALBT CC */
   { "SMLALTB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlaltb } }, /* SMLALTB CC */
   { "SMLALTT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlaltt } }, /* SMLALTT CC */
+  /* FIXME: SMLAD */
   { "SMLATB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlatb } }, /* SMLATB CC */
   { "SMLATT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlatt } }, /* SMLATT CC */
   { "SMLAWB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlawb } }, /* SMLAWB CC */
   { "SMLAWT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlawt } }, /* SMLAWT CC */
+  /* FIXME: SMLSD, SMLSLD */
+  /* FIXME: SMMLA, SMMLS, SMMUL, SMUAD */
   { "SMULBB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smulbb } }, /* SMULBB CC */
   { "SMULBT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smulbt } }, /* SMULBT CC */
   { "SMULL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smull } }, /* SMULL CC */
@@ -240,9 +264,13 @@ static const decode_table_t oDecodeTable[] =
   { "SMULTT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smultt } }, /* SMULTT CC */
   { "SMULWB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smulwb } }, /* SMULWB CC */
   { "SMULWT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smulwt } }, /* SMULWT CC */
+  /* FIXME: SMUSD */
   { "SPACE", DTABLE_CALLBACK_VOID, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
   { "SQT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_sqt } }, /* SQT CC P R */
   { "SRS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_srs } }, /* SRS MODE */
+  /* FIXME: SSAT, SSAT16 */
+  /* FIXME: SSAX */
+  /* FIXME: SSUB16, SSUB8 */
   { "STACK", DTABLE_CALLBACK_VOID, { .vd = m_stack } }, /* STACK */
   { "STC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_stc } }, /* STC CC l */
   { "STC2", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_stc2 } }, /* STC2 CC l */
@@ -257,6 +285,7 @@ static const decode_table_t oDecodeTable[] =
   { "SVC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_swi } }, /* SVC CC */
   { "SWI", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_swi } }, /* SWI CC */
   { "SWP", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_swp } }, /* SWP CC B */
+  /* FIXME: SXTAB, SXTAB16, SXTAH, SXTB, SXTB16, SXTH */
   { "TAIL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_tail } }, /* TAIL CC */
   { "TAN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_tan } }, /* TAN CC P R */
   { "TEQ", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_teq } }, /* TEQ CC */
@@ -264,9 +293,25 @@ static const decode_table_t oDecodeTable[] =
   { "THUMBX", DTABLE_CALLBACK_VOID, { .vd = c_thumbx } }, /* THUMBX */
   { "TST", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_tst } }, /* TST CC */
   { "TTL", DTABLE_CALLBACK_VOID, { .vd = c_title } }, /* TTL */
+  /* FIXME: UADD16, UADD8 */
+  /* FIXME: UASX */
+  /* FIXME: UBFX */
+  /* FIXME: UHADD16, UHADD8 */
+  /* FIXME: UHASX, UHSA */
+  /* FIXME: UHSUB16, UHSUB8 */
+  /* FIXME: UMAAL */
   { "UMLAL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_umlal } }, /* UMLAL CC */
   { "UMULL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_umull } }, /* UMULL CC */
+  /* FIXME: UQADD16, UQADD8 */
+  /* FIXME: UQASX, UQSAX */
+  /* FIXME: UQSUB16, UQSUB8 */
+  /* FIXME: USAD8, USADA8 */
+  /* FIXME: USAT, USAT16 */
+  /* FIXME: USAX */
+  /* FIXME: USUB16, USUB8 */
+  /* FIXME: UXTAB, UXTAB16, UXTAH, UXTAB, UXTB16, UXTH */
   { "URD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_urd } }, /* URD CC P R */
+  /* FIXME: V* */
   { "WEND", DTABLE_CALLBACK_NOLEX, { .nolex = c_wend } }, /* WEND */
   { "WFC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_wfc } }, /* WFC CC */
   { "WFE", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_wfe } }, /* WFE CC */

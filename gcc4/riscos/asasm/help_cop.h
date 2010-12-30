@@ -25,17 +25,13 @@
 
 #include <stdbool.h>
 
-#define CP_NUMBER(n) ((n)<< 8)
-#define CP_DCODE(n)  ((n)<<20)
-#define CP_RTRAN(n)  ((n)<<21)
-#define CPDST_OP(n)  ((n)<<12)
-#define CPRHS_OP(n)  ((n)<< 0)
-#define CPLHS_OP(n)  ((n)<<16)
-#define CP_INFO(n)   ((n)<< 5)
-
-#define FROM_CP_BIT  (1<<20)
-
-int help_copInt (int max, const char *msg);
+#define CP_NUMBER(n) ((n)<< 8) /* CP# */
+#define CP_DCODE(n)  ((n)<<20) /* CP Opc */
+#define CP_RTRAN(n)  ((n)<<21) /* ??? */
+#define CPDST_OP(n)  ((n)<<12) /* CRd */
+#define CPRHS_OP(n)  ((n)<< 0) /* CRm */
+#define CPLHS_OP(n)  ((n)<<16) /* CRn */
+#define CP_INFO(n)   ((n)<< 5) /* CP */
 
 ARMWord help_copAddr (ARMWord ir, bool stack);
 

@@ -39,6 +39,8 @@ void inputInit (const char *infile);
 bool Input_Match (char c, bool spacesToo);
 bool Input_MatchKeyword (const char *keyword);
 bool Input_MatchKeywordLower (const char *keyword);
+bool Input_MatchString (const char *str);
+bool Input_IsEndOfKeyword (void);
 
 #if DEBUG
 const char *inputGiveRestLine (void);
@@ -49,8 +51,6 @@ bool inputNextLineNoSubst (void);
 
 void skipblanks (void);
 void skiprest (void);
-
-bool notinput (const char *str);
 
 bool Input_IsEolOrCommentStart (void);
 char inputLook (void);

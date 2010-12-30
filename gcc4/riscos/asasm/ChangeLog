@@ -1,3 +1,37 @@
+Thu Dec 30 02:32:50 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/dsp.s: Move PLD tests to...
+	* regression/tests_pass/pld_pldw_pli.s: ...here.
+	* regression/tests_pass/nop.s: New.
+	* regression/tests_pass/branch.s: Move BX/BLX tests to separate
+	section and add BXJ test.
+	* regression/tests_pass/arithmetic2.s: Move MUL/MLA tests to...
+	* regression/tests_pass/mul_mla_mls.s: ...here and add MLS test.
+	* regression/tests_pass/ldm_stm_pop_push.s: Add test on UAL syntax
+	and condition codes.
+	* regression/Makefile: Change asasm option -t into -cpu.
+	* decode.c (oDecodeTable): Reinstate BIN; add BXJ, MLS, NOP; change PLD
+	into PL; add suggestions for improvement.
+	* m_cpuctrl.c: Use Target_NeedAtLeastArch.
+	(m_bxj): New.
+	* help_cop.c (help_copInt): Move to...
+	* m_cop.c (CopInt): ...here. Use Target_NeedAtLeastArch.
+	* m_cpumem.c: Use Target_NeedAtLeastArch.
+	* option.c (GetCCode): Renamed from getCond and cleanup.
+	(IsEndOfKeyword): Make use of Input_IsEndOfKeyword.
+	(optionCondS): Support UAL syntax.
+	(optionCondLdmStm): Support case where stack mode is not specified.
+	* m_copmem.c (m_ldc2, m_stc2): Simplify. Use Target_NeedAtLeastArch.
+	* m_cpu.c (m_nop): Support ARMv6K/ARMv6T2/ARMv7 NOP flavour.
+	(onlyregs): Support MLS, check on PC being used.
+	Use Target_NeedAtLeastArch.
+	* targetcpu.c, targetcpu.h: Reimplemented to support -cpu fully.
+	* input.c, input.h (notinput): Remove.
+	(Input_MatchString, Input_IsEndOfKeyword): Added.
+	* lexAcorn.c: Use Input_MatchString instead of notinput.
+	(lexAcornPrim): Support {ARCHITECTURE}, {CPU}.
+	* main.c: Drop -target option, add -cpu.
+
 Tue Dec 28 17:30:18 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/rfe_srs.s: New.

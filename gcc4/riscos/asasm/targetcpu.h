@@ -1,7 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2010 GCCSDK Developers
+ * Copyright (c) 2010 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,31 +24,41 @@
 
 #include <stdbool.h>
 
-#include "global.h"
-
+/* ARM architectures:
+   (keep this in sync with oARMArch @ targetcpu.c) */
 typedef enum
 {
-  UNKNOWN,
-  ARM2,
-  ARM250,
-  ARM3,
-  ARM6,
-  ARM7,
-  ARM7M,
-  ARM8,
-  ARM9,
-  SA1,
-  ARM10,
-  XSCALE
-}
-TargetCPU_t;
+  ARCH_ARMv1 = 0,
+  ARCH_ARMv2,		/* MUL, MLA */
+  ARCH_ARMv2a,		/* SWP */
+  ARCH_ARMv3,
+  ARCH_ARMv3M,
+  ARCH_ARMv4,
+  ARCH_ARMv4T,		/* Thumb. */
+  ARCH_ARMv5,
+  ARCH_ARMv5T = ARCH_ARMv5,		/* CLZ, BKPT */
+  ARCH_ARMv5TE,		/* DSP algorithms, PLD, LDRD/STRD, MCRR, MRRC, Jazelle, VFPv2 opt */
+  ARCH_ARMv5TEJ,	/* BXJ, Jazelle, VFPv2 opt */
+  ARCH_ARMv6,		/* Jazelle, VFPv2 opt */
+  ARCH_ARMv6J,		/* Jazelle */
+  ARCH_ARMv6K,		/* Jazelle, security opt */
+  ARCH_ARMv6KZ,		/* Jazelle */
+  ARCH_ARMv6Z,		/* Jazelle */
+  ARCH_ARMv6M,		/* Jazelle */
+  ARCH_ARMv6T2,		/* Jazelle, Thumb-2, VFPv2 opt */
+  ARCH_ARMv7,
+  ARCH_ARMv7A = ARCH_ARMv7,		/* Jazelle, Thumb-2EE, multiprocessor opt, VFPv3 opt, SIMD opt, security opt */
+  ARCH_ARMv7R,		/* Jazelle, Thumb-2EE, multiprocessor opt, VFPv3 opt, SIMD opt */
+  ARCH_ARMv7EM,		/* Jazelle, Thumb-2EE */
+  ARCH_ARMv7M		/* Jazelle, Thumb-2EE */
+} ARM_eArchitectures;
 
-extern TargetCPU_t targetCPU;
+bool Target_NeedAtLeastArch (ARM_eArchitectures arch);
 
-int as_target (const char *target);
+bool Target_SetCPU (const char *cpu);
 
-bool cpuWarn (TargetCPU_t);
-
-void set_cpuvar (void);
+const char *Target_GetCPU (void);
+const char *Target_GetArchAsString (void);
+ARM_eArchitectures Target_GetArch (void);
 
 #endif

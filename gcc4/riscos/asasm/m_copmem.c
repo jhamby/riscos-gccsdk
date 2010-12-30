@@ -28,16 +28,13 @@
 #endif
 
 #include "error.h"
-#include "expr.h"
 #include "get.h"
 #include "help_cop.h"
 #include "input.h"
 #include "m_copmem.h"
 #include "option.h"
 #include "put.h"
-#include "reloc.h"
-
-/** MEMORY **/
+#include "targetcpu.h"
 
 
 static void
@@ -73,16 +70,12 @@ m_ldc (void)
 bool
 m_ldc2 (void)
 {
-  ARMWord cc = optionCondL ();
-  if (cc == optionError)
+  ARMWord cc = Input_Match ('L', false) ? N_FLAG : 0;
+  if (!Input_IsEndOfKeyword ())
     return true;
 
-  /* FIXME: add arch v5 check. */
-  
-  if ((cc & NV) != AL)
-    error (ErrorError, "LDC2 cannot be conditional");
-  else
-    dstmem (cc | 0x0c100000 | NV);
+  Target_NeedAtLeastArch (ARCH_ARMv5);
+  dstmem (cc | 0x0c100000 | NV);
   return false;
 }
 
@@ -107,14 +100,11 @@ m_stc (void)
 bool
 m_stc2 (void)
 {
-  ARMWord cc = optionCondL ();
-  if (cc == optionError)
+  ARMWord cc = Input_Match ('L', false) ? N_FLAG : 0;
+  if (!Input_IsEndOfKeyword ())
     return true;
 
-  /* FIXME: add arch v5 check. */
-  
-  if ((cc & NV) != AL)
-    error (ErrorError, "STC2 cannot be conditional");
+  Target_NeedAtLeastArch (ARCH_ARMv5);
   dstmem (cc | 0x0c000000 | NV);
   return false;
 }

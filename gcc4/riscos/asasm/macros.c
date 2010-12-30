@@ -464,6 +464,7 @@ noMEND:
 /**
  * Implements MEXIT.
  */
+/* FIXME: test this, may occur in WHILE/WEND and condition branches.  */
 bool
 c_mexit (void)
 {

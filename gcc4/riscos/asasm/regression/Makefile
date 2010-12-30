@@ -33,7 +33,7 @@ export APCS := APCS-32
 # compared to objasm.
 
 AS = asasm
-ASFLAGS = -t xscale -aof -PD "EXTENSION SETL {TRUE}"
+ASFLAGS = -cpu=7-A -aof -PD "EXTENSION SETL {TRUE}"
 DIFF = diff
 DIFFFLAGS = -q
 ECHO = echo

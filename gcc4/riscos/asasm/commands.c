@@ -513,7 +513,7 @@ c_idfn (void)
 }
 
 /**
- * Implements INCBIN.
+ * Implements BIN / INCBIN.
  */
 bool
 c_incbin (void)

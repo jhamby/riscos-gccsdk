@@ -39,26 +39,46 @@
 #include "reloc.h"
 #include "targetcpu.h"
 
+static int
+CopInt (int max, const char *msg)
+{
+  const Value *i = exprBuildAndEval (ValueInt);
+  if (i->Tag == ValueInt)
+    {
+      if (i->Data.Int.i < 0 || i->Data.Int.i > max)
+	{
+	  error (ErrorError, "%d is not a legal %s", i->Data.Int.i, msg);
+	  return 0;
+	}
+    }
+  else
+    {
+      error (ErrorError, "Illegal expression as %s", msg);
+      return 0;
+    }
+  return i->Data.Int.i;
+}
+
 static void
 coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,info} */
 {
   int cop = CP_NUMBER (getCopNum ());
 
+  /* FPA uses coprocessor 1 and 2.  FIXME: why no check on 2 ? */
   if (cop == CP_NUMBER (1))
     {
       if (option_pedantic)
 	error (ErrorInfo, "Coprocessor 1 is the floating point unit. Use a floating point mnemonic if possible");
     }
-  else
-    cpuWarn (ARM3);
   ir |= cop;
+
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   if (maxop > 7)
-    ir |= CP_DCODE (help_copInt (maxop, "coprocessor opcode"));
+    ir |= CP_DCODE (CopInt (maxop, "coprocessor opcode"));
   else
-    ir |= CP_RTRAN (help_copInt (maxop, "coprocessor opcode"));
+    ir |= CP_RTRAN (CopInt (maxop, "coprocessor opcode"));
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%sdata operand", InsertCommaAfter);
@@ -73,13 +93,13 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {
   ir |= CPRHS_OP (getCopReg ());
   skipblanks ();
   if (Input_Match (',', true))
-    ir |= CP_INFO (help_copInt (7, "coprocessor info"));
+    ir |= CP_INFO (CopInt (7, "coprocessor info"));
   Put_Ins (ir);
 }
 
 /**
  * Implements CDP.
- * cdp CC p#,cpop,cpdst,cplhs,cprhs {,info}
+ *   CDP<cond> p#, CPop, CPd, CPn, CPm {,<info>}
  */
 bool
 m_cdp (void)
@@ -97,6 +117,7 @@ m_cdp (void)
 bool
 m_cdp2 (void)
 {
+  Target_NeedAtLeastArch (ARCH_ARMv5);
   coprocessor (true, 0xfe000000, 15);
   return false;
 }
@@ -122,6 +143,7 @@ m_mcr (void)
 bool
 m_mcr2 (void)
 {
+  Target_NeedAtLeastArch (ARCH_ARMv5);
   coprocessor (false, 0xfe000010, 7);
   return false;
 }
@@ -145,6 +167,7 @@ m_mrc (void)
 bool
 m_mrc2 (void)
 {
+  Target_NeedAtLeastArch (ARCH_ARMv5);
   coprocessor (false, 0xfe100010, 7);
   return false;
 }
@@ -156,7 +179,7 @@ coprocessorr (ARMWord ir)
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
-  ir |= (help_copInt (15, "coprocessor opcode") << 4);
+  ir |= (CopInt (15, "coprocessor opcode") << 4);
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%scoprocessor opcode", InsertCommaAfter);
@@ -182,6 +205,7 @@ m_mcrr (void)
   ARMWord cc = optionCond ();
   if (cc == optionError)
     return true;
+  Target_NeedAtLeastArch (ARCH_ARMv6);
   coprocessorr (cc | 0x0C400000);
   return false;
 }
@@ -195,6 +219,7 @@ m_mrrc (void)
   ARMWord cc = optionCond ();
   if (cc == optionError)
     return true;
+  Target_NeedAtLeastArch (ARCH_ARMv6);
   coprocessorr (cc | 0x0C500000);
   return false;
 }

@@ -28,7 +28,7 @@ bool m_clrex (void);
 bool m_ldm (void);
 bool m_ldr (void);
 bool m_ldrex (void);
-bool m_pld (void);
+bool m_pl (void);
 bool m_pop (void);
 bool m_push (void);
 bool m_stm (void);

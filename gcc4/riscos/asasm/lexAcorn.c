@@ -34,9 +34,10 @@
 #include "lex.h"
 #include "lexAcorn.h"
 #include "main.h"
+#include "targetcpu.h"
 
 #define FINISH_STR(string, Op, Pri)	\
-  if (notinput (string))		\
+  if (!Input_MatchString (string))	\
     goto illegal;			\
   lex->Data.Operator.op = Op;		\
   lex->Data.Operator.pri = PRI(Pri);	\
@@ -62,7 +63,7 @@ lexAcornUnop (Lex *lex)
 	FINISH_STR ("HR:", Op_chr, 10); /* :CHR: */
 
       case 'D':
-	if (notinput ("EF:")) /* :DEF: */
+	if (!Input_MatchString ("EF:")) /* :DEF: */
 	  goto illegal;
 	*lex = lexGetPrim ();
 	if (lex->tag == LexId)
@@ -195,13 +196,9 @@ illegal:
 }
 
 
-#define FINISH_STR_PRIM(string)	\
-  if (notinput (string))	\
-    goto illegal;
-
 /**
  * Get builtin variable.
- * FIXME: support CPU/FPU/ARCHITECTURE
+ * FIXME: support FPU
  */
 void
 lexAcornPrim (Lex *lex)
@@ -209,72 +206,103 @@ lexAcornPrim (Lex *lex)
   const char * const inputMark = Input_GetMark ();
   switch (inputGet ())
     {
+      case 'A':
+	if (Input_MatchString ("SASM}")) /* {ASASM} */
+	  {
+	    lex->tag = LexBool;
+	    lex->Data.Int.value = true;
+	    return;
+	  }
+	else if (Input_MatchString ("RCHITECTURE}")) /* {ARCHITECTURE} */
+	  {
+	    lex->tag = LexString;
+	    if ((lex->Data.String.str = strdup (Target_GetArchAsString ())) == NULL)
+	      errorOutOfMem ();
+	    lex->Data.String.len = strlen (Target_GetArchAsString ());
+	    return;
+	  }
+	break;
+
       case 'C':
-	FINISH_STR_PRIM ("ONFIG}"); /* {CONFIG} */
-	lex->tag = LexInt;
-	lex->Data.Int.value = option_apcs_32bit ? 32 : 26;
-	return;
+	if (Input_MatchString ("ONFIG}")) /* {CONFIG} */
+	  {
+	    lex->tag = LexInt;
+	    lex->Data.Int.value = option_apcs_32bit ? 32 : 26;
+	    return;
+	  }
+	else if (Input_MatchString ("PU}")) /* {CPU} */
+	  {
+	    lex->tag = LexString;
+	    if ((lex->Data.String.str = strdup (Target_GetCPU ())) == NULL)
+	      errorOutOfMem ();
+	    lex->Data.String.len = strlen (Target_GetCPU ());
+	    return;
+	  }
+	break;
 
       case 'E':
-	FINISH_STR_PRIM ("NDIAN}"); /* {ENDIAN} */
-	lex->tag = LexString;
-	if ((lex->Data.String.str = strdup ("little")) == NULL)
-	  errorOutOfMem ();
-	lex->Data.String.len = sizeof ("little")-1;
-	return;
+	if (Input_MatchString ("NDIAN}")) /* {ENDIAN} */
+	  {
+	    lex->tag = LexString;
+	    if ((lex->Data.String.str = strdup ("little")) == NULL)
+	      errorOutOfMem ();
+	    lex->Data.String.len = sizeof ("little")-1;
+	    return;
+	  }
+	break;
 
       case 'F':
-	FINISH_STR_PRIM ("ALSE}"); /* {FALSE} */
-	lex->tag = LexBool;
-	lex->Data.Int.value = false;
-	return;
-
-      case 'P':
-	FINISH_STR_PRIM ("C}"); /* {PC} */
-	lex->tag = LexPosition;
-	return;
-
-      case 'S':
-	FINISH_STR_PRIM ("OFTFLOAT}"); /* {SOFTFLOAT} */
-	lex->tag = LexBool;
-	lex->Data.Int.value = option_apcs_softfloat;
-	return;
-
-      case 'T':
-	FINISH_STR_PRIM ("RUE}"); /* {TRUE} */
-	lex->tag = LexBool;
-	lex->Data.Int.value = true;
-	return;
-
-      case 'V':
-	FINISH_STR_PRIM ("AR}"); /* {VAR} */
-	lex->tag = LexStorage;
-	return;
+	if (Input_MatchString ("ALSE}")) /* {FALSE} */
+	  {
+	    lex->tag = LexBool;
+	    lex->Data.Int.value = false;
+	    return;
+	  }
+	break;
 
       case 'O':
-	FINISH_STR_PRIM ("PT}"); /* {OPT} */
-	lex->tag = LexInt;
-	lex->Data.Int.value = 2;
-	return;
+	if (Input_MatchString ("PT}")) /* {OPT} */
+	  {
+	    lex->tag = LexInt;
+	    lex->Data.Int.value = 2;
+	    return;
+	  }
+	break;
 
-      case 'A':
-	FINISH_STR_PRIM ("SASM}"); /* {ASASM} */
-	lex->tag = LexBool;
-	lex->Data.Int.value = true;
-	return;
+      case 'P':
+	if (Input_MatchString ("C}")) /* {PC} */
+	  {
+	    lex->tag = LexPosition;
+	    return;
+	  }
+	break;
+
+      case 'T':
+	if (Input_MatchString ("RUE}")) /* {TRUE} */
+	  {
+	    lex->tag = LexBool;
+	    lex->Data.Int.value = true;
+	    return;
+	  }
+	break;
+
+      case 'V':
+	if (Input_MatchString ("AR}")) /* {VAR} */
+	  {
+	    lex->tag = LexStorage;
+	    return;
+	  }
+	break;
     }
 
-illegal:
-  {
-    /* Try to find the end of the builtin variable name.  */
-    const char *lineRest = inputRest ();
-    while (*lineRest != '\0' && *lineRest != '\n' && *lineRest != '}')
-      ++lineRest;
-    if (*lineRest == '}')
-      error (ErrorError, "Unknown builtin variable {%.*s",
-	     (int)(lineRest + 1 - inputMark), inputMark);
-    else
-      error (ErrorError, "Missing closing bracket");
-  }
+  /* Try to find the end of the builtin variable name.  */
+  const char *lineRest = inputRest ();
+  while (*lineRest != '\0' && *lineRest != '\n' && *lineRest != '}')
+    ++lineRest;
+  if (*lineRest == '}')
+    error (ErrorError, "Unknown builtin variable {%.*s",
+	   (int)(lineRest + 1 - inputMark), inputMark);
+  else
+    error (ErrorError, "Missing closing bracket");
   lex->tag = LexNone;
 }

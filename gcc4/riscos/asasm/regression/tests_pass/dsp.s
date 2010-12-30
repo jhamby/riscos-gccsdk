@@ -70,30 +70,6 @@
 		DCD	&E12002E1
 	]
 
-		; Addressing Mode 2 - Load/Store Word or Unsigned Byte
-	[ :LNOT: REFERENCE
-		; 1
-		PLD	[R0]
-		PLD	[R0,#4]
-		PLD	[R0,#-4]
-		; 2
-		PLD	[R0,R1]
-		PLD	[R0,-R1]
-		; 3
-		PLD	[R0,R1,LSL #2]
-		PLD	[R0,-R1,ASR #2]
-	|
-		DCD	&F5D0F000
-		DCD	&F5D0F004
-		DCD	&F550F004
-
-		DCD	&F7D0F001
-		DCD	&F750F001
-
-		DCD	&F7D0F101
-		DCD	&F750F141
-	]
-
 		; Addressing Mode 3 - Miscellaneous Loads/Stores
 	[ :LNOT: REFERENCE
 		; 1

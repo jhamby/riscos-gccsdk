@@ -101,7 +101,7 @@ as_help (void)
 	   "-ThrowBack                 Throwback errors to a text editor.\n"
 #endif
 	   "-AutoCast                  Enable casting from integer to float.\n"
-	   "-Target                    Target ARM CPU (ARM2...SA110).\n"
+	   "-CPU <target-cpu>          Select ARM CPU to target. Use \"list\" to get a full list.\n"
 	   "-Depend <file>             Write 'make' source file dependency information to 'file'.\n"
 	   "-Help                      Display this help.\n"
 	   "-VERsion                   Display the version number.\n"
@@ -195,6 +195,7 @@ main (int argc, char **argv)
 
   int numFileNames = 0;
   const char *fileNames[2];
+  const char *cpu = NULL;
   
   for (argc--; argc; argv++, argc--)
     {
@@ -279,10 +280,25 @@ main (int argc, char **argv)
 	option_autocast++;
       else if (!strcasecmp (arg, "pedantic") || !strcasecmp (arg, "p"))
 	option_pedantic++;
-      else if (!strcasecmp (arg, "target") || !strcasecmp (arg, "t"))
+      else if (!strncasecmp (arg, "CPU", sizeof ("CPU")-1)
+	       && (arg[sizeof ("CPU")-1] == '=' || arg[sizeof ("CPU")-1] == '\0'))
         {
-	  if (as_target (--argc ? *++argv : NULL) < 0)
-	    return EXIT_FAILURE;
+	  const char *val;
+	  if (arg[sizeof ("CPU")-1] == '=')
+	    val = arg + sizeof ("CPU")-1 + 1;
+	  else if (--argc == 0)
+	    {
+              fprintf (stderr, "%s: Missing argument after -%s\n", ProgName, arg);
+	      return EXIT_FAILURE;
+	    }
+	  else
+	    val = *++argv;
+	  if (cpu != NULL && strcasecmp (cpu, val))
+	    {
+	      fprintf (stderr, "%s: CPU is specified twice: %s and %s\n", ProgName, cpu, val);
+	      return EXIT_FAILURE;
+	    }
+	  cpu = val;
 	}
       else if (!strcasecmp (arg, "verbose") || !strcasecmp (arg, "v"))
 	option_verbose++;
@@ -339,8 +355,10 @@ main (int argc, char **argv)
       else if (!strcasecmp (arg, "version") || !strcasecmp (arg, "ver"))
 	{
 	  fprintf (stderr,
-	           DEFAULT_IDFN "\n"
-	           "Copyright (c) 1992-2010 Niklas Rojemo, Darren Salt and GCCSDK Developers\n");
+		   DEFAULT_IDFN "\n"
+		   "Copyright (c) 1992-2010 Niklas Rojemo, Darren Salt and GCCSDK Developers\n"
+		   "This is free software; see the source for copying conditions.  There is NO\n"
+		   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
 	  return EXIT_SUCCESS;
 	}
       else if (!strcasecmp (arg, "H") || !strcasecmp (arg, "help") || !strcasecmp (arg, "?"))
@@ -406,8 +424,9 @@ main (int argc, char **argv)
 #else
     option_aof = 1;
 #endif
-
-  set_cpuvar ();
+	    
+  if (Target_SetCPU (cpu ? cpu : "arm7tdmi"))
+    return EXIT_FAILURE;
 
   if (SourceFileName == NULL)
     {

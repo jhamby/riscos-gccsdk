@@ -29,6 +29,7 @@ bool m_bkpt (void);
 bool m_blx (void);
 bool m_branch (void);
 bool m_bx (void);
+bool m_bxj (void);
 bool m_mrs (void);
 bool m_msr (void);
 bool m_ret (void);

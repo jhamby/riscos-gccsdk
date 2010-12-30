@@ -40,26 +40,6 @@
 #include "reloc.h"
 #include "value.h"
 
-int
-help_copInt (int max, const char *msg)
-{
-  const Value *i = exprBuildAndEval (ValueInt);
-  if (i->Tag == ValueInt)
-    {
-      if (i->Data.Int.i < 0 || i->Data.Int.i > max)
-	{
-	  error (ErrorError, "%d is not a legal %s", i->Data.Int.i, msg);
-	  return 0;
-	}
-    }
-  else
-    {
-      error (ErrorError, "Illegal expression as %s", msg);
-      return 0;
-    }
-  return i->Data.Int.i;
-}
-
 
 /**
  * Called for ",[Rx" ( ",#y]" [ "!" ] ) | "], #z"

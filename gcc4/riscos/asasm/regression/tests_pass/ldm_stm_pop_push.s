@@ -114,4 +114,85 @@
 		STMFD	R13!, {R3-r8, R10, r14}
 	]
 
+		; Test UAL syntax: i.e. default stack mode.
+	[ :LNOT: REFERENCE
+		; Note, no test on NV
+		LDMEQ	r1,{r2-r3}
+		LDMNE	r1,{r2-r3}
+		LDMCS	r1,{r2-r3}
+		LDMHS	r1,{r2-r3}
+		LDMCC	r1,{r2-r3}
+		LDMLO	r1,{r2-r3}
+		LDMMI	r1,{r2-r3}
+		LDMPL	r1,{r2-r3}
+		LDMVS	r1,{r2-r3}
+		LDMVC	r1,{r2-r3}
+		LDMHI	r1,{r2-r3}
+		LDMLS	r1,{r2-r3}
+		LDMGE	r1,{r2-r3}
+		LDMLT	r1,{r2-r3}
+		LDMGT	r1,{r2-r3}
+		LDMLE	r1,{r2-r3}
+		LDMAL	r1,{r2-r3}
+		LDM	r1,{r2-r3}
+
+		; Note, no test on NV
+		STMEQ	r1,{r2-r3}
+		STMNE	r1,{r2-r3}
+		STMCS	r1,{r2-r3}
+		STMHS	r1,{r2-r3}
+		STMCC	r1,{r2-r3}
+		STMLO	r1,{r2-r3}
+		STMMI	r1,{r2-r3}
+		STMPL	r1,{r2-r3}
+		STMVS	r1,{r2-r3}
+		STMVC	r1,{r2-r3}
+		STMHI	r1,{r2-r3}
+		STMLS	r1,{r2-r3}
+		STMGE	r1,{r2-r3}
+		STMLT	r1,{r2-r3}
+		STMGT	r1,{r2-r3}
+		STMLE	r1,{r2-r3}
+		STMAL	r1,{r2-r3}
+		STM	r1,{r2-r3}
+	|
+		LDMEQFD	r1,{r2-r3}
+		LDMNEFD	r1,{r2-r3}
+		LDMCSFD	r1,{r2-r3}
+		LDMHSFD	r1,{r2-r3}
+		LDMCCFD	r1,{r2-r3}
+		LDMLOFD	r1,{r2-r3}
+		LDMMIFD	r1,{r2-r3}
+		LDMPLFD	r1,{r2-r3}
+		LDMVSFD	r1,{r2-r3}
+		LDMVCFD	r1,{r2-r3}
+		LDMHIFD	r1,{r2-r3}
+		LDMLSFD	r1,{r2-r3}
+		LDMGEFD	r1,{r2-r3}
+		LDMLTFD	r1,{r2-r3}
+		LDMGTFD	r1,{r2-r3}
+		LDMLEFD	r1,{r2-r3}
+		LDMALFD	r1,{r2-r3}
+		LDMFD	r1,{r2-r3}
+
+		STMEQFD	r1,{r2-r3}
+		STMNEFD	r1,{r2-r3}
+		STMCSFD	r1,{r2-r3}
+		STMHSFD	r1,{r2-r3}
+		STMCCFD	r1,{r2-r3}
+		STMLOFD	r1,{r2-r3}
+		STMMIFD	r1,{r2-r3}
+		STMPLFD	r1,{r2-r3}
+		STMVSFD	r1,{r2-r3}
+		STMVCFD	r1,{r2-r3}
+		STMHIFD	r1,{r2-r3}
+		STMLSFD	r1,{r2-r3}
+		STMGEFD	r1,{r2-r3}
+		STMLTFD	r1,{r2-r3}
+		STMGTFD	r1,{r2-r3}
+		STMLEFD	r1,{r2-r3}
+		STMALFD	r1,{r2-r3}
+		STMFD	r1,{r2-r3}
+	]
+
 		END

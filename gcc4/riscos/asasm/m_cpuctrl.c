@@ -190,7 +190,7 @@ m_blx (void)
   if (cc == optionError)
     return true;
 
-  cpuWarn (XSCALE);
+  Target_NeedAtLeastArch (ARCH_ARMv5TE);
 
   ARMWord reg = Get_CPURegNoError ();
   if (reg == INVALID_REG)
@@ -216,13 +216,33 @@ m_bx (void)
   if (cc == optionError)
     return true;
 
-  cpuWarn (XSCALE);
+  Target_NeedAtLeastArch (ARCH_ARMv5TE);
 
   int dst = getCpuReg ();
   if (dst == 15)
     error (ErrorWarning, "Use of PC with BX is discouraged");
 
   Put_Ins (cc | 0x012fff10 | dst);
+  return false;
+}
+
+/**
+ * Implements BXJ.
+ */
+bool
+m_bxj (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
+  Target_NeedAtLeastArch (ARCH_ARMv5TEJ);
+
+  int dst = getCpuReg ();
+  if (dst == 15)
+    error (ErrorWarning, "Use of PC with BXJ is discouraged");
+
+  Put_Ins (cc | 0x012fff20 | dst);
   return false;
 }
 
@@ -279,7 +299,7 @@ m_swi (void)
 bool
 m_bkpt (void)
 {
-  cpuWarn (XSCALE);
+  Target_NeedAtLeastArch (ARCH_ARMv5TE);
 
   if (Input_Match ('#', false))
     error (ErrorInfo, "BKPT is always immediate");
@@ -770,7 +790,8 @@ m_msr (void)
   if (cc == optionError)
     return true;
 
-  cpuWarn (ARM6);
+  Target_NeedAtLeastArch (ARCH_ARMv4);
+
   cc |= getpsr (false) | 0x0120F000;
   skipblanks ();
   if (!Input_Match (',', true))
@@ -802,7 +823,8 @@ m_mrs (void)
   if (cc == optionError)
     return true;
 
-  cpuWarn (ARM6);
+  Target_NeedAtLeastArch (ARCH_ARMv4);
+
   cc |= getCpuReg () << 12 | 0x01000000;
   skipblanks ();
   if (!Input_Match (',', true))
@@ -824,6 +846,9 @@ m_sev (void)
   if (cc == optionError)
     return true;
 
+  if (Target_GetArch() != ARCH_ARMv6K)
+    Target_NeedAtLeastArch (ARCH_ARMv7);
+  
   Put_Ins (cc | 0x0320F004);
   return false;
 }
@@ -840,6 +865,9 @@ m_wfe (void)
   if (cc == optionError)
     return true;
 
+  if (Target_GetArch() != ARCH_ARMv6K)
+    Target_NeedAtLeastArch (ARCH_ARMv7);
+  
   Put_Ins (cc | 0x0320F002);
   return false;
 }
@@ -856,6 +884,9 @@ m_wfi (void)
   if (cc == optionError)
     return true;
 
+  if (Target_GetArch() != ARCH_ARMv6K)
+    Target_NeedAtLeastArch (ARCH_ARMv7);
+  
   Put_Ins (cc | 0x0320F003);
   return false;
 }

@@ -696,7 +696,7 @@ lexGetBinop (void)
 }
 
 int
-lexNextPri ()
+lexNextPri (void)
 {
   if (!nextbinopvalid)
     {

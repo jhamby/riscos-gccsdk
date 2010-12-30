@@ -190,15 +190,6 @@ skiprest (void)
   input_pos = input_buff;
 }
 
-bool
-notinput (const char *str)
-{
-  while (*str)
-    if (*str++ != inputGet ())
-      return true;
-  return false;
-}
-
 /**
  * Returns the position of the current input pointer.  Only to be use to
  * restore the current input pointer using Input_RollBackToMark().
@@ -659,6 +650,7 @@ Input_MatchKeyword (const char *keyword)
   return false;
 }
 
+
 /**
  * Try to read the keyword case insensitive followed by space, NUL or start
  * comment character.
@@ -683,6 +675,32 @@ Input_MatchKeywordLower (const char *keyword)
       return true;
     }
   return false;
+}
+
+
+bool
+Input_MatchString (const char *str)
+{
+  int matched = 0;
+  while (input_pos[matched] && input_pos[matched] == str[matched])
+    ++matched;
+  if (str[matched] == '\0')
+    {
+      input_pos += matched;
+      return true;
+    }
+  return false;
+}
+
+
+/**
+ * Checks if the end of the current keyword has been reached.
+ */
+bool
+Input_IsEndOfKeyword (void)
+{
+  unsigned char c = *input_pos;
+  return c == '\0' || isspace (c) || c == ';';
 }
 
 

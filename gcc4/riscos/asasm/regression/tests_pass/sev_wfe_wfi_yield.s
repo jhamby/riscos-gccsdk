@@ -104,6 +104,7 @@
 	DCD &d320f004 	; sevle
 	DCD &e320f004 	; sev
 	DCD &e320f004 	; sev
+
 	DCD &0320f002 	; wfeeq
 	DCD &1320f002 	; wfene
 	DCD &2320f002 	; wfecs
@@ -122,6 +123,7 @@
 	DCD &d320f002 	; wfele
 	DCD &e320f002 	; wfe
 	DCD &e320f002 	; wfe
+
 	DCD &0320f003 	; wfieq
 	DCD &1320f003 	; wfine
 	DCD &2320f003 	; wfics
@@ -140,6 +142,7 @@
 	DCD &d320f003 	; wfile
 	DCD &e320f003 	; wfi
 	DCD &e320f003 	; wfi
+
 	DCD &0320f001 	; yieldeq
 	DCD &1320f001 	; yieldne
 	DCD &2320f001 	; yieldcs

@@ -135,8 +135,10 @@ dstmem (ARMWord ir, const char *mnemonic)
   bool isAddrMode3;
   if ((ir & 0x04000090) == 0x90)
     {
-      if (!cpuWarn (ARM7M) && (ir & H_FLAG) && targetCPU < ARM10)
-	error (ErrorWarning, "Half-word ops only work correctly when accessed location is cached");
+      if (ir & S_FLAG)
+	Target_NeedAtLeastArch (ARCH_ARMv5TE);
+      else
+	Target_NeedAtLeastArch (ARCH_ARMv4);
       isAddrMode3 = true;
     }
   else
@@ -366,6 +368,14 @@ LdrStrEx (bool isLoad)
   if (cc == optionError)
     return true;
 
+  if (type == wtype)
+    Target_NeedAtLeastArch (ARCH_ARMv6);
+  else
+    {
+      if (Target_GetArch () != ARCH_ARMv6K)
+	Target_NeedAtLeastArch (ARCH_ARMv7);
+    }
+  
   /* The STREX* versions have an extra Rd register.  */
   ARMWord regD;
   if (!isLoad)
@@ -462,7 +472,7 @@ m_str (void)
   ARMWord cc = optionCondBT (true);
   if (cc == optionError)
     return true;
-  return dstmem (cc, "LDR");
+  return dstmem (cc, "STR");
 }
 
 /**
@@ -485,26 +495,52 @@ m_strex (void)
 bool
 m_clrex (void)
 {
+  if (Target_GetArch () != ARCH_ARMv6K)
+    Target_NeedAtLeastArch (ARCH_ARMv7);
   Put_Ins (0xF57FF01F);
   return false;
 }
 
 
 /**
- * Implements PLD.
+ * Implements PLD, PLDW and PLI.
+ *   PLD{W} [<Rn>, #+/-<imm12>]
+ *   PLD{W} <label>                        <= FIXME: not supported
+ *   PLD{W} [<Rn>,+/-<Rm>{, <shift>}]
+ *   PLI [<Rn>, #+/-<imm12>]
+ *   PLI <label>                        <= FIXME: not supported
+ *   PLI [<Rn>,+/-<Rm>{, <shift>}]
  */
+/* FIXME: support PLDW & PLI  */
 bool
-m_pld (void)
+m_pl (void)
 {
-  ARMWord ir = 0xf450f000 | P_FLAG;
+  enum { isPLD, isPLDW, isPLI } type;
+  if (Input_Match ('D', false))
+    {
+      if (Input_Match ('W', false))
+	type = isPLDW;
+      else
+	type = isPLD;
+    }
+  else if (Input_Match ('I', false))
+    type = isPLI;
+  else
+    return true;
 
-  cpuWarn (XSCALE);
+  if (!Input_IsEndOfKeyword ())
+    return true;
+
+  /* FIXME: we don't check in case of isPLDW that ARMv7 has MP extensions
+     enabled.  */
+  Target_NeedAtLeastArch (type == isPLD ? ARCH_ARMv5TE : ARCH_ARMv7);
 
   skipblanks();
 
   if (!Input_Match ('[', true))
     error (ErrorError, "Expected '[' after PLD instruction");
 
+  ARMWord ir = 0xf450f000 | P_FLAG;
   int op = getCpuReg (); /* Base register */
   ir |= LHS_OP (op);
   skipblanks();
@@ -712,8 +748,10 @@ m_swp (void)
   ARMWord cc = optionCondB ();
   if (cc == optionError)
     return true;
+
+  Target_NeedAtLeastArch (ARCH_ARMv2a);
+
   int ir = cc | 0x01000090;
-  cpuWarn (ARM250);
   ir |= DST_OP (getCpuReg ());
   skipblanks ();
   if (!Input_Match (',', true))
@@ -812,6 +850,7 @@ GetBarrierType (void)
 bool
 m_dmb (void)
 {
+  Target_NeedAtLeastArch (ARCH_ARMv7);
   Barrier_eType bl = GetBarrierType ();
   Put_Ins (0xF57FF050 | bl);
   return false;
@@ -825,6 +864,7 @@ m_dmb (void)
 bool
 m_dsb (void)
 {
+  Target_NeedAtLeastArch (ARCH_ARMv7);
   Barrier_eType bl = GetBarrierType ();
   Put_Ins (0xF57FF040 | bl);
   return false;
@@ -838,6 +878,7 @@ m_dsb (void)
 bool
 m_isb (void)
 {
+  Target_NeedAtLeastArch (ARCH_ARMv7);
   Barrier_eType bl = GetBarrierType ();
   if (option_pedantic && bl != BL_eSY)
     error (ErrorWarning, "Using reserved barrier type");
@@ -856,6 +897,8 @@ m_rfe (void)
   ARMWord option = Option_CondRfeSrs (true);
   if (option == optionError)
     return true;
+
+  Target_NeedAtLeastArch (ARCH_ARMv6);
 
   skipblanks ();
   ARMWord regN = getCpuReg ();
@@ -885,6 +928,8 @@ m_srs (void)
   ARMWord option = Option_CondRfeSrs (false);
   if (option == optionError)
     return true;
+
+  Target_NeedAtLeastArch (ARCH_ARMv6);
 
   skipblanks ();
   bool isUALSyntax, updateStack;
