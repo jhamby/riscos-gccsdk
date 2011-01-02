@@ -1,3 +1,12 @@
+Sun Jan  2 22:06:06 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/dcb_dcw_dcd.s: Enhanced test case with '&'.
+	* commands.c (*, EQU, RN, FN, CN, CP): Better behaviour when symbol
+	was already defined (when value is the same, don't complain).
+	* decode.c (oDecodeTable): Fix inconsistency for '&'.
+	(decode): Always pass on symbol for .sym callback.
+	* input.c (Input_ShowLine): Use stderr instead of stdout.
+
 Sun Jan  2 20:21:18 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/macro.s: New.

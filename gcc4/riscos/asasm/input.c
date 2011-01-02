@@ -974,12 +974,12 @@ Input_ShowLine (void)
 	    ++posReal;
 	  --posNoTAB;
 	}
-      putchar (input_buff[len]);
+      putc (input_buff[len], stderr);
     }
-  putchar ('\n');
+  putc ('\n', stderr);
   while (posReal--)
-    putchar ('-');
-  puts ("^");
+    putc ('-', stderr);
+  fputs ("^\n", stderr);
 }
 
 size_t

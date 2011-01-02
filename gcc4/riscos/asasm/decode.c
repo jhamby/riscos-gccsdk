@@ -80,7 +80,7 @@ static const decode_table_t oDecodeTable[] =
   { "!", DTABLE_CALLBACK_VOID, { .vd = c_info } }, /* INFO shorthand */
   { "#", DTABLE_CALLBACK_LEX, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
   { "%", DTABLE_CALLBACK_VOID, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
-  { "&", DTABLE_CALLBACK_VOID, { .vd = c_dcd } }, /* & / DCD / DCDU */
+  { "&", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcd } }, /* & / DCD / DCDU */
   { "*", DTABLE_CALLBACK_SYMBOL, { .sym = c_equ } }, /* * / EQU */
   { "=", DTABLE_CALLBACK_VOID, { .vd = c_dcb } }, /* DCB */
   { "ABS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_abs } }, /* ABS CC P R */
@@ -476,10 +476,6 @@ decode (const Lex *label)
 	  case DTABLE_CALLBACK_SYMBOL:
 	    {
 	      Symbol *symbol = label->tag == LexId ? symbolAdd (label) : NULL;
-	      /* If the symbol is already defined (i.e. has a non illegal value),
-		 don't overwrite it (an error is already given).  */
-	      if (symbol != NULL && symbol->value.Tag != ValueIllegal)
-		symbol = NULL;
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (symbol);
 	      /* We don't want to define a label based on this symbol.  */
 	      labelSymbol = NULL;

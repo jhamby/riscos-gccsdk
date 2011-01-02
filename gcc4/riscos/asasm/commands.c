@@ -66,20 +66,44 @@ typedef struct
   bool allowUnaligned; /**< Allow unaligned data storage.  */
 } DefineReal_PrivData_t;
 
-static void
+
+/**
+ * Define given symbol with what's located at the parser.  Fail when the
+ * symbol is already defined with a value different than parsed.
+ */
+static bool
 c_define (const char *msg, Symbol *sym, ValueTag legal)
 {
-  if (!sym)
-    errorAbort ("Missing label before %s", msg);
-  const Value *value = exprBuildAndEval (legal);
-  if (value->Tag == ValueIllegal)
+  bool fail;
+  if (sym == NULL)
     {
-      error (ErrorError, "Illegal %s", msg);
-      sym->value = Value_Int (0);
+      error (ErrorError, "Missing label before %s", msg);
+      fail = true;
     }
   else
-    Value_Assign (&sym->value, value);
-  sym->type |= SYMBOL_DEFINED | SYMBOL_DECLARED | SYMBOL_ABSOLUTE;
+    {
+      const Value *value = exprBuildAndEval (legal);
+      if (value->Tag == ValueIllegal)
+	{
+	  error (ErrorError, "Illegal %s", msg);
+	  fail = true;
+	}
+      else
+	{
+	  if (sym->value.Tag != ValueIllegal && !valueEqual (&sym->value, value))
+	    {
+	      error (ErrorError, "Symbol %s is already defined", sym->str);
+	      fail = true;
+	    }
+	  else
+	    {
+	      Value_Assign (&sym->value, value);
+	      sym->type |= SYMBOL_DEFINED | SYMBOL_DECLARED | SYMBOL_ABSOLUTE;
+	      fail = false;
+	    }
+	}
+    }
+  return fail;
 }
 
 /**
@@ -98,13 +122,15 @@ c_equ (Symbol *symbol)
 bool
 c_fn (Symbol *symbol)
 {
-  c_define ("float register", symbol, ValueInt);
-  symbol->type |= SYMBOL_FPUREG;
-  int no = symbol->value.Data.Int.i;
-  if (no < 0 || no > 7)
+  if (!c_define ("float register", symbol, ValueInt))
     {
-      symbol->value.Data.Int.i = 0;
-      error (ErrorError, "Illegal %s register %d (using 0)", "FPU", no);
+      symbol->type |= SYMBOL_FPUREG;
+      int no = symbol->value.Data.Int.i;
+      if (no < 0 || no > 7)
+	{
+	  symbol->value.Data.Int.i = 0;
+	  error (ErrorError, "Illegal %s register %d (using 0)", "FPU", no);
+	}
     }
   return false;
 }
@@ -115,13 +141,15 @@ c_fn (Symbol *symbol)
 bool
 c_rn (Symbol *symbol)
 {
-  c_define ("register", symbol, ValueInt);
-  symbol->type |= SYMBOL_CPUREG;
-  int no = symbol->value.Data.Int.i;
-  if (no < 0 || no > 15)
+  if (!c_define ("register", symbol, ValueInt))
     {
-      symbol->value.Data.Int.i = 0;
-      error (ErrorError, "Illegal %s register %d (using 0)", "CPU", no);
+      symbol->type |= SYMBOL_CPUREG;
+      int no = symbol->value.Data.Int.i;
+      if (no < 0 || no > 15)
+	{
+	  symbol->value.Data.Int.i = 0;
+	  error (ErrorError, "Illegal %s register %d (using 0)", "CPU", no);
+	}
     }
   return false;
 }
@@ -132,13 +160,15 @@ c_rn (Symbol *symbol)
 bool
 c_cn (Symbol *symbol)
 {
-  c_define ("coprocessor register", symbol, ValueInt);
-  symbol->type |= SYMBOL_COPREG;
-  int no = symbol->value.Data.Int.i;
-  if (no < 0 || no > 15)
+  if (!c_define ("coprocessor register", symbol, ValueInt))
     {
-      symbol->value.Data.Int.i = 0;
-      error (ErrorError, "Illegal %s register %d (using 0)", "coprocessor", no);
+      symbol->type |= SYMBOL_COPREG;
+      int no = symbol->value.Data.Int.i;
+      if (no < 0 || no > 15)
+	{
+	  symbol->value.Data.Int.i = 0;
+	  error (ErrorError, "Illegal %s register %d (using 0)", "coprocessor", no);
+	}
     }
   return false;
 }
@@ -149,13 +179,15 @@ c_cn (Symbol *symbol)
 bool
 c_cp (Symbol *symbol)
 {
-  c_define ("coprocessor number", symbol, ValueInt);
-  symbol->type |= SYMBOL_COPNUM;
-  int no = symbol->value.Data.Int.i;
-  if (no < 0 || no > 15)
+  if (!c_define ("coprocessor number", symbol, ValueInt))
     {
-      symbol->value.Data.Int.i = 0;
-      error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
+      symbol->type |= SYMBOL_COPNUM;
+      int no = symbol->value.Data.Int.i;
+      if (no < 0 || no > 15)
+	{
+	  symbol->value.Data.Int.i = 0;
+	  error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
+	}
     }
   return false;
 }
