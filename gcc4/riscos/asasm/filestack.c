@@ -95,6 +95,7 @@ FS_PushFilePObject (const char *fileName)
   if (gCurPObjP == &gPOStack[PARSEOBJECT_STACK_SIZE - 1])
     errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
 
+  unsigned int prevWhileIfDepth;
   if (gCurPObjP == NULL)
     {
       /* The first assembler file is special.  We're not going to use any
@@ -127,12 +128,16 @@ FS_PushFilePObject (const char *fileName)
 	}
       if (gPOStack[0].d.file.fhandle != NULL)
 	gCurPObjP = &gPOStack[-1];
+
+      prevWhileIfDepth = 0;
     }
   else
     {
       const char *fileNameP;
       gCurPObjP[1].d.file.fhandle = getInclude (fileName, &fileNameP);
       gCurPObjP[1].name = StoreFileName (fileNameP);
+
+      prevWhileIfDepth = gCurPObjP[0].whileIfCurDepth;
     }
   if (gCurPObjP == NULL || gCurPObjP[1].d.file.fhandle == NULL)
     {
@@ -140,8 +145,7 @@ FS_PushFilePObject (const char *fileName)
       return;
     }
   gCurPObjP[1].lineNum = 0;
-  gCurPObjP[1].if_depth = 0;
-  gCurPObjP[1].whilestack = NULL;
+  gCurPObjP[1].whileIfStartDepth = gCurPObjP[1].whileIfCurDepth = prevWhileIfDepth;
   gCurPObjP[1].GetLine = File_GetLine;
 
   /* Increase current file stack pointer.  All is ok now.  */
@@ -234,7 +238,8 @@ File_GetLine (char *bufP, size_t bufSize)
 	  if (lineLen > 1 && bufP[lineLen - 2] == '\\')
 	    {
 	      bufP += lineLen - 2;
-	      bufSize -= lineLen - 2;;
+	      bufSize -= lineLen - 2;
+	      gCurPObjP->lineNum++;
 	    }
 	  else
 	    {

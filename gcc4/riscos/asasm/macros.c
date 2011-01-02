@@ -22,6 +22,8 @@
 
 #include "config.h"
 
+#include <assert.h>
+#include <ctype.h>
 #ifdef HAVE_STDINT_H
 #  include <stdint.h>
 #elif HAVE_INTTYPES_H
@@ -29,7 +31,6 @@
 #endif
 #include <string.h>
 #include <stdlib.h>
-#include <ctype.h>
 
 #include "commands.h"
 #include "decode.h"
@@ -54,8 +55,7 @@ static bool Macro_GetLine (char *bufP, size_t bufSize);
 void
 FS_PopMacroPObject (bool noCheck)
 {
-  if (gCurPObjP->type != POType_eMacro)
-    errorAbort ("Internal FS_PopMacroPObject: unexpected call");
+  assert (gCurPObjP->type == POType_eMacro && "no macro object to pop");
 
   FS_PopIfWhile (noCheck);
 
@@ -77,6 +77,7 @@ FS_PushMacroPObject (const Macro *m, const char *args[MACRO_ARG_LIMIT])
 {
   if (gCurPObjP == &gPOStack[PARSEOBJECT_STACK_SIZE - 1])
     errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
+  assert (gCurPObjP != NULL);
 
   gCurPObjP[1].type = POType_eMacro;
 
@@ -84,12 +85,11 @@ FS_PushMacroPObject (const Macro *m, const char *args[MACRO_ARG_LIMIT])
   gCurPObjP[1].d.macro.curPtr = m->buf;
   memcpy (gCurPObjP[1].d.macro.args, args, sizeof (args)*MACRO_ARG_LIMIT);
   gCurPObjP[1].d.macro.varListP = NULL;
-  
+
   gCurPObjP[1].name = m->file;
   gCurPObjP[1].lineNum = m->startline;
-  
-  gCurPObjP[1].if_depth = 0;
-  gCurPObjP[1].whilestack = NULL;
+
+  gCurPObjP[1].whileIfStartDepth = gCurPObjP[1].whileIfCurDepth = gCurPObjP[0].whileIfCurDepth;
   gCurPObjP[1].GetLine = Macro_GetLine;
 
   /* Increase current file stack pointer.  All is ok now.  */
@@ -239,10 +239,9 @@ Macro_Find (const char *name, size_t len)
 }
 
 
-/* Macro builder code */
-
 /**
- * \return true when MEND is read.
+ * \return true when one or more white space characters followed by "MEND"
+ * is read.
  */
 static bool
 c_mend (void)
@@ -251,18 +250,16 @@ c_mend (void)
     return false;
 
   skipblanks ();
-  if (inputGet () != 'M' || inputGet () != 'E'
-      || inputGet () != 'N' || inputGet () != 'D')
-    return false;
-  /* We only need to check for EOL or space.  Upon return from Macro_Call()
-     in decode(), decode_finalcheck() will deal with this.  */
-  char c = inputLook ();
-  return c == '\0' || isspace ((unsigned char)c);
+  /* We only need to check for "MEND" and the end of keyword (i.e. a space,
+     start comment character (';') or EOL).  Upon return from Macro_Call()
+     in decode(), decode_finalcheck() will deal with the rest of the line
+     after "MEND".  */
+  return Input_MatchKeyword ("MEND");
 }
 
 
 /**
- * Processes:
+ * Implements MACRO:
  *         MACRO
  * $<lbl> <marco name> [$<param1>[=<default value>]]*
  */
@@ -394,9 +391,9 @@ c_macro (void)
 	  if (c == '$')
 	    {
 	      if (!Input_Match ('$', false))
-		{ /* Token? Check list and substitute */
+		{ /* Token ? Check list and substitute.  */
 		  ptr = inputSymbol (&len, '\0');
-		  Input_Match ('.', false);
+		  (void) Input_Match ('.', false);
 		  int i;
 		  for (i = 0;
 		       i != m.numargs && (memcmp (ptr, m.args[i], len)
@@ -450,8 +447,7 @@ noMEND:
 	  break;
 	}
     }
-  while (!c_mend ())
-    /* */;
+  while (!c_mend ());
 
   free (buf);
   free ((void *)m.name);
@@ -464,13 +460,12 @@ noMEND:
 /**
  * Implements MEXIT.
  */
-/* FIXME: test this, may occur in WHILE/WEND and condition branches.  */
 bool
 c_mexit (void)
 {
   if (gCurPObjP->type != POType_eMacro)
     error (ErrorError, "MEXIT found outside a macro");
   else
-    FS_PopMacroPObject (false);
+    FS_PopPObject (true);
   return false;
 }

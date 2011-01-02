@@ -1,3 +1,20 @@
+Sun Jan  2 20:21:18 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/macro.s: New.
+	* regression/tests_pass/while.s: New.
+	* error.c (MAXERROR): Reduced to 30.
+	* whileif.c, whileif.h: Merge if/while tracking together.
+	* filestack.h (PObject): Follow if/while changes.
+	* filestack.c (FS_PushFilePObject): Likewise.
+	(File_GetLine): Parsing long lines didn't correctly increment line
+	number.
+	* variables.c (c_lcl, c_gbl, c_set): Properly test end of keyword.
+	(c_lcl): Restore local variable only once.
+	* macros.c: Follow if/while changes.
+	(c_mend): Simplify implementation.
+	(c_mexit): Call FS_PopPObject instead of FS_PopMacroPObject (which was
+	not meant to be called by anything else than FS_PopPObject).
+
 Thu Dec 30 02:32:50 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/dsp.s: Move PLD tests to...

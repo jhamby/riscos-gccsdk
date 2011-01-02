@@ -21,10 +21,12 @@
  */
 
 #include "config.h"
+
+#include <assert.h>
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ctype.h>
 #ifdef HAVE_STDINT_H
 #  include <stdint.h>
 #elif HAVE_INTTYPES_H
@@ -38,10 +40,48 @@
 #include "expr.h"
 #include "filestack.h"
 #include "input.h"
-#include "lex.h"
-#include "os.h"
 #include "value.h"
 #include "whileif.h"
+
+#ifdef DEBUG
+//#  define DEBUG_WHILEIF
+#endif
+
+typedef struct
+{
+  int lineno;		/* Line number where IF is located.  */
+} IfBlock_t;
+
+typedef struct
+{
+  int lineno;		/* Line number where WHILE is located.  */
+  const char *expr;	/* Ptr to malloced block holding the expression */
+  union
+    {
+      long offsetFile; /* Only valid when gCurPObjP->type == POType_eFile */
+      const char *offsetMacro; /* Only valid when gCurPObjP->type == POType_eMacro */
+    } restoreData;
+} WhileBlock_t;
+
+typedef enum
+{
+  WhileIf_eIsIf,
+  WhileIf_eIsWhile
+} WhileIf_e;
+
+/* Structure referred in PObject.  */
+typedef struct
+{
+  WhileIf_e Tag;
+  union
+    {
+      IfBlock_t If;
+      WhileBlock_t While;
+    } Data;
+} WhileIf_t;
+
+#define kMAX_WHILEIF_BLOCKS	128
+static WhileIf_t oWhileIfs[kMAX_WHILEIF_BLOCKS];
 
 typedef enum
 {
@@ -52,8 +92,8 @@ typedef enum
 
 static bool if_skip (const char *onerror, const char *matchingToken, IfSkip_eToDo toDo);
 static void while_skip (void);
-static void whileFree (void);
-static bool whileReEval (void);
+static void While_Unwind (WhileBlock_t *whileData);
+static bool While_ReEvalAndDo (void);
 
 /**
  * Skip following assembler lines.  And this because of
@@ -209,7 +249,15 @@ if_skip (const char *onerror, const char *matchingToken, IfSkip_eToDo toDo)
 bool
 c_if (void)
 {
-  gCurPObjP->if_depth++;
+  if (gCurPObjP->whileIfCurDepth + 1 == kMAX_WHILEIF_BLOCKS)
+    {
+      error (ErrorError, "Too many nested WHILE/IFs");
+      return false;
+    }
+
+  WhileIf_t *whileIfP = &oWhileIfs[gCurPObjP->whileIfCurDepth++];
+  whileIfP->Tag = WhileIf_eIsIf;
+  whileIfP->Data.If.lineno = gCurPObjP->lineNum;
 
   const Value *flag = exprBuildAndEval (ValueBool);
   bool skipToElseElifOrEndIf;
@@ -239,13 +287,24 @@ c_if (void)
 bool
 c_else (void)
 {
-  if (gCurPObjP->if_depth == 0)
+  if (gCurPObjP->whileIfCurDepth == gCurPObjP->whileIfStartDepth)
+    error (ErrorError, "Mismatched | or ELSE, no matching IF found");
+  else
     {
-      error (ErrorError, "Mismatched | or ELSE");
-      return false;
+      if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile)
+	{
+	  error (ErrorError, "Mismatched | or ELSE");
+	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineno,
+		     ErrorError, "note: Because of an unmatched WHILE here");
+	}
+      else
+	{
+	  assert (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsIf);
+	  return if_skip ("No matching ] nor ENDIF", "ELSE", eSkipToEndifStrict);
+	}
     }
-
-  return if_skip ("No matching ] nor ENDIF", "ELSE", eSkipToEndifStrict);
+  
+  return false;
 }
 
 /**
@@ -262,13 +321,24 @@ c_elif (void)
   /* Skip the argument of ELIF.  Not of interest now.  */
   skiprest ();
 
-  if (gCurPObjP->if_depth == 0)
+  if (gCurPObjP->whileIfCurDepth == gCurPObjP->whileIfStartDepth)
+    error (ErrorError, "Mismatched ELIF, no matching IF found");
+  else
     {
-      error (ErrorError, "Mismatched ELIF");
-      return false;
+      if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile)
+	{
+	  error (ErrorError, "Mismatched ELIF");
+	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineno,
+		     ErrorError, "note: Because of an unmatched WHILE here");
+	}
+      else
+	{
+	  assert (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsIf);
+	  return if_skip ("No matching ] nor ENDIF", "ELIF", eSkipToEndif);
+	}
     }
-
-  return if_skip ("No matching ] nor ENDIF", "ELIF", eSkipToEndif);
+  
+  return false;
 }
 
 /**
@@ -279,14 +349,23 @@ c_elif (void)
 bool
 c_endif (void)
 {
-  if (gCurPObjP->if_depth == 0)
+  if (gCurPObjP->whileIfCurDepth == gCurPObjP->whileIfStartDepth)
+    error (ErrorError, "Mismatched ] or ENDIF, no matching IF found");
+  else
     {
-      error (ErrorError, "Mismatched ] or ENDIF");
-      return false;
+      if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile)
+	{
+	  error (ErrorError, "Mismatched ] or ENDIF");
+	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineno,
+		     ErrorError, "note: Because of an unmatched WHILE here");
+	}
+      else
+	{
+	  assert (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsIf);
+	  --gCurPObjP->whileIfCurDepth;
+	}
     }
-
-  gCurPObjP->if_depth--;
-
+  
   return false;
 }
 
@@ -326,99 +405,111 @@ bool
 c_while (void)
 {
   const char * const inputMark = Input_GetMark ();
-  /* Evaluate expression */
+  /* Evaluate expression.  */
   const Value *flag = exprBuildAndEval (ValueBool);
+  bool whileExprResult;
   if (flag->Tag != ValueBool)
     {
       error (ErrorError, "WHILE expression must be boolean (treating as false)");
-      while_skip ();
-      return false;
+      whileExprResult = false;
     }
-#if 0
-  /* FIXME: this needs to be implemented differently.  */
-  if (!exprNotConst)
+  else
+    whileExprResult = flag->Data.Bool.b;
+#ifdef DEBUG_WHILEIF
+  printf("c_while() : expr is <%s>\n", whileExprResult ? "true" : "false");
+#endif
+
+  if (whileExprResult
+      && gCurPObjP->whileIfCurDepth + 1 == kMAX_WHILEIF_BLOCKS)
     {
-      error (ErrorError, "WHILE expression is constant (treating as false)");
-      while_skip ();
-      return;
+      error (ErrorError, "Too many nested WHILE/IFs");
+      whileExprResult = false;
     }
-#endif
-#ifdef DEBUG
-  printf("c_while() : expr is <%s>\n", flag->Data.Bool.b ? "true" : "false");
-#endif
-  if (!flag->Data.Bool.b)
+  
+  if (!whileExprResult)
     {
       while_skip ();
       return false;
     }
 
-  WhileBlock *whileNew;
-  if ((whileNew = malloc (sizeof (WhileBlock))) == NULL)
-    errorOutOfMem ();
-  /* Copy expression */
   Input_RollBackToMark (inputMark);
-  if ((whileNew->expr = strdup (inputRest ())) == NULL)
+
+  WhileIf_t *whileIfP = &oWhileIfs[gCurPObjP->whileIfCurDepth++];
+  whileIfP->Tag = WhileIf_eIsWhile;
+  whileIfP->Data.While.lineno = gCurPObjP->lineNum;
+  if ((whileIfP->Data.While.expr = strdup (inputRest ())) == NULL)
     errorOutOfMem ();
-  /* Put on stack */
-  whileNew->prev = gCurPObjP->whilestack;
-  whileNew->lineno = gCurPObjP->lineNum;
   switch (gCurPObjP->type)
     {
-      case POType_eMacro:
-	whileNew->tag = WhileInMacro;
-	whileNew->ptr.macro.offset = gCurPObjP->d.macro.curPtr;
-	break;
       case POType_eFile:
-	whileNew->tag = WhileInFile;
-	whileNew->ptr.file.offset = ftell (gCurPObjP->d.file.fhandle);
+	whileIfP->Data.While.restoreData.offsetFile = ftell (gCurPObjP->d.file.fhandle);
+	break;
+
+      case POType_eMacro:
+	whileIfP->Data.While.restoreData.offsetMacro = gCurPObjP->d.macro.curPtr;
+	break;
+
+      default:
+	assert (0 && "Unexpected parsable object type");
 	break;
     }
-  gCurPObjP->whilestack = whileNew;
+
   return false;
 }
 
 
 static void
-whileFree (void)
+While_Unwind (WhileBlock_t *whileData)
 {
-  WhileBlock *p = gCurPObjP->whilestack;
-  gCurPObjP->whilestack = p->prev;
-  free ((void *)p->expr);
-  free (p);
+  free ((void *)whileData->expr);
 }
 
 
+/**
+ * Re-evaluates WHILE expression and prepares body parsing if it needs to be
+ * re-executed.
+ * \returns Result of WHILE expression re-evaluation.
+ */
 static bool
-whileReEval (void)
+While_ReEvalAndDo (void)
 {
-  inputThisInstead (gCurPObjP->whilestack->expr);
+  assert (gCurPObjP->whileIfCurDepth > gCurPObjP->whileIfStartDepth);
+  assert (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile);
+  const WhileBlock_t *whileBlockP = &oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While;
+  inputThisInstead (whileBlockP->expr);
   const Value *flag = exprBuildAndEval (ValueBool);
+  bool whileExprResult;
   if (flag->Tag != ValueBool)
     {
       error (ErrorError, "WHILE expression must be boolean (treating as false)");
-      return false;
+      whileExprResult = false;
     }
-#ifdef DEBUG
-  printf("whileReEval() : expr is <%s>\n", flag->Data.Bool.b ? "true" : "false");
+  else
+    whileExprResult = flag->Data.Bool.b;
+#ifdef DEBUG_WHILEIF
+  printf("While_ReEvalAndDo() : expr is <%s>\n", whileExprResult ? "true" : "false");
 #endif
-  if (flag->Data.Bool.b)
+
+  if (whileExprResult)
     {
-      switch (gCurPObjP->whilestack->tag)
+      gCurPObjP->lineNum = whileBlockP->lineno;
+      switch (gCurPObjP->type)
 	{
-	  case WhileInFile:
-	    fseek (gCurPObjP->d.file.fhandle, gCurPObjP->whilestack->ptr.file.offset, SEEK_SET);
-	    gCurPObjP->lineNum = gCurPObjP->whilestack->lineno;
-	    return true;
-	  case WhileInMacro:
-	    gCurPObjP->d.macro.curPtr = gCurPObjP->whilestack->ptr.macro.offset;
-	    gCurPObjP->lineNum = gCurPObjP->whilestack->lineno;
-	    return true;
+	  case POType_eFile:
+	    fseek (gCurPObjP->d.file.fhandle, whileBlockP->restoreData.offsetFile, SEEK_SET);
+	    break;
+
+	  case POType_eMacro:
+	    gCurPObjP->d.macro.curPtr = whileBlockP->restoreData.offsetMacro;
+	    break;
+
 	  default:
-	    errorAbort ("Internal whileReEval: unrecognised WHILE type");
+	    assert (0 && "unrecognised WHILE type");
 	    break;
 	}
     }
-  return false;
+
+  return whileExprResult;
 }
 
 
@@ -428,24 +519,26 @@ whileReEval (void)
 bool
 c_wend (void)
 {
-  if (!gCurPObjP->whilestack)
+  if (gCurPObjP->whileIfCurDepth == gCurPObjP->whileIfStartDepth)
+    error (ErrorError, "Mismatched WEND");
+  else if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsIf)
     {
       error (ErrorError, "Mismatched WEND");
-      return false;
+      errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.If.lineno,
+		 ErrorError, "note: Because of an unmatched IF here");
+    }
+  else
+    {
+      assert (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile);
+
+      /* Re-evaluate WHILE expression.  */
+      if (!While_ReEvalAndDo ())
+	{
+	  --gCurPObjP->whileIfCurDepth;
+	  While_Unwind (&oWhileIfs[gCurPObjP->whileIfCurDepth].Data.While);
+	}
     }
 
-  switch (gCurPObjP->whilestack->tag)
-    {
-      case WhileInFile:
-      case WhileInMacro:
-	if (whileReEval ())
-	  return false;
-	break;
-      default:
-	errorAbort ("Internal c_wend: unrecognised WHILE type");
-	break;
-    }
-  whileFree ();
   return false;
 }
 
@@ -453,16 +546,33 @@ c_wend (void)
 void
 FS_PopIfWhile (bool noCheck)
 {
-  if (gCurPObjP->if_depth)
+  while (gCurPObjP->whileIfCurDepth != gCurPObjP->whileIfStartDepth)
     {
-      if (!noCheck)
-	error (ErrorError, "Unmatched IF%s", "s" + (gCurPObjP->if_depth > 1));
-      gCurPObjP->if_depth = 0;
-    }
+      --gCurPObjP->whileIfCurDepth;
+      switch (oWhileIfs[gCurPObjP->whileIfCurDepth].Tag)
+	{
+	  case WhileIf_eIsIf:
+	    if (!noCheck)
+	      {
+		error (ErrorError, "Unmatched IF, did you forgot ENDIF");
+		errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.If.lineno,
+			   ErrorError, "note: IF started here");
+	      }
+	    break;
 
-  int i;
-  for (i = 0; gCurPObjP->whilestack != NULL; ++i)
-    whileFree ();
-  if (i && !noCheck)
-    error (ErrorError, "Unmatched WHILE%s", "s" + (i > 1));
+	  case WhileIf_eIsWhile:
+	    if (!noCheck)
+	      {
+		error (ErrorError, "Unmatched WHILE, did you forgot WEND");
+		errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.While.lineno,
+			   ErrorError, "note: WHEN started here");
+		While_Unwind (&oWhileIfs[gCurPObjP->whileIfCurDepth].Data.While);
+	      }
+	    break;
+
+	  default:
+	    assert (0 && "Unknown while/if type");
+	    break;
+	}
+    }
 }

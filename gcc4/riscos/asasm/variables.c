@@ -66,15 +66,18 @@ assign_var (Symbol *sym, ValueTag type)
       case ValueInt:
 	sym->value.Data.Int.i = 0;
 	break;
+
       case ValueBool:
 	sym->value.Data.Bool.b = false;
 	break;
+
       case ValueString:
 	sym->value.Data.String.len = 0;
 	/* We don't do malloc(0) as this can on some systems return NULL.  */
 	if ((sym->value.Data.String.s = malloc (1)) == NULL)
 	  errorOutOfMem ();
 	break;
+
       default:
 	error (ErrorAbort, "Internal error: assign_var");
 	break;
@@ -125,22 +128,27 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
 bool
 c_gbl (void)
 {
-  int c = inputGet ();
   ValueTag type;
-  switch (c)
+  switch (inputLook ())
     {
       case 'L':
 	type = ValueBool;
         break;
+
       case 'A':
 	type = ValueInt;
 	break;
+
       case 'S':
 	type = ValueString;
 	break;
+
       default:
 	return true;
     }
+  inputSkip ();
+  if (!Input_IsEndOfKeyword ())
+    return true;
 
   skipblanks ();
   const char *ptr;
@@ -160,22 +168,27 @@ c_gbl (void)
 bool
 c_lcl (void)
 {
-  int c = inputGet ();
   ValueTag type;
-  switch (c)
+  switch (inputLook ())
     {
       case 'L':
 	type = ValueBool;
         break;
+
       case 'A':
 	type = ValueInt;
 	break;
+
       case 'S':
 	type = ValueString;
 	break;
+
       default:
 	return true;
     }
+  inputSkip ();
+  if (!Input_IsEndOfKeyword ())
+    return true;
 
   if (gCurPObjP->type != POType_eMacro)
     {
@@ -196,15 +209,33 @@ c_lcl (void)
      at the end of macro invocation.  */
   const Lex l = lexTempLabel (ptr, len);
   Symbol *sym = symbolFind (&l);
-  varPos *p;
-  if ((p = malloc (sizeof (varPos) + len + 1)) == NULL)
-    errorOutOfMem ();
-  memcpy (p->name, ptr, len + 1);
-  p->next = gCurPObjP->d.macro.varListP;
-  if ((p->symptr = sym) != NULL)
-    p->symbol = *sym;
-  gCurPObjP->d.macro.varListP = p;
 
+  bool doRestore;
+  if (sym != NULL)
+    {
+      /* Perhaps already made local ? */
+      varPos *varPosP;
+      for (varPosP = gCurPObjP->d.macro.varListP;
+	   varPosP != NULL && varPosP->symptr != sym;
+	   varPosP = varPosP->next)
+	/* */;
+      doRestore = varPosP == NULL;
+    }
+  else
+    doRestore = true;
+
+  if (doRestore)
+    {
+      varPos *p;
+      if ((p = malloc (sizeof (varPos) + len + 1)) == NULL)
+	errorOutOfMem ();
+      memcpy (p->name, ptr, len + 1);
+      p->next = gCurPObjP->d.macro.varListP;
+      if ((p->symptr = sym) != NULL)
+	p->symbol = *sym;
+      gCurPObjP->d.macro.varListP = p;
+    }
+  
   /* When symbol is already known, it remains a global variable (and :DEF:
      returns {TRUE} for it).  */
   declare_var (ptr, len, type, sym == NULL || (sym->type & SYMBOL_MACRO_LOCAL));
@@ -219,22 +250,27 @@ c_lcl (void)
 bool
 c_set (const Lex *label)
 {
-  int c = inputGet ();
   ValueTag type;
-  switch (c)
+  switch (inputLook ())
     {
       case 'L':
 	type = ValueBool;
         break;
+
       case 'A':
 	type = ValueInt;
 	break;
+
       case 'S':
 	type = ValueString;
 	break;
+
       default:
 	return true;
     }
+  inputSkip ();
+  if (!Input_IsEndOfKeyword ())
+    return true;
 
   Symbol *sym = symbolFind (label);
   if (sym == NULL)
@@ -251,25 +287,18 @@ c_set (const Lex *label)
       return false;
     }
   const Value *value = exprBuildAndEval (sym->value.Tag);
-  sym->type |= SYMBOL_DEFINED;
   switch (value->Tag)
     {
       case ValueIllegal:
-	error (ErrorError, "Illegal SET%c", c);
-	sym->value = Value_Int (0);
+	error (ErrorError, "Wrong variable type for '%.*s'", (int)label->Data.Id.len, label->Data.Id.str);
 	break;
 
-#ifdef DEBUG_VARIABLES
-      case ValueString:
-	printf ("c_set: string: <%.*s>\n",
-		(int)value.Data.String.len, value.Data.String.s);
-	/* Fall through.  */
-#endif
-
       default:
+	sym->type |= SYMBOL_DEFINED;
 	Value_Assign (&sym->value, value);
 	break;
     }
+
   return false;
 }
 
@@ -293,7 +322,7 @@ var_restoreLocals (const varPos *p)
 	}
       else
 	{
-	  Lex l = lexTempLabel (p->name, strlen (p->name));
+	  const Lex l = lexTempLabel (p->name, strlen (p->name));
 	  symbolRemove (&l);
 	}
 

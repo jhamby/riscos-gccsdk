@@ -25,6 +25,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+
 #include "macros.h"
 #include "whileif.h"
 
@@ -63,9 +64,9 @@ typedef struct
   const char *name; /**< Current file name, or file name of current macro).
     Can be NULL. Prefer FS_GetCurFileName() to read. */
   int lineNum; /**< Current line number. Prefer FS_GetCurLineNumber() to read. */
-  
-  int if_depth; /**< Current level of 'if' depth for this object.  */ /* FIXME: it would be nice to keep a stack of linenumbers for each unmatched IF so that we can report 'unmatched if' in a better way */
-  WhileBlock *whilestack; /**< Current level of nested 'while' structures.  */
+
+  unsigned int whileIfCurDepth; /**< The current index in the while/if array for this object.  */
+  unsigned int whileIfStartDepth; /**< The start index in the while/if array for this object.  */
 
   /**
    * Fills given buffer with one NUL terminated line.

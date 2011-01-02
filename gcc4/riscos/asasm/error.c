@@ -41,7 +41,7 @@
 #include "main.h"
 #include "os.h"
 
-#define MAXERR (100)
+#define MAXERR (30)
 
 const char InsertCommaAfter[] = "Inserting missing comma after ";
 
