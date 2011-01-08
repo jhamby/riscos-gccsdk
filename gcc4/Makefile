@@ -42,7 +42,6 @@ GCC_CONFIG_ARGS := \
 	--disable-c-mbchar \
 	--disable-libstdcxx-pch \
 	--disable-tls \
-	--without-pic \
 	--with-cross-host
 # FIXME: for Java support: --without-x --enable-libgcj
 BINUTILS_CONFIG_ARGS =
