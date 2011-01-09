@@ -1,3 +1,21 @@
+Mon Jan 10 00:09:05 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/dcb_dcw_dcd.s: Enhance test case with tests for
+	'=' and one character strings.
+	* regression/tests_pass/operator_shift.s: Enhance test case for one
+	character strings.
+	* regression/tests_pass/operator_unary.s: Likewise.
+	* commands.c (DefineInt_RelocUpdater): Support for non-1 byte data size
+	combined with string size 1.
+	* input.c (inputNextLineNoSubst,inputNextLine,Input_ShowLine,
+	Input_GetColumn): Invalidate input_pos when building up the contents of
+	input_buf so that Input_ShowLine doesn't show half built up content.
+	* eval.c (evalBinop): Case Op_asr, Op_sr, Op_sl, Op_ror, Op_rol:
+	Support one character strings.
+	(Eval_NegValue): Likewise.
+	(evalUnop): Case Op_neg, likewise.
+	* main.c & elsewhere: Adjust (c) year dates.
+
 Sun Jan  2 22:06:06 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/dcb_dcw_dcd.s: Enhanced test case with '&'.

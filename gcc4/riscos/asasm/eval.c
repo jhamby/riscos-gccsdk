@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2010 GCCSDK Developers
+ * Copyright (c) 2002-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -286,59 +286,131 @@ evalBinop (Operator op, Value *lvalue, const Value *rvalue)
 
     case Op_asr: /* >>> */
       {
-        if (lvalue->Tag != ValueInt || rvalue->Tag != ValueInt)
+	ARMWord i;
+	bool fail = false;
+	if (rvalue->Tag == ValueInt)
+	  {
+	    if (lvalue->Tag == ValueInt)
+	      i = (ARMWord) lvalue->Data.Int.i;
+	    else if (lvalue->Tag == ValueString && lvalue->Data.String.len == 1)
+	      i = (unsigned char) lvalue->Data.String.s[0];
+	    else
+	      fail = true;
+	  }
+	else
+	  fail = true;
+	if (fail)
 	  {
 	    error (ErrorError, "Bad operand type for >>>");
 	    return false;
 	  }
+	lvalue->Tag = ValueInt;
         unsigned numbits = (unsigned)rvalue->Data.Int.i >= 32 ? 1 : 32 - (unsigned)rvalue->Data.Int.i;
         unsigned mask = 1U << (numbits - 1);
-        ARMWord nosign = ((ARMWord) lvalue->Data.Int.i) >> (32 - numbits);
+        ARMWord nosign = i >> (32 - numbits);
         lvalue->Data.Int.i = (nosign ^ mask) - mask;
       }
       break;
 
     case Op_sr: /* >> :SHR: */
-      if (lvalue->Tag != ValueInt || rvalue->Tag != ValueInt)
-	{
-	  error (ErrorError, "Bad operand type for >> or :SHR:");
-	  return false;
-	}
-      lvalue->Data.Int.i = (unsigned)rvalue->Data.Int.i >= 32 ? 0 : ((ARMWord) lvalue->Data.Int.i) >> rvalue->Data.Int.i;
+      {
+	ARMWord i;
+	bool fail = false;
+	if (rvalue->Tag == ValueInt)
+	  {
+	    if (lvalue->Tag == ValueInt)
+	      i = (ARMWord) lvalue->Data.Int.i;
+	    else if (lvalue->Tag == ValueString && lvalue->Data.String.len == 1)
+	      i = (unsigned char) lvalue->Data.String.s[0];
+	    else
+	      fail = true;
+	  }
+	else
+	  fail = true;
+	if (fail)
+	  {
+	    error (ErrorError, "Bad operand type for >> or :SHR:");
+	    return false;
+	  }
+	lvalue->Tag = ValueInt;
+        lvalue->Data.Int.i = (unsigned)rvalue->Data.Int.i >= 32 ? 0 : i >> rvalue->Data.Int.i;
+      }
       break;
 
     case Op_sl: /* << :SHL: */
-      if (lvalue->Tag != ValueInt || rvalue->Tag != ValueInt)
-	{
-	  error (ErrorError, "Bad operand type for << or :SHR:");
-	  return false;
-	}
-      lvalue->Data.Int.i = (unsigned)rvalue->Data.Int.i >= 32 ? 0 : ((ARMWord) lvalue->Data.Int.i) << rvalue->Data.Int.i;
+      {
+	ARMWord i;
+	bool fail = false;
+	if (rvalue->Tag == ValueInt)
+	  {
+	    if (lvalue->Tag == ValueInt)
+	      i = (ARMWord) lvalue->Data.Int.i;
+	    else if (lvalue->Tag == ValueString && lvalue->Data.String.len == 1)
+	      i = (unsigned char) lvalue->Data.String.s[0];
+	    else
+	      fail = true;
+	  }
+	else
+	  fail = true;
+	if (fail)
+	  {
+	    error (ErrorError, "Bad operand type for << or :SHR:");
+	    return false;
+	  }
+	lvalue->Tag = ValueInt;
+        lvalue->Data.Int.i = (unsigned)rvalue->Data.Int.i >= 32 ? 0 : i << rvalue->Data.Int.i;
+      }
       break;
 
     case Op_ror: /* :ROR: */
       {
-        if (lvalue->Tag != ValueInt || rvalue->Tag != ValueInt)
+	ARMWord i;
+	bool fail = false;
+	if (rvalue->Tag == ValueInt)
+	  {
+	    if (lvalue->Tag == ValueInt)
+	      i = (ARMWord) lvalue->Data.Int.i;
+	    else if (lvalue->Tag == ValueString && lvalue->Data.String.len == 1)
+	      i = (unsigned char) lvalue->Data.String.s[0];
+	    else
+	      fail = true;
+	  }
+	else
+	  fail = true;
+	if (fail)
 	  {
 	    error (ErrorError, "Bad operand type for :ROR:");
 	    return false;
 	  }
+	lvalue->Tag = ValueInt;
 	unsigned numbits = rvalue->Data.Int.i & 31;
-        lvalue->Data.Int.i = (((ARMWord) lvalue->Data.Int.i) >> numbits)
-			       | (lvalue->Data.Int.i << (32 - numbits));
+        lvalue->Data.Int.i = (i >> numbits) | (i << (32 - numbits));
       }
       break;
 
     case Op_rol: /* :ROL: */
       {
-        if (lvalue->Tag != ValueInt || rvalue->Tag != ValueInt)
+	ARMWord i;
+	bool fail = false;
+	if (rvalue->Tag == ValueInt)
+	  {
+	    if (lvalue->Tag == ValueInt)
+	      i = (ARMWord) lvalue->Data.Int.i;
+	    else if (lvalue->Tag == ValueString && lvalue->Data.String.len == 1)
+	      i = (unsigned char) lvalue->Data.String.s[0];
+	    else
+	      fail = true;
+	  }
+	else
+	  fail = true;
+	if (fail)
 	  {
 	    error (ErrorError, "Bad operand type for :ROL:");
 	    return false;
 	  }
+	lvalue->Tag = ValueInt;
 	unsigned numbits = rvalue->Data.Int.i & 31;
-        lvalue->Data.Int.i = (lvalue->Data.Int.i << numbits)
-				| (((ARMWord) lvalue->Data.Int.i) >> (32 - numbits));
+        lvalue->Data.Int.i = (i << numbits) | (i >> (32 - numbits));
       }
       break;
 
@@ -453,6 +525,16 @@ Eval_NegValue (Value *value)
 	value->Data.Float.f = -value->Data.Float.f;
 	break;
 
+      case ValueString:
+	{
+	  if (value->Data.String.len != 1)
+	    return false;
+	  int c = (unsigned char)value->Data.String.s[0];
+	  value->Tag = ValueInt;
+	  value->Data.Int.i = -c;
+	}
+	break;
+	
       case ValueAddr:
 	value->Data.Addr.i = -value->Data.Addr.i;
 	break;
@@ -467,8 +549,8 @@ Eval_NegValue (Value *value)
 	    /* Negate only the values (not operations).  */
 	    /* FIXME: this is not always correct.  */
 	    if (value->Data.Code.c[i].Tag == CodeValue)
-	     {
-	        if (!Eval_NegValue (&value->Data.Code.c[i].Data.value))
+	      {
+		if (!Eval_NegValue (&value->Data.Code.c[i].Data.value))
 		  return false;
 	      }
 	  }
@@ -496,6 +578,7 @@ evalUnop (Operator op, Value *value)
 	  return false;
 	error (ErrorError, "%s not implemented", "fattr");
 	break;
+
       case Op_fexec:
 	if (value->Tag != ValueString)
 	  return false;
@@ -503,6 +586,7 @@ evalUnop (Operator op, Value *value)
 	value->Data.Int.i = 0;
 	value->Tag = ValueInt;
 	break;
+
       case Op_fload:
 	if (value->Tag != ValueString)
 	  return false;
@@ -510,6 +594,7 @@ evalUnop (Operator op, Value *value)
 	value->Data.Int.i = 0xFFFfff00;
 	value->Tag = ValueInt;
 	break;
+
       case Op_fsize:
 	{
 	  if (value->Tag != ValueString)
@@ -553,12 +638,25 @@ evalUnop (Operator op, Value *value)
 	break;
 
       case Op_not: /* :NOT: ~ */
-	if (value->Tag != ValueInt)
+	switch (value->Tag)
 	  {
-	    error (ErrorError, "Bad operand type for :NOT:");
-	    return false;
+	    case ValueInt:
+	      value->Data.Int.i = ~value->Data.Int.i;
+	      break;
+
+	    case ValueString:
+	      if (value->Data.String.len == 1)
+	        {
+		  value->Tag = ValueInt;
+		  value->Data.Int.i = ~(unsigned int)value->Data.String.s[0];
+		  break;
+		}
+	      /* Fall through.  */
+
+	    default:
+	      error (ErrorError, "Bad operand type for :NOT:");
+	      return false;
 	  }
-	value->Data.Int.i = ~value->Data.Int.i;
 	break;
 
       case Op_neg: /* - */

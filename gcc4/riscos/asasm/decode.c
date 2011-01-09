@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -82,7 +82,7 @@ static const decode_table_t oDecodeTable[] =
   { "%", DTABLE_CALLBACK_VOID, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
   { "&", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcd } }, /* & / DCD / DCDU */
   { "*", DTABLE_CALLBACK_SYMBOL, { .sym = c_equ } }, /* * / EQU */
-  { "=", DTABLE_CALLBACK_VOID, { .vd = c_dcb } }, /* DCB */
+  { "=", DTABLE_CALLBACK_VOID, { .vd = c_dcb } }, /* = / DCB */
   { "ABS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_abs } }, /* ABS CC P R */
   { "ACS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_acs } }, /* ACS CC P R */
   { "ADC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_adc } }, /* ADC CC S */
@@ -121,7 +121,7 @@ static const decode_table_t oDecodeTable[] =
   { "CP", DTABLE_CALLBACK_SYMBOL, { .sym = c_cp } }, /* CP */
   { "CPS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_cps } }, /* CPS */
   /* FIXME: DBG */
-  { "DCB", DTABLE_CALLBACK_VOID, { .vd = c_dcb } }, /* DCB */
+  { "DCB", DTABLE_CALLBACK_VOID, { .vd = c_dcb } }, /* = / DCB */
   { "DCD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcd } }, /* & / DCD / DCDU */
   { "DCFD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcfd } }, /* DCFD / DCFDU */
   { "DCFS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcfs } }, /* DCFS / DCFSU */

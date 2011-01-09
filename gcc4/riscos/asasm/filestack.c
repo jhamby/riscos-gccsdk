@@ -3,7 +3,7 @@
  * Copyright (c) Andy Duplain, August 1992.
  *     Added line numbers  Niklas Röjemo
  *     Added filenames     Darren Salt
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

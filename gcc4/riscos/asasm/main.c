@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -356,7 +356,7 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr,
 		   DEFAULT_IDFN "\n"
-		   "Copyright (c) 1992-2010 Niklas Rojemo, Darren Salt and GCCSDK Developers\n"
+		   "Copyright (c) 1992-2011 Niklas Rojemo, Darren Salt and GCCSDK Developers\n"
 		   "This is free software; see the source for copying conditions.  There is NO\n"
 		   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
 	  return EXIT_SUCCESS;

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -49,7 +49,7 @@
 #define MAX_LINE (4096)
 
 static char input_buff[MAX_LINE + 256];
-static const char *input_pos;
+static const char *input_pos; /* Ptr inside input_buff.  Can be NULL when input_buff is being filled up.  */
 static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 
 static bool inputArgSub (void);
@@ -319,6 +319,8 @@ inputNextLineCore (void)
 bool
 inputNextLineNoSubst (void)
 {
+  input_pos = NULL; /* Disable Input_ShowLine().  */
+
   if (!inputNextLineCore ())
     return false;
   
@@ -336,6 +338,8 @@ inputNextLineNoSubst (void)
 bool
 inputNextLine (void)
 {
+  input_pos = NULL; /* Disable Input_ShowLine().  */
+
   if (!inputNextLineCore ())
     return false;
 
@@ -348,9 +352,9 @@ inputNextLine (void)
 
 
 /**
- * Perform environment variable substitution (objasm compatibility mode only).
+ * Perform environment variable substitution.
  * \param inPP On entry, pointer to the input pointer to environment variable
- * which is '>' or control character/space limited.  On exit, the input pointer
+ * which is '>', control or space character limited.  On exit, the input pointer
  * will be updated reflecting the characters used.
  * \param outOffset On entry, offset in input_buff buffer.  On exit, offset
  * will be updated reflecting the written charactes in input_buff.
@@ -546,7 +550,7 @@ inputArgSub (void)
 	    }
 	    break;
 
-	  case '<': /* Characters enclosed between <...> in ObjAsm mode.  */
+	  case '<': /* Characters enclosed between <...>.  */
 	    ++inP;
 	    inputEnvSub (&inP, &outOffset);
 	    break;
@@ -574,8 +578,6 @@ inputArgSub (void)
 		char cc = *inP++;
 		if (cc == '$')
 		  inputVarSub (&inP, &outOffset, true);
-		else if (cc == '<')
-		  inputEnvSub (&inP, &outOffset);
 		else
 		  {
 		    input_buff[outOffset++] = cc;
@@ -960,7 +962,7 @@ Input_ShowLine (void)
   /* When there is nothing on the filestack, we've done parsing the input
      files so it does not make sense to mark (the last) input line for errors
      happening later on.  */
-  if (gCurPObjP == NULL || *input_pos == '\0')
+  if (gCurPObjP == NULL || input_pos == NULL || *input_pos == '\0')
     return;
   ptrdiff_t posNoTAB = input_pos - input_buff;
   size_t posReal, len;
@@ -985,7 +987,7 @@ Input_ShowLine (void)
 size_t
 Input_GetColumn (void)
 {
-  if (gCurPObjP == NULL)
+  if (gCurPObjP == NULL || input_pos == NULL)
     return 0;
   return input_pos - input_buff;
 }

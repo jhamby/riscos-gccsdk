@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -235,18 +235,18 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 
   assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
 
-  /* ValueString for size = 1 is an odd one case:  */
-  if (!final
-      && privDataP->size == 1
-      && valueP->Data.Code.len == 1
+  /* Support for ValueString with data size 1 (i.e. DCB, =) and different
+     data size but string length 1.  */
+  if (valueP->Data.Code.len == 1
       && valueP->Data.Code.c[0].Tag == CodeValue
-      && valueP->Data.Code.c[0].Data.value.Tag == ValueString)
+      && valueP->Data.Code.c[0].Data.value.Tag == ValueString
+      && ((!final && privDataP->size == 1) || valueP->Data.Code.c[0].Data.value.Data.String.len == 1))
     {
       size_t len = valueP->Data.Code.c[0].Data.value.Data.String.len;
       const char *str = valueP->Data.Code.c[0].Data.value.Data.String.s;
       /* Lay out a string.  */
       for (size_t i = 0; i != len; ++i)
-	Put_DataWithOffset (offset + i, 1, str[i]);
+	Put_AlignDataWithOffset (offset + i, privDataP->size, str[i], !privDataP->allowUnaligned);
       return false;
     }
 
