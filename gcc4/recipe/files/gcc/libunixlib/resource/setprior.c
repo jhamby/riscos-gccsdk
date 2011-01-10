@@ -1,5 +1,5 @@
 /* setpriority ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -12,7 +12,7 @@
 /* A return value of zero indicates success.  */
 
 int
-setpriority (enum __priority_which which, id_t who, int prio)
+setpriority (__priority_which_t which, id_t who, int prio)
 {
   struct __sul_process *sulproc;
 

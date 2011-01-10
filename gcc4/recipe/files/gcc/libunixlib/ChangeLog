@@ -1,3 +1,18 @@
+Mon Jan 10 03:24:52 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* resource/getrlimit.c (getrlimit): Follow prototype change.
+	* resource/setrlimit.c (setrlimit): Likewise.
+	* resource/getrusage.c (getrusage): Likewise.
+	* resource/getprior.c (getpriority): Likewise.
+	* resource/setprior.c (setpriority): Likewise.
+	* include/sys/resource.h: Split off types to...
+	* include/bits/resource.h: ...this new file.
+	* include/sys/resource.h (__rlimit_resource_t, __rusage_who_t,
+	__priority_which_t): New types which are either int or enum.
+	* include/sys/wait.h: Hard include sys/resource.h.
+	(wait3, wait4): Conditional declaration.
+	* Makefile.am (bits/resource.h): Add.
+
 Mon Jan 10 02:31:26 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* string/mempcpy.c (mempcpy): New.

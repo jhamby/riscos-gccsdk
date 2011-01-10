@@ -1,5 +1,5 @@
 /* setrlimit ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <sys/resource.h>
@@ -12,7 +12,7 @@
    Only the super-user can increase hard limits.
    Return 0 if successful, -1 if not (and sets errno).  */
 int
-setrlimit (enum __rlimit_resource resource, const struct rlimit *rlimits)
+setrlimit (__rlimit_resource_t resource, const struct rlimit *rlimits)
 {
   struct rlimit lim;
 

@@ -1,5 +1,5 @@
 /* getrusage ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <sys/resource.h>
@@ -11,7 +11,7 @@
 /* Return resource usage information on process indicated by WHO
    and put it in *USAGE.  Returns 0 for success, -1 for failure.  */
 int
-getrusage (enum __rusage_who who, struct rusage *usage)
+getrusage (__rusage_who_t who, struct rusage *usage)
 {
   int ticks;
 

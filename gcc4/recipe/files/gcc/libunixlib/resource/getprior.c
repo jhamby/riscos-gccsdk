@@ -1,5 +1,5 @@
 /* getpriority ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -13,7 +13,7 @@
    or user (as specified by WHO) is used.  A lower priority number means higher
    priority.  Priorities range from PRIO_MIN to PRIO_MAX.  */
 int
-getpriority (enum __priority_which which, id_t who)
+getpriority (__priority_which_t which, id_t who)
 {
   const struct __sul_process *sulproc = __ul_global.sulproc;
   const struct __sul_process *child;

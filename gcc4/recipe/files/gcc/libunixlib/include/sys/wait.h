@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 3.2.1: Wait for Process Termination <sys/wait.h>.
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef	__SYS_WAIT_H
@@ -14,7 +14,6 @@
 #include <unixlib/types.h>
 #endif
 
-#define __need_rusage
 #include <sys/resource.h>
 
 __BEGIN_DECLS
@@ -75,15 +74,15 @@ extern __pid_t wait (int *);
 /* Wait for a child matching PID to die.  */
 extern __pid_t waitpid (__pid_t, int *, int) __THROW;
 
-#ifndef __SYS_RESOURCE_H
-struct rusage;
-#endif
-
+#if defined __USE_BSD || defined __USE_XOPEN_EXTENDED
 /* Wait for a child to exit.  */
 extern __pid_t wait3 (int *, int, struct rusage *) __THROW;
+#endif
 
+#ifdef __USE_BSD
 /* Wait for a child matching pid_t to die and return its usage statistics. */
 extern __pid_t wait4 (__pid_t, int *, int, struct rusage *) __THROW;
+#endif
 
 __END_DECLS
 
