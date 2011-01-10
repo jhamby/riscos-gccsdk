@@ -3,7 +3,6 @@
  * Following changes were made:
  *  - Added typedef __compar_fn_t and __compar_d_fn_t
  *  - #define'd __alloca
- *  - rearranged the __mempcpy using code
  *  - disabled _SC_PHYS_PAGES related code
  *  - disabled libc_hidden_def
  */
@@ -155,23 +154,13 @@ msort_with_tmp (const struct msort_param *p, void *b, size_t n)
 	{
 	  if ((*cmp) (b1, b2, arg) <= 0)
 	    {
-#if 0
 	      tmp = (char *) __mempcpy (tmp, b1, s);
-#else
-	      memcpy (tmp, b1, s);
-	      tmp += s;
-#endif
 	      b1 += s;
 	      --n1;
 	    }
 	  else
 	    {
-#if 0
 	      tmp = (char *) __mempcpy (tmp, b2, s);
-#else
-	      memcpy (tmp, b2, s);
-	      tmp += s;
-#endif
 	      b2 += s;
 	      --n2;
 	    }

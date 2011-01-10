@@ -1,3 +1,12 @@
+Mon Jan 10 02:31:26 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* string/mempcpy.c (mempcpy): New.
+	* include/string.h (mempcpy): Declare.
+	* wchar/wmempcpy.c (wmempcpy): New.
+	* include/wchar.h (wmempcpy): Declare.
+	* Makefile.am (string/mempcpy.c, wchar/wmempcpy): Add.
+	* stdlib/msort.c (msort_with_tmp): Use __mempcpy.
+
 Wed Jan  5 00:42:46 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* README: Latest iconv version is 0.11.

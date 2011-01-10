@@ -967,6 +967,7 @@ endif
 string_src += \
 	string/memccpy.c \
 	string/memchr.c \
+	string/mempcpy.c \
 	string/stpcpy.c \
 	string/stpncpy.c \
 	string/strdup.c \
@@ -1213,6 +1214,7 @@ wchar_src = \
 	wchar/wmemcmp.c \
 	wchar/wmemcpy.c \
 	wchar/wmemmove.c \
+	wchar/wmempcpy.c \
 	wchar/wmemset.c
 endif
 wchar_src += \

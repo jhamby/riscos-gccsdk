@@ -1,7 +1,7 @@
 /*
  * ANSI Standard 4.11: String Handling <string.h>.
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef __STRING_H
@@ -128,6 +128,14 @@ __END_NAMESPACE_STD
 extern char *strtok_r (char *__restrict __s, const char *__restrict __delim,
 		       char **__restrict __save_ptr)
      __THROW __nonnull ((2, 3));
+#endif
+
+#ifdef __USE_GNU
+/* Copy n bytes of src to dest, return pointer to bytes after the
+   last written byte.  */
+extern void *mempcpy (void *__restrict __dest,
+		      __const void *__restrict __src, size_t __n)
+     __THROW __nonnull ((1, 2));
 #endif
 
 __BEGIN_NAMESPACE_STD

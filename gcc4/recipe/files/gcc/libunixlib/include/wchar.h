@@ -354,14 +354,12 @@ extern wchar_t *wmemmove (wchar_t *__s1, __const wchar_t *__s2, size_t __n)
 extern wchar_t *wmemset (wchar_t *__s, wchar_t __c, size_t __n) __THROW;
 __END_NAMESPACE_STD
 
-#if 0
 #ifdef __USE_GNU
 /* Copy N wide characters of SRC to DEST and return pointer to following
    wide character.  */
 extern wchar_t *wmempcpy (wchar_t *__restrict __s1,
 			  __const wchar_t *__restrict __s2, size_t __n)
      __THROW;
-#endif
 #endif
 
 
