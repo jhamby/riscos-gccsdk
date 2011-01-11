@@ -119,7 +119,7 @@ static void preprocess(FILE *file) {
 
   /* Now we have the line in prelinebuf */
   /* Spot the preprocessor directives */
-  if (sscanf(prelinebuf," %i \"%[^\"]\"",&line,&filename)==2) {
+  if (sscanf(prelinebuf," %i \"%[^\"]\"",&line,filename)==2) {
     /* It appears that GCC always generates its filenames in unix-format,
        regardless of what you give it on the command line; to make the
        throwback work properly, we must convert this to RISC OS style
@@ -136,7 +136,7 @@ static void preprocess(FILE *file) {
     Free(opt.infile);
     opt.infile = strdup_strip(nativefilename);
   }
-  else if (sscanf(prelinebuf,"line %i \"%[^\"]\"",&line,&filename)==2) {
+  else if (sscanf(prelinebuf,"line %i \"%[^\"]\"",&line,filename)==2) {
     /* Norcroft always generates the filenames in native-format which is
        correct for throwback. */
     opt.atline = line-1;
