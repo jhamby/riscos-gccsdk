@@ -1,5 +1,5 @@
 @ UnixLib assembler helper macros
-@ Copyright (c) 2002-2010 UnixLib Developers
+@ Copyright (c) 2002-2011 UnixLib Developers
 
 	@ Macro for embedding function names in code, just before
 	@ the function prologue.
@@ -75,7 +75,7 @@
 	mrseq	\scratch, CPSR	@ Acts a NOP for TEQP
 	biceq	\scratch, \scratch, #0xcf	@ Preserve 32bit mode bit
 	.if	\mode <> 0
-	orreq	\scratch, \scratch, #((\mode) && 0xf) + ((\mode) >> 20)
+	orreq	\scratch, \scratch, #((\mode) & 0xf) + ((\mode) >> 20)
 	.endif
 	msreq	CPSR_c, \scratch
 	mov	a1, a1	@ Avoid StrongARM MSR bug
