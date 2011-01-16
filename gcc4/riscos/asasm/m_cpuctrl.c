@@ -142,26 +142,14 @@ branch_shared (ARMWord cc, bool isBLX)
 {
   const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
 
-  switch (inputLook ())
-    {
-      case '#':
-	inputSkip ();	/* FIXME: what's this ?? */
-	/* Fall through.  */
-      case '"':
-	exprBuild (); /* FIXME: document/test this */
-	break;
-
-      default:
-	exprBuild ();
-	/* The branch instruction has its offset as relative, while the given
-	   label is absolute, so calculate "<label> - . - 8".  */
-	codePosition (areaCurrentSymbol, offset);
-	codeOperator (Op_sub);
-	codeInt (8);
-	codeOperator (Op_sub);
-	break;
-    }
-
+  exprBuild ();
+  /* The branch instruction has its offset as relative, while the given label
+     is absolute, so calculate "<label> - . - 8".  */
+  codePosition (areaCurrentSymbol, offset);
+  codeOperator (Op_sub);
+  codeInt (8);
+  codeOperator (Op_sub);
+  
   Put_Ins (cc | 0x0A000000);
   if (Reloc_QueueExprUpdate (Branch_RelocUpdater, offset, ValueInt | ValueCode | ValueSymbol, &isBLX, sizeof (isBLX)))
     error (ErrorError, "Illegal branch expression");

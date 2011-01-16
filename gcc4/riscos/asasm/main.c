@@ -407,6 +407,11 @@ main (int argc, char **argv)
 #endif
       else if (!strcasecmp (arg, "aof"))
 	set_option_aof (1);
+      else if (!strcasecmp (arg, "stamp") || !strcasecmp (arg, "quit"))
+	{
+	  /* -stamp & -quit are old AAsm/ObjAsm options which we silently
+	     ignore.  */
+	}
       else
 	fprintf (stderr, "%s: Unknown option -%s ignored\n", ProgName, arg);
     }

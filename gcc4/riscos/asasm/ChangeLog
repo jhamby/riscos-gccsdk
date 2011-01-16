@@ -1,3 +1,13 @@
+Sun Jan 16 15:23:32 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpuctrl.c (branch_shared): Drop support for " and #.
+	* whileif.c (while_skip): Make use of inputNextLineNoSubst instead of
+	inputNextLine.
+	* input.c (inputVarSub): Don't corrupt input_pos, only temporarily
+	change it.
+	* main.c (main): Accept and ignore -stamp/-quit options because of
+	legacy reasons.
+
 Mon Jan 10 00:09:05 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/dcb_dcw_dcd.s: Enhance test case with tests for

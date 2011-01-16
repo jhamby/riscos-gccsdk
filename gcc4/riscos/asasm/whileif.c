@@ -377,7 +377,7 @@ static void
 while_skip (void)
 {
   int nested = 0;
-  while (inputNextLine ()) /* FIXME: call inputNextLineNoSubst() instead, like in if_skip() ? */
+  while (inputNextLineNoSubst ())
     {
       /* Skip label (if there is one).  */
       if (!isspace ((unsigned char)inputLook ()))

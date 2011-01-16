@@ -416,7 +416,7 @@ inputEnvSub (const char **inPP, size_t *outOffsetP)
  * Buffer overflow will be deteced by the caller when not all the input has
  * been consumed together with *outOffsetP == sizeof (input_buff).
  *
- * Corrupts input_pos.
+ * Temporarily changes input_pos.
  */
 static void
 inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
@@ -435,8 +435,10 @@ inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
     }
 
   /* Replace symbol by its definition.  */
+  assert (input_pos == NULL);
   input_pos = inP;
   Lex label = lexGetIdNoError ();
+  input_pos = NULL;
   if (label.tag != LexId)
     {
       if (!inString)
@@ -491,7 +493,7 @@ inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
 	  *outOffsetP += toCopyLen;
 
 	  /* Update our input ptr with what we have successfully consumed.  */
-	  inP = input_pos;
+	  inP += label.Data.Id.len;
 	  /* Skip any . after the id - it indicates concatenation (e.g.
 	     $foo.bar).  */
 	  if (*inP == '.')
