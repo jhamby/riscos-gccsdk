@@ -86,4 +86,8 @@ void FS_PopPObject (bool noCheck);
 const char *FS_GetCurFileName (void);
 int FS_GetCurLineNumber (void);
 
+#ifdef DEBUG_FILESTACK
+void ReportFSStack (const char *id);
+#endif
+
 #endif

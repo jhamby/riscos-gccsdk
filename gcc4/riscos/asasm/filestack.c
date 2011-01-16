@@ -23,6 +23,7 @@
  */
 
 #include "config.h"
+
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,9 +49,9 @@
 FileNameList *gFileNameListP; // FIXME: needs freeing !
 
 PObject gPOStack[PARSEOBJECT_STACK_SIZE];
-PObject *gCurPObjP; /**< Current parsable object.  */
+PObject *gCurPObjP = NULL; /**< Current parsable object.  */
 
-static bool File_GetLine(char *bufP, size_t bufSize);
+static bool File_GetLine (char *bufP, size_t bufSize);
 
 /**
  * In order to have permanent storage of filenames.
@@ -92,6 +93,10 @@ StoreFileName (const char *fileNameP)
 void
 FS_PushFilePObject (const char *fileName)
 {
+#ifdef DEBUG_FILESTACK
+  ReportFSStack (__func__);
+#endif
+
   if (gCurPObjP == &gPOStack[PARSEOBJECT_STACK_SIZE - 1])
     errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
 
@@ -144,6 +149,7 @@ FS_PushFilePObject (const char *fileName)
       error (ErrorError, "Cannot open file \"%s\"", fileName);
       return;
     }
+  gCurPObjP[1].type = POType_eFile;
   gCurPObjP[1].lineNum = 0;
   gCurPObjP[1].whileIfStartDepth = gCurPObjP[1].whileIfCurDepth = prevWhileIfDepth;
   gCurPObjP[1].GetLine = File_GetLine;
@@ -161,10 +167,14 @@ FS_PushFilePObject (const char *fileName)
 static void
 FS_PopFilePObject (bool noCheck)
 {
+#ifdef DEBUG_FILESTACK
+  ReportFSStack (__func__);
+#endif
+
   FS_PopIfWhile (noCheck);
 
   if (!noCheck && option_verbose)
-    fprintf (stderr, "Returning from include file \"%s\"\n", gCurPObjP->name);
+    fprintf (stderr, "Returning from file \"%s\"\n", gCurPObjP->name);
 
   gCurPObjP->name = NULL;
   fclose (gCurPObjP->d.file.fhandle);
@@ -198,6 +208,43 @@ FS_PopPObject (bool noCheck)
   else
     --gCurPObjP;
 }
+
+
+#ifdef DEBUG_FILESTACK
+void
+ReportFSStack (const char *id)
+{
+  printf ("Current stack of parsable objects @ %s\n", id);
+  if (gCurPObjP == NULL)
+    {
+      printf ("  - No parsable objects.\n");
+      return;
+    }
+
+  const PObject *pObjP = gCurPObjP;
+  do
+    {
+      switch (pObjP->type)
+	{
+	  case POType_eFile:
+	    printf ("  - File: line num %d (if/while %d - %d): %s\n",
+	            pObjP->lineNum, pObjP->whileIfStartDepth, pObjP->whileIfCurDepth,
+	            pObjP->name ? pObjP->name : "<NULL>");
+	    break;
+
+	  case POType_eMacro:
+	    printf ("  - Macro: line num %d (if/while %d - %d): %s\n",
+	            pObjP->lineNum, pObjP->whileIfStartDepth, pObjP->whileIfCurDepth,
+	            pObjP->name ? pObjP->name : "<NULL>");
+	    break;
+
+	  default:
+	    printf ("  - Unknown parsable object.\n");
+	    break;
+	}
+    } while (pObjP-- != &gPOStack[0]);
+}
+#endif
 
 
 /**

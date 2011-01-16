@@ -1,3 +1,16 @@
+Sun Jan 16 23:30:44 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* depend.c (dependWrite): Write one long dependency line instead of
+	using continuation character.  Looks like this is more amu friendly.
+	* filestack.c (ReportFSStack): Added (for debug purposes).
+	(FS_PushFilePObject): Initialise PObject::type.
+	* input.c (inputVarSub): When variable is not known, report this as
+	a warning, not an error.  Vertical bars in string should also disable
+	variable substitution.
+	(inputSymbol): Never process further than a semi-column.
+	* regression/tests_pass/macro_args.s: Enhance test.
+	* regression/tests_pass/variable_substitution.s: Enhance test.
+
 Sun Jan 16 15:23:32 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_cpuctrl.c (branch_shared): Drop support for " and #.

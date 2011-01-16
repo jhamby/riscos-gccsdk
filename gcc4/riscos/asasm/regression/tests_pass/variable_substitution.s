@@ -3,12 +3,12 @@
 	AREA	Code, CODE, READONLY
 
 	[ :LNOT: REFERENCE
-	
+
 	MACRO
 	SimpleTCall
 	= "T"
 	MEND
-	
+
 	MACRO
 	SimpleFCall
 	= "F"
@@ -46,7 +46,7 @@ AString4 SETS	"[" :CC: :CHR:&24 :CC: "AString2.]"
 	= ">$AString4.<"
 
 	|
-	
+
 	=	"T"
 	=	"F"
 	=	">T<"
@@ -118,6 +118,63 @@ var3	SETS	"$$arg3"
 	=	"tst16 var2\n"
 	=	"tst17 $arg2\n"
 	=	"tst18 arg3\n"
+	]
+
+	[ :LNOT: REFERENCE
+
+	MACRO
+	Test2	$lbl
+	DCB	"$lbl", 10
+	MEND
+
+	Test2	Begin
+
+	Test2	$doh		; Give warning.
+	Test2	x$doh		; Give warning.
+
+	Test2	"$doh"		; Give warning.
+	Test2	"x$doh"		; Give warning.
+
+	GBLS	foo
+foo	SETS	"bar"
+	Test2	$foo		; foo -> bar
+	Test2	x$foo		; foo -> bar
+
+	Test2	"$foo"		; $foo -> bar
+	Test2	"x$foo"		; x$foo -> bar
+
+	Test2	|$foo|		; No substitution
+	Test2	|x$foo|		; No substitution
+
+	Test2	"$$foo"		; $$foo -> bar (!)
+	Test2	"x$$foo"	; x$$foo -> xbar (!)
+
+	Test2	End
+
+	|
+
+	=	"Begin", 10
+
+	=	0x24, "doh", 10
+	=	"x", 0x24, "doh", 10
+
+	=	0x24, "doh", 10
+	=	"x", 0x24, "doh", 10
+
+	=	"bar", 10
+	=	"xbar", 10
+
+	=	"bar", 10
+	=	"xbar", 10
+
+	=	"|", 0x24, "foo|", 10
+	=	"|x", 0x24, "foo|", 10
+
+	=	"bar", 10
+	=	"xbar", 10
+
+	=	"End", 10
+
 	]
 
 	END

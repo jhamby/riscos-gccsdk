@@ -55,6 +55,10 @@ static bool Macro_GetLine (char *bufP, size_t bufSize);
 void
 FS_PopMacroPObject (bool noCheck)
 {
+#ifdef DEBUG_FILESTACK
+  ReportFSStack (__func__);
+#endif
+
   assert (gCurPObjP->type == POType_eMacro && "no macro object to pop");
 
   FS_PopIfWhile (noCheck);
@@ -75,6 +79,10 @@ FS_PopMacroPObject (bool noCheck)
 static void
 FS_PushMacroPObject (const Macro *m, const char *args[MACRO_ARG_LIMIT])
 {
+#ifdef DEBUG_FILESTACK
+  ReportFSStack (__func__);
+#endif
+
   if (gCurPObjP == &gPOStack[PARSEOBJECT_STACK_SIZE - 1])
     errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
   assert (gCurPObjP != NULL);
@@ -118,7 +126,7 @@ Macro_Call (const Macro *m, const Lex *label)
 	error (ErrorWarning, "Label argument is ignored by macro %s", m->name);
     }
   else if (m->labelarg)
-    args[marg++] = NULL;		/* Null label argument */
+    args[marg++] = NULL; /* Null label argument */
 
   skipblanks ();
   bool tryEmptyParam = false;
@@ -281,7 +289,7 @@ c_macro (void)
   if (Input_Match ('$', false))
     {
       size_t len;
-      const char *ptr = inputSymbol (&len, 0);
+      const char *ptr = inputSymbol (&len, '\0');
       if (len)
 	{
 	  m.labelarg = m.numargs = 1;

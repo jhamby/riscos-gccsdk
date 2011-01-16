@@ -42,7 +42,7 @@ dependWrite (const char *objname)
     objname += 2;
   fprintf (dependFile, "%s:", objname);
   for (const FileNameList *fnListP = gFileNameListP; fnListP != NULL; fnListP = fnListP->nextP)
-    fprintf (dependFile, " \\\n\t%s", fnListP->fileName);
+    fprintf (dependFile, " %s", fnListP->fileName);
 
   fputc ('\n', dependFile);
   fclose (dependFile);

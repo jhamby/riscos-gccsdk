@@ -187,7 +187,7 @@ Lex_ReadLocalLabel (bool noCheck)
 
   /* If a routinename is given, check if thats the one given with ROUT.  */
   size_t len;
-  const char *name = inputSymbol (&len, 0);
+  const char *name = inputSymbol (&len, '\0');
   if (!noCheck
       && len
       && !(!memcmp (Local_CurROUTId, name, len) && Local_CurROUTId[len] == '\0'))
