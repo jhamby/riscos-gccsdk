@@ -1,3 +1,9 @@
+Sun Jan 16 19:24:04 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* string/stricmp.c (strcasecmp): Enable as strong alias for stricmp
+	in SCL build.
+	* string/strdup.c (strdup, __strdup): Minor cleanup.
+
 Sat Jan 15 22:33:33 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/elf-macros.s (CHGMODE): Fix bug exposed by

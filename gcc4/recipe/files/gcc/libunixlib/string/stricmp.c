@@ -1,5 +1,5 @@
 /* Case insensitive string comparison.
-   Copyright (c) 2002, 2003, 2004, 2005, 2008 UnixLib Developers.  */
+   Copyright (c) 2002-2011 UnixLib Developers.  */
 
 #include <string.h>
 #include <strings.h>
@@ -25,6 +25,4 @@ stricmp (const char *s1, const char *s2)
 
   return result;
 }
-#ifndef __TARGET_SCL__
 strong_alias (stricmp, strcasecmp)
-#endif
