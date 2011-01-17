@@ -1,3 +1,11 @@
+/*
+ * File taken from glibc.
+ *  - SCL poison added.
+ */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 /* Return current rounding direction.
    Copyright (C) 1997, 1998 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

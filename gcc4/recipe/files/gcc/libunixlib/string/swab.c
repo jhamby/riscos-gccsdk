@@ -1,3 +1,11 @@
+/*
+ * File taken from glibc.
+ *  - SCL poison added.
+ */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 /* Copyright (C) 1992, 1996, 1997 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 

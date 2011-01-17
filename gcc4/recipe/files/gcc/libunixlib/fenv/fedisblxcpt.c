@@ -1,3 +1,11 @@
+/*
+ * File taken from glibc.
+ *  - SCL poison added.
+ */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 /* Disable floating-point exceptions.
    Copyright (C) 2001 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

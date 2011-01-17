@@ -266,6 +266,7 @@ kernel_src = \
 	kernel/kswi_c.s
 endif
 
+# libm-complex/* are LGPL sources.  Do not add this to SCL build.
 if UNIXLIB_BUILDING_SCL
 libm_complex_src =
 else
@@ -282,6 +283,7 @@ libm_complex_src = \
 	libm-complex/crealf.c
 endif
 
+# libm-dbl64/* are LGPL sources.  Do not add this to SCL build.
 if UNIXLIB_BUILDING_SCL
 libm_dbl64_src =
 else
@@ -362,6 +364,7 @@ libm_dbl64_src = \
 	libm-dbl64/w_exp.c
 endif
 
+# libm-flt32/* are LGPL sources.  Do not add this to SCL build.
 if UNIXLIB_BUILDING_SCL
 libm_flt32_src =
 else
@@ -432,6 +435,7 @@ libm_flt32_src = \
 	libm-flt32/w_expf.c
 endif
 
+# libm-generic/* are LGPL sources.  Do not add this to SCL build.
 if UNIXLIB_BUILDING_SCL
 libm_generic_src =
 else

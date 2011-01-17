@@ -1,3 +1,11 @@
+/*
+ * File taken from glibc.
+ *  - SCL poison added.
+ */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 /* Low-level statistical profiling support function.  RISC OS version.
    Copyright (C) 1995, 1996, 1997 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

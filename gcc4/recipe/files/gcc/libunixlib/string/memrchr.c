@@ -1,3 +1,11 @@
+/*
+ * File taken from glibc.
+ *  - SCL poison added.
+ */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 /* memrchr -- find the last occurrence of a byte in a memory block
    Copyright (C) 1991, 93, 96, 97, 99, 2000 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

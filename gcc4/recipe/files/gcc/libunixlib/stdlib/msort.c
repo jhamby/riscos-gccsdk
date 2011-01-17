@@ -5,7 +5,12 @@
  *  - #define'd __alloca
  *  - disabled _SC_PHYS_PAGES related code
  *  - disabled libc_hidden_def
+ *  - SCL poison added.
  */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 
 /* An alternative to qsort, with an identical interface.
    This file is part of the GNU C Library.

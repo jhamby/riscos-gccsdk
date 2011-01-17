@@ -1,3 +1,11 @@
+/*
+ * File taken from glibc.
+ *  - SCL poison added.
+ */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 /* Code to enable profiling at program startup.
    Copyright (C) 1995,1996,1997,2000,2001,2002 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

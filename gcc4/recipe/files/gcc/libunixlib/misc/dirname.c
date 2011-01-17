@@ -1,3 +1,11 @@
+/*
+ * File taken from glibc.
+ *  - SCL poison added.
+ */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 /* dirname - return directory part of PATH.
    Copyright (C) 1996, 2000, 2001, 2002 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

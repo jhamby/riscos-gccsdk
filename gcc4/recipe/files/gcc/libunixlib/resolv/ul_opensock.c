@@ -2,7 +2,12 @@
  * File taken from glibc 2.2.5.
  * Following changes were made:
  *  - Changed __sockeet() into socket()
+ *  - SCL poison added.
  */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 
 /* Copyright (C) 1999 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

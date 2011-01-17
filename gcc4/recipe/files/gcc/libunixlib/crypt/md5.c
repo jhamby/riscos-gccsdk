@@ -2,7 +2,11 @@
  * File taken from glibc 2.2.5.
  * Following changes were made:
  *  - Added "#define STDC_HEADERS 1"
+ *  - SCL poison added.
  */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
 
 /* Functions to compute MD5 message digest of files or memory blocks.
    according to the definition of MD5 in RFC 1321 from April 1992.

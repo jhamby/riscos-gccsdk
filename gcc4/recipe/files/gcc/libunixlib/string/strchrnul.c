@@ -2,7 +2,12 @@
  * File taken from glibc 2.7.
  * Following changes were made:
  *  - Disabled #include <memcopy.h> and define type reg_char
+ *  - SCL poison added.
  */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 
 /* Copyright (C) 1991,1993-1997,99,2000,2005 Free Software Foundation, Inc.
    This file is part of the GNU C Library.

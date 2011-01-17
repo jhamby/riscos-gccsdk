@@ -2,7 +2,12 @@
  * File taken from glibc 2.7.
  * Following changes were made:
  *  - Disabled the #define basename redefine.
+ *  - SCL poison added.
  */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
+
 
 /* Return the name-within-directory of a file name.
    Copyright (C) 1996,97,98,2002 Free Software Foundation, Inc.

@@ -1,8 +1,11 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - None
+ *  - SCL poison added.
  */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
 
 /*
  * UFC-crypt: ultra fast crypt(3) implementation

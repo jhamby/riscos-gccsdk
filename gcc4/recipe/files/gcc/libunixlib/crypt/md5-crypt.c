@@ -4,7 +4,11 @@
  *  - Renamed __stpncpy() to stpncpy()
  *  - Added MIN(),MAX() #defines in case they are not available.
  *  - Commented out the not used free_mem()
+ *  - SCL poison added.
  */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
 
 /* One way encryption based on MD5 sum.
    Copyright (C) 1996, 1997, 1999, 2000, 2001 Free Software Foundation, Inc.

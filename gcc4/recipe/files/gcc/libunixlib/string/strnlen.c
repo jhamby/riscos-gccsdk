@@ -1,8 +1,11 @@
 /*
  * File taken from glibc 2.2.5.
  * Following changes were made:
- *  - None
+ *  - SCL poison added.
  */
+#ifdef __TARGET_SCL__
+#  error "SCL build should not use (L)GPL code."
+#endif
 
 /* Find the length of STRING, but scan at most MAXLEN characters.
    Copyright (C) 1991, 1993, 1997, 2000, 2001 Free Software Foundation, Inc.
