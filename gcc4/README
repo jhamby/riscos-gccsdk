@@ -19,7 +19,6 @@ The following is a non exhaustive list of programs which are needed to compile
 and work with GCCSDK on top of a typical recent standard Unix distribution:
 
 - autogen v5.5.4 (or later)
-- autoconf at least v2.58
 - m4 v1.4.11 (other versions might work too)
 - bison v2.3 (other versions might work too)
 - svn v1.2 or later (only to be used to checkout GCCSDK source code from
@@ -30,7 +29,7 @@ and work with GCCSDK on top of a typical recent standard Unix distribution:
 - patch v2.5.9 (other versions might work too)
 - makeinfo v4.8 (other versions might work too, Debian package 'texinfo')
 - help2man
-- wget (to fetch the binutils, gcc and autoconf/automake sources)
+- wget (used to fetch the binutils, gcc and autoconf/automake sources)
 
 Specific versions of automake and autoconf are also needed but they will
 be automatically downloaded, built & installed locally and used.
