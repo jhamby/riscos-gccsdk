@@ -279,14 +279,15 @@ Area_AlignTo (size_t offset, int align, const char *msg)
   assert (align && (align & (align - 1)) == 0);
   if (msg && (offset & (align - 1)) != 0)
     error (ErrorWarning, "Unaligned %s", msg);
-  bool atAreaEnd = areaCurrentSymbol->value.Data.Int.i == offset;
   size_t newOffset = (offset + align-1) & -align;      
   if (AREA_NOSPACE (areaCurrentSymbol->area.info, newOffset))
     areaGrow (areaCurrentSymbol->area.info, newOffset - areaCurrentSymbol->value.Data.Int.i);
-  for (size_t i = areaCurrentSymbol->value.Data.Int.i; i < newOffset; ++i)
-    areaCurrentSymbol->area.info->image[i++] = 0;
-  if (atAreaEnd)
-    areaCurrentSymbol->value.Data.Int.i = newOffset;
+  if (areaCurrentSymbol->value.Data.Int.i < newOffset)
+    {
+      for (size_t i = areaCurrentSymbol->value.Data.Int.i; i != newOffset; ++i)
+	areaCurrentSymbol->area.info->image[i] = 0;
+      areaCurrentSymbol->value.Data.Int.i = newOffset;
+    }
   return newOffset;
 }
 
