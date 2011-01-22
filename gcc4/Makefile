@@ -150,14 +150,14 @@ buildstepsdir/buildtool-autoconf-for-gcc: buildstepsdir/src-autoconf-for-gcc
 buildstepsdir/buildtool-automake-for-binutils: buildstepsdir/src-automake-for-binutils buildstepsdir/buildtool-autoconf-for-binutils
 	-rm -rf $(BUILDDIR)/buildtool-automake-for-binutils
 	mkdir -p $(BUILDDIR)/buildtool-automake-for-binutils
-	cd $(BUILDDIR)/buildtool-automake-for-binutils && $(SRCDIR)/automake-for-binutils/configure --prefix=$(PREFIX_BUILDTOOL_BINUTILS) && $(MAKE) && $(MAKE) install
+	cd $(BUILDDIR)/buildtool-automake-for-binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PATH)" && $(SRCDIR)/automake-for-binutils/configure --prefix=$(PREFIX_BUILDTOOL_BINUTILS) && $(MAKE) && $(MAKE) install
 	touch buildstepsdir/buildtool-automake-for-binutils
 
 # Configure & build automake-for-gcc tool:
 buildstepsdir/buildtool-automake-for-gcc: buildstepsdir/src-automake-for-gcc buildstepsdir/buildtool-autoconf-for-gcc
 	-rm -rf $(BUILDDIR)/buildtool-automake-for-gcc
 	mkdir -p $(BUILDDIR)/buildtool-automake-for-gcc
-	cd $(BUILDDIR)/buildtool-automake-for-gcc && $(SRCDIR)/automake-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
+	cd $(BUILDDIR)/buildtool-automake-for-gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SRCDIR)/automake-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
 	touch buildstepsdir/buildtool-automake-for-gcc
 
 # Configure & build binutils cross:
