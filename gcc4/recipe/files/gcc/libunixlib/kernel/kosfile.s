@@ -1,5 +1,5 @@
 @ _kernel_osfile
-@ Copyright (c) 2000-2010 UnixLib Developers
+@ Copyright (c) 2000-2011 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -11,10 +11,10 @@
 _kernel_osfile:
 	@ don't need v3, but it can be set with OS_File 20-23
 	STMFD	sp!, {v1-v3, lr}
-	MOVS	ip, a3
-	LDMNEIA ip, {a3, a4, v1, v2}
+	MOV	ip, a3
+	LDMIA	a3, {a3, a4, v1, v2}
 	SWI	XOS_File
-	STMNEIA ip, {a3, a4, v1, v2}
+	STMIA	ip, {a3, a4, v1, v2}
 	LDMVCFD	sp!, {v1-v3, pc}
 
 	MOV	a2, #EOPSYS
