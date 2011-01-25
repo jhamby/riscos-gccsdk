@@ -1,0 +1,30 @@
+
+AB_CVS_TAGORBRANCH=arcem-fast
+AB_CVS_ROOT=:pserver:anonymous@arcem.cvs.sourceforge.net:/cvsroot/arcem
+AB_CVS_MODULE=arcem
+AB_PVERSION=1.00-cvs-$(date +%Y%m%d)
+
+ab_package() {
+  ab_create_app ArcEm Apps/Emulation
+  ab_makerun $S/arcem
+  
+  mkdir -p $A/hostfs
+  mkdir -p $A/extnrom
+  
+  cp -av $S/manual.html $A
+  cp -av $S/index.html $A
+  cp -av $S/arcemrc $A/.arcemrc
+  cp -av docs $A
+    
+  cp -av $S/support_modules/hostfs/hostfs,ffa $A/extnrom
+  cp -av $S/support_modules/hostfs/hostfsfiler,ffa $A/extnrom
+  cp -av $S/support_modules/scrollwheel/scrollwheel,ffa $A/extnrom
+  cp -av $S/support_modules/support/support,ffa $A/extnrom
+  cp -av $S/support_modules/modes/ArcemModes,ffa $A/extnrom
+  
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile docs/COPYING
+}
+
+  
+  
+
