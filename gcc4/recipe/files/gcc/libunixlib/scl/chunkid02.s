@@ -721,6 +721,7 @@ clib_vectors_end:
 .set	__SIG_DFL, 0xffffffff
 
 	.section .bss.riscos.libscl.chunkstub.id02,"w",%nobits
+	.align 2
 clib_statics_begin:
 	.space 0xb48
 clib_statics_end:

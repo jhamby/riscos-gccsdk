@@ -195,6 +195,7 @@ kernel_vectors_end:
 	.size	kernel_vectors, . - kernel_vectors
 
 	.section .bss.riscos.libscl.chunkstub.id01,"w",%nobits
+	.align 2
 kernel_statics_begin:
 	.space	0x31c
 kernel_statics_end:

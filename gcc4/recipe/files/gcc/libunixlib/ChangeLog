@@ -1,3 +1,8 @@
+Tue Jan 25 19:59:02 2011  Lee Noar  <leenoar@sky.com>
+
+	* scl/chunkid01.s: Make sure bss section has word alignment.
+	* scl/chunkid02.s: Likewise.
+
 Sun Jan 23 19:02:26 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* kernel/kosfile.s (_kernel_osfile): Fix based on the fact that 2nd
