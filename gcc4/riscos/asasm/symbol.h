@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2010 GCCSDK Developers
+ * Copyright (c) 2001-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -86,7 +86,7 @@ typedef struct Symbol
 
   /* For output: */
   unsigned int offset;	/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
-  int used;		/** -1 when not used; for area symbols: at outputAof/outputElf stage, this will be the area number counted from 0; for other symbols, 0 when symbol is needed in output. This will become the symbol index at symbolFix stage.  */
+  int used;		/** -1 when not used; for area symbols: at outputAof stage, this will be the area number counted from 0, at outputElf stage, this is the section number; for other symbols, 0 when symbol is needed in output. This will become the symbol index at symbolFix stage.  */
 
   /* Symbol name: */
   size_t len;		/** length of str[] without its NUL terminator.  */

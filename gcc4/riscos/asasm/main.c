@@ -73,11 +73,8 @@ int option_aof = -1; /* -1 = option not specified.  */
 const char *predefines[MAX_PREDEFINES];
 int num_predefines = 0;
 
-
-const char *ProgName = NULL;
 static const char *ObjFileName = NULL;
 const char *SourceFileName = NULL;
-
 
 static void
 as_help (void)
@@ -85,8 +82,8 @@ as_help (void)
   fprintf (stderr,
 	   DEFAULT_IDFN
 	   "\n"
-	   "Usage: %s [option]... <asmfile> <objfile>\n"
-	   "       %s [option]... -o <objfile> <asmfile>\n"
+	   "Usage: " PACKAGE_NAME " [option]... <asmfile> <objfile>\n"
+	   "       " PACKAGE_NAME " [option]... -o <objfile> <asmfile>\n"
 	   "\n"
 	   "Options:\n"
 	   "-o objfile                 Specifies destination AOF/ELF file.\n"
@@ -118,8 +115,7 @@ as_help (void)
 	   "-elf                       Output ELF file [default].\n"
 #endif
 	   "-aof                       Output AOF file.\n"
-	   "\n",
-	   ProgName, ProgName);
+	   "\n");
 }
 
 static bool finished = false;
@@ -136,7 +132,7 @@ set_option_apcs_32bit (int write32bit)
 {
   if (option_apcs_32bit != -1 && option_apcs_32bit != write32bit)
     {
-      fprintf (stderr, "%s: Conflicting options -apcs26 and -apcs32\n", ProgName);
+      fprintf (stderr, PACKAGE_NAME ": Conflicting options -apcs26 and -apcs32\n");
       exit (EXIT_FAILURE);
     }
   option_apcs_32bit = write32bit;
@@ -147,7 +143,7 @@ set_option_apcs_fpv3 (int writefpv3)
 {
   if (option_apcs_fpv3 != -1 && option_apcs_fpv3 != writefpv3)
     {
-      fprintf (stderr, "%s: Conflicting options -apcsfpv2 and -apcsfpv3\n", ProgName);
+      fprintf (stderr, PACKAGE_NAME ": Conflicting options -apcsfpv2 and -apcsfpv3\n");
       exit (EXIT_FAILURE);
     }
   option_apcs_fpv3 = writefpv3;
@@ -158,7 +154,7 @@ set_option_apcs_softfloat(int writesf)
 {
   if (option_apcs_softfloat != -1 && option_apcs_softfloat != writesf)
     {
-      fprintf (stderr, "%s: Conflicting options -soft-float and -hard-float\n", ProgName);
+      fprintf (stderr, PACKAGE_NAME ": Conflicting options -soft-float and -hard-float\n");
       exit (EXIT_FAILURE);
     }
   option_apcs_softfloat = writesf;
@@ -169,7 +165,7 @@ set_option_aof (int writeaof)
 {
   if (option_aof != -1 && option_aof != writeaof)
     {
-      fprintf (stderr, "%s: Conflicting options -aof and -elf\n", ProgName);
+      fprintf (stderr, PACKAGE_NAME ": Conflicting options -aof and -elf\n");
       exit (EXIT_FAILURE);
     }
   option_aof = writeaof;
@@ -183,8 +179,7 @@ main (int argc, char **argv)
 
   setlocale (LC_ALL, "");
 
-  ProgName = *argv++;
-
+  argv++;
   if (argc == 1)
     {
       /* No command line arguments supplied. Print help and exit.  */
@@ -205,7 +200,7 @@ main (int argc, char **argv)
 	  /* This is not an option.  */
 	  if (numFileNames == 2)
 	    {
-	      fprintf (stderr, "%s: Too many filenames specified\n", ProgName);
+	      fprintf (stderr, PACKAGE_NAME ": Too many filenames specified\n");
 	      return EXIT_FAILURE;
 	    }
 	  fileNames[numFileNames++] = arg;
@@ -225,7 +220,7 @@ main (int argc, char **argv)
 		var_define (*++argv);
 	      else
 		{
-		  fprintf (stderr, "%s: Missing argument after -%s\n", ProgName, arg);
+		  fprintf (stderr, PACKAGE_NAME ": Missing argument after -%s\n", arg);
 		  return EXIT_FAILURE;
 		}
 	    }
@@ -242,7 +237,7 @@ main (int argc, char **argv)
 	    val = arg + sizeof ("PreDefine")-1 + 1;
 	  else if (--argc == 0)
 	    {
-              fprintf (stderr, "%s: Missing argument after -%s\n", ProgName, arg);
+              fprintf (stderr, PACKAGE_NAME ": Missing argument after -%s\n", arg);
 	      return EXIT_FAILURE;
 	    }
 	  else
@@ -250,7 +245,7 @@ main (int argc, char **argv)
 	    
           if (num_predefines == MAX_PREDEFINES)
             {
-	     fprintf (stderr, "%s: Too many predefines\n", ProgName);
+	     fprintf (stderr, PACKAGE_NAME ": Too many predefines\n");
 	     return EXIT_FAILURE;
             }
           predefines[num_predefines++] = val;
@@ -261,14 +256,14 @@ main (int argc, char **argv)
 	    {
 	      if (ObjFileName != NULL)
 		{
-		  fprintf (stderr, "%s: Only one output file allowed\n", ProgName);
+		  fprintf (stderr, PACKAGE_NAME ": Only one output file allowed\n");
 		  return EXIT_FAILURE;
 		}
 	      ObjFileName = *++argv;
 	    }
 	  else
 	    {
-	      fprintf (stderr, "%s: Missing filename after -%s\n", ProgName, arg);
+	      fprintf (stderr, PACKAGE_NAME ": Missing filename after -%s\n", arg);
 	      return EXIT_FAILURE;
 	    }
 	}
@@ -288,14 +283,14 @@ main (int argc, char **argv)
 	    val = arg + sizeof ("CPU")-1 + 1;
 	  else if (--argc == 0)
 	    {
-              fprintf (stderr, "%s: Missing argument after -%s\n", ProgName, arg);
+              fprintf (stderr, PACKAGE_NAME ": Missing argument after -%s\n", arg);
 	      return EXIT_FAILURE;
 	    }
 	  else
 	    val = *++argv;
 	  if (cpu != NULL && strcasecmp (cpu, val))
 	    {
-	      fprintf (stderr, "%s: CPU is specified twice: %s and %s\n", ProgName, cpu, val);
+	      fprintf (stderr, PACKAGE_NAME ": CPU is specified twice: %s and %s\n", cpu, val);
 	      return EXIT_FAILURE;
 	    }
 	  cpu = val;
@@ -316,13 +311,13 @@ main (int argc, char **argv)
 	    val = arg + sizeof ("a")-1 + 1;
 	  else if (--argc == 0)
 	    {
-              fprintf (stderr, "%s: Missing argument after -%s\n", ProgName, arg);
+              fprintf (stderr, PACKAGE_NAME ": Missing argument after -%s\n", arg);
 	      return EXIT_FAILURE;
 	    }
 	  else
 	    val = *++argv;
 
-	  fprintf (stderr, "%s: Warning: APCS option not implemented\n", ProgName);
+	  fprintf (stderr, PACKAGE_NAME ": Warning: APCS option not implemented\n");
 	  /* FIXME */
 	}
       else if (!strcasecmp (arg, "apcs26"))
@@ -344,7 +339,7 @@ main (int argc, char **argv)
 	    {
 	      if (--argc == 0)
 	        {
-	          fprintf(stderr, "%s: Missing include directory after -%s\n", ProgName, arg);
+	          fprintf(stderr, PACKAGE_NAME ": Missing include directory after -%s\n", arg);
 	          return EXIT_FAILURE;
 	        }
 	      inclDir = *++argv;
@@ -373,14 +368,14 @@ main (int argc, char **argv)
 	    {
 	      if (SourceFileName != NULL)
 	        {
-	          fprintf (stderr, "%s: Only one input file allowed (%s & %s specified)\n", ProgName, SourceFileName, *++argv);
+	          fprintf (stderr, PACKAGE_NAME ": Only one input file allowed (%s & %s specified)\n", SourceFileName, *++argv);
 	          return EXIT_FAILURE;
 	        }
 	      SourceFileName = *++argv;
 	    }
 	  else
 	    {
-	      fprintf (stderr, "%s: Missing filename after -%s\n", ProgName, arg);
+	      fprintf (stderr, PACKAGE_NAME ": Missing filename after -%s\n", arg);
 	      return EXIT_FAILURE;
 	    }
 	}
@@ -390,14 +385,14 @@ main (int argc, char **argv)
 	    {
 	      if (DependFileName != NULL)
 	        {
-	          fprintf (stderr, "%s: Only one dependency file allowed (%s & %s specified)\n", ProgName, DependFileName, *++argv);
+	          fprintf (stderr, PACKAGE_NAME ": Only one dependency file allowed (%s & %s specified)\n", DependFileName, *++argv);
 	          return EXIT_FAILURE;
 	        }
 	      DependFileName = *++argv;
 	    }
 	  else
 	    {
-	      fprintf (stderr, "%s: Missing filename after -%s\n", ProgName, arg);
+	      fprintf (stderr, PACKAGE_NAME ": Missing filename after -%s\n", arg);
 	      return EXIT_FAILURE;
 	    }
 	}
@@ -413,7 +408,7 @@ main (int argc, char **argv)
 	     ignore.  */
 	}
       else
-	fprintf (stderr, "%s: Unknown option -%s ignored\n", ProgName, arg);
+	fprintf (stderr, PACKAGE_NAME ": Unknown option -%s ignored\n", arg);
     }
 
   /* Fallback on default options ? */
@@ -433,37 +428,37 @@ main (int argc, char **argv)
   if (Target_SetCPU (cpu ? cpu : "arm7tdmi"))
     return EXIT_FAILURE;
 
-  if (SourceFileName == NULL)
-    {
-      if (numFileNames)
-	SourceFileName = fileNames[--numFileNames];
-      else
-	{
-	  fprintf (stderr, "%s: No input filename specified\n", ProgName);
-	  return EXIT_FAILURE;
-	}
-    }
   if (ObjFileName == NULL)
     {
       if (numFileNames)
 	ObjFileName = fileNames[--numFileNames];
       else
 	{
-	  fprintf (stderr, "%s: No output filename specified\n", ProgName);
+	  fprintf (stderr, PACKAGE_NAME ": No output filename specified\n");
+	  return EXIT_FAILURE;
+	}
+    }
+  if (SourceFileName == NULL)
+    {
+      if (numFileNames)
+	SourceFileName = fileNames[--numFileNames];
+      else
+	{
+	  fprintf (stderr, PACKAGE_NAME ": No input filename specified\n");
 	  return EXIT_FAILURE;
 	}
     }
   if (numFileNames)
     {
       while (numFileNames)
-        fprintf (stderr, "%s: Specified unused filename: %s\n", ProgName, fileNames[--numFileNames]);
+        fprintf (stderr, PACKAGE_NAME ": Specified unused filename: %s\n", fileNames[--numFileNames]);
       return EXIT_FAILURE;
     }
   
   if (setjmp (asmAbort))
     {
       asmAbortValid = false;
-      fprintf (stderr, "%s: Aborted\n", ProgName);
+      fprintf (stderr, PACKAGE_NAME ": Aborted\n");
       while (gCurPObjP != NULL)
 	FS_PopPObject (true);
     }
@@ -481,7 +476,7 @@ main (int argc, char **argv)
       if (returnExitStatus () == EXIT_SUCCESS)
 	{
 	  if (setjmp (asmContinue))
-	    fprintf (stderr, "%s: Error when writing object file '%s'.\n", ProgName, ObjFileName);
+	    fprintf (stderr, PACKAGE_NAME ": Error when writing object file '%s'.\n", ObjFileName);
 	  else
 	    {
 	      asmContinueValid = true;

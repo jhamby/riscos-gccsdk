@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -48,27 +48,6 @@
 
 #ifdef DEBUG
 #  define DEBUG_SYMBOL
-#endif
-
-/* For AOF, we output a symbol when it is be exported (or forced exported)
-   and it is defined, or imported and referenced in the code for relocation.  */
-int (SYMBOL_AOF_OUTPUT) (const Symbol *);	/* typedef it */
-#define SYMBOL_AOF_OUTPUT(sym) \
-  ((oKeepAllSymbols || ((sym)->type & (SYMBOL_EXPORT | SYMBOL_KEEP))) \
-   && (((sym)->type & SYMBOL_DEFINED) || (sym)->used > -1))
-
-/* For ELF, we output all used & defined or referenced symbols (except register
-   or coprocessor names).  */
-int (SYMBOL_ELF_OUTPUT) (const Symbol *);	/* typedef it */
-#define SYMBOL_ELF_OUTPUT(sym) \
-  (SYMBOL_AOF_OUTPUT(sym) || (sym)->value.Tag == ValueCode)
-
-#ifndef NO_ELF_SUPPORT
-#define SYMBOL_OUTPUT(sym) \
-  (option_aof ? SYMBOL_AOF_OUTPUT(sym) : SYMBOL_ELF_OUTPUT(sym))
-#else
-#define SYMBOL_OUTPUT(sym) \
-  SYMBOL_AOF_OUTPUT(sym)
 #endif
 
 static Symbol *symbolTable[SYMBOL_TABLESIZE];
@@ -312,6 +291,26 @@ symbolRemove (const Lex *l)
 }
 
 
+static bool
+NeedToOutputSymbol (const Symbol *sym)
+{
+  /* All area symbols are exported.  */
+  if (sym->type & SYMBOL_AREA)
+    return !Area_IsImplicit (sym);
+
+  /* We output a symbol when it is be exported (or forced exported) and it
+     is defined, or imported and referenced in the code for relocation.
+     We exclude local symbols and symbol values other than int, bool and code.  */
+  bool doOutput = (oKeepAllSymbols || (sym->type & (SYMBOL_EXPORT | SYMBOL_KEEP)))
+		    && ((sym->type & SYMBOL_DEFINED)
+		          && (sym->value.Tag == ValueInt || sym->value.Tag == ValueBool
+			      || sym->value.Tag == ValueCode)
+		        || sym->used > -1)
+		    && !Local_IsLocalLabel (sym->str);
+  return doOutput;
+}
+
+
 /**
  * Calculates number of symbols which need to be written in the output file
  * together with the total string size needed for all those symbols.
@@ -332,17 +331,14 @@ symbolFix (int *stringSizeNeeded)
 	    {
 	      /* All AREA symbols are declared and not defined by nature.  */
 	      assert ((sym->type & (SYMBOL_DEFINED | SYMBOL_DECLARED)) == SYMBOL_DECLARED);
-	      if (!Area_IsImplicit (sym))
-		{
-		  sym->offset = strsize;
-		  strsize += sym->len + 1;
-		  nosym++;
-		}
 	    }
 	  else
 	    {
 	      if (SYMBOL_KIND (sym->type) == 0)
 		{
+		  /* Make it a reference symbol.  */
+		  sym->type |= SYMBOL_REFERENCE;
+
 		  if (Local_IsLocalLabel (sym->str))
 		    {
 		      Symbol *area;
@@ -362,26 +358,24 @@ symbolFix (int *stringSizeNeeded)
 			    errorLine (NULL, 0, ErrorError, "In area %s there is a missing local label %%f%02i%s",
 				       area->str, label, Local_ROUTIsEmpty (routine) ? "" : routine);
 			}
-		      sym->type |= SYMBOL_REFERENCE;
 		    }
 		  else
-		    {
-		      /* Make it a reference symbol.  */
-		      sym->type |= SYMBOL_REFERENCE;
-		      errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
-		    }
+		    errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
 		}
-	      if (SYMBOL_OUTPUT (sym))
-		{
-		  sym->offset = strsize;
-		  strsize += sym->len + 1;
-		  sym->used = nosym++;
-		}
-	      else
-		{
-		  sym->type &= ~SYMBOL_REFERENCE;
-		  sym->used = -1;
-		}
+	    }
+
+	  if (NeedToOutputSymbol (sym))
+	    {
+	      sym->offset = strsize;
+	      strsize += sym->len + 1;
+	      if (!(sym->type & SYMBOL_AREA))
+		sym->used = nosym;
+	      ++nosym;
+	    }
+	  else
+	    {
+	      if (!(sym->type & SYMBOL_AREA))
+		sym->used = -1;
 	    }
 	}
     }
@@ -404,8 +398,7 @@ symbolStringOutput (FILE *outfile)	/* Count already output */
     {
       for (const Symbol *sym = symbolTable[i]; sym != NULL; sym = sym->next)
 	{
-	  if (SYMBOL_OUTPUT (sym)
-	      || ((sym->type & SYMBOL_AREA) && !Area_IsImplicit (sym)))
+	  if (sym->used >= 0)
 	    fwrite (sym->str, 1, sym->len + 1, outfile);
 	}
     }
@@ -418,10 +411,23 @@ symbolSymbolAOFOutput (FILE *outfile)
     {
       for (const Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
-	  if (!(sym->type & SYMBOL_AREA) && SYMBOL_AOF_OUTPUT (sym))
+	  if (sym->used < 0)
+	    continue;
+
+	  if (sym->type & SYMBOL_AREA)
+	    {
+	      const AofSymbol asym =
+		{
+		  .Name = armword (sym->offset + 4), /* + 4 to skip the initial length */
+		  .Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL),
+		  .Value = armword (0),
+		  .AreaName = armword (sym->offset + 4) /* + 4 to skip the initial length */
+		};
+	      fwrite (&asym, sizeof (AofSymbol), 1, outfile);
+	    }
+	  else
 	    {
 	      AofSymbol asym;
-	      asym.Name = sym->offset + 4; /* + 4 to skip the initial length */
 	      if (sym->type & SYMBOL_DEFINED)
 		{
 		  const Value *value;
@@ -459,72 +465,35 @@ symbolSymbolAOFOutput (FILE *outfile)
 			    v = value->Data.Code.c[0].Data.value.Data.Int.i;
 			    break;
 			  }
-			/* Fall through.  */
-
-		      default:
 			errorLine (NULL, 0, ErrorError,
 			           "Symbol %s cannot be evaluated for storage in output format", sym->str);
+			break;
+
+		      default:
+			assert (0 && "Wrong value tag selection");
 			v = 0;
 			break;
 		    }
-		  asym.Value = v;
+		  asym.Type = armword (sym->type & SYMBOL_SUPPORTEDBITS);
+		  asym.Value = armword (v);
 		  /* When it is a non-absolute symbol, we need to specify the
 		     area name to which this symbol is relative to.  */
-		  if ((asym.Type = sym->type) & SYMBOL_ABSOLUTE)
-		    asym.AreaName = 0;
-		  else
-		    asym.AreaName = sym->area.rel->offset + 4;
+		  asym.AreaName = armword ((sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->area.rel->offset + 4);
 		}
 	      else
 		{
-		  asym.Type = sym->type | TYPE_REFERENCE;
-		  asym.Value = (sym->type & SYMBOL_COMMON) ? sym->value.Data.Int.i : 0;
-		  asym.AreaName = 0;
+		  asym.Type = armword ((sym->type | TYPE_REFERENCE) & SYMBOL_SUPPORTEDBITS);
+		  asym.Value = armword ((sym->type & SYMBOL_COMMON) ? sym->value.Data.Int.i : 0);
+		  asym.AreaName = armword (0);
 		}
-	      asym.Name     = armword (asym.Name);
-	      asym.Type     = armword (asym.Type & SYMBOL_SUPPORTEDBITS);
-	      asym.Value    = armword (asym.Value);
-	      asym.AreaName = armword (asym.AreaName);
+	      asym.Name = armword (sym->offset + 4); /* + 4 to skip the initial length */
 	      fwrite (&asym, sizeof (AofSymbol), 1, outfile);
-	    }
-	  else if (sym->type & SYMBOL_AREA)
-	    {
-	      if (!Area_IsImplicit (sym))
-		{
-	          const AofSymbol asym =
-		    {
-		      .Name = armword (sym->offset + 4), /* + 4 to skip the initial length */
-		      .Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL),
-		      .Value = armword (0),
-		      .AreaName = armword (sym->offset + 4) /* + 4 to skip the initial length */
-		    };
-		  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
-		}
 	    }
 	}
     }
 }
 
 #ifndef NO_ELF_SUPPORT
-static int
-findAreaIndex (const struct AREA *area)
-{
-  int i = 3;
-  for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
-    {
-      if (Area_IsImplicit (ap))
-	continue;
-
-      if (area == (const struct AREA *)ap)
-        return i;
-      i++;
-      if (ap->area.info->norelocs > 0)
-        i++; /* We will be outputting a relocation section as well */
-    }
-
-  return -1;
-}
-
 void
 symbolSymbolELFOutput (FILE *outfile)
 {
@@ -544,9 +513,19 @@ symbolSymbolELFOutput (FILE *outfile)
     {
       for (const Symbol *sym = symbolTable[i]; sym; sym = sym-> next)
 	{
-	  if (!(sym->type & SYMBOL_AREA) && SYMBOL_ELF_OUTPUT (sym))
+	  if (sym->used < 0)
+	    continue;
+
+	  if (sym->type & SYMBOL_AREA)
 	    {
-	      int type = 0, bind;
+	      asym.st_info = ELF32_ST_INFO ((sym->type & SYMBOL_GLOBAL) ? STB_GLOBAL : STB_LOCAL, STT_SECTION);
+	      asym.st_name = sym->offset + 1; /* + 1 to skip initial & extra NUL */
+	      asym.st_value = 0;
+	      asym.st_shndx = sym->used;
+	      fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+	    }
+	  else
+	    {
 	      asym.st_name = sym->offset + 1; /* + 1 to skip the initial & extra NUL */
 	      if (sym->type & SYMBOL_DEFINED)
 		{
@@ -555,7 +534,6 @@ symbolSymbolELFOutput (FILE *outfile)
 		    {
 		      codeInit ();
 		      value = codeEvalLow (ValueAll, sym->value.Data.Code.len, sym->value.Data.Code.c, NULL);
-		      type = STT_NOTYPE; /* No information to base type on */
 		    }
 		  else
 		    value = &sym->value;
@@ -584,20 +562,17 @@ symbolSymbolELFOutput (FILE *outfile)
 			    v = value->Data.Code.c[0].Data.value.Data.Int.i;
 			    break;
 			  }
-			/* Fall through.  */
-			
-		      default:
 			errorLine (NULL, 0, ErrorError,
 			           "Symbol %s cannot be evaluated for storage in output format", sym->str);
+			break;
+			
+		      default:
+			assert (0 && "Wrong value tag selection");
 			v = 0;
 			break;
 		    }
 		  asym.st_value = v;
-		  if (sym->type & SYMBOL_ABSOLUTE)
-		    asym.st_shndx = 0;
-		  else
-		    /* Inefficient, needs fixing later */
-		    asym.st_shndx = findAreaIndex (sym->area.info);
+		  asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->used;
 		}
 	      else
 		{
@@ -605,6 +580,7 @@ symbolSymbolELFOutput (FILE *outfile)
 		  asym.st_shndx = 0;
 		}
 
+	      int bind;
 	      switch (SYMBOL_KIND (sym->type))
 		{
 		  case TYPE_LOCAL:
@@ -620,23 +596,11 @@ symbolSymbolELFOutput (FILE *outfile)
 		    bind = 0; /* TODO: give error ? */
 		    break;
 		}
-
-	      asym.st_info = ELF32_ST_INFO(bind, type);
+	      asym.st_info = ELF32_ST_INFO (bind, STT_NOTYPE);
 	      if (asym.st_shndx == 65535)
 		errorAbort ("Internal symbolSymbolELFOutput: unable to find section id");
 	      else
 		fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
-	    }
-	  else if (sym->type & SYMBOL_AREA)
-	    {
-	      if (!Area_IsImplicit (sym))
-		{
-		  asym.st_info = ELF32_ST_INFO ((sym->type & SYMBOL_GLOBAL) ? STB_GLOBAL : STB_LOCAL, STT_SECTION);
-		  asym.st_name = sym->offset + 1; /* + 1 to skip initial & extra NUL */
-		  asym.st_value = 0;
-		  asym.st_shndx = findAreaIndex ((const struct AREA *)sym);
-		  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
-		}
 	    }
 	}
     }

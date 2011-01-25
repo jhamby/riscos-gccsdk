@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Nick Burrett
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -90,39 +90,33 @@ outputInit (const char *outfile)
   objfile = NULL;
   if (outfile && !(outfile[0] == '-' && outfile[1] == '\0'))
     {
-      char *temp;
-#ifndef __riscos__
       strncpy (outname, outfile, MAXNAME);
-      temp = strstr (outname, ".s");
-      if (temp && temp[2] == '\0')
-	temp[1] = 'o';
-#else
-      strncpy (outname, outfile, MAXNAME);
-      /* Look for either a '.s' sequence or a 's.' sequence which would
-         be used for either Unix or RISC OS respectively.  Then change it
-         to a '.o' or 'o.' sequence.  */
-      temp = strstr (outname, ".s.");
-      if (temp)
-	temp[1] = 'o';
-      if (outname[0] == 's' && outname[1] == '.')
-	outname[0] = 'o';
 
-      /* We don't want to convert something like foo.smart to foo.omart
-         so look out for it. Hopefully if .s is at the end then the
-         next character is not going to be alphanumeric.  */
-      temp = strstr (outname, ".s");
-      if (temp && temp[2] == '\0')
-        temp[1] = 'o';
+#ifdef __riscos__
+      /* Smell if we have outfile in RISC OS filename syntax.  If so,
+         convert it to Unix syntax.  */
+      char *temp = strchr (outname, '.');
+      if (temp != NULL)
+	{
+	  *temp = '\0';
+	  _kernel_osfile_block blk;
+          bool isROSyntax = _kernel_osfile (17, outname, &blk) == 2;
+	  *temp = '.';
+	  if (isROSyntax)
+	    {
+	      for (temp = outname; *temp; ++temp)
+		{
+		  if (*temp == '.')
+		    *temp = '/';
+		  else if (*temp == '/')
+		    *temp = '.';
+		}
+	    }
+	}
 #endif /* ! __riscos__ */
 
       if ((objfile = fopen (outname, "wb")) == NULL)
-	{
-#if !defined(__TARGET_SCL__)
-	  errorAbort (PACKAGE_NAME " can't write %s: %s", outname, strerror (errno));
-#else
-	  errorAbort (PACKAGE_NAME " can't write %s", outname);
-#endif
-	}
+	errorAbort (PACKAGE_NAME " can't write %s: %s", outname, strerror (errno));
     }
   else
     {
@@ -139,11 +133,9 @@ outputFinish (void)
       fclose (objfile);
       objfile = NULL;
 #ifdef __riscos__
-      /* Set filetype to 0xE1F (ELF, ELF output) or 0xFF (Text,
-	 AOF output).  */
+      /* Set filetype to 0xE1F (ELF, ELF output) or 0xFFF (Text, AOF output).  */
       _kernel_swi_regs regs;
       regs.r[0] = 18;
-/* TODO:        regs.r[1] = (int) __riscosify_scl(outname, 0); */
       regs.r[1] = (int) outname;
       regs.r[2] = (option_aof) ? 0xFFF : 0xE1F;
 
@@ -165,11 +157,13 @@ outputRemove (void)
 static size_t
 writeEntry (int ID, int type, size_t size, size_t *offset)
 {
-  ChunkFileHeaderEntry chunk_entry;
-  chunk_entry.ChunkIDPrefix = armword (ID);
-  chunk_entry.ChunkIDType = armword (type);
-  chunk_entry.FileOffset = armword (*offset);
-  chunk_entry.Size = armword (size);
+  const ChunkFileHeaderEntry chunk_entry =
+    {
+      .ChunkIDPrefix = armword (ID),
+      .ChunkIDType = armword (type),
+      .FileOffset = armword (*offset),
+      .Size = armword (size)
+    };
   *offset += size;
   return fwrite (&chunk_entry, 1, sizeof (chunk_entry), objfile);
 }
@@ -317,7 +311,7 @@ static void
 writeElfSH (int nmoffset, int type, int flags, int size,
             int link, int info, int addralign, int entsize, int *offset)
 {
-  Elf32_Shdr sect_hdr =
+  const Elf32_Shdr sect_hdr =
     {
       .sh_name = nmoffset,
       .sh_type = type,
@@ -345,15 +339,17 @@ outputElf (void)
 
   /* We must call relocFix() before anything else.  */
   int noareas = 0;
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
+  int areaSectionID = 3;
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next, ++noareas)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
       
-      ap->used = noareas++;
-
+      ap->used = areaSectionID++;
       ap->area.info->norelocs = relocFix (ap);
+      if (ap->area.info->norelocs > 0)
+	++areaSectionID;
     }
 
   int norels = countRels (areaHeadSymbol);
@@ -377,7 +373,7 @@ outputElf (void)
       elf_head.e_version = EV_CURRENT;
       elf_head.e_entry = areaEntrySymbol?areaEntryOffset:0;
       elf_head.e_phoff = 0;
-      elf_head.e_shoff = sizeof(elf_head);
+      elf_head.e_shoff = sizeof (elf_head);
       /* We like to take all the aspects of EF_ARM_CURRENT but not its
          ARM EABI version as we aren't complying with any of the versions
          so we set the version to 0 which means EF_ARM_ABI_UNKNOWN.  */
@@ -386,12 +382,12 @@ outputElf (void)
         elf_head.e_flags |= 0x200;
       if (areaEntrySymbol)
 	elf_head.e_flags |= EF_ARM_HASENTRY;
-      elf_head.e_ehsize = sizeof(elf_head);
+      elf_head.e_ehsize = sizeof (elf_head);
       elf_head.e_phentsize = 0;
       elf_head.e_phnum = 0;
-      elf_head.e_shentsize = sizeof(Elf32_Shdr);
-      elf_head.e_shnum = (noareas + norels) + 4;
-      elf_head.e_shstrndx = (noareas + norels) + 3;
+      elf_head.e_shentsize = sizeof (Elf32_Shdr);
+      elf_head.e_shnum = noareas + norels + 4;
+      elf_head.e_shstrndx = noareas + norels + 3;
       
       fwrite (&elf_head, 1, sizeof (elf_head), objfile);
       
@@ -400,21 +396,21 @@ outputElf (void)
   shstrsize = 0;
   
   /* Section headers - index 0 */
-  writeElfSH(shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
+  writeElfSH (shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
   shstrsize += 1; /* Null */
 
   /* Symbol table - index 1 */
   int stringSizeNeeded;
-  nsyms = symbolFix(&stringSizeNeeded);
-  writeElfSH(shstrsize, SHT_SYMTAB, 0, (nsyms + 1) * sizeof (Elf32_Sym),
-	     2, 0, 4, sizeof (Elf32_Sym), &offset);
-  shstrsize += 8; /* .symtab */
+  nsyms = symbolFix (&stringSizeNeeded);
+  writeElfSH (shstrsize, SHT_SYMTAB, 0, (nsyms + 1) * sizeof (Elf32_Sym),
+	      2, 0, 4, sizeof (Elf32_Sym), &offset);
+  shstrsize += sizeof (".symtab");
 
   strsize = stringSizeNeeded + 1; /* Add extra NUL terminator at start. */
 
   /* String table - index 2 */
-  writeElfSH(shstrsize, SHT_STRTAB, 0, FIX (strsize), 0, 0, 1, 0, &offset);
-  shstrsize += 8; /* .strtab */
+  writeElfSH (shstrsize, SHT_STRTAB, 0, FIX (strsize), 0, 0, 1, 0, &offset);
+  shstrsize += sizeof (".strtab");
 
   /* Area headers - index 3 */
   elfIndex = 3;
@@ -436,10 +432,11 @@ outputElf (void)
       areaFlags |= SHF_ALLOC;
       sectionSize = FIX (ap->value.Data.Int.i);
       sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
-      writeElfSH(shstrsize, sectionType, areaFlags, sectionSize,
-                 0, 0, 4, 0, &offset);
+      writeElfSH (shstrsize, sectionType, areaFlags, sectionSize,
+                  0, 0, 4, 0, &offset);
       shstrsize += ap->len + 1;
-      if (ap->area.info->norelocs)
+
+      if (ap->area.info->norelocs > 0)
         {
           /* relocations */
           writeElfSH (shstrsize, SHT_REL, 0,
@@ -452,7 +449,7 @@ outputElf (void)
     }
 
   /* Section head string table */
-  shstrsize += 10; /* .shstrtab */
+  shstrsize += sizeof (".shstrtab");
   writeElfSH (shstrsize-10, SHT_STRTAB, 0, shstrsize, 0, 0, 1, 0, &offset);
 
   /* Write out the sections */
@@ -499,7 +496,7 @@ outputElf (void)
 	continue;
       
       fwrite (ap->str, 1, ap->len + 1, objfile);
-      if (ap->area.info->norelocs)
+      if (ap->area.info->norelocs > 0)
         {
           fwrite (".rel", 1, sizeof(".rel")-1, objfile);
           fwrite (ap->str, 1, ap->len + 1, objfile);

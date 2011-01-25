@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2002-2010 GCCSDK Developers
+ * Copyright (c) 2002-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,7 +37,6 @@ extern int option_apcs_fpv3;
 extern int option_apcs_softfloat;
 extern int option_aof;
 
-extern const char *ProgName;
 extern const char *SourceFileName;
 
 extern jmp_buf asmContinue;

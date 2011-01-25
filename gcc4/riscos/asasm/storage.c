@@ -122,29 +122,15 @@ c_alloc (const Lex *lex)
   switch (value->Tag)
     {
       case ValueInt:
-        if (value->Data.Int.i < 0)
+	codeInit ();
+	codeValue (storageValue (), true);
+	codeValue (value, true);
+	codeOperator (Op_add);
+        value = codeEval (ValueInt | ValueAddr | ValueCode, NULL);
+	if (value->Tag != ValueIllegal)
 	  {
-	    error (ErrorError, "Cannot reserve negative amount of space %d", value->Data.Int.i);
-            break;
-	  }
-	else if (value->Data.Int.i == 0)
-	  {
-	    if (option_pedantic)
-	      error (ErrorInfo, "You are reserving zero bytes?");
+	    Value_Assign (&storageV, value);
 	    break;
-	  }
-	else
-	  {
-	    codeInit ();
-	    codeValue (storageValue (), true);
-	    codeValue (value, true);
-	    codeOperator (Op_add);
-            value = codeEval (ValueInt | ValueAddr | ValueCode, NULL);
-	    if (value->Tag != ValueIllegal)
-	      {
-	        Value_Assign (&storageV, value);
-		break;
-	      }
 	  }
 	/* Fall through.  */
 	

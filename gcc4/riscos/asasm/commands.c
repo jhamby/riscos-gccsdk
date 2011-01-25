@@ -571,8 +571,9 @@ c_incbin (void)
     fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", filename, newFilename);
   free ((void *)newFilename);
   /* Include binary file.  */
-  while (!feof (binfp))
-    Put_Data (1, getc (binfp));
+  int c;
+  while ((c = getc (binfp)) != EOF)
+    Put_Data (1, c);
   fclose (binfp);
   return false;
 }

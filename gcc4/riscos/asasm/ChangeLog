@@ -1,3 +1,23 @@
+Tue Jan 25 01:38:58 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* storage.c (c_alloc): Don't give an error on negative or zero field
+	sizes.
+	* regression/tests_pass/record_basic.s: Enhance test for negative and
+	0 field sizes.
+	* commands.c (c_incbin): Fix BIN/INCBIN implementation.
+	* regression/tests_pass/bin.s, regression/tests_pass/include/def.txt:
+	Add BIN/INCBIN tests.
+	* symbol.c (NeedToOutputSymbol): Centralizes the decision which symbols
+	need to be included in the output.
+	(SYMBOL_OUTPUT, SYMBOL_ELF_OUTPUT, SYMBOL_AOF_OUTPUT): Remove.
+	(findAreaIndex): Remove.
+	(symbolSymbolELFOutput): Use the upfront calculated section number
+	instead of calling findAreaIndex.
+	* output.c (outputInit): Try to recognize RISC OS filename syntax.
+	(writeElfSH): Proper upfront calculation of section number for all our
+	areas.
+	* main.c, main.h (ProgName): Remove.
+
 Fri Jan 21 03:20:48 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* area.c (Area_AlignTo): Fix zeroing of memory. Fix updating area end.

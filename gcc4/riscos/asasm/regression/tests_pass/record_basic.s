@@ -98,4 +98,25 @@ field5		#	16
 		%	32
 	]
 
+
+	AREA	Code3, CODE
+	
+	[ :LNOT: REFERENCE
+		^	4
+tst3_a		#	4
+tst3_b		#	-4
+tst3_c		#	-4
+tst3_d		#	0
+
+		MOV	r1, #tst3_a
+		MOV	r2, #tst3_b
+		MOV	r3, #tst3_c
+		MOV	r4, #tst3_d
+	|
+		MOV	r1, #4
+		MOV	r2, #8
+		MOV	r3, #4
+		MOV	r4, #0
+	]
+
 	END
