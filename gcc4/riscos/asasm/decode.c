@@ -192,6 +192,7 @@ static const decode_table_t oDecodeTable[] =
   { "MUL", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mul } }, /* MUL CC S */
   { "MVF", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mvf } }, /* MVF CC P R */
   { "MVN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_mvn } }, /* MVN CC S */
+  { "NOFP", DTABLE_CALLBACK_VOID, { .vd = c_nofp } }, /* NOFP */
   { "NOP", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_nop } }, /* NOP [CC] */
   { "NRM", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_nrm } }, /* NRM CC P R */
   { "OPT", DTABLE_CALLBACK_VOID, { .vd = c_opt } }, /* OPT */

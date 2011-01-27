@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -170,79 +170,6 @@ fixImm8s4 (int lineno, ARMWord ir, int im)
     errorLine (NULL, lineno, ErrorInfo, optype, m1, im, m2, im2);
 
   return ir | i8s4;
-}
-
-ARMWord
-fixImmFloat (int lineno, ARMWord ir, ARMFloat im)
-{
-  static const char op3[] = "Changing \"%s F_, F_, #%.1f\" to \"%s F_, F_, #%.1f\"";
-  static const char op2[] = "Changing \"%s F_, #%.1f\" to \"%s F_, #%.1f\"";
-  const char *m1, *m2, *optype;
-  int f;
-  ARMWord mnemonic;
-
-  f = fpuImm (im);
-  if (f != -1)
-    return ir | f;
-
-  /* Immediate float constant was illegal.  */
-  f = fpuImm (-im);
-  if (f == -1)
-    {
-      /* Even the inverse cannot be represented.  */
-      errorLine (NULL, lineno, ErrorError,
-		 "Illegal immediate constant %g", im);
-      return ir;
-    }
-
-  /* Inverse immediate constant can be represented, so try to invert
-     the mnemonic.  */
-  mnemonic = ir & M_FMNEM;
-  ir &= ~M_FMNEM;
-  switch (mnemonic)
-    {
-    case M_ADF:
-      ir |= M_SUF;
-      optype = op3; m1 = "ADF"; m2 = "SUF";
-      break;
-    case M_SUF:
-      ir |= M_ADF;
-      optype = op3; m1 = "SUF"; m2 = "ADF";
-      break;
-    case M_MVF:
-      ir |= M_MNF;
-      optype = op2; m1 = "MVF"; m2 = "MNF";
-      break;
-    case M_MNF:
-      ir |= M_MVF;
-      optype = op2; m1 = "MNF"; m2 = "MVF";
-      break;
-    case M_CMF & M_FMNEM:
-      ir |= M_CNF;
-      optype = op2; m1 = "CMF"; m2 = "CNF";
-      break;
-    case M_CNF & M_FMNEM:
-      ir |= M_CMF;
-      optype = op2; m1 = "CNF"; m2 = "CMF";
-      break;
-    case (M_CMF | EXEPTION_BIT) & M_FMNEM:
-      ir |= M_CNF | EXEPTION_BIT;
-      optype = op2; m1 = "CMFE"; m2 = "CNFE";
-      break;
-    case (M_CNF | EXEPTION_BIT) & M_FMNEM:
-      ir |= M_CMF | EXEPTION_BIT;
-      optype = op2; m1 = "CNFE"; m2 = "CMFE";
-      break;
-    default:
-      errorAbortLine (NULL, lineno, "Internal fixImmFloat: unknown mnemonic");
-      return ir;
-      break;
-    }
-
-  if (option_fussy > 1)
-    errorLine (NULL, lineno, ErrorInfo, optype, m1, im, m2, -im);
-
-  return ir | f;
 }
 
 ARMWord

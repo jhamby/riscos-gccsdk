@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -26,7 +26,6 @@
 #include "global.h"
 
 ARMWord fixImm8s4 (int lineno, ARMWord ir, int im);
-ARMWord fixImmFloat (int lineno, ARMWord ir, ARMFloat im);
 ARMWord fixSwi (int lineno, int im);
 ARMWord fixCopOffset (int lineno, ARMWord ir, int offset);
 ARMWord fixMask (int lineno, int mask);

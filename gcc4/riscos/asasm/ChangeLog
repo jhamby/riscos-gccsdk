@@ -1,3 +1,10 @@
+Thu Jan 27 02:13:13 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (ooDecodeTable): Add NOFP.
+	* m_fpu.c, m_fpu.h (c_nofp, CheckFPUsageIsAllowed): New.
+	Move M_* from m_fpu.h to m_fpu.c.
+	* fix.c, fix.h (fixImmFloat): Move to m_fpu.c, m_fpu.h.
+
 Tue Jan 25 01:38:58 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* storage.c (c_alloc): Don't give an error on negative or zero field
