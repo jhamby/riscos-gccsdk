@@ -65,6 +65,11 @@ bool m_urd (void);
 bool m_wfs (void);
 bool m_wfc (void);
 
+bool m_ldf (void);
+bool m_lfm (void);
+bool m_sfm (void);
+bool m_stf (void);
+
 bool c_nofp (void);
 
 #endif
