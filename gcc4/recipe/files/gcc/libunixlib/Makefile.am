@@ -119,9 +119,10 @@ endif
 if UNIXLIB_BUILDING_SCL
 debug_src =
 else
+# debug/dvsprintf.c is excluded here and being compiled without
+# stack checking.
 debug_src = \
-	debug/debug.c \
-	debug/dvsprintf.c
+	debug/debug.c
 endif
 
 if UNIXLIB_BUILDING_SCL
@@ -988,9 +989,10 @@ string_src += \
 if UNIXLIB_BUILDING_SCL
 sys_src =
 else
+# sys/brk.c and sys/stackalloc.c are excluded here and being compiled without
+# stack checking.
 sys_src = \
 	sys/alarm.c \
-	sys/brk.c \
 	sys/exec.c \
 	sys/execl.c \
 	sys/execle.c \
@@ -1000,7 +1002,6 @@ sys_src = \
 	sys/mman.c \
 	sys/mount.c \
 	sys/sigsetjmp.c \
-	sys/stackalloc.c \
 	sys/vfork.c \
 	sys/_getcpuarch.s \
 	sys/_jmp.s \
@@ -1411,7 +1412,15 @@ nobase_noinst_HEADERS = \
 	incl-local/time.h \
 	incl-local/unistd.h
 
-libunixlib_la_SOURCES = $(assert_src) $(common_src) $(crypt_src) $(ctype_src) \
+# libunixlib library is composed of two libraries: libunixlibsc (compiled
+# with software stack limit checking) and libunixlibnsc (compiled *without*
+# software stack limit checking).
+libunixlib_la_SOURCES = 
+libunixlib_la_LIBADD = libunixlibsc.la libunixlibnsc.la
+libunixlib_la_LDFLAGS = -Wc,-lgcc_s -Wc,-nostdlib -version-info 5:0:0 -Wl,--version-script -Wl,$(top_srcdir)/vscript
+
+noinst_LTLIBRARIES = libunixlibsc.la libunixlibnsc.la
+libunixlibsc_la_SOURCES = $(assert_src) $(common_src) $(crypt_src) $(ctype_src) \
 	$(debug_src) $(fenv_src) $(gcccompat_src) $(gdtoa_src) $(gmon_src) \
 	$(grp_src) $(inttypes_src) $(kernel_src) \
 	$(libm_complex_src) $(libm_dbl64_src) $(libm_flt32_src) $(libm_generic_src) $(libm_support_src) \
@@ -1420,40 +1429,22 @@ libunixlib_la_SOURCES = $(assert_src) $(common_src) $(crypt_src) $(ctype_src) \
 	$(scl_src) $(search_src) $(signal_src) $(sound_src) $(stat_src) \
 	$(stdio_src) $(stdlib_src) $(string_src) $(sys_src) \
 	$(termios_src) $(time_src) $(unistd_src) $(unix_src) $(wchar_src)
+# For these source files, we don't want any stack checking.
+if UNIXLIB_BUILDING_SCL
+libunixlibnsc_la_SOURCES =
+else
+libunixlibnsc_la_SOURCES = sys/brk.c sys/stackalloc.c debug/dvsprintf.c
+endif
+if UNIXLIB_CHUNKED_STACK
+libunixlibnsc_la_CFLAGS = -mno-apcs-stack-check
+endif
 
-libunixlib_la_LDFLAGS = -Wc,-lgcc_s -Wc,-nostdlib -version-info 5:0:0 -Wl,--version-script -Wl,$(top_srcdir)/vscript
 
 libm_la_SOURCES = libm-support/libm.c
 
 libm_la_LDFLAGS = -Wc,-nostdlib -version-info 1:0:0
 
 toolexeclib_LTLIBRARIES = libunixlib.la libm.la
-
-if UNIXLIB_CHUNKED_STACK
-# These rules are copied direct from a generated Makefile.
-# The only difference is that stack checking is turned off for these targets.
-# Automake doesn't seem to provide a per-object file flag setting function.
-brk.lo: sys/brk.c
-	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
-	-MT brk.lo -MD -MP -MF "$(DEPDIR)/brk.Tpo" -c -o brk.lo \
-	`test -f 'sys/brk.c' || echo '$(srcdir)/'`sys/brk.c; \
-	then mv -f "$(DEPDIR)/brk.Tpo" "$(DEPDIR)/brk.Plo"; \
-	else rm -f "$(DEPDIR)/brk.Tpo"; exit 1; fi
-
-stackalloc.lo: sys/stackalloc.c
-	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
-	-MT stackalloc.lo -MD -MP -MF "$(DEPDIR)/stackalloc.Tpo" -c -o stackalloc.lo \
-	`test -f 'sys/stackalloc.c' || echo '$(srcdir)/'`sys/stackalloc.c; \
-	then mv -f "$(DEPDIR)/stackalloc.Tpo" "$(DEPDIR)/stackalloc.Plo"; \
-	else rm -f "$(DEPDIR)/stackalloc.Tpo"; exit 1; fi
-
-dvsprintf.lo: debug/dvsprintf.c
-	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
-	-MT dvsprintf.lo -MD -MP -MF "$(DEPDIR)/dvsprintf.Tpo" -c -o dvsprintf.lo \
-	`test -f 'debug/dvsprintf.c' || echo '$(srcdir)/'`debug/dvsprintf.c; \
-	then mv -f "$(DEPDIR)/dvsprintf.Tpo" "$(DEPDIR)/dvsprintf.Plo"; \
-	else rm -f "$(DEPDIR)/dvsprintf.Tpo"; exit 1; fi
-endif
 
 # crt ----------------------
 

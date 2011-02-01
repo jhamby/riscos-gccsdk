@@ -1,3 +1,8 @@
+Wed Feb  2 00:29:05 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am: Avoid overruling targets needing custom CFLAGS by
+	splitting libunixlib in two libraries.
+
 Tue Jan 25 19:59:02 2011  Lee Noar  <leenoar@sky.com>
 
 	* scl/chunkid01.s: Make sure bss section has word alignment.
@@ -12,7 +17,7 @@ Mon Jan 17 23:11:28 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* COPYING: Update copyright year.
 	* crypt/crypt-entry.c: Poison for SCL build.
-	* crypt/md5.c,crypt/md5-crypt.c,fenv/fclrexcpt.c,fenv/fedisblxcpt.c
+	* crypt/md5.c,crypt/md5-crypt.c,fenv/fclrexcpt.c,fenv/fedisblxcpt.c,
 	fenv/feenablxcpt.c,fenv/fegetenv.c,fenv/fegetexcept.c,
 	fenv/fegetround.c,fenv/feholdexcpt.c,fenv/fesetenv.c,fenv/fesetround.c,
 	fenv/fraiseexcpt.c,fenv/fsetexcptflg.c,fenv/ftestexcept.c,
