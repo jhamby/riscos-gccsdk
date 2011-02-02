@@ -65,8 +65,6 @@ int option_pedantic = 0;
 int option_fussy = 0;
 int option_throwback = 0;
 int option_autocast = 0;
-int option_apcs_32bit = -1; /* -1 = option not specified.  */
-int option_apcs_fpv3 = -1; /* -1 = option not specified.  */
 int option_apcs_softfloat = -1; /* -1 = option not specified.  */
 int option_aof = -1; /* -1 = option not specified.  */
 
@@ -76,8 +74,81 @@ int num_predefines = 0;
 static const char *ObjFileName = NULL;
 const char *SourceFileName = NULL;
 
+bool gIsAPCS = true;
+uint8_t gOptionAPCS = APCS_OPT_32BIT | APCS_OPT_SWSTACKCHECK | APCS_OPT_FRAMEPTR;
+
+typedef struct
+{
+  const char *fullOptName;
+  size_t minOptNameLen;
+  uint8_t bitToMask;
+  uint8_t bitToSet;
+} APCS_Option_t;
+
+static const APCS_Option_t oAPCSOptions[] =
+{
+  { "reentrant", sizeof ("reent")-1, APCS_OPT_REENTRANT, APCS_OPT_REENTRANT },
+  { "nonreentrant", sizeof ("nonreent")-1, APCS_OPT_REENTRANT, 0 },
+
+  { "26bit", sizeof ("26")-1, APCS_OPT_32BIT, 0 },
+  { "32bit", sizeof ("32")-1, APCS_OPT_32BIT, APCS_OPT_32BIT },
+
+  { "swstackcheck", sizeof ("swst")-1, APCS_OPT_SWSTACKCHECK, APCS_OPT_SWSTACKCHECK },
+  { "noswstackcheck", sizeof ("noswst")-1, APCS_OPT_SWSTACKCHECK, 0 },
+
+  { "fpregargs", sizeof ("fpr")-1, APCS_OPT_FPREGARGS, APCS_OPT_FPREGARGS },
+  { "nofpregargs", sizeof ("nofpr")-1, APCS_OPT_FPREGARGS, 0 },
+
+  { "fpe3", sizeof ("fpe3")-1, APCS_OPT_FPE3, APCS_OPT_FPE3 },
+  { "fpe2", sizeof ("fpe2")-1, APCS_OPT_FPE3, 0 },
+
+  { "fp", sizeof ("fp")-1, APCS_OPT_FRAMEPTR, APCS_OPT_FRAMEPTR },
+  { "nofp", sizeof ("nofp")-1, APCS_OPT_FRAMEPTR, 0 }
+};
+
+static bool
+APCS_ParseOption (const char *opt)
+{
+  if (!strcasecmp (opt, "none"))
+    gIsAPCS = false;
+  else
+    {
+      gIsAPCS = true;
+      if (opt[0] != '3' || (opt[1] != '\0' && opt[1] != '/'))
+	{
+	  fprintf (stderr, PACKAGE_NAME ": Unknown APCS version %s\n", opt);
+	  return true;
+	}
+      ++opt;
+      while (opt[0] == '/' && opt[1] != '\0')
+	{
+	  ++opt;
+	  const char *slash = strchr (opt, '/');
+	  size_t len = slash ? (size_t)(slash - opt) : strlen (opt);
+	  size_t i;
+	  for (i = 0; i != sizeof (oAPCSOptions)/sizeof (oAPCSOptions[0]); ++i)
+	    {
+	      if (!strncasecmp (opt, oAPCSOptions[i].fullOptName, len)
+	          && len >= oAPCSOptions[i].minOptNameLen)
+		{
+		  /* This option is selected.  */
+		  gOptionAPCS = (gOptionAPCS & ~oAPCSOptions[i].bitToMask) | oAPCSOptions[i].bitToSet;
+		  opt += len;
+		  break;
+		}
+	    }
+	  if (i == sizeof (oAPCSOptions)/sizeof (oAPCSOptions[0]))
+	    {
+	      fprintf (stderr, PACKAGE_NAME ": Unknown APCS 3 specifier %.*s\n", (int)len, opt);
+	      return true;
+	    }
+	}
+    }
+  return false;
+}
+
 static void
-as_help (void)
+asasm_help (void)
 {
   fprintf (stderr,
 	   DEFAULT_IDFN
@@ -105,10 +176,6 @@ as_help (void)
 	   "-From asmfile              Source assembler file (ObjAsm compatibility).\n"
 	   "-To objfile                Destination AOF file (ObjAsm compatibility).\n"
 	   "-Apcs <APCS options>       Specifies one or more APCS options.\n"
-	   "-apcs26                    26-bit APCS AREAs.\n"
-	   "-apcs32                    32-bit APCS AREAs [default].\n"
-	   "-apcsfpv2                  Use floating point v2 AREAs.\n"
-	   "-apcsfpv3                  Use floating point v3 AREAs (SFM, LFM) [default]\n"
 	   "-soft-float                Mark code as using -msoft-float (avoids explicit FP instructions).  This is a GCCSDK extension to the AOF file format.\n"
 	   "-hard-float                Mark code as using -mhard-float (uses explicit FP instructions) [default].\n"
 #ifndef NO_ELF_SUPPORT
@@ -125,28 +192,6 @@ atexit_handler (void)
 {
   if (!finished || returnExitStatus () != EXIT_SUCCESS)
     outputRemove ();
-}
-
-static void
-set_option_apcs_32bit (int write32bit)
-{
-  if (option_apcs_32bit != -1 && option_apcs_32bit != write32bit)
-    {
-      fprintf (stderr, PACKAGE_NAME ": Conflicting options -apcs26 and -apcs32\n");
-      exit (EXIT_FAILURE);
-    }
-  option_apcs_32bit = write32bit;
-}
-
-static void
-set_option_apcs_fpv3 (int writefpv3)
-{
-  if (option_apcs_fpv3 != -1 && option_apcs_fpv3 != writefpv3)
-    {
-      fprintf (stderr, PACKAGE_NAME ": Conflicting options -apcsfpv2 and -apcsfpv3\n");
-      exit (EXIT_FAILURE);
-    }
-  option_apcs_fpv3 = writefpv3;
 }
 
 static void
@@ -183,7 +228,7 @@ main (int argc, char **argv)
   if (argc == 1)
     {
       /* No command line arguments supplied. Print help and exit.  */
-      as_help ();
+      asasm_help ();
       return EXIT_SUCCESS;
     }
   /* Analyse the command line */
@@ -191,6 +236,7 @@ main (int argc, char **argv)
   int numFileNames = 0;
   const char *fileNames[2];
   const char *cpu = NULL;
+  const char *apcs = NULL;
   
   for (argc--; argc; argv++, argc--)
     {
@@ -317,17 +363,8 @@ main (int argc, char **argv)
 	  else
 	    val = *++argv;
 
-	  fprintf (stderr, PACKAGE_NAME ": Warning: APCS option not implemented\n");
-	  /* FIXME */
+	  apcs = val;
 	}
-      else if (!strcasecmp (arg, "apcs26"))
-	set_option_apcs_32bit (0);
-      else if (!strcasecmp (arg, "apcs32"))
-	set_option_apcs_32bit (1);
-      else if (!strcasecmp (arg, "apcsfpv2"))
-	set_option_apcs_fpv3 (0);
-      else if (!strcasecmp (arg, "apcsfpv3"))
-	set_option_apcs_fpv3 (1);
       else if (!strcasecmp (arg, "soft-float"))
 	set_option_apcs_softfloat (1);
       else if (!strcasecmp (arg, "hard-float"))
@@ -359,7 +396,7 @@ main (int argc, char **argv)
       else if (!strcasecmp (arg, "H") || !strcasecmp (arg, "help") || !strcasecmp (arg, "?"))
 	{
 	  /* We need the `--help' option for gcc's --help -v  */
-	  as_help ();
+	  asasm_help ();
 	  return EXIT_SUCCESS;
 	}
       else if (!strcasecmp (arg, "From"))
@@ -412,10 +449,6 @@ main (int argc, char **argv)
     }
 
   /* Fallback on default options ? */
-  if (option_apcs_32bit == -1)
-    option_apcs_32bit = 1;
-  if (option_apcs_fpv3 == -1)
-    option_apcs_fpv3 = 1;
   if (option_apcs_softfloat == -1)
     option_apcs_softfloat = 0;
   if (option_aof == -1)
@@ -426,6 +459,8 @@ main (int argc, char **argv)
 #endif
 	    
   if (Target_SetCPU (cpu ? cpu : "arm7tdmi"))
+    return EXIT_FAILURE;
+  if (apcs != NULL && APCS_ParseOption (apcs))
     return EXIT_FAILURE;
 
   if (ObjFileName == NULL)
@@ -465,7 +500,7 @@ main (int argc, char **argv)
   else
     {
       asmAbortValid = true;
-      symbolInit ();
+      Symbol_Init ();
       outputInit (ObjFileName);
       areaInit ();
       /* Do the assembly.  */

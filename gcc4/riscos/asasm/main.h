@@ -24,6 +24,17 @@
 
 #include <setjmp.h>
 #include <stdbool.h>
+#include <stdint.h>
+
+#define APCS_OPT_REENTRANT	(1<<0) /* APCS is reentrant.  */
+#define APCS_OPT_32BIT		(1<<1) /* APCS is 32 bit (not 26 bit).  */
+#define APCS_OPT_SWSTACKCHECK	(1<<2) /* APCS does software stack checking.  */
+#define APCS_OPT_FPREGARGS	(1<<3) /* APCS uses floating point registers.  */
+#define APCS_OPT_FRAMEPTR	(1<<4) /* APCS uses frame pointer.  */
+#define APCS_OPT_FPE3		(1<<5) /* APCS uses FP emulator 3 (instead of 2).  */
+
+extern bool gIsAPCS;
+extern uint8_t gOptionAPCS; /* OR'd APCS_OPT_* bits.  */
 
 /* asasm options:  */
 extern int option_verbose;
@@ -32,8 +43,6 @@ extern int option_fussy;
 extern int option_throwback;
 extern int option_autocast;
 extern int option_local;
-extern int option_apcs_32bit;
-extern int option_apcs_fpv3;
 extern int option_apcs_softfloat;
 extern int option_aof;
 

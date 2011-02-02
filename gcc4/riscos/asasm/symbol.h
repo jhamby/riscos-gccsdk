@@ -93,7 +93,7 @@ typedef struct Symbol
   char str[1];		/** symbol name as NUL terminated string */
 } Symbol;
 
-void symbolInit (void);
+void Symbol_Init (void);
 Symbol *symbolAdd (const Lex *l);
 Symbol *symbolGet (const Lex *l);
 Symbol *symbolFind (const Lex *l);

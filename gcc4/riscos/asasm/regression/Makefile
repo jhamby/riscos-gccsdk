@@ -24,21 +24,26 @@
 #
 # To clean up after testing or to re-do all tests again:
 #   $ make clean
+#
+# To specify extra ASASM command line parameters (like "-APCS"), define them
+# in one of the first 5 lines of the assembler input file using keyword RUNOPT:
+# E.g.:
+#   ; RUNOPT: -APCS 3
 
-# Environment variables needed in the tests:
-export HDR_PATH := $(CURDIR)/hdr
+# Environment variables needed in one of the tests:
+export HDR_PATH := $(CURDIR)/tests_pass/include/hdr
 export APCS := APCS-32
 
 # EXTENSION is a test for enable testing extra functionality ASASM has
 # compared to objasm.
 
-AS = asasm
-ASFLAGS = -cpu=7-A -aof -PD "EXTENSION SETL {TRUE}"
-DIFF = diff
-DIFFFLAGS = -q
-ECHO = echo
-ECHOFLAGS =
-MKDIR = mkdir
+AS := asasm
+ASFLAGS := -cpu=7-A -aof -PD "EXTENSION SETL {TRUE}"
+DIFF := diff
+DIFFFLAGS := -q
+ECHO := echo
+ECHOFLAGS :=
+MKDIR := mkdir
 
 check_PROGRAMS_PASS := $(wildcard tests_pass/*.s)
 check_PROGRAMS_FAIL := $(wildcard tests_fail/*.s)
@@ -60,10 +65,10 @@ clean:
 output_actual/%.o: %.s output_reference/%.o Makefile
 	@$(ECHO) +++ $< : Assemble actual and compare with reference
 	@$(MKDIR) -p output_actual
-	@$(AS) $(ASFLAGS) -PD "REFERENCE SETL {FALSE}" -o $@ $<
+	@$(AS) $(ASFLAGS) $(shell head -5 $< | grep "RUNOPT:" | sed -e s/^.*RUNOPT://) -PD "REFERENCE SETL {FALSE}" -o $@ $<
 	@$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual/%=output_reference/%) || (mv $@ $(@:%.o=%_failed.o) && false)
 
 output_reference/%.o: %.s Makefile
 	@$(ECHO) +++ $< : Create reference $@
 	@$(MKDIR) -p output_reference
-	@$(AS) $(ASFLAGS) -PD "REFERENCE SETL {TRUE}" -o $@ $<
+	@$(AS) $(ASFLAGS) $(shell head -5 $< | grep "RUNOPT:" | sed -e s/^.*RUNOPT://) -PD "REFERENCE SETL {TRUE}" -o $@ $<

@@ -321,7 +321,7 @@ optionCondSP (void)
   if (Input_Match ('P', false))
     {
       option |= PSR_P_FLAG;
-      if (option_apcs_32bit)
+      if (gOptionAPCS & APCS_OPT_32BIT)
 	error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
     }
   return IsEndOfKeyword (option);

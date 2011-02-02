@@ -1,3 +1,24 @@
+Wed Feb  2 01:46:54 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/apcs.s: Moved to...
+	* regression/tests_pass/environment_variable.s: ...here.
+	* regression/hdr: Moved to...
+	* regression/tests_pass/include/hdr: ...here.
+	* regression/Makefile: Add support for RUNOPT.
+	* regression/tests_pass/apcs-3-32bit.s,
+	regression/tests_pass/apcs-3-26bit.s,
+	regression/tests_pass/apcs-none.s,
+	regression/tests_pass/apcs-3.s,
+	regression/tests_pass/apcs-3-reentrant.s,
+	regression/tests_pass/apcs-3-reentrant-noswstackcheck.s,
+	regression/tests_pass/include/predef_reg_test.s
+	: New.
+	* symbol.c: Fix conditional defined of CPU symbol registers based
+	on -APCS option.
+	* main.c, main.h: Support -APCS option, remove -apcs26, -apcs32,
+	-apcsfpv2 and -apcsfpv3 options.
+	* lexAcorn.c, area.c, option.c: Follow -APCS option support.
+
 Thu Jan 27 02:35:32 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_fpumem.c, m_fpumem.h: Merge content to...

@@ -228,7 +228,7 @@ lexAcornPrim (Lex *lex)
 	if (Input_MatchString ("ONFIG}")) /* {CONFIG} */
 	  {
 	    lex->tag = LexInt;
-	    lex->Data.Int.value = option_apcs_32bit ? 32 : 26;
+	    lex->Data.Int.value = (gOptionAPCS & APCS_OPT_32BIT) ? 32 : 26;
 	    return;
 	  }
 	else if (Input_MatchString ("PU}")) /* {CPU} */
