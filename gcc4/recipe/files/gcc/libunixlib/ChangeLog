@@ -1,3 +1,14 @@
+Sat Feb  5 10:55:00 UTC 2011  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* module/sul.s: Test the existence of the canonicalised	filename on
+	program initialisation, rather than the original sul_exec() argument. 
+	Fixes detection of child application that lives on Run$Path. 
+	Additionally, fix stripping of FS name in process structure search to
+	accept the program name provided by OS_GetEnv having no colons in it 
+	(e.g. when it resides on RPCEmu's HostFS). Otherwise, it will skip over
+	the first entry in the process list without considering it. 
+	Bump version number and update copyright years.
+
 Wed Feb  2 00:29:05 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am: Avoid overruling targets needing custom CFLAGS by

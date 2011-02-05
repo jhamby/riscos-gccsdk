@@ -1,5 +1,5 @@
 @ SharedUnixLibrary
-@ Copyright (c) 2002-2009 UnixLib Developers
+@ Copyright (c) 2002-2011 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -139,11 +139,11 @@ module_start:
 help:
 	.ascii	"SharedUnixLibrary"
 	.byte	9
-	.ascii	"1.11 (15 Oct 2007) "
+	.ascii	"1.12 (05 Feb 2011) "
 #if DEBUG_PROC_MATCHING
 	.ascii	"(debug) "
 #endif
-	.asciz	"(C) UnixLib Developers, 2001-2007"
+	.asciz	"(C) UnixLib Developers, 2001-2011"
 	.align
 
 title:
@@ -479,12 +479,14 @@ version_ok:
 	LDRB	lr, [a1]
 	TEQ	lr, #':'
 	BEQ	tmp_fs_loop1_done
+	MOV	a2, a1
 tmp_fs_loop1:
-	LDRB	lr, [a1], #1
+	LDRB	lr, [a2], #1
 	CMP	lr, #' '
-	BLE	try_next
+	BLE	tmp_fs_loop1_done	@ reached end of argv[0] without finding ':'
 	TEQ	lr, #':'
 	BNE	tmp_fs_loop1
+	MOV	a1, a2
 tmp_fs_loop1_done:
 
 #if DEBUG_PROC_MATCHING
@@ -520,12 +522,14 @@ findproc_loop:
 	LDRB	a3, [a2]
 	TEQ	a3, #':'
 	BEQ	tmp_fs_loop2_done
+	MOV	a4, a2
 tmp_fs_loop2:
-	LDRB	a3, [a2], #1
+	LDRB	a3, [a4], #1
 	CMP	a3, #' '
-	BLE	try_next
+	BLE	tmp_fs_loop2_done
 	TEQ	a3, #':'
 	BNE	tmp_fs_loop2
+	MOV	a2, a4
 tmp_fs_loop2_done:
 
 #if DEBUG_PROC_MATCHING
@@ -690,7 +694,7 @@ invalidate_handle:
 
 	@ Return the address of the process structure and the upcall handler
 	MOV	a1, v2
-	ADR	a2, upcall_handler
+	ADRL	a2, upcall_handler
 	MOV	a3, v2
 	LDMFD   sp!, {v1, v2, pc}
 
@@ -1156,14 +1160,14 @@ cli_arg_len_loop:
 	SWI	XOS_FSControl
 	BVS	release_rma_and_restore_cli
 
-	@ When the canoniclised filename does not exist, we have to fall back
+	@ When the canonicalised filename does not exist, we have to fall back
 	@ on the original sul_exec() argument given as it might be an OSCLI
 	@ one.
-	STMFD	sp!, {a3}
+	STMFD	sp!, {a2, a3}
 	MOV	a1, #5
-	@ MOV	a2, a2
+	MOV	a2, a3
 	SWI	XOS_File
-	LDMFD	sp!, {a3}
+	LDMFD	sp!, {a2, a3}
 	BVS	release_rma_and_restore_cli
 	TEQ	a1, #1		@ Is it a file or image file ?
 	TEQNE	a1, #3
@@ -1233,7 +1237,7 @@ update_cli_in_proc:
 	TEQ	a1, #0
 	BNE	skip_handler_setup
 
-	@ Set up exit and error handlers so we get control back then
+	@ Set up exit and error handlers so we get control back when
 	@ the program exits
 	MOV	a1, #11
 	ADR	a2, exit_handler
