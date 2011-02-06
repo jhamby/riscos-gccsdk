@@ -7,4 +7,22 @@ AB_PVERSION=svn-$(date +%Y%m%d)
 AB_PRECONF=:
 
 # Source actually contains ARMV5 instuctions, so can't select ARMV4
-./configure --prefix=$GCCSDK_INSTALL_ENV --enable-static --disable-shared --cross-prefix=$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos- --arch=arm --cpu=armv5te --extra-cflags=-DHAVE_LRINTF=1
+./configure --prefix=$GCCSDK_INSTALL_ENV --enable-static --enable-ffplay --disable-shared --cross-prefix=$GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos- --arch=arm --cpu=armv5te --target-os=linux --enable-zlib
+
+ab_package () {
+  ab_create_command_app FFmpeg Apps/Audio
+  ab_add_commands $S/ffmpeg$AB_EXEEXT $S/ffplay$AB_EXEEXT
+  
+  mkdir $A/doc
+  
+  cp -av $S/doc/*.html $A/doc
+  cp -av $S/doc/*.txt $A/doc
+  cp -av $S/doc/TODO $A/doc
+  cp -av $S/doc/APIchanges $A/doc
+
+  cp -av $S/COPYING* $A
+  cp -av $S/MAINTAINERS $S/README $S/LICENSE $S/CREDITS $S/Changelog $A
+
+  $AB_HOME/add-riscpkg -unixlib -name FFmpeg -copyrightfile $S/LICENSE
+}
+
