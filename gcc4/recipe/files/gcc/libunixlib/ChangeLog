@@ -1,3 +1,8 @@
+Tue Feb  8 03:17:42 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am: Revert previous change.  This wrongly results in PIC
+	enabled libunixlib.a archives.
+
 Sat Feb  5 10:55:00 UTC 2011  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* module/sul.s: Test the existence of the canonicalised	filename on
