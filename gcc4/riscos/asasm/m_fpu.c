@@ -106,6 +106,12 @@ static int oFPUsageNOFP_Line = 0; /**< Place of NOFP (linenumber).  */
 static bool
 CheckFPUsageIsAllowed (void)
 {
+  if (option_apcs_softfloat)
+    {
+      error (ErrorError, "soft-float code uses hard FP instructions");
+      return false;
+    }
+
   switch (oFPUsage)
     {
       case eFPUsage_Possible:
@@ -258,9 +264,6 @@ getFloatRhs (ARMWord ir)
 static void
 dstlhsrhs (ARMWord ir)
 {
-  if (option_apcs_softfloat)
-    error (ErrorWarning, "soft-float code uses hard FP instructions");
-
   ARMWord op = getFpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
@@ -450,9 +453,6 @@ m_suf (void)
 static void
 dstrhs (ARMWord ir)
 {
-  if (option_apcs_softfloat)
-    error (ErrorWarning, "soft-float code uses hard FP instructions");
-
   ARMWord op = getFpuReg ();
   ir |= DST_OP (op);
   skipblanks ();
@@ -672,9 +672,6 @@ m_nrm (void)
 static void
 comparelow (ARMWord ir)		/* No precision and no rounding allowed ? */
 {
-  if (option_apcs_softfloat)
-    error (ErrorWarning, "soft-float code uses hard FP instructions");
-
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
   if (!Input_Match (',', true))
@@ -720,9 +717,6 @@ m_fix (void)
   if (cc == optionError)
     return true;
 
-  if (option_apcs_softfloat)
-    error (ErrorWarning, "soft-float code uses hard FP instructions");
-
   ARMWord ir = M_FIX | cc;
   ir |= DST_OP (getCpuReg ());
   skipblanks ();
@@ -742,9 +736,6 @@ m_flt (void)
   if (cc == optionError)
     return true;
 
-  if (option_apcs_softfloat)
-    error (ErrorWarning, "soft-float code uses hard FP instructions");
-
   ARMWord ir = M_FLT | cc;
   ir |= LHS_OP (getFpuReg ());
   skipblanks ();
@@ -758,9 +749,6 @@ m_flt (void)
 static void
 flagtransfer (ARMWord ir)
 {
-  if (option_apcs_softfloat)
-    error (ErrorWarning, "soft-float code uses hard FP instructions");
-
   ARMWord op = getCpuReg ();
   ir |= DST_OP (op);
   Put_Ins (ir);
@@ -821,9 +809,6 @@ m_rfc (void)
 static void
 dstmem (ARMWord ir)
 {
-  if (option_apcs_softfloat)
-    error (ErrorWarning, "soft-float code uses hard FP instructions");
-    
   ir |= DST_OP (getFpuReg ());
   ir = help_copAddr (ir, false);
   Put_Ins (ir);
@@ -859,9 +844,6 @@ m_ldf (void)
 static void
 dstmemx (ARMWord ir)
 {
-  if (option_apcs_softfloat)
-    error (ErrorWarning, "soft-float code uses hard FP instructions");
-
   const char * const inputMark = Input_GetMark ();
   bool stack_ia = false;
   bool stack = !isspace ((unsigned char)inputLook ());
