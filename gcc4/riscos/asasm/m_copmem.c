@@ -38,14 +38,14 @@
 
 
 static void
-dstmem (ARMWord ir)
+dstmem (ARMWord ir, bool literal)
 {
   ir |= CP_NUMBER (getCopNum ());
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= CPDST_OP (getCopReg ());
-  ir = help_copAddr (ir, false);
+  ir = help_copAddr (ir, literal, false);
   Put_Ins (ir);
 }
 
@@ -59,7 +59,7 @@ m_ldc (void)
   ARMWord cc = optionCondL ();
   if (cc == optionError)
     return true;
-  dstmem (cc | 0x0c100000);
+  dstmem (cc | 0x0c100000, true);
   return false;
 }
 
@@ -75,7 +75,7 @@ m_ldc2 (void)
     return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv5);
-  dstmem (cc | 0x0c100000 | NV);
+  dstmem (cc | 0x0c100000 | NV, true);
   return false;
 }
 
@@ -89,7 +89,7 @@ m_stc (void)
   ARMWord cc = optionCondL ();
   if (cc == optionError)
     return true;
-  dstmem (cc | 0x0c000000);
+  dstmem (cc | 0x0c000000, false);
   return false;
 }
 
@@ -105,6 +105,6 @@ m_stc2 (void)
     return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv5);
-  dstmem (cc | 0x0c000000 | NV);
+  dstmem (cc | 0x0c000000 | NV, false);
   return false;
 }

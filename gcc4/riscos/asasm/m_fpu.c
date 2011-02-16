@@ -132,6 +132,20 @@ CheckFPUsageIsAllowed (void)
   return false;
 }
 
+/**
+ * Called for:
+ *   <POW|RPW|POL> {cond} <S|D|E>{P|M|Z} Fd, Fn, <Fm|#value>
+ *   <LOG|LGN|EXP|SIN|COS|TAN|ASN|ACS|ATN> {cond}<S|D|E>{P|M|Z} Fd, <Fm|#value>
+ * These FPA instructions are always trapped.
+ */
+static bool
+CheckFPUsageIsAllowedAndGiveHWWarning (void)
+{
+  bool rtrn = CheckFPUsageIsAllowed ();
+  error (ErrorWarning, "FPA opcode will never be executed hardware accelerated");
+  return rtrn;
+}
+
 static ARMWord
 fpuImm (ARMFloat d)
 {
@@ -279,7 +293,8 @@ dstlhsrhs (ARMWord ir)
 
 
 /**
- * Implements ADF.
+ * Implements ADF (add).
+ *   Fd := Fn + Fm
  */
 bool
 m_adf (void)
@@ -292,7 +307,8 @@ m_adf (void)
 }
 
 /**
- * Implements DVF.
+ * Implements DVF (divide).
+ *   Fd := Fn / Fm
  */
 bool
 m_dvf (void)
@@ -305,7 +321,8 @@ m_dvf (void)
 }
 
 /**
- * Implements FDV.
+ * Implements FDV (fast divide).
+ *   Fd := Fn / Fm
  */
 bool
 m_fdv (void)
@@ -313,12 +330,15 @@ m_fdv (void)
   ARMWord cc = optionCondPrecRound ();
   if (cc == optionError)
     return true;
+  if ((cc & PRECISION_MASK) != PRECISION_SINGLE)
+    error (ErrorWarning, "%s is only defined for single precision use", "FDV");
   dstlhsrhs (M_FDV | cc);
   return CheckFPUsageIsAllowed ();
 }
 
 /**
- * Implements FML.
+ * Implements FML (fast multiply).
+ *   Fd := Fn * Fm
  */
 bool
 m_fml (void)
@@ -326,12 +346,15 @@ m_fml (void)
   ARMWord cc = optionCondPrecRound ();
   if (cc == optionError)
     return true;
+  if ((cc & PRECISION_MASK) != PRECISION_SINGLE)
+    error (ErrorWarning, "%s is only defined for single precision use", "FML");
   dstlhsrhs (M_FML | cc);
   return CheckFPUsageIsAllowed ();
 }
 
 /**
- * Implements FRD.
+ * Implements FRD (fast reverse divide).
+ *   Fd := Fm / Fn 
  */
 bool
 m_frd (void)
@@ -339,12 +362,15 @@ m_frd (void)
   ARMWord cc = optionCondPrecRound ();
   if (cc == optionError)
     return true;
+  if ((cc & PRECISION_MASK) != PRECISION_SINGLE)
+    error (ErrorWarning, "%s is only defined for single precision use", "FRD");
   dstlhsrhs (M_FRD | cc);
   return CheckFPUsageIsAllowed ();
 }
 
 /**
- * Implements MUF.
+ * Implements MUF (multiply).
+ *   Fd := Fn * Fm 
  */
 bool
 m_muf (void)
@@ -357,7 +383,8 @@ m_muf (void)
 }
 
 /**
- * Implements POL.
+ * Implements POL (polar angle, arctan2).
+ *   Fd := polar angle of (Fn, Fm) 
  */
 bool
 m_pol (void)
@@ -366,11 +393,12 @@ m_pol (void)
   if (cc == optionError)
     return true;
   dstlhsrhs (M_POL | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements POW.
+ * Implements POW (power).
+ *   Fd := Fn raised to the power of Fm 
  */
 bool
 m_pow (void)
@@ -379,11 +407,12 @@ m_pow (void)
   if (cc == optionError)
     return true;
   dstlhsrhs (M_POW | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements RDF.
+ * Implements RDF (reverse divide).
+ *   Fd := Fm / Fn 
  */
 bool
 m_rdf (void)
@@ -396,7 +425,8 @@ m_rdf (void)
 }
 
 /**
- * Implements RMF.
+ * Implements RMF (remainder).
+ *   Fd := IEEE remainder of Fn / Fm 
  */
 bool
 m_rmf (void)
@@ -409,7 +439,8 @@ m_rmf (void)
 }
 
 /**
- * Implements RPW.
+ * Implements RPW (reverse power).
+ *   Fd := Fm raised to the power of Fn 
  */
 bool
 m_rpw (void)
@@ -418,11 +449,12 @@ m_rpw (void)
   if (cc == optionError)
     return true;
   dstlhsrhs (M_RPW | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements RSF.
+ * Implements RSF (reverse subtract).
+ *   Fd := Fm - Fn
  */
 bool
 m_rsf (void)
@@ -435,7 +467,8 @@ m_rsf (void)
 }
 
 /**
- * Implements SUF.
+ * Implements SUF (subtract).
+ *   Fd := Fn - Fm 
  */
 bool
 m_suf (void)
@@ -462,7 +495,8 @@ dstrhs (ARMWord ir)
 }
 
 /**
- * Implements ABS.
+ * Implements ABS (absolute value).
+ *   Fd := ABS ( Fm ) 
  */
 bool
 m_abs (void)
@@ -475,7 +509,8 @@ m_abs (void)
 }
 
 /**
- * Implements ACS.
+ * Implements ACS (arc cosine).
+ *   Fd := arccosine of Fm
  */
 bool
 m_acs (void)
@@ -484,11 +519,12 @@ m_acs (void)
   if (cc == optionError)
     return true;
   dstrhs (M_ACS | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements ASN.
+ * Implements ASN (arc sine).
+ *   Fd := arcsine of Fm
  */
 bool
 m_asn (void)
@@ -497,11 +533,12 @@ m_asn (void)
   if (cc == optionError)
     return true;
   dstrhs (M_ASN | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements ATN.
+ * Implements ATN (arc tanget).
+ *   Fd := arctangent of Fm
  */
 bool
 m_atn (void)
@@ -510,11 +547,12 @@ m_atn (void)
   if (cc == optionError)
     return true;
   dstrhs (M_ATN | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements COS.
+ * Implements COS (cosine).
+ *   Fd := cosine of Fm 
  */
 bool
 m_cos (void)
@@ -523,11 +561,12 @@ m_cos (void)
   if (cc == optionError)
     return true;
   dstrhs (M_COS | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements EXP.
+ * Implements EXP (exponent).
+ *   Fd := e ** Fm 
  */
 bool
 m_exp (void)
@@ -536,11 +575,12 @@ m_exp (void)
   if (cc == optionError)
     return true;
   dstrhs (M_EXP | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements LGN.
+ * Implements LGN (logarithm to base e).
+ *   Fd := ln of Fm 
  */
 bool
 m_lgn (void)
@@ -549,11 +589,12 @@ m_lgn (void)
   if (cc == optionError)
     return true;
   dstrhs (M_LGN | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements LOG.
+ * Implements LOG (logarithm to base 10).
+ *   Fd := log10 of Fm
  */
 bool
 m_log (void)
@@ -562,11 +603,12 @@ m_log (void)
   if (cc == optionError)
     return true;
   dstrhs (M_LOG | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements MNF.
+ * Implements MNF (move negated).
+ *   Fd := - Fm 
  */
 bool
 m_mnf (void)
@@ -579,7 +621,8 @@ m_mnf (void)
 }
 
 /**
- * Implements MVF.
+ * Implements MVF (move).
+ *   Fd := Fm 
  */
 bool
 m_mvf (void)
@@ -592,7 +635,8 @@ m_mvf (void)
 }
 
 /**
- * Implements RND.
+ * Implements RND (round to integral value).
+ *   Fd := integer value of Fm 
  */
 bool
 m_rnd (void)
@@ -605,7 +649,8 @@ m_rnd (void)
 }
 
 /**
- * Implements SIN.
+ * Implements SIN (sine).
+ *   Fd := sine of Fm 
  */
 bool
 m_sin (void)
@@ -614,11 +659,12 @@ m_sin (void)
   if (cc == optionError)
     return true;
   dstrhs (M_SIN | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements SQT.
+ * Implements SQT (square root).
+ *   Fd := square root of Fm
  */
 bool
 m_sqt (void)
@@ -631,7 +677,8 @@ m_sqt (void)
 }
 
 /**
- * Implements TAN.
+ * Implements TAN (tanget).
+ *   Fd := tangent of Fm
  */
 bool
 m_tan (void)
@@ -640,11 +687,12 @@ m_tan (void)
   if (cc == optionError)
     return true;
   dstrhs (M_TAN | cc);
-  return CheckFPUsageIsAllowed ();
+  return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
 
 /**
- * Implements URD.
+ * Implements URD (unnormalized round).
+ *   Fd := integer value of Fm, possibly in abnormal form
  */
 bool
 m_urd (void)
@@ -657,7 +705,8 @@ m_urd (void)
 }
 
 /**
- * Implements NRM.
+ * Implements NRM (normalize).
+ *   Fd := normalized form of Fm 
  */
 bool
 m_nrm (void)
@@ -680,7 +729,7 @@ comparelow (ARMWord ir)		/* No precision and no rounding allowed ? */
 }
 
 /**
- * Implements CMF.
+ * Implements CMF/CMFE (compare floating).
  */
 bool
 m_cmf (void)
@@ -693,7 +742,7 @@ m_cmf (void)
 }
 
 /**
- * Implements CNF.
+ * Implements CNF/CNFE (compare negated floating).
  */
 bool
 m_cnf (void)
@@ -708,7 +757,8 @@ m_cnf (void)
 /** REGISTER TRANSFER **/
 
 /**
- * Implements FIX.
+ * Implements FIX (convert floating-point to integer).
+ *   Rd := Fm
  */
 bool
 m_fix (void)
@@ -727,7 +777,8 @@ m_fix (void)
 }
 
 /**
- * Implements FLT.
+ * Implements FLT (convert integer to floating-point).
+ *   Fn := Rd
  */
 bool
 m_flt (void)
@@ -755,7 +806,8 @@ flagtransfer (ARMWord ir)
 }
 
 /**
- * Implements WFS.
+ * Implements WFS (write floating point status register).
+ *   FPSR := Rd
  */
 bool
 m_wfs (void)
@@ -768,7 +820,8 @@ m_wfs (void)
 }
 
 /**
- * Implements RFS.
+ * Implements RFS (read floating point status register).
+ *   Rd := FPSR 
  */
 bool
 m_rfs (void)
@@ -781,7 +834,8 @@ m_rfs (void)
 }
 
 /**
- * Implements WFC.
+ * Implements WFC (write floating point control register).
+ *   FPCR:= Rd 
  */
 bool
 m_wfc (void)
@@ -794,7 +848,8 @@ m_wfc (void)
 }
 
 /**
- * Implements RFC.
+ * Implements RFC (read floating pointer control register).
+ *   Rd := FPCR
  */
 bool
 m_rfc (void)
@@ -807,10 +862,10 @@ m_rfc (void)
 }
 
 static void
-dstmem (ARMWord ir)
+dstmem (ARMWord ir, bool literal)
 {
   ir |= DST_OP (getFpuReg ());
-  ir = help_copAddr (ir, false);
+  ir = help_copAddr (ir, literal, false);
   Put_Ins (ir);
 }
 
@@ -823,7 +878,7 @@ m_stf (void)
   ARMWord cc = optionCondPrec_P ();
   if (cc == optionError)
     return true;
-  dstmem (0x0c000100 | cc);
+  dstmem (0x0c000100 | cc, false);
   return CheckFPUsageIsAllowed ();
 }
 
@@ -836,17 +891,21 @@ m_ldf (void)
   ARMWord cc = optionCondPrec_P ();
   if (cc == optionError)
     return true;
-  dstmem (0x0c100100 | cc);
+  dstmem (0x0c100100 | cc, true);
   return CheckFPUsageIsAllowed ();
 }
 
 
-static void
+/**
+ * \return false when rest of the mnemonic gets recognized as part of LFM/SFM.
+ * true otherwise (so we can reparse it as macro).
+ */
+static bool
 dstmemx (ARMWord ir)
 {
-  const char * const inputMark = Input_GetMark ();
-  bool stack_ia = false;
-  bool stack = !isspace ((unsigned char)inputLook ());
+  bool isLoad = (ir & 0x100000) != 0;
+  bool stack_ia;
+  bool stack = !Input_IsEndOfKeyword ();
   if (stack)
     {
       char c1 = toupper (inputLook ());
@@ -856,21 +915,20 @@ dstmemx (ARMWord ir)
       else if (c1 == 'I' && c2 == 'A')
 	stack_ia = true;
       else if (c1 == 'E' && c2 == 'A')
-	stack_ia = (ir & 0x100000) ? false : true;
+	stack_ia = isLoad ? false : true;
       else if (c1 == 'F' && c2 == 'D')
-	stack_ia = (ir & 0x100000) ? true : false;
+	stack_ia = isLoad ? true : false;
       else
-	error (ErrorError, "Illegal stack type for %cfm (%c%c)",
-	       (ir & 0x100000) ? 'l' : 's', c1, c2);
+	return true;
       inputSkipN (2);
       if (stack_ia)
 	ir |= 0x800000;
     }
-  if (inputLook () && !isspace ((unsigned char)inputLook ()))
-    {
-      errorAbort ("Can't parse \"%s\" of SFM/LFM", inputMark);
-      return;
-    }
+  else
+    stack_ia = false;
+  if (!Input_IsEndOfKeyword ())
+    return true;
+
   skipblanks ();
   ir |= DST_OP (getFpuReg ());
   skipblanks ();
@@ -883,15 +941,16 @@ dstmemx (ARMWord ir)
 	error (ErrorError, "Number of fp registers out of range");
     }
   else
-    error (ErrorError, "Illegal %cfm expression", (ir & 0x100000) ? 'l' : 's');
+    error (ErrorError, "Illegal %cFM expression", isLoad ? 'L' : 'S');
   ir |= (im->Data.Int.i & 1) << 15;
   ir |= (im->Data.Int.i & 2) << 21;
   if (stack)
     ir |= stack_ia ? 0x800000 : 0x1000000;
-  ir = help_copAddr (ir, stack);
+  ir = help_copAddr (ir, isLoad, stack);
   if (stack && (!stack_ia || (ir & 0x200000)))
     ir |= 3 * im->Data.Int.i;
   Put_Ins (ir);
+  return false;
 }
 
 /**
@@ -903,7 +962,8 @@ m_sfm (void)
   ARMWord cc = optionCondLfmSfm ();
   if (cc == optionError)
     return true;
-  dstmemx (0x0c000200 | cc);
+  if (dstmemx (0x0c000200 | cc))
+    return true;
   return CheckFPUsageIsAllowed ();
 }
 
@@ -916,7 +976,8 @@ m_lfm (void)
   ARMWord cc = optionCondLfmSfm ();
   if (cc == optionError)
     return true;
-  dstmemx (0x0c100200 | cc);
+  if (dstmemx (0x0c100200 | cc))
+    return true;
   return CheckFPUsageIsAllowed ();
 }
 

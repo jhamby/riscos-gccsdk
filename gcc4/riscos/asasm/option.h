@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,7 +37,6 @@ ARMWord Option_CondRfeSrs (bool isLoad);
 ARMWord optionCondLdmStm (bool isLDM);
 ARMWord optionCondLfmSfm (void);
 ARMWord optionCondPrecRound (void);
-ARMWord optionCondOptPrecRound (void);
 ARMWord optionCondPrec_P (void);
 ARMWord optionCondL (void);
 
@@ -105,10 +104,13 @@ ARMWord optionAdrL (void);
 #define STACKMODE_DB (P_FLAG |      0)
 #define STACKMODE_DA (     0 |      0)
 
+/* FPA precision bits (except for LDF/STF usage).  */
 #define PRECISION_SINGLE    ((ARMWord)0x00000000)
 #define PRECISION_DOUBLE    ((ARMWord)0x00000080)
 #define PRECISION_EXTENDED  ((ARMWord)0x00080000)
+#define PRECISION_MASK      ((ARMWord)0x00080080)
 
+/* FPA precision bits for LDF/STF usage.  */
 #define PRECISION_MEM_SINGLE    ((ARMWord)0x00000000)
 #define PRECISION_MEM_DOUBLE    ((ARMWord)0x00008000)
 #define PRECISION_MEM_EXTENDED  ((ARMWord)0x00400000)

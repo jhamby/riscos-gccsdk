@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -64,11 +64,11 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {
 {
   int cop = CP_NUMBER (getCopNum ());
 
-  /* FPA uses coprocessor 1 and 2.  FIXME: why no check on 2 ? */
-  if (cop == CP_NUMBER (1))
+  /* FPA uses coprocessor 1 and 2 (the latter only for LFM/SFM).  */
+  if (cop == CP_NUMBER (1) || cop == CP_NUMBER (2))
     {
       if (option_pedantic)
-	error (ErrorInfo, "Coprocessor 1 is the floating point unit. Use a floating point mnemonic if possible");
+	error (ErrorInfo, "Coprocessor 1 is the floating point unit (FPA). Use a floating point mnemonic if possible");
     }
   ir |= cop;
 

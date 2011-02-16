@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -42,10 +42,19 @@
 
 
 /**
- * Called for ",[Rx" ( ",#y]" [ "!" ] ) | "], #z"
+ * Pre-indexed:
+ *   ", [Rx]"
+ *   ", [Rx, #<expression>]"
+ *   ", [Rx, #<expression>]!"
+ * Post-indexed:
+ *   ", [Rx], #<expression>"
+ *   ", [Rx], {<expression>}" (ObjAsm compatibility)
+ * Other:
+ *   ", =<literal>"
+ *   ", <label>"
  */
 ARMWord
-help_copAddr (ARMWord ir, bool stack)
+help_copAddr (ARMWord ir, bool literal, bool stack)
 {
   skipblanks ();
   if (!Input_Match (',', true))
@@ -58,7 +67,7 @@ help_copAddr (ARMWord ir, bool stack)
           skipblanks ();
           ir |= LHS_OP (getCpuReg ());	/* Base register */
           skipblanks ();
-	  bool pre = !Input_Match (']', true);
+	  bool preIndexed = !Input_Match (']', true);
           bool offValue = false;
 	  if (Input_Match (',', true))
 	    {			/* either [base,XX] or [base],XX */
@@ -80,7 +89,7 @@ help_copAddr (ARMWord ir, bool stack)
 		        error (ErrorError, "Illegal offset expression");
 		        break;
 		    }
-	          if (!pre)
+	          if (!preIndexed)
 		    ir |= W_FLAG; /* If postfix, set writeback */
 	        }
 	      else if (Input_Match ('{', false))
@@ -102,31 +111,32 @@ help_copAddr (ARMWord ir, bool stack)
 	    }
           else
 	    {			/* cop_reg,[base] if this way */
-	      if (pre)
+	      if (preIndexed)
 	        error (ErrorError, "Illegal character '%c' after base", inputLook ());
 	      if (!stack)
 	        ir |= U_FLAG;	/* changes #-0 to #+0 :-) */
 	    }
-          if (pre)
+          if (preIndexed)
 	    {
 	      if (!Input_Match (']', true))
 	        error (ErrorError, "Inserting missing ] after address");
 	    }
           else if (!stack && !offValue)
-	    pre = true;		/* make [base] into [base,#0] */
+	    preIndexed = true;		/* make [base] into [base,#0] */
 	  if (Input_Match ('!', true))
 	    {
-	      if (pre || stack)
+	      if (preIndexed || stack)
 	        ir |= W_FLAG;
 	      else
 	        error (ErrorError, "Writeback is implied with post-index");
 	    }
           else if (stack)
-	    pre = true;		/* [base] in stack context => [base,#0] */
-          if (pre)
+	    preIndexed = true;		/* [base] in stack context => [base,#0] */
+          if (preIndexed)
 	    ir |= P_FLAG;
+	  break;
 	}
-        break;
+
       case '=':
 	{
           inputSkip ();
@@ -161,8 +171,9 @@ help_copAddr (ARMWord ir, bool stack)
 	        error (ErrorAbort, "Internal error: help_copAddr");
 	        break;
 	    }
+	  break;
 	}
-        break;
+
       default:
 	{
           if (stack)
@@ -191,8 +202,8 @@ help_copAddr (ARMWord ir, bool stack)
 	        error (ErrorError, "Illegal address expression");
 	        break;
 	    }
+	  break;
 	}
-        break;
     }
 
   return ir;

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2010 GCCSDK Developers
+ * Copyright (c) 2002-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,6 @@
 #define CPLHS_OP(n)  ((n)<<16) /* CRn */
 #define CP_INFO(n)   ((n)<< 5) /* CP */
 
-ARMWord help_copAddr (ARMWord ir, bool stack);
+ARMWord help_copAddr (ARMWord ir, bool literal, bool stack);
 
 #endif

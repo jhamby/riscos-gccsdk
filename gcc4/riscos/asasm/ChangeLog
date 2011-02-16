@@ -1,3 +1,22 @@
+Wed Feb 16 00:56:28 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/fpa_immediate.s: New.
+	* regression/tests_pass/fp.s: Avoid using F0/R0.
+	* help_cop.c, help_cop.h (help_copAddr): Add stack parameter.
+	* m_cop.c (coprocessor): Also test on coprocessor 2.
+	* option.c (getPrec): Rename to GetFPAPrecision.
+	(getRound): Rename to GetFPARounding.
+	(optionCondOptPrecRound): Remove.
+	* option.h (optionCondOptPrecRound): Remove.
+	(PRECISION_MASK): Add.
+	* m_copmem.c (dstmem): Add literal parameter.
+	* m_fpu.c (CheckFPUsageIsAllowedAndGiveHWWarning): Add.
+	(m_fdv,m_fml,m_frd): Warn when used in non-single precision.
+	(m_pol,m_pow,m_rpw,m_acs,m_asn,m_atn,m_cos,m_exp,m_lgn,m_log,m_sin,
+	m_tan): Warn these will never be hardware accelerated.
+	(dstmemx): Add bool return value and return true when mnemonic is not
+	recognized.
+
 Sat Feb 12 16:02:33 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_fpu.c (CheckFPUsageIsAllowed): Move all soft-float option testing

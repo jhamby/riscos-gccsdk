@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developersrs
+ * Copyright (c) 2000-2011 GCCSDK Developersrs
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -219,25 +219,25 @@ GetStackMode (bool isLoad)
 
 
 static ARMWord
-getPrec (int P)
+GetFPAPrecision (bool forLdfStfUsage)
 {
   switch (inputGet ())
     {
       case 'S':
-	return P ? PRECISION_MEM_SINGLE : PRECISION_SINGLE;
+	return forLdfStfUsage ? PRECISION_MEM_SINGLE : PRECISION_SINGLE;
       case 'D':
-	return P ? PRECISION_MEM_DOUBLE : PRECISION_DOUBLE;
+	return forLdfStfUsage ? PRECISION_MEM_DOUBLE : PRECISION_DOUBLE;
       case 'E':
-	return P ? PRECISION_MEM_EXTENDED : PRECISION_EXTENDED;
+	return forLdfStfUsage ? PRECISION_MEM_EXTENDED : PRECISION_EXTENDED;
       case 'P':
-	return P ? PRECISION_MEM_PACKED : optionError;
+	return forLdfStfUsage ? PRECISION_MEM_PACKED : optionError;
     }
   return optionError;
 }
 
 
 static ARMWord
-getRound (void)
+GetFPARounding (void)
 {
   switch (inputLook ())
     {
@@ -444,32 +444,27 @@ optionCondLfmSfm (void)
 }
 
 
+/**
+ * For all FPA (except LDF/STF) implementations.
+ */
 ARMWord
 optionCondPrecRound (void)
 {
   ARMWord option = GetCCode ();
-  if (optionError == (option |= getPrec (false)))
+  if (optionError == (option |= GetFPAPrecision (false)))
     return optionError;
-  return IsEndOfKeyword (option | getRound ());
+  return IsEndOfKeyword (option | GetFPARounding ());
 }
 
 
-ARMWord
-optionCondOptPrecRound (void)
-{
-  ARMWord optionCC = GetCCode ();
-  ARMWord optionPrec = getPrec (false);
-  if (optionError == optionPrec)
-    optionPrec = PRECISION_EXTENDED;
-  return IsEndOfKeyword (optionCC | optionPrec | getRound ());
-}
-
-
+/**
+ * For LDF/STF implementation.
+ */
 ARMWord
 optionCondPrec_P (void)
 {
   ARMWord option = GetCCode ();
-  if (optionError == (option |= getPrec (true)))
+  if (optionError == (option |= GetFPAPrecision (true)))
     return optionError;
   return IsEndOfKeyword (option);
 }
@@ -493,7 +488,7 @@ ARMWord
 optionCondOptRound (void)
 {
   ARMWord optionCC = GetCCode ();
-  return IsEndOfKeyword (optionCC | PRECISION_SINGLE | getRound ());
+  return IsEndOfKeyword (optionCC | PRECISION_SINGLE | GetFPARounding ());
 }
 
 
