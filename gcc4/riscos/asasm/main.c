@@ -164,7 +164,7 @@ asasm_help (void)
 	   "-PreDefine <value>         Predefine a value using SETA/SETS/SETL syntax.\n"
 	   "-Pedantic                  Display extra warnings.\n"
 	   "-Verbose                   Display progress information.\n"
-	   "-Fussy                     Display conversion information.  Can be specified more than once for more conversion information.\n"
+	   "-Fussy                     Display conversion information.\n"
 #ifdef __riscos__
 	   "-ThrowBack                 Throwback errors to a text editor.\n"
 #endif

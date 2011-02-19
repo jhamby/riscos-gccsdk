@@ -170,78 +170,86 @@ fpuImm (ARMFloat d)
 }
 
 static ARMWord
-fixImmFloat (ARMWord ir, ARMFloat im)
+Fix_ImmFloat (ARMWord ir, ARMFloat im)
 {
-  static const char op3[] = "Changing \"%s F_, F_, #%.1f\" to \"%s F_, F_, #%.1f\"";
-  static const char op2[] = "Changing \"%s F_, #%.1f\" to \"%s F_, #%.1f\"";
+  static const char op3[] = "Changing \"%s Fx, Fy, #%.1f\" to \"%s Fx, Fy, #%.1f\"";
+  static const char op2[] = "Changing \"%s Fx, #%.1f\" to \"%s Fx, #%.1f\"";
 
   int f = fpuImm (im);
   if (f != -1)
     return ir | f;
 
-  /* Immediate float constant was illegal.  */
+  /* Immediate float constant was illegal, try the inverse.  */
   f = fpuImm (-im);
+
+  ARMWord mnemonic = ir & M_FMNEM;
+  ir &= ~M_FMNEM;
+  const char *m1, *m2, *optype;
   if (f == -1)
+    optype = NULL;
+  else
+    {
+      switch (mnemonic)
+	{
+	  case M_ADF:
+	    ir |= M_SUF;
+	    optype = op3; m1 = "ADF"; m2 = "SUF";
+	    break;
+
+	  case M_SUF:
+	    ir |= M_ADF;
+	    optype = op3; m1 = "SUF"; m2 = "ADF";
+	    break;
+
+	  case M_MVF:
+	    ir |= M_MNF;
+	    optype = op2; m1 = "MVF"; m2 = "MNF";
+	    break;
+
+	  case M_MNF:
+	    ir |= M_MVF;
+	    optype = op2; m1 = "MNF"; m2 = "MVF";
+	    break;
+
+	  case M_CMF & M_FMNEM:
+	    ir |= M_CNF;
+	    optype = op2; m1 = "CMF"; m2 = "CNF";
+	    break;
+
+	  case M_CNF & M_FMNEM:
+	    ir |= M_CMF;
+	    optype = op2; m1 = "CNF"; m2 = "CMF";
+	    break;
+
+	  case (M_CMF | EXEPTION_BIT) & M_FMNEM:
+	    ir |= M_CNF | EXEPTION_BIT;
+	    optype = op2; m1 = "CMFE"; m2 = "CNFE";
+	    break;
+
+	  case (M_CNF | EXEPTION_BIT) & M_FMNEM:
+	    ir |= M_CMF | EXEPTION_BIT;
+	    optype = op2; m1 = "CNFE"; m2 = "CMFE";
+	    break;
+
+          case M_ABS:
+	    ir |= M_ABS;
+	    optype = op2; m1 = m2 = "ABS";
+	    break;
+	    
+	  default:
+	    optype = NULL;
+	    break;
+	}
+    }
+
+  if (optype == NULL)
     {
       /* Even the inverse cannot be represented.  */
       error (ErrorError, "Illegal immediate constant %g", im);
       return ir;
     }
 
-  /* Inverse immediate constant can be represented, so try to invert
-     the mnemonic.  */
-  ARMWord mnemonic = ir & M_FMNEM;
-  ir &= ~M_FMNEM;
-  const char *m1, *m2, *optype;
-  switch (mnemonic)
-    {
-      case M_ADF:
-        ir |= M_SUF;
-        optype = op3; m1 = "ADF"; m2 = "SUF";
-        break;
-
-      case M_SUF:
-        ir |= M_ADF;
-        optype = op3; m1 = "SUF"; m2 = "ADF";
-        break;
-
-      case M_MVF:
-        ir |= M_MNF;
-        optype = op2; m1 = "MVF"; m2 = "MNF";
-        break;
-
-      case M_MNF:
-        ir |= M_MVF;
-        optype = op2; m1 = "MNF"; m2 = "MVF";
-        break;
-
-      case M_CMF & M_FMNEM:
-        ir |= M_CNF;
-        optype = op2; m1 = "CMF"; m2 = "CNF";
-        break;
-
-      case M_CNF & M_FMNEM:
-        ir |= M_CMF;
-        optype = op2; m1 = "CNF"; m2 = "CMF";
-        break;
-
-      case (M_CMF | EXEPTION_BIT) & M_FMNEM:
-        ir |= M_CNF | EXEPTION_BIT;
-        optype = op2; m1 = "CMFE"; m2 = "CNFE";
-        break;
-
-      case (M_CNF | EXEPTION_BIT) & M_FMNEM:
-        ir |= M_CMF | EXEPTION_BIT;
-        optype = op2; m1 = "CNFE"; m2 = "CMFE";
-        break;
-
-      default:
-        errorAbort ("Internal fixImmFloat: unknown mnemonic");
-        return ir;
-        break;
-    }
-
-  if (option_fussy > 1)
+  if (option_fussy)
     error (ErrorInfo, optype, m1, im, m2, -im);
 
   return ir | f;
@@ -257,11 +265,13 @@ getFloatRhs (ARMWord ir)
       switch (im->Tag)
 	{
 	  case ValueInt:
-	    ir = fixImmFloat (ir, im->Data.Int.i);
+	    ir = Fix_ImmFloat (ir, im->Data.Int.i);
 	    break;
+
 	  case ValueFloat:
-	    ir = fixImmFloat (ir, im->Data.Float.f);
+	    ir = Fix_ImmFloat (ir, im->Data.Float.f);
 	    break;
+
 	  default:
 	    error (ErrorError, "Illegal float immediate");
 	    break;

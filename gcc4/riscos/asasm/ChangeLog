@@ -1,3 +1,12 @@
+Sat Feb 19 16:42:01 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/fpa_immediate.s: Add ABS test.
+	* code.c (codeEvalLow): One -fussy is enough.
+	* fix.c (fixImm8s4): Likewise.
+	* m_fpu.c (Fix_ImmFloat): Avoid unnecessary abort situation. One
+	-fussy is enough.
+	* main.c (asasm_help): Don't mention more than one -fussy.
+
 Wed Feb 16 00:56:28 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/fpa_immediate.s: New.

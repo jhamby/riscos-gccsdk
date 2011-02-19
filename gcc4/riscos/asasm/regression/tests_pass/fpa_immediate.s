@@ -77,6 +77,8 @@
 
 	CMFE	f1, #-4
 	CNFE	f1, #-4
+
+	ABSS	f1, #-4
 	|
 	SUFS	f1, f2, #4
 	ADFS	f1, f2, #4
@@ -89,6 +91,8 @@
 
 	CNFE	f1, #4
 	CMFE	f1, #4
+
+	ABSS	f1, #4
 	]
 
 	END

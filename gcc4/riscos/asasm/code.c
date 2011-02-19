@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -831,7 +831,7 @@ codeEvalLow (ValueTag legal, size_t size, Code *program,
           && (legal & ValueFloat) && Stack[0].Data.value.Tag == ValueInt)
 	{
 	  ARMFloat f = Stack[0].Data.value.Data.Int.i;
-	  if (option_fussy > 1)
+	  if (option_fussy)
 	    error (ErrorInfo, "Changing integer %d to float %1.1f", Stack[0].Data.value.Data.Int.i, f);
 	  Stack[0].Data.value.Tag = ValueFloat;
 	  Stack[0].Data.value.Data.Float.f = f;

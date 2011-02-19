@@ -77,8 +77,8 @@ Fix_ShiftImm (const char *file, int lineno, ARMWord shiftop, int shift)
 ARMWord
 fixImm8s4 (int lineno, ARMWord ir, int im)
 {
-  static const char op3[] = "Changing \"%s R_, R_, #%d\" to \"%s R_, R_, #%d\"";
-  static const char op2[] = "Changing \"%s R_, #%d\" to \"%s R_, #%d\"";
+  static const char op3[] = "Changing \"%s Rx, Ry, #%d\" to \"%s Rx, Ry, #%d\"";
+  static const char op2[] = "Changing \"%s Rx, #%d\" to \"%s Rx, #%d\"";
 
   int i8s4 = help_cpuImm8s4 (im);
   if (i8s4 != -1)
@@ -91,23 +91,25 @@ fixImm8s4 (int lineno, ARMWord ir, int im)
   int im2;
   switch (mnemonic)
     {
-    case M_ADD:
-    case M_SUB:
-    case M_ADC:
-    case M_SBC:
-    case M_CMP:
-    case M_CMN:
-      im2 = -im;
-      break;
-    case M_MOV:
-    case M_MVN:
-    case M_AND:
-    case M_BIC:
-      im2 = ~im;
-      break;
-    default:
-      im2 = im;
-      break;
+      case M_ADD:
+      case M_SUB:
+      case M_ADC:
+      case M_SBC:
+      case M_CMP:
+      case M_CMN:
+	im2 = -im;
+	break;
+
+      case M_MOV:
+      case M_MVN:
+      case M_AND:
+      case M_BIC:
+	im2 = ~im;
+	break;
+
+      default:
+	im2 = im;
+	break;
     }
   i8s4 = help_cpuImm8s4 (im2);
   if (i8s4 == -1)
@@ -121,52 +123,52 @@ fixImm8s4 (int lineno, ARMWord ir, int im)
   const char *m1, *m2, *optype;
   switch (mnemonic)
     {			/* try changing opcode */
-    case M_ADD:
-      ir |= M_SUB;
-      optype = op3; m1 = "ADD"; m2 = "SUB";
-      break;
-    case M_SUB:
-      ir |= M_ADD;
-      optype = op3; m1 = "SUB"; m2 = "ADD";
-      break;
-    case M_ADC:
-      ir |= M_SBC;
-      optype = op3; m1 = "ADC"; m2 = "SBC";
-      break;
-    case M_SBC:
-      ir |= M_ADC;
-      optype = op3; m1 = "SBC"; m2 = "ADC";
-      break;
-    case M_CMP:
-      ir |= M_CMN;
-      optype = op2; m1 = "CMP"; m2 = "CMN";
-      break;
-    case M_CMN:
-      ir |= M_CMP;
-      optype = op2; m1 = "CMN"; m2 = "CMP";
-      break;
-    case M_MOV:
-      ir |= M_MVN;
-      optype = op2; m1 = "MOV"; m2 = "MVN";
-      break;
-    case M_MVN:
-      ir |= M_MOV;
-      optype = op2; m1 = "MVN"; m2 = "MOV";
-      break;
-    case M_AND:
-      ir |= M_BIC;
-      optype = op3; m1 = "AND"; m2 = "BIC";
-      break;
-    case M_BIC:
-      ir |= M_AND;
-      optype = op3; m1 = "BIC"; m2 = "AND";
-      break;
-    default:
-      errorAbortLine (NULL, lineno, "Internal fixImm8s4: unknown mnemonic");
-      return ir;
-   }
-
-  if (option_fussy > 1)
+      case M_ADD:
+	ir |= M_SUB;
+	optype = op3; m1 = "ADD"; m2 = "SUB";
+	break;
+      case M_SUB:
+	ir |= M_ADD;
+	optype = op3; m1 = "SUB"; m2 = "ADD";
+	break;
+      case M_ADC:
+	ir |= M_SBC;
+	optype = op3; m1 = "ADC"; m2 = "SBC";
+	break;
+      case M_SBC:
+	ir |= M_ADC;
+	optype = op3; m1 = "SBC"; m2 = "ADC";
+	break;
+      case M_CMP:
+	ir |= M_CMN;
+	optype = op2; m1 = "CMP"; m2 = "CMN";
+	break;
+      case M_CMN:
+	ir |= M_CMP;
+	optype = op2; m1 = "CMN"; m2 = "CMP";
+	break;
+      case M_MOV:
+	ir |= M_MVN;
+	optype = op2; m1 = "MOV"; m2 = "MVN";
+	break;
+      case M_MVN:
+	ir |= M_MOV;
+	optype = op2; m1 = "MVN"; m2 = "MOV";
+	break;
+      case M_AND:
+	ir |= M_BIC;
+	optype = op3; m1 = "AND"; m2 = "BIC";
+	break;
+      case M_BIC:
+	ir |= M_AND;
+	optype = op3; m1 = "BIC"; m2 = "AND";
+	break;
+      default:
+	errorAbortLine (NULL, lineno, "Internal fixImm8s4: unknown mnemonic");
+	return ir;
+    }
+  
+  if (option_fussy)
     errorLine (NULL, lineno, ErrorInfo, optype, m1, im, m2, im2);
 
   return ir | i8s4;
