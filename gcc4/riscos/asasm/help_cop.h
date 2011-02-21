@@ -33,6 +33,8 @@
 #define CPLHS_OP(n)  ((n)<<16) /* CRn */
 #define CP_INFO(n)   ((n)<< 5) /* CP */
 
-ARMWord help_copAddr (ARMWord ir, bool literal, bool stack);
+#define CP_GET_NUMBER(ir) (((ir)>>8) & 0xF) /**< Get coprocessor number.  */
+
+void help_copAddr (ARMWord ir, bool literal, bool stack);
 
 #endif

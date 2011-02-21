@@ -50,7 +50,7 @@ field8	# 128
 	DCD	:BASE:late_field1	; Not supported by objasm.
 	]
 	LDR	r0, late_field1
-; FIXME	LDR	r0, [r1, #late_field2]
+	LDR	r0, [r1, #late_field2]
 ; FIXME	MOV	r0, #late_field2
 
 	^	12, r11
@@ -88,7 +88,7 @@ late_field2 #	32
 	DCD	11
 	]
 	LDR	r0, [r11, #20]
-; FIXME	LDR	r0, [r1, #36]
+	LDR	r0, [r1, #36]
 ; FIXME	MOV	r0, #36
 
 	]

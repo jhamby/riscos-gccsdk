@@ -496,7 +496,6 @@ l_onlyregs (ARMWord ir, const char *op)
   if (issmull)
     {
       Target_NeedAtLeastArch (ARCH_ARMv4);
-      skipblanks ();
       dstl = getCpuReg ();
       if (!Input_Match (',', true))
         error (ErrorError, "%sdst_h", InsertCommaAfter);
@@ -504,7 +503,6 @@ l_onlyregs (ARMWord ir, const char *op)
   else
     {
       Target_NeedAtLeastArch (ARCH_ARMv5TE);
-      skipblanks ();
       if (issmlalxy)
         {
           dstl = getCpuReg ();
@@ -953,7 +951,6 @@ UALShift (ARMWord shiftType)
   if (cc == optionError)
     return true;
 
-  skipblanks ();
   ARMWord regD = getCpuReg ();
   if (regD == INVALID_REG)
     return false;
@@ -1057,7 +1054,6 @@ m_rrx (void)
   if (cc == optionError)
     return true;
 
-  skipblanks ();
   ARMWord regD = getCpuReg ();
   if (regD == INVALID_REG)
     return false;

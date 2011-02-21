@@ -21,8 +21,8 @@ tst8_b	%	4
 		; Normal offset:
 		LDR	r1, [r2, #tst1_b]
 		STR	r1, [r2, #tst2_b]
-; FIXME		LDR	r1, [r2, #tst1_a]
-; FIXME		STR	r1, [r2, #tst2_a]
+		LDR	r1, [r2, #tst1_a]
+		STR	r1, [r2, #tst2_a]
 
 		; Offset containing base register:
 		LDR	r2, tst4_b
@@ -38,8 +38,8 @@ tst8_b	%	4
 	|
 		LDR	r1, [r2]
 		STR	r1, [r2, #4]
-; FIXME		LDR	r1, [r2]
-; FIXME		STR	r1, [r2, #4]
+		LDR	r1, [r2]
+		STR	r1, [r2, #4]
 
 		LDR	r2, [r9, #0x14]
 		STR	r2, [r9, #0x18]
@@ -58,8 +58,8 @@ tst8_b	%	4
 		; Normal offset:
 		LDR	r1, [r2, #tst1_b]
 		STR	r1, [r2, #tst2_b]
-; FIXME		LDR	r1, [r2, #tst1_a]
-; FIXME		STR	r1, [r2, #tst2_a]
+		LDR	r1, [r2, #tst1_a]
+		STR	r1, [r2, #tst2_a]
 
 		; Offset containing base register:
 		LDR	r2, tst4_b
@@ -75,8 +75,8 @@ tst8_b	%	4
 	|
 		LDR	r1, [r2]
 		STR	r1, [r2, #4]
-; FIXME		LDR	r1, [r2]
-; FIXME		STR	r1, [r2, #4]
+		LDR	r1, [r2]
+		STR	r1, [r2, #4]
 
 		LDR	r2, [r9, #0x14]
 		STR	r2, [r9, #0x18]

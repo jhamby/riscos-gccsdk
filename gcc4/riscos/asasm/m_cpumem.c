@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developersrs
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -49,6 +49,8 @@
 
 /**
  * Reloc updater for dstmem() for pre-increment based on symbols.
+ *
+ * Similar to DestMem_RelocUpdaterCoPro() @ help_cop.c.
  */
 static bool
 DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
@@ -77,19 +79,20 @@ DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	  case ValueInt:
 	    {
 	      /* This can only happen when "LDR Rx, =<constant>" can be turned into
-		 MOV/MVN Rx, #<constant>.  */
+		 MOV/MVN Rx, #<constant>.
+	         Or when the current area is absolute.  */
 	      if (valueP->Data.Code.len != 1)
 		return true;
 	      ARMWord newIR = ir & NV;
 	      newIR |= DST_OP (GET_DST_OP (ir));
 	      ARMWord im;
-	      if ((im = help_cpuImm8s4 (valP->Data.Int.i)) != -1)
+	      if ((im = help_cpuImm8s4 (valP->Data.Int.i)) != (ARMWord)-1)
 		newIR |= M_MOV | IMM_RHS | im;
-	      else if ((im = help_cpuImm8s4 (~valP->Data.Int.i)) != -1)
+	      else if ((im = help_cpuImm8s4 (~valP->Data.Int.i)) != (ARMWord)-1)
 		newIR |= M_MVN | IMM_RHS | im;
 	      else if (areaCurrentSymbol->area.info->type & AREA_ABS)
 		{
-		  ARMWord newOffset = valP->Data.Addr.i - (areaCurrentSymbol->area.info->baseAddr + offset + 8);
+		  ARMWord newOffset = valP->Data.Int.i - (areaCurrentSymbol->area.info->baseAddr + offset + 8);
 		  ir |= LHS_OP (15);
 		  if (isAddrMode3)
 		    ir |= B_FLAG;
@@ -98,8 +101,8 @@ DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	      else
 		return true;
 	      Put_InsWithOffset (offset, newIR);
+	      break;
 	    }
-	    break;
 
 	  case ValueAddr:
 	    {
@@ -108,8 +111,8 @@ DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		ir |= B_FLAG;
 	      ir = Fix_CPUOffset (file, lineno, ir, valP->Data.Addr.i);
 	      Put_InsWithOffset (offset, ir);
+	      break;
 	    }
-	    break;
 
 	  case ValueSymbol:
 	    if (!final)
@@ -128,6 +131,8 @@ DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
 
 /**
  * Parses Address mode 2 and 3.
+ *
+ * Similar to help_copAddr() @ help_cop.c.
  */
 static bool
 dstmem (ARMWord ir, const char *mnemonic)
@@ -148,71 +153,91 @@ dstmem (ARMWord ir, const char *mnemonic)
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
+
+  const bool translate = (ir & W_FLAG) != 0; /* We have "T" specified in our mnemonic.  */
+  
+  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
+  bool callRelocUpdate;
   switch (inputLook ())
     {
-      case '[':	/* LDR <reg>, [ */
+      case '[':	/* <reg>, [ */
 	{
 	  inputSkip ();
-	  bool trans = false; /* FIXME: wtf ? */
-	  skipblanks ();
-	  int op = getCpuReg ();	/* Base register */
-	  ir |= LHS_OP (op);
+	  const int baseReg = getCpuReg (); /* Base register */
 	  skipblanks ();
 	  bool pre = !Input_Match (']', true);
-	  bool offValue = false;
+	  bool forcePreIndex;
 	  Value symValue = { .Tag = ValueIllegal };
 	  if (Input_Match (',', true))
-	    { /* either [base,XX] or [base],XX */
+	    {
+	      /* Either [base,XX] (pre = true) or [base],XX (pre = false).  */
 	      if (Input_Match ('#', false))
 		{
 		  if (isAddrMode3)
 		    ir |= B_FLAG;  /* Immediate mode for addr. mode 3.  */
-
-		  const Value *offset = exprBuildAndEval (ValueInt | ValueSymbol | ValueCode);
-		  switch (offset->Tag)
+		  
+		  const Value *valueP = exprBuildAndEval (ValueInt | ValueSymbol | ValueCode);
+		  switch (valueP->Tag)
 		    {
 		      case ValueInt:
-			ir = Fix_CPUOffset (NULL, 0, ir, offset->Data.Int.i);
+			ir = Fix_CPUOffset (NULL, 0, ir | LHS_OP (baseReg), valueP->Data.Int.i);
 			break;
 
 		      case ValueSymbol:
 		      case ValueCode:
-			symValue = *offset;
-			break;
-			
+			/* We need to end up with ValueAddr but *valueP is
+			   going to be ValueInt (or Reloc Imm8s4).  */
+			symValue = *valueP;
+			codeInit ();
+			codeAddr (baseReg, 0);
+			codeValue (&symValue, false);
+			codeOperator (Op_add);
+			symValue = *codeEval (ValueAddr | ValueSymbol | ValueCode, &offset);
+			if (symValue.Tag != ValueIllegal)
+			  break;
+			/* Fall through.  */
+
 		      default:
 			error (ErrorError, "Illegal offset expression");
+			symValue = Value_Addr (baseReg, 0);
 			break;
 		    }
 
-		  /* U_FLAG is fixed in Fix_CPUOffset() */
-		  offValue = true;
+		  forcePreIndex = false;
+		  callRelocUpdate = symValue.Tag != ValueIllegal;
 		}
 	      else
 		{
-		  ir |= U_FLAG;
-		  if (Input_Match ('-', true))
-		    ir &= ~U_FLAG;
-		  else
-		    Input_Match ('+', true);
+		  ir |= LHS_OP (baseReg);
+		  if (!Input_Match ('-', true))
+		    {
+		      Input_Match ('+', true);
+		      ir |= U_FLAG;
+		    }
 		  if (Input_Match ('#', false))
 		    {
-		      /* Edge case - #XX */
+		      /* We're about to call getRhs() and that supports "#<immediate>"
+			 which isn't possible for our case here.  Hence, check
+			 on this.  */
 		      error (ErrorError, "Unknown register definition in offset field");
 		    }
 		  ir |= isAddrMode3 ? 0 : REG_FLAG;
 		  ir = getRhs (true, !isAddrMode3, ir);
-		  offValue = true;
+		  forcePreIndex = false;
+		  callRelocUpdate = false;
 		}
-	      skipblanks ();
 	    }
 	  else
-	    {			/* [base] if this way */
-	      ir |= U_FLAG;	/* 0 nicer than -0; pre nicer than post */
+	    {
+	      /* [base] */
+	      ir |= LHS_OP (baseReg);
+	      ir |= U_FLAG; /* 0 nicer than -0.  */
 	      if (isAddrMode3)
-		ir |= B_FLAG;	/* Immediate mode for addr. mode 3. */
+		ir |= B_FLAG; /* Immediate mode for addr. mode 3.  */
 	      if (pre)
 		error (ErrorError, "Illegal character '%c' after base", inputLook ());
+	      forcePreIndex = true; /* Pre-index nicer than post-index.  */
+	      callRelocUpdate = false;
 	    }
 	  if (pre)
 	    {
@@ -221,11 +246,8 @@ dstmem (ARMWord ir, const char *mnemonic)
 	    }
 	  else
 	    {
-	      /* If offset value was never set, then make it a pre-index load */
-	      if (!offValue)
+	      if (forcePreIndex)
 	        pre = true;
-	      else if (dst == op)
-	        error (ErrorError, "Post increment is not sane where base and destination register are the same");
 	    }
 	  if (Input_Match ('!', true))
 	    {
@@ -236,23 +258,24 @@ dstmem (ARMWord ir, const char *mnemonic)
 	    }
 	  if (pre)
 	    {
+	      /* Pre-index.  */
 	      ir |= P_FLAG;
-	      if (trans)
+	      if (translate)
 	        error (ErrorError, "Translate not allowed with pre-index");
+	    }
+	  else
+	    {
+	      /* Post-index.  */
+	      if (dst == baseReg)
+	        error (ErrorError, "Post increment is not sane where base and destination register are the same");
 	    }
 
 	  codeInit ();
 	  codeValue (&symValue, true);
-	  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
-	  Put_Ins (ir);
-	  if (symValue.Tag != ValueIllegal
-	      && Reloc_QueueExprUpdate (DestMem_RelocUpdater, offset,
-					ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL, 0))
-	    error (ErrorError, "Illegal %s expression", mnemonic);
+	  break;
 	}
-        break;
 
-      case '=': /* LDR* <reg>, =<expression> */
+      case '=': /* <reg>, =<expression> */
 	{
 	  inputSkip ();
 	  /* Is LDRD ? */
@@ -261,8 +284,13 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  /* This is only allowed for LDR.  */
 	  else if ((ir & L_FLAG) == 0)
 	    errorAbort ("You can't store into a constant");
-	  /* The ValueInt | ValueSymbol | ValueCode tags are what we support
-	     as constants from user point of view.  */
+
+          if (translate)
+	    error (ErrorError, "Translate not allowed with literal");
+	  
+	  /* This is always pre-increment.  */
+	  ir |= P_FLAG;
+
 	  Lit_eSize litSize;
 	  if ((ir & 0x0C500000) == 0x04100000)
 	    litSize = eLitIntWord;
@@ -276,22 +304,26 @@ dstmem (ARMWord ir, const char *mnemonic)
 	    litSize = eLitIntSHalfWord; /* LDRSH */
 	  else
 	    assert (0);
-	  Value value = Lit_RegisterInt (exprBuildAndEval (ValueInt | ValueSymbol | ValueCode), litSize);
-	  codeInit ();
-	  codeValue (&value, true);
-	  valueFree (&value);
-	  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
-	  Put_Ins (ir | P_FLAG);
-	  /* The ValueInt | ValueAddr | ValueSymbol | ValueCode tags are what we
-	     support in the LDR instruction.  When we have ValueInt it is
-	     garanteed to be a valid immediate.  */
-	  if (Reloc_QueueExprUpdate (DestMem_RelocUpdater, offset,
-				     ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL, 0))
-	    error (ErrorError, "Illegal %s expression", mnemonic);
+	  /* The ValueInt | ValueSymbol | ValueCode tags are what we support
+	     as constants from user point of view.  */
+	  const Value *literalP = exprBuildAndEval (ValueInt | ValueSymbol | ValueCode);
+	  if (literalP->Tag == ValueIllegal)
+	    {
+	      error (ErrorError, "Wrong literal type");
+	      callRelocUpdate = false;
+	    }
+	  else
+	    {
+	      Value value = Lit_RegisterInt (literalP, litSize);
+	      codeInit ();
+	      codeValue (&value, true);
+	      valueFree (&value);
+	      callRelocUpdate = true;
+	    }
+	  break;
 	}
-	break;
 
-      default: /* LDR* <reg>, <label>  */
+      default: /* <reg>, <label>  */
 	{
 	  /* We're dealing with one of the following:
 	   *
@@ -299,16 +331,31 @@ dstmem (ARMWord ir, const char *mnemonic)
 	   * 2) a field in a register-based map
 	   * 3) a label in a register-based area
 	   */
-	  exprBuild ();
-	  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
+
+	  if (translate)
+	    error (ErrorError, "Translate not allowed with label");
+
 	  /* Whatever happens, this must be a pre-increment.  */
-	  Put_Ins (ir | P_FLAG);
-	  if (Reloc_QueueExprUpdate (DestMem_RelocUpdater, offset,
-				     ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL, 0))
-	    error (ErrorError, "Illegal %s expression", mnemonic);
+	  ir |= P_FLAG;
+	  callRelocUpdate = true;
+
+	  exprBuild ();
+	  break;
 	}
-	break;
     }
+
+  Put_Ins (ir);
+
+  assert ((!callRelocUpdate || (ir & P_FLAG)) && "Calling reloc for non pre-increment instructions ?");
+    
+  /* The ValueInt | ValueAddr | ValueSymbol | ValueCode tags are what we
+     support in the LDR/STR/... instruction.  When we have ValueInt it is
+     guaranteed to be a valid immediate.  */
+  if (callRelocUpdate
+      && Reloc_QueueExprUpdate (DestMem_RelocUpdater, offset,
+				ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL, 0))
+    error (ErrorError, "Illegal %s expression", mnemonic);
+
   return false;
 }
 	     
@@ -380,7 +427,6 @@ LdrStrEx (bool isLoad)
   ARMWord regD;
   if (!isLoad)
     {
-      skipblanks ();
       regD = getCpuReg ();
       if (regD == INVALID_REG)
 	return false;
@@ -392,7 +438,6 @@ LdrStrEx (bool isLoad)
 	}
     }
 
-  skipblanks ();
   ARMWord regT = getCpuReg ();
   if (regT == INVALID_REG)
     return false;
@@ -407,7 +452,6 @@ LdrStrEx (bool isLoad)
 
   if (type == dtype)
     {
-      skipblanks ();
       ARMWord regT2 = getCpuReg ();
       if (regT2 == INVALID_REG)
 	return false;
@@ -623,7 +667,6 @@ dstreglist (ARMWord ir, bool isPushPop)
 	{
 	  case '-':
 	    inputSkip ();
-	    skipblanks ();
 	    high = getCpuReg ();
 	    skipblanks ();
 	    if (low > high)
@@ -900,7 +943,6 @@ m_rfe (void)
 
   Target_NeedAtLeastArch (ARCH_ARMv6);
 
-  skipblanks ();
   ARMWord regN = getCpuReg ();
   if (regN == INVALID_REG)
     return false;

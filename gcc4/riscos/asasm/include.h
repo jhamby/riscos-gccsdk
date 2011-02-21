@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) Andy Duplain, August 1992.
- * Copyright (c) 2004-2006 GCCSDK Developers.
+ * Copyright (c) August 1992, Andy Duplain
+ * Copyright (c) 2004-2006 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

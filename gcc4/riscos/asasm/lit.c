@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -37,6 +37,7 @@
 #include "commands.h"
 #include "error.h"
 #include "filestack.h"
+#include "m_fpe.h"
 #include "help_cpu.h"
 #include "lit.h"
 #include "main.h"
@@ -65,6 +66,8 @@ Lit_GetLitOffsetAsSymbol (const LitPool *literal)
 Value
 Lit_RegisterInt (const Value *value, Lit_eSize size)
 {
+  assert (value->Tag == ValueInt || value->Tag == ValueSymbol || value->Tag == ValueCode);
+
   bool isAddrMode3;
   switch (size)
     {
@@ -74,9 +77,13 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
       case eLitIntSHalfWord:
 	isAddrMode3 = true;
 	break;
-      default:
+
+      case eLitIntWord:
 	isAddrMode3 = false;
 	break;
+
+      default:
+	assert (false && "Incorrect literal size for this routine");
     }
 
   /* Upfront truncate ValueInt value to what we're really going to have
@@ -100,6 +107,9 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 	  case eLitIntSHalfWord:
 	    truncValue.Data.Int.i = (int16_t)truncValue.Data.Int.i;
 	    break;
+	  case eLitIntWord:
+	    /* Nothing to do.  */
+	    break;
 	}
       if (truncValue.Data.Int.i != value->Data.Int.i)
 	error (ErrorWarning, "Constant %d has been truncated to %d by the used mnemonic",
@@ -116,6 +126,9 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
        litPoolP != NULL;
        litPoolP = litPoolP->next)
     {
+      if (litPoolP->size == eLitFloat || litPoolP->size == eLitDouble)
+	continue;
+
       int offset;
       bool equal;
       if (litPoolP->value.Tag == ValueInt && truncValue.Tag == ValueInt)
@@ -185,11 +198,9 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 	  assert (((symP->type & SYMBOL_DEFINED) != 0) ^ (!litPoolP->gotAssembled));
 	  if ((symP->type & SYMBOL_DEFINED) != 0)
 	    {
-	      assert (symP->value.Tag == ValueInt || /* symP->value.Tag == ValueFloat || */ symP->value.Tag == ValueCode);
+	      assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueCode);
 	      assert (areaCurrentSymbol->value.Data.Int.i >= litPoolP->offset);
-	      if (areaCurrentSymbol->value.Data.Int.i + 8 > litPoolP->offset + offset + ((isAddrMode3) ? 255 : 4095)
-	          || (size == eLitFloat && litPoolP->size != eLitFloat)
-	          || (size == eLitDouble && litPoolP->size != eLitDouble))
+	      if (areaCurrentSymbol->value.Data.Int.i + 8 > litPoolP->offset + offset + ((isAddrMode3) ? 255 : 4095))
 		continue;
 	      /* A literal with the same value got already assembled and is in
 	         our range to refer to.  */
@@ -203,9 +214,9 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 		return Value_Symbol (symP, 1);
 	      const Code code[] =
 		{
-		    { .Tag = CodeValue, .Data.value = { .Tag = ValueSymbol, .Data.Symbol = { .factor = 1, .symbol = symP } } },
-		    { .Tag = CodeValue, .Data.value = { .Tag = ValueInt, .Data.Int = { .i = offset } } },
-		    { .Tag = CodeOperator, .Data.op = Op_add }
+		  { .Tag = CodeValue, .Data.value = { .Tag = ValueSymbol, .Data.Symbol = { .factor = 1, .symbol = symP } } },
+		  { .Tag = CodeValue, .Data.value = { .Tag = ValueInt, .Data.Int = { .i = offset } } },
+		  { .Tag = CodeOperator, .Data.op = Op_add }
 		};
 	      const Value valCode = Value_Code (sizeof (code)/sizeof (code[0]), code);
 	      Value rtrn = { .Tag = ValueIllegal };
@@ -231,6 +242,71 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 
   return Value_Symbol (Lit_GetLitOffsetAsSymbol (litP), 1);
 }
+
+/**
+ * Registers a literal float for the current area and returns either a
+ * ValueAddr of a previous (but same) literal float, or ValueSymbol
+ * representing the label where the literal will get assembled.
+ * \return You get ownership.
+ */
+Value
+Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
+{
+  assert (valueP->Tag == ValueInt || valueP->Tag == ValueFloat || valueP->Tag == ValueSymbol || valueP->Tag == ValueCode);
+  assert ((size == eLitFloat || size == eLitDouble) && "Incorrect literal size for this routine");
+
+  /* Convert given integer value to float.  */
+  Value value = (valueP->Tag == ValueInt) ? Value_Float ((ARMFloat)valueP->Data.Int.i) : *valueP;
+  valueP = &value;
+  
+  /* Check if we already have the literal assembled in an range of up to
+     1020 bytes ago.  */
+  for (const LitPool *litPoolP = areaCurrentSymbol->area.info->litPool;
+       litPoolP != NULL;
+       litPoolP = litPoolP->next)
+    {
+      if ((litPoolP->size == eLitFloat || litPoolP->size == eLitDouble)
+          && litPoolP->size == size
+ 	  && valueEqual (&litPoolP->value, valueP))
+	{
+	  Symbol *symP = Lit_GetLitOffsetAsSymbol (litPoolP);
+	  assert (((symP->type & SYMBOL_DEFINED) != 0) ^ (!litPoolP->gotAssembled));
+	  if ((symP->type & SYMBOL_DEFINED) != 0)
+	    {
+	      assert (symP->value.Tag == ValueFloat || symP->value.Tag == ValueCode);
+	      assert (areaCurrentSymbol->value.Data.Int.i >= litPoolP->offset);
+	      if (areaCurrentSymbol->value.Data.Int.i + 8 > litPoolP->offset + 1020)
+		continue;
+	      /* A literal with the same value got already assembled and is in
+	         our range to refer to.  */
+	      return Value_Addr (15, litPoolP->offset - (areaCurrentSymbol->value.Data.Int.i + 8));
+	    }
+	  else
+	    {
+	      /* A literal with the same value was already needed so we can
+	         reuse its position where it is going to be assembled.  */
+	      return Value_Symbol (symP, 1);
+	    }
+	}
+    }
+
+  /* We need to create a new literal in our pool.  */
+  LitPool *litP;
+  if ((litP = malloc (sizeof (LitPool))) == NULL)
+    errorOutOfMem ();
+  litP->next = areaCurrentSymbol->area.info->litPool;
+  areaCurrentSymbol->area.info->litPool = litP;
+  litP->file = FS_GetCurFileName ();
+  litP->lineno = FS_GetCurLineNumber ();
+  litP->offset = 0;
+  litP->value.Tag = ValueIllegal;
+  Value_Assign (&litP->value, valueP);
+  litP->size = size;
+  litP->gotAssembled = false;
+
+  return Value_Symbol (Lit_GetLitOffsetAsSymbol (litP), 1);
+}
+
 
 /**
  * Dump (assemble) the literal pool of the current area.
@@ -333,11 +409,18 @@ Lit_DumpPool (void)
 	      break;
 	    }
 
-//	  case ValueFloat:
-//	    {
-//	      /* FIXME: if immedate -> symP->value is ValueFloat + isImmediate = true */
-//	      break;
-//	    }
+	  case ValueFloat:
+	    {
+	      /* Value representable using MVF or MNF ? */
+	      ARMFloat constant = constValueP->Data.Float.f;
+	      if (FPE_ConvertImmediate (constant) != (ARMWord)-1
+	          || FPE_ConvertImmediate (-constant) != (ARMWord)-1)
+		{
+		  symP->value = Value_Float (constant);
+		  continue;
+		}
+	      break;
+	    }
 
 	  default:
 	    errorLine (litP->file, litP->lineno, ErrorError, "Unsupported literal case");
@@ -353,6 +436,8 @@ Lit_DumpPool (void)
 	    break;
 
 	  case eLitIntWord:
+	  case eLitFloat:
+	  case eLitDouble:
 	    Area_AlignTo (areaCurrentSymbol->value.Data.Int.i, 4, NULL);
 	    break;
 
@@ -384,24 +469,27 @@ Lit_DumpPool (void)
 	  case eLitIntSHalfWord:
 	  case eLitIntWord:
 	    {
-	      int size;
+	      DefineInt_PrivData_t privData =
+		{
+		  .allowUnaligned = false
+		};
 	      switch (litP->size)
 		{
 		  case eLitIntUByte:
 		  case eLitIntSByte:
-		    size = 1;
+		    privData.size = 1;
 		    break;
 		  case eLitIntUHalfWord:
 		  case eLitIntSHalfWord:
-		    size = 2;
+		    privData.size = 2;
 		    break;
 		  case eLitIntWord:
-		    size = 4;
+		    privData.size = 4;
 		    break;
 		}
 	      if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, areaCurrentSymbol->value.Data.Int.i,
 					 ValueInt | ValueString | ValueSymbol | ValueCode,
-					 &size, sizeof (size)))
+					 &privData, sizeof (privData)))
 		errorLine (litP->file, litP->lineno, ErrorError, "Illegal %s expression", "literal");
 	    }
 	    break;
@@ -409,12 +497,16 @@ Lit_DumpPool (void)
 	  case eLitFloat:
 	  case eLitDouble:
 	    {
-	      int size = litP->size == eLitFloat ? 4 : 8;
+	      DefineReal_PrivData_t privData =
+		{
+		  .size = litP->size == eLitFloat ? 4 : 8,
+		  .allowUnaligned = false
+		};
 	      ValueTag legal = ValueFloat | ValueSymbol | ValueCode;
 	      if (option_autocast)
 		legal |= ValueInt;
 	      if (Reloc_QueueExprUpdate (DefineReal_RelocUpdater, areaCurrentSymbol->value.Data.Int.i,
-					 legal, &size, sizeof (size)))
+					 legal, &privData, sizeof (privData)))
 		errorLine (litP->file, litP->lineno, ErrorError, "Illegal %s expression", "literal");
 	    }
 	    break;
@@ -424,6 +516,7 @@ Lit_DumpPool (void)
 	    break;
 	}
     }
+
   Area_AlignTo (areaCurrentSymbol->value.Data.Int.i, 4, NULL);
 }
 

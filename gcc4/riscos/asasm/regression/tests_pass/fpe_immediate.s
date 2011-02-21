@@ -1,4 +1,7 @@
-; Tests FPA immediate support
+; Tests FPE (FPA10/FPA11/FPASC) immediate support
+; Option autocast is specified as we want to test the integer -> float
+; conversions.
+; RUNOPT: -autocast
 
 	AREA	Code, CODE
 

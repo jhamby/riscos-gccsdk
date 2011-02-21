@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developersrs
+ * Copyright (c) 2000-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * m_fpu.c
+ * FPE (FPA10/FPA11 and FPASC) support.
  */
 
 #include "config.h"
@@ -37,55 +37,12 @@
 #include "get.h"
 #include "help_cop.h"
 #include "input.h"
-#include "m_fpu.h"
+#include "m_fpe.h"
 #include "option.h"
 #include "put.h"
 #include "reloc.h"
 #include "value.h"
 #include "main.h"
-
-#define M_ADF 0x0e000100
-#define M_DVF 0x0e400100
-#define M_FDV 0x0ea00100
-#define M_FML 0x0e900100
-#define M_FRD 0x0eb00100
-#define M_MUF 0x0e100100
-#define M_POL 0x0ec00100
-#define M_POW 0x0e600100
-#define M_RDF 0x0e500100
-#define M_RMF 0x0e800100
-#define M_RPW 0x0e700100
-#define M_RSF 0x0e300100
-#define M_SUF 0x0e200100
-#define M_ABS 0x0e208100
-#define M_ACS 0x0ec08100
-#define M_ASN 0x0eb08100
-#define M_ATN 0x0ed08100
-#define M_COS 0x0e908100
-#define M_EXP 0x0e708100
-#define M_LGN 0x0e608100
-#define M_LOG 0x0e508100
-#define M_MNF 0x0e108100
-#define M_MVF 0x0e008100
-#define M_RND 0x0e308100
-#define M_SIN 0x0e808100
-#define M_SQT 0x0e408100
-#define M_TAN 0x0ea08100
-#define M_FIX 0x0e100110
-#define M_FLT 0x0e000110
-#define M_WFS 0x0e200110
-#define M_RFS 0x0e300110
-#define M_WFC 0x0e400110
-#define M_RFC 0x0e500110
-#define M_CMF 0x0e90f110
-#define M_CNF 0x0eb0f110
-
-#define M_URD 0x0ee08100
-#define M_NRM 0x0ef08100
-#define M_LFM 0x0c100200
-#define M_SFM 0x0c000200
-
-#define M_FMNEM 0x0ef08110
 
 typedef enum
 {
@@ -142,29 +99,30 @@ static bool
 CheckFPUsageIsAllowedAndGiveHWWarning (void)
 {
   bool rtrn = CheckFPUsageIsAllowed ();
-  error (ErrorWarning, "FPA opcode will never be executed hardware accelerated");
+  if (option_pedantic)
+    error (ErrorWarning, "FPA opcode will never be executed hardware accelerated");
   return rtrn;
 }
 
-static ARMWord
-fpuImm (ARMFloat d)
+ARMWord
+FPE_ConvertImmediate (ARMFloat d)
 {
-  if (d == 0.0)
-    return 0;
-  if (d == 1.0)
-    return 1;
-  if (d == 2.0)
-    return 2;
-  if (d == 3.0)
-    return 3;
-  if (d == 4.0)
-    return 4;
-  if (d == 5.0)
-    return 5;
-  if (d == 0.5)
-    return 6;
-  if (d == 10.0)
-    return 7;
+  if (d == 0.)
+    return 8 | 0;
+  if (d == 1.)
+    return 8 | 1;
+  if (d == 2.)
+    return 8 | 2;
+  if (d == 3.)
+    return 8 | 3;
+  if (d == 4.)
+    return 8 | 4;
+  if (d == 5.)
+    return 8 | 5;
+  if (d == .5)
+    return 8 | 6;
+  if (d == 10.)
+    return 8 | 7;
 
   return -1;
 }
@@ -175,14 +133,14 @@ Fix_ImmFloat (ARMWord ir, ARMFloat im)
   static const char op3[] = "Changing \"%s Fx, Fy, #%.1f\" to \"%s Fx, Fy, #%.1f\"";
   static const char op2[] = "Changing \"%s Fx, #%.1f\" to \"%s Fx, #%.1f\"";
 
-  int f = fpuImm (im);
+  int f = FPE_ConvertImmediate (im);
   if (f != -1)
     return ir | f;
 
   /* Immediate float constant was illegal, try the inverse.  */
-  f = fpuImm (-im);
+  f = FPE_ConvertImmediate (-im);
 
-  ARMWord mnemonic = ir & M_FMNEM;
+  const ARMWord mnemonic = ir & M_FMNEM;
   ir &= ~M_FMNEM;
   const char *m1, *m2, *optype;
   if (f == -1)
@@ -260,8 +218,10 @@ getFloatRhs (ARMWord ir)
 {
   if (Input_Match ('#', false))
     {
-      ir |= 8; /* Immediate float.  */
-      const Value *im = exprBuildAndEval (ValueInt | ValueFloat);
+      ValueTag valueTag = ValueFloat;
+      if (option_autocast)
+	valueTag |= ValueInt;
+      const Value *im = exprBuildAndEval (valueTag);
       switch (im->Tag)
 	{
 	  case ValueInt:
@@ -875,8 +835,7 @@ static void
 dstmem (ARMWord ir, bool literal)
 {
   ir |= DST_OP (getFpuReg ());
-  ir = help_copAddr (ir, literal, false);
-  Put_Ins (ir);
+  help_copAddr (ir, literal, false);
 }
 
 /**
@@ -888,7 +847,12 @@ m_stf (void)
   ARMWord cc = optionCondPrec_P ();
   if (cc == optionError)
     return true;
-  dstmem (0x0c000100 | cc, false);
+  dstmem (M_STF | cc, false);
+  /* LDFP and STFP are deprecated instructions and are intended for backwards
+     compatibility only. These functions are typically implemented by
+     appropriate calls to support code.  */
+  if ((cc & PRECISION_MEM_MASK) == PRECISION_MEM_PACKED)
+    return CheckFPUsageIsAllowedAndGiveHWWarning ();
   return CheckFPUsageIsAllowed ();
 }
 
@@ -901,23 +865,35 @@ m_ldf (void)
   ARMWord cc = optionCondPrec_P ();
   if (cc == optionError)
     return true;
-  dstmem (0x0c100100 | cc, true);
+  dstmem (M_LDF | cc, true);
+  /* LDFP and STFP are deprecated instructions and are intended for backwards
+     compatibility only. These functions are typically implemented by
+     appropriate calls to support code.  */
+  if ((cc & PRECISION_MEM_MASK) == PRECISION_MEM_PACKED)
+    return CheckFPUsageIsAllowedAndGiveHWWarning ();
   return CheckFPUsageIsAllowed ();
 }
 
 
 /**
+ * Parses the rest of the mnemonic after the "<LFM|SFM>{cond}" part:
+ *
+ *   <LFM|SFM>{cond} Fd, <count>, [Rn]
+ *                                [Rn, #<expression>]{!}
+ *                                [Rn],#<expression>
+ *   <LFM|SFM>{cond}<FD,EA> Fd, <count>, [Rn]{!}       (stack variant)
+ *
  * \return false when rest of the mnemonic gets recognized as part of LFM/SFM.
  * true otherwise (so we can reparse it as macro).
  */
 static bool
 dstmemx (ARMWord ir)
 {
-  bool isLoad = (ir & 0x100000) != 0;
-  bool stack_ia;
+  bool isLoad = (ir & L_FLAG) != 0;
   bool stack = !Input_IsEndOfKeyword ();
   if (stack)
     {
+      bool stack_ia;
       char c1 = toupper (inputLook ());
       char c2 = toupper (inputLookN (1));
       if (c1 == 'D' && c2 == 'B')
@@ -925,17 +901,14 @@ dstmemx (ARMWord ir)
       else if (c1 == 'I' && c2 == 'A')
 	stack_ia = true;
       else if (c1 == 'E' && c2 == 'A')
-	stack_ia = isLoad ? false : true;
+	stack_ia = !isLoad;
       else if (c1 == 'F' && c2 == 'D')
-	stack_ia = isLoad ? true : false;
+	stack_ia = isLoad;
       else
 	return true;
       inputSkipN (2);
-      if (stack_ia)
-	ir |= 0x800000;
+      ir |= stack_ia ? U_FLAG : P_FLAG;
     }
-  else
-    stack_ia = false;
   if (!Input_IsEndOfKeyword ())
     return true;
 
@@ -943,7 +916,10 @@ dstmemx (ARMWord ir)
   ir |= DST_OP (getFpuReg ());
   skipblanks ();
   if (!Input_Match (',', false))
-    error (ErrorError, "Inserting comma after dst");
+    {
+      error (ErrorError, "Inserting comma after dst");
+      return false;
+    }
   const Value *im = exprBuildAndEval (ValueInt);
   if (im->Tag == ValueInt)
     {
@@ -951,15 +927,13 @@ dstmemx (ARMWord ir)
 	error (ErrorError, "Number of fp registers out of range");
     }
   else
-    error (ErrorError, "Illegal %cFM expression", isLoad ? 'L' : 'S');
+    {
+      error (ErrorError, "Illegal %cFM expression", isLoad ? 'L' : 'S');
+      return false;
+    }
   ir |= (im->Data.Int.i & 1) << 15;
-  ir |= (im->Data.Int.i & 2) << 21;
-  if (stack)
-    ir |= stack_ia ? 0x800000 : 0x1000000;
-  ir = help_copAddr (ir, isLoad, stack);
-  if (stack && (!stack_ia || (ir & 0x200000)))
-    ir |= 3 * im->Data.Int.i;
-  Put_Ins (ir);
+  ir |= (im->Data.Int.i & 2) << (22 - 1);
+  help_copAddr (ir, isLoad, stack);
   return false;
 }
 
@@ -972,7 +946,7 @@ m_sfm (void)
   ARMWord cc = optionCondLfmSfm ();
   if (cc == optionError)
     return true;
-  if (dstmemx (0x0c000200 | cc))
+  if (dstmemx (M_SFM | cc))
     return true;
   return CheckFPUsageIsAllowed ();
 }
@@ -986,7 +960,7 @@ m_lfm (void)
   ARMWord cc = optionCondLfmSfm ();
   if (cc == optionError)
     return true;
-  if (dstmemx (0x0c100200 | cc))
+  if (dstmemx (M_LFM | cc))
     return true;
   return CheckFPUsageIsAllowed ();
 }

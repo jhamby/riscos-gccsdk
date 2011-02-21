@@ -788,7 +788,6 @@ Code_Assign (Code *dst, const Code *src)
  * \param instrOffsetP It points to the instruction offset
  * which can be use to convert the current AREA symbol into a ValueAddr
  * [PC, #-(<instr offset> + 8)].
- * \param curAREASymbolToValueAddr
  * \return Result of evaluation.  Only to be used before next evaluation.
  * Use Value_Assign() to keep a non-temporary copy of it.
  */

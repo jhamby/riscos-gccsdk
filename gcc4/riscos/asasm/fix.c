@@ -29,7 +29,6 @@
 #include "help_cpu.h"
 #include "main.h"
 #include "m_cpu.h"
-#include "m_fpu.h"
 #include "option.h"
 
 ARMWord
@@ -201,7 +200,7 @@ fixSwi (int lineno, int im)
 }
 
 ARMWord
-fixCopOffset (int lineno, ARMWord ir, int offset)
+Fix_CopOffset (const char *file, int lineno, ARMWord ir, int offset)
 {
   bool up;
   if (offset < 0)
@@ -212,9 +211,9 @@ fixCopOffset (int lineno, ARMWord ir, int offset)
   else
     up = true;
   if (offset & 3)
-    errorLine (NULL, lineno, ErrorError, "Offset %d is not a word offset", offset);
+    errorLine (file, lineno, ErrorError, "Offset %d is not a word offset", offset);
   if (offset > 1020)
-    errorLine (NULL, lineno, ErrorError, "Offset %d is too large", offset);
+    errorLine (file, lineno, ErrorError, "Offset %d is too large", offset);
   ir |= (offset >> 2) & 0xff;
   if (up)
     ir |= U_FLAG;

@@ -96,6 +96,17 @@ Value_Int (int i)
   return value;
 }
 
+static inline Value
+Value_Float (ARMFloat f)
+{
+  const Value value =
+    {
+      .Tag = ValueFloat,
+      .Data.Float.f = f
+    };
+  return value;
+}
+
 Value Value_Code (size_t len, const struct Code *code);
 
 static inline Value

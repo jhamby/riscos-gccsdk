@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,6 +47,18 @@ bool c_lnk (void);
 bool c_opt (void);
 bool c_rn (Symbol *symbol);
 bool c_title (void);
+
+typedef struct
+{
+  int size; /**< Size of the data unit : 1, 2 or 4.  */
+  bool allowUnaligned; /**< Allow unaligned data storage.  */
+} DefineInt_PrivData_t;
+
+typedef struct
+{
+  int size; /**< Size of the data unit : 4 or 8.  */
+  bool allowUnaligned; /**< Allow unaligned data storage.  */
+} DefineReal_PrivData_t;
 
 bool DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 			     const Value *valueP, void *privData, bool final);

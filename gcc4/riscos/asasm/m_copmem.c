@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,8 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * m_copmem.c
  */
 
 #include "config.h"
@@ -33,11 +31,10 @@
 #include "input.h"
 #include "m_copmem.h"
 #include "option.h"
-#include "put.h"
 #include "targetcpu.h"
 
 
-static void
+static bool
 dstmem (ARMWord ir, bool literal)
 {
   ir |= CP_NUMBER (getCopNum ());
@@ -45,8 +42,8 @@ dstmem (ARMWord ir, bool literal)
   if (!Input_Match (',', true))
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= CPDST_OP (getCopReg ());
-  ir = help_copAddr (ir, literal, false);
-  Put_Ins (ir);
+  help_copAddr (ir, literal, false);
+  return false;
 }
 
 /**
@@ -59,8 +56,7 @@ m_ldc (void)
   ARMWord cc = optionCondL ();
   if (cc == optionError)
     return true;
-  dstmem (cc | 0x0c100000, true);
-  return false;
+  return dstmem (cc | 0x0c100000, true);
 }
 
 /**
@@ -75,8 +71,7 @@ m_ldc2 (void)
     return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv5);
-  dstmem (cc | 0x0c100000 | NV, true);
-  return false;
+  return dstmem (cc | 0x0c100000 | NV, true);
 }
 
 /**
@@ -89,8 +84,7 @@ m_stc (void)
   ARMWord cc = optionCondL ();
   if (cc == optionError)
     return true;
-  dstmem (cc | 0x0c000000, false);
-  return false;
+  return dstmem (cc | 0x0c000000, false);
 }
 
 /**
@@ -105,6 +99,5 @@ m_stc2 (void)
     return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv5);
-  dstmem (cc | 0x0c000000 | NV, false);
-  return false;
+  return dstmem (cc | 0x0c000000 | NV, false);
 }

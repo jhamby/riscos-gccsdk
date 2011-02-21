@@ -115,6 +115,7 @@ ARMWord optionAdrL (void);
 #define PRECISION_MEM_DOUBLE    ((ARMWord)0x00008000)
 #define PRECISION_MEM_EXTENDED  ((ARMWord)0x00400000)
 #define PRECISION_MEM_PACKED    ((ARMWord)0x00408000)
+#define PRECISION_MEM_MASK      ((ARMWord)0x00408000)
 
 #define ROUND_NEAREST       ((ARMWord)0x00)
 #define ROUND_PLUSINF       ((ARMWord)0x20)

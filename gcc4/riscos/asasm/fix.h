@@ -27,11 +27,11 @@
 
 ARMWord fixImm8s4 (int lineno, ARMWord ir, int im);
 ARMWord fixSwi (int lineno, int im);
-ARMWord fixCopOffset (int lineno, ARMWord ir, int offset);
 ARMWord fixMask (int lineno, int mask);
 
 ARMWord Fix_ShiftImm (const char *file, int lineno, ARMWord shiftop, int shift);
 ARMWord Fix_Int (const char *file, int lineno, int size, int value);
+ARMWord Fix_CopOffset (const char *file, int lineno, ARMWord ir, int offset);
 ARMWord Fix_CPUOffset (const char *file, int lineno, ARMWord ir, int offset);
 ARMWord Fix_MOV (const char *file, int lineno, ARMWord ir, int im);
 

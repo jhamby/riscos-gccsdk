@@ -293,5 +293,6 @@ getRhs (bool immonly, bool shift, ARMWord ir)
       else
 	ir |= NO_SHIFT;
     }
+
   return ir;
 }

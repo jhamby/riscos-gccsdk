@@ -54,19 +54,6 @@
 #include "symbol.h"
 #include "value.h"
 
-typedef struct
-{
-  int size; /**< Size of the data unit : 1, 2 or 4.  */
-  bool allowUnaligned; /**< Allow unaligned data storage.  */
-} DefineInt_PrivData_t;
-
-typedef struct
-{
-  int size; /**< Size of the data unit : 4 or 8.  */
-  bool allowUnaligned; /**< Allow unaligned data storage.  */
-} DefineReal_PrivData_t;
-
-
 /**
  * Define given symbol with what's located at the parser.  Fail when the
  * symbol is already defined with a value different than parsed.

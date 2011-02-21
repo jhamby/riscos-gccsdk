@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -50,6 +50,7 @@ typedef struct LITPOOL
 } LitPool;
 
 Value Lit_RegisterInt (const Value *value, Lit_eSize size);
+Value Lit_RegisterFloat (const Value *value, Lit_eSize size);
 void Lit_DumpPool (void);
 
 bool c_ltorg (void);

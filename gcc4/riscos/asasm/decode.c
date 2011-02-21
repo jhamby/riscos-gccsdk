@@ -46,7 +46,7 @@
 #include "m_cpu.h"
 #include "m_cpuctrl.h"
 #include "m_cpumem.h"
-#include "m_fpu.h"
+#include "m_fpe.h"
 #include "option.h"
 #include "storage.h"
 
