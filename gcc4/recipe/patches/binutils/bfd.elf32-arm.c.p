@@ -1,5 +1,5 @@
---- bfd/elf32-arm.c.orig	2010-11-18 09:19:05.000000000 +0100
-+++ bfd/elf32-arm.c	2010-12-11 02:04:29.784991315 +0100
+--- bfd/elf32-arm.c.orig	2011-03-01 02:11:07.930997788 +0100
++++ bfd/elf32-arm.c	2011-03-01 03:20:33.460000000 +0100
 @@ -1910,7 +1910,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -93,7 +93,7 @@
    if (!htab->splt
        || !htab->srelplt
        || !htab->sdynbss
-@@ -2961,10 +3024,203 @@ elf32_arm_link_hash_table_create (bfd *a
+@@ -2961,10 +3024,205 @@ elf32_arm_link_hash_table_create (bfd *a
        free (ret);
        return NULL;
      }
@@ -116,24 +116,26 @@
 +static const bfd_vma riscos_module_reloccode[] =
 +{
 +		/* __RelocCode:                   */
-+  0xE59F102C,	/*	LDR	R1, RelocCode     */
++  0xE59F1034,	/*	LDR	R1, RelocCode     */
 +  0xE24FB00C,	/*	ADR	R11, __RelocCode  */
 +  0xE05B1001,	/*	SUBS	R1, R11, R1       */
-+  0x159FB024,	/*	LDRNE	R11, ImageROBase  */
-+  0x108BB001,	/*	ADDNE	R11, R11,R1       */
-+  0x128F2020,	/*	ADRNE	R2, RelocCodeList */
++  0x01A0F00E,	/*	MOVEQ	PC, R14           */
++  0xE59FB028,	/*	LDR	R11, ImageROBase  */
++  0xE08BB001,	/*	ADD	R11, R11,R1       */
++  0xE28F2024,	/*	ADR	R2, RelocCodeList */
 +		/* RelocCodeLoop:                 */
-+  0x14920004,	/*	LDRNE	R0, [R2], #4      */
-+  0x13700001,	/*	CMPNE	R0, #-1           */
-+  0x179B3000,	/*	LDRNE	R3, [R11, R0]     */
++  0xE4920004,	/*	LDR	R0, [R2], #4      */
++  0xE3700001,	/*	CMP	R0, #-1           */
++  0x01A0F00E,	/*	MOVEQ	PC, R14           */
++  0xE79B3000,	/*	LDR	R3, [R11, R0]     */
++  0xE3330000,	/*	TEQ	R3, #0            */
 +  0x10833001,	/*	ADDNE	R3, R3, R1        */
 +  0x178B3000,	/*	STRNE	R3, [R11, R0]     */
-+  0x1AFFFFF9,	/*	BNE	RelocCodeLoop     */
-+  0xE1A0F00E,	/*	MOV	PC, R14           */
-+#define RISCOS_MODULE_RELOCCODE_OFFSET_RELOCCODE (13*4)
++  0xEAFFFFF7,	/*	B	RelocCodeLoop     */
++#define RISCOS_MODULE_RELOCCODE_OFFSET_RELOCCODE (15*4)
 +  0x00000000,	/* RelocCode:                     */
 +		/*	.word	__RelocCode       */
-+#define RISCOS_MODULE_RELOCCODE_OFFSET_IMAGEROBASE (14*4)
++#define RISCOS_MODULE_RELOCCODE_OFFSET_IMAGEROBASE (16*4)
 +  0x00000000	/* ImageROBase:                   */
 +		/*	.word	Image$$RO$$Base   */
 +		/* RelocCodeList:                 */
@@ -297,7 +299,7 @@
  /* Free the derived linker hash table.  */
  
  static void
-@@ -6933,6 +7189,51 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -6933,6 +7191,51 @@ elf32_arm_final_link_relocate (reloc_how
    else
      addend = signed_addend = rel->r_addend;
  
@@ -349,7 +351,7 @@
    switch (r_type)
      {
      case R_ARM_NONE:
-@@ -7874,7 +8175,8 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -7874,7 +8177,8 @@ elf32_arm_final_link_relocate (reloc_how
           define _GLOBAL_OFFSET_TABLE in a different way, as is
           permitted by the ABI, we might have to change this
           calculation.  */
@@ -359,7 +361,7 @@
        return _bfd_final_link_relocate (howto, input_bfd, input_section,
  				       contents, rel->r_offset, value,
  				       rel->r_addend);
-@@ -9431,10 +9733,86 @@ elf32_arm_final_link (bfd *abfd, struct 
+@@ -9431,10 +9735,86 @@ elf32_arm_final_link (bfd *abfd, struct 
  {
    struct elf32_arm_link_hash_table *globals = elf32_arm_hash_table (info);
    asection *sec, *osec;
@@ -446,7 +448,7 @@
    /* Invoke the regular ELF backend linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
      return FALSE;
-@@ -9481,6 +9859,57 @@ elf32_arm_final_link (bfd *abfd, struct 
+@@ -9481,6 +9861,57 @@ elf32_arm_final_link (bfd *abfd, struct 
  	return FALSE;
      }
  
@@ -504,7 +506,7 @@
    return TRUE;
  }
  
-@@ -10831,6 +11260,18 @@ elf32_arm_check_relocs (bfd *abfd, struc
+@@ -10831,6 +11262,18 @@ elf32_arm_check_relocs (bfd *abfd, struc
  
        eh = (struct elf32_arm_link_hash_entry *) h;
  
@@ -523,7 +525,7 @@
        switch (r_type)
          {
  	  case R_ARM_GOT32:
-@@ -12029,8 +12470,7 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -12029,8 +12472,7 @@ elf32_arm_size_dynamic_sections (bfd * o
  
        if (plt)
  	{
@@ -533,7 +535,7 @@
  	      || !add_dynamic_entry (DT_PLTREL,
  				     htab->use_rel ? DT_REL : DT_RELA)
  	      || !add_dynamic_entry (DT_JMPREL, 0))
-@@ -12055,6 +12495,9 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -12055,6 +12497,9 @@ elf32_arm_size_dynamic_sections (bfd * o
  	    }
  	}
  
@@ -543,7 +545,7 @@
        /* If any dynamic relocs apply to a read-only section,
  	 then we need a DT_TEXTREL entry.  */
        if ((info->flags & DF_TEXTREL) == 0)
-@@ -12154,7 +12597,10 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -12154,7 +12599,10 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  	     in all the symbols for which we are making plt entries.  The
  	     first three entries in .got.plt are reserved; after that
  	     symbols appear in the same order as in .plt.  */
@@ -555,7 +557,7 @@
  
  	  /* Calculate the address of the GOT entry.  */
  	  got_address = (sgot->output_section->vma
-@@ -12246,6 +12692,41 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -12246,6 +12694,41 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  				  elf32_arm_plt_thumb_stub[1], ptr - 2);
  		}
  
@@ -597,7 +599,7 @@
  	      put_arm_insn (htab, output_bfd,
  			    elf32_arm_plt_entry[0]
  			    | ((got_displacement & 0x0ff00000) >> 20),
-@@ -12261,6 +12742,7 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -12261,6 +12744,7 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  #ifdef FOUR_WORD_PLT
  	      bfd_put_32 (output_bfd, elf32_arm_plt_entry[3], ptr + 12);
  #endif
@@ -605,7 +607,7 @@
  	    }
  
  	  /* Fill in the entry in the global offset table.  */
-@@ -12594,6 +13076,27 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -12594,6 +13078,27 @@ elf32_arm_finish_dynamic_sections (bfd *
  	    {
  	      got_displacement = got_address - (plt_address + 16);
  
@@ -633,7 +635,7 @@
  	      plt0_entry = elf32_arm_plt0_entry;
  	      put_arm_insn (htab, output_bfd, plt0_entry[0],
  			    splt->contents + 0);
-@@ -12611,6 +13114,7 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -12611,6 +13116,7 @@ elf32_arm_finish_dynamic_sections (bfd *
  #else
  	      bfd_put_32 (output_bfd, got_displacement, splt->contents + 16);
  #endif
@@ -641,7 +643,7 @@
  	    }
  	}
  
-@@ -13784,7 +14288,7 @@ elf32_arm_is_function_type (unsigned int
+@@ -13784,7 +14290,7 @@ elf32_arm_is_function_type (unsigned int
  /* We use this to override swap_symbol_in and swap_symbol_out.  */
  const struct elf_size_info elf32_arm_size_info =
  {
@@ -650,7 +652,7 @@
    sizeof (Elf32_External_Phdr),
    sizeof (Elf32_External_Shdr),
    sizeof (Elf32_External_Rel),
-@@ -13877,7 +14381,7 @@ const struct elf_size_info elf32_arm_siz
+@@ -13877,7 +14383,7 @@ const struct elf_size_info elf32_arm_siz
  #define elf_backend_may_use_rela_p     0
  #define elf_backend_default_use_rela_p 0
  
