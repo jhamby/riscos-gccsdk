@@ -1,3 +1,7 @@
+Tue Mar  1 23:29:38 CET 2011  Jeffrey Lee  <me@phlamethrower.co.uk>
+
+	* sys/_getcpuarch.s (__get_cpu_arch): Support ARM arch 7.
+
 Tue Feb  8 03:17:42 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am: Revert previous change.  This wrongly results in PIC

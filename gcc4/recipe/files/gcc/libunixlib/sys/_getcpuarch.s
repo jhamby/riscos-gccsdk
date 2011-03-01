@@ -1,5 +1,5 @@
 /* Get ARM CPU Architecture.
-   Copyright (c) 2007-2008 UnixLib Developers
+   Copyright (c) 2007-2011 UnixLib Developers
    Written by John Tytgat.  */
 
 #include "internal/asm_dec.s"
@@ -49,6 +49,10 @@ __get_cpu_arch:
 
 	TEQ	a2, #7<<16		@ ARM architecture 6
 	MOVEQ	a1, #6
+	LDMEQFD R13!, {PC}
+
+	TEQ	a2, #15<<16		@ ARM architecture 7 (in fact, use CPUID scheme)
+	MOVEQ	a1, #7
 	MOVNE	a1, #0			@ Currently unknown !
 	LDMFD	R13!, {PC}
 
