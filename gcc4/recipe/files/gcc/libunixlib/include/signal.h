@@ -1,7 +1,7 @@
 /*
  * ANSI, POSIX and BSD signal handling.
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef __SIGNAL_H
@@ -48,12 +48,16 @@ extern int raise (int __sig) __THROW;
 /* Send signal 'sig' to process number 'pid'.  If pid is zero,
    send sig to all processes in the current process's process group.
    If pid is < -1, send sig to all processes in process group -pid.  */
+#ifdef __USE_POSIX
 extern int kill (__pid_t __pid, int __sig) __THROW;
+#endif
 
 /* Send signal 'sig' to all processes in process group 'pgrp'.
    If pgrp is zero, send sig to all processes in the current
    process's process group.  */
+#if defined __USE_BSD || defined __USE_XOPEN_EXTENDED
 extern int killpg (__pid_t __pgrp, int __sig) __THROW;
+#endif
 
 /* Print a message describing the meaning of the given signal number.  */
 extern void psignal (int __sig, const char *__s) __THROW;

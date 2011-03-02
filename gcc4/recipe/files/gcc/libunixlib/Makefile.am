@@ -806,6 +806,7 @@ else
 signal_src = \
 	signal/init.c \
 	signal/kill.c \
+	signal/killpg.c \
 	signal/pause.c \
 	signal/post.c \
 	signal/psignal.c \
