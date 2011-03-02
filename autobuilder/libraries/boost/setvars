@@ -1,5 +1,22 @@
+AB_PACKAGES="libboost-dev libboost-doc libboost-date-time-dev libboost-filesystem-dev libboost-graph-dev libboost-iostreams-dev libboost-math-dev libboost-program-options-dev libboost-regex-dev libboost-serialization-dev libboost-signals-dev libboost-system-dev libboost-test-dev libboost-thread-dev libboost-wave-dev"
+
+# Following packages not packaged as the static library didn't build
+# libboost-mpi-dev 
+
+AB_CATEGORY=Library
+
 # Just install into env
-AB_INSTALL=env
+# Installation is done by hand in ab_make below
+AB_INSTALL=no
+
+# folder is boost_v_v_v so need to parse out version
+AB_PVERSION=`echo "$AB_PVERSION" | sed -e"s/boost_//" -e"s/_/./g"`
+
+# Debian packages has the version number in them
+DEBVERSION=`echo "$AB_PVERSION" | cut -d. -f-2`
+
+AB_PACKAGES="libboost$DEBVERSION-dev libboost$DEBVERSION-doc libboost-date-time$DEBVERSION-dev libboost-filesystem$DEBVERSION-dev libboost-graph$DEBVERSION-dev libboost-iostreams$DEBVERSION-dev libboost-math$DEBVERSION-dev libboost-program-options$DEBVERSION-dev libboost-regex$DEBVERSION-dev libboost-serialization$DEBVERSION-dev libboost-signals$DEBVERSION-dev libboost-system$DEBVERSION-dev libboost-test$DEBVERSION-dev libboost-thread$DEBVERSION-dev libboost-wave$DEBVERSION-dev"
+
 
 echo ""
 echo "******"
@@ -16,15 +33,285 @@ CC=gcc; cd tools/jam/src && sh build.sh cc; cd ../../..
 
 # Find it
 BJAM=`find $PWD/tools/jam -name bjam`
+if [ "$BJAM" == "" ] ; then
+   BJAM=`find $PWD/tools/jam -name bjam.exe`
+fi
 
 echo "Using bjam: $BJAM"
 
-AB_CONFLAGS="--with-bjam=$BJAM --without-libraries=python --with-toolset=gcc --without-icu"
+# No longer uses configure
+# AB_CONFLAGS="--with-bjam=$BJAM --without-libraries=python --with-toolset=gcc --without-icu"
+
+#Uses bjam to make
+AB_MAKE="$BJAM --user-config=user-config.jam --layout=tagged toolset=gcc target-os=riscos link=static threading=single,multi"
 
 ab_make() {
-  echo "using gcc : 4.1 : $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc -I$GCCSDK_INSTALL_ENV/include -DBOOST_HAS_PTHREADS -DBOOST_HAS_GETTIMEOFDAY ;" > user-config.jam
+  echo "using gcc : 4.1 : $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-gcc -I. -I$GCCSDK_INSTALL_ENV/include -DBOOST_HAS_GETTIMEOFDAY ;" > user-config.jam
+  echo "Expecting failures from build so temporarily turing of stop on error"
+  set +e
   eval $AB_MAKE
+  set -e
+
+  # Install into env
+  echo "Copy boost headers and libraries to $GCCSDK_INSTALL_ENV"
+  rm -rf $GCCSDK_INSTALL_ENV/include/boost
+  cp -rf boost $GCCSDK_INSTALL_ENV/include
+  cp -rf stage/lib $GCCSDK_INSTALL_ENV
+  echo "Copy finished"
 }
 
-mkdir -p $GCCSDK_INSTALL_ENV/boost-1_34_1/boost
-ln -sf $GCCSDK_INSTALL_ENV/include/boost-1_34_1/boost/ $GCCSDK_INSTALL_ENV/boost
+# Help function to find and copy shared libraies
+copylibs() {
+   local libname=$1
+   local target=$2
+   local libs=`find stage/lib -name "libboost_$libname*.a"`
+   local lib
+
+   for lib in $libs ; do
+      cp $lib $target
+   done
+}
+
+ab_package() {
+
+   HERE=`pwd`
+
+   # Dev package
+   PD=$D/libboost$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $PD
+
+   cp $H/\!Boost/\!* $PD
+   mkdir -p $PD/boost
+   cp -r $S/boost $PD
+
+   #?	dh_install -plibboost$(PKGVERSION)-dev dist/bin/bcp usr/bin
+   #?	dh_installman -plibboost$(PKGVERSION)-dev debian/bcp.1
+
+   # To copy debian we split off a few of the other packages
+   # removing headers from base dev package
+
+   # package libboost-dbg - dunno
+
+   # package libboost-doc
+
+   DD=$D/libboost$DEBVERSION-doc/Apps/Library/\!Boost
+   htmldir=$DD/html
+   exampledir=$DD/Examples
+
+   mkdir -p $htmldir
+
+   cat debian/documentation-files | xargs cp --parents --target-directory=$htmldir
+   find doc libs -name doc | xargs -n1 cp --archive --target-directory=$htmldir
+   rm -f $htmldir/doc/html/images/callouts/Thumbs.db
+   rm -rf $htmldir/boost
+
+   mkdir -p $exampledir
+   cat debian/example-files | xargs cp -a --parents --target-directory=$exampledir
+
+   # TODO: Shared library
+   # package libboost-date-time$(SOVERSION)
+   # dh_install -plibboost-date-time$(SOVERSION)
+
+   # package libboost-date-time$(PKGVERSION)-dev
+   DD=$D/libboost-date-time$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/date_time* $DD/boost
+   copylibs date_time $DD
+
+   # TODO: Shared library
+   # package libboost-filesystem$(SOVERSION)
+   # dh_install -plibboost-filesystem$(SOVERSION)
+
+   # package libboost-filesystem$(PKGVERSION)-dev
+   DD=$D/libboost-filesystem$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+   mv $PD/boost/filesystem* $DD
+   copylibs filesystem $DD
+
+   # TODO: Shared library
+   # package libboost-graph$(SOVERSION)
+   # dh_install -plibboost-graph$(SOVERSION)
+
+   # package libboost-graph$(PKGVERSION)-dev
+   DD=$D/libboost-graph$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/graph $DD/boost
+   copylibs graph $DD
+
+   # TODO: Shared library
+   # package libboost-iostreams$(SOVERSION)
+   # dh_install -plibboost-iostreams$(SOVERSION)
+
+   # package libboost-iostreams$(PKGVERSION)-dev
+   DD=$D/libboost-iostreams$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/iostreams* $DD/boost
+   copylibs iostreams $DD
+
+   # TODO: Shared library
+   # package libboost-math$(SOVERSION)
+   # dh_install -plibboost-math$(SOVERSION)
+
+   # package libboost-math$(PKGVERSION)-dev
+   DD=$D/libboost-math$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/math* $DD/boost
+   copylibs math $DD
+
+   # TODO: Shared library
+   # package libboost-mpi$(SOVERSION)
+   # dh_install -plibboost-mpi$(SOVERSION)
+
+   # Not packaged as doesn't currently build
+   # package libboost-mpi$(PKGVERSION)-dev
+   DD=$D/libboost-mpi$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+   mv $PD/boost/mpi* $DD
+
+   # TODO: Shared library
+   # package libboost-program-options$(SOVERSION)
+   # dh_install -plibboost-program-options$(SOVERSION)
+
+   # package libboost-program-options$(PKGVERSION)-dev
+   DD=$D/libboost-program-options$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/program_options* $DD/boost
+   copylibs program_options $DD
+
+   # Python support not included
+   # package libboost-python ...
+
+   # TODO: Shared library
+   # package libboost-regex$(SOVERSION)
+   # dh_install -plibboost-regex$(SOVERSION)
+
+   # package libboost-regex$(PKGVERSION)-dev
+   DD=$D/libboost-regex$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/*regex* $DD/boost
+   copylibs regex $DD
+
+   # TODO: Shared library
+   # package libboost-serialization$(SOVERSION)
+   # dh_install -plibboost-serialization$(SOVERSION)
+
+   # package libboost-serialization$(PKGVERSION)-dev
+   DD=$D/libboost-serialization$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/*serialization* $DD/boost
+   copylibs serialization $DD
+
+   # TODO: Shared library
+   # package libboost-signals$(SOVERSION)
+   # dh_install -plibboost-signals$(SOVERSION)
+
+   # package libboost-signals$(PKGVERSION)-dev
+   DD=$D/libboost-signals$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/*signal* $DD/boost
+   copylibs signals $DD
+
+   # TODO: Shared library
+   # package libboost-system$(SOVERSION)
+   # dh_install -plibboost-system$(SOVERSION)
+
+   # package libboost-system$(PKGVERSION)-dev
+   DD=$D/libboost-system$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/system $DD
+
+   # TODO: Shared library
+   # package libboost-test$(SOVERSION)
+   # dh_install -plibboost-test$(SOVERSION)
+
+   # package libboost-test$(PKGVERSION)-dev
+   DD=$D/libboost-test$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/test $DD/boost
+   copylibs prg_exec_monitor $DD
+   copylibs test_exec_monitor $DD
+   copylibs unit_test_framework $DD
+
+   # TODO: Shared library
+   # package libboost-thread$(SOVERSION)
+   # dh_install -plibboost-thread$(SOVERSION)
+
+   # package libboost-thread$(PKGVERSION)-dev
+   DD=$D/libboost-thread$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/thread* $DD/boost
+   copylibs thread $DD
+   
+   # TODO: Shared library
+   # package libboost-wave$(SOVERSION)
+   # dh_install -plibboost-wave$(SOVERSION)
+
+   # package libboost-wave$(PKGVERSION)-dev
+   DD=$D/libboost-wave$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   mv $PD/boost/wave* $DD/boost
+   copylibs wave $DD
+
+   cd $HERE
+   $AB_HOME/add-riscpkg -package libboost$DEBVERSION-dev \
+        -name LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost$DEBVERSION-doc \
+        -name LibBoost-Doc \
+        -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-date-time$DEBVERSION-dev \
+        -name LibBoost-Date-Time-Dev \
+        -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-filesystem$DEBVERSION-dev \
+        -name LibBoost-FileSystem-Dev \
+        -depends LibBoost-Dev
+#   $AB_HOME/add-riscpkg -package libboost-graph$DEBVERSION-dev \
+#       -name LibBoost-Graph-Dev \
+#       -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-iostreams$DEBVERSION-dev \
+        -name LibBoost-IOStreams-Dev \
+         -depends LibBoost-Dev
+  $AB_HOME/add-riscpkg -package libboost-math$DEBVERSION-dev \
+        -name LibBoost-Math-Dev \
+        -depends LibBoost-Dev
+#   $AB_HOME/add-riscpkg -package libboost-mpi$DEBVERSION-dev \
+#       -name LibBoost->MPI-Dev \
+#       -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-program-options$DEBVERSION-dev \
+        -name LibBoost-Program-Options-Dev \
+        -depends LibBoost-Dev
+  $AB_HOME/add-riscpkg -package libboost-regex$DEBVERSION-dev \
+        -name LibBoost-RegEx-Dev \
+        -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-serialization$DEBVERSION-dev \
+        -name LibBoost-Serializaton-Dev \
+        -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-signals$DEBVERSION-dev \
+        -name LibBoost-Signals-Dev \
+        -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-system$DEBVERSION-dev \
+        -name LibBoost-System-Dev \
+        -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-test$DEBVERSION-dev \
+        -name LibBoost-Test-Dev \
+        -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-thread$DEBVERSION-dev \
+        -name LibBoost-Thread-Dev \
+        -depends LibBoost-Dev
+   $AB_HOME/add-riscpkg -package libboost-wave$DEBVERSION-dev \
+        -name LibBoost-Wave-Dev \
+        -depends LibBoost-Dev
+
+   cd $HERE
+}
