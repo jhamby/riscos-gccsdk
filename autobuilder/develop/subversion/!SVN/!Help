@@ -15,7 +15,7 @@ and local repositories with the file protocol.
 
 Important Note
 ~~~~~~~~~~~~~~
-This version of the Subversion client for RISC OS (1.6.5) is maintained 
+This version of the Subversion client for RISC OS (1.6.12) is maintained 
 by the GCCSDK team.  Alex Waugh should not be contacted about it.
 Please report problems here:
 
@@ -34,7 +34,7 @@ Theo Markettos' CryptRandom module.
 http://www.chiark.greenend.org.uk/~theom/riscos/crypto/
 
 If you see a message such as the following when trying to run Subversion
-then it is beacuse the CryptRandom module cannot be found.
+then it is because the CryptRandom module cannot be found.
 svn: RA layer failed to init socket layer
 svn: network socket initialization failed
 
@@ -52,7 +52,7 @@ Log mesages
 You should generally use the -m or -F options on the command line to
 specify log messages when committing files. It is possible to use
 Justin Fletcher's EE program to allow you to edit log messages in your
-favorite text editor, however this is disable by default because there
+favorite text editor, however this is disabled by default because there
 are currently a couple of unresolved issues which can give confusing
 error messages. If you wish to enable this, then uncomment the line in
 !SVN.!Boot.
@@ -84,7 +84,7 @@ use the latter.
 
 ***IMPORTANT*** Versions prior to 1.03 only supported filetypes as
 filename extensions, but 1.03 and later support both, with the default
-as stoing filetypes as properties. Therefore if you are using
+as storing filetypes as properties. Therefore if you are using
 Subversion on an existing repository that has filetypes stored as
 extensions you should ensure that you set the svn$filetypeext variable
 or convert your repository.

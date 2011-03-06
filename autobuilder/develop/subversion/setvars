@@ -16,7 +16,7 @@ ab_package() {
   cp $S/ee/ee$AB_EXEEXT $A
   ab_docs $S/COPYING
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }
 
 export LIBS=-lexpat
@@ -29,7 +29,7 @@ sed -i s#CVS#SVN# riscosify_ee.c
 
 $CC -c eecode.S
 $CC -c -O2 riscosify_ee.c
-$CC -o ee$AB_EXEEXT *.o
+$CC -static -o ee$AB_EXEEXT *.o
 cd ..
 
 
