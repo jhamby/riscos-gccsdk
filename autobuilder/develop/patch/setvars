@@ -1,8 +1,11 @@
 
-AB_CATEGORY=Command
-
 AB_MANPAGE=patch.man
 
 ab_package() {
-  cp $S/patch$AB_EXEEXT $S/COPYING $D
+  ab_create_command_app Patch Apps/Development
+  ab_add_commands $S/src/patch$AB_EXEEXT
+
+  cp $S/COPYING $S/AUTHORS $S/ChangeLog $S/NEWS $S/README $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }
