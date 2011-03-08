@@ -6,8 +6,6 @@ AB_CONFLAGS="\
 --with-berkeley-db \
 --without-apxs"
 
-AB_CATEGORY=Develop
-
 ab_package() {
   ab_create_app SVN Apps/Development
 
