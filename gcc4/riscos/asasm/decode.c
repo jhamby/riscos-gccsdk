@@ -119,7 +119,7 @@ static const decode_table_t oDecodeTable[] =
   { "COS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_cos } }, /* COS CC P R */
   { "CP", DTABLE_CALLBACK_SYMBOL, { .sym = c_cp } }, /* CP */
   { "CPS", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_cps } }, /* CPS */
-  /* FIXME: DBG */
+  { "DBG", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_dbg } }, /* DBG */
   { "DCB", DTABLE_CALLBACK_VOID, { .vd = c_dcb } }, /* = / DCB */
   { "DCD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcd } }, /* & / DCD / DCDU */
   { "DCFD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = c_dcfd } }, /* DCFD / DCFDU */

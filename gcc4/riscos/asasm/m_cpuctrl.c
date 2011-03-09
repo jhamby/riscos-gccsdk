@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -981,5 +981,44 @@ m_cps (void)
     }
   assert(!(((imod == (0<<18) || imod == (1<<18)) && !readMode) || (imod == (1<<18) && readMode)) && "We shouldn't be generating this");
   Put_Ins ((0xF << 28) | (1<<24) | imod | (readMode ? (1<<17) : 0) | iflags | mode);
+  return false;
+}
+
+/**
+ * Implements DBG.
+ *   DBG<cond> #<option>
+ */
+bool
+m_dbg (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
+  if (Target_NeedAtLeastArch (ARCH_ARMv7))
+    return true;
+
+  skipblanks ();
+  if (!Input_Match ('#', false))
+    error (ErrorError, "DBG option value missing");
+  else
+    {
+      const Value *im = exprBuildAndEval (ValueInt);
+      switch (im->Tag)
+	{
+	  case ValueInt:
+	    {
+	      int optValue = im->Data.Int.i;
+	      if (optValue < 0 || optValue >= 16)
+		error (ErrorError, "DBG option value needs to be between 0 and 15");
+	      else
+		Put_Ins (cc | 0x0320F0F0 | optValue);
+	      break;
+	    }
+	  default:
+	    error (ErrorError, "Unknown DBG option value type");
+	    break;
+	}
+    }
   return false;
 }

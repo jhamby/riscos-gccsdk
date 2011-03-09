@@ -1,3 +1,9 @@
+Thu Mar 10 00:45:15 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (oDecodeTable): Add DBG.
+	* m_cpuctrl.c, m_cpuctrl.h (m_dbg): Add.
+	* regression/tests_pass/dbg.s: Add.
+
 Mon Feb 21 02:28:15 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/fpe_memory.s: Split of fp.s only containing
@@ -99,7 +105,7 @@ Thu Jan 27 02:35:32 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 Thu Jan 27 02:13:13 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
-	* decode.c (ooDecodeTable): Add NOFP.
+	* decode.c (oDecodeTable): Add NOFP.
 	* m_fpu.c, m_fpu.h (c_nofp, CheckFPUsageIsAllowed): New.
 	Move M_* from m_fpu.h to m_fpu.c.
 	* fix.c, fix.h (fixImmFloat): Move to m_fpu.c, m_fpu.h.

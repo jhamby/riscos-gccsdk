@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010 GCCSDK Developers
+ * Copyright (c) 2010-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,5 +43,6 @@ bool m_wfi (void);
 bool m_yield (void);
 
 bool m_cps (void);
+bool m_dbg (void);
 
 #endif
