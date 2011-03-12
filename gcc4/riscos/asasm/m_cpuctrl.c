@@ -1020,5 +1020,48 @@ m_dbg (void)
 	    break;
 	}
     }
+
+  return false;
+}
+
+
+/**
+ * Implements SMC (and pre-UAL SMI).
+ *   SMC<c> #<imm4>
+ */
+bool
+m_smc (void)
+{
+  ARMWord cc = optionCond ();
+  if (cc == optionError)
+    return true;
+
+  /* Note that the security extensions are optional.  */
+  if (Target_NeedAtLeastArch (ARCH_ARMv6K))
+    return true;
+
+  skipblanks ();
+  if (!Input_Match ('#', false))
+    error (ErrorError, "SMC value missing");
+  else
+    {
+      const Value *im = exprBuildAndEval (ValueInt);
+      switch (im->Tag)
+	{
+	  case ValueInt:
+	    {
+	      int smcValue = im->Data.Int.i;
+	      if (smcValue < 0 || smcValue >= 16)
+		error (ErrorError, "SMC value needs to be between 0 and 15");
+	      else
+		Put_Ins (cc | 0x01600070 | smcValue);
+	      break;
+	    }
+	  default:
+	    error (ErrorError, "Unknown SMC value type");
+	    break;
+	}
+    }
+
   return false;
 }

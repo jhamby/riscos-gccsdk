@@ -241,7 +241,8 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: SHASX/SHSAX */
   /* FIXME: SHSUB16/SHSUB8 */
   { "SIN", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_sin } }, /* SIN CC P R */
-  /* FIXME: SMC (SMI ?) */
+  { "SMC", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smc } }, /* SMC CC */
+  { "SMI", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smc } }, /* SMI CC (pre-UAL) */
   { "SMLABB", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlabb } }, /* SMLABB CC */
   { "SMLABT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_smlabt } }, /* SMLABT CC */
   /* FIXME: SMLAD */

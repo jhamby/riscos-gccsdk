@@ -44,5 +44,6 @@ bool m_yield (void);
 
 bool m_cps (void);
 bool m_dbg (void);
+bool m_smc (void);
 
 #endif
