@@ -13,7 +13,7 @@
  LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_net -lz -llibintl -lm
  else
 -LFLAGS = `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_net -lz
-+LFLAGS = -static `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_net -lz -lintl -lpng -ljpeg -lfreetype -lvorbisidec -lvorbisfile -logg
++LFLAGS = -static `sdl-config --libs` -lSDL -lSDL_image -lSDL_mixer -lSDL_ttf -lSDL_net -lz -lintl -lpng -ljpeg -lfreetype -lvorbisidec -lvorbisfile -logg -ltiff
  endif
  
  TILE_OBJS  = tile_creator.o save_png.o

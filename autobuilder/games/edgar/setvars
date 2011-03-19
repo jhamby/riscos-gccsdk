@@ -1,7 +1,7 @@
 
-AB_URL=http://www.parallelrealities.co.uk/download/edgar/edgar-0.73-1.tar.gz
+AB_URL=http://www.parallelrealities.co.uk/download/edgar/edgar-0.77-1.tar.gz
 
-/usr/bin/gcc -O2 src/pak_creator.c -o pak -lz
+gcc -O2 src/pak_creator.c -o pak -lz
 touch pak_creator.o
 make buildpak
 
