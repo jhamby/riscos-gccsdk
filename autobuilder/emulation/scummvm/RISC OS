@@ -4,14 +4,14 @@ ScummVM
 
 RISC OS port by Peter Naulls
 
-19th November 2010
+19th March 2011
 
 This port is part of the GCCSDK riscos.info autobuilder.  The
 ScummVM for RISC OS page is:
 
   http://www.riscos.info/index.php/ScummVM
 
-This is version 1.2.0, and updates my 2004 version 0.8 and 2009 1.0.0 RC1, 1.0.0 ports
+This is version 1.2.1, and updates my 2004 version 0.8 and 2009 1.0.0 RC1, 1.0.0 ports
 
 RISC OS Notes:
 
@@ -30,5 +30,5 @@ it will remember the path in future.
 Known Issues:
 
 Flight of the Amazon Queen and Beneath a Steel Sky are the only
-games throughly tested with the RISC OS version and work fine.
+games thoroughly tested with the RISC OS version and work fine.
 Simon the Sorceror also seems to work ok.
