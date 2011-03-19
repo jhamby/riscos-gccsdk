@@ -1,9 +1,4 @@
-export CVSROOT=:pserver:anonymous@riscosopen.org:/home/rool/cvsroot
-expect -c "
-spawn cvs login
-expect \"CVS password:\"
-send \"\r\"
-exit"
+export CVSROOT=:pserver:anonymous:@riscosopen.org:/home/rool/cvsroot
 cvs co  castle/RiscOS/Sources/Toolbox/Libs/flexlib/c/flex
 mv castle/RiscOS/Sources/Toolbox/Libs/flexlib/c/flex GuiLib/GuiFlex/flex.c
 cvs co  castle/RiscOS/Sources/Toolbox/Libs/flexlib/h/flex
