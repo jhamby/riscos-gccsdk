@@ -1,0 +1,749 @@
+Autobuilder: Building package: flare
+Autobuilder: Fetching source for flare
+2011-03-20 12:55:03 URL:http://flare-engine.googlecode.com/files/flare_src_v012.zip [36933468/36933468] -> "flare_src_v012.zip" [1]
+Archive:  flare_src_v012.zip
+   creating: flare_v012/
+  inflating: flare_v012/.DS_Store    
+   creating: __MACOSX/
+   creating: __MACOSX/flare_v012/
+  inflating: __MACOSX/flare_v012/._.DS_Store  
+   creating: flare_v012/build/
+  inflating: flare_v012/build/CMakeLists.txt  
+   creating: __MACOSX/flare_v012/build/
+  inflating: __MACOSX/flare_v012/build/._CMakeLists.txt  
+  inflating: flare_v012/credits.html  
+   creating: flare_v012/enemies/
+  inflating: flare_v012/enemies/antlion.txt  
+  inflating: flare_v012/enemies/antlion_blinker.txt  
+  inflating: flare_v012/enemies/antlion_burster.txt  
+  inflating: flare_v012/enemies/antlion_hatchling.txt  
+  inflating: flare_v012/enemies/antlion_slasher.txt  
+  inflating: flare_v012/enemies/antlion_spitter.txt  
+  inflating: flare_v012/enemies/brittle_skeleton.txt  
+  inflating: flare_v012/enemies/goblin.txt  
+  inflating: flare_v012/enemies/goblin_charger.txt  
+  inflating: flare_v012/enemies/goblin_shaman.txt  
+  inflating: flare_v012/enemies/goblin_spearman.txt  
+  inflating: flare_v012/enemies/minotaur.txt  
+  inflating: flare_v012/enemies/rotting_zombie.txt  
+  inflating: flare_v012/enemies/skeletal_archer.txt  
+  inflating: flare_v012/enemies/skeletal_mage.txt  
+  inflating: flare_v012/enemies/skeletal_warrior.txt  
+  inflating: flare_v012/enemies/skeleton.txt  
+  inflating: flare_v012/enemies/skeleton_boss.txt  
+  inflating: flare_v012/enemies/zombie.txt  
+  inflating: flare_v012/enemies/zombie_boss.txt  
+   creating: flare_v012/fonts/
+  inflating: flare_v012/fonts/blue.png  
+  inflating: flare_v012/fonts/font.txt  
+  inflating: flare_v012/fonts/gray.png  
+  inflating: flare_v012/fonts/green.png  
+  inflating: flare_v012/fonts/red.png  
+  inflating: flare_v012/fonts/white.png  
+   creating: flare_v012/images/
+   creating: flare_v012/images/avatar/
+   creating: flare_v012/images/avatar/male/
+  inflating: flare_v012/images/avatar/male/buckler.png  
+  inflating: flare_v012/images/avatar/male/clothes.png  
+  inflating: flare_v012/images/avatar/male/dagger.png  
+  inflating: flare_v012/images/avatar/male/greatbow.png  
+  inflating: flare_v012/images/avatar/male/greatstaff.png  
+  inflating: flare_v012/images/avatar/male/greatsword.png  
+  inflating: flare_v012/images/avatar/male/leather_armor.png  
+  inflating: flare_v012/images/avatar/male/longbow.png  
+  inflating: flare_v012/images/avatar/male/longsword.png  
+  inflating: flare_v012/images/avatar/male/rod.png  
+  inflating: flare_v012/images/avatar/male/shield.png  
+  inflating: flare_v012/images/avatar/male/shortbow.png  
+  inflating: flare_v012/images/avatar/male/shortsword.png  
+  inflating: flare_v012/images/avatar/male/slingshot.png  
+  inflating: flare_v012/images/avatar/male/staff.png  
+  inflating: flare_v012/images/avatar/male/steel_armor.png  
+  inflating: flare_v012/images/avatar/male/wand.png  
+   creating: flare_v012/images/enemies/
+  inflating: flare_v012/images/enemies/antlion.png  
+  inflating: flare_v012/images/enemies/antlion_hatchling.png  
+  inflating: flare_v012/images/enemies/fire_ant.png  
+  inflating: flare_v012/images/enemies/goblin.png  
+  inflating: flare_v012/images/enemies/ice_ant.png  
+  inflating: flare_v012/images/enemies/minotaur.png  
+  inflating: flare_v012/images/enemies/skeleton.png  
+  inflating: flare_v012/images/enemies/skeleton_archer.png  
+  inflating: flare_v012/images/enemies/skeleton_mage.png  
+  inflating: flare_v012/images/enemies/skeleton_weak.png  
+  inflating: flare_v012/images/enemies/zombie.png  
+   creating: flare_v012/images/icons/
+  inflating: flare_v012/images/icons/icons.png  
+   creating: flare_v012/images/loot/
+  inflating: flare_v012/images/loot/belt.png  
+  inflating: flare_v012/images/loot/boots.png  
+  inflating: flare_v012/images/loot/buckler.png  
+  inflating: flare_v012/images/loot/clothes.png  
+  inflating: flare_v012/images/loot/coins100.png  
+  inflating: flare_v012/images/loot/coins25.png  
+  inflating: flare_v012/images/loot/coins5.png  
+  inflating: flare_v012/images/loot/dagger.png  
+  inflating: flare_v012/images/loot/gem.png  
+  inflating: flare_v012/images/loot/greatbow.png  
+  inflating: flare_v012/images/loot/greatstaff.png  
+  inflating: flare_v012/images/loot/greatsword.png  
+  inflating: flare_v012/images/loot/health_potion.png  
+  inflating: flare_v012/images/loot/leather_armor.png  
+  inflating: flare_v012/images/loot/longbow.png  
+  inflating: flare_v012/images/loot/longsword.png  
+  inflating: flare_v012/images/loot/mana_potion.png  
+  inflating: flare_v012/images/loot/ring.png  
+  inflating: flare_v012/images/loot/rod.png  
+  inflating: flare_v012/images/loot/shield.png  
+  inflating: flare_v012/images/loot/shortbow.png  
+  inflating: flare_v012/images/loot/shortsword.png  
+  inflating: flare_v012/images/loot/slingshot.png  
+  inflating: flare_v012/images/loot/staff.png  
+  inflating: flare_v012/images/loot/steel_armor.png  
+  inflating: flare_v012/images/loot/wand.png  
+   creating: flare_v012/images/menus/
+  inflating: flare_v012/images/menus/actionbar_labels.png  
+  inflating: flare_v012/images/menus/actionbar_trim.png  
+  inflating: flare_v012/images/menus/bar_enemy.png  
+  inflating: flare_v012/images/menus/bar_hp.png  
+  inflating: flare_v012/images/menus/bar_hp_mp.png  
+  inflating: flare_v012/images/menus/bar_mp.png  
+  inflating: flare_v012/images/menus/bar_xp.png  
+  inflating: flare_v012/images/menus/character.png  
+  inflating: flare_v012/images/menus/character_proficiency.png  
+  inflating: flare_v012/images/menus/disabled.png  
+  inflating: flare_v012/images/menus/inventory.png  
+  inflating: flare_v012/images/menus/log.png  
+  inflating: flare_v012/images/menus/menu_xp.png  
+  inflating: flare_v012/images/menus/powers.png  
+  inflating: flare_v012/images/menus/powers_step.png  
+  inflating: flare_v012/images/menus/powers_unlock.png  
+  inflating: flare_v012/images/menus/slot_empty.png  
+  inflating: flare_v012/images/menus/upgrade.png  
+  inflating: flare_v012/images/menus/vendor.png  
+   creating: flare_v012/images/npcs/
+  inflating: flare_v012/images/npcs/wandering_trader1.png  
+  inflating: flare_v012/images/npcs/wandering_trader2.png  
+   creating: flare_v012/images/powers/
+  inflating: flare_v012/images/powers/arrow_stuck.png  
+  inflating: flare_v012/images/powers/arrows.png  
+  inflating: flare_v012/images/powers/blast.png  
+  inflating: flare_v012/images/powers/fireball.png  
+  inflating: flare_v012/images/powers/freeze.png  
+  inflating: flare_v012/images/powers/heal.png  
+  inflating: flare_v012/images/powers/icicle.png  
+  inflating: flare_v012/images/powers/lightning.png  
+  inflating: flare_v012/images/powers/quake.png  
+  inflating: flare_v012/images/powers/runes.png  
+  inflating: flare_v012/images/powers/shield.png  
+  inflating: flare_v012/images/powers/spark_blue.png  
+  inflating: flare_v012/images/powers/spark_orange.png  
+  inflating: flare_v012/images/powers/spark_red.png  
+  inflating: flare_v012/images/powers/spear.png  
+  inflating: flare_v012/images/powers/stone.png  
+   creating: flare_v012/images/tilesets/
+  inflating: flare_v012/images/tilesets/tileset_cave.png  
+  inflating: flare_v012/images/tilesets/tileset_dungeon.png  
+   creating: flare_v012/items/
+  inflating: flare_v012/items/items.txt  
+  inflating: flare_v012/Launch Flare OSX.command  
+  inflating: __MACOSX/flare_v012/._Launch Flare OSX.command  
+  inflating: flare_v012/Launch Flare Windows.bat  
+  inflating: __MACOSX/flare_v012/._Launch Flare Windows.bat  
+   creating: flare_v012/maps/
+  inflating: flare_v012/maps/averguard_academy.txt  
+  inflating: flare_v012/maps/averguard_atrium.txt  
+  inflating: flare_v012/maps/averguard_complex.txt  
+  inflating: flare_v012/maps/averguard_prison.txt  
+  inflating: flare_v012/maps/averguard_temple.txt  
+  inflating: flare_v012/maps/cave1.txt  
+  inflating: flare_v012/maps/cave_sketch.txt  
+  inflating: flare_v012/maps/goblin_warrens.txt  
+  inflating: flare_v012/maps/lost_mines.txt  
+  inflating: flare_v012/maps/spawn.txt  
+   creating: flare_v012/music/
+  inflating: flare_v012/music/battle_theme.ogg  
+  inflating: flare_v012/music/boss_theme.ogg  
+  inflating: flare_v012/music/cave_theme.ogg  
+  inflating: flare_v012/music/dungeon_theme.ogg  
+  inflating: flare_v012/music/overworld_theme.ogg  
+  inflating: flare_v012/music/safe_room_theme.ogg  
+  inflating: flare_v012/music/town_theme.ogg  
+  inflating: flare_v012/music/unrest_theme.ogg  
+   creating: flare_v012/npcs/
+  inflating: flare_v012/npcs/captured_trader.txt  
+   creating: __MACOSX/flare_v012/npcs/
+  inflating: __MACOSX/flare_v012/npcs/._captured_trader.txt  
+  inflating: flare_v012/npcs/wandering_trader.txt  
+  inflating: __MACOSX/flare_v012/npcs/._wandering_trader.txt  
+   creating: flare_v012/powers/
+  inflating: flare_v012/powers/powers.txt  
+  inflating: flare_v012/README.txt   
+  inflating: __MACOSX/flare_v012/._README.txt  
+   creating: flare_v012/saves/
+   creating: flare_v012/soundfx/
+  inflating: flare_v012/soundfx/.DS_Store  
+   creating: __MACOSX/flare_v012/soundfx/
+  inflating: __MACOSX/flare_v012/soundfx/._.DS_Store  
+  inflating: flare_v012/soundfx/door_open.ogg  
+   creating: flare_v012/soundfx/enemies/
+  inflating: flare_v012/soundfx/enemies/antlion_critdie.ogg  
+  inflating: flare_v012/soundfx/enemies/antlion_die.ogg  
+  inflating: flare_v012/soundfx/enemies/antlion_hit.ogg  
+  inflating: flare_v012/soundfx/enemies/antlion_phys.ogg  
+  inflating: flare_v012/soundfx/enemies/goblin_critdie.ogg  
+  inflating: flare_v012/soundfx/enemies/goblin_die.ogg  
+  inflating: flare_v012/soundfx/enemies/goblin_hit.ogg  
+  inflating: flare_v012/soundfx/enemies/goblin_mag.ogg  
+  inflating: flare_v012/soundfx/enemies/goblin_phys.ogg  
+  inflating: flare_v012/soundfx/enemies/minotaur_critdie.ogg  
+  inflating: flare_v012/soundfx/enemies/minotaur_die.ogg  
+  inflating: flare_v012/soundfx/enemies/minotaur_hit.ogg  
+  inflating: flare_v012/soundfx/enemies/minotaur_phys.ogg  
+  inflating: flare_v012/soundfx/enemies/skeleton_critdie.ogg  
+  inflating: flare_v012/soundfx/enemies/skeleton_die.ogg  
+  inflating: flare_v012/soundfx/enemies/skeleton_hit.ogg  
+  inflating: flare_v012/soundfx/enemies/skeleton_phys.ogg  
+  inflating: flare_v012/soundfx/enemies/zombie_critdie.ogg  
+  inflating: flare_v012/soundfx/enemies/zombie_die.ogg  
+  inflating: flare_v012/soundfx/enemies/zombie_hit.ogg  
+  inflating: flare_v012/soundfx/enemies/zombie_mag.ogg  
+  inflating: flare_v012/soundfx/enemies/zombie_phys.ogg  
+  inflating: flare_v012/soundfx/flying_loot.ogg  
+   creating: flare_v012/soundfx/inventory/
+  inflating: flare_v012/soundfx/inventory/inventory_book.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_cloth.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_coins.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_gem.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_heavy.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_leather.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_maille.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_metal.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_object.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_page.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_potion.ogg  
+  inflating: flare_v012/soundfx/inventory/inventory_wood.ogg  
+  inflating: flare_v012/soundfx/level_up.ogg  
+  inflating: flare_v012/soundfx/male_die.ogg  
+  inflating: flare_v012/soundfx/male_hit.ogg  
+  inflating: flare_v012/soundfx/melee_attack.ogg  
+   creating: flare_v012/soundfx/npcs/
+  inflating: flare_v012/soundfx/npcs/.DS_Store  
+   creating: __MACOSX/flare_v012/soundfx/npcs/
+  inflating: __MACOSX/flare_v012/soundfx/npcs/._.DS_Store  
+  inflating: flare_v012/soundfx/npcs/male_merchant_01.ogg  
+  inflating: __MACOSX/flare_v012/soundfx/npcs/._male_merchant_01.ogg  
+  inflating: flare_v012/soundfx/npcs/male_merchant_02.ogg  
+  inflating: __MACOSX/flare_v012/soundfx/npcs/._male_merchant_02.ogg  
+  inflating: flare_v012/soundfx/npcs/male_merchant_03.ogg  
+  inflating: __MACOSX/flare_v012/soundfx/npcs/._male_merchant_03.ogg  
+  inflating: flare_v012/soundfx/npcs/male_merchant_04.ogg  
+  inflating: __MACOSX/flare_v012/soundfx/npcs/._male_merchant_04.ogg  
+   creating: flare_v012/soundfx/powers/
+  inflating: flare_v012/soundfx/powers/block.ogg  
+  inflating: flare_v012/soundfx/powers/burn.ogg  
+  inflating: flare_v012/soundfx/powers/fireball.ogg  
+  inflating: flare_v012/soundfx/powers/freeze.ogg  
+  inflating: flare_v012/soundfx/powers/heal.ogg  
+  inflating: flare_v012/soundfx/powers/potion.ogg  
+  inflating: flare_v012/soundfx/powers/quake.ogg  
+  inflating: flare_v012/soundfx/powers/shield.ogg  
+  inflating: flare_v012/soundfx/powers/shock.ogg  
+  inflating: flare_v012/soundfx/powers/shoot.ogg  
+  inflating: flare_v012/soundfx/powers/teleport.ogg  
+  inflating: flare_v012/soundfx/powers/timestop.ogg  
+  inflating: flare_v012/soundfx/powers/warcry.ogg  
+  inflating: flare_v012/soundfx/step_echo1.ogg  
+  inflating: flare_v012/soundfx/step_echo2.ogg  
+  inflating: flare_v012/soundfx/step_echo3.ogg  
+  inflating: flare_v012/soundfx/step_echo4.ogg  
+  inflating: flare_v012/soundfx/wood_open.ogg  
+   creating: flare_v012/src/
+  inflating: flare_v012/src/.DS_Store  
+   creating: __MACOSX/flare_v012/src/
+  inflating: __MACOSX/flare_v012/src/._.DS_Store  
+  inflating: flare_v012/src/Avatar.cpp  
+  inflating: __MACOSX/flare_v012/src/._Avatar.cpp  
+  inflating: flare_v012/src/Avatar.h  
+  inflating: flare_v012/src/Enemy.cpp  
+  inflating: __MACOSX/flare_v012/src/._Enemy.cpp  
+  inflating: flare_v012/src/Enemy.h  
+  inflating: flare_v012/src/EnemyManager.cpp  
+  inflating: __MACOSX/flare_v012/src/._EnemyManager.cpp  
+  inflating: flare_v012/src/EnemyManager.h  
+  inflating: flare_v012/src/FontEngine.cpp  
+  inflating: flare_v012/src/FontEngine.h  
+  inflating: flare_v012/src/GameEngine.cpp  
+  inflating: __MACOSX/flare_v012/src/._GameEngine.cpp  
+  inflating: flare_v012/src/GameEngine.h  
+  inflating: __MACOSX/flare_v012/src/._GameEngine.h  
+  inflating: flare_v012/src/Hazard.cpp  
+  inflating: flare_v012/src/Hazard.h  
+  inflating: flare_v012/src/HazardManager.cpp  
+  inflating: __MACOSX/flare_v012/src/._HazardManager.cpp  
+  inflating: flare_v012/src/HazardManager.h  
+  inflating: flare_v012/src/InputState.cpp  
+  inflating: __MACOSX/flare_v012/src/._InputState.cpp  
+  inflating: flare_v012/src/InputState.h  
+  inflating: __MACOSX/flare_v012/src/._InputState.h  
+  inflating: flare_v012/src/ItemDatabase.cpp  
+  inflating: __MACOSX/flare_v012/src/._ItemDatabase.cpp  
+  inflating: flare_v012/src/ItemDatabase.h  
+  inflating: flare_v012/src/LootManager.cpp  
+  inflating: __MACOSX/flare_v012/src/._LootManager.cpp  
+  inflating: flare_v012/src/LootManager.h  
+  inflating: __MACOSX/flare_v012/src/._LootManager.h  
+  inflating: flare_v012/src/main.cpp  
+  inflating: __MACOSX/flare_v012/src/._main.cpp  
+  inflating: flare_v012/src/MapCollision.cpp  
+  inflating: __MACOSX/flare_v012/src/._MapCollision.cpp  
+  inflating: flare_v012/src/MapCollision.h  
+  inflating: flare_v012/src/MapIso.cpp  
+  inflating: __MACOSX/flare_v012/src/._MapIso.cpp  
+  inflating: flare_v012/src/MapIso.h  
+  inflating: __MACOSX/flare_v012/src/._MapIso.h  
+  inflating: flare_v012/src/MenuActionBar.cpp  
+  inflating: flare_v012/src/MenuActionBar.h  
+  inflating: flare_v012/src/MenuCharacter.cpp  
+  inflating: flare_v012/src/MenuCharacter.h  
+  inflating: flare_v012/src/MenuEnemy.cpp  
+  inflating: flare_v012/src/MenuEnemy.h  
+  inflating: flare_v012/src/MenuExperience.cpp  
+  inflating: flare_v012/src/MenuExperience.h  
+  inflating: flare_v012/src/MenuHealthMana.cpp  
+  inflating: flare_v012/src/MenuHealthMana.h  
+  inflating: flare_v012/src/MenuInventory.cpp  
+  inflating: __MACOSX/flare_v012/src/._MenuInventory.cpp  
+  inflating: flare_v012/src/MenuInventory.h  
+  inflating: __MACOSX/flare_v012/src/._MenuInventory.h  
+  inflating: flare_v012/src/MenuLog.cpp  
+  inflating: flare_v012/src/MenuLog.h  
+  inflating: flare_v012/src/MenuManager.cpp  
+  inflating: __MACOSX/flare_v012/src/._MenuManager.cpp  
+  inflating: flare_v012/src/MenuManager.h  
+  inflating: __MACOSX/flare_v012/src/._MenuManager.h  
+  inflating: flare_v012/src/MenuMiniMap.cpp  
+  inflating: flare_v012/src/MenuMiniMap.h  
+  inflating: flare_v012/src/MenuPowers.cpp  
+  inflating: flare_v012/src/MenuPowers.h  
+  inflating: flare_v012/src/MenuTooltip.cpp  
+  inflating: flare_v012/src/MenuTooltip.h  
+  inflating: flare_v012/src/MenuVendor.cpp  
+  inflating: __MACOSX/flare_v012/src/._MenuVendor.cpp  
+  inflating: flare_v012/src/MenuVendor.h  
+  inflating: __MACOSX/flare_v012/src/._MenuVendor.h  
+  inflating: flare_v012/src/NPC.cpp  
+  inflating: __MACOSX/flare_v012/src/._NPC.cpp  
+  inflating: flare_v012/src/NPC.h    
+  inflating: __MACOSX/flare_v012/src/._NPC.h  
+  inflating: flare_v012/src/NPCManager.cpp  
+  inflating: __MACOSX/flare_v012/src/._NPCManager.cpp  
+  inflating: flare_v012/src/NPCManager.h  
+  inflating: __MACOSX/flare_v012/src/._NPCManager.h  
+  inflating: flare_v012/src/PowerManager.cpp  
+  inflating: __MACOSX/flare_v012/src/._PowerManager.cpp  
+  inflating: flare_v012/src/PowerManager.h  
+  inflating: flare_v012/src/SaveLoad.cpp  
+  inflating: flare_v012/src/Settings.h  
+  inflating: flare_v012/src/StatBlock.cpp  
+  inflating: __MACOSX/flare_v012/src/._StatBlock.cpp  
+  inflating: flare_v012/src/StatBlock.h  
+  inflating: __MACOSX/flare_v012/src/._StatBlock.h  
+  inflating: flare_v012/src/TileSet.cpp  
+  inflating: flare_v012/src/TileSet.h  
+  inflating: flare_v012/src/Utils.cpp  
+  inflating: __MACOSX/flare_v012/src/._Utils.cpp  
+  inflating: flare_v012/src/Utils.h  
+  inflating: __MACOSX/flare_v012/src/._Utils.h  
+  inflating: flare_v012/src/UtilsParsing.cpp  
+  inflating: flare_v012/src/UtilsParsing.h  
+   creating: flare_v012/tilesetdefs/
+  inflating: flare_v012/tilesetdefs/tileset_cave.txt  
+  inflating: flare_v012/tilesetdefs/tileset_dungeon.txt  
+Autobuilder: Calling preprocess
+Autobuilder: source directory is /linux1/gccsdk/build-static/flare
+Autobuilder: RISC OS patch: /linux1/gccsdk/autobuilder/games/flare/NPC.cpp.p
+patching file flare/src/NPC.cpp
+Autobuilder: RISC OS patch: /linux1/gccsdk/autobuilder/games/flare/MapIso.cpp.p
+patching file flare/src/MapIso.cpp
+Autobuilder: RISC OS patch: /linux1/gccsdk/autobuilder/games/flare/Itemdatabase.cpp.p
+patching file flare/src/ItemDatabase.cpp
+Autobuilder: RISC OS patch: /linux1/gccsdk/autobuilder/games/flare/TileSet.cpp.p
+patching file flare/src/TileSet.cpp
+Autobuilder: RISC OS patch: /linux1/gccsdk/autobuilder/games/flare/SaveLoad.cpp.p
+patching file flare/src/SaveLoad.cpp
+Autobuilder: RISC OS patch: /linux1/gccsdk/autobuilder/games/flare/StatBlock.cpp.p
+patching file flare/src/StatBlock.cpp
+Autobuilder: RISC OS patch: /linux1/gccsdk/autobuilder/games/flare/PowerManager.cpp.p
+patching file flare/src/PowerManager.cpp
+Autobuilder: Calling setvars
+Autobuilder: Running make command: /linux1/gccsdk/env/ro-make
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o Avatar.o Avatar.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o Enemy.o Enemy.cpp
+Enemy.cpp: In member function 'void Enemy::logic()':
+Enemy.cpp:184: warning: 'pursue_pos.Point::x' may be used uninitialized in this function
+Enemy.cpp:184: warning: 'pursue_pos.Point::y' may be used uninitialized in this function
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o EnemyManager.o EnemyManager.cpp
+EnemyManager.cpp: In member function 'void EnemyManager::logic()':
+EnemyManager.cpp:124: warning: 'pref_id' may be used uninitialized in this function
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o FontEngine.o FontEngine.cpp
+FontEngine.cpp: In member function 'void FontEngine::render(std::string, int, int, int, SDL_Surface*, int)':
+FontEngine.cpp:155: warning: 'dest_y' may be used uninitialized in this function
+FontEngine.cpp:154: warning: 'dest_x' may be used uninitialized in this function
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o GameEngine.o GameEngine.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o Hazard.o Hazard.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o HazardManager.o HazardManager.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o InputState.o InputState.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o ItemDatabase.o ItemDatabase.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o LootManager.o LootManager.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o main.o main.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MapCollision.o MapCollision.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MapIso.o MapIso.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuActionBar.o MenuActionBar.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuCharacter.o MenuCharacter.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuEnemy.o MenuEnemy.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuExperience.o MenuExperience.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuHealthMana.o MenuHealthMana.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuInventory.o MenuInventory.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuLog.o MenuLog.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuManager.o MenuManager.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuMiniMap.o MenuMiniMap.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuPowers.o MenuPowers.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuTooltip.o MenuTooltip.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o MenuVendor.o MenuVendor.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o NPC.o NPC.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o NPCManager.o NPCManager.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o PowerManager.o PowerManager.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o SaveLoad.o SaveLoad.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o StatBlock.o StatBlock.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o TileSet.o TileSet.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o Utils.o Utils.cpp
+/linux1/gccsdk/env/arm-unknown-riscos-g++ -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL   -c -o UtilsParsing.o UtilsParsing.cpp
+gcc -Wall -O3 -I. -I/linux1/gccsdk/env/include/SDL -static -o flare Avatar.o Enemy.o EnemyManager.o FontEngine.o GameEngine.o Hazard.o HazardManager.o InputState.o ItemDatabase.o LootManager.o main.o MapCollision.o MapIso.o MenuActionBar.o MenuCharacter.o MenuEnemy.o MenuExperience.o MenuHealthMana.o MenuInventory.o MenuLog.o MenuManager.o MenuMiniMap.o MenuPowers.o MenuTooltip.o MenuVendor.o NPC.o NPCManager.o PowerManager.o SaveLoad.o StatBlock.o TileSet.o Utils.o UtilsParsing.o -L/linux1/gccsdk/env -lSDL -lSDL_image -lSDL_mixer -lpng -lz -ljpeg -lvorbisidec -logg -lstdc++  
+`/linux1/gccsdk/autobuilder/games/flare/!Flare/!Sprites22,ff9' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/!Sprites22,ff9'
+`../enemies' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies'
+`../enemies/antlion_spitter.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/antlion_spitter.txt'
+`../enemies/skeleton_boss.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/skeleton_boss.txt'
+`../enemies/minotaur.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/minotaur.txt'
+`../enemies/antlion_burster.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/antlion_burster.txt'
+`../enemies/goblin_spearman.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/goblin_spearman.txt'
+`../enemies/skeletal_mage.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/skeletal_mage.txt'
+`../enemies/zombie_boss.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/zombie_boss.txt'
+`../enemies/brittle_skeleton.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/brittle_skeleton.txt'
+`../enemies/skeletal_archer.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/skeletal_archer.txt'
+`../enemies/antlion_blinker.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/antlion_blinker.txt'
+`../enemies/antlion_hatchling.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/antlion_hatchling.txt'
+`../enemies/goblin_charger.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/goblin_charger.txt'
+`../enemies/goblin.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/goblin.txt'
+`../enemies/skeletal_warrior.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/skeletal_warrior.txt'
+`../enemies/goblin_shaman.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/goblin_shaman.txt'
+`../enemies/zombie.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/zombie.txt'
+`../enemies/antlion.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/antlion.txt'
+`../enemies/skeleton.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/skeleton.txt'
+`../enemies/rotting_zombie.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/rotting_zombie.txt'
+`../enemies/antlion_slasher.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/enemies/antlion_slasher.txt'
+`../fonts' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/fonts'
+`../fonts/blue.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/fonts/blue.png'
+`../fonts/white.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/fonts/white.png'
+`../fonts/red.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/fonts/red.png'
+`../fonts/green.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/fonts/green.png'
+`../fonts/gray.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/fonts/gray.png'
+`../fonts/font.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/fonts/font.txt'
+`../images' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images'
+`../images/icons' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/icons'
+`../images/icons/icons.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/icons/icons.png'
+`../images/loot' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot'
+`../images/loot/gem.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/gem.png'
+`../images/loot/shortsword.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/shortsword.png'
+`../images/loot/greatbow.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/greatbow.png'
+`../images/loot/staff.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/staff.png'
+`../images/loot/wand.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/wand.png'
+`../images/loot/shield.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/shield.png'
+`../images/loot/buckler.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/buckler.png'
+`../images/loot/steel_armor.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/steel_armor.png'
+`../images/loot/greatstaff.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/greatstaff.png'
+`../images/loot/coins100.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/coins100.png'
+`../images/loot/slingshot.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/slingshot.png'
+`../images/loot/dagger.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/dagger.png'
+`../images/loot/longsword.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/longsword.png'
+`../images/loot/boots.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/boots.png'
+`../images/loot/coins5.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/coins5.png'
+`../images/loot/rod.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/rod.png'
+`../images/loot/coins25.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/coins25.png'
+`../images/loot/belt.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/belt.png'
+`../images/loot/clothes.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/clothes.png'
+`../images/loot/mana_potion.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/mana_potion.png'
+`../images/loot/health_potion.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/health_potion.png'
+`../images/loot/shortbow.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/shortbow.png'
+`../images/loot/ring.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/ring.png'
+`../images/loot/longbow.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/longbow.png'
+`../images/loot/leather_armor.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/leather_armor.png'
+`../images/loot/greatsword.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/loot/greatsword.png'
+`../images/enemies' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies'
+`../images/enemies/skeleton.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/skeleton.png'
+`../images/enemies/skeleton_archer.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/skeleton_archer.png'
+`../images/enemies/fire_ant.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/fire_ant.png'
+`../images/enemies/ice_ant.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/ice_ant.png'
+`../images/enemies/minotaur.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/minotaur.png'
+`../images/enemies/zombie.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/zombie.png'
+`../images/enemies/skeleton_mage.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/skeleton_mage.png'
+`../images/enemies/skeleton_weak.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/skeleton_weak.png'
+`../images/enemies/antlion_hatchling.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/antlion_hatchling.png'
+`../images/enemies/antlion.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/antlion.png'
+`../images/enemies/goblin.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/enemies/goblin.png'
+`../images/tilesets' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/tilesets'
+`../images/tilesets/tileset_cave.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/tilesets/tileset_cave.png'
+`../images/tilesets/tileset_dungeon.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/tilesets/tileset_dungeon.png'
+`../images/menus' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus'
+`../images/menus/vendor.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/vendor.png'
+`../images/menus/bar_hp.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/bar_hp.png'
+`../images/menus/character.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/character.png'
+`../images/menus/bar_mp.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/bar_mp.png'
+`../images/menus/powers.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/powers.png'
+`../images/menus/bar_hp_mp.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/bar_hp_mp.png'
+`../images/menus/slot_empty.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/slot_empty.png'
+`../images/menus/actionbar_labels.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/actionbar_labels.png'
+`../images/menus/menu_xp.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/menu_xp.png'
+`../images/menus/character_proficiency.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/character_proficiency.png'
+`../images/menus/actionbar_trim.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/actionbar_trim.png'
+`../images/menus/bar_xp.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/bar_xp.png'
+`../images/menus/powers_step.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/powers_step.png'
+`../images/menus/bar_enemy.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/bar_enemy.png'
+`../images/menus/powers_unlock.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/powers_unlock.png'
+`../images/menus/disabled.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/disabled.png'
+`../images/menus/upgrade.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/upgrade.png'
+`../images/menus/log.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/log.png'
+`../images/menus/inventory.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/menus/inventory.png'
+`../images/powers' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers'
+`../images/powers/quake.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/quake.png'
+`../images/powers/stone.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/stone.png'
+`../images/powers/shield.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/shield.png'
+`../images/powers/heal.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/heal.png'
+`../images/powers/blast.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/blast.png'
+`../images/powers/spear.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/spear.png'
+`../images/powers/runes.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/runes.png'
+`../images/powers/icicle.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/icicle.png'
+`../images/powers/lightning.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/lightning.png'
+`../images/powers/spark_red.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/spark_red.png'
+`../images/powers/spark_blue.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/spark_blue.png'
+`../images/powers/fireball.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/fireball.png'
+`../images/powers/spark_orange.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/spark_orange.png'
+`../images/powers/freeze.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/freeze.png'
+`../images/powers/arrows.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/arrows.png'
+`../images/powers/arrow_stuck.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/powers/arrow_stuck.png'
+`../images/npcs' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/npcs'
+`../images/npcs/wandering_trader2.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/npcs/wandering_trader2.png'
+`../images/npcs/wandering_trader1.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/npcs/wandering_trader1.png'
+`../images/avatar' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar'
+`../images/avatar/male' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male'
+`../images/avatar/male/shortsword.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/shortsword.png'
+`../images/avatar/male/greatbow.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/greatbow.png'
+`../images/avatar/male/staff.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/staff.png'
+`../images/avatar/male/wand.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/wand.png'
+`../images/avatar/male/shield.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/shield.png'
+`../images/avatar/male/buckler.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/buckler.png'
+`../images/avatar/male/steel_armor.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/steel_armor.png'
+`../images/avatar/male/greatstaff.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/greatstaff.png'
+`../images/avatar/male/slingshot.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/slingshot.png'
+`../images/avatar/male/dagger.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/dagger.png'
+`../images/avatar/male/longsword.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/longsword.png'
+`../images/avatar/male/rod.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/rod.png'
+`../images/avatar/male/clothes.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/clothes.png'
+`../images/avatar/male/shortbow.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/shortbow.png'
+`../images/avatar/male/longbow.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/longbow.png'
+`../images/avatar/male/leather_armor.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/leather_armor.png'
+`../images/avatar/male/greatsword.png' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/images/avatar/male/greatsword.png'
+`../items' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/items'
+`../items/items.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/items/items.txt'
+`../maps' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps'
+`../maps/averguard_complex.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/averguard_complex.txt'
+`../maps/cave1.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/cave1.txt'
+`../maps/goblin_warrens.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/goblin_warrens.txt'
+`../maps/spawn.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/spawn.txt'
+`../maps/averguard_academy.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/averguard_academy.txt'
+`../maps/lost_mines.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/lost_mines.txt'
+`../maps/cave_sketch.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/cave_sketch.txt'
+`../maps/averguard_temple.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/averguard_temple.txt'
+`../maps/averguard_atrium.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/averguard_atrium.txt'
+`../maps/averguard_prison.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/maps/averguard_prison.txt'
+`../music' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/music'
+`../music/town_theme.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/music/town_theme.ogg'
+`../music/battle_theme.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/music/battle_theme.ogg'
+`../music/boss_theme.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/music/boss_theme.ogg'
+`../music/unrest_theme.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/music/unrest_theme.ogg'
+`../music/overworld_theme.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/music/overworld_theme.ogg'
+`../music/dungeon_theme.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/music/dungeon_theme.ogg'
+`../music/safe_room_theme.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/music/safe_room_theme.ogg'
+`../music/cave_theme.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/music/cave_theme.ogg'
+`../npcs' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/npcs'
+`../npcs/wandering_trader.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/npcs/wandering_trader.txt'
+`../npcs/captured_trader.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/npcs/captured_trader.txt'
+`../powers' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/powers'
+`../powers/powers.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/powers/powers.txt'
+`../soundfx' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx'
+`../soundfx/step_echo4.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/step_echo4.ogg'
+`../soundfx/step_echo3.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/step_echo3.ogg'
+`../soundfx/flying_loot.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/flying_loot.ogg'
+`../soundfx/male_die.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/male_die.ogg'
+`../soundfx/enemies' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies'
+`../soundfx/enemies/minotaur_hit.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/minotaur_hit.ogg'
+`../soundfx/enemies/zombie_critdie.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/zombie_critdie.ogg'
+`../soundfx/enemies/antlion_phys.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/antlion_phys.ogg'
+`../soundfx/enemies/zombie_hit.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/zombie_hit.ogg'
+`../soundfx/enemies/antlion_hit.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/antlion_hit.ogg'
+`../soundfx/enemies/skeleton_critdie.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/skeleton_critdie.ogg'
+`../soundfx/enemies/zombie_die.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/zombie_die.ogg'
+`../soundfx/enemies/antlion_die.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/antlion_die.ogg'
+`../soundfx/enemies/goblin_hit.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/goblin_hit.ogg'
+`../soundfx/enemies/goblin_phys.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/goblin_phys.ogg'
+`../soundfx/enemies/goblin_die.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/goblin_die.ogg'
+`../soundfx/enemies/skeleton_hit.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/skeleton_hit.ogg'
+`../soundfx/enemies/goblin_mag.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/goblin_mag.ogg'
+`../soundfx/enemies/minotaur_die.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/minotaur_die.ogg'
+`../soundfx/enemies/minotaur_phys.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/minotaur_phys.ogg'
+`../soundfx/enemies/minotaur_critdie.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/minotaur_critdie.ogg'
+`../soundfx/enemies/skeleton_phys.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/skeleton_phys.ogg'
+`../soundfx/enemies/antlion_critdie.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/antlion_critdie.ogg'
+`../soundfx/enemies/zombie_mag.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/zombie_mag.ogg'
+`../soundfx/enemies/skeleton_die.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/skeleton_die.ogg'
+`../soundfx/enemies/goblin_critdie.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/goblin_critdie.ogg'
+`../soundfx/enemies/zombie_phys.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/enemies/zombie_phys.ogg'
+`../soundfx/male_hit.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/male_hit.ogg'
+`../soundfx/powers' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers'
+`../soundfx/powers/fireball.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/fireball.ogg'
+`../soundfx/powers/teleport.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/teleport.ogg'
+`../soundfx/powers/shield.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/shield.ogg'
+`../soundfx/powers/block.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/block.ogg'
+`../soundfx/powers/warcry.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/warcry.ogg'
+`../soundfx/powers/freeze.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/freeze.ogg'
+`../soundfx/powers/quake.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/quake.ogg'
+`../soundfx/powers/shoot.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/shoot.ogg'
+`../soundfx/powers/burn.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/burn.ogg'
+`../soundfx/powers/heal.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/heal.ogg'
+`../soundfx/powers/shock.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/shock.ogg'
+`../soundfx/powers/timestop.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/timestop.ogg'
+`../soundfx/powers/potion.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/powers/potion.ogg'
+`../soundfx/door_open.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/door_open.ogg'
+`../soundfx/wood_open.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/wood_open.ogg'
+`../soundfx/step_echo2.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/step_echo2.ogg'
+`../soundfx/npcs' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/npcs'
+`../soundfx/npcs/male_merchant_03.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/npcs/male_merchant_03.ogg'
+`../soundfx/npcs/male_merchant_04.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/npcs/male_merchant_04.ogg'
+`../soundfx/npcs/male_merchant_02.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/npcs/male_merchant_02.ogg'
+`../soundfx/npcs/male_merchant_01.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/npcs/male_merchant_01.ogg'
+`../soundfx/npcs/.DS_Store' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/npcs/.DS_Store'
+`../soundfx/level_up.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/level_up.ogg'
+`../soundfx/.DS_Store' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/.DS_Store'
+`../soundfx/step_echo1.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/step_echo1.ogg'
+`../soundfx/inventory' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory'
+`../soundfx/inventory/inventory_potion.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_potion.ogg'
+`../soundfx/inventory/inventory_metal.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_metal.ogg'
+`../soundfx/inventory/inventory_coins.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_coins.ogg'
+`../soundfx/inventory/inventory_wood.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_wood.ogg'
+`../soundfx/inventory/inventory_gem.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_gem.ogg'
+`../soundfx/inventory/inventory_leather.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_leather.ogg'
+`../soundfx/inventory/inventory_object.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_object.ogg'
+`../soundfx/inventory/inventory_cloth.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_cloth.ogg'
+`../soundfx/inventory/inventory_page.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_page.ogg'
+`../soundfx/inventory/inventory_heavy.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_heavy.ogg'
+`../soundfx/inventory/inventory_book.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_book.ogg'
+`../soundfx/inventory/inventory_maille.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/inventory/inventory_maille.ogg'
+`../soundfx/melee_attack.ogg' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/soundfx/melee_attack.ogg'
+`../tilesetdefs' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/tilesetdefs'
+`../tilesetdefs/tileset_cave.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/tilesetdefs/tileset_cave.txt'
+`../tilesetdefs/tileset_dungeon.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/tilesetdefs/tileset_dungeon.txt'
+`../README.txt' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/README.txt'
+`../credits.html' -> `/linux1/gccsdk/build-static/flare/package/flare/Apps/Games/!Flare/credits.html'
+add-riscpkg: Adding files for the RISC OS Packaging Project
+`/linux1/gccsdk/autobuilder/games/flare/RiscPkg/Control' -> `/linux1/gccsdk/build-static/flare/package/flare/RiscPkg/Control'
+add-riscpkg: Setting filetypes...
+add-riskpkg: Finished
+Autobuilder: Packaging files
+Autobuilder: Packaging as flare
+adding: Apps/ (stored 0%) adding: Apps/Games/ (stored 0%) adding: Apps/Games/!Flare/ (stored 0%) adding: Apps/Games/!Flare/tilesetdefs/ (stored 0%) adding: Apps/Games/!Flare/tilesetdefs/tileset_dungeon.txt,fff (deflated 80%) adding: Apps/Games/!Flare/tilesetdefs/tileset_cave.txt,fff (deflated 83%) adding: Apps/Games/!Flare/enemies/ (stored 0%) adding: Apps/Games/!Flare/enemies/skeleton.txt,fff (deflated 65%) adding: Apps/Games/!Flare/enemies/goblin_shaman.txt,fff (deflated 64%) adding: Apps/Games/!Flare/enemies/zombie_boss.txt,fff (deflated 63%) adding: Apps/Games/!Flare/enemies/goblin.txt,fff (deflated 64%) adding: Apps/Games/!Flare/enemies/antlion_slasher.txt,fff (deflated 63%) adding: Apps/Games/!Flare/enemies/brittle_skeleton.txt,fff (deflated 64%) adding: Apps/Games/!Flare/enemies/minotaur.txt,fff (deflated 64%) adding: Apps/Games/!Flare/enemies/antlion_hatchling.txt,fff (deflated 63%) adding: Apps/Games/!Flare/enemies/goblin_charger.txt,fff (deflated 63%) adding: Apps/Games/!Flare/enemies/skeletal_archer.txt,fff (deflated 64%) adding: Apps/Games/!Flare/enemies/skeleton_boss.txt,fff (deflated 63%) adding: Apps/Games/!Flare/enemies/antlion_blinker.txt,fff (deflated 63%) adding: Apps/Games/!Flare/enemies/goblin_spearman.txt,fff (deflated 63%) adding: Apps/Games/!Flare/enemies/skeletal_mage.txt,fff (deflated 63%) adding: Apps/Games/!Flare/enemies/antlion_spitter.txt,fff (deflated 62%) adding: Apps/Games/!Flare/enemies/zombie.txt,fff (deflated 65%) adding: Apps/Games/!Flare/enemies/rotting_zombie.txt,fff (deflated 64%) adding: Apps/Games/!Flare/enemies/antlion_burster.txt,fff (deflated 63%) adding: Apps/Games/!Flare/enemies/skeletal_warrior.txt,fff (deflated 65%) adding: Apps/Games/!Flare/enemies/antlion.txt,fff (deflated 64%) adding: Apps/Games/!Flare/!Boot,feb (deflated 19%) adding: Apps/Games/!Flare/music/ (stored 0%) adding: Apps/Games/!Flare/music/unrest_theme.ogg,fff (deflated 2%) adding: Apps/Games/!Flare/music/town_theme.ogg,fff (deflated 4%) adding: Apps/Games/!Flare/music/boss_theme.ogg,fff (deflated 1%) adding: Apps/Games/!Flare/music/battle_theme.ogg,fff (deflated 1%) adding: Apps/Games/!Flare/music/safe_room_theme.ogg,fff (deflated 2%) adding: Apps/Games/!Flare/music/dungeon_theme.ogg,fff (deflated 2%) adding: Apps/Games/!Flare/music/cave_theme.ogg,fff (deflated 1%) adding: Apps/Games/!Flare/music/overworld_theme.ogg,fff (deflated 2%) adding: Apps/Games/!Flare/fonts/ (stored 0%) adding: Apps/Games/!Flare/fonts/green.png,fff (stored 0%) adding: Apps/Games/!Flare/fonts/white.png,fff (stored 0%) adding: Apps/Games/!Flare/fonts/gray.png,fff (stored 0%) adding: Apps/Games/!Flare/fonts/font.txt,fff (deflated 49%) adding: Apps/Games/!Flare/fonts/blue.png,fff (stored 0%) adding: Apps/Games/!Flare/fonts/red.png,fff (stored 0%) adding: Apps/Games/!Flare/powers/ (stored 0%) adding: Apps/Games/!Flare/powers/powers.txt,fff (deflated 80%) adding: Apps/Games/!Flare/images/ (stored 0%) adding: Apps/Games/!Flare/images/icons/ (stored 0%) adding: Apps/Games/!Flare/images/icons/icons.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/loot/ (stored 0%) adding: Apps/Games/!Flare/images/loot/mana_potion.png,fff (deflated 4%) adding: Apps/Games/!Flare/images/loot/greatsword.png,fff (deflated 0%) adding: Apps/Games/!Flare/images/loot/shortbow.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/loot/buckler.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/loot/longbow.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/loot/shield.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/loot/clothes.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/loot/shortsword.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/loot/coins5.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/loot/greatstaff.png,fff (deflated 0%) adding: Apps/Games/!Flare/images/loot/coins100.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/loot/dagger.png,fff (deflated 3%) adding: Apps/Games/!Flare/images/loot/boots.png,fff (deflated 3%) adding: Apps/Games/!Flare/images/loot/longsword.png,fff (stored 0%) adding: Apps/Games/!Flare/images/loot/gem.png,fff (deflated 19%) adding: Apps/Games/!Flare/images/loot/steel_armor.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/loot/greatbow.png,fff (deflated 0%) adding: Apps/Games/!Flare/images/loot/staff.png,fff (stored 0%) adding: Apps/Games/!Flare/images/loot/rod.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/loot/leather_armor.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/loot/health_potion.png,fff (deflated 4%) adding: Apps/Games/!Flare/images/loot/wand.png,fff (deflated 3%) adding: Apps/Games/!Flare/images/loot/coins25.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/loot/belt.png,fff (deflated 4%) adding: Apps/Games/!Flare/images/loot/slingshot.png,fff (deflated 4%) adding: Apps/Games/!Flare/images/loot/ring.png,fff (deflated 10%) adding: Apps/Games/!Flare/images/enemies/ (stored 0%) adding: Apps/Games/!Flare/images/enemies/skeleton_weak.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/enemies/ice_ant.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/enemies/minotaur.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/enemies/fire_ant.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/enemies/antlion.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/enemies/skeleton_mage.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/enemies/skeleton_archer.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/enemies/skeleton.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/enemies/goblin.png,fff (deflated 4%) adding: Apps/Games/!Flare/images/enemies/zombie.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/enemies/antlion_hatchling.png,fff (deflated 3%) adding: Apps/Games/!Flare/images/tilesets/ (stored 0%) adding: Apps/Games/!Flare/images/tilesets/tileset_dungeon.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/tilesets/tileset_cave.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/menus/ (stored 0%) adding: Apps/Games/!Flare/images/menus/inventory.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/menus/actionbar_trim.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/menus/bar_hp.png,fff (deflated 37%) adding: Apps/Games/!Flare/images/menus/bar_mp.png,fff (deflated 51%) adding: Apps/Games/!Flare/images/menus/character_proficiency.png,fff (deflated 8%) adding: Apps/Games/!Flare/images/menus/character.png,fff (deflated 0%) adding: Apps/Games/!Flare/images/menus/powers_step.png,fff (deflated 7%) adding: Apps/Games/!Flare/images/menus/slot_empty.png,fff (stored 0%) adding: Apps/Games/!Flare/images/menus/vendor.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/menus/powers_unlock.png,fff (deflated 9%) adding: Apps/Games/!Flare/images/menus/log.png,fff (deflated 0%) adding: Apps/Games/!Flare/images/menus/menu_xp.png,fff (stored 0%) adding: Apps/Games/!Flare/images/menus/upgrade.png,fff (stored 0%) adding: Apps/Games/!Flare/images/menus/disabled.png,fff (deflated 11%) adding: Apps/Games/!Flare/images/menus/bar_enemy.png,fff (stored 0%) adding: Apps/Games/!Flare/images/menus/bar_xp.png,fff (deflated 5%) adding: Apps/Games/!Flare/images/menus/bar_hp_mp.png,fff (deflated 0%) adding: Apps/Games/!Flare/images/menus/powers.png,fff (deflated 0%) adding: Apps/Games/!Flare/images/menus/actionbar_labels.png,fff (stored 0%) adding: Apps/Games/!Flare/images/powers/ (stored 0%) adding: Apps/Games/!Flare/images/powers/spark_red.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/powers/spark_orange.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/powers/heal.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/powers/arrows.png,fff (deflated 8%) adding: Apps/Games/!Flare/images/powers/shield.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/powers/icicle.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/powers/stone.png,fff (deflated 5%) adding: Apps/Games/!Flare/images/powers/runes.png,fff (deflated 5%) adding: Apps/Games/!Flare/images/powers/spear.png,fff (deflated 6%) adding: Apps/Games/!Flare/images/powers/blast.png,fff (deflated 0%) adding: Apps/Games/!Flare/images/powers/arrow_stuck.png,fff (deflated 8%) adding: Apps/Games/!Flare/images/powers/spark_blue.png,fff (deflated 0%) adding: Apps/Games/!Flare/images/powers/freeze.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/powers/fireball.png,fff (deflated 1%) adding: Apps/Games/!Flare/images/powers/lightning.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/powers/quake.png,fff (deflated 2%) adding: Apps/Games/!Flare/images/npcs/ (stored 0%) adding: Apps/Games/!Flare/images/npcs/wandering_trader2.png,fff (stored 0%) adding: Apps/Games/!Flare/images/npcs/wandering_trader1.png,fff (stored 0%) adding: Apps/Games/!Flare/images/avatar/ (stored 0%) adding: Apps/Games/!Flare/images/avatar/male/ (stored 0%) adding: Apps/Games/!Flare/images/avatar/male/greatsword.png,fff (deflated 7%) adding: Apps/Games/!Flare/images/avatar/male/shortbow.png,fff (deflated 12%) adding: Apps/Games/!Flare/images/avatar/male/buckler.png,fff (deflated 11%) adding: Apps/Games/!Flare/images/avatar/male/longbow.png,fff (deflated 8%) adding: Apps/Games/!Flare/images/avatar/male/shield.png,fff (deflated 11%) adding: Apps/Games/!Flare/images/avatar/male/clothes.png,fff (deflated 3%) adding: Apps/Games/!Flare/images/avatar/male/shortsword.png,fff (deflated 18%) adding: Apps/Games/!Flare/images/avatar/male/greatstaff.png,fff (deflated 6%) adding: Apps/Games/!Flare/images/avatar/male/dagger.png,fff (deflated 28%) adding: Apps/Games/!Flare/images/avatar/male/longsword.png,fff (deflated 10%) adding: Apps/Games/!Flare/images/avatar/male/steel_armor.png,fff (deflated 4%) adding: Apps/Games/!Flare/images/avatar/male/greatbow.png,fff (deflated 6%) adding: Apps/Games/!Flare/images/avatar/male/staff.png,fff (deflated 8%) adding: Apps/Games/!Flare/images/avatar/male/rod.png,fff (deflated 17%) adding: Apps/Games/!Flare/images/avatar/male/leather_armor.png,fff (deflated 4%) adding: Apps/Games/!Flare/images/avatar/male/wand.png,fff (deflated 28%) adding: Apps/Games/!Flare/images/avatar/male/slingshot.png,fff (deflated 22%) adding: Apps/Games/!Flare/README.txt,fff (deflated 48%) adding: Apps/Games/!Flare/credits.html,faf (deflated 81%) adding: Apps/Games/!Flare/npcs/ (stored 0%) adding: Apps/Games/!Flare/npcs/wandering_trader.txt,fff (deflated 44%) adding: Apps/Games/!Flare/npcs/captured_trader.txt,fff (deflated 45%) adding: Apps/Games/!Flare/!Sprites22,ff9 (deflated 59%) adding: Apps/Games/!Flare/soundfx/ (stored 0%) adding: Apps/Games/!Flare/soundfx/step_echo1.ogg,fff (deflated 11%) adding: Apps/Games/!Flare/soundfx/.DS_Store,fff (deflated 97%) adding: Apps/Games/!Flare/soundfx/step_echo2.ogg,fff (deflated 11%) adding: Apps/Games/!Flare/soundfx/enemies/ (stored 0%) adding: Apps/Games/!Flare/soundfx/enemies/goblin_mag.ogg,fff (deflated 6%) adding: Apps/Games/!Flare/soundfx/enemies/zombie_mag.ogg,fff (deflated 4%) adding: Apps/Games/!Flare/soundfx/enemies/skeleton_die.ogg,fff (deflated 8%) adding: Apps/Games/!Flare/soundfx/enemies/goblin_critdie.ogg,fff (deflated 7%) adding: Apps/Games/!Flare/soundfx/enemies/goblin_phys.ogg,fff (deflated 12%) adding: Apps/Games/!Flare/soundfx/enemies/minotaur_die.ogg,fff (deflated 11%) adding: Apps/Games/!Flare/soundfx/enemies/skeleton_phys.ogg,fff (deflated 9%) adding: Apps/Games/!Flare/soundfx/enemies/antlion_die.ogg,fff (deflated 7%) adding: Apps/Games/!Flare/soundfx/enemies/skeleton_hit.ogg,fff (deflated 11%) adding: Apps/Games/!Flare/soundfx/enemies/goblin_die.ogg,fff (deflated 7%) adding: Apps/Games/!Flare/soundfx/enemies/goblin_hit.ogg,fff (deflated 16%) adding: Apps/Games/!Flare/soundfx/enemies/zombie_critdie.ogg,fff (deflated 6%) adding: Apps/Games/!Flare/soundfx/enemies/antlion_hit.ogg,fff (deflated 10%) adding: Apps/Games/!Flare/soundfx/enemies/skeleton_critdie.ogg,fff (deflated 8%) adding: Apps/Games/!Flare/soundfx/enemies/minotaur_hit.ogg,fff (deflated 15%) adding: Apps/Games/!Flare/soundfx/enemies/minotaur_phys.ogg,fff (deflated 15%) adding: Apps/Games/!Flare/soundfx/enemies/zombie_hit.ogg,fff (deflated 10%) adding: Apps/Games/!Flare/soundfx/enemies/antlion_critdie.ogg,fff (deflated 10%) adding: Apps/Games/!Flare/soundfx/enemies/antlion_phys.ogg,fff (deflated 12%) adding: Apps/Games/!Flare/soundfx/enemies/zombie_die.ogg,fff (deflated 13%) adding: Apps/Games/!Flare/soundfx/enemies/zombie_phys.ogg,fff (deflated 7%) adding: Apps/Games/!Flare/soundfx/enemies/minotaur_critdie.ogg,fff (deflated 11%) adding: Apps/Games/!Flare/soundfx/step_echo4.ogg,fff (deflated 10%) adding: Apps/Games/!Flare/soundfx/powers/ (stored 0%) adding: Apps/Games/!Flare/soundfx/powers/burn.ogg,fff (deflated 7%) adding: Apps/Games/!Flare/soundfx/powers/freeze.ogg,fff (deflated 8%) adding: Apps/Games/!Flare/soundfx/powers/heal.ogg,fff (deflated 10%) adding: Apps/Games/!Flare/soundfx/powers/block.ogg,fff (deflated 12%) adding: Apps/Games/!Flare/soundfx/powers/quake.ogg,fff (deflated 10%) adding: Apps/Games/!Flare/soundfx/powers/shock.ogg,fff (deflated 7%) adding: Apps/Games/!Flare/soundfx/powers/shield.ogg,fff (deflated 15%) adding: Apps/Games/!Flare/soundfx/powers/potion.ogg,fff (deflated 8%) adding: Apps/Games/!Flare/soundfx/powers/teleport.ogg,fff (deflated 12%) adding: Apps/Games/!Flare/soundfx/powers/fireball.ogg,fff (deflated 8%) adding: Apps/Games/!Flare/soundfx/powers/warcry.ogg,fff (deflated 5%) adding: Apps/Games/!Flare/soundfx/powers/timestop.ogg,fff (deflated 3%) adding: Apps/Games/!Flare/soundfx/powers/shoot.ogg,fff (deflated 15%) adding: Apps/Games/!Flare/soundfx/wood_open.ogg,fff (deflated 7%) adding: Apps/Games/!Flare/soundfx/npcs/ (stored 0%) adding: Apps/Games/!Flare/soundfx/npcs/male_merchant_03.ogg,fff (deflated 11%) adding: Apps/Games/!Flare/soundfx/npcs/.DS_Store,fff (deflated 97%) adding: Apps/Games/!Flare/soundfx/npcs/male_merchant_04.ogg,fff (deflated 9%) adding: Apps/Games/!Flare/soundfx/npcs/male_merchant_01.ogg,fff (deflated 8%) adding: Apps/Games/!Flare/soundfx/npcs/male_merchant_02.ogg,fff (deflated 10%) adding: Apps/Games/!Flare/soundfx/flying_loot.ogg,fff (deflated 12%) adding: Apps/Games/!Flare/soundfx/male_hit.ogg,fff (deflated 19%) adding: Apps/Games/!Flare/soundfx/door_open.ogg,fff (deflated 12%) adding: Apps/Games/!Flare/soundfx/melee_attack.ogg,fff (deflated 20%) adding: Apps/Games/!Flare/soundfx/inventory/ (stored 0%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_potion.ogg,fff (deflated 8%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_gem.ogg,fff (deflated 19%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_object.ogg,fff (deflated 13%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_metal.ogg,fff (deflated 14%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_coins.ogg,fff (deflated 11%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_page.ogg,fff (deflated 13%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_book.ogg,fff (deflated 13%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_wood.ogg,fff (deflated 14%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_maille.ogg,fff (deflated 13%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_cloth.ogg,fff (deflated 12%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_leather.ogg,fff (deflated 8%) adding: Apps/Games/!Flare/soundfx/inventory/inventory_heavy.ogg,fff (deflated 13%) adding: Apps/Games/!Flare/soundfx/level_up.ogg,fff (deflated 6%) adding: Apps/Games/!Flare/soundfx/step_echo3.ogg,fff (deflated 10%) adding: Apps/Games/!Flare/soundfx/male_die.ogg,fff (deflated 9%) adding: Apps/Games/!Flare/items/ (stored 0%) adding: Apps/Games/!Flare/items/items.txt,fff (deflated 89%) adding: Apps/Games/!Flare/!Run,feb (deflated 21%) adding: Apps/Games/!Flare/maps/ (stored 0%) adding: Apps/Games/!Flare/maps/cave1.txt,fff (deflated 91%) adding: Apps/Games/!Flare/maps/cave_sketch.txt,fff (deflated 93%) adding: Apps/Games/!Flare/maps/averguard_complex.txt,fff (deflated 94%) adding: Apps/Games/!Flare/maps/averguard_academy.txt,fff (deflated 92%) adding: Apps/Games/!Flare/maps/averguard_prison.txt,fff (deflated 94%) adding: Apps/Games/!Flare/maps/averguard_atrium.txt,fff (deflated 90%) adding: Apps/Games/!Flare/maps/averguard_temple.txt,fff (deflated 89%) adding: Apps/Games/!Flare/maps/lost_mines.txt,fff (deflated 97%) adding: Apps/Games/!Flare/maps/goblin_warrens.txt,fff (deflated 92%) adding: Apps/Games/!Flare/maps/spawn.txt,fff (deflated 24%) adding: Apps/Games/!Flare/flare,ff8 (deflated 53%) adding: RiscPkg/ (stored 0%) adding: RiscPkg/Copyright,fff (deflated 38%) adding: RiscPkg/Control,fff (deflated 31%) adding: SysVars/ (stored 0%) adding: SysVars/Flare=24Dir,fff (stored 0%)
+-rw-r--r-- 1 cgransden cgransden 37635626 2011-03-20 12:55 /linux1/gccsdk/autobuilder/autobuilder_packages/Games/flare_flare-1.zip
+Autobuilder: Packaging source
+make: *** No rule to make target `distclean'. Stop.
+rm -f Avatar.o Enemy.o EnemyManager.o FontEngine.o GameEngine.o Hazard.o HazardManager.o InputState.o ItemDatabase.o LootManager.o main.o MapCollision.o MapIso.o MenuActionBar.o MenuCharacter.o MenuEnemy.o MenuExperience.o MenuHealthMana.o MenuInventory.o MenuLog.o MenuManager.o MenuMiniMap.o MenuPowers.o MenuTooltip.o MenuVendor.o NPC.o NPCManager.o PowerManager.o SaveLoad.o StatBlock.o TileSet.o Utils.o UtilsParsing.o flare
+  adding: Avatar.cpp (deflated 75%)
+  adding: Avatar.h (deflated 54%)
+  adding: Enemy.cpp (deflated 76%)
+  adding: Enemy.h (deflated 56%)
+  adding: EnemyManager.cpp (deflated 68%)
+  adding: EnemyManager.h (deflated 52%)
+  adding: FontEngine.cpp (deflated 67%)
+  adding: FontEngine.h (deflated 54%)
+  adding: GameEngine.cpp (deflated 67%)
+  adding: GameEngine.h (deflated 56%)
+  adding: Hazard.cpp (deflated 54%)
+  adding: Hazard.h (deflated 52%)
+  adding: HazardManager.cpp (deflated 65%)
+  adding: HazardManager.h (deflated 50%)
+  adding: InputState.cpp (deflated 71%)
+  adding: InputState.h (deflated 56%)
+  adding: ItemDatabase.cpp (deflated 77%)
+  adding: ItemDatabase.h (deflated 60%)
+  adding: LootManager.cpp (deflated 67%)
+  adding: LootManager.h (deflated 52%)
+  adding: main.cpp (deflated 53%)
+  adding: Makefile (deflated 48%)
+  adding: MapCollision.cpp (deflated 66%)
+  adding: MapCollision.h (deflated 53%)
+  adding: MapIso.cpp (deflated 75%)
+  adding: MapIso.h (deflated 58%)
+  adding: MenuActionBar.cpp (deflated 72%)
+  adding: MenuActionBar.h (deflated 56%)
+  adding: MenuCharacter.cpp (deflated 82%)
+  adding: MenuCharacter.h (deflated 53%)
+  adding: MenuEnemy.cpp (deflated 58%)
+  adding: MenuEnemy.h (deflated 46%)
+  adding: MenuExperience.cpp (deflated 60%)
+  adding: MenuExperience.h (deflated 54%)
+  adding: MenuHealthMana.cpp (deflated 62%)
+  adding: MenuHealthMana.h (deflated 49%)
+  adding: MenuInventory.cpp (deflated 73%)
+  adding: MenuInventory.h (deflated 56%)
+  adding: MenuLog.cpp (deflated 58%)
+  adding: MenuLog.h (deflated 48%)
+  adding: MenuManager.cpp (deflated 73%)
+  adding: MenuManager.h (deflated 59%)
+  adding: MenuMiniMap.cpp (deflated 62%)
+  adding: MenuMiniMap.h (deflated 43%)
+  adding: MenuPowers.cpp (deflated 71%)
+  adding: MenuPowers.h (deflated 52%)
+  adding: MenuTooltip.cpp (deflated 63%)
+  adding: MenuTooltip.h (deflated 48%)
+  adding: MenuVendor.cpp (deflated 59%)
+  adding: MenuVendor.h (deflated 53%)
+  adding: NPC.cpp (deflated 64%)
+  adding: NPC.h (deflated 51%)
+  adding: NPCManager.cpp (deflated 63%)
+  adding: NPCManager.h (deflated 48%)
+  adding: PowerManager.cpp (deflated 79%)
+  adding: PowerManager.h (deflated 64%)
+  adding: riscos/ (stored 0%)
+  adding: riscos/Makefile (deflated 48%)
+  adding: riscos/NPC.cpp.p (deflated 43%)
+  adding: riscos/MapIso.cpp.p (deflated 49%)
+  adding: riscos/RiscPkg/ (stored 0%)
+  adding: riscos/RiscPkg/Control (deflated 27%)
+  adding: riscos/setvars (deflated 36%)
+  adding: riscos/Itemdatabase.cpp.p (deflated 43%)
+  adding: riscos/TileSet.cpp.p (deflated 42%)
+  adding: riscos/preprocess (deflated 69%)
+  adding: riscos/SaveLoad.cpp.p (deflated 39%)
+  adding: riscos/StatBlock.cpp.p (deflated 44%)
+  adding: riscos/!Flare/ (stored 0%)
+  adding: riscos/!Flare/!Sprites22,ff9 (deflated 59%)
+  adding: riscos/PowerManager.cpp.p (deflated 42%)
+  adding: SaveLoad.cpp (deflated 68%)
+  adding: Settings.h (deflated 53%)
+  adding: StatBlock.cpp (deflated 73%)
+  adding: StatBlock.h (deflated 63%)
+  adding: TileSet.cpp (deflated 58%)
+  adding: TileSet.h (deflated 45%)
+  adding: Utils.cpp (deflated 67%)
+  adding: Utils.h (deflated 55%)
+  adding: UtilsParsing.cpp (deflated 66%)
+  adding: UtilsParsing.h (deflated 49%)
+Autobuilder: Package stage completed
