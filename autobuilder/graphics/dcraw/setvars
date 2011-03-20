@@ -1,6 +1,11 @@
 
+AB_PVERSION=9.06
+
+rm $S/dcraw.c
+wget http://www.cybercom.net/~dcoffin/dcraw/dcraw.c
+
 ab_package() {
-  ab_create_command_app dcraw Apps/Graphics
+  ab_create_command_app Dcraw Apps/Graphics
   ab_add_commands $S/*$AB_EXEEXT
 
   ab_docs -h $H/ReadMe dcparse.1 dcraw.1
