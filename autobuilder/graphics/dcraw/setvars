@@ -3,6 +3,8 @@ AB_PVERSION=9.06
 
 rm $S/dcraw.c
 wget http://www.cybercom.net/~dcoffin/dcraw/dcraw.c
+rm $S/parse.c
+http://www.cybercom.net/~dcoffin/dcraw/parse.c
 
 ab_package() {
   ab_create_command_app Dcraw Apps/Graphics
