@@ -10,7 +10,7 @@ ab_package() {
   ab_makerun $S/flare
   
   cp -av ../enemies ../fonts ../images ../items ../maps ../music ../npcs  $A/
-  cp -av ../powers ../soundfx ../tilesetdefs  $A/
+  cp -av ../powers ../saves ../soundfx ../tilesetdefs  $A/
  
   cp -av ../README.txt ../credits.html $A/
  
