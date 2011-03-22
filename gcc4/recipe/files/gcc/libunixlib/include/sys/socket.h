@@ -1,14 +1,15 @@
 /*
- * File taken from glibc 2.7
+ * File taken from glibc 2.11
  * Following changes were made:
- *  - Added SOMAXCONN constant.
+ *  - Disabled include bits/sigset.h.
+ *  - Added workaround for http://llvm.org/bugs/show_bug.cgi?id=7422
+ *  - Disabled prototype accept4.
  *  - Added SCL socketclose, socketstat, socketioctl, socketread, socketreadv,
  *    socketwrite, socketwritev prototypes for TCPIPLibs compatibility.
- *  - Add workaround for http://llvm.org/bugs/show_bug.cgi?id=7422
  */
 
 /* Declarations of socket constants, types, and functions.
-   Copyright (C) 1991,92,1994-2001,2003,2005,2007
+   Copyright (C) 1991,92,1994-2001,2003,2005,2007,2008
    Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -27,8 +28,8 @@
    Software Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
    02111-1307 USA.  */
 
-#ifndef	__SYS_SOCKET_H
-#define	__SYS_SOCKET_H	1
+#ifndef	_SYS_SOCKET_H
+#define	_SYS_SOCKET_H	1
 
 #include <features.h>
 
@@ -37,6 +38,12 @@ __BEGIN_DECLS
 #include <sys/uio.h>
 #define	__need_size_t
 #include <stddef.h>
+#if 0
+#ifdef __USE_GNU
+/* Get the __sigset_t definition.  */
+# include <bits/sigset.h>
+#endif
+#endif
 
 
 /* This operating system-specific header file defines the SOCK_*, PF_*,
@@ -53,9 +60,6 @@ struct osockaddr
     unsigned char sa_data[14];
   };
 #endif
-
-/* Maximum queue length for listen() calls.  */
-#define SOMAXCONN   128
 
 /* The following constants should be used for the second parameter of
    `shutdown'.  */
@@ -222,6 +226,17 @@ extern int listen (int __fd, int __n) __THROW;
    __THROW.  */
 extern int accept (int __fd, __SOCKADDR_ARG __addr,
 		   socklen_t *__restrict __addr_len);
+
+#if 0
+#ifdef __USE_GNU
+/* Similar to 'accept' but takes an additional parameter to specify flags.
+
+   This function is a cancellation point and therefore not marked with
+   __THROW.  */
+extern int accept4 (int __fd, __SOCKADDR_ARG __addr,
+		    socklen_t *__restrict __addr_len, int __flags);
+#endif
+#endif
 
 /* Shut down all or part of the connection open on socket FD.
    HOW determines what to shut down:

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef __SYS_BYTEORDER_H
@@ -9,7 +9,7 @@
 #include <features.h>
 #endif
 
-#ifndef __ENDIAN_H
+#ifndef _ENDIAN_H
 #include <endian.h>
 #endif
 

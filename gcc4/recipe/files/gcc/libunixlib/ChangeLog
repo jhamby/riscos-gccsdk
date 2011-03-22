@@ -1,3 +1,17 @@
+Tue Mar 22 01:04:59 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/netinet/in.h: Sync with glibc 2.11.
+	* include/bits/sockaddr.h: Likewise.
+	* include/bits/byteswap.h: Likewise.
+	* include/bits/in.h: Likewise.
+	* include/sys/socket.h: Likewise.
+	* include/bits/socket.h: Likewise (i.e. use 4.4 BSD version instead
+	of 4.3 BSD).
+	* incl-local/sys/socket.h (__SYS_SOCKET_H): Trim one leading
+	underscore.
+	* include/endian.h (__ENDIAN_H): Trim one leading underscore.
+	* include/sys/byteorder.h: Likewise.
+
 Sat Mar 12 15:04:27 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/perror.c (perror): Add check on empty string.
@@ -224,7 +238,7 @@ Thu Sep  9 00:21:32 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 	* unix/dev.c (__fsopen): Give error EISDIR when directory is opened
 	for O_RDWR.  Reported by John-Mark Bell.
 	* Makefile.am: Removed unexisting sys/netdb.h for install.  Avoid
-	creating emtpy resolv include subdirectory.
+	creating empty resolv include subdirectory.
 
 Thu Aug 26 03:36:17 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 

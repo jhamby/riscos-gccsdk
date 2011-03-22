@@ -1,5 +1,5 @@
 /*
- * File taken from glibc 2.2.5.
+ * File taken from glibc 2.11.
  * Following changes were made:
  *  - None.
  */
@@ -27,8 +27,8 @@
  * Never include this file directly; use <sys/socket.h> instead.
  */
 
-#ifndef __BITS_SOCKADDR_H
-#define __BITS_SOCKADDR_H	1
+#ifndef _BITS_SOCKADDR_H
+#define _BITS_SOCKADDR_H	1
 
 
 /* POSIX.1g specifies this type name for the `sa_family' member.  */

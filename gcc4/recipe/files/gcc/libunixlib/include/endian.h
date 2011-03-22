@@ -1,8 +1,8 @@
 /* Define byte-sex for the host system.
-   Copyright (c) 2004-2010 UnixLib Developers.  */
+   Copyright (c) 2004-2011 UnixLib Developers.  */
 
-#ifndef	__ENDIAN_H
-#define	__ENDIAN_H	1
+#ifndef	_ENDIAN_H
+#define	_ENDIAN_H	1
 
 #include <features.h>
 

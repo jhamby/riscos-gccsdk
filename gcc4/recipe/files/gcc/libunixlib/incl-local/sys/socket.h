@@ -1,12 +1,12 @@
 /* Internal UnixLib sys/socket.h
- * Copyright (c) 2008-2010 UnixLib Developers
+ * Copyright (c) 2008-2011 UnixLib Developers
  */
 
-#ifndef __SYS_SOCKET_H
+#ifndef _SYS_SOCKET_H
 #include_next <sys/socket.h>
 #endif
 
-#if !defined(__INTERNAL_SYS_SOCKET_H) && defined(__SYS_SOCKET_H)
+#if !defined(__INTERNAL_SYS_SOCKET_H) && defined(_SYS_SOCKET_H)
 #define	__INTERNAL_SYS_SOCKET_H
 
 #include <swis.h>

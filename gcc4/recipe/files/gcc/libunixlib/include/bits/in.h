@@ -1,4 +1,10 @@
-/* Copyright (C) 1997, 2000 Free Software Foundation, Inc.
+/*
+ * File taken from glibc 2.11.
+ * Following changes were made:
+ *  - None.
+ */
+
+/* Copyright (C) 1997, 2000, 2004, 2007 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,15 +24,9 @@
 
 /* Generic version.  */
 
-#ifndef __NETINET_IN_H
+#ifndef _NETINET_IN_H
 # error "Never use <bits/in.h> directly; include <netinet/in.h> instead."
 #endif
-
-/* Link numbers.  */
-#define	IMPLINK_IP		155
-#define	IMPLINK_LOWEXPER	156
-#define	IMPLINK_HIGHEXPER	158
-
 
 /* Options for use with `getsockopt' and `setsockopt' at the IP level.
    The first word in the comment at the right is the data type used;
@@ -51,25 +51,14 @@
 struct ip_opts
   {
     struct in_addr ip_dst;	/* First hop; zero without source route.  */
-#ifndef __cplusplus
     char ip_opts[40];		/* Actually variable in size.  */
-#else
-    char Ip_opts[40];
-#endif
-  };
-
-/* Structure used for IP_ADD_MEMBERSHIP and IP_DROP_MEMBERSHIP. */
-struct ip_mreq
-  {
-    struct in_addr imr_multiaddr;	/* IP multicast address of group */
-    struct in_addr imr_interface;	/* local IP address of interface */
   };
 
 /* IPV6 socket options.  */
 #define IPV6_ADDRFORM		1
 #define IPV6_RXINFO		2
-#define IPV6_RXHOPOPTS		3
-#define IPV6_RXDSTOPTS		4
+#define IPV6_HOPOPTS		3
+#define IPV6_DSTOPTS		4
 #define IPV6_RTHDR		5
 #define IPV6_PKTOPTIONS		6
 #define IPV6_CHECKSUM		7
@@ -85,10 +74,19 @@ struct ip_mreq
 #define IPV6_MULTICAST_LOOP	19
 #define IPV6_JOIN_GROUP		20
 #define IPV6_LEAVE_GROUP	21
+#define IPV6_ROUTER_ALERT      22
+#define IPV6_MTU_DISCOVER      23
+#define IPV6_MTU               24
+#define IPV6_RECVERR           25
+#define IPV6_V6ONLY            26
+#define IPV6_JOIN_ANYCAST      27
+#define IPV6_LEAVE_ANYCAST     28
 
 /* Obsolete synonyms for the above.  */
 #define IPV6_ADD_MEMBERSHIP	IPV6_JOIN_GROUP
 #define IPV6_DROP_MEMBERSHIP	IPV6_LEAVE_GROUP
+#define IPV6_RXHOPOPTS		IPV6_HOPOPTS
+#define IPV6_RXDSTOPTS		IPV6_DSTOPTS
 
 /* Routing header options for IPv6.  */
 #define IPV6_RTHDR_LOOSE	0	/* Hop doesn't need to be neighbour. */
