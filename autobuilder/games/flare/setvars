@@ -1,6 +1,8 @@
 
 AB_URL=http://flare-engine.googlecode.com/files/flare_src_v012.zip
 
+AB_PVERSION=0.12
+
 cp $H/Makefile flare/src
 
 cd flare/src
