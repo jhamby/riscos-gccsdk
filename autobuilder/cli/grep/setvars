@@ -1,5 +1,5 @@
 
-AB_PRECONF="LIBS=-lintl"
+AB_PRECONF="LIBS=\"-lintl -ldl\""
 
 ab_package() {
   ab_create_command_app grep Apps/Utilities
