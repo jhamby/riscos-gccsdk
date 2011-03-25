@@ -1,7 +1,3 @@
-AB_PACKAGES="libboost-dev libboost-doc libboost-date-time-dev libboost-filesystem-dev libboost-graph-dev libboost-iostreams-dev libboost-math-dev libboost-program-options-dev libboost-regex-dev libboost-serialization-dev libboost-signals-dev libboost-system-dev libboost-test-dev libboost-thread-dev libboost-wave-dev"
-
-# Following packages not packaged as the static library didn't build
-# libboost-mpi-dev 
 
 AB_CATEGORY=Library
 
@@ -15,7 +11,10 @@ AB_PVERSION=`echo "$AB_PVERSION" | sed -e"s/boost_//" -e"s/_/./g"`
 # Debian packages has the version number in them
 DEBVERSION=`echo "$AB_PVERSION" | cut -d. -f-2`
 
-AB_PACKAGES="libboost$DEBVERSION-dev libboost$DEBVERSION-doc libboost-date-time$DEBVERSION-dev libboost-filesystem$DEBVERSION-dev libboost-graph$DEBVERSION-dev libboost-iostreams$DEBVERSION-dev libboost-math$DEBVERSION-dev libboost-program-options$DEBVERSION-dev libboost-regex$DEBVERSION-dev libboost-serialization$DEBVERSION-dev libboost-signals$DEBVERSION-dev libboost-system$DEBVERSION-dev libboost-test$DEBVERSION-dev libboost-thread$DEBVERSION-dev libboost-wave$DEBVERSION-dev"
+AB_PACKAGES="libboost$DEBVERSION-dev libboost$DEBVERSION-doc libboost-date-time$DEBVERSION-dev libboost-filesystem$DEBVERSION-dev libboost-graph$DEBVERSION-dev libboost-graph-parallel$DEBVERSION-dev libboost-iostreams$DEBVERSION-dev libboost-math$DEBVERSION-dev libboost-program-options$DEBVERSION-dev libboost-regex$DEBVERSION-dev libboost-serialization$DEBVERSION-dev libboost-signals$DEBVERSION-dev libboost-system$DEBVERSION-dev libboost-test$DEBVERSION-dev libboost-thread$DEBVERSION-dev libboost-wave$DEBVERSION-dev"
+
+# Following packages not packaged as the static library didn't build
+# libboost-mpi-dev 
 
 
 echo ""
@@ -108,6 +107,23 @@ ab_package() {
    mkdir -p $exampledir
    cat debian/example-files | xargs cp -a --parents --target-directory=$exampledir
 
+   # Make example source files RISC OS format
+   for file in $(find $exampledir) ; do
+     if echo $file | grep "\.h$" > /dev/null ; then
+        filename=$(basename $file | sed s#\.h\$##)
+        dirname=$(echo $file | sed s#/$filename\.h\$##)
+        mkdir -p $dirname/h
+        mv $file $dirname/h/$filename
+     fi
+     if echo $file | grep "\.cpp$" > /dev/null ; then
+        filename=$(basename $file | sed s#\.cpp\$##)
+        dirname=$(echo $file | sed s#/$filename\.cpp\$##)
+        mkdir -p $dirname/cpp
+        mv $file $dirname/cpp/$filename
+     fi
+   done
+
+
    # TODO: Shared library
    # package libboost-date-time$(SOVERSION)
    # dh_install -plibboost-date-time$(SOVERSION)
@@ -126,7 +142,7 @@ ab_package() {
    # package libboost-filesystem$(PKGVERSION)-dev
    DD=$D/libboost-filesystem$DEBVERSION-dev/Apps/Library/\!Boost
    mkdir -p $DD/boost
-   mv $PD/boost/filesystem* $DD
+   mv $PD/boost/filesystem* $DD/boost
    copylibs filesystem $DD
 
    # TODO: Shared library
@@ -139,6 +155,18 @@ ab_package() {
 
    mv $PD/boost/graph $DD/boost
    copylibs graph $DD
+
+   # TODO: Shared library
+   # package libboost-graph-parallel$(SOVERSION)
+   # dh_install -plibboost-graph-parallel$(SOVERSION)
+
+   # package libboost-graph-parallel$(PKGVERSION)-dev
+   DD=$D/libboost-graph-parallel$DEBVERSION-dev/Apps/Library/\!Boost
+   mkdir -p $DD/boost
+
+   # Note there are no headers for this one
+   copylibs graph-parallel $DD
+
 
    # TODO: Shared library
    # package libboost-iostreams$(SOVERSION)
@@ -170,7 +198,7 @@ ab_package() {
    # package libboost-mpi$(PKGVERSION)-dev
    DD=$D/libboost-mpi$DEBVERSION-dev/Apps/Library/\!Boost
    mkdir -p $DD/boost
-   mv $PD/boost/mpi* $DD
+   mv $PD/boost/mpi* $DD/boost
 
    # TODO: Shared library
    # package libboost-program-options$(SOVERSION)
@@ -227,7 +255,8 @@ ab_package() {
    DD=$D/libboost-system$DEBVERSION-dev/Apps/Library/\!Boost
    mkdir -p $DD/boost
 
-   mv $PD/boost/system $DD
+   mv $PD/boost/system $DD/boost
+   copylibs system $DD
 
    # TODO: Shared library
    # package libboost-test$(SOVERSION)
@@ -275,13 +304,19 @@ ab_package() {
         -depends LibBoost-Dev
    $AB_HOME/add-riscpkg -package libboost-filesystem$DEBVERSION-dev \
         -name LibBoost-FileSystem-Dev \
+        -depends LibBoost-System-Dev \
         -depends LibBoost-Dev
 #   $AB_HOME/add-riscpkg -package libboost-graph$DEBVERSION-dev \
 #       -name LibBoost-Graph-Dev \
 #       -depends LibBoost-Dev
+#   $AB_HOME/add-riscpkg -package libboost-graph-parallel$DEBVERSION-dev \
+#       -name LibBoost-Graph-Parallel-Dev \
+#       -depends LibBoost-Dev
+
    $AB_HOME/add-riscpkg -package libboost-iostreams$DEBVERSION-dev \
         -name LibBoost-IOStreams-Dev \
-         -depends LibBoost-Dev
+        -depends LibBoost-RegEx-Dev \
+        -depends LibBoost-Dev
   $AB_HOME/add-riscpkg -package libboost-math$DEBVERSION-dev \
         -name LibBoost-Math-Dev \
         -depends LibBoost-Dev

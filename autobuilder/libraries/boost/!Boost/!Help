@@ -24,6 +24,19 @@ For components with a static library add
 to the link line where libname is the name of the
 static library.
 
+The boost libraries consist of a lot of header files
+so it may be necessary to increase the amount of
+memory available to the preprocessor.
+
+On RISC OS 5 allow the preprocessor to use a larger
+wimpslot with:
+Unset cc1plus$Heap
+
+On other versions of RISC OS allow more memory to the
+preprocessor with:
+SetEval cc1plus$HeapMax 96
+(for 96 Megabytes)
+
 More details of the Boost C++ libraries can be found at:
    www.boost.org
 
@@ -31,10 +44,10 @@ Current status
 --------------
 
 As the autobuilder automatically builds these packages
-there is a chance this help file will be up to date
+there is a chance this help file will not be up to date
 with the latest version.
 
-On 1st March 2011:
+On 16th March 2011:
 - Only provides static single and multi threading version
   of the libraries.
 - filesystem module compiles but has not been properly
