@@ -36,7 +36,7 @@ typedef enum
   ARCH_ARMv4,
   ARCH_ARMv4T,		/* Thumb. */
   ARCH_ARMv5,
-  ARCH_ARMv5T = ARCH_ARMv5,		/* CLZ, BKPT */
+  ARCH_ARMv5T = ARCH_ARMv5,	/* CLZ, BKPT */
   ARCH_ARMv5TE,		/* DSP algorithms, PLD, LDRD/STRD, MCRR, MRRC, Jazelle, VFPv2 opt */
   ARCH_ARMv5TEJ,	/* BXJ, Jazelle, VFPv2 opt */
   ARCH_ARMv6,		/* Jazelle, VFPv2 opt */

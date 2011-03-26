@@ -109,6 +109,7 @@ m_nop (void)
 	  Put_Ins (0x0320F000 | cc);
 	  break;
 	}
+
       default:
 	if (!Input_IsEndOfKeyword ())
 	  return true;
@@ -120,7 +121,7 @@ m_nop (void)
 
 /** DATA dst = lhs <op> rhs **/
 
-static void
+static bool
 dstlhsrhs (ARMWord ir)
 {
   ARMWord op = getCpuReg ();
@@ -133,11 +134,12 @@ dstlhsrhs (ARMWord ir)
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
-  ir = getRhs (false, true, ir);
+  ir = getRhs (true, true, ir);
   Put_Ins (ir);
+  return false;
 }
 
-static void
+static bool
 dstrhs (ARMWord ir)
 {
   ARMWord op = getCpuReg ();
@@ -145,8 +147,9 @@ dstrhs (ARMWord ir)
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
-  ir = getRhs (false, true, ir);
+  ir = getRhs (true, true, ir);
   Put_Ins (ir);
+  return false;
 }
 
 
@@ -159,8 +162,7 @@ m_adc (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_ADC);
-  return false;
+  return dstlhsrhs (cc | M_ADC);
 }
 
 /**
@@ -172,8 +174,7 @@ m_add (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_ADD);
-  return false;
+  return dstlhsrhs (cc | M_ADD);
 }
 
 /**
@@ -185,8 +186,7 @@ m_and (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_AND);
-  return false;
+  return dstlhsrhs (cc | M_AND);
 }
 
 /**
@@ -198,8 +198,7 @@ m_bic (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_BIC);
-  return false;
+  return dstlhsrhs (cc | M_BIC);
 }
 
 /**
@@ -211,8 +210,7 @@ m_eor (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_EOR);
-  return false;
+  return dstlhsrhs (cc | M_EOR);
 }
 
 /**
@@ -224,8 +222,7 @@ m_mov (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstrhs (cc | M_MOV);
-  return false;
+  return dstrhs (cc | M_MOV);
 }
 
 /**
@@ -237,8 +234,7 @@ m_mvn (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstrhs (cc | M_MVN);
-  return false;
+  return dstrhs (cc | M_MVN);
 }
 
 /**
@@ -250,8 +246,7 @@ m_orr (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_ORR);
-  return false;
+  return dstlhsrhs (cc | M_ORR);
 }
 
 /**
@@ -263,8 +258,7 @@ m_rsb (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_RSB);
-  return false;
+  return dstlhsrhs (cc | M_RSB);
 }
 
 /**
@@ -276,8 +270,7 @@ m_rsc (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_RSC);
-  return false;
+  return dstlhsrhs (cc | M_RSC);
 }
 
 /**
@@ -289,8 +282,7 @@ m_sbc (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_SBC);
-  return false;
+  return dstlhsrhs (cc | M_SBC);
 }
 
 /**
@@ -302,13 +294,12 @@ m_sub (void)
   ARMWord cc = optionCondS ();
   if (cc == optionError)
     return true;
-  dstlhsrhs (cc | M_SUB);
-  return false;
+  return dstlhsrhs (cc | M_SUB);
 }
 
 /** DATA test **/
 
-static void
+static bool
 lhsrhs (ARMWord ir)
 {
   ARMWord op = getCpuReg ();
@@ -316,8 +307,9 @@ lhsrhs (ARMWord ir)
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
-  ir = getRhs (false, true, ir);
+  ir = getRhs (true, true, ir);
   Put_Ins (ir);
+  return false;
 }
 
 /**
@@ -329,8 +321,7 @@ m_cmn (void)
   ARMWord cc = optionCondSP ();
   if (cc == optionError)
     return true;
-  lhsrhs (cc | M_CMN);
-  return false;
+  return lhsrhs (cc | M_CMN);
 }
 
 /**
@@ -342,8 +333,7 @@ m_cmp (void)
   ARMWord cc = optionCondSP ();
   if (cc == optionError)
     return true;
-  lhsrhs (cc | M_CMP);
-  return false;
+  return lhsrhs (cc | M_CMP);
 }
 
 /**
@@ -355,8 +345,7 @@ m_teq (void)
   ARMWord cc = optionCondSP ();
   if (cc == optionError)
     return true;
-  lhsrhs (cc | M_TEQ);
-  return false;
+  return lhsrhs (cc | M_TEQ);
 }
 
 /**
@@ -368,8 +357,7 @@ m_tst (void)
   ARMWord cc = optionCondSP ();
   if (cc == optionError)
     return true;
-  lhsrhs (cc | M_TST);
-  return false;
+  return lhsrhs (cc | M_TST);
 }
 
 /** DATA 1a **/

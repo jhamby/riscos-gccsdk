@@ -45,7 +45,7 @@ static const char * const oARMArch[] =
   "6",
   "6J",
   "6K",
-  "6KZ",
+  "6KZ", /* ARMv6KZ & ARMv6Z contain the optional Security Extensions.  */
   "6Z",
   "6M",
   "6T2",

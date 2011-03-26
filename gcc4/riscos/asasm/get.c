@@ -177,21 +177,23 @@ illegal:
 /**
  * Parses:
  *   1. LSL #<shift_imm>
- *   2. LSL <Rs>           (not when immonly = false)
+ *   2. LSL <Rs>           (only when regshift = true)
  *   3. LSR #<shift_imm>
- *   4. LSR <Rs>           (not when immonly = false)
+ *   4. LSR <Rs>           (only when regshift = true)
  *   5. ASR #<shift_imm>
- *   6. ASR <Rs>           (not when immonly = false)
+ *   6. ASR <Rs>           (only when regshift = true)
  *   7. ROR #<shift_imm>
- *   8. ROR <Rs>           (not when immonly = false)
+ *   8. ROR <Rs>           (only when regshift = true)
  *   9. RRX
  */
 static ARMWord
-getShift (bool immonly)
+getShift (bool regshift)
 {
   ARMWord op = 0;
   ARMWord shift = getShiftOp ();
-  if (shift != RRX)
+  if (shift == RRX)
+    op = SHIFT_OP (shift);
+  else
     {
       skipblanks ();
       if (Input_Match ('#', false))
@@ -202,6 +204,7 @@ getShift (bool immonly)
 	      case ValueInt:
 		op = Fix_ShiftImm (NULL, 0, shift, im->Data.Int.i); /* !! Fixed !! */
 		break;
+
 	      default:
 		error (ErrorError, "Illegal shift expression");
 		break;
@@ -209,14 +212,13 @@ getShift (bool immonly)
 	}
       else
 	{
-	  if (immonly)
-	    error (ErrorError, "Only shift immediate allowed here");
-	  else
+	  if (regshift)
 	    op = SHIFT_REG (getCpuReg ()) | SHIFT_OP (shift);
+	  else
+	    error (ErrorError, "Only shift immediate allowed here");
 	}
     }
-  else
-    op = SHIFT_OP (shift);
+
   return op;
 }
 
@@ -227,18 +229,18 @@ getShift (bool immonly)
  * With <shifter_operand>:
  *   1. #<immediate>
  *   2. <Rm>
- *   3. <Rm>, LSL #<shift_imm>
- *   4. <Rm>, LSL <Rs>
- *   5. <Rm>, LSR #<shift_imm>
- *   6. <Rm>, LSR <Rs>
- *   7. <Rm>, ASR #<shift_imm>
- *   8. <Rm>, ASR <Rs>
- *   9. <Rm>, ROR #<shift_imm>
- *  10. <Rm>, ROR <Rs>
- *  11. <Rm>, RRX
+ *   3. <Rm>, LSL #<shift_imm>   (only when shift = true)
+ *   4. <Rm>, LSL <Rs>           (only when shift = true and regshift = true)
+ *   5. <Rm>, LSR #<shift_imm>   (only when shift = true)
+ *   6. <Rm>, LSR <Rs>           (only when shift = true and regshift = true)
+ *   7. <Rm>, ASR #<shift_imm>   (only when shift = true)
+ *   8. <Rm>, ASR <Rs>           (only when shift = true and regshift = true)
+ *   9. <Rm>, ROR #<shift_imm>   (only when shift = true)
+ *  10. <Rm>, ROR <Rs>           (only when shift = true and regshift = true)
+ *  11. <Rm>, RRX                (only when shift = true)
  */
 ARMWord
-getRhs (bool immonly, bool shift, ARMWord ir)
+getRhs (bool regshift, bool shift, ARMWord ir)
 {
   if (Input_Match ('#', false))
     {
@@ -264,7 +266,7 @@ getRhs (bool immonly, bool shift, ARMWord ir)
 	    /* Fall through.  */
 
 	  case ValueAddr: /* This is for "MOV Rx, #@" support.  */
-	    ir = fixImm8s4 (0, ir, im->Data.Int.i);
+	    ir = fixImm8s4 (0, ir, im->Data.Addr.i);
 	    break;
 
 	  case ValueString:
@@ -283,15 +285,14 @@ getRhs (bool immonly, bool shift, ARMWord ir)
   else
     {
       ir |= getCpuReg ();
-      skipblanks ();
-      if (Input_Match (',', true))
+      if (shift)
 	{
-	  if (!shift)
-	    return ir;		/* will cause a 'skip rest of line' error */
-	  ir |= getShift (immonly);
+	  skipblanks ();
+	  if (Input_Match (',', true))
+	    ir |= getShift (regshift);
+	  else
+	    ir |= NO_SHIFT;
 	}
-      else
-	ir |= NO_SHIFT;
     }
 
   return ir;

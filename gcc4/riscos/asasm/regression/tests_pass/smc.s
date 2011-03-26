@@ -1,0 +1,17 @@
+; Tests SMC/SMI
+
+	AREA	Code, CODE
+
+	[ :LNOT: REFERENCE
+		SMC	#5
+		SMCNE	#15
+		SMI	#1
+		SMINE	#14
+	|
+		DCI	0xe1600075
+		DCI	0x1160007f
+		DCI	0xe1600071
+		DCI	0x1160007e
+	]
+	
+	END

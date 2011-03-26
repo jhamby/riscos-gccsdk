@@ -222,7 +222,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 		      error (ErrorError, "Unknown register definition in offset field");
 		    }
 		  ir |= isAddrMode3 ? 0 : REG_FLAG;
-		  ir = getRhs (true, !isAddrMode3, ir);
+		  ir = getRhs (false, !isAddrMode3, ir);
 		  forcePreIndex = false;
 		  callRelocUpdate = false;
 		}
@@ -607,6 +607,7 @@ m_pl (void)
 	      case ValueInt:
 		ir = Fix_CPUOffset (NULL, 0, ir, offset->Data.Int.i);
 		break;
+
 	      default:
 		error (ErrorError, "Illegal offset expression");
 		break;
@@ -626,7 +627,7 @@ m_pl (void)
 	      /* Edge case - #XX */
 	      error (ErrorError, "Unknown register definition in offset field");
 	    }
-	  ir = getRhs (true, true, ir) | REG_FLAG;
+	  ir = getRhs (false, true, ir) | REG_FLAG;
 	}
 
       if (!Input_Match (']', true))
@@ -677,11 +678,13 @@ dstreglist (ARMWord ir, bool isPushPop)
 		high = c;
 	      }
 	    break;
+
 	  case ',':
 	  case '}':
 	    high = low;
 	    break;
-	  default:
+
+          default:
 	    error (ErrorError, "Illegal character '%c' in register list", inputLook ());
 	    high = 15;
 	    break;
@@ -793,6 +796,8 @@ m_swp (void)
     return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv2a);
+  if (option_pedantic && Target_GetArch () >= ARCH_ARMv6)
+    error (ErrorWarning, "The use of SWP/SWPB is deprecated from ARMv6 onwards");
 
   int ir = cc | 0x01000090;
   ir |= DST_OP (getCpuReg ());
