@@ -1,0 +1,14 @@
+
+AB_MAKE="$AB_MAKE -f Makefile.unix"
+
+ab_package() {
+  ab_create_command_app PSUtils Apps/Utilities
+  ab_add_commands $S/*$AB_EXEEXT
+
+  cp $S/LICENSE $S/README $A
+
+  ab_docs $S/epsffit.man $S/psbook.man $S/psnup.man $S/psresize.man $S/psselect.man $S/pstops.man
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile LICENSE -name PSUtils
+}
+
