@@ -13,12 +13,12 @@
 +    char script[100];
 +
 +    if (scriptfile) {
-+      my_snprintf(script, sizeof(script), " --read %s", scriptfile);
++      fc_snprintf(script, sizeof(script), " --read %s", scriptfile);
 +    } else {
 +      *script = '\0';
 +    }
 +
-+    my_snprintf(command, sizeof(command), "StartDesktopTask <CivServer$Dir> -p %d -q 1 -e --saves /<Choices$Write>/Freeciv/saves %s", internal_server_port, script);
++    fc_snprintf(command, sizeof(command), "StartDesktopTask <CivServer$Dir> -p %d -q 1 -e --saves /<Choices$Write>/Freeciv/saves %s", internal_server_port, script);
 +
 +    if (__os_cli(command)) return FALSE;
 +  }
@@ -30,7 +30,7 @@
 @@ -343,8 +361,10 @@
    while (connect_to_server(user_name, "localhost", internal_server_port, 
                             buf, sizeof(buf)) == -1) {
-     myusleep(WAIT_BETWEEN_TRIES);
+     fc_usleep(WAIT_BETWEEN_TRIES);
 -#ifdef HAVE_WORKING_FORK
 -#ifndef WIN32_NATIVE
 +#ifdef __riscos__

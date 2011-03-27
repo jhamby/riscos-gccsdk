@@ -14,7 +14,7 @@
  #ifdef AMIGA
    return "PROGDIR:";
 +#elif !defined(riscos)
-+  return mystrdup("/<Choices$Write>/Freeciv/");
++  return fc_strdup("/<Choices$Write>/Freeciv/");
  #else
    static bool init = FALSE;
    static char *home_dir = NULL;
