@@ -1,11 +1,15 @@
 
+AB_URL=http://download.gna.org/freeciv/beta/freeciv-2.3.0-beta3.tar.bz2
+
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
 AB_DEBNAME=freeciv-client-sdl
 
-AB_CONFLAGS="--enable-client=sdl --enable-debug=no --enable-ipv6=no"
+AB_CONFLAGS="--enable-client=sdl --enable-debug=no --enable-ipv6=no --without-pthreads"
 
-export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -lSDL"
+export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lSDL"
+
+export ac_cv_lib_SDL_image_IMG_Load=yes
 
 ab_package() {
   ab_create_app CivClient Apps/Games
@@ -21,5 +25,5 @@ ab_package() {
   cp server/freeciv-server$AB_EXEEXT $A/../\!CivServer/
 
   $AB_HOME/add-riscpkg -unixlib -unixsound \
-         -nobootvars -depends ttf-dejavu-core
+         -nobootvars -depends ttf-dejavu-core -copyrightfile COPYING
 }
