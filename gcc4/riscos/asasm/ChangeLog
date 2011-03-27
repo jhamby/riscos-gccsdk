@@ -1,3 +1,16 @@
+Mon Mar 28 01:58:51 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.h (Symbol::areaDef): Add.
+	* symbol.c (symbolNew): Initialise Symbol::areaDef.
+	(symbolFix): Add asserts. Area symbols are always STB_LOCAL. Non
+	area symbols should have as st_shndx the section number where they
+	are defined.
+	* output.c (countRels): Removed.
+	(writeElfSH): Fix area/section counting.  Add relocation section
+	counting. Prefix relocation section names with ".rel." instead of ".rel".
+	* reloc.c (relocELFOutput): Don't call armword() twice for the same
+	word.
+
 Sat Mar 26 12:44:29 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/smc.s: Add.

@@ -189,7 +189,7 @@ outputAof (void)
 			  + ap->area.info->norelocs * sizeof (AofReloc);
     }
 
-  int stringSizeNeeded;
+  size_t stringSizeNeeded;
   const AofHeader aof_head =
     {
       .Type = armword (AofHeaderID),
@@ -293,30 +293,16 @@ outputAof (void)
 }
 
 #ifndef NO_ELF_SUPPORT
-static int
-countRels (const Symbol *ap)
-{
-  int i = 0;
-  for (/* */; ap != NULL; ap = ap->area.info->next)
-    {
-      if (Area_IsImplicit (ap))
-	continue;
-      if (ap->area.info->norelocs)
-	i++;
-    }
-  return i;
-}
-
 static void
-writeElfSH (int nmoffset, int type, int flags, int size,
-            int link, int info, int addralign, int entsize, int *offset)
+writeElfSH (Elf32_Word nmoffset, int type, int flags, int size,
+            int link, int info, int addralign, int entsize, size_t *offset)
 {
   const Elf32_Shdr sect_hdr =
     {
       .sh_name = nmoffset,
       .sh_type = type,
       .sh_flags = flags,
-      .sh_addr = 0,
+      .sh_addr = 0, /* This is not part of the final image.  */
       .sh_offset = type == SHT_NULL ? 0 : *offset,
       .sh_size = size,
       .sh_link = link,
@@ -333,87 +319,82 @@ writeElfSH (int nmoffset, int type, int flags, int size,
 void
 outputElf (void)
 {
-  int offset, pad, strsize;
-  int elfIndex, nsyms, shstrsize;
-  int i, sectionSize, sectionType;
-
   /* We must call relocFix() before anything else.  */
-  int noareas = 0;
+  int noareas = 0, norels = 0;
   int areaSectionID = 3;
-  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next, ++noareas)
+  for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
-      
+
+      ++noareas;
+
       ap->used = areaSectionID++;
       ap->area.info->norelocs = relocFix (ap);
-      if (ap->area.info->norelocs > 0)
-	++areaSectionID;
+      if (ap->area.info->norelocs)
+	{
+	  ++areaSectionID;
+	  ++norels;
+	}
     }
 
-  int norels = countRels (areaHeadSymbol);
-
-    {
-      Elf32_Ehdr elf_head;
-
-      elf_head.e_ident[EI_MAG0] = ELFMAG0;
-      elf_head.e_ident[EI_MAG1] = ELFMAG1;
-      elf_head.e_ident[EI_MAG2] = ELFMAG2;
-      elf_head.e_ident[EI_MAG3] = ELFMAG3;
-      elf_head.e_ident[EI_CLASS] = ELFCLASS32;
-      elf_head.e_ident[EI_DATA] = ELFDATA2LSB;
-      elf_head.e_ident[EI_VERSION] = EV_CURRENT;
-      elf_head.e_ident[EI_OSABI] = ELFOSABI_ARM;
-      elf_head.e_ident[EI_ABIVERSION] = 0;
-      for (i = EI_PAD; i< EI_NIDENT; i++)
-	elf_head.e_ident[i] = 0;
-      elf_head.e_type = ET_REL;
-      elf_head.e_machine = EM_ARM;
-      elf_head.e_version = EV_CURRENT;
-      elf_head.e_entry = areaEntrySymbol?areaEntryOffset:0;
-      elf_head.e_phoff = 0;
-      elf_head.e_shoff = sizeof (elf_head);
-      /* We like to take all the aspects of EF_ARM_CURRENT but not its
-         ARM EABI version as we aren't complying with any of the versions
-         so we set the version to 0 which means EF_ARM_ABI_UNKNOWN.  */
-      elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
-      if (option_apcs_softfloat)
-        elf_head.e_flags |= 0x200;
-      if (areaEntrySymbol)
-	elf_head.e_flags |= EF_ARM_HASENTRY;
-      elf_head.e_ehsize = sizeof (elf_head);
-      elf_head.e_phentsize = 0;
-      elf_head.e_phnum = 0;
-      elf_head.e_shentsize = sizeof (Elf32_Shdr);
-      elf_head.e_shnum = noareas + norels + 4;
-      elf_head.e_shstrndx = noareas + norels + 3;
-      
-      fwrite (&elf_head, 1, sizeof (elf_head), objfile);
-      
-      offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
-    }
-  shstrsize = 0;
+  Elf32_Ehdr elf_head;
+  elf_head.e_ident[EI_MAG0] = ELFMAG0;
+  elf_head.e_ident[EI_MAG1] = ELFMAG1;
+  elf_head.e_ident[EI_MAG2] = ELFMAG2;
+  elf_head.e_ident[EI_MAG3] = ELFMAG3;
+  elf_head.e_ident[EI_CLASS] = ELFCLASS32;
+  elf_head.e_ident[EI_DATA] = ELFDATA2LSB;
+  elf_head.e_ident[EI_VERSION] = EV_CURRENT;
+  elf_head.e_ident[EI_OSABI] = ELFOSABI_ARM;
+  elf_head.e_ident[EI_ABIVERSION] = 0;
+  for (int i = EI_PAD; i < EI_NIDENT; i++)
+    elf_head.e_ident[i] = 0;
+  elf_head.e_type = ET_REL;
+  elf_head.e_machine = EM_ARM;
+  elf_head.e_version = EV_CURRENT;
+  elf_head.e_entry = areaEntrySymbol?areaEntryOffset:0;
+  elf_head.e_phoff = 0;
+  elf_head.e_shoff = sizeof (elf_head);
+  /* We like to take all the aspects of EF_ARM_CURRENT but not its
+     ARM EABI version as we aren't complying with any of the versions
+     so we set the version to 0 which means EF_ARM_ABI_UNKNOWN.  */
+  elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
+  if (option_apcs_softfloat)
+    elf_head.e_flags |= 0x200;
+  if (areaEntrySymbol)
+    elf_head.e_flags |= EF_ARM_HASENTRY;
+  elf_head.e_ehsize = sizeof (elf_head);
+  elf_head.e_phentsize = 0;
+  elf_head.e_phnum = 0;
+  elf_head.e_shentsize = sizeof (Elf32_Shdr);
+  elf_head.e_shnum = noareas + norels + 4; /* 4 = SHT_NULL + SHT_SYMTAB + SHT_STRTAB + */
+  elf_head.e_shstrndx = noareas + norels + 3;
+  fwrite (&elf_head, 1, sizeof (elf_head), objfile);
+  
+  size_t offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
+  Elf32_Word shstrsize = 0;
   
   /* Section headers - index 0 */
   writeElfSH (shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
   shstrsize += 1; /* Null */
 
   /* Symbol table - index 1 */
-  int stringSizeNeeded;
-  nsyms = symbolFix (&stringSizeNeeded);
+  size_t stringSizeNeeded;
+  unsigned int nsyms = symbolFix (&stringSizeNeeded);
   writeElfSH (shstrsize, SHT_SYMTAB, 0, (nsyms + 1) * sizeof (Elf32_Sym),
 	      2, 0, 4, sizeof (Elf32_Sym), &offset);
   shstrsize += sizeof (".symtab");
 
-  strsize = stringSizeNeeded + 1; /* Add extra NUL terminator at start. */
+  size_t strsize = stringSizeNeeded + 1; /* Add extra NUL terminator at start. */
 
   /* String table - index 2 */
   writeElfSH (shstrsize, SHT_STRTAB, 0, FIX (strsize), 0, 0, 1, 0, &offset);
   shstrsize += sizeof (".strtab");
 
   /* Area headers - index 3 */
-  elfIndex = 3;
+  int elfIndex = 3;
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       /* Skip the implicit area.  */
@@ -430,19 +411,19 @@ outputElf (void)
       if (ap == areaEntrySymbol)
         areaFlags |= SHF_ENTRYSECT;
       areaFlags |= SHF_ALLOC;
-      sectionSize = FIX (ap->value.Data.Int.i);
-      sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
+      int sectionSize = FIX (ap->value.Data.Int.i);
+      int sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
       writeElfSH (shstrsize, sectionType, areaFlags, sectionSize,
                   0, 0, 4, 0, &offset);
       shstrsize += ap->len + 1;
 
-      if (ap->area.info->norelocs > 0)
+      if (ap->area.info->norelocs)
         {
           /* relocations */
           writeElfSH (shstrsize, SHT_REL, 0,
 	              ap->area.info->norelocs * sizeof(Elf32_Rel),
 	              1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
-          shstrsize += ap->len + 5;
+          shstrsize += sizeof (".rel.")-1 + ap->len + 1;
           elfIndex++;
         }
       elfIndex++;
@@ -450,16 +431,15 @@ outputElf (void)
 
   /* Section head string table */
   shstrsize += sizeof (".shstrtab");
-  writeElfSH (shstrsize-10, SHT_STRTAB, 0, shstrsize, 0, 0, 1, 0, &offset);
+  writeElfSH (shstrsize - sizeof (".shstrtab"), SHT_STRTAB, 0, shstrsize, 0, 0, 1, 0, &offset);
 
-  /* Write out the sections */
-  /* Symbol table */
+  /* Symbol table (.symtab).  */
   symbolSymbolELFOutput (objfile);
 
-  /* String table */
+  /* String table (.shstrtab).  */
   fputc (0, objfile);
   symbolStringOutput (objfile);
-  for (pad = EXTRA (strsize); pad; pad--)
+  for (int pad = EXTRA (strsize); pad; pad--)
     fputc (0, objfile);
 
   /* Areas */
@@ -471,21 +451,20 @@ outputElf (void)
       
       if (AREA_IMAGE (ap->area.info))
         {
-          if ((size_t)ap->value.Data.Int.i !=
-              fwrite (ap->area.info->image, 1, ap->value.Data.Int.i, objfile))
+          if (fwrite (ap->area.info->image, ap->value.Data.Int.i, 1, objfile) != 1)
             {
               errorAbortLine (NULL, 0, "Internal outputElf: error when writing %s image", ap->str);
               return;
             }
 	  /* Word align the written area.  */
-	  for (pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
+	  for (int pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
 	    fputc (0, objfile);
           if (ap->area.info->norelocs)
             relocELFOutput (objfile, ap);
         }
     }
 
-  /* Section head string table */
+  /* Section head string table.  */
   fputc (0, objfile);
   fwrite (".symtab", 1, sizeof(".symtab"), objfile);
   fwrite (".strtab", 1, sizeof(".strtab"), objfile);
@@ -496,15 +475,15 @@ outputElf (void)
 	continue;
       
       fwrite (ap->str, 1, ap->len + 1, objfile);
-      if (ap->area.info->norelocs > 0)
+      if (ap->area.info->norelocs)
         {
-          fwrite (".rel", 1, sizeof(".rel")-1, objfile);
+          fwrite (".rel.", 1, sizeof(".rel.")-1, objfile);
           fwrite (ap->str, 1, ap->len + 1, objfile);
         }
     }
 
   fwrite (".shstrtab", 1, sizeof(".shstrtab"), objfile);
-  for (pad = EXTRA (shstrsize); pad; pad--)
+  for (int pad = EXTRA (shstrsize); pad; pad--)
     fputc (0, objfile);
 }
 #endif

@@ -160,6 +160,7 @@ symbolNew (const char *str, size_t len)
   result->value.Tag = ValueIllegal;
   result->codeSize = 0;
   result->area.rel /* = result->area.info */ = NULL;
+  result->areaDef = areaCurrentSymbol;
   result->used = -1;
   result->len = len;
   memcpy (result->str, str, len);
@@ -321,7 +322,7 @@ symbolRemove (const Lex *l)
 static bool
 NeedToOutputSymbol (const Symbol *sym)
 {
-  /* All area symbols are exported.  */
+  /* All area symbols are exported except the implicit one.  */
   if (sym->type & SYMBOL_AREA)
     return !Area_IsImplicit (sym);
 
@@ -343,22 +344,29 @@ NeedToOutputSymbol (const Symbol *sym)
  * total length of symbol strings.
  * \return number of symbols which need to be written in output file.
  */
-int
-symbolFix (int *stringSizeNeeded)
+unsigned int
+symbolFix (size_t *stringSizeNeeded)
 {
-  int nosym = 0;
-  int strsize = 0;		/* Always contains its length */
+  unsigned int nosym = 0;
+  size_t strsize = 0;		/* Always contains its length */
   for (int i = 0; i < SYMBOL_TABLESIZE; i++)
     {
       for (Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
 	  if (sym->type & SYMBOL_AREA)
 	    {
+	      /* At this point sym->used is the area (AOF) or section (ELF)
+	         number for all non-implicit area's, see start of outputAof()
+		 and outputElf().  */
+	      assert ((Area_IsImplicit (sym) && sym->used == -1) || (!Area_IsImplicit (sym) && sym->used >= 0));
 	      /* All AREA symbols are declared and not defined by nature.  */
 	      assert ((sym->type & (SYMBOL_DEFINED | SYMBOL_DECLARED)) == SYMBOL_DECLARED);
 	    }
 	  else
 	    {
+	      /* At this point sym->used is -1 when it is not needed for
+	         relocation, either is 0 when used for relocation.  */
+	      assert (sym->used == -1 || sym->used == 0);
 	      if (SYMBOL_KIND (sym->type) == 0)
 		{
 		  /* Make it a reference symbol.  */
@@ -465,6 +473,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 		  else
 		    value = &sym->value;
 
+		  /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().  */
 		  int v;
 		  switch (value->Tag)
 		    {
@@ -543,7 +552,7 @@ symbolSymbolELFOutput (FILE *outfile)
 
 	  if (sym->type & SYMBOL_AREA)
 	    {
-	      asym.st_info = ELF32_ST_INFO ((sym->type & SYMBOL_GLOBAL) ? STB_GLOBAL : STB_LOCAL, STT_SECTION);
+	      asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
 	      asym.st_name = sym->offset + 1; /* + 1 to skip initial & extra NUL */
 	      asym.st_value = 0;
 	      asym.st_shndx = sym->used;
@@ -562,6 +571,8 @@ symbolSymbolELFOutput (FILE *outfile)
 		    }
 		  else
 		    value = &sym->value;
+
+		  /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().  */
 		  int v;
 		  switch (value->Tag)
 		    {
@@ -597,7 +608,7 @@ symbolSymbolELFOutput (FILE *outfile)
 			break;
 		    }
 		  asym.st_value = v;
-		  asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->used;
+		  asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->areaDef->used;
 		}
 	      else
 		{

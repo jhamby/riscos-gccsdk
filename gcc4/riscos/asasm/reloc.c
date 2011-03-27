@@ -307,7 +307,6 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  else
 	    type = R_ARM_ABS32;
 	  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
-	  areloc.r_info = armword (areloc.r_info);
 	  int loop = value->Data.Symbol.factor;
 	  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 	  while (loop--)

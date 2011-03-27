@@ -80,13 +80,26 @@ typedef struct Symbol
   size_t codeSize; /** Size of the code associated with this symbol label (for AREA symbol, this is unused).  */
   union
     {
-      struct Symbol *rel; /* FIXME: we need to support this better, i.e. this symbol (with ValueInt, ValueAddr) is relative to 'ptr' symbol, i.e. only relevant when SYMBOL_ABSOLUTE is *not* defined.  */
+      struct Symbol *rel; /* FIXME: we need to support this better, i.e. this symbol (with ValueInt, ValueAddr) is relative to 'rel' symbol, i.e. only relevant when SYMBOL_ABSOLUTE is *not* set.  */
       struct AREA *info; /** When SYMBOL_AREA is set.  */
     } area;
+  struct Symbol *areaDef; /** Area where this symbol is defined in.  When SYMBOL_AREA is set, this is NULL.  */
 
   /* For output: */
   unsigned int offset;	/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
-  int used;		/** -1 when not used; for area symbols: at outputAof stage, this will be the area number counted from 0, at outputElf stage, this is the section number; for other symbols, 0 when symbol is needed in output. This will become the symbol index at symbolFix stage.  */
+  int used;		/** Has several usages:
+    At start of outputAof()/outputElf():
+      either -1 (no relocation needed),
+      either 0 (relocation needed, see Reloc_Create()).
+
+      For area symbols:
+        - AOF output : this will be the area number counted from 0
+        - ELF output : this is the section number
+      For other symbols:
+        No changes (still 0 or -1).
+
+    At symbolFix():
+       Symbol index.  */
 
   /* Symbol name: */
   size_t len;		/** length of str[] without its NUL terminator.  */
@@ -99,7 +112,7 @@ Symbol *symbolGet (const Lex *l);
 Symbol *symbolFind (const Lex *l);
 void symbolRemove (const Lex *l);
 
-int symbolFix (int *stringSizeNeeded);
+unsigned int symbolFix (size_t *stringSizeNeeded);
 void symbolStringOutput (FILE *outfile);
 void symbolSymbolAOFOutput (FILE *outfile);
 #ifndef NO_ELF_SUPPORT
