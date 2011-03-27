@@ -1,0 +1,6 @@
+License: Free
+Description: Civilization turn based strategy game (SDL client)
+ Freeciv is a free clone of the turn based strategy game Civilization.
+ In this game, each player becomes leader of a civilisation, fighting to
+ obtain the ultimate goal: the extinction of all other civilisations.
+ This is the SDL version of the Freeciv client.
