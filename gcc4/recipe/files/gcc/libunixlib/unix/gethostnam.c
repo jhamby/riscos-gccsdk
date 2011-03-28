@@ -1,5 +1,5 @@
 /* Get internet hostname for machine.
-   Copyright (c) 2003-2010 UnixLib Developers.  */
+   Copyright (c) 2003-2011 UnixLib Developers.  */
 
 #include <string.h>
 #include <stdlib.h>
@@ -14,15 +14,15 @@ fakehostname (char *name, size_t len)
   /* Create a string that consists of "acorn<econet station number>".
      Read station number from CMOS location 1.  */
   const _kernel_oserror *err;
-  int regs[3];
-  if ((err = __os_byte (161, 0, 0, regs)) != NULL)
+  int station_number;
+  if ((err = __os_byte (161, 0, 0, &station_number, NULL)) != NULL)
     return __ul_seterr (err, EOPSYS);
 
   const char buf[8] =
   {
     'a', 'c', 'o', 'r', 'n',
-    "0123456789ABCDEF"[(regs[1] >> 4) & 0xf],
-    "0123456789ABCDEF"[regs[1] & 0xf],
+    "0123456789ABCDEF"[(station_number >> 4) & 0xf],
+    "0123456789ABCDEF"[station_number & 0xf],
     '\0'
   };
   if (len < 8)

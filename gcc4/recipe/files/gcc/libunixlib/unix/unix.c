@@ -1,5 +1,5 @@
 /* UnixLib process initialisation and finalisation.
-   Copyright (c) 2002-2010 UnixLib Developers.  */
+   Copyright (c) 2002-2011 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -188,8 +188,7 @@ __unixinit (void)
   /* Record the initial escape key status. If escape is disabled (as it
      might be if we are being run as an ANSI task from Nettle) then we
      want to ensure the tty driver does not reenable it. */
-  __os_byte (0xe5, 0, 0xff, regs);
-  gbl->escape_disabled = regs[1];
+  __os_byte (0xe5, 0, 0xff, &gbl->escape_disabled, NULL);
 
   /* Initialise the pthread system */
   __pthread_prog_init ();
@@ -426,7 +425,7 @@ _exit (int return_code)
 
   /* Re-enable Escape (in case SIGINT handler fired in ttyicanon) */
   if (!gbl->escape_disabled)
-    __os_byte (229, 0, 0, NULL);
+    __os_byte (229, 0, 0, NULL, NULL);
 
   __free_process (sulproc);
   __dynamic_area_exit ();

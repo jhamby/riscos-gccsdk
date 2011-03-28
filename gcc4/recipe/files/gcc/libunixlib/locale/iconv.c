@@ -1,6 +1,6 @@
 /* iconv_open (), iconv (), iconv_close ()
  * Written by Peter Naulls
- * Copyright (c) 2004-2010 UnixLib Developers
+ * Copyright (c) 2004-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -17,12 +17,63 @@
 #include <internal/os.h>
 
 #define ERROR_BASE 0x81b900
-
 #define ICONV_NOMEM (ERROR_BASE+0)
 #define ICONV_INVAL (ERROR_BASE+1)
 #define ICONV_2BIG  (ERROR_BASE+2)
 #define ICONV_ILSEQ (ERROR_BASE+3)
 
+static inline const _kernel_oserror *
+SWI_Iconv_Open (const char *__tocode, const char *__fromcode, iconv_t *resultp)
+{
+  register const char *tocode __asm ("r0") = __tocode;
+  register const char *fromcode __asm ("r1") = __fromcode;
+  register const _kernel_oserror *err __asm ("r0");
+  register iconv_t result __asm ("r1");
+  __asm__ volatile ("SWI\t%[SWI_XIconv_Open]\n\t"
+		    "MOV\tr1, r0\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (result)
+		    : "r" (tocode), "r" (fromcode),
+		      [SWI_XIconv_Open] "i" (Iconv_Open | (1<<17))
+		    : "r14", "cc");
+  *resultp = result;
+  return err;
+}
+
+static inline const _kernel_oserror *
+SWI_Iconv_Iconv (iconv_t __cd, char **__inbuf, size_t *__inbytesleft,
+		 char **__outbuf, size_t *__outbytesleft, size_t *resultp)
+{
+  register iconv_t cd __asm ("r0") = __cd;
+  register char **inbuf __asm ("r1") = __inbuf;
+  register size_t *inbytesleft __asm ("r2") = __inbytesleft;
+  register char **outbuf __asm ("r3") = __outbuf;
+  register size_t *outbytesleft __asm ("r4") = __outbytesleft;
+  register const _kernel_oserror *err __asm ("r0");
+  register size_t result __asm ("r1");
+  __asm__ volatile ("SWI\t%[SWI_XIconv_Iconv]\n\t"
+		    "MOV\tr1, r0\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (result)
+		    : "r" (cd), "r" (inbuf), "r" (inbytesleft), "r" (outbuf),
+		      "r" (outbytesleft), [SWI_XIconv_Iconv] "i" (Iconv_Iconv | (1<<17))
+		    : "r14", "cc", "memory");
+  *resultp = result;
+  return err;
+}
+
+static inline const _kernel_oserror *
+SWI_Iconv_Close (iconv_t __cd)
+{
+  register iconv_t cd __asm ("r0") = __cd;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("SWI\t%[SWI_XIconv_Close]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (cd), [SWI_XIconv_Close] "i" (Iconv_Close | (1<<17))
+		    : "r14", "cc");
+  return err;
+}
 
 static int
 iconv_error (const _kernel_oserror *err)
@@ -72,14 +123,11 @@ iconv_open (const char *tocode, const char *fromcode)
   if (err)
     return (iconv_t) __ul_seterr (err, EOPSYS);
 
-  int regs[10];
-  regs[0] = (int) tocode;
-  regs[1] = (int) fromcode;
-  err = __os_swi (Iconv_Open, regs);
-  if (err)
+  iconv_t result;
+  if ((err = SWI_Iconv_Open (tocode, fromcode, &result)) != NULL)
     return (iconv_t) iconv_error (err);
 
-  return (iconv_t) regs[0];
+  return result;
 }
 
 
@@ -91,16 +139,12 @@ iconv (iconv_t cd, char **inbuf, size_t *inbytesleft, char **outbuf,
   PTHREAD_SAFE_CANCELLATION
 #endif
 
-  int regs[10];
-  regs[0] = (int) cd;
-  regs[1] = (int) inbuf;
-  regs[2] = (int) inbytesleft;
-  regs[3] = (int) outbuf;
-  regs[4] = (int) outbytesleft;
-  const _kernel_oserror *err = __os_swi (Iconv_Iconv, regs);
-  if (err)
+  const _kernel_oserror *err;
+  size_t result;
+  if ((err = SWI_Iconv_Iconv (cd, inbuf, inbytesleft, outbuf, outbytesleft,
+			      &result)) != NULL)
     return (size_t) iconv_error (err);
-  return regs[0];
+  return result;
 }
 
 
@@ -111,11 +155,6 @@ iconv_close (iconv_t cd)
   PTHREAD_SAFE_CANCELLATION
 #endif
 
-  int regs[10];
-  regs[0] = (int) cd;
-  const _kernel_oserror *err = __os_swi (Iconv_Close, regs);
-  if (err)
-    return iconv_error (err);
-
-  return regs[0];
+  const _kernel_oserror *err;
+  return (err = SWI_Iconv_Close (cd)) != NULL ? iconv_error (err) : 0;
 }

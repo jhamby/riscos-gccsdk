@@ -174,4 +174,4 @@ fi
 #AC_CONFIG_FILES
 
 # The test process-redirect needs its own Makefile and test Obey script.
-AC_OUTPUT(Makefile test/Makefile test/assert/Makefile test/basic/Makefile test/ctype/Makefile test/dirent/Makefile test/env/Makefile test/errno/Makefile test/filename/Makefile test/grp/Makefile test/math/Makefile test/pthread/Makefile test/scl/Makefile test/setjmp/Makefile test/stdio/Makefile test/stdlib/Makefile test/string/Makefile test/strings/Makefile test/sys/Makefile test/unix/Makefile)
+AC_OUTPUT(Makefile test/Makefile test/assert/Makefile test/basic/Makefile test/ctype/Makefile test/dirent/Makefile test/env/Makefile test/errno/Makefile test/filename/Makefile test/grp/Makefile test/iconv/Makefile test/math/Makefile test/pthread/Makefile test/scl/Makefile test/setjmp/Makefile test/stdio/Makefile test/stdlib/Makefile test/string/Makefile test/strings/Makefile test/sys/Makefile test/unix/Makefile)

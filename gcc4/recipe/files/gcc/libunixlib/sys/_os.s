@@ -1,5 +1,5 @@
 @ __os_*
-@ Copyright (c) 2000-2008 UnixLib Developers
+@ Copyright (c) 2000-2011 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -150,18 +150,6 @@ __os_423break:
 	MOV	pc, lr
 	DECLARE_FUNCTION __os_423break
 
-	.global	__os_byte
-	NAME	__os_byte
-__os_byte:
-	MOV	ip, a4
-	SWI	XOS_Byte
-	MOVVS	pc, lr
-	TEQ	ip, #0
-	STMNEIA ip, {a1, a2, a3}
-	MOV	a1, #0
-	MOV	pc, lr
-	DECLARE_FUNCTION __os_byte
-
 	.global	__os_prhex
 	NAME	__os_prhex
 __os_prhex:
@@ -219,14 +207,6 @@ __os_nl:
 	MOVVC	a1, #0
 	MOV	pc, lr
 	DECLARE_FUNCTION __os_nl
-
-	.global	__os_cli
-	NAME	__os_cli
-__os_cli:
-	SWI	XOS_CLI
-	MOVVC	a1, #0
-	MOV	pc, lr
-	DECLARE_FUNCTION __os_cli
 
 	.global	__os_file
 	NAME	__os_file

@@ -1,5 +1,5 @@
 /* UnixLib tty device driver.
-   Copyright (c) 2000-2008 UnixLib Developers.  */
+   Copyright (c) 2000-2011 UnixLib Developers.  */
 
 #define _BSD_SOURCE
 
@@ -214,18 +214,16 @@ __tty_console_swinsz (struct winsize *win)
 static void
 __tty_console_gterm (struct termios *term)
 {
-  int regs[3];
-
   PTHREAD_UNSAFE
 
   /* Get `Interrupt key' and state of `Interrupt key'.  */
-  __os_byte (0xdc, 0, 0xff, regs);
-  term->c_cc[VINTR] = regs[1];
+  __os_byte (0xdc, 0, 0xff, &term->c_cc[VINTR], NULL);
 
   if (!__ul_global.escape_disabled)
     {
-      __os_byte (0xe5, 0, 0xff, regs);
-      if (regs[1])
+      int sig_disable;
+      __os_byte (0xe5, 0, 0xff, &sig_disable, NULL);
+      if (sig_disable)
         term->c_lflag &= ~ISIG; /* Disable signals.  */
       else
         term->c_lflag |= ISIG; /* Enable signals.  */
@@ -241,12 +239,11 @@ __tty_console_sterm (struct termios *term)
   if (!__ul_global.escape_disabled)
     {
       /* Set `Interrupt key' and state of `Interrupt key'.  */
-      __os_byte (0xdc, term->c_cc[VINTR], 0, NULL);
+      __os_byte (0xdc, term->c_cc[VINTR], 0, NULL, NULL);
       if (term->c_lflag & ISIG)
-        /* Enable signals.  */
-        __os_byte (0xe5, 0, 0, NULL);
+        __os_byte (0xe5, 0, 0, NULL, NULL); /* Enable signals.  */
       else
-        __os_byte (0xe5, 0xff, 0, NULL);
+        __os_byte (0xe5, 0xff, 0, NULL, NULL); /* Disable signals.  */
     }
 }
 
@@ -487,19 +484,14 @@ __ttyicanon (const struct __unixlib_fd *file_desc, void *buf, int nbyte,
 #define F_NDELAY	000004
 
   if (tty->type == TTY_CON)
-    {
-      int regs[3];
-
-      __os_byte (0xe5, 0xff, 0, regs);		/* Disable SIGINT.  */
-      escapestate = regs[1];
-    }
+    __os_byte (0xe5, 0xff, 0, &escapestate, NULL); /* Disable SIGINT.  */
 
 ret:
 
   if (tty->cnt != 0)
     {
       if (tty->type == TTY_CON)
-	__os_byte (0xe5, escapestate, 0, NULL);	/* Restore SIGINT.  */
+	__os_byte (0xe5, escapestate, 0, NULL, NULL); /* Restore SIGINT.  */
 
       i = (nbyte > tty->cnt) ? tty->cnt : nbyte;
       memcpy (buf, tty->ptr, i);
@@ -647,7 +639,7 @@ eol:
     goto ret;
 
   if (tty->type == TTY_CON)
-    __os_byte (0xe5, escapestate, 0, NULL);	/* Restore SIGINT.  */
+    __os_byte (0xe5, escapestate, 0, NULL, NULL); /* Restore SIGINT.  */
 
   if (tty->cnt == 0 && c != ceof)
     return __set_errno (EAGAIN);

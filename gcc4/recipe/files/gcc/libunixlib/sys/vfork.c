@@ -1,5 +1,5 @@
 /* Implementation of fork.
-   Copyright (c) 2004, 2005, 2007, 2008 UnixLib Developers.  */
+   Copyright (c) 2004-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <unistd.h>
@@ -122,7 +122,7 @@ __fork_post (pid_t pid, int isfork)
 
       /* Disable escape if necessary (in case the child enabled it).  */
       if (gbl->escape_disabled)
-        __os_byte (229, 1, 0, NULL);
+        __os_byte (229, 1, 0, NULL, NULL);
 
       {
         int regs[10];

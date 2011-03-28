@@ -1,3 +1,23 @@
+Tue Mar 29 00:52:27 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/os.h (__os_cli, __os_byte): Change into inline
+	assembler versions.
+	* sys/_os.s (__os_cli,__os_bytes): Remove.
+	* unix/unix.c (__unixinit, _exit): Follow __os_byte API change.
+	* unix/gethostnam.c (fakehostname): Likewise.
+	* sys/vfork.c (__fork_post): Likewise.
+	* unix/tty.c (__tty_console_gterm, __tty_console_sterm, __ttyicanon):
+	Likewise.
+	* locale/iconv.c (iconv_open, iconv, iconv_close): Don't use __os_swi
+	but use SWI_Iconv_Open, SWI_Iconv_Iconv and SWI_Iconv_Close.
+	(SWI_Iconv_Open, SWI_Iconv_Iconv, SWI_Iconv_Close): Add.
+	* configure.ac (AC_OUTPUT): Add test/iconv/Makefile.
+	* test/iconv/{test-iconv-h.c,signature.h,test-iconv-utf.c,
+	test-iconv-h-c++.cc,macros.h,test-iconv.c
+	* test/iconv/config.h: Add.
+	* string/strnicmp.c (strncasecmp): Add strong alias for SCL case as
+	well.
+
 Tue Mar 22 01:04:59 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/netinet/in.h: Sync with glibc 2.11.

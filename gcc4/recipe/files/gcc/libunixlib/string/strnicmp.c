@@ -1,5 +1,5 @@
 /* strnicmp (), strncasecmp ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <string.h>
@@ -24,6 +24,5 @@ strnicmp (const char *s1, const char *s2, size_t n)
 
   return i - j;
 }
-#ifndef __TARGET_SCL__
 strong_alias (strnicmp, strncasecmp)
-#endif
+
