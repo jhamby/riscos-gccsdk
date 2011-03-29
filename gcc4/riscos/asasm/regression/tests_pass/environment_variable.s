@@ -12,7 +12,7 @@
 	[ :LNOT:REFERENCE
 	=	"xxx<APCS>zzz"
 	|
-	=	"xxx<APCS>zzz"
+	=	"xxx" :CC: :CHR:60 :CC: "APCS" :CC: :CHR:62 :CC: "zzz"
 	]
 	ALIGN
 

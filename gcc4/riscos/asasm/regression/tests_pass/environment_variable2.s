@@ -17,7 +17,7 @@ Test	SETS	"GET	Hdr:<APCS>.Common"
 	=	"xxx<APCS>zzz"
 	=	"$Test"
 	|
-	=	"xxx<APCS>zzz"
+	=	"xxx" :CC: :CHR:60 :CC: "APCS" :CC: :CHR:62 :CC: "zzz"
 	=	"GET	Hdr:" :CC: :CHR:60 :CC: "APCS" :CC: :CHR:62 :CC: ".Common"
 	]
 	ALIGN
