@@ -1,6 +1,8 @@
 
 AB_URL=http://download.gna.org/freeciv/beta/freeciv-2.3.0-beta3.tar.bz2
 
+AB_PVERSION=2.3.0-beta3
+
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
 AB_DEBNAME=freeciv-client-sdl
