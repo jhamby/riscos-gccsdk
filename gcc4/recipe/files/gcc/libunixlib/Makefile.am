@@ -61,7 +61,6 @@ common_src =
 else
 common_src = \
 	common/attrib.c \
-	common/cvttime.c \
 	common/exist.c \
 	common/fdname.c \
 	common/funcallerr.c \
@@ -79,6 +78,7 @@ common_src = \
 	common/__stat.c
 endif
 common_src += \
+	common/cvttime.c \
 	common/env.c
 
 if UNIXLIB_BUILDING_SCL
@@ -1052,13 +1052,13 @@ time_src = \
 	time/setitmr.c \
 	time/strftime.c \
 	time/time.c \
-	time/_clock.s
+	time/_clock.s \
+	time/utimes.c
 endif
 time_src += \
 	time/adjtime.c \
 	time/asctime_r.c \
 	time/broken.c \
-	time/calendconv.c \
 	time/clk_getres.c \
 	time/clk_gettime.c \
 	time/clk_settime.c \
@@ -1072,8 +1072,7 @@ time_src += \
 	time/stdtime.c \
 	time/timegm.c \
 	time/times.c \
-	time/tzset.c \
-	time/utimes.c
+	time/tzset.c
 
 if UNIXLIB_BUILDING_SCL
 unistd_src =

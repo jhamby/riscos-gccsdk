@@ -1,3 +1,28 @@
+Tue Mar 29 23:14:41 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (common/cvttime.c): Add to SCL build.
+	(time/utimes.c): Remove from SCL build.
+	(time/calendconv.c): Remove.
+	* time/calendconv.c: Remove after merging its contents as inline
+	assembler with...
+	* time/gmtime_r.c (gmtime_r): ...this and...
+	(SWI_Territory_ConvertTimeToUTCOrdinals): Add.
+	* time/localtime_r.c (localtime_r): ...this.
+	(SWI_Territory_ConvertTimeToOrdinals): Add.
+	* incl-local/time.h (__cvt_broken_time): Change return type from void
+	to const _kernel_oserror.
+	* time/asctime_r.c (asctime_r): Check return value __cvt_broken_time.
+	* time/mktime.c (mktime): Likewise.
+	* time/strftime.c (strftime): Likewise.
+	* time/stdtime.c (__standard_time): Use inline assembler.
+	(SWI_Territory_ConvertDateAndTime): Add.
+	* time/broken.c (__cvt_broken_time): Use inline assembler.
+	(SWI_Territory_ConvertOrdinalsToTime): Add.
+	(__cvt_broken_time): Return error if there was one.
+	* incl-local/locale.h (__locale_territory, __setlocale_called,
+	__build_ctype_tables): Don't prototype these for SCL build.
+	* incl-local/internal/os.h (__ul_seterr): Fix outdated comment.
+
 Tue Mar 29 00:52:27 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/os.h (__os_cli, __os_byte): Change into inline

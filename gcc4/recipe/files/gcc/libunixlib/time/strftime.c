@@ -17,10 +17,11 @@
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
-#include <stdio.h>
-#include <time.h>
+#include <errno.h>
 #include <locale.h>
+#include <stdio.h>
 #include <swis.h>
+#include <time.h>
 
 #include <internal/os.h>
 
@@ -40,14 +41,17 @@ size_t
 strftime (char *s, const size_t maxsize,
 	  const char *format, const struct tm *t)
 {
-  char *p;
-  char riscos_time[6];
-
   /* According to POSIX.1 every call to stftime implies a call to tzset.  */
   tzset ();
 
-  __cvt_broken_time (t, riscos_time);
-  p = fmt (((format == NULL) ? "%c" : format), t, s, s + maxsize, riscos_time);
+  const _kernel_oserror *err;
+  char riscos_time[6];
+  if ((err = __cvt_broken_time (t, riscos_time)) != NULL)
+    {
+      __ul_seterr (err, ENOSYS);
+      return 0;
+    }
+  char *p = fmt ((format == NULL) ? "%c" : format, t, s, s + maxsize, riscos_time);
   if (p == s + maxsize)
     return 0;
   *p = '\0';

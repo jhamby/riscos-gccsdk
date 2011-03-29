@@ -1,8 +1,9 @@
 /* mktime ()
  * Written by Nick Burrett on 13 July 1997.
- * Copyright (c) 1997-2010 UnixLib Developers
+ * Copyright (c) 1997-2011 UnixLib Developers
  */
 
+#include <errno.h>
 #include <locale.h>
 #include <time.h>
 #include <stddef.h>
@@ -17,8 +18,10 @@ mktime (struct tm *brokentime)
 {
   tzset (); /* To initialize daylight, timezone and tzname.  */
 
+  const _kernel_oserror *err;
   unsigned int riscos_time[2]; /* UTC */
-  __cvt_broken_time (brokentime, (char *) riscos_time);
+  if ((err = __cvt_broken_time (brokentime, (char *) riscos_time)) != NULL)
+    return __ul_seterr (err, ENOSYS);
 
   /* Normalize the brokentime structure.  */
   int regs[10];

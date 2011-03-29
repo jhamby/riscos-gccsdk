@@ -121,10 +121,10 @@ extern _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
 
 /* Flag RISC OS error to UNIX and take a copy of the RISC OS error block.
    If 'err' is NULL, no action is taken.
-   If 'seterrno' is non-zero, then UnixLib's errno is also set to EOPSYS.
+   If 'new_errno' is non-zero, then UnixLib's errno is also set to 'new_errno'.
    This function returns -1 if there is an error to allow to function
    to be used as a return value in error situations */
-extern int __ul_seterr (const _kernel_oserror *__err, int __seterrno)
+extern int __ul_seterr (const _kernel_oserror *__err, int __new_errno)
      __THROW;
 
 __END_DECLS
