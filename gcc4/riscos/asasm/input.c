@@ -359,7 +359,7 @@ inputNextLine (void)
  * \param outOffset On entry, offset in input_buff buffer.  On exit, offset
  * will be updated reflecting the written charactes in input_buff.
  *
- * Buffer overflow will be deteced by the caller when not all the input has
+ * Buffer overflow will be detected by the caller when not all the input has
  * been consumed together with *outOffsetP == sizeof (input_buff).
  */
 static void
@@ -585,7 +585,7 @@ inputArgSub (void)
 		  {
 		    input_buff[outOffset++] = cc;
 		    if (cc == '|')
-		      disableVarSubst ^= true;
+		      disableVarSubst = !disableVarSubst;
 		    if (cc == c)
 		      break;
 		  }
@@ -594,8 +594,34 @@ inputArgSub (void)
 	    break;
 
 	  case '$': /* Do variable substitution - $ */
-	    ++inP;
-	    inputVarSub (&inP, &outOffset, false);
+	    {
+	      const size_t origOutOffset = outOffset;
+
+	      ++inP;
+	      inputVarSub (&inP, &outOffset, false);
+
+	      size_t expandedLen = outOffset - origOutOffset;
+	      assert (expandedLen >= 1);
+	      if (expandedLen > 1)
+		{
+		  size_t remainingInput = strlen (inP) + 1;
+		  if (expandedLen + remainingInput <= sizeof (workBuff))
+		    {
+		      /* Reprocess the expanded variable as input data.  */
+		      memmove (workBuff + expandedLen, inP, remainingInput);
+		      memcpy (workBuff, input_buff + origOutOffset, expandedLen);
+		      outOffset = origOutOffset;
+		      inP = workBuff;
+		    }
+		  else
+		    {
+		      /* Would overflow workBuff.  */
+		      errorAbort ("Line expansion resulted in overflow - line ignored");
+		      input_buff[0] = 0;
+		      return false;
+		    }
+		}
+	    }
 	    break;
 	}
     }

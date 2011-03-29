@@ -1,3 +1,12 @@
+Wed Mar 30 01:27:33 CEST 2011  John-Mark Bell  <jmb@netsurf-browser.org>
+			       John Tytgat  <John.Tytgat@aaug.net>
+
+	* input.c (inputArgSub): Re-expand variable contents.
+	* regression/tests_pass/environment_variable.s: Ensure we do not do
+	environment variable expansion inside strings.
+	* regression/tests_pass/environment_variable2.s: Make sure we do
+	environemnt variable expansion after string variable expansion.
+
 Mon Mar 28 01:58:51 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.h (Symbol::areaDef): Add.
