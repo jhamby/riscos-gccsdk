@@ -177,4 +177,15 @@ foo	SETS	"bar"
 
 	]
 
+	; Don't go crazy on empty variable values.
+	[ :LNOT: REFERENCE
+	GBLS	Green
+Green	SETS	""
+	=	"x"
+	$Green
+	=	"y"
+	|
+	=	"xy"
+	]
+
 	END
