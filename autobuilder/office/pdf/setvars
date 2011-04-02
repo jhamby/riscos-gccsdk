@@ -1,6 +1,7 @@
 AB_CATEGORY=Document
 AB_LICENCE=Free
 AB_SVN=svn://svn.riscos.info/pdf/trunk
+#AB_SVN=svn://localhost/trunk
 
 AB_MAKE="$AB_MAKE -f Makefile.cross"
 
@@ -17,6 +18,26 @@ ab_package() {
   cp -av $S/!PDF/Res,fae $S/!PDF/Sprites22,ff9 $A
   cp -av $S/!PDF/!Sprites22,ff9 $S/!PDF/!Sprites,ff9 $S/!PDF/Sprites,ff9 $A
 
+  wget --progress=bar:force http://ftp.de.debian.org/debian/pool/main/g/gsfonts/gsfonts_8.11+urwcyr1.0.7~pre44.orig.tar.gz -O gsfonts.tar.gz
+
+  gzip -cd gsfonts.tar.gz|tar -xvf -
+  mkdir $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/d050000l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n019003l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n019004l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n019023l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n019024l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n021003l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n021004l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n021023l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n021024l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n022003l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n022004l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n022023l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/n022024l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/s050000l.pfb $A/gsfonts
+  cp -av $S/gsfonts-8.11+urwcyr1.0.7~pre44/COPYING $A/gsfonts
+  
   $AB_HOME/add-riscpkg -unixlib -name PDF \
         -copyrightfile LICENCES/README
 }
