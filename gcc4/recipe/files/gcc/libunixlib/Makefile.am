@@ -1041,6 +1041,8 @@ endif
 if UNIXLIB_BUILDING_SCL
 time_src =
 else
+# asctime, difftime, ctime, gmtime, localtime, mktime, time, strftime
+# are provided by the SCL chunks.
 time_src = \
 	time/asctime.c \
 	time/difftime.c \
@@ -1052,7 +1054,6 @@ time_src = \
 	time/setitmr.c \
 	time/strftime.c \
 	time/time.c \
-	time/_clock.s \
 	time/utimes.c
 endif
 time_src += \
@@ -1062,6 +1063,7 @@ time_src += \
 	time/clk_getres.c \
 	time/clk_gettime.c \
 	time/clk_settime.c \
+	time/clock.c \
 	time/ctime_r.c \
 	time/dysize.c \
 	time/ftime.c \
