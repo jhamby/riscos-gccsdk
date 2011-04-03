@@ -6,7 +6,7 @@ AB_CONFLAGS="--enable-vcut=yes"
 #                vorbiscomment/vorbiscomment.1"
 
 ab_package() {
-  ab_create_command_app vorbis-tools Apps/Audio
+  ab_create_command_app Vorbis-Tools Apps/Audio
   ab_add_commands \
     $S/ogg123/ogg123$AB_EXEEXT $S/oggenc/oggenc$AB_EXEEXT \
     $S/oggdec/oggdec$AB_EXEEXT $S/ogginfo/ogginfo$AB_EXEEXT \
