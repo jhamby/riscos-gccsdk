@@ -1,0 +1,12 @@
+
+ab_package () {
+  ab_create_command_app FLAC Apps/Audio
+  ab_add_commands $S/src/flac/flac$AB_EXEEXT $S/src/metaflac/metaflac$AB_EXEEXT
+  
+  cp -av $S/COPYING* $A
+  cp -av $S/AUTHORS $S/README $A
+
+  ab_docs doc/html
+    
+  $AB_HOME/add-riscpkg -unixlib -name FLAC
+}
