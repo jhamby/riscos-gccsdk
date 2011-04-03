@@ -1,5 +1,5 @@
 /* strerror (), strerror_r ()
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -19,7 +19,7 @@ int sys_nerr = __SYS_NERR + 1;
 
 const char *sys_errlist[__SYS_NERR + 1] =
 {
-  "Error 0",					/* (0) */
+  "Success",					/* (0) */
   "Numerical argument out of domain / Operation not permitted", /* EDOM / EPERM */
   "Result too large / No such file or directory", /* ERANGE / ENOENT */
   "Unrecognised signal / No such process",	/* ESIGNUM / ESRCH */
