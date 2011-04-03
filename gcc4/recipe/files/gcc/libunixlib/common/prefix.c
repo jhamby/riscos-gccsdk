@@ -1,10 +1,9 @@
 /* __get_dde_prefix ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <stdlib.h>
 #include <string.h>
-#include <swis.h>
 
 #include <unixlib/local.h>
 #include <internal/os.h>
@@ -13,29 +12,30 @@
 /* Returns malloced block of memory holding DDEUtils_Prefix non zero-length
    string value or NULL when there isn't one set.  Caller needs to free
    memory after use.  */
-const char *__get_dde_prefix (void)
+const char *
+__get_dde_prefix (void)
 {
-  int regs[10];
   char *result;
 
-  regs[0] = 0; /* Use the currently active object number.  */
-  if (__os_swi (DDEUtils_ReadPrefix, regs) == NULL)
+  /* Try to fetch the prefix of the currently active object.  */
+  const char *prefix;
+  if (SWI_DDEUtils_ReadPrefix (0, &prefix) == NULL)
     {
-      size_t size;
-      const char *prefix;
-
-      if ((prefix = (const char *)regs[0]) == NULL)
+      /* DDEUtils_ReadPrefix is supported.  Was there a prefix set ? */
+      if (prefix == NULL)
         return NULL;
 
-      /* returned string can be control char terminated.  */
-      while ((unsigned char)*prefix >= ' ')
-        ++prefix;
+      /* Returned string can be control char terminated.  */
+      const char *end_prefix;
+      for (end_prefix = prefix; (unsigned char)*prefix >= ' '; ++end_prefix)
+        /* */;
       /* Filter out zero length results.  */
-      if ((size = prefix - (const char *)regs[0]) == 0)
+      size_t size = end_prefix - prefix;
+      if (size == 0)
         return NULL;
       if ((result = (char *)malloc (size + 1)) == NULL)
         return NULL;
-      memcpy (result, (const void *)regs[0], size);
+      memcpy (result, prefix, size);
       result[size] = '\0';
     }
   else

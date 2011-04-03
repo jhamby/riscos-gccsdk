@@ -1,5 +1,5 @@
 /* Low-level device handling.
-   Copyright (c) 2002-2010 UnixLib Developers.  */
+   Copyright (c) 2002-2011 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <dirent.h>
@@ -871,19 +871,18 @@ __randomopen (struct __unixlib_fd *file_desc, const char *file, int mode)
 {
   int regs[10];
 
-  /* Test for the existance of the CryptRandom module */
+  /* Test for the existance of the CryptRandom module.  */
   if (__os_swi (CryptRandom_Stir, regs))
     {
-      _kernel_oserror *err;
-
-      /* Try to load the module. Ignore any errors */
-      if ((err = __os_cli ("RMEnsure CryptRandom 0.12 RMLoad System:Modules.CryptRand")) != NULL
-	  || (err = __os_cli ("RMEnsure CryptRandom 0.12 Error 16_10F /dev/random support requires CryptRand 0.12 or newer")) != NULL)
+      /* Try to load the module.  */
+      const _kernel_oserror *err;
+      if ((err = SWI_OS_CLI ("RMEnsure CryptRandom 0.12 RMLoad System:Modules.CryptRand")) != NULL
+	  || (err = SWI_OS_CLI ("RMEnsure CryptRandom 0.12 Error 16_10F /dev/random support requires CryptRand 0.12 or newer")) != NULL)
 	return (void *) __ul_seterr (err, EOPSYS);
 
-      /* If still not available, then the open must fail */
-      if (__os_swi (CryptRandom_Stir, regs))
-	return (void *) __set_errno (ENOENT);
+      /* If still not available, then the open must fail.  */
+      if ((err = __os_swi (CryptRandom_Stir, regs)) != NULL)
+	return (void *) __ul_seterr (err, ENOENT);
     }
 
   return (void *) 1;

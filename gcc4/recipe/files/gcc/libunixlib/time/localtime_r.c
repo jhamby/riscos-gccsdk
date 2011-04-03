@@ -15,7 +15,7 @@
 /* Note time/gmtime_r.c and time/localtime_r.c are very similar concerning
    implementation.  */
 
-static inline const _kernel_oserror *
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_Territory_ConvertTimeToOrdinals (int __territory, const char __ro_time[],
 				     unsigned int __ordinals[])
 {

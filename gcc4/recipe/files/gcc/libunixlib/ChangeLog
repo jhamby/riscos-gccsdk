@@ -1,3 +1,28 @@
+Sun Apr  3 20:27:41 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/os.h (SWI_OS_Byte): Renamed from __os_byte. Only
+	write output registers when no error happened.  Mark as always to
+	inline.
+	(SWI_OS_CLI): Renamed from __os_cli.  Mark as always to inline.
+	(SWI_OS_ChangeRedirection,SWI_DDEUtils_SetCLSize,SWI_DDEUtils_SetCL,
+	SWI_DDEUtils_GetCLSize,SWI_DDEUtils_GetCL,SWI_DDEUtils_Prefix,
+	SWI_DDEUtils_ReadPrefix): Add.
+	* unix/unix.c (__unixinit,initialise_unix_io): Make use of new SWI_*
+	calls.
+	* unix/gethostnam.c (fakehostname): Likewise.
+	* unix/dev.c (__randomopen): Likewise.
+	* unix/tty.c (__tty_console_gterm, __tty_console_sterm, __ttyicanon):
+	Likewise.
+	* unix/chdir.c (chdir): Likewise.
+	* sound/dsp (__dspopen): Likewise.
+	* common/prefix.c (__get_dde_prefix): Likewise.
+	* gmon/machine-gmon.c (load_hal26_module): Likewise.
+	* sys/exec.c (set_dde_cli, execve): Likewise.
+	* sys/vfork.c (__fork_post): Likewise.
+	* time/gmtime_r.c, time/stdtime.c, time/broken.c, time/localtime_r.c,
+	time/clock.c, locale/iconv.c, common/env.c, incl-local/sys/socket.h:
+	Mark inline assembler as always to inline.
+
 Sun Apr  3 15:10:40 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* sys/errlist.c (sys_errlist): Change entry 0 from "Error 0"

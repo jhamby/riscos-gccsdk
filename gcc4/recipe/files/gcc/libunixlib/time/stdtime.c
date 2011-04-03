@@ -11,7 +11,7 @@
 
 #include <internal/os.h>
 
-static inline const _kernel_oserror *
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_Territory_ConvertDateAndTime (int __territory, const char *__ro_time,
 				  char *__buf, size_t __size,
 				  const char *__str, char **termp)

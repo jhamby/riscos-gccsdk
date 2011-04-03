@@ -1,5 +1,5 @@
 /* Execute a new program.
-   Copyright (c) 2002-2010 UnixLib Developers.  */
+   Copyright (c) 2002-2011 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -30,32 +30,28 @@
 static int
 set_dde_cli (char *cli)
 {
-  int regs[10];
-  char *temp;
-
   /* Skip program name.  */
+  char *temp;
   for (temp = cli; *temp != '\0' && *temp != ' '; ++temp)
     ;
   /* We know there is exactly one space after the program name.  */
   if (*temp == ' ')
     ++temp;
 
-  /* Check that the actual command is not greater than
-     RISC OS's maximum path length.  */
-  if ((temp - cli) >= MAXPATHLEN)
+  /* Check that the actual command is not greater than RISC OS's maximum path
+     length. If so, there is no way this is going to work.  */
+  if (temp - cli >= MAXPATHLEN)
     return __set_errno (E2BIG);
 
   /* Set the command line size within DDEUtils.  */
-  regs[0] = strlen (temp) + 1;
-  if (__os_swi (DDEUtils_SetCLSize, regs))
-    /* We're buggered if DDEUtils isn't on this system.  */
-    return __set_errno (E2BIG);
+  size_t cli_size = strlen (temp) + 1;
+  const _kernel_oserror *err;
+  if ((err = SWI_DDEUtils_SetCLSize (cli_size)) != NULL
+      || (err = SWI_DDEUtils_SetCL (temp)) != NULL)
+    return __ul_seterr (err, E2BIG);
 
-  regs[0] = (int) temp;
-  __os_swi (DDEUtils_SetCL, regs);
-
-  /* As we're now passing the CLI arguments via DDEUtils, the CLI
-     is now reduced to the program name only.  */
+  /* As we're now passing the CLI arguments via DDEUtils, the CLI is now
+     reduced to the program name only.  */
   if (*temp != '\0')
     temp[-1] = '\0';		/* terminate cli.  */
 #ifdef DEBUG
@@ -71,23 +67,11 @@ execve (const char *execname, char *const argv[], char *const envp[])
 {
   struct ul_global *gbl = &__ul_global;
   struct __sul_process *sulproc = gbl->sulproc;
-  int x, cli_length;
-  const char *program_name;
-  char *command_line;
-  char *cli;
-  char pathname[MAXPATHLEN];
-#if __UNIXLIB_SYMLINKS
-  char respathname[MAXPATHLEN];
-#endif
-  int nasty_hack;
-  char *null_list = NULL;
-  int scenario;
-  char **newenviron = NULL;
-  int envlen = 0;
 
   if (!execname)
     return __set_errno (EINVAL);
 
+  char *null_list = NULL;
   if (!argv)
     argv = &null_list;
 
@@ -104,6 +88,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #endif
 
   /* scenario : number of arguments which we're going to skip.  */
+  int scenario;
   if (execname[0] == '*' && execname[1] == '\0' && argv[1] != NULL)
     scenario = 1;
   else if (!strcmp (execname, "/bin/sh")
@@ -112,6 +97,12 @@ execve (const char *execname, char *const argv[], char *const envp[])
   else
     scenario = 0;
 
+#if __UNIXLIB_SYMLINKS
+  char respathname[MAXPATHLEN];
+#endif
+  const char *program_name;
+  char pathname[MAXPATHLEN];
+  size_t nasty_hack;
   if (scenario == 0)
     {
       nasty_hack = 0;
@@ -132,9 +123,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
       if (__resolve_symlinks (pathname, respathname,
 			      sizeof (respathname)) != 0)
 	return -1;
-      program_name = respathname;	/* This is copied into cli + 1 */
+      program_name = respathname; /* This is copied into cli + 1 */
 #else
-      program_name = pathname;	/* This is copied into cli + 1 */
+      program_name = pathname; /* This is copied into cli + 1 */
 #endif
       if (!scenario)
 	{
@@ -173,21 +164,19 @@ execve (const char *execname, char *const argv[], char *const envp[])
     }
   else
     {
-      const char *p;
-      char temp[MAXPATHLEN];
-      int x;
-
       /* scenario 1 : We've arrived here from a user call to system(),
          with execname == "*" because on RISC OS the '*' is equivalent
          to the SHELL of /bin/bash on Unix. If this is the case, then
          we'll probably find the real program name in argv[1].
          scenario 2 : "/bin/sh -c xyz" is called and we will execute this
          as "xyz" (i.e. argv[2]).  */
-      p = argv[scenario];
+      const char *p = argv[scenario];
 
       while (*p == ' ')
 	p++;
-      for (x = 0; x < sizeof (temp) && *p && *p != ' '; /* */ )
+      char temp[MAXPATHLEN];
+      size_t x;
+      for (x = 0; x < sizeof (temp) && *p && *p != ' '; /* */)
 	temp[x++] = *p++;
       if (x == sizeof (temp))
 	return __set_errno (E2BIG);
@@ -228,8 +217,8 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #endif
 
   /* Calculate the length of the command line.  */
-  cli_length = strlen (program_name) + 1;
-  for (x = scenario; argv[x] != NULL; ++x)
+  size_t cli_length = strlen (program_name) + 1;
+  for (size_t x = scenario; argv[x] != NULL; ++x)
     {
       const char *p;
       int space = 0;
@@ -264,13 +253,13 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #endif
 
   /* SUL will free cli for us when we call sul_exec.  */
-  cli = sulproc->sul_malloc (sulproc->pid, cli_length + 1);
+  char *cli = sulproc->sul_malloc (sulproc->pid, cli_length + 1);
   if (cli == NULL)
     return __set_errno (ENOMEM);
 
   /* Copy program name into cli and terminate with a space, ready for below.
      Should trim leading space between '*' and command in name.  */
-  command_line = cli;
+  char *command_line = cli;
   while (*program_name == '*' || *program_name == ' ')
     program_name++;
 
@@ -280,8 +269,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
   /* Copy the rest of the arguments into the cli.  */
   if (argv[0])
     {
-      int x;
-      for (x = scenario; argv[x] != NULL; ++x)
+      for (int x = scenario; argv[x] != NULL; ++x)
 	{
 	  char *p = argv[x];
 	  int contains_space = 0;
@@ -338,18 +326,18 @@ execve (const char *execname, char *const argv[], char *const envp[])
       return -1;
     }
 
+  char **newenviron;
+  size_t envlen;
   if (envp)
     {
-      int enventries, x;
-      char *offset;
-
       envlen = sizeof (char *);
 
       /* Count new environment variable vector length.  */
+      unsigned int x;
       for (x = 0; envp[x] != NULL; x++)
 	envlen += sizeof (char *) + strlen (envp[x]) + 1;
 
-      enventries = x;
+      unsigned int enventries = x;
 
       /* The length must be word aligned */
       envlen = (envlen + 3) & ~3;
@@ -362,36 +350,39 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	}
 
       /* Copy the environment */
-      offset = (char *) (newenviron + enventries + 1);
+      char *offset = (char *) (newenviron + enventries + 1);
       for (x = 0; x < enventries; x++)
 	{
-	  int len = strlen (envp[x]) + 1;
+	  size_t len = strlen (envp[x]) + 1;
 	  newenviron[x] = offset;
 	  memcpy (offset, envp[x], len);
 	  offset += len;
 	}
       newenviron[enventries] = NULL;
     }
+  else
+    {
+      newenviron = NULL;
+      envlen = 0;
+    }
 
   /* Setup RISC OS redirection.  This will only be used by non-UL child
      processes.  */
   if (sulproc->ppid != 1)
     {
-      int regs[10];
-      _kernel_oserror *err;
-
-      regs[0] = (!BADF (0)
-                 && (getfd (0)->devicehandle->type == DEV_RISCOS
-                     || getfd (0)->devicehandle->type == DEV_PIPE)) ?
-        (int) getfd (0)->devicehandle->handle : -1;
-      regs[1] = (!BADF (1)
-                 && (getfd (1)->devicehandle->type == DEV_RISCOS
-                     || getfd (1)->devicehandle->type == DEV_PIPE)) ?
-        (int) getfd (1)->devicehandle->handle : -1;
-      if ((err = __os_swi (OS_ChangeRedirection, regs)) != NULL)
+      int fh_in = (!BADF (0)
+		   && (getfd (0)->devicehandle->type == DEV_RISCOS
+		       || getfd (0)->devicehandle->type == DEV_PIPE)) ?
+		    (int) getfd (0)->devicehandle->handle : -1;
+      int fh_out = (!BADF (1)
+		    && (getfd (1)->devicehandle->type == DEV_RISCOS
+		        || getfd (1)->devicehandle->type == DEV_PIPE)) ?
+		     (int) getfd (1)->devicehandle->handle : -1;
+      const _kernel_oserror *err;
+      if ((err = SWI_OS_ChangeRedirection (fh_in, fh_out,
+					   &gbl->changeredir0,
+					   &gbl->changeredir1)) != NULL)
         return __ul_seterr (err, EOPSYS);
-      gbl->changeredir0 = regs[0];
-      gbl->changeredir1 = regs[1];
 
       if (!BADF (1) && getfd (1)->devicehandle->type == DEV_PIPE)
         {
@@ -400,6 +391,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
              its read position again.  */
           int handle = (int) getfd (1)->devicehandle->handle;
 
+	  int regs[10];
           if ((err = __os_args (0, handle, 0, regs)) != NULL)
             return __ul_seterr (err, EOPSYS);
           gbl->rewindpipeoffset = regs[2];
@@ -489,5 +481,5 @@ execve (const char *execname, char *const argv[], char *const envp[])
 		     (void *) __ul_memory.stack);
 
   /* This is never reached.  */
-  return 0;
+  return -1;
 }

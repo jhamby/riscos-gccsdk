@@ -7,7 +7,7 @@
 #include <locale.h>
 #include <swis.h>
 
-static inline const _kernel_oserror *
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_Territory_ConvertOrdinalsToTime (int __territory,
 				     char __ro_time[],
 				     const unsigned int __ordinals[])

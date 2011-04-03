@@ -16,7 +16,7 @@
  *
  * FIXME: I don't believe that 8-bit currently works properly.
  *
- * Copyright (c) 2004-2010 UnixLib Developers
+ * Copyright (c) 2004-2011 UnixLib Developers
  */
 
 #include <swis.h>
@@ -162,9 +162,9 @@ __dspopen (struct __unixlib_fd *fd, const char *file, int mode)
 
   dr_fragscale = 1;
 
-  if ((err = __os_cli("RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer")) != NULL
-      || (err = __os_cli("RMEnsure DigitalRenderer 0.51 Error 16_10F Sound support requires DigitalRenderer 0.51 or newer")) != NULL
-      || (err = set_defaults(fd, 2, 2, 44100, 0)) != NULL)
+  if ((err = SWI_OS_CLI ("RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer")) != NULL
+      || (err = SWI_OS_CLI ("RMEnsure DigitalRenderer 0.51 Error 16_10F Sound support requires DigitalRenderer 0.51 or newer")) != NULL
+      || (err = set_defaults (fd, 2, 2, 44100, 0)) != NULL)
     return (void *) __ul_seterr (err, EOPSYS);
 
   return (void *) 1; /* Dummy value */

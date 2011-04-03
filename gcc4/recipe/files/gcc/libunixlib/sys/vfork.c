@@ -112,33 +112,26 @@ __fork_post (pid_t pid, int isfork)
          in case the child has changed it. */
       if (dde_prefix)
         {
-          int regs[10];
-
-          regs[0] = (int) dde_prefix;
-          (void) __os_swi (DDEUtils_Prefix, regs);
+          (void) SWI_DDEUtils_Prefix (dde_prefix);
           free ((void *)dde_prefix);
 	  dde_prefix = NULL;
         }
 
       /* Disable escape if necessary (in case the child enabled it).  */
       if (gbl->escape_disabled)
-        __os_byte (229, 1, 0, NULL, NULL);
+        SWI_OS_Byte (229, 1, 0, NULL, NULL);
 
-      {
-        int regs[10];
-
-        /* Restore RISC OS in/out redirection.  */
-        regs[0] = gbl->changeredir0;
-        regs[1] = gbl->changeredir1;
-        (void) __os_swi (OS_ChangeRedirection, regs);
-        /* When the stdout of our child process was a DEV_PIPE, we need to rewind it to
-           to point where we exec'ed the child so we can read its output.  */
-        if (gbl->rewindpipeoffset != -1)
-          {
-            (void) __os_args (1, regs[1], gbl->rewindpipeoffset, NULL);
-            gbl->rewindpipeoffset = -1;
-          }
-      }
+      /* Restore RISC OS in/out redirection.
+         When the stdout of our child process was a DEV_PIPE, we need to rewind it to
+	 to point where we exec'ed the child so we can read its output.  */
+      int prev_fh_out;
+      if (SWI_OS_ChangeRedirection (gbl->changeredir0, gbl->changeredir1,
+				    NULL, &prev_fh_out) == NULL
+	  && gbl->rewindpipeoffset != -1)
+	{
+	  (void) __os_args (1, prev_fh_out, gbl->rewindpipeoffset, NULL);
+	  gbl->rewindpipeoffset = -1;
+	}
 
       if (gbl->pthread_system_running)
         {

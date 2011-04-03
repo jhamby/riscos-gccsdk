@@ -173,7 +173,6 @@ __free_process (struct __sul_process *process)
 void
 __unixinit (void)
 {
-  int regs[10];
   struct ul_global *gbl = &__ul_global;
   struct __sul_process *sulproc = gbl->sulproc;
 
@@ -188,7 +187,7 @@ __unixinit (void)
   /* Record the initial escape key status. If escape is disabled (as it
      might be if we are being run as an ANSI task from Nettle) then we
      want to ensure the tty driver does not reenable it. */
-  __os_byte (0xe5, 0, 0xff, &gbl->escape_disabled, NULL);
+  SWI_OS_Byte (0xe5, 0, 0xff, &gbl->escape_disabled, NULL);
 
   /* Initialise the pthread system */
   __pthread_prog_init ();
@@ -199,24 +198,19 @@ __unixinit (void)
   initialise_unix_io ();
   __stdioinit ();
 
-  /* When the DDEUtils module is loaded, we can support chdir() without
-     the RISC OS CSD being changed. When not loaded, chdir() will work by
-     changing CSD for all processes.
+  /* When the DDEUtils module is loaded, we can support chdir() without the
+     RISC OS CSD being changed. When not loaded, chdir() will work by changing
+     CSD for all processes.
 
-     IMPORTANT NOTE: because of bugs in DDEUtils' path processing
-     we don't set DDEUtils_Prefix at the beginning of each process.
-     Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory"
-     RISC OS error when Font_FindFont is done for a font not yet in
-     the font cache.
+     IMPORTANT NOTE: because of bugs in DDEUtils' path processing we don't set
+     DDEUtils_Prefix at the beginning of each process.
+     Symptoms of these bugs are "ADFS::HardDisc4.$ is a directory" RISC OS
+     error when Font_FindFont is done for a font not yet in the font cache.
      These problems are known to be solved in RISC OS Adjust 1.  */
-#if __UNIXLIB_SET_DDEPREFIX == 0
   __u->dde_prefix = __get_dde_prefix ();
-#else
-  if ((__u->dde_prefix = __get_dde_prefix ()) == NULL)
-    {
-      regs[0] = (int)"@";
-      (void) __os_swi (DDEUtils_Prefix, regs);
-    }
+#if __UNIXLIB_SET_DDEPREFIX != 0
+  if (__u->dde_prefix == NULL)
+    (void) SWI_DDEUtils_Prefix ("@");
 #endif
 
   /* Set up the environment */
@@ -271,30 +265,31 @@ __unixinit (void)
      extra data can be passed through a DDEUtils buffer setup by the calling
      application.  If such command line information exists, then obtain
      it and append it to our existing command line.  */
-  if (__os_swi (DDEUtils_GetCLSize, regs) != NULL)
-    regs[0] = 0;
+  size_t arg_size;
+  if (SWI_DDEUtils_GetCLSize (&arg_size) != NULL)
+    arg_size = 0;
 
-  int __cli_size = strlen (gbl->cli);
-  int cli_size = __cli_size + regs[0];
+  size_t com_size = strlen (gbl->cli);
+  size_t cli_size = com_size + arg_size;
   char *cli = malloc (cli_size + 2);
   if (cli != NULL)
     {
-      memcpy (cli, gbl->cli, __cli_size);
-      cli[__cli_size] = '\0';
-      if (__cli_size < cli_size)
+      memcpy (cli, gbl->cli, com_size);
+      if (arg_size != 0)
 	{
-	  /* Append DDEUtils command line.  */
-	  cli[__cli_size] = ' ';
-	  regs[0] = (int) cli + __cli_size + 1;
-	  if (__os_swi (DDEUtils_GetCl, regs) != NULL)
+	  /* Append DDEUtils argument line.  */
+	  cli[com_size] = ' ';
+	  if (SWI_DDEUtils_GetCL (cli + com_size + 1) != NULL)
 	    __unixlib_fatal ("Cannot get command line");
+	  cli[com_size + 1 + arg_size] = '\0';
 	}
+      else
+	cli[com_size] = '\0';
     }
 
-  /* Set command line length to zero otherwise the next process
-     will also get it.  */
-  regs[0] = 0;
-  (void) __os_swi (DDEUtils_SetCLSize, regs);
+  /* Set command line length to zero otherwise the next process will also get
+     it.  */
+  (void) SWI_DDEUtils_SetCLSize (0);
 
   if (cli == NULL)
     __unixlib_fatal ("Command line too long (not enough memory)");
@@ -416,16 +411,11 @@ _exit (int return_code)
 
   /* Reset the DDEUtils' Prefix variable to the value at startup.  */
   if (__u->dde_prefix)
-    {
-      int regs[10];
-
-      regs[0] = (int) __u->dde_prefix;
-      (void) __os_swi (DDEUtils_Prefix, regs);
-    }
+    (void) SWI_DDEUtils_Prefix (__u->dde_prefix);
 
   /* Re-enable Escape (in case SIGINT handler fired in ttyicanon) */
   if (!gbl->escape_disabled)
-    __os_byte (229, 0, 0, NULL, NULL);
+    SWI_OS_Byte (229, 0, 0, NULL, NULL);
 
   __free_process (sulproc);
   __dynamic_area_exit ();
@@ -444,7 +434,7 @@ _exit (int return_code)
   if (sulproc->status.execed || !sulproc->status.forked)
     {
       int regs[10];
-      (void) __os_swi(SOM_DeregisterClient, regs);
+      (void) __os_swi (SOM_DeregisterClient, regs);
     }
 #endif
 
@@ -503,9 +493,6 @@ static void
 initialise_unix_io (void)
 {
   struct __sul_process *sulproc = __ul_global.sulproc;
-  _kernel_oserror *err;
-  int regs[10];
-  unsigned int i;
 
   if (sulproc->file_descriptors != NULL)
     return;
@@ -516,7 +503,7 @@ initialise_unix_io (void)
     __unixlib_fatal ("Cannot allocate file descriptor memory");
 
   /* Set all file descriptors to unallocated status.  */
-  for (i = 0; i < sulproc->maxfd; i++)
+  for (unsigned int i = 0; i < sulproc->maxfd; i++)
     getfd (i)->devicehandle = NULL;
 
   /* These are guaranteed to be the first files opened. stdin, stdout and
@@ -526,15 +513,15 @@ initialise_unix_io (void)
      the tty (stdout) when there is no CLI redirection done by RISC OS,
      otherwise take RISC OS own files handles as basis for stdin and/or
      stdout.  */
-  regs[1] = regs[0] = -1;
-  err = __os_swi (OS_ChangeRedirection, regs);
-  if (err != NULL)
+  const _kernel_oserror *err;
+  int prev_fh_in, prev_fh_out;
+  if ((err = SWI_OS_ChangeRedirection (-1, -1, &prev_fh_in, &prev_fh_out)) != NULL)
     __unixlib_fatal (err->errmess);
-  if ((regs[0] ? __open_fh (STDIN_FILENO, regs[0], O_RDONLY, 0777)
-                   : __open_fn (STDIN_FILENO, "/dev/tty", O_RDONLY, 0777)) < 0)
+  if ((prev_fh_in ? __open_fh (STDIN_FILENO, prev_fh_in, O_RDONLY, 0777)
+		  : __open_fn (STDIN_FILENO, "/dev/tty", O_RDONLY, 0777)) < 0)
     __unixlib_fatal ("Cannot open stdin");
-  if ((regs[1] ? __open_fh (STDOUT_FILENO, regs[1], O_WRONLY | O_CREAT, 0666)
-                   : __open_fn (STDOUT_FILENO, "/dev/tty", O_WRONLY | O_CREAT, 0666)) < 0)
+  if ((prev_fh_out ? __open_fh (STDOUT_FILENO, prev_fh_out, O_WRONLY | O_CREAT, 0666)
+		   : __open_fn (STDOUT_FILENO, "/dev/tty", O_WRONLY | O_CREAT, 0666)) < 0)
     __unixlib_fatal ("Cannot open stdout");
 
   /* Duplicate the file descriptor for stdout, to create a suitable file

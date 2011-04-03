@@ -6,7 +6,7 @@
 
 #include <internal/os.h>
 
-static inline const _kernel_oserror *
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_OS_ReadMonotonicTime (clock_t *resultp)
 {
   register const _kernel_oserror *err __asm ("r0");

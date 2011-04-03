@@ -1,5 +1,5 @@
 /* Common environment related routines.
-   Copyright (c) 2005-2010 UnixLib Developers.  */
+   Copyright (c) 2005-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <kernel.h>
@@ -9,7 +9,7 @@
 #include <internal/local.h>
 #include <internal/os.h>
 
-static inline size_t
+static __inline__ size_t __attribute__ ((always_inline))
 get_var_len (const char *name)
 {
   register const char *r0in __asm ("r0") = name;
@@ -29,7 +29,7 @@ get_var_len (const char *name)
   return len;
 }
 
-static inline const _kernel_oserror *
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 set_var (const char *name, const char *value, size_t value_len)
 {
   register const char *r0in __asm ("r0") = name;

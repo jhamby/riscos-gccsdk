@@ -15,7 +15,7 @@ __BEGIN_DECLS
 
 extern int __net_error (int rtrn, const _kernel_oserror *err);
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _accept (int __fd, __SOCKADDR_ARG __addr, socklen_t *__restrict __addrlen)
 {
   register int fd __asm ("r0") = __fd;
@@ -33,7 +33,7 @@ _accept (int __fd, __SOCKADDR_ARG __addr, socklen_t *__restrict __addrlen)
   return __net_error (rtrn, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _bind (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __addrlen)
 {
   register int fd __asm ("r0") = __fd;
@@ -50,7 +50,7 @@ _bind (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __addrlen)
   return __net_error (0, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _connect (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __addrlen)
 {
   register int fd __asm ("r0") = __fd;
@@ -67,7 +67,7 @@ _connect (int __fd, __CONST_SOCKADDR_ARG __addr, socklen_t __addrlen)
   return __net_error (0, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _getpeername (int __fd, __SOCKADDR_ARG __addr, socklen_t *__restrict __addrlen)
 {
   register int fd __asm ("r0") = __fd;
@@ -84,7 +84,7 @@ _getpeername (int __fd, __SOCKADDR_ARG __addr, socklen_t *__restrict __addrlen)
   return __net_error (0, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _getsockname (int __fd, __SOCKADDR_ARG __addr, socklen_t *__restrict __addrlen)
 {
   register int fd __asm ("r0") = __fd;
@@ -101,7 +101,7 @@ _getsockname (int __fd, __SOCKADDR_ARG __addr, socklen_t *__restrict __addrlen)
   return __net_error (0, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _getsockopt (int __fd, int __level, int __optname, void *__restrict __optval,
 	     socklen_t *__restrict __optlen)
 {
@@ -121,7 +121,7 @@ _getsockopt (int __fd, int __level, int __optname, void *__restrict __optval,
   return __net_error (0, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _listen (int __fd, int __backlog)
 {
   register int fd __asm ("r0") = __fd;
@@ -137,7 +137,7 @@ _listen (int __fd, int __backlog)
   return __net_error (0, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _recv (int __fd, void *__buf, size_t __len, int __flags)
 {
   register int fd __asm ("r0") = __fd;
@@ -156,7 +156,7 @@ _recv (int __fd, void *__buf, size_t __len, int __flags)
   return __net_error (rtrn, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _recvfrom (int __fd, void *__restrict __buf, size_t __len, int __flags,
 	   __SOCKADDR_ARG __srcaddr, socklen_t *__restrict __srcaddrlen)
 {
@@ -179,7 +179,7 @@ _recvfrom (int __fd, void *__restrict __buf, size_t __len, int __flags,
   return __net_error (rtrn, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _recvmsg (int __fd, struct msghdr *__msg, int __flags)
 {
   register int fd __asm ("r0") = __fd;
@@ -197,7 +197,7 @@ _recvmsg (int __fd, struct msghdr *__msg, int __flags)
   return __net_error (rtrn, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _sclose (int __sd)
 {
   register int sd __asm ("r0") = __sd;
@@ -214,7 +214,7 @@ _sclose (int __sd)
 
 /* Only to be called when we're not interested in a possible error
    happening, i.e. to be called in any error handling code.  */
-static inline void
+static __inline__ void __attribute__ ((always_inline))
 _sclose_no_error (int __sd)
 {
   register int sd __asm ("r0") = __sd;
@@ -225,7 +225,7 @@ _sclose_no_error (int __sd)
                     : "r14", "cc");
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _sselect (int __nfds, fd_set *__readfds, fd_set *__writefds,
 	  fd_set *__exceptfds, struct timeval *__timeout)
 {
@@ -247,7 +247,7 @@ _sselect (int __nfds, fd_set *__readfds, fd_set *__writefds,
   return __net_error (rtrn, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _send (int __fd, __const void *__buf, size_t __len, int __flags)
 {
   register int fd __asm ("r0") = __fd;
@@ -266,7 +266,7 @@ _send (int __fd, __const void *__buf, size_t __len, int __flags)
   return __net_error (rtrn, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _sendmsg (int __fd, __const struct msghdr *__msg, int __flags)
 {
   register int fd __asm ("r0") = __fd;
@@ -284,7 +284,7 @@ _sendmsg (int __fd, __const struct msghdr *__msg, int __flags)
   return __net_error (rtrn, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _sendto (int __fd, __const void *__buf, size_t __len, int __flags,
 	 __CONST_SOCKADDR_ARG __addr, socklen_t __addrlen)
 {
@@ -305,7 +305,7 @@ _sendto (int __fd, __const void *__buf, size_t __len, int __flags,
   return __net_error (0, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _setsockopt (int __fd, int __level, int __optname, const void *__optval,
 	     socklen_t __optlen)
 {
@@ -326,7 +326,7 @@ _setsockopt (int __fd, int __level, int __optname, const void *__optval,
   return __net_error (0, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _shutdown (int __fd, int __how)
 {
   register int fd __asm ("r0") = __fd;
@@ -342,7 +342,7 @@ _shutdown (int __fd, int __how)
   return __net_error (0, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _sioctl (int __sd, unsigned long __request, void *__arg)
 {
   register int sd __asm ("r0") = __sd;
@@ -359,7 +359,7 @@ _sioctl (int __sd, unsigned long __request, void *__arg)
   return __net_error (0, err);
 }
 
-static inline int
+static __inline__ int __attribute__ ((always_inline))
 _socket (int __domain, int __type, int __protocol)
 {
   register int domain __asm ("r0") = __domain;
@@ -377,7 +377,7 @@ _socket (int __domain, int __type, int __protocol)
   return __net_error (rtrn, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _sread (int __sd, void *__buf, size_t __count)
 {
   register int sd __asm ("r0") = __sd;
@@ -395,7 +395,7 @@ _sread (int __sd, void *__buf, size_t __count)
   return __net_error (rtrn, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _swrite (int __sd, const void *__buf, size_t __count)
 {
   register int sd __asm ("r0") = __sd;
@@ -413,7 +413,7 @@ _swrite (int __sd, const void *__buf, size_t __count)
   return __net_error (rtrn, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _sreadv (int __sd, const struct iovec *__vector, int __count)
 {
   register int sd __asm ("r0") = __sd;
@@ -431,7 +431,7 @@ _sreadv (int __sd, const struct iovec *__vector, int __count)
   return __net_error (rtrn, err);
 }
 
-static inline ssize_t
+static __inline__ ssize_t __attribute__ ((always_inline))
 _swritev (int __sd, const struct iovec *__vector, int __count)
 {
   register int sd __asm ("r0") = __sd;

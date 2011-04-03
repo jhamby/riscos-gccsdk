@@ -1,5 +1,5 @@
 /* RISC OS specific code for gmon profiling
- * Copyright (c) 2010 UnixLib Developers.
+ * Copyright (c) 2010-2011 UnixLib Developers.
  * Written by Lee Noar.
  */
 
@@ -148,14 +148,14 @@ fill_rma_block (profiler_data_t *profiler)
 /*  rma_ptr += word_align (strlen (profiling_name) + 1);*/
 }
 
-static unsigned int
+static inline unsigned int
 host_is_32bit (void)
 {
   unsigned int is32bit;
 
-  __asm__ volatile ("	SUBS	%[is32bit], r0, r0;" /* Set at least one status flag. */
-		    "	TEQ	pc, pc;"
-		    "	MOVEQ	%[is32bit], #1;"
+  __asm__ volatile ("SUBS\t%[is32bit], r0, r0\n\t" /* Set at least one status flag.  */
+		    "TEQ\tpc, pc\n\t"
+		    "MOVEQ\t%[is32bit], #1\n\t"
 		    : [is32bit] "=r" (is32bit)
 		    : /* no inputs */
 		    : "cc");
@@ -168,16 +168,16 @@ load_hal26_module (void)
 {
   int regs[10];
 
-  /* Test for the existance of the HAL26 module */
+  /* Test for the existance of the HAL26 module.  */
   regs[8] = 1;
   regs[9] = HAL_Timers;
   if (__os_swi (OS_Hardware, regs))
     {
       _kernel_oserror *err;
 
-      /* Try to load the module. Ignore any errors */
-      if ((err = __os_cli ("RMEnsure HAL26 0.06 RMLoad System:Modules.HAL26")) != NULL
-	  || (err = __os_cli ("RMEnsure HAL26 0.06 Error Profiling support requires HAL26 0.06 or newer")) != NULL)
+      /* Try to load the module. Ignore any errors.  */
+      if ((err = SWI_OS_CLI ("RMEnsure HAL26 0.06 RMLoad System:Modules.HAL26")) != NULL
+	  || (err = SWI_OS_CLI ("RMEnsure HAL26 0.06 Error Profiling support requires HAL26 0.06 or newer")) != NULL)
 	return 0;
 
       if (__os_swi (OS_Hardware, regs))
@@ -199,9 +199,8 @@ gmon_machine_init (int da_size)
   memset (prof, 0, sizeof (*prof));
   */
 
-  if (!host_is_32bit ())
-    if (!load_hal26_module ())
-      return NULL;
+  if (!host_is_32bit () && !load_hal26_module ())
+    return NULL;
 
   /* Use the last timer that is available. If there is only 1 timer,
      then assume RISC OS is using it and disable profiling.  */

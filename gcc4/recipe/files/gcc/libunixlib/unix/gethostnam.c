@@ -15,7 +15,7 @@ fakehostname (char *name, size_t len)
      Read station number from CMOS location 1.  */
   const _kernel_oserror *err;
   int station_number;
-  if ((err = __os_byte (161, 0, 0, &station_number, NULL)) != NULL)
+  if ((err = SWI_OS_Byte (161, 0, 0, &station_number, NULL)) != NULL)
     return __ul_seterr (err, EOPSYS);
 
   const char buf[8] =

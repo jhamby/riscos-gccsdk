@@ -22,7 +22,7 @@
 #define ICONV_2BIG  (ERROR_BASE+2)
 #define ICONV_ILSEQ (ERROR_BASE+3)
 
-static inline const _kernel_oserror *
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_Iconv_Open (const char *__tocode, const char *__fromcode, iconv_t *resultp)
 {
   register const char *tocode __asm ("r0") = __tocode;
@@ -40,7 +40,7 @@ SWI_Iconv_Open (const char *__tocode, const char *__fromcode, iconv_t *resultp)
   return err;
 }
 
-static inline const _kernel_oserror *
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_Iconv_Iconv (iconv_t __cd, char **__inbuf, size_t *__inbytesleft,
 		 char **__outbuf, size_t *__outbytesleft, size_t *resultp)
 {
@@ -62,7 +62,7 @@ SWI_Iconv_Iconv (iconv_t __cd, char **__inbuf, size_t *__inbytesleft,
   return err;
 }
 
-static inline const _kernel_oserror *
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_Iconv_Close (iconv_t __cd)
 {
   register iconv_t cd __asm ("r0") = __cd;
@@ -115,11 +115,11 @@ iconv_open (const char *tocode, const char *fromcode)
 #endif
 
   const _kernel_oserror *err;
-  err = __os_cli ("RMEnsure Iconv 0.04 RMload System:Modules.Iconv");
+  err = SWI_OS_CLI ("RMEnsure Iconv 0.04 RMload System:Modules.Iconv");
   if (err)
     return (iconv_t) __ul_seterr (err, EOPSYS);
 
-  err = __os_cli ("RMEnsure Iconv 0.04 Error 16_10F iconv support requires the Iconv module 0.04 or newer");
+  err = SWI_OS_CLI ("RMEnsure Iconv 0.04 Error 16_10F iconv support requires the Iconv module 0.04 or newer");
   if (err)
     return (iconv_t) __ul_seterr (err, EOPSYS);
 
