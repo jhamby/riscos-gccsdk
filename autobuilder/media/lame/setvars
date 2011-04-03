@@ -1,0 +1,15 @@
+
+AB_INSTALL=env
+
+AB_URL=http://sourceforge.net/projects/lame/files/lame/3.98.4/lame-3.98.4.tar.gz
+
+ab_package () {
+  ab_create_command_app Lame Apps/Audio
+  ab_add_commands $S/frontend/lame$AB_EXEEXT
+  
+  cp -av $S/ChangeLog $S/COPYING $S/LICENSE $S/README $S/TODO $S/USAGE $A
+
+  ab_docs doc/html
+    
+  $AB_HOME/add-riscpkg -unixlib
+}
