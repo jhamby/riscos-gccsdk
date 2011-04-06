@@ -1,5 +1,5 @@
 /* UnixLib ttyname() and open() implementation.
-   Copyright (c) 2000-2010 UnixLib Developers.  */
+   Copyright (c) 2000-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -36,7 +36,7 @@ __open_fh (int fd, int fh, int oflag, int mode)
   if (file_desc->devicehandle == NULL)
     return __set_errno (ENOMEM);
 
-  char *rofs = __fd_to_name (fh, NULL, 0);
+  char *rofs = __canonicalise_handle (fh);
   if (rofs == NULL)
     {
       sulproc->sul_free (sulproc->pid, file_desc->devicehandle);
@@ -77,7 +77,7 @@ __open_fn (int fd, const char *file, int oflag, int mode)
 
   /* Perform the device specific open operation.  */
   file_desc->devicehandle->handle = dev_funcall (file_desc->devicehandle->type,
-				 open, (file_desc, file, mode));
+						 open, (file_desc, file, mode));
   if (file_desc->devicehandle->handle == (void *) -1)
     {
       sulproc->sul_free (sulproc->pid, file_desc->devicehandle);

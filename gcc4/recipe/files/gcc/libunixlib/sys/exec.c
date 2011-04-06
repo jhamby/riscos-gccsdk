@@ -14,11 +14,12 @@
 #include <swis.h>
 #include <sys/wait.h>
 
-#include <internal/unix.h>
-#include <internal/os.h>
 #include <unixlib/local.h>
-#include <pthread.h>
+
 #include <internal/dev.h>
+#include <internal/local.h>
+#include <internal/os.h>
+#include <internal/unix.h>
 
 /* #define DEBUG 1 */
 #ifdef DEBUG
@@ -129,35 +130,21 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #endif
       if (!scenario)
 	{
-	  char canon_exec[MAXPATHLEN];
-	  char ro_arg[MAXPATHLEN];
-	  char canon_arg[MAXPATHLEN];
-	  int regs[10];
-	  _kernel_oserror *err;
-
 	  /* Canonicalise the program name  */
-	  regs[0] = 37;
-	  regs[1] = (int) program_name;
-	  regs[2] = (int) canon_exec;
-	  regs[3] = 0;
-	  regs[4] = 0;
-	  regs[5] = sizeof (canon_exec);
-	  err = __os_swi (OS_FSControl, regs);
-
-	  if (!err)
+	  char canon_exec[MAXPATHLEN];
+	  if (SWI_OS_FSControl_Canonicalise (program_name, NULL,
+					     canon_exec, sizeof (canon_exec),
+					     NULL) == NULL)
 	    {
+	      char ro_arg[MAXPATHLEN];
 	      __riscosify_std (argv[0], 0, ro_arg, sizeof (ro_arg), NULL);
 
 	      /* Canonicalise argv[0]  */
-	      regs[0] = 37;
-	      regs[1] = (int) ro_arg;
-	      regs[2] = (int) canon_arg;
-	      regs[3] = 0;
-	      regs[4] = 0;
-	      regs[5] = sizeof (canon_arg);
-	      err = __os_swi (OS_FSControl, regs);
-
-	      if (!err && strcmp (canon_exec, canon_arg) == 0)
+	      char canon_arg[MAXPATHLEN];
+	      if (SWI_OS_FSControl_Canonicalise (ro_arg, NULL,
+						 canon_arg, sizeof (canon_arg),
+						 NULL) == NULL
+		  && strcmp (canon_exec, canon_arg) == 0)
 		scenario = 1;
 	    }
 	}
@@ -378,6 +365,9 @@ execve (const char *execname, char *const argv[], char *const envp[])
 		    && (getfd (1)->devicehandle->type == DEV_RISCOS
 		        || getfd (1)->devicehandle->type == DEV_PIPE)) ?
 		     (int) getfd (1)->devicehandle->handle : -1;
+      free ((void *)gbl->ul_out_pathname);
+      gbl->ul_out_pathname = (fh_out != -1) ? __canonicalise_handle (fh_out) : NULL;
+
       const _kernel_oserror *err;
       if ((err = SWI_OS_ChangeRedirection (fh_in, fh_out,
 					   &gbl->changeredir0,
@@ -391,12 +381,12 @@ execve (const char *execname, char *const argv[], char *const envp[])
              its read position again.  */
           int handle = (int) getfd (1)->devicehandle->handle;
 
-	  int regs[10];
-          if ((err = __os_args (0, handle, 0, regs)) != NULL)
+	  if ((err = SWI_OS_Args_GetFilePtr (handle,
+					     &gbl->rewindpipeoffset)) != NULL)
             return __ul_seterr (err, EOPSYS);
-          gbl->rewindpipeoffset = regs[2];
-          if ((err = __os_args (2, handle, 0, regs)) != NULL
-              || (err = __os_args (1, handle, regs[2], NULL)) != NULL)
+	  int extent;
+	  if ((err = SWI_OS_Args_GetExtent (handle, &extent)) != NULL
+	      || (err = SWI_OS_Args_SetFilePtr (handle, extent)) != NULL)
             return __ul_seterr (err, EOPSYS);
         }
     }
@@ -472,7 +462,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	 responsibilty of the Shared Object Manager.  */
       int regs[10];
 
-      (void) __os_swi(SOM_DeregisterClient, regs);
+      (void) __os_swi (SOM_DeregisterClient, regs);
     }
 #endif
 

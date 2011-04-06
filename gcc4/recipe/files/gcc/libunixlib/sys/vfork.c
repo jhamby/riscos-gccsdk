@@ -10,6 +10,7 @@
 #include <internal/os.h>
 #include <internal/local.h>
 #include <internal/dev.h>
+#include <internal/swiparams.h>
 #include <pthread.h>
 
 /* #define DEBUG 1 */
@@ -124,13 +125,38 @@ __fork_post (pid_t pid, int isfork)
       /* Restore RISC OS in/out redirection.
          When the stdout of our child process was a DEV_PIPE, we need to rewind it to
 	 to point where we exec'ed the child so we can read its output.  */
-      int prev_fh_out;
-      if (SWI_OS_ChangeRedirection (gbl->changeredir0, gbl->changeredir1,
-				    NULL, &prev_fh_out) == NULL
-	  && gbl->rewindpipeoffset != -1)
+      int prev_fh_in, prev_fh_out;
+      const _kernel_oserror *err;
+      if ((err = SWI_OS_ChangeRedirection (gbl->changeredir0, gbl->changeredir1,
+					   &prev_fh_in, &prev_fh_out)) == NULL)
 	{
-	  (void) __os_args (1, prev_fh_out, gbl->rewindpipeoffset, NULL);
-	  gbl->rewindpipeoffset = -1;
+	  /* The following is a hack for non-RISC OS 6 kernels when we've
+	     exec'd non-UL binaries under IO redirection.  Those kernels will
+	     close any handle we gave OS_ChangeRedirection.
+	     We're reopening and patching our underlying RISC OS file handle.
+             Note we only do this for the out handle as for the in handle we
+             don't know where in the stream we should seek.  */
+	  if (gbl->ul_out_pathname != NULL)
+	    {
+	      if (prev_fh_out == 0)
+		{
+		  (void) __os_fopen (OSFILE_OPENUP, gbl->ul_out_pathname,
+				     &prev_fh_out);
+		  getfd (1)->devicehandle->handle = (void *) prev_fh_out;
+		  int extent;
+		  if (SWI_OS_Args_GetExtent (prev_fh_out, &extent) == NULL)
+		    (void) SWI_OS_Args_SetFilePtr (prev_fh_out, extent);
+
+		}
+	      free ((void *)gbl->ul_out_pathname);
+	      gbl->ul_out_pathname = NULL;
+	    }
+
+	  if (gbl->rewindpipeoffset != -1)
+	    {
+	      (void) SWI_OS_Args_SetFilePtr (prev_fh_out, gbl->rewindpipeoffset);
+	      gbl->rewindpipeoffset = -1;
+	    }
 	}
 
       if (gbl->pthread_system_running)

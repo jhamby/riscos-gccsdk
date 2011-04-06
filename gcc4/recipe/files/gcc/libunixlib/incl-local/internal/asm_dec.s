@@ -228,28 +228,29 @@
 .set	GBL_DYNAMIC_NUM, 24		@ = __ul_global.dynamic_num
 .set	GBL_CHANGEREDIR0, 28		@ = __ul_global.changeredir0
 .set	GBL_CHANGEREDIR1, 32		@ = __ul_global.changeredir1
-.set	GBL_PANIC_MODE, 36		@ = __ul_global.panic_mode
-.set	GBL_SULPROC, 40			@ = __ul_global.sulproc
-.set	GBL_PAGESIZE, 44		@ = __ul_global.pagesize
-.set	GBL_UPCALL_HANDLER_ADDR, 48	@ = __ul_global.upcall_handler_addr
-.set	GBL_UPCALL_HANDLER_R12, 52	@ = __ul_global.upcall_handler_r12
+.set	GBL_UL_OUT_PATHNAME, 36		@ = __ul_global.ul_out_pathname
+.set	GBL_PANIC_MODE, 40		@ = __ul_global.panic_mode
+.set	GBL_SULPROC, 44			@ = __ul_global.sulproc
+.set	GBL_PAGESIZE, 48		@ = __ul_global.pagesize
+.set	GBL_UPCALL_HANDLER_ADDR, 52	@ = __ul_global.upcall_handler_addr
+.set	GBL_UPCALL_HANDLER_R12, 56	@ = __ul_global.upcall_handler_r12
 
-.set	GBL_PTH_RETURN_ADDRESS, 56	@ = __ul_global.pthread_return_address
-.set	GBL_PTH_WORKSEMAPHORE, 60	@ = __ul_global.pthread_worksemaphore
-.set	GBL_PTH_CALLBACK_SEMAPHORE, 64	@ = __ul_global.pthread_callback_semaphore
-.set	GBL_PTH_SYSTEM_RUNNING, 68	@ = __ul_global.pthread_system_running
-.set	GBL_PTH_CALLBACK_MISSED, 72	@ = __ul_global.pthread_callback_missed
-.set	GBL_PTH_NUM_RUNNING_THREADS, 76	@ = __ul_global.pthread_num_running_threads
+.set	GBL_PTH_RETURN_ADDRESS, 60	@ = __ul_global.pthread_return_address
+.set	GBL_PTH_WORKSEMAPHORE, 64	@ = __ul_global.pthread_worksemaphore
+.set	GBL_PTH_CALLBACK_SEMAPHORE, 68	@ = __ul_global.pthread_callback_semaphore
+.set	GBL_PTH_SYSTEM_RUNNING, 72	@ = __ul_global.pthread_system_running
+.set	GBL_PTH_CALLBACK_MISSED, 76	@ = __ul_global.pthread_callback_missed
+.set	GBL_PTH_NUM_RUNNING_THREADS, 80	@ = __ul_global.pthread_num_running_threads
 
-.set	GBL_EXECUTING_SIGNALHANDLER, 80	@ = __ul_global.executing_signalhandler
-.set	GBL_SIGNALHANDLER_SL, 84	@ = __ul_global.signalhandler_sl
-.set	GBL_SIGNALHANDLER_SP, 88	@ = __ul_global.signalhandler_sp
+.set	GBL_EXECUTING_SIGNALHANDLER, 84	@ = __ul_global.executing_signalhandler
+.set	GBL_SIGNALHANDLER_SL, 88	@ = __ul_global.signalhandler_sl
+.set	GBL_SIGNALHANDLER_SP, 92	@ = __ul_global.signalhandler_sp
 
-.set	GBL_LASTENVIRON, 92		@ = __ul_global.last_environ
-.set	GBL_MALLOC_STATE, 96		@ = __ul_global.malloc_state
-.set	GBL_ESCAPEDISABLED, 100		@ = __ul_global.escape_disabled
-.set	GBL_FLS_LBSTM_ON_RD, 104	@ = __ul_global.fls_lbstm_on_rd
-.set	GBL_PTH_CALLEVERY_RMA, 108	@ = __ul_global.pthread_callevery_rma
+.set	GBL_LASTENVIRON, 96		@ = __ul_global.last_environ
+.set	GBL_MALLOC_STATE, 100		@ = __ul_global.malloc_state
+.set	GBL_ESCAPEDISABLED, 104		@ = __ul_global.escape_disabled
+.set	GBL_FLS_LBSTM_ON_RD, 108	@ = __ul_global.fls_lbstm_on_rd
+.set	GBL_PTH_CALLEVERY_RMA, 112	@ = __ul_global.pthread_callevery_rma
 
 	@ Entries in the __ul_memory table.  Must be kept in sync with
 	@ sys/_syslib.s.

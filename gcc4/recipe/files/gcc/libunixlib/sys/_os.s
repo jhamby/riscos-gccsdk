@@ -277,18 +277,6 @@ __os_fwrite:
 	LDMFD	sp!, {v1, pc}
 	DECLARE_FUNCTION __os_fwrite
 
-	.global	__os_args
-	NAME	__os_args
-__os_args:
-	MOV	ip, a4
-	SWI	XOS_Args
-	MOVVS	pc, lr
-	TEQ	ip, #0
-	STMNEIA	ip, {a1, a2, a3}
-	MOV	a1, #0
-	MOV	pc, lr
-	DECLARE_FUNCTION __os_args
-
 	.global	__os_fsctrl
 	NAME	__os_fsctrl
 __os_fsctrl:

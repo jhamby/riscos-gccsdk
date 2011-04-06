@@ -61,9 +61,11 @@ common_src =
 else
 common_src = \
 	common/attrib.c \
+	common/canonicalise_handle.c \
+	common/canonicalise_path.c \
 	common/exist.c \
-	common/fdname.c \
 	common/funcallerr.c \
+	common/global.c \
 	common/objattr.c \
 	common/prefix.c \
 	common/riscosify.c \
@@ -1131,6 +1133,7 @@ unix_src = \
 	unix/getopt.c \
 	unix/getopt1.c \
 	unix/getsubopt.c \
+	unix/getwd.c \
 	unix/glob.c \
 	unix/ul_ioctl.c \
 	unix/isatty.c \

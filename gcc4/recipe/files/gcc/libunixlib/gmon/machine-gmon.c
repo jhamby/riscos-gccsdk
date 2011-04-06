@@ -173,11 +173,9 @@ load_hal26_module (void)
   regs[9] = HAL_Timers;
   if (__os_swi (OS_Hardware, regs))
     {
-      _kernel_oserror *err;
-
       /* Try to load the module. Ignore any errors.  */
-      if ((err = SWI_OS_CLI ("RMEnsure HAL26 0.06 RMLoad System:Modules.HAL26")) != NULL
-	  || (err = SWI_OS_CLI ("RMEnsure HAL26 0.06 Error Profiling support requires HAL26 0.06 or newer")) != NULL)
+      if (SWI_OS_CLI ("RMEnsure HAL26 0.06 RMLoad System:Modules.HAL26") != NULL
+	  || SWI_OS_CLI ("RMEnsure HAL26 0.06 Error Profiling support requires HAL26 0.06 or newer") != NULL)
 	return 0;
 
       if (__os_swi (OS_Hardware, regs))

@@ -1,5 +1,5 @@
 /* Perform operations on a directory.
-   Copyright (c) 2002-2010 UnixLib Developers.  */
+   Copyright (c) 2002-2011 UnixLib Developers.  */
 
 #include <dirent.h>
 #include <errno.h>
@@ -62,11 +62,9 @@ static DIR *dir_head = NULL;
 static void
 invalidate (DIR *stream)
 {
-  DIR *next;
-
   PTHREAD_UNSAFE
 
-  next = stream->next;
+  DIR *next = stream->next;
   memset(stream, 0, sizeof (DIR));
   stream->next = next;
   stream->fd = -1;
@@ -77,13 +75,9 @@ invalidate (DIR *stream)
 static DIR *
 newstream (const char *name, __off_t offset)
 {
-  DIR *stream;
-  _kernel_oserror *err;
-  int regs[10];
-
   PTHREAD_UNSAFE
 
-  stream = dir_head;
+  DIR *stream = dir_head;
   /* Look for a previously created stream that is now finished free.  */
   while (stream && stream->__magic == _DIRMAGIC)
     stream = stream->next;
@@ -104,34 +98,9 @@ newstream (const char *name, __off_t offset)
 
   /* stream created, now filling it in with meaningful values.  */
 
-  /* Canonicalise the name in case the user changes the PSD.
-     First find out the buffer size needed, then store it.  */
-  regs[0] = 37;
-  regs[1] = (int) name;
-  regs[2] = regs[3] = regs[4] = regs[5] = 0;
-  err = __os_swi (OS_FSControl, regs);
-  if (err)
+  /* Canonicalise the name in case the user changes the PSD.  */
+  if ((stream->dd_name_can = __canonicalise_path (name, NULL)) == NULL)
     {
-      __ul_seterr (err, EOPSYS);
-      invalidate (stream);
-      return NULL;
-    }
-  stream->dd_name_can = malloc (2 - regs[5]);
-  if (stream->dd_name_can == NULL)
-    {
-      invalidate (stream);
-      return NULL;
-    }
-  regs[0] = 37;
-  regs[1] = (int) name;
-  regs[2] = (int) stream->dd_name_can;
-  regs[3] = regs[4] = 0;
-  regs[5] = 1 - regs[5];
-  err = __os_swi (OS_FSControl, regs);
-  if (err != NULL || regs[5] != 1)
-    {
-      __ul_seterr (err, EOPSYS);
-      free (stream->dd_name_can);
       invalidate (stream);
       return NULL;
     }
@@ -166,9 +135,6 @@ newstream (const char *name, __off_t offset)
 DIR *
 opendir (const char *ux_name)
 {
-  DIR *stream;
-  char name[_POSIX_PATH_MAX];
-
   PTHREAD_UNSAFE_CANCELLATION
 
   if (ux_name == NULL)
@@ -178,6 +144,7 @@ opendir (const char *ux_name)
     }
 
   /* We don't want suffix swapping here.  */
+  char name[_POSIX_PATH_MAX];
   if (!__riscosify (ux_name, 0,
 		    __get_riscosify_control() | __RISCOSIFY_NO_SUFFIX,
 		    name, sizeof (name), NULL))
@@ -226,9 +193,9 @@ opendir (const char *ux_name)
     }
 
   /* Get a new DIR stream.  */
-  stream = newstream (name,
-		      (__get_riscosify_control () & __RISCOSIFY_NO_PROCESS)
-		      ? GBPB_START_ENUM : GBPB_FAKE_CURRENTDIR);
+  DIR *stream = newstream (name,
+			   (__get_riscosify_control () & __RISCOSIFY_NO_PROCESS)
+			     ? GBPB_START_ENUM : GBPB_FAKE_CURRENTDIR);
   /* stream = NULL when newstream() failed.  */
 
   return stream;
@@ -548,9 +515,7 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
               && __sfixfind (entry->d_name, entry->d_namlen))
             {
               char name[_POSIX_PATH_MAX];
-              char *str;
-
-              str = stpcpy (name, stream->dd_name_can);
+              char *str = stpcpy (name, stream->dd_name_can);
               *str++ = '.';
               strcpy(str, entry->d_name);
 
@@ -586,10 +551,9 @@ readdir_r (DIR *stream, struct dirent *entry, struct dirent **result)
    allows different DIR streams to be read simultaneously without corruption
    of the returned result. Multiple readers on the same DIR stream is not
    reentrant.  */
-struct dirent *readdir (DIR *stream)
+struct dirent *
+readdir (DIR *stream)
 {
-  struct dirent *result;
-
   PTHREAD_SAFE_CANCELLATION
 
   if (!__validdir (stream))
@@ -599,6 +563,7 @@ struct dirent *readdir (DIR *stream)
     }
 
   /* This call relies upon readdir_r setting result to NULL on failure.  */
+  struct dirent *result;
   readdir_r (stream, &stream->dirent, &result);
   return result;
 }
@@ -618,12 +583,11 @@ telldir (DIR *stream)
 
 /* Set the file position of the directory stream to pos.  */
 
-void seekdir (DIR *stream, long int pos)
+void
+seekdir (DIR *stream, long int pos)
 {
   if (__validdir (stream))
     {
-      long int sufpos;
-
       /* If we were doing a suffix dir enumeration, close the suffix
 	 stream.  If needed, a new one will be created automatically.  */
       if (stream->suffix != NULL)
@@ -634,6 +598,7 @@ void seekdir (DIR *stream, long int pos)
 
       /* Determing if 'pos' contains offset information for the suffix dir
 	 enum. */
+      long int sufpos;
       if (pos != GBPB_FAKE_CURRENTDIR
 	  && pos != GBPB_FAKE_PARENTDIR
 	  && pos != GBPB_END_ENUM
@@ -678,14 +643,12 @@ rewinddir (DIR *stream)
 int
 closedir (DIR *stream)
 {
-  int result;
-
   PTHREAD_UNSAFE_CANCELLATION
 
   if (!__validdir (stream))
     return __set_errno (EBADF);
 
-  result = (stream->suffix != NULL) ? closedir (stream->suffix) : 0;
+  int result = (stream->suffix != NULL) ? closedir (stream->suffix) : 0;
 
   if (stream->fd != -1)
     close (stream->fd);
@@ -705,28 +668,21 @@ scandir (const char *dir, struct dirent ***namelist,
 	 int (*sdselect)(const struct dirent *),
 	 int (*cmp)(const struct dirent **, const struct dirent **))
 {
-  DIR *dp;
-  struct dirent **v = NULL;
-  size_t vsize = 0, i;
-  struct dirent *d;
-  int save;
-
   PTHREAD_UNSAFE_CANCELLATION
 
-  dp = opendir(dir);
+  DIR *dp = opendir(dir);
   if (dp == NULL)
     return -1;
 
-  save = errno;
+  int save = errno;
   (void) __set_errno(0);
 
-  i = 0;
+  struct dirent **v = NULL;
+  size_t vsize = 0, i = 0;
+  struct dirent *d;
   while ((d = readdir(dp)) != NULL)
     if (sdselect == NULL || (*sdselect)(d))
       {
-	struct dirent *vnew;
-	size_t dsize;
-
 	/* Ignore errors from select or readdir.  */
 	(void) __set_errno(0);
 
@@ -744,8 +700,8 @@ scandir (const char *dir, struct dirent ***namelist,
 	  }
 
 	/* FIXME: this 256 should be a macro, but see comments in dirent.h.  */
-	dsize = &d->d_name[256] - (char *) d;
-	vnew = (struct dirent *) malloc(dsize);
+	size_t dsize = &d->d_name[256] - (char *) d;
+	struct dirent *vnew = (struct dirent *) malloc(dsize);
 	if (vnew == NULL)
 	  break;
 

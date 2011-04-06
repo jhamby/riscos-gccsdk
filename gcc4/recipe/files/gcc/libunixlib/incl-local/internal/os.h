@@ -110,9 +110,6 @@ extern _kernel_oserror *__os_fwrite (int, const void *, int,
                                      int * /* 5 reg */ )
      __THROW __nonnull ((2)) __wur;
 
-extern _kernel_oserror *__os_args (int, int, int, int * /* 3 reg */ )
-     __THROW __wur;
-
 extern _kernel_oserror *__os_fsctrl (int, const char *, int, int)
      __THROW __nonnull ((2)) __wur;
 
@@ -227,6 +224,145 @@ SWI_DDEUtils_ReadPrefix (int __ao, const char **__prefix)
 		    : "r14", "cc");
   if (__prefix && !err)
     *__prefix = prefix;
+  return err;
+}
+
+/* Canonicalise pathname.
+   PATHNAME will be canonicalised and returned in BUF (being BUFSIZE bytes
+   deep).  When BUFSIZE is too small, REQ_XTRABUFSIZE will be non-zero,
+   otherwise it will be zero.
+   When PATHVAR is non-NULL, it will be used for canonicalisation.  */
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_FSControl_Canonicalise (const char *__pathname, const char *__pathvar,
+			       char *__buf, size_t __bufsize,
+			       size_t *__req_xtrabufsize)
+{
+  register const char *pathname __asm ("r1") = __pathname;
+  register char *buf __asm ("r2") = __buf;
+  register const char *pathvar __asm ("r3") = __pathvar;
+  register size_t bufsize __asm ("r5") = __bufsize;
+  register const _kernel_oserror *err __asm ("r0");
+  register int xtrabufsize __asm ("r5");
+  __asm__ volatile ("MOV\tr0, #37\n\t"
+		    "MOV\tr4, #0\n\t"
+		    "SWI\t%[SWI_XOS_FSControl]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (xtrabufsize)
+		    : "r" (pathname), "r" (buf), "r" (pathvar), "r" (bufsize),
+		      [SWI_XOS_FSControl] "i" (OS_FSControl | (1<<17))
+		    : "r4", "r14", "cc", "memory");
+  if (__req_xtrabufsize && !err)
+    *__req_xtrabufsize = xtrabufsize < 1 ? 1 - xtrabufsize : 0;
+  return err;
+}
+
+/* Read filehandle's sequential file pointer.  */
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_Args_GetFilePtr (int __fhandle, int *__fileptr)
+{
+  register int fhandle __asm ("r1") = __fhandle;
+  register const _kernel_oserror *err __asm ("r0");
+  register int fileptr __asm ("r2");
+  __asm__ volatile ("MOV\tr0, #0\n\t"
+		    "SWI\t%[SWI_XOS_Args]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (fileptr)
+		    : "r" (fhandle),
+		      [SWI_XOS_Args] "i" (OS_Args | (1<<17))
+		    : "r14", "cc");
+  if (__fileptr && !err)
+    *__fileptr = fileptr;
+  return err;
+}
+
+/* Write filehandle's sequential file pointer.  */
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_Args_SetFilePtr (int __fhandle, int __fileptr)
+{
+  register int fhandle __asm ("r1") = __fhandle;
+  register int fileptr __asm ("r2") = __fileptr;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #1\n\t"
+		    "SWI\t%[SWI_XOS_Args]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (fhandle), "r" (fileptr),
+		      [SWI_XOS_Args] "i" (OS_Args | (1<<17))
+		    : "r14", "cc");
+  return err;
+}  
+
+/* Read filehandle's extent.  */
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_Args_GetExtent (int __fhandle, int *__extent)
+{
+  register int fhandle __asm ("r1") = __fhandle;
+  register const _kernel_oserror *err __asm ("r0");
+  register int extent __asm ("r2");
+  __asm__ volatile ("MOV\tr0, #2\n\t"
+		    "SWI\t%[SWI_XOS_Args]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (extent)
+		    : "r" (fhandle),
+		      [SWI_XOS_Args] "i" (OS_Args | (1<<17))
+		    : "r14", "cc");
+  if (__extent && !err)
+    *__extent = extent;
+  return err;
+}
+
+/* Write filehandle's extent.  */
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_Args_SetExtent (int __fhandle, int __extent)
+{
+  register int fhandle __asm ("r1") = __fhandle;
+  register int extent __asm ("r2") = __extent;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #3\n\t"
+		    "SWI\t%[SWI_XOS_Args]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (fhandle), "r" (extent),
+		      [SWI_XOS_Args] "i" (OS_Args | (1<<17))
+		    : "r14", "cc");
+  return err;
+}  
+
+/* Canonicalise file handle.  */
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_Args_Canonicalise (int __fhandle, char *__buf, size_t __bufsize,
+			  size_t *__req_xtrabufsize)
+{
+  register int fhandle __asm ("r1") = __fhandle;
+  register char *buf __asm ("r2") = __buf;
+  register size_t bufsize __asm ("r5") = __bufsize;
+  register const _kernel_oserror *err __asm ("r0");
+  register int xtrabufsize __asm ("r5");
+  __asm__ volatile ("MOV\tr0, #7\n\t"
+		    "SWI\t%[SWI_XOS_Args]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (xtrabufsize)
+		    : "r" (fhandle), "r" (buf), "r" (bufsize),
+		      [SWI_XOS_Args] "i" (OS_Args | (1<<17))
+		    : "r14", "cc", "memory");
+  if (__req_xtrabufsize && !err)
+    *__req_xtrabufsize = xtrabufsize < 1 ? 1 - xtrabufsize : 0;
+  return err;
+}
+
+/* Flush filehandle(s).  */
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_Args_Flush (int __fhandle)
+{
+  register int fhandle __asm ("r1") = __fhandle;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #255\n\t"
+		    "SWI\t%[SWI_XOS_Args]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (fhandle),
+		      [SWI_XOS_Args] "i" (OS_Args | (1<<17))
+		    : "r14", "cc");
   return err;
 }
 

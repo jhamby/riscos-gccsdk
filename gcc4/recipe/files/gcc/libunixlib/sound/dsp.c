@@ -158,10 +158,9 @@ set_defaults (struct __unixlib_fd *fd, int channels, int format,
 void *
 __dspopen (struct __unixlib_fd *fd, const char *file, int mode)
 {
-  _kernel_oserror *err;
-
   dr_fragscale = 1;
 
+  const _kernel_oserror *err;
   if ((err = SWI_OS_CLI ("RMEnsure DigitalRenderer 0.51 RMLoad System:Modules.DRenderer")) != NULL
       || (err = SWI_OS_CLI ("RMEnsure DigitalRenderer 0.51 Error 16_10F Sound support requires DigitalRenderer 0.51 or newer")) != NULL
       || (err = set_defaults (fd, 2, 2, 44100, 0)) != NULL)

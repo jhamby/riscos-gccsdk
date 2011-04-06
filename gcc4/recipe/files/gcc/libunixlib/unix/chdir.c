@@ -6,7 +6,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <swis.h>
 
 #include <unixlib/local.h>
 #include <internal/os.h>
@@ -89,21 +88,13 @@ chdir (const char *ux_path)
 
       /* We must pass a canonicalised directory to DDEUtils_Prefix.  */
       char canon_path[_POSIX_PATH_MAX];
-      int regs[10];
-      regs[0] = 37;
-      regs[1] = (int) full_path;
-      regs[2] = (int) canon_path;
-      regs[3] = regs[4] = 0;
-      regs[5] = sizeof (canon_path);
-
-      err = __os_swi (OS_FSControl, regs);
-      if (!err)
+      if ((err = SWI_OS_FSControl_Canonicalise (full_path, NULL,
+						canon_path, sizeof (canon_path),
+						NULL)) == NULL)
 	err = SWI_DDEUtils_Prefix (canon_path);
       free (full_path);
 
-      if (err)
-        return __ul_seterr (err, EOPSYS);
-      return 0;
+      return (err) ? __ul_seterr (err, EOPSYS) : 0;
     }
 
   /* No Prefix$Dir, so just change directory with OS_FSControl 0.  */

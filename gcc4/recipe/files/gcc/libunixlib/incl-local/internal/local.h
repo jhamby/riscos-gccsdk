@@ -34,10 +34,6 @@ extern int __remenv_from_os (const char *name);
 extern __ino_t __get_file_ino (const char *__directory,
 			       const char *__filename);
 
-/* Return the converted to canonicalised RISC OS filename, or NULL on
-   failure.  */
-extern char * __fd_to_name (int __riscos_fd, char *__buf, size_t __buflen);
-
 /* Convert a file mode into a attribute mask suitable for
    passing to RISC OS.  */
 extern int __set_protection (__mode_t __mode);
@@ -130,6 +126,18 @@ __object_set_attrs (const char *__ux_file, char *__buffer, size_t __buf_len,
    string value or NULL when there isn't one set.  Caller needs to free
    memory after use.  */
 extern const char *__get_dde_prefix (void);
+
+/* Canonicalise given pathname and return result in a malloced buffer.
+   Caller gets ownership.
+   Returns NULL when something went wrong, errno will be set
+   appropriately.  */
+extern char *__canonicalise_path (const char *pathname, const char *pathvar);
+
+/* Canonicalise given file handle and return result in a malloced buffer.
+   Caller gets ownership.
+   Returns NULL when something went wrong, errno will be set
+   appropriately.  */
+extern char *__canonicalise_handle (int fh);
 
 __END_DECLS
 

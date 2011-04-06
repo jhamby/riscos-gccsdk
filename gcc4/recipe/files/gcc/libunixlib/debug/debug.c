@@ -1,5 +1,5 @@
 /* Internal UnixLib structure debugging.
-   Copyright (c) 2002, 2003, 2004, 2005, 2007, 2008 UnixLib Devlopers.  */
+   Copyright (c) 2002-2011 UnixLib Devlopers.  */
 
 #include <pthread.h>
 #include <string.h>
@@ -57,24 +57,22 @@ __debug (const char *s)
 		  sulproc);
   else
     {
-      unsigned int ui;
-
-      for (ui = 0; ui < sulproc->maxfd; ++ui)
+      for (unsigned int ui = 0; ui < sulproc->maxfd; ++ui)
         {
           if (getfd (ui)->devicehandle)
 	    {
-	      char fname[_POSIX_PATH_MAX];
-
 	      debug_printf ("f[%d].handle: %p (type %d)\n",
 			    ui, getfd (ui)->devicehandle->handle,
 			    getfd (ui)->devicehandle->type);
 
 	      /* Do not change this to an malloc'ing version. execve can call
 	         this function after it knows no more malloc'ing is done.  */
+	      char fname[_POSIX_PATH_MAX];
 	      if ((int) getfd (ui)->devicehandle->handle != 0
-	          && getfd (ui)->devicehandle->type == DEV_RISCOS
-	          && __fd_to_name ((int) getfd (ui)->devicehandle->handle,
-				   fname, sizeof (fname)))
+	          && (getfd (ui)->devicehandle->type == DEV_RISCOS
+		      || getfd (ui)->devicehandle->type == DEV_PIPE)
+	          && SWI_OS_Args_Canonicalise ((int) getfd (ui)->devicehandle->handle,
+					       fname, sizeof (fname), NULL) == NULL)
 	        debug_printf ("filename: %s\n", fname);
 	    }
         }

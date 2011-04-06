@@ -1,11 +1,10 @@
 /* realpath ()
- * Copyright 2002-2010 UnixLib Developers
+ * Copyright 2002-2011 UnixLib Developers
  */
 
 #include <errno.h>
 #include <stdlib.h>
 #include <kernel.h>
-#include <swis.h>
 #include <limits.h>
 
 #include <unixlib/local.h>
@@ -30,15 +29,12 @@ realpath (const char *file_name, char *resolved_name)
     }
 
   char buffer[PATH_MAX];
-  int r[10];
-  r[0] = 37; /* Canonicalise path */
-  r[1] = (int) resolved_name;
-  r[2] = (int) buffer;
-  r[3] = r[4] = 0;
-  r[5] = sizeof (buffer);
-  if (__os_swi (OS_FSControl, r) != NULL)
+  const _kernel_oserror *err;
+  if ((err = SWI_OS_FSControl_Canonicalise (resolved_name, NULL,
+					    buffer, sizeof (buffer),
+					    NULL)) != NULL)
     {
-      __set_errno (EIO);
+      __ul_seterr (err, EIO);
       return NULL;
     }
 

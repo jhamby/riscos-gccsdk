@@ -1,3 +1,61 @@
+Wed Apr  6 03:27:25 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/unix.c (convert_command_line): Use __canonicalise_path
+	instead of __os_swi.
+	* unix/dirent.c (newstream): Likewise.
+	* unix/truncate.c (ftruncate, truncate): Use SWI_OS_Args_* instead
+	of __os_args.
+	* unix/sync.c (sync, fsync): Likewise.
+	* unix/open.c (__open_fh): Follow rename __fd_to_name to
+	__canonicalise_handle.
+	* unix/pathconf.c (fpathconf): Use SWI_OS_Args_Canonicalise instead
+	of __fd_to_name.
+	* unix/fchmod.c (fchmod): Likewise.
+	* debug/debug.c (__debug): Likewise. Print filename for DEV_PIPE
+	handles as well.
+	* stdlib/realpath.c (realpath): Use SWI_OS_FSControl_Canonicalise
+	instead of __os_swi.
+	* unix/chdir.c (chdir): Likewise.
+	* common/serial.c (__get_file_ino): Likewise.
+	* unix/getcwd.c (getcwd): Likewise.
+	(getwd): Move to...
+	* unix/getwd.c: ...here.
+	* unix/dev.c (__fsopen): Use SWI_OS_FSControl_Canonicalise instead of
+	__os_swi.
+	(__fsclose, __fsfstat): Follow rename __fd_to_name to
+	__canonicalise_handle.
+	(__fslseek,__fsfstat,__pipewrite,__pipeselect): Use SWI_OS_Args_*
+	instead of __os_args.
+	* unix/tty.c (__tty_console_gterm): Fix compiler warning.
+	* sound/dsp.c (__dspopen): Likewise.
+	* time/gmtime_r.c (SWI_Territory_ConvertTimeToUTCOrdinals): Likewise.
+	* time/broken.c (SWI_Territory_ConvertOrdinalsToTime): Likewise.
+	* time/localtime_r.c (SWI_Territory_ConvertTimeToOrdinals): Likewise.
+	* sys/_syslib.s (__ul_global): Move to...
+	* common/global.c: ...here.
+	* common/canonicalise_path.c (__canonicalise_path): Add.
+	* common/fdname.c (__fd_to_name): Removed and reimplemented same in...
+	* common/canonicalise_handle.c (__canonicalise_handle): ...here.
+	* Makefile.am (common/canonicalise_handle.c,common/canonicalise_path.c,
+	common/global.c,unix/getwd.c): Add.
+	common/fdname.c: Remove.
+	* incl-local/internal/local.h (__fd_to_name): Remove.
+	(__canonicalise_path,__canonicalise_handle): Add.
+	* incl-local/internal/asm_dec.s (GBL_*): Update for GBL_UL_OUT_PATHNAME
+	entry.
+	* incl-local/internal/os.h (__os_args): Remove.
+	(SWI_OS_FSControl_Canonicalise,SWI_OS_Args_GetFilePtr,
+	SWI_OS_Args_SetFilePtr,SWI_OS_Args_GetExtent,SWI_OS_Args_SetExtent,
+	SWI_OS_Args_Canonicalise,SWI_OS_Args_Flush): Add.
+	* sys/_os.s (__os_args): Remove.
+	* incl-local/internal/unix.h (ul_global::ul_out_pathname): Add.
+	Add comments.
+	* sys/exec.c (execve): Use SWI_OS_FSControl_Canonicalise instead of
+	__os_swi.  Fill in __ul_global.ul_out_pathname.  Use SWI_OS_Args_*
+	instead of __os_args.
+	* sys/vfork.c (__fork_post): Fix stdout redirection when non-UL
+	processes are exec'd by reopening output handle.
+
 Sun Apr  3 20:27:41 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/internal/os.h (SWI_OS_Byte): Renamed from __os_byte. Only

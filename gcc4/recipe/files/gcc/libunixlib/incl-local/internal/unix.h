@@ -125,10 +125,8 @@ struct __sul_process
 
 extern struct proc *__u;	/* current process */
 
-/* This structure must be kept in perfect synchronisation with:
-
-     a) GBL_* definitions in incl-local/internal/asm_dec.s
-     b) The __ul_global structure at the end of sys/_syslib.s
+/* This structure must be kept in perfect synchronisation with GBL_*
+   definitions in incl-local/internal/asm_dec.s.
 
    Functions wishing to use this structure can reduce the number of
    load/store operations by defining a local-variable i.e.
@@ -146,36 +144,62 @@ struct __pthread_callevery_block;
 
 struct ul_global
 {
-  const char *cli;
-  unsigned int time[2];
+  const char *cli; /* CLI from OS_GetEnv */
+  unsigned int time[2]; /* low word, high byte */
   int rewindpipeoffset;
-  int taskwindow;
-  int taskhandle; /* consider using __get_taskhandle() to read this value.  */
-  int dynamic_num;
-  int changeredir0;
-  int changeredir1;
-  int panic_mode;
-  struct __sul_process *sulproc;
-  int pagesize;
+  int taskwindow; /* Non-zero if executing in a TaskWindow.  This value is
+    always up-to-date as we can't become a TaskWindow task if we aren't one
+    at startup. So no need for __get_task_window () something similar.  */
+  int taskhandle; /* WIMP task handle, or zero if non WIMP task.
+    Note that when ul_global::taskwindow == 1 => ul_global::taskhandle != 0
+    but not necessary vice-versa.
+    Also, if this value is zero it could be that Wimp_InitialiseTask has been
+    called since last check so you have to check if this value is still
+    up-to-date.  Use __get_taskhandle () to read this value.  */
+  int dynamic_num; /* -1 is no DA is used, i.e. heap in application memory.
+    Otherwise the DA number used to store our heap.  */
+  int changeredir0; /* RISC OS IN process handle before we overrule this
+    and exec another binary.  */
+  int changeredir1; /* RISC OS OUT process handle before we overrule this
+    and exec another binary.  */
+  const char *ul_out_pathname; /* When non-NULL, canonicalised pathname of
+    UnixLib stdout handle.  Workaround for RISC OS 4/5 bug.  */
+  int panic_mode; /* Non-zero when we're panicing.  */
+  struct __sul_process *sulproc; /* Process structure returned from SUL.  */
+  int pagesize; /* System page size.  */
   void *upcall_handler_addr;
   void *upcall_handler_r12;
 
   void *pthread_return_address;
-  volatile int pthread_worksemaphore;
-  volatile int pthread_callback_semaphore;
-  int pthread_system_running;
-  int pthread_callback_missed;
-  int pthread_num_running_threads;
+  volatile int pthread_worksemaphore; /* Zero if the context switcher is
+    allowed to switch threads.  */
+  volatile int pthread_callback_semaphore; /* Prevent a callback being set
+    whilst servicing another callback.  */
+  int pthread_system_running; /* Global initialisation flag.  UnixLib
+    internally uses this to test whether or not to use mutexes for locking
+    critical structures.  */
+  int pthread_callback_missed; /* Non zero if a callback occured when context
+    switching was temporarily disabled.  */
+  int pthread_num_running_threads; /* Number of running threads.  */
 
-  int executing_signalhandler;
-  void *signalhandler_sl;
-  void *signalhandler_sp;
+  int executing_signalhandler; /* Non-zero if we are currently executing a
+    signal handler.  */
+  void *signalhandler_sl; /* Stack limit for signal handlers.  */
+  void *signalhandler_sp; /* Stack pointer for signal handlers.  */
 
-  char **last_environ;
-  void *malloc_state;
-  int escape_disabled;
-  unsigned int fls_lbstm_on_rd;
-  struct __pthread_callevery_block *pthread_callevery_rma;
+  char **last_environ; /* Non-NULL when we allocated the current environment
+    ourselves. Is NULL when we've inherited the environment from our
+    parent.  */
+  void *malloc_state; /* The global malloc state (opaque type).  */
+  int escape_disabled; /* Non-zero if the escape key was disabled on program
+    initialisation.  */
+  unsigned int fls_lbstm_on_rd; /* When non-zero, flush all line buffered
+    stdio stream using __flslbbuf when reading from a stdio stream attached
+    to a tty.  */
+  struct __pthread_callevery_block *pthread_callevery_rma; /* Pointer to a
+    small block of RMA that contains several values that remain constant for
+    the life of the program. This block is passed to the call_every handler in
+    r12.  */
 };
 
 /* This structure must be kept in perfect synchronisation with:

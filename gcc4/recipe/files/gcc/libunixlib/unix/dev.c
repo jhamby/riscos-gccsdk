@@ -223,19 +223,13 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       /* We don't need the full filename, just need to check that the first
          few characters begin with 'pipe'.  */
       char temp[16];
-
-      regs[0] = 37;
-      regs[1] = (int) filename;
-      regs[2] = (int) temp;
-      regs[3] = 0;
-      regs[4] = 0;
-      regs[5] = sizeof (temp);
-      __os_swi (OS_FSControl, regs);
-
-      if (!(tolower (temp[0]) == 'p'
-	    && tolower (temp[1]) == 'i'
-	    && tolower (temp[2]) == 'p'
-	    && tolower (temp[3]) == 'e' && temp[4] == ':'))
+      if (SWI_OS_FSControl_Canonicalise (filename, NULL, temp, sizeof (temp),
+					 NULL) == NULL
+	  && !(tolower (temp[0]) == 'p'
+	       && tolower (temp[1]) == 'i'
+	       && tolower (temp[2]) == 'p'
+	       && tolower (temp[3]) == 'e'
+	       && temp[4] == ':'))
 	{
 	  /* If no file exists and O_CREAT was not specified,
 	     return ENOENT.  */
@@ -354,9 +348,6 @@ os_err:
 int
 __fsclose (struct __unixlib_fd *file_desc)
 {
-  char *buffer;
-  _kernel_oserror *err;
-
   /* If we got the RISC OS file handle from OS, we don't close it.  */
   if (file_desc->dflag & FILE_HANDLE_FROM_OS)
     return 0;
@@ -364,8 +355,9 @@ __fsclose (struct __unixlib_fd *file_desc)
   if (file_desc->dflag & FILE_ISDIR)
     return closedir ((DIR *) file_desc->devicehandle->handle);
 
+  char *buffer;
   if (file_desc->fflag & O_UNLINKED)
-    buffer = __fd_to_name ((int) file_desc->devicehandle->handle, NULL, 0);
+    buffer = __canonicalise_handle ((int) file_desc->devicehandle->handle);
   else
     buffer = NULL;
 
@@ -375,7 +367,7 @@ __fsclose (struct __unixlib_fd *file_desc)
 #endif
 
   /* Close file.  */
-  err = __os_fclose ((int) file_desc->devicehandle->handle);
+  _kernel_oserror *err = __os_fclose ((int) file_desc->devicehandle->handle);
   if (!err && buffer)
     {
       err = __os_file (OSFILE_DELETENAMEDOBJECT, buffer, NULL);
@@ -440,35 +432,36 @@ __fswrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 __off_t
 __fslseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
 {
-  _kernel_oserror *err = NULL;
-  int regs[3];
-  int handle = (int) file_desc->devicehandle->handle;
-
   if (file_desc->dflag & FILE_ISDIR)
-    return 0;			/* Should we call seekdir()? */
+    return 0; /* FIXME?: Should we call seekdir() ? */
 
+  const _kernel_oserror *err;
+  int handle = (int) file_desc->devicehandle->handle;
   if (whence == SEEK_SET)
-    err = __os_args (1, handle, (int) lpos, regs);
+    err = SWI_OS_Args_SetFilePtr (handle, (int) lpos);
   else if (whence == SEEK_CUR)
     {
-      err = __os_args (0, (int) handle, 0, regs);
-      /* For lseek (f, 0, SEEK_CUR) don't need the second SWI, as effectively
-         being called to return file position without changing it
-         Testing lpos == 0 is quick, and lpos == 0 frequent
-         (eg all calls to fopen() that are not "a")  */
+      int fileptr;
+      err = SWI_OS_Args_GetFilePtr (handle, &fileptr);
       if (!err && lpos)
-	err = __os_args (1, (int) handle, regs[2] + (int) lpos, regs);
+	{
+	  lpos += fileptr;
+	  err = SWI_OS_Args_SetFilePtr (handle, lpos);
+	}
     }
   else if (whence == SEEK_END)
     {
-      err = __os_args (2, (int) handle, 0, regs);
-      if (!err)
-	err = __os_args (1, (int) handle, regs[2] + (int) lpos, regs);
+      int extent;
+      if ((err = SWI_OS_Args_GetExtent (handle, &extent)) == NULL)
+	{
+	  lpos += extent;
+	  err = SWI_OS_Args_SetFilePtr (handle, lpos);
+	}
     }
   else
     return __set_errno (EINVAL);
 
-  return (!err) ? (__off_t) regs[2] : __ul_seterr (err, EOPSYS);
+  return !err ? lpos : __ul_seterr (err, EOPSYS);
 }
 
 int
@@ -523,23 +516,20 @@ __fsstat (const char *ux_filename, struct stat *buf)
 int
 __fsfstat (int fd, struct stat *buf)
 {
-  struct __unixlib_fd *file_desc;
-  int regs[10];
+  struct __unixlib_fd *file_desc = getfd (fd);
+
   char *buffer;
-  _kernel_oserror *err;
-
-  file_desc = getfd (fd);
-
   if (file_desc->dflag & FILE_ISDIR)
     buffer = strdup (((DIR *) file_desc->devicehandle->handle)->dd_name_can);
   else
-    buffer = __fd_to_name ((int) file_desc->devicehandle->handle, NULL, 0);
+    buffer = __canonicalise_handle ((int) file_desc->devicehandle->handle);
 
   if (buffer == NULL)
     return __set_errno (EBADF);
 
   /* Get vital file statistics and use File$Path.  */
-  err = __os_file (OSFILE_READCATINFO, buffer, regs);
+  int regs[10];
+  const _kernel_oserror *err = __os_file (OSFILE_READCATINFO, buffer, regs);
   if (err)
     {
       free (buffer);
@@ -550,14 +540,13 @@ __fsfstat (int fd, struct stat *buf)
 
   if (!(file_desc->dflag & FILE_ISDIR))
     {
-      int argsregs[3];
-
       /* __os_file returns the allocated size of the file,
          but we want the current extent of the file */
-      err = __os_args (2, (int) file_desc->devicehandle->handle, 0, argsregs);
-      if (err)
+      int extent;
+      if ((err = SWI_OS_Args_GetExtent ((int) file_desc->devicehandle->handle,
+					&extent)) != NULL)
 	return __ul_seterr (err, EIO);
-      regs[4] = argsregs[2];
+      regs[4] = extent;
     }
 
   __stat (regs[0], regs[2], regs[3], regs[4], regs[5], buf);
@@ -643,25 +632,27 @@ __piperead (struct __unixlib_fd *file_desc, void *data, int nbyte)
 int
 __pipewrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 {
-  int handle, regs[3];
-
-  handle = (int) file_desc->devicehandle->handle;
+  int handle = (int) file_desc->devicehandle->handle;
+  const _kernel_oserror *err;
   /* Read current file position.  */
-  if (!__os_args (0, handle, 0, regs))
+  int fileptr;
+  if ((err = SWI_OS_Args_GetFilePtr (handle, &fileptr)) == NULL)
     {
-      int offset = regs[2];
-      /* Read extent && Set file pointer to end of file.  */
-      if (!__os_args (2, handle, 0, regs)
-	  && !__os_args (1, handle, regs[2], NULL))
+      /* Read extent && set file pointer to end of file.  */
+      int extent;
+      if ((err = SWI_OS_Args_GetExtent (handle, &extent)) == NULL
+	  && (fileptr == extent
+	      || (err = SWI_OS_Args_SetFilePtr (handle, extent)) == NULL))
 	{
 	  /* Write some more data to the "pipe" at the end of the file.  */
 	  int write_err = __fswrite (file_desc, data, nbyte);
 	  /* Restore the pointer to where we found it.  */
-	  if (!__os_args (1, handle, offset, NULL))
+	  if (fileptr == extent
+	      || (err = SWI_OS_Args_SetFilePtr (handle, fileptr)) == NULL)
 	    return write_err;
 	}
     }
-  return __set_errno (EPIPE);
+  return __ul_seterr (err, EPIPE);
 }
 
 int
@@ -675,16 +666,15 @@ __pipeselect (struct __unixlib_fd *file_desc, int fd,
 
   if (pread)
     {
-      int regs[3];
-
       /* Read current file position.  */
-      if (!__os_args (0, (int) file_desc->devicehandle->handle, 0, regs))
+      int pos;
+      if (!SWI_OS_Args_GetFilePtr ((int) file_desc->devicehandle->handle, &pos))
 	{
-	  int pos = regs[2];
-
 	  /* Read extent.  */
-	  if (!__os_args (2, (int) file_desc->devicehandle->handle, 0, regs)
-              && pos != regs[2])
+	  int extent;
+	  if (!SWI_OS_Args_GetExtent ((int) file_desc->devicehandle->handle,
+				      &extent)
+              && pos != extent)
 	    to_read = 1;
 	  /* If file pointer != extent then there is still data to read.  */
 	}

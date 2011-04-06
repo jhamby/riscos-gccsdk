@@ -1,5 +1,5 @@
 /* Modify file attributes of an open file.
-   Copyright (c) 2005-2010 UnixLib Developers.  */
+   Copyright (c) 2005-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -29,14 +29,14 @@ fchmod (int fd, mode_t mode)
     return __set_errno (EINVAL);
 
   char name[_POSIX_NAME_MAX];
-  if (__fd_to_name ((int) file_desc->devicehandle->handle,
-		    name, sizeof (name)) == NULL)
-    return __set_errno (EBADF);
+  const _kernel_oserror *err;
+  if ((err = SWI_OS_Args_Canonicalise ((int) file_desc->devicehandle->handle,
+				       name, sizeof (name), NULL)) != NULL)
+    return __ul_seterr (err, EBADF);
 
   /* Set the file access permission bits.  */
   int regs[10];
   regs[5] = __set_protection (mode);
-  _kernel_oserror *err;
   if ((err = __os_file (OSFILE_WRITECATINFO_ATTR, name, regs)) != NULL)
     return __ul_seterr (err, EPERM);
 

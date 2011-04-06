@@ -1,11 +1,10 @@
 /* __get_file_ino ()
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <stddef.h>
 #include <string.h>
 #include <limits.h>
-#include <swis.h>
 
 #include <unixlib/local.h>
 #include <unixlib/types.h>
@@ -21,9 +20,7 @@ __ino_t
 __get_file_ino (const char *directory, const char *filename)
 {
   char tmp[_POSIX_PATH_MAX + _POSIX_NAME_MAX];
-  char pathname[_POSIX_PATH_MAX + _POSIX_NAME_MAX];
   const char *name;
-
   if (directory != NULL)
     {
       /* Concat directory, directory separator and filename and ensure
@@ -59,15 +56,10 @@ __get_file_ino (const char *directory, const char *filename)
      function would fall over because of this.
      This way sucessive readdir()s on ../../../.. will get you to root !  */
 
-  int regs[10];
-  regs[0] = 37;
-  regs[1] = (int) name;
-  regs[2] = (int) pathname;
-  regs[3] = regs[4] = 0;
-  regs[5] = sizeof (pathname);
-
   /* Use canonicalised name if possible, otherwise use the original name.  */
-  if (! __os_swi (OS_FSControl, regs))
+  char pathname[_POSIX_PATH_MAX + _POSIX_NAME_MAX];
+  if (SWI_OS_FSControl_Canonicalise (name, NULL, pathname, sizeof (pathname),
+				     NULL) == NULL)
     name = pathname;
 
   int ino = 0;

@@ -217,7 +217,9 @@ __tty_console_gterm (struct termios *term)
   PTHREAD_UNSAFE
 
   /* Get `Interrupt key' and state of `Interrupt key'.  */
-  SWI_OS_Byte (0xdc, 0, 0xff, &term->c_cc[VINTR], NULL);
+  int rslt;
+  SWI_OS_Byte (0xdc, 0, 0xff, &rslt, NULL);
+  term->c_cc[VINTR] = rslt & 0xFF;
 
   if (!__ul_global.escape_disabled)
     {

@@ -1,7 +1,7 @@
 /* pathconf (), fpathconf ()
  * Return filing system implementation details.
  * Written by Nick Burrett, 13 October 1996.
- * Copyright (c) 1996-2008 UnixLib Developers
+ * Copyright (c) 1996-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -10,9 +10,10 @@
 #include <stddef.h>
 
 #include <internal/dev.h>
-#include <internal/unix.h>
 #include <internal/fd.h>
 #include <internal/local.h>
+#include <internal/os.h>
+#include <internal/unix.h>
 #include <pthread.h>
 
 /* These functions are stub varieties that need a proper
@@ -75,8 +76,6 @@ pathconf (const char *filename, int parameter)
 long int
 fpathconf (int fd, int selection)
 {
-  char filename[_POSIX_PATH_MAX];
-
   PTHREAD_UNSAFE
 
   if (BADF (fd))
@@ -84,8 +83,11 @@ fpathconf (int fd, int selection)
 
   if (getfd (fd)->devicehandle->type == DEV_RISCOS)
     {
-      if (__fd_to_name (fd, filename, sizeof (filename)) == NULL)
-	return __set_errno (EBADF);
+      char filename[_POSIX_PATH_MAX];
+      const _kernel_oserror *err;
+      if ((err = SWI_OS_Args_Canonicalise (fd, filename, sizeof (filename),
+					   NULL)) != NULL)
+	return __ul_seterr (err, EBADF);
 
       return pathconf (filename, selection);
     }

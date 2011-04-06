@@ -845,8 +845,6 @@ find_redirection_type (const char *cmdline, char redirection_type)
 static void
 convert_command_line (struct proc *process, const char *cli, int cli_size)
 {
-  _kernel_oserror *err = NULL;
-
   /* A temporary buffer for the command line arguments, holds a
      particular argument prior to it being added to the argv array.  */
   char *temp = (char *) malloc (cli_size + 1);
@@ -1040,53 +1038,37 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
      current FS get taken instead.  Use "/ADFS::MyDisc.$.my_risc_os_process"
      or "run ADFS::MyDisc.$.my_risc_os_process" instead of
      "ADFS::MyDisc.$.my_risc_os_process" to avoid this problem.  */
+  const char *canon_argv0 = __canonicalise_path (argv[0], "Run$Path");
+  if (canon_argv0 == NULL)
+    goto fatal;
+
+  const char *input_argv0;
+  int filetype;
+  int regs[10];
+  if (__os_file (OSFILE_READCATINFO, canon_argv0, regs) != NULL
+      || regs[0] != 1)
     {
-      int regs[10];
-      char *canon_argv0, *input_argv0, *uargv0;
-
-      regs[0] = 37;
-      regs[1] = (int) argv[0];
-      regs[3] = (int) "Run$Path";
-      regs[5] = regs[4] = regs[2] = 0;
-      if ((err = __os_swi (OS_FSControl, regs)) != NULL
-	  || regs[5] > 0
-	  || (canon_argv0 = malloc (1 - regs[5])) == NULL)
-	goto fatal;
-
-      regs[0] = 37;
-      regs[1] = (int) argv[0];
-      regs[2] = (int) canon_argv0;
-      regs[3] = (int) "Run$Path";
-      regs[4] = 0;
-      regs[5] = 1 - regs[5];
-      if ((err = __os_swi (OS_FSControl, regs)) != NULL)
-        goto fatal;
-
-      int filetype;
-      if (__os_file (OSFILE_READCATINFO, canon_argv0, regs) != NULL
-          || regs[0] != 1)
-        {
 #ifdef DEBUG
-          __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.\r\n");
+      __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.\r\n");
 #endif
-          filetype = __RISCOSIFY_FILETYPE_NOTFOUND;
-	  /* Use the uncanonicalised argv[0] as input for unixify.  */
-	  input_argv0 = argv[0];
-        }
-      else
-	{
-	  filetype = ((regs[2] & 0xfff00000U) == 0xfff00000U) ? (regs[2] >> 8) & 0xfff : __RISCOSIFY_FILETYPE_NOTFOUND;
-	  input_argv0 = canon_argv0;
-	}
-
-      /* Convert to Unix full path, if needed.  */
-      if ((uargv0 = __unixify_std (input_argv0, NULL, 0, filetype)) == NULL)
-        goto fatal;
-
-      free (canon_argv0);
-      free (argv[0]);
-      argv[0] = uargv0;
+      filetype = __RISCOSIFY_FILETYPE_NOTFOUND;
+      /* Use the uncanonicalised argv[0] as input for unixify.  */
+      input_argv0 = argv[0];
     }
+  else
+    {
+      filetype = (regs[2] & 0xfff00000U) == 0xfff00000U ? (regs[2] >> 8) & 0xfff : __RISCOSIFY_FILETYPE_NOTFOUND;
+      input_argv0 = canon_argv0;
+    }
+
+  /* Convert to Unix full path, if needed.  */
+  char *uargv0;
+  if ((uargv0 = __unixify_std (input_argv0, NULL, 0, filetype)) == NULL)
+    goto fatal;
+
+  free ((void *)canon_argv0);
+  free (argv[0]);
+  argv[0] = uargv0;
 
   process->argc = argc;
   process->argv = argv;
@@ -1094,6 +1076,5 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
   return;
 
 fatal:
-  __ul_seterr (err, EOPSYS);
   __unixlib_fatal ("Failed to process command line");
 }

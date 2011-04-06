@@ -16,11 +16,12 @@
    implementation.  */
 
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_Territory_ConvertTimeToUTCOrdinals (int __territory, const char __ro_time[],
+SWI_Territory_ConvertTimeToUTCOrdinals (int __territory,
+					const unsigned int __ro_time[],
 					unsigned int __ordinals[])
 {
   register int territory __asm ("r0") = __territory;
-  register const char *ro_time __asm ("r1") = __ro_time;
+  register const unsigned int *ro_time __asm ("r1") = __ro_time;
   register unsigned int *ordinals __asm ("r2") = __ordinals;
   register _kernel_oserror *err __asm ("r0");
   __asm__ volatile ("SWI\t%[SWI_Territory_ConvertTimeToUTCOrdinals]\n\t"
