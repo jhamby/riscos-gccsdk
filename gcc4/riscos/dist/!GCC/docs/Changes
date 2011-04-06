@@ -6,11 +6,53 @@ GCCSDK GCC 4.1.2 Release 1 (released xxx)
 ==========================
 
 Major changes:
-  - GCC 4.1.2
-  - Binutils 2.21
-  - Improved profiling support
-  - Support for C++ when using SharedCLibrary (including module code)
-  - SharedCLibrary stubs have limited network support
+  - Upgraded to GCC 4.1.2 (r4684).
+  - Upgraded to Binutils 2.21 (r4911).
+  - Improved profiling support (r4502, r4503).
+  - Merged UnixLib and SharedCLibrary stub code (r4624), resulting in:
+    - Support for C++ when using SharedCLibrary (including module code).
+    - SharedCLibrary stubs have now network support.
+    Note that SharedCLibrary stub code remains (L)GPL free (r4991).
+  - asasm: significant set of fixes to improve ObjAsm compatibility.
+
+Bug fixes and other improvements:
+  - GCC: avoid code generation resulting in stack corruption (r4656).
+  - GCC: support weak symbols in module code (r5059).
+  - GCC: wrong code generation when using C++ (r4682, bug #208).
+  - UnixLib: pthread stability fixes, especially when shared library is used
+    (r4396, r4424).
+  - UnixLib: (line) buffered stream fix (r4398, r4459, r4786).
+  - UnixLib: shared library improvements and fixes.
+  - UnixLib: improved mmap() support (r4902).
+  - UnixLib: opening a directory should result in EISDIR error (r4784).
+  - UnixLib: alloca() related corruption fix (r4623, bug #205).
+  - UnixLib: significant internal cleanups (r4431, r4435, r4443, r4647, r4652,
+    r4730, r4761, r5100, r5102, r5115, r5116).
+  - UnixLib: updated third party code (r4431, r4824, r5089).
+  - UnixLib: add support for ARMv7 CPU detection (r5062).
+  - UnixLib: initial and experimental VFP and no-chunked stack support
+    (r4811, r4813, r4824, r4827, r4828).
+  - UnixLib/SharedUnixLibrary: improved reliability of forking other binaries
+    including I/O redirection handling (r5025).  Latest SharedUnixLibrary
+    version is now v1.12.
+  - Shared Object Manager: Reliability fixes (r4437).  SOManager module
+    version is now 2.03.
+  - elf2aif: ELF flags test fix (r4436)
+  - CMunge: protection against bogus help-string entries.
+  - GDBServer:
+    - client socket handle fix (r4777).
+    - use libscl network code instead of its own implementation (r4780).
+    - stability fixes and cleanups (r4781, r4783, r4790, r4791, r4806).
+
+Cross compile related changes and bug fixes:
+  - Porting Tools improvements (r4416, r4450, r4454, r4455, r4479, r4482).
+  - Makefile driven build (instead of script file) which improves partial
+    rebuilding (r4467).
+    - Source fetch and build of the correct Autoconf/Automake versions
+      needed.
+    - Separating GCC and Binutils build (again for improved partial rebuild).
+  - Add gdbserver and syslogd to the cross-compile build.
+  - Experimental EABI target and newlib build support.
 
 GCCSDK GCC 4.1.1 Release 2 (released 27 December 2009)
 ==========================
