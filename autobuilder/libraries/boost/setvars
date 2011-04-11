@@ -123,6 +123,11 @@ ab_package() {
      fi
    done
 
+   # Sort out problem with file duplicated with different cases
+   # as it stops the package installing
+   cp -f $htmldir/doc/Jamfile.v2 $htmldir/doc/Jamfile.v2.temp
+   rm -f $htmldir/doc/jamfile.v2
+   mv -f $htmldir/doc/Jamfile.v2.temp $htmldir/doc/Jamfile.v2
 
    # TODO: Shared library
    # package libboost-date-time$(SOVERSION)
