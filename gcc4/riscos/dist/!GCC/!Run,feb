@@ -1,6 +1,6 @@
 | !Run file for GCCSDK 4
 | Copyright (c) Nick Burrett, 1996, 1997, 1998, 1999, 2001
-| Copyright (c) GCCSDK Developers 2002-2009
+| Copyright (c) GCCSDK Developers 2002-2011
 
 Run <Obey$Dir>.!Boot
 
@@ -90,9 +90,9 @@ Set gnatls$heap ""
 Set gnatmake$heap ""
 Set gnatprep$heap ""
 
-| We need a vital bug fix made in SUL 1.11:
-RMEnsure SharedUnixLibrary 1.11 RMLoad System:Modules.SharedULib
-RMEnsure SharedUnixLibrary 1.11 Error GCCSDK 4 requires SharedUnixLibrary 1.11 or later
+| Ensure the latest version of SUL:
+RMEnsure SharedUnixLibrary 1.12 RMLoad System:Modules.SharedULib
+RMEnsure SharedUnixLibrary 1.12 Error GCCSDK 4 requires SharedUnixLibrary 1.12 or later
 
 | Used for extended command lines
 RMEnsure DDEUtils 0.02 RMLoad System:Modules.DDEUtils
