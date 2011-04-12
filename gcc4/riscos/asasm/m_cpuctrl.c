@@ -690,10 +690,14 @@ getpsr (bool only_all)
 {
   skipblanks ();
 
-  /* Read "CPSR" or "SPSR".  */
+  /* Read "APSR", "CPSR" or "SPSR".  */
+  bool isAPSR = false;
   ARMWord saved;
   switch (inputGetLower ())
     {
+      case 'a':
+	isAPSR = true;
+	/* Fall through.  */
       case 'c':
         saved = 0;
         break;
@@ -701,70 +705,113 @@ getpsr (bool only_all)
         saved = 1 << 22;
         break;
       default:
-        error (ErrorError, "Not a PSR name");
+        error (ErrorError, "Not a PSR name (expected 'APSR', 'CPSR' or 'SPSR')");
         return 0;
     }
   if (inputGetLower () != 'p'
       || inputGetLower () != 's'
       || inputGetLower () != 'r')
     {
-      error (ErrorError, "Not a PSR name");
+      error (ErrorError, "Not a PSR name (expected 'APSR', 'CPSR' or 'SPSR')");
       return 0;
     }
 
-  if (inputLook () != '_')
-    return saved | (only_all ? 0xF0000 : 0x90000);
-  
-  const char * const inputMark = Input_GetMark ();
-  inputSkip ();
-  char w[4];
-  w[0] = inputGetLower ();
-  w[1] = inputGetLower ();
-  w[2] = inputGetLower ();
-  w[3] = 0;
-  if (!strcmp (w, "all"))
-    return saved | (only_all ? 0xF0000 : 0x90000);
-  if (only_all)
+  if (isAPSR)
     {
-      error (ErrorError, "Partial PSR access not allowed");
-      return 0;
-    }
-  if (!strcmp (w, "ctl"))
-    return saved | 0x10000;
-  if (!strcmp (w, "flg"))
-    return saved | 0x80000;
-  Input_RollBackToMark (inputMark);
-  while (strchr ("_cCxXsSfF", inputLook ()))
-    {
-      Input_Match ('_', false);
-      int p;
-      char c;
-      switch (c = inputGetLower ())
+      if (only_all)
+	saved |= 0xF<<16;
+      else
 	{
-	  case 'c':
-	    p = 16;
-	    break;
-	  case 'x':
-	    p = 17;
-	    break;
-	  case 's':
-	    p = 18;
-	    break;
-	  case 'f':
-	    p = 19;
-	    break;
-	  default:
-	    p = 0;
-	    error (ErrorError, "Unrecognised PSR subset");
-	    break;
-	}
-      if (p)
-        {
-          if (saved & (1 << p))
-	    error (ErrorError, "PSR mask bit '%c' already specified", c);
-	  saved |= 1 << p;
+	  /* Process "APSR_<bits> with <bits> = one of 'nzcvq', 'g' or 'nzcvqg'.  */
+	  bool ok;
+	  if ((ok = Input_Match ('_', false)) != false)
+	    {
+	      if (Input_MatchString ("nzcvq"))
+		saved |= 1<<19;
+	      if (Input_Match ('g', false))
+		saved |= 1<<18;
+	      ok = Input_IsEndOfKeyword () || inputLook () == ',';
+	    }
+	  if (!ok)
+	    error (ErrorError, "Expected one of 'nzcvq', 'g' or 'nzcvqg'");
 	}
     }
+  else
+    {
+      bool giveLegacyWarning;
+      if (!Input_Match ('_', false))
+	{
+	  giveLegacyWarning = !only_all;
+	  saved |= only_all ? 0xF<<16 : 0x9<<16;
+	}
+      else
+	{
+	  const char * const inputMark = Input_GetMark ();
+	  char w[3];
+	  w[0] = inputGetLower ();
+	  w[1] = inputGetLower ();
+	  w[2] = inputGetLower ();
+	  if (!memcmp (w, "all", sizeof ("all")-1))
+	    {
+	      giveLegacyWarning = true;
+	      saved |= only_all ? 0xF<<16 : 0x9<<16;
+	    }
+	  else if (only_all)
+	    {
+	      error (ErrorError, "Partial PSR access not allowed");
+	      return 0;
+	    }
+	  else if (!memcmp (w, "ctl", sizeof ("ctl")-1))
+	    {
+	      giveLegacyWarning = true;
+	      saved |= 0x1<<16;
+	    }
+	  else if (!memcmp (w, "flg", sizeof ("flg")-1))
+	    {
+	      giveLegacyWarning = true;
+	      saved |= 0x8<<16;
+	    }
+	  else
+	    {
+	      Input_RollBackToMark (inputMark);
+	      giveLegacyWarning = false;
+
+	      int p;
+	      do
+		{
+		  char c;
+		  switch (c = inputLookLower ())
+		    {
+		      case 'c':
+			p = 16;
+			break;
+		      case 'x':
+			p = 17;
+			break;
+		      case 's':
+			p = 18;
+			break;
+		      case 'f':
+			p = 19;
+			break;
+		      default:
+			p = 0;
+			break;
+		    }
+		  if (p)
+		    {
+		      if (saved & (1 << p))
+			error (ErrorError, "PSR mask bit '%c' already specified", c);
+		      inputSkip ();
+		      saved |= 1 << p;
+		    }
+		} while (p);
+	    }
+	}
+      if (giveLegacyWarning)
+	error (ErrorWarning, "The CPSR, CPSR_flg, CPSR_ctl, CPSR_all, SPSR, SPSR_flg, SPSR_ctl and SPSR_all forms of PSR field specification have been superseded by the csxf format");
+    }
+
   return saved;
 }
 
@@ -794,6 +841,8 @@ m_msr (void)
 	}
       else
 	error (ErrorError, "Illegal immediate expression");
+      if (cc & ((1<<17) | (1<<18)))
+	error (ErrorWarning, "Writing immediate value to status or extension field of CPSR/SPSR is inadvisable");
     }
   else
     cc |= getCpuReg ();

@@ -1,3 +1,10 @@
+Wed Apr 13 01:45:58 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/misc.s: Add MSR/MRS APSR tests.
+	* m_cpuctrl.c (getpsr): Support APSR; Give legacy warning on non
+	csxf format usage; Give warning on immediate value usage to update
+	status and/or extension fields.
+
 Fri Apr  1 01:50:52 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/variable_substitution.s: Add check on empty

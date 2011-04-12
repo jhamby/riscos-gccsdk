@@ -7,8 +7,13 @@
 
 		CLZ	R0,R1
 
+		MRS	R0,APSR
 		MRS	R0,CPSR
 		MRS	R0,SPSR
+
+		MSR	APSR_nzcvq, #4
+		MSR	APSR_nzcvqg, #8
+		MSR	APSR_g, #12
 
 		; Legacy syntax:
 		MSR	CPSR,#&13	; control & flag
@@ -51,7 +56,12 @@
 		DCD	&E16F0F11
 
 		DCD	&E10F0000
+		DCD	&E10F0000
 		DCD	&E14F0000
+
+		MSR	CPSR_f, #4
+		MSR	CPSR_fs, #8
+		MSR	CPSR_s, #12
 
 		; Legacy syntax:
 		DCD	&E329F013
