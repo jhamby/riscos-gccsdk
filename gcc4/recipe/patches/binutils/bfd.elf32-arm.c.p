@@ -1,5 +1,5 @@
---- bfd/elf32-arm.c.orig	2011-03-01 02:11:07.930997788 +0100
-+++ bfd/elf32-arm.c	2011-03-01 03:20:33.460000000 +0100
+--- bfd/elf32-arm.c.orig	2010-11-18 08:19:05.000000000 +0000
++++ bfd/elf32-arm.c	2011-02-26 10:54:05.000000000 +0000
 @@ -1910,7 +1910,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -93,11 +93,10 @@
    if (!htab->splt
        || !htab->srelplt
        || !htab->sdynbss
-@@ -2961,10 +3024,205 @@ elf32_arm_link_hash_table_create (bfd *a
-       free (ret);
+@@ -2962,9 +3025,204 @@ elf32_arm_link_hash_table_create (bfd *a
        return NULL;
      }
-+ 
+ 
 +  ret->bfd_ro_module_owner = NULL;
 +  ret->s_ro_module_reloccode = NULL;
 +  ret->ro_module_reloccode_offset = 0;
@@ -107,7 +106,7 @@
 +  ret->ro_module_relocdata_size = 0;
 +  ret->ro_module_image_ro_base = 0;
 +  ret->ro_module_image_rw_base = 0;
- 
++
    return &ret->root.root;
  }
  
@@ -351,17 +350,15 @@
    switch (r_type)
      {
      case R_ARM_NONE:
-@@ -7874,7 +8177,8 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -7874,6 +8177,7 @@ elf32_arm_final_link_relocate (reloc_how
           define _GLOBAL_OFFSET_TABLE in a different way, as is
           permitted by the ABI, we might have to change this
           calculation.  */
--      value -= sgot->output_section->vma;
 +      if (globals->s_ro_module_reloccode == NULL)
-+	value -= sgot->output_section->vma;
+       value -= sgot->output_section->vma;
        return _bfd_final_link_relocate (howto, input_bfd, input_section,
  				       contents, rel->r_offset, value,
- 				       rel->r_addend);
-@@ -9431,10 +9735,86 @@ elf32_arm_final_link (bfd *abfd, struct 
+@@ -9431,10 +9735,86 @@ elf32_arm_final_link (bfd *abfd, struct
  {
    struct elf32_arm_link_hash_table *globals = elf32_arm_hash_table (info);
    asection *sec, *osec;
@@ -448,7 +445,7 @@
    /* Invoke the regular ELF backend linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
      return FALSE;
-@@ -9481,6 +9861,57 @@ elf32_arm_final_link (bfd *abfd, struct 
+@@ -9481,6 +9861,57 @@ elf32_arm_final_link (bfd *abfd, struct
  	return FALSE;
      }
  
@@ -545,18 +542,16 @@
        /* If any dynamic relocs apply to a read-only section,
  	 then we need a DT_TEXTREL entry.  */
        if ((info->flags & DF_TEXTREL) == 0)
-@@ -12154,7 +12599,10 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -12154,6 +12599,9 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  	     in all the symbols for which we are making plt entries.  The
  	     first three entries in .got.plt are reserved; after that
  	     symbols appear in the same order as in .plt.  */
--	  plt_index = (got_offset - 12) / 4;
 +	  if (info->flag_pic == 2)
 +	    plt_index = (got_offset - 20) / 4;
 +	  else
-+	    plt_index = (got_offset - 12) / 4;
+ 	  plt_index = (got_offset - 12) / 4;
  
  	  /* Calculate the address of the GOT entry.  */
- 	  got_address = (sgot->output_section->vma
 @@ -12246,6 +12694,41 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  				  elf32_arm_plt_thumb_stub[1], ptr - 2);
  		}
@@ -599,14 +594,14 @@
  	      put_arm_insn (htab, output_bfd,
  			    elf32_arm_plt_entry[0]
  			    | ((got_displacement & 0x0ff00000) >> 20),
-@@ -12261,6 +12744,7 @@ elf32_arm_finish_dynamic_symbol (bfd * o
- #ifdef FOUR_WORD_PLT
+@@ -12262,6 +12745,7 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  	      bfd_put_32 (output_bfd, elf32_arm_plt_entry[3], ptr + 12);
  #endif
-+		}
  	    }
++	    }
  
  	  /* Fill in the entry in the global offset table.  */
+ 	  bfd_put_32 (output_bfd,
 @@ -12594,6 +13078,27 @@ elf32_arm_finish_dynamic_sections (bfd *
  	    {
  	      got_displacement = got_address - (plt_address + 16);
@@ -635,14 +630,14 @@
  	      plt0_entry = elf32_arm_plt0_entry;
  	      put_arm_insn (htab, output_bfd, plt0_entry[0],
  			    splt->contents + 0);
-@@ -12611,6 +13116,7 @@ elf32_arm_finish_dynamic_sections (bfd *
- #else
- 	      bfd_put_32 (output_bfd, got_displacement, splt->contents + 16);
+@@ -12613,6 +13118,7 @@ elf32_arm_finish_dynamic_sections (bfd *
  #endif
-+		}
  	    }
  	}
++	}
  
+       /* UnixWare sets the entsize of .plt to 4, although that doesn't
+ 	 really seem like the right value.  */
 @@ -13784,7 +14290,7 @@ elf32_arm_is_function_type (unsigned int
  /* We use this to override swap_symbol_in and swap_symbol_out.  */
  const struct elf_size_info elf32_arm_size_info =

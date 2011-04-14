@@ -1,19 +1,8 @@
---- gcc/config/arm/arm.h.orig	2010-06-19 15:13:18.944605715 +0200
-+++ gcc/config/arm/arm.h	2010-06-19 15:11:42.607601904 +0200
-@@ -167,6 +167,12 @@ extern GTY(()) rtx aof_pic_label;
- #define SUBTARGET_CPP_SPEC      ""
- #endif
- 
-+#ifndef SUBTARGET_OPTION_TRANSLATE_TABLE
-+#define SUBTARGET_OPTION_TRANSLATE_TABLE { "", "" }
-+#endif
-+#define TARGET_OPTION_TRANSLATE_TABLE \
-+  SUBTARGET_OPTION_TRANSLATE_TABLE
-+
- /* Run-time Target Specification.  */
- #ifndef TARGET_VERSION
- #define TARGET_VERSION fputs (" (ARM/generic)", stderr);
-@@ -190,7 +196,7 @@ extern GTY(()) rtx aof_pic_label;
+Index: gcc/config/arm/arm.h
+===================================================================
+--- gcc/config/arm/arm.h	(revision 169388)
++++ gcc/config/arm/arm.h	(working copy)
+@@ -227,7 +227,7 @@
  				         : TARGET_TPCS_FRAME)
  #define TARGET_LDRD			(arm_arch5e && ARM_DOUBLEWORD_ALIGN)
  #define TARGET_AAPCS_BASED \
@@ -22,7 +11,7 @@
  
  #define TARGET_HARD_TP			(target_thread_pointer == TP_CP15)
  #define TARGET_SOFT_TP			(target_thread_pointer == TP_SOFT)
-@@ -283,7 +289,8 @@ enum arm_abi_type
+@@ -399,7 +399,8 @@
    ARM_ABI_ATPCS,
    ARM_ABI_AAPCS,
    ARM_ABI_IWMMXT,
@@ -32,35 +21,19 @@
  };
  
  extern enum arm_abi_type arm_abi;
-@@ -719,10 +726,10 @@ extern int arm_structure_size_boundary;
-       fixed_regs[PIC_OFFSET_TABLE_REGNUM] = 1;			\
-       call_used_regs[PIC_OFFSET_TABLE_REGNUM] = 1;		\
-     }								\
--  else if (TARGET_APCS_STACK)					\
-+  if (OPTION_APCS_STACK)					\
-     {								\
--      fixed_regs[10]     = 1;					\
--      call_used_regs[10] = 1;					\
-+      fixed_regs[SL_REGNUM]     = 1;				\
-+      call_used_regs[SL_REGNUM] = 1;				\
-     }								\
-   /* -mcaller-super-interworking reserves r11 for calls to	\
-      _interwork_r11_call_via_rN().  Making the register global	\
-@@ -788,9 +795,13 @@ extern int arm_structure_size_boundary;
- #define LAST_HI_REGNUM		11
+@@ -883,7 +884,11 @@
+    : THUMB_HARD_FRAME_POINTER_REGNUM)
  
- #ifndef TARGET_UNWIND_INFO
-+/* We use sjlj exceptions for backwards compatibility.
-+   For RISC OS, we will not use SJLJ.  */
-+#ifndef TARGET_RISCOSELF
- /* We use sjlj exceptions for backwards compatibility.  */
- #define MUST_USE_SJLJ_EXCEPTIONS 1
- #endif
+ #define HARD_FRAME_POINTER_IS_FRAME_POINTER 0
++#ifdef TARGET_RISCOSELF
++#define HARD_FRAME_POINTER_IS_ARG_POINTER 1
++#else
+ #define HARD_FRAME_POINTER_IS_ARG_POINTER 0
 +#endif
  
- /* We can generate DWARF2 Unwind info, even though we don't use it.  */
- #define DWARF2_UNWIND_INFO 1
-@@ -852,10 +863,18 @@ extern int arm_structure_size_boundary;
+ #define FP_REGNUM	                HARD_FRAME_POINTER_REGNUM
+ 
+@@ -906,10 +911,18 @@
    (((REGNUM) >= FIRST_IWMMXT_GR_REGNUM) && ((REGNUM) <= LAST_IWMMXT_GR_REGNUM))
  
  /* Base register for access to local variables of the function.  */
@@ -79,54 +52,7 @@
  
  #define FIRST_CIRRUS_FP_REGNUM	27
  #define LAST_CIRRUS_FP_REGNUM	42
-@@ -880,16 +899,18 @@ extern int arm_structure_size_boundary;
-    via the stack pointer) in functions that seem suitable.
-    If we have to have a frame pointer we might as well make use of it.
-    APCS says that the frame pointer does not need to be pushed in leaf
--   functions, or simple tail call functions.  */
--
-+   functions, or simple tail call functions.
-+   The APCS-32 ABI never requires a frame pointer.  */
- #ifndef SUBTARGET_FRAME_POINTER_REQUIRED
- #define SUBTARGET_FRAME_POINTER_REQUIRED 0
- #endif
- 
--#define FRAME_POINTER_REQUIRED					\
--  (current_function_has_nonlocal_label				\
--   || SUBTARGET_FRAME_POINTER_REQUIRED				\
--   || (TARGET_ARM && TARGET_APCS_FRAME && ! leaf_function_p ()))
-+#define FRAME_POINTER_REQUIRED						\
-+  (arm_abi == ARM_ABI_APCS32						\
-+   ? 0									\
-+   : (current_function_has_nonlocal_label				\
-+      || SUBTARGET_FRAME_POINTER_REQUIRED				\
-+      || (TARGET_ARM && TARGET_APCS_FRAME && ! leaf_function_p ())))
- 
- /* Return number of consecutive hard regs needed starting at reg REGNO
-    to hold something of mode MODE.
-@@ -898,6 +919,13 @@ extern int arm_structure_size_boundary;
- 
-    On the ARM regs are UNITS_PER_WORD bits wide; FPA regs can hold any FP
-    mode.  */
-+#ifdef TARGET_RISCOSELF
-+#define HARD_REGNO_NREGS(REGNO, MODE)  	\
-+  ((TARGET_ARM 				\
-+    && REGNO >= FIRST_FPA_REGNUM)	\
-+    && !IS_VFP_REGNUM (REGNO)		\
-+   ? 1 : ARM_NUM_REGS (MODE))
-+#else
- #define HARD_REGNO_NREGS(REGNO, MODE)  	\
-   ((TARGET_ARM 				\
-     && REGNO >= FIRST_FPA_REGNUM	\
-@@ -905,6 +933,7 @@ extern int arm_structure_size_boundary;
-     && REGNO != ARG_POINTER_REGNUM)	\
-     && !IS_VFP_REGNUM (REGNO)		\
-    ? 1 : ARM_NUM_REGS (MODE))
-+#endif
- 
- /* Return true if REGNO is suitable for holding a quantity of type MODE.  */
- #define HARD_REGNO_MODE_OK(REGNO, MODE)					\
-@@ -1350,7 +1379,7 @@ do {									      \
+@@ -1342,7 +1355,7 @@
     is at the high-address end of the local variables;
     that is, each additional local variable allocated
     goes at a more negative offset in the frame.  */
@@ -135,36 +61,34 @@
  
  /* The amount of scratch space needed by _interwork_{r7,r11}_call_via_rN().
     When present, it is one word in size, and sits at the top of the frame,
-@@ -1370,7 +1399,10 @@ do {									      \
+@@ -1362,7 +1375,8 @@
     If FRAME_GROWS_DOWNWARD, this is the offset to the END of the
     first local allocated.  Otherwise, it is the offset to the BEGINNING
     of the first local allocated.  */
 -#define STARTING_FRAME_OFFSET  0
-+#define STARTING_FRAME_OFFSET				\
-+   (arm_abi == ARM_ABI_APCS32				\
-+    ? current_function_outgoing_args_size		\
-+    : 0)
++#define STARTING_FRAME_OFFSET		\
++   (arm_abi == ARM_ABI_APCS32 ? crtl->outgoing_args_size : 0)
  
  /* If we generate an insn to push BYTES bytes,
     this says how many the stack pointer really advances by.  */
-@@ -1495,6 +1527,7 @@ typedef struct arm_stack_offsets GTY(())
+@@ -1463,6 +1477,7 @@
    int soft_frame;	/* FRAME_POINTER_REGNUM.  */
    int locals_base;	/* THUMB_HARD_FRAME_POINTER_REGNUM.  */
    int outgoing_args;	/* STACK_POINTER_REGNUM.  */
-+  int frame_size;       /* get_frame_size () */
++  int frame_size;	/* get_frame_size() */
+   unsigned int saved_regs_mask;
  }
  arm_stack_offsets;
- 
-@@ -1519,6 +1552,8 @@ typedef struct machine_function GTY(())
+@@ -1489,6 +1504,8 @@
    /* Records if sibcalls are blocked because an argument
       register is needed to preserve stack alignment.  */
    int sibcall_blocked;
 +  /* Non-zero if this is a leaf function.  */
 +  int leaf;
+   /* The PIC register for this function.  This might be a pseudo.  */
+   rtx pic_reg;
    /* Labels for per-function Thumb call-via stubs.  One per potential calling
-      register.  We can never call via LR or PC.  We can call via SP if a
-      trampoline happens to be on the top of the stack.  */
-@@ -1539,6 +1574,8 @@ typedef struct
+@@ -1541,6 +1558,8 @@
    int nregs;
    /* This is the number of iWMMXt register arguments scanned so far.  */
    int iwmmxt_nregs;
@@ -172,38 +96,17 @@
 +  int fpa_nregs;
    int named_count;
    int nargs;
-   /* One of CALL_NORMAL, CALL_LONG or CALL_SHORT.  */
-@@ -1593,6 +1630,9 @@ typedef struct
-   if (arm_vector_mode_supported_p (MODE)	       	\
-       && (CUM).named_count > (CUM).nargs)		\
-     (CUM).iwmmxt_nregs += 1;				\
-+  else if (TARGET_FPA && TARGET_APCS_FLOAT		\
-+	   && (MODE == SFmode || MODE == DFmode))	\
-+    (CUM).fpa_nregs += 1;				\
-   else							\
-     (CUM).nregs += ARM_NUM_REGS2 (MODE, TYPE)
- 
-@@ -1606,10 +1646,19 @@ typedef struct
- 
- /* 1 if N is a possible register number for function argument passing.
-    On the ARM, r0-r3 are used to pass args.  */
-+#ifdef TARGET_RISCOSELF
- #define FUNCTION_ARG_REGNO_P(REGNO)	\
-    (IN_RANGE ((REGNO), 0, 3)		\
-+    || (TARGET_FPA && TARGET_APCS_FLOAT \
-+        && IN_RANGE ((REGNO), FIRST_FPA_REGNUM, FIRST_FPA_REGNUM + 3)) \
-     || (TARGET_IWMMXT_ABI		\
+   /* Which procedure call variant to use for this call.  */
+@@ -1591,6 +1610,8 @@
+    (IN_RANGE ((REGNO), 0, 3)						\
+     || (TARGET_AAPCS_BASED && TARGET_VFP && TARGET_HARD_FLOAT		\
+ 	&& IN_RANGE ((REGNO), FIRST_VFP_REGNUM, FIRST_VFP_REGNUM + 15))	\
++    || (TARGET_FPA && TARGET_APCS_FLOAT					\
++        && IN_RANGE ((REGNO), FIRST_FPA_REGNUM, FIRST_FPA_REGNUM + 3))	\
+     || (TARGET_IWMMXT_ABI						\
  	&& IN_RANGE ((REGNO), FIRST_IWMMXT_REGNUM, FIRST_IWMMXT_REGNUM + 9)))
-+#else
-+#define FUNCTION_ARG_REGNO_P(REGNO)	\
-+   (IN_RANGE ((REGNO), 0, 3)		\
-+    || (TARGET_IWMMXT_ABI		\
-+	&& IN_RANGE ((REGNO), FIRST_IWMMXT_REGNUM, FIRST_IWMMXT_REGNUM + 9)))
-+#endif
  
- 
- /* If your target environment doesn't prefix user functions with an
-@@ -1695,6 +1744,11 @@ typedef struct
+@@ -1677,6 +1698,11 @@
     pointer.  Note we have to use {ARM|THUMB}_HARD_FRAME_POINTER_REGNUM
     because the definition of HARD_FRAME_POINTER_REGNUM is not a constant.  */
  
@@ -215,30 +118,16 @@
  #define ELIMINABLE_REGS						\
  {{ ARG_POINTER_REGNUM,        STACK_POINTER_REGNUM            },\
   { ARG_POINTER_REGNUM,        FRAME_POINTER_REGNUM            },\
-@@ -1703,7 +1757,13 @@ typedef struct
+@@ -1685,6 +1711,7 @@
   { FRAME_POINTER_REGNUM,      STACK_POINTER_REGNUM            },\
   { FRAME_POINTER_REGNUM,      ARM_HARD_FRAME_POINTER_REGNUM   },\
   { FRAME_POINTER_REGNUM,      THUMB_HARD_FRAME_POINTER_REGNUM }}
 +#endif
  
-+#ifdef TARGET_RISCOSELF
-+/* Given FROM and TO register numbers, say whether this elimination is
-+   allowed.  Frame pointer elimination is automatically handled.  */
-+#define CAN_ELIMINATE(FROM, TO)	arm_can_eliminate ((FROM), (TO))
-+#else
- /* Given FROM and TO register numbers, say whether this elimination is
-    allowed.  Frame pointer elimination is automatically handled.
- 
-@@ -1718,6 +1778,7 @@ typedef struct
-    ((TO) == ARM_HARD_FRAME_POINTER_REGNUM && TARGET_THUMB) ? 0 :	\
-    ((TO) == THUMB_HARD_FRAME_POINTER_REGNUM && TARGET_ARM) ? 0 :	\
-    1)
-+#endif
- 
  /* Define the offset between two registers, one to be eliminated, and the
     other its replacement, at the start of a routine.  */
-@@ -1834,8 +1895,8 @@ typedef struct
- /*   On the ARM, don't allow the pc to be used.  */
+@@ -1730,8 +1757,8 @@
+ /* Don't allow the pc to be used.  */
  #define ARM_REGNO_OK_FOR_BASE_P(REGNO)			\
    (TEST_REGNO (REGNO, <, PC_REGNUM)			\
 -   || TEST_REGNO (REGNO, ==, FRAME_POINTER_REGNUM)	\
@@ -246,11 +135,11 @@
 +   || (!OPTION_APCS_STACK && TEST_REGNO (REGNO, ==, FRAME_POINTER_REGNUM)) \
 +   || (!OPTION_APCS_STACK && TEST_REGNO (REGNO, ==, ARG_POINTER_REGNUM)))
  
- #define THUMB_REGNO_MODE_OK_FOR_BASE_P(REGNO, MODE)		\
+ #define THUMB1_REGNO_MODE_OK_FOR_BASE_P(REGNO, MODE)		\
    (TEST_REGNO (REGNO, <=, LAST_LO_REGNUM)			\
-@@ -1931,6 +1992,11 @@ typedef struct
- #define ASM_OUTPUT_LABELREF(FILE, NAME)		\
-    arm_asm_output_labelref (FILE, NAME)
+@@ -1819,6 +1846,11 @@
+   if (TARGET_THUMB2)			\
+     thumb2_asm_output_opcode (STREAM);
  
 +#ifdef TARGET_RISCOSELF
 +/* Defining CTORS_SECTION_ASM_OP makes the asm() hacks in crtstuff.c generate
@@ -260,7 +149,7 @@
  /* The EABI specifies that constructors should go in .init_array.
     Other targets use .ctors for compatibility.  */
  #ifndef ARM_EABI_CTORS_SECTION_OP
-@@ -1976,6 +2042,7 @@ typedef struct
+@@ -1864,6 +1896,7 @@
  #   define DTORS_SECTION_ASM_OP ARM_DTORS_SECTION_OP
  # endif /* !defined (__ARM_EABI__) */
  #endif /* !defined (IN_LIBCC2) */
@@ -268,7 +157,7 @@
  
  /* True if the operating system can merge entities with vague linkage
     (e.g., symbols in COMDAT group) during dynamic linking.  */
-@@ -2012,8 +2079,8 @@ typedef struct
+@@ -1885,8 +1918,8 @@
  #define ARM_REG_OK_FOR_BASE_P(X)		\
    (REGNO (X) <= LAST_ARM_REGNUM			\
     || REGNO (X) >= FIRST_PSEUDO_REGISTER	\
@@ -277,5 +166,5 @@
 +   || (!OPTION_APCS_STACK && REGNO (X) == FRAME_POINTER_REGNUM) \
 +   || (!OPTION_APCS_STACK && REGNO (X) == ARG_POINTER_REGNUM))
  
- #define THUMB_REG_MODE_OK_FOR_BASE_P(X, MODE)	\
-   (REGNO (X) <= LAST_LO_REGNUM			\
+ #define ARM_REG_OK_FOR_INDEX_P(X)		\
+   ((REGNO (X) <= LAST_ARM_REGNUM		\

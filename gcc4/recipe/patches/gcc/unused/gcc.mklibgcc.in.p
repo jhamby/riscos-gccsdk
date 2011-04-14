@@ -1,6 +1,6 @@
---- gcc/mklibgcc.in.orig	2006-09-10 09:13:12.000000000 +0200
-+++ gcc/mklibgcc.in	2010-07-04 19:34:10.016901483 +0200
-@@ -104,7 +104,8 @@ fi
+--- gcc/mklibgcc.in.orig	2010-05-03 01:05:34.854529940 +0200
++++ gcc/mklibgcc.in	2010-05-03 01:04:58.664531597 +0200
+@@ -73,7 +73,8 @@ fi
  # Build lines.
  
  gcc_compile='$(GCC_FOR_TARGET) $(LIBGCC2_CFLAGS) $(INCLUDES)'
@@ -10,7 +10,7 @@
  make_compile='$(MAKE) GCC_FOR_TARGET="$(GCC_FOR_TARGET)" \
  	  AR_FOR_TARGET="$(AR_FOR_TARGET)" \
  	  AR_CREATE_FOR_TARGET="$(AR_CREATE_FOR_TARGET)" \
-@@ -201,10 +202,19 @@ for ml in $MULTILIBS; do
+@@ -170,10 +171,19 @@ for ml in $MULTILIBS; do
    libunwind_a=
    libunwind_so=
  
@@ -31,12 +31,12 @@
      libgcc_eh_a=$dir/libgcc_eh.a
      libgcc_s_so=$dir/libgcc_s${SHLIB_EXT}
      if [ "$LIBUNWIND" ]; then
-@@ -869,7 +879,7 @@ for ml in $MULTILIBS; do
-   echo '	chmod 644'  ${ldir}/libgcov.a
+@@ -827,7 +837,7 @@ for ml in $MULTILIBS; do
+   echo '	$(INSTALL_DATA)' ${dir}/libgcov.a ${ldir}/
    echo '	$(RANLIB_FOR_TARGET)' ${ldir}/libgcov.a
  
 -  if [ "$SHLIB_LINK" ]; then
 +  if [ -n "$SHLIB_LINK" -a -z "`echo $flags | grep -- "-mlibscl"`" ]; then
      echo '	$(INSTALL_DATA)' ${dir}/libgcc_eh.a ${ldir}/
-     echo '	chmod 644'  ${ldir}/libgcc_eh.a
      echo '	$(RANLIB_FOR_TARGET)' ${ldir}/libgcc_eh.a
+ 

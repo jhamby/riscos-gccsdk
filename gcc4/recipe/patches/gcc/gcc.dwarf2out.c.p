@@ -1,6 +1,18 @@
---- gcc/dwarf2out.c.orig	2006-12-27 23:23:55.000000000 +0100
-+++ gcc/dwarf2out.c	2010-07-04 19:34:09.884398568 +0200
-@@ -1697,6 +1697,13 @@ dwarf2out_frame_debug_expr (rtx expr, co
+Index: gcc/dwarf2out.c
+===================================================================
+--- gcc/dwarf2out.c	(revision 172225)
++++ gcc/dwarf2out.c	(working copy)
+@@ -2446,7 +2446,9 @@
+ 	      /* Rule 3 */
+ 	      /* Either setting the FP from an offset of the SP,
+ 		 or adjusting the FP */
++#ifndef TARGET_RISCOSELF
+ 	      gcc_assert (frame_pointer_needed);
++#endif
+ 
+ 	      gcc_assert (REG_P (XEXP (src, 0))
+ 			  && (unsigned) REGNO (XEXP (src, 0)) == cfa.reg
+@@ -2495,6 +2497,13 @@
  		  cfa_temp.reg = REGNO (dest);
  		  cfa_temp.offset = INTVAL (XEXP (src, 1));
  		}
@@ -14,3 +26,18 @@
  	      else
  		gcc_unreachable ();
  	    }
+@@ -17380,12 +17389,14 @@
+       elim = XEXP (elim, 0);
+     }
+ 
++#ifndef TARGET_RISCOSELF
+   gcc_assert ((SUPPORTS_STACK_ALIGNMENT
+ 	       && (elim == hard_frame_pointer_rtx
+ 		   || elim == stack_pointer_rtx))
+ 	      || elim == (frame_pointer_needed
+ 			  ? hard_frame_pointer_rtx
+ 			  : stack_pointer_rtx));
++#endif
+ 
+   frame_pointer_fb_offset = -offset;
+ }

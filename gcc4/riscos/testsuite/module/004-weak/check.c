@@ -54,10 +54,7 @@ main (int argc, char *argv[])
     puts ("*NOT* ok");
 
   fputs ("Test 08/08 : ", stdout);
-#if 0
-  /* FIXME: this can only be enabled in GCCSDK 4.6.x.  */
   func_not_defined (); /* ARM specific : gets translated to MOV R0,R0 */
-#endif
   puts ("ok");
 
   return 0;

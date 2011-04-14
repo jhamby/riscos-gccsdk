@@ -416,7 +416,6 @@ int _dl_parse_copy_information(struct dyn_elf * xpnt, int rel_addr,
   int goof = 0;
   Elf32_Sym * symtab;
   Elf32_Rel * rpnt;
-  unsigned int * reloc_addr;
   unsigned int symbol_addr;
   struct elf_resolve *tpnt;
   int symtab_index;
@@ -434,7 +433,6 @@ int _dl_parse_copy_information(struct dyn_elf * xpnt, int rel_addr,
   {
   struct elf_resolve *lib;
 
-    reloc_addr = (unsigned int *) (tpnt->loadaddr + (int)rpnt->r_offset);
     reloc_type = ELF32_R_TYPE(rpnt->r_info);
     if(reloc_type != R_ARM_COPY) continue;
     symtab_index = ELF32_R_SYM(rpnt->r_info);

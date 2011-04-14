@@ -1,6 +1,8 @@
---- gcc/defaults.h.orig	2010-05-02 20:10:05.294534071 +0200
-+++ gcc/defaults.h	2010-05-02 20:09:51.582032153 +0200
-@@ -353,7 +353,7 @@ Software Foundation, 51 Franklin Street,
+Index: gcc/defaults.h
+===================================================================
+--- gcc/defaults.h	(revision 167269)
++++ gcc/defaults.h	(working copy)
+@@ -390,7 +390,7 @@
  #endif
  
  /* This decision to use a .jcr section can be overridden by defining
@@ -9,14 +11,15 @@
     can define JCR_SECTION_NAME but does not have crtstuff or
     linker support for .jcr section.  */
  #ifndef TARGET_USE_JCR_SECTION
-@@ -362,6 +362,10 @@ Software Foundation, 51 Franklin Street,
+@@ -399,7 +399,11 @@
  #else
  #define TARGET_USE_JCR_SECTION 0
  #endif
 +#else
 +#if !TARGET_USE_JCR_SECTION
 +#undef JCR_SECTION_NAME
-+#endif
  #endif
++#endif
  
  /* Number of hardware registers that go into the DWARF-2 unwind info.
+    If not defined, equals FIRST_PSEUDO_REGISTER  */

@@ -1,24 +1,23 @@
 /* Definitions for ARM running RISC OS using ELF
-   Copyright (C) 1993, 1994, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-   2005 Free Software Foundation, Inc.
-   Contributed by Nick Burrett <nick@sqrt.co.uk>
+   Copyright (C) 2005-2010 Free Software Foundation, Inc.
+   Contributed by Nick Burrett (nick@sqrt.co.uk>),
+   John Tytgat (John.Tytgat@aaug.net) and Lee Noar (leenoar@sky.com).
 
-   This file is part of GCC.
+This file is part of GCC.
 
-   GCC is free software; you can redistribute it and/or modify it
-   under the terms of the GNU General Public License as published
-   by the Free Software Foundation; either version 2, or (at your
-   option) any later version.
+GCC is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 3, or (at your option)
+any later version.
 
-   GCC is distributed in the hope that it will be useful, but WITHOUT
-   ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-   or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
-   License for more details.
+GCC is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-   You should have received a copy of the GNU General Public License
-   along with this program; see the file COPYING.  If not, write to
-   the Free Software Foundation, 59 Temple Place - Suite 330,
-   Boston, MA 02111-1307, USA.  */
+You should have received a copy of the GNU General Public License
+along with GCC; see the file COPYING3.  If not see
+<http://www.gnu.org/licenses/>.  */
 
 /* elfos.h should have already been included.  Now just override
    any conflicting definitions and add any extras.  */
@@ -39,11 +38,15 @@
 
 /* RISC OS FPE always understands FPA instructions.  */
 #undef  FPUTYPE_DEFAULT
-#define FPUTYPE_DEFAULT FPUTYPE_FPA_EMU3
+#define FPUTYPE_DEFAULT "fpe3"
 
 /* RISC OS uses the APCS-32 ABI.  */
 #undef ARM_DEFAULT_ABI
 #define ARM_DEFAULT_ABI ARM_ABI_APCS32
+
+/* We like unwind data.  */
+#undef ARM_UNWIND_INFO
+#define ARM_UNWIND_INFO 1
 
 /* For PIC code we need to explicitly specify (PLT) and (GOT) relocs. (PLT) is
    not needed for module code.  */
@@ -58,28 +61,28 @@
    -mfloat-abi=soft.  */
 #undef SUBTARGET_EXTRA_ASM_SPEC
 #define SUBTARGET_EXTRA_ASM_SPEC \
-     "%{!mfpu:%{mhard-float|mfloat-abi=hard:-mfpu=fpa; :-mfpu=softfpa}}" \
+     "%{!mfpu=*:%{mhard-float|mfloat-abi=hard:-mfpu=fpa; :-mfpu=softfpa}}" \
      "%{fpic|fPIC: -k}"
 
 #undef SUBTARGET_EXTRA_LINK_SPEC
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
 #  define SUBTARGET_EXTRA_LINK_SPEC \
      "-m armelf_riscos -p %{!static:%{!fpic:-fPIC}} " \
-     "%{fpic:-fpic} %{mmodule:--ro-module-reloc} "
+     "%{fpic:-fpic} %{mmodule:--ro-module-reloc --target2=rel} "
 #else
 /* When building the native RISC OS compiler, we add an extra library path
    GCCSOLib:  */
 #  define SUBTARGET_EXTRA_LINK_SPEC \
      "-m armelf_riscos -p %{!static:%{!fpic:-fPIC -L/GCCSOLib:}} " \
-     "%{fpic:-fpic} %{mmodule:--ro-module-reloc} "
+     "%{fpic:-fpic} %{mmodule:--ro-module-reloc --target2=rel} "
 #endif
 
 /* libscl means hard-float only.  Module support means libscl and
    hard-float.  libscl and module support go for static libgcc
    library.  */
-#define SUBTARGET_OPTION_TRANSLATE_TABLE		    \
-  { "-mlibscl", "-mlibscl -mhard-float -static" },	    \
-  { "-mmodule", "-mmodule -mlibscl -mhard-float -static" }
+#define DRIVER_SELF_SPECS						\
+  "%{mlibscl:-mlibscl -mhard-float -static} %<mlibscl",			\
+  "%{mmodule:-mmodule -mlibscl -mhard-float -static} %<mmodule"		\
 
 /* Default multilib is UnixLib and soft-float.  */
 #undef  MULTILIB_DEFAULTS
@@ -100,18 +103,20 @@
 
 /* In general:
      When building with --enable-shared:
-       libgcc.a = support rotuines, not including EH
+       libgcc.a = support routines, not including EH
        libgcc_eh.a = EH support routines
        libgcc_s.so = support routines, including EH
      When building with --disable-shared:
        libgcc.a = support routines including EH
    Even when --enable-shared is used, the SCL cases are all forced
-   to a --disable-shared alike mode and don't have a libgcc_eh.a built.
+   to a --disable-shared alike mode.
    For the non-SCL cases, we only link with libgcc_s.so when linking with
-   shared libraries as we can't have text relocations coming from libgcc.a.  */
+   shared libraries as we can't have text relocations coming from libgcc.a.
+   We need libgcc_eh for SCL as well, because the division routines pull in
+   the stack unwinder.  */
 #ifdef ENABLE_SHARED_LIBGCC
 #  define REAL_LIBGCC_SPEC \
-     "%{mmodule|mlibscl:-lgcc;:%{static|static-libgcc:-lgcc -lgcc_eh;:-lgcc_s%{!shared: -lgcc}}}"
+     "%{mmodule|mlibscl:-lgcc -lgcc_eh;:%{static|static-libgcc:-lgcc -lgcc_eh;:-lgcc_s%{!shared: -lgcc}}}"
 #else
 #  define REAL_LIBGCC_SPEC \
      "-lgcc"
@@ -184,10 +189,6 @@
     {						\
       builtin_define ("__riscos");		\
       builtin_define ("__riscos__");		\
-      if (flag_pic == 1)			\
-	builtin_define ("__pic__");		\
-      else if (flag_pic == 2)			\
-	builtin_define ("__PIC__");		\
     }						\
   while (0)
 
@@ -217,8 +218,8 @@
 #undef  CC1_SPEC
 #define CC1_SPEC "%{profile:-p}"
 
-#define LINK_GCC_C_SEQUENCE_SPEC \
-  "%{static:--start-group} %G %L %{static:--end-group}%{!static:%G}"
+#undef LINK_GCC_C_SEQUENCE_SPEC
+#define LINK_GCC_C_SEQUENCE_SPEC "--start-group %G %L --end-group"
 
 /* Same definition as in gcc.c but with --start-group / --end-group around
    %o.  */
@@ -300,6 +301,8 @@
       call_used_regs[SL_REGNUM] = 1;				\
     }								\
 
+#if 0
+/* FIXME: temporary disabled. */
 /* For the throwback of GCC errors to a text editor.  */
 extern void arm_error_throwback (int lvl, const char *file, int line,
   const char *s, va_list *va) ATTRIBUTE_FPTR_PRINTF(4,0);
@@ -307,8 +310,9 @@ extern void arm_error_throwback (int lvl, const char *file, int line,
 /* Define for the implementation of throwbacks.  */
 #define TARGET_ERROR_THROWBACK \
   arm_error_throwback
+#endif
 
-#ifndef CROSS_COMPILE
+#ifndef CROSS_DIRECTORY_STRUCTURE
 /* This section defines all the specific features for GCC when running
    natively on RISC OS.  */
 
@@ -329,7 +333,7 @@ extern const char *riscos_convert_filename (void *obstack,
 #undef DIR_SEPARATOR
 #define DIR_SEPARATOR '/'
 
-#endif /* ! CROSS_COMPILE */
+#endif /* ! CROSS_DIRECTORY_STRUCTURE */
 
 /* Maths operation domain error number, EDOM.  For CLib it is 1, for UnixLib
    is is 33.  */

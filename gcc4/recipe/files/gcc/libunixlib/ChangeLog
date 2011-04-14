@@ -1,3 +1,42 @@
+Sat Feb  5 20:20:02 2011  Lee Noar <leenoar@sky.com>
+
+	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk): Add
+	implementation for SCL. 
+	(UnixLib version): Fix return register list in the case
+	of fp == 0. Change 1st arg to void ** (so the SCL version
+	can return a different frame pointer) and alter code
+	accordingly.
+
+Fri Jan 21 20:40:11 2011  Lee Noar <leenoar@sky.com>
+
+	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk): New
+	function. Used by the ARM stack unwinder to track the
+	current stack chunk and stack limit. UnixLib version only
+	to begin with.
+
+Sat Aug 21 16:55:44 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/unix.c (exit): Revert previous workaround. gcc bug
+	44974 is solved.
+
+Wed Jul 21 14:46:21 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/unix.c (exit): Add temporary workaround for gcc bug
+	http://gcc.gnu.org/bugzilla/show_bug.cgi?id=44974
+
+Sat Jul 17 03:33:14 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* libtool.m4.p: Move away as gcc patch for its common libtool.m4.
+	* libtool-org.m4: Remove.
+	* configure.ac: No longer expect to find a local libtool.m4.
+
+Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac (AC_PREREQ): Require at least Autotools 2.64 (like
+	gcc 4.6); m4_rename -> m4_rename_force
+
+// ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
+
 Wed Apr  6 03:27:25 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/unix.c (convert_command_line): Use __canonicalise_path

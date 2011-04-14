@@ -1,41 +1,8 @@
---- libiberty/configure.ac.orig	2010-04-17 22:17:32.325383538 +0200
-+++ libiberty/configure.ac	2010-04-17 22:15:43.112883021 +0200
-@@ -109,9 +109,34 @@ dnl to call AC_CHECK_PROG.
- AC_CHECK_TOOL(AR, ar)
- AC_CHECK_TOOL(RANLIB, ranlib, :)
- 
-+dnl When switching to automake, replace the following with AM_ENABLE_MULTILIB.
-+# Add --enable-multilib to configure.
-+# Default to --enable-multilib
-+AC_ARG_ENABLE(multilib,
-+[  --enable-multilib       build many library versions (default)],
-+[case "$enableval" in
-+  yes) multilib=yes ;;
-+  no)  multilib=no ;;
-+  *)   AC_MSG_ERROR([bad value $enableval for multilib option]) ;;
-+ esac],
-+             [multilib=yes])
-+
-+# Even if the default multilib is not a cross compilation,
-+# it may be that some of the other multilibs are.
-+if test $cross_compiling = no && test $multilib = yes \
-+   && test "x${with_multisubdir}" != x ; then
-+   cross_compiling=maybe
-+fi
-+
- GCC_NO_EXECUTABLES
-+
-+m4_rename([_AC_ARG_VAR_PRECIOUS],[real_PRECIOUS])
-+m4_define([_AC_ARG_VAR_PRECIOUS],[])
- AC_PROG_CC
- AC_PROG_CPP_WERROR
-+m4_rename([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
-+AC_SUBST(CFLAGS)
-+AC_SUBST(CPPFLAGS)
- 
- if test x$GCC = xyes; then
-   ac_libiberty_warn_cflags='-W -Wall -pedantic -Wwrite-strings -Wstrict-prototypes'
-@@ -157,6 +182,15 @@ if [[ -n "${with_build_subdir}" ]]; then
+Index: libiberty/configure.ac
+===================================================================
+--- libiberty/configure.ac	(revision 168600)
++++ libiberty/configure.ac	(working copy)
+@@ -176,6 +176,15 @@
    enable_shared=no
  fi
  
@@ -51,3 +18,101 @@
  frag=
  case "${host}" in
    rs6000-ibm-aix3.1 | rs6000-ibm-aix)
+@@ -483,6 +492,97 @@
+     setobjs=yes
+     ;;
+ 
++  arm-unknown-riscos)
++    # If we are being configured for RISC OS, we know which functions
++    # UnixLib/SCL provides and which ones we will expected to provide.
++
++    if [[ -n "`echo $CC | grep -- -mlibscl`" ]]; then
++      # SCL support for functions mentioned in $funcs
++      AC_LIBOBJ([asprintf])
++      AC_LIBOBJ([basename])
++      AC_LIBOBJ([bcopy])
++      AC_LIBOBJ([bzero])
++      AC_LIBOBJ([getcwd])
++      AC_LIBOBJ([getpagesize])
++      AC_LIBOBJ([index])
++      AC_LIBOBJ([insque])
++      AC_LIBOBJ([memmem])
++      AC_LIBOBJ([mempcpy])
++      AC_LIBOBJ([mkstemps])
++      AC_LIBOBJ([random])
++      AC_LIBOBJ([rindex])
++      AC_LIBOBJ([sigsetmask])
++      AC_LIBOBJ([strcasecmp])
++      AC_LIBOBJ([strncasecmp])
++      AC_LIBOBJ([strndup])
++      AC_LIBOBJ([strverscmp])
++      AC_LIBOBJ([vasprintf])
++      AC_LIBOBJ([waitpid])
++      AC_LIBOBJ([setproctitle])
++      for f in $funcs; do
++        case "$f" in
++          asprintf | basename | bcopy | bzero | getcwd | getpagesize | index \
++            | insque | memmem | mempcpy | mkstemps | random | rindex \
++            | sigsetmask | strcasecmp | strncasecmp | strndup | strverscmp \
++            | vasprintf | waitpid | setproctitle)
++            ;;
++	  *)
++	    n=HAVE_`echo $f | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
++	    AC_DEFINE_UNQUOTED($n)
++	    ;;
++        esac
++      done
++
++      # SCL support of the variables in $vars:
++      AC_DEFINE(HAVE_SYS_ERRLIST)
++      AC_DEFINE(HAVE_SYS_NERR)
++      AC_DEFINE(HAVE_SYS_SIGLIST)
++
++      # Of the functions in $checkfuncs, SCL only has:
++      AC_DEFINE(HAVE_GETTIMEOFDAY)
++      AC_DEFINE(HAVE_STRERROR)
++      AC_DEFINE(HAVE_STRSIGNAL)
++      AC_DEFINE(HAVE_TIMES)
++    else
++      # UnixLib support for functions mentioned in $funcs
++      AC_LIBOBJ([memmem])
++      AC_LIBOBJ([mempcpy])
++      AC_LIBOBJ([mkstemps])
++      AC_LIBOBJ([strverscmp])
++      AC_LIBOBJ([setproctitle])
++      for f in $funcs; do
++        case "$f" in
++          memmem | mempcpy | mkstemps | strverscmp | setproctitle)
++            ;;
++	  *)
++	    n=HAVE_`echo $f | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'`
++	    AC_DEFINE_UNQUOTED($n)
++	    ;;
++        esac
++      done
++
++      # UnixLib support of the variables in $vars:
++      AC_DEFINE(HAVE_SYS_ERRLIST)
++      AC_DEFINE(HAVE_SYS_NERR)
++      AC_DEFINE(HAVE_SYS_SIGLIST)
++
++      # Of the functions in $checkfuncs, UnixLib only has:
++      AC_DEFINE(HAVE_GETRUSAGE)
++      AC_DEFINE(HAVE_GETTIMEOFDAY)
++      AC_DEFINE(HAVE_PSIGNAL)
++      AC_DEFINE(HAVE_REALPATH)
++      AC_DEFINE(HAVE_SBRK)
++      AC_DEFINE(HAVE_STRERROR)
++      AC_DEFINE(HAVE_STRSIGNAL)
++      AC_DEFINE(HAVE_SYSCONF)
++      AC_DEFINE(HAVE_TIMES)
++      AC_DEFINE(HAVE_WAIT3)
++      AC_DEFINE(HAVE_WAIT4)
++    fi
++
++    setobjs=yes
++    ;;
++
+   *-*-msdosdjgpp)
+     AC_LIBOBJ([vasprintf])
+     AC_LIBOBJ([vsnprintf])

@@ -11,30 +11,10 @@
 #define NULL ((void *) 0)
 #endif
 
-extern inline char *_dl_strcpy (char *dest, const char *src);
-extern inline char *_dl_strncpy (char *dest, const char *src, size_t count);
-extern inline char *_dl_strcat (char *dest, const char *src);
-extern inline char *_dl_strncat (char *dest, const char *src, size_t count);
-extern inline int _dl_strcmp (const char *cs, const char *ct);
-extern inline int _dl_strncmp (const char *cs, const char *ct, size_t count);
-extern inline char *_dl_strchr (const char *s, int c);
-extern inline char *_dl_strrchr (const char *s, int c);
-extern inline size_t _dl_strspn (const char *cs, const char *ct);
-extern inline size_t _dl_strcspn (const char *cs, const char *ct);
-extern inline char *_dl_strpbrk (const char *cs, const char *ct);
-extern inline char *_dl_strstr (const char *cs, const char *ct);
-extern inline size_t _dl_strlen (const char *s);
-extern inline char *_dl_strtok (char *s, const char *ct);
-extern inline void *_dl_memcpy (void *to, const void *from, size_t n);
-extern inline void *_dl_memmove (void *dest, const void *src, size_t n);
-extern inline int _dl_memcmp (const void *cs, const void *ct, size_t count);
-extern inline void *_dl_memchr (const void *cs, int c, size_t count);
-extern inline void *_dl_memset (void *s, int c, size_t count);
-
 /* Make sure we are using our inline version.  */
 #define strlen(s) _dl_strlen(s)
 
-extern inline char *
+static inline char *
 _dl_strcpy (char *dest, const char *src)
 {
   char *xdest = dest;
@@ -44,7 +24,7 @@ _dl_strcpy (char *dest, const char *src)
   return xdest;
 }
 
-extern inline char *
+static inline char *
 _dl_strncpy (char *dest, const char *src, size_t n)
 {
   char *xdest = dest;
@@ -58,7 +38,7 @@ _dl_strncpy (char *dest, const char *src, size_t n)
   return xdest;
 }
 
-extern inline char *
+static inline char *
 _dl_strcat (char *dest, const char *src)
 {
   char *xdest = dest;
@@ -71,7 +51,7 @@ _dl_strcat (char *dest, const char *src)
   return xdest;
 }
 
-extern inline char *
+static inline char *
 _dl_strncat (char *dest, const char *src, size_t count)
 {
   char *xdest = dest;
@@ -88,7 +68,7 @@ _dl_strncat (char *dest, const char *src, size_t count)
   return xdest;
 }
 
-extern inline int
+static inline int
 _dl_strcmp (const char *cs, const char *ct)
 {
   char c;
@@ -99,7 +79,7 @@ _dl_strcmp (const char *cs, const char *ct)
   return c - *--ct;
 }
 
-extern inline int
+static inline int
 _dl_strncmp (const char *cs, const char *ct, size_t count)
 {
   char c;
@@ -113,7 +93,7 @@ _dl_strncmp (const char *cs, const char *ct, size_t count)
   return c - *--ct;
 }
 
-extern inline char *
+static inline char *
 _dl_strchr (const char *s, int c)
 {
   const char ch = c;
@@ -124,7 +104,7 @@ _dl_strchr (const char *s, int c)
   return (char *) s;
 }
 
-extern inline char *
+static inline char *
 _dl_strrchr (const char * s, int c)
 {
   char *res = NULL;
@@ -140,7 +120,7 @@ _dl_strrchr (const char * s, int c)
   return res;
 }
 
-extern inline size_t
+static inline size_t
 _dl_strspn (const char *s, const char *accept)
 {
   const char *p;
@@ -160,7 +140,7 @@ _dl_strspn (const char *s, const char *accept)
   return count;
 }
 
-extern inline size_t
+static inline size_t
 _dl_strcspn (const char *s, const char *reject)
 {
   const char *p;
@@ -178,7 +158,7 @@ _dl_strcspn (const char *s, const char *reject)
   return count;
 }
 
-extern inline char *
+static inline char *
 _dl_strpbrk (const char *cs, const char *ct)
 {
   const char *sc1, *sc2;
@@ -190,7 +170,7 @@ _dl_strpbrk (const char *cs, const char *ct)
   return NULL;
 }
 
-extern inline char *
+static inline char *
 _dl_strstr (const char *cs, const char *ct)
 {
   const char *p;
@@ -206,7 +186,7 @@ _dl_strstr (const char *cs, const char *ct)
     }
 }
 
-extern inline size_t
+static inline size_t
 _dl_strlen (const char *s)
 {
   const char *sc;
@@ -218,7 +198,7 @@ _dl_strlen (const char *s)
 
 extern char * ___strtok;
 
-extern inline char *
+static inline char *
 _dl_strtok(char * s,const char * ct)
 {
   char *sbegin, *send;
@@ -239,7 +219,7 @@ _dl_strtok(char * s,const char * ct)
   return sbegin;
 }
 
-extern inline void *
+static inline void *
 _dl_memcpy (void *to, const void *from, size_t n)
 {
   char *cto = to;
@@ -250,7 +230,7 @@ _dl_memcpy (void *to, const void *from, size_t n)
   return to;
 }
 
-extern inline void *
+static inline void *
 _dl_memmove (void *dest, const void *src, size_t n)
 {
   char *cdest = dest;
@@ -271,7 +251,7 @@ _dl_memmove (void *dest, const void *src, size_t n)
   return dest;
 }
 
-extern inline int
+static inline int
 _dl_memcmp (const void *cs, const void *ct, size_t count)
 {
   const unsigned char *su1, *su2;
@@ -282,7 +262,7 @@ _dl_memcmp (const void *cs, const void *ct, size_t count)
   return 0;
 }
 
-extern inline void *
+static inline void *
 _dl_memchr (const void *cs, int c, size_t count)
 {
   const unsigned char ch = c;
@@ -294,7 +274,7 @@ _dl_memchr (const void *cs, int c, size_t count)
   return NULL;
 }
 
-extern inline void *
+static inline void *
 _dl_memset (void *s, int c, size_t count)
 {
   char *cs = s;

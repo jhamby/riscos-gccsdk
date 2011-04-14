@@ -86,14 +86,13 @@ extern int _dl_linux_dynamic_link(void);
 #else
 #define SEND_STDERR(X) _dl_write(2, X, _dl_strlen(X));
 #endif
-extern int _dl_write(int, const char *, int);
+
 extern int _dl_fdprintf(int, const char *, ...);
 extern char * _dl_library_path;
 extern char * _dl_strdup(const char *);
-extern inline int _dl_symbol(char * name);
 unsigned long _dl_elf_hash(const char * name);
 
-extern inline int _dl_symbol(char * name)
+static inline int _dl_symbol(char * name)
 {
   if(name[0] != '_' || name[1] != 'd' || name[2] != 'l' || name[3] != '_')
     return 0;

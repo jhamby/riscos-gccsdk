@@ -1,6 +1,6 @@
 /* GCCSDK Module testsuite:
  *
- *   Module data can be stored as read-only date and is then part of the
+ *   Module data can be stored as read-only data and is then part of the
  *   module code not requiring any specific relocation.  Writable module
  *   data is stored in the module RMA workspace and needs runtime
  *   relocation via the relocation data offset found on the runtime stack.

@@ -40,21 +40,12 @@ typedef struct os_error
   char errmess[252];
 } os_error;
 
-extern inline void _dl_exit(int status);
-extern inline void _dl_close(int fd);
-extern inline int _dl_mmap(void * addr, unsigned int size,
-				    unsigned int prot,
-				    unsigned int flags, int fd,
-				    unsigned int f_offset);
 #ifndef _dl_MAX_ERRNO
 #define _dl_MAX_ERRNO 4096
 #endif
 #define _dl_mmap_check_error(__res)	\
 	(((int)__res) < 0 && ((int)__res) >= -_dl_MAX_ERRNO)
-extern /*inline */int _dl_open(char * addr, unsigned int flags);
-extern inline int _dl_write(int fd, const char * buf, int len);
-extern inline int _dl_read(int fd, const char * buf, int len);
-extern inline int _dl_mprotect(const char * addr, int size, int prot);
+extern int _dl_open (char * addr, unsigned int flags);
 #ifdef __riscos
 #include <sys/stat.h>
 #else
@@ -62,8 +53,7 @@ extern inline int _dl_mprotect(const char * addr, int size, int prot);
 #include <asm/stat.h>
 #undef new_stat
 #endif /* __riscos */
-extern /*inline */int _dl_stat(char * filename, struct stat *st);
-extern inline int _dl_munmap(char * addr, int size);
+extern int _dl_stat (char * filename, struct stat *st);
 
 /* Here are the definitions for a bunch of syscalls that are required
    by the dynamic linker.  The idea is that we want to be able
@@ -80,7 +70,8 @@ extern inline int _dl_munmap(char * addr, int size);
 		".asciz \""x"\";\n\t"	\
 		".align\n\t")
 
-static inline void print_text(char *s)
+static inline void
+print_text (const char *s)
 {
   asm volatile ("	mov r0, %[s];\n"
 		"	swi %[OS_Write0];\n"
@@ -90,7 +81,8 @@ static inline void print_text(char *s)
 		: "a1", "cc");
 }
 
-static inline void print_hex(unsigned int v)
+static inline void
+print_hex (unsigned int v)
 {
   asm volatile ("	mov r0, %[v];\n"
 		"	sub r1, sp, #20;\n"
@@ -106,13 +98,15 @@ static inline void print_hex(unsigned int v)
 		: "a1", "a2", "a3", "cc");
 }
 
-static inline void print_nl(void)
+static inline void
+print_nl (void)
 {
   asm volatile ("	swi 0x10a;\n"
 		"	swi 0x10d;\n");
 }
 
-static inline void print_dec(unsigned int v)
+static inline void
+print_dec (unsigned int v)
 {
   asm volatile ("	mov r0, %[v];\n"
   		"	sub r1, sp, #20;\n"
@@ -132,7 +126,8 @@ static inline void print_dec(unsigned int v)
 /*
   This is used only for debugging the dynamic loader
 */
-extern inline volatile void backtrace(void)
+extern inline volatile void
+backtrace (void)
 {
   asm volatile ("mov r3,fp;\n\t"
   		"cmp r3,#0x8000;\n\t"
@@ -186,9 +181,10 @@ extern inline volatile void backtrace(void)
 }
 #endif
 
-static inline unsigned int _dl_check_system_files(char *name)
+static inline unsigned int
+_dl_check_system_files (const char *name)
 {
-unsigned int res;
+  unsigned int res;
 
   asm volatile ("	mov	r0, %[name];\n"
 		"	swi	%[XSOM_HandleFromName];\n"
@@ -200,9 +196,10 @@ unsigned int res;
   return res;
 }
 
-static inline unsigned int _dl_generate_runtime_array(void)
+static inline unsigned int
+_dl_generate_runtime_array (void)
 {
-unsigned int err_flag;
+  unsigned int err_flag;
 
   asm volatile ("	swi	%[XSOM_GenerateRuntimeArray];\n"
 		"	movvc	%[err_flag], #0;\n"
@@ -213,12 +210,11 @@ unsigned int err_flag;
   return err_flag;
 }
 
-/*
-  Return next object for given object
-*/
-static inline struct elf_resolve *_dl_next_object(void **handle)
+/* Return next object for given object.  */
+static inline struct elf_resolve *
+_dl_next_object (void **handle)
 {
-struct elf_resolve *res;
+  struct elf_resolve *res;
 
   asm volatile ("	mov	r0, %[reason];\n"
 		"	mov	r1, %[handle_i];\n"
@@ -233,12 +229,11 @@ struct elf_resolve *res;
   return res;
 }
 
-/*
-  Return first object for current client's object list
-*/
-static inline struct elf_resolve *_dl_first_object(void **handle)
+/* Return first object for current client's object list.  */
+static inline struct elf_resolve *
+_dl_first_object (void **handle)
 {
-struct elf_resolve *res;
+  struct elf_resolve *res;
 
   asm volatile ("	mov	r0, %[reason];\n"
 		"	swi	%[XSOM_IterateObjects];\n"
@@ -251,7 +246,8 @@ struct elf_resolve *res;
   return res;
 }
 
-static inline unsigned int _dl_handle_from_addr(void *addr)
+static inline unsigned int
+_dl_handle_from_addr (void *addr)
 {
 unsigned int res;
 
@@ -265,9 +261,10 @@ unsigned int res;
   return res;
 }
 
-static inline unsigned int *_dl_got_from_addr(void *addr)
+static inline unsigned int *
+_dl_got_from_addr (void *addr)
 {
-unsigned int *got;
+  unsigned int *got;
 
   asm volatile ("	mov	r0,%[arg];\n"
 		"	swi	%[XSOM_GOTFromAddr];\n"
@@ -279,9 +276,10 @@ unsigned int *got;
   return got;
 }
 
-static inline char *_dl_resolve_symlinks(const char *filename)
+static inline char *
+_dl_resolve_symlinks (const char *filename)
 {
-char *res;
+  char *res;
 
   asm volatile ("	mov	r0, %[filename];\n"
 		"	swi	%[XSOM_ResolveLinks];\n"
@@ -294,7 +292,8 @@ char *res;
   return res;
 }
 
-static inline void _dl_som_free(void *addr)
+static inline void
+_dl_som_free (void *addr)
 {
   asm volatile ("	mov	r0, %[addr];\n"
 		"	swi	%[XSOM_Free];\n"
@@ -304,7 +303,8 @@ static inline void _dl_som_free(void *addr)
 		: "a1", "cc");
 }
 
-static inline void _dl_exit(int status)
+static inline void
+_dl_exit (int status)
 {
   asm volatile ("	swi	%[XSOM_DeregisterClient];\n"
 		"	ldr	r0, 1f;\n"
@@ -323,7 +323,8 @@ static inline void _dl_exit(int status)
 		  [OS_Exit] "i" (0x11));
 }
 
-static inline void _dl_generate_error(const os_error *err)
+static inline void
+_dl_generate_error (const os_error *err)
 {
   asm volatile ("	swi	%[XSOM_DeregisterClient];\n"
 		"	mov	r0, %[err];\n"
@@ -335,7 +336,8 @@ static inline void _dl_generate_error(const os_error *err)
 		: "r0", "cc");
 }
 
-static inline void _dl_close(int fd)
+static inline void
+_dl_close (int fd)
 {
   asm volatile ("	mov r1, %[fd];\n"
 		"	mov r0, #0;\n"
@@ -346,9 +348,10 @@ static inline void _dl_close(int fd)
 		: "a1","a2");
 }
 
-static inline int _dl_alloc_lib(unsigned int size)
+static inline int
+_dl_alloc_lib (unsigned int size)
 {
-int addr;
+  int addr;
 
   asm volatile ("	mov r0, %[size];\n"
 		"	swi %[XSOM_AllocLib];\n"
@@ -376,10 +379,9 @@ struct object_info
   unsigned int flags;
 };
 
-/*
-  Register a library for the current app
-*/
-static inline void _dl_register_lib(unsigned int handle,struct object_info *buffer)
+/* Register a library for the current app.  */
+static inline void
+_dl_register_lib (unsigned int handle, const struct object_info *buffer)
 {
   asm volatile ("	mov	r0, %[reason_code_REGISTER_LIBRARY];\n"
 		"	mov	r1, %[handle];\n"
@@ -393,7 +395,8 @@ static inline void _dl_register_lib(unsigned int handle,struct object_info *buff
 		: "a1", "a2", "a3", "cc");
 }
 
-static inline void _dl_deregister_lib(unsigned int handle)
+static inline void
+_dl_deregister_lib (unsigned int handle)
 {
   asm volatile ("	mov	r0, %[handle];\n"
 		"	swi	%[XSOM_DeregisterSharedObject];\n"
@@ -403,13 +406,13 @@ static inline void _dl_deregister_lib(unsigned int handle)
 		: "a1", "cc");
 }
 
-/*
-  Fill buffer with information about the object whose handle is given.
-  Returns -1 if error occured (including not finding the object) or 0 for success.
-*/
-static inline int _dl_query_object_global(unsigned int handle,struct object_info *buffer)
+/* Fill buffer with information about the object whose handle is given.
+   Returns -1 if error occured (including not finding the object) or 0 for
+   success.  */
+static inline int
+_dl_query_object_global (unsigned int handle, struct object_info *buffer)
 {
-int result;
+  int result;
 
   asm volatile ("	mov	r0, %[handle];\n"
 		"	mov	r1, %[buffer];\n"
@@ -426,13 +429,13 @@ int result;
   return result;
 }
 
-/*
-  Fill buffer with information about the object whose handle is given.
-  Returns -1 if error occured (including not finding the object) or 0 for success.
-*/
-static inline int _dl_query_object_client(unsigned int handle,struct object_info *buffer)
+/* Fill buffer with information about the object whose handle is given.
+   Returns -1 if error occured (including not finding the object) or 0 for
+   success.  */
+static inline int
+_dl_query_object_client (unsigned int handle, struct object_info *buffer)
 {
-int result;
+  int result;
 
   asm volatile ("	mov	r0, %[handle];\n"
 		"	mov	r1, %[buffer];\n"
@@ -449,13 +452,12 @@ int result;
   return result;
 }
 
-/* This is only used for loading the cache */
-static inline int _dl_mmap(void * rqd_addr, unsigned int size,
-				    unsigned int prot,
-				    unsigned int flags, int fd,
-				    unsigned int f_offset)
+/* This is only used for loading the cache.  */
+static inline int
+_dl_mmap (void * rqd_addr, unsigned int size, unsigned int prot,
+	  unsigned int flags, int fd, unsigned int f_offset)
 {
-int addr = 0;
+  int addr = 0;
 
   asm volatile ("	mov	r0, %[size];\n"
   		"	swi	%[XSOM_Alloc];\n"
@@ -481,7 +483,8 @@ int addr = 0;
   return addr;
 }
 
-static inline int _dl_write(int fd, const char * buf, int len)
+static inline int
+_dl_write (int fd, const char * buf, int len)
 {
   int status;
 
@@ -518,7 +521,8 @@ static inline int _dl_write(int fd, const char * buf, int len)
 }
 
 
-static inline int _dl_read(int fd, const char * buf, int len)
+static inline int
+_dl_read (int fd, const char * buf, int len)
 {
   int status;
 
@@ -543,9 +547,10 @@ static inline int _dl_read(int fd, const char * buf, int len)
   return status;
 }
 
-static inline int _dl_set_file_pos(int fd, int pos)
+static inline int
+_dl_set_file_pos (int fd, int pos)
 {
-int status;
+  int status;
 
   asm volatile ("	mov	r0, #1;\n"
 		"	mov	r1, %[fd];\n"
@@ -561,9 +566,10 @@ int status;
   return status;
 }
 
-static inline int _dl_munmap(char * addr, int size)
+static inline int
+_dl_munmap (char * addr, int size)
 {
-int ret;
+  int ret;
 
   asm volatile ("	mov	r0, %[addr];\n"
 		"	swi	%[XSOM_Free];\n"
@@ -581,8 +587,8 @@ int ret;
  * Not an actual syscall, but we need something in assembly to say whether
  * this is OK or not.
  */
-
-static inline int _dl_suid_ok(void)
+static inline int
+_dl_suid_ok (void)
 {
   return 1;
 }

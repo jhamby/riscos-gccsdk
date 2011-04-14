@@ -21,10 +21,6 @@ else
   echo "export GCCSDK_INSTALL_CROSSBIN=$work_dir/cross/bin" >> $params
   echo "# This is where the porting tools and any libraries you build will be installed."  >> $params
   echo "export GCCSDK_INSTALL_ENV=$work_dir/env" >> $params
-  echo "" >> $params
-  echo "# -- Do not change following section:" >> $params
-  echo "# Required by the build." >> $params
-  echo "export LTCONFIG_VERSION=1.4a-GCC3.0" >> $params 
 
   echo ""
   echo "It looks like this is the first time you're running the GCCSDK build."
@@ -62,7 +58,7 @@ export GCCSDK_RISCOS_PREFIX=$GCCSDK_RELEASE_AREA/full
 export GCCSDK_BUILDDIR=$GCCSDK_ROOT/builddir
 
 # Currently supported versions of gcc and binutils:
-export GCCSDK_SUPPORTED_GCC_RELEASE=4.1.2
+export GCCSDK_SUPPORTED_GCC_RELEASE=4.6.0
 export GCCSDK_SUPPORTED_BINUTILS_RELEASE=2.21
 
 # Release name:

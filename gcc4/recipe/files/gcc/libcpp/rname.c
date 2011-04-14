@@ -1,11 +1,11 @@
 /* RISC OS to Unix format file name conversion.
    (c) Copyright 1996, 2000, Nick Burrett.
-   (c) Copyright 2007 GCCSDK Developers.
+   (c) Copyright 2007-2011 GCCSDK Developers.
 
    This source provides one function:
       extern char *riscos_to_unix (char *riscos)
    
-   In cross-compilation builds (CROSS_COMPILE set) there is support
+   In cross-compilation builds (CROSS_DIRECTORY_STRUCTURE set) there is support
    to map "MyPath:foo.h" into "/a/directory/path/foo.h" when environment
    variable MYPATH_PATH is set to "/a/directory/path".  The XYZ_PATH
    environment variable can be a comma separated search path.  */
@@ -18,7 +18,7 @@
 #include <sys/stat.h>
 
 /* #define DEBUG */
-/* #define CROSS_COMPILE */
+/* #define CROSS_DIRECTORY_STRUCTURE */
 /* #define TEST */
 
 extern char *riscos_to_unix (char *riscos);
@@ -64,7 +64,7 @@ riscos_to_unix (char *riscos)
 	    /* */;
 	  if (*e)
 	    {
-	      char *out = malloc (strlen (e) + strlen (riscos) + 1);
+	      char *out = (char *)malloc (strlen (e) + strlen (riscos) + 1);
 	      while (1)
 	        {
 	          const char *ed;
@@ -130,14 +130,14 @@ test (const char *input, const char *expected)
 int
 main (void)
 {
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
   setenv("TESTPATH_PATH", ", nopath/p, HostFS::bad HostFS::Disc/$/put/valid/path/here  ,last.pointless, (see-testpath-definition-in-source-to-remove-problem)", 1);
   setenv("MORETEST_PATH", "nospacesor_commas_should/return/whole-thing", 1);
   setenv("LASTTEST_PATH", "one two three, ,,thisone", 1);
   setenv("DESKLIB_PATH", "/home/adamr/desklib-aof/\\!DeskLib/include, /home/adamr/desklib-aof/\\!DeskLib/oldinclude", 1);
 #endif
 
-  /* XXX_PATH testing (CROSS_COMPILE only).  */
+  /* XXX_PATH testing (CROSS_DIRECTORY_STRUCTURE only).  */
   test ("GCC:objc/list.h",
         "GCC:objc/list.h");
   test ("gcc:^.getopt.c",
@@ -149,37 +149,37 @@ main (void)
   test ("gcc:/getopt.c",
         "gcc:/getopt.c");
   test ("Lasttest:dir/whatever.c",
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
         "thisone/dir/whatever.c");
 #else
         "/Lasttest:dir/whatever.c");
 #endif
   test ("TestPath:inetdown.h",
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
         "(see-testpath-definition-in-source-to-remove-problem)/inetdown.h");
 #else
         "/TestPath:inetdown.h");
 #endif
   test ("Moretest:none",
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
         "nospacesor_commas_should/return/whole-thing/none");
 #else
         "/Moretest:none");
 #endif
   test ("Nopathhere:nothing.to.see.c.here",
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
         "Nopathhere:nothing.to.see.c.here");
 #else
         "Nopathhere:nothing.to.see.c.here");
 #endif
   test ("DeskLib:Wimp.h",
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
         "/home/adamr/desklib-aof/\\!DeskLib/oldinclude/Wimp.h");
 #else
         "/DeskLib:Wimp.h");
 #endif
   test ("DeskLib:WAssert.h",
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
         "/home/adamr/desklib-aof/\\!DeskLib/oldinclude/WAssert.h");
 #else
         "/DeskLib:WAssert.h");

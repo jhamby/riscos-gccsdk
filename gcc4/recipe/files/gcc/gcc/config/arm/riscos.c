@@ -1,24 +1,23 @@
 /* Functions for RISC OS as target machine for GNU C compiler.
-   Copyright (C) 1997, 1999, 2003, 2004, 2005 Free Software Foundation, Inc.
-   Contributed by Nick Burrett <nick@sqrt.co.uk>,
-   Alex Waugh <alex@alexwaugh.com> and John Tytgat <John.Tytgat@aaug.net>.
+   Copyright (C) 2005-2010 Free Software Foundation, Inc.
+   Contributed by Nick Burrett (nick@sqrt.co.uk),
+   Alex Waugh (alex@alexwaugh.com) and John Tytgat (John.Tytgat@aaug.net).
 
-This file is part of GNU CC.
+This file is part of GCC.
 
-GNU CC is free software; you can redistribute it and/or modify
+GCC is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
-the Free Software Foundation; either version 2, or (at your option)
+the Free Software Foundation; either version 3, or (at your option)
 any later version.
 
-GNU CC is distributed in the hope that it will be useful,
+GCC is distributed in the hope that it will be useful,
 but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
-along with GNU CC; see the file COPYING.  If not, write to
-the Free Software Foundation, 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+along with GCC; see the file COPYING3.  If not see
+<http://www.gnu.org/licenses/>.  */
 
 
 #include "config.h"
@@ -33,7 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdlib.h>
 #include <unistd.h>
 
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
 # include <string.h>
 # include <limits.h>
 # include <time.h>
@@ -51,7 +50,7 @@ Boston, MA 02111-1307, USA.  */
 #define THROWBACK_WARNING 0
 #define THROWBACK_ERROR 1
 
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
 /* The syslog facilities and priorities.  */
 # define PRI_WARNING (1 * 8 + 4)
 # define PRI_ERROR   (1 * 8 + 3)
@@ -68,7 +67,7 @@ Boston, MA 02111-1307, USA.  */
 # define DDEUTILS_THROWBACK_REASON_INFO_DETAILS  2
 #endif
 
-#ifndef CROSS_COMPILE
+#ifndef CROSS_DIRECTORY_STRUCTURE
 /* The full RISC OS canonicalised pathname of the current error file.  */
 static char *arm_error_file = NULL;
 #endif
@@ -80,7 +79,7 @@ static char *arm_error_file = NULL;
 static int arm_error_file_ref = -1;
 #endif
 
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
 static int arm_throwback_socket = 0;
 #endif
 
@@ -96,7 +95,7 @@ static void arm_throwback_finish (void);
 static void
 arm_throwback_start (void)
 {
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
   struct hostent *hp;
   struct servent *servptr;
   struct sockaddr_in name;
@@ -151,7 +150,7 @@ arm_throwback_start (void)
 #endif
 }
 
-#ifndef CROSS_COMPILE
+#ifndef CROSS_DIRECTORY_STRUCTURE
 /* Tell DDEUtils that we are processing a new file.
    The DDE documentation is unclear, but does suggest that this
    message should be sent if the filename changes.  */
@@ -172,7 +171,7 @@ static void
 arm_throwback_error (const char *fname, int level,
 		     int line_number, const char *error, int errorlen)
 {
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
   char msg[1024];
   int len;
   char hostname[100];
@@ -225,7 +224,7 @@ arm_throwback_error (const char *fname, int level,
 static void
 arm_throwback_finish (void)
 {
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
   /* Close the socket.  */
   close (arm_throwback_socket);
   arm_throwback_socket = 0;
@@ -239,7 +238,7 @@ arm_throwback_finish (void)
 #endif
 }
 
-#ifndef CROSS_COMPILE
+#ifndef CROSS_DIRECTORY_STRUCTURE
 /* Convert from Unix name to RISC OS name and canonicalise the name
    so that throwback knows the full pathname of the file.
    Return the converted filename, stored in arm_error_file, or NULL.  */
@@ -286,6 +285,8 @@ riscos_canonicalise_filename (const char *sname)
 }
 #endif
 
+#if 0
+/* FIXME: temporary disabled. */
 /* Throwback interface to GNU family of compilers.  */
 void
 arm_error_throwback (int lvl, const char *file, int line, const char *s,
@@ -307,7 +308,7 @@ arm_error_throwback (int lvl, const char *file, int line, const char *s,
     arm_throwback_start ();
 
   if (arm_throwback_started > 0
-#ifndef CROSS_COMPILE
+#ifndef CROSS_DIRECTORY_STRUCTURE
       && riscos_canonicalise_filename (file)
 #endif
      )
@@ -316,7 +317,7 @@ arm_error_throwback (int lvl, const char *file, int line, const char *s,
       char sline[16];
       const char *p;
 
-#ifndef CROSS_COMPILE
+#ifndef CROSS_DIRECTORY_STRUCTURE
       arm_throwback_new_file (arm_error_file);
 #endif
 
@@ -351,7 +352,7 @@ arm_error_throwback (int lvl, const char *file, int line, const char *s,
 	    p++;
 
 	  arm_throwback_error (
-#ifdef CROSS_COMPILE
+#ifdef CROSS_DIRECTORY_STRUCTURE
 			       file,
 #else
 			       arm_error_file,
@@ -361,6 +362,7 @@ arm_error_throwback (int lvl, const char *file, int line, const char *s,
 	}
     }
 }
+#endif
 
 #if 0
 /* Error category mapping for GNAT errors.  */

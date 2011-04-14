@@ -1,6 +1,8 @@
---- libjava/configure.ac.orig	2006-09-26 01:56:42.000000000 +0200
-+++ libjava/configure.ac	2006-09-26 01:57:07.000000000 +0200
-@@ -787,8 +787,8 @@
+Index: libjava/configure.ac
+===================================================================
+--- libjava/configure.ac	(revision 167517)
++++ libjava/configure.ac	(working copy)
+@@ -1052,8 +1052,8 @@
  case "$THREADS" in
   posix)
      case "$host" in

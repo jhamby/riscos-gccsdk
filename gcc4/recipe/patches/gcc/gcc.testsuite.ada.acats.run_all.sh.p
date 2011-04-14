@@ -1,6 +1,8 @@
---- gcc/testsuite/ada/acats/run_all.sh.orig	2008-05-24 13:28:11.000000000 +0200
-+++ gcc/testsuite/ada/acats/run_all.sh	2008-05-25 15:07:50.000000000 +0200
-@@ -144,7 +144,9 @@
+Index: gcc/testsuite/ada/acats/run_all.sh
+===================================================================
+--- gcc/testsuite/ada/acats/run_all.sh	(revision 161055)
++++ gcc/testsuite/ada/acats/run_all.sh	(working copy)
+@@ -154,7 +154,9 @@
  fi
  ./macrosub > macrosub.out 2>&1
  

@@ -1,6 +1,8 @@
---- gcc/testsuite/ada/acats/run_acats.orig	2008-05-24 13:28:19.000000000 +0200
-+++ gcc/testsuite/ada/acats/run_acats	2008-05-24 16:27:14.000000000 +0200
-@@ -22,6 +22,12 @@
+Index: gcc/testsuite/ada/acats/run_acats
+===================================================================
+--- gcc/testsuite/ada/acats/run_acats	(revision 161055)
++++ gcc/testsuite/ada/acats/run_acats	(working copy)
+@@ -37,6 +37,12 @@
     exit 1
  fi
  
@@ -13,7 +15,7 @@
  if [ ! -f $BASE/gnatchop ]; then
     echo gnattools missing, exiting.
     exit 1
-@@ -33,7 +39,9 @@
+@@ -48,7 +54,9 @@
  fi
  
  GCC_DRIVER="$BASE/xgcc"

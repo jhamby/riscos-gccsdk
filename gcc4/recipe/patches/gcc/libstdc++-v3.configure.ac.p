@@ -1,6 +1,8 @@
---- libstdc++-v3/configure.ac.orig	2010-05-12 01:59:36.178786562 +0200
-+++ libstdc++-v3/configure.ac	2010-05-12 01:59:00.789010932 +0200
-@@ -82,6 +82,11 @@ AH_TEMPLATE(VERSION, [Version number of 
+Index: libstdc++-v3/configure.ac
+===================================================================
+--- libstdc++-v3/configure.ac	(revision 167517)
++++ libstdc++-v3/configure.ac	(working copy)
+@@ -92,6 +92,11 @@
  # up critical shell variables.
  GLIBCXX_CONFIGURE
  
@@ -9,13 +11,13 @@
 +  enable_shared=no
 +fi
 +
- AC_LIBTOOL_DLOPEN
- AM_PROG_LIBTOOL
- AC_SUBST(enable_shared)
-@@ -111,7 +116,14 @@ GLIBCXX_ENABLE_CXX_FLAGS
- GLIBCXX_ENABLE_FULLY_DYNAMIC_STRING([no])
- 
- # No surprises, no surprises...
+ if test "x${with_newlib}" != "xyes"; then
+   AC_LIBTOOL_DLOPEN
+ fi
+@@ -111,7 +116,14 @@
+ # Enable compiler support that doesn't require linking.
+ GLIBCXX_ENABLE_SJLJ_EXCEPTIONS
+ GLIBCXX_ENABLE_PCH($is_hosted)
 +if [[ -n "`echo $CC | grep -- -mlibscl`" ]]; then
 +  # SCL does not have thread support:
 +  glibcxx_thread_h=gthr-single.h
@@ -24,6 +26,6 @@
 +else
  GLIBCXX_ENABLE_THREADS
 +fi
- if test $atomicity_dir = cpu/generic ; then
-   AC_MSG_WARN([No native atomic operations are provided for this platform.])
-   if test $target_thread_file = single; then
+ GLIBCXX_ENABLE_ATOMIC_BUILTINS
+ GLIBCXX_ENABLE_DECIMAL_FLOAT
+ 

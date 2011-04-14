@@ -1,4 +1,23 @@
 ;; Implementations for dyamic allocation off the stack.
+;; Copyright (C) 2005-2010 Free Software Foundation, Inc.
+;; Contributed by Nick Burrett (nick@sqrt.co.uk>)
+;; and Lee Noar (leenoar@sky.com).
+
+;; This file is part of GCC.
+
+;; GCC is free software; you can redistribute it and/or modify it
+;; under the terms of the GNU General Public License as published
+;; by the Free Software Foundation; either version 3, or (at your
+;; option) any later version.
+
+;; GCC is distributed in the hope that it will be useful, but WITHOUT
+;; ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+;; or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public
+;; License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GCC; see the file COPYING3.  If not see
+;; <http://www.gnu.org/licenses/>.
 
 ;; These patterns say how to perform an equivalent to dynamic allocation
 ;; off the stack. We use library routines to return malloced memory
@@ -87,10 +106,11 @@
 })
 
 (define_insn "rt_stkovf"
-  [(unspec:SI [(match_operand:SI 0 "s_register_operand" "r")
-               (match_operand:SI 1 "s_register_operand" "r")
+  [(unspec:SI [(match_operand:SI 0 "s_register_operand" "")
+               (match_operand:SI 1 "s_register_operand" "")
                (match_operand 2 "" "")] UNSPEC_STK)
    (clobber (reg:SI SL_REGNUM))
+   (use (reg:SI 11))
    (clobber (reg:SI IP_REGNUM))
    (clobber (reg:SI LR_REGNUM))
    (clobber (reg:CC CC_REGNUM))]
@@ -101,8 +121,8 @@
 
 ; 4th operand is ignored and included to make pattern different from rt_stkovf
 (define_insn "rt_stkovf_v5_clobbered"
-  [(unspec:SI [(match_operand:SI 0 "s_register_operand" "r")
-               (match_operand:SI 1 "s_register_operand" "r")
+  [(unspec:SI [(match_operand:SI 0 "s_register_operand" "")
+               (match_operand:SI 1 "s_register_operand" "")
                (match_operand 2 "" "")
 	       (match_operand 3 "" "")] UNSPEC_STK)
    (clobber (reg:SI 8))

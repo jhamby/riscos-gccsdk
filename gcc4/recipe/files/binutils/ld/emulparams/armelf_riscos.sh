@@ -17,6 +17,11 @@ OTHER_TEXT_SECTIONS='*(.glue_7t) *(.glue_7) *(.riscos.libscl.chunkstub.start) *(
 OTHER_BSS_SYMBOLS='__bss_start__ = .;'
 OTHER_BSS_END_SYMBOLS='_bss_end__ = . ; __bss_end__ = . ; __end__ = . ;'
 OTHER_SECTIONS='.note.gnu.arm.ident 0 : { KEEP (*(.note.gnu.arm.ident)) }'
+OTHER_READONLY_SECTIONS="
+  .ARM.extab ${RELOCATING-0} : { *(.ARM.extab${RELOCATING+* .gnu.linkonce.armextab.*}) }
+  ${RELOCATING+ PROVIDE_HIDDEN (__exidx_start = .); }
+  .ARM.exidx ${RELOCATING-0} : { *(.ARM.exidx${RELOCATING+* .gnu.linkonce.armexidx.*}) }
+  ${RELOCATING+ PROVIDE_HIDDEN (__exidx_end = .); }"
 
 TEXT_START_ADDR=0x00008000
 TARGET2_TYPE=got-rel

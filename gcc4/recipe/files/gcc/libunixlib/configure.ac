@@ -4,12 +4,7 @@ dnl structure and be automatically built as it is.
 dnl Process this file with autoconf to produce a configure script
 dnl Written by Nick Burrett <nick@sqrt.co.uk>
 
-# Need this to obtain the GCC_NO_EXECUTABLES line.
-sinclude(../config/no-executables.m4)
-# Need this to make sure we're using overruled AC_LIBTOOL_SYS_DYNAMIC_LINKER
-sinclude(./libtool.m4)
-
-AC_PREREQ(2.59)
+AC_PREREQ(2.64)
 AC_INIT([RISC OS UnixLib C Runtime Library], 5.0, [http://gccsdk.riscos.info/], [libunixlib])
 AC_CONFIG_SRCDIR([assert/assert.c])
 AC_CONFIG_HEADER(config.h)
@@ -102,7 +97,7 @@ m4_rename([_AC_ARG_VAR_PRECIOUS],[real_PRECIOUS])
 m4_define([_AC_ARG_VAR_PRECIOUS],[])
 AC_PROG_CC
 AC_PROG_CPP
-m4_rename([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
+m4_rename_force([real_PRECIOUS],[_AC_ARG_VAR_PRECIOUS])
 AC_SUBST(CFLAGS)
 AC_SUBST(CPPFLAGS)
 

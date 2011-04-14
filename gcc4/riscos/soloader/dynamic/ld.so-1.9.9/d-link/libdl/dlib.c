@@ -345,15 +345,15 @@ static int do_dlclose(void * vhandle, int need_fini)
 {
 	struct dyn_elf * rpnt, *rpnt1;
 	struct dyn_elf *spnt, *spnt1;
-	struct elf_phdr * ppnt;
 	struct elf_resolve * tpnt;
 	int (*dl_elf_fini)(void);
-	void (*dl_brk)(void);
 	struct dyn_elf * handle;
 #ifndef __riscos__
+	void (*dl_brk)(void);
+	struct elf_phdr * ppnt;
 	unsigned int end;
-#endif
 	int i = 0;
+#endif
 
 	handle = (struct dyn_elf *) vhandle;
 	rpnt1 = NULL;

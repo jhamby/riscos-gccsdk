@@ -1,7 +1,7 @@
-The RISC OS Software Development Kit [GCCSDK GCC 4.1.2 Release 1 - Development]
+The RISC OS Software Development Kit [GCCSDK GCC 4.6.0 Release 1 - Development]
 ====================================
 
-This is a lightweight build environment which currently combines GCC 4.1.2
+This is a lightweight build environment which currently combines GCC 4.6.0
 release, binutils 2.21 release, UnixLib 5.0 into one directory which can be
 used to build a RISC OS cross-compiler and native RISC OS compiler with
 target 'arm-unknown-riscos' (APCS-32 compliant).
@@ -19,7 +19,8 @@ The following is a non exhaustive list of programs which are needed to compile
 and work with GCCSDK on top of a typical recent standard Unix distribution:
 
 - autogen v5.5.4 (or later)
-- m4 v1.4.11 (other versions might work too)
+- m4 v1.4.16 (m4 might not be needed but when it needed, this is the minimal
+  version required)
 - bison v2.3 (other versions might work too)
 - svn v1.2 or later (only to be used to checkout GCCSDK source code from
   svn.riscos.info Subversion server)
@@ -37,8 +38,6 @@ be automatically downloaded, built & installed locally and used.
 When you want to build Ada:
 
 - gcc and g++ need to be version 4.1.
-- GMP library (Debian package 'libgmp3-dev')
-- MPFR library (Debian package 'libmpfr-dev')
 - GNAT 4.1 (Debian package 'gnat-4.1')
 
 When you want to run the GCC testsuite, you need at least:
@@ -114,23 +113,22 @@ Or if you want to catch the full output in a log file, you do this by:
 This makefile will build the cross-compiler in several big steps.  After
 each successful step, an empty file gets written in the 'buildstepsdir'
 directory.  The filename of each file in 'buildstepsdir' follows a
-simple name convention: <type>-<subtype>
+simple name convention: <type>-<subtype>-<action>
 
 Following <type> values are in use:
 
   cross     : Build & installation of that part of cross-compiler is done.
-              Parts are 'binutils', 'gcc-bootstrap' and 'gcc-full'.
+              Parts are 'binutils', 'gcc', 'gmp', 'mpc' and 'mpfr'.
+              <action> can be 'configured' and 'built'.
   ronative  : Build & installation of that part of the RISC OS native compiler
               is done.  Parts are 'binutils' and 'gcc-full'.
   src       : Source downloaded in srcdir.orig directory.  Those sources are
               binutils, gcc, autoconf & automake (possibly different versions
               for binutils and gcc).
+              <action> is always 'copied'.
   buildtool : Build & installed tool needed during the build.  Those tools are
               currently autoconf and automake.
-  clean     : Removes temporary build produced files but not the installed
-              compiler.
-  distclean : Removes temporary build produced files including the installed
-              compiler.
+              <action> is always 'built'.
 
 The 'make' command will always fully rebuild the next uncompleted step even if
 that step was nearly done (nothing will be reused of that step).  If you
@@ -181,6 +179,17 @@ restart that step where it left off:
        For one of the gcc components, use:
 
          $ PATH=<path-to-builddir>/installed-buildtools-for-gcc/bin:$PATH make install
+
+Other useful make targets:
+
+  ronative  : Builds the RISC OS native compiler (see Section 4 below)
+  clean     : Removes intermediate build files, the built cross and RISC OS
+              native compiler.  Private changes in $GCCSDK_SRCDIR are lost
+              (use create-patch first if you want to keep them).
+  distclean : Same as clean and additionally also removes the cached sources
+              fetched from Internet.
+  updategcc : Updates the GCC sources from GCC svn repository (only when not
+              using fixed GCC releases).
 
 2.3. Build porting tools
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -314,11 +323,24 @@ script will also take care of making full copies inside recipe/files directory
 when it concerns a file not belonging to GCC nor binutils standard
 distribution.
 
-  $ cd srcdir
-  $ ../create-patch <file to patch or file to copy>
+  $ cd srcdir/gcc
+  $ ../../create-patch <file to patch or file to copy>
+
+or
+
+  $ cd srcdir/binutils
+  $ ../../create-patch <file to patch or file to copy>
 
 Don't forget to do a 'svn add recipe/...' when it concerns a new patch file or
 a new file inside recipe/files or recipe/scripts.
+
+When making non-obvious changes in ARM's backend, please do a full rebuild of
+the cross-compiler with '--enable-checking=release' changed to
+'--enable-checking=all' in 'Makefile'.  Even better is to let this followed by
+a full rebuild of the RISC OS native compiler as well.
+Note, this is time expensive (but worthwhile) as it makes the cross-compiler
+go very slow because of all the internal consistency run-time checks being
+made.
 
 
 6. Testing
@@ -333,7 +355,7 @@ you to run unmodified ELF RISC OS binaries under Linux.
 The GCC testsuite requires the installation of at least DejaGnu, Tcl and
 Expect and can be started using:
 
-  $ cd builddir-cross/gcc
+  $ cd builddir/cross-gcc/gcc/
   $ make check-gcc//unix/{-static}
 
 Currently the testing works only for static libraries so that why you need to

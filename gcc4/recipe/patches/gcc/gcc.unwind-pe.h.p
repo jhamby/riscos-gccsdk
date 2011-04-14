@@ -1,6 +1,8 @@
---- gcc/unwind-pe.h.orig	2009-07-03 20:53:37.000000000 +0100
-+++ gcc/unwind-pe.h	2009-06-27 18:58:40.000000000 +0100
-@@ -175,6 +175,22 @@ read_sleb128 (const unsigned char *p, _U
+Index: gcc/unwind-pe.h
+===================================================================
+--- gcc/unwind-pe.h	(revision 161055)
++++ gcc/unwind-pe.h	(working copy)
+@@ -173,6 +173,22 @@
    return p;
  }
  
@@ -23,7 +25,7 @@
  /* Load an encoded value from memory at P.  The value is returned in VAL;
     The function returns P incremented past the value.  BASE is as given
     by base_of_encoded_value for this encoding in the appropriate context.  */
-@@ -264,7 +280,12 @@ read_encoded_value_with_base (unsigned c
+@@ -262,7 +278,12 @@
  	  result += ((encoding & 0x70) == DW_EH_PE_pcrel
  		     ? (_Unwind_Internal_Ptr) u : base);
  	  if (encoding & DW_EH_PE_indirect)

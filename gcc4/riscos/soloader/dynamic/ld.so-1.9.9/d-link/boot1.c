@@ -341,7 +341,7 @@ void _dl_boot(int args)
       /* Now parse the relocation information */
       rpnt = (ELF_RELOC *) (rel_addr + load_addr);
       for(i=0; i< rel_size; i+=sizeof(ELF_RELOC), rpnt++){
-	reloc_addr = (int *) (load_addr + (int)rpnt->r_offset);
+	reloc_addr = (unsigned int *) (load_addr + (int)rpnt->r_offset);
 	symtab_index = ELF32_R_SYM(rpnt->r_info);
 	symbol_addr = 0;
 	if(symtab_index) {

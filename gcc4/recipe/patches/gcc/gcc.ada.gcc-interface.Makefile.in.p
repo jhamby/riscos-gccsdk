@@ -1,10 +1,11 @@
---- gcc/ada/Makefile.in.orig	2008-04-27 20:34:28.000000000 +0200
-+++ gcc/ada/Makefile.in	2008-04-28 03:07:07.000000000 +0200
-@@ -386,6 +386,26 @@
- # $(strip STRING) removes leading and trailing spaces from STRING.
- # If what's left is null then it's a match.
+Index: gcc/ada/gcc-interface/Makefile.in
+===================================================================
+--- gcc/ada/gcc-interface/Makefile.in	(revision 165928)
++++ gcc/ada/gcc-interface/Makefile.in	(working copy)
+@@ -1841,6 +1841,26 @@
+   LIBRARY_VERSION := $(LIB_VERSION)
+ endif
  
-+ 
 +ifeq ($(strip $(filter-out arm% riscos%,$(arch) $(osys))),)
 +  LIBGNAT_TARGET_PAIRS = \
 +  a-intnam.ads<a-intnam-riscos.ads \
@@ -21,9 +22,10 @@
 +  g-soccon.ads<g-soccon-riscos.ads \
 +  system.ads<system-riscos-arm.ads
 +
++  # FIXME: GCCSDK: most probably needs updating !
 +  EH_MECHANISM=-gcc
 +endif
 +
- ifeq ($(strip $(filter-out m68k% wrs vx%,$(targ))),)
+ ifeq ($(strip $(filter-out arm% linux-gnueabi,$(arch) $(osys)-$(word 4,$(targ)))),)
    LIBGNAT_TARGET_PAIRS = \
-   a-intnam.ads<a-intnam-vxworks.ads \
+   a-intnam.ads<a-intnam-linux.ads \

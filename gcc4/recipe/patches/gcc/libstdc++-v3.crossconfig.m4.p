@@ -1,38 +1,46 @@
---- libstdc++-v3/crossconfig.m4.orig	2006-12-12 15:18:36.000000000 +0100
-+++ libstdc++-v3/crossconfig.m4	2010-07-04 19:34:10.416905223 +0200
-@@ -304,6 +304,35 @@ case "${host}" in
-     AC_DEFINE(HAVE_SINHF)
-     AC_DEFINE(HAVE_SINHL)
+Index: libstdc++-v3/crossconfig.m4
+===================================================================
+--- libstdc++-v3/crossconfig.m4	(revision 169861)
++++ libstdc++-v3/crossconfig.m4	(working copy)
+@@ -204,6 +204,41 @@
+     GLIBCXX_CHECK_MATH_SUPPORT
+     GLIBCXX_CHECK_STDLIB_SUPPORT
      ;;
 +  arm*-*-riscos*)
-+    AC_CHECK_HEADERS([nan.h ieeefp.h endian.h sys/isa_defs.h \
-+      machine/endian.h machine/param.h sys/machine.h sys/types.h \
-+      fp.h float.h endian.h inttypes.h locale.h float.h stdint.h])
 +    SECTION_FLAGS='-ffunction-sections -fdata-sections'
 +    AC_SUBST(SECTION_FLAGS)
-+    GLIBCXX_CHECK_LINKER_FEATURES
-+    GLIBCXX_CHECK_COMPLEX_MATH_SUPPORT
-+    GLIBCXX_CHECK_ICONV_SUPPORT
 +
-+    # For LFS.
-+    AC_DEFINE(HAVE_INT64_T)
++    # FIXME: finetune/check this list:
++    AC_DEFINE(HAVE_HYPOT)
 +
-+    # For showmanyc_helper().
-+    AC_CHECK_HEADERS(sys/ioctl.h sys/filio.h)
-+    GLIBCXX_CHECK_POLL
-+    GLIBCXX_CHECK_S_ISREG_OR_S_IFREG
++    # GLIBCXX_CHECK_STDLIB_SUPPORT
++    AC_DEFINE(HAVE_STRTOF)        
 +
-+    # For xsputn_2().
-+    AC_CHECK_HEADERS(sys/uio.h)
-+    GLIBCXX_CHECK_WRITEV
++    AC_DEFINE(HAVE_ACOSF)
++    AC_DEFINE(HAVE_ASINF)
++    AC_DEFINE(HAVE_ATAN2F)
++    AC_DEFINE(HAVE_ATANF)
++    AC_DEFINE(HAVE_CEILF)
++    AC_DEFINE(HAVE_COSF)
++    AC_DEFINE(HAVE_COSHF)
++    AC_DEFINE(HAVE_EXPF)
++    AC_DEFINE(HAVE_FABSF)
++    AC_DEFINE(HAVE_FLOORF)
++    AC_DEFINE(HAVE_FMODF)
++    AC_DEFINE(HAVE_FREXPF)
++    AC_DEFINE(HAVE_LDEXPF)
++    AC_DEFINE(HAVE_LOG10F)
++    AC_DEFINE(HAVE_LOGF)
++    AC_DEFINE(HAVE_MODFF)
++    AC_DEFINE(HAVE_POWF)
++    AC_DEFINE(HAVE_SINF)
++    AC_DEFINE(HAVE_SINHF)
++    AC_DEFINE(HAVE_SQRTF)
++    AC_DEFINE(HAVE_TANF)
++    AC_DEFINE(HAVE_TANHF)
 +
-+    GLIBCXX_CHECK_MATH_SUPPORT
-+    GLIBCXX_CHECK_BUILTIN_MATH_SUPPORT
-+    GLIBCXX_CHECK_COMPLEX_MATH_SUPPORT
-+    GLIBCXX_CHECK_ICONV_SUPPORT
-+    GLIBCXX_CHECK_STDLIB_SUPPORT
-+    GLIBCXX_CHECK_S_ISREG_OR_S_IFREG
++    AC_DEFINE(HAVE_ICONV)
 +    ;;
    *-solaris*)
      case "$target" in
-     #  *-solaris2.5)
+       *-solaris2.8 | *-solaris2.9 | *-solaris2.10)
