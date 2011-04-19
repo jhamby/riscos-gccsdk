@@ -1,0 +1,84 @@
+This gccsdk/branches/developers/joty/gcc branch is to develop a GCCSDK based
+on gcc4.6trunk together with binutils 2.21.  When it is stable enough, it
+then can become candidate for merging to gccsdk/trunk/gcc4.
+
+Status patch merging:
+
+- All patches which could be merged more or less straightforwardly, have been
+  merged.  The ones which were backport merges were dropped.
+  Patches which didn't apply or were in doubt they are still relevant have
+  been moved to recipe/patches/gcc/unused.  The further we are with this port,
+  it will become clear what their status is (when no longer needed, they will
+  be removed).
+- recipe/files/gcc/gcc/config/arm/{riscos.c,riscos-elf.h}: the throwback
+  support has been disabled (search for 'FIXME') as its implementation needs
+  to be partially redone (hopefully in a cleaner way so that parallel building
+  works again).
+  As reference, the old throwback patches are at recipe/patches/gcc/todo.
+
+Status build:
+
+- Enable languages c and c++, multilib configuration with static target libs
+  cleanly builds.
+- Didn't try any other languages.
+- Shared libraries build without error, but there is a fault in the PIC code
+  generation.
+- Compiler builds without error when using dwarf stack unwinder, but C++
+  programs built using it fail at link time because the wrong personality
+  routine is being referenced. It's unlikely that this will be fixed as we
+  are aiming to use the ARM stack unwinder instead.
+- C++ Exception handling using the ARM stack unwinder works for UnixLib and SCL
+  based programs, including modules (subject to more testing). Shared libraries
+  are not supported yet.
+
+Upstream gcc bug tracking:
+
+- RISC OS target's option crash:
+    "ICE in cancel_option()"
+    http://gcc.gnu.org/bugzilla/show_bug.cgi?id=31980
+  Currently patched by: recipe/patches/gcc/gcc.opts-common.c.p
+
+// ---------------------------------------------
+
+Development tracks:
+
+- gdbserver : very promising for remote debugging.  Proof of concept is working.  Implementation is
+  a bit temperamental.  Still a lot of implementation is to be done.
+
+- asasm : an ObjAsm/RealView clone.  Biggest usecase is RISC OS source code base.
+  - There is a huge catchup to do supporting the recent ARMv6/v7/thumb/NEON/VFP mnemonics.
+
+- Use http://www.nongnu.org/libunwind/ in libunixlib for AAPCS backtrace implementation ?
+
+- gcc4.6 + APCS-32 = branch gccsdk/branches/developers/joty/gcc branch with target = arm-unknown-riscos
+  - status: see above
+  - no NEON/VFP support as hardfp fpu-abi because this is incompatible with FPA but softfp is a possibility (cfr Jeffrey Lee's patches).
+
+Two projects for AAPCS/EABI target: exact AAPCS flavour is not determined.
+
+- gcc4.6 + target arm-unknown-eabi (or custom AAPCS based one), runtime library libunixlib.
+  - embryo state
+  - AAPCS support in UnixLib
+    - runtime & signal stack is fixed 4 KByte without any checking.  Probably need to move that to a DA.
+    - pthread support is broken (is related to the stack creation code).
+    - should the ELF loader not be in charge for setting up RISC OS environment handlers ?
+    - still some unnecessary fp fiddling.
+    - we have no backtrace anymore and need to reimplement this based on the exception unwind data (and you need
+      compile with -fexceptions (I think).  Note, can currently only be developed using gcc4.6 (or earlier)
+      as llvm-gcc/clang does not yet support zero cost exception handling.
+      Probably all our assembler code need exception info added.
+    - missing NEON/VFP support for setjmp/longjmp
+    - no testing done for NEON/VFP build of UnixLib
+  - perhaps a nice multilib configuration ?
+  - would possibly useful to compare against llvm/clang but on the long run the feature set should be the same.
+
+- llvm-gcc/clang + target arm-unknown-eabi (or custom AAPCS based one), runtime library libunixlib.
+  - prototype is working, resulting binaries can be run under RISC OS.  Very limited tested.
+  - currently the build is huge because we're taking llvm-gcc + UnixLib along for just building and using clang.
+    In the long run, this could be slimed down.
+  - AAPCS support in UnixLib (see gcc4.6 topic)
+  - RISC OS native build: very large binaries, not sure if it is going to be realistic to have this running in a 28 MByte wimpslot for non-RISC OS 5 users.
+
+* No answer for module creation when AAPCS/EABI route is taken.  Should we consider to teach our ELF loader to
+  load an ELF datablob (which is maded for module use) and install this as a module ? Perhaps it can even make use of shared ELF libraries
+  later ?
