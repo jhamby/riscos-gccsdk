@@ -7,7 +7,7 @@ Index: gcc/config/arm/arm.opt
  
  mapcs-stack-check
 -Target Report Mask(APCS_STACK) Undocumented
-+Target Report Mask(APCS_STACK) Var(target_apcs_stack_check) Explicit
++Target Report Mask(APCS_STACK) Var(target_apcs_stack_check)
 +Generate code to check the amount of stack space available
  
  march=
