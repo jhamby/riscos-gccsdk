@@ -1,6 +1,6 @@
 #!/bin/bash
 # Written by Alan Buckley <alan_baa@hotmail.com>
-# Copyright (c) 2008-2010 GCCSDK Developers
+# Copyright (c) 2008-2011 GCCSDK Developers
 #
 # Sets the versions of the RISC OS Packaging project
 # packaged created
@@ -27,7 +27,7 @@ export RPKG_SHAREDLIBSGPP_VERSION=6.0.15-$GCCSDK_RELEASE_NAME-1
 # case the version numbers must be changed.
 # The versions numbers are the version numbers of the modules
 
-export RPKG_UNIXLIB_VERSION=1.11-1
+export RPKG_UNIXLIB_VERSION=1.12-1
 
 export RPKG_DRENDERER_VERSION=0.52-1
 
