@@ -8,9 +8,6 @@
 char *
 __strdup (const char *string)
 {
-  if (!string)
-    return NULL;
-
   size_t len = strlen (string) + 1;
   char *newstr;
   if ((newstr = malloc (len)) == NULL)

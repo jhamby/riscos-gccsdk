@@ -1,3 +1,8 @@
+Sun Apr 24 13:16:13 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* string/strdup.c (strdup): Don't check on NULL parameter.
+	It's nowhere documented we should.
+
 Sat Feb  5 20:20:02 2011  Lee Noar <leenoar@sky.com>
 
 	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk): Add
