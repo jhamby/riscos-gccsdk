@@ -46,7 +46,6 @@ LIBELF_VERSION=0.8.13
 ifeq ($(TARGET),arm-unknown-riscos)
 # Case GCCSDK arm-unknown-riscos target:
 # Variations: --disable-shared vs --enable-shared=libunixlib,libgcc,libstdc++
-## FIXME: target_configargs=--disable-shared -> target_configargs=--enable-shared=libunixlib,libgcc,libstdc++
 ## FIXME: Consider --enable-__cxa_atexit (but this can require UnixLib changes).
 # Note: --enable-multilib is the default.  Don't specify it unless you want to get hit
 # by PR43328/PR45174
@@ -55,7 +54,7 @@ GCC_CONFIG_ARGS := \
 	--enable-sjlj-exceptions=no \
 	--enable-c99 \
 	--enable-cmath \
-	target_configargs=--disable-shared \
+	target_configargs=--enable-shared=libunixlib,libgcc,libstdc++ \
 	--disable-c-mbchar \
 	--disable-libstdcxx-pch \
 	--disable-tls

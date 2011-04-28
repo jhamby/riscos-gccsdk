@@ -43,8 +43,7 @@ MULTILIB_DIRNAMES = scl fpu module
 MULTILIB_MATCHES = mhard-float=mfloat-abi?hard
 MULTILIB_EXCLUSIONS = mlibscl/!mhard-float/!mmodule !mlibscl/mhard-float/!mmodule !mlibscl/!mhard-float/mmodule !mlibscl/mhard-float/mmodule mlibscl/!mhard-float/mmodule
 
-# FIXME: temporary removed: crtbeginS.o crtendS.o
-EXTRA_MULTILIB_PARTS = crtbegin.o crtend.o crti.o crtn.o
+EXTRA_MULTILIB_PARTS = crtbegin.o crtend.o crti.o crtn.o crtbeginS.o crtendS.o
 
 # Compile crtbeginS.o and crtendS.o with pic (but not module versions
 # as that causes a compile error).
