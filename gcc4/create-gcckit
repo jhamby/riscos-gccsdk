@@ -292,7 +292,7 @@ create_sharedlibscore_kit() {
 create_gccgpp_kit() {
   cd $SRC_BKIT_GCC_UNPACKED
   create_empty_dir $GCCSDK_KITS/$BKIT_GCCGPP_NAME
-  for obj in lib/{libstdc++.a,libsupc++.a} \
+  for obj in lib/libstdc++.a \
              bin/g++\,* \
              include/c++ ; do
     mkdir -p $GCCSDK_KITS/$BKIT_GCCGPP_NAME/`basename $SRC_BKIT_GCC_UNPACKED`/`dirname $obj`
