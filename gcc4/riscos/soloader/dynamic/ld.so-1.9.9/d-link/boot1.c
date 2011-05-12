@@ -456,6 +456,12 @@ void _dl_boot(int args)
   tpnt->libname = 0;
   tpnt->libtype = program_interpreter;
 
+  tpnt->endaddr = objinfo->public_rw_ptr;
+
+  /* The dynamic linker doesn't have any exception tables.  */
+  tpnt->exidx = 0;
+  tpnt->exidx_size = 0;
+
   {
   Elf32_Ehdr * epnt;
   Elf32_Phdr * ppnt;
@@ -486,13 +492,16 @@ void _dl_boot(int args)
   {
     Elf32_Phdr * ppnt;
     int i;
+    void *text_end = 0;
 
     ppnt = (Elf32_Phdr *) dl_data[AT_PHDR];
     for(i=0; i<dl_data[AT_PHNUM]; i++, ppnt++)
     {
       if(ppnt->p_type == PT_LOAD)
       {
-	if(ppnt->p_vaddr + ppnt->p_memsz > brk_addr)
+	if (ppnt->p_flags & PF_W)
+	  text_end = (void *)ppnt->p_vaddr;
+	if (ppnt->p_vaddr + ppnt->p_memsz > brk_addr)
 	  brk_addr = ppnt->p_vaddr + ppnt->p_memsz;
       }
       else if(ppnt->p_type == PT_DYNAMIC)
@@ -526,6 +535,25 @@ void _dl_boot(int args)
 
 	tpnt->libname =  _dl_strdup((char *) ppnt->p_offset + (dl_data[AT_PHDR] & 0xfffff000));
       }
+    }
+
+    app_tpnt->endaddr = text_end;
+    for(ppnt = (Elf32_Phdr *) dl_data[AT_PHDR],
+	i = 0;
+	i < dl_data[AT_PHNUM] && ppnt->p_type != PT_ARM_EXIDX;
+	ppnt++,
+	i++)
+      /* Empty loop.  */;
+    
+    if (i < dl_data[AT_PHNUM])
+    {
+      app_tpnt->exidx = (_Unwind_Ptr)ppnt->p_vaddr;
+      app_tpnt->exidx_size = ppnt->p_memsz;
+    }
+    else
+    {
+      app_tpnt->exidx = 0;
+      app_tpnt->exidx_size = 0;
     }
   }
 

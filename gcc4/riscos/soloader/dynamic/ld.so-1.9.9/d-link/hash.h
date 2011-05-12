@@ -36,6 +36,15 @@ struct elf_resolve{
   unsigned int dynamic_size;
   unsigned int n_phent;
   Elf32_Phdr * ppnt;
+
+  /* End of text segment.  */
+  char *endaddr;
+
+  /* Address of ARM stack unwinder exception tables.  */
+  _Unwind_Ptr exidx;
+
+  /* Size, in bytes, of exception tables.  */
+  int exidx_size;
 };
 
 #if 0

@@ -19,15 +19,15 @@ Status build:
 - Enable languages c and c++, multilib configuration with static target libs
   cleanly builds.
 - Didn't try any other languages.
-- Shared libraries build without error, but there is a fault in the PIC code
-  generation.
+- Shared libraries build and generally work.
 - Compiler builds without error when using dwarf stack unwinder, but C++
   programs built using it fail at link time because the wrong personality
   routine is being referenced. It's unlikely that this will be fixed as we
   are aiming to use the ARM stack unwinder instead.
 - C++ Exception handling using the ARM stack unwinder works for UnixLib and SCL
-  based programs, including modules (subject to more testing). Shared libraries
-  are not supported yet.
+  based programs, including modules and shared libraries (subject to more testing).
+- C++ exceptions currently fail to propagate correctly when alloca is also used,
+  affects both static and dynamic linking. This is a WIP.
 
 Upstream gcc bug tracking:
 

@@ -310,18 +310,11 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
   Elf32_Dyn * dpnt;
   struct elf_resolve * tpnt;
   Elf32_Phdr * ppnt;
-//  int piclib;
-//  char * status;
-//  int flags;
-  char header[4096];
   int dynamic_info[24];
   int * lpnt;
   unsigned int libaddr;
   unsigned int memsize = 0;
-//  unsigned int minvma=0xffffffff, maxvma=0;
-
   int i;
-  int infile;
 
   unsigned int handle;
   struct object_info objinfo;
@@ -359,6 +352,9 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
   }
   else
   {
+  char header[4096];
+  int infile;
+
     libaddr = 0;
     infile = _dl_open(libname, O_RDONLY);
     if(infile < 0)
@@ -522,6 +518,29 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
     tpnt->ppnt = (Elf32_Phdr *) (tpnt->loadaddr + epnt->e_phoff);
     tpnt->n_phent = epnt->e_phnum;
 
+    /* Scan for exception tables.  */
+    {
+    Elf32_Ehdr *elf_image_hdr = (Elf32_Ehdr *)libaddr;
+
+      tpnt->endaddr = objinfo.public_rw_ptr;
+      for(ppnt = (Elf32_Phdr *)(libaddr + elf_image_hdr->e_phoff),
+	  i = 0;
+	  i < elf_image_hdr->e_phnum && ppnt->p_type != PT_ARM_EXIDX;
+	  ppnt++,
+	  i++)
+	/* Empty loop.  */;
+
+      if (i < elf_image_hdr->e_phnum)
+      {
+	tpnt->exidx = (_Unwind_Ptr)(libaddr + ppnt->p_vaddr);
+	tpnt->exidx_size = ppnt->p_memsz;
+      }
+      else
+      {
+	tpnt->exidx = 0;
+	tpnt->exidx_size = 0;
+      }
+    }
 
     /*
      * If the client has already seen and registered the library, then don't do it

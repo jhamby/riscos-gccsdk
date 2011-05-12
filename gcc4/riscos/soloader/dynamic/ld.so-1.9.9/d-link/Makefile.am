@@ -33,7 +33,8 @@ ld_1_9_9_so_SOURCES = \
 		riscos/elfinterp.c \
 		riscos/stkovf.s \
 		riscos/dl_open.c \
-		riscos/dl_stat.c
+		riscos/dl_stat.c \
+		riscos/dl_unwind.c
 ld_1_9_9_so_CPPFLAGS = -I$(top_srcdir)/d-link -I$(top_srcdir)/d-link/riscos \
 		      -DNO_UNDERSCORE -DVERBOSE_DLINKER -DUSE_CACHE -D__TARGET_SOLOADER__
 ld_1_9_9_so_CFLAGS = -fPIC -O4 -Wall -std=gnu99

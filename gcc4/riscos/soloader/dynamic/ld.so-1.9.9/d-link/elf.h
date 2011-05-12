@@ -7,6 +7,10 @@
 #include <linux/elf.h>
 #endif
 
+#define PT_ARM_EXIDX	0x70000001
+
+typedef unsigned _Unwind_Ptr;
+
 struct nlist
 {
   char			*n_name;	/* symbol name */
