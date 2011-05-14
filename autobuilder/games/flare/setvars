@@ -1,7 +1,7 @@
 
-AB_URL=http://flare-engine.googlecode.com/files/flare_src_v012.zip
+AB_URL=http://flare-engine.googlecode.com/files/flare_src_v013.zip
 
-AB_PVERSION=0.12
+AB_PVERSION=0.13
 
 cp $H/Makefile flare/src
 
@@ -11,8 +11,10 @@ ab_package() {
   ab_create_app Flare Apps/Games  
   ab_makerun $S/flare
   
-  cp -av ../enemies ../fonts ../images ../items ../maps ../music ../npcs  $A/
-  cp -av ../powers ../saves ../soundfx ../tilesetdefs  $A/
+  touch ../saves/save0.txt
+  
+  cp -av ../config ../enemies ../fonts ../images ../items ../maps ../music ../npcs  $A/
+  cp -av ../powers ../quests ../saves ../soundfx ../tilesetdefs  $A/
  
   cp -av ../README.txt ../credits.html $A/
  
