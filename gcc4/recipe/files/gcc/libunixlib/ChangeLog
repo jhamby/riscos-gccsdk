@@ -1,3 +1,22 @@
+Sun May 15 19:58:43 2011  Lee Noar <leenoar@sky.com>
+
+	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk):
+	Calls to alloca() makes things awkward in that the alloca
+	implementation uses the frame pointer of the callee of the
+	callee of alloca as a key (note that there are two callees
+	and that this is not a typing error). This means that by
+	the time __gcc_alloca_free has been detected, the frame
+	pointer that would be used as the key to find the correct
+	return address has already passed. To overcome this, the
+	stack unwinder tracks two frame pointers - the current one
+	and the alloca one (the alloca fp actually lags one frame
+	behind the current fp).
+	Use both frame pointers in __ehs_unwind_stack_chunk
+	as required; for UnixLib, the current fp is used only
+	to validate. For SCL, due to the way return addresses are
+	recorded, it may be necessary to return a different fp as
+	the current one.
+
 Sun Apr 24 13:16:13 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* string/strdup.c (strdup): Don't check on NULL parameter.

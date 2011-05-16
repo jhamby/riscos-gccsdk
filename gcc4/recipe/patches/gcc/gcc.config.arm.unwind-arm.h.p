@@ -1,8 +1,18 @@
 Index: gcc/config/arm/unwind-arm.h
 ===================================================================
---- gcc/config/arm/unwind-arm.h	(revision 169815)
+--- gcc/config/arm/unwind-arm.h	(revision 172858)
 +++ gcc/config/arm/unwind-arm.h	(working copy)
-@@ -228,7 +228,7 @@
+@@ -117,6 +117,9 @@
+ 	  _uw reserved1;
+ 	}
+       pr_cache;
++#ifdef __riscos__
++      _uw alloca_fp;
++#endif
+       long long int :0;	/* Force alignment to 8-byte boundary */
+     };
+ 
+@@ -228,7 +231,7 @@
        if (!tmp)
  	return 0;
  

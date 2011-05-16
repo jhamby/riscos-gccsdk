@@ -344,13 +344,23 @@ __ehs_trim_stack:
 #  error "Unsupported runtime"
 #endif
 
-	@ void __ehs_unwind_stack_chunk (void **fp, void **pc, void **sl)
+	@ void __ehs_unwind_stack_chunk (void **current_fp, void *alloca_fp, void **pc, void **sl)
 	@
 	@ Check if the return address in PC is either __gcc_alloca_free
 	@ or __free_stack_chunk and return the real return address. In
 	@ the latter case, step back to the previous stack chunk and
 	@ update SL.
+	@
 	@ This is used by the ARM stack unwinder (gcc/config/arm/unwind-arm.c)
+	@
+	@ Calls to alloca() makes things a bit more awkward in that the alloca
+	@ implementation uses the frame pointer of the callee of the callee of
+	@ alloca as a key (note that there are two callees and that this is
+	@ not a typing error). This means that by the time the stack unwinder
+	@ has detected __gcc_alloca_free, the frame pointer that would be used
+	@ as the key to find the correct return address has already passed. To
+	@ overcome this, the stack unwinder tracks two frame pointers - the
+	@ current one and the alloca one.
 	.global	__ehs_unwind_stack_chunk
 	NAME	__ehs_unwind_stack_chunk
 #if __TARGET_UNIXLIB__
@@ -361,11 +371,12 @@ __ehs_unwind_stack_chunk:
  PICEQ "STMFD	sp!, {v1-v4, fp, ip, lr, pc}"
 	SUB	fp, ip, #4
 
-	MOV	v2, a2
-	MOV	v3, a3
+	MOV	v1, a2				@ v1 = alloca_fp
+	MOV	v2, a3				@ v2 = &pc
+	MOV	v3, a4				@ v3 = &sl
 
-	LDR	v1, [a1, #0]
-	TEQ	v1, #0
+	LDR	a1, [a1, #0]
+	TEQ	a1, #0
  PICNE "LDMEQEA	fp, {v1-v3, fp, sp, pc}"
  PICEQ "LDMEQEA	fp, {v1-v4, fp, sp, pc}"
 
@@ -391,6 +402,7 @@ __ehs_unwind_stack_chunk:
 	MOV	a1, v1
 	BL	__gcc_alloca_return_address
 	STR	a1, [v2, #0]
+
 	@ Fall through - alloca could have stored __free_stack_chunk.
 0:
 	LDR	lr, .L2				@ __free_stack_chunk
@@ -417,15 +429,16 @@ __ehs_unwind_stack_chunk:
 	MOV	pc, lr
 #endif
 #elif __TARGET_SCL__
-	@ void __ehs_unwind_stack_chunk (void **fp, void **pc, void **sl)
+	@ void __ehs_unwind_stack_chunk (void **current_fp, void *alloca_fp, void **pc, void **sl)
 __ehs_unwind_stack_chunk:
 	MOV	ip, sp
-	STMFD	sp!, {v1-v3, fp, ip, lr, pc}
+	STMFD	sp!, {v1-v4, fp, ip, lr, pc}
 	SUB	fp, ip, #4
 
-	MOV	v1, a1
-	MOV	v2, a2
-	MOV	v3, a3
+	MOV	v1, a1				@ v1 = &current_fp
+	MOV	v4, a2				@ v4 = alloca_fp
+	MOV	v2, a3				@ v2 = &pc
+	MOV	v3, a4				@ v3 = &sl
 
 	LDR	a1, [v2, #0]			@ Retrieve old return address (pc)
 	TEQ	a1, a1				@ 32bit mode check
@@ -438,7 +451,7 @@ __ehs_unwind_stack_chunk:
 
 	@ Return address was __gcc_alloca_free, find real return address and store
 	@ ready for return.
-	MOV	a1, v1
+	MOV	a1, v4
 	BL	__gcc_alloca_return_address
 	STR	a1, [v2, #0]
 0:
@@ -450,7 +463,7 @@ __ehs_unwind_stack_chunk:
 	MRSEQ	ip, cpsr
 	MOVNE	ip, pc
 	TST	ip, #3
-	LDMNEEA	fp, {v1-v3, fp, sp, pc}
+	LDMNEEA	fp, {v1-v4, fp, sp, pc}
 #endif
 
 	@ We can't determine the exact address of the stack chunk freeing function
@@ -467,27 +480,27 @@ __ehs_unwind_stack_chunk:
 	LDMIA	ip, {a2, a3}
 0:
 	CMP	a1, a2
-	LDMLOEA	fp, {v1-v3, fp, sp, pc}
+	LDMLOEA	fp, {v1-v4, fp, sp, pc}
 
 	CMP	a1, a3
-	LDMHSEA	fp, {v1-v3, fp, sp, pc}
+	LDMHSEA	fp, {v1-v4, fp, sp, pc}
 
 	@ If we get here, then the return address is in the SharedCLibrary
 	@ and is likely to be the function for freeing the stack chunk.
 	LDR	ip, [v1, #0]			@ Retrieve frame pointer from arg1
 	LDR	a1, [ip, #-4]			@ Retrieve real return address
-	STR	a1, [v2, #0]			@ Store in arg2 for return
-	LDR	a2, [v3, #0]			@ Retrieve old stack limit from arg3
+	STR	a1, [v2, #0]			@ Store in arg3 for return
+	LDR	a2, [v3, #0]			@ Retrieve old stack limit from arg4
 	SUB	a2, a2, #512 + CHUNK_OVERHEAD	@ Find start of old stack chunk
 	LDR	a2, [a2, #CHUNK_PREV]		@ Unwind to previous chunk
 	ADD	a2, a2, #512 + CHUNK_OVERHEAD	@ Calculate stack limit for new chunk
-	STR	a2, [v3, #0]			@ Store new stack limit in arg3 for return
+	STR	a2, [v3, #0]			@ Store new stack limit in arg4 for return
 
 	@ Update frame pointer so that we skip the current frame
 	LDR	ip, [ip, #-12]
 	STR	ip, [v1, #0]
 
-	LDMEA	fp, {v1-v3, fp, sp, pc}
+	LDMEA	fp, {v1-v4, fp, sp, pc}
 #else
 #  error "Unsupported runtime"
 #endif
