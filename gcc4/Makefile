@@ -13,12 +13,15 @@
 TARGET=arm-unknown-riscos
 # TARGET=arm-unknown-eabi
 GCC_LANGUAGES="c,c++"
+# Enable shared library support in the cross/ronative compiler ?
+CROSS_ENABLE_SHARED=yes
+RONATIVE_ENABLE_SHARED=yes
 
 # *_SCM variables: when set to "yes", we'll fetch the source from source control
 # system and it will always be the latest version.
 # GCC_USE_PPL_CLOOG: when set to "yes", this enables additional loop optimisation.
 # This requires a C++ compiler (e.g. when building the RISC OS native compiler, this
-# option requires a C++ cross compiler).
+# option requires a working C++ cross compiler).
 AUTOCONF_FOR_BINUTILS_VERSION=2.64
 AUTOMAKE_FOR_BINUTILS_VERSION=1.11.1
 BINUTILS_VERSION=$(GCCSDK_SUPPORTED_BINUTILS_RELEASE)
@@ -45,7 +48,6 @@ LIBELF_VERSION=0.8.13
 #      not necessary the gcc version we're building here.
 ifeq ($(TARGET),arm-unknown-riscos)
 # Case GCCSDK arm-unknown-riscos target:
-# Variations: --disable-shared vs --enable-shared=libunixlib,libgcc,libstdc++
 ## FIXME: Consider --enable-__cxa_atexit (but this can require UnixLib changes).
 # Note: --enable-multilib is the default.  Don't specify it unless you want to get hit
 # by PR43328/PR45174
@@ -54,7 +56,6 @@ GCC_CONFIG_ARGS := \
 	--enable-sjlj-exceptions=no \
 	--enable-c99 \
 	--enable-cmath \
-	target_configargs=--enable-shared=libunixlib,libgcc,libstdc++ \
 	--disable-c-mbchar \
 	--disable-libstdcxx-pch \
 	--disable-tls
@@ -115,9 +116,28 @@ ifeq "$(GCC_USE_PPL_CLOOG)" "yes"
 CROSS_GCC_CONFIG_ARGS += --with-ppl=$(PREFIX_CROSSGCC_LIBS) --with-host-libstdcxx='-Wl,-lstdc++' --with-cloog=$(PREFIX_CROSSGCC_LIBS)
 RONATIVE_GCC_CONFIG_ARGS += --with-ppl=$(PREFIX_RONATIVEGCC_LIBS) --with-host-libstdcxx='-Wl,-lstdc++' --with-cloog=$(PREFIX_RONATVEGCC_LIBS)
 endif
+ifeq ($(CROSS_ENABLE_SHARED),yes)
+CROSS_GCC_CONFIG_ARGS += target_configargs=--enable-shared=libunixlib,libgcc,libstdc++
+else
+CROSS_GCC_CONFIG_ARGS += target_configargs=--disable-shared
+endif
+ifeq ($(RONATIVE_ENABLE_SHARED),yes)
+RONATIVE_GCC_CONFIG_ARGS += target_configargs=--enable-shared=libunixlib,libgcc,libstdc++
+else
+# If we're not going to have shared target libraries on RISC OS, we can't build/run our
+# native compiler with shared libs either.
+RONATIVE_GCC_CONFIG_ARGS += --disable-shared
+endif
 ifeq ($(GCC_USE_LTO),yes)
 CROSS_GCC_CONFIG_ARGS += --enable-lto
+else
+CROSS_GCC_CONFIG_ARGS += --disable-lto
+endif
+# If you want LTO support, you need shared library support (as it is a plugin for gcc):
+ifeq ($(GCC_USE_LTO)$(RONATIVE_ENABLE_SHARED),yesyes)
 RONATIVE_GCC_CONFIG_ARGS += --enable-lto
+else
+RONATIVE_GCC_CONFIG_ARGS += --disable-lto
 endif
 
 # Configure arguments Binutils & GCC:
@@ -159,7 +179,7 @@ MAKECMDGOALS=all
 endif
 
 .NOTPARALLEL:
-.PHONY: all cross ronative cross-gdb clean distclean updategcc
+.PHONY: all all-done cross ronative cross-gdb clean clean-done clean-cross clean-cross-done clean-ronative clean-ronative-done distclean distclean-done updategcc updategcc-done getenv
 VPATH = $(BUILDSTEPSDIR)
 
 # Default target is to build the cross-compiler (including the RISC OS tools):
@@ -183,13 +203,20 @@ cross-gdb-done: cross-gdb-built
 
 clean: $(GCCSDK_INTERNAL_GETENV)
 clean-done:
-	-rm -rf $(BUILDDIR)
-	-rm -rf $(SRCDIR)
+	-rm -rf $(BUILDDIR) $(BUILDSTEPSDIR) $(SRCDIR) $(PREFIX_CROSS) $(PREFIX_RONATIVE)
 	-svn revert -R $(SRCORIGDIR)/gcc-trunk
 	-svn status $(SRCORIGDIR)/gcc-trunk | grep -E "^?" | cut -b 9- | xargs rm -rf
-	-rm -rf $(BUILDSTEPSDIR)
-	-rm -rf $(PREFIX_CROSS) $(PREFIX_RONATIVE)
 	-svn status --no-ignore | grep "^I       " | cut -b 9- | grep -v -E "^(gccsdk-params|srcdir\.orig|release-area)$$" | xargs rm -rf
+
+# Return to a state for doing a full fresh cross build (using the current binutils/gcc sources).
+clean-cross: $(GCCSDK_INTERNAL_GETENV)
+clean-cross-done:
+	-rm -rf $(BUILDSTEPSDIR)/cross-* $(BUILDDIR)/cross* $(PREFIX_CROSS)
+
+# Return to a state for doing a full fresh ronative build (using the current binutils/gcc sources).
+clean-ronative: $(GCCSDK_INTERNAL_GETENV)
+clean-ronative-done:
+	-rm -rf $(BUILDSTEPSDIR)/ronative-* $(BUILDDIR)/ronative* $(PREFIX_RONATIVE)
 
 distclean: $(GCCSDK_INTERNAL_GETENV)
 distclean-done: clean-done
