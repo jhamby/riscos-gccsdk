@@ -26,8 +26,13 @@ Status build:
   are aiming to use the ARM stack unwinder instead.
 - C++ Exception handling using the ARM stack unwinder works for UnixLib and SCL
   based programs, including modules and shared libraries (subject to more testing).
-- C++ exceptions currently fail to propagate correctly when alloca is also used,
-  affects both static and dynamic linking. This is a WIP.
+- Native compiler fails when encountering #include directives, error is:
+
+  stdio.h: Operation would block
+  compilation terminated
+
+  possibly related to preprocessor. Tested with dynamically linked tool chain,
+  didn't try static build.
 
 Upstream gcc bug tracking:
 
