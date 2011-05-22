@@ -40,17 +40,6 @@
 
  	if (t == NULL)
  	{
---- ./src/menu/control_menu.c.orig	2009-11-25 13:58:11.000000000 -0800
-+++ ./src/menu/control_menu.c	2009-11-25 13:58:58.000000000 -0800
-@@ -555,7 +555,7 @@
-
- 	else
- 	{
--		text = SDL_GetKeyName(key);
-+		text = SDL_GetKeyName((SDLKey)key);
- 	}
-
- 	return text;
 --- ./src/event/objective.c.orig	2009-11-25 13:53:41.000000000 -0800
 +++ ./src/event/objective.c	2009-11-25 13:54:07.000000000 -0800
 @@ -69,7 +69,7 @@
@@ -73,3 +62,14 @@
 
  		if (recordingID != -1)
  		{
+--- ./src/input.c.orig	2011-05-21 13:28:48.061871759 +0100
++++ ./src/input.c	2011-05-21 13:29:16.606013276 +0100
+@@ -862,7 +862,7 @@
+ 
+ 	else
+ 	{
+-		text = SDL_GetKeyName(key);
++		text = SDL_GetKeyName((SDLKey)key);
+ 	}
+ 
+ 	return text;

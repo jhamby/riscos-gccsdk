@@ -95,16 +95,16 @@ else
       for section in main contrib; do
         Sources=../Sources-${dist}-${section}.bz2
 
-        if bzgrep -A4 "/$AB_PACKAGE$" $Sources > files ; then
+        if bzgrep -B14 "/$AB_PACKAGE$" $Sources > files ; then
           # Found ok
           break
         else
           echo "Autobuilder: Directory name not found in Sources.bz2 (${dist}/${section})"
           echo "Autobuilder: Trying Binary entry"
-          if bzgrep -A20 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
+          if bzgrep -A26 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
             break
           else
-            bzgrep -A20 "Binary:.* $AB_PACKAGE," $Sources > files || true
+            bzgrep -A26 "Binary:.* $AB_PACKAGE," $Sources > files || true
           fi
         fi
 
@@ -120,7 +120,7 @@ else
       exit 1
     fi
 
-    sed --in-place "/^Checksum/,$"d files
+    sed --in-place -e '/^Checksum/,/^Directory/ {/^Directory/b;d}' files
     debdir=$debarchive/$(grep Directory files | cut -d ' ' -f 2)
 
     orig=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4)
