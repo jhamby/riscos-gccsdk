@@ -229,7 +229,7 @@ c_lcl (void)
       varPos *p;
       if ((p = malloc (sizeof (varPos) + len + 1)) == NULL)
 	errorOutOfMem ();
-      memcpy (p->name, ptr, len + 1);
+      memcpy (p->name, ptr, len); p->name[len] = '\0';
       p->next = gCurPObjP->d.macro.varListP;
       if ((p->symptr = sym) != NULL)
 	p->symbol = *sym;

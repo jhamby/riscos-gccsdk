@@ -1,3 +1,17 @@
+Wed May 25 23:48:44 CST 2011   Christopher Martin  <belles@internode.on.net>
+
+	* reloc.c (relocELFOutput): Removed an excess armword() operation that
+	would inappropriately undo the byte-sex conversion of a preceding
+	armword() operation.
+	* reloc.c (relocELFOutput): Corrected misuse of 'offset' and 'used' fields
+	in Symbol struct which was causing relocations in ELF object files to have
+	messed up symbol table entries.
+	* symbol.h: Edited comments to better reflect how 'offset' and 'used'
+	fields in Symbol struct are used for relating symbols to symbol table
+	entries.
+	* variables.c (c_lcl): Ensure that a copied (sub)string is terminated.
+	Bug found when comments in macros messed up assembly.
+
 Wed Apr 13 01:45:58 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/misc.s: Add MSR/MRS APSR tests.
@@ -427,7 +441,7 @@ Sun Dec 26 16:47:19 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 	* main.h (option_rma_module): Remove.
 
 Sun Dec 26 02:54:13 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
-  
+
 	* regression/tests_pass/loadstore3.s: Rename to...
 	* regression/tests_pass/ldm_stm_pop_push.s: ...this.  Add PUSH/POP
 	tests.
@@ -798,7 +812,7 @@ Mon Nov  1 15:24:53 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
 	* symbol.c (symbolAdd): Add description.
 
 Mon Nov  1 14:20:09 CET 2010  John Tytgat  <John.Tytgat@aaug.net>
-  
+
 	* regression/tests_pass/operator_index.s: Add (commented out)
 	unsupported case.
 	* regression/tests_fail/label_space.s: Extended.  There are now only
@@ -989,7 +1003,7 @@ Thu Oct 21 22:02:28 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 	asm.c, eval.c, lit.c: Follow Value change.
 
 Thu Oct 21 02:01:34 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
-  
+
 	* regression/tests_pass/record_basic.s: Enabled the disabled sub-tests
 	as they are now supported and working.
 	* regression/tests_fail/record_basic_fail.s: Removed.
@@ -1030,7 +1044,7 @@ Thu Oct 21 02:01:34 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 	* lexAcorn.c (lexAcornUnop): Add :BASE: support.
 	* eval.c (evalBinop): Fix Op_add, Op_sub, Op_and, Op_or, Op_xor,
 	Op_land, Op_lor, Op_lnot, Op_not, Op_neg, Op_index, Op_len. Add Op_base.
-	* lex.c (OperatorAsStr): 
+	* lex.c (OperatorAsStr):
 	* value.h (ValueType): Drop and change its use in Value by ValueTag.
 	* commands.c: Follow the ValueType removal in Value.
 	* symbol.c: Likewise.
@@ -1050,7 +1064,7 @@ Thu Oct 21 02:01:34 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 	* asm.c: Likewise.
 	* eval.c: Likewise.
 	Several minor cleanups.
-  
+
 Sun Oct 17 22:35:00 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (symbolFree): Added.
@@ -1296,7 +1310,7 @@ Mon Feb 23 03:51:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
 Mon Feb 23 01:19:00 UTC 2009  John-Mark Bell  <jmb@netsurf-browser.org>
 
-	* m_cpumem.c: LDR|STR Rd,[Rm,#xxx] has no business expecting "xxx" 
+	* m_cpumem.c: LDR|STR Rd,[Rm,#xxx] has no business expecting "xxx"
 	to be a register-relative expression.
 
 Sun Feb 22 18:47:47 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
@@ -1415,7 +1429,7 @@ Sun Jan 11 21:35:31 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 	(outputAof,outputElf): Follow previous change.
 	* symbol.c(symbolFix,symbolStringOutput): Implicitly imported symbol
 	warning was wrongly given for some symbols in ELF output mode.
-	
+
 Sun Jan 11 18:32:47 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* docs/{AIF-1993,ALF-1989,ALF-1993,AOF-1989,AOF-2002,APCS,AIF-1989,
@@ -1477,7 +1491,7 @@ Sun Jan  4 21:00:58 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 Sun Jan  4 20:04:39 CET 2009  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c,symbol.c,put.c,m_cpuctrl.c,help_cop.c,m_cpumem.c,area.c,
-	area.h,expr.c,output.c,reloc.c,asm.c,lit.c,lex.c: Rename 
+	area.h,expr.c,output.c,reloc.c,asm.c,lit.c,lex.c: Rename
 	areaCurrent/areaEntry/areaHead to
 	areaCurrentSymbol/areaEntrySymbol/areaHeadSymbol.
 
@@ -1648,10 +1662,10 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 	RISC OS 5 source to break. This change makes it more like objasm -
 	variables in strings are replaced, and if they don't match, they're
 	left alone.
-	  
+
 	With this and previous improvements, I have been able to build a
 	working !Paint using GCC.
-	  
+
 	This change is a bit invasive, so any review is appreciated.
 
 2008-04-20 05:40  Peter Naulls  <peter@chocky.org>
@@ -1716,16 +1730,16 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 	mnemonics.h, option.c, regression/branch.s, regression/copro.s,
 	regression/dsp.s, regression/misc.s, reloc.c, reloc.h: Complete
 	ARMv5E support. This adds support for the following instructions:
-	  
+
 	  BKPT, BLX
 	  CDP2, CLZ
 	  LDC2, LDRD
 	  MCR2, MCRR, MRC2, MRRC
 	  QADD, QDADD, QDSUB, QSUB
 	  SMLAxy, SMLALxy, SMLAWy, STC2, STRD
-	  
+
 	Additionally:
-	  
+
 	  Fix BX detection to be case insensitive.
 	  Fix Coprocessor 1 detection for pedantic FP warning.
 	  Fix opcode1 generation for MCR/MRC.
@@ -1988,7 +2002,7 @@ Sun Dec 14 16:56:28 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 	* include.c: fix bracket placement
 
 Sun Jan 30 00:50:54 2005  John Tytgat  <John.Tytgat@aaug.net>
-	  
+
 	* Changed #define tests on __riscos__ into CROSS_COMPILE tests.
 	* Makefile: OBJS in alphabetic order.
 	* asm.{c,h}: asm_() -> assemble()
@@ -2075,7 +2089,7 @@ Sun Jan 30 00:50:54 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* main.c: Tony van der Hoff: Increase 'as' compatibility with
 	objasm when the -objasm flag is set on the command line:
-	  
+
 	The token '@' will be treated as the current location counter, as
 	used by objasm, instead of as an introduction to a comment, which is
 	required in GCC mode.
@@ -2084,7 +2098,7 @@ Sun Jan 30 00:50:54 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* put.c: Fix a segfault caused by the attempted output of an
 	unaligned word at the start of the AREA e.g.
-	  
+
 	  AREA |foo|, DATA
 	  ALIGN 2
 	  DCD 1
@@ -2141,22 +2155,22 @@ Sun Jan 30 00:50:54 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 	* asm.c, commands.c, include.c, input.c, input.h, lex.c, main.c,
 	riscos_c.c, uname.h: as fixes from Tony van der Hoff:
-	  
+
 	Added various comments to the code, to help me understand it.
-	  
+
 	GET files were not being found via the -I path:
 	added some debuggging code in as/include.c; found that "." was
 	being used as directory separator.
 	- In as/uname.h changed switch from "#ifdef UNIX" to "#if defined
 	  CROSS_COMPILE"
-	  
+
 	Local labels with default scope were giving warning:
 	"Assumed 'a' in local label name". This is not a dodgy code
 	warning, but a warning that the range qualifiers for local labels is
 	not implemented.
 	- changed lex.c to produce more appropriate warning, and wrapped
 	warning under "pedantic".
-	  
+
 	AS barfed on variable substitution operator "$":
 	- inputUnGet() called from lexGetId() assumes that the input
 	buffer is pointed to by |input_buff|. It isn't in this case. The check
@@ -2263,7 +2277,7 @@ Sun Jan 30 00:50:54 2005  John Tytgat  <John.Tytgat@aaug.net>
 2001-03-20 14:50  Nick Burrett  <nick@sqrt.co.uk>
 
 	* decode.c, macros.c, whileif.c: Darren Salt: Fix up some |label|
-	handling. Errors are generated for unterminated |...| e.g. |...\n.  
+	handling. Errors are generated for unterminated |...| e.g. |...\n.
 	Replace some hard-coded limits with macros.
 
 2001-03-20 14:49  Nick Burrett  <nick@sqrt.co.uk>

@@ -66,7 +66,7 @@ Reloc_CreateQueueObj (void)
   rel->expr.Tag = ValueIllegal;
   /* rel->legal = */
   /* rel->callback = */
-  
+
   areaCurrentSymbol->area.info->relocQueue = rel;
 
   return rel;
@@ -117,7 +117,7 @@ Reloc_QueueExprUpdate (RelocUpdater callback, ARMWord offset, ValueTag legal,
       valueFree (&value);
       return false; /* Instruction/data update succeeded.  */
     }
-  
+
   /* We have something which the callback didn't like that much.  We'll give
      it a 2nd try after all labels are defined.  Either the missing labels are
      defined by then and we can update our area content, either we have
@@ -160,7 +160,7 @@ Reloc_Create (uint32_t how, uint32_t offset, const Value *value)
   /* Mark we want this symbol in our output.  */
   if ((newReloc->value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0)
     newReloc->value.Data.Symbol.symbol->used = 0;
-  
+
   return newReloc;
 }
 
@@ -300,7 +300,9 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  const Value *value = &relocs->value;
 
 	  assert (value->Data.Symbol.symbol->used >= 0);
-	  int symbol = value->Data.Symbol.symbol->used + 1;
+	  int symbol = 1 + ((value->Data.Symbol.symbol->type & SYMBOL_AREA)
+	                    ? value->Data.Symbol.symbol->offset
+	                    : value->Data.Symbol.symbol->used);
 	  int type;
 	  if (relocs->reloc.How & HOW3_RELATIVE)
 	    type = R_ARM_PC24;
@@ -325,14 +327,13 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 		  const Value *value = &code->Data.value;
 
 		  assert (value->Data.Symbol.symbol->used >= 0);
-		  int symbol = value->Data.Symbol.symbol->used + 1;
+		  int symbol = value->Data.Symbol.symbol->offset + 1;
 		  int type;
 		  if (relocs->reloc.How & HOW3_RELATIVE)
 		    type = R_ARM_PC24;
 		  else
 		    type = R_ARM_ABS32;
 		  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
-		  areloc.r_info = armword (areloc.r_info);
 		  int loop = value->Data.Symbol.factor;
 		  assert (loop > 0 && "Reloc_Create() check on this got ignored");
 		  while (loop--)

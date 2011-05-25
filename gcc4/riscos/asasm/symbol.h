@@ -86,7 +86,7 @@ typedef struct Symbol
   struct Symbol *areaDef; /** Area where this symbol is defined in.  When SYMBOL_AREA is set, this is NULL.  */
 
   /* For output: */
-  unsigned int offset;	/** Offset in stringtable.  For AOF output you need to add an extra 4, for ELF output you need to add an extra 1.  */
+  unsigned int offset;	/** For area symbols, at start of outputAof()/outputElf(), this indicates the area symbol's position in the symbol table.  */
   int used;		/** Has several usages:
     At start of outputAof()/outputElf():
       either -1 (no relocation needed),
@@ -96,7 +96,7 @@ typedef struct Symbol
         - AOF output : this will be the area number counted from 0
         - ELF output : this is the section number
       For other symbols:
-        No changes (still 0 or -1).
+        Indicates this symbol's position in the symbol table.
 
     At symbolFix():
        Symbol index.  */
