@@ -23,6 +23,7 @@
 
 #include "config.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -48,7 +49,6 @@
 #endif
 #if !defined(__TARGET_SCL__)
 #  include <ctype.h>
-#  include <errno.h>
 #endif
 
 static FILE *objfile;

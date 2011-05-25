@@ -1,11 +1,19 @@
+Wed May 25 20:02:48 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/macro.s: Added testcase from Christopher Martin
+	for his previous variable.c (c_lcl) fix.
+	* commands.c (c_dc*): Add comment.
+	* output.c: Always include errno.h.
+	* input.c: Remove needless include of errno.h.
+
 Wed May 25 23:48:44 CST 2011   Christopher Martin  <belles@internode.on.net>
 
 	* reloc.c (relocELFOutput): Removed an excess armword() operation that
 	would inappropriately undo the byte-sex conversion of a preceding
 	armword() operation.
-	* reloc.c (relocELFOutput): Corrected misuse of 'offset' and 'used' fields
-	in Symbol struct which was causing relocations in ELF object files to have
-	messed up symbol table entries.
+	* reloc.c (relocELFOutput): Corrected misuse of 'offset' and 'used'
+	fields in Symbol struct which was causing relocations in ELF object
+	files to have messed up symbol table entries.
 	* symbol.h: Edited comments to better reflect how 'offset' and 'used'
 	fields in Symbol struct are used for relating symbols to symbol table
 	entries.

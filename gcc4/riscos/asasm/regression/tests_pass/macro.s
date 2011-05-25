@@ -38,5 +38,21 @@ loopOut			SETA	loopOut + 1
 		= "Test4\n"
 		= "  \n"
 	]
-	
+
+; Tests if the presence of a 'comment' doesn't confuse the macro implementation
+; (including the local variable handling)
+
+	[ :LNOT: REFERENCE
+	MACRO				; comment
+$label	TWOTIMES	$val		; comment
+	LCLA		tt		; comment
+tt	SETA		$val<<1		; comment
+$label	&		tt		; comment
+	MEND				; comment
+
+twenty	TWOTIMES	10		; comment
+	|
+twenty	&	20
+	]
+
 	END
