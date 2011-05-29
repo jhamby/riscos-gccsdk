@@ -61,6 +61,11 @@ Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 // ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
 
+Sun May 29 17:21:43 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/dev.c (__fsopen): Return ENOENT iso EAGAIN when unexisting
+	file is opened without O_CREAT set.
+
 Wed Apr  6 03:27:25 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/unix.c (convert_command_line): Use __canonicalise_path

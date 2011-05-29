@@ -213,23 +213,22 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
   else
     {
       /* We try to do our best to get at the filing system name
-         by canonicalising the filename if possible, otherwise checking
-         for pipe: anyway.
-         FIXME: This is an ugly hack (= who says the too-small buffer will
+	 by canonicalising the filename if possible, otherwise checking
+	 for pipe: anyway.
+	 We don't need the full filename, just need to check that the first
+	 few characters begin with 'pipe'.
+	 FIXME: This is an ugly hack (= who says the too-small buffer will
 	 be filled in correctly for the first 16 bytes ?) to make opening
 	 non-existent files for reading on PipeFS work.  We should handle
-	 PipeFS though a proper device ioctl.  */
-
-      /* We don't need the full filename, just need to check that the first
-         few characters begin with 'pipe'.  */
+	 PipeFS though a proper device ioctl.  So SWI call always generates
+	 an error which we ignore.  */
       char temp[16];
-      if (SWI_OS_FSControl_Canonicalise (filename, NULL, temp, sizeof (temp),
-					 NULL) == NULL
-	  && !(tolower (temp[0]) == 'p'
-	       && tolower (temp[1]) == 'i'
-	       && tolower (temp[2]) == 'p'
-	       && tolower (temp[3]) == 'e'
-	       && temp[4] == ':'))
+      SWI_OS_FSControl_Canonicalise (filename, NULL, temp, sizeof (temp), NULL);
+      if (!(tolower (temp[0]) == 'p'
+	    && tolower (temp[1]) == 'i'
+	    && tolower (temp[2]) == 'p'
+	    && tolower (temp[3]) == 'e'
+	    && temp[4] == ':'))
 	{
 	  /* If no file exists and O_CREAT was not specified,
 	     return ENOENT.  */
