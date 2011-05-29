@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 5.6: File Characteristics <sys/stat.h>.
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef __SYS_STAT_H
@@ -96,7 +96,7 @@ __DEFINE_STAT(stat64);
 /* Bit masks.  */
 
 /* Extract the file type code portion of a mode value.  */
-#define S_IFMT		0770000
+#define S_IFMT		0170000
 
 /* File type code for a FIFO or pipe.  */
 #define S_IFIFO 	0010000
@@ -106,21 +106,21 @@ __DEFINE_STAT(stat64);
 /* File type code for a directory. */
 #define S_IFDIR 	0040000
 /* File type code for a block-oriented device file (disk file).  */
-#define S_IFBLK 	0100000
+#define S_IFBLK 	0060000
 /* File type code for a regular file.  */
-#define S_IFREG 	0200000
+#define S_IFREG 	0100000
 /* File type code for a symbolic link.  */
-#define S_IFLNK 	0400000
-/* This is the set-user-ID on execute bit.  */
-#define S_ISUID 	0004000
-/* This is the set-group-ID on execute bit.  */
-#define S_ISGID 	0002000
-/* Socket.  */
+#define S_IFLNK 	0120000
+/* File type code for a socket.  */
 #define S_IFSOCK        0140000
 
 /* Protection bits.  */
 
-/* Save swapped text after use. */
+/* This is the set-user-ID on execute bit.  */
+#define S_ISUID 	04000
+/* This is the set-group-ID on execute bit.  */
+#define S_ISGID 	02000
+/* Save swapped text after use (sticky). */
 #define S_ISVTX 	01000
 /* Read by owner.  */
 #define S_IREAD         0400
@@ -136,7 +136,6 @@ __DEFINE_STAT(stat64);
 #define S_IWUSR	        S_IWRITE
 /* Read permission bit for the owner of the file.  */
 #define S_IRUSR		S_IREAD
-
 /* Read, write and execute by owner.  */
 #define S_IRWXU (S_IREAD | S_IWRITE | S_IEXEC)
 
@@ -152,22 +151,20 @@ __DEFINE_STAT(stat64);
 /* Read, write, and execute by others.  */
 #define S_IRWXO	(S_IRWXG >> 3)
 
-
-
 /* Return nonzero if the file is a directory.  */
-#define S_ISDIR(x) (((x) & S_IFSOCK) == S_IFDIR)
+#define S_ISDIR(x) (((x) & S_IFMT) == S_IFDIR)
 /* Return nonzero if the file is a terminal type device.  */
-#define S_ISCHR(x) ((x) & S_IFCHR)
+#define S_ISCHR(x) (((x) & S_IFMT) == S_IFCHR)
 /* Return nonzero if the file is a block special file (like a disk). */
-#define S_ISBLK(x) (((x) & S_IFSOCK) == S_IFBLK)
+#define S_ISBLK(x) (((x) & S_IFMT) == S_IFBLK)
 /* Return nonzero if the file is a regular file.  */
-#define S_ISREG(x) ((x) & S_IFREG)
+#define S_ISREG(x) (((x) & S_IFMT) == S_IFREG)
 /* Return nonzero if the file is a FIFO file for pipe.  */
-#define S_ISFIFO(x) ((x) & S_IFIFO)
+#define S_ISFIFO(x) (((x) & S_IFMT) == S_IFIFO)
 /* Return nonzero if the file is a symbolic link.  */
-#define S_ISLNK(x) ((x) & S_IFLNK)
+#define S_ISLNK(x) (((x) & S_IFMT) == S_IFLNK)
 /* Return nonzero if the file is a socket.  */
-#define S_ISSOCK(x) (((x) & S_IFSOCK) == S_IFSOCK)
+#define S_ISSOCK(x) (((x) & S_IFMT) == S_IFSOCK)
 
 #ifndef __USE_FILE_OFFSET64
 extern int stat (const char *__restrict __filename,

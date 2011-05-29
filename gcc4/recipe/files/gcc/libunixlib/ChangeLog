@@ -1,3 +1,10 @@
+Sun May 29 18:32:56 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/sys/stat.h (S_IFBLK, S_IFLNK): Renumber.
+	(S_IFMT): Trim bits.
+	(S_ISREG, S_ISFIFO, S_ISLNK): Use S_IFMT mask so that
+	result is 0 or 1.
+
 Sun May 15 19:58:43 2011  Lee Noar <leenoar@sky.com>
 
 	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk):
