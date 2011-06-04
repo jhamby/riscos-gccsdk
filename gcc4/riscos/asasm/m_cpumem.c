@@ -713,6 +713,25 @@ dstreglist (ARMWord ir, bool isPushPop)
 	    gArea_Preserve8Guessed = false;
 	}
     }
+  if ((ir & W_FLAG) /* Write-back is specified.  */
+      && (ir & (1<<20)) /* Is LDM/POP.  */
+      && (op & (1 << GET_BASE_MULTI (ir))) /* Base reg. in reg. list.  */
+      && (!isPushPop || (op ^ (1 << GET_BASE_MULTI (ir))) != 0) /* Is either LDM/STM, either multi-reg. POP/PUSH.  */)
+    {
+      /* LDM instructions and multi-register POP instructions that specify base
+         register writeback and load their base register are permitted but
+         deprecated before ARMv7.
+         Use of such instructions is obsolete in ARMv7.  */
+      const char *what = isPushPop ? "multi-register POP" : "LDM";
+      if (Target_GetArch () < ARCH_ARMv7)
+	error (ErrorWarning,
+	       "Deprecated before ARMv7 : %s with writeback and base register in register list",
+	       what);
+      else
+	error (ErrorWarning,
+	       "Obsoleted from ARMv7 onwards : %s with writeback and base register in register list",
+	       what);
+    }
   if (!Input_Match ('}', false))
     error (ErrorError, "Inserting missing '}' after reglist");
   ir |= op;

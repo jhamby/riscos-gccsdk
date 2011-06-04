@@ -1,3 +1,9 @@
+Sat Jun  4 18:29:35 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpumem.c (dstreglist): Add test on LDM instructions and
+	multi-register POP instructions with writeback and base register in
+	register list.
+
 Wed May 25 20:02:48 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/macro.s: Added testcase from Christopher Martin
