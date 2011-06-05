@@ -472,7 +472,7 @@ bool
 c_get (void)
 {
   char *filename;
-  if ((filename = strdup (inputRest ())) == NULL)
+  if ((filename = strdup (Input_Rest ())) == NULL)
     errorOutOfMem ();
   char *cptr;
   for (cptr = filename; *cptr && !isspace ((unsigned char)*cptr); cptr++)
@@ -499,7 +499,7 @@ bool
 c_lnk (void)
 {
   char *filename;
-  if ((filename = strdup (inputRest ())) == NULL)
+  if ((filename = strdup (Input_Rest ())) == NULL)
     errorOutOfMem ();
   char *cptr;
   for (cptr = filename; *cptr && !isspace ((unsigned char)*cptr); cptr++)
@@ -531,9 +531,8 @@ bool
 c_idfn (void)
 {
   free ((void *)idfn_text);
-  if ((idfn_text = strdup (inputRest ())) == NULL)
+  if ((idfn_text = strdup (Input_Rest ())) == NULL)
     errorOutOfMem();
-  skiprest ();
   return false;
 }
 
@@ -544,7 +543,7 @@ bool
 c_incbin (void)
 {
   char *filename;
-  if ((filename = strdup (inputRest ())) == NULL)
+  if ((filename = strdup (Input_Rest ())) == NULL)
     errorOutOfMem ();
   char *cptr;
   for (cptr = filename; *cptr && !isspace ((unsigned char)*cptr); cptr++)
@@ -654,7 +653,7 @@ c_info (void)
 bool
 c_opt (void)
 {
-  inputRest();
+  Input_Rest ();
   /* Do nothing.  This is for compatiblity with objasm.  */
   return false;
 }
@@ -665,7 +664,7 @@ c_opt (void)
 bool
 c_title (void)
 {
-  inputRest();
+  Input_Rest ();
   /* Do nothing right now.  This command is for the benefit of error reporting */
   return false;
 }

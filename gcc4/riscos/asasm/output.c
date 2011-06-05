@@ -451,7 +451,8 @@ outputElf (void)
       
       if (AREA_IMAGE (ap->area.info))
         {
-          if (fwrite (ap->area.info->image, ap->value.Data.Int.i, 1, objfile) != 1)
+          if (fwrite (ap->area.info->image, 1, ap->value.Data.Int.i, objfile)
+	      != ap->value.Data.Int.i)
             {
               errorAbortLine (NULL, 0, "Internal outputElf: error when writing %s image", ap->str);
               return;

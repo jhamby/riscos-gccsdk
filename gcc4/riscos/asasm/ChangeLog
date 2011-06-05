@@ -1,8 +1,22 @@
+Sun Jun  5 15:53:04 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* input.c, input.h (Input_Rest): Renamed from inputRest.
+	* commands.c, decode.c, whileif.c, lexAcorn.c : Follow inputRest rename.
+	* input.c, input.h (skiprest): Remove.
+	* commands (c_idfn): Don't call skiprest.
+	* error.c, macros.c, frame.c, whileif.c: Call Input_Rest instead of
+	skiprest.
+	* filestack.c (FS_PushFilePObject): Don't call skiprest.
+	* output.c (outputElf): Fix writing empty sections.
+	* elf.h (EF_ARM_CURRENT): Change to EABI version 5.
+	* decode.c (oDecodeTable): Fix alphabetical order.
+
 Sun Jun  5 02:33:29 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* frame.c (c_function, c_endfunc, c_frame): Add.  Dummy implementations
 	for FUNCTION/PROC/ENDFUNC/ENDP/FRAME.
 	* frame.h: Add.
+	* decode.c (oDecodeTable): Add FUNCTION, PROC, ENDFUNC, ENDP and FRAME.
 
 Sat Jun  4 18:29:35 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 

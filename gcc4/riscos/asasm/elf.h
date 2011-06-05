@@ -322,7 +322,7 @@ typedef struct {
 #define EF_ARM_DYNSYMSUSESEGIDX 0x08
 #define EF_ARM_MAPSYMSFIRST	0x10
 #define EF_ARM_EABIMASK		0xff000000
-#define EF_ARM_CURRENT		0x02000000
+#define EF_ARM_CURRENT		0x05000000
 
 /* Bits present in AT_HWCAP, primarily for Sparc32.  */
 

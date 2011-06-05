@@ -297,7 +297,7 @@ lexAcornPrim (Lex *lex)
     }
 
   /* Try to find the end of the builtin variable name.  */
-  const char *lineRest = inputRest ();
+  const char *lineRest = Input_Rest ();
   while (*lineRest != '\0' && *lineRest != '\n' && *lineRest != '}')
     ++lineRest;
   if (*lineRest == '}')

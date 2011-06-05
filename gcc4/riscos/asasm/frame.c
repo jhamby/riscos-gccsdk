@@ -32,7 +32,7 @@ c_function (void)
 {
   /* FIXME: not yet supported.  */
   error (ErrorWarning, "FUNCTION/PROC is not yet supported.");
-  skiprest ();
+  Input_Rest ();
   return false;
 }
 
@@ -44,7 +44,7 @@ c_endfunc (void)
 {
   /* FIXME: not yet supported.  */
   error (ErrorWarning, "ENDFUNC/ENDP is not yet supported.");
-  skiprest ();
+  Input_Rest ();
   return false;
 }
 
@@ -56,6 +56,6 @@ c_frame (void)
 {
   /* FIXME: not yet supported.  */
   error (ErrorWarning, "FRAME is not yet supported.");
-  skiprest ();
+  Input_Rest ();
   return false;
 }

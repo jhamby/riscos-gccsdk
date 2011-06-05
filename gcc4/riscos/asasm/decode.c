@@ -133,8 +133,8 @@ static const decode_table_t oDecodeTable[] =
   { "ELIF", DTABLE_CALLBACK_NOLEX, { .nolex = c_elif } }, /* ELIF */
   { "ELSE", DTABLE_CALLBACK_NOLEX, { .nolex = c_else } }, /* | ELSE */
   { "END", DTABLE_CALLBACK_VOID, { .vd = c_end } }, /* END */
-  { "ENDIF", DTABLE_CALLBACK_NOLEX, { .nolex = c_endif } }, /* ] ENDIF */
   { "ENDFUNC", DTABLE_CALLBACK_VOID, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
+  { "ENDIF", DTABLE_CALLBACK_NOLEX, { .nolex = c_endif } }, /* ] ENDIF */
   { "ENDP", DTABLE_CALLBACK_VOID, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
   { "ENTRY", DTABLE_CALLBACK_VOID, { .vd = c_entry } }, /* ENTRY */
   { "EOR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_eor } }, /* EOR CC S */
@@ -556,5 +556,5 @@ decode_finalcheck (void)
 {
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
-    error (ErrorError, "Skipping extra characters '%s'", inputRest ());
+    error (ErrorError, "Skipping extra characters '%s'", Input_Rest ());
 }

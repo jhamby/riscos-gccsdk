@@ -135,7 +135,7 @@ Macro_Call (const Macro *m, const Lex *label)
       if (marg == m->numargs)
 	{
 	  error (ErrorError, "Too many arguments");
-	  skiprest ();
+	  Input_Rest ();
 	  return;
 	}
       const char *arg;
@@ -327,20 +327,20 @@ c_macro (void)
       if (m.numargs == MACRO_ARG_LIMIT)
 	{
 	  error (ErrorError, "Too many arguments in macro definition");
-	  skiprest ();
+	  Input_Rest ();
 	  break;
 	}
       if (!Input_Match ('$', false))
 	{
 	  error (ErrorError, "Illegal parameter start in macro definition");
-	  skiprest ();
+	  Input_Rest ();
 	  break;
 	}
       ptr = Input_Symbol (&len);
       if (ptr == NULL)
 	{
 	  error (ErrorError, "Failed to parse macro parameter");
-	  skiprest ();
+	  Input_Rest ();
 	  break;
 	}
       if ((m.args[m.numargs] = strndup (ptr, len)) == NULL)

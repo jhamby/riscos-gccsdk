@@ -156,8 +156,6 @@ FS_PushFilePObject (const char *fileName)
 
   /* Increase current file stack pointer.  All is ok now.  */
   ++gCurPObjP;
-
-  skiprest ();
 }
 
 

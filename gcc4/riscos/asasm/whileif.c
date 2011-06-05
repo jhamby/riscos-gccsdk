@@ -319,7 +319,7 @@ bool
 c_elif (void)
 {
   /* Skip the argument of ELIF.  Not of interest now.  */
-  skiprest ();
+  Input_Rest ();
 
   if (gCurPObjP->whileIfCurDepth == gCurPObjP->whileIfStartDepth)
     error (ErrorError, "Mismatched ELIF, no matching IF found");
@@ -392,7 +392,7 @@ while_skip (void)
 	  if (nested-- == 0)
 	    return;
 	}
-      skiprest ();
+      Input_Rest ();
     }
   error (ErrorError, "Missing WEND");
 }
@@ -437,7 +437,7 @@ c_while (void)
   WhileIf_t *whileIfP = &oWhileIfs[gCurPObjP->whileIfCurDepth++];
   whileIfP->Tag = WhileIf_eIsWhile;
   whileIfP->Data.While.lineno = gCurPObjP->lineNum;
-  if ((whileIfP->Data.While.expr = strdup (inputRest ())) == NULL)
+  if ((whileIfP->Data.While.expr = strdup (Input_Rest ())) == NULL)
     errorOutOfMem ();
   switch (gCurPObjP->type)
     {

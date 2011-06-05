@@ -856,7 +856,7 @@ symbolPrint (const Symbol *sym)
 }
 
 /**
-   * Lists all symbols collected so far together with all its attributes.
+ * Lists all symbols collected so far together with all its attributes.
  */
 void
 symbolPrintAll (void)

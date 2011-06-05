@@ -50,7 +50,6 @@ bool inputNextLine (void);
 bool inputNextLineNoSubst (void);
 
 void skipblanks (void);
-void skiprest (void);
 
 bool Input_IsEolOrCommentStart (void);
 char inputLook (void);
@@ -61,7 +60,7 @@ char inputGet (void);
 char inputGetLower (void);
 void inputUnGet (char c);
 char inputSkipLook (void);
-const char *inputRest (void);
+const char *Input_Rest (void);
 #if DEBUG
 const char *inputLine (void);
 #endif

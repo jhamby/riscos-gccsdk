@@ -231,7 +231,7 @@ error (ErrorTag e, const char *format, ...)
   if (e == ErrorAbort || no_errors > MAXERR)
     fixup ();
   else if (e == ErrorError)
-    skiprest ();
+    Input_Rest ();
 }
 
 
@@ -330,7 +330,7 @@ errorLine (const char *file, int lineno, ErrorTag e, const char *format, ...)
   if (e == ErrorAbort || no_errors > MAXERR)
     fixup ();
   else if (e == ErrorError)
-    skiprest ();
+    Input_Rest ();
 }
 
 /**

@@ -149,7 +149,7 @@ inputSkipN (int n)
  * Returns the rest of the line of the current input and consumes it.
  */
 const char *
-inputRest (void)
+Input_Rest (void)
 {
   const char * const t = input_pos;
   while (*input_pos)
@@ -179,14 +179,6 @@ skipblanks (void)
   while (*p && isspace ((unsigned char)*p))
     p++;
   input_pos = p;
-}
-
-
-void
-skiprest (void)
-{
-  input_buff[0] = 0;
-  input_pos = input_buff;
 }
 
 /**
