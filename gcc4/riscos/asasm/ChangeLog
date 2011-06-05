@@ -1,3 +1,9 @@
+Sun Jun  5 02:33:29 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* frame.c (c_function, c_endfunc, c_frame): Add.  Dummy implementations
+	for FUNCTION/PROC/ENDFUNC/ENDP/FRAME.
+	* frame.h: Add.
+
 Sat Jun  4 18:29:35 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_cpumem.c (dstreglist): Add test on LDM instructions and

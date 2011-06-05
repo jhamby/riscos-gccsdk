@@ -38,6 +38,7 @@
 #include "commands.h"
 #include "decode.h"
 #include "error.h"
+#include "frame.h"
 #include "input.h"
 #include "local.h"
 #include "macros.h"
@@ -133,6 +134,8 @@ static const decode_table_t oDecodeTable[] =
   { "ELSE", DTABLE_CALLBACK_NOLEX, { .nolex = c_else } }, /* | ELSE */
   { "END", DTABLE_CALLBACK_VOID, { .vd = c_end } }, /* END */
   { "ENDIF", DTABLE_CALLBACK_NOLEX, { .nolex = c_endif } }, /* ] ENDIF */
+  { "ENDFUNC", DTABLE_CALLBACK_VOID, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
+  { "ENDP", DTABLE_CALLBACK_VOID, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
   { "ENTRY", DTABLE_CALLBACK_VOID, { .vd = c_entry } }, /* ENTRY */
   { "EOR", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_eor } }, /* EOR CC S */
   { "EQU", DTABLE_CALLBACK_SYMBOL, { .sym = c_equ } }, /* * / EQU */
@@ -145,7 +148,9 @@ static const decode_table_t oDecodeTable[] =
   { "FLT", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_flt } }, /* FLT CC P R */
   { "FML", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_fml } }, /* FML CC P R */
   { "FN", DTABLE_CALLBACK_SYMBOL, { .sym = c_fn } }, /* FN */
+  { "FRAME", DTABLE_CALLBACK_VOID, { .vd = c_frame } }, /* FRAME */
   { "FRD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_frd } }, /* FRD CC P R */
+  { "FUNCTION", DTABLE_CALLBACK_VOID, { .vd = c_function } }, /* FUNCTION / PROC */
   { "GBL", DTABLE_CALLBACK_NOLEX | DTABLE_PART_MNEMONIC, { .nolex = c_gbl } }, /* GBLA, GBLL, GBLS */
   { "GET", DTABLE_CALLBACK_VOID, { .vd = c_get } }, /* GET */
   { "GLOBAL", DTABLE_CALLBACK_VOID, { .vd = c_export } }, /* EXPORT / GLOBAL */
@@ -203,6 +208,7 @@ static const decode_table_t oDecodeTable[] =
   { "POP", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_pop } }, /* POP CC */
   { "POW", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_pow } }, /* POW CC P R */
   { "PRESERVE8", DTABLE_CALLBACK_VOID, { .vd = c_preserve8 } }, /* PRESERVE8 {TRUE}/{FALSE} */
+  { "PROC", DTABLE_CALLBACK_VOID, { .vd = c_function } }, /* FUNCTION / PROC */
   { "PUSH", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_push } }, /* PUSH CC */
   { "QADD", DTABLE_CALLBACK_VOID | DTABLE_PART_MNEMONIC, { .vd = m_qadd } }, /* QADD CC */
   /* FIXME: QASX */
