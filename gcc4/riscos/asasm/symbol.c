@@ -418,18 +418,20 @@ symbolFix (size_t *stringSizeNeeded)
 		  mapSymbols[mappingSymbolindex].offset = sym->offset = strsize;
 		  mapSymbols[mappingSymbolindex].used = sym->used = nosym;
 		  strsize += 3;
-		  ++nosym;
 		}
 	      else
 		{
 		  sym->offset = mapSymbols[mappingSymbolindex].offset;
 		  sym->used = mapSymbols[mappingSymbolindex].used;
 		}
+	      ++nosym;
 	    }
 	  else if (NeedToOutputSymbol (sym))
 	    {
 	      sym->offset = strsize;
-	      strsize += sym->len + 1;
+	      /* For ELF, section names are not used in the string table
+	         and an empty string is used instead.  */
+	      strsize += ((sym->type & SYMBOL_AREA) && !option_aof) ? 1 : sym->len + 1;
 	      if (!(sym->type & SYMBOL_AREA))
 		sym->used = nosym;
 	      ++nosym;
@@ -470,14 +472,24 @@ symbolStringOutput (FILE *outfile, size_t stringSizeNeeded)
 		  if (!mappingSymbols[mappingSymbolIndex])
 		    {
 		      mappingSymbols[mappingSymbolIndex] = true;
+		      assert (count == sym->offset);
 		      fputc ('$', outfile);
 		      fputc (sym->str[1], outfile);
 		      fputc ('\0', outfile);
 		      count += 3;
 		    }
 		}
+	      else if ((sym->type & SYMBOL_AREA) && !option_aof)
+		{
+		  assert (count == sym->offset);
+		  fputc ('\0', outfile);
+		  count += 1;
+		}
 	      else
-		count += fwrite (sym->str, 1, sym->len + 1, outfile);
+		{
+		  assert (count == sym->offset);
+		  count += fwrite (sym->str, 1, sym->len + 1, outfile);
+		}
 	    }
 	}
     }

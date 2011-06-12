@@ -312,7 +312,7 @@ writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
       .sh_entsize = entsize
     };
   if (type != SHT_NOBITS)
-    *offset += size;
+    *offset += FIX (size);
   if (fwrite (&sect_hdr, sizeof (sect_hdr), 1, objfile) != 1)
     errorAbortLine (NULL, 0, "Internal writeElfSH: error when writing chunk file header");
 }
@@ -370,7 +370,7 @@ outputElf (void)
   elf_head.e_phentsize = 0;
   elf_head.e_phnum = 0;
   elf_head.e_shentsize = sizeof (Elf32_Shdr);
-  elf_head.e_shnum = noareas + norels + 4; /* 4 = SHT_NULL + SHT_SYMTAB + SHT_STRTAB + */
+  elf_head.e_shnum = noareas + norels + 4; /* 4 = "" (SHT_NULL) + ".symtab" (SHT_SYMTAB) + ".strtab" (SHT_STRTAB) + ".shstrtab" (SHT_STRTAB) */
   elf_head.e_shstrndx = noareas + norels + 3;
   fwrite (&elf_head, 1, sizeof (elf_head), objfile);
   
@@ -379,7 +379,7 @@ outputElf (void)
   
   /* Section headers - index 0 */
   writeElfSH (shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
-  shstrsize += 1; /* Null */
+  shstrsize += sizeof ("");
 
   /* Symbol table - index 1 */
   size_t stringSizeNeeded;
@@ -391,7 +391,7 @@ outputElf (void)
   size_t strsize = stringSizeNeeded + 1; /* Add extra NUL terminator at start. */
 
   /* String table - index 2 */
-  writeElfSH (shstrsize, SHT_STRTAB, 0, FIX (strsize), 0, 0, 1, 0, &offset);
+  writeElfSH (shstrsize, SHT_STRTAB, 0, strsize, 0, 0, 1, 0, &offset);
   shstrsize += sizeof (".strtab");
 
   /* Area headers - index 3 */
@@ -483,7 +483,6 @@ outputElf (void)
           fwrite (ap->str, 1, ap->len + 1, objfile);
         }
     }
-
   fwrite (".shstrtab", 1, sizeof(".shstrtab"), objfile);
   for (int pad = EXTRA (shstrsize); pad; pad--)
     fputc (0, objfile);

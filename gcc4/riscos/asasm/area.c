@@ -639,7 +639,7 @@ Area_MarkStartAs (Area_eEntryType type)
 			   areaCurrentSymbol->str,
 			   areaCurrentSymbol->value.Data.Int.i);
       assert ((size_t)size + 1 == mappingSymbolSize);
-      const Lex mapSymbolLex = lexTempLabel (mappingSymbol, mappingSymbolSize);
+      const Lex mapSymbolLex = lexTempLabel (mappingSymbol, mappingSymbolSize - 1);
       ASM_DefineLabel (&mapSymbolLex, areaCurrentSymbol->value.Data.Int.i);
     }
 }

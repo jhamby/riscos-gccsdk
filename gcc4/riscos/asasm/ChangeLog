@@ -1,3 +1,15 @@
+Mon Jun 13 01:10:34 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (symbolFix): Return the number of symbol entries to include
+	in output file (not the number of unique symbols); For ELF output,
+	use empty section names as symbols.
+	(symbolStringOutput): For ELF output, use empty section names as
+	symbols; Add offset asserts.
+	* symbol.h: Update Symbol comments.
+	* area.c (Area_MarkStartAs): Fix Mapping Symbol string length.
+	* output.c (writeElfSH): Round offset calculation.
+	(outputElf): Don't round the string table length.
+
 Sun Jun 12 21:09:33 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/sev_wfe_wfi_yield.s,
