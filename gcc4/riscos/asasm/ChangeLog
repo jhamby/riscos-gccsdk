@@ -1,3 +1,43 @@
+Sun Jun 12 21:09:33 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/sev_wfe_wfi_yield.s,
+	regression/tests_pass/misc.s, regression/tests_pass/mul_mla_mls.s,
+	regression/tests_pass/swi.s, regression/tests_pass/ldm_stm_pop_push.s,
+	regression/tests_pass/loadstore2.s, regression/tests_pass/copro.s,
+	regression/tests_pass/dmb_dsb_isb.s,
+	regression/tests_pass/asr_lsl_lsr_ror_rrx.s,
+	regression/tests_pass/fpe_memory.s, regression/tests_pass/rfe_srs.s
+	regression/tests_pass/arithmetic1.s, regression/tests_pass/dsp.s,
+	regression/tests_pass/nop.s, regression/tests_pass/loadstore.s,
+	regression/tests_pass/branch.s, regression/tests_pass/fpe.s,
+	regression/tests_pass/cps.s, regression/tests_pass/fpe_immediate.s,
+	regression/tests_pass/clrex_ldrex_strex.s,
+	regression/tests_pass/pld_pldw_pli.s,
+	regression/tests_pass/arithmetic2.s: Use DCI instead of DCD as
+	reference for ARM instructions.
+	* commands.c (c_dci): Do align with warning like we do when
+	emitting unaligned instructions.
+	* regression/tests_pass/dcb_dcw_dcd.s: Remove ALIGN, this is now done
+	implicitely (with warning), use instructions as reference for DCI.
+	* symbol.c (symbolFix, symbolStringOutput): Map mapping symbols names
+	to their 2 character prefix.
+	(symbolStringOutput): Add stringSizeNeeded parameter for consistency
+	check.
+	(symFlag): Add error when a mapping symbol explicitely gets created.
+	* symbol.h (symbolStringOutput): Add stringSizeNeeded parameter.
+	(c_exportas): Drop unused declaration.
+	* decode.c (decode_table_t): Use bitfields & enums. Add result subfield.
+	(decode): Follow decode_table_t change; Add call to Area_MarkStartAs;
+	Add warning when code gets created in DATA area.
+	* storage.c (c_alloc): Remove unnecessary test.
+	* area.c (oArea_CurrentEntryType, Area_MarkStartAs,
+	Area_IsMappingSymbol): Add.
+	* area.h (Area_MarkStartAs, Area_IsMappingSymbol): Add.
+	* output.c (outputAof): Follow symbolStringOutput change.
+	(outputElf): Follow symbolStringOutput change; Drop prefix dot of a
+	section name when determining relocation section name.
+	* lit.c (Lit_DumpPool): Add call Area_MarkStartAs.
+
 Sun Jun  5 15:53:04 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* input.c, input.h (Input_Rest): Renamed from inputRest.

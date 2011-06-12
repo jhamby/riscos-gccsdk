@@ -190,39 +190,39 @@
 		LFMEA	F1,4,[R2]!
 	|
 		; LFM form 1 : one register
-		DCD	&ED929200	; LFM     F1,1,[R2,#0]
-		DCD	&ED929201	; LFM     F1,1,[R2,#4]
-		DCD	&ED129201	; LFM     F1,1,[R2,#-4]
-		DCD	&EDB29200	; LFM     F1,1,[R2,#0]!
-		DCD	&EDB29201	; LFM     F1,1,[R2,#4]!
-		DCD	&ED329201	; LFM     F1,1,[R2,#-4]!
-		DCD	&ECB29201	; LFM     F1,1,[R2],#4
-		DCD	&EC329201	; LFM     F1,1,[R2],#-4
+		DCI	&ED929200	; LFM     F1,1,[R2,#0]
+		DCI	&ED929201	; LFM     F1,1,[R2,#4]
+		DCI	&ED129201	; LFM     F1,1,[R2,#-4]
+		DCI	&EDB29200	; LFM     F1,1,[R2,#0]!
+		DCI	&EDB29201	; LFM     F1,1,[R2,#4]!
+		DCI	&ED329201	; LFM     F1,1,[R2,#-4]!
+		DCI	&ECB29201	; LFM     F1,1,[R2],#4
+		DCI	&EC329201	; LFM     F1,1,[R2],#-4
 
 		; LFM form 1 : more than one register
-		DCD	&EDD21200	; LFM     F1,2,[R2,#0]
-		DCD	&EDD29200	; LFM     F1,3,[R2,#0]
-		DCD	&ED921200	; LFM     F1,4,[R2,#0]
+		DCI	&EDD21200	; LFM     F1,2,[R2,#0]
+		DCI	&EDD29200	; LFM     F1,3,[R2,#0]
+		DCI	&ED921200	; LFM     F1,4,[R2,#0]
 
 		; LFM form 2 : one register
-		DCD	&ED929200	; LFM     F1,1,[R2,#0]
-		DCD	&ECB29203	; LFM     F1,1,[R2],#&00C
-		DCD	&ED129203	; LFM     F1,1,[R2,#-&00C]
-		DCD	&ED329203	; LFM     F1,1,[R2,#-&00C]!
+		DCI	&ED929200	; LFM     F1,1,[R2,#0]
+		DCI	&ECB29203	; LFM     F1,1,[R2],#&00C
+		DCI	&ED129203	; LFM     F1,1,[R2,#-&00C]
+		DCI	&ED329203	; LFM     F1,1,[R2,#-&00C]!
 
 		; LFM form 2 : more than one register
-		DCD	&EDD21200	; LFM     F1,2,[R2,#0]
-		DCD	&EDD29200	; LFM     F1,3,[R2,#0]
-		DCD	&ED921200	; LFM     F1,4,[R2,#0]
-		DCD	&ECF21206	; LFM     F1,2,[R2],#&018
-		DCD	&ECF29209	; LFM     F1,3,[R2],#&024
-		DCD	&ECB2120C	; LFM     F1,4,[R2],#&030
-		DCD	&ED521206	; LFM     F1,2,[R2,#-&018]
-		DCD	&ED529209	; LFM     F1,3,[R2,#-&024]
-		DCD	&ED12120C	; LFM     F1,4,[R2,#-&030]
-		DCD	&ED721206	; LFM     F1,2,[R2,#-&018]!
-		DCD	&ED729209	; LFM     F1,3,[R2,#-&024]!
-		DCD	&ED32120C	; LFM     F1,4,[R2,#-&030]!
+		DCI	&EDD21200	; LFM     F1,2,[R2,#0]
+		DCI	&EDD29200	; LFM     F1,3,[R2,#0]
+		DCI	&ED921200	; LFM     F1,4,[R2,#0]
+		DCI	&ECF21206	; LFM     F1,2,[R2],#&018
+		DCI	&ECF29209	; LFM     F1,3,[R2],#&024
+		DCI	&ECB2120C	; LFM     F1,4,[R2],#&030
+		DCI	&ED521206	; LFM     F1,2,[R2,#-&018]
+		DCI	&ED529209	; LFM     F1,3,[R2,#-&024]
+		DCI	&ED12120C	; LFM     F1,4,[R2,#-&030]
+		DCI	&ED721206	; LFM     F1,2,[R2,#-&018]!
+		DCI	&ED729209	; LFM     F1,3,[R2,#-&024]!
+		DCI	&ED32120C	; LFM     F1,4,[R2,#-&030]!
 	]
 
 	[ :LNOT: REFERENCE
@@ -262,39 +262,39 @@
 		SFMEA	F1,4,[R2]!
 	|
 		; SFM form 1 : one register
-		DCD	&ED829200	; SFM     F1,1,[R2,#0]
-		DCD	&ED829201	; SFM     F1,1,[R2,#4]
-		DCD	&ED029201	; SFM     F1,1,[R2,#-4]
-		DCD	&EDA29200	; SFM     F1,1,[R2,#0]!
-		DCD	&EDA29201	; SFM     F1,1,[R2,#4]!
-		DCD	&ED229201	; SFM     F1,1,[R2,#-4]!
-		DCD	&ECA29201	; SFM     F1,1,[R2],#4
-		DCD	&EC229201	; SFM     F1,1,[R2],#-4
+		DCI	&ED829200	; SFM     F1,1,[R2,#0]
+		DCI	&ED829201	; SFM     F1,1,[R2,#4]
+		DCI	&ED029201	; SFM     F1,1,[R2,#-4]
+		DCI	&EDA29200	; SFM     F1,1,[R2,#0]!
+		DCI	&EDA29201	; SFM     F1,1,[R2,#4]!
+		DCI	&ED229201	; SFM     F1,1,[R2,#-4]!
+		DCI	&ECA29201	; SFM     F1,1,[R2],#4
+		DCI	&EC229201	; SFM     F1,1,[R2],#-4
 
 		; SFM form 1 : more than one register
-		DCD	&EDC21200	; SFM     F1,2,[R2,#0]
-		DCD	&EDC29200	; SFM     F1,3,[R2,#0]
-		DCD	&ED821200	; SFM     F1,4,[R2,#0]
+		DCI	&EDC21200	; SFM     F1,2,[R2,#0]
+		DCI	&EDC29200	; SFM     F1,3,[R2,#0]
+		DCI	&ED821200	; SFM     F1,4,[R2,#0]
 
 		; SFM form 2 : one register
-		DCD	&ED029203	; SFM     F1,1,[R2,#-&00C]
-		DCD	&ED229203	; SFM     F1,1,[R2,#-&00C]!
-		DCD	&ED829200	; SFM     F1,1,[R2,#0]
-		DCD	&ECA29203	; SFM     F1,1,[R2],#&00C
+		DCI	&ED029203	; SFM     F1,1,[R2,#-&00C]
+		DCI	&ED229203	; SFM     F1,1,[R2,#-&00C]!
+		DCI	&ED829200	; SFM     F1,1,[R2,#0]
+		DCI	&ECA29203	; SFM     F1,1,[R2],#&00C
 
 		; SFM form 2 : more than one register
-		DCD	&ED421206	; SFM     F1,2,[R2,#-&018]
-		DCD	&ED429209	; SFM     F1,3,[R2,#-&024]
-		DCD	&ED02120C	; SFM     F1,4,[R2,#-&030]
-		DCD	&ED621206	; SFM     F1,2,[R2,#-&018]!
-		DCD	&ED629209	; SFM     F1,3,[R2,#-&024]!
-		DCD	&ED22120C	; SFM     F1,4,[R2,#-&030]!
-		DCD	&EDC21200	; SFM     F1,2,[R2,#0]
-		DCD	&EDC29200	; SFM     F1,3,[R2,#0]
-		DCD	&ED821200	; SFM     F1,4,[R2,#0]
-		DCD	&ECE21206	; SFM     F1,2,[R2],#&018
-		DCD	&ECE29209	; SFM     F1,3,[R2],#&024
-		DCD	&ECA2120C	; SFM     F1,4,[R2],#&030
+		DCI	&ED421206	; SFM     F1,2,[R2,#-&018]
+		DCI	&ED429209	; SFM     F1,3,[R2,#-&024]
+		DCI	&ED02120C	; SFM     F1,4,[R2,#-&030]
+		DCI	&ED621206	; SFM     F1,2,[R2,#-&018]!
+		DCI	&ED629209	; SFM     F1,3,[R2,#-&024]!
+		DCI	&ED22120C	; SFM     F1,4,[R2,#-&030]!
+		DCI	&EDC21200	; SFM     F1,2,[R2,#0]
+		DCI	&EDC29200	; SFM     F1,3,[R2,#0]
+		DCI	&ED821200	; SFM     F1,4,[R2,#0]
+		DCI	&ECE21206	; SFM     F1,2,[R2],#&018
+		DCI	&ECE29209	; SFM     F1,3,[R2],#&024
+		DCI	&ECA2120C	; SFM     F1,4,[R2],#&030
 	]
 
 		END

@@ -359,6 +359,7 @@ c_dcd (void)
 bool
 c_dci (void)
 {
+  Area_AlignTo (areaCurrentSymbol->value.Data.Int.i, 4, "instruction");
   return DefineInt (4, false, "DCI");
 }
 

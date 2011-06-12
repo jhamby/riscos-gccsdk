@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,6 +35,7 @@
 #endif
 
 #include "area.h"
+#include "asm.h"
 #include "commands.h"
 #include "error.h"
 #include "expr.h"
@@ -54,6 +55,7 @@ static void Area_Ensure (void);
 #define GROWSIZE      (16*1024)
 
 Symbol *areaCurrentSymbol = NULL;
+static Area_eEntryType oArea_CurrentEntryType = eInvalid;
 Symbol *areaEntrySymbol = NULL;
 int areaEntryOffset;
 Symbol *areaHeadSymbol = NULL;
@@ -272,6 +274,7 @@ c_align (void)
 
 /**
  * \param align Needs to be power of 2 except value 0.
+ * \param msg When non-NULL, a warning will be given prefixed with "Unaligned ".
  */
 size_t
 Area_AlignTo (size_t offset, int align, const char *msg)
@@ -338,6 +341,7 @@ Area_Ensure (void)
     }
 
   areaCurrentSymbol = sym;
+  oArea_CurrentEntryType = eInvalid;
 }
 
 
@@ -356,7 +360,8 @@ c_area (void)
 {
   Lex lex = lexGetId ();
   if (lex.tag != LexId)
-    return false; /* FIXME: need for error msg here ? */
+    return false;
+
   Symbol *sym = symbolGet (&lex);
   int oldtype = 0;  
   if (sym->type & SYMBOL_DEFINED)
@@ -516,7 +521,10 @@ c_area (void)
     error (ErrorWarning, "Change in attribute of area %s will be ignored", sym->str);
   else
     sym->area.info->type |= newtype;
+
   areaCurrentSymbol = sym;
+  oArea_CurrentEntryType = eInvalid;
+
   return false;
 }
 
@@ -590,4 +598,56 @@ c_require8 (void)
 	error (ErrorError, "REQUIRE8 needs boolean argument");
     }
   return false;
+}
+
+
+/**
+ * Mark (parts of) AREA containing data, ARM or Thumb instructions.
+ * Used to implement ELF Mapping symbols.
+ */
+void
+Area_MarkStartAs (Area_eEntryType type)
+{
+  assert (type != eInvalid);
+
+  /* Don't bother doing this when we don't yet have an area.  This will be
+     faulted anyway later on.  */
+  if (areaCurrentSymbol == NULL)
+    return;
+
+  if (oArea_CurrentEntryType != type)
+    {
+      oArea_CurrentEntryType = type;
+
+      const char *baseMappingSymbol;
+      switch (type)
+	{
+	  case eARM:
+	    baseMappingSymbol = "$a";
+	    break;
+	  case eData:
+	    baseMappingSymbol = "$d";
+	    break;
+	  case eThumb:
+	    baseMappingSymbol = "$t";
+	    break;
+	}
+      size_t mappingSymbolSize = 2 + 1 + areaCurrentSymbol->len + 1 + 8 + 1;
+      char *mappingSymbol = alloca (mappingSymbolSize);
+      int size = snprintf (mappingSymbol, mappingSymbolSize, "%s.%s.%08X",
+			   baseMappingSymbol,
+			   areaCurrentSymbol->str,
+			   areaCurrentSymbol->value.Data.Int.i);
+      assert ((size_t)size + 1 == mappingSymbolSize);
+      const Lex mapSymbolLex = lexTempLabel (mappingSymbol, mappingSymbolSize);
+      ASM_DefineLabel (&mapSymbolLex, areaCurrentSymbol->value.Data.Int.i);
+    }
+}
+
+bool
+Area_IsMappingSymbol (const char *symStr)
+{
+  return symStr[0] == '$'
+	   && (symStr[1] == 'a' || symStr[1] == 'd' || symStr[1] == 't')
+	   && (symStr[2] == '\0' || symStr[2] == '.');
 }

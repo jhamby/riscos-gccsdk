@@ -265,7 +265,7 @@ outputAof (void)
       errorAbortLine (NULL, 0, "Internal outputAof: error when writing string table size");
       return;
     }
-  symbolStringOutput (objfile);
+  symbolStringOutput (objfile, stringSizeNeeded);
   for (int pad = EXTRA (stringSizeNeeded); pad; pad--)
     fputc (0, objfile);
 
@@ -294,8 +294,9 @@ outputAof (void)
 
 #ifndef NO_ELF_SUPPORT
 static void
-writeElfSH (Elf32_Word nmoffset, int type, int flags, int size,
-            int link, int info, int addralign, int entsize, size_t *offset)
+writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
+	    unsigned int size, unsigned int link, unsigned int info,
+	    unsigned int addralign, unsigned int entsize, size_t *offset)
 {
   const Elf32_Shdr sect_hdr =
     {
@@ -411,8 +412,8 @@ outputElf (void)
       if (ap == areaEntrySymbol)
         areaFlags |= SHF_ENTRYSECT;
       areaFlags |= SHF_ALLOC;
-      int sectionSize = FIX (ap->value.Data.Int.i);
-      int sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
+      unsigned int sectionSize = FIX (ap->value.Data.Int.i);
+      unsigned int sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
       writeElfSH (shstrsize, sectionType, areaFlags, sectionSize,
                   0, 0, 4, 0, &offset);
       shstrsize += ap->len + 1;
@@ -423,7 +424,7 @@ outputElf (void)
           writeElfSH (shstrsize, SHT_REL, 0,
 	              ap->area.info->norelocs * sizeof(Elf32_Rel),
 	              1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
-          shstrsize += sizeof (".rel.")-1 + ap->len + 1;
+          shstrsize += sizeof (".rel.")-1 + (ap->str[0] == '.' ? -1 : 0) + ap->len + 1;
           elfIndex++;
         }
       elfIndex++;
@@ -436,9 +437,9 @@ outputElf (void)
   /* Symbol table (.symtab).  */
   symbolSymbolELFOutput (objfile);
 
-  /* String table (.shstrtab).  */
+  /* String table (.strtab).  */
   fputc (0, objfile);
-  symbolStringOutput (objfile);
+  symbolStringOutput (objfile, stringSizeNeeded);
   for (int pad = EXTRA (strsize); pad; pad--)
     fputc (0, objfile);
 
@@ -452,7 +453,7 @@ outputElf (void)
       if (AREA_IMAGE (ap->area.info))
         {
           if (fwrite (ap->area.info->image, 1, ap->value.Data.Int.i, objfile)
-	      != ap->value.Data.Int.i)
+	      != (unsigned)ap->value.Data.Int.i)
             {
               errorAbortLine (NULL, 0, "Internal outputElf: error when writing %s image", ap->str);
               return;
@@ -478,7 +479,7 @@ outputElf (void)
       fwrite (ap->str, 1, ap->len + 1, objfile);
       if (ap->area.info->norelocs)
         {
-          fwrite (".rel.", 1, sizeof(".rel.")-1, objfile);
+          fwrite (".rel.", 1, sizeof(".rel.")-1 + (ap->str[0] == '.' ? -1 : 0), objfile);
           fwrite (ap->str, 1, ap->len + 1, objfile);
         }
     }

@@ -41,26 +41,26 @@ NewEnc	EQU	{ARCHITECTURE} = "6K" \
 		ENDIF
 	|
 		IF NewEnc
-			DCD &0320f000 	; nopeq
-			DCD &1320f000 	; nopne
-			DCD &2320f000 	; nopcs
-			DCD &2320f000 	; nopcs
-			DCD &3320f000 	; nopcc
-			DCD &3320f000 	; nopcc
-			DCD &4320f000 	; nopmi
-			DCD &5320f000 	; noppl
-			DCD &6320f000 	; nopvs
-			DCD &7320f000 	; nopvc
-			DCD &8320f000 	; nophi
-			DCD &9320f000 	; nopls
-			DCD &a320f000 	; nopge
-			DCD &b320f000 	; noplt
-			DCD &c320f000 	; nopgt
-			DCD &d320f000 	; nople
-			DCD &e320f000 	; nop
-			DCD &e320f000 	; nop
+			DCI &0320f000 	; nopeq
+			DCI &1320f000 	; nopne
+			DCI &2320f000 	; nopcs
+			DCI &2320f000 	; nopcs
+			DCI &3320f000 	; nopcc
+			DCI &3320f000 	; nopcc
+			DCI &4320f000 	; nopmi
+			DCI &5320f000 	; noppl
+			DCI &6320f000 	; nopvs
+			DCI &7320f000 	; nopvc
+			DCI &8320f000 	; nophi
+			DCI &9320f000 	; nopls
+			DCI &a320f000 	; nopge
+			DCI &b320f000 	; noplt
+			DCI &c320f000 	; nopgt
+			DCI &d320f000 	; nople
+			DCI &e320f000 	; nop
+			DCI &e320f000 	; nop
 		ELSE
-			DCD &E1A00000
+			DCI &E1A00000
 		ENDIF
 	]
 

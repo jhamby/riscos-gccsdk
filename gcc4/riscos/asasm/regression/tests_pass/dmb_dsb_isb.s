@@ -4,7 +4,7 @@
 
 	[ :LNOT: REFERENCE
 
-	DMB	
+	DMB
 	DMB		; Same as DMB SY
 	DMB	SY
 	DMB	ST
@@ -19,7 +19,7 @@
 	DMB	OSH
 	DMB	OSHST
 
-	DSB	
+	DSB
 	DSB		; Same as DSB SY
 	DSB	SY
 	DSB	ST
@@ -34,7 +34,7 @@
 	DSB	OSH
 	DSB	OSHST
 
-	ISB	
+	ISB
 	ISB		; Same as ISB SY
 	ISB	SY
 	ISB	ST	; Reserved
@@ -51,50 +51,50 @@
 
 	|
 
-	DCD	&f57ff05f
-	DCD	&f57ff05f
-	DCD	&f57ff05f
-	DCD	&f57ff05e
-	DCD	&f57ff05b
-	DCD	&f57ff05b
-	DCD	&f57ff05a
-	DCD	&f57ff05a
-	DCD	&f57ff057
-	DCD	&f57ff057
-	DCD	&f57ff056
-	DCD	&f57ff056
-	DCD	&f57ff053
-	DCD	&f57ff052
+	DCI	&f57ff05f
+	DCI	&f57ff05f
+	DCI	&f57ff05f
+	DCI	&f57ff05e
+	DCI	&f57ff05b
+	DCI	&f57ff05b
+	DCI	&f57ff05a
+	DCI	&f57ff05a
+	DCI	&f57ff057
+	DCI	&f57ff057
+	DCI	&f57ff056
+	DCI	&f57ff056
+	DCI	&f57ff053
+	DCI	&f57ff052
 
-	DCD	&f57ff04f
-	DCD	&f57ff04f
-	DCD	&f57ff04f
-	DCD	&f57ff04e
-	DCD	&f57ff04b
-	DCD	&f57ff04b
-	DCD	&f57ff04a
-	DCD	&f57ff04a
-	DCD	&f57ff047
-	DCD	&f57ff047
-	DCD	&f57ff046
-	DCD	&f57ff046
-	DCD	&f57ff043
-	DCD	&f57ff042
+	DCI	&f57ff04f
+	DCI	&f57ff04f
+	DCI	&f57ff04f
+	DCI	&f57ff04e
+	DCI	&f57ff04b
+	DCI	&f57ff04b
+	DCI	&f57ff04a
+	DCI	&f57ff04a
+	DCI	&f57ff047
+	DCI	&f57ff047
+	DCI	&f57ff046
+	DCI	&f57ff046
+	DCI	&f57ff043
+	DCI	&f57ff042
 
-	DCD	&f57ff06f
-	DCD	&f57ff06f
-	DCD	&f57ff06f
-	DCD	&f57ff06e
-	DCD	&f57ff06b
-	DCD	&f57ff06b
-	DCD	&f57ff06a
-	DCD	&f57ff06a
-	DCD	&f57ff067
-	DCD	&f57ff067
-	DCD	&f57ff066
-	DCD	&f57ff066
-	DCD	&f57ff063
-	DCD	&f57ff062
+	DCI	&f57ff06f
+	DCI	&f57ff06f
+	DCI	&f57ff06f
+	DCI	&f57ff06e
+	DCI	&f57ff06b
+	DCI	&f57ff06b
+	DCI	&f57ff06a
+	DCI	&f57ff06a
+	DCI	&f57ff067
+	DCI	&f57ff067
+	DCI	&f57ff066
+	DCI	&f57ff066
+	DCI	&f57ff063
+	DCI	&f57ff062
 
 	]
 

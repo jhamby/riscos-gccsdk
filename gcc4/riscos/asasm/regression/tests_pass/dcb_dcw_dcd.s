@@ -47,7 +47,6 @@ DExpr6	*	"2"
 	DCB	&11
 	DCWU	&3322
 	DCDU	&77665544
-	ALIGN
 
 	; Four bytes (representing an instruction):
 	DCI	2, &22, &FF00EE00
@@ -96,10 +95,12 @@ DExpr6	*	"2"
 
 	; Unaligned storage:
 	DCB	&11, &22, &33, &44, &55, &66, &77
-	DCB	0
 
 	; Four bytes (representing an instruction):
-	DCD	2, &22, &FF00EE00
+	;DCD	2, &22, &FF00EE00
+	ANDEQ   R0,R0,R2
+	ANDEQ   R0,R0,R2,LSR #32
+	SWINV   &00EE00
 
 	; IMPORT case:
 	IMPORT	ExternalLabel1

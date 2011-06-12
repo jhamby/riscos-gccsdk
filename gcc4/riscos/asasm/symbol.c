@@ -347,6 +347,17 @@ NeedToOutputSymbol (const Symbol *sym)
 unsigned int
 symbolFix (size_t *stringSizeNeeded)
 {
+  /* Map all $a.*, $d.* and $t.* Mapping Symbols to unique $a, $d and $t.  */
+  struct
+    {
+      unsigned offset;
+      int used;
+    } mapSymbols[3] =
+    {
+      { 0, -1 }, /* $a */
+      { 0, -1 }, /* $d */
+      { 0, -1 }  /* $t */
+    };
   unsigned int nosym = 0;
   size_t strsize = 0;		/* Always contains its length */
   for (int i = 0; i < SYMBOL_TABLESIZE; i++)
@@ -397,7 +408,25 @@ symbolFix (size_t *stringSizeNeeded)
 		}
 	    }
 
-	  if (NeedToOutputSymbol (sym))
+	  if (Area_IsMappingSymbol (sym->str))
+	    {
+	      assert (!(sym->type & SYMBOL_AREA));
+	      int mappingSymbolindex = sym->str[1] == 'a' ? 0 : sym->str[1] == 'd' ? 1 : 2;
+	      if (mapSymbols[mappingSymbolindex].used == -1)
+		{
+		  /* First time we see this particular mapping symbol.  */
+		  mapSymbols[mappingSymbolindex].offset = sym->offset = strsize;
+		  mapSymbols[mappingSymbolindex].used = sym->used = nosym;
+		  strsize += 3;
+		  ++nosym;
+		}
+	      else
+		{
+		  sym->offset = mapSymbols[mappingSymbolindex].offset;
+		  sym->used = mapSymbols[mappingSymbolindex].used;
+		}
+	    }
+	  else if (NeedToOutputSymbol (sym))
 	    {
 	      sym->offset = strsize;
 	      strsize += sym->len + 1;
@@ -421,20 +450,38 @@ symbolFix (size_t *stringSizeNeeded)
 }
 
 /**
- * This should exactly write *stringSizeNeeded bytes (with *stringSizeNeeded
+ * This should exactly write stringSizeNeeded bytes (with stringSizeNeeded
  * the value returned by symbolFix()).
  */
 void
-symbolStringOutput (FILE *outfile)	/* Count already output */
+symbolStringOutput (FILE *outfile, size_t stringSizeNeeded)
 {
+  bool mappingSymbols[3] = { false, false, false }; /* 0 = $a, 1 = $d, 2 = $t */
+  size_t count = 0;
   for (int i = 0; i < SYMBOL_TABLESIZE; i++)
     {
       for (const Symbol *sym = symbolTable[i]; sym != NULL; sym = sym->next)
 	{
 	  if (sym->used >= 0)
-	    fwrite (sym->str, 1, sym->len + 1, outfile);
+	    {
+	      if (Area_IsMappingSymbol (sym->str))
+		{
+		  int mappingSymbolIndex = sym->str[1] == 'a' ? 0 : sym->str[1] == 'd' ? 1 : 2;
+		  if (!mappingSymbols[mappingSymbolIndex])
+		    {
+		      mappingSymbols[mappingSymbolIndex] = true;
+		      fputc ('$', outfile);
+		      fputc (sym->str[1], outfile);
+		      fputc ('\0', outfile);
+		      count += 3;
+		    }
+		}
+	      else
+		count += fwrite (sym->str, 1, sym->len + 1, outfile);
+	    }
 	}
     }
+  assert (count == stringSizeNeeded);
 }
 
 void
@@ -658,6 +705,8 @@ symFlag (unsigned int flags, const char *err)
   Symbol *sym = symbolGet (&lex);
   if (Local_IsLocalLabel (sym->str))
     error (ErrorError, "Local labels cannot be %s", err);
+  else if (Area_IsMappingSymbol (sym->str))
+    error (ErrorError, "Mapping symbols cannot be %s", err);
   else
     sym->type |= flags;
   return sym;

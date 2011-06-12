@@ -42,33 +42,33 @@ REGSP	RN	13
 
 	|
 
-	DCD &f8910a00 	; rfeia	r1
-	DCD &f8b10a00 	; rfeia	r1!
-	DCD &f9920a00 	; rfeib	r2
-	DCD &f8320a00 	; rfeda	r2!
-	DCD &f9120a00 	; rfedb	r2
+	DCI &f8910a00 	; rfeia	r1
+	DCI &f8b10a00 	; rfeia	r1!
+	DCI &f9920a00 	; rfeib	r2
+	DCI &f8320a00 	; rfeda	r2!
+	DCI &f9120a00 	; rfedb	r2
 
-	DCD &f8930a00 	; rfeia	r3
-	DCD &f9940a00 	; rfeib	r4
-	DCD &f8150a00 	; rfeda	r5
-	DCD &f9160a00 	; rfedb	r6
+	DCI &f8930a00 	; rfeia	r3
+	DCI &f9940a00 	; rfeib	r4
+	DCI &f8150a00 	; rfeda	r5
+	DCI &f9160a00 	; rfedb	r6
 
-	DCD &f8cd0510 	; srsia	sp, #16
-	DCD &f8ed0510 	; srsia	sp!, #16
-	DCD &f9ed0510 	; srsib	sp!, #16
-	DCD &f84d0510 	; srsda	sp, #16
-	DCD &f96d0510 	; srsdb	sp!, #16
+	DCI &f8cd0510 	; srsia	sp, #16
+	DCI &f8ed0510 	; srsia	sp!, #16
+	DCI &f9ed0510 	; srsib	sp!, #16
+	DCI &f84d0510 	; srsda	sp, #16
+	DCI &f96d0510 	; srsdb	sp!, #16
 
-	DCD &f8cd0510 	; srsia	sp, #16
-	DCD &f8ed0510 	; srsia	sp!, #16
-	DCD &f9ed0510 	; srsib	sp!, #16
-	DCD &f84d0510 	; srsda	sp, #16
-	DCD &f96d0510 	; srsdb	sp!, #16
+	DCI &f8cd0510 	; srsia	sp, #16
+	DCI &f8ed0510 	; srsia	sp!, #16
+	DCI &f9ed0510 	; srsib	sp!, #16
+	DCI &f84d0510 	; srsda	sp, #16
+	DCI &f96d0510 	; srsdb	sp!, #16
 
-	DCD &f8cd0510 	; srsia	sp, #16
-	DCD &f9cd0511 	; srsib	sp, #17
-	DCD &f84d0512 	; srsda	sp, #18
-	DCD &f94d0513 	; srsdb	sp, #19
+	DCI &f8cd0510 	; srsia	sp, #16
+	DCI &f9cd0511 	; srsib	sp, #17
+	DCI &f84d0512 	; srsda	sp, #18
+	DCI &f94d0513 	; srsdb	sp, #19
 
 	]
 

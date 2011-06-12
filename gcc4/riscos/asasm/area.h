@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2010 GCCSDK Developers
+ * Copyright (c) 2001-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -115,5 +115,15 @@ extern bool gArea_Preserve8Guessed;
 
 bool c_preserve8 (void);
 bool c_require8 (void);
+
+typedef enum
+{
+  eInvalid = -1,
+  eARM = 0,
+  eData = 1,
+  eThumb = 2
+} Area_eEntryType;
+void Area_MarkStartAs (Area_eEntryType type);
+bool Area_IsMappingSymbol (const char *);
 
 #endif

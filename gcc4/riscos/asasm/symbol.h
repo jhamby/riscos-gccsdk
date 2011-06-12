@@ -113,7 +113,7 @@ Symbol *symbolFind (const Lex *l);
 void symbolRemove (const Lex *l);
 
 unsigned int symbolFix (size_t *stringSizeNeeded);
-void symbolStringOutput (FILE *outfile);
+void symbolStringOutput (FILE *outfile, size_t stringSizeNeeded);
 void symbolSymbolAOFOutput (FILE *outfile);
 #ifndef NO_ELF_SUPPORT
 void symbolSymbolELFOutput (FILE *outfile);
@@ -123,7 +123,6 @@ bool c_export (void);
 bool c_import (void);
 bool c_keep (void);
 bool c_strong (void);
-bool c_exportas (void);
 
 #ifdef DEBUG
 void symbolPrint (const Symbol *sym);

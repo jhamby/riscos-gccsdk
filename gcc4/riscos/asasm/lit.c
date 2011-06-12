@@ -333,7 +333,7 @@ Lit_DumpPool (void)
       litP = nextLitP;
     }
   prevLitP->next = unAsmLitP;
-
+  
   for (LitPool *litP = unAsmLitP; litP != NULL; litP = litP->next)
     {
       assert (!litP->gotAssembled);
@@ -426,6 +426,10 @@ Lit_DumpPool (void)
 	    errorLine (litP->file, litP->lineno, ErrorError, "Unsupported literal case");
 	    break;
 	}
+
+      /* At this point we're sure we're going to write data in the current
+         area.  Mark it as such.  */
+      Area_MarkStartAs (eData);
       
       /* Ensure alignment.  */
       switch (litP->size)

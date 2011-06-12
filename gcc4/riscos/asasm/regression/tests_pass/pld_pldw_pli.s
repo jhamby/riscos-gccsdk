@@ -22,18 +22,22 @@
 		PLD	[R1,-R2,ROR #6]
 		PLD	[R1,-R2,RRX]
 	|
-		DCD	&f5d1f000	; PLD      [r1]
-		DCD	&f5d1f004	; PLD      [r1,#4]
-		DCD	&f551f004	; PLD      [r1,#-4]
+		; Case 1
+		DCI	&f5d1f000	; PLD      [r1]
+		DCI	&f5d1f004	; PLD      [r1,#4]
+		DCI	&f551f004	; PLD      [r1,#-4]
 
-		DCD	&f7d1f003	; PLD      [r1,r3]
-		DCD	&f751f003	; PLD      [r1,-r3]
+		; Case 2
 
-		DCD	&f7d1f182	; PLD      [r1,r2,LSL #3]
-		DCD	&f7d1f222	; PLD      [r1,r2,LSR #4]
-		DCD	&f751f2c2	; PLD      [r1,-r2,ASR #5]
-		DCD	&f751f362	; PLD      [r1,-r2,ROR #6]
-		DCD	&f751f062	; PLD      [r1,-r2,RRX]
+		; Case 3
+		DCI	&f7d1f003	; PLD      [r1,r3]
+		DCI	&f751f003	; PLD      [r1,-r3]
+
+		DCI	&f7d1f182	; PLD      [r1,r2,LSL #3]
+		DCI	&f7d1f222	; PLD      [r1,r2,LSR #4]
+		DCI	&f751f2c2	; PLD      [r1,-r2,ASR #5]
+		DCI	&f751f362	; PLD      [r1,-r2,ROR #6]
+		DCI	&f751f062	; PLD      [r1,-r2,RRX]
 	]
 
 		END

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -109,7 +109,7 @@ c_alloc (const Lex *lex)
   if (lex->tag == LexId)
     {
       Symbol *sym = symbolAdd (lex);
-      if (sym != NULL && sym->value.Tag == ValueIllegal)
+      if (sym->value.Tag == ValueIllegal)
 	{
 	  assert (sym->type & SYMBOL_DEFINED);
 	  sym->type |= SYMBOL_ABSOLUTE;

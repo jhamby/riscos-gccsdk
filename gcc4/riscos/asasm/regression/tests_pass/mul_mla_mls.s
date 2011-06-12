@@ -151,146 +151,146 @@
 		MLSAL	R1,R2,R3,R4
 		MLS	R1,R2,R3,R4
 	|
-		DCD &e0010392 	; mul	r1, r2, r3
-		DCD &e0110392 	; muls	r1, r2, r3
+		DCI &e0010392 	; mul	r1, r2, r3
+		DCI &e0110392 	; muls	r1, r2, r3
 
-		DCD &e0214392 	; mla	r1, r2, r3, r4
-		DCD &e0314392 	; mlas	r1, r2, r3, r4
+		DCI &e0214392 	; mla	r1, r2, r3, r4
+		DCI &e0314392 	; mlas	r1, r2, r3, r4
 
-		DCD &e0614392 	; mls	r1, r2, r3, r4
+		DCI &e0614392 	; mls	r1, r2, r3, r4
 
-		DCD &00010392 	; muleq	r1, r2, r3
-		DCD &10010392 	; mulne	r1, r2, r3
-		DCD &20010392 	; mulcs	r1, r2, r3
-		DCD &20010392 	; mulcs	r1, r2, r3
-		DCD &30010392 	; mulcc	r1, r2, r3
-		DCD &30010392 	; mulcc	r1, r2, r3
-		DCD &40010392 	; mulmi	r1, r2, r3
-		DCD &50010392 	; mulpl	r1, r2, r3
-		DCD &60010392 	; mulvs	r1, r2, r3
-		DCD &70010392 	; mulvc	r1, r2, r3
-		DCD &80010392 	; mulhi	r1, r2, r3
-		DCD &90010392 	; mulls	r1, r2, r3
-		DCD &a0010392 	; mulge	r1, r2, r3
-		DCD &b0010392 	; mullt	r1, r2, r3
-		DCD &c0010392 	; mulgt	r1, r2, r3
-		DCD &d0010392 	; mulle	r1, r2, r3
-		DCD &e0010392 	; mul	r1, r2, r3
-		DCD &e0010392 	; mul	r1, r2, r3
+		DCI &00010392 	; muleq	r1, r2, r3
+		DCI &10010392 	; mulne	r1, r2, r3
+		DCI &20010392 	; mulcs	r1, r2, r3
+		DCI &20010392 	; mulcs	r1, r2, r3
+		DCI &30010392 	; mulcc	r1, r2, r3
+		DCI &30010392 	; mulcc	r1, r2, r3
+		DCI &40010392 	; mulmi	r1, r2, r3
+		DCI &50010392 	; mulpl	r1, r2, r3
+		DCI &60010392 	; mulvs	r1, r2, r3
+		DCI &70010392 	; mulvc	r1, r2, r3
+		DCI &80010392 	; mulhi	r1, r2, r3
+		DCI &90010392 	; mulls	r1, r2, r3
+		DCI &a0010392 	; mulge	r1, r2, r3
+		DCI &b0010392 	; mullt	r1, r2, r3
+		DCI &c0010392 	; mulgt	r1, r2, r3
+		DCI &d0010392 	; mulle	r1, r2, r3
+		DCI &e0010392 	; mul	r1, r2, r3
+		DCI &e0010392 	; mul	r1, r2, r3
 
-		DCD &00110392 	; mulseq	r1, r2, r3
-		DCD &10110392 	; mulsne	r1, r2, r3
-		DCD &20110392 	; mulscs	r1, r2, r3
-		DCD &20110392 	; mulscs	r1, r2, r3
-		DCD &30110392 	; mulscc	r1, r2, r3
-		DCD &30110392 	; mulscc	r1, r2, r3
-		DCD &40110392 	; mulsmi	r1, r2, r3
-		DCD &50110392 	; mulspl	r1, r2, r3
-		DCD &60110392 	; mulsvs	r1, r2, r3
-		DCD &70110392 	; mulsvc	r1, r2, r3
-		DCD &80110392 	; mulshi	r1, r2, r3
-		DCD &90110392 	; mulsls	r1, r2, r3
-		DCD &a0110392 	; mulsge	r1, r2, r3
-		DCD &b0110392 	; mulslt	r1, r2, r3
-		DCD &c0110392 	; mulsgt	r1, r2, r3
-		DCD &d0110392 	; mulsle	r1, r2, r3
-		DCD &e0110392 	; muls	r1, r2, r3
-		DCD &e0110392 	; muls	r1, r2, r3
+		DCI &00110392 	; mulseq	r1, r2, r3
+		DCI &10110392 	; mulsne	r1, r2, r3
+		DCI &20110392 	; mulscs	r1, r2, r3
+		DCI &20110392 	; mulscs	r1, r2, r3
+		DCI &30110392 	; mulscc	r1, r2, r3
+		DCI &30110392 	; mulscc	r1, r2, r3
+		DCI &40110392 	; mulsmi	r1, r2, r3
+		DCI &50110392 	; mulspl	r1, r2, r3
+		DCI &60110392 	; mulsvs	r1, r2, r3
+		DCI &70110392 	; mulsvc	r1, r2, r3
+		DCI &80110392 	; mulshi	r1, r2, r3
+		DCI &90110392 	; mulsls	r1, r2, r3
+		DCI &a0110392 	; mulsge	r1, r2, r3
+		DCI &b0110392 	; mulslt	r1, r2, r3
+		DCI &c0110392 	; mulsgt	r1, r2, r3
+		DCI &d0110392 	; mulsle	r1, r2, r3
+		DCI &e0110392 	; muls	r1, r2, r3
+		DCI &e0110392 	; muls	r1, r2, r3
 
-		DCD &00110392 	; mulseq	r1, r2, r3
-		DCD &10110392 	; mulsne	r1, r2, r3
-		DCD &20110392 	; mulscs	r1, r2, r3
-		DCD &20110392 	; mulscs	r1, r2, r3
-		DCD &30110392 	; mulscc	r1, r2, r3
-		DCD &30110392 	; mulscc	r1, r2, r3
-		DCD &40110392 	; mulsmi	r1, r2, r3
-		DCD &50110392 	; mulspl	r1, r2, r3
-		DCD &60110392 	; mulsvs	r1, r2, r3
-		DCD &70110392 	; mulsvc	r1, r2, r3
-		DCD &80110392 	; mulshi	r1, r2, r3
-		DCD &90110392 	; mulsls	r1, r2, r3
-		DCD &a0110392 	; mulsge	r1, r2, r3
-		DCD &b0110392 	; mulslt	r1, r2, r3
-		DCD &c0110392 	; mulsgt	r1, r2, r3
-		DCD &d0110392 	; mulsle	r1, r2, r3
-		DCD &e0110392 	; muls	r1, r2, r3
-		DCD &e0110392 	; muls	r1, r2, r3
+		DCI &00110392 	; mulseq	r1, r2, r3
+		DCI &10110392 	; mulsne	r1, r2, r3
+		DCI &20110392 	; mulscs	r1, r2, r3
+		DCI &20110392 	; mulscs	r1, r2, r3
+		DCI &30110392 	; mulscc	r1, r2, r3
+		DCI &30110392 	; mulscc	r1, r2, r3
+		DCI &40110392 	; mulsmi	r1, r2, r3
+		DCI &50110392 	; mulspl	r1, r2, r3
+		DCI &60110392 	; mulsvs	r1, r2, r3
+		DCI &70110392 	; mulsvc	r1, r2, r3
+		DCI &80110392 	; mulshi	r1, r2, r3
+		DCI &90110392 	; mulsls	r1, r2, r3
+		DCI &a0110392 	; mulsge	r1, r2, r3
+		DCI &b0110392 	; mulslt	r1, r2, r3
+		DCI &c0110392 	; mulsgt	r1, r2, r3
+		DCI &d0110392 	; mulsle	r1, r2, r3
+		DCI &e0110392 	; muls	r1, r2, r3
+		DCI &e0110392 	; muls	r1, r2, r3
 
-		DCD &00214392 	; mlaeq	r1, r2, r3, r4
-		DCD &10214392 	; mlane	r1, r2, r3, r4
-		DCD &20214392 	; mlacs	r1, r2, r3, r4
-		DCD &20214392 	; mlacs	r1, r2, r3, r4
-		DCD &30214392 	; mlacc	r1, r2, r3, r4
-		DCD &30214392 	; mlacc	r1, r2, r3, r4
-		DCD &40214392 	; mlami	r1, r2, r3, r4
-		DCD &50214392 	; mlapl	r1, r2, r3, r4
-		DCD &60214392 	; mlavs	r1, r2, r3, r4
-		DCD &70214392 	; mlavc	r1, r2, r3, r4
-		DCD &80214392 	; mlahi	r1, r2, r3, r4
-		DCD &90214392 	; mlals	r1, r2, r3, r4
-		DCD &a0214392 	; mlage	r1, r2, r3, r4
-		DCD &b0214392 	; mlalt	r1, r2, r3, r4
-		DCD &c0214392 	; mlagt	r1, r2, r3, r4
-		DCD &d0214392 	; mlale	r1, r2, r3, r4
-		DCD &e0214392 	; mla	r1, r2, r3, r4
-		DCD &e0214392 	; mla	r1, r2, r3, r4
+		DCI &00214392 	; mlaeq	r1, r2, r3, r4
+		DCI &10214392 	; mlane	r1, r2, r3, r4
+		DCI &20214392 	; mlacs	r1, r2, r3, r4
+		DCI &20214392 	; mlacs	r1, r2, r3, r4
+		DCI &30214392 	; mlacc	r1, r2, r3, r4
+		DCI &30214392 	; mlacc	r1, r2, r3, r4
+		DCI &40214392 	; mlami	r1, r2, r3, r4
+		DCI &50214392 	; mlapl	r1, r2, r3, r4
+		DCI &60214392 	; mlavs	r1, r2, r3, r4
+		DCI &70214392 	; mlavc	r1, r2, r3, r4
+		DCI &80214392 	; mlahi	r1, r2, r3, r4
+		DCI &90214392 	; mlals	r1, r2, r3, r4
+		DCI &a0214392 	; mlage	r1, r2, r3, r4
+		DCI &b0214392 	; mlalt	r1, r2, r3, r4
+		DCI &c0214392 	; mlagt	r1, r2, r3, r4
+		DCI &d0214392 	; mlale	r1, r2, r3, r4
+		DCI &e0214392 	; mla	r1, r2, r3, r4
+		DCI &e0214392 	; mla	r1, r2, r3, r4
 
-		DCD &00314392 	; mlaseq	r1, r2, r3, r4
-		DCD &10314392 	; mlasne	r1, r2, r3, r4
-		DCD &20314392 	; mlascs	r1, r2, r3, r4
-		DCD &20314392 	; mlascs	r1, r2, r3, r4
-		DCD &30314392 	; mlascc	r1, r2, r3, r4
-		DCD &30314392 	; mlascc	r1, r2, r3, r4
-		DCD &40314392 	; mlasmi	r1, r2, r3, r4
-		DCD &50314392 	; mlaspl	r1, r2, r3, r4
-		DCD &60314392 	; mlasvs	r1, r2, r3, r4
-		DCD &70314392 	; mlasvc	r1, r2, r3, r4
-		DCD &80314392 	; mlashi	r1, r2, r3, r4
-		DCD &90314392 	; mlasls	r1, r2, r3, r4
-		DCD &a0314392 	; mlasge	r1, r2, r3, r4
-		DCD &b0314392 	; mlaslt	r1, r2, r3, r4
-		DCD &c0314392 	; mlasgt	r1, r2, r3, r4
-		DCD &d0314392 	; mlasle	r1, r2, r3, r4
-		DCD &e0314392 	; mlas	r1, r2, r3, r4
-		DCD &e0314392 	; mlas	r1, r2, r3, r4
+		DCI &00314392 	; mlaseq	r1, r2, r3, r4
+		DCI &10314392 	; mlasne	r1, r2, r3, r4
+		DCI &20314392 	; mlascs	r1, r2, r3, r4
+		DCI &20314392 	; mlascs	r1, r2, r3, r4
+		DCI &30314392 	; mlascc	r1, r2, r3, r4
+		DCI &30314392 	; mlascc	r1, r2, r3, r4
+		DCI &40314392 	; mlasmi	r1, r2, r3, r4
+		DCI &50314392 	; mlaspl	r1, r2, r3, r4
+		DCI &60314392 	; mlasvs	r1, r2, r3, r4
+		DCI &70314392 	; mlasvc	r1, r2, r3, r4
+		DCI &80314392 	; mlashi	r1, r2, r3, r4
+		DCI &90314392 	; mlasls	r1, r2, r3, r4
+		DCI &a0314392 	; mlasge	r1, r2, r3, r4
+		DCI &b0314392 	; mlaslt	r1, r2, r3, r4
+		DCI &c0314392 	; mlasgt	r1, r2, r3, r4
+		DCI &d0314392 	; mlasle	r1, r2, r3, r4
+		DCI &e0314392 	; mlas	r1, r2, r3, r4
+		DCI &e0314392 	; mlas	r1, r2, r3, r4
 
-		DCD &00314392 	; mlaseq	r1, r2, r3, r4
-		DCD &10314392 	; mlasne	r1, r2, r3, r4
-		DCD &20314392 	; mlascs	r1, r2, r3, r4
-		DCD &20314392 	; mlascs	r1, r2, r3, r4
-		DCD &30314392 	; mlascc	r1, r2, r3, r4
-		DCD &30314392 	; mlascc	r1, r2, r3, r4
-		DCD &40314392 	; mlasmi	r1, r2, r3, r4
-		DCD &50314392 	; mlaspl	r1, r2, r3, r4
-		DCD &60314392 	; mlasvs	r1, r2, r3, r4
-		DCD &70314392 	; mlasvc	r1, r2, r3, r4
-		DCD &80314392 	; mlashi	r1, r2, r3, r4
-		DCD &90314392 	; mlasls	r1, r2, r3, r4
-		DCD &a0314392 	; mlasge	r1, r2, r3, r4
-		DCD &b0314392 	; mlaslt	r1, r2, r3, r4
-		DCD &c0314392 	; mlasgt	r1, r2, r3, r4
-		DCD &d0314392 	; mlasle	r1, r2, r3, r4
-		DCD &e0314392 	; mlas	r1, r2, r3, r4
-		DCD &e0314392 	; mlas	r1, r2, r3, r4
+		DCI &00314392 	; mlaseq	r1, r2, r3, r4
+		DCI &10314392 	; mlasne	r1, r2, r3, r4
+		DCI &20314392 	; mlascs	r1, r2, r3, r4
+		DCI &20314392 	; mlascs	r1, r2, r3, r4
+		DCI &30314392 	; mlascc	r1, r2, r3, r4
+		DCI &30314392 	; mlascc	r1, r2, r3, r4
+		DCI &40314392 	; mlasmi	r1, r2, r3, r4
+		DCI &50314392 	; mlaspl	r1, r2, r3, r4
+		DCI &60314392 	; mlasvs	r1, r2, r3, r4
+		DCI &70314392 	; mlasvc	r1, r2, r3, r4
+		DCI &80314392 	; mlashi	r1, r2, r3, r4
+		DCI &90314392 	; mlasls	r1, r2, r3, r4
+		DCI &a0314392 	; mlasge	r1, r2, r3, r4
+		DCI &b0314392 	; mlaslt	r1, r2, r3, r4
+		DCI &c0314392 	; mlasgt	r1, r2, r3, r4
+		DCI &d0314392 	; mlasle	r1, r2, r3, r4
+		DCI &e0314392 	; mlas	r1, r2, r3, r4
+		DCI &e0314392 	; mlas	r1, r2, r3, r4
 
-		DCD &00614392 	; mlseq	r1, r2, r3, r4
-		DCD &10614392 	; mlsne	r1, r2, r3, r4
-		DCD &20614392 	; mlscs	r1, r2, r3, r4
-		DCD &20614392 	; mlscs	r1, r2, r3, r4
-		DCD &30614392 	; mlscc	r1, r2, r3, r4
-		DCD &30614392 	; mlscc	r1, r2, r3, r4
-		DCD &40614392 	; mlsmi	r1, r2, r3, r4
-		DCD &50614392 	; mlspl	r1, r2, r3, r4
-		DCD &60614392 	; mlsvs	r1, r2, r3, r4
-		DCD &70614392 	; mlsvc	r1, r2, r3, r4
-		DCD &80614392 	; mlshi	r1, r2, r3, r4
-		DCD &90614392 	; mlsls	r1, r2, r3, r4
-		DCD &a0614392 	; mlsge	r1, r2, r3, r4
-		DCD &b0614392 	; mlslt	r1, r2, r3, r4
-		DCD &c0614392 	; mlsgt	r1, r2, r3, r4
-		DCD &d0614392 	; mlsle	r1, r2, r3, r4
-		DCD &e0614392 	; mls	r1, r2, r3, r4
-		DCD &e0614392 	; mls	r1, r2, r3, r4
+		DCI &00614392 	; mlseq	r1, r2, r3, r4
+		DCI &10614392 	; mlsne	r1, r2, r3, r4
+		DCI &20614392 	; mlscs	r1, r2, r3, r4
+		DCI &20614392 	; mlscs	r1, r2, r3, r4
+		DCI &30614392 	; mlscc	r1, r2, r3, r4
+		DCI &30614392 	; mlscc	r1, r2, r3, r4
+		DCI &40614392 	; mlsmi	r1, r2, r3, r4
+		DCI &50614392 	; mlspl	r1, r2, r3, r4
+		DCI &60614392 	; mlsvs	r1, r2, r3, r4
+		DCI &70614392 	; mlsvc	r1, r2, r3, r4
+		DCI &80614392 	; mlshi	r1, r2, r3, r4
+		DCI &90614392 	; mlsls	r1, r2, r3, r4
+		DCI &a0614392 	; mlsge	r1, r2, r3, r4
+		DCI &b0614392 	; mlslt	r1, r2, r3, r4
+		DCI &c0614392 	; mlsgt	r1, r2, r3, r4
+		DCI &d0614392 	; mlsle	r1, r2, r3, r4
+		DCI &e0614392 	; mls	r1, r2, r3, r4
+		DCI &e0614392 	; mls	r1, r2, r3, r4
 	]
 
 		END
