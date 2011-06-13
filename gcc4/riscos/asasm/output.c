@@ -385,7 +385,11 @@ outputElf (void)
   size_t stringSizeNeeded;
   unsigned int nsyms = symbolFix (&stringSizeNeeded);
   writeElfSH (shstrsize, SHT_SYMTAB, 0, (nsyms + 1) * sizeof (Elf32_Sym),
-	      2, 0, 4, sizeof (Elf32_Sym), &offset);
+	      2 /* The section header index of the associated string table.  */,
+	      nsyms + 1 /* One greater than the symbol table index of the last local symbol (binding STB_LOCAL). */,
+	      4 /* Align. */,
+	      sizeof (Elf32_Sym) /* Entry size.  */,
+	      &offset);
   shstrsize += sizeof (".symtab");
 
   size_t strsize = stringSizeNeeded + 1; /* Add extra NUL terminator at start. */
@@ -415,7 +419,11 @@ outputElf (void)
       unsigned int sectionSize = FIX (ap->value.Data.Int.i);
       unsigned int sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
       writeElfSH (shstrsize, sectionType, areaFlags, sectionSize,
-                  0, 0, 4, 0, &offset);
+                  0,
+		  0,
+		  1 << (ap->area.info->type & AREA_ALIGN_MASK),
+		  0,
+		  &offset);
       shstrsize += ap->len + 1;
 
       if (ap->area.info->norelocs)

@@ -92,15 +92,13 @@ typedef struct Symbol
       either -1 (no relocation needed),
       either 0 (relocation needed, see Reloc_Create()).
 
+    At symbolFix():
       For area symbols:
         - AOF output : this will be the area number counted from 0
         - ELF output : this is the section number (counted from 3)
       For other symbols:
-        Indicates this symbol's position in the symbol table.
-
-    At symbolFix():
-       When >= 0, symbol index,
-       When -1, symbol won't appear in the symbol table.  */
+        When >= 0, symbol index,
+        When -1, symbol won't appear in the symbol table.  */
 
   /* Symbol name: */
   size_t len;		/** length of str[] without its NUL terminator.  */

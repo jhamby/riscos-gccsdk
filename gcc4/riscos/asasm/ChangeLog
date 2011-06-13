@@ -1,3 +1,13 @@
+Mon Jun 13 15:02:52 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (symbolFix, symbolSymbolELFOutput): For ELF output, section
+	names should not even be mentioned in the string table at all.
+	* symbol.h (Symbol): Update comments.
+	* area.h (AREA_ALIGN_MASK): Define.
+	* area.c (c_area): Use AREA_ALIGN_MASK.
+	* output.c (outputElf): Properly fill in info field of the symbol
+	table section; Support non-4 AREA alignments.
+
 Mon Jun 13 01:10:34 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (symbolFix): Return the number of symbol entries to include
@@ -5,7 +15,7 @@ Mon Jun 13 01:10:34 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 	use empty section names as symbols.
 	(symbolStringOutput): For ELF output, use empty section names as
 	symbols; Add offset asserts.
-	* symbol.h: Update Symbol comments.
+	* symbol.h (Symbol): Update comments.
 	* area.c (Area_MarkStartAs): Fix Mapping Symbol string length.
 	* output.c (writeElfSH): Round offset calculation.
 	(outputElf): Don't round the string table length.

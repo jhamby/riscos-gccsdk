@@ -428,10 +428,14 @@ symbolFix (size_t *stringSizeNeeded)
 	    }
 	  else if (NeedToOutputSymbol (sym))
 	    {
-	      sym->offset = strsize;
-	      /* For ELF, section names are not used in the string table
-	         and an empty string is used instead.  */
-	      strsize += ((sym->type & SYMBOL_AREA) && !option_aof) ? 1 : sym->len + 1;
+	      /* For ELF, section names are not used in the string table.  */
+	      if ((sym->type & SYMBOL_AREA) && !option_aof)
+		sym->offset = 0;
+	      else
+		{
+		  sym->offset = strsize;
+		  strsize += sym->len + 1;
+		}
 	      if (!(sym->type & SYMBOL_AREA))
 		sym->used = nosym;
 	      ++nosym;
@@ -472,7 +476,7 @@ symbolStringOutput (FILE *outfile, size_t stringSizeNeeded)
 		  if (!mappingSymbols[mappingSymbolIndex])
 		    {
 		      mappingSymbols[mappingSymbolIndex] = true;
-		      assert (count == sym->offset);
+		      assert (sym->offset == count);
 		      fputc ('$', outfile);
 		      fputc (sym->str[1], outfile);
 		      fputc ('\0', outfile);
@@ -480,14 +484,10 @@ symbolStringOutput (FILE *outfile, size_t stringSizeNeeded)
 		    }
 		}
 	      else if ((sym->type & SYMBOL_AREA) && !option_aof)
-		{
-		  assert (count == sym->offset);
-		  fputc ('\0', outfile);
-		  count += 1;
-		}
+		assert (sym->offset == 0);
 	      else
 		{
-		  assert (count == sym->offset);
+		  assert (sym->offset == count);
 		  count += fwrite (sym->str, 1, sym->len + 1, outfile);
 		}
 	    }
@@ -590,7 +590,7 @@ symbolSymbolAOFOutput (FILE *outfile)
 void
 symbolSymbolELFOutput (FILE *outfile)
 {
-  /* Output the undefined symbol */
+  /* Output the undefined symbol.  */
   Elf32_Sym asym =
     {
       .st_name = 0,
@@ -612,7 +612,7 @@ symbolSymbolELFOutput (FILE *outfile)
 	  if (sym->type & SYMBOL_AREA)
 	    {
 	      asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
-	      asym.st_name = sym->offset + 1; /* + 1 to skip initial & extra NUL */
+	      asym.st_name = 0;
 	      asym.st_value = 0;
 	      asym.st_shndx = sym->used;
 	      fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
@@ -692,7 +692,7 @@ symbolSymbolELFOutput (FILE *outfile)
 		    break;
 		}
 	      asym.st_info = ELF32_ST_INFO (bind, STT_NOTYPE);
-	      if (asym.st_shndx == 65535)
+	      if (asym.st_shndx == (Elf32_Half)-1)
 		errorAbort ("Internal symbolSymbolELFOutput: unable to find section id");
 	      else
 		fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);

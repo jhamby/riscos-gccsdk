@@ -285,7 +285,7 @@ Area_AlignTo (size_t offset, int align, const char *msg)
   size_t newOffset = (offset + align-1) & -align;      
   if (AREA_NOSPACE (areaCurrentSymbol->area.info, newOffset))
     areaGrow (areaCurrentSymbol->area.info, newOffset - areaCurrentSymbol->value.Data.Int.i);
-  if (areaCurrentSymbol->value.Data.Int.i < newOffset)
+  if ((size_t)areaCurrentSymbol->value.Data.Int.i < newOffset)
     {
       for (size_t i = areaCurrentSymbol->value.Data.Int.i; i != newOffset; ++i)
 	areaCurrentSymbol->area.info->image[i] = 0;
@@ -444,7 +444,7 @@ c_area (void)
       else if (attribute.Data.Id.len == sizeof ("ALIGN")-1
 	       && !memcmp ("ALIGN", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
-	  if (newtype & 0xFF)
+	  if (newtype & AREA_ALIGN_MASK)
 	    error (ErrorError, "You can't specify ALIGN attribute more than once");
 	  skipblanks ();
 	  if (!Input_Match ('=', false))
@@ -475,7 +475,7 @@ c_area (void)
     }
 
   /* Any alignment specified ? No, take default alignment (2) */
-  if ((newtype & 0xFF) == 0)
+  if ((newtype & AREA_ALIGN_MASK) == 0)
     newtype |= AREA_DEFAULT_ALIGNMENT;
 
   /* AREA_COMMONDEF + AREA_COMMONREF => AREA_COMMONDEF */
