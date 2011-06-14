@@ -152,8 +152,9 @@ const char *
 Input_Rest (void)
 {
   const char * const t = input_pos;
-  while (*input_pos)
-    ++input_pos;
+  if (t)
+    while (*input_pos)
+      ++input_pos;
   return t;
 }
 

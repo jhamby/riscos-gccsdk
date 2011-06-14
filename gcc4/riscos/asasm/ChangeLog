@@ -1,3 +1,29 @@
+Tue Jun 14 02:12:06 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (NeedToOutputSymbol): When we having a global keep, don't
+	output the register symbols.
+	(symbolFix,symbolStringOutput, symbolSymbolAOFOutput,
+	symbolSymbolELFOutput): Refactored code into...
+	(SymbolCompare, Symbol_CreateSymbolOut, Symbol_OutputStrings,
+	Symbol_OutputForAOF, Symbol_OutputForELF, Symbol_FreeSymbolOut,
+	SymbolOut_t): ...this. Now outputing local symbols first and order them
+	alphabetically.
+	(symFlag): Don't give error when no symbol can be read.
+	(c_keep): Fix return value check of symFlag call.
+	(c_import): Give error when no symbol can be read.
+	* symbol.h (symbolFix,symbolStringOutput, symbolSymbolAOFOutput,
+	symbolSymbolELFOutput): Remove.
+	(SymbolCompare, Symbol_CreateSymbolOut, Symbol_OutputStrings,
+	Symbol_OutputForAOF, Symbol_OutputForELF, Symbol_FreeSymbolOut,
+	SymbolOut_t): Add.
+	* output.c (outputAof, outputElf): Use new Symbol_* code.
+	(outputElf): Add preprocessor test on ELF_EABI for EABI v5 output.
+	* elf.h: Remove non-ARM bits.  Update ARM relocation list.
+	* local.c (kIntLabelPrefix): Move to...
+	* local.h: ...here.
+	* lit.c (Lit_GetLitOffsetAsSymbol): Use kIntLabelPrefix.
+	* input.c (Input_Rest): Add test on input_pos.
+
 Mon Jun 13 15:02:52 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (symbolFix, symbolSymbolELFOutput): For ELF output, section

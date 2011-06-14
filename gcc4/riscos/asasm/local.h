@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2010 GCCSDK Developers
+ * Copyright (c) 2002-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,9 @@
 
 #include <stdbool.h>
 #include "lex.h"
+
+/* Prefix of all internal AsAsm symbols.  */
+#define kIntLabelPrefix "$$AsAsm$$Int$$"
 
 extern int Local_ROUTLblNo[100];
 extern const char *Local_CurROUTId;

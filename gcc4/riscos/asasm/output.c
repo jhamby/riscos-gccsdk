@@ -186,16 +186,17 @@ outputAof (void)
       ap->area.info->norelocs = relocFix (ap);
       if (AREA_IMAGE (ap->area.info))
 	obj_area_size += FIX (ap->value.Data.Int.i)
-			  + ap->area.info->norelocs * sizeof (AofReloc);
+			   + ap->area.info->norelocs * sizeof (AofReloc);
     }
 
-  size_t stringSizeNeeded;
+  SymbolOut_t symOut = Symbol_CreateSymbolOut ();
+  
   const AofHeader aof_head =
     {
       .Type = armword (AofHeaderID),
       .Version = armword (310),
       .noAreas = armword (noareas),
-      .noSymbols = armword (symbolFix (&stringSizeNeeded)),
+      .noSymbols = armword (symOut.numAllSymbols),
       .EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->used + 1 : 0),
       .EntryOffset = armword (areaEntrySymbol ? areaEntryOffset : 0)
     };
@@ -217,7 +218,7 @@ outputAof (void)
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_IDFN, idfn_size, &offset);
 
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_STRT,
-                         FIX (stringSizeNeeded) + 4, &offset);
+                         FIX (symOut.stringSize) + 4, &offset);
 
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_SYMT,
                          ourword (aof_head.noSymbols)*sizeof (AofSymbol), &offset);
@@ -259,18 +260,18 @@ outputAof (void)
       return;
     }
   /******** Chunk 2 String Table ***********/
-  unsigned int strt_size = armword (stringSizeNeeded + 4);
+  unsigned int strt_size = armword (symOut.stringSize + 4);
   if (fwrite (&strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
       errorAbortLine (NULL, 0, "Internal outputAof: error when writing string table size");
       return;
     }
-  symbolStringOutput (objfile, stringSizeNeeded);
-  for (int pad = EXTRA (stringSizeNeeded); pad; pad--)
+  Symbol_OutputStrings (objfile, &symOut);
+  for (unsigned pad = EXTRA (symOut.stringSize); pad; pad--)
     fputc (0, objfile);
 
   /******** Chunk 3 Symbol Table ***********/
-  symbolSymbolAOFOutput (objfile);
+  Symbol_OutputForAOF (objfile, &symOut);
 
   /******** Chunk 4 Area *****************/
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
@@ -285,11 +286,13 @@ outputAof (void)
 	      != (size_t)ap->value.Data.Int.i)
 	    errorAbortLine (NULL, 0, "Internal outputAof: error when writing %s image", ap->str);
 	  /* Word align the written area.  */
-	  for (int pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
+	  for (unsigned pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
 	    fputc (0, objfile);
 	  relocAOFOutput (objfile, ap);
 	}
     }
+
+  Symbol_FreeSymbolOut (&symOut);
 }
 
 #ifndef NO_ELF_SUPPORT
@@ -358,10 +361,11 @@ outputElf (void)
   elf_head.e_entry = areaEntrySymbol?areaEntryOffset:0;
   elf_head.e_phoff = 0;
   elf_head.e_shoff = sizeof (elf_head);
-  /* We like to take all the aspects of EF_ARM_CURRENT but not its
-     ARM EABI version as we aren't complying with any of the versions
-     so we set the version to 0 which means EF_ARM_ABI_UNKNOWN.  */
-  elf_head.e_flags = EF_ARM_CURRENT & ~EF_ARM_EABIMASK;
+#ifdef ELF_EABI
+  elf_head.e_flags = EF_ARM_EABI_VER5;
+#else
+  elf_head.e_flags = 0;
+#endif
   if (option_apcs_softfloat)
     elf_head.e_flags |= 0x200;
   if (areaEntrySymbol)
@@ -382,17 +386,16 @@ outputElf (void)
   shstrsize += sizeof ("");
 
   /* Symbol table - index 1 */
-  size_t stringSizeNeeded;
-  unsigned int nsyms = symbolFix (&stringSizeNeeded);
-  writeElfSH (shstrsize, SHT_SYMTAB, 0, (nsyms + 1) * sizeof (Elf32_Sym),
+  SymbolOut_t symOut = Symbol_CreateSymbolOut ();
+  writeElfSH (shstrsize, SHT_SYMTAB, 0, (symOut.numAllSymbols + 1) * sizeof (Elf32_Sym),
 	      2 /* The section header index of the associated string table.  */,
-	      nsyms + 1 /* One greater than the symbol table index of the last local symbol (binding STB_LOCAL). */,
+	      symOut.numLocalSymbols + 1 /* One greater than the symbol table index of the last local symbol (binding STB_LOCAL). */,
 	      4 /* Align. */,
 	      sizeof (Elf32_Sym) /* Entry size.  */,
 	      &offset);
   shstrsize += sizeof (".symtab");
 
-  size_t strsize = stringSizeNeeded + 1; /* Add extra NUL terminator at start. */
+  size_t strsize = symOut.stringSize + 1; /* Add extra NUL terminator at start. */
 
   /* String table - index 2 */
   writeElfSH (shstrsize, SHT_STRTAB, 0, strsize, 0, 0, 1, 0, &offset);
@@ -428,7 +431,7 @@ outputElf (void)
 
       if (ap->area.info->norelocs)
         {
-          /* relocations */
+          /* Relocations.  */
           writeElfSH (shstrsize, SHT_REL, 0,
 	              ap->area.info->norelocs * sizeof(Elf32_Rel),
 	              1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
@@ -438,17 +441,17 @@ outputElf (void)
       elfIndex++;
     }
 
-  /* Section head string table */
+  /* Section head string table.  */
   shstrsize += sizeof (".shstrtab");
   writeElfSH (shstrsize - sizeof (".shstrtab"), SHT_STRTAB, 0, shstrsize, 0, 0, 1, 0, &offset);
 
   /* Symbol table (.symtab).  */
-  symbolSymbolELFOutput (objfile);
+  Symbol_OutputForELF (objfile, &symOut);
 
   /* String table (.strtab).  */
   fputc (0, objfile);
-  symbolStringOutput (objfile, stringSizeNeeded);
-  for (int pad = EXTRA (strsize); pad; pad--)
+  Symbol_OutputStrings (objfile, &symOut);
+  for (unsigned pad = EXTRA (strsize); pad; pad--)
     fputc (0, objfile);
 
   /* Areas */
@@ -467,7 +470,7 @@ outputElf (void)
               return;
             }
 	  /* Word align the written area.  */
-	  for (int pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
+	  for (unsigned pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
 	    fputc (0, objfile);
           if (ap->area.info->norelocs)
             relocELFOutput (objfile, ap);
@@ -492,7 +495,9 @@ outputElf (void)
         }
     }
   fwrite (".shstrtab", 1, sizeof(".shstrtab"), objfile);
-  for (int pad = EXTRA (shstrsize); pad; pad--)
+  for (unsigned pad = EXTRA (shstrsize); pad; pad--)
     fputc (0, objfile);
+
+  Symbol_FreeSymbolOut (&symOut);
 }
 #endif

@@ -305,7 +305,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	                    : value->Data.Symbol.symbol->used);
 	  int type;
 	  if (relocs->reloc.How & HOW3_RELATIVE)
-	    type = R_ARM_PC24;
+	    type = R_ARM_PC24; /* FIXME: for EABI, this should be R_ARM_CALL or R_ARM_JUMP24.  */
 	  else
 	    type = R_ARM_ABS32;
 	  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
@@ -330,7 +330,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 		  int symbol = value->Data.Symbol.symbol->offset + 1;
 		  int type;
 		  if (relocs->reloc.How & HOW3_RELATIVE)
-		    type = R_ARM_PC24;
+		    type = R_ARM_PC24; /* FIXME: for EABI, this should be R_ARM_CALL or R_ARM_JUMP24.  */
 		  else
 		    type = R_ARM_ABS32;
 		  areloc.r_info = armword (ELF32_R_INFO (symbol, type));

@@ -41,13 +41,6 @@ typedef __s64	Elf64_Sxword;
 #define PT_PHDR    6
 #define PT_LOPROC  0x70000000
 #define PT_HIPROC  0x7fffffff
-#define PT_MIPS_REGINFO		0x70000000
-
-/* Flags in the e_flags field of the header */
-#define EF_MIPS_NOREORDER 0x00000001
-#define EF_MIPS_PIC       0x00000002
-#define EF_MIPS_CPIC      0x00000004
-#define EF_MIPS_ARCH      0xf0000000
 
 /* These constants define the different elf file types */
 #define ET_NONE   0
@@ -131,25 +124,6 @@ typedef __s64	Elf64_Sxword;
 #define DT_JMPREL	23
 #define DT_LOPROC	0x70000000
 #define DT_HIPROC	0x7fffffff
-#define DT_MIPS_RLD_VERSION	0x70000001
-#define DT_MIPS_TIME_STAMP	0x70000002
-#define DT_MIPS_ICHECKSUM	0x70000003
-#define DT_MIPS_IVERSION	0x70000004
-#define DT_MIPS_FLAGS		0x70000005
-  #define RHF_NONE		  0
-  #define RHF_HARDWAY		  1
-  #define RHF_NOTPOT		  2
-#define DT_MIPS_BASE_ADDRESS	0x70000006
-#define DT_MIPS_CONFLICT	0x70000008
-#define DT_MIPS_LIBLIST		0x70000009
-#define DT_MIPS_LOCAL_GOTNO	0x7000000a
-#define DT_MIPS_CONFLICTNO	0x7000000b
-#define DT_MIPS_LIBLISTNO	0x70000010
-#define DT_MIPS_SYMTABNO	0x70000011
-#define DT_MIPS_UNREFEXTNO	0x70000012
-#define DT_MIPS_GOTSYM		0x70000013
-#define DT_MIPS_HIPAGENO	0x70000014
-#define DT_MIPS_RLD_MAP		0x70000016
 
 /* This info is needed when parsing the symbol table */
 #define STB_LOCAL  0
@@ -208,194 +182,194 @@ typedef struct {
 #define ELF32_R_TYPE(x) ((x) & 0xff)
 #define ELF32_R_INFO(s,t) (((s)<<8)+(unsigned char)(t))
 
-#define R_386_NONE	0
-#define R_386_32	1
-#define R_386_PC32	2
-#define R_386_GOT32	3
-#define R_386_PLT32	4
-#define R_386_COPY	5
-#define R_386_GLOB_DAT	6
-#define R_386_JMP_SLOT	7
-#define R_386_RELATIVE	8
-#define R_386_GOTOFF	9
-#define R_386_GOTPC	10
-#define R_386_NUM	11
-
-#define R_MIPS_NONE		0
-#define R_MIPS_16		1
-#define R_MIPS_32		2
-#define R_MIPS_REL32		3
-#define R_MIPS_26		4
-#define R_MIPS_HI16		5
-#define R_MIPS_LO16		6
-#define R_MIPS_GPREL16		7
-#define R_MIPS_LITERAL		8
-#define R_MIPS_GOT16		9
-#define R_MIPS_PC16		10
-#define R_MIPS_CALL16		11
-#define R_MIPS_GPREL32		12
-/* The remaining relocs are defined on Irix, although they are not
-   in the MIPS ELF ABI.  */
-#define R_MIPS_UNUSED1		13
-#define R_MIPS_UNUSED2		14
-#define R_MIPS_UNUSED3		15
-#define R_MIPS_SHIFT5		16
-#define R_MIPS_SHIFT6		17
-#define R_MIPS_64		18
-#define R_MIPS_GOT_DISP		19
-#define R_MIPS_GOT_PAGE		20
-#define R_MIPS_GOT_OFST		21
-/*
- * The following two relocation types are specified in the MIPS ABI
- * conformance guide version 1.2 but not yet in the psABI.
- */
-#define R_MIPS_GOTHI16		22
-#define R_MIPS_GOTLO16		23
-#define R_MIPS_SUB		24
-#define R_MIPS_INSERT_A		25
-#define R_MIPS_INSERT_B		26
-#define R_MIPS_DELETE		27
-#define R_MIPS_HIGHER		28
-#define R_MIPS_HIGHEST		29
-/*
- * The following two relocation types are specified in the MIPS ABI
- * conformance guide version 1.2 but not yet in the psABI.
- */
-#define R_MIPS_CALLHI16		30
-#define R_MIPS_CALLLO16		31
-/*
- * This range is reserved for vendor specific relocations.
- */
-#define R_MIPS_LOVENDOR		100
-#define R_MIPS_HIVENDOR		127
-
-
-/*
- * Sparc ELF relocation types
- */
-#define	R_SPARC_NONE		0
-#define	R_SPARC_8		1
-#define	R_SPARC_16		2
-#define	R_SPARC_32		3
-#define	R_SPARC_DISP8		4
-#define	R_SPARC_DISP16		5
-#define	R_SPARC_DISP32		6
-#define	R_SPARC_WDISP30		7
-#define	R_SPARC_WDISP22		8
-#define	R_SPARC_HI22		9
-#define	R_SPARC_22		10
-#define	R_SPARC_13		11
-#define	R_SPARC_LO10		12
-#define	R_SPARC_GOT10		13
-#define	R_SPARC_GOT13		14
-#define	R_SPARC_GOT22		15
-#define	R_SPARC_PC10		16
-#define	R_SPARC_PC22		17
-#define	R_SPARC_WPLT30		18
-#define	R_SPARC_COPY		19
-#define	R_SPARC_GLOB_DAT	20
-#define	R_SPARC_JMP_SLOT	21
-#define	R_SPARC_RELATIVE	22
-#define	R_SPARC_UA32		23
-#define R_SPARC_PLT32		24
-#define R_SPARC_HIPLT22		25
-#define R_SPARC_LOPLT10		26
-#define R_SPARC_PCPLT32		27
-#define R_SPARC_PCPLT22		28
-#define R_SPARC_PCPLT10		29
-#define R_SPARC_10		30
-#define R_SPARC_11		31
-#define R_SPARC_WDISP16		40
-#define R_SPARC_WDISP19		41
-#define R_SPARC_7		43
-#define R_SPARC_5		44
-#define R_SPARC_6		45
-
 /* ARM Relocation types */
-#define R_ARM_NONE		0
-#define R_ARM_PC24		1
-#define R_ARM_ABS32		2
+
+/* Operation notes: 
+     S: Address of the symbol.
+     A: Addend for relocation.
+     P: Address of the place being relocated.
+     Pa: Adjusted address of the place being relocated (P & 0xfffffffc)
+     T: is 1 if S has type STT_FUNC and the symbol addresses a Thumb
+        instruction.Thumb-bit; it is 0 otherwise.
+     B(S): Addressing origin of the output segment defining S.
+     GOT_ORG: Addressing origin of the Global Offset Table.
+     GOT(S): Address of the GOT entry for S.
+ */
+
+enum
+{
+				/* Type		Class	Operation */
+				/* ------------------------------ */
+  R_ARM_NONE = 0,		/* Static	Misc */
+  R_ARM_PC24 = 1,		/* Deprecated	ARM	((S + A) | T) - P */
+  R_ARM_ABS32 = 2,		/* Static	Data	(S + A) | T */
+  R_ARM_REL32 = 3,		/* Static	Data	((S + A) | T) - P */
+  R_ARM_LDR_PC_G0 = 4,		/* Static	ARM	S + A - P */
+  R_ARM_ABS16 = 5,		/* Static	Data	S + A */
+  R_ARM_ABS12 = 6,		/* Static	ARM	S + A */
+  R_ARM_THM_ABS5 = 7,		/* Static	Thumb16	S + A */
+  R_ARM_ABS8 = 8,		/* Static	Data	S + A */
+  R_ARM_SBREL32 = 9,		/* Static	Data	((S + A) | T) - B(S) */
+  R_ARM_THM_CALL = 10,		/* Static	Thumb32	((S + A) | T) - P */
+  R_ARM_THM_PC8 = 11,		/* Static	Thumb16 */
+  R_ARM_BREL_ADJ = 12,		/* Dynamic	Data	DeltaB(S) + A */
+  R_ARM_TLS_DESC = 13,		/* Dynamic	Data */
+  R_ARM_THM_SWI8 = 14,		/* Obsolete */
+  R_ARM_XPC25 = 15,		/* Obsolete */
+  R_ARM_THM_XPC22 = 16,		/* Obsolete */
+  R_ARM_TLS_DTPMOD32 = 17,	/* Dynamic	Data	Module(S) */
+  R_ARM_TLS_DTPOFF32 = 18,	/* Dynamic	Data	S + A - TLS */
+  R_ARM_TLS_TPOFF32 = 19,	/* Dynamic	Data	S + A - tp */
+  R_ARM_COPY = 20,		/* Dynamic	Misc */
+  R_ARM_GLOB_DAT = 21,		/* Dynamic	Data	(S + A) | T */
+  R_ARM_JUMP_SLOT = 22,		/* Dynamic	Data	(S + A) | T */
+  R_ARM_RELATIVE = 23,		/* Dynamic	Data	B(S) + A */
+  R_ARM_GOTOFF32 = 24,		/* Static	Data	(((S + A) | T) - GOT_ORG */
+  R_ARM_BASE_PREL = 25,		/* Static	Data	B(S) + A - P */
+  R_ARM_GOT_BREL = 26,		/* Static	Data	GOT(S) + A - GOT_ORG */
+  R_ARM_PLT32 = 27,		/* Deprecated	ARM	((S + A) | T) - P */
+  R_ARM_CALL = 28,		/* Static	ARM	((S + A) | T) - P */
+  R_ARM_JUMP24 = 29,		/* Static	ARM	((S + A) | T) - P */
+  R_ARM_THM_JUMP24 = 30,	/* Static	Thumb32	((S + A) | T) - P */
+  R_ARM_BASE_ABS = 31,		/* Static	Data	B(S) + A */
+  R_ARM_ALU_PCREL_7_0 = 32,	/* Obsolete */
+  R_ARM_ALU_PCREL_15_8 = 33,	/* Obsolete */
+  R_ARM_ALU_PCREL_23_15 = 34,	/* Obsolete */
+  R_ARM_LDR_SBREL_11_0_NC = 35,	/* Deprecated	ARM	S + A - B(S) */
+  R_ARM_ALU_SBREL_19_12_NC = 36,/* Deprecated	ARM	S + A - B(S) */
+  R_ARM_ALU_SBREL_27_20_CK = 37,/* Deprecated	ARM	S + A - B(S) */
+  R_ARM_TARGET1 = 38,		/* Data		Misc	(S + A) | T or */
+				/*			((S + A) | T) - P */
+  R_ARM_SBREL31 = 39,		/* Deprecated	Data	((S + A) | T) - B(S) */
+  R_ARM_V4BX = 40,		/* Static	Misc  */
+  R_ARM_TARGET2 = 41,		/* Static	Misc */
+  R_ARM_PREL31 = 42,		/* Static	Data	((S + A) | T) - P */
+  R_ARM_MOVW_ABS_NC = 43,	/* Static	ARM	(S + A) | T */
+  R_ARM_MOVT_ABS = 44,		/* Static	ARM	S + A */
+  R_ARM_MOVW_PREL_NC = 45,	/* Static	ARM	((S + A) | T) - P */
+  R_ARM_MOVT_PREL = 46,		/* Static	ARM	S + A - P */
+  R_ARM_THM_MOVW_ABS_NC = 47,	/* Static	Thumb32	(S + A) | T */
+  R_ARM_THM_MOVT_ABS = 48,	/* Static	Thumb32	S + A - P */
+  R_ARM_THM_MOVW_PREL_NC =  49,	/* Static	Thumb32	((S + A) | T) - P */
+  R_ARM_THM_MOVT_PREL = 50,	/* Static	Thumb32	S + A - P */
+  R_ARM_THM_JUMP19 = 51,	/* Static	Thumb32	((S + A) | T) - P */
+  R_ARM_THM_JUMP6 = 52,		/* Static	Thumb16	S + A - P */
+  R_ARM_THM_ALU_PREL_11_0 = 53,	/* Static	Thumb32	((S + A) | T) - Pa */
+  R_ARM_THM_PC12 = 54,		/* Static	Thumb32	S + A - Pa */
+  R_ARM_ABS32_NOI = 55,		/* Static	Data	S + A */
+  R_ARM_REL32_NOI = 56,		/* Static	Data	S + A - P */
+  R_ARM_ALU_PC_G0_NC = 57,	/* Static	ARM	((S + A) | T) - P */
+  R_ARM_ALU_PC_G0 = 58,		/* Static	ARM	((S + A) | T) - P */
+  R_ARM_ALU_PC_G1_NC = 59,	/* Static	ARM	((S + A) | T) - P */
+  R_ARM_ALU_PC_G1 = 60,		/* Static	ARM	((S + A) | T) - P */
+  R_ARM_ALU_PC_G2 = 61,		/* Static	ARM	((S + A) | T) - P */
+  R_ARM_LDR_PC_G1 = 62,		/* Static	ARM	S + A - P */
+  R_ARM_LDR_PC_G2 = 63,		/* Static	ARM	S + A - P */
+  R_ARM_LDRS_PC_G0 = 64,	/* Static	ARM	S + A - P */
+  R_ARM_LDRS_PC_G1 = 65,	/* Static	ARM	S + A - P */
+  R_ARM_LDRS_PC_G2 = 66,	/* Static	ARM	S + A - P */
+  R_ARM_LDC_PC_G0 = 67,		/* Static	ARM	S + A - P */
+  R_ARM_LDC_PC_G1 = 68,		/* Static	ARM	S + A - P */
+  R_ARM_LDC_PC_G2 = 69,		/* Static	ARM	S + A - P */
+  R_ARM_ALU_SB_G0_NC = 70,	/* Static	ARM	((S + A) | T) - B(S) */
+  R_ARM_ALU_SB_G0 = 71,		/* Static	ARM	((S + A) | T) - B(S) */
+  R_ARM_ALU_SB_G1_NC = 72,	/* Static	ARM	((S + A) | T) - B(S) */
+  R_ARM_ALU_SB_G1 = 73,		/* Static	ARM	((S + A) | T) - B(S) */
+  R_ARM_ALU_SB_G2 = 74,		/* Static	ARM	((S + A) | T) - B(S) */
+  R_ARM_LDR_SB_G0 = 75,		/* Static	ARM	S + A - B(S) */
+  R_ARM_LDR_SB_G1 = 76,		/* Static	ARM	S + A - B(S) */
+  R_ARM_LDR_SB_G2 = 77,		/* Static	ARM	S + A - B(S) */
+  R_ARM_LDRS_SB_G0 = 78,	/* Static	ARM	S + A - B(S) */
+  R_ARM_LDRS_SB_G1 = 79,	/* Static	ARM	S + A - B(S) */
+  R_ARM_LDRS_SB_G2 = 80,	/* Static	ARM	S + A - B(S) */
+  R_ARM_LDC_SB_G0 = 81,		/* Static	ARM	S + A - B(S) */
+  R_ARM_LDC_SB_G1 = 82,		/* Static	ARM	S + A - B(S) */
+  R_ARM_LDC_SB_G2 = 83,		/* Static	ARM	S + A - B(S) */
+  R_ARM_MOVW_BREL_NC = 84,	/* Static	ARM	((S + A) | T) - B(S) */
+  R_ARM_MOVT_BREL = 85,		/* Static	ARM	S + A - B(S) */
+  R_ARM_MOVW_BREL = 86,		/* Static	ARM	((S + A) | T) - B(S) */
+  R_ARM_THM_MOVW_BREL_NC = 87,	/* Static	Thumb32	((S + A) | T) - B(S) */
+  R_ARM_THM_MOVT_BREL = 88,	/* Static	Thumb32	S + A - B(S) */
+  R_ARM_THM_MOVW_BREL = 89,	/* Static	Thumb32	((S + A) | T) - B(S) */
+  R_ARM_TLS_GOTDESC = 90,	/* Static	Data */
+  R_ARM_TLS_CALL = 91,		/* Static	ARM */
+  R_ARM_TLS_DESCSEQ = 92,	/* Static	ARM	TLS relaxation */
+  R_ARM_THM_TLS_CALL = 93,	/* Static	Thumb32 */
+  R_ARM_PLT32_ABS =  94,	/* Static	Data	PLT(S) + A */
+  R_ARM_GOT_ABS =  95,		/* Static	Data	GOT(S) + A */
+  R_ARM_GOT_PREL = 96,		/* Static	Data	GOT(S) + A - P */
+  R_ARM_GOT_BREL12 =  97,	/* Static	ARM	GOT(S) + A - GOT_ORG */
+  R_ARM_GOTOFF12 =  98,		/* Static	ARM	S + A - GOT_ROG */
+  R_ARM_GOTRELAX =  99,		/* Static	Misc */
+  R_ARM_GNU_VTENTRY = 100,	/* Deprecated	Data */
+  R_ARM_GNU_VTINHERIT = 101,	/* Deprecated	Data */
+  R_ARM_THM_JUMP11 = 102,	/* Static	Thumb16	S + A - P */
+  R_ARM_THM_JUMP8 = 103,	/* Static	Thumb16	S + A - P */
+  R_ARM_TLS_GD32 = 104,		/* Static	Data	GOT(S) + A - P */
+  R_ARM_TLS_LDM32 = 105,	/* Static	Data	GOT(S) + A - P */
+  R_ARM_TLS_LDO32 = 106,	/* Static	Data	S + A - TLS */
+  R_ARM_TLS_IE32 = 107,		/* Static	Data	GOT(S) + A - P */
+  R_ARM_TLS_LE32 = 108,		/* Static	Data	S + A - tp */
+  R_ARM_TLS_LDO12 = 109,	/* Static	ARM	S + A - TLS */
+  R_ARM_TLS_LE12 = 110,		/* Static	ARM	S + A - tp */
+  R_ARM_TLS_IE12GP = 111,	/* Static	ARM	GOT(S) + A - GOT_ORG */
+  R_ARM_PRIVATE_0 = 112,	/* Private (n = 0, 1, ... 15) */
+  R_ARM_PRIVATE_1 = 113,
+  R_ARM_PRIVATE_2 = 114,
+  R_ARM_PRIVATE_3 = 115,
+  R_ARM_PRIVATE_4 = 116,
+  R_ARM_PRIVATE_5 = 117,
+  R_ARM_PRIVATE_6 = 118,
+  R_ARM_PRIVATE_7 = 119,
+  R_ARM_PRIVATE_8 = 120,
+  R_ARM_PRIVATE_9 = 121,
+  R_ARM_PRIVATE_10 = 122,
+  R_ARM_PRIVATE_11 = 123,
+  R_ARM_PRIVATE_12 = 124,
+  R_ARM_PRIVATE_13 = 125,
+  R_ARM_PRIVATE_14 = 126,
+  R_ARM_PRIVATE_15 = 127,
+  R_ARM_ME_TOO = 128,		/* Obsolete */
+  R_ARM_THM_TLS_DESCSEQ16 = 129,/* Static	Thumb16 */
+  R_ARM_THM_TLS_DESCSEQ32 = 130,/* Static	Thumb32 */
+  /* 131 - 139			Unallocated */
+  /* 140 - 159			Dynamic		Reserved for future allocation */
+  /* 160 - 255			Unallocated */
+};
 
 /* e_flags entries for ARM */
-#define EF_ARM_HASENTRY		0x02
-#define EF_ARM_SYMSARESORTED	0x04
-#define EF_ARM_DYNSYMSUSESEGIDX 0x08
-#define EF_ARM_MAPSYMSFIRST	0x10
-#define EF_ARM_EABIMASK		0xff000000
-#define EF_ARM_CURRENT		0x05000000
 
-/* Bits present in AT_HWCAP, primarily for Sparc32.  */
+enum
+{
+  EF_ARM_RELEXEC = 0x01,
+  EF_ARM_HASENTRY = 0x02,
+  EF_ARM_INTERWORK = 0x04,
+  EF_ARM_SYMSARESORTED = 0x04,	/* Conflicts with EF_ARM_INTERWORK.  */
+  EF_ARM_APCS_26 = 0x08,
+  EF_ARM_DYNSYMSUSESEGIDX = 0x08,	/* Conflicts with EF_ARM_APCS_26.  */
+  EF_ARM_APCS_FLOAT = 0x10,
+  EF_ARM_MAPSYMSFIRST = 0x10,	/* Conflicts with EF_ARM_APCS_FLOAT.  */
+  EF_ARM_PIC = 0x20,
+  EF_ARM_ALIGN8 = 0x40,		/* 8-bit structure alignment is in use.  */
+  EF_ARM_NEW_ABI = 0x80,
+  EF_ARM_OLD_ABI = 0x100,
+  EF_ARM_SOFT_FLOAT = 0x200,
+  EF_ARM_VFP_FLOAT = 0x400,
+  EF_ARM_MAVERICK_FLOAT = 0x800,
 
-#define HWCAP_SPARC_FLUSH       1    /* CPU supports flush instruction. */
-#define HWCAP_SPARC_STBAR       2
-#define HWCAP_SPARC_SWAP        4
-#define HWCAP_SPARC_MULDIV      8
-#define HWCAP_SPARC_V9		16
-#define HWCAP_SPARC_ULTRA3	32
+  EF_ARM_LE8 = 0x00400000,
+  EF_ARM_BE8 = 0x00800000,
 
-/*
- * 68k ELF relocation types
- */
-#define R_68K_NONE	0
-#define R_68K_32	1
-#define R_68K_16	2
-#define R_68K_8		3
-#define R_68K_PC32	4
-#define R_68K_PC16	5
-#define R_68K_PC8	6
-#define R_68K_GOT32	7
-#define R_68K_GOT16	8
-#define R_68K_GOT8	9
-#define R_68K_GOT32O	10
-#define R_68K_GOT16O	11
-#define R_68K_GOT8O	12
-#define R_68K_PLT32	13
-#define R_68K_PLT16	14
-#define R_68K_PLT8	15
-#define R_68K_PLT32O	16
-#define R_68K_PLT16O	17
-#define R_68K_PLT8O	18
-#define R_68K_COPY	19
-#define R_68K_GLOB_DAT	20
-#define R_68K_JMP_SLOT	21
-#define R_68K_RELATIVE	22
+  /* Mask to extract EABI version, not really a flag value.  */
+  EF_ARM_EABIMASK = 0xFF000000,
 
-/*
- * Alpha ELF relocation types
- */
-#define R_ALPHA_NONE            0       /* No reloc */
-#define R_ALPHA_REFLONG         1       /* Direct 32 bit */
-#define R_ALPHA_REFQUAD         2       /* Direct 64 bit */
-#define R_ALPHA_GPREL32         3       /* GP relative 32 bit */
-#define R_ALPHA_LITERAL         4       /* GP relative 16 bit w/optimization */
-#define R_ALPHA_LITUSE          5       /* Optimization hint for LITERAL */
-#define R_ALPHA_GPDISP          6       /* Add displacement to GP */
-#define R_ALPHA_BRADDR          7       /* PC+4 relative 23 bit shifted */
-#define R_ALPHA_HINT            8       /* PC+4 relative 16 bit shifted */
-#define R_ALPHA_SREL16          9       /* PC relative 16 bit */
-#define R_ALPHA_SREL32          10      /* PC relative 32 bit */
-#define R_ALPHA_SREL64          11      /* PC relative 64 bit */
-#define R_ALPHA_OP_PUSH         12      /* OP stack push */
-#define R_ALPHA_OP_STORE        13      /* OP stack pop and store */
-#define R_ALPHA_OP_PSUB         14      /* OP stack subtract */
-#define R_ALPHA_OP_PRSHIFT      15      /* OP stack right shift */
-#define R_ALPHA_GPVALUE         16
-#define R_ALPHA_GPRELHIGH       17
-#define R_ALPHA_GPRELLOW        18
-#define R_ALPHA_IMMED_GP_16     19
-#define R_ALPHA_IMMED_GP_HI32   20
-#define R_ALPHA_IMMED_SCN_HI32  21
-#define R_ALPHA_IMMED_BR_HI32   22
-#define R_ALPHA_IMMED_LO32      23
-#define R_ALPHA_COPY            24      /* Copy symbol at runtime */
-#define R_ALPHA_GLOB_DAT        25      /* Create GOT entry */
-#define R_ALPHA_JMP_SLOT        26      /* Create PLT entry */
-#define R_ALPHA_RELATIVE        27      /* Adjust by program base */
-
-/* Legal values for e_flags field of Elf64_Ehdr.  */
-
-#define EF_ALPHA_32BIT		1	/* All addresses are below 2GB */
-
+  EF_ARM_EABI_UNKNOWN = 0x00000000,
+  EF_ARM_EABI_VER1 = 0x01000000,
+  EF_ARM_EABI_VER2 = 0x02000000,
+  EF_ARM_EABI_VER3 = 0x03000000,
+  EF_ARM_EABI_VER4 = 0x04000000,
+  EF_ARM_EABI_VER5 = 0x05000000,
+};
 
 typedef struct elf32_rel {
   Elf32_Addr	r_offset;
@@ -480,6 +454,11 @@ typedef struct elf64_hdr {
 #define PF_W		0x2
 #define PF_X		0x1
 
+/* ARM-specific program header flags.  */
+#define PF_ARM_SB          0x10000000   /* Segment contains the location addressed by the static base.  */
+#define PF_ARM_PI          0x20000000   /* Segment is position-independent.  */
+#define PF_ARM_ABS         0x40000000   /* Segment must be loaded at its base address.  */
+
 typedef struct elf32_phdr{
   Elf32_Word	p_type;
   Elf32_Off	p_offset;
@@ -520,21 +499,23 @@ typedef struct elf64_phdr {
 #define SHT_HIPROC	0x7fffffff
 #define SHT_LOUSER	0x80000000
 #define SHT_HIUSER	0xffffffff
-#define SHT_MIPS_LIST		0x70000000
-#define SHT_MIPS_CONFLICT	0x70000002
-#define SHT_MIPS_GPTAB		0x70000003
-#define SHT_MIPS_UCODE		0x70000004
 
 /* sh_flags */
 #define SHF_WRITE	0x1
 #define SHF_ALLOC	0x2
 #define SHF_EXECINSTR	0x4
 #define SHF_MASKPROC	0xf0000000
-#define SHF_MIPS_GPREL	0x10000000
+
+/* Additional section types.  */
+#define SHT_ARM_EXIDX	       0x70000001	/* Section holds ARM unwind info.  */
+#define SHT_ARM_PREEMPTMAP     0x70000002	/* Section pre-emption details.  */
+#define SHT_ARM_ATTRIBUTES     0x70000003	/* Section holds attributes.  */
+#define SHT_ARM_DEBUGOVERLAY   0x70000004	/* Section holds overlay debug info.  */
+#define SHT_ARM_OVERLAYSECTION 0x70000005	/* Section holds GDB and overlay integration info.  */
 
 /* ARM specific */
-#define SHF_ENTRYSECT	0x10000000
-#define SHF_COMDEF	0x80000000
+#define SHF_ENTRYSECT	0x10000000   /* Section contains an entry point.  */
+#define SHF_COMDEF	0x80000000   /* Section may be multiply defined in the input to a link step.  */
 
 /* special section indexes */
 #define SHN_UNDEF	0
@@ -544,7 +525,6 @@ typedef struct elf64_phdr {
 #define SHN_ABS		0xfff1
 #define SHN_COMMON	0xfff2
 #define SHN_HIRESERVE	0xffff
-#define SHN_MIPS_ACCOMON	0xff00
 
 typedef struct {
   Elf32_Word	sh_name;

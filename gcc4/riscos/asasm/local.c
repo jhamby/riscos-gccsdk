@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -51,9 +51,8 @@ static routPos *routListEnd;
 int Local_ROUTLblNo[100] = {0};
 const char *Local_CurROUTId = kEmptyRoutineName "0";
 
-#define kIntLabelPrefix "$$AsAsm$$Local$$"
 /* Parameters: AREA ptr, 0 - 99 label digit, instance number, routine name.  */
-const char Local_IntLabelFormat[] = kIntLabelPrefix "%p$$%02i$$%i$$%s";
+const char Local_IntLabelFormat[] = kIntLabelPrefix "Local$$%p$$%02i$$%i$$%s";
 
 
 /**

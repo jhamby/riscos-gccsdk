@@ -97,8 +97,8 @@ typedef struct Symbol
         - AOF output : this will be the area number counted from 0
         - ELF output : this is the section number (counted from 3)
       For other symbols:
-        When >= 0, symbol index,
-        When -1, symbol won't appear in the symbol table.  */
+        When >= 0 : symbol index,
+        When -1 : symbol won't appear in the symbol table.  */
 
   /* Symbol name: */
   size_t len;		/** length of str[] without its NUL terminator.  */
@@ -111,12 +111,19 @@ Symbol *symbolGet (const Lex *l);
 Symbol *symbolFind (const Lex *l);
 void symbolRemove (const Lex *l);
 
-unsigned int symbolFix (size_t *stringSizeNeeded);
-void symbolStringOutput (FILE *outfile, size_t stringSizeNeeded);
-void symbolSymbolAOFOutput (FILE *outfile);
-#ifndef NO_ELF_SUPPORT
-void symbolSymbolELFOutput (FILE *outfile);
-#endif
+typedef struct
+{
+  Symbol **allSymbolsPP; /**< Array of symbol ptrs to output.  Ordered first local then global (ELF requirement), then alphabetically (fun).  */
+  unsigned numAllSymbols;
+  unsigned numLocalSymbols;
+  unsigned stringSize;
+} SymbolOut_t;
+
+SymbolOut_t Symbol_CreateSymbolOut (void);
+void Symbol_OutputStrings (FILE *outfile, const SymbolOut_t *symOutP);
+void Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP);
+void Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP);
+void Symbol_FreeSymbolOut (SymbolOut_t *symOutP);
 
 bool c_export (void);
 bool c_import (void);

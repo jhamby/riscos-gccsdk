@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -329,38 +330,37 @@ NeedToOutputSymbol (const Symbol *sym)
   /* We output a symbol when it is be exported (or forced exported) and it
      is defined, or imported and referenced in the code for relocation.
      We exclude local symbols and symbol values other than int, bool and code.  */
-  bool doOutput = (oKeepAllSymbols || (sym->type & (SYMBOL_EXPORT | SYMBOL_KEEP)))
-		    && (((sym->type & SYMBOL_DEFINED) != 0 && (sym->value.Tag == ValueInt || sym->value.Tag == ValueBool || sym->value.Tag == ValueCode))
-		        || sym->used > -1)
-		    && !Local_IsLocalLabel (sym->str);
+  bool doOutput = ((oKeepAllSymbols && !SYMBOL_GETREGTYPE (sym->type))
+		     || (sym->type & (SYMBOL_EXPORT | SYMBOL_KEEP)))
+		   && (((sym->type & SYMBOL_DEFINED) != 0 && (sym->value.Tag == ValueInt || sym->value.Tag == ValueBool || sym->value.Tag == ValueCode))
+			|| sym->used >= 0)
+		   && !Local_IsLocalLabel (sym->str);
   return doOutput;
 }
 
 
-/**
- * Calculates number of symbols which need to be written in the output file
- * together with the total string size needed for all those symbols.
- * \param stringSizeNeeded Pointer to a value which will on return contain the
- * total length of symbol strings.
- * \return number of symbols which need to be written in output file.
- */
-unsigned int
-symbolFix (size_t *stringSizeNeeded)
+static int
+SymbolCompare (const void *symPP1, const void *symPP2)
 {
-  /* Map all $a.*, $d.* and $t.* Mapping Symbols to unique $a, $d and $t.  */
-  struct
+  const Symbol *symP1 = *(const Symbol **)symPP1;
+  const Symbol *symP2 = *(const Symbol **)symPP2;
+  return strcasecmp (symP1->str, symP2->str /*, symP1->len + 1 */);
+}
+
+
+SymbolOut_t
+Symbol_CreateSymbolOut (void)
+{
+  SymbolOut_t result =
     {
-      unsigned offset;
-      int used;
-    } mapSymbols[3] =
-    {
-      { 0, -1 }, /* $a */
-      { 0, -1 }, /* $d */
-      { 0, -1 }  /* $t */
+      .allSymbolsPP = NULL,
+      .numAllSymbols = 0,
+      .numLocalSymbols = 0,
+      .stringSize = 0
     };
-  unsigned int nosym = 0;
-  size_t strsize = 0;		/* Always contains its length */
-  for (int i = 0; i < SYMBOL_TABLESIZE; i++)
+
+  /* Figure out how many symbols we want to output.  */
+  for (unsigned i = 0; i != SYMBOL_TABLESIZE; ++i)
     {
       for (Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
@@ -407,188 +407,216 @@ symbolFix (size_t *stringSizeNeeded)
 		    errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
 		}
 	    }
-
-	  if (Area_IsMappingSymbol (sym->str))
+	  if (Area_IsMappingSymbol (sym->str) || NeedToOutputSymbol (sym))
 	    {
-	      assert (!(sym->type & SYMBOL_AREA));
-	      int mappingSymbolindex = sym->str[1] == 'a' ? 0 : sym->str[1] == 'd' ? 1 : 2;
-	      if (mapSymbols[mappingSymbolindex].used == -1)
-		{
-		  /* First time we see this particular mapping symbol.  */
-		  mapSymbols[mappingSymbolindex].offset = sym->offset = strsize;
-		  mapSymbols[mappingSymbolindex].used = sym->used = nosym;
-		  strsize += 3;
-		}
-	      else
-		{
-		  sym->offset = mapSymbols[mappingSymbolindex].offset;
-		  sym->used = mapSymbols[mappingSymbolindex].used;
-		}
-	      ++nosym;
-	    }
-	  else if (NeedToOutputSymbol (sym))
-	    {
-	      /* For ELF, section names are not used in the string table.  */
-	      if ((sym->type & SYMBOL_AREA) && !option_aof)
-		sym->offset = 0;
-	      else
-		{
-		  sym->offset = strsize;
-		  strsize += sym->len + 1;
-		}
+	      ++result.numAllSymbols;
+	      if ((sym->type & SYMBOL_AREA) || SYMBOL_KIND (sym->type) == SYMBOL_LOCAL)
+		++result.numLocalSymbols;
 	      if (!(sym->type & SYMBOL_AREA))
-		sym->used = nosym;
-	      ++nosym;
+		sym->used = 0;
+	    }
+	  else if (!(sym->type & SYMBOL_AREA))
+	    sym->used = -1;
+	}
+    }
+
+  /* Claim space.  */
+  if ((result.allSymbolsPP = malloc (result.numAllSymbols * sizeof (Symbol *))) == NULL)
+    errorOutOfMem ();
+
+  /* Run over symbols again, and start assigning them in our symbol output
+     array.  */
+  unsigned localSymbolIndex = 0;
+  unsigned globalSymbolIndex = result.numLocalSymbols;
+  for (unsigned i = 0; i != SYMBOL_TABLESIZE; ++i)
+    {
+      for (Symbol *sym = symbolTable[i]; sym; sym = sym->next)
+	{
+	  if (sym->used < 0)
+	    continue;
+	  if ((sym->type & SYMBOL_AREA) || SYMBOL_KIND (sym->type) == SYMBOL_LOCAL)
+	    result.allSymbolsPP[localSymbolIndex++] = sym;
+	  else
+	    result.allSymbolsPP[globalSymbolIndex++] = sym;
+	}
+    }
+  assert (localSymbolIndex == result.numLocalSymbols && globalSymbolIndex == result.numAllSymbols);
+
+  /* Sort local and global symbols individually.  */
+  qsort (&result.allSymbolsPP[0], result.numLocalSymbols, sizeof (Symbol *), SymbolCompare);
+  qsort (&result.allSymbolsPP[result.numLocalSymbols], result.numAllSymbols - result.numLocalSymbols, sizeof (Symbol *), SymbolCompare);
+
+  /* Assign Symbol::offset.
+     We want to limit output the strings of mapping symbol to the first two
+     characters so we can share their string output.
+     Also collect the final string size needed for our output symbols.  */
+  struct
+    {
+      unsigned offset;
+    } mapSymbols[3] =
+    {
+      { UINT_MAX }, /* $a */
+      { UINT_MAX }, /* $d */
+      { UINT_MAX }  /* $t */
+    };
+  for (unsigned symbolIndex = 0; symbolIndex != result.numAllSymbols; ++symbolIndex)
+    {
+      Symbol *sym = result.allSymbolsPP[symbolIndex];
+      if (Area_IsMappingSymbol (sym->str))
+	{
+	  assert (!(sym->type & SYMBOL_AREA));
+	  int mappingSymbolindex = sym->str[1] == 'a' ? 0 : sym->str[1] == 'd' ? 1 : 2;
+	  if (mapSymbols[mappingSymbolindex].offset == UINT_MAX)
+	    {
+	      /* First time we see this particular mapping symbol.  */
+	      mapSymbols[mappingSymbolindex].offset = sym->offset = result.stringSize;
+	      result.stringSize += 3;
 	    }
 	  else
+	    sym->offset = mapSymbols[mappingSymbolindex].offset;
+	}
+      else
+	{
+	  /* For ELF, section names are not used in the string table.  */
+	  if ((sym->type & SYMBOL_AREA) && !option_aof)
+	    sym->offset = 0;
+	  else
 	    {
-	      if (!(sym->type & SYMBOL_AREA))
-		sym->used = -1;
+	      sym->offset = result.stringSize;
+	      result.stringSize += sym->len + 1;
 	    }
 	}
+      if (!(sym->type & SYMBOL_AREA))
+	sym->used = symbolIndex;
     }
 #ifdef DEBUG_SYMBOL
   symbolPrintAll ();
 #endif
-  /* printf("Number of symbols selected: %d, size needed %d bytes\n", nosym, strsize); */
-  *stringSizeNeeded = strsize;
-  return nosym;
+  return result;
 }
 
-/**
- * This should exactly write stringSizeNeeded bytes (with stringSizeNeeded
- * the value returned by symbolFix()).
- */
+
 void
-symbolStringOutput (FILE *outfile, size_t stringSizeNeeded)
+Symbol_OutputStrings (FILE *outfile, const SymbolOut_t *symOutP)
 {
-  bool mappingSymbols[3] = { false, false, false }; /* 0 = $a, 1 = $d, 2 = $t */
-  size_t count = 0;
-  for (int i = 0; i < SYMBOL_TABLESIZE; i++)
+  unsigned count = 0;
+  for (unsigned i = 0; i != symOutP->numAllSymbols; ++i)
     {
-      for (const Symbol *sym = symbolTable[i]; sym != NULL; sym = sym->next)
+      const Symbol *sym = symOutP->allSymbolsPP[i];
+      if (Area_IsMappingSymbol (sym->str))
 	{
-	  if (sym->used >= 0)
+	  if (sym->offset >= count)
 	    {
-	      if (Area_IsMappingSymbol (sym->str))
-		{
-		  int mappingSymbolIndex = sym->str[1] == 'a' ? 0 : sym->str[1] == 'd' ? 1 : 2;
-		  if (!mappingSymbols[mappingSymbolIndex])
-		    {
-		      mappingSymbols[mappingSymbolIndex] = true;
-		      assert (sym->offset == count);
-		      fputc ('$', outfile);
-		      fputc (sym->str[1], outfile);
-		      fputc ('\0', outfile);
-		      count += 3;
-		    }
-		}
-	      else if ((sym->type & SYMBOL_AREA) && !option_aof)
-		assert (sym->offset == 0);
-	      else
-		{
-		  assert (sym->offset == count);
-		  count += fwrite (sym->str, 1, sym->len + 1, outfile);
-		}
+	      assert (sym->offset == count);
+	      fputc ('$', outfile);
+	      fputc (sym->str[1], outfile);
+	      fputc ('\0', outfile);
+	      count += 3;
 	    }
 	}
+      else if ((sym->type & SYMBOL_AREA) && !option_aof)
+	assert (sym->offset == 0);
+      else
+	{
+	  assert (sym->offset == count);
+	  count += fwrite (sym->str, 1, sym->len + 1, outfile);
+	}
     }
-  assert (count == stringSizeNeeded);
+  assert (count == symOutP->stringSize);
 }
 
-void
-symbolSymbolAOFOutput (FILE *outfile)
-{
-  for (int i = 0; i < SYMBOL_TABLESIZE; i++)
-    {
-      for (const Symbol *sym = symbolTable[i]; sym; sym = sym->next)
-	{
-	  if (sym->used < 0)
-	    continue;
 
-	  if (sym->type & SYMBOL_AREA)
+void
+Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
+{
+  for (unsigned i = 0; i != symOutP->numAllSymbols; ++i)
+    {
+      const Symbol *sym = symOutP->allSymbolsPP[i];
+
+      if (sym->type & SYMBOL_AREA)
+	{
+	  const AofSymbol asym =
 	    {
-	      const AofSymbol asym =
+	      .Name = armword (sym->offset + 4), /* + 4 to skip the initial length */
+	      .Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL),
+	      .Value = armword (0),
+	      .AreaName = armword (sym->offset + 4) /* + 4 to skip the initial length */
+	    };
+	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
+	}
+      else
+	{
+	  AofSymbol asym;
+	  if (sym->type & SYMBOL_DEFINED)
+	    {
+	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
+	      const Value *value;
+	      if (sym->value.Tag == ValueCode)
 		{
-		  .Name = armword (sym->offset + 4), /* + 4 to skip the initial length */
-		  .Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL),
-		  .Value = armword (0),
-		  .AreaName = armword (sym->offset + 4) /* + 4 to skip the initial length */
-		};
-	      fwrite (&asym, sizeof (AofSymbol), 1, outfile);
+		  codeInit ();
+		  value = codeEvalLow (ValueAll, sym->value.Data.Code.len,
+				       sym->value.Data.Code.c, NULL);
+		}
+	      else
+		value = &sym->value;
+
+	      /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().  */
+	      int v;
+	      switch (value->Tag)
+		{
+		  case ValueInt:
+		    v = value->Data.Int.i;
+		    break;
+
+		  case ValueBool:
+		    v = value->Data.Bool.b;
+		    break;
+
+		  case ValueCode:
+		    /* Support <ValueInt> <ValueSymbol> <Op_add> */
+		    if (value->Data.Code.len == 3
+			&& value->Data.Code.c[0].Tag == CodeValue
+			&& value->Data.Code.c[0].Data.value.Tag == ValueInt
+			&& value->Data.Code.c[1].Tag == CodeValue
+			&& value->Data.Code.c[1].Data.value.Tag == ValueSymbol
+			&& value->Data.Code.c[1].Data.value.Data.Symbol.factor == 1
+			&& value->Data.Code.c[2].Tag == CodeOperator
+			&& value->Data.Code.c[2].Data.op == Op_add)
+		      {
+			v = value->Data.Code.c[0].Data.value.Data.Int.i;
+			break;
+		      }
+		    errorLine (NULL, 0, ErrorError,
+			       "Symbol %s cannot be evaluated for storage in output format", sym->str);
+		    break;
+
+		  default:
+		    assert (0 && "Wrong value tag selection");
+		    v = 0;
+		    break;
+		}
+	      asym.Type = armword (sym->type & SYMBOL_SUPPORTEDBITS);
+	      asym.Value = armword (v);
+	      /* When it is a non-absolute symbol, we need to specify the
+	         area name to which this symbol is relative to.  */
+	      asym.AreaName = armword ((sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->area.rel->offset + 4);
 	    }
 	  else
 	    {
-	      AofSymbol asym;
-	      if (sym->type & SYMBOL_DEFINED)
-		{
-		  const Value *value;
-		  if (sym->value.Tag == ValueCode)
-		    {
-		      codeInit ();
-		      value = codeEvalLow (ValueAll, sym->value.Data.Code.len,
-		                           sym->value.Data.Code.c, NULL);
-		    }
-		  else
-		    value = &sym->value;
-
-		  /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().  */
-		  int v;
-		  switch (value->Tag)
-		    {
-		      case ValueInt:
-			v = value->Data.Int.i;
-			break;
-
-		      case ValueBool:
-			v = value->Data.Bool.b;
-			break;
-
-		      case ValueCode:
-			/* Support <ValueInt> <ValueSymbol> <Op_add> */
-			if (value->Data.Code.len == 3
-			    && value->Data.Code.c[0].Tag == CodeValue
-			    && value->Data.Code.c[0].Data.value.Tag == ValueInt
-			    && value->Data.Code.c[1].Tag == CodeValue
-			    && value->Data.Code.c[1].Data.value.Tag == ValueSymbol
-			    && value->Data.Code.c[1].Data.value.Data.Symbol.factor == 1
-			    && value->Data.Code.c[2].Tag == CodeOperator
-			    && value->Data.Code.c[2].Data.op == Op_add)
-			  {
-			    v = value->Data.Code.c[0].Data.value.Data.Int.i;
-			    break;
-			  }
-			errorLine (NULL, 0, ErrorError,
-			           "Symbol %s cannot be evaluated for storage in output format", sym->str);
-			break;
-
-		      default:
-			assert (0 && "Wrong value tag selection");
-			v = 0;
-			break;
-		    }
-		  asym.Type = armword (sym->type & SYMBOL_SUPPORTEDBITS);
-		  asym.Value = armword (v);
-		  /* When it is a non-absolute symbol, we need to specify the
-		     area name to which this symbol is relative to.  */
-		  asym.AreaName = armword ((sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->area.rel->offset + 4);
-		}
-	      else
-		{
-		  asym.Type = armword ((sym->type | TYPE_REFERENCE) & SYMBOL_SUPPORTEDBITS);
-		  asym.Value = armword ((sym->type & SYMBOL_COMMON) ? sym->value.Data.Int.i : 0);
-		  asym.AreaName = armword (0);
-		}
-	      asym.Name = armword (sym->offset + 4); /* + 4 to skip the initial length */
-	      fwrite (&asym, sizeof (AofSymbol), 1, outfile);
+	      asym.Type = armword ((sym->type | TYPE_REFERENCE) & SYMBOL_SUPPORTEDBITS);
+	      asym.Value = armword ((sym->type & SYMBOL_COMMON) ? sym->value.Data.Int.i : 0);
+	      asym.AreaName = armword (0);
 	    }
+	  asym.Name = armword (sym->offset + 4); /* + 4 to skip the initial length */
+	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
 	}
     }
 }
 
+
 #ifndef NO_ELF_SUPPORT
 void
-symbolSymbolELFOutput (FILE *outfile)
+Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 {
   /* Output the undefined symbol.  */
   Elf32_Sym asym =
@@ -602,114 +630,121 @@ symbolSymbolELFOutput (FILE *outfile)
     };
   fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 
-  for (int i = 0; i < SYMBOL_TABLESIZE; i++)
+  for (unsigned i = 0; i != symOutP->numAllSymbols; ++i)
     {
-      for (const Symbol *sym = symbolTable[i]; sym; sym = sym-> next)
-	{
-	  if (sym->used < 0)
-	    continue;
+      const Symbol *sym = symOutP->allSymbolsPP[i];
 
-	  if (sym->type & SYMBOL_AREA)
+      if (sym->type & SYMBOL_AREA)
+	{
+	  asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
+	  asym.st_name = 0;
+	  asym.st_value = 0;
+	  asym.st_shndx = sym->used;
+	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+	}
+      else
+	{
+	  asym.st_name = sym->offset + 1; /* + 1 to skip the initial & extra NUL */
+	  if (sym->type & SYMBOL_DEFINED)
 	    {
-	      asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
-	      asym.st_name = 0;
-	      asym.st_value = 0;
-	      asym.st_shndx = sym->used;
-	      fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+	      /* SYMBOL_LOCAL, SYMBOL_GLOBAL */
+	      const Value *value;
+	      if (sym->value.Tag == ValueCode)
+		{
+		  codeInit ();
+		  value = codeEvalLow (ValueAll, sym->value.Data.Code.len,
+				       sym->value.Data.Code.c, NULL);
+		}
+	      else
+		value = &sym->value;
+
+	      /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().  */
+	      int v;
+	      switch (value->Tag)
+		{
+		  case ValueInt:
+		    v = value->Data.Int.i;
+		    break;
+
+		  case ValueBool:
+		    v = value->Data.Bool.b;
+		    break;
+
+		  case ValueCode:
+		    /* Support <ValueInt> <ValueSymbol> <Op_add> */
+		    if (value->Data.Code.len == 3
+			&& value->Data.Code.c[0].Tag == CodeValue
+			&& value->Data.Code.c[0].Data.value.Tag == ValueInt
+			&& value->Data.Code.c[1].Tag == CodeValue
+			&& value->Data.Code.c[1].Data.value.Tag == ValueSymbol
+			&& value->Data.Code.c[1].Data.value.Data.Symbol.factor == 1
+			&& value->Data.Code.c[2].Tag == CodeOperator
+			&& value->Data.Code.c[2].Data.op == Op_add)
+		      {
+			v = value->Data.Code.c[0].Data.value.Data.Int.i;
+			break;
+		      }
+		    errorLine (NULL, 0, ErrorError,
+			       "Symbol %s cannot be evaluated for storage in output format", sym->str);
+		    break;
+
+		  default:
+		    assert (0 && "Wrong value tag selection");
+		    v = 0;
+		    break;
+		}
+	      asym.st_value = v;
+	      asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->areaDef->used;
 	    }
 	  else
 	    {
-	      asym.st_name = sym->offset + 1; /* + 1 to skip the initial & extra NUL */
-	      if (sym->type & SYMBOL_DEFINED)
-		{
-		  const Value *value;
-		  if (sym->value.Tag == ValueCode)
-		    {
-		      codeInit ();
-		      value = codeEvalLow (ValueAll, sym->value.Data.Code.len, sym->value.Data.Code.c, NULL);
-		    }
-		  else
-		    value = &sym->value;
-
-		  /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().  */
-		  int v;
-		  switch (value->Tag)
-		    {
-		      case ValueInt:
-			v = value->Data.Int.i;
-			break;
-
-		      case ValueBool:
-			v = value->Data.Bool.b;
-			break;
-
-		      case ValueCode:
-			/* Support <ValueInt> <ValueSymbol> <Op_add> */
-			if (value->Data.Code.len == 3
-			    && value->Data.Code.c[0].Tag == CodeValue
-			    && value->Data.Code.c[0].Data.value.Tag == ValueInt
-			    && value->Data.Code.c[1].Tag == CodeValue
-			    && value->Data.Code.c[1].Data.value.Tag == ValueSymbol
-			    && value->Data.Code.c[1].Data.value.Data.Symbol.factor == 1
-			    && value->Data.Code.c[2].Tag == CodeOperator
-			    && value->Data.Code.c[2].Data.op == Op_add)
-			  {
-			    v = value->Data.Code.c[0].Data.value.Data.Int.i;
-			    break;
-			  }
-			errorLine (NULL, 0, ErrorError,
-			           "Symbol %s cannot be evaluated for storage in output format", sym->str);
-			break;
-			
-		      default:
-			assert (0 && "Wrong value tag selection");
-			v = 0;
-			break;
-		    }
-		  asym.st_value = v;
-		  asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->areaDef->used;
-		}
-	      else
-		{
-		  asym.st_value = 0;
-		  asym.st_shndx = 0;
-		}
-
-	      int bind;
-	      switch (SYMBOL_KIND (sym->type))
-		{
-		  case TYPE_LOCAL:
-		    bind = STB_LOCAL;
-		    break;
-		  case TYPE_REFERENCE:
-		    bind = (sym->type & TYPE_WEAK) ? STB_WEAK : STB_GLOBAL;
-		    break;
-		  case TYPE_GLOBAL:
-		    bind = STB_GLOBAL;
-		    break;
-		  default:
-		    bind = 0; /* TODO: give error ? */
-		    break;
-		}
-	      asym.st_info = ELF32_ST_INFO (bind, STT_NOTYPE);
-	      if (asym.st_shndx == (Elf32_Half)-1)
-		errorAbort ("Internal symbolSymbolELFOutput: unable to find section id");
-	      else
-		fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
+	      asym.st_value = 0;
+	      asym.st_shndx = 0;
 	    }
+
+	  int bind;
+	  switch (SYMBOL_KIND (sym->type))
+	    {
+	      case SYMBOL_LOCAL:
+		bind = STB_LOCAL;
+		break;
+	      case SYMBOL_REFERENCE:
+		bind = (sym->type & TYPE_WEAK) ? STB_WEAK : STB_GLOBAL;
+		break;
+	      case SYMBOL_GLOBAL:
+		bind = STB_GLOBAL;
+		break;
+	      default:
+		assert (0);
+		break;
+	    }
+	  asym.st_info = ELF32_ST_INFO (bind, STT_NOTYPE);
+	  if (asym.st_shndx == (Elf32_Half)-1)
+	    errorAbort ("Internal symbolSymbolELFOutput: unable to find section id");
+	  else
+	    fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 	}
     }
 }
 #endif
 
+
+void
+Symbol_FreeSymbolOut (SymbolOut_t *symOutP)
+{
+  free ((void *)symOutP->allSymbolsPP);
+  symOutP->allSymbolsPP = NULL;
+}
+
+
 /**
- * \return NULL when no symbol could be read, non-NULL otherwise (even when
- * symbol is not yet known).
+ * \return NULL when no symbol could be read (and *no* error is given),
+ * non-NULL otherwise (even when symbol is not yet known).
  */
 static Symbol *
 symFlag (unsigned int flags, const char *err)
 {
-  const Lex lex = lexGetId ();
+  const Lex lex = lexGetIdNoError ();
   if (lex.tag != LexId)
     return NULL;
 
@@ -785,11 +820,13 @@ c_strong (void)
 
 /**
  * Implements KEEP.
+ *   KEEP <symbol> : enforces <symbol> to be in the output.
+ *   KEEP : enforces all symbols to be in the output.
  */
 bool
 c_keep (void)
 {
-  if (symFlag (SYMBOL_KEEP | SYMBOL_DECLARED, "marked to 'keep'"))
+  if (symFlag (SYMBOL_KEEP | SYMBOL_DECLARED, "marked to 'keep'") == NULL)
     oKeepAllSymbols = true;
   return false;
 }
@@ -802,7 +839,10 @@ c_import (void)
 {
   Symbol *sym = symFlag (SYMBOL_REFERENCE | SYMBOL_DECLARED, "imported");
   if (sym == NULL)
-    return false;
+    {
+      error (ErrorError, "Missing symbol for import");
+      return false;
+    }
 
   while (Input_Match (',', false))
     {
@@ -922,7 +962,7 @@ symbolPrint (const Symbol *sym)
 void
 symbolPrintAll (void)
 {
-  for (int i = 0; i < SYMBOL_TABLESIZE; i++)
+  for (int i = 0; i != SYMBOL_TABLESIZE; i++)
     {
       for (const Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
