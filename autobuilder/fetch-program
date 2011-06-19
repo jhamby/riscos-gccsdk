@@ -95,16 +95,18 @@ else
       for section in main contrib; do
         Sources=../Sources-${dist}-${section}.bz2
 
-        if bzgrep -B14 "/$AB_PACKAGE$" $Sources > files ; then
+        if bzgrep -B14 "^Directory.*/$AB_PACKAGE$" $Sources > files ; then
           # Found ok
           break
         else
           echo "Autobuilder: Directory name not found in Sources.bz2 (${dist}/${section})"
           echo "Autobuilder: Trying Binary entry"
           if bzgrep -A26 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
+            sed --in-place -e '/^$/,//d' files
             break
           else
             bzgrep -A26 "Binary:.* $AB_PACKAGE," $Sources > files || true
+            sed --in-place -e '/^$/,//d' files
           fi
         fi
 
