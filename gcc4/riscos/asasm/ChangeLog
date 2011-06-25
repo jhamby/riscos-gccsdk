@@ -1,3 +1,11 @@
+Sat Jun 25 17:57:13 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/rotator.s: Added.
+	* get.c (getRhs): Support symbol as value type for rotator value.
+	* m_cpuctrl.c (m_msr): Add fixme.
+	* symbol.h: Comment update.
+	* symbol.c (SymbolCompare): Remove comment.
+
 Tue Jun 14 02:12:06 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (NeedToOutputSymbol): When we having a global keep, don't

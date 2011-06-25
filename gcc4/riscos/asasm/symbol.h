@@ -92,7 +92,7 @@ typedef struct Symbol
       either -1 (no relocation needed),
       either 0 (relocation needed, see Reloc_Create()).
 
-    At symbolFix():
+    At end of Symbol_CreateSymbolOut():
       For area symbols:
         - AOF output : this will be the area number counted from 0
         - ELF output : this is the section number (counted from 3)

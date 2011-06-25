@@ -837,7 +837,7 @@ m_msr (void)
       if (im->Tag == ValueInt)
 	{
 	  cc |= 0x02000000;
-	  cc |= fixImm8s4 (0, cc, im->Data.Int.i);
+	  cc |= fixImm8s4 (0, cc, im->Data.Int.i); /* FIXME: no rotator support (see getRhs()) ? */
 	}
       else
 	error (ErrorError, "Illegal immediate expression");

@@ -344,7 +344,7 @@ SymbolCompare (const void *symPP1, const void *symPP2)
 {
   const Symbol *symP1 = *(const Symbol **)symPP1;
   const Symbol *symP2 = *(const Symbol **)symPP2;
-  return strcasecmp (symP1->str, symP2->str /*, symP1->len + 1 */);
+  return strcasecmp (symP1->str, symP2->str);
 }
 
 
