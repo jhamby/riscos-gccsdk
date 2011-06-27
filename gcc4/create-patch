@@ -1,6 +1,6 @@
 #!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2006-2009 GCCSDK Developers
+# Copyright (c) 2006-2011 GCCSDK Developers
 
 # Arguments:
 #  $1: file to patch (relative to $GCCSDK_ROOT/srcdir)
@@ -29,9 +29,9 @@ fi
 
 # Check if the original files are coming from Subversion, or from a release
 # tar ball.
-GCCSDK_ORG_SUBTREE=`ls -d $GCCSDK_ROOT/srcdir.orig/$GCCSDK_SUBTREE-* 2>/dev/null || true`
+GCCSDK_ORG_SUBTREE=`find $GCCSDK_ROOT/srcdir.orig -maxdepth 1 -type d -name "$GCCSDK_SUBTREE-*" 2>/dev/null || true`
 if [ ! -d "$GCCSDK_ORG_SUBTREE" ] ; then
-  echo "Can not find original source tree."
+  echo "Can not find original source tree (was looking for '$GCCSDK_ORG_SUBTREE')."
   exit 1
 fi
 if [ -d "$GCCSDK_SRCDIR/.svn" ] ; then
