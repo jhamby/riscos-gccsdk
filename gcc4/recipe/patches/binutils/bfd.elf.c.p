@@ -1,6 +1,6 @@
---- bfd/elf.c.orig	2010-10-29 14:10:24.000000000 +0200
-+++ bfd/elf.c	2010-12-11 02:08:00.814996811 +0100
-@@ -3892,8 +3892,17 @@ _bfd_elf_map_sections_to_segments (bfd *
+--- bfd/elf.c.orig	2011-06-27 09:39:04.000000000 +0200
++++ bfd/elf.c	2011-06-27 22:54:09.584441929 +0200
+@@ -3916,8 +3916,17 @@ _bfd_elf_map_sections_to_segments (bfd *
  	    }
  	  else if (! writable
  		   && (hdr->flags & SEC_READONLY) == 0

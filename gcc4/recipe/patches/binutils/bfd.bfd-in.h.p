@@ -1,6 +1,6 @@
---- bfd/bfd-in.h.orig	2009-09-02 09:18:35.000000000 +0200
-+++ bfd/bfd-in.h	2010-01-31 16:19:42.005013604 +0100
-@@ -873,6 +873,13 @@ extern bfd_boolean bfd_elf32_arm_get_bfd
+--- bfd/bfd-in.h.orig	2011-03-16 09:35:44.000000000 +0100
++++ bfd/bfd-in.h	2011-06-27 22:54:09.564435191 +0200
+@@ -877,6 +877,13 @@ extern bfd_boolean bfd_elf32_arm_get_bfd
  extern bfd_boolean bfd_elf32_arm_add_glue_sections_to_bfd
    (bfd *, struct bfd_link_info *);
  
