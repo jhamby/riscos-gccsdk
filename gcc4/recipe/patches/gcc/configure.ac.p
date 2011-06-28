@@ -1,16 +1,16 @@
 Index: configure.ac
 ===================================================================
---- configure.ac	(revision 170686)
+--- configure.ac	(revision 175593)
 +++ configure.ac	(working copy)
-@@ -190,6 +190,7 @@
+@@ -189,6 +189,7 @@
+ # Note that libiberty is not a target library.
  target_libraries="target-libgcc \
- 		target-libiberty \
  		target-libgloss \
 +		target-libunixlib \
  		target-newlib \
  		target-libgomp \
  		target-libstdc++-v3 \
-@@ -1065,6 +1066,14 @@
+@@ -1059,6 +1060,14 @@
      ;;
  esac
  
@@ -25,7 +25,7 @@ Index: configure.ac
  # If we aren't building newlib, then don't build libgloss, since libgloss
  # depends upon some newlib header files.
  case "${noconfigdirs}" in
-@@ -3136,6 +3145,10 @@
+@@ -3109,6 +3118,10 @@
     ;;
    esac
    ;;

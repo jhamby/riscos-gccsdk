@@ -1,6 +1,6 @@
 Index: Makefile.def
 ===================================================================
---- Makefile.def	(revision 169905)
+--- Makefile.def	(revision 175593)
 +++ Makefile.def	(working copy)
 @@ -57,7 +57,8 @@
  host_modules= { module= flex; no_check_cross= true; };
@@ -20,7 +20,7 @@ Index: Makefile.def
  target_modules = { module= newlib; };
  target_modules = { module= libgcc; bootstrap=true; no_check=true; };
  target_modules = { module= libquadmath; };
-@@ -539,6 +541,7 @@
+@@ -538,6 +540,7 @@
  // on libgcc and newlib/libgloss.
  lang_env_dependencies = { module=gperf; cxx=true; };
  lang_env_dependencies = { module=libjava; cxx=true; };
@@ -28,11 +28,10 @@ Index: Makefile.def
  lang_env_dependencies = { module=newlib; no_c=true; };
  lang_env_dependencies = { module=libgloss; no_c=true; };
  lang_env_dependencies = { module=libgcc; no_gcc=true; no_c=true; };
-@@ -586,6 +589,9 @@
+@@ -579,6 +582,8 @@
+ 
+ dependencies = { module=all-target-libgloss; on=all-target-newlib; };
  dependencies = { module=all-target-winsup; on=all-target-libtermcap; };
- dependencies = { module=configure-target-libiberty; on=all-binutils; };
- dependencies = { module=configure-target-libiberty; on=all-ld; };
-+dependencies = { module=configure-target-libiberty; on=all-target-libunixlib; };
 +dependencies = { module=configure-target-libunixlib; on=all-binutils; };
 +dependencies = { module=configure-target-libunixlib; on=all-ld; };
  dependencies = { module=configure-target-newlib; on=all-binutils; };
