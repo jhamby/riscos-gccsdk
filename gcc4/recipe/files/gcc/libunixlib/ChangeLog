@@ -68,6 +68,12 @@ Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 // ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
 
+Sat Jul  2 15:14:30 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/glob.h: Copy from FreeBSD 8.0.0 with a couple of
+	UnixLib changes.  Solves bug #220.
+	* unix/glob.c: Likewise.
+
 Sun May 29 17:21:43 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/dev.c (__fsopen): Return ENOENT iso EAGAIN when unexisting
