@@ -517,7 +517,12 @@ c_area (void)
   if ((newtype & AREA_CODE) && (newtype & AREA_BASED))
     error (ErrorError, "Attribute BASED may not be set for CODE area");
 
-  if (newtype && oldtype && newtype != oldtype)
+  /* We ignore any ABS difference as we like this to work:
+	AREA Code, CODE
+	ORG &xxx
+	AREA Code, CODE  */
+  if (newtype && oldtype
+      && (newtype & ~AREA_ABS) != (oldtype & ~AREA_ABS))
     error (ErrorWarning, "Change in attribute of area %s will be ignored", sym->str);
   else
     sym->area.info->type |= newtype;
