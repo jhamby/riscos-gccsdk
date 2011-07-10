@@ -1,3 +1,8 @@
+Sun Jul 10 17:35:39 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* area.c (c_area): Relax the AREA attribute test on redefinition.
+	* regression/tests_pass/area.s: Add.
+
 Sun Jul 10 16:49:00 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* local.c (c_rout): When label is supplied, it should be defined as
