@@ -29,6 +29,7 @@
 #  include <inttypes.h>
 #endif
 
+#include "area.h"
 #include "asm.h"
 #include "error.h"
 #include "filestack.h"
@@ -65,7 +66,7 @@ c_rout (const Lex *label)
 
   if (label->tag == LexId)
     {
-      ASM_DefineLabel (label, 0); /* FIXME: should we really define this as a label ? */
+      ASM_DefineLabel (label, areaCurrentSymbol->value.Data.Int.i);
       if (Local_ROUTIsEmpty (label->Data.Id.str))
 	{
 	  error (ErrorError, "Illegal routine name");
