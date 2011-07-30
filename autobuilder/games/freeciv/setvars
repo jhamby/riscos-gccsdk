@@ -1,13 +1,12 @@
 
-AB_URL=http://download.gna.org/freeciv/beta/freeciv-2.3.0-beta3.tar.bz2
-
-AB_PVERSION=2.3.0-beta3
+AB_URL=http://download.gna.org/freeciv/beta/freeciv-2.3.0-RC1.tar.bz2
+AB_PVERSION=2.3.0-RC1
 
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 
 AB_DEBNAME=freeciv-client-sdl
 
-AB_CONFLAGS="--enable-client=sdl --enable-debug=no --enable-ipv6=no --without-pthreads"
+AB_CONFLAGS="--enable-client=sdl --enable-debug=no --enable-ipv6=no"
 
 export LIBS="-static -ljpeg -lpng -ltiff -lz -lvorbisidec -logg -lSDL"
 

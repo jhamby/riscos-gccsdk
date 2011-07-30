@@ -3,4 +3,4 @@
 <Obey$Dir>.!Boot
 If "<FreeCiv$Path>" = "" Then Error !FreeCiv has not been seen
 
-Taskwindow "<Obey$Dir>.freeciv-server %*0" -wimpslot 4096k -quit -name "FreeCiv Server"
+Taskwindow "<Obey$Dir>.freeciv-server %*0" -wimpslot 5800k -quit -name "FreeCiv Server"
