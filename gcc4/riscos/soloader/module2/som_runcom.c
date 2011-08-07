@@ -1,6 +1,6 @@
 /* som_runcom.c
  *
- * Copyright 2007, 2008 GCCSDK Developers
+ * Copyright 2007-2011 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -128,18 +128,18 @@ register_dynamic_loader (runcom_state *state)
 			   - objinfo.public_rw_ptr;
       objinfo.dyn_size = phdr->p_memsz;
 
-      /* Find the GOT of the loader. */
-      const unsigned int *dt;
-      for (dt = (const unsigned int *) (state->elf_loader.base_addr + phdr->p_vaddr);
-	   dt[0] != DT_NULL && dt[0] != DT_PLTGOT;
-	   dt += 2)
-	/* */;
+      /* Find the GOT of the loader.  */
+      const Elf32_Dyn *dyn;
+      for (dyn = (const Elf32_Dyn *) (state->elf_loader.base_addr + phdr->p_vaddr);
+	   dyn->d_tag != DT_NULL && dyn->d_tag != DT_PLTGOT;
+	   dyn++)
+	/* Empty loop. */;
 
-      if (dt[0] == DT_NULL)
+      if (dyn->d_tag == DT_NULL)
 	return somerr_no_got_loader;
 
-      objinfo.got_offset = dt[1] + state->elf_loader.base_addr
-			   - objinfo.public_rw_ptr;
+      objinfo.got_offset = dyn->d_un.d_ptr + state->elf_loader.base_addr
+				 - objinfo.public_rw_ptr;
 
       /* INTERP_NAME is a pointer to the actual string within the ELF file,
          so it's safe to use it without worrying about it disappearing.  */
@@ -210,16 +210,16 @@ register_client (runcom_state *state)
   objinfo.dyn_size = phdr->p_memsz;
       
   /* Find the GOT of the client.  */
-  const unsigned int *dt;
-  for (dt = (const unsigned int *) phdr->p_vaddr;
-       dt[0] != DT_NULL && dt[0] != DT_PLTGOT;
-       dt += 2)
-    /* */;
+  const Elf32_Dyn *dyn;
+  for (dyn = (const Elf32_Dyn *) phdr->p_vaddr;
+       dyn->d_tag != DT_NULL && dyn->d_tag != DT_PLTGOT;
+       dyn++)
+    /* Empty loop. */;
 
-  if (dt[0] == DT_NULL)
+  if (dyn->d_tag == DT_NULL)
     return somerr_no_got_client;
 
-  objinfo.got_offset = (som_PTR) dt[1] - objinfo.public_rw_ptr;
+  objinfo.got_offset = (som_PTR) dyn->d_un.d_ptr - objinfo.public_rw_ptr;
       
   objinfo.name = state->elf_prog_name;
 

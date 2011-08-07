@@ -1,3 +1,14 @@
+Sun Aug 07 11:01:23 2011  Lee Noar <leenoar@sky.com>
+
+	* som_array.h: Fix comment.
+	* som_alloc.c(som_extend): Extending a NULL block causes
+	an allocation.
+	* som_history.c(som_history_add_client): Fix memory leak,
+	object names should be freed as well. Fix freeing of wrong
+	pointer.
+	* som_runcom.c(register_dynamic_loader,register_client):
+	Use proper data type when searching through dynamic segment.
+	
 Sun Sep 19 12:11:03 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_runcom.c(command_run): Update comments.

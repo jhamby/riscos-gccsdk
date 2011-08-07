@@ -1,6 +1,6 @@
 /* som_array.h
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007-2011 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -45,7 +45,7 @@ extern void somarray_fini (som_array *array);
 extern _kernel_oserror *somarray_add_object (som_array *array,
 					     struct _som_object *obj);
 
-/* SWI "SOM_GenerateGOTArray" has to be called at least twice - once after
+/* SWI "SOM_GenerateRuntimeArray" has to be called at least twice - once after
    the dynamic loader has registered but before it is called so that it is
    able to run correctly and then again after the dynamic loader has
    finished linking but before the user program is entered in order to pick

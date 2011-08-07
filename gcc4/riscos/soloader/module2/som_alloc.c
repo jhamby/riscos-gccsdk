@@ -1,6 +1,6 @@
 /* som_alloc.c
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007-2011 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -197,16 +197,18 @@ DA_extend (dynamic_area_block *da, int by, void **block)
   return NULL;
 }
 
-/* FIXME: som_extend on NULL ptr does not work.  Needed ? Intended ? */
 _kernel_oserror *
 som_extend (void **block, int by)
 {
   unsigned int *b = (unsigned int *) (*block);
   _kernel_oserror *err;
 
+  if (b == NULL)
+    return som_alloc (by, block);
+    
   unsigned int allocator = *(--b);
 
-  /* Only do extensions for SOMX allocations - other types aren't vary
+  /* Only do extensions for SOMX allocations - other types aren't very
      useful, but could be done.  */
   if (allocator != SOM_ALLOCATOR_SOMX)
     return NULL;
