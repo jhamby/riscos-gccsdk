@@ -46,12 +46,9 @@ __object_exists_raw:
 	.global	__get_feature_imagefs_is_file
 	NAME	__get_feature_imagefs_is_file
 __get_feature_imagefs_is_file:
- PICEQ "LDR	a1, .L0+8"
-.LPIC0:
- PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
- PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	a2, [a2, a1, LSL#4]"	@ a2 = GOT ptr
+ PICEQ "LDR	a1, =__GOTT_BASE__"
+ PICEQ "LDR	a1, [a1, #0]"
+ PICEQ "LDR	a2, [a1, #__GOTT_INDEX__]"	@ a2 = GOT ptr
 
 	LDR	a1, .L0			@=__feature_imagefs_is_file
  PICEQ "LDR	a1, [a2, a1]"
@@ -63,7 +60,6 @@ __get_feature_imagefs_is_file:
 .L0:
 	WORD	__feature_imagefs_is_file
 	WORD	__feature_imagefs_is_file_internal
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __get_feature_imagefs_is_file
 
 	.data

@@ -73,12 +73,9 @@ __ehs_return_address:
  PICNE "LDMEQEA	fp, {v1, fp, sp, pc}"
  PICEQ "LDMEQEA	fp, {v1, v4, fp, sp, pc}"
 
- PICEQ "LDR	v4, .L3"
-.LPIC0:
- PICEQ "ADD	v4, pc, v4"		@ v4 = Library public GOT
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v4 = GOT table location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT table
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = Library private GOT
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	@ Retrieve return address from stack frame
 	LDR	a1, [v1, #-4]
@@ -142,8 +139,6 @@ __ehs_return_address:
 	WORD	__gcc_alloca_free
 .L2:
 	WORD	__free_stack_chunk
-.L3:
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 #elif __TARGET_SCL__
 	@ There's no PIC in SCL code
 __ehs_return_address:
@@ -380,12 +375,9 @@ __ehs_unwind_stack_chunk:
  PICNE "LDMEQEA	fp, {v1-v3, fp, sp, pc}"
  PICEQ "LDMEQEA	fp, {v1-v4, fp, sp, pc}"
 
- PICEQ "LDR	v4, .L4"
-.LPIC1:
- PICEQ "ADD	v4, pc, v4"			@ v4 = Library public GOT
- PICEQ "LDMIA	v4, {v4, v5}"			@ v4 = Object index, v4 = GOT table location
- PICEQ "LDR	v5, [v5, #0]"			@ v5 = GOT table
- PICEQ "LDR	v4, [v5, v4, LSL#4]"		@ v4 = Library private GOT
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	LDR	a1, [v2, #0]			@ Retrieve old return address (pc)
 	TEQ	a1, a1				@ 32bit mode check
@@ -422,8 +414,6 @@ __ehs_unwind_stack_chunk:
 
  PICNE "LDMEA	fp, {v1-v3, fp, sp, pc}"
  PICEQ "LDMEA	fp, {v1-v4, fp, sp, pc}"
-.L4:
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 #else /* !__UNIXLIB_CHUNKED_STACK */
 	@ Nothing to do for a flat stack.
 	MOV	pc, lr

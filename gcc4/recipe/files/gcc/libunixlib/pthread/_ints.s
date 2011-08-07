@@ -16,12 +16,9 @@
 @ May be called from USR or SVC mode
 	NAME	__pthread_disable_ints
 __pthread_disable_ints:
- PICEQ "LDR	a1, .L0+4"
-.LPIC0:
- PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
- PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	a2, [a2, a1, LSL#4]"	@ a2 = GOT ptr
+ PICEQ "LDR	a2, =__GOTT_BASE__"
+ PICEQ "LDR	a2, [a2, #0]"
+ PICEQ "LDR	a2, [a2, #__GOTT_INDEX__]"	@ a2 = GOT ptr
 
 	LDR	a1, .L0			@=__ul_global
  PICEQ "LDR	a1, [a2, a1]"
@@ -34,7 +31,6 @@ __pthread_disable_ints:
 	MOV	pc, lr
 .L0:
 	WORD	__ul_global
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __pthread_disable_ints
 
 
@@ -42,12 +38,9 @@ __pthread_disable_ints:
 @ May be called from USR or SVC mode
 	NAME	__pthread_enable_ints
 __pthread_enable_ints:
- PICEQ "LDR	a1, .L1+4"
-.LPIC1:
- PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
- PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	a1, [a2, a1, LSL#4]"	@ a1 = GOT ptr
+ PICEQ "LDR	a1, =__GOTT_BASE__"
+ PICEQ "LDR	a1, [a1, #0]"
+ PICEQ "LDR	a1, [a1, #__GOTT_INDEX__]"	@ a1 = GOT ptr
 
 	LDR	a2, .L1			@=__ul_global
  PICEQ "LDR	a2, [a1, a2]"
@@ -62,7 +55,6 @@ __pthread_enable_ints:
 	MOV	pc, lr
 .L1:
 	WORD	__ul_global
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 #if __UNIXLIB_PARANOID
 semazero:
 	.asciz	"__pthread_enable_ints called with semaphore already 0 or lower"
@@ -82,12 +74,9 @@ __pthread_protect_unsafe:
 	BEQ	__pthread_fatal_error
 #endif
 
- PICEQ "LDR	a1, .L2+4"
-.LPIC2:
- PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
- PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	a1, [a2, a1, LSL#4]"	@ a1 = GOT ptr
+ PICEQ "LDR	a1, =__GOTT_BASE__"
+ PICEQ "LDR	a1, [a1, #0]"
+ PICEQ "LDR	a1, [a1, #__GOTT_INDEX__]"	@ a1 = GOT ptr
 
 	LDR	a4, .L2			@=__ul_global
  PICEQ "LDR	a4, [a1, a4]"
@@ -118,7 +107,6 @@ __pthread_protect_unsafe:
 	MOV	pc, lr
 .L2:
 	WORD	__ul_global
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC2+4)"
 
 #if __UNIXLIB_PARANOID
 noframe:
@@ -135,12 +123,9 @@ return_notempty:
 @ Can corrupt a3-a4,ip,lr but NOT a1 nor a2
 	NAME	__pthread_unprotect_unsafe
 __pthread_unprotect_unsafe:
- PICEQ "LDR	a3, .L3+4"
-.LPIC3:
- PICEQ "ADD	a3, pc, a3"		@ a3 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a3, {a3, a4}"		@ a3 = Object index, a4 = GOT ptr array location
- PICEQ "LDR	a4, [a4, #0]"		@ a4 = GOT ptr array
- PICEQ "LDR	a3, [a4, a3, LSL#4]"	@ a3 = GOT ptr
+ PICEQ "LDR	a3, =__GOTT_BASE__"
+ PICEQ "LDR	a3, [a3, #0]"
+ PICEQ "LDR	a3, [a3, #__GOTT_INDEX__]"	@ a1 = GOT ptr
 
 	LDR	ip, .L3			@=__ul_global
  PICEQ "LDR	ip, [a3, ip]"
@@ -178,7 +163,6 @@ __pthread_unprotect_unsafe:
 	LDMFD	sp!, {a1, a2, pc}
 .L3:
 	WORD	__ul_global
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC3+4)"
 
 #if __UNIXLIB_PARANOID
 bad_semaphore:

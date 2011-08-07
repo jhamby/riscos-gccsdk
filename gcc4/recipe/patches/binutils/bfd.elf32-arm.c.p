@@ -1,5 +1,5 @@
---- bfd/elf32-arm.c.orig	2011-05-11 09:29:12.000000000 +0200
-+++ bfd/elf32-arm.c	2011-06-27 22:54:09.574436744 +0200
+--- bfd/elf32-arm.c.orig	2011-08-05 12:23:30.000000000 +0100
++++ bfd/elf32-arm.c	2011-08-05 16:04:38.000000000 +0100
 @@ -1910,7 +1910,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -9,14 +9,18 @@
  
  #ifdef FOUR_WORD_PLT
  
-@@ -2010,6 +2010,46 @@ static const bfd_vma elf32_arm_symbian_p
+@@ -2010,6 +2010,56 @@ static const bfd_vma elf32_arm_symbian_p
      0x00000000,         /* dcd   R_ARM_GLOB_DAT(X) */
    };
  
 +#define PLT_RISCOS_EXEC_HEADER_SIZE 20
-+#define PLT_RISCOS_SHARED_HEADER_SIZE 12
-+#define PLT_RISCOS_ENTRY_SIZE 12
++#define PLT_RISCOS_SHARED_HEADER_SIZE 24
++#define PLT_RISCOS_EXEC_ENTRY_SIZE 12
++#define PLT_RISCOS_SHARED_ENTRY_SIZE 24
 +
++#define SRELPIC_VERSION 1
++#define SRELPIC_HEADER_SIZE 8 /* in bytes */
++  
 +/* The first entry in a procedure linkage table looks like
 +   this.  It is set up so that any shared library function that is
 +   called before the relocation has been set up calls the dynamic
@@ -26,15 +30,18 @@
 +    0xe52de004,		/* str   lr, [sp, #-4]! */
 +    0xe59fe004,		/* ldr   lr, [pc, #4]   */
 +    0xe08fe00e,		/* add   lr, pc, lr     */
-+    0xe5bef010,		/* ldr   pc, [lr, #16]! */
++    0xe5bef008,		/* ldr   pc, [lr, #8]! */
 +    0x00000000		/* &GOT[0] - .          */
 +  };
 +
 +static const bfd_vma elf32_arm_riscos_shared_plt0_entry [] =
 +  {
 +    0xe52de004,		/* str   lr, [sp, #-4]! */
-+    0xe1a0e007,		/* mov   lr, r7         */
-+    0xe5bef010,		/* ldr   pc, [lr, #16]! */
++    0xe59fe008,		/* ldr   lr, ]pc, #8]   */
++    0xe59ee000,		/* ldr   lr, [lr, #0]   */
++    0xe59ee000,		/* ldr   lr, [lr, #__GOTT_INDEX__]   */
++    0xe5bef008,		/* ldr   pc, [lr, #8]! */
++    0x00000000		/* __GOTT_BASE__        */
 +  };
 +
 +/* Subsequent entries in a procedure linkage table look like
@@ -48,15 +55,18 @@
 +
 +static const bfd_vma elf32_arm_riscos_shared_plt_entry [] =
 +  {
-+    0xe2878600,		/* add  r8, r7, #0xXX00000 */
++    0xe59f800C,		/* ldr  r8, [pc, #12]      */
++    0xe5988000,		/* ldr  r8, [r8, #0]       */
++    0xe5988000,		/* ldr  r8, [r8, #__GOTT_INDEX__] */
 +    0xe2888a00,		/* add	r8, r8, #0x00XX000 */
-+    0xe5b8f000		/* ldr  pc,[r8, #0x0000XXX]!  @ call function */
++    0xe5b8f000,		/* ldr  pc,[r8, #0x0000XXX]!  @ call function */
++    0x00000000		/* __GOTT_BASE__           */
 +  };
 +
  #define ARM_MAX_FWD_BRANCH_OFFSET  ((((1 << 23) - 1) << 2) + 8)
  #define ARM_MAX_BWD_BRANCH_OFFSET  ((-((1 << 23) << 2)) + 8)
  #define THM_MAX_FWD_BRANCH_OFFSET  ((1 << 22) -2 + 4)
-@@ -2660,6 +2700,20 @@ struct elf32_arm_link_hash_table
+@@ -2660,6 +2710,26 @@ struct elf32_arm_link_hash_table
    unsigned int bfd_count;
    int top_index;
    asection **input_list;
@@ -74,26 +84,101 @@
 +
 +  bfd_vma ro_module_image_ro_base;
 +  bfd_vma ro_module_image_rw_base;
++
++  /* For RISC OS PIC support.  */
++  asection * srelpic;
++  bfd_vma srelpic_offset;
++  bfd_vma srelpic_size;
++  int plt_count;
  };
  
  /* Create an entry in an ARM ELF linker hash table.  */
-@@ -2820,6 +2874,15 @@ elf32_arm_create_dynamic_sections (bfd *
+@@ -2773,6 +2843,63 @@ create_got_section (bfd *dynobj, struct
+   return TRUE;
+ }
+ 
++bfd_boolean
++bfd_elf32_arm_create_riscos_pic_section (struct bfd_link_info *info)
++{
++  BFD_ASSERT (info->shared && info->flag_pic == 2);
++
++  struct elf32_arm_link_hash_table *htab = elf32_arm_hash_table (info);
++  bfd *	dynobj = elf_hash_table (info)->dynobj;
++  const struct elf_backend_data *bed = get_elf_backend_data (dynobj);
++
++  asection *s = bfd_make_section_with_flags (dynobj,
++					     ".riscos.pic",
++					     SEC_ALLOC | SEC_LOAD | SEC_DATA
++					     | SEC_HAS_CONTENTS | SEC_IN_MEMORY
++					     | SEC_READONLY | SEC_LINKER_CREATED);
++  if (s == NULL
++      || !bfd_set_section_alignment (dynobj, s, bed->s->log_file_align))
++    return FALSE;
++  htab->srelpic = s;
++  htab->srelpic_size += SRELPIC_HEADER_SIZE;
++  s->size = htab->srelpic_size;
++
++  return TRUE;
++}
++
++bfd_boolean
++bfd_elf32_arm_allocate_riscos_pic_section (struct bfd_link_info *info)
++{
++  BFD_ASSERT (info->shared && info->flag_pic == 2);
++
++  struct elf32_arm_link_hash_table * htab;
++  bfd *	dynobj = elf_hash_table (info)->dynobj;
++
++  htab = elf32_arm_hash_table (info);
++
++  asection *s = htab->srelpic;
++
++  /* Add PLT relocs, if any. We add one to account for the first entry used
++     when lazy binding. We multiply by 8 because there are two 4 byte
++     relocations per PLT entry.  */
++  if (htab->plt_count)
++    s->size += (htab->plt_count + 1) * 8;
++
++  s->contents = (bfd_byte *) bfd_zalloc (dynobj, s->size);
++  if (s->contents == NULL)
++    return FALSE;
++
++  /* Write header into section:
++     +0 version number
++     +4 Number of relocs.  */
++  bfd_put_32 (dynobj, SRELPIC_VERSION, s->contents + 0);
++  bfd_put_32 (dynobj, (s->size - SRELPIC_HEADER_SIZE) >> 2, s->contents + 4);
++
++  htab->srelpic_offset = SRELPIC_HEADER_SIZE;
++  
++  return TRUE;
++}
++
+ /* Create .plt, .rel(a).plt, .got, .got.plt, .rel(a).got, .dynbss, and
+    .rel(a).bss sections in DYNOBJ, and set up shortcuts to them in our
+    hash table.  */
+@@ -2820,6 +2947,20 @@ elf32_arm_create_dynamic_sections (bfd *
  	}
      }
  
 +  if (info->flag_pic == 2)
 +    {
 +      if (info->shared)
-+	htab->plt_header_size = PLT_RISCOS_SHARED_HEADER_SIZE;
++        {
++	  htab->plt_header_size = PLT_RISCOS_SHARED_HEADER_SIZE;
++	  htab->plt_entry_size = PLT_RISCOS_SHARED_ENTRY_SIZE;
++	}
 +      else
-+	htab->plt_header_size = PLT_RISCOS_EXEC_HEADER_SIZE;
-+      htab->plt_entry_size = PLT_RISCOS_ENTRY_SIZE;
++	{
++	  htab->plt_header_size = PLT_RISCOS_EXEC_HEADER_SIZE;
++	  htab->plt_entry_size = PLT_RISCOS_EXEC_ENTRY_SIZE;
++	}
 +    }
 +
    if (!htab->splt
        || !htab->srelplt
        || !htab->sdynbss
-@@ -2962,9 +3025,204 @@ elf32_arm_link_hash_table_create (bfd *a
+@@ -2962,9 +3103,209 @@ elf32_arm_link_hash_table_create (bfd *a
        return NULL;
      }
  
@@ -106,6 +191,11 @@
 +  ret->ro_module_relocdata_size = 0;
 +  ret->ro_module_image_ro_base = 0;
 +  ret->ro_module_image_rw_base = 0;
++
++  ret->srelpic = NULL;
++  ret->srelpic_offset = 0;
++  ret->srelpic_size = 0;
++  ret->plt_count = 0;
 +
    return &ret->root.root;
  }
@@ -298,10 +388,27 @@
  /* Free the derived linker hash table.  */
  
  static void
-@@ -6939,6 +7197,51 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -6938,6 +7279,67 @@ elf32_arm_final_link_relocate (reloc_how
+     }
    else
      addend = signed_addend = rel->r_addend;
- 
++  
++  if (info->shared && info->flag_pic == 2
++   && sym_name[0] == '_' && sym_name[1] == '_'
++   && (strcmp (sym_name, "__GOTT_INDEX__") == 0
++   ||  strcmp (sym_name, "__GOTT_BASE__") == 0))
++    {
++      const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset + rel->r_offset;
++
++      BFD_ASSERT (globals->srelpic_offset < globals->srelpic_size);
++
++      /* Set bit 31 of the offset for a __GOTT_INDEX__ reloc.  */
++      bfd_put_32 (input_bfd,
++		  (osection_addr & 0x3fffffff) | ((sym_name[7] == 'I') << 31),
++		  globals->srelpic->contents + globals->srelpic_offset);
++      globals->srelpic_offset += 4;
++    }
++
 +  if (globals->bfd_ro_module_owner != NULL)
 +    {
 +      /* __RelocData entry:
@@ -346,11 +453,10 @@
 +          globals->ro_module_reloccode_offset += 4;
 +	}
 +    }
-+
+ 
    switch (r_type)
      {
-     case R_ARM_NONE:
-@@ -7880,6 +8183,7 @@ elf32_arm_final_link_relocate (reloc_how
+@@ -7880,6 +8282,7 @@ elf32_arm_final_link_relocate (reloc_how
           define _GLOBAL_OFFSET_TABLE in a different way, as is
           permitted by the ABI, we might have to change this
           calculation.  */
@@ -358,7 +464,7 @@
        value -= sgot->output_section->vma;
        return _bfd_final_link_relocate (howto, input_bfd, input_section,
  				       contents, rel->r_offset, value,
-@@ -9437,10 +9741,86 @@ elf32_arm_final_link (bfd *abfd, struct 
+@@ -9437,10 +9840,89 @@ elf32_arm_final_link (bfd *abfd, struct
  {
    struct elf32_arm_link_hash_table *globals = elf32_arm_hash_table (info);
    asection *sec, *osec;
@@ -366,6 +472,7 @@
 +  struct bfd_link_order *p;
 +  asection *ro_module_reloccode_section = NULL;
 +  asection *ro_module_relocdata_section = NULL;
++  asection *srelpic = NULL;
  
    if (globals == NULL)
      return FALSE;
@@ -408,6 +515,8 @@
 +	  /* Skip this section later on.  */
 +	  o->map_head.link_order = NULL;
 +        }
++      else if (strcmp (o->name, ".riscos.pic") == 0)
++	srelpic = o;
 +    }
 +  if (globals->s_ro_module_reloccode != NULL
 +      || globals->s_ro_module_relocdata != NULL)
@@ -445,7 +554,7 @@
    /* Invoke the regular ELF backend linker to do all the work.  */
    if (!bfd_elf_final_link (abfd, info))
      return FALSE;
-@@ -9487,6 +9867,57 @@ elf32_arm_final_link (bfd *abfd, struct 
+@@ -9487,6 +9969,63 @@ elf32_arm_final_link (bfd *abfd, struct
  	return FALSE;
      }
  
@@ -500,10 +609,16 @@
 +        return FALSE;
 +    }
 +
++  if (srelpic != NULL)
++    {
++      if (!bfd_set_section_contents (abfd, srelpic, globals->srelpic->contents, 0, globals->srelpic->size))
++	return FALSE;
++    }
++
    return TRUE;
  }
  
-@@ -10837,6 +11268,18 @@ elf32_arm_check_relocs (bfd *abfd, struc
+@@ -10837,6 +11376,22 @@ elf32_arm_check_relocs (bfd *abfd, struc
  
        eh = (struct elf32_arm_link_hash_entry *) h;
  
@@ -519,10 +634,36 @@
 +      if (ro_module_is_codereloc (r_type, sec->name))
 +        htab->ro_module_reloccode_size += 4;
 +
++      if (h && (strcmp (h->root.root.string, "__GOTT_INDEX__") == 0
++		|| strcmp (h->root.root.string, "__GOTT_BASE__") == 0))
++	htab->srelpic_size += 4;
++
        switch (r_type)
          {
  	  case R_ARM_GOT32:
-@@ -12035,8 +12478,7 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -11467,6 +12022,8 @@ allocate_dynrelocs (struct elf_link_hash
+ 	{
+ 	  asection *s = htab->splt;
+ 
++	  htab->plt_count++;
++
+ 	  /* If this is the first .plt entry, make room for the special
+ 	     first entry.  */
+ 	  if (s->size == 0)
+@@ -12027,6 +12584,12 @@ elf32_arm_size_dynamic_sections (bfd * o
+ #define add_dynamic_entry(TAG, VAL) \
+   _bfd_elf_add_dynamic_entry (info, TAG, VAL)
+ 
++     if (info->shared && info->flag_pic == 2)
++       {
++	 if (!add_dynamic_entry (DT_RISCOS_PIC, 0))
++	   return FALSE;
++       }
++
+      if (info->executable)
+ 	{
+ 	  if (!add_dynamic_entry (DT_DEBUG, 0))
+@@ -12035,8 +12598,7 @@ elf32_arm_size_dynamic_sections (bfd * o
  
        if (plt)
  	{
@@ -532,7 +673,7 @@
  	      || !add_dynamic_entry (DT_PLTREL,
  				     htab->use_rel ? DT_REL : DT_RELA)
  	      || !add_dynamic_entry (DT_JMPREL, 0))
-@@ -12061,6 +12503,9 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -12061,6 +12623,9 @@ elf32_arm_size_dynamic_sections (bfd * o
  	    }
  	}
  
@@ -542,17 +683,7 @@
        /* If any dynamic relocs apply to a read-only section,
  	 then we need a DT_TEXTREL entry.  */
        if ((info->flags & DF_TEXTREL) == 0)
-@@ -12160,6 +12605,9 @@ elf32_arm_finish_dynamic_symbol (bfd * o
- 	     in all the symbols for which we are making plt entries.  The
- 	     first three entries in .got.plt are reserved; after that
- 	     symbols appear in the same order as in .plt.  */
-+	  if (info->flag_pic == 2)
-+	    plt_index = (got_offset - 20) / 4;
-+	  else
- 	  plt_index = (got_offset - 12) / 4;
- 
- 	  /* Calculate the address of the GOT entry.  */
-@@ -12252,6 +12700,41 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -12252,6 +12817,56 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  				  elf32_arm_plt_thumb_stub[1], ptr - 2);
  		}
  
@@ -560,18 +691,33 @@
 +		{
 +		  if (info->shared)
 +		    {
++		      /* Insert __GOTT_INDEX__ reloc for this plt entry.  */
++		      bfd_put_32 (output_bfd,
++				  ((plt_address + 8) & 0x3fffffff) | (1 << 31),
++				  htab->srelpic->contents + htab->srelpic_offset);
++		      /* Insert __GOTT_BASE__ reloc for this plt entry.  */
++		      bfd_put_32 (output_bfd,
++				  plt_address + 20,
++				  htab->srelpic->contents + htab->srelpic_offset + 4);
++		      htab->srelpic_offset += 8;
++
 +		      put_arm_insn (htab, output_bfd,
-+			      elf32_arm_riscos_shared_plt_entry[0]
-+			      | ((got_offset & 0x0ff00000) >> 20),
++			      elf32_arm_riscos_shared_plt_entry[0],
 +			      ptr + 0);
 +		      put_arm_insn (htab, output_bfd,
-+			      elf32_arm_riscos_shared_plt_entry[1]
-+			      | ((got_offset & 0x000ff000) >> 12),
++			      elf32_arm_riscos_shared_plt_entry[1],
 +			      ptr + 4);
 +		      put_arm_insn (htab, output_bfd,
-+			      elf32_arm_riscos_shared_plt_entry[2]
-+			      | (got_offset & 0x00000fff),
++			      elf32_arm_riscos_shared_plt_entry[2],
 +			      ptr + 8);
++		      put_arm_insn (htab, output_bfd,
++			      elf32_arm_riscos_shared_plt_entry[3]
++			      | ((got_offset & 0x000ff000) >> 12),
++			      ptr + 12);
++		      put_arm_insn (htab, output_bfd,
++			      elf32_arm_riscos_shared_plt_entry[4]
++			      | (got_offset & 0x00000fff),
++			      ptr + 16);
 +		    }
 +		  else
 +		    {
@@ -594,7 +740,7 @@
  	      put_arm_insn (htab, output_bfd,
  			    elf32_arm_plt_entry[0]
  			    | ((got_displacement & 0x0ff00000) >> 20),
-@@ -12268,6 +12751,7 @@ elf32_arm_finish_dynamic_symbol (bfd * o
+@@ -12268,6 +12883,7 @@ elf32_arm_finish_dynamic_symbol (bfd * o
  	      bfd_put_32 (output_bfd, elf32_arm_plt_entry[3], ptr + 12);
  #endif
  	    }
@@ -602,7 +748,18 @@
  
  	  /* Fill in the entry in the global offset table.  */
  	  bfd_put_32 (output_bfd,
-@@ -12600,6 +13084,27 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -12429,7 +13045,9 @@ elf32_arm_finish_dynamic_sections (bfd *
+ 		  && elf_vxworks_finish_dynamic_entry (output_bfd, &dyn))
+ 		bfd_elf32_swap_dyn_out (output_bfd, &dyn, dyncon);
+ 	      break;
+-
++	    case DT_RISCOS_PIC:
++	      name = ".riscos.pic";
++	      goto get_vma;
+ 	    case DT_HASH:
+ 	      name = ".hash";
+ 	      goto get_vma_if_bpabi;
+@@ -12600,6 +13218,39 @@ elf32_arm_finish_dynamic_sections (bfd *
  	    {
  	      got_displacement = got_address - (plt_address + 16);
  
@@ -610,10 +767,22 @@
 +	        {
 +		  if (info->shared)
 +		    {
++		      /* Insert __GOTT_INDEX__ reloc for this plt entry.  */
++		      bfd_put_32 (output_bfd,
++				  ((plt_address + 12) & 0x3fffffff) | (1 << 31),
++				  htab->srelpic->contents + htab->srelpic_offset);
++		      /* Insert __GOTT_BASE__ reloc for this plt entry.  */
++		      bfd_put_32 (output_bfd,
++				  plt_address + 20,
++				  htab->srelpic->contents + htab->srelpic_offset + 4);
++		      htab->srelpic_offset += 8;
++
 +		      plt0_entry = elf32_arm_riscos_shared_plt0_entry;
 +		      put_arm_insn (htab, output_bfd, plt0_entry[0], splt->contents + 0);
 +		      put_arm_insn (htab, output_bfd, plt0_entry[1], splt->contents + 4);
 +		      put_arm_insn (htab, output_bfd, plt0_entry[2], splt->contents + 8);
++		      put_arm_insn (htab, output_bfd, plt0_entry[3], splt->contents + 12);
++		      put_arm_insn (htab, output_bfd, plt0_entry[4], splt->contents + 16);
 +		    }
 +		  else
 +		    {
@@ -630,7 +799,7 @@
  	      plt0_entry = elf32_arm_plt0_entry;
  	      put_arm_insn (htab, output_bfd, plt0_entry[0],
  			    splt->contents + 0);
-@@ -12619,6 +13124,7 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -12619,6 +13270,7 @@ elf32_arm_finish_dynamic_sections (bfd *
  #endif
  	    }
  	}
@@ -638,7 +807,38 @@
  
        /* UnixWare sets the entsize of .plt to 4, although that doesn't
  	 really seem like the right value.  */
-@@ -13790,7 +14296,7 @@ elf32_arm_is_function_type (unsigned int
+@@ -13787,10 +14439,38 @@ elf32_arm_is_function_type (unsigned int
+   return (type == STT_FUNC) || (type == STT_ARM_TFUNC);
+ }
+ 
++/* Prevent linker complaining about symbols having no size or type.  */
++bfd_boolean
++elf_riscos_add_symbol_hook (bfd *abfd,
++			    struct bfd_link_info *info,
++			    Elf_Internal_Sym *sym,
++			    const char **namep,
++			    flagword *flagsp,
++			    asection **secp ATTRIBUTE_UNUSED,
++			    bfd_vma *valp ATTRIBUTE_UNUSED)
++{
++  if (info->shared
++   && (*namep)[0] == '_' && (*namep)[1] == '_'
++   && (strcmp (*namep, "__GOTT_BASE__") == 0
++    || strcmp (*namep, "__GOTT_INDEX__") == 0))
++    {
++      struct elf_link_hash_table *htab;
++      struct elf_link_hash_entry *h;
++
++      htab = elf_hash_table (info);
++
++      h = elf_link_hash_lookup (htab, *namep, FALSE, FALSE, TRUE);
++      if (h)
++	h->type = STT_OBJECT;
++    }
++
++  return TRUE;
++}
++
  /* We use this to override swap_symbol_in and swap_symbol_out.  */
  const struct elf_size_info elf32_arm_size_info =
  {
@@ -647,12 +847,12 @@
    sizeof (Elf32_External_Phdr),
    sizeof (Elf32_External_Shdr),
    sizeof (Elf32_External_Rel),
-@@ -13883,7 +14389,7 @@ const struct elf_size_info elf32_arm_siz
- #define elf_backend_may_use_rela_p     0
- #define elf_backend_default_use_rela_p 0
+@@ -13831,6 +14511,8 @@ const struct elf_size_info elf32_arm_siz
  
--#define elf_backend_got_header_size	12
-+#define elf_backend_got_header_size	20 /* RISC OS: 12 -> 20 */
+ #define bfd_elf32_mkobject		        elf32_arm_mkobject
  
- #undef  elf_backend_obj_attrs_vendor
- #define elf_backend_obj_attrs_vendor		"aeabi"
++#define elf_backend_add_symbol_hook		elf_riscos_add_symbol_hook
++
+ #define bfd_elf32_bfd_copy_private_bfd_data	elf32_arm_copy_private_bfd_data
+ #define bfd_elf32_bfd_merge_private_bfd_data	elf32_arm_merge_private_bfd_data
+ #define bfd_elf32_bfd_set_private_flags		elf32_arm_set_private_flags

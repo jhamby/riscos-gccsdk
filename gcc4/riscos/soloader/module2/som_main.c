@@ -49,6 +49,7 @@ som_callback_handler (_kernel_swi_regs *r, void *pw)
       /* If we get here, object has expired, remove from global list.  */
       linklist_remove (&global.object_list, &object->link);
 
+      /* Mark this object slot as being reusable.  */
       global.object_array.object_base[object->index] = NULL;
 
       som_free (object->name);

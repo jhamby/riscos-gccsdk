@@ -1,6 +1,6 @@
 /* som_register.c
  *
- * Copyright 2007, 2009 GCCSDK Developers
+ * Copyright 2007-2011 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -12,6 +12,26 @@
 #include "som_workspace.h"
 #include "som_array.h"
 #include "som_history.h"
+
+/* The current version of the .riscos.pic section that we are aware of.  */
+#define SRELPIC_VERSION 1
+
+/* Structure defining the lay out of the ".riscos.pic" section.  */
+typedef struct srelpic_section
+{
+  unsigned int version;
+  unsigned int rel_count;
+  struct rel
+  {
+    /* Offset of the reloc from the start of the library.  */
+    unsigned int offset : 30;
+
+    unsigned int reserved : 1;
+
+    /* Set for an __GOTT_INDEX__ reloc, clear for a __GOTT_BASE__ reloc.  */
+    unsigned int index : 1;
+  } array[];
+} srelpic_section;
 
 static _kernel_oserror *
 init_object (som_object *object, const som_objinfo *objinfo)
@@ -102,7 +122,7 @@ som_register_client (som_handle handle, som_objinfo *objinfo)
 
   /* Find a unique ID that hasn't already been used. There is a danger that
      if multiple tasks are run in quick succession, they may get the same
-     centisecond count (and therefore ID) from OS_ReadMonotonicTime. Make
+     centisecond count (and therefor ID) from OS_ReadMonotonicTime. Make
      sure this doesn't happen.
      We do this here before the call to linklist_add_tail(), so that the
      new client is not considered by find_client().  */
@@ -157,15 +177,11 @@ som_register_client (som_handle handle, som_objinfo *objinfo)
   /* The object list is ordered by base addr.  */
   som_add_sharedobject (&client->object_list, object);
 
-  /* Store the object index in the GOT.  */
-  *((unsigned int *) object->got_addr + SOM_OBJECT_INDEX_OFFSET) =
-    object->index;
-
-  /* Store the location of the client runtime array in the GOT.  */
-  *((unsigned int *) object->got_addr + SOM_RUNTIME_ARRAY_OFFSET) =
-    (unsigned int)rt_workspace_find();
+  /* Store the object index in the runtime workspace.  */
+  rt_workspace_set (rt_workspace_OBJECT_INDEX, 0);
 
   somarray_init (&client->runtime_array, sizeof (som_rt_elem), 0);
+  somarray_init (&client->gott_base, sizeof (void *), 0);
 
   return NULL;
 
@@ -178,15 +194,52 @@ error:
       som_free (client);
     }
 
-  if (object)
-    {
-      if (object->name)
-	som_free (object->name);
-
-      som_free (object);
-    }
+  som_free (object);
 
   return err;
+}
+
+static _kernel_oserror *
+process_relpic (som_object *object)
+{
+  const Elf32_Dyn *dyn;
+  for (dyn = (const Elf32_Dyn *) object->dynamic_addr;
+       dyn->d_tag != DT_NULL && dyn->d_tag != DT_RISCOS_PIC;
+       dyn++)
+    /* Empty loop. */;
+
+  if (dyn->d_tag == DT_NULL)
+    return somerr_srelpic_unknown;
+
+  srelpic_section *srelpic = (srelpic_section *)(dyn->d_un.d_ptr + object->base_addr);
+
+  if (srelpic->version > SRELPIC_VERSION)
+    return somerr_srelpic_unknown; /* We don't know how to deal with this.  */
+
+  for (int i = 0;
+       i < srelpic->rel_count;
+       i++)
+    {
+      unsigned int *location = (unsigned int *)(object->base_addr +
+				    srelpic->array[i].offset);
+      if (srelpic->array[i].index)
+        {
+	  /* The elements of the array are 32 bits and the maximum offset the instruction
+	     allows is 0xFFF. This gives a maximum of 1024 libraries loaded at any one time.  */
+	  unsigned int gott_index = object->index * sizeof (void *);
+	  if (gott_index >= 0x1000)
+	    return somerr_srelpic_overflow;
+
+	  /* Assume that the link editor has zero'd the lower 12 bits.  */
+	  *location |= gott_index;
+	}
+      else
+	*location = RT_WORKSPACE_GOTT_BASE;
+    }
+
+  os_synchronise_code_area (object->base_addr, object->rw_addr - 4);
+
+  return NULL;
 }
 
 /* Register a library for the current client. If the library is not already
@@ -231,6 +284,9 @@ som_register_sharedobject (som_handle handle, som_objinfo *objinfo,
       obj->handle = handle;
 
       som_add_sharedobject (&global.object_list, obj);
+
+      /* Process the section that contains __GOTT_INDEX__ and __GOTT_BASE__ relocations.  */
+      process_relpic (obj);
     }
 
   /* Make a copy of the object for the client's list.  */

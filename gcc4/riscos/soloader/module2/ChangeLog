@@ -1,3 +1,31 @@
+Sun Aug 07 11:54:12 2011  Lee Noar <leenoar@sky.com>
+
+	* som_register.c(som_register_client): Store the object
+	index in the object workspace instead of the GOT.
+	Initialise gott_base.
+	(process_relpic): New function to process ".riscos.pic"
+	section.
+	(som_register_sharedobject): Call process_relpic for all
+	newly loaded libraries.
+	* som.h(SOM_OBJECT_INDEX_OFFSET,SOM_RUNTIME_ARRAY_OFFSET):
+	Remove, the extra GOT space is not used anymore, the
+	runtime workspace after the ELF header will be used for the
+	object index instead.
+	(struct som_client): Add gott_base array.
+	* somanager.cmhg: Now on version 2.04. Add new errors.
+	* som_os_swis.h(os_synchronise_code_area): New function
+	for SWI call.
+	* som_workspace.h: The object index is now stored in the
+	runtime workspace of all objects instead of their GOTs
+	(previously the workspace was unused in libraries).
+	Reorganise use of workspace in client. Rewrite workspace
+	access functions to work on any object and not just client.
+	* som_array.c(somarray_add_object): Store object index in
+	runtime workspace.
+	(som_generate_runtime_array): Initialise gott_base. As the
+	arrays are zero'd when initialised, don't bother clearing
+	unused entries in the runtime array.
+
 Sun Aug 07 11:01:23 2011  Lee Noar <leenoar@sky.com>
 
 	* som_array.h: Fix comment.

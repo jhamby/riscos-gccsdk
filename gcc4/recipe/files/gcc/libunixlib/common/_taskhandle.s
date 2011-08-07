@@ -14,12 +14,9 @@
 	.global	__get_taskhandle
 	NAME	__get_taskhandle
 __get_taskhandle:
- PICEQ "LDR	a3, .L0+4"
-.LPIC0:
- PICEQ "ADD	a3, pc, a3"		@ a3 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a3, {a3, a4}"		@ a3 = Object index, a4 = GOT array location
- PICEQ "LDR	a4, [a4, #0]"		@ a4 = GOT array
- PICEQ "LDR	a3, [a4, a3, LSL#4]"	@ a3 = GOT (private)
+ PICEQ "LDR	a3, =__GOTT_BASE__"
+ PICEQ "LDR	a3, [a3, #0]"
+ PICEQ "LDR	a3, [a3, #__GOTT_INDEX__]"	@ a3 = GOT ptr
 
 	LDR	ip, .L0			@ ip = __ul_global
  PICEQ "LDR	ip, [a3, ip]"
@@ -42,7 +39,6 @@ __get_taskhandle:
 	MOV	pc, lr
 .L0:
 	WORD	__ul_global
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __get_taskhandle
 
 	.end

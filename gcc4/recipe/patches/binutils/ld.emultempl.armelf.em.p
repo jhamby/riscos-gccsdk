@@ -1,5 +1,5 @@
---- ld/emultempl/armelf.em.orig	2010-04-21 18:32:31.000000000 +0200
-+++ ld/emultempl/armelf.em	2010-12-11 02:16:55.734993048 +0100
+--- ld/emultempl/armelf.em.orig	2011-07-16 19:20:58.000000000 +0100
++++ ld/emultempl/armelf.em	2011-07-17 14:43:11.000000000 +0100
 @@ -42,6 +42,7 @@ static int no_enum_size_warning = 0;
  static int no_wchar_size_warning = 0;
  static int pic_veneer = 0;
@@ -8,7 +8,7 @@
  
  static void
  gld${EMULATION_NAME}_before_parse (void)
-@@ -54,6 +55,22 @@ gld${EMULATION_NAME}_before_parse (void)
+@@ -54,6 +55,28 @@ gld${EMULATION_NAME}_before_parse (void)
  }
  
  static void
@@ -23,6 +23,12 @@
 +      riscos_module = 0;
 +    }
 +
++  if (link_info.shared && link_info.flag_pic == 2)
++    {
++      if (!bfd_elf32_arm_create_riscos_pic_section (&link_info))
++        einfo (_("%P: failed to create RISC OS PIC section\n"));
++    }
++
 +  /* Call the standard elf routine.  */
 +  gld${EMULATION_NAME}_after_open ();
 +}
@@ -31,7 +37,7 @@
  arm_elf_before_allocation (void)
  {
    bfd_elf32_arm_set_byteswap_code (&link_info, byteswap_code);
-@@ -86,6 +103,19 @@ arm_elf_before_allocation (void)
+@@ -86,8 +109,30 @@ arm_elf_before_allocation (void)
        bfd_elf32_arm_allocate_interworking_sections (& link_info);
      }
  
@@ -50,8 +56,19 @@
 +
    /* Call the standard elf routine.  */
    gld${EMULATION_NAME}_before_allocation ();
++
++  if (link_info.shared && link_info.flag_pic == 2)
++    {
++      if (!bfd_elf32_arm_allocate_riscos_pic_section (&link_info))
++	{
++	  einfo (_("%P: failed to allocate RISC OS PIC section\n"));
++	  return;
++	}
++    }
  }
-@@ -529,6 +559,9 @@ PARSE_AND_LIST_PROLOGUE='
+ 
+ /* Fake input file for stubs.  */
+@@ -529,6 +574,9 @@ PARSE_AND_LIST_PROLOGUE='
  #define OPTION_FIX_CORTEX_A8		314
  #define OPTION_NO_FIX_CORTEX_A8		315
  #define OPTION_NO_MERGE_EXIDX_ENTRIES   316
@@ -61,7 +78,7 @@
  '
  
  PARSE_AND_LIST_SHORTOPTS=p
-@@ -551,6 +584,9 @@ PARSE_AND_LIST_LONGOPTS='
+@@ -551,6 +599,9 @@ PARSE_AND_LIST_LONGOPTS='
    { "fix-cortex-a8", no_argument, NULL, OPTION_FIX_CORTEX_A8 },
    { "no-fix-cortex-a8", no_argument, NULL, OPTION_NO_FIX_CORTEX_A8 },
    { "no-merge-exidx-entries", no_argument, NULL, OPTION_NO_MERGE_EXIDX_ENTRIES },
@@ -71,7 +88,7 @@
  '
  
  PARSE_AND_LIST_OPTIONS='
-@@ -579,6 +615,9 @@ PARSE_AND_LIST_OPTIONS='
+@@ -579,6 +630,9 @@ PARSE_AND_LIST_OPTIONS='
   		   ));
    fprintf (file, _("  --[no-]fix-cortex-a8        Disable/enable Cortex-A8 Thumb-2 branch erratum fix\n"));
    fprintf (file, _("  --no-merge-exidx-entries    Disable merging exidx entries\n"));
@@ -81,7 +98,7 @@
   
  '
  
-@@ -663,8 +702,23 @@ PARSE_AND_LIST_ARGS_CASES='
+@@ -663,8 +717,23 @@ PARSE_AND_LIST_ARGS_CASES='
     case OPTION_NO_MERGE_EXIDX_ENTRIES:
        merge_exidx_entries = 0;
  

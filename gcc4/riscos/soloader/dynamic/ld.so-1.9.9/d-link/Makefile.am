@@ -43,7 +43,7 @@ ld_1_9_9_so_LDFLAGS = libboot1.a --shared -Wl,--no-undefined -nostdlib -nostartf
 
 # We have to override the automake target and link manually as it's the only
 # way that objcopy can be applied to each object before linking.
-ld-1.9.9.so: $(ld_1_9_9_so_OBJECTS) Makefile
+ld-1.9.9.so: $(ld_1_9_9_so_OBJECTS) Makefile libboot1.a
 	for object in *.o; do \
 	  if arm-unknown-riscos-nm $$object | grep -q "__rt_stkovf_split_"; then \
 	    echo Processing $$object with $(OBJCOPY); \

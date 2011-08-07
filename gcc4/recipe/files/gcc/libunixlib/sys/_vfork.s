@@ -41,14 +41,13 @@ fork_common:
 	@ a2 = __proc->sul_fork
 	@ a3 = isfork
 	@ lr = return address fork()/vfork()
+
+	@ FIXME: Don't need to save v5 anymore
  PICEQ "STMFD	sp!, {v4-v5}"
 
- PICEQ "LDR	v4, .L0+12"
-.LPIC0:
- PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT ptr array location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT ptr array
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v5 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	MOV	ip, a2
 	@ Save lr as we can't use the stack as it may be corrupted
@@ -91,7 +90,6 @@ fork_common:
 	WORD	__saved_lr
 	WORD	__ul_global
 	WORD	__ul_memory
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION fork
 
 	.section ".bss"

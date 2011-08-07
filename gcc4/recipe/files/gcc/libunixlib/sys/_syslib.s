@@ -79,12 +79,9 @@ __main:
 
 	MOV	v1, a1
 
- PICEQ "LDR	v4, .L0+36"
-.LPIC0:
- PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v4, {v4, ip}"		@ v4 = Object index, ip = GOT ptr array location
- PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
- PICEQ "LDR	v4, [ip, v4, LSL#4]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	@ Read environment parameters
 	@ On exit:
@@ -509,7 +506,6 @@ no_dynamic_area:
 	WORD	__u			@ offset 24
 	WORD	environ			@ offset 28
 	WORD	crt1_data		@ offset 32
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)" @ offset 36
 no_main_routine:
 	.asciz	"There is no main function"
 	.align
@@ -536,12 +532,9 @@ ___dynamic_no_da:
 	@ a1 contains an index to the error block to report.
 	NAME	__exit_with_error_num
 __exit_with_error_num:
- PICEQ "LDR	a2, .L7+4"
-.LPIC1:
- PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
- PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
  PICEQ "LDR	a2, .L7"		@ error_table
  PICEQ "LDR	a2, [v4, a2]"
@@ -553,7 +546,6 @@ __exit_with_error_num:
 	SWI	OS_GenerateError
 .L7:
 	WORD	error_table
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 	DECLARE_FUNCTION __exit_with_error_num
 
 #if PIC
@@ -613,12 +605,9 @@ __dynamic_area_exit:
  PICNE "STMFD	sp!, {lr}"
  PICEQ "STMFD	sp!, {v4, lr}"
 
- PICEQ "LDR	a2, .L1+8"
-.LPIC2:
- PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
- PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	LDR	a1, .L1			@=__dynamic_area_refcount
  PICEQ "LDR	a1, [v4, a1]"
@@ -641,7 +630,6 @@ __dynamic_area_exit:
 .L1:
 	WORD	__dynamic_area_refcount
 	WORD	__ul_global
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC2+4)"
 	DECLARE_FUNCTION __dynamic_area_exit
 
 	@ Restore original RISC OS environment handlers
@@ -651,12 +639,9 @@ __env_riscos:
  PICNE "STMFD	sp!, {v1, v2, lr}"
  PICEQ "STMFD	sp!, {v1, v2, v4, lr}"
 
- PICEQ "LDR	a2, .L2+4"
-.LPIC3:
- PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
- PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	SWI	XOS_IntOff
 	MOV	v1, #0
@@ -676,7 +661,6 @@ t04:
  PICEQ "LDMFD	sp!, {v1, v2, v4, pc}"
 .L2:
 	WORD	__calling_environment
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC3+4)"
 	DECLARE_FUNCTION __env_riscos
 
 	@ Get current environment handler setup
@@ -684,12 +668,10 @@ t04:
 __env_read:
  PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}"
  PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, lr}"
- PICEQ "LDR	a2, .L8+4"
-.LPIC4:
- PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
- PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
+
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	MOV	v1, #0
 	LDR	v2, .L8			@=__calling_environment
@@ -708,7 +690,6 @@ t05:
  PICNE "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}"
 .L8:
 	WORD	__calling_environment
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC4+4)"
 	DECLARE_FUNCTION __env_read
 
 	@ Install the UnixLib environment handlers
@@ -718,12 +699,9 @@ __env_unixlib:
  PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, lr}"
  PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}"
 
- PICEQ "LDR	a2, .L3+16"
-.LPIC5:
- PICEQ "ADD	a2, pc, a2"		@ a2 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a2, {a2, v4}"		@ a2 = Object index, v4 = GOT ptr array location
- PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a2, LSL#4]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	SWI	XOS_IntOff
 
@@ -771,7 +749,6 @@ t06:
 	WORD	__cbreg
 	WORD	__ul_global
  PICEQ "WORD	handlers"
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC5+4)"
 	DECLARE_FUNCTION __env_unixlib
 
 #if PIC
@@ -850,12 +827,9 @@ __rt_stkovf_split_big:
 	@ Thread-safe, other than the __stackalloc/free calls
 	@ v1 = extra size needed.
 stack_overflow_common:
- PICEQ "LDR	a1, .L4+8"
-.LPIC6:
- PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a1, {a1, v4}"		@ a1 = Object index, v4 = GOT ptr array location
- PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, a1, LSL#4]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	@ The signal handler stack chunk can't be extended.
 	LDR	a1, .L4			@=__ul_global
@@ -939,7 +913,6 @@ use_existing_chunk:
 .L4:
 	WORD	__ul_global
 	WORD	__stackfree
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC6+4)"
 
 raise_sigstak:
 	@ The 256 bytes left on the stack aren't enough for the signal
@@ -988,12 +961,9 @@ __check_stack:
  PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, fp, ip, lr, pc}"
 	SUB	fp, ip, #4
 
- PICEQ "LDR	v4, .L5+8"
-.LPIC9:
- PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT ptr array location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT ptr array
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	LDR	a1, .L5				@=__ul_global
  PICEQ "LDR	a1, [v4, a1]"
@@ -1029,7 +999,6 @@ __check_stack_l3:
 .L5:
 	WORD	__ul_global
 	WORD	__ul_memory
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC9+4)"
 __check_stack_l4:
 	BL	__check_chunk
 	LDR	a1, [a1, #CHUNK_PREV]
@@ -1198,12 +1167,9 @@ __unixlib_fatal:
 	@ We don't want to assume anything about the stack as the stack
 	@ corruption detection routines will call this routine in case
 	@ something is wrong.
- PICEQ "LDR	fp, .L6+4"
-.LPIC7:
- PICEQ "ADD	fp, pc, fp"		@ fp = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	fp, {fp, ip}"		@ fp = Object index, ip = GOT ptr array location
- PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
- PICEQ "LDR	ip, [ip, fp, LSL#4]"	@ ip = GOT ptr
+ PICEQ "LDR	ip, =__GOTT_BASE__"
+ PICEQ "LDR	ip, [ip, #0]"
+ PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
 
 	LDR	a4, .L6			@=__ul_global
  PICEQ "LDR	a4, [ip, a4]"
@@ -1215,12 +1181,9 @@ __unixlib_fatal:
  PICNE "STMDB	sp!, {v1, fp, ip, lr, pc}"
  PICEQ "STMDB	sp!, {v1, v4, fp, ip, lr, pc}"
 
- PICEQ "LDR	v4, .L6+8"
-.LPIC8:
- PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT ptr array location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT ptr array
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	SUB	fp, ip, #4
 
@@ -1262,8 +1225,6 @@ __unixlib_fatal_got_msg:
  PICEQ "LDMDB	fp, {v1, v4, fp, sp, pc}"
 .L6:
 	WORD	__ul_global
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC7+4)"
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC8+4)"
 	DECLARE_FUNCTION __unixlib_fatal
 
 	@ int __valid_address (const void *lower, const void *upper)

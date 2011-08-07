@@ -1,6 +1,6 @@
 /* som.h
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007-2011 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -30,11 +30,6 @@
 #define SOM_ALLOCATOR_SOMX		0x584D4F53	/* SOMX */
 #define SOM_ALLOCATOR_SOMD		0x444D4F53	/* SOMD */
 #define SOM_ALLOCATOR_SOML		0x4C4D4F53	/* SOML */
-
-/* The offset, in words, from the start of the GOT where the object index
-   will be stored.  */
-#define SOM_OBJECT_INDEX_OFFSET		1	/* in words */
-#define SOM_RUNTIME_ARRAY_OFFSET	2
 
 enum
 {
@@ -81,6 +76,14 @@ struct _som_client
      First object is for the client itself.  */
   link_list object_list;
 
+  /* An array of GOT pointers used by the PIC register loading instruction
+     sequence. There is one entry for each object in the system. Each object
+     is assigned an index (stored within its workspace) into this array, If the
+     current client doesn't use an object then its entry is NULL.  */
+  som_array gott_base;
+
+  /* An array of _som_rt_elem structures. Used by the dynamic linker for fast
+     access to relocation data.  */
   som_array runtime_array;
 };
 LINKLIST_ACCESS_FUNCTIONS (som_client)
@@ -206,7 +209,8 @@ struct _som_globals
   /* History list of recently deregistered clients.  */
   link_list client_history;
 
-  /* Array of som_object pointers.  */
+  /* Array of som_object pointers. A NULL pointer inidicates that an object
+     expired and that this slot can be reused.  */
   som_array object_array;
 
   /* Number of centiseconds a library is idle in memory before being

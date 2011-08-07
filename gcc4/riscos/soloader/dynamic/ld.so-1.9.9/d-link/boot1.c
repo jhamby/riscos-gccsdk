@@ -197,13 +197,11 @@ void _dl_boot(int args)
 {
   unsigned int argc;
   char ** argv, ** envp;
-//  int status;
 
   unsigned int load_addr;
   unsigned int * got;
   unsigned int * aux_dat;
   int goof = 0;
-//  struct elfhdr * header;
   struct elf_resolve * tpnt = 0;
   struct dyn_elf * rpnt;
   struct elf_resolve * app_tpnt;
@@ -316,7 +314,7 @@ void _dl_boot(int args)
    that once we are done, we have considerably more flexibility. */
 
   /* Find the runtime array element for the dynamic loader. */
-  objinfo = *((struct som_rt_elem **)got[2]) + got[1];
+  objinfo = get_runtime_data ((void *)load_addr);
 
   goof = 0;
   for(indx=0; indx < 2; indx++)
@@ -532,7 +530,6 @@ void _dl_boot(int args)
 
       if(ppnt->p_type == PT_INTERP) { /* OK, fill this in - we did not have
 					 this before */
-
 	tpnt->libname =  _dl_strdup((char *) ppnt->p_offset + (dl_data[AT_PHDR] & 0xfffff000));
       }
     }
@@ -544,7 +541,7 @@ void _dl_boot(int args)
 	ppnt++,
 	i++)
       /* Empty loop.  */;
-    
+
     if (i < dl_data[AT_PHNUM])
     {
       app_tpnt->exidx = (_Unwind_Ptr)ppnt->p_vaddr;

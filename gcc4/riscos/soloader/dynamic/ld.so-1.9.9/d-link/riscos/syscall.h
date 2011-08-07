@@ -1,3 +1,5 @@
+#include <sys/elf.h>
+
 #define SOM_SWI_CHUNK_BASE	0x58580
 #define	SWI_X_BIT		0x20000
 #define XSOM_ALLOC		(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0x0)
@@ -253,7 +255,8 @@ unsigned int res;
 
   asm volatile ("	mov	r0, %[arg];\n"
 		"	swi	%[XSOM_HandleFromAddr];\n"
-		"	mov	%[res], r0;\n"
+		"	movvc	%[res], r0;\n"
+		"	movvs	%[res], #0;\n"
 		: [res] "=r" (res)
 		: [arg] "r" (addr),
 		  [XSOM_HandleFromAddr] "i" (XSOM_HANDLE_FROM_ADDR)
@@ -268,7 +271,8 @@ _dl_got_from_addr (void *addr)
 
   asm volatile ("	mov	r0,%[arg];\n"
 		"	swi	%[XSOM_GOTFromAddr];\n"
-		"	mov	%[got], r0;\n"
+		"	movvc	%[got], r0;\n"
+		"	movvs	%[got], #0;\n"
 		: [got] "=r" (got)
 		: [arg] "r" (addr),
 		  [XSOM_GOTFromAddr] "i" (XSOM_GOT_FROM_ADDR)
@@ -591,4 +595,33 @@ static inline int
 _dl_suid_ok (void)
 {
   return 1;
+}
+
+enum
+{
+  /* All objects that are in use have an index used to access the runtime
+     array.  */
+  rt_workspace_OBJECT_INDEX,
+
+  /* An array of Global Offset Table pointers used at runtime by the PIC
+     instruction sequence.  */
+  rt_workspace_GOTT_BASE,
+
+  /* An array used by the dynamic linker to aid in relocating libraries.  */
+  rt_workspace_RUNTIME_ARRAY,
+
+  /* Pointer to the current client structure.  */
+  rt_workspace_CLIENT_STRUCT_PTR
+};
+
+static inline struct som_rt_elem *
+get_runtime_data (void *load_addr)
+{
+  unsigned int *client_workspace = (unsigned int *)(0x8000 + sizeof (Elf32_Ehdr));
+  unsigned int *library_workspace = (unsigned int *)(load_addr == 0 ?
+						     client_workspace :
+						     load_addr + sizeof (Elf32_Ehdr));
+
+  return (struct som_rt_elem *)client_workspace[rt_workspace_RUNTIME_ARRAY]
+			     + library_workspace[rt_workspace_OBJECT_INDEX];
 }

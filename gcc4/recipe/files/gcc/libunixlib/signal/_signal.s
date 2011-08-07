@@ -105,12 +105,9 @@ __h_sigill:
 
  PICEQ "STMFD	sp!, {r7, r8}"
 
- PICEQ "LDR	r7, .L2+8"
-.LPIC0:
- PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
- PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
- PICEQ "LDR	r7, [r8, r7, LSL#4]"	@ r7 = GOT (private)
+ PICEQ "LDR	r7, =__GOTT_BASE__"
+ PICEQ "LDR	r7, [r7, #0]"
+ PICEQ "LDR	r7, [r7, #__GOTT_INDEX__]"
 
  PICEQ "LDR	r8, .L2"		@__cbreg
  PICEQ "LDR	r8, [r7, r8]"
@@ -143,7 +140,6 @@ __h_sigill:
 .L2:
  PICEQ "WORD	__cbreg"
  PICEQ "WORD	__cba1"
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __h_sigill
 
 @-----------------------------------------------------------------------
@@ -159,12 +155,9 @@ __h_sigbus:
 
  PICEQ "STMFD	sp!, {r7, r8}"
 
- PICEQ "LDR	r7, .L3+8"
-.LPIC1:
- PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
- PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
- PICEQ "LDR	r7, [r8, r7, LSL#4]"	@ r7 = GOT (private)
+ PICEQ "LDR	r7, =__GOTT_BASE__"
+ PICEQ "LDR	r7, [r7, #0]"
+ PICEQ "LDR	r7, [r7, #__GOTT_INDEX__]"
 
  PICEQ "LDR	r8, .L3"		@__cbreg
  PICEQ "LDR	r8, [r7, r8]"
@@ -195,7 +188,6 @@ __h_sigbus:
 .L3:
  PICEQ "WORD	__cbreg"
  PICEQ "WORD	__cba1"
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 	DECLARE_FUNCTION __h_sigbus
 
 @-----------------------------------------------------------------------
@@ -211,12 +203,9 @@ __h_sigsegv0:
 
  PICEQ "STMFD	sp!, {r7, r8}"
 
- PICEQ "LDR	r7, .L4+8"
-.LPIC2:
- PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
- PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
- PICEQ "LDR	r7, [r8, r7, LSL#4]"	@ r7 = GOT (private)
+ PICEQ "LDR	r7, =__GOTT_BASE__"
+ PICEQ "LDR	r7, [r7, #0]"
+ PICEQ "LDR	r7, [r7, #__GOTT_INDEX__]"
 
  PICEQ "LDR	r8, .L4"		@__cbreg
  PICEQ "LDR	r8, [r7, r8]"
@@ -249,7 +238,6 @@ __h_sigsegv0:
 .L4:
  PICEQ "WORD	__cbreg"
  PICEQ "WORD	__cba1"
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC2+4)"
 	DECLARE_FUNCTION __h_sigsegv0
 
 @-----------------------------------------------------------------------
@@ -292,12 +280,9 @@ __h_sigsegv1:
 
  PICEQ "STMFD	sp!, {r7, r8}"
 
- PICEQ "LDR	r7, .L5+8"
-.LPIC3:
- PICEQ "ADD	r7, pc, r7"		@ r7 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	r7, {r7, r8}"		@ r7 = Object index, r8 = GOT array location
- PICEQ "LDR	r8, [r8, #0]"		@ r8 = GOT array
- PICEQ "LDR	r7, [r8, r7, LSL#4]"	@ r7 = GOT (private)
+ PICEQ "LDR	r7, =__GOTT_BASE__"
+ PICEQ "LDR	r7, [r7, #0]"
+ PICEQ "LDR	r7, [r7, #__GOTT_INDEX__]"
 
  PICEQ "LDR	r8, .L5"		@__cbreg
  PICEQ "LDR	r8, [r7, r8]"
@@ -330,7 +315,6 @@ __h_sigsegv1:
 .L5:
  PICEQ "WORD	__cbreg"
  PICEQ "WORD	__cba1"
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC3+4)"
 	DECLARE_FUNCTION __h_sigsegv1
 
 @-----------------------------------------------------------------------
@@ -759,12 +743,9 @@ return_quickly:
 	@ This is the common entry point for many of the RISC OS exception
 	@ handlers.  On entry, assume that all registers are corrupted.
 __h_cback_common:
- PICEQ "LDR	v4, .L10"
-.LPIC4:
- PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"
 
 	LDR	a3, .L9+4		@=__ul_global
  PICEQ "LDR	a3, [v4, a3]"
@@ -853,8 +834,6 @@ __h_cback_common:
 	MOV	a1, a1
 	LDR	lr, [lr, #15*4]	@ Load the old PC value
 	MOVS	pc, lr		@ Return (Valid for 26 and 32bit modes)
-.L10:
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC4+4)"
 	DECLARE_FUNCTION __h_cback
 
 
@@ -958,12 +937,9 @@ __h_sigalrm:
  PICEQ "STMFD	sp!, {a1, a2, a3, v4, lr}"
  PICNE "STMFD	sp!, {a1, a2, a3, lr}"
 
- PICEQ "LDR	a1, .L12+4"
-.LPIC5:
- PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
- PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	v4, [a2, a1, LSL#4]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"
 
 	@ Raise the SIGALRM signal
 	MOV	a1, #SIGALRM
@@ -999,7 +975,6 @@ __h_sigalrm:
  PICNE "LDMFD	sp!, {a1, a2, a3, pc}"
 .L12:
  PICEQ "WORD	__h_sigalrm_sema"
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC5+4)"
 	DECLARE_FUNCTION __h_sigalrm
 
 @ Called in SVC mode with IRQs disabled.
@@ -1037,12 +1012,9 @@ __h_sigvtalrm:
  PICEQ "STMFD	sp!, {a1, a2, a3, v4, lr}"
  PICNE "STMFD	sp!, {a1, a2, a3, lr}"
 
- PICEQ "LDR	a1, .L13+4"
-.LPIC6:
- PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
- PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	v4, [a2, a1, LSL#4]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"
 
 	MOV	a1, #SIGVTALRM	@  No access to banked registers
 	BL	__raise
@@ -1072,7 +1044,6 @@ __h_sigvtalrm:
  PICNE "LDMFD	sp!, {a1, a2, a3, pc}"
 .L13:
  PICEQ "WORD	__h_sigvtalrm_sema"
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC6+4)"
 	DECLARE_FUNCTION __h_sigvtalrm
 
 @ Called in SVC mode with IRQs disabled.
@@ -1111,12 +1082,9 @@ __h_sigprof:
  PICEQ "STMFD	sp!, {a1, a2, a3, v4, lr}"
  PICNE "STMFD	sp!, {a1, a2, a3, lr}"
 
- PICEQ "LDR	a1, .L14+4"
-.LPIC7:
- PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a1, {a1, a2}"		@ a1 = Object index, a2 = GOT ptr array location
- PICEQ "LDR	a2, [a2, #0]"		@ a2 = GOT ptr array
- PICEQ "LDR	v4, [a2, a1, LSL#4]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"
 
 	MOV	a1, #SIGPROF	@ No access to banked registers
 	BL	__raise
@@ -1146,7 +1114,6 @@ __h_sigprof:
  PICNE "LDMFD	sp!, {a1, a2, a3, pc}"
 .L14:
  PICEQ "WORD	__h_sigprof_sema"
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC7+4)"
 	DECLARE_FUNCTION __h_sigprof
 
 @ Called in SVC mode with IRQs disabled.

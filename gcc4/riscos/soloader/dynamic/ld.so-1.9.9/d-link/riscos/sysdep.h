@@ -23,26 +23,27 @@
 /*
  * Get the address of the Global offset table.  This must be absolute, not
  * relative.
+ * The compiler is free to use any register for the PIC register, so we
+ * can't simply use a MOV instruction. Instead use the standard sequence of
+ * instructions to retrieve the GOT pointer.
  */
-/*
- * Ensure the following inlines use the same PIC register as the
- * C code.
- */
-#define GET_GOT(X)     __asm__("\tmov %0,r7\n\t" : "=r" (X))
-
-#define	SET_GOT(GOT)	\
-   asm volatile("\t" \
-		"mov	r7,%0\n\t" \
-		: \
-		: "r" (GOT))
+#define GET_GOT(X) \
+	__asm__("\tldr %0, 0f;\n"	\
+		"\tldr %0, [%0, #0];\n"	\
+		"\tldr %0, [%0, #__GOTT_INDEX__];\n"	\
+		"\tb 1f;\n"	\
+		"0:\n"	\
+		"\t.word __GOTT_BASE__;\n"	\
+		"1:\n"	\
+		: "=r" (X))
 
 /*
  * Initialization sequence for a GOT.
  */
 #define INIT_GOT(GOT_BASE,MODULE) \
 {				\
-  GOT_BASE[4] = (int) _dl_riscos_resolve; \
-  GOT_BASE[3] = (int) MODULE; \
+  GOT_BASE[2] = (int) _dl_riscos_resolve; \
+  GOT_BASE[1] = (int) MODULE; \
 }
 
 /*

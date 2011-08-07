@@ -46,12 +46,9 @@ __pthread_start_ticker:
  PICNE "STMFD	sp!, {v1-v2, lr}"
  PICEQ "STMFD	sp!, {v1-v2, v4, lr}"
 
- PICEQ "LDR	v4, .L0+12"
-.LPIC0:
- PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	LDR	v5, .L0			@=__ul_global
  PICEQ "LDR	v5, [v4, v5]"
@@ -128,7 +125,6 @@ start_ticker_test_running:
 	WORD	__ul_global
 	WORD	ticker_started
 	WORD	filter_installed
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __pthread_start_ticker
 
 	@ Start the RISC OS CallEvery ticker
@@ -191,12 +187,9 @@ __pthread_stop_ticker:
  PICNE "STMFD	sp!, {v1-v3, lr}"
  PICEQ "STMFD	sp!, {v1-v3, v4, lr}"
 
- PICEQ "LDR	v4, .L1+8"
-.LPIC1:
- PICEQ "ADD	v4, pc, v4"		@ v4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v5 = GOT array location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT array
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = GOT (private)
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	@ Don't bother if thread system is not running
 	LDR	a2, .L1+0		@=__ul_global
@@ -247,7 +240,6 @@ stop_ticker_core:
 .L1:
 	WORD	__ul_global
 	WORD	filter_installed
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 	DECLARE_FUNCTION __pthread_stop_ticker
 
 @ The ticker calls this every clock tick, note that it is every *two*
@@ -314,12 +306,9 @@ pthread_call_every:
 __pthread_callback:
 	@ Use ip for temporary PIC register as all other registers
 	@ are used further down.
- PICEQ "LDR	v5, .L2+12"
-.LPIC2:
- PICEQ "ADD	v5, pc, v5"		@ v5 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v5, {v5, ip}"		@ v5 = Object index, ip = GOT ptr array location
- PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
- PICEQ "LDR	ip, [ip, v5, LSL#4]"	@ ip = GOT ptr
+ PICEQ "LDR	ip, =__GOTT_BASE__"
+ PICEQ "LDR	ip, [ip, #0]"
+ PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
 
 	LDR	a3, .L2			@=__ul_global
  PICEQ "LDR	a3, [ip, a3]"
@@ -460,7 +449,6 @@ skip_contextswitch:
 	WORD	__ul_global
 	WORD	__pthread_running_thread
 	WORD	__cbreg
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC2+4)"
 	DECLARE_FUNCTION __pthread_callback
 
 @ entry:

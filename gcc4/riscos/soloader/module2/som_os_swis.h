@@ -527,4 +527,18 @@ os_read_var_val (const char *var_name, char *buffer, int buf_size)
   return err;
 }
 
+static inline void
+os_synchronise_code_area (const void *from, const void *to)
+{
+  asm volatile ("MOV	r0, #1;\n\t"
+		"MOV	r1, %[from];\n\t"
+		"MOV	r2, %[to];\n\t"
+		"SWI	%[os_synchronise_code_area];\n\t"
+		: /* No outputs */
+		: [from] "r" (from),
+		  [to] "r" (to),
+		  [os_synchronise_code_area] "i" (XOS_Bit | OS_SynchroniseCodeAreas)
+		: "r0", "r1", "r2", "lr", "cc");
+}
+
 #endif

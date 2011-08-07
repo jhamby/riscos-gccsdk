@@ -1,6 +1,14 @@
---- bfd/elf.c.orig	2011-06-27 09:39:04.000000000 +0200
-+++ bfd/elf.c	2011-06-27 22:54:09.584441929 +0200
-@@ -3916,8 +3916,17 @@ _bfd_elf_map_sections_to_segments (bfd *
+--- bfd/elf.c.orig	2011-07-16 19:17:46.000000000 +0100
++++ bfd/elf.c	2011-07-16 17:14:17.000000000 +0100
+@@ -1262,6 +1262,7 @@ _bfd_elf_print_private_bfd_data (bfd *ab
+ 		}
+ 	      break;
+ 
++	    case DT_RISCOS_PIC: name ="RISCOS_PIC"; break;
+ 	    case DT_NEEDED: name = "NEEDED"; stringp = TRUE; break;
+ 	    case DT_PLTRELSZ: name = "PLTRELSZ"; break;
+ 	    case DT_PLTGOT: name = "PLTGOT"; break;
+@@ -3916,8 +3917,17 @@ _bfd_elf_map_sections_to_segments (bfd *
  	    }
  	  else if (! writable
  		   && (hdr->flags & SEC_READONLY) == 0

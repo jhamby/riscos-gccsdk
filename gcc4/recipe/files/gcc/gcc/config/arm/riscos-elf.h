@@ -285,6 +285,11 @@ along with GCC; see the file COPYING3.  If not see
 
 #define PIC_PLT_SCRATCH_REGNUM	8
 
+/* These symbol names are inspired by the vxworks target as they
+   serve a similar purpose.  */
+#define RISCOS_GOTT_BASE "__GOTT_BASE__"
+#define RISCOS_GOTT_INDEX "__GOTT_INDEX__"
+
 #undef SUBTARGET_CONDITIONAL_REGISTER_USAGE
 #define SUBTARGET_CONDITIONAL_REGISTER_USAGE			\
   if (/* flag_pic == 2 || */ TARGET_UNIXLIB)			\

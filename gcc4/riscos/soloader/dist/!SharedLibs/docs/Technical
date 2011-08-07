@@ -4,49 +4,49 @@ RISC OS Dynamic Linking and Shared Libraries
 A Technical View
 ----------------
 
-An array of pointers is maintained which is global to the system. This is called
-the global object array. Each of the pointers is to a structure that defines an
-object which is currently loaded and each object stores its own index into the
-global array. The first element is unused as this is always the client object.
+As with all RISC OS applications an ELF program image is based at 0x8000. All
+ELF images (both program and shared library) have a workspace placed after
+the ELF header that the system can use at runtime to store useful data. This
+workspace consists of five 32 bit words which in a program image starts at 0x8034.
 
-When a client is initialised, an array, that is private to the client, is
-generated. This is called the runtime array and consists of elements that
-correspond directly to the elements in the global object array. Each element is
-four words in size and contains the following data about the object:
+Currently, the workspace is used like so:
+
++0	Object index
++4	GOT Table Base
++8	Runtime array
++12	Client structure pointer
++16	Reserved
+
+The first entry is used by all objects, the client is always index 0 and shared
+libraries are assigned increasing indices on a first come first served basis. The
+index remains constant while the library remains in memory. It is this index that
+is used to access the arrays at offset 4 & 8. When a library is no longer required
+and removed from the system, its index can be reused.
+All other entries exist in the client workspace only and are zero within library
+workspaces.
+
+When an object is registered with the Shared Object Manager (SOM), its details
+such as name, load address, etc, are stored in a structure and added to a linked
+list. To help determine whether a library index is in use or not, an array of
+pointers to these structure is kept. Any index not in use has its entry in this
+array set to 0.
+
+When a client is initialised, two arrays are created both of which are private to
+the client; the GOT Table Base is used by the PIC register load instruction sequence
+(see below). Each element is a pointer to a private copy of the GOT of a library
+used by the client. The object index is used to access this array, if the client does
+not use a particular library, its entry is set to 0.
+The second array is the runtime array, which is also accessed using the object index.
+Each element consists of fours words:
 
 word[0] - private GOT pointer
 word[1] - public read/write segment pointer
 word[2] - private read/write segment pointer
 word[3] - read/write segment size
 
-If the client does not use the object that the element corresponds to, then all
-four words are 0. The first element in the runtime array is always the client
-object.
-
-A pointer to the runtime array is stored in the runtime workspace of the client.
-This currently starts at 0x8034. As this workspace exists in the client's
-application space, each client can store its own array at the same address.
-
-Global Offset Table (GOT)
--------------------
-Under Linux the GOT starts with the following header:
-
-GOT[0] = _DYNAMIC segment pointer
-GOT[1] = MODULE (linker struct) provided by dynamic loader
-GOT[2] = _dl_riscos_resolve - pointer to routine to link functions at runtime
-
-Under RISC OS, the GOT header is extended from three words to five:
-
-GOT[0] = _DYNAMIC segment pointer
-GOT[1] = Object index
-GOT[2] = runtime array location
-GOT[3] = MODULE (linker struct) provided by dynamic loader
-GOT[4] = _dl_riscos_resolve - pointer to routine to link functions at runtime
-
-When the dynamic loader processes the libraries the client requires, it fills
-in GOT[1] with the library's index into the runtime array and GOT[2] with the
-location of the runtime array (currently 0x8034). These two entries are used
-by the PIC register loading code.
+If the client does not use the library that the element corresponds to, then all
+four words are 0. The array is used by the dynamic linker to speed up relocation
+fix-ups instead of having to call a SWI multiple times.
 
 Loading of PIC register
 -----------------------
@@ -54,25 +54,27 @@ Every function within a shared library that uses global data is required to load
 the PIC register within its prologue using code similar to the following:
 
 	LDR	r7, .L0
-.LPIC0:
-	ADD	r7, pc, r7			@ r7 = Library public GOT
-	LDMIA	r7, {r7, r8}			@ r7 = Object index
-						@ r8 = runtime array location
-	LDR	r8, [r8, #0]			@ r8 = GOT table
-	LDR	r7, [r8, r7, LSL#4]		@ r7 = Library private GOT
+	LDR	r7, [r7, #0]
+	LDR	r7, [r7, #__GOTT_INDEX__]
 
 	...
 
 .L0:
-	.word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)
+	.word	__GOTT_BASE__
+
 
 This is one of the effects of using the -fPIC option.
 
-The _GLOBAL_OFFSET_TABLE_ symbol above gives the address of the public version
-of the GOT, so can't be used to access client data, however, it can be used for
-retrieving the library index and runtime array location.
-Note the .LPIC0+4 (rather than .LPIC0+8) is necessary in order to point to
-&GOT[1] so that a multiple load can be used to fetch GOT[1] and GOT[2].
+From GCCSDK v4.6 onwards the compiler is free to choose any register it sees fit as
+the PIC register and this can vary from function to function. This differs from
+previous versions where r7 was always used. Better code generation is possible if,
+for example, the compiler can use a register that does not need to be saved on
+function entry.
+
+The identifiers __GOTT_BASE__ and __GOTT_INDEX__ are special symbols that the
+compiler inserts and are recognised by the assembler and linker.
+Note that as this PIC solution was inspired by the VXWORKS target, the same symbol
+names were used.
 
 Procedure Linkage Table
 -----------------------
@@ -83,29 +85,30 @@ When lazy binding, all functions initially call the first PLT entry so that
 they can be dynamically linked. In the executable there is no separate public
 and private GOT; they are one in the same, ie, they have the same address. This
 allows the first PLT entry to access the GOT directly in much the same way as
-the ARM Linux version does, the only difference being the offset in the load
-instruction:
+the ARM Linux version does, the only difference being the use of r8 as the
+scratch register instead of r12:
 
 	STR	lr, [sp, #-4]!		@ Save return address
 	LDR	lr, [pc, #4]
 	ADD	lr, pc, lr		@ lr = GOT
-	LDR	pc, [lr, #16]!		@ Call resolver with
-	&GOT[0] - .			@ r8 = &GOT[n+5], lr = &GOT[5]
+	LDR	pc, [lr, #8]!		@ Call resolver with
+	&GOT[0] - .			@ r8 = &GOT[n+3], lr = &GOT[3]
 
-In a shared library, the first PLT can take advantage of the fact that the caller
-has already loaded the PIC register with the address of the client's private copy
-of the GOT:
+For a shared library, the first entry must load the relevant GOT pointer
+independently of the caller before jumping to the dynamic resolver:
 
-	STR	lr, [sp, #-4]!		@ Save return address
-	MOV	lr, r7			@ lr = private GOT
-	LDR	pc, [lr, #16]!		@ Call resolver with
-					@ r8 = &GOT[n+5], lr = &GOT[5]
+	STR	lr, [sp, #-4]!		  @ Save return address
+	LDR	lr, .L0
+	LDR	lr, [lr, #0]
+	LDR	lr, [lr, #__GOTT_INDEX__] @ __GOTT_INDEX__ replaced by dynamic linker:
+					  @ (library_index * 4)  lr = GOT
+	LDR	pc, [lr, #8]!		  @ Call resolver with
+					  @ r8 = &GOT[n+3], lr = &GOT[3]
+.L0:
+	.word	__GOTT_BASE__ 		  @ __GOTT_BASE__ replaced by dynamic linker
 
-The format of subsequent entries of a PLT have a similar structure in both
-executables and shared libraries, however, they are not the same.
-Again, in an executable, the PLT entries can take advantage of the fact that the
-public and private GOT have the same address allowing code similar to ARM Linux
-to be used:
+Subsequent entries of a PLT in an executable are relatively simple as again they
+can take advantage of the fact that there is only one GOT:
 
 	ADD	r8, pc, #0x0XX00000
 	ADD	r8, r8, #0x000XX000
@@ -115,18 +118,55 @@ The only difference to ARM Linux is the use of register r8 instead of r12. Under
 RISC OS, r12 cannot be used because the stack extension routines require that it
 be preserved.
 
-In a shared library, a slightly different format must be used:
+In a shared library, a different format must be used:
 
-	ADD	r8, r7, #0x0XX00000
+	LDR	r8, .L0
+	LDR	r8, [r8, #0]
+	LDR	r8, [r8, #__GOTT_INDEX__] @ __GOTT_INDEX__ replaced by dynamic linker:
+					  @ (library_index * 4)  r8 = GOT
 	ADD	r8, r8, #0x000XX000
 	LDR	pc,[r8, #0x00000XXX]!
+.L0:
+	.word	__GOTT_BASE__		  @ __GOTT_BASE__ replaced by dynamic linker
 
-In this case, the caller has already loaded the PIC register with the client's
-private copy of the GOT and the immediate values applied in the above instructions
+In this case, the immediate values applied in the last two instructions above
 add up to the offset of the relevant function from the start of the GOT. This is
-different from the exectuable case above whereby the immediate values add up to
+different from the executable case above whereby the immediate values add up to
 the difference between the current PC and the location of the relevant function in
 the GOT.
+
+As previously mentioned, the symbols __GOTT_INDEX__ and __GOTT_BASE__ are recognised
+by the assembler and linker. These symbols are never defined and would normally
+generate undefined symbol errors and ARM relocations in the output file. The assembler
+suppresses the errors by forcing the symbols to be weak and converts the R_ARM_ABS12
+relocations to R_ARM_NONE which are thrown away by the linker.
+The linker then creates a new segment called ".riscos.pic" which takes the form:
+
+0	Version (currently 1)
+4	Number of relocations (n)
+8	Relocations start
+(n*4)+8	Relocations end
+
+Whenever the linker sees the use of a __GOTT_BASE__ or __GOTT_INDEX__ it takes the offset
+from the beginning of the library of its position and enters it into the .riscos.pic
+segment. Bit 31 of the entry is set for a __GOT_INDEX__ and clear for a __GOT_BASE__,
+bit 30 is reserved and always 0. This gives 30 bits to encode the offset which allows
+for a maximum library size of 1GB. Finally, to allow the dynamic linker to find the
+segment easily, the linker creates ant entry in the dynamic segment called DT_RISCOS_PIC.
+
+At runtime when the dynamic linker loads a library for the first time, it will look
+for the .riscos.pic segment and process any relocations that it finds.
+For a __GOT_BASE__ relocation (bit 31 clear), the offset is used to find the address
+of its location and a pointer to the GOT Table Base (as described above) written into
+it. For a __GOT_INDEX__ relocation (bit 31 set), the instruction's location is
+calculated from the offset and altered to contain the library's object index multiplied
+by 4. The maximum immediate offset that the instruction allows is 4096. This means that
+the system can handle a maximum of 1024 libraries.
+Despite the fact that the library code is not executed until after this code alteration
+occurs, it would seem that it is still necessary to use OS_SynchroniseCodeAreas to
+flush the instruction cache (at least on an Iyonix).
+Note that this relocation and synchronisation is performed only once when a library
+is first loaded.
 
 Memory layout
 -------------
@@ -161,7 +201,7 @@ initialisation of a dynamically linked executable:
 	| Auxiliary data array		|
 	---------------------------------
 
-When the dynamic loader links the client to the libraries it requires, it is
+When the dynamic linker links the client to the libraries it requires, it is
 necessary to make copies of the library data segments for the client's own
 private use. As can be seen from the diagram, these private data segments are
 allocated within application space rather than the support module's dynamic

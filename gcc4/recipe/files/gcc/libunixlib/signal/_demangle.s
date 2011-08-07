@@ -14,12 +14,9 @@
 	.global	__unixlib_cxa_demangle
 	NAME	__unixlib_cxa_demangele
 __unixlib_cxa_demangle:
- PICEQ "LDR	v5, .L0+4"
-.LPIC0:
- PICEQ "ADD	v5, pc, v5"		@ v5 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v5, {v5, ip}"		@ v5 = Object index, ip = GOT ptr array location
- PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
- PICEQ "LDR	v5, [ip, v5, LSL#4]"	@ v5 = GOT ptr
+ PICEQ "LDR	v5, =__GOTT_BASE__"
+ PICEQ "LDR	v5, [v5, #0]"
+ PICEQ "LDR	v5, [v5, #__GOTT_INDEX__]"
 
 	LDR	ip, .L0			@=__cxa_demangle
  PICEQ "LDR	ip, [v5, ip]"
@@ -31,7 +28,6 @@ __unixlib_cxa_demangle:
 	MOV	PC, R14
 .L0:
 	WORD	__cxa_demangle
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION __unixlib_cxa_demangle
 
 	.end

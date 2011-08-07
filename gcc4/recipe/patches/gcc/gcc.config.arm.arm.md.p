@@ -1,6 +1,6 @@
 Index: gcc/config/arm/arm.md
 ===================================================================
---- gcc/config/arm/arm.md	(revision 175935)
+--- gcc/config/arm/arm.md	(revision 176690)
 +++ gcc/config/arm/arm.md	(working copy)
 @@ -31,6 +31,7 @@
  ;; Register numbers
@@ -19,6 +19,15 @@ Index: gcc/config/arm/arm.md
    ]
  )
  
+@@ -5356,7 +5359,7 @@
+ 	(mem:SI (plus:SI (match_operand:SI 1 "register_operand" "r")
+ 			 (unspec:SI [(match_operand:SI 2 "" "X")]
+ 				    UNSPEC_PIC_OFFSET))))]
+-  "TARGET_VXWORKS_RTP && TARGET_ARM && flag_pic"
++  "(TARGET_VXWORKS_RTP && TARGET_ARM && flag_pic) || flag_pic == 2"
+   "ldr%?\\t%0, [%1,%2]"
+   [(set_attr "type" "load1")]
+ )
 @@ -7882,7 +7885,7 @@
        return thumb_call_via_reg (operands[0]);
      else if (operands[1] == const0_rtx)

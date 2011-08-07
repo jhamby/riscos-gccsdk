@@ -125,8 +125,14 @@ typedef quad_t		Elf64_Sxword;
 #define DT_FLAGS	30
 #define DF_TEXTREL	0x00000004
 #endif
+
+#define DT_LOOS		0x6000000d
+#define DT_HIOS		0x6ffff000
 #define DT_LOPROC	0x70000000
 #define DT_HIPROC	0x7fffffff
+
+#define DT_RISCOS_PIC	DT_LOOS
+
 #define DT_MIPS_RLD_VERSION	0x70000001
 #define DT_MIPS_TIME_STAMP	0x70000002
 #define DT_MIPS_ICHECKSUM	0x70000003

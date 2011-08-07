@@ -85,7 +85,6 @@ _dl_riscos_resolver(struct elf_resolve *tpnt, int reloc_entry)
   char * new_addr;
   char ** got_addr;
   unsigned int instr_addr;
-  unsigned int *got;
   struct som_rt_elem *objinfo;
 
   rel_addr = (Elf32_Rel *) (tpnt->dynamic_info[DT_JMPREL] +
@@ -105,9 +104,7 @@ _dl_riscos_resolver(struct elf_resolve *tpnt, int reloc_entry)
     _dl_exit(1);
   }
 
-  got = (unsigned int *)(tpnt->dynamic_info[DT_PLTGOT] + tpnt->loadaddr);
-
-  objinfo = *((struct som_rt_elem **)got[2]) + got[1];
+  objinfo = get_runtime_data (tpnt->loadaddr);
 
   instr_addr = (((int)this_reloc->r_offset + (int)tpnt->loadaddr) -
 		(int)objinfo->public_rw_ptr) + (int)objinfo->private_rw_ptr;
@@ -116,12 +113,15 @@ _dl_riscos_resolver(struct elf_resolve *tpnt, int reloc_entry)
   got_addr = (char **) instr_addr;
 
 #ifdef DEBUG
-  _dl_fdprintf(2, "Resolving symbol %s\n",
+  _dl_fdprintf(2, "Resolving symbol %s ",
 	strtab + symtab[symtab_index].st_name);
 #endif
   /* Get the address of the GOT entry */
   new_addr = _dl_find_hash(strtab + symtab[symtab_index].st_name,
   			tpnt->symbol_scope, 0, tpnt, 0);
+#ifdef DEBUG
+  _dl_fdprintf(2, "to %x\n",new_addr);
+#endif
 
   if(!new_addr) {
     _dl_fdprintf(2, "%s: can't resolve symbol '%s'\n",
@@ -143,11 +143,8 @@ void _dl_parse_lazy_relocation_information(struct elf_resolve * tpnt, int rel_ad
   Elf32_Rel * rpnt;
   unsigned int * reloc_addr;
   struct som_rt_elem *objinfo;
-  unsigned int *got;
 
-  got = (unsigned int *)(tpnt->dynamic_info[DT_PLTGOT] + tpnt->loadaddr);
-
-  objinfo = *((struct som_rt_elem **)got[2]) + got[1];
+  objinfo = get_runtime_data (tpnt->loadaddr);
 
   /* Now parse the relocation information */
   rpnt = (Elf32_Rel *) (rel_addr + tpnt->loadaddr);
@@ -205,11 +202,9 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
   int symtab_index;
   unsigned int *client_reloc_addr,symbol_offset;
   struct som_rt_elem *objinfo;
-  unsigned int *got;
+  struct elf_resolve *dst_lib = NULL;
 
-  got = (unsigned int *)(tpnt->dynamic_info[DT_PLTGOT] + tpnt->loadaddr);
-
-  objinfo = *((struct som_rt_elem **)got[2]) + got[1];
+  objinfo = get_runtime_data (tpnt->loadaddr);
 
   /* Now parse the relocation information */
 
@@ -237,7 +232,7 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 
       symbol_addr = (unsigned int)
 	_dl_find_hash(strtab + symtab[symtab_index].st_name,
-			      tpnt->symbol_scope, 0/*(int) reloc_addr*/,
+			      tpnt->symbol_scope, &dst_lib,
 		      (reloc_type == R_ARM_JUMP_SLOT ? tpnt : NULL), 0);
 
       /*
@@ -264,6 +259,13 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
       break;*/
     case R_ARM_GLOB_DAT:
     case R_ARM_ABS32:
+	if (symbol_addr == 0)
+	{
+	  /* Normal undefined symbols have already been dealt with above, so this
+	     is an undefined weak symbol that requires no action.  */
+	  break;
+	}
+
 	if ((unsigned int)reloc_addr < (unsigned int)objinfo->public_rw_ptr)
 	{ /* Address of relocation is in text segment */
 	  _dl_fdprintf(2,"%s: Text relocation of data symbol '%s' found:\r\n %s (offset 0x%X)\r\n",
@@ -294,10 +296,9 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	else if ((char *)symbol_addr < tpnt->loadaddr || (char *)symbol_addr >= objinfo->public_rw_ptr + objinfo->rw_size)
 	{
 	  /*
-	   * Check if the symbol exists in another library's R/W segment and relocate if so
+	   * Check if the symbol exists in another library's R/W segment and relocate if so.
 	   */
-	unsigned int *got = _dl_got_from_addr((void *)symbol_addr);
-	struct som_rt_elem *dst_obj = *((struct som_rt_elem **)got[2]) + got[1];
+	struct som_rt_elem *dst_obj = get_runtime_data (dst_lib->loadaddr);
 
 	  symbol_offset = symbol_addr - (unsigned int)dst_obj->public_rw_ptr;
 	  if (symbol_offset >= 0 && symbol_offset < dst_obj->rw_size)
@@ -456,8 +457,7 @@ int _dl_parse_copy_information(struct dyn_elf * xpnt, int rel_addr,
       }
       else
       {
-      unsigned int *got = (unsigned int *)(lib->dynamic_info[DT_PLTGOT] + lib->loadaddr);
-      struct som_rt_elem *objinfo = *((struct som_rt_elem **)got[2]) + got[1];
+      struct som_rt_elem *objinfo = get_runtime_data (lib->loadaddr);
 
         if ((unsigned int)symbol_addr >= (unsigned int)objinfo->public_rw_ptr)
 	{

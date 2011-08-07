@@ -1,5 +1,5 @@
---- ld/scripttempl/elf.sc.orig	2010-12-01 12:03:51.000000000 +0100
-+++ ld/scripttempl/elf.sc	2010-12-11 02:21:38.862492246 +0100
+--- ld/scripttempl/elf.sc.orig	2011-07-16 19:19:54.000000000 +0100
++++ ld/scripttempl/elf.sc	2011-07-11 19:28:28.000000000 +0100
 @@ -288,6 +288,14 @@ else
     test -z "${TEXT_BASE_ADDRESS}" && TEXT_BASE_ADDRESS="${TEXT_START_ADDR}"
  fi
@@ -33,16 +33,19 @@
    .init         ${RELOCATING-0} : 
    { 
      ${RELOCATING+${INIT_START}}
-@@ -459,6 +471,8 @@ cat <<EOF
+@@ -459,6 +471,11 @@ cat <<EOF
    .eh_frame     ${RELOCATING-0} : ONLY_IF_RO { KEEP (*(.eh_frame)) }
    .gcc_except_table ${RELOCATING-0} : ONLY_IF_RO { *(.gcc_except_table .gcc_except_table.*) }
  
++  /* RISC OS PIC relocs */
++  .riscos.pic : { *(.riscos.pic) }
++
 +  ${RELOCATING+${CREATE_SHLIB-${RISCOS_ROLIMIT}}}
 +
    /* Adjust the address for the data segment.  We want to adjust up to
       the same address within the page on the next page up.  */
    ${CREATE_SHLIB-${CREATE_PIE-${RELOCATING+. = ${DATA_ADDR-${DATA_SEGMENT_ALIGN}};}}}
-@@ -497,6 +511,11 @@ cat <<EOF
+@@ -497,6 +514,11 @@ cat <<EOF
  
    ${DATA_PLT+${PLT_BEFORE_GOT-${PLT}}}
  
@@ -54,7 +57,7 @@
    .data         ${RELOCATING-0} :
    {
      ${RELOCATING+${DATA_START_SYMBOLS}}
-@@ -521,8 +540,11 @@ cat <<EOF
+@@ -521,8 +543,11 @@ cat <<EOF
    ${BSS_PLT+${PLT}}
    .${BSS_NAME}          ${RELOCATING-0} :
    {
@@ -66,7 +69,7 @@
     *(COMMON)
     /* Align here to ensure that the .bss section occupies space up to
        _end.  Align after .bss to ensure correct alignment even if the
-@@ -530,6 +552,7 @@ cat <<EOF
+@@ -530,6 +555,7 @@ cat <<EOF
        FIXME: Why do we need it? When there is no .bss section, we don't
        pad the .data section.  */
     ${RELOCATING+. = ALIGN(. != 0 ? ${ALIGNMENT} : 1);}
@@ -74,7 +77,7 @@
    }
    ${OTHER_BSS_SECTIONS}
    ${RELOCATING+${OTHER_BSS_END_SYMBOLS}}
-@@ -539,6 +562,7 @@ cat <<EOF
+@@ -539,6 +565,7 @@ cat <<EOF
    ${RELOCATING+${OTHER_END_SYMBOLS}}
    ${RELOCATING+${END_SYMBOLS-${USER_LABEL_PREFIX}_end = .; PROVIDE (${USER_LABEL_PREFIX}end = .);}}
    ${RELOCATING+${DATA_SEGMENT_END}}

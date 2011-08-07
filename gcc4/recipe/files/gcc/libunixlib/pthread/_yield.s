@@ -17,12 +17,9 @@ pthread_yield:
 
 	SUB	fp, ip, #4
 
- PICEQ "LDR	a1, .L0+8"
-.LPIC0:
- PICEQ "ADD	a1, pc, a1"		@ a1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a1, {a1, a4}"		@ a1 = Object index, a4 = GOT array location
- PICEQ "LDR	a4, [a4, #0]"		@ a4 = GOT array
- PICEQ "LDR	a4, [a4, a1, LSL#4]"	@ a4 = GOT (private)
+ PICEQ "LDR	a4, =__GOTT_BASE__"
+ PICEQ "LDR	a4, [a4, #0]"
+ PICEQ "LDR	a4, [a4, #__GOTT_INDEX__]"	@ a1 = GOT ptr
 
 	@ If the thread system isn't running then yielding is pointless
 	LDR	a2, .L0		@=__ul_global
@@ -71,7 +68,6 @@ __pthread_yield_return:
 .L0:
 	WORD	__ul_global
 	WORD	__cbreg
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 
 failmessage:
 	.asciz	"pthread_yield called with context switching disabled"

@@ -1,6 +1,6 @@
 Index: gcc/config/arm/arm.h
 ===================================================================
---- gcc/config/arm/arm.h	(revision 176340)
+--- gcc/config/arm/arm.h	(revision 176690)
 +++ gcc/config/arm/arm.h	(working copy)
 @@ -229,7 +229,7 @@
  				         : TARGET_TPCS_FRAME)

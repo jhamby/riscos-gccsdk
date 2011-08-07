@@ -31,12 +31,9 @@
 	.global	setjmp
 	NAME	setjmp
 setjmp:
- PICEQ "LDR	a4, .L0+8"
-.LPIC0:
- PICEQ "ADD	a4, pc, a4"		@ a4 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	a4, {a4, ip}"		@ a4 = Object index, ip = GOT ptr array location
- PICEQ "LDR	ip, [ip, #0]"		@ ip = GOT ptr array
- PICEQ "LDR	ip, [ip, a4, LSL#4]"	@ ip = GOT ptr
+ PICEQ "LDR	ip, =__GOTT_BASE__"
+ PICEQ "LDR	ip, [ip, #0]"
+ PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
 
 	LDR	a4, .L0 + 0		@ a4 = __pthread_running_thread
  PICEQ "LDR	a4, [ip, a4]"
@@ -67,18 +64,14 @@ setjmp:
 .L0:
 	WORD	__pthread_running_thread
 	WORD	__ul_global
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 	DECLARE_FUNCTION setjmp
 
 	.global	longjmp
 	NAME	longjmp
 longjmp:
- PICEQ "LDR	v1, .L1"
-.LPIC1:
- PICEQ "ADD	v1, pc, v1"		@ v1 = _GLOBAL_OFFSET_TABLE_+4
- PICEQ "LDMIA	v1, {v1, v4}"		@ v1 = Object index, v4 = GOT ptr array location
- PICEQ "LDR	v4, [v4, #0]"		@ v4 = GOT ptr array
- PICEQ "LDR	v4, [v4, v1, LSL#4]"	@ v4 = GOT ptr
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	@ We should be able to safely use v1-v6, since if a recursive
 	@ call to longjmp does occur, then the v1-v6 are going to be
@@ -127,8 +120,6 @@ longjmp:
 	@ Technically there is a problem here if we should be
 	@ moving to a higher processor mode, such as USR -> SVC
 	LDMIA	v1, {v1, v2, v3, v4, v5, v6, sl, fp, sp, pc}
-.L1:
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC1+4)"
 	DECLARE_FUNCTION longjmp
 
 	.end

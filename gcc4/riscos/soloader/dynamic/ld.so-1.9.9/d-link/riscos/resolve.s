@@ -25,8 +25,8 @@
 	.type	RESOLVE,%function
 RESOLVE:
 	@ we get called with
-	@	r8 contains &GOT[n+5] (pointer to function - private GOT)
-	@	lr points to &GOT[5] (private GOT)
+	@	r8 contains &GOT[n+3] (pointer to function - private GOT)
+	@	lr points to &GOT[3] (private GOT)
 
 	@ We have to be careful which registers we use here. We can't use
 	@ any that the stack extension routines may require to be preserved
@@ -38,7 +38,7 @@ RESOLVE:
 	stmfd	sp!, {r0-r3, ip}
 
 	@ prepare to call fixup()
-	@ change &GOT[n+5] into 8*n        NOTE: reloc are 8 bytes each
+	@ change &GOT[n+3] into 8*n        NOTE: reloc are 8 bytes each
 	sub	r1, r8, lr
 	sub	r1, r1, #4
 	add	r1, r1, r1

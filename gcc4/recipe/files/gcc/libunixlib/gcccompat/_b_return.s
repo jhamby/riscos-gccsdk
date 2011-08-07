@@ -50,12 +50,9 @@ __builtin_return_address:
  PICNE "STMFD	sp!, {lr}"
  PICEQ "STMFD	sp!, {v4, lr}"
 	@ Setup GOT for function call via PLT.
- PICEQ "LDR	v4, .L2+4"
-.LPIC0:
- PICEQ "ADD	v4, pc, v4"		@ v4 = Library public GOT
- PICEQ "LDMIA	v4, {v4, v5}"		@ v4 = Object index, v4 = GOT table location
- PICEQ "LDR	v5, [v5, #0]"		@ v5 = GOT table
- PICEQ "LDR	v4, [v5, v4, LSL#4]"	@ v4 = Library private GOT
+ PICEQ "LDR	v4, =__GOTT_BASE__"
+ PICEQ "LDR	v4, [v4, #0]"
+ PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
 
 	BL	__builtin_frame_address
 
@@ -93,7 +90,6 @@ __builtin_return_address:
 	WORD	__gcc_alloca_free
 .L2:
 	WORD	__free_stack_chunk
- PICEQ ".word	_GLOBAL_OFFSET_TABLE_-(.LPIC0+4)"
 #else
 #  error "Unsupported runtime"
 #endif

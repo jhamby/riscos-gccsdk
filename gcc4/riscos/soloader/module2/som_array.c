@@ -1,6 +1,6 @@
 /* som_array.c
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007-2011 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -66,11 +66,8 @@ somarray_add_object (som_array *array, som_object *object)
 
   array->object_base[object->index] = object;
 
-  /* Store the object index in the library public GOT.  */
-  ((unsigned int *) object->got_addr)[SOM_OBJECT_INDEX_OFFSET] = object->index;
-
-  /* Store the location of the client runtime array in the public GOT.  */
-  ((unsigned int *) object->got_addr)[SOM_RUNTIME_ARRAY_OFFSET] = rt_workspace_find();
+  /* Store the object index in the library runtime workspace.  */
+  rt_workspace_set_for_object (object->base_addr, rt_workspace_OBJECT_INDEX, object->index);
 
   return NULL;
 }
@@ -102,39 +99,44 @@ som_generate_runtime_array (void)
 
   if (client->runtime_array.rt_base)
     som_free (client->runtime_array.rt_base);
-
-  if ((err = somarray_init (&client->runtime_array, sizeof (som_rt_elem),
+  
+  if ((err = somarray_init (&client->gott_base, sizeof (void *),
+			    object_array->elem_count)) != NULL
+   || (err = somarray_init (&client->runtime_array, sizeof (som_rt_elem),
 			    object_array->elem_count)) != NULL)
     return err;
 
+  som_object *object = linklist_first_som_object (&client->object_list);
+
   /* First object is always the client.  */
   rt_elem_set (&client->runtime_array.rt_base[0],
-	       linklist_first_som_object (&client->object_list));
+	       object);
+  client->gott_base.base[0] = object->private_got_ptr;
 
+  /* The arrays are zero'd when allocated, so we don't need to clear unused
+     elements. We only need to worry about setting the elements that are used.  */
   for (int i = 1; i < object_array->elem_count; i++)
     {
-      if (object_array->object_base[i] == NULL)
+      if (object_array->object_base[i] != NULL)
 	{
-	  /* A NULL object in the array suggests an object that was used
-	     by a different client and has since expired.  */
-	  rt_elem_clear (&client->runtime_array.rt_base[i]);
-	}
-      else
-	{
-	  /* Check if the client uses this object by comparing indices.  */
-	  som_object *object;
+	  /* Check if the client uses this object. If the index of the current
+	     object matches an index in the client list, then the object is used
+	     by the client.  */
 	  for (object = linklist_first_som_object (&client->object_list);
 	       object != NULL && object->index != i;
 	       object = linklist_next_som_object (object))
 	    /* */;
 
 	  if (object)
-	    rt_elem_set (&client->runtime_array.rt_base[i], object);
-	  else
-	    rt_elem_clear (&client->runtime_array.rt_base[i]);
+	    {
+	      rt_elem_set (&client->runtime_array.rt_base[i], object);
+	      client->gott_base.base[i] = object->private_got_ptr;
+	    }
 	}
     }
 
+  rt_workspace_set (rt_workspace_GOTT_BASE,
+		    (unsigned int) client->gott_base.base);
   rt_workspace_set (rt_workspace_RUNTIME_ARRAY,
 		    (unsigned int) client->runtime_array.rt_base);
 

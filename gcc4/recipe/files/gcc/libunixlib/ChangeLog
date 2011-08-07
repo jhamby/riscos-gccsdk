@@ -1,3 +1,20 @@
+Sat Aug 06 18:23:01 2011  Lee Noar <leenoar@sky.com>
+
+	* pthread/_context.s: Convert to new PIC scheme.
+	* pthread/_yield.s: Likewise.
+	* pthread/_ints.s: Likewise.
+	* signal/_demangle.s: Likewise.
+	* signal/_signal.s: Likewise.
+	* common/_exist.s: Likewise.
+	* common/_riscosify.s: Likewise.
+	* common/_taskhandle.s: Likewise.
+	* gcccompat/_b_return.s: Likewise.
+	* gcccompat/_eh_support.s: Likewise.
+	* sys/_jmp.s: Likewise.
+	* sys/_vfork.s: Likewise.
+	* sys/_syslib.s: Likewise.
+	* include/sys/elf.h: Define DT_RISCOS_PIC.
+
 Sun May 29 18:32:56 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/sys/stat.h (S_IFBLK, S_IFLNK): Renumber.
