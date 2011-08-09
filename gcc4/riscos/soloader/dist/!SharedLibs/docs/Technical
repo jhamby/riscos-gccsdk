@@ -152,7 +152,7 @@ from the beginning of the library of its position and enters it into the .riscos
 segment. Bit 31 of the entry is set for a __GOT_INDEX__ and clear for a __GOT_BASE__,
 bit 30 is reserved and always 0. This gives 30 bits to encode the offset which allows
 for a maximum library size of 1GB. Finally, to allow the dynamic linker to find the
-segment easily, the linker creates ant entry in the dynamic segment called DT_RISCOS_PIC.
+segment easily, the linker creates an entry in the dynamic segment called DT_RISCOS_PIC.
 
 At runtime when the dynamic linker loads a library for the first time, it will look
 for the .riscos.pic segment and process any relocations that it finds.
@@ -165,8 +165,40 @@ the system can handle a maximum of 1024 libraries.
 Despite the fact that the library code is not executed until after this code alteration
 occurs, it would seem that it is still necessary to use OS_SynchroniseCodeAreas to
 flush the instruction cache (at least on an Iyonix).
-Note that this relocation and synchronisation is performed only once when a library
-is first loaded.
+Note that because the data written to the code section is constant for the life of the
+library, this relocation and synchronisation is performed only once when first loaded.
+
+The effects on code generation
+------------------------------
+The PIC/PLT scheme described here was first introduced in V4.6 of GCCSDK. Let's look
+at the (relatively minor) disadvantages first. The normal PLT entries have increased
+in size from three instructions to five instructions and one data. The extra
+instructions are used to load the PIC register independently of the caller. To mitigate
+the size, the ADD r8, r8, 0x0XX00000 instruction was removed; the remaining instructions
+giving a maximum GOT size of 1,048,576 bytes. Baring in mind that each entry in the GOT
+is either a pointer to a global variable or external function, then this gives a maximum
+of 262,144 entries of both combined. I would suggest that if it is even feasible to
+write a library that exceeds this limit, then there is a flaw in its design.
+A second disadvantage is the extra initialisation required for each library. The code to
+load the PIC register has been simplified by giving the Shared Object Manager more work
+to do. However, it is this simplification that allows the PLT entries to load the PIC
+register themselves using only one register and as this extra work is only required once
+when the library is loaded, I feel the advantages give a net gain.
+
+The fact that the PIC register does not need to be live on entry to the PLT allows the
+compiler to generate better code:
+
+1) The compiler isn't constrained to a fixed PIC register. It can use any register it sees
+   fit and as a result may not need to save it in the function prologue.
+2) The compiler does not need to load the PIC register to call a function via the PLT. If
+   the function does not access any global variables, then no PIC register is required.
+3) Because of (2) the stack extension routines don't require the PIC register to be
+   loaded first either. Previously a function requiring a stack frame that didn't access
+   global data would have to load the PIC register unconditionally just in case the stack
+   needed extending.
+4) Because of (3) the compiler has more freedom in placing the PIC register loading
+   code and is also able to schedule other instructions within it.
+5) Tail call optimisation for a function call via PLT is now possible.
 
 Memory layout
 -------------
