@@ -36,11 +36,16 @@ somarray_init (som_array *array, int elem_size, int elem_count)
 void
 somarray_fini (som_array *array)
 {
-  som_free (array->base);
+  if (array->base)
+    {
+      som_free (array->base);
+      array->base = NULL;
+    }
 }
 
 _kernel_oserror *
-somarray_add_object (som_array *array, som_object *object)
+somarray_add_object (som_array *array,
+		     som_object *object)
 {
   /* Check for unused elements that can be recycled, index 0 is always
      the client so we start searching from index 1.  */
@@ -50,35 +55,46 @@ somarray_add_object (som_array *array, som_object *object)
        ++index)
     /* */;
 
-  if (index < array->elem_count)
-    object->index = index;
-  else
+  if (index >= array->elem_count)
     {
+      /* There are no elements that can be recycled, so extend the array.  */
       _kernel_oserror *err;
 
-      /* There are no elements that can be recycled, so extend the array.  */
       if ((err = som_extend ((void **) (void *) &array->object_base,
 			     sizeof (som_object *))) != NULL)
 	return err;
 
-      object->index = array->elem_count++;
+      index = array->elem_count++;
     }
 
-  array->object_base[object->index] = object;
+  object->index = index;
+
+  array->object_base[index] = object;
 
   /* Store the object index in the library runtime workspace.  */
-  rt_workspace_set_for_object (object->base_addr, rt_workspace_OBJECT_INDEX, object->index);
+  rt_workspace_set_for_object (object->base_addr, rt_workspace_OBJECT_INDEX, index);
 
   return NULL;
 }
 
 static void
-rt_elem_set (som_rt_elem *rt_elem, const som_object *object)
+rt_elem_set_client (const som_client *client)
 {
-  rt_elem->private_GOT_ptr = object->private_got_ptr;
-  rt_elem->public_RW_ptr = object->rw_addr;
-  rt_elem->private_RW_ptr = object->private_rw_ptr;
-  rt_elem->RW_size = object->rw_size;
+  som_rt_elem *rt_elem = &client->runtime_array.rt_base[0];
+
+  rt_elem->private_GOT_ptr = client->object.got_addr;
+  rt_elem->public_RW_ptr = client->object.rw_addr;
+  rt_elem->private_RW_ptr = client->object.rw_addr;
+  rt_elem->RW_size = client->object.rw_size;
+}
+
+static void
+rt_elem_set (som_rt_elem *rt_elem, const som_client_object *c_obj)
+{
+  rt_elem->private_GOT_ptr = c_obj->got_addr;
+  rt_elem->public_RW_ptr = c_obj->library->object.rw_addr;
+  rt_elem->private_RW_ptr = c_obj->rw_addr;
+  rt_elem->RW_size = c_obj->library->object.rw_size;
 }
 
 static void
@@ -104,14 +120,13 @@ som_generate_runtime_array (void)
 			    object_array->elem_count)) != NULL
    || (err = somarray_init (&client->runtime_array, sizeof (som_rt_elem),
 			    object_array->elem_count)) != NULL)
-    return err;
+    goto cleanup;
 
-  som_object *object = linklist_first_som_object (&client->object_list);
+  som_client_object *c_obj = linklist_first_som_client_object (&client->object_list);
 
   /* First object is always the client.  */
-  rt_elem_set (&client->runtime_array.rt_base[0],
-	       object);
-  client->gott_base.base[0] = object->private_got_ptr;
+  rt_elem_set_client (client);
+  client->gott_base.base[0] = client->object.got_addr;
 
   /* The arrays are zero'd when allocated, so we don't need to clear unused
      elements. We only need to worry about setting the elements that are used.  */
@@ -122,15 +137,15 @@ som_generate_runtime_array (void)
 	  /* Check if the client uses this object. If the index of the current
 	     object matches an index in the client list, then the object is used
 	     by the client.  */
-	  for (object = linklist_first_som_object (&client->object_list);
-	       object != NULL && object->index != i;
-	       object = linklist_next_som_object (object))
+	  for (c_obj = linklist_first_som_client_object (&client->object_list);
+	       c_obj != NULL && c_obj->library->object.index != i;
+	       c_obj = linklist_next_som_client_object (c_obj))
 	    /* */;
 
-	  if (object)
+	  if (c_obj)
 	    {
-	      rt_elem_set (&client->runtime_array.rt_base[i], object);
-	      client->gott_base.base[i] = object->private_got_ptr;
+	      rt_elem_set (&client->runtime_array.rt_base[i], c_obj);
+	      client->gott_base.base[i] = c_obj->got_addr;
 	    }
 	}
     }
@@ -141,4 +156,9 @@ som_generate_runtime_array (void)
 		    (unsigned int) client->runtime_array.rt_base);
 
   return NULL;
+cleanup:
+  somarray_fini (&client->gott_base);
+  somarray_fini (&client->runtime_array);
+
+  return err;
 }

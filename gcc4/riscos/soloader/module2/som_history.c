@@ -18,15 +18,22 @@
 void
 som_history_add_client(som_client *client)
 {
-  som_object *object;
-  som_client_history *client_hist;
-  int object_count = 0;
+  som_client_object *client_library;
+  som_client_history *client_hist = NULL;
+  int object_count = 0, name_size;
 
-  /* Work out how many shared objects the client was linked to.  */
-  for (object = linklist_first_som_object (&client->object_list);
-       object != NULL;
-       object = linklist_next_som_object (object))
-    object_count++;
+  /* Start with the client's name.  */
+  name_size = strlen (client->object.name) + 1;
+
+  /* Work out how many shared objects the client was linked to and how much
+     memory is required to hold all of their names.  */
+  for (client_library = linklist_first_som_client_object (&client->object_list);
+       client_library != NULL;
+       client_library = linklist_next_som_client_object (client_library))
+    {
+      name_size += strlen (client_library->library->object.name) + 1;
+      object_count++;
+    }
 
   /* Allocate enough space to hold details of client and all objects.  */
   if (som_alloc (sizeof (*client_hist) + sizeof (som_object_history) * object_count,
@@ -34,30 +41,42 @@ som_history_add_client(som_client *client)
     return;
   memset (client_hist, 0, sizeof (*client_hist));
 
-  /* Record the client's name.  */
-  if (som_alloc (strlen (client->name) + 1,
-		(void **) (void *) &client_hist->name) != NULL)
-    goto error;
-  strcpy (client_hist->name, client->name);
+  /* Allocate enough memory to store all names.  */
+  if (som_alloc (name_size, (void **) (void *) &client_hist->all_names) != NULL)
+    {
+      som_free (&client_hist);
+      return;
+    }
 
+  char *name_ptr = client_hist->all_names;
+
+  /* Record the client's name.  */
+  client_hist->client.name = name_ptr;
+  strcpy (name_ptr, client->object.name);
+  name_ptr += strlen (name_ptr) + 1;
+
+  client_hist->client.data_start = client->object.rw_addr;
+  client_hist->client.data_end = client->object.rw_addr + client->object.rw_size;
+  client_hist->client.GOT = client->object.got_addr;
+
+  /* Record the client's objects.  */
   client_hist->object_history_size = object_count;
 
-  for (object = linklist_first_som_object (&client->object_list), object_count = 0;
-       object != NULL;
-       object = linklist_next_som_object (object), object_count++)
+  for (client_library = linklist_first_som_client_object (&client->object_list), object_count = 0;
+       client_library != NULL;
+       client_library = linklist_next_som_client_object (client_library), object_count++)
     {
       som_object_history *obj_hist =
 		(som_object_history *) &client_hist->object_history[object_count];
 
       /* Record this object's name.  */
-      if (som_alloc (strlen (object->name) + 1,
-		    (void **) (void *) &obj_hist->name) != NULL)
-        goto error;
-      strcpy (obj_hist->name, object->name);
+      obj_hist->name = name_ptr;
+      strcpy (name_ptr, client_library->library->object.name);
+      name_ptr += strlen (name_ptr) + 1;
 
-      obj_hist->data_start = object->private_rw_ptr;
-      obj_hist->data_end = object->private_rw_ptr + object->rw_size;
-      obj_hist->GOT = object->private_got_ptr;
+      obj_hist->data_start = client_library->rw_addr;
+      obj_hist->data_end = client_library->rw_addr + client_library->library->object.rw_size;
+      obj_hist->GOT = client_library->got_addr;
     }
 
   linklist_add_to_end (&global.client_history, &client_hist->link);
@@ -66,31 +85,15 @@ som_history_add_client(som_client *client)
   if (global.client_history.count > MAX_HISTORY_COUNT)
     {
       som_client_history *to_be_removed =
-		(som_client_history *)global.client_history.first;
-
-      for (object_count = to_be_removed->object_history_size - 1;
-	   object_count >= 0;
-	   object_count--)
-	som_free (to_be_removed->object_history[object_count].name);
+		linklist_first_som_client_history (&global.client_history);
 
       linklist_remove (&global.client_history, &to_be_removed->link);
-      som_free (to_be_removed->name);
+
+      som_free (to_be_removed->all_names);
       som_free (to_be_removed);
     }
 
   return;
-
-error:
-  for (object_count = client_hist->object_history_size - 1;
-       object_count >= 0;
-       object_count--)
-    if (client_hist->object_history[object_count].name)
-      som_free (client_hist->object_history[object_count].name);
-
-  if (client_hist->name)
-    som_free (client_hist->name);
-
-  som_free (client_hist);
 }
 
 void
@@ -116,18 +119,18 @@ command_history (void)
        client_hist != NULL;
        client_hist = linklist_next_som_client_history (client_hist))
     {
-      som_object_history *obj_hist = &client_hist->object_history[0];
+      printf ("%s\n", client_hist->client.name);
+      printf ("     0x%.8X  0x%.8X  0x%.8X  <executable>\n",
+	      (unsigned int)client_hist->client.data_start,
+	      (unsigned int)client_hist->client.data_end,
+	      (unsigned int)client_hist->client.GOT);
+
+      som_object_history *obj_hist;
       int obj_count;
 
-      /* The 1st object in the list is the client itself.  */
-      printf ("%s\n", client_hist->name);
-      printf ("     0x%.8X  0x%.8X  0x%.8X  <executable>\n",
-	      (unsigned int)obj_hist->data_start,
-	      (unsigned int)obj_hist->data_end,
-	      (unsigned int)obj_hist->GOT);
-
-      for (obj_count = client_hist->object_history_size - 2, obj_hist++;
-	   obj_count >= 0;
+      for (obj_count = client_hist->object_history_size,
+	   obj_hist = client_hist->object_history;
+	   obj_count;
 	   obj_count--, obj_hist++)
 	printf("  => 0x%.8X  0x%.8X  0x%.8X  %s\n",
 	       (unsigned int)obj_hist->data_start,

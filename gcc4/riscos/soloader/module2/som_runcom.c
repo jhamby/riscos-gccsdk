@@ -157,9 +157,8 @@ register_dynamic_loader (runcom_state *state)
 
   objinfo.flags.type = object_flag_type_LOADER;
 
-  som_object *object;
-  if ((err = som_register_sharedobject (state->elf_loader_handle, &objinfo,
-					&object)) != NULL)
+  if ((err = som_register_sharedobject (state->elf_loader_handle,
+					&objinfo)) != NULL)
     goto error;
 
   /* Copy the R/W segment from the public copy to the private copy.  */

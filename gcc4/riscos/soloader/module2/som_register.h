@@ -44,8 +44,7 @@ extern _kernel_oserror *som_deregister_shared_object (_kernel_swi_regs *regs);
  * and placed in the client's list.
  */
 extern _kernel_oserror *som_register_sharedobject (som_handle handle,
-						   som_objinfo *objinfo,
-						   som_object **object_ret);
+						   som_objinfo *objinfo);
 
 extern _kernel_oserror *som_register_client (som_handle handle,
 					     som_objinfo *objinfo);

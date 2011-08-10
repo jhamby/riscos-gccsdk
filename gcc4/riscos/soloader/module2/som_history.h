@@ -1,6 +1,6 @@
 /* som_history.h
  *
- * Copyright 2009 GCCSDK Developers
+ * Copyright 2009-2011 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -32,22 +32,26 @@ struct _som_client_history
 {
   link_hdr link;
 
-  /* Pointer to filename of client.  */
-  char *name;
+  /* The client details.  */
+  som_object_history client;
 
   /* Number of elements in the object history.  */
   int object_history_size;
 
+  /* A single block of memory to store the names of all libraries used.  */
+  char *all_names;
+
   /* We don't need a dynamically resizable list as we know how many
      objects the client was linked to and it wont be added to, so
-     use an array to store them.  */
+     use an array to store them. Must be the last member in the
+     structure.  */
   struct _som_object_history object_history[];
 };
 LINKLIST_ACCESS_FUNCTIONS (som_client_history)
 
 /* Add the given client to the list of recently deregistered clients.  */
 void
-som_history_add_client(som_client *client);
+som_history_add_client (som_client *client);
 
 /* Ouput the history list to stdout.  */
 void

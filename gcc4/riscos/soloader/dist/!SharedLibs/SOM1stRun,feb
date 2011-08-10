@@ -1,7 +1,7 @@
 | Load the SOManager and run an ELF executable
 
-RMEnsure SOManager 2.01 RMLoad SharedLibs:SOManager
-RMEnsure SOManager 2.01 Error Need at least v2.01 of Shared Object Manager (SOManager)
+RMEnsure SOManager 2.04 RMLoad SharedLibs:SOManager
+RMEnsure SOManager 2.04 Error Need at least v2.04 of Shared Object Manager (SOManager)
 
 UnSet Alias$SOMRun
 

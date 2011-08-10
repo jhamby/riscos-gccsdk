@@ -47,16 +47,16 @@ command_status_libraries (void)
 	  column_title_string[column_title_DATA_TO],
 	  column_title_string[column_title_LIBRARY_NAME]);
 
-  for (som_object *object = linklist_first_som_object (&global.object_list);
-       object != NULL;
-       object = linklist_next_som_object (object))
+  for (som_library_object *global_library = linklist_first_som_library_object (&global.object_list);
+       global_library != NULL;
+       global_library = linklist_next_som_library_object (global_library))
     printf ("%-4d 0x%.8X  0x%.8X  0x%.8X  0x%.8X  %s\n",
-	    object->index,
-	    (unsigned int)object->base_addr,
-	    (unsigned int)object->rw_addr,
-	    (unsigned int)object->rw_addr,
-	    (unsigned int)(object->rw_addr + object->rw_size),
-	    object->name);
+	    global_library->object.index,
+	    (unsigned int)global_library->object.base_addr,
+	    (unsigned int)global_library->object.rw_addr,
+	    (unsigned int)global_library->object.rw_addr,
+	    (unsigned int)(global_library->object.rw_addr + global_library->object.rw_size),
+	    global_library->object.name);
 
   printf ("\n%-4s %-11s %-11s %s\n",
 	  column_title_string[column_title_IDX],
@@ -64,20 +64,20 @@ command_status_libraries (void)
 	  column_title_string[column_title_DYNAMIC],
 	  column_title_string[column_title_EXPIRES]);
 
-  for (som_object *object = linklist_first_som_object (&global.object_list);
-       object != NULL;
-       object = linklist_next_som_object (object))
+  for (som_library_object *global_library = linklist_first_som_library_object (&global.object_list);
+       global_library != NULL;
+       global_library = linklist_next_som_library_object (global_library))
     {
       printf ("%-4d 0x%.8X  0x%.8X  ",
-	     object->index,
-	     (unsigned int)object->got_addr,
-	     (unsigned int)object->dynamic_addr);
+	     global_library->object.index,
+	     (unsigned int)global_library->object.got_addr,
+	     (unsigned int)global_library->object.dynamic_addr);
 
-      if (object->usage_count != 0)
+      if (global_library->usage_count != 0)
 	printf ("%-24s", "None, still in use");
       else
 	{
-	  int t = object->expire_time - os_read_monotonic_time ();
+	  int t = global_library->expire_time - os_read_monotonic_time ();
 	  if (t < 0)
 	    printf ("%-24s", "Pending");
 	  else
@@ -86,7 +86,7 @@ command_status_libraries (void)
 		    ((t / 100) / 60) % 60);
 	}
 
-      printf ("%s\n", object->name);
+      printf ("%s\n", global_library->object.name);
     }
 
   putchar('\n');
@@ -113,30 +113,27 @@ command_status_clients (void)
        client != NULL;
        client = linklist_next_som_client (client))
     {
-      /* The 1st object in the client list is the client itself.  */
-      som_object *object = linklist_first_som_object (&client->object_list);
-
-      printf ("%s\n", client->name);
+      printf ("%s\n", client->object.name);
       printf ("     0x%.8X  0x%.8X  0x%.8X  0x%.8X\n",
-	      (unsigned int)object->private_rw_ptr,
-	      (unsigned int)(object->private_rw_ptr + object->rw_size),
-	      (unsigned int)object->private_got_ptr,
-	      (unsigned int)(object->private_rw_ptr +
-			    (object->dynamic_addr - object->rw_addr)));
+	      (unsigned int)client->object.rw_addr,
+	      (unsigned int)(client->object.rw_addr + client->object.rw_size),
+	      (unsigned int)client->object.got_addr,
+	      (unsigned int)client->object.dynamic_addr);
 
-      object = linklist_next_som_object (object);
+      som_client_object *client_library =
+		linklist_first_som_client_object (&client->object_list);
 
-      while (object)
+      while (client_library)
 	{
 	  printf("  => 0x%.8X  0x%.8X  0x%.8X  0x%.8X  %s\n",
-		 (unsigned int)object->private_rw_ptr,
-		 (unsigned int)(object->private_rw_ptr + object->rw_size),
-		 (unsigned int)object->private_got_ptr,
-		 (unsigned int)(object->private_rw_ptr +
-			       (object->dynamic_addr - object->rw_addr)),
-		 object->name);
+		 (unsigned int)client_library->rw_addr,
+		 (unsigned int)(client_library->rw_addr + client_library->library->object.rw_size),
+		 (unsigned int)client_library->got_addr,
+		 (unsigned int)(client_library->rw_addr +
+			       (client_library->library->object.dynamic_addr - client_library->rw_addr)),
+		 client_library->library->object.name);
 
-	  object = linklist_next_som_object (object);
+	  client_library = linklist_next_som_client_object (client_library);
 	}
     }
 
@@ -148,18 +145,19 @@ command_address (const char *arg_string, int argc)
 {
   som_PTR addr = (som_PTR) strtoul (arg_string, 0, 0);
 
-  som_object *object;
-  for (object = linklist_first_som_object (&global.object_list);
-       object != NULL;
-       object = linklist_next_som_object (object))
+  som_library_object *global_library;
+  for (global_library = linklist_first_som_library_object (&global.object_list);
+       global_library != NULL;
+       global_library = linklist_next_som_library_object (global_library))
     {
-      if (addr >= object->base_addr && addr < object->end_addr)
+      if (addr >= global_library->object.base_addr &&
+	  addr < global_library->object.end_addr)
         break;
     }
 
-  if (object != NULL)
+  if (global_library != NULL)
     printf ("Address given is at offset 0x%lX of library %s\n",
-	    addr - object->base_addr, object->name);
+	    addr - global_library->object.base_addr, global_library->object.name);
   else
     printf ("Address given is not known to the Shared Object Manager\n");
 }

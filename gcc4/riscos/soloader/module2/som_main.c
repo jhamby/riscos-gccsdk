@@ -32,32 +32,32 @@ som_callback_handler (_kernel_swi_regs *r, void *pw)
   global.flags.callback_pending = false;
 
   unsigned int current_time = os_read_monotonic_time ();
-  som_object *object = linklist_first_som_object (&global.object_list);
+  som_library_object *global_library =
+		linklist_first_som_library_object (&global.object_list);
 
-  while (object)
+  while (global_library)
     {
-      som_object *next = linklist_next_som_object (object);
+      som_library_object *next = linklist_next_som_library_object (global_library);
 
       /* Ignore libraries that are still in use.  */
-      if (object->usage_count != 0)
+      if (global_library->usage_count != 0)
 	goto next_object;
 
       /* Check object expiry time against current time.  */
-      if (object->expire_time > current_time)
+      if (global_library->expire_time > current_time)
 	goto next_object;
 
       /* If we get here, object has expired, remove from global list.  */
-      linklist_remove (&global.object_list, &object->link);
+      linklist_remove (&global.object_list, &global_library->link);
 
       /* Mark this object slot as being reusable.  */
-      global.object_array.object_base[object->index] = NULL;
+      global.object_array.object_base[global_library->object.index] = NULL;
 
-      som_free (object->name);
-      som_free (object->base_addr);
-      som_free (object);
+      som_free (global_library->object.base_addr);
+      som_free (global_library);
 
     next_object:
-      object = next;
+      global_library = next;
     }
 
   return NULL;

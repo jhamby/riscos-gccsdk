@@ -1,3 +1,37 @@
+Wed Aug 10 16:15:45 2011  Lee Noar <leenoar@sky.com>
+
+	Better object management and memory usage.
+	struct som_object tries to fit into two lists; the
+	global list and the client list, but ends up containing
+	members that are not appropriate for one or the other.
+
+	* som.h(struct som_object): Move client/global specific
+	members to new structures som_library_object and
+	som_client_object. som_object is no longer directly a
+	link in a list, but is instead contained within
+	som_library_object. som_client_object in the client list
+	then points to a som_library_object in the global list.
+	Also instead of allocating separate memory for object
+	names, store at the end of the object and allocate as
+	part of the object.
+	* som_utilswis.c: Use new structure layout.
+	* som_register.c: Likewise.
+	* som_final.c: Likewise.
+	* som_command.c: Likewise.
+	* som_main.c: Likewise.
+	* som_array.c: Likewise.
+	* som_register.h(som_register_sharedobject): Remove
+	redundant argument.
+	* som_types: Forward declare new structure types.
+	* som_runcom.c(register_dynamic_loader): Remove redundant
+	argument to som_register_sharedobject.
+	* somanager.cmhg: Bump version number to 2.05 because of
+	significant internal changes.
+	* somhistory.(c,h)(som_history_add_client): Instead of
+	allocating all names individually, allocate one block to
+	store them all.
+	* dist/!SharedLibs/SOM1stRun,feb: Need at least V2.04.
+
 Sun Aug 07 11:54:12 2011  Lee Noar <leenoar@sky.com>
 
 	* som_register.c(som_register_client): Store the object

@@ -33,15 +33,16 @@ module_finalisation (int fatal, int podule_base, void *pw)
   else
 #endif
     {
-      som_object *object = linklist_first_som_object (&global.object_list);
+      som_library_object *global_library =
+		linklist_first_som_library_object (&global.object_list);
 
-      while (object)
+      while (global_library)
 	{
-	  if (object->flags.type != object_flag_type_CLIENT
-	      && object->base_addr)
-	    som_free (object->base_addr);
+	  if (global_library->object.flags.type != object_flag_type_CLIENT
+	      && global_library->object.base_addr)
+	    som_free (global_library->object.base_addr);
 
-	  object = linklist_next_som_object (object);
+	  global_library = linklist_next_som_library_object (global_library);
 	}
     }
 

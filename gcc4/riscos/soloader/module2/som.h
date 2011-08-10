@@ -60,45 +60,14 @@ enum
   reason_code_SOM_ITERATE_LAST
 };
 
-/* A link in the list of known clients.  */
-typedef struct _som_client som_client;
-struct _som_client
-{
-  link_hdr link;
-
-  /* Pointer to filename of client.  */
-  char *name;
-
-  /* ID code for this client.  */
-  som_client_ID unique_ID;
-
-  /* Ordered (by base addr) linked list of libraries used by this client.
-     First object is for the client itself.  */
-  link_list object_list;
-
-  /* An array of GOT pointers used by the PIC register loading instruction
-     sequence. There is one entry for each object in the system. Each object
-     is assigned an index (stored within its workspace) into this array, If the
-     current client doesn't use an object then its entry is NULL.  */
-  som_array gott_base;
-
-  /* An array of _som_rt_elem structures. Used by the dynamic linker for fast
-     access to relocation data.  */
-  som_array runtime_array;
-};
-LINKLIST_ACCESS_FUNCTIONS (som_client)
-
 typedef struct som_object_flags
 {
   unsigned int type:4;
 } som_object_flags;
 
-/* A link in the list of libraries that are currently loaded.  */
 typedef struct _som_object som_object;
 struct _som_object
 {
-  link_hdr link;
-
   /* Handle of object (currently base address of object, 0x8000 for app,
      0 = invalid).  */
   som_handle handle;
@@ -133,8 +102,16 @@ struct _som_object
   /* Size of dynamic segment.  */
   int dynamic_size;
 
-  /* The following two fields are only used by library objects,
-     they have no meaning to clients.  */
+  som_object_flags flags;
+
+  /* This member must be the last one present in the structure.  */
+  char name[];
+};
+
+/* A link in the global list of libraries that are currently loaded.  */
+typedef struct _som_library_object
+{
+  link_hdr link;
 
   /* Number of clients that are using this library.  */
   int usage_count;
@@ -144,15 +121,58 @@ struct _som_object
      hand.  */
   unsigned int expire_time;
 
-  char *name;
+  /* The object itself. This must be the last member of the structure
+     to accommodate the name member of som_object.  */
+  som_object object;
 
-  som_object_flags flags;
+} som_library_object;
+LINKLIST_ACCESS_FUNCTIONS (som_library_object)
 
-  /* These are only used in client lists, not in the global list.  */
-  som_PTR private_rw_ptr;
-  som_PTR private_got_ptr;
+/* A link in the private list of libraries that the client uses.  */
+typedef struct _som_client_object
+{
+  link_hdr link;
+
+  /* The client's copy of the library's R/W segment.  */
+  som_PTR rw_addr;
+
+  /* Pointer to the client's copy of the GOT.  */
+  som_PTR got_addr;
+
+  /* Pointer to the library itself.  */
+  som_library_object *library;
+
+} som_client_object;
+LINKLIST_ACCESS_FUNCTIONS (som_client_object)
+
+/* A link in the list of known clients.  */
+typedef struct _som_client som_client;
+struct _som_client
+{
+  link_hdr link;
+
+  /* ID code for this client.  */
+  som_client_ID unique_ID;
+
+  /* Ordered (by base addr) linked list of libraries used by this client.
+     First object is for the client itself.  */
+  link_list object_list;
+
+  /* An array of GOT pointers used by the PIC register loading instruction
+     sequence. There is one entry for each object in the system. Each object
+     is assigned an index (stored within its workspace) into this array, If the
+     current client doesn't use an object then its entry is NULL.  */
+  som_array gott_base;
+
+  /* An array of _som_rt_elem structures. Used by the dynamic linker for fast
+     access to relocation data.  */
+  som_array runtime_array;
+
+  /* An object to record the details of the client. This must be the last
+     member of the structure to accommodate the name member of som_object.  */
+  som_object object;
 };
-LINKLIST_ACCESS_FUNCTIONS (som_object)
+LINKLIST_ACCESS_FUNCTIONS (som_client)
 
 typedef struct _som_objinfo som_objinfo;
 struct _som_objinfo

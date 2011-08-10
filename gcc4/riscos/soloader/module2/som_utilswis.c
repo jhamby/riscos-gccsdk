@@ -17,10 +17,11 @@
  * a buffer.
  */
 _kernel_oserror *
-som_query_object (som_handle handle, som_objinfo *objinfo,
+som_query_object (som_handle handle,
+		  som_objinfo *objinfo,
 		  unsigned int flags)
 {
-  som_object *object;
+  som_library_object *global_library = NULL;
 
   if (handle == 0)
     return somerr_bad_param;
@@ -32,36 +33,45 @@ som_query_object (som_handle handle, som_objinfo *objinfo,
       if ((client = FIND_CLIENT ()) == NULL)
         return somerr_client_not_found;
 
-      object = linklist_first_som_object (&client->object_list);
+      som_client_object *client_library;
+      for (client_library = linklist_first_som_client_object (&client->object_list);
+	   client_library && client_library->library->object.handle != handle;
+	   client_library = linklist_next_som_client_object (client_library))
+	/* */;
+
+      if (client_library)
+	global_library = client_library->library;
+
+      if (objinfo)
+	objinfo->private_rw_ptr = client_library->rw_addr;
     }
   else
-    object = linklist_first_som_object (&global.object_list);
-
-  while (object)
     {
-      if (object->handle == handle)
-	break;
+      for (global_library = linklist_first_som_library_object (&global.object_list);
+	   global_library && global_library->object.handle != handle;
+	   global_library = linklist_next_som_library_object (global_library))
+	/* */;
 
-      object = linklist_next_som_object (object);
+      if (objinfo)
+	objinfo->private_rw_ptr = NULL;
     }
 
-  if (!object)
+  if (!global_library)
     return somerr_object_not_found;
 
   if (!objinfo)
     return NULL;
 
-  objinfo->base_addr = object->base_addr;
-  objinfo->public_rw_ptr = object->rw_addr;
-  objinfo->private_rw_ptr = object->private_rw_ptr;
-  objinfo->rw_size = object->rw_size;
-  objinfo->got_offset = object->got_addr - objinfo->public_rw_ptr;
-  objinfo->bss_offset = object->bss_addr - objinfo->public_rw_ptr;
-  objinfo->bss_size = object->bss_size;
-  objinfo->dyn_offset = object->dynamic_addr - objinfo->public_rw_ptr;
-  objinfo->dyn_size = object->dynamic_size;
-  objinfo->name = object->name;
-  objinfo->flags = object->flags;
+  objinfo->base_addr = global_library->object.base_addr;
+  objinfo->public_rw_ptr = global_library->object.rw_addr;
+  objinfo->rw_size = global_library->object.rw_size;
+  objinfo->got_offset = global_library->object.got_addr - global_library->object.rw_addr;
+  objinfo->bss_offset = global_library->object.bss_addr - global_library->object.rw_addr;
+  objinfo->bss_size = global_library->object.bss_size;
+  objinfo->dyn_offset = global_library->object.dynamic_addr - global_library->object.rw_addr;
+  objinfo->dyn_size = global_library->object.dynamic_size;
+  objinfo->name = global_library->object.name;
+  objinfo->flags = global_library->object.flags;
 
   return NULL;
 }
@@ -85,16 +95,16 @@ _kernel_oserror *
 som_iterate_objects (_kernel_swi_regs *regs)
 {
   _kernel_oserror *err = NULL;
-  som_object *result_object = NULL;
+  som_client_object *result_object = NULL;
 
   switch (regs->r[0])
     {
     case reason_code_SOM_ITERATE_NEXT:
       {
-	som_object *object = (som_object *) regs->r[1];
+	som_client_object *object = (som_client_object *) regs->r[1];
 
 	if (object)
-	  result_object = linklist_next_som_object (object);
+	  result_object = linklist_next_som_client_object (object);
 	else
 	  err = somerr_bad_param;
       }
@@ -102,10 +112,10 @@ som_iterate_objects (_kernel_swi_regs *regs)
 
     case reason_code_SOM_ITERATE_PREV:
       {
-	som_object *object = (som_object *) regs->r[1];
+	som_client_object *object = (som_client_object *) regs->r[1];
 
 	if (object)
-	  result_object = linklist_prev_som_object (object);
+	  result_object = linklist_prev_som_client_object (object);
 	else
 	  err = somerr_bad_param;
       }
@@ -116,7 +126,7 @@ som_iterate_objects (_kernel_swi_regs *regs)
 	som_client *client = FIND_CLIENT ();
 
 	if (client)
-	  result_object = linklist_first_som_object (&client->object_list);
+	  result_object = linklist_first_som_client_object (&client->object_list);
 	else
 	  err = somerr_client_not_found;
       }
@@ -127,7 +137,7 @@ som_iterate_objects (_kernel_swi_regs *regs)
 	som_client *client = FIND_CLIENT ();
 
 	if (client)
-	  result_object = linklist_last_som_object (&client->object_list);
+	  result_object = linklist_last_som_client_object (&client->object_list);
 	else
 	  err = somerr_client_not_found;
       }
@@ -143,7 +153,7 @@ som_iterate_objects (_kernel_swi_regs *regs)
   else
     {
       regs->r[1] = (unsigned int) result_object;
-      regs->r[0] = result_object->handle;
+      regs->r[0] = result_object->library->object.handle;
     }
 
   return err;
@@ -160,7 +170,7 @@ _kernel_oserror *
 som_got_from_addr (_kernel_swi_regs *regs)
 {
   som_client *client;
-  som_object *object;
+  som_client_object *client_library;
   som_PTR addr = (som_PTR) regs->r[0];
 
   if ((client = FIND_CLIENT ()) == NULL)
@@ -169,18 +179,18 @@ som_got_from_addr (_kernel_swi_regs *regs)
       return somerr_client_not_found;
     }
 
-  for (object = linklist_first_som_object (&client->object_list);
-       object != NULL && addr > object->end_addr;
-       object = linklist_next_som_object (object))
+  for (client_library = linklist_first_som_client_object (&client->object_list);
+       client_library != NULL && addr > client_library->library->object.end_addr;
+       client_library = linklist_next_som_client_object (client_library))
     /* */;
 
-  if (object == NULL)
+  if (client_library == NULL)
     {
       regs->r[0] = 0;
       return somerr_object_not_found;
     }
 
-  regs->r[0] = (unsigned int) object->private_got_ptr;
+  regs->r[0] = (unsigned int) client_library->got_addr;
 
   return NULL;
 }
@@ -195,7 +205,7 @@ _kernel_oserror *
 som_handle_from_addr (_kernel_swi_regs *regs)
 {
   som_client *client;
-  som_object *object;
+  som_client_object *client_library;
   som_PTR addr = (som_PTR) regs->r[0];
 
   if ((client = FIND_CLIENT ()) == NULL)
@@ -204,18 +214,18 @@ som_handle_from_addr (_kernel_swi_regs *regs)
       return somerr_client_not_found;
     }
 
-  for (object = linklist_first_som_object (&client->object_list);
-       object != NULL && addr > object->end_addr;
-       object = linklist_next_som_object (object))
+  for (client_library = linklist_first_som_client_object (&client->object_list);
+       client_library != NULL && addr > client_library->library->object.end_addr;
+       client_library = linklist_next_som_client_object (client_library))
     /* */;
 
-  if (object == NULL)
+  if (client_library == NULL)
     {
       regs->r[0] = 0;
       return somerr_object_not_found;
     }
 
-  regs->r[0] = object->handle;
+  regs->r[0] = client_library->library->object.handle;
 
   return NULL;
 }
@@ -230,15 +240,15 @@ som_handle_from_addr (_kernel_swi_regs *regs)
 som_handle
 som_handle_from_name (const char *name)
 {
-  som_object *object;
+  som_library_object *global_library;
 
   /* Search global list, not current client.  */
-  for (object = linklist_first_som_object (&global.object_list);
-       object != NULL && strcmp (object->name, name);
-       object = linklist_next_som_object (object))
+  for (global_library = linklist_first_som_library_object (&global.object_list);
+       global_library != NULL && strcmp (global_library->object.name, name);
+       global_library = linklist_next_som_library_object (global_library))
     /* */;
 
-  return (object == NULL) ? 0 : object->handle;
+  return (global_library == NULL) ? 0 : global_library->object.handle;
 }
 
 /* SWI "SOM_Reloc"
@@ -260,16 +270,17 @@ som_reloc (_kernel_swi_regs *regs)
   if (client)
     {
       som_PTR addr = (som_PTR) regs->r[0];
-      som_object *object;
+      som_client_object *client_library;
 
-      for (object = linklist_first_som_object (&client->object_list);
-	   object != NULL
-	     && (addr < object->rw_addr
-	     || addr >= object->rw_addr + object->rw_size);
-	   object = linklist_next_som_object (object))
+      for (client_library = linklist_first_som_client_object (&client->object_list);
+	   client_library != NULL
+	     && (addr < client_library->library->object.rw_addr
+	     || addr >= client_library->library->object.rw_addr + client_library->library->object.rw_size);
+	   client_library = linklist_next_som_client_object (client_library))
         /* */;
 
-      if (object != NULL)
-	regs->r[0] = (int) (object->private_rw_ptr + (addr - object->rw_addr));
+      if (client_library != NULL)
+	regs->r[0] = (int) (client_library->rw_addr
+			 + (addr - client_library->library->object.rw_addr));
     }
 }

@@ -1,6 +1,6 @@
 /* som_types.h
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007-2011 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -16,6 +16,8 @@ typedef unsigned int som_handle;
 typedef char *som_PTR;
 
 /* Forward declarations */
+struct _som_client_object;
+struct _som_library_object;
 struct _som_object;
 
 #endif
