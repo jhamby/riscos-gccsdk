@@ -26,13 +26,11 @@ Status build:
   are aiming to use the ARM stack unwinder instead.
 - C++ Exception handling using the ARM stack unwinder works for UnixLib and SCL
   based programs, including modules and shared libraries (subject to more testing).
-- Native compiler fails when encountering #include directives, error is:
-
-  stdio.h: Operation would block
-  compilation terminated
-
-  possibly related to preprocessor. Tested with dynamically linked tool chain,
-  didn't try static build.
+- Native compiler works although it requires liblto_plugin.so to be present in
+  the libexec search path, ie, !GCC.libexec.gcc.arm-unknown-riscos.4/6/2. It
+  doesn't actually load the library, but will not proceed without it. Due to the
+  inclusion of PPL, libstdc++ is also required. Tested with dynamically linked tool
+  chain, didn't try static build.
 
 Upstream gcc bug tracking:
 
