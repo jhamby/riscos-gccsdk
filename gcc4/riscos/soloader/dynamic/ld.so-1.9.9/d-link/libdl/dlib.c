@@ -507,9 +507,6 @@ static int foobar1 = (int)foobar; /* Use as pointer */
 #pragma weak _dl_map_cache = foobar
 #pragma weak _dl_unmap_cache = foobar
 #endif
-#pragma weak _dl_malloc_function = foobar1
-#pragma weak _dl_stkovf_split_small_function = foobar1
-#pragma weak _dl_stkovf_split_big_function = foobar1
 #pragma weak _dl_parse_relocation_information = foobar
 #pragma weak _dl_parse_lazy_relocation_information = foobar
 #pragma weak _dl_fdprintf = foobar
@@ -525,7 +522,6 @@ __asm__(".weak _dl_load_shared_library; _dl_load_shared_library = foobar");
 __asm__(".weak _dl_map_cache; _dl_map_cache = foobar");
 __asm__(".weak _dl_unmap_cache; _dl_unmap_cache = foobar");
 #endif
-__asm__(".weak _dl_malloc_function; _dl_malloc_function = foobar1");
 __asm__(".weak _dl_parse_relocation_information; _dl_parse_relocation_information = foobar");
 __asm__(".weak _dl_parse_lazy_relocation_information; _dl_parse_lazy_relocation_information = foobar");
 __asm__(".weak _dl_fdprintf; _dl_fdprintf = foobar");

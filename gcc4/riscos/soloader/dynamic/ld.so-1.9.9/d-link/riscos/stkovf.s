@@ -27,17 +27,14 @@
 	.endm
 
 	.global	_dl_stkovf_split_small
-	.protected _dl_stkovf_split_small
+	.hidden _dl_stkovf_split_small
 _dl_stkovf_split_small:
-	STR	r7, [sp, #-4]!
-
-	LDR	r7, .L0+4
-	LDR	r7, [r7, #0]
-	LDR	r7, [r7, #__GOTT_INDEX__]
+	LDR	r12, .L0+4
+	LDR	r12, [r12, #0]
+	LDR	r12, [r12, #__GOTT_INDEX__]
 
 	LDR	r8, .L0
-	LDR	r8, [r7, r8]
-	LDR	r7, [sp], #4
+	LDR	r8, [r12, r8]
 	LDR	r8, [r8, #0]
 	TEQ	r8, #0
 	MOVNE	pc, r8
@@ -49,7 +46,7 @@ _dl_stkovf_split_small:
 	.size	_dl_stkovf_split_small, . - _dl_stkovf_split_small
 
 	.global	_dl_stkovf_split_big
-	.protected _dl_stkovf_split_big
+	.hidden _dl_stkovf_split_big
 _dl_stkovf_split_big:
 	STR	r7, [sp, #-4]!
 
