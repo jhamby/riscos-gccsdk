@@ -1,3 +1,11 @@
+Thu Aug 11 23:06:47 2011  Lee Noar <leenoar@sky.com>
+
+	* sys/_syslib.s(__env_riscos,__env_read,__env_unixlib):
+	Avoid having to save the PIC register by using r12.
+	Simplifies the source code because the same stack
+	save/load instructions can be used for both PIC and
+	non PIC versions.
+
 Sat Aug 06 18:23:01 2011  Lee Noar <leenoar@sky.com>
 
 	* pthread/_context.s: Convert to new PIC scheme.

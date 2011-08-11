@@ -1,5 +1,5 @@
 @ Provide program entry and initialise the UnixLib world
-@ Copyright (c) 2002-2010 UnixLib Developers
+@ Copyright (c) 2002-2011 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -636,17 +636,16 @@ __dynamic_area_exit:
 	.global	__env_riscos
 	NAME __env_riscos
 __env_riscos:
- PICNE "STMFD	sp!, {v1, v2, lr}"
- PICEQ "STMFD	sp!, {v1, v2, v4, lr}"
+	STMFD	sp!, {v1, v2, lr}
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+ PICEQ "LDR	ip, =__GOTT_BASE__"
+ PICEQ "LDR	ip, [ip, #0]"
+ PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
 
 	SWI	XOS_IntOff
 	MOV	v1, #0
 	LDR	v2, .L2			@=__calling_environment
- PICEQ "LDR	v2, [v4, v2]"
+ PICEQ "LDR	v2, [ip, v2]"
 t04:
 	MOV	a1, v1
 	LDMIA	v2!, {a2, a3, a4}
@@ -657,8 +656,7 @@ t04:
 	CMP	v1, #17		@  __ENVIRONMENT_HANDLERS
 	BCC	t04
 	SWI	XOS_IntOn
- PICNE "LDMFD	sp!, {v1, v2, pc}"
- PICEQ "LDMFD	sp!, {v1, v2, v4, pc}"
+	LDMFD	sp!, {v1, v2, pc}
 .L2:
 	WORD	__calling_environment
 	DECLARE_FUNCTION __env_riscos
@@ -666,16 +664,15 @@ t04:
 	@ Get current environment handler setup
 	NAME	__env_read
 __env_read:
- PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}"
- PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, lr}"
+	STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+ PICEQ "LDR	ip, =__GOTT_BASE__"
+ PICEQ "LDR	ip, [ip, #0]"
+ PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
 
 	MOV	v1, #0
 	LDR	v2, .L8			@=__calling_environment
- PICEQ "LDR	v2, [v4, v2]"
+ PICEQ "LDR	v2, [ip, v2]"
 t05:
 	MOV	a1, v1
 	MOV	a2, #0
@@ -686,8 +683,7 @@ t05:
 	ADD	v1, v1, #1
 	CMP	v1, #17
 	BCC	t05
- PICEQ "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, pc}"
- PICNE "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}"
+	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}
 .L8:
 	WORD	__calling_environment
 	DECLARE_FUNCTION __env_read
@@ -696,12 +692,11 @@ t05:
 	.global	__env_unixlib
 	NAME	__env_unixlib
 __env_unixlib:
- PICEQ "STMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, lr}"
- PICNE "STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}"
+	STMFD	sp!, {a1, a2, a3, a4, v1, v2, lr}
 
- PICEQ "LDR	v4, =__GOTT_BASE__"
- PICEQ "LDR	v4, [v4, #0]"
- PICEQ "LDR	v4, [v4, #__GOTT_INDEX__]"	@ v4 = GOT ptr
+ PICEQ "LDR	ip, =__GOTT_BASE__"
+ PICEQ "LDR	ip, [ip, #0]"
+ PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
 
 	SWI	XOS_IntOff
 
@@ -709,7 +704,7 @@ __env_unixlib:
  PICNE "ADR	v2, handlers"
 
  PICEQ "LDR	v2, .L3+12"		@ handlers
- PICEQ "LDR	v2, [v4, v2]"
+ PICEQ "LDR	v2, [ip, v2]"
 t06:
 	MOV	a1, v1
 	LDR	a2, [v2], #4
@@ -718,23 +713,23 @@ t06:
 	@ that are used by UnixLib.
  PICEQ "CMP	a2, #0"
  PICEQ "MOVEQ	a3, #0"
- PICEQ "MOVNE	a3, v4"
+ PICEQ "MOVNE	a3, ip"
  PICNE "MOV	a3, #0"
 
 	MOV	a4, #0
 	TEQ	v1, #6		@ Error handler ?
 	LDREQ	a4, .L3		@=__ul_errbuf
- PICEQ "LDREQ	a4, [v4, a4]"
+ PICEQ "LDREQ	a4, [ip, a4]"
 	TEQ	v1, #7		@ CallBack handler ?
 	LDREQ	a4, .L3+4	@=__cbreg
- PICEQ "LDREQ	a4, [v4, a4]"
+ PICEQ "LDREQ	a4, [ip, a4]"
 	SWI	XOS_ChangeEnvironment
 	ADD	v1, v1, #1
 	CMP	v1, #16
 	BCC	t06
 
 	LDR	a4, .L3+8	@=__ul_global
- PICEQ "LDR	a4, [v4, a4]"
+ PICEQ "LDR	a4, [ip, a4]"
 	MOV	a1, #16
 	LDR	a2, [a4, #GBL_UPCALL_HANDLER_ADDR]
 	LDR	a3, [a4, #GBL_UPCALL_HANDLER_R12]
@@ -742,8 +737,7 @@ t06:
 	SWI	XOS_ChangeEnvironment
 
 	SWI	XOS_IntOn
- PICEQ "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, v4, pc}"
- PICNE "LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}"
+	LDMFD	sp!, {a1, a2, a3, a4, v1, v2, pc}
 .L3:
 	WORD	__ul_errbuf
 	WORD	__cbreg
