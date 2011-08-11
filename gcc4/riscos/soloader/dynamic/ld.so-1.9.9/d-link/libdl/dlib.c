@@ -22,13 +22,6 @@
 extern int _dl_error_number;
 extern struct r_debug * _dl_debug_addr;
 
-extern void * (*_dl_malloc_function)(size_t size);
-extern void (*_dl_stkovf_split_small_function)(void);
-extern void (*_dl_stkovf_split_big_function)(void);
-
-extern void __rt_stkovf_split_small(void);
-extern void __rt_stkovf_split_big(void);
-
 static int do_fixup(struct elf_resolve * tpnt, int flag);
 static int do_dlclose(void *, int need_fini);
 
@@ -84,19 +77,10 @@ void * _dlopen(const char * libname, int flag)
 	struct dyn_elf * rpnt;
 	struct dyn_elf * dyn_chain;
 	struct dyn_elf * dpnt;
-	static int dl_init = 0;
 	char *  from;
-	void (*dl_brk)(void);
 	int (*dl_elf_init)(void);
 
 	from = __builtin_return_address(0);
-	/* Have the dynamic linker use the regular malloc function now */
-	if (!dl_init) {
-		dl_init++;
-		_dl_malloc_function = malloc;
-		_dl_stkovf_split_small_function = __rt_stkovf_split_small;
-		_dl_stkovf_split_big_function = __rt_stkovf_split_big;
-	}
 
 	/* Cover the trivial case first */
 	if (!libname) return _dl_symbol_tables;

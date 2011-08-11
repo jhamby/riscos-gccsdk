@@ -133,3 +133,4 @@ extern unsigned int _dl_riscos_resolver(int dummy, int i);
 		: "r" (top), "r" (bottom)	\
 		: "ip", "cc"); /* uses r12 as temporary register and alters flags */
 
+#define ATTRIBUTE_HIDDEN __attribute__ ((visibility ("hidden")))

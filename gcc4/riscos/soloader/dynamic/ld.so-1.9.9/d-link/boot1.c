@@ -134,9 +134,9 @@ static char * _dl_trace_loaded_objects = 0;
 static int (*_dl_elf_main)(int, char **, char**);
 static void _dl_call_ctors(void);
 
-void * (*_dl_malloc_function)(int size) = NULL;
-void (*_dl_stkovf_split_small_function)(void) = NULL;
-void (*_dl_stkovf_split_big_function)(void) = NULL;
+static void * (*_dl_malloc_function)(int size) = NULL;
+void (*_dl_stkovf_split_small_function)(void) ATTRIBUTE_HIDDEN = NULL;
+void (*_dl_stkovf_split_big_function)(void) ATTRIBUTE_HIDDEN = NULL;
 
 struct r_debug * _dl_debug_addr = NULL;
 
@@ -894,6 +894,20 @@ static void _dl_call_ctors(void)
 struct elf_resolve *tpnt;
 int (*_dl_atexit)(void *);
 int (*_dl_elf_init)(void);
+void (*rt_stkovf_split)(void);
+void *(*unixlib_malloc)(int);
+
+  /* Now that we know that UnixLib has been initialised, we can switch to using
+   * its routines for stack extension and memory allocation.
+   */
+  rt_stkovf_split = (void (*)(void)) _dl_find_hash("__rt_stkovf_split_small", NULL, NULL, NULL, 0);
+  _dl_stkovf_split_small_function = rt_stkovf_split;
+
+  rt_stkovf_split = (void (*)(void)) _dl_find_hash("__rt_stkovf_split_big", NULL, NULL, NULL, 0);
+  _dl_stkovf_split_big_function = rt_stkovf_split;
+
+  unixlib_malloc = (void *(*)(int)) _dl_find_hash("malloc", NULL, NULL, NULL, 0);
+  _dl_malloc_function = unixlib_malloc;
 
   _dl_atexit = (int (*)(void *)) _dl_find_hash("atexit", NULL, NULL, NULL, 0);
 
