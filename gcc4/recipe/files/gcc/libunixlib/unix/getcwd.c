@@ -44,7 +44,9 @@ getcwd (char *buffer, size_t size)
   const _kernel_oserror *err = SWI_OS_FSControl_Canonicalise (ro_path, NULL,
 							      temp_buf, sizeof (temp_buf),
 							      NULL);
-  free ((void *)ro_path);
+  if (free_ro_path)
+    free ((void *)ro_path);
+
   if (err)
     {
       __ul_seterr (err, EOPSYS);

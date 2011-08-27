@@ -1,3 +1,8 @@
+Sat Aug 27 20:34:12 2011  Lee Noar <leenoar@sky.com>
+
+	* unix/getcwd.c(getcwd): Only free ro_path if it was
+	allocated with malloc in the first place.
+
 Thu Aug 11 23:06:47 2011  Lee Noar <leenoar@sky.com>
 
 	* sys/_syslib.s(__env_riscos,__env_read,__env_unixlib):
