@@ -1,7 +1,7 @@
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"                                                                    
 AB_LICENCE="GPLv2"
 AB_ROVERSION=1
-AB_PVERSION=1.1.1-svn-$(date +%Y%m%d)
+AB_PVERSION=1.1.2-svn-$(date +%Y%m%d)
 
 AB_SVN=svn://svn.openttd.org/trunk
 
@@ -42,9 +42,9 @@ ab_package () {
 
   cp -av $S/frontend$AB_EXEEXT $A/Resources/Installer/\!RunImage$AB_EXEEXT
 
-  wget --progress=bar:force http://bundles.openttdcoop.org/opengfx/releases/LATEST/opengfx-0.3.4.zip -O opengfx.zip
+  wget --progress=bar:force http://bundles.openttdcoop.org/opengfx/releases/LATEST/opengfx-0.3.5.zip -O opengfx.zip
   unzip opengfx.zip
-  cp -av opengfx-0.3.4/*.grf opengfx-0.3.4/*.obg $A/data
+  cp -av opengfx-0.3.5/*.grf opengfx-0.3.5/*.obg $A/data
 
   wget --progress=bar:force http://bundles.openttdcoop.org/opensfx/releases/opensfx-0.2.3.zip -O opensfx.zip
   unzip opensfx.zip

@@ -1,6 +1,6 @@
 
-AB_URL=http://download.gna.org/freeciv/beta/freeciv-2.3.0-RC1.tar.bz2
-AB_PVERSION=2.3.0-RC1
+AB_URL=http://download.gna.org/freeciv/stable/freeciv-2.3.0.tar.bz2
+AB_PVERSION=2.3.0
 
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 

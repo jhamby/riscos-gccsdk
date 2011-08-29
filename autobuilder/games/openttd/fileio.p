@@ -1,14 +1,5 @@
 --- src/fileio.cpp.orig	2009-11-03 20:14:08.000000000 -0800
 +++ src/fileio.cpp	2009-11-03 20:26:37.000000000 -0800
-@@ -22,7 +22,7 @@
- #include <Path.h>
- #include <storage/FindDirectory.h>
- #else
--#if defined(OPENBSD) || defined(DOS)
-+#if defined(OPENBSD) || defined(DOS) || defined(__riscos__)
- #include <unistd.h>
- #endif
- #include <pwd.h>
 @@ -831,6 +831,8 @@
  	char tmp[MAX_PATH];
  #if defined(__MORPHOS__) || defined(__AMIGA__) || defined(DOS) || defined(OS2) || !defined(WITH_PERSONAL_DIR)
