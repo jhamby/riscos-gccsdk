@@ -16,9 +16,14 @@ Status patch merging:
 
 Status build:
 
-- Enable languages c and c++, multilib configuration with static target libs
-  cleanly builds.
-- Didn't try any other languages.
+- Languages c, c++, fortran, objc, obj-c++ and java with multilib
+  configuration cleanly builds.
+  Resulting Fortran, ObjC and ObjC++ compilers are not tested.  Java (gcj)
+  gives a startup error "error: libgcj.spec: No such file or directory".
+- Ada gives a build error ("Error: register must be either sp or set by a
+  previousunwind_movsp directive").
+- Go gives a build error ("error: 'SIGRTMIN' undeclared"), SIGRTMIN is not
+  supported by UnixLib.
 - Shared libraries build and generally work.
 - Compiler builds without error when using dwarf stack unwinder, but C++
   programs built using it fail at link time because the wrong personality
