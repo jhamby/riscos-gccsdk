@@ -1,5 +1,5 @@
 /* UnixLib fread() implementation.
-   Copyright 2000-2010 UnixLib Developers.  */
+   Copyright 2000-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -15,8 +15,6 @@
 size_t
 fread (void *data, size_t size, size_t count, FILE *stream)
 {
-  size_t to_read;
-
   PTHREAD_UNSAFE
 
   /* Check for any errors.  */
@@ -29,7 +27,7 @@ fread (void *data, size_t size, size_t count, FILE *stream)
   if (feof (stream) || ferror (stream))
     return (size_t) 0;
 
-  to_read = size * count;
+  size_t to_read = size * count;
   if (to_read == 0)
     return (size_t) 0;
 
@@ -51,12 +49,10 @@ fread (void *data, size_t size, size_t count, FILE *stream)
 
   if (stream->i_base != NULL)
     {
-      size_t bytes;
-
       /* Optimisations appropriate for a buffered file.  */
 
       /* Take the first set of data out of the file buffer.  */
-      bytes = (to_read > stream->i_cnt) ? stream->i_cnt : to_read;
+      size_t bytes = (to_read > stream->i_cnt) ? stream->i_cnt : to_read;
       memcpy (data, stream->i_ptr, bytes);
       data = (void *)((char *)data + bytes);
 
@@ -66,19 +62,27 @@ fread (void *data, size_t size, size_t count, FILE *stream)
       to_read -= bytes;
     }
 
-  if (to_read)
+  if (stream->__string_istream)
     {
-      ssize_t bytes;
-
+      if (to_read)
+	stream->__eof = 1;
+    }
+  while (to_read)
+    {
       /* Read the rest of the data straight from the file.  */
-      if (stream->__string_istream)
-        bytes = 0;
-      else
-        bytes = read (stream->fd, data, to_read);
+      ssize_t bytes = read (stream->fd, data, to_read);
       if (bytes == 0)
-        stream->__eof = 1;
+	{
+	  /* Reading non-zero number of bytes and actually getting zero bytes
+	     means having reached EOF.  */
+	  stream->__eof = 1;
+	  break;
+	}
       else if (bytes == -1)
-        stream->__error = 1;
+	{
+	  stream->__error = 1;
+	  break;
+	}
       else
 	{
 	  to_read -= bytes;
@@ -88,5 +92,5 @@ fread (void *data, size_t size, size_t count, FILE *stream)
     }
 
   /* Return the number of objects actually read.  */
-  return count - (to_read / size);
+  return count - (to_read + size - 1) / size;
 }

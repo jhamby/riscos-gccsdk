@@ -1,3 +1,8 @@
+Wed Sep  7 00:08:02 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/fread.c (fread): Set EOF when last byte is read.
+	Fix returned number of objects read when there is a partial one read.
+
 Sat Aug 27 20:34:12 2011  Lee Noar <leenoar@sky.com>
 
 	* unix/getcwd.c(getcwd): Only free ro_path if it was
