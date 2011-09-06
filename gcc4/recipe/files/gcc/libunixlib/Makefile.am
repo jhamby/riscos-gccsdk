@@ -1439,25 +1439,16 @@ if UNIXLIB_CHUNKED_STACK
 # The only difference is that stack checking is turned off for these targets.
 # Automake doesn't seem to provide a per-object file flag setting function.
 brk.lo: sys/brk.c
-	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
-	-MT brk.lo -MD -MP -MF "$(DEPDIR)/brk.Tpo" -c -o brk.lo \
-	`test -f 'sys/brk.c' || echo '$(srcdir)/'`sys/brk.c; \
-	then mv -f "$(DEPDIR)/brk.Tpo" "$(DEPDIR)/brk.Plo"; \
-	else rm -f "$(DEPDIR)/brk.Tpo"; exit 1; fi
+	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -mno-apcs-stack-check -MT brk.lo -MD -MP -MF $(DEPDIR)/brk.Tpo -c -o brk.lo `test -f 'sys/brk.c' || echo '$(srcdir)/'`sys/brk.c
+	$(am__mv) $(DEPDIR)/brk.Tpo $(DEPDIR)/brk.Plo
 
 stackalloc.lo: sys/stackalloc.c
-	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
-	-MT stackalloc.lo -MD -MP -MF "$(DEPDIR)/stackalloc.Tpo" -c -o stackalloc.lo \
-	`test -f 'sys/stackalloc.c' || echo '$(srcdir)/'`sys/stackalloc.c; \
-	then mv -f "$(DEPDIR)/stackalloc.Tpo" "$(DEPDIR)/stackalloc.Plo"; \
-	else rm -f "$(DEPDIR)/stackalloc.Tpo"; exit 1; fi
+	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -mno-apcs-stack-check -MT stackalloc.lo -MD -MP -MF $(DEPDIR)/stackalloc.Tpo -c -o stackalloc.lo `test -f 'sys/stackalloc.c' || echo '$(srcdir)/'`sys/stackalloc.c
+	$(am__mv) $(DEPDIR)/stackalloc.Tpo $(DEPDIR)/stackalloc.Plo
 
 dvsprintf.lo: debug/dvsprintf.c
-	if $(LTCOMPILE) -Wc,-mno-apcs-stack-check \
-	-MT dvsprintf.lo -MD -MP -MF "$(DEPDIR)/dvsprintf.Tpo" -c -o dvsprintf.lo \
-	`test -f 'debug/dvsprintf.c' || echo '$(srcdir)/'`debug/dvsprintf.c; \
-	then mv -f "$(DEPDIR)/dvsprintf.Tpo" "$(DEPDIR)/dvsprintf.Plo"; \
-	else rm -f "$(DEPDIR)/dvsprintf.Tpo"; exit 1; fi
+	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -mno-apcs-stack-check -MT dvsprintf.lo -MD -MP -MF $(DEPDIR)/dvsprintf.Tpo -c -o dvsprintf.lo `test -f 'debug/dvsprintf.c' || echo '$(srcdir)/'`debug/dvsprintf.c
+	$(am__mv) $(DEPDIR)/dvsprintf.Tpo $(DEPDIR)/dvsprintf.Plo
 endif
 
 # crt ----------------------
