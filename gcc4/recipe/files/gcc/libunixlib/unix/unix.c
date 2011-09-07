@@ -39,7 +39,6 @@ static void initialise_unix_io (void);
 static void check_fd_redirection (const char *filename,
 				  unsigned int fd_to_replace);
 static int get_fd_redirection (const char *redir);
-static const char *find_terminator (const char *s);
 static void get_io_redir (const char *cli);
 static int verify_redirection (const char *redirection);
 static const char *find_redirection_type (const char *command_line,
@@ -587,24 +586,9 @@ get_fd_redirection (const char *redir)
   return fd;
 }
 
-/* Search through a string and look for a terminator that is one of
-   NULL, space, newline or carriage-return.  */
 static const char *
-find_terminator (const char *s)
-{
-  while (*s != '\0' && *s != ' ' && *s != '\r' && *s != '\n')
-    s++;
-
-  return s;
-}
-
-
-static void
 check_io_redir (const char *p, int fd, int mode)
 {
-  char fn[256];
-  char *ptr = fn;
-
   if (isdigit (p[-1]))
     fd = get_fd_redirection (p);
   else if (p[-1] == '>' && isdigit (p[-2]))
@@ -619,30 +603,59 @@ check_io_redir (const char *p, int fd, int mode)
   while (*p && isspace (*p))
     p++;
 
-  const char *space = find_terminator (p);
-  strncpy (fn, p, space - p);
-  /* Zero terminate the filename.  */
-  fn[space - p] = '\0';
+  char fn[256];
+  char *ptr = fn;
+  if (*p == '"')
+    {
+      /* Filename is double quoted, find the matching ending double quote.  */
+      ++p;
+      while (ptr != fn + sizeof (fn) && *p != '"')
+	{
+	  switch (*p)
+	    {
+	      case '\0':
+		__unixlib_fatal ("Wrongly quoted redirection filename");
+		break;
+	      case '\\':
+		++p;
+		/* Fall through.  */
+	      default:
+		*ptr++ = *p++;
+		break;
+	    }
+	}
+    }
+  else
+    {
+      /* Search through a string and look for a terminator that is one of
+	 NUL, space, newline or carriage-return.  */
+      while (ptr != fn + sizeof (fn) && *p != '\0' && *p != ' ')
+	*ptr++ = *p++;
+    }
+  if (ptr == fn + sizeof (fn))
+    __unixlib_fatal ("Redirection filename too long");
+  *ptr = '\0';
+
 #ifdef DEBUG
   debug_printf ("-- check_io_redir: filename='%s', mode=%08x\n",
 		fn, mode);
 #endif
 
   /* Check the >& construct.  */
-  if (*ptr == '&')
-    check_fd_redirection (ptr + 1, fd);
+  if (fn[0] == '&')
+    check_fd_redirection (fn + 1, fd);
   else
     {
       /* Close the file descriptor, if it was defined and open.  */
       if (!BADF (fd))
 	__close (getfd (fd));
 
-      fd = __open_fn (fd, ptr, mode, 0666);
+      fd = __open_fn (fd, fn, mode, 0666);
       if (fd < 0)
 	{
 	   char failure[300];
 	   snprintf (failure, sizeof (failure),
-		     "Cannot open %s for I/O redirection", ptr);
+		     "Cannot open %s for I/O redirection", fn);
 	   __unixlib_fatal (failure);
 	}
 
@@ -650,6 +663,7 @@ check_io_redir (const char *p, int fd, int mode)
 	/* Seek to the end of the file, because we are appending.  */
 	lseek (fd, 0, SEEK_END);
     }
+  return p;
 }
 
 static void
@@ -663,7 +677,7 @@ get_io_redir (const char *cli)
     {
       /* A redirector `<>' means read/write.  */
       int mode = (p[1] == '>') ? O_RDWR : O_RDONLY;
-      check_io_redir (p, STDIN_FILENO, mode);
+      p = check_io_redir (p, STDIN_FILENO, mode);
     }
   
   /* By default, we redirect file descriptor 1 (stdout).  */
@@ -682,20 +696,11 @@ get_io_redir (const char *cli)
 	     4. 2>>
 	  */
 	  if (isdigit (p[0]))
-	    {
-	      p++;
-	      if (p[0] == '>' && p[1] == '>')
-		p++, check_io_redir (p, STDOUT_FILENO, mode);
-	      else if (p[0] == '>')
-		check_io_redir (p, STDOUT_FILENO, mode | O_TRUNC);
-	    }
-	  else
-	    {
-	      if (p[0] == '>' && p[1] == '>')
-		p++, check_io_redir (p, STDOUT_FILENO, mode);
-	      else
-		check_io_redir (p, STDOUT_FILENO, mode | O_TRUNC);
-	    }
+	    ++p;
+	  if (p[0] == '>' && p[1] == '>')
+	    p = check_io_redir (++p, STDOUT_FILENO, mode);
+	  else if (p[0] == '>')
+	    p = check_io_redir (p, STDOUT_FILENO, mode | O_TRUNC);
 	}
     }
 }

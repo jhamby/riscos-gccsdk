@@ -1,3 +1,10 @@
+Thu Sep  8 00:10:25 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/unix.c (find_terminator): Remove.
+	(check_io_redir): Support for double quoated redirection filenames.
+	(get_io_redir): Simplify calls to check_io_redir.
+	Bug #221.
+
 Wed Sep  7 01:43:43 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am (brk.lo,stackalloc.lo,dvsprintf.lo): Update custom
