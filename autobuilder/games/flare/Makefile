@@ -1,10 +1,17 @@
-
-OBJS = Avatar.o \
+OBJS = Animation.o \
+Avatar.o \
 CampaignManager.o \
 Enemy.o \
+EnemyGroupManager.o \
 EnemyManager.o \
+Entity.o \
+FileParser.o \
 FontEngine.o \
-GameEngine.o \
+GameState.o \
+GameStateLoad.o \
+GameStateNew.o \
+GameStatePlay.o \
+GameStateTitle.o \
 GameSwitcher.o \
 Hazard.o \
 HazardManager.o \
@@ -17,7 +24,9 @@ MapCollision.o \
 MapIso.o \
 MenuActionBar.o \
 MenuCharacter.o \
+Menu.o \
 MenuEnemy.o \
+MenuExit.o \
 MenuExperience.o \
 MenuHPMP.o \
 MenuHUDLog.o \
@@ -26,8 +35,8 @@ MenuItemStorage.o \
 MenuLog.o \
 MenuManager.o \
 MenuMiniMap.o \
-MenuTalker.o \
 MenuPowers.o \
+MenuTalker.o \
 MenuTooltip.o \
 MenuVendor.o \
 NPC.o \
@@ -39,7 +48,9 @@ Settings.o \
 StatBlock.o \
 TileSet.o \
 Utils.o \
-UtilsParsing.o
+UtilsParsing.o \
+WidgetButton.o \
+WidgetInput.o
 
 CXXFLAGS = -Wall -O3 -I. -I$(GCCSDK_INSTALL_ENV)/include/SDL
 

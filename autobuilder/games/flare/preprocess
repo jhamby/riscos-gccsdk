@@ -1,15 +1,3 @@
 rm -Rf __MACOSX
-mv flare_src_v013 flare
-for cpp in $(find . -name "*.cpp"); do
- sed -i -e 's/"images\//"\/<Flare\$Dir>\/images\//g' $cpp
- sed -i -e 's/"soundfx\//"\/<Flare\$Dir>\/soundfx\//g' $cpp
- sed -i -e 's/"music\//"\/<Flare\$Dir>\/music\//g' $cpp
- sed -i -e 's/"fonts\//"\/<Flare\$Dir>\/fonts\//g' $cpp
- sed -i -e 's/"config\//"\/<Flare\$Dir>\/config\//g' $cpp
-done
-for h in $(find . -name "*.h"); do
- sed -i -e 's/"images\//"\/<Flare\$Dir>\/images\//g' $h
- sed -i -e 's/"soundfx\//"\/<Flare\$Dir>\/soundfx\//g' $h
- sed -i -e 's/"music\//"\/<Flare\$Dir>\/music\//g' $h
- sed -i -e 's/"fonts\//"\/<Flare\$Dir>\/fonts\//g' $h
-done
+mv flare_src_v014 flare
+
