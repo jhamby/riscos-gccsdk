@@ -1,0 +1,28 @@
+AB_PVERSION=0.73
+AB_SVN=svn://svn.berlios.de/pingus/trunk/pingus/
+AB_LICENCE=Free
+
+echo "Reverting to an older version of Pingus as RISC OS GCC does"
+echo "not currently have c++0x support"
+# Back date to last version that didn't use c++0x
+svn update -r 4189
+
+mkdir -p src/riscos
+cp $H/config.h src/riscos
+cp $H/makefile.riscos .
+
+ab_make() {
+  eval $AB_MAKE -f makefile.riscos
+  return
+}
+
+ab_package() {
+  ab_create_app Pingus Apps/Games
+  ab_makerun pingus$AB_EXEEXT
+
+  cp -av README AUTHORS ChangeLog COPYING $A
+
+  svn export data $A/data
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}

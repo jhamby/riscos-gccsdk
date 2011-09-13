@@ -1,0 +1,74 @@
+##  Pingus - A free Lemmings clone
+##  Copyright (C) 1999 Ingo Ruhnke <grumbel@gmx.de>,
+##                     Francois Beerten
+##
+##  This program is free software; you can redistribute it and/or
+##  modify it under the terms of the GNU General Public License
+##  as published by the Free Software Foundation; either version 2
+##  of the License, or (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##
+##  You should have received a copy of the GNU General Public License
+##  along with this program; if not, write to the Free Software
+##  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# Makefile for RISC OS
+#
+
+CXXFLAGS = -O2 -Wall -mpoke-function-name -I. -Isrc -Isrc/riscos \
+           -Iexternal \
+           -I$(GCCSDK_INSTALL_ENV)/include \
+           -I$(GCCSDK_INSTALL_ENV)/include/SDL \
+           -DBOOST_DISABLE_THREADS
+CFLAGS = -O2 -Wall -mpoke-function-name -I. -Isrc/riscos
+
+LD = g++
+LDFLAGS = -lstdc++ -static -L$(GCCSDK_INSTALL_ENV)/lib \
+          -lSDL -lSDL_Image -lSDL_Mixer -lpng -ljpeg -lz -lvorbisidec \
+          -lboost_signals
+
+AR=ar
+
+TARGET=pingus,e1f
+
+LIBPINGUS=libpingus.a
+
+LIBCSRC=$(wildcard external/binreloc-2.0/*.c)
+LIBCCSRC=  $(wildcard external/tinygettext/*.cpp) \
+           $(wildcard src/editor/*.cpp) \
+           $(wildcard src/engine/display/*.cpp) \
+           $(wildcard src/engine/gui/*.cpp) \
+           $(wildcard src/engine/input/*.cpp) \
+           $(wildcard src/engine/screen/*.cpp) \
+           $(wildcard src/engine/sound/*.cpp) \
+           $(wildcard src/engine/system/*.cpp) \
+           $(wildcard src/lisp/*.cpp) \
+           $(wildcard src/math/*.cpp) \
+           $(wildcard src/pingus/*.cpp) \
+           $(wildcard src/pingus/actions/*.cpp) \
+           $(wildcard src/pingus/colliders/*.cpp) \
+           $(wildcard src/pingus/components/*.cpp) \
+           $(wildcard src/pingus/movers/*.cpp) \
+           $(wildcard src/pingus/particles/*.cpp) \
+           $(wildcard src/pingus/screens/*.cpp) \
+           $(wildcard src/pingus/worldmap/*.cpp) \
+           $(wildcard src/pingus/worldobjs/*.cpp) \
+           $(wildcard src/util/*.cpp)
+
+LIBOBJS= $(LIBCSRC:.c=.o) $(LIBCCSRC:.cpp=.o)
+
+$(TARGET): src/main.o $(LIBPINGUS)
+	$(LD) $(LDFLAGS) -o $(TARGET) src/main.o $(LIBPINGUS) $(OBJECTS)
+
+$(LIBPINGUS): $(LIBOBJS)
+	$(AR) -r $(LIBPINGUS) $(LIBOBJS)
+
+%.o : %.cpp
+	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
+
+clean:
+	rm -rf src/main.o $(LIBOBJS)

@@ -1,0 +1,4 @@
+#define VERSION "0.7.3"
+#define ENABLE_BINRELOC 1
+#define ICONV_CONST 
+#define HAVE_LINUXUSBMOUSE 1

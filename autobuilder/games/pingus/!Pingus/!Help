@@ -1,0 +1,33 @@
+Pingus - RISC OS version
+
+   
+Introduction
+
+   Pingus is a free Lemmings(tm) clone for GNU/Linux, Win32 and other
+   operating systems supported by SDL. It is covered under the GPL,
+   check the file COPYING, for more information.
+   
+   Information about the game, new versions and additional
+   documentation can be found at the Pingus webpage:
+   
+     * http://pingus.seul.org
+
+   For RISC OS version problems contact the GCCSDK mailing list
+
+
+Notes for RISC OS
+
+   The version of Pingus first generated when this help file
+   was written (Sept 2011) needs a lot of memory to run and
+   may be too slow on anything older than an Iyonix.
+
+   You can try tweaking the command line parameters in the !Run
+   file to see if you can increase the speed.
+
+   Switching to full screen mode (F11) often helps.
+
+   It can currently get to a maximum of about 14fps on an Iyonix.
+
+   I suspect it may still crash occasionally as it is a beta and
+   may still run out of memory. Usually restarting the game lets
+   you continue from the start of the screen where you left off.
