@@ -1,6 +1,7 @@
-AB_PVERSION=0.73
+AB_PVERSION=0.7.3-alpha
 AB_SVN=svn://svn.berlios.de/pingus/trunk/pingus/
 AB_LICENCE=Free
+AB_DISTCLEAN="$AB_MAKE -f makefile.riscos distclean"
 
 echo "Reverting to an older version of Pingus as RISC OS GCC does"
 echo "not currently have c++0x support"

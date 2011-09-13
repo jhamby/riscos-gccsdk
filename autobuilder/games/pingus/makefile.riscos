@@ -28,7 +28,7 @@ CFLAGS = -O2 -Wall -mpoke-function-name -I. -Isrc/riscos
 
 LD = g++
 LDFLAGS = -lstdc++ -static -L$(GCCSDK_INSTALL_ENV)/lib \
-          -lSDL -lSDL_Image -lSDL_Mixer -lpng -ljpeg -lz -lvorbisidec \
+          -lSDL -lSDL_image -lSDL_mixer -lpng -ljpeg -lz -lvorbisidec \
           -lboost_signals
 
 AR=ar
@@ -71,4 +71,7 @@ $(LIBPINGUS): $(LIBOBJS)
 	$(CXX) -c $(CXXFLAGS) $(CPPFLAGS) $< -o $@
 
 clean:
-	rm -rf src/main.o $(LIBOBJS)
+	rm -rf src/main.o $(LIBOBJS) $(LIBPINGUS)
+
+distclean: clean
+	rm -f $(TARGET)
