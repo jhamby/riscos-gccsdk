@@ -26,7 +26,7 @@ SWI_Territory_ConvertDateAndTime (int __territory, const char *__ro_time,
   __asm__ volatile ("SWI\t%[SWI_Territory_ConvertDateAndTime]\n\t"
 		    "MOVVC\tr0, #0\n\t"
 		    : "=r" (err), "=r" (term)
-		    : "r" (territory), "r" (ro_time), "r" (size), "r" (str),
+		    : "r" (territory), "r" (ro_time), "r" (buf), "r" (size), "r" (str),
 		      [SWI_Territory_ConvertDateAndTime] "i" (Territory_ConvertDateAndTime | (1<<17))
 		    : "r14", "cc", "memory");
   *termp = term;
