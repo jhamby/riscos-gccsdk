@@ -1,0 +1,12 @@
+
+ab_package() {
+  ab_create_command_app Sox Apps/Audio
+  ab_add_commands $S/src/sox$AB_EXEEXT
+
+  cp -av $S/libsox.txt $S/sox.txt $S/soxformat.txt $S/soxi.txt $A
+  cp -av $S/LICENSE.GPL $S/LICENSE.LGPL $S/COPYING $S/README $S/NEWS $A
+  cp -av $S/ChangeLog $S/AUTHORS $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}
+
