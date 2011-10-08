@@ -237,6 +237,7 @@ static const decode_table_t oDecodeTable[] =
   { "RFC", eCB_Void, true, eRslt_ARM, { .vd = m_rfc } }, /* RFC CC */
   { "RFE", eCB_Void, true, eRslt_ARM, { .vd = m_rfe } }, /* RFE MODE */
   { "RFS", eCB_Void, true, eRslt_ARM, { .vd = m_rfs } }, /* RFS CC */
+  /* FIXME: RLIST */
   { "RMF", eCB_Void, true, eRslt_ARM, { .vd = m_rmf } }, /* RMF CC P R */
   { "RN", eCB_Symbol, false, eRslt_None, { .sym = c_rn } }, /* RN */
   { "RND", eCB_Void, true, eRslt_ARM, { .vd = m_rnd } }, /* RND CC P R */

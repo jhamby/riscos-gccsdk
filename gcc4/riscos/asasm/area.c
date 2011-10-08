@@ -248,14 +248,14 @@ bool
 c_align (void)
 {
   skipblanks ();
-  int alignValue, offsetValue;
+  uint32_t alignValue, offsetValue;
   if (Input_IsEolOrCommentStart ())
-    {				/* no expression follows */
+    {
       alignValue = 1<<2;
       offsetValue = 0;
     }
   else
-    {				/* an expression follows */
+    {
       /* Determine align value */
       const Value *value = exprBuildAndEval (ValueInt);
       if (value->Tag == ValueInt)
@@ -281,14 +281,7 @@ c_align (void)
 	{
 	  const Value *valueO = exprBuildAndEval (ValueInt);
 	  if (valueO->Tag == ValueInt)
-	    {
-	      offsetValue = valueO->Data.Int.i;
-	      if (offsetValue < 0)
-		{
-		  error (ErrorError, "ALIGN offset value is out-of-bounds");
-		  offsetValue = 0;
-		}
-	    }
+	    offsetValue = ((uint32_t)valueO->Data.Int.i) % alignValue;
 	  else
 	    {
 	      error (ErrorError, "Unrecognized ALIGN offset value");
@@ -301,20 +294,19 @@ c_align (void)
 	  offsetValue = 0;
 	}
     }
+
   /* We have to align on alignValue + offsetValue */
 
-  int unaligned = (offsetValue - areaCurrentSymbol->area.info->curIdx) % alignValue;
-  if (unaligned || offsetValue >= alignValue)
-    {
-      size_t bytesToStuff = (unaligned < 0) ? alignValue + unaligned : unaligned;
+  uint32_t curPos = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
+  curPos += areaCurrentSymbol->area.info->curIdx;
+  uint32_t newPos = ((curPos - offsetValue + alignValue - 1) / alignValue)*alignValue + offsetValue;  
+  uint32_t bytesToStuff = newPos - curPos;
 
-      bytesToStuff += (offsetValue / alignValue)*alignValue;
+  Area_EnsureExtraSize (bytesToStuff);
 
-      Area_EnsureExtraSize (bytesToStuff);
+  while (bytesToStuff--)
+    areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = 0;
 
-      while (bytesToStuff--)
-	areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = 0;
-    }
   return false;
 }
 
