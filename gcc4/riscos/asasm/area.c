@@ -674,16 +674,16 @@ c_require8 (void)
 
 /**
  * Mark (parts of) AREA containing data, ARM or Thumb instructions.
- * Used to implement ELF Mapping symbols.
+ * Used to implement mapping symbols.
  */
 void
 Area_MarkStartAs (Area_eEntryType type)
 {
   assert (type != eInvalid);
 
-  /* Don't bother doing this when we don't yet have an area.  This will be
-     faulted anyway later on.  */
-  if (areaCurrentSymbol == NULL)
+  /* Don't bother doing this when we don't yet have an area or when it is
+     the implicit one.  This will be faulted anyway later on.  */
+  if (areaCurrentSymbol == NULL || Area_IsImplicit (areaCurrentSymbol))
     return;
 
   if (oArea_CurrentEntryType != type)

@@ -678,9 +678,9 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	{
 	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area.info->type & AREA_ABS) != 0));
 	  assert (SYMBOL_KIND (sym->type) == SYMBOL_LOCAL);
-	  asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
 	  asym.st_name = 0;
 	  asym.st_value = (sym->area.info->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0;
+	  asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
 	  asym.st_shndx = sym->used;
 	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 	}
@@ -768,7 +768,7 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	    }
 	  asym.st_info = ELF32_ST_INFO (bind, STT_NOTYPE);
 	  if (asym.st_shndx == (Elf32_Half)-1)
-	    errorAbort ("Internal symbolSymbolELFOutput: unable to find section id");
+	    errorAbort ("Internal symbolSymbolELFOutput: unable to find section id for symbol %s", sym->str);
 	  else
 	    fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 	}
