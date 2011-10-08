@@ -23,6 +23,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,6 +33,15 @@
 #elif HAVE_INTTYPES_H
 #  include <inttypes.h>
 #endif
+#ifdef __riscos__
+#  include <swis.h>
+#endif
+
+#if !defined(__riscos__) || defined(__TARGET_UNIXLIB__)
+#  include <sys/param.h>		/* for MAXPATHLEN */
+#else
+#  define MAXPATHLEN 1024
+#endif
 
 #include "aoffile.h"
 #include "area.h"
@@ -39,17 +49,11 @@
 #include "depend.h"
 #include "elf.h"
 #include "error.h"
+#include "filename.h"
 #include "output.h"
 #include "os.h"
 #include "main.h"
 #include "symbol.h"
-
-#ifdef __riscos__
-#  include <swis.h>
-#endif
-#if !defined(__TARGET_SCL__)
-#  include <ctype.h>
-#endif
 
 static FILE *objfile;
 
@@ -59,8 +63,7 @@ static FILE *objfile;
 #define GET_IDFN ((idfn_text) ? idfn_text : DEFAULT_IDFN)
 const char *idfn_text = NULL; /**< Identifier, when NULL use DEFAULT_IDFN; this is a malloced string.  */
 
-#define MAXNAME 1024
-static char outname[MAXNAME + 1];
+static char outname[MAXPATHLEN];
 
 #if defined(WORDS_BIGENDIAN)
 /* Convert to ARM byte-sex.  */
@@ -90,33 +93,36 @@ outputInit (const char *outfile)
   objfile = NULL;
   if (outfile && !(outfile[0] == '-' && outfile[1] == '\0'))
     {
-      strncpy (outname, outfile, MAXNAME);
-
-#ifdef __riscos__
-      /* Smell if we have outfile in RISC OS filename syntax.  If so,
-         convert it to Unix syntax.  */
-      char *temp = strchr (outname, '.');
-      if (temp != NULL)
+      for (unsigned pathidx = 0; /* */; ++pathidx)
 	{
-	  *temp = '\0';
-	  _kernel_osfile_block blk;
-          bool isROSyntax = _kernel_osfile (17, outname, &blk) == 2;
-	  *temp = '.';
-	  if (isROSyntax)
-	    {
-	      for (temp = outname; *temp; ++temp)
-		{
-		  if (*temp == '.')
-		    *temp = '/';
-		  else if (*temp == '/')
-		    *temp = '.';
-		}
-	    }
-	}
-#endif /* ! __riscos__ */
+	  const char *out[3];
+	  bool state[3] = { false, false, false };
 
-      if ((objfile = fopen (outname, "wb")) == NULL)
-	errorAbort (PACKAGE_NAME " can't write %s: %s", outname, strerror (errno));
+	  do
+	    {
+	      out[0] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
+				       &state[0], eA_Dot_B);
+	      if (out[0] && (objfile = fopen (out[0], "wb")) != NULL)
+		return;
+
+	      out[1] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
+				       &state[1], eB_Dot_A);
+	      if (out[1] && (objfile = fopen (out[1], "wb")) != NULL)
+		return;
+
+	      out[2] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
+				       &state[2], eA_Slash_B);
+	      if (out[2] && (objfile = fopen (out[2], "wb")) != NULL)
+		return;
+
+	      assert (state[0] == state[1] && state[0] == state[2]);
+	    } while (out[0] && out[1] && out[2] && state[0]);
+
+	  if (out[0] == NULL && out[1] == NULL && out[2] == NULL)
+	    break;
+	}
+
+      errorAbort (PACKAGE_NAME " can't write %s: %s", outname, strerror (errno));
     }
   else
     {
@@ -171,6 +177,9 @@ writeEntry (int ID, int type, size_t size, size_t *offset)
 void
 outputAof (void)
 {
+  if (option_verbose)
+    fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
+
   /* We must call relocFix() before anything else.  */
   int obj_area_size = 0;
   int noareas = 0;
@@ -185,7 +194,7 @@ outputAof (void)
 
       ap->area.info->norelocs = relocFix (ap);
       if (AREA_IMAGE (ap->area.info))
-	obj_area_size += FIX (ap->value.Data.Int.i)
+	obj_area_size += FIX (ap->area.info->maxIdx)
 			   + ap->area.info->norelocs * sizeof (AofReloc);
     }
 
@@ -244,9 +253,9 @@ outputAof (void)
 	{
 	  .Name = armword (ap->offset + 4), /* +4 because of extra length entry */
           .Type = armword (ap->area.info->type),
-          .Size = armword (FIX (ap->value.Data.Int.i)),
+          .Size = armword (FIX (ap->area.info->maxIdx)),
           .noRelocations = armword (ap->area.info->norelocs),
-          .BaseAddr = armword (ap->area.info->baseAddr)
+          .BaseAddr = armword ((ap->area.info->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
 	};
       if (aof_entry.noRelocations != 0 && !AREA_IMAGE (ap->area.info))
 	errorAbortLine (NULL, 0, "Internal outputAof: relocations in uninitialised area");
@@ -282,11 +291,11 @@ outputAof (void)
       
       if (AREA_IMAGE (ap->area.info))
 	{
-	  if (fwrite (ap->area.info->image, 1, ap->value.Data.Int.i, objfile)
-	      != (size_t)ap->value.Data.Int.i)
+	  if (fwrite (ap->area.info->image, 1, ap->area.info->maxIdx, objfile)
+	      != ap->area.info->maxIdx)
 	    errorAbortLine (NULL, 0, "Internal outputAof: error when writing %s image", ap->str);
 	  /* Word align the written area.  */
-	  for (unsigned pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
+	  for (unsigned pad = EXTRA (ap->area.info->maxIdx); pad; --pad)
 	    fputc (0, objfile);
 	  relocAOFOutput (objfile, ap);
 	}
@@ -298,6 +307,7 @@ outputAof (void)
 #ifndef NO_ELF_SUPPORT
 static void
 writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
+	    unsigned int addr,
 	    unsigned int size, unsigned int link, unsigned int info,
 	    unsigned int addralign, unsigned int entsize, size_t *offset)
 {
@@ -306,7 +316,7 @@ writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
       .sh_name = nmoffset,
       .sh_type = type,
       .sh_flags = flags,
-      .sh_addr = 0, /* This is not part of the final image.  */
+      .sh_addr = addr,
       .sh_offset = type == SHT_NULL ? 0 : *offset,
       .sh_size = size,
       .sh_link = link,
@@ -323,6 +333,9 @@ writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
 void
 outputElf (void)
 {
+  if (option_verbose)
+    fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
+
   /* We must call relocFix() before anything else.  */
   int noareas = 0, norels = 0;
   int areaSectionID = 3;
@@ -382,12 +395,13 @@ outputElf (void)
   Elf32_Word shstrsize = 0;
   
   /* Section headers - index 0 */
-  writeElfSH (shstrsize, SHT_NULL, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
+  writeElfSH (shstrsize, SHT_NULL, 0, 0, 0, SHN_UNDEF, 0, 0, 0, &offset);
   shstrsize += sizeof ("");
 
   /* Symbol table - index 1 */
   SymbolOut_t symOut = Symbol_CreateSymbolOut ();
-  writeElfSH (shstrsize, SHT_SYMTAB, 0, (symOut.numAllSymbols + 1) * sizeof (Elf32_Sym),
+  writeElfSH (shstrsize, SHT_SYMTAB, 0, 0,
+	      (symOut.numAllSymbols + 1) * sizeof (Elf32_Sym),
 	      2 /* The section header index of the associated string table.  */,
 	      symOut.numLocalSymbols + 1 /* One greater than the symbol table index of the last local symbol (binding STB_LOCAL). */,
 	      4 /* Align. */,
@@ -398,7 +412,7 @@ outputElf (void)
   size_t strsize = symOut.stringSize + 1; /* Add extra NUL terminator at start. */
 
   /* String table - index 2 */
-  writeElfSH (shstrsize, SHT_STRTAB, 0, strsize, 0, 0, 1, 0, &offset);
+  writeElfSH (shstrsize, SHT_STRTAB, 0, 0, strsize, 0, 0, 1, 0, &offset);
   shstrsize += sizeof (".strtab");
 
   /* Area headers - index 3 */
@@ -419,9 +433,11 @@ outputElf (void)
       if (ap == areaEntrySymbol)
         areaFlags |= SHF_ENTRYSECT;
       areaFlags |= SHF_ALLOC;
-      unsigned int sectionSize = FIX (ap->value.Data.Int.i);
+      unsigned int sectionSize = FIX (ap->area.info->maxIdx);
       unsigned int sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
-      writeElfSH (shstrsize, sectionType, areaFlags, sectionSize,
+      writeElfSH (shstrsize, sectionType, areaFlags,
+		  ap->type & SYMBOL_ABSOLUTE ? ap->area.info->maxIdx : 0,
+		  sectionSize,
                   0,
 		  0,
 		  1 << (ap->area.info->type & AREA_ALIGN_MASK),
@@ -432,7 +448,7 @@ outputElf (void)
       if (ap->area.info->norelocs)
         {
           /* Relocations.  */
-          writeElfSH (shstrsize, SHT_REL, 0,
+          writeElfSH (shstrsize, SHT_REL, 0, 0,
 	              ap->area.info->norelocs * sizeof(Elf32_Rel),
 	              1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
           shstrsize += sizeof (".rel.")-1 + (ap->str[0] == '.' ? -1 : 0) + ap->len + 1;
@@ -443,7 +459,7 @@ outputElf (void)
 
   /* Section head string table.  */
   shstrsize += sizeof (".shstrtab");
-  writeElfSH (shstrsize - sizeof (".shstrtab"), SHT_STRTAB, 0, shstrsize, 0, 0, 1, 0, &offset);
+  writeElfSH (shstrsize - sizeof (".shstrtab"), SHT_STRTAB, 0, 0, shstrsize, 0, 0, 1, 0, &offset);
 
   /* Symbol table (.symtab).  */
   Symbol_OutputForELF (objfile, &symOut);
@@ -463,14 +479,14 @@ outputElf (void)
       
       if (AREA_IMAGE (ap->area.info))
         {
-          if (fwrite (ap->area.info->image, 1, ap->value.Data.Int.i, objfile)
-	      != (unsigned)ap->value.Data.Int.i)
+          if (fwrite (ap->area.info->image, 1, ap->area.info->maxIdx, objfile)
+	      != ap->area.info->maxIdx)
             {
               errorAbortLine (NULL, 0, "Internal outputElf: error when writing %s image", ap->str);
               return;
             }
 	  /* Word align the written area.  */
-	  for (unsigned pad = EXTRA (ap->value.Data.Int.i); pad; --pad)
+	  for (unsigned pad = EXTRA (ap->area.info->curIdx); pad; --pad)
 	    fputc (0, objfile);
           if (ap->area.info->norelocs)
             relocELFOutput (objfile, ap);

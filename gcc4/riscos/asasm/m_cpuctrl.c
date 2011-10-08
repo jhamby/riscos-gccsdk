@@ -140,7 +140,7 @@ Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
 static bool
 branch_shared (ARMWord cc, bool isBLX)
 {
-  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
+  const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
 
   exprBuild ();
   /* The branch instruction has its offset as relative, while the given label
@@ -151,7 +151,8 @@ branch_shared (ARMWord cc, bool isBLX)
   codeOperator (Op_sub);
   
   Put_Ins (cc | 0x0A000000);
-  if (Reloc_QueueExprUpdate (Branch_RelocUpdater, offset, ValueInt | ValueCode | ValueSymbol, &isBLX, sizeof (isBLX)))
+  if (gASM_Phase != ePassOne
+      && Reloc_QueueExprUpdate (Branch_RelocUpdater, offset, ValueInt | ValueCode | ValueSymbol, &isBLX, sizeof (isBLX)))
     error (ErrorError, "Illegal branch expression");
   return false;
 }
@@ -343,7 +344,7 @@ ADR_RelocUpdaterCore (const char *file, int lineno, size_t offset, int constant,
      use PC-relative addressing as well in order to increase our options.  */
   if (baseReg < 0 && (areaCurrentSymbol->area.info->type & AREA_ABS))
     {
-      const int newConstant = constant - (areaCurrentSymbol->area.info->baseAddr + offset + 8);
+      const int newConstant = constant - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
       split[!bestIndex].num = Help_SplitByImm8s4 (-newConstant, split[!bestIndex].try);
       if (split[bestIndex].num >= split[!bestIndex].num)
 	{
@@ -372,7 +373,7 @@ ADR_RelocUpdaterCore (const char *file, int lineno, size_t offset, int constant,
       irop2 = M_SUB;
     }
 
-  uint32_t offsetToReport = offset + areaCurrentSymbol->area.info->baseAddr;
+  uint32_t offsetToReport = offset + areaCurrentSymbol->area.info->curIdx;
   if (split[bestIndex].num == 1 && isADRL)
     {
       if (fixedNumInstr)
@@ -450,11 +451,11 @@ ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	  case ValueInt:
 	    /* Absolute value : results in MOV/MVN (followed by ADD/SUB in case of
 	       ADRL).  */
-	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Int.i, -1, final, privDataP->userIntendedTwoInstr);
+	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Int.i, -1, true /* final */, privDataP->userIntendedTwoInstr);
 	    break;
 
 	  case ValueAddr:
-	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Addr.i, valP->Data.Addr.r, final, privDataP->userIntendedTwoInstr);
+	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Addr.i, valP->Data.Addr.r, true /* final */, privDataP->userIntendedTwoInstr);
 	    break;
 
 	  case ValueSymbol:
@@ -467,7 +468,7 @@ ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		    Put_InsWithOffset (offset + 4, 0);
 		  return true;
 		}
-	      ADR_RelocUpdaterCore (file, lineno, offset, -(offset + 8), 15, final, privDataP->userIntendedTwoInstr);
+	      ADR_RelocUpdaterCore (file, lineno, offset, -(offset + 8), 15, true /* final */, privDataP->userIntendedTwoInstr);
 	      if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
 		return true;
 	    }
@@ -491,6 +492,16 @@ m_adr (void)
   if (ir == optionError)
     return true;
 
+  if (gASM_Phase == ePassOne)
+    {
+      Input_Rest ();
+      Put_Ins (0);
+      /* When bit 0 is set, we'll emit ADRL (2 instructions).  */
+      if (ir & 1)
+	Put_Ins (0);
+      return false;
+    }
+  
   /* When bit 0 is set, we'll emit ADRL (2 instructions).  */
   ADR_PrivData_t privData =
     {
@@ -506,7 +517,7 @@ m_adr (void)
      expression.  */
   exprBuild ();
   if (Reloc_QueueExprUpdate (ADR_RelocUpdater,
-			     areaCurrentSymbol->value.Data.Int.i,
+			     areaCurrentSymbol->area.info->curIdx,
 			     ValueAddr | ValueInt | ValueSymbol | ValueCode,
 			     &privData, sizeof (privData)))
     error (ErrorError, "Illegal %s expression", (privData.userIntendedTwoInstr & 1) ? "ADRL" : "ADR");
@@ -519,7 +530,7 @@ m_adr (void)
  * [1] Stack reg vars  0 = no, 1..6 = v1-vn
  * [2] Stack fp vars   0 = no, 1..4 = f4-f(3+n)
  */
-static signed int regs[3] = {-1, -1, -1};
+static int regs[3] = {-1, -1, -1};
 
 /**
  * Implements STACK : APCS prologue

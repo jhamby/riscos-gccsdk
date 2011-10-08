@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@
 #include "lex.h"
 #include "value.h"
 
-bool evalBinop (Operator op, Value *lvalue, const Value *rvalue);
+bool evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue);
 bool evalUnop (Operator op, Value *value);
 
 #endif

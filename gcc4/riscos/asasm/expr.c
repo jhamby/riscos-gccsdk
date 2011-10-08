@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -61,13 +61,13 @@ prim (void)
         codeStorage ();
         break;
       case LexPosition:
-        codePosition (areaCurrentSymbol, areaCurrentSymbol->value.Data.Int.i);
+        codePosition (areaCurrentSymbol, areaCurrentSymbol->area.info->curIdx);
         break;
       case LexOperator:
         prim ();
         if (lex.Data.Operator.op == Op_none)
   	  /* */;
-        else if (isUnop (lex.Data.Operator.op))
+        else if (IsUnop (lex.Data.Operator.op))
 	  codeOperator (lex.Data.Operator.op);
         else
 	  error (ErrorError, "Illegal unop");
@@ -98,7 +98,7 @@ prim (void)
 static void
 expr (int pri)
 {
-  if (pri == 10)
+  if (pri == kPrioOp_Max)
     prim ();
   else
     expr (pri + 1);
@@ -106,7 +106,7 @@ expr (int pri)
   while (lexNextPri () == pri)
     {
       Lex op = lexGetBinop ();
-      if (pri == 10)
+      if (pri == kPrioOp_Max)
 	prim ();
       else
 	expr (pri + 1);
@@ -123,7 +123,7 @@ void
 exprBuild (void)
 {
   codeInit ();
-  expr (1);
+  expr (kPrioOp_Min);
 }
 
 

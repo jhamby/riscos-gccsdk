@@ -77,7 +77,7 @@ typedef struct
   unsigned int cb_type:2; /* See kCB_* values.  */
   unsigned int part_mnemonic:1; /* When false, mnemonic should complete, i.e. followed by a white-space.
     When true, further mnemonic decoding is done by the parse_opcode callback.  */
-  unsigned int result:2; /* Kind of output.  */
+  unsigned int result:2; /* Kind of output (see eRslt_* enum).  */
   union
     {
       po_void vd; /* Callback for eCB_Void.  */
@@ -102,7 +102,7 @@ static const decode_table_t oDecodeTable[] =
   { "ADD", eCB_Void, true, eRslt_ARM, { .vd = m_add } }, /* ADD CC S */
   { "ADF", eCB_Void, true, eRslt_ARM, { .vd = m_adf } }, /* ADF CC P R */
   { "ADR", eCB_Void, true, eRslt_ARM, { .vd = m_adr } }, /* ADR CC */
-  { "ALIGN", eCB_Void, false, eRslt_None, { .vd = c_align } }, /* ALIGN */
+  { "ALIGN", eCB_Void, false, eRslt_Data, { .vd = c_align } }, /* ALIGN */
   { "AND", eCB_Void, true, eRslt_ARM, { .vd = m_and } }, /* AND CC S */
   { "AREA", eCB_Void, false, eRslt_None, { .vd = c_area } }, /* AREA */
   { "ARM", eCB_Void, false, eRslt_None, { .vd = c_code32 } }, /* ARM/CODE32 */
@@ -363,7 +363,7 @@ decode (const Lex *label)
   /* Deal with empty line quickly.  */
   if (Input_IsEolOrCommentStart ())
     {
-      ASM_DefineLabel (label, areaCurrentSymbol->value.Data.Int.i);
+      ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx);
       return;
     }
 
@@ -465,7 +465,7 @@ decode (const Lex *label)
 			  : oDecodeTable[indexFound].result == eRslt_Data ? eData
 			  : eThumb);
 
-      const int startOffset = areaCurrentSymbol ? areaCurrentSymbol->value.Data.Int.i : 0;
+      const int startOffset = areaCurrentSymbol ? areaCurrentSymbol->area.info->curIdx : 0;
       Value startStorage =
 	{
 	  .Tag = ValueIllegal
@@ -477,7 +477,7 @@ decode (const Lex *label)
 	{
 	  case eCB_Void:
 	    {
-	      int offset = areaCurrentSymbol->value.Data.Int.i;
+	      int offset = areaCurrentSymbol->area.info->curIdx;
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.vd ();
 	      /* Define the label *after* the mnemonic implementation but
 	         with the current offset *before* processing the mnemonic.  */
@@ -501,7 +501,7 @@ decode (const Lex *label)
 
 	  case eCB_Symbol:
 	    {
-	      Symbol *symbol = label->tag == LexId ? symbolAdd (label) : NULL;
+	      Symbol *symbol = label->tag == LexId ? symbolGet (label) : NULL;
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (symbol);
 	      /* We don't want to define a label based on this symbol.  */
 	      labelSymbol = NULL;
@@ -529,12 +529,12 @@ decode (const Lex *label)
       /* Determine the code size associated with the label on this line (if any).  */
       if (labelSymbol != NULL)
         {
-          assert (labelSymbol->codeSize == 0);
+	  size_t codeSize;
           /* Either we have an increase in code/data in our current area, either
              we have an increase in storage map, either non of the previous (like
 	     with "<lbl> * <value>" input).  */
-	  if (areaCurrentSymbol->value.Data.Int.i - startOffset != 0)
-	    labelSymbol->codeSize = areaCurrentSymbol->value.Data.Int.i - startOffset;
+	  if (areaCurrentSymbol->area.info->curIdx - startOffset != 0)
+	    codeSize = areaCurrentSymbol->area.info->curIdx - startOffset;
 	  else
 	    {
 	      codeInit ();
@@ -543,11 +543,13 @@ decode (const Lex *label)
 	      codeOperator (Op_sub);
 	      const Value *value = codeEval (ValueInt, NULL);
 	      if (value->Tag == ValueInt)
-		labelSymbol->codeSize = value->Data.Int.i;
+		codeSize = value->Data.Int.i;
 	      else
 		error (ErrorError, "Failed to determine label size");
 	    }
-        }
+	  assert ((gASM_Phase == ePassOne && labelSymbol->codeSize == 0) || (gASM_Phase == ePassTwo && labelSymbol->codeSize == codeSize));
+	  labelSymbol->codeSize = codeSize;
+	}
 
       valueFree (&startStorage);
     }

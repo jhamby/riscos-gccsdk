@@ -68,8 +68,8 @@ Put_DataWithOffset (size_t offset, size_t size, ARMWord data)
 {
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, offset + size))
-	areaGrow (areaCurrentSymbol->area.info, size);
+      if (offset + size > areaCurrentSymbol->area.info->curIdx)
+	Area_EnsureExtraSize (offset + size - areaCurrentSymbol->area.info->curIdx);
 
       switch (size)
 	{
@@ -92,8 +92,8 @@ Put_DataWithOffset (size_t offset, size_t size, ARMWord data)
 	}
 
       /* Increate AREA size when necessary.  */
-      if (offset + size >= areaCurrentSymbol->value.Data.Int.i)
-	areaCurrentSymbol->value.Data.Int.i = offset + size;
+      if (offset + size >= areaCurrentSymbol->area.info->curIdx)
+	areaCurrentSymbol->area.info->curIdx = offset + size;
     }
   else if (data)
     error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
@@ -103,7 +103,7 @@ Put_DataWithOffset (size_t offset, size_t size, ARMWord data)
 void
 Put_Data (size_t size, ARMWord data)
 {
-  Put_DataWithOffset (areaCurrentSymbol->value.Data.Int.i, size, data);
+  Put_DataWithOffset (areaCurrentSymbol->area.info->curIdx, size, data);
 }
 
 
@@ -208,9 +208,10 @@ Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data, bool alignBe
   
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, offset + size))
-	areaGrow (areaCurrentSymbol->area.info, size);
-      for (size_t i = 0; i < size; i++)
+      if (offset + size > areaCurrentSymbol->area.info->curIdx)
+	Area_EnsureExtraSize (offset + size - areaCurrentSymbol->area.info->curIdx);
+
+      for (size_t i = 0; i != size; i++)
 	Put_DataWithOffset (offset + i, 1, toWrite[i]);
     }
   else if (data)
@@ -224,16 +225,17 @@ Put_InsWithOffset (size_t offset, ARMWord ins)
 
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
-      if (AREA_NOSPACE (areaCurrentSymbol->area.info, offset + 4))
-	areaGrow (areaCurrentSymbol->area.info, 4);
+      if (offset + 4 > areaCurrentSymbol->area.info->curIdx)
+	Area_EnsureExtraSize (offset + 4 - areaCurrentSymbol->area.info->curIdx);
+
       areaCurrentSymbol->area.info->image[offset + 0] = ins & 0xff;
       areaCurrentSymbol->area.info->image[offset + 1] = (ins >> 8) & 0xff;
       areaCurrentSymbol->area.info->image[offset + 2] = (ins >> 16) & 0xff;
       areaCurrentSymbol->area.info->image[offset + 3] = (ins >> 24) & 0xff;
 
       /* Increate AREA size when necessary.  */
-      if (offset + 4 >= areaCurrentSymbol->value.Data.Int.i)
-	areaCurrentSymbol->value.Data.Int.i = offset + 4;
+      if (offset + 4 >= areaCurrentSymbol->area.info->curIdx)
+	areaCurrentSymbol->area.info->curIdx = offset + 4;
     }
   else
     error (ErrorError, "Trying to define code an uninitialised area");
@@ -246,7 +248,7 @@ Put_InsWithOffset (size_t offset, ARMWord ins)
 void
 Put_Ins (ARMWord ins)
 {
-  Put_InsWithOffset (areaCurrentSymbol->value.Data.Int.i, ins);
+  Put_InsWithOffset (areaCurrentSymbol->area.info->curIdx, ins);
 }
 
 ARMWord

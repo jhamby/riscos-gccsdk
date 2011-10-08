@@ -108,13 +108,8 @@ c_alloc (const Lex *lex)
 {
   if (lex->tag == LexId)
     {
-      Symbol *sym = symbolAdd (lex);
-      if (sym->value.Tag == ValueIllegal)
-	{
-	  assert (sym->type & SYMBOL_DEFINED);
-	  sym->type |= SYMBOL_ABSOLUTE;
-	  Value_Assign (&sym->value, storageValue ());
-	}
+      if (Symbol_Define (symbolGet (lex), SYMBOL_DEFINED | SYMBOL_ABSOLUTE, storageValue ()))
+	return false;
     }
   
   /* Determine how much we should allocate.  */
@@ -135,7 +130,7 @@ c_alloc (const Lex *lex)
 	/* Fall through.  */
 	
       default:
-        error (ErrorError, "Illegal expression after #");
+        error (ErrorError, "Illegal expression after # or FIELD");
         break;
     }
 

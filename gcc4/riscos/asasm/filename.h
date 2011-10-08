@@ -1,8 +1,7 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2011 GCCSDK Developers
- *
+ * Copyright (c) 2011 GCCSDK Developers
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
@@ -17,37 +16,27 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * local.h
+ * filename.h
  */
 
-#ifndef local_header_included
-#define local_header_included
+#ifndef filename_header_included
+#define filename_header_included
 
 #include <stdbool.h>
-#include "lex.h"
 
-typedef struct Local_Label_t
+/* Source:        Unix:                          RISC OS:
+ * Dir.A.B        Dir/A.B   Dir/B.A   Dir/A/B    Dir.A.B
+ * Dir/A.B        Dir/A.B                        Dir.A.B   Dir.B.A   Dir.A/B
+ */
+typedef enum
 {
-  struct Local_Label_t *NextP;
-  unsigned Num;
-  unsigned Value;
-} Local_Label_t;
+  eA_Dot_B,      /* Unix: "Dir/A.B", RISC OS: "Dir.A.B" */
+  eB_Dot_A,      /* Unix: "Dir/B.A", RISC OS: "Dir.B.A" */
+  eA_Slash_B     /* Unix: "Dir/A/B", RISC OS: "Dir.A/B" */
+} FN_eOutputType;
 
-extern const char Local_IntLabelFormat[];
-
-void Local_PrepareForPhase (ASM_Phase_e phase);
-
-Local_Label_t *Local_GetLabel (unsigned num);
-
-bool c_rout (const Lex *label);
-
-bool Local_ROUTIsEmpty (const char *routName);
-bool Local_IsLocalLabel (const char *);
-void Local_FindROUT (const char *rout, const char **file, int *lineno);
-const char *Local_GetCurROUTId (void);
-
-#ifdef DEBUG
-void Local_DumpAll (void);
-#endif
+const char *FN_AnyToNative (const char *any, unsigned pathidx,
+			    char *buf, size_t bufsize,
+			    bool *state, FN_eOutputType type);
 
 #endif

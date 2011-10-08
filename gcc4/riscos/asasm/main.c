@@ -46,6 +46,7 @@
 #include "include.h"
 #include "input.h"
 #include "main.h"
+#include "local.h"
 #include "os.h"
 #include "output.h"
 #include "symbol.h"
@@ -224,6 +225,10 @@ main (int argc, char **argv)
 
   setlocale (LC_ALL, "");
 
+#ifdef DEBUG
+  setvbuf(stdout, NULL, _IOLBF, 0);
+#endif
+
   argv++;
   if (argc == 1)
     {
@@ -263,7 +268,7 @@ main (int argc, char **argv)
 	  if (arg[1] == '\0')
 	    {
 	      if (--argc)
-		var_define (*++argv);
+		Var_Define (*++argv);
 	      else
 		{
 		  fprintf (stderr, PACKAGE_NAME ": Missing argument after -%s\n", arg);
@@ -271,7 +276,7 @@ main (int argc, char **argv)
 		}
 	    }
 	  else
-	    var_define (arg + 1);
+	    Var_Define (arg + 1);
 	}
       else if (!strncasecmp (arg, "PD", sizeof ("PD")-1)
 	       || !strncasecmp (arg, "PreDefine", sizeof ("PreDefine")-1))
@@ -381,8 +386,7 @@ main (int argc, char **argv)
 	        }
 	      inclDir = *++argv;
 	    }
-	  if (addInclude (inclDir) < 0)
-	    return EXIT_FAILURE;
+	  Include_Add (inclDir);
 	}
       else if (!strcasecmp (arg, "version") || !strcasecmp (arg, "ver"))
 	{
@@ -502,10 +506,9 @@ main (int argc, char **argv)
       asmAbortValid = true;
       Symbol_Init ();
       outputInit (ObjFileName);
-      areaInit ();
-      /* Do the assembly.  */
+
+      /* Do the two pass assembly.  */
       ASM_Assemble (SourceFileName);
-      areaFinish ();
 
       /* Don't try to output anything when we have assemble errors.  */
       if (returnExitStatus () == EXIT_SUCCESS)
@@ -516,6 +519,9 @@ main (int argc, char **argv)
 	    {
 	      asmContinueValid = true;
 	      /* Write the ELF/AOF output.  */
+	      Area_PrepareForPhase (eOutput);
+	      Local_PrepareForPhase (eOutput);
+	      gASM_Phase = eOutput;
 #ifndef NO_ELF_SUPPORT
 	      if (!option_aof)
 		outputElf();

@@ -23,6 +23,7 @@
 #ifndef symbol_header_included
 #define symbol_header_included
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include "lex.h"
@@ -57,7 +58,7 @@
   a local macro variable.  */
 
 #define SYMBOL_KEEP		0x01000000
-#define SYMBOL_AREA		0x02000000 /* Symbol is actually an area name. When set, SYMBOL_DECLARED is set as well, but not SYMBOL_DEFINED.  */
+#define SYMBOL_AREA		0x02000000 /* Symbol is actually an area name.  */
 #define SYMBOL_NOTRESOLVED	0x04000000
 
 #define SYMBOL_CPUREG		0x10000000
@@ -65,8 +66,6 @@
 #define SYMBOL_COPREG		0x30000000
 #define SYMBOL_COPNUM		0x40000000
 #define SYMBOL_GETREGTYPE(x)	((x) & 0x70000000)
-
-#define SYMBOL_DECLARED		0x80000000
 
 #define SYMBOL_TABLESIZE 1024
 
@@ -105,11 +104,15 @@ typedef struct Symbol
   char str[1];		/** symbol name as NUL terminated string */
 } Symbol;
 
+/* Prefix of all internal AsAsm symbols.  */
+#define kIntLabelPrefix "$$AsAsm$$Int$$"
+
 void Symbol_Init (void);
-Symbol *symbolAdd (const Lex *l);
 Symbol *symbolGet (const Lex *l);
 Symbol *symbolFind (const Lex *l);
 void symbolRemove (const Lex *l);
+
+bool Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue);
 
 typedef struct
 {

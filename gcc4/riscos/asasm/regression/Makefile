@@ -45,6 +45,8 @@ ECHO := echo
 ECHOFLAGS :=
 MKDIR := mkdir
 
+V := @
+
 check_PROGRAMS_PASS := $(wildcard tests_pass/*.s)
 check_PROGRAMS_FAIL := $(wildcard tests_fail/*.s)
 ref_PROGRAMS = $(check_PROGRAMS_PASS:tests_pass/%.s=output_reference/%.o) \
@@ -64,11 +66,11 @@ clean:
 
 output_actual/%.o: %.s output_reference/%.o Makefile
 	@$(ECHO) +++ $< : Assemble actual and compare with reference
-	@$(MKDIR) -p output_actual
-	@$(AS) $(ASFLAGS) $(shell head -5 $< | grep "RUNOPT:" | sed -e s/^.*RUNOPT://) -PD "REFERENCE SETL {FALSE}" -o $@ $<
-	@$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual/%=output_reference/%) || (mv $@ $(@:%.o=%_failed.o) && false)
+	$(V)$(MKDIR) -p output_actual
+	$(V)$(AS) $(ASFLAGS) $(shell head -5 $< | grep "RUNOPT:" | sed -e s/^.*RUNOPT://) -PD "REFERENCE SETL {FALSE}" -o $@ $<
+	$(V)$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual/%=output_reference/%) || (mv $@ $(@:%.o=%_failed.o) && false)
 
 output_reference/%.o: %.s Makefile
 	@$(ECHO) +++ $< : Create reference $@
-	@$(MKDIR) -p output_reference
-	@$(AS) $(ASFLAGS) $(shell head -5 $< | grep "RUNOPT:" | sed -e s/^.*RUNOPT://) -PD "REFERENCE SETL {TRUE}" -o $@ $<
+	$(V)$(MKDIR) -p output_reference
+	$(V)$(AS) $(ASFLAGS) $(shell head -5 $< | grep "RUNOPT:" | sed -e s/^.*RUNOPT://) -PD "REFERENCE SETL {TRUE}" -o $@ $<

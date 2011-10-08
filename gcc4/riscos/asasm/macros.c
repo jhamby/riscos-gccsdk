@@ -32,6 +32,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "asm.h"
 #include "commands.h"
 #include "decode.h"
 #include "error.h"
@@ -63,13 +64,13 @@ FS_PopMacroPObject (bool noCheck)
 
   FS_PopIfWhile (noCheck);
 
-  for (int p = 0; p < MACRO_ARG_LIMIT; ++p)
+  for (int p = 0; p != MACRO_ARG_LIMIT; ++p)
     {
       free ((void *) gCurPObjP->d.macro.args[p]);
       gCurPObjP->d.macro.args[p] = NULL;
     }
 
-  var_restoreLocals (gCurPObjP->d.macro.varListP);
+  Var_RestoreLocals (gCurPObjP->d.macro.varListP);
 }
 
 
@@ -99,6 +100,7 @@ FS_PushMacroPObject (const Macro *m, const char *args[MACRO_ARG_LIMIT])
 
   gCurPObjP[1].whileIfStartDepth = gCurPObjP[1].whileIfCurDepth = gCurPObjP[0].whileIfCurDepth;
   gCurPObjP[1].GetLine = Macro_GetLine;
+  gCurPObjP[1].lastLineSize = 0;
 
   /* Increase current file stack pointer.  All is ok now.  */
   ++gCurPObjP;
@@ -166,7 +168,7 @@ Macro_Call (const Macro *m, const Lex *label)
 	{
 	  /* Argument '|' means taking the default argument value.  */
 	  free ((void *)arg);
-	  arg = m->defArgs[marg];
+	  arg = strdup (m->defArgs[marg]);
 	}
       args[marg++] = arg;
       skipblanks ();
@@ -200,12 +202,16 @@ Macro_GetLine (char *bufP, size_t bufSize)
   const char *curPtr = gCurPObjP->d.macro.curPtr;
 
   if (*curPtr == '\0')
-    return true;
-  
+    {
+      gCurPObjP->lastLineSize = 0;
+      return true;
+    }
+
+  const char * const bufOrgP = bufP;
   const char * const bufEndP = bufP + bufSize - 1;
   while (*curPtr != '\0' && bufP != bufEndP)
     {
-      if (MACRO_ARG0 <= *curPtr && *curPtr <= MACRO_ARG15)
+      if (MACRO_ARG0 <= *curPtr && *curPtr < MACRO_ARG0 + MACRO_ARG_LIMIT)
 	{
 	  /* Argument substitution.  */
 	  const char *argP = gCurPObjP->d.macro.args[*curPtr - MACRO_ARG0];
@@ -228,6 +234,7 @@ Macro_GetLine (char *bufP, size_t bufSize)
 	*bufP++ = *curPtr++;
     }
   *bufP = '\0';
+  gCurPObjP->lastLineSize = bufP - bufOrgP;
 
   gCurPObjP->d.macro.curPtr = curPtr;
 
@@ -269,7 +276,7 @@ c_mend (void)
 /**
  * Implements MACRO:
  *         MACRO
- * $<lbl> <marco name> [$<param1>[=<default value>]]*
+ * $<lbl> <marco name> [$<param>[=<default value>]]*
  */
 bool
 c_macro (void)
@@ -279,12 +286,15 @@ c_macro (void)
 
   char *buf = NULL;
 
+  if (gASM_Phase == ePassTwo)
+    goto lookforMEND;
+  
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
     error (ErrorWarning, "Skipping characters following MACRO");
 
   /* Read optional '$' + label name.  */
-  if (!inputNextLineNoSubst ())
+  if (!Input_NextLine (eNoVarSubst))
     errorAbort ("End of file found within macro definition");
   if (Input_Match ('$', false))
     {
@@ -384,7 +394,7 @@ c_macro (void)
     errorOutOfMem ();
   do
     {
-      if (!inputNextLineNoSubst ())
+      if (!Input_NextLine (eNoVarSubst))
 	goto noMEND;
 
       const char * const inputMark = Input_GetMark ();
@@ -404,8 +414,8 @@ c_macro (void)
 		  (void) Input_Match ('.', false);
 		  int i;
 		  for (i = 0;
-		       i != m.numargs && (memcmp (ptr, m.args[i], len)
-					  || m.args[i][len] != '\0');
+		       i != m.numargs
+			 && (memcmp (ptr, m.args[i], len) || m.args[i][len] != '\0');
 		       ++i)
 		    /* */;
 		  if (i != m.numargs)
@@ -448,7 +458,7 @@ c_macro (void)
 lookforMEND:
   do
     {
-      if (!inputNextLine ())
+      if (!Input_NextLine (eNoVarSubst))
 	{
 noMEND:
 	  errorAbort ("End of file found while looking for MEND");

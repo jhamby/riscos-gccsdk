@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -65,7 +65,6 @@ const Value *codeEval (ValueTag legal, const ARMWord *instrOffsetP);
 
 bool Code_HasUndefinedSymbols (void);
 Value Code_TakeSnapShot (void);
-void Code_ExpandCurrAreaSymbolAsOffset (Value *value, int offset);
 
 #if 0
 void Code_Assign (Code *dst, const Code *src);

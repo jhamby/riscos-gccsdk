@@ -1,3 +1,352 @@
+Sat Oct  8 11:40:24 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpumem.c (DestMem_RelocUpdater): Fix load pc-rel based in ABS Area.
+	* regression/tests_pass/ldr_from_addr.s: Add ABS Area test case.
+
+Sat Oct  8 02:48:28 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/operator_precedence.s: Add.
+	* regression/tests_pass/operator_shift.s: Added :ASR: test.
+	* code.c (Code_EvalLowest,codePrint): Follow OperatorAsStr to
+	Lex_OperatorAsStr rename. Follow isUnop to IsUnop rename.
+	* expr.c (expr,exprBuild): Use kPrioOp_Min and kPrioOp_Max.
+	* lexAcorn.c: Use kPrioOp_* values.
+	(lexAcornBinop): Add support for :ASR:.
+	* eval.c (evalBinop): Add support for :LEOR: as Op_leor.
+	* lex.c (Pri): Remove.
+	Use kPrioOp_* values.
+	(OperatorAsStr): Rename to Lex_OperatorAsStr.  Follow Op_* reshuffle.
+	(lexPrint): Follow Lex00Label removal.
+	* lex.h (Operator): Reshuffle according to precedence.  Add Op_leor.
+	(kPrioOp_*): Define.
+	(isUnop): Rename to IsUnop and turns this into an inline.
+	(LexTag): Remove Lex00Label.
+	(Lex): Remove Label.
+
+Wed Oct  5 00:46:48 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* local.h (kIntLabelPrefix): Move to...
+	* symbol.h: ...here.
+	* local.c (routPos, rout_null, routList, routListEnd): Rename to
+	RoutPos_t, oRout_Null, oRout_List, oRout_ListEnd.
+	(Local_ROUTLblNo): Remove.
+	(oLocal_LabelNum): Add.
+	(Local_ResetLabels): Add.
+	(Local_PrepareForPhase, c_rout): Make use of Local_ResetLabels.
+	(Local_GetLabel): Add.
+	* local.h (Local_Label_t, Local_GetLabel): Add.
+	(Local_ROUTLblNo): Remove.
+	* lex.c (Lex_ReadLocalLabel): Support bigger label numbers.
+	(Lex_GetDefiningLabel, Lex_MakeLocalLabel): Use Local_GetLabel.
+
+Tue Oct  4 21:42:10 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* lit.c (Lit_RegisterInt): Fix Value free problem.
+
+Mon Oct  3 21:45:10 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+  
+	* macros.h (MACRO_ARG_LIMIT): Increased to 18.
+	(MACRO_ARG0): Changed from 16 to 14.
+	(MACRO_ARG15): Removed.
+	* macros.C (Macro_GetLine): Follow MACRO_ARG15 removal.
+
+Fri Sep 30 01:56:17 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* filestack.h (PObject::lastLineSize): Added.
+	* filestack.c (FS_GetLine): Update PObject::lastLineSize.
+	(FS_PushFilePObject): Initialise PObject::lastLineSize.
+	* macros.c (Macro_GetLine): Update PObject::lastLineSize.
+	(FS_PushMacroPObject): Initialise PObject::lastLineSize.
+	* whileif.c (if_skip, while_skip): Rename to If_Skip, While_Skip.
+	(While_Unwind): Remove.
+	(While_ReEvalAndDo): Renamed to While_Rewind.
+	(c_while, While_Rewind, c_wend, FS_PopIfWhile): Reparse WHILE input
+	line before re-evaluation.
+	* regression/tests_pass/while.s: Added test case.
+	* input.c (inputThisInstead): Rename to Input_ThisInstead.
+
+Thu Sep 29 22:01:10 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* local.c (Local_ROUTLblNo): Support up to 1000 local labels.
+	* local.h (Local_ROUTLblNo): Likewise.
+	* lex.c (Lex_ReadLocalLabel): Likewise.
+	* variables.c (varPos): Rename to VarPos.
+	(varPos::symptr): Rename to VarPos::symbolP.
+	(varPos::symbol): Rename to VarPos::symbol.
+	(var_restoreLocals): Rename to Var_RestoreLocals.
+	(var_define): Rename to Var_Define.
+	* variables.h: Likewise.
+	* macros.c, macro.h: Follow variables.c/variables.h renames.
+	* main.c: Likewise.
+
+Thu Sep 29 21:21:50 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* lexAcorn.c (lexAcornUnop, lexAcornBinop): Avoid inputUnGet error on
+	unknown operations.
+
+Tue Sep 27 23:42:27 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* code.c (Code_ExpandCurrAreaSymbolAsOffset): Disabled.
+	* eval.c (GetInt): Added.
+	(evalBinop): Extend Op_mul, Op_div, Op_mod, Op_add, Op_sub, Op_and,
+	Op_or, Op_xor with support for one character long strings.
+	Simplified Op_asr, Op_sr, Op_sl, Op_ror, Op_rol by using GetInt.
+	Add restrict.
+	* eval.h (evalBinOp): Add restrict.
+	* regression/tests_pass/operator_multiplication.s: Enhanced.
+	* regression/tests_pass/operator_addition_logical.s: Likewise.
+	* Makefile.am (asasm_CFLAGS): Add -fstrict-aliasing -Wstrict-aliasing.
+
+Tue Sep 27 01:13:43 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* input.c (inputGiveRestLine): Remove.
+	(inputNextLineNoSubst): Remove.
+	(inputArgSub): Rename to Input_ArgSub and give it a warnOnVarSubFail
+	parameter.
+	(inputNextLine): Rename to Input_NextLine and give it a warnOnVarSubFail
+	parameter.
+	(inputVarSub): Rename to Input_VarSub and give it a warnOnVarSubFail
+	parameter.
+	(inputNextLineCore): Rename to Input_NextLineCore.  Move END check
+	and FS_PopPObject call to ASM_GetLine.
+	* input.h (inputGiveRestLine, inputNextLineNoSubst): Remove declaration.
+	(inputNextLine): Rename to Input_NextLine.
+	(Level_e): Add.
+	* asm.c (ASM_GetLine): Add.
+	(ASM_DoPass): Call ASM_GetLine instead inputNextLine.
+	* whileif.c (if_skip): Drop onerror and *matchingToken parameters.
+	Replace inputNextLineNoSubst call by Input_NextLine (eVarSubstNoWarning).
+	No longer test on END. No longer report an error on end-of-data but
+	give an empty input line instead.
+	(while_skip): Apply recent if_skip fixes. Report labels being used
+	for WHILE/WEND.  Give an empty input line when WEND is missing.
+	(c_wend,FS_PopIfWhile): Enhance error messages.
+	* macros.c (c_macro): Replace inputNextLineNoSubst call by
+	Input_NextLine (eNoVarSubst).
+	* regression/tests_pass/if_else.s: Add test for verifying variable
+	expansion being done in skipped branch.
+	* regression/tests_pass/while.s: Add test for verifying variable
+	expansion being done when WHILE body gets skipped.
+
+Sun Sep 25 00:35:56 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (oDecodeTable): Mark the output of ALIGN as data.
+	* area.c, commands.c, symbol.c, symbol.h, put.c, lit.c:	Get rid of
+	SYMBOL_DECLARED.
+	* commands.c, symbol.c, put.c, code.c, decode.c, m_cpuctrl.c,
+	help_cop.c, local.c, m_cpumem.c, area.c, expr.c, output.c, asm.c,
+	lit.c: Have absolute base address in area symbol Symbol::value,
+	current area index value at Symbol::info.area::curIdx and size of
+	area at the end of pass one at Symbol::info.area::maxIdx.
+	* area.c (c_area, c_org): Make area symbol absolute when area is
+	absolute.
+	* area.h (AREA): Remove baseAddr, add curIdx and maxIdx.
+	(Area_GetBaseAddress): Add.
+	* code.c (Code_EvalLowest): Support absolute AREA symbols.
+	(Code_ExpandCurrAreaSymbolAsOffset): Make static.
+	* code.h (Code_ExpandCurrAreaSymbolAsOffset): Remove declaration.
+	* output.c (writeElfSH): Add addr parameter.
+	* regression/tests_pass/org.s: Added.
+	* regression/tests_pass/def.s: Added.
+
+Sat Sep 24 14:02:06 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* rname.c, rname.h, rname2.h: Remove.
+	* filename.c, filename.h: Add.
+	* Makefile.am: Follow rname.c, rname.h, rname2.h removal and
+	filename.c, filename.h addition.
+	* riscos_c.c (__riscosify_control): Don't do any filename processing
+	in UnixLib (when used).
+	* output.c (outputInit): Use FN_AnyToNative.
+	(outputAof, outputElf): Add verbose message.
+	* include.c (Input_Get,Input_Open): Use FN_AnyToNative.
+	* docs/asasm.txt: Add.
+
+Sun Sep 11 14:06:06 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* error.c (errorCore): PObject::name can't be NULL anymore.
+	* filestack.c (ReportFSStack, FS_GetCurFileName): Likewise.
+
+Sun Sep 11 14:01:08 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* error.c (no_errors, no_warnings, ThrowbackStarted): Rename to
+	oNumErrors, oNumWarnings, oThrowbackStarted.
+	(errorCore): Report error backtrace via throwback as well.
+
+Sun Sep 11 13:53:10 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos_c.c (OSCanonicalisePath): Make it static.
+	* os.h (OSCanonicalisePath): Remove prototype.
+
+Sun Sep 11 13:50:41 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* macros.c (c_macro): Fix comment.
+	* main.c (main): Unbuffered stdout for DEBUG builds.
+
+Sun Sep 11 13:39:32 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* lex.c (Lex_SkipDefiningLabel): Add.
+	* lex.h (Lex_SkipDefiningLabel): Likewise.
+	* whileif.c (if_skip, while_skip): Don't define local labels when
+	skipping if/while bodies.
+
+Sun Sep 11 13:33:06 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* local.h (Local_CurROUTId): Remove.
+	(Local_GetCurROUTId, Local_DumpAll): Add.
+	* local.c: Likewise.
+	(Local_PrepareForPhase): Follow Local_CurROUTId removal and use
+	Local_GetCurROUTId.
+	(c_rout): Likewise.  Initialise routPos::next.
+	* lex.c (Lex_ReadLocalLabel, Lex_MakeLocalLabel,Lex_GetDefiningLabel):
+	Follow Local_CurROUTId removal and use Local_GetCurROUTId.
+
+Sun Sep 11 12:11:22 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* filestack.c (FS_PushFilePObject): Add return value.
+	* filestack.h (FS_PushFilePObject): Likewise.
+	* commands.c (c_get, c_lnk): Check return value of
+	FS_PushFilePObject.
+	(c_info): Only report during phase one.
+
+Sun Sep 11 12:04:11 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (Symbol_CreateSymbolOut): Update local label error.
+
+Sat Sep 10 10:51:37 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* input.c (inputEnvSub): When cross-compiled, substitute $ into _
+	when initial environment variable retrieve didn't work.
+
+Sun Aug  7 18:39:49 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* lexAcorn.c (lexAcornUnop, lexAcornBinop): Don't consume characters
+	which weren't expected.
+	* lex.c (lexGetPrim, lexGetBinop): Return : back to input stream if
+	tokenizing failed.
+
+Sun Aug  7 17:30:45 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* code.c (Code_EvalLowest): Don't call operator size for non-defined
+	symbols.
+	* eval.c (evalUnop): Op_size: Remove implementation for non-defined
+	symbols.
+	* regression/tests_pass/operator_questionmark.s: Add tests.
+	* asm.c (DEBUG_ASM): More debug.
+	* regression/tests_pass/load_literal4.s: Add.
+
+Thu Aug  4 22:58:58 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c (c_assert): Make it phase aware.
+	* regression/tests_pass/assert.s: Added.
+	* regression/tests_pass/if_else.s: Removed bogus 2nd parameter of
+	ASSERT.
+	* error.c (error): Don't call Input_ShowLine during phase 1.
+	* local.c (Local_PrepareForPhase): Surpress compiler warning.
+	* eval.c (evalBinop): Teach Op_eq about comparing ValueCode and
+	ValueSymbol values.
+
+Thu Aug  4 01:37:50 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* asm.c (ASM_DoPass, gASM_Phase): Add.
+	(ASM_Assemble): Assemble source code twice.
+	* asm.h (gASM_Phase): Add.
+	* commands.c (DefineInt): Make it phase aware.
+	(DefineReal): Likewise.
+	* decode.c (decode): Likewise.
+	* eval.c (evalUnop): Likewise.
+	* symbol.c (Symbol_OutputForAOF): Support area mapping symbols.
+	(Symbol_OutputForELF): Likewise.
+	* m_cpuctrl.c (branch_shared): Likewise.
+	(m_adr): Likewise.
+	* help_cop.c (help_copAddr): Likewise.
+	* error.c (errorCore): Likewise.
+	(errorCoreLine): Likewise.
+	* macros.c (c_macro): Likewise.
+	* reloc.c (Reloc_QueueExprUpdate): Likewise.
+	* get.c (getRhs): Likewise.
+	* main.c (main): Likewise.
+	* area.c (Area_EnsureExtraSize): Likewise.
+	(areaInit): Remove.
+	(Area_PrepareForPhase): Add.
+	(Area_MarkStartAs): Add SYMBOL_DATUM for data area mappings.
+	* area.h (Area_PrepareForPhase): Add.
+	* lit.c (Lit_GetSizeInBytes, Lit_GetAlignment, Lit_CreateLiteralSymbol):
+	Add.
+	(Lit_RegisterInt,Lit_RegisterFloat,Lit_DumpPool): Fix memory
+	corruption.  Make it phase aware.
+	* value.c (valueEqual): Reevaluate Code and Symbol values before
+	comparision.
+	* m_cpumem.c (DestMem_RelocUpdater): Support relocation to another
+	area than current one.  Fix relocation flags.
+	(dstmem): Fix memory corruption.  Make it phase aware.
+	* local.c (Local_PrepareForPhase): Add.
+	* local.h (Local_PrepareForPhase): Add.
+	* regression/tests_pass/record_basic.s: Enable tests which work now.
+	* regression/tests_pass/operator_index.s: Likewise.
+	* regression/tests_pass/adr.s: Account for missing ADRL to ADR
+	optimisation.
+	* regression/tests_pass/register_based_map.s: Likewise.
+	* regression/tests_fail/ldr_from_expr_fail.s: Move to...
+	* regression/tests_pass/ldr.s: ...here.  Disable the relocation
+	part of the test.
+	* regression/tests_pass/load_literal3.s: Add.
+	* regression/tests_pass/load_literal.s: Update reference part.
+
+Fri Jul 22 16:00:45 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (Symbol_PreDefReg): Use symbolGet instead of symbolAdd.
+	(symbolAdd): Remove.
+	(symbolGet): Drop NULL assignment.
+	(Symbol_Define): New.
+	* symbol.h (Symbol_Define): Add declaration.
+	(symbolAdd): Remove declaration.
+	* commands.c (Define): Renamed from c_define.  Use Symbol_Define.
+	(c_equ, c_fn, c_rn, c_cn, c_cp): Use Define.
+	* decode.c (decode): Use symbolGet instead of symbolAdd.
+	* storate.c (c_alloc): Likewise.
+	* asm.c (ASM_DefineLabel): Likewise.
+	* variables.c (declare_var): Likewise.  Add AREA symbol clash test.
+	* include.c (Include_Get): Fix const problem.
+	* lit.h (struct LITPOOL): Move to...
+	* lit.c (struct LITPOOL): ...here.
+	(Lit_GetLitOffsetAsSymbol): Use snprintf instead of sprintf.
+	(Lit_RegisterInt): Store trunced values as unsigned.
+	(Lit_RegisterFloat): Test upfront on well known FPE constants.
+
+Wed Jul 20 00:08:18 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* macros.c (Macro_Call): Duplicate default argument.
+	(c_macro): Don't do argument substitution when skipping until MEND.
+
+Sun Jul 10 19:21:24 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* area.c, area.h (areaGrow): Rename to Area_EnsureExtraSize and drop area
+	parameter. Add test if there is anything to do so that AREA_NOSPACE is
+	no longer needed.
+	* put.c (Put_DataWithOffset, Put_FloatDataWithOffset,
+	Put_InsWithOffset): Follow areaGrow/Area_EnsureExtraSize change.
+
+Sun Jul 10 15:05:20 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include.h (addInclude, getInclude): Rename to Include_Add, Include_Get.
+	* include.c: Likewise.
+	(Include_Add): Drop return value.
+	(Include_Get): Add inc parameter.
+	* commands.c (c_incbin): Follow Include_* API change.
+	* main.c (main): Likewise.
+	* eval.c (evalUnop): Likewise.
+	* filestack.c (FS_PushFilePObject): Use Include_Get to open the
+	command line specified assembler file.  This removes stdin support.
+	* regression/Makefile: Add V variable.
+
+Sun Jul 10 14:12:34 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* input.c (inputInit): Remove.
+	* input.h: Likewise.
+	* asm.c (ASM_Assemble): Call FS_PushFilePObject instead of inputInit.
+	* include.c (incDirCurSize, incDirMaxSize): Make type unsigned.
+
 Sun Jul 10 17:35:39 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* area.c (c_area): Relax the AREA attribute test on redefinition.

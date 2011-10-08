@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2010 GCCSDK Developers
+ * Copyright (c) 2001-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -115,7 +115,7 @@ typedef struct
 
 /* This is a constant, (not valid if TYPE_REFERENCE) */
 #define TYPE_ABSOLUTE  0x04
-/* Only if TYPE_REFERENCE, case insesitive */
+/* Only if TYPE_REFERENCE, case insensitive */
 #define TYPE_NOCASE    0x08
 /* Only if TYPE_REFERENCE, must not be resolved */
 #define TYPE_WEAK      0x10

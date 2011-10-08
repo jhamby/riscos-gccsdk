@@ -38,83 +38,107 @@
 #include "targetcpu.h"
 
 #define FINISH_STR(string, Op, Pri)	\
-  if (!Input_MatchString (string))	\
-    goto illegal;			\
-  lex->Data.Operator.op = Op;		\
-  lex->Data.Operator.pri = PRI(Pri);	\
-  return;
+  if (Input_MatchString (string))	\
+    {					\
+      lex->Data.Operator.op = Op;	\
+      lex->Data.Operator.pri = Pri;	\
+      return;				\
+    }
 
 #define FINISH_CHR(Op, Pri)		\
-  if (inputGet () != ':')		\
-    goto illegal;			\
-  lex->Data.Operator.op = Op;		\
-  lex->Data.Operator.pri = PRI(Pri);	\
-  return;
+  if (Input_Match (':', false))		\
+    {					\
+      lex->Data.Operator.op = Op;	\
+      lex->Data.Operator.pri = Pri;	\
+      return;				\
+    }
 
 void
 lexAcornUnop (Lex *lex)
 {
   lex->tag = LexOperator;
-  switch (inputGet ())
+  char c1 = inputGet ();
+  switch (c1)
     {
       case 'B':
-	FINISH_STR ("ASE:", Op_base, 10); /* :BASE: */
+	FINISH_STR ("ASE:", Op_base, kPrioOp_Unary); /* :BASE: */
+	break;
 
       case 'C':
-	FINISH_STR ("HR:", Op_chr, 10); /* :CHR: */
+	FINISH_STR ("HR:", Op_chr, kPrioOp_Unary); /* :CHR: */
+	break;
 
       case 'D':
-	if (!Input_MatchString ("EF:")) /* :DEF: */
-	  goto illegal;
-	*lex = lexGetPrim ();
-	if (lex->tag == LexId)
+	if (Input_MatchString ("EF:")) /* :DEF: */
 	  {
-	    /* :DEF: only returns {TRUE} when the symbol is defined and it is
-	       not a macro local variable.  */
-	    const Symbol *symP = symbolFind (lex);
-	    lex->Data.Bool.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
-	    lex->tag = LexBool;
-	    return;
+	    *lex = lexGetPrim ();
+	    if (lex->tag == LexId)
+	      {
+	        /* :DEF: only returns {TRUE} when the symbol is defined and it is
+		   not a macro local variable.  */
+		const Symbol *symP = symbolFind (lex);
+		lex->Data.Bool.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
+		lex->tag = LexBool;
+		return;
+	      }
+	    else
+	      error (ErrorError, "Bad operand for :DEF:");
 	  }
-	else
-	  error (ErrorError, "Bad operand for :DEF:");
 	break;
 
       case 'F':
-	switch (inputGet ())
-	  {
-	    case 'A':
-	      FINISH_STR ("TTR:", Op_fattr, 10); /* :FATTR: */
-	    case 'E':
-	      FINISH_STR ("XEC:", Op_fexec, 10); /* :FEXEC: */
-	    case 'L':
-	      FINISH_STR ("OAD:", Op_fload, 10); /* :FLOAD: */
-	    case 'S':
-	      FINISH_STR ("IZE:", Op_fsize, 10); /* :FSIZE: */
-	  }
-	break;
-
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'A':
+		FINISH_STR ("TTR:", Op_fattr, kPrioOp_Unary); /* :FATTR: */
+		break;
+	      case 'E':
+		FINISH_STR ("XEC:", Op_fexec, kPrioOp_Unary); /* :FEXEC: */
+		break;
+	      case 'L':
+		FINISH_STR ("OAD:", Op_fload, kPrioOp_Unary); /* :FLOAD: */
+		break;
+	      case 'S':
+		FINISH_STR ("IZE:", Op_fsize, kPrioOp_Unary); /* :FSIZE: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
       case 'I':
-	FINISH_STR ("NDEX:", Op_index, 10); /* :INDEX: */
+	FINISH_STR ("NDEX:", Op_index, kPrioOp_Unary); /* :INDEX: */
+	break;
 
       case 'L':
-	switch (inputGet ())
-	  {
-	    case 'E':
-	      FINISH_STR ("N:", Op_len, 10); /* :LEN: */
-	    case 'N':
-	      FINISH_STR ("OT:", Op_lnot, 10); /* :LNOT: */
-	  }
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'E':
+		FINISH_STR ("N:", Op_len, kPrioOp_Unary); /* :LEN: */
+		break;
+	      case 'N':
+		FINISH_STR ("OT:", Op_lnot, kPrioOp_Unary); /* :LNOT: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
+      case 'N':
+	FINISH_STR ("OT:", Op_not, kPrioOp_Unary); /* :NOT: */
 	break;
 
-      case 'N':
-	FINISH_STR ("OT:", Op_not, 10); /* :NOT: */
-
       case 'S':
-	FINISH_STR ("TR:", Op_str, 10); /* :STR: */
+	FINISH_STR ("TR:", Op_str, kPrioOp_Unary); /* :STR: */
+	break;
     }
+  inputUnGet (c1);
 
-illegal:
+  /* Failed to tokenize.  */
   lex->tag = LexNone;
 }
 
@@ -123,76 +147,128 @@ void
 lexAcornBinop (Lex *lex)
 {
   lex->tag = LexOperator;
-  switch (inputGet ())
+  char c1 = inputGet ();
+  switch (c1)
     {
       case 'A':
-	FINISH_STR ("ND:", Op_and, 8); /* :AND: */
-
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'N':
+		FINISH_STR ("D:", Op_and, kPrioOp_AddAndLogical); /* :AND: */
+		break;
+	      case 'S':
+		FINISH_STR ("R:", Op_asr, kPrioOp_Shift); /* :ASR: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
       case 'C':
-	FINISH_STR ("C:", Op_concat, 9); /* :CC: */
+	FINISH_STR ("C:", Op_concat, kPrioOp_String); /* :CC: */
+	break;
 	
       case 'E':
-	FINISH_STR ("OR:", Op_xor, 6); /* :EOR: */
+	FINISH_STR ("OR:", Op_xor, kPrioOp_AddAndLogical); /* :EOR: */
+	break;
 	
       case 'L':
-	switch (inputGet ())
-	  {
-	    case 'A':
-	      FINISH_STR ("ND:", Op_land, 2); /* :LAND: */
-	    case 'E':
-	      switch (inputGet ())
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'A':
+		FINISH_STR ("ND:", Op_land, kPrioOp_Boolean); /* :LAND: */
+		break;
+	      case 'E':
 		{
-		  case 'F':
-		    FINISH_STR ("T:", Op_left, 10); /* :LEFT: */
-		  case 'O':
-		    FINISH_STR ("R:", Op_ne, 1); /* :LEOR: */
+		  char c3 = inputGet ();
+		  switch (c3)
+		    {
+		      case 'F':
+			FINISH_STR ("T:", Op_left, kPrioOp_String); /* :LEFT: */
+			break;
+		      case 'O':
+			FINISH_STR ("R:", Op_leor, kPrioOp_Boolean); /* :LEOR: */
+			break;
+		    }
+		  inputUnGet (c3);
+		  break;
 		}
-	      break;
-	    case 'O':
-	      FINISH_STR ("R:", Op_lor, 1); /* :LOR: */
-	  }
-	break;
-
+	      case 'O':
+		FINISH_STR ("R:", Op_lor, kPrioOp_Boolean); /* :LOR: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
       case 'M':
-	FINISH_STR ("OD:", Op_mod, 10); /* :MOD: */
+	FINISH_STR ("OD:", Op_mod, kPrioOp_Multiplicative); /* :MOD: */
+	break;
 
       case 'O':
-	FINISH_STR ("R:", Op_or, 7); /* :OR: */
+	FINISH_STR ("R:", Op_or, kPrioOp_AddAndLogical); /* :OR: */
+	break;
 
       case 'R':
-	switch (inputGet ())
-	  {
-	    case 'I':
-	      FINISH_STR ("GHT:", Op_right, 10); /* :RIGHT: */
-	    case 'O':
-	      switch (inputGet())
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'I':
+		FINISH_STR ("GHT:", Op_right, kPrioOp_String); /* :RIGHT: */
+		break;
+	      case 'O':
 		{
-		  case 'L':
-		    FINISH_CHR (Op_rol, 5); /* :ROL: */
-		  case 'R':
-		    FINISH_CHR (Op_ror, 5); /* :ROR: */
+		  char c3 = inputGet ();
+		  switch (c3)
+		    {
+		      case 'L':
+			FINISH_CHR (Op_rol, kPrioOp_Shift); /* :ROL: */
+			break;
+		      case 'R':
+			FINISH_CHR (Op_ror, kPrioOp_Shift); /* :ROR: */
+			break;
+		    }
+		  inputUnGet (c3);
+		  break;
 		}
-	      break;
-	  }
-	break;
-
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
       case 'S':
-	switch (inputGet ())
-	  {
-	    case 'H':
-	      switch (inputGet ())
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'H':
 		{
-		  case 'L':
-		    FINISH_CHR (Op_sl, 5); /* :SHL: */
-		  case 'R':
-		    FINISH_CHR (Op_sr, 5); /* :SHR: */
+		  char c3 = inputGet ();
+		  switch (c3)
+		    {
+		      case 'L':
+			FINISH_CHR (Op_sl, kPrioOp_Shift); /* :SHL: */
+			break;
+		      case 'R':
+			FINISH_CHR (Op_sr, kPrioOp_Shift); /* :SHR: */
+			break;
+		    }
+		  inputUnGet (c3);
+		  break;
 		}
-	      break;
-	  }
-	break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
     }
+  inputUnGet (c1);
 
-illegal:
+  /* Failed to tokenize.  */
   lex->tag = LexNone;
 }
 

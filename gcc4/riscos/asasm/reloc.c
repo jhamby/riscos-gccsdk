@@ -85,6 +85,8 @@ bool
 Reloc_QueueExprUpdate (RelocUpdater callback, ARMWord offset, ValueTag legal,
 		       void *privData, size_t sizePrivData)
 {
+  assert (gASM_Phase == ePassTwo);
+
   Value value; /* We have ownership of this.  */
   if (Code_HasUndefinedSymbols ())
     value = Code_TakeSnapShot ();

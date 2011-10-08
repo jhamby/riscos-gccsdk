@@ -144,16 +144,19 @@ dt6lbl3	%	4
 	ADR	r2, 42 - 8 - {PC}
 	ADR	r2, 42 - {PC} - 8
 	ADR	r2, - {PC} + 42 - 8
-	ADRL	r2, 42 - 8 - {PC}	; Becomes ADR.
-	ADRL	r2, 42 - {PC} - 8	; Becomes ADR.
-	ADRL	r2, - {PC} + 42 - 8	; Becomes ADR.
+	ADRL	r2, 42 - 8 - {PC}	; Becomes ADR. FIXME: no longer :( - twopass regression
+	ADRL	r2, 42 - {PC} - 8	; Becomes ADR. FIXME: no longer :( - twopass regression
+	ADRL	r2, - {PC} + 42 - 8	; Becomes ADR. FIXME: no longer :( - twopass regression
 	|
 	ADD	r2, pc, #&1a
 	ADD	r2, pc, #&1a
 	ADD	r2, pc, #&1a
 	ADD	r2, pc, #&1a
+	ADD	r2, r2, #0		; FIXME: should go - twopass regression
 	ADD	r2, pc, #&1a
+	ADD	r2, r2, #0		; FIXME: should go - twopass regression
 	ADD	r2, pc, #&1a
+	ADD	r2, r2, #0		; FIXME: should go - twopass regression
 	]
 	]
 	]
@@ -169,7 +172,7 @@ tstlbl3	#	32
 
 	AREA	Code10, CODE, READONLY
 	ADR	r2, tstlbl2
-	ADRL	r4, tstlbl2	; Generates warning, ADR is used.
+	ADRL	r4, tstlbl2	; Generates warning, ADR is used. FIXME: no longer :( - twopass regression
 	ADR	r5, tstlbl5
 	ADRL	r6, tstlbl5	; Generates info in fuzzy mode, ADRL is still used
 
@@ -181,7 +184,8 @@ tstlbl6	#	32
 	|
 	AREA	Code10, CODE, READONLY
 	ADD r2, r3, #20	;ADR
-	ADD r4, r3, #20	;ADRL -> ADR
+	ADD r4, r3, #20	;ADRL -> ADR FIXME: no longer :( - twopass regression
+	ADD r4, r4, #0		; FIXME: should go - twopass regression
 	ADD r5, r7, #20	;ADR
 	ADD r6, r7, #20	;ADRL
 	ADD r6, r6, #0

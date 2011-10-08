@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,15 @@
 
 #include "lex.h"
 #include "symbol.h"
+
+typedef enum
+{
+  eStartup,
+  ePassOne,
+  ePassTwo,
+  eOutput
+} ASM_Phase_e;
+extern ASM_Phase_e gASM_Phase;
 
 void ASM_Assemble (const char *asmFile);
 Symbol *ASM_DefineLabel (const Lex *label, int offset);

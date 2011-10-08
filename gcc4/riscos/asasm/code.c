@@ -96,7 +96,7 @@ void
 codePosition (Symbol *area, int offset)
 {
   if (area->area.info->type & AREA_ABS)
-    codeInt (area->area.info->baseAddr + offset);
+    codeInt (Area_GetBaseAddress (area) + offset);
   else if (offset == 0)
     codeSymbol (area);
   else
@@ -394,20 +394,21 @@ Code_ExpandCurrAreaSymbolAsAddr (Value *value, ARMWord instrOffset)
 	Code_ExpandCurrAreaSymbolAsAddr (&value->Data.Code.c[i].Data.value, instrOffset);
 }  
 
-
-void
+#if 0
+static void
 Code_ExpandCurrAreaSymbolAsOffset (Value *value, int offset)
 {
   if (value->Tag == ValueSymbol && value->Data.Symbol.symbol == areaCurrentSymbol)
     {
       value->Tag = ValueInt;
-      value->Data.Int.i = areaCurrentSymbol->value.Data.Int.i;
+      value->Data.Int.i = areaCurrentSymbol->area.info->curIdx;
     }
   else if (value->Tag == ValueCode)
     for (size_t i = 0; i != value->Data.Code.len; ++i)
       if (value->Data.Code.c[i].Tag == CodeValue)
 	Code_ExpandCurrAreaSymbolAsOffset (&value->Data.Code.c[i].Data.value, offset);
 }
+#endif
 
 static bool
 Code_HasNonAddOperator (int start, int end, const Code *code)
@@ -468,19 +469,19 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 	{
 	  case CodeOperator:
 #ifdef DEBUG_CODE
-	    printf ("[Operator %s] ", OperatorAsStr (program[i].Data.op));
+	    printf ("[Operator %s] ", Lex_OperatorAsStr (program[i].Data.op));
 #endif
-	    if (isUnop (program[i].Data.op))
+	    if (IsUnop (program[i].Data.op))
 	      {
 		assert (spStart < *sp); /* At least one entry on the stack.  */
 		if (Stack[*sp - 1].Tag != CodeValue
 		    || (Stack[*sp - 1].Data.value.Tag == ValueSymbol
-		        && program[i].Data.op != Op_size
+		        && !(program[i].Data.op == Op_size && (Stack[*sp - 1].Data.value.Data.Symbol.symbol->type & SYMBOL_DEFINED) != 0)
 		        && program[i].Data.op != Op_neg))
 		  {
-		    /* We have an unresolved (or even undeclared) symbol
+		    /* We have an unresolved (or even undefined) symbol
 		       on the stack, or previous operation failed because
-		       of an unresolved (undeclared) symbol.  */
+		       of an unresolved (undefined) symbol.  */
 		    Stack[(*sp)++] = program[i];
 		  }
 		else if (!evalUnop (program[i].Data.op, &Stack[*sp - 1].Data.value))
@@ -610,17 +611,17 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 	      valuePrint (valueP);
 	      printf ("] ");
 #endif
-	      /* Resolve the symbol when it is defined (note that AREA symbols
-	         are never 'defined' but only 'declared').
-		 Don't do this when the next program element is :SIZE:.  */
+	      /* Resolve the symbol when defined and when it is not an
+	         absolute AREA symbol.
+		 Don't do this when the next program element is :SIZE:
+	         either.  */
 	      bool nextIsOpSize = i + 1 != size
 				    && program[i + 1].Tag == CodeOperator
 				    && program[i + 1].Data.op == Op_size;
-	      /* FIXME: consider defining AREA symbols and additionally check on
-	       SYMBOL_ABSOLUTE here.  */
 	      /* FIXME: this can probably loop forever: label1 -> label2 -> label1 */
 	      while (valueP->Tag == ValueSymbol
 		     && (valueP->Data.Symbol.symbol->type & SYMBOL_DEFINED)
+	             && ((valueP->Data.Symbol.symbol->type & SYMBOL_AREA) == 0 || (valueP->Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) != 0)
 		     && (!nextIsOpSize || valueP->Data.Symbol.symbol->value.Tag == ValueSymbol))
 		valueP = &valueP->Data.Symbol.symbol->value;
 	      if (Stack[*sp].Tag != CodeValue)
@@ -862,6 +863,9 @@ Code_HasUndefinedSymbols (void)
   return Code_HasUndefSymbols (Program, FirstFreeIns);
 }
 
+/**
+ * \return true when we have an undefined symbol in our code.
+ */
 static bool
 Code_HasUndefSymbols (const Code *code, size_t len)
 {
@@ -980,10 +984,10 @@ codePrint (size_t size, const Code *program)
       switch (program[i].Tag)
 	{
 	  case CodeOperator:
-	    if (isUnop (program[i].Data.op))
-	      printf ("[%s] ", OperatorAsStr (program[i].Data.op));
+	    if (IsUnop (program[i].Data.op))
+	      printf ("[%s] ", Lex_OperatorAsStr (program[i].Data.op));
 	    else
-	      printf ("[%s] ", OperatorAsStr (program[i].Data.op));
+	      printf ("[%s] ", Lex_OperatorAsStr (program[i].Data.op));
 	    break;
 
 	  case CodeValue:

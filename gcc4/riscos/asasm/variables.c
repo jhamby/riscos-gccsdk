@@ -99,21 +99,29 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
   Symbol *sym = symbolFind (&var);
   if (sym != NULL)
     {
+      if (sym->type & SYMBOL_AREA)
+	{
+	  error (ErrorError, "'%.*s' is already defined as an area",
+		 (int)len, ptr);
+	  return NULL;
+	}
       if (sym->value.Tag != type)
 	{
-	  error (ErrorError, "'%.*s' is already declared as a %s",
-	         (int)len, ptr, valueTagAsString (sym->value.Tag));
+	  error (ErrorError, "'%.*s' is already %s as a %s",
+		 (int)len, ptr,
+		 sym->type & SYMBOL_DEFINED ? "defined" : "declared",
+		 valueTagAsString (sym->value.Tag));
 	  return NULL;
 	}
       if (option_pedantic)
-        error (ErrorWarning, "Redeclaration of %s variable '%.*s'",
+	error (ErrorWarning, "Redeclaration of %s variable '%.*s'",
 	       valueTagAsString (sym->value.Tag),
 	       (int)var.Data.Id.len, var.Data.Id.str);
     }
   else
-    sym = symbolAdd (&var);
+    sym = symbolGet (&var);
 
-  sym->type |= SYMBOL_ABSOLUTE;
+  sym->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE;
   if (localMacro)
     sym->type |= SYMBOL_MACRO_LOCAL;
   assign_var (sym, type);
@@ -208,15 +216,15 @@ c_lcl (void)
   /* Link our local variable into the current macro so we can restore this
      at the end of macro invocation.  */
   const Lex l = lexTempLabel (ptr, len);
-  Symbol *sym = symbolFind (&l);
+  Symbol *symbolP = symbolFind (&l);
 
   bool doRestore;
-  if (sym != NULL)
+  if (symbolP != NULL)
     {
       /* Perhaps already made local ? */
-      varPos *varPosP;
+      VarPos *varPosP;
       for (varPosP = gCurPObjP->d.macro.varListP;
-	   varPosP != NULL && varPosP->symptr != sym;
+	   varPosP != NULL && varPosP->symbolP != symbolP;
 	   varPosP = varPosP->next)
 	/* */;
       doRestore = varPosP == NULL;
@@ -226,19 +234,19 @@ c_lcl (void)
 
   if (doRestore)
     {
-      varPos *p;
-      if ((p = malloc (sizeof (varPos) + len + 1)) == NULL)
+      VarPos *p;
+      if ((p = malloc (sizeof (VarPos) + len + 1)) == NULL)
 	errorOutOfMem ();
       memcpy (p->name, ptr, len); p->name[len] = '\0';
       p->next = gCurPObjP->d.macro.varListP;
-      if ((p->symptr = sym) != NULL)
-	p->symbol = *sym;
+      if ((p->symbolP = symbolP) != NULL)
+	p->symbol = *symbolP;
       gCurPObjP->d.macro.varListP = p;
     }
   
   /* When symbol is already known, it remains a global variable (and :DEF:
      returns {TRUE} for it).  */
-  declare_var (ptr, len, type, sym == NULL || (sym->type & SYMBOL_MACRO_LOCAL));
+  declare_var (ptr, len, type, symbolP == NULL || (symbolP->type & SYMBOL_MACRO_LOCAL));
   return false;
 }
 
@@ -308,17 +316,16 @@ c_set (const Lex *label)
  * variables.
  */
 void
-var_restoreLocals (const varPos *p)
+Var_RestoreLocals (const VarPos *p)
 {
   while (p != NULL)
     {
-      if (p->symptr)
+      if (p->symbolP)
 	{
 	  /* Variable existed before we (temporarily) overruled it, so
 	     restore it to its original value.  */
-	  valueFree (&p->symptr->value);
-	  assert (p->symptr->next == p->symbol.next);
-	  *p->symptr = p->symbol;
+	  valueFree (&p->symbolP->value);
+	  *p->symbolP = p->symbol;
 	}
       else
 	{
@@ -326,7 +333,7 @@ var_restoreLocals (const varPos *p)
 	  symbolRemove (&l);
 	}
 
-      const varPos *q = p->next;
+      const VarPos *q = p->next;
       free ((void *)p);
       p = q;
     }
@@ -334,7 +341,7 @@ var_restoreLocals (const varPos *p)
 
 
 void
-var_define (const char *def)
+Var_Define (const char *def)
 {
   const char *i = strchr (def, '=');
   size_t len = i != NULL ? (size_t)(i - def) : strlen (def);

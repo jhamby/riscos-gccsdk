@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) August 1992, Andy Duplain
- * Copyright (c) 2004-2006 GCCSDK Developers
+ * Copyright (c) 2004-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -23,7 +23,10 @@
 #ifndef include_header_included
 #define include_header_included
 
-int addInclude (const char *incpath);
-FILE *getInclude (const char *filename, const char **strdupFilename);
+#include <stdbool.h>
+#include <stdio.h>
+
+void Include_Add (const char *incpath);
+FILE *Include_Get (const char *filename, const char **strdupFilename, bool inc);
 
 #endif

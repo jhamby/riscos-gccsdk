@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2010 GCCSDK Developers
+ * Copyright (c) 2000-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,32 +43,64 @@
 #include "filestack.h"
 #include "input.h"
 #include "lex.h"
+#include "local.h"
 #include "main.h"
 
 #ifdef DEBUG
 //#  define DEBUG_ASM
 #endif
 
-/**
- * Parse the input file, and perform the assembly.
- * \param asmFile Filename to assemble.
- */
-void
-ASM_Assemble (const char *asmFile)
-{
-  inputInit (asmFile);
+ASM_Phase_e gASM_Phase = eStartup;
 
-  setjmp (asmContinue); // FIXME: this will be wrong when we're skipping if/while contents.
+/**
+ * Read one line input.
+ * \return true for success, false otherwise.
+ */
+static bool
+ASM_NextLine (void)
+{
+  const char *curFile = FS_GetCurFileName ();
+  int curLine = FS_GetCurLineNumber ();
+  while (!Input_NextLine (eVarSubst))
+    {
+      /* Failed to read a line, this might be we're EOD for the current
+         parsable object.  Go up one.  */
+      if (gCurPObjP->type == POType_eFile)
+	errorLine (curFile, curLine, ErrorWarning, "No END found");
+      FS_PopPObject (false);
+      if (gCurPObjP == NULL)
+	return false;
+      curFile = FS_GetCurFileName ();
+      curLine = FS_GetCurLineNumber ();
+    }
+  return true;
+}
+
+static void
+ASM_DoPass (const char *asmFile)
+{
+  assert (gCurPObjP == NULL);
+  FS_PushFilePObject (asmFile);
+
+  // FIXME: this will be wrong when we're skipping if/while contents.
+  while (setjmp (asmContinue) != 0)
+    /* */;
   asmContinueValid = true;
 
-  /* Process input line-by-line.  */
-  while (gCurPObjP != NULL && inputNextLine ())
+  while (gCurPObjP != NULL && ASM_NextLine ())
     {
       /* Ignore blank lines and comments.  */
       if (Input_IsEolOrCommentStart ())
 	continue;
 
-      /* Read label (if there is one).  */
+#ifdef DEBUG_ASM
+      const char *fileName = FS_GetCurFileName ();
+      size_t len = strlen (fileName);
+      if (len > 12)
+	fileName += len - 12;
+      printf("%.*s : %d : 0x%x : <%s>\n", (int)len, fileName, FS_GetCurLineNumber (), areaCurrentSymbol->area.info->curIdx, inputLine ());
+#endif
+      /* Read label (in case there is one).  */
       Lex label;
       if (!isspace ((unsigned char)inputLook ()))
 	label = Lex_GetDefiningLabel (false);
@@ -77,15 +109,36 @@ ASM_Assemble (const char *asmFile)
       skipblanks ();
 
 #ifdef DEBUG_ASM
-      printf ("%s: %d: ", FS_GetCurFileName (), FS_GetCurLineNumber ());
       lexPrint (&label);
       printf ("\n");
 #endif
 
       decode (&label);
     }
-
+  
   asmContinueValid = false;
+}
+
+/**
+ * Parse the input file, and perform the assembly.
+ * \param asmFile Filename to assemble.
+ */
+void
+ASM_Assemble (const char *asmFile)
+{
+  Area_PrepareForPhase (ePassOne);
+  Local_PrepareForPhase (ePassOne);
+  gASM_Phase = ePassOne;
+  ASM_DoPass (asmFile);
+
+  /* Don't do a next pass if we already have errors now.  */
+  if (returnExitStatus () == EXIT_SUCCESS)
+    {
+      Area_PrepareForPhase (ePassTwo);
+      Local_PrepareForPhase (ePassTwo);
+      gASM_Phase = ePassTwo;
+      ASM_DoPass (asmFile);
+    }
 }
 
 
@@ -100,20 +153,18 @@ ASM_DefineLabel (const Lex *label, int offset)
   if (label->tag != LexId)
     return NULL;
 
-  Symbol *symbol = symbolAdd (label);
-  if (symbol->value.Tag != ValueIllegal)
-    return NULL; /* Label was already defined with a value (error is already given).  */
-
+  Value value;
+  unsigned symbolType;
   if (areaCurrentSymbol->area.info->type & AREA_BASED)
     {
       /* Define label as "ValueAddr AreaBaseReg, #<given area offset>".  */
-      symbol->value = Value_Addr (Area_GetBaseReg (areaCurrentSymbol->area.info), offset);
-      symbol->area.rel = areaCurrentSymbol;
+      value = Value_Addr (Area_GetBaseReg (areaCurrentSymbol->area.info), offset);
+      symbolType = SYMBOL_DEFINED;
     }
   else if (areaCurrentSymbol->area.info->type & AREA_ABS)
     {
-      symbol->value = Value_Int (areaCurrentSymbol->area.info->baseAddr + offset);
-      symbol->type |= SYMBOL_ABSOLUTE;
+      value = Value_Int (Area_GetBaseAddress (areaCurrentSymbol) + offset);
+      symbolType = SYMBOL_DEFINED | SYMBOL_ABSOLUTE;
     }
   else
     {
@@ -127,9 +178,16 @@ ASM_DefineLabel (const Lex *label, int offset)
 	    { .Tag = CodeOperator,
 	      .Data.op = Op_add }
 	};
-      symbol->value = Value_Code (sizeof (values)/sizeof (values[0]), values);
-      symbol->area.rel = areaCurrentSymbol;
+      value = Value_Code (sizeof (values)/sizeof (values[0]), values);
+      symbolType = SYMBOL_DEFINED;
     }
+
+  Symbol *symbol = symbolGet (label);
+  if (Symbol_Define (symbol, symbolType, &value))
+    return NULL;
+
+  if (!(areaCurrentSymbol->area.info->type & AREA_ABS))
+    symbol->area.rel = areaCurrentSymbol;
 
   return symbol;
 }

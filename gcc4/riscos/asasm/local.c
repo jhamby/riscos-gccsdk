@@ -37,24 +37,97 @@
 
 #define kEmptyRoutineName "EmptyRName$$"
 
-typedef struct routPos
+typedef struct RoutPos_t
 {
-  struct routPos *next;
+  struct RoutPos_t *next;
   const char *id;
   const char *file;
   int lineno;
-} routPos;
+} RoutPos_t;
 
-static unsigned int rout_null = 0;
-static routPos *routList;
-static routPos *routListEnd;
+static unsigned int oRout_Null;
+static RoutPos_t *oRout_List;
+static RoutPos_t *oRout_ListEnd;
 
-int Local_ROUTLblNo[100] = {0};
-const char *Local_CurROUTId = kEmptyRoutineName "0";
+static Local_Label_t oLocal_LabelNum[32];
 
-/* Parameters: AREA ptr, 0 - 99 label digit, instance number, routine name.  */
-const char Local_IntLabelFormat[] = kIntLabelPrefix "Local$$%p$$%02i$$%i$$%s";
+/* Parameters: AREA ptr, label number, instance number, routine name.  */
+const char Local_IntLabelFormat[] = kIntLabelPrefix "Local$$%p$$%08i$$%i$$%s";
 
+static void Local_ResetLabels (void);
+
+void
+Local_PrepareForPhase (ASM_Phase_e phase)
+{
+  switch (phase)
+    {
+      case eStartup:
+	break;
+
+      case ePassOne:
+	Local_ResetLabels ();
+	break;
+
+      case ePassTwo:
+	{
+	  for (RoutPos_t *routCur = oRout_List; routCur != NULL; /* */)
+	    {
+	      RoutPos_t *routCurNext = routCur->next;
+	      free ((void *)routCur->id);
+	      free (routCur);
+	      routCur = routCurNext;
+	    }
+	  oRout_List = NULL;
+	  oRout_ListEnd = NULL;
+	  oRout_Null = 0;
+	  Local_ResetLabels ();
+	}
+	break;
+
+      case eOutput:
+	Local_ResetLabels ();
+	break;
+    }
+}
+
+Local_Label_t *
+Local_GetLabel (unsigned num)
+{
+  unsigned i = num % (sizeof (oLocal_LabelNum) / sizeof (oLocal_LabelNum[0]));
+  Local_Label_t *lblP;
+  for (lblP = &oLocal_LabelNum[i];
+       lblP->Num != num && lblP->NextP != NULL;
+       lblP = lblP->NextP)
+    /* */;
+  if (lblP->Num == num)
+    return lblP;
+  lblP->NextP = malloc (sizeof (Local_Label_t));
+  lblP->NextP->NextP = NULL;
+  lblP->NextP->Num = num;
+  lblP->NextP->Value = 0;
+  return lblP->NextP;
+}
+
+static void
+Local_ResetLabels (void)
+{
+  for (unsigned i = 0; i != sizeof (oLocal_LabelNum) / sizeof (oLocal_LabelNum[0]); ++i)
+    {
+      for (Local_Label_t *nextLblP = oLocal_LabelNum[i].NextP; nextLblP != NULL; /* */)
+	{
+	  Local_Label_t *nextNextLblP = nextLblP->NextP;
+	  free (nextLblP);
+	  nextLblP = nextNextLblP;
+	}
+      memset (&oLocal_LabelNum[i], 0, sizeof (oLocal_LabelNum[0]));
+    }
+}
+
+const char *
+Local_GetCurROUTId (void)
+{
+  return oRout_ListEnd ? oRout_ListEnd->id : kEmptyRoutineName "0";
+}
 
 /**
  * Implements ROUT.
@@ -62,38 +135,37 @@ const char Local_IntLabelFormat[] = kIntLabelPrefix "Local$$%p$$%02i$$%i$$%s";
 bool
 c_rout (const Lex *label)
 {
-  memset (Local_ROUTLblNo, 0, sizeof (Local_ROUTLblNo));
+  Local_ResetLabels ();
 
+  char *newROUTId;
   if (label->tag == LexId)
     {
-      ASM_DefineLabel (label, areaCurrentSymbol->value.Data.Int.i);
+      ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx);
       if (Local_ROUTIsEmpty (label->Data.Id.str))
 	{
 	  error (ErrorError, "Illegal routine name");
 	  return false;
 	}
-      Local_CurROUTId = strndup (label->Data.Id.str, label->Data.Id.len);
+      newROUTId = strndup (label->Data.Id.str, label->Data.Id.len);
     }
   else
     {
-      char *new_rout_id = malloc (sizeof (kEmptyRoutineName)-1 + 10);
-      if (new_rout_id)
-	{
-	  sprintf (new_rout_id, kEmptyRoutineName "%i", ++rout_null);
-	  Local_CurROUTId = new_rout_id;
-	}
+      newROUTId = malloc (sizeof (kEmptyRoutineName)-1 + 10);
+      if (newROUTId != NULL)
+        sprintf (newROUTId, kEmptyRoutineName "%i", ++oRout_Null);
     }
-  routPos *p = malloc (sizeof (routPos));
-  if (Local_CurROUTId == NULL || p == NULL)
+  RoutPos_t *p = malloc (sizeof (RoutPos_t));
+  if (newROUTId == NULL || p == NULL)
     errorOutOfMem ();
 
-  if (routListEnd)
-    routListEnd->next = p;
-  routListEnd = p;
-  if (!routList)
-    routList = p;
+  if (oRout_ListEnd)
+    oRout_ListEnd->next = p;
+  oRout_ListEnd = p;
+  if (!oRout_List)
+    oRout_List = p;
 
-  p->id = Local_CurROUTId;
+  p->next = NULL;
+  p->id = newROUTId;
   p->file = FS_GetCurFileName ();
   p->lineno = FS_GetCurLineNumber ();
   return false;
@@ -117,7 +189,7 @@ Local_IsLocalLabel (const char *s)
 void
 Local_FindROUT (const char *rout, const char **file, int *lineno)
 {
-  for (const routPos *p = routList; p; p = p->next)
+  for (const RoutPos_t *p = oRout_List; p; p = p->next)
     {
       if (!strcmp (p->id, rout))
 	{
@@ -129,3 +201,14 @@ Local_FindROUT (const char *rout, const char **file, int *lineno)
   *file = NULL;
   *lineno = 0;
 }
+
+#ifdef DEBUG
+void
+Local_DumpAll (void)
+{
+  for (const RoutPos_t *p = oRout_List; p != NULL; p = p->next)
+    {
+      printf ("%s : %s @ line %d\n", p->id, p->file, p->lineno);
+    }
+}
+#endif

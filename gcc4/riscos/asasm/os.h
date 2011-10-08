@@ -1,7 +1,7 @@
 /* 
  * AS an assembler for ARM
  * Copyright (c) 1998 Nick Burrett
- * Copyright (c) 2001-2010 GCCSDK Developers
+ * Copyright (c) 2001-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,10 +25,10 @@
 #define os_header_included
 
 #include "config.h"
-#include <error.h>
-#include <string.h>
 
 #ifndef __riscos__
+#  include <error.h>
+#  include <string.h>
 /* UNIX specific information.  */
 static inline const char *
 CanonicalisePath (const char *path)
@@ -43,10 +43,6 @@ CanonicalisePath (const char *path)
 #include <kernel.h>
 
 int switonum (const char *swi);
-
-int OSCanonicalisePath (const char *path,
-			char *buffer, int bufferSize,
-			char *systemVar, char *defaultPath);
 
 _kernel_oserror *ThrowbackStart (void);
 _kernel_oserror *ThrowbackSendStart (const char *filename);

@@ -29,6 +29,8 @@ field3	# 4		; Offset &18 - &1c
 	DCD	:INDEX:@ + 4
 	DCD	4 + :INDEX:@
 	DCD	:INDEX:@ + :INDEX:@
+	DCD	"A" + 3
+	DCD	3 + "A"
 
 	; -
 	DCD	5 - 3
@@ -47,12 +49,16 @@ field3	# 4		; Offset &18 - &1c
 	DCFS	5 - 3.		; <signed int> + <float>
 	DCFS	5. - -3		; <float> + <signed int>
 	]
+	DCD	"D" - 3
+	DCD	"D" - "A"
 
 	; :AND:
 	DCD	6 :AND: 3
 	DCD	:INDEX:@ :AND: 12
 	DCD	12 :AND: :INDEX:@
 	DCD	:INDEX:@ :AND: :INDEX:@
+	DCD	"A" :AND: 3
+	DCD	3 :AND: "A"
 
 	; &
 	[ EXTENSION
@@ -60,6 +66,8 @@ field3	# 4		; Offset &18 - &1c
 	DCD	:INDEX:@ & 12
 	DCD	12 & :INDEX:@
 	DCD	:INDEX:@ & :INDEX:@
+	DCD	"A" :AND: 3
+	DCD	3 :AND: "A"
 	]
 
 	; :OR:
@@ -67,6 +75,8 @@ field3	# 4		; Offset &18 - &1c
 	DCD	:INDEX:@ :OR: 12
 	DCD	12 :OR: :INDEX:@
 	DCD	:INDEX:@ :OR: :INDEX:@
+	DCD	"A" :OR: 3
+	DCD	3 :OR: "A"
 
 	; |
 	[ EXTENSION
@@ -74,6 +84,20 @@ field3	# 4		; Offset &18 - &1c
 	DCD	:INDEX:@ | 12
 	DCD	12 | :INDEX:@
 	DCD	:INDEX:@ | :INDEX:@
+	DCD	"A" :OR: 3
+	DCD	3 :OR: "A"
+	]
+
+	; :EOR:
+	DCD	6 :EOR: 3
+	DCD	"A" :EOR: 3
+	DCD	3 :EOR: "A"
+
+	; ^
+	[ EXTENSION
+	DCD	6 :EOR: 3
+	DCD	"A" :EOR: 3
+	DCD	3 :EOR: "A"
 	]
 
 	|
@@ -95,6 +119,8 @@ field3	# 4		; Offset &18 - &1c
 	DCD	&20
 	DCD	&20
 	DCD	&38
+	DCD	&44
+	DCD	&44
 
 	; -
 	DCD	2
@@ -113,12 +139,16 @@ field3	# 4		; Offset &18 - &1c
 	DCFS	2.
 	DCFS	8.
 	]
+	DCD	&41
+	DCD	3
 
 	; :AND:
 	DCD	2
 	DCD	&C
 	DCD	&C
 	DCD	&1c
+	DCD	1
+	DCD	1
 
 	; &
 	[ EXTENSION
@@ -126,6 +156,8 @@ field3	# 4		; Offset &18 - &1c
 	DCD	&C
 	DCD	&C
 	DCD	&1c
+	DCD	1
+	DCD	1
 	]
 
 	; :OR:
@@ -133,6 +165,8 @@ field3	# 4		; Offset &18 - &1c
 	DCD	&1c
 	DCD	&1c
 	DCD	&1c
+	DCD	&43
+	DCD	&43
 
 	; |
 	[ EXTENSION
@@ -140,6 +174,20 @@ field3	# 4		; Offset &18 - &1c
 	DCD	&1c
 	DCD	&1c
 	DCD	&1c
+	DCD	&43
+	DCD	&43
+	]
+
+	; :EOR:
+	DCD	5
+	DCD	&42
+	DCD	&42
+
+	; ^
+	[ EXTENSION
+	DCD	5
+	DCD	&42
+	DCD	&42
 	]
 
 	]

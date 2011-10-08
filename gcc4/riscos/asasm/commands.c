@@ -59,7 +59,7 @@
  * symbol is already defined with a value different than parsed.
  */
 static bool
-c_define (const char *msg, Symbol *sym, ValueTag legal)
+Define (const char *msg, Symbol *sym, unsigned symType, ValueTag legal)
 {
   bool fail;
   if (sym == NULL)
@@ -76,19 +76,7 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
 	  fail = true;
 	}
       else
-	{
-	  if (sym->value.Tag != ValueIllegal && !valueEqual (&sym->value, value))
-	    {
-	      error (ErrorError, "Symbol %s is already defined", sym->str);
-	      fail = true;
-	    }
-	  else
-	    {
-	      Value_Assign (&sym->value, value);
-	      sym->type |= SYMBOL_DEFINED | SYMBOL_DECLARED | SYMBOL_ABSOLUTE;
-	      fail = false;
-	    }
-	}
+	fail = Symbol_Define (sym, SYMBOL_DEFINED | SYMBOL_ABSOLUTE | symType, value);
     }
   return fail;
 }
@@ -99,7 +87,7 @@ c_define (const char *msg, Symbol *sym, ValueTag legal)
 bool
 c_equ (Symbol *symbol)
 {
-  c_define ("* or EQU", symbol, ValueAll);
+  Define ("* or EQU", symbol, 0, ValueAll);
   return false;
 }
 
@@ -109,9 +97,8 @@ c_equ (Symbol *symbol)
 bool
 c_fn (Symbol *symbol)
 {
-  if (!c_define ("float register", symbol, ValueInt))
+  if (!Define ("float register", symbol, SYMBOL_FPUREG, ValueInt))
     {
-      symbol->type |= SYMBOL_FPUREG;
       int no = symbol->value.Data.Int.i;
       if (no < 0 || no > 7)
 	{
@@ -128,9 +115,8 @@ c_fn (Symbol *symbol)
 bool
 c_rn (Symbol *symbol)
 {
-  if (!c_define ("register", symbol, ValueInt))
+  if (!Define ("register", symbol, SYMBOL_CPUREG, ValueInt))
     {
-      symbol->type |= SYMBOL_CPUREG;
       int no = symbol->value.Data.Int.i;
       if (no < 0 || no > 15)
 	{
@@ -147,9 +133,8 @@ c_rn (Symbol *symbol)
 bool
 c_cn (Symbol *symbol)
 {
-  if (!c_define ("coprocessor register", symbol, ValueInt))
+  if (!Define ("coprocessor register", symbol, SYMBOL_COPREG, ValueInt))
     {
-      symbol->type |= SYMBOL_COPREG;
       int no = symbol->value.Data.Int.i;
       if (no < 0 || no > 15)
 	{
@@ -166,9 +151,8 @@ c_cn (Symbol *symbol)
 bool
 c_cp (Symbol *symbol)
 {
-  if (!c_define ("coprocessor number", symbol, ValueInt))
+  if (!Define ("coprocessor number", symbol, SYMBOL_COPNUM, ValueInt))
     {
-      symbol->type |= SYMBOL_COPNUM;
       int no = symbol->value.Data.Int.i;
       if (no < 0 || no > 15)
 	{
@@ -186,7 +170,7 @@ c_cp (Symbol *symbol)
 bool
 c_head (void)
 {
-  const int startAreaOffset = areaCurrentSymbol->value.Data.Int.i;
+  const unsigned startAreaOffset = areaCurrentSymbol->area.info->curIdx;
   const Value *value = exprBuildAndEval (ValueString);
   switch (value->Tag)
     {
@@ -205,8 +189,8 @@ c_head (void)
         break;
     }
 
-  Area_AlignTo (areaCurrentSymbol->value.Data.Int.i, 4, NULL);
-  Put_Data (4, 0xFF000000 + areaCurrentSymbol->value.Data.Int.i - startAreaOffset);
+  Area_AlignTo (areaCurrentSymbol->area.info->curIdx, 4, NULL);
+  Put_Data (4, 0xFF000000 + areaCurrentSymbol->area.info->curIdx - startAreaOffset);
   return false;
 }
 
@@ -305,7 +289,21 @@ DefineInt (int size, bool allowUnaligned, const char *mnemonic)
   do
     {
       exprBuild ();
-      if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, areaCurrentSymbol->value.Data.Int.i,
+      if (gASM_Phase == ePassOne)
+	{
+	  const Value *result = codeEval (ValueInt | ValueString | ValueSymbol | ValueCode, NULL);
+	  if (result->Tag == ValueString)
+	    {
+	      size_t len = result->Data.String.len;
+	      const char *str = result->Data.String.s;
+	      /* Lay out a string.  */
+	      for (size_t i = 0; i != len; ++i)
+		Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx, privData.size, str[i], !privData.allowUnaligned);
+	    }
+	  else
+	    Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx, privData.size, 0, !privData.allowUnaligned);
+	}
+      else if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, areaCurrentSymbol->area.info->curIdx,
 				 ValueInt | ValueString | ValueSymbol | ValueCode,
 				 &privData, sizeof (privData)))
 	error (ErrorError, "Illegal %s expression", mnemonic);
@@ -359,7 +357,7 @@ c_dcd (void)
 bool
 c_dci (void)
 {
-  Area_AlignTo (areaCurrentSymbol->value.Data.Int.i, 4, "instruction");
+  Area_AlignTo (areaCurrentSymbol->area.info->curIdx, 4, "instruction");
   return DefineInt (4, false, "DCI");
 }
 
@@ -427,13 +425,19 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
   do
     {
       exprBuild ();
-      ValueTag legal = ValueFloat | ValueSymbol | ValueCode;
-      if (option_autocast)
-	legal |= ValueInt;
-      if (Reloc_QueueExprUpdate (DefineReal_RelocUpdater, areaCurrentSymbol->value.Data.Int.i,
-				 legal, &privData, sizeof (privData)))
-	error (ErrorError, "Illegal %s expression", mnemonic);
-
+      if (gASM_Phase == ePassOne)
+	Put_FloatDataWithOffset (areaCurrentSymbol->area.info->curIdx,
+				 privData.size, 0., !privData.allowUnaligned);
+      else
+	{
+	  ValueTag legal = ValueFloat | ValueSymbol | ValueCode;
+	  if (option_autocast)
+	    legal |= ValueInt;
+	  if (Reloc_QueueExprUpdate (DefineReal_RelocUpdater, areaCurrentSymbol->area.info->curIdx,
+				     legal, &privData, sizeof (privData)))
+	    error (ErrorError, "Illegal %s expression", mnemonic);
+	}
+      
       skipblanks ();
     }
   while (Input_Match (',', false));
@@ -487,8 +491,7 @@ c_get (void)
 	error (ErrorError, "Skipping extra characters '%s' after filename", cptr);
     }
 
-  FS_PushFilePObject (filename);
-  if (option_verbose)
+  if (!FS_PushFilePObject (filename) && option_verbose)
     fprintf (stderr, "Including file \"%s\" as \"%s\"\n", filename, gCurPObjP->name);
   return false;
 }
@@ -518,9 +521,8 @@ c_lnk (void)
   while (gCurPObjP->type == POType_eMacro)
     FS_PopPObject (true);
   FS_PopPObject (true);
-  
-  FS_PushFilePObject (filename);
-  if (option_verbose)
+
+  if (!FS_PushFilePObject (filename) && option_verbose)
     fprintf (stderr, "Linking to file \"%s\" as \"%s\"\n", filename, gCurPObjP->name);
   return false;
 }
@@ -552,7 +554,7 @@ c_incbin (void)
   *cptr = '\0';
 
   const char *newFilename;
-  FILE *binfp = getInclude (filename, &newFilename);
+  FILE *binfp = Include_Get (filename, &newFilename, true);
   if (!binfp)
     {
       error (ErrorError, "Cannot open file \"%s\"", filename);
@@ -590,19 +592,24 @@ c_end (void)
 bool
 c_assert (void)
 {
-  const Value *value = exprBuildAndEval (ValueBool);
-  switch (value->Tag)
+  if (gASM_Phase == ePassOne)
+    Input_Rest ();
+  else
     {
-      case ValueBool:
-	if (!value->Data.Bool.b)
-	  error (ErrorError, "Assertion failed");
-	break;
+      const Value *value = exprBuildAndEval (ValueBool);
+      switch (value->Tag)
+	{
+	  case ValueBool:
+	    if (!value->Data.Bool.b)
+	      error (ErrorError, "Assertion failed");
+	    break;
 
-      default:
-	error (ErrorError, "ASSERT expression must be boolean");
-	break;
+	  default:
+	    error (ErrorError, "ASSERT expression must be boolean");
+	    break;
+	}
     }
-
+  
   return false;
 }
 
@@ -641,10 +648,14 @@ c_info (void)
       return false;
     }
 
-  if (giveErr)
-    error (ErrorError, "%.*s", (int)message->Data.String.len, message->Data.String.s);
-  else
-    printf ("%.*s\n", (int)message->Data.String.len, message->Data.String.s);
+  /* Give output during pass one.  */
+  if (gASM_Phase == ePassOne)
+    {
+      if (giveErr)
+	error (ErrorError, "%.*s", (int)message->Data.String.len, message->Data.String.s);
+      else
+	printf ("%.*s\n", (int)message->Data.String.len, message->Data.String.s);
+    }
   return false;
 }
 

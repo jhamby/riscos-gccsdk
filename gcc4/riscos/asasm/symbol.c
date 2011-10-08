@@ -188,8 +188,8 @@ static void
 Symbol_PreDefReg (const char *regname, size_t namelen, int value, int type)
 {
   const Lex l = lexTempLabel (regname, namelen);
-  Symbol *s = symbolAdd (&l);
-  s->type |= SYMBOL_ABSOLUTE | SYMBOL_DECLARED | type;
+  Symbol *s = symbolGet (&l);
+  s->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE | type;
   s->value = Value_Int (value);
 }
 
@@ -220,54 +220,15 @@ Symbol_Init (void)
 
 
 /**
- * Adds a new symbol definition.  When the symbol was already defined, this is
- * flagged as an error unless it is an area symbol of zero size.
- * \return pointer to Symbol, never NULL.
- */
-Symbol *
-symbolAdd (const Lex *l)
-{
-  assert (l->tag == LexId && "Internal symbolAdd: non-ID");
-
-  Symbol **isearch;
-  for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
-    {
-      Symbol *search = *isearch;
-      if (EqSymLex (search, l))
-	{
-	  if ((search->type & SYMBOL_DEFINED) && !SYMBOL_GETREGTYPE (search->type))
-	    error (ErrorError, "Redefinition of '%.*s'",
-		   (int)l->Data.Id.len, l->Data.Id.str);
-	  else
-	    {
-	      if (search->type & SYMBOL_AREA)
-	        {
-	          if (areaCurrentSymbol->value.Data.Int.i != 0)
-		    error (ErrorError, "Symbol '%.*s' is already defined as area with incompatible definition",
-		           (int)l->Data.Id.len, l->Data.Id.str);
-		}
-	      else
-		search->type |= SYMBOL_DEFINED;
-	    }
-	  return search;
-	}
-    }
-  *isearch = symbolNew (l->Data.Id.str, l->Data.Id.len);
-  (*isearch)->type |= SYMBOL_DEFINED;
-  return *isearch;
-}
-
-
-/**
  * \return Always a non-NULL value pointing to symbol representing given Lex
  * object.
  */
 Symbol *
 symbolGet (const Lex *l)
 {
-  assert (l->tag == LexId);
+  assert (l->tag == LexId && "Internal symbolGet: non-ID");
 
-  Symbol **isearch = NULL;
+  Symbol **isearch;
   for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
     {
       if (EqSymLex (*isearch, l))
@@ -296,12 +257,87 @@ symbolFind (const Lex *l)
 
 
 /**
+ * Defines given symbol with given value and type.  Only to be used for symbols
+ * which can not be (or not supposed to be) redefined as this checks on
+ * redefinition with different value or inconsistencies like area vs area label
+ * definitions.
+ * \return false if successful
+ */
+bool
+Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
+{
+  if (symbol->type & SYMBOL_AREA)
+    {
+      if (!(newSymbolType & SYMBOL_AREA))
+	{
+	  error (ErrorError, "Area label %s can not be redefined", symbol->str);
+	  return true;
+	}
+    }
+  else if (newSymbolType & SYMBOL_AREA)
+    {
+      error (ErrorError, "Redefinition of label as area %s", symbol->str);
+      return true;
+    }
+  Value newValueCopy = { .Tag = ValueIllegal };
+  if (symbol->type & SYMBOL_DEFINED)
+    {
+      if (SYMBOL_GETREGTYPE(symbol->type) != SYMBOL_GETREGTYPE(newSymbolType))
+	{
+	  error (ErrorError, "Label %s is already defined as a different register type", symbol->str);
+	  return true;
+	}
+      if (symbol->value.Tag != ValueIllegal)
+	{
+	  bool diffValue;
+	  if (valueEqual (&symbol->value, newValue))
+	    diffValue = false;
+	  else
+	    {
+	      if (symbol->value.Tag == ValueSymbol || newValue->Tag == ValueSymbol)
+		{
+		  /* newValue might point into our code array.  */
+		  Value_Assign (&newValueCopy, newValue);
+		  newValue = &newValueCopy;
+
+		  codeInit ();
+		  codeValue (&symbol->value, false);
+		  Value val1 = { .Tag = ValueIllegal };
+		  Value_Assign (&val1, exprEval (ValueAll));
+		  codeInit ();
+		  codeValue (newValue, false);
+		  Value val2 = { .Tag = ValueIllegal };
+		  Value_Assign (&val2, exprEval (ValueAll));
+		  diffValue = !valueEqual (&val1, &val2);
+		  valueFree (&val1);
+		  valueFree (&val2);
+		}
+	      else
+		diffValue = true; /* Not sure if we don't have to try harder here.  */
+	    }
+	  if (diffValue)
+	    {
+	      error (ErrorError, "Label %s can not be redefined with a different value", symbol->str);
+	      return true;
+	    }
+	}
+    }
+  symbol->type |= newSymbolType;
+  Value_Assign (&symbol->value, newValue);
+
+  if (newValue == &newValueCopy)
+    valueFree (&newValueCopy);
+  return false;
+}
+
+
+/**
  * Removes symbol from symbol table.
  */
 void
 symbolRemove (const Lex *l)
 {
-  assert (l->tag == LexId);
+  assert (l->tag == LexId && "Internal symbolRemove: non-ID");
 
   for (Symbol **isearch = &symbolTable[l->Data.Id.hash];
        *isearch != NULL;
@@ -370,8 +406,8 @@ Symbol_CreateSymbolOut (void)
 	         number for all non-implicit area's, see start of outputAof()
 		 and outputElf().  */
 	      assert ((Area_IsImplicit (sym) && sym->used == -1) || (!Area_IsImplicit (sym) && sym->used >= 0));
-	      /* All AREA symbols are declared and not defined by nature.  */
-	      assert ((sym->type & (SYMBOL_DEFINED | SYMBOL_DECLARED)) == SYMBOL_DECLARED);
+	      /* All AREA symbols are local ones.  */
+	      assert (SYMBOL_KIND (sym->type) == SYMBOL_LOCAL);
 	    }
 	  else
 	    {
@@ -396,10 +432,10 @@ Symbol_CreateSymbolOut (void)
 			  int lineno;
 			  Local_FindROUT (routine, &file, &lineno);
 			  if (!Local_ROUTIsEmpty (routine) && file != NULL)
-			    errorLine (file, lineno, ErrorError, "In area %s routine %s has missing local label %%f%02i%s",
+			    errorLine (file, lineno, ErrorError, "In area %s routine %s has missing local label %%F%02i%s",
 				       area->str, routine, label, routine);
 			  else
-			    errorLine (NULL, 0, ErrorError, "In area %s there is a missing local label %%f%02i%s",
+			    errorLine (NULL, 0, ErrorError, "In area %s there is a missing local label %%F%02i%s",
 				       area->str, label, Local_ROUTIsEmpty (routine) ? "" : routine);
 			}
 		    }
@@ -489,9 +525,6 @@ Symbol_CreateSymbolOut (void)
       if (!(sym->type & SYMBOL_AREA))
 	sym->used = symbolIndex;
     }
-#ifdef DEBUG_SYMBOL
-  symbolPrintAll ();
-#endif
   return result;
 }
 
@@ -535,11 +568,12 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 
       if (sym->type & SYMBOL_AREA)
 	{
+	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area.info->type & AREA_ABS) != 0));
 	  const AofSymbol asym =
 	    {
 	      .Name = armword (sym->offset + 4), /* + 4 to skip the initial length */
-	      .Type = armword (SYMBOL_KIND(sym->type) | SYMBOL_LOCAL),
-	      .Value = armword (0),
+	      .Type = armword (SYMBOL_KIND(sym->type) | (sym->type & SYMBOL_ABSOLUTE)),
+	      .Value = armword ((sym->area.info->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0),
 	      .AreaName = armword (sym->offset + 4) /* + 4 to skip the initial length */
 	    };
 	  fwrite (&asym, sizeof (AofSymbol), 1, outfile);
@@ -560,10 +594,16 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	      else
 		value = &sym->value;
 
-	      /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().  */
+	      /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().
+		 Also Addr is possible for an area mapping symbol when base
+		 register is specified.  */
 	      int v;
 	      switch (value->Tag)
 		{
+		  case ValueAddr:
+		    v = value->Data.Addr.i;
+		    break;
+
 		  case ValueInt:
 		    v = value->Data.Int.i;
 		    break;
@@ -636,9 +676,11 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 
       if (sym->type & SYMBOL_AREA)
 	{
+	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area.info->type & AREA_ABS) != 0));
+	  assert (SYMBOL_KIND (sym->type) == SYMBOL_LOCAL);
 	  asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
 	  asym.st_name = 0;
-	  asym.st_value = 0;
+	  asym.st_value = (sym->area.info->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0;
 	  asym.st_shndx = sym->used;
 	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 	}
@@ -658,10 +700,16 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	      else
 		value = &sym->value;
 
-	      /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().  */
+	      /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().
+		 Also Addr is possible for an area mapping symbol when base
+		 register is specified.  */
 	      int v;
 	      switch (value->Tag)
 		{
+		  case ValueAddr:
+		    v = value->Data.Addr.i;
+		    break;
+
 		  case ValueInt:
 		    v = value->Data.Int.i;
 		    break;
@@ -694,12 +742,12 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 		    break;
 		}
 	      asym.st_value = v;
-	      asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) ? 0 : sym->areaDef->used;
+	      asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) && !Area_IsMappingSymbol (sym->str) ? SHN_ABS : sym->areaDef->used;
 	    }
 	  else
 	    {
 	      asym.st_value = 0;
-	      asym.st_shndx = 0;
+	      asym.st_shndx = SHN_UNDEF;
 	    }
 
 	  int bind;
@@ -768,7 +816,7 @@ symFlag (unsigned int flags, const char *err)
 bool
 c_export (void)
 {
-  Symbol *sym = symFlag (SYMBOL_REFERENCE | SYMBOL_DECLARED, "exported");
+  Symbol *sym = symFlag (SYMBOL_REFERENCE, "exported");
   skipblanks ();
   if (Input_Match ('[', true))
     {
@@ -826,7 +874,7 @@ c_strong (void)
 bool
 c_keep (void)
 {
-  if (symFlag (SYMBOL_KEEP | SYMBOL_DECLARED, "marked to 'keep'") == NULL)
+  if (symFlag (SYMBOL_KEEP, "marked to 'keep'") == NULL)
     oKeepAllSymbols = true;
   return false;
 }
@@ -837,7 +885,7 @@ c_keep (void)
 bool
 c_import (void)
 {
-  Symbol *sym = symFlag (SYMBOL_REFERENCE | SYMBOL_DECLARED, "imported");
+  Symbol *sym = symFlag (SYMBOL_REFERENCE, "imported");
   if (sym == NULL)
     {
       error (ErrorError, "Missing symbol for import");
@@ -949,8 +997,6 @@ symbolPrint (const Symbol *sym)
 	printf ("??? 0x%x/", SYMBOL_GETREGTYPE (sym->type));
 	break;
     }
-  if (sym->type & SYMBOL_DECLARED)
-    printf ("declared/");
   
   printf (" * offset 0x%x, used %d: ", sym->offset, sym->used);
   valuePrint (&sym->value);

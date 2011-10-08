@@ -28,6 +28,7 @@
 #  include <inttypes.h>
 #endif
 
+#include "asm.h"
 #include "code.h"
 #include "error.h"
 #include "expr.h"
@@ -245,6 +246,11 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 {
   if (Input_Match ('#', false))
     {
+      if (gASM_Phase == ePassOne)
+	{
+	  Input_Rest ();
+	  return ir;
+	}
       ir |= IMM_RHS;
       const Value *im = exprBuildAndEval (ValueInt | ValueAddr | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
       switch (im->Tag)
@@ -257,6 +263,7 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 		  if (im->Data.Int.i < 0 || im->Data.Int.i >= 256)
 		    error (ErrorError, "Immediate value out of range: 0x%x", im->Data.Int.i);
 
+		  /* FIXME: why not call exprBuildAndEval instead ? vvv */
 		  Lex rotator = lexGetPrim ();
 		  int rotatorValue;
 		  switch (rotator.tag)

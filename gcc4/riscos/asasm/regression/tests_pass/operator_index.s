@@ -51,7 +51,7 @@ field8	# 128
 	]
 	LDR	r0, late_field1
 	LDR	r0, [r1, #late_field2]
-; FIXME	MOV	r0, #late_field2
+	MOV	r0, #late_field2
 
 	^	12, r11
 	#	8
@@ -89,7 +89,7 @@ late_field2 #	32
 	]
 	LDR	r0, [r11, #20]
 	LDR	r0, [r1, #36]
-; FIXME	MOV	r0, #36
+	MOV	r0, #36
 
 	]
 

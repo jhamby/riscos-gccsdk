@@ -34,10 +34,6 @@
 #endif
 #include <string.h>
 
-#if defined(__TARGET_UNIXLIB__)
-#  include <unixlib/local.h>
-#endif
-
 #include "error.h"
 #include "filestack.h"
 #include "include.h"
@@ -86,76 +82,51 @@ StoreFileName (const char *fileNameP)
 
 /**
  * Opens given file for immediate parsing.  Cancel using FS_PopPObject().
- * \param fileName Filename of assembler file to parse.  May only be NULL when
- * at level 0 and this means reading from stdin.
+ * \param fileName Filename of assembler file to parse.
+ * \return false for success, true for failure.
  * Similar to FS_PushMacroPObject().
  */
-void
+bool
 FS_PushFilePObject (const char *fileName)
 {
 #ifdef DEBUG_FILESTACK
   ReportFSStack (__func__);
 #endif
 
-  if (gCurPObjP == &gPOStack[PARSEOBJECT_STACK_SIZE - 1])
-    errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
-
+  PObject *newPObjP;
   unsigned int prevWhileIfDepth;
   if (gCurPObjP == NULL)
     {
-      /* The first assembler file is special.  We're not going to use any
-         include paths and we can also read from stdin.  */
-      if (fileName != NULL)
-	{
-	  if ((gPOStack[0].d.file.fhandle = fopen (fileName, "r")) == NULL)
-	    {
-#if defined(__TARGET_UNIXLIB__)
-	      /* Try again but this time with(out) suffix swapping.  */
-	      __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
-	      gPOStack[0].d.file.fhandle = fopen (fileName, "r");
-	      __riscosify_control ^= __RISCOSIFY_NO_SUFFIX;
-#endif
-	    }
-
-	  if (gPOStack[0].d.file.fhandle == NULL)
-	    gPOStack[0].name = NULL;
-	  else if ((gPOStack[0].name = StoreFileName (CanonicalisePath (fileName))) == NULL)
-	    {
-	      fclose (gPOStack[0].d.file.fhandle);
-	      gPOStack[0].d.file.fhandle = NULL;
-	    }
-	}
-      else
-	{
-	  /* Read from stdin.  */
-	  gPOStack[0].d.file.fhandle = stdin;
-	  gPOStack[0].name = NULL;
-	}
-      if (gPOStack[0].d.file.fhandle != NULL)
-	gCurPObjP = &gPOStack[-1];
-
+      newPObjP = &gPOStack[0];
       prevWhileIfDepth = 0;
     }
-  else
+  else if (gCurPObjP != &gPOStack[PARSEOBJECT_STACK_SIZE - 1])
     {
-      const char *fileNameP;
-      gCurPObjP[1].d.file.fhandle = getInclude (fileName, &fileNameP);
-      gCurPObjP[1].name = StoreFileName (fileNameP);
-
+      newPObjP = &gCurPObjP[1];
       prevWhileIfDepth = gCurPObjP[0].whileIfCurDepth;
     }
-  if (gCurPObjP == NULL || gCurPObjP[1].d.file.fhandle == NULL)
+  else
+    errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
+
+  const char *fileNameP;
+  newPObjP->d.file.fhandle = Include_Get (fileName, &fileNameP, true);
+  newPObjP->name = StoreFileName (fileNameP);
+
+  if (newPObjP->d.file.fhandle == NULL)
     {
       error (ErrorError, "Cannot open file \"%s\"", fileName);
-      return;
+      return true;
     }
-  gCurPObjP[1].type = POType_eFile;
-  gCurPObjP[1].lineNum = 0;
-  gCurPObjP[1].whileIfStartDepth = gCurPObjP[1].whileIfCurDepth = prevWhileIfDepth;
-  gCurPObjP[1].GetLine = File_GetLine;
 
-  /* Increase current file stack pointer.  All is ok now.  */
-  ++gCurPObjP;
+  newPObjP->type = POType_eFile;
+  newPObjP->lineNum = 0;
+  newPObjP->whileIfCurDepth = newPObjP->whileIfStartDepth = prevWhileIfDepth;
+  newPObjP->GetLine = File_GetLine;
+  newPObjP->lastLineSize = 0;
+
+  /* Set current file stack pointer.  All is ok now.  */
+  gCurPObjP = newPObjP;
+  return false;
 }
 
 
@@ -227,13 +198,13 @@ ReportFSStack (const char *id)
 	  case POType_eFile:
 	    printf ("  - File: line num %d (if/while %d - %d): %s\n",
 	            pObjP->lineNum, pObjP->whileIfStartDepth, pObjP->whileIfCurDepth,
-	            pObjP->name ? pObjP->name : "<NULL>");
+	            pObjP->name);
 	    break;
 
 	  case POType_eMacro:
 	    printf ("  - Macro: line num %d (if/while %d - %d): %s\n",
 	            pObjP->lineNum, pObjP->whileIfStartDepth, pObjP->whileIfCurDepth,
-	            pObjP->name ? pObjP->name : "<NULL>");
+	            pObjP->name);
 	    break;
 
 	  default:
@@ -246,19 +217,19 @@ ReportFSStack (const char *id)
 
 
 /**
- * Always return a non-NULL pointer of filename of the current parsing object.
+ * \return A non-NULL pointer of filename of the current parsing object.
  */
 const char *
 FS_GetCurFileName (void)
 {
   if (gCurPObjP == NULL)
-    return SourceFileName ? SourceFileName : "{standard input}";
-  return gCurPObjP->name ? gCurPObjP->name : "{standard input}";
+    return SourceFileName;
+  return gCurPObjP->name;
 }
 
 
 /**
- * Get current linenumber.
+ * \return Current linenumber.
  */
 int
 FS_GetCurLineNumber (void)
@@ -270,6 +241,7 @@ FS_GetCurLineNumber (void)
 static bool
 File_GetLine (char *bufP, size_t bufSize)
 {
+  gCurPObjP->lastLineSize = 0;
   while (1)
     {
       if (fgets (bufP, bufSize, gCurPObjP->d.file.fhandle) == NULL
@@ -277,6 +249,7 @@ File_GetLine (char *bufP, size_t bufSize)
 	return true;
 
       size_t lineLen = strlen (bufP);
+      gCurPObjP->lastLineSize += lineLen;
       if ((lineLen > 0 && bufP[lineLen - 1] == '\n')
           || feof (gCurPObjP->d.file.fhandle))
 	{

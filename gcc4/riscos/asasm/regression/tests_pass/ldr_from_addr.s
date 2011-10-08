@@ -106,4 +106,19 @@ tst6_a	%	12
 tst7_a	%	8
 tst8_a	%	4
 
+
+	; Load done in ABS AREA:
+		AREA	CodeABS, CODE
+		ORG	&3800000
+
+		%	&20
+	[ :LNOT: REFERENCE
+
+EndRel	*	&408
+Start
+		LDR	r1, Start + EndRel
+	|
+		DCI	&e59F1400	; LDR r1, &3800428
+	]
+
 		END

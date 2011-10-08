@@ -34,10 +34,6 @@
 #  include <inttypes.h>
 #endif
 
-#ifdef __TARGET_UNIXLIB__
-#  include <unixlib/local.h>
-#endif
-
 #include "error.h"
 #include "filestack.h"
 #include "input.h"
@@ -51,15 +47,7 @@ static char input_buff[MAX_LINE + 256];
 static const char *input_pos; /* Ptr inside input_buff.  Can be NULL when input_buff is being filled up.  */
 static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 
-static bool inputArgSub (void);
-
-#if DEBUG
-const char *
-inputGiveRestLine (void)
-{
-  return input_pos;
-}
-#endif
+static bool Input_ArgSub (bool warnOnVarSubFail);
 
 char
 inputLook (void)
@@ -204,15 +192,6 @@ Input_RollBackToMark (const char *mark)
 }
 
 
-void
-inputInit (const char *infile)
-{
-  if (!strcmp (infile, "-"))
-    infile = NULL;
-  FS_PushFilePObject (infile == NULL ? NULL : infile);
-}
-
-
 /**
  * Read a line from the input file into file global |workBuff|, with some
  * minimal error checking.
@@ -223,11 +202,8 @@ inputInit (const char *infile)
  * \return false when there is no input to be read, true otherwise.
  */
 static bool
-inputNextLineCore (void)
+Input_NextLineCore (void)
 {
-  if (gCurPObjP == NULL)
-    return false;
-
   if (num_predefines)
     {
       /* Each predefine will inject the following two lines:
@@ -262,18 +238,8 @@ inputNextLineCore (void)
     }
   else
     {
-      const char *curFile = FS_GetCurFileName ();
-      int curLine = FS_GetCurLineNumber ();
-      while (gCurPObjP->GetLine (workBuff, sizeof (workBuff)))
-	{
-	  if (gCurPObjP->type == POType_eFile)
-	    errorLine (curFile, curLine, ErrorWarning, "No END found");
-	  FS_PopPObject (false);
-	  if (gCurPObjP == NULL)
-	    return false;
-	  curFile = FS_GetCurFileName ();
-	  curLine = FS_GetCurLineNumber ();
-	}
+      if (gCurPObjP == NULL || gCurPObjP->GetLine (workBuff, sizeof (workBuff)))
+	return false;
       gCurPObjP->lineNum++;
     }
 
@@ -304,40 +270,27 @@ inputNextLineCore (void)
 }
 
 /**
- * Read one line of input into input_buff buffer.  No variable expansion is
- * done.  input_pos is reset to the beginning of the buffer.
- * \return false for failure, true for success.
- */
-bool
-inputNextLineNoSubst (void)
-{
-  input_pos = NULL; /* Disable Input_ShowLine().  */
-
-  if (!inputNextLineCore ())
-    return false;
-  
-  /* printf("Line %04d: <%s> [NO EXPANSION]\n", FS_GetCurLineNumber (), workBuff); */
-  strcpy (input_buff, workBuff);
-  input_pos = input_buff;
-  return true;
-}
-
-/**
  * Read one line of input into input_buff buffer and perform a variable
  * expansion.  input_pos is reset to the beginning of the buffer.
  * \return false for failure, true for success.
  */
 bool
-inputNextLine (void)
+Input_NextLine (Level_e level)
 {
   input_pos = NULL; /* Disable Input_ShowLine().  */
 
-  if (!inputNextLineCore ())
+  if (!Input_NextLineCore ())
     return false;
 
-  /* printf("Line %04d: <%s>\n", FS_GetCurLineNumber (), workBuff); */
-  bool status = inputArgSub ();
-  /* printf("  -> <%s> (status %d)\n", input_buff, status); */
+  bool status;
+  if (level == eNoVarSubst)
+    {
+      strcpy (input_buff, workBuff);
+      status = true;
+    }
+  else
+    status = Input_ArgSub (level == eVarSubst);
+
   input_pos = input_buff;
   return status;
 }
@@ -375,6 +328,20 @@ inputEnvSub (const char **inPP, size_t *outOffsetP)
   memcpy (temp, *inPP, inP - *inPP);
   temp[inP - *inPP] = '\0';
   char *env = getenv (temp);
+#ifndef __riscos__
+  if (env == NULL)
+    {
+      /* Change Lib$Dir into LIB_DIR and re-evaluate.  */
+      for (char *s = temp; *s; ++s)
+	{
+	  if (*s == '$')
+	    *s = '_';
+	  else
+	    *s = toupper (*s);
+	}
+      env = getenv (temp);
+    }
+#endif
   if (env == NULL)
     {
       /* No such variable defined. Warn, though we may want to error.  */
@@ -406,13 +373,13 @@ inputEnvSub (const char **inPP, size_t *outOffsetP)
  * \return false when produced output needs environment variable expansion.
  * true when this may not be done.
  *
- * Buffer overflow will be deteced by the caller when not all the input has
+ * Buffer overflow will be detected by the caller when not all the input has
  * been consumed together with *outOffsetP == sizeof (input_buff).
  *
  * Temporarily changes input_pos.
  */
 static bool
-inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
+Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnVarSubFail)
 {
   const char *inP = *inPP;
 
@@ -434,10 +401,13 @@ inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
   input_pos = NULL;
   if (label.tag != LexId)
     {
-      if (!inString)
-	error (ErrorWarning, "Non-ID in $ expansion");
-      else if (option_pedantic)
-	error (ErrorWarning, "No $ expansion - did you perhaps mean $$");
+      if (warnOnVarSubFail)
+	{
+	  if (!inString)
+	    error (ErrorWarning, "Non-ID in $ expansion");
+	  else if (option_pedantic)
+	    error (ErrorWarning, "No $ expansion - did you perhaps mean $$");
+	}
     }
   else
     {
@@ -495,15 +465,15 @@ inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
 	      return false;
 	    }
 	}
-      if (!inString)
+      if (warnOnVarSubFail)
 	{
-	  /* Not in string literal, so this is an error.  */
-	  error (ErrorWarning, "Unknown variable '%.*s' for $ expansion, you want to use vertical bars ?",
-		 (int)label.Data.Id.len, label.Data.Id.str);
+	  if (!inString)
+	    error (ErrorWarning, "Unknown variable '%.*s' for $ expansion, you want to use vertical bars ?",
+		   (int)label.Data.Id.len, label.Data.Id.str);
+	  else if (option_pedantic)
+	    error (ErrorWarning, "No $ expansion as variable '%.*s' is not defined, you want to use double $ ?",
+		   (int)label.Data.Id.len, label.Data.Id.str);
 	}
-      else if (option_pedantic)
-	error (ErrorWarning, "No $ expansion as variable '%.*s' is not defined, you want to use double $ ?",
-	       (int)label.Data.Id.len, label.Data.Id.str);
     }
   if (*outOffsetP < sizeof (input_buff))
     input_buff[(*outOffsetP)++] = '$';
@@ -517,7 +487,7 @@ inputVarSub (const char **inPP, size_t *outOffsetP, bool inString)
  * \returns true if successful
  */
 static bool
-inputArgSub (void)
+Input_ArgSub (bool warnOnVarSubFail)
 {
   size_t outOffset = 0;
   const char *inP = workBuff;
@@ -575,7 +545,7 @@ inputArgSub (void)
 	    while (outOffset < sizeof (input_buff) && *inP)
 	      {
 		if (*inP == '$' && !disableVarSubst)
-		  inputVarSub (&inP, &outOffset, true);
+		  Input_VarSub (&inP, &outOffset, true, warnOnVarSubFail);
 		else
 		  {
 		    char cc = *inP++;
@@ -592,7 +562,7 @@ inputArgSub (void)
 	  case '$': /* Do variable substitution - $ */
 	    {
 	      const size_t origOutOffset = outOffset;
-	      bool dontReExpand = inputVarSub (&inP, &outOffset, false);
+	      bool dontReExpand = Input_VarSub (&inP, &outOffset, false, warnOnVarSubFail);
 	      size_t expandedLen = outOffset - origOutOffset;
 	      if (expandedLen && !dontReExpand)
 		{
@@ -971,9 +941,8 @@ inputSymbol (size_t *ilen, char del)
   return input_pos - *ilen;
 }
 
-
 void
-inputThisInstead (const char *p)
+Input_ThisInstead (const char *p)
 {
   strcpy (input_buff, p);
   input_pos = input_buff;

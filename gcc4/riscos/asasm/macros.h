@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2010 GCCSDK Developers
+ * Copyright (c) 2002-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,12 +29,11 @@
 #include "variables.h"
 #include "whileif.h"
 
-#define MACRO_ARG_LIMIT (16)
-/* These delimit a block of 16 consecutive character codes which cannot
- * appear in the assembler source
+#define MACRO_ARG_LIMIT (18)
+/* Characters MACRO_ARG0 up to MACRO_ARG0 + MACRO_ARG_LIMIT may not appear
+ * in source.
  */
-#define MACRO_ARG0  16
-#define MACRO_ARG15 31
+#define MACRO_ARG0  14
 
 typedef struct Macro
 {
@@ -54,7 +53,7 @@ typedef struct
   const Macro *macro;
   const char *curPtr; /**< Current pointer inside macro buffer Macro::buf.  */
   const char *args[MACRO_ARG_LIMIT];
-  varPos *varListP; /**< Linked list of local variables defined in this macro.  */
+  VarPos *varListP; /**< Linked list of local variables defined in this macro.  */
 } MacroPObject;
 
 void FS_PopMacroPObject (bool noCheck);

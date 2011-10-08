@@ -36,19 +36,6 @@ typedef enum
   eLitDouble
 } Lit_eSize;
 
-typedef struct LITPOOL
-{
-  struct LITPOOL *next;
-  const char *file;	/** Assembler filename where this literal got requested for the first time.  */
-  int lineno;		/** Assembler file linenumber where this literal got requested for the first time.  */
-
-  int offset;		/** Area offset where the literal got assembled.  */
-  Value value;		/** Literal value.  */
-
-  Lit_eSize size;
-  bool gotAssembled;	/** This literal is assembled.  */
-} LitPool;
-
 Value Lit_RegisterInt (const Value *value, Lit_eSize size);
 Value Lit_RegisterFloat (const Value *value, Lit_eSize size);
 void Lit_DumpPool (void);

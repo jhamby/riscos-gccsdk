@@ -83,7 +83,7 @@ DestMem_RelocUpdaterCoPro (const char *file, int lineno, ARMWord offset,
 	      assert (areaCurrentSymbol->area.info->type & AREA_ABS);
 	      if (valueP->Data.Code.len != 1)
 		return true;
-	      ARMWord newOffset = valP->Data.Int.i - (areaCurrentSymbol->area.info->baseAddr + offset + 8);
+	      ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
 	      ir |= LHS_OP (15);
 	      ir = Fix_CopOffset (file, lineno, ir, newOffset);
 	      Put_InsWithOffset (offset, ir);
@@ -177,7 +177,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
       return;
     }
 
-  const ARMWord offset = areaCurrentSymbol->value.Data.Int.i;
+  const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
   bool callRelocUpdate = false;
   switch (inputLook ())
     {
@@ -364,12 +364,15 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 
   Put_Ins (ir);
 
-  assert ((!callRelocUpdate || (ir & P_FLAG)) && "Calling reloc for non pre-increment instructions ?");
-    
-  /* The ValueInt | ValueFLoat | ValueAddr | ValueSymbol | ValueCode tags are
-     what we support in the coprocessor instruction.  */
-  if (callRelocUpdate
-      && Reloc_QueueExprUpdate (DestMem_RelocUpdaterCoPro, offset,
-				ValueInt | ValueFloat | ValueAddr /* FIXME: | ValueSymbol */ | ValueCode, NULL, 0))
-    error (ErrorError, "Illegal expression");
+  if (gASM_Phase != ePassOne)
+    {
+      assert ((!callRelocUpdate || (ir & P_FLAG)) && "Calling reloc for non pre-increment instructions ?");
+
+      /* The ValueInt | ValueFLoat | ValueAddr | ValueSymbol | ValueCode tags are
+	 what we support in the coprocessor instruction.  */
+      if (callRelocUpdate
+	  && Reloc_QueueExprUpdate (DestMem_RelocUpdaterCoPro, offset,
+				    ValueInt | ValueFloat | ValueAddr /* FIXME: | ValueSymbol */ | ValueCode, NULL, 0))
+	error (ErrorError, "Illegal expression");
+    }
 }

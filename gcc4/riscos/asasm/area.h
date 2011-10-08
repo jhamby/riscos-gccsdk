@@ -23,9 +23,11 @@
 #ifndef area_header_included
 #define area_header_included
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "asm.h"
 #include "symbol.h"
 #include "reloc.h"
 #include "lit.h"
@@ -59,7 +61,6 @@
 #define AREA_SOFTFLOAT		0x80000000 /* Avoids FP instructions (GCCSDK extension) Normally reserved bit. */
 
 #define AREA_IMAGE(x) (!((x)->type & AREA_UDATA))
-#define AREA_NOSPACE(x,v) ((x)->imagesize < v)
 
 #define AREA_DEFAULT_ALIGNMENT	0x00000002
 
@@ -71,7 +72,9 @@ typedef struct AREA
   uint32_t type;		/* See AREA_ #defines */
   size_t imagesize;
   uint8_t *image;
-  uint32_t baseAddr;
+
+  uint32_t curIdx;
+  uint32_t maxIdx;
 
   RelocQueue *relocQueue;
   int norelocs;
@@ -86,14 +89,22 @@ Area_GetBaseReg (const Area *area)
   return (area->type & AREA_MASKBASEREG) >> 24;
 }
 
+static inline uint32_t
+Area_GetBaseAddress (const Symbol *symP)
+{
+  assert ((symP->type & SYMBOL_AREA) != 0 && (symP->area.info->type & AREA_ABS) != 0);
+  assert (symP->value.Tag == ValueInt);
+  return symP->value.Data.Int.i;
+}
+
 extern Symbol *areaCurrentSymbol; /** Symbol of the area which is currently being processed.  */
 extern Symbol *areaEntrySymbol; /** Symbol of area which has been marked as ENTRY point.  */
 extern int areaEntryOffset;
 extern Symbol *areaHeadSymbol; /** Start of the linked list of all area symbols seen so far.  Follow Symbol::area.info->next for next area (*not* Symbol::next !).  */
 
-void areaInit (void);
-void areaFinish (void);
-void areaGrow (Area *area, size_t mingrow);
+void Area_PrepareForPhase (ASM_Phase_e phase);
+
+void Area_EnsureExtraSize (size_t mingrow);
 
 bool Area_IsImplicit (const Symbol *sym);
 size_t Area_AlignTo (size_t offset, int align, const char *msg);

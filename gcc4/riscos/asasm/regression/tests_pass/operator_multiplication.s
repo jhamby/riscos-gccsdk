@@ -5,32 +5,70 @@
 	DCD 5*3
 	DCD -5*3
 	DCD 3*-5
+
+	DCFD 5.5*2
+	DCFD 2*5.5
+
+	DCD "A"*2
+	DCD 2*"A"
+	DCD "A"*"B"
+
 	DCD 11/2
 	DCD -11/2	; Unsigned division
 	DCD 11/-2	; Unsigned division
 	DCD 11/3*2
 	DCD 12/3/3
 
+	DCFD 3/1.5
+	DCFD 3.5/1
+	DCFD 11./-2
+	DCFD -65535 / 5.
+
+	DCD &FFFF/"A"
+	DCD "A"/3
+
 	DCD 11:MOD:2
 	DCD -11:MOD:2
 	DCD 11:MOD:-2
 	DCD -3:MOD:-2
+
+	DCD &FFFF :MOD: "A"
+	DCD "A" :MOD: 3
 
 	|
 
 	DCD 15
 	DCD -15
 	DCD -15
+
+	DCFD 11.
+	DCFD 11.
+
+	DCD &82
+	DCD &82
+	DCD &10c2
+
 	DCD 5
 	DCD &7FFFFFFA
 	DCD 0
 	DCD 6
 	DCD 1
 
+	DCFD 2.
+	DCFD 3.5
+	DCFD -5.5
+	DCFD -13107.
+
+	DCD &3F0
+	DCD &15
+
 	DCD 1
 	DCD 1
 	DCD 11
 	DCD -3
+
+	DCD &F
+	DCD 2
 
 	]
 

@@ -123,4 +123,26 @@ AlgnLbl	ALIGN
 
 	]
 
+	; Test 3
+	AREA	CodeTest3, CODE
+	[ :LNOT: REFERENCE
+	^ 0
+Val1	# 5
+Val2	# &110 - @
+	LDR	r3, =?Val2
+	|
+	LDR	r3, =&110 - 5
+	]
+
+	; Test 4 : late label
+	AREA	CodeTest4, CODE
+	[ :LNOT: REFERENCE
+	DCD	?latelbl
+latelbl	%	8
+	|
+	DCD	8
+	DCD	0
+	DCD	0
+	]
+
 	END

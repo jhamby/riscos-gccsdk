@@ -19,6 +19,7 @@ sizeof_map	*	@
 		LDR	r2,[r9]
 		ADD	r3,r12,#4
 		ADD	r4,r12,#4
+		ADD	r4, r4, #0	; FIXME: should go - twopass regression
 	]
 
 		^	0, r9
