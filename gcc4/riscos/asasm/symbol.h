@@ -56,10 +56,10 @@
 
 #define SYMBOL_MACRO_LOCAL	0x00010000 /** Set when symbol is only known as
   a local macro variable.  */
+#define SYMBOL_RW		0x00020000 /** GBLL, GBLA or GBLS, i.e. a read-write symbol.  */
 
 #define SYMBOL_KEEP		0x01000000
 #define SYMBOL_AREA		0x02000000 /* Symbol is actually an area name.  */
-#define SYMBOL_NOTRESOLVED	0x04000000
 
 #define SYMBOL_CPUREG		0x10000000
 #define SYMBOL_FPUREG		0x20000000

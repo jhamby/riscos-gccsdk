@@ -971,12 +971,14 @@ symbolPrint (const Symbol *sym)
     printf ("thumb/");
   /* Internal attributes: */
   printf (" * /");
+  if (sym->type & SYMBOL_MACRO_LOCAL)
+    printf ("local macro/");
+  if (sym->type & SYMBOL_RW)
+    printf ("rw/");
   if (sym->type & SYMBOL_KEEP)
     printf ("keep/");
   if (sym->type & SYMBOL_AREA)
     printf ("area %p/", (void *)sym->area.info);
-  if (sym->type & SYMBOL_NOTRESOLVED)
-    printf ("not resolved/");
   switch (SYMBOL_GETREGTYPE (sym->type))
     {
       case 0: /* No register, nor coprocessor number.  */

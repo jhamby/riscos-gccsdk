@@ -121,7 +121,7 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
   else
     sym = symbolGet (&var);
 
-  sym->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE;
+  sym->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE | SYMBOL_RW;
   if (localMacro)
     sym->type |= SYMBOL_MACRO_LOCAL;
   assign_var (sym, type);

@@ -412,7 +412,7 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
   else
     {
       Symbol *sym = symbolFind (&label);
-      if (sym)
+      if (sym && (sym->type & SYMBOL_RW) != 0)
 	{
 	  char buf[32];
 	  const char *toCopy;
@@ -421,10 +421,6 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
 	    {
 	      case ValueInt:
 		toCopyLen = sprintf (buf, "%.8X", sym->value.Data.Int.i);
-		toCopy = buf;
-		break;
-	      case ValueFloat:
-		toCopyLen = sprintf (buf, "%f", sym->value.Data.Float.f);
 		toCopy = buf;
 		break;
 	      case ValueString:
@@ -436,17 +432,12 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
 		toCopy = (sym->value.Data.Bool.b) ? "T" : "F";
 		break;
 	      default:
-		{
-		  if (!inString)
-		    {
-		      error (ErrorError, "$ expansion of '%.*s' can't be done",
-			     (int)label.Data.Id.len, label.Data.Id.str);
-		      return true;
-		    }
-		  toCopyLen = 0;
-		  toCopy = NULL;
-		  break;
-		}
+		/* Only GBLL, GBLS and GBLA variables are used for
+		   substitution.  */
+		assert (0);
+		toCopyLen = 0;
+		toCopy = NULL;
+		break;
 	    }
 	  if (toCopy)
 	    {
