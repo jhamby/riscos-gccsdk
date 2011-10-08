@@ -139,11 +139,11 @@ outputFinish (void)
       fclose (objfile);
       objfile = NULL;
 #ifdef __riscos__
-      /* Set filetype to 0xE1F (ELF, ELF output) or 0xFFF (Text, AOF output).  */
+      /* Set filetype to 0xE1F (ELF, ELF output) or 0xFFD (Data, AOF output).  */
       _kernel_swi_regs regs;
       regs.r[0] = 18;
       regs.r[1] = (int) outname;
-      regs.r[2] = (option_aof) ? 0xFFF : 0xE1F;
+      regs.r[2] = (option_aof) ? 0xFFD : 0xE1F;
 
       _kernel_swi(OS_File, &regs, &regs);
 #endif

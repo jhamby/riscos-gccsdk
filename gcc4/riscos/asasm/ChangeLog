@@ -1,3 +1,10 @@
+Sat Oct  8 15:05:48 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* riscos_c.c (ThrowbackSendError): Fix info throwback messages.
+	(ThrowbackEnd): Reset ErrorFile.
+	* error.c (errorCore): Pass calling sequence as info throwback messages.
+	* output.c (outputFinish): AOF output has filetype Data.
+
 Sat Oct  8 12:57:06 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (oDecodeTable): CN/FN are not producing ARM code.

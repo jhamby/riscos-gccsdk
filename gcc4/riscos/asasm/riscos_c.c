@@ -114,9 +114,8 @@ ThrowbackStart (void)
 _kernel_oserror *
 ThrowbackSendStart (const char *filename)
 {
-  _kernel_swi_regs regs;
-
   ErrorFile = filename;
+  _kernel_swi_regs regs;
   regs.r[0] = THROWBACK_REASON_PROCESSING;
   regs.r[2] = (int) filename;
   return _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
@@ -130,12 +129,11 @@ _kernel_oserror *
 ThrowbackSendError (int level, int lineno, const char *errstr)
 {
   _kernel_swi_regs regs;
-
-  regs.r[0] = THROWBACK_REASON_ERROR_DETAILS;
+  regs.r[0] = level == ThrowbackInfo ? THROWBACK_REASON_INFO_DETAILS : THROWBACK_REASON_ERROR_DETAILS;
   regs.r[1] = 0;
   regs.r[2] = (int) ErrorFile;
   regs.r[3] = lineno;
-  regs.r[4] = level;
+  regs.r[4] = level == ThrowbackInfo ? 0 : level;
   regs.r[5] = (int) errstr;
   return _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
 }
@@ -143,8 +141,8 @@ ThrowbackSendError (int level, int lineno, const char *errstr)
 _kernel_oserror *
 ThrowbackEnd (void)
 {
+  ErrorFile = NULL;
   _kernel_swi_regs regs;
-
   return _kernel_swi (DDEUtils_ThrowbackEnd, &regs, &regs);
 }
 

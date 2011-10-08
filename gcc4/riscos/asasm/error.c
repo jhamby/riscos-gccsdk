@@ -214,7 +214,7 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 		      fprintf (stderr, "  called from line %d from file %s\n",
 			       pObjP->lineNum, pObjP->name);
 #ifdef __riscos__
-		      DoThrowback (t, pObjP->lineNum, "...was called from here", pObjP->name);
+		      DoThrowback (ThrowbackInfo, pObjP->lineNum, "...was called from here", pObjP->name);
 #endif
 		    }
 		  else
@@ -230,7 +230,7 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 		  char errPath[256];
 		  snprintf (errPath, sizeof (errPath), "...was called from macro %s",
 			    pObjP->d.macro.macro->name);
-		  DoThrowback (t, pObjP->lineNum, errPath, pObjP->name);
+		  DoThrowback (ThrowbackInfo, pObjP->lineNum, errPath, pObjP->name);
 #endif
 		  break;
 		}
