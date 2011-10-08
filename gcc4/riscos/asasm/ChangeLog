@@ -1,3 +1,7 @@
+Sat Oct  8 15:37:42 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (tooldir, .PHONY, install-exec-local): Remove.
+
 Sat Oct  8 15:05:48 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* riscos_c.c (ThrowbackSendError): Fix info throwback messages.
