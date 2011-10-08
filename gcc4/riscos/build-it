@@ -1,6 +1,6 @@
 #!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2007-2010 GCCSDK Developers
+# Copyright (c) 2007-2011 GCCSDK Developers
 #
 # Builds the RISC OS specific binaries in GCCSDK, either for cross-compilation
 # usage, either a native RISC OS binaries.
@@ -99,7 +99,7 @@ for roapp in asasm cmunge elf2aif ln mkresfs ; do
     if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
       # These apps are using SCL as runtime library:
       case $roapp in
-        cmunge | elf2aif | ln)
+        asasm | cmunge | elf2aif | ln)
           export CFLAGS="-O3 -mlibscl"
           ;;
         *)
