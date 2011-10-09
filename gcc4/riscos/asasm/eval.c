@@ -503,6 +503,12 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	{
 	  if (lvalue->Tag == ValueBool && rvalue->Tag == ValueBool)
 	    lvalue->Data.Bool.b = lvalue->Data.Bool.b != rvalue->Data.Bool.b;
+	  else if (lvalue->Tag == ValueSymbol || lvalue->Tag == ValueCode
+		   || rvalue->Tag == ValueSymbol || rvalue->Tag == ValueCode)
+	    {
+	      lvalue->Data.Bool.b = !valueEqual (lvalue, rvalue);
+	      lvalue->Tag = ValueBool;
+	    }
 	  else
 	    COMPARE (!=);
 	  break;
@@ -575,8 +581,8 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  if ((c = malloc (rvalue->Data.Int.i)) == NULL)
 	    errorOutOfMem ();
 	  memcpy (c,
-	    lvalue->Data.String.s + lvalue->Data.String.len - rvalue->Data.Int.i,
-	    rvalue->Data.Int.i);
+		  lvalue->Data.String.s + lvalue->Data.String.len - rvalue->Data.Int.i,
+		  rvalue->Data.Int.i);
 	  lvalue->Data.String.s = c;
 	  lvalue->Data.String.len = rvalue->Data.Int.i;
 	  break;

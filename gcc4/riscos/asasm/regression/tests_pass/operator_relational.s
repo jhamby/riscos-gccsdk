@@ -21,6 +21,9 @@ EXTENSION SETL	{FALSE}
 	= :STR:({FALSE}={TRUE})
 	= :STR:({TRUE}={FALSE})
 	= :STR:({TRUE}={TRUE})
+LblEq
+	= :STR:(.=LblEq)
+	= :STR:(.=LblEq)
 
 	; ==
 	[ EXTENSION
@@ -37,6 +40,9 @@ EXTENSION SETL	{FALSE}
 	= :STR:({FALSE}=={TRUE})
 	= :STR:({TRUE}=={FALSE})
 	= :STR:({TRUE}=={TRUE})
+LblEqEq
+	= :STR:(.=LblEqEq)
+	= :STR:(.=LblEqEq)
 	]
 
 	; <>
@@ -53,6 +59,9 @@ EXTENSION SETL	{FALSE}
 	= :STR:({FALSE}<>{TRUE})
 	= :STR:({TRUE}<>{FALSE})
 	= :STR:({TRUE}<>{TRUE})
+LblNEq1
+	= :STR:(.<>LblNEq1)
+	= :STR:(.<>LblNEq1)
 
 	; !=
 	[ EXTENSION
@@ -69,6 +78,9 @@ EXTENSION SETL	{FALSE}
 	= :STR:({FALSE}!={TRUE})
 	= :STR:({TRUE}!={FALSE})
 	= :STR:({TRUE}!={TRUE})
+LblNEq2
+	= :STR:(.<>LblNEq2)
+	= :STR:(.<>LblNEq2)
 	]
 
 	; /=
@@ -85,6 +97,9 @@ EXTENSION SETL	{FALSE}
 	= :STR:({FALSE}/={TRUE})
 	= :STR:({TRUE}/={FALSE})
 	= :STR:({TRUE}/={TRUE})
+LblNEq3
+	= :STR:(.<>LblNEq3)
+	= :STR:(.<>LblNEq3)
 
 	; :LEOR:
 	= "|"
@@ -139,21 +154,37 @@ EXTENSION SETL	{FALSE}
 
 	|
 
-	= "|FFFTFTFFTFFT"	; =
+	= "|FFFTFTFFTFFTTF"	; =
 	[ EXTENSION
-	= "|FFFTFTFFTFFT"	; ==
+	= "|FFFTFTFFTFFTTF"	; ==
 	]
-	= "|TTTFTFTTFTTF"	; <>
+	= "|TTTFTFTTFTTFFT"	; <>
 	[ EXTENSION
-	= "|TTTFTFTTFTTF"	; !=
+	= "|TTTFTFTTFTTFFT"	; !=
 	]
-	= "|TTTFTFTTFTTF"	; /=
+	= "|TTTFTFTTFTTFFT"	; /=
 	= "|FTTF"		; :LEOR:
 	= "|FTTFFFFT"		; >
 	= "|FTTTFTFT"		; >=
 	= "|TFFFTFTF"		; <
 	= "|TFFTTTTF"		; <=
 
+	]
+
+	AREA	Data2, DATA, READONLY
+	[ :LNOT: REFERENCE
+Lbl2	; Needs to be at start of area.
+	= :STR:(.=Lbl2)
+	|
+	= "T"
+	]
+
+	AREA	Data3, DATA, READONLY
+	[ :LNOT: REFERENCE
+Lbl3	; Needs to be at start of area.
+	= :STR:(.<>Lbl3)
+	|
+	= "F"
 	]
 
 	END

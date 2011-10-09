@@ -97,8 +97,10 @@ codePosition (Symbol *area, int offset)
 {
   if (area->area.info->type & AREA_ABS)
     codeInt (Area_GetBaseAddress (area) + offset);
-  else if (offset == 0)
-    codeSymbol (area);
+  /*  FIXME: little hack as we don't sufficiently realise the equivalence
+      of sym and code(sym + 0) */
+  /* else if (offset == 0)
+    codeSymbol (area); */
   else
     {
       if (FirstFreeIns >= CODE_SIZECODE)
