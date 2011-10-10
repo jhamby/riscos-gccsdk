@@ -55,4 +55,29 @@ twenty	TWOTIMES	10		; comment
 twenty	&	20
 	]
 
+; Tests if macro name sharing the begin characters of existing mnemonics
+; get recognised correctly.
+
+	[ :LNOT: REFERENCE
+	; "INC" shares begin chars of "INCBIN" and "INCLUDE".
+	MACRO
+	INC
+	DCD	42
+	MEND
+	INC
+	|
+	DCD	42
+	]
+
+	[ :LNOT: REFERENCE
+	; "GBL" shares begin chars of "GBLA", "GBLS" and "GBLL".
+	MACRO
+	GBL
+	DCD	5
+	MEND
+	GBL
+	|
+	DCD	5
+	]
+
 	END

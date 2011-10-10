@@ -373,9 +373,8 @@ decode (const Lex *label)
   /* Locate mnemonic entry in decode table.  */
   size_t low = 0;
   size_t high = DECODE_ENTRIES - 1;
-  size_t charsMatched = 0;
   size_t indexFound = SIZE_MAX;
-  while (1)
+  for (size_t charsMatched = 0; /* */; ++charsMatched)
     {
       unsigned char c = (unsigned char)inputGet ();
       assert (c != 0);
@@ -422,30 +421,44 @@ decode (const Lex *label)
       if (oDecodeTable[low].mnemonic[charsMatched + 1] == '\0'
           && oDecodeTable[low].part_mnemonic)
 	{
-	  /* E.g. input "SUB" matching "SUB*" and "SUBT".  First try "SUBT"
-	     and then fall back on the 'wildcard'.  */
+	  /* For sure we have a match, but try to match more mnemonic
+	     characters.  E.g. input "SUBT" with charMatched 2 is matching
+	     "SUB*" and "SUBT".  First try "SUBT" and then fall back on the
+	     'wildcard' (part_mnemonic being true).  */
 	  while (memcmp (Input_GetMark (), &oDecodeTable[high].mnemonic[charsMatched + 1], strlen (&oDecodeTable[high].mnemonic[charsMatched + 1])))
 	    --high;
+	  assert (low <= high);
+	  /* charsMatched += strlen (&oDecodeTable[high].mnemonic[charsMatched + 1]); */
 	  inputSkipN (strlen (&oDecodeTable[high].mnemonic[charsMatched + 1]));
 	  indexFound = high;
 	}
       else
 	{
-          bool moreMatchingIsNeeded = oDecodeTable[high].mnemonic[charsMatched + 1] != '\0';
           bool moreMatchingIsPossible = !Input_IsEolOrCommentStart ()
 					  && !isspace ((unsigned char)inputLook ());
-          if (moreMatchingIsNeeded && moreMatchingIsPossible)
+	  if (!moreMatchingIsPossible)
 	    {
-	      ++charsMatched;
+	      if (oDecodeTable[low].mnemonic[charsMatched + 1] == '\0')
+		{
+		  /* We have a full match.  E.g. we have "END" for low -> "END"
+		     and high -> "ENDIF".  */
+		  indexFound = low;
+		}
+	      else
+		{
+		  /* No match.  E.g. we have "INC" for low -> "INCBIN" and
+		     high -> "INCLUDE".  */
+		}
+	    }
+	  else if (oDecodeTable[high].mnemonic[charsMatched + 1] != '\0')
+	    {
 	      continue;
 	    }
-	  if (moreMatchingIsNeeded && !moreMatchingIsPossible && low < high)
-	    indexFound = low;
-          if (!moreMatchingIsNeeded && !moreMatchingIsPossible)
+	  else
 	    {
-	      /* We have a full match (it must be unique).  */
+	      /* No match.  E.g. we have processed "FIX" of "FIXIT" and low
+	         and high -> "FIX".  */
 	      assert (low == high);
-	      indexFound = high;
 	    }
 	}
       break;

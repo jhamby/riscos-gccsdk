@@ -250,8 +250,7 @@ File_GetLine (char *bufP, size_t bufSize)
 
       size_t lineLen = strlen (bufP);
       gCurPObjP->lastLineSize += lineLen;
-      if ((lineLen > 0 && bufP[lineLen - 1] == '\n')
-          || feof (gCurPObjP->d.file.fhandle))
+      if (lineLen > 0 && bufP[lineLen - 1] == '\n')
 	{
 	  if (lineLen > 1 && bufP[lineLen - 2] == '\\')
 	    {
@@ -265,6 +264,8 @@ File_GetLine (char *bufP, size_t bufSize)
 	      return false;
 	    }
 	}
+      else if (feof (gCurPObjP->d.file.fhandle))
+	return false;
       else
 	errorAbort ("Line too long");
     }
