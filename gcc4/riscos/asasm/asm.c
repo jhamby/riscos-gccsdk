@@ -83,37 +83,43 @@ ASM_DoPass (const char *asmFile)
   FS_PushFilePObject (asmFile);
 
   // FIXME: this will be wrong when we're skipping if/while contents.
-  while (setjmp (asmContinue) != 0)
-    /* */;
-  asmContinueValid = true;
-
-  while (gCurPObjP != NULL && ASM_NextLine ())
+  if (setjmp (asmContinue) == 0)
     {
-      /* Ignore blank lines and comments.  */
-      if (Input_IsEolOrCommentStart ())
-	continue;
+      asmContinueValid = true;
+
+      while (gCurPObjP != NULL && ASM_NextLine ())
+	{
+	  /* Ignore blank lines and comments.  */
+	  if (Input_IsEolOrCommentStart ())
+	    continue;
 
 #ifdef DEBUG_ASM
-      const char *fileName = FS_GetCurFileName ();
-      size_t len = strlen (fileName);
-      if (len > 12)
-	fileName += len - 12;
-      printf("%.*s : %d : 0x%x : <%s>\n", (int)len, fileName, FS_GetCurLineNumber (), areaCurrentSymbol->area.info->curIdx, inputLine ());
+	  const char *fileName = FS_GetCurFileName ();
+	  size_t len = strlen (fileName);
+	  if (len > 12)
+	    fileName += len - 12;
+	  printf("%.*s : %d : 0x%x : <%s>\n", (int)len, fileName, FS_GetCurLineNumber (), areaCurrentSymbol->area.info->curIdx, inputLine ());
 #endif
-      /* Read label (in case there is one).  */
-      Lex label;
-      if (!isspace ((unsigned char)inputLook ()))
-	label = Lex_GetDefiningLabel (false);
-      else
-	label.tag = LexNone;
-      skipblanks ();
+	    /* Read label (in case there is one).  */
+	    Lex label;
+	  if (!isspace ((unsigned char)inputLook ()))
+	    label = Lex_GetDefiningLabel (false);
+	  else
+	    label.tag = LexNone;
+	  skipblanks ();
 
 #ifdef DEBUG_ASM
-      lexPrint (&label);
-      printf ("\n");
+	  lexPrint (&label);
+	  printf ("\n");
 #endif
 
-      decode (&label);
+	    decode (&label);
+	}
+    }
+  else
+    {
+      while (gCurPObjP != NULL)
+	FS_PopPObject (true);
     }
   
   asmContinueValid = false;

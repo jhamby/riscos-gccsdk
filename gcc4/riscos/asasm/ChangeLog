@@ -1,3 +1,12 @@
+Fri Oct 14 02:15:19 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* asm.c (ASM_DoPass): Break out assemble loop when longjmp is
+	taken.
+	* filename.c, filename.h: Change eB_Dot_A into eB_DirSep_A.
+	* include.c (Include_Get): Follow eB_Dot_A change into eB_DirSep_A.
+	Fix include path processing.
+	* output.c (): Follow eB_Dot_A change into eB_DirSep_A.
+
 Mon Oct 10 23:20:11 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* filestack.c (File_GetLine): don't chop off last character of file

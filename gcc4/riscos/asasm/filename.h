@@ -25,13 +25,13 @@
 #include <stdbool.h>
 
 /* Source:        Unix:                          RISC OS:
- * Dir.A.B        Dir/A.B   Dir/B.A   Dir/A/B    Dir.A.B
+ * Dir.A.B        Dir/A.B   Dir/B/A   Dir/A/B    Dir.A.B
  * Dir/A.B        Dir/A.B                        Dir.A.B   Dir.B.A   Dir.A/B
  */
 typedef enum
 {
   eA_Dot_B,      /* Unix: "Dir/A.B", RISC OS: "Dir.A.B" */
-  eB_Dot_A,      /* Unix: "Dir/B.A", RISC OS: "Dir.B.A" */
+  eB_DirSep_A,   /* Unix: "Dir/B/A", RISC OS: "Dir.B.A" */
   eA_Slash_B     /* Unix: "Dir/A/B", RISC OS: "Dir.A/B" */
 } FN_eOutputType;
 

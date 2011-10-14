@@ -321,9 +321,9 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
 	{
 	  switch (outtype)
 	    {
-	      case eB_Dot_A:
+	      case eB_DirSep_A:
 		out = add_to_out (dot + 1, strlen (dot + 1), out, &outsize, false);
-		out = add_to_out (".", sizeof (".")-1, out, &outsize, false);
+		out = add_to_out (NAT_DIR_STR, sizeof (NAT_DIR_STR)-1, out, &outsize, false);
 		out = add_to_out (dirPart, dot - dirPart, out, &outsize, false);
 		break;
 
@@ -371,7 +371,7 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
 typedef struct
 {
   const char *in;
-  const char *ref[2][3][2][3]; /* Unix/RISC OS, path idx, first/second round, eA_Dot_B/eB_Dot_A/eA_Slash_B */
+  const char *ref[2][3][2][3]; /* Unix/RISC OS, path idx, first/second round, eA_Dot_B/eB_DirSep_A/eA_Slash_B */
 } TestData_t;
 static const TestData_t TestData[] =
 {
@@ -409,7 +409,7 @@ static const TestData_t TestData[] =
     "foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "foo.bar", "bar.foo", "foo/bar" }, { "foo.bar", "bar.foo", "foo/bar" } },
+        { { "foo.bar", "bar/foo", "foo/bar" }, { "foo.bar", "bar/foo", "foo/bar" } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -439,7 +439,7 @@ static const TestData_t TestData[] =
     "doh.foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "doh/foo.bar", "doh/bar.foo", "doh/foo/bar" }, { "doh.foo.bar", "doh.foo.bar", "doh.foo.bar" } },
+        { { "doh/foo.bar", "doh/bar/foo", "doh/foo/bar" }, { "doh.foo.bar", "doh.foo.bar", "doh.foo.bar" } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -454,7 +454,7 @@ static const TestData_t TestData[] =
     "doh/foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "doh/foo.bar", "bar.doh/foo", "doh/foo/bar" }, { "doh/foo.bar", "doh/bar.foo", "doh/foo/bar" } },
+        { { "doh/foo.bar", "bar/doh/foo", "doh/foo/bar" }, { "doh/foo.bar", "doh/bar/foo", "doh/foo/bar" } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -514,7 +514,7 @@ static const TestData_t TestData[] =
     "/foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "/foo.bar", "/bar.foo", "/foo/bar" }, { NULL, NULL, NULL } },
+        { { "/foo.bar", "/bar/foo", "/foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -559,7 +559,7 @@ static const TestData_t TestData[] =
     "/doh/foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "/doh/foo.bar", "/doh/bar.foo", "/doh/foo/bar" }, { NULL, NULL, NULL } },
+        { { "/doh/foo.bar", "/doh/bar/foo", "/doh/foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -574,7 +574,7 @@ static const TestData_t TestData[] =
     "ADFS::Disc.$.Doh.A/B.Foo.Bar", /* Input */
     {
       { /* Output for Unix */
-        { { "/ADFS::Disc.$/Doh/A.B/Foo.Bar", "/ADFS::Disc.$/Doh/A.B/Bar.Foo", "/ADFS::Disc.$/Doh/A.B/Foo/Bar" }, { NULL, NULL, NULL } },
+        { { "/ADFS::Disc.$/Doh/A.B/Foo.Bar", "/ADFS::Disc.$/Doh/A.B/Bar/Foo", "/ADFS::Disc.$/Doh/A.B/Foo/Bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -604,7 +604,7 @@ static const TestData_t TestData[] =
     "$.^.Doh.A/B.^.Foo.Bar", /* Input */
     {
       { /* Output for Unix */
-        { { "/../Doh/A.B/../Foo.Bar", "/../Doh/A.B/../Bar.Foo", "/../Doh/A.B/../Foo/Bar" }, { NULL, NULL, NULL } },
+        { { "/../Doh/A.B/../Foo.Bar", "/../Doh/A.B/../Bar/Foo", "/../Doh/A.B/../Foo/Bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -619,7 +619,7 @@ static const TestData_t TestData[] =
     "^.^.Doh.A/B.^.Foo.Bar", /* Input */
     {
       { /* Output for Unix */
-        { { "../../Doh/A.B/../Foo.Bar", "../../Doh/A.B/../Bar.Foo", "../../Doh/A.B/../Foo/Bar" }, { NULL, NULL, NULL } },
+        { { "../../Doh/A.B/../Foo.Bar", "../../Doh/A.B/../Bar/Foo", "../../Doh/A.B/../Foo/Bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -634,7 +634,7 @@ static const TestData_t TestData[] =
     "@.^.Doh.A/B.^.Foo.Bar", /* Input */
     {
       { /* Output for Unix */
-        { { "../Doh/A.B/../Foo.Bar", "../Doh/A.B/../Bar.Foo", "../Doh/A.B/../Foo/Bar" }, { NULL, NULL, NULL } },
+        { { "../Doh/A.B/../Foo.Bar", "../Doh/A.B/../Bar/Foo", "../Doh/A.B/../Foo/Bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -649,7 +649,7 @@ static const TestData_t TestData[] =
     "%.^.Doh.A/B.^.Foo.Bar", /* Input */
     {
       { /* Output for Unix */
-        { { "../Doh/A.B/../Foo.Bar", "../Doh/A.B/../Bar.Foo", "../Doh/A.B/../Foo/Bar" }, { NULL, NULL, NULL } },
+        { { "../Doh/A.B/../Foo.Bar", "../Doh/A.B/../Bar/Foo", "../Doh/A.B/../Foo/Bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -739,7 +739,7 @@ static const TestData_t TestData[] =
     "DoesNotExit:foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "DoesNotExit:foo.bar", "bar.DoesNotExit:foo", "DoesNotExit:foo/bar" }, { NULL, NULL, NULL } },
+        { { "DoesNotExit:foo.bar", "bar/DoesNotExit:foo", "DoesNotExit:foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -769,7 +769,7 @@ static const TestData_t TestData[] =
     "DoesNotExit:doh.foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "DoesNotExit:doh/foo.bar", "DoesNotExit:doh/bar.foo", "DoesNotExit:doh/foo/bar" }, { NULL, NULL, NULL } },
+        { { "DoesNotExit:doh/foo.bar", "DoesNotExit:doh/bar/foo", "DoesNotExit:doh/foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -784,7 +784,7 @@ static const TestData_t TestData[] =
     "DoesNotExit:doh/foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "DoesNotExit:doh/foo.bar", "bar.DoesNotExit:doh/foo", "DoesNotExit:doh/foo/bar" }, { NULL, NULL, NULL } },
+        { { "DoesNotExit:doh/foo.bar", "bar/DoesNotExit:doh/foo", "DoesNotExit:doh/foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -814,8 +814,8 @@ static const TestData_t TestData[] =
     "test:foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "/first_path/to/foo.bar", "/first_path/to/bar.foo", "/first_path/to/foo/bar" }, { NULL, NULL, NULL } },
-        { { "/second_path/to/foo.bar", "/second_path/to/bar.foo", "/second_path/to/foo/bar" }, { NULL, NULL, NULL } },
+        { { "/first_path/to/foo.bar", "/first_path/to/bar/foo", "/first_path/to/foo/bar" }, { NULL, NULL, NULL } },
+        { { "/second_path/to/foo.bar", "/second_path/to/bar/foo", "/second_path/to/foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
       { /* Output for RISC OS */
@@ -844,8 +844,8 @@ static const TestData_t TestData[] =
     "test:doh.foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "/first_path/to/doh/foo.bar", "/first_path/to/doh/bar.foo", "/first_path/to/doh/foo/bar" }, { NULL, NULL, NULL } },
-        { { "/second_path/to/doh/foo.bar", "/second_path/to/doh/bar.foo", "/second_path/to/doh/foo/bar" }, { NULL, NULL, NULL } },
+        { { "/first_path/to/doh/foo.bar", "/first_path/to/doh/bar/foo", "/first_path/to/doh/foo/bar" }, { NULL, NULL, NULL } },
+        { { "/second_path/to/doh/foo.bar", "/second_path/to/doh/bar/foo", "/second_path/to/doh/foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
       { /* Output for RISC OS */
@@ -859,8 +859,8 @@ static const TestData_t TestData[] =
     "test:doh/foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "/first_path/to/doh/foo.bar", "/first_path/to/bar.doh/foo", "/first_path/to/doh/foo/bar" }, { NULL, NULL, NULL } },
-        { { "/second_path/to/doh/foo.bar", "/second_path/to/bar.doh/foo", "/second_path/to/doh/foo/bar" }, { NULL, NULL, NULL } },
+        { { "/first_path/to/doh/foo.bar", "/first_path/to/bar/doh/foo", "/first_path/to/doh/foo/bar" }, { NULL, NULL, NULL } },
+        { { "/second_path/to/doh/foo.bar", "/second_path/to/bar/doh/foo", "/second_path/to/doh/foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
       { /* Output for RISC OS */
@@ -874,8 +874,8 @@ static const TestData_t TestData[] =
     "tEsT:^.foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "/first_path/to/../foo.bar", "/first_path/to/../bar.foo", "/first_path/to/../foo/bar" }, { NULL, NULL, NULL } },
-        { { "/second_path/to/../foo.bar", "/second_path/to/../bar.foo", "/second_path/to/../foo/bar" }, { NULL, NULL, NULL } },
+        { { "/first_path/to/../foo.bar", "/first_path/to/../bar/foo", "/first_path/to/../foo/bar" }, { NULL, NULL, NULL } },
+        { { "/second_path/to/../foo.bar", "/second_path/to/../bar/foo", "/second_path/to/../foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
       { /* Output for RISC OS */
@@ -889,7 +889,7 @@ static const TestData_t TestData[] =
     "../foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "../foo.bar", "../bar.foo", "../foo/bar" }, { NULL, NULL, NULL } },
+        { { "../foo.bar", "../bar/foo", "../foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -904,7 +904,7 @@ static const TestData_t TestData[] =
     "../../../foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "../../../foo.bar", "../../../bar.foo", "../../../foo/bar" }, { NULL, NULL, NULL } },
+        { { "../../../foo.bar", "../../../bar/foo", "../../../foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -949,7 +949,7 @@ static const TestData_t TestData[] =
     "./././foo.bar", /* Input */
     {
       { /* Output for Unix */
-        { { "foo.bar", "bar.foo", "foo/bar" }, { NULL, NULL, NULL } },
+        { { "foo.bar", "bar/foo", "foo/bar" }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } },
         { { NULL, NULL, NULL }, { NULL, NULL, NULL } }
       },
@@ -1034,7 +1034,7 @@ main (int argc, char *argv[])
 	  out[0] = FN_AnyToNative (TestData[i].in, pathidx, outbuf, sizeof (outbuf)-1, &stateArr[0], eA_Dot_B);
 	  str_set (&result[pathidx][0][0], out[0]);
 
-	  out[1] = FN_AnyToNative (TestData[i].in, pathidx, outbuf, sizeof (outbuf)-1, &stateArr[1], eB_Dot_A);
+	  out[1] = FN_AnyToNative (TestData[i].in, pathidx, outbuf, sizeof (outbuf)-1, &stateArr[1], eB_DirSep_A);
 	  str_set (&result[pathidx][0][1], out[1]);
 
 	  out[2] = FN_AnyToNative (TestData[i].in, pathidx, outbuf, sizeof (outbuf)-1, &stateArr[2], eA_Slash_B);
@@ -1048,7 +1048,7 @@ main (int argc, char *argv[])
 	      out[0] = FN_AnyToNative (TestData[i].in, pathidx, outbuf, sizeof (outbuf)-1, &stateArr[0], eA_Dot_B);
 	      str_set (&result[pathidx][1][0], out[0]);
 
-	      out[1] = FN_AnyToNative (TestData[i].in, pathidx, outbuf, sizeof (outbuf)-1, &stateArr[1], eB_Dot_A);
+	      out[1] = FN_AnyToNative (TestData[i].in, pathidx, outbuf, sizeof (outbuf)-1, &stateArr[1], eB_DirSep_A);
 	      str_set (&result[pathidx][1][1], out[1]);
 
 	      out[2] = FN_AnyToNative (TestData[i].in, pathidx, outbuf, sizeof (outbuf)-1, &stateArr[2], eA_Slash_B);

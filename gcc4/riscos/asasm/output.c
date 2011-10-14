@@ -106,7 +106,7 @@ outputInit (const char *outfile)
 		return;
 
 	      out[1] = FN_AnyToNative (outfile, pathidx, outname, sizeof (outname),
-				       &state[1], eB_Dot_A);
+				       &state[1], eB_DirSep_A);
 	      if (out[1] && (objfile = fopen (out[1], "wb")) != NULL)
 		return;
 

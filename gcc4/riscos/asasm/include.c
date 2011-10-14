@@ -144,7 +144,7 @@ Include_Get (const char *file, const char **strdupFilename, bool inc)
 	    return fp;
 
 	  out[1] = FN_AnyToNative (file, pathidx, outBuf, sizeof (outBuf),
-				   &state[1], eB_Dot_A);
+				   &state[1], eB_DirSep_A);
 	  if (out[1] && (fp = Include_Open (out[1], strdupFilename)) != NULL)
 	    return fp;
 
@@ -185,7 +185,7 @@ Include_Get (const char *file, const char **strdupFilename, bool inc)
 	    }
 
 	  out[1] = FN_AnyToNative (file, 0, outBuf, sizeof (outBuf),
-				   &state[0], eB_Dot_A);
+				   &state[1], eB_DirSep_A);
 	  if (out[1])
 	    {
 	      snprintf (incpath, sizeof (incpath), "%s" NAT_DIR_STR "%s", incDirPP[i], out[1]);
@@ -195,7 +195,7 @@ Include_Get (const char *file, const char **strdupFilename, bool inc)
 	    }
 
 	  out[2] = FN_AnyToNative (file, 0, outBuf, sizeof (outBuf),
-				   &state[0], eA_Slash_B);
+				   &state[2], eA_Slash_B);
 	  if (out[2])
 	    {
 	      snprintf (incpath, sizeof (incpath), "%s" NAT_DIR_STR "%s", incDirPP[i], out[2]);
