@@ -19,8 +19,7 @@ The following is a non exhaustive list of programs which are needed to compile
 and work with GCCSDK on top of a typical recent standard Unix distribution:
 
 - autogen v5.5.4 (or later)
-- m4 v1.4.16 (m4 might not be needed but when it needed, this is the minimal
-  version required)
+- m4 v1.4.16 (this is the minimal version required)
 - bison v2.3 (other versions might work too)
 - svn v1.2 or later (only to be used to checkout GCCSDK source code from
   svn.riscos.info Subversion server)
