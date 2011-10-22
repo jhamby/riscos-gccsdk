@@ -21,8 +21,8 @@ and work with GCCSDK on top of a typical recent standard Unix distribution:
 - autogen v5.5.4 (or later)
 - m4 v1.4.16 (this is the minimal version required)
 - bison v2.3 (other versions might work too)
-- svn v1.2 or later (only to be used to checkout GCCSDK source code from
-  svn.riscos.info Subversion server)
+- flex v2.5.4 (or later)
+- svn v1.2 or later (used to checkout source code)
 - gcc & g++ v3.4.x or v4.x (other versions might work too)
 - make v3.81 (other versions might work too)
 - libtool v1.5.22 (other versions might work too)
