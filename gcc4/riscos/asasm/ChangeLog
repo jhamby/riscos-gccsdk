@@ -1,5 +1,10 @@
 Sat Oct 22 22:41:41 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
+	* area.c (oArea_EntrySymbolFile, oArea_EntrySymbolLineNum): Add.
+	(Area_ResetPrivateVars): Add.
+	(Area_PrepareForPhase): Use Area_ResetPrivateVars.
+	(c_entry): Improve error message for the 2nd occurance of ENTRY.
+	(Area_MarkStartAs): Fix compiler warning.
 	* decode.c (oDecodeTable): Add MEND.
 	* macros.c (c_mend): Renamed to Macro_IsMENDAtInput.
 	(c_macro): Follow c_mend rename.
