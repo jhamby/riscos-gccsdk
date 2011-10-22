@@ -500,14 +500,14 @@ Input_ArgSub (bool warnOnVarSubFail)
 	{
 	  case ';':
 	    { /* Comment follows; just copy it all.  */
-	      size_t len = strlen (inP) + 1;
+	      size_t len = strlen (inP);
 	      if (outOffset + len >= MAX_LINE)
 		len = MAX_LINE - outOffset - len;
 	      memcpy (input_buff + outOffset, inP, len);
 	      outOffset += len;
 	      inP += len;
+	      break;
 	    }
-	    break;
 
 	  case '<': /* Characters enclosed between <...>.  */
 	    ++inP;
@@ -586,7 +586,8 @@ Input_ArgSub (bool warnOnVarSubFail)
       return false;
     }
 
-  input_buff[outOffset] = 0;
+  if (outOffset < sizeof (input_buff))
+    input_buff[outOffset] = 0;
   return true;
 }
 
