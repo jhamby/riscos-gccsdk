@@ -1,6 +1,6 @@
 Index: gcc/config/arm/arm.c
 ===================================================================
---- gcc/config/arm/arm.c	(revision 176690)
+--- gcc/config/arm/arm.c	(revision 180325)
 +++ gcc/config/arm/arm.c	(working copy)
 @@ -123,6 +123,8 @@
  #if TARGET_DLLIMPORT_DECL_ATTRIBUTES
@@ -957,7 +957,7 @@ Index: gcc/config/arm/arm.c
      return 0;
  
    reg_base = 0;
-@@ -20642,6 +21064,7 @@
+@@ -20643,6 +21065,7 @@
  #if ARM_FT_UNKNOWN != 0
    machine->func_type = ARM_FT_UNKNOWN;
  #endif
@@ -965,7 +965,7 @@ Index: gcc/config/arm/arm.c
    return machine;
  }
  
-@@ -20653,6 +21076,21 @@
+@@ -20654,6 +21077,21 @@
    if (count != 0)
      return NULL_RTX;
  
@@ -987,7 +987,7 @@ Index: gcc/config/arm/arm.c
    return get_hard_reg_initial_val (Pmode, LR_REGNUM);
  }
  
-@@ -20758,7 +21196,7 @@
+@@ -20759,7 +21197,7 @@
    if (flag_pic && arm_pic_register != INVALID_REGNUM)
      arm_load_pic_register (live_regs_mask);
  
@@ -996,7 +996,7 @@ Index: gcc/config/arm/arm.c
      emit_move_insn (gen_rtx_REG (Pmode, ARM_HARD_FRAME_POINTER_REGNUM),
  		    stack_pointer_rtx);
  
-@@ -20815,7 +21253,7 @@
+@@ -20816,7 +21254,7 @@
  	}
      }
  
@@ -1005,7 +1005,7 @@ Index: gcc/config/arm/arm.c
      thumb_set_frame_pointer (offsets);
  
    /* If we are profiling, make sure no instructions are scheduled before
-@@ -20848,7 +21286,7 @@
+@@ -20849,7 +21287,7 @@
    offsets = arm_get_frame_offsets ();
    amount = offsets->outgoing_args - offsets->saved_regs;
  
@@ -1014,7 +1014,7 @@ Index: gcc/config/arm/arm.c
      {
        emit_insn (gen_movsi (stack_pointer_rtx, hard_frame_pointer_rtx));
        amount = offsets->locals_base - offsets->saved_regs;
-@@ -22164,7 +22602,7 @@
+@@ -22165,7 +22603,7 @@
      emit_move_insn (gen_rtx_REG (Pmode, LR_REGNUM), source);
    else
      {
@@ -1023,7 +1023,7 @@ Index: gcc/config/arm/arm.c
  	addr = plus_constant(hard_frame_pointer_rtx, -4);
        else
  	{
-@@ -22207,7 +22645,7 @@
+@@ -22208,7 +22646,7 @@
      {
        limit = 1024;
        /* Find the saved regs.  */
@@ -1032,7 +1032,7 @@ Index: gcc/config/arm/arm.c
  	{
  	  delta = offsets->soft_frame - offsets->saved_args;
  	  reg = THUMB_HARD_FRAME_POINTER_REGNUM;
-@@ -22336,7 +22774,92 @@
+@@ -22337,7 +22775,92 @@
    return mode == SImode ? 255 : 0;
  }
  
@@ -1125,7 +1125,7 @@ Index: gcc/config/arm/arm.c
  /* Map internal gcc register numbers to DWARF2 register numbers.  */
  
  unsigned int
-@@ -22350,6 +22873,9 @@
+@@ -22351,6 +22874,9 @@
    if (IS_FPA_REGNUM (regno))
      return (TARGET_AAPCS_BASED ? 96 : 16) + regno - FIRST_FPA_REGNUM;
  
@@ -1135,7 +1135,7 @@ Index: gcc/config/arm/arm.c
    if (IS_VFP_REGNUM (regno))
      {
        /* See comment in arm_dwarf_register_span.  */
-@@ -22365,7 +22891,13 @@
+@@ -22366,7 +22892,13 @@
    if (IS_IWMMXT_REGNUM (regno))
      return 112 + regno - FIRST_IWMMXT_REGNUM;
  
@@ -1150,7 +1150,7 @@ Index: gcc/config/arm/arm.c
  }
  
  /* Dwarf models VFPv3 registers as 32 64-bit registers.
-@@ -22542,6 +23074,31 @@
+@@ -22543,6 +23075,31 @@
        break;
  
      case REG:
@@ -1182,7 +1182,7 @@ Index: gcc/config/arm/arm.c
        if (REGNO (e0) == SP_REGNUM)
  	{
  	  /* A stack increment.  */
-@@ -22644,6 +23201,13 @@
+@@ -22645,6 +23202,13 @@
        arm_unwind_emit_sequence (asm_out_file, pat);
        break;
  
@@ -1196,7 +1196,7 @@ Index: gcc/config/arm/arm.c
      default:
        abort();
      }
-@@ -23089,6 +23653,10 @@
+@@ -23090,6 +23654,10 @@
  bool
  arm_frame_pointer_required (void)
  {
@@ -1207,7 +1207,7 @@ Index: gcc/config/arm/arm.c
    return (cfun->has_nonlocal_label
            || SUBTARGET_FRAME_POINTER_REQUIRED
            || (TARGET_ARM && TARGET_APCS_FRAME && ! leaf_function_p ()));
-@@ -23627,10 +24195,10 @@
+@@ -23628,10 +24196,10 @@
        fixed_regs[PIC_OFFSET_TABLE_REGNUM] = 1;
        call_used_regs[PIC_OFFSET_TABLE_REGNUM] = 1;
      }
