@@ -41,42 +41,11 @@
 static int
 ememcmp (const Value *lv, const Value *rv)
 {
-  const int lvl = lv->Data.String.len;
-  const int rvl = rv->Data.String.len;
+  const size_t lvl = lv->Data.String.len;
+  const size_t rvl = rv->Data.String.len;
   int a = memcmp (lv->Data.String.s, rv->Data.String.s, lvl < rvl ? lvl : rvl);
-  return a ? a : lvl - rvl;
+  return a ? a : (int)(lvl - rvl);
 }
-
-#define STRINGIFY(OP)	#OP
-/* Core implementation for '<', '<=', '>', '>=', '==' and '!='.
-   Works for ValueFloat, ValueString, ValueInt, ValueAddr.  */
-#define COMPARE(OP) \
-  do \
-    { \
-      if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueFloat) \
-        lvalue->Data.Bool.b = lvalue->Data.Float.f OP rvalue->Data.Float.f; \
-      else if (lvalue->Tag == ValueString && rvalue->Tag == ValueString) \
-        lvalue->Data.Bool.b = ememcmp (lvalue, rvalue) OP 0; \
-      else if (lvalue->Tag == ValueInt && rvalue->Tag == ValueInt) \
-        { \
-	  /* Comparing integers happens *unsigned* ! */ \
-          lvalue->Data.Bool.b = (uint32_t)lvalue->Data.Int.i OP (uint32_t)rvalue->Data.Int.i; \
-        } \
-      else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr) \
-        { \
-	  /* First compare on base register, then its index.  */ \
-	  if (lvalue->Data.Addr.r != rvalue->Data.Addr.r) \
-	    lvalue->Data.Bool.b = lvalue->Data.Addr.r OP rvalue->Data.Addr.r; \
-	  else \
-	    lvalue->Data.Bool.b = lvalue->Data.Addr.i OP rvalue->Data.Addr.i; \
-        } \
-      else \
-        { \
-	  error (ErrorError, "Bad operand types for %s", STRINGIFY(OP)); \
-          return false; \
-        } \
-      lvalue->Tag = ValueBool; \
-    } while (0)
 
 /**
  * Get integer value of a ValueInt and one character ValueString object.
@@ -93,7 +62,7 @@ GetInt (const Value *val, uint32_t *i)
       case ValueString:
 	if (val->Data.String.len == 1)
 	  {
-	    *i = (uint32_t)val->Data.String.s[0];
+	    *i = (uint8_t)val->Data.String.s[0];
 	    return true;
 	  }
 	/* Fall through */
@@ -102,6 +71,38 @@ GetInt (const Value *val, uint32_t *i)
     }
   return false;
 }
+
+#define STRINGIFY(OP)	#OP
+/* Core implementation for '<', '<=', '>', '>=', '==' and '!='.
+   Works for ValueFloat, ValueString, ValueInt, ValueAddr.  */
+#define COMPARE(OP) \
+  do \
+    { \
+      uint32_t lint, rint;\
+      if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueFloat) \
+        lvalue->Data.Bool.b = lvalue->Data.Float.f OP rvalue->Data.Float.f; \
+      else if (lvalue->Tag == ValueString && rvalue->Tag == ValueString) \
+        lvalue->Data.Bool.b = ememcmp (lvalue, rvalue) OP 0; \
+      else if (GetInt (lvalue, &lint) && GetInt (rvalue, &rint)) \
+        { \
+	  /* Comparing integers happens *unsigned* ! */ \
+          lvalue->Data.Bool.b = lint OP rint; \
+        } \
+      else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr) \
+        { \
+	  /* First compare on base register, then its index.  */ \
+	  if (lvalue->Data.Addr.r != rvalue->Data.Addr.r) \
+	    lvalue->Data.Bool.b = lvalue->Data.Addr.r OP rvalue->Data.Addr.r; \
+	  else \
+	    lvalue->Data.Bool.b = lvalue->Data.Addr.i OP rvalue->Data.Addr.i; \
+        } \
+      else \
+        { \
+	  error (ErrorError, "Bad operand types for %s", STRINGIFY(OP)); \
+          return false; \
+        } \
+      lvalue->Tag = ValueBool; \
+    } while (0)
 
 /**
  * Do <lvalue> = <lvalue> <op> <rvalue>

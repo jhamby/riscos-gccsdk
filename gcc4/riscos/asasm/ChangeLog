@@ -1,3 +1,11 @@
+Sat Oct 22 22:29:52 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* eval.c (GetInt): Value 1 character long string should be
+	handled as unsigned.
+	(COMPARE): Support comparing integers and 1 character long
+	strings.
+	* regression/tests_pass/operator_relational.s: Enhance.
+
 Sat Oct 22 22:22:45 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* INSTALL: Add.

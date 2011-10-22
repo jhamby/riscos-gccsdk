@@ -13,6 +13,8 @@ EXTENSION SETL	{FALSE}
 	= :STR:(5=3)
 	= :STR:(-1=1)
 	= :STR:(-1=&FFFFFFFF)
+	= :STR:(:CHR:235=5)
+	= :STR:(:CHR:235=235)
 	= :STR:("ABC"="DEF")
 	= :STR:("ABC"="ABC")
 	= :STR:("ABC"="ABCD")
@@ -32,6 +34,8 @@ LblEq
 	= :STR:(5==3)
 	= :STR:(-1==1)
 	= :STR:(-1==&FFFFFFFF)
+	= :STR:(:CHR:235==5)
+	= :STR:(:CHR:235==235)
 	= :STR:("ABC"=="DEF")
 	= :STR:("ABC"=="ABC")
 	= :STR:("ABC"=="ABCD")
@@ -51,6 +55,8 @@ LblEqEq
 	= :STR:(5<>3)
 	= :STR:(-1<>1)
 	= :STR:(-1<>&FFFFFFFF)
+	= :STR:(:CHR:235<>5)
+	= :STR:(:CHR:235<>235)
 	= :STR:("ABC"<>"DEF")
 	= :STR:("ABC"<>"ABC")
 	= :STR:("ABC"<>"ABCD")
@@ -70,6 +76,8 @@ LblNEq1
 	= :STR:(5!=3)
 	= :STR:(-1!=1)
 	= :STR:(-1!=&FFFFFFFF)
+	= :STR:(:CHR:235!=5)
+	= :STR:(:CHR:235!=235)
 	= :STR:("ABC"!="DEF")
 	= :STR:("ABC"!="ABC")
 	= :STR:("ABC"!="ABCD")
@@ -89,6 +97,8 @@ LblNEq2
 	= :STR:(5/=3)
 	= :STR:(-1/=1)
 	= :STR:(-1/=&FFFFFFFF)
+	= :STR:(:CHR:235/=5)
+	= :STR:(:CHR:235/=235)
 	= :STR:("ABC"/="DEF")
 	= :STR:("ABC"/="ABC")
 	= :STR:("ABC"/="ABCD")
@@ -114,6 +124,8 @@ LblNEq3
 	= :STR:(5>3)
 	= :STR:(-1>1)
 	= :STR:(-1>&FFFFFFFF)
+	= :STR:(:CHR:235>5)
+	= :STR:(:CHR:235>235)
 	= :STR:("ABC">"DEF")
 	= :STR:("ABC">"ABC")
 	= :STR:("ABC">"ABCD")
@@ -125,6 +137,8 @@ LblNEq3
 	= :STR:(5>=3)
 	= :STR:(-1>=1)
 	= :STR:(-1>=&FFFFFFFF)
+	= :STR:(:CHR:235>=5)
+	= :STR:(:CHR:235>=235)
 	= :STR:("ABC">="DEF")
 	= :STR:("ABC">="ABC")
 	= :STR:("ABC">="ABCD")
@@ -136,6 +150,8 @@ LblNEq3
 	= :STR:(5<3)
 	= :STR:(-1<1)
 	= :STR:(-1<&FFFFFFFF)
+	= :STR:(:CHR:235<5)
+	= :STR:(:CHR:235<235)
 	= :STR:("ABC"<"DEF")
 	= :STR:("ABC"<"ABC")
 	= :STR:("ABC"<"ABCD")
@@ -147,6 +163,8 @@ LblNEq3
 	= :STR:(5<=3)
 	= :STR:(-1<=1)
 	= :STR:(-1<=&FFFFFFFF)
+	= :STR:(:CHR:235<=5)
+	= :STR:(:CHR:235<=235)
 	= :STR:("ABC"<="DEF")
 	= :STR:("ABC"<="ABC")
 	= :STR:("ABC"<="ABCD")
@@ -154,20 +172,20 @@ LblNEq3
 
 	|
 
-	= "|FFFTFTFFTFFTTF"	; =
+	= "|FFFTFTFTFFTFFTTF"	; =
 	[ EXTENSION
-	= "|FFFTFTFFTFFTTF"	; ==
+	= "|FFFTFTFTFFTFFTTF"	; ==
 	]
-	= "|TTTFTFTTFTTFFT"	; <>
+	= "|TTTFTFTFTTFTTFFT"	; <>
 	[ EXTENSION
-	= "|TTTFTFTTFTTFFT"	; !=
+	= "|TTTFTFTFTTFTTFFT"	; !=
 	]
-	= "|TTTFTFTTFTTFFT"	; /=
+	= "|TTTFTFTFTTFTTFFT"	; /=
 	= "|FTTF"		; :LEOR:
-	= "|FTTFFFFT"		; >
-	= "|FTTTFTFT"		; >=
-	= "|TFFFTFTF"		; <
-	= "|TFFTTTTF"		; <=
+	= "|FTTFTFFFFT"		; >
+	= "|FTTTTTFTFT"		; >=
+	= "|TFFFFFTFTF"		; <
+	= "|TFFTFTTTTF"		; <=
 
 	]
 
