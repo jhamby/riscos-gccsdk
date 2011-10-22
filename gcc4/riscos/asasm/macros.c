@@ -259,7 +259,7 @@ Macro_Find (const char *name, size_t len)
  * is read.
  */
 static bool
-c_mend (void)
+Macro_IsMENDAtInput (void)
 {
   if (!isspace ((unsigned char)inputLook ()))
     return false;
@@ -398,7 +398,7 @@ c_macro (void)
 	goto noMEND;
 
       const char * const inputMark = Input_GetMark ();
-      if (c_mend ())
+      if (Macro_IsMENDAtInput ())
 	break;
       Input_RollBackToMark (inputMark);
 
@@ -432,16 +432,14 @@ c_macro (void)
 		errorOutOfMem ();
 	      buf = tmp;
 	    }
-	  if (c != '\0')
-	    buf[bufptr++] = c;
-	  else
+	  if (c == '\0')
 	    {
 	      buf[bufptr++] = '\n';
 	      break;
 	    }
+	  buf[bufptr++] = c;
 	}
-    }
-  while (1);
+    } while (1);
   buf[bufptr] = '\0';
   m.file = FS_GetCurFileName ();
   m.buf = buf;
@@ -465,7 +463,7 @@ noMEND:
 	  break;
 	}
     }
-  while (!c_mend ());
+  while (!Macro_IsMENDAtInput ());
 
   free (buf);
   free ((void *)m.name);
@@ -485,5 +483,16 @@ c_mexit (void)
     error (ErrorError, "MEXIT found outside a macro");
   else
     FS_PopPObject (true);
+  return false;
+}
+
+
+/**
+ * Implements MEND (but without MACRO start).
+ */
+bool
+c_mend (void)
+{
+  error (ErrorError, "MEND found outside a macro");
   return false;
 }

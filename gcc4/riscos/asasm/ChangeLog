@@ -1,3 +1,11 @@
+Sat Oct 22 22:41:41 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (oDecodeTable): Add MEND.
+	* macros.c (c_mend): Renamed to Macro_IsMENDAtInput.
+	(c_macro): Follow c_mend rename.
+	(c_mend): Add.
+	* macros.h (c_mend): Add prototype.
+
 Sat Oct 22 22:37:37 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* input.c (Input_ArgSub): Fix processing comments.  Fix buffer

@@ -58,6 +58,8 @@ static void Area_Ensure (void);
 Symbol *areaCurrentSymbol = NULL;
 static Area_eEntryType oArea_CurrentEntryType = eInvalid;
 Symbol *areaEntrySymbol = NULL;
+static const char *oArea_EntrySymbolFile = NULL;
+static int oArea_EntrySymbolLineNum = 0;
 int areaEntryOffset = 0;
 Symbol *areaHeadSymbol = NULL;
 
@@ -73,6 +75,24 @@ static struct PendingORG
   int line; /** Linenumber of pending ORG.  */
   uint32_t value; /** Pending ORG value.  */
 } oPendingORG;
+
+static void
+Area_ResetPrivateVars (void)
+{
+  areaCurrentSymbol = NULL;
+  oArea_CurrentEntryType = eInvalid;
+  areaEntrySymbol = NULL;
+  oArea_EntrySymbolFile = NULL;
+  oArea_EntrySymbolLineNum = 0;
+  areaEntryOffset = 0;
+  /* areaHeadSymbol = NULL; */
+
+  gArea_Require8 = false; /* Absense of REQUIRE8 => {FALSE} */
+  gArea_Preserve8 = ePreserve8_Guess;
+  gArea_Preserve8Guessed = true;
+
+  oPendingORG.isValid = false;
+}
 
 static Area *
 areaNew (Symbol *sym, int type)
@@ -157,20 +177,17 @@ Area_PrepareForPhase (ASM_Phase_e phase)
   switch (phase)
     {
       case ePassOne:
+	Area_ResetPrivateVars ();
 	Area_Ensure ();
 	break;
 
       case ePassTwo:
 	{
 	  if (oPendingORG.isValid)
-	    {
-	      errorLine (oPendingORG.file, oPendingORG.line,
-			 ErrorWarning, "Unused ORG statement");
-	      oPendingORG.isValid = false;
-	    }
+	    errorLine (oPendingORG.file, oPendingORG.line,
+		       ErrorWarning, "Unused ORG statement");
 
-	  /* Do an implicit LTORG at the end of all areas.
-	     At the same time, reset the area current pointer.  */
+	  /* Do an implicit LTORG at the end of all areas.  */
 	  for (areaCurrentSymbol = areaHeadSymbol;
 	       areaCurrentSymbol != NULL;
 	       areaCurrentSymbol = areaCurrentSymbol->area.info->next)
@@ -180,12 +197,17 @@ Area_PrepareForPhase (ASM_Phase_e phase)
 	      areaCurrentSymbol->area.info->curIdx = 0;
 	    }
 
+	  Area_ResetPrivateVars ();
 	  Area_Ensure ();
+	  break;
 	}
-	break;
 
       case eOutput:
 	{
+	  if (oPendingORG.isValid)
+	    errorLine (oPendingORG.file, oPendingORG.line,
+		       ErrorWarning, "Unused ORG statement");
+
 	  /* Do an implicit LTORG at the end of all areas.  */
 	  for (areaCurrentSymbol = areaHeadSymbol;
 	       areaCurrentSymbol != NULL;
@@ -209,8 +231,8 @@ Area_PrepareForPhase (ASM_Phase_e phase)
 	    }
 	  areaHeadSymbol->area.info->next = NULL;
 	  areaHeadSymbol = aSymP;
+	  break;
 	}
-	break;
 
       default:
 	break;
@@ -229,11 +251,17 @@ c_entry (void)
   else
     {
       if (areaEntrySymbol)
-	error (ErrorError, "More than one ENTRY");
+	{
+	  error (ErrorError, "More than one ENTRY");
+	  errorLine (oArea_EntrySymbolFile, oArea_EntrySymbolLineNum,
+	             ErrorError, "note: Previous ENTRY was here"); 
+	}
       else
 	{
 	  areaEntrySymbol = areaCurrentSymbol;
 	  areaEntryOffset = areaCurrentSymbol->area.info->curIdx;
+	  oArea_EntrySymbolFile = FS_GetCurFileName ();
+	  oArea_EntrySymbolLineNum = FS_GetCurLineNumber ();
 	}
     }
 
@@ -693,6 +721,8 @@ Area_MarkStartAs (Area_eEntryType type)
 	    break;
 	  case eThumb:
 	    baseMappingSymbol = "$t";
+	    break;
+	  case eInvalid:
 	    break;
 	}
       size_t mappingSymbolSize = 2 + 1 + areaCurrentSymbol->len + 1 + 8 + 1;

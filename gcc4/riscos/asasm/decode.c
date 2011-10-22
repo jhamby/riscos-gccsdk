@@ -195,6 +195,7 @@ static const decode_table_t oDecodeTable[] =
   { "MCR", eCB_Void, true, eRslt_ARM, { .vd = m_mcr } }, /* MCR CC */
   { "MCR2", eCB_Void, false, eRslt_ARM, { .vd = m_mcr2 } }, /* MCR2 */
   { "MCRR", eCB_Void, true, eRslt_ARM, { .vd = m_mcrr } }, /* MCRR CC */
+  { "MEND", eCB_NoLex, false, eRslt_None, { .nolex = c_mend } }, /* MEND */
   { "MEXIT", eCB_NoLex, false, eRslt_None, { .nolex = c_mexit } }, /* MEXIT */
   { "MLA", eCB_Void, true, eRslt_ARM, { .vd = m_mla } }, /* MLA CC S */
   { "MLS", eCB_Void, true, eRslt_ARM, { .vd = m_mls } }, /* MLS CC */

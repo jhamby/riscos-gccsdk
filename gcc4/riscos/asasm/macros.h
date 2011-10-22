@@ -63,5 +63,6 @@ void Macro_Call (const Macro *, const Lex *);
 
 bool c_macro (void);
 bool c_mexit (void);
+bool c_mend (void);
 
 #endif
