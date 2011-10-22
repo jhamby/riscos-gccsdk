@@ -1,0 +1,65 @@
+Build instructions for native asasm:
+
+1. Generate the configuration files.
+   This should only be done once for a freshly checked output source tree.
+
+   $ cd asasm
+   $ autoreconf --install
+
+2. Create build output directory (preferably outside the source directory):
+   E.g. at the same level where the source directory is located.
+
+   $ mkdir ../build-output
+   $ cd ../build-output
+
+3. Create Makefile in the build output directory:
+
+   $ ../asasm/configure
+
+4. Compile and link asasm:
+
+   $ make
+
+5. Test:
+
+   $ cd ../asasm/regression
+   $ make AS=../../build-output/asasm
+
+   When all the tests are successful, you should see at the near end:
+
+   *** All tests were OK (do 'make clean' if you want to re-do them)
+
+6. Install:
+
+   $ cd ../../build-output/asasm
+   $ sudo make install
+
+Build instructions for cross-compiled asasm:
+
+1. Generate the configuration files:
+
+   $ cd asasm
+   $ autoreconf --install
+
+2. Create build output directory (preferably outside the source directory):
+   E.g. at the same level where the source directory is located.
+
+   $ mkdir ../build-output-ro
+   $ cd ../build-output-ro
+
+3. Setup cross-compile environment if necessary.  For GCCSDK (using SCL):
+
+   $ PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
+   $ export CFLAGS=-mlibscl
+   $ ../asasm/configure --host=arm-unknown-riscos
+
+4. Compile and link asasm:
+
+   $ make
+
+   You have now a RISC OS version of asasm:
+
+   $ file asasm
+   asasm: RISC OS AIF executable
+
+-EOF-
