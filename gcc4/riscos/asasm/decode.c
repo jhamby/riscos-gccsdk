@@ -480,7 +480,7 @@ decode (const Lex *label)
 			  : oDecodeTable[indexFound].result == eRslt_Data ? eData
 			  : eThumb);
 
-      const int startOffset = areaCurrentSymbol ? areaCurrentSymbol->area.info->curIdx : 0;
+      const int startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area.info->curIdx;
       Value startStorage =
 	{
 	  .Tag = ValueIllegal
@@ -492,11 +492,10 @@ decode (const Lex *label)
 	{
 	  case eCB_Void:
 	    {
-	      int offset = areaCurrentSymbol->area.info->curIdx;
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.vd ();
 	      /* Define the label *after* the mnemonic implementation but
 	         with the current offset *before* processing the mnemonic.  */
-	      labelSymbol = ASM_DefineLabel (label, offset);
+	      labelSymbol = ASM_DefineLabel (label, startOffset);
 	    }
 	    break;
 

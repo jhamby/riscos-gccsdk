@@ -1,3 +1,22 @@
+Sun Oct 23 03:26:57 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/operator_questionmark.s: Enhance.
+	* commands.c (Define): Don't pass SYMBOL_DEFINE in Symbol_Define.
+	* symbol.c (Symbol_Define): Make sure this can't be called
+	to define area symbols.  Improve DEBUG output.
+	(Symbol_CreateSymbolOutm, Symbol_OutputForAOF,
+	Symbol_OutputForELF): Area symbols no longer have
+	SYMBOL_DEFINED set.
+	* symbol.h (SYMBOL_KIND): Update comment.
+	* code.c (Code_EvalLowest): Area symbols no longer have
+	SYMBOL_DEFINED set.
+	* area.c (Area_Ensure, c_area): Likewise.
+	* asm.c (ASM_DefineLabel): Likewise.
+	* eval.c (Op_size): Support area symbols.
+	* decode.c (decode): areaCurrentSymbol can not be NULL here.
+	* INSTALL: Update cross-compile section.
+	* reloc.c (relocFix): Improve DEBUG output.
+
 Sat Oct 22 22:41:41 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* area.c (oArea_EntrySymbolFile, oArea_EntrySymbolLineNum): Add.

@@ -185,7 +185,14 @@ relocFix (const Symbol *area)
       const Value *value = codeEval (relQueue->legal | ValueCode,
 				     relQueue->legal & ValueAddr ? &relQueue->offset : NULL);
       if (value->Tag == ValueIllegal)
-	errorLine (relQueue->file, relQueue->lineno, ErrorError, "Unable to express relocation");
+	{
+	  errorLine (relQueue->file, relQueue->lineno, ErrorError, "Unable to express relocation");
+#ifdef DEBUG
+	  printf ("Relocation value is: ");
+	  valuePrint (&relQueue->expr);
+	  printf ("\n");
+#endif
+	}
       else
 	{
 	  Code code =
@@ -202,7 +209,14 @@ relocFix (const Symbol *area)
 	    value = &codeAsValue;
 	  if (relQueue->callback (relQueue->file, relQueue->lineno,
 				  relQueue->offset, value, relQueue->privData, true))
-	    errorLine (relQueue->file, relQueue->lineno, ErrorError, "Unable to express relocation");
+	    {
+	      errorLine (relQueue->file, relQueue->lineno, ErrorError, "Unable to express relocation");
+#ifdef DEBUG
+	      printf ("Relocation value is: ");
+	      valuePrint (value);
+	      printf ("\n");
+#endif
+	    }
 	}
     }
   areaCurrentSymbol = NULL;

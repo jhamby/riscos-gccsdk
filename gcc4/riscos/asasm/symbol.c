@@ -261,24 +261,18 @@ symbolFind (const Lex *l)
  * which can not be (or not supposed to be) redefined as this checks on
  * redefinition with different value or inconsistencies like area vs area label
  * definitions.
- * \return false if successful
+ * \return false if successful, true otherwise.
  */
 bool
 Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 {
   if (symbol->type & SYMBOL_AREA)
     {
-      if (!(newSymbolType & SYMBOL_AREA))
-	{
-	  error (ErrorError, "Area label %s can not be redefined", symbol->str);
-	  return true;
-	}
-    }
-  else if (newSymbolType & SYMBOL_AREA)
-    {
-      error (ErrorError, "Redefinition of label as area %s", symbol->str);
+      error (ErrorError, "Area label %s can not be redefined", symbol->str);
       return true;
     }
+  assert ((newSymbolType & SYMBOL_AREA) == 0 && "Not to be used for defining area symbols");
+
   Value newValueCopy = { .Tag = ValueIllegal };
   if (symbol->type & SYMBOL_DEFINED)
     {
@@ -309,11 +303,30 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 		  Value val2 = { .Tag = ValueIllegal };
 		  Value_Assign (&val2, exprEval (ValueAll));
 		  diffValue = !valueEqual (&val1, &val2);
+#ifdef DEBUG
+		  if (diffValue)
+		    {
+		      printf ("Diff: ");
+		      valuePrint (&val1);
+		      printf (" vs ");
+		      valuePrint (&val2);
+		      printf ("\n");
+		    }
+#endif
 		  valueFree (&val1);
 		  valueFree (&val2);
 		}
 	      else
-		diffValue = true; /* Not sure if we don't have to try harder here.  */
+		{
+		  diffValue = true; /* Not sure if we don't have to try harder here.  */
+#ifdef DEBUG
+		  printf ("Diff: ");
+		  valuePrint (&symbol->value);
+		  printf (" vs ");
+		  valuePrint (newValue);
+		  printf ("\n");
+#endif
+		}
 	    }
 	  if (diffValue)
 	    {
@@ -322,7 +335,7 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 	    }
 	}
     }
-  symbol->type |= newSymbolType;
+  symbol->type |= newSymbolType | SYMBOL_DEFINED;
   Value_Assign (&symbol->value, newValue);
 
   if (newValue == &newValueCopy)
@@ -407,7 +420,7 @@ Symbol_CreateSymbolOut (void)
 		 and outputElf().  */
 	      assert ((Area_IsImplicit (sym) && sym->used == -1) || (!Area_IsImplicit (sym) && sym->used >= 0));
 	      /* All AREA symbols are local ones.  */
-	      assert (SYMBOL_KIND (sym->type) == SYMBOL_LOCAL);
+	      assert (SYMBOL_KIND (sym->type) == 0);
 	    }
 	  else
 	    {
@@ -572,7 +585,7 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	  const AofSymbol asym =
 	    {
 	      .Name = armword (sym->offset + 4), /* + 4 to skip the initial length */
-	      .Type = armword (SYMBOL_KIND(sym->type) | (sym->type & SYMBOL_ABSOLUTE)),
+	      .Type = armword (SYMBOL_LOCAL | (sym->type & SYMBOL_ABSOLUTE)),
 	      .Value = armword ((sym->area.info->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0),
 	      .AreaName = armword (sym->offset + 4) /* + 4 to skip the initial length */
 	    };
@@ -677,7 +690,7 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
       if (sym->type & SYMBOL_AREA)
 	{
 	  assert (((sym->type & SYMBOL_ABSOLUTE) != 0) == ((sym->area.info->type & AREA_ABS) != 0));
-	  assert (SYMBOL_KIND (sym->type) == SYMBOL_LOCAL);
+	  assert (SYMBOL_KIND (sym->type) == 0);
 	  asym.st_name = 0;
 	  asym.st_value = (sym->area.info->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0;
 	  asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);

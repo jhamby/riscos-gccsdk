@@ -395,18 +395,14 @@ Area_Ensure (void)
   assert (areaCurrentSymbol == NULL);
   const Lex lex = lexTempLabel (IMPLICIT_AREA_NAME, sizeof (IMPLICIT_AREA_NAME)-1);
   Symbol *sym = symbolGet (&lex);
-  if (sym->type & SYMBOL_DEFINED)
+  if (SYMBOL_KIND (sym->type))
+    error (ErrorError, "Redefinition of label to area %s", sym->str);
+  else if ((sym->type & SYMBOL_AREA) == 0)
     {
-      if (!(sym->type & SYMBOL_AREA))
-	error (ErrorError, "Redefinition of label to area %s", sym->str);
-    }
-  else
-    {
-      sym->type = SYMBOL_AREA | SYMBOL_LOCAL;
+      sym->type = SYMBOL_AREA;
       sym->value = Value_Int (0);
       sym->area.info = areaNew (sym, AREA_CODE | AREA_READONLY | AREA_DEFAULT_ALIGNMENT);
     }
-
   areaCurrentSymbol = sym;
   oArea_CurrentEntryType = eInvalid;
 }
@@ -430,23 +426,25 @@ c_area (void)
     return false; /* No need to give an error, lexGetId already did.  */
 
   Symbol *sym = symbolGet (&lex);
-  int oldtype = 0;  
-  if (sym->type & SYMBOL_DEFINED)
+  if (SYMBOL_KIND (sym->type))
     {
-      if (sym->type & SYMBOL_AREA)
-	oldtype = sym->area.info->type;
-      else
-	error (ErrorError, "Redefinition of label as area %s", sym->str);
+      error (ErrorError, "Redefinition of label as area %s", sym->str);
+      Input_Rest ();
+      return false;
     }
+  unsigned int oldAreaType;  
+  if (sym->type & SYMBOL_AREA)
+    oldAreaType = sym->area.info->type;
   else
     {
-      sym->type = SYMBOL_AREA | SYMBOL_LOCAL;
+      oldAreaType = 0;
+      sym->type = SYMBOL_AREA;
       sym->value = Value_Int (0);
       sym->area.info = areaNew (sym, 0);
     }
   skipblanks ();
 
-  int newtype = 0;
+  unsigned int newAreaType = 0;
   bool rel_specified = false, data_specified = false;
   while (Input_Match (',', true))
     {
@@ -456,12 +454,12 @@ c_area (void)
 	{
 	  if (rel_specified)
 	    error (ErrorError, "Conflicting area attributes ABS vs REL");
-	  newtype |= AREA_ABS;
+	  newAreaType |= AREA_ABS;
 	}
       else if (attribute.Data.Id.len == sizeof ("REL")-1
 	       && !memcmp ("REL", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
-	  if (newtype & AREA_ABS)
+	  if (newAreaType & AREA_ABS)
 	    error (ErrorError, "Conflicting area attributes ABS vs REL");
 	  rel_specified = true;
 	}
@@ -470,51 +468,51 @@ c_area (void)
 	{
 	  if (data_specified)
 	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
-	  newtype |= AREA_CODE;
+	  newAreaType |= AREA_CODE;
 	}
       else if (attribute.Data.Id.len == sizeof ("DATA")-1
 	       && !memcmp ("DATA", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
-	  if (newtype & AREA_CODE)
+	  if (newAreaType & AREA_CODE)
 	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
 	  data_specified = true;
 	}
       else if (attribute.Data.Id.len == sizeof ("COMDEF")-1
 	       && !memcmp ("COMDEF", attribute.Data.Id.str, attribute.Data.Id.len))
-	newtype |= AREA_COMMONDEF;
+	newAreaType |= AREA_COMMONDEF;
       else if (attribute.Data.Id.len == sizeof ("COMMON")-1 /* == sizeof ("COMREF")-1 */
 	       && (!memcmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len)
 		   || !memcmp ("COMREF", attribute.Data.Id.str, attribute.Data.Id.len)))
-	newtype |= AREA_COMMONREF | AREA_UDATA;
+	newAreaType |= AREA_COMMONREF | AREA_UDATA;
       else if (attribute.Data.Id.len == sizeof ("NOINIT")-1
 	       && !memcmp ("NOINIT", attribute.Data.Id.str, attribute.Data.Id.len))
-	newtype |= AREA_UDATA;
+	newAreaType |= AREA_UDATA;
       else if (attribute.Data.Id.len == sizeof ("READONLY")-1
 	       && !memcmp ("READONLY", attribute.Data.Id.str, attribute.Data.Id.len))
-	newtype |= AREA_READONLY;
+	newAreaType |= AREA_READONLY;
       else if (attribute.Data.Id.len == sizeof ("PIC")-1
 	       && !memcmp ("PIC", attribute.Data.Id.str, attribute.Data.Id.len))
-	newtype |= AREA_PIC;
+	newAreaType |= AREA_PIC;
       else if (attribute.Data.Id.len == sizeof ("DEBUG")-1
 	       && !memcmp ("DEBUG", attribute.Data.Id.str, attribute.Data.Id.len))
-	newtype |= AREA_DEBUG;
+	newAreaType |= AREA_DEBUG;
       else if (attribute.Data.Id.len == sizeof ("REENTRANT")-1
 	       && !memcmp ("REENTRANT", attribute.Data.Id.str, attribute.Data.Id.len))
-	newtype |= AREA_REENTRANT;
+	newAreaType |= AREA_REENTRANT;
       else if (attribute.Data.Id.len == sizeof ("BASED")-1
 	       && !memcmp ("BASED", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
 	  skipblanks ();
 	  ARMWord reg = getCpuReg ();
-	  newtype |= AREA_BASED | (reg << 24);
+	  newAreaType |= AREA_BASED | (reg << 24);
 	}
       else if (attribute.Data.Id.len == sizeof ("LINKONCE")-1
 	       && !memcmp ("LINKONCE", attribute.Data.Id.str, attribute.Data.Id.len))
-	newtype |= AREA_LINKONCE;
+	newAreaType |= AREA_LINKONCE;
       else if (attribute.Data.Id.len == sizeof ("ALIGN")-1
 	       && !memcmp ("ALIGN", attribute.Data.Id.str, attribute.Data.Id.len))
 	{
-	  if (newtype & AREA_ALIGN_MASK)
+	  if (newAreaType & AREA_ALIGN_MASK)
 	    error (ErrorError, "You can't specify ALIGN attribute more than once");
 	  skipblanks ();
 	  if (!Input_Match ('=', false))
@@ -525,7 +523,7 @@ c_area (void)
 	      if (value->Data.Int.i < 2 || value->Data.Int.i > 31)
 		error (ErrorError, "ALIGN attribute value must be between 2 (incl) and 31 (incl)");
 	      else
-		newtype |= value->Data.Int.i;
+		newAreaType |= value->Data.Int.i;
 	    }
 	  else
 	    error (ErrorError, "Unrecognized ALIGN attribute value");
@@ -539,67 +537,67 @@ c_area (void)
   /* Pending ORG to be taken into account ? */
   if (oPendingORG.isValid)
     {
-      newtype |= AREA_ABS;
+      newAreaType |= AREA_ABS;
       sym->value.Data.Int.i = oPendingORG.value;
       oPendingORG.isValid = false;
     }
 
   /* Any alignment specified ? No, take default alignment (2) */
-  if ((newtype & AREA_ALIGN_MASK) == 0)
-    newtype |= AREA_DEFAULT_ALIGNMENT;
+  if ((newAreaType & AREA_ALIGN_MASK) == 0)
+    newAreaType |= AREA_DEFAULT_ALIGNMENT;
 
   /* AREA_COMMONDEF + AREA_COMMONREF => AREA_COMMONDEF */
-  if (newtype & AREA_COMMONDEF)
-    newtype &= ~AREA_COMMONREF;
+  if (newAreaType & AREA_COMMONDEF)
+    newAreaType &= ~AREA_COMMONREF;
 
   /* AREA_COMMONDEF + AREA_UDATA => AREA_COMMONREF */
-  if ((newtype & AREA_COMMONDEF) && (newtype & AREA_UDATA))
+  if ((newAreaType & AREA_COMMONDEF) && (newAreaType & AREA_UDATA))
     {
-      newtype &= ~(AREA_COMMONDEF | AREA_UDATA);
-      newtype |= AREA_COMMONREF;
+      newAreaType &= ~(AREA_COMMONDEF | AREA_UDATA);
+      newAreaType |= AREA_COMMONREF;
     }
 
   /* Debug area ? Ignore code attribute */
-  if (newtype & AREA_DEBUG)
-    newtype &= ~AREA_CODE;
+  if (newAreaType & AREA_DEBUG)
+    newAreaType &= ~AREA_CODE;
 
-  if (newtype & AREA_CODE)
+  if (newAreaType & AREA_CODE)
     {
       /* 32-bit and FPv3 flags should only be set on CODE areas.  */
       if (gOptionAPCS & APCS_OPT_32BIT)
-	newtype |= AREA_32BITAPCS;
+	newAreaType |= AREA_32BITAPCS;
       if (gOptionAPCS & APCS_OPT_FPREGARGS)
-	newtype |= AREA_EXTFPSET;
+	newAreaType |= AREA_EXTFPSET;
       if (option_apcs_softfloat)
-	newtype |= AREA_SOFTFLOAT;
+	newAreaType |= AREA_SOFTFLOAT;
     }
-  else if (newtype & (AREA_32BITAPCS | AREA_REENTRANT | AREA_EXTFPSET | AREA_NOSTACKCHECK))
+  else if (newAreaType & (AREA_32BITAPCS | AREA_REENTRANT | AREA_EXTFPSET | AREA_NOSTACKCHECK))
     error (ErrorError, "Attribute REENTRANT may not be set for a DATA area");
 
-  if ((newtype & AREA_READONLY) && (newtype & AREA_UDATA))
+  if ((newAreaType & AREA_READONLY) && (newAreaType & AREA_UDATA))
     error (ErrorError, "Attributes READONLY and NOINIT are mutually exclusive");
 
-  if ((newtype & AREA_LINKONCE) && !(newtype & AREA_COMMONDEF))
+  if ((newAreaType & AREA_LINKONCE) && !(newAreaType & AREA_COMMONDEF))
     error (ErrorError, "Attribute LINKONCE must appear as part of a COMDEF");
 
-  if (!(newtype & AREA_CODE) && (newtype & AREA_REENTRANT))
+  if (!(newAreaType & AREA_CODE) && (newAreaType & AREA_REENTRANT))
     error (ErrorError, "Attribute REENTRANT may not be set for DATA area");
-  if ((newtype & AREA_CODE) && (newtype & AREA_BASED))
+  if ((newAreaType & AREA_CODE) && (newAreaType & AREA_BASED))
     error (ErrorError, "Attribute BASED may not be set for CODE area");
 
   /* When an area is made absolute, ensure its symbol is also absolute.  */
-  if (newtype & AREA_ABS)
+  if (newAreaType & AREA_ABS)
     sym->type |= SYMBOL_ABSOLUTE;
   
   /* We ignore any ABS difference as we like this to work:
 	AREA Code, CODE
 	ORG &xxx
 	AREA Code, CODE  */
-  if (newtype && oldtype
-      && (newtype & ~AREA_ABS) != (oldtype & ~AREA_ABS))
+  if (newAreaType && oldAreaType
+      && (newAreaType & ~AREA_ABS) != (oldAreaType & ~AREA_ABS))
     error (ErrorWarning, "Change in attribute of area %s will be ignored", sym->str);
   else
-    sym->area.info->type |= newtype;
+    sym->area.info->type |= newAreaType;
 
   areaCurrentSymbol = sym;
   oArea_CurrentEntryType = eInvalid;

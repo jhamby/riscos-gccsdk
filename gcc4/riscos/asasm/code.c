@@ -478,7 +478,7 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 		assert (spStart < *sp); /* At least one entry on the stack.  */
 		if (Stack[*sp - 1].Tag != CodeValue
 		    || (Stack[*sp - 1].Data.value.Tag == ValueSymbol
-		        && !(program[i].Data.op == Op_size && (Stack[*sp - 1].Data.value.Data.Symbol.symbol->type & SYMBOL_DEFINED) != 0)
+		        && !(program[i].Data.op == Op_size && (Stack[*sp - 1].Data.value.Data.Symbol.symbol->type & (SYMBOL_DEFINED | SYMBOL_AREA)) != 0)
 		        && program[i].Data.op != Op_neg))
 		  {
 		    /* We have an unresolved (or even undefined) symbol
@@ -622,7 +622,7 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 				    && program[i + 1].Data.op == Op_size;
 	      /* FIXME: this can probably loop forever: label1 -> label2 -> label1 */
 	      while (valueP->Tag == ValueSymbol
-		     && (valueP->Data.Symbol.symbol->type & SYMBOL_DEFINED)
+		     && (valueP->Data.Symbol.symbol->type & (SYMBOL_DEFINED | SYMBOL_AREA))
 	             && ((valueP->Data.Symbol.symbol->type & SYMBOL_AREA) == 0 || (valueP->Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) != 0)
 		     && (!nextIsOpSize || valueP->Data.Symbol.symbol->value.Tag == ValueSymbol))
 		valueP = &valueP->Data.Symbol.symbol->value;

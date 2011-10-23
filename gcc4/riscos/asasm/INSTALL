@@ -37,6 +37,7 @@ Build instructions for native asasm:
 Build instructions for cross-compiled asasm:
 
 1. Generate the configuration files:
+   This should only be done once for a freshly checked output source tree.
 
    $ cd asasm
    $ autoreconf --install
@@ -51,9 +52,13 @@ Build instructions for cross-compiled asasm:
 
    $ PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
    $ export CFLAGS=-mlibscl
+
+4. Create Makefile in the build output directory (indicating which
+   cross-compiler needs to be used):
+
    $ ../asasm/configure --host=arm-unknown-riscos
 
-4. Compile and link asasm:
+5. Cross-compile and link asasm:
 
    $ make
 

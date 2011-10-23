@@ -33,7 +33,7 @@
 #define SYMBOL_REFERENCE 0x0002 /* E.g. IMPORT symbol, or unused EXPORT symbol.  */
 #define SYMBOL_GLOBAL    0x0003	/* Defined with global scope.  E.g. used EXPORT symbol.  */
 
-#define SYMBOL_KIND(x)   ((x) & 0x0003) /* Returns: 0 (area symbol, symbols which are only marked as imported or exported), SYMBOL_LOCAL, SYMBOL_REFERENCE or SYMBOL_GLOBAL.  */
+#define SYMBOL_KIND(x)   ((x) & 0x0003) /* Returns: 0 (area symbol (SYMBOL_AREA is set) or symbols which are not marked as imported nor exported), SYMBOL_LOCAL, SYMBOL_REFERENCE or SYMBOL_GLOBAL.  */
 
 #define SYMBOL_DEFINED   0x0001 /* This is a mask.  */
 #define SYMBOL_EXPORT    0x0002 /* This is a mask.  */
@@ -59,7 +59,7 @@
 #define SYMBOL_RW		0x00020000 /** GBLL, GBLA or GBLS, i.e. a read-write symbol.  */
 
 #define SYMBOL_KEEP		0x01000000
-#define SYMBOL_AREA		0x02000000 /* Symbol is actually an area name.  */
+#define SYMBOL_AREA		0x02000000 /* Symbol is an area name.  */
 
 #define SYMBOL_CPUREG		0x10000000
 #define SYMBOL_FPUREG		0x20000000

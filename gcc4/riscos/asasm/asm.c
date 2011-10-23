@@ -165,12 +165,12 @@ ASM_DefineLabel (const Lex *label, int offset)
     {
       /* Define label as "ValueAddr AreaBaseReg, #<given area offset>".  */
       value = Value_Addr (Area_GetBaseReg (areaCurrentSymbol->area.info), offset);
-      symbolType = SYMBOL_DEFINED;
+      symbolType = 0;
     }
   else if (areaCurrentSymbol->area.info->type & AREA_ABS)
     {
       value = Value_Int (Area_GetBaseAddress (areaCurrentSymbol) + offset);
-      symbolType = SYMBOL_DEFINED | SYMBOL_ABSOLUTE;
+      symbolType = SYMBOL_ABSOLUTE;
     }
   else
     {
@@ -185,7 +185,7 @@ ASM_DefineLabel (const Lex *label, int offset)
 	      .Data.op = Op_add }
 	};
       value = Value_Code (sizeof (values)/sizeof (values[0]), values);
-      symbolType = SYMBOL_DEFINED;
+      symbolType = 0;
     }
 
   Symbol *symbol = symbolGet (label);

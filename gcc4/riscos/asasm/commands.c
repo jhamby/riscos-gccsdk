@@ -76,7 +76,7 @@ Define (const char *msg, Symbol *sym, unsigned symType, ValueTag legal)
 	  fail = true;
 	}
       else
-	fail = Symbol_Define (sym, SYMBOL_DEFINED | SYMBOL_ABSOLUTE | symType, value);
+	fail = Symbol_Define (sym, SYMBOL_ABSOLUTE | symType, value);
     }
   return fail;
 }

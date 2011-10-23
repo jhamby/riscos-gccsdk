@@ -145,4 +145,23 @@ latelbl	%	8
 	DCD	0
 	]
 
+	; Test 5 : area symbol
+	AREA	CodeTest5, CODE, READONLY
+	MOV	r0, #0
+	MOV	r1, #1
+	MOV	r2, #2
+
+	AREA	DataTest5a, DATA, READONLY
+	DCD	42
+
+	AREA	CodeTest5, CODE, READONLY
+	MOV	r3, #3
+
+	AREA	DataTest5b, DATA
+	[ :LNOT: REFERENCE
+	DCD	?CodeTest5
+	|
+	DCD	16
+	]
+
 	END

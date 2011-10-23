@@ -28,6 +28,7 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include "area.h"
 #include "asm.h"
 #include "code.h"
 #include "error.h"
@@ -851,6 +852,14 @@ evalUnop (Operator op, Value *value)
 	    {
 	      value->Tag = ValueInt;
 	      value->Data.Int.i = value->Data.Symbol.symbol->codeSize;
+	    }
+	  else if (value->Data.Symbol.symbol->type & SYMBOL_AREA)
+	    {
+	      value->Tag = ValueInt;
+	      value->Data.Int.i = value->Data.Symbol.symbol->area.info->curIdx;
+	      if (gASM_Phase == ePassTwo
+		  && value->Data.Symbol.symbol->area.info->curIdx != value->Data.Symbol.symbol->area.info->maxIdx)
+		error (ErrorError, "? on area symbol which gets extended later on");
 	    }
 	  else
 	    {
