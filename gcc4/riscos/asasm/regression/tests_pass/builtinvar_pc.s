@@ -45,4 +45,73 @@
 	DCD	&200+8
 	]
 
+	; Test {PC} via variables (relative area):
+	AREA	Code3, CODE
+
+	[ :LNOT: REFERENCE
+	MOV	r0, #1
+	MOV	r1, #2
+
+Code3Var1	*	{PC} + 20
+Code3Var2	*	{PC}
+
+	MOV	r0, #1
+	MOV	r1, #2
+	MOV	r0, #1
+	MOV	r1, #2
+
+	LDR	r0, Code3Var1
+	LDR	r1, Code3Var2
+	LDR	r0, Code3Var1
+	LDR	r1, Code3Var2
+	|
+	MOV	r0, #1
+	MOV	r1, #2
+Code3Var2
+	MOV	r0, #1
+	MOV	r1, #2
+	MOV	r0, #1
+	MOV	r1, #2
+
+	LDR	r0, Code3Var1
+Code3Var1
+	LDR	r1, Code3Var2
+	LDR	r0, Code3Var1
+	LDR	r1, Code3Var2
+	]
+
+	; Test {PC} via variables (absolute area):
+	AREA	Code4, CODE
+	ORG	&1000
+
+	[ :LNOT: REFERENCE
+	MOV	r0, #1
+	MOV	r1, #2
+
+Code4Var1	*	{PC} + 20
+Code4Var2	*	{PC}
+
+	MOV	r0, #1
+	MOV	r1, #2
+	MOV	r0, #1
+	MOV	r1, #2
+
+	LDR	r0, Code4Var1
+	LDR	r1, Code4Var2
+	LDR	r0, Code4Var1
+	LDR	r1, Code4Var2
+	|
+	MOV	r0, #1
+	MOV	r1, #2
+	MOV	r0, #1
+	MOV	r1, #2
+	MOV	r0, #1
+	MOV	r1, #2
+
+	LDR	r0, &101c
+	LDR	r1, &1008
+	LDR	r0, &101c
+	LDR	r1, &1008
+	]
+
 	END

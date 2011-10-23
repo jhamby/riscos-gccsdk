@@ -1,3 +1,7 @@
+Sun Oct 23 03:46:45 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/builtinvar_pc.s: Enhance.
+
 Sun Oct 23 03:26:57 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/operator_questionmark.s: Enhance.
