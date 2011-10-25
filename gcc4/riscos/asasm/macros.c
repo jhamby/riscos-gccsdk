@@ -113,23 +113,24 @@ Macro_Call (const Macro *m, const Lex *label)
   const char *args[MACRO_ARG_LIMIT];
 
   int marg = 0;
-  if (label->tag == LexId)
+  if (label->tag == LexId || label->tag == LexLocalLabel)
     {
       if (m->labelarg)
 	{
-	  const char *c = label->Data.Id.str;
-	  size_t len;
-	  for (len = (c[0] == '#') ? 1 : 0; isalnum (c[len]) || c[len] == '_'; ++len)
-	    /* */;
-	  if ((args[marg++] = strndup (label->Data.Id.str, len)) == NULL)
+	  const char *lblP = label->tag == LexId ? label->Data.Id.str : label->Data.LocalLabel.str;
+	  size_t lblSize = label->tag == LexId ? label->Data.Id.len : label->Data.LocalLabel.len;
+	  if ((args[marg++] = strndup (lblP, lblSize)) == NULL)
 	    errorOutOfMem();
 	}
       else
-	error (ErrorWarning, "Label argument is ignored by macro %s", m->name);
+	{
+	  error (ErrorWarning, "Label argument is ignored by macro %s", m->name);
+	  errorLine (m->file, m->startline, ErrorWarning, "note: Marco %s was defined here", m->name);
+	}
     }
   else if (m->labelarg)
     args[marg++] = NULL; /* Null label argument */
-
+    
   skipblanks ();
   bool tryEmptyParam = false;
   while (tryEmptyParam || !Input_IsEolOrCommentStart ())

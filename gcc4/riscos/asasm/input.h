@@ -69,6 +69,7 @@ void inputSkipN (int n);
 
 char *Input_GetString (size_t *len);
 
+const char *Input_LocalLabel (size_t *ilen);
 const char *Input_Symbol (size_t *ilen);
 const char *inputSymbol (size_t *ilen, char del);
 

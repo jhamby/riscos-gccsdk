@@ -1,3 +1,23 @@
+Tue Oct 25 02:13:03 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* lex.c (Lex_ReadLocalLabelFromLex): Add.
+	(Lex_ReadLocalLabel): Drop noCheck parameter.  Process characters
+	unsigned.
+	(Lex_GetDefiningLabel): Drop noCheck parameter.
+	(Lex_DefineLocalLabel): Add.
+	(Lex_SkipDefiningLabel): Support more than 2 digits local labels.
+	(lexPrint): Add LexLocalLabel case.
+	(Lex_Char2Int): Make local.
+	* lex.h (Lex): Add LocalLabel field.
+	* asm.c (ASM_DefineLabel): Support LexLocalLabel.
+	* input.c, input.h (Input_LocalLabel): Add.
+	* decode.c (oDecodeTable): % results in data output.  END can't
+	have any label.
+	(decode): Fix startOffset when area gets changed.  Support
+	LexLocalLabel.
+	* macros.c (Macro_Call): Support LexLocalLabel.
+	* regression/tests_pass/macro.s: Enhance.
+
 Tue Oct 25 02:02:20 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* get.c (getRhs): Treat 1 character strings as unsigned

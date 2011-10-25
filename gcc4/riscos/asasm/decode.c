@@ -58,9 +58,9 @@ typedef bool (*po_sym)(Symbol *symbolP);
 /* Determine the kind of callback to do wrt the LexId @ column 0.  */
 enum
 {
-  eCB_Void   = 0, /* If there is a valid LexId @ column 0, define this as symbol. */
-  eCB_Lex    = 1, /* If there is a valid LexId @ column 0, pass it on as parameter.  If it is made a symbol afterwards, assign code size to it.  */
-  eCB_NoLex  = 2, /* If there is a valid LexId @ column 0, complain about it as it is not allowed.  */
+  eCB_Void   = 0, /* If there is a valid LexId/LexLocalLabel @ column 0, define this as symbol.  This is then a label.  */
+  eCB_Lex    = 1, /* If there is a valid LexId @ column 0, pass it on as parameter.  If it is made a symbol afterwards by the callback, assign code size to it.  */
+  eCB_NoLex  = 2, /* If there is a valid LexId/LexLocalLabel @ column 0, complain about it as it is not allowed.  */
   eCB_Symbol = 3  /* If there is a valid LexId @ column 0, turn this into a symbol and pass it on as parameter.  */
 };
 /* Determines the kind of output the mnemonic is going to do.  */
@@ -92,7 +92,7 @@ static const decode_table_t oDecodeTable[] =
 {
   { "!", eCB_Void, false, eRslt_None, { .vd = c_info } }, /* INFO shorthand */
   { "#", eCB_Lex, false, eRslt_None, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
-  { "%", eCB_Void, false, eRslt_None, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
+  { "%", eCB_Void, false, eRslt_Data, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
   { "&", eCB_Void, true, eRslt_Data, { .vd = c_dcd } }, /* & / DCD / DCDU */
   { "*", eCB_Symbol, false, eRslt_None, { .sym = c_equ } }, /* * / EQU */
   { "=", eCB_Void, false, eRslt_Data, { .vd = c_dcb } }, /* = / DCB */
@@ -145,7 +145,7 @@ static const decode_table_t oDecodeTable[] =
   { "DVF", eCB_Void, true, eRslt_ARM, { .vd = m_dvf } }, /* DVF CC P R */
   { "ELIF", eCB_NoLex, false, eRslt_None, { .nolex = c_elif } }, /* ELIF */
   { "ELSE", eCB_NoLex, false, eRslt_None, { .nolex = c_else } }, /* | ELSE */
-  { "END", eCB_Void, false, eRslt_None, { .vd = c_end } }, /* END */
+  { "END", eCB_NoLex, false, eRslt_None, { .vd = c_end } }, /* END */
   { "ENDFUNC", eCB_Void, false, eRslt_None, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
   { "ENDIF", eCB_NoLex, false, eRslt_None, { .nolex = c_endif } }, /* ] ENDIF */
   { "ENDP", eCB_Void, false, eRslt_None, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
@@ -361,6 +361,7 @@ decode (const Lex *label)
   for (size_t i = 1; i < DECODE_ENTRIES; ++i)
     assert (strcmp (oDecodeTable[i - 1].mnemonic, oDecodeTable[i].mnemonic) < 0);
 #endif
+  assert (label->tag == LexNone || label->tag == LexId || label->tag == LexLocalLabel);
 
   /* Deal with empty line quickly.  */
   if (Input_IsEolOrCommentStart ())
@@ -480,7 +481,8 @@ decode (const Lex *label)
 			  : oDecodeTable[indexFound].result == eRslt_Data ? eData
 			  : eThumb);
 
-      const int startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area.info->curIdx;
+      int startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area.info->curIdx;
+      const Symbol * const startAreaSymbol = areaCurrentSymbol;
       Value startStorage =
 	{
 	  .Tag = ValueIllegal
@@ -493,34 +495,51 @@ decode (const Lex *label)
 	  case eCB_Void:
 	    {
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.vd ();
-	      /* Define the label *after* the mnemonic implementation but
+	      /* Define the (local)label *after* the mnemonic implementation but
 	         with the current offset *before* processing the mnemonic.  */
 	      labelSymbol = ASM_DefineLabel (label, startOffset);
+	      break;
 	    }
-	    break;
 
 	  case eCB_Lex:
-	    /* Any valid label here will *not* get any size assigned, unless
-	       the callback turns the lex into a symbol.  */
-	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.lex (label);
-	    labelSymbol = symbolFind (label);
-	    break;
+	    {
+	      const Lex noLex = { .tag = LexNone };
+	      const Lex *labelLexP;
+	      if (label->tag == LexLocalLabel)
+		{
+		  error (ErrorWarning, "Local label not allowed here - ignoring");
+		  labelLexP = &noLex;
+		}
+	      else
+		labelLexP = label;
+	      /* Any valid label here will *not* get any size assigned, unless
+		 the callback turns the lex into a symbol.  */
+	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.lex (labelLexP);
+	      labelSymbol = symbolFind (labelLexP);
+	      break;
+	    }
 
 	  case eCB_NoLex:
-	    if (label->tag != LexNone)
-	      error (ErrorWarning, "Label not allowed here - ignoring");
-	    tryAsMacro = oDecodeTable[indexFound].parse_opcode.nolex ();
-	    labelSymbol = NULL;
-	    break;
+	    {
+	      if (label->tag != LexNone)
+		error (ErrorWarning, "Label not allowed here - ignoring");
+	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.nolex ();
+	      labelSymbol = NULL;
+	      break;
+	    }
 
 	  case eCB_Symbol:
 	    {
-	      Symbol *symbol = label->tag == LexId ? symbolGet (label) : NULL;
+	      Symbol *symbol;
+	      if (label->tag == LexLocalLabel)
+		error (ErrorWarning, "Local label not allowed here - ignoring");
+	      else
+		symbol = label->tag == LexId ? symbolGet (label) : NULL;
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (symbol);
 	      /* We don't want to define a label based on this symbol.  */
 	      labelSymbol = NULL;
+	      break;
 	    }
-	    break;
 
 	  default:
 	    tryAsMacro = false;
@@ -531,6 +550,15 @@ decode (const Lex *label)
 	  symbolRemove (label);
 	  labelSymbol = NULL;
 	}
+
+      /* When areaCurrentSymbol changed, this can only be using "AREA" and that means
+	 no increase of curIdx.  */
+      if (startAreaSymbol != areaCurrentSymbol)
+	{
+	  assert (!strcmp (oDecodeTable[indexFound].mnemonic, "AREA"));
+	  startOffset = areaCurrentSymbol->area.info->curIdx;
+	}
+      // Too strong: assert ((oDecodeTable[indexFound].result != eRslt_None || areaCurrentSymbol->area.info->curIdx - startOffset == 0) && "Area size increase but no data, ARM nor Thumb mnemonic parsed ?");
 
       /* Give warning when ARM/Thumb instructions are being used in DATA
          areas.  */

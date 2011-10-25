@@ -70,6 +70,7 @@ IsUnop (Operator op)
 typedef enum
 {
   LexId,			/* start with character */
+  LexLocalLabel,		/* start with digit */
   LexString,			/* "jsgd" */
   LexInt,			/* start with digit */
   LexFloat,			/* start with digit contains dot */
@@ -94,9 +95,14 @@ typedef struct
           size_t len;
           unsigned int hash;
         } Id;
+      struct			/* LocalLabel */
+	{
+          const char *str;	/* *NOT* NUL terminated.  */
+          size_t len;
+	} LocalLabel;
       struct			/* LexString */
         {
-          const char *str;
+          const char *str;	/* *NOT* NUL terminated.  */
           size_t len;
         } String;
       struct			/* LexInt */
@@ -123,15 +129,14 @@ typedef struct
     } Data;
 } Lex;
 
-Lex Lex_GetDefiningLabel (bool noCheck);
+Lex Lex_GetDefiningLabel (void);
 bool Lex_SkipDefiningLabel (void);
+Lex Lex_DefineLocalLabel (const Lex *lexP);
 Lex lexGetId (void);
 Lex lexGetIdNoError (void);
 Lex lexGetPrim (void);
 Lex lexGetBinop (void);
 int lexNextPri (void);
-
-bool Lex_Char2Int (size_t len, const char *str, ARMWord *result);
 
 Lex lexTempLabel (const char *str, size_t len);
 
