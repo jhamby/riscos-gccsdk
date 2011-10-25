@@ -307,7 +307,7 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 	    if (im->Data.String.len != 1)
 	      error (ErrorError, "String too long to be an immediate expression");
 	    else
-	      ir = fixImm8s4 (0, ir, im->Data.String.s[0]);
+	      ir = fixImm8s4 (0, ir, (uint8_t)im->Data.String.s[0]);
 	    break;
 
 	  default:
