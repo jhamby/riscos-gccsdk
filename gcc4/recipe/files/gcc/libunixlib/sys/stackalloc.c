@@ -326,9 +326,36 @@ __stackalloc_trim (void)
 void
 __stackalloc_init (void)
 {
-  /* The initial stack chunk is set up in _syslib.s
-     __ul_memory.stack points 8 bytes below the base of the initial chunk
-     There are also 8 bytes spare above the initial chunk */
+  /* The stack is set up in _syslib.s as follows:
+   *
+   * appspace_himem   -------------
+   *                     8 bytes    - <-- dummytopblock
+   * Signalhandler SP ------------- -
+   *                                 \
+   *                                  \
+   *                   3584 bytes      \
+   *                                    \
+   *                                     } Signal handler chunk (4k)
+   * Signalhandler SL -------------     /
+   *                                   /
+   *                    512 bytes     /
+   *                                 /
+   *                  ------------- -
+   *                     8 bytes    - <-- signalhandlerblock (avoid!)
+   * Initial SP       ------------- -
+   *                                 \
+   *                                  \
+   *                   3560 bytes      \
+   *                                    \
+   *                                     } Initial chunk (4k)
+   * Initial SL       -------------     /
+   *                                   /
+   *                    536 bytes     /
+   *                                 /
+   *                  ------------- -
+   *                     8 bytes    - <-- initialblock
+   * __ulmemory.stack -------------
+   */
 
 #ifdef DEBUG
   debug_printf ("-- stackalloc_init: stack=%08x  appspace_himem=%08x  "
@@ -350,7 +377,12 @@ __stackalloc_init (void)
   dummybottomblock = initialblock - 1;
   dummybottomblock->startofcon = NULL;
 
+  /* Initialise the signal handler block */
   dummytopblock = initialblock + 1;
+  dummytopblock->size = 1;
+  dummytopblock->startofcon = NULL;
+
+  dummytopblock += 1;
   dummytopblock->size = 1;
 
   freelist = NULL;

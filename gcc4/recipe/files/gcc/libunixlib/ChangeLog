@@ -1,3 +1,16 @@
+Thu Oct 27 01:36:00 BST 2011  John-Mark Bell  <jmb@netsurf-browser.org>
+
+	* sys/_syslib.s: Prevent stack extension trampling the signal handler 
+	stack chunk. This is achieved by inserting an 8 byte gap between the 
+	signal handler stack and the initial stack chunk which is then used 
+	by the stack allocator for its heap metadata.
+	* sys/stackalloc.c (__stackalloc_init): Reflect above change, and
+	ensure that the signal handler block size/startofcon fields are
+	initialised to sane values such that the block is left alone when
+	stack extension takes place. The initial location of dummytopblock
+	is now above the signal handler stack.
+	* test/sys/stackextension.c: Test for above issue.
+
 Wed Oct 26 00:59:24 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* gen-auto.pl: Remove.

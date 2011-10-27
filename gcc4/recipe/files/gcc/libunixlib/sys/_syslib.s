@@ -142,16 +142,21 @@ __main:
 	@ in a dynamic area because GCC might generate trampolines.  In USR32
 	@ mode we could however.
 
-	@ 8 bytes are needed above the initial chunk
-	@ for the stackalloc heap
 	@ Reserve the top 4K for the signal handler stack
+	@ 8 bytes are needed above the signal handler stack
+	@ for the stackalloc heap
 	SUB	sp, sp, #8
+
 	STR	sp, [ip, #GBL_SIGNALHANDLER_SP]
 	@ The signal handler stack cannot be extended, so we don't need to
 	@ setup the chunk structure.
 	SUB	sp, sp, #4096
 	ADD	sl, sp, #512
 	STR	sl, [ip, #GBL_SIGNALHANDLER_SL]
+
+	@ Reserve a further 8 bytes above the initial chunk
+	@ for the stackalloc heap
+	SUB	sp, sp, #8
 
 	SUB	a1, sp, #4096
 	ADD	sl, a1, #512 + CHUNK_OVERHEAD
