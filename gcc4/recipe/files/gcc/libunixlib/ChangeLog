@@ -11,10 +11,6 @@ Thu Oct 27 01:36:00 BST 2011  John-Mark Bell  <jmb@netsurf-browser.org>
 	is now above the signal handler stack.
 	* test/sys/stackextension.c: Test for above issue.
 
-Wed Oct 26 00:59:24 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
-
-	* gen-auto.pl: Remove.
-
 Mon Sep 26 00:41:39 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* time/stdtime.c (SWI_Territory_ConvertDateAndTime): Add missing
