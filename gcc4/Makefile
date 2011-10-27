@@ -637,13 +637,13 @@ $(SRCORIGDIR)/mpc-$(MPC_VERSION).tar.gz:
 # Download mpfr source:
 $(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.gz:
 	-mkdir -p $(SRCORIGDIR)
-	cd $(SRCORIGDIR) && wget -c http://www.mpfr.org/mpfr-current/mpfr-$(MPFR_VERSION).tar.gz
+	cd $(SRCORIGDIR) && wget -c http://www.mpfr.org/mpfr-$(MPFR_VERSION)/mpfr-$(MPFR_VERSION).tar.gz
 	touch $(SRCORIGDIR)/mpfr-$(MPFR_VERSION).tar.gz
 
 # Download ppl source:
 $(SRCORIGDIR)/ppl-$(PPL_VERSION).tar.gz:
 	-mkdir -p $(SRCORIGDIR)
-	cd $(SRCORIGDIR) && wget -c http://www.cs.unipr.it/ppl/Download/ftp/releases/$(PPL_VERSION)/ppl-$(PPL_VERSION).tar.gz
+	cd $(SRCORIGDIR) && wget -c http://www.cs.unipr.it/ppl/download/ftp/releases/$(PPL_VERSION)/ppl-$(PPL_VERSION).tar.gz
 	touch $(SRCORIGDIR)/ppl-$(PPL_VERSION).tar.gz
 
 # Download CLooG source:
