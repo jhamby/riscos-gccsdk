@@ -1,3 +1,7 @@
+Fri Oct 28 04:04:12 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am: Workaround for automake conditionals limitation.
+
 Thu Oct 27 01:36:00 BST 2011  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* sys/_syslib.s: Prevent stack extension trampling the signal handler 

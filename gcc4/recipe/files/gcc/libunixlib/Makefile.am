@@ -1435,21 +1435,25 @@ libm_la_LDFLAGS = -Wc,-nostdlib -version-info 1:0:0
 toolexeclib_LTLIBRARIES = libunixlib.la libm.la
 
 if UNIXLIB_CHUNKED_STACK
+EXTRA_STACK_CFLAGS=-mno-apcs-stack-check
+else
+EXTRA_STACK_CFLAGS=
+endif
+
 # These rules are copied direct from a generated Makefile.
 # The only difference is that stack checking is turned off for these targets.
 # Automake doesn't seem to provide a per-object file flag setting function.
 brk.lo: sys/brk.c
-	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -mno-apcs-stack-check -MT brk.lo -MD -MP -MF $(DEPDIR)/brk.Tpo -c -o brk.lo `test -f 'sys/brk.c' || echo '$(srcdir)/'`sys/brk.c
+	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $(EXTRA_STACK_CFLAGS) -MT brk.lo -MD -MP -MF $(DEPDIR)/brk.Tpo -c -o brk.lo `test -f 'sys/brk.c' || echo '$(srcdir)/'`sys/brk.c
 	$(am__mv) $(DEPDIR)/brk.Tpo $(DEPDIR)/brk.Plo
 
 stackalloc.lo: sys/stackalloc.c
-	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -mno-apcs-stack-check -MT stackalloc.lo -MD -MP -MF $(DEPDIR)/stackalloc.Tpo -c -o stackalloc.lo `test -f 'sys/stackalloc.c' || echo '$(srcdir)/'`sys/stackalloc.c
+	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $(EXTRA_STACK_CFLAGS) -MT stackalloc.lo -MD -MP -MF $(DEPDIR)/stackalloc.Tpo -c -o stackalloc.lo `test -f 'sys/stackalloc.c' || echo '$(srcdir)/'`sys/stackalloc.c
 	$(am__mv) $(DEPDIR)/stackalloc.Tpo $(DEPDIR)/stackalloc.Plo
 
 dvsprintf.lo: debug/dvsprintf.c
-	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) -mno-apcs-stack-check -MT dvsprintf.lo -MD -MP -MF $(DEPDIR)/dvsprintf.Tpo -c -o dvsprintf.lo `test -f 'debug/dvsprintf.c' || echo '$(srcdir)/'`debug/dvsprintf.c
+	$(LIBTOOL)  --tag=CC $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS) $(EXTRA_STACK_CFLAGS) -MT dvsprintf.lo -MD -MP -MF $(DEPDIR)/dvsprintf.Tpo -c -o dvsprintf.lo `test -f 'debug/dvsprintf.c' || echo '$(srcdir)/'`debug/dvsprintf.c
 	$(am__mv) $(DEPDIR)/dvsprintf.Tpo $(DEPDIR)/dvsprintf.Plo
-endif
 
 # crt ----------------------
 
