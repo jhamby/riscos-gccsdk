@@ -1,6 +1,6 @@
 #!/bin/bash -ue
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2007-2010 GCCSDK Developers
+# Copyright (c) 2007-2011 GCCSDK Developers
 #
 # Creates the RISC OS GCCSDK kits
 #
@@ -45,22 +45,18 @@ for param in $@ ; do
 done
 
 # We have the following binary kits (BKIT..) and source kits (SKIT...):
-#   1. GCC Core: Minimal binary GCCSDK kit holding C compiler, !SharedLibs
-#      (C libs only), !System, binutils, examples and documentation.
-BKIT_GCCCORE_NAME=gccsdk-gcc-core-bin-$GCCSDK_FULL_RELEASE_NAME
-#   2. G++: Optional binary kit adding C++ support to !GCC and !SharedLibs.
-BKIT_GCCGPP_NAME=gccsdk-gcc-g++-bin-$GCCSDK_FULL_RELEASE_NAME
-#   3. User binary distribution: !System (containing SUL, DRenderer, etc.)
+#   1. GCC: The GCCSDK kit holding C & C++ compiler, !SharedLibs
+#      (C and C++ libs), !System, binutils, examples and documentation.
+BKIT_GCC_NAME=gccsdk-gcc-bin-$GCCSDK_FULL_RELEASE_NAME
+#   2. User binary distribution: !System (containing SUL, DRenderer, etc.)
 BKIT_SYSTEM_NAME=system
-#   4. User binary distribution: !SharedLibs (C support)
-BKIT_SHAREDLIBSCORE_NAME=gccsdk-sharedlibs-core
-#   5. User binary distribution: !SharedLibs (optional, C++ support)
-BKIT_SHAREDLIBSGPP_NAME=gccsdk-sharedlibs-g++
-#   6. Source CMunge with GCCSDK changes:
+#   3. User binary distribution: !SharedLibs (C and C++ support)
+BKIT_SHAREDLIBS_NAME=gccsdk-sharedlibs
+#   4. Source CMunge with GCCSDK changes:
 SKIT_CMUNGE_NAME=cmunge-src-`grep Module_MajorVersion_CMHG $GCCSDK_RISCOS/cmunge/VersionNum | tr -s " " | cut -d ' ' -f 3`-gccsdk4-support
-#   7. Source used to build GCC, Binutils, SCL and UnixLib:
+#   5. Source used to build GCC, Binutils, SCL and UnixLib:
 SKIT_GCC_NAME=gccsdk-gcc-src-$GCCSDK_FULL_RELEASE_NAME
-#   8. Source used to build riscos tools:
+#   6. Source used to build riscos tools:
 SKIT_RISCOS_NAME=gccsdk-riscos-tools-src-$GCCSDK_FULL_RELEASE_NAME
 
 # FIXME: needs to be linked to Makefile's TARGET
@@ -118,27 +114,36 @@ create_examples_tree() {
 # to keep around.
 # Also uses RISC OS link files (filetype 0x1C8) instead of hard-linked files.
 slim_gcc_tree() {
-  # Remove the target prefixed binaries.  We don't need them as we have the
-  # non-target prefixed binaries as well.
   cd $GCCSDK_UNPACKED/\!GCC/bin
+  # Rename 'arm-unknown-riscos-ln' into 'ln'
   test ! -f $GCCSDK_TARGET_NAME-ln || mv $GCCSDK_TARGET_NAME-ln ln
+  # Get rid of all other 'arm-unknown-riscos-*' executables (c++, g++, gcc, gcc-4xxx).
+  # We don't need them as we have the non-target prefixed binaries as well.
   find . -name "$GCCSDK_TARGET_NAME-*" -print0 | xargs -0 rm -f
   # The SharedUnixLibrary already got copied to system folder.
   remove_if_there sul
-  # Remove gcc bug submit script (won't work under RISC OS):
-  remove_if_there gccbug
   # Remove c++ as it is same as g++:
   remove_if_there c++
-  # Use links from target bin to general bin:
+  # ld.bfd is the same as ld.
+  remove_if_there ld.bfd
+
   cd $GCCSDK_UNPACKED/\!GCC/$GCCSDK_TARGET_NAME/bin
+  # ld.bfd is the same as ld.
+  remove_if_there ld.bfd
+  # Use links from target bin to general bin:
   for f in `ls 2>/dev/null || true` ; do
     test ! -f ../../bin/$f || ( $GCCSDK_CROSS_PREFIX/bin/$GCCSDK_TARGET_NAME-ln -s -f ^.^.bin.$f $f,1c8 && rm $f )
   done
+
   # Remove install-tools which is useless on RISC OS
   remove_if_there $GCCSDK_UNPACKED/\!GCC/lib/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
   remove_if_there $GCCSDK_UNPACKED/\!GCC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/install-tools
 
+  # Remove plugin headers:
+  remove_if_there $GCCSDK_UNPACKED/\!GCC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/plugin
+
   # Remove all shared libraries as we have them shipped in !SharedLibs:
+  # FIXME: this removed liblto_plugin as well ?
   cd $GCCSDK_UNPACKED/\!GCC
   find . -name "*.so*" -print0 | xargs -0 rm -f
 
@@ -208,8 +213,8 @@ create_gcc_tree() {
   remove_if_there $GCCSDK_UNPACKED/\!GCC/share
   if [ ! -f $GCCSDK_BUILDDIR/ronative-gcc/libiberty/libiberty.html -o ! -d $GCCSDK_BUILDDIR/ronative-binutils/doc/binutils.html -o ! -d $GCCSDK_BUILDDIR/ronative-binutils/gas/doc/as.html -o ! -d $GCCSDK_BUILDDIR/ronative-binutils/ld/ld.html -o ! -d $GCCSDK_BUILDDIR/ronative-binutils/gprof/gprof.html -o ! -d $GCCSDK_BUILDDIR/ronative-gcc/gcc/HTML/gcc-$GCCSDK_SUPPORTED_GCC_RELEASE ] ; then
     # Build the HTML documentation:
-    cd $GCCSDK_BUILDDIR/ronative-binutils && PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make html
-    cd $GCCSDK_BUILDDIR/ronative-gcc && PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH make html
+    cd $GCCSDK_BUILDDIR/ronative-binutils && PATH=$GCCSDK_CROSS_PREFIX/bin:$GCCSDK_BUILDDIR/installed-buildtools-for-binutils/bin:$PATH make html
+    cd $GCCSDK_BUILDDIR/ronative-gcc && PATH=$GCCSDK_CROSS_PREFIX/bin:$GCCSDK_BUILDDIR/installed-buildtools-for-gcc/bin:$PATH make html
     # Fix documentation: in binutils, gas and ld we have both index.html and
     # Index.html. We rename Index.html to Index2.html.
     for d in `echo $GCCSDK_BUILDDIR/ronative-binutils/{gas/doc/as.html,binutils/doc/binutils.html,ld/ld.html}` ; do
@@ -267,53 +272,25 @@ create_gcc_tree() {
   ##cp $GCCSDK_RISCOS/syslogd/ReadMe $GCCSDK_UNPACKED/\!GCC/docs/syslogd
 }
 
-# Move the C++ library to a separate kit:
-create_sharedlibsgpp_kit() {
+# kits/!SharedLibs:
+create_sharedlibs_kit() {
   if [ -d $SRC_BKIT_SHAREDLIBS_UNPACKED ] ; then
-    cd $SRC_BKIT_SHAREDLIBS_UNPACKED
-    FILES_TOSPLITOFF=`ls lib/{libstdc++.so\,1c8,libstdc++.so.6\,1c8,libstdc++.6.0.8.so\,e1f} 2>/dev/null || true`
-    if [ ! -z "$FILES_TOSPLITOFF" ] ; then
-      create_empty_dir $GCCSDK_KITS/$BKIT_SHAREDLIBSGPP_NAME
-      mkdir -p $GCCSDK_KITS/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib
-      mv $FILES_TOSPLITOFF $GCCSDK_KITS/$BKIT_SHAREDLIBSGPP_NAME/\!SharedLibs/lib
-    fi
+    create_empty_dir $GCCSDK_KITS/$BKIT_SHAREDLIBS_NAME
+    mv $SRC_BKIT_SHAREDLIBS_UNPACKED $GCCSDK_KITS/$BKIT_SHAREDLIBS_NAME
   fi
 }
 
-# Everything which is remaining in kits/!SharedLibs belongs to core.
-create_sharedlibscore_kit() {
-  if [ -d $SRC_BKIT_SHAREDLIBS_UNPACKED ] ; then
-    create_empty_dir $GCCSDK_KITS/$BKIT_SHAREDLIBSCORE_NAME
-    mv $SRC_BKIT_SHAREDLIBS_UNPACKED $GCCSDK_KITS/$BKIT_SHAREDLIBSCORE_NAME
-  fi
-}
-
-# Move the C++ compiler to a separate kit:
-create_gccgpp_kit() {
-  cd $SRC_BKIT_GCC_UNPACKED
-  create_empty_dir $GCCSDK_KITS/$BKIT_GCCGPP_NAME
-  for obj in lib/libstdc++.a \
-             bin/g++\,* \
-             include/c++ ; do
-    mkdir -p $GCCSDK_KITS/$BKIT_GCCGPP_NAME/`basename $SRC_BKIT_GCC_UNPACKED`/`dirname $obj`
-    mv $obj $GCCSDK_KITS/$BKIT_GCCGPP_NAME/`basename $SRC_BKIT_GCC_UNPACKED`/`dirname $obj`
-  done
-
-  # Copy sharedlibsgpp (when it exists) in there:
-  test ! -d $GCCSDK_KITS/$BKIT_SHAREDLIBSGPP_NAME || cp -r $GCCSDK_KITS/$BKIT_SHAREDLIBSGPP_NAME/* $GCCSDK_KITS/$BKIT_GCCGPP_NAME
-}
-
-# Everything else is C compiler and core !GCC infrastructure:
-create_gcccore_kit() {
-  create_empty_dir $GCCSDK_KITS/$BKIT_GCCCORE_NAME
-  mv $SRC_BKIT_GCC_UNPACKED $GCCSDK_KITS/$BKIT_GCCCORE_NAME
+# !GCC infrastructure:
+create_gcc_kit() {
+  create_empty_dir $GCCSDK_KITS/$BKIT_GCC_NAME
+  mv $SRC_BKIT_GCC_UNPACKED $GCCSDK_KITS/$BKIT_GCC_NAME
 
   # Move Examples in there as well:
-  mv $SRC_BKIT_EXAMPLES_UNPACKED $GCCSDK_KITS/$BKIT_GCCCORE_NAME
+  mv $SRC_BKIT_EXAMPLES_UNPACKED $GCCSDK_KITS/$BKIT_GCC_NAME
 
   # Copy sharedlibscore (when it exists) and system in there:
-  test ! -d $GCCSDK_KITS/$BKIT_SHAREDLIBSCORE_NAME || cp -r $GCCSDK_KITS/$BKIT_SHAREDLIBSCORE_NAME/* $GCCSDK_KITS/$BKIT_GCCCORE_NAME
-  cp -r $SRC_BKIT_SYSTEM_UNPACKED/\!System $GCCSDK_KITS/$BKIT_GCCCORE_NAME
+  test ! -d $GCCSDK_KITS/$BKIT_SHAREDLIBS_NAME || cp -r $GCCSDK_KITS/$BKIT_SHAREDLIBS_NAME/* $GCCSDK_KITS/$BKIT_GCC_NAME
+  cp -r $SRC_BKIT_SYSTEM_UNPACKED/\!System $GCCSDK_KITS/$BKIT_GCC_NAME
 }
 
 # Here starts the real work:
@@ -329,13 +306,10 @@ SRC_BKIT_SYSTEM_UNPACKED=$GCCSDK_KITS/system
 SRC_BKIT_SHAREDLIBS_UNPACKED=$GCCSDK_KITS/\!SharedLibs
 SRC_BKIT_EXAMPLES_UNPACKED=$GCCSDK_KITS/Examples
 
-# Create BKIT_SHAREDLIBSCORE_NAME & BKIT_SHAREDLIBSGPP_NAME:
-create_sharedlibsgpp_kit
-create_sharedlibscore_kit
-# Create BKIT_GCCGPP_NAME:
-create_gccgpp_kit
-# Create BKIT_GCCCORE_NAME:
-create_gcccore_kit
+# Create BKIT_SHAREDLIBS_NAME:
+create_sharedlibs_kit
+# Create BKIT_GCC_NAME:
+create_gcc_kit
 # Create BKIT_SYSTEM_NAME: already there.
 
 if [ "$GCCSDK_DO_PKG" == "YES" ] ; then

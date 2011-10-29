@@ -32,7 +32,7 @@ Status build:
 - C++ Exception handling using the ARM stack unwinder works for UnixLib and SCL
   based programs, including modules and shared libraries (subject to more testing).
 - Native compiler works although it requires liblto_plugin.so to be present in
-  the libexec search path, ie, !GCC.libexec.gcc.arm-unknown-riscos.4/6/2. It
+  the libexec search path, ie, !GCC.libexec.gcc.arm-unknown-riscos.4/6/3. It
   doesn't actually load the library, but will not proceed without it. Due to the
   inclusion of PPL, libstdc++ is also required. Tested with dynamically linked tool
   chain, didn't try static build.
