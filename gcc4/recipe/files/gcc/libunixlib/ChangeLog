@@ -1,3 +1,12 @@
+Sun Oct 30 20:34:23 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/errno.h (EILSEQ, EOVERFLOW, EFBIG): Reassigned values for
+	SCL configuration to match recent ROOL CLib changes.
+	(EPERM, ENOENT, ESRCH, EINTR, EIO, ENXIO): Reassigned values for
+	SCL configuration to avoid aliasing other error values.
+	* sys/errlist.c: Follow errno.h changes.
+	* Makefile.am (time/adjtime): Removed from SCL build.
+
 Fri Oct 28 04:04:12 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am: Workaround for automake conditionals limitation.

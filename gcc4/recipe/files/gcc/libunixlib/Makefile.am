@@ -1045,7 +1045,9 @@ time_src =
 else
 # asctime, difftime, ctime, gmtime, localtime, mktime, time, strftime
 # are provided by the SCL chunks.
+# adjtime is not implemented.
 time_src = \
+	time/adjtime.c \
 	time/asctime.c \
 	time/difftime.c \
 	time/ctime.c \
@@ -1059,7 +1061,6 @@ time_src = \
 	time/utimes.c
 endif
 time_src += \
-	time/adjtime.c \
 	time/asctime_r.c \
 	time/broken.c \
 	time/clk_getres.c \

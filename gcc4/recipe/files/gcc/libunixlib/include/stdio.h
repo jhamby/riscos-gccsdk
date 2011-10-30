@@ -595,7 +595,7 @@ extern int remove (const char *__filename) __THROW;
 
 /* Rename a file called 'oldname' to 'newname'. If rename fails
    it returns -1.  */
-extern int rename(const char *__oldname, const char *__newname) __THROW;
+extern int rename (const char *__oldname, const char *__newname) __THROW;
 
 /* Create a temporary binary file for updade mode, as if calling
    fopen with mode "wb+".  The file is deleted automatically when

@@ -1,7 +1,7 @@
 /*
  * ANSI Standard 4.1.3: Errors <errno.h>
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 /*
@@ -52,24 +52,21 @@
 #endif
 
 #ifdef __TARGET_SCL__
-/* Domain error. An input argument is outside the domain over
-   which the mathematical function is defined.  */
-#  define EDOM 1
+#  define EDOM			1 /* Domain error.  */
+#  define ERANGE		2 /* Range error.  */
+#  define ESIGNUM		3 /* An unrecognised signal is caught by the default signal handler.  */
 
-/* Range error. The result of a function cannot be represented
-   as a double floating point value.  */
-#  define ERANGE 2
-
-/* An unrecognised signal is caught by the default signal handler.  */
-#  define ESIGNUM 3
+#  define EILSEQ		4 /* Invalid multibyte sequence.  */
+#  define EOVERFLOW		5 /* Value too large for defined data type */
+#  define EFBIG			6 /* File too large.  */
+#else
+#  define EPERM			1 /* Operation not permitted.  */
+#  define ENOENT		2 /* No such file or directory.  */
+#  define ESRCH			3 /* No such process.  */
+#  define EINTR			4 /* Interrupted function call. */
+#  define EIO			5 /* Input/output error.  */
+#  define ENXIO			6 /* No such device or address (device not configured).  */
 #endif
-
-#define EPERM			1 /* Operation not permitted.  */
-#define ENOENT			2 /* No such file or directory.  */
-#define ESRCH			3 /* No such process.  */
-#define EINTR			4 /* Interrupted function call. */
-#define EIO			5 /* Input/output error.  */
-#define ENXIO			6 /* No such device or address (device not configured).  */
 #define E2BIG			7 /* Argument list too long.  */
 #define ENOEXEC			8 /* Invalid executable file format (exec format error). */
 #define EBADF			9 /* Bad file descriptor.  */
@@ -94,13 +91,20 @@
 #define EMFILE			24 /* Too many open files.  */
 #define ENOTTY			25 /* Inappropriate ioctl for device.  */
 #define ETXTBSY 		26 /* Text file busy.  */
-#define EFBIG			27 /* File too large.  */
+#ifdef __TARGET_SCL__
+#  define EINTR			27 /* Interrupted function call. */
+#else
+#  define EFBIG			27 /* File too large.  */
+#endif
 #define ENOSPC			28 /* No space left on device.  */
 #define ESPIPE			29 /* Illegal seek.  */
 #define EROFS			30 /* Read-only filing system.  */
 #define EMLINK			31 /* Too many links.  */
 #define EPIPE			32 /* Broken pipe.  */
-#ifndef __TARGET_SCL__
+#ifdef __TARGET_SCL__
+#  define EIO			33 /* Input/output error.  */
+#  define ENXIO			34 /* No such device or address (device not configured).  */
+#else
 #  define EDOM			33 /* Domain error.  */
 #  define ERANGE		34 /* Range error.  */
 #endif
@@ -156,9 +160,11 @@
 #  define EAUTH			80 /* Authentication error */
 #  define ENEEDAUTH		81 /* Need authenticator */
 #  define EOPSYS		82 /* RISC OS operating system error.  */
-#  define EILSEQ		83 /* Invalid multibyte sequence.  */
+#  define EPERM			83 /* Operation not permitted.  */
+#  define ENOENT		84 /* No such file or directory.  */
+#  define ESRCH			85 /* No such process.  */
 
-#  define __SYS_NERR	83
+#  define __SYS_NERR		85
 #else
 #  define ENOSTR		72 /* Not a stream device.  */
 #  define ETIME			73 /* Timer expired.  */

@@ -20,12 +20,21 @@ int sys_nerr = __SYS_NERR + 1;
 const char *sys_errlist[__SYS_NERR + 1] =
 {
   "Success",					/* (0) */
-  "Numerical argument out of domain / Operation not permitted", /* EDOM / EPERM */
-  "Result too large / No such file or directory", /* ERANGE / ENOENT */
-  "Unrecognised signal / No such process",	/* ESIGNUM / ESRCH */
+#ifdef __TARGET_SCL__
+  "Numerical argument out of domain", 		/* EDOM */
+  "Result too large", 				/* ERANGE */
+  "Unrecognised signal",			/* ESIGNUM */
+  "Invalid multibyte sequence",			/* EILSEQ */
+  "Value too large for defined data type",	/* EOVERFLOW */
+  "File too large",				/* EFBIG */
+#else
+  "Operation not permitted", 			/* EPERM */
+  "No such file or directory", 			/* ENOENT */
+  "No such process",				/* ESRCH */
   "Interrupted system call",			/* EINTR */
   "Input/output error",				/* EIO */
   "No such device or address",			/* ENXIO */
+#endif
   "Argument list too long",			/* E2BIG */
   "Exec format error",				/* ENOEXEC */
   "Bad file descriptor",			/* EBADF */
@@ -46,15 +55,24 @@ const char *sys_errlist[__SYS_NERR + 1] =
   "Too many open files",			/* EMFILE */
   "Inappropriate ioctl for device",		/* ENOTTY */
   "Text file busy",				/* ETXTBSY */
+#ifdef __TARGET_SCL__
+  "Interrupted system call",			/* EINTR */
+#else
   "File too large",				/* EFBIG */
+#endif
   "No space left on device",			/* ENOSPC */
   "Illegal seek",				/* ESPIPE */
   "Read-only file system",			/* (30) EROFS */
   "Too many links",				/* EMLINK */
   "Broken pipe",				/* EPIPE */
+#ifdef __TARGET_SCL__
+  "Input/output error",				/* EIO */
+  "No such device or address",			/* ENXIO */
+#else
   "Argument out of domain",			/* EDOM */
   "Range error",				/* ERANGE */
-  "Operation would block",			/* EWOULDBLOCK */
+#endif
+  "Operation would block",			/* EAGAIN / EWOULDBLOCK */
   "Operation now in progress",			/* EINPROGRESS */
   "Operation already in progress",		/* EALREADY */
   "Socket operation on non-socket",		/* ENOTSOCK */
@@ -104,7 +122,9 @@ const char *sys_errlist[__SYS_NERR + 1] =
   "Authentication error",			/* (80) EAUTH */
   "Need authenticator",				/* ENEEDAUTH */
   "RISC OS error",				/* EOPSYS */
-  "Invalid multibyte sequence"			/* EILSEQ */
+  "Operation not permitted", 			/* EPERM */
+  "No such file or directory", 			/* ENOENT */
+  "No such process",				/* ESRCH */
 #else
   "Not a stream device",			/* ENOSTR */
   "Timer expired",				/* ETIME */
@@ -125,7 +145,7 @@ const char *sys_errlist[__SYS_NERR + 1] =
   "RISC OS error",				/* EOPSYS */
   "Signal Received",				/* ESIG, as flagged by SIG_ERR */
   "Invalid multibyte sequence",			/* (90) EILSEQ */
-  "Value too large for defined data type"       /* EOVERFLOW */
+  "Value too large for defined data type",	/* EOVERFLOW */
 #endif
 };
 
