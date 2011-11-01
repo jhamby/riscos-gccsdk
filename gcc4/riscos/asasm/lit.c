@@ -70,7 +70,7 @@ typedef struct LITPOOL
 static Symbol *Lit_GetLitOffsetAsSymbol (const LitPool *literal);
 
 /**
- * Returns a symbol which will be a ValueInt/ValueCode being the offset where the
+ * Returns a symbol which will be a ValueInt/ValueSymbol being the offset where the
  * given literal will be assembled.
  */
 static Symbol *
@@ -158,7 +158,7 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
     /* */;
   prevLitP->next = litP;
   
-  return Value_Symbol (Lit_GetLitOffsetAsSymbol (litP), 1);
+  return Value_Symbol (Lit_GetLitOffsetAsSymbol (litP), 1, 0);
 }
 
 /**
@@ -320,7 +320,7 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 	          || (((symP->type & SYMBOL_DEFINED) != 0) && (litPoolP->status == eAssembledPassOne || litPoolP->status == eAssembledPassTwo)));
 	  if ((symP->type & SYMBOL_DEFINED) != 0)
 	    {
-	      assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueCode);
+	      assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueSymbol);
 	      assert (gASM_Phase == ePassTwo || areaCurrentSymbol->area.info->curIdx >= litPoolP->offset);
 	      if (areaCurrentSymbol->area.info->curIdx + 8 > litPoolP->offset + offset + ((isAddrMode3) ? 255 : 4095))
 		continue;
@@ -337,18 +337,7 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 
 	      /* A literal with the same value was already needed so we can
 	         reuse its position where it is going to be assembled.  */
-	      if (offset == 0)
-		return Value_Symbol (symP, 1);
-	      const Code code[] =
-		{
-		  { .Tag = CodeValue, .Data.value = { .Tag = ValueSymbol, .Data.Symbol = { .factor = 1, .symbol = symP } } },
-		  { .Tag = CodeValue, .Data.value = { .Tag = ValueInt, .Data.Int = { .i = offset } } },
-		  { .Tag = CodeOperator, .Data.op = Op_add }
-		};
-	      const Value valCode = Value_Code (sizeof (code)/sizeof (code[0]), code);
-	      Value rtrn = { .Tag = ValueIllegal };
-	      Value_Assign (&rtrn, &valCode);
-	      return rtrn;
+	      return Value_Symbol (symP, 1, offset);
 	    }
 	}
     }
@@ -402,7 +391,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 	          || (((symP->type & SYMBOL_DEFINED) != 0) && (litPoolP->status == eAssembledPassOne || litPoolP->status == eAssembledPassTwo)));
 	  if ((symP->type & SYMBOL_DEFINED) != 0)
 	    {
-	      assert (symP->value.Tag == ValueFloat || symP->value.Tag == ValueCode);
+	      assert (symP->value.Tag == ValueFloat || symP->value.Tag == ValueSymbol);
 	      assert (gASM_Phase == ePassTwo || areaCurrentSymbol->area.info->curIdx >= litPoolP->offset);
 	      if (areaCurrentSymbol->area.info->curIdx + 8 > litPoolP->offset + 1020)
 		continue;
@@ -414,7 +403,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 	    {
 	      /* A literal with the same value was already needed so we can
 	         reuse its position where it is going to be assembled.  */
-	      return Value_Symbol (symP, 1);
+	      return Value_Symbol (symP, 1, 0);
 	    }
 	}
     }
@@ -600,14 +589,8 @@ Lit_DumpPool (void)
 	 + ValueInt(offset where literal gets assembled).
 	 The ValueSymbol will be translated to a ValueAddr(pc) at a later
 	 stage.  */
-      const Code code[] =
-	{
-	  { .Tag = CodeValue, .Data.value = { .Tag = ValueSymbol, .Data.Symbol = { .factor = 1, .symbol = areaCurrentSymbol } } },
-	  { .Tag = CodeValue, .Data.value = { .Tag = ValueInt, .Data.Int = { .i = areaCurrentSymbol->area.info->curIdx } } },
-	  { .Tag = CodeOperator, .Data.op = Op_add }
-	};
-      const Value valCode = Value_Code (sizeof (code)/sizeof (code[0]), code);
-      Value_Assign (&symP->value, &valCode);
+      Value newSymValue = Value_Symbol (areaCurrentSymbol, 1, areaCurrentSymbol->area.info->curIdx);
+      Value_Assign (&symP->value, &newSymValue);
 
       assert ((gASM_Phase == ePassOne && litP->offset == 0) || (gASM_Phase == ePassTwo && litP->offset == areaCurrentSymbol->area.info->curIdx));
       litP->offset = areaCurrentSymbol->area.info->curIdx;

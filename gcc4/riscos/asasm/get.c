@@ -270,7 +270,7 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 		    {
 		      case LexId:
 			codeInit ();
-			codeSymbol (symbolGet (&rotator));
+			codeSymbol (symbolGet (&rotator), 0);
 			const Value *rotatorResult = exprEval (ValueInt);
 			if (rotatorResult->Tag != ValueInt)
 			  {

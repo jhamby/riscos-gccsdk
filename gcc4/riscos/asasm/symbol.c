@@ -607,7 +607,8 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	      else
 		value = &sym->value;
 
-	      /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().
+	      /* We can only have Int, Bool, Code (FIXME: ?) and Symbol here.
+		 See NeedToOutputSymbol().
 		 Also Addr is possible for an area mapping symbol when base
 		 register is specified.  */
 	      int v;
@@ -627,6 +628,7 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 
 		  case ValueCode:
 		    /* Support <ValueInt> <ValueSymbol> <Op_add> */
+		    /* FIXME: Remove ? */
 		    if (value->Data.Code.len == 3
 			&& value->Data.Code.c[0].Tag == CodeValue
 			&& value->Data.Code.c[0].Data.value.Tag == ValueInt
@@ -643,6 +645,10 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 			       "Symbol %s cannot be evaluated for storage in output format", sym->str);
 		    break;
 
+                  case ValueSymbol:
+		    v = value->Data.Symbol.offset;
+		    break;
+		    
 		  default:
 		    assert (0 && "Wrong value tag selection");
 		    v = 0;
@@ -713,7 +719,8 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	      else
 		value = &sym->value;
 
-	      /* We can only have Int, Bool and Code here.  See NeedToOutputSymbol().
+	      /* We can only have Int, Bool, Code (FIXME: ?) and Symbol here.
+		 See NeedToOutputSymbol().
 		 Also Addr is possible for an area mapping symbol when base
 		 register is specified.  */
 	      int v;
@@ -733,6 +740,7 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 
 		  case ValueCode:
 		    /* Support <ValueInt> <ValueSymbol> <Op_add> */
+		    /* FIXME: Remove ? */
 		    if (value->Data.Code.len == 3
 			&& value->Data.Code.c[0].Tag == CodeValue
 			&& value->Data.Code.c[0].Data.value.Tag == ValueInt
@@ -747,6 +755,10 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 		      }
 		    errorLine (NULL, 0, ErrorError,
 			       "Symbol %s cannot be evaluated for storage in output format", sym->str);
+		    break;
+
+                  case ValueSymbol:
+		    v = value->Data.Symbol.offset;
 		    break;
 
 		  default:

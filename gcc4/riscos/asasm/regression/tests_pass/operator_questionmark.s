@@ -72,7 +72,7 @@ Foo	; Nothing here.
 	DCD	?Foo
 Bar	DCD	?Bar
 	[ EXTENSION
-FltLbl	DCFS	?FltLbl - 0.		; Not supported by objasm
+FltLbl	DCFS	?FltLbl - 0.	; Not supported by objasm
 DblLbl	DCFD	?DblLbl	- 0.	; Not supported by objasm
 	]
 

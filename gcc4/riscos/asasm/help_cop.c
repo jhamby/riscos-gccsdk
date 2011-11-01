@@ -55,7 +55,8 @@
 static bool
 DestMem_RelocUpdaterCoPro (const char *file, int lineno, ARMWord offset,
 			   const Value *valueP,
-			   void *privData __attribute__ ((unused)), bool final)
+			   void *privData __attribute__ ((unused)),
+                           bool final __attribute__ ((unused)))
 {
   ARMWord ir = GetWord (offset);
 

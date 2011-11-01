@@ -1,3 +1,36 @@
+Wed Nov  2 00:45:10 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/adr.s: Disable tests which are too
+	far fetched.  Add a new one.
+	* symbol.c (Symbol_OutputForAOF, Symbol_OutputForELF): ...
+	* code.c, code.h (Code_Normalize, Code_ExpandCode,
+	Code_ExpandCurrAreaSymbolAsOffset, Code_HasNonAddOperator,
+	Code_Assign): Remove.
+	(Code_EvalLowest): Remove doNormalize parameter.  Simply
+	evalUnop and evalBinop handling.
+	(codeEvalLow): When result is not of required type but ValueCode
+	is allowed, return ValueCode result.
+	(Code_PrintValueArray): Add.
+	(Stack): Change type from Code to Value.
+	(FirstFreeIns): Make type unsigned.
+	(codeSymbol): Add offset parameter.
+	(codePosition): Follow offset in ValueSymbol change.
+	(Code_ExpandCurrAreaSymbolAsAddr): Add test on factor.  Remove
+	ValueCode support.
+	* m_cpuctrl (branch_shared): Simplify.
+	(ADR_RelocUpdaterCore): Fix offset reporting.
+	* m_cpumem.c (dstmem): Give error in pass two only.
+	* storage.c (storageValue, c_record, c_alloc): Add ValueSymbol.
+	(c_alloc): Don't pass SYMBOL_DEFINED into Symbol_Define.
+	* value.c, value.h: Add offset to ValueSymbol.
+	(Value_Symbol): Add offset parameter.
+	* expr.c (prim): Add zero offset to codeSymbol.
+	* get.c (getRhs): Likewise.
+	* asm.c (ASM_DefineLabel): Use Value_Symbol instead of Value_Code.
+	* eval.c: Only give error in pass two.  Better support for
+	ValueSymbol.
+	* lit.c: Use Value_Symbol instead of Value_Code.
+
 Tue Oct 25 02:13:03 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* lex.c (Lex_ReadLocalLabelFromLex): Add.

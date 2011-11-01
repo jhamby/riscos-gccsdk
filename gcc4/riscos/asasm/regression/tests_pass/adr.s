@@ -137,7 +137,7 @@ dt6lbl3	%	4
 	; Wacko case also resulting in absolute value usage in ADR/ADRL.
 	; Results in MOV/MVN.
 	; ObjAsm extension
-	[ {TRUE}
+	[ {FALSE}	; FIXME: Is disabled as it is too wacko.
 	[ EXTENSION
 	AREA	Code9, CODE, READONLY
 	[ :LNOT: REFERENCE
@@ -216,7 +216,6 @@ tstlbl6	#	32
 04
 	DCD	4
 
-	[ {FALSE}
 	; Implicit 'ORG 0' by setting the ABS AREA attribute:
 	AREA	Code12, CODE, ABS
 
@@ -231,14 +230,14 @@ tstlbl6	#	32
 03
 	DCD	3
 	%	&1100 - {PC}
-	ADR	r3, %b03		; MOV r3, #&200 + 16 + 4*4 + 4
+	ADR	r3, %b03		; MOV r3, #16 + 4*4
 	ADR	r4, %f04		; MOV r4, #&2200
 	%	&1100 - 8
 04
 	DCD	4
-	]
 
 	|
+
 	AREA	Code11, CODE
 	ORG	&200
 	%	16
@@ -251,6 +250,20 @@ tstlbl6	#	32
 	DCD	3
 	%	&1100 - {PC}
 	MOV	r3, #&200 + 16 + 4*4 + 4
+	MOV	r4, #&2200
+	%	&1100 - 8
+	DCD	4
+
+	AREA	Code12, CODE, ABS
+	%	16
+	DCD	1
+	ADD	r1, pc, #-8 - 4
+	ADD	r2, pc, #-8 + 4
+	DCD	2
+
+	DCD	3
+	%	&1100 - {PC}
+	MOV	r3, #16 + 4*4
 	MOV	r4, #&2200
 	%	&1100 - 8
 	DCD	4

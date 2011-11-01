@@ -134,7 +134,8 @@ valueEqual (const Value *a, const Value *b)
 
       if (a->Tag == ValueSymbol && b->Tag == ValueSymbol
 	  && a->Data.Symbol.factor == b->Data.Symbol.factor
-	  && a->Data.Symbol.symbol == b->Data.Symbol.symbol)
+	  && a->Data.Symbol.symbol == b->Data.Symbol.symbol
+          && a->Data.Symbol.offset == b->Data.Symbol.offset)
 	return true;
 
       aCp.Tag = ValueIllegal;
@@ -190,7 +191,8 @@ valueEqual (const Value *a, const Value *b)
       case ValueSymbol:
 	result = b->Tag == ValueSymbol
 		   && a->Data.Symbol.factor == b->Data.Symbol.factor
-		   && a->Data.Symbol.symbol == b->Data.Symbol.symbol;
+		   && a->Data.Symbol.symbol == b->Data.Symbol.symbol
+		   && a->Data.Symbol.offset == b->Data.Symbol.offset;
 	break;
 
       case ValueCode:
@@ -280,10 +282,10 @@ valuePrint (const Value *v)
 	codePrint (v->Data.Code.len, v->Data.Code.c);
 	break;
       case ValueAddr:
-	printf ("AddrOffset 0x%x, reg %d", v->Data.Addr.i, v->Data.Addr.r);
+	printf ("AddrOffset reg %d + #0x%x", v->Data.Addr.r, v->Data.Addr.i);
 	break;
       case ValueSymbol:
-	printf ("Symbol %d x '%s'", v->Data.Symbol.factor, v->Data.Symbol.symbol->str);
+	printf ("Symbol %d x '%s' + #0x%x", v->Data.Symbol.factor, v->Data.Symbol.symbol->str, v->Data.Symbol.offset);
 	break;
       default:
 	printf ("tag 0x%x ???", v->Tag);

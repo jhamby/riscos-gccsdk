@@ -145,9 +145,7 @@ branch_shared (ARMWord cc, bool isBLX)
   exprBuild ();
   /* The branch instruction has its offset as relative, while the given label
      is absolute, so calculate "<label> - . - 8".  */
-  codePosition (areaCurrentSymbol, offset);
-  codeOperator (Op_sub);
-  codeInt (8);
+  codePosition (areaCurrentSymbol, offset + 8);
   codeOperator (Op_sub);
   
   Put_Ins (cc | 0x0A000000);
@@ -373,28 +371,27 @@ ADR_RelocUpdaterCore (const char *file, int lineno, size_t offset, int constant,
       irop2 = M_SUB;
     }
 
-  uint32_t offsetToReport = offset + areaCurrentSymbol->area.info->curIdx;
   if (split[bestIndex].num == 1 && isADRL)
     {
       if (fixedNumInstr)
 	{
-	  errorLine (file, lineno, ErrorWarning, "ADRL at area offset 0x%08x is not required for addressing 0x%08x", offsetToReport, constant);
+	  errorLine (file, lineno, ErrorWarning, "ADRL at area offset 0x%08zx is not required for addressing 0x%08x", offset, constant);
 	  split[bestIndex].try[1] = 0;
 	  split[bestIndex].num = 2;
 	}
       else
-	errorLine (file, lineno, ErrorInfo, "ADRL at area offset 0x%08x is not required for addressing 0x%08x, using ADR instead", offsetToReport, constant);
+	errorLine (file, lineno, ErrorInfo, "ADRL at area offset 0x%08zx is not required for addressing 0x%08x, using ADR instead", offset, constant);
     }
   else if ((split[bestIndex].num == 2 && !isADRL)
 	   || split[bestIndex].num == 3 || split[bestIndex].num == 4)
     {
       if (fixedNumInstr)
 	{
-	  errorLine (file, lineno, ErrorError, "%s at area offset 0x%08x can not address 0x%08x", (isADRL) ? "ADRL" : "ADR", offsetToReport, constant);
+	  errorLine (file, lineno, ErrorError, "%s at area offset 0x%08zx can not address 0x%08x", (isADRL) ? "ADRL" : "ADR", offset, constant);
 	  split[bestIndex].num = (isADRL) ? 2 : 1;
 	}
       else
-	errorLine (file, lineno, ErrorWarning, "%s at area offset 0x%08x can not address 0x%08x, using %d instruction sequence instead", (isADRL) ? "ADRL" : "ADR", offsetToReport, constant, split[bestIndex].num);
+	errorLine (file, lineno, ErrorWarning, "%s at area offset 0x%08zx can not address 0x%08x, using %d instruction sequence instead", (isADRL) ? "ADRL" : "ADR", offset, constant, split[bestIndex].num);
     }
 
   ARMWord ir = GetWord (offset);
@@ -406,7 +403,7 @@ ADR_RelocUpdaterCore (const char *file, int lineno, size_t offset, int constant,
       /* Fix up the base register.  */
       ARMWord irs = ir | (n == 0 ? irop1 : irop2);
       if (baseReg >= 0 || n != 0)
-        irs = irs | LHS_OP (n == 0 ? baseReg : GET_DST_OP(ir));
+        irs = irs | LHS_OP (n == 0 ? (ARMWord)baseReg : GET_DST_OP(ir));
 
       int i8s4 = help_cpuImm8s4 (split[bestIndex].try[n]);
       assert (i8s4 != -1);

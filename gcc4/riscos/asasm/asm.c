@@ -187,16 +187,7 @@ ASM_DefineLabel (const Lex *label, int offset)
   else
     {
       /* Define label as "ValueSymbol(current AREA) + <given area offset>".  */
-      const Code values[] =
-	{
-	    { .Tag = CodeValue,
-	      .Data.value = { .Tag = ValueSymbol, .Data.Symbol = { .factor = 1, .symbol = areaCurrentSymbol } } },
-	    { .Tag = CodeValue,
-	      .Data.value = { .Tag = ValueInt, .Data.Int = { .i = offset } } },
-	    { .Tag = CodeOperator,
-	      .Data.op = Op_add }
-	};
-      value = Value_Code (sizeof (values)/sizeof (values[0]), values);
+      value = Value_Symbol (areaCurrentSymbol, 1, offset);
       symbolType = 0;
     }
 

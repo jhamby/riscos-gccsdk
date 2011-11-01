@@ -48,7 +48,7 @@ static Value storageV =
 const Value *
 storageValue (void)
 {
-  assert (storageV.Tag == ValueInt || storageV.Tag == ValueAddr || storageV.Tag == ValueCode);
+  assert (storageV.Tag == ValueInt || storageV.Tag == ValueAddr || storageV.Tag == ValueSymbol || storageV.Tag == ValueCode);
   return &storageV;
 }
 
@@ -58,7 +58,7 @@ storageValue (void)
 bool
 c_record (void)
 {
-  const Value *value = exprBuildAndEval (ValueInt | ValueAddr | ValueCode);
+  const Value *value = exprBuildAndEval (ValueInt | ValueAddr | ValueSymbol | ValueCode);
   switch (value->Tag)
     {
       case ValueInt:
@@ -80,6 +80,7 @@ c_record (void)
 	break;
 
       case ValueAddr:
+      case ValueSymbol:
       case ValueCode:
 	Value_Assign (&storageV, value);
 	break;
@@ -108,7 +109,7 @@ c_alloc (const Lex *lex)
 {
   if (lex->tag == LexId)
     {
-      if (Symbol_Define (symbolGet (lex), SYMBOL_DEFINED | SYMBOL_ABSOLUTE, storageValue ()))
+      if (Symbol_Define (symbolGet (lex), SYMBOL_ABSOLUTE, storageValue ()))
 	return false;
     }
   
@@ -121,7 +122,7 @@ c_alloc (const Lex *lex)
 	codeValue (storageValue (), true);
 	codeValue (value, true);
 	codeOperator (Op_add);
-        value = codeEval (ValueInt | ValueAddr | ValueCode, NULL);
+        value = codeEval (ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL);
 	if (value->Tag != ValueIllegal)
 	  {
 	    Value_Assign (&storageV, value);

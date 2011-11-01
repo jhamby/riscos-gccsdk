@@ -81,6 +81,7 @@ typedef struct
 	{
 	  int factor;		/* Number of times the symbol needs to be taken into account (can be negative, zero, positive).  */
 	  struct Symbol *symbol;
+	  int offset;
 	} Symbol;
     } Data;
 } Value;
@@ -121,12 +122,12 @@ Value_Addr (int reg, int i)
 }
 
 static inline Value
-Value_Symbol (struct Symbol *symbol, int factor)
+Value_Symbol (struct Symbol *symbol, int factor, int offset)
 {
   const Value value =
     {
       .Tag = ValueSymbol,
-      .Data.Symbol = { .factor = factor, .symbol = symbol }
+      .Data.Symbol = { .factor = factor, .symbol = symbol, .offset = offset }
     };
   return value;
 }

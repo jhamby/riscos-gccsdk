@@ -199,7 +199,8 @@ dstmem (ARMWord ir, const char *mnemonic)
 			/* Fall through.  */
 
 		      default:
-			error (ErrorError, "Illegal offset expression");
+			if (gASM_Phase != ePassOne)
+			  error (ErrorError, "Illegal offset expression");
 			symValue = Value_Addr (baseReg, 0);
 			break;
 		    }

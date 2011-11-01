@@ -49,15 +49,17 @@
 #define CODE_SIZECODE  (1024)
 #define CODE_SIZESTACK (1024)
 
-static void Code_Normalize (Code *values, size_t numElem);
-static bool Code_ExpandCode (const Value *value, int *sp);
 static void Code_ExpandCurrAreaSymbolAsAddr (Value *value, ARMWord instrOffset);
-static bool Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP, int *sp, bool doNormalize);
+static bool Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP, int *sp);
 static bool Code_HasUndefSymbols (const Code *code, size_t len);
 
+#ifdef DEBUG_CODE
+static void Code_PrintValueArray (size_t size, const Value *value);
+#endif
+
 static Code Program[CODE_SIZECODE]; /**< No ownership of Value objects.  */
-static int FirstFreeIns; /**< Index for Program[] array for first free slot.  */
-static Code Stack[CODE_SIZESTACK]; /**< Ownership of Value object.  */
+static unsigned FirstFreeIns; /**< Index for Program[] array for first free slot.  */
+static Value Stack[CODE_SIZESTACK]; /**< Ownership of Value object.  */
 
 void
 codeInit (void)
@@ -79,13 +81,13 @@ codeOperator (Operator op)
 }
 
 void
-codeSymbol (Symbol *symbol)
+codeSymbol (Symbol *symbol, int offset)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
       /* Only during evaluation, we're going to expand the symbols.  */
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].Data.value = Value_Symbol (symbol, 1);
+      Program[FirstFreeIns].Data.value = Value_Symbol (symbol, 1, offset);
       ++FirstFreeIns;
     }
   else
@@ -97,28 +99,8 @@ codePosition (Symbol *area, int offset)
 {
   if (area->area.info->type & AREA_ABS)
     codeInt (Area_GetBaseAddress (area) + offset);
-  /*  FIXME: little hack as we don't sufficiently realise the equivalence
-      of sym and code(sym + 0) */
-  /* else if (offset == 0)
-    codeSymbol (area); */
   else
-    {
-      if (FirstFreeIns >= CODE_SIZECODE)
-	errorAbort ("Internal codePosition: overflow");
-
-      const Code values[] =
-	{
-	  { .Tag = CodeValue,
-	    .Data.value = { .Tag = ValueSymbol, .Data.Symbol = { .factor = 1, .symbol = area } } },
-	  { .Tag = CodeValue,
-	    .Data.value = { .Tag = ValueInt, .Data.Int = { .i = offset } } },
-	  { .Tag = CodeOperator,
-	    .Data.op = Op_add }
-	};
-      Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].Data.value = Value_Code (sizeof (values)/sizeof (values[0]), values);
-      ++FirstFreeIns;
-    }
+    codeSymbol (area, offset);
 }
 
 void
@@ -229,214 +211,13 @@ codeValue (const Value *value, bool expCode)
     errorAbort ("Internal codeValue: overflow");
 }
 
-/**
- * Sum all given Value objects and return that as ValueSymbol, ValueInt,
- * ValueAddr or ValueCode at values[0].
- * The ValueCode will contain zero or one ValueInt or ValueAddr object,
- * followed by zero or more ValueSymbols (all objects are added or subtracted).
- */
-static void
-Code_Normalize (Code *values, size_t numElem)
-{
-  assert (numElem != 0);
-
-  /* Find the first ValueAddr (if there is one) and move this to the front.  */
-  size_t addrIndex;
-  for (addrIndex = 0;
-       addrIndex != numElem && values[addrIndex].Data.value.Tag != ValueAddr;
-       ++addrIndex)
-    /* */;
-  if (addrIndex != numElem)
-    {
-      /* Swap values[0] and values[addrIndex].  */
-      const Code tmp = values[addrIndex];
-      values[addrIndex] = values[0];
-      values[0] = tmp;
-      ++addrIndex;
-
-      /* Search for other ValueAddr, they should share the same base reg.  If
-         not, this is considered as a failure.  Merge them with the first
-         one found.  */
-      while (addrIndex != numElem)
-	{
-	  if (values[addrIndex].Data.value.Tag == ValueAddr)
-	    {
-	      assert (values[0].Data.value.Data.Addr.r == values[addrIndex].Data.value.Data.Addr.r); /* FIXME: this should become an user error.  */
-	      values[0].Data.value.Data.Addr.i += values[addrIndex].Data.value.Data.Addr.i;
-	      --numElem;
-	      memmove (&values[addrIndex], &values[addrIndex + 1], (numElem - addrIndex)*sizeof (Code));
-	    }
-	  else
-	    ++addrIndex;
-	}
-    }
-  
-  /* Find first ValueInt and move this to the front or merge it with the
-     ValueAddr found.  */
-  size_t intIndex;
-  if (values[0].Data.value.Tag == ValueAddr)
-    intIndex = 1;
-  else
-    {
-      for (intIndex = 0;
-           intIndex != numElem && values[intIndex].Data.value.Tag != ValueInt;
-           ++intIndex)
-	/* */;
-      if (intIndex != numElem)
-	{
-	  /* Swap values[0] and values[intIndex].  */
-	  const Code tmp = values[intIndex];
-	  values[intIndex] = values[0];
-	  values[0] = tmp;
-	  ++intIndex;
-	}
-    }
-  /* Search for other ValueInt and add this to the first ValueInt/ValueAddr.  */
-  while (intIndex != numElem)
-    {
-      if (values[intIndex].Data.value.Tag == ValueInt)
-	{
-	  if (values[0].Data.value.Tag == ValueInt)
-	    values[0].Data.value.Data.Int.i += values[intIndex].Data.value.Data.Int.i;
-	  else
-	    values[0].Data.value.Data.Addr.i += values[intIndex].Data.value.Data.Int.i;
-	  --numElem;
-	  memmove (&values[intIndex], &values[intIndex + 1], (numElem - intIndex)*sizeof (Code));
-	}
-      else
-	++intIndex;
-    }
-
-  const bool gotIntAddr = values[0].Data.value.Tag == ValueInt || values[0].Data.value.Tag == ValueAddr;
-  /* Merge same symbols together.  */
-  size_t startSymIndex = gotIntAddr ? 1 : 0;
-  for (size_t i = startSymIndex; i + 1 < numElem; /* */)
-    {
-      assert (values[i].Data.value.Tag == ValueSymbol);
-      for (size_t s = numElem - 1; i < s; --s)
-	{
-	  assert (values[s].Data.value.Tag == ValueSymbol);
-	  if (values[i].Data.value.Data.Symbol.symbol == values[s].Data.value.Data.Symbol.symbol)
-	    {
-	      values[i].Data.value.Data.Symbol.factor += values[s].Data.value.Data.Symbol.factor;
-	      --numElem;
-	      memmove (&values[s], &values[s+1], (numElem - s)*sizeof (Code));
-	    }
-	}
-      if (values[i].Data.value.Data.Symbol.factor == 0)
-	{
-	  /* Symbol got away.  */
-	  --numElem;
-	  memmove (&values[i], &values[i+1], (numElem - i)*sizeof (Code));
-	}
-      else
-	++i;
-    }
-
-  if (numElem == 0)
-    {
-      /* E.g. no constant nor any symbols got left.  */
-      values[0].Data.value = Value_Int (0);
-      return;
-    }
-  if (numElem == 1)
-    return;
-
-  /* Mixture of ValueInt, ValueAddr and ValueSymbol's.  */
-  size_t size = numElem*2 - 1;
-  Code *codeP;
-  if ((codeP = malloc (size*sizeof(Code))) == NULL)
-    errorOutOfMem ();
-
-  size_t size2 = 0;
-  codeP[size2].Tag = CodeValue;
-  codeP[size2].Data.value = values[0].Data.value;
-  ++size2;
-  for (size_t i = 1; i != numElem; ++i)
-    {
-      codeP[size2].Tag = CodeValue;
-      codeP[size2].Data.value = values[i].Data.value;
-      ++size2;
-      codeP[size2].Tag = CodeOperator;
-      codeP[size2].Data.op = Op_add;
-      ++size2;
-    }
-  assert (size == size2);
-
-  values[0].Data.value.Tag = ValueCode;
-  values[0].Data.value.Data.Code.len = size;
-  values[0].Data.value.Data.Code.c = codeP;
-}
-
-static bool
-Code_ExpandCode (const Value *value, int *sp)
-{
-  assert (value->Tag == ValueCode);
-  bool fail = Code_EvalLowest (value->Data.Code.len, value->Data.Code.c, NULL, sp, false);
-#ifdef DEBUG_CODE
-  if (fail)
-    printf ("FAILED\n");
-#endif
-  return fail;
-}
-
 static void
 Code_ExpandCurrAreaSymbolAsAddr (Value *value, ARMWord instrOffset)
 {
-  if (value->Tag == ValueSymbol && value->Data.Symbol.symbol == areaCurrentSymbol)
-    {
-      int factor = value->Data.Symbol.factor;
-      value->Tag = ValueAddr;
-      value->Data.Addr.i = -(factor*instrOffset + 8);
-      value->Data.Addr.r = 15;
-    }
-  else if (value->Tag == ValueCode)
-    for (size_t i = 0; i != value->Data.Code.len; ++i)
-      if (value->Data.Code.c[i].Tag == CodeValue)
-	Code_ExpandCurrAreaSymbolAsAddr (&value->Data.Code.c[i].Data.value, instrOffset);
+  if (value->Tag == ValueSymbol && value->Data.Symbol.symbol == areaCurrentSymbol
+      && value->Data.Symbol.factor == 1)
+    *value = Value_Addr (15, -(instrOffset + 8) + value->Data.Symbol.offset);
 }  
-
-#if 0
-static void
-Code_ExpandCurrAreaSymbolAsOffset (Value *value, int offset)
-{
-  if (value->Tag == ValueSymbol && value->Data.Symbol.symbol == areaCurrentSymbol)
-    {
-      value->Tag = ValueInt;
-      value->Data.Int.i = areaCurrentSymbol->area.info->curIdx;
-    }
-  else if (value->Tag == ValueCode)
-    for (size_t i = 0; i != value->Data.Code.len; ++i)
-      if (value->Data.Code.c[i].Tag == CodeValue)
-	Code_ExpandCurrAreaSymbolAsOffset (&value->Data.Code.c[i].Data.value, offset);
-}
-#endif
-
-static bool
-Code_HasNonAddOperator (int start, int end, const Code *code)
-{
-  for (int i = start; i != end; ++i)
-    {
-      switch (code[i].Tag)
-	{
-	  case CodeValue:
-	    {
-	      if (code[i].Data.value.Tag == ValueCode
-		  && Code_HasNonAddOperator (0,
-					     code[i].Data.value.Data.Code.len,
-					     code[i].Data.value.Data.Code.c))
-		return true;
-	    }
-	    break;
-	  case CodeOperator:
-	    if (code[i].Data.op != Op_add)
-	      return true;
-	    break;
-	}
-    }
-
-  return false;
-}
 
 /**
  * \param sp Empty incrementing stack index.  On successful exit, Stack[sp - 1]
@@ -445,7 +226,7 @@ Code_HasNonAddOperator (int start, int end, const Code *code)
  */
 static bool
 Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
-		 int *sp, bool doNormalize)
+		 int *sp)
 {
 #ifdef DEBUG_CODE
   printf ("vvv Code_EvalLowest\n");
@@ -461,7 +242,7 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
       else
 	{
 	  printf ("[ ");
-	  codePrint (*sp - spStart, &Stack[spStart]);
+	  Code_PrintValueArray (*sp - spStart, &Stack[spStart]);
 	  printf (" ] ");
 	}
       printf (": doing ");
@@ -470,168 +251,103 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
       switch (program[i].Tag)
 	{
 	  case CodeOperator:
+	    {
 #ifdef DEBUG_CODE
-	    printf ("[Operator %s] ", Lex_OperatorAsStr (program[i].Data.op));
+	      printf ("[Operator %s] ", Lex_OperatorAsStr (program[i].Data.op));
 #endif
-	    if (IsUnop (program[i].Data.op))
-	      {
-		assert (spStart < *sp); /* At least one entry on the stack.  */
-		if (Stack[*sp - 1].Tag != CodeValue
-		    || (Stack[*sp - 1].Data.value.Tag == ValueSymbol
-		        && !(program[i].Data.op == Op_size && (Stack[*sp - 1].Data.value.Data.Symbol.symbol->type & (SYMBOL_DEFINED | SYMBOL_AREA)) != 0)
-		        && program[i].Data.op != Op_neg))
-		  {
-		    /* We have an unresolved (or even undefined) symbol
-		       on the stack, or previous operation failed because
-		       of an unresolved (undefined) symbol.  */
-		    Stack[(*sp)++] = program[i];
-		  }
-		else if (!evalUnop (program[i].Data.op, &Stack[*sp - 1].Data.value))
-		  {
+	      if (IsUnop (program[i].Data.op))
+		{
+		  assert (spStart < *sp); /* At least one entry on the stack.  */
+		  if (!evalUnop (program[i].Data.op, &Stack[*sp - 1]))
+		    {
 #ifdef DEBUG_CODE
-		    printf ("FAILED\n");
+		      printf ("FAILED\n");
 #endif
-		    return true;
-		  }
-		/* No stack adjusting is needed, as one operand is consumed,
-		   one result is produced.  */
-	      }
-	    else
-	      {
-		assert (spStart < *sp - 1); /* At least two entries on the stack.  */
+		      return true;
+		    }
+		  /* No stack adjusting is needed, as one operand is consumed,
+		     one result is produced.  */
+		}
+	      else
+		{
+		  assert (spStart < *sp - 1); /* At least two entries on the stack.  */
 
-		Operator op = program[i].Data.op;
-
-		/* Expand ValueCode arguments for Op_add / Op_sub operators
-		   (left).  */
-		if (Stack[*sp - 2].Data.value.Tag == ValueCode
-		    && (op == Op_add || op == Op_sub))
-		  {
-		    Code rvalue = Stack[*sp - 1];
-		    Stack[--(*sp)].Data.value.Tag = ValueIllegal;
-		    Code lvalue = Stack[*sp - 1];
-		    Stack[--(*sp)].Data.value.Tag = ValueIllegal;
-		    bool fail = Code_ExpandCode (&lvalue.Data.value, sp);
-		    valueFree (&lvalue.Data.value);
-		    Stack[(*sp)++] = rvalue;
-		    if (fail)
-		      {
+		  Operator op = program[i].Data.op;
+		  if (!evalBinop (op, &Stack[*sp - 2], &Stack[*sp - 1]))
+		    {
 #ifdef DEBUG_CODE
-			  printf ("FAILED\n");
+		      printf ("FAILED\n");
 #endif
-			  return true;
-		      }
-		  }
-
-		/* Pre-normalize subtraction into addition.  */
-		if (Stack[*sp - 1].Tag == CodeValue && op == Op_sub)
-		  {
-		    switch (Stack[*sp - 1].Data.value.Tag)
-		      {
-			case ValueInt:
-			  Stack[*sp - 1].Data.value.Data.Int.i = -Stack[*sp - 1].Data.value.Data.Int.i;
-			  op = Op_add;
-			  break;
-			case ValueFloat:
-			  Stack[*sp - 1].Data.value.Data.Float.f = -Stack[*sp - 1].Data.value.Data.Float.f;
-			  op = Op_add;
-			  break;
-			case ValueSymbol:
-			  Stack[*sp - 1].Data.value.Data.Symbol.factor = -Stack[*sp - 1].Data.value.Data.Symbol.factor;
-			  op = Op_add;
-			  break;
-			case ValueCode:
-			  if (!evalUnop (Op_neg, &Stack[*sp - 1].Data.value))
-			    {
-#ifdef DEBUG_CODE
-			      printf ("FAILED\n");
-#endif
-			      return true;
-			    }
-			  op = Op_add;
-			  break;
-			default:
-			  break;
-		      }
-		  }
+		      return true;
+		    }
+		  /* Stack adjusting by one, as two operands are consumed, one
+		     result is produced.  */
+		  valueFree (&Stack[*sp - 1]);
+		  --(*sp);
+		}
+	      break;
+	    }
 		
-		/* Expand ValueCode arguments for Op_add / Op_sub operators
-		   (right).  */
-		if (Stack[*sp - 1].Data.value.Tag == ValueCode
-		    && (op == Op_sub || op == Op_add))
-		  {
-		    Code rvalue = Stack[*sp - 1];
-		    Stack[--(*sp)].Data.value.Tag = ValueIllegal;
-		    bool fail = Code_ExpandCode (&rvalue.Data.value, sp);
-		    valueFree (&rvalue.Data.value);
-		    if (fail)
-		      {
-#ifdef DEBUG_CODE
-			printf ("FAILED\n");
-#endif
-			return true;
-		      }
-		  }
-		/* If one of the operands is an undefined symbol, bail out.
-		   Also if we have an operator as operand, bail out as well.  */
-		if (Stack[*sp - 2].Tag == CodeValue
-		    && Stack[*sp - 2].Data.value.Tag != ValueSymbol
-		    && Stack[*sp - 1].Tag == CodeValue
-		    && Stack[*sp - 1].Data.value.Tag != ValueSymbol)
-		  {
-		    if (!evalBinop (op,
-				    &Stack[*sp - 2].Data.value,
-				    &Stack[*sp - 1].Data.value))
-		      {
-#ifdef DEBUG_CODE
-			  printf ("FAILED\n");
-#endif
-			  return true;
-		      }
-		    /* Stack adjusting by one, as two operands are consumed, one
-		       result is produced.  */
-		    valueFree (&Stack[*sp - 1].Data.value);
-		    --(*sp);
-		  }
-		else
-		  {
-		    const Code code =
-		      {
-			.Tag = CodeOperator,
-			.Data.op = op
-		      };
-		    Stack[(*sp)++] = code;
-		  }
-	      }
-	    break;
-
 	  case CodeValue:
 	    {
-	      const Value *valueP = &program[i].Data.value;
+	      Value value = program[i].Data.value;
 #ifdef DEBUG_CODE
 	      printf ("[Push value: ");
-	      valuePrint (valueP);
+	      valuePrint (&value);
 	      printf ("] ");
 #endif
-	      /* Resolve the symbol when defined and when it is not an
-	         absolute AREA symbol.
-		 Don't do this when the next program element is :SIZE:
-	         either.  */
+	      /* Resolve a defined symbol.  */
 	      bool nextIsOpSize = i + 1 != size
 				    && program[i + 1].Tag == CodeOperator
 				    && program[i + 1].Data.op == Op_size;
 	      /* FIXME: this can probably loop forever: label1 -> label2 -> label1 */
-	      while (valueP->Tag == ValueSymbol
-		     && (valueP->Data.Symbol.symbol->type & (SYMBOL_DEFINED | SYMBOL_AREA))
-	             && ((valueP->Data.Symbol.symbol->type & SYMBOL_AREA) == 0 || (valueP->Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) != 0)
-		     && (!nextIsOpSize || valueP->Data.Symbol.symbol->value.Tag == ValueSymbol))
-		valueP = &valueP->Data.Symbol.symbol->value;
-	      if (Stack[*sp].Tag != CodeValue)
+	      while (value.Tag == ValueSymbol /* Only replace symbols... */
+		     && ((value.Data.Symbol.symbol->type & SYMBOL_DEFINED) != 0
+			 || ((value.Data.Symbol.symbol->type & SYMBOL_AREA) != 0 && (value.Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) != 0))
+	             && !nextIsOpSize) /* ...and it is not ? operator.  */
 		{
-		  Stack[*sp].Tag = CodeValue;
-		  Stack[*sp].Data.value.Tag = ValueIllegal;
+		  int offset = value.Data.Symbol.offset;
+		  int factor = value.Data.Symbol.factor;
+		  const Value *newValueP = &value.Data.Symbol.symbol->value;
+		  if (offset != 0)
+		    {
+		      switch (newValueP->Tag)
+			{
+			  case ValueInt:
+			    value = Value_Int (factor * newValueP->Data.Int.i + offset);
+			    break;
+			  case ValueFloat:
+			    value = Value_Float (factor * newValueP->Data.Float.f + offset);
+			    break;
+		          case ValueAddr:
+			    {
+			      if (factor != 1)
+				{
+#ifdef DEBUG_CODE
+				  printf ("FAILED\n");
+#endif
+				  return true;
+				}
+			      value = Value_Addr (newValueP->Data.Addr.r, newValueP->Data.Addr.i + offset);
+			      break;
+			    }
+			  case ValueSymbol:
+			    value = Value_Symbol (newValueP->Data.Symbol.symbol, factor * newValueP->Data.Symbol.factor, factor * newValueP->Data.Symbol.offset + offset);
+			    break;
+			  default:
+#ifdef DEBUG_CODE
+			    printf ("FAILED\n");
+#endif
+			    return true;
+			}
+		    }
+		  else
+		    {
+		      assert (factor == 1 && "Code missing."); /* FIXME: should go */
+		      value = *newValueP;
+		    }
 		}
-	      Value_Assign (&Stack[*sp].Data.value, valueP);
+	      Value_Assign (&Stack[*sp], &value);
 	      ++(*sp);
 	    }
 	    break;
@@ -652,31 +368,12 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
   else
     {
       printf ("[ ");
-      codePrint (*sp - spStart, &Stack[spStart]);
+      Code_PrintValueArray (*sp - spStart, &Stack[spStart]);
       printf (" ] ");
     }
   printf ("\n");
 #endif
-  
-  /* Check if we only have Op_add operators left on our stack.  If not,
-     return what we've already calculated.  */
-  if (Code_HasNonAddOperator (spStart, *sp, Stack))
-    {
-      /* Return ValueCode object.  */
-      if (Stack[spStart].Tag == CodeValue
-          && Stack[spStart].Data.value.Tag == ValueCode
-          && spStart + 1 == *sp)
-	return false;
-      const Value code = Value_Code (*sp - spStart, &Stack[spStart]);
-      if (Stack[spStart].Tag == CodeValue)
-	valueFree (&Stack[spStart].Data.value);
-      else
-	Stack[spStart].Tag = CodeValue;
-      Stack[spStart].Data.value = code;
-      *sp = spStart + 1;
-      return false;
-    }
-
+    
   if (instrOffsetP != NULL)
     {
 #ifdef DEBUG_CODE
@@ -684,108 +381,17 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 #endif
       /* Search for all current AREA symbols and convert them into ValueAddr.  */
       for (int s = spStart; s != *sp; ++s)
-	{
-	  if (Stack[s].Tag != CodeValue)
-	    continue;
-	  Code_ExpandCurrAreaSymbolAsAddr (&Stack[s].Data.value, *instrOffsetP);
-	}
+	Code_ExpandCurrAreaSymbolAsAddr (&Stack[s], *instrOffsetP);
     }
-  
-  if (doNormalize)
-    {
-      /* Sum all Symbols, ValueInt's and ValueAddr's.  If that's still more
-         then one entry, convert this to a ValueCode object, else that specific
-         Value (ValueSymbol, ValueInt).  */
-      /* Firstly, expand all ValueCode objects.  */
-      for (int s = spStart; s != *sp; ++s)
-	{
-	  if (Stack[s].Tag != CodeValue)
-	    continue;
-	  if (Stack[s].Data.value.Tag == ValueCode)
-	    {
-	      Code code = Stack[s];
-	      memmove (&Stack[s], &Stack[s + 1], (*sp - (s + 1))*sizeof (Code));
-	      --(*sp);
-	      Stack[*sp].Tag = CodeValue;
-	      Stack[*sp].Data.value.Tag = ValueIllegal;
-	      if (Code_ExpandCode (&code.Data.value, sp))
-		{
+   
 #ifdef DEBUG_CODE
-		  printf ("FAILED\n");
-#endif
-		  return true;
-		}
-	      valueFree (&code.Data.value);
-	      --s;
-	    }
-	}
-      /* Secondly, skip all operators Op_add.  */
-      int w = spStart;
-      for (int r = w; r != *sp; ++r)
-	{
-	  if (Stack[r].Tag == CodeOperator)
-	    {
-	      assert (Stack[r].Data.op == Op_add);
-	      continue;
-	    }
-	  if (w != r)
-	    Stack[w] = Stack[r];
-	  ++w;
-	}
-      const int newSP = w;
-      for (/* */; w != *sp; ++w)
-	{
-	  if (Stack[w].Tag == CodeValue)
-	    Stack[w].Data.value.Tag = ValueIllegal;
-	}
-      *sp = newSP;
-      /* Thirdly, normalize all expanded Value objects.  */
-      if (spStart + 1 < *sp)
-	{
-	  Code_Normalize (&Stack[spStart], *sp - spStart);
-	  *sp = spStart + 1;
-	}
-    }
-  
-#ifdef DEBUG_CODE
-  printf ("Final stack result: ");
-  codePrint (*sp - spStart, &Stack[spStart]);
-  printf ("\n^^^\n");
+  printf ("Final stack result: [ ");
+  Code_PrintValueArray (*sp - spStart, &Stack[spStart]);
+  printf ("]\n^^^\n");
 #endif
     
   return false;
 }
-
-#if 0
-void
-Code_Assign (Code *dst, const Code *src)
-{
-  if (dst == src)
-    return;
-
-  if (dst->Tag == CodeValue)
-    {
-      if (src->Tag == CodeValue)
-	Value_Assign (&dst->Data.value, &src->Data.value);
-      else
-	{
-	  valueFree (&dst->Data.value);
-	  *dst = *src;
-	}
-    }
-  else
-    {
-      if (src->Tag == CodeValue)
-	{
-	  dst->Tag = CodeValue;
-	  dst->Data.value.Tag = ValueIllegal;
-	  Value_Assign (&dst->Data.value, &src->Data.value);
-	}
-      else
-	*dst = *src;
-    }
-}
-#endif
 
 /**
  * \param instrOffsetP It points to the instruction offset
@@ -809,7 +415,7 @@ codeEval (ValueTag legal, const ARMWord *instrOffsetP)
  * Use Value_Assign() to keep a non-temporary copy of it.
  */
 const Value *
-codeEvalLow (ValueTag legal, size_t size, Code *program,
+codeEvalLow (ValueTag legal, size_t size, const Code *program,
 	     const ARMWord *instrOffsetP)
 {
 #ifdef DEBUG_CODE
@@ -819,40 +425,45 @@ codeEvalLow (ValueTag legal, size_t size, Code *program,
 #endif
 
   int sp = 0;
-  if (size == 0 || Code_EvalLowest (size, program, instrOffsetP, &sp, true))
+  if (size == 0 || Code_EvalLowest (size, program, instrOffsetP, &sp))
     {
-      Stack[0].Tag = CodeValue;
-      Stack[0].Data.value.Tag = ValueIllegal;
+      if (legal & ValueCode)
+	{
+	  const Value valueCode = Value_Code (size, program);
+	  Value_Assign (&Stack[0], &valueCode);
+	}
+      else
+	Stack[0].Tag = ValueIllegal;
     }
   else
     assert (sp == 1);
 
-  if (!(Stack[0].Data.value.Tag & legal))
+  if (!(Stack[0].Tag & legal))
     {
       if (option_autocast
-          && (legal & ValueFloat) && Stack[0].Data.value.Tag == ValueInt)
+          && (legal & ValueFloat) && Stack[0].Tag == ValueInt)
 	{
-	  ARMFloat f = Stack[0].Data.value.Data.Int.i;
+	  ARMFloat f = (ARMFloat) Stack[0].Data.Int.i;
 	  if (option_fussy)
-	    error (ErrorInfo, "Changing integer %d to float %1.1f", Stack[0].Data.value.Data.Int.i, f);
-	  Stack[0].Data.value.Tag = ValueFloat;
-	  Stack[0].Data.value.Data.Float.f = f;
+	    error (ErrorInfo, "Changing integer %d to float %1.1f", Stack[0].Data.Int.i, f);
+	  Stack[0].Tag = ValueFloat;
+	  Stack[0].Data.Float.f = f;
 	}
       else
 	{
 #ifdef DEBUG_CODE
-	  printf ("XXX codeEvalLow(): resulting object (tag 0x%x) is not wanted (allowed tags 0x%x).\n", Stack[0].Data.value.Tag, legal);
+	  printf ("XXX codeEvalLow(): resulting object (tag 0x%x) is not wanted (allowed tags 0x%x).\n", Stack[0].Tag, legal);
 #endif
-	  Stack[0].Data.value.Tag = ValueIllegal;
+	  Stack[0].Tag = ValueIllegal;
 	}
     }
 #ifdef DEBUG_CODE
   printf ("--- codeEvalLow() result: [");
-  valuePrint (&Stack[0].Data.value);
+  valuePrint (&Stack[0]);
   printf ("]\n\n");
 #endif
 
-  return &Stack[0].Data.value;
+  return &Stack[0];
 }
 
 
@@ -1000,4 +611,17 @@ codePrint (size_t size, const Code *program)
 	}
     }
 }
+
+#  ifdef DEBUG_CODE
+static void
+Code_PrintValueArray (size_t size, const Value *value)
+{
+  for (size_t i = 0; i != size; ++i)
+    {
+      valuePrint (&value[i]);
+      if (i + 1 != size)
+	putc (' ', stdout);
+    }
+}
+#  endif
 #endif
