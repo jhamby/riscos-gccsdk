@@ -1,6 +1,6 @@
 @ Chunk 2 stub routines for linking with the SharedCLibrary
 @ Copyright (c) 1997-2005 Nick Burrett
-@ Copyright (c) 2005-2010 UnixLib Developers
+@ Copyright (c) 2005-2011 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -56,17 +56,17 @@ clib_vectors_begin:
 
 	@ Entry 4
 	DefSCLFncS	__rt_stkovf_split_small
-	.global	x$stack_overflow
+	.global		x$stack_overflow
 x$stack_overflow = __rt_stkovf_split_small
 
 	@ Entry 5
 	DefSCLFncS	__rt_stkovf_split_big
-	.global	x$stack_overflow_1
+	.global		x$stack_overflow_1
 x$stack_overflow_1 = __rt_stkovf_split_big
 
 	@ Entry 6
 	DefSCLFncS	__rt_udiv
-	.global	x$udivide
+	.global		x$udivide
 x$udivide = __rt_udiv
 
 	@ Entry 7
@@ -74,12 +74,12 @@ x$udivide = __rt_udiv
 
 	@ Entry 8
 	DefSCLFncS	__rt_sdiv
-	.global	x$divide
+	.global		x$divide
 x$divide = __rt_sdiv
 
 	@ Entry 9
 	DefSCLFncS	__rt_divtest
-	.global	x$divtest
+	.global		x$divtest
 x$divtest = __rt_divtest
 
 	@ Entry 10
@@ -90,32 +90,32 @@ x$divtest = __rt_divtest
 
 	@ Entry 12
 	DefSCLFncS	__rt_rd1chk
-	.global	_rd1chk
+	.global		_rd1chk
 _rd1chk = __rt_rd1chk
 
 	@ Entry 13
 	DefSCLFncS	__rt_rd2chk
-	.global	_rd2chk
+	.global		_rd2chk
 _rd2chk = __rt_rd2chk
 
 	@ Entry 14
 	DefSCLFncS	__rt_rd4chk
-	.global	_rd4chk
+	.global		_rd4chk
 _rd4chk = __rt_rd4chk
 
 	@ Entry 15
 	DefSCLFncS	__rt_wR1chk
-	.global	_wR1chk
+	.global		_wR1chk
 _wR1chk = __rt_wR1chk
 
 	@ Entry 16
 	DefSCLFncS	__rt_wR2chk
-	.global	_wR2chk
+	.global		_wR2chk
 _wR2chk = __rt_wR2chk
 
 	@ Entry 17
 	DefSCLFncS	__rt_wR4chk
-	.global	_wR4chk
+	.global		_wR4chk
 _wR4chk = __rt_wR4chk
 
 	@ Entry 18
@@ -197,9 +197,9 @@ _wR4chk = __rt_wR4chk
 	DefSCLFnc	strncat
 
 	@ Entry 44
-	@ int memcmp(const void *s1, const void *s2, size_t n);
+	@ int memcmp (const void *s1, const void *s2, size_t n);
 	DefSCLFnc	memcmp
-	@ int bcmp(const void *s1, const void *s2, size_t n);
+	@ int bcmp (const void *s1, const void *s2, size_t n);
 	DefSCLFncAlias	bcmp memcmp
 
 	@ Entry 45
@@ -364,17 +364,17 @@ _wR4chk = __rt_wR4chk
 
 	@ Entry 97
 	DefSCLFnc	vprintf
-	.global	__gcc_vprintf
+	.global		__gcc_vprintf
 __gcc_vprintf = vprintf
 
 	@ Entry 98
 	DefSCLFnc	vfprintf
-	.global	__gcc_vfprintf
+	.global		__gcc_vfprintf
 __gcc_vfprintf = vfprintf
 
 	@ Entry 99
 	DefSCLFnc	vsprintf
-	.global	__gcc_vsprintf
+	.global		__gcc_vsprintf
 __gcc_vsprintf = vsprintf
 
 	@ Entry 100
@@ -429,18 +429,20 @@ __gcc_vsprintf = vsprintf
 	DefSCLFnc	fgetpos
 
 	@ Entry 117
-	@ int fseek(FILE *stream, long offset, int whence);
+	@ int fseek (FILE *stream, long offset, int whence);
 	DefSCLFnc	fseek
-	@ int fseeko(FILE *stream, off_t offset, int whence);
+	@ int fseeko (FILE *stream, off_t offset, int whence);
+	@ without #define _FILE_OFFSET_BITS 64
 	DefSCLFncAlias	fseeko fseek
 
 	@ Entry 118
 	DefSCLFnc	fsetpos
 
 	@ Entry 119
-	@ long ftell(FILE *stream);
+	@ long ftell (FILE *stream);
 	DefSCLFnc	ftell
-	@ off_t ftello(FILE *stream);
+	@ off_t ftello (FILE *stream);
+	@ without #define _FILE_OFFSET_BITS 64
 	DefSCLFncAlias	ftello ftell
 
 	@ Entry 120
@@ -482,135 +484,135 @@ __gcc_vsprintf = vsprintf
 	DefSCLFncS	__scl_redirected_longjmp
 
 	@ Entry 132
-	@ double acos(double x);
+	@ double acos (double x);
 	DefSCLFnc	acos
 	@ long double acosl(long double x);
 	DefSCLFncAlias	acosl acos
 
 	@ Entry 133
-	@ double asin(double x);
+	@ double asin (double x);
 	DefSCLFnc	asin
 	@ long double asinl(long double x);
 	DefSCLFncAlias	asinl asin
 
 	@ Entry 134
-	@ double atan(double x);
+	@ double atan (double x);
 	DefSCLFnc	atan
 	@ long double atanl(long double x);
 	DefSCLFncAlias	atanl atan
 
 	@ Entry 135
-	@ double atan2(double y, double x);
+	@ double atan2 (double y, double x);
 	DefSCLFnc	atan2
 	@ long double atan2l(long double y, long double x);
 	DefSCLFncAlias	atan2l atan2
 
 	@ Entry 136
-	@ double cos(double x);
+	@ double cos (double x);
 	DefSCLFnc	cos
-	@ long double cosl(long double x);
+	@ long double cosl (long double x);
 	DefSCLFncAlias	cosl cos
 
 	@ Entry 137
-	@ double sin(double x);
+	@ double sin (double x);
 	DefSCLFnc	sin
-	@ long double sinl(long double x);
+	@ long double sinl (long double x);
 	DefSCLFncAlias	sinl sin
 
 	@ Entry 138
-	@ double tan(double x);
+	@ double tan (double x);
 	DefSCLFnc	tan
-	@ long double tanl(long double x);
+	@ long double tanl (long double x);
 	DefSCLFncAlias	tanl tan
 
 	@ Entry 139
-	@ double cosh(double x);
+	@ double cosh (double x);
 	DefSCLFnc	cosh
-	@ long double coshl(long double x);
+	@ long double coshl (long double x);
 	DefSCLFncAlias	coshl cosh
 
 	@ Entry 140
-	@ double sinh(double x);
+	@ double sinh (double x);
 	DefSCLFnc	sinh
-	@ long double sinhl(long double x);
+	@ long double sinhl (long double x);
 	DefSCLFncAlias	sinhl sinh
 
 	@ Entry 141
-	@ double tanh(double x);
+	@ double tanh (double x);
 	DefSCLFnc	tanh
-	@ long double tanhl(long double x);
+	@ long double tanhl (long double x);
 	DefSCLFncAlias	tanhl tanh
 
 	@ Entry 142
-	@ double exp(double x);
+	@ double exp (double x);
 	DefSCLFnc	exp
-	@ long double expl(long double x);
+	@ long double expl (long double x);
 	DefSCLFncAlias	expl exp
 
 	@ Entry 143
-	@ double frexp(double x, int *exp);
+	@ double frexp (double x, int *exp);
 	DefSCLFnc	frexp
-	@ long double frexpl(long double x, int *exp);
+	@ long double frexpl (long double x, int *exp);
 	DefSCLFncAlias	frexpl frexp
 
 	@ Entry 144
-	@ double ldexp(double x, int exp);
+	@ double ldexp (double x, int exp);
 	DefSCLFnc	ldexp
-	@ long double ldexpl(long double x, int exp);
+	@ long double ldexpl (long double x, int exp);
 	DefSCLFncAlias	ldexpl ldexp
 
 	@ Entry 145
-	@ double log(double x);
+	@ double log (double x);
 	DefSCLFnc	log
-	@ long double logl(long double x);
+	@ long double logl (long double x);
 	DefSCLFncAlias	logl log
 
 	@ Entry 146
-	@ double log10(double x);
+	@ double log10 (double x);
 	DefSCLFnc	log10
-	@ long double log10l(long double x);
+	@ long double log10l (long double x);
 	DefSCLFncAlias	log10l log10
 
 	@ Entry 147
-	@ double modf(double x, double *iptr);
+	@ double modf (double x, double *iptr);
 	DefSCLFnc	modf
-	@ long double modfl(long double x, long double *iptr);
+	@ long double modfl (long double x, long double *iptr);
 	DefSCLFncAlias	modfl modf
 
 	@ Entry 148
-	@ double pow(double x, double y);
+	@ double pow (double x, double y);
 	DefSCLFnc	pow
-	@ long double powl(long double x, long double y);
+	@ long double powl (long double x, long double y);
 	DefSCLFncAlias	powl pow
 
 	@ Entry 149
-	@ double sqrt(double x);
+	@ double sqrt (double x);
 	DefSCLFnc	sqrt
-	@ long double sqrtl(long double x);
+	@ long double sqrtl (long double x);
 	DefSCLFncAlias	sqrtl sqrt
 
 	@ Entry 150
-	@ double ceil(double x);
+	@ double ceil (double x);
 	DefSCLFnc	ceil
-	@ long double ceill(long double x);
+	@ long double ceill (long double x);
 	DefSCLFncAlias	ceill ceil
 
 	@ Entry 151
-	@ double fabs(double x);
+	@ double fabs (double x);
 	DefSCLFnc	fabs
-	@ long double fabsl(long double x);
+	@ long double fabsl (long double x);
 	DefSCLFncAlias	fabsl fabs
 
 	@ Entry 152
-	@ double floor(double x);
+	@ double floor (double x);
 	DefSCLFnc	floor
-	@ long double floorl(long double x);
+	@ long double floorl (long double x);
 	DefSCLFncAlias	floorl floor
 
 	@ Entry 153
-	@ double fmod(double x, double y);
+	@ double fmod (double x, double y);
 	DefSCLFnc	fmod
-	@ long double fmodl(long double x, long double y);
+	@ long double fmodl (long double x, long double y);
 	DefSCLFncAlias	fmodl fmod
 
 	@ Entry 154
@@ -692,7 +694,7 @@ __gcc_vsprintf = vsprintf
 	DefSCLFncS	_clib_finalisemodule
 
 	@ Entry 180
-	@ const char *_clib_version(void);
+	@ const char *_clib_version (void);
 	DefSCLFncS	_clib_version
 
 	@ Entry 181
@@ -702,22 +704,22 @@ __gcc_vsprintf = vsprintf
 	DefSCLFnc	tmpnam
 
 	@ Entry 183
-	@ int _swi(int swi_number, unsigned int flags, ...);
+	@ int _swi (int swi_number, unsigned int flags, ...);
 	DefSCLFncS	_swi
 
 	@ Entry 184
-	@ _kernel_oserror *_swix(int swi_number, unsigned int mask, ...);
+	@ _kernel_oserror *_swix (int swi_number, unsigned int mask, ...);
 	DefSCLFncS	_swix
 
 clib_vectors_end:
 	.space	clib_vectors_end - clib_vectors_begin
 	.size	clib_vectors, . - clib_vectors
 
-	.global	__SIG_IGN
+	.global		__SIG_IGN
 .set	__SIG_IGN, 0xfffffffd
-	.global	__SIG_ERR
+	.global		__SIG_ERR
 .set	__SIG_ERR, 0xfffffffe
-	.global	__SIG_DFL
+	.global		__SIG_DFL
 .set	__SIG_DFL, 0xffffffff
 
 	.section .bss.riscos.libscl.chunkstub.id02,"w",%nobits
@@ -725,22 +727,22 @@ clib_vectors_end:
 clib_statics_begin:
 	.space 0xb48
 clib_statics_end:
-	.global	errno
+	.global		errno
 .set	errno, clib_statics_begin + 0x0000
-	.global	__errno
+	.global		__errno
 .set	__errno, clib_statics_begin + 0x0000
 	@ stdin  at clib_statics_begin + 0x0004
 	@ stdout at clib_statics_begin + 0x002c
 	@ stderr at clib_statics_begin + 0x0054
-	.global	__iob
+	.global		__iob
 .set	__iob, clib_statics_begin + 0x0004
-	.global	_interrupts_off
+	.global		_interrupts_off
 .set	_interrupts_off, clib_statics_begin + 0x0284
 .set	_stub__saved_interrupt, clib_statics_begin + 0x0288
 .set	_stub_ctype_eof, clib_statics_begin + 0x028c
-	.global	__ctype
+	.global		__ctype
 .set	__ctype, clib_statics_begin + 0x0290
-	.global	__huge_val
+	.global		__huge_val
 .set	__huge_val, clib_statics_begin + 0x0390
 .set	_stub_app_space_end, clib_statics_begin + 0x0398
 .set	_stub_stack_o_flag, clib_statics_begin + 0x069c

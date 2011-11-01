@@ -1,5 +1,5 @@
 /* lseek (), lseek64 ()
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -11,8 +11,8 @@
 #include <internal/unix.h>
 #include <internal/fd.h>
 
-off_t
-lseek (int fd, off_t offset, int whence)
+__off_t
+lseek (int fd, __off_t offset, int whence)
 {
   PTHREAD_UNSAFE
 
@@ -27,8 +27,17 @@ lseek (int fd, off_t offset, int whence)
 		      (file_desc, offset, whence));
 }
 
-off_t
-lseek64 (int fd, off_t offset, int whence)
+__off64_t
+lseek64 (int fd, __off64_t offset, int whence)
 {
-  return lseek (fd, offset, whence);
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
+  /* Check if the __off64_t offset fits in a __off_t one.  Further
+     checking will be done in lseek itself.  */
+  if (offset != (__off64_t)(__off_t)offset)
+    return __set_errno (EOVERFLOW);
+#endif
+
+  return lseek (fd, (__off_t) offset, whence);
 }

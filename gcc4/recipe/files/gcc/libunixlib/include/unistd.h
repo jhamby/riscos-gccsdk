@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 2.10: Symbolic Constants <unistd.h>.
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef __UNISTD_H
@@ -86,8 +86,16 @@ typedef __uid_t uid_t;
 #endif
 
 #ifndef __off_t_defined
+# ifndef __USE_FILE_OFFSET64
 typedef __off_t off_t;
+# else
+typedef __off64_t off_t;
+# endif
 #define __off_t_defined
+#endif
+#if defined __USE_LARGEFILE64 && !defined __off64_t_defined
+typedef __off64_t off64_t;
+# define __off64_t_defined
 #endif
 
 #ifndef __useconds_t_defined
@@ -492,6 +500,20 @@ extern int lockf64 (int __fd, int __cmd, __off64_t __len);
 # endif
 #endif /* Use misc and F_LOCK not already defined.  */
 #endif /* __TARGET_SCL__ */
+
+
+#ifdef __USE_GNU
+
+/* Evaluate EXPRESSION, and repeat as long as it returns -1 with `errno'
+   set to EINTR.  */
+
+# define TEMP_FAILURE_RETRY(expression) \
+  (__extension__							      \
+    ({ long int __result;						      \
+       do __result = (long int) (expression);				      \
+       while (__result == -1L && errno == EINTR);			      \
+       __result; }))
+#endif
 
 
 #if defined __USE_BSD || defined __USE_UNIX98

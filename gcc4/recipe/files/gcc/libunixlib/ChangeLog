@@ -1,3 +1,29 @@
+Tue Nov  1 21:42:53 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/ul_lseek.c (lseek): Change off_t into __off_t.
+	(lseek64): Change off_t into __off64_t.  Add check on __off64_t
+	into __off_t overflow.
+	* scl/chunkid05.s: Remove wrong entry after scalbln.  Add entries
+	from isblank to tmpfile64.
+	* include/unixlib/buildoptions.h (__UNIXLIB_LFS64_SUPPORT): Add.
+	* include/unixlib/types.h (__off_t): Fix for UnixLib case.
+	(__off64_t): Define as __quad_t, not __loff_t.
+	* include/sys/types.h (__loff_t): Remove.
+	* include/sys/stat.h (off_t): Support __USE_FILE_OFFSET64 and
+	__USE_LARGEFILE64.
+	* include/stdio.h (off_t, fpos_t): Support __USE_FILE_OFFSET64 and
+	__USE_LARGEFILE64.
+	(fopen, freopen): Likewise.
+	(fgetpos, fsetpos): Likewise.
+	(ftell, fseek): Likewise.
+	(tmpfile): Likewise.
+	(TEMP_FAILURE_RETRY): Move to unistd.h.
+	(fopen64, freopen64, fgetpos64, fsetpos64, ftello, fseeko,
+	ftello64, fseeko64, tmpfile64): Add.
+	* include/unistd.h (off_t): Support __USE_FILE_OFFSET64 and
+	__USE_LARGEFILE64.
+	(TEMP_FAILURE_RETRY): Add (changed version from stdio.h).
+
 Sun Oct 30 20:34:23 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/errno.h (EILSEQ, EOVERFLOW, EFBIG): Reassigned values for

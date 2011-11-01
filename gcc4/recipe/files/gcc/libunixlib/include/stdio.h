@@ -1,7 +1,7 @@
 /*
  * ANSI Standard 4.9: Input/Output <stdio.h>.
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef __STDIO_H
@@ -54,11 +54,36 @@ typedef struct __iobuf __FILE;
 #  include <pthread.h>
 #endif
 
-__BEGIN_NAMESPACE_STD
-typedef __off_t fpos_t;
-__END_NAMESPACE_STD
+#ifdef __USE_XOPEN2K8
+# ifndef __off_t_defined
+# ifndef __USE_FILE_OFFSET64
+typedef __off_t off_t;
+# else
+typedef __off64_t off_t;
+# endif
+# define __off_t_defined
+# endif
+# if defined __USE_LARGEFILE64 && !defined __off64_t_defined
+typedef __off64_t off64_t;
+# define __off64_t_defined
+# endif
 
-#define TEMP_FAILURE_RETRY(x) x
+# ifndef __ssize_t_defined
+typedef __ssize_t ssize_t;
+# define __ssize_t_defined
+# endif
+#endif
+
+__BEGIN_NAMESPACE_STD
+#ifndef __USE_FILE_OFFSET64
+typedef __off_t fpos_t;
+#else
+typedef __off64_t fpos_t;
+#endif
+__END_NAMESPACE_STD
+#ifdef __USE_LARGEFILE64
+typedef __off64_t fpos64_t;
+#endif
 
 /* Maximum number of files that can be open at once.
    Keep in sync with <limits.h>, _POSIX_OPEN_MAX.  */
@@ -113,7 +138,7 @@ struct __iobuf
   /* Following fields are internal.  */
   unsigned char *__base;
   int __file;
-  long __pos;
+  long __unused;
   int __bufsiz;
   int __signature;
   struct __extradata *__extrap;
@@ -237,10 +262,11 @@ extern void clearerr_unlocked (FILE *__stream) __THROW;
    This function is a cancellation point.  */
 extern void perror (const char *__s);
 
+#ifndef __USE_FILE_OFFSET64
 /* Open a file and create a new stream for it.
    This function is a cancellation point.  */
 extern FILE *fopen (const char *__restrict __filename,
-		    const char *__restrict __mode);
+		    const char *__restrict __mode) __wur;
 
 /* Close the stream 'stream', ignoring any errors. Then 'filename'
    is opened with 'mode' with the same stream object 'stream'.
@@ -249,8 +275,32 @@ extern FILE *fopen (const char *__restrict __filename,
    This function is a cancellation point.  */
 extern FILE *freopen (const char *__restrict __filename,
 		      const char *__restrict __mode,
-		      FILE *__restrict __stream);
+		      FILE *__restrict __stream) __wur;
+#else
+# ifdef __REDIRECT
+extern FILE *__REDIRECT (fopen, (const char *__restrict __filename,
+				 const char *__restrict __modes), fopen64)
+  __wur;
+extern FILE *__REDIRECT (freopen, (const char *__restrict __filename,
+				   const char *__restrict __modes,
+				   FILE *__restrict __stream), freopen64)
+  __wur;
+# else
+#  define fopen fopen64
+#  define freopen freopen64
+# endif
+#endif
+__END_NAMESPACE_STD
 
+#ifdef __USE_LARGEFILE64
+extern FILE *fopen64 (const char *__restrict __filename,
+		      const char *__restrict __modes) __wur;
+extern FILE *freopen64 (const char *__restrict __filename,
+			const char *__restrict __modes,
+			FILE *__restrict __stream) __wur;
+#endif
+
+__BEGIN_NAMESPACE_STD
 /* Cause 'stream' to be closed (or when 'stream' is NULL, all streams to
    be closed) and the connection to the corresponding file to be broken.
    All buffered output is written and buffered input is discarded.
@@ -299,19 +349,9 @@ extern int setvbuf (FILE *__restrict __stream, char *__restrict __buf,
    If 'c' is EOF, ungetc does nothing and just returns EOF.
    This function is a cancellation point.  */
 extern int ungetc (int __c, FILE *__stream);
+__END_NAMESPACE_STD
 
-/* Store the value of the file position indicator for the
-   stream 'stream' in the fpos_t object pointed to by 'position'.
-   fgetpos returns zero on success.
-   This function is a cancellation point.  */
-extern int fgetpos (FILE *__stream, fpos_t *__pos);
-
-/* Set the file position indicator for the stream 'stream' to the
-   position 'position', which must be set by a previous call to
-   fgetpos.
-   This function is a cancellation point.  */
-extern int fsetpos (FILE *__stream, const fpos_t *__pos);
-
+__BEGIN_NAMESPACE_STD
 /* Change the file position of the stream 'stream'. 'whence'
    must be one of the constants SEEK_SET, SEEK_CUR, SEEK_END,
    to indicate the meaning of the relative 'offset'.
@@ -321,7 +361,7 @@ extern int fseek (FILE *__stream, long int __off, int __whence);
 /* Return the current file position of the stream 'stream'.
    If a failure occurs, -1 is returned.
    This function is a cancellation point.  */
-extern long ftell (FILE *__stream) __wur;
+extern long int ftell (FILE *__stream) __wur;
 
 /* Positions the stream 'stream' at the beginning of the file.
    Equivalent to fseek (stream, 0, SEEK_SET).
@@ -330,13 +370,61 @@ extern void rewind (FILE *__stream);
 __END_NAMESPACE_STD
 
 #if defined __USE_LARGEFILE || defined __USE_XOPEN2K
+# ifndef __USE_FILE_OFFSET64
 /* Seek to a position in given stream.
    This function is a cancellation point.  */
 extern int fseeko (FILE *__stream, __off_t __off, int __whence);
 
 /* Get the current position of stream.
    This function is a cancellation point.  */
-extern __off_t ftello (FILE *__stream) __nonnull ((1)) __wur;
+extern __off_t ftello (FILE *__stream) __wur;
+# else
+#  ifdef __REDIRECT
+extern int __REDIRECT (fseeko,
+		       (FILE *__stream, __off64_t __off, int __whence),
+		       fseeko64);
+extern __off64_t __REDIRECT (ftello, (FILE *__stream), ftello64);
+#  else
+#   define fseeko fseeko64
+#   define ftello ftello64
+#  endif
+# endif
+#endif
+
+#ifdef __USE_LARGEFILE64
+extern int fseeko64 (FILE *__stream, __off64_t __off, int __whence);
+extern __off64_t ftello64 (FILE *__stream) __wur;
+#endif
+
+__BEGIN_NAMESPACE_STD
+#ifndef __USE_FILE_OFFSET64
+/* Store the value of the file position indicator for the
+   stream 'stream' in the fpos_t object pointed to by 'position'.
+   fgetpos returns zero on success.
+   This function is a cancellation point.  */
+extern int fgetpos (FILE *__restrict __stream, fpos_t *__restrict __pos);
+
+/* Set the file position indicator for the stream 'stream' to the
+   position 'position', which must be set by a previous call to
+   fgetpos.
+   This function is a cancellation point.  */
+extern int fsetpos (FILE *__stream, const fpos_t *__pos);
+#else
+# ifdef __REDIRECT
+extern int __REDIRECT (fgetpos, (FILE *__restrict __stream,
+				 fpos_t *__restrict __pos), fgetpos64);
+extern int __REDIRECT (fsetpos,
+		       (FILE *__stream, const fpos_t *__pos), fsetpos64);
+# else
+#  define fgetpos fgetpos64
+#  define fsetpos fsetpos64
+# endif
+#endif
+__END_NAMESPACE_STD
+
+#ifdef __USE_LARGEFILE64
+extern int fgetpos64 (FILE *__restrict __stream, fpos64_t *__restrict __pos);
+extern int fsetpos64 (FILE *__stream, const fpos64_t *__pos);
 #endif
 
 __BEGIN_NAMESPACE_STD
@@ -601,7 +689,19 @@ extern int rename (const char *__oldname, const char *__newname) __THROW;
    fopen with mode "wb+".  The file is deleted automatically when
    it is closed or when the program terminates.
    This function is a cancellation point.  */
+#ifndef __USE_FILE_OFFSET64
 extern FILE *tmpfile (void);
+#else
+# ifdef __REDIRECT
+extern FILE *__REDIRECT (tmpfile, (void), tmpfile64) __wur;
+# else
+#  define tmpfile tmpfile64
+# endif
+#endif
+
+#ifdef __USE_LARGEFILE64
+extern FILE *tmpfile64 (void) __wur;
+#endif
 
 /* Construct and return a file name that is a valid and does not
    name any existing file. If 'result' is null, the return value

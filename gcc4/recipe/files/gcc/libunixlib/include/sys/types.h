@@ -2,6 +2,7 @@
  * File taken from glibc 2.2.5.
  * Following changes were made:
  *  - Replaced "#include <bits/types.h>" into "#include <unixlib/types.h>"
+ *  - Removed loff_t typedef.
  */
 
 /* Copyright (C) 1991,92,94,95,96,97,98,99,2000 Free Software Foundation, Inc.
@@ -47,8 +48,6 @@ typedef __fsid_t fsid_t;
 #  define __u_char_defined
 # endif
 #endif
-
-typedef __loff_t loff_t;
 
 #if defined __USE_LARGEFILE64 && !defined __ino64_t_defined
 typedef __ino64_t ino64_t;

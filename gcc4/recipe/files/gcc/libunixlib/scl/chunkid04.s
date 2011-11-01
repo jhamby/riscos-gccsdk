@@ -86,137 +86,137 @@ c99low_vectors_begin:
 	DefSCLFncS	__rt_freeauto
 
 	@ Entry 2
-	@ long long _ll_from_u(unsigned long x);
+	@ long long _ll_from_u (unsigned long x);
 	@ Converts from 32bit values to 64bit values.
 	DefSCLFncS	_ll_from_u
 
 	@ Entry 3
-	@ long long _ll_from_l(long x);
+	@ long long _ll_from_l (long x);
 	@ Converts from 32bit values to 64bit values.
 	DefSCLFncS	_ll_from_l
 
 	@ Entry 4
-	@ long _ll_to_l(long long x);
+	@ long _ll_to_l (long long x);
 	@ Converts from a 64bit value to a 32bit value.
 	DefSCLFncS	_ll_to_l
 
 	@ Entry 5
-	@ long long _ll_add(long long x, long long y);
+	@ long long _ll_add (long long x, long long y);
 	@ Adds the two arguments together and returns the result as a 64bit
 	@ value.
 	DefSCLFncS	_ll_add
 
 	@ Entry 6
-	@ long long _ll_addlu(long long x, unsigned long y);
+	@ long long _ll_addlu (long long x, unsigned long y);
 	@ Adds the two arguments together and returns the result as a 64bit
 	@ value.
 	DefSCLFncS	_ll_addlu
 
 	@ Entry 7
-	@ long long _ll_addls(long long x, signed long y);
+	@ long long _ll_addls (long long x, signed long y);
 	@ Adds the two arguments together and returns the result as a 64bit
 	@ value.
 	DefSCLFncS	_ll_addls
 
 	@ Entry 8
-	@ long long _ll_adduu(unsigned long x, unsigned long y);
+	@ long long _ll_adduu (unsigned long x, unsigned long y);
 	@ Adds the two arguments together and returns the result as a 64bit
 	@ value.
 	DefSCLFncS	_ll_adduu
 
 	@ Entry 9
-	@ long long _ll_addss(signed long x, signed long y);
+	@ long long _ll_addss (signed long x, signed long y);
 	@ Adds the two arguments together and returns the result as a 64bit
 	@ value.
 	DefSCLFncS	_ll_addss
 
 	@ Entry 10
-	@ long long _ll_sub(long long x, long long y);
+	@ long long _ll_sub (long long x, long long y);
 	@ Subtracts the second argument from the first and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_sub
 
 	@ Entry 11
-	@ long long _ll_sublu(long long x, unsigned long y);
+	@ long long _ll_sublu (long long x, unsigned long y);
 	@ Subtracts the second argument from the first and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_sublu
 
 	@ Entry 12
-	@ long long _ll_subls(long long x, signed long y);
+	@ long long _ll_subls (long long x, signed long y);
 	@ Subtracts the second argument from the first and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_subls
 
 	@ Entry 13
-	@ long long _ll_subuu(unsigned long x, unsigned long y);
+	@ long long _ll_subuu (unsigned long x, unsigned long y);
 	@ Subtracts the second argument from the first and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_subuu
 
 	@ Entry 14
-	@ long long _ll_subss(signed long x, signed long y);
+	@ long long _ll_subss (signed long x, signed long y);
 	@ Subtracts the second argument from the first and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_subss
 
 	@ Entry 15
-	@ long long _ll_rsb(long long x, long long y);
+	@ long long _ll_rsb (long long x, long long y);
 	@ Subtracts the first argument from the second and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_rsb
 
 	@ Entry 16
-	@ long long _ll_rsblu(long long x, unsigned long y);
+	@ long long _ll_rsblu (long long x, unsigned long y);
 	@ Subtracts the first argument from the second and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_rsblu
 
 	@ Entry 17
-	@ long long _ll_rsbls(long long x, signed long y);
+	@ long long _ll_rsbls (long long x, signed long y);
 	@ Subtracts the first argument from the second and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_rsbls
 
 	@ Entry 18
-	@ long long _ll_rsbuu(unsigned long x, unsigned long y);
+	@ long long _ll_rsbuu (unsigned long x, unsigned long y);
 	@ Subtracts the first argument from the second and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_rsbuu
 
 	@ Entry 19
-	@ long long _ll_rsbss(signed long x, signed long y);
+	@ long long _ll_rsbss (signed long x, signed long y);
 	@ Subtracts the first argument from the second and returns the result
 	@ as a 64bit value.
 	DefSCLFncS	_ll_rsbss
 
 	@ Entry 20
-	@ long long _ll_mul(long long x, long long y);
+	@ long long _ll_mul (long long x, long long y);
 	@ Multiplies the arguments and returns the result as a 64bit value.
 	DefSCLFncS	_ll_mul
 
 	@ Entry 21
-	@ long long _ll_mullu(long long x, unsigned long y);
+	@ long long _ll_mullu (long long x, unsigned long y);
 	@ Multiplies the arguments and returns the result as a 64bit value.
 	DefSCLFncS	_ll_mullu
 
 	@ Entry 22
-	@ long long _ll_mulls(long long x, signed long y);
+	@ long long _ll_mulls (long long x, signed long y);
 	@ Multiplies the arguments and returns the result as a 64bit value.
 	DefSCLFncS	_ll_mulls
 
 	@ Entry 23
-	@ long long _ll_muluu(unsigned long x, unsigned long y);
+	@ long long _ll_muluu (unsigned long x, unsigned long y);
 	@ Multiplies the arguments and returns the result as a 64bit value.
 	DefSCLFncS	_ll_muluu
 
 	@ Entry 24
-	@ long long _ll_mulss(signed long x, signed long y);
+	@ long long _ll_mulss (signed long x, signed long y);
 	@ Multiplies the arguments and returns the result as a 64bit value.
 	DefSCLFncS	_ll_mulss
 
 	@ Entry 25
-	@ __value_in_regs ulldiv_t _ll_udiv(unsigned long long x, unsigned long long y);
+	@ __value_in_regs ulldiv_t _ll_udiv (unsigned long long x, unsigned long long y);
 	@ Divides a unsigned 64bit value by another unsigned 64bit value and
 	@ returns the result as an unsigned 64bit value. The result is
 	@ returned in R0-R3.
@@ -224,7 +224,7 @@ c99low_vectors_begin:
 	DefSCLFncS	_ll_udiv
 
 	@ Entry 26
-	@ __value_in_regs ulldiv_t _ll_urdv(unsigned long long x, unsigned long long y);
+	@ __value_in_regs ulldiv_t _ll_urdv (unsigned long long x, unsigned long long y);
 	@ Divides a unsigned 64bit value by another unsigned 64bit value and
 	@ returns the result as an unsigned 64bit value. The result is
 	@ returned in R0-R3.
@@ -232,13 +232,13 @@ c99low_vectors_begin:
 	DefSCLFncS	_ll_urdv
 
 	@ Entry 27
-	@ unsigned long long _ll_udiv10(unsigned long long x);
+	@ unsigned long long _ll_udiv10 (unsigned long long x);
 	@ Divides an unsigned 64bit value by 10 and returns the result as a
 	@ 64bit value.
 	DefSCLFncS	_ll_udiv10
 
 	@ Entry 28
-	@ __value_in_regs slldiv_t _ll_sdiv(signed long long x, signed long long y);
+	@ __value_in_regs slldiv_t _ll_sdiv (signed long long x, signed long long y);
 	@ Divides a signed 64bit value by another signed 64bit value and
 	@ returns the result as a signed 64bit value. The result is returned
 	@ in r0-r3.
@@ -246,7 +246,7 @@ c99low_vectors_begin:
 	DefSCLFncS	_ll_sdiv
 
 	@ Entry 29
-	@ __value_in_regs slldiv_t _ll_srdv(signed long long x, signed long long y);
+	@ __value_in_regs slldiv_t _ll_srdv (signed long long x, signed long long y);
 	@ Divides a signed 64bit value by another signed 64bit value and
 	@ returns the result as a signed 64bit value. The result is returned
 	@ in r0-r3.
@@ -254,49 +254,49 @@ c99low_vectors_begin:
 	DefSCLFncS	_ll_srdv
 
 	@ Entry 30
-	@ signed long long _ll_sdiv10(signed long long x);
+	@ signed long long _ll_sdiv10 (signed long long x);
 	@ Divides a signed 64bit value by 10 and returns the result as signed a 64bit value.
 	DefSCLFncS	_ll_sdiv10
 
 	@ Entry 31
-	@ long long _ll_not(long long x);
+	@ long long _ll_not (long long x);
 	@ Returns the binary inverse of the argument.
 	DefSCLFncS	_ll_not
 
 	@ Entry 32
-	@ long long _ll_neg(long long x);
+	@ long long _ll_neg (long long x);
 	@ Returns 0 - x.
 	DefSCLFncS	_ll_neg
 
 	@ Entry 33
-	@ long long _ll_and(long long x, long long y);
+	@ long long _ll_and (long long x, long long y);
 	@ Returns the binary AND of the two arguments.
 	DefSCLFncS	_ll_and
 
 	@ Entry 34
-	@ long long _ll_or(long long x, long long y);
+	@ long long _ll_or (long long x, long long y);
 	@ Returns the binary OR of the two arguments.
 	DefSCLFncS	_ll_or
 
 	@ Entry 35
-	@ long long _ll_eor(long long x, long long y);
+	@ long long _ll_eor (long long x, long long y);
 	@ Returns the binary EOR of the two arguments.
 	DefSCLFncS	_ll_eor
 
 	@ Entry 36
-	@ long long _ll_shift_l(long long x, int n);
+	@ long long _ll_shift_l (long long x, int n);
 	@ Returns a 64bit value shifted left by n bits. Negative values are
 	@ not supported.
 	DefSCLFncS	_ll_shift_l
 
 	@ Entry 37
-	@ long long _ll_ushift_r(long long x, int n);
+	@ long long _ll_ushift_r (long long x, int n);
 	@ Returns a 64bit value shifted right by n bits. Negative values are
 	@ not supported.
 	DefSCLFncS	_ll_ushift_r
 
 	@ Entry 38
-	@ long long _ll_sshift_r(long long x, int n);
+	@ long long _ll_sshift_r (long long x, int n);
 	@ Returns a 64bit value arithmetically shifted right by n bits.
 	@ Negative values are not supported.
 	DefSCLFncS	_ll_sshift_r
@@ -325,42 +325,42 @@ c99low_vectors_begin:
 	DefSCLFncS	_ll_cmple
 
 	@ Entry 42
-	@ double _ll_uto_d(unsigned long long x);
+	@ double _ll_uto_d (unsigned long long x);
 	@ Converts unsigned 64bit values to double values.
 	DefSCLFncS	_ll_uto_d
 
 	@ Entry 43
-	@ double _ll_sto_d(signed long long x);
+	@ double _ll_sto_d (signed long long x);
 	@ Converts signed 64bit values to float values.
 	DefSCLFncS	_ll_sto_d
 
 	@ Entry 44
-	@ float _ll_uto_f(unsigned long long x);
+	@ float _ll_uto_f (unsigned long long x);
 	@ Converts unsigned 64bit values to double values.
 	DefSCLFncS	_ll_uto_f
 
 	@ Entry 45
-	@ float _ll_sto_f(signed long long x);
+	@ float _ll_sto_f (signed long long x);
 	@ Converts signed 64bit values to float values.
 	DefSCLFncS	_ll_sto_f
 
 	@ Entry 46
-	@ unsigned long long _ll_ufrom_d(double x);
+	@ unsigned long long _ll_ufrom_d (double x);
 	@ Converts from a double to an unsigned 64bit value.
 	DefSCLFncS	_ll_ufrom_d
 
 	@ Entry 47
-	@ signed long long _ll_sfrom_d(double x);
+	@ signed long long _ll_sfrom_d (double x);
 	@ Converts from a double to an unsigned 64bit value.
 	DefSCLFncS	_ll_sfrom_d
 
 	@ Entry 48
-	@ unsigned long long _ll_ufrom_f(float x);
+	@ unsigned long long _ll_ufrom_f (float x);
 	@ Converts from a double to a signed 64bit value.
 	DefSCLFncS	_ll_ufrom_f
 
 	@ Entry 49
-	@ signed long long _ll_sfrom_f(float x);
+	@ signed long long _ll_sfrom_f (float x);
 	@ Converts from a double to a signed 64bit value.
 	DefSCLFncS	_ll_sfrom_f
 
@@ -369,4 +369,3 @@ c99low_vectors_end:
 	.size	c99low_vectors, . - c99low_vectors
 
 	.end
-

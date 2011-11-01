@@ -38,6 +38,12 @@
 #  endif
 #endif
 
+/* Full support for 64-bit LFS.  Note this can not be switched on
+   until we have RISC OS support for this.  */
+#ifndef __UNIXLIB_LFS64_SUPPORT
+#  define __UNIXLIB_LFS64_SUPPORT	0
+#endif
+
 /* Following options are only relevant for chunked stack builds.  */
 #if __UNIXLIB_CHUNKED_STACK
 
