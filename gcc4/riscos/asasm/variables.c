@@ -87,7 +87,7 @@ assign_var (Symbol *sym, ValueTag type)
 
 /**
  * (Re)define local or global variable.
- * When variable exists we'll give a warning when its type is the same,
+ * When variable exists we'll give a pedantic warning when its type is the same,
  * when type is different an error is given instead.
  * \param localMacro Is true when variable is a local macro variable. Used to
  * implement :DEF:.
@@ -105,7 +105,14 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
 		 (int)len, ptr);
 	  return NULL;
 	}
-      if (sym->value.Tag != type)
+      /* A local variable can have a different type than a similar named
+	 global variable.  */
+      /* FIXME: this is not 100% bullet proof: a local variable with same
+	 name as global one will not get SYMBOL_MACRO_LOCAL bit so remains
+	 local.  So we won't detect two differnt type local variables (with
+	 same name) when we have a global variable also with same name).  */
+      if (sym->value.Tag != type
+          && (!localMacro || (sym->type & SYMBOL_MACRO_LOCAL) != 0))
 	{
 	  error (ErrorError, "'%.*s' is already %s as a %s",
 		 (int)len, ptr,
@@ -117,6 +124,10 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
 	error (ErrorWarning, "Redeclaration of %s variable '%.*s'",
 	       valueTagAsString (sym->value.Tag),
 	       (int)var.Data.Id.len, var.Data.Id.str);
+
+      /* When symbol is already known as global, it remains a global variable
+	 (and :DEF: returns {TRUE} for it).  */
+      localMacro = false;
     }
   else
     sym = symbolGet (&var);
@@ -244,9 +255,7 @@ c_lcl (void)
       gCurPObjP->d.macro.varListP = p;
     }
   
-  /* When symbol is already known, it remains a global variable (and :DEF:
-     returns {TRUE} for it).  */
-  declare_var (ptr, len, type, symbolP == NULL || (symbolP->type & SYMBOL_MACRO_LOCAL));
+  declare_var (ptr, len, type, true);
   return false;
 }
 

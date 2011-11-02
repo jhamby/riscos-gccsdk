@@ -1,3 +1,10 @@
+Wed Nov  2 01:58:58 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+  
+	* regression/tests_pass/variables.s: Enhance test.
+	* variables.c (declare_var): Ignore type difference when local variable
+	shares the same name as global variable. 
+	* lex.c (Lex_MakeLocalLabel): Fix compiler warning.
+
 Wed Nov  2 00:45:10 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/adr.s: Disable tests which are too

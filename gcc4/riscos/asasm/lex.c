@@ -255,7 +255,8 @@ typedef enum
 } LocalLabel_eSearch;
 
 static Lex
-Lex_MakeLocalLabel (int dir, LocalLabel_eSearch level /* FIXME: use this */)
+Lex_MakeLocalLabel (int dir,
+                    LocalLabel_eSearch level /* FIXME: use this */ __attribute__ ((unused)))
 {
   Lex result =
     {

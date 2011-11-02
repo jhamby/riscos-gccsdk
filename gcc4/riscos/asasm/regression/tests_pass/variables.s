@@ -310,4 +310,33 @@ TestStr1
 
 	]
 
+; A local variable can have a different type than a global one.
+	AREA	Data, DATA
+	[ :LNOT: REFERENCE		
+AVar	RN	9
+	GBLS	AVarStr
+AVarStr	SETS	"Doh"
+
+	MACRO
+	TestMacro
+	LCLL	AVar
+AVar	SETL	{TRUE}
+	= "\nTestMacro: AVar: " :CC: :STR: :DEF: AVar
+
+	LCLL	AVarStr
+AVarStr	SETL	{TRUE}
+	= "\nTestMacro: AVarStr: " :CC: :STR: :DEF: AVarStr
+	MEND
+
+	TestMacro
+
+	= "\nTestMain: AVar: " :CC: :STR: :DEF: AVar
+	= "\nTestMain: AVarStr: " :CC: :STR: :DEF: AVarStr
+	|
+	= "\nTestMacro: AVar: T"
+	= "\nTestMacro: AVarStr: T"
+	= "\nTestMain: AVar: T"
+	= "\nTestMain: AVarStr: T"
+	]
+
 	END
