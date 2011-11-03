@@ -1,3 +1,15 @@
+Thu Nov  3 11:04:12 GMT 2011  Lee Noar  <leenoar@sky.com>
+
+	* unix/getcwd.c (getcwd): Fix potential buffer overflow.
+	getcwd() should set errno to ERANGE and return NULL if the size
+	of the buffer supplied is too small for the path. It would
+	appear that it relies on unixify() to do this, however, unixify()
+	only checks for buffer overflow when the path does not require
+	any processing. As RISC OS itself is supplying the path, then by
+	default it will always require processing to unix format, so buffer
+	overflow is never detected. Fix by adding an explicit check before
+	calling unixify().
+
 Tue Nov  1 21:42:53 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/ul_lseek.c (lseek): Change off_t into __off_t.
