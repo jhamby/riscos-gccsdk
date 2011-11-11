@@ -76,7 +76,9 @@ typedef struct
    */
   bool (*GetLine)(char *bufP, size_t bufSize);
 
-  size_t lastLineSize;
+  size_t lastLineSize; /**< Size of the last line read by (*GetLine) *before*
+    any variable substitution is done. So this is *not* equal to what the
+    parsable input is after Input_NextLine().  */
 } PObject;
 
 extern PObject gPOStack[PARSEOBJECT_STACK_SIZE];

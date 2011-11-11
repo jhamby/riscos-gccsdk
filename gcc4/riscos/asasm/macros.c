@@ -208,7 +208,6 @@ Macro_GetLine (char *bufP, size_t bufSize)
       return true;
     }
 
-  const char * const bufOrgP = bufP;
   const char * const bufEndP = bufP + bufSize - 1;
   while (*curPtr != '\0' && bufP != bufEndP)
     {
@@ -235,7 +234,9 @@ Macro_GetLine (char *bufP, size_t bufSize)
 	*bufP++ = *curPtr++;
     }
   *bufP = '\0';
-  gCurPObjP->lastLineSize = bufP - bufOrgP;
+  /* lastLineSize is the difference of our input curPtr when reading one
+     macro line, *not* the difference of our output bufP.  */
+  gCurPObjP->lastLineSize = curPtr - gCurPObjP->d.macro.curPtr;
 
   gCurPObjP->d.macro.curPtr = curPtr;
 

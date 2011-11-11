@@ -43,12 +43,37 @@ EndWhile	SETS	"WEND"
         GBLA    count
 count   SETA    8
         WHILE   $count > 0
-	DCD $count
+	DCD	$count
 count   SETA    count - 4
         WEND
 	|
 	DCD	8
 	DCD	4
+	]
+
+	; Test if WHILE rewind happens correctly when variable substitution
+	; needs to be done.
+	[ :LNOT: REFERENCE
+	; File
+		GBLA	CountFile
+CountFile	SETA	3
+		WHILE	CountFile > 0
+		DCD	CountFile
+CountFile	SETA	CountFile - 1
+		WEND
+
+		MACRO
+		RewindTest $MaxCountMacro
+		LCLA	CountMacro
+		WHILE	CountMacro < $MaxCountMacro
+		DCD	CountMacro
+CountMacro	SETA	CountMacro + 1
+		WEND
+		MEND
+		RewindTest "3            "
+	|
+		DCD	3, 2, 1
+		DCD	0, 1, 2
 	]
 
 	END

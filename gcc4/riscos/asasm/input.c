@@ -220,8 +220,15 @@ Input_NextLineCore (void)
       if (!toggle)
 	{
 	  const char *type = strstr (predefine, " SET");
-	  if (type && (type[4] == 'L' || type[4] == 'S' || type[4] == 'A')) 
-	    sprintf (workBuff, "\tGBL%c %.*s", type[4], (int)(type - predefine), predefine);
+	  if (type && (type[4] == 'L' || type[4] == 'S' || type[4] == 'A'))
+	    {
+	      int len = snprintf (workBuff, sizeof (workBuff), "\tGBL%c %.*s", type[4], (int)(type - predefine), predefine);
+	      if ((size_t)len >= sizeof (workBuff))
+		{
+		  error (ErrorError, "Failed to set predefine '%s'", predefine);
+		  *workBuff = '\0';
+		}
+	    }
 	  else
 	    {
 	      error (ErrorError, "Invalid predefine '%s'", predefine);

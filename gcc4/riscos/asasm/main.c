@@ -392,7 +392,7 @@ main (int argc, char **argv)
 	{
 	  fprintf (stderr,
 		   DEFAULT_IDFN "\n"
-		   "Copyright (c) 1992-2011 Niklas Rojemo, Darren Salt and GCCSDK Developers\n"
+		   "Copyright (c) 1992-2011 Niklas Röjemo, Darren Salt and GCCSDK Developers\n"
 		   "This is free software; see the source for copying conditions.  There is NO\n"
 		   "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n");
 	  return EXIT_SUCCESS;

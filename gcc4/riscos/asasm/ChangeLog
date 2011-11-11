@@ -1,3 +1,13 @@
+Fri Nov 11 16:40:03 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/label.s: Add.
+	* regression/tests_pass/while.s: Enhance test.
+	* filestack.h (PObject::lastLineSize): Add comment.
+	* macros.c (Macro_GetLine): lastLineSize was wrongly calculated
+	when macro variable substitution was done.
+	* input.c (Input_NextLineCore): Add buffer size check for predefine
+	handling.
+
 Wed Nov  2 01:58:58 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
   
 	* regression/tests_pass/variables.s: Enhance test.
