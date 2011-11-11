@@ -57,6 +57,7 @@ GCC_CONFIG_ARGS := \
 	--enable-c99 \
 	--enable-cmath \
 	--disable-c-mbchar \
+	--disable-wchar_t \
 	--disable-libstdcxx-pch \
 	--disable-tls
 # FIXME: for Java support: --without-x --enable-libgcj
