@@ -3,6 +3,7 @@ bin_PROGRAMS=asasm
 # _GNU_SOURCE to make strndup available
 # Add -DDEBUG if you want to enable the debug routines.
 asasm_CFLAGS = -D_GNU_SOURCE -std=c99 \
+	-D_LARGEFILE_SOURCE \
 	-fstrict-aliasing -Wstrict-aliasing \
 	-W -Wall -pedantic -Wbad-function-cast -Wcast-align \
 	-Wchar-subscripts -Winline \

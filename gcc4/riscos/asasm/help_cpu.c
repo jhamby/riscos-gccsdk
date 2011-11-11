@@ -45,7 +45,7 @@ help_cpuImm8s4 (int value)
   return -1;
 }
 
-static inline unsigned int
+static unsigned int
 ShiftL (unsigned int val, unsigned int shiftPos)
 {
   assert (shiftPos < 32);

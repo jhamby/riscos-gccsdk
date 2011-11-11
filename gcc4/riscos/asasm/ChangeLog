@@ -1,3 +1,13 @@
+Sat Nov 12 00:11:50 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/decode.s: Add.
+	* decode.c (decode): Don't match on too short mnemonic. Don't
+	remove existing symbol when it is used as macro label.
+	* help_cpu.c (ShiftL): un-inline.
+	* whileif.c (WhileBlock_t::restoreData::offsetFile): Change type
+	from long to off_t.
+	* Makefile.am (asasm_CFLAGS): Add _LARGEFILE_SOURCE define.
+
 Fri Nov 11 16:40:03 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/label.s: Add.

@@ -57,7 +57,7 @@ typedef struct
   int lineno;		/* Line number where WHILE is located.  */
   union
     {
-      long offsetFile; /* Only valid when gCurPObjP->type == POType_eFile */
+      off_t offsetFile; /* Only valid when gCurPObjP->type == POType_eFile */
       const char *offsetMacro; /* Only valid when gCurPObjP->type == POType_eMacro */
     } restoreData;
 } WhileBlock_t;

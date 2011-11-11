@@ -179,12 +179,12 @@ Macro_Call (const Macro *m, const Lex *label)
       tryEmptyParam = true;
     }
 
-  for (/* */; marg < MACRO_ARG_LIMIT; ++marg)
+  for (/* */; marg != MACRO_ARG_LIMIT; ++marg)
     args[marg] = NULL;
 
 #ifdef DEBUG_MACRO
   printf ("Macro call = %s\n", inputLine ());
-  for (int i = 0; i < MACRO_ARG_LIMIT; ++i)
+  for (int i = 0; i != MACRO_ARG_LIMIT; ++i)
     printf ("  Arg %i = <%s>\n", i, args[i] ? args[i] : "NULL");
 #endif
 
@@ -244,6 +244,13 @@ Macro_GetLine (char *bufP, size_t bufSize)
 }
 
 
+/**
+ * Find macro with given name.
+ * \param name Macro name to look for, not NUL terminated.
+ * \param len Macro name length.
+ * \return When macro is known, return pointer to corresponding Macro
+ * object.  NULL when macro is not known.
+ */
 const Macro *
 Macro_Find (const char *name, size_t len)
 {
@@ -469,7 +476,7 @@ noMEND:
 
   free (buf);
   free ((void *)m.name);
-  for (int i = 0; i < MACRO_ARG_LIMIT; ++i)
+  for (int i = 0; i != MACRO_ARG_LIMIT; ++i)
     free ((void *) m.args[i]);
   return false;
 }

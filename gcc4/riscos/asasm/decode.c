@@ -427,12 +427,19 @@ decode (const Lex *label)
 	     characters.  E.g. input "SUBT" with charMatched 2 is matching
 	     "SUB*" and "SUBT".  First try "SUBT" and then fall back on the
 	     'wildcard' (part_mnemonic being true).  */
-	  while (memcmp (Input_GetMark (), &oDecodeTable[high].mnemonic[charsMatched + 1], strlen (&oDecodeTable[high].mnemonic[charsMatched + 1])))
+	  while (memcmp (Input_GetMark (),
+	                 &oDecodeTable[high].mnemonic[charsMatched + 1],
+	                 strlen (&oDecodeTable[high].mnemonic[charsMatched + 1])))
 	    --high;
 	  assert (low <= high);
 	  /* charsMatched += strlen (&oDecodeTable[high].mnemonic[charsMatched + 1]); */
 	  inputSkipN (strlen (&oDecodeTable[high].mnemonic[charsMatched + 1]));
-	  indexFound = high;
+	  /* We only have a full match when the full mnemonic is read (and
+	     should have been fully read).  */
+	  if (oDecodeTable[high].part_mnemonic
+	      || Input_IsEolOrCommentStart ()
+	      || isspace ((unsigned char)inputLook ()))
+	    indexFound = high;
 	}
       else
 	{
@@ -497,7 +504,7 @@ decode (const Lex *label)
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.vd ();
 	      /* Define the (local)label *after* the mnemonic implementation but
 	         with the current offset *before* processing the mnemonic.  */
-	      labelSymbol = ASM_DefineLabel (label, startOffset);
+	      labelSymbol = tryAsMacro ? NULL : ASM_DefineLabel (label, startOffset);
 	      break;
 	    }
 
@@ -515,7 +522,7 @@ decode (const Lex *label)
 	      /* Any valid label here will *not* get any size assigned, unless
 		 the callback turns the lex into a symbol.  */
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.lex (labelLexP);
-	      labelSymbol = symbolFind (labelLexP);
+	      labelSymbol = tryAsMacro ? NULL : symbolFind (labelLexP);
 	      break;
 	    }
 
@@ -544,11 +551,6 @@ decode (const Lex *label)
 	  default:
 	    tryAsMacro = false;
 	    break;
-	}
-      if (tryAsMacro && labelSymbol)
-	{
-	  symbolRemove (label);
-	  labelSymbol = NULL;
 	}
 
       /* When areaCurrentSymbol changed, this can only be using "AREA" and that means

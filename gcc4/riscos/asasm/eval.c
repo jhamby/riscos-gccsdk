@@ -244,7 +244,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	      if (lvalue->Data.Symbol.symbol != rhs.Data.Symbol.symbol)
 		{
 		  if (gASM_Phase != ePassOne)
-		    error (ErrorError, "Two different symboles for addition %s with %s",
+		    error (ErrorError, "Two different symbols for addition %s with %s",
 			   lvalue->Data.Symbol.symbol->str, rhs.Data.Symbol.symbol->str);
 		  return false;
 		}
@@ -324,7 +324,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	          && lvalue->Data.Symbol.symbol != rvalue->Data.Symbol.symbol)
 		{
 		  if (gASM_Phase != ePassOne)
-		    error (ErrorError, "Two different symboles for substraction %s with %s",
+		    error (ErrorError, "Two different symbols for substraction %s with %s",
 			   lvalue->Data.Symbol.symbol->str, rvalue->Data.Symbol.symbol->str);
 		  return false;
 		}
