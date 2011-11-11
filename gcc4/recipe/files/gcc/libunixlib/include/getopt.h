@@ -27,6 +27,8 @@
 
 __BEGIN_DECLS
 
+#ifndef __TARGET_SCL__
+
 /* For communication from `getopt' to the caller.
    When `getopt' finds an option that takes an argument,
    the argument value is returned here.
@@ -147,6 +149,8 @@ extern int _getopt_internal (int ___argc, char *const *___argv,
 		             const struct option *__longopts, int *__longind,
 			     int __long_only) __THROW;
 # endif
+
+#endif
 
 __END_DECLS
 

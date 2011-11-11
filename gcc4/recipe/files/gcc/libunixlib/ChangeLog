@@ -1,3 +1,12 @@
+Sat Nov 12 00:19:57 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/fenv.h (feenableexcept, fedisableexcept, fegetexcept):
+	Add.
+	* include/time.h, include/time.h, include/sys/select.h,
+	include/getopt.h, include/string.h, include/wchar.h,
+	include/search.h, include/unistd.h: Disable function prototypes for
+	non-supported functions in SCL build.
+
 Thu Nov  3 11:04:12 GMT 2011  Lee Noar  <leenoar@sky.com>
 
 	* unix/getcwd.c (getcwd): Fix potential buffer overflow.

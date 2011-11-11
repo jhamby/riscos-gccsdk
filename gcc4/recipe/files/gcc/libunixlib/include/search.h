@@ -26,6 +26,7 @@
 #include <stddef.h>
 
 __BEGIN_DECLS
+#ifndef __TARGET_SCL__
 
 #if defined __USE_SVID || defined __USE_XOPEN_EXTENDED
 /* Prototype structure for a linked-list data structure.
@@ -170,6 +171,7 @@ extern void *lfind (const void *__key, __const void *__base,
 extern void *lsearch (const void *__key, void *__base,
 		      size_t *__nmemb, size_t __size, __compar_fn_t __compar);
 
+#endif /* __TARGET_SCL__ */
 __END_DECLS
 
 #endif /* search.h */

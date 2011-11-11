@@ -65,6 +65,24 @@ extern int fesetenv (const fenv_t *__envp) __THROW;
    according to saved exceptions.  */
 extern void feupdateenv (const fenv_t *__envp) __THROW;
 
+#ifdef __USE_GNU
+#  ifndef __TARGET_SCL__
+
+/* Enable individual exceptions.  Will not enable more exceptions than
+   EXCEPTS specifies.  Returns the previous enabled exceptions if all
+   exceptions are successfully set, otherwise returns -1.  */
+extern int feenableexcept (int __excepts) __THROW;
+
+/* Disable individual exceptions.  Will not disable more exceptions than
+   EXCEPTS specifies.  Returns the previous enabled exceptions if all
+   exceptions are successfully disabled, otherwise returns -1.  */
+extern int fedisableexcept (int __excepts) __THROW;
+
+/* Return enabled exceptions.  */
+extern int fegetexcept (void) __THROW;
+#  endif
+#endif
+
 __END_DECLS
 
 #endif

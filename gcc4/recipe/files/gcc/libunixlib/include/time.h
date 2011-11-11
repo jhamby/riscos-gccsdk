@@ -1,7 +1,7 @@
 /*
  * ISO C99 Standard: 7.23 Date and Time <time.h>.
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef __TIME_H
@@ -197,10 +197,12 @@ extern int clock_gettime (clockid_t __clk_id, struct timespec *__tp) __THROW;
 /* Set the time of the specified clk_id.  */
 extern int clock_settime (clockid_t __clk_id, const struct timespec *__tp) __THROW;
 
+#ifndef __TARGET_SCL__
 /* Pause for a number of nanoseconds.
    This function is a cancellation point.  */
 extern int nanosleep (const struct timespec *__req,
 		      struct timespec *__rem);
+#endif
 #endif
 
 /* System V compatibility.  */

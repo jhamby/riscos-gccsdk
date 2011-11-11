@@ -664,12 +664,14 @@ extern char *crypt (const char *__key, const char *__salt)
    block in place.  */
 extern void encrypt (char *__block, int __edflag) __THROW __nonnull ((1));
 
+#ifndef __TARGET_SCL__
 /* Swab pairs bytes in the first N bytes of the area pointed to by
    FROM and copy the result to TO.  The value of TO must not be in the
    range [FROM - N + 1, FROM - 1].  If N is odd the first byte in FROM
    is without partner.  */
 extern void swab (const void *__restrict  __from, void *__restrict  __to,
 		  ssize_t __n) __THROW __nonnull ((1, 2));
+#endif
 #endif
 
 #if defined __USE_MISC || defined __USE_XOPEN

@@ -40,6 +40,7 @@ extern void *memchr (const void *__s, int __c, size_t __n)
      __THROW __attribute_pure__ __nonnull ((1)) __wur;
 __END_NAMESPACE_STD
 
+#ifndef __TARGET_SCL__
 #ifdef __USE_GNU
 /* Search in S for C.  This is similar to `memchr' but there is no
    length limit.  */
@@ -50,6 +51,7 @@ extern void *rawmemchr (__const void *__s, int __c)
 #define __memrchr memrchr
 extern void *memrchr (__const void *__s, int __c, size_t __n)
       __THROW __attribute_pure__ __nonnull ((1)) __wur;
+#endif
 #endif
 
 
@@ -143,11 +145,13 @@ __BEGIN_NAMESPACE_STD
 extern size_t strlen (const char *__s)
      __THROW __attribute_pure__ __nonnull ((1)) __wur;
 
+#ifndef __TARGET_SCL__
 #ifdef __USE_GNU
 /* Find the length of STRING, but scan at most MAXLEN characters.
    If no '\0' terminator is found in that many characters, return MAXLEN.  */
 extern size_t strnlen (const char *__string, size_t __maxlen)
      __THROW __attribute_pure__ __nonnull ((1)) __wur;
+#endif
 #endif
 
 __END_NAMESPACE_STD
@@ -200,6 +204,7 @@ extern char *strsep (char **__restrict __stringp,
 
 /* GNU enhancements.  */
 
+#ifndef __TARGET_SCL__
 #ifdef __USE_GNU
 /* This function is similar to `strdup' but always copies at most
    __n characters into the newly allocated string.
@@ -219,6 +224,7 @@ extern char *strndup (const char *__s, size_t __n)
    the closing NUL byte in case C is not found in S.  */
 extern char *strchrnul (const char *__s, int __c)
      __THROW __attribute_pure__ __nonnull ((1)) __wur;
+#endif /* __TARGET_SCL__ */
 
 /* Return a string describing the meaning of the signal number sig.  */
 extern char *strsignal (int __sig) __THROW __wur;
@@ -276,6 +282,7 @@ extern int strerror_r (int __errnum, char *__strerrbuf, size_t __buflen)
      __THROW __nonnull ((2));
 #endif
 
+#ifndef __TARGET_SCL__
 # ifndef basename
 /* Return the file name within directory of FILENAME.  We don't
    declare the function if the `basename' macro is available (defined
@@ -283,6 +290,7 @@ extern int strerror_r (int __errnum, char *__strerrbuf, size_t __buflen)
    available.  */
 extern char *basename (__const char *__filename) __THROW __nonnull ((1));
 # endif
+#endif
 
 __END_DECLS
 

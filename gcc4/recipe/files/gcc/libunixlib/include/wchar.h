@@ -145,6 +145,7 @@ __END_NAMESPACE_STD
 __USING_NAMESPACE_STD(tm)
 
 
+#ifndef __TARGET_SCL__
 __BEGIN_NAMESPACE_STD
 /* Copy SRC to DEST.  */
 extern wchar_t *wcscpy (wchar_t *__restrict __dest,
@@ -169,6 +170,7 @@ extern int wcscmp (__const wchar_t *__s1, __const wchar_t *__s2)
 extern int wcsncmp (__const wchar_t *__s1, __const wchar_t *__s2, size_t __n)
      __THROW __attribute_pure__;
 __END_NAMESPACE_STD
+#endif
 
 #if 0
 #ifdef __USE_XOPEN2K8
@@ -221,6 +223,7 @@ extern size_t wcsxfrm_l (wchar_t *__s1, __const wchar_t *__s2,
 			 size_t __n, __locale_t __loc) __THROW;
 #endif
 
+#ifndef __TARGET_SCL__
 /* Duplicate S, returning an identical malloc'd string.  */
 extern wchar_t *wcsdup (__const wchar_t *__s) __THROW __attribute_malloc__;
 #endif
@@ -247,6 +250,7 @@ extern wchar_t *wcsrchr (__const wchar_t *__wcs, wchar_t __wc)
      __THROW __attribute_pure__;
 #endif
 __END_NAMESPACE_STD
+#endif /* __TARGET_SCL__ */
 
 #if 0
 #ifdef __USE_GNU
@@ -257,6 +261,7 @@ extern wchar_t *wcschrnul (__const wchar_t *__s, wchar_t __wc)
 #endif
 #endif
 
+#ifndef __TARGET_SCL__
 __BEGIN_NAMESPACE_STD
 /* Return the length of the initial segmet of WCS which
    consists entirely of wide characters not in REJECT.  */
@@ -297,6 +302,7 @@ extern wchar_t *wcstok (wchar_t *__restrict __s,
 /* Return the number of wide characters in S.  */
 extern size_t wcslen (__const wchar_t *__s) __THROW __attribute_pure__;
 __END_NAMESPACE_STD
+#endif /* __TARGET_SCL__ */
 
 #if 0
 #ifdef __USE_XOPEN
@@ -321,6 +327,7 @@ extern size_t wcsnlen (__const wchar_t *__s, size_t __maxlen)
 #endif
 
 
+#ifndef __TARGET_SCL__
 __BEGIN_NAMESPACE_STD
 /* Search N wide characters of S for C.  */
 #ifdef __CORRECT_ISO_CPP_WCHAR_H_PROTO
@@ -343,12 +350,10 @@ extern int wmemcmp (__const wchar_t *__restrict __s1,
 extern wchar_t *wmemcpy (wchar_t *__restrict __s1,
 			 __const wchar_t *__restrict __s2, size_t __n) __THROW;
 
-#if 0
 /* Copy N wide characters of SRC to DEST, guaranteeing
    correct behavior for overlapping strings.  */
 extern wchar_t *wmemmove (wchar_t *__s1, __const wchar_t *__s2, size_t __n)
      __THROW;
-#endif
 
 /* Set N wide characters of S to C.  */
 extern wchar_t *wmemset (wchar_t *__s, wchar_t __c, size_t __n) __THROW;
@@ -458,6 +463,7 @@ extern int wcwidth (wchar_t __c) __THROW;
    characters (or fewer if S ends before this) in S.  */
 extern int wcswidth (__const wchar_t *__s, size_t __n) __THROW;
 #endif	/* Use X/Open.  */
+#endif /* __TARGET_SCL__ */
 
 
 #if 0
@@ -588,6 +594,7 @@ extern long double wcstold_l (__const wchar_t *__restrict __nptr,
 #endif
 
 
+#ifndef __TARGET_SCL__
 #ifdef	__USE_XOPEN2K8
 /* Copy SRC to DEST, returning the address of the terminating L'\0' in
    DEST.  */
@@ -598,6 +605,7 @@ extern wchar_t *wcpcpy (wchar_t *__dest, __const wchar_t *__src) __THROW;
 extern wchar_t *wcpncpy (wchar_t *__dest, __const wchar_t *__src, size_t __n)
      __THROW;
 #endif	/* use GNU */
+#endif /* __TARGET_SCL__ */
 
 
 /* Wide character I/O functions.  */

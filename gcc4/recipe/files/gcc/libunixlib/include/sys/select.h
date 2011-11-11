@@ -74,6 +74,7 @@ extern int select (int __nfds, __fd_set *__restrict __readfds,
 		   fd_set *__restrict __exceptfds,
 		   struct timeval *__restrict __timeout);
 
+#ifndef __TARGET_SCL__
 /* Same as pselect but with higher resolution for the timeout.
    This function is a cancellation point.  */
 extern int pselect (int __nfds,
@@ -82,6 +83,7 @@ extern int pselect (int __nfds,
 		    fd_set *__restrict __exceptfds,
 		    const struct timespec *__restrict __timeout,
 		    const __sigset_t *__restrict __sigmask);
+#endif
 
 __END_DECLS
 

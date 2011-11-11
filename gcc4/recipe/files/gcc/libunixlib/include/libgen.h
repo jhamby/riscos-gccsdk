@@ -23,6 +23,8 @@
 
 __BEGIN_DECLS
 
+#ifndef __TARGET_SCL__
+
 /* Return directory part of PATH or "." if none is available.  */
 extern char *dirname (char *__path) __THROW;
 
@@ -34,6 +36,8 @@ extern char *dirname (char *__path) __THROW;
    version available under the real name.  */
 extern char *__xpg_basename (char *__path) __THROW;
 #define basename	__xpg_basename
+
+#endif
 
 __END_DECLS
 
