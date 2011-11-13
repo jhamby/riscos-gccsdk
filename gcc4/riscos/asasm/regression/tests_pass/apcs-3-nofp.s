@@ -1,4 +1,4 @@
-; RUNOPT: -APCS 3/reentrant
+; RUNOPT: -APCS 3/nofp
 
 	AREA	Data, DATA
 
@@ -26,12 +26,12 @@
 	= "a1 T\n"
 	= "v1 T\n"
 	= "v5 T\n"
-	= "v6 F\n"
-	= "sb T\n"
+	= "v6 T\n"
+	= "sb F\n"
 	= "v7 F\n"
 	= "sl T\n"
-	= "v8 F\n"
-	= "fp T\n"
+	= "v8 T\n"
+	= "fp F\n"
 	= "ip T\n"
 	= "SP F\n"
 	= "P0 F\n"

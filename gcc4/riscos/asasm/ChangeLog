@@ -1,3 +1,14 @@
+Sun Nov 13 18:33:56 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/include/predef_reg_test.s: Add test on v8.
+	* regression/tests_pass/apcs-none.s: Update reference.
+	* regression/tests_pass/apcs-3-reentrant.s: Likewise.
+	* regression/tests_pass/apcs-3.s: Likewise.
+	* regression/tests_pass/apcs-3-reentrant-noswstackcheck.s: Likewise.
+	* regression/tests_pass/apcs-3-nofp.s: Add.
+	* symbol.c (Symbol_Init): When a nofp APCS flavour is selected, don't
+	define fp but define v8 instead.
+
 Sun Nov 13 17:47:43 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* main.c, main.h (option_autocast): Remove.

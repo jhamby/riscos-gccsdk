@@ -30,6 +30,7 @@
 	= "sb F\n"
 	= "v7 F\n"
 	= "sl T\n"
+	= "v8 F\n"
 	= "fp T\n"
 	= "ip T\n"
 	= "SP F\n"

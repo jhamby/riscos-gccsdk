@@ -128,7 +128,6 @@ static const Symbol_PreDef_t oSymRegsAPCS[] =
   { "v3", sizeof ("v3")-1, 6, SYMBOL_CPUREG },
   { "v4", sizeof ("v4")-1, 7, SYMBOL_CPUREG },
   { "v5", sizeof ("v5")-1, 8, SYMBOL_CPUREG },
-  { "fp", sizeof ("fp")-1, 11, SYMBOL_CPUREG },
   { "ip", sizeof ("ip")-1, 12, SYMBOL_CPUREG },
   { "sp", sizeof ("sp")-1, 13, SYMBOL_CPUREG },
 };
@@ -207,6 +206,8 @@ Symbol_Init (void)
                         sizeof ("sb")-1, 9, SYMBOL_CPUREG);
       Symbol_PreDefReg ((gOptionAPCS & APCS_OPT_SWSTACKCHECK) ? "sl" : "v7",
                         sizeof ("sl")-1, 10, SYMBOL_CPUREG);
+      Symbol_PreDefReg ((gOptionAPCS & APCS_OPT_FRAMEPTR) ? "fp" : "v8",
+                        sizeof ("fp")-1, 11, SYMBOL_CPUREG);
     }
 
   if (1 /* FIXME: only when FPA is selected.  */)

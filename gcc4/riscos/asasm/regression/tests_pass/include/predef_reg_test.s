@@ -17,10 +17,10 @@
 	RegTest	LR
 	RegTest	PC
 
-	RegTest	p0
+	RegTest	p0	; P0 .. P15 are never recognized
 	RegTest	p15
 
-	RegTest	c0
+	RegTest	c0	; C0 .. C15 are never recognized
 	RegTest	c15
 
 	RegTest	f0
@@ -35,6 +35,7 @@
 	RegTest	sb
 	RegTest	v7
 	RegTest	sl
+	RegTest v8
 	RegTest	fp
 	RegTest	ip
 

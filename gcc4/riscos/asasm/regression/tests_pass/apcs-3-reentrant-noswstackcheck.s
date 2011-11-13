@@ -30,6 +30,7 @@
 	= "sb T\n"
 	= "v7 T\n" ; ObjAsm: F ???
 	= "sl F\n"
+	= "v8 F\n"
 	= "fp T\n"
 	= "ip T\n"
 	= "SP F\n"
