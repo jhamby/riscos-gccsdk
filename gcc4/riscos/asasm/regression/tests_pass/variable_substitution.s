@@ -219,4 +219,14 @@ Label
 	DCB	"7: $Label\n"
 	]
 
+	; Check vertical bar don't prevent variable substitution.
+	AREA	Test10, DATA
+	[ :LNOT: REFERENCE
+	GBLA	Test10Var1
+Test10Var1	SETA	1
+|Test10Lbl1|	%	&$Test10Var1*4
+	|
+	DCD	0
+	]
+
 	END

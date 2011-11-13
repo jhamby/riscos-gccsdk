@@ -1,3 +1,8 @@
+Sun Nov 13 17:28:06 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/variable_substitution.s: Enhance test.
+	* input.c (Input_ArgSub): Vertical bar prevented variable substitution.
+
 Sun Nov 13 16:22:24 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (NeedToOutputSymbol): Fix KEEP support.

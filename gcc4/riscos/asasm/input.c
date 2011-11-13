@@ -101,17 +101,16 @@ inputGetLower (void)
 }
 
 
-/* return char |c| to |input_buff| at position pointed to by |input_pos| */
+/**
+ * Undo the last character got from input buffer.
+ */
 void
 inputUnGet (char c)
 {
   if (input_pos > input_buff && input_pos[-1] == c)
     input_pos--;
   else if (*input_pos || c)
-    {
-      /* printf("char = '%c' \"%s\" \"%s\"\n", c, input_pos, input_buff); */
-      errorAbort ("Internal inputUnGet: illegal character");
-    }
+    errorAbort ("Internal inputUnGet: illegal character");
 }
 
 
@@ -522,16 +521,18 @@ Input_ArgSub (bool warnOnVarSubFail)
 	    break;
 
 	  case '|': /* Copy "|xxx|" as is.  */
-	    if (outOffset < sizeof (input_buff))
-	      input_buff[outOffset++] = *inP++;
-	    while (outOffset < sizeof (input_buff) && *inP)
-	      {
+	    {
+	      if (outOffset < sizeof (input_buff))
 		input_buff[outOffset++] = *inP++;
-		if (*inP == c)
-		  break;
-	      }
-	    /* We don't check on unmatched |.  */
-	    break;
+	      while (outOffset < sizeof (input_buff) && *inP)
+		{
+		  input_buff[outOffset++] = *inP++;
+		  if (inP[-1] == '|')
+		    break;
+		}
+	      /* We don't check on unmatched |.  */
+	      break;
+	    }
 
 	  case '\'':
 	  case '\"':
