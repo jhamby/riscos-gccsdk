@@ -60,42 +60,15 @@ Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
   ARMWord ir = GetWord (offset);
   assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
 
-  int extraOffset = 0;
   if (final)
-    {
-      bool unresolvedSym = false, areaSym = false;
-      for (size_t i = 0; i != valueP->Data.Code.len; ++i)
-	{
-	  const Code *codeP = &valueP->Data.Code.c[i];
-	  if (codeP->Tag == CodeOperator)
-	    {
-	      if (codeP->Data.op != Op_add)
-		return true;
-	      continue;
-	    }
-	  assert (codeP->Tag == CodeValue);
-	  const Value *valP = &codeP->Data.value;
+    return true;
 
-	  if (valP->Tag == ValueSymbol)
-	    {
-	      if (valP->Data.Symbol.symbol == areaCurrentSymbol)
-		{
-		  if (valP->Data.Symbol.factor != -1)
-		    return true; /* No way we can encode this.  */
-		  areaSym =  true;
-		}
-	      else
-		unresolvedSym = true;
-	    }
-	}
-      if (unresolvedSym != areaSym)
-	return true; /* No way we can encode this.  */
-      /* The R_ARM_PC24 ELF reloc needs to happen for a "B + PC - 8"
-         instruction, while in AOF this needs to happen for a "B 0".  */
-      if (!option_aof && unresolvedSym)
-	extraOffset = offset;
-    }
-  
+  /* Branch instruction with value 0 means a branch to {PC} + 8, so start
+     to compensate the {PC}+8, the result is a value what needs to be
+     added to that branch instruction.  */
+  const bool absArea = (areaCurrentSymbol->area.info->type & AREA_ABS) != 0; 
+  int numAreaCurrentSymbol = absArea ? 0 : -1;
+  int branchOffset = absArea ? -(offset + 8) - Area_GetBaseAddress (areaCurrentSymbol) : -(offset + 8);
   for (size_t i = 0; i != valueP->Data.Code.len; ++i)
     {
       const Code *codeP = &valueP->Data.Code.c[i];
@@ -105,34 +78,50 @@ Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	    return true;
 	  continue;
 	}
+
       assert (codeP->Tag == CodeValue);
       const Value *valP = &codeP->Data.value;
-
       switch (valP->Tag)
 	{
 	  case ValueInt:
-	    {
-	      int intVal = valP->Data.Int.i + extraOffset;
-	      int mask = isBLX ? 1 : 3;
-	      if (intVal & mask)
-		errorLine (file, lineno, ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
-	      ir |= ((intVal >> 2) & 0xffffff) | (isBLX ? (intVal & 2) << 23 : 0);
-	      Put_InsWithOffset (offset, ir);
-	    }
+	    branchOffset += valP->Data.Int.i;
 	    break;
 
 	  case ValueSymbol:
-	    if (!final)
-	      return true;
-	    if (valP->Data.Symbol.symbol != areaCurrentSymbol
-	        && Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
-	      return true;
-	    break;
-
+	    {
+	      int factor = valP->Data.Symbol.factor;
+	      if (factor != 1)
+		return true;
+	      if (valP->Data.Symbol.symbol != areaCurrentSymbol)
+		{
+		  /* The R_ARM_PC24 ELF reloc needs to happen for a "B {PC}"
+		     instruction, while in AOF this needs to happen for a
+		     "B -<area origin>" instruction.  */
+		  if (!option_aof)
+		    branchOffset += offset;
+		  if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+		    return true;
+		}
+	      if (absArea)
+		branchOffset += factor*Area_GetBaseAddress (areaCurrentSymbol);
+	      else
+	        numAreaCurrentSymbol += factor;
+	      branchOffset += valP->Data.Symbol.offset;
+	      break;
+	    }
+		
 	  default:
-	    return true;
+	    assert (0);
+	    break;
 	}
     }
+  if (numAreaCurrentSymbol != 0)
+    return true;
+  int mask = isBLX ? 1 : 3;
+  if (branchOffset & mask)
+    errorLine (file, lineno, ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
+  ir |= ((branchOffset >> 2) & 0xffffff) | (isBLX ? (branchOffset & 2) << 23 : 0);
+  Put_InsWithOffset (offset, ir);
 
   return false;
 }
@@ -143,11 +132,7 @@ branch_shared (ARMWord cc, bool isBLX)
   const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
 
   exprBuild ();
-  /* The branch instruction has its offset as relative, while the given label
-     is absolute, so calculate "<label> - . - 8".  */
-  codePosition (areaCurrentSymbol, offset + 8);
-  codeOperator (Op_sub);
-  
+
   Put_Ins (cc | 0x0A000000);
   if (gASM_Phase != ePassOne
       && Reloc_QueueExprUpdate (Branch_RelocUpdater, offset, ValueInt | ValueCode | ValueSymbol, &isBLX, sizeof (isBLX)))
@@ -247,7 +232,7 @@ m_swi (void)
     return true;
 
   skipblanks ();
-  ValueTag valueOK = Input_Match ('#', false) ? ValueInt : ValueInt | ValueString;
+  ValueTag valueOK = Input_Match ('#', false) ? ValueInt : (ValueInt | ValueString);
   const Value *im = exprBuildAndEval (valueOK);
   ARMWord ir = cc | 0x0F000000;
   switch (im->Tag)

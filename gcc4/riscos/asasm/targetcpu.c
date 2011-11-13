@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010 GCCSDK Developers
+ * Copyright (c) 2010-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -234,8 +234,13 @@ Target_NeedAtLeastArch (ARM_eArchitectures arch)
 {
   if (oCoreArchSelectionP->arch < arch)
     {
-      error (ErrorWarning, "Instruction is not supported on selected CPU %s (needs e.g. %s)",
-	     oCoreArchSelectionP->core, GetCPUForArchitecture (arch)->core);
+      const Core2Arch_t *cpuSuggestion = GetCPUForArchitecture (arch);
+      if (cpuSuggestion)
+        error (ErrorWarning, "Instruction is not supported on selected CPU %s (needs e.g. %s)",
+	       oCoreArchSelectionP->core, cpuSuggestion->core);
+      else
+        error (ErrorWarning, "Instruction is not supported on selected CPU %s",
+	       oCoreArchSelectionP->core);
       return true;
     }
   return false;

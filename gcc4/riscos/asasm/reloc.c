@@ -88,29 +88,24 @@ Reloc_QueueExprUpdate (RelocUpdater callback, ARMWord offset, ValueTag legal,
   assert (gASM_Phase == ePassTwo);
 
   Value value; /* We have ownership of this.  */
-  if (Code_HasUndefinedSymbols ())
-    value = Code_TakeSnapShot ();
+  /* Evaluate expression.  */
+  const Value *result = codeEval (legal, legal & ValueAddr ? &offset : NULL);
+  if (result->Tag == ValueIllegal)
+    return true; /* This is bad, we even didn't get a ValueCode.  */
+  if (result->Tag == ValueCode)
+    {
+      value.Tag = ValueIllegal;
+      Value_Assign (&value, result);
+    }
   else
     {
-      /* Evaluate expression.  */
-      const Value *result = codeEval (legal, legal & ValueAddr ? &offset : NULL);
-      if (result->Tag == ValueIllegal)
-	return true; /* This is bad, we even didn't get a ValueCode.  */
-      if (result->Tag == ValueCode)
+      /* Make ValueCode from it.  */
+      const Code code =
 	{
-	  value.Tag = ValueIllegal;
-	  Value_Assign (&value, result);
-	}
-      else
-	{
-	  /* Make ValueCode from it.  */
-	  const Code code =
-	    {
-	      .Tag = CodeValue,
-	      .Data.value = *result
-	    };
-	  value = Value_Code (1, &code);
-	}
+	  .Tag = CodeValue,
+	  .Data.value = *result
+	};
+      value = Value_Code (1, &code);
     }
   assert (value.Tag == ValueCode);
   if (!callback (FS_GetCurFileName (), FS_GetCurLineNumber (), offset, &value,

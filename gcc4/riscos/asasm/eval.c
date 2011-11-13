@@ -242,12 +242,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  else if (lvalue->Tag == ValueSymbol && rhs.Tag == ValueSymbol)
 	    {
 	      if (lvalue->Data.Symbol.symbol != rhs.Data.Symbol.symbol)
-		{
-		  if (gASM_Phase != ePassOne)
-		    error (ErrorError, "Two different symbols for addition %s with %s",
-			   lvalue->Data.Symbol.symbol->str, rhs.Data.Symbol.symbol->str);
-		  return false;
-		}
+		return false;
 	      lvalue->Data.Symbol.factor += rhs.Data.Symbol.factor;
 	      lvalue->Data.Symbol.offset += rhs.Data.Symbol.offset;
 	      if (lvalue->Data.Symbol.factor == 0)
@@ -322,12 +317,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    {
 	      if (lvalue->Tag == ValueSymbol && rvalue->Tag == ValueSymbol
 	          && lvalue->Data.Symbol.symbol != rvalue->Data.Symbol.symbol)
-		{
-		  if (gASM_Phase != ePassOne)
-		    error (ErrorError, "Two different symbols for substraction %s with %s",
-			   lvalue->Data.Symbol.symbol->str, rvalue->Data.Symbol.symbol->str);
-		  return false;
-		}
+		return false;
 	      assert (!(l_isint && r_isint) && "Needs to be handled elsewhere");
 	      Symbol *symbol = (lvalue->Tag == ValueSymbol) ? lvalue->Data.Symbol.symbol : rvalue->Data.Symbol.symbol;
 	      int factor = (lvalue->Tag == ValueSymbol) ? lvalue->Data.Symbol.factor : 0;

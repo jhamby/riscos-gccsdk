@@ -1,3 +1,16 @@
+Sun Nov 13 16:22:24 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (NeedToOutputSymbol): Fix KEEP support.
+	(Symbol_OutputForAOF, Symbol_OutputForELF): Remove ValueCode support.
+	* m_cpuctrl.c (Branch_RelocUpdater, branch_shared): Simplify.
+	* output.c (outputElf): Fix section start address for absolute
+	areas.
+	* targetcpu.c (Target_NeedAtLeastArch): Avoid crash when no CPU can
+	be suggested.
+	* reloc.c (Reloc_QueueExprUpdate): Remove test on undefined symbols.
+	* eval.c (evalBinop): Remove error on addition/subtraction of two
+	different symbols. 
+
 Sat Nov 12 00:11:50 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/decode.s: Add.

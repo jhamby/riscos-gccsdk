@@ -376,14 +376,9 @@ NeedToOutputSymbol (const Symbol *sym)
   if (sym->type & SYMBOL_AREA)
     return !Area_IsImplicit (sym);
 
-  /* We output a symbol when it is be exported (or forced exported) and it
-     is defined, or imported and referenced in the code for relocation.
-     We exclude local symbols and symbol values other than int, bool and code.  */
-  bool doOutput = ((oKeepAllSymbols && !SYMBOL_GETREGTYPE (sym->type))
-		     || (sym->type & (SYMBOL_EXPORT | SYMBOL_KEEP)))
-		   && (((sym->type & SYMBOL_DEFINED) != 0 && (sym->value.Tag == ValueInt || sym->value.Tag == ValueBool || sym->value.Tag == ValueCode))
-			|| sym->used >= 0)
-		   && !Local_IsLocalLabel (sym->str);
+  bool doOutput = (oKeepAllSymbols || (sym->type & SYMBOL_KEEP) || ((sym->type & SYMBOL_EXPORT) && sym->used >= 0))
+		    && !SYMBOL_GETREGTYPE (sym->type)
+		    && !Local_IsLocalLabel (sym->str);
   return doOutput;
 }
 
@@ -607,8 +602,7 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	      else
 		value = &sym->value;
 
-	      /* We can only have Int, Bool, Code (FIXME: ?) and Symbol here.
-		 See NeedToOutputSymbol().
+	      /* We can only have Int, Bool and Symbol here.
 		 Also Addr is possible for an area mapping symbol when base
 		 register is specified.  */
 	      int v;
@@ -624,25 +618,6 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 
 		  case ValueBool:
 		    v = value->Data.Bool.b;
-		    break;
-
-		  case ValueCode:
-		    /* Support <ValueInt> <ValueSymbol> <Op_add> */
-		    /* FIXME: Remove ? */
-		    if (value->Data.Code.len == 3
-			&& value->Data.Code.c[0].Tag == CodeValue
-			&& value->Data.Code.c[0].Data.value.Tag == ValueInt
-			&& value->Data.Code.c[1].Tag == CodeValue
-			&& value->Data.Code.c[1].Data.value.Tag == ValueSymbol
-			&& value->Data.Code.c[1].Data.value.Data.Symbol.factor == 1
-			&& value->Data.Code.c[2].Tag == CodeOperator
-			&& value->Data.Code.c[2].Data.op == Op_add)
-		      {
-			v = value->Data.Code.c[0].Data.value.Data.Int.i;
-			break;
-		      }
-		    errorLine (NULL, 0, ErrorError,
-			       "Symbol %s cannot be evaluated for storage in output format", sym->str);
 		    break;
 
                   case ValueSymbol:
@@ -719,8 +694,7 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	      else
 		value = &sym->value;
 
-	      /* We can only have Int, Bool, Code (FIXME: ?) and Symbol here.
-		 See NeedToOutputSymbol().
+	      /* We can only have Int, Bool and Symbol here.
 		 Also Addr is possible for an area mapping symbol when base
 		 register is specified.  */
 	      int v;
@@ -736,25 +710,6 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 
 		  case ValueBool:
 		    v = value->Data.Bool.b;
-		    break;
-
-		  case ValueCode:
-		    /* Support <ValueInt> <ValueSymbol> <Op_add> */
-		    /* FIXME: Remove ? */
-		    if (value->Data.Code.len == 3
-			&& value->Data.Code.c[0].Tag == CodeValue
-			&& value->Data.Code.c[0].Data.value.Tag == ValueInt
-			&& value->Data.Code.c[1].Tag == CodeValue
-			&& value->Data.Code.c[1].Data.value.Tag == ValueSymbol
-			&& value->Data.Code.c[1].Data.value.Data.Symbol.factor == 1
-			&& value->Data.Code.c[2].Tag == CodeOperator
-			&& value->Data.Code.c[2].Data.op == Op_add)
-		      {
-			v = value->Data.Code.c[0].Data.value.Data.Int.i;
-			break;
-		      }
-		    errorLine (NULL, 0, ErrorError,
-			       "Symbol %s cannot be evaluated for storage in output format", sym->str);
 		    break;
 
                   case ValueSymbol:

@@ -436,7 +436,7 @@ outputElf (void)
       unsigned int sectionSize = FIX (ap->area.info->maxIdx);
       unsigned int sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
       writeElfSH (shstrsize, sectionType, areaFlags,
-		  ap->type & SYMBOL_ABSOLUTE ? ap->area.info->maxIdx : 0,
+		  ap->value.Data.Int.i,
 		  sectionSize,
                   0,
 		  0,
