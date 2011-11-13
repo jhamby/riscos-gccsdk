@@ -635,13 +635,10 @@ Lit_DumpPool (void)
 					 !privData.allowUnaligned);
 	      else
 		{
-		  ValueTag legal = ValueFloat | ValueSymbol | ValueCode;
-		  if (option_autocast)
-		    legal |= ValueInt;
 		  codeInit ();
 		  codeValue (&litP->value, true);
 		  if (Reloc_QueueExprUpdate (DefineReal_RelocUpdater, litP->offset,
-					     legal, &privData, sizeof (privData)))
+					     ValueFloat | ValueSymbol | ValueCode, &privData, sizeof (privData)))
 		    errorLine (litP->file, litP->lineno, ErrorError, "Illegal %s expression", "literal");
 		}
 	    }

@@ -65,7 +65,6 @@ int option_verbose = 0;
 int option_pedantic = 0;
 int option_fussy = 0;
 int option_throwback = 0;
-int option_autocast = 0;
 int option_apcs_softfloat = -1; /* -1 = option not specified.  */
 int option_aof = -1; /* -1 = option not specified.  */
 
@@ -169,7 +168,6 @@ asasm_help (void)
 #ifdef __riscos__
 	   "-ThrowBack                 Throwback errors to a text editor.\n"
 #endif
-	   "-AutoCast                  Enable casting from integer to float.\n"
 	   "-CPU <target-cpu>          Select ARM CPU to target. Use \"list\" to get a full list.\n"
 	   "-Depend <file>             Write 'make' source file dependency information to 'file'.\n"
 	   "-Help                      Display this help.\n"
@@ -322,8 +320,6 @@ main (int argc, char **argv)
       else if (!strcasecmp (arg, "throwback") || !strcasecmp (arg, "tb"))
 	option_throwback++;
 #endif
-      else if (!strcasecmp (arg, "autocast") || !strcasecmp (arg, "ac"))
-	option_autocast++;
       else if (!strcasecmp (arg, "pedantic") || !strcasecmp (arg, "p"))
 	option_pedantic++;
       else if (!strncasecmp (arg, "CPU", sizeof ("CPU")-1)

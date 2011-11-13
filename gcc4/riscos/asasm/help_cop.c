@@ -303,13 +303,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 		assert (0);
 		break;
 	    }	  
-	  /* The ValueInt | ValueFloat | ValueSymbol | ValueCode tags are what
-	     we support as constants from user point of view.
-	     ValueInt only when the autocast option has been specified.  */
-	  ValueTag valueTag = ValueFloat | ValueSymbol | ValueCode;
-	  if (option_autocast)
-	    valueTag |= ValueInt;
-	  const Value *literalP = exprBuildAndEval (valueTag);
+	  const Value *literalP = exprBuildAndEval (ValueFloat | ValueSymbol | ValueCode);
 	  if (literalP->Tag == ValueIllegal)
 	    {
 	      error (ErrorError, "Wrong literal type");

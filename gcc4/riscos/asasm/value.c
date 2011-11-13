@@ -164,12 +164,12 @@ valueEqual (const Value *a, const Value *b)
 
       case ValueInt:
 	result = (b->Tag == ValueInt && a->Data.Int.i == b->Data.Int.i)
-		   || (option_autocast && b->Tag == ValueFloat && (ARMFloat)a->Data.Int.i == b->Data.Float.f);
+		   || (b->Tag == ValueFloat && (ARMFloat)a->Data.Int.i == b->Data.Float.f);
 	break;
 
       case ValueFloat:
 	result = (b->Tag == ValueFloat && a->Data.Float.f == b->Data.Float.f)
-		   || (option_autocast && b->Tag == ValueInt && a->Data.Float.f == (ARMFloat)b->Data.Int.i);
+		   || (b->Tag == ValueInt && a->Data.Float.f == (ARMFloat)b->Data.Int.i);
 	break;
 
       case ValueString:

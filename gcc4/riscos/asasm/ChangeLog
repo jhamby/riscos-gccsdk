@@ -1,3 +1,14 @@
+Sun Nov 13 17:47:43 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* main.c, main.h (option_autocast): Remove.
+	* commands.c (DefineReal): Drop support for option autocast.  Assume
+	this to be always set.
+	* code.c (codeEvalLow): Likewise.
+	* help_cop.c (help_copAddr): Likewise.
+	* value.c (valueEqual): Likewise.
+	* m_fpe.c (getFloatRhs): Likewise.
+	* lit.c (Lit_DumpPool): Likewise.
+
 Sun Nov 13 17:28:06 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/variable_substitution.s: Enhance test.

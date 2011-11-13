@@ -41,7 +41,6 @@ extern int option_verbose;
 extern int option_pedantic;
 extern int option_fussy;
 extern int option_throwback;
-extern int option_autocast;
 extern int option_local;
 extern int option_apcs_softfloat;
 extern int option_aof;

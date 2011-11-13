@@ -440,8 +440,9 @@ codeEvalLow (ValueTag legal, size_t size, const Code *program,
 
   if (!(Stack[0].Tag & legal))
     {
-      if (option_autocast
-          && (legal & ValueFloat) && Stack[0].Tag == ValueInt)
+      /* Automatically upgrade integer to float when the former isn't
+         wanted and the latter is.  */
+      if ((legal & ValueFloat) && Stack[0].Tag == ValueInt)
 	{
 	  ARMFloat f = (ARMFloat) Stack[0].Data.Int.i;
 	  if (option_fussy)

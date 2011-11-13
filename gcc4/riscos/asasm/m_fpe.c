@@ -218,16 +218,9 @@ getFloatRhs (ARMWord ir)
 {
   if (Input_Match ('#', false))
     {
-      ValueTag valueTag = ValueFloat;
-      if (option_autocast)
-	valueTag |= ValueInt;
-      const Value *im = exprBuildAndEval (valueTag);
+      const Value *im = exprBuildAndEval (ValueFloat);
       switch (im->Tag)
 	{
-	  case ValueInt:
-	    ir = Fix_ImmFloat (ir, im->Data.Int.i);
-	    break;
-
 	  case ValueFloat:
 	    ir = Fix_ImmFloat (ir, im->Data.Float.f);
 	    break;

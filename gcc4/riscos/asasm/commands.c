@@ -430,11 +430,8 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
 				 privData.size, 0., !privData.allowUnaligned);
       else
 	{
-	  ValueTag legal = ValueFloat | ValueSymbol | ValueCode;
-	  if (option_autocast)
-	    legal |= ValueInt;
 	  if (Reloc_QueueExprUpdate (DefineReal_RelocUpdater, areaCurrentSymbol->area.info->curIdx,
-				     legal, &privData, sizeof (privData)))
+				     ValueFloat | ValueSymbol | ValueCode, &privData, sizeof (privData)))
 	    error (ErrorError, "Illegal %s expression", mnemonic);
 	}
       
