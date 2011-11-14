@@ -441,10 +441,10 @@ Symbol_CreateSymbolOut (void)
 			  int lineno;
 			  Local_FindROUT (routine, &file, &lineno);
 			  if (!Local_ROUTIsEmpty (routine) && file != NULL)
-			    errorLine (file, lineno, ErrorError, "In area %s routine %s has missing local label %%F%02i%s",
+			    errorLine (file, lineno, ErrorAbort, "In area %s routine %s has missing local label %%F%02i%s",
 				       area->str, routine, label, routine);
 			  else
-			    errorLine (NULL, 0, ErrorError, "In area %s there is a missing local label %%F%02i%s",
+			    errorLine (NULL, 0, ErrorAbort, "In area %s there is a missing local label %%F%02i%s",
 				       area->str, label, Local_ROUTIsEmpty (routine) ? "" : routine);
 			}
 		    }

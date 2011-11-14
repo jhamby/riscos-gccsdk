@@ -1,3 +1,11 @@
+Mon Nov 14 23:20:43 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/local_label.s: Enhance.
+	* symbol.c (Symbol_CreateSymbolOut): Make missing local label an
+	abort error to avoid an assert going off later.
+	* decode.c (decode): Define local lable before trying to parse
+	the mnemonic.
+
 Sun Nov 13 18:33:56 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/include/predef_reg_test.s: Add test on v8.

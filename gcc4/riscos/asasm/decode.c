@@ -366,7 +366,7 @@ decode (const Lex *label)
   /* Deal with empty line quickly.  */
   if (Input_IsEolOrCommentStart ())
     {
-      ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx);
+      (void) ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx);
       return;
     }
 
@@ -501,10 +501,14 @@ decode (const Lex *label)
 	{
 	  case eCB_Void:
 	    {
+	      if (label->tag == LexLocalLabel)
+		labelSymbol = ASM_DefineLabel (label, startOffset);
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.vd ();
-	      /* Define the (local)label *after* the mnemonic implementation but
-	         with the current offset *before* processing the mnemonic.  */
-	      labelSymbol = tryAsMacro ? NULL : ASM_DefineLabel (label, startOffset);
+	      /* Define the label *after* the mnemonic implementation but
+	         with the current offset *before* processing the mnemonic
+	         (and only when the mnemonic is a valid one).  */
+	      if (label->tag != LexLocalLabel)
+		labelSymbol = tryAsMacro ? NULL : ASM_DefineLabel (label, startOffset);
 	      break;
 	    }
 
