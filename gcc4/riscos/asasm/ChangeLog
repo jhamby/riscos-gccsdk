@@ -1,3 +1,8 @@
+Tue Nov 15 20:37:49 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (decode): Don't give warning on unsupported local labels
+	when it concerns a macro.
+
 Mon Nov 14 23:20:43 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/local_label.s: Enhance.

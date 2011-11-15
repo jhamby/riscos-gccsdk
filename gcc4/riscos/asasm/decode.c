@@ -516,17 +516,28 @@ decode (const Lex *label)
 	    {
 	      const Lex noLex = { .tag = LexNone };
 	      const Lex *labelLexP;
+	      bool lclLabelWarn;
 	      if (label->tag == LexLocalLabel)
 		{
-		  error (ErrorWarning, "Local label not allowed here - ignoring");
+		  lclLabelWarn = true;
 		  labelLexP = &noLex;
 		}
 	      else
-		labelLexP = label;
+		{
+		  lclLabelWarn = false;
+		  labelLexP = label;
+		}
 	      /* Any valid label here will *not* get any size assigned, unless
 		 the callback turns the lex into a symbol.  */
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.lex (labelLexP);
-	      labelSymbol = tryAsMacro ? NULL : symbolFind (labelLexP);
+	      if (tryAsMacro)
+		labelSymbol = NULL;
+	      else
+		{
+		  labelSymbol = symbolFind (labelLexP);
+		  if (lclLabelWarn)
+		    error (ErrorWarning, "Local label not allowed here - ignoring");
+		}
 	      break;
 	    }
 
@@ -541,12 +552,11 @@ decode (const Lex *label)
 
 	  case eCB_Symbol:
 	    {
-	      Symbol *symbol;
-	      if (label->tag == LexLocalLabel)
-		error (ErrorWarning, "Local label not allowed here - ignoring");
-	      else
-		symbol = label->tag == LexId ? symbolGet (label) : NULL;
+	      Symbol *symbol = label->tag == LexId ? symbolGet (label) : NULL;
+	      bool lclLabelWarn = label->tag == LexLocalLabel;
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (symbol);
+	      if (!tryAsMacro && lclLabelWarn)
+		error (ErrorWarning, "Local label not allowed here - ignoring");
 	      /* We don't want to define a label based on this symbol.  */
 	      labelSymbol = NULL;
 	      break;
