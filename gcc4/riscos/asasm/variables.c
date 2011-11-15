@@ -109,7 +109,7 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
 	 global variable.  */
       /* FIXME: this is not 100% bullet proof: a local variable with same
 	 name as global one will not get SYMBOL_MACRO_LOCAL bit so remains
-	 local.  So we won't detect two differnt type local variables (with
+	 local.  So we won't detect two different type local variables (with
 	 same name) when we have a global variable also with same name).  */
       if (sym->value.Tag != type
           && (!localMacro || (sym->type & SYMBOL_MACRO_LOCAL) != 0))
@@ -251,7 +251,12 @@ c_lcl (void)
       memcpy (p->name, ptr, len); p->name[len] = '\0';
       p->next = gCurPObjP->d.macro.varListP;
       if ((p->symbolP = symbolP) != NULL)
-	p->symbol = *symbolP;
+	{
+	  p->symbol = *symbolP;
+	  /* Reset Symbol parts which won't get touched by declare_var().  */
+	  symbolP->codeSize = 0;
+	  symbolP->areaDef = areaCurrentSymbol;
+	}
       gCurPObjP->d.macro.varListP = p;
     }
   

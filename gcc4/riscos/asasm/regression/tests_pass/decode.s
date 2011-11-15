@@ -29,4 +29,15 @@ ExistingSymbol SETD
 	= "2:F\n"
 	]
 
+	; Reset local macro variables properly.
+	AREA	Code, CODE
+        ^       0,R12
+temp	# 4
+	MACRO
+	Test
+	LCLA	temp
+temp	SETA	4
+	MEND
+	Test
+
 	END

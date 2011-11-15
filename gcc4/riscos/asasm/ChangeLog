@@ -1,3 +1,9 @@
+Tue Nov 15 22:31:06 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/decode.s: Enhance.
+	* symbol.c (symbolPrint): Output defining area and code size.
+	* variables.c (c_lcl): Reset defining area and code size.
+
 Tue Nov 15 20:37:49 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (decode): Don't give warning on unsupported local labels

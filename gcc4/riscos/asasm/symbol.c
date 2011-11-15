@@ -980,8 +980,10 @@ symbolPrint (const Symbol *sym)
 	printf ("??? 0x%x/", SYMBOL_GETREGTYPE (sym->type));
 	break;
     }
-  
-  printf (" * offset 0x%x, used %d: ", sym->offset, sym->used);
+
+  printf (", def area %*.s, size %zd, ", (int)sym->areaDef->len, sym->areaDef->str,
+          sym->codeSize);
+  printf (", offset 0x%x, used %d ", sym->offset, sym->used);
   valuePrint (&sym->value);
 }
 
