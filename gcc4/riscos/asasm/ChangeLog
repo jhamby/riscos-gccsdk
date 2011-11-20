@@ -1,3 +1,9 @@
+Sun Nov 20 23:02:10 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* variables.c, variables.h (c_gbl, c_lcl, c_set): Drop doLowerCase
+	parameter.
+	* decode.c: Follow c_gbl, c_lcl, c_set parameter change.
+
 Sun Nov 20 22:40:21 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/lowercase.s: Add.

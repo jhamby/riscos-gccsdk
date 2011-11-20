@@ -145,15 +145,15 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
  * Global variable declaration
  */
 bool
-c_gbl (bool doLowerCase)
+c_gbl (void)
 {
   ValueTag type;
   const char c  = inputLook ();
-  if (c == (doLowerCase ? 'l' : 'L'))
+  if (c == 'L')
     type = ValueBool;
-  else if (c == (doLowerCase ? 'a' : 'A'))
+  else if (c == 'A')
     type = ValueInt;
-  else if (c == (doLowerCase ? 's' : 'S'))
+  else if (c == 'S')
     type = ValueString;
   else
     return true;
@@ -177,15 +177,15 @@ c_gbl (bool doLowerCase)
  * Local variable declaration
  */
 bool
-c_lcl (bool doLowerCase)
+c_lcl (void)
 {
   ValueTag type;
   const char c  = inputLook ();
-  if (c == (doLowerCase ? 'l' : 'L'))
+  if (c == 'L')
     type = ValueBool;
-  else if (c == (doLowerCase ? 'a' : 'A'))
+  else if (c == 'A')
     type = ValueInt;
-  else if (c == (doLowerCase ? 's' : 'S'))
+  else if (c == 'S')
     type = ValueString;
   else
     return true;
@@ -254,15 +254,15 @@ c_lcl (bool doLowerCase)
  * Variable assignment
  */
 bool
-c_set (const Lex *label, bool doLowerCase)
+c_set (const Lex *label)
 {
   ValueTag type;
   const char c  = inputLook ();
-  if (c == (doLowerCase ? 'l' : 'L'))
+  if (c == 'L')
     type = ValueBool;
-  else if (c == (doLowerCase ? 'a' : 'A'))
+  else if (c == 'A')
     type = ValueInt;
-  else if (c == (doLowerCase ? 's' : 'S'))
+  else if (c == 'S')
     type = ValueString;
   else
     return true;

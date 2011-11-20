@@ -52,7 +52,7 @@
 #include "storage.h"
 
 typedef bool (*po_void)(void); /* For eCB_Void and eCB_NoLex.  */
-typedef bool (*po_void_lc)(bool doLowerCase); /* For eCB_VoidPMatch and eCB_NoLexPMatch.  */
+typedef bool (*po_void_lc)(bool doLowerCase); /* For eCB_VoidPMatch.  */
 typedef bool (*po_lex)(const Lex *labelP); /* For eCB_Lex.  */
 typedef bool (*po_lex_lc)(const Lex *labelP, bool doLowerCase); /* For eCB_LexPMatch.  */
 typedef bool (*po_sym)(Symbol *symbolP); /* For eCB_Symbol.  */
@@ -63,7 +63,6 @@ enum
   eCB_Void        = 0, /* If there is a valid LexId/LexLocalLabel @ column 0, define this as symbol.  This is then a label.  */
   eCB_VoidPMatch  = 1, /* Same as eCB_Void + further mnemonic decoding needs to be done by parse_opcode callback.  */
   eCB_NoLex       = 2, /* If there is a valid LexId/LexLocalLabel @ column 0, complain about it as it is not allowed.  */
-  eCB_NoLexPMatch = 3, /* Same as eCB_NoLex + further mnemonic decoding needs to be done by parse_opcode callback.  */
   eCB_Lex         = 4, /* If there is a valid LexId @ column 0, pass it on as parameter.  If it is made a symbol afterwards by the callback, assign code size to it.  */
   eCB_LexPMatch   = 5, /* Save as eCB_Lex + further mnemonic decoding needs to be done by parse_opcode callback.  */
   eCB_Symbol      = 6  /* If there is a valid LexId @ column 0, turn this into a symbol and pass it on as parameter.  */
@@ -86,7 +85,6 @@ typedef struct
       po_void vd; /* Callback for eCB_Void.  */
       po_void_lc vdpm; /* Callback for eCB_VoidPMatch.  */
       po_void nolex; /* Callback for eCB_NoLex.  */
-      po_void_lc nolexpm; /* Callback for eCB_NoLexPMatch.  */
       po_lex lex; /* Callback for eCB_Lex.  */
       po_lex_lc lexpm; /* Callback for eCB_LexPMatch.  */
       po_sym sym; /* Callback for eCB_Symbol.  */
@@ -170,7 +168,7 @@ static const decode_table_t oDecodeTable[] =
   { "FRAME", eCB_Void, eRslt_None, { .vd = c_frame } }, /* FRAME */
   { "FRD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_frd } }, /* FRD CC P R */
   { "FUNCTION", eCB_Void, eRslt_None, { .vd = c_function } }, /* FUNCTION / PROC */
-  { "GBL", eCB_NoLexPMatch, eRslt_None, { .nolexpm = c_gbl } }, /* GBLA, GBLL, GBLS */
+  { "GBL", eCB_NoLex, eRslt_None, { .nolex = c_gbl } }, /* GBLA, GBLL, GBLS */
   { "GET", eCB_Void, eRslt_None, { .vd = c_get } }, /* GET */
   { "GLOBAL", eCB_Void, eRslt_None, { .vd = c_export } }, /* EXPORT / GLOBAL */
   { "HEAD", eCB_Void, eRslt_Data, { .vd = c_head } }, /* HEAD */
@@ -182,7 +180,7 @@ static const decode_table_t oDecodeTable[] =
   { "INFO", eCB_Void, eRslt_None, { .vd = c_info } }, /* INFO */
   { "ISB", eCB_Void, eRslt_ARM, { .vd = m_isb } }, /* ISB */
   { "KEEP", eCB_Void, eRslt_None, { .vd = c_keep } }, /* KEEP */
-  { "LCL", eCB_NoLexPMatch, eRslt_None, { .nolexpm = c_lcl } }, /* LCLA, LCLL, LCLS */
+  { "LCL", eCB_NoLex, eRslt_None, { .nolex = c_lcl } }, /* LCLA, LCLL, LCLS */
   { "LDC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldc } }, /* LDC CC L */
   { "LDC2", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldc2 } }, /* LDC2 L */
   { "LDF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldf } }, /* LDF CC P */
@@ -260,7 +258,7 @@ static const decode_table_t oDecodeTable[] =
   { "SBC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sbc } }, /* SBC CC S */
   /* FIXME: SBFX */
   /* FIXME: SEL */
-  { "SET", eCB_LexPMatch, eRslt_None, { .lexpm = c_set } }, /* SETA, SETL, SETS */
+  { "SET", eCB_LexPMatch, eRslt_None, { .lex = c_set } }, /* SETA, SETL, SETS */
   /* FIXME: SETEND */
   { "SEV", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sev } }, /* SEV CC */
   { "SFM", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sfm } }, /* SFM CC (TYPE) */
@@ -383,7 +381,7 @@ MatchRestOfKeyword (const char *l, const char *r, size_t size, bool doLowerCase)
 static inline bool
 IsPartiallyMatched (const decode_table_t *decP)
 {
-  return decP->cb_type == eCB_VoidPMatch || decP->cb_type == eCB_LexPMatch || decP->cb_type == eCB_NoLexPMatch;
+  return decP->cb_type == eCB_VoidPMatch || decP->cb_type == eCB_LexPMatch;
 }
 
 /**
@@ -593,14 +591,10 @@ decode (const Lex *label)
 	    }
 
 	  case eCB_NoLex:
-	  case eCB_NoLexPMatch:
 	    {
 	      if (label->tag != LexNone)
 		error (ErrorWarning, "Label not allowed here - ignoring");
-	      if (oDecodeTable[indexFound].cb_type == eCB_NoLex)
-		tryAsMacro = oDecodeTable[indexFound].parse_opcode.nolex ();
-	      else
-		tryAsMacro = oDecodeTable[indexFound].parse_opcode.nolexpm (doLowerCase);
+	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.nolex ();
 	      labelSymbol = NULL;
 	      break;
 	    }
