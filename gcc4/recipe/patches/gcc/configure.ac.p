@@ -1,6 +1,6 @@
 Index: configure.ac
 ===================================================================
---- configure.ac	(revision 175593)
+--- configure.ac	(revision 181536)
 +++ configure.ac	(working copy)
 @@ -189,6 +189,7 @@
  # Note that libiberty is not a target library.
@@ -25,7 +25,7 @@ Index: configure.ac
  # If we aren't building newlib, then don't build libgloss, since libgloss
  # depends upon some newlib header files.
  case "${noconfigdirs}" in
-@@ -3109,6 +3118,10 @@
+@@ -3105,6 +3114,10 @@
     ;;
    esac
    ;;
