@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010-2011 GCCSDK Developers
+ * Copyright (c) 2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -16,34 +16,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * m_cpuctrl.h
+ * area.h
  */
 
-#ifndef m_cpuctrl_header_included
-#define m_cpuctrl_header_included
+#ifndef common_header_included
+#define common_header_included
 
-#include <stdbool.h>
-
-bool m_adr (bool doLowerCase);
-bool m_bkpt (void);
-bool m_blx (bool doLowerCase);
-bool m_branch (bool doLowerCase);
-bool m_bx (bool doLowerCase);
-bool m_bxj (bool doLowerCase);
-bool m_mrs (bool doLowerCase);
-bool m_msr (bool doLowerCase);
-bool m_ret (bool doLowerCase);
-bool m_stack (void);
-bool m_swi (bool doLowerCase);
-bool m_tail (bool doLowerCase);
-
-bool m_sev (bool doLowerCase);
-bool m_wfe (bool doLowerCase);
-bool m_wfi (bool doLowerCase);
-bool m_yield (bool doLowerCase);
-
-bool m_cps (bool doLowerCase);
-bool m_dbg (bool doLowerCase);
-bool m_smc (bool doLowerCase);
+#define UNUSED __attribute__((unused))
 
 #endif

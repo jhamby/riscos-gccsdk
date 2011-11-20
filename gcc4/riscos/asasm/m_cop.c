@@ -102,9 +102,9 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {
  *   CDP<cond> p#, CPop, CPd, CPn, CPm {,<info>}
  */
 bool
-m_cdp (void)
+m_cdp (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   coprocessor (true, cc | 0x0e000000, 15);
@@ -128,9 +128,9 @@ m_cdp2 (void)
  * Implements MCR.
  */
 bool
-m_mcr (void)
+m_mcr (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   coprocessor (false, cc | 0x0e000010, 7);
@@ -152,9 +152,9 @@ m_mcr2 (void)
  * Implements MRC.
  */
 bool
-m_mrc (void)
+m_mrc (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   coprocessor (false, cc | 0x0e100010, 7);
@@ -200,9 +200,9 @@ coprocessorr (ARMWord ir)
  * Implements MCRR.
  */
 bool
-m_mcrr (void)
+m_mcrr (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv6);
@@ -214,9 +214,9 @@ m_mcrr (void)
  * Implements MRRC.
  */
 bool
-m_mrrc (void)
+m_mrrc (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv6);

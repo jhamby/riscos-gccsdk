@@ -144,9 +144,9 @@ branch_shared (ARMWord cc, bool isBLX)
  * Implements B and BL.
  */
 bool
-m_branch (void)
+m_branch (bool doLowerCase)
 {
-  ARMWord cc = optionLinkCond ();
+  ARMWord cc = optionLinkCond (doLowerCase);
   if (cc == optionError)
     return true;
   return branch_shared (cc, false);
@@ -156,9 +156,9 @@ m_branch (void)
  * Implements BLX.
  */
 bool
-m_blx (void)
+m_blx (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -182,9 +182,9 @@ m_blx (void)
  * Implements BX.
  */
 bool
-m_bx (void)
+m_bx (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -202,9 +202,9 @@ m_bx (void)
  * Implements BXJ.
  */
 bool
-m_bxj (void)
+m_bxj (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -225,9 +225,9 @@ m_bxj (void)
  *   SVC/SWI <string>
  */
 bool
-m_swi (void)
+m_swi (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -468,9 +468,9 @@ ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
  * Implements ADR / ADRL.
  */
 bool
-m_adr (void)
+m_adr (bool doLowerCase)
 {
-  ARMWord ir = optionAdrL ();
+  ARMWord ir = optionAdrL (doLowerCase);
   if (ir == optionError)
     return true;
 
@@ -626,7 +626,7 @@ apcsEpi (ARMWord cc, const int *pop_inst, const char *op)
  * ObjAsm extension.
  */
 bool
-m_ret (void)
+m_ret (bool doLowerCase)
 {
   static const int pop_inst[] =
     {
@@ -639,7 +639,7 @@ m_ret (void)
       0x095BABF0
     };
 
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -651,7 +651,7 @@ m_ret (void)
  * Implements TAIL : APCS epilogue - tail call
  */
 bool
-m_tail (void)
+m_tail (bool doLowerCase)
 {
   static const int pop_inst[] =
     {
@@ -664,7 +664,7 @@ m_tail (void)
       0x091B6BF0
     };
 
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -812,9 +812,9 @@ getpsr (bool only_all)
  * Implements MSR.
  */
 bool
-m_msr (void)
+m_msr (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -847,9 +847,9 @@ m_msr (void)
  * Implements MRS.
  */
 bool
-m_mrs (void)
+m_mrs (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -870,9 +870,9 @@ m_mrs (void)
  *   SEV<cond>
  */
 bool
-m_sev (void)
+m_sev (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -889,9 +889,9 @@ m_sev (void)
  *   WFE<cond>
  */
 bool
-m_wfe (void)
+m_wfe (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -908,9 +908,9 @@ m_wfe (void)
  *   WFI<cond>
  */
 bool
-m_wfi (void)
+m_wfi (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -927,9 +927,9 @@ m_wfi (void)
  *   YIELD<cond>
  */
 bool
-m_yield (void)
+m_yield (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -953,14 +953,14 @@ m_yield (void)
  *   mode     specifies the number of the mode to change to.
  */
 bool
-m_cps (void)
+m_cps (bool doLowerCase)
 {
   int imod;
-  if (isspace ((unsigned char)inputLookN (0)))
+  if (Input_IsEndOfKeyword ())
     imod = 0<<18;
-  else if (Input_MatchKeyword ("ID"))
+  else if (Input_MatchKeyword (doLowerCase ? "id" : "ID"))
     imod = 3<<18;
-  else if (Input_MatchKeyword ("IE"))
+  else if (Input_MatchKeyword (doLowerCase ? "ie" : "IE"))
     imod = 2<<18;
   else
     return true;
@@ -1031,9 +1031,9 @@ m_cps (void)
  *   DBG<cond> #<option>
  */
 bool
-m_dbg (void)
+m_dbg (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -1072,9 +1072,9 @@ m_dbg (void)
  *   SMC<c> #<imm4>
  */
 bool
-m_smc (void)
+m_smc (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 

@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010 GCCSDK Developers
+ * Copyright (c) 2010-2011 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,13 +24,13 @@
 
 #include <stdbool.h>
 
-bool m_cdp (void);
+bool m_cdp (bool doLowerCase);
 bool m_cdp2 (void);
-bool m_mcr (void);
+bool m_mcr (bool doLowerCase);
 bool m_mcr2 (void);
-bool m_mcrr (void);
-bool m_mrc (void);
+bool m_mcrr (bool doLowerCase);
+bool m_mrc (bool doLowerCase);
 bool m_mrc2 (void);
-bool m_mrrc (void);
+bool m_mrrc (bool doLowerCase);
 
 #endif

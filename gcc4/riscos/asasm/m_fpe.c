@@ -260,9 +260,9 @@ dstlhsrhs (ARMWord ir)
  *   Fd := Fn + Fm
  */
 bool
-m_adf (void)
+m_adf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_ADF | cc);
@@ -274,9 +274,9 @@ m_adf (void)
  *   Fd := Fn / Fm
  */
 bool
-m_dvf (void)
+m_dvf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_DVF | cc);
@@ -288,9 +288,9 @@ m_dvf (void)
  *   Fd := Fn / Fm
  */
 bool
-m_fdv (void)
+m_fdv (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   if ((cc & PRECISION_MASK) != PRECISION_SINGLE)
@@ -304,9 +304,9 @@ m_fdv (void)
  *   Fd := Fn * Fm
  */
 bool
-m_fml (void)
+m_fml (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   if ((cc & PRECISION_MASK) != PRECISION_SINGLE)
@@ -320,9 +320,9 @@ m_fml (void)
  *   Fd := Fm / Fn 
  */
 bool
-m_frd (void)
+m_frd (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   if ((cc & PRECISION_MASK) != PRECISION_SINGLE)
@@ -336,9 +336,9 @@ m_frd (void)
  *   Fd := Fn * Fm 
  */
 bool
-m_muf (void)
+m_muf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_MUF | cc);
@@ -350,9 +350,9 @@ m_muf (void)
  *   Fd := polar angle of (Fn, Fm) 
  */
 bool
-m_pol (void)
+m_pol (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_POL | cc);
@@ -364,9 +364,9 @@ m_pol (void)
  *   Fd := Fn raised to the power of Fm 
  */
 bool
-m_pow (void)
+m_pow (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_POW | cc);
@@ -378,9 +378,9 @@ m_pow (void)
  *   Fd := Fm / Fn 
  */
 bool
-m_rdf (void)
+m_rdf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_RDF | cc);
@@ -392,9 +392,9 @@ m_rdf (void)
  *   Fd := IEEE remainder of Fn / Fm 
  */
 bool
-m_rmf (void)
+m_rmf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_RMF | cc);
@@ -406,9 +406,9 @@ m_rmf (void)
  *   Fd := Fm raised to the power of Fn 
  */
 bool
-m_rpw (void)
+m_rpw (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_RPW | cc);
@@ -420,9 +420,9 @@ m_rpw (void)
  *   Fd := Fm - Fn
  */
 bool
-m_rsf (void)
+m_rsf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_RSF | cc);
@@ -434,9 +434,9 @@ m_rsf (void)
  *   Fd := Fn - Fm 
  */
 bool
-m_suf (void)
+m_suf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstlhsrhs (M_SUF | cc);
@@ -462,9 +462,9 @@ dstrhs (ARMWord ir)
  *   Fd := ABS ( Fm ) 
  */
 bool
-m_abs (void)
+m_abs (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_ABS | cc);
@@ -476,9 +476,9 @@ m_abs (void)
  *   Fd := arccosine of Fm
  */
 bool
-m_acs (void)
+m_acs (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_ACS | cc);
@@ -490,9 +490,9 @@ m_acs (void)
  *   Fd := arcsine of Fm
  */
 bool
-m_asn (void)
+m_asn (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_ASN | cc);
@@ -504,9 +504,9 @@ m_asn (void)
  *   Fd := arctangent of Fm
  */
 bool
-m_atn (void)
+m_atn (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_ATN | cc);
@@ -518,9 +518,9 @@ m_atn (void)
  *   Fd := cosine of Fm 
  */
 bool
-m_cos (void)
+m_cos (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_COS | cc);
@@ -532,9 +532,9 @@ m_cos (void)
  *   Fd := e ** Fm 
  */
 bool
-m_exp (void)
+m_exp (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_EXP | cc);
@@ -546,9 +546,9 @@ m_exp (void)
  *   Fd := ln of Fm 
  */
 bool
-m_lgn (void)
+m_lgn (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_LGN | cc);
@@ -560,9 +560,9 @@ m_lgn (void)
  *   Fd := log10 of Fm
  */
 bool
-m_log (void)
+m_log (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_LOG | cc);
@@ -574,9 +574,9 @@ m_log (void)
  *   Fd := - Fm 
  */
 bool
-m_mnf (void)
+m_mnf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_MNF | cc);
@@ -588,9 +588,9 @@ m_mnf (void)
  *   Fd := Fm 
  */
 bool
-m_mvf (void)
+m_mvf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_MVF | cc);
@@ -602,9 +602,9 @@ m_mvf (void)
  *   Fd := integer value of Fm 
  */
 bool
-m_rnd (void)
+m_rnd (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_RND | cc);
@@ -616,9 +616,9 @@ m_rnd (void)
  *   Fd := sine of Fm 
  */
 bool
-m_sin (void)
+m_sin (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_SIN | cc);
@@ -630,9 +630,9 @@ m_sin (void)
  *   Fd := square root of Fm
  */
 bool
-m_sqt (void)
+m_sqt (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_SQT | cc);
@@ -644,9 +644,9 @@ m_sqt (void)
  *   Fd := tangent of Fm
  */
 bool
-m_tan (void)
+m_tan (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_TAN | cc);
@@ -658,9 +658,9 @@ m_tan (void)
  *   Fd := integer value of Fm, possibly in abnormal form
  */
 bool
-m_urd (void)
+m_urd (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_URD | cc);
@@ -672,9 +672,9 @@ m_urd (void)
  *   Fd := normalized form of Fm 
  */
 bool
-m_nrm (void)
+m_nrm (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
   dstrhs (M_NRM | cc);
@@ -695,9 +695,9 @@ comparelow (ARMWord ir)		/* No precision and no rounding allowed ? */
  * Implements CMF/CMFE (compare floating).
  */
 bool
-m_cmf (void)
+m_cmf (bool doLowerCase)
 {
-  ARMWord cc = optionExceptionCond ();
+  ARMWord cc = optionExceptionCond (doLowerCase);
   if (cc == optionError)
     return true;
   comparelow (M_CMF | cc);
@@ -708,9 +708,9 @@ m_cmf (void)
  * Implements CNF/CNFE (compare negated floating).
  */
 bool
-m_cnf (void)
+m_cnf (bool doLowerCase)
 {
-  ARMWord cc = optionExceptionCond ();
+  ARMWord cc = optionExceptionCond (doLowerCase);
   if (cc == optionError)
     return true;
   comparelow (M_CNF | cc);
@@ -724,9 +724,9 @@ m_cnf (void)
  *   Rd := Fm
  */
 bool
-m_fix (void)
+m_fix (bool doLowerCase)
 {
-  ARMWord cc = optionCondOptRound ();
+  ARMWord cc = optionCondOptRound (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -744,9 +744,9 @@ m_fix (void)
  *   Fn := Rd
  */
 bool
-m_flt (void)
+m_flt (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrecRound ();
+  ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -773,9 +773,9 @@ flagtransfer (ARMWord ir)
  *   FPSR := Rd
  */
 bool
-m_wfs (void)
+m_wfs (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   flagtransfer (M_WFS | cc);
@@ -787,9 +787,9 @@ m_wfs (void)
  *   Rd := FPSR 
  */
 bool
-m_rfs (void)
+m_rfs (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   flagtransfer (M_RFS | cc);
@@ -801,9 +801,9 @@ m_rfs (void)
  *   FPCR:= Rd 
  */
 bool
-m_wfc (void)
+m_wfc (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   flagtransfer (M_WFC | cc);
@@ -815,9 +815,9 @@ m_wfc (void)
  *   Rd := FPCR
  */
 bool
-m_rfc (void)
+m_rfc (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   flagtransfer (M_RFC | cc);
@@ -835,9 +835,9 @@ dstmem (ARMWord ir, bool literal)
  * Implements STF.
  */
 bool
-m_stf (void)
+m_stf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrec_P ();
+  ARMWord cc = optionCondPrec_P (doLowerCase);
   if (cc == optionError)
     return true;
   dstmem (M_STF | cc, false);
@@ -853,9 +853,9 @@ m_stf (void)
  * Implements LDF.
  */
 bool
-m_ldf (void)
+m_ldf (bool doLowerCase)
 {
-  ARMWord cc = optionCondPrec_P ();
+  ARMWord cc = optionCondPrec_P (doLowerCase);
   if (cc == optionError)
     return true;
   dstmem (M_LDF | cc, true);
@@ -880,22 +880,22 @@ m_ldf (void)
  * true otherwise (so we can reparse it as macro).
  */
 static bool
-dstmemx (ARMWord ir)
+dstmemx (ARMWord ir, bool doLowerCase)
 {
   bool isLoad = (ir & L_FLAG) != 0;
   bool stack = !Input_IsEndOfKeyword ();
   if (stack)
     {
       bool stack_ia;
-      char c1 = toupper (inputLook ());
-      char c2 = toupper (inputLookN (1));
-      if (c1 == 'D' && c2 == 'B')
+      const char c1 = inputLook ();
+      const char c2 = inputLookN (1);
+      if (c1 == (doLowerCase ? 'd' : 'D') && c2 == (doLowerCase ? 'b' : 'B'))
 	stack_ia = false;
-      else if (c1 == 'I' && c2 == 'A')
+      else if (c1 == (doLowerCase ? 'i' : 'I') && c2 == (doLowerCase ? 'a' : 'A'))
 	stack_ia = true;
-      else if (c1 == 'E' && c2 == 'A')
+      else if (c1 == (doLowerCase ? 'e' : 'E') && c2 == (doLowerCase ? 'a' : 'A'))
 	stack_ia = !isLoad;
-      else if (c1 == 'F' && c2 == 'D')
+      else if (c1 == (doLowerCase ? 'f' : 'F') && c2 == (doLowerCase ? 'd' : 'D'))
 	stack_ia = isLoad;
       else
 	return true;
@@ -934,12 +934,12 @@ dstmemx (ARMWord ir)
  * Implements SFM.
  */
 bool
-m_sfm (void)
+m_sfm (bool doLowerCase)
 {
-  ARMWord cc = optionCondLfmSfm ();
+  ARMWord cc = optionCondLfmSfm (doLowerCase);
   if (cc == optionError)
     return true;
-  if (dstmemx (M_SFM | cc))
+  if (dstmemx (M_SFM | cc, doLowerCase))
     return true;
   return CheckFPUsageIsAllowed ();
 }
@@ -948,12 +948,12 @@ m_sfm (void)
  * Implements LFM.
  */
 bool
-m_lfm (void)
+m_lfm (bool doLowerCase)
 {
-  ARMWord cc = optionCondLfmSfm ();
+  ARMWord cc = optionCondLfmSfm (doLowerCase);
   if (cc == optionError)
     return true;
-  if (dstmemx (M_LFM | cc))
+  if (dstmemx (M_LFM | cc, doLowerCase))
     return true;
   return CheckFPUsageIsAllowed ();
 }

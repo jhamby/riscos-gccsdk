@@ -1,3 +1,15 @@
+Sun Nov 20 22:40:21 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/lowercase.s: Add.
+	* common.h: Add.
+	* lex.c (Lex_MakeLocalLabel): Make use of UNUSED.
+	* help_cop.c (DestMem_RelocUpdaterCoPro): Likewise.
+	* m_cpumem.c (DestMem_RelocUpdater): Likewise.
+	* commands.c, commands.h, decode.c, m_cpuctrl.c, m_cop.c, m_cpuctrl.h,
+	m_cpumem.c, m_cop.h, m_cpumem.h, option.c, variables.c, option.h,
+	variables.h, m_fpe.c, m_fpe.h, m_copmem.c, m_copmem.h, m_cpu.c,
+	m_cpu.h: Add support for lowercase instruction mnemonics.
+
 Tue Nov 15 22:31:06 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/decode.s: Enhance.

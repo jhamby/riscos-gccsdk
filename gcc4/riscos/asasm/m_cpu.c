@@ -95,7 +95,7 @@ c_code32 (void)
  *   NOP<cond> : own encoding allowing a condition code
  */
 bool
-m_nop (void)
+m_nop (bool doLowerCase)
 {
   switch (Target_GetArch ())
     {
@@ -103,7 +103,7 @@ m_nop (void)
       case ARCH_ARMv6T2:
       case ARCH_ARMv7:
 	{
-	  ARMWord cc = optionCond ();
+	  ARMWord cc = optionCond (doLowerCase);
 	  if (cc == optionError)
 	    return true;
 	  Put_Ins (0x0320F000 | cc);
@@ -157,9 +157,9 @@ dstrhs (ARMWord ir)
  * Implements ADC.
  */
 bool
-m_adc (void)
+m_adc (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_ADC);
@@ -169,9 +169,9 @@ m_adc (void)
  * Implements ADD.
  */
 bool
-m_add (void)
+m_add (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_ADD);
@@ -181,9 +181,9 @@ m_add (void)
  * Implements AND.
  */
 bool
-m_and (void)
+m_and (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_AND);
@@ -193,9 +193,9 @@ m_and (void)
  * Implements BIC.
  */
 bool
-m_bic (void)
+m_bic (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_BIC);
@@ -205,9 +205,9 @@ m_bic (void)
  * Implements EOR.
  */
 bool
-m_eor (void)
+m_eor (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_EOR);
@@ -217,9 +217,9 @@ m_eor (void)
  * Implements MOV.
  */
 bool
-m_mov (void)
+m_mov (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstrhs (cc | M_MOV);
@@ -229,9 +229,9 @@ m_mov (void)
  * Implements MVN.
  */
 bool
-m_mvn (void)
+m_mvn (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstrhs (cc | M_MVN);
@@ -241,9 +241,9 @@ m_mvn (void)
  * Implements ORR.
  */
 bool
-m_orr (void)
+m_orr (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_ORR);
@@ -253,9 +253,9 @@ m_orr (void)
  * Implements RSB.
  */
 bool
-m_rsb (void)
+m_rsb (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_RSB);
@@ -265,9 +265,9 @@ m_rsb (void)
  * Implements RSC.
  */
 bool
-m_rsc (void)
+m_rsc (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_RSC);
@@ -277,9 +277,9 @@ m_rsc (void)
  * Implements SBC.
  */
 bool
-m_sbc (void)
+m_sbc (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_SBC);
@@ -289,9 +289,9 @@ m_sbc (void)
  * Implements SUB.
  */
 bool
-m_sub (void)
+m_sub (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   return dstlhsrhs (cc | M_SUB);
@@ -316,9 +316,9 @@ lhsrhs (ARMWord ir)
  * Implements CMN.
  */
 bool
-m_cmn (void)
+m_cmn (bool doLowerCase)
 {
-  ARMWord cc = optionCondSP ();
+  ARMWord cc = optionCondSP (doLowerCase);
   if (cc == optionError)
     return true;
   return lhsrhs (cc | M_CMN);
@@ -328,9 +328,9 @@ m_cmn (void)
  * Implements CMP.
  */
 bool
-m_cmp (void)
+m_cmp (bool doLowerCase)
 {
-  ARMWord cc = optionCondSP ();
+  ARMWord cc = optionCondSP (doLowerCase);
   if (cc == optionError)
     return true;
   return lhsrhs (cc | M_CMP);
@@ -340,9 +340,9 @@ m_cmp (void)
  * Implements TEQ.
  */
 bool
-m_teq (void)
+m_teq (bool doLowerCase)
 {
-  ARMWord cc = optionCondSP ();
+  ARMWord cc = optionCondSP (doLowerCase);
   if (cc == optionError)
     return true;
   return lhsrhs (cc | M_TEQ);
@@ -352,9 +352,9 @@ m_teq (void)
  * Implements TST.
  */
 bool
-m_tst (void)
+m_tst (bool doLowerCase)
 {
-  ARMWord cc = optionCondSP ();
+  ARMWord cc = optionCondSP (doLowerCase);
   if (cc == optionError)
     return true;
   return lhsrhs (cc | M_TST);
@@ -428,9 +428,9 @@ onlyregs (MulFlavour_e mulType, ARMWord ir)
  *   MLA{S}<cond> <Rd>, <Rn>, <Rm>, <Ra>
  */
 bool
-m_mla (void)
+m_mla (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -444,9 +444,9 @@ m_mla (void)
  *   MLS<cond> <Rd>, <Rn>, <Rm>, <Ra>
  */
 bool
-m_mls (void)
+m_mls (bool doLowerCase)
 {
-  ARMWord cc = optionCond (); /* Note, no 'S' */
+  ARMWord cc = optionCond (doLowerCase); /* Note, no 'S' */
   if (cc == optionError)
     return true;
 
@@ -460,9 +460,9 @@ m_mls (void)
  *   MUL{S}<cond> <Rd>, <Rn>, <Rm>, <Ra>
  */
 bool
-m_mul (void)
+m_mul (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -550,9 +550,9 @@ l_onlyregs (ARMWord ir, const char *op)
  * Implements SMULL.
  */
 bool
-m_smull (void)
+m_smull (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv3M);
@@ -564,9 +564,9 @@ m_smull (void)
  * Implements SMULBB.
  */
 bool
-m_smulbb (void)
+m_smulbb (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -578,9 +578,9 @@ m_smulbb (void)
  * Implements SMULBT.
  */
 bool
-m_smulbt (void)
+m_smulbt (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -592,9 +592,9 @@ m_smulbt (void)
  * Implements SMULTB.
  */
 bool
-m_smultb (void)
+m_smultb (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -606,9 +606,9 @@ m_smultb (void)
  * Implements SMULTT.
  */
 bool
-m_smultt (void)
+m_smultt (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -620,9 +620,9 @@ m_smultt (void)
  * Implements SMULWB.
  */
 bool
-m_smulwb (void)
+m_smulwb (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -634,9 +634,9 @@ m_smulwb (void)
  * Implements SMULWT.
  */
 bool
-m_smulwt (void)
+m_smulwt (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -648,9 +648,9 @@ m_smulwt (void)
  * Implements SMLAL.
  */
 bool
-m_smlal (void)
+m_smlal (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv3M);
@@ -662,9 +662,9 @@ m_smlal (void)
  * Implements SMLALBB.
  */
 bool
-m_smlalbb (void)
+m_smlalbb (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -676,9 +676,9 @@ m_smlalbb (void)
  * Implements SMLALBT.
  */
 bool
-m_smlalbt (void)
+m_smlalbt (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -690,9 +690,9 @@ m_smlalbt (void)
  * Implements SMLALTB.
  */
 bool
-m_smlaltb (void)
+m_smlaltb (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -704,9 +704,9 @@ m_smlaltb (void)
  * Implements SMLALTT.
  */
 bool
-m_smlaltt (void)
+m_smlaltt (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -718,9 +718,9 @@ m_smlaltt (void)
  * Implements SMLABB.
  */
 bool
-m_smlabb (void)
+m_smlabb (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -732,9 +732,9 @@ m_smlabb (void)
  * Implements SMLABT.
  */
 bool
-m_smlabt (void)
+m_smlabt (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -746,9 +746,9 @@ m_smlabt (void)
  * Implements SMLATB.
  */
 bool
-m_smlatb (void)
+m_smlatb (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -760,9 +760,9 @@ m_smlatb (void)
  * Implements SMLATT.
  */
 bool
-m_smlatt (void)
+m_smlatt (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -774,9 +774,9 @@ m_smlatt (void)
  * Implements SMLAWB.
  */
 bool
-m_smlawb (void)
+m_smlawb (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -788,9 +788,9 @@ m_smlawb (void)
  * Implements SMLAWT.
  */
 bool
-m_smlawt (void)
+m_smlawt (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -802,9 +802,9 @@ m_smlawt (void)
  * Implements UMULL.
  */
 bool
-m_umull (void)
+m_umull (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv3M);
@@ -816,9 +816,9 @@ m_umull (void)
  * Implements UMLAL.
  */
 bool
-m_umlal (void)
+m_umlal (bool doLowerCase)
 {
-  ARMWord cc = optionCondS ();
+  ARMWord cc = optionCondS (doLowerCase);
   if (cc == optionError)
     return true;
   Target_NeedAtLeastArch (ARCH_ARMv3M);
@@ -831,9 +831,9 @@ m_umlal (void)
  * Implements CLZ.
  */
 bool
-m_clz (void)
+m_clz (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -884,9 +884,9 @@ q_onlyregs (ARMWord ir, const char *op)
  * Implements QADD.
  */
 bool
-m_qadd (void)
+m_qadd (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   q_onlyregs (cc | M_QADD, "QADD");
@@ -897,9 +897,9 @@ m_qadd (void)
  * Implements QDADD.
  */
 bool
-m_qdadd (void)
+m_qdadd (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   q_onlyregs (cc | M_QDADD, "QDADD");
@@ -910,9 +910,9 @@ m_qdadd (void)
  * Implements QDSUB.
  */
 bool
-m_qdsub (void)
+m_qdsub (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   q_onlyregs (cc | M_QDSUB, "QDSUB");
@@ -923,9 +923,9 @@ m_qdsub (void)
  * Implements QSUB.
  */
 bool
-m_qsub (void)
+m_qsub (bool doLowerCase)
 {
-  ARMWord cc = optionCond ();
+  ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
     return true;
   q_onlyregs (cc | M_QSUB, "QSUB");
@@ -933,9 +933,9 @@ m_qsub (void)
 }
 
 static bool
-UALShift (ARMWord shiftType)
+UALShift (ARMWord shiftType, bool doLowerCase)
 {
-  ARMWord cc = Option_SCond ();
+  ARMWord cc = Option_SCond (doLowerCase);
   if (cc == optionError)
     return true;
 
@@ -993,9 +993,9 @@ UALShift (ARMWord shiftType)
  *   ASR<S><CC> {Rd,} Rm, Rs : UAL version of MOV<CC><S> Rd, Rm, ASR Rs
  */
 bool
-m_asr (void)
+m_asr (bool doLowerCase)
 {
-  return UALShift (ASR);
+  return UALShift (ASR, doLowerCase);
 }
 
 /**
@@ -1004,9 +1004,9 @@ m_asr (void)
  *   LSL<S><CC> {Rd,} Rm, Rn : UAL version of MOV<CC><S> Rd, Rm, LSL Rs
  */
 bool
-m_lsl (void)
+m_lsl (bool doLowerCase)
 {
-  return UALShift (LSL);
+  return UALShift (LSL, doLowerCase);
 }
 
 /**
@@ -1015,9 +1015,9 @@ m_lsl (void)
  *   LSR<S><CC> {Rd,} Rm, Rs : UAL version of MOV<CC><S> Rd, Rm, LSR Rs
  */
 bool
-m_lsr (void)
+m_lsr (bool doLowerCase)
 {
-  return UALShift (LSR);
+  return UALShift (LSR, doLowerCase);
 }
 
 /**
@@ -1026,9 +1026,9 @@ m_lsr (void)
  *   ROR<S><CC> {Rd,} Rm, Rs : UAL version of MOV<CC><S> Rd, Rm, ROR Rs
  */
 bool
-m_ror (void)
+m_ror (bool doLowerCase)
 {
-  return UALShift (ROR);
+  return UALShift (ROR, doLowerCase);
 }
 
 /**
@@ -1036,9 +1036,9 @@ m_ror (void)
  *   RRX<S><CC> {Rd,} Rm : UAL version of MOV<CC><S> Rd, Rm, RRX
  */
 bool
-m_rrx (void)
+m_rrx (bool doLowerCase)
 {
-  ARMWord cc = Option_SCond ();
+  ARMWord cc = Option_SCond (doLowerCase);
   if (cc == optionError)
     return true;
 

@@ -51,9 +51,9 @@ dstmem (ARMWord ir, bool literal)
  * LDC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5>
  */
 bool
-m_ldc (void)
+m_ldc (bool doLowerCase)
 {
-  ARMWord cc = optionCondL ();
+  ARMWord cc = optionCondL (doLowerCase);
   if (cc == optionError)
     return true;
   return dstmem (cc | 0x0c100000, true);
@@ -64,9 +64,9 @@ m_ldc (void)
  * LDC2{L} <coproc>, <CRd>, <addressing mode 5>
  */
 bool
-m_ldc2 (void)
+m_ldc2 (bool doLowerCase)
 {
-  ARMWord cc = Input_Match ('L', false) ? N_FLAG : 0;
+  ARMWord cc = Input_Match (doLowerCase ? 'l' : 'L', false) ? N_FLAG : 0;
   if (!Input_IsEndOfKeyword ())
     return true;
 
@@ -79,9 +79,9 @@ m_ldc2 (void)
  * STC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5>
  */
 bool
-m_stc (void)
+m_stc (bool doLowerCase)
 {
-  ARMWord cc = optionCondL ();
+  ARMWord cc = optionCondL (doLowerCase);
   if (cc == optionError)
     return true;
   return dstmem (cc | 0x0c000000, false);
@@ -92,9 +92,9 @@ m_stc (void)
  * STC2{L} <coproc>, <CRd>, <addressing mode 5>
  */
 bool
-m_stc2 (void)
+m_stc2 (bool doLowerCase)
 {
-  ARMWord cc = Input_Match ('L', false) ? N_FLAG : 0;
+  ARMWord cc = Input_Match (doLowerCase ? 'l' : 'L', false) ? N_FLAG : 0;
   if (!Input_IsEndOfKeyword ())
     return true;
 

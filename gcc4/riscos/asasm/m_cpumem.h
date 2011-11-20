@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010 GCCSDK Developers
+ * Copyright (c) 2010-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,22 +25,22 @@
 #include <stdbool.h>
 
 bool m_clrex (void);
-bool m_ldm (void);
-bool m_ldr (void);
-bool m_ldrex (void);
-bool m_pl (void);
-bool m_pop (void);
-bool m_push (void);
-bool m_stm (void);
-bool m_str (void);
-bool m_strex (void);
-bool m_swp (void);
+bool m_ldm (bool doLowerCase);
+bool m_ldr (bool doLowerCase);
+bool m_ldrex (bool doLowerCase);
+bool m_pl (bool doLowerCase);
+bool m_pop (bool doLowerCase);
+bool m_push (bool doLowerCase);
+bool m_stm (bool doLowerCase);
+bool m_str (bool doLowerCase);
+bool m_strex (bool doLowerCase);
+bool m_swp (bool doLowerCase);
 
 bool m_dmb (void);
 bool m_dsb (void);
 bool m_isb (void);
 
-bool m_rfe (void);
-bool m_srs (void);
+bool m_rfe (bool doLowerCase);
+bool m_srs (bool doLowerCase);
 
 #endif

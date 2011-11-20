@@ -26,15 +26,16 @@
 #include <stdbool.h>
 #include "symbol.h"
 
+bool c_ampersand (void);
 bool c_assert (void);
 bool c_cn (Symbol *symbol);
 bool c_cp (Symbol *symbol);
 bool c_dcb (void);
-bool c_dcw (void);
-bool c_dcd (void);
+bool c_dcw (bool doLowerCase);
+bool c_dcd (bool doLowerCase);
 bool c_dci (void);
-bool c_dcfd (void);
-bool c_dcfs (void);
+bool c_dcfd (bool doLowerCase);
+bool c_dcfs (bool doLowerCase);
 bool c_end (void);
 bool c_equ (Symbol *symbol);
 bool c_fn (Symbol *symbol);

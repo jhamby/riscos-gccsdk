@@ -39,9 +39,9 @@ typedef struct VarPos
   char name[]; /**< NUL terminated symbol name.  */
 } VarPos;
 
-bool c_gbl (void);
-bool c_lcl (void);
-bool c_set (const Lex *);
+bool c_gbl (bool doLowerCase);
+bool c_lcl (bool doLowerCase);
+bool c_set (const Lex *label, bool doLowerCase);
 
 void Var_RestoreLocals (const VarPos *);	/* called on macro exit */
 void Var_Define (const char *);

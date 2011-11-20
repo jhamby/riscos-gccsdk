@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010 GCCSDK Developers
+ * Copyright (c) 2010-2011 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,9 +24,9 @@
 
 #include <stdbool.h>
 
-bool m_ldc (void);
-bool m_ldc2 (void);
-bool m_stc (void);
-bool m_stc2 (void);
+bool m_ldc (bool doLowerCase);
+bool m_ldc2 (bool doLowerCase);
+bool m_stc (bool doLowerCase);
+bool m_stc2 (bool doLowerCase);
 
 #endif

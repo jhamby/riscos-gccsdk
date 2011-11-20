@@ -329,23 +329,33 @@ c_dcb (void)
  * "Define Constant Word"
  */
 bool
-c_dcw (void)
+c_dcw (bool doLowerCase)
 {
-  bool allowUnaligned = Input_Match ('U', false);
-  if (inputLook () && !isspace ((unsigned char)inputLook ()))
+  bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
+  if (!Input_IsEndOfKeyword ())
     return true;
   return DefineInt (2, allowUnaligned, allowUnaligned ? "DCWU" : "DCW");
 }
 
 /**
- * Implements DCD, DCDU and & (32 bit integer).
+ * Implements & (32 bit integer).
  * "Define Constant Double-word"
  */
 bool
-c_dcd (void)
+c_ampersand (void)
 {
-  bool allowUnaligned = Input_Match ('U', false);
-  if (inputLook () && !isspace ((unsigned char)inputLook ()))
+  return DefineInt (4, false, "&");
+}
+
+/**
+ * Implements DCD and DCDU (32 bit integer).
+ * "Define Constant Double-word"
+ */
+bool
+c_dcd (bool doLowerCase)
+{
+  bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
+  if (!Input_IsEndOfKeyword ())
     return true;
   return DefineInt (4, allowUnaligned, allowUnaligned ? "DCDU" : "DCD");
 }
@@ -446,10 +456,10 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
  * "Define Constant Float-single precision"
  */
 bool
-c_dcfs (void)
+c_dcfs (bool doLowerCase)
 {
-  bool allowUnaligned = Input_Match ('U', false);
-  if (inputLook () && !isspace ((unsigned char)inputLook ()))
+  bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
+  if (!Input_IsEndOfKeyword ())
     return true;
   return DefineReal (4, allowUnaligned, allowUnaligned ? "DCFSU" : "DCFS");
 }
@@ -459,10 +469,10 @@ c_dcfs (void)
  * "Define Constant Float-double precision"
  */
 bool
-c_dcfd (void)
+c_dcfd (bool doLowerCase)
 {
-  bool allowUnaligned = Input_Match ('U', false);
-  if (inputLook () && !isspace ((unsigned char)inputLook ()))
+  bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
+  if (!Input_IsEndOfKeyword ())
     return true;
   return DefineReal (8, allowUnaligned, allowUnaligned ? "DCFDU" : "DCFD");
 }

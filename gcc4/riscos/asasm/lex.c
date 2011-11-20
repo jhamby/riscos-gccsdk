@@ -34,6 +34,7 @@
 #endif
 
 #include "area.h"
+#include "common.h"
 #include "error.h"
 #include "input.h"
 #include "lex.h"
@@ -256,7 +257,7 @@ typedef enum
 
 static Lex
 Lex_MakeLocalLabel (int dir,
-                    LocalLabel_eSearch level /* FIXME: use this */ __attribute__ ((unused)))
+                    LocalLabel_eSearch level /* FIXME: use this */ UNUSED)
 {
   Lex result =
     {

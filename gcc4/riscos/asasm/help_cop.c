@@ -32,6 +32,7 @@
 
 #include "area.h"
 #include "code.h"
+#include "common.h"
 #include "error.h"
 #include "expr.h"
 #include "fix.h"
@@ -55,8 +56,8 @@
 static bool
 DestMem_RelocUpdaterCoPro (const char *file, int lineno, ARMWord offset,
 			   const Value *valueP,
-			   void *privData __attribute__ ((unused)),
-                           bool final __attribute__ ((unused)))
+			   void *privData UNUSED,
+			   bool final UNUSED)
 {
   ARMWord ir = GetWord (offset);
 

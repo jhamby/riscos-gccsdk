@@ -145,26 +145,18 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
  * Global variable declaration
  */
 bool
-c_gbl (void)
+c_gbl (bool doLowerCase)
 {
   ValueTag type;
-  switch (inputLook ())
-    {
-      case 'L':
-	type = ValueBool;
-        break;
-
-      case 'A':
-	type = ValueInt;
-	break;
-
-      case 'S':
-	type = ValueString;
-	break;
-
-      default:
-	return true;
-    }
+  const char c  = inputLook ();
+  if (c == (doLowerCase ? 'l' : 'L'))
+    type = ValueBool;
+  else if (c == (doLowerCase ? 'a' : 'A'))
+    type = ValueInt;
+  else if (c == (doLowerCase ? 's' : 'S'))
+    type = ValueString;
+  else
+    return true;
   inputSkip ();
   if (!Input_IsEndOfKeyword ())
     return true;
@@ -185,26 +177,18 @@ c_gbl (void)
  * Local variable declaration
  */
 bool
-c_lcl (void)
+c_lcl (bool doLowerCase)
 {
   ValueTag type;
-  switch (inputLook ())
-    {
-      case 'L':
-	type = ValueBool;
-        break;
-
-      case 'A':
-	type = ValueInt;
-	break;
-
-      case 'S':
-	type = ValueString;
-	break;
-
-      default:
-	return true;
-    }
+  const char c  = inputLook ();
+  if (c == (doLowerCase ? 'l' : 'L'))
+    type = ValueBool;
+  else if (c == (doLowerCase ? 'a' : 'A'))
+    type = ValueInt;
+  else if (c == (doLowerCase ? 's' : 'S'))
+    type = ValueString;
+  else
+    return true;
   inputSkip ();
   if (!Input_IsEndOfKeyword ())
     return true;
@@ -270,26 +254,18 @@ c_lcl (void)
  * Variable assignment
  */
 bool
-c_set (const Lex *label)
+c_set (const Lex *label, bool doLowerCase)
 {
   ValueTag type;
-  switch (inputLook ())
-    {
-      case 'L':
-	type = ValueBool;
-        break;
-
-      case 'A':
-	type = ValueInt;
-	break;
-
-      case 'S':
-	type = ValueString;
-	break;
-
-      default:
-	return true;
-    }
+  const char c  = inputLook ();
+  if (c == (doLowerCase ? 'l' : 'L'))
+    type = ValueBool;
+  else if (c == (doLowerCase ? 'a' : 'A'))
+    type = ValueInt;
+  else if (c == (doLowerCase ? 's' : 'S'))
+    type = ValueString;
+  else
+    return true;
   inputSkip ();
   if (!Input_IsEndOfKeyword ())
     return true;

@@ -27,23 +27,23 @@
 
 #include "global.h"
 
-ARMWord optionCond (void);
-ARMWord optionCondS (void);
-ARMWord Option_SCond (void);
-ARMWord optionCondSP (void);
-ARMWord optionCondB (void);
-ARMWord optionCondBT (bool isStore);
-ARMWord Option_CondRfeSrs (bool isLoad);
-ARMWord optionCondLdmStm (bool isLDM);
-ARMWord optionCondLfmSfm (void);
-ARMWord optionCondPrecRound (void);
-ARMWord optionCondPrec_P (void);
-ARMWord optionCondL (void);
+ARMWord optionCond (bool doLowerCase);
+ARMWord optionCondS (bool doLowerCase);
+ARMWord Option_SCond (bool doLowerCase);
+ARMWord optionCondSP (bool doLowerCase);
+ARMWord optionCondB (bool doLowerCase);
+ARMWord optionCondBT (bool isStore, bool doLowerCase);
+ARMWord Option_CondRfeSrs (bool isLoad, bool doLowerCase);
+ARMWord optionCondLdmStm (bool isLDM, bool doLowerCase);
+ARMWord optionCondLfmSfm (bool doLowerCase);
+ARMWord optionCondPrecRound (bool doLowerCase);
+ARMWord optionCondPrec_P (bool doLowerCase);
+ARMWord optionCondL (bool doLowerCase);
 
-ARMWord optionCondOptRound (void);
-ARMWord optionLinkCond (void);
-ARMWord optionExceptionCond (void);
-ARMWord optionAdrL (void);
+ARMWord optionCondOptRound (bool doLowerCase);
+ARMWord optionLinkCond (bool doLowerCase);
+ARMWord optionExceptionCond (bool doLowerCase);
+ARMWord optionAdrL (bool doLowerCase);
 
 #define optionError ((ARMWord) -1)
 
