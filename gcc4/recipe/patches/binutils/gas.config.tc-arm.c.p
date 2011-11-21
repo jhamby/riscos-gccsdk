@@ -1,6 +1,6 @@
---- gas/config/tc-arm.c.orig	2011-07-30 13:06:06.000000000 +0100
-+++ gas/config/tc-arm.c	2011-07-30 13:04:20.000000000 +0100
-@@ -21366,6 +21366,12 @@ tc_gen_reloc (asection *section, fixS *f
+--- gas/config/tc-arm.c.orig	2011-11-21 10:29:31.000000000 +0100
++++ gas/config/tc-arm.c	2011-11-21 19:42:18.654237215 +0100
+@@ -21723,6 +21723,12 @@ tc_gen_reloc (asection *section, fixS *f
  	}
  
      case BFD_RELOC_32:
@@ -13,7 +13,7 @@
        if (fixp->fx_pcrel)
  	{
  	  code = BFD_RELOC_32_PCREL;
-@@ -21503,6 +21509,13 @@ tc_gen_reloc (asection *section, fixS *f
+@@ -21865,6 +21871,13 @@ tc_gen_reloc (asection *section, fixS *f
        return NULL;
  
      case BFD_RELOC_ARM_OFFSET_IMM:
@@ -27,7 +27,7 @@
        if (section->use_rela_p)
  	{
  	  code = fixp->fx_r_type;
-@@ -23675,3 +23688,13 @@ arm_apply_sym_value (struct fix * fixP)
+@@ -24061,3 +24074,13 @@ arm_apply_sym_value (struct fix * fixP)
    return 0;
  }
  #endif /* OBJ_ELF */

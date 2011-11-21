@@ -1,14 +1,14 @@
---- ld/emultempl/armelf.em.orig	2011-07-16 19:20:58.000000000 +0100
-+++ ld/emultempl/armelf.em	2011-07-17 14:43:11.000000000 +0100
-@@ -42,6 +42,7 @@ static int no_enum_size_warning = 0;
- static int no_wchar_size_warning = 0;
+--- ld/emultempl/armelf.em.orig	2011-08-09 15:10:44.000000000 +0200
++++ ld/emultempl/armelf.em	2011-11-21 19:49:15.584995686 +0100
+@@ -43,6 +43,7 @@ static int no_wchar_size_warning = 0;
  static int pic_veneer = 0;
  static int merge_exidx_entries = -1;
+ static int fix_arm1176 = 1;
 +static int riscos_module = 0;
  
  static void
  gld${EMULATION_NAME}_before_parse (void)
-@@ -54,6 +55,28 @@ gld${EMULATION_NAME}_before_parse (void)
+@@ -55,6 +56,28 @@ gld${EMULATION_NAME}_before_parse (void)
  }
  
  static void
@@ -37,7 +37,7 @@
  arm_elf_before_allocation (void)
  {
    bfd_elf32_arm_set_byteswap_code (&link_info, byteswap_code);
-@@ -86,8 +109,30 @@ arm_elf_before_allocation (void)
+@@ -87,8 +110,30 @@ arm_elf_before_allocation (void)
        bfd_elf32_arm_allocate_interworking_sections (& link_info);
      }
  
@@ -68,40 +68,41 @@
  }
  
  /* Fake input file for stubs.  */
-@@ -529,6 +574,9 @@ PARSE_AND_LIST_PROLOGUE='
- #define OPTION_FIX_CORTEX_A8		314
- #define OPTION_NO_FIX_CORTEX_A8		315
+@@ -533,6 +578,9 @@ PARSE_AND_LIST_PROLOGUE='
  #define OPTION_NO_MERGE_EXIDX_ENTRIES   316
-+#define OPTION_FPIC_1			317
-+#define OPTION_FPIC_2			318
-+#define OPTION_RISCOS_MODULE		319
+ #define OPTION_FIX_ARM1176		317
+ #define OPTION_NO_FIX_ARM1176		318
++#define OPTION_FPIC_1			319
++#define OPTION_FPIC_2			320
++#define OPTION_RISCOS_MODULE		321
  '
  
  PARSE_AND_LIST_SHORTOPTS=p
-@@ -551,6 +599,9 @@ PARSE_AND_LIST_LONGOPTS='
-   { "fix-cortex-a8", no_argument, NULL, OPTION_FIX_CORTEX_A8 },
-   { "no-fix-cortex-a8", no_argument, NULL, OPTION_NO_FIX_CORTEX_A8 },
+@@ -557,6 +605,9 @@ PARSE_AND_LIST_LONGOPTS='
    { "no-merge-exidx-entries", no_argument, NULL, OPTION_NO_MERGE_EXIDX_ENTRIES },
+   { "fix-arm1176", no_argument, NULL, OPTION_FIX_ARM1176 },
+   { "no-fix-arm1176", no_argument, NULL, OPTION_NO_FIX_ARM1176 },
 +  { "fpic", no_argument, NULL, OPTION_FPIC_1},
 +  { "fPIC", no_argument, NULL, OPTION_FPIC_2},
 +  { "ro-module-reloc", no_argument, NULL, OPTION_RISCOS_MODULE},
  '
  
  PARSE_AND_LIST_OPTIONS='
-@@ -579,6 +630,9 @@ PARSE_AND_LIST_OPTIONS='
-  		   ));
+@@ -586,6 +637,9 @@ PARSE_AND_LIST_OPTIONS='
    fprintf (file, _("  --[no-]fix-cortex-a8        Disable/enable Cortex-A8 Thumb-2 branch erratum fix\n"));
    fprintf (file, _("  --no-merge-exidx-entries    Disable merging exidx entries\n"));
+   fprintf (file, _("  --[no-]fix-arm1176          Disable/enable ARM1176 BLX immediate erratum fix\n"));
 +  fprintf (file, _("  -fpic                       Generate original PLT entries\n"));
 +  fprintf (file, _("  -fPIC                       Generate RISC OS PLT entries\n"));
 +  fprintf (file, _("  --ro-module-reloc           Add RISC OS module relocation code & data\n"));
-  
  '
  
-@@ -663,8 +717,23 @@ PARSE_AND_LIST_ARGS_CASES='
-    case OPTION_NO_MERGE_EXIDX_ENTRIES:
-       merge_exidx_entries = 0;
- 
+ PARSE_AND_LIST_ARGS_CASES='
+@@ -677,8 +731,23 @@ PARSE_AND_LIST_ARGS_CASES='
+    case OPTION_NO_FIX_ARM1176:
+       fix_arm1176 = 0;
+       break;
++
 +    case OPTION_FPIC_1:
 +      link_info.flag_pic = 1;
 +      break;
@@ -113,7 +114,6 @@
 +    case OPTION_RISCOS_MODULE:
 +      riscos_module = 1;
 +      break;
-+
  '
  
 +# To add __RelocCode section for RISC OS modules.

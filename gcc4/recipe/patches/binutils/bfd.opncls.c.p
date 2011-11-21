@@ -1,5 +1,5 @@
---- bfd/opncls.c.orig	2010-10-25 09:02:19.000000000 +0200
-+++ bfd/opncls.c	2010-12-11 02:00:02.842494726 +0100
+--- bfd/opncls.c.orig	2011-06-27 10:41:00.000000000 +0200
++++ bfd/opncls.c	2011-11-21 19:42:18.586238070 +0100
 @@ -28,6 +28,12 @@
  #include "libbfd.h"
  #include "libiberty.h"
@@ -13,7 +13,7 @@
  #ifndef S_IXUSR
  #define S_IXUSR 0100	/* Execute by owner.  */
  #endif
-@@ -658,6 +664,23 @@ _maybe_make_executable (bfd * abfd)
+@@ -660,6 +666,23 @@ _maybe_make_executable (bfd * abfd)
  	  chmod (abfd->filename,
  		 (0777
  		  & (buf.st_mode | ((S_IXUSR | S_IXGRP | S_IXOTH) &~ mask))));

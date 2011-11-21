@@ -1,10 +1,10 @@
---- ld/configure.tgt.orig	2010-12-01 12:03:47.000000000 +0100
-+++ ld/configure.tgt	2010-12-11 02:00:02.872501343 +0100
-@@ -87,6 +87,7 @@ arm*-*-linux-*)	        targ_emul=armelf
- 			targ_extra_emuls="armelf armelfb armelfb_linux"
- 			targ_extra_libpath="armelfb_linux"
- 			;;
+--- ld/configure.tgt.orig	2011-11-21 10:29:37.000000000 +0100
++++ ld/configure.tgt	2011-11-21 19:52:51.426282193 +0100
+@@ -66,6 +66,7 @@ arm-*-nto*)		targ_emul=armnto ;;
+ arm-*-openbsd*)		targ_emul=armnbsd ;;
+ arm-*-rtems*)		targ_emul=armelf ;;
+ armeb-*-elf)		targ_emul=armelfb ;;
 +arm*-*-riscos*)		targ_emul=armelf_riscos ;;
- arm*-*-uclinux*eabi)	targ_emul=armelf_linux_eabi
- 			targ_extra_emuls=armelfb_linux_eabi
- 			targ_extra_libpath=$targ_extra_emuls
+ arm-*-elf | arm*-*-eabi*)
+ 	  		targ_emul=armelf ;;
+ arm*-*-symbianelf*)     targ_emul=armsymbian;;
