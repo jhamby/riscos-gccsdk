@@ -418,8 +418,12 @@ c_macro (void)
 	  if (c == '$')
 	    {
 	      if (!Input_Match ('$', false))
-		{ /* Token ? Check list and substitute.  */
+		{
+		  /* Token ? Check list and substitute.  */
+		  bool vbar = Input_Match ('|', false);
 		  ptr = inputSymbol (&len, '\0');
+		  if (vbar && !Input_Match ('|', false))
+		    error (ErrorError, "Missing vertical bar");
 		  (void) Input_Match ('.', false);
 		  int i;
 		  for (i = 0;

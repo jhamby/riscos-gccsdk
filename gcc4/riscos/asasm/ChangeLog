@@ -1,3 +1,8 @@
+Mon Nov 21 02:23:27 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/macro_args.s: Enhance.
+	* macros.c (c_macro): Support vertical bars around macro arguments.
+
 Sun Nov 20 23:17:23 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c: Improve previous change.

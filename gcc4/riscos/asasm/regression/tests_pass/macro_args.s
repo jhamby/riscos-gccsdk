@@ -79,26 +79,45 @@ Tst2	Test2
 
 	]
 
+	; Test '|' support for macro arguments.
+	[ :LNOT: REFERENCE
+        MACRO
+$label  Test3	$reg, $what, $iswhat, $reg2
+        AND	$reg2, $reg, #Test3_$|what|_Mask
+        TEQ	$reg2, #Test3_$|what|_$iswhat
+        MEND
+
+Test3_Foo_Mask	*	3 :SHL: 0
+Test3_Foo_Val0	*	0 :SHL: 0
+Test3_Foo_Val1	*	1 :SHL: 0
+Test3_Foo_Val2	*	2 :SHL: 0
+
+	Test3 r0, Foo, Val1, r14
+	|
+	AND	r14, r0, #3
+	TEQ	r14, #1
+	]
+
 	; Test the macro default argument value:
 	[ :LNOT: REFERENCE
 
 	; Note there are two spaces after "def3" which make that the 3rd
 	; argument default value is " def3  "
 	MACRO
-	Test3	$Arg1  , $Arg2="def2",$Arg3  = def3  
+	Test4	$Arg1  , $Arg2="def2",$Arg3  = def3  
 	$Arg1
 	DCB	"$Arg2", 1
 	DCB	"$Arg3", 2
 	ALIGN
 	MEND ; End of macro
 
-	Test3
-	Test3	,
-	Test3	,,
-	Test3	DCB "t1arg1",t1arg2  ,    t1arg3
-	Test3	DCB "t2arg1","t2arg2" ,   "t2arg3"
-	Test3	,|  ,   "t3arg3"
-	Test3	,  "t4arg2"  ,   |
+	Test4
+	Test4	,
+	Test4	,,
+	Test4	DCB "t1arg1",t1arg2  ,    t1arg3
+	Test4	DCB "t2arg1","t2arg2" ,   "t2arg3"
+	Test4	,|  ,   "t3arg3"
+	Test4	,  "t4arg2"  ,   |
 
 	|
 
