@@ -1,5 +1,5 @@
-/* tmpfile (), tmpnam (), tmpnam_r (), mktemp (), tempnam ()
- * Copyright (c) 2000-2010 UnixLib Developers
+/* tmpfile (), tmpfile64 (), tmpnam (), tmpnam_r (), mktemp (), tempnam ()
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <string.h>
@@ -117,6 +117,12 @@ tmpfile (void)
 
   return result;
 }
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
+/* FIXME: indicate 4 GByte-1 limit.  */
+strong_alias (tmpfile, tmpfile64)
+#endif
 
 
 static char __tmpbuf[L_tmpnam + 1];
@@ -145,11 +151,13 @@ tmpnam_r (char *buf)
   return generate_temporary_filename (buf, P_tmpdir, "__XXXXXX");
 }
 
+
 char *
 mktemp (char *file_template)
 {
   return generate_temporary_filename (file_template, 0, file_template);
 }
+
 
 char *
 tempnam (const char *dir, const char *prefix)

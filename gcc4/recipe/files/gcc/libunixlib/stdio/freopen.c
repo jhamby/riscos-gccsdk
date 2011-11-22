@@ -1,5 +1,5 @@
-/* UnixLib freopen() implementation.
-   Copyright 2001-2008 UnixLib Developers.  */
+/* UnixLib freopen(), freopen64() implementation.
+   Copyright 2001-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -94,3 +94,10 @@ freopen (const char *filename, const char *mode, FILE *stream)
 
   return stream;
 }
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
+/* FIXME: indicate 4 GByte-1 limit.  */
+strong_alias (freopen, freopen64)
+#endif
+

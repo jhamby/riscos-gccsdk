@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 6.5: File Control Operations <fcntl.h>
- * Copyright (c) 2000-2006 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef __FCNTL_H
@@ -181,37 +181,76 @@ struct flock
 /* Do the file control operation described by CMD on FD.
    The remaining arguments are interpreted depending on CMD.
 
-   This is a cancellation point.  */
+   This function is a cancellation point and therefore not marked with
+   __THROW.  */
 extern int fcntl (int __fd, int __cmd, ...);
 
 /* Open FILE and return a new file descriptor for it, or -1 on error.
    OFLAG determines the type of access used.  If O_CREAT is on OFLAG,
    the third argument is taken as a `mode_t', the mode of the created file.
 
-   This is a cancellation point.  */
-extern int open (const char *file, int oflag, ...) __nonnull ((1));
+   This function is a cancellation point and therefore not marked with
+   __THROW.  */
+#ifndef __USE_FILE_OFFSET64
+extern int open (__const char *__file, int __oflag, ...) __nonnull ((1));
+#else
+# ifdef __REDIRECT
+extern int __REDIRECT (open, (__const char *__file, int __oflag, ...), open64)
+     __nonnull ((1));
+# else
+#  define open open64
+# endif
+#endif
+#ifdef __USE_LARGEFILE64
+extern int open64 (__const char *__file, int __oflag, ...) __nonnull ((1));
+#endif
 
-/* Create and open FILE, with mode MODE.
-   This takes an `int' MODE argument because that is
-   what `mode_t' will be widened to.
+/* Create and open FILE, with mode MODE.  This takes an `int' MODE
+   argument because that is what `mode_t' will be widened to.
 
-   This is a cancellation point.  */
-extern int creat (const char *file, __mode_t mode) __nonnull ((1));
+   This function is a cancellation point and therefore not marked with
+   __THROW.  */
+#ifndef __USE_FILE_OFFSET64
+extern int creat (__const char *__file, __mode_t __mode) __nonnull ((1));
+#else
+# ifdef __REDIRECT
+extern int __REDIRECT (creat, (__const char *__file, __mode_t __mode),
+		       creat64) __nonnull ((1));
+# else
+#  define creat creat64
+# endif
+#endif
+#ifdef __USE_LARGEFILE64
+extern int creat64 (__const char *__file, __mode_t __mode) __nonnull ((1));
+#endif
 
-#ifndef F_LOCK
-/* These declarations also appear in <unistd.h>; be sure to keep both
-   files consistent.  */
+#if !defined F_LOCK && (defined __USE_MISC || (defined __USE_XOPEN_EXTENDED \
+					       && !defined __USE_POSIX))
+/* NOTE: These declarations also appear in <unistd.h>; be sure to keep both
+   files consistent.  Some systems have them there and some here, and some
+   software depends on the macros being defined without including both.  */
 
 /* `lockf' is a simpler interface to the locking facilities of `fcntl'.
    LEN is always relative to the current file position.
    The CMD argument is one of the following.  */
 
-#define F_ULOCK 0       /* Unlock a previously locked region.  */
-#define F_LOCK  1       /* Lock a region for exclusive use.  */
-#define F_TLOCK 2       /* Test and lock a region for exclusive use.  */
-#define F_TEST  3       /* Test a region for other processes locks.  */
+# define F_ULOCK 0	/* Unlock a previously locked region.  */
+# define F_LOCK  1	/* Lock a region for exclusive use.  */
+# define F_TLOCK 2	/* Test and lock a region for exclusive use.  */
+# define F_TEST  3	/* Test a region for other processes locks.  */
 
-extern int lockf (int fd, int cmd, __off_t len);
+# ifndef __USE_FILE_OFFSET64
+extern int lockf (int __fd, int __cmd, __off_t __len);
+# else
+#  ifdef __REDIRECT
+extern int __REDIRECT (lockf, (int __fd, int __cmd, __off64_t __len), lockf64);
+#  else
+#   define lockf lockf64
+#  endif
+# endif
+# ifdef __USE_LARGEFILE64
+extern int lockf64 (int __fd, int __cmd, __off64_t __len);
+# endif
 #endif
 
 __END_DECLS

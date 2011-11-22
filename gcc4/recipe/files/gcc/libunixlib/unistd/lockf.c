@@ -2,6 +2,7 @@
  * File taken from glibc.
  * Following changes were made:
  *  - SCL poison added.
+ *  - Added lockf64
  */
 #ifdef __TARGET_SCL__
 #  error "SCL build should not use (L)GPL code."
@@ -73,3 +74,14 @@ lockf (int fd, int cmd, off_t len)
 
   return fcntl (fd, cmd, &fl);
 }
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
+int
+lockf64 (int fd, int cmd, __off64_t len)
+{
+  if (len >= (__off_t)-1)
+    return __set_errno (EOVERFLOW);
+  return lockf (fd, cmd, (__off_t)len);
+}
+#endif

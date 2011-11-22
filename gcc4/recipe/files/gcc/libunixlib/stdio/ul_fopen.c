@@ -1,5 +1,5 @@
-/* UnixLib fopen() implementation.
-   Copyright 2001-2010 UnixLib Developers.  */
+/* UnixLib fopen(), fopen64() implementation.
+   Copyright 2001-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -76,3 +76,10 @@ fopen (const char *filename, const char *mode)
 
   return __stream_init (fd, stream);
 }
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
+/* FIXME: indicate 4 GByte-1 limit.  */
+strong_alias (fopen, fopen64)
+#endif
+

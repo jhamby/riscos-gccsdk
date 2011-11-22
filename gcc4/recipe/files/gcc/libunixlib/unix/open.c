@@ -1,4 +1,4 @@
-/* UnixLib ttyname() and open() implementation.
+/* UnixLib ttyname(), open() and open64() implementation.
    Copyright (c) 2000-2011 UnixLib Developers.  */
 
 #include <errno.h>
@@ -119,3 +119,9 @@ open (const char *file, int oflag, ...)
 
   return __open_fn (fd, file, oflag, mode);
 }
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
+strong_alias (open, open64)
+#endif
+

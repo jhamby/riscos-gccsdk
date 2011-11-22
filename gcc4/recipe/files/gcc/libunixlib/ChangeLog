@@ -1,3 +1,14 @@
+Tue Nov 22 02:15:11 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/freopen.c (freopen64): Add dummy implementation.
+	* stdio/tmpfile.c (tmpfile64): Likewise.
+	* stdio/ul_fopen.c (fopen64): Likewise.
+	* stdio/fpos.c (fgetpos64, fsetpos64, fseeko64, ftello64): Likewise.
+	* unix/creat.c (creat64): Likewise.
+	* unix/open.c (open64): Likewise.
+	* unistd/lockf.c (lockf64): Likewise.
+	* include/fcntl.h (open64, creat64, lockf64): Add prototypes.
+
 Sat Nov 12 00:19:57 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/fenv.h (feenableexcept, fedisableexcept, fegetexcept):

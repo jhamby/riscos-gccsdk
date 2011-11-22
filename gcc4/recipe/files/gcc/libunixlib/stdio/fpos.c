@@ -1,6 +1,6 @@
-/* UnixLib fgetpos(), fsetpos(), fseek(), fseeko(), ftell(), ftello(),
-   rewind() implementation.
-   Copyright 2001-2010 UnixLib Developers.  */
+/* UnixLib fgetpos(), fgetpos64(), fsetpos(), fsetpos64(), fseek(), fseeko(), fseeko64()
+   ftell(), ftello(), ftello64(), rewind() implementation.
+   Copyright 2001-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -16,34 +16,58 @@
 #endif
 
 int
-fgetpos (FILE * stream, fpos_t * pos)
+fgetpos (FILE *stream, __off_t *pos)
 {
   PTHREAD_UNSAFE
 
   if (!__validfp (stream) || pos == NULL)
     return __set_errno (EINVAL);
 
-  *pos = ftell (stream);
-  if (*pos < 0L)
+  *pos = ftello (stream);
+  if (*pos == (__off_t)-1)
     return -1;
 
   return 0;
 }
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
+int
+fgetpos64 (FILE *stream, __off64_t *pos)
+{
+  __off_t pos32;
+  if (fgetpos (stream, &pos32) == -1)
+    return -1;
+  *pos = pos32;
+  return 0;
+}
+#endif
+
 
 int
-fsetpos (FILE * stream, const fpos_t * pos)
+fsetpos (FILE *stream, const __off_t *pos)
 {
   if (pos == NULL)
-    {
-      (void) __set_errno (EINVAL);
-      return EOF;
-    }
+    return __set_errno (EINVAL);
 
   return fseek (stream, *pos, SEEK_SET);
 }
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
+int
+fsetpos64 (FILE *stream, const __off64_t *pos)
+{
+  if (pos != NULL && *pos >= (__off_t)-1)
+    return __set_errno (EOVERFLOW);
+  __off_t pos32 = (__off_t)pos;
+  return fsetpos (stream, &pos32);
+}
+#endif
+
 
 int
-fseek (FILE * stream, long offset, int w)
+fseek (FILE *stream, long offset, int w)
 {
   long current, result;
 
@@ -108,12 +132,19 @@ fseek (FILE * stream, long offset, int w)
 
   return 0;
 }
-
+strong_alias (fseek, fseeko)
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
 int
-fseeko (FILE * stream, __off_t offset, int w)
+fseeko64 (FILE *stream, __off64_t offset, int w)
 {
-  return fseek(stream, offset, w);
+  if (offset >= (__off_t)-1)
+    return __set_errno (EOVERFLOW);
+  return fseek (stream, (__off_t)offset, w);
 }
+#endif
+
 
 long
 ftell (FILE *stream)
@@ -163,12 +194,17 @@ ftell (FILE *stream)
 #endif
   return stream->__offset - stream->__pushedback;
 }
-
-__off_t
-ftello (FILE *stream)
+strong_alias (ftell, ftello)
+#if __UNIXLIB_LFS64_SUPPORT
+#  error "64-bit LFS support missing."
+#else
+__off64_t
+ftello64 (FILE *stream)
 {
-  return ftell (stream);
+  return ftello (stream);
 }
+#endif
+
 
 void
 rewind (FILE *stream)
@@ -177,6 +213,6 @@ rewind (FILE *stream)
 
   /* Clear any file errors before and after the seek operation.  */
   clearerr (stream);
-  fseek (stream, 0L, SEEK_SET);
+  fseek (stream, 0, SEEK_SET);
   clearerr (stream);
 }
