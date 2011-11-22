@@ -1,9 +1,9 @@
 #!/bin/bash -e
 # Auto-generate libunixlib
-# Copyright (c) 2007-2010 GCCSDK Developers
+# Copyright (c) 2007-2011 GCCSDK Developers
 
 # Generate the Makefile.am files:
 ./libunixlib/gen-auto.pl
 
 # Run the autotools:
-( cd libunixlib && aclocal -I .. -I ../config && autoheader && automake -a && autoconf )
+( cd libunixlib && ACLOCAL='aclocal -I .. -I ../config' autoreconf -v )
