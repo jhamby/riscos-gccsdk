@@ -9,13 +9,14 @@
 
 	.global	__pthread_exit
 
-	@ For the shared library, we assume that __pthread_exit is only ever
-	@ called by pthread_exit() and that v4 already contains the GOT
-	@ pointer.
 	NAME	__pthread_exit
 __pthread_exit:
+ PICEQ "LDR	a2, =__GOTT_BASE__"
+ PICEQ "LDR	a2, [a2, #0]"
+ PICEQ "LDR	a2, [a2, #__GOTT_INDEX__]"	@ a2 = GOT ptr
+
 	LDR	a1, funcs
- PICEQ "LDR	a1, [v4, a1]"
+ PICEQ "LDR	a1, [a2, a1]"
 	TEQ	a1, #0
 	MOVNE	pc, a1
 	MOV	pc, r14

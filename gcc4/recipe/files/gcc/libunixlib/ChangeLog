@@ -1,3 +1,9 @@
+Sun Nov 27 16:04:02 GMT 2011  Lee Noar  <leenoar@sky.com>
+
+	* pthread/_exit.s(__pthread_exit:): As GCC can now use any register
+	for the PIC register, we have to load it ourselves rather than assume
+	the caller has done it for us.
+
 Tue Nov 22 02:15:11 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/freopen.c (freopen64): Add dummy implementation.
