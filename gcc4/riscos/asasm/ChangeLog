@@ -1,3 +1,24 @@
+Sun Nov 27 21:05:44 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/include/foo-filetypeAB3,ab3,
+	regression/tests_pass/include/foo-3bytes.s,
+	regression/tests_pass/operator_fileinfo.s: Added.
+	* riscos_c.c: Rename to...
+	* os.c: ...this.
+	(ASFile_Create, ASFile_Free): Add.
+	(CanonicalisePath): Make local.
+	* os.h (ASFile): Define.
+	(ASFile_Create, ASFile_Free): Add prototypes.
+	* include.c (Include_Find): Create ASFile version based on Include_Get.
+	(Include_Get): Use Include_Find and merge Include_Open in it.
+	* include.h (Include_Get): Use ASFile.
+	(Include_Find): Add.
+	* commands.c (c_incbin): Follow Include_Get API change.
+	* filestack.c (FS_PushFilePObject): Likewise.
+	* eval.c (evalUnop): Implement Op_fattr, Op_fexec, Op_fload.
+	Reimplement Op_fsize.
+	* Makefile.am: Follow riscos_c.c to os.c rename.
+
 Sun Nov 27 16:40:56 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c, os.h, local.c, strdup.c, macros.c, input.c, lexAcorn.c,

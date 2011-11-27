@@ -108,10 +108,8 @@ FS_PushFilePObject (const char *fileName)
   else
     errorAbort ("Maximum file/macro nesting level reached (%d)", PARSEOBJECT_STACK_SIZE);
 
-  const char *fileNameP;
-  newPObjP->d.file.fhandle = Include_Get (fileName, &fileNameP, true);
-  newPObjP->name = StoreFileName (fileNameP);
-
+  ASFile asFile;
+  newPObjP->d.file.fhandle = Include_Get (fileName, &asFile, true);
   if (newPObjP->d.file.fhandle == NULL)
     {
       error (ErrorError, "Cannot open file \"%s\"", fileName);
@@ -119,11 +117,15 @@ FS_PushFilePObject (const char *fileName)
     }
 
   newPObjP->type = POType_eFile;
+  newPObjP->name = StoreFileName (asFile.canonName);
+  asFile.canonName = NULL; /* Ownership moved to StoreFileName().  */
   newPObjP->lineNum = 0;
   newPObjP->whileIfCurDepth = newPObjP->whileIfStartDepth = prevWhileIfDepth;
   newPObjP->GetLine = File_GetLine;
   newPObjP->lastLineSize = 0;
 
+  ASFile_Free (&asFile);
+  
   /* Set current file stack pointer.  All is ok now.  */
   gCurPObjP = newPObjP;
   return false;

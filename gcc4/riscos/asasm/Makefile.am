@@ -16,7 +16,6 @@ asasm_SOURCES=area.c asm.c code.c commands.c decode.c depend.c error.c \
 	help_cpu.c \
 	include.c input.c lexAcorn.c lex.c lit.c \
 	local.c macros.c main.c m_cop.c m_copmem.c m_cpu.c m_cpuctrl.c \
-	m_cpumem.c m_fpe.c option.c output.c put.c reloc.c \
-	riscos_c.c storage.c strdup.c symbol.c targetcpu.c \
+	m_cpumem.c m_fpe.c option.c os.c output.c put.c reloc.c \
+	storage.c strdup.c symbol.c targetcpu.c \
 	value.c variables.c whileif.c
-

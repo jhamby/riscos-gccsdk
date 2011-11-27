@@ -560,23 +560,24 @@ c_incbin (void)
     /* */;
   *cptr = '\0';
 
-  const char *newFilename;
-  FILE *binfp = Include_Get (filename, &newFilename, true);
+  ASFile asFile;
+  FILE *binfp = Include_Get (filename, &asFile, true);
   if (!binfp)
+    error (ErrorError, "Cannot open file \"%s\"", filename);
+  else
     {
-      error (ErrorError, "Cannot open file \"%s\"", filename);
-      free (filename);
-      free ((void *)newFilename);
-      return false;
+      if (option_verbose)
+	fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", filename, asFile.canonName);
+
+      /* Include binary file.  */
+      int c;
+      while ((c = getc (binfp)) != EOF)
+	Put_Data (1, c);
+      fclose (binfp);
     }
-  if (option_verbose)
-    fprintf (stderr, "Including binary file \"%s\" as \"%s\"\n", filename, newFilename);
-  free ((void *)newFilename);
-  /* Include binary file.  */
-  int c;
-  while ((c = getc (binfp)) != EOF)
-    Put_Data (1, c);
-  fclose (binfp);
+
+  free (filename);
+  ASFile_Free (&asFile);
   return false;
 }
 

@@ -26,20 +26,23 @@
 
 #include "config.h"
 
-#ifndef __riscos__
-#  include <error.h>
-#  include <string.h>
-#  include "common.h"
-/* UNIX specific information.  */
-static inline const char *
-CanonicalisePath (const char *path)
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdint.h>
+
+typedef struct
 {
-  const char *rsltP;
-  if ((rsltP = strdup (path)) == NULL)
-    errorOutOfMem ();
-  return rsltP;
-}
-#else
+  const char *canonName; /* Canonical filename.  */
+  off_t size; /* File size.  */
+  uint8_t attribs; /* RISC OS file attributes.  */
+  uint32_t execAddress; /* RISC OS exec address.  */
+  uint32_t loadAddress; /* RISC OS load address.  */
+} ASFile;
+
+bool ASFile_Create (const char *filename, ASFile *asFileP);
+void ASFile_Free (ASFile *asFileP);
+
+#ifdef __riscos__
 
 #include <kernel.h>
 
@@ -58,8 +61,6 @@ _kernel_oserror *ThrowbackEnd (void);
 #define ThrowbackWarning		0
 #define ThrowbackError			1
 #define ThrowbackSeriousError		2
-
-const char *CanonicalisePath (const char *path);
 
 #endif /* !__riscos__ */
 

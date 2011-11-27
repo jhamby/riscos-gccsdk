@@ -715,27 +715,74 @@ evalUnop (Operator op, Value *value)
   switch (op)
     {
       case Op_fattr:
-	if (value->Tag != ValueString)
-	  return false;
-	error (ErrorError, "%s not implemented", "fattr");
-	break;
+	{
+	  if (value->Tag != ValueString)
+	    return false;
+	  char *s;
+	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
+	    errorOutOfMem();
+
+	  value->Tag = ValueInt;
+
+	  ASFile asFile;
+	  if (Include_Find (s, &asFile, true))
+	    {
+	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      value->Data.Int.i = 0;
+	    }
+	  else
+	    value->Data.Int.i = asFile.attribs;
+	  ASFile_Free (&asFile);
+	  free (s);
+	  break;
+	}
 
       case Op_fexec:
-	if (value->Tag != ValueString)
-	  return false;
-	/* TODO: Real exec address. For now, just fill with zeros */
-	value->Data.Int.i = 0;
-	value->Tag = ValueInt;
-	break;
+	{
+	  if (value->Tag != ValueString)
+	    return false;
+	  char *s;
+	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
+	    errorOutOfMem();
+
+	  value->Tag = ValueInt;
+
+	  ASFile asFile;
+	  if (Include_Find (s, &asFile, true))
+	    {
+	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      value->Data.Int.i = 0;
+	    }
+	  else
+	    value->Data.Int.i = asFile.execAddress;
+	  ASFile_Free (&asFile);
+	  free (s);
+	  break;
+	}
 
       case Op_fload:
-	if (value->Tag != ValueString)
-	  return false;
-	/* TODO: Real load address. For now, type everything as text */
-	value->Data.Int.i = 0xFFFfff00;
-	value->Tag = ValueInt;
-	break;
+	{
+	  if (value->Tag != ValueString)
+	    return false;
+	  char *s;
+	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
+	    errorOutOfMem();
 
+	  value->Tag = ValueInt;
+
+	  ASFile asFile;
+	  if (Include_Find (s, &asFile, true))
+	    {
+	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      value->Data.Int.i = 0;
+	    }
+	  else
+	    value->Data.Int.i = asFile.loadAddress;
+	  ASFile_Free (&asFile);
+	  free (s);
+	  break;
+	}
+	
       case Op_fsize:
 	{
 	  if (value->Tag != ValueString)
@@ -743,29 +790,27 @@ evalUnop (Operator op, Value *value)
 	  char *s;
 	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
 	    errorOutOfMem();
-	  FILE *fp;
-	  if ((fp = Include_Get (s, NULL, true)) == NULL)
-	    {
-	      error (ErrorError, "Cannot open file \"%s\"", s ? s : "");
-	      free (s);
-	      return false;
-	    }
-	  if (fseek (fp, 0l, SEEK_END))
-	    {
-	      error (ErrorError, "Cannot seek to end of file \"%s\"", s ? s : "");
-	      free (s);
-	      return false;
-	    }
-	  value->Data.Int.i = (int) ftell (fp);
-	  if (value->Data.Int.i == -1)
-	    {
-	      error (ErrorError, "Cannot find size of file \"%s\"", s ? s : "");
-	      free (s);
-	      return false;
-	    }
-	  fclose (fp);
-	  free (s);
+
 	  value->Tag = ValueInt;
+
+	  FILE *fp;
+	  ASFile asFile;
+	  if ((fp = Include_Get (s, &asFile, true)) == NULL)
+	    {
+	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      value->Data.Int.i = 0;
+	    }
+	  else
+	    {
+	      if (asFile.size > UINT32_MAX)
+		{
+		  error (ErrorWarning, "File size of \"%s\" is bigger than unsigned 32-bit integer", s);
+		  asFile.size = UINT32_MAX;
+		}
+	      value->Data.Int.i = asFile.size;
+	    }
+	  ASFile_Free (&asFile);
+	  free (s);
 	}
 	break;
 

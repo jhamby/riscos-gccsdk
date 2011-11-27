@@ -26,7 +26,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include "os.h"
+
 void Include_Add (const char *incpath);
-FILE *Include_Get (const char *filename, const char **strdupFilename, bool inc);
+bool Include_Find (const char *filename, ASFile *asFileP, bool inc);
+FILE *Include_Get (const char *filename, ASFile *asFileP, bool inc);
 
 #endif
