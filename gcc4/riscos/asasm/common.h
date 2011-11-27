@@ -22,6 +22,22 @@
 #ifndef common_header_included
 #define common_header_included
 
+#include "config.h"
+
+#include <stdlib.h>
+
 #define UNUSED __attribute__((unused))
+
+#ifndef HAVE_STRNDUP
+char *strndup (const char *str, size_t len);
+#endif
+
+#ifndef HAVE_STRDUP
+char *strdup (const char *str);
+#endif
+
+#ifndef HAVE_STRNCASECMP
+int strncasecmp(const char *str1, const char *str2, size_t n);
+#endif
 
 #endif

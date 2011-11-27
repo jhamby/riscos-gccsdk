@@ -47,7 +47,6 @@
 #include "macros.h"
 #include "main.h"
 #include "output.h"
-#include "os.h"
 #include "put.h"
 #include "symbol.h"
 #include "value.h"

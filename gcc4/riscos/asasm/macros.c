@@ -34,12 +34,12 @@
 
 #include "asm.h"
 #include "commands.h"
+#include "common.h"
 #include "decode.h"
 #include "error.h"
 #include "filestack.h"
 #include "input.h"
 #include "macros.h"
-#include "os.h"
 #include "variables.h"
 
 #ifdef DEBUG

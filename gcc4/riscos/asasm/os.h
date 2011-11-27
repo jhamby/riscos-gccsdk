@@ -29,6 +29,7 @@
 #ifndef __riscos__
 #  include <error.h>
 #  include <string.h>
+#  include "common.h"
 /* UNIX specific information.  */
 static inline const char *
 CanonicalisePath (const char *path)
@@ -61,17 +62,5 @@ _kernel_oserror *ThrowbackEnd (void);
 const char *CanonicalisePath (const char *path);
 
 #endif /* !__riscos__ */
-
-#ifndef HAVE_STRNDUP
-char *strndup (const char *str, size_t len);
-#endif
-
-#ifndef HAVE_STRDUP
-char *strdup (const char *str);
-#endif
-
-#ifndef HAVE_STRNCASECMP
-int strncasecmp(const char *str1, const char *str2, size_t n);
-#endif
 
 #endif

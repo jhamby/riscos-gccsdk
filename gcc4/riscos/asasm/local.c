@@ -21,6 +21,7 @@
  */
 
 #include "config.h"
+
 #include <string.h>
 #include <stdlib.h>
 #ifdef HAVE_STDINT_H
@@ -31,6 +32,7 @@
 
 #include "area.h"
 #include "asm.h"
+#include "common.h"
 #include "error.h"
 #include "filestack.h"
 #include "local.h"

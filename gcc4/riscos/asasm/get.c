@@ -37,7 +37,6 @@
 #include "help_cpu.h"
 #include "input.h"
 #include "lex.h"
-#include "os.h"
 #include "reloc.h"
 #include "symbol.h"
 

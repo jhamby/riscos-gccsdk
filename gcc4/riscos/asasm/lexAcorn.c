@@ -29,6 +29,7 @@
 #endif
 #include <string.h>
 
+#include "common.h"
 #include "decode.h"
 #include "error.h"
 #include "input.h"

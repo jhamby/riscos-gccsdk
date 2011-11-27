@@ -1,3 +1,13 @@
+Sun Nov 27 16:40:56 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c, os.h, local.c, strdup.c, macros.c, input.c, lexAcorn.c,
+	filename.c, main.c, eval.c: Add include common.h.
+	* variables.c, value.c, strdup.c, macros.c, input.c, get.c, main.c,
+	eval.c, lex.c: Remove include os.h.
+	* os.h (strndup, strdup, strncasecmp): Move prototypes to...
+	* common.h: ...here.
+	* lit.c (DEBUG_LIT): Add.
+
 Mon Nov 21 02:23:27 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/macro_args.s: Enhance.

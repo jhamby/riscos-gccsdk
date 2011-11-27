@@ -41,7 +41,6 @@
 #include "lexAcorn.h"
 #include "local.h"
 #include "main.h"
-#include "os.h"
 #include "symbol.h"
 
 static Lex nextbinop;

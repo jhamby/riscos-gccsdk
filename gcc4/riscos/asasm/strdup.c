@@ -21,11 +21,12 @@
  */
 
 #include "config.h"
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "os.h"
+#include "common.h"
 
 
 #if !defined (HAVE_STRNDUP)
@@ -58,7 +59,7 @@ strdup (const char *str)
 
 #if !defined (HAVE_STRNCASECMP)
 int
-strncasecmp(const char *str1, const char *str2, size_t n)
+strncasecmp (const char *str1, const char *str2, size_t n)
 {
   int i, j;
 

@@ -34,12 +34,12 @@
 #  include <inttypes.h>
 #endif
 
+#include "common.h"
 #include "error.h"
 #include "filestack.h"
 #include "input.h"
 #include "macros.h"
 #include "main.h"
-#include "os.h"
 
 #define MAX_LINE (4096)
 

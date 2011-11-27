@@ -31,12 +31,12 @@
 #include "area.h"
 #include "asm.h"
 #include "code.h"
+#include "common.h"
 #include "error.h"
 #include "eval.h"
 #include "global.h"
 #include "include.h"
 #include "main.h"
-#include "os.h"
 
 /* No validation checking on value types! */
 static int

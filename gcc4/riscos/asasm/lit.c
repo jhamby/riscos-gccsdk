@@ -46,6 +46,10 @@
 #include "reloc.h"
 #include "value.h"
 
+#ifdef DEBUG
+//#  define DEBUG_LIT
+#endif
+
 typedef enum
 {
   eNotYetAssembled,
@@ -168,9 +172,15 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
  * \return You get ownership.
  */
 Value
-Lit_RegisterInt (const Value *value, Lit_eSize size)
+Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 {
-  assert (value->Tag == ValueInt || value->Tag == ValueSymbol || value->Tag == ValueCode);
+  assert (valueP->Tag == ValueInt || valueP->Tag == ValueSymbol || valueP->Tag == ValueCode);
+
+#ifdef DEBUG_LIT
+  printf ("Lit_RegisterInt(): area offset 0x%x : type %d : ", areaCurrentSymbol->area.info->curIdx, size);
+  valuePrint (valueP);
+  printf ("\n");
+#endif
 
   bool isAddrMode3;
   switch (size)
@@ -195,8 +205,8 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
      version for a different size value.
      E.g.  LDRB Rx, =0x808 and LDR Rx, =0x808 can not share the same literal.  */
   Value truncValue = { .Tag = ValueIllegal };
-  Value_Assign (&truncValue, value);
-  if (value->Tag == ValueInt)
+  Value_Assign (&truncValue, valueP);
+  if (valueP->Tag == ValueInt)
     {
       int truncForUser;
       switch (size)
@@ -226,9 +236,9 @@ Lit_RegisterInt (const Value *value, Lit_eSize size)
 	    assert (0);
 	    break;
 	}
-      if (truncValue.Data.Int.i != value->Data.Int.i)
+      if (truncValue.Data.Int.i != valueP->Data.Int.i)
 	error (ErrorWarning, "Constant %d has been truncated to %d by the used mnemonic",
-	       value->Data.Int.i, truncForUser);
+	       valueP->Data.Int.i, truncForUser);
       /* Perhaps representable as MOV/MVN:  */
       if (help_cpuImm8s4 (truncForUser) != -1
           || help_cpuImm8s4 (~truncForUser) != -1)
@@ -358,6 +368,12 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
   assert (valueP->Tag == ValueInt || valueP->Tag == ValueFloat || valueP->Tag == ValueSymbol || valueP->Tag == ValueCode);
   assert ((size == eLitFloat || size == eLitDouble) && "Incorrect literal size for this routine");
 
+#ifdef DEBUG_LIT
+  printf ("Lit_RegisterFloat(): area offset 0x%x, type %d : ", areaCurrentSymbol->area.info->curIdx, size);
+  valuePrint (valueP);
+  printf ("\n");
+#endif
+
   /* Convert given integer value to float.  */
   const Value value = (valueP->Tag == ValueInt) ? Value_Float ((ARMFloat)valueP->Data.Int.i) : *valueP;
   valueP = &value;
@@ -418,6 +434,10 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 void
 Lit_DumpPool (void)
 {
+#ifdef DEBUG_LIT
+  printf ("Lit_DumpPool(), area offset 0x%x\n", areaCurrentSymbol->area.info->curIdx);
+#endif
+
   Status_e statusToLeaveAlone = (gASM_Phase == ePassOne) ? eAssembledPassOne : eAssembledPassTwo;
   for (LitPool *litP = areaCurrentSymbol->area.info->litPool; litP != NULL; litP = litP->next)
     {
@@ -608,6 +628,11 @@ Lit_DumpPool (void)
 		  .size = (int) Lit_GetSizeInBytes (litP),
 		  .allowUnaligned = false
 		};
+#ifdef DEBUG_LIT
+	      printf ("  Place at 0x%x value ", litP->offset);
+	      valuePrint (&litP->value);
+	      printf ("\n");
+#endif
 	      if (gASM_Phase == ePassOne)
 		Put_AlignDataWithOffset (litP->offset, privData.size, 0, !privData.allowUnaligned);
 	      else
@@ -615,8 +640,8 @@ Lit_DumpPool (void)
 		  codeInit ();
 		  codeValue (&litP->value, true);
 		  if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, litP->offset,
-					      ValueInt | ValueString | ValueSymbol | ValueCode,
-					      &privData, sizeof (privData)))
+					     ValueInt | ValueString | ValueSymbol | ValueCode,
+					     &privData, sizeof (privData)))
 		    errorLine (litP->file, litP->lineno, ErrorError, "Illegal %s expression", "literal");
 		}
 	    }
@@ -630,6 +655,11 @@ Lit_DumpPool (void)
 		  .size = (int) Lit_GetSizeInBytes (litP),
 		  .allowUnaligned = false
 		};
+#ifdef DEBUG_LIT
+	      printf ("  Place at 0x%x value ", litP->offset);
+	      valuePrint (&litP->value);
+	      printf ("\n");
+#endif
 	      if (gASM_Phase == ePassOne)
 		Put_FloatDataWithOffset (litP->offset, privData.size, 0.,
 					 !privData.allowUnaligned);

@@ -36,8 +36,8 @@ typedef enum
   eLitDouble
 } Lit_eSize;
 
-Value Lit_RegisterInt (const Value *value, Lit_eSize size);
-Value Lit_RegisterFloat (const Value *value, Lit_eSize size);
+Value Lit_RegisterInt (const Value *valueP, Lit_eSize size);
+Value Lit_RegisterFloat (const Value *valueP, Lit_eSize size);
 void Lit_DumpPool (void);
 
 bool c_ltorg (void);
