@@ -529,6 +529,9 @@ c_lnk (void)
     FS_PopPObject (true);
   FS_PopPObject (true);
 
+  /* Dump literal pool.  */
+  Lit_DumpPool ();
+
   if (!FS_PushFilePObject (filename) && option_verbose)
     fprintf (stderr, "Linking to file \"%s\" as \"%s\"\n", filename, gCurPObjP->name);
   return false;
