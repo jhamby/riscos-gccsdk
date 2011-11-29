@@ -1,3 +1,15 @@
+Tue Nov 29 16:34:27 GMT 2011  Lee Noar  <leenoar@sky.com>
+
+	* pthread/_context.s(__pthread_callback): Be more consistent with
+	which register is used for PIC. This is to fix a bug whereby after
+	a jump to skip_contextswitch was made, the wrong register was used
+	to address the GOT.
+	* pthread/pthinit.c(__get_GOT_ptr): Small piece of assembler code
+	to retrieve the GOT pointer. Used by __pthread_prog_init because
+	we don't know which register GCC has used for PIC.
+	* signal/_signal.s(__setup_signalhandler_stack): Load PIC register
+	rather than depend on caller for it.
+
 Sun Nov 27 16:04:02 GMT 2011  Lee Noar  <leenoar@sky.com>
 
 	* pthread/_exit.s(__pthread_exit:): As GCC can now use any register

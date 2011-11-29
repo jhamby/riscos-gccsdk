@@ -841,12 +841,14 @@ __h_cback_common:
 	@ context switcher. Should be called in USR, SVC or IRQ mode.
 	@ We cope with recursive signals by only setting up the stack
 	@ if we're not already in a signal handler
-	@ On entry:
-	@  v4 = UnixLib GOT pointer in shared library
 	.global	__setup_signalhandler_stack
 __setup_signalhandler_stack:
+ PICEQ "LDR	a4, =__GOTT_BASE__"
+ PICEQ "LDR	a4, [a4, #0]"
+ PICEQ "LDR	a4, [a4, #__GOTT_INDEX__]"
+
 	LDR	a3, .L11	@=__ul_global
- PICEQ "LDR	a3, [v4, a3]"
+ PICEQ "LDR	a3, [a4, a3]"
 	LDR	a1, [a3, #GBL_EXECUTING_SIGNALHANDLER]
 	TEQ	a1, #0
 	ADD	a1, a1, #1
@@ -902,7 +904,8 @@ __cba1:
 
 @ Exit handler
 @ Called in USR mode
-@ In the shared library, r12 contains the UnixLib GOT pointer
+@ In the shared library, r12 contains the UnixLib GOT pointer if it's
+@ ever needed.
 	.global	__h_exit
 	NAME	__h_exit
 __h_exit:
@@ -910,8 +913,6 @@ __h_exit:
 	@ can not be trusted as we come here when OS_Exit is called
 	@ and this can be from anywhere (including the <Alt><Break>
 	@ TaskManager implementation).
- PICEQ "MOV	v4, r12"
-
 	BL	__setup_signalhandler_stack
 
 	MOV	a1, #EXIT_FAILURE

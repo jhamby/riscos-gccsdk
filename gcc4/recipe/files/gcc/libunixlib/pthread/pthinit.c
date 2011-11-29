@@ -15,6 +15,19 @@ static struct __pthread_thread mainthread;
 
 static const char filter_name[] = "UnixLib pthread";
 
+#ifdef PIC
+static unsigned int __get_GOT_ptr (void)
+{
+unsigned int GOT;
+
+  __asm__ volatile ("	LDR	%0, =__GOTT_BASE__\n"
+		    "	LDR	%0, [%0, #0]\n"
+		    "	LDR	%0, [%0, #__GOTT_INDEX__]\n"
+		    : "=r" (GOT));
+  return GOT;
+}
+#endif
+
 /* Called once, at program initialisation.  */
 void
 __pthread_prog_init (void)
@@ -41,7 +54,7 @@ __pthread_prog_init (void)
    * constant over the life of the program. A pointer to this block
    * will be passed to pthread_call_every in r12. Despite the
    * WimpPoll filters, accessing application space is still crash
-   * prone, espacially in the shared library. Passing this data
+   * prone, especially in the shared library. Passing this data
    * in the RMA allows the application to be validated without having
    * to access its address space therefor making it more robust.
    */
@@ -56,9 +69,7 @@ __pthread_prog_init (void)
     gbl->pthread_callevery_rma = (struct __pthread_callevery_block *)regs[2];
     
 #ifdef PIC
-    register unsigned int GOT __asm__("v4");
-
-    gbl->pthread_callevery_rma->got = GOT;
+    gbl->pthread_callevery_rma->got = __get_GOT_ptr ();
 #else
     gbl->pthread_callevery_rma->got = 0;
 #endif

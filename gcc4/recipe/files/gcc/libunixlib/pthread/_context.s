@@ -304,14 +304,12 @@ pthread_call_every:
 
 	NAME	__pthread_callback
 __pthread_callback:
-	@ Use ip for temporary PIC register as all other registers
-	@ are used further down.
- PICEQ "LDR	ip, =__GOTT_BASE__"
- PICEQ "LDR	ip, [ip, #0]"
- PICEQ "LDR	ip, [ip, #__GOTT_INDEX__]"	@ ip = GOT ptr
+ PICEQ "LDR	v1, =__GOTT_BASE__"
+ PICEQ "LDR	v1, [v1, #0]"
+ PICEQ "LDR	v1, [v1, #__GOTT_INDEX__]"	@ ip = GOT ptr
 
 	LDR	a3, .L2			@=__ul_global
- PICEQ "LDR	a3, [ip, a3]"
+ PICEQ "LDR	a3, [v1, a3]"
  
 	@ If we are in a critical region, do not switch threads and
 	@ exit quicky.
@@ -333,24 +331,25 @@ __pthread_callback:
 	STR	a1, [a3, #GBL_PTH_CALLBACK_SEMAPHORE]
 
 	@ Setup a stack for the context switcher
- PICEQ "MOV	v4, ip"
 	BL	__setup_signalhandler_stack
 
 	@ Save regs to thread's save area
 	LDR	a1, .L2+4	@=__pthread_running_thread
- PICEQ "LDR	a1, [ip, a1]"
+ PICEQ "LDR	a1, [v1, a1]"
 	LDR	a1, [a1]
 	LDR	a1, [a1, #__PTHREAD_CONTEXT_OFFSET]	@ __pthread_running_thread->saved_context
 
 	@ Copy integer regs
 	LDR	a2, .L2+8	@=__cbreg
- PICEQ "LDR	a2, [ip, a2]"
+ PICEQ "MOV	ip, v1"		@ Save PIC register
+ PICEQ "LDR	a2, [v1, a2]"
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	LDMIA	a2!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	STMIA	a1!, {a3, a4, v1, v2, v3, v4, v5, v6}
 	@ Copy SPSR
 	LDR	a3, [a2]
+ PICEQ "MOV	v1, ip"		@ Restore PIC register
 	STR	a3, [a1], #4
 
 	@ We have to copy the integer regs before switching IRQs
@@ -367,15 +366,12 @@ __pthread_callback:
 	STR	a2, [a1]
 #endif
 
-	@ Switch to normal PIC register so that call to C function
-	@ doesn't corrupt it.
- PICEQ "MOV	v4, ip"
 	@ Call the scheduler to switch to another thread
 	BL	__pthread_context_switch
 
 	@ Now reload the registers from the new thread's save area
 	LDR	a1, .L2+4	@=__pthread_running_thread
- PICEQ "LDR	a1, [v4, a1]"
+ PICEQ "LDR	a1, [v1, a1]"
 	LDR	a1, [a1]
 	LDR	a2, [a1, #__PTHREAD_CONTEXT_OFFSET]	@ __pthread_running_thread->saved_context
 
@@ -392,7 +388,7 @@ __pthread_callback:
 	CHGMODE	a2, SVC_Mode+IFlag	@ Force SVC mode, IRQs off
 
 	LDR	a2, .L2		@=__ul_global
- PICEQ "LDR	a2, [v4, a2]"
+ PICEQ "LDR	a2, [v1, a2]"
 
 	@ Indicate that this context switch was successful
 	MOV	a1, #0
@@ -409,7 +405,7 @@ __pthread_callback:
 
 	@ Point to the register save area for the new thread.
 	LDR	r14, .L2+4	@=__pthread_running_thread
- PICEQ "LDR	r14, [v4, r14]"
+ PICEQ "LDR	r14, [v1, r14]"
 	LDR	r14, [r14]
 	LDR	r14, [r14, #__PTHREAD_CONTEXT_OFFSET]	@ __pthread_running_thread->saved_context
 
@@ -437,7 +433,7 @@ skip_contextswitch:
 	@ Exiting from the CallBack handler requires us to reload all
 	@ registers from the register save area.
 	LDR	r14, .L2+8		@=__cbreg
- PICEQ "LDR	r14, [v4, r14]"
+ PICEQ "LDR	r14, [v1, r14]"
 	LDR	a1, [r14, #16*4]	@ Get user PSR
 	MSR	SPSR_cxsf, a1		@ Put it into SPSR_SVC/IRQ (NOP on ARM2/3, shouldn't have any effect in 26bit mode)
 	LDMIA	r14, {r0-r14}^		@ Load USR mode regs
