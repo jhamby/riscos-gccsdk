@@ -208,6 +208,7 @@ ASFile_Create (const char *filename, ASFile *asFileP)
   asFileP->attribs = (uint8_t) regs.r[5];
   asFileP->execAddress = (uint32_t) regs.r[3];
   asFileP->loadAddress = (uint32_t) regs.r[2];
+
 #else
 
   struct stat sinfo;

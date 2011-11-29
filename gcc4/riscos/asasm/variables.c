@@ -113,10 +113,15 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
       if (sym->value.Tag != type
           && (!localMacro || (sym->type & SYMBOL_MACRO_LOCAL) != 0))
 	{
-	  error (ErrorError, "'%.*s' is already %s as a %s",
-		 (int)len, ptr,
-		 sym->type & SYMBOL_DEFINED ? "defined" : "declared",
-		 valueTagAsString (sym->value.Tag));
+	  if (sym->value.Tag == ValueIllegal)
+	    error (ErrorError, "'%.*s' is already %s",
+		   (int)len, ptr,
+		   sym->type & SYMBOL_DEFINED ? "defined" : "declared");
+	  else
+	    error (ErrorError, "'%.*s' is already %s as a %s",
+		   (int)len, ptr,
+		   sym->type & SYMBOL_DEFINED ? "defined" : "declared",
+		   valueTagAsString (sym->value.Tag));
 	  return NULL;
 	}
       if (option_pedantic)
@@ -276,7 +281,6 @@ c_set (const Lex *label)
 	     (int)label->Data.Id.len, label->Data.Id.str);
       return false;
     }
-  assert (sym->value.Tag != ValueIllegal);
   if (type != sym->value.Tag)
     {
       error (ErrorError, "Wrong type for symbol '%.*s'",

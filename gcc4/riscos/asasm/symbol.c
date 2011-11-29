@@ -377,7 +377,8 @@ NeedToOutputSymbol (const Symbol *sym)
   if (sym->type & SYMBOL_AREA)
     return !Area_IsImplicit (sym);
 
-  bool doOutput = (oKeepAllSymbols || (sym->type & SYMBOL_KEEP) || ((sym->type & SYMBOL_EXPORT) && sym->used >= 0))
+  bool doOutput = (((oKeepAllSymbols || (sym->type & SYMBOL_KEEP)) && (sym->value.Tag == ValueBool || sym->value.Tag == ValueInt))
+                    || ((sym->type & SYMBOL_EXPORT) && sym->used >= 0))
 		    && !SYMBOL_GETREGTYPE (sym->type)
 		    && !Local_IsLocalLabel (sym->str);
   return doOutput;
@@ -783,6 +784,9 @@ symFlag (unsigned int flags, const char *err)
     error (ErrorError, "Local labels cannot be %s", err);
   else if (Area_IsMappingSymbol (sym->str))
     error (ErrorError, "Mapping symbols cannot be %s", err);
+  else if (sym->type & SYMBOL_RW)
+    error (ErrorError, "%s symbols cannot be %s",
+           sym->type & SYMBOL_MACRO_LOCAL ? "Local" : "Global", err);
   else
     sym->type |= flags;
   return sym;
@@ -981,9 +985,9 @@ symbolPrint (const Symbol *sym)
 	break;
     }
 
-  printf (", def area %*.s, size %zd, ", (int)sym->areaDef->len, sym->areaDef->str,
-          sym->codeSize);
-  printf (", offset 0x%x, used %d ", sym->offset, sym->used);
+  printf (", def area \"%*.s\", size %zd, offset 0x%x, used %d",
+          (int)sym->areaDef->len, sym->areaDef->str,
+          sym->codeSize, sym->offset, sym->used);
   valuePrint (&sym->value);
 }
 
