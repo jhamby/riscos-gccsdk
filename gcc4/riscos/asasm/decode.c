@@ -136,6 +136,7 @@ static const decode_table_t oDecodeTable[] =
   { "COS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cos } }, /* COS CC P R */
   { "CP", eCB_Symbol, eRslt_None, { .sym = c_cp } }, /* CP */
   { "CPS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cps } }, /* CPS */
+  { "DATA", eCB_Void, eRslt_None, { .vd = c_data } }, /* DATA */
   { "DBG", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_dbg } }, /* DBG */
   { "DCB", eCB_Void, eRslt_Data, { .vd = c_dcb } }, /* = / DCB */
   { "DCD", eCB_VoidPMatch, eRslt_Data, { .vdpm = c_dcd } }, /* DCD / DCDU */
@@ -170,7 +171,6 @@ static const decode_table_t oDecodeTable[] =
   { "GBL", eCB_NoLexPMatch, eRslt_None, { .nolex = c_gbl } }, /* GBLA, GBLL, GBLS */
   { "GET", eCB_Void, eRslt_None, { .vd = c_get } }, /* GET */
   { "GLOBAL", eCB_Void, eRslt_None, { .vd = c_export } }, /* EXPORT / GLOBAL */
-  { "HEAD", eCB_Void, eRslt_Data, { .vd = c_head } }, /* HEAD */
   { "IDFN", eCB_Void, eRslt_None, { .vd = c_idfn } }, /* IDFN */
   { "IF", eCB_NoLex, eRslt_None, { .nolex = c_if } }, /* [ IF */
   { "IMPORT", eCB_Void, eRslt_None, { .vd = c_import } }, /* IMPORT / EXTERN */
@@ -237,7 +237,6 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: REV, REV16, REVSH */
   { "RDF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rdf } }, /* RDF CC P R */
   { "REQUIRE8", eCB_Void, eRslt_ARM, { .vd = c_require8 } }, /* REQUIRE8 {TRUE}/{FALSE} */
-  { "RET", eCB_VoidPMatch, eRslt_None, { .vdpm = m_ret } }, /* RET CC */
   { "RFC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rfc } }, /* RFC CC */
   { "RFE", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rfe } }, /* RFE MODE */
   { "RFS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rfs } }, /* RFS CC */
@@ -296,7 +295,6 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: SSAT, SSAT16 */
   /* FIXME: SSAX */
   /* FIXME: SSUB16, SSUB8 */
-  { "STACK", eCB_Void, eRslt_ARM, { .vd = m_stack } }, /* STACK */
   { "STC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_stc } }, /* STC CC l */
   { "STC2", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_stc2 } }, /* STC2 CC l */
   { "STF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_stf } }, /* STF CC P */
@@ -311,7 +309,6 @@ static const decode_table_t oDecodeTable[] =
   { "SWI", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_swi } }, /* SWI CC */
   { "SWP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_swp } }, /* SWP CC B */
   /* FIXME: SXTAB, SXTAB16, SXTAH, SXTB, SXTB16, SXTH */
-  { "TAIL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_tail } }, /* TAIL CC */
   { "TAN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_tan } }, /* TAN CC P R */
   { "TEQ", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_teq } }, /* TEQ CC */
   { "THUMB", eCB_Void, eRslt_None, { .vd = c_thumb } }, /* THUMB */

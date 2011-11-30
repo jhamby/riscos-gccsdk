@@ -32,10 +32,7 @@ bool m_bx (bool doLowerCase);
 bool m_bxj (bool doLowerCase);
 bool m_mrs (bool doLowerCase);
 bool m_msr (bool doLowerCase);
-bool m_ret (bool doLowerCase);
-bool m_stack (void);
 bool m_swi (bool doLowerCase);
-bool m_tail (bool doLowerCase);
 
 bool m_sev (bool doLowerCase);
 bool m_wfe (bool doLowerCase);

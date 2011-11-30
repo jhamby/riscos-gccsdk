@@ -164,36 +164,13 @@ c_cp (Symbol *symbol)
 }
 
 /**
- * Implements "HEAD" : APCS function name signature.
- * ObjAsm extension.
+ * Implements DATA (as nop).
  */
 bool
-c_head (void)
+c_data (void)
 {
-  const unsigned startAreaOffset = areaCurrentSymbol->area.info->curIdx;
-  const Value *value = exprBuildAndEval (ValueString);
-  switch (value->Tag)
-    {
-      case ValueString:
-	{
-	  size_t len = value->Data.String.len;
-	  const char *str = value->Data.String.s;
-	  for (size_t i = 0; i < len; ++i)
-	    Put_Data (1, str[i]);
-	  Put_Data (1, '\0');
-	}
-        break;
-
-      default:
-        error (ErrorError, "Illegal %s expression", "string");
-        break;
-    }
-
-  Area_AlignTo (areaCurrentSymbol->area.info->curIdx, 4, NULL);
-  Put_Data (4, 0xFF000000 + areaCurrentSymbol->area.info->curIdx - startAreaOffset);
   return false;
 }
-
 
 /**
  * Reloc updater for DefineInt().
