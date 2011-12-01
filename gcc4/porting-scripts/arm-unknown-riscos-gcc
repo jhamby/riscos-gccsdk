@@ -26,7 +26,7 @@ else
     fi
   done
 
-  libs="$libs -LGCCSDK_ENV/lib -LGCCSDK_BIN/../arm-unknown-riscos/lib"
+  libs="$libs -LGCCSDK_ENV/lib -LGCCSDK_BIN/../arm-unknown-riscos/lib/`$cmd $@ -print-multi-directory`"
 fi
 
 exec $cmd "$@" -isystem GCCSDK_ENV/include $libs
