@@ -793,9 +793,8 @@ evalUnop (Operator op, Value *value)
 
 	  value->Tag = ValueInt;
 
-	  FILE *fp;
 	  ASFile asFile;
-	  if ((fp = Include_Get (s, &asFile, true)) == NULL)
+	  if (Include_Find (s, &asFile, true))
 	    {
 	      error (ErrorError, "Cannot access file \"%s\"", s);
 	      value->Data.Int.i = 0;
