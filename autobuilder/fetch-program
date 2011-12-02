@@ -45,6 +45,8 @@ elif [ "$AB_URL" != "" ] ; then
     tar xfz $base
   elif echo $base | grep -q "\.bz2$" ; then
     tar xfj $base
+  elif echo $base | grep -q "\.xz$" ; then
+    tar xfJ $base
   elif echo $base | grep -q "\.zip$" ; then
     unzip $base
   else
