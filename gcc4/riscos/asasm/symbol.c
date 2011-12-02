@@ -985,8 +985,9 @@ symbolPrint (const Symbol *sym)
 	break;
     }
 
-  printf (", def area \"%*.s\", size %zd, offset 0x%x, used %d",
-          (int)sym->areaDef->len, sym->areaDef->str,
+  printf (", def area \"%*.s\", size %zd, offset 0x%x, used %d : ",
+          sym->areaDef ? (int)sym->areaDef->len : (int)sizeof("<NULL>")-1,
+          sym->areaDef ? sym->areaDef->str : "<NULL>",
           sym->codeSize, sym->offset, sym->used);
   valuePrint (&sym->value);
 }

@@ -22,4 +22,11 @@
 		DCI	&3F0004D2	; SVCCC #1234
 	]
 
+	[ :LNOT: REFERENCE
+		SWI	Shell_Create
+Shell_Create	*	&805c0
+	|
+		SWI	&805c0
+	]
+
 		END

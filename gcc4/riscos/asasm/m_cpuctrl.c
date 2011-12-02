@@ -258,7 +258,8 @@ m_swi (bool doLowerCase)
 	break;
 
       default:
-	error (ErrorError, "Illegal SVC/SWI expression");
+	if (gASM_Phase == ePassTwo)
+	  error (ErrorError, "Illegal SVC/SWI expression");
 	break;
     }
   Put_Ins (ir);
