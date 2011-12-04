@@ -1,0 +1,73 @@
+The Shared C Library for GCCSDK GCC usage
+=========================================
+
+GCCSDK GCC can be used to write RISC OS applications and modules which
+make use of the SharedCLibrary module as runtime library.  In order to
+do this, suitable headers and SharedCLibrary stub object files are
+provided which a used during compiling and linking.
+
+Those headers and source files needed to create the SharedCLibrary
+stub object files are now part of UnixLib source code base.
+Confusingly, the latter code base can also be used to build an
+alternative runtime library called UnixLib runtime library.  They
+do share a large common set of the header files and a couple source
+files.
+
+The source code for the SharedLibrary targeted object files is:
+
+        Copyright (c) 1995-2005 Nick Burrett
+        Copyright (c) 2005-2011 UnixLib Developers
+
+It is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+History
+-------
+
+Originally the major part of SharedCLibrary stub source files was called
+!Clib and distributed as a separate RISC OS application/distribution.
+Over the years this became part of GCCSDK (known as libscl) to allow GCC
+built programs to use the SharedCLibrary module in RISC OS as runtime
+library and alternative for UnixLib.
+
+From GCCSDK GCC 4.1.2 onwards, the SharedCLibrary stub source files are
+part of UnixLib source files.
+
+
+Using the SharedCLibrary library
+--------------------------------
+
+For general use, all that is needed is an extra command line option to GCC:
+  -mlibscl
+
+The following commands will compile the file c.hellow:
+  *gcc -c hellow.c -O2 -mlibscl
+  *gcc -o hellow hellow.o -mlibscl
+
+
+Filename translation for the Shared C Library
+---------------------------------------------
+
+The Shared C Library does not benefit from UnixLib's filename translation
+code by default.  However, defining the symbol __RISCOSIFY before you include
+stdio.h will cause remove(), rename(), fopen() and freopen() to use the UnixLib
+filename translation code on the filenames supplied as arguments to those
+functions.
+
+See the GCC and UnixLib documentation for instructions on how to use the
+filename translation code, especially the fancy options.
+
+
+Known problems
+--------------
+
+1. The filename translation code
+
+If you use command-line redirection of stdin and stdout, the filenames used
+for redirection are not translated. If this is important, use UnixLib.
+
+2. float argument passing in va_args structure
+
+-EOF-

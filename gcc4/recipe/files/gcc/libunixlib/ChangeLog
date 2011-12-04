@@ -1,3 +1,11 @@
+Sun Dec  4 16:21:58 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* contrib/Help: Moved to...
+	* doc/UnixLib/Help: ...here.
+	* README: Moved to...
+	* doc/UnixLib/README: ...here.
+	* doc/SCL/README: Add.  Updated libscl's README.
+
 Tue Nov 29 16:34:27 GMT 2011  Lee Noar  <leenoar@sky.com>
 
 	* pthread/_context.s(__pthread_callback): Be more consistent with
