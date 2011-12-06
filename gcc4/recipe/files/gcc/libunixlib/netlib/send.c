@@ -1,10 +1,13 @@
 /* send ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 1995-2010 UnixLib Developers
+ * Copyright (c) 1995-2011 UnixLib Developers
  */
 
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#else
+#  include <errno.h>
+#  include <stdio.h>
 #endif
 #include <sys/socket.h>
 
@@ -17,7 +20,9 @@ ssize_t
 send (int s, const void *msg, size_t len, int flags)
 {
 #ifdef __TARGET_SCL__
-  return _send (s, msg, len, flags);
+  if ((unsigned)s < __FD_SOCKET_OFFSET)
+    return __set_errno (EBADF);
+  return _send (s - __FD_SOCKET_OFFSET, msg, len, flags);
 #else
   PTHREAD_UNSAFE_CANCELLATION
 

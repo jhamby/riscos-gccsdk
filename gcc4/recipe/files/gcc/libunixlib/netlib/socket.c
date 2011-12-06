@@ -1,12 +1,14 @@
 /* socket ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
 #include <fcntl.h>
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#else
+#  include <stdio.h>
 #endif
 #include <netdb.h>
 #include <sys/socket.h>
@@ -20,7 +22,8 @@ int
 socket (int af, int type, int protocol)
 {
 #ifdef __TARGET_SCL__
-  return _socket (af, type, protocol);
+  int s = _socket (af, type, protocol);
+  return s >= 0 ? s + __FD_SOCKET_OFFSET : s;
 #else
   PTHREAD_UNSAFE
 

@@ -124,6 +124,14 @@ typedef unsigned long __sigset_t;
 
 /* Number of descriptors that can fit in an `fd_set'.  */
 #define	__FD_SETSIZE	256
+/* Socket fd values are shifted for SCL in order to have them separated
+   from the file fd values.  */
+#ifdef __TARGET_SCL__
+/* You can't change this number just like that, this is SCL's _SYS_OPEN.  */
+#  define __FD_SOCKET_OFFSET	16
+#else
+#  define __FD_SOCKET_OFFSET	0
+#endif
 
 
 /* XXX Used in `struct shmid_ds'.  */

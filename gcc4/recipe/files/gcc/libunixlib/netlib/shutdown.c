@@ -1,10 +1,13 @@
 /* shutdown ()
  * Copyright (c) 1997 Nicholas Clark
- * Copyright (c) 1997-2010 UnixLib Developers
+ * Copyright (c) 1997-2011 UnixLib Developers
  */
 
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#else
+#  include <errno.h>
+#  include <stdio.h>
 #endif
 #include <sys/socket.h>
 
@@ -17,7 +20,9 @@ int
 shutdown (int s, int how)
 {
 #ifdef __TARGET_SCL__
-  return _shutdown (s, how);
+  if ((unsigned)s < __FD_SOCKET_OFFSET)
+    return __set_errno (EBADF);
+  return _shutdown (s - __FD_SOCKET_OFFSET, how);
 #else
   PTHREAD_UNSAFE
 

@@ -1100,7 +1100,9 @@ if UNIXLIB_BUILDING_SCL
 unix_src = \
 	unix/scl_close.c \
 	unix/scl_ioctl.c \
+	unix/scl_isatty.c \
 	unix/scl_lseek.c \
+	unix/scl_open.c \
 	unix/scl_putenv.c \
 	unix/scl_read.c \
 	unix/scl_readv.c \
@@ -1137,13 +1139,13 @@ unix_src = \
 	unix/getwd.c \
 	unix/glob.c \
 	unix/ul_ioctl.c \
-	unix/isatty.c \
+	unix/ul_isatty.c \
 	unix/ispipe.c \
 	unix/ul_lseek.c \
 	unix/lstat.c \
 	unix/mkdir.c \
 	unix/nice.c \
-	unix/open.c \
+	unix/ul_open.c \
 	unix/pathconf.c \
 	unix/pipe.c \
 	unix/poll.c \

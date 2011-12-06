@@ -1,10 +1,13 @@
 /* getsockopt ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 1995-2010 UnixLib Developers
+ * Copyright (c) 1995-2011 UnixLib Developers
  */
 
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#else
+#  include <errno.h>
+#  include <stdio.h>
 #endif
 #include <sys/socket.h>
 
@@ -17,7 +20,9 @@ int
 getsockopt (int s, int level, int optname, void *optval, socklen_t *optlen)
 {
 #ifdef __TARGET_SCL__
-  return _getsockopt (s, level, optname, optval, optlen);
+  if ((unsigned)s < __FD_SOCKET_OFFSET)
+    return __set_errno (EBADF);
+  return _getsockopt (s - __FD_SOCKET_OFFSET, level, optname, optval, optlen);
 #else
   PTHREAD_UNSAFE
 

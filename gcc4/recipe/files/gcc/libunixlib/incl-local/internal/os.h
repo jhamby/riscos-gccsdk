@@ -98,6 +98,42 @@ SWI_OS_CLI (const char *__cmd)
 extern _kernel_oserror *__os_file (int, const char *, int * /* 6 reg */ )
      __THROW __nonnull ((2)) __wur;
 
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_File_ReadCatInfo (const char *__filename, unsigned *__objtype,
+			 unsigned *__loadaddr, unsigned *__execaddr,
+			 unsigned *__objlen, unsigned *__attr)
+{
+  register const char *filename __asm ("r1") = __filename;
+  register const _kernel_oserror *err __asm ("r0");
+  register unsigned objtype __asm ("r1");
+  register unsigned loadaddr __asm ("r2");
+  register unsigned execaddr __asm ("r3");
+  register unsigned objlen __asm ("r4");
+  register unsigned attr __asm ("r5");
+  __asm__ volatile ("MOV\tr0, #17\n\t"
+		    "SWI\t%[SWI_XOS_File]\n\t"
+		    "MOV\tr1, r0\n\t"
+                    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (objtype), "=r" (loadaddr),
+		      "=r" (execaddr), "=r" (objlen), "=r" (attr)
+		    : "r" (filename), [SWI_XOS_File] "i" (OS_File | (1<<17))
+		    : "r14", "cc");
+  if (!err)
+    {
+      if (__objtype)
+	*__objtype = objtype;
+      if (__loadaddr)
+	*__loadaddr = loadaddr;
+      if (__execaddr)
+	*__execaddr = execaddr;
+      if (__objlen)
+	*__objlen = objlen;
+      if (__attr)
+	*__attr = attr;
+    }
+  return err;
+}
+
 extern _kernel_oserror *__os_fopen (int, const char *, int * /* 1 reg */ )
      __THROW __nonnull ((2, 3)) __wur;
 
@@ -347,6 +383,25 @@ SWI_OS_Args_Canonicalise (int __fhandle, char *__buf, size_t __bufsize,
 		    : "r14", "cc", "memory");
   if (__req_xtrabufsize && !err)
     *__req_xtrabufsize = xtrabufsize < 1 ? 1 - xtrabufsize : 0;
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_Args_GetFileHandleStatus (int __fhandle, int *__status)
+{
+  register int fhandle __asm ("r1") = __fhandle;
+  register const _kernel_oserror *err __asm ("r0");
+  register int status __asm ("r2");
+  __asm__ volatile ("MOV\tr0, #254\n\t"
+		    "SWI\t%[SWI_XOS_Args]\n\t"
+		    "MOV\tr2, r0\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err), "=r" (status)
+		    : "r" (fhandle),
+		      [SWI_XOS_Args] "i" (OS_Args | (1<<17))
+		    : "r14", "cc", "memory");
+  if (__status && !err)
+    *__status = status;
   return err;
 }
 

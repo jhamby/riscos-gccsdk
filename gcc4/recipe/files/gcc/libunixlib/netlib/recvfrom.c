@@ -1,10 +1,13 @@
 /* recvfrom ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 1995-2010 UnixLib Developers
+ * Copyright (c) 1995-2011 UnixLib Developers
  */
 
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#else
+#  include <errno.h>
+#  include <stdio.h>
 #endif
 #include <sys/socket.h>
 
@@ -18,7 +21,9 @@ recvfrom (int s, void *msg, size_t len, int flags,
 	  struct sockaddr *from, socklen_t *fromlen)
 {
 #ifdef __TARGET_SCL__
-  return _recvfrom (s, msg, len, flags, from, fromlen);
+  if ((unsigned)s < __FD_SOCKET_OFFSET)
+    return __set_errno (EBADF);
+  return _recvfrom (s - __FD_SOCKET_OFFSET, msg, len, flags, from, fromlen);
 #else
   PTHREAD_UNSAFE_CANCELLATION
 

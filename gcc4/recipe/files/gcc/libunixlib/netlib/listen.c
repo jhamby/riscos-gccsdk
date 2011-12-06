@@ -1,10 +1,13 @@
 /* listen ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 1995-2010 UnixLib Developers
+ * Copyright (c) 1995-2011 UnixLib Developers
  */
 
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#else
+#  include <errno.h>
+#  include <stdio.h>
 #endif
 #include <sys/socket.h>
 
@@ -17,7 +20,9 @@ int
 listen (int s, int backlog)
 {
 #ifdef __TARGET_SCL__
-  return _listen (s, backlog);
+  if ((unsigned)s < __FD_SOCKET_OFFSET)
+    return __set_errno (EBADF);
+  return _listen (s - __FD_SOCKET_OFFSET, backlog);
 #else
   PTHREAD_UNSAFE
 

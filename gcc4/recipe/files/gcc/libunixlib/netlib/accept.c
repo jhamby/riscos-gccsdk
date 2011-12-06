@@ -1,11 +1,13 @@
 /* accept ()
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
 #include <fcntl.h>
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#else
+#  include <stdio.h>
 #endif
 #include <sys/socket.h>
 
@@ -19,7 +21,9 @@ int
 accept (int s, struct sockaddr *name, socklen_t *namelen)
 {
 #ifdef __TARGET_SCL__
-  return _accept (s, name, namelen);
+  if ((unsigned)s < __FD_SOCKET_OFFSET)
+    return __set_errno (EBADF);
+  return _accept (s - __FD_SOCKET_OFFSET, name, namelen);
 #else
   PTHREAD_UNSAFE_CANCELLATION
 

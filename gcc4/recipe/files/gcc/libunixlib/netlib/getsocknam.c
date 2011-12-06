@@ -1,10 +1,13 @@
 /* getsockname ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 1995-2010 UnixLib Developers
+ * Copyright (c) 1995-2011 UnixLib Developers
  */
 
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#else
+#  include <errno.h>
+#  include <stdio.h>
 #endif
 #include <sys/socket.h>
 
@@ -17,7 +20,9 @@ int
 getsockname (int s, struct sockaddr *name, socklen_t *namelen)
 {
 #ifdef __TARGET_SCL__
-  return _getsockname (s, name, namelen);
+  if ((unsigned)s < __FD_SOCKET_OFFSET)
+    return __set_errno (EBADF);
+  return _getsockname (s - __FD_SOCKET_OFFSET, name, namelen);
 #else
   PTHREAD_UNSAFE
 

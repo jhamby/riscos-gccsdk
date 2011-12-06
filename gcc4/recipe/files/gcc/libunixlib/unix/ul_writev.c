@@ -1,5 +1,5 @@
 /* writev () for UnixLib
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -24,7 +24,7 @@ writev (int fd, const struct iovec *vector, int count)
 {
   PTHREAD_UNSAFE_CANCELLATION
 
-  if (count <= 0)
+  if (count < 0)
     return __set_errno (EINVAL);
   if (BADF (fd))
     return __set_errno (EBADF);
@@ -51,8 +51,8 @@ writev (int fd, const struct iovec *vector, int count)
 
   /* Write each buffer, recording how many bytes were written.  */
   size_t bytes_written = 0;
-  for (int i = 0; i < count; ++i)
-    if (vector[i].iov_len > 0)
+  for (int i = 0; i != count; ++i)
+    if (vector[i].iov_len != 0)
       {
 	__u->usage.ru_oublock++;
 	size_t bytes = dev_funcall (device, write,
@@ -68,6 +68,11 @@ writev (int fd, const struct iovec *vector, int count)
 	    return bytes_written ? bytes_written : -1;
 	  }
 	bytes_written += bytes;
+
+	/* ssize_t overflow ? */
+	if (bytes_written > SSIZE_MAX)
+	  return __set_errno (EINVAL);
+
 	/* If we did not write enough bytes, then give up.  */
 	if (bytes != vector[i].iov_len)
 	  return bytes_written;

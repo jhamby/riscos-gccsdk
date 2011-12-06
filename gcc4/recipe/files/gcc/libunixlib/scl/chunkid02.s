@@ -316,6 +316,7 @@ _wR4chk = __rt_wR4chk
 
 	@ Entry 81
 	DefSCLFnc	remove
+	DefSCLFncAlias	unlink remove
 
 	@ Entry 82
 	DefSCLFnc	rename

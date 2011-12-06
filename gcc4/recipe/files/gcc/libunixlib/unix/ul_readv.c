@@ -1,5 +1,5 @@
 /* readv () for UnixLib
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -24,7 +24,7 @@ readv (int fd, const struct iovec *vector, int count)
 {
   PTHREAD_UNSAFE_CANCELLATION
 
-  if (count <= 0)
+  if (count < 0)
     return __set_errno (EINVAL);
   if (BADF (fd))
     return __set_errno (EBADF);
@@ -46,8 +46,8 @@ readv (int fd, const struct iovec *vector, int count)
 
   /* Read each buffer, recording how many bytes were read.  */
   size_t bytes_read = 0;
-  for (int i = 0; i < count; ++i)
-    if (vector[i].iov_len > 0)
+  for (int i = 0; i != count; ++i)
+    if (vector[i].iov_len != 0)
       {
 	__u->usage.ru_inblock++;
 	size_t bytes = dev_funcall (device, read,
@@ -57,6 +57,11 @@ readv (int fd, const struct iovec *vector, int count)
 	if (bytes == -1)
 	  return bytes_read ? bytes_read : -1;
 	bytes_read += bytes;
+
+	/* ssize_t overflow ? */
+	if (bytes_read > SSIZE_MAX)
+	  return __set_errno (EINVAL);
+
 	/* If we did not read enough bytes, then give up.  */
 	if (bytes != vector[i].iov_len)
 	  return bytes_read;

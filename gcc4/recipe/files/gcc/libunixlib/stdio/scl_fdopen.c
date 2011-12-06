@@ -30,7 +30,7 @@
 FILE *
 fdopen (int fd, const char *mode)
 {
-  if ((unsigned int)fd >= _SYS_OPEN)
+  if ((unsigned int)fd >= __FD_SOCKET_OFFSET)
     return NULL;
 
   return &__iob[fd];

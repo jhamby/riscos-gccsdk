@@ -1,3 +1,62 @@
+Wed Dec  7 00:40:14 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/scl_fdopen.c (fdopen): Use __FD_SOCKET_OFFSET instead of
+	_SYS_OPEN.
+	* stdio/scl_fileno.c (fileno): Simplify implementation.
+	* unix/ul_readv.c (readv): Count being 0 is not an error.  Check
+	for ssize_t overflow.
+	* unix/ul_writev.c (writev): Likewise.
+	* unix/scl_readv.c (readv): Support file based fd (based on
+	unix/ul_readv.c).
+	* unix/scl_writev.c (writev): Support file based fd (based on
+	unix/ul_writev.c).
+	* unix/scl_write.c (write): Support file based fd.
+	* unix/scl_read.c (read): Likewise.
+	* unix/open.c: Renamed to...
+	* unix/ul_open.c: ...this.
+	* unix/isatty.c: Renamed to...
+	* unix/ul_isatty.c: ...this.
+	* unix/scl_open.c: Add (migrated from libscl's riscos/riscos.c).
+	Reworked implementation.
+	* unix/scl_isatty.c: Likewise.
+	* unix/scl_lseek.c (lseek, lseek64): Add support for file based fd.
+	* unix/scl_close.c (close): Likewise.
+	* unix/scl_ioctl.c (ioctl): Likewise.
+	* doc/SCL/COPYING: Add (migrated from libscl's COPYING).
+	* COPYING: Moved to...
+	* doc/UnixLib/COPYING: ...here.
+	* COPYING: Add (refering to doc/SCL/COPYING and
+	doc/UnixLib/COPYING).
+	* include/unixlib/types.h (__FD_SOCKET_OFFSET): Add.
+	* include/sys/select.h (FD_SETSIZE): Define as __FD_SETSIZE.
+	(__FDELT, __FDMASK): Take __FD_SOCKET_OFFSET into account.
+	* netlib/setsockopt.c (setsockopt): Add check on non-socket fd
+	values.  Take __FD_SOCKET_OFFSET into account.
+	* include/stdio.h (FOPEN_MAX): Change from 8 to _SYS_OPEN.
+	(_SYS_OPEN): Define as __FD_SOCKET_OFFSET.
+	* include/unistd.h (isatty, unlink): Define for SCL.
+	* netlib/accept.c (accept): Likewise.
+	* netlib/sendmsg.c (sendmsg): Likewise.
+	* netlib/recvmsg.c (recvmsg): Likewise.
+	* netlib/getpeernam.c (getpeername): Likewise.
+	* netlib/send.c (send): Likewise.
+	* netlib/listen.c (listen): Likewise.
+	* netlib/recv.c (recv): Likewise.
+	* netlib/shutdown.c (shutdown): Likewise.
+	* netlib/bind.c (bind): Likewise.
+	* netlib/getsockopt.c (getsockopt): Likewise.
+	* netlib/recvfrom.c (recvfrom): Likewise.
+	* netlib/connect.c (connect): Likewise.
+	* netlib/getsocknam.c (getsockname): Likewise.
+	* netlib/sendto.c (sendto): Likewise.
+	* netlib/socket.c (socket): Add __FD_SOCKET_OFFSET.
+	* scl/chunkid02.s (unlink): Add as alias to remove.
+	* Makefile.am: Follow rename unix/isatty.c to unix/ul_isatty.c,
+	unix/open.c to unix/ul_open.c.
+	(unix/scl_isatty, unix/scl_open): Add.
+	* incl-local/internal/os.h (SWI_OS_File_ReadCatInfo): Add.
+	(SWI_OS_Args_GetFileHandleStatus): Add.
+
 Sun Dec  4 16:21:58 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* contrib/Help: Moved to...

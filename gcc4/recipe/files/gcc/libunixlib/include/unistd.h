@@ -410,10 +410,12 @@ extern char *ttyname (int __fd) __THROW;
    open on in buf.  Return 0 on success, otherwise an error number.  */
 extern int ttyname_r (int __fd, char *__buf, size_t __buflen)
      __THROW __nonnull ((2)) __wur;
+#endif /* __TARGET_SCL__ */
 
 /* Return 1 if fd is a valid descriptor associated with a terminal.  */
 extern int isatty (int __fd) __THROW __wur;
 
+#ifndef __TARGET_SCL__
 /* Return 1 if fd is a valid descriptor associated with a pipe.  */
 extern int ispipe (int __fd) __THROW __wur;
 
@@ -428,10 +430,12 @@ extern int symlink (const char *__from, const char *__to)
 /* Read vaue of a symbolic link.  */
 extern int readlink (const char *__restrict __path, char *__restrict __buf,
 		     size_t __butsiz) __THROW __nonnull ((1, 2)) __wur;
+#endif /* __TARGET_SCL__ */
 
 /* Remove the line name.  */
 extern int unlink (const char *__name) __THROW __nonnull ((1));
 
+#ifndef __TARGET_SCL__
 /* Remove the directory path.  */
 extern int rmdir (const char *__path) __THROW __nonnull ((1));
 

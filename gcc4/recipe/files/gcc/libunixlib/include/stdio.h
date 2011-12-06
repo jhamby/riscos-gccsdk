@@ -88,13 +88,13 @@ typedef __off64_t fpos64_t;
 /* Maximum number of files that can be open at once.
    Keep in sync with <limits.h>, _POSIX_OPEN_MAX.  */
 #ifdef __TARGET_SCL__
-#  define FOPEN_MAX	8
+#  define FOPEN_MAX	_SYS_OPEN
 #else
 #  define FOPEN_MAX	64
 #endif
 #ifdef __TARGET_SCL__
 /* Number of open files that is supported by SCL.  */
-#  define _SYS_OPEN 16
+#  define _SYS_OPEN	__FD_SOCKET_OFFSET
 #endif
 
 /* Maximum length of a filename.

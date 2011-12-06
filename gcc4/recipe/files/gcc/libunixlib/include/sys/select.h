@@ -1,6 +1,6 @@
 /*
  * POSIX 1003.1g: 6.2 Select from File Descriptor Sets
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #ifndef __SYS_SELECT_H
@@ -29,14 +29,14 @@ typedef __suseconds_t suseconds_t;
 __BEGIN_DECLS
 
 /* Number of descriptors that can fit in an `fd_set'.  */
-#define	FD_SETSIZE	256
+#define	FD_SETSIZE	__FD_SETSIZE
 
 typedef long int __fd_mask;
 
 /* It's easier to assume 8-bit bytes than to get CHAR_BIT.  */
 #define	__NFDBITS	(sizeof (__fd_mask) * 8)
-#define	__FDELT(d)	((d) / __NFDBITS)
-#define	__FDMASK(d)	(1 << ((d) % __NFDBITS))
+#define	__FDELT(d)	((d >= __FD_SOCKET_OFFSET ? d - __FD_SOCKET_OFFSET : d) / __NFDBITS)
+#define	__FDMASK(d)	(1 << ((d >= __FD_SOCKET_OFFSET ? d - __FD_SOCKET_OFFSET : d) % __NFDBITS))
 
 typedef struct
   {

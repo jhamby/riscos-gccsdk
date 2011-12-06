@@ -1,10 +1,13 @@
 /* setsockopt ()
  * Copyright (c) 1995 Sergio Monesi
- * Copyright (c) 1995-2010 UnixLib Developers
+ * Copyright (c) 1995-2011 UnixLib Developers
  */
 
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
+#else
+#  include <errno.h>
+#  include <stdio.h>
 #endif
 #include <sys/socket.h>
 
@@ -17,7 +20,9 @@ int
 setsockopt (int s, int level, int optname, const void *optval, socklen_t optlen)
 {
 #ifdef __TARGET_SCL__
-  return _setsockopt (s, level, optname, optval, optlen);
+  if ((unsigned)s < __FD_SOCKET_OFFSET)
+    return __set_errno (EBADF);
+  return _setsockopt (s - __FD_SOCKET_OFFSET, level, optname, optval, optlen);
 #else
   PTHREAD_UNSAFE
 
