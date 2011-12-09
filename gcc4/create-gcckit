@@ -262,7 +262,11 @@ create_gcc_tree() {
   cp $GCCSDK_RISCOS/mkresfs/{ChangeLog,AUTHORS,COPYING} $GCCSDK_UNPACKED/\!GCC/docs/mkresfs
   # Copy UnixLib documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
-  cp $GCCSDK_SRCDIR/gcc/libunixlib/{ChangeLog,contrib/Help,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
+  cp $GCCSDK_SRCDIR/gcc/libunixlib/ChangeLog $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
+  cp $GCCSDK_SRCDIR/gcc/libunixlib/doc/UnixLib/{Help,COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/libunixlib
+  create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/SharedCLibrary
+  cp $GCCSDK_SRCDIR/gcc/libunixlib/ChangeLog-SCL $GCCSDK_UNPACKED/\!GCC/docs/SharedCLibrary
+  cp $GCCSDK_SRCDIR/gcc/libunixlib/doc/SCL/{COPYING,README} $GCCSDK_UNPACKED/\!GCC/docs/SharedCLibrary
   # Copy SharedLibs documentation:
   create_empty_dir $GCCSDK_UNPACKED/\!GCC/docs/SharedLibs
   cp $GCCSDK_RISCOS/soloader/dist/\!SharedLibs/docs/{\!ReadMe,Technical} $GCCSDK_UNPACKED/\!GCC/docs/SharedLibs
