@@ -1,3 +1,7 @@
+Sat Dec 10 13:39:26 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpuctrl.c (ADR_RelocUpdaterCore): Less confusing error message.
+
 Fri Dec  2 02:28:38 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/swi.s: Enhance testcase.

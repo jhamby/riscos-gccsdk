@@ -361,23 +361,23 @@ ADR_RelocUpdaterCore (const char *file, int lineno, size_t offset, int constant,
     {
       if (fixedNumInstr)
 	{
-	  errorLine (file, lineno, ErrorWarning, "ADRL at area offset 0x%08zx is not required for addressing 0x%08x", offset, constant);
+	  errorLine (file, lineno, ErrorWarning, "ADRL at area offset 0x%08zx is not required for encoding 0x%08x", offset, constant);
 	  split[bestIndex].try[1] = 0;
 	  split[bestIndex].num = 2;
 	}
       else
-	errorLine (file, lineno, ErrorInfo, "ADRL at area offset 0x%08zx is not required for addressing 0x%08x, using ADR instead", offset, constant);
+	errorLine (file, lineno, ErrorInfo, "ADRL at area offset 0x%08zx is not required for encoding 0x%08x, using ADR instead", offset, constant);
     }
   else if ((split[bestIndex].num == 2 && !isADRL)
 	   || split[bestIndex].num == 3 || split[bestIndex].num == 4)
     {
       if (fixedNumInstr)
 	{
-	  errorLine (file, lineno, ErrorError, "%s at area offset 0x%08zx can not address 0x%08x", (isADRL) ? "ADRL" : "ADR", offset, constant);
+	  errorLine (file, lineno, ErrorError, "%s at area offset 0x%08zx can not be used to encode 0x%08x", (isADRL) ? "ADRL" : "ADR", offset, constant);
 	  split[bestIndex].num = (isADRL) ? 2 : 1;
 	}
       else
-	errorLine (file, lineno, ErrorWarning, "%s at area offset 0x%08zx can not address 0x%08x, using %d instruction sequence instead", (isADRL) ? "ADRL" : "ADR", offset, constant, split[bestIndex].num);
+	errorLine (file, lineno, ErrorWarning, "%s at area offset 0x%08zx can not be used to encode 0x%08x, using %d instruction sequence instead", (isADRL) ? "ADRL" : "ADR", offset, constant, split[bestIndex].num);
     }
 
   ARMWord ir = GetWord (offset);
