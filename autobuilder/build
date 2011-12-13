@@ -263,10 +263,18 @@ ab_build() {
       DEPENDENCIES=`$AB_HOME/fetch-depends $PACKAGE_NAME`
     fi
 
-    if [ "$PACKAGE_NAME" != "native-zip" ] && [ "$PACKAGE_NAME" != "makerun" ] ; then
+    if [ "$PACKAGE_NAME" != "native-zip" ] && [ "$PACKAGE_NAME" != "native-unzip" ] && [ "$PACKAGE_NAME" != "makerun" ] ; then
       # Build our version of zip for packaging
       if ! [ -e $GCCSDK_INSTALL_ENV/bin/zip ] ; then
         if ! ab_build native-zip true true false; then
+          return 1
+        fi
+      fi
+
+      # Build our version of unzip for unpacking RISC OS zip archives
+      # - if necessary will fallback to system version but may break some builds
+      if ! [ -e $GCCSDK_INSTALL_ENV/bin/unzip ] ; then
+        if ! ab_build native-unzip true true false; then
           return 1
         fi
       fi

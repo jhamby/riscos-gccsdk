@@ -48,7 +48,16 @@ elif [ "$AB_URL" != "" ] ; then
   elif echo $base | grep -q "\.xz$" ; then
     tar xfJ $base
   elif echo $base | grep -q "\.zip$" ; then
-    unzip $base
+  # the system unzip may or may not support the -F argument for unpacking
+  # sources with RISC OS filetypes.  We build our own, but must allow fallback
+  # to the system unzip if necessary (what if the sources for 'unzip' come in a
+  # zip archive?)
+    if [ -e $GCCSDK_INSTALL_ENV/bin/unzip ] ; then
+      $GCCSDK_INSTALL_ENV/bin/unzip -F $base
+    else
+      echo "Autobuilder warning: using system unzip to unpack sources.  RISC OS filetypes may be lost"
+      unzip $base
+    fi
   else
     echo "Autobuilder: Unknown compression method"
     exit 1
