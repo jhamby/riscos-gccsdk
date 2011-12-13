@@ -73,10 +73,15 @@ check_dependencies() {
        popd
     fi
   fi
-  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen xgettext unzip autoconf2.13 flex bison gperf glib-genmarshal xsltproc intltoolize automake-1.7 polkit-policy-file-validate ; do
+  for build_prog in cvs svn wget autoconf automake rman realpath pkg-config doxygen xgettext unzip autoconf2.13 flex bison gperf glib-genmarshal xsltproc intltoolize automake-1.7 ; do
     if ! type $build_prog > /dev/null 2>&1 ; then
       echo "Autobuilder: $build_prog not found; is it installed on your path?"
       exit 1;
+    fi
+  done
+  for build_prog in polkit-policy-file-validate ; do
+    if ! type $build_prog  > /dev/null 2>&1 ; then
+      echo "Autobuilder warning: $build_prog not found; continuing anyway"
     fi
   done
 }
