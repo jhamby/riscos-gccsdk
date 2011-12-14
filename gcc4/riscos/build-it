@@ -169,8 +169,8 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
 
     # Copy !SharedLibs skeleton + shared library files in the gcc build result:
     svn export -q --force $GCCSDK_RISCOS/soloader/dist/\!SharedLibs $GCCSDK_RISCOS_DSOPREFIX
-    if [ -f $GCCSDK_RISCOS_GCCPREFIX/$GCCSDK_TARGET_NAME/lib/libunixlib.5.0.0.so ] ; then
-      cp $GCCSDK_RISCOS_GCCPREFIX/$GCCSDK_TARGET_NAME/lib/libunixlib.5.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/libunixlib.5.0.0.so,e1f
+    if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib/libunixlib.5.0.0.so ] ; then
+      cp $GCCSDK_RISCOS_GCCPREFIX/lib/libunixlib.5.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/libunixlib.5.0.0.so,e1f
       arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/libunixlib.so.5,1c8
       arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/libunixlib.so,1c8
     fi
@@ -178,15 +178,15 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
       cp $GCCSDK_RISCOS_GCCPREFIX/lib/libgcc_s.so.1 $GCCSDK_RISCOS_DSOPREFIX/lib/libgcc_s.so.1,e1f
       arm-unknown-riscos-ln -s -f libgcc_s/so/1 $GCCSDK_RISCOS_DSOPREFIX/lib/libgcc_s.so,1c8
     fi
-    if [ -f $GCCSDK_RISCOS_GCCPREFIX/$GCCSDK_TARGET_NAME/lib/libm.1.0.0.so ] ; then
-      cp $GCCSDK_RISCOS_GCCPREFIX/$GCCSDK_TARGET_NAME/lib/libm.1.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/libm.1.0.0.so,e1f
+    if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib/libm.1.0.0.so ] ; then
+      cp $GCCSDK_RISCOS_GCCPREFIX/lib/libm.1.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/libm.1.0.0.so,e1f
       arm-unknown-riscos-ln -s -f libm/1/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/libm.so.1,1c8
       arm-unknown-riscos-ln -s -f libm/1/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/libm.so,1c8
     fi
-    if [ -f $GCCSDK_RISCOS_GCCPREFIX/$GCCSDK_TARGET_NAME/lib/libstdc++.6.0.8.so ] ; then
-      cp $GCCSDK_RISCOS_GCCPREFIX/$GCCSDK_TARGET_NAME/lib/libstdc++.6.0.8.so $GCCSDK_RISCOS_DSOPREFIX/lib/libstdc++.6.0.8.so,e1f
-      arm-unknown-riscos-ln -s -f libstdc++/6/0/8/so $GCCSDK_RISCOS_DSOPREFIX/lib/libstdc++.so.6,1c8
-      arm-unknown-riscos-ln -s -f libstdc++/6/0/8/so $GCCSDK_RISCOS_DSOPREFIX/lib/libstdc++.so,1c8
+    if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib/libstdc++.6.0.16.so ] ; then
+      cp $GCCSDK_RISCOS_GCCPREFIX/lib/libstdc++.6.0.16.so $GCCSDK_RISCOS_DSOPREFIX/lib/libstdc++.6.0.16.so,e1f
+      arm-unknown-riscos-ln -s -f libstdc++/6/0/16/so $GCCSDK_RISCOS_DSOPREFIX/lib/libstdc++.so.6,1c8
+      arm-unknown-riscos-ln -s -f libstdc++/6/0/16/so $GCCSDK_RISCOS_DSOPREFIX/lib/libstdc++.so,1c8
     fi
   fi
 

@@ -143,9 +143,15 @@ slim_gcc_tree() {
   remove_if_there $GCCSDK_UNPACKED/\!GCC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/plugin
 
   # Remove all shared libraries as we have them shipped in !SharedLibs:
-  # FIXME: this removed liblto_plugin as well ?
+  # Keep liblto_plugin in libexec as GCC requires it.
   cd $GCCSDK_UNPACKED/\!GCC
-  find . -name "*.so*" -print0 | xargs -0 rm -f
+  find . \( -name "*.so*" -and ! -name "liblto_plugin*" \) -print0 | xargs -0 rm -f
+
+  # Remove liblto_plugin shortcuts and replace with RISC OS symlink files
+  rm -f $GCCSDK_UNPACKED/\!GCC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/liblto_plugin.so
+  rm -f $GCCSDK_UNPACKED/\!GCC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/liblto_plugin.so.0
+  $GCCSDK_INSTALL_CROSSBIN/$GCCSDK_TARGET_NAME-ln -s -f liblto_plugin/0/0/0/so $GCCSDK_UNPACKED/\!GCC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/liblto_plugin.so,1c8
+  $GCCSDK_INSTALL_CROSSBIN/$GCCSDK_TARGET_NAME-ln -s -f liblto_plugin/0/0/0/so $GCCSDK_UNPACKED/\!GCC/libexec/gcc/$GCCSDK_TARGET_NAME/$GCCSDK_SUPPORTED_GCC_RELEASE/liblto_plugin.so.0,1c8
 
   # Remove all .la files (we don't have libtools on RISC OS):
   cd $GCCSDK_UNPACKED/\!GCC
