@@ -377,10 +377,16 @@ NeedToOutputSymbol (const Symbol *sym)
   if (sym->type & SYMBOL_AREA)
     return !Area_IsImplicit (sym);
 
+  /* All mapping symbols are exported as well.  */
+  if (Area_IsMappingSymbol (sym->str))
+    return true;
+  
   bool doOutput = (((oKeepAllSymbols || (sym->type & SYMBOL_KEEP)) && (sym->value.Tag == ValueBool || sym->value.Tag == ValueInt))
-                    || ((sym->type & SYMBOL_EXPORT) && sym->used >= 0))
-		    && !SYMBOL_GETREGTYPE (sym->type)
-		    && !Local_IsLocalLabel (sym->str);
+		   || SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
+                   || (SYMBOL_KIND(sym->type) == SYMBOL_REFERENCE && sym->used >= 0)
+		  )
+		  && !SYMBOL_GETREGTYPE (sym->type)
+		  && !Local_IsLocalLabel (sym->str);
   return doOutput;
 }
 
@@ -424,6 +430,11 @@ Symbol_CreateSymbolOut (void)
 	      /* At this point sym->used is -1 when it is not needed for
 	         relocation, either is 0 when used for relocation.  */
 	      assert (sym->used == -1 || sym->used == 0);
+
+	      /* Check for undefined exported and unused imported symbols.  */
+	      if (SYMBOL_KIND (sym->type) == SYMBOL_REFERENCE && sym->used == -1)
+		errorLine (NULL, 0, ErrorWarning, "In area %s, symbol %s is imported but not used, or exported but not defined", sym->areaDef->str, sym->str);
+
 	      if (SYMBOL_KIND (sym->type) == 0)
 		{
 		  /* Make it a reference symbol.  */
@@ -453,7 +464,7 @@ Symbol_CreateSymbolOut (void)
 		    errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
 		}
 	    }
-	  if (Area_IsMappingSymbol (sym->str) || NeedToOutputSymbol (sym))
+	  if (NeedToOutputSymbol (sym))
 	    {
 	      ++result.numAllSymbols;
 	      if ((sym->type & SYMBOL_AREA) || SYMBOL_KIND (sym->type) == SYMBOL_LOCAL)

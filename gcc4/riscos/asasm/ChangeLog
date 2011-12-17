@@ -1,3 +1,13 @@
+Sat Dec 17 15:42:08 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (Symbol_CreateSymbolOut): Add warning for unused
+	imported and undefined exported symbols.
+	Move test on mapping symbols to...
+	(NeedToOutputSymbol): ...here.  Properly test for
+	SYMBOL_REFERENCE and SYMBOL_GLOBAL symbols for determining
+	whether they should be outputed or not.
+	* symbol.h (SYMBOL_REFERENCE, SYMBOL_GLOBAL): Update comments.
+
 Sat Dec 10 13:39:26 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_cpuctrl.c (ADR_RelocUpdaterCore): Less confusing error message.

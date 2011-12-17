@@ -30,8 +30,8 @@
 #include "value.h"
 
 #define SYMBOL_LOCAL     0x0001	/* Defined with local scope */
-#define SYMBOL_REFERENCE 0x0002 /* E.g. IMPORT symbol, or unused EXPORT symbol.  */
-#define SYMBOL_GLOBAL    0x0003	/* Defined with global scope.  E.g. used EXPORT symbol.  */
+#define SYMBOL_REFERENCE 0x0002 /* E.g. IMPORT symbol, or undefined EXPORT symbol.  */
+#define SYMBOL_GLOBAL    0x0003	/* Defined with global scope.  E.g. defined EXPORT symbol.  */
 
 #define SYMBOL_KIND(x)   ((x) & 0x0003) /* Returns: 0 (area symbol (SYMBOL_AREA is set) or symbols which are not marked as imported nor exported), SYMBOL_LOCAL, SYMBOL_REFERENCE or SYMBOL_GLOBAL.  */
 
