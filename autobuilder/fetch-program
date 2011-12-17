@@ -112,11 +112,11 @@ else
         else
           echo "Autobuilder: Directory name not found in Sources.bz2 (${dist}/${section})"
           echo "Autobuilder: Trying Binary entry"
-          if bzgrep -A26 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
+          if bzgrep -A56 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
             sed --in-place -e '/^$/,//d' files
             break
           else
-            bzgrep -A26 "Binary:.* $AB_PACKAGE," $Sources > files || true
+            bzgrep -A56 "Binary:.* $AB_PACKAGE," $Sources > files || true
             sed --in-place -e '/^$/,//d' files
           fi
         fi
