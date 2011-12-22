@@ -1,3 +1,7 @@
+Thu Dec 22 17:46:30 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* asm.c (ASM_NextLine, ASM_DoPass): Simplify code a little bit.
+
 Sat Dec 17 15:42:08 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (Symbol_CreateSymbolOut): Add warning for unused
