@@ -169,7 +169,7 @@ struct __iobuf
   unsigned char *o_base;
   int o_cnt;
   size_t __bufsize; /* size of buffer.  */
-  fpos_t __offset; /* current file position of underlying file descr. */
+  __off_t __offset; /* Current file position of underlying file descr.  */
   __io_mode __mode; /* file access mode */
   unsigned char __pushedchar; /* character that has been pushed back */
   int __pushedi_cnt; /* position of i_cnt before char was pushed back */

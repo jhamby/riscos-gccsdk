@@ -1,3 +1,8 @@
+Mon Dec 26 16:04:12 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/stdio.h (struct __iobuf): Change type of __offset from
+	fpos_t to __off_t.
+
 Wed Dec  7 00:40:14 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/scl_fdopen.c (fdopen): Use __FD_SOCKET_OFFSET instead of
