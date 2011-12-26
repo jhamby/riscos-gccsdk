@@ -504,6 +504,9 @@ src-gmp-copied: $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.gz
 	cd $(SRCORIGDIR) && tar xfz $(SRCORIGDIR)/gmp-$(GMP_VERSION).tar.gz
 	-mkdir -p $(SRCDIR)/gmp
 	cp -T -p -r $(SRCORIGDIR)/gmp-$(GMP_VERSION) $(SRCDIR)/gmp
+ifeq ($(TARGET),arm-unknown-riscos)
+	cd $(SRCDIR)/gmp && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
+endif
 	touch $(BUILDSTEPSDIR)/src-gmp-copied
 
 # Unpack mpc source:
