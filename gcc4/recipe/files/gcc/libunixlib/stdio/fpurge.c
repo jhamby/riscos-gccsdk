@@ -1,5 +1,5 @@
 /* UnixLib fpurge() implementation.
-   Copyright (c) 2008 UnixLib Developers.  */
+   Copyright (c) 2008-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -15,12 +15,10 @@
 #  include <sys/debug.h>
 #endif
 
-/* fpurge(f) discards buffered output.  */
+/* fpurge discards buffered output.  */
 int
 fpurge (FILE *stream)
 {
-  unsigned char *buffer;
-
   PTHREAD_UNSAFE
 
   if (ferror (stream))
@@ -43,10 +41,5 @@ fpurge (FILE *stream)
 
   return 0;
 }
+strong_alias (fpurge, __fpurge)
 
-
-void
-__fpurge(FILE *stream)
-{
-  fpurge(stream);
-}

@@ -1,3 +1,8 @@
+Mon Dec 26 16:06:13 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/fpurge.c (__fpurge): Define as strong alias of fpurge.
+	(fpurge): Drop unused variable.
+
 Mon Dec 26 16:04:12 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/stdio.h (struct __iobuf): Change type of __offset from
