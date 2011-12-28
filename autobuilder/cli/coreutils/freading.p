@@ -6,6 +6,6 @@
  # endif
 +#elif defined __riscos__
 +  return (fp->__mode.__bits.__read) != 0;
- #else
-  #error "Please port gnulib freading.c to your platform!"
- #endif
+ # else
+ # error "Please port gnulib freading.c to your platform!"
+ # endif
