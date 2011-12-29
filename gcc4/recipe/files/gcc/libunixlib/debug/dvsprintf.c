@@ -1,9 +1,8 @@
 /* Linux kernel vsprintf modified for UnixLib debugging.
    This must be compiled without stack checking.
-   Copyright (c) 2005-2008 UnixLib Devlopers.  */
+   Copyright (c) 2005-2011 UnixLib Devlopers.  */
 
 #define UNIXLIB_CHANGES
-#define UNIXLIB_STDERR
 
 /*
  *  linux/lib/vsprintf.c
@@ -34,7 +33,6 @@
 #include <asm/page.h>		/* for PAGE_SIZE */
 #include <asm/div64.h>
 #else
-#include <stdio.h>
 #include <stdlib.h>
 #include <stddef.h>
 
@@ -512,11 +510,7 @@ int vsnprintf(char *buf, size_t size, const char *fmt, va_list args)
 			/* Because we are using RISC OS SWI calls to output
 			   the resultant sring, all newlines must be
 			   CR-LF.  */
-			if (*fmt == '\n'
-#ifdef UNIXLIB_STDERR
-				 && !stderr
-#endif
-			) {
+			if (*fmt == '\n') {
 				if (str + 1 < end) {
 					*str = '\r';
 					*++str = '\n';
@@ -1104,12 +1098,6 @@ void debug_printf (const char *fmt, ...)
   debug_vsnprintf (buf, sizeof (buf), fmt, args);
   va_end (args);
 
-#ifdef UNIXLIB_STDERR
-  /* Assume non-NULL stderr means the I/O system is initialised */
-  if (stderr)
-    fputs(buf, stderr);
-  else
-#endif
-    __os_print (buf);
+  __os_print (buf);
 }
 #endif

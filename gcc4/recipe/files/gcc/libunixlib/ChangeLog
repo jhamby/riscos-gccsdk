@@ -1,3 +1,8 @@
+Thu Dec 29 22:01:36 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* debug/dvsprintf.c (UNIXLIB_STDERR): Remove support (causes more
+	trouble than it is able to pinpoint).
+
 Thu Dec 29 21:50:41 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/printf.c: Minor cleanup.
