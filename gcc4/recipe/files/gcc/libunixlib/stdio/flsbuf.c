@@ -1,5 +1,5 @@
 /* __flslbbuf (), __flsbuf ()
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -21,12 +21,10 @@
 int
 __flslbbuf (void)
 {
-  int lossage = 0;
-  FILE *stream;
-
   PTHREAD_UNSAFE
 
-  for (stream = __iob_head; stream != NULL; stream = stream->next)
+  int lossage = 0;
+  for (FILE *stream = __iob_head; stream != NULL; stream = stream->next)
     {
       if (__validfp (stream)
 	  && stream->__mode.__bits.__write
@@ -45,9 +43,10 @@ __flslbbuf (void)
 int
 __flsbuf (int c, FILE *stream)
 {
-  const unsigned char *buffer;
-
   PTHREAD_UNSAFE
+
+  if (!stream->__mode.__bits.__write)
+    stream->__error = 1;
 
   if (ferror (stream))
     return EOF;
@@ -65,16 +64,13 @@ __flsbuf (int c, FILE *stream)
 
   if (stream->o_base != NULL)
     {
-      int to_write, written;
-
-      to_write = stream->o_ptr - stream->o_base;
+      size_t to_write = stream->o_ptr - stream->o_base;
 #ifdef DEBUG
       debug_printf ("to_write=%d\n", to_write);
 #endif
       /* Skip write if 0 characters to write. Keeps perl happy, consistent
          with BSD.  */
-      written = to_write ? write (stream->fd, stream->o_base, to_write) : 0;
-      if (written < to_write)
+      if (to_write && write (stream->fd, stream->o_base, to_write) == -1)
         {
           stream->__error = 1;
           return EOF;
@@ -92,13 +88,13 @@ __flsbuf (int c, FILE *stream)
     return 0;
 
   /* Write out the last character.  */
-  buffer = (const unsigned char *)&c;
-  if (write (stream->fd, buffer, 1) < 1)
+  const unsigned char *buffer = (const unsigned char *)&c;
+  if (write (stream->fd, buffer, 1) == -1)
     {
       stream->__error = 1;
       return EOF;
     }
-  stream->__offset ++;
+  stream->__offset++;
 
   return c;
 }

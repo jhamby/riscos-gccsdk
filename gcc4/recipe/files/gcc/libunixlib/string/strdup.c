@@ -14,4 +14,4 @@ __strdup (const char *string)
     return NULL;
   return memcpy (newstr, string, len);
 }
-weak_alias(__strdup, strdup)
+weak_alias (__strdup, strdup)

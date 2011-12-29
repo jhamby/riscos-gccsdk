@@ -1,5 +1,5 @@
 /* UnixLib buffer stream handling.
-   Copyright 2000-2010 UnixLib Developers.  */
+   Copyright 2000-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -10,26 +10,20 @@
 #include <pthread.h>
 #include <internal/unix.h>
 
-/* Check the stream for validity and errors.  */
+/* Check the stream for validity and errors.
+   Does NOT check for EOF.  */
 static int
 check_stream (FILE *stream)
 {
-  if (!__validfp (stream) || !stream->__mode.__bits.__read)
+  if (!__validfp (stream))
     {
       (void) __set_errno (EINVAL);
       return EOF;
     }
 
-  /* To the best of my knowledge this fuction is only called by getc() and
-     fread(). In fread() feof() is never true. */
-  if (stream->__eof)
-    {
-      /* getc() has just decremented i_cnt to -1.
-	 If we don't restore it to 0 ftell() returns <off by one (more)>
-	 whenever program attempts getc() at feof() */
-      stream->i_cnt = 0;
-      return EOF;
-    }
+  if (!stream->__mode.__bits.__read)
+    stream->__error = 1;
+
   if (stream->__error)
     return EOF;
 
@@ -37,13 +31,9 @@ check_stream (FILE *stream)
 }
 
 /* Fill the input buffer.  */
-static int
+static ssize_t
 fill_buffer (FILE *stream)
 {
-  int count, to_read = 0;
-  unsigned char *buffer;
-  static char c; /* a 1 character buffer */
-
   /* String streams cannot be refilled, so set __eof and return.
      I do not think errno should be set here.  */
   if (stream->__string_istream)
@@ -52,6 +42,9 @@ fill_buffer (FILE *stream)
       return EOF;
     }
 
+  static char c; /* a 1 character buffer */
+  size_t to_read;
+  unsigned char *buffer;
   if (stream->i_base == NULL)
     {
       /* We are unbuffered, so only read one character.  */
@@ -67,7 +60,7 @@ fill_buffer (FILE *stream)
       to_read = stream->__bufsize;
     }
 
-  count = read (stream->fd, buffer, to_read);
+  ssize_t count = read (stream->fd, buffer, to_read);
   if (count == -1 || (to_read != 0 && count == 0))
     {
       /* A file error occurred.  */
@@ -93,12 +86,19 @@ fill_buffer (FILE *stream)
 int
 __filbuf (FILE *stream)
 {
-  int count;
-
   PTHREAD_UNSAFE
 
   if (check_stream (stream) == EOF)
     return EOF;
+
+  /* __filbuf is only called via getc_unlocked() when i_cnt got decremented
+     to -1. If we don't restore it to 0 ftell() returns <off by one (more)>
+     whenever program attempts getc_unlocked() at feof().  */
+  if (stream->__eof)
+    {
+      stream->i_cnt = 0;
+      return EOF;
+    }
 
   /* When we have possibly unflushed data in one of our line buffered streams
      and we're reading from a tty attached stream, flush all those streams.  */
@@ -114,7 +114,7 @@ __filbuf (FILE *stream)
       return stream->__pushedchar;
     }
 
-  count = fill_buffer (stream);
+  ssize_t count = fill_buffer (stream);
   if (count == EOF)
     return EOF;
 
@@ -132,11 +132,9 @@ __filbuf (FILE *stream)
 int
 __peek_char (FILE *stream)
 {
-  int count;
-
   PTHREAD_UNSAFE
 
-  if (check_stream (stream) == EOF)
+  if (check_stream (stream) == EOF || stream->__eof)
     return EOF;
 
   /* When we have possibly unflushed data in one of our line buffered streams
@@ -152,7 +150,7 @@ __peek_char (FILE *stream)
   if (stream->i_cnt > 0)
     return *stream->i_ptr;
 
-  count = fill_buffer (stream);
+  ssize_t count = fill_buffer (stream);
   if (count == EOF)
     return EOF;
 

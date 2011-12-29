@@ -1,5 +1,5 @@
 /* gets ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <stdio.h>
@@ -9,35 +9,27 @@
 #include <internal/unix.h>
 
 char *
-gets (char *_s)
+gets (char *s)
 {
-  FILE *stream = stdin;
-  char *s = _s;
-  int c = 0;
-
   PTHREAD_UNSAFE
 
-  if (!__validfp (stream) || s == NULL)
+  FILE *stream = stdin;
+  if (!__validfp (stream))
     {
       __set_errno (EINVAL);
       return NULL;
     }
 
-  if (feof (stream) || ferror (stream))
-    return NULL;
-
-  while ((c = getc (stream)) != EOF)
-    if (c == '\n')
-      break;
-    else
-      *s++ = c;
-
-  *s = '\0';
+  char *p = s;
+  int c;
+  while ((c = getc (stream)) != EOF && c != '\n')
+    *p++ = c;
 
   /* Return NULL if we had an error, or if we got EOF before
      writing any chars.  */
-  if (ferror (stream) || (feof (stream) && s == _s))
+  if (ferror (stream) || (p == s && feof (stream)))
     return NULL;
 
-  return _s;
+  *p = '\0';
+  return s;
 }

@@ -1,3 +1,27 @@
+Thu Dec 29 21:50:41 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* stdio/printf.c: Minor cleanup.
+	* stdio/newstream.c: Likewise.
+	* string/mempcpy.c: White space change.
+	* string/strdup.c: Likewise.
+	* wchar/wmempcpy.c
+	* stdio/fgets.c (fgets): Remove test on input parameters.
+	Simplify (remove test on ferror).
+	* stdio/gets.c (gets): Likewise.
+	* stdio/flsbuf.c (__flslbbuf): Minor cleanup.
+	(__flsbuf): Add check on writable streams. Use size_t instead of
+	int as type for number of bytes to write. Fix return value check
+	of write.
+	* stdio/filbuf.c (check_stream): A non-readable stream should
+	set stream in error state.  Move EOF check to...
+	(__filbuf): ...here. Use ssize_t instead of int.
+	(fill_buffer): Minor cleanup.  Use ssize_t instead of int.
+	(__peek_char): Add check on EOF.  Use ssize_t instead of int.
+	* unix/scl_lseek.c (lseek): Fix fseeko return value check.
+	* unix/dev.c (__fsopen): Minor cleanup.
+	* locale/localeconv.c (xfree): Remove.
+	(localeconv): Use free directly.
+
 Mon Dec 26 16:06:13 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/fpurge.c (__fpurge): Define as strong alias of fpurge.

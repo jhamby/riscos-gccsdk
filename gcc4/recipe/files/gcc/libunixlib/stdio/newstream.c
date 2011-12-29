@@ -1,5 +1,5 @@
 /* UnixLib low-level stream implementation.
-   Copyright 2001-2010 UnixLib Developers.  */
+   Copyright 2001-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stddef.h>
@@ -15,11 +15,9 @@
 void
 __invalidate (FILE *stream)
 {
-  FILE *next;
-
   PTHREAD_UNSAFE
 
-  next = stream->next;
+  FILE *next = stream->next;
   memset((void *) stream, 0, sizeof(FILE));
   stream->next = next;
 }
@@ -28,11 +26,9 @@ __invalidate (FILE *stream)
 FILE *
 __newstream (void)
 {
-  FILE *stream;
-
   PTHREAD_UNSAFE
 
-  stream = __iob_head;
+  FILE *stream = __iob_head;
   /* Look for a previously created stream that is now
      finished with.  */
   while (stream && stream->__magic == _IOMAGIC)
@@ -77,10 +73,12 @@ __stream_init (int fd, FILE *stream)
     setvbuf (stream, NULL, _IOLBF, BUFSIZ);
   else
     {
+      /* When 'append' is specified, always write at the end
+	 of file.  */
       if (stream->__mode.__bits.__append)
-	stream->__offset = (fpos_t) lseek (fd, 0L, SEEK_END);
+	stream->__offset = lseek (fd, 0, SEEK_END);
       else
-	stream->__offset = (fpos_t) lseek (fd, 0L, SEEK_CUR);
+	stream->__offset = lseek (fd, 0, SEEK_CUR);
 
       /* Set input/output buffering for the stream.  */
       setvbuf (stream, NULL, _IOFBF, BUFSIZ);

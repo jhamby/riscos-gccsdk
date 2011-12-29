@@ -1,5 +1,5 @@
 /* printf interface functions.
-   Copyright (c) 2005-2008 UnixLib Developers.  */
+   Copyright (c) 2005-2011 UnixLib Developers.  */
 
 #include <sys/types.h>
 
@@ -15,9 +15,7 @@
 int
 __vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 {
-  FILE f[1];
-  int ret;
-  size_t ol = limit;
+  const size_t ol = limit;
 
   if (limit != 0)
     limit --;
@@ -26,6 +24,7 @@ __vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 
   /* Create a buffered FILE object and point the buffer to the user's
      buffer area.  Stdio should handle reaching the buffer limits.  */
+  FILE f[1];
   f->o_ptr = f->o_base = (unsigned char *) buf;
   f->o_cnt = f->__bufsize = limit;
 
@@ -44,8 +43,8 @@ __vsnprintf (char *buf, size_t limit, const char *format, va_list ap)
 
   /* We use the non-multithreaded printf function here as we can
      already guarantee exclusivity to the FILE structure.  */
-  ret = __vfprintf (f, format, ap);
-  if (ol > 0)
+  int ret = __vfprintf (f, format, ap);
+  if (ol != 0)
     *f->o_ptr = '\0';
 
   return ret;
@@ -63,10 +62,8 @@ int
 __snprintf(char *buf, size_t limit, const char *format, ...)
 {
   va_list ap;
-  int r;
-
   va_start (ap, format);
-  r = vsnprintf (buf, limit, format, ap);
+  int r = vsnprintf (buf, limit, format, ap);
   va_end (ap);
 
   return r;
@@ -77,10 +74,8 @@ int
 __sprintf (char *buf, const char *format, ...)
 {
   va_list ap;
-  int r;
-
   va_start (ap, format);
-  r = vsnprintf (buf, INT_MAX, format, ap);
+  int r = vsnprintf (buf, INT_MAX, format, ap);
   va_end (ap);
 
   return r;
@@ -98,10 +93,8 @@ int
 __fprintf (FILE * stream, const char *format, ...)
 {
   va_list ap;
-  int r;
-
   va_start (ap, format);
-  r = vfprintf (stream, format, ap);
+  int r = vfprintf (stream, format, ap);
   va_end (ap);
 
   return r;
@@ -112,10 +105,8 @@ int
 __printf (const char *format, ...)
 {
   va_list ap;
-  int r;
-
   va_start (ap, format);
-  r = vfprintf (stdout, format, ap);
+  int r = vfprintf (stdout, format, ap);
   va_end (ap);
 
   return r;

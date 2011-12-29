@@ -1,6 +1,6 @@
 /* localeconv ()
  * Written by Nick Burrett, 20 July 1997.
- * Copyright (c) 1997-2008 UnixLib Developers
+ * Copyright (c) 1997-2011 UnixLib Developers
  */
 
 #include <locale.h>
@@ -16,7 +16,8 @@
 
 int __setlocale_called = 1;
 
-static int read_symbol (int reason_code, int territory)
+static int
+read_symbol (int reason_code, int territory)
 {
   int regs[10];
 
@@ -26,7 +27,8 @@ static int read_symbol (int reason_code, int territory)
   return regs[0];
 }
 
-static void read_byte_list (int reason_code, char **grouping, int territory)
+static void
+read_byte_list (int reason_code, char **grouping, int territory)
 {
   char *byte_list, *new_grouping;
   char temp[128], *temp1;
@@ -69,19 +71,14 @@ static void read_byte_list (int reason_code, char **grouping, int territory)
   *grouping = new_grouping;
 }
 
-static void xfree (void *buffer)
-{
-  if (buffer)
-    free (buffer);
-}
-
 static struct lconv lc = { NULL, NULL, NULL, NULL, NULL,
 			   NULL, NULL, NULL, NULL, NULL,
 			   CHAR_MAX, CHAR_MAX, CHAR_MAX, CHAR_MAX,
 			   CHAR_MAX, CHAR_MAX, CHAR_MAX, CHAR_MAX };
 
 /* Defined by POSIX as not threadsafe */
-struct lconv *localeconv (void)
+struct lconv *
+localeconv (void)
 {
   int numeric, monetary;
 
@@ -100,18 +97,18 @@ struct lconv *localeconv (void)
   if (numeric == -1)
     {
       /* We're using the 'C' locale.  */
-      xfree (lc.decimal_point);
+      free (lc.decimal_point);
       lc.decimal_point = strdup (".");
-      xfree (lc.thousands_sep);
+      free (lc.thousands_sep);
       lc.thousands_sep = strdup ("");
-      xfree (lc.grouping);
+      free (lc.grouping);
       lc.grouping = strdup ("");
     }
   else
     {
-      xfree (lc.decimal_point);
+      free (lc.decimal_point);
       lc.decimal_point = strdup ((char *) read_symbol (0, numeric));
-      xfree (lc.thousands_sep);
+      free (lc.thousands_sep);
       lc.thousands_sep = strdup ((char *) read_symbol (1, numeric));
       read_byte_list (2, &lc.grouping, numeric);
     }
@@ -119,43 +116,43 @@ struct lconv *localeconv (void)
     {
       /* We using the 'C' locale.  Empty strings and CHAR_MAX means
 	 that these fields are unspecified.  */
-      xfree (lc.mon_decimal_point);
+      free (lc.mon_decimal_point);
       lc.mon_decimal_point = strdup ("");
-      xfree (lc.mon_thousands_sep);
+      free (lc.mon_thousands_sep);
       lc.mon_thousands_sep = strdup ("");
-      xfree (lc.mon_grouping);
+      free (lc.mon_grouping);
       lc.mon_grouping = strdup ("");
       lc.int_frac_digits = CHAR_MAX;
       lc.frac_digits = CHAR_MAX;
-      xfree (lc.currency_symbol);
+      free (lc.currency_symbol);
       lc.currency_symbol = strdup ("");
-      xfree (lc.int_curr_symbol);
+      free (lc.int_curr_symbol);
       lc.int_curr_symbol = strdup ("");
       lc.p_cs_precedes = CHAR_MAX;
       lc.n_cs_precedes = CHAR_MAX;
       lc.p_sep_by_space = CHAR_MAX;
       lc.n_sep_by_space = CHAR_MAX;
-      xfree (lc.positive_sign);
+      free (lc.positive_sign);
       lc.positive_sign = strdup ("");
-      xfree (lc.negative_sign);
+      free (lc.negative_sign);
       lc.negative_sign = strdup ("");
       lc.p_sign_posn = CHAR_MAX;
       lc.n_sign_posn = CHAR_MAX;
     }
   else
     {
-      xfree (lc.int_curr_symbol);
+      free (lc.int_curr_symbol);
       lc.int_curr_symbol = strdup ((char *)read_symbol (3, monetary));
-      xfree (lc.currency_symbol);
+      free (lc.currency_symbol);
       lc.currency_symbol = strdup ((char *)read_symbol (4, monetary));
-      xfree (lc.mon_decimal_point);
+      free (lc.mon_decimal_point);
       lc.mon_decimal_point = strdup ((char *)read_symbol (5, monetary));
-      xfree (lc.mon_thousands_sep);
+      free (lc.mon_thousands_sep);
       lc.mon_thousands_sep = strdup ((char *)read_symbol (6, monetary));
       read_byte_list (7, &lc.mon_grouping, monetary);
-      xfree (lc.positive_sign);
+      free (lc.positive_sign);
       lc.positive_sign = strdup ((char *)read_symbol (8, monetary));
-      xfree (lc.negative_sign);
+      free (lc.negative_sign);
       lc.negative_sign = strdup ((char *)read_symbol (9, monetary));
       lc.int_frac_digits = (char)read_symbol (10, monetary);
       lc.frac_digits = (char)read_symbol (11, monetary);

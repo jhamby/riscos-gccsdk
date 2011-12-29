@@ -1,5 +1,5 @@
 /* fgets ()
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <stdio.h>
@@ -11,29 +11,25 @@
 char *
 fgets (char *s, int n, FILE * stream)
 {
-  char *p = s;
-  int c = 0;
-
   PTHREAD_UNSAFE
 
-  if (!__validfp (stream) || s == NULL || n == 0)
-    {
-      __set_errno (EINVAL);
-      return NULL;
-    }
-
-  if (ferror (stream))
+  if (!__validfp (stream))
     return NULL;
 
   /* Repeat, obtaining characters until we hit a newline,
      or exceed our count, n.  */
+  char *p = s;
+  int c = 0;
   while (--n > 0 && (c = getc (stream)) != EOF)
     if ((*p++ = c) == '\n')
       break;
 
-  if (c == EOF && (p == s || ferror (stream)))
+  /* Return NULL if we had an error, or if we got EOF before
+     writing any chars.  */
+  if (ferror (stream) || (p == s && feof (stream)))
     return NULL;
 
   *p = '\0';
   return s;
 }
+strong_alias (fgets, fgets_unlocked)

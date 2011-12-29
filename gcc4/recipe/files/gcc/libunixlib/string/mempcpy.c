@@ -9,5 +9,4 @@ __mempcpy (void *dest, const void *src, size_t n)
 {
   return (char *)memcpy (dest, src, n) + n;
 }
-weak_alias(__mempcpy, mempcpy);
-
+weak_alias (__mempcpy, mempcpy)

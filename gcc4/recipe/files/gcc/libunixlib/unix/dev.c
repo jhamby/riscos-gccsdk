@@ -281,27 +281,26 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
     }
 
   /* Open the file.  */
-  int fd;
   int openmode;
   if (fflag & O_TRUNC)
-    err = __os_fopen (openmode = OSFILE_OPENOUT, file, &fd);
+    openmode = OSFILE_OPENOUT;
   else
     {
       switch (fflag & O_ACCMODE)
 	{
 	  case O_RDWR:
 	  case O_WRONLY:
-	    err = __os_fopen (openmode = OSFILE_OPENUP, file, &fd);
+	    openmode = OSFILE_OPENUP;
 	    break;
 	  case O_RDONLY:
-	    err = __os_fopen (openmode = OSFILE_OPENIN, file, &fd);
+	    openmode = OSFILE_OPENIN;
 	    break;
 	  default:
 	    return (void *) __set_errno (EINVAL);
 	}
     }
-
-  if (err)
+  int fd;
+  if ((err = __os_fopen (openmode, file, &fd)) != NULL)
     goto os_err;
 
   /* Now set the protection. This must be done after the file is opened,

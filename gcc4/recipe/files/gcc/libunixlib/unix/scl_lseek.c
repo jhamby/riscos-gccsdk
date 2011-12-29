@@ -13,7 +13,7 @@ lseek (int fd, __off_t offset, int whence)
   if ((unsigned)fd >= __FD_SOCKET_OFFSET)
     return __set_errno (ENOSYS);
   int r;
-  if ((r = fseeko (&__iob[fd], offset, whence)) < 0)
+  if ((r = fseeko (&__iob[fd], offset, whence)) == -1)
     return r;
   return ftello (&__iob[fd]);
 }
