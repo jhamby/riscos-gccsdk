@@ -84,6 +84,8 @@ typedef struct
 extern PObject gPOStack[PARSEOBJECT_STACK_SIZE];
 extern PObject *gCurPObjP; /**< Current parsable object.  */
 
+unsigned FS_GetMacroDepth (void);
+
 bool FS_PushFilePObject (const char *fileName);
 void FS_PopPObject (bool noCheck);
 

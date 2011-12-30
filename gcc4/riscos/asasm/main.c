@@ -517,13 +517,16 @@ main (int argc, char **argv)
 	      /* Write the ELF/AOF output.  */
 	      Area_PrepareForPhase (eOutput);
 	      Local_PrepareForPhase (eOutput);
-	      gASM_Phase = eOutput;
+	      if (returnExitStatus () == EXIT_SUCCESS)
+		{
+		  gASM_Phase = eOutput;
 #ifndef NO_ELF_SUPPORT
-	      if (!option_aof)
-		outputElf();
-	      else
+		  if (!option_aof)
+		    outputElf();
+		  else
 #endif
-		outputAof();
+		    outputAof();
+		}
 	    }
 	  asmContinueValid = false;
 	}

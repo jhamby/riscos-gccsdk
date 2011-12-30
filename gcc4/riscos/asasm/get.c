@@ -245,11 +245,6 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 {
   if (Input_Match ('#', false))
     {
-      if (gASM_Phase == ePassOne)
-	{
-	  Input_Rest ();
-	  return ir;
-	}
       ir |= IMM_RHS;
       const Value *im = exprBuildAndEval (ValueInt | ValueAddr | ValueString); /* FIXME: *** NEED ValueSymbol & ValueCode */
       switch (im->Tag)
@@ -310,7 +305,10 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 	    break;
 
 	  default:
-	    error (ErrorError, "Illegal immediate expression");
+	    /* During pass one, we discard any errors of the evaluation as it
+	       might contain unresolved symbols.  Wait until during pass two.  */
+	    if (gASM_Phase != ePassOne)
+	      error (ErrorError, "Illegal immediate expression");
 	    break;
 	}
     }

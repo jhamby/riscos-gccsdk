@@ -1,3 +1,24 @@
+Fri Dec 30 19:00:39 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/local_label.s: Renamed to...
+	* regression/tests_pass/local_label1.s: ...this.  Removed the :DEF:
+	based tests.  Enhanced.
+	* regression/tests_pass/local_label0.s: Add.
+	* regression/tests_pass/local_label2.s: Add.
+	* regression/tests_pass/local_label3.s: Add.
+	* regression/tests_pass/local_label4.s: Add.
+	* symbol.c (Symbol_CreateSymbolOut): Removed local label code.
+	(symbolPrint): Fix printing out area symbol.
+	* m_cpuctrl.c (m_adr): Evaluate all arguments even in pass one.
+	* local.c, local.h: Complete rework.
+	* lex.c: Follow local label API changes.
+	* filestack.c (FS_GetMacroDepth): Add.
+	(FS_PopPObject): Call Local_FinishMacro.
+	* filestack.h (FS_GetMacroDepth): Add.
+	* input.c, input.h (Input_LocalLabel): Removed.
+	* get.c (getRhs): Evaluate all arguments even in pass one.
+	* main.c (main): Check for errors just before output.
+
 Fri Dec 30 03:13:56 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/fpe_immediate.s: Remove obsolete

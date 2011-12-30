@@ -439,29 +439,7 @@ Symbol_CreateSymbolOut (void)
 		{
 		  /* Make it a reference symbol.  */
 		  sym->type |= SYMBOL_REFERENCE;
-
-		  if (Local_IsLocalLabel (sym->str))
-		    {
-		      Symbol *area;
-		      int label = -1;
-		      int ii;
-		      char routine[1024];
-		      *routine = 0;
-		      if (sscanf (sym->str, Local_IntLabelFormat, &area, &label, &ii, &routine) > 2)
-			{
-			  const char *file;
-			  int lineno;
-			  Local_FindROUT (routine, &file, &lineno);
-			  if (!Local_ROUTIsEmpty (routine) && file != NULL)
-			    errorLine (file, lineno, ErrorAbort, "In area %s routine %s has missing local label %%F%02i%s",
-				       area->str, routine, label, routine);
-			  else
-			    errorLine (NULL, 0, ErrorAbort, "In area %s there is a missing local label %%F%02i%s",
-				       area->str, label, Local_ROUTIsEmpty (routine) ? "" : routine);
-			}
-		    }
-		  else
-		    errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
+		  errorLine (NULL, 0, ErrorWarning, "Symbol %s is implicitly imported", sym->str);
 		}
 	    }
 	  if (NeedToOutputSymbol (sym))
@@ -934,8 +912,8 @@ void
 symbolPrint (const Symbol *sym)
 {
   static const char *symkind[4] = { "UNKNOWN", "LOCAL", "REFERENCE", "GLOBAL" };
-  printf ("\"%.*s\": %s /",
-	  (int)sym->len, sym->str, symkind[SYMBOL_KIND (sym->type)]);
+  printf ("\"%s\": %s /",
+	  sym->str, symkind[SYMBOL_KIND (sym->type)]);
   assert (strlen (sym->str) == (size_t)sym->len);
   /* The Symbol::area.info (or Symbol::area.rel) is non-NULL iff the symbol is
      an area name symbol or we have a relative symbol.  */
@@ -996,8 +974,7 @@ symbolPrint (const Symbol *sym)
 	break;
     }
 
-  printf (", def area \"%*.s\", size %zd, offset 0x%x, used %d : ",
-          sym->areaDef ? (int)sym->areaDef->len : (int)sizeof("<NULL>")-1,
+  printf (", def area \"%s\", size %zd, offset 0x%x, used %d : ",
           sym->areaDef ? sym->areaDef->str : "<NULL>",
           sym->codeSize, sym->offset, sym->used);
   valuePrint (&sym->value);

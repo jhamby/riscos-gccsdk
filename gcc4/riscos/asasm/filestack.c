@@ -24,6 +24,7 @@
 
 #include "config.h"
 
+#include <assert.h>
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -38,6 +39,7 @@
 #include "filestack.h"
 #include "include.h"
 #include "input.h"
+#include "local.h"
 #include "main.h"
 #include "os.h"
 #include "whileif.h"
@@ -77,6 +79,23 @@ StoreFileName (const char *fileNameP)
   free ((void *)fileNameP);
 
   return resultP->fileName;
+}
+
+
+/**
+ * \return The number of outstanding macro invocations.
+ */
+unsigned
+FS_GetMacroDepth (void)
+{
+  assert (gCurPObjP != NULL);
+  unsigned macroDepth = 0;
+  for (const PObject *pObjP = gCurPObjP; pObjP != gPOStack; --pObjP)
+    {
+      if (pObjP->type == POType_eMacro)
+	++macroDepth;
+    }
+  return macroDepth;
 }
 
 
@@ -168,6 +187,7 @@ FS_PopPObject (bool noCheck)
 	FS_PopFilePObject (noCheck);
 	break;
       case POType_eMacro:
+	Local_FinishMacro (noCheck);
 	FS_PopMacroPObject (noCheck);
 	break;
       default:

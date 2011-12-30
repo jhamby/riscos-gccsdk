@@ -700,29 +700,6 @@ Input_IsEndOfKeyword (void)
 
 
 /**
- * Try to read a defining local label.
- */
-const char *
-Input_LocalLabel (size_t *ilen)
-{
-  if (!isdigit (*input_pos))
-    {
-      *ilen = 0;
-      return NULL;
-    }
-  const char * const rslt = input_pos;
-  /* Parse one or more digits.  */
-  for (/* */; *input_pos && isdigit ((unsigned char)*input_pos); ++input_pos)
-    /* */;
-  /* Parse routine name (optional).  */
-  for (/* */; *input_pos && (isalnum ((unsigned char)*input_pos) || *input_pos == '_'); ++input_pos)
-    /* */;
-  *ilen = input_pos - rslt;
-  return rslt;
-}
-
-
-/**
  * Try to read a symbol.
  * \return NULL on error, otherwise points to begin of symbol and symbol length
  * is *ilen bytes.

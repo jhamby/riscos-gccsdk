@@ -35,28 +35,55 @@
 #include "common.h"
 #include "error.h"
 #include "filestack.h"
+#include "lex.h"
 #include "local.h"
 
-#define kEmptyRoutineName "EmptyRName$$"
+#ifdef DEBUG
+//#  define DEBUG_LOCAL
+#endif
 
-typedef struct RoutPos_t
+typedef struct
 {
-  struct RoutPos_t *next;
   const char *id;
+  unsigned counter;
+
   const char *file;
   int lineno;
-} RoutPos_t;
+} ROUT_t;
 
-static unsigned int oRout_Null;
-static RoutPos_t *oRout_List;
-static RoutPos_t *oRout_ListEnd;
+static ROUT_t oLocal_CurROUT;
 
-static Local_Label_t oLocal_LabelNum[32];
+/* Represents an outstanding forward local label reference.  */
+typedef struct Local_OutstandingForward
+{
+  struct Local_OutstandingForward *nextP; /* Must be first.  */
+  const char *file;
+  int lineNum;
+  unsigned counter;
 
-/* Parameters: AREA ptr, label number, instance number, routine name.  */
-const char Local_IntLabelFormat[] = kIntLabelPrefix "Local$$%p$$%08i$$%i$$%s";
+  LocalLabel_eLevel level;
+  LocalLabel_eDir dir;
+  unsigned label;
+  unsigned macroDepth;
+} Local_OutstandingForward;
 
+/* We store the local labels for each macro level separately where
+   they are defined in.  */
+static Local_Label_t *oLocal_LabelNumP[PARSEOBJECT_STACK_SIZE][32];
+
+static Local_OutstandingForward *oLocal_OutstandingForwardP;
+static unsigned oLocal_OutstandingForwardCounter;
+
+/* Parameters: AREA ptr, rout counter, macro level, label number, instance number.  */
+static const char oLocal_IntLabelFormat[] = kIntLabelPrefix "Local$$%p$$%u$$%u$$%08u$$%u";
+
+/* Parameters: label number, ever increasing value.  */
+static const char oLocal_IntFwdLabelFormat[] = kIntLabelPrefix "FwdLocal$$%08i$$%i";
+
+static void Local_ReportMissingFwdLabel (const Local_OutstandingForward *fwdLocalP);
+static void Local_FinishPhaseOrROUT (void);
 static void Local_ResetLabels (void);
+
 
 void
 Local_PrepareForPhase (ASM_Phase_e phase)
@@ -64,72 +91,238 @@ Local_PrepareForPhase (ASM_Phase_e phase)
   switch (phase)
     {
       case eStartup:
-	break;
-
       case ePassOne:
-	Local_ResetLabels ();
 	break;
 
       case ePassTwo:
-	{
-	  for (RoutPos_t *routCur = oRout_List; routCur != NULL; /* */)
-	    {
-	      RoutPos_t *routCurNext = routCur->next;
-	      free ((void *)routCur->id);
-	      free (routCur);
-	      routCur = routCurNext;
-	    }
-	  oRout_List = NULL;
-	  oRout_ListEnd = NULL;
-	  oRout_Null = 0;
-	  Local_ResetLabels ();
-	}
-	break;
-
       case eOutput:
-	Local_ResetLabels ();
-	break;
+	{
+	  Local_FinishPhaseOrROUT ();
+	  Local_ResetLabels ();
+	  oLocal_OutstandingForwardCounter = 0;
+
+	  free ((void *)oLocal_CurROUT.id);
+	  oLocal_CurROUT.id = NULL;
+	  oLocal_CurROUT.counter = 0;
+	  oLocal_CurROUT.file = NULL;
+	  oLocal_CurROUT.lineno = 0;
+	  break;
+	}
     }
 }
 
-Local_Label_t *
-Local_GetLabel (unsigned num)
+
+static void
+Local_ReportMissingFwdLabel (const Local_OutstandingForward *fwdLocalP)
 {
-  unsigned i = num % (sizeof (oLocal_LabelNum) / sizeof (oLocal_LabelNum[0]));
-  Local_Label_t *lblP;
-  for (lblP = &oLocal_LabelNum[i];
-       lblP->Num != num && lblP->NextP != NULL;
-       lblP = lblP->NextP)
+  const char *dirStr = fwdLocalP->dir == eForward ? "f" : "";
+  const char *levelStr = fwdLocalP->level == eThisLevelOnly ? "t" : fwdLocalP->level == eAllLevels ? "a" : ""; 
+  errorLine (fwdLocalP->file, fwdLocalP->lineNum, ErrorError, "Missing local label %%%s%s%i", dirStr, levelStr, fwdLocalP->label);
+}
+
+
+/**
+ * Called at the end of a phase.
+ */
+static void
+Local_FinishPhaseOrROUT (void)
+{
+  Local_OutstandingForward *prevFwdLocalP = (Local_OutstandingForward *)&oLocal_OutstandingForwardP;
+  while (prevFwdLocalP->nextP != NULL)
+    {
+      Local_OutstandingForward * const fwdLocalP = prevFwdLocalP->nextP;
+
+      Local_ReportMissingFwdLabel (fwdLocalP);
+
+      prevFwdLocalP->nextP = fwdLocalP->nextP;
+      free (fwdLocalP);
+    }
+}
+
+
+/**
+ * Called at the end of each macro invocation.  We check for unresolved
+ * forward local labels.
+ */
+void
+Local_FinishMacro (bool noCheck)
+{
+  unsigned macroDepth = FS_GetMacroDepth ();
+  Local_OutstandingForward *prevFwdLocalP = (Local_OutstandingForward *)&oLocal_OutstandingForwardP;
+  while (prevFwdLocalP->nextP != NULL)
+    {
+      Local_OutstandingForward * const fwdLocalP = prevFwdLocalP->nextP;
+
+      assert (fwdLocalP->level != eThisLevelOnly || fwdLocalP->macroDepth <= macroDepth); 
+      if (fwdLocalP->level == eThisLevelOnly
+          && fwdLocalP->macroDepth == macroDepth)
+	{
+	  if (!noCheck)
+	    Local_ReportMissingFwdLabel (fwdLocalP);
+	  
+	  prevFwdLocalP->nextP = fwdLocalP->nextP;
+	  free (fwdLocalP);
+	}
+      else
+	prevFwdLocalP = prevFwdLocalP->nextP;
+    }
+}
+
+
+Local_Label_t *
+Local_DefineLabel (unsigned labelNum)
+{
+  const unsigned i = labelNum % (sizeof (oLocal_LabelNumP[0]) / sizeof (oLocal_LabelNumP[0][0]));
+  const unsigned macroDepth = FS_GetMacroDepth ();
+  Local_Label_t *prevLblP, *lblP;
+  for (prevLblP = (Local_Label_t *)&oLocal_LabelNumP[macroDepth][i], lblP = prevLblP->nextP;
+       lblP != NULL && lblP->num != labelNum;
+       prevLblP = lblP, lblP = prevLblP->nextP)
     /* */;
-  if (lblP->Num == num)
-    return lblP;
-  lblP->NextP = malloc (sizeof (Local_Label_t));
-  lblP->NextP->NextP = NULL;
-  lblP->NextP->Num = num;
-  lblP->NextP->Value = 0;
-  return lblP->NextP;
+  if (lblP == NULL)
+    {
+      lblP = prevLblP->nextP = malloc (sizeof (Local_Label_t));
+      if (lblP == NULL)
+	errorOutOfMem ();
+      lblP->nextP = NULL;
+      lblP->num = labelNum;
+      lblP->instance = 0;
+    }
+  
+  /* Check if this definition of a local variable can not be used to
+     resolve one of our pending forward local label references.  */
+  Local_OutstandingForward *prevFwdLocalP = (Local_OutstandingForward *)&oLocal_OutstandingForwardP;
+  while (prevFwdLocalP->nextP != NULL)
+    {
+      Local_OutstandingForward * const fwdLocalP = prevFwdLocalP->nextP;
+
+      if (fwdLocalP->label == labelNum
+          && ((fwdLocalP->level == eThisLevelOnly && fwdLocalP->macroDepth == macroDepth)
+	      || fwdLocalP->level == eAllLevels
+	      || (fwdLocalP->level == eThisLevelAndHigher && fwdLocalP->macroDepth >= macroDepth)))
+	{
+	  char fwdSym[256];
+	  int r = snprintf (fwdSym, sizeof (fwdSym), oLocal_IntFwdLabelFormat, fwdLocalP->label, fwdLocalP->counter);
+	  assert (r >= 0 && (size_t)r < sizeof (fwdSym));
+	  const Lex keyLex = lexTempLabel(fwdSym, strlen (fwdSym));
+	  Symbol *keySymbol = symbolGet (&keyLex);
+#ifdef DEBUG_LOCAL
+	  const char *levelStr = (fwdLocalP->level == eThisLevelOnly) ? "t" : (fwdLocalP->level == eAllLevels) ? "a" : "";
+	  const char *dirStr = "f"; // (dir == eBackward) ? "b" : (dir == eForward) ? "f" : "";
+	  printf ("Define forward ref: %.*s %d : %%%s%s%d : %s\n", 12, FS_GetCurFileName (), FS_GetCurLineNumber (),
+		  dirStr, levelStr, labelNum, fwdSym);
+#endif
+
+	  char lblSym[256];
+	  Local_CreateSymbol (lblP, macroDepth, true, lblSym, sizeof (lblSym));
+	  const Lex valueLex = lexTempLabel (lblSym, strlen (lblSym));
+	  Symbol *valueSymbol = symbolGet (&valueLex);
+	  const Value valueValue = Value_Symbol (valueSymbol, 1, 0);
+
+          bool err = Symbol_Define (keySymbol, SYMBOL_DEFINED | SYMBOL_ABSOLUTE, &valueValue);
+	  assert (!err);
+	  
+	  prevFwdLocalP->nextP = fwdLocalP->nextP;
+	  free (fwdLocalP);
+	}
+      else
+	prevFwdLocalP = prevFwdLocalP->nextP;
+    }
+
+  return lblP;
+}
+
+void Local_CreateSymbolForOutstandingFwdLabelRef (char *buf, size_t bufSize,
+						  LocalLabel_eLevel level,
+						  LocalLabel_eDir dir,
+						  unsigned label)
+{
+  Local_OutstandingForward *fwdLocalP = malloc (sizeof (Local_OutstandingForward));
+  if (fwdLocalP == NULL)
+    errorOutOfMem ();
+
+  fwdLocalP->nextP = oLocal_OutstandingForwardP; 
+  fwdLocalP->file = FS_GetCurFileName ();
+  fwdLocalP->lineNum = FS_GetCurLineNumber ();
+  fwdLocalP->counter = oLocal_OutstandingForwardCounter++;
+
+  fwdLocalP->level = level;
+  fwdLocalP->dir = dir;
+  fwdLocalP->label = label;
+  fwdLocalP->macroDepth = FS_GetMacroDepth ();
+
+  oLocal_OutstandingForwardP = fwdLocalP;
+
+  int r = snprintf (buf, bufSize, oLocal_IntFwdLabelFormat, fwdLocalP->label, fwdLocalP->counter);
+  assert (r >= 0 && (size_t)r < bufSize);
+#ifdef DEBUG_LOCAL
+  const char *levelStr = (level == eThisLevelOnly) ? "t" : (level == eAllLevels) ? "a" : "";
+  const char *dirStr = (dir == eBackward) ? "b" : (dir == eForward) ? "f" : "";
+  printf ("Create forward ref: %.*s %d : %%%s%s%d : %s\n", 12, FS_GetCurFileName (), FS_GetCurLineNumber (),
+	  dirStr, levelStr, label, buf);
+#endif
+}
+
+
+Local_Label_t *
+Local_GetLabel (unsigned macroDepth, unsigned num)
+{
+  unsigned i = num % (sizeof (oLocal_LabelNumP[0]) / sizeof (oLocal_LabelNumP[0][0]));
+  Local_Label_t *lblP;
+  for (lblP = oLocal_LabelNumP[macroDepth][i];
+       lblP != NULL && lblP->num != num;
+       lblP = lblP->nextP)
+    /* */;
+  return lblP;
+}
+
+
+/**
+ * Create symbol string for given local label.
+ * \param next false for previous local label, true for next local label
+ * with label value Local_Label_t::num.
+ */
+void
+Local_CreateSymbol (Local_Label_t *lblP, unsigned macroDepth, bool next, char *buf, size_t bufSize)
+{
+  assert (next || lblP->instance > 0);
+  int r = snprintf (buf, bufSize, oLocal_IntLabelFormat, (void *)areaCurrentSymbol,
+                    oLocal_CurROUT.counter, macroDepth, lblP->num, next ? lblP->instance : lblP->instance - 1);
+  assert (r >= 0 && (size_t)r < bufSize);
 }
 
 static void
 Local_ResetLabels (void)
 {
-  for (unsigned i = 0; i != sizeof (oLocal_LabelNum) / sizeof (oLocal_LabelNum[0]); ++i)
+  for (unsigned macroDepth = 0; macroDepth != sizeof (oLocal_LabelNumP) / sizeof (oLocal_LabelNumP[0]); ++macroDepth)
     {
-      for (Local_Label_t *nextLblP = oLocal_LabelNum[i].NextP; nextLblP != NULL; /* */)
+      for (unsigned i = 0; i != sizeof (oLocal_LabelNumP[0]) / sizeof (oLocal_LabelNumP[0][0]); ++i)
 	{
-	  Local_Label_t *nextNextLblP = nextLblP->NextP;
-	  free (nextLblP);
-	  nextLblP = nextNextLblP;
+	  for (const Local_Label_t *lblP = oLocal_LabelNumP[macroDepth][i]; lblP != NULL; /* */)
+	    {
+	      const Local_Label_t *nextLblP = lblP->nextP;
+	      free ((void *)lblP);
+	      lblP = nextLblP;
+	    }
 	}
-      memset (&oLocal_LabelNum[i], 0, sizeof (oLocal_LabelNum[0]));
     }
+  memset (oLocal_LabelNumP, 0, sizeof (oLocal_LabelNumP));
 }
 
+
+/**
+ * \param filePP Will be filled in with ptr to filename of last ROUT parsed.
+ * When NULL, no ROUT has been seen so far.
+ * \param lineP Will be filled in with linenumber of last ROUT parsed.
+ */
 const char *
-Local_GetCurROUTId (void)
+Local_GetCurROUTId (const char **filePP, int *lineNoP)
 {
-  return oRout_ListEnd ? oRout_ListEnd->id : kEmptyRoutineName "0";
+  *filePP = oLocal_CurROUT.file;
+  *lineNoP = oLocal_CurROUT.lineno;
+  return oLocal_CurROUT.id;
 }
+
 
 /**
  * Implements ROUT.
@@ -137,80 +330,36 @@ Local_GetCurROUTId (void)
 bool
 c_rout (const Lex *label)
 {
+  Local_FinishPhaseOrROUT ();
   Local_ResetLabels ();
 
   char *newROUTId;
   if (label->tag == LexId)
     {
       ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx);
-      if (Local_ROUTIsEmpty (label->Data.Id.str))
-	{
-	  error (ErrorError, "Illegal routine name");
-	  return false;
-	}
       newROUTId = strndup (label->Data.Id.str, label->Data.Id.len);
     }
   else
-    {
-      newROUTId = malloc (sizeof (kEmptyRoutineName)-1 + 10);
-      if (newROUTId != NULL)
-        sprintf (newROUTId, kEmptyRoutineName "%i", ++oRout_Null);
-    }
-  RoutPos_t *p = malloc (sizeof (RoutPos_t));
-  if (newROUTId == NULL || p == NULL)
-    errorOutOfMem ();
-
-  if (oRout_ListEnd)
-    oRout_ListEnd->next = p;
-  oRout_ListEnd = p;
-  if (!oRout_List)
-    oRout_List = p;
-
-  p->next = NULL;
-  p->id = newROUTId;
-  p->file = FS_GetCurFileName ();
-  p->lineno = FS_GetCurLineNumber ();
+    newROUTId = NULL;
+  free ((void *)oLocal_CurROUT.id);
+  oLocal_CurROUT.id = newROUTId;
+  oLocal_CurROUT.counter++;
+  oLocal_CurROUT.file = FS_GetCurFileName ();
+  oLocal_CurROUT.lineno = FS_GetCurLineNumber ();
   return false;
-}
-
-
-bool
-Local_ROUTIsEmpty (const char *routName)
-{
-  return !memcmp (routName, kEmptyRoutineName, sizeof (kEmptyRoutineName)-1);
 }
 
 
 bool
 Local_IsLocalLabel (const char *s)
 {
-  return !memcmp (s, Local_IntLabelFormat, sizeof (kIntLabelPrefix)-1);
+  return !memcmp (s, kIntLabelPrefix, sizeof (kIntLabelPrefix)-1);
 }
 
-
-void
-Local_FindROUT (const char *rout, const char **file, int *lineno)
-{
-  for (const RoutPos_t *p = oRout_List; p; p = p->next)
-    {
-      if (!strcmp (p->id, rout))
-	{
-	  *file = p->file;
-	  *lineno = p->lineno;
-	  return;
-	}
-    }
-  *file = NULL;
-  *lineno = 0;
-}
 
 #ifdef DEBUG
 void
 Local_DumpAll (void)
 {
-  for (const RoutPos_t *p = oRout_List; p != NULL; p = p->next)
-    {
-      printf ("%s : %s @ line %d\n", p->id, p->file, p->lineno);
-    }
 }
 #endif

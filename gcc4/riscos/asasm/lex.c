@@ -36,6 +36,7 @@
 #include "area.h"
 #include "common.h"
 #include "error.h"
+#include "filestack.h"
 #include "input.h"
 #include "lex.h"
 #include "lexAcorn.h"
@@ -168,50 +169,41 @@ lexGetId (void)
 
 
 /**
- * Very similar to Lex_ReadLocalLabel.
+ * Try to parse ROUT identifier, if there is one, check if it is matching
+ * the current ROUT one.
+ * \return true in case of a ROUT identifier mismatch, false otherwise.
  */
-static unsigned
-Lex_ReadLocalLabelFromLex (const Lex *lexP)
+static bool
+Lex_CheckForROUTMismatch (const char *rout, size_t routLen)
 {
-  assert (lexP->tag == LexLocalLabel);
-  const char *in = lexP->Data.LocalLabel.str;
-  assert (isdigit ((unsigned char)*in));
-  unsigned label = (unsigned char)*in++ - '0';
-  for (/* */; isdigit ((unsigned char)*in); ++in)
+  const char *fileP;
+  int lineNum;
+  const char *curROUTId = Local_GetCurROUTId (&fileP, &lineNum);
+  if (routLen
+      && (curROUTId == NULL
+          || (memcmp (curROUTId, rout, routLen) || curROUTId[routLen] != '\0')))
     {
-      unsigned next_label = 10*label + (unsigned char)*in - '0';
-      if (next_label < label)
-	{
-	  error (ErrorError, "Local label overflow");
-	  return UINT_MAX;
-	}
-      label = next_label;
-    }
-
-  /* If a routinename is given, check if thats the one given with ROUT.  */
-  size_t len = lexP->Data.LocalLabel.len - (in - lexP->Data.LocalLabel.str);
-  const char *curROUTId = Local_GetCurROUTId ();
-  if (len
-      && (memcmp (curROUTId, in, len) || curROUTId[len] != '\0'))
-    {
-      if (Local_ROUTIsEmpty (curROUTId))
-	error (ErrorError, "Local label can not have a routine name %.*s here", (int)len, in);
+      if (curROUTId == NULL)
+	error (ErrorError, "Local label can not have a routine name %.*s here", (int)routLen, rout);
       else
-	error (ErrorError, "Local label with routine name %.*s does not match with current routine name %s", (int)len, in, curROUTId);
-      return UINT_MAX;
+	error (ErrorError, "Local label with routine name %.*s does not match with current routine name %s", (int)routLen, rout, curROUTId);
+      if (fileP != NULL)
+	errorLine (fileP, lineNum, ErrorError, "note: Last ROUT was here");
+      return true;
     }
-
-  return label;
+  return false;
 }
 
 
 /**
  * \return UINT_MAX when it wasn't able to read a local label, otherwise a local
  * label value.
- * Very similar to Lex_ReadLocalLabelFromLex.
+ *
+ * Very similar to Lex_ReadDefiningLocalLabel, Lex_GetDefiningLabel and
+ * Lex_SkipDefiningLabel.
  */
 static unsigned
-Lex_ReadLocalLabel (void)
+Lex_ReadReferringLocalLabel (void)
 {
   if (!isdigit ((unsigned char)inputLook ()))
     {
@@ -231,70 +223,112 @@ Lex_ReadLocalLabel (void)
     }
 
   /* If a routinename is given, check if thats the one given with ROUT.  */
-  size_t len;
-  const char *name = inputSymbol (&len, '\0');
-  const char *curROUTId = Local_GetCurROUTId ();
-  if (len
-      && (memcmp (curROUTId, name, len) || curROUTId[len] != '\0'))
-    {
-      if (Local_ROUTIsEmpty (curROUTId))
-	error (ErrorError, "Local label can not have a routine name %.*s here", (int)len, name);
-      else
-	error (ErrorError, "Local label with routine name %.*s does not match with current routine name %s", (int)len, name, curROUTId);
-      return UINT_MAX;
-    }
+  size_t routLen;
+  const char *rout = inputSymbol (&routLen, '\0');
+  if (Lex_CheckForROUTMismatch (rout, routLen))
+    return UINT_MAX;
 
   return label;
 }
 
-typedef enum
+
+/**
+ * \return UINT_MAX when it wasn't able to read a local label, otherwise a local
+ * label value.
+ *
+ * Very similar to Lex_ReadReferringLocalLabel, Lex_GetDefiningLabel and
+ * Lex_SkipDefiningLabel.
+ */
+static unsigned
+Lex_ReadDefiningLocalLabel (const char *lblStrP, size_t lblStrSize)
 {
-  eThisLevelOnly,
-  eAllLevels,
-  eThisLevelAndHigher
-} LocalLabel_eSearch;
+  assert (isdigit ((unsigned char)*lblStrP) && lblStrSize);
+  unsigned label = (unsigned char)*lblStrP++ - '0';
+  --lblStrSize;
+  while (lblStrSize && isdigit ((unsigned char)*lblStrP))
+    {
+      unsigned next_label = 10*label + (unsigned char)*lblStrP++ - '0';
+      if (next_label < label)
+	{
+	  error (ErrorError, "Local label overflow");
+	  return UINT_MAX;
+	}
+      label = next_label;
+      --lblStrSize;
+    }
+
+  /* Check if routine name (when given) matches the one given with last
+     ROUT.  */
+  if (Lex_CheckForROUTMismatch (lblStrP, lblStrSize))
+    return UINT_MAX;
+  return label;
+}
+
 
 static Lex
-Lex_MakeLocalLabel (int dir,
-                    LocalLabel_eSearch level /* FIXME: use this */ UNUSED)
+Lex_MakeReferringLocalLabel (LocalLabel_eDir dir,
+			    LocalLabel_eLevel level)
 {
   Lex result =
     {
       .tag = LexNone
     };
 
-  unsigned label = Lex_ReadLocalLabel ();
+  unsigned label = Lex_ReadReferringLocalLabel ();
   if (label == UINT_MAX)
     return result;
 
-  Local_Label_t *lblP = Local_GetLabel (label);
-  unsigned i;
+  Local_Label_t *lblP;
+  unsigned macroDepth;
   switch (dir)
     {
-      case -1:
-	/* Search backward.  */
-	if ((i = lblP->Value) == 0)
-	  {
-	    errorAbort ("Missing local label %%b%02i", label);
-	    return result;
-	  }
-	--i;
-	break;
+      case eBackward:
+      case eBackwardThenForward:
+	{
+	  macroDepth = FS_GetMacroDepth ();
+	  switch (level)
+	    {
+	      case eThisLevelOnly:
+		lblP = Local_GetLabel (macroDepth, label);
+		break;
+	      case eAllLevels:
+		{
+		  const unsigned macroDepthCopy = macroDepth;
+		  while ((lblP = Local_GetLabel (macroDepth, label)) == NULL
+			 && ++macroDepth != PARSEOBJECT_STACK_SIZE)
+		    /* */;
+		  if (lblP != NULL)
+		    break;
+		  macroDepth = macroDepthCopy;
+		  /* Fall through.  */
+		}
+	      case eThisLevelAndHigher:
+		while ((lblP = Local_GetLabel (macroDepth, label)) == NULL
+		       && macroDepth)
+		  --macroDepth;
+		break;
+	    }
+	  break;
+	}
 
-      default:
-      case 0:
-	/* Search backward, when not found, search forward.  */
-	if ((i = lblP->Value) > 0)
-	  --i;
-	break;
-
-      case 1:
-	/* Search forward.  */
-	i = lblP->Value;
+      case eForward:
+	lblP = NULL;
 	break;
     }
-  char id[1024];
-  snprintf (id, sizeof (id), Local_IntLabelFormat, areaCurrentSymbol, label, i, Local_GetCurROUTId ());
+  char id[256];
+  if (lblP == NULL)
+    {
+      if (dir == eBackward)
+	{
+	  const char *levelStr = level == eThisLevelOnly ? "t" : level == eAllLevels ? "a" : ""; 
+	  errorAbort ("Missing local label %%b%s%i", levelStr, label);
+	  return result;
+	}
+      Local_CreateSymbolForOutstandingFwdLabelRef (id, sizeof (id),
+						   level, dir, label);
+    }
+  else
+    Local_CreateSymbol (lblP, macroDepth, false, id, sizeof (id));
 
   result.tag = LexId;
   result.Data.Id.str = strdup (id);
@@ -306,6 +340,13 @@ Lex_MakeLocalLabel (int dir,
 }
 
 
+/**
+ * \return LexNone (no or bad label), LexLocalLabel (local label) or
+ * LexId (symbol label).
+ *
+ * Very similar to Lex_ReadReferringLocalLabel, Lex_ReadDefiningLocalLabel,
+ * and Lex_SkipDefiningLabel.
+ */
 Lex
 Lex_GetDefiningLabel (void)
 {
@@ -313,21 +354,23 @@ Lex_GetDefiningLabel (void)
 
   if (isdigit ((unsigned char)inputLook ()))
     {
-      /* Looks like this is a local label.  */
+      /* Looks like this is a local label.  We just turn this into a
+         LexLocalLabel Lex object and only when it is going to be used as
+         a defining label (i.e. Lex_DefineLocalLabel), we'll check if this
+	 is a valid local label.  */
+      const char *beginLabel = Input_GetMark ();
+      while (isdigit ((unsigned char)inputLook ()))
+	(void) inputGet ();
+      /* Possibly followed by a ROUT identifier.  */
+      size_t routLen;
+      (void) inputSymbol (&routLen, '\0');
+
       Lex result =
 	{
-	  .tag = LexNone
+	  .tag = LexLocalLabel,
+	  .Data.LocalLabel.len = Input_GetMark () - beginLabel,
+	  .Data.LocalLabel.str = beginLabel
 	};
-
-      size_t localLabelSize;
-      const char *localLabel = Input_LocalLabel (&localLabelSize);
-      if (localLabel == NULL)
-        return result;
-      result.tag = LexLocalLabel;
-      result.Data.LocalLabel.str = strdup (localLabel);
-      if (!result.Data.LocalLabel.str)
-	errorOutOfMem ();
-      result.Data.LocalLabel.len = localLabelSize;
       return result;
     }
 
@@ -340,23 +383,24 @@ Lex_GetDefiningLabel (void)
  * \return LexId which can be used to create a label symbol.  Can also
  * be LexNone in case of an error (like malformed local label, or wrong
  * routine name).
+ * FIXME: should be removed as it leaks memory, teach symbolGet to accept LexLocalLabel.
  */
 Lex
 Lex_DefineLocalLabel (const Lex *lexP)
 {
   assert (lexP->tag == LexLocalLabel);
 
-  unsigned label = Lex_ReadLocalLabelFromLex (lexP);
-  if (label == UINT_MAX)
+  unsigned labelNum = Lex_ReadDefiningLocalLabel (lexP->Data.LocalLabel.str, lexP->Data.LocalLabel.len);
+  if (labelNum == UINT_MAX)
     {
-      Lex noLex = { .tag = LexNone };
+      const Lex noLex = { .tag = LexNone };
       return noLex;
     }
-
-  Local_Label_t *lblP = Local_GetLabel (label);
-  char id[1024];
-  snprintf (id, sizeof (id), Local_IntLabelFormat, areaCurrentSymbol, label, lblP->Value, Local_GetCurROUTId ());
-  lblP->Value++;
+  
+  Local_Label_t *lblP = Local_DefineLabel (labelNum);
+  char id[256];
+  Local_CreateSymbol (lblP, FS_GetMacroDepth (), true, id, sizeof (id));
+  lblP->instance++;
 
   Lex result;
   result.tag = LexId;
@@ -372,6 +416,9 @@ Lex_DefineLocalLabel (const Lex *lexP)
 /**
  * Used to skip defining labels in failed IF/WHILE bodies.
  * \return true when label got read
+ *
+ * Very similar to Lex_ReadReferringLocalLabel, Lex_ReadDefiningLocalLabel
+ * and Lex_GetDefiningLabel.
  */
 bool
 Lex_SkipDefiningLabel (void)
@@ -491,8 +538,8 @@ lexGetPrim (void)
 		error (ErrorError, "Failed to read floating point value");
 	      inputSkipN (newMark - mark);
 	    }
+	  break;
 	}
-	break;
 
       case '\'':
 	{
@@ -517,19 +564,19 @@ lexGetPrim (void)
 
 	  result.tag = LexInt;
 	  Lex_Char2Int (i, in, (ARMWord *)&result.Data.Int.value);
+	  break;
 	}
-	break;
 
       case '"':
 	{
 	  result.tag = LexString;
 	  result.Data.String.str = Input_GetString (&result.Data.String.len);
+	  break;
 	}
-	break;
 
       case '.':
 	{
-	  /* Do we have the position mark '.' or start of floating point
+	  /* Do we have the position mark '.' or start of a floating point
 	     number ? */
 	  if (isdigit ((unsigned char)inputLook ()))
 	    {
@@ -545,8 +592,8 @@ lexGetPrim (void)
 	    }
 	  else
 	    result.tag = LexPosition;
+	  break;
 	}
-	break;
 
       case '@':
 	result.tag = LexStorage;
@@ -555,27 +602,27 @@ lexGetPrim (void)
       case '%':
 	{
 	  /* Local label reference.  */
-	  int dir;
+	  LocalLabel_eDir dir;
 	  switch (inputLookLower ())
 	    {
 	      case 'f':
 		/* Forward looking.  */
 		inputSkip ();
-		dir = 1;
+		dir = eForward;
 		break;
   
 	      case 'b':
 		/* Backward looking.  */
 		inputSkip ();
-		dir = -1;
+		dir = eBackward;
 		break;
   
 	      default:
 		/* Search backwards first, then forward.  */
-		dir = 0;
+		dir = eBackwardThenForward;
 		break;
 	    }
-	  LocalLabel_eSearch level;
+	  LocalLabel_eLevel level;
 	  switch (inputLookLower ())
 	    {
 	      case 't':
@@ -595,9 +642,9 @@ lexGetPrim (void)
 		level = eThisLevelAndHigher;
 		break;
 	    }
-	  return Lex_MakeLocalLabel (dir, level);
+	  result = Lex_MakeReferringLocalLabel (dir, level);
+	  break;
 	}
-	break;
 
       case '{':
 	lexAcornPrim (&result);
@@ -835,7 +882,7 @@ lexPrint (const Lex *lex)
 	printf ("Id <%.*s> ", (int)lex->Data.Id.len, lex->Data.Id.str);
 	break;
       case LexLocalLabel:
-	printf ("Id <%.*s> ", (int)lex->Data.LocalLabel.len, lex->Data.LocalLabel.str);
+	printf ("LocalLabel <%.*s> ", (int)lex->Data.LocalLabel.len, lex->Data.LocalLabel.str);
 	break;
       case LexString:
 	printf ("Str <%.*s> ", (int)lex->Data.String.len, lex->Data.String.str);

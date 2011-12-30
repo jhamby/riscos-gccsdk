@@ -475,9 +475,16 @@ m_adr (bool doLowerCase)
   if (ir == optionError)
     return true;
 
+  ARMWord regD = getCpuReg ();
+  
+  skipblanks ();
+  if (!Input_Match (',', false))
+    error (ErrorError, "%sdst", InsertCommaAfter);
+
+  exprBuild ();
+
   if (gASM_Phase == ePassOne)
     {
-      Input_Rest ();
       Put_Ins (0);
       /* When bit 0 is set, we'll emit ADRL (2 instructions).  */
       if (ir & 1)
@@ -488,17 +495,12 @@ m_adr (bool doLowerCase)
   /* When bit 0 is set, we'll emit ADRL (2 instructions).  */
   ADR_PrivData_t privData =
     {
-      .orgInstr = (ir | DST_OP (getCpuReg ()) | IMM_RHS) & ~1,
+      .orgInstr = (ir | DST_OP (regD) | IMM_RHS) & ~1,
       .userIntendedTwoInstr = (ir & 1) != 0
     };
 
-  skipblanks ();
-  if (!Input_Match (',', false))
-    error (ErrorError, "%sdst", InsertCommaAfter);
-
   /* The label will expand to either a field in a based map or a PC-relative 
      expression.  */
-  exprBuild ();
   if (Reloc_QueueExprUpdate (ADR_RelocUpdater,
 			     areaCurrentSymbol->area.info->curIdx,
 			     ValueAddr | ValueInt | ValueSymbol | ValueCode,
