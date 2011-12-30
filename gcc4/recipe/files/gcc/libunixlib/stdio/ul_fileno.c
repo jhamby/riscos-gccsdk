@@ -1,5 +1,5 @@
-/* fileno ()
- * Copyright (c) 2000-2010 UnixLib Developers
+/* UnixLib fileno () implementation
+ * Copyright (c) 2000-2011 UnixLib Developers
  */
 
 #include <errno.h>
@@ -20,3 +20,4 @@ fileno (FILE *stream)
 
   return stream->fd;
 }
+strong_alias (fileno, fileno_unlocked)

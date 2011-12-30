@@ -1,5 +1,5 @@
-/* UnixLib fputc(), fputc_unlocked(), putc(), putc_unlocked(). and putchar() implementation.
-   Copyright 2002-2010 UnixLib Developers.  */
+/* UnixLib fputc(), fputc_unlocked(), putc() and putc_unlocked() implementation.
+   Copyright 2002-2011 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <errno.h>
@@ -7,16 +7,25 @@
 #include <pthread.h>
 #include <internal/unix.h>
 
+/* #define DEBUG */
+#ifdef DEBUG
+#  include <sys/debug.h>
+#endif
+
 int
 fputc (int c, FILE *stream)
 {
   PTHREAD_UNSAFE
 
-  if (!__validfp (stream) || !stream->__mode.__bits.__write)
+  /* Do not yet check on stream->__mode.__bits.__write yet, this is done
+     at __flsbuf time.  */
+  if (!__validfp (stream))
     {
       __set_errno (EINVAL);
       return EOF;
     }
+
+  c &= 0xFF;
 
   /* If stream is line buffered, then always flush when we receive a
      newline.  */
@@ -33,8 +42,6 @@ fputc (int c, FILE *stream)
   /* Add character to buffer.  If buffer fills, then flush the stream.  */
   if (--stream->o_cnt > 0)
     {
-      /* I think that fputc should preserve the full 32-bits of `c',
-	 even though only 8-bits are written out to the stream.  */
       *stream->o_ptr++ = c;
       return c;
     }
@@ -42,16 +49,6 @@ fputc (int c, FILE *stream)
   return __flsbuf (c, stream);
 }
 strong_alias (fputc, putc)
+strong_alias (fputc, fputc_unlocked)
+strong_alias (fputc, putc_unlocked)
 
-int
-fputc_unlocked(int c, FILE *stream)
-{
-  return fputc (c, stream);
-}
-strong_alias (fputc_unlocked, putc_unlocked)
-
-int
-putchar (int c)
-{
-  return fputc (c, stdout);
-}

@@ -1,5 +1,5 @@
 /* UnixLib fflush() implementation.
-   Copyright 2000-2010 UnixLib Developers.  */
+   Copyright 2000-2011 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <errno.h>
@@ -14,9 +14,8 @@ fflush (FILE *stream)
 
   if (stream == NULL)
     {
-      int lossage = 0;
-
       /* Flush all streams.  */
+      int lossage = 0;
       for (stream = __iob_head; stream != NULL; stream = stream->next)
         {
 	  if (__validfp (stream) && stream->__mode.__bits.__write)
@@ -42,3 +41,4 @@ fflush (FILE *stream)
 
   return __flsbuf (EOF, stream);
 }
+strong_alias (fflush, fflush_unlocked)

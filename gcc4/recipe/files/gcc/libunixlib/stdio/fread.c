@@ -18,23 +18,26 @@ fread (void *data, size_t size, size_t count, FILE *stream)
   PTHREAD_UNSAFE
 
   /* Check for any errors.  */
-  if (!__validfp (stream) || !stream->__mode.__bits.__read)
+  if (!__validfp (stream))
     {
       (void) __set_errno (EINVAL);
-      return (size_t) 0;
+      return 0;
     }
 
+  if (!stream->__mode.__bits.__read)
+    stream->__error = 1;
+
   if (feof (stream) || ferror (stream))
-    return (size_t) 0;
+    return 0;
 
   size_t to_read = size * count;
   if (to_read == 0)
-    return (size_t) 0;
+    return 0;
 
   /* When we have possibly unflushed data in one of our line buffered streams
      and we're reading from a tty attached stream, flush all those streams.  */
   if (__ul_global.fls_lbstm_on_rd && isatty (fileno (stream)) && __flslbbuf ())
-    return (size_t) 0;
+    return 0;
 
   /* If we don't do this ungetc() followed by fread() screws up.  */
   if (stream->__pushedback == 1)
@@ -67,30 +70,34 @@ fread (void *data, size_t size, size_t count, FILE *stream)
       if (to_read)
 	stream->__eof = 1;
     }
-  while (to_read)
+  else
     {
-      /* Read the rest of the data straight from the file.  */
-      ssize_t bytes = read (stream->fd, data, to_read);
-      if (bytes == 0)
+      while (to_read)
 	{
-	  /* Reading non-zero number of bytes and actually getting zero bytes
-	     means having reached EOF.  */
-	  stream->__eof = 1;
-	  break;
-	}
-      else if (bytes == -1)
-	{
-	  stream->__error = 1;
-	  break;
-	}
-      else
-	{
-	  to_read -= bytes;
-	  /* Fix the file offset pointer.  */
-	  stream->__offset += bytes;
+	  /* Read the rest of the data straight from the file.  */
+	  ssize_t bytes = read (stream->fd, data, to_read);
+	  if (bytes == 0)
+	    {
+	      /* Reading non-zero number of bytes and actually getting
+		 zero bytes means having reached EOF.  */
+	      stream->__eof = 1;
+	      break;
+	    }
+	  else if (bytes == -1)
+	    {
+	      stream->__error = 1;
+	      break;
+	    }
+	  else
+	    {
+	      to_read -= bytes;
+	      /* Fix the file offset pointer.  */
+	      stream->__offset += bytes;
+	    }
 	}
     }
 
   /* Return the number of objects actually read.  */
-  return count - (to_read + size - 1) / size;
+  return to_read ? count - (to_read + size - 1) / size : count;
 }
+strong_alias (fread, fread_unlocked)

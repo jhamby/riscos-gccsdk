@@ -865,29 +865,38 @@ stdio_src = \
 	stdio/feof.c \
 	stdio/ferror.c \
 	stdio/fflush.c \
+	stdio/fgetpos.c \
 	stdio/fgets.c \
 	stdio/filbuf.c \
 	stdio/ul_fileno.c \
 	stdio/flsbuf.c \
 	stdio/ul_fopen.c \
-	stdio/fpos.c \
 	stdio/fpurge.c \
 	stdio/fputs.c \
 	stdio/fread.c \
 	stdio/freopen.c \
+	stdio/fseek.c \
+	stdio/fseeko.c \
+	stdio/fsetpos.c \
+	stdio/ftell.c \
+	stdio/ftello.c \
 	stdio/fwrite.c \
 	stdio/getc.c \
+	stdio/getchar.c \
 	stdio/gets.c \
 	stdio/getw.c \
+	stdio/lockfile.c \
 	stdio/newstream.c \
 	stdio/perror.c \
 	stdio/popen.c \
 	stdio/printf.c \
 	stdio/putc.c \
+	stdio/putchar.c \
 	stdio/puts.c \
 	stdio/putw.c \
 	stdio/remove.c \
 	stdio/rename.c \
+	stdio/rewind.c \
 	stdio/scanf.c \
 	stdio/setbuf.c \
 	stdio/stdio.c \

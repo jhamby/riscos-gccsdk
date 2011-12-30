@@ -1,3 +1,68 @@
+Fri Dec 30 02:25:34 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (stdio/fpos.c): Remove.
+	(stdio/fgetpos.c): Add.
+	(stdio/fseek.c): Likewise.
+	(stdio/fseeko.c): Likewise.
+	(stdio/fsetpos.c): Likewise.
+	(stdio/ftell.c): Likewise.
+	(stdio/ftello.c): Likewise.
+	(stdio/rewind.c): Likewise.
+	(stdio/lockfile): Likewise.
+	(stdio/getchar.c): Likewise.
+	* stdio/fpos.c (fgetpos, fgetpos64, fsetpos, fsetpos64, fseek,
+	fseeko, fseeko64, ftell, ftello, ftello64, rewind): Split into
+	stdio/fgetpos.c (fgetpos, fgetpos64), stdio/fseek.c (fseek),
+	stdio/fseeko.c (fseeko, fseeko64), stdio/fsetpos.c (fsetpos,
+	fsetpos64), stdio/ftell.c (ftell), stdio/ftello.c (ftello,
+	ftello64), stdio/rewind.c (rewind).
+	* stdio/fgetpos.c (fgetpos): Reimplement based on previous ftell
+	implementation.
+	* stdio/ftell.c (ftell): Reimplement using fgetpos.
+	* stdio/ftello.c (ftello): Reimplement using fgetpos.
+	* stdio/fsetpos.c (fsetpos): Reimplement based on previous fseek
+	implementation.
+	(fsetpos64): Fix offset sanity check.
+	* stdio/fseek.c (fseek): Reimplement using fsetpos.
+	* stdio/fseeko.c (fseeko): Reimplement using fsetpos.
+	(fseeko64): Fix offset sanity check.  Use fseeko iso fseek.
+	* stdio/rewind.c (rewind): Previous implementation from
+	stdio/fpos.c.
+	* stdio/putc (fputc): Don't check on writabel streams (is now done
+	at __flsbuf). Trim value to be written to 8 bits.
+	(putchar): Move to...
+	* stdio/putchar.c: ...here (new file).
+	(putchar_unlocked): Add.
+	* stdio/getc.c (fgetc): Don't check on readable streams (is now
+	done at checkstream).
+	(fgetc_unlocked): Add.
+	(getchar):  Move to...
+	* stdio/getchar.c: ...here (new file).
+	(getchar_unlocked): Add.
+	* stdio/ul_fileno (fileno_unlocked): Add.
+	* stdio/fwrite.c (fwrite): Writing to non-writeable streams should
+	result in stream error.  Minor cleanup.
+	(fwrite_unlocked): Add.
+	* stdio/fread.c (fread): Reading from non-readable streams should
+	result in stream error.  Minor cleanup.  String based stream
+	should never result in calling read.  Avoid division when all
+	data can be read.
+	(fread_unlocked): Add.
+	* stdio/fflush.c (fflush_unlocked): Add.
+	* stdio/lockfile.c (flockfile, ftrylockfile, funlockfile): Add
+	dummy implementation.
+	* include/stdio.h (feof_unlocked, ferror_unlocked): Add.
+	(fflush_unlocked): Add.
+	(fread_unlocked, fwrite_unlocked): Add.
+	(putchar_unlocked): Add.
+	(fgetc_unlocked): Add.
+	(fileno_unlocked): Add.
+	(fread, popen): Add __wur.
+	(getc_unlocked): Removed for SCL.
+	(fputc_unlocked, putc_unlocked, fgets_unlocked): Was wrongly
+	defined for SCL iso UnixLib.
+	(flockfile, ftrylockfile, funlockfile): Add.
+
 Thu Dec 29 22:01:36 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* debug/dvsprintf.c (UNIXLIB_STDERR): Remove support (causes more

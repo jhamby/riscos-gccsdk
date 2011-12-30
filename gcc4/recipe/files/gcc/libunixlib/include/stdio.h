@@ -255,6 +255,10 @@ extern void clearerr (FILE *__stream) __THROW;
 #  ifndef __TARGET_SCL__
 /* Faster versions when locking is not required.  */
 extern void clearerr_unlocked (FILE *__stream) __THROW;
+extern int feof_unlocked (FILE *__stream) __THROW __wur;
+extern int ferror_unlocked (FILE *__stream) __THROW __wur;
+#    define feof_unlocked(stream) feof(stream)
+#    define ferror_unlocked(stream) ferror(stream)
 #  endif
 #endif
 
@@ -291,13 +295,17 @@ extern FILE *__REDIRECT (freopen, (const char *__restrict __filename,
 # endif
 #endif
 __END_NAMESPACE_STD
-
 #ifdef __USE_LARGEFILE64
 extern FILE *fopen64 (const char *__restrict __filename,
 		      const char *__restrict __modes) __wur;
 extern FILE *freopen64 (const char *__restrict __filename,
 			const char *__restrict __modes,
 			FILE *__restrict __stream) __wur;
+#endif
+
+#ifdef __USE_POSIX
+/* Create a new stream that refers to an existing system file descriptor.  */
+extern FILE *fdopen (int __fd, const char *__modes) __THROW __wur;
 #endif
 
 __BEGIN_NAMESPACE_STD
@@ -313,7 +321,16 @@ extern int fclose (FILE *__stream);
    output streams. Returns EOF if a write error occurs, zero otherwise.
    This function is a cancellation point.  */
 extern int fflush (FILE *__stream);
+__END_NAMESPACE_STD
 
+#ifdef __USE_MISC
+#  ifndef __TARGET_SCL__
+/* Faster versions when locking is not required.  */
+extern int fflush_unlocked (FILE *__stream);
+#  endif
+#endif
+
+__BEGIN_NAMESPACE_STD
 /* Clears the buffer of a given stream. */
 extern int fpurge (FILE *__stream);
 
@@ -322,7 +339,7 @@ extern int fpurge (FILE *__stream);
    read.
    This function is a cancellation point.  */
 extern size_t fread (void *__restrict __ptr, size_t __size,
-		     size_t __count, FILE *__restrict __stream);
+		     size_t __count, FILE *__restrict __stream) __wur;
 
 /* Write up to 'count' objects of size 'size' from the array 'ptr',
    to the stream 'stream'. The return value is normally 'count' if the
@@ -350,6 +367,16 @@ extern int setvbuf (FILE *__restrict __stream, char *__restrict __buf,
    This function is a cancellation point.  */
 extern int ungetc (int __c, FILE *__stream);
 __END_NAMESPACE_STD
+
+#ifdef __USE_MISC
+#  ifndef __TARGET_SCL__
+/* Faster versions when locking is not necessary.  */
+extern size_t fread_unlocked (void *__restrict __ptr, size_t __size,
+			      size_t __count, FILE *__restrict __stream) __wur;
+extern size_t fwrite_unlocked (const void *__restrict __ptr, size_t __size,
+			       size_t __count, FILE *__restrict __stream);
+#  endif
+#endif
 
 __BEGIN_NAMESPACE_STD
 /* Change the file position of the stream 'stream'. 'whence'
@@ -457,19 +484,26 @@ extern int getchar_unlocked (void);
 #  ifdef __TARGET_SCL__
 #    define getc(p) \
 	(--((p)->__icnt) >= 0 ? *((p)->__ptr)++ : __filbuf(p))
-#    define getc_unlocked(p) getc(p)
 #  else
 #    define getc_unlocked(f) \
 	((--((f)->i_cnt) >= 0 ? *((f)->i_ptr)++ : __filbuf(f)))
+#    define getchar_unlocked() getc_unlocked(stdin)
 #  endif
-#  define getchar_unlocked() getc_unlocked(stdin)
 
-#  ifdef __TARGET_SCL__
+#  ifndef __TARGET_SCL__
 extern int fputc_unlocked (int __c, FILE *__stream) __nonnull ((2));
 
 extern int putc_unlocked (int __c, FILE *__stream) __nonnull ((2));
+extern int putchar_unlocked (int __c);
 #  endif
 #endif
+
+#ifdef __USE_MISC
+#  ifndef __TARGET_SCL__
+/* Faster version when locking is not necessary.  */
+extern int fgetc_unlocked (FILE *__stream) __nonnull ((1));
+#  endif
+#endif /* Use MISC.  */
 
 __BEGIN_NAMESPACE_STD
 
@@ -511,11 +545,10 @@ extern int puts (const char *__s) __THROW __nonnull ((1));
 __END_NAMESPACE_STD
 
 #ifdef __USE_GNU
-#  ifdef __TARGET_SCL__
+#  ifndef __TARGET_SCL__
 extern char *fgets_unlocked (char *__restrict __s, int __n,
-			     FILE *__restrict __stream);
+			     FILE *__restrict __stream) __nonnull ((1, 3));
 #  endif
-#define fgets_unlocked fgets
 #endif
 
 /* Formatted I/O */
@@ -760,26 +793,17 @@ extern const char *sys_errlist[];
 /* POSIX enhancements.  */
 
 #ifdef __USE_POSIX
-/* Create a new stream that refers to an existing system file descriptor.  */
-extern FILE *fdopen (int __fd, const char *__modes) __THROW;
-
 /* Return the system file descriptor for stream.  */
 extern int fileno (FILE *__stream) __THROW;
 #  ifndef __TARGET_SCL__
 #    define fileno(f)	((f)->fd)
-
-#    define L_ctermid 16
-
-/* Return the name of the controlling terminal.  */
-extern char *ctermid (char *__s) __THROW;
 #  endif
-
 #endif
 
-#ifdef __USE_XOPEN
+#ifdef __USE_MISC
 #  ifndef __TARGET_SCL__
-/* Return the name of the current user.  */
-extern char *cuserid (char *__s);
+/* Faster version when locking is not required.  */
+extern int fileno_unlocked (FILE *__stream) __THROW __wur;
 #  endif
 #endif
 
@@ -790,13 +814,48 @@ extern char *cuserid (char *__s);
 #  ifndef __TARGET_SCL__
 /* Create a new stream connected to a pipe running the given command.
    This function is a cancellation point.  */
-extern FILE *popen (const char *__command, const char *__modes);
+extern FILE *popen (const char *__command, const char *__modes) __wur;
 
 /* Close a stream opened by popen and return the status of its child.
    This function is a cancellation point.  */
 extern int pclose (FILE *__stream);
 #  endif
 #endif
+
+
+#ifdef __USE_POSIX
+#  ifndef __TARGET_SCL__
+#    define L_ctermid 16
+
+/* Return the name of the controlling terminal.  */
+extern char *ctermid (char *__s) __THROW;
+#  endif
+#endif
+
+
+#ifdef __USE_XOPEN
+#  ifndef __TARGET_SCL__
+/* Return the name of the current user.  */
+extern char *cuserid (char *__s);
+#  endif
+#endif
+
+
+#if defined __USE_POSIX || defined __USE_MISC
+#  ifndef __TARGET_SCL__
+/* These are defined in POSIX.1:1996.  */
+
+/* Acquire ownership of STREAM.  */
+extern void flockfile (FILE *__stream) __THROW;
+
+/* Try to acquire ownership of STREAM but do not block if it is not
+   possible.  */
+extern int ftrylockfile (FILE *__stream) __THROW __wur;
+
+/* Relinquish the ownership granted for STREAM.  */
+extern void funlockfile (FILE *__stream) __THROW;
+#  endif
+#endif /* POSIX || misc */
 
 /* GNU extenstions.  */
 

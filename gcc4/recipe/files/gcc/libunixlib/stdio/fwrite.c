@@ -1,5 +1,5 @@
 /* UnixLib fwrite() implementation.
-   Copyright 2001-2010 UnixLib Developers.  */
+   Copyright 2001-2011 UnixLib Developers.  */
 
 #include <errno.h>
 #include <stdlib.h>
@@ -22,18 +22,21 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
   PTHREAD_UNSAFE
 
   /* Check for any errors.  */
-  if (!__validfp (stream) || !stream->__mode.__bits.__write)
+  if (!__validfp (stream))
     {
       (void) __set_errno (EINVAL);
-      return (size_t) 0;
+      return 0;
     }
 
+  if (!stream->__mode.__bits.__write)
+    stream->__error = 1;
+
   if (ferror (stream))
-    return (size_t) 0;
+    return 0;
 
   size_t to_write = size * count;
   if (to_write == 0)
-    return (size_t) 0;
+    return 0;
 
 #ifdef DEBUG
   debug_printf ("-- fwrite(%d): to_write=%d", stream->fd, to_write);
@@ -50,7 +53,7 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	{
 	  to_write = stream->o_cnt;
 	  if (to_write == 0)
-	    return (size_t) 0;
+	    return 0;
 	}
 
       /* Optimisations appropriate for a buffered file.  */
@@ -82,13 +85,13 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
       else
 	{
 	  /* The data is small enough to place in the output buffer.  */
-	  size_t bytes;
 
 	  /* Increment the file pointers (part 1). */
 	  total_bytes += to_write;
 #ifdef DEBUG
 	  debug_printf (", buffering");
 #endif
+	  size_t bytes;
 	  if (stream->__linebuf)
 	    {
 	      /* Find the last \n and use that as end of the part to at least
@@ -131,7 +134,8 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 		}
 
 	      to_write -= bytes;
-	      if ((bytes = to_write) != 0
+	      bytes = to_write;
+	      if (bytes != 0 /* line buffering and \n is not the last char to write.  */
 		  || stream->fd != -1 && stream->o_ptr[-1] == '\n')
 		{
 #ifdef DEBUG
@@ -155,9 +159,8 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
 	 We don't have to worry about all that buffer crap :-) */
       while (to_write)
 	{
-	  size_t bytes;
-
 	  /* This check is for (v)snprintf with a NULL buffer */
+	  size_t bytes;
 	  if (stream->fd == -1)
 	    bytes = to_write;
 	  else
@@ -177,3 +180,4 @@ fwrite (const void *data, size_t size, size_t count, FILE *stream)
   /* Return the number of objects actually written.  */
   return total_bytes / size;
 }
+strong_alias (fwrite, fwrite_unlocked)
