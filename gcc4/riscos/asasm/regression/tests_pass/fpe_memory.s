@@ -1,7 +1,4 @@
 ; FPE (FPA10/FPA11/FPASC) memory access : LDF/STF/LFM/SFM
-; Option autocast is specified as we want to test the integer -> float
-; conversions.
-; RUNOPT: -autocast
 
 		AREA |C$$code|, CODE, READONLY
 
