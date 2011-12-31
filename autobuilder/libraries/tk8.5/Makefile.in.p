@@ -1,28 +1,19 @@
---- unix/Makefile.in.orig	2010-01-02 10:17:08.000000000 -0800
-+++ unix/Makefile.in	2010-01-02 10:23:45.000000000 -0800
-@@ -718,7 +718,7 @@
+--- unix/Makefile.in.orig	2011-12-30 08:45:06.000000000 +0000
++++ unix/Makefile.in	2011-12-30 08:48:17.000000000 +0000
+@@ -722,10 +722,10 @@
  	    fi
  	@echo "Installing $(LIB_FILE) to $(LIB_INSTALL_DIR)/"
  	@@INSTALL_LIB@
 -	@chmod 555 "$(LIB_INSTALL_DIR)"/$(LIB_FILE)
 +	@chmod 755 "$(LIB_INSTALL_DIR)"/$(LIB_FILE)
- 	@if test "$(TK_BUILD_EXP_FILE)" != ""; then \
- 	    echo "Installing $(TK_EXP_FILE) to $(LIB_INSTALL_DIR)/"; \
- 	    $(INSTALL_DATA) $(TK_BUILD_EXP_FILE) \
-@@ -726,10 +726,10 @@
- 	    fi
- 	@echo "Installing wish as $(BIN_INSTALL_DIR)/wish$(VERSION)"
- 	@$(INSTALL_PROGRAM) wish "$(BIN_INSTALL_DIR)"/wish$(VERSION)
+ 	@echo "Installing wish@EXEEXT@ as $(BIN_INSTALL_DIR)/wish$(VERSION)@EXEEXT@"
+ 	@$(INSTALL_PROGRAM) wish@EXEEXT@ "$(BIN_INSTALL_DIR)"/wish$(VERSION)@EXEEXT@
 -	@echo "Installing tkConfig.sh to $(CONFIG_INSTALL_DIR)/"
-+	@echo "Installing tkConfig.sh to $(TK_LIBRARY)/"
++	@echo "Installing tkConfig.sh to $(TCL_LIBRARY)/"
  	@$(INSTALL_DATA) tkConfig.sh "$(CONFIG_INSTALL_DIR)"/tkConfig.sh
  	@if test "$(STUB_LIB_FILE)" != "" ; then \
--	    echo "Installing $(STUB_LIB_FILE) to $(LIB_INSTALL_DIR)/"; \
-+	    echo "Installing $(STUB_LIB_FILE) to $(TK_LIBRARY)/"; \
- 	    @INSTALL_STUB_LIB@ ; \
- 	fi
- 	@EXTRA_INSTALL_BINARIES@
-@@ -1517,14 +1517,14 @@
+ 	    echo "Installing $(STUB_LIB_FILE) to $(LIB_INSTALL_DIR)/"; \
+@@ -1516,14 +1516,14 @@
  		$(UNIX_DIR)/tkConfig.h.in $(DISTDIR)/unix
  	chmod 775 $(DISTDIR)/unix/configure $(DISTDIR)/unix/configure.in
  	chmod +x $(DISTDIR)/unix/install-sh
@@ -39,7 +30,7 @@
  	cp -p $(GENERIC_DIR)/*.[ch] $(DISTDIR)/generic
  	cp -p $(GENERIC_DIR)/*.decls $(DISTDIR)/generic
  	cp -p $(GENERIC_DIR)/README $(DISTDIR)/generic
-@@ -1535,7 +1535,7 @@
+@@ -1534,7 +1534,7 @@
  	mkdir $(DISTDIR)/generic/ttk
  	cp -p $(TTK_DIR)/*.[ch] $(TTK_DIR)/ttk.decls \
  		$(TTK_DIR)/ttkGenStubs.tcl $(DISTDIR)/generic/ttk
@@ -48,7 +39,7 @@
  	cp $(TOP_DIR)/win/Makefile.in $(DISTDIR)/win
  	cp $(TOP_DIR)/win/configure.in \
  		$(TOP_DIR)/win/configure \
-@@ -1550,54 +1550,54 @@
+@@ -1549,54 +1549,54 @@
  	$(TCL_EXE) $(TOOL_DIR)/eolFix.tcl -crlf $(DISTDIR)/win/rules.vc
  	cp -p $(TOP_DIR)/win/README $(DISTDIR)/win
  	cp -p $(TOP_DIR)/license.terms $(DISTDIR)/win
@@ -116,7 +107,7 @@
  	cp -pr $(TOP_DIR)/library/demos/*.tcl \
  		$(TOP_DIR)/library/demos/*.msg \
  		$(TOP_DIR)/library/demos/tclIndex \
-@@ -1610,20 +1610,20 @@
+@@ -1609,20 +1609,20 @@
  		$(TOP_DIR)/library/demos/widget \
  		$(TOP_DIR)/library/demos/README \
  		$(TOP_DIR)/license.terms $(DISTDIR)/library/demos
@@ -140,4 +131,4 @@
 +	mkdir -p $(DISTDIR)/tests/ttk
  	cp -p $(TEST_DIR)/ttk/*.{test,tcl} $(DISTDIR)/tests/ttk
  
- #
+ alldist: dist

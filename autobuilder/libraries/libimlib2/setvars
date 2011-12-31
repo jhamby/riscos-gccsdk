@@ -1,9 +1,17 @@
 
 AB_INSTALL=yes
 
-echo "all install:" > data/fonts/Makefile.in
 mkdir debian
-echo "all install:" > debian/changelog.in
+mkdir data
+mkdir data/fonts
+mkdir data/images
+touch data/Makefile.in
+touch data/fonts/Makefile.in
+touch data/images/Makefile.in
+echo "all install:" > data/fonts/Makefile.in
+echo "all install:" > data/Makefile.in
+
+#echo "all install:" > debian/changelog.in
 
 autoreconf -fi
 

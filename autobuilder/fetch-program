@@ -106,18 +106,28 @@ else
       for section in main contrib; do
         Sources=../Sources-${dist}-${section}.bz2
 
-        if bzgrep -B14 "^Directory.*/$AB_PACKAGE$" $Sources > files ; then
+        dist_format=""
+        if [ "$dist" = "stable" ] ; then
+          bzgrep_options="-A4"
+          dist_format="stable"
+        else
+          bzgrep_options="-B30"
+        fi
+        if bzgrep "$bzgrep_options" "^Directory.*/$AB_PACKAGE$" $Sources > files ; then
           # Found ok
+          if grep '^$' files ; then
+            sed --in-place '0,/^$/d' files
+          fi
           break
         else
           echo "Autobuilder: Directory name not found in Sources.bz2 (${dist}/${section})"
           echo "Autobuilder: Trying Binary entry"
-          if bzgrep -A56 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
-            sed --in-place -e '/^$/,//d' files
+          if bzgrep -A100 "Binary:.* $AB_PACKAGE\$" $Sources > files; then
+            sed --in-place -e '/^$/q' files
             break
           else
-            bzgrep -A56 "Binary:.* $AB_PACKAGE," $Sources > files || true
-            sed --in-place -e '/^$/,//d' files
+            bzgrep -A100 "Binary:.* $AB_PACKAGE," $Sources > files || true
+            sed --in-place -e '/^$/q' files
           fi
         fi
 
@@ -133,17 +143,26 @@ else
       exit 1
     fi
 
-    sed --in-place -e '/^Checksum/,/^Directory/ {/^Directory/b;d}' files
+    if [ "$dist_format" = "stable" ] ; then
+      sed --in-place "/^Checksum/,$"d files
+    else
+      sed --in-place -e '/^Checksum/,/^Directory/ {/^Directory/b;d}' files
+    fi
     debdir=$debarchive/$(grep Directory files | cut -d ' ' -f 2)
 
     orig=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4)
+    if [ -z "$orig" ] ; then
+      orig=$(grep \.orig\.tar\.xz files | cut -d ' ' -f 4)
+    fi
     if [ -n "$orig" ] ; then
       wget -nv $debdir/$orig
 
       deb=$(grep \.debian\.tar\.gz files | cut -d ' ' -f 4)
       if [ -z "$deb" ] ; then
         deb=$(grep \.debian\.tar\.bz2 files | cut -d ' ' -f 4)
-
+        if [ -z "$deb" ] ; then
+          deb=$(grep \.debian\.tar\.xz files | cut -d ' ' -f 4)
+        fi
         if [ -z "$deb" ] ; then
           echo "Autobuilder: could not find Debian additional files to download" 1>&2
           exit 1
@@ -152,21 +171,26 @@ else
 
       wget -nv $debdir/$deb
 
-      tar xfj *.orig.tar.bz2
+      tar xfj *.orig.tar.bz2 || tar xfJ *.orig.tar.xz
       subdir=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package)
-      tar xfz $deb -C $subdir || tar xfj $deb -C $subdir
+      tar xfz $deb -C $subdir || tar xfj $deb -C $subdir || tar xfJ $deb -C $subdir
 
     else
       orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
       if [ -z "$orig" ] ; then
-        file=$(grep \.tar\.gz files | cut -d ' ' -f 4)
-        if [ -n "$file" ] ; then
-          archtype="gz"
-          orig=$(sed s#\.tar\.gz#\.orig\.tar\.gz# <<< $file)
+        orig=$(grep \.orig\.tar\.xz files | cut -d ' ' -f 4)
+        if [ -z "$orig" ] ; then
+          file=$(grep \.tar\.gz files | cut -d ' ' -f 4)
+          if [ -n "$file" ] ; then
+            archtype="gz"
+            orig=$(sed s#\.tar\.gz#\.orig\.tar\.gz# <<< $file)
+          else
+            archtype="bz2"
+            file=$(grep \.tar\.bz2 files | cut -d ' ' -f 4)
+            orig=$(sed s#\.tar\.bz2#\.orig\.tar\.bz2# <<< $file)
+          fi
         else
-          archtype="bz2"
-          file=$(grep \.tar\.bz2 files | cut -d ' ' -f 4)
-          orig=$(sed s#\.tar\.bz2#\.orig\.tar\.bz2# <<< $file)
+          archtype="xz"  
         fi
         wget -nv $debdir/$file -O $orig
       else
@@ -178,9 +202,12 @@ else
       if [ $archtype = "gz" ] ; then
         tar xfz *.orig.tar.gz
         targetname=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
-      else
+      elif [ $archtype = "bz2" ] ; then
         tar xfj *.orig.tar.bz2
         targetname=$(grep \.orig\.tar\.bz2 files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
+      else
+        tar xfJ *.orig.tar.xz
+        targetname=$(grep \.orig\.tar\.xz files | cut -d ' ' -f 4 | sed -e s#\.orig.*## -e s#_#-#)
       fi
       origname=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package  | cut -b 3-)
 

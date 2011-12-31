@@ -4,8 +4,8 @@
  top_build_prefix = @top_build_prefix@
  top_builddir = @top_builddir@
  top_srcdir = @top_srcdir@
--SUBDIRS = pixman test
-+SUBDIRS = pixman #test
+-SUBDIRS = pixman demos test
++SUBDIRS = pixman #demos test
  pkgconfigdir = $(libdir)/pkgconfig
  pkgconfig_DATA = pixman-1.pc
  GPGKEY = 6FF7C1A8

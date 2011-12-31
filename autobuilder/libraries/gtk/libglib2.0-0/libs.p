@@ -6,5 +6,5 @@
  Version: @VERSION@
 -Libs: -L${libdir} -lglib-2.0 @INTLLIBS@
 +Libs: -L${libdir} -lglib-2.0 @INTLLIBS@ -lpcre -ldl
- Libs.private: @ICONV_LIBS@
+ Libs.private: @ICONV_LIBS@ @GLIB_RT_LIBS@
  Cflags: -I${includedir}/glib-2.0 -I${libdir}/glib-2.0/include @GLIB_EXTRA_CFLAGS@

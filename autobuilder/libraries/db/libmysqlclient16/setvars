@@ -2,7 +2,9 @@
 
 AB_INSTALL=yes
 
-AB_CONFLAGS="--without-server --without-docs --without-extra-tools --without-debug"
+AB_CONFLAGS="--without-server --without-docs --without-debug"
+
+export mysql_cv_gcc_atomic_builtins=no
 
 mkdir -p Docs/Images
 
@@ -10,10 +12,11 @@ for dir in Docs Docs/Images debian dbug extra mysql-test; do
   echo -e "all:\ninstall:\n" > $dir/Makefile.in
 done
 
-for dir in libmysql client sql cmd-line-utils/libedit scripts pstack strings regex mysys tests netware; do
+for dir in libmysql client sql cmd-line-utils/libedit scripts strings regex mysys tests netware; do
   echo -e ".deps/%.Po .deps/%.Plo:\n\t@mkdir -p .deps\n\t@touch \$@" >> $dir/Makefile.in
 done
 
+#autoreconf
 autoconf
 
 ln -s . man/man1

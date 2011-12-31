@@ -7,6 +7,7 @@ AB_INSTALL=yes
 export glib_cv_uscore=no 
 export glib_cv_monotonic_clock=yes 
 export ac_cv_func_posix_getgrgid_r=no
+export glib_cv_have_qsort_r=yes
 
 AB_CONFLAGS=--with-pcre=system
 
@@ -46,7 +47,7 @@ ab_package() {
   rm -rf include
 
   # Need to put glibconfig.h in headers
-  cp $S/glibconfig.h glib-2.0/h/glibconfig
+  cp $S/glib/glibconfig.h glib-2.0/h/glibconfig
 
   # Copy shared libs to shared libs package
   mv lib/*.so.* $slibdir

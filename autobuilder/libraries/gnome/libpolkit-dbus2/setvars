@@ -1,3 +1,0 @@
-AB_INSTALL=yes
-
-AB_CONFLAGS="--with-auth=none --with-authdb=dummy --with-os-type=riscos"
