@@ -1,5 +1,5 @@
---- Makefile.orig	2008-01-18 11:38:44.000000000 -0800
-+++ Makefile	2008-01-18 11:41:04.000000000 -0800
+--- Makefile.orig	2011-12-31 18:07:37.000000000 +0000
++++ Makefile	2011-12-31 18:10:45.000000000 +0000
 @@ -1,32 +1,32 @@
  # Executables
 -CC     = gcc
@@ -18,8 +18,9 @@
 +default: dcraw$(AB_EXEEXT) dcparse$(AB_EXEEXT) dcfujiturn$(AB_EXEEXT) dcfujiturn16$(AB_EXEEXT) dcfujigreen$(AB_EXEEXT) dccleancrw$(AB_EXEEXT)
  
 -dcraw: dcraw.o
+-	$(CC) -o $@ dcraw.o -lm -ljpeg -llcms
 +dcraw$(AB_EXEEXT): dcraw.o
- 	$(CC) -o $@ dcraw.o -lm -ljpeg -llcms
++	$(CC) -o $@ dcraw.o -lm -ljpeg -llcms -ljasper
  
 -dcparse: parse.o
 +dcparse$(AB_EXEEXT): parse.o

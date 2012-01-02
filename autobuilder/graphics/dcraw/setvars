@@ -1,5 +1,5 @@
 
-AB_PVERSION=9.06
+AB_PVERSION=9.12
 
 rm $S/dcraw.c
 wget http://www.cybercom.net/~dcoffin/dcraw/dcraw.c
