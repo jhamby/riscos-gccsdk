@@ -2,6 +2,7 @@
 AB_URL=http://corsix-th.googlecode.com/files/CorsixTH-Beta8-Source.tar.gz
 
 AB_LICENCE=Free
+AB_PVERSION=0.8-beta1
 
 # Use cmake to config and build
 ab_make() {
