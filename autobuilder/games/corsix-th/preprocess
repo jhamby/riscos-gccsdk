@@ -1,0 +1,3 @@
+echo "TARGET_LINK_LIBRARIES(CorsixTH \${VORBISIDEC_LIBRARY})" >> CorsixTH/CMakeLists.txt
+echo "TARGET_LINK_LIBRARIES(CorsixTH \${VORBISFILE_LIBRARY})" >> CorsixTH/CMakeLists.txt
+echo "TARGET_LINK_LIBRARIES(CorsixTH \${OGG_LIBRARY})" >> CorsixTH/CMakeLists.txt
