@@ -267,7 +267,7 @@ TestStr1
 		; Default value should be "".
 		=	"TestStr1: "
 		GBLS	TestStrVar1
-		[ :DEF:TestLogVar1 :LAND: TestStrVar1 = ""
+		[ :DEF:TestStrVar1 :LAND: TestStrVar1 = ""
 		=	"ok"
 		|
 		=	"not ok"

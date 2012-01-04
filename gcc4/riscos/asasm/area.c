@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -563,6 +563,7 @@ c_area (void)
 
   if (newAreaType & AREA_CODE)
     {
+      /* CODE area.  */
       /* 32-bit and FPv3 flags should only be set on CODE areas.  */
       if (gOptionAPCS & APCS_OPT_32BIT)
 	newAreaType |= AREA_32BITAPCS;
@@ -570,20 +571,29 @@ c_area (void)
 	newAreaType |= AREA_EXTFPSET;
       if (option_apcs_softfloat)
 	newAreaType |= AREA_SOFTFLOAT;
-    }
-  else if (newAreaType & (AREA_32BITAPCS | AREA_REENTRANT | AREA_EXTFPSET | AREA_NOSTACKCHECK))
-    error (ErrorError, "Attribute REENTRANT may not be set for a DATA area");
 
+      if (newAreaType & AREA_BASED)
+	{
+	  newAreaType &= ~AREA_BASED;
+	  error (ErrorError, "Attribute BASED may not be set for CODE area");
+	}
+    }
+  else
+    {
+      /* DATA area.  */
+      assert (!(newAreaType & (AREA_32BITAPCS | AREA_EXTFPSET | AREA_NOSTACKCHECK)));
+      if (newAreaType & AREA_REENTRANT)
+	{
+	  newAreaType &= ~AREA_REENTRANT;
+	  error (ErrorError, "Attribute REENTRANT may not be set for a DATA area");
+	}
+    }
+  
   if ((newAreaType & AREA_READONLY) && (newAreaType & AREA_UDATA))
     error (ErrorError, "Attributes READONLY and NOINIT are mutually exclusive");
 
   if ((newAreaType & AREA_LINKONCE) && !(newAreaType & AREA_COMMONDEF))
     error (ErrorError, "Attribute LINKONCE must appear as part of a COMDEF");
-
-  if (!(newAreaType & AREA_CODE) && (newAreaType & AREA_REENTRANT))
-    error (ErrorError, "Attribute REENTRANT may not be set for DATA area");
-  if ((newAreaType & AREA_CODE) && (newAreaType & AREA_BASED))
-    error (ErrorError, "Attribute BASED may not be set for CODE area");
 
   /* When an area is made absolute, ensure its symbol is also absolute.  */
   if (newAreaType & AREA_ABS)

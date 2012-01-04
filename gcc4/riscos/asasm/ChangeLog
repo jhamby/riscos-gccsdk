@@ -1,3 +1,10 @@
+Wed Jan  4 23:27:33 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/variables.s: Fix test.
+	* area.c (c_area): Remove 2nd sanity check on AREA_REENTRANT.  Minor
+	cleanup.
+	* main.c (main): Adjust copyright year.
+
 Fri Dec 30 19:00:39 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/local_label.s: Renamed to...
