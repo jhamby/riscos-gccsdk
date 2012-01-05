@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2011 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,6 +20,7 @@
  * fix.c
  */
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include "error.h"
@@ -290,7 +291,7 @@ Fix_Int (const char *file, int lineno, int size, int value)
 	break;
 
       default:
-	errorAbortLine (file, lineno, "Internal fixInt: size %d is not legal", size);
+	assert (0);
 	break;
     }
   return value;

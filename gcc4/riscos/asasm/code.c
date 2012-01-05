@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -51,7 +51,6 @@
 
 static void Code_ExpandCurrAreaSymbolAsAddr (Value *value, ARMWord instrOffset);
 static bool Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP, int *sp);
-static bool Code_HasUndefSymbols (const Code *code, size_t len);
 
 #ifdef DEBUG_CODE
 static void Code_PrintValueArray (size_t size, const Value *value);
@@ -296,61 +295,22 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 	      valuePrint (&value);
 	      printf ("] ");
 #endif
-	      /* Resolve a defined symbol.  */
+	      /* Resolve a defined symbol (but only when the next operator
+		 isn't the OpSize one).  */
 	      bool nextIsOpSize = i + 1 != size
 				    && program[i + 1].Tag == CodeOperator
 				    && program[i + 1].Data.op == Op_size;
-	      /* FIXME: this can probably loop forever: label1 -> label2 -> label1 */
-	      while (value.Tag == ValueSymbol /* Only replace symbols... */
-		     && ((value.Data.Symbol.symbol->type & SYMBOL_DEFINED) != 0
-			 || ((value.Data.Symbol.symbol->type & SYMBOL_AREA) != 0 && (value.Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) != 0))
-	             && !nextIsOpSize) /* ...and it is not ? operator.  */
+	      if (!nextIsOpSize && Value_ResolveSymbol (&value))
 		{
-		  int offset = value.Data.Symbol.offset;
-		  int factor = value.Data.Symbol.factor;
-		  const Value *newValueP = &value.Data.Symbol.symbol->value;
-		  if (offset != 0)
-		    {
-		      switch (newValueP->Tag)
-			{
-			  case ValueInt:
-			    value = Value_Int (factor * newValueP->Data.Int.i + offset);
-			    break;
-			  case ValueFloat:
-			    value = Value_Float (factor * newValueP->Data.Float.f + offset);
-			    break;
-		          case ValueAddr:
-			    {
-			      if (factor != 1)
-				{
 #ifdef DEBUG_CODE
-				  printf ("FAILED\n");
+		  printf ("FAILED\n");
 #endif
-				  return true;
-				}
-			      value = Value_Addr (newValueP->Data.Addr.r, newValueP->Data.Addr.i + offset);
-			      break;
-			    }
-			  case ValueSymbol:
-			    value = Value_Symbol (newValueP->Data.Symbol.symbol, factor * newValueP->Data.Symbol.factor, factor * newValueP->Data.Symbol.offset + offset);
-			    break;
-			  default:
-#ifdef DEBUG_CODE
-			    printf ("FAILED\n");
-#endif
-			    return true;
-			}
-		    }
-		  else
-		    {
-		      assert (factor == 1 && "Code missing."); /* FIXME: should go */
-		      value = *newValueP;
-		    }
+		  return true;
 		}
 	      Value_Assign (&Stack[*sp], &value);
 	      ++(*sp);
+	      break;
 	    }
-	    break;
 
 	  default:
 	    errorAbort ("Internal codeEvalLow: illegal expression");
@@ -465,54 +425,6 @@ codeEvalLow (ValueTag legal, size_t size, const Code *program,
 #endif
 
   return &Stack[0];
-}
-
-
-/**
- * Detects if there are undefined symbols in the current Code program.
- */
-bool
-Code_HasUndefinedSymbols (void)
-{
-  return Code_HasUndefSymbols (Program, FirstFreeIns);
-}
-
-/**
- * \return true when we have an undefined symbol in our code.
- */
-static bool
-Code_HasUndefSymbols (const Code *code, size_t len)
-{
-  for (size_t i = 0; i < len; ++i)
-    {
-      switch (code[i].Tag)
-	{
-	  case CodeOperator:
-	    break;
-
-	  case CodeValue:
-	    switch (code[i].Data.value.Tag)
-	      {
-	        case ValueSymbol:
-		  if (!(code[i].Data.value.Data.Symbol.symbol->type & SYMBOL_DEFINED)
-		      && code[i].Data.value.Data.Symbol.symbol != areaCurrentSymbol)
-		    return true;
-		  break;
-
-		case ValueCode:
-		  if (Code_HasUndefSymbols (code[i].Data.value.Data.Code.c,
-					    code[i].Data.value.Data.Code.len))
-		    return true;
-		  break;
-
-		default:
-		  break;
-	      }
-	    break;
-	}
-    }
-
-  return false;
 }
 
 

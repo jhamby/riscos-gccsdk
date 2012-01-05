@@ -1,3 +1,13 @@
+Thu Jan  5 02:05:35 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c (DefineInt_RelocUpdater): Support relative relocations.
+	* code.c (Code_HasUndefSymbols): Remove.
+	(Code_EvalLowest.c): Factor out symbol resolving to Value_ResolveSymbol.
+	* code.h (Code_HasUndefSymbols): Remove.
+	* value.c, value.h (Value_ResolveSymbol): Add.
+	* aoffile.h: Reposition comments.
+	* fix.c (Fix_Int): Use assert instead of errorAbort.
+
 Wed Jan  4 23:27:33 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/variables.s: Fix test.

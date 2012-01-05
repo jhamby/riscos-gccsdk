@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -134,6 +134,7 @@ Value_Symbol (struct Symbol *symbol, int factor, int offset)
 
 void Value_Assign (Value *dst, const Value *src);
 void valueFree (Value *value);
+bool Value_ResolveSymbol (Value *valueP);
 bool valueEqual (const Value *a, const Value *b);
 const char *valueTagAsString (ValueTag tag);
 #ifdef DEBUG

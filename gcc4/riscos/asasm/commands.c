@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -198,59 +198,148 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
       return false;
     }
 
-  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
+  if (!final)
     {
-      const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag == CodeOperator)
+      Put_AlignDataWithOffset (offset, privDataP->size, 0, !privDataP->allowUnaligned);
+      return true;
+    }
+  
+  /* Figure out relocation type(s).  */
+  int relocs = 0;
+  int relative = 0;
+    {
+      int factor = 1;
+      for (size_t i = 0; i != valueP->Data.Code.len; ++i)
 	{
-	  if (codeP->Data.op != Op_add)
-	    return true;
-	  continue;
-	}
-      assert (codeP->Tag == CodeValue);
-      const Value *valP = &codeP->Data.value;
+	  if (i + 1 != valueP->Data.Code.len
+	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
+	      && valueP->Data.Code.c[i + 1].Data.op == Op_sub)
+	    factor = -1;
+	  else
+	    factor = 1;
 
-      switch (valP->Tag)
-	{
-	  case ValueInt:
+	  const Code *codeP = &valueP->Data.Code.c[i];
+	  if (codeP->Tag == CodeOperator)
 	    {
-	      ARMWord word = Fix_Int (file, lineno, privDataP->size, valP->Data.Int.i);
-	      Put_AlignDataWithOffset (offset, privDataP->size, word, !privDataP->allowUnaligned);
+	      if (codeP->Data.op != Op_add && codeP->Data.op != Op_sub)
+		return true;
+	      continue;
 	    }
-	    break;
+	  assert (codeP->Tag == CodeValue);
+	  const Value *valP = &codeP->Data.value;
 
-	  case ValueSymbol:
+	  switch (valP->Tag)
 	    {
-	      if (!final)
+	      case ValueInt:
+		break;
+
+	      case ValueSymbol:
 		{
-		  Put_AlignDataWithOffset (offset, privDataP->size, 0, !privDataP->allowUnaligned);
-		  return true;
+		  Value value = *valP;
+		  if (Value_ResolveSymbol (&value))
+		    return true;
+		  assert (value.Tag == ValueSymbol);
+		  if ((value.Data.Symbol.symbol->type & SYMBOL_AREA) != 0)
+		    {
+		      assert ((value.Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) == 0);
+		      relative -= factor * value.Data.Symbol.factor;
+		    }
+		  else
+		    {
+		      if (factor * value.Data.Symbol.factor < 0)
+			return true;
+		      relocs += factor * value.Data.Symbol.factor;
+		    }
+		  break;
 		}
-	      int How;
-	      switch (privDataP->size)
-		{
-		  case 1:
-		    How = HOW2_INIT | HOW2_BYTE;
-		    break;
-		  case 2:
-		    How = HOW2_INIT | HOW2_HALF;
-		    break;
-		  case 4:
-		    How = HOW2_INIT | HOW2_WORD;
-		    break;
-		  default:
-		    assert (0);
-		    break;
-		}
-	      if (Reloc_Create (How, offset, valP) == NULL)
+
+	      default:
 		return true;
 	    }
-	    break;
-
-	  default:
-	    return true;
 	}
     }
+  if (relocs < 0 || relative > relocs)
+    return true;
+  
+  ARMWord armValue = 0;
+    {
+      int factor = 1;
+      for (size_t i = 0; i != valueP->Data.Code.len; ++i)
+	{
+	  if (i + 1 != valueP->Data.Code.len
+	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
+	      && valueP->Data.Code.c[i + 1].Data.op == Op_sub)
+	    factor = -1;
+	  else
+	    factor = 1;
+
+	  const Code *codeP = &valueP->Data.Code.c[i];
+	  if (codeP->Tag == CodeOperator)
+	    {
+	      if (codeP->Data.op != Op_add && codeP->Data.op != Op_sub)
+		return true;
+	      continue;
+	    }
+	  assert (codeP->Tag == CodeValue);
+	  const Value *valP = &codeP->Data.value;
+
+	  switch (valP->Tag)
+	    {
+	      case ValueInt:
+		armValue += factor * valP->Data.Int.i;
+		break;
+
+	      case ValueSymbol:
+		{
+		  Value value = *valP;
+		  if (Value_ResolveSymbol (&value))
+		    return true;
+		  assert (value.Tag == ValueSymbol);
+		  armValue += factor * value.Data.Symbol.offset;
+		  if ((value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0)
+		    {
+		      int how;
+		      switch (privDataP->size)
+			{
+			  case 1:
+			    how = HOW2_INIT | HOW2_BYTE;
+			    break;
+			  case 2:
+			    how = HOW2_INIT | HOW2_HALF;
+			    break;
+			  case 4:
+			    how = HOW2_INIT | HOW2_WORD;
+			    break;
+			  default:
+			    assert (0);
+			    break;
+			}
+		      for (int numRelocs = factor * value.Data.Symbol.factor;
+		           numRelocs;
+		           --numRelocs)
+			{
+			  int how2;
+			  if (relative)
+			    {
+			      --relative;
+			      how2 = how | HOW2_RELATIVE;
+			    }
+			  else
+			    how2 = how;
+			  if (Reloc_Create (how2, offset, &value) == NULL)
+			    return true;
+			}
+		    }
+		  break;
+		}
+
+	      default:
+		return true;
+	    }
+	}
+    }
+  armValue = Fix_Int (file, lineno, privDataP->size, armValue);
+  Put_AlignDataWithOffset (offset, privDataP->size, armValue, !privDataP->allowUnaligned);
   
   return false;
 }
@@ -281,8 +370,8 @@ DefineInt (int size, bool allowUnaligned, const char *mnemonic)
 	    Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx, privData.size, 0, !privData.allowUnaligned);
 	}
       else if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, areaCurrentSymbol->area.info->curIdx,
-				 ValueInt | ValueString | ValueSymbol | ValueCode,
-				 &privData, sizeof (privData)))
+				      ValueInt | ValueString | ValueSymbol | ValueCode,
+				      &privData, sizeof (privData)))
 	error (ErrorError, "Illegal %s expression", mnemonic);
 
       skipblanks ();
