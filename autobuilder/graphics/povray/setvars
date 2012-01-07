@@ -1,0 +1,18 @@
+
+AB_URL=http://www.povray.org/redirect/www.povray.org/ftp/pub/povray/Official/Unix/povray-3.6.1.tar.bz2
+
+AB_CONFLAGS="COMPILED_BY=GCCSDKAutobuilder --datadir=\"/\<POVRay\\\\$\\\$Dir\>\""
+
+ab_package() {
+  ab_create_command_app POVRay Apps/Graphics
+  ab_add_commands $S/unix/*$AB_EXEEXT
+
+  ab_docs $S/povray.1
+
+  cp -av AUTHORS ChangeLog COPYING NEWS README $A
+  cp -av povray.conf povray.ini $A
+  cp -av include doc ini scenes $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}
+
