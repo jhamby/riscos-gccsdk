@@ -1,7 +1,7 @@
 /*
  * ANSI Standard 4.10: General Utilities <stdlib.h>.
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 #ifndef __STDLIB_H
@@ -148,8 +148,11 @@ extern void *malloc (size_t __size) __THROW __attribute_malloc__ __wur;
 
 /* Re-allocate the previously malloc'd block, ptr, making the
    new block size bytes.  */
+/* __attribute_malloc__ is not used, because if realloc returns
+   the same pointer that was passed to it, aliasing needs to be allowed
+   between objects pointed by the old and new pointers.  */
 extern void *realloc (void *__ptr, size_t __size)
-     __THROW __attribute_malloc__ __wur;
+     __THROW __wur;
 __END_NAMESPACE_STD
 
 
