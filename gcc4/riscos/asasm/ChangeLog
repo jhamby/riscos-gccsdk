@@ -1,3 +1,24 @@
+Sun Jan 15 19:03:25 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/aasm_compatibility.s: Add.
+	* regression/Makefile (RUNOPTACT,RUNOPTREF): Add.
+	* commands.c (c_aof, c_aout): Add minimal legacy support for AOF, AOUT.
+	* commands.h (c_aof, c_aout): Likewise.
+	* decode.c (oDecodeTable): Add AOF and AOUT.
+	* symbol.c (oSymRegsAPCS): Revert the APCS register names v6, sl and
+	fp (this is conditionally done depending on APCS value). Revert
+	upcase APCS register name support (ObjAsm doesn't do this either).
+	(c_export,c_strong,c_keep,c_import): Disable directive when in AAsm
+	compatibility support.
+	* area.c (newArea): Change type type into uint32_t.
+	(c_entry,c_area): Disable directive when in AAsm compatibility support.
+	(c_area): Factor out APCS & soft-float area type bits setting into...
+	(Area_ApplyAPCSOption): ...this.
+	(Area_Ensure): Create ABS$$BLOCK area when in AAsm compatibility mode.
+	* main.c (option_abs): Add.
+	(main): Add support for -ABSolute option.
+	* main.h (option_abs): Add.
+
 Sun Jan 15 15:05:50 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c (DefineInt_RelocUpdater): Add missing test on current

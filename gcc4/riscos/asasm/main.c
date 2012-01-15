@@ -67,6 +67,7 @@ int option_fussy = 0;
 int option_throwback = 0;
 int option_apcs_softfloat = -1; /* -1 = option not specified.  */
 int option_aof = -1; /* -1 = option not specified.  */
+bool option_abs = false;
 
 const char *predefines[MAX_PREDEFINES];
 int num_predefines = 0;
@@ -174,6 +175,7 @@ asasm_help (void)
 	   "-VERsion                   Display the version number.\n"
 	   "-From asmfile              Source assembler file (ObjAsm compatibility).\n"
 	   "-To objfile                Destination AOF file (ObjAsm compatibility).\n"
+	   "-ABSolute                  Accept AAsm source code.\n"
 	   "-Apcs <APCS options>       Specifies one or more APCS options.\n"
 	   "-soft-float                Mark code as using -msoft-float (avoids explicit FP instructions).  This is a GCCSDK extension to the AOF file format.\n"
 	   "-hard-float                Mark code as using -mhard-float (uses explicit FP instructions) [default].\n"
@@ -433,6 +435,8 @@ main (int argc, char **argv)
 	      return EXIT_FAILURE;
 	    }
 	}
+      else if (!strcasecmp (arg, "absolute") || !strcasecmp (arg, "abs"))
+	option_abs = true;
 #ifndef NO_ELF_SUPPORT
       else if (!strcasecmp (arg, "elf"))
 	set_option_aof (0);

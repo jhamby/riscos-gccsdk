@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -107,6 +107,8 @@ static const decode_table_t oDecodeTable[] =
   { "ADR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_adr } }, /* ADR CC */
   { "ALIGN", eCB_Void, eRslt_Data, { .vd = c_align } }, /* ALIGN */
   { "AND", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_and } }, /* AND CC S */
+  { "AOF", eCB_Void, eRslt_None, { .vd = c_aof } }, /* AOF */
+  { "AOUT", eCB_Void, eRslt_None, { .vd = c_aout } }, /* AOUT */
   { "AREA", eCB_Void, eRslt_None, { .vd = c_area } }, /* AREA */
   { "ARM", eCB_Void, eRslt_None, { .vd = c_code32 } }, /* ARM/CODE32 */
   { "ASN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_asn } }, /* ASN CC P R */

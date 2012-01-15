@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2002-2011 GCCSDK Developers
+ * Copyright (c) 2002-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -44,6 +44,7 @@ extern int option_throwback;
 extern int option_local;
 extern int option_apcs_softfloat;
 extern int option_aof;
+extern bool option_abs;
 
 extern const char *SourceFileName;
 

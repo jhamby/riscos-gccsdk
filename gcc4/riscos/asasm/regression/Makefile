@@ -29,6 +29,8 @@
 # in one of the first 5 lines of the assembler input file using keyword RUNOPT:
 # E.g.:
 #   ; RUNOPT: -APCS 3
+# RUNOPT is used for both generating the actual and reference output.  RUNOPTACT
+# and RUNOPTREF is used for respectively generate teh actual and refernece output.
 
 # Environment variables needed in one of the tests:
 export HDR_PATH := $(CURDIR)/tests_pass/include/hdr
@@ -67,10 +69,10 @@ clean:
 output_actual/%.o: %.s output_reference/%.o Makefile
 	@$(ECHO) +++ $< : Assemble actual and compare with reference
 	$(V)$(MKDIR) -p output_actual
-	$(V)$(AS) $(ASFLAGS) $(shell head -5 $< | grep "RUNOPT:" | sed -e s/^.*RUNOPT://) -PD "REFERENCE SETL {FALSE}" -o $@ $<
+	$(V)$(AS) $(ASFLAGS) $(shell head -5 $< | grep -E "RUNOPT(ACT|):" | sed -r -e "s/^.*RUNOPT(ACT|)://") -PD "REFERENCE SETL {FALSE}" -o $@ $<
 	$(V)$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual/%=output_reference/%) || (mv $@ $(@:%.o=%_failed.o) && false)
 
 output_reference/%.o: %.s Makefile
 	@$(ECHO) +++ $< : Create reference $@
 	$(V)$(MKDIR) -p output_reference
-	$(V)$(AS) $(ASFLAGS) $(shell head -5 $< | grep "RUNOPT:" | sed -e s/^.*RUNOPT://) -PD "REFERENCE SETL {TRUE}" -o $@ $<
+	$(V)$(AS) $(ASFLAGS) $(shell head -5 $< | grep -E "RUNOPT(REF|):" | sed -r -e "s/^.*RUNOPT(REF|)://") -PD "REFERENCE SETL {TRUE}" -o $@ $<

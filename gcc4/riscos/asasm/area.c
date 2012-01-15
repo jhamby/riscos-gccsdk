@@ -95,7 +95,7 @@ Area_ResetPrivateVars (void)
 }
 
 static Area *
-areaNew (Symbol *sym, int type)
+areaNew (Symbol *sym, uint32_t type)
 {
   Area *res;
   if ((res = malloc (sizeof (Area))) == NULL)
@@ -246,6 +246,10 @@ Area_PrepareForPhase (ASM_Phase_e phase)
 bool
 c_entry (void)
 {
+  /* 'ENTRY' is not supported when in AAsm compatibility mode.  */
+  if (option_abs)
+    return true;
+
   if (Area_IsImplicit (areaCurrentSymbol))
     error (ErrorError, "No area selected before ENTRY");
   else
@@ -385,6 +389,23 @@ c_reserve (void)
 
 
 /**
+ * Transforms AREA flags for code area according to the -APCS and -soft-float
+ * option.
+ */
+static uint32_t
+Area_ApplyAPCSOption (uint32_t areaFlags)
+{
+  /* 32-bit and FPv3 flags should only be set on CODE areas.  */
+  if (gOptionAPCS & APCS_OPT_32BIT)
+    areaFlags |= AREA_32BITAPCS;
+  if (gOptionAPCS & APCS_OPT_FPREGARGS)
+    areaFlags |= AREA_EXTFPSET;
+  if (option_apcs_softfloat)
+    areaFlags |= AREA_SOFTFLOAT;
+  return areaFlags;
+}
+
+/**
  * Ensures there is an active area (i.e. areaCurrentSymbol is non-NULL).
  * When the user didn't specify an area yet, there will be one created called
  * "$$$$$$$".
@@ -393,7 +414,23 @@ static void
 Area_Ensure (void)
 {
   assert (areaCurrentSymbol == NULL);
-  const Lex lex = lexTempLabel (IMPLICIT_AREA_NAME, sizeof (IMPLICIT_AREA_NAME)-1);
+  const char *areaNameP;
+  size_t areaNameSize;
+  uint32_t areaType;
+  if (option_abs)
+    {
+      /* AAsm compatibility.  */
+      areaNameP = "ABS$$BLOCK";
+      areaNameSize = sizeof ("ABS$$BLOCK")-1;
+      areaType = Area_ApplyAPCSOption (AREA_CODE | AREA_DEFAULT_ALIGNMENT);
+    }
+  else
+    {
+      areaNameP = IMPLICIT_AREA_NAME;
+      areaNameSize = sizeof (IMPLICIT_AREA_NAME)-1;
+      areaType = AREA_CODE | AREA_ABS | AREA_READONLY | AREA_DEFAULT_ALIGNMENT;
+    }
+  const Lex lex = lexTempLabel (areaNameP, areaNameSize);
   Symbol *sym = symbolGet (&lex);
   if (SYMBOL_KIND (sym->type))
     error (ErrorError, "Redefinition of label to area %s", sym->str);
@@ -401,7 +438,7 @@ Area_Ensure (void)
     {
       sym->type = SYMBOL_AREA;
       sym->value = Value_Int (0);
-      sym->area.info = areaNew (sym, AREA_CODE | AREA_READONLY | AREA_DEFAULT_ALIGNMENT);
+      sym->area.info = areaNew (sym, areaType);
     }
   areaCurrentSymbol = sym;
   oArea_CurrentEntryType = eInvalid;
@@ -421,6 +458,10 @@ Area_IsImplicit (const Symbol *sym)
 bool
 c_area (void)
 {
+  /* 'AREA' is not supported when in AAsm compatibility mode.  */
+  if (option_abs)
+    return true;
+
   Lex lex = lexGetId ();
   if (lex.tag != LexId)
     return false; /* No need to give an error, lexGetId already did.  */
@@ -564,13 +605,7 @@ c_area (void)
   if (newAreaType & AREA_CODE)
     {
       /* CODE area.  */
-      /* 32-bit and FPv3 flags should only be set on CODE areas.  */
-      if (gOptionAPCS & APCS_OPT_32BIT)
-	newAreaType |= AREA_32BITAPCS;
-      if (gOptionAPCS & APCS_OPT_FPREGARGS)
-	newAreaType |= AREA_EXTFPSET;
-      if (option_apcs_softfloat)
-	newAreaType |= AREA_SOFTFLOAT;
+      newAreaType = Area_ApplyAPCSOption (newAreaType);
 
       if (newAreaType & AREA_BASED)
 	{

@@ -759,3 +759,30 @@ c_title (void)
   /* Do nothing right now.  This command is for the benefit of error reporting */
   return false;
 }
+
+/**
+ * Implements AOF : selects AOF output format.
+ */
+bool
+c_aof (void)
+{
+  /* Not supported in AAsm compatibility mode.  */
+  if (option_abs)
+    return true;
+  error (ErrorError, "Directive %s to select output format is not supported.  Use command line option instead.", "AOF");
+  return false;
+}
+
+/**
+ * Implements AOUT : selects the AOUT output format.
+ * Note we do not support the aout output format.
+ */
+bool
+c_aout (void)
+{
+  /* Not supported in AAsm compatibility mode.  */
+  if (option_abs)
+    return true;
+  error (ErrorError, "Directive %s to select output format is not supported.  Use command line option instead.", "AOUT");
+  return false;
+}

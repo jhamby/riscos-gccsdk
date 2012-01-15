@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -119,20 +119,18 @@ static const Symbol_PreDef_t oSymRegs[] =
 /* These symbol registers are always defined when APCS is selected.  */
 static const Symbol_PreDef_t oSymRegsAPCS[] =
 {
-  { "a1", sizeof ("a1")-1, 0, SYMBOL_CPUREG }, { "A1", sizeof ("A1")-1, 0, SYMBOL_CPUREG },
-  { "a2", sizeof ("a2")-1, 1, SYMBOL_CPUREG }, { "A2", sizeof ("A2")-1, 1, SYMBOL_CPUREG },
-  { "a3", sizeof ("a3")-1, 2, SYMBOL_CPUREG }, { "A3", sizeof ("A3")-1, 2, SYMBOL_CPUREG },
-  { "a4", sizeof ("a4")-1, 3, SYMBOL_CPUREG }, { "A4", sizeof ("A4")-1, 3, SYMBOL_CPUREG },
-  { "v1", sizeof ("v1")-1, 4, SYMBOL_CPUREG }, { "V1", sizeof ("V1")-1, 4, SYMBOL_CPUREG },
-  { "v2", sizeof ("v2")-1, 5, SYMBOL_CPUREG }, { "V2", sizeof ("V2")-1, 5, SYMBOL_CPUREG },
-  { "v3", sizeof ("v3")-1, 6, SYMBOL_CPUREG }, { "V3", sizeof ("V3")-1, 6, SYMBOL_CPUREG },
-  { "v4", sizeof ("v4")-1, 7, SYMBOL_CPUREG }, { "V4", sizeof ("V4")-1, 7, SYMBOL_CPUREG },
-  { "v5", sizeof ("v5")-1, 8, SYMBOL_CPUREG }, { "V5", sizeof ("V5")-1, 8, SYMBOL_CPUREG },
-  { "v6", sizeof ("v6")-1, 9, SYMBOL_CPUREG }, { "V6", sizeof ("V6")-1, 9, SYMBOL_CPUREG },
-  { "sl", sizeof ("sl")-1, 10, SYMBOL_CPUREG }, { "SL", sizeof ("SL")-1, 10, SYMBOL_CPUREG },
-  { "fp", sizeof ("fp")-1, 11, SYMBOL_CPUREG }, { "FP", sizeof ("FP")-1, 11, SYMBOL_CPUREG },
-  { "ip", sizeof ("ip")-1, 12, SYMBOL_CPUREG }, { "IP", sizeof ("IP")-1, 12, SYMBOL_CPUREG },
-  { "sp", sizeof ("sp")-1, 13, SYMBOL_CPUREG }, { "SP", sizeof ("SP")-1, 13, SYMBOL_CPUREG },
+  { "a1", sizeof ("a1")-1, 0, SYMBOL_CPUREG },
+  { "a2", sizeof ("a2")-1, 1, SYMBOL_CPUREG },
+  { "a3", sizeof ("a3")-1, 2, SYMBOL_CPUREG },
+  { "a4", sizeof ("a4")-1, 3, SYMBOL_CPUREG },
+  { "v1", sizeof ("v1")-1, 4, SYMBOL_CPUREG },
+  { "v2", sizeof ("v2")-1, 5, SYMBOL_CPUREG },
+  { "v3", sizeof ("v3")-1, 6, SYMBOL_CPUREG },
+  { "v4", sizeof ("v4")-1, 7, SYMBOL_CPUREG },
+  { "v5", sizeof ("v5")-1, 8, SYMBOL_CPUREG },
+  /* Note: v6, sl and fp are conditionally defined depending on the APCS option value.  */
+  { "ip", sizeof ("ip")-1, 12, SYMBOL_CPUREG }, /* { "IP", sizeof ("IP")-1, 12, SYMBOL_CPUREG }, */
+  { "sp", sizeof ("sp")-1, 13, SYMBOL_CPUREG }, /* { "SP", sizeof ("SP")-1, 13, SYMBOL_CPUREG }, */
 };
 
 /* These symbol registers are defined whe FPA is selected.  */
@@ -802,6 +800,10 @@ symFlag (unsigned int flags, const char *err)
 bool
 c_export (void)
 {
+  /* 'EXPORT'/'GLOBAL' is not supported when in AAsm compatibility mode.  */
+  if (option_abs)
+    return true;
+
   Symbol *sym = symFlag (SYMBOL_REFERENCE, "exported");
   skipblanks ();
   if (Input_Match ('[', true))
@@ -847,6 +849,10 @@ c_export (void)
 bool
 c_strong (void)
 {
+  /* 'STRONG' is not supported when in AAsm compatibility mode.  */
+  if (option_abs)
+    return true;
+
   if (symFlag (SYMBOL_STRONG, "marked as 'strong'") == NULL)
     error (ErrorError, "Missing symbol to mark as 'strong'");
   return false;
@@ -860,6 +866,10 @@ c_strong (void)
 bool
 c_keep (void)
 {
+  /* 'KEEP' is not supported when in AAsm compatibility mode.  */
+  if (option_abs)
+    return true;
+
   if (symFlag (SYMBOL_KEEP, "marked to 'keep'") == NULL)
     oKeepAllSymbols = true;
   return false;
@@ -871,6 +881,10 @@ c_keep (void)
 bool
 c_import (void)
 {
+  /* 'IMPORT'/'EXTERN' is not supported when in AAsm compatibility mode.  */
+  if (option_abs)
+    return true;
+
   Symbol *sym = symFlag (SYMBOL_REFERENCE, "imported");
   if (sym == NULL)
     {

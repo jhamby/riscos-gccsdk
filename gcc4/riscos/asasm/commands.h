@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2011 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,9 @@
 
 #include <stdbool.h>
 #include "symbol.h"
+
+bool c_aof (void);
+bool c_aout (void);
 
 bool c_ampersand (void);
 bool c_assert (void);
