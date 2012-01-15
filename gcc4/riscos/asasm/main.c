@@ -188,12 +188,14 @@ asasm_help (void)
 	   "\n");
 }
 
-static bool finished = false;
-
 static void
 atexit_handler (void)
 {
-  if (!finished || returnExitStatus () != EXIT_SUCCESS)
+  /* Only remove the output file when there was an error and we actually
+     started doing the assembling (i.e. don't remove the output file
+     when there was an option error).  */
+  if (returnExitStatus () != EXIT_SUCCESS
+      && gASM_Phase >= ePassOne)
     outputRemove ();
 }
 
@@ -541,6 +543,5 @@ main (int argc, char **argv)
     }
   outputFinish ();
   errorFinish ();
-  finished = true; /* No longer enforce removing output file.  */
   return returnExitStatus ();
 }

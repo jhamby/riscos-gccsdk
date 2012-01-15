@@ -1,3 +1,9 @@
+Sun Jan 15 21:14:55 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* main.c (finished): Remove.
+	(atexit_handler): Delete output file on error when we have at least
+	reached the assembling stage.
+
 Sun Jan 15 19:28:41 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/option_uppercase.s: Add.
