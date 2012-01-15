@@ -49,6 +49,7 @@
 #include "m_cpumem.h"
 #include "m_fpe.h"
 #include "option.h"
+#include "main.h"
 #include "storage.h"
 
 typedef bool (*po_void)(void); /* For eCB_Void, eCB_NoLex and eCB_NoLexPMatch.  */
@@ -406,7 +407,7 @@ decode (const Lex *label)
 
   const char * const inputMark = Input_GetMark ();
 
-  const bool doLowerCase = inputLook () >= 'a' && inputLook () <= 'z'; 
+  const bool doLowerCase = !option_uppercase && inputLook () >= 'a' && inputLook () <= 'z'; 
   
   /* Locate mnemonic entry in decode table.  */
   size_t low = 0;

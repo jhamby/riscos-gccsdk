@@ -45,6 +45,7 @@ extern int option_local;
 extern int option_apcs_softfloat;
 extern int option_aof;
 extern bool option_abs;
+extern bool option_uppercase;
 
 extern const char *SourceFileName;
 

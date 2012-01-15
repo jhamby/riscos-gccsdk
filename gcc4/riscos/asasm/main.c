@@ -68,6 +68,7 @@ int option_throwback = 0;
 int option_apcs_softfloat = -1; /* -1 = option not specified.  */
 int option_aof = -1; /* -1 = option not specified.  */
 bool option_abs = false;
+bool option_uppercase = false;
 
 const char *predefines[MAX_PREDEFINES];
 int num_predefines = 0;
@@ -163,6 +164,7 @@ asasm_help (void)
 	   "-D<variable>               Define a string variable.\n"
 	   "-D<variable>=<value>       Define a string variable to a certain value.\n"
 	   "-PreDefine <value>         Predefine a value using SETA/SETS/SETL syntax.\n"
+	   "-UpperCase                 Recognise instruction mnemonics in upper case only.\n"
 	   "-Pedantic                  Display extra warnings.\n"
 	   "-Verbose                   Display progress information.\n"
 	   "-Fussy                     Display conversion information.\n"
@@ -322,6 +324,8 @@ main (int argc, char **argv)
       else if (!strcasecmp (arg, "throwback") || !strcasecmp (arg, "tb"))
 	option_throwback++;
 #endif
+      else if (!strcasecmp (arg, "uc") || !strcasecmp (arg, "uppercase"))
+	option_uppercase = true;
       else if (!strcasecmp (arg, "pedantic") || !strcasecmp (arg, "p"))
 	option_pedantic++;
       else if (!strncasecmp (arg, "CPU", sizeof ("CPU")-1)
