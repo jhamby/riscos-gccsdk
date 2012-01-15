@@ -285,10 +285,12 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
     {
       if (SYMBOL_GETREGTYPE(symbol->type) != SYMBOL_GETREGTYPE(newSymbolType))
 	{
-	  error (ErrorError, "Label %s is already defined as a different register type", symbol->str);
+	  error (ErrorError, "%s is already defined as a different register type", symbol->str);
 	  return true;
 	}
-      if (symbol->areaDef && (symbol->areaDef != areaCurrentSymbol))
+      if (SYMBOL_GETREGTYPE(symbol->type) == 0
+          && symbol->areaDef
+          && symbol->areaDef != areaCurrentSymbol)
         {
           error (ErrorError, "Label %s is already defined in area %s", symbol->str, symbol->areaDef->str);
           return true;

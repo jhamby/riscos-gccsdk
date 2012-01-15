@@ -1,3 +1,9 @@
+Sun Jan 15 22:06:27 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/register_types.s: Add.
+	* symbol (Symbol_Define): Don't check for symbol redefinition being
+	done in different areas for registers.
+
 Sun Jan 15 21:14:55 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* main.c (finished): Remove.
