@@ -1,3 +1,8 @@
+Sun Jan 15 15:05:50 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c (DefineInt_RelocUpdater): Add missing test on current
+	area.
+
 Sun Jan 15 19:13:00 CST 2011   Christopher Martin  <belles@internode.on.net>
 
 	* symbol.c (oSymRegsAPCS): Predefined APCS register names v6, sl and fp

@@ -203,7 +203,7 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
       Put_AlignDataWithOffset (offset, privDataP->size, 0, !privDataP->allowUnaligned);
       return true;
     }
-  
+
   /* Figure out relocation type(s).  */
   int relocs = 0;
   int relative = 0;
@@ -239,7 +239,8 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		  if (Value_ResolveSymbol (&value))
 		    return true;
 		  assert (value.Tag == ValueSymbol);
-		  if ((value.Data.Symbol.symbol->type & SYMBOL_AREA) != 0)
+		  if ((value.Data.Symbol.symbol->type & SYMBOL_AREA) != 0
+		      && value.Data.Symbol.symbol == areaCurrentSymbol)
 		    {
 		      assert ((value.Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) == 0);
 		      relative -= factor * value.Data.Symbol.factor;
@@ -296,7 +297,8 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		    return true;
 		  assert (value.Tag == ValueSymbol);
 		  armValue += factor * value.Data.Symbol.offset;
-		  if ((value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0)
+		  if ((value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0
+		      || value.Data.Symbol.symbol != areaCurrentSymbol)
 		    {
 		      int how;
 		      switch (privDataP->size)
