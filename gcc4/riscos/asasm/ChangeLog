@@ -1,3 +1,14 @@
+Sun Jan 15 19:13:00 CST 2011   Christopher Martin  <belles@internode.on.net>
+
+	* symbol.c (oSymRegsAPCS): Predefined APCS register names v6, sl and fp
+	and uppercase APCS register names.
+	(symbolFree): Changed parameter from Symbol* to Symbol** and
+	moved list-maintenance logic into here from...
+	(symbolRemove): ...here, simplfying the block that calls symbolFree.
+	(Symbol_Define): Ensured that when a referenced label is actually defined,
+	the Symbol struct's areaDef field is updated to reflect the current area.
+	Trying to define a label in two different areas will generate an error.
+
 Thu Jan  5 02:05:35 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c (DefineInt_RelocUpdater): Support relative relocations.
@@ -78,7 +89,7 @@ Wed Nov 30 03:05:20 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 	(c_data): Add.
 	* commands.h (c_head): Likewise.
 	(c_data): Add.
-	* decode.c (oDecodeTable): Add DATA.  Remove HEAD, RET, STACK and TAIL. 
+	* decode.c (oDecodeTable): Add DATA.  Remove HEAD, RET, STACK and TAIL.
 	* m_cpuctrl.c (m_stack, m_ret, m_tail): Remove.
 	* m_cpuctrl.h (m_stack, m_ret, m_tail): Likewise.
 
@@ -91,7 +102,7 @@ Tue Nov 29 02:23:19 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 	* variables.c (declare_var): Tune erorr when symbol was already
 	marked for IMPORT, EXPORT, STRONG or KEEP.
 	(c_set): Avoid wrong assert when symbol was already marked for
-	IMPORT, EXPORT, STRONG or KEEP. 
+	IMPORT, EXPORT, STRONG or KEEP.
 
 Sun Nov 27 22:18:30 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -212,7 +223,7 @@ Sun Nov 13 16:22:24 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 	be suggested.
 	* reloc.c (Reloc_QueueExprUpdate): Remove test on undefined symbols.
 	* eval.c (evalBinop): Remove error on addition/subtraction of two
-	different symbols. 
+	different symbols.
 
 Sat Nov 12 00:11:50 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -235,10 +246,10 @@ Fri Nov 11 16:40:03 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 	handling.
 
 Wed Nov  2 01:58:58 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
-  
+
 	* regression/tests_pass/variables.s: Enhance test.
 	* variables.c (declare_var): Ignore type difference when local variable
-	shares the same name as global variable. 
+	shares the same name as global variable.
 	* lex.c (Lex_MakeLocalLabel): Fix compiler warning.
 
 Wed Nov  2 00:45:10 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
@@ -458,7 +469,7 @@ Tue Oct  4 21:42:10 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 	* lit.c (Lit_RegisterInt): Fix Value free problem.
 
 Mon Oct  3 21:45:10 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
-  
+
 	* macros.h (MACRO_ARG_LIMIT): Increased to 18.
 	(MACRO_ARG0): Changed from 16 to 14.
 	(MACRO_ARG15): Removed.
