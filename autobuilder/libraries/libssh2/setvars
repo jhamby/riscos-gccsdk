@@ -1,0 +1,2 @@
+# libssh2 just builds.  No autobuilder magic required!
+AB_INSTALL=yes
