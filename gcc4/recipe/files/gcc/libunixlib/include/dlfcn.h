@@ -7,6 +7,11 @@
  * Various defines and so forth for the dynamic linker
  */
 
+/* Unix98 demands the following flag which is the inverse to RTLD_GLOBAL.
+   The implementation does this by default and so we can define the
+   value to zero.  */
+#define RTLD_LOCAL	0
+
 /* For dlopen () */
 #define RTLD_LAZY	1
 #define RTLD_NOW	2

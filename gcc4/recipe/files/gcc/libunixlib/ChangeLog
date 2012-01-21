@@ -1,3 +1,7 @@
+Sat Jan 21 17:39:02 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* include/dlfcn.h: Define RTLD_LOCAL.
+
 Tue Jan 10 23:24:55 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/stdlib.h (realloc): Drop malloc attribute.
