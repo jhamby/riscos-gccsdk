@@ -313,19 +313,27 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
   int dynamic_info[24];
   int * lpnt;
   unsigned int libaddr;
-  unsigned int memsize = 0;
   int i;
 
   unsigned int handle;
   struct object_info objinfo;
+  int infile = -1;
 
   extern char *_dl_riscosify_dl(const char *name, int create_dir);
   libname = _dl_riscosify_dl(libname, 0);
 
+  libname = _dl_resolve_symlinks(libname);
+  if (!libname)
+    return NULL;
+
   /* If this file is already loaded for the current client , skip this step */
   tpnt = _dl_check_hashed_files(libname);
 
-  if(tpnt) return tpnt;
+  if(tpnt) 
+  {
+    _dl_som_free(libname);
+    return tpnt;
+  }
 
   handle = _dl_check_system_files(libname);
 
@@ -353,7 +361,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
   else
   {
   char header[4096];
-  int infile;
+  unsigned int memsize = 0;
 
     libaddr = 0;
     infile = _dl_open(libname, O_RDONLY);
@@ -367,7 +375,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
       _dl_fdprintf(2, "%s: can't open '%s'\n", _dl_progname, libname);
 #endif
       _dl_internal_error_number = DL_ERROR_NOFILE;
-      return NULL;
+      goto null_exit;
     }
 
     _dl_read(infile, header, sizeof(header));
@@ -379,8 +387,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
     {
       _dl_fdprintf(2, "%s: '%s' is not an ELF file\n", _dl_progname, libname);
       _dl_internal_error_number = DL_ERROR_NOTELF;
-      _dl_close(infile);
-      return NULL;
+      goto null_exit;
     }
 
     if((epnt->e_type != ET_DYN) ||
@@ -393,8 +400,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
       _dl_internal_error_number = (epnt->e_type != ET_DYN ? DL_ERROR_NOTDYN : DL_ERROR_NOTMAGIC);
       _dl_fdprintf(2, "%s: '%s' is not an ELF executable for " ELF_TARGET "\n",
 		 _dl_progname, libname);
-      _dl_close(infile);
-      return NULL;
+      goto null_exit;
     }
 
     ppnt = (Elf32_Phdr *) &header[epnt->e_phoff];
@@ -434,8 +440,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
     if (!libaddr)
     {
       _dl_fdprintf(2,"Unable to allocate memory for shared library\n");
-      _dl_close(infile);
-      return NULL;
+      goto null_exit;
     }
 
     objinfo.base_addr = (char *)libaddr;
@@ -459,7 +464,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
 	      _dl_read(infile, objinfo.public_rw_ptr, ppnt->p_filesz))
 	  {
 	    _dl_fdprintf(2,"Failed to read library data segment\n\r");
-	    return NULL;
+	    goto null_exit;
 	  }
         }
         else
@@ -468,7 +473,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
               _dl_read(infile, (char *)(libaddr + ppnt->p_vaddr), ppnt->p_filesz))
           {
             _dl_fdprintf(2,"Failed to read library code segment\n\r");
-            return NULL;
+	    goto null_exit;
           }
         }
       }
@@ -476,6 +481,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
     }
 
     _dl_close(infile);
+    infile = -1;
 
     dynamic_addr += (unsigned int) libaddr;
 
@@ -495,7 +501,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
     {
       _dl_internal_error_number = DL_ERROR_NODYNAMIC;
       _dl_fdprintf(2, "%s: '%s' is missing a dynamic section\n", _dl_progname, libname);
-      return NULL;
+      goto null_exit;
     }
 
     dpnt = (Elf32_Dyn *) dynamic_addr;
@@ -559,7 +565,7 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
        * the same data in the private copy.
        */
       if ((objinfo.private_rw_ptr = _dl_malloc(objinfo.rw_size)) == NULL)
-	return NULL;
+	goto null_exit;
 
       /* Register the library with the support module. During registration an object index
        * is written into the GOT. This index needs to be copied into the private version
@@ -595,7 +601,17 @@ struct elf_resolve * _dl_load_elf_shared_library(int secure,
     INIT_GOT(lpnt, tpnt);
   }
 
+  _dl_som_free(libname);
+
   return tpnt;
+
+null_exit:
+  if (infile >= 0)
+    _dl_close(infile);
+
+  _dl_som_free(libname);
+
+  return NULL;
 }
 
 /* Ugly, ugly.  Some versions of the SVr4 linker fail to generate COPY
