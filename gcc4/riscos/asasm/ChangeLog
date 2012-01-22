@@ -1,3 +1,9 @@
+Sun Jan 22 19:31:25 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (SymbolCompare): Fix AOF symbol sorting.
+	(Symbol_CreateSymbolOut): When doing AOF output, have local symbols
+	last.
+
 Sun Jan 22 18:12:47 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/label_alignment.s: Add.

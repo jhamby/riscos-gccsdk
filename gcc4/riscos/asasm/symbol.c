@@ -409,8 +409,7 @@ SymbolCompare (const void *symPP1, const void *symPP2)
   const Symbol *symP1 = *(const Symbol **)symPP1;
   const Symbol *symP2 = *(const Symbol **)symPP2;
 
-  /* Not sure how the mapping symbols for AOF output needs to be sorted.
-     Looks like just based on their values.  */
+  /* Not sure how the mapping symbols for AOF output needs to be sorted.  */
   bool isMappingSym1 = Area_IsMappingSymbol (symP1->str);
   bool isMappingSym2 = Area_IsMappingSymbol (symP2->str);
   if (!option_aof || (!isMappingSym1 && !isMappingSym2)) 
@@ -418,13 +417,14 @@ SymbolCompare (const void *symPP1, const void *symPP2)
 
   /* AOF: mapping symbols at the end of symbol table.  */
   if (isMappingSym1 != isMappingSym2)
-    return isMappingSym1 > isMappingSym2;
+    return isMappingSym1 ? 1 : -1;
   
   /* AOF: mapping symbols first sorted according to their area name.  */
   if (symP1->areaDef != symP2->areaDef)
     return strcasecmp (symP1->areaDef->str, symP2->areaDef->str);
 
-  /* AOF: then sorted according to their area offset value.  */
+  /* AOF: then sort according to their area offset value (don't sort based
+     on mapping symbol type).  */
   int v1;
   switch (symP1->value.Tag)
     {
@@ -465,8 +465,7 @@ SymbolCompare (const void *symPP1, const void *symPP2)
 	assert (0);
 	break;
     }
-
-  return v1 == v2 ? 0 : (v1 < v2 ? -1 : 1);
+  return v1 - v2;
 }
 
 
@@ -531,8 +530,10 @@ Symbol_CreateSymbolOut (void)
 
   /* Run over symbols again, and start assigning them in our symbol output
      array.  */
-  unsigned localSymbolIndex = 0;
-  unsigned globalSymbolIndex = result.numLocalSymbols;
+  const unsigned localSymbolIndexStart = (option_aof) ? result.numAllSymbols - result.numLocalSymbols : 0;
+  const unsigned globalSymbolIndexStart = (option_aof) ? 0 : result.numLocalSymbols;
+  unsigned localSymbolIndex = localSymbolIndexStart;
+  unsigned globalSymbolIndex = globalSymbolIndexStart;
   for (unsigned i = 0; i != SYMBOL_TABLESIZE; ++i)
     {
       for (Symbol *sym = symbolTable[i]; sym; sym = sym->next)
@@ -545,11 +546,12 @@ Symbol_CreateSymbolOut (void)
 	    result.allSymbolsPP[globalSymbolIndex++] = sym;
 	}
     }
-  assert (localSymbolIndex == result.numLocalSymbols && globalSymbolIndex == result.numAllSymbols);
+  assert ((option_aof && localSymbolIndex == result.numAllSymbols && globalSymbolIndex == localSymbolIndexStart)
+          ^ (!option_aof && localSymbolIndex == globalSymbolIndexStart && globalSymbolIndex == result.numAllSymbols));
 
   /* Sort local and global symbols individually.  */
-  qsort (&result.allSymbolsPP[0], result.numLocalSymbols, sizeof (Symbol *), SymbolCompare);
-  qsort (&result.allSymbolsPP[result.numLocalSymbols], result.numAllSymbols - result.numLocalSymbols, sizeof (Symbol *), SymbolCompare);
+  qsort (&result.allSymbolsPP[localSymbolIndexStart], result.numLocalSymbols, sizeof (Symbol *), SymbolCompare);
+  qsort (&result.allSymbolsPP[globalSymbolIndexStart], result.numAllSymbols - result.numLocalSymbols, sizeof (Symbol *), SymbolCompare);
 
   /* Assign Symbol::offset.
      We want to limit output the strings of mapping symbol to the first two
