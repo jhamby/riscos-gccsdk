@@ -1,3 +1,26 @@
+Sun Jan 22 18:12:47 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/label_alignment.s: Add.
+	* commands.c (c_dci): Use Area_AlignArea iso Area_AlignTo.
+	* symbol.c (SymbolCompare): Order AOF mapping symbols differently.
+	There are no specifications of this, so this is guesswork.
+	* put.c (Put_DataWithOffset, Put_InsWithOffset): Follow
+	Area_EnsureExtraSize API change.
+	* put.c, put.h (Put_Data, Put_DataWithOffset, Put_AlignDataWithOffset,
+	Put_FloatDataWithOffset, Put_InsWithOffset, GetWord): Change type of
+	offset into uint32_t and size into unsigned.
+	* decode.c (decode): Align label value in front of ARM/Thumb
+	instruction.
+	* local.c (c_rout): Align label value.
+	* area.c, area.h (Area_EnsureExtraSize): Add area symbol parameter.
+	(Area_AlignOffset, Area_AlignArea): Add.
+	(Area_AlignTo): Change type offset into uint32_t and type align into
+	unsigned.
+	(Area_MarkStartAs): Add area symbol and offset parameters.
+	* asm.c, asm.h (ASM_DefineLabel): Change type offset into uint32_t.
+	* lit.c (Lit_DumpPool): Follow Area_MarkStartAs API change. Use
+	Area_AlignArea iso Area_AlignTo.
+
 Sun Jan 15 22:06:27 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/register_types.s: Add.

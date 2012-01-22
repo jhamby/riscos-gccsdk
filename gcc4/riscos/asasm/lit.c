@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -584,20 +584,20 @@ Lit_DumpPool (void)
 
       /* At this point we're sure we're going to write data in the current
          area.  Mark it as such.  */
-      Area_MarkStartAs (eData);
+      Area_MarkStartAs (areaCurrentSymbol, areaCurrentSymbol->area.info->curIdx, eData);
       
       /* Ensure alignment.  */
       switch (litP->size)
 	{
 	  case eLitIntUHalfWord:
 	  case eLitIntSHalfWord:
-	    Area_AlignTo (areaCurrentSymbol->area.info->curIdx, 2, NULL);
+	    Area_AlignArea (areaCurrentSymbol, 2, NULL);
 	    break;
 
 	  case eLitIntWord:
 	  case eLitFloat:
 	  case eLitDouble:
-	    Area_AlignTo (areaCurrentSymbol->area.info->curIdx, 4, NULL);
+	    Area_AlignArea (areaCurrentSymbol, 4, NULL);
 	    break;
 
 	  default:
@@ -676,7 +676,7 @@ Lit_DumpPool (void)
 	}
     }
 
-  Area_AlignTo (areaCurrentSymbol->area.info->curIdx, 4, NULL);
+  Area_AlignArea (areaCurrentSymbol, 4, NULL);
 }
 
 

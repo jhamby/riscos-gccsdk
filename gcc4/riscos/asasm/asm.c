@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -154,7 +154,7 @@ ASM_Assemble (const char *asmFile)
  * as label before.
  */
 Symbol *
-ASM_DefineLabel (const Lex *label, int offset)
+ASM_DefineLabel (const Lex *label, uint32_t offset)
 {
   if (label->tag == LexNone)
     return NULL;

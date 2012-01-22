@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,13 +25,13 @@
 
 #include "global.h"
 
-void Put_Data (size_t size, ARMWord data);
-void Put_DataWithOffset (size_t offset, size_t size, ARMWord data);
-void Put_AlignDataWithOffset (size_t offset, size_t size, ARMWord data, bool alignBefore);
-void Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data, bool alignBefore);
+void Put_Data (unsigned size, ARMWord data);
+void Put_DataWithOffset (uint32_t offset, unsigned size, ARMWord data);
+void Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data, bool alignBefore);
+void Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool alignBefore);
 void Put_Ins (ARMWord ins);
-void Put_InsWithOffset (size_t offset, ARMWord data);
+void Put_InsWithOffset (uint32_t offset, ARMWord data);
 
-ARMWord GetWord (size_t offset);
+ARMWord GetWord (uint32_t offset);
 
 #endif

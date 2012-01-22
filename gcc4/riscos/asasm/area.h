@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2011 GCCSDK Developers
+ * Copyright (c) 2001-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -104,10 +104,12 @@ extern Symbol *areaHeadSymbol; /** Start of the linked list of all area symbols 
 
 void Area_PrepareForPhase (ASM_Phase_e phase);
 
-void Area_EnsureExtraSize (size_t mingrow);
+void Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow);
 
 bool Area_IsImplicit (const Symbol *sym);
-size_t Area_AlignTo (size_t offset, int align, const char *msg);
+uint32_t Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue, const char *msg);
+uint32_t Area_AlignTo (uint32_t offset, unsigned alignValue, const char *msg);
+uint32_t Area_AlignArea (Symbol *areaSym, unsigned alignValue, const char *msg);
 
 bool c_align (void);
 bool c_area (void);
@@ -136,7 +138,7 @@ typedef enum
   eData = 1,
   eThumb = 2
 } Area_eEntryType;
-void Area_MarkStartAs (Area_eEntryType type);
-bool Area_IsMappingSymbol (const char *);
+void Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType type);
+bool Area_IsMappingSymbol (const char *symStr);
 
 #endif

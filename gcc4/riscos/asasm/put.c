@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@
 #include "put.h"
 
 void
-Put_AlignDataWithOffset (size_t offset, size_t size, ARMWord data, bool alignBefore)
+Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data, bool alignBefore)
 {
   if (alignBefore)
     {
@@ -64,12 +64,12 @@ Put_AlignDataWithOffset (size_t offset, size_t size, ARMWord data, bool alignBef
  * \entry data Data value to be written.
  */
 void
-Put_DataWithOffset (size_t offset, size_t size, ARMWord data)
+Put_DataWithOffset (uint32_t offset, unsigned size, ARMWord data)
 {
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
       if (offset + size > areaCurrentSymbol->area.info->curIdx)
-	Area_EnsureExtraSize (offset + size - areaCurrentSymbol->area.info->curIdx);
+	Area_EnsureExtraSize (areaCurrentSymbol, offset + size - areaCurrentSymbol->area.info->curIdx);
 
       switch (size)
 	{
@@ -101,7 +101,7 @@ Put_DataWithOffset (size_t offset, size_t size, ARMWord data)
 
 
 void
-Put_Data (size_t size, ARMWord data)
+Put_Data (unsigned size, ARMWord data)
 {
   Put_DataWithOffset (areaCurrentSymbol->area.info->curIdx, size, data);
 }
@@ -113,7 +113,7 @@ Put_Data (size_t size, ARMWord data)
  * \entry data Float value to be written.
  */
 void
-Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data, bool alignBefore)
+Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool alignBefore)
 {
   const union ieee754_float flt = { .f = (float)data };
   const union ieee754_double dbl = { .d = data };
@@ -202,14 +202,14 @@ Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data, bool alignBe
 	toWrite = armdbl_fpa.c;
 	break;
       default:
-	errorAbort ("Internal Put_FloatDataWithOffset: illegal size %zd", size);
+	errorAbort ("Internal Put_FloatDataWithOffset: illegal size %u", size);
 	break;
     }
   
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
       if (offset + size > areaCurrentSymbol->area.info->curIdx)
-	Area_EnsureExtraSize (offset + size - areaCurrentSymbol->area.info->curIdx);
+	Area_EnsureExtraSize (areaCurrentSymbol, offset + size - areaCurrentSymbol->area.info->curIdx);
 
       for (size_t i = 0; i != size; i++)
 	Put_DataWithOffset (offset + i, 1, toWrite[i]);
@@ -219,14 +219,14 @@ Put_FloatDataWithOffset (size_t offset, size_t size, ARMFloat data, bool alignBe
 }
 
 void
-Put_InsWithOffset (size_t offset, ARMWord ins)
+Put_InsWithOffset (uint32_t offset, ARMWord ins)
 {
   offset = Area_AlignTo (offset, 4, "instruction");
 
   if (AREA_IMAGE (areaCurrentSymbol->area.info))
     {
       if (offset + 4 > areaCurrentSymbol->area.info->curIdx)
-	Area_EnsureExtraSize (offset + 4 - areaCurrentSymbol->area.info->curIdx);
+	Area_EnsureExtraSize (areaCurrentSymbol, offset + 4 - areaCurrentSymbol->area.info->curIdx);
 
       areaCurrentSymbol->area.info->image[offset + 0] = ins & 0xff;
       areaCurrentSymbol->area.info->image[offset + 1] = (ins >> 8) & 0xff;
@@ -252,7 +252,7 @@ Put_Ins (ARMWord ins)
 }
 
 ARMWord
-GetWord (size_t offset)
+GetWord (uint32_t offset)
 {
   assert (offset <= areaCurrentSymbol->area.info->imagesize - 4);
   const uint8_t *p = &areaCurrentSymbol->area.info->image[offset];

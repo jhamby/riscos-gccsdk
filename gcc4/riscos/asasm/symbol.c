@@ -408,7 +408,65 @@ SymbolCompare (const void *symPP1, const void *symPP2)
 {
   const Symbol *symP1 = *(const Symbol **)symPP1;
   const Symbol *symP2 = *(const Symbol **)symPP2;
-  return strcasecmp (symP1->str, symP2->str);
+
+  /* Not sure how the mapping symbols for AOF output needs to be sorted.
+     Looks like just based on their values.  */
+  bool isMappingSym1 = Area_IsMappingSymbol (symP1->str);
+  bool isMappingSym2 = Area_IsMappingSymbol (symP2->str);
+  if (!option_aof || (!isMappingSym1 && !isMappingSym2)) 
+    return strcasecmp (symP1->str, symP2->str);
+
+  /* AOF: mapping symbols at the end of symbol table.  */
+  if (isMappingSym1 != isMappingSym2)
+    return isMappingSym1 > isMappingSym2;
+  
+  /* AOF: mapping symbols first sorted according to their area name.  */
+  if (symP1->areaDef != symP2->areaDef)
+    return strcasecmp (symP1->areaDef->str, symP2->areaDef->str);
+
+  /* AOF: then sorted according to their area offset value.  */
+  int v1;
+  switch (symP1->value.Tag)
+    {
+      case ValueAddr:
+	v1 = symP1->value.Data.Addr.i;
+	break;
+
+      case ValueInt:
+	v1 = symP1->value.Data.Int.i;
+	break;
+
+      case ValueSymbol:
+	v1 = symP1->value.Data.Symbol.offset;
+	break;
+
+      default:
+	v1 = 0;
+	assert (0);
+	break;
+    }
+  int v2;
+  switch (symP2->value.Tag)
+    {
+      case ValueAddr:
+	v2 = symP2->value.Data.Addr.i;
+	break;
+
+      case ValueInt:
+	v2 = symP2->value.Data.Int.i;
+	break;
+
+      case ValueSymbol:
+	v2 = symP2->value.Data.Symbol.offset;
+	break;
+
+      default:
+	v2 = 0;
+	assert (0);
+	break;
+    }
+
+  return v1 == v2 ? 0 : (v1 < v2 ? -1 : 1);
 }
 
 

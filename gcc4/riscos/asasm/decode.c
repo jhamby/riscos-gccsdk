@@ -407,6 +407,7 @@ decode (const Lex *label)
 
   const char * const inputMark = Input_GetMark ();
 
+  /* Determines whether the mnemonic is all lowercase or all uppercase.  */
   const bool doLowerCase = !option_uppercase && inputLook () >= 'a' && inputLook () <= 'z'; 
   
   /* Locate mnemonic entry in decode table.  */
@@ -522,14 +523,29 @@ decode (const Lex *label)
       if (!IsPartiallyMatched (&oDecodeTable[indexFound]))
         skipblanks ();
 
-      /* Mark that this mnemonic will result in data, ARM or Thumb output.  */
-      if (oDecodeTable[indexFound].result != eRslt_None)
-	Area_MarkStartAs (oDecodeTable[indexFound].result == eRslt_ARM ? eARM
-			  : oDecodeTable[indexFound].result == eRslt_Data ? eData
-			  : eThumb);
+      /* FIXME: Labels in front of Thumb-2 instructions need to be
+	 aligned at 4 bytes.  */
+      unsigned alignValue;
+      Area_eEntryType entryType;
+      switch (oDecodeTable[indexFound].result)
+	{
+	  case eRslt_ARM:
+	    alignValue = 4;
+	    entryType = eARM;
+	    break;
+	  case eRslt_Thumb:
+	    alignValue = 2;
+	    entryType = eThumb;
+	    break;
+	  case eRslt_Data:
+	  case eRslt_None:
+	    alignValue = 1; /* No alignment.  */
+	    entryType = eData;
+	    break;
+	}
 
-      int startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area.info->curIdx;
-      const Symbol * const startAreaSymbol = areaCurrentSymbol;
+      uint32_t startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area.info->curIdx;
+      Symbol * const startAreaSymbol = areaCurrentSymbol;
       Value startStorage =
 	{
 	  .Tag = ValueIllegal
@@ -552,7 +568,11 @@ decode (const Lex *label)
 	         with the current offset *before* processing the mnemonic
 	         (and only when the mnemonic is a valid one).  */
 	      if (label->tag != LexLocalLabel)
-		labelSymbol = tryAsMacro ? NULL : ASM_DefineLabel (label, startOffset);
+		{
+		  if (!tryAsMacro)
+		    startOffset = Area_AlignOffset (startAreaSymbol, startOffset, alignValue, "instruction");
+		  labelSymbol = tryAsMacro ? NULL : ASM_DefineLabel (label, startOffset);
+		}
 	      break;
 	    }
 
@@ -616,6 +636,10 @@ decode (const Lex *label)
 	    break;
 	}
 
+      /* Mark that this mnemonic will result in data, ARM or Thumb output.  */
+      if (!tryAsMacro && oDecodeTable[indexFound].result != eRslt_None)
+	Area_MarkStartAs (startAreaSymbol, startOffset, entryType);
+
       /* When areaCurrentSymbol changed, this can only be using "AREA" and that means
 	 no increase of curIdx.  */
       if (startAreaSymbol != areaCurrentSymbol)
@@ -636,7 +660,7 @@ decode (const Lex *label)
       /* Determine the code size associated with the label on this line (if any).  */
       if (labelSymbol != NULL)
         {
-	  size_t codeSize;
+	  uint32_t codeSize;
           /* Either we have an increase in code/data in our current area, either
              we have an increase in storage map, either non of the previous (like
 	     with "<lbl> * <value>" input).  */

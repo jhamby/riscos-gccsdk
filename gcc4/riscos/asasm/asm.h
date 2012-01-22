@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2011 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,6 +36,6 @@ typedef enum
 extern ASM_Phase_e gASM_Phase;
 
 void ASM_Assemble (const char *asmFile);
-Symbol *ASM_DefineLabel (const Lex *label, int offset);
+Symbol *ASM_DefineLabel (const Lex *label, uint32_t offset);
 
 #endif

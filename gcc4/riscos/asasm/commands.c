@@ -435,7 +435,7 @@ c_dcd (bool doLowerCase)
 bool
 c_dci (void)
 {
-  Area_AlignTo (areaCurrentSymbol->area.info->curIdx, 4, "instruction");
+  Area_AlignArea (areaCurrentSymbol, 4, "instruction");
   return DefineInt (4, false, "DCI");
 }
 

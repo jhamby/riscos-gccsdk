@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -336,7 +336,9 @@ c_rout (const Lex *label)
   char *newROUTId;
   if (label->tag == LexId)
     {
-      ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx);
+      /* FIXME: alignment depending on ARM vs Thumb mode ? */
+      size_t curIdx = Area_AlignArea (areaCurrentSymbol, 4, "instruction");
+      ASM_DefineLabel (label, curIdx);
       newROUTId = strndup (label->Data.Id.str, label->Data.Id.len);
     }
   else

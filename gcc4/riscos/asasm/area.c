@@ -142,29 +142,28 @@ areaImage (Area *area, size_t newsize)
  * Ensures the current area has at least \t mingrow bytes free.
  */
 void
-Area_EnsureExtraSize (size_t mingrow)
+Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow)
 {
-  if (areaCurrentSymbol->area.info->curIdx + mingrow <= areaCurrentSymbol->area.info->imagesize)
+  if (areaSym->area.info->curIdx + mingrow <= areaSym->area.info->imagesize)
     return;
 
   assert (gASM_Phase == ePassOne);
   
   /* When we want to grow an implicit area, it is time to give an error as
      this is not something we want to output.  */
-  if (areaCurrentSymbol->area.info->imagesize == 0
-      && Area_IsImplicit (areaCurrentSymbol))
+  if (areaSym->area.info->imagesize == 0 && Area_IsImplicit (areaSym))
     error (ErrorError, "No area defined");
 
   size_t inc;
-  if (areaCurrentSymbol->area.info->imagesize && areaCurrentSymbol->area.info->imagesize < DOUBLE_UP_TO)
-    inc = areaCurrentSymbol->area.info->imagesize;
+  if (areaSym->area.info->imagesize && areaSym->area.info->imagesize < DOUBLE_UP_TO)
+    inc = areaSym->area.info->imagesize;
   else
     inc = GROWSIZE;
   if (inc < mingrow)
     inc = mingrow;
-  while (inc > mingrow && !areaImage (areaCurrentSymbol->area.info, areaCurrentSymbol->area.info->imagesize + inc))
+  while (inc > mingrow && !areaImage (areaSym->area.info, areaSym->area.info->imagesize + inc))
     inc /= 2;
-  if (inc <= mingrow && !areaImage (areaCurrentSymbol->area.info, areaCurrentSymbol->area.info->imagesize + mingrow))
+  if (inc <= mingrow && !areaImage (areaSym->area.info, areaSym->area.info->imagesize + mingrow))
     errorAbort ("Area_EnsureExtraSize(): out of memory, minsize = %zd", mingrow);
 }
 
@@ -334,7 +333,7 @@ c_align (void)
   uint32_t newPos = ((curPos - offsetValue + alignValue - 1) / alignValue)*alignValue + offsetValue;  
   uint32_t bytesToStuff = newPos - curPos;
 
-  Area_EnsureExtraSize (bytesToStuff);
+  Area_EnsureExtraSize (areaCurrentSymbol, bytesToStuff);
 
   while (bytesToStuff--)
     areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = 0;
@@ -344,24 +343,53 @@ c_align (void)
 
 
 /**
- * \param align Needs to be power of 2 except value 0.
- * \param msg When non-NULL, a warning will be given prefixed with "Unaligned ".
+ * Aligns given offset in given area for given align value.  If non-zero
+ * alignment needs to be done, a warning is given based on given reason.
+ * The current area index is updated when alignment surpasses it. 
+ * \param areaSym Area symbol where alignment needs to be done.
+ * \param offset Offset in area which needs to be aligned.
+ * \param alignValue Alignment value, needs to be power of 2.
+ * \param msg Reason for alignment When non-NULL, a warning will be given
+ * prefixed with "Unaligned ".
+ * \return Updated offset after alignment.
  */
-size_t
-Area_AlignTo (size_t offset, int align, const char *msg)
+uint32_t
+Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue, const char *msg)
 {
-  assert (align && (align & (align - 1)) == 0);
-  if (msg && (offset & (align - 1)) != 0)
+  assert (areaSym->type & SYMBOL_AREA);
+  assert (alignValue && (alignValue & (alignValue - 1)) == 0);
+  if (msg && (offset & (alignValue - 1)) != 0)
     error (ErrorWarning, "Unaligned %s", msg);
-  size_t newOffset = (offset + align-1) & -align;
-  Area_EnsureExtraSize (newOffset - areaCurrentSymbol->area.info->curIdx);
-  if (areaCurrentSymbol->area.info->curIdx < newOffset)
+  size_t newOffset = (offset + alignValue-1) & -alignValue;
+  Area_EnsureExtraSize (areaSym, newOffset - areaSym->area.info->curIdx);
+  if (areaSym->area.info->curIdx < newOffset)
     {
-      for (size_t i = areaCurrentSymbol->area.info->curIdx; i != newOffset; ++i)
-	areaCurrentSymbol->area.info->image[i] = 0;
-      areaCurrentSymbol->area.info->curIdx = newOffset;
+      memset (&areaSym->area.info->image[areaSym->area.info->curIdx], 0, newOffset - areaSym->area.info->curIdx); 
+      areaSym->area.info->curIdx = newOffset;
     }
   return newOffset;
+}
+
+
+/**
+ * Align given offset in the current area.
+ * \see Area_AlignOffset.
+ */
+uint32_t
+Area_AlignTo (uint32_t offset, unsigned alignValue, const char *msg)
+{
+  return Area_AlignOffset (areaCurrentSymbol, offset, alignValue, msg);
+}
+
+
+/**
+ * Align the current index of given area.
+ * \see Area_AlignOffset.
+ */
+uint32_t
+Area_AlignArea (Symbol *areaSym, unsigned alignValue, const char *msg)
+{
+  return Area_AlignOffset (areaSym, areaSym->area.info->curIdx, alignValue, msg);
 }
 
 
@@ -376,11 +404,12 @@ c_reserve (void)
     {
       if (value->Data.Int.i < 0)
 	error (ErrorWarning, "Reserve space value is considered unsigned, i.e. reserving %u bytes now\n", value->Data.Int.i);
-      Area_EnsureExtraSize ((unsigned)value->Data.Int.i);
+      uint32_t extraSize = (uint32_t)value->Data.Int.i;
+      Area_EnsureExtraSize (areaCurrentSymbol, extraSize);
 
       size_t i = areaCurrentSymbol->area.info->curIdx;
-      areaCurrentSymbol->area.info->curIdx += value->Data.Int.i;
-      memset (&areaCurrentSymbol->area.info->image[i], 0, (unsigned)value->Data.Int.i);
+      areaCurrentSymbol->area.info->curIdx += extraSize;
+      memset (&areaCurrentSymbol->area.info->image[i], 0, extraSize);
     }
   else
     error (ErrorError, "Unresolved reserve not possible");
@@ -404,6 +433,7 @@ Area_ApplyAPCSOption (uint32_t areaFlags)
     areaFlags |= AREA_SOFTFLOAT;
   return areaFlags;
 }
+
 
 /**
  * Ensures there is an active area (i.e. areaCurrentSymbol is non-NULL).
@@ -740,13 +770,13 @@ c_require8 (void)
  * Used to implement mapping symbols.
  */
 void
-Area_MarkStartAs (Area_eEntryType type)
+Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType type)
 {
   assert (type != eInvalid);
 
   /* Don't bother doing this when we don't yet have an area or when it is
      the implicit one.  This will be faulted anyway later on.  */
-  if (areaCurrentSymbol == NULL || Area_IsImplicit (areaCurrentSymbol))
+  if (areaSymbol == NULL || Area_IsImplicit (areaSymbol))
     return;
 
   if (oArea_CurrentEntryType != type)
@@ -768,15 +798,15 @@ Area_MarkStartAs (Area_eEntryType type)
 	  case eInvalid:
 	    break;
 	}
-      size_t mappingSymbolSize = 2 + 1 + areaCurrentSymbol->len + 1 + 8 + 1;
+      size_t mappingSymbolSize = 2 + 1 + areaSymbol->len + 1 + 8 + 1;
       char *mappingSymbol = alloca (mappingSymbolSize);
       int size = snprintf (mappingSymbol, mappingSymbolSize, "%s.%s.%08X",
 			   baseMappingSymbol,
-			   areaCurrentSymbol->str,
-			   areaCurrentSymbol->area.info->curIdx);
+			   areaSymbol->str,
+			   offset);
       assert ((size_t)size + 1 == mappingSymbolSize);
       const Lex mapSymbolLex = lexTempLabel (mappingSymbol, mappingSymbolSize - 1);
-      Symbol *label = ASM_DefineLabel (&mapSymbolLex, areaCurrentSymbol->area.info->curIdx);
+      Symbol *label = ASM_DefineLabel (&mapSymbolLex, offset);
       if (type == eData)
 	label->type |= SYMBOL_DATUM;
     }
