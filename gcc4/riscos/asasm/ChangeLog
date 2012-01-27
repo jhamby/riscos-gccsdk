@@ -1,3 +1,10 @@
+Fri Jan 27 03:11:21 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* output.c, output.h (outputInit, outputFinish, outputRemove,
+	outputAof, outputElf): Rename to Output_Init, Output_Finish,
+	Output_Remove, Output_AOF, Output_ELF.
+	* main.c: Follow output.c/output.h renames.
+
 Fri Jan 27 03:03:31 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (Symbol_CreateSymbolOut): Don't report the implicit area

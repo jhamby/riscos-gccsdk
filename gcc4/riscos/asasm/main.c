@@ -196,7 +196,7 @@ atexit_handler (void)
      when there was an option error).  */
   if (returnExitStatus () != EXIT_SUCCESS
       && gASM_Phase >= ePassOne)
-    outputRemove ();
+    Output_Remove ();
 }
 
 static void
@@ -511,7 +511,7 @@ main (int argc, char **argv)
     {
       asmAbortValid = true;
       Symbol_Init ();
-      outputInit (ObjFileName);
+      Output_Init (ObjFileName);
 
       /* Do the two pass assembly.  */
       ASM_Assemble (SourceFileName);
@@ -532,16 +532,16 @@ main (int argc, char **argv)
 		  gASM_Phase = eOutput;
 #ifndef NO_ELF_SUPPORT
 		  if (!option_aof)
-		    outputElf();
+		    Output_ELF();
 		  else
 #endif
-		    outputAof();
+		    Output_AOF();
 		}
 	    }
 	  asmContinueValid = false;
 	}
     }
-  outputFinish ();
+  Output_Finish ();
   errorFinish ();
   return returnExitStatus ();
 }

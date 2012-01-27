@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
  * Copyright (c) 1997 Nick Burrett
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -88,7 +88,7 @@ ourword (ARMWord val)
 #endif
 
 void
-outputInit (const char *outfile)
+Output_Init (const char *outfile)
 {
   objfile = NULL;
   if (outfile && !(outfile[0] == '-' && outfile[1] == '\0'))
@@ -132,7 +132,7 @@ outputInit (const char *outfile)
 }
 
 void
-outputFinish (void)
+Output_Finish (void)
 {
   if (objfile != NULL && objfile != stdout)
     {
@@ -153,9 +153,9 @@ outputFinish (void)
 }
 
 void
-outputRemove (void)
+Output_Remove (void)
 {
-  outputFinish ();
+  Output_Finish ();
   if (outname[0])
     remove (outname);
 }
@@ -175,7 +175,7 @@ writeEntry (int ID, int type, size_t size, size_t *offset)
 }
 
 void
-outputAof (void)
+Output_AOF (void)
 {
   if (option_verbose)
     fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
@@ -331,7 +331,7 @@ writeElfSH (Elf32_Word nmoffset, unsigned int type, unsigned int flags,
 }
 
 void
-outputElf (void)
+Output_ELF (void)
 {
   if (option_verbose)
     fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
