@@ -500,11 +500,18 @@ Symbol_CreateSymbolOut (void)
 	         relocation, either is 0 when used for relocation.  */
 	      assert (sym->used == -1 || sym->used == 0);
 
-	      /* Check for undefined exported and unused imported symbols.  */
-	      if (SYMBOL_KIND (sym->type) == SYMBOL_REFERENCE && sym->used == -1)
-		errorLine (NULL, 0, ErrorWarning, "In area %s, symbol %s is imported but not used, or exported but not defined", sym->areaDef->str, sym->str);
-
-	      if (SYMBOL_KIND (sym->type) == 0)
+	      if (sym->used == -1)
+		{
+		  /* Check for undefined exported and unused imported symbols.  */
+		  if (SYMBOL_KIND (sym->type) == SYMBOL_REFERENCE)
+		    {
+		      if (Area_IsImplicit (sym->areaDef))
+			errorLine (NULL, 0, ErrorWarning, "Symbol %s is imported but not used, or exported but not defined", sym->str);
+		      else
+			errorLine (NULL, 0, ErrorWarning, "In area %s, symbol %s is imported but not used, or exported but not defined", sym->areaDef->str, sym->str);
+		    }
+		}
+	      else if (SYMBOL_KIND (sym->type) == 0)
 		{
 		  /* Make it a reference symbol.  */
 		  sym->type |= SYMBOL_REFERENCE;

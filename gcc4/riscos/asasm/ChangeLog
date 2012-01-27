@@ -1,3 +1,8 @@
+Fri Jan 27 03:03:31 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (Symbol_CreateSymbolOut): Don't report the implicit area
+	name for unused imported/exported symbols.
+
 Sun Jan 22 19:31:25 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (SymbolCompare): Fix AOF symbol sorting.
