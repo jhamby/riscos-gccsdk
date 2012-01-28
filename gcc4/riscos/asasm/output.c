@@ -193,7 +193,7 @@ Output_AOF (void)
       ap->used = noareas++;
 
       ap->area.info->norelocs = relocFix (ap);
-      if (AREA_IMAGE (ap->area.info))
+      if (!Area_IsNoInit (ap->area.info))
 	obj_area_size += FIX (ap->area.info->maxIdx)
 			   + ap->area.info->norelocs * sizeof (AofReloc);
     }
@@ -237,11 +237,11 @@ Output_AOF (void)
 
   if (written != sizeof (chunk_header) + 5*sizeof (ChunkFileHeaderEntry))
     {
-      errorAbortLine (NULL, 0, "Internal outputAof: error when writing chunk file header");
+      errorAbortLine (NULL, 0, "Internal Output_AOF: error when writing chunk file header");
       return;
     }
 
-  /******** Chunk 0 Header ********/
+  /* Chunk 0 Header (OBJ_HEAD).  */
   fwrite (&aof_head, 1, sizeof (aof_head), objfile);
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
@@ -257,43 +257,44 @@ Output_AOF (void)
           .noRelocations = armword (ap->area.info->norelocs),
           .BaseAddr = armword ((ap->area.info->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
 	};
-      if (aof_entry.noRelocations != 0 && !AREA_IMAGE (ap->area.info))
-	errorAbortLine (NULL, 0, "Internal outputAof: relocations in uninitialised area");
+      if (aof_entry.noRelocations != 0 && Area_IsNoInit (ap->area.info))
+	errorAbortLine (NULL, 0, "Internal Output_AOF: relocations in uninitialised area");
       fwrite (&aof_entry, 1, sizeof (aof_entry), objfile);
     }
 
-  /******** Chunk 1 Identification *********/
+  /* Chunk 1 Identification (OBJ_IDFN).  */
   if (idfn_size != fwrite (GET_IDFN, 1, idfn_size, objfile))
     {
-      errorAbortLine (NULL, 0, "Internal outputAof: error when writing identification");
+      errorAbortLine (NULL, 0, "Internal Output_AOF: error when writing identification");
       return;
     }
-  /******** Chunk 2 String Table ***********/
+
+  /* Chunk 2 String Table (OBJ_STRT).  */
   unsigned int strt_size = armword (symOut.stringSize + 4);
   if (fwrite (&strt_size, 1, 4, objfile) != sizeof (strt_size))
     {
-      errorAbortLine (NULL, 0, "Internal outputAof: error when writing string table size");
+      errorAbortLine (NULL, 0, "Internal Output_AOF: error when writing string table size");
       return;
     }
   Symbol_OutputStrings (objfile, &symOut);
   for (unsigned pad = EXTRA (symOut.stringSize); pad; pad--)
     fputc (0, objfile);
 
-  /******** Chunk 3 Symbol Table ***********/
+  /* Chunk 3 Symbol Table (OBJ_SYMT).  */
   Symbol_OutputForAOF (objfile, &symOut);
 
-  /******** Chunk 4 Area *****************/
+  /* Chunk 4 Area (OBJ_AREA).  */
   for (const Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
       
-      if (AREA_IMAGE (ap->area.info))
+      if (!Area_IsNoInit (ap->area.info))
 	{
 	  if (fwrite (ap->area.info->image, 1, ap->area.info->maxIdx, objfile)
 	      != ap->area.info->maxIdx)
-	    errorAbortLine (NULL, 0, "Internal outputAof: error when writing %s image", ap->str);
+	    errorAbortLine (NULL, 0, "Internal Output_AOF: error when writing %s image", ap->str);
 	  /* Word align the written area.  */
 	  for (unsigned pad = EXTRA (ap->area.info->maxIdx); pad; --pad)
 	    fputc (0, objfile);
@@ -390,6 +391,17 @@ Output_ELF (void)
   elf_head.e_shnum = noareas + norels + 4; /* 4 = "" (SHT_NULL) + ".symtab" (SHT_SYMTAB) + ".strtab" (SHT_STRTAB) + ".shstrtab" (SHT_STRTAB) */
   elf_head.e_shstrndx = noareas + norels + 3;
   fwrite (&elf_head, 1, sizeof (elf_head), objfile);
+
+  /* Order of sections:
+       "" (SHT_NULL),
+       ".symtab" (SHT_SYMTAB),
+       [ "<AreaName>" (SHT_PROGBITS / SHT_NOBITS),
+         [ ".rel.<AreaName>" (SHT_REL) ]
+       ]*,
+       ".shstrtab" (SHT_STRTAB)
+
+     When an area has no relocations, its SHT_REL section is not emitted.
+   */
   
   size_t offset = sizeof (elf_head) + elf_head.e_shnum * sizeof (Elf32_Shdr);
   Elf32_Word shstrsize = 0;
@@ -434,7 +446,7 @@ Output_ELF (void)
         areaFlags |= SHF_ENTRYSECT;
       areaFlags |= SHF_ALLOC;
       unsigned int sectionSize = FIX (ap->area.info->maxIdx);
-      unsigned int sectionType = AREA_IMAGE (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
+      unsigned int sectionType = !Area_IsNoInit (ap->area.info) ? SHT_PROGBITS : SHT_NOBITS;
       writeElfSH (shstrsize, sectionType, areaFlags,
 		  ap->value.Data.Int.i,
 		  sectionSize,
@@ -477,12 +489,12 @@ Output_ELF (void)
       if (Area_IsImplicit (ap))
 	continue;
       
-      if (AREA_IMAGE (ap->area.info))
+      if (!Area_IsNoInit (ap->area.info))
         {
           if (fwrite (ap->area.info->image, 1, ap->area.info->maxIdx, objfile)
 	      != ap->area.info->maxIdx)
             {
-              errorAbortLine (NULL, 0, "Internal outputElf: error when writing %s image", ap->str);
+              errorAbortLine (NULL, 0, "Internal Output_ELF: error when writing %s image", ap->str);
               return;
             }
 	  /* Word align the written area.  */

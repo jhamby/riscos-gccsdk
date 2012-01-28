@@ -1,3 +1,18 @@
+Sat Jan 28 03:30:49 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* put.c (Put_DataWithOffset): Made local.  Change type of data
+	parameter from ARMWord to uint64_t.  Increase area index for
+	NOINIT areas.  Follow AREA_IMAGE to Area_IsNoInit change.
+	(Put_FloatDataWithOffset): Use Put_DataWithOffset.
+	(Put_InsWithOffset): Increase area index for NOINIT areas.
+	Follow AREA_IMAGE to Area_IsNoInit change.  Allow zero value
+	instruction in NOINIT area.
+	* put.h (Put_DataWithOffset): Remove.
+	* area.h (AREA_IMAGE): Remove.
+	(Area_IsNoInit): Add.
+	* output.c (Output_AOF): Follow AREA_IMAGE to Area_IsNoInit change.
+	(Output_ELF): Likewise.
+
 Fri Jan 27 03:11:21 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* output.c, output.h (outputInit, outputFinish, outputRemove,

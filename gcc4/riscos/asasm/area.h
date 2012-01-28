@@ -60,8 +60,6 @@
 #define AREA_RESERVED30		0x40000000
 #define AREA_SOFTFLOAT		0x80000000 /* Avoids FP instructions (GCCSDK extension) Normally reserved bit. */
 
-#define AREA_IMAGE(x) (!((x)->type & AREA_UDATA))
-
 #define AREA_DEFAULT_ALIGNMENT	0x00000002
 
 struct LITPOOL;
@@ -82,6 +80,12 @@ typedef struct AREA
 
   struct LITPOOL *litPool;	/** The current literal pool waiting to be assembled. */
 } Area;
+
+static inline bool
+Area_IsNoInit (const Area *area)
+{
+  return (area->type & AREA_UDATA) != 0;
+}
 
 static inline int
 Area_GetBaseReg (const Area *area)
