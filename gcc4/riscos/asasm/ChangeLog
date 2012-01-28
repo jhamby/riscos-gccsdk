@@ -1,3 +1,16 @@
+Sat Jan 28 13:48:16 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* area.h (Area): Add 'number' field. Change 'int norelocs' field into
+	'uint32_t numRelocs'.
+	* area.c (areaNew): Follow Area struct change.
+	* symbol.h (Symbol): Change type 'codeSize' from size_t to uint32_t,
+	'offset' from unsigned int to uint32_t.  Update comments on the meaning
+	of 'used' field.
+	* symbol.c (Symbol_CreateSymbolOut): Follow the new Symbol::used
+	conventin.
+	* output.c (Output_AOF, Output_ELF): Follow above changes.
+	* reloc.c (relocELFOutput): Likewise.
+
 Sat Jan 28 03:30:49 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* put.c (Put_DataWithOffset): Made local.  Change type of data

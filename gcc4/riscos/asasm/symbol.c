@@ -485,21 +485,16 @@ Symbol_CreateSymbolOut (void)
     {
       for (Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
+	  /* At this point sym->used is -1 when it is not needed for
+	     relocation, either is 0 when used for relocation.  */
+	  assert (sym->used == -1 || sym->used == 0);
 	  if (sym->type & SYMBOL_AREA)
 	    {
-              /* At this point sym->used is the area (AOF) or section (ELF)
-	         number for all non-implicit area's, see start of outputAof()
-		 and outputElf().  */
-              assert ((Area_IsImplicit (sym) && sym->used == -1) || (!Area_IsImplicit (sym) && sym->used >= 0));
 	      /* All AREA symbols are local ones.  */
 	      assert (SYMBOL_KIND (sym->type) == 0);
 	    }
 	  else
 	    {
-	      /* At this point sym->used is -1 when it is not needed for
-	         relocation, either is 0 when used for relocation.  */
-	      assert (sym->used == -1 || sym->used == 0);
-
 	      if (sym->used == -1)
 		{
 		  /* Check for undefined exported and unused imported symbols.  */
@@ -523,10 +518,9 @@ Symbol_CreateSymbolOut (void)
 	      ++result.numAllSymbols;
 	      if ((sym->type & SYMBOL_AREA) || SYMBOL_KIND (sym->type) == SYMBOL_LOCAL)
 		++result.numLocalSymbols;
-              if (!(sym->type & SYMBOL_AREA))
 	      sym->used = 0;
 	    }
-          else if (!(sym->type & SYMBOL_AREA))
+          else
 	    sym->used = -1;
 	}
     }
@@ -584,14 +578,15 @@ Symbol_CreateSymbolOut (void)
 	    {
 	      /* First time we see this particular mapping symbol.  */
 	      mapSymbols[mappingSymbolindex].offset = sym->offset = result.stringSize;
-	      result.stringSize += 3;
+	      result.stringSize += sizeof ("$d"); /* $d, $a, $t */
 	    }
 	  else
 	    sym->offset = mapSymbols[mappingSymbolindex].offset;
 	}
       else
 	{
-	  /* For ELF, section names are not used in the string table.  */
+	  /* For ELF, section names are not mentioned in the string table
+	     but part of the section header.  */
 	  if ((sym->type & SYMBOL_AREA) && !option_aof)
 	    sym->offset = 0;
 	  else
@@ -600,8 +595,17 @@ Symbol_CreateSymbolOut (void)
 	      result.stringSize += sym->len + 1;
 	    }
 	}
-      if (!(sym->type & SYMBOL_AREA))
-	sym->used = symbolIndex;
+      /* Symbol::used now contains a number which can be used (for the choosen
+         output format) to refer to that symbol.
+	 For AOF: if it is an area symbol, it's its area number. For all other
+	          symbols, the index in the symbol table.
+	 For ELF: the index in symbol table after the undefined symbol (area
+	          symbols also have an entry in the symbol table as
+	          STT_SECTION).  */
+      if (option_aof)
+	sym->used = (sym->type & SYMBOL_AREA) ? sym->area.info->number : symbolIndex;
+      else
+	sym->used = symbolIndex + 1;
     }
   return result;
 }
@@ -745,7 +749,8 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
           asym.st_name = 0;
 	  asym.st_value = (sym->area.info->type & AREA_ABS) ? Area_GetBaseAddress (sym) : 0;
 	  asym.st_info = ELF32_ST_INFO (STB_LOCAL, STT_SECTION);
-          asym.st_shndx = sym->used;
+	  asym.st_shndx = sym->area.info->number;
+	  assert (asym.st_shndx >= 3);
 	  fwrite (&asym, sizeof (Elf32_Sym), 1, outfile);
 	}
       else
@@ -792,7 +797,7 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 		    break;
 		}
 	      asym.st_value = v;
-              asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) && !Area_IsMappingSymbol (sym->str) ? SHN_ABS : sym->areaDef->used;
+	      asym.st_shndx = (sym->type & SYMBOL_ABSOLUTE) && !Area_IsMappingSymbol (sym->str) ? SHN_ABS : sym->areaDef->area.info->number;
 	    }
 	  else
 	    {

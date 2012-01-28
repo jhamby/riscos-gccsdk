@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -311,12 +311,10 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  const Value *value = &relocs->value;
 
 	  assert (value->Data.Symbol.symbol->used >= 0);
-	  int symbol = 1 + ((value->Data.Symbol.symbol->type & SYMBOL_AREA)
-	                    ? value->Data.Symbol.symbol->offset
-	                    : value->Data.Symbol.symbol->used);
+	  int symbol = value->Data.Symbol.symbol->used;
 	  int type;
 	  if (relocs->reloc.How & HOW3_RELATIVE)
-	    type = R_ARM_PC24; /* FIXME: for EABI, this should be R_ARM_CALL or R_ARM_JUMP24.  */
+	    type = R_ARM_PC24; /* FIXME: for EABI (when ELF_EABI defined), this should be R_ARM_CALL or R_ARM_JUMP24.  */
 	  else
 	    type = R_ARM_ABS32;
 	  areloc.r_info = armword (ELF32_R_INFO (symbol, type));
@@ -338,10 +336,10 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 		  const Value *value = &code->Data.value;
 
 		  assert (value->Data.Symbol.symbol->used >= 0);
-		  int symbol = value->Data.Symbol.symbol->offset + 1;
+		  int symbol = value->Data.Symbol.symbol->used;
 		  int type;
 		  if (relocs->reloc.How & HOW3_RELATIVE)
-		    type = R_ARM_PC24; /* FIXME: for EABI, this should be R_ARM_CALL or R_ARM_JUMP24.  */
+		    type = R_ARM_PC24; /* FIXME: for EABI (when ELF_EABI defined), this should be R_ARM_CALL or R_ARM_JUMP24.  */
 		  else
 		    type = R_ARM_ABS32;
 		  areloc.r_info = armword (ELF32_R_INFO (symbol, type));

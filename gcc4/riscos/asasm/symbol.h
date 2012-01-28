@@ -76,7 +76,7 @@ typedef struct Symbol
 
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
   Value value; /** For AREA symbol, this is its current content size.  */
-  size_t codeSize; /** Size of the code associated with this symbol label (for AREA symbol, this is unused).  */
+  uint32_t codeSize; /** Size of the code associated with this symbol label (for AREA symbol, this is unused).  */
   union
     {
       struct Symbol *rel; /* FIXME: we need to support this better, i.e. this symbol (with ValueInt, ValueAddr) is relative to 'rel' symbol, i.e. only relevant when SYMBOL_ABSOLUTE is *not* set.  */
@@ -85,19 +85,23 @@ typedef struct Symbol
   struct Symbol *areaDef; /** Area where this symbol is defined in.  When SYMBOL_AREA is set, this is NULL.  */
 
   /* For output: */
-  unsigned int offset;	/** For area symbols, at start of outputAof()/outputElf(), this indicates the area symbol's position in the symbol table.  */
-  int used;		/** Has several usages:
-    At start of outputAof()/outputElf():
+  uint32_t offset; /** In Symbol_CreateSymbolOut() (called from Output_AOF()
+    and Output_ELF()): symbol's offset position in symbol table (for AOF,
+    minus 4).
+    For ELF, section (area) symbols: is 0.  */
+  int used; /** Has several usages:
+    At start of Output_AOF()/Output_ELF():
       either -1 (no relocation needed),
       either 0 (relocation needed, see Reloc_Create()).
 
-    At end of Symbol_CreateSymbolOut():
-      For area symbols:
-        - AOF output : this will be the area number counted from 0
-        - ELF output : this is the section number (counted from 3)
-      For other symbols:
-        When >= 0 : symbol index,
-        When -1 : symbol won't appear in the symbol table.  */
+    At end of Symbol_CreateSymbolOut(): an index suited for choosen output
+      format to refer to this symbol.
+      For AOF: For area symbols, this index is the area number.  For non area
+               symbols, this index is an index in the symbol table.
+               From 0 onwards.
+      For ELF: Index in the symbol table (area symbols also have an entry there).
+	       From 3 (for area symbols) or 0 (for non area symbols) onwards.
+      Is -1 when the symbol is not mentioned in the symbol table.  */
 
   /* Symbol name: */
   size_t len;		/** length of str[] without its NUL terminator.  */

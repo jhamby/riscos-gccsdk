@@ -75,10 +75,13 @@ typedef struct AREA
   uint32_t maxIdx;
 
   RelocQueue *relocQueue;
-  int norelocs;
   Reloc *relocs;
 
   struct LITPOOL *litPool;	/** The current literal pool waiting to be assembled. */
+
+  /* For output: */
+  uint32_t number; /** AOF: area number (from 0 onwards).  ELF: section ID (from 3 onwards).  Determined start of Output_AOF()/Output_ELF().  */
+  uint32_t numRelocs;
 } Area;
 
 static inline bool

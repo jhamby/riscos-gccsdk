@@ -181,8 +181,8 @@ Output_AOF (void)
     fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
 
   /* We must call relocFix() before anything else.  */
-  int obj_area_size = 0;
-  int noareas = 0;
+  size_t totalAreaSize = 0;
+  uint32_t numAreas = 0;
   /* avoid problems with no areas.  */
   for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
@@ -190,12 +190,11 @@ Output_AOF (void)
       if (Area_IsImplicit (ap))
 	continue;
 
-      ap->used = noareas++;
-
-      ap->area.info->norelocs = relocFix (ap);
+      ap->area.info->number = numAreas++;
+      ap->area.info->numRelocs = relocFix (ap);
       if (!Area_IsNoInit (ap->area.info))
-	obj_area_size += FIX (ap->area.info->maxIdx)
-			   + ap->area.info->norelocs * sizeof (AofReloc);
+	totalAreaSize += FIX (ap->area.info->maxIdx)
+			   + ap->area.info->numRelocs * sizeof (AofReloc);
     }
 
   SymbolOut_t symOut = Symbol_CreateSymbolOut ();
@@ -204,9 +203,9 @@ Output_AOF (void)
     {
       .Type = armword (AofHeaderID),
       .Version = armword (310),
-      .noAreas = armword (noareas),
+      .noAreas = armword (numAreas),
       .noSymbols = armword (symOut.numAllSymbols),
-      .EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->used + 1 : 0),
+      .EntryArea = armword (areaEntrySymbol ? areaEntrySymbol->area.info->number + 1 : 0),
       .EntryOffset = armword (areaEntrySymbol ? areaEntryOffset : 0)
     };
 
@@ -221,7 +220,7 @@ Output_AOF (void)
   size_t offset = sizeof (chunk_header) + 5*sizeof (ChunkFileHeaderEntry);
 
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_HEAD,
-			 sizeof (AofHeader) + noareas*sizeof (AofEntry), &offset);
+			 sizeof (AofHeader) + numAreas*sizeof (AofEntry), &offset);
 
   size_t idfn_size = FIX (strlen (GET_IDFN) + 1);
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_IDFN, idfn_size, &offset);
@@ -233,7 +232,7 @@ Output_AOF (void)
                          ourword (aof_head.noSymbols)*sizeof (AofSymbol), &offset);
 
   written += writeEntry (ChunkID_OBJ, ChunkID_OBJ_AREA,
-                         obj_area_size, &offset);
+                         totalAreaSize, &offset);
 
   if (written != sizeof (chunk_header) + 5*sizeof (ChunkFileHeaderEntry))
     {
@@ -254,7 +253,7 @@ Output_AOF (void)
 	  .Name = armword (ap->offset + 4), /* +4 because of extra length entry */
           .Type = armword (ap->area.info->type),
           .Size = armword (FIX (ap->area.info->maxIdx)),
-          .noRelocations = armword (ap->area.info->norelocs),
+          .noRelocations = armword (ap->area.info->numRelocs),
           .BaseAddr = armword ((ap->area.info->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)
 	};
       if (aof_entry.noRelocations != 0 && Area_IsNoInit (ap->area.info))
@@ -338,22 +337,23 @@ Output_ELF (void)
     fprintf (stderr, "Writing %s file at %s\n", option_aof ? "AOF" : "ELF", outname);
 
   /* We must call relocFix() before anything else.  */
-  int noareas = 0, norels = 0;
-  int areaSectionID = 3;
+  uint32_t numAreas = 0;
+  uint32_t numRelocs = 0;
+  uint32_t areaSectionID = 3;
   for (Symbol *ap = areaHeadSymbol; ap != NULL; ap = ap->area.info->next)
     {
       /* Skip the implicit area.  */
       if (Area_IsImplicit (ap))
 	continue;
 
-      ++noareas;
+      ++numAreas;
 
-      ap->used = areaSectionID++;
-      ap->area.info->norelocs = relocFix (ap);
-      if (ap->area.info->norelocs)
+      ap->area.info->number = areaSectionID++;
+      ap->area.info->numRelocs = relocFix (ap);
+      if (ap->area.info->numRelocs)
 	{
 	  ++areaSectionID;
-	  ++norels;
+	  ++numRelocs;
 	}
     }
 
@@ -388,8 +388,8 @@ Output_ELF (void)
   elf_head.e_phentsize = 0;
   elf_head.e_phnum = 0;
   elf_head.e_shentsize = sizeof (Elf32_Shdr);
-  elf_head.e_shnum = noareas + norels + 4; /* 4 = "" (SHT_NULL) + ".symtab" (SHT_SYMTAB) + ".strtab" (SHT_STRTAB) + ".shstrtab" (SHT_STRTAB) */
-  elf_head.e_shstrndx = noareas + norels + 3;
+  elf_head.e_shnum = numAreas + numRelocs + 4; /* 4 = "" (SHT_NULL) + ".symtab" (SHT_SYMTAB) + ".strtab" (SHT_STRTAB) + ".shstrtab" (SHT_STRTAB) */
+  elf_head.e_shstrndx = numAreas + numRelocs + 3;
   fwrite (&elf_head, 1, sizeof (elf_head), objfile);
 
   /* Order of sections:
@@ -457,11 +457,11 @@ Output_ELF (void)
 		  &offset);
       shstrsize += ap->len + 1;
 
-      if (ap->area.info->norelocs)
+      if (ap->area.info->numRelocs)
         {
           /* Relocations.  */
           writeElfSH (shstrsize, SHT_REL, 0, 0,
-	              ap->area.info->norelocs * sizeof(Elf32_Rel),
+	              ap->area.info->numRelocs * sizeof(Elf32_Rel),
 	              1, elfIndex, 4, sizeof(Elf32_Rel), &offset);
           shstrsize += sizeof (".rel.")-1 + (ap->str[0] == '.' ? -1 : 0) + ap->len + 1;
           elfIndex++;
@@ -500,7 +500,7 @@ Output_ELF (void)
 	  /* Word align the written area.  */
 	  for (unsigned pad = EXTRA (ap->area.info->curIdx); pad; --pad)
 	    fputc (0, objfile);
-          if (ap->area.info->norelocs)
+          if (ap->area.info->numRelocs)
             relocELFOutput (objfile, ap);
         }
     }
@@ -516,7 +516,7 @@ Output_ELF (void)
 	continue;
       
       fwrite (ap->str, 1, ap->len + 1, objfile);
-      if (ap->area.info->norelocs)
+      if (ap->area.info->numRelocs)
         {
           fwrite (".rel.", 1, sizeof(".rel.")-1 + (ap->str[0] == '.' ? -1 : 0), objfile);
           fwrite (ap->str, 1, ap->len + 1, objfile);

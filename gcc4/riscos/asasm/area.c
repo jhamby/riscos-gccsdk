@@ -110,11 +110,13 @@ areaNew (Symbol *sym, uint32_t type)
   res->maxIdx = 0;
 
   res->relocQueue = NULL;
-  res->norelocs = 0;
   res->relocs = NULL;
 
   res->litPool = NULL;
 
+  res->number = 0;
+  res->numRelocs = 0;
+  
   areaHeadSymbol = sym;
 
   return res;
