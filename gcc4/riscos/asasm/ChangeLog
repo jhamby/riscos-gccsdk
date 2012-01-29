@@ -1,3 +1,11 @@
+Sun Jan 29 15:55:33 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* macros.c (MKeyword_e): Add.
+	(Macro_GetKeyword): Renamed from Macro_IsMENDAtInput and support
+	MACRO keyword as well.
+	(c_macro): Use Macro_GetKeyword iso Macro_IsMENDAtInput and add check
+	on nested MACRO construction.
+
 Sun Jan 29 15:28:22 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c (DefineInt_RelocUpdater): Fix reloc issue against

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,6 +45,13 @@
 #ifdef DEBUG
 //#  define DEBUG_MACRO
 #endif
+
+typedef enum
+{
+  eMKeyword_MACRO,
+  eMKeyword_MEND,
+  eMKeyword_AnythingElse
+} MKeyword_e;
 
 static Macro *macroList;
 
@@ -264,21 +271,26 @@ Macro_Find (const char *name, size_t len)
 
 
 /**
- * \return true when one or more white space characters followed by "MEND"
- * is read.
+ * \return Keyword indication ("MACRO", "MEND" or anything else/no keyword).
+ * When MACRO or MEND keyword are parsed, those are consumed.  Any leading
+ * white space characters are always consumed.
  */
-static bool
-Macro_IsMENDAtInput (void)
+static MKeyword_e
+Macro_GetKeyword (void)
 {
   if (!isspace ((unsigned char)inputLook ()))
-    return false;
+    return eMKeyword_AnythingElse;
 
   skipblanks ();
   /* We only need to check for "MEND" and the end of keyword (i.e. a space,
      start comment character (';') or EOL).  Upon return from Macro_Call()
      in decode(), decode_finalcheck() will deal with the rest of the line
      after "MEND".  */
-  return Input_MatchKeyword ("MEND");
+  if (Input_MatchKeyword ("MEND"))
+    return eMKeyword_MEND;
+  if (Input_MatchKeyword ("MACRO"))
+    return eMKeyword_MACRO;
+  return eMKeyword_AnythingElse;
 }
 
 
@@ -407,9 +419,24 @@ c_macro (void)
 	goto noMEND;
 
       const char * const inputMark = Input_GetMark ();
-      if (Macro_IsMENDAtInput ())
+      bool isMacroEnd = false;
+      switch (Macro_GetKeyword ())
+	{
+	  case eMKeyword_MEND:
+	    isMacroEnd = true;
+	    break;
+
+	  case eMKeyword_MACRO:
+	    /* Nested MACRO construction, that's not allowed.  */
+	    error (ErrorError, "Macro definitions cannot be nested");
+	    /* Fall through.  */
+
+	  case eMKeyword_AnythingElse:
+	    Input_RollBackToMark (inputMark);
+	    break;
+	}
+      if (isMacroEnd)
 	break;
-      Input_RollBackToMark (inputMark);
 
       while (1)
 	{
@@ -476,7 +503,7 @@ noMEND:
 	  break;
 	}
     }
-  while (!Macro_IsMENDAtInput ());
+  while (Macro_GetKeyword () != eMKeyword_MEND);
 
   free (buf);
   free ((void *)m.name);
