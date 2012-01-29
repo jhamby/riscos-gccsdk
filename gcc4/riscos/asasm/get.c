@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +28,6 @@
 #  include <inttypes.h>
 #endif
 
-#include "asm.h"
 #include "code.h"
 #include "error.h"
 #include "expr.h"
@@ -37,6 +36,7 @@
 #include "help_cpu.h"
 #include "input.h"
 #include "lex.h"
+#include "phase.h"
 #include "reloc.h"
 #include "symbol.h"
 
@@ -307,7 +307,7 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 	  default:
 	    /* During pass one, we discard any errors of the evaluation as it
 	       might contain unresolved symbols.  Wait until during pass two.  */
-	    if (gASM_Phase != ePassOne)
+	    if (gPhase != ePassOne)
 	      error (ErrorError, "Illegal immediate expression");
 	    break;
 	}

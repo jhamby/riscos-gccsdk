@@ -46,6 +46,7 @@
 #include "m_cpuctrl.h"
 #include "option.h"
 #include "os.h"
+#include "phase.h"
 #include "put.h"
 #include "targetcpu.h"
 #include "value.h"
@@ -233,7 +234,7 @@ branch_shared (ARMWord cc, bool isBLX)
   exprBuild ();
 
   Put_Ins (cc | 0x0A000000);
-  if (gASM_Phase != ePassOne
+  if (gPhase != ePassOne
       && Reloc_QueueExprUpdate (Branch_RelocUpdater, offset, ValueInt | ValueCode | ValueSymbol, &isBLX, sizeof (isBLX)))
     error (ErrorError, "Illegal branch expression");
   return false;
@@ -357,7 +358,7 @@ m_swi (bool doLowerCase)
 	break;
 
       default:
-	if (gASM_Phase == ePassTwo)
+	if (gPhase == ePassTwo)
 	  error (ErrorError, "Illegal SVC/SWI expression");
 	break;
     }
@@ -582,7 +583,7 @@ m_adr (bool doLowerCase)
 
   exprBuild ();
 
-  if (gASM_Phase == ePassOne)
+  if (gPhase == ePassOne)
     {
       Put_Ins (0);
       /* When bit 0 is set, we'll emit ADRL (2 instructions).  */

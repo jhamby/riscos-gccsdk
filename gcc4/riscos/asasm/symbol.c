@@ -51,101 +51,6 @@
 #  define DEBUG_SYMBOL
 #endif
 
-typedef struct
-{
-  const char *name;
-  size_t len;
-  int value;
-  int type; /* SYMBOL_CPUREG, etc.  */
-} Symbol_PreDef_t;
-
-/* These symbol registers are always defined.  */
-static const Symbol_PreDef_t oSymRegs[] =
-{
-  { "r0", sizeof ("r0")-1, 0, SYMBOL_CPUREG }, { "R0", sizeof ("R0")-1, 0, SYMBOL_CPUREG },
-  { "r1", sizeof ("r1")-1, 1, SYMBOL_CPUREG }, { "R1", sizeof ("R1")-1, 1, SYMBOL_CPUREG },
-  { "r2", sizeof ("r2")-1, 2, SYMBOL_CPUREG }, { "R2", sizeof ("R2")-1, 2, SYMBOL_CPUREG },
-  { "r3", sizeof ("r3")-1, 3, SYMBOL_CPUREG }, { "R3", sizeof ("R3")-1, 3, SYMBOL_CPUREG },
-  { "r4", sizeof ("r4")-1, 4, SYMBOL_CPUREG }, { "R4", sizeof ("R4")-1, 4, SYMBOL_CPUREG },
-  { "r5", sizeof ("r5")-1, 5, SYMBOL_CPUREG }, { "R5", sizeof ("R5")-1, 5, SYMBOL_CPUREG },
-  { "r6", sizeof ("r6")-1, 6, SYMBOL_CPUREG }, { "R6", sizeof ("R6")-1, 6, SYMBOL_CPUREG },
-  { "r7", sizeof ("r7")-1, 7, SYMBOL_CPUREG }, { "R7", sizeof ("R7")-1, 7, SYMBOL_CPUREG },
-  { "r8", sizeof ("r8")-1, 8, SYMBOL_CPUREG }, { "R8", sizeof ("R8")-1, 8, SYMBOL_CPUREG },
-  { "r9", sizeof ("r9")-1, 9, SYMBOL_CPUREG }, { "R9", sizeof ("R9")-1, 9, SYMBOL_CPUREG },
-  { "r10", sizeof ("r10")-1, 10, SYMBOL_CPUREG }, { "R10", sizeof ("R10")-1, 10, SYMBOL_CPUREG },
-  { "r11", sizeof ("r11")-1, 11, SYMBOL_CPUREG }, { "R11", sizeof ("R11")-1, 11, SYMBOL_CPUREG },
-  { "r12", sizeof ("r12")-1, 12, SYMBOL_CPUREG }, { "R12", sizeof ("R12")-1, 12, SYMBOL_CPUREG },
-  { "r13", sizeof ("r13")-1, 13, SYMBOL_CPUREG }, { "R13", sizeof ("R13")-1, 13, SYMBOL_CPUREG },
-  { "r14", sizeof ("r14")-1, 14, SYMBOL_CPUREG }, { "R14", sizeof ("R14")-1, 14, SYMBOL_CPUREG },
-  { "r15", sizeof ("r15")-1, 15, SYMBOL_CPUREG }, { "R15", sizeof ("R15")-1, 15, SYMBOL_CPUREG },
-  { "lr", sizeof ("lr")-1, 14, SYMBOL_CPUREG }, { "LR", sizeof ("LR")-1, 14, SYMBOL_CPUREG },
-  { "pc", sizeof ("pc")-1, 15, SYMBOL_CPUREG }, { "PC", sizeof ("PC")-1, 15, SYMBOL_CPUREG },
-  /* Coprocessor numbers */
-  { "p0", sizeof ("p0")-1, 0, SYMBOL_COPNUM },
-  { "p1", sizeof ("p1")-1, 1, SYMBOL_COPNUM },
-  { "p2", sizeof ("p2")-1, 2, SYMBOL_COPNUM },
-  { "p3", sizeof ("p3")-1, 3, SYMBOL_COPNUM },
-  { "p4", sizeof ("p4")-1, 4, SYMBOL_COPNUM },
-  { "p5", sizeof ("p5")-1, 5, SYMBOL_COPNUM },
-  { "p6", sizeof ("p6")-1, 6, SYMBOL_COPNUM },
-  { "p7", sizeof ("p7")-1, 7, SYMBOL_COPNUM },
-  { "p8", sizeof ("p8")-1, 8, SYMBOL_COPNUM },
-  { "p9", sizeof ("p9")-1, 9, SYMBOL_COPNUM },
-  { "p10", sizeof ("p10")-1, 10, SYMBOL_COPNUM },
-  { "p11", sizeof ("p11")-1, 11, SYMBOL_COPNUM },
-  { "p12", sizeof ("p12")-1, 12, SYMBOL_COPNUM },
-  { "p13", sizeof ("p13")-1, 13, SYMBOL_COPNUM },
-  { "p14", sizeof ("p14")-1, 14, SYMBOL_COPNUM },
-  { "p15", sizeof ("p15")-1, 15, SYMBOL_COPNUM },
-  /* Coprocessor registers */
-  { "c0", sizeof ("c0")-1, 0, SYMBOL_COPREG },
-  { "c1", sizeof ("c1")-1, 1, SYMBOL_COPREG },
-  { "c2", sizeof ("c2")-1, 2, SYMBOL_COPREG },
-  { "c3", sizeof ("c3")-1, 3, SYMBOL_COPREG },
-  { "c4", sizeof ("c4")-1, 4, SYMBOL_COPREG },
-  { "c5", sizeof ("c5")-1, 5, SYMBOL_COPREG },
-  { "c6", sizeof ("c6")-1, 6, SYMBOL_COPREG },
-  { "c7", sizeof ("c7")-1, 7, SYMBOL_COPREG },
-  { "c8", sizeof ("c8")-1, 8, SYMBOL_COPREG },
-  { "c9", sizeof ("c9")-1, 9, SYMBOL_COPREG },
-  { "c10", sizeof ("c10")-1, 10, SYMBOL_COPREG },
-  { "c11", sizeof ("c11")-1, 11, SYMBOL_COPREG },
-  { "c12", sizeof ("c12")-1, 12, SYMBOL_COPREG },
-  { "c13", sizeof ("c13")-1, 13, SYMBOL_COPREG },
-  { "c14", sizeof ("c14")-1, 14, SYMBOL_COPREG },
-  { "c15", sizeof ("c15")-1, 15, SYMBOL_COPREG }
-};
-
-/* These symbol registers are always defined when APCS is selected.  */
-static const Symbol_PreDef_t oSymRegsAPCS[] =
-{
-  { "a1", sizeof ("a1")-1, 0, SYMBOL_CPUREG },
-  { "a2", sizeof ("a2")-1, 1, SYMBOL_CPUREG },
-  { "a3", sizeof ("a3")-1, 2, SYMBOL_CPUREG },
-  { "a4", sizeof ("a4")-1, 3, SYMBOL_CPUREG },
-  { "v1", sizeof ("v1")-1, 4, SYMBOL_CPUREG },
-  { "v2", sizeof ("v2")-1, 5, SYMBOL_CPUREG },
-  { "v3", sizeof ("v3")-1, 6, SYMBOL_CPUREG },
-  { "v4", sizeof ("v4")-1, 7, SYMBOL_CPUREG },
-  { "v5", sizeof ("v5")-1, 8, SYMBOL_CPUREG },
-  /* Note: v6, sl and fp are conditionally defined depending on the APCS option value.  */
-  { "ip", sizeof ("ip")-1, 12, SYMBOL_CPUREG }, /* { "IP", sizeof ("IP")-1, 12, SYMBOL_CPUREG }, */
-  { "sp", sizeof ("sp")-1, 13, SYMBOL_CPUREG }, /* { "SP", sizeof ("SP")-1, 13, SYMBOL_CPUREG }, */
-};
-
-/* These symbol registers are defined whe FPA is selected.  */
-static const Symbol_PreDef_t oSymRegsFPA[] =
-{
-  { "f0", sizeof ("f0")-1, 0, SYMBOL_FPUREG }, { "F0", sizeof ("F0")-1, 0, SYMBOL_FPUREG },
-  { "f1", sizeof ("f1")-1, 1, SYMBOL_FPUREG }, { "F1", sizeof ("F1")-1, 1, SYMBOL_FPUREG },
-  { "f2", sizeof ("f2")-1, 2, SYMBOL_FPUREG }, { "F2", sizeof ("F2")-1, 2, SYMBOL_FPUREG },
-  { "f3", sizeof ("f3")-1, 3, SYMBOL_FPUREG }, { "F3", sizeof ("F3")-1, 3, SYMBOL_FPUREG },
-  { "f4", sizeof ("f4")-1, 4, SYMBOL_FPUREG }, { "F4", sizeof ("F4")-1, 4, SYMBOL_FPUREG },
-  { "f5", sizeof ("f5")-1, 5, SYMBOL_FPUREG }, { "F5", sizeof ("F5")-1, 5, SYMBOL_FPUREG },
-  { "f6", sizeof ("f6")-1, 6, SYMBOL_FPUREG }, { "F6", sizeof ("F6")-1, 6, SYMBOL_FPUREG },
-  { "f7", sizeof ("f7")-1, 7, SYMBOL_FPUREG }, { "F7", sizeof ("F7")-1, 7, SYMBOL_FPUREG },
-};
-
 static Symbol *symbolTable[SYMBOL_TABLESIZE];
 static bool oKeepAllSymbols;
 static bool oAllExportSymbolsAreWeak; /* FIXME: support this.  */
@@ -187,42 +92,6 @@ EqSymLex (const Symbol *str, const Lex *lx)
   if (str->len != lx->Data.Id.len)
     return false;
   return !memcmp (str->str, lx->Data.Id.str, str->len);
-}
-
-static void
-Symbol_PreDefReg (const char *regname, size_t namelen, int value, int type)
-{
-  const Lex l = lexTempLabel (regname, namelen);
-  Symbol *s = symbolGet (&l);
-  s->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE | type;
-  s->value = Value_Int (value);
-}
-
-void
-Symbol_Init (void)
-{
-  for (size_t i = 0; i != sizeof (oSymRegs)/sizeof (oSymRegs[0]); ++i)
-    Symbol_PreDefReg (oSymRegs[i].name, oSymRegs[i].len, oSymRegs[i].value, oSymRegs[i].type);
-
-  if (gIsAPCS)
-    {
-      for (size_t i = 0; i != sizeof (oSymRegsAPCS)/sizeof (oSymRegsAPCS[0]); ++i)
-	Symbol_PreDefReg (oSymRegsAPCS[i].name, oSymRegsAPCS[i].len, oSymRegsAPCS[i].value, oSymRegsAPCS[i].type);
-      Symbol_PreDefReg ((gOptionAPCS & APCS_OPT_REENTRANT) ? "sb" : "v6",
-                        sizeof ("sb")-1, 9, SYMBOL_CPUREG);
-      Symbol_PreDefReg ((gOptionAPCS & APCS_OPT_SWSTACKCHECK) ? "sl" : "v7",
-                        sizeof ("sl")-1, 10, SYMBOL_CPUREG);
-      Symbol_PreDefReg ((gOptionAPCS & APCS_OPT_FRAMEPTR) ? "fp" : "v8",
-                        sizeof ("fp")-1, 11, SYMBOL_CPUREG);
-    }
-
-  if (1 /* FIXME: only when FPA is selected.  */)
-    {
-      for (size_t i = 0; i != sizeof (oSymRegsFPA)/sizeof (oSymRegsFPA[0]); ++i)
-	Symbol_PreDefReg (oSymRegsFPA[i].name, oSymRegsFPA[i].len, oSymRegsFPA[i].value, oSymRegsFPA[i].type);
-    }
-
-  /* FIXME: define single/double precision VFP registers */
 }
 
 
@@ -1061,6 +930,15 @@ symbolPrint (const Symbol *sym)
 	break;
       case SYMBOL_FPUREG:
 	printf ("FPU reg/");
+	break;
+      case SYMBOL_NEONQUADREG:
+	printf ("NEON quad reg/");
+	break;
+      case SYMBOL_NEONDOUBLEREG:
+	printf ("NEON/VFP double reg/");
+	break;
+      case SYMBOL_VFPSINGLEREG:
+	printf ("VFP single reg/");
 	break;
       case SYMBOL_COPREG:
 	printf ("coprocessor reg/");

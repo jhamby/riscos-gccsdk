@@ -50,8 +50,6 @@
 //#  define DEBUG_ASM
 #endif
 
-ASM_Phase_e gASM_Phase = eStartup;
-
 /**
  * Read one line input.
  * \return true for success, false otherwise.
@@ -132,17 +130,13 @@ ASM_DoPass (const char *asmFile)
 void
 ASM_Assemble (const char *asmFile)
 {
-  Area_PrepareForPhase (ePassOne);
-  Local_PrepareForPhase (ePassOne);
-  gASM_Phase = ePassOne;
+  Phase_PrepareFor (ePassOne);
   ASM_DoPass (asmFile);
 
   /* Don't do a next pass if we already have errors now.  */
   if (returnExitStatus () == EXIT_SUCCESS)
     {
-      Area_PrepareForPhase (ePassTwo);
-      Local_PrepareForPhase (ePassTwo);
-      gASM_Phase = ePassTwo;
+      Phase_PrepareFor (ePassTwo);
       ASM_DoPass (asmFile);
     }
 }

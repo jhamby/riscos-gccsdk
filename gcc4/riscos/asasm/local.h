@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2011 GCCSDK Developers
+ * Copyright (c) 2002-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,8 +25,9 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include "asm.h"
+
 #include "lex.h"
+#include "phase.h"
 
 typedef enum
 {
@@ -50,7 +51,7 @@ typedef struct Local_Label_t
   unsigned instance; /**< Instance of label number.  */
 } Local_Label_t;
 
-void Local_PrepareForPhase (ASM_Phase_e phase);
+void Local_PrepareForPhase (Phase_e phase);
 
 Local_Label_t *Local_DefineLabel (unsigned num);
 void Local_CreateSymbolForOutstandingFwdLabelRef (char *buf, size_t bufSize,

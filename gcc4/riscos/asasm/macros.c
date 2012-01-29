@@ -32,7 +32,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "asm.h"
 #include "commands.h"
 #include "common.h"
 #include "decode.h"
@@ -40,6 +39,7 @@
 #include "filestack.h"
 #include "input.h"
 #include "macros.h"
+#include "phase.h"
 #include "variables.h"
 
 #ifdef DEBUG
@@ -307,7 +307,7 @@ c_macro (void)
 
   char *buf = NULL;
 
-  if (gASM_Phase == ePassTwo)
+  if (gPhase == ePassTwo)
     goto lookforMEND;
   
   skipblanks ();

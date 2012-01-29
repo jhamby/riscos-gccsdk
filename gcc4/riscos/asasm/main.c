@@ -42,6 +42,7 @@
 #include "area.h"
 #include "asm.h"
 #include "common.h"
+#include "depend.h"
 #include "error.h"
 #include "filestack.h"
 #include "include.h"
@@ -49,9 +50,11 @@
 #include "main.h"
 #include "local.h"
 #include "output.h"
+#include "phase.h"
+#include "predef_reg.h"
+#include "state.h"
 #include "symbol.h"
 #include "targetcpu.h"
-#include "depend.h"
 #include "variables.h"
 
 jmp_buf asmContinue;
@@ -185,6 +188,11 @@ asasm_help (void)
 	   "-elf                       Output ELF file [default].\n"
 #endif
 	   "-aof                       Output AOF file.\n"
+           "-16                        Start processing Thumb instructions (pre-UAL syntax).\n"
+           "-32                        Synonym for -arm.\n"
+           "-arm                       Start processing ARM instructions.\n" 
+           "-thumb                     Start processing Thumb instructions (UAL syntax).\n"
+           "-thumbx                    Start processing ThumbEE instructions (UAL syntax).\n"
 	   "\n");
 }
 
@@ -195,7 +203,7 @@ atexit_handler (void)
      started doing the assembling (i.e. don't remove the output file
      when there was an option error).  */
   if (returnExitStatus () != EXIT_SUCCESS
-      && gASM_Phase >= ePassOne)
+      && gPhase >= ePassOne)
     Output_Remove ();
 }
 
@@ -449,6 +457,26 @@ main (int argc, char **argv)
 #endif
       else if (!strcasecmp (arg, "aof"))
 	set_option_aof (1);
+      else if (!strcasecmp (arg, "16"))
+	{
+	  State_SetCmdLineInstrType (eInstrType_Thumb);
+	  State_SetCmdLineSyntax (eSyntax_PreUALOnly);
+	}
+      else if (!strcasecmp (arg, "32") || !strcasecmp (arg, "arm"))
+	{
+	  State_SetCmdLineInstrType (eInstrType_ARM);
+	  State_SetCmdLineSyntax (eSyntax_PreUALOnly);
+	}
+      else if (!strcasecmp (arg, "thumb"))
+	{
+	  State_SetCmdLineInstrType (eInstrType_Thumb);
+	  State_SetCmdLineSyntax (eSyntax_UALOnly);
+	}
+      else if (!strcasecmp (arg, "thumbx"))
+	{
+	  State_SetCmdLineInstrType (eInstrType_ThumbEE);
+	  State_SetCmdLineSyntax (eSyntax_UALOnly);
+	}
       else if (!strcasecmp (arg, "stamp") || !strcasecmp (arg, "quit"))
 	{
 	  /* -stamp & -quit are old AAsm/ObjAsm options which we silently
@@ -510,7 +538,7 @@ main (int argc, char **argv)
   else
     {
       asmAbortValid = true;
-      Symbol_Init ();
+      PreDefReg_Init ();
       Output_Init (ObjFileName);
 
       /* Do the two pass assembly.  */
@@ -525,17 +553,15 @@ main (int argc, char **argv)
 	    {
 	      asmContinueValid = true;
 	      /* Write the ELF/AOF output.  */
-	      Area_PrepareForPhase (eOutput);
-	      Local_PrepareForPhase (eOutput);
+	      Phase_PrepareFor (eOutput);
 	      if (returnExitStatus () == EXIT_SUCCESS)
 		{
-		  gASM_Phase = eOutput;
 #ifndef NO_ELF_SUPPORT
 		  if (!option_aof)
-		    Output_ELF();
+		    Output_ELF ();
 		  else
 #endif
-		    Output_AOF();
+		    Output_AOF ();
 		}
 	    }
 	  asmContinueValid = false;

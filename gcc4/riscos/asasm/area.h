@@ -27,10 +27,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "asm.h"
 #include "symbol.h"
 #include "reloc.h"
 #include "lit.h"
+#include "phase.h"
 
 /* Lowest 8 bits encode the alignment of the start of the area as a power
    of 2 and has a value between 2 and 32.  */
@@ -109,7 +109,7 @@ extern Symbol *areaEntrySymbol; /** Symbol of area which has been marked as ENTR
 extern int areaEntryOffset;
 extern Symbol *areaHeadSymbol; /** Start of the linked list of all area symbols seen so far.  Follow Symbol::area.info->next for next area (*not* Symbol::next !).  */
 
-void Area_PrepareForPhase (ASM_Phase_e phase);
+void Area_PrepareForPhase (Phase_e phase);
 
 void Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow);
 

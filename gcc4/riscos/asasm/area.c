@@ -44,6 +44,7 @@
 #include "input.h"
 #include "lex.h"
 #include "main.h"
+#include "phase.h"
 #include "symbol.h"
 
 static void Area_Ensure (void);
@@ -149,7 +150,7 @@ Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow)
   if (areaSym->area.info->curIdx + mingrow <= areaSym->area.info->imagesize)
     return;
 
-  assert (gASM_Phase == ePassOne);
+  assert (gPhase == ePassOne);
   
   /* When we want to grow an implicit area, it is time to give an error as
      this is not something we want to output.  */
@@ -173,7 +174,7 @@ Area_EnsureExtraSize (Symbol *areaSym, size_t mingrow)
  * Area phase preparation.
  */
 void
-Area_PrepareForPhase (ASM_Phase_e phase)
+Area_PrepareForPhase (Phase_e phase)
 {
   switch (phase)
     {

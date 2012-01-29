@@ -86,7 +86,7 @@ static void Local_ResetLabels (void);
 
 
 void
-Local_PrepareForPhase (ASM_Phase_e phase)
+Local_PrepareForPhase (Phase_e phase)
 {
   switch (phase)
     {

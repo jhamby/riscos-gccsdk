@@ -50,6 +50,7 @@
 #include "m_fpe.h"
 #include "option.h"
 #include "main.h"
+#include "state.h"
 #include "storage.h"
 
 typedef bool (*po_void)(void); /* For eCB_Void, eCB_NoLex and eCB_NoLexPMatch.  */
@@ -405,6 +406,13 @@ decode (const Lex *label)
       return;
     }
 
+  /* FIXME: test on currently unsupported Thumb/ThumbEE state.  */
+  if (State_GetInstrType () != eInstrType_ARM)
+    {
+      error (ErrorError, "Thumb/ThumbEE are currently unsupported"); /* FIXME */
+      return;
+    }
+  
   const char * const inputMark = Input_GetMark ();
 
   /* Determines whether the mnemonic is all lowercase or all uppercase.  */
@@ -678,7 +686,7 @@ decode (const Lex *label)
 	      else
 		error (ErrorError, "Failed to determine label size");
 	    }
-	  assert ((gASM_Phase == ePassOne && labelSymbol->codeSize == 0) || (gASM_Phase == ePassTwo && labelSymbol->codeSize == codeSize));
+	  assert ((gPhase == ePassOne && labelSymbol->codeSize == 0) || (gPhase == ePassTwo && labelSymbol->codeSize == codeSize));
 	  labelSymbol->codeSize = codeSize;
 	}
 

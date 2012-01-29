@@ -1,7 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2012 GCCSDK Developers
+ * Copyright (c) 2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,16 +16,21 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * asm.h
+ * phase.h
  */
 
-#ifndef asm_header_included
-#define asm_header_included
+#ifndef phase_header_included
+#define phase_header_included
 
-#include "lex.h"
-#include "symbol.h"
+typedef enum
+{
+  eStartup,
+  ePassOne,
+  ePassTwo,
+  eOutput
+} Phase_e;
+extern Phase_e gPhase;
 
-void ASM_Assemble (const char *asmFile);
-Symbol *ASM_DefineLabel (const Lex *label, uint32_t offset);
+void Phase_PrepareFor (Phase_e phase);
 
 #endif

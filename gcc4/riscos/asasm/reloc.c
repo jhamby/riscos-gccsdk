@@ -48,6 +48,7 @@
 #include "main.h"
 #include "option.h"
 #include "output.h"
+#include "phase.h"
 #include "reloc.h"
 #include "symbol.h"
 
@@ -85,7 +86,7 @@ bool
 Reloc_QueueExprUpdate (RelocUpdater callback, ARMWord offset, ValueTag legal,
 		       void *privData, size_t sizePrivData)
 {
-  assert (gASM_Phase == ePassTwo);
+  assert (gPhase == ePassTwo);
 
   Value value; /* We have ownership of this.  */
   /* Evaluate expression.  */

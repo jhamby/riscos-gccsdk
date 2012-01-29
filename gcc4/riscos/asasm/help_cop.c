@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,6 +43,7 @@
 #include "main.h"
 #include "m_fpe.h"
 #include "option.h"
+#include "phase.h"
 #include "put.h"
 #include "reloc.h"
 #include "value.h"
@@ -360,7 +361,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 
   Put_Ins (ir);
 
-  if (gASM_Phase != ePassOne)
+  if (gPhase != ePassOne)
     {
       assert ((!callRelocUpdate || (ir & P_FLAG)) && "Calling reloc for non pre-increment instructions ?");
 

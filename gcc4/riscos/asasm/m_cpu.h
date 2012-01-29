@@ -130,9 +130,4 @@ bool m_lsr (bool doLowerCase);
 bool m_ror (bool doLowerCase);
 bool m_rrx (bool doLowerCase);
 
-bool c_code16 (void);
-bool c_code32 (void);
-bool c_thumb (void);
-bool c_thumbx (void);
-
 #endif

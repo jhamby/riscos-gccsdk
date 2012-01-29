@@ -63,8 +63,12 @@
 
 #define SYMBOL_CPUREG		0x10000000
 #define SYMBOL_FPUREG		0x20000000
-#define SYMBOL_COPREG		0x30000000
-#define SYMBOL_COPNUM		0x40000000
+#define SYMBOL_NEONQUADREG	0x30000000 /* q0 - q15 : NEON quadword registers.  */
+#define SYMBOL_NEONDOUBLEREG	0x40000000 /* d0 - d31 : NEON doubleword registers, VFP double-precision registers.  */
+#define SYMBOL_VFPDOUBLEREG	SYMBOL_NEONDOUBLEREG
+#define SYMBOL_VFPSINGLEREG	0x50000000 /* s0 - s31 : VFP single-precision registers.  */
+#define SYMBOL_COPREG		0x60000000
+#define SYMBOL_COPNUM		0x70000000
 #define SYMBOL_GETREGTYPE(x)	((x) & 0x70000000)
 
 #define SYMBOL_TABLESIZE 1024
@@ -111,7 +115,6 @@ typedef struct Symbol
 /* Prefix of all internal AsAsm symbols.  */
 #define kIntLabelPrefix "$$AsAsm$$Int$$"
 
-void Symbol_Init (void);
 Symbol *symbolGet (const Lex *l);
 Symbol *symbolFind (const Lex *l);
 void symbolRemove (const Lex *l);

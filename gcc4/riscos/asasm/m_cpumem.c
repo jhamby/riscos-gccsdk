@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -45,6 +45,7 @@
 #include "m_cpu.h"
 #include "m_cpumem.h"
 #include "option.h"
+#include "phase.h"
 #include "put.h"
 #include "targetcpu.h"
 
@@ -200,7 +201,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 			/* Fall through.  */
 
 		      default:
-			if (gASM_Phase != ePassOne)
+			if (gPhase != ePassOne)
 			  error (ErrorError, "Illegal offset expression");
 			symValue = Value_Addr (baseReg, 0);
 			break;
@@ -349,7 +350,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 
   Put_Ins (ir);
 
-  if (gASM_Phase != ePassOne)
+  if (gPhase != ePassOne)
     {
       assert ((!callRelocUpdate || (ir & P_FLAG)) && "Calling reloc for non pre-increment instructions ?");
     

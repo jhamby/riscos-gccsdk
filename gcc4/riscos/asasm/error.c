@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2011 GCCSDK Developers
+ * Copyright (c) 2002-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,7 +34,6 @@
 #  include <inttypes.h>
 #endif
 
-#include "asm.h"
 #include "error.h"
 #include "filestack.h"
 #include "input.h"
@@ -43,6 +42,7 @@
 #ifdef __riscos__
 #  include "os.h"
 #endif
+#include "phase.h"
 
 #define MAXERR (30)
 
@@ -127,7 +127,7 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 {
   /* Ignore Info and Warning messages during Pass 1.  If there are no
      errors, we'll emit them during Pass 2.  */
-  if (gASM_Phase == ePassOne
+  if (gPhase == ePassOne
       && (e == ErrorInfo || e == ErrorWarning))
     return;
 
@@ -254,7 +254,7 @@ error (ErrorTag e, const char *format, ...)
   errorCore (e, format, ap);
   va_end (ap);
 
-  if (gASM_Phase != ePassOne
+  if (gPhase != ePassOne
       || (e != ErrorInfo && e != ErrorWarning))
     Input_ShowLine ();
 
@@ -298,7 +298,7 @@ errorCoreLine (const char *file, int lineno, ErrorTag e,
 {
   /* Ignore Info and Warning messages during Pass 1.  If there are no
      errors, we'll emit them during Pass 2.  */
-  if (gASM_Phase == ePassOne
+  if (gPhase == ePassOne
       && (e == ErrorInfo || e == ErrorWarning))
     return;
 

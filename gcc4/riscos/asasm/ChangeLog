@@ -1,3 +1,25 @@
+Sun Jan 29 19:50:59 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c: Move predefined register values to...
+	* predef_reg.c: ...here (new file).
+	* symbol.h (SYMBOL_NEONQUADREG, SYMBOL_NEONDOUBLEREG,
+	SYMBOL_VFPDOUBLEREG, SYMBOL_VFPSINGLEREG): Add.
+	* decode.c (decode): Add test on currently unsupported Thumb/ThumbEE
+	state.
+	* asm.c, asm.h (gASM_Phase): Move to...
+	* phase.c, phase.h (gPhase): ...here.
+	(Phase_PrepareFor): Add.
+	* m_cpu.c, m_cpu.h (c_code16,c_thumb,c_thumbx,c_code32): Move to...
+	* state.c, state.h: ...here (new files).
+	(Syntax_e, InstrType_e, State_SetCmdLineSyntax,
+	State_SetCmdLineInstrType, State_PrepareForPhase, State_GetSyntax,
+	State_GetInstrType): Add.
+	* main.c (-16,-32,-arm,-thumb,-thumbx): Add new command line options.
+	* Makefile.am (phase.c, predef_reg.c, state.c): Add.
+	* commands.c, m_cpuctrl.c, help_cop.c, error.c, local.c, local.h,
+	m_cpumem.c, area.c, area.h, macros.c, reloc.c, get.c, asm.c, main.c,
+	asm.h, eval.c, lit.c: Follow above changes.
+
 Sun Jan 29 15:55:33 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* macros.c (MKeyword_e): Add.

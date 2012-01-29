@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2011 GCCSDK Developers
+ * Copyright (c) 2002-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,6 @@
 #include <stdlib.h>
 
 #include "area.h"
-#include "asm.h"
 #include "code.h"
 #include "common.h"
 #include "error.h"
@@ -37,6 +36,7 @@
 #include "global.h"
 #include "include.h"
 #include "main.h"
+#include "phase.h"
 
 /* No validation checking on value types! */
 static int
@@ -99,7 +99,7 @@ GetInt (const Value *val, uint32_t *i)
         } \
       else \
         { \
-	  if (gASM_Phase != ePassOne) \
+	  if (gPhase != ePassOne) \
 	    error (ErrorError, "Bad operand types for %s", STRINGIFY(OP)); \
           return false; \
         } \
@@ -154,7 +154,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", "multiplication");
 	      return false;
 	    }
@@ -169,14 +169,14 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  if ((!divident_isint && lvalue->Tag != ValueFloat)
 	      || (!divisor_isint && rvalue->Tag != ValueFloat))
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", "division");
 	      return false;
 	    }
 	  double divisor_dbl = divisor_isint ? (double)(signed)divisor : rvalue->Data.Float.f;
 	  if (divisor_dbl == 0.)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Division by zero");
 	      return false;
 	    }
@@ -203,7 +203,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    {
 	      if (modulus == 0)
 		{
-		  if (gASM_Phase != ePassOne)
+		  if (gPhase != ePassOne)
 		    error (ErrorError, "Division by zero");
 		  return false;
 		}
@@ -213,7 +213,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", "modulo");
 	      return false;
 	    }
@@ -265,7 +265,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    lvalue->Data.Float.f += (r_isint ? (signed)rval : rhs.Data.Float.f); /* <float>/<signed int> + <float>/<signed/int> -> <float> */
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", "addition");
 	      return false;
 	    }
@@ -298,7 +298,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	      /* <addr> - <addr> -> <int> */
 	      if (lvalue->Data.Addr.r != rvalue->Data.Addr.r)
 		{
-		  if (gASM_Phase != ePassOne)
+		  if (gPhase != ePassOne)
 		    error (ErrorError, "Base registers are different in subtraction ([r%d, #x] - [r%d, #y])",
 			   lvalue->Data.Addr.r, rvalue->Data.Addr.r);
 		  return false;
@@ -329,7 +329,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", "subtraction");
 	      return false;
 	    }
@@ -340,7 +340,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	{
 	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueString)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", "string concatenation");
 	      return false;
 	    }
@@ -369,7 +369,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":AND:");
 	      return false;
 	    }
@@ -388,7 +388,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":OR:");
 	      return false;
 	    }
@@ -407,7 +407,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":EOR:");
 	      return false;
 	    }
@@ -428,7 +428,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ">>>");
 	      return false;
 	    }
@@ -446,7 +446,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ">> or :SHR:");
 	      return false;
 	    }
@@ -464,7 +464,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", "<< or :SHR:");
 	      return false;
 	    }
@@ -483,7 +483,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":ROR:");
 	      return false;
 	    }
@@ -502,7 +502,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":ROL:");
 	      return false;
 	    }
@@ -559,7 +559,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	{
 	  if (lvalue->Tag != ValueBool || rvalue->Tag != ValueBool)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":LAND:");
 	      return false;
 	    }
@@ -571,7 +571,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	{
 	  if (lvalue->Tag != ValueBool || rvalue->Tag != ValueBool)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":LOR:");
 	      return false;
 	    }
@@ -583,7 +583,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	{
 	  if (lvalue->Tag != ValueBool || rvalue->Tag != ValueBool)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":LEOR:");
 	      return false;
 	    }
@@ -595,13 +595,13 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	{
 	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueInt)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":LEFT:");
 	      return false;
 	    }
 	  if (rvalue->Data.Int.i < 0 || (size_t)rvalue->Data.Int.i > lvalue->Data.String.len)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Wrong number of characters (%d) specified for :LEFT:",
 		       rvalue->Data.Int.i);
 	      return false;
@@ -614,13 +614,13 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	{
 	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueInt)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":RIGHT:");
 	      return false;
 	    }
 	  if (rvalue->Data.Int.i < 0 || (size_t)rvalue->Data.Int.i > lvalue->Data.String.len)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Wrong number of characters (%d) specified for :RIGHT:",
 		       rvalue->Data.Int.i);
 	      return false;
@@ -816,7 +816,7 @@ evalUnop (Operator op, Value *value)
       case Op_lnot: /* :LNOT: ! */
 	if (value->Tag != ValueBool)
 	  {
-	    if (gASM_Phase != ePassOne)
+	    if (gPhase != ePassOne)
 	      error (ErrorError, "Bad operand type for %s", ":LNOT:");
 	    return false;
 	  }
@@ -840,7 +840,7 @@ evalUnop (Operator op, Value *value)
 	      /* Fall through.  */
 
 	    default:
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":NOT:");
 	      return false;
 	  }
@@ -849,7 +849,7 @@ evalUnop (Operator op, Value *value)
       case Op_neg: /* - */
 	if (!Eval_NegValue (value))
 	  {
-	    if (gASM_Phase != ePassOne)
+	    if (gPhase != ePassOne)
 	      error (ErrorError, "Bad operand type for %s", "negation");
 	    return false;
 	  }
@@ -858,7 +858,7 @@ evalUnop (Operator op, Value *value)
       case Op_base: /* :BASE: */
 	if (value->Tag != ValueAddr)
 	  {
-	    if (gASM_Phase != ePassOne)
+	    if (gPhase != ePassOne)
 	      error (ErrorError, "Bad operand type for %s", ":BASE:");
 	    return false;
 	  }
@@ -869,7 +869,7 @@ evalUnop (Operator op, Value *value)
       case Op_index: /* :INDEX: */
 	if (value->Tag != ValueAddr && value->Tag != ValueInt)
 	  {
-	    if (gASM_Phase != ePassOne)
+	    if (gPhase != ePassOne)
 	      error (ErrorError, "Bad operand type for %s", ":INDEX:");
 	    return false;
 	  }
@@ -879,7 +879,7 @@ evalUnop (Operator op, Value *value)
       case Op_len: /* :LEN: */
 	if (value->Tag != ValueString)
 	  {
-	    if (gASM_Phase != ePassOne)
+	    if (gPhase != ePassOne)
 	      error (ErrorError, "Bad operand type for %s", ":LEN:");
 	    return false;
 	  }
@@ -909,7 +909,7 @@ evalUnop (Operator op, Value *value)
 		  sprintf (num, "%f", value->Data.Float.f);
 		  break;
 	        default:
-	          if (gASM_Phase != ePassOne)
+	          if (gPhase != ePassOne)
 		    error (ErrorError, "Bad operand type for %s", ":STR:");
 		  return false;
 	      }
@@ -928,7 +928,7 @@ evalUnop (Operator op, Value *value)
 	{
 	  if (value->Tag != ValueInt)
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "Bad operand type for %s", ":CHR:");
 	      return false;
 	    }
@@ -961,13 +961,13 @@ evalUnop (Operator op, Value *value)
 	    {
 	      value->Tag = ValueInt;
 	      value->Data.Int.i = value->Data.Symbol.symbol->area.info->curIdx;
-	      if (gASM_Phase == ePassTwo
+	      if (gPhase == ePassTwo
 		  && value->Data.Symbol.symbol->area.info->curIdx != value->Data.Symbol.symbol->area.info->maxIdx)
 		error (ErrorError, "? on area symbol which gets extended later on");
 	    }
 	  else
 	    {
-	      if (gASM_Phase != ePassOne)
+	      if (gPhase != ePassOne)
 		error (ErrorError, "? is not supported for non defined labels");
 	      return false;
 	    }

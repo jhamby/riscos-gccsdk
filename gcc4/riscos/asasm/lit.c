@@ -42,6 +42,7 @@
 #include "lit.h"
 #include "local.h"
 #include "main.h"
+#include "phase.h"
 #include "put.h"
 #include "reloc.h"
 #include "value.h"
@@ -325,13 +326,13 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 	  assert (litPoolP->status != eNoNeedToAssemble);
 
 	  Symbol *symP = Lit_GetLitOffsetAsSymbol (litPoolP);
-	  assert (gASM_Phase != ePassTwo || (symP->type & SYMBOL_DEFINED) != 0);
+	  assert (gPhase != ePassTwo || (symP->type & SYMBOL_DEFINED) != 0);
 	  assert ((((symP->type & SYMBOL_DEFINED) == 0) && litPoolP->status == eNotYetAssembled)
 	          || (((symP->type & SYMBOL_DEFINED) != 0) && (litPoolP->status == eAssembledPassOne || litPoolP->status == eAssembledPassTwo)));
 	  if ((symP->type & SYMBOL_DEFINED) != 0)
 	    {
 	      assert (symP->value.Tag == ValueInt || symP->value.Tag == ValueSymbol);
-	      assert (gASM_Phase == ePassTwo || areaCurrentSymbol->area.info->curIdx >= litPoolP->offset);
+	      assert (gPhase == ePassTwo || areaCurrentSymbol->area.info->curIdx >= litPoolP->offset);
 	      if (areaCurrentSymbol->area.info->curIdx + 8 > litPoolP->offset + offset + ((isAddrMode3) ? 255 : 4095))
 		continue;
 
@@ -352,7 +353,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 	}
     }
 
-  assert (gASM_Phase == ePassOne);
+  assert (gPhase == ePassOne);
   return Lit_CreateLiteralSymbol (&truncValue, size);
 }
 
@@ -402,13 +403,13 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 	  assert (litPoolP->status != eNoNeedToAssemble);
 
 	  Symbol *symP = Lit_GetLitOffsetAsSymbol (litPoolP);
-	  assert (gASM_Phase != ePassTwo || (symP->type & SYMBOL_DEFINED) != 0);
+	  assert (gPhase != ePassTwo || (symP->type & SYMBOL_DEFINED) != 0);
 	  assert ((((symP->type & SYMBOL_DEFINED) == 0) && litPoolP->status == eNotYetAssembled)
 	          || (((symP->type & SYMBOL_DEFINED) != 0) && (litPoolP->status == eAssembledPassOne || litPoolP->status == eAssembledPassTwo)));
 	  if ((symP->type & SYMBOL_DEFINED) != 0)
 	    {
 	      assert (symP->value.Tag == ValueFloat || symP->value.Tag == ValueSymbol);
-	      assert (gASM_Phase == ePassTwo || areaCurrentSymbol->area.info->curIdx >= litPoolP->offset);
+	      assert (gPhase == ePassTwo || areaCurrentSymbol->area.info->curIdx >= litPoolP->offset);
 	      if (areaCurrentSymbol->area.info->curIdx + 8 > litPoolP->offset + 1020)
 		continue;
 	      /* A literal with the same value got already assembled and is in
@@ -424,7 +425,7 @@ Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
 	}
     }
 
-  assert (gASM_Phase == ePassOne);
+  assert (gPhase == ePassOne);
   return Lit_CreateLiteralSymbol (&truncValue, size);
 }
 
@@ -438,18 +439,18 @@ Lit_DumpPool (void)
   printf ("Lit_DumpPool(), area offset 0x%x\n", areaCurrentSymbol->area.info->curIdx);
 #endif
 
-  Status_e statusToLeaveAlone = (gASM_Phase == ePassOne) ? eAssembledPassOne : eAssembledPassTwo;
+  Status_e statusToLeaveAlone = (gPhase == ePassOne) ? eAssembledPassOne : eAssembledPassTwo;
   for (LitPool *litP = areaCurrentSymbol->area.info->litPool; litP != NULL; litP = litP->next)
     {
       if (litP->status == statusToLeaveAlone || litP->status == eNoNeedToAssemble)
 	continue;
-      assert ((gASM_Phase == ePassOne && litP->status == eNotYetAssembled) || (gASM_Phase == ePassTwo && litP->status == eAssembledPassOne));
+      assert ((gPhase == ePassOne && litP->status == eNotYetAssembled) || (gPhase == ePassTwo && litP->status == eAssembledPassOne));
 
       const size_t alignValue = Lit_GetAlignment (litP);
-      if (gASM_Phase == ePassTwo && litP->offset > ((areaCurrentSymbol->area.info->curIdx + alignValue-1) & -alignValue))
+      if (gPhase == ePassTwo && litP->offset > ((areaCurrentSymbol->area.info->curIdx + alignValue-1) & -alignValue))
 	break;
 
-      litP->status = gASM_Phase == ePassOne ? eAssembledPassOne : eAssembledPassTwo;
+      litP->status = gPhase == ePassOne ? eAssembledPassOne : eAssembledPassTwo;
       
       /* Re-evaluate symbol/code.  It might be resolvable by now.  */
       if (litP->value.Tag == ValueSymbol || litP->value.Tag == ValueCode)
@@ -518,7 +519,7 @@ Lit_DumpPool (void)
 	      if (isImmediate
 		  && (help_cpuImm8s4 (constant) != -1 || help_cpuImm8s4 (~constant) != -1))
 		{
-		  if (gASM_Phase == ePassOne)
+		  if (gPhase == ePassOne)
 		    {
 		      /* The definition of the literal happeded after its use
 			 but before LTORG so we don't have to assemble it
@@ -555,7 +556,7 @@ Lit_DumpPool (void)
 	      if (FPE_ConvertImmediate (constant) != (ARMWord)-1
 		  || FPE_ConvertImmediate (-constant) != (ARMWord)-1)
 		{
-		  if (gASM_Phase == ePassOne)
+		  if (gPhase == ePassOne)
 		    {
 		      /* The definition of the literal happeded after its use
 			 but before LTORG so we don't have to assemble it
@@ -612,7 +613,7 @@ Lit_DumpPool (void)
       Value newSymValue = Value_Symbol (areaCurrentSymbol, 1, areaCurrentSymbol->area.info->curIdx);
       Value_Assign (&symP->value, &newSymValue);
 
-      assert ((gASM_Phase == ePassOne && litP->offset == 0) || (gASM_Phase == ePassTwo && litP->offset == areaCurrentSymbol->area.info->curIdx));
+      assert ((gPhase == ePassOne && litP->offset == 0) || (gPhase == ePassTwo && litP->offset == areaCurrentSymbol->area.info->curIdx));
       litP->offset = areaCurrentSymbol->area.info->curIdx;
 
       switch (litP->size)
@@ -633,7 +634,7 @@ Lit_DumpPool (void)
 	      valuePrint (&litP->value);
 	      printf ("\n");
 #endif
-	      if (gASM_Phase == ePassOne)
+	      if (gPhase == ePassOne)
 		Put_AlignDataWithOffset (litP->offset, privData.size, 0, !privData.allowUnaligned);
 	      else
 		{
@@ -660,7 +661,7 @@ Lit_DumpPool (void)
 	      valuePrint (&litP->value);
 	      printf ("\n");
 #endif
-	      if (gASM_Phase == ePassOne)
+	      if (gPhase == ePassOne)
 		Put_FloatDataWithOffset (litP->offset, privData.size, 0.,
 					 !privData.allowUnaligned);
 	      else

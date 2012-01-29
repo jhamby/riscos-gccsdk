@@ -50,6 +50,7 @@
 #include "local.h"
 #include "main.h"
 #include "output.h"
+#include "phase.h"
 #include "put.h"
 #include "symbol.h"
 #include "value.h"
@@ -376,7 +377,7 @@ DefineInt (int size, bool allowUnaligned, const char *mnemonic)
   do
     {
       exprBuild ();
-      if (gASM_Phase == ePassOne)
+      if (gPhase == ePassOne)
 	{
 	  const Value *result = codeEval (ValueInt | ValueString | ValueSymbol | ValueCode, NULL);
 	  if (result->Tag == ValueString)
@@ -522,7 +523,7 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
   do
     {
       exprBuild ();
-      if (gASM_Phase == ePassOne)
+      if (gPhase == ePassOne)
 	Put_FloatDataWithOffset (areaCurrentSymbol->area.info->curIdx,
 				 privData.size, 0., !privData.allowUnaligned);
       else
@@ -690,7 +691,7 @@ c_end (void)
 bool
 c_assert (void)
 {
-  if (gASM_Phase == ePassOne)
+  if (gPhase == ePassOne)
     Input_Rest ();
   else
     {
@@ -747,7 +748,7 @@ c_info (void)
     }
 
   /* Give output during pass one.  */
-  if (gASM_Phase == ePassOne)
+  if (gPhase == ePassOne)
     {
       if (giveErr)
 	error (ErrorError, "%.*s", (int)message->Data.String.len, message->Data.String.s);
