@@ -2,14 +2,21 @@
 
 cd `dirname $0`
 
+notfound=
+
 for tool in \
   gcc make m4 libtool bison autogen patch makeinfo wget help2man ; do
 
   if ! type $tool >/dev/null 2>&1 ; then
-    echo "'$tool' couldn't be found.  This needs to be installed for GCCSDK".
-    exit 1
+    notfound="$notfound $tool"
   fi
 done
+
+if [ -n "$notfound" ] ; then
+  echo "Please install the following tools for GCCSDK:$notfound"
+  exit 1
+fi
+
 
 function error_handler {
   echo ""
