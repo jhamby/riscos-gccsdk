@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -62,65 +62,164 @@ Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
 
   if (final)
     return true;
-
-  /* Branch instruction with value 0 means a branch to {PC} + 8, so start
-     to compensate the {PC}+8, the result is a value what needs to be
-     added to that branch instruction.  */
-  const bool absArea = (areaCurrentSymbol->area.info->type & AREA_ABS) != 0; 
-  int numAreaCurrentSymbol = absArea ? 0 : -1;
-  int branchOffset = absArea ? -(offset + 8) - Area_GetBaseAddress (areaCurrentSymbol) : -(offset + 8);
-  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
+  
+  int relocs = 0;
+  int relative = 0;
     {
-      const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag == CodeOperator)
+      int factor = 1;
+      for (size_t i = 0; i != valueP->Data.Code.len; ++i)
 	{
-	  if (codeP->Data.op != Op_add)
-	    return true;
-	  continue;
-	}
+	  if (i + 1 != valueP->Data.Code.len
+	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
+	      && valueP->Data.Code.c[i + 1].Data.op == Op_sub)
+	    factor = -1;
+	  else
+	    factor = 1;
 
-      assert (codeP->Tag == CodeValue);
-      const Value *valP = &codeP->Data.value;
-      switch (valP->Tag)
-	{
-	  case ValueInt:
-	    branchOffset += valP->Data.Int.i;
-	    break;
-
-	  case ValueSymbol:
+	  const Code *codeP = &valueP->Data.Code.c[i];
+	  if (codeP->Tag == CodeOperator)
 	    {
-	      int factor = valP->Data.Symbol.factor;
-	      if (factor != 1)
+	      if (codeP->Data.op != Op_add && codeP->Data.op != Op_sub)
 		return true;
-	      if (valP->Data.Symbol.symbol != areaCurrentSymbol)
-		{
-		  /* The R_ARM_PC24 ELF reloc needs to happen for a "B {PC}"
-		     instruction, while in AOF this needs to happen for a
-		     "B -<area origin>" instruction.  */
-		  if (!option_aof)
-		    branchOffset += offset;
-		  if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
-		    return true;
-		}
-	      if (absArea)
-		branchOffset += factor*Area_GetBaseAddress (areaCurrentSymbol);
-	      else
-	        numAreaCurrentSymbol += factor;
-	      branchOffset += valP->Data.Symbol.offset;
-	      break;
+	      continue;
 	    }
-		
-	  default:
-	    assert (0);
-	    break;
+	  assert (codeP->Tag == CodeValue);
+	  const Value *valP = &codeP->Data.value;
+
+	  switch (valP->Tag)
+	    {
+	      case ValueInt:
+		break;
+
+	      case ValueSymbol:
+		{
+		  Value value = *valP;
+		  if (Value_ResolveSymbol (&value))
+		    return true;
+		  assert (value.Tag == ValueSymbol);
+		  if (value.Data.Symbol.symbol == areaCurrentSymbol)
+		    {
+		      assert ((value.Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) == 0);
+		      relative += factor * value.Data.Symbol.factor;
+		    }
+		  else
+		    {
+		      if (factor * value.Data.Symbol.factor < 0)
+			return true;
+		      relocs += factor * value.Data.Symbol.factor;
+		    }
+		  break;
+		}
+
+	      default:
+		return true;
+	    }
 	}
     }
-  if (numAreaCurrentSymbol != 0)
-    return true;
+  assert (relocs >= 0);
+  
+  /* Branch instruction with value 0 means a branch to {PC} + 8 which is
+     current area base + branch instruction offset + 8.
+     So start to compensate with this value, the result is a value what needs
+     to be added to that branch instruction with value 0.  */
+  int branchInstrValue = -(offset + 8);
+  relative -= 1;
+  if (areaCurrentSymbol->area.info->type & AREA_ABS)
+    {
+      branchInstrValue += relative * Area_GetBaseAddress (areaCurrentSymbol);
+      relative = 0;
+    }
+    {
+      int factor = 1;
+      for (size_t i = 0; i != valueP->Data.Code.len; ++i)
+	{
+	  if (i + 1 != valueP->Data.Code.len
+	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
+	      && valueP->Data.Code.c[i + 1].Data.op == Op_sub)
+	    factor = -1;
+	  else
+	    factor = 1;
+
+	  const Code *codeP = &valueP->Data.Code.c[i];
+	  if (codeP->Tag == CodeOperator)
+	    {
+	      if (codeP->Data.op != Op_add && codeP->Data.op != Op_sub)
+		return true;
+	      continue;
+	    }
+	  assert (codeP->Tag == CodeValue);
+	  const Value *valP = &codeP->Data.value;
+
+	  switch (valP->Tag)
+	    {
+	      case ValueInt:
+		branchInstrValue += factor * valP->Data.Int.i;
+		break;
+
+	      case ValueSymbol:
+		{
+		  Value value = *valP;
+		  if (Value_ResolveSymbol (&value))
+		    return true;
+		  assert (value.Tag == ValueSymbol);
+		  branchInstrValue += factor * value.Data.Symbol.offset;
+
+		  int numRelocs;
+		  if (valP->Data.Symbol.symbol == areaCurrentSymbol)
+		    {
+		      if (relative > 0)
+			{
+			  numRelocs = relative;
+			  relative = 0;
+			}
+		      else
+			numRelocs = 0; /* Nothing to be done.  */
+		    }
+		  else
+		    {
+		      numRelocs = factor * value.Data.Symbol.factor;
+		      relocs -= numRelocs;
+		    }
+		  while (numRelocs--)
+		    {
+		      int how2;
+		      if (relative < 0)
+			{
+			  ++relative;
+			  how2 = HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE;
+			}
+		      else
+			how2 = HOW2_INIT | HOW2_SIZE;
+		      if (Reloc_Create (how2, offset, &value) == NULL)
+			return true;
+		      /* The R_ARM_PC24 ELF reloc needs to happen for a "B {PC}"
+			 instruction, while in AOF this needs to happen for a
+			 "B -<area origin>" instruction.  */
+		      if (!option_aof)
+			branchInstrValue += offset;
+		    }
+		  break;
+		}
+
+	      default:
+		assert (0);
+		break;
+	    }
+	}
+      while (relative < 0)
+	{
+	  ++relative;
+	  const Value value = Value_Symbol (areaCurrentSymbol, 1, 0);
+	  if (Reloc_Create (HOW2_INIT | HOW2_SIZE, offset, &value) == NULL)
+	    return true;
+	}
+      assert (!relocs && !relative);
+    }
+
   int mask = isBLX ? 1 : 3;
-  if (branchOffset & mask)
+  if (branchInstrValue & mask)
     errorLine (file, lineno, ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
-  ir |= ((branchOffset >> 2) & 0xffffff) | (isBLX ? (branchOffset & 2) << 23 : 0);
+  ir |= ((branchInstrValue >> 2) & 0xffffff) | (isBLX ? (branchInstrValue & 2) << 23 : 0);
   Put_InsWithOffset (offset, ir);
 
   return false;

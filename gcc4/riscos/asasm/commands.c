@@ -204,7 +204,13 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
       return true;
     }
 
-  /* Figure out relocation type(s).  */
+  /* Figure out relocation type(s).
+   * relocs : Number of symbol/area relocations.
+   * relative : Number of relocs against current area.  When strict positive,
+   *   they become normal relocs.  When negate, -relative relocs will be
+   *   PC-relative ones (so -relative <= relocs), the rest of the relocs
+   *   will be ABS ones.
+   */
   int relocs = 0;
   int relative = 0;
     {
@@ -239,11 +245,10 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		  if (Value_ResolveSymbol (&value))
 		    return true;
 		  assert (value.Tag == ValueSymbol);
-		  if ((value.Data.Symbol.symbol->type & SYMBOL_AREA) != 0
-		      && value.Data.Symbol.symbol == areaCurrentSymbol)
+		  if (value.Data.Symbol.symbol == areaCurrentSymbol)
 		    {
 		      assert ((value.Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) == 0);
-		      relative -= factor * value.Data.Symbol.factor;
+		      relative += factor * value.Data.Symbol.factor;
 		    }
 		  else
 		    {
@@ -259,9 +264,12 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	    }
 	}
     }
-  if (relocs < 0 || relative > relocs)
-    return true;
-  
+  assert (relocs >= 0);
+  if (relative < 0 && -relative > relocs)
+    return true; /* More PC-rel relocs needed than relocs to be done.  */
+
+  const uint32_t relocOffset = (!privDataP->allowUnaligned) ? (offset + privDataP->size - 1) & -privDataP->size : offset;
+
   ARMWord armValue = 0;
     {
       int factor = 1;
@@ -297,40 +305,50 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		    return true;
 		  assert (value.Tag == ValueSymbol);
 		  armValue += factor * value.Data.Symbol.offset;
-		  if ((value.Data.Symbol.symbol->type & SYMBOL_AREA) == 0
-		      || value.Data.Symbol.symbol != areaCurrentSymbol)
+		  int how;
+		  switch (privDataP->size)
 		    {
-		      int how;
-		      switch (privDataP->size)
+		      case 1:
+			how = HOW2_INIT | HOW2_BYTE;
+			break;
+		      case 2:
+			how = HOW2_INIT | HOW2_HALF;
+			break;
+		      case 4:
+			how = HOW2_INIT | HOW2_WORD;
+			break;
+		      default:
+			assert (0);
+			break;
+		    }
+		  int numRelocs;
+		  if (value.Data.Symbol.symbol == areaCurrentSymbol)
+		    {
+		      if (relative > 0)
 			{
-			  case 1:
-			    how = HOW2_INIT | HOW2_BYTE;
-			    break;
-			  case 2:
-			    how = HOW2_INIT | HOW2_HALF;
-			    break;
-			  case 4:
-			    how = HOW2_INIT | HOW2_WORD;
-			    break;
-			  default:
-			    assert (0);
-			    break;
+			  numRelocs = relative;
+			  relative = 0;
 			}
-		      for (int numRelocs = factor * value.Data.Symbol.factor;
-		           numRelocs;
-		           --numRelocs)
+		      else
+			numRelocs = 0; /* Nothing to be done.  */
+		    }
+		  else
+		    {
+		      numRelocs = factor * value.Data.Symbol.factor;
+		      relocs -= numRelocs;
+		    }
+		  while (numRelocs--)
+		    {
+		      int how2;
+		      if (relative < 0)
 			{
-			  int how2;
-			  if (relative)
-			    {
-			      --relative;
-			      how2 = how | HOW2_RELATIVE;
-			    }
-			  else
-			    how2 = how;
-			  if (Reloc_Create (how2, offset, &value) == NULL)
-			    return true;
+			  ++relative;
+			  how2 = how | HOW2_RELATIVE;
 			}
+		      else
+			how2 = how;
+		      if (Reloc_Create (how2, relocOffset, &value) == NULL)
+			return true;
 		    }
 		  break;
 		}
@@ -339,6 +357,7 @@ DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		return true;
 	    }
 	}
+      assert (!relocs && !relative);
     }
   armValue = Fix_Int (file, lineno, privDataP->size, armValue);
   Put_AlignDataWithOffset (offset, privDataP->size, armValue, !privDataP->allowUnaligned);

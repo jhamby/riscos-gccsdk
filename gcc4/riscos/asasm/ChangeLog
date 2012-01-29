@@ -1,3 +1,10 @@
+Sun Jan 29 15:28:22 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c (DefineInt_RelocUpdater): Fix reloc issue against
+	current area.
+	* m_cpuctrl.c (Branch_RelocUpdater): Support more reloc combinations
+	(based on what we have in DefineInt_RelocUpdater).
+
 Sat Jan 28 13:48:16 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* area.h (Area): Add 'number' field. Change 'int norelocs' field into
