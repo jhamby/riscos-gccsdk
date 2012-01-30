@@ -1,6 +1,6 @@
 Index: gcc/config/arm/arm.md
 ===================================================================
---- gcc/config/arm/arm.md	(revision 179667)
+--- gcc/config/arm/arm.md	(revision 183740)
 +++ gcc/config/arm/arm.md	(working copy)
 @@ -31,6 +31,7 @@
  ;; Register numbers
@@ -10,16 +10,16 @@ Index: gcc/config/arm/arm.md
     (IP_REGNUM	    12)		; Scratch register
     (SP_REGNUM	    13)		; Stack pointer
     (LR_REGNUM       14)		; Return address register
-@@ -104,6 +105,8 @@
-    (UNSPEC_SYMBOL_OFFSET 27) ; The offset of the start of the symbol from
+@@ -105,6 +106,8 @@
                               ; another symbolic address.
     (UNSPEC_MEMORY_BARRIER 28) ; Represent a memory barrier.
-+   (UNSPEC_STK 29)
-+   (UNSPEC_CALL 30)
+    (UNSPEC_PIC_UNIFIED 29)  ; Create a common pic addressing form.
++   (UNSPEC_STK 30)        ; RISC OS port.
++   (UNSPEC_CALL 31)       ; RISC OS port.
    ]
  )
  
-@@ -5353,7 +5356,7 @@
+@@ -5378,7 +5381,7 @@
  	(mem:SI (plus:SI (match_operand:SI 1 "register_operand" "r")
  			 (unspec:SI [(match_operand:SI 2 "" "X")]
  				    UNSPEC_PIC_OFFSET))))]
@@ -28,7 +28,7 @@ Index: gcc/config/arm/arm.md
    "ldr%?\\t%0, [%1,%2]"
    [(set_attr "type" "load1")]
  )
-@@ -7879,7 +7882,7 @@
+@@ -7904,7 +7907,7 @@
        return thumb_call_via_reg (operands[0]);
      else if (operands[1] == const0_rtx)
        return \"bl\\t%__interwork_call_via_%0\";
@@ -37,7 +37,7 @@ Index: gcc/config/arm/arm.md
        return \"bl\\t%__interwork_r7_call_via_%0\";
      else
        return \"bl\\t%__interwork_r11_call_via_%0\";
-@@ -7991,7 +7994,7 @@
+@@ -8016,7 +8019,7 @@
        return thumb_call_via_reg (operands[1]);
      else if (operands[2] == const0_rtx)
        return \"bl\\t%__interwork_call_via_%1\";
@@ -46,7 +46,7 @@ Index: gcc/config/arm/arm.md
        return \"bl\\t%__interwork_r7_call_via_%1\";
      else
        return \"bl\\t%__interwork_r11_call_via_%1\";
-@@ -10704,6 +10707,8 @@
+@@ -10729,6 +10732,8 @@
  (include "ldmstm.md")
  ;; Load the FPA co-processor patterns
  (include "fpa.md")
