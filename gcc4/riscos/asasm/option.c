@@ -365,7 +365,7 @@ optionCondLdmStm (bool isLDM, bool doLowerCase)
     return optionError;
   ARMWord stackMode = GetStackMode (isLDM, doLowerCase);
   if (stackMode == optionError)
-    stackMode = (isLDM) ? STACKMODE_IA : STACKMODE_DB;
+    stackMode = STACKMODE_IA;
   return IsEndOfKeyword (option | stackMode);
 }
 

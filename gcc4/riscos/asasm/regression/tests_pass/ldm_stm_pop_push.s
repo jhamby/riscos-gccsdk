@@ -156,43 +156,43 @@
 		STMAL	r1,{r2-r3}
 		STM	r1,{r2-r3}
 	|
-		LDMEQFD	r1,{r2-r3}
-		LDMNEFD	r1,{r2-r3}
-		LDMCSFD	r1,{r2-r3}
-		LDMHSFD	r1,{r2-r3}
-		LDMCCFD	r1,{r2-r3}
-		LDMLOFD	r1,{r2-r3}
-		LDMMIFD	r1,{r2-r3}
-		LDMPLFD	r1,{r2-r3}
-		LDMVSFD	r1,{r2-r3}
-		LDMVCFD	r1,{r2-r3}
-		LDMHIFD	r1,{r2-r3}
-		LDMLSFD	r1,{r2-r3}
-		LDMGEFD	r1,{r2-r3}
-		LDMLTFD	r1,{r2-r3}
-		LDMGTFD	r1,{r2-r3}
-		LDMLEFD	r1,{r2-r3}
-		LDMALFD	r1,{r2-r3}
-		LDMFD	r1,{r2-r3}
+		LDMEQIA	r1,{r2-r3}
+		LDMNEIA	r1,{r2-r3}
+		LDMCSIA	r1,{r2-r3}
+		LDMHSIA	r1,{r2-r3}
+		LDMCCIA	r1,{r2-r3}
+		LDMLOIA	r1,{r2-r3}
+		LDMMIIA	r1,{r2-r3}
+		LDMPLIA	r1,{r2-r3}
+		LDMVSIA	r1,{r2-r3}
+		LDMVCIA	r1,{r2-r3}
+		LDMHIIA	r1,{r2-r3}
+		LDMLSIA	r1,{r2-r3}
+		LDMGEIA	r1,{r2-r3}
+		LDMLTIA	r1,{r2-r3}
+		LDMGTIA	r1,{r2-r3}
+		LDMLEIA	r1,{r2-r3}
+		LDMALIA	r1,{r2-r3}
+		LDMIA	r1,{r2-r3}
 
-		STMEQFD	r1,{r2-r3}
-		STMNEFD	r1,{r2-r3}
-		STMCSFD	r1,{r2-r3}
-		STMHSFD	r1,{r2-r3}
-		STMCCFD	r1,{r2-r3}
-		STMLOFD	r1,{r2-r3}
-		STMMIFD	r1,{r2-r3}
-		STMPLFD	r1,{r2-r3}
-		STMVSFD	r1,{r2-r3}
-		STMVCFD	r1,{r2-r3}
-		STMHIFD	r1,{r2-r3}
-		STMLSFD	r1,{r2-r3}
-		STMGEFD	r1,{r2-r3}
-		STMLTFD	r1,{r2-r3}
-		STMGTFD	r1,{r2-r3}
-		STMLEFD	r1,{r2-r3}
-		STMALFD	r1,{r2-r3}
-		STMFD	r1,{r2-r3}
+		STMEQIA	r1,{r2-r3}
+		STMNEIA	r1,{r2-r3}
+		STMCSIA	r1,{r2-r3}
+		STMHSIA	r1,{r2-r3}
+		STMCCIA	r1,{r2-r3}
+		STMLOIA	r1,{r2-r3}
+		STMMIIA	r1,{r2-r3}
+		STMPLIA	r1,{r2-r3}
+		STMVSIA	r1,{r2-r3}
+		STMVCIA	r1,{r2-r3}
+		STMHIIA	r1,{r2-r3}
+		STMLSIA	r1,{r2-r3}
+		STMGEIA	r1,{r2-r3}
+		STMLTIA	r1,{r2-r3}
+		STMGTIA	r1,{r2-r3}
+		STMLEIA	r1,{r2-r3}
+		STMALIA	r1,{r2-r3}
+		STMIA	r1,{r2-r3}
 	]
 
 		END

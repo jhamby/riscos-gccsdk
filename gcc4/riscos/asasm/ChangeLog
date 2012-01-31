@@ -1,3 +1,8 @@
+Tue Jan 31 03:34:35 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/ldm_stm_pop_push.s: Fix test.
+	* option.c (optionCondLdmStm): Default stack type of LDM/STM is IA.
+
 Sun Jan 29 19:50:59 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c: Move predefined register values to...
