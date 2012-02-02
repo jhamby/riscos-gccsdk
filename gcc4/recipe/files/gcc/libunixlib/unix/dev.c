@@ -443,8 +443,10 @@ __fslseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
       err = SWI_OS_Args_GetFilePtr (handle, &fileptr);
       if (!err)
 	{
+	  __off_t old_lpos = lpos;
+
 	  lpos += fileptr;
-	  if (lpos)
+	  if (old_lpos)
 	    err = SWI_OS_Args_SetFilePtr (handle, lpos);
 	}
     }

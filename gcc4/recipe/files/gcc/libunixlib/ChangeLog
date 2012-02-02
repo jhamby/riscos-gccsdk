@@ -1,3 +1,8 @@
+Thu Feb  2 22:54:49 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* unix/dev.c (__fslseek): File pointer should be set based
+	on the old value of lpos not being 0.
+
 Thu Feb  2 20:39:37 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	* unix/dev.c (__fslseek): For SEEK_CUR, return the current
