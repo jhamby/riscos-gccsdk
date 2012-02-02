@@ -441,10 +441,11 @@ __fslseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
     {
       int fileptr;
       err = SWI_OS_Args_GetFilePtr (handle, &fileptr);
-      if (!err && lpos)
+      if (!err)
 	{
 	  lpos += fileptr;
-	  err = SWI_OS_Args_SetFilePtr (handle, lpos);
+	  if (lpos)
+	    err = SWI_OS_Args_SetFilePtr (handle, lpos);
 	}
     }
   else if (whence == SEEK_END)

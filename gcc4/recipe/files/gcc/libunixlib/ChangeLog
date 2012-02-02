@@ -1,3 +1,8 @@
+Thu Feb  2 20:39:37 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* unix/dev.c (__fslseek): For SEEK_CUR, return the current
+	file pointer even if lpos is 0.
+
 Sat Jan 21 17:39:02 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	* include/dlfcn.h: Define RTLD_LOCAL.
