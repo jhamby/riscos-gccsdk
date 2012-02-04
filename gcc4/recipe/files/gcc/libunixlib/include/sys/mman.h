@@ -56,6 +56,7 @@ __BEGIN_DECLS
 #define	MADV_SEQUENTIAL	2	/* Expect sequential page references.  */
 #define	MADV_WILLNEED	3	/* Will need these pages.  */
 #define	MADV_DONTNEED	4	/* Don't need these pages.  */
+#define	MADV_FREE	5	/* Don't need the pages or the data */
 
 /* Flags for `mremap'.  */
 #define MREMAP_MAYMOVE	1	/* May move the pages when remapping.  */

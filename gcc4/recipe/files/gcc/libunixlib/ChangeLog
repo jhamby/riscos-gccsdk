@@ -1,3 +1,10 @@
+Sat Feb  4 12:04:02 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* include/sys/mman.h: Define MADV_FREE (even though we
+	don't support madvise).
+	* pthread/sem.c (sem_timedwait): Dummy function to prevent
+	linker errors in programs that reference it.
+
 Thu Feb  2 22:54:49 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	* unix/dev.c (__fslseek): File pointer should be set based

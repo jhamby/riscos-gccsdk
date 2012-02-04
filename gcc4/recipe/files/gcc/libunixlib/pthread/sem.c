@@ -362,3 +362,13 @@ sem_getvalue(sem_t * __restrict sem, int * __restrict sval)
 
   return 0;
 }
+
+int
+sem_timedwait (sem_t *sem, const struct timespec *abstime)
+{
+#ifdef PTHREAD_DEBUG_SEMS
+  __os_print(" -- sem_timedwait: Not supported\r\n");
+#endif
+
+  return __set_errno (ENOSYS);
+}
