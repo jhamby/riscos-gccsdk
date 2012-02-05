@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -179,13 +179,13 @@ Fix_ImmFloat (ARMWord ir, ARMFloat im)
 	    optype = op2; m1 = "CNF"; m2 = "CMF";
 	    break;
 
-	  case (M_CMF | EXEPTION_BIT) & M_FMNEM:
-	    ir |= M_CNF | EXEPTION_BIT;
+	  case (M_CMF | EXCEPTION_BIT) & M_FMNEM:
+	    ir |= M_CNF | EXCEPTION_BIT;
 	    optype = op2; m1 = "CMFE"; m2 = "CNFE";
 	    break;
 
-	  case (M_CNF | EXEPTION_BIT) & M_FMNEM:
-	    ir |= M_CMF | EXEPTION_BIT;
+	  case (M_CNF | EXCEPTION_BIT) & M_FMNEM:
+	    ir |= M_CMF | EXCEPTION_BIT;
 	    optype = op2; m1 = "CNFE"; m2 = "CMFE";
 	    break;
 

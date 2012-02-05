@@ -1,3 +1,5 @@
+; RUNOPT: -CPU=7-A
+
 		AREA |C$$code|, CODE, READONLY
 
 		; Miscellaneous instructions

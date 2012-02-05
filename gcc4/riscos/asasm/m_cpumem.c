@@ -151,13 +151,31 @@ dstmem (ARMWord ir, const char *mnemonic)
     }
   else
     isAddrMode3 = false;
-  int dst = getCpuReg ();
+  ARMWord dst = getCpuReg ();
   ir |= DST_OP (dst);
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
 
+  const bool doubleReg = (ir & (L_FLAG | S_FLAG)) == S_FLAG;
   const bool translate = (ir & W_FLAG) != 0; /* We have "T" specified in our mnemonic.  */
+
+  if (doubleReg)
+    {
+      if (dst & 1)
+	error (ErrorWarning, "Uneven first transfer register is UNPREDICTABLE");
+      /* Try to parse "<reg>, " and check this register is dst + 1.
+         If we can't parse this, assume pre-UAL syntax and move on.  */
+      ARMWord dstPlusOne = Get_CPURegNoError ();
+      if (dstPlusOne != INVALID_REG)
+	{
+	  if (dstPlusOne != dst + 1)
+	    error (ErrorError, "Second transfer register is not %d but %d", dst + 1, dstPlusOne);
+	  skipblanks ();
+	  if (!Input_Match (',', true))
+	    error (ErrorError, "%sdst", InsertCommaAfter);
+	}
+    }
   
   const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
   bool callRelocUpdate;
@@ -166,7 +184,7 @@ dstmem (ARMWord ir, const char *mnemonic)
       case '[':	/* <reg>, [ */
 	{
 	  inputSkip ();
-	  const int baseReg = getCpuReg (); /* Base register */
+	  const ARMWord baseReg = getCpuReg (); /* Base register */
 	  skipblanks ();
 	  bool pre = !Input_Match (']', true);
 	  bool forcePreIndex;
@@ -239,8 +257,10 @@ dstmem (ARMWord ir, const char *mnemonic)
 	      if (isAddrMode3)
 		ir |= B_FLAG; /* Immediate mode for addr. mode 3.  */
 	      if (pre)
-		error (ErrorError, "Illegal character '%c' after base", inputLook ());
-	      forcePreIndex = true; /* Pre-index nicer than post-index.  */
+		error (ErrorError, "Illegal character");
+	      /* Pre-index nicer than post-index but don't this when 'T' is
+	         specified as pre-index is not supported (FIXME: ARM only).  */
+	      forcePreIndex = !translate;
 	      callRelocUpdate = false;
 	    }
 	  if (pre)
@@ -369,6 +389,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 
 /**
  * Implements LDR:
+ * Pre-UAL:
  *   LDR[<cond>] <Rd>, <address mode 2> | <pc relative label>
  *   LDR[<cond>]T <Rd>, <address mode 2> | <pc relative label>
  *   LDR[<cond>]B <Rd>, <address mode 2> | <pc relative label>
@@ -377,11 +398,20 @@ dstmem (ARMWord ir, const char *mnemonic)
  *   LDR[<cond>]H <Rd>, <address mode 3> | <pc relative label>
  *   LDR[<cond>]SB <Rd>, <address mode 3> | <pc relative label>
  *   LDR[<cond>]SH <Rd>, <address mode 3> | <pc relative label>
+ * UAL:
+ *   LDR[<cond>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDRT[<cond>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDRB[<cond>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDRBT[<cond>] <Rd>, <address mode 2> | <pc relative label>
+ *   LDRD[<cond>] <Rd>, <address mode 3> | <pc relative label>
+ *   LDRH[<cond>] <Rd>, <address mode 3> | <pc relative label>
+ *   LDRSB[<cond>] <Rd>, <address mode 3> | <pc relative label>
+ *   LDRSH[<cond>] <Rd>, <address mode 3> | <pc relative label>
  */
 bool
 m_ldr (bool doLowerCase)
 {
-  ARMWord cc = optionCondBT (false, doLowerCase);
+  ARMWord cc = Option_LdrStrCondAndType (false, doLowerCase);
   if (cc == optionError)
     return true;
   return dstmem (cc, "LDR");
@@ -501,6 +531,7 @@ m_ldrex (bool doLowerCase)
 
 /**
  * Implements STR<cond>[B].
+ * Pre-UAL:
  *   STR[<cond>] <Rd>, <address mode 2> | <pc relative label>
  *   STR[<cond>]T <Rd>, <address mode 2> | <pc relative label>
  *   STR[<cond>]B <Rd>, <address mode 2> | <pc relative label>
@@ -509,11 +540,20 @@ m_ldrex (bool doLowerCase)
  *   STR[<cond>]H <Rd>, <address mode 3> | <pc relative label>
  *   STR[<cond>]SB <Rd>, <address mode 3> | <pc relative label>
  *   STR[<cond>]SH <Rd>, <address mode 3> | <pc relative label>
+ * UAL:
+ *   STR[<cond>] <Rd>, <address mode 2> | <pc relative label>
+ *   STRT[<cond>] <Rd>, <address mode 2> | <pc relative label>
+ *   STRB[<cond>] <Rd>, <address mode 2> | <pc relative label>
+ *   STRBT[<cond>] <Rd>, <address mode 2> | <pc relative label>
+ *   STRD[<cond>] <Rd>, <address mode 3> | <pc relative label>
+ *   STRH[<cond>] <Rd>, <address mode 3> | <pc relative label>
+ *   STRSB[<cond>] <Rd>, <address mode 3> | <pc relative label>
+ *   STRSH[<cond>] <Rd>, <address mode 3> | <pc relative label>
  */
 bool
 m_str (bool doLowerCase)
 {
-  ARMWord cc = optionCondBT (true, doLowerCase);
+  ARMWord cc = Option_LdrStrCondAndType (true, doLowerCase);
   if (cc == optionError)
     return true;
   return dstmem (cc, "STR");
@@ -695,8 +735,7 @@ dstreglist (ARMWord ir, bool isPushPop)
 	error (ErrorInfo, "Register occurs more than once in register list");
       op |= (1 << (high + 1)) - (1 << low);
     } while (Input_Match (',', true));
-  if (GET_BASE_MULTI (ir) == 13
-      && (ir & W_FLAG))
+  if (GET_BASE_MULTI (ir) == 13 && (ir & W_FLAG))
     {
       /* Count number of registers loaded or saved.  */
       int i, c = 0;
@@ -714,7 +753,7 @@ dstreglist (ARMWord ir, bool isPushPop)
 	}
     }
   if ((ir & W_FLAG) /* Write-back is specified.  */
-      && (ir & (1<<20)) /* Is LDM/POP.  */
+      && (ir & L_FLAG) /* Is LDM/POP.  */
       && (op & (1 << GET_BASE_MULTI (ir))) /* Base reg. in reg. list.  */
       && (!isPushPop || (op ^ (1 << GET_BASE_MULTI (ir))) != 0) /* Is either LDM/STM, either multi-reg. POP/PUSH.  */)
     {
@@ -742,6 +781,9 @@ dstreglist (ARMWord ir, bool isPushPop)
 	error (ErrorInfo, "Writeback together with force user");
       ir |= FORCE_FLAG;
     }
+// A little bit too spammy for the legacy code.  Make this optional ?
+//  if ((ir & L_FLAG) && (1 << 15) && Target_GetArch() == ARCH_ARMv4T)
+//    error (ErrorWarning, "ARMv4T does not switch ARM/Thumb state when LDM/POP specifies PC (use BX instead)");
   Put_Ins (ir);
 }
 
@@ -763,6 +805,7 @@ m_ldm (bool doLowerCase)
 /**
  * Implements POP, i.e. LDM<cond>FD sp!, {...}
  * (= LDM<cond>IA sp!, {...})
+ * UAL syntax.
  */
 bool
 m_pop (bool doLowerCase)
@@ -792,6 +835,7 @@ m_stm (bool doLowerCase)
 /**
  * Implements PUSH, i.e. STM<cond>FD sp!, {...}
  * (= STM<cond>DB sp!, {...})
+ * UAL syntax.
  */
 bool
 m_push (bool doLowerCase)

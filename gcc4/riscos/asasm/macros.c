@@ -314,6 +314,8 @@ c_macro (void)
   if (!Input_IsEolOrCommentStart ())
     error (ErrorWarning, "Skipping characters following MACRO");
 
+  /* Process macro prototype statement (= optional label, macro name,
+     zero or more macro parameters).  */
   /* Read optional '$' + label name.  */
   if (!Input_NextLine (eNoVarSubst))
     errorAbort ("End of file found within macro definition");

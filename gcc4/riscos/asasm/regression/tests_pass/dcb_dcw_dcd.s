@@ -1,4 +1,6 @@
 ; Tests &, =, DCB, DCW, DCWU, DCD, DCDU and DCI.
+; RUNOPT: -CPU 3
+; We select ARMv3 as otherwise "SWINV" (see below) is not a recognised instruction.
 
 	AREA	Data, DATA, READONLY
 

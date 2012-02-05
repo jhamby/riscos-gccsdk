@@ -1,5 +1,6 @@
 ; Tests PLD, PLDW, PLI
 ; FIXME: do PLDW and PLI
+; RUNOPT: -CPU=7-A
 
 		AREA Code, CODE, READONLY
 

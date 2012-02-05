@@ -1,4 +1,5 @@
 ; Tests RFE and SRS.
+; RUNOPT: -CPU=7-A
 
 	AREA	Code, CODE
 

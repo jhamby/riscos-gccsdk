@@ -182,6 +182,7 @@ static const decode_table_t oDecodeTable[] =
   { "INCLUDE", eCB_Void, eRslt_None, { .vd = c_get } }, /* GET / INCLUDE */
   { "INFO", eCB_Void, eRslt_None, { .vd = c_info } }, /* INFO */
   { "ISB", eCB_Void, eRslt_ARM, { .vd = m_isb } }, /* ISB */
+  /* FIXME: IT */
   { "KEEP", eCB_Void, eRslt_None, { .vd = c_keep } }, /* KEEP */
   { "LCL", eCB_NoLexPMatch, eRslt_None, { .nolex = c_lcl } }, /* LCLA, LCLL, LCLS */
   { "LDC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldc } }, /* LDC CC L */
@@ -208,6 +209,8 @@ static const decode_table_t oDecodeTable[] =
   { "MLS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mls } }, /* MLS CC */
   { "MNF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mnf } }, /* MNF CC P R */
   { "MOV", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mov } }, /* MOV CC s */
+  /* FIXME: MOV32 */
+  /* FIXME: MOVT */
   { "MRC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mrc } }, /* MRC CC */
   { "MRC2", eCB_Void, eRslt_ARM, { .vd = m_mrc2 } }, /* MRC2 */
   { "MRRC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mrrc } }, /* MRRC CC */

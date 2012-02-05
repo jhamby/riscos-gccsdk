@@ -36,11 +36,10 @@
 export HDR_PATH := $(CURDIR)/tests_pass/include/hdr
 export APCS := APCS-32
 
-# EXTENSION is a test for enable testing extra functionality ASASM has
-# compared to objasm.
+# EXTENSION enables extra tests for functionality ASASM has but ObjAsm hasn't.
 
 AS := asasm
-ASFLAGS := -cpu=7-A -aof -PD "EXTENSION SETL {TRUE}"
+ASFLAGS := -aof -PD "EXTENSION SETL {TRUE}"
 DIFF := diff
 DIFFFLAGS := -q
 ECHO := echo

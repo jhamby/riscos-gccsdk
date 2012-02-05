@@ -1,3 +1,47 @@
+Sun Feb  5 16:25:43 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/Makefile (ASFLAGS): Remove -CPU option.
+	* regression/tests_pass/sev_wfe_wfi_yield.s: Specify CPU option.
+	* regression/tests_pass/misc.s:
+	* regression/tests_pass/dbg.s
+	* regression/tests_pass/dcb_dcw_dcd.s
+	* regression/tests_pass/mul_mla_mls.s
+	* regression/tests_pass/loadstore2.s
+	* regression/tests_pass/loadstore2.s
+	* regression/tests_pass/copro.s
+	* regression/tests_pass/dmb_dsb_isb.s
+	* regression/tests_pass/rfe_srs.s
+	* regression/tests_pass/smc.s
+	* regression/tests_pass/loadstore.s
+	* regression/tests_pass/branch.s
+	* regression/tests_pass/load_literal.s
+	* regression/tests_pass/clrex_ldrex_strex.s
+	* regression/tests_pass/pld_pldw_pli.s
+
+	* regression/tests_pass/nop.s: Move to...
+	* regression/tests_pass/include/nop.s: ...here.
+	* regression/tests_pass/nop_new_style.s: Add.
+	* regression/tests_pass/nop_old_style.s: Add.
+
+	* regression/tests_pass/loadstore_ual.s: Add.
+
+	* regression/tests_pass/dsp.s: Move LDRD/STRD tests to...
+	* regression/tests_pass/loadstore2.s: ...here. Test if 'T' variant
+	does not result in pre-index.
+	* m_cpumem.c (dstmem): D variant : Test for whether first transfer
+	register is uneven.  Support specifying second transfer register.
+	T variant: Don't switch to pre-index mode.
+	(m_ldr,m_str): Follow optionCondBT to Option_LdrStrCondAndType rename.
+	* option.c (GetCCodeIfThere): Renamed from GetCCode.  Add checks for
+	NV condition code.
+	(GetCCode): Use GetCCodeIfThere.
+	(Option_LdrStrType): Renamed from optionCondBT.
+	(Option_LdrStrCondAndType):  New, support UAL syntax.
+	* option.h (Option_LdrStrCondAndType): Renamed from optionCondBT.
+	(HS,LO): Remove.
+	(EXCEPTION_BIT): Renamed from EXEPTION_BIT.
+	* m_fpe.c: Follow EXCEPTION_BIT rename.
+
 Tue Jan 31 03:34:35 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/ldm_stm_pop_push.s: Fix test.

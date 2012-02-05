@@ -1,3 +1,5 @@
+; -RUNOPT: -CPU=7-A
+
 		AREA |C$$code|, CODE, READONLY
 
 		; Addressing Mode 2 - Load/Store Word or Unsigned Byte
@@ -143,6 +145,9 @@
 		; 9
 		LDRT	R0,[R1],R2, LSL #2
 		LDRT	R0,[R1],-R2, ASR #4
+		; Pre-index can not be chosen with 'T' so test
+		; switch to post-index.
+		LDRT	r1,[r2]
 
 		; 7
 		LDRBT	R0,[R1],#4
@@ -153,6 +158,9 @@
 		; 9
 		LDRBT	R0,[R1],R2, LSL #2
 		LDRBT	R0,[R1],-R2, ASR #4
+		; Pre-index can not be chosen with 'T' so test
+		; switch to post-index.
+		LDRBT	r1,[r2]
 	|
 		DCI	&E4B10004
 		DCI	&E4310004
@@ -163,6 +171,8 @@
 		DCI	&E6B10102
 		DCI	&E6310242
 
+		DCI	&e4b21000	; LDRT R1, [R2], #0
+
 		DCI	&E4F10004
 		DCI	&E4710004
 
@@ -171,6 +181,56 @@
 
 		DCI	&E6F10102
 		DCI	&E6710242
+
+		DCI	&e4f21000	; LDRBT R1, [R2], #0
+	]
+
+		; Addressing Mode 3 - Miscellaneous Loads/Stores
+	[ :LNOT: REFERENCE
+		; 1
+		LDRD	R0,[R1]
+		LDRD	R0,[R1,#0]
+		LDRD	R0,[R1,#4]
+		LDRD	R0,[R1,#-4]
+		; 2
+		LDRD	R0,[R1,R2]
+		LDRD	R0,[R1,-R2]
+		; 3
+		LDRD	R0,[R1]!
+		LDRD	R0,[R1,#0]!
+		LDRD	R0,[R1,#4]!
+		LDRD	R0,[R1,#-4]!
+		; 4
+		LDRD	R0,[R1,R2]!
+		LDRD	R0,[R1,-R2]!
+		; 5
+		LDRD	R0,[R1],#4
+		LDRD	R0,[R1],#-4
+		; 6
+		LDRD	R0,[R1],R2
+		LDRD	R0,[R1],-R2
+	|
+		DCI	&E1C100D0
+		DCI	&E1C100D0
+		DCI	&E1C100D4
+		DCI	&E14100D4
+
+		DCI	&E18100D2
+		DCI	&E10100D2
+
+		DCI	&E1E100D0
+		DCI	&E1E100D0
+		DCI	&E1E100D4
+		DCI	&E16100D4
+
+		DCI	&E1A100D2
+		DCI	&E12100D2
+
+		DCI	&E0C100D4
+		DCI	&E04100D4
+
+		DCI	&E08100D2
+		DCI	&E00100D2
 	]
 
 		; Stores
@@ -536,6 +596,53 @@
 
 		DCI	&E08100B2
 		DCI	&E00100B2
+	]
+
+	[ :LNOT: REFERENCE
+		; 1
+		STRD	R0,[R1]
+		STRD	R0,[R1,#0]
+		STRD	R0,[R1,#4]
+		STRD	R0,[R1,#-4]
+		; 2
+		STRD	R0,[R1,R2]
+		STRD	R0,[R1,-R2]
+		; 3
+		STRD	R0,[R1]!
+		STRD	R0,[R1,#0]!
+		STRD	R0,[R1,#4]!
+		STRD	R0,[R1,#-4]!
+		; 4
+		STRD	R0,[R1,R2]!
+		STRD	R0,[R1,-R2]!
+		; 5
+		STRD	R0,[R1],#4
+		STRD	R0,[R1],#-4
+		; 6
+		STRD	R0,[R1],R2
+		STRD	R0,[R1],-R2
+	|
+		DCI	&E1C100F0
+		DCI	&E1C100F0
+		DCI	&E1C100F4
+		DCI	&E14100F4
+
+		DCI	&E18100F2
+		DCI	&E10100F2
+
+		DCI	&E1E100F0
+		DCI	&E1E100F0
+		DCI	&E1E100F4
+		DCI	&E16100F4
+
+		DCI	&E1A100F2
+		DCI	&E12100F2
+
+		DCI	&E0C100F4
+		DCI	&E04100F4
+
+		DCI	&E08100F2
+		DCI	&E00100F2
 	]
 
 		END

@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010 GCCSDK Developers
+ * Copyright (c) 2010-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -47,7 +47,7 @@ typedef enum
   ARCH_ARMv6M,		/* Jazelle */
   ARCH_ARMv6T2,		/* Jazelle, Thumb-2, VFPv2 opt */
   ARCH_ARMv7,
-  ARCH_ARMv7A = ARCH_ARMv7,		/* Jazelle, Thumb-2EE, multiprocessor opt, VFPv3 opt, SIMD opt, security opt */
+  ARCH_ARMv7A = ARCH_ARMv7,		/* Jazelle, Thumb-2EE (Thumb-2 Execution Environment), multiprocessor opt, VFPv3 opt, SIMD opt, security opt */
   ARCH_ARMv7R,		/* Jazelle, Thumb-2EE, multiprocessor opt, VFPv3 opt, SIMD opt */
   ARCH_ARMv7EM,		/* Jazelle, Thumb-2EE */
   ARCH_ARMv7M		/* Jazelle, Thumb-2EE */

@@ -1,3 +1,4 @@
+; -RUNOPT: -CPU=7-A
 
 	MACRO
 	LiteralTest $areaName, $areaOrg

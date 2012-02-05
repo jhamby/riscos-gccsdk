@@ -1,4 +1,5 @@
 ; Tests DBG
+; RUNOPT: -CPU=7-A
 
 	AREA	Code, CODE
 

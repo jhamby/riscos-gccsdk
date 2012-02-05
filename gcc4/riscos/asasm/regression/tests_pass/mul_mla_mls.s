@@ -1,4 +1,5 @@
 ; Tests MUL, MLA, MLS.
+; RUNOPT: -CPU=7-A
 
 		AREA Code, CODE, READONLY
 

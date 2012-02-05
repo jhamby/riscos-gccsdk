@@ -1,4 +1,5 @@
 ; Tests B, BL, BLX, BX, BXJ.
+; -RUNOPT: -CPU=7-A
 
 		AREA	Code1, CODE, READONLY
 

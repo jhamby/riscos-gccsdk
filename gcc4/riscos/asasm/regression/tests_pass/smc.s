@@ -1,4 +1,5 @@
 ; Tests SMC/SMI
+; RUNOPT: -CPU=7-A
 
 	AREA	Code, CODE
 

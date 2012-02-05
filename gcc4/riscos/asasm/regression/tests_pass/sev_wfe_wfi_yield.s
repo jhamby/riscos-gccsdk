@@ -1,4 +1,5 @@
 ; Tests SEV, WFE, WFI and YIELD.
+; RUNOPT: -CPU=7-A
 
 	AREA	Code, CODE
 

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2011 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -32,7 +32,7 @@ ARMWord optionCondS (bool doLowerCase);
 ARMWord Option_SCond (bool doLowerCase);
 ARMWord optionCondSP (bool doLowerCase);
 ARMWord optionCondB (bool doLowerCase);
-ARMWord optionCondBT (bool isStore, bool doLowerCase);
+ARMWord Option_LdrStrCondAndType (bool isStore, bool doLowerCase);
 ARMWord Option_CondRfeSrs (bool isLoad, bool doLowerCase);
 ARMWord optionCondLdmStm (bool isLDM, bool doLowerCase);
 ARMWord optionCondLfmSfm (bool doLowerCase);
@@ -64,9 +64,6 @@ ARMWord optionAdrL (bool doLowerCase);
 #define AL ((ARMWord)14<<28)
 #define NV ((ARMWord)15<<28)
 
-#define HS CS
-#define LO CC
-
 /* Address mode flags (LDR* and STR*): */
 
 /* Address mode 3 only.  */
@@ -97,7 +94,7 @@ ARMWord optionAdrL (bool doLowerCase);
 #define N_FLAG		((ARMWord)1<<22)
 
 #define LINK_BIT	((ARMWord)1<<24)
-#define EXEPTION_BIT	((ARMWord)0x00400000)
+#define EXCEPTION_BIT	((ARMWord)0x00400000)
 
 #define STACKMODE_IB (P_FLAG | U_FLAG)
 #define STACKMODE_IA (         U_FLAG)

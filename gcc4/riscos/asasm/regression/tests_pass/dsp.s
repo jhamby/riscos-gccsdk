@@ -1,3 +1,5 @@
+; -RUNOPT: -CPU=7-A
+
 		AREA |C$$code|, CODE, READONLY
 
 		; Enhanced DSP instructions
@@ -68,101 +70,6 @@
 
 		DCI	&E12002A1
 		DCI	&E12002E1
-	]
-
-		; Addressing Mode 3 - Miscellaneous Loads/Stores
-	[ :LNOT: REFERENCE
-		; 1
-		LDRD	R0,[R1]
-		LDRD	R0,[R1,#0]
-		LDRD	R0,[R1,#4]
-		LDRD	R0,[R1,#-4]
-		; 2
-		LDRD	R0,[R1,R2]
-		LDRD	R0,[R1,-R2]
-		; 3
-		LDRD	R0,[R1]!
-		LDRD	R0,[R1,#0]!
-		LDRD	R0,[R1,#4]!
-		LDRD	R0,[R1,#-4]!
-		; 4
-		LDRD	R0,[R1,R2]!
-		LDRD	R0,[R1,-R2]!
-		; 5
-		LDRD	R0,[R1],#4
-		LDRD	R0,[R1],#-4
-		; 6
-		LDRD	R0,[R1],R2
-		LDRD	R0,[R1],-R2
-	|
-		DCI	&E1C100D0
-		DCI	&E1C100D0
-		DCI	&E1C100D4
-		DCI	&E14100D4
-
-		DCI	&E18100D2
-		DCI	&E10100D2
-
-		DCI	&E1E100D0
-		DCI	&E1E100D0
-		DCI	&E1E100D4
-		DCI	&E16100D4
-
-		DCI	&E1A100D2
-		DCI	&E12100D2
-
-		DCI	&E0C100D4
-		DCI	&E04100D4
-
-		DCI	&E08100D2
-		DCI	&E00100D2
-	]
-
-	[ :LNOT: REFERENCE
-		; 1
-		STRD	R0,[R1]
-		STRD	R0,[R1,#0]
-		STRD	R0,[R1,#4]
-		STRD	R0,[R1,#-4]
-		; 2
-		STRD	R0,[R1,R2]
-		STRD	R0,[R1,-R2]
-		; 3
-		STRD	R0,[R1]!
-		STRD	R0,[R1,#0]!
-		STRD	R0,[R1,#4]!
-		STRD	R0,[R1,#-4]!
-		; 4
-		STRD	R0,[R1,R2]!
-		STRD	R0,[R1,-R2]!
-		; 5
-		STRD	R0,[R1],#4
-		STRD	R0,[R1],#-4
-		; 6
-		STRD	R0,[R1],R2
-		STRD	R0,[R1],-R2
-	|
-		DCI	&E1C100F0
-		DCI	&E1C100F0
-		DCI	&E1C100F4
-		DCI	&E14100F4
-
-		DCI	&E18100F2
-		DCI	&E10100F2
-
-		DCI	&E1E100F0
-		DCI	&E1E100F0
-		DCI	&E1E100F4
-		DCI	&E16100F4
-
-		DCI	&E1A100F2
-		DCI	&E12100F2
-
-		DCI	&E0C100F4
-		DCI	&E04100F4
-
-		DCI	&E08100F2
-		DCI	&E00100F2
 	]
 
 		END

@@ -1,4 +1,5 @@
 ; Tests DMB, DSB and ISB.
+; -RUNOPT: -CPU=7-A
 
 	AREA	Code, CODE
 
