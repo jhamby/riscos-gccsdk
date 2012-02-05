@@ -274,7 +274,7 @@ lhsrhs (ARMWord ir)
 bool
 m_cmn (bool doLowerCase)
 {
-  ARMWord cc = optionCondSP (doLowerCase);
+  ARMWord cc = Option_CondSP (doLowerCase);
   if (cc == optionError)
     return true;
   return lhsrhs (cc | M_CMN);
@@ -286,7 +286,7 @@ m_cmn (bool doLowerCase)
 bool
 m_cmp (bool doLowerCase)
 {
-  ARMWord cc = optionCondSP (doLowerCase);
+  ARMWord cc = Option_CondSP (doLowerCase);
   if (cc == optionError)
     return true;
   return lhsrhs (cc | M_CMP);
@@ -298,7 +298,7 @@ m_cmp (bool doLowerCase)
 bool
 m_teq (bool doLowerCase)
 {
-  ARMWord cc = optionCondSP (doLowerCase);
+  ARMWord cc = Option_CondSP (doLowerCase);
   if (cc == optionError)
     return true;
   return lhsrhs (cc | M_TEQ);
@@ -310,7 +310,7 @@ m_teq (bool doLowerCase)
 bool
 m_tst (bool doLowerCase)
 {
-  ARMWord cc = optionCondSP (doLowerCase);
+  ARMWord cc = Option_CondSP (doLowerCase);
   if (cc == optionError)
     return true;
   return lhsrhs (cc | M_TST);

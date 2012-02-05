@@ -1,3 +1,13 @@
+Sun Feb  5 20:09:39 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/arithmetic1.s: Reimplemented using macros
+	exercising more combinations.
+	* option.c (Option_CondSP): Renamed from optionCondSP.  Add UAL
+	support.
+	* option.h, m_cpu.c: Follow Option_CondSP rename.
+	* regression/tests_pass/loadstore_ual.s: Add no condition code
+	specified test case.
+
 Sun Feb  5 16:25:43 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/Makefile (ASFLAGS): Remove -CPU option.

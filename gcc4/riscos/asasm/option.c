@@ -288,19 +288,32 @@ Option_SCond (bool doLowerCase)
 
 /**
  * Used for CMN, CMP, TEQ and TST.
+ *   <condition code> "S" ["P"] : pre-UAL
+ *   <condition code> "P" ["S"] : pre-UAL
+ *   "S" <condition code> : UAL
+ * Support pre-UAL and UAL syntax (order of (deprecated) "S" and condition
+ * code is irrelevant).
  */
 ARMWord
-optionCondSP (bool doLowerCase)
+Option_CondSP (bool doLowerCase)
 {
+  bool gotS = Input_Match (doLowerCase ? 's' : 'S', false);
   ARMWord option = GetCCode (doLowerCase) | PSR_S_FLAG;
-  if (Input_Match (doLowerCase ? 's' : 'S', false) && option_pedantic)
-    error (ErrorInfo, "S is implicit in test instructions");
-  if (Input_Match (doLowerCase ? 'p' : 'P', false))
+  if (!gotS)
+    gotS = Input_Match (doLowerCase ? 's' : 'S', false);
+  bool gotP = Input_Match (doLowerCase ? 'p' : 'P', false);
+  if (!gotS)
+    gotS = Input_Match (doLowerCase ? 's' : 'S', false);
+
+  if (gotS && option_pedantic)
+    error (ErrorInfo, "%c suffix on comparison instruction is DEPRECATED", doLowerCase ? 's' : 'S');
+  if (gotP)
     {
       option |= PSR_P_FLAG;
       if (gOptionAPCS & APCS_OPT_32BIT)
 	error (ErrorWarning, "TSTP/TEQP/CMNP/CMPP inadvisable in 32-bit PC configurations");
     }
+
   return IsEndOfKeyword (option);
 }
 

@@ -4,8 +4,12 @@
 	AREA	Code, CODE
 
 	[ :LNOT: REFERENCE
+	; <LDR|STR> <type>
+	; <LDR|STR> <cond code> <type>
+	; <LDR|STR> <type> <cond code>
 	MACRO
 	Invoke $base, $type, $addr
+	Inject "$base.$type $addr"
 	LCLS	instr1
 	LCLS	instr2
 	LCLA	cnt
@@ -16,10 +20,15 @@ cnt	SETA	0
 	;   - HS and LO are equivalents for CS and CC.
 instr1	SETS	"$base" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2) :CC: "$type"	; Pre-UAL
 instr2	SETS	"$base" :CC: "$type" :CC: (("EQNECSCCMIPLVSVCHILSGELTGTLEALHSLO" :RIGHT: (34 - 2*cnt)) :LEFT: 2)	; UAL
-	$instr1	$addr
-	; INFO	0, "\t$instr1" :CC: " $addr"
+	Inject "$instr1 $addr"
 cnt	SETA	cnt + 1
 	WEND
+	MEND
+
+	MACRO
+	Inject $full
+	$full
+	; INFO	0, "\t$full"
 	MEND
 
 	Invoke	LDR, "", "r1, [r2]"
@@ -40,6 +49,7 @@ cnt	SETA	cnt + 1
 
 	|
 
+	DCI &e5921000	; LDR      r1,[r2]	; LDR, ""
 	DCI &05921000	; LDREQ    r1,[r2]
 	DCI &15921000	; LDRNE    r1,[r2]
 	DCI &25921000	; LDRCS    r1,[r2]
@@ -54,9 +64,11 @@ cnt	SETA	cnt + 1
 	DCI &b5921000	; LDRLT    r1,[r2]
 	DCI &c5921000	; LDRGT    r1,[r2]
 	DCI &d5921000	; LDRLE    r1,[r2]
-	DCI &e5921000	; LDR      r1,[r2]
+	DCI &e5921000	; LDRAL    r1,[r2]
 	DCI &25921000	; LDRCS    r1,[r2]
 	DCI &35921000	; LDRCC    r1,[r2]
+
+	DCI &e4b21000	; LDRT     r1,[r2]	; LDR, "T"
 	DCI &04b21000	; LDRTEQ   r1,[r2]
 	DCI &14b21000	; LDRTNE   r1,[r2]
 	DCI &24b21000	; LDRTCS   r1,[r2]
@@ -71,9 +83,11 @@ cnt	SETA	cnt + 1
 	DCI &b4b21000	; LDRTLT   r1,[r2]
 	DCI &c4b21000	; LDRTGT   r1,[r2]
 	DCI &d4b21000	; LDRTLE   r1,[r2]
-	DCI &e4b21000	; LDRT     r1,[r2]
+	DCI &e4b21000	; LDRTAL   r1,[r2]
 	DCI &24b21000	; LDRTCS   r1,[r2]
 	DCI &34b21000	; LDRTCC   r1,[r2]
+
+	DCI &e5d21000	; LDRB     r1,[r2]	; LDR, "B"
 	DCI &05d21000	; LDRBEQ   r1,[r2]
 	DCI &15d21000	; LDRBNE   r1,[r2]
 	DCI &25d21000	; LDRBCS   r1,[r2]
@@ -88,9 +102,11 @@ cnt	SETA	cnt + 1
 	DCI &b5d21000	; LDRBLT   r1,[r2]
 	DCI &c5d21000	; LDRBGT   r1,[r2]
 	DCI &d5d21000	; LDRBLE   r1,[r2]
-	DCI &e5d21000	; LDRB     r1,[r2]
+	DCI &e5d21000	; LDRBAL   r1,[r2]
 	DCI &25d21000	; LDRBCS   r1,[r2]
 	DCI &35d21000	; LDRBCC   r1,[r2]
+
+	DCI &e4f21000	; LDRBT    r1,[r2]	; LDR, "BT"
 	DCI &04f21000	; LDRBTEQ  r1,[r2]
 	DCI &14f21000	; LDRBTNE  r1,[r2]
 	DCI &24f21000	; LDRBTCS  r1,[r2]
@@ -105,9 +121,11 @@ cnt	SETA	cnt + 1
 	DCI &b4f21000	; LDRBTLT  r1,[r2]
 	DCI &c4f21000	; LDRBTGT  r1,[r2]
 	DCI &d4f21000	; LDRBTLE  r1,[r2]
-	DCI &e4f21000	; LDRBT    r1,[r2]
+	DCI &e4f21000	; LDRBTAL  r1,[r2]
 	DCI &24f21000	; LDRBTCS  r1,[r2]
 	DCI &34f21000	; LDRBTCC  r1,[r2]
+
+	DCI &e1c420d0	; LDRD     r2,r3,[r4]	; LDR, "D"
 	DCI &01c420d0	; LDRDEQ   r2,r3,[r4]
 	DCI &11c420d0	; LDRDNE   r2,r3,[r4]
 	DCI &21c420d0	; LDRDCS   r2,r3,[r4]
@@ -122,9 +140,11 @@ cnt	SETA	cnt + 1
 	DCI &b1c420d0	; LDRDLT   r2,r3,[r4]
 	DCI &c1c420d0	; LDRDGT   r2,r3,[r4]
 	DCI &d1c420d0	; LDRDLE   r2,r3,[r4]
-	DCI &e1c420d0	; LDRD     r2,r3,[r4]
+	DCI &e1c420d0	; LDRDAL   r2,r3,[r4]
 	DCI &21c420d0	; LDRDCS   r2,r3,[r4]
 	DCI &31c420d0	; LDRDCC   r2,r3,[r4]
+
+	DCI &e1d210b0	; LDRH     r1,[r2]	; LDR, "H"
 	DCI &01d210b0	; LDRHEQ   r1,[r2]
 	DCI &11d210b0	; LDRHNE   r1,[r2]
 	DCI &21d210b0	; LDRHCS   r1,[r2]
@@ -139,9 +159,11 @@ cnt	SETA	cnt + 1
 	DCI &b1d210b0	; LDRHLT   r1,[r2]
 	DCI &c1d210b0	; LDRHGT   r1,[r2]
 	DCI &d1d210b0	; LDRHLE   r1,[r2]
-	DCI &e1d210b0	; LDRH     r1,[r2]
+	DCI &e1d210b0	; LDRHAL   r1,[r2]
 	DCI &21d210b0	; LDRHCS   r1,[r2]
 	DCI &31d210b0	; LDRHCC   r1,[r2]
+
+	DCI &e1d210d0	; LDRSB    r1,[r2]	; LDR, "SB"
 	DCI &01d210d0	; LDRSBEQ  r1,[r2]
 	DCI &11d210d0	; LDRSBNE  r1,[r2]
 	DCI &21d210d0	; LDRSBCS  r1,[r2]
@@ -156,9 +178,11 @@ cnt	SETA	cnt + 1
 	DCI &b1d210d0	; LDRSBLT  r1,[r2]
 	DCI &c1d210d0	; LDRSBGT  r1,[r2]
 	DCI &d1d210d0	; LDRSBLE  r1,[r2]
-	DCI &e1d210d0	; LDRSB    r1,[r2]
+	DCI &e1d210d0	; LDRSBAL  r1,[r2]
 	DCI &21d210d0	; LDRSBCS  r1,[r2]
 	DCI &31d210d0	; LDRSBCC  r1,[r2]
+
+	DCI &e1d210f0	; LDRSH    r1,[r2]	; LDR, "SH"
 	DCI &01d210f0	; LDRSHEQ  r1,[r2]
 	DCI &11d210f0	; LDRSHNE  r1,[r2]
 	DCI &21d210f0	; LDRSHCS  r1,[r2]
@@ -173,10 +197,11 @@ cnt	SETA	cnt + 1
 	DCI &b1d210f0	; LDRSHLT  r1,[r2]
 	DCI &c1d210f0	; LDRSHGT  r1,[r2]
 	DCI &d1d210f0	; LDRSHLE  r1,[r2]
-	DCI &e1d210f0	; LDRSH    r1,[r2]
+	DCI &e1d210f0	; LDRSHAL  r1,[r2]
 	DCI &21d210f0	; LDRSHCS  r1,[r2]
 	DCI &31d210f0	; LDRSHCC  r1,[r2]
 
+	DCI &e5821000	; STR      r1,[r2]	; STR, ""
 	DCI &05821000	; STREQ    r1,[r2]
 	DCI &15821000	; STRNE    r1,[r2]
 	DCI &25821000	; STRCS    r1,[r2]
@@ -191,9 +216,11 @@ cnt	SETA	cnt + 1
 	DCI &b5821000	; STRLT    r1,[r2]
 	DCI &c5821000	; STRGT    r1,[r2]
 	DCI &d5821000	; STRLE    r1,[r2]
-	DCI &e5821000	; STR      r1,[r2]
+	DCI &e5821000	; STRAL    r1,[r2]
 	DCI &25821000	; STRCS    r1,[r2]
 	DCI &35821000	; STRCC    r1,[r2]
+
+	DCI &e4a21000	; STRT     r1,[r2]	; STR, "T"
 	DCI &04a21000	; STRTEQ   r1,[r2]
 	DCI &14a21000	; STRTNE   r1,[r2]
 	DCI &24a21000	; STRTCS   r1,[r2]
@@ -208,9 +235,11 @@ cnt	SETA	cnt + 1
 	DCI &b4a21000	; STRTLT   r1,[r2]
 	DCI &c4a21000	; STRTGT   r1,[r2]
 	DCI &d4a21000	; STRTLE   r1,[r2]
-	DCI &e4a21000	; STRT     r1,[r2]
+	DCI &e4a21000	; STRTAL   r1,[r2]
 	DCI &24a21000	; STRTCS   r1,[r2]
 	DCI &34a21000	; STRTCC   r1,[r2]
+
+	DCI &e5c21000	; STRB     r1,[r2]	; STR, "B"
 	DCI &05c21000	; STRBEQ   r1,[r2]
 	DCI &15c21000	; STRBNE   r1,[r2]
 	DCI &25c21000	; STRBCS   r1,[r2]
@@ -225,9 +254,11 @@ cnt	SETA	cnt + 1
 	DCI &b5c21000	; STRBLT   r1,[r2]
 	DCI &c5c21000	; STRBGT   r1,[r2]
 	DCI &d5c21000	; STRBLE   r1,[r2]
-	DCI &e5c21000	; STRB     r1,[r2]
+	DCI &e5c21000	; STRBAL   r1,[r2]
 	DCI &25c21000	; STRBCS   r1,[r2]
 	DCI &35c21000	; STRBCC   r1,[r2]
+
+	DCI &e4e21000	; STRBT    r1,[r2]	; STR, "BT"
 	DCI &04e21000	; STRBTEQ  r1,[r2]
 	DCI &14e21000	; STRBTNE  r1,[r2]
 	DCI &24e21000	; STRBTCS  r1,[r2]
@@ -242,9 +273,11 @@ cnt	SETA	cnt + 1
 	DCI &b4e21000	; STRBTLT  r1,[r2]
 	DCI &c4e21000	; STRBTGT  r1,[r2]
 	DCI &d4e21000	; STRBTLE  r1,[r2]
-	DCI &e4e21000	; STRBT    r1,[r2]
+	DCI &e4e21000	; STRBTAL  r1,[r2]
 	DCI &24e21000	; STRBTCS  r1,[r2]
 	DCI &34e21000	; STRBTCC  r1,[r2]
+
+	DCI &e1c420f0	; STRD     r2,r3,[r4]	; STR, "D"
 	DCI &01c420f0	; STRDEQ   r2,r3,[r4]
 	DCI &11c420f0	; STRDNE   r2,r3,[r4]
 	DCI &21c420f0	; STRDCS   r2,r3,[r4]
@@ -259,9 +292,11 @@ cnt	SETA	cnt + 1
 	DCI &b1c420f0	; STRDLT   r2,r3,[r4]
 	DCI &c1c420f0	; STRDGT   r2,r3,[r4]
 	DCI &d1c420f0	; STRDLE   r2,r3,[r4]
-	DCI &e1c420f0	; STRD     r2,r3,[r4]
+	DCI &e1c420f0	; STRDAL   r2,r3,[r4]
 	DCI &21c420f0	; STRDCS   r2,r3,[r4]
 	DCI &31c420f0	; STRDCC   r2,r3,[r4]
+
+	DCI &e1c210b0	; STRH     r1,[r2]	; STR, "H"
 	DCI &01c210b0	; STRHEQ   r1,[r2]
 	DCI &11c210b0	; STRHNE   r1,[r2]
 	DCI &21c210b0	; STRHCS   r1,[r2]
@@ -276,7 +311,7 @@ cnt	SETA	cnt + 1
 	DCI &b1c210b0	; STRHLT   r1,[r2]
 	DCI &c1c210b0	; STRHGT   r1,[r2]
 	DCI &d1c210b0	; STRHLE   r1,[r2]
-	DCI &e1c210b0	; STRH     r1,[r2]
+	DCI &e1c210b0	; STRHAL   r1,[r2]
 	DCI &21c210b0	; STRHCS   r1,[r2]
 	DCI &31c210b0	; STRHCC   r1,[r2]
 
