@@ -47,8 +47,8 @@ typedef struct
   const char *id;
   unsigned counter;
 
-  const char *file;
-  int lineno;
+  const char *fileName;
+  unsigned lineNum;
 } ROUT_t;
 
 static ROUT_t oLocal_CurROUT;
@@ -57,8 +57,8 @@ static ROUT_t oLocal_CurROUT;
 typedef struct Local_OutstandingForward
 {
   struct Local_OutstandingForward *nextP; /* Must be first.  */
-  const char *file;
-  int lineNum;
+  const char *fileName;
+  unsigned lineNum;
   unsigned counter;
 
   LocalLabel_eLevel level;
@@ -104,8 +104,8 @@ Local_PrepareForPhase (Phase_e phase)
 	  free ((void *)oLocal_CurROUT.id);
 	  oLocal_CurROUT.id = NULL;
 	  oLocal_CurROUT.counter = 0;
-	  oLocal_CurROUT.file = NULL;
-	  oLocal_CurROUT.lineno = 0;
+	  oLocal_CurROUT.fileName = NULL;
+	  oLocal_CurROUT.lineNum = 0;
 	  break;
 	}
     }
@@ -117,7 +117,7 @@ Local_ReportMissingFwdLabel (const Local_OutstandingForward *fwdLocalP)
 {
   const char *dirStr = fwdLocalP->dir == eForward ? "f" : "";
   const char *levelStr = fwdLocalP->level == eThisLevelOnly ? "t" : fwdLocalP->level == eAllLevels ? "a" : ""; 
-  errorLine (fwdLocalP->file, fwdLocalP->lineNum, ErrorError, "Missing local label %%%s%s%i", dirStr, levelStr, fwdLocalP->label);
+  errorLine (fwdLocalP->fileName, fwdLocalP->lineNum, ErrorError, "Missing local label %%%s%s%i", dirStr, levelStr, fwdLocalP->label);
 }
 
 
@@ -209,7 +209,7 @@ Local_DefineLabel (unsigned labelNum)
 #ifdef DEBUG_LOCAL
 	  const char *levelStr = (fwdLocalP->level == eThisLevelOnly) ? "t" : (fwdLocalP->level == eAllLevels) ? "a" : "";
 	  const char *dirStr = "f"; // (dir == eBackward) ? "b" : (dir == eForward) ? "f" : "";
-	  printf ("Define forward ref: %.*s %d : %%%s%s%d : %s\n", 12, FS_GetCurFileName (), FS_GetCurLineNumber (),
+	  printf ("Define forward ref: %.*s %u : %%%s%s%d : %s\n", 12, FS_GetCurFileName (), FS_GetCurLineNumber (),
 		  dirStr, levelStr, labelNum, fwdSym);
 #endif
 
@@ -242,7 +242,7 @@ void Local_CreateSymbolForOutstandingFwdLabelRef (char *buf, size_t bufSize,
     errorOutOfMem ();
 
   fwdLocalP->nextP = oLocal_OutstandingForwardP; 
-  fwdLocalP->file = FS_GetCurFileName ();
+  fwdLocalP->fileName = FS_GetCurFileName ();
   fwdLocalP->lineNum = FS_GetCurLineNumber ();
   fwdLocalP->counter = oLocal_OutstandingForwardCounter++;
 
@@ -258,7 +258,7 @@ void Local_CreateSymbolForOutstandingFwdLabelRef (char *buf, size_t bufSize,
 #ifdef DEBUG_LOCAL
   const char *levelStr = (level == eThisLevelOnly) ? "t" : (level == eAllLevels) ? "a" : "";
   const char *dirStr = (dir == eBackward) ? "b" : (dir == eForward) ? "f" : "";
-  printf ("Create forward ref: %.*s %d : %%%s%s%d : %s\n", 12, FS_GetCurFileName (), FS_GetCurLineNumber (),
+  printf ("Create forward ref: %.*s %u : %%%s%s%d : %s\n", 12, FS_GetCurFileName (), FS_GetCurLineNumber (),
 	  dirStr, levelStr, label, buf);
 #endif
 }
@@ -311,15 +311,15 @@ Local_ResetLabels (void)
 
 
 /**
- * \param filePP Will be filled in with ptr to filename of last ROUT parsed.
+ * \param fileNamePP Will be filled in with ptr to filename of last ROUT parsed.
  * When NULL, no ROUT has been seen so far.
- * \param lineP Will be filled in with linenumber of last ROUT parsed.
+ * \param lineNumP Will be filled in with linenumber of last ROUT parsed.
  */
 const char *
-Local_GetCurROUTId (const char **filePP, int *lineNoP)
+Local_GetCurROUTId (const char **fileNamePP, unsigned *lineNumP)
 {
-  *filePP = oLocal_CurROUT.file;
-  *lineNoP = oLocal_CurROUT.lineno;
+  *fileNamePP = oLocal_CurROUT.fileName;
+  *lineNumP = oLocal_CurROUT.lineNum;
   return oLocal_CurROUT.id;
 }
 
@@ -346,8 +346,8 @@ c_rout (const Lex *label)
   free ((void *)oLocal_CurROUT.id);
   oLocal_CurROUT.id = newROUTId;
   oLocal_CurROUT.counter++;
-  oLocal_CurROUT.file = FS_GetCurFileName ();
-  oLocal_CurROUT.lineno = FS_GetCurLineNumber ();
+  oLocal_CurROUT.fileName = FS_GetCurFileName ();
+  oLocal_CurROUT.lineNum = FS_GetCurLineNumber ();
   return false;
 }
 

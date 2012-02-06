@@ -55,7 +55,7 @@
  * Similar to DestMem_RelocUpdaterCoPro() @ help_cop.c.
  */
 static bool
-DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
+DestMem_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 		      const Value *valueP,
 		      void *privData UNUSED, bool final)
 {
@@ -99,7 +99,7 @@ DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		  ir |= LHS_OP (15);
 		  if (isAddrMode3)
 		    ir |= B_FLAG;
-		  newIR = Fix_CPUOffset (file, lineno, ir, newOffset);
+		  newIR = Fix_CPUOffset (fileName, lineNum, ir, newOffset);
 		}
 	      else
 		return true;
@@ -112,7 +112,7 @@ DestMem_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	      ir |= LHS_OP (valP->Data.Addr.r);
 	      if (isAddrMode3)
 		ir |= B_FLAG;
-	      ir = Fix_CPUOffset (file, lineno, ir, valP->Data.Addr.i);
+	      ir = Fix_CPUOffset (fileName, lineNum, ir, valP->Data.Addr.i);
 	      Put_InsWithOffset (offset, ir);
 	      break;
 	    }

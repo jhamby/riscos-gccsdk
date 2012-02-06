@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2011 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,14 +25,14 @@
 
 #include "global.h"
 
-ARMWord fixImm8s4 (int lineno, ARMWord ir, int im);
-ARMWord fixSwi (int lineno, int im);
-ARMWord fixMask (int lineno, int mask);
+ARMWord fixImm8s4 (unsigned lineNum, ARMWord ir, int im);
+ARMWord fixSwi (unsigned lineNum, int im);
+ARMWord fixMask (unsigned lineNum, int mask);
 
-ARMWord Fix_ShiftImm (const char *file, int lineno, ARMWord shiftop, int shift);
-ARMWord Fix_Int (const char *file, int lineno, int size, int value);
-ARMWord Fix_CopOffset (const char *file, int lineno, ARMWord ir, int offset);
-ARMWord Fix_CPUOffset (const char *file, int lineno, ARMWord ir, int offset);
-ARMWord Fix_MOV (const char *file, int lineno, ARMWord ir, int im);
+ARMWord Fix_ShiftImm (const char *fileName, unsigned lineNum, ARMWord shiftop, int shift);
+ARMWord Fix_Int (const char *fileName, unsigned lineNum, int size, int value);
+ARMWord Fix_CopOffset (const char *fileName, unsigned lineNum, ARMWord ir, int offset);
+ARMWord Fix_CPUOffset (const char *fileName, unsigned lineNum, ARMWord ir, int offset);
+ARMWord Fix_MOV (const char *fileName, unsigned lineNum, ARMWord ir, int im);
 
 #endif

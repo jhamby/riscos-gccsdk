@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -678,6 +678,22 @@ Input_MatchString (const char *str)
 {
   int matched = 0;
   while (input_pos[matched] && input_pos[matched] == str[matched])
+    ++matched;
+  if (str[matched] == '\0')
+    {
+      input_pos += matched;
+      return true;
+    }
+  return false;
+}
+
+
+bool
+Input_MatchStringLower (const char *str)
+{
+  int matched = 0;
+  while (input_pos[matched]
+         && tolower ((unsigned)input_pos[matched]) == str[matched])
     ++matched;
   if (str[matched] == '\0')
     {

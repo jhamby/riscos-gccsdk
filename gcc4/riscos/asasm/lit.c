@@ -63,7 +63,7 @@ typedef struct LITPOOL
 {
   struct LITPOOL *next;
   const char *file;	/** Assembler filename where this literal got requested for the first time.  */
-  int lineno;		/** Assembler file linenumber where this literal got requested for the first time.  */
+  unsigned lineNum;	/** Assembler file linenumber where this literal got requested for the first time.  */
 
   unsigned offset;	/** Area offset where the literal got assembled.  */
   Value value;		/** Literal value.  */
@@ -150,7 +150,7 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
     errorOutOfMem ();
   litP->next = NULL;
   litP->file = FS_GetCurFileName ();
-  litP->lineno = FS_GetCurLineNumber ();
+  litP->lineNum = FS_GetCurLineNumber ();
   litP->offset = 0;
   litP->value = *valueP; /* We have ownership of valueP, so we're free to pass it on to LitPool struct.  */
   litP->size = size;
@@ -462,7 +462,7 @@ Lit_DumpPool (void)
 	    Value_Assign (&litP->value, constValueP);
 	  else
 	    {
-	      errorLine (litP->file, litP->lineno, ErrorError, "Unsupported literal case");
+	      errorLine (litP->file, litP->lineNum, ErrorError, "Unsupported literal case");
 	      continue;
 	    }
 	}
@@ -511,7 +511,7 @@ Lit_DumpPool (void)
 		    break;
 		}
 	      if (constant != litP->value.Data.Int.i)
-		errorLine (litP->file, litP->lineno, ErrorWarning,
+		errorLine (litP->file, litP->lineNum, ErrorWarning,
 			   "Constant %d has been truncated to %d by the used mnemonic",
 			   litP->value.Data.Int.i, constant);
 
@@ -533,7 +533,7 @@ Lit_DumpPool (void)
 		      /* We do MOV/MVN optimisation but as the literal value
 		         got defined after LTORG, we've already allocated
 		         some bytes which aren't going to be used.  */
-		      errorLine (litP->file, litP->lineno, ErrorWarning,
+		      errorLine (litP->file, litP->lineNum, ErrorWarning,
 			         "Literal loading optimized as MOV/MVN but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
 		      error (ErrorWarning, "note: LTORG was here");
 		    }
@@ -570,7 +570,7 @@ Lit_DumpPool (void)
 		      /* We do MVF/MNF optimisation but as the literal value
 			 got defined after LTORG, we've already allocated
 			 some bytes which aren't going to be used.  */
-		      errorLine (litP->file, litP->lineno, ErrorWarning,
+		      errorLine (litP->file, litP->lineNum, ErrorWarning,
 				 "Literal loading optimized as MVF/MNF but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
 		      error (ErrorWarning, "note: LTORG was here");
 		    }
@@ -579,7 +579,7 @@ Lit_DumpPool (void)
 	    }
 	    
 	  default:
-	    errorLine (litP->file, litP->lineno, ErrorError, "Unsupported literal case");
+	    errorLine (litP->file, litP->lineNum, ErrorError, "Unsupported literal case");
 	    break;
 	}
 
@@ -643,7 +643,7 @@ Lit_DumpPool (void)
 		  if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, litP->offset,
 					     ValueInt | ValueString | ValueSymbol | ValueCode,
 					     &privData, sizeof (privData)))
-		    errorLine (litP->file, litP->lineno, ErrorError, "Illegal %s expression", "literal");
+		    errorLine (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
 		}
 	    }
 	    break;
@@ -670,7 +670,7 @@ Lit_DumpPool (void)
 		  codeValue (&litP->value, true);
 		  if (Reloc_QueueExprUpdate (DefineReal_RelocUpdater, litP->offset,
 					     ValueFloat | ValueSymbol | ValueCode, &privData, sizeof (privData)))
-		    errorLine (litP->file, litP->lineno, ErrorError, "Illegal %s expression", "literal");
+		    errorLine (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
 		}
 	    }
 	    break;

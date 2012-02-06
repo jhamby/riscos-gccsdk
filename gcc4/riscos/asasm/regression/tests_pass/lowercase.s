@@ -1,5 +1,6 @@
 ; Test lowercase support for instructions (directives are not supported
 ; in their lowercase version).
+; -RUNOPT: -CPU=3
 
 	AREA	Code, CODE
 	[ :LNOT: REFERENCE

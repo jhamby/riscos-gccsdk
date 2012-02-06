@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010-2011 GCCSDK Developers
+ * Copyright (c) 2010-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -165,8 +165,8 @@ const Core2Arch_t oCore2Arch[] =
   { "Cortex-M4", ARCH_ARMv7EM }
 };
 
-const Core2Arch_t *oCoreArchSelectionP = NULL;
-
+static const Core2Arch_t *oCoreArchSelectionP = NULL;
+static bool oSelectedArchitecture = false;
 
 /**
  * Given an ARM architecture, return a CPU implementing this.
@@ -203,27 +203,35 @@ Target_SetCPU (const char *cpu)
       fprintf (stderr, "\n");
       return true;
     }
+
   /* Try to identify as CPU.  */
   for (size_t i = 0; i != sizeof (oCore2Arch)/sizeof (oCore2Arch[0]); ++i)
     {
       if (!strcasecmp (oCore2Arch[i].core, cpu))
 	{
 	  oCoreArchSelectionP = &oCore2Arch[i];
+	  oSelectedArchitecture = false;
 	  return false;
 	}
     }
+
   /* Try to identify as architecture.  */
   for (size_t i = 0; i != sizeof (oARMArch)/sizeof (oARMArch[0]); ++i)
     {
       if (!strcasecmp (oARMArch[i], cpu))
 	{
-	  oCoreArchSelectionP = GetCPUForArchitecture ((ARM_eArchitectures)i);
-	  if (oCoreArchSelectionP != NULL)
-	    return false;
+	  const Core2Arch_t *selection = GetCPUForArchitecture ((ARM_eArchitectures)i);
+	  if (selection != NULL)
+	    {
+	      oCoreArchSelectionP = selection; 
+	      oSelectedArchitecture = true;
+	      return false;
+	    }
 	  fprintf (stderr, "Unable to find CPU core for architecture %s\n", oARMArch[i]);
 	  return true;
 	}
     }
+
   fprintf (stderr, "Unable to find CPU or architecture matching %s\n", cpu);
   return true;
 }
@@ -247,10 +255,14 @@ Target_NeedAtLeastArch (ARM_eArchitectures arch)
 }
 
 
+/**
+ * \return If an architecture was specified in the command line -cpu option,
+ * "Generic ARM" is returned.
+ */
 const char *
 Target_GetCPU (void)
 {
-  return oCoreArchSelectionP->core;
+  return oSelectedArchitecture ? "Generic ARM" : oCoreArchSelectionP->core;
 }
 
 

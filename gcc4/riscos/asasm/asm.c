@@ -59,8 +59,8 @@ ASM_NextLine (void)
 {
   while (gCurPObjP != NULL)
     {
-      const char *curFile = FS_GetCurFileName ();
-      int curLine = FS_GetCurLineNumber ();
+      const char *curFileName = FS_GetCurFileName ();
+      unsigned curLineNum = FS_GetCurLineNumber ();
 
       if (Input_NextLine (eVarSubst))
 	return true;
@@ -68,7 +68,7 @@ ASM_NextLine (void)
       /* Failed to read a line, this might be we're EOD for the current
          parsable object.  Go up one.  */
       if (gCurPObjP->type == POType_eFile)
-	errorLine (curFile, curLine, ErrorWarning, "No END found");
+	errorLine (curFileName, curLineNum, ErrorWarning, "No END found");
       FS_PopPObject (false);
     }
   return false;
@@ -96,7 +96,7 @@ ASM_DoPass (const char *asmFile)
 	  size_t len = strlen (fileName);
 	  if (len > 12)
 	    fileName += len - 12;
-	  printf("%.*s : %d : 0x%x : <%s>\n", (int)len, fileName, FS_GetCurLineNumber (), areaCurrentSymbol->area.info->curIdx, inputLine ());
+	  printf("%.*s : %u : 0x%x : <%s>\n", (int)len, fileName, FS_GetCurLineNumber (), areaCurrentSymbol->area.info->curIdx, inputLine ());
 #endif
 	  /* Read label (in case there is one).  */
 	  Lex label;

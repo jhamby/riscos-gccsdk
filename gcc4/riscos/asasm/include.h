@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) August 1992, Andy Duplain
- * Copyright (c) 2004-2011 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,7 +29,7 @@
 #include "os.h"
 
 void Include_Add (const char *incpath);
-bool Include_Find (const char *filename, ASFile *asFileP, bool inc);
-FILE *Include_Get (const char *filename, ASFile *asFileP, bool inc);
+bool Include_Find (const char *fileName, ASFile *asFileP, bool inc);
+FILE *Include_Get (const char *fileName, ASFile *asFileP, bool inc);
 
 #endif

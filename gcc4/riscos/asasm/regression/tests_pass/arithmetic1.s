@@ -1,5 +1,7 @@
 ; Tests ADC, ADD, AND, BIC, EOR, MOV, MVN, ORR, RSB, RSC, SBC, SUB, CMN, CMP,
 ; TEQ, TST.
+; In order to shut up the warning given for CMN/CMP/TEQ/TST + "P".
+; RUNOPT: -APCS 3/26bit
 
 	; Addressing Mode 1 - Data processing operands
 

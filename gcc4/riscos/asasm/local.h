@@ -67,7 +67,7 @@ void Local_FinishMacro (bool noCheck);
 bool c_rout (const Lex *label);
 
 bool Local_IsLocalLabel (const char *);
-const char *Local_GetCurROUTId (const char **filePP, int *lineNoP);
+const char *Local_GetCurROUTId (const char **fileNamePP, unsigned *lineNumP);
 
 #ifdef DEBUG
 void Local_DumpAll (void);

@@ -1,3 +1,55 @@
+Mon Feb  6 04:08:14 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/builtinvar_codesize_config.s: Add.
+	* regression/tests_pass/builtinvar_areaname1.s: Add.
+	* regression/tests_pass/builtinvar_areaname2.s: Add.
+	* regression/tests_pass/builtinvar_opt.s: Add.
+	* regression/tests_pass/builtinvar_cpu1.s: Add.
+	* regression/tests_pass/builtinvar_cpu2.s: Add.
+	* regression/tests_pass/builtinvar_inputfile.s: Add.
+	* regression/tests_pass/builtinvar_linenum.s: Add.
+	* regression/tests_pass/builtinvar_pc.s: Enhance for testing .
+	* regression/tests_pass/lowercase.s: Add -CPU option to silence NV
+	deprecation warning.
+	* regression/tests_pass/arithmetic1.s: Add -APCS option to silence
+	CMN/... + "P" warning.
+	* commands.c: Have consistent line number variables as 'lineNum' and
+	unsigned. Also filename variables are named 'fileName'.
+	* os.c, os.h: Likewise.
+	* m_cpuctrl.c: Likewise.
+	* m_cpumem.c: Likewise.
+	* m_fpe.c: Likewise.
+	* help_cop.c: Likewise.
+	* error.c, error.h: Likewise.
+	* local.c, local.h: Likewise.
+	* filestack.c, filestack.h: Likewise.
+	* area.c: Likewise.
+	* macros.c, macros.h: Likewise.
+	* whileif.c: Likewise.
+	* reloc.c, reloc.h: Likewise.
+	* asm.c: Likewise.
+	* include.c, include.h: Likewise.
+	* fix.c, fix.h: Likewise.
+	* lit.c: Likewise.
+	* lex.c: Likewise.
+	* commands.c, commands.h (c_opt): Moved to...
+	* opt.c, opt.h: ...here.
+	* Makefile.am (opt.c): Add.
+	* decode.c (decode): Only give error on currently unsupported
+	Thumb/ThumbEE when processing an instruction.
+	* filestack.c, filestack.h (FS_GetBuiltinVarLineNum,
+	FS_GetBuiltinVarLineNumUp, FS_GetBuiltinVarLineNumUpper): Add.
+	* macros.c (FS_PushMacroPObject): Initialise MacroPObject::optDirective.
+	(FS_PopMacroPObject): Restore gOpt_DirectiveValue.
+	* macros.h (MacroPObject): Add optDirective field.
+	* phase.c (Phase_PrepareFor): Add call to Opt_PrepareForPhase.
+	* targetcpu.c (Target_GetCPU): Return "Generic ARM" when an
+	architecture got selected with -CPU
+	* input.c, input.h (Input_MatchStringLower): Add.
+	* lexAcorn.c (lexAcornPrim): Add support for {AREANAME}, {CODESIZE},
+	{INPUTFILE}, {LINENUM}, {LINENUMUP}, {LINENUMUPPER}.
+	{CPU}: Fix when architecture selected.
+
 Sun Feb  5 20:09:39 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/arithmetic1.s: Reimplemented using macros

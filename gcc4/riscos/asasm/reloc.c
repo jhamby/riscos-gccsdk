@@ -61,7 +61,7 @@ Reloc_CreateQueueObj (void)
 
   rel->next = areaCurrentSymbol->area.info->relocQueue;
   rel->file = FS_GetCurFileName ();
-  rel->lineno = FS_GetCurLineNumber ();
+  rel->lineNum = FS_GetCurLineNumber ();
   /* rel->privData = */
   /* rel->offset = */
   rel->expr.Tag = ValueIllegal;
@@ -182,7 +182,7 @@ relocFix (const Symbol *area)
 				     relQueue->legal & ValueAddr ? &relQueue->offset : NULL);
       if (value->Tag == ValueIllegal)
 	{
-	  errorLine (relQueue->file, relQueue->lineno, ErrorError, "Unable to express relocation");
+	  errorLine (relQueue->file, relQueue->lineNum, ErrorError, "Unable to express relocation");
 #ifdef DEBUG
 	  printf ("Relocation value is: ");
 	  valuePrint (&relQueue->expr);
@@ -203,10 +203,10 @@ relocFix (const Symbol *area)
 	    };
 	  if (value->Tag != ValueCode)
 	    value = &codeAsValue;
-	  if (relQueue->callback (relQueue->file, relQueue->lineno,
+	  if (relQueue->callback (relQueue->file, relQueue->lineNum,
 				  relQueue->offset, value, relQueue->privData, true))
 	    {
-	      errorLine (relQueue->file, relQueue->lineno, ErrorError, "Unable to express relocation");
+	      errorLine (relQueue->file, relQueue->lineNum, ErrorError, "Unable to express relocation");
 #ifdef DEBUG
 	      printf ("Relocation value is: ");
 	      valuePrint (value);

@@ -2,7 +2,7 @@
  * AS an assembler for ARM
  * Copyright (c) Andy Duplain, August 1992.
  * Converted to RISC OS by Niklas Röjemo
- * Copyright (c) 2002-2011 GCCSDK Developers
+ * Copyright (c) 2002-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -84,12 +84,13 @@ Include_Add (const char *path)
 
 /**
  * Returns ASFile structure of given filename (possibly via suffix swapping).
- * \param filename Filename of file which needs to be opened.
+ * \param fileName Filename of file which needs to be opened.
  * \param asFileP ASFile object to be filled in for given filename.
+ * \param inc When true, consider user support include paths.
  * \return false for success, true otherwise (like unexisting file).
  */
 bool
-Include_Find (const char *filename, ASFile *asFileP, bool inc)
+Include_Find (const char *fileName, ASFile *asFileP, bool inc)
 {
   char outBuf[MAXPATHLEN];
   for (unsigned pathidx = 0; /* */; ++pathidx)
@@ -99,17 +100,17 @@ Include_Find (const char *filename, ASFile *asFileP, bool inc)
 
       do
 	{
-	  out[0] = FN_AnyToNative (filename, pathidx, outBuf, sizeof (outBuf),
+	  out[0] = FN_AnyToNative (fileName, pathidx, outBuf, sizeof (outBuf),
 				   &state[0], eA_Dot_B);
 	  if (out[0] && !ASFile_Create (out[0], asFileP))
 	    return false;
 
-	  out[1] = FN_AnyToNative (filename, pathidx, outBuf, sizeof (outBuf),
+	  out[1] = FN_AnyToNative (fileName, pathidx, outBuf, sizeof (outBuf),
 				   &state[1], eB_DirSep_A);
 	  if (out[1] && !ASFile_Create (out[1], asFileP))
 	    return false;
 
-	  out[2] = FN_AnyToNative (filename, pathidx, outBuf, sizeof (outBuf),
+	  out[2] = FN_AnyToNative (fileName, pathidx, outBuf, sizeof (outBuf),
 				   &state[2], eA_Slash_B);
 	  if (out[2] && !ASFile_Create (out[2], asFileP))
 	    return false;
@@ -123,7 +124,7 @@ Include_Find (const char *filename, ASFile *asFileP, bool inc)
 
   /* We're done when we can't use user supplied include paths or when in
      given filename there is a path (like "Hdr:APCS.Common.").  */
-  if (!inc || strchr (filename, ':'))
+  if (!inc || strchr (fileName, ':'))
     return true;
 
   /* Try to find the file via the user supplied include paths.  */
@@ -135,7 +136,7 @@ Include_Find (const char *filename, ASFile *asFileP, bool inc)
 
       do
 	{
-	  out[0] = FN_AnyToNative (filename, 0, outBuf, sizeof (outBuf),
+	  out[0] = FN_AnyToNative (fileName, 0, outBuf, sizeof (outBuf),
 				   &state[0], eA_Dot_B);
 	  if (out[0])
 	    {
@@ -145,7 +146,7 @@ Include_Find (const char *filename, ASFile *asFileP, bool inc)
 		return false;
 	    }
 
-	  out[1] = FN_AnyToNative (filename, 0, outBuf, sizeof (outBuf),
+	  out[1] = FN_AnyToNative (fileName, 0, outBuf, sizeof (outBuf),
 				   &state[1], eB_DirSep_A);
 	  if (out[1])
 	    {
@@ -155,7 +156,7 @@ Include_Find (const char *filename, ASFile *asFileP, bool inc)
 		return false;
 	    }
 
-	  out[2] = FN_AnyToNative (filename, 0, outBuf, sizeof (outBuf),
+	  out[2] = FN_AnyToNative (fileName, 0, outBuf, sizeof (outBuf),
 				   &state[2], eA_Slash_B);
 	  if (out[2])
 	    {
@@ -178,20 +179,19 @@ Include_Find (const char *filename, ASFile *asFileP, bool inc)
 /**
  * Opens file with given filename (possibly via suffix swapping tricks)
  * and optionally returns a possibly better qualified filename.
- * \param filename Filename of file which needs to be opened.
- * \param strdupFilename When non-NULL, is a pointer of a value containing
- * on return a malloc block holding the possibly better qualified filename.
+ * \param fileName Filename of file which needs to be opened.
+ * \param asFileP ASFile object to be filled in for given filename.
  * \param inc When true, consider user support include paths.
  * \return When non-NULL, a std C file stream pointer.
  */
 FILE *
-Include_Get (const char *file, ASFile *asFileP, bool inc)
+Include_Get (const char *fileName, ASFile *asFileP, bool inc)
 {
-  if (Include_Find (file, asFileP, inc))
+  if (Include_Find (fileName, asFileP, inc))
     return NULL;
 
   if (option_verbose > 1)
-    fprintf (stderr, "Open '%s' as '%s' for read: ", file, asFileP->canonName);
+    fprintf (stderr, "Open '%s' as '%s' for read: ", fileName, asFileP->canonName);
   FILE *fp = fopen (asFileP->canonName, "r");
   if (option_verbose > 1)
     fprintf (stderr, fp ? "ok\n" : "not ok\n");

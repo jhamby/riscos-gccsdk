@@ -1,7 +1,7 @@
 /* 
  * AS an assembler for ARM
  * Copyright (c) 1998 Nick Burrett
- * Copyright (c) 2001-2011 GCCSDK Developers
+ * Copyright (c) 2001-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,7 +39,7 @@ typedef struct
   uint32_t loadAddress; /* RISC OS load address.  */
 } ASFile;
 
-bool ASFile_Create (const char *filename, ASFile *asFileP);
+bool ASFile_Create (const char *fileName, ASFile *asFileP);
 void ASFile_Free (ASFile *asFileP);
 
 #ifdef __riscos__
@@ -49,8 +49,8 @@ void ASFile_Free (ASFile *asFileP);
 int switonum (const char *swi);
 
 _kernel_oserror *ThrowbackStart (void);
-_kernel_oserror *ThrowbackSendStart (const char *filename);
-_kernel_oserror *ThrowbackSendError (int level, int lineno, const char *error);
+_kernel_oserror *ThrowbackSendStart (const char *fileName);
+_kernel_oserror *ThrowbackSendError (int level, unsigned lineNum, const char *error);
 _kernel_oserror *ThrowbackEnd (void);
 
 #define Throwback_ReasonProcessing	0

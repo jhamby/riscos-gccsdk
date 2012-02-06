@@ -39,6 +39,7 @@
 #include "filestack.h"
 #include "input.h"
 #include "macros.h"
+#include "opt.h"
 #include "phase.h"
 #include "variables.h"
 
@@ -78,6 +79,7 @@ FS_PopMacroPObject (bool noCheck)
     }
 
   Var_RestoreLocals (gCurPObjP->d.macro.varListP);
+  gOpt_DirectiveValue = gCurPObjP->d.macro.optDirective;
 }
 
 
@@ -101,9 +103,10 @@ FS_PushMacroPObject (const Macro *m, const char *args[MACRO_ARG_LIMIT])
   gCurPObjP[1].d.macro.curPtr = m->buf;
   memcpy (gCurPObjP[1].d.macro.args, args, sizeof (args)*MACRO_ARG_LIMIT);
   gCurPObjP[1].d.macro.varListP = NULL;
+  gCurPObjP[1].d.macro.optDirective = gOpt_DirectiveValue;
 
-  gCurPObjP[1].name = m->file;
-  gCurPObjP[1].lineNum = m->startline;
+  gCurPObjP[1].fileName = m->fileName;
+  gCurPObjP[1].lineNum = m->startLineNum;
 
   gCurPObjP[1].whileIfStartDepth = gCurPObjP[1].whileIfCurDepth = gCurPObjP[0].whileIfCurDepth;
   gCurPObjP[1].GetLine = Macro_GetLine;
@@ -122,7 +125,7 @@ Macro_Call (const Macro *m, const Lex *label)
   int marg = 0;
   if (label->tag == LexId || label->tag == LexLocalLabel)
     {
-      if (m->labelarg)
+      if (m->labelArg)
 	{
 	  const char *lblP = label->tag == LexId ? label->Data.Id.str : label->Data.LocalLabel.str;
 	  size_t lblSize = label->tag == LexId ? label->Data.Id.len : label->Data.LocalLabel.len;
@@ -132,17 +135,17 @@ Macro_Call (const Macro *m, const Lex *label)
       else
 	{
 	  error (ErrorWarning, "Label argument is ignored by macro %s", m->name);
-	  errorLine (m->file, m->startline, ErrorWarning, "note: Marco %s was defined here", m->name);
+	  errorLine (m->fileName, m->startLineNum, ErrorWarning, "note: Marco %s was defined here", m->name);
 	}
     }
-  else if (m->labelarg)
+  else if (m->labelArg)
     args[marg++] = NULL; /* Null label argument */
     
   skipblanks ();
   bool tryEmptyParam = false;
   while (tryEmptyParam || !Input_IsEolOrCommentStart ())
     {
-      if (marg == m->numargs)
+      if (marg == m->numArgs)
 	{
 	  error (ErrorError, "Too many arguments");
 	  Input_Rest ();
@@ -325,7 +328,8 @@ c_macro (void)
       const char *ptr = inputSymbol (&len, '\0');
       if (len)
 	{
-	  m.labelarg = m.numargs = 1;
+	  m.labelArg = true;
+	  m.numArgs = 1;
 	  if ((m.args[0] = strndup (ptr, len)) == NULL)
 	    errorOutOfMem ();
 	}
@@ -346,7 +350,7 @@ c_macro (void)
   if (prevDefMacro != NULL)
     {
       error (ErrorError, "Macro '%.*s' is already defined", (int)len, ptr);
-      errorLine (prevDefMacro->file, prevDefMacro->startline, ErrorError,
+      errorLine (prevDefMacro->fileName, prevDefMacro->startLineNum, ErrorError,
 		 "note: Previous definition of macro '%.*s' was here", (int)len, ptr);
       goto lookforMEND;
     }
@@ -357,7 +361,7 @@ c_macro (void)
   /* Read zero or more macro parameters.  */
   while (!Input_IsEolOrCommentStart ())
     {
-      if (m.numargs == MACRO_ARG_LIMIT)
+      if (m.numArgs == MACRO_ARG_LIMIT)
 	{
 	  error (ErrorError, "Too many arguments in macro definition");
 	  Input_Rest ();
@@ -376,7 +380,7 @@ c_macro (void)
 	  Input_Rest ();
 	  break;
 	}
-      if ((m.args[m.numargs] = strndup (ptr, len)) == NULL)
+      if ((m.args[m.numArgs] = strndup (ptr, len)) == NULL)
 	errorOutOfMem ();
       skipblanks ();
       if (Input_Match ('=', false))
@@ -400,18 +404,18 @@ c_macro (void)
 	      if ((defarg = strndup (defarg, defarglen)) == NULL)
 		errorOutOfMem ();
 	    }
-	  m.defArgs[m.numargs] = defarg;
+	  m.defArgs[m.numArgs] = defarg;
 	}
       else
-	m.defArgs[m.numargs] = NULL;
-      ++m.numargs;
+	m.defArgs[m.numArgs] = NULL;
+      ++m.numArgs;
       if (!Input_Match (',', true))
 	break;
     }
   decode_finalcheck ();
 
   /* Process the macro body.  */
-  m.startline = FS_GetCurLineNumber ();
+  m.startLineNum = FS_GetCurLineNumber ();
   size_t bufptr = 0, buflen = 128;
   if ((buf = malloc (buflen)) == NULL)
     errorOutOfMem ();
@@ -456,11 +460,11 @@ c_macro (void)
 		  (void) Input_Match ('.', false);
 		  int i;
 		  for (i = 0;
-		       i != m.numargs
+		       i != m.numArgs
 			 && (memcmp (ptr, m.args[i], len) || m.args[i][len] != '\0');
 		       ++i)
 		    /* */;
-		  if (i != m.numargs)
+		  if (i != m.numArgs)
 		    c = MACRO_ARG0 + i;
 		  else
 		    Input_RollBackToMark (inputMark2);
@@ -483,7 +487,7 @@ c_macro (void)
 	}
     } while (1);
   buf[bufptr] = '\0';
-  m.file = FS_GetCurFileName ();
+  m.fileName = FS_GetCurFileName ();
   m.buf = buf;
 
   Macro *p;

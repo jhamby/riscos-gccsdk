@@ -80,7 +80,7 @@ errorFinish (void)
 
 #ifdef __riscos__
 static void
-DoThrowback (int level, int lineno, const char *errstr, const char *file)
+DoThrowback (int level, unsigned lineNum, const char *errstr, const char *fileName)
 {
   if (!option_throwback)
     return;
@@ -91,9 +91,9 @@ DoThrowback (int level, int lineno, const char *errstr, const char *file)
   if (oThrowbackStarted == eTB_SuccessfullyStarted)
     {
       _kernel_oserror *err;
-      if ((err = ThrowbackSendStart (file)) != NULL && option_verbose > 1)
+      if ((err = ThrowbackSendStart (fileName)) != NULL && option_verbose > 1)
         fprintf (stderr, "ThrowbackSendStart error: %s\n", err->errmess);
-      if ((err = ThrowbackSendError (level, lineno, errstr)) != NULL && option_verbose > 1)
+      if ((err = ThrowbackSendError (level, lineNum, errstr)) != NULL && option_verbose > 1)
         fprintf (stderr, "ThrowbackSendError error: %s\n", err->errmess);
     }
 }
@@ -178,8 +178,8 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 	  case POType_eFile:
 	    /* When lineNum is zero, we're processing the -PD options.  */
 	    if (pObjP->lineNum != 0)
-	      fprintf (stderr, "%s:%d:%zd: %s: %s\n",
-		       pObjP->name,
+	      fprintf (stderr, "%s:%u:%zd: %s: %s\n",
+		       pObjP->fileName,
 	               pObjP->lineNum,
 		       Input_GetColumn (),
 		       str, errbuf);
@@ -188,8 +188,8 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 	    break;
 
 	  case POType_eMacro:
-	    fprintf (stderr, "%s:%d:%zd: %s: %s in macro %s\n",
-		     pObjP->name,
+	    fprintf (stderr, "%s:%u:%zd: %s: %s in macro %s\n",
+		     pObjP->fileName,
 	             pObjP->lineNum,
 		     Input_GetColumn (),
 		     str, errbuf,
@@ -198,7 +198,7 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 	}
 
 #ifdef __riscos__
-      DoThrowback (t, pObjP->lineNum, errbuf, pObjP->name);
+      DoThrowback (t, pObjP->lineNum, errbuf, pObjP->fileName);
 #endif
 
       while (pObjP != &gPOStack[0])
@@ -211,10 +211,10 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 		  /* When lineNum is zero, we're processing the -PD options.  */
 		  if (pObjP->lineNum != 0)
 		    {
-		      fprintf (stderr, "  called from line %d from file %s\n",
-			       pObjP->lineNum, pObjP->name);
+		      fprintf (stderr, "  called from line %u from file %s\n",
+			       pObjP->lineNum, pObjP->fileName);
 #ifdef __riscos__
-		      DoThrowback (ThrowbackInfo, pObjP->lineNum, "...was called from here", pObjP->name);
+		      DoThrowback (ThrowbackInfo, pObjP->lineNum, "...was called from here", pObjP->fileName);
 #endif
 		    }
 		  else
@@ -224,13 +224,13 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 
 	      case POType_eMacro:
 		{
-		  fprintf (stderr, "  called from macro %s at line %d in file %s\n",
-			   pObjP->d.macro.macro->name, pObjP->lineNum, pObjP->name);
+		  fprintf (stderr, "  called from macro %s at line %u in file %s\n",
+			   pObjP->d.macro.macro->name, pObjP->lineNum, pObjP->fileName);
 #ifdef __riscos__
 		  char errPath[256];
 		  snprintf (errPath, sizeof (errPath), "...was called from macro %s",
 			    pObjP->d.macro.macro->name);
-		  DoThrowback (ThrowbackInfo, pObjP->lineNum, errPath, pObjP->name);
+		  DoThrowback (ThrowbackInfo, pObjP->lineNum, errPath, pObjP->fileName);
 #endif
 		  break;
 		}
@@ -293,13 +293,12 @@ errorOutOfMem (void)
 
 
 static void
-errorCoreLine (const char *file, int lineno, ErrorTag e,
+errorCoreLine (const char *fileName, unsigned lineNum, ErrorTag e,
 	       const char *format, va_list ap)
 {
   /* Ignore Info and Warning messages during Pass 1.  If there are no
      errors, we'll emit them during Pass 2.  */
-  if (gPhase == ePassOne
-      && (e == ErrorInfo || e == ErrorWarning))
+  if (gPhase == ePassOne && (e == ErrorInfo || e == ErrorWarning))
     return;
 
   const char *str;
@@ -343,17 +342,17 @@ errorCoreLine (const char *file, int lineno, ErrorTag e,
 
   vsnprintf (errbuf, sizeof (errbuf), format, ap);
   /* No column support (as it probably does not make sense).  */
-  if (lineno == 0)
-    lineno = FS_GetCurLineNumber ();
-  if (file == NULL)
-    file = FS_GetCurFileName ();
-  if (lineno == 0)
-    fprintf (stderr, "%s: %s: %s\n", file, str, errbuf);
+  if (lineNum == 0)
+    lineNum = FS_GetCurLineNumber ();
+  if (fileName == NULL)
+    fileName = FS_GetCurFileName ();
+  if (lineNum == 0)
+    fprintf (stderr, "%s: %s: %s\n", fileName, str, errbuf);
   else
-    fprintf (stderr, "%s:%d: %s: %s\n", file, lineno, str, errbuf);
+    fprintf (stderr, "%s:%u: %s: %s\n", fileName, lineNum, str, errbuf);
 
 #ifdef __riscos__
-  DoThrowback (t, lineno, errbuf, file);
+  DoThrowback (t, lineNum, errbuf, fileName);
 #endif
 }
 
@@ -363,11 +362,11 @@ errorCoreLine (const char *file, int lineno, ErrorTag e,
  * An ErrorAbort or too many ErrorError's won't make this function return.
  */
 void
-errorLine (const char *file, int lineno, ErrorTag e, const char *format, ...)
+errorLine (const char *fileName, unsigned lineNum, ErrorTag e, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
-  errorCoreLine (file, lineno, e, format, ap);
+  errorCoreLine (fileName, lineNum, e, format, ap);
   va_end (ap);
                  
   if (e == ErrorAbort || oNumErrors > MAXERR)
@@ -377,15 +376,15 @@ errorLine (const char *file, int lineno, ErrorTag e, const char *format, ...)
 }
 
 /**
- * Reports fatal error for given lineno and file and does not return.
+ * Reports fatal error for given lineNum and file and does not return.
  * To be used after the input parsing (e.g. during output time).
  */
 void
-errorAbortLine (const char *file, int lineno, const char *format, ...)
+errorAbortLine (const char *fileName, unsigned lineNum, const char *format, ...)
 {
   va_list ap;
   va_start (ap, format);
-  errorCoreLine (file, lineno, ErrorAbort, format, ap);
+  errorCoreLine (fileName, lineNum, ErrorAbort, format, ap);
   va_end (ap);
                  
   fixup ();

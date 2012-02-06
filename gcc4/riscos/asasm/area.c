@@ -59,8 +59,8 @@ static void Area_Ensure (void);
 Symbol *areaCurrentSymbol = NULL;
 static Area_eEntryType oArea_CurrentEntryType = eInvalid;
 Symbol *areaEntrySymbol = NULL;
-static const char *oArea_EntrySymbolFile = NULL;
-static int oArea_EntrySymbolLineNum = 0;
+static const char *oArea_EntrySymbolFileName = NULL;
+static unsigned oArea_EntrySymbolLineNum = 0;
 int areaEntryOffset = 0;
 Symbol *areaHeadSymbol = NULL;
 
@@ -72,8 +72,8 @@ bool gArea_Preserve8Guessed = true;
 static struct PendingORG
 {
   bool isValid; /** true when we have a pending ORG statement.  */
-  const char *file; /** Non-NULL for pending ORG statement and points to filename of that ORG.  */
-  int line; /** Linenumber of pending ORG.  */
+  const char *fileName; /** Non-NULL for pending ORG statement and points to filename of that ORG.  */
+  unsigned lineNum; /** Linenumber of pending ORG.  */
   uint32_t value; /** Pending ORG value.  */
 } oPendingORG;
 
@@ -83,7 +83,7 @@ Area_ResetPrivateVars (void)
   areaCurrentSymbol = NULL;
   oArea_CurrentEntryType = eInvalid;
   areaEntrySymbol = NULL;
-  oArea_EntrySymbolFile = NULL;
+  oArea_EntrySymbolFileName = NULL;
   oArea_EntrySymbolLineNum = 0;
   areaEntryOffset = 0;
   /* areaHeadSymbol = NULL; */
@@ -186,7 +186,7 @@ Area_PrepareForPhase (Phase_e phase)
       case ePassTwo:
 	{
 	  if (oPendingORG.isValid)
-	    errorLine (oPendingORG.file, oPendingORG.line,
+	    errorLine (oPendingORG.fileName, oPendingORG.lineNum,
 		       ErrorWarning, "Unused ORG statement");
 
 	  /* Do an implicit LTORG at the end of all areas.  */
@@ -207,7 +207,7 @@ Area_PrepareForPhase (Phase_e phase)
       case eOutput:
 	{
 	  if (oPendingORG.isValid)
-	    errorLine (oPendingORG.file, oPendingORG.line,
+	    errorLine (oPendingORG.fileName, oPendingORG.lineNum,
 		       ErrorWarning, "Unused ORG statement");
 
 	  /* Do an implicit LTORG at the end of all areas.  */
@@ -259,14 +259,14 @@ c_entry (void)
       if (areaEntrySymbol)
 	{
 	  error (ErrorError, "More than one ENTRY");
-	  errorLine (oArea_EntrySymbolFile, oArea_EntrySymbolLineNum,
+	  errorLine (oArea_EntrySymbolFileName, oArea_EntrySymbolLineNum,
 	             ErrorError, "note: Previous ENTRY was here"); 
 	}
       else
 	{
 	  areaEntrySymbol = areaCurrentSymbol;
 	  areaEntryOffset = areaCurrentSymbol->area.info->curIdx;
-	  oArea_EntrySymbolFile = FS_GetCurFileName ();
+	  oArea_EntrySymbolFileName = FS_GetCurFileName ();
 	  oArea_EntrySymbolLineNum = FS_GetCurLineNumber ();
 	}
     }
@@ -696,13 +696,14 @@ c_org (void)
 	{
 	  if (oPendingORG.isValid)
 	    {
-	      errorLine (oPendingORG.file, oPendingORG.line, ErrorWarning, "ORG statement without any effect, because of...");
+	      errorLine (oPendingORG.fileName, oPendingORG.lineNum,
+	                 ErrorWarning, "ORG statement without any effect, because of...");
 	      error (ErrorWarning, "...this");
 	    }
 	  else
 	    oPendingORG.isValid = true;
-	  oPendingORG.file = FS_GetCurFileName ();
-	  oPendingORG.line = FS_GetCurLineNumber ();
+	  oPendingORG.fileName = FS_GetCurFileName ();
+	  oPendingORG.lineNum = FS_GetCurLineNumber ();
 	  oPendingORG.value = value->Data.Int.i;
 	}
       else

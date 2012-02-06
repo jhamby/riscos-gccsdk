@@ -1,44 +1,35 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 2012 GCCSDK Developers
- *
+ * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
  * of the License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * phase.c
+ * opt.h
  */
 
-#include "config.h"
+#ifndef opt_header_included
+#define opt_header_included
 
-#include "area.h"
-#include "local.h"
-#include "opt.h"
+#include <stdbool.h>
+
 #include "phase.h"
-#include "state.h"
 
-Phase_e gPhase = eStartup;
+bool c_opt (void);
 
-/**
- * Broadcast the fact new phase is about to begin.
- */
-void
-Phase_PrepareFor (Phase_e phase)
-{
-  Area_PrepareForPhase (phase);
-  Local_PrepareForPhase (phase);
-  Opt_PrepareForPhase (phase);
-  State_PrepareForPhase (phase);
+void Opt_PrepareForPhase (Phase_e phase);
 
-  gPhase = phase;
-}
+extern unsigned gOpt_DirectiveValue;
+
+#endif

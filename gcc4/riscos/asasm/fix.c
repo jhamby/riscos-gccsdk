@@ -33,7 +33,7 @@
 #include "option.h"
 
 ARMWord
-Fix_ShiftImm (const char *file, int lineno, ARMWord shiftop, int shift)
+Fix_ShiftImm (const char *fileName, unsigned lineNum, ARMWord shiftop, int shift)
 {
   if (shift == 0)
     shiftop = LSL;
@@ -42,40 +42,40 @@ Fix_ShiftImm (const char *file, int lineno, ARMWord shiftop, int shift)
       case LSL:
         if (shift < 0 || shift > 31)
 	  {
-	    errorLine (file, lineno, ErrorError, "Illegal immediate shift %d", shift);
+	    errorLine (fileName, lineNum, ErrorError, "Illegal immediate shift %d", shift);
 	    shift = 0;
 	  }
         break;
       case LSR:
         if (shift < 1 || shift > 32)
 	  {
-	    errorLine (file, lineno, ErrorError, "Illegal immediate shift %d", shift);
+	    errorLine (fileName, lineNum, ErrorError, "Illegal immediate shift %d", shift);
 	    shift = 1;
 	  }
         break;
       case ASR:
         if (shift < 1 || shift > 32)
 	  {
-	    errorLine (file, lineno, ErrorError, "Illegal immediate shift %d", shift);
+	    errorLine (fileName, lineNum, ErrorError, "Illegal immediate shift %d", shift);
 	    shift = 1;
 	  }
         break;
       case ROR:
         if (shift < 1 || shift > 31)
 	  {
-	    errorLine (file, lineno, ErrorError, "Illegal immediate shift %d", shift);
+	    errorLine (fileName, lineNum, ErrorError, "Illegal immediate shift %d", shift);
 	    shift = 1;
 	  }
         break;
       default:
-        errorAbortLine (file, lineno, "Internal fixShiftImm: unknown shift type");
+        errorAbortLine (fileName, lineNum, "Internal fixShiftImm: unknown shift type");
         break;
     }
   return SHIFT_IMM (shift) | SHIFT_OP (shiftop);
 }
 
 ARMWord
-fixImm8s4 (int lineno, ARMWord ir, int im)
+fixImm8s4 (unsigned lineNum, ARMWord ir, int im)
 {
   static const char op3[] = "Changing \"%s Rx, Ry, #%d\" to \"%s Rx, Ry, #%d\"";
   static const char op2[] = "Changing \"%s Rx, #%d\" to \"%s Rx, #%d\"";
@@ -114,7 +114,7 @@ fixImm8s4 (int lineno, ARMWord ir, int im)
   i8s4 = help_cpuImm8s4 (im2);
   if (i8s4 == -1)
     {
-      errorLine (NULL, lineno, ErrorError,
+      errorLine (NULL, lineNum, ErrorError,
 		 "Illegal immediate constant %d (0x%08x)", im, im);
       return ir;
     }
@@ -164,18 +164,18 @@ fixImm8s4 (int lineno, ARMWord ir, int im)
 	optype = op3; m1 = "BIC"; m2 = "AND";
 	break;
       default:
-	errorAbortLine (NULL, lineno, "Internal fixImm8s4: unknown mnemonic");
+	errorAbortLine (NULL, lineNum, "Internal fixImm8s4: unknown mnemonic");
 	return ir;
     }
   
   if (option_fussy)
-    errorLine (NULL, lineno, ErrorInfo, optype, m1, im, m2, im2);
+    errorLine (NULL, lineNum, ErrorInfo, optype, m1, im, m2, im2);
 
   return ir | i8s4;
 }
 
 ARMWord
-Fix_MOV (const char *file, int lineno, ARMWord ir, int im)
+Fix_MOV (const char *fileName, unsigned lineNum, ARMWord ir, int im)
 {
   if (im < 0)
     {
@@ -186,22 +186,22 @@ Fix_MOV (const char *file, int lineno, ARMWord ir, int im)
     ir |= M_MOV;
   int i8s4 = help_cpuImm8s4 (im);
   if (i8s4 == -1)
-    errorLine (file, lineno, ErrorError, "Offset %d (0x%08x) is illegal for ADR", im, im);
+    errorLine (fileName, lineNum, ErrorError, "Offset %d (0x%08x) is illegal for ADR", im, im);
   else
     ir |= i8s4;
   return ir;
 }
 
 ARMWord
-fixSwi (int lineno, int im)
+fixSwi (unsigned lineNum, int im)
 {
   if ((im & 0xffffff) != im)
-    errorLine (NULL, lineno, ErrorError, "Illegal swi number %d(0x%08x)", im, im);
+    errorLine (NULL, lineNum, ErrorError, "Illegal swi number %d(0x%08x)", im, im);
   return im & 0xffffff;
 }
 
 ARMWord
-Fix_CopOffset (const char *file, int lineno, ARMWord ir, int offset)
+Fix_CopOffset (const char *fileName, unsigned lineNum, ARMWord ir, int offset)
 {
   bool up;
   if (offset < 0)
@@ -212,9 +212,9 @@ Fix_CopOffset (const char *file, int lineno, ARMWord ir, int offset)
   else
     up = true;
   if (offset & 3)
-    errorLine (file, lineno, ErrorError, "Offset %d is not a word offset", offset);
+    errorLine (fileName, lineNum, ErrorError, "Offset %d is not a word offset", offset);
   if (offset > 1020)
-    errorLine (file, lineno, ErrorError, "Offset %d is too large", offset);
+    errorLine (fileName, lineNum, ErrorError, "Offset %d is too large", offset);
   ir |= (offset >> 2) & 0xff;
   if (up)
     ir |= U_FLAG;
@@ -222,7 +222,7 @@ Fix_CopOffset (const char *file, int lineno, ARMWord ir, int offset)
 }
 
 ARMWord
-Fix_CPUOffset (const char *file, int lineno, ARMWord ir, int offset)
+Fix_CPUOffset (const char *fileName, unsigned lineNum, ARMWord ir, int offset)
 {
   bool up;
   if (offset < 0)
@@ -236,13 +236,13 @@ Fix_CPUOffset (const char *file, int lineno, ARMWord ir, int offset)
   if (isAddrMode3)
     {
       if (offset > 255)
-	errorLine (file, lineno, ErrorError, "Offset %d is too large", offset);
+	errorLine (fileName, lineNum, ErrorError, "Offset %d is too large", offset);
       ir |= (offset & 0xF) | (offset & 0xF0) << 4;
     }
   else
     {
       if (offset > 4095)
-	errorLine (file, lineno, ErrorError, "Offset %d is too large", offset);
+	errorLine (fileName, lineNum, ErrorError, "Offset %d is too large", offset);
       ir |= offset & 0xfff;
     }
   if (up)
@@ -251,30 +251,30 @@ Fix_CPUOffset (const char *file, int lineno, ARMWord ir, int offset)
 }
 
 ARMWord
-fixMask (int lineno, int mask)
+fixMask (unsigned lineNum, int mask)
 {
   if (mask < 0 || mask > 0xffff)
-    errorLine (NULL, lineno, ErrorError, "Illegal value for register mask 0x%x", mask);
+    errorLine (NULL, lineNum, ErrorError, "Illegal value for register mask 0x%x", mask);
   return mask & 0xffff;
 }
 
 /**
  * Check if given value fits in word of given size.
- * \entry lineno Source linenumber where the value is coming from.
+ * \entry lineNum Source linenumber where the value is coming from.
  * \entry size Size in bytes of word value, should be 1, 2 or 4.
  * \entry value Value which should be checked for.
  * When the check fails, an error is given and the value is truncated so it
  * fits in given word size.
  */
 ARMWord
-Fix_Int (const char *file, int lineno, int size, int value)
+Fix_Int (const char *fileName, unsigned lineNum, int size, int value)
 {
   switch (size)
     {
       case 1:
 	if (value < -128 || value >= 256)
 	  {
-	    errorLine (file, lineno, ErrorError, "Expression %d too big for %i bits", value, 8);
+	    errorLine (fileName, lineNum, ErrorError, "Expression %d too big for %i bits", value, 8);
 	    value &= 0xff;
 	  }
 	break;
@@ -282,7 +282,7 @@ Fix_Int (const char *file, int lineno, int size, int value)
       case 2:
 	if (value < -32768 || value >= 65536)
 	  {
-	    errorLine (file, lineno, ErrorError, "Expression %d too big for %i bits", value, 16);
+	    errorLine (fileName, lineNum, ErrorError, "Expression %d too big for %i bits", value, 16);
 	    value &= 0xffff;
 	  }
 	break;

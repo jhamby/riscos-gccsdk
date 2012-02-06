@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,13 +29,17 @@
 #endif
 #include <string.h>
 
+#include "area.h"
 #include "common.h"
 #include "decode.h"
 #include "error.h"
+#include "filestack.h"
 #include "input.h"
 #include "lex.h"
 #include "lexAcorn.h"
 #include "main.h"
+#include "opt.h"
+#include "state.h"
 #include "targetcpu.h"
 
 #define FINISH_STR(string, Op, Pri)	\
@@ -276,101 +280,160 @@ lexAcornBinop (Lex *lex)
 
 /**
  * Get builtin variable.
- * FIXME: support FPU
+ * Built-in variables can be in uppercase, lowercase, or mixed.
  */
 void
 lexAcornPrim (Lex *lex)
 {
+  lex->tag = LexNone;
   const char * const inputMark = Input_GetMark ();
-  switch (inputGet ())
+  switch (inputGet () | 0x20)
     {
-      case 'A':
-	if (Input_MatchString ("SASM}")) /* {ASASM} */
-	  {
-	    lex->tag = LexBool;
-	    lex->Data.Int.value = true;
-	    return;
-	  }
-	else if (Input_MatchString ("RCHITECTURE}")) /* {ARCHITECTURE} */
-	  {
-	    lex->tag = LexString;
-	    if ((lex->Data.String.str = strdup (Target_GetArchAsString ())) == NULL)
-	      errorOutOfMem ();
-	    lex->Data.String.len = strlen (Target_GetArchAsString ());
-	    return;
-	  }
-	break;
+      case 'a':
+	{
+	  if (Input_MatchStringLower ("sasm}")) /* {ASASM} */
+	    {
+	      lex->tag = LexBool;
+	      lex->Data.Int.value = true;
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("rchitecture}")) /* {ARCHITECTURE} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = Target_GetArchAsString ();
+	      lex->Data.String.len = strlen (lex->Data.String.str);
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("reaname}")) /* {AREANAME} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = areaCurrentSymbol->str;
+	      lex->Data.String.len = areaCurrentSymbol->len;
+	      return;
+	    }
+	  break;
+	}
 
-      case 'C':
-	if (Input_MatchString ("ONFIG}")) /* {CONFIG} */
-	  {
-	    lex->tag = LexInt;
-	    lex->Data.Int.value = (gOptionAPCS & APCS_OPT_32BIT) ? 32 : 26;
-	    return;
-	  }
-	else if (Input_MatchString ("PU}")) /* {CPU} */
-	  {
-	    lex->tag = LexString;
-	    if ((lex->Data.String.str = strdup (Target_GetCPU ())) == NULL)
-	      errorOutOfMem ();
-	    lex->Data.String.len = strlen (Target_GetCPU ());
-	    return;
-	  }
-	break;
+      case 'c':
+	{
+	  /* FIXME: {COMMANDLINE} */
+	  if (Input_MatchStringLower ("onfig}") || Input_MatchStringLower ("odesize}")) /* {CONFIG} or {CODESIZE} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = State_GetInstrType () == eInstrType_ARM ? ((gOptionAPCS & APCS_OPT_32BIT) ? 32 : 26) : 16;
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("pu}")) /* {CPU} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = Target_GetCPU ();
+	      lex->Data.String.len = strlen (lex->Data.String.str);
+	      return;
+	    }
+	  break;
+	}
 
-      case 'E':
-	if (Input_MatchString ("NDIAN}")) /* {ENDIAN} */
-	  {
-	    lex->tag = LexString;
-	    if ((lex->Data.String.str = strdup ("little")) == NULL)
-	      errorOutOfMem ();
-	    lex->Data.String.len = sizeof ("little")-1;
-	    return;
-	  }
-	break;
+      case 'e':
+	{
+	  if (Input_MatchStringLower ("ndian}")) /* {ENDIAN} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = "little";
+	      lex->Data.String.len = sizeof ("little")-1;
+	      return;
+	    }
+	  break;
+	}
 
-      case 'F':
-	if (Input_MatchString ("ALSE}")) /* {FALSE} */
-	  {
-	    lex->tag = LexBool;
-	    lex->Data.Int.value = false;
-	    return;
-	  }
-	break;
+      case 'f':
+	{
+	  /* FIXME: support FPU */
+	  if (Input_MatchStringLower ("alse}")) /* {FALSE} */
+	    {
+	      lex->tag = LexBool;
+	      lex->Data.Int.value = false;
+	      return;
+	    }
+	  break;
+	}
 
-      case 'O':
-	if (Input_MatchString ("PT}")) /* {OPT} */
-	  {
-	    lex->tag = LexInt;
-	    lex->Data.Int.value = 2;
-	    return;
-	  }
-	break;
+      case 'i':
+	{
+	  if (Input_MatchStringLower ("nputfile}")) /* {INPUTFILE} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = FS_GetCurFileName ();
+	      lex->Data.String.len = strlen (lex->Data.String.str);
+	      return;
+	    }
+	  break;
+	}
 
-      case 'P':
-	if (Input_MatchString ("C}")) /* {PC} */
-	  {
-	    lex->tag = LexPosition;
-	    return;
-	  }
-	break;
+      case 'l':
+	{
+	  if (Input_MatchStringLower ("inenum}")) /* {LINENUM} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = FS_GetBuiltinVarLineNum ();
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("inenumup}")) /* {LINENUMUP} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = FS_GetBuiltinVarLineNumUp ();
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("inenumupper}")) /* {LINENUMUPPER} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = FS_GetBuiltinVarLineNumUpper ();
+	      return;
+	    }
+	  break;
+	}
 
-      case 'T':
-	if (Input_MatchString ("RUE}")) /* {TRUE} */
-	  {
-	    lex->tag = LexBool;
-	    lex->Data.Int.value = true;
-	    return;
-	  }
-	break;
+      case 'o':
+	{
+	  if (Input_MatchStringLower ("pt}")) /* {OPT} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = gOpt_DirectiveValue;
+	      return;
+	    }
+	  break;
+	}
 
-      case 'V':
-	if (Input_MatchString ("AR}")) /* {VAR} */
-	  {
-	    lex->tag = LexStorage;
-	    return;
-	  }
-	break;
+      case 'p':
+	{
+	  /* FIXME: {PCSTOREOFFSET} */
+	  if (Input_MatchStringLower ("c}")) /* {PC} */
+	    {
+	      lex->tag = LexPosition;
+	      return;
+	    }
+	  break;
+	}
+
+      case 't':
+	{
+	  if (Input_MatchStringLower ("rue}")) /* {TRUE} */
+	    {
+	      lex->tag = LexBool;
+	      lex->Data.Int.value = true;
+	      return;
+	    }
+	  break;
+	}
+
+      case 'v':
+	{
+	  if (Input_MatchStringLower ("ar}")) /* {VAR} */
+	    {
+	      lex->tag = LexStorage;
+	      return;
+	    }
+	  break;
+	}
     }
 
   /* Try to find the end of the builtin variable name.  */

@@ -177,7 +177,7 @@ static bool
 Lex_CheckForROUTMismatch (const char *rout, size_t routLen)
 {
   const char *fileP;
-  int lineNum;
+  unsigned lineNum;
   const char *curROUTId = Local_GetCurROUTId (&fileP, &lineNum);
   if (routLen
       && (curROUTId == NULL

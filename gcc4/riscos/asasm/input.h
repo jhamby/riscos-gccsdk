@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2011 GCCSDK Developers
+ * Copyright (c) 2001-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,6 +38,7 @@ bool Input_Match (char c, bool spacesToo);
 bool Input_MatchKeyword (const char *keyword);
 bool Input_MatchKeywordLower (const char *keyword);
 bool Input_MatchString (const char *str);
+bool Input_MatchStringLower (const char *str);
 bool Input_IsEndOfKeyword (void);
 
 typedef enum

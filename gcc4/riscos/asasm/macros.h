@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2002-2011 GCCSDK Developers
+ * Copyright (c) 2002-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -31,21 +31,22 @@
 
 #define MACRO_ARG_LIMIT (18)
 /* Characters MACRO_ARG0 up to MACRO_ARG0 + MACRO_ARG_LIMIT may not appear
- * in source.
+ * in assembler source code.
  */
 #define MACRO_ARG0  14
 
 typedef struct Macro
 {
   const struct Macro *next;
-  const char *name;
-  const char *file;
+  const char *name; /**< Name of this macro.  */
+  const char *fileName; /**< Filename where this macro has been defined.  */
   const char *buf;
-  unsigned int labelarg:8,	/* 0 or 1 of these */
-    numargs:8;			/* and up to 16 in total */
+  bool labelArg; /**< When true, macro supports label as one of its arguments.  */
+  unsigned char numArgs; /**< Number of macro arguments (including the label
+    one if there is one).  Varies from 0 .. MACRO_ARG_LIMIT - 1.  */
   const char *args[MACRO_ARG_LIMIT];	/**< Current argument values during macro execution.  */
   const char *defArgs[MACRO_ARG_LIMIT];	/**< Default argument value.  */
-  int startline;
+  unsigned startLineNum; /**< Line number in Macro::fileName where its macro definition starts.  */
 } Macro;
 
 typedef struct
@@ -54,6 +55,8 @@ typedef struct
   const char *curPtr; /**< Current pointer inside macro buffer Macro::buf.  */
   const char *args[MACRO_ARG_LIMIT];
   VarPos *varListP; /**< Linked list of local variables defined in this macro.  */
+  unsigned optDirective; /**< Value {OPT} just before macro invocation.
+    {OPT} gets restored after macro invocation.  */
 } MacroPObject;
 
 void FS_PopMacroPObject (bool noCheck);

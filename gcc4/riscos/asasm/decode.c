@@ -48,6 +48,7 @@
 #include "m_cpuctrl.h"
 #include "m_cpumem.h"
 #include "m_fpe.h"
+#include "opt.h"
 #include "option.h"
 #include "main.h"
 #include "state.h"
@@ -408,13 +409,6 @@ decode (const Lex *label)
       (void) ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx);
       return;
     }
-
-  /* FIXME: test on currently unsupported Thumb/ThumbEE state.  */
-  if (State_GetInstrType () != eInstrType_ARM)
-    {
-      error (ErrorError, "Thumb/ThumbEE are currently unsupported"); /* FIXME */
-      return;
-    }
   
   const char * const inputMark = Input_GetMark ();
 
@@ -553,6 +547,13 @@ decode (const Lex *label)
 	    alignValue = 1; /* No alignment.  */
 	    entryType = eData;
 	    break;
+	}
+
+      /* FIXME: test on currently unsupported Thumb/ThumbEE state.  */
+      if ((entryType == eARM || entryType == eThumb) && State_GetInstrType () != eInstrType_ARM)
+	{
+	  error (ErrorError, "Thumb/ThumbEE are currently unsupported"); /* FIXME */
+	  return;
 	}
 
       uint32_t startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area.info->curIdx;

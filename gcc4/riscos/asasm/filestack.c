@@ -3,7 +3,7 @@
  * Copyright (c) Andy Duplain, August 1992.
  *     Added line numbers  Niklas Röjemo
  *     Added filenames     Darren Salt
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -136,7 +136,7 @@ FS_PushFilePObject (const char *fileName)
     }
 
   newPObjP->type = POType_eFile;
-  newPObjP->name = StoreFileName (asFile.canonName);
+  newPObjP->fileName = StoreFileName (asFile.canonName);
   asFile.canonName = NULL; /* Ownership moved to StoreFileName().  */
   newPObjP->lineNum = 0;
   newPObjP->whileIfCurDepth = newPObjP->whileIfStartDepth = prevWhileIfDepth;
@@ -164,11 +164,45 @@ FS_PopFilePObject (bool noCheck)
   FS_PopIfWhile (noCheck);
 
   if (!noCheck && option_verbose)
-    fprintf (stderr, "Returning from file \"%s\"\n", gCurPObjP->name);
+    fprintf (stderr, "Returning from file \"%s\"\n", gCurPObjP->fileName);
 
-  gCurPObjP->name = NULL;
+  gCurPObjP->fileName = NULL;
   fclose (gCurPObjP->d.file.fhandle);
   gCurPObjP->d.file.fhandle = NULL;
+}
+
+
+static bool
+File_GetLine (char *bufP, size_t bufSize)
+{
+  gCurPObjP->lastLineSize = 0;
+  while (1)
+    {
+      if (fgets (bufP, bufSize, gCurPObjP->d.file.fhandle) == NULL
+	  || bufP[0] == '\0')
+	return true;
+
+      size_t lineLen = strlen (bufP);
+      gCurPObjP->lastLineSize += lineLen;
+      if (lineLen > 0 && bufP[lineLen - 1] == '\n')
+	{
+	  if (lineLen > 1 && bufP[lineLen - 2] == '\\')
+	    {
+	      bufP += lineLen - 2;
+	      bufSize -= lineLen - 2;
+	      gCurPObjP->lineNum++;
+	    }
+	  else
+	    {
+	      bufP[lineLen - 1] = '\0';
+	      return false;
+	    }
+	}
+      else if (feof (gCurPObjP->d.file.fhandle))
+	return false;
+      else
+	errorAbort ("Line too long");
+    }
 }
 
 
@@ -198,6 +232,81 @@ FS_PopPObject (bool noCheck)
     gCurPObjP = NULL;
   else
     --gCurPObjP;
+}
+
+
+/**
+ * \return A non-NULL pointer of filename of the current parsing object.
+ */
+const char *
+FS_GetCurFileName (void)
+{
+  if (gCurPObjP == NULL)
+    return SourceFileName;
+  return gCurPObjP->fileName;
+}
+
+
+/**
+ * \return Current linenumber.
+ */
+unsigned
+FS_GetCurLineNumber (void)
+{
+  return gCurPObjP ? gCurPObjP->lineNum : 0;
+}
+
+
+/**
+ * {LINENUM} implementation.
+ * \return Line number in the current source file.
+ * FIXME: not 100% sure this is the correct implementation.
+ */
+unsigned
+FS_GetBuiltinVarLineNum (void)
+{
+  assert (gCurPObjP != NULL);
+  assert (gPOStack[0].type == POType_eFile);
+  return gPOStack[0].lineNum;
+}
+
+
+/**
+ * {LINENUMUP} implementation.
+ * \return When used in a macro, returns the line number of the current macro.
+ * This is the same as {LINENUM} when used in a non-macro context.
+ * FIXME: not 100% sure this is the correct implementation.
+ */
+unsigned
+FS_GetBuiltinVarLineNumUp (void)
+{
+  assert (gCurPObjP != NULL);
+  if (gCurPObjP->type == POType_eMacro)
+    return gCurPObjP->lineNum - gCurPObjP->d.macro.macro->startLineNum;
+  assert (gPOStack[0].type == POType_eFile);
+  return gPOStack[0].lineNum;
+}
+
+
+/**
+ * {LINENUMUPPER} implementation.
+ * \return When used in a macro, returns the line number of the top macro.
+ * The value is same as {LINENUM} when used in a non-macro context.
+ * FIXME: not 100% sure this is the correct implementation.
+ */
+unsigned
+FS_GetBuiltinVarLineNumUpper (void)
+{
+  assert (gCurPObjP != NULL);
+  for (const PObject *pObjP = &gPOStack[0]; pObjP != gCurPObjP; ++pObjP)
+    {
+      if (pObjP->type == POType_eMacro)
+	return pObjP->lineNum - pObjP->d.macro.macro->startLineNum;
+    }
+  if (gCurPObjP->type == POType_eMacro)
+    return gCurPObjP->lineNum - gCurPObjP->d.macro.macro->startLineNum;
+  assert (gPOStack[0].type == POType_eFile);
+  return gPOStack[0].lineNum;
 }
 
 
@@ -236,59 +345,3 @@ ReportFSStack (const char *id)
     } while (pObjP-- != &gPOStack[0]);
 }
 #endif
-
-
-/**
- * \return A non-NULL pointer of filename of the current parsing object.
- */
-const char *
-FS_GetCurFileName (void)
-{
-  if (gCurPObjP == NULL)
-    return SourceFileName;
-  return gCurPObjP->name;
-}
-
-
-/**
- * \return Current linenumber.
- */
-int
-FS_GetCurLineNumber (void)
-{
-  return gCurPObjP ? gCurPObjP->lineNum : 0;
-}
-
-
-static bool
-File_GetLine (char *bufP, size_t bufSize)
-{
-  gCurPObjP->lastLineSize = 0;
-  while (1)
-    {
-      if (fgets (bufP, bufSize, gCurPObjP->d.file.fhandle) == NULL
-	  || bufP[0] == '\0')
-	return true;
-
-      size_t lineLen = strlen (bufP);
-      gCurPObjP->lastLineSize += lineLen;
-      if (lineLen > 0 && bufP[lineLen - 1] == '\n')
-	{
-	  if (lineLen > 1 && bufP[lineLen - 2] == '\\')
-	    {
-	      bufP += lineLen - 2;
-	      bufSize -= lineLen - 2;
-	      gCurPObjP->lineNum++;
-	    }
-	  else
-	    {
-	      bufP[lineLen - 1] = '\0';
-	      return false;
-	    }
-	}
-      else if (feof (gCurPObjP->d.file.fhandle))
-	return false;
-      else
-	errorAbort ("Line too long");
-    }
-}

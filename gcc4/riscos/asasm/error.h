@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2010 GCCSDK Developers
+ * Copyright (c) 2002-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -36,13 +36,13 @@ extern const char InsertCommaAfter[];
 
 void errorFinish (void);
 
-void errorLine (const char *file, int lineno,
+void errorLine (const char *fileName, unsigned lineNum,
 		ErrorTag e, const char *format, ...)
   __attribute__ ((__format__ (__printf__, 4, 5)));
 void error (ErrorTag e, const char *format, ...)
   __attribute__ ((__format__ (__printf__, 2, 3)));
 
-void errorAbortLine (const char *file, int lineno, const char *format, ...)
+void errorAbortLine (const char *fileName, unsigned lineNum, const char *format, ...)
   __attribute__ ((noreturn))
   __attribute__ ((__format__ (__printf__, 3, 4)));
 void errorAbort (const char *format, ...)

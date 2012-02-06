@@ -45,17 +45,17 @@ typedef struct RELOC
  * relocation.  When done successful, return false, otherwise return true and
  * this will result in an error.
  * When reporting info/warning/error/abort, always use RelocQueue::file and
- * RelocQueue::lineno as this can get called after parsing all input files.
+ * RelocQueue::lineNum as this can get called after parsing all input files.
  * \param valueP No ownership transfer.
  */
-typedef bool (*RelocUpdater)(const char *file, int lineno, ARMWord offset,
+typedef bool (*RelocUpdater)(const char *file, unsigned lineNum, ARMWord offset,
 			     const Value *valueP, void *privData, bool final);
 
 typedef struct RelocQueue
 {
   struct RelocQueue *next;
   const char *file;	/**< Source filename of instruction/data needing a change.  */
-  int lineno;		/**< Line number of instruction/data needing a change.  */
+  unsigned lineNum;	/**< Line number of instruction/data needing a change.  */
 
   void *privData;	/**< Pointer to private data.  */
   

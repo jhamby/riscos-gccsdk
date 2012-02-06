@@ -48,7 +48,6 @@ bool c_idfn (void);
 bool c_incbin (void);
 bool c_info (void);
 bool c_lnk (void);
-bool c_opt (void);
 bool c_rn (Symbol *symbol);
 bool c_title (void);
 
@@ -64,9 +63,9 @@ typedef struct
   bool allowUnaligned; /**< Allow unaligned data storage.  */
 } DefineReal_PrivData_t;
 
-bool DefineInt_RelocUpdater (const char *file, int lineno, ARMWord offset,
+bool DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 			     const Value *valueP, void *privData, bool final);
-bool DefineReal_RelocUpdater (const char *file, int lineno, ARMWord offset,
+bool DefineReal_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 			      const Value *valueP, void *privData, bool final);
 
 #endif

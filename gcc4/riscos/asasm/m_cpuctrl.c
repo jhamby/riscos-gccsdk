@@ -54,7 +54,7 @@
 /** CONTROL **/
 
 static bool
-Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
+Branch_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 		     const Value *valueP, void *privData, bool final)
 {
   bool isBLX = *(bool *)privData;
@@ -219,7 +219,7 @@ Branch_RelocUpdater (const char *file, int lineno, ARMWord offset,
 
   int mask = isBLX ? 1 : 3;
   if (branchInstrValue & mask)
-    errorLine (file, lineno, ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
+    errorLine (fileName, lineNum, ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
   ir |= ((branchInstrValue >> 2) & 0xffffff) | (isBLX ? (branchInstrValue & 2) << 23 : 0);
   Put_InsWithOffset (offset, ir);
 
@@ -401,7 +401,7 @@ m_bkpt (void)
  * 2nd instruction.  When it is true, we have to.
  */
 static void
-ADR_RelocUpdaterCore (const char *file, int lineno, size_t offset, int constant,
+ADR_RelocUpdaterCore (const char *fileName, unsigned lineNum, size_t offset, int constant,
 		      int baseReg, bool fixedNumInstr, bool isADRL)
 {
   /* FIXME: Can clever use of ADD/SUB mixture cover more constants ? */
@@ -461,28 +461,28 @@ ADR_RelocUpdaterCore (const char *file, int lineno, size_t offset, int constant,
     {
       if (fixedNumInstr)
 	{
-	  errorLine (file, lineno, ErrorWarning, "ADRL at area offset 0x%08zx is not required for encoding 0x%08x", offset, constant);
+	  errorLine (fileName, lineNum, ErrorWarning, "ADRL at area offset 0x%08zx is not required for encoding 0x%08x", offset, constant);
 	  split[bestIndex].try[1] = 0;
 	  split[bestIndex].num = 2;
 	}
       else
-	errorLine (file, lineno, ErrorInfo, "ADRL at area offset 0x%08zx is not required for encoding 0x%08x, using ADR instead", offset, constant);
+	errorLine (fileName, lineNum, ErrorInfo, "ADRL at area offset 0x%08zx is not required for encoding 0x%08x, using ADR instead", offset, constant);
     }
   else if ((split[bestIndex].num == 2 && !isADRL)
 	   || split[bestIndex].num == 3 || split[bestIndex].num == 4)
     {
       if (fixedNumInstr)
 	{
-	  errorLine (file, lineno, ErrorError, "%s at area offset 0x%08zx can not be used to encode 0x%08x", (isADRL) ? "ADRL" : "ADR", offset, constant);
+	  errorLine (fileName, lineNum, ErrorError, "%s at area offset 0x%08zx can not be used to encode 0x%08x", (isADRL) ? "ADRL" : "ADR", offset, constant);
 	  split[bestIndex].num = (isADRL) ? 2 : 1;
 	}
       else
-	errorLine (file, lineno, ErrorWarning, "%s at area offset 0x%08zx can not be used to encode 0x%08x, using %d instruction sequence instead", (isADRL) ? "ADRL" : "ADR", offset, constant, split[bestIndex].num);
+	errorLine (fileName, lineNum, ErrorWarning, "%s at area offset 0x%08zx can not be used to encode 0x%08x, using %d instruction sequence instead", (isADRL) ? "ADRL" : "ADR", offset, constant, split[bestIndex].num);
     }
 
   ARMWord ir = GetWord (offset);
   if (split[bestIndex].num == 2 && GET_DST_OP(ir) == 15)
-    errorLine (file, lineno, ErrorError, "ADRL can not be used with register 15 as destination");
+    errorLine (fileName, lineNum, ErrorError, "ADRL can not be used with register 15 as destination");
 
   for (int n = 0; n < split[bestIndex].num; ++n)
     {
@@ -509,7 +509,7 @@ typedef struct
  * Shared reloc updater for ADR and ADRL.
  */
 static bool
-ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
+ADR_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 		  const Value *valueP, void *privData, bool final)
 {
   const ADR_PrivData_t *privDataP = (const ADR_PrivData_t *)privData;
@@ -534,11 +534,11 @@ ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
 	  case ValueInt:
 	    /* Absolute value : results in MOV/MVN (followed by ADD/SUB in case of
 	       ADRL).  */
-	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Int.i, -1, true /* final */, privDataP->userIntendedTwoInstr);
+	    ADR_RelocUpdaterCore (fileName, lineNum, offset, valP->Data.Int.i, -1, true /* final */, privDataP->userIntendedTwoInstr);
 	    break;
 
 	  case ValueAddr:
-	    ADR_RelocUpdaterCore (file, lineno, offset, valP->Data.Addr.i, valP->Data.Addr.r, true /* final */, privDataP->userIntendedTwoInstr);
+	    ADR_RelocUpdaterCore (fileName, lineNum, offset, valP->Data.Addr.i, valP->Data.Addr.r, true /* final */, privDataP->userIntendedTwoInstr);
 	    break;
 
 	  case ValueSymbol:
@@ -551,7 +551,7 @@ ADR_RelocUpdater (const char *file, int lineno, ARMWord offset,
 		    Put_InsWithOffset (offset + 4, 0);
 		  return true;
 		}
-	      ADR_RelocUpdaterCore (file, lineno, offset, -(offset + 8), 15, true /* final */, privDataP->userIntendedTwoInstr);
+	      ADR_RelocUpdaterCore (fileName, lineNum, offset, -(offset + 8), 15, true /* final */, privDataP->userIntendedTwoInstr);
 	      if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
 		return true;
 	    }

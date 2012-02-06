@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2011 GCCSDK Developers
+ * Copyright (c) 2001-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -91,12 +91,12 @@ ThrowbackStart (void)
 }
 
 _kernel_oserror *
-ThrowbackSendStart (const char *filename)
+ThrowbackSendStart (const char *fileName)
 {
-  oThrowbackErrorFile = filename;
+  oThrowbackErrorFile = fileName;
   _kernel_swi_regs regs;
   regs.r[0] = THROWBACK_REASON_PROCESSING;
-  regs.r[2] = (int) filename;
+  regs.r[2] = (int) fileName;
   return _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
 }
 
@@ -105,13 +105,13 @@ ThrowbackSendStart (const char *filename)
  * \param errstr nul terminated description of error
  */
 _kernel_oserror *
-ThrowbackSendError (int level, int lineno, const char *errstr)
+ThrowbackSendError (int level, unsigned lineNum, const char *errstr)
 {
   _kernel_swi_regs regs;
   regs.r[0] = level == ThrowbackInfo ? THROWBACK_REASON_INFO_DETAILS : THROWBACK_REASON_ERROR_DETAILS;
   regs.r[1] = 0;
   regs.r[2] = (int) oThrowbackErrorFile;
-  regs.r[3] = lineno;
+  regs.r[3] = (int) lineNum;
   regs.r[4] = level == ThrowbackInfo ? 0 : level;
   regs.r[5] = (int) errstr;
   return _kernel_swi (DDEUtils_ThrowbackSend, &regs, &regs);
@@ -185,12 +185,12 @@ CanonicalisePath (const char *path)
 
 /**
  * Create ASFile structure for given filename.
- * \param filename Filename for which ASFile object needs to be created.
+ * \param fileName Filename for which ASFile object needs to be created.
  * \param asFileP ASFile object to be filled in.  May be uninitialsed.
  * \return false for success, true otherwise (like unexisting file).
  */
 bool
-ASFile_Create (const char *filename, ASFile *asFileP)
+ASFile_Create (const char *fileName, ASFile *asFileP)
 {
   asFileP->canonName = NULL;
   asFileP->size = 0;
@@ -200,10 +200,10 @@ ASFile_Create (const char *filename, ASFile *asFileP)
 #ifdef __riscos__
   _kernel_swi_regs regs;
   regs.r[0] = 17;
-  regs.r[1] = (int) filename;
+  regs.r[1] = (int) fileName;
   if (_kernel_swi (OS_File, &regs, &regs) || (regs.r[0] != 1 && regs.r[0] != 3))
     return true;
-  asFileP->canonName = CanonicalisePath (filename);
+  asFileP->canonName = CanonicalisePath (fileName);
   asFileP->size = (off_t) regs.r[4];
   asFileP->attribs = (uint8_t) regs.r[5];
   asFileP->execAddress = (uint32_t) regs.r[3];
@@ -212,27 +212,27 @@ ASFile_Create (const char *filename, ASFile *asFileP)
 #else
 
   struct stat sinfo;
-  if (stat (filename, &sinfo) != 0 || !S_ISREG (sinfo.st_mode))
+  if (stat (fileName, &sinfo) != 0 || !S_ISREG (sinfo.st_mode))
     {
       /* Given file does not exist.  Try with ,XYZ filetype extension.  */
-      size_t len = strlen (filename);
+      size_t len = strlen (fileName);
       /* Bail out when there is already a ,XYZ file extension used.  */
-      if (len > sizeof (",xyz")-1 && filename[len - 4] == ',')
+      if (len > sizeof (",xyz")-1 && fileName[len - 4] == ',')
 	return true;
 
-      char *extFilename = malloc (len + 4 + 1);
-      if (!extFilename)
+      char *extFileName = malloc (len + 4 + 1);
+      if (!extFileName)
 	errorOutOfMem ();
-      memcpy (extFilename, filename, len);
-      memcpy (extFilename + len, ",???", sizeof (",???"));
+      memcpy (extFileName, fileName, len);
+      memcpy (extFileName + len, ",???", sizeof (",???"));
 
       glob_t ginfo;
-      if (glob (extFilename, GLOB_ERR | GLOB_NOSORT, NULL, &ginfo) != 0)
+      if (glob (extFileName, GLOB_ERR | GLOB_NOSORT, NULL, &ginfo) != 0)
 	{
-	  free (extFilename);
+	  free (extFileName);
 	  return true;
 	}
-      free (extFilename);
+      free (extFileName);
       if (ginfo.gl_pathc != 1
           || stat (ginfo.gl_pathv[0], &sinfo) != 0 || !S_ISREG (sinfo.st_mode))
 	{
@@ -243,20 +243,20 @@ ASFile_Create (const char *filename, ASFile *asFileP)
       globfree (&ginfo);
     }
   else
-    asFileP->canonName = CanonicalisePath (filename);
+    asFileP->canonName = CanonicalisePath (fileName);
   asFileP->size = sinfo.st_size;
   asFileP->attribs = ((sinfo.st_mode & S_IRUSR) ? (1<<0) : 0)
 		       | ((sinfo.st_mode & S_IWUSR) ? (1<<1) : 0)
 		       | ((sinfo.st_mode & (S_IRGRP | S_IROTH)) ? (1<<4) : 0)
 		       | ((sinfo.st_mode & (S_IWGRP | S_IWOTH)) ? (1<<5) : 0);
   unsigned fileType;
-  filename = asFileP->canonName;
-  size_t len = strlen (filename);
-  if (len > sizeof (",xyz")-1 && filename[len - 4] == ','
-      && isxdigit (filename[len - 3]) && isxdigit (filename[len - 2]) && isxdigit (filename[len - 1]))
-    fileType = (filename[len - 1] >= '0' && filename[len - 1] <= '9' ? filename[len - 1] - '0' : (filename[len - 1] | 0x20) - 'a' + 10)
-                 + ((filename[len - 2] >= '0' && filename[len - 2] <= '9' ? filename[len - 2] - '0' : (filename[len - 2] | 0x20) - 'a' + 10) << 4)
-                 + ((filename[len - 3] >= '0' && filename[len - 3] <= '9' ? filename[len - 3] - '0' : (filename[len - 3] | 0x20) - 'a' + 10) << 8);
+  fileName = asFileP->canonName;
+  size_t len = strlen (fileName);
+  if (len > sizeof (",xyz")-1 && fileName[len - 4] == ','
+      && isxdigit (fileName[len - 3]) && isxdigit (fileName[len - 2]) && isxdigit (fileName[len - 1]))
+    fileType = (fileName[len - 1] >= '0' && fileName[len - 1] <= '9' ? fileName[len - 1] - '0' : (fileName[len - 1] | 0x20) - 'a' + 10)
+                 + ((fileName[len - 2] >= '0' && fileName[len - 2] <= '9' ? fileName[len - 2] - '0' : (fileName[len - 2] | 0x20) - 'a' + 10) << 4)
+                 + ((fileName[len - 3] >= '0' && fileName[len - 3] <= '9' ? fileName[len - 3] - '0' : (fileName[len - 3] | 0x20) - 'a' + 10) << 8);
   else
     fileType = 0xFFFU;
   const uint64_t rotime = sinfo.st_mtime * 100 + 0x336e996a00U;

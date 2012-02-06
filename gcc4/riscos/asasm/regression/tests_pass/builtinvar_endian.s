@@ -1,4 +1,4 @@
-; Tests {ENDIAN}
+; Tests built-in variable {ENDIAN}
 
 		AREA	TestData, DATA, READONLY
 

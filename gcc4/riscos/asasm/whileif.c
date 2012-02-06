@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -49,12 +49,12 @@
 
 typedef struct
 {
-  int lineno;		/* Line number where IF is located.  */
+  unsigned lineNum;	/* Line number where IF is located.  */
 } IfBlock_t;
 
 typedef struct
 {
-  int lineno;		/* Line number where WHILE is located.  */
+  unsigned lineNum;	/* Line number where WHILE is located.  */
   union
     {
       off_t offsetFile; /* Only valid when gCurPObjP->type == POType_eFile */
@@ -249,7 +249,7 @@ c_if (void)
 
   WhileIf_t *whileIfP = &oWhileIfs[gCurPObjP->whileIfCurDepth++];
   whileIfP->Tag = WhileIf_eIsIf;
-  whileIfP->Data.If.lineno = gCurPObjP->lineNum;
+  whileIfP->Data.If.lineNum = gCurPObjP->lineNum;
 
   const Value *flag = exprBuildAndEval (ValueBool);
   bool skipToElseElifOrEndIf;
@@ -286,7 +286,7 @@ c_else (void)
       if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile)
 	{
 	  error (ErrorError, "Mismatched | or ELSE");
-	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineno,
+	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
 		     ErrorError, "note: Maybe because of an unmatched WHILE here");
 	}
       else
@@ -320,7 +320,7 @@ c_elif (void)
       if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile)
 	{
 	  error (ErrorError, "Mismatched ELIF");
-	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineno,
+	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
 		     ErrorError, "note: Maybe because of an unmatched WHILE here");
 	}
       else
@@ -348,7 +348,7 @@ c_endif (void)
       if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile)
 	{
 	  error (ErrorError, "Mismatched ] or ENDIF");
-	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineno,
+	  errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While.lineNum,
 		     ErrorError, "note: Maybe because of an unmatched WHILE here");
 	}
       else
@@ -372,7 +372,7 @@ While_Skip (void)
      to do the final decode check ourselves for the current line.  */
   decode_finalcheck ();
 
-  const int startLineNumber = FS_GetCurLineNumber ();
+  const unsigned startLineNumber = FS_GetCurLineNumber ();
 
   int nested = 0;
   while (Input_NextLine (eVarSubstNoWarning))
@@ -449,7 +449,7 @@ c_while (void)
       if (whileIfP->Tag != WhileIf_eIsWhile)
 	isReeval = false;
       else
-	isReeval = whileIfP->Data.While.lineno == gCurPObjP->lineNum;
+	isReeval = whileIfP->Data.While.lineNum == gCurPObjP->lineNum;
     }
   
   if (!isReeval)
@@ -463,7 +463,7 @@ c_while (void)
 
       WhileIf_t *whileIfP = &oWhileIfs[gCurPObjP->whileIfCurDepth++];
       whileIfP->Tag = WhileIf_eIsWhile;
-      whileIfP->Data.While.lineno = gCurPObjP->lineNum;
+      whileIfP->Data.While.lineNum = gCurPObjP->lineNum;
       switch (gCurPObjP->type)
 	{
 	  case POType_eFile:
@@ -512,7 +512,7 @@ While_Rewind (void)
   assert (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsWhile);
   const WhileBlock_t *whileBlockP = &oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.While;
 
-  gCurPObjP->lineNum = whileBlockP->lineno - 1;
+  gCurPObjP->lineNum = whileBlockP->lineNum - 1;
   switch (gCurPObjP->type)
     {
       case POType_eFile:
@@ -544,7 +544,7 @@ c_wend (void)
   else if (oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Tag == WhileIf_eIsIf)
     {
       error (ErrorError, "Mismatched WEND, did you forgot WHILE");
-      errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.If.lineno,
+      errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth - 1].Data.If.lineNum,
 		 ErrorError, "note: Maybe because of an unmatched IF here");
     }
   else
@@ -571,7 +571,7 @@ FS_PopIfWhile (bool noCheck)
 	    if (!noCheck)
 	      {
 		error (ErrorError, "Unmatched IF/ELSE/ELIF, did you forgot ENDIF");
-		errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.If.lineno,
+		errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.If.lineNum,
 			   ErrorError, "note: IF started here");
 	      }
 	    break;
@@ -580,7 +580,7 @@ FS_PopIfWhile (bool noCheck)
 	    if (!noCheck)
 	      {
 		error (ErrorError, "Unmatched WHILE, did you forgot WEND");
-		errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.While.lineno,
+		errorLine (FS_GetCurFileName(), oWhileIfs[gCurPObjP->whileIfCurDepth].Data.While.lineNum,
 			   ErrorError, "note: WHILE started here");
 	      }
 	    break;
