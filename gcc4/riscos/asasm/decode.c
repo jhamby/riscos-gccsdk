@@ -62,7 +62,7 @@ typedef bool (*po_sym)(Symbol *symbolP); /* For eCB_Symbol.  */
 /* Determine the kind of callback to do wrt the LexId @ column 0.  */
 enum
 {
-  eCB_Void        = 0, /* If there is a valid LexId/LexLocalLabel @ column 0, define this as symbol.  This is then a label.  */
+  eCB_Void        = 0, /* If there is a valid LexId/LexLocalLabel @ column 0, define this as symbol as a label.  */
   eCB_VoidPMatch  = 1, /* Same as eCB_Void + further mnemonic decoding needs to be done by parse_opcode callback.  */
   eCB_NoLex       = 2, /* If there is a valid LexId/LexLocalLabel @ column 0, complain about it as it is not allowed.  */
   eCB_NoLexPMatch = 3, /* Same as eCB_NoLex + further mnemonic decoding needs to be done by parse_opcode callback.  */
@@ -96,7 +96,7 @@ typedef struct
 /* This table is alphabetically ordered.  */
 static const decode_table_t oDecodeTable[] =
 {
-  { "!", eCB_Void, eRslt_None, { .vd = c_info } }, /* INFO shorthand */
+  { "!", eCB_NoLex, eRslt_None, { .vd = c_info } }, /* INFO shorthand */
   { "#", eCB_Lex, eRslt_None, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
   { "%", eCB_Void, eRslt_Data, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
   { "&", eCB_Void, eRslt_Data, { .vd = c_ampersand } }, /* & */
@@ -108,15 +108,15 @@ static const decode_table_t oDecodeTable[] =
   { "ADD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_add } }, /* ADD CC S */
   { "ADF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_adf } }, /* ADF CC P R */
   { "ADR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_adr } }, /* ADR CC */
-  { "ALIGN", eCB_Void, eRslt_Data, { .vd = c_align } }, /* ALIGN */
+  { "ALIGN", eCB_NoLex, eRslt_Data, { .vd = c_align } }, /* ALIGN */
   { "AND", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_and } }, /* AND CC S */
-  { "AOF", eCB_Void, eRslt_None, { .vd = c_aof } }, /* AOF */
-  { "AOUT", eCB_Void, eRslt_None, { .vd = c_aout } }, /* AOUT */
-  { "AREA", eCB_Void, eRslt_None, { .vd = c_area } }, /* AREA */
-  { "ARM", eCB_Void, eRslt_None, { .vd = c_code32 } }, /* ARM/CODE32 */
+  { "AOF", eCB_NoLex, eRslt_None, { .vd = c_aof } }, /* AOF */
+  { "AOUT", eCB_NoLex, eRslt_None, { .vd = c_aout } }, /* AOUT */
+  { "AREA", eCB_NoLex, eRslt_None, { .vd = c_area } }, /* AREA */
+  { "ARM", eCB_NoLex, eRslt_None, { .vd = c_code32 } }, /* ARM/CODE32 */
   { "ASN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_asn } }, /* ASN CC P R */
   { "ASR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_asr } }, /* ASR S CC */
-  { "ASSERT", eCB_Void, eRslt_None, { .vd = c_assert } }, /* ASSERT */
+  { "ASSERT", eCB_NoLex, eRslt_None, { .vd = c_assert } }, /* ASSERT */
   { "ATN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_atn } }, /* ATN CC P R */
   { "B", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_branch } }, /* B [L] CC */
   /* FIXME: BFC */
@@ -136,8 +136,8 @@ static const decode_table_t oDecodeTable[] =
   { "CMP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cmp } }, /* CMP CC SP */
   { "CN", eCB_Symbol, eRslt_None, { .sym = c_cn } }, /* CN */
   { "CNF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cnf } }, /* CNF CC or CNFE CC */
-  { "CODE16", eCB_Void, eRslt_None, { .vd = c_code16 } }, /* CODE16 */
-  { "CODE32", eCB_Void, eRslt_None, { .vd = c_code32 } }, /* ARM/CODE32 */
+  { "CODE16", eCB_NoLex, eRslt_None, { .vd = c_code16 } }, /* CODE16 */
+  { "CODE32", eCB_NoLex, eRslt_None, { .vd = c_code32 } }, /* ARM/CODE32 */
   { "COS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cos } }, /* COS CC P R */
   { "CP", eCB_Symbol, eRslt_None, { .sym = c_cp } }, /* CP */
   { "CPS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cps } }, /* CPS */
@@ -158,12 +158,12 @@ static const decode_table_t oDecodeTable[] =
   { "ENDFUNC", eCB_Void, eRslt_None, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
   { "ENDIF", eCB_NoLex, eRslt_None, { .nolex = c_endif } }, /* ] ENDIF */
   { "ENDP", eCB_Void, eRslt_None, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
-  { "ENTRY", eCB_Void, eRslt_None, { .vd = c_entry } }, /* ENTRY */
+  { "ENTRY", eCB_NoLex, eRslt_None, { .vd = c_entry } }, /* ENTRY */
   { "EOR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_eor } }, /* EOR CC S */
   { "EQU", eCB_Symbol, eRslt_None, { .sym = c_equ } }, /* * / EQU */
   { "EXP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_exp } }, /* EXP CC P R */
-  { "EXPORT", eCB_Void, eRslt_None, { .vd = c_export } }, /* EXPORT / GLOBAL */
-  { "EXTERN", eCB_Void, eRslt_None, { .vd = c_import } }, /* IMPORT / EXTERN */
+  { "EXPORT", eCB_NoLex, eRslt_None, { .vd = c_export } }, /* EXPORT / GLOBAL */
+  { "EXTERN", eCB_NoLex, eRslt_None, { .vd = c_import } }, /* IMPORT / EXTERN */
   { "FDV", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_fdv } }, /* FDV CC P R */
   { "FIELD", eCB_Lex, eRslt_ARM, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
   { "FIX", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_fix } }, /* FIX CC [P] R */
@@ -174,17 +174,17 @@ static const decode_table_t oDecodeTable[] =
   { "FRD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_frd } }, /* FRD CC P R */
   { "FUNCTION", eCB_Void, eRslt_None, { .vd = c_function } }, /* FUNCTION / PROC */
   { "GBL", eCB_NoLexPMatch, eRslt_None, { .nolex = c_gbl } }, /* GBLA, GBLL, GBLS */
-  { "GET", eCB_Void, eRslt_None, { .vd = c_get } }, /* GET */
-  { "GLOBAL", eCB_Void, eRslt_None, { .vd = c_export } }, /* EXPORT / GLOBAL */
-  { "IDFN", eCB_Void, eRslt_None, { .vd = c_idfn } }, /* IDFN */
+  { "GET", eCB_NoLex, eRslt_None, { .vd = c_get } }, /* GET */
+  { "GLOBAL", eCB_NoLex, eRslt_None, { .vd = c_export } }, /* EXPORT / GLOBAL */
+  { "IDFN", eCB_NoLex, eRslt_None, { .vd = c_idfn } }, /* IDFN */
   { "IF", eCB_NoLex, eRslt_None, { .nolex = c_if } }, /* [ IF */
-  { "IMPORT", eCB_Void, eRslt_None, { .vd = c_import } }, /* IMPORT / EXTERN */
+  { "IMPORT", eCB_NoLex, eRslt_None, { .vd = c_import } }, /* IMPORT / EXTERN */
   { "INCBIN", eCB_Void, eRslt_None, { .vd = c_incbin } }, /* BIN / INCBIN */
-  { "INCLUDE", eCB_Void, eRslt_None, { .vd = c_get } }, /* GET / INCLUDE */
-  { "INFO", eCB_Void, eRslt_None, { .vd = c_info } }, /* INFO */
+  { "INCLUDE", eCB_NoLex, eRslt_None, { .vd = c_get } }, /* GET / INCLUDE */
+  { "INFO", eCB_NoLex, eRslt_None, { .vd = c_info } }, /* INFO */
   { "ISB", eCB_Void, eRslt_ARM, { .vd = m_isb } }, /* ISB */
   /* FIXME: IT */
-  { "KEEP", eCB_Void, eRslt_None, { .vd = c_keep } }, /* KEEP */
+  { "KEEP", eCB_NoLex, eRslt_None, { .vd = c_keep } }, /* KEEP */
   { "LCL", eCB_NoLexPMatch, eRslt_None, { .nolex = c_lcl } }, /* LCLA, LCLL, LCLS */
   { "LDC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldc } }, /* LDC CC L */
   { "LDC2", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldc2 } }, /* LDC2 L */
@@ -198,7 +198,7 @@ static const decode_table_t oDecodeTable[] =
   { "LOG", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_log } }, /* LOG CC P R */
   { "LSL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_lsl } }, /* LSL S CC */
   { "LSR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_lsr } }, /* LSR S CC */
-  { "LTORG", eCB_Void, eRslt_None, { .vd = c_ltorg } }, /* LTORG */
+  { "LTORG", eCB_NoLex, eRslt_None, { .vd = c_ltorg } }, /* LTORG */
   { "MACRO", eCB_NoLex, eRslt_None, { .nolex = c_macro } }, /* MACRO */
   { "MAP", eCB_NoLex, eRslt_None, { .nolex = c_record } }, /* ^ / MAP : start of new record layout.  */
   { "MCR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mcr } }, /* MCR CC */
@@ -224,15 +224,15 @@ static const decode_table_t oDecodeTable[] =
   { "NOFP", eCB_Void, eRslt_ARM, { .vd = c_nofp } }, /* NOFP */
   { "NOP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_nop } }, /* NOP [CC] */
   { "NRM", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_nrm } }, /* NRM CC P R */
-  { "OPT", eCB_Void, eRslt_None, { .vd = c_opt } }, /* OPT */
-  { "ORG", eCB_Void, eRslt_None, { .vd = c_org } }, /* ORG */
+  { "OPT", eCB_NoLex, eRslt_None, { .vd = c_opt } }, /* OPT */
+  { "ORG", eCB_NoLex, eRslt_None, { .vd = c_org } }, /* ORG */
   { "ORR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_orr } }, /* ORR CC S */
   /* FIXME: PKH */
   { "PL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_pl } }, /* PLD, PLDW, PLI */
   { "POL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_pol } }, /* POL CC P R */
   { "POP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_pop } }, /* POP CC */
   { "POW", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_pow } }, /* POW CC P R */
-  { "PRESERVE8", eCB_Void, eRslt_None, { .vd = c_preserve8 } }, /* PRESERVE8 {TRUE}/{FALSE} */
+  { "PRESERVE8", eCB_NoLex, eRslt_None, { .vd = c_preserve8 } }, /* PRESERVE8 {TRUE}/{FALSE} */
   { "PROC", eCB_Void, eRslt_None, { .vd = c_function } }, /* FUNCTION / PROC */
   { "PUSH", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_push } }, /* PUSH CC */
   { "QADD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_qadd } }, /* QADD CC */
@@ -309,9 +309,9 @@ static const decode_table_t oDecodeTable[] =
   { "STM", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_stm } }, /* STM CC TYPE */
   { "STR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_str } }, /* STR CC BYTE */
   { "STREX", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_strex } }, /* STREX / STREXB / STREXD / STREXH */
-  { "STRONG", eCB_Void, eRslt_None, { .vd = c_strong } }, /* STRONG */
+  { "STRONG", eCB_NoLex, eRslt_None, { .vd = c_strong } }, /* STRONG */
   { "SUB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sub } }, /* SUB CC S */
-  { "SUBT", eCB_Void, eRslt_None, { .vd = c_title } }, /* SUBT */
+  { "SUBT", eCB_NoLex, eRslt_None, { .vd = c_title } }, /* SUBT */
   { "SUF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_suf } }, /* SUF CC P R */
   { "SVC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_swi } }, /* SVC CC */
   { "SWI", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_swi } }, /* SWI CC */
@@ -319,10 +319,10 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: SXTAB, SXTAB16, SXTAH, SXTB, SXTB16, SXTH */
   { "TAN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_tan } }, /* TAN CC P R */
   { "TEQ", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_teq } }, /* TEQ CC */
-  { "THUMB", eCB_Void, eRslt_None, { .vd = c_thumb } }, /* THUMB */
-  { "THUMBX", eCB_Void, eRslt_None, { .vd = c_thumbx } }, /* THUMBX */
+  { "THUMB", eCB_NoLex, eRslt_None, { .vd = c_thumb } }, /* THUMB */
+  { "THUMBX", eCB_NoLex, eRslt_None, { .vd = c_thumbx } }, /* THUMBX */
   { "TST", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_tst } }, /* TST CC */
-  { "TTL", eCB_Void, eRslt_None, { .vd = c_title } }, /* TTL */
+  { "TTL", eCB_NoLex, eRslt_None, { .vd = c_title } }, /* TTL */
   /* FIXME: UADD16, UADD8 */
   /* FIXME: UASX */
   /* FIXME: UBFX */
@@ -398,7 +398,7 @@ decode (const Lex *label)
 {
 #if 0
   /* Check that all entries in oDecodeTable are sorted.  */
-  for (size_t i = 1; i < DECODE_ENTRIES; ++i)
+  for (size_t i = 1; i != DECODE_ENTRIES; ++i)
     assert (strcmp (oDecodeTable[i - 1].mnemonic, oDecodeTable[i].mnemonic) < 0);
 #endif
   assert (label->tag == LexNone || label->tag == LexId || label->tag == LexLocalLabel);

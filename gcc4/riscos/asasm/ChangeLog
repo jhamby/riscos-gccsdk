@@ -1,3 +1,10 @@
+Sat Feb 11 13:49:29 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (oDecodeTable): !, ALIGN, AOF, AOUT, AREA, ARM, ASSERT,
+	CODE16, CODE32, ENTRY, EXPORT, EXTERN, GET, GLOBAL, IDFN, IMPORT,
+	INCLUDE, INFO, KEEP, LTORG, OPT, ORG, PRESERVE8, STRONG, SUBT, THUMBX,
+	THUMBX, TTL: Don't allow a label in front of these directives.
+
 Mon Feb  6 04:08:14 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/builtinvar_codesize_config.s: Add.
