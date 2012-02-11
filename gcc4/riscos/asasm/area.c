@@ -278,7 +278,7 @@ c_entry (void)
 /**
  * Implements ALIGN [<power-of-2> [, <offset>]]
  */
-bool
+Rslt_e
 c_align (void)
 {
   skipblanks ();
@@ -341,7 +341,7 @@ c_align (void)
   while (bytesToStuff--)
     areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = 0;
 
-  return false;
+  return eRslt_None;
 }
 
 
@@ -399,7 +399,7 @@ Area_AlignArea (Symbol *areaSym, unsigned alignValue, const char *msg)
 /**
  * Implements '%' and 'SPACE'.
  */
-bool
+Rslt_e
 c_reserve (void)
 {
   const Value *value = exprBuildAndEval (ValueInt);
@@ -416,7 +416,7 @@ c_reserve (void)
     }
   else
     error (ErrorError, "Unresolved reserve not possible");
-  return false;
+  return eRslt_Data;
 }
 
 

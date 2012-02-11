@@ -27,10 +27,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "symbol.h"
-#include "reloc.h"
+#include "decode.h"
 #include "lit.h"
 #include "phase.h"
+#include "reloc.h"
+#include "symbol.h"
 
 /* Lowest 8 bits encode the alignment of the start of the area as a power
    of 2 and has a value between 2 and 32.  */
@@ -118,11 +119,11 @@ uint32_t Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue
 uint32_t Area_AlignTo (uint32_t offset, unsigned alignValue, const char *msg);
 uint32_t Area_AlignArea (Symbol *areaSym, unsigned alignValue, const char *msg);
 
-bool c_align (void);
+Rslt_e c_align (void);
 bool c_area (void);
 bool c_entry (void);
 bool c_org (void);
-bool c_reserve (void);
+Rslt_e c_reserve (void);
 
 typedef enum
 {

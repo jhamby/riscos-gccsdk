@@ -1,6 +1,6 @@
 /*
  * AS an assembler for ARM
- * Copyright (c) 2010-2011 GCCSDK Developers
+ * Copyright (c) 2010-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,23 +24,25 @@
 
 #include <stdbool.h>
 
-bool m_clrex (void);
-bool m_ldm (bool doLowerCase);
-bool m_ldr (bool doLowerCase);
-bool m_ldrex (bool doLowerCase);
-bool m_pl (bool doLowerCase);
-bool m_pop (bool doLowerCase);
-bool m_push (bool doLowerCase);
-bool m_stm (bool doLowerCase);
-bool m_str (bool doLowerCase);
-bool m_strex (bool doLowerCase);
-bool m_swp (bool doLowerCase);
+#include "decode.h"
 
-bool m_dmb (void);
-bool m_dsb (void);
-bool m_isb (void);
+Rslt_e m_clrex (void);
+Rslt_e m_ldm (bool doLowerCase);
+Rslt_e m_ldr (bool doLowerCase);
+Rslt_e m_ldrex (bool doLowerCase);
+Rslt_e m_pl (bool doLowerCase);
+Rslt_e m_pop (bool doLowerCase);
+Rslt_e m_push (bool doLowerCase);
+Rslt_e m_stm (bool doLowerCase);
+Rslt_e m_str (bool doLowerCase);
+Rslt_e m_strex (bool doLowerCase);
+Rslt_e m_swp (bool doLowerCase);
 
-bool m_rfe (bool doLowerCase);
-bool m_srs (bool doLowerCase);
+Rslt_e m_dmb (void);
+Rslt_e m_dsb (void);
+Rslt_e m_isb (void);
+
+Rslt_e m_rfe (bool doLowerCase);
+Rslt_e m_srs (bool doLowerCase);
 
 #endif

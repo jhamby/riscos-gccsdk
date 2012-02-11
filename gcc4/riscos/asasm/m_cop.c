@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -59,8 +59,9 @@ CopInt (int max, const char *msg)
   return i->Data.Int.i;
 }
 
+/* Parses: p#,cpop,cpdst,cplhs,cprhs {,info} */
 static void
-coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {,info} */
+coprocessor (bool CopOnly, ARMWord ir, int maxop)
 {
   int cop = CP_NUMBER (getCopNum ());
 
@@ -101,25 +102,25 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)	/* p#,cpop,cpdst,cplhs,cprhs {
  * Implements CDP.
  *   CDP<cond> p#, CPop, CPd, CPn, CPm {,<info>}
  */
-bool
+Rslt_e
 m_cdp (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   coprocessor (true, cc | 0x0e000000, 15);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements CDP2.
  */
-bool
+Rslt_e
 m_cdp2 (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv5);
   coprocessor (true, 0xfe000000, 15);
-  return false;
+  return eRslt_ARM;
 }
 
 /** REGISTER TRANSFER **/
@@ -127,49 +128,49 @@ m_cdp2 (void)
 /**
  * Implements MCR.
  */
-bool
+Rslt_e
 m_mcr (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   coprocessor (false, cc | 0x0e000010, 7);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements MCR2.
  */
-bool
+Rslt_e
 m_mcr2 (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv5);
   coprocessor (false, 0xfe000010, 7);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements MRC.
  */
-bool
+Rslt_e
 m_mrc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   coprocessor (false, cc | 0x0e100010, 7);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements MRC2.
  */
-bool
+Rslt_e
 m_mrc2 (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv5);
   coprocessor (false, 0xfe100010, 7);
-  return false;
+  return eRslt_ARM;
 }
 
 static void
@@ -199,27 +200,27 @@ coprocessorr (ARMWord ir)
 /**
  * Implements MCRR.
  */
-bool
+Rslt_e
 m_mcrr (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   Target_NeedAtLeastArch (ARCH_ARMv6);
   coprocessorr (cc | 0x0C400000);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements MRRC.
  */
-bool
+Rslt_e
 m_mrrc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   Target_NeedAtLeastArch (ARCH_ARMv6);
   coprocessorr (cc | 0x0C500000);
-  return false;
+  return eRslt_ARM;
 }

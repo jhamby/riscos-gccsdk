@@ -1,3 +1,16 @@
+Sat Feb 11 17:08:51 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.h (Rslt_e): Add.
+	* decode.c (po_void, po_void_lc): Return Rslt_e iso bool.
+	(po_void_lc): Rename to po_void_pm.
+	(po_nolex): Add.
+	(decode_table_t::result): Remove.
+	(decode_table_t::instr): Add.
+	(oDecodeTable): Follow changes.
+	* commands.c, commands.h, m_cpuctrl.c, m_cop.c, m_cpuctrl.h, m_cpumem.c,
+	m_cop.h, m_cpumem.h, area.c, area.h, m_fpe.c, m_fpe.h, m_copmem.c,
+	m_copmem.h, m_cpu.c, m_cpu.h: Follow changes.
+
 Sat Feb 11 13:49:29 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (oDecodeTable): !, ALIGN, AOF, AOUT, AREA, ARM, ASSERT,

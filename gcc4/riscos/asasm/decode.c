@@ -54,15 +54,20 @@
 #include "state.h"
 #include "storage.h"
 
-typedef bool (*po_void)(void); /* For eCB_Void, eCB_NoLex and eCB_NoLexPMatch.  */
-typedef bool (*po_void_lc)(bool doLowerCase); /* For eCB_VoidPMatch.  */
+typedef Rslt_e (*po_void)(void); /* For eCB_Void.  */
+typedef Rslt_e (*po_void_pm)(bool doLowerCase); /* For eCB_VoidPMatch.  As
+  there is a partial match, the doLowerCase parameter is needed to take into
+  account for further mnemonic matching.  */
+typedef bool (*po_nolex)(void); /* eCB_NoLex and eCB_NoLexPMatch. The partial
+  match NoLex directives are all in uppercase so no need for a doLowerCase
+  parameter.  */
 typedef bool (*po_lex)(const Lex *labelP); /* For eCB_Lex and eCB_LexPMatch.  */
 typedef bool (*po_sym)(Symbol *symbolP); /* For eCB_Symbol.  */
 
 /* Determine the kind of callback to do wrt the LexId @ column 0.  */
 enum
 {
-  eCB_Void        = 0, /* If there is a valid LexId/LexLocalLabel @ column 0, define this as symbol as a label.  */
+  eCB_Void        = 0, /* If there is a valid LexId/LexLocalLabel @ column 0, define this as a symbol (label).  */
   eCB_VoidPMatch  = 1, /* Same as eCB_Void + further mnemonic decoding needs to be done by parse_opcode callback.  */
   eCB_NoLex       = 2, /* If there is a valid LexId/LexLocalLabel @ column 0, complain about it as it is not allowed.  */
   eCB_NoLexPMatch = 3, /* Same as eCB_NoLex + further mnemonic decoding needs to be done by parse_opcode callback.  */
@@ -70,24 +75,17 @@ enum
   eCB_LexPMatch   = 5, /* Save as eCB_Lex + further mnemonic decoding needs to be done by parse_opcode callback.  */
   eCB_Symbol      = 6  /* If there is a valid LexId @ column 0, turn this into a symbol and pass it on as parameter.  */
 };
-/* Determines the kind of output the mnemonic is going to do.  */
-enum
-{
-  eRslt_ARM   = 0, /* ARM instruction.  */
-  eRslt_Data  = 1, /* Data.  */
-  eRslt_Thumb = 2, /* Thumb instruction.  */
-  eRslt_None  = 3  /* No data nor instruction, or no change.  */
-};
 typedef struct
 {
   const char *mnemonic; /* Ptr to mnemonic (or first part of mnemonic).  */
   unsigned int cb_type:3; /* See eCB_* values.  */
-  unsigned int result:2; /* Kind of output (see eRslt_* enum).  */
+  unsigned int instr:1; /* Is an ARM/Thumb instruction, used to decide if
+    lowercase mnemonic is allowed or not.  */
   union
     {
       po_void vd; /* Callback for eCB_Void.  */
-      po_void_lc vdpm; /* Callback for eCB_VoidPMatch.  */
-      po_void nolex; /* Callback for eCB_NoLex and eCB_NoLexPMatch.  */
+      po_void_pm vdpm; /* Callback for eCB_VoidPMatch.  */
+      po_nolex nolex; /* Callback for eCB_NoLex and eCB_NoLexPMatch.  */
       po_lex lex; /* Callback for eCB_Lex and eCB_LexPMatch.  */
       po_sym sym; /* Callback for eCB_Symbol.  */
     } parse_opcode;
@@ -96,233 +94,233 @@ typedef struct
 /* This table is alphabetically ordered.  */
 static const decode_table_t oDecodeTable[] =
 {
-  { "!", eCB_NoLex, eRslt_None, { .vd = c_info } }, /* INFO shorthand */
-  { "#", eCB_Lex, eRslt_None, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
-  { "%", eCB_Void, eRslt_Data, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
-  { "&", eCB_Void, eRslt_Data, { .vd = c_ampersand } }, /* & */
-  { "*", eCB_Symbol, eRslt_None, { .sym = c_equ } }, /* * / EQU */
-  { "=", eCB_Void, eRslt_Data, { .vd = c_dcb } }, /* = / DCB */
-  { "ABS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_abs } }, /* ABS CC P R */
-  { "ACS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_acs } }, /* ACS CC P R */
-  { "ADC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_adc } }, /* ADC CC S */
-  { "ADD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_add } }, /* ADD CC S */
-  { "ADF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_adf } }, /* ADF CC P R */
-  { "ADR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_adr } }, /* ADR CC */
-  { "ALIGN", eCB_NoLex, eRslt_Data, { .vd = c_align } }, /* ALIGN */
-  { "AND", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_and } }, /* AND CC S */
-  { "AOF", eCB_NoLex, eRslt_None, { .vd = c_aof } }, /* AOF */
-  { "AOUT", eCB_NoLex, eRslt_None, { .vd = c_aout } }, /* AOUT */
-  { "AREA", eCB_NoLex, eRslt_None, { .vd = c_area } }, /* AREA */
-  { "ARM", eCB_NoLex, eRslt_None, { .vd = c_code32 } }, /* ARM/CODE32 */
-  { "ASN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_asn } }, /* ASN CC P R */
-  { "ASR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_asr } }, /* ASR S CC */
-  { "ASSERT", eCB_NoLex, eRslt_None, { .vd = c_assert } }, /* ASSERT */
-  { "ATN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_atn } }, /* ATN CC P R */
-  { "B", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_branch } }, /* B [L] CC */
+  { "!", eCB_NoLex, 0, { .nolex = c_info } }, /* INFO shorthand */
+  { "#", eCB_Lex, 0, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
+  { "%", eCB_Void, 0, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
+  { "&", eCB_Void, 0, { .vd = c_ampersand } }, /* & */
+  { "*", eCB_Symbol, 0, { .sym = c_equ } }, /* * / EQU */
+  { "=", eCB_Void, 0, { .vd = c_dcb } }, /* = / DCB */
+  { "ABS", eCB_VoidPMatch, 1, { .vdpm = m_abs } }, /* ABS CC P R */
+  { "ACS", eCB_VoidPMatch, 1, { .vdpm = m_acs } }, /* ACS CC P R */
+  { "ADC", eCB_VoidPMatch, 1, { .vdpm = m_adc } }, /* ADC CC S */
+  { "ADD", eCB_VoidPMatch, 1, { .vdpm = m_add } }, /* ADD CC S */
+  { "ADF", eCB_VoidPMatch, 1, { .vdpm = m_adf } }, /* ADF CC P R */
+  { "ADR", eCB_VoidPMatch, 1, { .vdpm = m_adr } }, /* ADR CC */
+  { "ALIGN", eCB_Void, 0, { .vd = c_align } }, /* ALIGN */
+  { "AND", eCB_VoidPMatch, 1, { .vdpm = m_and } }, /* AND CC S */
+  { "AOF", eCB_NoLex, 0, { .nolex = c_aof } }, /* AOF */
+  { "AOUT", eCB_NoLex, 0, { .nolex = c_aout } }, /* AOUT */
+  { "AREA", eCB_NoLex, 0, { .nolex = c_area } }, /* AREA */
+  { "ARM", eCB_NoLex, 0, { .nolex = c_code32 } }, /* ARM/CODE32 */
+  { "ASN", eCB_VoidPMatch, 1, { .vdpm = m_asn } }, /* ASN CC P R */
+  { "ASR", eCB_VoidPMatch, 1, { .vdpm = m_asr } }, /* ASR S CC */
+  { "ASSERT", eCB_NoLex, 0, { .nolex = c_assert } }, /* ASSERT */
+  { "ATN", eCB_VoidPMatch, 1, { .vdpm = m_atn } }, /* ATN CC P R */
+  { "B", eCB_VoidPMatch, 1, { .vdpm = m_branch } }, /* B [L] CC */
   /* FIXME: BFC */
   /* FIXME: BFI */
-  { "BIC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_bic } }, /* BIC CC S */
-  { "BIN", eCB_Void, eRslt_None, { .vd = c_incbin } }, /* BIN / INCBIN */
-  { "BKPT", eCB_Void, eRslt_ARM, { .vd = m_bkpt } }, /* BKPT */
-  { "BLX", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_blx } }, /* BLX CC */
-  { "BX", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_bx } }, /* BX CC */
-  { "BXJ", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_bxj } }, /* BXJ CC */
-  { "CDP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cdp } }, /* CDP CC */
-  { "CDP2", eCB_Void, eRslt_ARM, { .vd = m_cdp2 } }, /* CDP2 */
-  { "CLREX", eCB_Void, eRslt_ARM, { .vd = m_clrex } }, /* CLREX */
-  { "CLZ", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_clz } }, /* CLZ CC */
-  { "CMF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cmf } }, /* CMF CC or CMFE CC */
-  { "CMN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cmn } }, /* CMN CC SP */
-  { "CMP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cmp } }, /* CMP CC SP */
-  { "CN", eCB_Symbol, eRslt_None, { .sym = c_cn } }, /* CN */
-  { "CNF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cnf } }, /* CNF CC or CNFE CC */
-  { "CODE16", eCB_NoLex, eRslt_None, { .vd = c_code16 } }, /* CODE16 */
-  { "CODE32", eCB_NoLex, eRslt_None, { .vd = c_code32 } }, /* ARM/CODE32 */
-  { "COS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cos } }, /* COS CC P R */
-  { "CP", eCB_Symbol, eRslt_None, { .sym = c_cp } }, /* CP */
-  { "CPS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_cps } }, /* CPS */
-  { "DATA", eCB_Void, eRslt_None, { .vd = c_data } }, /* DATA */
-  { "DBG", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_dbg } }, /* DBG */
-  { "DCB", eCB_Void, eRslt_Data, { .vd = c_dcb } }, /* = / DCB */
-  { "DCD", eCB_VoidPMatch, eRslt_Data, { .vdpm = c_dcd } }, /* DCD / DCDU */
-  { "DCFD", eCB_VoidPMatch, eRslt_Data, { .vdpm = c_dcfd } }, /* DCFD / DCFDU */
-  { "DCFS", eCB_VoidPMatch, eRslt_Data, { .vdpm = c_dcfs } }, /* DCFS / DCFSU */
-  { "DCI", eCB_Void, eRslt_ARM, { .vd = c_dci } }, /* DCI */
-  { "DCW", eCB_VoidPMatch, eRslt_Data, { .vdpm = c_dcw } }, /* DCW / DCWU */
-  { "DMB", eCB_Void, eRslt_ARM, { .vd = m_dmb } }, /* DMB */
-  { "DSB", eCB_Void, eRslt_ARM, { .vd = m_dsb } }, /* DSB */
-  { "DVF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_dvf } }, /* DVF CC P R */
-  { "ELIF", eCB_NoLex, eRslt_None, { .nolex = c_elif } }, /* ELIF */
-  { "ELSE", eCB_NoLex, eRslt_None, { .nolex = c_else } }, /* | ELSE */
-  { "END", eCB_NoLex, eRslt_None, { .vd = c_end } }, /* END */
-  { "ENDFUNC", eCB_Void, eRslt_None, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
-  { "ENDIF", eCB_NoLex, eRslt_None, { .nolex = c_endif } }, /* ] ENDIF */
-  { "ENDP", eCB_Void, eRslt_None, { .vd = c_endfunc } }, /* ENDFUNC / ENDP */
-  { "ENTRY", eCB_NoLex, eRslt_None, { .vd = c_entry } }, /* ENTRY */
-  { "EOR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_eor } }, /* EOR CC S */
-  { "EQU", eCB_Symbol, eRslt_None, { .sym = c_equ } }, /* * / EQU */
-  { "EXP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_exp } }, /* EXP CC P R */
-  { "EXPORT", eCB_NoLex, eRslt_None, { .vd = c_export } }, /* EXPORT / GLOBAL */
-  { "EXTERN", eCB_NoLex, eRslt_None, { .vd = c_import } }, /* IMPORT / EXTERN */
-  { "FDV", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_fdv } }, /* FDV CC P R */
-  { "FIELD", eCB_Lex, eRslt_ARM, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
-  { "FIX", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_fix } }, /* FIX CC [P] R */
-  { "FLT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_flt } }, /* FLT CC P R */
-  { "FML", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_fml } }, /* FML CC P R */
-  { "FN", eCB_Symbol, eRslt_None, { .sym = c_fn } }, /* FN */
-  { "FRAME", eCB_Void, eRslt_None, { .vd = c_frame } }, /* FRAME */
-  { "FRD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_frd } }, /* FRD CC P R */
-  { "FUNCTION", eCB_Void, eRslt_None, { .vd = c_function } }, /* FUNCTION / PROC */
-  { "GBL", eCB_NoLexPMatch, eRslt_None, { .nolex = c_gbl } }, /* GBLA, GBLL, GBLS */
-  { "GET", eCB_NoLex, eRslt_None, { .vd = c_get } }, /* GET */
-  { "GLOBAL", eCB_NoLex, eRslt_None, { .vd = c_export } }, /* EXPORT / GLOBAL */
-  { "IDFN", eCB_NoLex, eRslt_None, { .vd = c_idfn } }, /* IDFN */
-  { "IF", eCB_NoLex, eRslt_None, { .nolex = c_if } }, /* [ IF */
-  { "IMPORT", eCB_NoLex, eRslt_None, { .vd = c_import } }, /* IMPORT / EXTERN */
-  { "INCBIN", eCB_Void, eRslt_None, { .vd = c_incbin } }, /* BIN / INCBIN */
-  { "INCLUDE", eCB_NoLex, eRslt_None, { .vd = c_get } }, /* GET / INCLUDE */
-  { "INFO", eCB_NoLex, eRslt_None, { .vd = c_info } }, /* INFO */
-  { "ISB", eCB_Void, eRslt_ARM, { .vd = m_isb } }, /* ISB */
+  { "BIC", eCB_VoidPMatch, 1, { .vdpm = m_bic } }, /* BIC CC S */
+  { "BIN", eCB_NoLex, 0, { .nolex = c_incbin } }, /* BIN / INCBIN */
+  { "BKPT", eCB_Void, 1, { .vd = m_bkpt } }, /* BKPT */
+  { "BLX", eCB_VoidPMatch, 1, { .vdpm = m_blx } }, /* BLX CC */
+  { "BX", eCB_VoidPMatch, 1, { .vdpm = m_bx } }, /* BX CC */
+  { "BXJ", eCB_VoidPMatch, 1, { .vdpm = m_bxj } }, /* BXJ CC */
+  { "CDP", eCB_VoidPMatch, 1, { .vdpm = m_cdp } }, /* CDP CC */
+  { "CDP2", eCB_Void, 1, { .vd = m_cdp2 } }, /* CDP2 */
+  { "CLREX", eCB_Void, 1, { .vd = m_clrex } }, /* CLREX */
+  { "CLZ", eCB_VoidPMatch, 1, { .vdpm = m_clz } }, /* CLZ CC */
+  { "CMF", eCB_VoidPMatch, 1, { .vdpm = m_cmf } }, /* CMF CC or CMFE CC */
+  { "CMN", eCB_VoidPMatch, 1, { .vdpm = m_cmn } }, /* CMN CC SP */
+  { "CMP", eCB_VoidPMatch, 1, { .vdpm = m_cmp } }, /* CMP CC SP */
+  { "CN", eCB_Symbol, 0, { .sym = c_cn } }, /* CN */
+  { "CNF", eCB_VoidPMatch, 1, { .vdpm = m_cnf } }, /* CNF CC or CNFE CC */
+  { "CODE16", eCB_NoLex, 0, { .nolex = c_code16 } }, /* CODE16 */
+  { "CODE32", eCB_NoLex, 0, { .nolex = c_code32 } }, /* ARM/CODE32 */
+  { "COS", eCB_VoidPMatch, 1, { .vdpm = m_cos } }, /* COS CC P R */
+  { "CP", eCB_Symbol, 0, { .sym = c_cp } }, /* CP */
+  { "CPS", eCB_VoidPMatch, 1, { .vdpm = m_cps } }, /* CPS */
+  { "DATA", eCB_Void, 0, { .vd = c_data } }, /* DATA */
+  { "DBG", eCB_VoidPMatch, 1, { .vdpm = m_dbg } }, /* DBG */
+  { "DCB", eCB_Void, 1, { .vd = c_dcb } }, /* = / DCB */
+  { "DCD", eCB_VoidPMatch, 1, { .vdpm = c_dcd } }, /* DCD / DCDU */
+  { "DCFD", eCB_VoidPMatch, 1, { .vdpm = c_dcfd } }, /* DCFD / DCFDU */
+  { "DCFS", eCB_VoidPMatch, 1, { .vdpm = c_dcfs } }, /* DCFS / DCFSU */
+  { "DCI", eCB_Void, 1, { .vd = c_dci } }, /* DCI */
+  { "DCW", eCB_VoidPMatch, 1, { .vdpm = c_dcw } }, /* DCW / DCWU */
+  { "DMB", eCB_Void, 1, { .vd = m_dmb } }, /* DMB */
+  { "DSB", eCB_Void, 1, { .vd = m_dsb } }, /* DSB */
+  { "DVF", eCB_VoidPMatch, 1, { .vdpm = m_dvf } }, /* DVF CC P R */
+  { "ELIF", eCB_NoLex, 0, { .nolex = c_elif } }, /* ELIF */
+  { "ELSE", eCB_NoLex, 0, { .nolex = c_else } }, /* | ELSE */
+  { "END", eCB_NoLex, 0, { .nolex = c_end } }, /* END */
+  { "ENDFUNC", eCB_NoLex, 0, { .nolex = c_endfunc } }, /* ENDFUNC / ENDP */
+  { "ENDIF", eCB_NoLex, 0, { .nolex = c_endif } }, /* ] ENDIF */
+  { "ENDP", eCB_NoLex, 0, { .nolex = c_endfunc } }, /* ENDFUNC / ENDP */
+  { "ENTRY", eCB_NoLex, 0, { .nolex = c_entry } }, /* ENTRY */
+  { "EOR", eCB_VoidPMatch, 1, { .vdpm = m_eor } }, /* EOR CC S */
+  { "EQU", eCB_Symbol, 0, { .sym = c_equ } }, /* * / EQU */
+  { "EXP", eCB_VoidPMatch, 1, { .vdpm = m_exp } }, /* EXP CC P R */
+  { "EXPORT", eCB_NoLex, 0, { .nolex = c_export } }, /* EXPORT / GLOBAL */
+  { "EXTERN", eCB_NoLex, 0, { .nolex = c_import } }, /* IMPORT / EXTERN */
+  { "FDV", eCB_VoidPMatch, 1, { .vdpm = m_fdv } }, /* FDV CC P R */
+  { "FIELD", eCB_Lex, 0, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
+  { "FIX", eCB_VoidPMatch, 1, { .vdpm = m_fix } }, /* FIX CC [P] R */
+  { "FLT", eCB_VoidPMatch, 1, { .vdpm = m_flt } }, /* FLT CC P R */
+  { "FML", eCB_VoidPMatch, 1, { .vdpm = m_fml } }, /* FML CC P R */
+  { "FN", eCB_Symbol, 0, { .sym = c_fn } }, /* FN */
+  { "FRAME", eCB_NoLex, 0, { .nolex = c_frame } }, /* FRAME */
+  { "FRD", eCB_VoidPMatch, 1, { .vdpm = m_frd } }, /* FRD CC P R */
+  { "FUNCTION", eCB_NoLex, 0, { .nolex = c_function } }, /* FUNCTION / PROC */
+  { "GBL", eCB_NoLexPMatch, 0, { .nolex = c_gbl } }, /* GBLA, GBLL, GBLS */
+  { "GET", eCB_NoLex, 0, { .nolex = c_get } }, /* GET */
+  { "GLOBAL", eCB_NoLex, 0, { .nolex = c_export } }, /* EXPORT / GLOBAL */
+  { "IDFN", eCB_NoLex, 0, { .nolex = c_idfn } }, /* IDFN */
+  { "IF", eCB_NoLex, 0, { .nolex = c_if } }, /* [ IF */
+  { "IMPORT", eCB_NoLex, 0, { .nolex = c_import } }, /* IMPORT / EXTERN */
+  { "INCBIN", eCB_NoLex, 0, { .nolex = c_incbin } }, /* BIN / INCBIN */
+  { "INCLUDE", eCB_NoLex, 0, { .nolex = c_get } }, /* GET / INCLUDE */
+  { "INFO", eCB_NoLex, 0, { .nolex = c_info } }, /* INFO */
+  { "ISB", eCB_Void, 1, { .vd = m_isb } }, /* ISB */
   /* FIXME: IT */
-  { "KEEP", eCB_NoLex, eRslt_None, { .vd = c_keep } }, /* KEEP */
-  { "LCL", eCB_NoLexPMatch, eRslt_None, { .nolex = c_lcl } }, /* LCLA, LCLL, LCLS */
-  { "LDC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldc } }, /* LDC CC L */
-  { "LDC2", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldc2 } }, /* LDC2 L */
-  { "LDF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldf } }, /* LDF CC P */
-  { "LDM", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldm } }, /* LDM CC TYPE */
-  { "LDR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldr } }, /* LDR CC BYTE */
-  { "LDREX", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ldrex } }, /* LDREX / LDREXB / LDREXD / LDREXH */
-  { "LFM", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_lfm } }, /* LFM CC (TYPE) */
-  { "LGN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_lgn } }, /* LGN CC P R */
-  { "LNK", eCB_Void, eRslt_None, { .vd = c_lnk } }, /* LNK */
-  { "LOG", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_log } }, /* LOG CC P R */
-  { "LSL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_lsl } }, /* LSL S CC */
-  { "LSR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_lsr } }, /* LSR S CC */
-  { "LTORG", eCB_NoLex, eRslt_None, { .vd = c_ltorg } }, /* LTORG */
-  { "MACRO", eCB_NoLex, eRslt_None, { .nolex = c_macro } }, /* MACRO */
-  { "MAP", eCB_NoLex, eRslt_None, { .nolex = c_record } }, /* ^ / MAP : start of new record layout.  */
-  { "MCR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mcr } }, /* MCR CC */
-  { "MCR2", eCB_Void, eRslt_ARM, { .vd = m_mcr2 } }, /* MCR2 */
-  { "MCRR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mcrr } }, /* MCRR CC */
-  { "MEND", eCB_NoLex, eRslt_None, { .nolex = c_mend } }, /* MEND */
-  { "MEXIT", eCB_NoLex, eRslt_None, { .nolex = c_mexit } }, /* MEXIT */
-  { "MLA", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mla } }, /* MLA CC S */
-  { "MLS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mls } }, /* MLS CC */
-  { "MNF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mnf } }, /* MNF CC P R */
-  { "MOV", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mov } }, /* MOV CC s */
+  { "KEEP", eCB_NoLex, 0, { .nolex = c_keep } }, /* KEEP */
+  { "LCL", eCB_NoLexPMatch, 0, { .nolex = c_lcl } }, /* LCLA, LCLL, LCLS */
+  { "LDC", eCB_VoidPMatch, 1, { .vdpm = m_ldc } }, /* LDC CC L */
+  { "LDC2", eCB_VoidPMatch, 1, { .vdpm = m_ldc2 } }, /* LDC2 L */
+  { "LDF", eCB_VoidPMatch, 1, { .vdpm = m_ldf } }, /* LDF CC P */
+  { "LDM", eCB_VoidPMatch, 1, { .vdpm = m_ldm } }, /* LDM CC TYPE */
+  { "LDR", eCB_VoidPMatch, 1, { .vdpm = m_ldr } }, /* LDR CC BYTE */
+  { "LDREX", eCB_VoidPMatch, 1, { .vdpm = m_ldrex } }, /* LDREX / LDREXB / LDREXD / LDREXH */
+  { "LFM", eCB_VoidPMatch, 1, { .vdpm = m_lfm } }, /* LFM CC (TYPE) */
+  { "LGN", eCB_VoidPMatch, 1, { .vdpm = m_lgn } }, /* LGN CC P R */
+  { "LNK", eCB_NoLex, 0, { .nolex = c_lnk } }, /* LNK */
+  { "LOG", eCB_VoidPMatch, 1, { .vdpm = m_log } }, /* LOG CC P R */
+  { "LSL", eCB_VoidPMatch, 1, { .vdpm = m_lsl } }, /* LSL S CC */
+  { "LSR", eCB_VoidPMatch, 1, { .vdpm = m_lsr } }, /* LSR S CC */
+  { "LTORG", eCB_NoLex, 0, { .nolex = c_ltorg } }, /* LTORG */
+  { "MACRO", eCB_NoLex, 0, { .nolex = c_macro } }, /* MACRO */
+  { "MAP", eCB_NoLex, 0, { .nolex = c_record } }, /* ^ / MAP : start of new record layout.  */
+  { "MCR", eCB_VoidPMatch, 1, { .vdpm = m_mcr } }, /* MCR CC */
+  { "MCR2", eCB_Void, 1, { .vd = m_mcr2 } }, /* MCR2 */
+  { "MCRR", eCB_VoidPMatch, 1, { .vdpm = m_mcrr } }, /* MCRR CC */
+  { "MEND", eCB_NoLex, 0, { .nolex = c_mend } }, /* MEND */
+  { "MEXIT", eCB_NoLex, 0, { .nolex = c_mexit } }, /* MEXIT */
+  { "MLA", eCB_VoidPMatch, 1, { .vdpm = m_mla } }, /* MLA CC S */
+  { "MLS", eCB_VoidPMatch, 1, { .vdpm = m_mls } }, /* MLS CC */
+  { "MNF", eCB_VoidPMatch, 1, { .vdpm = m_mnf } }, /* MNF CC P R */
+  { "MOV", eCB_VoidPMatch, 1, { .vdpm = m_mov } }, /* MOV CC s */
   /* FIXME: MOV32 */
   /* FIXME: MOVT */
-  { "MRC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mrc } }, /* MRC CC */
-  { "MRC2", eCB_Void, eRslt_ARM, { .vd = m_mrc2 } }, /* MRC2 */
-  { "MRRC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mrrc } }, /* MRRC CC */
-  { "MRS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mrs } }, /* MRS CC */
-  { "MSR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_msr } }, /* MSR CC */
-  { "MUF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_muf } }, /* MUF CC P R */
-  { "MUL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mul } }, /* MUL CC S */
-  { "MVF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mvf } }, /* MVF CC P R */
-  { "MVN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_mvn } }, /* MVN CC S */
-  { "NOFP", eCB_Void, eRslt_ARM, { .vd = c_nofp } }, /* NOFP */
-  { "NOP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_nop } }, /* NOP [CC] */
-  { "NRM", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_nrm } }, /* NRM CC P R */
-  { "OPT", eCB_NoLex, eRslt_None, { .vd = c_opt } }, /* OPT */
-  { "ORG", eCB_NoLex, eRslt_None, { .vd = c_org } }, /* ORG */
-  { "ORR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_orr } }, /* ORR CC S */
+  { "MRC", eCB_VoidPMatch, 1, { .vdpm = m_mrc } }, /* MRC CC */
+  { "MRC2", eCB_Void, 1, { .vd = m_mrc2 } }, /* MRC2 */
+  { "MRRC", eCB_VoidPMatch, 1, { .vdpm = m_mrrc } }, /* MRRC CC */
+  { "MRS", eCB_VoidPMatch, 1, { .vdpm = m_mrs } }, /* MRS CC */
+  { "MSR", eCB_VoidPMatch, 1, { .vdpm = m_msr } }, /* MSR CC */
+  { "MUF", eCB_VoidPMatch, 1, { .vdpm = m_muf } }, /* MUF CC P R */
+  { "MUL", eCB_VoidPMatch, 1, { .vdpm = m_mul } }, /* MUL CC S */
+  { "MVF", eCB_VoidPMatch, 1, { .vdpm = m_mvf } }, /* MVF CC P R */
+  { "MVN", eCB_VoidPMatch, 1, { .vdpm = m_mvn } }, /* MVN CC S */
+  { "NOFP", eCB_NoLex, 0, { .nolex = c_nofp } }, /* NOFP */
+  { "NOP", eCB_VoidPMatch, 1, { .vdpm = m_nop } }, /* NOP [CC] */
+  { "NRM", eCB_VoidPMatch, 1, { .vdpm = m_nrm } }, /* NRM CC P R */
+  { "OPT", eCB_NoLex, 0, { .nolex = c_opt } }, /* OPT */
+  { "ORG", eCB_NoLex, 0, { .nolex = c_org } }, /* ORG */
+  { "ORR", eCB_VoidPMatch, 1, { .vdpm = m_orr } }, /* ORR CC S */
   /* FIXME: PKH */
-  { "PL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_pl } }, /* PLD, PLDW, PLI */
-  { "POL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_pol } }, /* POL CC P R */
-  { "POP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_pop } }, /* POP CC */
-  { "POW", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_pow } }, /* POW CC P R */
-  { "PRESERVE8", eCB_NoLex, eRslt_None, { .vd = c_preserve8 } }, /* PRESERVE8 {TRUE}/{FALSE} */
-  { "PROC", eCB_Void, eRslt_None, { .vd = c_function } }, /* FUNCTION / PROC */
-  { "PUSH", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_push } }, /* PUSH CC */
-  { "QADD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_qadd } }, /* QADD CC */
+  { "PL", eCB_VoidPMatch, 1, { .vdpm = m_pl } }, /* PLD, PLDW, PLI */
+  { "POL", eCB_VoidPMatch, 1, { .vdpm = m_pol } }, /* POL CC P R */
+  { "POP", eCB_VoidPMatch, 1, { .vdpm = m_pop } }, /* POP CC */
+  { "POW", eCB_VoidPMatch, 1, { .vdpm = m_pow } }, /* POW CC P R */
+  { "PRESERVE8", eCB_NoLex, 0, { .nolex = c_preserve8 } }, /* PRESERVE8 {TRUE}/{FALSE} */
+  { "PROC", eCB_NoLex, 0, { .nolex = c_function } }, /* FUNCTION / PROC */
+  { "PUSH", eCB_VoidPMatch, 1, { .vdpm = m_push } }, /* PUSH CC */
+  { "QADD", eCB_VoidPMatch, 1, { .vdpm = m_qadd } }, /* QADD CC */
   /* FIXME: QASX */
-  { "QDADD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_qdadd } }, /* QDADD CC */
-  { "QDSUB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_qdsub } }, /* QDSUB CC */
+  { "QDADD", eCB_VoidPMatch, 1, { .vdpm = m_qdadd } }, /* QDADD CC */
+  { "QDSUB", eCB_VoidPMatch, 1, { .vdpm = m_qdsub } }, /* QDSUB CC */
   /* FIXME: QSAX */
-  { "QSUB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_qsub } }, /* QSUB CC */
+  { "QSUB", eCB_VoidPMatch, 1, { .vdpm = m_qsub } }, /* QSUB CC */
   /* FIXME: RBIT */
   /* FIXME: REV, REV16, REVSH */
-  { "RDF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rdf } }, /* RDF CC P R */
-  { "REQUIRE8", eCB_Void, eRslt_ARM, { .vd = c_require8 } }, /* REQUIRE8 {TRUE}/{FALSE} */
-  { "RFC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rfc } }, /* RFC CC */
-  { "RFE", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rfe } }, /* RFE MODE */
-  { "RFS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rfs } }, /* RFS CC */
+  { "RDF", eCB_VoidPMatch, 1, { .vdpm = m_rdf } }, /* RDF CC P R */
+  { "REQUIRE8", eCB_NoLex, 0, { .nolex = c_require8 } }, /* REQUIRE8 {TRUE}/{FALSE} */
+  { "RFC", eCB_VoidPMatch, 1, { .vdpm = m_rfc } }, /* RFC CC */
+  { "RFE", eCB_VoidPMatch, 1, { .vdpm = m_rfe } }, /* RFE MODE */
+  { "RFS", eCB_VoidPMatch, 1, { .vdpm = m_rfs } }, /* RFS CC */
   /* FIXME: RLIST */
-  { "RMF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rmf } }, /* RMF CC P R */
-  { "RN", eCB_Symbol, eRslt_None, { .sym = c_rn } }, /* RN */
-  { "RND", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rnd } }, /* RND CC P R */
-  { "ROR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_ror } }, /* ROR S CC */
-  { "ROUT", eCB_Lex, eRslt_None, { .lex = c_rout } }, /* ROUT */
-  { "RPW", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rpw } }, /* RPW CC P R */
-  { "RRX", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rrx } }, /* RRX S CC */
-  { "RSB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rsb } }, /* RSB CC S */
-  { "RSC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rsc } }, /* RSC CC S */
-  { "RSF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_rsf } }, /* RSF CC P R */
+  { "RMF", eCB_VoidPMatch, 1, { .vdpm = m_rmf } }, /* RMF CC P R */
+  { "RN", eCB_Symbol, 0, { .sym = c_rn } }, /* RN */
+  { "RND", eCB_VoidPMatch, 1, { .vdpm = m_rnd } }, /* RND CC P R */
+  { "ROR", eCB_VoidPMatch, 1, { .vdpm = m_ror } }, /* ROR S CC */
+  { "ROUT", eCB_Lex, 0, { .lex = c_rout } }, /* ROUT */
+  { "RPW", eCB_VoidPMatch, 1, { .vdpm = m_rpw } }, /* RPW CC P R */
+  { "RRX", eCB_VoidPMatch, 1, { .vdpm = m_rrx } }, /* RRX S CC */
+  { "RSB", eCB_VoidPMatch, 1, { .vdpm = m_rsb } }, /* RSB CC S */
+  { "RSC", eCB_VoidPMatch, 1, { .vdpm = m_rsc } }, /* RSC CC S */
+  { "RSF", eCB_VoidPMatch, 1, { .vdpm = m_rsf } }, /* RSF CC P R */
   /* FIXME: SADD16/SADD8 */
   /* FIXME: SASX */
-  { "SBC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sbc } }, /* SBC CC S */
+  { "SBC", eCB_VoidPMatch, 1, { .vdpm = m_sbc } }, /* SBC CC S */
   /* FIXME: SBFX */
   /* FIXME: SEL */
-  { "SET", eCB_LexPMatch, eRslt_None, { .lex = c_set } }, /* SETA, SETL, SETS */
+  { "SET", eCB_LexPMatch, 0, { .lex = c_set } }, /* SETA, SETL, SETS */
   /* FIXME: SETEND */
-  { "SEV", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sev } }, /* SEV CC */
-  { "SFM", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sfm } }, /* SFM CC (TYPE) */
+  { "SEV", eCB_VoidPMatch, 1, { .vdpm = m_sev } }, /* SEV CC */
+  { "SFM", eCB_VoidPMatch, 1, { .vdpm = m_sfm } }, /* SFM CC (TYPE) */
   /* FIXME: SHADD16/SHADD8 */
   /* FIXME: SHASX/SHSAX */
   /* FIXME: SHSUB16/SHSUB8 */
-  { "SIN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sin } }, /* SIN CC P R */
-  { "SMC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smc } }, /* SMC CC */
-  { "SMI", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smc } }, /* SMI CC (pre-UAL) */
-  { "SMLABB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlabb } }, /* SMLABB CC */
-  { "SMLABT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlabt } }, /* SMLABT CC */
+  { "SIN", eCB_VoidPMatch, 1, { .vdpm = m_sin } }, /* SIN CC P R */
+  { "SMC", eCB_VoidPMatch, 1, { .vdpm = m_smc } }, /* SMC CC */
+  { "SMI", eCB_VoidPMatch, 1, { .vdpm = m_smc } }, /* SMI CC (pre-UAL) */
+  { "SMLABB", eCB_VoidPMatch, 1, { .vdpm = m_smlabb } }, /* SMLABB CC */
+  { "SMLABT", eCB_VoidPMatch, 1, { .vdpm = m_smlabt } }, /* SMLABT CC */
   /* FIXME: SMLAD */
-  { "SMLAL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlal } }, /* SMLAL CC S */
-  { "SMLALBB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlalbb } }, /* SMLALBB CC */
-  { "SMLALBT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlalbt } }, /* SMLALBT CC */
-  { "SMLALTB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlaltb } }, /* SMLALTB CC */
-  { "SMLALTT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlaltt } }, /* SMLALTT CC */
+  { "SMLAL", eCB_VoidPMatch, 1, { .vdpm = m_smlal } }, /* SMLAL CC S */
+  { "SMLALBB", eCB_VoidPMatch, 1, { .vdpm = m_smlalbb } }, /* SMLALBB CC */
+  { "SMLALBT", eCB_VoidPMatch, 1, { .vdpm = m_smlalbt } }, /* SMLALBT CC */
+  { "SMLALTB", eCB_VoidPMatch, 1, { .vdpm = m_smlaltb } }, /* SMLALTB CC */
+  { "SMLALTT", eCB_VoidPMatch, 1, { .vdpm = m_smlaltt } }, /* SMLALTT CC */
   /* FIXME: SMLAD */
-  { "SMLATB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlatb } }, /* SMLATB CC */
-  { "SMLATT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlatt } }, /* SMLATT CC */
-  { "SMLAWB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlawb } }, /* SMLAWB CC */
-  { "SMLAWT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smlawt } }, /* SMLAWT CC */
+  { "SMLATB", eCB_VoidPMatch, 1, { .vdpm = m_smlatb } }, /* SMLATB CC */
+  { "SMLATT", eCB_VoidPMatch, 1, { .vdpm = m_smlatt } }, /* SMLATT CC */
+  { "SMLAWB", eCB_VoidPMatch, 1, { .vdpm = m_smlawb } }, /* SMLAWB CC */
+  { "SMLAWT", eCB_VoidPMatch, 1, { .vdpm = m_smlawt } }, /* SMLAWT CC */
   /* FIXME: SMLSD, SMLSLD */
   /* FIXME: SMMLA, SMMLS, SMMUL, SMUAD */
-  { "SMULBB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smulbb } }, /* SMULBB CC */
-  { "SMULBT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smulbt } }, /* SMULBT CC */
-  { "SMULL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smull } }, /* SMULL CC */
-  { "SMULTB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smultb } }, /* SMULTB CC */
-  { "SMULTT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smultt } }, /* SMULTT CC */
-  { "SMULWB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smulwb } }, /* SMULWB CC */
-  { "SMULWT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_smulwt } }, /* SMULWT CC */
+  { "SMULBB", eCB_VoidPMatch, 1, { .vdpm = m_smulbb } }, /* SMULBB CC */
+  { "SMULBT", eCB_VoidPMatch, 1, { .vdpm = m_smulbt } }, /* SMULBT CC */
+  { "SMULL", eCB_VoidPMatch, 1, { .vdpm = m_smull } }, /* SMULL CC */
+  { "SMULTB", eCB_VoidPMatch, 1, { .vdpm = m_smultb } }, /* SMULTB CC */
+  { "SMULTT", eCB_VoidPMatch, 1, { .vdpm = m_smultt } }, /* SMULTT CC */
+  { "SMULWB", eCB_VoidPMatch, 1, { .vdpm = m_smulwb } }, /* SMULWB CC */
+  { "SMULWT", eCB_VoidPMatch, 1, { .vdpm = m_smulwt } }, /* SMULWT CC */
   /* FIXME: SMUSD */
-  { "SPACE", eCB_Void, eRslt_None, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
-  { "SQT", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sqt } }, /* SQT CC P R */
-  { "SRS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_srs } }, /* SRS MODE */
+  { "SPACE", eCB_Void, 0, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
+  { "SQT", eCB_VoidPMatch, 1, { .vdpm = m_sqt } }, /* SQT CC P R */
+  { "SRS", eCB_VoidPMatch, 1, { .vdpm = m_srs } }, /* SRS MODE */
   /* FIXME: SSAT, SSAT16 */
   /* FIXME: SSAX */
   /* FIXME: SSUB16, SSUB8 */
-  { "STC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_stc } }, /* STC CC l */
-  { "STC2", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_stc2 } }, /* STC2 CC l */
-  { "STF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_stf } }, /* STF CC P */
-  { "STM", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_stm } }, /* STM CC TYPE */
-  { "STR", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_str } }, /* STR CC BYTE */
-  { "STREX", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_strex } }, /* STREX / STREXB / STREXD / STREXH */
-  { "STRONG", eCB_NoLex, eRslt_None, { .vd = c_strong } }, /* STRONG */
-  { "SUB", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_sub } }, /* SUB CC S */
-  { "SUBT", eCB_NoLex, eRslt_None, { .vd = c_title } }, /* SUBT */
-  { "SUF", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_suf } }, /* SUF CC P R */
-  { "SVC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_swi } }, /* SVC CC */
-  { "SWI", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_swi } }, /* SWI CC */
-  { "SWP", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_swp } }, /* SWP CC B */
+  { "STC", eCB_VoidPMatch, 1, { .vdpm = m_stc } }, /* STC CC l */
+  { "STC2", eCB_VoidPMatch, 1, { .vdpm = m_stc2 } }, /* STC2 CC l */
+  { "STF", eCB_VoidPMatch, 1, { .vdpm = m_stf } }, /* STF CC P */
+  { "STM", eCB_VoidPMatch, 1, { .vdpm = m_stm } }, /* STM CC TYPE */
+  { "STR", eCB_VoidPMatch, 1, { .vdpm = m_str } }, /* STR CC BYTE */
+  { "STREX", eCB_VoidPMatch, 1, { .vdpm = m_strex } }, /* STREX / STREXB / STREXD / STREXH */
+  { "STRONG", eCB_NoLex, 0, { .nolex = c_strong } }, /* STRONG */
+  { "SUB", eCB_VoidPMatch, 1, { .vdpm = m_sub } }, /* SUB CC S */
+  { "SUBT", eCB_NoLex, 0, { .nolex = c_title } }, /* SUBT */
+  { "SUF", eCB_VoidPMatch, 1, { .vdpm = m_suf } }, /* SUF CC P R */
+  { "SVC", eCB_VoidPMatch, 1, { .vdpm = m_swi } }, /* SVC CC */
+  { "SWI", eCB_VoidPMatch, 1, { .vdpm = m_swi } }, /* SWI CC */
+  { "SWP", eCB_VoidPMatch, 1, { .vdpm = m_swp } }, /* SWP CC B */
   /* FIXME: SXTAB, SXTAB16, SXTAH, SXTB, SXTB16, SXTH */
-  { "TAN", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_tan } }, /* TAN CC P R */
-  { "TEQ", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_teq } }, /* TEQ CC */
-  { "THUMB", eCB_NoLex, eRslt_None, { .vd = c_thumb } }, /* THUMB */
-  { "THUMBX", eCB_NoLex, eRslt_None, { .vd = c_thumbx } }, /* THUMBX */
-  { "TST", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_tst } }, /* TST CC */
-  { "TTL", eCB_NoLex, eRslt_None, { .vd = c_title } }, /* TTL */
+  { "TAN", eCB_VoidPMatch, 1, { .vdpm = m_tan } }, /* TAN CC P R */
+  { "TEQ", eCB_VoidPMatch, 1, { .vdpm = m_teq } }, /* TEQ CC */
+  { "THUMB", eCB_NoLex, 0, { .nolex = c_thumb } }, /* THUMB */
+  { "THUMBX", eCB_NoLex, 0, { .nolex = c_thumbx } }, /* THUMBX */
+  { "TST", eCB_VoidPMatch, 1, { .vdpm = m_tst } }, /* TST CC */
+  { "TTL", eCB_NoLex, 0, { .nolex = c_title } }, /* TTL */
   /* FIXME: UADD16, UADD8 */
   /* FIXME: UASX */
   /* FIXME: UBFX */
@@ -330,8 +328,8 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: UHASX, UHSA */
   /* FIXME: UHSUB16, UHSUB8 */
   /* FIXME: UMAAL */
-  { "UMLAL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_umlal } }, /* UMLAL CC */
-  { "UMULL", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_umull } }, /* UMULL CC */
+  { "UMLAL", eCB_VoidPMatch, 1, { .vdpm = m_umlal } }, /* UMLAL CC */
+  { "UMULL", eCB_VoidPMatch, 1, { .vdpm = m_umull } }, /* UMULL CC */
   /* FIXME: UQADD16, UQADD8 */
   /* FIXME: UQASX, UQSAX */
   /* FIXME: UQSUB16, UQSUB8 */
@@ -340,19 +338,19 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: USAX */
   /* FIXME: USUB16, USUB8 */
   /* FIXME: UXTAB, UXTAB16, UXTAH, UXTAB, UXTB16, UXTH */
-  { "URD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_urd } }, /* URD CC P R */
+  { "URD", eCB_VoidPMatch, 1, { .vdpm = m_urd } }, /* URD CC P R */
   /* FIXME: V* */
-  { "WEND", eCB_NoLex, eRslt_None, { .nolex = c_wend } }, /* WEND */
-  { "WFC", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_wfc } }, /* WFC CC */
-  { "WFE", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_wfe } }, /* WFE CC */
-  { "WFI", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_wfi } }, /* WFI CC */
-  { "WFS", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_wfs } }, /* WFS CC */
-  { "WHILE", eCB_NoLex, eRslt_None, { .nolex = c_while } }, /* WHILE */
-  { "YIELD", eCB_VoidPMatch, eRslt_ARM, { .vdpm = m_yield } }, /* YIELD CC */
-  { "[", eCB_NoLex, eRslt_None, { .nolex = c_if } }, /* [ IF */
-  { "]", eCB_NoLex, eRslt_None, { .nolex = c_endif } }, /* ] ENDIF */
-  { "^", eCB_NoLex, eRslt_None, { .nolex = c_record } }, /* ^ / MAP : start of new record layout.  */
-  { "|", eCB_NoLex, eRslt_None, { .nolex = c_else } }, /* | ELSE */
+  { "WEND", eCB_NoLex, 0, { .nolex = c_wend } }, /* WEND */
+  { "WFC", eCB_VoidPMatch, 1, { .vdpm = m_wfc } }, /* WFC CC */
+  { "WFE", eCB_VoidPMatch, 1, { .vdpm = m_wfe } }, /* WFE CC */
+  { "WFI", eCB_VoidPMatch, 1, { .vdpm = m_wfi } }, /* WFI CC */
+  { "WFS", eCB_VoidPMatch, 1, { .vdpm = m_wfs } }, /* WFS CC */
+  { "WHILE", eCB_NoLex, 0, { .nolex = c_while } }, /* WHILE */
+  { "YIELD", eCB_VoidPMatch, 1, { .vdpm = m_yield } }, /* YIELD CC */
+  { "[", eCB_NoLex, 0, { .nolex = c_if } }, /* [ IF */
+  { "]", eCB_NoLex, 0, { .nolex = c_endif } }, /* ] ENDIF */
+  { "^", eCB_NoLex, 0, { .nolex = c_record } }, /* ^ / MAP : start of new record layout.  */
+  { "|", eCB_NoLex, 0, { .nolex = c_else } }, /* | ELSE */
 };
 #define DECODE_ENTRIES (sizeof (oDecodeTable) / sizeof (oDecodeTable[0]))
 
@@ -362,7 +360,7 @@ static const decode_table_t oDecodeTable[] =
 static inline bool
 LowerCaseIsOK (const decode_table_t *entry)
 {
-  return entry->result == eRslt_ARM || entry->result == eRslt_Thumb;
+  return entry->instr != 0;
 }
 
 static inline unsigned char
@@ -400,6 +398,8 @@ decode (const Lex *label)
   /* Check that all entries in oDecodeTable are sorted.  */
   for (size_t i = 1; i != DECODE_ENTRIES; ++i)
     assert (strcmp (oDecodeTable[i - 1].mnemonic, oDecodeTable[i].mnemonic) < 0);
+  for (size_t i = 0; i != DECODE_ENTRIES; ++i)
+    assert (!(oDecodeTable[i].cb_type == eCB_Void || oDecodeTable[i].cb_type == eCB_VoidPMatch) || oDecodeTable[i].instr); 
 #endif
   assert (label->tag == LexNone || label->tag == LexId || label->tag == LexLocalLabel);
 
@@ -528,34 +528,8 @@ decode (const Lex *label)
       if (!IsPartiallyMatched (&oDecodeTable[indexFound]))
         skipblanks ();
 
-      /* FIXME: Labels in front of Thumb-2 instructions need to be
-	 aligned at 4 bytes.  */
-      unsigned alignValue;
-      Area_eEntryType entryType;
-      switch (oDecodeTable[indexFound].result)
-	{
-	  case eRslt_ARM:
-	    alignValue = 4;
-	    entryType = eARM;
-	    break;
-	  case eRslt_Thumb:
-	    alignValue = 2;
-	    entryType = eThumb;
-	    break;
-	  case eRslt_Data:
-	  case eRslt_None:
-	    alignValue = 1; /* No alignment.  */
-	    entryType = eData;
-	    break;
-	}
-
-      /* FIXME: test on currently unsupported Thumb/ThumbEE state.  */
-      if ((entryType == eARM || entryType == eThumb) && State_GetInstrType () != eInstrType_ARM)
-	{
-	  error (ErrorError, "Thumb/ThumbEE are currently unsupported"); /* FIXME */
-	  return;
-	}
-
+      Rslt_e result;
+      
       uint32_t startOffset = Area_IsImplicit (areaCurrentSymbol) ? 0 : areaCurrentSymbol->area.info->curIdx;
       Symbol * const startAreaSymbol = areaCurrentSymbol;
       Value startStorage =
@@ -573,17 +547,20 @@ decode (const Lex *label)
 	      if (label->tag == LexLocalLabel)
 		labelSymbol = ASM_DefineLabel (label, startOffset);
 	      if (oDecodeTable[indexFound].cb_type == eCB_Void)
-		tryAsMacro = oDecodeTable[indexFound].parse_opcode.vd ();
+		result = oDecodeTable[indexFound].parse_opcode.vd ();
 	      else
-		tryAsMacro = oDecodeTable[indexFound].parse_opcode.vdpm (doLowerCase);
+		result = oDecodeTable[indexFound].parse_opcode.vdpm (doLowerCase);
 	      /* Define the label *after* the mnemonic implementation but
 	         with the current offset *before* processing the mnemonic
 	         (and only when the mnemonic is a valid one).  */
 	      if (label->tag != LexLocalLabel)
 		{
-		  if (!tryAsMacro)
-		    startOffset = Area_AlignOffset (startAreaSymbol, startOffset, alignValue, "instruction");
-		  labelSymbol = tryAsMacro ? NULL : ASM_DefineLabel (label, startOffset);
+		  if (result == eRslt_ARM || result == eRslt_Thumb)
+		    {
+		      unsigned alignValue = (result == eRslt_ARM) ? 4 : 2;
+		      startOffset = Area_AlignOffset (startAreaSymbol, startOffset, alignValue, "instruction");
+		    }
+		  labelSymbol = result == eRslt_NotRecognized ? NULL : ASM_DefineLabel (label, startOffset);
 		}
 	      break;
 	    }
@@ -607,11 +584,15 @@ decode (const Lex *label)
 		}
 	      /* Any valid label here will *not* get any size assigned, unless
 		 the callback turns the lex into a symbol.  */
-	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.lex (labelLexP);
-	      if (tryAsMacro)
-		labelSymbol = NULL;
+	      if (oDecodeTable[indexFound].parse_opcode.lex (labelLexP))
+		{
+		  /* Directive/mnemonic is not known.  */
+		  result = eRslt_NotRecognized;
+		  labelSymbol = NULL;
+		}
 	      else
 		{
+		  result = eRslt_None;
 		  labelSymbol = symbolFind (labelLexP);
 		  if (lclLabelWarn)
 		    error (ErrorWarning, "Local label not allowed here - ignoring");
@@ -625,7 +606,10 @@ decode (const Lex *label)
 	      assert (!doLowerCase);
 	      if (label->tag != LexNone)
 		error (ErrorWarning, "Label not allowed here - ignoring");
-	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.nolex ();
+	      if (oDecodeTable[indexFound].parse_opcode.nolex ())
+		result = eRslt_NotRecognized;
+	      else
+		result = eRslt_None;
 	      labelSymbol = NULL;
 	      break;
 	    }
@@ -635,23 +619,59 @@ decode (const Lex *label)
 	      assert (!doLowerCase);
 	      Symbol *symbol = label->tag == LexId ? symbolGet (label) : NULL;
 	      bool lclLabelWarn = label->tag == LexLocalLabel;
-	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (symbol);
-	      if (!tryAsMacro && lclLabelWarn)
-		error (ErrorWarning, "Local label not allowed here - ignoring");
-	      /* We don't want to define a label based on this symbol.  */
-	      labelSymbol = NULL;
+	      if (oDecodeTable[indexFound].parse_opcode.sym (symbol))
+		result = eRslt_NotRecognized;
+	      else
+		{
+		  result = eRslt_None;
+		  /* We don't want to define a label based on this symbol.  */
+		  labelSymbol = NULL;
+		  if (lclLabelWarn)
+		    error (ErrorWarning, "Local label not allowed here - ignoring");
+		}
 	      break;
 	    }
 
 	  default:
-	    tryAsMacro = false;
+	    result = eRslt_None;
+	    assert (0);
 	    break;
 	}
 
-      /* Mark that this mnemonic will result in data, ARM or Thumb output.  */
-      if (!tryAsMacro && oDecodeTable[indexFound].result != eRslt_None)
-	Area_MarkStartAs (startAreaSymbol, startOffset, entryType);
+      if (result == eRslt_ARM || result == eRslt_Thumb || result == eRslt_Data)
+	{
+	  /* Define mapping symbols.  */
+	  Area_eEntryType entryType;
+	  switch (result)
+	    {
+	      case eRslt_ARM:
+		entryType = eARM;
+		break;
+	      case eRslt_Thumb:
+		entryType = eThumb;
+		break;
+	      case eRslt_Data:
+		entryType = eData;
+		break;
+	    }
+	  Area_MarkStartAs (startAreaSymbol, startOffset, entryType);
 
+	  /* Give warning when ARM/Thumb instructions are being used in DATA
+	     areas.  */
+	  if ((result == eRslt_ARM ||result == eRslt_Thumb)
+	      && !(areaCurrentSymbol->area.info->type & AREA_CODE))
+	    error (ErrorWarning, "Code generated in data area");
+
+	  /* FIXME: test on currently unsupported Thumb/ThumbEE state.  */
+	  if ((entryType == eARM || entryType == eThumb) && State_GetInstrType () != eInstrType_ARM)
+	    {
+	      error (ErrorError, "Thumb/ThumbEE are currently unsupported"); /* FIXME */
+	      return;
+	    }
+	}
+
+      tryAsMacro = result == eRslt_NotRecognized;
+      
       /* When areaCurrentSymbol changed, this can only be using "AREA" and that means
 	 no increase of curIdx.  */
       if (startAreaSymbol != areaCurrentSymbol)
@@ -659,15 +679,6 @@ decode (const Lex *label)
 	  assert (!strcmp (oDecodeTable[indexFound].mnemonic, "AREA"));
 	  startOffset = areaCurrentSymbol->area.info->curIdx;
 	}
-      // Too strong: assert ((oDecodeTable[indexFound].result != eRslt_None || areaCurrentSymbol->area.info->curIdx - startOffset == 0) && "Area size increase but no data, ARM nor Thumb mnemonic parsed ?");
-
-      /* Give warning when ARM/Thumb instructions are being used in DATA
-         areas.  */
-      if (!tryAsMacro
-          && (oDecodeTable[indexFound].result == eRslt_ARM
-	      || oDecodeTable[indexFound].result == eRslt_Thumb)
-          && !(areaCurrentSymbol->area.info->type & AREA_CODE))
-	error (ErrorWarning, "Code generated in data area");
 
       /* Determine the code size associated with the label on this line (if any).  */
       if (labelSymbol != NULL)
@@ -698,9 +709,10 @@ decode (const Lex *label)
     }
   else
     tryAsMacro = true;
+
   if (tryAsMacro)
     {
-      /* Mnemonic is not recognized, maybe it is a macro.  */
+      /* Mnemonic/directive is not recognized, maybe it is a macro.  */
       Input_RollBackToMark (inputMark);
       size_t macroNameLen;
       const char *macroName = Input_Symbol (&macroNameLen);
@@ -709,7 +721,7 @@ decode (const Lex *label)
         Macro_Call (m, label);
       else
 	{
-	  error (ErrorError, "'%.*s' is not a recognized mnemonic nor known macro",
+	  error (ErrorError, "'%.*s' is not a recognized mnemonic, directive nor known macro",
 		 (int)macroNameLen, macroName);
 	  return;
         }

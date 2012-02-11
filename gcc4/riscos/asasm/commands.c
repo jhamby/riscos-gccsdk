@@ -167,10 +167,10 @@ c_cp (Symbol *symbol)
 /**
  * Implements DATA (as nop).
  */
-bool
+Rslt_e
 c_data (void)
 {
-  return false;
+  return eRslt_None;
 }
 
 /**
@@ -366,7 +366,7 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
   return false;
 }
 
-static bool
+static void
 DefineInt (int size, bool allowUnaligned, const char *mnemonic)
 {
   DefineInt_PrivData_t privData =
@@ -399,64 +399,68 @@ DefineInt (int size, bool allowUnaligned, const char *mnemonic)
       skipblanks ();
     }
   while (Input_Match (',', false));
-  return false;
 }
 
 /**
  * Implements DCB and = (8 bit integer).
  * "Define Constant Byte"
  */
-bool
+Rslt_e
 c_dcb (void)
 {
-  return DefineInt (1, true, "DCB or =");
+  DefineInt (1, true, "DCB or =");
+  return eRslt_Data;
 }
 
 /**
  * Implements DCW, DCWU (16 bit integer).
  * "Define Constant Word"
  */
-bool
+Rslt_e
 c_dcw (bool doLowerCase)
 {
   bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
   if (!Input_IsEndOfKeyword ())
-    return true;
-  return DefineInt (2, allowUnaligned, allowUnaligned ? "DCWU" : "DCW");
+    return eRslt_NotRecognized;
+  DefineInt (2, allowUnaligned, allowUnaligned ? "DCWU" : "DCW");
+  return eRslt_Data;
 }
 
 /**
  * Implements & (32 bit integer).
  * "Define Constant Double-word"
  */
-bool
+Rslt_e
 c_ampersand (void)
 {
-  return DefineInt (4, false, "&");
+  DefineInt (4, false, "&");
+  return eRslt_Data;
 }
 
 /**
  * Implements DCD and DCDU (32 bit integer).
  * "Define Constant Double-word"
  */
-bool
+Rslt_e
 c_dcd (bool doLowerCase)
 {
   bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
   if (!Input_IsEndOfKeyword ())
-    return true;
-  return DefineInt (4, allowUnaligned, allowUnaligned ? "DCDU" : "DCD");
+    return eRslt_NotRecognized;
+  DefineInt (4, allowUnaligned, allowUnaligned ? "DCDU" : "DCD");
+  return eRslt_Data;
 }
 
 /**
  * Implements DCI.
  * "Define Constant Instruction"
  */
-bool
+Rslt_e
 c_dci (void)
 {
   Area_AlignArea (areaCurrentSymbol, 4, "instruction");
-  return DefineInt (4, false, "DCI");
+  DefineInt (4, false, "DCI");
+  return eRslt_ARM; /* FIXME: this is arbitrary, could be eRslt_Thumb as well.  */
 }
 
 /**
@@ -512,7 +516,7 @@ DefineReal_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
   return false;
 }
 
-static bool
+static void
 DefineReal (int size, bool allowUnaligned, const char *mnemonic)
 {
   DefineReal_PrivData_t privData =
@@ -536,33 +540,34 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
       skipblanks ();
     }
   while (Input_Match (',', false));
-  return false;
 }
 
 /**
  * Implements DCFS / DCFSU (IEEE Single Precision).
  * "Define Constant Float-single precision"
  */
-bool
+Rslt_e
 c_dcfs (bool doLowerCase)
 {
   bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
   if (!Input_IsEndOfKeyword ())
-    return true;
-  return DefineReal (4, allowUnaligned, allowUnaligned ? "DCFSU" : "DCFS");
+    return eRslt_NotRecognized;
+  DefineReal (4, allowUnaligned, allowUnaligned ? "DCFSU" : "DCFS");
+  return eRslt_Data;
 }
 
 /**
  * Implements DCFD / DCFDU (IEEE Double Precision).
  * "Define Constant Float-double precision"
  */
-bool
+Rslt_e
 c_dcfd (bool doLowerCase)
 {
   bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
   if (!Input_IsEndOfKeyword ())
-    return true;
-  return DefineReal (8, allowUnaligned, allowUnaligned ? "DCFDU" : "DCFD");
+    return eRslt_NotRecognized;
+  DefineReal (8, allowUnaligned, allowUnaligned ? "DCFDU" : "DCFD");
+  return eRslt_Data;
 }
 
 /**
@@ -792,6 +797,6 @@ c_aout (void)
   /* Not supported in AAsm compatibility mode.  */
   if (option_abs)
     return true;
-  error (ErrorError, "Directive %s to select output format is not supported.  Use command line option instead.", "AOUT");
+  error (ErrorError, "Directive %s to select output format is not supported.", "AOUT");
   return false;
 }

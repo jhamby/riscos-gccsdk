@@ -24,22 +24,25 @@
 #define commands_header_included
 
 #include <stdbool.h>
+
+#include "decode.h"
 #include "symbol.h"
 
 bool c_aof (void);
 bool c_aout (void);
 
-bool c_ampersand (void);
+Rslt_e c_ampersand (void);
+Rslt_e c_dcb (void);
+Rslt_e c_dcw (bool doLowerCase);
+Rslt_e c_dcd (bool doLowerCase);
+Rslt_e c_dci (void);
+Rslt_e c_dcfd (bool doLowerCase);
+Rslt_e c_dcfs (bool doLowerCase);
+
 bool c_assert (void);
 bool c_cn (Symbol *symbol);
 bool c_cp (Symbol *symbol);
-bool c_data (void);
-bool c_dcb (void);
-bool c_dcw (bool doLowerCase);
-bool c_dcd (bool doLowerCase);
-bool c_dci (void);
-bool c_dcfd (bool doLowerCase);
-bool c_dcfs (bool doLowerCase);
+Rslt_e c_data (void);
 bool c_end (void);
 bool c_equ (Symbol *symbol);
 bool c_fn (Symbol *symbol);

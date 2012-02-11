@@ -60,13 +60,13 @@ static unsigned oFPUsageNOFP_LineNum = 0; /**< Place of NOFP (linenumber).  */
 /**
  * \return always return false (so it can be used as tail-call).
  */
-static bool
+static Rslt_e
 CheckFPUsageIsAllowed (void)
 {
   if (option_apcs_softfloat)
     {
       error (ErrorError, "soft-float code uses hard FP instructions");
-      return false;
+      return eRslt_ARM;
     }
 
   switch (oFPUsage)
@@ -86,7 +86,7 @@ CheckFPUsageIsAllowed (void)
 	break;
     }
 
-  return false;
+  return eRslt_ARM;
 }
 
 /**
@@ -95,10 +95,10 @@ CheckFPUsageIsAllowed (void)
  *   <LOG|LGN|EXP|SIN|COS|TAN|ASN|ACS|ATN> {cond}<S|D|E>{P|M|Z} Fd, <Fm|#value>
  * These FPA instructions are always trapped.
  */
-static bool
+static Rslt_e
 CheckFPUsageIsAllowedAndGiveHWWarning (void)
 {
-  bool rtrn = CheckFPUsageIsAllowed ();
+  Rslt_e rtrn = CheckFPUsageIsAllowed ();
   if (option_pedantic)
     error (ErrorWarning, "FPA opcode will never be executed hardware accelerated");
   return rtrn;
@@ -259,12 +259,12 @@ dstlhsrhs (ARMWord ir)
  * Implements ADF (add).
  *   Fd := Fn + Fm
  */
-bool
+Rslt_e
 m_adf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_ADF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -273,12 +273,12 @@ m_adf (bool doLowerCase)
  * Implements DVF (divide).
  *   Fd := Fn / Fm
  */
-bool
+Rslt_e
 m_dvf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_DVF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -287,12 +287,12 @@ m_dvf (bool doLowerCase)
  * Implements FDV (fast divide).
  *   Fd := Fn / Fm
  */
-bool
+Rslt_e
 m_fdv (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   if ((cc & PRECISION_MASK) != PRECISION_SINGLE)
     error (ErrorWarning, "%s is only defined for single precision use", "FDV");
   dstlhsrhs (M_FDV | cc);
@@ -303,12 +303,12 @@ m_fdv (bool doLowerCase)
  * Implements FML (fast multiply).
  *   Fd := Fn * Fm
  */
-bool
+Rslt_e
 m_fml (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   if ((cc & PRECISION_MASK) != PRECISION_SINGLE)
     error (ErrorWarning, "%s is only defined for single precision use", "FML");
   dstlhsrhs (M_FML | cc);
@@ -319,12 +319,12 @@ m_fml (bool doLowerCase)
  * Implements FRD (fast reverse divide).
  *   Fd := Fm / Fn 
  */
-bool
+Rslt_e
 m_frd (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   if ((cc & PRECISION_MASK) != PRECISION_SINGLE)
     error (ErrorWarning, "%s is only defined for single precision use", "FRD");
   dstlhsrhs (M_FRD | cc);
@@ -335,12 +335,12 @@ m_frd (bool doLowerCase)
  * Implements MUF (multiply).
  *   Fd := Fn * Fm 
  */
-bool
+Rslt_e
 m_muf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_MUF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -349,12 +349,12 @@ m_muf (bool doLowerCase)
  * Implements POL (polar angle, arctan2).
  *   Fd := polar angle of (Fn, Fm) 
  */
-bool
+Rslt_e
 m_pol (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_POL | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -363,12 +363,12 @@ m_pol (bool doLowerCase)
  * Implements POW (power).
  *   Fd := Fn raised to the power of Fm 
  */
-bool
+Rslt_e
 m_pow (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_POW | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -377,12 +377,12 @@ m_pow (bool doLowerCase)
  * Implements RDF (reverse divide).
  *   Fd := Fm / Fn 
  */
-bool
+Rslt_e
 m_rdf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_RDF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -391,12 +391,12 @@ m_rdf (bool doLowerCase)
  * Implements RMF (remainder).
  *   Fd := IEEE remainder of Fn / Fm 
  */
-bool
+Rslt_e
 m_rmf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_RMF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -405,12 +405,12 @@ m_rmf (bool doLowerCase)
  * Implements RPW (reverse power).
  *   Fd := Fm raised to the power of Fn 
  */
-bool
+Rslt_e
 m_rpw (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_RPW | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -419,12 +419,12 @@ m_rpw (bool doLowerCase)
  * Implements RSF (reverse subtract).
  *   Fd := Fm - Fn
  */
-bool
+Rslt_e
 m_rsf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_RSF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -433,12 +433,12 @@ m_rsf (bool doLowerCase)
  * Implements SUF (subtract).
  *   Fd := Fn - Fm 
  */
-bool
+Rslt_e
 m_suf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstlhsrhs (M_SUF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -461,12 +461,12 @@ dstrhs (ARMWord ir)
  * Implements ABS (absolute value).
  *   Fd := ABS ( Fm ) 
  */
-bool
+Rslt_e
 m_abs (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_ABS | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -475,12 +475,12 @@ m_abs (bool doLowerCase)
  * Implements ACS (arc cosine).
  *   Fd := arccosine of Fm
  */
-bool
+Rslt_e
 m_acs (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_ACS | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -489,12 +489,12 @@ m_acs (bool doLowerCase)
  * Implements ASN (arc sine).
  *   Fd := arcsine of Fm
  */
-bool
+Rslt_e
 m_asn (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_ASN | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -503,12 +503,12 @@ m_asn (bool doLowerCase)
  * Implements ATN (arc tanget).
  *   Fd := arctangent of Fm
  */
-bool
+Rslt_e
 m_atn (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_ATN | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -517,12 +517,12 @@ m_atn (bool doLowerCase)
  * Implements COS (cosine).
  *   Fd := cosine of Fm 
  */
-bool
+Rslt_e
 m_cos (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_COS | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -531,12 +531,12 @@ m_cos (bool doLowerCase)
  * Implements EXP (exponent).
  *   Fd := e ** Fm 
  */
-bool
+Rslt_e
 m_exp (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_EXP | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -545,12 +545,12 @@ m_exp (bool doLowerCase)
  * Implements LGN (logarithm to base e).
  *   Fd := ln of Fm 
  */
-bool
+Rslt_e
 m_lgn (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_LGN | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -559,12 +559,12 @@ m_lgn (bool doLowerCase)
  * Implements LOG (logarithm to base 10).
  *   Fd := log10 of Fm
  */
-bool
+Rslt_e
 m_log (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_LOG | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -573,12 +573,12 @@ m_log (bool doLowerCase)
  * Implements MNF (move negated).
  *   Fd := - Fm 
  */
-bool
+Rslt_e
 m_mnf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_MNF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -587,12 +587,12 @@ m_mnf (bool doLowerCase)
  * Implements MVF (move).
  *   Fd := Fm 
  */
-bool
+Rslt_e
 m_mvf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_MVF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -601,12 +601,12 @@ m_mvf (bool doLowerCase)
  * Implements RND (round to integral value).
  *   Fd := integer value of Fm 
  */
-bool
+Rslt_e
 m_rnd (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_RND | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -615,12 +615,12 @@ m_rnd (bool doLowerCase)
  * Implements SIN (sine).
  *   Fd := sine of Fm 
  */
-bool
+Rslt_e
 m_sin (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_SIN | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -629,12 +629,12 @@ m_sin (bool doLowerCase)
  * Implements SQT (square root).
  *   Fd := square root of Fm
  */
-bool
+Rslt_e
 m_sqt (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_SQT | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -643,12 +643,12 @@ m_sqt (bool doLowerCase)
  * Implements TAN (tanget).
  *   Fd := tangent of Fm
  */
-bool
+Rslt_e
 m_tan (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_TAN | cc);
   return CheckFPUsageIsAllowedAndGiveHWWarning ();
 }
@@ -657,12 +657,12 @@ m_tan (bool doLowerCase)
  * Implements URD (unnormalized round).
  *   Fd := integer value of Fm, possibly in abnormal form
  */
-bool
+Rslt_e
 m_urd (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_URD | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -671,12 +671,12 @@ m_urd (bool doLowerCase)
  * Implements NRM (normalize).
  *   Fd := normalized form of Fm 
  */
-bool
+Rslt_e
 m_nrm (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstrhs (M_NRM | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -694,12 +694,12 @@ comparelow (ARMWord ir)		/* No precision and no rounding allowed ? */
 /**
  * Implements CMF/CMFE (compare floating).
  */
-bool
+Rslt_e
 m_cmf (bool doLowerCase)
 {
   ARMWord cc = optionExceptionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   comparelow (M_CMF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -707,12 +707,12 @@ m_cmf (bool doLowerCase)
 /**
  * Implements CNF/CNFE (compare negated floating).
  */
-bool
+Rslt_e
 m_cnf (bool doLowerCase)
 {
   ARMWord cc = optionExceptionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   comparelow (M_CNF | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -723,12 +723,12 @@ m_cnf (bool doLowerCase)
  * Implements FIX (convert floating-point to integer).
  *   Rd := Fm
  */
-bool
+Rslt_e
 m_fix (bool doLowerCase)
 {
   ARMWord cc = optionCondOptRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   ARMWord ir = M_FIX | cc;
   ir |= DST_OP (getCpuReg ());
@@ -743,12 +743,12 @@ m_fix (bool doLowerCase)
  * Implements FLT (convert integer to floating-point).
  *   Fn := Rd
  */
-bool
+Rslt_e
 m_flt (bool doLowerCase)
 {
   ARMWord cc = optionCondPrecRound (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   ARMWord ir = M_FLT | cc;
   ir |= LHS_OP (getFpuReg ());
@@ -772,12 +772,12 @@ flagtransfer (ARMWord ir)
  * Implements WFS (write floating point status register).
  *   FPSR := Rd
  */
-bool
+Rslt_e
 m_wfs (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   flagtransfer (M_WFS | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -786,12 +786,12 @@ m_wfs (bool doLowerCase)
  * Implements RFS (read floating point status register).
  *   Rd := FPSR 
  */
-bool
+Rslt_e
 m_rfs (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   flagtransfer (M_RFS | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -800,12 +800,12 @@ m_rfs (bool doLowerCase)
  * Implements WFC (write floating point control register).
  *   FPCR:= Rd 
  */
-bool
+Rslt_e
 m_wfc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   flagtransfer (M_WFC | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -814,12 +814,12 @@ m_wfc (bool doLowerCase)
  * Implements RFC (read floating pointer control register).
  *   Rd := FPCR
  */
-bool
+Rslt_e
 m_rfc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   flagtransfer (M_RFC | cc);
   return CheckFPUsageIsAllowed ();
 }
@@ -834,12 +834,12 @@ dstmem (ARMWord ir, bool literal)
 /**
  * Implements STF.
  */
-bool
+Rslt_e
 m_stf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrec_P (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstmem (M_STF | cc, false);
   /* LDFP and STFP are deprecated instructions and are intended for backwards
      compatibility only. These functions are typically implemented by
@@ -852,12 +852,12 @@ m_stf (bool doLowerCase)
 /**
  * Implements LDF.
  */
-bool
+Rslt_e
 m_ldf (bool doLowerCase)
 {
   ARMWord cc = optionCondPrec_P (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   dstmem (M_LDF | cc, true);
   /* LDFP and STFP are deprecated instructions and are intended for backwards
      compatibility only. These functions are typically implemented by
@@ -903,7 +903,7 @@ dstmemx (ARMWord ir, bool doLowerCase)
       ir |= stack_ia ? U_FLAG : P_FLAG;
     }
   if (!Input_IsEndOfKeyword ())
-    return true;
+    return eRslt_NotRecognized;;
 
   skipblanks ();
   ir |= DST_OP (getFpuReg ());
@@ -933,28 +933,28 @@ dstmemx (ARMWord ir, bool doLowerCase)
 /**
  * Implements SFM.
  */
-bool
+Rslt_e
 m_sfm (bool doLowerCase)
 {
   ARMWord cc = optionCondLfmSfm (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   if (dstmemx (M_SFM | cc, doLowerCase))
-    return true;
+    return eRslt_NotRecognized;;
   return CheckFPUsageIsAllowed ();
 }
 
 /**
  * Implements LFM.
  */
-bool
+Rslt_e
 m_lfm (bool doLowerCase)
 {
   ARMWord cc = optionCondLfmSfm (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   if (dstmemx (M_LFM | cc, doLowerCase))
-    return true;
+    return eRslt_NotRecognized;;
   return CheckFPUsageIsAllowed ();
 }
 

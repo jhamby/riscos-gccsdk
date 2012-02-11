@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -34,7 +34,7 @@
 #include "targetcpu.h"
 
 
-static bool
+static Rslt_e
 dstmem (ARMWord ir, bool literal)
 {
   ir |= CP_NUMBER (getCopNum ());
@@ -43,19 +43,19 @@ dstmem (ARMWord ir, bool literal)
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= CPDST_OP (getCopReg ());
   help_copAddr (ir, literal, false);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements LDC.
  * LDC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5>
  */
-bool
+Rslt_e
 m_ldc (bool doLowerCase)
 {
   ARMWord cc = optionCondL (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   return dstmem (cc | 0x0c100000, true);
 }
 
@@ -63,12 +63,12 @@ m_ldc (bool doLowerCase)
  * Implements LDC2.
  * LDC2{L} <coproc>, <CRd>, <addressing mode 5>
  */
-bool
+Rslt_e
 m_ldc2 (bool doLowerCase)
 {
   ARMWord cc = Input_Match (doLowerCase ? 'l' : 'L', false) ? N_FLAG : 0;
   if (!Input_IsEndOfKeyword ())
-    return true;
+    return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv5);
   return dstmem (cc | 0x0c100000 | NV, true);
@@ -78,12 +78,12 @@ m_ldc2 (bool doLowerCase)
  * Implements STC.
  * STC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5>
  */
-bool
+Rslt_e
 m_stc (bool doLowerCase)
 {
   ARMWord cc = optionCondL (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   return dstmem (cc | 0x0c000000, false);
 }
 
@@ -91,12 +91,12 @@ m_stc (bool doLowerCase)
  * Implements STC2.
  * STC2{L} <coproc>, <CRd>, <addressing mode 5>
  */
-bool
+Rslt_e
 m_stc2 (bool doLowerCase)
 {
   ARMWord cc = Input_Match (doLowerCase ? 'l' : 'L', false) ? N_FLAG : 0;
   if (!Input_IsEndOfKeyword ())
-    return true;
+    return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv5);
   return dstmem (cc | 0x0c000000 | NV, false);

@@ -226,7 +226,7 @@ Branch_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
   return false;
 }
 
-static bool
+static Rslt_e
 branch_shared (ARMWord cc, bool isBLX)
 {
   const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
@@ -237,30 +237,30 @@ branch_shared (ARMWord cc, bool isBLX)
   if (gPhase != ePassOne
       && Reloc_QueueExprUpdate (Branch_RelocUpdater, offset, ValueInt | ValueCode | ValueSymbol, &isBLX, sizeof (isBLX)))
     error (ErrorError, "Illegal branch expression");
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements B and BL.
  */
-bool
+Rslt_e
 m_branch (bool doLowerCase)
 {
   ARMWord cc = optionLinkCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
   return branch_shared (cc, false);
 }
 
 /**
  * Implements BLX.
  */
-bool
+Rslt_e
 m_blx (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
 
@@ -275,18 +275,18 @@ m_blx (bool doLowerCase)
   else
     Put_Ins (cc | 0x012FFF30 | RHS_OP (reg)); /* BLX <Rm> */
 
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements BX.
  */
-bool
+Rslt_e
 m_bx (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
 
@@ -295,18 +295,18 @@ m_bx (bool doLowerCase)
     error (ErrorWarning, "Use of PC with BX is discouraged");
 
   Put_Ins (cc | 0x012fff10 | dst);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements BXJ.
  */
-bool
+Rslt_e
 m_bxj (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv5TEJ);
 
@@ -315,7 +315,7 @@ m_bxj (bool doLowerCase)
     error (ErrorWarning, "Use of PC with BXJ is discouraged");
 
   Put_Ins (cc | 0x012fff20 | dst);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
@@ -324,12 +324,12 @@ m_bxj (bool doLowerCase)
  *   SVC/SWI <24 bit int>
  *   SVC/SWI <string>
  */
-bool
+Rslt_e
 m_swi (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   skipblanks ();
   ValueTag valueOK = Input_Match ('#', false) ? ValueInt : (ValueInt | ValueString);
@@ -363,13 +363,13 @@ m_swi (bool doLowerCase)
 	break;
     }
   Put_Ins (ir);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements BKPT.
  */
-bool
+Rslt_e
 m_bkpt (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -389,7 +389,7 @@ m_bkpt (void)
 
   ARMWord ir = 0xE1200070 | ((val & 0xFFF0) << 4) | (val & 0xF);
   Put_Ins (ir);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
@@ -568,12 +568,12 @@ ADR_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 /**
  * Implements ADR / ADRL.
  */
-bool
+Rslt_e
 m_adr (bool doLowerCase)
 {
   ARMWord ir = optionAdrL (doLowerCase);
   if (ir == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   ARMWord regD = getCpuReg ();
   
@@ -589,7 +589,7 @@ m_adr (bool doLowerCase)
       /* When bit 0 is set, we'll emit ADRL (2 instructions).  */
       if (ir & 1)
 	Put_Ins (0);
-      return false;
+      return eRslt_ARM;
     }
   
   /* When bit 0 is set, we'll emit ADRL (2 instructions).  */
@@ -607,7 +607,7 @@ m_adr (bool doLowerCase)
 			     &privData, sizeof (privData)))
     error (ErrorError, "Illegal %s expression", (privData.userIntendedTwoInstr & 1) ? "ADRL" : "ADR");
 
-  return false;
+  return eRslt_ARM;
 }
 
 /* PSR access */
@@ -745,12 +745,12 @@ getpsr (bool only_all)
 /**
  * Implements MSR.
  */
-bool
+Rslt_e
 m_msr (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv4);
 
@@ -774,18 +774,18 @@ m_msr (bool doLowerCase)
   else
     cc |= getCpuReg ();
   Put_Ins (cc);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements MRS.
  */
-bool
+Rslt_e
 m_mrs (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv4);
 
@@ -795,7 +795,7 @@ m_mrs (bool doLowerCase)
     error (ErrorError, "%slhs", InsertCommaAfter);
   cc |= getpsr (true);
   Put_Ins (cc);
-  return false;
+  return eRslt_ARM;
 }
 
 
@@ -803,18 +803,18 @@ m_mrs (bool doLowerCase)
  * Implements SEV.
  *   SEV<cond>
  */
-bool
+Rslt_e
 m_sev (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   if (Target_GetArch() != ARCH_ARMv6K)
     Target_NeedAtLeastArch (ARCH_ARMv7);
   
   Put_Ins (cc | 0x0320F004);
-  return false;
+  return eRslt_ARM;
 }
 
 
@@ -822,18 +822,18 @@ m_sev (bool doLowerCase)
  * Implements WFE.
  *   WFE<cond>
  */
-bool
+Rslt_e
 m_wfe (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   if (Target_GetArch() != ARCH_ARMv6K)
     Target_NeedAtLeastArch (ARCH_ARMv7);
   
   Put_Ins (cc | 0x0320F002);
-  return false;
+  return eRslt_ARM;
 }
 
 
@@ -841,18 +841,18 @@ m_wfe (bool doLowerCase)
  * Implements WFI.
  *   WFI<cond>
  */
-bool
+Rslt_e
 m_wfi (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   if (Target_GetArch() != ARCH_ARMv6K)
     Target_NeedAtLeastArch (ARCH_ARMv7);
   
   Put_Ins (cc | 0x0320F003);
-  return false;
+  return eRslt_ARM;
 }
 
 
@@ -860,15 +860,15 @@ m_wfi (bool doLowerCase)
  * Implements YIELD.
  *   YIELD<cond>
  */
-bool
+Rslt_e
 m_yield (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   Put_Ins (cc | 0x0320F001);
-  return false;
+  return eRslt_ARM;
 }
 
 
@@ -886,7 +886,7 @@ m_yield (bool doLowerCase)
  *            f : Enables or disables FIQ interrupts.
  *   mode     specifies the number of the mode to change to.
  */
-bool
+Rslt_e
 m_cps (bool doLowerCase)
 {
   int imod;
@@ -897,7 +897,7 @@ m_cps (bool doLowerCase)
   else if (Input_MatchKeyword (doLowerCase ? "ie" : "IE"))
     imod = 2<<18;
   else
-    return true;
+    return eRslt_NotRecognized;;
   skipblanks ();
 
   bool readMode;
@@ -957,19 +957,19 @@ m_cps (bool doLowerCase)
     }
   assert(!(((imod == (0<<18) || imod == (1<<18)) && !readMode) || (imod == (1<<18) && readMode)) && "We shouldn't be generating this");
   Put_Ins ((0xF << 28) | (1<<24) | imod | (readMode ? (1<<17) : 0) | iflags | mode);
-  return false;
+  return eRslt_ARM;
 }
 
 /**
  * Implements DBG.
  *   DBG<cond> #<option>
  */
-bool
+Rslt_e
 m_dbg (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   if (Target_NeedAtLeastArch (ARCH_ARMv7))
     return true;
@@ -997,7 +997,7 @@ m_dbg (bool doLowerCase)
 	}
     }
 
-  return false;
+  return eRslt_ARM;
 }
 
 
@@ -1005,12 +1005,12 @@ m_dbg (bool doLowerCase)
  * Implements SMC (and pre-UAL SMI).
  *   SMC<c> #<imm4>
  */
-bool
+Rslt_e
 m_smc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == optionError)
-    return true;
+    return eRslt_NotRecognized;;
 
   /* Note that the security extensions are optional.  */
   if (Target_NeedAtLeastArch (ARCH_ARMv6K))
@@ -1039,5 +1039,5 @@ m_smc (bool doLowerCase)
 	}
     }
 
-  return false;
+  return eRslt_ARM;
 }
