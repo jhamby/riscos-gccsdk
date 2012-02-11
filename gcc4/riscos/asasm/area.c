@@ -36,7 +36,6 @@
 
 #include "area.h"
 #include "asm.h"
-#include "commands.h"
 #include "error.h"
 #include "expr.h"
 #include "filestack.h"

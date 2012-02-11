@@ -34,7 +34,7 @@
 
 #include "area.h"
 #include "code.h"
-#include "commands.h"
+#include "directive_data.h"
 #include "error.h"
 #include "filestack.h"
 #include "m_fpe.h"

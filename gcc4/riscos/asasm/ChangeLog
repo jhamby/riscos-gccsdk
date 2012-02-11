@@ -1,3 +1,13 @@
+Sat Feb 11 18:01:47 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* commands.c, commands.h: Refactor into...
+	* directive_data.c, directive_data.h: ...this and...
+	* directive_file.c, directive_file.h: ...this and...
+	* directive_misc.c, directive_misc.h: ...this and...
+	* directive_symbol.c, directive_symbol.h: ...this.
+	* Makefile.am, lit.c, decode.c: Follow changes.
+	* area.c, macros.c, whileif.c: Remove useless include commands.h.
+
 Sat Feb 11 17:08:51 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.h (Rslt_e): Add.

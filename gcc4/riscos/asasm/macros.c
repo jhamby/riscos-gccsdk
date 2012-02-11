@@ -32,7 +32,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "commands.h"
 #include "common.h"
 #include "decode.h"
 #include "error.h"

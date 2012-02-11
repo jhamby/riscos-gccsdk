@@ -34,7 +34,6 @@
 #endif
 
 #include "code.h"
-#include "commands.h"
 #include "decode.h"
 #include "error.h"
 #include "expr.h"

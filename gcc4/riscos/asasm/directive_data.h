@@ -17,42 +17,26 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * commands.h
+ * directive_data.h
  */
 
-#ifndef commands_header_included
-#define commands_header_included
+#ifndef directive_data_header_included
+#define directive_data_header_included
 
 #include <stdbool.h>
 
 #include "decode.h"
-#include "symbol.h"
-
-bool c_aof (void);
-bool c_aout (void);
+#include "global.h"
+#include "value.h"
 
 Rslt_e c_ampersand (void);
+Rslt_e c_data (void);
 Rslt_e c_dcb (void);
 Rslt_e c_dcw (bool doLowerCase);
 Rslt_e c_dcd (bool doLowerCase);
 Rslt_e c_dci (void);
 Rslt_e c_dcfd (bool doLowerCase);
 Rslt_e c_dcfs (bool doLowerCase);
-
-bool c_assert (void);
-bool c_cn (Symbol *symbol);
-bool c_cp (Symbol *symbol);
-Rslt_e c_data (void);
-bool c_end (void);
-bool c_equ (Symbol *symbol);
-bool c_fn (Symbol *symbol);
-bool c_get (void);
-bool c_idfn (void);
-bool c_incbin (void);
-bool c_info (void);
-bool c_lnk (void);
-bool c_rn (Symbol *symbol);
-bool c_title (void);
 
 typedef struct
 {
