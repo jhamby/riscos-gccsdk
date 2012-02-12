@@ -1,0 +1,17 @@
+|
+| !Mono.!Run
+| Written By Lee Noar
+|
+
+Set Mono$Dir <Obey$Dir>
+
+If "<Mono$Path>" = "" Then Set Run$Path <Run$Path>,Mono:bin.
+
+Set Mono$Path <Mono$Dir>.
+
+Set MONO_DEBUG explicit-null-checks
+
+IconSprites <Mono$Dir>.!Sprites22
+
+Set File$Type_A7D CILImage
+Set Alias$@RunType_A7D Mono-SGen %%*0

@@ -1,0 +1,14 @@
+--- mono/arch/arm/arm-codegen.h.orig	2011-08-26 02:06:56.000000000 +0100
++++ mono/arch/arm/arm-codegen.h	2012-01-21 19:15:54.000000000 +0000
+@@ -80,7 +80,11 @@
+ 	ARMREG_V6 = ARMREG_R9,
+ 	ARMREG_V7 = ARMREG_R10,
+ 
++#ifdef ENABLE_RISCOS_STACKFRAMES
++	ARMREG_FP = ARMREG_R9,
++#else
+ 	ARMREG_FP = ARMREG_R11,
++#endif
+ 	ARMREG_IP = ARMREG_R12,
+ 	ARMREG_SP = ARMREG_R13,
+ 	ARMREG_LR = ARMREG_R14,

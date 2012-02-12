@@ -1,0 +1,1 @@
+<Mono$Dir>.bin.Mono-SGen /Mono:/lib/mono/2.0/mcs.exe -lib:/Mono:/lib/mono/2.0 -lib:/Mono:/lib/mono/3.5 %*0

@@ -1,0 +1,139 @@
+AB_CATEGORY="Development"
+
+MONO_VERSION=2.10.6
+
+AB_URL=http://download.mono-project.com/sources/mono/mono-2.10.6.tar.bz2
+
+AB_CONFLAGS="--with-sgen=yes --with-gc=sgen --with-tls=pthread --with-xen-opt=no --with-ikvm-native=no --with-moonlight=no --disable-shared-memory --with-sigaltstack=no --with-jit=yes --with-malloc-mempools --with-profile4=yes"
+
+export RO_SHAREDLIBS=yes
+
+export ac_cv_func_madvise=yes
+export ac_cv_func_mmap=no
+export armv6=no
+
+mkdir -p $S/mcs/build
+ln -T -s -f $H/mcs.build.config.make $S/mcs/build/config.make
+
+#echo "Building native mono..."
+#mkdir -p $S/native-build
+#mkdir -p $S/native-install
+#pushd . >/dev/null
+#  cd $S/native-build && CC=gcc CXX=g++ ../configure --prefix=$S/native-install && make -j3 AB_NATIVE_MONO=$S/native-install && make install
+#popd >/dev/null
+
+#if [ ! -e "$S/native-install/bin/mono" ]; then
+#  echo "Native build must have failed - can't find native mono binary."
+#  exit
+#fi
+
+build_riscosdotnet() {
+  echo "Building riscosdotnet..."
+  mkdir -p $S/libriscosdotnet/build
+
+  echo "Symlinking source tree..."
+  pushd . >/dev/null
+    cd $S/libriscosdotnet
+    find "$H/riscosdotnet" -mindepth 1 -depth -type d -printf "%P\n" | while read dir; do mkdir -p "$dir"; done
+    find "$H/riscosdotnet" -type f -printf "%P\n" | while read file; do ln -s -f "$H/riscosdotnet/$file" "$file"; done
+
+    mkdir -p config && libtoolize -c
+
+    pushd . >/dev/null
+      echo "Patching libtool to recognise RISC OS..."
+      cd config/m4 && mv -T libtool.m4 libtool.m4.orig && ../../patch-libtool.pl libtool.m4 libtool.m4.orig
+    popd >/dev/null
+
+    pushd . >/dev/null
+      echo "Building riscosdotnet shared library..."
+      aclocal -I config && autoconf && automake --add-missing
+      cd build && ../configure --enable-shared --host=arm-unknown-riscos --prefix=$GCCSDK_INSTALL_ENV && make
+    popd >/dev/null
+
+    pushd . >/dev/null
+      echo "Building riscos.dll assembly..."
+      cd assembly && ./build.sh
+    popd >/dev/null
+
+  popd >/dev/null
+}
+
+ab_make() {
+  echo "Reconfiguring EGLib for RISC OS..."
+  pushd . >/dev/null
+  cd eglib && $AB_CONFIG 'CPPFLAGS_FOR_EGLIB=' 'CFLAGS_FOR_EGLIB=-O3'
+  popd >/dev/null
+
+  $AB_MAKE -j install
+
+  pushd . >/dev/null
+  cd mcs
+  # Parallel building using -j can cause:
+  # error CS0006: Metadata file `../../class/lib/net_2_0/Mono.Cecil.dll' could not be found
+  # when building mono-api-info.exe
+  $AB_MAKE NO_DIR_CHECK=1 PROFILES='net_2_0 net_3_5 net_4_0' all-profiles install MONO_VERSION=$MONO_VERSION
+  popd >/dev/null
+
+  build_riscosdotnet
+}
+
+ab_package() {
+  ab_create_app Mono Apps/Develop
+
+  mkdir -p $A/bin
+
+  if [ -e $S/mono/mini/mono$AB_EXEEXT ]; then
+    cp $S/mono/mini/mono$AB_EXEEXT $A/bin/
+  fi
+
+  if [ -e $S/mono/mini/mono-sgen$AB_EXEEXT ]; then
+    cp $S/mono/mini/mono-sgen$AB_EXEEXT $A/bin/
+  fi
+  
+  mkdir -p $A/lib/mono/2.0
+
+  # Copy dll assemblies for .net 2.0 framework
+  cp $S/mcs/class/lib/net_2_0/*.dll $A/lib/mono/2.0/
+
+  # Copy exe binaries for .net 2.0 framework
+  for file in `find "$S/mcs/class/lib/net_2_0" -name "*.exe"`;
+    do cp -T "$S/mcs/class/lib/net_2_0/`basename $file`" "$A/lib/mono/2.0/`basename $file`,A7D";
+  done
+
+  # This is cheating a bit. The mcs compiler is built in the basic profile and in a
+  # native Linux build is installed in lib/mono/2.0, but I can't get the same result
+  # here so we'll copy it from there.
+  cp -T "$S/mcs/class/lib/basic/mcs.exe" "$A/lib/mono/2.0/mcs.exe,A7D"
+
+  mkdir -p $A/lib/mono/3.5
+
+  # Copy dll assemblies for .net 3.5 framework
+  cp $S/mcs/class/lib/net_3_5/*.dll $A/lib/mono/3.5/
+
+  # Copy exe binaries for .net 3.5 framework
+  for file in `find "$S/mcs/class/lib/net_3_5" -name "*.exe"`;
+    do cp -T "$S/mcs/class/lib/net_3_5/`basename $file`" "$A/lib/mono/3.5/`basename $file`,A7D";
+  done
+
+  mkdir -p $A/lib/mono/4.0
+
+  # Copy dll assemblies for .net 4.0 framework
+  cp $S/mcs/class/lib/net_4_0/*.dll $A/lib/mono/4.0/
+
+  # Copy exe binaries for .net 4.0 framework
+  for file in `find "$S/mcs/class/lib/net_4_0" -name "*.exe"`;
+    do cp -T "$S/mcs/class/lib/net_4_0/`basename $file`" "$A/lib/mono/4.0/`basename $file`,A7D";
+  done
+
+  # Copy the riscos assembly
+  cp -T $S/libriscosdotnet/assembly/riscos.dll $A/lib/riscos.dll
+
+  # Copy documentation
+  cp $S/COPYING.LIB $S/AUTHORS $S/LICENSE $A/Docs
+
+  # Create a skeleton !SharedLibs directory and copy shared library
+  so_lib_installdir=$D/$package/$section/mono/Apps/Develop/\!SharedLibs/lib
+  mkdir -p $so_lib_installdir
+  cp -T "$S/libriscosdotnet/build/src/.libs/libriscosdotnet.1.0.0.so" "$so_lib_installdir/libriscosdotnet.1.0.0.so,E1F"
+  $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f libriscosdotnet/1/0/0/so $so_lib_installdir/libriscosdotnet.so.1,1C8
+}

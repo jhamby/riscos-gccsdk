@@ -1,0 +1,11 @@
+|
+| !Mono.!Boot
+| Written By Lee Noar
+|
+
+Set Mono$Dir <Obey$Dir>
+
+IconSprites <Mono$Dir>.!Sprites22
+
+Set File$Type_A7D CILImage
+Set Alias$@RunType_A7D Mono-SGen %%*0
