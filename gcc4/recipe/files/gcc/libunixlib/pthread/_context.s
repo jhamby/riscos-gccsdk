@@ -306,7 +306,7 @@ pthread_call_every:
 __pthread_callback:
  PICEQ "LDR	v1, =__GOTT_BASE__"
  PICEQ "LDR	v1, [v1, #0]"
- PICEQ "LDR	v1, [v1, #__GOTT_INDEX__]"	@ ip = GOT ptr
+ PICEQ "LDR	v1, [v1, #__GOTT_INDEX__]"	@ v1 = GOT ptr
 
 	LDR	a3, .L2			@=__ul_global
  PICEQ "LDR	a3, [v1, a3]"

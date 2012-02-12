@@ -17,10 +17,18 @@
 #include <internal/unix.h>
 #include <internal/sigstate.h>
 
-/* #define DEBUG 1 */
+#include <ucontext.h>
+
+/* #define DEBUG 1*/
 #ifdef DEBUG
 #  include <sys/debug.h>
 #endif
+
+static inline unsigned int
+__signal_have_saved_regs (int signo)
+{
+  return (signo == SIGSEGV || signo == SIGBUS || signo == SIGILL);
+}
 
 /* Given an address to the approximate start of a function, try
    to obtain an embedded function name.  */
@@ -135,7 +143,8 @@ sigsetup (struct unixlib_sigstate *ss, sighandler_t handler,
 #ifdef DEBUG
       debug_printf ("-- sigsetup: will execute signal off a normal stack\n");
 #endif
-      __unixlib_exec_sig (handler, signo);
+      /* For one argument signals, the last two arguments will be ignored.  */
+      __unixlib_exec_sig (handler, signo, &ss->siginfo, &ss->ucontext);
 #ifdef DEBUG
       debug_printf ("-- sigsetup: signal handler successfully executed\n");
 #endif
@@ -423,6 +432,14 @@ __write_backtrace (int signo)
     }
 }
 
+static void __attribute__ ((noreturn))
+__signal_restart (struct sigcontext *ctx)
+{
+  __asm__ volatile ("LDMIA %[base], {r0-r15}\n\t"
+		    : /* No Outputs */
+		    : [base] "r" (ctx));
+  abort (); /* Never reached.  */
+}
 
 static void
 post_signal (struct unixlib_sigstate *ss, int signo)
@@ -648,6 +665,23 @@ death:
 	ss->actions[signo].sa_flags = SA_RESTART;
 	sigemptyset (&ss->actions[signo].sa_mask);
 
+	memset (&ss->ucontext, 0, sizeof (struct sigcontext));
+	if (__signal_have_saved_regs (signo))
+	  {
+	    /* For those signals that support it, copy the registers from the save
+	       block.  */
+	    extern void **__cbreg;
+
+	    memcpy (&ss->ucontext.arm_r0, &__cbreg, 4 * 17); /* r0-r15 + cpsr */
+	    ss->ucontext.fault_address = ss->ucontext.arm_pc;
+	  }
+
+	/* Set up the siginfo structure.  */
+	memset (&ss->siginfo, 0, sizeof (siginfo_t));
+	ss->siginfo.si_signo = signo;
+	ss->siginfo.si_pid = sulproc->pid;
+	ss->siginfo.si_addr = (void *)ss->ucontext.fault_address;
+
 	/* Call the function to set the thread up to run the signal
 	   handler, and preserve its old context.  */
 	if (sigsetup (ss, handler, signo, flags))
@@ -663,6 +697,19 @@ death:
 
 	/* Re-instate the original sigset.  */
 	ss->blocked = blocked;
+
+	/* If the signal handler changed the PC of the saved registers, then
+	   restore all registers and passs control to the location. */
+	if (__signal_have_saved_regs (signo) &&
+	    ss->ucontext.arm_pc != ss->ucontext.fault_address)
+	  {
+debug_printf("ss->ucontext.arm_sp: %X - ss->ucontext.arm_r10: %X\r\n",ss->ucontext.arm_sp,ss->ucontext.arm_r10);
+	    gbl->executing_signalhandler = 0;
+	    if (gbl->pthread_system_running)
+	      __pthread_enable_ints();
+	    __signal_restart (&ss->ucontext);
+	  }
+debug_printf("> GOT HERE\r\n");
 	break;
       }
     }

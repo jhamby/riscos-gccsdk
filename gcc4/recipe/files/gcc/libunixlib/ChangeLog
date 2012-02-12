@@ -1,3 +1,34 @@
+Sun Feb 12 14:16:14 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	Add basic support for three argument signal handlers.
+
+	* include/ucontext.h: New file. Declare sigcontext structure.
+	* include/signal.h: Add siginfo_t structure.
+	(struct sigaction): Add sa_sigaction member as alternative to
+	sa_handler.
+	Define SA_SIGINFO.
+	* incl-local/internal/sigstate.h (unixlib_sigstate): Add
+	member siginfo to record state of signal (not all members
+	of siginfo are used. Currently only si_signo and si_pid are
+	set, si_addr is set for hardware exceptions). Add member
+	ucontext to record register values at time of signal (only
+	valid for hardware exceptions).
+	(__unixlib_exec_sig): Change signature to include extra
+	arguments.
+	* signal/sigexec.s (__unixlib_exec_sig): Pass siginfo
+	and ucontext pointers to signal handler as extra arguments. A
+	one argument signal handler will ignore the extra arguments.
+	* signal/post.c (sigsetup): Call the handler with the additional
+	arguments.
+	(post_signal): For a supported hardware exception, copy the
+	registers to the ucontext object and setup the siginfo object.
+	If after returning from the signal handler, the stored PC is
+	not the same as the address of the instruction that faulted,
+	then reload all registers passing control to the new PC. Can
+	be used by language interpreters to catch hardware exceptions.
+	* Makefile.am: Add ucontext.h.
+	* pthread/_context.s: Fix comment.
+
 Sat Feb  4 12:04:02 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	* include/sys/mman.h: Define MADV_FREE (even though we

@@ -1378,6 +1378,7 @@ libc_headers = \
 	termio.h \
 	termios.h \
 	time.h \
+	ucontext.h \
 	ulimit.h \
 	unistd.h \
 	unixlib/buildoptions.h \

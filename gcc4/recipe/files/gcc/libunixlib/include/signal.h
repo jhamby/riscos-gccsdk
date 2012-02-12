@@ -94,11 +94,35 @@ typedef struct __usigset
 } __sigset_t;
 #endif
 
+union sigval
+{
+  int    sival_int;    /* integer signal value */
+  void*  sival_ptr;    /* pointer signal value */
+};
+
+typedef struct __siginfo_t
+{
+  int           si_signo;	/* signal number */
+  int           si_errno;	/* if non-zero, an errno value associated with */
+				/* this signal, as defined in <errno.h> */
+  int           si_code;	/* signal code */
+  __pid_t         si_pid;	/* sending process ID */
+  __uid_t         si_uid;	/* real user ID of sending process */
+  void         *si_addr;	/* address of faulting instruction */
+  int           si_status;	/* exit value or signal */
+  long          si_band;	/* band event for SIGPOLL */
+  union sigval  si_value;	/* signal value */
+} siginfo_t;
+
 /* Structure describing the action to be taken when a signal arrives.  */
 struct sigaction
   {
     /* Signal handler.  */
-    __sighandler_t sa_handler;
+    union
+      {
+        __sighandler_t sa_handler;
+	void (*sa_sigaction)(int, siginfo_t *, void *);
+      };
     /* Additional set of signals to be blocked.  */
     __sigset_t sa_mask;
     /* Special flags.  */
@@ -115,7 +139,8 @@ struct sigaction
 #define	SA_DISABLE	0x4
 /* Don't send SIGCHLD when children stop.  */
 #define	SA_NOCLDSTOP	0x8
-
+/* Signal handler takes 3 arguments not one.  */
+#define	SA_SIGINFO	0x10
 
 /* Values for the HOW argument to `sigprocmask'.  */
 

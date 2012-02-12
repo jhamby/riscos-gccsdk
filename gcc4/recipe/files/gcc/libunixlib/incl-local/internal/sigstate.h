@@ -17,6 +17,10 @@
 #include <signal.h>
 #endif
 
+#ifndef _UCONTEXT_H
+#include <ucontext.h>
+#endif
+
 __BEGIN_DECLS
 
 #define __SIG_INVALID_P(sig) ((unsigned int)sig >= NSIG)
@@ -41,6 +45,14 @@ struct unixlib_sigstate
        executing a signal handler. Any raised signals will be pended and
        executed after the current signal has finished executing.  */
     int currently_handling;
+
+    /* The state of the current signal being handled. This is only defined
+       when the signal was established by sigaction() and not signal(). Not
+       all members are used.  */
+    siginfo_t siginfo;
+
+    /* Snapshot of the registers at the time the signal was triggered.  */
+    struct sigcontext ucontext;
   };
 
 /* Raise a signal as described by __signo on the process whose sigstate
@@ -54,7 +66,7 @@ extern void __unixlib_siginfo_handler (int);
 
 /* Actual signal execution functions. Depends on whether we are
    using sigstack, sigaltstack or not.  */
-extern void __unixlib_exec_sig (__sighandler_t, int);
+extern void __unixlib_exec_sig (__sighandler_t, int, siginfo_t *, void *);
 extern void __unixlib_exec_sigstack_bsd (void *__sp, __sighandler_t, int);
 extern void __unixlib_exec_sigstack (void *__sp, int size, __sighandler_t, int);
 extern void __unixlib_default_sigaction (struct unixlib_sigstate *);

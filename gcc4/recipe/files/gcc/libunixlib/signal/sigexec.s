@@ -7,9 +7,10 @@
 	.text
 
 	@ Low level functions used to setup stack frames and call the
-	@ signal handler. These are called by __unixlib_setup_sighandler.
+	@ signal handler. These are called by sigsetup (signal/post.c).
 
 	@ Setup a signal handler to execute on the current stack.
+	@ void __unixlib_exec_sig (__sighandler_t, int, siginfo_t *, void *)
 	.global	__unixlib_exec_sig
 	NAME	__unixlib_exec_sig
 __unixlib_exec_sig:
@@ -17,10 +18,12 @@ __unixlib_exec_sig:
 	STMFD	sp!, {v1, v2, v3, v4, v5, v6, fp, ip, lr, pc}
 	SUB	fp, ip, #4
 	@ Call the signal handler
-	MOV	a3, a1
+	MOV	ip, a1
+	MOV	a3, a4
+	MOV	a2, a3
 	MOV	a1, a2
 	MOV	lr, pc
-	MOV	pc, a3
+	MOV	pc, ip
 	LDMEA	fp, {v1, v2, v3, v4, v5, v6, fp, sp, pc}
 
 
