@@ -167,6 +167,7 @@ static const decode_table_t oDecodeTable[] =
   { "EXTERN", eCB_NoLex, 0, { .nolex = c_import } }, /* IMPORT / EXTERN */
   { "FDV", eCB_VoidPMatch, 1, { .vdpm = m_fdv } }, /* FDV CC P R */
   { "FIELD", eCB_Lex, 0, { .lex = c_alloc } }, /* # / FIELD : reserve space in the current record.  */
+  { "FILL", eCB_Void, 0, { .vd = c_fill } }, /* FILL : reserve space.  */
   { "FIX", eCB_VoidPMatch, 1, { .vdpm = m_fix } }, /* FIX CC [P] R */
   { "FLT", eCB_VoidPMatch, 1, { .vdpm = m_flt } }, /* FLT CC P R */
   { "FML", eCB_VoidPMatch, 1, { .vdpm = m_fml } }, /* FML CC P R */

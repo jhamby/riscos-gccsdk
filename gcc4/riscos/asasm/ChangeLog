@@ -1,3 +1,19 @@
+Sun Feb 12 14:08:35 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/reserve_space.s: Add.
+	* put.c (ReportOverflow): Add.
+	(Put_DataWithOffset): Add times parameter. Use ReportOverflow.
+	(Put_InsWithOffset): Make use of Put_DataWithOffset.
+	* put.h (Put_DataWithOffset): Add times parameter.
+	* decode.c (oDecodeTable): Add FILL.
+	* area.c, area.h (c_align, c_reserve): Move to...
+	* directive_data.c, directive.h: ...here.
+	(DefineInt_RelocUpdater, DefineInt): Follow Put_AlignDataWithOffset API
+	change.
+	(ReserveSpace): Add.
+	(c_fill): Add.
+	* lit.c (Lit_DumpPool): Follow Put_AlignDataWithOffset API change.
+
 Sat Feb 11 18:01:47 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* commands.c, commands.h: Refactor into...

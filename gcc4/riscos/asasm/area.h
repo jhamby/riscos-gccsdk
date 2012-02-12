@@ -119,11 +119,9 @@ uint32_t Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue
 uint32_t Area_AlignTo (uint32_t offset, unsigned alignValue, const char *msg);
 uint32_t Area_AlignArea (Symbol *areaSym, unsigned alignValue, const char *msg);
 
-Rslt_e c_align (void);
 bool c_area (void);
 bool c_entry (void);
 bool c_org (void);
-Rslt_e c_reserve (void);
 
 typedef enum
 {

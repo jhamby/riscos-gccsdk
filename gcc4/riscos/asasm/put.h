@@ -26,7 +26,8 @@
 #include "global.h"
 
 void Put_Data (unsigned size, ARMWord data);
-void Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data, bool alignBefore);
+void Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data,
+			      uint32_t times, bool alignBefore);
 void Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool alignBefore);
 void Put_Ins (ARMWord ins);
 void Put_InsWithOffset (uint32_t offset, ARMWord data);

@@ -25,7 +25,8 @@
 #include <assert.h>
 #ifdef HAVE_STDINT_H
 #  include <stdint.h>
-#elif HAVE_INTTYPES_H
+#endif
+#ifdef HAVE_INTTYPES_H
 #  include <inttypes.h>
 #endif
 #include <ieee754.h>
@@ -35,10 +36,97 @@
 #include "main.h"
 #include "put.h"
 
-static void Put_DataWithOffset (uint32_t offset, unsigned size, uint64_t data);
+
+static void
+ReportOverflow (unsigned dataSize, uint64_t dataValue)
+{
+  int64_t dataValueMin, dataValueMax;
+  switch (dataSize)
+    {
+      case 1:
+	dataValueMin = INT8_MIN;
+	dataValueMax = UINT8_MAX;
+	break;
+      case 2:
+	dataValueMin = INT16_MIN;
+	dataValueMax = UINT16_MAX;
+	break;
+      case 4:
+	dataValueMin = INT32_MIN;
+	dataValueMax = UINT32_MAX;
+	break;
+      case 8:
+	return;
+    }
+  if ((int64_t)dataValue < dataValueMin || (int64_t)dataValue > dataValueMax)
+    error (ErrorWarning, "Size value %" PRId64 " exceeds %d byte%s", (int64_t)dataValue,
+           dataSize, dataSize == 1 ? "" : "s");
+}
+
+
+/**
+ * Write 1, 2, 4 or 8 bytes of data at given offset in the current area.
+ * The size of the current area will automatically increase when necessary.
+ * \entry offset Offset where data needs to be written in the current area.
+ * \entry dataSize Size in bytes of the data to be written, should be 1, 2, 4 or 8.
+ * \entry dataValue Data value to be written.
+ * \entry times Number of times to be done.
+ */
+static void
+Put_DataWithOffset (uint32_t offset, unsigned dataSize, uint64_t dataValue,
+                    uint32_t times)
+{
+  const uint32_t newOffset = offset + dataSize*times;
+
+  if (!Area_IsNoInit (areaCurrentSymbol->area.info))
+    {
+      ReportOverflow (dataSize, dataValue);
+
+      if (newOffset > areaCurrentSymbol->area.info->curIdx)
+	Area_EnsureExtraSize (areaCurrentSymbol, newOffset - areaCurrentSymbol->area.info->curIdx);
+
+      for (uint32_t i = offset; i != newOffset; i += dataSize)
+	{
+	  switch (dataSize)
+	    {
+	      case 8:
+		areaCurrentSymbol->area.info->image[i + 7] = (dataValue >> 56) & 0xff;
+		areaCurrentSymbol->area.info->image[i + 6] = (dataValue >> 48) & 0xff;
+		areaCurrentSymbol->area.info->image[i + 5] = (dataValue >> 40) & 0xff;
+		areaCurrentSymbol->area.info->image[i + 4] = (dataValue >> 32) & 0xff;
+		/* Fall through.  */
+
+	      case 4:
+		areaCurrentSymbol->area.info->image[i + 3] = (dataValue >> 24) & 0xff;
+		areaCurrentSymbol->area.info->image[i + 2] = (dataValue >> 16) & 0xff;
+		/* Fall through.  */
+
+	      case 2:
+		areaCurrentSymbol->area.info->image[i + 1] = (dataValue >> 8) & 0xff;
+		/* Fall through.  */
+
+	      case 1:
+		areaCurrentSymbol->area.info->image[i + 0] = dataValue & 0xff;
+		break;
+
+	      default:
+		assert (0);
+		break;
+	    }
+	}
+    }
+  else if (dataValue)
+    error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
+
+  /* Update current AREA index when necessary.  */
+  if (newOffset > areaCurrentSymbol->area.info->curIdx)
+    areaCurrentSymbol->area.info->curIdx = newOffset;
+}
+
 
 void
-Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data, bool alignBefore)
+Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data,
+                         uint32_t times, bool alignBefore)
 {
   if (alignBefore)
     {
@@ -54,65 +142,14 @@ Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data, bool alig
 	}
     }
 
-  Put_DataWithOffset (offset, size, data);
-}
-
-
-/**
- * Write 1, 2, 4 or 8 bytes of data at given offset in the current area.
- * The size of the current area will automatically increase when necessary.
- * \entry offset Offset where data needs to be written in the current area.
- * \entry size Size in bytes of the data to be written, should be 1, 2, 4 or 8.
- * \entry data Data value to be written.
- */
-static void
-Put_DataWithOffset (uint32_t offset, unsigned size, uint64_t data)
-{
-  if (!Area_IsNoInit (areaCurrentSymbol->area.info))
-    {
-      if (offset + size > areaCurrentSymbol->area.info->curIdx)
-	Area_EnsureExtraSize (areaCurrentSymbol, offset + size - areaCurrentSymbol->area.info->curIdx);
-
-      switch (size)
-	{
-	  case 8:
-	    areaCurrentSymbol->area.info->image[offset + 7] = (data >> 56) & 0xff;
-	    areaCurrentSymbol->area.info->image[offset + 6] = (data >> 48) & 0xff;
-	    areaCurrentSymbol->area.info->image[offset + 5] = (data >> 40) & 0xff;
-	    areaCurrentSymbol->area.info->image[offset + 4] = (data >> 32) & 0xff;
-	    /* Fall through.  */
-
-	  case 4:
-	    areaCurrentSymbol->area.info->image[offset + 3] = (data >> 24) & 0xff;
-	    areaCurrentSymbol->area.info->image[offset + 2] = (data >> 16) & 0xff;
-	    /* Fall through.  */
-
-	  case 2:
-	    areaCurrentSymbol->area.info->image[offset + 1] = (data >> 8) & 0xff;
-	    /* Fall through.  */
-
-	  case 1:
-	    areaCurrentSymbol->area.info->image[offset + 0] = data & 0xff;
-	    break;
-
-	  default:
-	    errorAbort ("Internal Put_DataWithOffset: illegal size");
-	    break;
-	}
-    }
-  else if (data)
-    error (ErrorError, "Trying to define a non-zero value in an uninitialised area");
-
-  /* Update current AREA index when necessary.  */
-  if (offset + size > areaCurrentSymbol->area.info->curIdx)
-    areaCurrentSymbol->area.info->curIdx = offset + size;
+  Put_DataWithOffset (offset, size, data, times);
 }
 
 
 void
 Put_Data (unsigned size, ARMWord data)
 {
-  Put_DataWithOffset (areaCurrentSymbol->area.info->curIdx, size, data);
+  Put_DataWithOffset (areaCurrentSymbol->area.info->curIdx, size, data, 1);
 }
 
 
@@ -215,7 +252,7 @@ Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool ali
 	break;
     }
 
-  Put_DataWithOffset (offset, size, toWrite);
+  Put_DataWithOffset (offset, size, toWrite, 1);
 }
 
 void
@@ -223,23 +260,7 @@ Put_InsWithOffset (uint32_t offset, ARMWord ins)
 {
   offset = Area_AlignTo (offset, 4, "instruction");
 
-  if (!Area_IsNoInit (areaCurrentSymbol->area.info))
-    {
-      if (offset + 4 > areaCurrentSymbol->area.info->curIdx)
-	Area_EnsureExtraSize (areaCurrentSymbol, offset + 4 - areaCurrentSymbol->area.info->curIdx);
-
-      areaCurrentSymbol->area.info->image[offset + 0] = ins & 0xff;
-      areaCurrentSymbol->area.info->image[offset + 1] = (ins >> 8) & 0xff;
-      areaCurrentSymbol->area.info->image[offset + 2] = (ins >> 16) & 0xff;
-      areaCurrentSymbol->area.info->image[offset + 3] = (ins >> 24) & 0xff;
-
-    }
-  else if (ins)
-    error (ErrorError, "Trying to define code in an uninitialised area");
-
-  /* Update current AREA index when necessary.  */
-  if (offset + 4 > areaCurrentSymbol->area.info->curIdx)
-    areaCurrentSymbol->area.info->curIdx = offset + 4;
+  Put_DataWithOffset (offset, 4, ins, 1);
 }
 
 /**

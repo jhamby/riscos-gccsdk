@@ -635,7 +635,8 @@ Lit_DumpPool (void)
 	      printf ("\n");
 #endif
 	      if (gPhase == ePassOne)
-		Put_AlignDataWithOffset (litP->offset, privData.size, 0, !privData.allowUnaligned);
+		Put_AlignDataWithOffset (litP->offset, privData.size, 0, 1,
+		                         !privData.allowUnaligned);
 	      else
 		{
 		  codeInit ();

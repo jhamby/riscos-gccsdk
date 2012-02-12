@@ -29,6 +29,7 @@
 #include "global.h"
 #include "value.h"
 
+Rslt_e c_align (void);
 Rslt_e c_ampersand (void);
 Rslt_e c_data (void);
 Rslt_e c_dcb (void);
@@ -37,6 +38,8 @@ Rslt_e c_dcd (bool doLowerCase);
 Rslt_e c_dci (void);
 Rslt_e c_dcfd (bool doLowerCase);
 Rslt_e c_dcfs (bool doLowerCase);
+Rslt_e c_fill (void);
+Rslt_e c_reserve (void);
 
 typedef struct
 {

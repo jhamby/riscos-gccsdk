@@ -35,6 +35,76 @@
 #include "phase.h"
 #include "put.h"
 
+
+/**
+ * Implements ALIGN [<power-of-2> [, <offset>]]
+ */
+Rslt_e
+c_align (void)
+{
+  skipblanks ();
+  uint32_t alignValue, offsetValue;
+  if (Input_IsEolOrCommentStart ())
+    {
+      alignValue = 1<<2;
+      offsetValue = 0;
+    }
+  else
+    {
+      /* Determine align value */
+      const Value *value = exprBuildAndEval (ValueInt);
+      if (value->Tag == ValueInt)
+	{
+	  alignValue = value->Data.Int.i;
+	  if (alignValue <= 0 || (alignValue & (alignValue - 1)))
+	    {
+	      error (ErrorError, "ALIGN value is not a power of two");
+	      alignValue = 1<<0;
+	    }
+	}
+      else
+	{
+	  error (ErrorError, "Unrecognized ALIGN value");
+	  alignValue = 1<<0;
+	}
+
+      /* Determine offset value */
+      skipblanks ();
+      if (Input_IsEolOrCommentStart ())
+	offsetValue = 0;
+      else if (Input_Match (',', false))
+	{
+	  const Value *valueO = exprBuildAndEval (ValueInt);
+	  if (valueO->Tag == ValueInt)
+	    offsetValue = ((uint32_t)valueO->Data.Int.i) % alignValue;
+	  else
+	    {
+	      error (ErrorError, "Unrecognized ALIGN offset value");
+	      offsetValue = 0;
+	    }
+	}
+      else
+	{
+	  error (ErrorError, "Unrecognized ALIGN offset value");
+	  offsetValue = 0;
+	}
+    }
+
+  /* We have to align on alignValue + offsetValue */
+
+  uint32_t curPos = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
+  curPos += areaCurrentSymbol->area.info->curIdx;
+  uint32_t newPos = ((curPos - offsetValue + alignValue - 1) / alignValue)*alignValue + offsetValue;  
+  uint32_t bytesToStuff = newPos - curPos;
+
+  Area_EnsureExtraSize (areaCurrentSymbol, bytesToStuff);
+
+  while (bytesToStuff--)
+    areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = 0;
+
+  return eRslt_None;
+}
+
 /**
  * Implements DATA (as nop).
  */
@@ -66,13 +136,15 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
       const char *str = valueP->Data.Code.c[0].Data.value.Data.String.s;
       /* Lay out a string.  */
       for (size_t i = 0; i != len; ++i)
-	Put_AlignDataWithOffset (offset + i, privDataP->size, str[i], !privDataP->allowUnaligned);
+	Put_AlignDataWithOffset (offset + i, privDataP->size, str[i], 1,
+	                         !privDataP->allowUnaligned);
       return false;
     }
 
   if (!final)
     {
-      Put_AlignDataWithOffset (offset, privDataP->size, 0, !privDataP->allowUnaligned);
+      Put_AlignDataWithOffset (offset, privDataP->size, 0, 1,
+                               !privDataP->allowUnaligned);
       return true;
     }
 
@@ -232,7 +304,8 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
       assert (!relocs && !relative);
     }
   armValue = Fix_Int (fileName, lineNum, privDataP->size, armValue);
-  Put_AlignDataWithOffset (offset, privDataP->size, armValue, !privDataP->allowUnaligned);
+  Put_AlignDataWithOffset (offset, privDataP->size, armValue, 1,
+                           !privDataP->allowUnaligned);
   
   return false;
 }
@@ -257,10 +330,14 @@ DefineInt (int size, bool allowUnaligned, const char *mnemonic)
 	      const char *str = result->Data.String.s;
 	      /* Lay out a string.  */
 	      for (size_t i = 0; i != len; ++i)
-		Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx, privData.size, str[i], !privData.allowUnaligned);
+		Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
+		                         privData.size, str[i], 1,
+		                         !privData.allowUnaligned);
 	    }
 	  else
-	    Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx, privData.size, 0, !privData.allowUnaligned);
+	    Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
+	                             privData.size, 0, 1,
+	                             !privData.allowUnaligned);
 	}
       else if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, areaCurrentSymbol->area.info->curIdx,
 				      ValueInt | ValueString | ValueSymbol | ValueCode,
@@ -438,5 +515,87 @@ c_dcfd (bool doLowerCase)
   if (!Input_IsEndOfKeyword ())
     return eRslt_NotRecognized;
   DefineReal (8, allowUnaligned, allowUnaligned ? "DCFDU" : "DCFD");
+  return eRslt_Data;
+}
+
+
+/**
+ * Used for '%', 'FILL' and 'SPACE' implementations.
+ * \param isFill Is 'FILL' mnemonic.  Otherwise it is '%' or 'SPACE'.
+ */
+static void
+ReserveSpace (bool isFill)
+{
+  const Value *valueTimesP = exprBuildAndEval (ValueInt);
+  if (valueTimesP->Tag != ValueInt)
+    {
+      error (ErrorError, "Unresolved reserve not possible");
+      return;
+    }
+  uint32_t times = (uint32_t)valueTimesP->Data.Int.i;
+
+  ARMWord value = 0;
+  unsigned valueSize = 1;
+  if (isFill)
+    {
+      /* Check for <value> presence.  */
+      if (Input_Match (',', false))
+	{
+	  const Value *valueValueP = exprBuildAndEval (ValueInt);
+	  if (valueValueP->Tag != ValueInt)
+	    {
+	      error (ErrorError, "Unresolved reserve value not possible");
+	      return;
+	    }
+	  value = (ARMWord)valueValueP->Data.Int.i;
+
+	  /* Check for <valuesize> presence.  */
+	  if (Input_Match (',', false))
+	    {
+	      const Value *valueSizeP = exprBuildAndEval (ValueInt);
+	      if (valueSizeP->Tag != ValueInt)
+		{
+		  error (ErrorError, "Unresolved reserve value size not possible");
+		  return;
+		}
+	      valueSize = (unsigned)valueSizeP->Data.Int.i;
+	      if (valueSize != 1 && valueSize != 2 && valueSize != 4)
+		{
+		  error (ErrorError, "Reserve value size can only be 1, 2 or 4");
+		  return;
+		}
+	    }
+	}
+    }
+  
+  if ((int32_t)times < 0)
+    error (ErrorWarning, "Reserve space value is considered unsigned, i.e. reserving %u bytes now\n", times);
+
+  Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx, valueSize,
+			   value, times, false);
+}
+
+
+/**
+ * Implements 'FILL'.
+ *   {label} FILL <expr> {,<value>{,<valuesize>}}
+ */
+Rslt_e
+c_fill (void)
+{
+  ReserveSpace (true);
+  return eRslt_Data;
+}
+
+
+/**
+ * Implements '%', 'SPACE'.
+ *   {label} % <expr>
+ *   {label} SPACE <expr>
+ */
+Rslt_e
+c_reserve (void)
+{
+  ReserveSpace (false);
   return eRslt_Data;
 }
