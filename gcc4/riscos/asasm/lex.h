@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2002-2011 GCCSDK Developers
+ * Copyright (c) 2002-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,23 +28,25 @@
 
 #include "global.h"
 
-/* Ordered according to decreasing precedence.  */
+/* Ordered according to decreasing priority/precedence.  */
 typedef enum
 {
   /* Unary operators.  */
-  Op_fload = 0, Op_fexec, Op_fsize, Op_fattr,	/* Pri 7 */
-  Op_lnot, Op_not, Op_neg, Op_none,		/* Pri 7 */
-  Op_base, Op_index, Op_len, Op_str, Op_chr,	/* Pri 7 */
-  Op_size,					/* Pri 7 */
+  eOp_FLoad = 0, eOp_FExec, eOp_FSize, eOp_FAttr,	/* Priority kPrioOp_Unary */
+  eOp_LNot, eOp_Not, eOp_Neg, eOp_None,
+  eOp_Base, eOp_Index, eOp_Len, eOp_Str, eOp_Chr,
+  eOp_Size,
+  eOp_LowerCase, eOp_UpperCase, eOp_RevCC,
+  eOp_CCEnc, eOp_RConst,
 
   /* Binary operators.  */
-  Op_mul, Op_div, Op_mod,			/* Pri 6 */
-  Op_left, Op_right, Op_concat,			/* Pri 5 */
-  Op_asr, Op_sr, Op_sl, Op_ror, Op_rol,		/* Pri 4 */
-  Op_add, Op_sub, Op_and, Op_or, Op_xor,	/* Pri 3 */
-  Op_le, Op_ge, Op_lt, Op_gt, Op_eq, Op_ne,	/* Pri 2 */
-  Op_land, Op_lor, Op_leor			/* Pri 1 */
-} Operator;
+  eOp_Mul, eOp_Div, eOp_Mod,				/* Priority kPrioOp_Multiplicative */
+  eOp_Left, eOp_Right, eOp_Concat,			/* Priority kPrioOp_String */
+  eOp_ASR, eOp_SHR, eOp_SHL, eOp_ROR, eOp_ROL,		/* Priority kPrioOp_Shift */
+  eOp_Add, eOp_Sub, eOp_And, eOp_Or, eOp_XOr,		/* Priority kPrioOp_AddAndLogical */
+  eOp_LE, eOp_GE, eOp_LT, eOp_GT, eOp_EQ, eOp_NE,	/* PPriority kPrioOp_Relational */
+  eOp_LAnd, eOp_LOr, eOp_LEOr				/* Priority kPrioOp_Boolean */
+} Operator_e;
 
 #define kPrioOp_Unary		7
 #define kPrioOp_Multiplicative	6
@@ -58,13 +60,13 @@ typedef enum
 #define kPrioOp_Min		1
 
 #ifdef DEBUG
-const char *Lex_OperatorAsStr (Operator op);
+const char *Lex_OperatorAsStr (Operator_e op);
 #endif
 
 static inline bool
-IsUnop (Operator op)
+IsUnop (Operator_e op)
 {
-  return op <= Op_size;
+  return op <= eOp_RConst;
 }
 
 typedef enum
@@ -115,7 +117,7 @@ typedef struct
         } Float;
       struct			/* LexOperator */
         {
-          Operator op;
+          Operator_e op;
           int pri;
         } Operator;
       struct			/* LexDelim */

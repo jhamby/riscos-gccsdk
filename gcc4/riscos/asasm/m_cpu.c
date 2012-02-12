@@ -60,7 +60,7 @@ m_nop (bool doLowerCase)
       case ARCH_ARMv7:
 	{
 	  ARMWord cc = optionCond (doLowerCase);
-	  if (cc == optionError)
+	  if (cc == kOption_NotRecognized)
 	    return eRslt_NotRecognized;
 	  Put_Ins (0x0320F000 | cc);
 	  break;
@@ -116,7 +116,7 @@ Rslt_e
 m_adc (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_ADC);
 }
@@ -128,7 +128,7 @@ Rslt_e
 m_add (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_ADD);
 }
@@ -140,7 +140,7 @@ Rslt_e
 m_and (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_AND);
 }
@@ -152,7 +152,7 @@ Rslt_e
 m_bic (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_BIC);
 }
@@ -164,7 +164,7 @@ Rslt_e
 m_eor (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_EOR);
 }
@@ -176,7 +176,7 @@ Rslt_e
 m_mov (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstrhs (cc | M_MOV);
 }
@@ -188,7 +188,7 @@ Rslt_e
 m_mvn (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstrhs (cc | M_MVN);
 }
@@ -200,7 +200,7 @@ Rslt_e
 m_orr (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_ORR);
 }
@@ -212,7 +212,7 @@ Rslt_e
 m_rsb (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_RSB);
 }
@@ -224,7 +224,7 @@ Rslt_e
 m_rsc (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_RSC);
 }
@@ -236,7 +236,7 @@ Rslt_e
 m_sbc (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_SBC);
 }
@@ -248,7 +248,7 @@ Rslt_e
 m_sub (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstlhsrhs (cc | M_SUB);
 }
@@ -275,7 +275,7 @@ Rslt_e
 m_cmn (bool doLowerCase)
 {
   ARMWord cc = Option_CondSP (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return lhsrhs (cc | M_CMN);
 }
@@ -287,7 +287,7 @@ Rslt_e
 m_cmp (bool doLowerCase)
 {
   ARMWord cc = Option_CondSP (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return lhsrhs (cc | M_CMP);
 }
@@ -299,7 +299,7 @@ Rslt_e
 m_teq (bool doLowerCase)
 {
   ARMWord cc = Option_CondSP (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return lhsrhs (cc | M_TEQ);
 }
@@ -311,7 +311,7 @@ Rslt_e
 m_tst (bool doLowerCase)
 {
   ARMWord cc = Option_CondSP (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return lhsrhs (cc | M_TST);
 }
@@ -387,7 +387,7 @@ Rslt_e
 m_mla (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   Target_NeedAtLeastArch (ARCH_ARMv2);
@@ -403,7 +403,7 @@ Rslt_e
 m_mls (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase); /* Note, no 'S' */
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   Target_NeedAtLeastArch (ARCH_ARMv6T2);
@@ -419,7 +419,7 @@ Rslt_e
 m_mul (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   Target_NeedAtLeastArch (ARCH_ARMv2);
@@ -509,7 +509,7 @@ Rslt_e
 m_smull (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv3M);
   l_onlyregs (cc | M_SMULL, "SMULL");
@@ -523,7 +523,7 @@ Rslt_e
 m_smulbb (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMULBB, "SMULBB");
@@ -537,7 +537,7 @@ Rslt_e
 m_smulbt (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMULBT, "SMULBT");
@@ -551,7 +551,7 @@ Rslt_e
 m_smultb (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMULTB, "SMULTB");
@@ -565,7 +565,7 @@ Rslt_e
 m_smultt (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMULTT, "SMULTT");
@@ -579,7 +579,7 @@ Rslt_e
 m_smulwb (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMULWB, "SMULWB");
@@ -593,7 +593,7 @@ Rslt_e
 m_smulwt (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMULWT, "SMULWT");
@@ -607,7 +607,7 @@ Rslt_e
 m_smlal (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv3M);
   l_onlyregs (cc | M_SMLAL, "SMLAL");
@@ -621,7 +621,7 @@ Rslt_e
 m_smlalbb (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLALBB, "SMLALBB");
@@ -635,7 +635,7 @@ Rslt_e
 m_smlalbt (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLALBT, "SMLALBT");
@@ -649,7 +649,7 @@ Rslt_e
 m_smlaltb (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLALTB, "SMLALTB");
@@ -663,7 +663,7 @@ Rslt_e
 m_smlaltt (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLALTT, "SMLALTT");
@@ -677,7 +677,7 @@ Rslt_e
 m_smlabb (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLABB, "SMLABB");
@@ -691,7 +691,7 @@ Rslt_e
 m_smlabt (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLABT, "SMLABT");
@@ -705,7 +705,7 @@ Rslt_e
 m_smlatb (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLATB, "SMLATB");
@@ -719,7 +719,7 @@ Rslt_e
 m_smlatt (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLATT, "SMLATT");
@@ -733,7 +733,7 @@ Rslt_e
 m_smlawb (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLAWB, "SMLAWB");
@@ -747,7 +747,7 @@ Rslt_e
 m_smlawt (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
   l_onlyregs (cc | M_SMLAWT, "SMLAWT");
@@ -761,7 +761,7 @@ Rslt_e
 m_umull (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv3M);
   l_onlyregs (cc | M_UMULL, "UMULL");
@@ -775,7 +775,7 @@ Rslt_e
 m_umlal (bool doLowerCase)
 {
   ARMWord cc = optionCondS (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   Target_NeedAtLeastArch (ARCH_ARMv3M);
   l_onlyregs (cc | M_UMLAL, "UMLAL");
@@ -790,7 +790,7 @@ Rslt_e
 m_clz (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   Target_NeedAtLeastArch (ARCH_ARMv5);
@@ -843,7 +843,7 @@ Rslt_e
 m_qadd (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   q_onlyregs (cc | M_QADD, "QADD");
   return eRslt_ARM;
@@ -856,7 +856,7 @@ Rslt_e
 m_qdadd (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   q_onlyregs (cc | M_QDADD, "QDADD");
   return eRslt_ARM;
@@ -869,7 +869,7 @@ Rslt_e
 m_qdsub (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   q_onlyregs (cc | M_QDSUB, "QDSUB");
   return eRslt_ARM;
@@ -882,7 +882,7 @@ Rslt_e
 m_qsub (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   q_onlyregs (cc | M_QSUB, "QSUB");
   return eRslt_ARM;
@@ -892,7 +892,7 @@ static Rslt_e
 UALShift (ARMWord shiftType, bool doLowerCase)
 {
   ARMWord cc = Option_SCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   ARMWord regD = getCpuReg ();
@@ -995,7 +995,7 @@ Rslt_e
 m_rrx (bool doLowerCase)
 {
   ARMWord cc = Option_SCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   ARMWord regD = getCpuReg ();

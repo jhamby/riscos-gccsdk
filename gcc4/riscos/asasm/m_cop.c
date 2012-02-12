@@ -106,7 +106,7 @@ Rslt_e
 m_cdp (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
   coprocessor (true, cc | 0x0e000000, 15);
   return eRslt_ARM;
@@ -132,7 +132,7 @@ Rslt_e
 m_mcr (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
   coprocessor (false, cc | 0x0e000010, 7);
   return eRslt_ARM;
@@ -156,7 +156,7 @@ Rslt_e
 m_mrc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
   coprocessor (false, cc | 0x0e100010, 7);
   return eRslt_ARM;
@@ -204,7 +204,7 @@ Rslt_e
 m_mcrr (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
   Target_NeedAtLeastArch (ARCH_ARMv6);
   coprocessorr (cc | 0x0C400000);
@@ -218,7 +218,7 @@ Rslt_e
 m_mrrc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
   Target_NeedAtLeastArch (ARCH_ARMv6);
   coprocessorr (cc | 0x0C500000);

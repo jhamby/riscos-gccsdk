@@ -72,7 +72,7 @@ Branch_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	{
 	  if (i + 1 != valueP->Data.Code.len
 	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
-	      && valueP->Data.Code.c[i + 1].Data.op == Op_sub)
+	      && valueP->Data.Code.c[i + 1].Data.op == eOp_Sub)
 	    factor = -1;
 	  else
 	    factor = 1;
@@ -80,7 +80,7 @@ Branch_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	  const Code *codeP = &valueP->Data.Code.c[i];
 	  if (codeP->Tag == CodeOperator)
 	    {
-	      if (codeP->Data.op != Op_add && codeP->Data.op != Op_sub)
+	      if (codeP->Data.op != eOp_Add && codeP->Data.op != eOp_Sub)
 		return true;
 	      continue;
 	    }
@@ -136,7 +136,7 @@ Branch_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	{
 	  if (i + 1 != valueP->Data.Code.len
 	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
-	      && valueP->Data.Code.c[i + 1].Data.op == Op_sub)
+	      && valueP->Data.Code.c[i + 1].Data.op == eOp_Sub)
 	    factor = -1;
 	  else
 	    factor = 1;
@@ -144,7 +144,7 @@ Branch_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	  const Code *codeP = &valueP->Data.Code.c[i];
 	  if (codeP->Tag == CodeOperator)
 	    {
-	      if (codeP->Data.op != Op_add && codeP->Data.op != Op_sub)
+	      if (codeP->Data.op != eOp_Add && codeP->Data.op != eOp_Sub)
 		return true;
 	      continue;
 	    }
@@ -247,7 +247,7 @@ Rslt_e
 m_branch (bool doLowerCase)
 {
   ARMWord cc = optionLinkCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
   return branch_shared (cc, false);
 }
@@ -259,7 +259,7 @@ Rslt_e
 m_blx (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -285,7 +285,7 @@ Rslt_e
 m_bx (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv5TE);
@@ -305,7 +305,7 @@ Rslt_e
 m_bxj (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv5TEJ);
@@ -328,7 +328,7 @@ Rslt_e
 m_swi (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   skipblanks ();
@@ -522,7 +522,7 @@ ADR_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
       const Code *codeP = &valueP->Data.Code.c[i];
       if (codeP->Tag == CodeOperator)
 	{
-	  if (codeP->Data.op != Op_add)
+	  if (codeP->Data.op != eOp_Add)
 	    return true;
 	  continue;
 	}
@@ -572,7 +572,7 @@ Rslt_e
 m_adr (bool doLowerCase)
 {
   ARMWord ir = optionAdrL (doLowerCase);
-  if (ir == optionError)
+  if (ir == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   ARMWord regD = getCpuReg ();
@@ -749,7 +749,7 @@ Rslt_e
 m_msr (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv4);
@@ -784,7 +784,7 @@ Rslt_e
 m_mrs (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   Target_NeedAtLeastArch (ARCH_ARMv4);
@@ -807,7 +807,7 @@ Rslt_e
 m_sev (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   if (Target_GetArch() != ARCH_ARMv6K)
@@ -826,7 +826,7 @@ Rslt_e
 m_wfe (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   if (Target_GetArch() != ARCH_ARMv6K)
@@ -845,7 +845,7 @@ Rslt_e
 m_wfi (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   if (Target_GetArch() != ARCH_ARMv6K)
@@ -864,7 +864,7 @@ Rslt_e
 m_yield (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   Put_Ins (cc | 0x0320F001);
@@ -968,7 +968,7 @@ Rslt_e
 m_dbg (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   if (Target_NeedAtLeastArch (ARCH_ARMv7))
@@ -1009,7 +1009,7 @@ Rslt_e
 m_smc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
 
   /* Note that the security extensions are optional.  */

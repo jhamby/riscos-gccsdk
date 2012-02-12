@@ -36,13 +36,13 @@
 
 /**
  * Try to parse a 2 character condition code.
- * \return Parsed condition code.  When there is no condition code, optionError
- * is returned instead.
+ * \return Parsed condition code.  When there is no condition code,
+ * kOption_NotRecognized is returned instead.
  */
 static ARMWord
 GetCCodeIfThere (bool doLowerCase)
 {
-  ARMWord cc = optionError;
+  ARMWord cc = kOption_NotRecognized;
   const char c1 = inputLook ();
   if (c1 == (doLowerCase ? 'a' : 'A'))
     {
@@ -108,7 +108,7 @@ GetCCodeIfThere (bool doLowerCase)
 	  ARM_eArchitectures arch = Target_GetArch ();
 	  if (arch >= ARCH_ARMv5)
 	    {
-	      /* cc already is optionError.  */
+	      /* cc already is kOption_NotRecognized.  */
 	    }
 	  else if (arch >= ARCH_ARMv4)
 	    {
@@ -133,7 +133,7 @@ GetCCodeIfThere (bool doLowerCase)
 	cc = VS;
     }
 
-  if (cc != optionError)
+  if (cc != kOption_NotRecognized)
     inputSkipN (2);
   return cc;
 }
@@ -148,21 +148,37 @@ static ARMWord
 GetCCode (bool doLowerCase)
 {
   ARMWord ccode = GetCCodeIfThere (doLowerCase);
-  if (ccode == optionError)
+  if (ccode == kOption_NotRecognized)
     ccode = AL;
   return ccode;
 }
 
 
 /**
- * Tried to read stackmode for LDM/STM/RFE/SRS.
- * \return optionError is no stackmode can be read, otherwise the stackmode
+ * Try to read the instruction width indicator (".W"/".w" or ".N"/".n").
+ * \return doLowerCase When true, instruction width indication should be
+ * lowercase, uppercase otherwise.
+ */
+InstrWidth_e
+Option_GetInstrWidth (bool doLowerCase)
+{
+  if (Input_MatchString (doLowerCase ? ".w" : ".W") && Input_IsEndOfKeyword ())
+    return eInstrWidth_Enforce32bit;
+  if (Input_MatchString (doLowerCase ? ".n" : ".N") && Input_IsEndOfKeyword ())
+    return eInstrWidth_Enforce16bit;
+  return eInstrWidth_NotSpecified;
+}
+
+
+/**
+ * Try to read stackmode for LDM/STM/RFE/SRS.
+ * \return kOption_NotRecognized is no stackmode can be read, otherwise the stackmode
  * bits.
  */
 static ARMWord
 GetStackMode (bool isLoad, bool doLowerCase)
 {
-  ARMWord stackMode = optionError;
+  ARMWord stackMode = kOption_NotRecognized;
   const char c1 = inputLook ();
   if (c1 == (doLowerCase ? 'd' : 'D'))
     {
@@ -197,7 +213,7 @@ GetStackMode (bool isLoad, bool doLowerCase)
 	stackMode = STACKMODE_IA;
     }
 
-  if (stackMode != optionError)
+  if (stackMode != kOption_NotRecognized)
     inputSkipN (2);
 
   return stackMode;
@@ -214,8 +230,8 @@ GetFPAPrecision (bool forLdfStfUsage, bool doLowerCase)
   if (Input_Match (doLowerCase ? 'e' : 'E', false))
     return forLdfStfUsage ? PRECISION_MEM_EXTENDED : PRECISION_EXTENDED;
   if (Input_Match (doLowerCase ? 'p' : 'P', false))
-    return forLdfStfUsage ? PRECISION_MEM_PACKED : optionError;
-  return optionError;
+    return forLdfStfUsage ? PRECISION_MEM_PACKED : kOption_NotRecognized;
+  return kOption_NotRecognized;
 }
 
 
@@ -242,10 +258,15 @@ GetFPARounding (bool doLowerCase)
 static ARMWord
 IsEndOfKeyword (ARMWord option)
 {
-  return Input_IsEndOfKeyword () ? option : optionError;
+  if (option == kOption_NotRecognized)
+    return option;
+  return Input_IsEndOfKeyword () || Input_Match ('.', false) ? option : kOption_NotRecognized;
 }
 
 
+/**
+ * Try to parse condition code.
+ */
 ARMWord
 optionCond (bool doLowerCase)
 {
@@ -254,7 +275,7 @@ optionCond (bool doLowerCase)
 
 
 /**
- * Tries to parse condition code and "S" (both optionally and in any order)
+ * Try to parse condition code and "S" (both optionally and in any order)
  * and that should terminate the keyword.
  * I.e. support pre-UAL and UAL syntax.
  */
@@ -335,7 +356,7 @@ Option_LdrStrType (bool isStore, bool doLowerCase)
   if (Input_Match (doLowerCase ? 's' : 'S', false))
     {
       if (isStore)
-	option = optionError; /* "STR<cond>S<...>" is not possible.  */
+	option = kOption_NotRecognized; /* "STR<cond>S<...>" is not possible.  */
       else
 	{
 	  /* "LDR<cond>SB" or "LDR<cond>SH".  */
@@ -344,7 +365,7 @@ Option_LdrStrType (bool isStore, bool doLowerCase)
 	  else if (Input_Match (doLowerCase ? 'b' : 'B', false))
 	    option = 0x90 | S_FLAG | L_FLAG; /* "LDR<cond>SB".  */
 	  else
-	    option = optionError;
+	    option = kOption_NotRecognized;
 	}
     }
   else
@@ -397,12 +418,12 @@ ARMWord
 Option_LdrStrCondAndType (bool isStore, bool doLowerCase)
 {
   ARMWord option = GetCCodeIfThere (doLowerCase);
-  if (option == optionError)
+  if (option == kOption_NotRecognized)
     {
       /* No condition code recognised, try to parse <type> + [ <cond> ]
 	 instead.  */
       option = Option_LdrStrType (isStore, doLowerCase);
-      if (option != optionError)
+      if (option != kOption_NotRecognized)
 	option |= GetCCode (doLowerCase);
     }
   else
@@ -422,7 +443,7 @@ Option_CondRfeSrs (bool isLoad, bool doLowerCase)
   ARMWord option = GetStackMode (isLoad, doLowerCase);
   /* When there is no stack mode specified for SRS and RFE, it is implicitely
      IA for *both* cases.  */
-  return IsEndOfKeyword (option == optionError ? STACKMODE_IA : option);
+  return IsEndOfKeyword (option == kOption_NotRecognized ? STACKMODE_IA : option);
 }
 
 
@@ -430,10 +451,10 @@ ARMWord
 optionCondLdmStm (bool isLDM, bool doLowerCase)
 {
   ARMWord option = GetCCode (doLowerCase);
-  if (option == optionError)
-    return optionError;
+  if (option == kOption_NotRecognized)
+    return kOption_NotRecognized;
   ARMWord stackMode = GetStackMode (isLDM, doLowerCase);
-  if (stackMode == optionError)
+  if (stackMode == kOption_NotRecognized)
     stackMode = STACKMODE_IA;
   return IsEndOfKeyword (option | stackMode);
 }
@@ -453,8 +474,8 @@ ARMWord
 optionCondPrecRound (bool doLowerCase)
 {
   ARMWord option = GetCCode (doLowerCase);
-  if (optionError == (option |= GetFPAPrecision (false, doLowerCase)))
-    return optionError;
+  if (kOption_NotRecognized == (option |= GetFPAPrecision (false, doLowerCase)))
+    return kOption_NotRecognized;
   return IsEndOfKeyword (option | GetFPARounding (doLowerCase));
 }
 
@@ -466,8 +487,8 @@ ARMWord
 optionCondPrec_P (bool doLowerCase)
 {
   ARMWord option = GetCCode (doLowerCase);
-  if (optionError == (option |= GetFPAPrecision (true, doLowerCase)))
-    return optionError;
+  if (kOption_NotRecognized == (option |= GetFPAPrecision (true, doLowerCase)))
+    return kOption_NotRecognized;
   return IsEndOfKeyword (option);
 }
 

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -39,10 +39,12 @@
 #include "filestack.h"
 #include "input.h"
 #include "lex.h"
-#include "lexAcorn.h"
 #include "local.h"
 #include "main.h"
+#include "opt.h"
 #include "symbol.h"
+#include "state.h"
+#include "targetcpu.h"
 
 static Lex nextbinop;
 static bool nextbinopvalid = false;
@@ -439,6 +441,447 @@ Lex_SkipDefiningLabel (void)
   return lexGetId ().tag != LexNone;
 }
 
+#define FINISH_STR(string, Op, Pri)	\
+  if (Input_MatchString (string))	\
+    {					\
+      lex->Data.Operator.op = Op;	\
+      lex->Data.Operator.pri = Pri;	\
+      return;				\
+    }
+
+#define FINISH_CHR(Op, Pri)		\
+  if (Input_Match (':', false))		\
+    {					\
+      lex->Data.Operator.op = Op;	\
+      lex->Data.Operator.pri = Pri;	\
+      return;				\
+    }
+
+static void
+Lex_GetUnaryOp (Lex *lex)
+{
+  lex->tag = LexOperator;
+  char c1 = inputGet ();
+  switch (c1)
+    {
+      case 'B':
+	FINISH_STR ("ASE:", eOp_Base, kPrioOp_Unary); /* :BASE: */
+	break;
+
+      case 'C':
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'C':
+		FINISH_STR ("_ENCODING:", eOp_CCEnc, kPrioOp_Unary); /* :CC_ENCODING: */
+		break;
+	      case 'H':
+		FINISH_STR ("R:", eOp_Chr, kPrioOp_Unary); /* :CHR: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+
+      case 'D':
+	if (Input_MatchString ("EF:")) /* :DEF: */
+	  {
+	    *lex = lexGetPrim ();
+	    if (lex->tag == LexId)
+	      {
+	        /* :DEF: only returns {TRUE} when the symbol is defined and it is
+		   not a macro local variable.  */
+		const Symbol *symP = symbolFind (lex);
+		lex->Data.Bool.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
+		lex->tag = LexBool;
+		return;
+	      }
+	    else
+	      error (ErrorError, "Bad operand for :DEF:");
+	  }
+	break;
+
+      case 'F':
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'A':
+		FINISH_STR ("TTR:", eOp_FAttr, kPrioOp_Unary); /* :FATTR: */
+		break;
+	      case 'E':
+		FINISH_STR ("XEC:", eOp_FExec, kPrioOp_Unary); /* :FEXEC: */
+		break;
+	      case 'L':
+		FINISH_STR ("OAD:", eOp_FLoad, kPrioOp_Unary); /* :FLOAD: */
+		break;
+	      case 'S':
+		FINISH_STR ("IZE:", eOp_FSize, kPrioOp_Unary); /* :FSIZE: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
+      case 'I':
+	FINISH_STR ("NDEX:", eOp_Index, kPrioOp_Unary); /* :INDEX: */
+	break;
+
+      case 'L':
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'E':
+		FINISH_STR ("N:", eOp_Len, kPrioOp_Unary); /* :LEN: */
+		break;
+	      case 'O':
+		FINISH_STR ("WERCASE:", eOp_LowerCase, kPrioOp_Unary); /* :LOWERCASE: */
+	      case 'N':
+		FINISH_STR ("OT:", eOp_LNot, kPrioOp_Unary); /* :LNOT: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
+      case 'N':
+	FINISH_STR ("OT:", eOp_Not, kPrioOp_Unary); /* :NOT: */
+	break;
+
+      case 'R':
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'C':
+		FINISH_STR ("ONST:", eOp_RConst, kPrioOp_Unary); /* :RCONST: */
+		break;
+	      case 'E':
+		FINISH_STR ("VERSE_CC:", eOp_RevCC, kPrioOp_Unary); /* :REVERSE_CC: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+
+      case 'S':
+	FINISH_STR ("TR:", eOp_Str, kPrioOp_Unary); /* :STR: */
+	break;
+
+      case 'U':
+	FINISH_STR ("PPERCASE:", eOp_UpperCase, kPrioOp_Unary); /* :UPPERCASE: */
+	break;
+    }
+  inputUnGet (c1);
+
+  /* Failed to tokenize.  */
+  lex->tag = LexNone;
+}
+
+
+static void
+Lex_GetBinaryOp (Lex *lex)
+{
+  lex->tag = LexOperator;
+  char c1 = inputGet ();
+  switch (c1)
+    {
+      case 'A':
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'N':
+		FINISH_STR ("D:", eOp_And, kPrioOp_AddAndLogical); /* :AND: */
+		break;
+	      case 'S':
+		FINISH_STR ("R:", eOp_ASR, kPrioOp_Shift); /* :ASR: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
+      case 'C':
+	FINISH_STR ("C:", eOp_Concat, kPrioOp_String); /* :CC: */
+	break;
+	
+      case 'E':
+	FINISH_STR ("OR:", eOp_XOr, kPrioOp_AddAndLogical); /* :EOR: */
+	break;
+	
+      case 'L':
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'A':
+		FINISH_STR ("ND:", eOp_LAnd, kPrioOp_Boolean); /* :LAND: */
+		break;
+	      case 'E':
+		{
+		  char c3 = inputGet ();
+		  switch (c3)
+		    {
+		      case 'F':
+			FINISH_STR ("T:", eOp_Left, kPrioOp_String); /* :LEFT: */
+			break;
+		      case 'O':
+			FINISH_STR ("R:", eOp_LEOr, kPrioOp_Boolean); /* :LEOR: */
+			break;
+		    }
+		  inputUnGet (c3);
+		  break;
+		}
+	      case 'O':
+		FINISH_STR ("R:", eOp_LOr, kPrioOp_Boolean); /* :LOR: */
+		break;
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
+      case 'M':
+	FINISH_STR ("OD:", eOp_Mod, kPrioOp_Multiplicative); /* :MOD: */
+	break;
+
+      case 'O':
+	FINISH_STR ("R:", eOp_Or, kPrioOp_AddAndLogical); /* :OR: */
+	break;
+
+      case 'R':
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'I':
+		FINISH_STR ("GHT:", eOp_Right, kPrioOp_String); /* :RIGHT: */
+		break;
+	      case 'O':
+		{
+		  char c3 = inputGet ();
+		  switch (c3)
+		    {
+		      case 'L':
+			FINISH_CHR (eOp_ROL, kPrioOp_Shift); /* :ROL: */
+			break;
+		      case 'R':
+			FINISH_CHR (eOp_ROR, kPrioOp_Shift); /* :ROR: */
+			break;
+		    }
+		  inputUnGet (c3);
+		  break;
+		}
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+	
+      case 'S':
+	{
+	  char c2 = inputGet ();
+	  switch (c2)
+	    {
+	      case 'H':
+		{
+		  char c3 = inputGet ();
+		  switch (c3)
+		    {
+		      case 'L':
+			FINISH_CHR (eOp_SHL, kPrioOp_Shift); /* :SHL: */
+			break;
+		      case 'R':
+			FINISH_CHR (eOp_SHR, kPrioOp_Shift); /* :SHR: */
+			break;
+		    }
+		  inputUnGet (c3);
+		  break;
+		}
+	    }
+	  inputUnGet (c2);
+	  break;
+	}
+    }
+  inputUnGet (c1);
+
+  /* Failed to tokenize.  */
+  lex->tag = LexNone;
+}
+
+
+/**
+ * Get builtin variable.
+ * Built-in variables can be in uppercase, lowercase, or mixed.
+ */
+static void
+Lex_GetBuiltinVariable (Lex *lex)
+{
+  lex->tag = LexNone;
+  const char * const inputMark = Input_GetMark ();
+  switch (inputGet () | 0x20)
+    {
+      case 'a':
+	{
+	  if (Input_MatchStringLower ("sasm}")) /* {ASASM} */
+	    {
+	      lex->tag = LexBool;
+	      lex->Data.Int.value = true;
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("rchitecture}")) /* {ARCHITECTURE} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = Target_GetArchAsString ();
+	      lex->Data.String.len = strlen (lex->Data.String.str);
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("reaname}")) /* {AREANAME} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = areaCurrentSymbol->str;
+	      lex->Data.String.len = areaCurrentSymbol->len;
+	      return;
+	    }
+	  break;
+	}
+
+      case 'c':
+	{
+	  /* FIXME: {COMMANDLINE} */
+	  if (Input_MatchStringLower ("onfig}") || Input_MatchStringLower ("odesize}")) /* {CONFIG} or {CODESIZE} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = State_GetInstrType () == eInstrType_ARM ? ((gOptionAPCS & APCS_OPT_32BIT) ? 32 : 26) : 16;
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("pu}")) /* {CPU} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = Target_GetCPU ();
+	      lex->Data.String.len = strlen (lex->Data.String.str);
+	      return;
+	    }
+	  break;
+	}
+
+      case 'e':
+	{
+	  if (Input_MatchStringLower ("ndian}")) /* {ENDIAN} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = "little";
+	      lex->Data.String.len = sizeof ("little")-1;
+	      return;
+	    }
+	  break;
+	}
+
+      case 'f':
+	{
+	  /* FIXME: support FPU */
+	  if (Input_MatchStringLower ("alse}")) /* {FALSE} */
+	    {
+	      lex->tag = LexBool;
+	      lex->Data.Int.value = false;
+	      return;
+	    }
+	  break;
+	}
+
+      case 'i':
+	{
+	  if (Input_MatchStringLower ("nputfile}")) /* {INPUTFILE} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = FS_GetCurFileName ();
+	      lex->Data.String.len = strlen (lex->Data.String.str);
+	      return;
+	    }
+	  break;
+	}
+
+      case 'l':
+	{
+	  if (Input_MatchStringLower ("inenum}")) /* {LINENUM} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = FS_GetBuiltinVarLineNum ();
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("inenumup}")) /* {LINENUMUP} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = FS_GetBuiltinVarLineNumUp ();
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("inenumupper}")) /* {LINENUMUPPER} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = FS_GetBuiltinVarLineNumUpper ();
+	      return;
+	    }
+	  break;
+	}
+
+      case 'o':
+	{
+	  if (Input_MatchStringLower ("pt}")) /* {OPT} */
+	    {
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = gOpt_DirectiveValue;
+	      return;
+	    }
+	  break;
+	}
+
+      case 'p':
+	{
+	  /* FIXME: {PCSTOREOFFSET} */
+	  if (Input_MatchStringLower ("c}")) /* {PC} */
+	    {
+	      lex->tag = LexPosition;
+	      return;
+	    }
+	  break;
+	}
+
+      case 't':
+	{
+	  if (Input_MatchStringLower ("rue}")) /* {TRUE} */
+	    {
+	      lex->tag = LexBool;
+	      lex->Data.Int.value = true;
+	      return;
+	    }
+	  break;
+	}
+
+      case 'v':
+	{
+	  if (Input_MatchStringLower ("ar}")) /* {VAR} */
+	    {
+	      lex->tag = LexStorage;
+	      return;
+	    }
+	  break;
+	}
+    }
+
+  /* Try to find the end of the builtin variable name.  */
+  const char *lineRest = Input_Rest ();
+  while (*lineRest != '\0' && *lineRest != '\n' && *lineRest != '}')
+    ++lineRest;
+  if (*lineRest == '}')
+    error (ErrorError, "Unknown builtin variable {%.*s",
+	   (int)(lineRest + 1 - inputMark), inputMark);
+  else
+    error (ErrorError, "Missing closing bracket");
+  lex->tag = LexNone;
+}
+
+
 static bool
 Lex_Char2Int (size_t len, const char *str, ARMWord *result)
 {
@@ -456,6 +899,7 @@ Lex_Char2Int (size_t len, const char *str, ARMWord *result)
   return false;
 }
 
+
 Lex
 lexGetPrim (void)
 {
@@ -463,36 +907,36 @@ lexGetPrim (void)
 
   nextbinopvalid = false;
   skipblanks ();
-  char c;
-  switch (c = inputGet ())
+  char c = inputGet ();
+  switch (c)
     {
       case '+':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_none; /* +XYZ */
+	result.Data.Operator.op = eOp_None; /* +XYZ */
 	result.Data.Operator.pri = kPrioOp_Unary;
 	break;
 
       case '-':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_neg; /* -XYZ */
+	result.Data.Operator.op = eOp_Neg; /* -XYZ */
 	result.Data.Operator.pri = kPrioOp_Unary;
 	break;
 
       case '!':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_lnot; /* !XYZ */
+	result.Data.Operator.op = eOp_LNot; /* !XYZ */
 	result.Data.Operator.pri = kPrioOp_Unary;
 	break;
 
       case '~':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_not; /* ~XYZ */
+	result.Data.Operator.op = eOp_Not; /* ~XYZ */
 	result.Data.Operator.pri = kPrioOp_Unary;
 	break;
 
       case '?':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_size; /* ?<label> */
+	result.Data.Operator.op = eOp_Size; /* ?<label> */
 	result.Data.Operator.pri = kPrioOp_Unary;
 	break;
 
@@ -503,7 +947,7 @@ lexGetPrim (void)
 	break;
 
       case ':':
-	lexAcornUnop (&result);
+	Lex_GetUnaryOp (&result);
 	if (result.tag == LexNone)
 	  inputUnGet (':');
 	break;
@@ -647,7 +1091,7 @@ lexGetPrim (void)
 	}
 
       case '{':
-	lexAcornPrim (&result);
+	Lex_GetBuiltinVariable (&result);
 	break;
 
       default:
@@ -682,7 +1126,7 @@ lexGetBinop (void)
     {
       case '*':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_mul; /* * */
+	result.Data.Operator.op = eOp_Mul; /* * */
 	result.Data.Operator.pri = kPrioOp_Multiplicative;
 	break;
 
@@ -690,37 +1134,37 @@ lexGetBinop (void)
 	result.tag = LexOperator;
 	if (Input_Match ('=', false))
 	  {
-	    result.Data.Operator.op = Op_ne; /* /= */
+	    result.Data.Operator.op = eOp_NE; /* /= */
 	    result.Data.Operator.pri = kPrioOp_Relational;
 	  }
 	else
 	  {
-	    result.Data.Operator.op = Op_div; /* / */
+	    result.Data.Operator.op = eOp_Div; /* / */
 	    result.Data.Operator.pri = kPrioOp_Multiplicative;
 	  }
 	break;
 
       case '%':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_mod; /* % MOD */
+	result.Data.Operator.op = eOp_Mod; /* % MOD */
 	result.Data.Operator.pri = kPrioOp_Multiplicative;
 	break;
 
       case '+':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_add; /* + */
+	result.Data.Operator.op = eOp_Add; /* + */
 	result.Data.Operator.pri = kPrioOp_AddAndLogical;
 	break;
 
       case '-':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_sub; /* - */
+	result.Data.Operator.op = eOp_Sub; /* - */
 	result.Data.Operator.pri = kPrioOp_AddAndLogical;
 	break;
 
       case '^':
 	result.tag = LexOperator;
-	result.Data.Operator.op = Op_xor; /* ^ EOR */
+	result.Data.Operator.op = eOp_XOr; /* ^ EOR */
 	result.Data.Operator.pri = kPrioOp_AddAndLogical;
 	break;
 
@@ -733,20 +1177,20 @@ lexGetBinop (void)
 	      if (inputSkipLook () == '>')
 		{
 		  inputSkip ();
-		  result.Data.Operator.op = Op_asr; /* >>> */
+		  result.Data.Operator.op = eOp_ASR; /* >>> */
 		}
 	      else
-		result.Data.Operator.op = Op_sr; /* >> */
+		result.Data.Operator.op = eOp_SHR; /* >> */
 	      break;
 
 	    case '=':
 	      inputSkip ();
-	      result.Data.Operator.op = Op_ge;
+	      result.Data.Operator.op = eOp_GE;
 	      result.Data.Operator.pri = kPrioOp_Relational; /* >= */
 	      break;
   
 	    default:
-	      result.Data.Operator.op = Op_gt;
+	      result.Data.Operator.op = eOp_GT;
 	      result.Data.Operator.pri = kPrioOp_Relational; /* > */
 	      break;
 	  }
@@ -758,24 +1202,24 @@ lexGetBinop (void)
 	  {
 	    case '<':
 	      inputSkip ();
-	      result.Data.Operator.op = Op_sl; /* << */
+	      result.Data.Operator.op = eOp_SHL; /* << */
 	      result.Data.Operator.pri = kPrioOp_Shift;
 	      break;
     
 	    case '=':
 	      inputSkip ();
-	      result.Data.Operator.op = Op_le; /* <= */
+	      result.Data.Operator.op = eOp_LE; /* <= */
 	      result.Data.Operator.pri = kPrioOp_Relational;
 	      break;
     
 	    case '>':
 	      inputSkip ();
-	      result.Data.Operator.op = Op_ne; /* <> */
+	      result.Data.Operator.op = eOp_NE; /* <> */
 	      result.Data.Operator.pri = kPrioOp_Relational;
 	      break;
     
 	    default:
-	      result.Data.Operator.op = Op_lt; /* < */
+	      result.Data.Operator.op = eOp_LT; /* < */
 	      result.Data.Operator.pri = kPrioOp_Relational;
 	      break;
 	  }
@@ -785,7 +1229,7 @@ lexGetBinop (void)
 	Input_Match ('=', false); /* Deals with '==' */
 	result.tag = LexOperator;
 	result.Data.Operator.pri = kPrioOp_Relational;
-	result.Data.Operator.op = Op_eq; /* = == */
+	result.Data.Operator.op = eOp_EQ; /* = == */
 	break;
 
       case '!':
@@ -793,7 +1237,7 @@ lexGetBinop (void)
 	  {
 	    result.tag = LexOperator;
 	    result.Data.Operator.pri = kPrioOp_Relational;
-	    result.Data.Operator.op = Op_ne; /* != */
+	    result.Data.Operator.op = eOp_NE; /* != */
 	  }
 	else
 	  {
@@ -807,12 +1251,12 @@ lexGetBinop (void)
 	if (Input_Match ('|', false))
 	  {
 	    result.Data.Operator.pri = kPrioOp_Boolean;
-	    result.Data.Operator.op = Op_lor; /* || */
+	    result.Data.Operator.op = eOp_LOr; /* || */
 	  }
 	else
 	  {
 	    result.Data.Operator.pri = kPrioOp_AddAndLogical;
-	    result.Data.Operator.op = Op_or; /* | */
+	    result.Data.Operator.op = eOp_Or; /* | */
 	  }
 	break;
 
@@ -821,17 +1265,17 @@ lexGetBinop (void)
 	if (Input_Match ('&', false))
 	  {
 	    result.Data.Operator.pri = kPrioOp_Boolean;
-	    result.Data.Operator.op = Op_land; /* && */
+	    result.Data.Operator.op = eOp_LAnd; /* && */
 	  }
 	else
 	  {
 	    result.Data.Operator.pri = kPrioOp_AddAndLogical;
-	    result.Data.Operator.op = Op_and; /* & */
+	    result.Data.Operator.op = eOp_And; /* & */
 	  }
 	break;
 
       case ':':
-	lexAcornBinop (&result); /* :XYZ: */
+	Lex_GetBinaryOp (&result); /* :XYZ: */
 	if (result.tag == LexNone)
 	  inputUnGet (':');
 	break;
@@ -918,55 +1362,62 @@ lexPrint (const Lex *lex)
 }
 
 const char *
-Lex_OperatorAsStr (Operator op)
+Lex_OperatorAsStr (Operator_e op)
 {
   static const char * const opStr[] =
     {
-      ":FLOAD:",	/* Op_fload */
-      ":FEXEC:",	/* Op_fexec */
-      ":FSIZE:",	/* Op_fsize */
-      ":FATTR:",	/* Op_fattr */
-      ":LNOT:",		/* Op_lnot */
-      ":NOT:",		/* Op_not */
-      ":NEG:",		/* Op_neg */
-      ":NONE:",		/* Op_none */
-      ":BASE:",		/* Op_base */
-      ":INDEX:",	/* Op_index */
-      ":LEN:",		/* Op_len */
-      ":STR:",		/* Op_str */
-      ":CHR:",		/* Op_chr */
-      ":SIZE:",		/* Op_size */
+      ":FLOAD:",	/* eOp_FLoad */
+      ":FEXEC:",	/* eOp_FExec */
+      ":FSIZE:",	/* eOp_FSize */
+      ":FATTR:",	/* eOp_FAttr */
+      ":LNOT:",		/* eOp_lnot */
+      ":NOT:",		/* eOp_Not */
+      ":NEG:",		/* eOp_Neg */
+      ":NONE:",		/* eOp_None */
+      ":BASE:",		/* eOp_Base */
+      ":INDEX:",	/* eOp_Index */
+      ":LEN:",		/* eOp_Len */
+      ":STR:",		/* eOp_Str */
+      ":CHR:",		/* eOp_Chr */
+      ":SIZE:",		/* eOp_Size */
 
-      ":MUL:",		/* Op_mul */
-      ":DIV:",		/* Op_div */
-      ":MOD:",		/* Op_mod */
+      ":LOWERCASE:",	/* eOp_LowerCase */
+      ":UPPERCASE:",	/* eOp_UpperCase */
+      ":REVERSE_CC:",	/* eOp_RevCC */
 
-      ":LEFT:",		/* Op_left */
-      ":RIGHT:",	/* Op_right */
-      ":CC:",		/* Op_concat */
+      ":CC_ENCODING:",	/* eOp_CCEnc */
+      ":RCONST:",	/* eOp_RConst */
 
-      ":ASR:",		/* Op_asr */
-      ":SHR:",		/* Op_sr */
-      ":SHL:",		/* Op_sl */
-      ":ROR:",		/* Op_ror */
-      ":ROL:",		/* Op_rol */
+      ":MUL:",		/* eOp_Mul */
+      ":DIV:",		/* eOp_Div */
+      ":MOD:",		/* eOp_Mod */
+
+      ":LEFT:",		/* eOp_Left */
+      ":RIGHT:",	/* eOp_Right */
+      ":CC:",		/* eOp_Concat */
+
+      ":ASR:",		/* eOp_ASR */
+      ":SHR:",		/* eOp_SHR */
+      ":SHL:",		/* eOp_SHL */
+      ":ROR:",		/* eOp_ROR */
+      ":ROL:",		/* eOp_ROL */
       
-      ":ADD:",		/* Op_add */
-      ":SUB:",		/* Op_sub */
-      ":AND:",		/* Op_and */
-      ":OR:",		/* Op_or */
-      ":XOR:",		/* Op_xor */
+      ":ADD:",		/* eOp_Add */
+      ":SUB:",		/* eOp_Sub */
+      ":AND:",		/* eOp_And */
+      ":OR:",		/* eOp_Or */
+      ":XOR:",		/* eOp_XOr */
 
-      ":LE:",		/* Op_le */
-      ":GE:",		/* Op_ge */
-      ":LT:",		/* Op_lt */
-      ":GT:",		/* Op_gt */
-      ":EQ:",		/* Op_eq */
-      ":NE:",		/* Op_ne */
+      ":LE:",		/* eOp_LE */
+      ":GE:",		/* eOp_GE */
+      ":LT:",		/* eOp_LT */
+      ":GT:",		/* eOp_GT */
+      ":EQ:",		/* eOp_EQ */
+      ":NE:",		/* eOp_NE */
 
-      ":LAND:",		/* Op_land */
-      ":LOR:",		/* Op_lor */
-      ":LEOR:",		/* Op_leor */
+      ":LAND:",		/* eOp_LAnd */
+      ":LOR:",		/* eOp_LOr */
+      ":LEOR:",		/* eOp_LEOr */
     };
   return op >= sizeof (opStr) / sizeof (opStr[0]) ? ":???:" : opStr[op];
 }

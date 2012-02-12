@@ -66,7 +66,7 @@ codeInit (void)
 }
 
 void
-codeOperator (Operator op)
+codeOperator (Operator_e op)
 {
   if (FirstFreeIns < CODE_SIZECODE)
     {
@@ -270,7 +270,7 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 		{
 		  assert (spStart < *sp - 1); /* At least two entries on the stack.  */
 
-		  Operator op = program[i].Data.op;
+		  Operator_e op = program[i].Data.op;
 		  if (!evalBinop (op, &Stack[*sp - 2], &Stack[*sp - 1]))
 		    {
 #ifdef DEBUG_CODE
@@ -298,7 +298,7 @@ Code_EvalLowest (size_t size, const Code *program, const ARMWord *instrOffsetP,
 		 isn't the OpSize one).  */
 	      bool nextIsOpSize = i + 1 != size
 				    && program[i + 1].Tag == CodeOperator
-				    && program[i + 1].Data.op == Op_size;
+				    && program[i + 1].Data.op == eOp_Size;
 	      if (!nextIsOpSize && Value_ResolveSymbol (&value))
 		{
 #ifdef DEBUG_CODE

@@ -120,7 +120,7 @@ c_alloc (const Lex *lex)
 	codeInit ();
 	codeValue (StorageMap_Value (), true);
 	codeValue (value, true);
-	codeOperator (Op_add);
+	codeOperator (eOp_Add);
         value = codeEval (ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL);
 	if (value->Tag != ValueIllegal)
 	  {

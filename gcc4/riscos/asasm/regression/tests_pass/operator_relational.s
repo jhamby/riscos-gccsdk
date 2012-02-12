@@ -1,3 +1,6 @@
+; Tests =, ==, !=, <>, /= for integers, strings, boolean, addr and registers.
+; Tests >, >=, <, <= for integer and string.
+
 	[ :LNOT: :DEF:EXTENSION
 	GBLL	EXTENSION
 EXTENSION SETL	{FALSE}
@@ -7,8 +10,10 @@ EXTENSION SETL	{FALSE}
 
 	[ :LNOT:REFERENCE
 
+FooR3	RN	r3
+
 	; =
-	= "|"
+	= "Test =\n"
 	= :STR:(3=5)
 	= :STR:(5=3)
 	= :STR:(-1=1)
@@ -19,6 +24,10 @@ EXTENSION SETL	{FALSE}
 	= :STR:("ABC"="ABC")
 	= :STR:("ABC"="ABCD")
 	= :STR:("ABCD"="ABC")
+	= :STR:(98="a")
+	= :STR:(98="b")
+	= :STR:("a"=98)
+	= :STR:("b"=98)
 	= :STR:({FALSE}={FALSE})
 	= :STR:({FALSE}={TRUE})
 	= :STR:({TRUE}={FALSE})
@@ -26,10 +35,13 @@ EXTENSION SETL	{FALSE}
 LblEq
 	= :STR:(.=LblEq)
 	= :STR:(.=LblEq)
+	= :STR:(FooR3=r3)
+	= :STR:(FooR3=c0)
+	= "\n"
 
 	; ==
 	[ EXTENSION
-	= "|"
+	= "Test ==\n"
 	= :STR:(3==5)
 	= :STR:(5==3)
 	= :STR:(-1==1)
@@ -40,17 +52,24 @@ LblEq
 	= :STR:("ABC"=="ABC")
 	= :STR:("ABC"=="ABCD")
 	= :STR:("ABCD"=="ABC")
+	= :STR:(98=="a")
+	= :STR:(98=="b")
+	= :STR:("a"==98)
+	= :STR:("b"==98)
 	= :STR:({FALSE}=={FALSE})
 	= :STR:({FALSE}=={TRUE})
 	= :STR:({TRUE}=={FALSE})
 	= :STR:({TRUE}=={TRUE})
 LblEqEq
-	= :STR:(.=LblEqEq)
-	= :STR:(.=LblEqEq)
+	= :STR:(.==LblEqEq)
+	= :STR:(.==LblEqEq)
+	= :STR:(FooR3==r3)
+	= :STR:(FooR3==c0)
+	= "\n"
 	]
 
 	; <>
-	= "|"
+	= "Test <>\n"
 	= :STR:(3<>5)
 	= :STR:(5<>3)
 	= :STR:(-1<>1)
@@ -61,6 +80,10 @@ LblEqEq
 	= :STR:("ABC"<>"ABC")
 	= :STR:("ABC"<>"ABCD")
 	= :STR:("ABCD"<>"ABC")
+	= :STR:(98<>"a")
+	= :STR:(98<>"b")
+	= :STR:("a"<>98)
+	= :STR:("b"<>98)
 	= :STR:({FALSE}<>{FALSE})
 	= :STR:({FALSE}<>{TRUE})
 	= :STR:({TRUE}<>{FALSE})
@@ -68,10 +91,13 @@ LblEqEq
 LblNEq1
 	= :STR:(.<>LblNEq1)
 	= :STR:(.<>LblNEq1)
+	= :STR:(FooR3<>r3)
+	= :STR:(FooR3<>c0)
+	= "\n"
 
 	; !=
 	[ EXTENSION
-	= "|"
+	= "Test !=\n"
 	= :STR:(3!=5)
 	= :STR:(5!=3)
 	= :STR:(-1!=1)
@@ -82,17 +108,24 @@ LblNEq1
 	= :STR:("ABC"!="ABC")
 	= :STR:("ABC"!="ABCD")
 	= :STR:("ABCD"!="ABC")
+	= :STR:(98!="a")
+	= :STR:(98!="b")
+	= :STR:("a"!=98)
+	= :STR:("b"!=98)
 	= :STR:({FALSE}!={FALSE})
 	= :STR:({FALSE}!={TRUE})
 	= :STR:({TRUE}!={FALSE})
 	= :STR:({TRUE}!={TRUE})
 LblNEq2
-	= :STR:(.<>LblNEq2)
-	= :STR:(.<>LblNEq2)
+	= :STR:(.!=LblNEq2)
+	= :STR:(.!=LblNEq2)
+	= :STR:(FooR3!=r3)
+	= :STR:(FooR3!=c0)
+	= "\n"
 	]
 
 	; /=
-	= "|"
+	= "Test /=\n"
 	= :STR:(3/=5)
 	= :STR:(5/=3)
 	= :STR:(-1/=1)
@@ -103,23 +136,23 @@ LblNEq2
 	= :STR:("ABC"/="ABC")
 	= :STR:("ABC"/="ABCD")
 	= :STR:("ABCD"/="ABC")
+	= :STR:(98/="a")
+	= :STR:(98/="b")
+	= :STR:("a"/=98)
+	= :STR:("b"/=98)
 	= :STR:({FALSE}/={FALSE})
 	= :STR:({FALSE}/={TRUE})
 	= :STR:({TRUE}/={FALSE})
 	= :STR:({TRUE}/={TRUE})
 LblNEq3
-	= :STR:(.<>LblNEq3)
-	= :STR:(.<>LblNEq3)
-
-	; :LEOR:
-	= "|"
-	= :STR:({FALSE} :LEOR: {FALSE})
-	= :STR:({FALSE}:LEOR:{TRUE})
-	= :STR:({TRUE}:LEOR:{FALSE})
-	= :STR:({TRUE}:LEOR:{TRUE})
+	= :STR:(./=LblNEq3)
+	= :STR:(./=LblNEq3)
+	= :STR:(FooR3/=r3)
+	= :STR:(FooR3/=c0)
+	= "\n"
 
 	; >
-	= "|"
+	= "Test >\n"
 	= :STR:(3>5)
 	= :STR:(5>3)
 	= :STR:(-1>1)
@@ -130,9 +163,14 @@ LblNEq3
 	= :STR:("ABC">"ABC")
 	= :STR:("ABC">"ABCD")
 	= :STR:("ABCD">"ABC")
+	= :STR:(98>"a")
+	= :STR:(98>"b")
+	= :STR:("a">98)
+	= :STR:("b">98)
+	= "\n"
 
 	; >=
-	= "|"
+	= "Test >=\n"
 	= :STR:(3>=5)
 	= :STR:(5>=3)
 	= :STR:(-1>=1)
@@ -143,9 +181,14 @@ LblNEq3
 	= :STR:("ABC">="ABC")
 	= :STR:("ABC">="ABCD")
 	= :STR:("ABCD">="ABC")
+	= :STR:(98>="a")
+	= :STR:(98>="b")
+	= :STR:("a">=98)
+	= :STR:("b">=98)
+	= "\n"
 
 	; <
-	= "|"
+	= "Test <\n"
 	= :STR:(3<5)
 	= :STR:(5<3)
 	= :STR:(-1<1)
@@ -156,9 +199,14 @@ LblNEq3
 	= :STR:("ABC"<"ABC")
 	= :STR:("ABC"<"ABCD")
 	= :STR:("ABCD"<"ABC")
+	= :STR:(98<"a")
+	= :STR:(98<"b")
+	= :STR:("a"<98)
+	= :STR:("b"<98)
+	= "\n"
 
 	; <=
-	= "|"
+	= "Test <=\n"
 	= :STR:(3<=5)
 	= :STR:(5<=3)
 	= :STR:(-1<=1)
@@ -169,23 +217,27 @@ LblNEq3
 	= :STR:("ABC"<="ABC")
 	= :STR:("ABC"<="ABCD")
 	= :STR:("ABCD"<="ABC")
+	= :STR:(98<="a")
+	= :STR:(98<="b")
+	= :STR:("a"<=98)
+	= :STR:("b"<=98)
+	= "\n"
 
 	|
 
-	= "|FFFTFTFTFFTFFTTF"	; =
+	= "Test =\nFFFTFTFTFFFTFTTFFTTFTF\n"	; =
 	[ EXTENSION
-	= "|FFFTFTFTFFTFFTTF"	; ==
+	= "Test ==\nFFFTFTFTFFFTFTTFFTTFTF\n"	; ==
 	]
-	= "|TTTFTFTFTTFTTFFT"	; <>
+	= "Test <>\nTTTFTFTFTTTFTFFTTFFTFT\n"	; <>
 	[ EXTENSION
-	= "|TTTFTFTFTTFTTFFT"	; !=
+	= "Test !=\nTTTFTFTFTTTFTFFTTFFTFT\n"	; !=
 	]
-	= "|TTTFTFTFTTFTTFFT"	; /=
-	= "|FTTF"		; :LEOR:
-	= "|FTTFTFFFFT"		; >
-	= "|FTTTTTFTFT"		; >=
-	= "|TFFFFFTFTF"		; <
-	= "|TFFTFTTTTF"		; <=
+	= "Test /=\nTTTFTFTFTTTFTFFTTFFTFT\n"	; /=
+	= "Test >\nFTTFTFFFFTTFFF\n"		; >
+	= "Test >=\nFTTTTTFTFTTTFT\n"		; >=
+	= "Test <\nTFFFFFTFTFFFTF\n"		; <
+	= "Test <=\nTFFTFTTTTFFTTT\n"		; <=
 
 	]
 

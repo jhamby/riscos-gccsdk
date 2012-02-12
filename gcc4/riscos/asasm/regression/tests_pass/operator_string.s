@@ -1,3 +1,5 @@
+; Tests :LEFT:, :RIGHT:, :CC:, :LEN:, :STR:, :LOWERCASE:, :UPPERCASE:
+
 	[ :LNOT: :DEF:EXTENSION
 	GBLL	EXTENSION
 EXTENSION SETL	{FALSE}
@@ -49,6 +51,12 @@ EXTENSION SETL	{FALSE}
 	= ">", :STR:(1./3.), "<"
 	]
 
+	= "*** TEST :LOWERCASE: ***"
+	= ">", :LOWERCASE:"#$ABCabc()", "<"
+
+	= "*** TEST :UPPERCASE: ***"
+	= ">", :UPPERCASE:"#$ABCabc()", "<"
+
 	|
 
 	= "*** TEST :LEFT: ***"
@@ -92,6 +100,12 @@ EXTENSION SETL	{FALSE}
 	[ EXTENSION
 	= ">0.333333<"
 	]
+
+	= "*** TEST :LOWERCASE: ***"
+	= ">", :LOWERCASE:"#$abcabc()", "<"
+
+	= "*** TEST :UPPERCASE: ***"
+	= ">", :UPPERCASE:"#$ABCABC()", "<"
 
 	]
 

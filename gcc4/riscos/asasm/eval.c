@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -37,6 +38,35 @@
 #include "include.h"
 #include "main.h"
 #include "phase.h"
+
+static const char oLowcaseCCodes[] = "eqnecsccmiplvsvchilsgeltgtlealnvhslo";
+
+/**
+ * \param str Pointer to condition code (might be NULL but then len should be
+ * 0 as well).
+ * \param len Length of the condition code.
+ * \return The condition code.  Values 16 and 17 are respectively "HS" and
+ * "LO" (those correspond to condition codes 2 and 3).
+ * Is -1 when condition code is not known.
+ */
+static int
+GetCCode (const char *str, size_t len)
+{
+  if (len == 0)
+    return 14;
+  if (len != 2)
+    return -1;
+  if ((str[0] & 0x20) != (str[1] & 0x20))
+    return -1;
+  const char lowCase0 = str[0] | 0x20;
+  const char lowCase1 = str[1] | 0x20;
+  for (int result = 0; result != (int)(sizeof (oLowcaseCCodes)-1); result += 2)
+    {
+      if (lowCase0 == oLowcaseCCodes[result + 0] && lowCase1 == oLowcaseCCodes[result + 1])
+	return result / 2;
+    }
+  return -1;
+}
 
 /* No validation checking on value types! */
 static int
@@ -75,7 +105,7 @@ GetInt (const Value *val, uint32_t *i)
 
 #define STRINGIFY(OP)	#OP
 /* Core implementation for '<', '<=', '>', '>=', '==' and '!='.
-   Works for ValueFloat, ValueString, ValueInt, ValueAddr.  */
+   Works for ValueFloat, ValueString and ValueInt.  */
 #define COMPARE(OP) \
   do \
     { \
@@ -88,14 +118,6 @@ GetInt (const Value *val, uint32_t *i)
         { \
 	  /* Comparing integers happens *unsigned* ! */ \
           lvalue->Data.Bool.b = lint OP rint; \
-        } \
-      else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr) \
-        { \
-	  /* First compare on base register, then its index.  */ \
-	  if (lvalue->Data.Addr.r != rvalue->Data.Addr.r) \
-	    lvalue->Data.Bool.b = lvalue->Data.Addr.r OP rvalue->Data.Addr.r; \
-	  else \
-	    lvalue->Data.Bool.b = lvalue->Data.Addr.i OP rvalue->Data.Addr.i; \
         } \
       else \
         { \
@@ -112,12 +134,12 @@ GetInt (const Value *val, uint32_t *i)
  * used for given operation).
  */
 bool
-evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
+evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue)
 {
   assert (lvalue != rvalue);
   switch (op)
     {
-      case Op_mul: /* * */
+      case eOp_Mul: /* * */
 	{
 	  /* ValueAddr * ValueAddr does not make sense.  */
 	  uint32_t lval, rval;
@@ -161,7 +183,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_div: /* / */
+      case eOp_Div: /* / */
 	{
 	  uint32_t divident, divisor; /* Division is *unsigned*.  */
 	  bool divident_isint = GetInt (lvalue, &divident);
@@ -196,7 +218,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
 
-      case Op_mod: /* :MOD: */
+      case eOp_Mod: /* :MOD: */
 	{
 	  uint32_t divident, modulus; /* Modulo is *unsigned*.  */
 	  if (GetInt (lvalue, &divident) && GetInt (rvalue, &modulus))
@@ -220,7 +242,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_add: /* + */
+      case eOp_Add: /* + */
 	{
 	  Value rhs;
 	  /* Promotion for ValueFloat, ValueAddr and ValueSymbol.  */
@@ -272,7 +294,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
 
-      case Op_sub: /* - */
+      case eOp_Sub: /* - */
 	{
 	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
@@ -336,7 +358,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_concat: /* :CC: */
+      case eOp_Concat: /* :CC: */
 	{
 	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueString)
 	    {
@@ -355,7 +377,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_and: /* :AND: & */
+      case eOp_And: /* :AND: & */
 	{
 	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
@@ -376,7 +398,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_or: /* :OR: | */
+      case eOp_Or: /* :OR: | */
 	{
 	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
@@ -395,7 +417,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_xor: /* :EOR: ^ */
+      case eOp_XOr: /* :EOR: ^ */
 	{
 	  uint32_t lval, rval;
 	  bool l_isint = GetInt (lvalue, &lval);
@@ -414,7 +436,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_asr: /* >>> */
+      case eOp_ASR: /* >>> */
 	{
 	  uint32_t lval;
 	  bool l_isint = GetInt (lvalue, &lval);
@@ -435,7 +457,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_sr: /* >> :SHR: */
+      case eOp_SHR: /* >> :SHR: */
 	{
 	  uint32_t lval;
 	  bool l_isint = GetInt (lvalue, &lval);
@@ -453,7 +475,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_sl: /* << :SHL: */
+      case eOp_SHL: /* << :SHL: */
 	{
 	  uint32_t lval;
 	  bool l_isint = GetInt (lvalue, &lval);
@@ -471,7 +493,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_ror: /* :ROR: */
+      case eOp_ROR: /* :ROR: */
 	{
 	  uint32_t lval;
 	  bool l_isint = GetInt (lvalue, &lval);
@@ -490,7 +512,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-    case Op_rol: /* :ROL: */
+    case eOp_ROL: /* :ROL: */
 	{
 	  uint32_t lval;
 	  bool l_isint = GetInt (lvalue, &lval);
@@ -509,28 +531,26 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
 
-      case Op_le: /* <= */
+      case eOp_LE: /* <= */
 	COMPARE (<=);
 	break;
 
-      case Op_ge: /* >= */
+      case eOp_GE: /* >= */
 	COMPARE (>=);
 	break;
 
-      case Op_lt: /* < */
+      case eOp_LT: /* < */
 	COMPARE (<);
 	break;
 
-      case Op_gt: /* > */
+      case eOp_GT: /* > */
 	COMPARE (>);
 	break;
       
-      case Op_eq: /* = == */
+      case eOp_EQ: /* = == */
 	{
-	  if (lvalue->Tag == ValueBool && rvalue->Tag == ValueBool)
-	    lvalue->Data.Bool.b = lvalue->Data.Bool.b == rvalue->Data.Bool.b;
-	  else if (lvalue->Tag == ValueSymbol || lvalue->Tag == ValueCode
-		   || rvalue->Tag == ValueSymbol || rvalue->Tag == ValueCode)
+	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode | ValueAddr | ValueRegister)) != 0
+	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode | ValueAddr | ValueRegister)) != 0)
 	    {
 	      lvalue->Data.Bool.b = valueEqual (lvalue, rvalue);
 	      lvalue->Tag = ValueBool;
@@ -540,12 +560,10 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_ne: /* <> /= != */
+      case eOp_NE: /* <> /= != */
 	{
-	  if (lvalue->Tag == ValueBool && rvalue->Tag == ValueBool)
-	    lvalue->Data.Bool.b = lvalue->Data.Bool.b != rvalue->Data.Bool.b;
-	  else if (lvalue->Tag == ValueSymbol || lvalue->Tag == ValueCode
-		   || rvalue->Tag == ValueSymbol || rvalue->Tag == ValueCode)
+	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode | ValueAddr | ValueRegister)) != 0
+	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode | ValueAddr | ValueRegister)) != 0)
 	    {
 	      lvalue->Data.Bool.b = !valueEqual (lvalue, rvalue);
 	      lvalue->Tag = ValueBool;
@@ -555,7 +573,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_land: /* :LAND: && */
+      case eOp_LAnd: /* :LAND: && */
 	{
 	  if (lvalue->Tag != ValueBool || rvalue->Tag != ValueBool)
 	    {
@@ -567,7 +585,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_lor: /* :LOR: || */
+      case eOp_LOr: /* :LOR: || */
 	{
 	  if (lvalue->Tag != ValueBool || rvalue->Tag != ValueBool)
 	    {
@@ -579,7 +597,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_leor: /* :LEOR: */
+      case eOp_LEOr: /* :LEOR: */
 	{
 	  if (lvalue->Tag != ValueBool || rvalue->Tag != ValueBool)
 	    {
@@ -591,7 +609,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_left: /* :LEFT: */
+      case eOp_Left: /* :LEFT: */
 	{
 	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueInt)
 	    {
@@ -610,7 +628,7 @@ evalBinop (Operator op, Value * restrict lvalue, const Value * restrict rvalue)
 	  break;
 	}
       
-      case Op_right: /* :RIGHT: */
+      case eOp_Right: /* :RIGHT: */
 	{
 	  if (lvalue->Tag != ValueString || rvalue->Tag != ValueInt)
 	    {
@@ -710,57 +728,11 @@ Eval_NegValue (Value *value)
  * used for given operation).
  */
 bool
-evalUnop (Operator op, Value *value)
+evalUnop (Operator_e op, Value *value)
 {
   switch (op)
     {
-      case Op_fattr:
-	{
-	  if (value->Tag != ValueString)
-	    return false;
-	  char *s;
-	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    errorOutOfMem();
-
-	  value->Tag = ValueInt;
-
-	  ASFile asFile;
-	  if (Include_Find (s, &asFile, true))
-	    {
-	      error (ErrorError, "Cannot access file \"%s\"", s);
-	      value->Data.Int.i = 0;
-	    }
-	  else
-	    value->Data.Int.i = asFile.attribs;
-	  ASFile_Free (&asFile);
-	  free (s);
-	  break;
-	}
-
-      case Op_fexec:
-	{
-	  if (value->Tag != ValueString)
-	    return false;
-	  char *s;
-	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
-	    errorOutOfMem();
-
-	  value->Tag = ValueInt;
-
-	  ASFile asFile;
-	  if (Include_Find (s, &asFile, true))
-	    {
-	      error (ErrorError, "Cannot access file \"%s\"", s);
-	      value->Data.Int.i = 0;
-	    }
-	  else
-	    value->Data.Int.i = asFile.execAddress;
-	  ASFile_Free (&asFile);
-	  free (s);
-	  break;
-	}
-
-      case Op_fload:
+      case eOp_FLoad:
 	{
 	  if (value->Tag != ValueString)
 	    return false;
@@ -783,7 +755,30 @@ evalUnop (Operator op, Value *value)
 	  break;
 	}
 	
-      case Op_fsize:
+      case eOp_FExec:
+	{
+	  if (value->Tag != ValueString)
+	    return false;
+	  char *s;
+	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
+	    errorOutOfMem();
+
+	  value->Tag = ValueInt;
+
+	  ASFile asFile;
+	  if (Include_Find (s, &asFile, true))
+	    {
+	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      value->Data.Int.i = 0;
+	    }
+	  else
+	    value->Data.Int.i = asFile.execAddress;
+	  ASFile_Free (&asFile);
+	  free (s);
+	  break;
+	}
+
+      case eOp_FSize:
 	{
 	  if (value->Tag != ValueString)
 	    return false;
@@ -810,121 +805,161 @@ evalUnop (Operator op, Value *value)
 	    }
 	  ASFile_Free (&asFile);
 	  free (s);
+	  break;
 	}
-	break;
 
-      case Op_lnot: /* :LNOT: ! */
-	if (value->Tag != ValueBool)
-	  {
-	    if (gPhase != ePassOne)
-	      error (ErrorError, "Bad operand type for %s", ":LNOT:");
+      case eOp_FAttr:
+	{
+	  if (value->Tag != ValueString)
 	    return false;
-	  }
-	value->Data.Bool.b = !value->Data.Bool.b;
-	break;
+	  char *s;
+	  if ((s = strndup (value->Data.String.s, value->Data.String.len)) == NULL)
+	    errorOutOfMem();
 
-      case Op_not: /* :NOT: ~ */
-	switch (value->Tag)
-	  {
-	    case ValueInt:
-	      value->Data.Int.i = ~value->Data.Int.i;
-	      break;
+	  value->Tag = ValueInt;
 
-	    case ValueString:
-	      if (value->Data.String.len == 1)
-	        {
+	  ASFile asFile;
+	  if (Include_Find (s, &asFile, true))
+	    {
+	      error (ErrorError, "Cannot access file \"%s\"", s);
+	      value->Data.Int.i = 0;
+	    }
+	  else
+	    value->Data.Int.i = asFile.attribs;
+	  ASFile_Free (&asFile);
+	  free (s);
+	  break;
+	}
+
+      case eOp_LNot: /* :LNOT: ! */
+	{
+	  if (value->Tag != ValueBool)
+	    {
+	      if (gPhase != ePassOne)
+		error (ErrorError, "Bad operand type for %s", ":LNOT:");
+	      return false;
+	    }
+	  value->Data.Bool.b = !value->Data.Bool.b;
+	  break;
+	}
+
+      case eOp_Not: /* :NOT: ~ */
+	{
+	  switch (value->Tag)
+	    {
+	      case ValueInt:
+		value->Data.Int.i = ~value->Data.Int.i;
+		break;
+
+	      case ValueString:
+		if (value->Data.String.len == 1)
+		{
 		  value->Tag = ValueInt;
 		  value->Data.Int.i = ~(unsigned int)value->Data.String.s[0];
 		  break;
 		}
-	      /* Fall through.  */
+		/* Fall through.  */
 
-	    default:
+	      default:
+		if (gPhase != ePassOne)
+		  error (ErrorError, "Bad operand type for %s", ":NOT:");
+		return false;
+	    }
+	  break;
+	}
+
+      case eOp_Neg: /* - */
+	{
+	  if (!Eval_NegValue (value))
+	    {
 	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":NOT:");
+		error (ErrorError, "Bad operand type for %s", "negation");
 	      return false;
-	  }
-	break;
+	    }
+	  break;
+	}
 
-      case Op_neg: /* - */
-	if (!Eval_NegValue (value))
-	  {
-	    if (gPhase != ePassOne)
-	      error (ErrorError, "Bad operand type for %s", "negation");
-	    return false;
-	  }
-	break;
-
-      case Op_base: /* :BASE: */
-	if (value->Tag != ValueAddr)
-	  {
-	    if (gPhase != ePassOne)
-	      error (ErrorError, "Bad operand type for %s", ":BASE:");
-	    return false;
-	  }
-	value->Tag = ValueInt;
-	value->Data.Int.i = value->Data.Addr.r;
+      case eOp_None: /* */
 	break;
 	
-      case Op_index: /* :INDEX: */
-	if (value->Tag != ValueAddr && value->Tag != ValueInt)
-	  {
-	    if (gPhase != ePassOne)
-	      error (ErrorError, "Bad operand type for %s", ":INDEX:");
-	    return false;
-	  }
-	value->Tag = ValueInt; /* ValueAddr.i at same place as ValueInt.i.  */
-	break;
+      case eOp_Base: /* :BASE: */
+	{
+	  if (value->Tag != ValueAddr)
+	    {
+	      if (gPhase != ePassOne)
+		error (ErrorError, "Bad operand type for %s", ":BASE:");
+	      return false;
+	    }
+	  value->Tag = ValueInt;
+	  value->Data.Int.i = value->Data.Addr.r;
+	  break;
+	}
 
-      case Op_len: /* :LEN: */
-	if (value->Tag != ValueString)
-	  {
-	    if (gPhase != ePassOne)
-	      error (ErrorError, "Bad operand type for %s", ":LEN:");
-	    return false;
-	  }
-	value->Tag = ValueInt; /* ValueString.len at same place as ValueInt.i.  */
-	break;
+      case eOp_Index: /* :INDEX: */
+	{
+	  if (value->Tag != ValueAddr && value->Tag != ValueInt)
+	    {
+	      if (gPhase != ePassOne)
+		error (ErrorError, "Bad operand type for %s", ":INDEX:");
+	      return false;
+	    }
+	  value->Tag = ValueInt; /* ValueAddr.i at same place as ValueInt.i.  */
+	  break;
+	}
 
-      case Op_str: /* :STR: */
-	if (value->Tag == ValueBool)
-	  {
-	    char *c;
-	    if ((c = malloc (1)) == NULL)
-	      errorOutOfMem ();
-	    *c = value->Data.Bool.b ? 'T' : 'F';
-	    value->Tag = ValueString;
-            value->Data.String.s = c;
-	    value->Data.String.len = 1;
-	  }
-	else
-	  {
-	    char num[32];
-	    switch (value->Tag)
-	      {
-	        case ValueInt:
-		  sprintf (num, "%.8X", value->Data.Int.i);
-		  break;
-	        case ValueFloat:
-		  sprintf (num, "%f", value->Data.Float.f);
-		  break;
-	        default:
-	          if (gPhase != ePassOne)
-		    error (ErrorError, "Bad operand type for %s", ":STR:");
-		  return false;
-	      }
-	    size_t len = strlen (num);
-	    char *c;
-	    if ((c = malloc (len)) == NULL)
-	      errorOutOfMem();
-	    memcpy (c, num, len);
-	    value->Tag = ValueString;
-	    value->Data.String.s = c;
-	    value->Data.String.len = len;
-	  }
-	break;
+      case eOp_Len: /* :LEN: */
+	{
+	  if (value->Tag != ValueString)
+	    {
+	      if (gPhase != ePassOne)
+		error (ErrorError, "Bad operand type for %s", ":LEN:");
+	      return false;
+	    }
+	  value->Tag = ValueInt; /* ValueString.len at same place as ValueInt.i.  */
+	  break;
+	}
 
-      case Op_chr: /* :CHR: */
+      case eOp_Str: /* :STR: */
+	{
+	  if (value->Tag == ValueBool)
+	    {
+	      char *c;
+	      if ((c = malloc (1)) == NULL)
+		errorOutOfMem ();
+	      *c = value->Data.Bool.b ? 'T' : 'F';
+	      value->Tag = ValueString;
+	      value->Data.String.s = c;
+	      value->Data.String.len = 1;
+	    }
+	  else
+	    {
+	      char num[32];
+	      switch (value->Tag)
+		{
+		  case ValueInt:
+		    sprintf (num, "%.8X", value->Data.Int.i);
+		    break;
+		  case ValueFloat:
+		    sprintf (num, "%f", value->Data.Float.f);
+		    break;
+		  default:
+		    if (gPhase != ePassOne)
+		      error (ErrorError, "Bad operand type for %s", ":STR:");
+		    return false;
+		}
+	      size_t len = strlen (num);
+	      char *c;
+	      if ((c = malloc (len)) == NULL)
+		errorOutOfMem();
+	      memcpy (c, num, len);
+	      value->Tag = ValueString;
+	      value->Data.String.s = c;
+	      value->Data.String.len = len;
+	    }
+	  break;
+	}
+
+      case eOp_Chr: /* :CHR: */
 	{
 	  if (value->Tag != ValueInt)
 	    {
@@ -932,7 +967,7 @@ evalUnop (Operator op, Value *value)
 		error (ErrorError, "Bad operand type for %s", ":CHR:");
 	      return false;
 	    }
-	  if ((value->Data.Int.i < 0 || value->Data.Int.i >= 256) && option_pedantic)
+	  if (value->Data.Int.i < 0 || value->Data.Int.i >= 256)
 	    error (ErrorWarning, "Value %d will be truncated for :CHR: use",
 	           value->Data.Int.i);
 	  char *c;
@@ -942,10 +977,10 @@ evalUnop (Operator op, Value *value)
 	  value->Data.String.s = c;
 	  value->Data.String.len = 1;
 	  value->Tag = ValueString;
+	  break;
 	}
-	break;
 
-      case Op_size: /* ?<label> */
+      case eOp_Size: /* ?<label> */
 	{
 	  if (value->Tag != ValueSymbol)
 	    {
@@ -971,11 +1006,91 @@ evalUnop (Operator op, Value *value)
 		error (ErrorError, "? is not supported for non defined labels");
 	      return false;
 	    }
+	  break;
 	}
-	break;
+
+      case eOp_LowerCase: /* :LOWERCASE: */
+	{
+	  if (value->Tag != ValueString)
+	    return false;
+	  char *str = (char *)value->Data.String.s;
+	  for (size_t i = 0; i != value->Data.String.len; ++i)
+	    {
+	      if (isupper ((unsigned)str[i]))
+		str[i] = tolower ((unsigned)str[i]);
+	    }
+	  break;
+	}
+
+      case eOp_UpperCase: /* :UPPERCASE: */
+	{
+	  if (value->Tag != ValueString)
+	    return false;
+	  char *str = (char *)value->Data.String.s;
+	  for (size_t i = 0; i != value->Data.String.len; ++i)
+	    {
+	      if (islower ((unsigned)str[i]))
+		str[i] = toupper ((unsigned)str[i]);
+	    }
+	  break;
+	}
+
+      case eOp_RevCC: /* :REVERSE_CC: */
+	{
+	  if (value->Tag != ValueString)
+	    return false;
+	  int ccode = GetCCode (value->Data.String.s, value->Data.String.len);
+	  if (ccode < 0)
+	    {
+	      error (ErrorError, "Condition code %.*s is not known",
+	             (int)value->Data.String.len, value->Data.String.s);
+	      return false;
+	    }
+	  int revCCode = ccode ^ 1;
+	  int isUpcase = (value->Data.String.len ? (value->Data.String.s[0] & 0x20) : 0) ^ 0x20;
+	  char *str;
+	  if (value->Data.String.len != 2)
+	    {
+	      free ((void *)value->Data.String.s);
+	      if ((value->Data.String.s = malloc (2)) == NULL)
+		errorOutOfMem ();
+	      value->Data.String.len = 2;
+	    }
+	  str = (char *)value->Data.String.s;
+	  str[0] = oLowcaseCCodes[revCCode*2 + 0] ^ isUpcase;
+	  str[1] = oLowcaseCCodes[revCCode*2 + 1] ^ isUpcase;
+	  break;
+	}
+
+      case eOp_CCEnc: /* :CC_ENCODING: */
+	{
+	  if (value->Tag != ValueString)
+	    return false;
+	  int ccode = GetCCode (value->Data.String.s, value->Data.String.len);
+	  if (ccode < 0)
+	    {
+	      error (ErrorError, "Condition code %.*s is not known",
+	             (int)value->Data.String.len, value->Data.String.s);
+	      return false;
+	    }
+	  if (ccode >= 16)
+	    ccode += -16 + 2;
+	  const Value newValue = Value_Int (ccode);
+	  Value_Assign (value, &newValue);
+	  break;
+	}
+
+      case eOp_RConst: /* :RCONST: */
+	{
+	  if (value->Tag != ValueRegister)
+	    return false;
+	  const Value newValue = Value_Int (value->Data.Register.num);
+	  Value_Assign (value, &newValue);
+	  break;
+	}
 
       default:
-	error (ErrorError, "Internal evalUnop: illegal fall through");
+	assert (0);
 	return false;
     }
 

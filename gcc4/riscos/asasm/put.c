@@ -37,6 +37,7 @@
 #include "put.h"
 
 
+/* FIXME: too similar as Fix_Int */
 static void
 ReportOverflow (unsigned dataSize, uint64_t dataValue)
 {

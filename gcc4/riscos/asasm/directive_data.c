@@ -32,8 +32,10 @@
 #include "expr.h"
 #include "fix.h"
 #include "input.h"
+#include "option.h"
 #include "phase.h"
 #include "put.h"
+#include "state.h"
 
 
 /**
@@ -136,7 +138,8 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
       const char *str = valueP->Data.Code.c[0].Data.value.Data.String.s;
       /* Lay out a string.  */
       for (size_t i = 0; i != len; ++i)
-	Put_AlignDataWithOffset (offset + i, privDataP->size, str[i], 1,
+	Put_AlignDataWithOffset (offset + i, privDataP->size,
+	                         (unsigned char)str[i], 1,
 	                         !privDataP->allowUnaligned);
       return false;
     }
@@ -163,7 +166,7 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	{
 	  if (i + 1 != valueP->Data.Code.len
 	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
-	      && valueP->Data.Code.c[i + 1].Data.op == Op_sub)
+	      && valueP->Data.Code.c[i + 1].Data.op == eOp_Sub)
 	    factor = -1;
 	  else
 	    factor = 1;
@@ -171,7 +174,7 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	  const Code *codeP = &valueP->Data.Code.c[i];
 	  if (codeP->Tag == CodeOperator)
 	    {
-	      if (codeP->Data.op != Op_add && codeP->Data.op != Op_sub)
+	      if (codeP->Data.op != eOp_Add && codeP->Data.op != eOp_Sub)
 		return true;
 	      continue;
 	    }
@@ -221,7 +224,7 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	{
 	  if (i + 1 != valueP->Data.Code.len
 	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
-	      && valueP->Data.Code.c[i + 1].Data.op == Op_sub)
+	      && valueP->Data.Code.c[i + 1].Data.op == eOp_Sub)
 	    factor = -1;
 	  else
 	    factor = 1;
@@ -229,7 +232,7 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	  const Code *codeP = &valueP->Data.Code.c[i];
 	  if (codeP->Tag == CodeOperator)
 	    {
-	      if (codeP->Data.op != Op_add && codeP->Data.op != Op_sub)
+	      if (codeP->Data.op != eOp_Add && codeP->Data.op != eOp_Sub)
 		return true;
 	      continue;
 	    }
@@ -331,8 +334,8 @@ DefineInt (int size, bool allowUnaligned, const char *mnemonic)
 	      /* Lay out a string.  */
 	      for (size_t i = 0; i != len; ++i)
 		Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
-		                         privData.size, str[i], 1,
-		                         !privData.allowUnaligned);
+		                         privData.size, (unsigned char)str[i],
+		                         1, !privData.allowUnaligned);
 	    }
 	  else
 	    Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
@@ -399,17 +402,36 @@ c_dcd (bool doLowerCase)
   return eRslt_Data;
 }
 
+
 /**
- * Implements DCI.
- * "Define Constant Instruction"
+ * Implements DCI : "Define Constant Instruction"
+ *   {label} DCI{.W} expr{,expr}
+ * In ARM code: align to 4 bytes and write 4-byte value(s).
+ * In thumb code: align to 2 bytes and write 2-byte value(s).
  */
 Rslt_e
-c_dci (void)
+c_dci (bool doLowerCase)
 {
-  Area_AlignArea (areaCurrentSymbol, 4, "instruction");
-  DefineInt (4, false, "DCI");
-  return eRslt_ARM; /* FIXME: this is arbitrary, could be eRslt_Thumb as well.  */
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  unsigned alignValue;
+  int instructionSize;
+  if (State_GetInstrType () == eInstrType_ARM)
+    {
+      alignValue = 4;
+      instructionSize = 4;
+    }
+  else
+    {
+      alignValue = 2;
+      /* In Thumb mode, with DCI we're writing 2 byte instructions bye default
+         unless .W is explictly mentioned.  */
+      instructionSize = instrWidth == eInstrWidth_Enforce32bit ? 4 : 2;
+    }
+  Area_AlignArea (areaCurrentSymbol, alignValue, "instruction");
+  DefineInt (instructionSize, true, "DCI");
+  return alignValue == 4 ? eRslt_ARM : eRslt_Thumb;
 }
+
 
 /**
  * Reloc updater for DefineReal().
@@ -427,7 +449,7 @@ DefineReal_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
       const Code *codeP = &valueP->Data.Code.c[i];
       if (codeP->Tag == CodeOperator)
 	{
-	  if (codeP->Data.op != Op_add)
+	  if (codeP->Data.op != eOp_Add)
 	    return true;
 	  continue;
 	}

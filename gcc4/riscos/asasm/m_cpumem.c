@@ -69,7 +69,7 @@ DestMem_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
       const Code *codeP = &valueP->Data.Code.c[i];
       if (codeP->Tag == CodeOperator)
 	{
-	  if (codeP->Data.op != Op_add)
+	  if (codeP->Data.op != eOp_Add)
 	    return true;
 	  continue;
 	}
@@ -212,7 +212,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 			codeInit ();
 			codeAddr (baseReg, 0);
 			codeValue (&symValue, false);
-			codeOperator (Op_add);
+			codeOperator (eOp_Add);
 			Value_Assign (&symValue, codeEval (ValueAddr | ValueSymbol | ValueCode, &offset));
 			if (symValue.Tag != ValueIllegal)
 			  break;
@@ -412,7 +412,7 @@ Rslt_e
 m_ldr (bool doLowerCase)
 {
   ARMWord cc = Option_LdrStrCondAndType (false, doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstmem (cc, "LDR");
 }
@@ -442,7 +442,7 @@ LdrStrEx (bool isLoad, bool doLowerCase)
     type = wtype;
 
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   if (type == wtype)
@@ -554,7 +554,7 @@ Rslt_e
 m_str (bool doLowerCase)
 {
   ARMWord cc = Option_LdrStrCondAndType (true, doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   return dstmem (cc, "STR");
 }
@@ -794,7 +794,7 @@ Rslt_e
 m_ldm (bool doLowerCase)
 {
   ARMWord cc = optionCondLdmStm (true, doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   dstreglist (cc | 0x08100000, false);
   return eRslt_ARM;
@@ -810,7 +810,7 @@ Rslt_e
 m_pop (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   dstreglist (cc | STACKMODE_IA | 0x08100000, true);
   return eRslt_ARM;
@@ -824,7 +824,7 @@ Rslt_e
 m_stm (bool doLowerCase)
 {
   ARMWord cc = optionCondLdmStm (false, doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   dstreglist (cc | 0x08000000, false);
   return eRslt_ARM;
@@ -840,7 +840,7 @@ Rslt_e
 m_push (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
   dstreglist (cc | STACKMODE_DB | 0x08000000, true);
   return eRslt_ARM;
@@ -854,7 +854,7 @@ Rslt_e
 m_swp (bool doLowerCase)
 {
   ARMWord cc = optionCondB (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   Target_NeedAtLeastArch (ARCH_ARMv2a);
@@ -1005,7 +1005,7 @@ Rslt_e
 m_rfe (bool doLowerCase)
 {
   ARMWord option = Option_CondRfeSrs (true, doLowerCase);
-  if (option == optionError)
+  if (option == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   Target_NeedAtLeastArch (ARCH_ARMv6);
@@ -1035,7 +1035,7 @@ Rslt_e
 m_srs (bool doLowerCase)
 {
   ARMWord option = Option_CondRfeSrs (false, doLowerCase);
-  if (option == optionError)
+  if (option == kOption_NotRecognized)
     return eRslt_NotRecognized;
 
   Target_NeedAtLeastArch (ARCH_ARMv6);

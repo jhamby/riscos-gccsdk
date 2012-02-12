@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -65,12 +65,10 @@ prim (void)
         break;
       case LexOperator:
         prim ();
-        if (lex.Data.Operator.op == Op_none)
-  	  /* */;
-        else if (IsUnop (lex.Data.Operator.op))
+        if (IsUnop (lex.Data.Operator.op))
 	  codeOperator (lex.Data.Operator.op);
         else
-	  error (ErrorError, "Illegal unop");
+	  error (ErrorAbort, "Illegal unary operator");
         break;
       case LexDelim:
         if (lex.Data.Delim.delim == '(')

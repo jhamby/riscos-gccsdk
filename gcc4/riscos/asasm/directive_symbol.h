@@ -29,8 +29,11 @@
 
 bool c_cn (Symbol *symbol);
 bool c_cp (Symbol *symbol);
+/* FIXME: bool c_dn (Symbol *symbol); */
 bool c_equ (Symbol *symbol);
 bool c_fn (Symbol *symbol);
+/* FIXME: bool c_qn (Symbol *symbol); */
 bool c_rn (Symbol *symbol);
+/* FIXME: bool c_sn (Symbol *symbol); */
 
 #endif

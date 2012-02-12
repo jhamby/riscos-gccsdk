@@ -139,6 +139,7 @@ static const decode_table_t oDecodeTable[] =
   { "CNF", eCB_VoidPMatch, 1, { .vdpm = m_cnf } }, /* CNF CC or CNFE CC */
   { "CODE16", eCB_NoLex, 0, { .nolex = c_code16 } }, /* CODE16 */
   { "CODE32", eCB_NoLex, 0, { .nolex = c_code32 } }, /* ARM/CODE32 */
+  /* FIXME: COMMON */
   { "COS", eCB_VoidPMatch, 1, { .vdpm = m_cos } }, /* COS CC P R */
   { "CP", eCB_Symbol, 0, { .sym = c_cp } }, /* CP */
   { "CPS", eCB_VoidPMatch, 1, { .vdpm = m_cps } }, /* CPS */
@@ -146,10 +147,13 @@ static const decode_table_t oDecodeTable[] =
   { "DBG", eCB_VoidPMatch, 1, { .vdpm = m_dbg } }, /* DBG */
   { "DCB", eCB_Void, 1, { .vd = c_dcb } }, /* = / DCB */
   { "DCD", eCB_VoidPMatch, 1, { .vdpm = c_dcd } }, /* DCD / DCDU */
+  /* FIXME: DCDO */
   { "DCFD", eCB_VoidPMatch, 1, { .vdpm = c_dcfd } }, /* DCFD / DCFDU */
   { "DCFS", eCB_VoidPMatch, 1, { .vdpm = c_dcfs } }, /* DCFS / DCFSU */
-  { "DCI", eCB_Void, 1, { .vd = c_dci } }, /* DCI */
+  { "DCI", eCB_VoidPMatch, 1, { .vdpm = c_dci } }, /* DCI */
+  /* FIXME: DCQ, DCQU */
   { "DCW", eCB_VoidPMatch, 1, { .vdpm = c_dcw } }, /* DCW / DCWU */
+  /* FIXME: DN */
   { "DMB", eCB_Void, 1, { .vd = m_dmb } }, /* DMB */
   { "DSB", eCB_Void, 1, { .vd = m_dsb } }, /* DSB */
   { "DVF", eCB_VoidPMatch, 1, { .vdpm = m_dvf } }, /* DVF CC P R */
@@ -241,6 +245,7 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: QASX */
   { "QDADD", eCB_VoidPMatch, 1, { .vdpm = m_qdadd } }, /* QDADD CC */
   { "QDSUB", eCB_VoidPMatch, 1, { .vdpm = m_qdsub } }, /* QDSUB CC */
+  /* FIXME: QN */
   /* FIXME: QSAX */
   { "QSUB", eCB_VoidPMatch, 1, { .vdpm = m_qsub } }, /* QSUB CC */
   /* FIXME: RBIT */
@@ -299,6 +304,7 @@ static const decode_table_t oDecodeTable[] =
   { "SMULWB", eCB_VoidPMatch, 1, { .vdpm = m_smulwb } }, /* SMULWB CC */
   { "SMULWT", eCB_VoidPMatch, 1, { .vdpm = m_smulwt } }, /* SMULWT CC */
   /* FIXME: SMUSD */
+  /* FIXME: SN */
   { "SPACE", eCB_Void, 0, { .vd = c_reserve } }, /* % / SPACE : reserve space.  */
   { "SQT", eCB_VoidPMatch, 1, { .vdpm = m_sqt } }, /* SQT CC P R */
   { "SRS", eCB_VoidPMatch, 1, { .vdpm = m_srs } }, /* SRS MODE */
@@ -667,9 +673,13 @@ decode (const Lex *label)
 	    error (ErrorWarning, "Code generated in data area");
 
 	  /* FIXME: test on currently unsupported Thumb/ThumbEE state.  */
-	  if ((entryType == eARM || entryType == eThumb) && State_GetInstrType () != eInstrType_ARM)
+	  static bool thumbWarnOnce;
+	  if (!thumbWarnOnce
+	      && (entryType == eARM || entryType == eThumb)
+	      && State_GetInstrType () != eInstrType_ARM)
 	    {
-	      error (ErrorError, "Thumb/ThumbEE are currently unsupported"); /* FIXME */
+	      thumbWarnOnce = true;
+	      error (ErrorWarning, "Thumb/ThumbEE are currently unsupported");
 	      return;
 	    }
 	}
@@ -698,7 +708,7 @@ decode (const Lex *label)
 	      codeInit ();
 	      codeValue (StorageMap_Value (), false);
 	      codeValue (&startStorage, false);
-	      codeOperator (Op_sub);
+	      codeOperator (eOp_Sub);
 	      const Value *value = codeEval (ValueInt, NULL);
 	      if (value->Tag == ValueInt)
 		codeSize = value->Data.Int.i;

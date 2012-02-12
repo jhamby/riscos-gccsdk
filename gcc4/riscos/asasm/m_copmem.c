@@ -54,7 +54,7 @@ Rslt_e
 m_ldc (bool doLowerCase)
 {
   ARMWord cc = optionCondL (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
   return dstmem (cc | 0x0c100000, true);
 }
@@ -82,7 +82,7 @@ Rslt_e
 m_stc (bool doLowerCase)
 {
   ARMWord cc = optionCondL (doLowerCase);
-  if (cc == optionError)
+  if (cc == kOption_NotRecognized)
     return eRslt_NotRecognized;;
   return dstmem (cc | 0x0c000000, false);
 }

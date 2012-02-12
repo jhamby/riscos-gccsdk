@@ -42,14 +42,14 @@ typedef struct Code
   CodeTag Tag;
   union
     {
-      Operator op;	/* .Tag = CodeOperator */
+      Operator_e op;	/* .Tag = CodeOperator */
       Value value;	/* .Tag = CodeValue */
     } Data;
 } Code;
 
 void codeInit (void);
 
-void codeOperator (Operator op);
+void codeOperator (Operator_e op);
 void codeSymbol (Symbol *symbol, int offset);
 void codeInt (int value);
 void codePosition (Symbol *area, int offset);

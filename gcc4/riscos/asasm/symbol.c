@@ -30,7 +30,8 @@
 #include <string.h>
 #ifdef HAVE_STDINT_H
 #  include <stdint.h>
-#elif HAVE_INTTYPES_H
+#endif
+#if HAVE_INTTYPES_H
 #  include <inttypes.h>
 #endif
 
@@ -152,16 +153,10 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
   Value newValueCopy = { .Tag = ValueIllegal };
   if (symbol->type & SYMBOL_DEFINED)
     {
-      if (SYMBOL_GETREGTYPE(symbol->type) != SYMBOL_GETREGTYPE(newSymbolType))
-	{
-	  error (ErrorError, "%s is already defined as a different register type", symbol->str);
-	  return true;
-	}
-      if (SYMBOL_GETREGTYPE(symbol->type) == 0
-          && symbol->areaDef
+      if (symbol->areaDef
           && symbol->areaDef != areaCurrentSymbol)
         {
-          error (ErrorError, "Label %s is already defined in area %s", symbol->str, symbol->areaDef->str);
+          error (ErrorError, "Symbol %s is already defined in area %s", symbol->str, symbol->areaDef->str);
           return true;
         }
       if (symbol->value.Tag != ValueIllegal)
@@ -213,7 +208,7 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 	    }
 	  if (diffValue)
 	    {
-	      error (ErrorError, "Label %s can not be redefined with a different value", symbol->str);
+	      error (ErrorError, "Symbol %s can not be redefined with a different value", symbol->str);
 	      return true;
 	    }
 	}
@@ -266,7 +261,6 @@ NeedToOutputSymbol (const Symbol *sym)
 		   || SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
                    || (SYMBOL_KIND(sym->type) == SYMBOL_REFERENCE && sym->used >= 0)
 		  )
-		  && !SYMBOL_GETREGTYPE (sym->type)
 		  && !Local_IsLocalLabel (sym->str);
   return doOutput;
 }
@@ -673,6 +667,7 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	      asym.st_value = 0;
 	      asym.st_shndx = SHN_UNDEF;
 	    }
+	  /* FIXME: support for SYMBOL_COMMON ? */
 
 	  int bind;
 	  switch (SYMBOL_KIND (sym->type))
@@ -820,6 +815,7 @@ c_keep (void)
 
 /**
  * Implements IMPORT / EXTERN.
+ *   IMPORT <symbol>[,NOCASE][,WEAK][,COMMON=<size>][,FPREGARGS]
  */
 bool
 c_import (void)
@@ -921,37 +917,8 @@ symbolPrint (const Symbol *sym)
     printf ("keep/");
   if (sym->type & SYMBOL_AREA)
     printf ("area %p/", (void *)sym->area.info);
-  switch (SYMBOL_GETREGTYPE (sym->type))
-    {
-      case 0: /* No register, nor coprocessor number.  */
-	break;
-      case SYMBOL_CPUREG:
-	printf ("CPU reg/");
-	break;
-      case SYMBOL_FPUREG:
-	printf ("FPU reg/");
-	break;
-      case SYMBOL_NEONQUADREG:
-	printf ("NEON quad reg/");
-	break;
-      case SYMBOL_NEONDOUBLEREG:
-	printf ("NEON/VFP double reg/");
-	break;
-      case SYMBOL_VFPSINGLEREG:
-	printf ("VFP single reg/");
-	break;
-      case SYMBOL_COPREG:
-	printf ("coprocessor reg/");
-	break;
-      case SYMBOL_COPNUM:
-	printf ("coprocessor num/");
-	break;
-      default:
-	printf ("??? 0x%x/", SYMBOL_GETREGTYPE (sym->type));
-	break;
-    }
 
-  printf (", def area \"%s\", size %zd, offset 0x%x, used %d : ",
+  printf (", def area \"%s\", size %" PRIu32 ", offset 0x%x, used %d : ",
           sym->areaDef ? sym->areaDef->str : "<NULL>",
           sym->codeSize, sym->offset, sym->used);
   valuePrint (&sym->value);
@@ -967,11 +934,6 @@ symbolPrintAll (void)
     {
       for (const Symbol *sym = symbolTable[i]; sym; sym = sym->next)
 	{
-	  /* We skip all internally defined register names and coprocessor
-	     numbers.  */
-	  if (SYMBOL_GETREGTYPE (sym->type))
-	    continue;
-
 	  symbolPrint (sym);
 	  printf ("\n");
 	}

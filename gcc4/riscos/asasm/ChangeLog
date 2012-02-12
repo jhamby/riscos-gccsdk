@@ -1,3 +1,48 @@
+Sun Feb 12 23:34:02 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+  	* regression/tests_pass/operator_reverse_cc.s: Add.
+	* regression/tests_pass/operator_cc_encoding.s: Add.
+	* regression/tests_pass/operator_rconst.s: Add.
+	* regression/tests_pass/operator_string.s: Add :LOWERCASE: and
+	:UPPERCASE: tests.
+	* regression/tests_pass/operator_relational.s: Add integer vs 1
+	character string tests. Add register tests. Move :LEOR: test to...
+	* regression/tests_pass/operator_boolean.s: ...here.
+	* lexAcorn.c, lexAcorn.h: Merge into...
+	* lex.c: ...this.
+	(Lex_OperatorAsStr): Add support for eOp_LowerCase, eOp_UpperCase,
+	eOp_RevCC, eOp_CCEnc and eOp_RConst.
+	* lex.h: Rename Op_* to eOp_*, Operator to Operator_e.
+	* Makefile.am: Follow lexAcorn.c merge.
+	* decode.c (oDecodeTable): DCI has now eCB_VoidPMatch callback.
+	(decode): Only give Thumb unsupported warning once.
+	* code.c, code.h, m_cpuctrl.c, help_cop.c, m_cop.cm,
+	directive_storagemap.c,	m_cpumem.c, directive_data.c, m_fpe.c,
+	m_copmem.c, m_cpu.c, eval.c, eval.h, lex.c: Follow optionError to
+	kOption_NotRecognized rename. Follow Op_* to eOp_* renames. Follow
+	Operator to Operator-e rename.
+	* directive_data.c (DefineInt_RelocUpdater, DefineInt): unsigned char
+	cast value before calling Put_AlignDataWithOffset.
+	(c_dci): Support .W postfix.
+	* directive_data.h (c_dci): Follow API change.
+	* option.c, option.h (optionError): Rename to kOption_NotRecognized.
+	(Option_GetInstrWidth): Add.
+	(IsEndOfKeyword): Allow instruction width specifier to terminate
+	keyword as well.
+	* expr.c (prim): LexOperator: Remove Op_none test.
+	* eval.c (GetCCode): Add.
+	(evalUnop): Add support for :LOWERCASE:, :UPPERCASE:, :REVERSE_CC:,
+	:CC_ENCODING:, :RCONST:
+	(COMPARE): Remove comparisions between ValueAddr.
+	(evalBinop): Simplify eOp_EQ and eOp_NE.
+	* value.c, value.h (ValueRegister): Add.
+	* directive_symbol.c (Define, c_cn, c_fn, c_rn, c_cp): Teach about
+	ValueRegister.
+	* symbol.h (SYMBOL_CPUREG,SYMBOL_FPUREG,SYMBOL_NEONQUADREG,
+	SYMBOL_NEONDOUBLEREG,SYMBOL_VFPSINGLEREG,SYMBOL_COPREG,SYMBOL_COPNUM,
+	SYMBOL_GETREGTYPE): Remove.
+	* symbol.c (Symbol_Define, symbolPrint): Follow SYMBOL_* removal.
+
 Sun Feb 12 14:35:31 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/record_basic.s: Renamed to...

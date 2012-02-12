@@ -33,40 +33,40 @@ typedef struct
   const char *name;
   size_t len;
   int value;
-  int type; /* SYMBOL_CPUREG, etc.  */
+  RegType_e type;
 } PreDef_Reg_t;
 
 /* These symbol registers are always defined.  */
 static const PreDef_Reg_t oCPURegs[] =
 {
-  { "lr", sizeof ("lr")-1, 14, SYMBOL_CPUREG }, { "LR", sizeof ("LR")-1, 14, SYMBOL_CPUREG },
-  { "pc", sizeof ("pc")-1, 15, SYMBOL_CPUREG }, { "PC", sizeof ("PC")-1, 15, SYMBOL_CPUREG },
+  { "lr", sizeof ("lr")-1, 14, eRegType_CPU }, { "LR", sizeof ("LR")-1, 14, eRegType_CPU },
+  { "pc", sizeof ("pc")-1, 15, eRegType_CPU }, { "PC", sizeof ("PC")-1, 15, eRegType_CPU },
 };
 
 /* These symbol registers are always defined when APCS is selected.  */
 static const PreDef_Reg_t oAPCSRegs[] =
 {
-  { "a1", sizeof ("a1")-1, 0, SYMBOL_CPUREG },
-  { "a2", sizeof ("a2")-1, 1, SYMBOL_CPUREG },
-  { "a3", sizeof ("a3")-1, 2, SYMBOL_CPUREG },
-  { "a4", sizeof ("a4")-1, 3, SYMBOL_CPUREG },
-  { "v1", sizeof ("v1")-1, 4, SYMBOL_CPUREG },
-  { "v2", sizeof ("v2")-1, 5, SYMBOL_CPUREG },
-  { "v3", sizeof ("v3")-1, 6, SYMBOL_CPUREG },
-  { "v4", sizeof ("v4")-1, 7, SYMBOL_CPUREG },
-  { "v5", sizeof ("v5")-1, 8, SYMBOL_CPUREG },
+  { "a1", sizeof ("a1")-1, 0, eRegType_CPU },
+  { "a2", sizeof ("a2")-1, 1, eRegType_CPU },
+  { "a3", sizeof ("a3")-1, 2, eRegType_CPU },
+  { "a4", sizeof ("a4")-1, 3, eRegType_CPU },
+  { "v1", sizeof ("v1")-1, 4, eRegType_CPU },
+  { "v2", sizeof ("v2")-1, 5, eRegType_CPU },
+  { "v3", sizeof ("v3")-1, 6, eRegType_CPU },
+  { "v4", sizeof ("v4")-1, 7, eRegType_CPU },
+  { "v5", sizeof ("v5")-1, 8, eRegType_CPU },
   /* Note: v6, sl and fp are conditionally defined depending on the APCS option value.  */
-  { "ip", sizeof ("ip")-1, 12, SYMBOL_CPUREG }, /* { "IP", sizeof ("IP")-1, 12, SYMBOL_CPUREG }, */
-  { "sp", sizeof ("sp")-1, 13, SYMBOL_CPUREG }, /* { "SP", sizeof ("SP")-1, 13, SYMBOL_CPUREG }, */
+  { "ip", sizeof ("ip")-1, 12, eRegType_CPU }, /* { "IP", sizeof ("IP")-1, 12, eRegType_CPU }, */
+  { "sp", sizeof ("sp")-1, 13, eRegType_CPU }, /* { "SP", sizeof ("SP")-1, 13, eRegType_CPU }, */
 };
 
 static void
-PreDefReg_One (const char *regname, size_t namelen, int value, int type)
+PreDefReg_One (const char *regname, size_t namelen, int value, RegType_e type)
 {
   const Lex l = lexTempLabel (regname, namelen);
   Symbol *s = symbolGet (&l);
-  s->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE | type;
-  s->value = Value_Int (value);
+  s->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE; /* FIXME: SYMBOL_ABSOLUTE needed ? */
+  s->value = Value_Reg (value, type);
 }
 
 /**
@@ -74,7 +74,7 @@ PreDefReg_One (const char *regname, size_t namelen, int value, int type)
  * \param reg Lowercase register prefix.
  */
 static void
-PreDefReg_Range (char reg, unsigned num, int type, bool upcaseToo)
+PreDefReg_Range (char reg, unsigned num, RegType_e type, bool upcaseToo)
 {
   for (unsigned regIdx = 0; regIdx != num; ++regIdx)
     {
@@ -83,8 +83,8 @@ PreDefReg_Range (char reg, unsigned num, int type, bool upcaseToo)
       PreDefReg_One (regName, numChars, regIdx, type);
       if (upcaseToo)
 	{
-	 regName[0] = reg + 'A' - 'a';
-	 PreDefReg_One (regName, numChars, regIdx, type);
+	  regName[0] = reg + 'A' - 'a';
+	  PreDefReg_One (regName, numChars, regIdx, type);
 	}
     }
 }
@@ -92,9 +92,9 @@ PreDefReg_Range (char reg, unsigned num, int type, bool upcaseToo)
 void
 PreDefReg_Init (void)
 {
-  PreDefReg_Range ('r', 16, SYMBOL_CPUREG, true);
-  PreDefReg_Range ('p', 16, SYMBOL_COPNUM, false); /* Coprocessor numbers.  */
-  PreDefReg_Range ('c', 16, SYMBOL_COPREG, false); /* Coprocessor registers.  */
+  PreDefReg_Range ('r', 16, eRegType_CPU, true);
+  PreDefReg_Range ('p', 16, eRegType_CoProNum, false); /* Coprocessor numbers.  */
+  PreDefReg_Range ('c', 16, eRegType_CoProReg, false); /* Coprocessor registers.  */
   for (size_t i = 0; i != sizeof (oCPURegs)/sizeof (oCPURegs[0]); ++i)
     PreDefReg_One (oCPURegs[i].name, oCPURegs[i].len, oCPURegs[i].value, oCPURegs[i].type);
 
@@ -103,18 +103,18 @@ PreDefReg_Init (void)
       for (size_t i = 0; i != sizeof (oAPCSRegs)/sizeof (oAPCSRegs[0]); ++i)
 	PreDefReg_One (oAPCSRegs[i].name, oAPCSRegs[i].len, oAPCSRegs[i].value, oAPCSRegs[i].type);
       PreDefReg_One ((gOptionAPCS & APCS_OPT_REENTRANT) ? "sb" : "v6",
-		     sizeof ("sb")-1, 9, SYMBOL_CPUREG);
+		     sizeof ("sb")-1, 9, eRegType_CPU);
       PreDefReg_One ((gOptionAPCS & APCS_OPT_SWSTACKCHECK) ? "sl" : "v7",
-		     sizeof ("sl")-1, 10, SYMBOL_CPUREG);
+		     sizeof ("sl")-1, 10, eRegType_CPU);
       PreDefReg_One ((gOptionAPCS & APCS_OPT_FRAMEPTR) ? "fp" : "v8",
-		     sizeof ("fp")-1, 11, SYMBOL_CPUREG);
+		     sizeof ("fp")-1, 11, eRegType_CPU);
     }
 
   if (1 /* FIXME: only when FPA is selected.  */)
-    PreDefReg_Range ('f', 8, SYMBOL_FPUREG, true);
+    PreDefReg_Range ('f', 8, eRegType_FPU, true);
 
   /* FIXME: define single/double precision VFP registers based on chosen arch/fpu etc.
-  PreDefReg_Range ('q', 16, SYMBOL_NEONQUADREG, true);
-  PreDefReg_Range ('d', 32, SYMBOL_NEONDOUBLEREG, true);
-  PreDefReg_Range ('s', 32, SYMBOL_VFPSINGLEREG, true); */
+  PreDefReg_Range ('q', 16, eRegType_NeonQuadReg, true);
+  PreDefReg_Range ('d', 32, eRegType_NeonOrVFPDoubleReg, true);
+  PreDefReg_Range ('s', 32, eRegType_VFPSingleReg, true); */
 }

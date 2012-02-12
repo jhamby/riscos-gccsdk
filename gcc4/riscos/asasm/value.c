@@ -57,6 +57,7 @@ Value_Assign (Value *dst, const Value *src)
       case ValueBool:
       case ValueAddr:
       case ValueSymbol:
+      case ValueRegister:
         break;
 
       case ValueString:
@@ -90,6 +91,7 @@ valueFree (Value *value)
       case ValueBool:
       case ValueAddr:
       case ValueSymbol:
+      case ValueRegister:
 	break;
 
       case ValueString:
@@ -140,6 +142,7 @@ Value_ResolveSymbol (Value *valueP)
 	{
 	  case ValueBool:
 	  case ValueString:
+	  case ValueRegister:
 	    {
 	      if (factor != 1 || offset != 0)
 		return true;
@@ -233,6 +236,12 @@ valueEqual (const Value *a, const Value *b)
 	result = b->Tag == ValueBool && a->Data.Bool.b == b->Data.Bool.b;
 	break;
 
+      case ValueCode:
+	result = b->Tag == ValueCode
+		   && a->Data.Code.len == b->Data.Code.len
+		   && codeEqual (a->Data.Code.len, a->Data.Code.c, b->Data.Code.c);
+	break;
+
       case ValueAddr:
 	result = b->Tag == ValueAddr
 		   && a->Data.Addr.i == b->Data.Addr.i
@@ -246,10 +255,10 @@ valueEqual (const Value *a, const Value *b)
 		   && a->Data.Symbol.offset == b->Data.Symbol.offset;
 	break;
 
-      case ValueCode:
-	result = b->Tag == ValueCode
-		   && a->Data.Code.len == b->Data.Code.len
-		   && codeEqual (a->Data.Code.len, a->Data.Code.c, b->Data.Code.c);
+      case ValueRegister:
+	result = b->Tag == ValueRegister
+		   && a->Data.Register.num == b->Data.Register.num
+		   && a->Data.Register.type == b->Data.Register.type;
 	break;
 
       default:
@@ -296,6 +305,9 @@ valueTagAsString (ValueTag tag)
       case ValueSymbol:
 	str = "symbol";
 	break;
+      case ValueRegister:
+	str = "register";
+	break;
       default:
         str = "unknown";
         break;
@@ -338,6 +350,39 @@ valuePrint (const Value *v)
       case ValueSymbol:
 	printf ("Symbol %d x '%s' + #0x%x", v->Data.Symbol.factor, v->Data.Symbol.symbol->str, v->Data.Symbol.offset);
 	break;
+      case ValueRegister:
+	{
+	  char type;
+	  switch (v->Data.Register.type)
+	    {
+	      case eRegType_CPU:
+		type = 'r';
+		break;
+	      case eRegType_FPU:
+		type = 'f';
+		break;
+	      case eRegType_NeonQuadReg:
+		type = 'q';
+		break;
+	      case eRegType_NeonOrVFPDoubleReg:
+		type = 'd';
+		break;
+	      case eRegType_VFPSingleReg:
+		type = 's';
+		break;
+	      case eRegType_CoProReg:
+		type = 'p';
+		break;
+	      case eRegType_CoProNum:
+		type = 'c';
+		break;
+	      default:
+		type = '?';
+		break;
+	    }
+	  printf ("Reg %c%d", type, v->Data.Register.num);
+	  break;
+	}
       default:
 	printf ("tag 0x%x ???", v->Tag);
 	break;

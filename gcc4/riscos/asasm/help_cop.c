@@ -69,7 +69,7 @@ DestMem_RelocUpdaterCoPro (const char *fileName, unsigned lineNum, ARMWord offse
       const Code *codeP = &valueP->Data.Code.c[i];
       if (codeP->Tag == CodeOperator)
 	{
-	  if (codeP->Data.op != Op_add)
+	  if (codeP->Data.op != eOp_Add)
 	    return true;
 	  continue;
 	}

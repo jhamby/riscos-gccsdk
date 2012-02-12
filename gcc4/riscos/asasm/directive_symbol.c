@@ -23,6 +23,8 @@
 
 #include "config.h"
 
+#include <assert.h>
+
 #include "directive_symbol.h"
 #include "error.h"
 #include "expr.h"
@@ -32,26 +34,41 @@
  * symbol is already defined with a value different than parsed.
  */
 static bool
-Define (const char *msg, Symbol *sym, unsigned symType, ValueTag legal)
+Define (const char *msg, Symbol *sym, RegType_e regType, ValueTag legal)
 {
-  bool fail;
+  bool failed;
   if (sym == NULL)
     {
       error (ErrorError, "Missing label before %s", msg);
-      fail = true;
+      failed = true;
     }
   else
     {
       const Value *value = exprBuildAndEval (legal);
-      if (value->Tag == ValueIllegal)
+      Value convValue;
+      switch (value->Tag)
 	{
-	  error (ErrorError, "Illegal %s", msg);
-	  fail = true;
+	  case ValueIllegal:
+	    error (ErrorError, "Illegal %s", msg);
+	    failed = true;
+	    break;
+	  case ValueInt:
+	    {
+	      /* Need to convert integer value to a register value ? */
+	      if (regType != eRegType_Illegal)
+		{
+		  convValue = Value_Reg (value->Data.Int.i, regType);
+		  value = &convValue;
+		}
+	      /* Fall through.  */
+	    }
+	  default:
+	    failed = Symbol_Define (sym, SYMBOL_ABSOLUTE, value);
+	    break;
 	}
-      else
-	fail = Symbol_Define (sym, SYMBOL_ABSOLUTE | symType, value);
     }
-  return fail;
+
+  return failed;
 }
 
 /**
@@ -60,12 +77,13 @@ Define (const char *msg, Symbol *sym, unsigned symType, ValueTag legal)
 bool
 c_cn (Symbol *symbol)
 {
-  if (!Define ("coprocessor register", symbol, SYMBOL_COPREG, ValueInt))
+  if (!Define ("coprocessor register", symbol, eRegType_CoProReg, ValueInt | ValueRegister))
     {
-      int no = symbol->value.Data.Int.i;
+      assert (symbol->value.Tag == ValueRegister);
+      int no = symbol->value.Data.Register.num;
       if (no < 0 || no > 15)
 	{
-	  symbol->value.Data.Int.i = 0;
+	  symbol->value.Data.Register.num = 0;
 	  error (ErrorError, "Illegal %s register %d (using 0)", "coprocessor", no);
 	}
     }
@@ -78,12 +96,13 @@ c_cn (Symbol *symbol)
 bool
 c_cp (Symbol *symbol)
 {
-  if (!Define ("coprocessor number", symbol, SYMBOL_COPNUM, ValueInt))
+  if (!Define ("coprocessor number", symbol, eRegType_CoProNum, ValueInt | ValueRegister))
     {
-      int no = symbol->value.Data.Int.i;
+      assert (symbol->value.Tag == ValueRegister);
+      int no = symbol->value.Data.Register.num;
       if (no < 0 || no > 15)
 	{
-	  symbol->value.Data.Int.i = 0;
+	  symbol->value.Data.Register.num = 0;
 	  error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
 	}
     }
@@ -96,7 +115,7 @@ c_cp (Symbol *symbol)
 bool
 c_equ (Symbol *symbol)
 {
-  Define ("* or EQU", symbol, 0, ValueAll);
+  Define ("* or EQU", symbol, eRegType_Illegal, ValueAll);
   return false;
 }
 
@@ -106,12 +125,13 @@ c_equ (Symbol *symbol)
 bool
 c_fn (Symbol *symbol)
 {
-  if (!Define ("float register", symbol, SYMBOL_FPUREG, ValueInt))
+  if (!Define ("float register", symbol, eRegType_FPU, ValueInt | ValueRegister))
     {
-      int no = symbol->value.Data.Int.i;
+      assert (symbol->value.Tag == ValueRegister);
+      int no = symbol->value.Data.Register.num;
       if (no < 0 || no > 7)
 	{
-	  symbol->value.Data.Int.i = 0;
+	  symbol->value.Data.Register.num = 0;
 	  error (ErrorError, "Illegal %s register %d (using 0)", "FPU", no);
 	}
     }
@@ -124,12 +144,13 @@ c_fn (Symbol *symbol)
 bool
 c_rn (Symbol *symbol)
 {
-  if (!Define ("register", symbol, SYMBOL_CPUREG, ValueInt))
+  if (!Define ("register", symbol, eRegType_CPU, ValueInt | ValueRegister))
     {
-      int no = symbol->value.Data.Int.i;
+      assert (symbol->value.Tag == ValueRegister);
+      int no = symbol->value.Data.Register.num;
       if (no < 0 || no > 15)
 	{
-	  symbol->value.Data.Int.i = 0;
+	  symbol->value.Data.Register.num = 0;
 	  error (ErrorError, "Illegal %s register %d (using 0)", "CPU", no);
 	}
     }
