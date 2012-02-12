@@ -1,3 +1,7 @@
+Sun Feb 12 14:33:56 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* signal/post.c: Remove debug code.
+
 Sun Feb 12 14:16:14 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	Add basic support for three argument signal handlers.

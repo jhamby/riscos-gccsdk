@@ -703,13 +703,11 @@ death:
 	if (__signal_have_saved_regs (signo) &&
 	    ss->ucontext.arm_pc != ss->ucontext.fault_address)
 	  {
-debug_printf("ss->ucontext.arm_sp: %X - ss->ucontext.arm_r10: %X\r\n",ss->ucontext.arm_sp,ss->ucontext.arm_r10);
 	    gbl->executing_signalhandler = 0;
 	    if (gbl->pthread_system_running)
 	      __pthread_enable_ints();
 	    __signal_restart (&ss->ucontext);
 	  }
-debug_printf("> GOT HERE\r\n");
 	break;
       }
     }
