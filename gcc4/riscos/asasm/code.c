@@ -32,15 +32,14 @@
 #endif
 #include <string.h>
 
-#include "aoffile.h"
 #include "area.h"
 #include "code.h"
+#include "directive_storagemap.h"
 #include "error.h"
 #include "eval.h"
 #include "input.h"
 #include "main.h"
 #include "option.h"
-#include "storage.h"
 
 #ifdef DEBUG
 //#  define DEBUG_CODE
@@ -108,7 +107,7 @@ codeStorage (void)
   if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].Data.value = *storageValue ();
+      Program[FirstFreeIns].Data.value = *StorageMap_Value ();
       ++FirstFreeIns;
     }
   else

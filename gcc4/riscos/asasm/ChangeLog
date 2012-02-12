@@ -1,3 +1,13 @@
+Sun Feb 12 14:35:31 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/record_basic.s: Renamed to...
+	* regression/tests_pass/storagemap_basic.s: ...this.
+	* regression/tests_pass/register_based_map.s: Renamed to...
+	* regression/tests_pass/storagemap_register.s: ...this.
+	* storage.c, storage.h: Renamed to...
+	* directive_storagemap.c, directive_storagemap.h: ...these.
+	* code.c, decode.c, Makefile.am: Follow renames.
+
 Sun Feb 12 14:08:35 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/reserve_space.s: Add.

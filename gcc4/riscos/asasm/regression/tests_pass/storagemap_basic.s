@@ -1,3 +1,5 @@
+; Basic tests for ^, #, MAP, FIELD.
+
 	AREA Code1, CODE, READONLY
 
 	; Basic record test

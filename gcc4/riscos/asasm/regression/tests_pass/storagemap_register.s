@@ -1,8 +1,10 @@
+; Tests for ^, #, MAP, FIELD using register as base.
+
 	AREA	Code, CODE, READONLY
 
 		^	0, r12
 foo		#	4
-bar		#	4
+bar		FIELD	4
 sizeof_map	*	@
 
 	[ :LNOT: REFERENCE
@@ -22,7 +24,7 @@ sizeof_map	*	@
 		ADD	r4, r4, #0	; FIXME: should go - twopass regression
 	]
 
-		^	0, r9
+		MAP	0, r9
 baz		#	4
 
 	END

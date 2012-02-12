@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,17 +17,18 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * storage.h
+ * directive_storagemap.h
  */
 
-#ifndef storage_header_included
-#define storage_header_included
+#ifndef directive_storagemap_header_included
+#define directive_storagemap_header_included
 
 #include <stdbool.h>
+
 #include "value.h"
 #include "symbol.h"
 
-const Value *storageValue (void);
+const Value *StorageMap_Value (void);
 
 bool c_record (void);
 bool c_alloc (const Lex *lex);

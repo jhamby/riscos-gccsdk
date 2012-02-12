@@ -39,6 +39,7 @@
 #include "directive_data.h"
 #include "directive_file.h"
 #include "directive_misc.h"
+#include "directive_storagemap.h"
 #include "directive_symbol.h"
 #include "error.h"
 #include "frame.h"
@@ -55,7 +56,6 @@
 #include "option.h"
 #include "main.h"
 #include "state.h"
-#include "storage.h"
 
 typedef Rslt_e (*po_void)(void); /* For eCB_Void.  */
 typedef Rslt_e (*po_void_pm)(bool doLowerCase); /* For eCB_VoidPMatch.  As
@@ -540,7 +540,7 @@ decode (const Lex *label)
 	{
 	  .Tag = ValueIllegal
 	};
-      Value_Assign (&startStorage, storageValue ());
+      Value_Assign (&startStorage, StorageMap_Value ());
 
       Symbol *labelSymbol;
       switch (oDecodeTable[indexFound].cb_type)
@@ -696,7 +696,7 @@ decode (const Lex *label)
 	  else
 	    {
 	      codeInit ();
-	      codeValue (storageValue (), false);
+	      codeValue (StorageMap_Value (), false);
 	      codeValue (&startStorage, false);
 	      codeOperator (Op_sub);
 	      const Value *value = codeEval (ValueInt, NULL);

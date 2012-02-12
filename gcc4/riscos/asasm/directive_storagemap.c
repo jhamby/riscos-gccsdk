@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * storage.c
+ * directive_storagemap.c
  */
 
 #include "config.h"
@@ -29,27 +29,26 @@
 #  include <inttypes.h>
 #endif
 
-#include "area.h"
 #include "code.h"
+#include "directive_storagemap.h"
 #include "error.h"
 #include "expr.h"
 #include "get.h"
 #include "input.h"
 #include "main.h"
-#include "storage.h"
 #include "value.h"
 
-static Value storageV =
+static Value oStorageMapValue =
 {
   .Tag = ValueInt,
   .Data.Int = { .i = 0 }
 };
 
 const Value *
-storageValue (void)
+StorageMap_Value (void)
 {
-  assert (storageV.Tag == ValueInt || storageV.Tag == ValueAddr || storageV.Tag == ValueSymbol || storageV.Tag == ValueCode);
-  return &storageV;
+  assert (oStorageMapValue.Tag == ValueInt || oStorageMapValue.Tag == ValueAddr || oStorageMapValue.Tag == ValueSymbol || oStorageMapValue.Tag == ValueCode);
+  return &oStorageMapValue;
 }
 
 /**
@@ -75,14 +74,14 @@ c_record (void)
 	      src.Tag = ValueInt;
 	      src.Data.Int.i = value->Data.Int.i;
 	    }
-	  Value_Assign (&storageV, &src);
+	  Value_Assign (&oStorageMapValue, &src);
+	  break;
 	}
-	break;
 
       case ValueAddr:
       case ValueSymbol:
       case ValueCode:
-	Value_Assign (&storageV, value);
+	Value_Assign (&oStorageMapValue, value);
 	break;
 	
       default:
@@ -92,10 +91,10 @@ c_record (void)
 	      .Tag = ValueInt,
 	      .Data.Int = { .i = 0 }
 	    };
-	  Value_Assign (&storageV, &src);
+	  Value_Assign (&oStorageMapValue, &src);
 	  error (ErrorError, "^ cannot evaluate its offset expression");
+	  break;
 	}
-        break;
     }
 
   return false;
@@ -109,7 +108,7 @@ c_alloc (const Lex *lex)
 {
   if (lex->tag == LexId)
     {
-      if (Symbol_Define (symbolGet (lex), SYMBOL_ABSOLUTE, storageValue ()))
+      if (Symbol_Define (symbolGet (lex), SYMBOL_ABSOLUTE, StorageMap_Value ()))
 	return false;
     }
   
@@ -119,13 +118,13 @@ c_alloc (const Lex *lex)
     {
       case ValueInt:
 	codeInit ();
-	codeValue (storageValue (), true);
+	codeValue (StorageMap_Value (), true);
 	codeValue (value, true);
 	codeOperator (Op_add);
         value = codeEval (ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL);
 	if (value->Tag != ValueIllegal)
 	  {
-	    Value_Assign (&storageV, value);
+	    Value_Assign (&oStorageMapValue, value);
 	    break;
 	  }
 	/* Fall through.  */
