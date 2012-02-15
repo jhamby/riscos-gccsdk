@@ -92,7 +92,7 @@ GCC_CONFIG_ARGS += --enable-checking=release
 # For debugging:
 # FIXME: add to GCC_BUILD_FLAGS for optimized ARM libraries: CFLAGS_FOR_TARGET="-O3 -march=armv5" CXXFLAGS_FOR_TARGET="-O3 -march=armv5"
 # Or perhaps better, at GCC configure time something like --with-arch=armv6 --with-tune=cortex-a8 --with-float=softfp --with-fpu=vfp ?
-GCC_BUILD_FLAGS := CFLAGS="-O0 -g" LIBCXXFLAGS="-O0 -g"
+##GCC_BUILD_FLAGS := CFLAGS="-O0 -g" LIBCXXFLAGS="-O0 -g"
 ##BINUTILS_BUILD_FLAGS = CFLAGS="-O0 -g"
 
 ROOT := $(shell pwd)
