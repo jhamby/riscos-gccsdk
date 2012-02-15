@@ -556,6 +556,7 @@ ifeq "$(NEWLIB_USE_SCM)" "yes"
 src-newlib-copied:
 	-rm -rf $(SRCDIR)/newlib
 	-mkdir -p $(SRCORIGDIR)/newlib-cvs
+	# FIXME? Use -d cvs co option ?
 	cd $(SRCORIGDIR)/newlib-cvs && cvs -z 9 -d :pserver:anoncvs@sources.redhat.com:/cvs/src co newlib
 	ln -s $(SRCORIGDIR)/newlib-cvs/src $(SRCDIR)/newlib
 	touch $(BUILDSTEPSDIR)/src-newlib-copied
