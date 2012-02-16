@@ -1,5 +1,5 @@
---- configure.orig	2011-09-15 18:12:44.000000000 +0100
-+++ configure	2011-11-15 12:10:16.000000000 +0000
+--- configure.orig	2011-12-19 21:16:07.000000000 +0000
++++ configure	2012-02-13 19:22:14.000000000 +0000
 @@ -3979,6 +3979,14 @@
  		libgc_threads=pthreads
  		use_sigposix=yes
@@ -15,9 +15,9 @@
  	*-*-nacl*)
  		host_win32=no
  		CPPFLAGS="$CPPFLAGS -DGC_LINUX_THREADS -D_GNU_SOURCE -D_REENTRANT -DUSE_MMAP"
-@@ -23089,6 +23097,15 @@
- 		jit_wanted=true
- 		sgen_supported=true
+@@ -23105,6 +23113,15 @@
+ 		# Required CFLAGS for s390[x].  USE_STRING_INLINES is automatic with gcc 4.1
+ 		CFLAGS="$CFLAGS -mbackchain -D__USE_STRING_INLINES"
  		;;
 +	arm*-riscos*)
 +		TARGET=ARM;
@@ -28,6 +28,6 @@
 +		jit_wanted=true
 +		sgen_supported=true
 +		;;
- 	s390-*-linux*)
- 		TARGET=S390;
- 		arch_target=s390;
+ 	s390x-*-linux*)
+ 		TARGET=S390x;
+ 		arch_target=s390x;

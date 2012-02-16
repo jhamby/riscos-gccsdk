@@ -1,5 +1,5 @@
---- mono/mini/mini.c.orig	2011-10-06 17:33:52.000000000 +0100
-+++ mono/mini/mini.c	2011-10-14 20:20:02.000000000 +0100
+--- mono/mini/mini.c.orig	2011-12-19 21:10:25.000000000 +0000
++++ mono/mini/mini.c	2012-02-13 19:30:51.000000000 +0000
 @@ -2966,6 +2966,9 @@
  		target = patch_info->data.bb->native_offset + code;
  		break;
@@ -10,7 +10,7 @@
  		target = patch_info->data.target;
  		break;
  	case MONO_PATCH_INFO_LABEL:
-@@ -4765,6 +4768,19 @@
+@@ -4790,6 +4793,19 @@
  					}
  				}
  			}
@@ -30,11 +30,3 @@
  			mono_linear_scan (cfg, vars, regs, &cfg->used_int_regs);
  		}
  	}
-@@ -6554,7 +6570,6 @@
- 	register_icall (mono_object_isinst_with_cache, "mono_object_isinst_with_cache", "object object ptr ptr", FALSE);
- 
- #endif
--
- 	mono_generic_sharing_init ();
- 
- #ifdef MONO_ARCH_SIMD_INTRINSICS

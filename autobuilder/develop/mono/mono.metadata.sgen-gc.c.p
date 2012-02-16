@@ -1,6 +1,6 @@
---- mono/metadata/sgen-gc.c.orig	2011-09-14 04:32:35.000000000 +0100
-+++ mono/metadata/sgen-gc.c	2011-12-08 20:45:30.000000000 +0000
-@@ -2215,6 +2215,15 @@
+--- mono/metadata/sgen-gc.c.orig	2011-12-19 21:10:25.000000000 +0000
++++ mono/metadata/sgen-gc.c	2012-02-16 11:31:09.000000000 +0000
+@@ -2214,6 +2214,15 @@
  void*
  mono_sgen_alloc_os_memory_aligned (mword size, mword alignment, gboolean activate)
  {
@@ -16,7 +16,7 @@
  	/* Allocate twice the memory to be able to put the block on an aligned address */
  	char *mem = mono_sgen_alloc_os_memory (size + alignment, activate);
  	char *aligned;
-@@ -2228,7 +2237,7 @@
+@@ -2227,7 +2236,7 @@
  		mono_sgen_free_os_memory (mem, aligned - mem);
  	if (aligned + size < mem + size + alignment)
  		mono_sgen_free_os_memory (aligned + size, (mem + size + alignment) - (aligned + size));
@@ -25,7 +25,24 @@
  	return aligned;
  }
  
-@@ -3524,6 +3533,15 @@
+@@ -2503,14 +2512,14 @@
+ static void
+ stw_bridge_process (void)
+ {
+-	g_assert (mono_sgen_need_bridge_processing ());
++//	g_assert (mono_sgen_need_bridge_processing ());
+ 	mono_sgen_bridge_processing_stw_step ();
+ }
+ 
+ static void
+ bridge_process (void)
+ {
+-	g_assert (mono_sgen_need_bridge_processing ());
++//	g_assert (mono_sgen_need_bridge_processing ());
+ 	mono_sgen_bridge_processing_finish ();
+ }
+ 
+@@ -3553,6 +3562,15 @@
  mono_sgen_alloc_os_memory (size_t size, int activate)
  {
  	void *ptr;
@@ -41,7 +58,7 @@
  	unsigned long prot_flags = activate? MONO_MMAP_READ|MONO_MMAP_WRITE: MONO_MMAP_NONE;
  
  	prot_flags |= MONO_MMAP_PRIVATE | MONO_MMAP_ANON;
-@@ -3531,6 +3549,7 @@
+@@ -3560,6 +3578,7 @@
  	size &= ~(pagesize - 1);
  	ptr = mono_valloc (0, size, prot_flags);
  	/* FIXME: CAS */
@@ -49,7 +66,7 @@
  	total_alloc += size;
  	return ptr;
  }
-@@ -3541,11 +3560,15 @@
+@@ -3570,11 +3589,15 @@
  void
  mono_sgen_free_os_memory (void *addr, size_t size)
  {
@@ -65,7 +82,7 @@
  	total_alloc -= size;
  }
  
-@@ -5129,6 +5152,7 @@
+@@ -5169,6 +5192,7 @@
  void
  mono_sgen_wait_for_suspend_ack (int count)
  {
@@ -73,7 +90,7 @@
  	int i, result;
  
  	for (i = 0; i < count; ++i) {
-@@ -5138,6 +5162,7 @@
+@@ -5178,6 +5202,7 @@
  			}
  		}
  	}
@@ -81,7 +98,7 @@
  }
  
  static int
-@@ -5146,6 +5171,7 @@
+@@ -5186,6 +5211,7 @@
  	SgenThreadInfo *info;
  	int i, num_threads_died = 0;
  	int sleep_duration = -1;
@@ -89,7 +106,7 @@
  
  	for (;;) {
  		int restart_count = 0, restarted_count = 0;
-@@ -5228,6 +5254,7 @@
+@@ -5268,6 +5294,7 @@
  		mono_sgen_wait_for_suspend_ack (restart_count);
  #endif
  	}
@@ -97,7 +114,7 @@
  
  	return num_threads_died;
  }
-@@ -5335,7 +5362,9 @@
+@@ -5378,7 +5405,9 @@
  	TV_GETTIME (stop_world_time);
  	count = mono_sgen_thread_handshake (suspend_signal_num);
  	count -= restart_threads_until_none_in_managed_allocator ();

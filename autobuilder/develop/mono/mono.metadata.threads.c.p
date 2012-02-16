@@ -1,6 +1,6 @@
---- mono/metadata/threads.c.orig	2011-08-26 02:06:56.000000000 +0100
-+++ mono/metadata/threads.c	2011-11-13 14:01:51.000000000 +0000
-@@ -394,6 +394,11 @@
+--- mono/metadata/threads.c.orig	2011-12-19 21:10:25.000000000 +0000
++++ mono/metadata/threads.c	2012-02-13 19:12:51.000000000 +0000
+@@ -395,6 +395,11 @@
  		hazard_table = g_malloc0 (sizeof (MonoThreadHazardPointers) * HAZARD_TABLE_MAX_SIZE);
  		hazard_table_size = HAZARD_TABLE_MAX_SIZE;
  #else
@@ -12,7 +12,7 @@
  		gpointer page_addr;
  		int pagesize = mono_pagesize ();
  		int num_pages = (hazard_table_size * sizeof (MonoThreadHazardPointers) + pagesize - 1) / pagesize;
-@@ -411,7 +416,7 @@
+@@ -412,7 +417,7 @@
  
  		++num_pages;
  		hazard_table_size = num_pages * pagesize / sizeof (MonoThreadHazardPointers);

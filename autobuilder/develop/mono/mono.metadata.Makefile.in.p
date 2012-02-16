@@ -1,6 +1,6 @@
---- mono/metadata/Makefile.in.orig	2011-08-09 02:24:38.000000000 +0100
-+++ mono/metadata/Makefile.in	2011-08-23 20:20:37.000000000 +0100
-@@ -874,10 +874,10 @@
+--- mono/metadata/Makefile.in.orig	2011-12-19 21:16:02.000000000 +0000
++++ mono/metadata/Makefile.in	2012-02-13 19:12:50.000000000 +0000
+@@ -879,10 +879,10 @@
  # The files that use MONO_ASSEMBLIES and/or MONO_CFG_DIR replace the
  # / by \ if running under WIN32.
  @CROSS_COMPILING_TRUE@@HOST_WIN32_TRUE@assembliesdir = ${libdir}
