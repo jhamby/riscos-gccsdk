@@ -32,6 +32,7 @@ int
 symlink (const char *ux_targetfile, const char *ux_newfile)
 {
 #if __UNIXLIB_SYMLINKS
+  _kernel_oserror *err;
   const unsigned int symlink_id = SYMLINK_ID;
   char *paths = NULL, *ro_targetfile, *ro_newfile;
   int fd = -1, result = 0;
@@ -73,38 +74,22 @@ symlink (const char *ux_targetfile, const char *ux_newfile)
       goto exit;
     }
 
-  if (__os_fopen (OSFILE_OPENOUT, ro_newfile, &fd) != NULL)
-    {
-      result = __set_errno (EIO);
-      goto exit;
-    }
-
-  /* Write the symlink file ID - ASCII representation of LINK.  */
-  if (__os_fwrite (fd, &symlink_id, 4, regs) != NULL)
-    {
-      result = __set_errno (EIO);
-      goto exit;
-    }
-
-  /* Write the length of the target pathname - 4 bytes.  */
   int link_len = strlen (ro_targetfile);
-  if (__os_fwrite (fd, &link_len, 4, regs) != NULL)
+  if ((err = __os_fopen (OSFILE_OPENOUT, ro_newfile, &fd)) == NULL
+      /* Write the symlink file ID - ASCII representation of LINK.  */
+   && (err = __os_fwrite (fd, &symlink_id, 4, regs)) == NULL
+      /* Write the length of the target pathname - 4 bytes.  */
+   && (err = __os_fwrite (fd, &link_len, 4, regs)) == NULL
+      /* Write the target pathname.  */
+   && (err = __os_fwrite (fd, ro_targetfile, link_len, regs)) == NULL)
     {
-      result = __set_errno (EIO);
-      goto exit;
+      /* Set the filetype of the symlink file.  */
+      regs[2] = SYMLINK_FILETYPE;
+      if ((err = __os_file (OSFILE_WRITECATINFO_FILETYPE, ro_newfile, regs)) != NULL)
+	result = __ul_seterr (err, EIO);
     }
-
-  /* Write the target pathname.  */
-  if (__os_fwrite (fd, ro_targetfile, link_len, regs) != NULL)
-    {
-      result = __set_errno (EIO);
-      goto exit;
-    }
-
-  /* Set the filetype of the symlink file.  */
-  regs[2] = SYMLINK_FILETYPE;
-  if (__os_file (OSFILE_WRITECATINFO_FILETYPE, ro_newfile, regs) != NULL)
-    result = __set_errno (EIO);
+  else
+    result = __ul_seterr (err, EIO);
 
   /* Fall through. */
 exit:
