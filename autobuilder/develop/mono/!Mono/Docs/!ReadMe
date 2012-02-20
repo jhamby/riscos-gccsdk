@@ -1,6 +1,6 @@
 			 Mono for RISC OS
 			Ported by Lee Noar
-			    V2.10.6
+			    V2.10.8
 Introduction
 ------------
 Mono is an open source version of Microsoft's .net framework. It's home
@@ -113,19 +113,21 @@ Font, Toolbox, etc.). In time I hope this will expand into a class library.
 What works and what doesn't
 ---------------------------
 1) SGen GC
-RISC OS Mono currently includes the SGen garbage collector to automatically
-dispose of unused objects.
+RISC OS Mono includes the SGen garbage collector to automatically dispose
+of unused objects.
 
 2) JIT
 There is also a JIT (Just In Time compiler) that converts the CIL code into
 ARM code on the fly at runtime. This has been altered to create APCS stack
 frames where necessary and also to support stack extension. 
 
-3) AOT
-The Ahead Of Time compiler is not currently supported.
+3) GAC
+The Global Assembly Cache is supported and comes ready populated with the
+same assemblies as installed in Linux. A utility, gacutil, is provided to
+access it.
 
-4) GAC
-The Global Assembly Cache is not currently supported.
+4) AOT
+The Ahead Of Time compiler is not currently supported.
 
 5) Although there are many dll assemblies included, a lot depend on external
 C shared libraries in order to function. So, for example, the Cairo dll
@@ -147,8 +149,8 @@ Building RISC OS Mono
 Building Mono with the GCCSDK Autobuilder is complicated by the fact that
 some components are themselves written in C# and require a compiler to
 be installed already. Normally this would just be a case of installing
-Mono natively on the host machine, however, there can be problems problems
-due to mismatched runtimes and/or bugs. For example, Ubuntu 10.10 and 11.04
+Mono natively on the host machine, however, there can be problems due
+to mismatched runtimes and/or bugs. For example, Ubuntu 10.10 and 11.04
 both contain V2.6.7 of Mono, but this version causes segmentation faults
 when building RISC OS Mono. If you have a later version of Ubuntu or your
 distro of choice contains at least version 2.10 of Mono, then you should
@@ -165,6 +167,12 @@ program has hung.
 There may be an issue with exception handling whereby on stack extension,
 the caller registers are not present in the new stack chunk, but I've yet to
 see this actually occur.
+
+Mono is currently built to output floating point instructions for use with
+the floating point emulator. This clashes with UnixLib which uses the soft
+float option, meaning it uses its own routines to perform floating point
+operations. At the time I was trying to get mono to build, hardware FP was
+the only option that worked. I hope to fix this.
 
 Glossary
 --------

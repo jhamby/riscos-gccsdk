@@ -49,20 +49,74 @@ build_riscosdotnet() {
 ab_make() {
   echo "Reconfiguring EGLib for RISC OS..."
   pushd . >/dev/null
-  cd eglib && $AB_CONFIG 'CPPFLAGS_FOR_EGLIB=' 'CFLAGS_FOR_EGLIB=-O3'
+    cd eglib && $AB_CONFIG 'CPPFLAGS_FOR_EGLIB=' 'CFLAGS_FOR_EGLIB=-O3'
   popd >/dev/null
 
   $AB_MAKE -j3 install
 
+  # In a native Linux build, the class libraries, compilers and other tools are
+  # built automatically. However here, I suspect the build system detects that
+  # mono is cross compiled and therefore not executable and does not go any
+  # further than the mono binary. So we build them separately, having used some
+  # trial and error to work out what to pass to make.
   pushd . >/dev/null
-  cd mcs
-  # Parallel building using -j can cause:
-  # error CS0006: Metadata file `../../class/lib/net_2_0/Mono.Cecil.dll' could not be found
-  # when building mono-api-info.exe
-  $AB_MAKE NO_DIR_CHECK=1 PROFILES='net_2_0 net_3_5 net_4_0' all-profiles install MONO_VERSION=$MONO_VERSION
+    cd mcs
+    # Parallel building using -j can cause:
+    # error CS0006: Metadata file `../../class/lib/net_2_0/Mono.Cecil.dll' could not be found
+    # when building mono-api-info.exe
+    $AB_MAKE NO_DIR_CHECK=1 PROFILES='net_2_0 net_3_5 net_4_0' all-profiles install MONO_VERSION=$MONO_VERSION
+
+    # Make sure profiles 3.5 & 4.0 are installed
+    $AB_MAKE NO_DIR_CHECK=1 PROFILE=net_3_5 install MONO_VERSION=$MONO_VERSION
+    $AB_MAKE NO_DIR_CHECK=1 PROFILE=net_4_0 install MONO_VERSION=$MONO_VERSION
   popd >/dev/null
 
   build_riscosdotnet
+}
+
+# $1 = source profile directory
+# $2 = destination profile directory
+copy_gac() {
+  mkdir -p $2
+
+  echo Symlinking dll assemblies for .net ${1##*/} framework
+
+  # Symlinks from the profile directory to the GAC.
+  for file in $( ls "$1" ); do
+    if [ -L "$1/$file" ]; then
+      ux_link=$(readlink $1/$file)
+      ro_link=$(echo $(echo $ux_link | sed -e 's|..|^|') | tr /. ./)
+      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_link $2/$file,1C8
+    else
+      # If a dll assembly is not symlinked then copy it (only mscorlib.dll I think).
+      ext=${file##*.}
+      if [ "$ext" = "dll" ]; then
+	cp -T "$1/$file" "$2/$file"
+      fi
+    fi
+  done
+
+  echo Copying dll assemblies for .net ${1##*/} framework
+
+  # Copy assemblies that are symlinked and in the GAC.
+  # Define the start of the path that we need to delete from all filenames found.
+  mono_lib_dir=$GCCSDK_INSTALL_ENV/lib/mono/
+  # Search the gac directory for all .dll files.
+  for file in `find "$GCCSDK_INSTALL_ENV/lib/mono/gac" -name "*.dll"`; do
+    # Extract the end of the filename after and including the gac directory.
+    gac_file=$(echo ${file#$mono_lib_dir})
+    mkdir -p $A/lib/mono/`dirname "$gac_file"`
+    cp -T "$file" "$A/lib/mono/$gac_file"
+  done
+}
+
+# $1 = profile
+copy_framework_exes() {
+  echo Copying exe files for .net $1 framework
+
+  for file in `find "$GCCSDK_INSTALL_ENV/lib/mono/$1" -name "*.exe"`; do
+    cp -T "$GCCSDK_INSTALL_ENV/lib/mono/$1/`basename $file`" "$A/lib/mono/$1/`basename $file`,A7D";
+  done
 }
 
 ab_package() {
@@ -77,41 +131,25 @@ ab_package() {
   if [ -e $S/mono/mini/mono-sgen$AB_EXEEXT ]; then
     cp $S/mono/mini/mono-sgen$AB_EXEEXT $A/bin/
   fi
-  
-  mkdir -p $A/lib/mono/2.0
 
-  # Copy dll assemblies for .net 2.0 framework
-  cp $S/mcs/class/lib/net_2_0/*.dll $A/lib/mono/2.0/
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/2.0" "$A/lib/mono/2.0"
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/3.5" "$A/lib/mono/3.5"
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/4.0" "$A/lib/mono/4.0"
 
-  # Copy exe binaries for .net 2.0 framework
-  for file in `find "$S/mcs/class/lib/net_2_0" -name "*.exe"`;
-    do cp -T "$S/mcs/class/lib/net_2_0/`basename $file`" "$A/lib/mono/2.0/`basename $file`,A7D";
-  done
+  copy_framework_exes "2.0"
+  copy_framework_exes "3.5"
+  copy_framework_exes "4.0"
 
   # This is cheating a bit. The mcs compiler is built in the basic profile and in a
   # native Linux build is installed in lib/mono/2.0, but I can't get the same result
   # here so we'll copy it from there.
   cp -T "$S/mcs/class/lib/basic/mcs.exe" "$A/lib/mono/2.0/mcs.exe,A7D"
 
-  mkdir -p $A/lib/mono/3.5
-
-  # Copy dll assemblies for .net 3.5 framework
-  cp $S/mcs/class/lib/net_3_5/*.dll $A/lib/mono/3.5/
-
-  # Copy exe binaries for .net 3.5 framework
-  for file in `find "$S/mcs/class/lib/net_3_5" -name "*.exe"`;
-    do cp -T "$S/mcs/class/lib/net_3_5/`basename $file`" "$A/lib/mono/3.5/`basename $file`,A7D";
-  done
-
-  mkdir -p $A/lib/mono/4.0
-
-  # Copy dll assemblies for .net 4.0 framework
-  cp $S/mcs/class/lib/net_4_0/*.dll $A/lib/mono/4.0/
-
-  # Copy exe binaries for .net 4.0 framework
-  for file in `find "$S/mcs/class/lib/net_4_0" -name "*.exe"`;
-    do cp -T "$S/mcs/class/lib/net_4_0/`basename $file`" "$A/lib/mono/4.0/`basename $file`,A7D";
-  done
+  # Copy config files
+  mkdir -p $A/etc/mono/2.0 $A/etc/mono/4.0
+  cp "$GCCSDK_INSTALL_ENV/etc/mono/2.0/machine.config" "$A/etc/mono/2.0/"
+  cp "$GCCSDK_INSTALL_ENV/etc/mono/4.0/machine.config" "$A/etc/mono/4.0/"
+  cp "$GCCSDK_INSTALL_ENV/etc/mono/config" "$A/etc/mono/"
 
   # Copy the riscos assembly
   cp -T $S/libriscosdotnet/assembly/riscos.dll $A/lib/riscos.dll
@@ -125,3 +163,6 @@ ab_package() {
   cp -T "$S/libriscosdotnet/build/src/.libs/libriscosdotnet.1.0.0.so" "$so_lib_installdir/libriscosdotnet.1.0.0.so,E1F"
   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f libriscosdotnet/1/0/0/so $so_lib_installdir/libriscosdotnet.so.1,1C8
 }
+
+# Regenerate configure from the patched configure.in
+autoconf
