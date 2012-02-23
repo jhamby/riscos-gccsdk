@@ -168,12 +168,6 @@ There may be an issue with exception handling whereby on stack extension,
 the caller registers are not present in the new stack chunk, but I've yet to
 see this actually occur.
 
-Mono is currently built to output floating point instructions for use with
-the floating point emulator. This clashes with UnixLib which uses the soft
-float option, meaning it uses its own routines to perform floating point
-operations. At the time I was trying to get mono to build, hardware FP was
-the only option that worked. I hope to fix this.
-
 Glossary
 --------
 AOT		Ahead Of Time compiler. Compiles code at build time for reuse.

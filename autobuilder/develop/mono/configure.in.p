@@ -1,5 +1,5 @@
 --- configure.in.orig	2011-12-19 21:09:17.000000000 +0000
-+++ configure.in	2012-02-18 13:25:26.000000000 +0000
++++ configure.in	2012-02-21 15:51:48.000000000 +0000
 @@ -313,6 +313,14 @@
  		libgc_threads=pthreads
  		use_sigposix=yes
@@ -24,7 +24,7 @@
 +		arch_target=arm;
 +		ACCESS_UNALIGNED="no"
 +		JIT_SUPPORTED=yes
-+		CPPFLAGS="$CPPFLAGS -DARM_FPU_FPA"
++		CPPFLAGS="$CPPFLAGS -DARM_FPU_NONE"
 +		jit_wanted=true
 +		sgen_supported=true
 +		LIBC="libunixlib.so.5"
