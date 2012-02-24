@@ -9,7 +9,21 @@ If "<Mono$Path>" = "" Then Set Run$Path <Run$Path>,Mono:bin.
 
 Set Mono$Path <Mono$Dir>.
 
-Set MONO_DEBUG explicit-null-checks
+Set Mono$Debug explicit-null-checks
+
+| Mono$CPUArch
+| Set version of CPU architecture targeted by the JIT.
+| Options are armv5, armv6 and armv7.
+| If not set, then armv4 is assumed.
+|
+| Set Mono$CPUArch armv5
+
+| Mono$EnvOptions
+| If set, used as a source of command line arguments that
+| are passed to Mono before the command line arguments
+| specified in the command line.
+|
+| Set Mono$EnvOptions --verbose
 
 IconSprites <Mono$Dir>.!Sprites22
 

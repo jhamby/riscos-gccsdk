@@ -57,6 +57,16 @@ Some useful command line options that are known to work are:
 --stats
 	When the program exits, output a list of statistics.
 
+System variables
+----------------
+Mono$EnvOptions (Linux version: MONO_ENV_OPTIONS)
+	If set, used as a source of command line arguments that are passed to
+	Mono before the command line arguments specified in the command line.
+
+Mono$CPUArch (Linux version: MONO_CPU_ARCH)
+	Sets the version of the CPU architecture targeted by the JIT. Valid
+	options are armv5, armv6 and armv7. If this variable is not set, then
+	armv4 is assumed.
 
 Using the C# compilers
 ----------------------
