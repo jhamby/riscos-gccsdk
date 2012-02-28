@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2003-2008 GCCSDK Developers
+ * Copyright (c) 2003-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -69,10 +69,28 @@ strncasecmp (const char *str1, const char *str2, size_t n)
   do
     {
       i = *str1++, j = *str2++;
-      i = toupper (i);
-      j = toupper (j);
+      i = tolower (i);
+      j = tolower (j);
     }
   while (i && i == j && --n);
+
+  return i - j;
+}
+#endif
+
+#if !defined (HAVE_STRNCASECMP)
+int
+strcasecmp (const char *str1, const char *str2)
+{
+  int i, j;
+
+  do
+    {
+      i = *str1++, j = *str2++;
+      i = tolower (i);
+      j = tolower (j);
+    }
+  while (i && i == j);
 
   return i - j;
 }

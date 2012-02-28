@@ -8,7 +8,7 @@ AC_PROG_CC
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 AC_HEADER_STDC
-AC_CHECK_FUNCS(strdup strndup strncasecmp)
+AC_CHECK_FUNCS(strdup strndup strncasecmp strcasecmp)
 AC_CHECK_HEADERS([stddef.h stdint.h stdlib.h string.h])
 AC_C_BIGENDIAN
 AC_C_CONST

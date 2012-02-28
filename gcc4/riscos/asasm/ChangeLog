@@ -1,3 +1,12 @@
+Wed Feb 29 00:58:58 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac (AC_CHECK_FUNCS): Add strcasecmp.
+	* area.c, input.c: Add include alloca.h.
+	* strdup.c (strncasecmp): Character comparison should happen on
+	lowercase characters.
+	(strcasecmp): Add.
+	* phase.h, predef_reg.h: Add terminating newline.
+
 Sun Feb 12 23:34:02 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
   	* regression/tests_pass/operator_reverse_cc.s: Add.

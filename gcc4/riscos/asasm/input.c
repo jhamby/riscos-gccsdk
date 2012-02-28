@@ -22,6 +22,7 @@
 
 #include "config.h"
 
+#include <alloca.h>
 #include <assert.h>
 #include <ctype.h>
 #include <stdbool.h>
