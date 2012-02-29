@@ -10,6 +10,7 @@ ab_package () {
 
   mkdir $A/docs
 
+  rman -f HTML $S/DOCS/man/en/mplayer.1 >$A/docs/mplayer.html,faf
   cp -av $S/DOCS/tech/* $A/docs
   cp -av $S/AUTHORS $S/README $S/Copyright $S/LICENSE $S/Changelog $A
 
