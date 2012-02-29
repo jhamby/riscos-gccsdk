@@ -1,0 +1,17 @@
+
+AB_SVN=svn://svn.mplayerhq.hu/mplayer/trunk
+AB_PVERSION=svn-$(date +%Y%m%d)
+
+AB_CONFLAGS='--enable-sdl --disable-x11 --disable-armv5te --disable-armv6t2 --disable-armv6 --extra-cflags='-I$GCCSDK_INSTALL_ENV/include' --extra-ldflags='-L$GCCSDK_INSTALL_ENV/lib' --enable-menu --disable-dvdnav --disable-dvdread --disable-mpg123 --disable-dvdread-internal --disable-ossaudio --enable-static'
+
+ab_package () {
+  ab_create_command_app MPlayer Apps/Audio
+  ab_add_commands $S/mencoder$AB_EXEEXT $S/mplayer$AB_EXEEXT
+
+  mkdir $A/docs
+
+  cp -av $S/DOCS/tech/* $A/docs
+  cp -av $S/AUTHORS $S/README $S/Copyright $S/LICENSE $S/Changelog $A
+
+  $AB_HOME/add-riscpkg -unixlib -name MPlayer -copyrightfile $S/Copyright
+}

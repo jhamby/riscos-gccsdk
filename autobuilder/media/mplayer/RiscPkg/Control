@@ -1,0 +1,13 @@
+License: Free
+Description: Multimedia player and encoder
+ MPlayer plays most MPEG, VOB, AVI, Ogg/OGM, VIVO,
+ ASF/WMA/WMV, QT/MOV/MP4, FLI, RM, NuppelVideo, yuv4mpeg, FILM, RoQ,
+ PVA files, supported by many native, XAnim, RealPlayer, and Win32 DLL codecs.
+ It can also play VideoCD, SVCD, DVD, 3ivx, RealMedia, and DivX movies.
+
+ This package also contains mencoder, a simple movie encoder, designed to
+ encode MPlayer-playable movies
+ (AVI/ASF/OGG/DVD/VCD/VOB/MPG/MOV/VIV/FLI/RM/NUV/NET) to other
+ MPlayer-playable formats. It can encode with various codecs, like DivX4
+ (1 or 2 passes), libavcodec, PCM/MP3/VBRMP3 audio. Also has stream
+ copying and video resizing abilities.

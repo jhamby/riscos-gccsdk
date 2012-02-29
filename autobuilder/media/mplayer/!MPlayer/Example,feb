@@ -1,0 +1,7 @@
+if "<File$Type_FB2>" = "" then Set File$Type_FB2 "AVI"
+if "<File$Type_BF8>" = "" then Set File$Type_BF8 "MPEG"
+if "<File$Type_A8D>" = "" then Set File$Type_A8D "VOB"
+Set Alias$@RunType_BF8 Run <Obey$Dir>.Example %%*0
+Set Alias$@RunType_FB2 Run <Obey$Dir>.Example %%*0
+Set Alias$@RunType_A8D Run <Obey$Dir>.Example %%*0
+mplayer -quiet -framedrop %*0 1><Obey$Dir>.stdout 2><Obey$Dir>.stderr

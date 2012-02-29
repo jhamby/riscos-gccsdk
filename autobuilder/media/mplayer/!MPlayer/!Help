@@ -1,0 +1,34 @@
+MPlayer - The Movie Player
+
+This RISC OS version was created by the GCCSDK Autobuilder
+
+See the "doc" subdirectory for more documentation or the official mplayer
+website at http://www.mplayerhq.hu
+
+Getting Started
+---------------
+There is an obey file 'Example' included in the !MPlayer folder.
+Double-clicking on this will enable certain file types to be automatically
+played in mplayer.
+
+History
+-------
+RISC OS Version 1.00 (29-Feb-12)
+- this is the initial version of mplayer/mencoder built for RISC OS.
+
+Issues
+------
+Its slow. But what did you expect. What it will do is make a passable attempt at
+playing any file you throw at it without collapsing in a heap.
+
+If you find a file that doesn't play feel free to contact me on the email
+below. It may be the required library is not linked into the executable.
+
+Faster Version
+------------
+If you have omap3/4 based hardware. This currently includes Beagleboard and Pandaboard based machines. There is a further optimised version. Contact me on the below email address if you would like to try it.
+For best results run on a Pandaboard ES at 1200MHz.
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net
