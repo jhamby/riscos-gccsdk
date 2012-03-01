@@ -1,21 +1,18 @@
 
-AB_URL=https://github.com/downloads/clintbellanger/flare/flare_src_v014.zip
-AB_PVERSION=0.14
+AB_URL=https://github.com/downloads/clintbellanger/flare/flare_linux_v015_1.tar.gz
+AB_PVERSION=0.15.1
 
-cp $H/Makefile flare/src
-
-cd flare/src
+cp $H/Makefile $S
 
 ab_package() {
   ab_create_app Flare Apps/Games  
   ab_makerun $S/flare
     
-  cp -av ../animations ../enemies ../engine ../fonts ../images ../items ../maps ../music ../npcs  $A/
-  cp -av ../powers ../quests ../soundfx ../tilesetdefs  $A/
+  cp -av mods $A
+  cp -av tiled $A
+  cp -av README COPYING  $A/
  
-  cp -av ../README ../credits.html $A/
- 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
   
 }
 
