@@ -1,3 +1,35 @@
+Sat Mar  3 00:28:46 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/nop_new_style.s: Rename to...
+	* regression/tests_pass/instr_nop_new_style.s: ...this.  Add Thumb
+	test.
+	* regression/tests_pass/nop_old_style.s: Rename to...
+	* regression/tests_pass/instr_nop_old_style.s: ...this.
+	* regression/tests_pass/instr_und.s: Add.
+	* regression/tests_pass/builtinvar_linenum.s: Improve comment.
+	* put.c, put.h (Put_InsWithOffset, Put_Ins): Add 'size' parameter.
+	* decode.c (po_void, po_void_pm): Change return value type back to bool.
+	(decode_table_t): Add updateMap field.
+	(oDecodeTable): Update.  Add UND.
+	(IsARMOrThumbInstr): Add.
+	(decode): Fix assert.  Follow po_void/po_void_pm/decode_table_t changes.
+	* decode.h (Rslt_e): Remove.
+	* m_cpuctrl.c, m_cpuctrl.h, help_cop.c, m_cop.c, m_cop.h, m_cpumem.c,
+	m_cpumem.h, m_cpu.c, m_cpu.h, m_fpe.c, m_fpe.h, m_copmem.c, m_copmem.h,
+	directive_data.c, directive_data.h: Follow above changes.
+	* directive_data.c (DefineInt_RelocUpdater, DefineInt): Support swapHalfwords.
+	(c_dci): Support 2 byte Thumb instructions.
+	* directive_data.h (DefineInt_PrivData_t): Add swapHalfwords field.
+	* lit.c (Lit_DumpPool): Follow DefineInt_PrivData_t change.
+	* option.c (Option_GetInstrWidth): Fix implementation.
+	(IsEndOfKeyword): Fix width specification parsing.
+	* area.c (Area_MarkStartAs): Simplify.
+	* m_cpu.c (m_nop): Support Thumb.
+	(m_und): Add.
+	* targetcpu.c, targetcpu.h (Target_CheckFeature): Add dummy
+	implementation
+	* targetcpu.h (Arch_Feature_e): Add.
+
 Fri Mar  2 16:16:18 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/symbols.s: Add test on redefining same symbol.

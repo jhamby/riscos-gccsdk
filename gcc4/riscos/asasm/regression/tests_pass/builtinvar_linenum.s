@@ -1,6 +1,6 @@
 ; Tests built-in variables {LINENUM}, {LINENUMUP} and {LINENUMUPPER}.
 
-; Watch out add/removing lines in this test ;-)
+; Watch out when adding and/or removing lines in this test ;-)
 
 	MACRO
 	Top

@@ -26,9 +26,9 @@
 
 #include "decode.h"
 
-Rslt_e m_ldc (bool doLowerCase);
-Rslt_e m_ldc2 (bool doLowerCase);
-Rslt_e m_stc (bool doLowerCase);
-Rslt_e m_stc2 (bool doLowerCase);
+bool m_ldc (bool doLowerCase);
+bool m_ldc2 (bool doLowerCase);
+bool m_stc (bool doLowerCase);
+bool m_stc2 (bool doLowerCase);
 
 #endif

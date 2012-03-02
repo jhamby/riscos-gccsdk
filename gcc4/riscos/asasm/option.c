@@ -162,11 +162,11 @@ GetCCode (bool doLowerCase)
 InstrWidth_e
 Option_GetInstrWidth (bool doLowerCase)
 {
-  if (Input_MatchString (doLowerCase ? ".w" : ".W") && Input_IsEndOfKeyword ())
+  if (Input_MatchKeyword (doLowerCase ? ".w" : ".W"))
     return eInstrWidth_Enforce32bit;
-  if (Input_MatchString (doLowerCase ? ".n" : ".N") && Input_IsEndOfKeyword ())
+  if (Input_MatchKeyword (doLowerCase ? ".n" : ".N"))
     return eInstrWidth_Enforce16bit;
-  return eInstrWidth_NotSpecified;
+  return Input_IsEndOfKeyword () ? eInstrWidth_NotSpecified : eInstrWidth_Unrecognized;
 }
 
 
@@ -260,7 +260,7 @@ IsEndOfKeyword (ARMWord option)
 {
   if (option == kOption_NotRecognized)
     return option;
-  return Input_IsEndOfKeyword () || Input_Match ('.', false) ? option : kOption_NotRecognized;
+  return (Input_IsEndOfKeyword () || inputLook () == '.') ? option : kOption_NotRecognized;
 }
 
 

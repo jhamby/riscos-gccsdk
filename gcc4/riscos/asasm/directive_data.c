@@ -41,7 +41,7 @@
 /**
  * Implements ALIGN [<power-of-2> [, <offset>]]
  */
-Rslt_e
+bool
 c_align (void)
 {
   skipblanks ();
@@ -104,16 +104,16 @@ c_align (void)
   while (bytesToStuff--)
     areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = 0;
 
-  return eRslt_None;
+  return false;
 }
 
 /**
  * Implements DATA (as nop).
  */
-Rslt_e
+bool
 c_data (void)
 {
-  return eRslt_None;
+  return false;
 }
 
 /**
@@ -307,6 +307,8 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
       assert (!relocs && !relative);
     }
   armValue = Fix_Int (fileName, lineNum, privDataP->size, armValue);
+  if (privDataP->size == 4 && privDataP->swapHalfwords)
+    armValue = (armValue >> 16) | (armValue << 16);
   Put_AlignDataWithOffset (offset, privDataP->size, armValue, 1,
                            !privDataP->allowUnaligned);
   
@@ -314,12 +316,13 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 }
 
 static void
-DefineInt (int size, bool allowUnaligned, const char *mnemonic)
+DefineInt (int size, bool allowUnaligned, bool swapHalfwords, const char *mnemonic)
 {
   DefineInt_PrivData_t privData =
     {
       .size = size,
-      .allowUnaligned = allowUnaligned
+      .allowUnaligned = allowUnaligned,
+      .swapHalfwords = swapHalfwords
     };
   do
     {
@@ -356,50 +359,50 @@ DefineInt (int size, bool allowUnaligned, const char *mnemonic)
  * Implements DCB and = (8 bit integer).
  * "Define Constant Byte"
  */
-Rslt_e
+bool
 c_dcb (void)
 {
-  DefineInt (1, true, "DCB or =");
-  return eRslt_Data;
+  DefineInt (1, true, false, "DCB or =");
+  return false;
 }
 
 /**
  * Implements DCW, DCWU (16 bit integer).
  * "Define Constant Word"
  */
-Rslt_e
+bool
 c_dcw (bool doLowerCase)
 {
   bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
   if (!Input_IsEndOfKeyword ())
-    return eRslt_NotRecognized;
-  DefineInt (2, allowUnaligned, allowUnaligned ? "DCWU" : "DCW");
-  return eRslt_Data;
+    return true;
+  DefineInt (2, allowUnaligned, false, allowUnaligned ? "DCWU" : "DCW");
+  return false;
 }
 
 /**
  * Implements & (32 bit integer).
  * "Define Constant Double-word"
  */
-Rslt_e
+bool
 c_ampersand (void)
 {
-  DefineInt (4, false, "&");
-  return eRslt_Data;
+  DefineInt (4, false, false, "&");
+  return false;
 }
 
 /**
  * Implements DCD and DCDU (32 bit integer).
  * "Define Constant Double-word"
  */
-Rslt_e
+bool
 c_dcd (bool doLowerCase)
 {
   bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
   if (!Input_IsEndOfKeyword ())
-    return eRslt_NotRecognized;
-  DefineInt (4, allowUnaligned, allowUnaligned ? "DCDU" : "DCD");
-  return eRslt_Data;
+    return true;
+  DefineInt (4, allowUnaligned, false, allowUnaligned ? "DCDU" : "DCD");
+  return false;
 }
 
 
@@ -407,29 +410,34 @@ c_dcd (bool doLowerCase)
  * Implements DCI : "Define Constant Instruction"
  *   {label} DCI{.W} expr{,expr}
  * In ARM code: align to 4 bytes and write 4-byte value(s).
- * In thumb code: align to 2 bytes and write 2-byte value(s).
+ * In Thumb code: align to 2 bytes and write 2-byte value(s).
  */
-Rslt_e
+bool
 c_dci (bool doLowerCase)
 {
   InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
   unsigned alignValue;
   int instructionSize;
+  bool swapHalfwords;
   if (State_GetInstrType () == eInstrType_ARM)
     {
       alignValue = 4;
       instructionSize = 4;
+      swapHalfwords = false;
     }
   else
     {
       alignValue = 2;
-      /* In Thumb mode, with DCI we're writing 2 byte instructions bye default
+      /* In Thumb mode, with DCI we're writing 2 byte instructions by default
          unless .W is explictly mentioned.  */
       instructionSize = instrWidth == eInstrWidth_Enforce32bit ? 4 : 2;
+      swapHalfwords = true;
     }
   Area_AlignArea (areaCurrentSymbol, alignValue, "instruction");
-  DefineInt (instructionSize, true, "DCI");
-  return alignValue == 4 ? eRslt_ARM : eRslt_Thumb;
+  DefineInt (instructionSize, true, swapHalfwords, "DCI");
+  return false;
 }
 
 
@@ -516,28 +524,28 @@ DefineReal (int size, bool allowUnaligned, const char *mnemonic)
  * Implements DCFS / DCFSU (IEEE Single Precision).
  * "Define Constant Float-single precision"
  */
-Rslt_e
+bool
 c_dcfs (bool doLowerCase)
 {
   bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
   if (!Input_IsEndOfKeyword ())
-    return eRslt_NotRecognized;
+    return true;
   DefineReal (4, allowUnaligned, allowUnaligned ? "DCFSU" : "DCFS");
-  return eRslt_Data;
+  return false;
 }
 
 /**
  * Implements DCFD / DCFDU (IEEE Double Precision).
  * "Define Constant Float-double precision"
  */
-Rslt_e
+bool
 c_dcfd (bool doLowerCase)
 {
   bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
   if (!Input_IsEndOfKeyword ())
-    return eRslt_NotRecognized;
+    return true;
   DefineReal (8, allowUnaligned, allowUnaligned ? "DCFDU" : "DCFD");
-  return eRslt_Data;
+  return false;
 }
 
 
@@ -602,11 +610,11 @@ ReserveSpace (bool isFill)
  * Implements 'FILL'.
  *   {label} FILL <expr> {,<value>{,<valuesize>}}
  */
-Rslt_e
+bool
 c_fill (void)
 {
   ReserveSpace (true);
-  return eRslt_Data;
+  return false;
 }
 
 
@@ -615,9 +623,9 @@ c_fill (void)
  *   {label} % <expr>
  *   {label} SPACE <expr>
  */
-Rslt_e
+bool
 c_reserve (void)
 {
   ReserveSpace (false);
-  return eRslt_Data;
+  return false;
 }

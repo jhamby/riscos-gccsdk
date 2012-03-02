@@ -53,6 +53,12 @@ typedef enum
   ARCH_ARMv7M		/* Jazelle, Thumb-2EE */
 } ARM_eArchitectures;
 
+typedef enum
+{
+  eFeature_Thumb,
+  eFeature_Thumb2
+} Arch_Feature_e;
+
 bool Target_NeedAtLeastArch (ARM_eArchitectures arch);
 
 bool Target_SetCPU (const char *cpu);
@@ -60,5 +66,7 @@ bool Target_SetCPU (const char *cpu);
 const char *Target_GetCPU (void);
 const char *Target_GetArchAsString (void);
 ARM_eArchitectures Target_GetArch (void);
+
+void Target_CheckFeature (Arch_Feature_e feature);
 
 #endif

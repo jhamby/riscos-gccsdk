@@ -103,7 +103,7 @@ DestMem_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 		}
 	      else
 		return true;
-	      Put_InsWithOffset (offset, newIR);
+	      Put_InsWithOffset (offset, 4, newIR);
 	      break;
 	    }
 
@@ -113,7 +113,7 @@ DestMem_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	      if (isAddrMode3)
 		ir |= B_FLAG;
 	      ir = Fix_CPUOffset (fileName, lineNum, ir, valP->Data.Addr.i);
-	      Put_InsWithOffset (offset, ir);
+	      Put_InsWithOffset (offset, 4, ir);
 	      break;
 	    }
 
@@ -137,7 +137,7 @@ DestMem_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
  *
  * Similar to help_copAddr() @ help_cop.c.
  */
-static Rslt_e
+static bool
 dstmem (ARMWord ir, const char *mnemonic)
 {
   bool isAddrMode3;
@@ -368,7 +368,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	}
     }
 
-  Put_Ins (ir);
+  Put_Ins (4, ir);
 
   if (gPhase != ePassOne)
     {
@@ -383,7 +383,7 @@ dstmem (ARMWord ir, const char *mnemonic)
 	error (ErrorError, "Illegal %s expression", mnemonic);
     }
 
-  return eRslt_ARM;
+  return false;
 }
 	     
 
@@ -408,16 +408,16 @@ dstmem (ARMWord ir, const char *mnemonic)
  *   LDRSB[<cond>] <Rd>, <address mode 3> | <pc relative label>
  *   LDRSH[<cond>] <Rd>, <address mode 3> | <pc relative label>
  */
-Rslt_e
+bool
 m_ldr (bool doLowerCase)
 {
   ARMWord cc = Option_LdrStrCondAndType (false, doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
   return dstmem (cc, "LDR");
 }
 
-static Rslt_e
+static bool
 LdrStrEx (bool isLoad, bool doLowerCase)
 {
   enum { wtype = 0x18<<20, dtype = 0x1A<<20, btype = 0x1C<<20, htype = 0x1E<<20 } type;
@@ -443,7 +443,7 @@ LdrStrEx (bool isLoad, bool doLowerCase)
 
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
 
   if (type == wtype)
     Target_NeedAtLeastArch (ARCH_ARMv6);
@@ -459,61 +459,61 @@ LdrStrEx (bool isLoad, bool doLowerCase)
     {
       regD = getCpuReg ();
       if (regD == INVALID_REG)
-	return eRslt_ARM;
+	return false;
       skipblanks ();
       if (!Input_Match (',', true))
 	{
 	  error (ErrorError, "Missing ,");
-	  return eRslt_ARM;
+	  return false;
 	}
     }
 
   ARMWord regT = getCpuReg ();
   if (regT == INVALID_REG)
-    return eRslt_ARM;
+    return false;
   if (type == dtype && (regT & 1))
     error (ErrorError, "Register needs to be even");
   skipblanks ();
   if (!Input_Match (',', true))
     {
       error (ErrorError, "Missing ,");
-      return eRslt_ARM;
+      return false;
     }
 
   if (type == dtype)
     {
       ARMWord regT2 = getCpuReg ();
       if (regT2 == INVALID_REG)
-	return eRslt_ARM;
+	return false;
       if (regT2 != regT + 1)
 	error (ErrorError, "Registers are not consecutive");
       skipblanks ();
       if (!Input_Match (',', true))
 	{
 	  error (ErrorError, "Missing ,");
-	  return eRslt_ARM;
+	  return false;
 	}
     }
   
   if (!Input_Match ('[', true))
     {
       error (ErrorError, "Missing [");
-      return eRslt_ARM;
+      return false;
     }
   ARMWord regN = getCpuReg ();
   if (regN == INVALID_REG)
-    return eRslt_ARM;
+    return false;
   skipblanks ();
   if (!Input_Match (']', false))
     {
       error (ErrorError, "Missing ]");
-      return eRslt_ARM;
+      return false;
     }
   if (isLoad)
-    Put_Ins (cc | 0x00100F9F | type | (regN<<16) | (regT<<12));
+    Put_Ins (4, cc | 0x00100F9F | type | (regN<<16) | (regT<<12));
   else
-    Put_Ins (cc | 0x00000F90 | type | (regN<<16) | (regD<<12) | regT);
-  return eRslt_ARM;
+    Put_Ins (4, cc | 0x00000F90 | type | (regN<<16) | (regD<<12) | regT);
+  return false;
 }
 
 /**
@@ -523,7 +523,7 @@ LdrStrEx (bool isLoad, bool doLowerCase)
  *   LDREXH[<cond>] <Rd>, [<Rn>]
  *   LDREXD[<cond>] <Rd>, <Rd2>, [<Rn>]
  */
-Rslt_e
+bool
 m_ldrex (bool doLowerCase)
 {
   return LdrStrEx (true, doLowerCase);
@@ -550,12 +550,12 @@ m_ldrex (bool doLowerCase)
  *   STRSB[<cond>] <Rd>, <address mode 3> | <pc relative label>
  *   STRSH[<cond>] <Rd>, <address mode 3> | <pc relative label>
  */
-Rslt_e
+bool
 m_str (bool doLowerCase)
 {
   ARMWord cc = Option_LdrStrCondAndType (true, doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
   return dstmem (cc, "STR");
 }
 
@@ -566,7 +566,7 @@ m_str (bool doLowerCase)
  *   STREXH[<cond>] <Rd>, [<Rn>]
  *   STREXD[<cond>] <Rd>, <Rd2>, [<Rn>]
  */
-Rslt_e
+bool
 m_strex (bool doLowerCase)
 {
   return LdrStrEx (false, doLowerCase);
@@ -576,13 +576,13 @@ m_strex (bool doLowerCase)
 /**
  * Implements CLREX.
  */
-Rslt_e
+bool
 m_clrex (void)
 {
   if (Target_GetArch () != ARCH_ARMv6K)
     Target_NeedAtLeastArch (ARCH_ARMv7);
-  Put_Ins (0xF57FF01F);
-  return eRslt_ARM;
+  Put_Ins (4, 0xF57FF01F);
+  return false;
 }
 
 
@@ -596,7 +596,7 @@ m_clrex (void)
  *   PLI [<Rn>,+/-<Rm>{, <shift>}]
  */
 /* FIXME: support PLDW & PLI  */
-Rslt_e
+bool
 m_pl (bool doLowerCase)
 {
   enum { isPLD, isPLDW, isPLI } type;
@@ -610,10 +610,10 @@ m_pl (bool doLowerCase)
   else if (Input_Match (doLowerCase ? 'i' : 'I', false))
     type = isPLI;
   else
-    return eRslt_NotRecognized;
+    return true;
 
   if (!Input_IsEndOfKeyword ())
-    return eRslt_NotRecognized;
+    return true;
 
   /* FIXME: we don't check in case of isPLDW that ARMv7 has MP extensions
      enabled.  */
@@ -673,8 +673,8 @@ m_pl (bool doLowerCase)
       if (!Input_Match (']', true))
 	error (ErrorError, "Expected closing ]");
     }
-  Put_Ins(ir);
-  return eRslt_ARM;
+  Put_Ins (4, ir);
+  return false;
 }
 
 
@@ -783,21 +783,21 @@ dstreglist (ARMWord ir, bool isPushPop)
     }
   if (option_pedantic && (ir & L_FLAG) && (1 << 15) && Target_GetArch() == ARCH_ARMv4T)
     error (ErrorWarning, "ARMv4T does not switch ARM/Thumb state when LDM/POP specifies PC (use BX instead)");
-  Put_Ins (ir);
+  Put_Ins (4, ir);
 }
 
 
 /**
  * Implements LDM.
  */
-Rslt_e
+bool
 m_ldm (bool doLowerCase)
 {
   ARMWord cc = optionCondLdmStm (true, doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
   dstreglist (cc | 0x08100000, false);
-  return eRslt_ARM;
+  return false;
 }
 
 
@@ -806,28 +806,28 @@ m_ldm (bool doLowerCase)
  * (= LDM<cond>IA sp!, {...})
  * UAL syntax.
  */
-Rslt_e
+bool
 m_pop (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
   dstreglist (cc | STACKMODE_IA | 0x08100000, true);
-  return eRslt_ARM;
+  return false;
 }
 
 
 /**
  * Implements STM.
  */
-Rslt_e
+bool
 m_stm (bool doLowerCase)
 {
   ARMWord cc = optionCondLdmStm (false, doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
   dstreglist (cc | 0x08000000, false);
-  return eRslt_ARM;
+  return false;
 }
 
 
@@ -836,26 +836,26 @@ m_stm (bool doLowerCase)
  * (= STM<cond>DB sp!, {...})
  * UAL syntax.
  */
-Rslt_e
+bool
 m_push (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
   dstreglist (cc | STACKMODE_DB | 0x08000000, true);
-  return eRslt_ARM;
+  return false;
 }
 
 
 /**
  * Implements SWP.
  */
-Rslt_e
+bool
 m_swp (bool doLowerCase)
 {
   ARMWord cc = optionCondB (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv2a);
   if (option_pedantic && Target_GetArch () >= ARCH_ARMv6)
@@ -876,8 +876,8 @@ m_swp (bool doLowerCase)
   skipblanks ();
   if (!Input_Match (']', true))
     error (ErrorError, "Inserting missing ']'");
-  Put_Ins (ir);
-  return eRslt_ARM;
+  Put_Ins (4, ir);
+  return false;
 }
 
 typedef enum
@@ -957,13 +957,13 @@ GetBarrierType (void)
  * Implements DMB.
  * ARM DMB is unconditional.
  */
-Rslt_e
+bool
 m_dmb (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv7);
   Barrier_eType bl = GetBarrierType ();
-  Put_Ins (0xF57FF050 | bl);
-  return eRslt_ARM;
+  Put_Ins (4, 0xF57FF050 | bl);
+  return false;
 }
 
 
@@ -971,13 +971,13 @@ m_dmb (void)
  * Implements DSB.
  * ARM DSB is unconditional.
  */
-Rslt_e
+bool
 m_dsb (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv7);
   Barrier_eType bl = GetBarrierType ();
-  Put_Ins (0xF57FF040 | bl);
-  return eRslt_ARM;
+  Put_Ins (4, 0xF57FF040 | bl);
+  return false;
 }
 
 
@@ -985,15 +985,15 @@ m_dsb (void)
  * Implements ISB.
  * ARM ISB is unconditional.
  */
-Rslt_e
+bool
 m_isb (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv7);
   Barrier_eType bl = GetBarrierType ();
   if (option_pedantic && bl != BL_eSY)
     error (ErrorWarning, "Using reserved barrier type");
-  Put_Ins (0xF57FF060 | bl);
-  return eRslt_ARM;
+  Put_Ins (4, 0xF57FF060 | bl);
+  return false;
 }
 
 
@@ -1001,18 +1001,18 @@ m_isb (void)
  * Implements RFE.
  *   RFE{<amode>} <Rn>{!}
  */
-Rslt_e
+bool
 m_rfe (bool doLowerCase)
 {
   ARMWord option = Option_CondRfeSrs (true, doLowerCase);
   if (option == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv6);
 
   ARMWord regN = getCpuReg ();
   if (regN == INVALID_REG)
-    return eRslt_ARM;
+    return false;
   if (regN == 15)
     error (ErrorError, "Using PC as base register is unpredictable");
 
@@ -1021,8 +1021,8 @@ m_rfe (bool doLowerCase)
 
   if (updateStack)
     option |= W_FLAG;
-  Put_Ins (0xF8100A00 | option | (regN<<16));
-  return eRslt_ARM;
+  Put_Ins (4, 0xF8100A00 | option | (regN<<16));
+  return false;
 }
 
 
@@ -1031,12 +1031,12 @@ m_rfe (bool doLowerCase)
  *   SRS{<amode>} SP{!},#<mode>  : UAL syntax
  *   SRS{<amode>} #<mode>{!}     : pre-UAL syntax
  */
-Rslt_e
+bool
 m_srs (bool doLowerCase)
 {
   ARMWord option = Option_CondRfeSrs (false, doLowerCase);
   if (option == kOption_NotRecognized)
-    return eRslt_NotRecognized;
+    return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv6);
 
@@ -1047,23 +1047,23 @@ m_srs (bool doLowerCase)
       isUALSyntax = true;
       ARMWord sp = getCpuReg ();
       if (sp == INVALID_REG)
-	return eRslt_ARM;
+	return false;
       if (sp != 13)
 	{
 	  error (ErrorError, "SRS can only be used with stack register 13 (sp)");
-	  return eRslt_ARM;
+	  return false;
 	}
       skipblanks ();
       updateStack = Input_Match ('!', true);
       if (!Input_Match (',', true))
 	{
 	  error (ErrorError, "Missing ,");
-	  return eRslt_ARM;
+	  return false;
 	}
       if (!Input_Match ('#', false))
 	{
 	  error (ErrorError, "%s needs a mode specified", "SRS");
-	  return eRslt_ARM;
+	  return false;
 	}
     }
   else
@@ -1073,7 +1073,7 @@ m_srs (bool doLowerCase)
   if (im->Tag != ValueInt)
     {
       error (ErrorError, "Illegal immediate expression");
-      return eRslt_ARM;
+      return false;
     }
   int mode = im->Data.Int.i;
   if (!Option_IsValidARMMode (mode))
@@ -1090,7 +1090,7 @@ m_srs (bool doLowerCase)
 
   if (updateStack)
     option |= W_FLAG;
-  Put_Ins (0xF84D0500 | option | mode);
+  Put_Ins (4, 0xF84D0500 | option | mode);
 
-  return eRslt_ARM;
+  return false;
 }

@@ -627,7 +627,8 @@ Lit_DumpPool (void)
 	      DefineInt_PrivData_t privData =
 		{
 		  .size = (int) Lit_GetSizeInBytes (litP),
-		  .allowUnaligned = false
+		  .allowUnaligned = false,
+		  .swapHalfwords = false
 		};
 #ifdef DEBUG_LIT
 	      printf ("  Place at 0x%x value ", litP->offset);

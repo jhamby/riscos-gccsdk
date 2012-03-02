@@ -693,24 +693,24 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType typ
     {
       oArea_CurrentEntryType = type;
 
-      const char *baseMappingSymbol;
+      char baseMappingSymbol;
       switch (type)
 	{
 	  case eARM:
-	    baseMappingSymbol = "$a";
+	    baseMappingSymbol = 'a';
 	    break;
 	  case eData:
-	    baseMappingSymbol = "$d";
+	    baseMappingSymbol = 'd';
 	    break;
 	  case eThumb:
-	    baseMappingSymbol = "$t";
+	    baseMappingSymbol = 't';
 	    break;
 	  case eInvalid:
 	    break;
 	}
       size_t mappingSymbolSize = 2 + 1 + areaSymbol->len + 1 + 8 + 1;
       char *mappingSymbol = alloca (mappingSymbolSize);
-      int size = snprintf (mappingSymbol, mappingSymbolSize, "%s.%s.%08X",
+      int size = snprintf (mappingSymbol, mappingSymbolSize, "$%c.%s.%08X",
 			   baseMappingSymbol,
 			   areaSymbol->str,
 			   offset);

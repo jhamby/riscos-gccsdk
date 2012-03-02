@@ -29,22 +29,23 @@
 #include "global.h"
 #include "value.h"
 
-Rslt_e c_align (void);
-Rslt_e c_ampersand (void);
-Rslt_e c_data (void);
-Rslt_e c_dcb (void);
-Rslt_e c_dcw (bool doLowerCase);
-Rslt_e c_dcd (bool doLowerCase);
-Rslt_e c_dci (bool doLowerCase);
-Rslt_e c_dcfd (bool doLowerCase);
-Rslt_e c_dcfs (bool doLowerCase);
-Rslt_e c_fill (void);
-Rslt_e c_reserve (void);
+bool c_align (void);
+bool c_ampersand (void);
+bool c_data (void);
+bool c_dcb (void);
+bool c_dcw (bool doLowerCase);
+bool c_dcd (bool doLowerCase);
+bool c_dci (bool doLowerCase);
+bool c_dcfd (bool doLowerCase);
+bool c_dcfs (bool doLowerCase);
+bool c_fill (void);
+bool c_reserve (void);
 
 typedef struct
 {
   int size; /**< Size of the data unit : 1, 2 or 4.  */
   bool allowUnaligned; /**< Allow unaligned data storage.  */
+  bool swapHalfwords; /**< When size is 4, swap its two halfwords.  */
 } DefineInt_PrivData_t;
 
 typedef struct

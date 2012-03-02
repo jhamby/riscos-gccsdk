@@ -35,6 +35,7 @@
 #include "error.h"
 #include "main.h"
 #include "put.h"
+#include "state.h"
 
 
 /* FIXME: too similar as Fix_Int */
@@ -257,11 +258,17 @@ Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool ali
 }
 
 void
-Put_InsWithOffset (uint32_t offset, ARMWord ins)
+Put_InsWithOffset (uint32_t offset, unsigned size, ARMWord ins)
 {
-  offset = Area_AlignTo (offset, 4, "instruction");
+  offset = Area_AlignTo (offset, State_GetInstrType () == eInstrType_ARM ? 4 : 2, "instruction");
 
-  Put_DataWithOffset (offset, 4, ins, 1);
+  if (State_GetInstrType () != eInstrType_ARM && size == 4)
+    {
+      Put_DataWithOffset (offset + 0, 2, ins >> 16, 1);
+      Put_DataWithOffset (offset + 2, 2, ins & 0xFFFF, 1);
+    }
+  else
+    Put_DataWithOffset (offset, size, ins, 1);
 }
 
 /**
@@ -269,9 +276,9 @@ Put_InsWithOffset (uint32_t offset, ARMWord ins)
  * \entry ins ARM instruction value to be written.
  */
 void
-Put_Ins (ARMWord ins)
+Put_Ins (unsigned size, ARMWord ins)
 {
-  Put_InsWithOffset (areaCurrentSymbol->area.info->curIdx, ins);
+  Put_InsWithOffset (areaCurrentSymbol->area.info->curIdx, size, ins);
 }
 
 ARMWord

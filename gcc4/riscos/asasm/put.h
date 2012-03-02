@@ -29,8 +29,8 @@ void Put_Data (unsigned size, ARMWord data);
 void Put_AlignDataWithOffset (uint32_t offset, unsigned size, ARMWord data,
 			      uint32_t times, bool alignBefore);
 void Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool alignBefore);
-void Put_Ins (ARMWord ins);
-void Put_InsWithOffset (uint32_t offset, ARMWord data);
+void Put_Ins (unsigned size, ARMWord ins);
+void Put_InsWithOffset (uint32_t offset, unsigned size, ARMWord data);
 
 ARMWord GetWord (uint32_t offset);
 

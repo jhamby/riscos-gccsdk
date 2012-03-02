@@ -26,23 +26,23 @@
 
 #include "decode.h"
 
-Rslt_e m_adr (bool doLowerCase);
-Rslt_e m_bkpt (void);
-Rslt_e m_blx (bool doLowerCase);
-Rslt_e m_branch (bool doLowerCase);
-Rslt_e m_bx (bool doLowerCase);
-Rslt_e m_bxj (bool doLowerCase);
-Rslt_e m_mrs (bool doLowerCase);
-Rslt_e m_msr (bool doLowerCase);
-Rslt_e m_swi (bool doLowerCase);
+bool m_adr (bool doLowerCase);
+bool m_bkpt (void);
+bool m_blx (bool doLowerCase);
+bool m_branch (bool doLowerCase);
+bool m_bx (bool doLowerCase);
+bool m_bxj (bool doLowerCase);
+bool m_mrs (bool doLowerCase);
+bool m_msr (bool doLowerCase);
+bool m_swi (bool doLowerCase);
 
-Rslt_e m_sev (bool doLowerCase);
-Rslt_e m_wfe (bool doLowerCase);
-Rslt_e m_wfi (bool doLowerCase);
-Rslt_e m_yield (bool doLowerCase);
+bool m_sev (bool doLowerCase);
+bool m_wfe (bool doLowerCase);
+bool m_wfi (bool doLowerCase);
+bool m_yield (bool doLowerCase);
 
-Rslt_e m_cps (bool doLowerCase);
-Rslt_e m_dbg (bool doLowerCase);
-Rslt_e m_smc (bool doLowerCase);
+bool m_cps (bool doLowerCase);
+bool m_dbg (bool doLowerCase);
+bool m_smc (bool doLowerCase);
 
 #endif

@@ -25,20 +25,6 @@
 
 #include "lex.h"
 
-/* Return type used to decide if and which type of $d, $t and $a mapping
-   symbols needs to be defined.  */
-typedef enum
-{
-  eRslt_NotRecognized = 0, /* In a partial match callback, this is returned
-    when the partial match code fails to match the rest of the
-    directive/mnemonic.  */
-  eRslt_ARM   = 1, /* ARM instruction. Define $a mapping symbol.  */
-  eRslt_Data  = 2, /* Data. Define $d mapping symbol. */
-  eRslt_Thumb = 3, /* Thumb, Thumb-2, ThumbEE instruction. Define $t mapping
-    symbol */
-  eRslt_None  = 4  /* No mapping symbol define to be done.  */
-} Rslt_e;
-
 void decode (const Lex *label);
 void decode_finalcheck (void);
 

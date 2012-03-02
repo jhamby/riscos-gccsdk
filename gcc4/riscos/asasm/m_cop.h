@@ -26,13 +26,13 @@
 
 #include "decode.h"
 
-Rslt_e m_cdp (bool doLowerCase);
-Rslt_e m_cdp2 (void);
-Rslt_e m_mcr (bool doLowerCase);
-Rslt_e m_mcr2 (void);
-Rslt_e m_mcrr (bool doLowerCase);
-Rslt_e m_mrc (bool doLowerCase);
-Rslt_e m_mrc2 (void);
-Rslt_e m_mrrc (bool doLowerCase);
+bool m_cdp (bool doLowerCase);
+bool m_cdp2 (void);
+bool m_mcr (bool doLowerCase);
+bool m_mcr2 (void);
+bool m_mcrr (bool doLowerCase);
+bool m_mrc (bool doLowerCase);
+bool m_mrc2 (void);
+bool m_mrrc (bool doLowerCase);
 
 #endif

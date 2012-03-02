@@ -89,7 +89,7 @@ DestMem_RelocUpdaterCoPro (const char *fileName, unsigned lineNum, ARMWord offse
 	      ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
 	      ir |= LHS_OP (15);
 	      ir = Fix_CopOffset (fileName, lineNum, ir, newOffset);
-	      Put_InsWithOffset (offset, ir);
+	      Put_InsWithOffset (offset, 4, ir);
 	      break;
 	    }
 
@@ -124,7 +124,7 @@ DestMem_RelocUpdaterCoPro (const char *fileName, unsigned lineNum, ARMWord offse
 	        newIR |= M_MNF | im;
 	      else
 	        return true;
-	      Put_InsWithOffset (offset, newIR);
+	      Put_InsWithOffset (offset, 4, newIR);
 	      break;
 	    }
 
@@ -132,7 +132,7 @@ DestMem_RelocUpdaterCoPro (const char *fileName, unsigned lineNum, ARMWord offse
 	    {
 	      ir |= LHS_OP (valP->Data.Addr.r);
 	      ir = Fix_CopOffset (fileName, lineNum, ir, valP->Data.Addr.i);
-	      Put_InsWithOffset (offset, ir);
+	      Put_InsWithOffset (offset, 4, ir);
 	      break;
 	    }
 
@@ -359,7 +359,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
       ir |= 3 * preIndexOffset;
     }
 
-  Put_Ins (ir);
+  Put_Ins (4, ir);
 
   if (gPhase != ePassOne)
     {

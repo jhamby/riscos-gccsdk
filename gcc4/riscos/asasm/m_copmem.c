@@ -34,7 +34,7 @@
 #include "targetcpu.h"
 
 
-static Rslt_e
+static bool
 dstmem (ARMWord ir, bool literal)
 {
   ir |= CP_NUMBER (getCopNum ());
@@ -43,19 +43,19 @@ dstmem (ARMWord ir, bool literal)
     error (ErrorError, "%scoprocessor number", InsertCommaAfter);
   ir |= CPDST_OP (getCopReg ());
   help_copAddr (ir, literal, false);
-  return eRslt_ARM;
+  return false;
 }
 
 /**
  * Implements LDC.
  * LDC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5>
  */
-Rslt_e
+bool
 m_ldc (bool doLowerCase)
 {
   ARMWord cc = optionCondL (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;;
+    return true;
   return dstmem (cc | 0x0c100000, true);
 }
 
@@ -63,12 +63,12 @@ m_ldc (bool doLowerCase)
  * Implements LDC2.
  * LDC2{L} <coproc>, <CRd>, <addressing mode 5>
  */
-Rslt_e
+bool
 m_ldc2 (bool doLowerCase)
 {
   ARMWord cc = Input_Match (doLowerCase ? 'l' : 'L', false) ? N_FLAG : 0;
   if (!Input_IsEndOfKeyword ())
-    return eRslt_NotRecognized;;
+    return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv5);
   return dstmem (cc | 0x0c100000 | NV, true);
@@ -78,12 +78,12 @@ m_ldc2 (bool doLowerCase)
  * Implements STC.
  * STC{<cond>}{L} <coproc>, <CRd>, <addressing mode 5>
  */
-Rslt_e
+bool
 m_stc (bool doLowerCase)
 {
   ARMWord cc = optionCondL (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;;
+    return true;
   return dstmem (cc | 0x0c000000, false);
 }
 
@@ -91,12 +91,12 @@ m_stc (bool doLowerCase)
  * Implements STC2.
  * STC2{L} <coproc>, <CRd>, <addressing mode 5>
  */
-Rslt_e
+bool
 m_stc2 (bool doLowerCase)
 {
   ARMWord cc = Input_Match (doLowerCase ? 'l' : 'L', false) ? N_FLAG : 0;
   if (!Input_IsEndOfKeyword ())
-    return eRslt_NotRecognized;;
+    return true;
 
   Target_NeedAtLeastArch (ARCH_ARMv5);
   return dstmem (cc | 0x0c000000 | NV, false);

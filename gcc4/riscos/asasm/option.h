@@ -49,6 +49,7 @@ ARMWord optionAdrL (bool doLowerCase);
 
 typedef enum
 {
+  eInstrWidth_Unrecognized,
   eInstrWidth_NotSpecified,
   eInstrWidth_Enforce16bit, /* .N is specified. Thumb code: enforce 16bit (when
     not possible -> error).  ARM code : error.  */

@@ -4,4 +4,3 @@
 	GET	tests_pass/include/nop.s
 
 	END
-

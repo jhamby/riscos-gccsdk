@@ -278,3 +278,14 @@ Target_GetArch (void)
 {
   return oCoreArchSelectionP->arch;
 }
+
+
+/**
+ * Check if given feature is supported by the currently selected CPU/Architecture.
+ * If not, give an error.
+ */
+void
+Target_CheckFeature (Arch_Feature_e feature)
+{
+  /* FIXME: properly implement this.  */
+}

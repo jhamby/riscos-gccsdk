@@ -95,32 +95,32 @@ coprocessor (bool CopOnly, ARMWord ir, int maxop)
   skipblanks ();
   if (Input_Match (',', true))
     ir |= CP_INFO (CopInt (7, "coprocessor info"));
-  Put_Ins (ir);
+  Put_Ins (4, ir);
 }
 
 /**
  * Implements CDP.
  *   CDP<cond> p#, CPop, CPd, CPn, CPm {,<info>}
  */
-Rslt_e
+bool
 m_cdp (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;;
+    return true;
   coprocessor (true, cc | 0x0e000000, 15);
-  return eRslt_ARM;
+  return false;
 }
 
 /**
  * Implements CDP2.
  */
-Rslt_e
+bool
 m_cdp2 (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv5);
   coprocessor (true, 0xfe000000, 15);
-  return eRslt_ARM;
+  return false;
 }
 
 /** REGISTER TRANSFER **/
@@ -128,49 +128,49 @@ m_cdp2 (void)
 /**
  * Implements MCR.
  */
-Rslt_e
+bool
 m_mcr (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;;
+    return true;
   coprocessor (false, cc | 0x0e000010, 7);
-  return eRslt_ARM;
+  return false;
 }
 
 /**
  * Implements MCR2.
  */
-Rslt_e
+bool
 m_mcr2 (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv5);
   coprocessor (false, 0xfe000010, 7);
-  return eRslt_ARM;
+  return false;
 }
 
 /**
  * Implements MRC.
  */
-Rslt_e
+bool
 m_mrc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;;
+    return true;
   coprocessor (false, cc | 0x0e100010, 7);
-  return eRslt_ARM;
+  return false;
 }
 
 /**
  * Implements MRC2.
  */
-Rslt_e
+bool
 m_mrc2 (void)
 {
   Target_NeedAtLeastArch (ARCH_ARMv5);
   coprocessor (false, 0xfe100010, 7);
-  return eRslt_ARM;
+  return false;
 }
 
 static void
@@ -194,33 +194,33 @@ coprocessorr (ARMWord ir)
     error (ErrorError, "%slhs", InsertCommaAfter);
   ir |= CPRHS_OP (getCopReg ());
 
-  Put_Ins (ir);
+  Put_Ins (4, ir);
 }
 
 /**
  * Implements MCRR.
  */
-Rslt_e
+bool
 m_mcrr (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;;
+    return true;
   Target_NeedAtLeastArch (ARCH_ARMv6);
   coprocessorr (cc | 0x0C400000);
-  return eRslt_ARM;
+  return false;
 }
 
 /**
  * Implements MRRC.
  */
-Rslt_e
+bool
 m_mrrc (bool doLowerCase)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
-    return eRslt_NotRecognized;;
+    return true;
   Target_NeedAtLeastArch (ARCH_ARMv6);
   coprocessorr (cc | 0x0C500000);
-  return eRslt_ARM;
+  return false;
 }
