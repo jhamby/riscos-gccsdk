@@ -1,5 +1,5 @@
 /* Set UnixLib run-time features based on environment variables.
-   Copyright (c) 2002-2008 UnixLib Developers.  */
+   Copyright (c) 2002-2012 UnixLib Developers.  */
 
 #include <string.h>
 
@@ -13,7 +13,7 @@
 #  include <sys/debug.h>
 #endif
 
-static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
+static const char __sfix_default[] = "c:cc:f:h:i:ii:l:o:p:s:y";
 
 /* 'cli' can be an Unix or RISC OS executable path.  */
 char *

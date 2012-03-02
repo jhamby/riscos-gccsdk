@@ -1,5 +1,4 @@
-/*
- * Copyright (c) 2000-2010 UnixLib Developers
+/* Copyright (c) 2000-2012 UnixLib Developers
  */
 
 /* #define DEBUG */
@@ -1528,7 +1527,7 @@ __riscosify (const char *name, int create_dir,
 
 #ifdef __TARGET_SCL__
 
-static const char __sfix_default[] = "a:c:cc:f:h:i:ii:l:o:p:s:y";
+static const char __sfix_default[] = "c:cc:f:h:i:ii:l:o:p:s:y";
 
 char *
 __riscosify_scl (const char *name, int create_dir)
