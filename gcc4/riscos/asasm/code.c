@@ -135,7 +135,7 @@ codeInt (int value)
   if (FirstFreeIns < CODE_SIZECODE)
     {
       Program[FirstFreeIns].Tag = CodeValue;
-      Program[FirstFreeIns].Data.value = Value_Int (value);
+      Program[FirstFreeIns].Data.value = Value_Int (value, eIntType_PureInt);
       ++FirstFreeIns;
     }
   else

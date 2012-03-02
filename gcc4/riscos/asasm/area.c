@@ -376,7 +376,7 @@ Area_Ensure (void)
   else if ((sym->type & SYMBOL_AREA) == 0)
     {
       sym->type = SYMBOL_AREA;
-      sym->value = Value_Int (0);
+      sym->value = Value_Int (0, eIntType_PureInt);
       sym->area.info = areaNew (sym, areaType);
     }
   areaCurrentSymbol = sym;
@@ -419,7 +419,7 @@ c_area (void)
     {
       oldAreaType = 0;
       sym->type = SYMBOL_AREA;
-      sym->value = Value_Int (0);
+      sym->value = Value_Int (0, eIntType_PureInt);
       sym->area.info = areaNew (sym, 0);
     }
   skipblanks ();

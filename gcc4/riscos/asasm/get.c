@@ -41,7 +41,7 @@
 #include "symbol.h"
 
 static ARMWord
-GetRegisterValue (bool genError, RegType_e type, const char *typeStr)
+GetRegisterValue (bool genError, IntType_e type, const char *typeStr)
 {
   const Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
   if (lexSym.tag == LexId)
@@ -49,9 +49,9 @@ GetRegisterValue (bool genError, RegType_e type, const char *typeStr)
       const Symbol *sym = symbolFind (&lexSym);
       if (sym && (sym->type & SYMBOL_DEFINED))
 	{
-	  if (sym->value.Tag == ValueRegister
-	      && sym->value.Data.Register.type == type)
-	    return sym->value.Data.Register.num;
+	  if (sym->value.Tag == ValueInt
+	      && sym->value.Data.Int.type == type)
+	    return sym->value.Data.Int.i;
 	  if (genError)
 	    error (ErrorError, "'%s' is not a %s", sym->str, typeStr);
 	}
@@ -66,14 +66,14 @@ GetRegisterValue (bool genError, RegType_e type, const char *typeStr)
 ARMWord
 getCpuReg (void)
 {
-  return GetRegisterValue (true, eRegType_CPU, "CPU register");
+  return GetRegisterValue (true, eIntType_CPU, "CPU register");
 }
 
 ARMWord
 Get_CPURegNoError (void)
 {
   const char * const inputMark = Input_GetMark ();
-  ARMWord reg = GetRegisterValue (false, eRegType_CPU, "CPU register");
+  ARMWord reg = GetRegisterValue (false, eIntType_CPU, "CPU register");
   if (reg == INVALID_REG)
     Input_RollBackToMark (inputMark);
   return reg;
@@ -82,19 +82,19 @@ Get_CPURegNoError (void)
 ARMWord
 getFpuReg (void)
 {
-  return GetRegisterValue (true, eRegType_FPU, "FPU register");
+  return GetRegisterValue (true, eIntType_FPU, "FPU register");
 }
 
 ARMWord
 getCopReg (void)
 {
-  return GetRegisterValue (true, eRegType_CoProReg, "coprocessor register");
+  return GetRegisterValue (true, eIntType_CoProReg, "coprocessor register");
 }
 
 ARMWord
 getCopNum (void)
 {
-  return GetRegisterValue (true, eRegType_CoProNum, "coprocessor number");
+  return GetRegisterValue (true, eIntType_CoProNum, "coprocessor number");
 }
 
 static ARMWord

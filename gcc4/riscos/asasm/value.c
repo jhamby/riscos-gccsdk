@@ -57,7 +57,6 @@ Value_Assign (Value *dst, const Value *src)
       case ValueBool:
       case ValueAddr:
       case ValueSymbol:
-      case ValueRegister:
         break;
 
       case ValueString:
@@ -91,7 +90,6 @@ valueFree (Value *value)
       case ValueBool:
       case ValueAddr:
       case ValueSymbol:
-      case ValueRegister:
 	break;
 
       case ValueString:
@@ -142,7 +140,6 @@ Value_ResolveSymbol (Value *valueP)
 	{
 	  case ValueBool:
 	  case ValueString:
-	  case ValueRegister:
 	    {
 	      if (factor != 1 || offset != 0)
 		return true;
@@ -150,7 +147,7 @@ Value_ResolveSymbol (Value *valueP)
 	      break;
 	    }
 	  case ValueInt:
-	    *valueP = Value_Int (factor * newValueP->Data.Int.i + offset);
+	    *valueP = Value_Int (factor * newValueP->Data.Int.i + offset, eIntType_PureInt);
 	    break;
 	  case ValueFloat:
 	    *valueP = Value_Float (factor * newValueP->Data.Float.f + offset);
@@ -217,6 +214,7 @@ valueEqual (const Value *a, const Value *b)
 	break;
 
       case ValueInt:
+	/* FIXME? Check on Value::Data.Int.type ? */
 	result = (b->Tag == ValueInt && a->Data.Int.i == b->Data.Int.i)
 		   || (b->Tag == ValueFloat && (ARMFloat)a->Data.Int.i == b->Data.Float.f);
 	break;
@@ -255,12 +253,6 @@ valueEqual (const Value *a, const Value *b)
 		   && a->Data.Symbol.offset == b->Data.Symbol.offset;
 	break;
 
-      case ValueRegister:
-	result = b->Tag == ValueRegister
-		   && a->Data.Register.num == b->Data.Register.num
-		   && a->Data.Register.type == b->Data.Register.type;
-	break;
-
       default:
 	errorAbort ("Internal valueEqual: illegal value");
 	break;
@@ -285,7 +277,7 @@ valueTagAsString (ValueTag tag)
         str = "illegal";
         break;
       case ValueInt:
-        str = "integer";
+        str = "integer/register/coprocessornumber";
         break;
       case ValueFloat:
         str = "float";
@@ -304,9 +296,6 @@ valueTagAsString (ValueTag tag)
         break;
       case ValueSymbol:
 	str = "symbol";
-	break;
-      case ValueRegister:
-	str = "register";
 	break;
       default:
         str = "unknown";
@@ -329,8 +318,52 @@ valuePrint (const Value *v)
 	printf ("<illegal>");
 	break;
       case ValueInt:
-	printf ("Int <%d = 0x%x>", v->Data.Int.i, v->Data.Int.i);
-	break;
+	{
+	  if (v->Data.Int.type == eIntType_PureInt)
+	    printf ("Int <%d = 0x%x>", v->Data.Int.i, v->Data.Int.i);
+	  else
+	    {
+	      char type;
+	      bool isReg;
+	      switch (v->Data.Int.type)
+		{
+		  case eIntType_CPU:
+		    type = 'r';
+		    isReg = true;
+		    break;
+		  case eIntType_FPU:
+		    type = 'f';
+		    isReg = true;
+		    break;
+		  case eIntType_NeonQuadReg:
+		    type = 'q';
+		    isReg = true;
+		    break;
+		  case eIntType_NeonOrVFPDoubleReg:
+		    type = 'd';
+		    isReg = true;
+		    break;
+		  case eIntType_VFPSingleReg:
+		    type = 's';
+		    isReg = true;
+		    break;
+		  case eIntType_CoProReg:
+		    type = 'p';
+		    isReg = true;
+		    break;
+		  case eIntType_CoProNum:
+		    type = 'c';
+		    isReg = false;
+		    break;
+		  default:
+		    type = '?';
+		    isReg = true;
+		    break;
+		}
+	      printf ("%s %c%d", isReg ? "Reg" : "CoPro num ", type, v->Data.Int.i);
+	    }
+	  break;
+	}
       case ValueFloat:
 	printf ("Float <%g>", v->Data.Float.f);
 	break;
@@ -350,39 +383,6 @@ valuePrint (const Value *v)
       case ValueSymbol:
 	printf ("Symbol %d x '%s' + #0x%x", v->Data.Symbol.factor, v->Data.Symbol.symbol->str, v->Data.Symbol.offset);
 	break;
-      case ValueRegister:
-	{
-	  char type;
-	  switch (v->Data.Register.type)
-	    {
-	      case eRegType_CPU:
-		type = 'r';
-		break;
-	      case eRegType_FPU:
-		type = 'f';
-		break;
-	      case eRegType_NeonQuadReg:
-		type = 'q';
-		break;
-	      case eRegType_NeonOrVFPDoubleReg:
-		type = 'd';
-		break;
-	      case eRegType_VFPSingleReg:
-		type = 's';
-		break;
-	      case eRegType_CoProReg:
-		type = 'p';
-		break;
-	      case eRegType_CoProNum:
-		type = 'c';
-		break;
-	      default:
-		type = '?';
-		break;
-	    }
-	  printf ("Reg %c%d", type, v->Data.Register.num);
-	  break;
-	}
       default:
 	printf ("tag 0x%x ???", v->Tag);
 	break;

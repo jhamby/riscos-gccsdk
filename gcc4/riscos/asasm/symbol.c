@@ -154,7 +154,8 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
   if (symbol->type & SYMBOL_DEFINED)
     {
       if (symbol->areaDef
-          && symbol->areaDef != areaCurrentSymbol)
+          && symbol->areaDef != areaCurrentSymbol
+          && (symbol->type & SYMBOL_ABSOLUTE) == 0)
         {
           error (ErrorError, "Symbol %s is already defined in area %s", symbol->str, symbol->areaDef->str);
           return true;

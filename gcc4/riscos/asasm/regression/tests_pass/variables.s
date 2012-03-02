@@ -312,7 +312,7 @@ TestStr1
 
 ; A local variable can have a different type than a global one.
 	AREA	Data, DATA
-	[ :LNOT: REFERENCE		
+	[ :LNOT: REFERENCE
 AVar	RN	9
 	GBLS	AVarStr
 AVarStr	SETS	"Doh"
@@ -337,6 +337,45 @@ AVarStr	SETL	{TRUE}
 	= "\nTestMacro: AVarStr: T"
 	= "\nTestMain: AVar: T"
 	= "\nTestMain: AVarStr: T"
+	]
+
+; Test that registers and coprocessor numbers can be assigned to
+; arithmetic variables
+	AREA	Data2, DATA
+	[ :LNOT:REFERENCE
+		GBLA	VarRegR3
+VarRegR3	SETA	r3
+		DCD	VarRegR3
+
+		GBLA	VarRegF4
+VarRegF4	SETA	f4
+		DCD	VarRegF4
+
+		GBLA	VarRegP5
+VarRegP5	SETA	p5
+		DCD	VarRegP5
+
+		GBLA	VarRegC6
+VarRegC6	SETA	c6
+		DCD	VarRegC6
+
+		; FIXME: add tests for q, d and s VFP registers
+;		GBLA	VarRegQ7
+;VarRegQ7	SETA	q7
+;		DCD	VarRegQ7
+
+;		GBLA	VarRegD8
+;VarRegD8	SETA	d8
+;		DCD	VarRegD8
+
+;		GBLA	VarRegS9
+;VarRegS9	SETA	s9
+;		DCD	VarRegS9
+	|
+		DCD	3
+		DCD	4
+		DCD	5
+		DCD	6
 	]
 
 	END

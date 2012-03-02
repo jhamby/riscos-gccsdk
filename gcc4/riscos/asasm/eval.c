@@ -105,26 +105,34 @@ GetInt (const Value *val, uint32_t *i)
 
 #define STRINGIFY(OP)	#OP
 /* Core implementation for '<', '<=', '>', '>=', '==' and '!='.
-   Works for ValueFloat, ValueString and ValueInt.  */
+   Works for ValueFloat, ValueString, ValueAddr and ValueInt.  */
 #define COMPARE(OP) \
   do \
     { \
       uint32_t lint, rint;\
       if (lvalue->Tag == ValueFloat && rvalue->Tag == ValueFloat) \
-        lvalue->Data.Bool.b = lvalue->Data.Float.f OP rvalue->Data.Float.f; \
+	lvalue->Data.Bool.b = lvalue->Data.Float.f OP rvalue->Data.Float.f; \
       else if (lvalue->Tag == ValueString && rvalue->Tag == ValueString) \
-        lvalue->Data.Bool.b = ememcmp (lvalue, rvalue) OP 0; \
+	lvalue->Data.Bool.b = ememcmp (lvalue, rvalue) OP 0; \
       else if (GetInt (lvalue, &lint) && GetInt (rvalue, &rint)) \
-        { \
+	{ \
 	  /* Comparing integers happens *unsigned* ! */ \
-          lvalue->Data.Bool.b = lint OP rint; \
-        } \
+	  lvalue->Data.Bool.b = lint OP rint; \
+	} \
+      else if (lvalue->Tag == ValueAddr && rvalue->Tag == ValueAddr) \
+	{ \
+	  /* ObjAsm implementation: when base register differs, always return false */ \
+	  if (lvalue->Data.Addr.r != rvalue->Data.Addr.r) \
+	    lvalue->Data.Bool.b = false; \
+	  else \
+	    lvalue->Data.Bool.b = lvalue->Data.Addr.i OP rvalue->Data.Addr.i; \
+	} \
       else \
-        { \
+	{ \
 	  if (gPhase != ePassOne) \
 	    error (ErrorError, "Bad operand types for %s", STRINGIFY(OP)); \
-          return false; \
-        } \
+	  return false; \
+	} \
       lvalue->Tag = ValueBool; \
     } while (0)
 
@@ -347,7 +355,7 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
 		factor -= rvalue->Data.Symbol.factor;
 	      int offset = (lvalue->Tag == ValueSymbol) ? lvalue->Data.Symbol.offset : (signed)lval;
 	      offset -= (rvalue->Tag == ValueSymbol) ? rvalue->Data.Symbol.offset : (signed)rval;
-	      *lvalue = factor ? Value_Symbol (symbol, factor, offset) : Value_Int (offset);
+	      *lvalue = factor ? Value_Symbol (symbol, factor, offset) : Value_Int (offset, eIntType_PureInt);
 	    }
 	  else
 	    {
@@ -549,8 +557,8 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
       
       case eOp_EQ: /* = == */
 	{
-	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode | ValueAddr | ValueRegister)) != 0
-	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode | ValueAddr | ValueRegister)) != 0)
+	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0
+	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0)
 	    {
 	      lvalue->Data.Bool.b = valueEqual (lvalue, rvalue);
 	      lvalue->Tag = ValueBool;
@@ -562,8 +570,8 @@ evalBinop (Operator_e op, Value * restrict lvalue, const Value * restrict rvalue
       
       case eOp_NE: /* <> /= != */
 	{
-	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode | ValueAddr | ValueRegister)) != 0
-	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode | ValueAddr | ValueRegister)) != 0)
+	  if ((lvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0
+	      && (rvalue->Tag & (ValueBool | ValueSymbol | ValueCode)) != 0)
 	    {
 	      lvalue->Data.Bool.b = !valueEqual (lvalue, rvalue);
 	      lvalue->Tag = ValueBool;
@@ -845,26 +853,14 @@ evalUnop (Operator_e op, Value *value)
 
       case eOp_Not: /* :NOT: ~ */
 	{
-	  switch (value->Tag)
+	  uint32_t i;
+	  if (!GetInt (value, &i))
 	    {
-	      case ValueInt:
-		value->Data.Int.i = ~value->Data.Int.i;
-		break;
-
-	      case ValueString:
-		if (value->Data.String.len == 1)
-		{
-		  value->Tag = ValueInt;
-		  value->Data.Int.i = ~(unsigned int)value->Data.String.s[0];
-		  break;
-		}
-		/* Fall through.  */
-
-	      default:
-		if (gPhase != ePassOne)
-		  error (ErrorError, "Bad operand type for %s", ":NOT:");
-		return false;
+	      if (gPhase != ePassOne)
+		error (ErrorError, "Bad operand type for %s", ":NOT:");
+	      return false;
 	    }
+	  *value = Value_Int (~i, eIntType_PureInt);
 	  break;
 	}
 
@@ -1075,17 +1071,16 @@ evalUnop (Operator_e op, Value *value)
 	    }
 	  if (ccode >= 16)
 	    ccode += -16 + 2;
-	  const Value newValue = Value_Int (ccode);
+	  const Value newValue = Value_Int (ccode, eIntType_PureInt);
 	  Value_Assign (value, &newValue);
 	  break;
 	}
 
       case eOp_RConst: /* :RCONST: */
 	{
-	  if (value->Tag != ValueRegister)
+	  if (value->Tag != ValueInt && value->Data.Int.type == eIntType_PureInt)
 	    return false;
-	  const Value newValue = Value_Int (value->Data.Register.num);
-	  Value_Assign (value, &newValue);
+	  value->Data.Int.type = eIntType_PureInt;
 	  break;
 	}
 

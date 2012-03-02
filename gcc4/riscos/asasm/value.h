@@ -41,22 +41,21 @@ typedef enum
   ValueCode      =  16,
   ValueAddr      =  32,
   ValueSymbol    =  64,
-  ValueRegister  = 128,
 
-  ValueAll       = 255		/* cheat */
+  ValueAll       = 127		/* cheat */
 } ValueTag;
 
 typedef enum
 {
-  eRegType_Illegal = -1,
-  eRegType_CPU,			/* r0 - r15, lr, pc : ARM CPU register.  */
-  eRegType_FPU,			/* f0 - f8 : FPE (FPA10/FPA11 and FPASC) register.  */
-  eRegType_NeonQuadReg,		/* q0 - q15 : NEON quadword registers.  */
-  eRegType_NeonOrVFPDoubleReg,	/* d0 - d31 : NEON doubleword registers, VFP double-precision registers.  */
-  eRegType_VFPSingleReg,	/* s0 - s31 : VFP single-precision registers.  */
-  eRegType_CoProReg,		/* p0 - p15 : Coprocessor register.  */
-  eRegType_CoProNum		/* c0 - c15 : Not really a register... */
-} RegType_e;
+  eIntType_PureInt,
+  eIntType_CPU,			/* r0 - r15, lr, pc : ARM CPU register.  */
+  eIntType_FPU,			/* f0 - f8 : FPE (FPA10/FPA11 and FPASC) register.  */
+  eIntType_NeonQuadReg,		/* q0 - q15 : NEON quadword registers.  */
+  eIntType_NeonOrVFPDoubleReg,	/* d0 - d31 : NEON doubleword registers, VFP double-precision registers.  */
+  eIntType_VFPSingleReg,	/* s0 - s31 : VFP single-precision registers.  */
+  eIntType_CoProReg,		/* p0 - p15 : Coprocessor register.  */
+  eIntType_CoProNum		/* c0 - c15 : Not really a register... */
+} IntType_e;
 
 typedef struct
 {
@@ -66,6 +65,7 @@ typedef struct
       struct			/* ValueInt */
         {
           int i;		/* Must start identical with ValueAddr's i & ValueString's len.  */
+	  IntType_e type;
         } Int;
       struct			/* ValueFloat */
         {
@@ -96,21 +96,16 @@ typedef struct
 	  struct Symbol *symbol;
 	  int offset;
 	} Symbol;
-      struct			/* ValueRegister */
-	{
-	  int num;
-	  RegType_e type;
-	} Register;
     } Data;
 } Value;
 
 static inline Value
-Value_Int (int i)
+Value_Int (int i, IntType_e type)
 {
   const Value value =
     {
       .Tag = ValueInt,
-      .Data.Int.i = i
+      .Data.Int = { .i = i, .type = type }
     };
   return value;
 }
@@ -146,17 +141,6 @@ Value_Symbol (struct Symbol *symbol, int factor, int offset)
     {
       .Tag = ValueSymbol,
       .Data.Symbol = { .factor = factor, .symbol = symbol, .offset = offset }
-    };
-  return value;
-}
-
-static inline Value
-Value_Reg (int reg, RegType_e type)
-{
-  const Value value =
-    {
-      .Tag = ValueRegister,
-      .Data.Register = { .num = reg, .type = type }
     };
   return value;
 }

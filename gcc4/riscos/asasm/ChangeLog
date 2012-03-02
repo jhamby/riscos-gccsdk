@@ -1,3 +1,18 @@
+Fri Mar  2 16:16:18 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/symbols.s: Add test on redefining same symbol.
+	* regression/tests_pass/variables.s: Add test with register cases.
+	* regression/tests_pass/operator_relational.s: Reimplement using
+	macro.  Add test case for comparing addr.
+	* symbol.c (Symbol_Define): Only give error on redefining symbols
+	for non-absolute symbols. 
+	* directive_symbol.c: Revert ValueRegister, registers are acting like
+	integers.  Introduce Value::Data.Int.type.  Renamed eRegType_* to
+	eIntType_*.
+	* code.c, area.c, value.c, value.h, predef_reg.c, get.c, asm.c,
+	eval.c, lit.c: Likewise.
+	* eval.c (COMPARE): Put test on ValueAddr back in.
+
 Wed Feb 29 00:58:58 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac (AC_CHECK_FUNCS): Add strcasecmp.

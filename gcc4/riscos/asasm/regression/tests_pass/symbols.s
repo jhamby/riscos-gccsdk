@@ -35,5 +35,13 @@ Tst1		DCD	1
 		DCD	Code + 8
 	
 	]
+
+	; Test redefinition of absolute symbols containing same values are
+	; possible.
+	AREA	Code2a, CODE
+v7	RN	10
+v7	RN	10
+	AREA	Code2b, CODE
+v7	RN	10 
 	
 	END

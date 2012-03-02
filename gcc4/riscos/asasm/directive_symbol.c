@@ -34,7 +34,7 @@
  * symbol is already defined with a value different than parsed.
  */
 static bool
-Define (const char *msg, Symbol *sym, RegType_e regType, ValueTag legal)
+Define (const char *msg, Symbol *sym, ValueTag legal)
 {
   bool failed;
   if (sym == NULL)
@@ -45,27 +45,13 @@ Define (const char *msg, Symbol *sym, RegType_e regType, ValueTag legal)
   else
     {
       const Value *value = exprBuildAndEval (legal);
-      Value convValue;
-      switch (value->Tag)
+      if (value->Tag == ValueIllegal)
 	{
-	  case ValueIllegal:
-	    error (ErrorError, "Illegal %s", msg);
-	    failed = true;
-	    break;
-	  case ValueInt:
-	    {
-	      /* Need to convert integer value to a register value ? */
-	      if (regType != eRegType_Illegal)
-		{
-		  convValue = Value_Reg (value->Data.Int.i, regType);
-		  value = &convValue;
-		}
-	      /* Fall through.  */
-	    }
-	  default:
-	    failed = Symbol_Define (sym, SYMBOL_ABSOLUTE, value);
-	    break;
+	  error (ErrorError, "Illegal %s", msg);
+	  failed = true;
 	}
+      else
+	failed = Symbol_Define (sym, SYMBOL_ABSOLUTE, value);
     }
 
   return failed;
@@ -77,15 +63,16 @@ Define (const char *msg, Symbol *sym, RegType_e regType, ValueTag legal)
 bool
 c_cn (Symbol *symbol)
 {
-  if (!Define ("coprocessor register", symbol, eRegType_CoProReg, ValueInt | ValueRegister))
+  if (!Define ("coprocessor register", symbol, ValueInt))
     {
-      assert (symbol->value.Tag == ValueRegister);
-      int no = symbol->value.Data.Register.num;
+      assert (symbol->value.Tag == ValueInt);
+      int no = symbol->value.Data.Int.i;
       if (no < 0 || no > 15)
 	{
-	  symbol->value.Data.Register.num = 0;
+	  symbol->value.Data.Int.i = 0;
 	  error (ErrorError, "Illegal %s register %d (using 0)", "coprocessor", no);
 	}
+      symbol->value.Data.Int.type = eIntType_CoProReg;
     }
   return false;
 }
@@ -96,15 +83,16 @@ c_cn (Symbol *symbol)
 bool
 c_cp (Symbol *symbol)
 {
-  if (!Define ("coprocessor number", symbol, eRegType_CoProNum, ValueInt | ValueRegister))
+  if (!Define ("coprocessor number", symbol, ValueInt))
     {
-      assert (symbol->value.Tag == ValueRegister);
-      int no = symbol->value.Data.Register.num;
+      assert (symbol->value.Tag == ValueInt);
+      int no = symbol->value.Data.Int.i;
       if (no < 0 || no > 15)
 	{
-	  symbol->value.Data.Register.num = 0;
+	  symbol->value.Data.Int.i = 0;
 	  error (ErrorError, "Illegal coprocessor number %d (using 0)", no);
 	}
+      symbol->value.Data.Int.type = eIntType_CoProNum;
     }
   return false;
 }
@@ -115,7 +103,7 @@ c_cp (Symbol *symbol)
 bool
 c_equ (Symbol *symbol)
 {
-  Define ("* or EQU", symbol, eRegType_Illegal, ValueAll);
+  Define ("* or EQU", symbol, ValueAll);
   return false;
 }
 
@@ -125,15 +113,16 @@ c_equ (Symbol *symbol)
 bool
 c_fn (Symbol *symbol)
 {
-  if (!Define ("float register", symbol, eRegType_FPU, ValueInt | ValueRegister))
+  if (!Define ("float register", symbol, ValueInt))
     {
-      assert (symbol->value.Tag == ValueRegister);
-      int no = symbol->value.Data.Register.num;
+      assert (symbol->value.Tag == ValueInt);
+      int no = symbol->value.Data.Int.i;
       if (no < 0 || no > 7)
 	{
-	  symbol->value.Data.Register.num = 0;
+	  symbol->value.Data.Int.i = 0;
 	  error (ErrorError, "Illegal %s register %d (using 0)", "FPU", no);
 	}
+      symbol->value.Data.Int.type = eIntType_FPU;
     }
   return false;
 }
@@ -144,15 +133,16 @@ c_fn (Symbol *symbol)
 bool
 c_rn (Symbol *symbol)
 {
-  if (!Define ("register", symbol, eRegType_CPU, ValueInt | ValueRegister))
+  if (!Define ("register", symbol, ValueInt))
     {
-      assert (symbol->value.Tag == ValueRegister);
-      int no = symbol->value.Data.Register.num;
+      assert (symbol->value.Tag == ValueInt);
+      int no = symbol->value.Data.Int.i;
       if (no < 0 || no > 15)
 	{
-	  symbol->value.Data.Register.num = 0;
+	  symbol->value.Data.Int.i = 0;
 	  error (ErrorError, "Illegal %s register %d (using 0)", "CPU", no);
 	}
+      symbol->value.Data.Int.type = eIntType_CPU;
     }
   return false;
 }

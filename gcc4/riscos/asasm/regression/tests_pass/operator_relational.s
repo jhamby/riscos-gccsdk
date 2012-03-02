@@ -1,5 +1,5 @@
-; Tests =, ==, !=, <>, /= for integers, strings, boolean, addr and registers.
-; Tests >, >=, <, <= for integer and string.
+; Tests =, ==, !=, <>, /= for integer, string, addr, boolean, registers.
+; Tests >, >=, <, <= for integer, string and addr.
 
 	[ :LNOT: :DEF:EXTENSION
 	GBLL	EXTENSION
@@ -10,234 +10,99 @@ EXTENSION SETL	{FALSE}
 
 	[ :LNOT:REFERENCE
 
+	^ 4, r2
+x2	#	4
+x3	#	4
+
+	^ 0, r2
+y1	#	4
+y2	#	4
+y3	#	4
+
+	^ 0, r3
+z1	#	4
+z2	#	4
+z3	#	4
+
 FooR3	RN	r3
 
-	; =
-	= "Test =\n"
-	= :STR:(3=5)
-	= :STR:(5=3)
-	= :STR:(-1=1)
-	= :STR:(-1=&FFFFFFFF)
-	= :STR:(:CHR:235=5)
-	= :STR:(:CHR:235=235)
-	= :STR:("ABC"="DEF")
-	= :STR:("ABC"="ABC")
-	= :STR:("ABC"="ABCD")
-	= :STR:("ABCD"="ABC")
-	= :STR:(98="a")
-	= :STR:(98="b")
-	= :STR:("a"=98)
-	= :STR:("b"=98)
-	= :STR:({FALSE}={FALSE})
-	= :STR:({FALSE}={TRUE})
-	= :STR:({TRUE}={FALSE})
-	= :STR:({TRUE}={TRUE})
-LblEq
-	= :STR:(.=LblEq)
-	= :STR:(.=LblEq)
-	= :STR:(FooR3=r3)
-	= :STR:(FooR3=c0)
+	MACRO
+	InvokeRel $rel, $ext
+	= "Test $rel : "
+	= :STR:(3 $rel 5)
+	= :STR:(5 $rel 3)
+	= :STR:(-1 $rel 1)
+	= :STR:(-1 $rel &FFFFFFFF)
+	= "/"
+	= :STR:(:CHR:235 $rel 5)
+	= :STR:(:CHR:235 $rel 235)
+	= "/"
+	= :STR:("ABC" $rel "DEF")
+	= :STR:("ABC" $rel "ABC")
+	= :STR:("ABC "$rel "ABCD")
+	= :STR:("ABCD "$rel "ABC")
+	= "/"
+	= :STR:(98 $rel "a")
+	= :STR:(98 $rel "b")
+	= :STR:("a" $rel 98)
+	= :STR:("b" $rel 98)
+	= "/"
+	= :STR:(x2 $rel x3)
+	= :STR:(x2 $rel y1)
+	= :STR:(x2 $rel y2)
+	= :STR:(x2 $rel y3)
+	= :STR:(x2 $rel z1)	; ObjAsm: Always {FALSE} as base register differ.
+	= :STR:(x2 $rel z2)	; ObjAsm: Always {FALSE} as base register differ.
+	= :STR:(x2 $rel z3)	; ObjAsm: Always {FALSE} as base register differ.
+	[ $ext
+	; ObjAsm doesn't seem to support /= on {TRUE}/{FALSE}
+	[ EXTENSION :LOR: ("$rel" /= "/=")
+	= "/"
+	= :STR:({FALSE} $rel {FALSE})
+	= :STR:({FALSE} $rel {TRUE})
+	= :STR:({TRUE} $rel {FALSE})
+	= :STR:({TRUE} $rel {TRUE})
+	]
+	= "/"
+10
+	= :STR:(. $rel %b10)
+	= :STR:(. $rel %b10)
+	= :STR:(FooR3 $rel r3)
+	= :STR:(FooR3 $rel c0)
+	= :STR:(FooR3 $rel f3)	; Register type gets ignored.  Only register value counts.
+	]
 	= "\n"
+	MEND
 
-	; ==
+	InvokeRel =, {TRUE}
+	InvokeRel /=, {TRUE}
+
 	[ EXTENSION
-	= "Test ==\n"
-	= :STR:(3==5)
-	= :STR:(5==3)
-	= :STR:(-1==1)
-	= :STR:(-1==&FFFFFFFF)
-	= :STR:(:CHR:235==5)
-	= :STR:(:CHR:235==235)
-	= :STR:("ABC"=="DEF")
-	= :STR:("ABC"=="ABC")
-	= :STR:("ABC"=="ABCD")
-	= :STR:("ABCD"=="ABC")
-	= :STR:(98=="a")
-	= :STR:(98=="b")
-	= :STR:("a"==98)
-	= :STR:("b"==98)
-	= :STR:({FALSE}=={FALSE})
-	= :STR:({FALSE}=={TRUE})
-	= :STR:({TRUE}=={FALSE})
-	= :STR:({TRUE}=={TRUE})
-LblEqEq
-	= :STR:(.==LblEqEq)
-	= :STR:(.==LblEqEq)
-	= :STR:(FooR3==r3)
-	= :STR:(FooR3==c0)
-	= "\n"
+	InvokeRel ==, {TRUE}
+	InvokeRel <>, {TRUE}
+	InvokeRel !=, {TRUE}
 	]
 
-	; <>
-	= "Test <>\n"
-	= :STR:(3<>5)
-	= :STR:(5<>3)
-	= :STR:(-1<>1)
-	= :STR:(-1<>&FFFFFFFF)
-	= :STR:(:CHR:235<>5)
-	= :STR:(:CHR:235<>235)
-	= :STR:("ABC"<>"DEF")
-	= :STR:("ABC"<>"ABC")
-	= :STR:("ABC"<>"ABCD")
-	= :STR:("ABCD"<>"ABC")
-	= :STR:(98<>"a")
-	= :STR:(98<>"b")
-	= :STR:("a"<>98)
-	= :STR:("b"<>98)
-	= :STR:({FALSE}<>{FALSE})
-	= :STR:({FALSE}<>{TRUE})
-	= :STR:({TRUE}<>{FALSE})
-	= :STR:({TRUE}<>{TRUE})
-LblNEq1
-	= :STR:(.<>LblNEq1)
-	= :STR:(.<>LblNEq1)
-	= :STR:(FooR3<>r3)
-	= :STR:(FooR3<>c0)
-	= "\n"
-
-	; !=
-	[ EXTENSION
-	= "Test !=\n"
-	= :STR:(3!=5)
-	= :STR:(5!=3)
-	= :STR:(-1!=1)
-	= :STR:(-1!=&FFFFFFFF)
-	= :STR:(:CHR:235!=5)
-	= :STR:(:CHR:235!=235)
-	= :STR:("ABC"!="DEF")
-	= :STR:("ABC"!="ABC")
-	= :STR:("ABC"!="ABCD")
-	= :STR:("ABCD"!="ABC")
-	= :STR:(98!="a")
-	= :STR:(98!="b")
-	= :STR:("a"!=98)
-	= :STR:("b"!=98)
-	= :STR:({FALSE}!={FALSE})
-	= :STR:({FALSE}!={TRUE})
-	= :STR:({TRUE}!={FALSE})
-	= :STR:({TRUE}!={TRUE})
-LblNEq2
-	= :STR:(.!=LblNEq2)
-	= :STR:(.!=LblNEq2)
-	= :STR:(FooR3!=r3)
-	= :STR:(FooR3!=c0)
-	= "\n"
-	]
-
-	; /=
-	= "Test /=\n"
-	= :STR:(3/=5)
-	= :STR:(5/=3)
-	= :STR:(-1/=1)
-	= :STR:(-1/=&FFFFFFFF)
-	= :STR:(:CHR:235/=5)
-	= :STR:(:CHR:235/=235)
-	= :STR:("ABC"/="DEF")
-	= :STR:("ABC"/="ABC")
-	= :STR:("ABC"/="ABCD")
-	= :STR:("ABCD"/="ABC")
-	= :STR:(98/="a")
-	= :STR:(98/="b")
-	= :STR:("a"/=98)
-	= :STR:("b"/=98)
-	= :STR:({FALSE}/={FALSE})
-	= :STR:({FALSE}/={TRUE})
-	= :STR:({TRUE}/={FALSE})
-	= :STR:({TRUE}/={TRUE})
-LblNEq3
-	= :STR:(./=LblNEq3)
-	= :STR:(./=LblNEq3)
-	= :STR:(FooR3/=r3)
-	= :STR:(FooR3/=c0)
-	= "\n"
-
-	; >
-	= "Test >\n"
-	= :STR:(3>5)
-	= :STR:(5>3)
-	= :STR:(-1>1)
-	= :STR:(-1>&FFFFFFFF)
-	= :STR:(:CHR:235>5)
-	= :STR:(:CHR:235>235)
-	= :STR:("ABC">"DEF")
-	= :STR:("ABC">"ABC")
-	= :STR:("ABC">"ABCD")
-	= :STR:("ABCD">"ABC")
-	= :STR:(98>"a")
-	= :STR:(98>"b")
-	= :STR:("a">98)
-	= :STR:("b">98)
-	= "\n"
-
-	; >=
-	= "Test >=\n"
-	= :STR:(3>=5)
-	= :STR:(5>=3)
-	= :STR:(-1>=1)
-	= :STR:(-1>=&FFFFFFFF)
-	= :STR:(:CHR:235>=5)
-	= :STR:(:CHR:235>=235)
-	= :STR:("ABC">="DEF")
-	= :STR:("ABC">="ABC")
-	= :STR:("ABC">="ABCD")
-	= :STR:("ABCD">="ABC")
-	= :STR:(98>="a")
-	= :STR:(98>="b")
-	= :STR:("a">=98)
-	= :STR:("b">=98)
-	= "\n"
-
-	; <
-	= "Test <\n"
-	= :STR:(3<5)
-	= :STR:(5<3)
-	= :STR:(-1<1)
-	= :STR:(-1<&FFFFFFFF)
-	= :STR:(:CHR:235<5)
-	= :STR:(:CHR:235<235)
-	= :STR:("ABC"<"DEF")
-	= :STR:("ABC"<"ABC")
-	= :STR:("ABC"<"ABCD")
-	= :STR:("ABCD"<"ABC")
-	= :STR:(98<"a")
-	= :STR:(98<"b")
-	= :STR:("a"<98)
-	= :STR:("b"<98)
-	= "\n"
-
-	; <=
-	= "Test <=\n"
-	= :STR:(3<=5)
-	= :STR:(5<=3)
-	= :STR:(-1<=1)
-	= :STR:(-1<=&FFFFFFFF)
-	= :STR:(:CHR:235<=5)
-	= :STR:(:CHR:235<=235)
-	= :STR:("ABC"<="DEF")
-	= :STR:("ABC"<="ABC")
-	= :STR:("ABC"<="ABCD")
-	= :STR:("ABCD"<="ABC")
-	= :STR:(98<="a")
-	= :STR:(98<="b")
-	= :STR:("a"<=98)
-	= :STR:("b"<=98)
-	= "\n"
+	InvokeRel >, {FALSE}
+	InvokeRel >=, {FALSE}
+	InvokeRel <, {FALSE}
+	InvokeRel <=, {FALSE}
 
 	|
 
-	= "Test =\nFFFTFTFTFFFTFTTFFTTFTF\n"	; =
+	= "Test = : FFFT/FT/FTFF/FTFT/FFTFFFF/TFFT/TFTFT\n"
+	= "Test /= : TTTF/TF/TFTT/TFTF/TTFTFFF/FTTF/FTFTF\n"
+
 	[ EXTENSION
-	= "Test ==\nFFFTFTFTFFFTFTTFFTTFTF\n"	; ==
+	= "Test == : FFFT/FT/FTFF/FTFT/FFTFFFF/TFFT/TFTFT\n"
+	= "Test <> : TTTF/TF/TFTT/TFTF/TTFTFFF/FTTF/FTFTF\n"
+	= "Test != : TTTF/TF/TFTT/TFTF/TTFTFFF/FTTF/FTFTF\n"
 	]
-	= "Test <>\nTTTFTFTFTTTFTFFTTFFTFT\n"	; <>
-	[ EXTENSION
-	= "Test !=\nTTTFTFTFTTTFTFFTTFFTFT\n"	; !=
-	]
-	= "Test /=\nTTTFTFTFTTTFTFFTTFFTFT\n"	; /=
-	= "Test >\nFTTFTFFFFTTFFF\n"		; >
-	= "Test >=\nFTTTTTFTFTTTFT\n"		; >=
-	= "Test <\nTFFFFFTFTFFFTF\n"		; <
-	= "Test <=\nTFFTFTTTTFFTTT\n"		; <=
+
+	= "Test > : FTTF/TF/FFFT/TFFF/FTFFFFF\n"
+	= "Test >= : FTTT/TT/FTFT/TTFT/FTTFFFF\n"
+	= "Test < : TFFF/FF/TFTF/FFTF/TFFTFFF\n"
+	= "Test <= : TFFT/FT/TTTF/FTTT/TFTTFFF\n"
 
 	]
 

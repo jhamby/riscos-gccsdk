@@ -175,7 +175,7 @@ ASM_DefineLabel (const Lex *label, uint32_t offset)
     }
   else if (areaCurrentSymbol->area.info->type & AREA_ABS)
     {
-      value = Value_Int (Area_GetBaseAddress (areaCurrentSymbol) + offset);
+      value = Value_Int (Area_GetBaseAddress (areaCurrentSymbol) + offset, eIntType_PureInt);
       symbolType = SYMBOL_ABSOLUTE;
     }
   else

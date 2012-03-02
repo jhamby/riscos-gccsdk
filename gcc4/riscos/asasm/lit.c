@@ -245,7 +245,7 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
           || help_cpuImm8s4 (~truncForUser) != -1)
 	{
 	  valueFree (&truncValue); /* Not really needed as it is ValueInt.  */
-	  return Value_Int (truncForUser);
+	  return Value_Int (truncForUser, eIntType_PureInt);
 	}
     }
   
@@ -524,7 +524,7 @@ Lit_DumpPool (void)
 		      /* The definition of the literal happeded after its use
 			 but before LTORG so we don't have to assemble it
 			 explicitely.  */
-		      symP->value = Value_Int (constant);
+		      symP->value = Value_Int (constant, eIntType_PureInt);
 		      litP->status = eNoNeedToAssemble;
 		      continue;
 		    }
