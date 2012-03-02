@@ -29,6 +29,7 @@ AUTOCONF_FOR_GCC_VERSION=2.64
 AUTOMAKE_FOR_GCC_VERSION=1.11.1
 GCC_VERSION=$(GCCSDK_SUPPORTED_GCC_RELEASE)
 GCC_USE_SCM=yes
+GCC_SCM_PATH=branches/gcc-4_6-branch
 NEWLIB_VERSION=1.19.0
 NEWLIB_USE_SCM=no
 GDB_VERSION=7.2
@@ -617,7 +618,7 @@ ifeq "$(GCC_USE_SCM)" "yes"
 # Checkout gcc source:
 $(SRCORIGDIR)/gcc-trunk/LAST_UPDATED:
 	-mkdir -p $(SRCORIGDIR)
-	cd $(SRCORIGDIR) && svn co svn://gcc.gnu.org/svn/gcc/branches/gcc-4_6-branch gcc-trunk
+	cd $(SRCORIGDIR) && svn co svn://gcc.gnu.org/svn/gcc/$(GCC_SCM_PATH) gcc-trunk
 	cd $(SRCORIGDIR)/gcc-trunk && ./contrib/gcc_update
 else
 # Download gcc source:
