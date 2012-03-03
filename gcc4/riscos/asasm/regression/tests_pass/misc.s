@@ -48,10 +48,6 @@
 		MSR	SPSR_cs,R0
 		MSR	SPSR_csx,R0
 		MSR	SPSR_csxf,R0
-
-		SWP	R0,R1,[R2]
-
-		SWPB	R0,R1,[R2]
 	|
 		DCI	&E1204D72
 
@@ -96,10 +92,6 @@
 		DCI	&E165F000
 		DCI	&E167F000
 		DCI	&E16FF000
-
-		DCI	&E1020091
-
-		DCI	&E1420091
 	]
 
 		END

@@ -31,7 +31,7 @@ ARMWord optionCond (bool doLowerCase);
 ARMWord optionCondS (bool doLowerCase);
 ARMWord Option_SCond (bool doLowerCase);
 ARMWord Option_CondSP (bool doLowerCase);
-ARMWord optionCondB (bool doLowerCase);
+ARMWord Option_CondB (bool doLowerCase);
 ARMWord Option_LdrStrCondAndType (bool isStore, bool doLowerCase);
 ARMWord Option_CondRfeSrs (bool isLoad, bool doLowerCase);
 ARMWord optionCondLdmStm (bool isLDM, bool doLowerCase);

@@ -1,3 +1,13 @@
+Sat Mar  3 03:25:17 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/misc.s: Move SWP/SWPB tests too...
+	* regression/tests_pass/instr_swp.s: ...here.  Enhance test with
+	condition codes and UAL vs pre-UAL syntax.
+	* m_cpumem.c (m_swp): Ignore when in Thumb mode.  Add test on register
+	values.
+	* option.c, option.h (optionCondB): Rename to Option_CondB and support
+	UAL syntax.
+
 Sat Mar  3 00:28:46 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/nop_new_style.s: Rename to...

@@ -32,6 +32,7 @@
 #include "input.h"
 #include "main.h"
 #include "option.h"
+#include "state.h"
 #include "targetcpu.h"
 
 /**
@@ -339,12 +340,28 @@ Option_CondSP (bool doLowerCase)
 }
 
 
+/**
+ * Try to parse <CC><B> (pre-UAL) and/or <B><CC> (UAL).
+ * For SWPB<CC> / SWP<CC>B parsing.
+ */
 ARMWord
-optionCondB (bool doLowerCase)
+Option_CondB (bool doLowerCase)
 {
-  ARMWord option = GetCCode (doLowerCase);
-  if (Input_Match (doLowerCase ? 'b' : 'B', false))
-    option |= B_FLAG;
+  Syntax_e syntax = State_GetSyntax ();
+
+  ARMWord option;
+  if ((syntax == eSyntax_UALOnly || syntax == eSyntax_Both)
+      && Input_Match (doLowerCase ? 'b' : 'B', false))
+    option = B_FLAG | GetCCode (doLowerCase);
+  else if (syntax == eSyntax_PreUALOnly || syntax == eSyntax_Both)
+    {
+      option = GetCCode (doLowerCase);
+      if (Input_Match (doLowerCase ? 'b' : 'B', false))
+	option |= B_FLAG;
+    }
+  else
+    option = kOption_NotRecognized;
+
   return IsEndOfKeyword (option);
 }
 

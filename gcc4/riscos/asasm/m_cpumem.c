@@ -47,6 +47,7 @@
 #include "option.h"
 #include "phase.h"
 #include "put.h"
+#include "state.h"
 #include "targetcpu.h"
 
 /**
@@ -848,12 +849,16 @@ m_push (bool doLowerCase)
 
 
 /**
- * Implements SWP.
+ * Implements SWP / SWPB.
  */
 bool
 m_swp (bool doLowerCase)
 {
-  ARMWord cc = optionCondB (doLowerCase);
+  /* There is no Thumb equivalent of SWP/SWPB.  */
+  if (State_GetInstrType () != eInstrType_ARM)
+    return true;
+
+  ARMWord cc = Option_CondB (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
 
@@ -862,20 +867,29 @@ m_swp (bool doLowerCase)
     error (ErrorWarning, "The use of SWP/SWPB is deprecated from ARMv6 onwards");
 
   int ir = cc | 0x01000090;
-  ir |= DST_OP (getCpuReg ());
+  ARMWord rt = getCpuReg ();
+  ir |= DST_OP (rt);
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%sdst", InsertCommaAfter);
-  ir |= RHS_OP (getCpuReg ());	/* Note wrong order swp dst,rhs,[lsh] */
+  ARMWord rt2 = getCpuReg ();
+  ir |= RHS_OP (rt2);	/* Note wrong order swp dst,rhs,[lsh] */
   skipblanks ();
   if (!Input_Match (',', true))
     error (ErrorError, "%slhs", InsertCommaAfter);
   if (!Input_Match ('[', true))
     error (ErrorError, "Inserting missing '['");
-  ir |= DST_MUL (getCpuReg ());
+  ARMWord rn = getCpuReg ();
+  ir |= DST_MUL (rn);
   skipblanks ();
   if (!Input_Match (']', true))
     error (ErrorError, "Inserting missing ']'");
+
+  if (rt == 15 || rt2 == 15 || rn == 15)
+    error (ErrorError, "SWP(B) registers can not be r15");
+  if (rn == rt || rn == rt2)
+    error (ErrorError, "SWP(B) address register can not be the same as one of the swap registers");
+
   Put_Ins (4, ir);
   return false;
 }
