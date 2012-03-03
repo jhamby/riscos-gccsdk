@@ -608,6 +608,7 @@ netlib_src += \
 	netlib/getpeernam.c \
 	netlib/getsocknam.c \
 	netlib/getsockopt.c \
+	netlib/get_ro_socket.c \
 	netlib/h_errno.c \
 	netlib/listen.c \
 	netlib/net_error.c \

@@ -129,6 +129,10 @@ extern _kernel_oserror *__unixlib_write_coredump (const char *__dir);
    signal name will be outputed as well.  */
 extern void __write_backtrace (int __signo);
 
+/* Return the RISC OS socket number given a socket handle returned by
+   socket.  Is -1 when socket handle is not valid.  */
+extern int __get_ro_socket (int __sockfd);
+
 __END_DECLS
 
 #endif

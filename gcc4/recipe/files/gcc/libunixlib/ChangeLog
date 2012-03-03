@@ -1,3 +1,9 @@
+Sat Mar  3 17:37:27 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* netlib/get_ro_socket.c: Add.
+	* include/unixlib/local.h (__get_ro_socket): Add.
+	* Makefile.am (netlib_src): Add netlib/get_ro_socket.c.
+
 Fri Mar  2 22:51:55 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/features.c (__sfix_default): Remove "a".
