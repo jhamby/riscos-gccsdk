@@ -27,7 +27,9 @@ Bug fixes and other improvements:
   - GCC: support weak symbols in module code (r5059).
   - GCC: wrong code generation when using C++ (r4682, bug #208).
   - UnixLib: pthread stability fixes, especially when shared library is used
-    (r4396, r4424).
+    (r4396, r4424, r5470).
+  - UnixLib: Make __write_backtrace public (r4418, r4419).
+  - UnixLib: Fix return value getpwnam_r (r4425).
   - UnixLib: (line) buffered stream fix (r4398, r4459, r4786).
   - UnixLib: shared library improvements and fixes.
   - UnixLib: improved mmap() support (r4902).
@@ -42,17 +44,31 @@ Bug fixes and other improvements:
   - UnixLib/SharedUnixLibrary: improved reliability of forking other binaries
     including I/O redirection handling (r5025).  Latest SharedUnixLibrary
     version is now v1.12.
+  - UnixLib: fix open() return value (r5166).
+  - UnixLib: upgrade glob implementation (r5204, bug #220).
+  - UnixLib: fix getcwd memory corruption (r5286).
+  - UnixLib: fix fread EOF bit setting (r5296).
+  - UnixLib: support for double quoted redirection filenames (r5302, bug #221).
+  - UnixLib: stdtime: add missing buffer specification (r5331, bug #223).
+  - UnixLib: prevent stack extension trampling signal handler's stack chunk.
+    (r5394).
+  - UnixLib: merge SCL stubs into UnixLib project (r5465).
+  - UnixLib: getcwd: fix buffer overflow (r5408).
+  - UnixLib/SCL: support SCL's __USE_FILE_OFFSET64 and __USE_LARGEFILE64 API
+    (r5405, r5489, r5588).
   - Shared Object Manager: Reliability fixes (r4437).  SOManager module
     version is now 2.03.
   - elf2aif: ELF flags test fix (r4436)
   - CMunge: protection against bogus help-string entries.
+  - Examples: Fix linker error (r4394)
   - GDBServer:
     - client socket handle fix (r4777).
     - use libscl network code instead of its own implementation (r4780).
     - stability fixes and cleanups (r4781, r4783, r4790, r4791, r4806).
 
 Cross compile related changes and bug fixes:
-  - Porting Tools improvements (r4416, r4450, r4454, r4455, r4479, r4482).
+  - Porting Tools improvements (r4416, r4450, r4454, r4455, r4479, r4482,
+    r5456).
   - Makefile driven build (instead of script file) which improves partial
     rebuilding (r4467).
     - Source fetch and build of the correct Autoconf/Automake versions
