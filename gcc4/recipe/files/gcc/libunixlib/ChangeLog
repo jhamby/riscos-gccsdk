@@ -1,3 +1,11 @@
+Sun Mar 04 17:47:47 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* Makefile.am: Compile libm-dbl64/s_sincos.c(__sincos) with
+	flags -fno-builtin-cos and -fno-builtin-sin to prevent GCC
+	from optimising calls to sin() and cos() into a call to
+	__cexp(). __cexp() already calls __sincos() and this would
+	create an infinite loop.
+
 Sat Mar  3 17:37:27 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* netlib/get_ro_socket.c: Add.
