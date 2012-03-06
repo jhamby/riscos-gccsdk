@@ -1,8 +1,8 @@
 Index: libjava/configure.ac
 ===================================================================
---- libjava/configure.ac	(revision 181536)
+--- libjava/configure.ac	(revision 184959)
 +++ libjava/configure.ac	(working copy)
-@@ -1057,8 +1057,8 @@
+@@ -1052,8 +1052,8 @@
  case "$THREADS" in
   posix)
      case "$host" in
