@@ -48,6 +48,7 @@
 #include "os.h"
 #include "phase.h"
 #include "put.h"
+#include "state.h"
 #include "targetcpu.h"
 #include "value.h"
 
@@ -229,7 +230,10 @@ Branch_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 static bool
 branch_shared (ARMWord cc, bool isBLX)
 {
-  const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
+  /* At this point the current area index can be unaligned for ARM/Thumb
+     instructions, upfront correct this index.  */
+  const ARMWord instrAlign = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
+  const ARMWord offset = (areaCurrentSymbol->area.info->curIdx + instrAlign-1) & -instrAlign;
 
   exprBuild ();
 
