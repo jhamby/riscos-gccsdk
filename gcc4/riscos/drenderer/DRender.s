@@ -3,97 +3,76 @@
 ;*
 ;* Assembler interface to DigitalRenderer functions
 ;* (C) 1997-2000 Andreas Dehmel (zarquon@t-online.de)
+;* (C) 2012 GCCSDK Developers
 ;*
-;* This file is part of wimplib. wimplib is released under the Lesser
+;* This file was part of wimplib. wimplib is released under the Lesser
 ;* GNU Public License (LGPL). For more information see the License
 ;* provided with the library release.
+;*
+;* Currently part of the GCCSDK project.
 
+	AREA	|Asm$$Code|, CODE, READONLY
 
-; standard register names
-r0	rn	0
-r1	rn	1
-r2	rn	2
-r3	rn	3
-r4	rn	4
-r5	rn	5
-r6	rn	6
-r7	rn	7
-r8	rn	8
-r9	rn	9
-r10	rn	10
-r11	rn	11
-r12	rn	12
-sp	rn	13
-lr	rn	14
-pc	rn	15
+DigiRendChunk	EQU	0x6F700		;X flag set
 
-
-
-	IDFN	(C) 1997-2000 by Andreas Dehmel
-
-	AREA	CODE, READONLY
-
-
-DigiRendChunk	equ	0x6F700		;X flag set
-
-	align	4
-|wimplib_return_code|:
+	ALIGN	4
+|wimplib_return_code|
 	teq	r0, r0
 	teq	pc, pc
 	moveq	pc, lr
 	movs	pc, lr
 
 
-	align	4
-	export	|DigitalRenderer_Activate|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_Activate|
 	=	"DigitalRenderer_Activate"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_Activate|:
+|DigitalRenderer_Activate|
 	swi	DigiRendChunk
 	movvc	r0,#0
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_Deactivate|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_Deactivate|
 	=	"DigitalRenderer_Deactivate"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_Deactivate|:
+|DigitalRenderer_Deactivate|
 	swi	DigiRendChunk+1
 	movvc	r0,#0
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_Pause|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_Pause|
 	=	"DigitalRenderer_Pause"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_Pause|:
+|DigitalRenderer_Pause|
 	swi	DigiRendChunk+2
 	movvc	r0,#0
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_Resume|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_Resume|
 	=	"DigitalRenderer_Resume"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_Resume|:
+|DigitalRenderer_Resume|
 	swi	DigiRendChunk+3
 	movvc	r0,#0
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_GetTables|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_GetTables|
 	=	"DigitalRenderer_GetTables"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_GetTables|:
+|DigitalRenderer_GetTables|
 	mov	r2,r0
 	mov	r3,r1
 	swi	DigiRendChunk+4
@@ -103,45 +82,45 @@ DigiRendChunk	equ	0x6F700		;X flag set
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_ReadState|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_ReadState|
 	=	"DigitalRenderer_ReadState"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_ReadState|:
+|DigitalRenderer_ReadState|
 	swi	DigiRendChunk+5
 	mvnvs	r0,#0			;returns -1 on error
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_NewSample|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_NewSample|
 	=	"DigitalRenderer_NewSample"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_NewSample|:
+|DigitalRenderer_NewSample|
 	swi	DigiRendChunk+6
 	movvc	r0,#0
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_New16BitSample|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_New16BitSample|
 	=	"DigitalRenderer_New16BitSample"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_New16BitSample|:
+|DigitalRenderer_New16BitSample|
 	swi	DigiRendChunk+7
 	movvc	r0,#0
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_BufferStatistics|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_BufferStatistics|
 	=	"DigitalRenderer_BufferStatistics"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_BufferStatistics|:
+|DigitalRenderer_BufferStatistics|
 	mov	r2,r0
 	mov	r3,r1
 	swi	DigiRendChunk+8
@@ -150,63 +129,63 @@ DigiRendChunk	equ	0x6F700		;X flag set
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_NumBuffers|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_NumBuffers|
 	=	"DigitalRenderer_NumBuffers"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_NumBuffers|:
+|DigitalRenderer_NumBuffers|
 	swi	DigiRendChunk+9
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_StreamSamples|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_StreamSamples|
 	=	"DigitalRenderer_StreamSamples"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_StreamSamples|:
+|DigitalRenderer_StreamSamples|
 	swi	DigiRendChunk+10
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_Stream16BitSamples|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_Stream16BitSamples|
 	=	"DigitalRenderer_Stream16BitSamples"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_Stream16BitSamples|:
+|DigitalRenderer_Stream16BitSamples|
 	swi	DigiRendChunk+11
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_StreamStatistics|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_StreamStatistics|
 	=	"DigitalRenderer_StreamStatistics"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_StreamStatistics|:
+|DigitalRenderer_StreamStatistics|
 	swi	DigiRendChunk+12
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_StreamFlags|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_StreamFlags|
 	=	"DigitalRenderer_StreamFlags"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_StreamFlags|:
+|DigitalRenderer_StreamFlags|
 	swi	DigiRendChunk+13
 	b	|wimplib_return_code|
 
 
 
-	align 	4
-	export	|DigitalRenderer_SetDefaults|
+	ALIGN 	4
+	EXPORT	|DigitalRenderer_SetDefaults|
 	=	"DigitalRenderer_SetDefaults"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_SetDefaults|:
+|DigitalRenderer_SetDefaults|
 	stmdb	sp!,{r4-r9,lr}
 	mov	r6,r0
 	mov	r7,r1
@@ -233,47 +212,47 @@ DigiRendChunk	equ	0x6F700		;X flag set
 	b	|wimplib_return_code|
 
 
-	align	4
-	export	|DigitalRenderer_Activate16|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_Activate16|
 	=	"DigitalRenderer_Activate16"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_Activate16|:
+|DigitalRenderer_Activate16|
 	swi	DigiRendChunk+15
 	movvc	r0,#0
 	b	|wimplib_return_code|
 
 
 
-	align	4
-	export	|DigitalRenderer_GetFrequency|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_GetFrequency|
 	=	"DigitalRenderer_GetFrequency"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_GetFrequency|:
+|DigitalRenderer_GetFrequency|
 	swi	DigiRendChunk+16
 	b	|wimplib_return_code|
 
 
 
-	align	4
-	export	|DigitalRenderer_ActivateAuto|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_ActivateAuto|
 	=	"DigitalRenderer_ActivateAuto"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_ActivateAuto|:
+|DigitalRenderer_ActivateAuto|
 	swi	DigiRendChunk+17
 	movvc	r0,#0
 	b	|wimplib_return_code|
 
 
 
-	align	4
-	export	|DigitalRenderer_SampleFormat|
+	ALIGN	4
+	EXPORT	|DigitalRenderer_SampleFormat|
 	=	"DigitalRenderer_SampleFormat"
-	align	4
+	ALIGN	4
 
-|DigitalRenderer_SampleFormat|:
+|DigitalRenderer_SampleFormat|
 	swi	DigiRendChunk+18
 	b	|wimplib_return_code|
 

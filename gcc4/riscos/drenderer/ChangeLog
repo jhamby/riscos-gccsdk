@@ -1,0 +1,4 @@
+Sun Mar 11 16:08:40 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* DRender.s: Fix syntax so it can be assembled with AsAsm.
+	* ChangeLog: Add.
