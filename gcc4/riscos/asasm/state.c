@@ -32,7 +32,7 @@
 #include "phase.h"
 #include "state.h"
 
-static Syntax_e oDefaultSyntax = eSyntax_PreUALOnly;
+static Syntax_e oDefaultSyntax = eSyntax_Both;
 static InstrType_e oDefaultInstrType = eInstrType_ARM;
 
 static Syntax_e oCurrentSyntax;

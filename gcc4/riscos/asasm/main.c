@@ -465,7 +465,7 @@ main (int argc, char **argv)
       else if (!strcasecmp (arg, "32") || !strcasecmp (arg, "arm"))
 	{
 	  State_SetCmdLineInstrType (eInstrType_ARM);
-	  State_SetCmdLineSyntax (eSyntax_PreUALOnly);
+	  State_SetCmdLineSyntax (eSyntax_Both);
 	}
       else if (!strcasecmp (arg, "thumb"))
 	{

@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -55,7 +55,7 @@ ARMWord getRhs (bool immonly, bool shift, ARMWord ir);
 
 #define RRX 5
 #define LSL 0x00000000
-#define ASL 0x00000000
+#define ASL LSL
 #define LSR 0x00000020
 #define ASR 0x00000040
 #define ROR 0x00000060

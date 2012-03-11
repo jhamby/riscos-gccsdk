@@ -1,3 +1,18 @@
+Sun Mar 11 22:41:30 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/dcfs_dcfd.s: Add floating point literal tests.
+	* put.c (Put_FloatDataWithOffset): Refactor union arm_float,
+	arm_double_fpa and arm_double_vfp definition out into...
+	* fpu.h: ...this.
+	* state.c (oDefaultSyntax): Initialise to eSyntax_Both instead of
+	eSyntax_PreUALOnly.
+	* main.c (main): --32 and --arm means eSyntax_Both, not
+	eSyntax_PreUALOnly. 
+	* get.h (ASL): Define as LSL.
+	* lex.c (Lex_GetFloatFloatingPointLiteral,
+	Lex_GetDoubleFloatingPointLiteral): Add.
+	(lexGetPrim): Add support for floating point literals.
+
 Sat Mar 10 18:44:51 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/align_instr.s: Add.

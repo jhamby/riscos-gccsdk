@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <ctype.h>
+#include <ieee754.h>
 #include <limits.h>
 #include <math.h>
 #include <string.h>
@@ -37,6 +38,7 @@
 #include "common.h"
 #include "error.h"
 #include "filestack.h"
+#include "fpu.h"
 #include "input.h"
 #include "lex.h"
 #include "local.h"
@@ -900,6 +902,84 @@ Lex_Char2Int (size_t len, const char *str, ARMWord *result)
 }
 
 
+/**
+ * Parse floating point literal starting with "0f_" + followed by exactly
+ * 8 hex digits.
+ * The initial '0' is already parsed.  The "f_" are already checked but not
+ * yet consumed.
+ */
+static void
+Lex_GetFloatFloatingPointLiteral (Lex *result)
+{
+  inputSkipN (2); /* Skip "f_" */
+  uint32_t fltAsInt = 0;
+  for (int i = 0; i != 8; inputSkip (), ++i)
+    {
+      char c = inputLookLower ();
+      if (!isxdigit (c))
+	{
+	  error (ErrorError, "Float floating point literal needs exactly 8 hex digits");
+	  result->tag = LexNone;
+	  return;
+	}
+      fltAsInt = 16*fltAsInt + c - ((c >= 'a') ? 'a' - 10 : '0');
+    }
+  const union arm_float armflt = { .i = fltAsInt };
+  const union ieee754_float flt =
+    {
+      .ieee =
+	{
+	  .mantissa = armflt.flt.mantissa,
+	  .exponent = armflt.flt.exponent,
+	  .negative = armflt.flt.negative
+	}
+    };
+
+  result->tag = LexFloat;
+  result->Data.Float.value = (double)flt.f;
+}
+
+
+/**
+ * Parse floating point literal starting with "0d_" + followed by exactly
+ * 16 hex digits.
+ * The initial '0' is already parsed.  The "d_" are already checked but not
+ * yet consumed.
+ */
+static void
+Lex_GetDoubleFloatingPointLiteral (Lex *result)
+{
+  inputSkipN (2); /* Skip "f_" */
+  uint64_t fltAsInt = 0;
+  for (int i = 0; i != 16; inputSkip (), ++i)
+    {
+      char c = inputLookLower ();
+      if (!isxdigit (c))
+	{
+	  error (ErrorError, "Double floating point literal needs exactly 16 hex digits");
+	  result->tag = LexNone;
+	  return;
+	}
+      fltAsInt = 16*fltAsInt + c - ((c >= 'a') ? 'a' - 10 : '0');
+    }
+  /* FIXME: VFP support missing ! */
+  const union arm_double_fpa armdbl_fpa = { .i = fltAsInt };
+  const union ieee754_double dbl =
+    {
+      .ieee =
+	{
+	  .mantissa0 = armdbl_fpa.dbl.mantissa0,
+	  .exponent = armdbl_fpa.dbl.exponent,
+	  .negative = armdbl_fpa.dbl.negative,
+	  .mantissa1 = armdbl_fpa.dbl.mantissa1
+	}
+    };
+
+  result->tag = LexFloat;
+  result->Data.Float.value = dbl.d;
+}
+
+
 Lex
 lexGetPrim (void)
 {
@@ -958,6 +1038,20 @@ lexGetPrim (void)
 	break;
 
       case '0':
+	{
+	  /* Floating point literal 0f_... or 0d_... ? */
+	  if (inputLookN (0) == 'f' && inputLookN (1) == '_')
+	    {
+	      Lex_GetFloatFloatingPointLiteral (&result);
+	      break;
+	    }
+	  if (inputLookN (0) == 'd' && inputLookN (1) == '_')
+	    {
+	      Lex_GetDoubleFloatingPointLiteral (&result);
+	      break;
+	    }
+	  /* Fall through.  */
+	}
       case '1':
       case '2':
       case '3':
