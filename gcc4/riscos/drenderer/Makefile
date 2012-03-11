@@ -8,7 +8,7 @@ AS_HOST := asasm
 ASFLAGS_HOST := -tb
 STRIP_HOST := strip
 STRIPFLAGS_HOST := -O binary
-BUILDDIR := @.
+CURDIR := @.
 EXTMOD :=
 else
 # Build DRenderer using GCCSDK cross-compiler/cross-assembler
@@ -18,19 +18,17 @@ AS_HOST := asasm
 ASFLAGS_HOST :=
 STRIP_HOST := arm-unknown-riscos-strip
 STRIPFLAGS_HOST := -O binary
-BUILDDIR := ./
+CURDIR := ./
 EXTMOD = ,ffa
 endif
 
 SRCDIR := $(dir $(lastword $(MAKEFILE_LIST)))
 
-VPATH = $(SRCDIR)
-
 all:	DRenderer$(EXTMOD)
 
 clean:
 ifeq "$(RONATIVE)" "YES"
-	ifthere o then wipe o -CFR~V
+	ifthere o then wipe o ~CFR~V
 	remove logtable
 	remove makelogtable
 else
@@ -46,12 +44,11 @@ endif
 
 .PHONY: all clean dist-clean
 
-DRenderer.o: $(BUILDDIR)logtable DRenderer.s
+DRenderer.o: logtable $(SRCDIR)DRenderer.s
 ifeq "$(RONATIVE)" "YES"
 	cdir o
 endif
-	echo $(SRCDIR)
-	$(AS_HOST) $(ASFLAGS_HOST) -PreDefine "LogTableFileName SETS "\""$(BUILDDIR)logtable"\""" -o $@ $(SRCDIR)DRenderer.s
+	$(AS_HOST) $(ASFLAGS_HOST) -PreDefine "LogTableFileName SETS "\""logtable"\""" -o $@ $(SRCDIR)DRenderer.s
 
 DRenderer$(EXTMOD): DRenderer.o
 	$(STRIP_HOST) $(STRIPFLAGS_HOST) -o $@ $<
@@ -59,9 +56,8 @@ ifeq "$(RONATIVE)" "YES"
 	SetType DRenderer$(EXTMOD) Module
 endif
 
-$(BUILDDIR)logtable: $(BUILDDIR)makelogtable
-	$(BUILDDIR)makelogtable > logtable
+logtable: makelogtable
+	$(CURDIR)makelogtable > logtable
 
-$(BUILDDIR)makelogtable: makelogtable.c
+makelogtable: $(SRCDIR)makelogtable.c
 	$(CC_BUILD) $(CFLAGS_BUILD) -o $@ $<
-

@@ -1,3 +1,11 @@
+Mon Mar 12 00:56:56 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* !!Make,fd7: Add.
+	* Makefile: Rename BUILDDIR to CURDIR and only use it where it is
+	absolutely needed.
+	(clean): Fix RONATIVE case.
+	(VPATH): Remove and add SRCDIR explicitly where needed.
+
 Mon Mar 12 00:10:18 CET 2012   Christopher Martin  <belles@internode.on.net>
                                John Tytgat  <John.Tytgat@aaug.net>
 
