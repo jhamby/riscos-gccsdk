@@ -4,6 +4,7 @@
  REM *
  REM * Support for sound playback from applications
  REM * (C) 1997-2006 Andreas Dehmel (zarquon@t-online.de)
+ REM * (C) 2011-2012 Christopher Martin (belles@internode.on.net)
  REM *
  REM * This program is free software; you can redistribute it and/or modify
  REM * it under the terms of the GNU General Public License as published by
@@ -22,11 +23,13 @@
  REM *
  REM *******************************************************************
 
+ ON ERROR PRINT "Error " STR$(ERR) " at " STR$(ERL) ": " REPORT$ : QUIT
+
  ProgSize%=&3000
 
  DIM Code% ProgSize%, FSDate% 64
 
- LIBRARY "%.stdlib"
+ LIBRARY "stdlib"
 
  REM mini buffer for putting samples, must be a multiple of 2!
  MiniBufferSize%=32
@@ -122,7 +125,6 @@ er
  FOR pass%=12 TO 14 STEP 2
  P%=Program%: O%=Code%: L%=Code%+ProgSize%
 [OPT pass%
- EXT 1
  EQUD 0             ;start code
  EQUD InitCode
  EQUD FinalCode
@@ -143,13 +145,12 @@ er
  EQUD    1
 
 .InitCode
- STMDB   R13!,{R14}
  LDR     R2,[R12]
- CMP     R2,#0
+ STR     R14,[R13,#-4]!
+ TEQ     R2,#0
  BNE     ICreinit
  MOV     R0,#6
- MOV     R3,#(Work_SIZE% AND &ff)
- ORR     R3,R3,#(Work_SIZE% AND &ff00)
+ MOV     R3,#Work_SIZE%
  SWI     "XOS_Module"         ;get workspace
  BVS     InitError
  STR     R2,[R12]
@@ -175,24 +176,24 @@ er
  MOV     R0,#StrFlg_IssueUpCall%
  STR     R0,[R2,#Work_StreamFlags%]
  BL      RegisterFilingSystem
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
 .ModuleReturnOK
  FNModReturnOK
 .InitError
+ LDR     R14,[R13],#4
  ADR     R0,Error_Initialise
- LDMIA   R13!,{R14}
 .ModuleReturnError
  FNModReturnError
 
 
 .FinalCode
- STMDB   R13!,{R14}
  MOV     R4,R12               ;preserve private word
  LDR     R12,[R12]
  LDR     R0,[R12,#Work_State%]
+ STR     R14,[R13,#-4]!
  TST     R0,#State_Active%
  BLNE    RestoreOldContext
- CMP     R10,#0
+ TEQ     R10,#0
  BEQ     FCnonfatal           ;if fatal free workspace
  MOV     R12,R4
  BL      DeregisterFilingSystem
@@ -202,23 +203,73 @@ er
  MOV     R0,#0
  STR     R0,[R4]              ;clear private word
 .FCnonfatal
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .FCcantquit
+ LDR     R14,[R13],#4
  ADR     R0,Error_NoHandlers
- LDMIA   R13!,{R14}
  B       ModuleReturnError
 
 
+ EQUD    ServiceTable
 .ServiceHandler
- CMP     R1,#&40
- BNE     ModuleReturnOK
- B       RegisterFilingSystem
+ MOV     R0,R0                ; a magic word
+ TEQ     R1,#&40
+ MOVNE   PC,R14
+ ; else fall into the sole service handler
+
+
+; FILING SYSTEM
+
+.RegisterFilingSystem
+ STMDB   R13!,{R0-R3,R14}
+ MOV     R0,#12
+ ADR     R1,Program%
+ MOV     R2,#(FilingSystemBlock - Program%)
+ MOV     R3,R12
+ SWI     "XOS_FSControl"
+ LDMIA   R13!,{R0-R3,R14}
+ B       ModuleReturnOK
+
+.DeregisterFilingSystem
+ STMDB   R13!,{R0,R1,R14}
+ MOV     R0,#16
+ ADR     R1,FSName
+ SWI     "XOS_FSControl"
+ LDMIA   R13!,{R0,R1,R14}
+ B       ModuleReturnOK
+
+.FilingSystemBlock
+ EQUD    FSName
+ EQUD    FSStartup
+ EQUD    FSEntry_Open
+ EQUD    FSEntry_GetBytes
+ EQUD    FSEntry_PutBytes
+ EQUD    FSEntry_Args
+ EQUD    FSEntry_Close
+ EQUD    FSEntry_File
+ EQUD    FSNumber% + (1 << 8) + (&38 << 16) + (&38 << 24)
+ EQUD    FSEntry_Func
+ EQUD    FSEntry_GBPB
+
+.FSName
+ EQUS    "DRender": EQUB 0: ALIGN
+.FSStartup
+ EQUB    0: ALIGN
+.FSDfltSaveName
+ EQUS    "DRender:": EQUB 0: ALIGN
+
+
+.ServiceTable
+ EQUD    0
+ EQUD    RegisterFilingSystem
+ EQUD    &40
+ EQUD    0
 
 
 .MemSet                       ;clears buffer R0, size R1 to 0 (multiple of words
 !)
- STMDB   R13!,{R14}           ;MUST BE SAFE FOR IRQ MODE!
+ STR     R14,[R13,#-4]!           ;MUST BE SAFE FOR IRQ MODE!
 .MemStIRQ
  STMDB   R13!,{R0-R5}         ;in IRQ mode, the caller must store the return add
 ress!
@@ -274,10 +325,11 @@ ress!
  EQUS "DigitalRenderer": EQUB 0: ALIGN
 
 .HelpString
- EQUS "DigitalRenderer": EQUB 9: EQUS "0.52 GPL ("+LEFT$($(FSDate%+5),FSSize%)+"
+ EQUS "DigitalRenderer": EQUB 9: EQUS "0.54 GPL ("+LEFT$($(FSDate%+5),FSSize%)+"
 )": EQUB 13: EQUB 10
- EQUS "Provides a means to playback samples from applications. © 1997-2006 Andre
+ EQUS "Provides a means to playback samples from applications. © 1997-2011 Andre
 as Dehmel"
+ EQUS " (modified by Christopher Martin)"
  EQUB 0: ALIGN
 
 .HelpTable
@@ -320,11 +372,9 @@ as Dehmel"
  EQUS    "Show current status": EQUB 0: ALIGN
 
 
-
-
 .DoIntegerDivision
  STMDB   R13!,{R1-R2,R14}
- CMP     R1,#0
+ TEQ     R1,#0
  MVNEQ   R0,#0
  BEQ     DUIVexit
  FNsmalldiv32(0,0,1,2,14)
@@ -337,14 +387,14 @@ as Dehmel"
 .DisableRenderer
  STMDB   R13!,{R0-R3,R14}
  LDR     R1,[R12,#Work_StrExtHand%]
- CMP     R1,#0
+ TEQ     R1,#0
  BEQ     DisRenNoFile
  MOV     R0,#0                ;make sure everything is closed correctly by using
  SWI     "XOS_Find"           ;the external handle
 .DisRenNoFile
  LDR     R2,[R12,#Work_Buffer%]
  MOV     R0,#7
- CMP     R2,#0
+ TEQ     R2,#0
  SWINE   "XOS_Module"
  MOV     R0,#0
  STR     R0,[R12,#Work_Buffer%]
@@ -361,7 +411,7 @@ as Dehmel"
  TST     R0,#State_NewSound%
  BNE     ROCnewsound
  LDR     R0,[R12,#Work_VoiceSlot%]
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     ROCnotinitialized
  ADD     R3,R12,#Work_OldVoices%
  LDR     R4,[R12,#Work_Channels%]
@@ -389,7 +439,6 @@ as Dehmel"
  SWI     "XSound_Configure"   ;restore previous sound context
  B       ROCepilogue
 .ROCnewsound
- LDR     R0,[R12,#Work_State%]
  TST     R0,#State_Restore16%
  BNE     ROCnewrestore
  MOV     R0,#1
@@ -400,20 +449,16 @@ as Dehmel"
  STR     R0,[R12,#Work_OldEnable%] ;don't enable sound later on either
  B       ROCnewepilogue
 .ROCnewrestore
- MOV     R0,#1
  LDR     R1,[R12,#Work_OldLinHandler%]
  LDR     R2,[R12,#Work_OldLinParam%]
+ MOV     R0,#1
  SWI     "XSound_LinearHandler"
- MOV     R0,#3
- LDR     R1,[R12,#Work_OldFreqIndex%]
- SWI     "XSound_SampleRate"
 .ROCnewepilogue
  MOV     R0,#0
  STR     R0,[R12,#Work_OldLinHandler%]
- MOV     R0,#0
+ MOV     R3,#0
  LDR     R1,[R12,#Work_OldSize%]
  MOV     R2,#0
- MOV     R3,#0
  MOV     R4,#0
  SWI     "XSound_Configure"   ;restore old buffer size
 .ROCepilogue
@@ -421,13 +466,25 @@ as Dehmel"
  LDR     R0,[R12,#Work_OldVolume%]
  SWI     "XSound_Volume"
  LDR     R0,[R12,#Work_OldEnable%]
- SWI     "XSound_Enable"      ;again, enable is the last thing we do
+ SWI     "XSound_Enable"      ;again, enable is the last thing we do... [ Or is
+it?  -- CPM ]
+; Debugging by CPM
+; On RISC OS 5.16, it appears that the rate at which the linear handler is calle
+d is determined by
+; the last setting of the sample rate while sound is enabled. That is, if one ch
+anges the sample
+; rate while sound is turned off, then the linear handler interrupt seems to ign
+ore the change.
+; So we have to wait until the sound is enabled before setting the sample rate.
+ MOV     R0,#3
+ LDR     R1,[R12,#Work_OldFreqIndex%]
+ SWI     "XSound_SampleRate"
  LDMIA   R13!,{R0-R5,R14}
  B       ModuleReturnOK
 
 
-
 .SWIHandler
+ LDR     R12,[R12]
  CMP     R11,#((SWIJumpTableEnd-SWIJumpTableStart)>>2)
  ADDLO   PC,PC,R11,LSL #2
  B       SWI_NotSupported
@@ -452,7 +509,6 @@ as Dehmel"
  B       SWIActivateAuto
  B       SWISampleFormat
 .SWIJumpTableEnd
-
 .SWI_NotSupported
  FNadr2("", 0, Error_BadSWI)
  B       ModuleReturnError
@@ -471,9 +527,8 @@ as Dehmel"
 
 .SWIActivate                  ;claim buffer, init channel handler
  STMDB   R13!,{R0-R5,R14}
- LDR     R12,[R12]
  LDR     R14,[R12,#Work_Buffer%]
- CMP     R14,#0
+ TEQ     R14,#0
  BNE     SWIActNoReinit
  LDR     R14,[R12,#Work_State%]
  TST     R14,#State_Active%
@@ -489,17 +544,17 @@ as Dehmel"
  STR     R3,[R12,#Work_CallBackFill%]
  ANDS    R0,R4,#&FF
  MOVEQ   R0,#1                ;limit channels to 1,2,4 or 8 (rounding up)
- CMP     R0,#3
+ TEQ     R0,#3
  MOVEQ   R0,#4
  CMP     R0,#5
- MOVCS   R0,#8
+ MOVHS   R0,#8
  ADD     R14,R12,#Work_Channels%
  STMIA   R14,{R0-R2}
  MUL     R14,R0,R1
- STR     R14,[R12,#Work_TotBuffSize%]
- CMP     R3,#0
+ TEQ     R3,#0
  MOVNE   R2,#0
  STRNE   R2,[R12,#Work_Buffer%]
+ STR     R14,[R12,#Work_TotBuffSize%]
  BNE     SWIActNoBuff         ;don't need a buffer in case of callback handler
  LDR     R3,[R12,#Work_TotBuffSize%]
  MOV     R0,#6
@@ -549,7 +604,7 @@ ed?
  SWI     "XSound_InstallVoice"
  STR     R0,[R12,#Work_OldVoiceName%]
  STR     R1,[R12,#Work_VoiceSlot%]
- CMP     R1,#0
+ TEQ     R1,#0
  BEQ     SWIActInstall
  ADD     R3,R12,#Work_OldVoices%
  LDR     R4,[R12,#Work_Channels%]
@@ -599,7 +654,7 @@ B
 .SWIActMemory2
  LDR     R2,[R12,#Work_Buffer%]
  MOV     R0,#7
- CMP     R2,#0
+ TEQ     R2,#0
  SWINE   "XOS_Module"
  MOV     R0,#0
  STR     R0,[R12,#Work_Buffer%]
@@ -621,18 +676,17 @@ B
 ; no input, all registers preserved
 
 .SWIDeactivate                ;free buffer, restore channel handler
- STMDB   R13!,{R14}
- LDR     R12,[R12]
+ STR     R14,[R13,#-4]!
  LDR     R14,[R12,#Work_State%]
  TST     R14,#State_Active%
  BEQ     SWIDecInactive
  BL      RestoreOldContext
  BL      FreeRingBuffer
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .SWIDecInactive
  FNadr2("", 0, Error_Inactive)
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnError
 
 
@@ -643,12 +697,11 @@ B
 
 .SWIPause                     ;pause playback
  STMDB   R13!,{R0,R14}
- LDR     R0,[R12]
- LDR     R14,[R0,#Work_State%]
+ LDR     R14,[R12,#Work_State%]
  TST     R14,#State_Active%
  BEQ     SWIPsInactive
  ORR     R14,R14,#State_Paused%
- STR     R14,[R0,#Work_State%]
+ STR     R14,[R12,#Work_State%]
  MOV     R0,#1
  SWI     "XSound_Enable"
  LDMIA   R13!,{R0,R14}
@@ -656,7 +709,7 @@ B
 .SWIPsInactive
  FNadr2("", 0, Error_Inactive)
  ADD     R13,R13,#4
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnError
 
 
@@ -667,12 +720,11 @@ B
 
 .SWIResume                    ;resume playback
  STMDB   R13!,{R0,R14}
- LDR     R0,[R12]
- LDR     R14,[R0,#Work_State%]
+ LDR     R14,[R12,#Work_State%]
  TST     R14,#State_Active%
  BEQ     SWIRsInactive
  BIC     R14,R14,#State_Paused%
- STR     R14,[R0,#Work_State%]
+ STR     R14,[R12,#Work_State%]
  MOV     R0,#2
  SWI     "XSound_Enable"
  LDMIA   R13!,{R0,R14}
@@ -680,7 +732,7 @@ B
 .SWIRsInactive
  FNadr2("",0,Error_Inactive)
  ADD     R13,R13,#4
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnError
 
 
@@ -690,12 +742,11 @@ B
 ; no input. Returns with R0 = ^LinToLog, R1 = ^LogScale
 
 .SWIGetTables                 ;get pointers to LinToLog and LogScale tables
- LDR     R0,[R12]
- LDR     R1,[R0,#Work_State%]
+ LDR     R1,[R12,#Work_State%]
  TST     R1,#State_Active%
  BEQ     SWIGTInactive
- LDR     R1,[R0,#Work_LogScale%]
- LDR     R0,[R0,#Work_LinToLog%]
+ LDR     R1,[R12,#Work_LogScale%]
+ LDR     R0,[R12,#Work_LinToLog%]
  B       ModuleReturnOK
 .SWIGTInactive
  FNadr2("",0,Error_Inactive)
@@ -708,8 +759,7 @@ B
 ; no input. Returns Work_State in R0
 
 .SWIReadState                 ;read state (has valid buffer yes/no)
- LDR     R0,[R12]
- LDR     R0,[R0,#Work_State%]
+ LDR     R0,[R12,#Work_State%]
  B       ModuleReturnOK
 
 
@@ -721,20 +771,19 @@ B
 .SWINewSample                 ;read sample from external buffer into internal bu
 ffer
  STMDB   R13!,{R0-R3,R14}
- LDR     R12,[R12]
  LDR     R3,[R12,#Work_State%]
  TST     R3,#State_Active%
  BEQ     SWINSInactive
+ LDR     R1,[R12,#Work_Buffer%]
  BIC     R3,R3,#State_NeedData%
  STR     R3,[R12,#Work_State%]
- LDR     R1,[R12,#Work_Buffer%]
- CMP     R1,#0
+ TEQ     R1,#0
  BEQ     SWINSInactive
  LDR     R2,[R12,#Work_BuffersGiven%]
+ TST     R3,#State_NewSound%
  ADD     R2,R2,#1
  STR     R2,[R12,#Work_BuffersGiven%]
  LDR     R2,[R12,#Work_TotBuffSize%]
- TST     R3,#State_NewSound%
  BNE     SNSnewsound
  BL      CopyByteBuffer
  LDMIA   R13!,{R0-R3,R14}
@@ -759,20 +808,19 @@ d
 
 .SWINew16Sample
  STMDB   R13!,{R0-R3,R14}
- LDR     R12,[R12]
  LDR     R3,[R12,#Work_State%]
  TST     R3,#State_Active%
  BEQ     SWINS16Inactive
+ LDR     R1,[R12,#Work_Buffer%]
  BIC     R3,R3,#State_NeedData%
  STR     R3,[R12,#Work_State%]
- LDR     R1,[R12,#Work_Buffer%]
- CMP     R1,#0
+ TEQ     R1,#0
  BEQ     SWINS16Inactive
  LDR     R2,[R12,#Work_BuffersGiven%]
+ TST     R3,#State_NewSound%
  ADD     R2,R2,#1
  STR     R2,[R12,#Work_BuffersGiven%]
  LDR     R2,[R12,#Work_TotBuffSize%]
- TST     R3,#State_NewSound%
  BNE     SNS16newsound
  BL      CopyShortBuffer
  LDMIA   R13!,{R0-R3,R14}
@@ -795,7 +843,6 @@ d
 ; returns R0 = "BuffersPlayed", R1 = "BuffersGiven"
 
 .SWIBufferStatistics
- LDR     R12,[R12]
  LDR     R0,[R12,#Work_BuffersPlayed%]
  LDR     R1,[R12,#Work_BuffersGiven%]
  B       ModuleReturnOK
@@ -809,11 +856,10 @@ d
 
 .SWINumBuffers
  STMDB   R13!,{R1-R4,R14}
- LDR     R12,[R12]
  MOVS    R4,R0
  LDR     R0,[R12,#Work_NumBuffers%]
  BLT     SWINBexit
- CMP     R0,R4
+ TEQ     R0,R4
  BEQ     SWINBexit
  BL      FreeRingBuffer
  CMP     R4,#0
@@ -847,9 +893,8 @@ d
 
 .SWIStreamSamples
  STMDB   R13!,{R0-R11,R14}
- LDR     R12,[R12]
- MOV     R10,#1
  LDR     R2,[R12,#Work_State%]
+ MOV     R10,#1
  TST     R2,#State_NewSound%
  BNE     SSSnewsound
  MOV     R11,#1
@@ -869,9 +914,8 @@ d
 
 .SWIStreamSamples16
  STMDB   R13!,{R0-R11,R14}
- LDR     R12,[R12]
- MOV     R10,#2
  LDR     R2,[R12,#Work_State%]
+ MOV     R10,#2
  TST     R2,#State_NewSound%
  BNE     SSS16newsound
  MOV     R11,#1
@@ -890,7 +934,6 @@ d
 
 .SWIStreamStatistics
  STMDB   R13!,{R1,R14}
- LDR     R12,[R12]
  LDR     R0,[R12,#Work_WriteBuffer%]
  LDR     R1,[R12,#Work_ReadBuffer%]
  SUBS    R0,R0,R1
@@ -898,13 +941,13 @@ d
  BEQ     SWISSequal            ;if both are equal check for the RingFull status
  ADDLT   R0,R0,R1
  LDR     R1,[R12,#Work_FillLevel%] ;if any data was written to the buffer, add 1
- CMP     R1,#0
+ TEQ     R1,#0
  ADDNE   R0,R0,#1
  LDMIA   R13!,{R1,R14}
  B       ModuleReturnOK
 .SWISSequal
  LDR     R0,[R12,#Work_RingIsFull%]
- CMP     R0,#0
+ TEQ     R0,#0
  MOVNE   R0,R1                ;if the ring is full, return num buffers, otherwis
 e 0
  LDMIA   R13!,{R1,R14}
@@ -919,7 +962,6 @@ e 0
 
 .SWIStreamFlags
  STMDB   R13!,{R1,R14}
- LDR     R12,[R12]
  LDR     R14,[R12,#Work_StreamFlags%]
  AND     R1,R1,R14
  EOR     R1,R1,R0
@@ -938,23 +980,22 @@ rs
 ; returns with the currently valid configuration
 
 .SWISetDefaults
- LDR     R12,[R12]
- CMP     R0,#0
+ TEQ     R0,#0
  LDREQ   R0,[R12,#Work_DfltChannels%]
  STRNE   R0,[R12,#Work_DfltChannels%]
- CMP     R1,#0
+ TEQ     R1,#0
  LDREQ   R1,[R12,#Work_DfltFormat%]
  STRNE   R1,[R12,#Work_DfltFormat%]
- CMP     R2,#0
+ TEQ     R2,#0
  LDREQ   R2,[R12,#Work_DfltPeriod%]
  STRNE   R2,[R12,#Work_DfltPeriod%]
- CMP     R3,#0
+ TEQ     R3,#0
  LDREQ   R3,[R12,#Work_DfltBuffSize%]
  STRNE   R3,[R12,#Work_DfltBuffSize%]
- CMP     R4,#0
+ TEQ     R4,#0
  LDREQ   R4,[R12,#Work_DfltBuffers%]
  STRNE   R4,[R12,#Work_DfltBuffers%]
- CMP     R5,#0
+ TEQ     R5,#0
  LDREQ   R5,[R12,#Work_DfltFrequency%]
  STRNE   R5,[R12,#Work_DfltFrequency%]
  B       ModuleReturnOK
@@ -968,81 +1009,46 @@ rs
 ; returns with all registers preserved
 
 .SWIActivate16
- STMDB   R13!,{R0-R6,R14}
- LDR     R12,[R12]
+ STMDB   R13!,{R0-R7,R14}
  LDR     R14,[R12,#Work_Buffer%]
- CMP     R14,#0
+ TEQ     R14,#0
  BNE     SWIAct16Reinit
  LDR     R14,[R12,#Work_State%]
  TST     R14,#State_Active%
  BNE     SWIAct16Reinit
- CMP     R0,#1
- CMPNE   R0,#2
+ TEQ     R0,#1
+ TEQNE   R0,#2
  BNE     SWIAct16Channels
  STR     R0,[R12,#Work_Channels%]
+ MUL     R0,R1,R0
  STR     R1,[R12,#Work_BuffSize%]
  STR     R2,[R12,#Work_Frequency%]
- MUL     R0,R1,R0
+ TST     R3,#1
  MOV     R0,R0,LSL #1
  STR     R0,[R12,#Work_TotBuffSize%] ; total buffer size = num channels * buffsi
 ze * 2
- TST     R3,#1
  MOVEQ   R0,#0
  MOVNE   R0,#State_Restore16%
  STR     R0,[R12,#Work_State%]
  MOV     R0,#0
  SWI     "XSound_Mode"
  BVS     SWIAct16GenErr
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     SWIAct16NotAvailable
  MOV     R0,#0
  SWI     "XSound_Volume"
- STR     R0,[R12,#Work_OldVolume%]
+ STRVC   R0,[R12,#Work_OldVolume%]
  MOV     R0,#1
  SWI     "XSound_Enable"             ; switch off sound before reconfiguring
- STR     R0,[R12,#Work_OldEnable%]
- MOV     R0,#1
- SWI     "XSound_SampleRate"
- BVS     SWIAct16GenErr
- STR     R1,[R12,#Work_OldFreqIndex%]; this is the index, not the actual frequen
-cy (r2)!
+ STRVC   R0,[R12,#Work_OldEnable%]
  MOV     R0,#0
- LDR     R1,[R12,#Work_BuffSize%]
  MOV     R2,#0
+ LDR     R1,[R12,#Work_BuffSize%]
  MOV     R3,#0
  MOV     R4,#0
  SWI     "XSound_Configure"          ; try to configure the buffer size
+ BVS     SWIAct16GenErr
  STR     R1,[R12,#Work_OldSize%]
- MOV     R0,#0
- SWI     "XSound_SampleRate"         ; read number of sample rates to r1
- MOV     R3,R1
- MVN     R4,#0                       ; best match so far (signed)
- MVN     R5,#0                       ; error so far (unsigned)
- LDR     R6,[R12,#Work_Frequency%]
- MOV     R1,#1                       ; sample rate indices start at 1!
-.SWIAct16FindRate                    ; primitive linear search...
- MOV     R0,#2
- SWI     "XSound_SampleRate"
- BVS     SWIAct16SkipRate
- SUBS    R2,R2,R6,LSL #10
- RSBLT   R2,R2,#0
- CMP     R2,R5
- MOVCC   R4,R1
- MOVCC   R5,R2
-.SWIAct16SkipRate
- ADD     R1,R1,#1
- CMP     R1,R3
- BLE     SWIAct16FindRate            ; sample rate indices are 1-based
- CMP     R4,#0
- BLT     SWIAct16NoRate
- STR     R4,[R12,#Work_FreqIndex%]
- MOV     R1,R4
- MOV     R0,#2
- SWI     "XSound_SampleRate"
- MOV     R2,R2,LSR #10
- STR     R2,[R12,#Work_Frequency%]
- MOV     R0,#3
- SWI     "XSound_SampleRate"         ; switch on the new sample rate
  MOV     R0,#6
  LDR     R3,[R12,#Work_TotBuffSize%]
  SWI     "XOS_Module"
@@ -1053,55 +1059,92 @@ cy (r2)!
  MOV     R1,R3
  BL      MemSet
  MOV     R0,#0
- SWI     "XSound_LinearHandler"      ; read old linear handler
- STR     R1,[R12,#Work_OldLinHandler%]
- STR     R2,[R12,#Work_OldLinParam%]
- MOV     R0,#1
- FNadr2("", 1, LinearHandlerCode)
- MOV     R2,R12
- SWI     "XSound_LinearHandler"      ; install new linear handler
- LDR     R0,[R12,#Work_State%]
- ORR     R0,R0,#(State_Active% + State_NeedData% + State_NewSound%)
- STR     R0,[R12,#Work_State%]
- MOV     R0,#0
  STR     R0,[R12,#Work_BuffersPlayed%]
  STR     R0,[R12,#Work_BuffersGiven%]
  STR     R0,[R12,#Work_RingIsFull%]
  BL      FreeRingBufferBuffers
  BL      ClaimRingBufferBuffers
- MOV     R0,#Format_16sl%
- STR     R0,[R12,#Work_SampleFormat%]
+ MOV     R0,#1
+ FNadr2("", 1, LinearHandlerCode)
+ MOV     R2,R12
+ SWI     "XSound_LinearHandler"      ; install new linear handler, remember old
+one
+ BVS     SWIAct16GenErr
+ STR     R1,[R12,#Work_OldLinHandler%]
+ STR     R2,[R12,#Work_OldLinParam%]
+ ; Debugging by CPM
+ ; On RISC OS 5.16, it appears that the rate at which the linear handler is call
+ed is determined by
+ ; the last setting of the sample rate while sound is enabled. That is, if one c
+hanges the sample
+ ; rate while sound is turned off, then the linear handler interrupt seems to ig
+nore the change.
  MOV     R0,#2
  SWI     "XSound_Enable"             ; turn on sound
- LDMIA   R13!,{R0-R6,R14}
+ BVS     SWIAct16GenErr
+; Now the sound is enabled, setting of the sample rate will be noticed by the li
+near handler.
+ MOV     R0,#0
+ SWI     "XSound_SampleRate"         ; read number of sample rates to r1
+ BVS     SWIAct16GenErr
+ LDR     R6,[R12,#Work_Frequency%]
+ MVN     R5,#0                       ; error so far (unsigned)
+ MVN     R4,#0                       ; best match so far (signed)
+ MOV     R0,#2
+.SWIAct16FindRate                    ; primitive linear search...
+ SWI     "XSound_SampleRate"
+ MOVVS   R2,#0
+ SUBS    R3,R2,R6,LSL #10
+ RSBLT   R3,R3,#0
+ CMPNE   R3,R5
+ MOVLS   R5,R3
+ MOVLS   R4,R1
+ MOVLS   R7,R2,LSR #10
+ SUBNES  R1,R1,#1
+ BNE     SWIAct16FindRate            ; sample rate indices are 1-based
+ CMP     R4,#0
+ BLT     SWIAct16NoRate
+ STR     R7,[R12,#Work_Frequency%]
+ STR     R4,[R12,#Work_FreqIndex%]
+ MOV     R1,R4
+ MOV     R0,#3
+ SWI     "XSound_SampleRate"         ; switch on the new sample rate NOW, after
+sound is enabled! (RISC OS bug?)
+ STR     R1,[R12,#Work_OldFreqIndex%]; this is the index, not the actual frequen
+cy (r2)!
+ MOV     R0,#Format_16sl%
+ STR     R0,[R12,#Work_SampleFormat%]
+ LDR     R0,[R12,#Work_State%]
+ ORR     R0,R0,#(State_Active% + State_NeedData% + State_NewSound%)
+ STR     R0,[R12,#Work_State%]
+ LDMIA   R13!,{R0-R7,R14}
  B       ModuleReturnOK
 .SWIAct16Reinit
  FNadr2("", 0, Error_NoReinit)
  ADD     R13,R13,#4
- LDMIA   R13!,{R1-R6,R14}
+ LDMIA   R13!,{R1-R7,R14}
  B       ModuleReturnError
 .SWIAct16NotAvailable
  FNadr2("", 0, Error_No16Bit)
  ADD     R13,R13,#4
- LDMIA   R13!,{R1-R6,R14}
+ LDMIA   R13!,{R1-R7,R14}
  B       ModuleReturnError
 .SWIAct16NoRate
  FNadr2("", 0, Error_NoRate)
  ADD     R13,R13,#4
- LDMIA   R13!,{R1-R6,R14}
+ LDMIA   R13!,{R1-R7,R14}
  B       ModuleReturnError
 .SWIAct16Channels
  FNadr2("", 0, Error_Channels16)
  ADD     R13,R13,#4
- LDMIA   R13!,{R1-R6,R14}
+ LDMIA   R13!,{R1-R7,R14}
  B       ModuleReturnError
 .SWIAct16Memory
  FNadr2("", 0, Error_Memory)
 .SWIAct16GenErr
  ADD     R13,R13,#4
- LDMIA   R13!,{R1-R6,R14}
+ LDMIA   R13!,{R1-R7,R14}
  B       ModuleReturnError
-
 
 
 ; Call
@@ -1111,7 +1154,6 @@ cy (r2)!
 
 .SWIGetFrequency
  STMDB   R13!,{R1,R14}
- LDR     R12,[R12]
  LDR     R0,[R12,#Work_State%]
  TST     R0,#State_Active%
  MOVEQ   R0,#0
@@ -1139,7 +1181,7 @@ cy (r2)!
  STMDB   R13!,{R0-R4,R14}
  MOV     R4,R0
  MOV     R3,#1                       ;restore old handler
- SWI     XDR_Activate16%
+ BL      SWIActivate16
  BVC     SWIAAexit
  MOV     R3,R1
  LDR     R0,Constant_Mega
@@ -1149,7 +1191,7 @@ cy (r2)!
  MOV     R2,R0
  MOV     R0,R4
  MOV     R1,R3
- SWI     XDR_Activate%
+ BL      SWIActivate
  BVS     SWIAAGenErr
 .SWIAAexit
  LDMIA   R13!,{R0-R4,R14}
@@ -1168,8 +1210,7 @@ cy (r2)!
 ; returns sample format
 
 .SWISampleFormat
- LDR     R12,[R12]
- CMP     R0,#0
+ TEQ     R0,#0
  LDREQ   R0,[R12,#Work_SampleFormat%]
  STRNE   R0,[R12,#Work_SampleFormat%]
  B       ModuleReturnOK
@@ -1217,21 +1258,21 @@ cy (r2)!
  B       VoiceFillCode         ;update code
  B       VoiceFillCode         ;gate on code
  B       VoiceFillCode         ;gate off code
- LDMIA   R13!,{PC}
- LDMIA   R13!,{PC}
- LDMIA   R13!,{PC}
+ LDR     PC,[R13],#4
+ LDR     PC,[R13],#4
+ LDR     PC,[R13],#4
  EQUD    VoiceGeneratorName - DigitalVoiceGenerator
 .VoiceGeneratorName
  EQUS    "DigitalRenderer": EQUB 0: ALIGN
 
 
 .VoiceFillCode
- CMP     R7,#0                 ;only do something for the first channel
+ TEQ     R7,#0                 ;only do something for the first channel
  BNE     CHFCexit
  LDR     R0,[R9,#SCCB_PrivateOffset%]   ;retrieve module workspace pointer
  FNldr2(1, DRenderMagic)
  LDR     R4,[R0,#Work_MagicWord%]
- CMP     R1,R4
+ TEQ     R1,R4
  BNE     CHFCexit              ;the private word pointer got corrupted somehow!
  LDR     R1,[R0,#Work_State%]
  TST     R1,#State_NeedData%
@@ -1246,13 +1287,13 @@ red
  SUB     R1,R10,R12
  STR     R1,[R0,#Work_DMABuffSize%]
  LDR     R4,[R0,#Work_CallBackFill%]
- CMP     R4,#0
+ TEQ     R4,#0
  BNE     CHFCcallback
  LDR     R4,[R0,#Work_NumBuffers%]      ;stream mode?
- CMP     R4,#0
+ TEQ     R4,#0
  BNE     CHFCstreaming
  LDR     R0,[R0,#Work_Buffer%]          ;R0 = ^internal buffer
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     CHFCexit
 .CHFCBegin
  SUB     R4,R10,R12
@@ -1277,7 +1318,7 @@ red
 .CHFCDone
 .CHFCexit
  MOV     R0,#(1<<3)           ;active (normal fill)
- LDMIA   R13!,{PC}
+ LDR     PC,[R13],#4
 
 .CHFCcallback
  TEQ     R0,R0
@@ -1286,7 +1327,7 @@ red
  ANDNE   R1,PC,#&fc000003
  ADR     R2,CHFCDone
  ORR     R1,R1,R2
- STMDB   R13!,{R1}
+ STR     R1,[R13,#-4]!
  LDR     R1,[R0,#Work_LinToLog%]
  LDR     R3,[R0,#Work_CallBackFill%]
  SUB     R2,R10,R12           ;R2 = buffer size
@@ -1294,19 +1335,19 @@ red
  MOV     PC,R3                ;call handler
 
 .CHFCstreaming                          ;R4 = num buffers
+ LDR     R3,[R0,#Work_RingBuffer%]
  MOV     R5,R0
  MOV     R0,#1
  STR     R0,[R5,#Work_PollWord%]        ;on every buffer refill loop, set poll w
 ord
- LDR     R3,[R5,#Work_RingBuffer%]
- CMP     R3,#0
+ TEQ     R3,#0
  BEQ     CHFCovernull
  LDR     R0,[R5,#Work_WriteBuffer%]
  LDR     R6,[R5,#Work_ReadBuffer%]
- CMP     R0,R6
+ TEQ     R0,R6
  BNE     CHFCloopstream
  LDR     R0,[R5,#Work_RingIsFull%]      ;is the ring empty or completely full?
- CMP     R0,#0
+ TEQ     R0,#0
  BNE     CHFCloopstream
 .CHFCchkoveract
  LDR     R0,[R5,#Work_StreamFlags%]
@@ -1314,25 +1355,25 @@ ord
  BNE     CHFCovernull
  LDR     R6,[R5,#Work_LastReadBuff%]
  CMP     R6,R4
- MOVCS   R6,#0                          ;in case LastReadBuff >= NumBuffers...
+ MOVHS   R6,#0                          ;in case LastReadBuff >= NumBuffers...
  MOV     R4,#0                          ;buffer overrun ==> set R4 to 0
  STR     R4,[R5,#Work_ReadLevel%]
 .CHFCloopstream
  LDR     R0,[R3,R6,LSL #2]
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     CHFCexit
  LDR     R7,[R5,#Work_ReadLevel%]
  LDR     R8,[R5,#Work_TotBuffSize%]
  CMP     R7,R8
- MOVCS   R7,#0                          ;additional security
+ MOVHS   R7,#0                          ;additional security
  ADD     R0,R0,R7
  SUB     R1,R8,R7                       ;bytes remaining in source buffer
  SUB     R2,R10,R12                     ;bytes remaining in DMA buffer
  CMP     R2,R1
- MOVCS   R2,R1
+ MOVHS   R2,R1
  ADR     R1,CHFCcopyreturn              ;IRQ CODE STORES RETURN ADDRESS BEFORE C
 ALL!
- STMDB   R13!,{R1}
+ STR     R1,[R13,#-4]!
  MOV     R1,R12
  B       CopyByteBuffIRQ                ;CAN'T USE R14 IN IRQ MODE!!!
 .CHFCcopyreturn
@@ -1340,35 +1381,35 @@ ALL!
  STR     R6,[R5,#Work_LastReadBuff%]
  ADD     R7,R7,R2                        ;increment read level
  CMP     R7,R8
- STRCC   R7,[R5,#Work_ReadLevel%]
- BCC     CHFCnobuffinc
+ STRLO   R7,[R5,#Work_ReadLevel%]
+ BLO     CHFCnobuffinc
  MOV     R7,#0
  STR     R7,[R5,#Work_ReadLevel%]
- CMP     R4,#0
+ TEQ     R4,#0
  BEQ     CHFCnobuffinc                   ;buffer overrun ==> don't increment rea
 d buffer
  ADD     R6,R6,#1
  CMP     R6,R4
- MOVCS   R6,#0
+ MOVHS   R6,#0
  STR     R6,[R5,#Work_ReadBuffer%]
  LDR     R0,[R5,#Work_WriteBuffer%]      ;if ReadBuffer == WriteBuffer after inc
 rementing
- CMP     R6,R0                           ;the buffer is completely empty.
+ TEQ     R6,R0                           ;the buffer is completely empty.
  BNE     CHFCnobuffinc
  MOV     R0,#0
  STR     R0,[R5,#Work_RingIsFull%]       ;make a note for StreamStatistics
  CMP     R12,R10
- BCC     CHFCchkoveract
+ BLO     CHFCchkoveract
 .CHFCnobuffinc
  CMP     R12,R10
- BCC     CHFCloopstream
+ BLO     CHFCloopstream
  B       CHFCexit
 .CHFCovernull
  MOV     R0,#0
  STR     R0,[R5,#Work_RingIsFull%]
  MOV     R0,R12
  ADR     R1,CHFCexit
- STMDB   R13!,{R1}
+ STR     R1,[R13,#-4]!
  SUB     R1,R10,R12
  B       MemStIRQ                        ;CAN'T USE R14 IN IRQ MODE!
 
@@ -1380,7 +1421,7 @@ rementing
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 .LinearHandlerCode
- STMDB   R13!,{R12,R14}
+ STMFD   R13!,{R12,R14}
  MOV     R12,R0
  LDR     R0,[R12,#Work_State%]
  TST     R0,#State_NeedData%
@@ -1389,43 +1430,43 @@ rementing
  ORR     R0,R0,#State_NeedData%
  STR     R0,[R12,#Work_State%]
  LDR     R0,[R12,#Work_BuffersPlayed%]
+ SUB     R2,R2,R1                        ;buffer length
+ LDR     R4,[R12,#Work_NumBuffers%]
  ADD     R0,R0,#1
  STR     R0,[R12,#Work_BuffersPlayed%]
- SUB     R2,R2,R1                        ;buffer length
  STR     R2,[R12,#Work_DMABuffSize%]
- LDR     R4,[R12,#Work_NumBuffers%]
- CMP     R4,#0
+ TEQ     R4,#0
  BNE     LHCstreaming
  LDR     R0,[R12,#Work_Buffer%]
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     LHCexit
  LDR     R3,[R12,#Work_Channels%]
  LDR     R4,[R12,#Work_TotBuffSize%]
- CMP     R3,#1
+ TEQ     R3,#1
  MOVEQ   R4,R4,LSL #1
  CMP     R2,R4
- MOVCS   R2,R4
+ MOVHS   R2,R4
  BL      CopyLinearBuffer                ;does 1->2 channel expansion if necessa
 ry
 .LHCexit
- LDMIA   R13!,{R12,R14}
+ LDMFD   R13!,{R12,R14}
  B       ModuleReturnOK
 
 .LHCstreaming                            ;streaming interface, similar to Voice
 handler
+ LDR     R3,[R12,#Work_RingBuffer%]
  MOV     R0,#1
  STR     R0,[R12,#Work_PollWord%]
- LDR     R3,[R12,#Work_RingBuffer%]
- CMP     R3,#0
+ TEQ     R3,#0
  BEQ     LHCovernull
- LDR     R10,[R12,#Work_Channels%]       ;number of channels in r10
- MOV     R9,R2                           ;number of bytes left in r9
  LDR     R0,[R12,#Work_WriteBuffer%]
  LDR     R6,[R12,#Work_ReadBuffer%]
- CMP     R0,R6
+ MOV     R9,R2                           ;number of bytes left in r9
+ LDR     R10,[R12,#Work_Channels%]       ;number of channels in r10
+ TEQ     R0,R6
  BNE     LHCloopstream
  LDR     R0,[R12,#Work_RingIsFull%]
- CMP     R0,#0
+ TEQ     R0,#0
  BNE     LHCloopstream
 .LHCchkoveract
  LDR     R0,[R12,#Work_StreamFlags%]
@@ -1433,44 +1474,44 @@ handler
  BNE     LHCovernull
  LDR     R6,[R12,#Work_LastReadBuff%]
  CMP     R6,R4
- MOVCS   R6,#0
+ MOVHS   R6,#0
  MOV     R4,#0
  STR     R4,[R12,#Work_ReadLevel%]
 .LHCloopstream
  LDR     R0,[R3,R6,LSL #2]
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     LHCovernull
  LDR     R7,[R12,#Work_ReadLevel%]
  LDR     R8,[R12,#Work_TotBuffSize%]
  CMP     R7,R8
- MOVCS   R7,#0
+ MOVHS   R7,#0
  ADD     R0,R0,R7
  SUB     R2,R8,R7
- CMP     R10,#1
+ TEQ     R10,#1
  MOVEQ   R2,R2,LSL #1                    ;1 channel ==> pretend twice as many sa
 mples
  CMP     R2,R9
- MOVCS   R2,R9
+ MOVHS   R2,R9
  BL      CopyLinearBuffer
  ADD     R1,R1,R2
  SUB     R9,R9,R2
  STR     R6,[R12,#Work_LastReadBuff%]
- CMP     R10,#1
+ TEQ     R10,#1
  ADDEQ   R7,R7,R2,LSR #1
  ADDNE   R7,R7,R2
  CMP     R7,R8
- STRCC   R7,[R12,#Work_ReadLevel%]
- BCC     LHCnobuffinc
+ STRLO   R7,[R12,#Work_ReadLevel%]
+ BLO     LHCnobuffinc
  MOV     R7,#0
  STR     R7,[R12,#Work_ReadLevel%]
- CMP     R4,#0
+ TEQ     R4,#0
  BEQ     LHCnobuffinc
  ADD     R6,R6,#1
  CMP     R6,R4
- MOVCS   R6,#0
- STR     R6,[R12,#Work_ReadBuffer%]
+ MOVHS   R6,#0
  LDR     R0,[R12,#Work_WriteBuffer%]
- CMP     R6,R0
+ STR     R6,[R12,#Work_ReadBuffer%]
+ TEQ     R6,R0
  BNE     LHCnobuffinc
  MOV     R0,#0
  STR     R0,[R12,#Work_RingIsFull%]
@@ -1484,21 +1525,17 @@ mples
  B       ModuleReturnOK
 
 
-
-
-
-
 .FreeRingBufferBuffers         ;R12 = ^workspace
  STMDB   R13!,{R0-R4,R14}
- LDR     R3,[R12,#Work_RingBuffer%]
  LDR     R1,[R12,#Work_NumBuffers%]
+ LDR     R3,[R12,#Work_RingBuffer%]
  SUBS    R1,R1,#1
  BLT     FRBBexit
  MOV     R0,#7
  MOV     R4,#0
 .FRBBloop
  LDR     R2,[R3,R1,LSL #2]
- CMP     R2,#0
+ TEQ     R2,#0
  STRNE   R4,[R3,R1,LSL #2]     ;must be safe against IRQ fill code!
  SWINE   "XOS_Module"
  SUBS    R1,R1,#1
@@ -1511,7 +1548,7 @@ mples
 .FreeRingBuffer
  STMDB   R13!,{R0-R2,R14}
  LDR     R2,[R12,#Work_RingBuffer%]
- CMP     R2,#0
+ TEQ     R2,#0
  BEQ     FRBexit
  BL      FreeRingBufferBuffers
  MOV     R0,#0
@@ -1532,7 +1569,7 @@ mples
  SUBS    R5,R5,#1
  BLT     CRBexit
  LDR     R4,[R12,#Work_RingBuffer%]
- CMP     R4,#0
+ TEQ     R4,#0
  BEQ     CRBexit
  LDR     R3,[R12,#Work_TotBuffSize%]
 .CRBloop
@@ -1564,30 +1601,30 @@ mples
 .StreamSampleCore                   ;r9 pointer to copy code, r10 src sample siz
 e
  LDR     R8,[R12,#Work_RingBuffer%] ;r11 dest sample size
- CMP     R8,#0
+ TEQ     R8,#0
  BEQ     SSCexit
  MOVS    R3,R1
  BLE     SSCexit
+ LDR     R1,[R12,#Work_ReadBuffer%]
  LDR     R4,[R12,#Work_TotBuffSize%]
  LDR     R5,[R12,#Work_WriteBuffer%]
  LDR     R6,[R12,#Work_NumBuffers%]
  LDR     R7,[R12,#Work_FillLevel%]
- LDR     R1,[R12,#Work_ReadBuffer%]
- CMP     R1,R5
+ TEQ     R1,R5
  BNE     SSCmainloop
  LDR     R14,[R12,#Work_RingIsFull%]
- CMP     R14,#0
+ TEQ     R14,#0
  MOVNE   R2,#0
  BNE     SSCcheckblock
 .SSCmainloop
+ LDR     R1,[R8,R5,LSL #2]          ;ringbuffer[writebuffer]
  SUB     R2,R4,R7                   ;buffer size - fill level = bytes in buffer
- CMP     R11,#1                     ;but we need samples!
+ TEQ     R11,#1                     ;but we need samples!
  MOVNE   R2,R2,LSR #1               ;in case we're using 16bit sound samples = b
 ytes/2
  CMP     R2,R3
  MOVGT   R2,R3
- LDR     R1,[R8,R5,LSL #2]          ;ringbuffer[writebuffer]
- CMP     R1,#0
+ TEQ     R1,#0
  BEQ     SSCskipbuffer
  ADD     R1,R1,R7                   ;add fill level to dest buffer
  ADR     R14,SSCskipbuffer          ;return address (called code doesn't preserv
@@ -1604,10 +1641,10 @@ e flags)
  ADD     R5,R5,#1
  CMP     R5,R6
  MOVGE   R5,#0
- STR     R5,[R12,#Work_WriteBuffer%]
  LDR     R1,[R12,#Work_ReadBuffer%]  ;if WriteBuffer == ReadBuffer _after_ incre
 menting,
- CMP     R5,R1                       ;the ring buffer is filled completely.
+ STR     R5,[R12,#Work_WriteBuffer%]
+ TEQ     R5,R1                       ;the ring buffer is filled completely.
  BNE     SSCspaceleft
  MOV     R14,#1
  STR     R14,[R12,#Work_RingIsFull%] ;make a note of this (for StreamStatistics)
@@ -1620,7 +1657,7 @@ menting,
  BNE     SSCexit                     ;if paused, we must NOT block!
 .SSCblockloop
  LDR     R14,[R12,#Work_ReadBuffer%]
- CMP     R14,R1                      ;R1 is still the current read buffer
+ TEQ     R14,R1                      ;R1 is still the current read buffer
  BEQ     SSCblockloop
 .SSCspaceleft
  SUBS    R3,R3,R2
@@ -1632,7 +1669,7 @@ menting,
 
 ; THIS CODE MUST BE IRQ SAFE!
 .CopyByteBuffer               ;r0 = src, r1 = dest, r2 = size
- STMDB   R13!,{R14}
+ STR     R14,[R13,#-4]!
 .CopyByteBuffIRQ              ;in IRQ mode, the caller must store the return add
 ress
  STMDB   R13!,{R0-R7}
@@ -1642,11 +1679,11 @@ ress
  TST     R1,#3
  BEQ     CBBisaligned
  LDRB    R3,[R0],#1
- STRB    R3,[R1],#1
  SUBS    R2,R2,#1
+ STRB    R3,[R1],#1
  BGT     CBBdoalign
 .CBBisaligned
- CMP     R2,#0
+ TEQ     R2,#0
  BEQ     CBBexit
  AND     R3,R0,#3
  ADD     PC,PC,R3,LSL #2
@@ -1677,8 +1714,8 @@ ress
  BEQ     CBBexit
 .CBBtail
  LDRB    R3,[R0],#1
- STRB    R3,[R1],#1
  SUBS    R2,R2,#1
+ STRB    R3,[R1],#1
  BGT     CBBtail
 .CBBexit
  LDMIA   R13!,{R0-R7,PC}      ;DON'T RESTORE FLAGS! IRQ SAFE!
@@ -1702,13 +1739,13 @@ ress
  BEQ     CSBisaligned
  LDRB    R3,[R0],#1
  LDRB    R4,[R0],#1
+ SUBS    R2,R2,#1
  ORR     R3,R3,R4,LSL #8
  LDRB    R3,[R11,R3,LSR #3]
  STRB    R3,[R1],#1
- SUBS    R2,R2,#1
  BGT     CSBdoalign
 .CSBisaligned
- CMP     R2,#0
+ TEQ     R2,#0
  BEQ     CSBexit
  TST     R0,#1
  BNE     CopyShortBuffer1
@@ -1759,8 +1796,8 @@ ress
 .CopyShortBuffer1
  BIC     R0,R0,#3
  LDR     R14,[R0],#4
- LDRB    R14,[R11,R14,LSR #19]
  SUBS    R2,R2,#8
+ LDRB    R14,[R11,R14,LSR #19]
  BLT     CSB1small
 .CSB1big
  LDMIA   R0!,{R4,R6,R8,R10}
@@ -1826,12 +1863,12 @@ ress
  BLT     CBSBrest
 .CBSBbigloop
  LDRB    R4,[R0],#1
- LDR     R4,[R3,R4,LSL #2]
  LDRB    R14,[R0],#1
+ LDR     R4,[R3,R4,LSL #2]
  LDR     R14,[R3,R14,LSL #2]
+ SUBS    R2,R2,#2
  ORR     R4,R4,R14,LSL #16
  STR     R4,[R1],#4
- SUBS    R2,R2,#2
  BGE     CBSBbigloop
 .CBSBrest
  ADDS    R2,R2,#2
@@ -1867,6 +1904,7 @@ ress
  BEQ     CSSBaligned
  LDRB    R4,[R3],#1
  LDRB    R14,[R3],#1
+ SUBS    R2,R2,#1
  MOV     R14,R14,LSL #24
  ORR     R4,R4,R14,ASR #16
  MUL     R4,R0,R4
@@ -1874,7 +1912,6 @@ ress
  STRB    R4,[R1],#1
  MOV     R4,R4,LSR #8
  STRB    R4,[R1],#1
- SUBS    R2,R2,#1
  BLE     CSSBexit
 .CSSBaligned
  TST     R3,#2
@@ -1914,8 +1951,8 @@ ress
 .CSSBshift1
  BIC     R3,R3,#2
  LDR     R4,[R3],#4
- MOV     R4,R4,ASR #16
  SUBS    R2,R2,#4
+ MOV     R4,R4,ASR #16
  BLT     CSSBs1small
 .CSSBs1big
  LDMIA   R3!,{R5,R7}
@@ -1953,7 +1990,7 @@ ress
  MOV     R0,#0
  SWI     "XSound_Volume"
  LDR     R14,[R12,#Work_TableVolume%]
- CMP     R0,R14
+ TEQ     R0,R14
  BEQ     ELTexit
  STMDB   R13!,{R1-R5}
  STR     R0,[R12,#Work_TableVolume%]
@@ -1982,15 +2019,15 @@ r!
 .CopyLinearBuffer                    ;r0 = src, r1 = dest, r2 = num bytes (dest)
  CMP     R2,#0
  MOVLE   PC,R14                      ;doesn't preserve flags
- STMDB   R13!,{R14}                  ;called by 16bit sound handler only!
+ STR     R14,[R13,#-4]!                  ;called by 16bit sound handler only!
  LDR     R14,[R12,#Work_Channels%]
- CMP     R14,#1
+ TEQ     R14,#1
  BEQ     CLBexpand
  LDR     R14,[R12,#Work_SampleFormat%]
- CMP     R14,#Format_16swap%
+ TEQ     R14,#Format_16swap%
  BEQ     CLBswaplinear               ;2 channels, but wrong order
  BL      CopyByteBuffer              ;2 channels ==> just copy the whole thing
- LDMIA   R13!,{PC}
+ LDR     PC,[R13],#4
 
 .CLBexpand
  STMDB   R13!,{R0-R10}
@@ -2000,10 +2037,10 @@ r!
  BEQ     CLBaligned
  LDRB    R3,[R0],#1
  LDRB    R14,[R0],#1
+ SUBS    R2,R2,#4
  ORR     R3,R3,R14,LSL #8
  ORR     R3,R3,R3,LSL #16
  STR     R3,[R1],#4
- SUBS    R2,R2,#4
  BLE     CLBexpdone
 .CLBaligned
  SUBS    R2,R2,#32
@@ -2083,8 +2120,8 @@ r!
 .CLBswapshift1
  BIC     R0,R0,#3
  LDR     R3,[R0],#4
- MOV     R3,R3,LSR #16
  SUBS    R2,R2,#16
+ MOV     R3,R3,LSR #16
  BLT     CLBss1small
 .CLBss1big
  LDMIA   R0!,{R4-R7}
@@ -2136,34 +2173,34 @@ r!
 ; COMMANDS
 
 .CommandDRoff
- STMDB   R13!,{R14}
+ STR     R14,[R13,#-4]!
  SWI     XDR_Deactivate%
  BVS     CDRerror
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .CDRerror
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnError
 
 
 .CommandDRdefault
- STMDB   R13!,{R14}
  LDR     R12,[R12]
+ STR     R14,[R13,#-4]!
  MOV     R4,#0
 .CDRDparse
  LDRB    R14,[R0],#1
  CMP     R14,#32
  BEQ     CDRDparse
  BLT     CDRDfinish
- CMP     R14,#ASC("-")
+ TEQ     R14,#ASC("-")
  BNE     CDRDbadargs
  LDRB    R3,[R0],#1
- CMP     R3,#ASC("c")
- CMPNE   R3,#ASC("f")
- CMPNE   R3,#ASC("p")
- CMPNE   R3,#ASC("s")
- CMPNE   R3,#ASC("n")
- CMPNE   R3,#ASC("q")
+ TEQ     R3,#ASC("c")
+ TEQNE   R3,#ASC("f")
+ TEQNE   R3,#ASC("p")
+ TEQNE   R3,#ASC("s")
+ TEQNE   R3,#ASC("n")
+ TEQNE   R3,#ASC("q")
  BNE     CDRDbadargs
  ADD     R4,R4,#1
  MOV     R1,R0
@@ -2171,23 +2208,23 @@ r!
  SWI     "XOS_ReadUnsigned"
  BVS     CDRDbadargs
  MOV     R0,R1
- CMP     R3,#ASC("c")
+ TEQ     R3,#ASC("c")
  STREQ   R2,[R12,#Work_DfltChannels%]
- CMP     R3,#ASC("f")
+ TEQ     R3,#ASC("f")
  STREQ   R2,[R12,#Work_DfltFormat%]
- CMP     R3,#ASC("p")
+ TEQ     R3,#ASC("p")
  STREQ   R2,[R12,#Work_DfltPeriod%]
- CMP     R3,#ASC("s")
+ TEQ     R3,#ASC("s")
  STREQ   R2,[R12,#Work_DfltBuffSize%]
- CMP     R3,#ASC("n")
+ TEQ     R3,#ASC("n")
  STREQ   R2,[R12,#Work_DfltBuffers%]
- CMP     R3,#ASC("q")
+ TEQ     R3,#ASC("q")
  STREQ   R2,[R12,#Work_DfltFrequency%]
  B       CDRDparse
 .CDRDfinish
- CMP     R4,#0
+ TEQ     R4,#0
  BEQ     CDRDprintstate
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .CDRDprintstate
  FNPrintConfig(ConfStr_Channels, Work_DfltChannels%)
@@ -2195,11 +2232,11 @@ r!
  SWI     "XOS_Write0"
  LDR     R14,[R12,#Work_DfltFormat%]
  ADR     R0,ConfStr_FmtUndef
- CMP     R14,#Format_8u%
+ TEQ     R14,#Format_8u%
  ADREQ   R0,ConfStr_Fmt8u
- CMP     R14,#Format_16sl%
+ TEQ     R14,#Format_16sl%
  ADREQ   R0,ConfStr_Fmt16sl
- CMP     R14,#Format_16swap%
+ TEQ     R14,#Format_16swap%
  ADREQ   R0,ConfStr_Fmt16swap
  SWI     "XOS_Write0"
  FNPrintConfig(ConfStr_Period, Work_DfltPeriod%)
@@ -2207,11 +2244,11 @@ r!
  FNPrintConfig(ConfStr_BuffSize, Work_DfltBuffSize%)
  FNPrintConfig(ConfStr_Buffers, Work_DfltBuffers%)
  SWI     "XOS_NewLine"
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .CDRDbadargs
  FNadr2("", 0, Error_ParseError)
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnError
 
 .ConfStr_Channels
@@ -2236,8 +2273,8 @@ r!
  EQUS    "16bit signed linear swapped": EQUB 0: ALIGN
 
 .CommandDRstatus
- STMDB   R13!,{R14}
  LDR     R12,[R12]
+ STR     R14,[R13,#-4]!
  LDR     R3,[R12,#Work_State%]
  TST     R3,#State_Active%
  BEQ     CDRSinactive
@@ -2249,13 +2286,13 @@ r!
  SWI     "XOS_Write0"
 .CDRSnopause
  LDR     R0,[R12,#Work_StreamHandle%]
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     CDRSnofile
  ADR     R0,ConfStr_FileStream
  SWI     "XOS_Write0"
 .CDRSnofile
  LDR     R0,[R12,#Work_NumBuffers%]
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     CDRSnostream
  FNPrintConfig(ConfStr_Streaming, Work_NumBuffers%)
  ADR     R0,ConfStr_StreamFilled
@@ -2280,7 +2317,7 @@ r!
  SWI     "XOS_Write0"
 .CDRSdone
  SWI     "XOS_NewLine"
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 
 .ConfStr_Active
@@ -2296,51 +2333,6 @@ r!
 .ConfStr_Inactive
  EQUS    "Inactive.": EQUB 0: ALIGN
 
-
-
-
-; FILING SYSTEM
-
-.RegisterFilingSystem
- STMDB   R13!,{R0-R4,R14}
- MOV     R0,#12
- FNadr2("",1,Program%)
- MOV     R2,#((FilingSystemBlock - Program%) AND &ff)
- ORR     R2,R2,#((FilingSystemBlock - Program%) AND &ff00)
- MOV     R3,R12
- SWI     "XOS_FSControl"
- LDMIA   R13!,{R0-R5,R14}
- B       ModuleReturnOK
-
-
-.DeregisterFilingSystem
- STMDB   R13!,{R0,R1,R14}
- MOV     R0,#16
- ADR     R1,FSName
- SWI     "XOS_FSControl"
- LDMIA   R13!,{R0,R1,R14}
- B       ModuleReturnOK
-
-
-.FilingSystemBlock
- EQUD    FSName
- EQUD    FSStartup
- EQUD    FSEntry_Open
- EQUD    FSEntry_GetBytes
- EQUD    FSEntry_PutBytes
- EQUD    FSEntry_Args
- EQUD    FSEntry_Close
- EQUD    FSEntry_File
- EQUD    FSNumber% + (1 << 8) + (&38 << 16) + (&38 << 24)
- EQUD    FSEntry_Func
- EQUD    FSEntry_GBPB
-
-.FSName
- EQUS    "DRender": EQUB 0: ALIGN
-.FSStartup
- EQUB    0: ALIGN
-.FSDfltSaveName
- EQUS    "DRender:": EQUB 0: ALIGN
 
 
 .Error_FSread
@@ -2379,9 +2371,9 @@ r!
  STMDB   R13!,{R0-R6,R14}
  MOVS    R2,R0
  BLE     FSWNBexit
- MOV     R3,R1
  LDR     R4,[R12,#Work_NumBuffers%]
  LDR     R5,[R12,#Work_SampleFormat%]
+ MOV     R3,R1
 .FSWNBloop
  LDR     R0,[R12,#Work_WriteBuffer%] ;calc number of used buffers (see StreamSta
 tistics)
@@ -2390,25 +2382,25 @@ tistics)
  ADDLT   R0,R0,R4                  ;number of used buffers in R0
  BEQ     FSWNBcheckfull
  LDR     R1,[R12,#Work_FillLevel%]
- CMP     R1,#0
+ TEQ     R1,#0
  ADDNE   R0,R0,#1
- CMP     R0,R4                     ;= total number of buffers?
+ TEQ     R0,R4                     ;= total number of buffers?
  BNE     FSWNBdocopy
  B       FSWNBdowait
 .FSWNBcheckfull
  LDR     R0,[R12,#Work_RingIsFull%]
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     FSWNBdocopy
 .FSWNBdowait
  BL      FSIssueUpCall
  B       FSWNBloop                 ;always check for free space after returning!
 .FSWNBdocopy
  LDR     R1,[R12,#Work_TotBuffSize%]
- CMP     R1,R3
- MOVCS   R1,R3
- MOV     R6,R1                     ;remember the size to copy
  MOV     R0,R2
- CMP     R5,#Format_8u%
+ CMP     R1,R3
+ MOVHS   R1,R3
+ MOV     R6,R1                     ;remember the size to copy
+ TEQ     R5,#Format_8u%
  BNE     FSWNBcopy16
  SWI     XDR_StreamSamples%
  B       FSWNBcopydone
@@ -2470,7 +2462,7 @@ tistics)
 .FSConfigClose                      ;close and wait until sound is played
  STMDB   R13!,{R0,R5,R6,R14}
  LDR     R14,[R12,#Work_BuffOffset%]
- CMP     R14,#0
+ TEQ     R14,#0
  BLNE    FSFlushMiniBuffer
  SWI     "XOS_ReadMonotonicTime"
  MOV     R5,R0                      ;time stamp of last read buffer
@@ -2481,15 +2473,15 @@ tistics)
  CMP     R14,#20                    ;if the read buffer hasn't changed in 20cs
  BGE     FSCCfinish                 ;we finish anyway (no infinite loops!!!)
  LDR     R4,[R12,#Work_ReadBuffer%]
- CMP     R4,R6
+ TEQ     R4,R6
  MOVNE   R6,R4
  MOVNE   R5,R0                      ;if changed update timestamp and buffer numb
 er
  LDR     R14,[R12,#Work_WriteBuffer%]
- CMP     R4,R14
+ TEQ     R4,R14
  BNE     FSCCwaitback
  LDR     R4,[R12,#Work_RingIsFull%]
- CMP     R4,#0
+ TEQ     R4,#0
  BEQ     FSCCfinish
 .FSCCwaitback
  BL      FSIssueUpCall
@@ -2510,19 +2502,19 @@ n
 
 
 .FSEntry_Open
- CMP     R0,#1
- CMPNE   R0,#2
+ TEQ     R0,#1
+ TEQNE   R0,#2
  BNE     FSEopen_read
- STMDB   R13!,{R14}
+ STR     R14,[R13,#-4]!
  LDR     R12,[R12]
  LDR     R14,[R12,#Work_State%]
  ANDS    R14,R14,#(State_Active% + State_UpCall%)
  BNE     FSEopen_busy
  LDR     R14,[R12,#Work_StreamHandle%] ;there can only be one file open!
- CMP     R14,#0
+ TEQ     R14,#0
  BNE     FSEopen_busy
  BL      FSConfigOpen
- CMP     R0,#0
+ TEQ     R0,#0
  BNE     FSEopen_generr
  STR     R3,[R12,#Work_StrExtHand%]
  MOV     R0,#(&12 << 27)            ;write only, unbuffered
@@ -2531,15 +2523,15 @@ n
  MOV     R3,#0
  MOV     R4,#0
  STR     R4,[R12,#Work_BuffOffset%]
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .FSEopen_read
  FNadr2("", 0, Error_FSread)
 .FSEopen_generr
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnError
 .FSEopen_busy
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  FNadr2("", 0, Error_FSbusy)
  B       ModuleReturnError
 
@@ -2557,10 +2549,10 @@ n
  LDR     R12,[R12]
  LDR     R2,[R12,#Work_State%]
  AND     R2,R2,#(State_Active% + State_UpCall%)
- CMP     R2,#State_Active%
+ TEQ     R2,#State_Active%
  BNE     FSEput_busy
  LDR     R2,[R12,#Work_StreamHandle%]
- CMP     R1,R2
+ TEQ     R1,R2
  BNE     FSEput_handle
  LDR     R2,[R12,#Work_BuffOffset%]
  CMP     R2,#MiniBufferSize%
@@ -2583,15 +2575,15 @@ n
 
 
 .FSEntry_PopAndReturn
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 
 .FSEntry_Args
- STMDB   R13!,{R14}
+ STR     R14,[R13,#-4]!
  LDR     R12,[R12]
  LDR     R14,[R12,#Work_State%]
  AND     R14,R14,#(State_Active% + State_UpCall%)
- CMP     R14,#State_Active%
+ TEQ     R14,#State_Active%
  BNE     FSEargs_busy
  CMP     R0,#((FSEargs_illegal - FSEargs_table) >> 2)
  ADDLO   PC,PC,R0,LSL #2
@@ -2609,65 +2601,65 @@ n
  B       FSEntry_Arg9    ;read datestamp
  B       FSEntry_PopAndReturn ;new image stamp
 .FSEargs_illegal
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  FNadr2("", 0, Error_FSargnum)
  B       ModuleReturnError
 .FSEargs_busy
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  FNadr2("", 0, Error_FSbusy)
  B       ModuleReturnError
 
 .FSEntry_Arg0
  MOV     R2,#0                      ;no file pointers
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .FSEntry_Arg2
  MOV     R2,#0
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .FSEntry_Arg4
  LDR     R2,[R12,#Work_TotBuffSize%]
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .FSEntry_Arg5
  MVN     R2,#0
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .FSEntry_Arg6
  LDR     R14,[R12,#Work_BuffOffset%]
- CMP     R14,#0
+ TEQ     R14,#0
  BLNE    FSFlushMiniBuffer
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .FSEntry_Arg9
  MOV     R2,#0
  MOV     R3,#0
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 
 
 .FSEntry_Close
- STMDB   R13!,{R14}
+ STR     R14,[R13,#-4]!
  LDR     R12,[R12]
  LDR     R14,[R12,#Work_State%]
  AND     R14,R14,#(State_Active% + State_UpCall%)
- CMP     R14,#State_Active%
+ TEQ     R14,#State_Active%
  BNE     FSEclose_busy
  BL      FSConfigClose
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  B       ModuleReturnOK
 .FSEclose_busy
- LDMIA   R13!,{R14}
+ LDR     R14,[R13],#4
  FNadr2("", 0, Error_FSbusy)
  B       ModuleReturnError
 
 
 .FSEntry_File
- CMP     R0,#0
+ TEQ     R0,#0
  BEQ     FSEntry_File0              ;save
- CMP     R0,#5
+ TEQ     R0,#5
  BEQ     FSEntry_File5              ;read file info
- CMP     R0,#10
+ TEQ     R0,#10
  BEQ     FSEntry_File10             ;read block size
  B       ModuleReturnOK
 
@@ -2678,7 +2670,7 @@ n
  ANDS    R14,R14,#(State_Active% + State_UpCall%)
  BNE     FSEsave_busy
  BL      FSConfigOpen
- CMP     R0,#0
+ TEQ     R0,#0
  BNE     FSEsave_generr
  MOV     R0,R4
  SUB     R1,R5,R4
@@ -2712,20 +2704,20 @@ n
 
 .FSEntry_Func
  CMP     R0,#7
- BCC     FSEfunc_error              ;all directory functions return an error
- CMP     R0,#8
+ BLO     FSEfunc_error              ;all directory functions return an error
+ TEQ     R0,#8
  BEQ     FSEntry_Func8              ;rename
  CMP     R0,#10
- BCC     ModuleReturnOK
+ BLO     ModuleReturnOK
  CMP     R0,#16
- BCC     FSEfunc_error
+ BLO     FSEfunc_error
  CMP     R0,#19
- BCC     ModuleReturnOK
+ BLO     ModuleReturnOK
  CMP     R0,#24
- BCC     FSEfunc_error
+ BLO     FSEfunc_error
  BEQ     FSEntry_Func24             ;resolve wildcard
  CMP     R0,#35
- BCC     FSEfunc_error
+ BLO     FSEfunc_error
  B       ModuleReturnOK
 .FSEfunc_error
  FNadr2("", 0, Error_FSfunction)
@@ -2741,17 +2733,17 @@ n
 
 
 .FSEntry_GBPB
- CMP     R0,#1
- CMPNE   R0,#2
+ TEQ     R0,#1
+ TEQNE   R0,#2
  BNE     FSEgbpb_read
- STMDB   R13!,{R0,R1,R14}
  LDR     R12,[R12]
+ STMDB   R13!,{R0,R1,R14}
  LDR     R14,[R12,#Work_State%]
  AND     R14,R14,#(State_Active% + State_UpCall%)
- CMP     R14,#State_Active%
+ TEQ     R14,#State_Active%
  BNE     FSEgbpb_busy
  LDR     R14,[R12,#Work_BuffOffset%]
- CMP     R14,#0
+ TEQ     R14,#0
  BLNE    FSFlushMiniBuffer
  MOV     R0,R2
  MOV     R1,R3
@@ -2772,16 +2764,10 @@ n
 
 
 
-
-
-
-
-
-
 ; logarithmic table (8bit ulaw -> 16bit signed linear) for maximum volume (128).
 ; Real maximum volume is 127, therefore the maximum value in the table is a litt
 le
-; higher (32961), but after volume-scaling it's fine (32961*127/128 = 32703
+; higher (32961), but after volume-scaling it's fine (32961*127/128 = 32703)
 
 .LogarithmicTable
 ]
@@ -2797,7 +2783,7 @@ le
  NEXT i%
 
  NEXT pass%
- SYS "OS_File",10,"$.Programs.DRender.DRenderer",&ffa,,Code%,O%
+ SYS "OS_File",10,"DRenderer",&ffa,,Code%,O%
  END
 
 
@@ -2822,8 +2808,8 @@ rd on entry
 [OPT pass%
  BIC    R0,R0,#3
  LDR    R3,[R0],#4
- MOV    R3,R3,LSR #(shift%*8)
  SUBS   R2,R2,#16
+ MOV    R3,R3,LSR #(shift%*8)
  BLT    CBBxsmall
 .CBBxbig
  LDMIA  R0!,{R4-R7}

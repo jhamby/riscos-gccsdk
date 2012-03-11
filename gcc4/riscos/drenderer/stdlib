@@ -627,7 +627,7 @@ ge"
  TEQ     R0,R0
  TEQ     PC,PC
  ORRNES  PC,R14,#PFlag_V%
- MSR     CPSR_f, #PFlag_V%
+ MSR     CPSR_f,#PFlag_V%
  MOV     PC,R14
 ]
 =0

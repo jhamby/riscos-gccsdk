@@ -1,3 +1,12 @@
+Sun Mar 11 23:54:31 CET 2012   Christopher Martin  <belles@internode.on.net>
+
+	* DigiRendV, stdlib: Import of v0.54.
+	Substantial bugfixes, work-arounds and optimisations for newer systems
+	based on ARMv5 and later architectures. The primary fault in 0.52
+	addressed by this version could cause some systems to play audio files
+	at the wrong speed.
+	* DRenderer,ffa: Removed.
+
 Sun Mar 11 23:20:36 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* DigiRendV,ffb: Detokenized as DigiRendV.

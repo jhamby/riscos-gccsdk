@@ -1,6 +1,23 @@
-THE DIGITAL RENDERER MODULE, V0.52
+THE DIGITAL RENDERER MODULE, V0.54
 ==================================
 
+
+
+NOTE ON VERSION 0.54 (20 Apr 2011)
+==================================
+
+This version by Christopher Martin contains substantial bugfixes, work-arounds
+and optimisations for newer systems based on ARMv5 and later architectures
+(eg. Iyonix and BeagleBoard). The primary fault in 0.52 addressed by this
+version could cause some systems to play audio files at the wrong speed.
+
+This version is also the first translation of the build sources from BASIC to
+ObjAsm assembly language. This will allow the DRenderer module to be
+automatically built by the GCCSDK autobuilder via the ASASM assembler. Since
+DigitalRenderer is distributed as a component of the SharedUnixLibrary, future
+development should be performed using the ObjAsm-format file <DRenderer.s> and
+C-format file <makelogtable.c> as the primary sources. The original BASIC file
+<DigiRendV> is now deprecated.
 
 
 NOTE ON VERSION 0.52 (15 Jan 2006)
