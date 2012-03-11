@@ -1,6 +1,6 @@
 #!/bin/bash -e
 # Written by John Tytgat <John.Tytgat@aaug.net>
-# Copyright (c) 2007-2011 GCCSDK Developers
+# Copyright (c) 2007-2012 GCCSDK Developers
 #
 # Builds the RISC OS specific binaries in GCCSDK, either for cross-compilation
 # usage, either a native RISC OS binaries.
@@ -142,6 +142,12 @@ if [ "$GCCSDK_BUILD_ACTION" == "" ] || [ "$GCCSDK_BUILD_ACTION" == "cross" ] ; t
   $GCCSDK_RISCOS/syslogd/configure --prefix=$GCCSDK_PREFIX --bindir=$GCCSDK_PREFIX/module $GCCSDK_RISCOS_CONFIGURE_ARGS
   make $GCCSDK_MAKE_ARGS install
 
+  # DRenderer module:
+  echo +++ Building DRenderer
+  create_empty_dir $GCCSDK_BUILDDIR/drenderer
+  cd $GCCSDK_BUILDDIR/drenderer
+  make -f $GCCSDK_RISCOS/drenderer/Makefile
+
 elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   # These only make sense in the native RISC OS build:
 
@@ -188,6 +194,12 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
       arm-unknown-riscos-ln -s -f libstdc++/6/0/16/so $GCCSDK_RISCOS_DSOPREFIX/lib/libstdc++.so.6,1c8
       arm-unknown-riscos-ln -s -f libstdc++/6/0/16/so $GCCSDK_RISCOS_DSOPREFIX/lib/libstdc++.so,1c8
     fi
+
+    # DRenderer module:
+    echo +++ Building DRenderer
+    create_empty_dir $GCCSDK_BUILDDIR/drenderer
+    cd $GCCSDK_BUILDDIR/drenderer
+    make -f $GCCSDK_RISCOS/drenderer/Makefile
   fi
 
   # !System modules:
@@ -205,10 +217,9 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
   cp $GCCSDK_SRCDIR/gcc/libunixlib/COPYING $GCCSDK_RISCOS_SYSTEMPREFIX/docs/SharedULib
 
   # *** DRenderer module:
-  #   1. Build & install drenderer (FIXME: we can not build this yet)
-  #      Currently we have a binary copy in riscos/dist/!System/310/Modules.
-  echo +++ Building drenderer - skipped
-  #   2. Copy license and documentation:
+  #   1. Copy built DRenderer module from $GCCSDK_BUILDDIR/drenderer to !System:
+  cp $GCCSDK_BUILDDIR/drenderer/DRenderer,ffa $GCCSDK_RISCOS_SYSTEMPREFIX/\!System/310/Modules/
+  #   2. Copy license, changelog and documentation:
   mkdir -p $GCCSDK_RISCOS_SYSTEMPREFIX/docs/DRenderer
-  cp $GCCSDK_RISCOS/drenderer/{COPYING,DocDRender} $GCCSDK_RISCOS_SYSTEMPREFIX/docs/DRenderer
+  cp $GCCSDK_RISCOS/drenderer/{COPYING,ChangeLog,DocDRender} $GCCSDK_RISCOS_SYSTEMPREFIX/docs/DRenderer
 fi
