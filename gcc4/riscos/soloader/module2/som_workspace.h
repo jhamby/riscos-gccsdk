@@ -29,6 +29,7 @@ enum
 };
 
 #define RT_WORKSPACE_GOTT_BASE	(0x8000 + sizeof (Elf32_Ehdr) + (rt_workspace_GOTT_BASE * 4))
+#define RT_WORKSPACE_RUNTIME_ARRAY (0x8000 + sizeof (Elf32_Ehdr) + (rt_workspace_RUNTIME_ARRAY * 4))
 
 /* The ELF header is located at the load address of the object and is immediately
    followed by the runtime workspace.  */

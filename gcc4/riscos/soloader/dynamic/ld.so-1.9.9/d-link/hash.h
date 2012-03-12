@@ -45,6 +45,13 @@ struct elf_resolve{
 
   /* Size, in bytes, of exception tables.  */
   int exidx_size;
+
+  /* Pointer to a string in the image that gives the version of GCC
+     used to compile this object.  */
+  char *gcc_version;
+
+  /* Processor specific flags from the ELF image header.  */
+  unsigned int elf_flags;
 };
 
 #if 0

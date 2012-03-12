@@ -107,7 +107,7 @@ void * _dlopen(const char * libname, int flag)
 	      tfrom = tpnt;
 	  }
 
-	if(!(tpnt = _dl_load_shared_library(0, tfrom, libname)))
+	if(!(tpnt = _dl_load_shared_library(_dl_loaded_modules, tfrom, libname)))
 	{
 #ifdef USE_CACHE
 	  _dl_unmap_cache();
@@ -145,7 +145,7 @@ void * _dlopen(const char * libname, int flag)
 		    {
 		      lpnt = tcurr->loadaddr + tcurr->dynamic_info[DT_STRTAB] +
 			dpnt->d_un.d_val;
-		      if(!(tpnt1 = _dl_load_shared_library(0, tcurr, lpnt)))
+		      if(!(tpnt1 = _dl_load_shared_library(_dl_loaded_modules, tcurr, lpnt)))
 			goto oops;
 
 		      rpnt->next =

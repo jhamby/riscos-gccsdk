@@ -16,7 +16,7 @@ struct _som_object_history
 {
   char *name;
 
-  /* Pointer the the Global Offset Table of the object.  */
+  /* Pointer to the Global Offset Table of the object.  */
   som_PTR GOT;
 
   /* Pointer to the start of the client's R/W segment for this object.  */

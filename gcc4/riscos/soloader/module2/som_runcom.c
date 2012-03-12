@@ -352,6 +352,10 @@ setup_aux_array (runcom_state *state)
   *--array = 0x8000 + state->elf_prog.elf_header.e_phoff;
   *--array = AT_PHDR;
 
+  /* Store the flags from the ELF program's header.  */
+  *--array = state->elf_prog.elf_header.e_flags;
+  *--array = AT_FLAGS;
+
   /* Keep track of the data we're storing on the stack.  */
   state->env.ram_limit = (unsigned int) array;
 

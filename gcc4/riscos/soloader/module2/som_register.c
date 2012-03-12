@@ -141,6 +141,15 @@ som_register_client (som_handle handle,
    || (err = somarray_init (&client->gott_base, sizeof (void *), 0)) != NULL)
     goto cleanup;
 
+  /* A GOT with a 5 word header was built with GCC 4.1.*. A 3 word header
+     won't have a zero at index 3.  */
+  if (*((unsigned int *) client->object.got_addr + 3) == 0)
+    {
+      /* This is already zero:
+      *((unsigned int *) client->got_addr + SOM_OBJECT_INDEX_OFFSET) = 0;  */
+      *((unsigned int *) client->object.got_addr + SOM_RUNTIME_ARRAY_OFFSET) = RT_WORKSPACE_RUNTIME_ARRAY;
+    }
+
   return NULL;
 
 cleanup:
@@ -241,7 +250,14 @@ som_register_sharedobject (som_handle handle,
       som_add_global_library (&global.object_list, global_library);
 
       /* Process the section that contains __GOTT_INDEX__ and __GOTT_BASE__ relocations.  */
-      process_relpic (&global_library->object);
+      if (process_relpic (&global_library->object) != NULL)
+      {
+	/* Store the object index in the library public GOT.  */
+	((unsigned int *) global_library->object.got_addr)[SOM_OBJECT_INDEX_OFFSET] = global_library->object.index;
+
+	/* Store the location of the client runtime array in the public GOT.  */
+	((unsigned int *) global_library->object.got_addr)[SOM_RUNTIME_ARRAY_OFFSET] = RT_WORKSPACE_RUNTIME_ARRAY;
+      }
     }
 
   /* Record the object in the client's list.

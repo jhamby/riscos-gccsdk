@@ -93,14 +93,15 @@ typedef struct
 #endif
 
 extern void _dl_riscos_resolve(void);
-extern struct elf_resolve * _dl_load_shared_library(int secure,
-				struct elf_resolve *, char * libname);
+extern struct elf_resolve *
+_dl_load_shared_library(struct elf_resolve *,
+			struct elf_resolve *,
+			char * libname);
 extern void * _dl_malloc(int size);
 extern int _dl_map_cache(void);
 extern int _dl_unmap_cache(void);
 
-extern struct elf_resolve * _dl_load_elf_shared_library(int secure,
-				char * libname, int);
+extern struct elf_resolve * _dl_load_elf_shared_library(char * libname, int);
 int _dl_copy_fixups(struct dyn_elf * tpnt);
 
 extern int linux_run(int argc, char * argv[]);

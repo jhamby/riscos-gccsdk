@@ -31,6 +31,11 @@
 #define SOM_ALLOCATOR_SOMD		0x444D4F53	/* SOMD */
 #define SOM_ALLOCATOR_SOML		0x4C4D4F53	/* SOML */
 
+/* GCC 4.1.* specific; The offset, in words, from the start of the GOT
+   where the object index will be stored.  */
+#define SOM_OBJECT_INDEX_OFFSET		1	/* in words */
+#define SOM_RUNTIME_ARRAY_OFFSET	2
+
 enum
 {
   reason_code_SOM_REGISTER_LOADER,

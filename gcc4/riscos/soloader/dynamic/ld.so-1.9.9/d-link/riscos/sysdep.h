@@ -46,6 +46,13 @@
   GOT_BASE[1] = (int) MODULE; \
 }
 
+/* Specific to GCC 4.1  */
+#define INIT_41_GOT(GOT_BASE,MODULE) \
+{				\
+  GOT_BASE[4] = (int) _dl_riscos_resolve; \
+  GOT_BASE[3] = (int) MODULE; \
+}
+
 /*
  * Here is a macro to perform a relocation.  This is only used when
  * bootstrapping the dynamic loader.  RELP is the relocation that we

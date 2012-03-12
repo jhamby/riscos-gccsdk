@@ -1,3 +1,23 @@
+Mon Mar 12 17:57:14 2012  Lee Noar <leenoar@sky.com>
+
+	* som_register.c(som_register_client): Add support for
+	clients built with GCC 4.1.*.
+	(som_register_sharedobject): Add support for libraries
+	built with GCC 4.1.*.
+	* som.h: Define symbols specific to GCC 4.1.*.
+	* som_runcom.c(setup_aux_array): Pass ELF header flags
+	to dynamic linker in auxillary array (this is where the
+	type of floating point system is defined).
+	* som_workspace.h: Define a symbol to give the address
+	of the runtime array.
+	* som_history.h: Fix comment.
+	* somanager.cmhg: Change module version to 2.10 due to
+	added support for older libraries and change to auxillary
+	array (also gives SOManager in 4.1.2 room to grow if
+	necessary).
+	* dist/!SharedLibs/SOM1stRun,feb: Need version 2.10 of
+	SOManager.
+
 Wed Aug 10 16:15:45 2011  Lee Noar <leenoar@sky.com>
 
 	Better object management and memory usage.
