@@ -137,11 +137,7 @@ m_und (bool doLowerCase)
   unsigned maxValue;
   InstrType_e instrState = State_GetInstrType ();
   if (instrState == eInstrType_ARM)
-    {
-      if (instrWidth == eInstrWidth_Enforce16bit)
-	error (ErrorError, ".N width specifier can't be used in ARM mode");
-      maxValue = 65536;
-    }
+    maxValue = 65536;
   else
     {
       if (instrWidth == eInstrWidth_NotSpecified)
@@ -1111,4 +1107,117 @@ m_rrx (bool doLowerCase)
   Put_Ins (4, cc | M_MOV | DST_OP (regD) | regM | SHIFT_OP (RRX));
   
   return false;
+}
+
+
+/**
+ * Implements BFC and BFI.
+ */
+static bool
+core_bfc_bfi (bool doLowerCase, bool isBFI)
+{
+  ARMWord cc = optionCond (doLowerCase);
+  if (cc == kOption_NotRecognized)
+    return true;
+
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  /* Only ARM and 32 bit Thumb is possible for BFC/BFI.  */
+  if (instrWidth == eInstrWidth_Enforce16bit)
+    error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+    
+  Target_NeedAtLeastArch (ARCH_ARMv6T2); /* Only ARMv6T2 and ARMv7.  */
+
+  ARMWord rd = getCpuReg ();
+  if (!Input_Match (',', true))
+    error (ErrorError, "%sRd", InsertCommaAfter);
+  ARMWord rn;
+  if (isBFI)
+    {
+      /* BFI */
+      rn = getCpuReg ();
+      if (!Input_Match (',', true))
+	error (ErrorError, "%sRd", InsertCommaAfter);
+
+      if (rn == 15)
+	error (ErrorWarning, "Use of PC for Rn makes BFI behave like BFC");
+    }
+  else
+    rn = 15;
+  if (!Input_Match ('#', false))
+    error (ErrorError, "Missing #");
+  unsigned lsb;
+  const Value *lsbValue = exprBuildAndEval (ValueInt);
+  if (lsbValue->Tag != ValueInt)
+    {
+      error (ErrorError, "Failed to evaluate immediate constant");
+      lsb = 0;
+    }
+  else
+    lsb = lsbValue->Data.Int.i;
+  if (!Input_Match (',', true))
+    error (ErrorError, "%sRd", InsertCommaAfter);
+  if (!Input_Match ('#', false))
+    error (ErrorError, "Missing #");
+  unsigned width;
+  const Value *widthValue = exprBuildAndEval (ValueInt);
+  if (widthValue->Tag != ValueInt)
+    {
+      error (ErrorError, "Failed to evaluate immediate constant");
+      width = 1;
+    }
+  else
+    width = widthValue->Data.Int.i;
+
+  if (/* lsb < 0 || */ lsb > 32)
+    {
+      error (ErrorError, "lsb value needs be in range 0 to 31 (incl)");
+      lsb = 0;
+    }
+  if (width < 1 || width > 32 - lsb)
+    {
+      error (ErrorError, "width value needs to be in range 1 to 32 - lsb (incl)");
+      width = 1;
+    }
+
+  unsigned msbit = lsb + width - 1;
+  if (State_GetInstrType () == eInstrType_ARM)
+    {
+      if (rd == 15)
+	error (ErrorWarning, "Use of PC is unpredictable");
+      Put_Ins (4, 0x07C00010 | cc | (msbit << 16) | (rd << 12) | (lsb << 7) | rn);
+    }
+  else
+    {
+      if (rd == 13 || rd == 15 || rn == 13)
+	error (ErrorWarning, "Use of R13 or PC is unpredictable");
+      // FIXME: condition
+      Put_Ins (4, 0xF3600000 | (rn << 16) | ((lsb & 0x1C) << 12) | (rd << 8) | ((lsb & 3) << 6) | msbit);
+    }
+  
+  return false;
+}
+
+
+/**
+ * Implements BFC
+ *   BFC{<c>}{<q>} <Rd>, #<lsb>, #<width>
+ */
+bool
+m_bfc (bool doLowerCase)
+{
+  return core_bfc_bfi (doLowerCase, false);
+}
+
+
+/**
+ * Implements BFI
+ *   BFI{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width>
+ */
+bool
+m_bfi (bool doLowerCase)
+{
+  return core_bfc_bfi (doLowerCase, true);
 }

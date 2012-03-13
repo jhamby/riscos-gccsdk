@@ -133,4 +133,7 @@ bool m_lsr (bool doLowerCase);
 bool m_ror (bool doLowerCase);
 bool m_rrx (bool doLowerCase);
 
+bool m_bfc (bool doLowerCase);
+bool m_bfi (bool doLowerCase);
+
 #endif

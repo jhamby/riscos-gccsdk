@@ -122,8 +122,8 @@ static const decode_table_t oDecodeTable[] =
   { "ASSERT", eCB_NoLex, 0, 0, {.nolex = c_assert } }, /* ASSERT */
   { "ATN", eCB_VoidPMatch, 1, 1, {.vdpm = m_atn } }, /* ATN CC P R */
   { "B", eCB_VoidPMatch, 1, 1, {.vdpm = m_branch } }, /* B [L] CC */
-  /* FIXME: BFC */
-  /* FIXME: BFI */
+  { "BFC", eCB_VoidPMatch, 1, 1, { .vdpm = m_bfc } }, /* BFC */
+  { "BFI", eCB_VoidPMatch, 1, 1, { .vdpm = m_bfi } }, /* BFC */
   { "BIC", eCB_VoidPMatch, 1, 1, {.vdpm = m_bic } }, /* BIC CC S */
   { "BIN", eCB_NoLex, 0, 0, {.nolex = c_incbin } }, /* BIN / INCBIN */
   { "BKPT", eCB_Void, 1, 1, {.vd = m_bkpt } }, /* BKPT */

@@ -1,3 +1,14 @@
+Tue Mar 13 02:53:20 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/instr_bfc_bfi.s: Add.
+	* decode.c (oDecodeTable): Add BFC/BFI.
+	* option.c (Option_GetInstrWidth): Fault narrow instruction specifier
+	in ARM mode.
+	* m_cpu.c (m_und): Remove check on narrow instruction specifier in
+	ARM mode.
+	(core_bfc_bfi, m_bfc, m_bfi): Add.
+	* m_cpu.h (m_bfc, m_bfi): Add.
+
 Sun Mar 11 22:41:30 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/dcfs_dcfd.s: Add floating point literal tests.

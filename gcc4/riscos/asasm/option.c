@@ -157,8 +157,11 @@ GetCCode (bool doLowerCase)
 
 /**
  * Try to read the instruction width indicator (".W"/".w" or ".N"/".n").
- * \return doLowerCase When true, instruction width indication should be
+ * \param doLowerCase When true, instruction width indication should be
  * lowercase, uppercase otherwise.
+ * \return Instruction qualifier when specified, or indication if there wasn't
+ * any qualifier specified.  Narrow instruction qualifier will be faulted when
+ * in ARM mode.
  */
 InstrWidth_e
 Option_GetInstrWidth (bool doLowerCase)
@@ -166,7 +169,14 @@ Option_GetInstrWidth (bool doLowerCase)
   if (Input_MatchKeyword (doLowerCase ? ".w" : ".W"))
     return eInstrWidth_Enforce32bit;
   if (Input_MatchKeyword (doLowerCase ? ".n" : ".N"))
-    return eInstrWidth_Enforce16bit;
+    {
+      if (State_GetInstrType () == eInstrType_ARM)
+	{
+	  error (ErrorError, "Narrow instruction qualifier is not possible in ARM mode");
+	  return eInstrWidth_NotSpecified;
+	}
+      return eInstrWidth_Enforce16bit;
+    }
   return Input_IsEndOfKeyword () ? eInstrWidth_NotSpecified : eInstrWidth_Unrecognized;
 }
 
