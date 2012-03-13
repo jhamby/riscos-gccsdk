@@ -135,5 +135,7 @@ bool m_rrx (bool doLowerCase);
 
 bool m_bfc (bool doLowerCase);
 bool m_bfi (bool doLowerCase);
+bool m_sbfx (bool doLowerCase);
+bool m_ubfx (bool doLowerCase);
 
 #endif

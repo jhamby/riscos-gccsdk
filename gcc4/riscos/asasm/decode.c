@@ -271,7 +271,7 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: SADD16/SADD8 */
   /* FIXME: SASX */
   { "SBC", eCB_VoidPMatch, 1, 1, {.vdpm = m_sbc } }, /* SBC CC S */
-  /* FIXME: SBFX */
+  { "SBFX", eCB_VoidPMatch, 1, 1, { .vdpm = m_sbfx } }, /* SBFX */
   /* FIXME: SEL */
   { "SET", eCB_LexPMatch, 0, 0, { .lex = c_set } }, /* SETA, SETL, SETS */
   /* FIXME: SETEND */
@@ -335,7 +335,7 @@ static const decode_table_t oDecodeTable[] =
   { "TTL", eCB_NoLex, 0, 0, {.nolex = c_title } }, /* TTL */
   /* FIXME: UADD16, UADD8 */
   /* FIXME: UASX */
-  /* FIXME: UBFX */
+  { "UBFX", eCB_VoidPMatch, 1, 1, { .vdpm = m_ubfx } }, /* UBFX */
   /* FIXME: UHADD16, UHADD8 */
   /* FIXME: UHASX, UHSA */
   /* FIXME: UHSUB16, UHSUB8 */

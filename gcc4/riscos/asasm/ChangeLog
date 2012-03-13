@@ -1,3 +1,14 @@
+Tue Mar 13 22:52:57 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/instr_bfc_bfi.s: Renamed to...
+	* regression/tests_pass/instr_bfc_bfi_sbfx_ubfx.s: ...this.  Add SBFX
+	and UBFX tests.
+	* decode.c (oDecodeTable): Add SBFX and UBFX.
+	* m_cpu.c (BitFieldType_e): Add.
+	(core_bfc_bfi): Renamed to core_bitfield_instr.
+	(m_sbfx, m_ubfx): Add.
+	* m_cpu.h (m_sbfx, m_ubfx): Add.
+
 Tue Mar 13 02:53:20 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/instr_bfc_bfi.s: Add.

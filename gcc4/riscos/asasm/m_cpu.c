@@ -1109,12 +1109,19 @@ m_rrx (bool doLowerCase)
   return false;
 }
 
+typedef enum
+{
+  eIsBFC,
+  eIsBFI,
+  eIsSBFX,
+  eIsUBFX
+} BitFieldType_e;
 
 /**
- * Implements BFC and BFI.
+ * Implements BFC, BFI, SBFX and UBFX.
  */
 static bool
-core_bfc_bfi (bool doLowerCase, bool isBFI)
+core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
 {
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
@@ -1124,7 +1131,7 @@ core_bfc_bfi (bool doLowerCase, bool isBFI)
   if (instrWidth == eInstrWidth_Unrecognized)
     return true;
 
-  /* Only ARM and 32 bit Thumb is possible for BFC/BFI.  */
+  /* Only ARM and 32 bit Thumb is possible for BFC/BFI/SBFX/UBFX.  */
   if (instrWidth == eInstrWidth_Enforce16bit)
     error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
     
@@ -1134,9 +1141,9 @@ core_bfc_bfi (bool doLowerCase, bool isBFI)
   if (!Input_Match (',', true))
     error (ErrorError, "%sRd", InsertCommaAfter);
   ARMWord rn;
-  if (isBFI)
+  if (bitFieldType != eIsBFC)
     {
-      /* BFI */
+      /* BFI, SBFX and UBFX.  */
       rn = getCpuReg ();
       if (!Input_Match (',', true))
 	error (ErrorError, "%sRd", InsertCommaAfter);
@@ -1182,19 +1189,57 @@ core_bfc_bfi (bool doLowerCase, bool isBFI)
       width = 1;
     }
 
-  unsigned msbit = lsb + width - 1;
-  if (State_GetInstrType () == eInstrType_ARM)
+  unsigned widthInd;
+  ARMWord baseInstr;
+  switch (bitFieldType)
     {
-      if (rd == 15)
-	error (ErrorWarning, "Use of PC is unpredictable");
-      Put_Ins (4, 0x07C00010 | cc | (msbit << 16) | (rd << 12) | (lsb << 7) | rn);
+      case eIsBFC:
+      case eIsBFI:
+	{
+	  widthInd = lsb + width - 1;
+	  if (State_GetInstrType () == eInstrType_ARM)
+	    {
+	      if (rd == 15)
+		error (ErrorWarning, "Use of PC is unpredictable");
+	      if (rd == 13)
+		error (ErrorWarning, "Use of R13 as Rd is deprecated");
+	      baseInstr = 0x07C00010;
+	    }
+	  else
+	    {
+	      if (rd == 13 || rd == 15 || rn == 13)
+		error (ErrorWarning, "Use of R13 or PC is unpredictable");
+	      baseInstr = 0xF3600000;
+	    }
+	  break;
+	}
+
+      case eIsSBFX:
+      case eIsUBFX:
+	{
+	  widthInd = width - 1;
+	  if (State_GetInstrType () == eInstrType_ARM)
+	    {
+	      if (rd == 15 || rn == 15)
+		error (ErrorWarning, "Use of PC in unpredictable");
+	      baseInstr = bitFieldType == eIsSBFX ? 0x07A00050 : 0x07E00050;
+	    }
+	  else
+	    {
+	      if (rd == 13 || rd == 15 || rn == 13 || rn == 15)
+		error (ErrorWarning, "Use of R13 or PC is unpredictable");
+	      baseInstr = bitFieldType == eIsSBFX ? 0xF3400000 : 0xF3C00000;
+	    }
+	  break;
+	}
     }
+
+  if (State_GetInstrType () == eInstrType_ARM)
+    Put_Ins (4, baseInstr | cc | (widthInd << 16) | (rd << 12) | (lsb << 7) | rn);
   else
     {
-      if (rd == 13 || rd == 15 || rn == 13)
-	error (ErrorWarning, "Use of R13 or PC is unpredictable");
       // FIXME: condition
-      Put_Ins (4, 0xF3600000 | (rn << 16) | ((lsb & 0x1C) << 12) | (rd << 8) | ((lsb & 3) << 6) | msbit);
+      Put_Ins (4, baseInstr | (rn << 16) | ((lsb & 0x1C) << 12) | (rd << 8) | ((lsb & 3) << 6) | widthInd);
     }
   
   return false;
@@ -1208,7 +1253,7 @@ core_bfc_bfi (bool doLowerCase, bool isBFI)
 bool
 m_bfc (bool doLowerCase)
 {
-  return core_bfc_bfi (doLowerCase, false);
+  return core_bitfield_instr (doLowerCase, eIsBFC);
 }
 
 
@@ -1219,5 +1264,27 @@ m_bfc (bool doLowerCase)
 bool
 m_bfi (bool doLowerCase)
 {
-  return core_bfc_bfi (doLowerCase, true);
+  return core_bitfield_instr (doLowerCase, eIsBFI);
+}
+
+
+/**
+ * Implements SBFX
+ *   SBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width>
+ */
+bool
+m_sbfx (bool doLowerCase)
+{
+  return core_bitfield_instr (doLowerCase, eIsSBFX);
+}
+
+
+/**
+ * Implements UBFX
+ *   UBFX{<c>}{<q>} <Rd>, <Rn>, #<lsb>, #<width>
+ */
+bool
+m_ubfx (bool doLowerCase)
+{
+  return core_bitfield_instr (doLowerCase, eIsUBFX);
 }
