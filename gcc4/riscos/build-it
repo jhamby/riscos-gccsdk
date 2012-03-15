@@ -182,11 +182,18 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
 
     if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib/libunixlib.5.0.0.so ] ; then
       cp $GCCSDK_RISCOS_GCCPREFIX/lib/libunixlib.5.0.0.so $GCCSDK_RISCOS_DSOPREFIX/lib/$UX_SOFTFLOAT_DIR/libunixlib.5.0.0.so,e1f
+      # Runtime symlink in !SharedLibs:lib.<gcc version>.<float type>
       arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$UX_SOFTFLOAT_DIR/libunixlib.so.5,1c8
+      # Build time symlink in !SharedLibs:lib.<gcc version>.<float type>
+      arm-unknown-riscos-ln -s -f libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/$UX_SOFTFLOAT_DIR/libunixlib.so,1c8
+      # Build time symlink in !SharedLibs:lib
       arm-unknown-riscos-ln -s -f $RO_SOFTFLOAT_DIR.libunixlib/5/0/0/so $GCCSDK_RISCOS_DSOPREFIX/lib/libunixlib.so,1c8
     fi
     if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib/libgcc_s.so.1 ] ; then
       cp $GCCSDK_RISCOS_GCCPREFIX/lib/libgcc_s.so.1 $GCCSDK_RISCOS_DSOPREFIX/lib/$UX_SOFTFLOAT_DIR/libgcc_s.so.1,e1f
+      # Runtime/build time symlink in !SharedLibs:lib.<gcc version>.<float type>
+      arm-unknown-riscos-ln -s -f libgcc_s/so/1 $GCCSDK_RISCOS_DSOPREFIX/lib/$UX_SOFTFLOAT_DIR/libgcc_s.so,1c8
+      # Runtime/build time symlink in !SharedLibs:lib
       arm-unknown-riscos-ln -s -f $RO_SOFTFLOAT_DIR.libgcc_s/so/1 $GCCSDK_RISCOS_DSOPREFIX/lib/libgcc_s.so,1c8
     fi
     if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib/libm.1.0.0.so ] ; then
@@ -196,7 +203,11 @@ elif [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
     fi
     if [ -f $GCCSDK_RISCOS_GCCPREFIX/lib/libstdc++.6.0.16.so ] ; then
       cp $GCCSDK_RISCOS_GCCPREFIX/lib/libstdc++.6.0.16.so $GCCSDK_RISCOS_DSOPREFIX/lib/$UX_SOFTFLOAT_DIR/libstdc++.6.0.16.so,e1f
+      # Runtime symlink in !SharedLibs:lib.<gcc version>.<float type>
       arm-unknown-riscos-ln -s -f libstdc++/6/0/16/so $GCCSDK_RISCOS_DSOPREFIX/lib/$UX_SOFTFLOAT_DIR/libstdc++.so.6,1c8
+      # Build time symlink in !SharedLibs:lib.<gcc version>.<float type>
+      arm-unknown-riscos-ln -s -f libstdc++/6/0/16/so $GCCSDK_RISCOS_DSOPREFIX/lib/$UX_SOFTFLOAT_DIR/libstdc++.so,1c8
+      # Build time symlink in !SharedLibs:lib
       arm-unknown-riscos-ln -s -f $RO_SOFTFLOAT_DIR.libstdc++/6/0/16/so $GCCSDK_RISCOS_DSOPREFIX/lib/libstdc++.so,1c8
     fi
 

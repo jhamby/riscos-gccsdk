@@ -38,6 +38,8 @@ along with GCC; see the file COPYING3.  If not see
 
 #include "obstack.h"
 
+static const char shared_libs_path_option[] = "-L/GCCSOLib:";
+
 /* Function is used by the GCC_DRIVER_HOST_INITIALIZATION macro
    in gcc.c.  */
 void
@@ -80,6 +82,27 @@ riscos_convert_filename (void *obstack, const char *name,
     return name;
 
   return obstack_copy0 ((struct obstack *) obstack, tmp, strlen (tmp));
+}
+
+/* This will be called by the spec parser in gcc.c when it sees
+   a %:riscos_multilib_dir(args) construct in SUBTARGET_EXTRA_LINK_SPEC
+   defined in riscos-elf.h.
+   Returns command line parameters that allow the linker to find the
+   multilib shared libraries.  */
+const char *
+riscos_multilib_dir (int argc, const char **argv)
+{
+  if (argc == 0)
+    return NULL;
+
+  return concat (shared_libs_path_option,
+		 "/",
+		 BASEVER,
+		 "/",
+		 argv[0],
+		 " ",
+		 shared_libs_path_option,
+		 NULL);
 }
 
 #endif
