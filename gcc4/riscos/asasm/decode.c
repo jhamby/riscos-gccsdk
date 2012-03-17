@@ -326,7 +326,7 @@ static const decode_table_t oDecodeTable[] =
   { "SVC", eCB_VoidPMatch, 1, 1, {.vdpm = m_swi } }, /* SVC CC */
   { "SWI", eCB_VoidPMatch, 1, 1, {.vdpm = m_swi } }, /* SWI CC */
   { "SWP", eCB_VoidPMatch, 1, 1, {.vdpm = m_swp } }, /* SWP CC B */
-  /* FIXME: SXTAB, SXTAB16, SXTAH, SXTB, SXTB16, SXTH */
+  { "SXT", eCB_VoidPMatch, 1, 1, { .vdpm = m_sxt } }, /* SXT */
   { "TAN", eCB_VoidPMatch, 1, 1, {.vdpm = m_tan } }, /* TAN CC P R */
   { "TEQ", eCB_VoidPMatch, 1, 1, {.vdpm = m_teq } }, /* TEQ CC */
   { "THUMB", eCB_NoLex, 0, 0, {.nolex = c_thumb } }, /* THUMB */
@@ -350,8 +350,8 @@ static const decode_table_t oDecodeTable[] =
   /* FIXME: USAT, USAT16 */
   /* FIXME: USAX */
   /* FIXME: USUB16, USUB8 */
-  /* FIXME: UXTAB, UXTAB16, UXTAH, UXTAB, UXTB16, UXTH */
   { "URD", eCB_VoidPMatch, 1, 1, {.vdpm = m_urd } }, /* URD CC P R */
+  { "UXT", eCB_VoidPMatch, 1, 1, { .vdpm = m_uxt } }, /* UXT */
   /* FIXME: V* */
   { "WEND", eCB_NoLex, 0, 0, {.nolex = c_wend } }, /* WEND */
   { "WFC", eCB_VoidPMatch, 1, 1, {.vdpm = m_wfc } }, /* WFC CC */

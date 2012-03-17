@@ -752,7 +752,16 @@ Lex_GetBuiltinVariable (Lex *lex)
       case 'c':
 	{
 	  /* FIXME: {COMMANDLINE} */
-	  if (Input_MatchStringLower ("onfig}") || Input_MatchStringLower ("odesize}")) /* {CONFIG} or {CODESIZE} */
+	  if (Input_MatchStringLower ("odesize}")) /* {CODESIZE} */
+	    {
+	      /* {CODESIZE} is documented as synonym for {CONFIG} but {CONFIG}
+	         can be 26 which is really legacy and is a bit odd to have 26
+	         as 'code size'.  Hence, {CODESIZE} can only be 16 or 32.  */
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = State_GetInstrType () == eInstrType_ARM ? 32 : 16;
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("onfig}")) /* {CONFIG} */
 	    {
 	      lex->tag = LexInt;
 	      lex->Data.Int.value = State_GetInstrType () == eInstrType_ARM ? ((gOptionAPCS & APCS_OPT_32BIT) ? 32 : 26) : 16;
