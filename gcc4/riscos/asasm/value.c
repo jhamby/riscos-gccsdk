@@ -53,6 +53,7 @@ Value_Assign (Value *dst, const Value *src)
     {
       case ValueIllegal:
       case ValueInt:
+      case ValueInt64:
       case ValueFloat:
       case ValueBool:
       case ValueAddr:
@@ -86,6 +87,7 @@ valueFree (Value *value)
     {
       case ValueIllegal:
       case ValueInt:
+      case ValueInt64:
       case ValueFloat:
       case ValueBool:
       case ValueAddr:
@@ -148,6 +150,9 @@ Value_ResolveSymbol (Value *valueP)
 	    }
 	  case ValueInt:
 	    *valueP = Value_Int (factor * newValueP->Data.Int.i + offset, eIntType_PureInt);
+	    break;
+	  case ValueInt64:
+	    *valueP = Value_Int64 (factor * newValueP->Data.Int.i + offset);
 	    break;
 	  case ValueFloat:
 	    *valueP = Value_Float (factor * newValueP->Data.Float.f + offset);
@@ -219,6 +224,10 @@ valueEqual (const Value *a, const Value *b)
 		   || (b->Tag == ValueFloat && (ARMFloat)a->Data.Int.i == b->Data.Float.f);
 	break;
 
+      case ValueInt64:
+	result = b->Tag == ValueInt64 && a->Data.Int64.i == b->Data.Int64.i;
+	break;
+	
       case ValueFloat:
 	result = (b->Tag == ValueFloat && a->Data.Float.f == b->Data.Float.f)
 		   || (b->Tag == ValueInt && a->Data.Float.f == (ARMFloat)b->Data.Int.i);
@@ -279,6 +288,9 @@ valueTagAsString (ValueTag tag)
       case ValueInt:
         str = "integer/register/coprocessornumber";
         break;
+      case ValueInt64:
+	str = "int64";
+	break;
       case ValueFloat:
         str = "float";
         break;
@@ -364,6 +376,9 @@ valuePrint (const Value *v)
 	    }
 	  break;
 	}
+      case ValueInt64:
+	printf ("Int64 <%ld = 0x%lx>", (int64_t)v->Data.Int64.i, v->Data.Int64.i);
+	break;
       case ValueFloat:
 	printf ("Float <%g>", v->Data.Float.f);
 	break;

@@ -23,8 +23,15 @@
 #ifndef lex_header_included
 #define lex_header_included
 
+#include "config.h"
+
 #include <stdbool.h>
 #include <stddef.h>
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#elif HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
 
 #include "global.h"
 
@@ -71,18 +78,17 @@ IsUnop (Operator_e op)
 
 typedef enum
 {
-  LexId,			/* start with character */
-  LexLocalLabel,		/* start with digit */
-  LexString,			/* "jsgd" */
-  LexInt,			/* start with digit */
-  LexFloat,			/* start with digit contains dot */
-  LexOperator,			/* + - * % / >> >>> << */
-				/* ~ & | ^ ! && || */
-				/* == != <= >= */
-  LexPosition,			/* . representing current position */
-  LexStorage,			/* @ representing current storage counter */
-  LexDelim,			/* () */
-  LexBool,			/* {TRUE} or {FALSE} */
+  LexId,		/* Start with character */
+  LexLocalLabel,	/* Start with digit */
+  LexString,		/* "jsgd" */
+  LexInt,		/* Start with digit, & and is not a floating point literal.  And fits into 32-bit.  */
+  LexInt64,		/* Like LexInt but can only fit into 64-bit.  */
+  LexFloat,		/* Start with digit contains dot */
+  LexOperator,		/* + - * % / >> >>> <<  ~ & | ^ ! && || == != <= >= */
+  LexPosition,		/* . representing current position */
+  LexStorage,		/* @ representing current storage counter */
+  LexDelim,		/* () */
+  LexBool,		/* {TRUE} or {FALSE} */
   LexNone
 } LexTag;
 
@@ -109,8 +115,12 @@ typedef struct
         } String;
       struct			/* LexInt */
         {
-          int value;
+          int value;	/* FIXME: one day, this better becomes uint32_t.  */
         } Int;
+      struct			/* LexInt64 */
+	{
+	  uint64_t value;
+	} Int64;
       struct			/* LexFloat */
         {
           ARMFloat value;

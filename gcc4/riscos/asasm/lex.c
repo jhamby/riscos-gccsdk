@@ -101,44 +101,74 @@ lexHashStr (const char *s, size_t maxn)
 }
 
 
-static int
-lexint (int base)
+/**
+ * Parses integer and returns this as LexInt or LexInt64 Lex object.
+ * \param base When 16, use base 16.  Any other base value is considered
+ * as default base value and can be overruled by "<base>_" (with <base> a
+ * digit from 2 to 9 (incl)) or "0x"/"0X" prefix.
+ * \param didOverflow Indicates whether an 64-bit integer overflow happened.
+ */
+static Lex
+Lex_GetInt (int base, bool *didOverflow)
 {
+  *didOverflow = false;
+
+  /* Determine base (when not forced to 16).  */
   if (base != 16)
     {
-      char c;
-      if ((c = inputLook ()) == '0')
+      char c1, c2;
+      if ((c1 = inputLookN (0)) == '0' && ((c2 = inputLookN (1)) == 'x' || c2 == 'X'))
 	{
-	  if ((c = inputSkipLook ()) == 'x' || c == 'X')
-	    {
-	      base = 16;
-	      inputSkip ();
-	    }
+	  inputSkipN (2);
+	  base = 16; /* Overrule default base value.  */
 	}
-      else
+      else if (inputLookN (1) == '_')
 	{
-	  if (inputLookN (1) == '_')
-	    {
-	      inputSkipN (2);
-	      if ((base = c - '0') < 2 || base > 9)
-		error (ErrorError, "Illegal base %d", base);
-	    }
+	  inputSkipN (2);
+	  base = c1 - '0'; /* Overrule default base value.  */
+	  if (base < 2 || base > 9)
+	    error (ErrorError, "Illegal base %d", base);
 	}
     }
 
-  int res;
+  uint64_t res;
   char c;
+  bool atLeastOneDigit = false;
   for (res = 0; isxdigit (c = inputLookLower ()); inputSkip ())
     {
       c -= (c >= 'a') ? 'a' - 10 : '0';
 
       if (c >= base)
-	return res;
+	break;
 
-      res = res * base + c;
+      atLeastOneDigit = true;
+      
+      uint64_t resNext = res * base + c;
+      if (resNext < res)
+	*didOverflow = true;
+      res = resNext;
     }
 
-  return res;
+  if (!atLeastOneDigit)
+    {
+      const Lex badInt = { .tag = LexNone };
+      return badInt;
+    }
+  if (res <= UINT32_MAX)
+    {
+      const Lex lexInt32 =
+	{
+	  .tag = LexInt,
+	  .Data.Int = { .value = (int)res }
+	};
+      return lexInt32;
+    }
+  const Lex lexInt64 =
+    {
+      .tag = LexInt64,
+      .Data.Int64 = { .value = res }
+    };
+  return lexInt64;
 }
 
 
@@ -1042,9 +1072,13 @@ lexGetPrim (void)
 	break;
 
       case '&':
-	result.tag = LexInt;
-	result.Data.Int.value = lexint (16);
-	break;
+	{
+	  bool didOverflow;
+	  result = Lex_GetInt (16, &didOverflow);
+	  if (didOverflow)
+	    error (ErrorWarning, "64-bit integer overflow");
+	  break;
+	}
 
       case '0':
 	{
@@ -1073,8 +1107,8 @@ lexGetPrim (void)
 	{
 	  inputUnGet (c);
 	  const char *mark = Input_GetMark ();
-	  result.tag = LexInt;
-	  result.Data.Int.value = lexint (10);
+	  bool didOverflow;
+	  result = Lex_GetInt (10, &didOverflow);
 	  if (Input_Match ('.', false))
 	    {
 	      Input_RollBackToMark (mark);
@@ -1085,6 +1119,8 @@ lexGetPrim (void)
 		error (ErrorError, "Failed to read floating point value");
 	      inputSkipN (newMark - mark);
 	    }
+	  else if (didOverflow)
+	    error (ErrorWarning, "64-bit integer overflow");
 	  break;
 	}
 
@@ -1435,7 +1471,10 @@ lexPrint (const Lex *lex)
 	printf ("Str <%.*s> ", (int)lex->Data.String.len, lex->Data.String.str);
 	break;
       case LexInt:
-	printf ("Int <%d> ", lex->Data.Int.value);
+	printf ("Int <%d = 0x%x> ", lex->Data.Int.value, lex->Data.Int.value);
+	break;
+      case LexInt64:
+	printf ("Int64 <%ld = 0x%lx> ", (int64_t)lex->Data.Int64.value, lex->Data.Int64.value);
 	break;
       case LexFloat:
 	printf ("Flt <%g> ", lex->Data.Float.value);

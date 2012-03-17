@@ -33,16 +33,17 @@ struct Code;
 
 typedef enum
 {
-  ValueIllegal   =   0,
-  ValueInt       =   1,
-  ValueFloat     =   2,
-  ValueString    =   4,
-  ValueBool      =   8,
-  ValueCode      =  16,
-  ValueAddr      =  32,
-  ValueSymbol    =  64,
+  ValueIllegal   =    0,
+  ValueInt       = 1<<0,
+  ValueInt64     = 1<<1,
+  ValueFloat     = 1<<2,
+  ValueString    = 1<<3,
+  ValueBool      = 1<<4,
+  ValueCode      = 1<<5,
+  ValueAddr      = 1<<6,
+  ValueSymbol    = 1<<7,
 
-  ValueAll       = 127		/* cheat */
+  ValueAll       = 255		/* cheat */
 } ValueTag;
 
 typedef enum
@@ -67,6 +68,10 @@ typedef struct
           int i;		/* Must start identical with ValueAddr's i & ValueString's len.  */
 	  IntType_e type;
         } Int;
+      struct			/* ValueInt64 */
+	{
+	  uint64_t i;
+	} Int64;
       struct			/* ValueFloat */
         {
           ARMFloat f;
@@ -106,6 +111,17 @@ Value_Int (int i, IntType_e type)
     {
       .Tag = ValueInt,
       .Data.Int = { .i = i, .type = type }
+    };
+  return value;
+}
+
+static inline Value
+Value_Int64 (uint64_t i)
+{
+  const Value value =
+    {
+      .Tag = ValueInt64,
+      .Data.Int64 = { .i = i }
     };
   return value;
 }

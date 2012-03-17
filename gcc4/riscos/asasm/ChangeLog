@@ -1,3 +1,30 @@
+Sat Mar 17 16:28:53 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/dcb_dcw_dcd.s: Renamed to...
+	* regression/tests_pass/directive_data_integer.s: ...this. Add DCQ/DCQU
+	tests.
+	* regression/tests_pass/dcfs_dcfd.s: Renamed to...
+	* tests_pass/directive_data_fp.s: ..this.
+	* code.c (codeEvalLow): Implement implicit conversion from 1 char string
+	to integer when string result is not wanted.
+	* decode.c (oDecodeTable): Add DCQ entry.
+	* directive_data.c (DefineInt): Add size 8 case.
+	(c_dcq): Add.
+	* directive_data.h (c_dcq): Add.
+	* value.c (Value_Assign, valueFree, Value_ResolveSymbol, valueEqual,
+	valueTagAsString, valuePrint): Add ValueInt64 support.
+	* value.h (ValueInt64): Add.
+	(Value): Add Int64 struct.
+	(Value_Int64): Add.
+	* expr.c (prim): Add LexInt64 case.
+	* eval.c (Eval_NegValue): Add ValueInt64 case.
+	* targetcpu.c (Target_CheckFeature): Mark feature argument as unused.
+	* lex.c (lexint): Renamed to Lex_GetInt. Let it return a Lex object.
+	Add didOverflow parameter.  Make it LexInt64 aware.
+	(lexPrint): Add LexInt64 case.
+	* lex.h (LexInt64): Define.
+	(Lex): Add Int64 struct.
+
 Sat Mar 17 03:13:19 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/instr_sxt_uxt.s: Add.

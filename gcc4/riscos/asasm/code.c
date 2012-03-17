@@ -397,25 +397,39 @@ codeEvalLow (ValueTag legal, size_t size, const Code *program,
   else
     assert (sp == 1);
 
+  switch (Stack[0].Tag)
+    {
+      case ValueInt:
+	{
+	  /* Upgrade integer to float when integer result is not wanted but
+	     float result is.  */
+	  if ((legal & (ValueInt | ValueFloat)) == ValueFloat)
+	    {
+	      ARMFloat f = (ARMFloat) Stack[0].Data.Int.i;
+	      if (option_fussy)
+		error (ErrorInfo, "Changing integer %d to float %1.1f", Stack[0].Data.Int.i, f);
+	      Stack[0] = Value_Float (f);
+	    }
+	  break;
+	}
+      case ValueString:
+	{
+	  /* Convert a one char string into integer when string is not wanted
+	     but integer result is.  */
+	  if ((legal & (ValueString | ValueInt)) == ValueInt
+	      && Stack[0].Data.String.len == 1)
+	    Stack[0] = Value_Int ((uint8_t)Stack[0].Data.String.s[0], eIntType_PureInt);
+	  break;
+	}
+      default:
+	break;
+    }
   if (!(Stack[0].Tag & legal))
     {
-      /* Automatically upgrade integer to float when the former isn't
-         wanted and the latter is.  */
-      if ((legal & ValueFloat) && Stack[0].Tag == ValueInt)
-	{
-	  ARMFloat f = (ARMFloat) Stack[0].Data.Int.i;
-	  if (option_fussy)
-	    error (ErrorInfo, "Changing integer %d to float %1.1f", Stack[0].Data.Int.i, f);
-	  Stack[0].Tag = ValueFloat;
-	  Stack[0].Data.Float.f = f;
-	}
-      else
-	{
 #ifdef DEBUG_CODE
-	  printf ("XXX codeEvalLow(): resulting object (tag 0x%x) is not wanted (allowed tags 0x%x).\n", Stack[0].Tag, legal);
+      printf ("XXX codeEvalLow(): resulting object (tag 0x%x) is not wanted (allowed tags 0x%x).\n", Stack[0].Tag, legal);
 #endif
-	  Stack[0].Tag = ValueIllegal;
-	}
+      Stack[0].Tag = ValueIllegal;
     }
 #ifdef DEBUG_CODE
   printf ("--- codeEvalLow() result: [");

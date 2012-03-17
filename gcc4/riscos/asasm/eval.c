@@ -683,6 +683,10 @@ Eval_NegValue (Value *value)
 	value->Data.Int.i = -value->Data.Int.i;
 	break;
 
+      case ValueInt64:
+	value->Data.Int64.i = -value->Data.Int64.i;
+	break;
+	
       case ValueFloat:
 	value->Data.Float.f = -value->Data.Float.f;
 	break;

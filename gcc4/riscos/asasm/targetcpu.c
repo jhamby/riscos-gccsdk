@@ -26,6 +26,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "common.h"
 #include "error.h"
 #include "targetcpu.h"
 
@@ -285,7 +286,7 @@ Target_GetArch (void)
  * If not, give an error.
  */
 void
-Target_CheckFeature (Arch_Feature_e feature)
+Target_CheckFeature (Arch_Feature_e feature UNUSED)
 {
   /* FIXME: properly implement this.  */
 }

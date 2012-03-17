@@ -153,7 +153,7 @@ static const decode_table_t oDecodeTable[] =
   { "DCFD", eCB_VoidPMatch, 0, 1, {.vdpm = c_dcfd } }, /* DCFD / DCFDU */
   { "DCFS", eCB_VoidPMatch, 0, 1, {.vdpm = c_dcfs } }, /* DCFS / DCFSU */
   { "DCI", eCB_VoidPMatch, 0, 1, {.vdpm = c_dci } }, /* DCI */
-  /* FIXME: DCQ, DCQU */
+  { "DCQ", eCB_VoidPMatch, 0, 1, { .vdpm = c_dcq } }, /* DCQ / DCQU */
   { "DCW", eCB_VoidPMatch, 0, 1, {.vdpm = c_dcw } }, /* DCW / DCWU */
   /* FIXME: DN */
   { "DMB", eCB_Void, 1, 1, {.vd = m_dmb } }, /* DMB */

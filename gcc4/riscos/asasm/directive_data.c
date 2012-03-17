@@ -327,26 +327,76 @@ DefineInt (int size, bool allowUnaligned, bool swapHalfwords, const char *mnemon
   do
     {
       exprBuild ();
-      if (gPhase == ePassOne)
+      ValueTag allowedTypes;
+      switch (size)
 	{
-	  const Value *result = codeEval (ValueInt | ValueString | ValueSymbol | ValueCode, NULL);
-	  if (result->Tag == ValueString)
+	  case 1:
+	    allowedTypes = ValueInt | ValueString | ValueSymbol | ValueCode;
+	    break;
+	  case 8:
+	    /* DCQ/DCQU only supports literals.  */
+	    allowedTypes = ValueInt | ValueInt64;
+	    break;
+	  default:
+	    allowedTypes = ValueInt | ValueSymbol | ValueCode;
+	    break;
+	}
+      /* FIXME: test on size being 8 is a hack (Reloc_QueueExprUpdate is
+         not ready for it).  */
+      if (gPhase == ePassOne || size == 8)
+	{
+	  const Value *result = codeEval (allowedTypes, NULL);
+	  switch (result->Tag)
 	    {
-	      size_t len = result->Data.String.len;
-	      const char *str = result->Data.String.s;
-	      /* Lay out a string.  */
-	      for (size_t i = 0; i != len; ++i)
+	      case ValueString:
+		{
+		  size_t len = result->Data.String.len;
+		  const char *str = result->Data.String.s;
+		  /* Lay out a string.  */
+		  for (size_t i = 0; i != len; ++i)
+		    Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
+					     privData.size, (unsigned char)str[i],
+					     1, !privData.allowUnaligned);
+		  break;
+		}
+
+              case ValueInt:
 		Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
-		                         privData.size, (unsigned char)str[i],
-		                         1, !privData.allowUnaligned);
+					 privData.size, result->Data.Int.i, 1,
+					 !privData.allowUnaligned);
+		break;
+		
+	      case ValueInt64:
+		{
+		  assert (size == 8);
+		  const uint64_t val = result->Data.Int64.i;
+		  Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
+					   4, (uint32_t)val, 1,
+					   !privData.allowUnaligned);
+		  Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
+					   4, (uint32_t)(val >> 32), 1,
+					   !privData.allowUnaligned);
+		  break;
+		}
+
+	      case ValueIllegal:
+		error (ErrorError, "Illegal %s expression", mnemonic);
+		break;
+		
+	      case ValueSymbol:
+	      case ValueCode:
+		Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
+					 privData.size, 0, 1,
+					 !privData.allowUnaligned);
+		break;
+
+	      default:
+		assert (0);
+		break;
 	    }
-	  else
-	    Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
-	                             privData.size, 0, 1,
-	                             !privData.allowUnaligned);
 	}
       else if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, areaCurrentSymbol->area.info->curIdx,
-				      ValueInt | ValueString | ValueSymbol | ValueCode,
+				      allowedTypes,
 				      &privData, sizeof (privData)))
 	error (ErrorError, "Illegal %s expression", mnemonic);
 
@@ -354,6 +404,7 @@ DefineInt (int size, bool allowUnaligned, bool swapHalfwords, const char *mnemon
     }
   while (Input_Match (',', false));
 }
+
 
 /**
  * Implements DCB and = (8 bit integer).
@@ -365,6 +416,7 @@ c_dcb (void)
   DefineInt (1, true, false, "DCB or =");
   return false;
 }
+
 
 /**
  * Implements DCW, DCWU (16 bit integer).
@@ -380,6 +432,7 @@ c_dcw (bool doLowerCase)
   return false;
 }
 
+
 /**
  * Implements & (32 bit integer).
  * "Define Constant Double-word"
@@ -390,6 +443,7 @@ c_ampersand (void)
   DefineInt (4, false, false, "&");
   return false;
 }
+
 
 /**
  * Implements DCD and DCDU (32 bit integer).
@@ -402,6 +456,21 @@ c_dcd (bool doLowerCase)
   if (!Input_IsEndOfKeyword ())
     return true;
   DefineInt (4, allowUnaligned, false, allowUnaligned ? "DCDU" : "DCD");
+  return false;
+}
+
+
+/**
+ * Implements DCQ and DCQU (64 bit integer).
+ *   {label} DCQ{U} {-}literal{,{-}literal}...
+ */
+bool
+c_dcq (bool doLowerCase)
+{
+  bool allowUnaligned = Input_Match (doLowerCase ? 'u' : 'U', false);
+  if (!Input_IsEndOfKeyword ())
+    return true;
+  DefineInt (8, allowUnaligned, false, allowUnaligned ? "DCQU" : "DCQ");
   return false;
 }
 
