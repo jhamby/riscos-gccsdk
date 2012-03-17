@@ -1313,11 +1313,9 @@ lexGetBinop (void)
 	  {
 	    case '>':
 	      result.Data.Operator.pri = kPrioOp_Shift;
-	      if (inputSkipLook () == '>')
-		{
-		  inputSkip ();
-		  result.Data.Operator.op = eOp_ASR; /* >>> */
-		}
+	      inputSkip ();
+	      if (Input_Match ('>', false))
+		result.Data.Operator.op = eOp_ASR; /* >>> */
 	      else
 		result.Data.Operator.op = eOp_SHR; /* >> */
 	      break;

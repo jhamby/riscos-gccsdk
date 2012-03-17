@@ -60,7 +60,6 @@ char inputLookNLower (int n);
 char inputGet (void);
 char inputGetLower (void);
 void inputUnGet (char c);
-char inputSkipLook (void);
 const char *Input_Rest (void);
 #if DEBUG
 const char *inputLine (void);

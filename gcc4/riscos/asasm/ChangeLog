@@ -1,3 +1,9 @@
+Sat Mar 17 16:38:42 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* input.c (inputSkipLook): Remove.
+	* input.h (inputSkipLook): Likewise.
+	* lex.c (lexGetBinop): Follow inputSkipLook removal.
+
 Sat Mar 17 16:28:53 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/dcb_dcw_dcd.s: Renamed to...

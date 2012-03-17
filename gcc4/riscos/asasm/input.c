@@ -154,12 +154,6 @@ inputLine (void)
 }
 #endif
 
-char
-inputSkipLook (void)
-{
-  return *input_pos ? *++input_pos : *input_pos;
-}
-
 
 void
 skipblanks (void)
