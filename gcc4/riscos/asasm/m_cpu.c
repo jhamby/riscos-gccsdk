@@ -1293,6 +1293,116 @@ m_ubfx (bool doLowerCase)
 }
 
 
+/**
+ * Implements PKHBT and PKHTB
+ *   PKHBT{<c>}{<q>} {<Rd>}, <Rn>, <Rm>{, LSL #<imm>}
+ *   PKHTB{<c>}{<q>} {<Rd>}, <Rn>, <Rm>{, ASR #<imm>}
+ */
+bool
+m_pkh (bool doLowerCase)
+{
+  bool isTB;
+  if (Input_MatchString (doLowerCase ? "tb" : "TB"))
+    isTB = true;
+  else if (Input_MatchString (doLowerCase ? "bt" : "BT"))
+    isTB = false;
+  else
+    return true;
+
+  ARMWord cc = optionCond (doLowerCase);
+  if (cc == kOption_NotRecognized)
+    return true;
+
+  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+  if (instrWidth == eInstrWidth_Unrecognized)
+    return true;
+
+  if (instrWidth == eInstrWidth_Enforce16bit)
+    {
+      error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
+      instrWidth = eInstrWidth_NotSpecified;
+    }
+
+  ARMWord regs[3];
+  const unsigned maxNumRegs = 3;
+  unsigned regIndex = 0;
+  bool pendingComma = false;
+  while (regIndex != maxNumRegs)
+    {
+      regs[regIndex] = Get_CPURegNoError ();
+      if (regs[regIndex] == INVALID_REG)
+	break;
+      ++regIndex;
+      pendingComma = Input_Match (',', true);
+      if (!pendingComma)
+	break;
+    }
+  unsigned shift = 0;
+  if (regIndex < maxNumRegs - 1)
+    {
+      error (ErrorError, "Not enough registers specified");
+      while (regIndex != maxNumRegs)
+	regs[regIndex++] = 0;
+    }
+  else if (pendingComma)
+    {
+      /* We expect to parse a LSL#<value> (isTB = false) or ASR#<value>
+	 (isTB = true).  */
+      const char * const shiftType = isTB ? "ASR" : "LSL";
+      if (!Input_MatchString (shiftType))
+	error (ErrorError, "%s expected", shiftType);
+      else
+	{
+	  skipblanks ();
+	  if (!Input_Match ('#', false))
+	    error (ErrorError, "%s #<value> expected", shiftType);
+	  else
+	    {
+	      const Value *shiftValue = exprBuildAndEval (ValueInt);
+	      /* TB : shift value from 1 to 32 (incl).
+		 BT: shift value from 0 to 31 (incl).  */
+	      if (shiftValue->Tag != ValueInt
+	          || (isTB && (shiftValue->Data.Int.i < 1 || shiftValue->Data.Int.i > 32))
+	          || (!isTB && (shiftValue->Data.Int.i < 0 || shiftValue->Data.Int.i > 31)))
+		error (ErrorError, "Wrong %s #<value>", shiftType);
+	      else
+		shift = shiftValue->Data.Int.i;
+	    }
+	}
+    }
+  if (isTB)
+    {
+      if (shift == 0)
+	isTB = false;
+      else if (shift == 32)
+	shift = 0;
+    }
+
+  const ARMWord rm = regs[--regIndex];
+  const ARMWord rn = regs[--regIndex];
+  const ARMWord rd = regIndex == 0 ? regs[regIndex] : regs[--regIndex];
+  assert (regIndex == 0);
+
+  if (State_GetInstrType () == eInstrType_ARM)
+    {
+      if (rd == 15 || rn == 15 || rm == 15)
+	error (ErrorWarning, "Use of PC for Rd, Rn or Rm is unpredictable");
+      const ARMWord baseInstr = 0x06800010;
+      Put_Ins (4, baseInstr | cc | (rn << 16) | (rd << 12) | (shift << 7) | (isTB ? (1<<6) : 0) | rm);
+    }
+  else
+    {
+      if (rd == 15 || rd == 13 || rn == 15 || rn == 13 || rm == 15 || rm == 13)
+	error (ErrorWarning, "Use of R13 or PC for Rd, Rn or Rm is unpredictable");
+      const ARMWord baseInstr = 0xEAC00000;
+      /* FIXME: condition code.  */
+      Put_Ins (4, baseInstr | (rn << 16) | ((shift & 0x1C) << 10) | (rd << 8) | ((shift & 3) << 6) | (isTB ? (1<<5) : 0) | rm);
+    }
+
+  return false;
+}
+
+
 typedef enum
 {
   eIsByte,
@@ -1358,18 +1468,18 @@ core_sxt_lxt (bool doLowerCase, bool isLXT)
     {
       /* We expect to parse a ROR#<value>.  */
       if (!Input_MatchString ("ROR"))
-	error (ErrorError, "ROR expected");
+	error (ErrorError, "%s expected", "ROR");
       else
 	{
 	  skipblanks ();
 	  if (!Input_Match ('#', false))
-	    error (ErrorError, "ROR #<value> expected");
+	    error (ErrorError, "%s #<value> expected", "ROR");
 	  else
 	    {
 	      const Value *rorValue = exprBuildAndEval (ValueInt);
 	      if (rorValue->Tag != ValueInt
 	          || (rorValue->Data.Int.i & ~0x18) != 0)
-		error (ErrorError, "Wrong ROR #<value>");
+		error (ErrorError, "Wrong %s #<value>", "ROR");
 	      else
 		ror = rorValue->Data.Int.i >> 3;
 	    }

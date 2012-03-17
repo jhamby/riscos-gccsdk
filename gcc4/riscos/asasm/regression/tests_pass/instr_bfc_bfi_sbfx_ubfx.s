@@ -59,8 +59,8 @@
 
 	THUMB
 	DCI.W	&f36f05cf
-	DCI.W	&f36f0200
-	DCI.W	&f36f0459
+	DCI.W	&f36f0200 ; FIXME: IT support missing
+	DCI.W	&f36f0459 ; FIXME: IT support missing
 
 	; BFI
 	ARM
@@ -70,8 +70,8 @@
 
 	THUMB
 	DCI.W	&f36605cf
-	DCI.W	&f36a0200
-	DCI.W	&f3620459
+	DCI.W	&f36a0200 ; FIXME: IT support missing
+	DCI.W	&f3620459 ; FIXME: IT support missing
 
 	; SBFX
 	ARM
@@ -81,8 +81,8 @@
 
 	THUMB
 	DCI.W	&f34605cc
-	DCI.W	&f34a0200
-	DCI.W	&f3420458
+	DCI.W	&f34a0200 ; FIXME: IT support missing
+	DCI.W	&f3420458 ; FIXME: IT support missing
 
 	; UBFX
 	ARM
@@ -92,8 +92,8 @@
 
 	THUMB
 	DCI.W	&f3c605cc
-	DCI.W	&f3ca0200
-	DCI.W	&f3c20458
+	DCI.W	&f3ca0200 ; FIXME: IT support missing
+	DCI.W	&f3c20458 ; FIXME: IT support missing
 
 	]
 

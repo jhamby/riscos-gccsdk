@@ -235,7 +235,7 @@ static const decode_table_t oDecodeTable[] =
   { "OPT", eCB_NoLex, 0, 0, {.nolex = c_opt } }, /* OPT */
   { "ORG", eCB_NoLex, 0, 0, {.nolex = c_org } }, /* ORG */
   { "ORR", eCB_VoidPMatch, 1, 1, {.vdpm = m_orr } }, /* ORR CC S */
-  /* FIXME: PKH */
+  { "PKH", eCB_VoidPMatch, 1, 1, { .vdpm = m_pkh } }, /* PKHBT / PKHTB */
   { "PL", eCB_VoidPMatch, 1, 1, {.vdpm = m_pl } }, /* PLD, PLDW, PLI */
   { "POL", eCB_VoidPMatch, 1, 1, {.vdpm = m_pol } }, /* POL CC P R */
   { "POP", eCB_VoidPMatch, 1, 1, {.vdpm = m_pop } }, /* POP CC */

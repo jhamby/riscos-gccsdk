@@ -138,6 +138,8 @@ bool m_bfi (bool doLowerCase);
 bool m_sbfx (bool doLowerCase);
 bool m_ubfx (bool doLowerCase);
 
+bool m_pkh (bool doLowerCase);
+
 bool m_sxt (bool doLowerCase);
 bool m_uxt (bool doLowerCase);
 

@@ -1,3 +1,12 @@
+Sat Mar 17 21:54:33 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/instr_pkhbt_pkhtb.s: Add.
+	* regression/tests_pass/instr_sxt_uxt.s: Mark IT cases.
+	* regression/tests_pass/instr_bfc_bfi_sbfx_ubfx.s: Likewise.
+	* decode.c (oDecodeTable): Add PKH.
+	* value.c (Value_ResolveSymbol): Fix comment.
+	* m_cpu.c, m_cpu.h (m_pkh): Add.
+
 Sat Mar 17 19:00:51 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/ldm_stm_pop_push.s: Renamed to...

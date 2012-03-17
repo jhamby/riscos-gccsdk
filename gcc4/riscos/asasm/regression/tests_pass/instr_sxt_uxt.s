@@ -7,9 +7,9 @@
 	MACRO
 	TestXT $f,$w
 	LCLL Thumb16
-Thumb16	SETL {CODESIZE} = 16 :LAND: "$w" = ".N" 
+Thumb16	SETL {CODESIZE} = 16 :LAND: "$w" = ".N"
 	; No 16 bit Thumb support for SXTA/UXTA, B16 flavours or non 0 ROR
-	; values. 
+	; values.
 
 	$f.XTB$w	r1, r2
 	$f.XTB$w	r3
@@ -56,7 +56,7 @@ Thumb16	SETL {CODESIZE} = 16 :LAND: "$w" = ".N"
 	]
 	MEND
 
-	; SXT/SXTA	
+	; SXT/SXTA
 	ARM
 	DCI	0
 	TestXT S,
@@ -70,7 +70,7 @@ Thumb16	SETL {CODESIZE} = 16 :LAND: "$w" = ".N"
 
 	ALIGN
 
-	; UXT/UXTA	
+	; UXT/UXTA
 	ARM
 	DCI	0
 	TestXT U,
@@ -172,92 +172,92 @@ Thumb16	SETL {CODESIZE} = 16 :LAND: "$w" = ".N"
 	; B
 	DCI.N &b251      ; 	sxtb	r1, r2
 	DCI.N &b25b      ; 	sxtb	r3, r3
-	DCI.N &b251      ; 	sxtb	r1, r2
-	DCI.W &fa4ff1b2 ; 	sxtb.w	r1, r2, ror #24
-	DCI.W &fa4ff2a2 ; 	sxtb.w	r2, r2, ror #16
+	DCI.N &b251      ; 	sxtb	r1, r2  FIXME: IT support missing
+	DCI.W &fa4ff1b2 ; 	sxtb.w	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa4ff2a2 ; 	sxtb.w	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa42f184 ; 	sxtab	r1, r2, r4
 	DCI.W &fa43f384 ; 	sxtab	r3, r3, r4
-	DCI.W &fa42f184 ; 	sxtab	r1, r2, r4
-	DCI.W &fa42f1b4 ; 	sxtab	r1, r2, r4, ror #24
-	DCI.W &fa42f2a4 ; 	sxtab	r2, r2, r4, ror #16
+	DCI.W &fa42f184 ; 	sxtab	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa42f1b4 ; 	sxtab	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa42f2a4 ; 	sxtab	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; B16
 	DCI.W &fa2ff182 ; 	sxtb16	r1, r2
 	DCI.W &fa2ff383 ; 	sxtb16	r3, r3
-	DCI.W &fa2ff182 ; 	sxtb16	r1, r2
-	DCI.W &fa2ff1b2 ; 	sxtb16	r1, r2, ror #24
-	DCI.W &fa2ff2a2 ; 	sxtb16	r2, r2, ror #16
+	DCI.W &fa2ff182 ; 	sxtb16	r1, r2  FIXME: IT support missing
+	DCI.W &fa2ff1b2 ; 	sxtb16	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa2ff2a2 ; 	sxtb16	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa22f184 ; 	sxtab16	r1, r2, r4
 	DCI.W &fa23f384 ; 	sxtab16	r3, r3, r4
-	DCI.W &fa22f184 ; 	sxtab16	r1, r2, r4
-	DCI.W &fa22f1b4 ; 	sxtab16	r1, r2, r4, ror #24
-	DCI.W &fa22f2a4 ; 	sxtab16	r2, r2, r4, ror #16
+	DCI.W &fa22f184 ; 	sxtab16	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa22f1b4 ; 	sxtab16	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa22f2a4 ; 	sxtab16	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; H
 	DCI.N &b211      ; 	sxth	r1, r2
 	DCI.N &b21b      ; 	sxth	r3, r3
-	DCI.N &b211      ; 	sxth	r1, r2
-	DCI.W &fa0ff1b2 ; 	sxth.w	r1, r2, ror #24
-	DCI.W &fa0ff2a2 ; 	sxth.w	r2, r2, ror #16
+	DCI.N &b211      ; 	sxth	r1, r2  FIXME: IT support missing
+	DCI.W &fa0ff1b2 ; 	sxth.w	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa0ff2a2 ; 	sxth.w	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa02f184 ; 	sxtah	r1, r2, r4
 	DCI.W &fa03f384 ; 	sxtah	r3, r3, r4
-	DCI.W &fa02f184 ; 	sxtah	r1, r2, r4
-	DCI.W &fa02f1b4 ; 	sxtah	r1, r2, r4, ror #24
-	DCI.W &fa02f2a4 ; 	sxtah	r2, r2, r4, ror #16
+	DCI.W &fa02f184 ; 	sxtah	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa02f1b4 ; 	sxtah	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa02f2a4 ; 	sxtah	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; B (with .W)
 	DCI.W &fa4ff182 ; 	sxtb.w	r1, r2
 	DCI.W &fa4ff383 ; 	sxtb.w	r3, r3
-	DCI.W &fa4ff182 ; 	sxtb.w	r1, r2
-	DCI.W &fa4ff1b2 ; 	sxtb.w	r1, r2, ror #24
-	DCI.W &fa4ff2a2 ; 	sxtb.w	r2, r2, ror #16
+	DCI.W &fa4ff182 ; 	sxtb.w	r1, r2  FIXME: IT support missing
+	DCI.W &fa4ff1b2 ; 	sxtb.w	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa4ff2a2 ; 	sxtb.w	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa42f184 ; 	sxtab	r1, r2, r4
 	DCI.W &fa43f384 ; 	sxtab	r3, r3, r4
-	DCI.W &fa42f184 ; 	sxtab	r1, r2, r4
-	DCI.W &fa42f1b4 ; 	sxtab	r1, r2, r4, ror #24
-	DCI.W &fa42f2a4 ; 	sxtab	r2, r2, r4, ror #16
+	DCI.W &fa42f184 ; 	sxtab	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa42f1b4 ; 	sxtab	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa42f2a4 ; 	sxtab	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; B16 (with .W)
 	DCI.W &fa2ff182 ; 	sxtb16	r1, r2
 	DCI.W &fa2ff383 ; 	sxtb16	r3, r3
-	DCI.W &fa2ff182 ; 	sxtb16	r1, r2
-	DCI.W &fa2ff1b2 ; 	sxtb16	r1, r2, ror #24
-	DCI.W &fa2ff2a2 ; 	sxtb16	r2, r2, ror #16
+	DCI.W &fa2ff182 ; 	sxtb16	r1, r2  FIXME: IT support missing
+	DCI.W &fa2ff1b2 ; 	sxtb16	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa2ff2a2 ; 	sxtb16	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa22f184 ; 	sxtab16	r1, r2, r4
 	DCI.W &fa23f384 ; 	sxtab16	r3, r3, r4
-	DCI.W &fa22f184 ; 	sxtab16	r1, r2, r4
-	DCI.W &fa22f1b4 ; 	sxtab16	r1, r2, r4, ror #24
+	DCI.W &fa22f184 ; 	sxtab16	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa22f1b4 ; 	sxtab16	r1, r2, r4, ror #24  FIXME: IT support missing
 	DCI.W &fa22f2a4 ; 	sxtab16	r2, r2, r4, ror #16
 
-	; H (with .H)
+	; H (with .W)
 	DCI.W &fa0ff182 ; 	sxth.w	r1, r2
 	DCI.W &fa0ff383 ; 	sxth.w	r3, r3
-	DCI.W &fa0ff182 ; 	sxth.w	r1, r2
-	DCI.W &fa0ff1b2 ; 	sxth.w	r1, r2, ror #24
-	DCI.W &fa0ff2a2 ; 	sxth.w	r2, r2, ror #16
+	DCI.W &fa0ff182 ; 	sxth.w	r1, r2  FIXME: IT support missing
+	DCI.W &fa0ff1b2 ; 	sxth.w	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa0ff2a2 ; 	sxth.w	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa02f184 ; 	sxtah	r1, r2, r4
 	DCI.W &fa03f384 ; 	sxtah	r3, r3, r4
-	DCI.W &fa02f184 ; 	sxtah	r1, r2, r4
-	DCI.W &fa02f1b4 ; 	sxtah	r1, r2, r4, ror #24
-	DCI.W &fa02f2a4 ; 	sxtah	r2, r2, r4, ror #16
+	DCI.W &fa02f184 ; 	sxtah	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa02f1b4 ; 	sxtah	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa02f2a4 ; 	sxtah	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; B (with .N)
 	DCI.N &b251      ; 	sxtb	r1, r2
 	DCI.N &b25b      ; 	sxtb	r3, r3
-	DCI.N &b251      ; 	sxtb	r1, r2
+	DCI.N &b251      ; 	sxtb	r1, r2  FIXME: IT support missing
 
 	; B16 (with .N)
 
 	; H (with .H)
 	DCI.N &b211      ; 	sxth	r1, r2
 	DCI.N &b21b      ; 	sxth	r3, r3
-	DCI.N &b211      ; 	sxth	r1, r2
+	DCI.N &b211      ; 	sxth	r1, r2  FIXME: IT support missing
 
 	DCI.N &0000      ; 	movs	r0, r0
 
@@ -347,92 +347,92 @@ Thumb16	SETL {CODESIZE} = 16 :LAND: "$w" = ".N"
 	; B
 	DCI.N &b2d1      ; 	uxtb	r1, r2
 	DCI.N &b2db      ; 	uxtb	r3, r3
-	DCI.N &b2d1      ; 	uxtb	r1, r2
-	DCI.W &fa5ff1b2 ; 	uxtb.w	r1, r2, ror #24
-	DCI.W &fa5ff2a2 ; 	uxtb.w	r2, r2, ror #16
+	DCI.N &b2d1      ; 	uxtb	r1, r2  FIXME: IT support missing
+	DCI.W &fa5ff1b2 ; 	uxtb.w	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa5ff2a2 ; 	uxtb.w	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa52f184 ; 	uxtab	r1, r2, r4
 	DCI.W &fa53f384 ; 	uxtab	r3, r3, r4
-	DCI.W &fa52f184 ; 	uxtab	r1, r2, r4
-	DCI.W &fa52f1b4 ; 	uxtab	r1, r2, r4, ror #24
-	DCI.W &fa52f2a4 ; 	uxtab	r2, r2, r4, ror #16
+	DCI.W &fa52f184 ; 	uxtab	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa52f1b4 ; 	uxtab	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa52f2a4 ; 	uxtab	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; B16
 	DCI.W &fa3ff182 ; 	uxtb16	r1, r2
 	DCI.W &fa3ff383 ; 	uxtb16	r3, r3
-	DCI.W &fa3ff182 ; 	uxtb16	r1, r2
-	DCI.W &fa3ff1b2 ; 	uxtb16	r1, r2, ror #24
-	DCI.W &fa3ff2a2 ; 	uxtb16	r2, r2, ror #16
+	DCI.W &fa3ff182 ; 	uxtb16	r1, r2  FIXME: IT support missing
+	DCI.W &fa3ff1b2 ; 	uxtb16	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa3ff2a2 ; 	uxtb16	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa32f184 ; 	uxtab16	r1, r2, r4
 	DCI.W &fa33f384 ; 	uxtab16	r3, r3, r4
-	DCI.W &fa32f184 ; 	uxtab16	r1, r2, r4
-	DCI.W &fa32f1b4 ; 	uxtab16	r1, r2, r4, ror #24
-	DCI.W &fa32f2a4 ; 	uxtab16	r2, r2, r4, ror #16
+	DCI.W &fa32f184 ; 	uxtab16	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa32f1b4 ; 	uxtab16	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa32f2a4 ; 	uxtab16	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; H
 	DCI.N &b291      ; 	uxth	r1, r2
 	DCI.N &b29b      ; 	uxth	r3, r3
-	DCI.N &b291      ; 	uxth	r1, r2
-	DCI.W &fa1ff1b2 ; 	uxth.w	r1, r2, ror #24
-	DCI.W &fa1ff2a2 ; 	uxth.w	r2, r2, ror #16
+	DCI.N &b291      ; 	uxth	r1, r2  FIXME: IT support missing
+	DCI.W &fa1ff1b2 ; 	uxth.w	r1, r2, ror #24  FIXME: IT support missingc
+	DCI.W &fa1ff2a2 ; 	uxth.w	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa12f184 ; 	uxtah	r1, r2, r4
 	DCI.W &fa13f384 ; 	uxtah	r3, r3, r4
-	DCI.W &fa12f184 ; 	uxtah	r1, r2, r4
-	DCI.W &fa12f1b4 ; 	uxtah	r1, r2, r4, ror #24
-	DCI.W &fa12f2a4 ; 	uxtah	r2, r2, r4, ror #16
+	DCI.W &fa12f184 ; 	uxtah	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa12f1b4 ; 	uxtah	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa12f2a4 ; 	uxtah	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; B (with .W)
 	DCI.W &fa5ff182 ; 	uxtb.w	r1, r2
 	DCI.W &fa5ff383 ; 	uxtb.w	r3, r3
-	DCI.W &fa5ff182 ; 	uxtb.w	r1, r2
-	DCI.W &fa5ff1b2 ; 	uxtb.w	r1, r2, ror #24
-	DCI.W &fa5ff2a2 ; 	uxtb.w	r2, r2, ror #16
+	DCI.W &fa5ff182 ; 	uxtb.w	r1, r2  FIXME: IT support missing
+	DCI.W &fa5ff1b2 ; 	uxtb.w	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa5ff2a2 ; 	uxtb.w	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa52f184 ; 	uxtab	r1, r2, r4
 	DCI.W &fa53f384 ; 	uxtab	r3, r3, r4
-	DCI.W &fa52f184 ; 	uxtab	r1, r2, r4
-	DCI.W &fa52f1b4 ; 	uxtab	r1, r2, r4, ror #24
-	DCI.W &fa52f2a4 ; 	uxtab	r2, r2, r4, ror #16
+	DCI.W &fa52f184 ; 	uxtab	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa52f1b4 ; 	uxtab	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa52f2a4 ; 	uxtab	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; B16 (with .W)
 	DCI.W &fa3ff182 ; 	uxtb16	r1, r2
 	DCI.W &fa3ff383 ; 	uxtb16	r3, r3
-	DCI.W &fa3ff182 ; 	uxtb16	r1, r2
-	DCI.W &fa3ff1b2 ; 	uxtb16	r1, r2, ror #24
-	DCI.W &fa3ff2a2 ; 	uxtb16	r2, r2, ror #16
+	DCI.W &fa3ff182 ; 	uxtb16	r1, r2  FIXME: IT support missing
+	DCI.W &fa3ff1b2 ; 	uxtb16	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa3ff2a2 ; 	uxtb16	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa32f184 ; 	uxtab16	r1, r2, r4
 	DCI.W &fa33f384 ; 	uxtab16	r3, r3, r4
-	DCI.W &fa32f184 ; 	uxtab16	r1, r2, r4
-	DCI.W &fa32f1b4 ; 	uxtab16	r1, r2, r4, ror #24
-	DCI.W &fa32f2a4 ; 	uxtab16	r2, r2, r4, ror #16
+	DCI.W &fa32f184 ; 	uxtab16	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa32f1b4 ; 	uxtab16	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa32f2a4 ; 	uxtab16	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; H (with .W)
 	DCI.W &fa1ff182 ; 	uxth.w	r1, r2
 	DCI.W &fa1ff383 ; 	uxth.w	r3, r3
-	DCI.W &fa1ff182 ; 	uxth.w	r1, r2
-	DCI.W &fa1ff1b2 ; 	uxth.w	r1, r2, ror #24
-	DCI.W &fa1ff2a2 ; 	uxth.w	r2, r2, ror #16
+	DCI.W &fa1ff182 ; 	uxth.w	r1, r2  FIXME: IT support missing
+	DCI.W &fa1ff1b2 ; 	uxth.w	r1, r2, ror #24  FIXME: IT support missing
+	DCI.W &fa1ff2a2 ; 	uxth.w	r2, r2, ror #16  FIXME: IT support missing
 
 	DCI.W &fa12f184 ; 	uxtah	r1, r2, r4
 	DCI.W &fa13f384 ; 	uxtah	r3, r3, r4
-	DCI.W &fa12f184 ; 	uxtah	r1, r2, r4
-	DCI.W &fa12f1b4 ; 	uxtah	r1, r2, r4, ror #24
-	DCI.W &fa12f2a4 ; 	uxtah	r2, r2, r4, ror #16
+	DCI.W &fa12f184 ; 	uxtah	r1, r2, r4  FIXME: IT support missing
+	DCI.W &fa12f1b4 ; 	uxtah	r1, r2, r4, ror #24  FIXME: IT support missing
+	DCI.W &fa12f2a4 ; 	uxtah	r2, r2, r4, ror #16  FIXME: IT support missing
 
 	; B (with .N)
 	DCI.N &b2d1      ; 	uxtb	r1, r2
 	DCI.N &b2db      ; 	uxtb	r3, r3
-	DCI.N &b2d1      ; 	uxtb	r1, r2
+	DCI.N &b2d1      ; 	uxtb	r1, r2  FIXME: IT support missing
 
 	; B16 (with .N)
 
 	; H (with .N)
 	DCI.N &b291      ; 	uxth	r1, r2
 	DCI.N &b29b      ; 	uxth	r3, r3
-	DCI.N &b291      ; 	uxth	r1, r2
+	DCI.N &b291      ; 	uxth	r1, r2  FIXME: IT support missing
 
 	DCI.N &0000      ; 	movs	r0, r0
 

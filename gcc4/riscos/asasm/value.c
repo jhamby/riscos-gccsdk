@@ -151,7 +151,7 @@ Value_ResolveSymbol (Value *valueP)
 	  case ValueInt:
 	    if (newValueP->Data.Int.type == eIntType_PureInt)
 	      *valueP = Value_Int (factor * newValueP->Data.Int.i + offset, eIntType_PureInt);
-	    else if (factor == 1 && offset == 0) /* You can do maths on registers or register lists.  */
+	    else if (factor == 1 && offset == 0) /* You can not do maths on registers or register lists.  */
 	      *valueP = *newValueP;
 	    else
 	      return true;
