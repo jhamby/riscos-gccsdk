@@ -697,52 +697,33 @@ dstreglist (ARMWord ir, bool isPushPop)
       if (!Input_Match (',', true))
 	error (ErrorError, "Inserting missing comma before reglist");
     }
-  if (!Input_Match ('{', true))
-    error (ErrorError, "Inserting missing '{' before reglist");
-  int op = 0;
-  do
+
+  /* Parse register list.  */
+  ARMWord regList;
+  if (inputLook () == '{')
+    regList = Get_CPURList ();
+  else
     {
-      int low = getCpuReg ();
-      skipblanks ();
-      int high;
-      switch (inputLook ())
+      const Value *rlistValue = exprBuildAndEval (ValueInt);
+      if (rlistValue->Tag != ValueInt || rlistValue->Data.Int.type != eIntType_CPURList)
 	{
-	  case '-':
-	    inputSkip ();
-	    high = getCpuReg ();
-	    skipblanks ();
-	    if (low > high)
-	      {
-		error (ErrorInfo, "Register interval in wrong order r%d-r%d", low, high);
-		int c = low;
-		low = high;
-		high = c;
-	      }
-	    break;
+	  error (ErrorError, "Not a register list");
+	  regList = 0;
+	}
+      else
+	{
+	  assert ((unsigned)rlistValue->Data.Int.i <= 0xFFFF);
+	  regList = rlistValue->Data.Int.i;
+	}
+    }
 
-	  case ',':
-	  case '}':
-	    high = low;
-	    break;
-
-          default:
-	    error (ErrorError, "Illegal character '%c' in register list", inputLook ());
-	    high = 15;
-	    break;
-        }
-      if ((1 << low) < op)
-	error (ErrorInfo, "Registers in wrong order");
-      if (((1 << (high + 1)) - (1 << low)) & op)
-	error (ErrorInfo, "Register occurs more than once in register list");
-      op |= (1 << (high + 1)) - (1 << low);
-    } while (Input_Match (',', true));
   if (GET_BASE_MULTI (ir) == 13 && (ir & W_FLAG))
     {
       /* Count number of registers loaded or saved.  */
       int i, c = 0;
       for (i = 0; i < 16; ++i)
 	{
-	  if (op & (1<<i))
+	  if (regList & (1<<i))
 	    ++c;
 	}
       if (c & 1)
@@ -755,8 +736,8 @@ dstreglist (ARMWord ir, bool isPushPop)
     }
   if ((ir & W_FLAG) /* Write-back is specified.  */
       && (ir & L_FLAG) /* Is LDM/POP.  */
-      && (op & (1 << GET_BASE_MULTI (ir))) /* Base reg. in reg. list.  */
-      && (!isPushPop || (op ^ (1 << GET_BASE_MULTI (ir))) != 0) /* Is either LDM/STM, either multi-reg. POP/PUSH.  */)
+      && (regList & (1 << GET_BASE_MULTI (ir))) /* Base reg. in reg. list.  */
+      && (!isPushPop || (regList ^ (1 << GET_BASE_MULTI (ir))) != 0) /* Is either LDM/STM, either multi-reg. POP/PUSH.  */)
     {
       /* LDM instructions and multi-register POP instructions that specify base
          register writeback and load their base register are permitted but
@@ -772,9 +753,7 @@ dstreglist (ARMWord ir, bool isPushPop)
 	       "Obsoleted from ARMv7 onwards : %s with writeback and base register in register list",
 	       what);
     }
-  if (!Input_Match ('}', false))
-    error (ErrorError, "Inserting missing '}' after reglist");
-  ir |= op;
+  ir |= regList;
   skipblanks ();
   if (Input_Match ('^', true))
     {

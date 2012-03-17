@@ -1,4 +1,5 @@
 ; Tests LDM, STM, PUSH and POP.
+; LDM/STM/PUSH/POP support for RLIST is tested in directive_rlist.s.
 
 		AREA |C$$code|, CODE, READONLY
 

@@ -32,6 +32,7 @@ ARMWord Get_CPURegNoError (void);
 ARMWord getFpuReg (void);
 ARMWord getCopReg (void);
 ARMWord getCopNum (void);
+ARMWord Get_CPURList (void);
 ARMWord getRhs (bool immonly, bool shift, ARMWord ir);
 
 #define DST_OP(op) ((op)<<12)

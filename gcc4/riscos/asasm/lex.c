@@ -1301,12 +1301,6 @@ lexGetBinop (void)
 	result.Data.Operator.pri = kPrioOp_AddAndLogical;
 	break;
 
-      case '^':
-	result.tag = LexOperator;
-	result.Data.Operator.op = eOp_XOr; /* ^ EOR */
-	result.Data.Operator.pri = kPrioOp_AddAndLogical;
-	break;
-
       case '>':
 	result.tag = LexOperator;
 	switch (inputLook ())

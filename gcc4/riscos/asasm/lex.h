@@ -84,7 +84,7 @@ typedef enum
   LexInt,		/* Start with digit, & and is not a floating point literal.  And fits into 32-bit.  */
   LexInt64,		/* Like LexInt but can only fit into 64-bit.  */
   LexFloat,		/* Start with digit contains dot */
-  LexOperator,		/* + - * % / >> >>> <<  ~ & | ^ ! && || == != <= >= */
+  LexOperator,		/* + - * % / >> >>> <<  ~ & | ! && || == != <= >= */
   LexPosition,		/* . representing current position */
   LexStorage,		/* @ representing current storage counter */
   LexDelim,		/* () */

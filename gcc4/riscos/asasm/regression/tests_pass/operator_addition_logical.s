@@ -93,13 +93,6 @@ field3	# 4		; Offset &18 - &1c
 	DCD	"A" :EOR: 3
 	DCD	3 :EOR: "A"
 
-	; ^
-	[ EXTENSION
-	DCD	6 :EOR: 3
-	DCD	"A" :EOR: 3
-	DCD	3 :EOR: "A"
-	]
-
 	|
 
 	; +
@@ -182,13 +175,6 @@ field3	# 4		; Offset &18 - &1c
 	DCD	5
 	DCD	&42
 	DCD	&42
-
-	; ^
-	[ EXTENSION
-	DCD	5
-	DCD	&42
-	DCD	&42
-	]
 
 	]
 

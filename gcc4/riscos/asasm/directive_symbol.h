@@ -33,6 +33,7 @@ bool c_cp (Symbol *symbol);
 bool c_equ (Symbol *symbol);
 bool c_fn (Symbol *symbol);
 /* FIXME: bool c_qn (Symbol *symbol); */
+bool c_rlist (Symbol *symbol);
 bool c_rn (Symbol *symbol);
 /* FIXME: bool c_sn (Symbol *symbol); */
 

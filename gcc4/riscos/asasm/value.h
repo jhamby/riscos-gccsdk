@@ -49,6 +49,7 @@ typedef enum
 typedef enum
 {
   eIntType_PureInt,
+  eIntType_CPURList,		/* ARM CPU register list (for LDM/STM).  */
   eIntType_CPU,			/* r0 - r15, lr, pc : ARM CPU register.  */
   eIntType_FPU,			/* f0 - f8 : FPE (FPA10/FPA11 and FPASC) register.  */
   eIntType_NeonQuadReg,		/* q0 - q15 : NEON quadword registers.  */

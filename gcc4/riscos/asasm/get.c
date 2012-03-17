@@ -35,6 +35,7 @@
 #include "get.h"
 #include "help_cpu.h"
 #include "input.h"
+#include "main.h"
 #include "lex.h"
 #include "phase.h"
 #include "reloc.h"
@@ -96,6 +97,65 @@ getCopNum (void)
 {
   return GetRegisterValue (true, eIntType_CoProNum, "coprocessor number");
 }
+
+/**
+ * Parses a register list:
+ *  "{" <regs> "}"
+ *     <regs> := <regs> "," <regs>
+ *               <reg>
+ *               <reg> "-" <reg>
+ *     <reg> := <CPU register>
+ * \return Bitwise or of specified CPU register numbers.
+ */
+ARMWord
+Get_CPURList (void)
+{
+  if (!Input_Match ('{', true))
+    error (ErrorError, "Missing '{' before reglist");
+  ARMWord regList = 0;
+  do
+    {
+      ARMWord low = getCpuReg ();
+      skipblanks ();
+      ARMWord high;
+      switch (inputLook ())
+	{
+	  case '-':
+	    inputSkip ();
+	    high = getCpuReg ();
+	    skipblanks ();
+	    if (low > high)
+	      {
+		if (option_pedantic)
+		  error (ErrorInfo, "Register interval in wrong order r%d-r%d", low, high);
+		ARMWord c = low;
+		low = high;
+		high = c;
+	      }
+	    break;
+
+	  case ',':
+	  case '}':
+	    high = low;
+	    break;
+
+          default:
+	    error (ErrorError, "Illegal character '%c' in register list", inputLook ());
+	    high = 15;
+	    break;
+        }
+      if (option_pedantic && (1U << low) < regList)
+	error (ErrorInfo, "Registers in wrong order");
+      if (((1U << (high + 1)) - (1U << low)) & regList)
+	error (ErrorInfo, "Register occurs more than once in register list");
+      regList |= (1U << (high + 1)) - (1U << low);
+    }
+  while (Input_Match (',', true));
+  if (!Input_Match ('}', false))
+    error (ErrorError, "Inserting missing '}' after reglist");
+  return regList;
+}
+
 
 static ARMWord
 getShiftOp (void)

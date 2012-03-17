@@ -257,7 +257,7 @@ static const decode_table_t oDecodeTable[] =
   { "RFC", eCB_VoidPMatch, 1, 1, {.vdpm = m_rfc } }, /* RFC CC */
   { "RFE", eCB_VoidPMatch, 1, 1, {.vdpm = m_rfe } }, /* RFE MODE */
   { "RFS", eCB_VoidPMatch, 1, 1, {.vdpm = m_rfs } }, /* RFS CC */
-  /* FIXME: RLIST */
+  { "RLIST", eCB_Symbol, 0, 0, { .sym = c_rlist } }, /* RLIST */
   { "RMF", eCB_VoidPMatch, 1, 1, {.vdpm = m_rmf } }, /* RMF CC P R */
   { "RN", eCB_Symbol, 0, 0, {.sym = c_rn } }, /* RN */
   { "RND", eCB_VoidPMatch, 1, 1, {.vdpm = m_rnd } }, /* RND CC P R */

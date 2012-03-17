@@ -28,6 +28,7 @@
 #include "directive_symbol.h"
 #include "error.h"
 #include "expr.h"
+#include "get.h"
 
 /**
  * Define given symbol with what's located at the parser.  Fail when the
@@ -144,5 +145,21 @@ c_rn (Symbol *symbol)
 	}
       symbol->value.Data.Int.type = eIntType_CPU;
     }
+  return false;
+}
+
+/**
+ * Implements RLIST.
+ */
+bool
+c_rlist (Symbol *symbol)
+{
+  if (symbol == NULL)
+    {
+      error (ErrorError, "Missing label before %s", "register list");
+      return false;
+    }
+  const Value rlistValue = Value_Int (Get_CPURList (), eIntType_CPURList);
+  Symbol_Define (symbol, SYMBOL_ABSOLUTE, &rlistValue);
   return false;
 }
