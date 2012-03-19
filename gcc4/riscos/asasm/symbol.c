@@ -732,8 +732,8 @@ symFlag (unsigned int flags, const char *err)
 
 /**
  * Implements EXPORT / GLOBAL.
- * "EXPORT <symbol>[FPREGARGS,DATA,LEAF,WEAK]"
- * "EXPORT [WEAK]"
+ *   "EXPORT <symbol> [FPREGARGS,DATA,LEAF,WEAK]"
+ *   "EXPORT [WEAK]"
  *
  */
 bool
@@ -816,7 +816,19 @@ c_keep (void)
 
 /**
  * Implements IMPORT / EXTERN.
- *   IMPORT <symbol>[,NOCASE][,WEAK][,COMMON=<size>][,FPREGARGS]
+ * Not clear which syntax really should be supported.  Hence, go for a liberal
+ * implementation:
+ *   IMPORT <symbol> [ <attrs-list-main> ]
+ *     <attrs-list-main> := "," <attr> [ <attrs-list> ]
+ *                       := "[" <attrs-comma> ] "]"
+ *     <attrs-list>      := "," <attrs> [ <attrs-list> ]
+ *                       := "," "[" <attrs-comma> ] "]"
+ *     <attrs-comma> := <attr> [ "," <attrs-comma> ]
+ *     <attr> := "NOCASE"
+ *            := "WEAK"
+ *            := "COMMON=" <size>
+ *            := "FPREGARGS"
+ * FIXME: support ELF attributes
  */
 bool
 c_import (void)
@@ -832,42 +844,57 @@ c_import (void)
       return false;
     }
 
-  while (Input_Match (',', false))
+  skipblanks ();
+  if (!Input_IsEolOrCommentStart ())
     {
-      Lex attribute = lexGetId ();
-      if (attribute.Data.Id.len == sizeof ("NOCASE")-1
-          && !memcmp ("NOCASE", attribute.Data.Id.str, attribute.Data.Id.len))
-	sym->type |= SYMBOL_NOCASE;
-      else if (attribute.Data.Id.len == sizeof ("WEAK")-1
-               && !memcmp ("WEAK", attribute.Data.Id.str, attribute.Data.Id.len))
-	sym->type |= SYMBOL_WEAK;
-      else if (attribute.Data.Id.len == sizeof ("COMMON")-1
-               && !memcmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len))
-        {
-	  skipblanks ();
-	  if (Input_Match ('=', false))
-	    error (ErrorError, "COMMON attribute needs size specification");
-	  else
+      bool start = true;
+      bool bracket = false;
+      while (Input_Match (',', true) || start)
+	{
+	  start = false;
+	  if (!bracket)
+	    bracket = Input_Match ('[', true);
+
+	  Lex attribute = lexGetId ();
+	  if (attribute.Data.Id.len == sizeof ("NOCASE")-1
+	      && !memcmp ("NOCASE", attribute.Data.Id.str, attribute.Data.Id.len))
+	    sym->type |= SYMBOL_NOCASE;
+	  else if (attribute.Data.Id.len == sizeof ("WEAK")-1
+	           && !memcmp ("WEAK", attribute.Data.Id.str, attribute.Data.Id.len))
+	    sym->type |= SYMBOL_WEAK;
+	  else if (attribute.Data.Id.len == sizeof ("COMMON")-1
+	           && !memcmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len))
 	    {
-	      const Value *size = exprBuildAndEval (ValueInt);
-	      switch (size->Tag)
-	        {
-		  case ValueInt:
-		    Value_Assign (&sym->value, size);
-		    sym->type |= SYMBOL_COMMON;
-		    break;
-		  default:
-		    error (ErrorError, "Illegal COMMON attribute expression");
-		    break;
-	        }
+	      skipblanks ();
+	      if (!Input_Match ('=', false))
+		error (ErrorError, "COMMON attribute needs size specification");
+	      else
+		{
+		  const Value *size = exprBuildAndEval (ValueInt);
+		  switch (size->Tag)
+		    {
+		      case ValueInt:
+			Value_Assign (&sym->value, size);
+			sym->type |= SYMBOL_COMMON;
+			break;
+		      default:
+			error (ErrorError, "Illegal COMMON attribute expression");
+			break;
+		    }
+		}
 	    }
+	  else if (attribute.Data.Id.len == sizeof ("FPREGARGS")-1
+	           && !memcmp ("FPREGARGS", attribute.Data.Id.str, attribute.Data.Id.len))
+	    sym->type |= SYMBOL_FPREGARGS;
+	  else
+	    error (ErrorError, "Illegal IMPORT attribute %s", attribute.Data.Id.str);
+
+	  skipblanks ();
+	  if (bracket && Input_Match (']', true))
+	    bracket = false;
 	}
-      else if (attribute.Data.Id.len == sizeof ("FPREGARGS")-1
-               && !memcmp ("FPREGARGS", attribute.Data.Id.str, attribute.Data.Id.len))
-	sym->type |= SYMBOL_FPREGARGS;
-      else
-	error (ErrorError, "Illegal IMPORT attribute %s", attribute.Data.Id.str);
-      skipblanks ();
+      if (bracket && !Input_Match (']', false))
+	error (ErrorError, "Missing ]");
     }
   return false;
 }

@@ -1,3 +1,5 @@
+; Tests :INDEX: and :BASE:
+
 	AREA Code, CODE, READONLY
 
 	[ :LNOT:REFERENCE
@@ -90,6 +92,52 @@ late_field2 #	32
 	LDR	r0, [r11, #20]
 	LDR	r0, [r1, #36]
 	MOV	r0, #36
+
+	]
+
+	; Test 5 : on labels
+	[ :LNOT: REFERENCE
+
+	AREA	Data5a, DATA
+	DCD	1, 2, 3
+Tst5L1	DCD	4, 5, 6
+
+	DCD	:BASE:Tst5L1
+	[ EXTENSION
+	DCD	:INDEX:Tst5L1
+	]
+
+	AREA	Data5b, DATA, BASED r3
+	DCD	1, 2, 3
+Tst5L2	DCD	4, 5, 6
+
+	DCD	:BASE:Tst5L2
+	DCD	:INDEX:Tst5L2
+
+	AREA	Data5c, DATA
+
+	DCD	:BASE:Tst5L2
+	DCD	:INDEX:Tst5L2
+
+	|
+
+	AREA	Data5a, DATA
+	DCD	1, 2, 3
+	DCD	4, 5, 6
+	DCD	15
+	[ EXTENSION
+	DCD	12
+	]
+
+	AREA	Data5b, DATA, BASED r3
+	DCD	1, 2, 3
+	DCD	4, 5, 6
+	DCD	3
+	DCD	12
+
+	AREA	Data5c, DATA
+	DCD	3
+	DCD	12
 
 	]
 

@@ -881,29 +881,69 @@ evalUnop (Operator_e op, Value *value)
 
       case eOp_None: /* */
 	break;
-	
+
       case eOp_Base: /* :BASE: */
 	{
-	  if (value->Tag != ValueAddr)
+	  switch (value->Tag)
 	    {
-	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":BASE:");
-	      return false;
+	      case ValueSymbol:
+		{
+		  if (value->Data.Symbol.symbol == areaCurrentSymbol
+		      && value->Data.Symbol.factor == 1)
+		    *value = Value_Int (15, eIntType_PureInt);
+		  else
+		    {
+		      if (gPhase != ePassOne)
+			error (ErrorError, "Not current area symbol");
+		      return false;
+		    }
+		  break;
+		}
+
+	      case ValueAddr:
+		{
+		  *value = Value_Int (value->Data.Addr.r, eIntType_PureInt);
+		  break;
+		}
+
+	      default:
+		if (gPhase != ePassOne)
+		  error (ErrorError, "Bad operand type for %s", ":BASE:");
+		return false;
 	    }
-	  value->Tag = ValueInt;
-	  value->Data.Int.i = value->Data.Addr.r;
 	  break;
 	}
 
       case eOp_Index: /* :INDEX: */
 	{
-	  if (value->Tag != ValueAddr && value->Tag != ValueInt)
+	  switch (value->Tag)
 	    {
-	      if (gPhase != ePassOne)
-		error (ErrorError, "Bad operand type for %s", ":INDEX:");
-	      return false;
+	      case ValueInt:
+		break;
+
+	      case ValueAddr:
+		*value = Value_Int (value->Data.Addr.i, eIntType_PureInt);
+		break;
+
+	      case ValueSymbol:
+		{
+		  if (value->Data.Symbol.symbol == areaCurrentSymbol
+		      && value->Data.Symbol.factor == 1)
+		    *value = Value_Int (value->Data.Symbol.offset, eIntType_PureInt);
+		  else
+		    {
+		      if (gPhase != ePassOne)
+			error (ErrorError, "Not current area symbol");
+		      return false;
+		    }
+		  break;
+		}
+
+	      default:
+		if (gPhase != ePassOne)
+		  error (ErrorError, "Bad operand type for %s", ":INDEX:");
+		return false;
 	    }
-	  value->Tag = ValueInt; /* ValueAddr.i at same place as ValueInt.i.  */
 	  break;
 	}
 

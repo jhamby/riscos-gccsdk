@@ -440,7 +440,7 @@ onlyregs (MulFlavour_e mulType, ARMWord ir)
     error (ErrorWarning, "Use of register PC is unpredictable");
   if (mulType != Is_eMLS)
     {
-      if (regD == regN)
+      if (regD == regN && Target_GetArch () < ARCH_ARMv6)
 	{
 	  if (regN == regM)
 	    error (ErrorError, "Destination and left operand are the same register %d", regD);
@@ -520,6 +520,10 @@ m_mul (bool doLowerCase)
   return false;
 }
 
+
+/**
+ * Used for implementing SMUL*, SMLA*, UMUL*, UMLA.
+ */
 static void
 l_onlyregs (ARMWord ir, const char *op)
 {
@@ -563,9 +567,9 @@ l_onlyregs (ARMWord ir, const char *op)
     {
       if (dstl == dsth)
         error (ErrorError, "Destination high and low are the same register %d", dstl);
-      if (dstl == lhs || dsth == lhs)
+      if ((dstl == lhs || dsth == lhs) && Target_GetArch () < ARCH_ARMv6)
         {
-          if (dstl == rhs || dsth == rhs)
+          if (dstl == rhs || dsth == rhs) 
             error (ErrorError, "Left operand register %d also occurs in destination", lhs);
           else
 	    {
@@ -578,10 +582,10 @@ l_onlyregs (ARMWord ir, const char *op)
         }
      }
   else
-     {
-       if (dsth == 15 || lhs == 15 || rhs == 15)
-         error (ErrorError, "Cannot use R15 with %s", op);
-     }
+    {
+      if (dsth == 15 || lhs == 15 || rhs == 15)
+	error (ErrorError, "Cannot use R15 with %s", op);
+    }
   if (!issmull && (issmlaxy || issmlawy))
     {
       if (!Input_Match (',', true))
