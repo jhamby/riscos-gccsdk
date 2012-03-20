@@ -77,8 +77,7 @@ extern const char * riscos_multilib_dir (int argc, const char **argv);
 /* When building the native RISC OS compiler, we add an extra library path
    GCCSOLib:  */
 #  define SUBTARGET_EXTRA_LINK_SPEC \
-     "-m armelf_riscos -p %{!static:%{!fpic:-fPIC \
-     %:riscos_multilib_dir(%{!mfpu=*|mfpu=soft*:soft-float}%{mfpu=fpa|mfpu=fpe*:fpu}%{mfpu=vfp*|mfpu=neon*:vfp})}} " \
+     "-m armelf_riscos -p %{!static:%{!fpic:-fPIC %:riscos_multilib_dir()}} " \
      "%{fpic:-fpic} %{mmodule:--ro-module-reloc --target2=rel} "
 #endif
 

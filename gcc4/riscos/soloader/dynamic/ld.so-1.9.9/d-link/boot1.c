@@ -561,15 +561,14 @@ void _dl_boot(int args)
     }
 
     for (dpnt = (Elf32_Dyn *)app_tpnt->dynamic_addr;
-	 dpnt->d_tag && dpnt->d_tag != DT_RISCOS_GCC_DIR;
+	 dpnt->d_tag && dpnt->d_tag != DT_RISCOS_ABI_VERSION;
 	 dpnt++)
       /* Empty loop.  */;
 
     if (dpnt->d_tag)
-      app_tpnt->gcc_version = (char *)(dpnt->d_un.d_ptr + app_tpnt->loadaddr);
+      app_tpnt->abi_version = (char *)(dpnt->d_un.d_ptr + app_tpnt->loadaddr);
     else
-      app_tpnt->gcc_version = "4.1.1";
-    app_tpnt->elf_flags = dl_data[AT_FLAGS];
+      app_tpnt->abi_version = NULL;
   }
 
   if (argv[0])

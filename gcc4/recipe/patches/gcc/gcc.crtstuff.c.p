@@ -1,6 +1,6 @@
 Index: gcc/crtstuff.c
 ===================================================================
---- gcc/crtstuff.c	(revision 168231)
+--- gcc/crtstuff.c	(revision 185346)
 +++ gcc/crtstuff.c	(working copy)
 @@ -198,11 +198,11 @@
     __CTOR_LIST__ does not undo our behind-the-back change to .ctors.  */
@@ -121,4 +121,18 @@ Index: gcc/crtstuff.c
 +  const func_ptr *p;
  #if defined(USE_EH_FRAME_REGISTRY) || defined(JCR_SECTION_NAME)
    __do_global_ctors_1();
+ #endif
+@@ -636,6 +640,13 @@
+ #error "What are you doing with crtstuff.c, then?"
+ #endif
+ 
++#ifdef __riscos__
++static const char riscos_abi_version[]
++  __attribute__((used, section(".riscos.abi.version"), aligned(4))) =
++#include "config/arm/riscos-abi.h"
++  ;
++#endif
++
+ #else /* ! CRT_BEGIN && ! CRT_END */
+ #error "One of CRT_BEGIN or CRT_END must be defined."
  #endif

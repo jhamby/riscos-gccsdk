@@ -497,6 +497,11 @@ endif
 ifeq ($(TARGET),arm-unknown-riscos)
 	cd $(SRCDIR)/gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
 endif
+	rm -f $(SRCDIR)/gcc/gcc/config/arm/riscos-abi.h
+	echo "/* Automatically generated from the value of GCCSDK_RISCOS_ABI_VERSION" >> $(SRCDIR)/gcc/gcc/config/arm/riscos-abi.h
+	echo "   defined in the file setup_gccsdk_params.  */" >> $(SRCDIR)/gcc/gcc/config/arm/riscos-abi.h
+	echo \"$(GCCSDK_RISCOS_ABI_VERSION)\" >> $(SRCDIR)/gcc/gcc/config/arm/riscos-abi.h
+
 	touch $(BUILDSTEPSDIR)/src-gcc-copied
 
 # Unpack gmp source:

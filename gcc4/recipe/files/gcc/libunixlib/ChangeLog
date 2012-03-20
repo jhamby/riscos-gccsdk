@@ -1,3 +1,10 @@
+Tue Mar 20 19:29:47 GMT 2010  Lee Noar  <leenoar@sky.com>
+
+	* include/sys/elf.h(DT_RISCOS_GCC_DIR): Rename to
+	DT_RISCOS_ABI_VERSION.
+	* gen-auto.pl: Generate file misc/abi.c.
+	* Makefile.am: Add misc/abi.c to list of file to compile.
+
 Mon Mar 12 19:36:19 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	* include/sys/elf.h: Define DT_RISCOS_GCC_DIR.

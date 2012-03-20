@@ -68,3 +68,5 @@ export GCCSDK_FULL_RELEASE_NAME=$GCCSDK_SUPPORTED_GCC_RELEASE-$GCCSDK_RELEASE_NA
 # GCCSDK_RISCOS : directory containing RISC OS related sources (cmunge, soloader, etc)
 export GCCSDK_RISCOS=$GCCSDK_ROOT/riscos
 
+# Current version of the shared library ABI
+export GCCSDK_RISCOS_ABI_VERSION=abi-2.0

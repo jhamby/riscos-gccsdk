@@ -1,5 +1,5 @@
---- bfd/elf32-arm.c.orig	2012-03-09 18:19:43.000000000 +0000
-+++ bfd/elf32-arm.c	2012-03-09 18:11:48.000000000 +0000
+--- bfd/elf32-arm.c.orig	2012-03-18 20:22:35.000000000 +0000
++++ bfd/elf32-arm.c	2012-03-18 20:20:59.000000000 +0000
 @@ -2024,7 +2024,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -715,7 +715,7 @@
  	  /* If this symbol is not defined in a regular file, and we are
  	     not generating a shared library, then set the symbol to this
  	     location in the .plt.  This is required to make function
-@@ -13544,6 +14152,15 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -13544,6 +14152,22 @@ elf32_arm_size_dynamic_sections (bfd * o
  #define add_dynamic_entry(TAG, VAL) \
    _bfd_elf_add_dynamic_entry (info, TAG, VAL)
  
@@ -725,13 +725,20 @@
 +	   return FALSE;
 +       }
 +
-+     if (!add_dynamic_entry (DT_RISCOS_GCC_DIR, 0))
-+       return FALSE;
++     /* Look through the input bfds to see if there's a '.riscos.abi.version'
++        section.  */
++     for (ibfd = info->input_bfds; ibfd != NULL; ibfd = ibfd->link_next)
++       if (bfd_get_section_by_name (ibfd, ".riscos.abi.version") != NULL)
++	 {
++	   if (!add_dynamic_entry (DT_RISCOS_ABI_VERSION, 0))
++	     return FALSE;
++	   break;
++	 }
 +
       if (info->executable)
  	{
  	  if (!add_dynamic_entry (DT_DEBUG, 0))
-@@ -13552,8 +14169,7 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -13552,8 +14176,7 @@ elf32_arm_size_dynamic_sections (bfd * o
  
        if (plt)
  	{
@@ -741,7 +748,7 @@
  	      || !add_dynamic_entry (DT_PLTREL,
  				     htab->use_rel ? DT_REL : DT_RELA)
  	      || !add_dynamic_entry (DT_JMPREL, 0))
-@@ -13583,6 +14199,9 @@ elf32_arm_size_dynamic_sections (bfd * o
+@@ -13583,6 +14206,9 @@ elf32_arm_size_dynamic_sections (bfd * o
  	    }
  	}
  
@@ -751,7 +758,7 @@
        /* If any dynamic relocs apply to a read-only section,
  	 then we need a DT_TEXTREL entry.  */
        if ((info->flags & DF_TEXTREL) == 0)
-@@ -13800,7 +14419,12 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -13800,7 +14426,12 @@ elf32_arm_finish_dynamic_sections (bfd *
  		  && elf_vxworks_finish_dynamic_entry (output_bfd, &dyn))
  		bfd_elf32_swap_dyn_out (output_bfd, &dyn, dyncon);
  	      break;
@@ -759,13 +766,13 @@
 +	    case DT_RISCOS_PIC:
 +	      name = ".riscos.pic";
 +	      goto get_vma;
-+	    case DT_RISCOS_GCC_DIR:
-+	      name = ".riscos.gcc.dir";
++	    case DT_RISCOS_ABI_VERSION:
++	      name = ".riscos.abi.version";
 +	      goto get_vma;
  	    case DT_HASH:
  	      name = ".hash";
  	      goto get_vma_if_bpabi;
-@@ -13982,6 +14606,39 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -13982,6 +14613,39 @@ elf32_arm_finish_dynamic_sections (bfd *
  	    {
  	      got_displacement = got_address - (plt_address + 16);
  
@@ -805,7 +812,7 @@
  	      plt0_entry = elf32_arm_plt0_entry;
  	      put_arm_insn (htab, output_bfd, plt0_entry[0],
  			    splt->contents + 0);
-@@ -14001,6 +14658,7 @@ elf32_arm_finish_dynamic_sections (bfd *
+@@ -14001,6 +14665,7 @@ elf32_arm_finish_dynamic_sections (bfd *
  #endif
  	    }
  	}
@@ -813,7 +820,7 @@
  
        /* UnixWare sets the entsize of .plt to 4, although that doesn't
  	 really seem like the right value.  */
-@@ -15277,13 +15935,28 @@ elf32_arm_add_symbol_hook (bfd *abfd, st
+@@ -15277,13 +15942,28 @@ elf32_arm_add_symbol_hook (bfd *abfd, st
  				       flagsp, secp, valp))
      return FALSE;
  

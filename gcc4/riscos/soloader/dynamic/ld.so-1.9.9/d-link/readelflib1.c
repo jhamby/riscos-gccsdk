@@ -53,31 +53,6 @@
 
 extern char *_dl_progname;
 
-static const char *float_dirs[] = { "fpu", "soft-float", "vfp" };
-
-enum float_type
-{
-  float_type_APCS,	/* fpu */
-  float_type_SOFT,	/* soft-float */
-  float_type_VFP,	/* vfp */
-  float_type_UNKNOWN
-};
-
-static char *
-get_float_dir (unsigned int flags)
-{
-  enum float_type type = float_type_UNKNOWN;
-
-  if (flags & EF_ARM_APCS_FLOAT)
-    type = float_type_APCS;
-  else if (flags & EF_ARM_SOFT_FLOAT)
-    type = float_type_SOFT;
-  else if (flags & EF_ARM_VFP_FLOAT)
-    type = float_type_VFP;
-
-  return (type != float_type_UNKNOWN) ? float_dirs [type] : NULL;
-}
-
 #ifdef USE_CACHE
 
 static caddr_t _dl_cache_addr = NULL;
@@ -283,7 +258,7 @@ _dl_load_shared_library(struct elf_resolve * app_tpnt,
   }
 #endif
 
-  /* Check in /SharedLibs:/lib/<gcc version>/<fp type>/ */
+  /* Check in /SharedLibs:/lib/<ABI version>/ */
   pnt1 = "/SharedLibs:/lib/";
 
   /* Copy the root name.  */
@@ -293,26 +268,22 @@ _dl_load_shared_library(struct elf_resolve * app_tpnt,
   /* Remember where the end of the root name is.  */
   pnt2 = pnt; 
 
-  /* Copy gcc version string of application.  */
-  pnt1 = app_tpnt->gcc_version;
-  while(*pnt1) *pnt++ = *pnt1++;
-
-  *pnt++ = '/';
-
-  /* Copy float dir.  */
-  if ((pnt1 = get_float_dir (app_tpnt->elf_flags)) != NULL)
+  /* Copy abi version string of application.  */
+  if (app_tpnt->abi_version)
   {
-    while (*pnt1) *pnt++ = *pnt1++;
+    pnt1 = app_tpnt->abi_version;
+    while(*pnt1) *pnt++ = *pnt1++;
+
     *pnt++ = '/';
+
+    /* Copy the name of the library.  */
+    pnt1 = libname;
+    while(*pnt1) *pnt++ = *pnt1++;
+    *pnt = '\0';
+
+    if ((tpnt1 = _dl_load_elf_shared_library(mylibname, 0)) != NULL)
+      return tpnt1;
   }
-
-  /* Copy the name of the library.  */
-  pnt1 = libname;
-  while(*pnt1) *pnt++ = *pnt1++;
-  *pnt = '\0';
-
-  if ((tpnt1 = _dl_load_elf_shared_library(mylibname, 0)) != NULL)
-    return tpnt1;
 
   /* Check in /SharedLibs:/lib/ */
   pnt1 = libname;
@@ -349,7 +320,7 @@ _dl_load_elf_shared_library(char * libname, int flag)
   int dynamic_info[24];
   int * lpnt;
   unsigned int libaddr;
-  char *gcc_version = "4.1.1";
+  char *abi_version = NULL;
   int i;
 
   unsigned int handle;
@@ -539,8 +510,8 @@ _dl_load_elf_shared_library(char * libname, int flag)
     _dl_memset(dynamic_info, 0, sizeof(dynamic_info));
     for(i=0; i< dynamic_size; i++)
     {
-      if (dpnt->d_tag == DT_RISCOS_GCC_DIR)
-	gcc_version = (char *)(dpnt->d_un.d_ptr + libaddr);
+      if (dpnt->d_tag == DT_RISCOS_ABI_VERSION)
+	abi_version = (char *)(dpnt->d_un.d_ptr + libaddr);
       if( dpnt->d_tag > DT_JMPREL ) {dpnt++; continue; }
       dynamic_info[dpnt->d_tag] = dpnt->d_un.d_val;
       if(dpnt->d_tag == DT_TEXTREL ||
@@ -553,8 +524,7 @@ _dl_load_elf_shared_library(char * libname, int flag)
 
     tpnt->ppnt = (Elf32_Phdr *) (tpnt->loadaddr + epnt->e_phoff);
     tpnt->n_phent = epnt->e_phnum;
-    tpnt->gcc_version = gcc_version;
-    tpnt->elf_flags = epnt->e_flags;
+    tpnt->abi_version = abi_version;
 
     /* Scan for exception tables.  */
     {
@@ -630,7 +600,8 @@ _dl_load_elf_shared_library(char * libname, int flag)
   if (lpnt)
   {
     lpnt = (int *) (objinfo.private_rw_ptr + objinfo.got_offset);
-    if (_dl_strncmp (tpnt->gcc_version, "4.1.", 4) == 0)
+    if (tpnt->abi_version == NULL ||
+        _dl_strncmp (tpnt->abi_version, "abi-1.0", 7) == 0)
     {
       INIT_41_GOT (lpnt, tpnt)
     }

@@ -579,7 +579,8 @@ if UNIXLIB_BUILDING_SCL
 misc_src =
 else
 misc_src = \
-	misc/dirname.c
+	misc/dirname.c \
+	misc/abi.c
 endif
 
 if UNIXLIB_BUILDING_SCL

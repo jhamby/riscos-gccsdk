@@ -93,11 +93,6 @@ SHLIB_INSTALL = \
 	rm -f $$(DESTDIR)$$(slibdir)/@multilib_dir@/$(SHLIB_NAME); \
 	$(LN_S) $(SHLIB_SONAME) $$(DESTDIR)$$(slibdir)/@multilib_dir@/$(SHLIB_NAME)
 
-# Copied from main makefile
-BASEVER		:= $(srcdir)/BASE-VER
-BASEVER_c	:= $(shell cat $(BASEVER))
-BASEVER_s	:= "\"$(BASEVER_c)\""
-
 # Assemble startup files.
 $(T)crti.o: $(srcdir)/config/arm/crti.asm $(GCC_PASSES)
 	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(MULTILIB_CFLAGS) $(INCLUDES) \
@@ -111,5 +106,4 @@ riscos.o: $(srcdir)/config/arm/riscos.c $(CONFIG_H)
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $(srcdir)/config/arm/riscos.c
 
 riscos-gcc.o: $(srcdir)/config/arm/riscos-gcc.c $(CONFIG_H)
-	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) \
-	-DBASEVER=$(BASEVER_s) $(srcdir)/config/arm/riscos-gcc.c
+	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $(srcdir)/config/arm/riscos-gcc.c

@@ -132,7 +132,7 @@ typedef quad_t		Elf64_Sxword;
 #define DT_HIPROC	0x7fffffff
 
 #define DT_RISCOS_PIC	DT_LOOS
-#define DT_RISCOS_GCC_DIR DT_LOOS+1
+#define DT_RISCOS_ABI_VERSION DT_LOOS+1
 
 #define DT_MIPS_RLD_VERSION	0x70000001
 #define DT_MIPS_TIME_STAMP	0x70000002
