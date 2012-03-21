@@ -37,6 +37,7 @@
 #include "filestack.h"
 #include "lex.h"
 #include "local.h"
+#include "state.h"
 
 #ifdef DEBUG
 //#  define DEBUG_LOCAL
@@ -122,7 +123,7 @@ Local_ReportMissingFwdLabel (const Local_OutstandingForward *fwdLocalP)
 
 
 /**
- * Called at the end of a phase.
+ * Called at the end of a phase or via ROUT.
  */
 static void
 Local_FinishPhaseOrROUT (void)
@@ -336,8 +337,8 @@ c_rout (const Lex *label)
   char *newROUTId;
   if (label->tag == LexId)
     {
-      /* FIXME: alignment depending on ARM vs Thumb mode ? */
-      size_t curIdx = Area_AlignArea (areaCurrentSymbol, 4, "instruction");
+      unsigned alignValue = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
+      size_t curIdx = Area_AlignArea (areaCurrentSymbol, alignValue, "instruction");
       ASM_DefineLabel (label, curIdx);
       newROUTId = strndup (label->Data.Id.str, label->Data.Id.len);
     }

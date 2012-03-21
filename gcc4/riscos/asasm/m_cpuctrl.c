@@ -756,7 +756,7 @@ m_msr (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv4);
+  Target_NeedAtLeastArch (ARCH_ARMv3);
 
   cc |= getpsr (false) | 0x0120F000;
   skipblanks ();
@@ -791,7 +791,7 @@ m_mrs (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv4);
+  Target_NeedAtLeastArch (ARCH_ARMv3);
 
   cc |= getCpuReg () << 12 | 0x01000000;
   skipblanks ();

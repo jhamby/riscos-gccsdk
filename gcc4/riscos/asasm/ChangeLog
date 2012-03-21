@@ -1,3 +1,8 @@
+Wed Mar 21 01:13:14 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpuctrl.c (m_msr, m_mrs): Corrected minimal architecture version.
+	* local.c (c_rout): Add Thumb mode support.
+
 Mon Mar 19 23:24:24 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/operator_index.s: Add tests based on labels.
