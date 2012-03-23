@@ -1,0 +1,15 @@
+
+AB_URL=http://poppler.freedesktop.org/poppler-0.19.1.tar.gz
+
+ab_package() {
+  # Package programs
+  ab_create_command_app PDFUtils Apps/Document
+  ab_add_commands $S/utils/*$AB_EXEEXT
+
+  cp $S/AUTHORS $S/ChangeLog $S/COPYING $S/NEWS $S/README $S/README-XPDF $S/TODO $A/
+
+  ab_docs $S/utils/*.1
+ 
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING -package pdfutils -name PDFUtils -section Document
+
+ }
