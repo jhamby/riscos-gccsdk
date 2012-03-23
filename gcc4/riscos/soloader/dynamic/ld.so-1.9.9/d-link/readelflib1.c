@@ -317,7 +317,7 @@ _dl_load_elf_shared_library(char * libname, int flag)
   Elf32_Dyn * dpnt;
   struct elf_resolve * tpnt;
   Elf32_Phdr * ppnt;
-  int dynamic_info[24];
+  unsigned int dynamic_info[24];
   int * lpnt;
   unsigned int libaddr;
   char *abi_version = NULL;
@@ -422,14 +422,8 @@ _dl_load_elf_shared_library(char * libname, int flag)
       else if (ppnt->p_type == PT_LOAD)
       {
         /* We use the file size because the bss section will not be used in the library's copy */
-        /*
-          NB. Until we can be sure that the library bss section will never be used, we'll have to
-          allocate memory for it, otherwise, nasty crashes occur.
-        */
-//        memsize += ppnt->p_filesz;
-//        memsize += ppnt->p_memsz;
-        if (ppnt->p_vaddr + ppnt->p_memsz > memsize)
-          memsize = ppnt->p_vaddr + ppnt->p_memsz;
+        if (ppnt->p_vaddr + ppnt->p_filesz > memsize)
+          memsize = ppnt->p_vaddr + ppnt->p_filesz;
       }
 
       ppnt++;

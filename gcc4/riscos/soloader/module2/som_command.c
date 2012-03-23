@@ -55,7 +55,9 @@ command_status_libraries (void)
 	    (unsigned int)global_library->object.base_addr,
 	    (unsigned int)global_library->object.rw_addr,
 	    (unsigned int)global_library->object.rw_addr,
-	    (unsigned int)(global_library->object.rw_addr + global_library->object.rw_size),
+	    (unsigned int)(global_library->object.rw_addr +
+			   global_library->object.rw_size -
+			   global_library->object.bss_size),
 	    global_library->object.name);
 
   printf ("\n%-4s %-11s %-11s %s\n",

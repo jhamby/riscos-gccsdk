@@ -1,3 +1,10 @@
+Fri Mar 23 20:16:46 GMT 2012  Lee Noar <leenoar@sky.com>
+
+	* som_command.c(command_status_libraries): When
+	printing the size of the R/W segment, don't include
+	the bss section. The bss section is only created in
+	the client's copy of the R/W segment.
+
 Mon Mar 12 17:57:14 2012  Lee Noar <leenoar@sky.com>
 
 	* som_register.c(som_register_client): Add support for
