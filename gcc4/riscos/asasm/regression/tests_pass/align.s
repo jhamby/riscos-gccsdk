@@ -162,4 +162,47 @@
 	
 	]
 
+	; Test fill value and fill value size:
+	[ :LNOT: REFERENCE
+
+	AREA	DataFill, DATA
+
+	DCB	0x11
+	ALIGN	8, 0, 0xFF
+	DCB	0x22
+	ALIGN	8, 0, 0xFF, 1
+	DCB	0x33
+	ALIGN	8, 0, 0xFFEE, 2
+	DCB	0x44
+	ALIGN	8, 0, 0xFFEEDDCC, 4
+
+	AREA	CodeFill, CODE
+
+	ARM
+	DCB	0x11
+	ALIGN	4, 0, 0xFFEEDDCC
+
+	THUMB
+	DCB	0x22
+	ALIGN	4, 0, 0xFFEEDDCC	; Warning: Size value -1122868 (= 0xffeeddcc) exceeds 2 bytes
+
+	|
+
+	AREA	DataFill, DATA
+	
+	DCD	0xFFFFFF11, 0xFFFFFFFF
+	DCD	0xFFFFFF22, 0xFFFFFFFF
+	DCD	0xFFEEFF33, 0xFFEEFFEE
+	DCD	0xFFEEDD44, 0xFFEEDDCC
+	
+	AREA	CodeFill, CODE
+
+	ARM
+	DCI	0xFFEEDD11
+
+	THUMB
+	DCI	0xDDCC, 0xDD22
+
+	]
+
 	END

@@ -1,3 +1,11 @@
+Sat Mar 24 18:13:39 CET 2012  Jeffrey Lee  <me@phlamethrower.co.uk>
+                              John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/align.s: Add.
+	* put.c (ReportOverflow): Also show the hex version of value.
+	* directive_data.c (GetDefaultAlignValueSize): Add.
+	(c_align): Add support for fill value and fill value size.
+
 Sat Mar 24 17:43:41 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* area.c (ValidateORGValue): Add.

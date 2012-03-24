@@ -24,6 +24,12 @@
 #include "config.h"
 
 #include <assert.h>
+#ifdef HAVE_STDINT_H
+#  include <stdint.h>
+#endif
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#endif
 
 #include "area.h"
 #include "code.h"
@@ -39,18 +45,33 @@
 
 
 /**
- * Implements ALIGN [<power-of-2> [, <offset>]]
+ * The default align value size is depending on whether the area is DATA or
+ * CODE.  In case of CODE, Thumb or ARM mode is deciding. 
+ */
+static uint32_t
+GetDefaultAlignValueSize (void)
+{
+  if (areaCurrentSymbol->area.info->type & AREA_CODE)
+    return State_GetInstrType () == eInstrType_ARM ? 4 : 2;
+  return 1;
+}
+
+
+/**
+ * Implements ALIGN [<power-of-2> [, <offset> [, <value> [, <value size>]]]]
+ *
+ * The current location is aligned to the next lowest address of the form:
+ *   <offset> + n * <power-of-2>
+ *   n is any integer which the assembler selects to minimise padding.
  */
 bool
 c_align (void)
 {
+  /* Determine alignment value.  */
+  uint32_t alignValue;
   skipblanks ();
-  uint32_t alignValue, offsetValue;
   if (Input_IsEolOrCommentStart ())
-    {
-      alignValue = 1<<2;
-      offsetValue = 0;
-    }
+    alignValue = 1<<2;
   else
     {
       /* Determine align value */
@@ -69,30 +90,88 @@ c_align (void)
 	  error (ErrorError, "Unrecognized ALIGN value");
 	  alignValue = 1<<0;
 	}
+    }
 
-      /* Determine offset value */
-      skipblanks ();
-      if (Input_IsEolOrCommentStart ())
-	offsetValue = 0;
-      else if (Input_Match (',', false))
-	{
-	  const Value *valueO = exprBuildAndEval (ValueInt);
-	  if (valueO->Tag == ValueInt)
-	    offsetValue = ((uint32_t)valueO->Data.Int.i) % alignValue;
-	  else
-	    {
-	      error (ErrorError, "Unrecognized ALIGN offset value");
-	      offsetValue = 0;
-	    }
-	}
+  /* Determine offset value.  */
+  uint32_t offsetValue;
+  skipblanks ();
+  if (Input_IsEolOrCommentStart ())
+    offsetValue = 0;
+  else if (Input_Match (',', false))
+    {
+      const Value *valueO = exprBuildAndEval (ValueInt);
+      if (valueO->Tag == ValueInt)
+	offsetValue = ((uint32_t)valueO->Data.Int.i) % alignValue;
       else
 	{
 	  error (ErrorError, "Unrecognized ALIGN offset value");
 	  offsetValue = 0;
 	}
     }
+  else
+    {
+      error (ErrorError, "Unrecognized ALIGN offset value");
+      offsetValue = 0;
+    }
 
-  /* We have to align on alignValue + offsetValue */
+  /* Determine fill value.  */
+  uint32_t fillValue;
+  skipblanks ();
+  if (Input_IsEolOrCommentStart ())
+    fillValue = 0;
+  else if (Input_Match (',', false))
+    {
+      const Value *valueF = exprBuildAndEval (ValueInt);
+      if (valueF->Tag == ValueInt)
+	fillValue = (uint32_t)valueF->Data.Int.i;
+      else
+	{
+	  error (ErrorError, "Unrecognized ALIGN fill value");
+	  fillValue = 0;
+	}
+    }
+  else
+    {
+      error (ErrorError, "Unrecognized ALIGN fill value");
+      fillValue = 0;
+    }      
+
+  /* Determine fill value size.  */
+  uint32_t fillValueSize;
+  skipblanks ();
+  if (Input_IsEolOrCommentStart ())
+    fillValueSize = GetDefaultAlignValueSize ();
+  else if (Input_Match (',', false))
+    {
+      const Value *valueS = exprBuildAndEval (ValueInt);
+      if (valueS->Tag == ValueInt)
+	{
+	  fillValueSize = valueS->Data.Int.i;
+	  if (fillValueSize != 1 && fillValueSize != 2 && fillValueSize != 4)
+	    {
+	      error (ErrorError, "ALIGN value size needs to be 1, 2 or 4");
+	      fillValueSize = GetDefaultAlignValueSize ();
+	    }
+	}
+      else
+	{
+	  error (ErrorError, "Unrecognized ALIGN value size");
+	  fillValueSize = GetDefaultAlignValueSize ();
+	}
+    }
+  else
+    {
+      error (ErrorError, "Unrecognized ALIGN value size");
+      fillValueSize = GetDefaultAlignValueSize ();
+    }
+
+  /* Check if given fill value requires more bits than specified (or implied)
+     fill value size.  */
+  if (Fix_CheckForOverflow (fillValueSize, fillValue))
+    error (ErrorWarning, "Size value %" PRId32 " (= 0x%" PRIx32 ") exceeds %d byte%s",
+           (int32_t)fillValue, (int32_t)fillValue, fillValueSize, fillValueSize == 1 ? "" : "s");
+
+  /* We have to align on n x alignValue + offsetValue.  */
 
   uint32_t curPos = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
   curPos += areaCurrentSymbol->area.info->curIdx;
@@ -101,9 +180,15 @@ c_align (void)
 
   Area_EnsureExtraSize (areaCurrentSymbol, bytesToStuff);
 
-  while (bytesToStuff--)
-    areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = 0;
-
+  uint32_t curFillValue = fillValue >> 8*(curPos & (fillValueSize - 1));
+  for (/* */; curPos != newPos; ++curPos)
+    {
+      if ((curPos & (fillValueSize - 1)) == 0)
+	curFillValue = fillValue;
+      areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = curFillValue;
+      curFillValue >>= 8;
+    }
+  
   return false;
 }
 

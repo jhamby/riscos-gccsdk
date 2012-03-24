@@ -44,8 +44,8 @@ static void
 ReportOverflow (unsigned dataSize, uint32_t dataValue)
 {
   if (Fix_CheckForOverflow (dataSize, dataValue))
-    error (ErrorWarning, "Size value %" PRId32 " exceeds %d byte%s", (int32_t)dataValue,
-           dataSize, dataSize == 1 ? "" : "s");
+    error (ErrorWarning, "Size value %" PRId32 " (= 0x%" PRIx32 ") exceeds %d byte%s",
+           (int32_t)dataValue, (int32_t)dataValue, dataSize, dataSize == 1 ? "" : "s");
 }
 
 
