@@ -400,7 +400,15 @@ main (int argc, char **argv)
 	        }
 	      inclDir = *++argv;
 	    }
-	  Include_Add (inclDir);
+	  /* Support comma separated directories.  */
+	  while (inclDir)
+	    {
+	      char *c = strchr (inclDir, ',');
+	      if (c)
+		*c++ = '\0';
+	      Include_Add (inclDir);
+	      inclDir = c;
+	    }
 	}
       else if (!strcasecmp (arg, "version") || !strcasecmp (arg, "ver"))
 	{
