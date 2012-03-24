@@ -578,7 +578,7 @@ decode (const Lex *label)
 		  if (IsARMOrThumbInstr (&oDecodeTable[indexFound]))
 		    {
 		      unsigned alignValue = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
-		      startOffset = Area_AlignOffset (startAreaSymbol, startOffset, alignValue, "instruction");
+		      startOffset = Area_AlignOffset (startAreaSymbol, startOffset, alignValue, NULL);
 		    }
 		  labelSymbol = tryAsMacro ? NULL : ASM_DefineLabel (label, startOffset);
 		}

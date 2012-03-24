@@ -72,6 +72,7 @@ int option_apcs_softfloat = -1; /* -1 = option not specified.  */
 int option_aof = -1; /* -1 = option not specified.  */
 bool option_abs = false;
 bool option_uppercase = false;
+bool option_nowarn = false;
 
 const char *predefines[MAX_PREDEFINES];
 int num_predefines = 0;
@@ -178,6 +179,7 @@ asasm_help (void)
 	   "-Depend <file>             Write 'make' source file dependency information to 'file'.\n"
 	   "-Help                      Display this help.\n"
 	   "-VERsion                   Display the version number.\n"
+           "-NOWarn                    Suppress all warnings.\n"
 	   "-From asmfile              Source assembler file (ObjAsm compatibility).\n"
 	   "-To objfile                Destination AOF file (ObjAsm compatibility).\n"
 	   "-ABSolute                  Accept AAsm source code.\n"
@@ -415,6 +417,8 @@ main (int argc, char **argv)
 	  asasm_help ();
 	  return EXIT_SUCCESS;
 	}
+      else if (!strcasecmp (arg, "nowarn") || !strcasecmp (arg, "now"))
+	option_nowarn = true;
       else if (!strcasecmp (arg, "From"))
 	{
 	  if (--argc)

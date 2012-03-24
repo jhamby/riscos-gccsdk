@@ -1,3 +1,13 @@
+Sat Mar 24 02:09:20 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (decode): Avoid reporting unaligned instructions twice.
+	* area.c (Area_AlignOffset): Tune unaligned warning.
+	* error.c (Error_SuppressMsg): Add.  Implements option -NOWarn.
+	(errorCore, errorCoreLine): Remove Info, Warning suppress tests.
+	(error, errorLine): Add calls to Error_SuppressMsg.
+	* main.c, main.h (option_nowarn): Add.
+	(main): Add -NOWarn option support.
+
 Wed Mar 21 01:13:14 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_cpuctrl.c (m_msr, m_mrs): Corrected minimal architecture version.

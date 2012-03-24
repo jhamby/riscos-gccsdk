@@ -122,15 +122,22 @@ fixup (void)
 }
 
 
+/**
+ * \return true when there are Info and Warning messages during Pass 1 or
+ * when option NOWarn is given.
+ * If there are Info or warnings (without option NOWarn), we'll emit them
+ * during Pass 2.  Errors are always emitted.
+ */
+static bool
+Error_SuppressMsg (ErrorTag e)
+{
+  return (gPhase == ePassOne || option_nowarn)
+           && (e == ErrorInfo || e == ErrorWarning);
+}
+
 static void
 errorCore (ErrorTag e, const char *format, va_list ap)
 {
-  /* Ignore Info and Warning messages during Pass 1.  If there are no
-     errors, we'll emit them during Pass 2.  */
-  if (gPhase == ePassOne
-      && (e == ErrorInfo || e == ErrorWarning))
-    return;
-
   const char *str;
 #ifdef __riscos__
   int t = 0;
@@ -249,13 +256,15 @@ errorCore (ErrorTag e, const char *format, va_list ap)
 void
 error (ErrorTag e, const char *format, ...)
 {
+  if (Error_SuppressMsg (e))
+    return;
+
   va_list ap;
   va_start (ap, format);
   errorCore (e, format, ap);
   va_end (ap);
 
-  if (gPhase != ePassOne
-      || (e != ErrorInfo && e != ErrorWarning))
+  if (!Error_SuppressMsg (e))
     Input_ShowLine ();
 
   if (e == ErrorAbort || oNumErrors > MAXERR)
@@ -296,11 +305,6 @@ static void
 errorCoreLine (const char *fileName, unsigned lineNum, ErrorTag e,
 	       const char *format, va_list ap)
 {
-  /* Ignore Info and Warning messages during Pass 1.  If there are no
-     errors, we'll emit them during Pass 2.  */
-  if (gPhase == ePassOne && (e == ErrorInfo || e == ErrorWarning))
-    return;
-
   const char *str;
 #ifdef __riscos__
   int t = 0;
@@ -364,6 +368,9 @@ errorCoreLine (const char *fileName, unsigned lineNum, ErrorTag e,
 void
 errorLine (const char *fileName, unsigned lineNum, ErrorTag e, const char *format, ...)
 {
+  if (Error_SuppressMsg (e))
+    return;
+
   va_list ap;
   va_start (ap, format);
   errorCoreLine (fileName, lineNum, e, format, ap);

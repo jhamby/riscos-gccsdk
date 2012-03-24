@@ -292,7 +292,7 @@ Area_AlignOffset (Symbol *areaSym, uint32_t offset, unsigned alignValue, const c
   assert (areaSym->type & SYMBOL_AREA);
   assert (alignValue && (alignValue & (alignValue - 1)) == 0);
   if (msg && (offset & (alignValue - 1)) != 0)
-    error (ErrorWarning, "Unaligned %s", msg);
+    error (ErrorWarning, "Implicit aligning unaligned %s", msg);
   size_t newOffset = (offset + alignValue-1) & -alignValue;
   Area_EnsureExtraSize (areaSym, newOffset - areaSym->area.info->curIdx);
   if (areaSym->area.info->curIdx < newOffset)
