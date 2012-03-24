@@ -33,36 +33,18 @@
 
 #include "area.h"
 #include "error.h"
+#include "fix.h"
 #include "fpu.h"
 #include "main.h"
 #include "put.h"
 #include "state.h"
 
 
-/* FIXME: too similar as Fix_Int */
 static void
-ReportOverflow (unsigned dataSize, uint64_t dataValue)
+ReportOverflow (unsigned dataSize, uint32_t dataValue)
 {
-  int64_t dataValueMin, dataValueMax;
-  switch (dataSize)
-    {
-      case 1:
-	dataValueMin = INT8_MIN;
-	dataValueMax = UINT8_MAX;
-	break;
-      case 2:
-	dataValueMin = INT16_MIN;
-	dataValueMax = UINT16_MAX;
-	break;
-      case 4:
-	dataValueMin = INT32_MIN;
-	dataValueMax = UINT32_MAX;
-	break;
-      case 8:
-	return;
-    }
-  if ((int64_t)dataValue < dataValueMin || (int64_t)dataValue > dataValueMax)
-    error (ErrorWarning, "Size value %" PRId64 " exceeds %d byte%s", (int64_t)dataValue,
+  if (Fix_CheckForOverflow (dataSize, dataValue))
+    error (ErrorWarning, "Size value %" PRId32 " exceeds %d byte%s", (int32_t)dataValue,
            dataSize, dataSize == 1 ? "" : "s");
 }
 

@@ -23,6 +23,7 @@
 #ifndef fix_header_included
 #define fix_header_included
 
+#include <stdbool.h>
 #include "global.h"
 
 ARMWord fixImm8s4 (unsigned lineNum, ARMWord ir, int im);
@@ -34,5 +35,7 @@ ARMWord Fix_Int (const char *fileName, unsigned lineNum, int size, int value);
 ARMWord Fix_CopOffset (const char *fileName, unsigned lineNum, ARMWord ir, int offset);
 ARMWord Fix_CPUOffset (const char *fileName, unsigned lineNum, ARMWord ir, int offset);
 ARMWord Fix_MOV (const char *fileName, unsigned lineNum, ARMWord ir, int im);
+
+bool Fix_CheckForOverflow (unsigned dataSize, uint32_t dataValue);
 
 #endif

@@ -269,30 +269,36 @@ fixMask (unsigned lineNum, int mask)
 ARMWord
 Fix_Int (const char *fileName, unsigned lineNum, int size, int value)
 {
-  switch (size)
+  if (Fix_CheckForOverflow (size, value))
     {
-      case 1:
-	if (value < -128 || value >= 256)
-	  {
-	    errorLine (fileName, lineNum, ErrorError, "Expression %d too big for %i bits", value, 8);
-	    value &= 0xff;
-	  }
-	break;
-
-      case 2:
-	if (value < -32768 || value >= 65536)
-	  {
-	    errorLine (fileName, lineNum, ErrorError, "Expression %d too big for %i bits", value, 16);
-	    value &= 0xffff;
-	  }
-	break;
-
-      case 4:
-	break;
-
-      default:
-	assert (0);
-	break;
+      errorLine (fileName, lineNum, ErrorError, "Expression %d too big for %i bits", value, 8*size);
+      value &= (1U << (8*size))-1;
     }
   return value;
+}
+
+
+/**
+ * \return true when for given data size, the value is losing bits which matter
+ * (not assuming the value value is going to be handled as signed or unsigned).
+ * E.g. for data size 1, any value lower than -128 or higher than 255 is
+ * flagged as overflowing.
+ */
+bool
+Fix_CheckForOverflow (unsigned dataSize, uint32_t dataValue)
+{
+  if (dataSize == 4)
+    return false;
+
+  int32_t dataValueOffset = (int32_t)dataValue;
+  switch (dataSize)
+    {
+      case 1:
+	dataValueOffset += 1<<7;
+	break;
+      case 2:
+	dataValueOffset += 1<<15;
+	break;
+    }
+  return dataValueOffset < 0;
 }

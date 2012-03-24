@@ -1,3 +1,9 @@
+Sat Mar 24 16:48:47 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* fix.c, fix.h (Fix_CheckForOverflow): Add.
+	(Fix_Int): Use Fix_CheckForOverflow.
+	* put.c (ReportOverflow): Use Fix_CheckForOverflow.
+
 Sat Mar 24 15:29:51 CET 2012  Jeffrey Lee  <me@phlamethrower.co.uk>
 
 	* main.c (main): Support comma separated include directories.
