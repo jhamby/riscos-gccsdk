@@ -518,7 +518,7 @@ c_area (void)
   if (oPendingORG.isValid)
     {
       newAreaType |= AREA_ABS;
-      sym->value.Data.Int.i = oPendingORG.value;
+      sym->value = Value_Int (oPendingORG.value, eIntType_PureInt);
       oPendingORG.isValid = false;
     }
 
@@ -619,7 +619,7 @@ c_org (void)
 	  else
 	    {
 	      areaCurrentSymbol->area.info->type |= AREA_ABS;
-	      areaCurrentSymbol->value.Data.Int.i = value->Data.Int.i;
+	      areaCurrentSymbol->value = *value;
 
 	      /* When an area is made absolute, ensure its symbol is also
 		 absolute.  */

@@ -41,7 +41,7 @@
 static Value oStorageMapValue =
 {
   .Tag = ValueInt,
-  .Data.Int = { .i = 0 }
+  .Data.Int = { .i = 0, .type = eIntType_PureInt }
 };
 
 const Value *
@@ -62,18 +62,7 @@ c_record (void)
     {
       case ValueInt:
 	{
-	  Value src;
-	  if (Input_Match (',', true))
-	    {
-	      src.Tag = ValueAddr;
-	      src.Data.Addr.i = value->Data.Int.i;
-	      src.Data.Addr.r = (int)getCpuReg ();
-	    }
-	  else
-	    {
-	      src.Tag = ValueInt;
-	      src.Data.Int.i = value->Data.Int.i;
-	    }
+	  const Value src = Input_Match (',', true) ? Value_Addr ((int)getCpuReg (), value->Data.Int.i) : Value_Int (value->Data.Int.i, eIntType_PureInt); 
 	  Value_Assign (&oStorageMapValue, &src);
 	  break;
 	}
@@ -86,11 +75,7 @@ c_record (void)
 	
       default:
 	{
-	  const Value src =
-	    {
-	      .Tag = ValueInt,
-	      .Data.Int = { .i = 0 }
-	    };
+	  const Value src = Value_Int (0, eIntType_PureInt);
 	  Value_Assign (&oStorageMapValue, &src);
 	  error (ErrorError, "^ cannot evaluate its offset expression");
 	  break;

@@ -1,3 +1,9 @@
+Sat Mar 24 15:24:05 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* directive_storagemap.c (c_record): Make use of Value_* routines.
+	(oStorageMapValue): Initialise type subfield.
+	* area.c (c_area): Make use of Value_Int.  Copy complete Value object.
+
 Sat Mar 24 02:09:20 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (decode): Avoid reporting unaligned instructions twice.
