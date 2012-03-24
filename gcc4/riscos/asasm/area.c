@@ -142,6 +142,19 @@ areaImage (Area *area, size_t newsize)
 
 
 /**
+ * Check if the given ORG value does not violate the area alignment value.
+ */
+static uint32_t
+ValidateORGValue (uint32_t alignValue, uint32_t org)
+{
+  if (org & (alignValue - 1))
+    error (ErrorWarning, "Area ORG value 0x%x is not aligned according to area alignment value 0x%x",
+           org, alignValue);
+  return org;
+}
+
+
+/**
  * Ensures the current area has at least \t mingrow bytes free.
  */
 void
@@ -375,7 +388,8 @@ Area_Ensure (void)
     error (ErrorError, "Redefinition of label to area %s", sym->str);
   else if ((sym->type & SYMBOL_AREA) == 0)
     {
-      sym->type = SYMBOL_AREA;
+      /* When an area is made absolute, ensure its symbol is also absolute.  */
+      sym->type = (areaType & AREA_ABS) ? SYMBOL_ABSOLUTE | SYMBOL_AREA : SYMBOL_AREA;
       sym->value = Value_Int (0, eIntType_PureInt);
       sym->area.info = areaNew (sym, areaType);
     }
@@ -514,17 +528,17 @@ c_area (void)
       skipblanks ();
     }
 
+  /* Any alignment specified ? No, take default alignment (2) */
+  if ((newAreaType & AREA_ALIGN_MASK) == 0)
+    newAreaType |= AREA_DEFAULT_ALIGNMENT;
+
   /* Pending ORG to be taken into account ? */
   if (oPendingORG.isValid)
     {
       newAreaType |= AREA_ABS;
-      sym->value = Value_Int (oPendingORG.value, eIntType_PureInt);
+      sym->value = Value_Int (ValidateORGValue (1U << (newAreaType & AREA_ALIGN_MASK), oPendingORG.value), eIntType_PureInt);
       oPendingORG.isValid = false;
     }
-
-  /* Any alignment specified ? No, take default alignment (2) */
-  if ((newAreaType & AREA_ALIGN_MASK) == 0)
-    newAreaType |= AREA_DEFAULT_ALIGNMENT;
 
   /* AREA_COMMONDEF + AREA_COMMONREF => AREA_COMMONDEF */
   if (newAreaType & AREA_COMMONDEF)
@@ -619,7 +633,7 @@ c_org (void)
 	  else
 	    {
 	      areaCurrentSymbol->area.info->type |= AREA_ABS;
-	      areaCurrentSymbol->value = *value;
+	      areaCurrentSymbol->value = Value_Int (ValidateORGValue (1U << (areaCurrentSymbol->area.info->type & AREA_ALIGN_MASK), value->Data.Int.i), eIntType_PureInt);
 
 	      /* When an area is made absolute, ensure its symbol is also
 		 absolute.  */
