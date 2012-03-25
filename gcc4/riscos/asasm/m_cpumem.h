@@ -45,4 +45,7 @@ bool m_isb (void);
 bool m_rfe (bool doLowerCase);
 bool m_srs (bool doLowerCase);
 
+bool CPUMem_ConstantInMOVW (uint32_t constant);
+bool CPUMem_ConstantInMOVT (uint32_t constant);
+
 #endif

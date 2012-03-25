@@ -33,6 +33,7 @@
 #include <string.h>
 
 #include "area.h"
+#include "m_cpumem.h"
 #include "code.h"
 #include "directive_data.h"
 #include "error.h"
@@ -240,9 +241,11 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
       if (truncValue.Data.Int.i != valueP->Data.Int.i)
 	error (ErrorWarning, "Constant %d has been truncated to %d by the used mnemonic",
 	       valueP->Data.Int.i, truncForUser);
-      /* Perhaps representable as MOV/MVN:  */
+      /* Perhaps representable as MOV/MVN/MOVW/MOVT:  */
       if (help_cpuImm8s4 (truncForUser) != -1
-          || help_cpuImm8s4 (~truncForUser) != -1)
+          || help_cpuImm8s4 (~truncForUser) != -1
+          || CPUMem_ConstantInMOVW (truncForUser)
+          || CPUMem_ConstantInMOVT (truncForUser))
 	{
 	  valueFree (&truncValue); /* Not really needed as it is ValueInt.  */
 	  return Value_Int (truncForUser, eIntType_PureInt);
@@ -517,7 +520,9 @@ Lit_DumpPool (void)
 
 	      /* Value representable using MOV or MVN ? */
 	      if (isImmediate
-		  && (help_cpuImm8s4 (constant) != -1 || help_cpuImm8s4 (~constant) != -1))
+		  && (help_cpuImm8s4 (constant) != -1 || help_cpuImm8s4 (~constant) != -1
+		      || CPUMem_ConstantInMOVW (constant)
+		      || CPUMem_ConstantInMOVT (constant)))
 		{
 		  if (gPhase == ePassOne)
 		    {
@@ -530,11 +535,11 @@ Lit_DumpPool (void)
 		    }
 		  else
 		    {
-		      /* We do MOV/MVN optimisation but as the literal value
+		      /* We do MOV/MVN/MOVW/MOVT optimisation but as the literal value
 		         got defined after LTORG, we've already allocated
 		         some bytes which aren't going to be used.  */
 		      errorLine (litP->file, litP->lineNum, ErrorWarning,
-			         "Literal loading optimized as MOV/MVN but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
+			         "Literal loading optimized as MOV/MVN/MOVW/MOVT but because of literal value definition after LTORG this results in %zd bytes waste", Lit_GetSizeInBytes (litP));
 		      error (ErrorWarning, "note: LTORG was here");
 		    }
 		}

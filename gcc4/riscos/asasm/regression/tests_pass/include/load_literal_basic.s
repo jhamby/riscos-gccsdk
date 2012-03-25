@@ -1,4 +1,7 @@
-; -RUNOPT: -CPU=7-A
+; Test literal loading including optimisations to MOV/MVN/MOVW and MOVT.
+
+	GBLL MOVW_MOVT_ALLOWED
+MOVW_MOVT_ALLOWED SETL {ARCHITECTURE} = "6T2" :LOR: ({ARCHITECTURE}:LEFT:1 = "7")
 
 	MACRO
 	LiteralTest $areaName, $areaOrg
@@ -6,15 +9,17 @@
 	AREA	$areaName, CODE, READONLY
 	$areaOrg
 
+	; Basic tests:
 	[ :LNOT: REFERENCE
 
 	LDRB	r1, =&22	; Converts to MOV/MVN
 	LDRSB	r2, =&33	; Converts to MOV/MVN
-	LDRH	r3, =&4455
+	LDRH	r3, =&4455	; Converts to MOVW (when chosen cpu/arch allows)
 	LDR	r5, =&87654321
-	LDRSH	r4, =&6677
+	LDRSH	r4, =&6677	; Converts to MOVW (when chosen cpu/arch allows)
 
 	; Convertable to MOV/MVN:
+	LDRB	r2, =&8800
 	LDRH	r3, =&88
 	LDRH	r3, =&8800
 	LDRH	r3, =&0880
@@ -22,15 +27,77 @@
 	LDRSH	r3, =&9900	; Not possible to express with MOV/MVN
 	LDR	r5, =&00770000
 	LDR	r5, =&00007700
+	; Convertable to MOVT:
+	LDR	r6, =&FEDC0000
 
 	; Reuse tests:
-	LDRSH	r5, =&6677
-	LDRH	r6, =&8765
-	LDRH	r7, =&4321
+	LDRSH	r5, =&6677	; Converts to MOVW (when chosen cpu/arch allows)
+	LDRH	r6, =&8765	; Converts to MOVW (when chosen cpu/arch allows)
+	LDRH	r7, =&4321	; Converts to MOVW (when chosen cpu/arch allows)
 
 	LTORG
 
+	|
+
+	MOV	r1, #0x22
+	MOV	r2, #0x33
+	[ MOVW_MOVT_ALLOWED
+		DCI &e3043455 ; FIXME: MOVW	r3, #&4455
+	|
+		LDRH	r3, lbl1$areaName
+	]
+	LDR	r5, lbl2$areaName
+	[ MOVW_MOVT_ALLOWED
+		DCI &e3064677 ; FIXME: MOVW	r4, #&6677
+	|
+		LDRSH	r4, lbl3$areaName
+	]
+
+	; Convertable to MOV/MVN:
+	MOV	r2, #0
+	MOV	r3, #0x88
+	MOV	r3, #0x8800
+	MOV	r3, #0x880
+	MOV	r4, #0x99
+	LDRSH	r3, lbl4$areaName
+	MOV	r5, #0x770000
+	MOV	r5, #0x7700
+	[ MOVW_MOVT_ALLOWED
+		DCI &e34f6edc ; FIXME: MOVT	r6, #&FEDC
+	|
+		LDR	r6, lbl5$areaName
+	]
+
+	; Reuse tests:
+	[ MOVW_MOVT_ALLOWED
+		DCI &e3065677 ; FIXME: MOVW	r5, #&6677
+		DCI &e3086765 ; FIXME: MOVW	r6, #&8765
+		DCI &e3047321 ; FIXME: MOVW	r7, #&4321
+	|
+		LDRSH	r5, lbl3$areaName
+		LDRH	r6, lbl2$areaName + 2
+		LDRH	r7, lbl2$areaName
+	]
+
+	; LTORG result:
+	[ :LNOT: MOVW_MOVT_ALLOWED
+lbl1$areaName	DCD	0x00004455
+	]
+lbl2$areaName	DCD	0x87654321
+	[ :LNOT: MOVW_MOVT_ALLOWED
+lbl3$areaName	DCW	0x6677
+	]
+lbl4$areaName	DCW	0x9900
+	ALIGN
+	[ :LNOT: MOVW_MOVT_ALLOWED
+lbl5$areaName	DCD	&FEDC0000
+	]
+
+	]
+
 	; PC relative tests:
+	[ :LNOT: REFERENCE
+
 	LDRB	r8, =datab$areaName
 	LDRSB	r8, =datab$areaName	; Reuse.
 	LDRH	r9, =dataw$areaName
@@ -57,37 +124,9 @@ datad$areaName	DCD	0x77665544
 	; Implicit LTORG is happening here.
 	|
 
-	; Reference:
-	MOV	r1, #0x22
-	MOV	r2, #0x33
-	LDRH	r3, lbl1$areaName
-	LDR	r5, lbl2$areaName
-	LDRSH	r4, lbl3$areaName
-
-	; Convertable to MOV/MVN:
-	MOV	r3, #0x88
-	MOV	r3, #0x8800
-	MOV	r3, #0x880
-	MOV	r4, #0x99
-	LDRSH	r3, lbl4$areaName
-	MOV	r5, #0x770000
-	MOV	r5, #0x7700
-
-	; Reuse tests:
-	LDRSH	r5, lbl3$areaName
-	LDRH	r6, lbl2$areaName + 2
-	LDRH	r7, lbl2$areaName
-
-	; LTORG result:
-lbl1$areaName	DCD	0x00004455
-lbl2$areaName	DCD	0x87654321
-lbl3$areaName	DCW	0x6677
-lbl4$areaName	DCW	0x9900
-
 	; PC relative tests:
 	; This depends on type of AREA (i.e. absolute or not):
 	[ "$areaName" == "CodeNonABS"
-	; PC relative tests:
 	LDRB	r8, databa1$areaName
 	LDRSB	r8, databa1$areaName
 	LDRH	r9, datawa1$areaName

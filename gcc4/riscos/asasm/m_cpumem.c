@@ -90,10 +90,19 @@ DestMem_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	      ARMWord im;
 	      if (valueP->Data.Code.len == 1
 	          && (im = help_cpuImm8s4 (valP->Data.Int.i)) != (ARMWord)-1)
-		newIR |= M_MOV | IMM_RHS | im;
+		newIR |= M_MOV | IMM_RHS | im; /* Optimize to MOV.  */
 	      else if (valueP->Data.Code.len == 1
 		       && (im = help_cpuImm8s4 (~valP->Data.Int.i)) != (ARMWord)-1)
-		newIR |= M_MVN | IMM_RHS | im;
+		newIR |= M_MVN | IMM_RHS | im; /* Optimize to MVN.  */
+	      else if (valueP->Data.Code.len == 1
+	               && CPUMem_ConstantInMOVW (valP->Data.Int.i))
+		newIR |= 0x03000000 | ((valP->Data.Int.i & 0xF000) << 4) | (valP->Data.Int.i & 0x0FFF); /* Optimize to MOVW.  */
+	      else if (valueP->Data.Code.len == 1
+	               && CPUMem_ConstantInMOVT (valP->Data.Int.i))
+		{
+		  uint32_t valToEncode = valP->Data.Int.i >> 16; 
+		  newIR |= 0x03400000 | ((valToEncode & 0xF000) << 4) | (valToEncode & 0x0FFF); /* Optimize to MOVT.  */
+		}
 	      else if ((areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
 		{
 		  ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
@@ -1086,4 +1095,24 @@ m_srs (bool doLowerCase)
   Put_Ins (4, 0xF84D0500 | option | mode);
 
   return false;
+}
+
+
+/**
+ * \return true when ARM MOVW instruction can be used to load given constant.
+ */
+bool
+CPUMem_ConstantInMOVW (uint32_t constant)
+{
+  return Target_GetArch () >= ARCH_ARMv6T2 && (constant & 0xFFFF0000U) == 0;
+}
+
+
+/**
+ * \return true when ARM MOVW instruction can be used to load given constant.
+ */
+bool
+CPUMem_ConstantInMOVT (uint32_t constant)
+{
+  return Target_GetArch () >= ARCH_ARMv6T2 && (constant & 0x0000FFFFU) == 0;
 }

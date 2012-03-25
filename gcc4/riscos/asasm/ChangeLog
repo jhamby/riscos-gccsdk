@@ -1,3 +1,19 @@
+Sun Mar 25 21:47:33 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/load_literal3.s: Add MVN/MOVW/MOVT tests.
+	* regression/tests_pass/load_literal.s: Move to...
+	* regression/tests_pass/include/load_literal_basic.s: ...here.
+	Add MOVW/MOVT test cases.
+	* regression/tests_pass/load_literal_basic_archv4.s: Add.  Calls
+	tests_pass/include/load_literal_basic.s for Arch v4.
+	* regression/tests_pass/load_literal_basic_archv6t2.s: Add.  Calls
+	tests_pass/include/load_literal_basic_archv6t2 for Arch v6T2.
+	* m_cpumem.c (DestMem_RelocUpdater): Add MOVW/MOVT optimisation code.
+	* m_cpumem.c, m_cpumem.h (CPUMem_ConstantInMOVW, CPUMem_ConstantInMOVT):
+	Add.
+	* lit.c (Lit_RegisterInt, Lit_DumpPool): Add MOVW/MOVT optimisation
+	code.
+
 Sun Mar 25 14:39:10 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/align.s: Fix reference data.
