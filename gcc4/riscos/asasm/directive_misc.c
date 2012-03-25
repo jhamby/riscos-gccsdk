@@ -53,11 +53,13 @@ c_idfn (void)
 bool
 c_assert (void)
 {
-  if (gPhase == ePassOne)
-    Input_Rest ();
-  else
+  /* It's important we evaluate the assert expression during both passes and
+     only check its result in the second pass.  During the first pass we can
+     have local forward references which need to be solved at the end of the
+     first pass.  */
+  const Value *value = exprBuildAndEval (ValueBool);
+  if (gPhase != ePassOne)
     {
-      const Value *value = exprBuildAndEval (ValueBool);
       switch (value->Tag)
 	{
 	  case ValueBool:

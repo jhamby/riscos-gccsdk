@@ -1,3 +1,11 @@
+Sun Mar 25 14:39:10 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/align.s: Fix reference data.
+	* regression/tests_pass/assert.s: Add tests based on local labels.
+	* directive_misc.c (c_assert): Assert evaluation needs to be done
+	in both passes but its result should only be tested for in second
+	pass.
+
 Sat Mar 24 18:13:39 CET 2012  Jeffrey Lee  <me@phlamethrower.co.uk>
                               John Tytgat  <John.Tytgat@aaug.net>
 
