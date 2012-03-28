@@ -594,8 +594,11 @@ _dl_load_elf_shared_library(char * libname, int flag)
   if (lpnt)
   {
     lpnt = (int *) (objinfo.private_rw_ptr + objinfo.got_offset);
-    if (tpnt->abi_version == NULL ||
-        _dl_strncmp (tpnt->abi_version, "abi-1.0", 7) == 0)
+     /* ABI v0.00 & v1.00 have 5 word GOTs with a zero at offset 3.
+        ABI v2.00 has a 3 word GOT, offset 3 will not be zero.  */
+    if (lpnt[3] == 0 &&
+        (tpnt->abi_version == NULL ||
+        _dl_strncmp (tpnt->abi_version, "abi-1.0", 7) == 0))
     {
       INIT_41_GOT (lpnt, tpnt)
     }
