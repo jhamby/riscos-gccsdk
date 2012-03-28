@@ -1,0 +1,4 @@
+Description: Sinclair ZX Spectrum emulator
+ Fuse is a Sinclair ZX Spectrum emulator. It supports several models
+ (including 16K/48K/128K/+2/+2A/+3 and some clones), with quite
+ faithful emulation of the display and sound.

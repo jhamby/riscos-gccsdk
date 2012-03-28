@@ -1,0 +1,21 @@
+
+AB_CONFLAGS='--with-sdl --without-gtk'
+
+AB_MANPAGE=man/fuse.1
+
+ab_package() {
+
+  ab_create_app Fuse Apps/Emulation
+  ab_makerun $S/fuse$AB_EXEEXT fuse
+  
+  mkdir -p $A/docs
+  
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/README $S/THANKS $A/docs
+  cp -av roms $A
+  cp -av lib/compressed/*.szx $A
+  cp -av lib/*.bmp $A
+  cp -ab ui/widget/fuse.font $A
+  
+  $AB_HOME/add-riscpkg -unixlib -package Fuse -copyrightfile COPYING
+}
+

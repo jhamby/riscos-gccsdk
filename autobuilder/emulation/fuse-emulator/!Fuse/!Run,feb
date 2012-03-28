@@ -1,0 +1,6 @@
+
+WIMPSLOT
+
+Set Fuse$Dir <Obey$Dir>
+
+Run <Fuse$Dir>.fuse -g 2x --sound --speed 100 --machine 48 --tape %*0 ><Fuse$Dir>.stdout 2><Fuse$Dir>.stderr
