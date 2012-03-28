@@ -1,0 +1,7 @@
+AB_INSTALL=yes
+
+AB_SVN=https://fuse-emulator.svn.sourceforge.net/svnroot/fuse-emulator/trunk/libspectrum
+
+AB_CONFLAGS='--without-libaudiofile'
+
+./autogen.sh
