@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2004-2011 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -24,6 +24,7 @@
 #define variables_header_included
 
 #include "lex.h"
+#include "phase.h"
 #include "symbol.h"
 
 /**
@@ -42,7 +43,7 @@ bool c_gbl (void);
 bool c_lcl (void);
 bool c_set (const Lex *label);
 
+void Var_PrepareForPhase (Phase_e phase);
 void Var_RestoreLocals (const VarPos *);	/* called on macro exit */
-void Var_Define (const char *);
 
 #endif

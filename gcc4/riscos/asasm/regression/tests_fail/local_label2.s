@@ -1,5 +1,5 @@
 ; Calling sequence:
-:                MHigh
+;                MHigh
 ;              /   |   \
 ;        MMid1    70    MMid2
 ;       /  |  \        /  |  \

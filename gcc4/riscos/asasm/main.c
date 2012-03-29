@@ -74,9 +74,6 @@ bool option_abs = false;
 bool option_uppercase = false;
 bool option_nowarn = false;
 
-const char *predefines[MAX_PREDEFINES];
-int num_predefines = 0;
-
 static const char *ObjFileName = NULL;
 const char *SourceFileName = NULL;
 
@@ -165,8 +162,6 @@ asasm_help (void)
 	   "Options:\n"
 	   "-o objfile                 Specifies destination AOF/ELF file.\n"
 	   "-I<directory>              Search 'directory' for included assembler files.\n"
-	   "-D<variable>               Define a string variable.\n"
-	   "-D<variable>=<value>       Define a string variable to a certain value.\n"
 	   "-PreDefine <value>         Predefine a value using SETA/SETS/SETL syntax.\n"
 	   "-UpperCase                 Recognise instruction mnemonics in upper case only.\n"
 	   "-Pedantic                  Display extra warnings.\n"
@@ -277,23 +272,8 @@ main (int argc, char **argv)
       if (arg[0] == '-')
 	++arg;
       
-      if (arg[0] == 'D')
-	{
-	  if (arg[1] == '\0')
-	    {
-	      if (--argc)
-		Var_Define (*++argv);
-	      else
-		{
-		  fprintf (stderr, PACKAGE_NAME ": Missing argument after -%s\n", arg);
-		  return EXIT_FAILURE;
-		}
-	    }
-	  else
-	    Var_Define (arg + 1);
-	}
-      else if (!strncasecmp (arg, "PD", sizeof ("PD")-1)
-	       || !strncasecmp (arg, "PreDefine", sizeof ("PreDefine")-1))
+      if (!strncasecmp (arg, "PD", sizeof ("PD")-1)
+	  || !strncasecmp (arg, "PreDefine", sizeof ("PreDefine")-1))
         {
 	  const char *val;
 	  if (arg[sizeof ("PD")-1] == '=')
@@ -308,12 +288,11 @@ main (int argc, char **argv)
 	  else
 	    val = *++argv;
 	    
-          if (num_predefines == MAX_PREDEFINES)
+          if (Input_AddPredefine (val))
             {
 	     fprintf (stderr, PACKAGE_NAME ": Too many predefines\n");
 	     return EXIT_FAILURE;
             }
-          predefines[num_predefines++] = val;
         }
       else if (!strcasecmp (arg, "o") || !strcasecmp (arg, "To"))
 	{

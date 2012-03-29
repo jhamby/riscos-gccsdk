@@ -105,9 +105,10 @@ typedef struct Symbol
 /* Prefix of all internal AsAsm symbols.  */
 #define kIntLabelPrefix "$$AsAsm$$Int$$"
 
-Symbol *symbolGet (const Lex *l);
-Symbol *symbolFind (const Lex *l);
-void symbolRemove (const Lex *l);
+Symbol *Symbol_Get (const Lex *l);
+Symbol *Symbol_Find (const Lex *l);
+void Symbol_Remove (const Lex *l);
+void Symbol_RemoveVariables (void);
 
 bool Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue);
 

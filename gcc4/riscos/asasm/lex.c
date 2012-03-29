@@ -417,7 +417,7 @@ Lex_GetDefiningLabel (void)
  * \return LexId which can be used to create a label symbol.  Can also
  * be LexNone in case of an error (like malformed local label, or wrong
  * routine name).
- * FIXME: should be removed as it leaks memory, teach symbolGet to accept LexLocalLabel.
+ * FIXME: should be removed as it leaks memory, teach Symbol_Get() to accept LexLocalLabel.
  */
 Lex
 Lex_DefineLocalLabel (const Lex *lexP)
@@ -524,7 +524,7 @@ Lex_GetUnaryOp (Lex *lex)
 	      {
 	        /* :DEF: only returns {TRUE} when the symbol is defined and it is
 		   not a macro local variable.  */
-		const Symbol *symP = symbolFind (lex);
+		const Symbol *symP = Symbol_Find (lex);
 		lex->Data.Bool.value = symP != NULL && !(symP->type & SYMBOL_MACRO_LOCAL);
 		lex->tag = LexBool;
 		return;

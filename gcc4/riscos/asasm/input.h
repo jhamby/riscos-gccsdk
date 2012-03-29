@@ -30,9 +30,9 @@
 #include "global.h"
 #include "macros.h"
 
-#define MAX_PREDEFINES 10
-extern const char *predefines[MAX_PREDEFINES];
-extern int num_predefines;
+void Input_PrepareForPhase (Phase_e phase);
+
+bool Input_AddPredefine (const char *preDef);
 
 bool Input_Match (char c, bool spacesToo);
 bool Input_MatchKeyword (const char *keyword);

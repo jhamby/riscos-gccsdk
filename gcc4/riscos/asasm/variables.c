@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2000-2011 GCCSDK Developers
+ * Copyright (c) 2000-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -56,29 +56,21 @@
 //#  define DEBUG_VARIABLES
 #endif
 
-static void
-assign_var (Symbol *sym, ValueTag type)
+/**
+ * Variables phase preparation.
+ */
+void
+Var_PrepareForPhase (Phase_e phase)
 {
-  sym->value.Tag = type;
-  switch (type)
+  switch (phase)
     {
-      case ValueInt:
-	sym->value.Data.Int.i = 0;
-	break;
-
-      case ValueBool:
-	sym->value.Data.Bool.b = false;
-	break;
-
-      case ValueString:
-	sym->value.Data.String.len = 0;
-	/* We don't do malloc(0) as this can on some systems return NULL.  */
-	if ((sym->value.Data.String.s = malloc (1)) == NULL)
-	  errorOutOfMem ();
+      case ePassTwo:
+	/* Delete all variables so that a :DEF: test returns the same
+	   result as in ePassOne.  */
+	Symbol_RemoveVariables ();
 	break;
 
       default:
-	error (ErrorAbort, "Internal error: assign_var");
 	break;
     }
 }
@@ -92,10 +84,10 @@ assign_var (Symbol *sym, ValueTag type)
  * implement :DEF:.
  */
 static Symbol *
-declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
+Var_Declare (const char *ptr, size_t len, ValueTag type, bool localMacro)
 {
   const Lex var = lexTempLabel (ptr, len);
-  Symbol *sym = symbolFind (&var);
+  Symbol *sym = Symbol_Find (&var); /* FIXME: use Symbol_Get() and get rid of 'else' */
   if (sym != NULL)
     {
       if (sym->type & SYMBOL_AREA)
@@ -134,12 +126,35 @@ declare_var (const char *ptr, size_t len, ValueTag type, bool localMacro)
       localMacro = false;
     }
   else
-    sym = symbolGet (&var);
+    sym = Symbol_Get (&var);
 
   sym->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE | SYMBOL_RW;
   if (localMacro)
     sym->type |= SYMBOL_MACRO_LOCAL;
-  assign_var (sym, type);
+
+  sym->value.Tag = type;
+  switch (type)
+    {
+      case ValueInt:
+	sym->value.Data.Int.i = 0;
+	break;
+
+      case ValueBool:
+	sym->value.Data.Bool.b = false;
+	break;
+
+      case ValueString:
+	sym->value.Data.String.len = 0;
+	/* We don't do malloc(0) as this can on some systems return NULL.  */
+	if ((sym->value.Data.String.s = malloc (1)) == NULL)
+	  errorOutOfMem ();
+	break;
+
+      default:
+	assert (0);
+	break;
+    }
+
   return sym;
 }
 
@@ -171,7 +186,7 @@ c_gbl (void)
   if ((ptr = Input_Symbol (&len)) == NULL)
     error (ErrorError, "Missing variable name");
   else
-    declare_var (ptr, len, type, false);
+    Var_Declare (ptr, len, type, false);
   return false;
 }
 
@@ -215,7 +230,7 @@ c_lcl (void)
   /* Link our local variable into the current macro so we can restore this
      at the end of macro invocation.  */
   const Lex l = lexTempLabel (ptr, len);
-  Symbol *symbolP = symbolFind (&l);
+  Symbol *symbolP = Symbol_Find (&l);
 
   bool doRestore;
   if (symbolP != NULL)
@@ -241,14 +256,14 @@ c_lcl (void)
       if ((p->symbolP = symbolP) != NULL)
 	{
 	  p->symbol = *symbolP;
-	  /* Reset Symbol parts which won't get touched by declare_var().  */
+	  /* Reset Symbol parts which won't get touched by Var_Declare().  */
 	  symbolP->codeSize = 0;
 	  symbolP->areaDef = areaCurrentSymbol;
 	}
       gCurPObjP->d.macro.varListP = p;
     }
   
-  declare_var (ptr, len, type, true);
+  Var_Declare (ptr, len, type, true);
   return false;
 }
 
@@ -274,7 +289,7 @@ c_set (const Lex *label)
   if (!Input_IsEndOfKeyword ())
     return true;
 
-  Symbol *sym = symbolFind (label);
+  Symbol *sym = Symbol_Find (label);
   if (sym == NULL)
     {
       error (ErrorError, "'%.*s' is undefined",
@@ -323,40 +338,11 @@ Var_RestoreLocals (const VarPos *p)
       else
 	{
 	  const Lex l = lexTempLabel (p->name, strlen (p->name));
-	  symbolRemove (&l);
+	  Symbol_Remove (&l);
 	}
 
       const VarPos *q = p->next;
       free ((void *)p);
       p = q;
     }
-}
-
-
-void
-Var_Define (const char *def)
-{
-  const char *i = strchr (def, '=');
-  size_t len = i != NULL ? (size_t)(i - def) : strlen (def);
-  Symbol *sym = declare_var (def, len, ValueString, false);
-  if (sym == NULL)
-    return;
-
-  size_t datLen;
-  if (i == NULL)
-    {
-      i = "";
-      datLen = 0;
-    }
-  else
-    {
-      ++i; /* Skip '=' */
-      datLen = strlen (i);
-    }
-  const Value value =
-    {
-      .Tag = ValueString,
-      .Data.String = { .len = datLen, .s = i }
-    };
-  Value_Assign (&sym->value, &value);
 }

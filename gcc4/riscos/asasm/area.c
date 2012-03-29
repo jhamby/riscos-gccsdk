@@ -383,7 +383,7 @@ Area_Ensure (void)
       areaType = AREA_CODE | AREA_ABS | AREA_READONLY | AREA_DEFAULT_ALIGNMENT;
     }
   const Lex lex = lexTempLabel (areaNameP, areaNameSize);
-  Symbol *sym = symbolGet (&lex);
+  Symbol *sym = Symbol_Get (&lex);
   if (SYMBOL_KIND (sym->type))
     error (ErrorError, "Redefinition of label to area %s", sym->str);
   else if ((sym->type & SYMBOL_AREA) == 0)
@@ -419,7 +419,7 @@ c_area (void)
   if (lex.tag != LexId)
     return false; /* No need to give an error, lexGetId already did.  */
 
-  Symbol *sym = symbolGet (&lex);
+  Symbol *sym = Symbol_Get (&lex);
   if (SYMBOL_KIND (sym->type))
     {
       error (ErrorError, "Redefinition of label as area %s", sym->str);

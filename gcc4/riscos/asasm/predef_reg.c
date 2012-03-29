@@ -64,7 +64,7 @@ static void
 PreDefReg_One (const char *regname, size_t namelen, int value, IntType_e type)
 {
   const Lex l = lexTempLabel (regname, namelen);
-  Symbol *s = symbolGet (&l);
+  Symbol *s = Symbol_Get (&l);
   s->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE; /* FIXME: SYMBOL_ABSOLUTE needed ? */
   s->value = Value_Int (value, type);
 }

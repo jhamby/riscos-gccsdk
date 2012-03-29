@@ -48,7 +48,38 @@ static char input_buff[MAX_LINE + 256];
 static const char *input_pos; /* Ptr inside input_buff.  Can be NULL when input_buff is being filled up.  */
 static char workBuff[MAX_LINE + 1]; /* holds each line from input file */
 
+#define MAX_PREDEFINES 10
+static const char *oPreDefines[MAX_PREDEFINES];
+static unsigned oPreDefCnt;
+static unsigned oPreDefIdx;
+
 static bool Input_ArgSub (bool warnOnVarSubFail);
+
+void
+Input_PrepareForPhase (Phase_e phase)
+{
+  switch (phase)
+    {
+      case ePassTwo:
+	/* We need to re-parse the predefined variables.  */
+	oPreDefIdx = 0;
+	break;
+
+      default:
+	break;
+    }
+}
+
+
+bool
+Input_AddPredefine (const char *preDef)
+{
+  if (oPreDefCnt == MAX_PREDEFINES)
+    return true;
+  oPreDefines[oPreDefCnt++] = preDef;
+  return false;
+}
+
 
 char
 inputLook (void)
@@ -198,16 +229,16 @@ Input_RollBackToMark (const char *mark)
 static bool
 Input_NextLineCore (void)
 {
-  if (num_predefines)
+  if (oPreDefIdx != oPreDefCnt)
     {
       /* Each predefine will inject the following two lines:
-	   "        GBLx MyVariable"
-	   "MyVariable SETx MyValue"
+	   "        GBLx MyVariable" (toggle == false)
+	   "MyVariable SETx MyValue" (toggle == true)
 	 with x = 'L', 'S' or 'A'  */
 
       static bool toggle = false;
 
-      const char *predefine = predefines[num_predefines - 1];
+      const char *predefine = oPreDefines[oPreDefIdx];
 
       /* Predefine.  We insert the values into the input stream before the
 	 main code.  Would benefit from buffer overrun checks.  */
@@ -232,7 +263,7 @@ Input_NextLineCore (void)
       else
 	{
 	  strcpy (workBuff, predefine);
-	  --num_predefines;
+	  ++oPreDefIdx;
 	}
   
       toggle = !toggle;
@@ -412,7 +443,7 @@ Input_VarSub (const char **inPP, size_t *outOffsetP, bool inString, bool warnOnV
     }
   else
     {
-      Symbol *sym = symbolFind (&label);
+      Symbol *sym = Symbol_Find (&label);
       if (sym && (sym->type & SYMBOL_RW) != 0)
 	{
 	  char buf[32];

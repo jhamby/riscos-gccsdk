@@ -47,7 +47,7 @@ GetRegisterValue (bool genError, IntType_e type, const char *typeStr)
   const Lex lexSym = genError ? lexGetId () : lexGetIdNoError ();
   if (lexSym.tag == LexId)
     {
-      const Symbol *sym = symbolFind (&lexSym);
+      const Symbol *sym = Symbol_Find (&lexSym);
       if (sym && (sym->type & SYMBOL_DEFINED))
 	{
 	  if (sym->value.Tag == ValueInt
@@ -325,7 +325,7 @@ getRhs (bool regshift, bool shift, ARMWord ir)
 		    {
 		      case LexId:
 			codeInit ();
-			codeSymbol (symbolGet (&rotator), 0);
+			codeSymbol (Symbol_Get (&rotator), 0);
 			const Value *rotatorResult = exprEval (ValueInt);
 			if (rotatorResult->Tag != ValueInt)
 			  {

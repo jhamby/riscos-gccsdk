@@ -607,7 +607,7 @@ decode (const Lex *label)
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.lex (labelLexP);
 	      if (!tryAsMacro)
 		{
-		  labelSymbol = symbolFind (labelLexP);
+		  labelSymbol = Symbol_Find (labelLexP);
 		  if (lclLabelWarn)
 		    error (ErrorWarning, "Local label not allowed here - ignoring");
 		}
@@ -628,7 +628,7 @@ decode (const Lex *label)
 	  case eCB_Symbol:
 	    {
 	      assert (!doLowerCase);
-	      Symbol *symbol = label->tag == LexId ? symbolGet (label) : NULL;
+	      Symbol *symbol = label->tag == LexId ? Symbol_Get (label) : NULL;
 	      bool lclLabelWarn = label->tag == LexLocalLabel;
 	      tryAsMacro = oDecodeTable[indexFound].parse_opcode.sym (symbol);
 	      if (!tryAsMacro)

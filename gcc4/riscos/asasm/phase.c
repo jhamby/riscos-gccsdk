@@ -22,10 +22,12 @@
 #include "config.h"
 
 #include "area.h"
+#include "input.h"
 #include "local.h"
 #include "opt.h"
 #include "phase.h"
 #include "state.h"
+#include "variables.h"
 
 Phase_e gPhase = eStartup;
 
@@ -36,9 +38,11 @@ void
 Phase_PrepareFor (Phase_e phase)
 {
   Area_PrepareForPhase (phase);
+  Input_PrepareForPhase (phase);
   Local_PrepareForPhase (phase);
   Opt_PrepareForPhase (phase);
   State_PrepareForPhase (phase);
+  Var_PrepareForPhase (phase);
 
   gPhase = phase;
 }

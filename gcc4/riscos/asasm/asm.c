@@ -185,7 +185,7 @@ ASM_DefineLabel (const Lex *label, uint32_t offset)
       symbolType = 0;
     }
 
-  Symbol *symbol = symbolGet (label);
+  Symbol *symbol = Symbol_Get (label);
   if (Symbol_Define (symbol, symbolType, &value))
     return NULL;
 

@@ -1,3 +1,35 @@
+Thu Mar 29 22:50:57 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/variables.s: Add tests for initial :DEF:
+	value.
+	* regression/tests_fail/local_label2.s: Fix comment typo.
+	* symbol.c, symbol.h (symbolNew): Rename to Symbol_New.
+	(symbolFree): Rename to Symbol_Free.  Simplify.
+	(symbolGet): Rename to Symbol_Get.
+	(symbolFind): Rename to Symbol_Find.
+	(symbolRemove): Rename to Symbol_Remove.
+	(Symbol_RemoveVariables): Add.
+	* decode.c, local.c, directive_storagemap.c, area.c, variables.c,
+	expr.c, input.c, predef_reg.c, get.c, asm.c, lit.c, lex.c: Follow
+	symbol routine renames.
+	* variables.c (Var_PrepareForPhase): Add.
+	(assign_var): Merge into declare_var.
+	(declare_var): Rename to Var_Declare.
+	(Var_Define): Remove.
+	* variables.h (Var_PrepareForPhase): Add.
+	(Var_Define): Remove.
+	* phase.c (Phase_PrepareFor): Add Input_PrepareForPhase and
+	Var_PrepareForPhase.
+	* main.c (main): Remove support for -D as predefined strings (use
+	-PD instead).  Use Input_AddPredefine.
+	(predefines, num_predefines): Move to...
+	* input.c: ...here as oPreDefines and oPreDefCnt.
+	(oPreDefIdx): Add.
+	(Input_PrepareaForPhase): Add.
+	(Input_AddPredefine): Add.
+	(Input_NextLineCore): Use oPreDefines, oPreDefIdx, oPreDefCnt.
+	* input.c (Input_PrepareForPhase, Input_AddPredefine): Add.
+
 Sun Mar 25 21:47:33 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/load_literal3.s: Add MVN/MOVW/MOVT tests.

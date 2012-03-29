@@ -1,6 +1,6 @@
 ; Tests local & global variables for regressions.
 
-		AREA |C$$data|, DATA, READONLY
+		AREA Data1, DATA, READONLY
 
 	[ :LNOT: REFERENCE
 	; *** TESTCASE:
@@ -311,7 +311,7 @@ TestStr1
 	]
 
 ; A local variable can have a different type than a global one.
-	AREA	Data, DATA
+	AREA	Data2, DATA
 	[ :LNOT: REFERENCE
 AVar	RN	9
 	GBLS	AVarStr
@@ -341,7 +341,7 @@ AVarStr	SETL	{TRUE}
 
 ; Test that registers and coprocessor numbers can be assigned to
 ; arithmetic variables
-	AREA	Data2, DATA
+	AREA	Data3, DATA
 	[ :LNOT:REFERENCE
 		GBLA	VarRegR3
 VarRegR3	SETA	r3
@@ -376,6 +376,93 @@ VarRegC6	SETA	c6
 		DCD	4
 		DCD	5
 		DCD	6
+	]
+
+; Test that all variables are reset and become undefined at start of pass 2.
+	AREA	Data4, DATA
+	[ :LNOT: REFERENCE
+
+	; *** String
+	MACRO
+	StrFirst
+	=	"StrFirst\n"
+	MEND
+
+	MACRO
+	StrSecond
+	=	"StrSecond\n"
+	MEND
+
+	[ :LNOT: :DEF: IterS
+	GBLS	IterS
+IterS	SETS	"StrFirst"
+	]
+
+	$IterS
+
+IterS	SETS	"StrSecond"
+
+	$IterS
+
+	; *** Boolean
+	MACRO
+	BoolT
+	=	"BoolFirst\n"
+	MEND
+
+	MACRO
+	BoolF
+	=	"BoolSecond\n"
+	MEND
+
+	[ :LNOT: :DEF: IterL
+	GBLL	IterL
+IterL	SETL	{TRUE}
+	]
+
+	GBLS	ResL
+ResL	SETS	"Bool" :CC: :STR: IterL
+	$ResL
+
+IterL	SETL	{FALSE}
+
+ResL	SETS	"Bool" :CC: :STR: IterL
+	$ResL
+
+	; *** Integer
+	MACRO
+	Int00000011
+	=	"IntFirst\n"
+	MEND
+
+	MACRO
+	Int00000022
+	=	"IntSecond\n"
+	MEND
+
+	[ :LNOT: :DEF: IterA
+	GBLA	IterA
+IterA	SETA	&11
+	]
+
+	GBLS	ResA
+ResA	SETS	"Int" :CC: :STR: IterA
+	$ResA
+
+IterA	SETA	&22
+
+ResA	SETS	"Int" :CC: :STR: IterA
+	$ResA
+
+	|
+
+	= "StrFirst\n"
+	= "StrSecond\n"
+	= "BoolFirst\n"
+	= "BoolSecond\n"
+	= "IntFirst\n"
+	= "IntSecond\n"
+
 	]
 
 	END

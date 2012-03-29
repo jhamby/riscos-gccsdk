@@ -93,7 +93,7 @@ c_alloc (const Lex *lex)
 {
   if (lex->tag == LexId)
     {
-      if (Symbol_Define (symbolGet (lex), SYMBOL_ABSOLUTE, StorageMap_Value ()))
+      if (Symbol_Define (Symbol_Get (lex), SYMBOL_ABSOLUTE, StorageMap_Value ()))
 	return false;
     }
   

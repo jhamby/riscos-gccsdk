@@ -57,7 +57,7 @@ static bool oKeepAllSymbols;
 static bool oAllExportSymbolsAreWeak; /* FIXME: support this.  */
 
 static Symbol *
-symbolNew (const char *str, size_t len)
+Symbol_New (const char *str, size_t len)
 {
   Symbol *result;
   if ((result = (Symbol *) malloc (sizeof (Symbol) + len)) == NULL)
@@ -75,17 +75,19 @@ symbolNew (const char *str, size_t len)
   return result;
 }
 
+
+/**
+ * Unlink symbol from its lists and free its data.
+ */
 static void
-symbolFree (Symbol **symPP)
+Symbol_Free (Symbol **symPP)
 {
-  register Symbol *symP = *symPP;
-  if (symP)
-    {
-      *symPP = symP->next;
-      valueFree (&symP->value);
-      free (symP);
-    }
+  Symbol *symP = *symPP;
+  *symPP = symP->next;
+  valueFree (&symP->value);
+  free (symP);
 }
+
 
 static bool
 EqSymLex (const Symbol *str, const Lex *lx)
@@ -97,13 +99,14 @@ EqSymLex (const Symbol *str, const Lex *lx)
 
 
 /**
+ * Retrieve an existing symbol or create a new one if there wasn't one.
  * \return Always a non-NULL value pointing to symbol representing given Lex
  * object.
  */
 Symbol *
-symbolGet (const Lex *l)
+Symbol_Get (const Lex *l)
 {
-  assert (l->tag == LexId && "Internal symbolGet: non-ID");
+  assert (l->tag == LexId && "non-ID");
 
   Symbol **isearch;
   for (isearch = &symbolTable[l->Data.Id.hash]; *isearch; isearch = &(*isearch)->next)
@@ -112,13 +115,17 @@ symbolGet (const Lex *l)
 	return *isearch;
     }
 
-  *isearch = symbolNew (l->Data.Id.str, l->Data.Id.len);
+  *isearch = Symbol_New (l->Data.Id.str, l->Data.Id.len);
   return *isearch;
 }
 
 
+/**
+ * Retrieve an existing symbol.
+ * \return NULL when symbol doesn't exist, pointer to that symbol otherwise.
+ */
 Symbol *
-symbolFind (const Lex *l)
+Symbol_Find (const Lex *l)
 {
   if (l->tag != LexId)
     return NULL;
@@ -225,12 +232,12 @@ Symbol_Define (Symbol *symbol, unsigned newSymbolType, const Value *newValue)
 
 
 /**
- * Removes symbol from symbol table.
+ * Removes an existing symbol from symbol table.
  */
 void
-symbolRemove (const Lex *l)
+Symbol_Remove (const Lex *l)
 {
-  assert (l->tag == LexId && "Internal symbolRemove: non-ID");
+  assert (l->tag == LexId && "non-ID");
 
   for (Symbol **isearch = &symbolTable[l->Data.Id.hash];
        *isearch != NULL;
@@ -238,12 +245,32 @@ symbolRemove (const Lex *l)
     {
       if (EqSymLex (*isearch, l))
 	{
-          symbolFree (isearch);
+          Symbol_Free (isearch);
 	  return;
 	}
     }
 
-  error (ErrorAbort, "Internal error: symbolRemove");
+  assert (0 && "Not an existing symbol");
+}
+
+
+void
+Symbol_RemoveVariables (void)
+{
+  for (int i = 0; i != SYMBOL_TABLESIZE; i++)
+    {
+      Symbol **symPP = &symbolTable[i];
+      while (*symPP)
+	{
+	  if ((*symPP)->type & SYMBOL_RW)
+	    {
+	      assert ((*symPP)->value.Tag == ValueBool || (*symPP)->value.Tag == ValueString || (*symPP)->value.Tag == ValueInt);
+	      Symbol_Free (symPP);
+	    }
+	  else
+	    symPP = &(*symPP)->next;
+	}
+    }
 }
 
 
@@ -717,7 +744,7 @@ symFlag (unsigned int flags, const char *err)
     return NULL;
 
   /* When the symbol is not known yet, it will automatically be created.  */
-  Symbol *sym = symbolGet (&lex);
+  Symbol *sym = Symbol_Get (&lex);
   if (Local_IsLocalLabel (sym->str))
     error (ErrorError, "Local labels cannot be %s", err);
   else if (Area_IsMappingSymbol (sym->str))

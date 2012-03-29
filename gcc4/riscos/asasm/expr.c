@@ -46,7 +46,7 @@ prim (void)
   switch (lex.tag)
     {
       case LexId:
-	codeSymbol (symbolGet (&lex), 0);
+	codeSymbol (Symbol_Get (&lex), 0);
         break;
       case LexInt:
         codeInt (lex.Data.Int.value);
