@@ -1,3 +1,8 @@
+Sat Mar 31 00:01:47 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpuctrl.c (ADR_RelocUpdater): Take imported symbol offset into
+	account.
+
 Thu Mar 29 22:50:57 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/variables.s: Add tests for initial :DEF:

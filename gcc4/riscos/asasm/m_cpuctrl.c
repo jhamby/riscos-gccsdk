@@ -555,7 +555,7 @@ ADR_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 		    Put_InsWithOffset (offset + 4, 4, 0);
 		  return true;
 		}
-	      ADR_RelocUpdaterCore (fileName, lineNum, offset, -(offset + 8), 15, true /* final */, privDataP->userIntendedTwoInstr);
+	      ADR_RelocUpdaterCore (fileName, lineNum, offset, valP->Data.Symbol.offset - (offset + 8), 15, true /* final */, privDataP->userIntendedTwoInstr);
 	      if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
 		return true;
 	    }
