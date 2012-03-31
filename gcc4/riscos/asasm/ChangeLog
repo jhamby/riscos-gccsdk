@@ -1,3 +1,10 @@
+Sat Mar 31 03:53:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/instr_ldm_stm_pop_push.s: Add one register
+	PUSH/POP test.
+	* m_cpumem.c (dstreglist): Convert one register PUSH/POP into STR/LDR.
+	Add warnings for unpredictable constructs.
+
 Sat Mar 31 00:01:47 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_cpuctrl.c (ADR_RelocUpdater): Take imported symbol offset into

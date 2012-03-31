@@ -196,4 +196,13 @@
 		STMIA	r1,{r2-r3}
 	]
 
+	; Tests one register PUSH/POP get changed into STR/LDR.
+	[ :LNOT: REFERENCE
+		PUSHCC {r5}
+		POPGE {r7}
+	|
+		STRCC	r5, [r13, #-4]!
+		LDRGE	r7, [r13], #4
+	]
+
 		END
