@@ -648,8 +648,7 @@ __pipewrite (struct __unixlib_fd *file_desc, const void *data, int nbyte)
 	  /* Write some more data to the "pipe" at the end of the file.  */
 	  int write_err = __fswrite (file_desc, data, nbyte);
 	  /* Restore the pointer to where we found it.  */
-	  if (fileptr == extent
-	      || (err = SWI_OS_Args_SetFilePtr (handle, fileptr)) == NULL)
+	  if ((err = SWI_OS_Args_SetFilePtr (handle, fileptr)) == NULL)
 	    return write_err;
 	}
     }

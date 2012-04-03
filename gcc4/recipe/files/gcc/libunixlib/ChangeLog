@@ -1,4 +1,12 @@
-Tue Mar 20 19:29:47 GMT 2010  Lee Noar  <leenoar@sky.com>
+Tue Apr  3 19:53:12 BST 2012  Lee Noar  <leenoar@sky.com>
+
+	* unix/dev.c(__pipewrite): Always restore the file pointer.
+	The second (fileptr==extent) test can prevent the file
+	pointer from being correctly restored causing a read of the
+	pipe to fail. This fixes a problem in Mono where reading
+	a socket controlled by a pipe would fail with a timeout.
+
+Tue Mar 20 19:29:47 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	* include/sys/elf.h(DT_RISCOS_GCC_DIR): Rename to
 	DT_RISCOS_ABI_VERSION.
