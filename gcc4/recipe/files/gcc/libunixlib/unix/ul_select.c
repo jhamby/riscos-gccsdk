@@ -296,6 +296,11 @@ select (int nfds, fd_set *readfds, fd_set *writefds,
 	           }
 	        }
 	    }
+	  else
+	    {
+	      __pthread_enable_ints();
+	      return __set_errno (EBADF);
+	    }
 	}
 
 #ifdef DEBUG

@@ -1,3 +1,13 @@
+Wed Apr  4 11:55:56 BST 2012  Lee Noar  <leenoar@sky.com>
+
+	* unix/ul_select.c(select): Set errno to EBADF and return
+	-1 if one of the sets contains an invalid file descriptor
+	(as defined by the Linux standard).
+	This can occur if a file is closed whilst being polled by
+	select. Fixes a problem in Mono whereby a pipe controlling
+	a socket is closed, leaving select stuck in an infinite
+	loop and preventing the program from exiting.
+
 Tue Apr  3 19:53:12 BST 2012  Lee Noar  <leenoar@sky.com>
 
 	* unix/dev.c(__pipewrite): Always restore the file pointer.
