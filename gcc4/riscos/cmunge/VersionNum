@@ -20,5 +20,5 @@
 #define Module_ComponentPath            "Sources/BuildTools/CMunge"
 
 #define Module_FullVersion              "0.76"
-#define Module_FullVersionAndDate       "0.76 (10 May 2006) [with GCCSDK 4 changes including r" GCCSDK_REVISION "]"
+#define Module_FullVersionAndDate       "0.76 (10 May 2006) [with GCCSDK 4 changes " GCCSDK_REVISION "]"
 #define Module_HelpVersion              "0.76 (10 May 2006)"

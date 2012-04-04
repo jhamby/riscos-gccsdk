@@ -1,4 +1,10 @@
-Tue Jan 11 01:27:18 CET 2011  David Thomas
+Thu Apr  5 01:18:12 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am, VersionNum (GCCSDK_REVISION): Mention svn branch
+	name.
+	* copyright.h (Copyright_CMunge): Add 2012.
+
+Tue Jan 11 01:27:18 CET 2011  David Thomas  <dave@davespace.co.uk>
 
 	* readfile.c (preprocess): Fix sscanf() call.
 
