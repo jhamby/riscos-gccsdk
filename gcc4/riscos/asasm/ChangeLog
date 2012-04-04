@@ -1,3 +1,14 @@
+Wed Apr  4 23:56:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/include/load_literal_basic.s: Removed the MOVT
+	optimisation tests.
+	* regression/tests_pass/load_literal3.s: Likewise.
+	* m_cpumem.c (DestMem_RelocUpdater): Removed MOVT optimisation.
+	(m_push, m_pop): Add comments.
+	(CPUMem_ConstantInMOVT): Removed.
+	* m_cpumem.h (CPUMem_ConstantInMOVT): Removed.
+	* lit.c (Lit_RegisterInt, Lit_DumpPool): Removed MOVT optimisation.
+
 Sat Mar 31 03:53:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/instr_ldm_stm_pop_push.s: Add one register

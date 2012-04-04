@@ -1,7 +1,7 @@
-; Test literal loading including optimisations to MOV/MVN/MOVW and MOVT.
+; Test literal loading including optimisations to MOV/MVN and MOVW.
 
-	GBLL MOVW_MOVT_ALLOWED
-MOVW_MOVT_ALLOWED SETL {ARCHITECTURE} = "6T2" :LOR: ({ARCHITECTURE}:LEFT:1 = "7")
+	GBLL MOVW_ALLOWED
+MOVW_ALLOWED SETL {ARCHITECTURE} = "6T2" :LOR: ({ARCHITECTURE}:LEFT:1 = "7")
 
 	MACRO
 	LiteralTest $areaName, $areaOrg
@@ -27,8 +27,8 @@ MOVW_MOVT_ALLOWED SETL {ARCHITECTURE} = "6T2" :LOR: ({ARCHITECTURE}:LEFT:1 = "7"
 	LDRSH	r3, =&9900	; Not possible to express with MOV/MVN
 	LDR	r5, =&00770000
 	LDR	r5, =&00007700
-	; Convertable to MOVT:
-	LDR	r6, =&FEDC0000
+
+	LDR	r6, =&FEDC0000	; Not convertable (even not MOVT)
 
 	; Reuse tests:
 	LDRSH	r5, =&6677	; Converts to MOVW (when chosen cpu/arch allows)
@@ -41,13 +41,13 @@ MOVW_MOVT_ALLOWED SETL {ARCHITECTURE} = "6T2" :LOR: ({ARCHITECTURE}:LEFT:1 = "7"
 
 	MOV	r1, #0x22
 	MOV	r2, #0x33
-	[ MOVW_MOVT_ALLOWED
+	[ MOVW_ALLOWED
 		DCI &e3043455 ; FIXME: MOVW	r3, #&4455
 	|
 		LDRH	r3, lbl1$areaName
 	]
 	LDR	r5, lbl2$areaName
-	[ MOVW_MOVT_ALLOWED
+	[ MOVW_ALLOWED
 		DCI &e3064677 ; FIXME: MOVW	r4, #&6677
 	|
 		LDRSH	r4, lbl3$areaName
@@ -62,14 +62,11 @@ MOVW_MOVT_ALLOWED SETL {ARCHITECTURE} = "6T2" :LOR: ({ARCHITECTURE}:LEFT:1 = "7"
 	LDRSH	r3, lbl4$areaName
 	MOV	r5, #0x770000
 	MOV	r5, #0x7700
-	[ MOVW_MOVT_ALLOWED
-		DCI &e34f6edc ; FIXME: MOVT	r6, #&FEDC
-	|
-		LDR	r6, lbl5$areaName
-	]
+
+	LDR	r6, lbl5$areaName
 
 	; Reuse tests:
-	[ MOVW_MOVT_ALLOWED
+	[ MOVW_ALLOWED
 		DCI &e3065677 ; FIXME: MOVW	r5, #&6677
 		DCI &e3086765 ; FIXME: MOVW	r6, #&8765
 		DCI &e3047321 ; FIXME: MOVW	r7, #&4321
@@ -80,18 +77,16 @@ MOVW_MOVT_ALLOWED SETL {ARCHITECTURE} = "6T2" :LOR: ({ARCHITECTURE}:LEFT:1 = "7"
 	]
 
 	; LTORG result:
-	[ :LNOT: MOVW_MOVT_ALLOWED
+	[ :LNOT: MOVW_ALLOWED
 lbl1$areaName	DCD	0x00004455
 	]
 lbl2$areaName	DCD	0x87654321
-	[ :LNOT: MOVW_MOVT_ALLOWED
+	[ :LNOT: MOVW_ALLOWED
 lbl3$areaName	DCW	0x6677
 	]
 lbl4$areaName	DCW	0x9900
 	ALIGN
-	[ :LNOT: MOVW_MOVT_ALLOWED
 lbl5$areaName	DCD	&FEDC0000
-	]
 
 	]
 
