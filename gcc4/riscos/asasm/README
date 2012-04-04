@@ -26,8 +26,8 @@ complete):
     for their GCC/GNAT Ada RISC OS ports
   - Darren Salt: macro support.
   - David Marston: ELF output.
-  - Peter Naulls, John-Mark Bell, John Tytgat, Tony van der Hoff,
-    Timothy Baldwin, ...
+  - John Tytgat: Two pass support, objasm compatibility improvements.
+  - Peter Naulls, John-Mark Bell, Tony van der Hoff, Timothy Baldwin, ...
 
 Releases:
 
@@ -38,6 +38,16 @@ Releases:
   - Assembling happens in two passes.
   - Hugely improved ObjAsm compatibility : macro's, conditional and repeated
     directives, include statements, local labels, etc.
+    At the time of its release, ROOL RISC OS 5 ROM builds for IOMD and IYONIX
+    branches could be done using asasm instead of objasm.  The OMAP3 branch
+    needs NEON and SSAT support which hasn't been implemented yet.
   - Adoption of several new semantics found in ARM Compiler toolchain v5.0
+
+Future development:
+
+- NEON/VFP support
+- Rework of the relocation code.
+- DWARF debugging info in ELF output.
+- Thumb support
 
 -EOF-
