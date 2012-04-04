@@ -36,9 +36,9 @@ void Output_ELF (void);
 
 extern const char *idfn_text;
 #ifdef NO_ELF_SUPPORT
-#  define DEFAULT_IDFN "GCCSDK ASASM AOF Assembler " VERSION " (r" GCCSDK_REVISION ", " __DATE__ ")"
+#  define DEFAULT_IDFN "GCCSDK ASASM AOF Assembler " VERSION " (" GCCSDK_REVISION ", " __DATE__ ")"
 #else
-#  define DEFAULT_IDFN "GCCSDK ASASM AOF/ELF Assembler " VERSION " (r" GCCSDK_REVISION ", " __DATE__ ")"
+#  define DEFAULT_IDFN "GCCSDK ASASM AOF/ELF Assembler " VERSION " (" GCCSDK_REVISION ", " __DATE__ ")"
 #endif
 
 #if defined(WORDS_BIGENDIAN)

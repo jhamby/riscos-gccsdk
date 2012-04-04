@@ -1,5 +1,9 @@
 bin_PROGRAMS=asasm
 
+SVN_ROOT := $(shell svn info ${srcdir} | grep "^Repository Root: " | sed -e "s/^Repository Root: //")
+SVN_BRANCH := $(shell svn info ${srcdir} | grep "^URL: " | sed -e "s/^URL: //")
+SVN_REV := r$(shell svnversion -n ${srcdir}) at $(subst $(SVN_ROOT),,$(SVN_BRANCH))
+
 # _GNU_SOURCE to make strndup available
 # Add -DDEBUG if you want to enable the debug routines.
 asasm_CFLAGS = -D_GNU_SOURCE -std=c99 \
@@ -9,7 +13,7 @@ asasm_CFLAGS = -D_GNU_SOURCE -std=c99 \
 	-Wchar-subscripts -Winline \
 	-Wmissing-prototypes -Wnested-externs -Wpointer-arith \
 	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wwrite-strings \
-	-DGCCSDK_REVISION=\"$(shell svnversion -n ${srcdir} /trunk/gcc4/riscos/asasm)\"
+	-DGCCSDK_REVISION="\"$(SVN_REV)\""
 asasm_LDFLAGS = -lm
 asasm_SOURCES=area.c asm.c code.c decode.c depend.c \
 	directive_data.c directive_file.c directive_misc.c \

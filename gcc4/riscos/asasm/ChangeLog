@@ -1,3 +1,7 @@
+Thu Apr  5 01:05:32 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am, output.h (GCCSDK_REVISION): Add svn branch.
+
 Wed Apr  4 23:56:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/include/load_literal_basic.s: Removed the MOVT
