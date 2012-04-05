@@ -1,0 +1,15 @@
+
+AB_PVERSION=0.8.D
+
+ab_package() {
+
+  ab_create_app Mednafen Apps/Emulation
+  ab_makerun $S/src/mednafen$AB_EXEEXT mednafen
+    
+  cp -av $S/AUTHORS $S/ChangeLog $S/COPYING $S/NEWS $S/README $S/TODO $A
+  cp -av Documentation $A
+  
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}
+
+export LIBS='-logg -lvorbisfile'

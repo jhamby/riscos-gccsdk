@@ -1,0 +1,62 @@
+Mednafen - Multi-system Emulator (v0.8.D)
+
+This RISC OS version was created by the GCCSDK Autobuilder
+
+See the "documentation" subdirectory for more documentation or the official Mednafen
+website at http://mednafen.sourceforge.net/
+
+Getting Started
+---------------
+
+I've set up a filetype 'mednafen', &a8a. All you need to do is set the file type of the
+rom you want to run to 'mednafen'. The !Mednafen folder must first be 'seen' by the filer
+otherwise you'll get an error.
+You'll also need to make sure the filename ends with one of the following depending on the type
+of rom.
+
+/nes
+/fds
+/nsf
+/nsfe
+/unf
+/unif
+/nez
+/gb
+/gbc
+/gba
+/agb
+/cgb
+/bin
+/pce
+/hes
+/sgx
+/ngp
+/ngc
+/ws
+/wsc
+
+These would be the file extensions on other platforms. Now double-click on the rom and if all
+goes well a window should open on the desktop.
+
+History
+-------
+RISC OS Version 1.00 (05-Apr-12)
+- this is the initial version of Mednafen built for RISC OS.
+
+Issues
+------
+
+It's slow. You'll need at least Beagleboard based hardware to get most of the emulations
+running anywhere near full speed. If you find the sound stutters it probably means your
+machine isn't fast enough. Disabling sound will speed things up if you don't mind playing
+in silence.
+
+There's no RISC OS integration. There is a configuration file automatically generated
+when Mednafen is run for the first time. See !UnixHome.home./mednafen.mednafen/cfg.
+
+I've only tested running a few games on the various emulators. I've not yet been able to
+test pc-fx emulation.
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net
