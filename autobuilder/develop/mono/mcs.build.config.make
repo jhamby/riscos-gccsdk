@@ -3,7 +3,7 @@ RUNTIME = mono
 TEST_RUNTIME = $(RUNTIME) --debug
 
 ifeq ($(thisdir),jay)
-# Compiler the C# parser with the native compiler
+# Compile the C# parser with the native compiler
 CCOMPILE = /usr/bin/gcc $(USE_CFLAGS)
 endif
 

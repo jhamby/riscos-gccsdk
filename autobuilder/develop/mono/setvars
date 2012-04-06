@@ -4,7 +4,7 @@ MONO_VERSION=2.10.8
 
 AB_URL=http://download.mono-project.com/sources/mono/mono-2.10.8.tar.bz2
 
-AB_CONFLAGS="--with-sgen=yes --with-gc=sgen --with-tls=pthread --with-xen-opt=no --with-ikvm-native=no --with-moonlight=no --disable-shared-memory --with-sigaltstack=no --with-jit=yes --with-malloc-mempools --with-profile4=yes"
+AB_CONFLAGS="--ro-recurse --with-sgen=yes --with-gc=sgen --with-tls=pthread --with-xen-opt=no --with-ikvm-native=no --with-moonlight=no --disable-shared-memory --with-sigaltstack=no --with-jit=yes --with-malloc-mempools --with-profile4=yes"
 
 export RO_SHAREDLIBS=yes
 
@@ -47,11 +47,6 @@ build_riscosdotnet() {
 }
 
 ab_make() {
-  echo "Reconfiguring EGLib for RISC OS..."
-  pushd . >/dev/null
-    cd eglib && $AB_CONFIG 'CPPFLAGS_FOR_EGLIB=' 'CFLAGS_FOR_EGLIB=-O3'
-  popd >/dev/null
-
   $AB_MAKE -j3 install
 
   # In a native Linux build, the class libraries, compilers and other tools are
@@ -156,6 +151,7 @@ ab_package() {
 
   # Copy documentation
   cp $S/COPYING.LIB $S/AUTHORS $S/LICENSE $A/Docs
+  cp -T $S/libriscosdotnet/Copyright $A/Docs/rdn-Copyright
 
   # Create a skeleton !SharedLibs directory and copy shared library
   so_lib_installdir=$D/$package/$section/mono/Apps/Develop/\!SharedLibs/lib

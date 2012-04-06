@@ -49,7 +49,7 @@ namespace riscos
 			}
 
 			// Create a toolbox object using the template pointed to.
-			public void Create (UIntPtr template)
+			public void Create (IntPtr template)
 			{
 				OS.ThrowOnError (NativeMethods.Toolbox_CreateObject (CreateObjectFlags.FromMemory,
 										     template, ref ObjectID));
@@ -65,7 +65,7 @@ namespace riscos
 				OS.ThrowOnError (NativeMethods.Toolbox_ShowObject (0,
 										   ObjectID,
 										   ShowObjectType.Default,
-										   UIntPtr.Zero,
+										   IntPtr.Zero,
 										   parentID,
 										   parentCmp));
 			}
@@ -106,14 +106,15 @@ namespace riscos
 
 			Toolbox.IDBlock IDBlock;
 
-			UIntPtr SpriteArea;
+			public IntPtr SpriteArea;
 
 			public void Initialise (uint wimp_version,
 						uint[] message_list,
 						uint[] event_list,
 						string dir_name)
 			{
-				UIntPtr handle = UIntPtr.Zero;
+				uint handle;
+				int version;
 
 				OS.ThrowOnError (NativeMethods.Toolbox_Initialise (0,
 										   wimp_version,
@@ -122,8 +123,9 @@ namespace riscos
 										   dir_name,
 										   ref MesstransFD,
 										   ref IDBlock,
-										   ref handle,
-										   ref SpriteArea));
+										   out version,
+										   out handle,
+										   out SpriteArea));
 				Handle = handle;
 			}
 		}

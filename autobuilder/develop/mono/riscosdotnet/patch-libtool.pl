@@ -7,7 +7,7 @@ use warnings;
 
 if ($#ARGV + 1 != 2)
   {
-    printf "Expected two arguments in patch-libtool perl script";
+    die "Expected two arguments in patch-libtool perl script\n";
   }
 
 my $out_file = $ARGV[0];

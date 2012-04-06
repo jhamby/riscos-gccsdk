@@ -163,8 +163,8 @@ namespace riscos
 			}
 
 			public void GetNestedState (ref WindowStateBlock block,
-						    ref UIntPtr parent, // Output - can be NULL
-						    ref UIntPtr nested) // Output - can be NULL
+						    ref IntPtr parent, // Output - can be NULL
+						    ref IntPtr nested) // Output - can be NULL
 			{
 				block.WindowHandle = Handle;
 				OS.ThrowOnError (NativeMethods.Wimp_GetNestedWindowState (ref block,

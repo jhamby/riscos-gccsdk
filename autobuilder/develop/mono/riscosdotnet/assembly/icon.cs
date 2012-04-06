@@ -135,8 +135,7 @@ namespace riscos
 										  flags,
 										  data);
 				Data = data;
-				OS.ThrowOnError (NativeMethods.Wimp_CreateIcon (priority,
-										ref icon_block,
+				OS.ThrowOnError (NativeMethods.Wimp_CreateIcon (ref icon_block,
 										ref Handle));
 				Created = true;
 			}
@@ -151,11 +150,7 @@ namespace riscos
 
 			public void Delete (uint windowHandle)
 			{
-				IconDeleteBlock icon_block = new IconDeleteBlock ();
-
-				icon_block.WindowHandle = windowHandle;
-				icon_block.IconHandle = Handle;
-				OS.ThrowOnError (NativeMethods.Wimp_DeleteIcon (ref icon_block));
+				OS.ThrowOnError (NativeMethods.Wimp_DeleteIcon (windowHandle, Handle));
 			}
 
 			public void SetText (string text)

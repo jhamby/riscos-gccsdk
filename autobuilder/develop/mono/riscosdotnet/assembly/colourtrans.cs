@@ -3,7 +3,7 @@
 //
 // Author: Lee Noar (leenoar@sky.com)
 //
- 
+
 namespace riscos
 {
 	public static class ColourTrans
@@ -15,8 +15,13 @@ namespace riscos
 		public static void SetGCOL (OS.GCOLAction gcol_action,
 					    uint palette_entry)
 		{
-			NativeMethods.ColourTrans_SetGCOL (gcol_action,
-							   palette_entry);
+			int gcol, log2bpp;
+
+			NativeMethods.ColourTrans_SetGCOL (palette_entry,
+							   0,
+							   gcol_action,
+							   out gcol,
+							   out log2bpp);
 		}
 	}
 }

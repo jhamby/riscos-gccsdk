@@ -6,7 +6,7 @@ namespace riscos
 {
 	public class Task
 	{
-		public UIntPtr Handle { get; set; }
+		public uint Handle { get; set; }
 		public bool Quit { get; set; }
 	}
 
@@ -18,11 +18,12 @@ namespace riscos
 
 		public void Initialise (int version, string desc, int[] mess_list)
 		{
-			UIntPtr handle = UIntPtr.Zero;
+			uint handle;
+			int version_ret;
 
 			AllWindows = new Hashtable ();
 
-			OS.ThrowOnError (NativeMethods.Wimp_Initialise (version, desc, mess_list, ref handle));
+			OS.ThrowOnError (NativeMethods.Wimp_Initialise (version, desc, mess_list, out version_ret, out handle));
 
 			Handle = handle;
 		}
@@ -36,7 +37,7 @@ namespace riscos
 		{
 			while (Quit == false)
 			{
-				OS.ThrowOnError (NativeMethods.Wimp_Poll (poll_mask, IntPtr.Zero, IntPtr.Zero));
+				OS.ThrowOnError (NativeMethods.Wimp_Poll (poll_mask, IntPtr.Zero));
 
 				Event event_base = Event.GetEvent ();
 
