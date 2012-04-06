@@ -23,7 +23,7 @@ namespace riscos
 		internal static extern IntPtr Wimp_CloseDown (uint handle);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Wimp_Poll")]
-		internal static extern IntPtr Wimp_Poll (uint mask, IntPtr poll_word);
+		internal static extern IntPtr Wimp_Poll (uint mask, out uint poll_word);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_create_window")]
 		internal static extern IntPtr Wimp_CreateWindow (
@@ -45,13 +45,13 @@ namespace riscos
 		internal static extern IntPtr Wimp_RedrawWindow (
 				[In, MarshalAs(UnmanagedType.Struct)]
 					ref Wimp.RedrawWindowBlock block,
-				ref int more);
+				out int more);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_get_rectangle")]
 		internal static extern IntPtr Wimp_GetRectangle (
 				[In, MarshalAs(UnmanagedType.Struct)]
 					ref Wimp.RedrawWindowBlock block,
-				ref int more);
+				out int more);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_set_extent")]
 		internal static extern IntPtr Wimp_SetExtent (
@@ -80,8 +80,8 @@ namespace riscos
 		internal static extern IntPtr Wimp_GetNestedWindowState (
 				[In, MarshalAs(UnmanagedType.Struct)]
 					ref riscos.Wimp.WindowStateBlock block,
-				ref IntPtr parent,
-				ref IntPtr nestedFlags);
+				out uint parent,
+				out uint nestedFlags);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_create_icon")]
 		internal static extern IntPtr Wimp_CreateIcon (

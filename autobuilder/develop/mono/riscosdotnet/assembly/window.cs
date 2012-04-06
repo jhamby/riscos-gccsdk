@@ -163,13 +163,13 @@ namespace riscos
 			}
 
 			public void GetNestedState (ref WindowStateBlock block,
-						    ref IntPtr parent, // Output - can be NULL
-						    ref IntPtr nested) // Output - can be NULL
+						    out uint parent,
+						    out uint nested)
 			{
 				block.WindowHandle = Handle;
 				OS.ThrowOnError (NativeMethods.Wimp_GetNestedWindowState (ref block,
-											  ref parent,
-											  ref nested));
+											  out parent,
+											  out nested));
 			}
 
 			public Icon CreateIcon (OS.Rect boundingBox,
@@ -328,11 +328,11 @@ namespace riscos
 
 			public virtual void OnRedraw (RedrawWindowEvent ev)
 			{
-				int more = 0;
+				int more;
 
 				// Start the redraw. Given the window handle, the OS fills in RedrawWimpBlock
 				// with details of what needs redrawing.
-				NativeMethods.Wimp_RedrawWindow (ref ev.RedrawArgs.RedrawWimpBlock, ref more);
+				NativeMethods.Wimp_RedrawWindow (ref ev.RedrawArgs.RedrawWimpBlock, out more);
 
 				// The origin of the window only needs to be calculated once before entering
 				// the redraw loop.
@@ -342,7 +342,7 @@ namespace riscos
 				{
 					if (RedrawHandler != null)
 						RedrawHandler (this, ev.RedrawArgs);
-					NativeMethods.Wimp_GetRectangle (ref ev.RedrawArgs.RedrawWimpBlock, ref more);
+					NativeMethods.Wimp_GetRectangle (ref ev.RedrawArgs.RedrawWimpBlock, out more);
 				}
 			}
 		}

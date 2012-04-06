@@ -8,6 +8,10 @@ namespace riscos
 	{
 		public uint Handle { get; set; }
 		public bool Quit { get; set; }
+		public uint PollWord;
+
+		// The actual version number of the WIMP that Wimp_Initialise returned to use.
+		public int wimp_version;
 	}
 
 	public class WimpTask : Task
@@ -19,11 +23,10 @@ namespace riscos
 		public void Initialise (int version, string desc, int[] mess_list)
 		{
 			uint handle;
-			int version_ret;
 
 			AllWindows = new Hashtable ();
 
-			OS.ThrowOnError (NativeMethods.Wimp_Initialise (version, desc, mess_list, out version_ret, out handle));
+			OS.ThrowOnError (NativeMethods.Wimp_Initialise (version, desc, mess_list, out wimp_version, out handle));
 
 			Handle = handle;
 		}
@@ -37,7 +40,7 @@ namespace riscos
 		{
 			while (Quit == false)
 			{
-				OS.ThrowOnError (NativeMethods.Wimp_Poll (poll_mask, IntPtr.Zero));
+				OS.ThrowOnError (NativeMethods.Wimp_Poll (poll_mask, out PollWord));
 
 				Event event_base = Event.GetEvent ();
 

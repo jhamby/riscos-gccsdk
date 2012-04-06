@@ -11,4 +11,6 @@
 	.ascii	"Derived from OSLib which is copyright "
 	.asciz	"Jonathan Coxhead and released under the GPL"
 
+	.align 2
+
 	.end
