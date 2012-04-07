@@ -1,3 +1,7 @@
+Sat Apr  7 15:39:45 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* README: Add v2.00 testers.  Updated contributors list.
+
 Thu Apr  5 02:02:54 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* README: Tune credits, release info and add "Future development"
@@ -1599,7 +1603,7 @@ Wed May 25 20:02:48 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 	* output.c: Always include errno.h.
 	* input.c: Remove needless include of errno.h.
 
-Wed May 25 23:48:44 CST 2011   Christopher Martin  <belles@internode.on.net>
+Wed May 25 23:48:44 CST 2011  Christopher Martin  <belles@internode.on.net>
 
 	* reloc.c (relocELFOutput): Removed an excess armword() operation that
 	would inappropriately undo the byte-sex conversion of a preceding
@@ -3706,8 +3710,7 @@ Sun Jan 30 00:50:54 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 2003-10-29 08:11  Peter Naulls  <peter@chocky.org>
 
-	* area.c, reloc.c, symbol.c: Relocation fixes from David David
-	Marston.
+	* area.c, reloc.c, symbol.c: Relocation fixes from David Marston.
 
 2003-10-25 20:51  Peter Naulls  <peter@chocky.org>
 
@@ -3715,7 +3718,7 @@ Sun Jan 30 00:50:54 2005  John Tytgat  <John.Tytgat@aaug.net>
 
 2003-10-25 20:44  Peter Naulls  <peter@chocky.org>
 
-	* output.c: Further fix for ELF output from David David Marston.
+	* output.c: Further fix for ELF output from David Marston.
 
 2003-10-22 18:24  Peter Naulls  <peter@chocky.org>
 

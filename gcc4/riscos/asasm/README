@@ -2,9 +2,9 @@
              ------------------------------------------
 
 'asasm' started as a 'simple assembler' and was written by Niklas Röjemo under
-the name 'as' of !AS in its Desktop version.  A non desktop version was created
-for an Unix port by Andy Duplain and used in that form as backend assembler in
-the GCC/GNAT Ada RISC OS ports.
+the name 'as' and !AS in its Desktop version.  A non desktop version was
+created for an Unix port by Andy Duplain and used in that form as backend
+assembler in the GCC/GNAT Ada RISC OS ports.
 
 Over time missing features like macro support were added and the emulation of
 Acorn objasm's behavior was improved.
@@ -17,8 +17,7 @@ and its development continues there. After David Marston contribution, ELF
 output is now possible allowing objasm compatible assembler files to be used
 by GCCSDK 4 which is purely ELF and no longer AOF based like GCCSDK 3.
 
-Over time there were various contributors (most probably this list is not
-complete):
+Over time there were various contributors (cfr. ChangeLog for more detail):
 
   - Niklas Röjemo: main author.
   - Andy Duplain: Unix port.
@@ -27,7 +26,14 @@ complete):
   - Darren Salt: macro support.
   - David Marston: ELF output.
   - John Tytgat: Two pass support, objasm compatibility improvements.
-  - Peter Naulls, John-Mark Bell, Tony van der Hoff, Timothy Baldwin, ...
+  - Timothy Baldwin, John-Mark Bell, Jeffrey Lee, Christopher Martin,
+    Peter Naulls, Lee Noar, Tony van der Hoff, ...
+
+Following persons helped testing and improving the v2.00 release by building
+ROOL RISC OS IOMD, IYONIX and OMAP3 branches:
+
+  - Jeffrey Lee
+  - Andreas Walter
 
 Releases:
 
@@ -45,9 +51,10 @@ Releases:
 
 Future development:
 
-- NEON/VFP support
+- NEON/VFP support.
 - Rework of the relocation code.
 - DWARF debugging info in ELF output.
-- Thumb support
+- Thumb support.
+- Better way to enable/disable info/warning messages.
 
 -EOF-
