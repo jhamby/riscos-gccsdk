@@ -1,11 +1,16 @@
-Fri Mar 23 20:16:46 GMT 2012  Lee Noar <leenoar@sky.com>
+Sat Apr  7 19:22:52 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Change version number to 2.10.
+	* somanager.cmhg: Update copyright year list.
+
+Fri Mar 23 20:16:46 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	* som_command.c(command_status_libraries): When
 	printing the size of the R/W segment, don't include
 	the bss section. The bss section is only created in
 	the client's copy of the R/W segment.
 
-Mon Mar 12 17:57:14 2012  Lee Noar <leenoar@sky.com>
+Mon Mar 12 17:57:14 2012  Lee Noar  <leenoar@sky.com>
 
 	* som_register.c(som_register_client): Add support for
 	clients built with GCC 4.1.*.
@@ -25,7 +30,7 @@ Mon Mar 12 17:57:14 2012  Lee Noar <leenoar@sky.com>
 	* dist/!SharedLibs/SOM1stRun,feb: Need version 2.10 of
 	SOManager.
 
-Wed Aug 10 16:15:45 2011  Lee Noar <leenoar@sky.com>
+Wed Aug 10 16:15:45 2011  Lee Noar  <leenoar@sky.com>
 
 	Better object management and memory usage.
 	struct som_object tries to fit into two lists; the
@@ -59,7 +64,7 @@ Wed Aug 10 16:15:45 2011  Lee Noar <leenoar@sky.com>
 	store them all.
 	* dist/!SharedLibs/SOM1stRun,feb: Need at least V2.04.
 
-Sun Aug 07 11:54:12 2011  Lee Noar <leenoar@sky.com>
+Sun Aug 07 11:54:12 2011  Lee Noar  <leenoar@sky.com>
 
 	* som_register.c(som_register_client): Store the object
 	index in the object workspace instead of the GOT.
@@ -87,7 +92,7 @@ Sun Aug 07 11:54:12 2011  Lee Noar <leenoar@sky.com>
 	arrays are zero'd when initialised, don't bother clearing
 	unused entries in the runtime array.
 
-Sun Aug 07 11:01:23 2011  Lee Noar <leenoar@sky.com>
+Sun Aug 07 11:01:23 2011  Lee Noar  <leenoar@sky.com>
 
 	* som_array.h: Fix comment.
 	* som_alloc.c(som_extend): Extending a NULL block causes
