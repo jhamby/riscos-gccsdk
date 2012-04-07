@@ -18,7 +18,7 @@
 
 title-string: SOManager
 
-help-string: Shared Object Manager 2.10 (c) GCCSDK Developers
+help-string: Shared Object Manager PACKAGE_VERSION (c) GCCSDK Developers
 
 initialisation-code: module_initialise
 

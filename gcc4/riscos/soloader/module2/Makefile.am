@@ -1,6 +1,6 @@
 # Process this file with automake to generate Makefile.in
 #
-# Copyright 2007, 2008, 2009 GCCSDK Developers
+# Copyright 2007-2012 GCCSDK Developers
 # Written by John Tytgat
 
 bin_PROGRAMS=SOManager
@@ -17,7 +17,7 @@ SOManager_LDFLAGS=-mmodule
 # CMunge invocation:
 SUFFIXES=.cmhg
 CMUNGE = cmunge
-CMUNGEFLAGS = -tgcc -32bit -p
+CMUNGEFLAGS = -tgcc -32bit -p -DPACKAGE_VERSION=$(PACKAGE_VERSION)
 .cmhg.h:
 	$(CMUNGE) $(CMUNGEFLAGS) -d $@ $<
 .cmhg.o:
