@@ -191,6 +191,7 @@ register_client (runcom_state *state)
   if (phnum == 0)
     return somerr_no_seg_client;
 
+  objinfo.base_addr = 0;
   objinfo.public_rw_ptr = (som_PTR) phdr->p_vaddr;
   objinfo.private_rw_ptr = (som_PTR) phdr->p_vaddr;
   objinfo.rw_size = phdr->p_memsz;
