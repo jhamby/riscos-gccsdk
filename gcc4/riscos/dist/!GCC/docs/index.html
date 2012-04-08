@@ -120,7 +120,7 @@ as this is more cross-platform compatible. For example:
 
 <h5>1.3.1. SharedCLibrary</h5>
 
-<p>By default <a href="libunixlib">UnixLib</a> is used as runtime library.  In case it is important to use RISC&nbsp;OS' <a href="libscl">SharedCLibrary</a> and at expense of a much more reduced API, you can do that by specifying the switch -mlibscl at compile and link time. The linker will produce an Absolute (filetype &amp;FF8) file having an AIF header straight away instead of producing an ELF executable (filetype &amp;E1F):
+<p>By default <a href="libunixlib">UnixLib</a> is used as runtime library.  In case it is important to use RISC&nbsp;OS' <a href="SharedCLibrary">SharedCLibrary</a> and at expense of a much more reduced API, you can do that by specifying the switch -mlibscl at compile and link time. The linker will produce an Absolute (filetype &amp;FF8) file having an AIF header straight away instead of producing an ELF executable (filetype &amp;E1F):
 
 <pre>
    *gcc -mlibscl -o file.o -c file.c
@@ -294,7 +294,7 @@ The counters for each sample point are 16 bits wide which means that each can co
   <dd>Makes that floating point (FP) ARM instructions will be used in the generated code.
 </dl>
 
-<p>In the RISC&nbsp;OS port, switches -msoft-float and -mhard-float are mutually exclusive.
+<p>The -msoft-float and -mhard-float switches are mutually exclusive.
 
 <h5>1.4.3. RISC&nbsp;OS specific switches</h5>
 
@@ -336,11 +336,8 @@ The counters for each sample point are 16 bits wide which means that each can co
 <ul>
   <li>Softfloat with shared UnixLib as runtime library: default configuration.
   <li>Softfloat with static UnixLib as runtime library: use '-static' switch when linking.
-  <li>Hardfloat with static UnixLib as runtime library: use '-mhard-float' when compiling and '-mhard-float -static' when linking.
   <li>Hardfloat with SharedCLibrary as runtime library: use '-mlibscl' when compiling and '-mlibscl' when linking. When creating a RISC&nbsp;OS module you specify '-mmodule' instead for both complication and linking.
 </ul>
-
-<p>In a cross-compile environment you can have "hardfloat with shared UnixLib as runtime library" configuration as well but seen that softfloat configuration has significant advantages for floating point intensive code, this is not relevant and not included in the native RISC&nbsp;OS release.
 
 <h4>1.6. Predefines</h4>
 
@@ -407,7 +404,7 @@ using_unixlib:
   <li>Assembler code
       <p>As the object format is ELF you need to make use of an assembler outputing ELF. There are two options:
          <ul>
-            <li>You use <a href="asasm">asasm</a> (previously known as 'as' which was originally written by Niklas Röjemo).  'asasm' got significantly updated to behave more like Acorn objasm and will by default output ELF object format.
+            <li>You use <a href="asasm">asasm</a> (previously known as 'as' which was originally written by Niklas Röjemo).  'asasm' is designed to be Acorn objasm compatible and will by default output ELF object format.
             <li>You use <a href="gas/index.html">GNU assembler as</a> but this means that your assembler code needs to be tuned for 'gas' assembler syntax.
          </ul>
 
@@ -620,7 +617,7 @@ WSSize		:
 <p>More details on the changes made in particular areas can be found in:
 <ul>
   <li><a href="libunixlib/ChangeLog">UnixLib ChangeLog</a>
-  <li><a href="libscl/ChangeLog">SharedCLibrary ChangeLog</a>
+  <li><a href="SharedCLibrary/ChangeLog-SCL">SharedCLibrary ChangeLog</a>
   <li><a href="asasm/ChangeLog">asasm ChangeLog</a>
   <li><a href="cmunge/History">CMunge official history</a> and its <a href="cmunge/GCCSDK-CHANGES">specific GCCSDK changes</a> which haven't made in an official release yet.
   <li><a href="elf2aif/ChangeLog">elf2aif ChangeLog</a>
@@ -642,7 +639,7 @@ WSSize		:
 <p>Runtime documentation:
 <ul>
   <li><a href="libunixlib">UnixLib</a>: the default runtime library used when compiling programs with GCC. The UnixLib's intend is to provide, as much as possible, a fully POSIX-compatible runtime library for RISC&nbsp;OS in order to compile and run most (but not all) POSIX-compatible code that avoids OS specific code.
-  <li><a href="libscl">SharedCLibrary</a>: this is an alternative runtime library which is using the SharedCLibrary RISC&nbsp;OS module.  It has the advantage that those applications are usually smaller in size but does not have a rich API as UnixLib. When building modules, this is the only runtime library you can use.
+  <li><a href="SharedCLibrary">SharedCLibrary</a>: this is an alternative runtime library which is using the SharedCLibrary RISC&nbsp;OS module.  It has the advantage that those applications are usually smaller in size but does not have a rich API as UnixLib. When building modules, this is the only runtime library you can use.
 </ul>
 
 <p>Shared library support on RISC&nbsp;OS:
@@ -671,7 +668,7 @@ WSSize		:
 <p>This port of GCC is:
 <pre>
 Copyright (c) 1996, 1997, 1998, 1999, 2000, 2001 Nick Burrett
-Copyright (c) 2002-2011 GCCSDK Developers
+Copyright (c) 2002-2012 GCCSDK Developers
 </pre>
 
 <p>The GCCSDK releases made by the GCCSDK Developers consists of several binaries and sources which do not necessary have the same licenses.  The following overview can help to identify those licenses more easily but is in no way an authoritative statement on behalf of the GCCSDK Developers:
@@ -683,7 +680,7 @@ Copyright (c) 2002-2011 GCCSDK Developers
   <li>gcc (and all its associated files) : See <a href="gcc/gcc/index.html">its manual</a>.
   <li>ln : See <a href="ln/COPYING">!GCC.docs.ln.COPYING</a>.
   <li>mkresfs : See <a href="mkresfs/COPYING">!GCC.docs.mkresfs.COPYING</a>.
-  <li>libscl : See <a href="libscl/COPYING">!GCC.docs.libscl.COPYING</a>.
+  <li>SharedCLibrary (aka libscl) : See <a href="SharedCLibrary/COPYING">!GCC.docs.SharedCLibrary.COPYING</a>.
   <li>UnixLib : See <a href="libunixlib/COPYING">!GCC.docs.libunixlib.COPYING</a>.
 </ul>
 
@@ -695,15 +692,13 @@ Copyright (c) 2002-2011 GCCSDK Developers
 <ul>
   <li>John Tytgat - Release management, module support, multilib, libscl integration and allround GCCSDK hacking.
   <li>Lee Noar - Shared library development including ELF loader.
-  <li>Peter Naulls - UnixLib (all areas, especially glibc compatibility).
-  <li>Alex Waugh - UnixLib (especially signals, pthreads, file handling).
 </ul>
 
 <p>An enormous amount of porting and testing work was done by Nick Burrett. Without his past contribution GCCSDK wouldn't exist.
 
 <p>The following people have also made contributions over the last four years (in alphabetic order) :
 
-<p>Ben Avison, John-Mark Bell, Stefan Bellon, Alan Buckley, James Bursa, Steve Ellacott, Rich Hudson, Rob Kendrick, Jeffrey Lee, Adrian Lees, Christian Ludlam, Alex Macfarlane Smith, Theo Markettos, David Marston, Philip Pemberton, Graham Shaw, Tony van der Hoff, Simon Wilson, Martin Wuerthner.
+<p>Ben Avison, John-Mark Bell, Stefan Bellon, Alan Buckley, James Bursa, Steve Ellacott, Rich Hudson, Rob Kendrick, Jeffrey Lee, Adrian Lees, Christian Ludlam, Peter Naulls, Alex Macfarlane Smith, Theo Markettos, David Marston, Philip Pemberton, Graham Shaw, Tony van der Hoff, Alex Waugh, Simon Wilson, Martin Wuerthner.
 
 <p>Special thanks to the following people having written programs which are used in the GCCSDK project :
 <ul>
