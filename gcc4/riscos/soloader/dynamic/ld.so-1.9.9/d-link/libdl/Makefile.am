@@ -18,4 +18,6 @@ install-data-hook:
         else
 	$(LN) -s -f libdl/1/9/9/so $(prefix)/lib/libdl.so,1c8
 	$(LN) -s -f libdl/1/9/9/so $(prefix)/lib/libdl.so.1,1c8
+	test -f $(prefix)/lib/libdl.1.9.9.so && mv $(prefix)/lib/libdl.1.9.9.so $(prefix)/lib/libdl.1.9.9.so,e1f
+	test -f $(prefix)/lib/libdl.a && rm $(prefix)/lib/libdl.a
         endif

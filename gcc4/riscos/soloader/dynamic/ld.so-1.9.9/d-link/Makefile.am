@@ -59,4 +59,5 @@ install-data-hook:
 	ln -s -f ld-1.9.9.so $(prefix)/lib/ld-riscos.so.1
         else
 	$(LN) -s -f ld-1/9/9/so $(prefix)/lib/ld-riscos.so.1,1c8
+	test -f $(prefix)/lib/ld-1.9.9.so && mv $(prefix)/lib/ld-1.9.9.so $(prefix)/lib/ld-1.9.9.so,e1f
         endif
