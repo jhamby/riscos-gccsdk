@@ -20,7 +20,9 @@ Major changes:
     - Support for C++ when using SharedCLibrary (including module code).
     - SharedCLibrary stubs have now network support.
     Note that SharedCLibrary stub code remains (L)GPL free (r4991).
-  - asasm: significant set of fixes to improve ObjAsm compatibility.
+  - asasm: significant set of fixes to improve ObjAsm compatibility.  Now
+    able to be used to build ROOL RISC OS 5 IOMD and IYONIX branches.
+  - Introduction of abi based versioning of shared libraries.
 
 Bug fixes and other improvements:
   - GCC: avoid code generation resulting in stack corruption (r4656).
@@ -56,6 +58,7 @@ Bug fixes and other improvements:
   - UnixLib: getcwd: fix buffer overflow (r5408).
   - UnixLib/SCL: support SCL's __USE_FILE_OFFSET64 and __USE_LARGEFILE64 API
     (r5405, r5489, r5588).
+  - UnixLib: support writing symlink files (r5578).
   - Shared Object Manager: Reliability fixes (r4437).  SOManager module
     version is now 2.03.
   - elf2aif: ELF flags test fix (r4436)
