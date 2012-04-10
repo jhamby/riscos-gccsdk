@@ -1,3 +1,11 @@
+Tue Apr 10 01:59:38 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* som_os_swis.h (ddeutils_get_cl_size): Change return type into size_t.
+	* som_runcom.c (command_run): Minor optimisation concerning dde
+	handling.  Call OS_FSControl,2 before loading ELF data in
+	application memory and introduce a point of no return for error
+	reporting.  Solves bug #224.
+
 Sun Apr  8 19:01:47 BST 2012  Lee Noar  <leenoar@sky.com>
 
 	* som_runcom.c(register_client): Fix uninitialised member

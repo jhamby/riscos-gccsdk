@@ -1,6 +1,6 @@
 /* som_runcom.c
  *
- * Copyright 2007-2011 GCCSDK Developers
+ * Copyright 2007-2012 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -509,6 +509,7 @@ command_run (const char *arg_string, int argc)
   _kernel_oserror *err;
   runcom_state *state;
   bool dl_already_loaded = false;
+  bool ponr_reached = false; /* Point of no return reached.  */
 
   if ((err = som_alloc (sizeof (runcom_state),
                         (void **) (void *) &state)) != NULL)
@@ -518,18 +519,19 @@ command_run (const char *arg_string, int argc)
 
   /* Make a copy of the command line, taking the DDEUtils CL into
      account.  */
-  int dde_cl_len = ddeutils_get_cl_size ();
+  size_t dde_cl_len = ddeutils_get_cl_size ();
 
   /* Allow for space and terminator.  */
-  if ((err = som_alloc (dde_cl_len + strlen (arg_string) + 2,
+  size_t arg_len = strlen (arg_string);
+  if ((err = som_alloc (arg_len + 1 + dde_cl_len + 1,
 			(void **) (void *) &state->elf_prog_name)) != NULL)
     goto error;
-  strcpy (state->elf_prog_name, arg_string);
+  memcpy (state->elf_prog_name, arg_string, arg_len + 1);
 
-  if (dde_cl_len > 0)
+  if (dde_cl_len)
     {
-      strcat (state->elf_prog_name, " ");
-      ddeutils_get_cl (state->elf_prog_name + strlen (state->elf_prog_name));
+      state->elf_prog_name[arg_len] = ' ';
+      ddeutils_get_cl (state->elf_prog_name + arg_len + 1);
     }
 
   state->elf_prog_args = strchr (state->elf_prog_name, ' ');
@@ -564,15 +566,30 @@ command_run (const char *arg_string, int argc)
       goto error;
     }
 
-  if ((err = elffile_load (&state->elf_prog, NULL, true)) != NULL)
-    goto error;
-
   /* If the DDEUtils module is loaded, then pass the arguments via the
      DDEUtils command line. If it's not loaded, then do nothing as
-     OS_FSControl,2 has already setup the OS environment for both command
+     OS_FSControl,2 will setup the OS environment for both command
      and args.  */
   if (state->ddeutils_is_present)
     ddeutils_set_cl (state->elf_prog_args);
+
+  /* We're about to reach our point-of-no-return.  After having called
+     os_start_app() successfully, we have to either call som_start_app(),
+     either call OS_GenerateError (without X bit set).
+     But for sure don't return from this routine anymore (even for an error
+     message) as otherwise we get "Not a heap block: FileSwitch FreeArea" error
+     (at least on RISC OS 6.06).  */
+  
+  /* If the DDEUtils module is loaded, then we use that for the arguments and
+     just pass the ELF file name to the OS.  */
+  if ((err = os_start_app (state->ddeutils_is_present ? "" : state->elf_prog_args,
+			   elffile_entry_point (&state->elf_prog),
+			   state->elf_prog_name)) != NULL)
+    goto error;
+  ponr_reached = true;
+
+  if ((err = elffile_load (&state->elf_prog, NULL, true)) != NULL)
+    goto error;
 
   som_PTR entry_point;
   if (state->elf_prog.dynamic_seg == NULL)
@@ -642,19 +659,6 @@ command_run (const char *arg_string, int argc)
 
   elffile_close (&state->elf_prog);
 
-  /* If the DDEUtils module is loaded, then we use that for the arguments and
-     just pass the ELF file name to the OS.  */
-  if ((err = os_start_app (state->ddeutils_is_present ? "" : state->elf_prog_args,
-			   elffile_entry_point (&state->elf_prog),
-			   state->elf_prog_name)) != NULL)
-    goto error;
-
-  /* Make sure that after calling os_start_app() successfully, we have to
-     either call som_start_app(), either call OS_GenerateError.  But for sure
-     don't return from this routine anymore (even for an error message) as
-     otherwise we get "Not a heap block: FileSwitch FreeArea" error
-     (at least on RISC OS 6.06).  */
-
   /* Finished with command line.  */
   som_free (state->elf_prog_name);
 
@@ -663,8 +667,7 @@ command_run (const char *arg_string, int argc)
   som_start_app (entry_point, ram_limit, SOM_RUN_STACK_SIZE);
 
   /* Should never get to here.  */
-
-  return NULL;
+  __builtin_unreachable();
 
 error:
   /* It's possible that an error may occur after the Dynamic Loader has
@@ -673,7 +676,7 @@ error:
      used to store the DL needs to be freed or else it will be lost.
      Note that the module finalisation routine will not free it as the
      DL is not linked into the list.  */
-  if (dl_already_loaded == false && state->elf_loader.base_addr != NULL)
+  if (!dl_already_loaded && state->elf_loader.base_addr != NULL)
     som_free (state->elf_loader.base_addr);
 
   if (state->client_is_registered)
@@ -686,6 +689,18 @@ error:
   elffile_close (&state->elf_loader);
 
   som_free (state);
+
+  if (ponr_reached)
+    {
+      asm volatile ("MOV	r0, %[err];\n\t"
+		    "SWI	%[os_generateerror];\n\t"
+		    : /* No output.  */
+		    : [err] "r" (err),
+		      [os_generateerror] "i" (OS_GenerateError) /* Note: no X bit set.  */
+		    : "r0", "lr", "cc");
+      /* Should never get to here.  */
+      __builtin_unreachable();
+    }
 
   return err;
 }

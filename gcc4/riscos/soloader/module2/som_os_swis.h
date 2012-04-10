@@ -2,7 +2,7 @@
  *
  * Inline assembler versions of some common OS SWIs.
  *
- * Copyright 2007 GCCSDK Developers
+ * Copyright 2007, 2011, 2012 GCCSDK Developers
  * Written by Lee Noar
  */
 
@@ -287,10 +287,10 @@ ddeutils_is_present (void)
   return res;
 }
 
-static inline int
+static inline size_t
 ddeutils_get_cl_size (void)
 {
-  int res;
+  size_t res;
 
   /* According to Desktop Tools P.192, doesn't return any errors.  */
   asm volatile ("SWI	%[ddeutils_get_cl_size];\n\t"
