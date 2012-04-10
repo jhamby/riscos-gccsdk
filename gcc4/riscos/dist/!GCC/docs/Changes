@@ -59,8 +59,8 @@ Bug fixes and other improvements:
   - UnixLib/SCL: support SCL's __USE_FILE_OFFSET64 and __USE_LARGEFILE64 API
     (r5405, r5489, r5588).
   - UnixLib: support writing symlink files (r5578).
-  - Shared Object Manager: Reliability fixes (r4437).  SOManager module
-    version is now 2.03.
+  - Shared Object Manager: Reliability fixes (r4437, r5704 bug #224).  SOManager
+    module version is now 2.03.
   - elf2aif: ELF flags test fix (r4436)
   - CMunge: protection against bogus help-string entries.
   - Examples: Fix linker error (r4394)
