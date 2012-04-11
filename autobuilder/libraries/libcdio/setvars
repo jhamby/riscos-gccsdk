@@ -1,3 +1,3 @@
 AB_INSTALL=yes
 
-AB_CONFLAGS='--without-cd-drive --without-cd-info'
+AB_CONFLAGS='--without-cd-drive --without-cd-info --without-cd-read --without-iso-read --without-iso-info'
