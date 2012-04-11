@@ -1,0 +1,7 @@
+| !Boot file for Snes9x
+
+Set Snes9x$Dir <Obey$Dir>
+Set File$Type_a8c snesrom
+Set Alias$@RunType_a8c Run <Snes9x$Dir>.!Run %%*0
+Iconsprites <Snes9x$Dir>.!Sprites
+

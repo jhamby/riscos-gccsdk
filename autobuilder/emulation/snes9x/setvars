@@ -1,0 +1,33 @@
+
+AB_GIT=https://github.com/domaemon/snes9x-sdl.git
+
+AB_PVERSION=1.53
+
+export snes9x_cv_option_o3="yes"
+export snes9x_cv_option_omit_frame_pointer="yes"
+export snes9x_cv_option_no_exceptions="yes"
+export snes9x_cv_option_no_rtti="yes"
+export snes9x_cv_option_pedantic="yes"
+export snes9x_cv_option_Wall="yes"
+export snes9x_cv_option_W="yes"
+export snes9x_cv_option_Wno_unused_parameter="yes"
+export snes9x_ptr_is_int="yes"
+export snes9x_sar_int8="yes"
+export snes9x_sar_int16="yes"
+export snes9x_sar_int32="yes"
+export snes9x_sar_int64="yes"
+
+cd sdl
+
+ab_package() {
+
+  ab_create_app Snes9x Apps/Emulation
+  ab_makerun $S/snes9x-sdl snes9x
+    
+  cp -av $S/../docs $S/docs $S/CREDITS $A
+  
+  $AB_HOME/add-riscpkg -unixlib -package Snes9x -copyrightfile ../docs/gpl-2.0.txt
+}
+
+export LIBS='-lz'
+
