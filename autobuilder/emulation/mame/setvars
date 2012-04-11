@@ -1,0 +1,11 @@
+
+AB_URL=http://ppa.launchpad.net/c.falco/mame/ubuntu/pool/main/m/mame/mame_0.145.orig.tar.bz2
+
+ab_package () {
+  ab_create_app Mame Apps/Emulation
+  ab_makerun $S/tiny mame
+
+  cp -av $S/docs $S/artwork $S/hash $S/hlsl $S/whatsnew_0145.txt $A
+
+  $AB_HOME/add-riscpkg -unixlib -name Mame -copyrightfile $S/docs/license.txt
+}
