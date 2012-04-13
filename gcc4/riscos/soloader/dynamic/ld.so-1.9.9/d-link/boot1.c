@@ -427,7 +427,7 @@ void _dl_boot(int args)
       }
     }
 
-  if (goof)    _dl_exit(14);
+  if (goof)    DL_INTERNAL(_dl_exit)(14);
 
   /* OK, at this point we have a crude malloc capability.  Start to build
      the tables of the modules that are required for this beast to run.
@@ -635,7 +635,7 @@ void _dl_boot(int args)
 	    else {
 	      _dl_fdprintf(2, "%s: can't load library '%s'\n",
 			   _dl_progname, str);
-	      _dl_exit(15);
+	      DL_INTERNAL(_dl_exit)(15);
 	    }
 	  } else {
 	    if (_dl_trace_loaded_objects && !tpnt1->usage_count) {
@@ -712,7 +712,7 @@ void _dl_boot(int args)
 		else {
 		  _dl_fdprintf(2, "%s: can't load library '%s'\n",
 			       _dl_progname, cp2);
-		  _dl_exit(15);
+		  DL_INTERNAL(_dl_exit)(15);
 		}
 	      } else {
 		if (_dl_trace_loaded_objects && !tpnt1->usage_count)
@@ -777,7 +777,7 @@ void _dl_boot(int args)
 	    {
 	      _dl_fdprintf(2, "%s: can't load library '%s'\n",
 			   _dl_progname, lpnt);
-	      _dl_exit(16);
+	      DL_INTERNAL(_dl_exit)(16);
 	    }
 	  }
 	  else
@@ -804,13 +804,13 @@ void _dl_boot(int args)
 #endif
 
   if (_dl_generate_runtime_array())
-    _dl_exit(1);
+    DL_INTERNAL(_dl_exit)(1);
 
   /* ldd uses uses this.  I am not sure how you pick up the other flags */
   if(_dl_trace_loaded_objects)
     {
       _dl_warn = _dl_getenv("LD_WARN", envp);
-      if (!_dl_warn) _dl_exit(0);
+      if (!_dl_warn) DL_INTERNAL(_dl_exit)(0);
     }
 
   /*
@@ -863,7 +863,7 @@ void _dl_boot(int args)
   if (_dl_symbol_tables)
     goof += _dl_copy_fixups(_dl_symbol_tables);
 
-  if(goof || _dl_trace_loaded_objects) _dl_exit(0);
+  if(goof || _dl_trace_loaded_objects) DL_INTERNAL(_dl_exit)(0);
 
   /* OK, at this point things are pretty much ready to run.  Now we
      need to touch up a few items that are required, and then
@@ -973,7 +973,7 @@ int _dl_fixup(struct elf_resolve * tpnt)
   if(tpnt->dynamic_info[DT_REL]) {
 #ifdef ELF_USES_RELOCA
     _dl_fdprintf(2, "%s: can't handle REL relocation records\n", _dl_progname);
-    _dl_exit(17);
+    DL_INTERNAL(_dl_exit)(17);
 #else
     if (tpnt->init_flag & RELOCS_DONE) return goof;
     tpnt->init_flag |= RELOCS_DONE;
@@ -991,7 +991,7 @@ int _dl_fixup(struct elf_resolve * tpnt)
 					     tpnt->dynamic_info[DT_RELASZ], 0);
 #else
     _dl_fdprintf(2, "%s: can't handle RELA relocation records\n", _dl_progname);
-    _dl_exit(18);
+    DL_INTERNAL(_dl_exit)(18);
 #endif
   }
 

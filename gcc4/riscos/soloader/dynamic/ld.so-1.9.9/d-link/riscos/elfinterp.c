@@ -101,7 +101,7 @@ _dl_riscos_resolver(struct elf_resolve *tpnt, int reloc_entry)
   {
     _dl_fdprintf(2, "%s: Incorrect relocation type in jump relocations\n",
 		 _dl_progname);
-    _dl_exit(1);
+    DL_INTERNAL(_dl_exit)(1);
   }
 
   objinfo = get_runtime_data (tpnt->loadaddr);
@@ -126,7 +126,7 @@ _dl_riscos_resolver(struct elf_resolve *tpnt, int reloc_entry)
   if(!new_addr) {
     _dl_fdprintf(2, "%s: can't resolve symbol '%s'\n",
 	       _dl_progname, strtab + symtab[symtab_index].st_name);
-    _dl_exit(1);
+    DL_INTERNAL(_dl_exit)(1);
   }
   *got_addr = new_addr;
 
@@ -184,7 +184,7 @@ void _dl_parse_lazy_relocation_information(struct elf_resolve * tpnt, int rel_ad
 #endif
       if(symtab_index) _dl_fdprintf(2, "'%s'\n",
 				  strtab + symtab[symtab_index].st_name);
-      _dl_exit(1);
+      DL_INTERNAL(_dl_exit)(1);
     }
   }
 }
@@ -279,7 +279,7 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from client. */
 	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from global list - clean up. */
 
-	  _dl_exit(1);
+	  DL_INTERNAL(_dl_exit)(1);
 	}
 
 	client_reloc_addr = (unsigned int *)(((unsigned int)reloc_addr -
@@ -339,7 +339,7 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from client. */
 	  _dl_deregister_lib((unsigned int)tpnt->loadaddr); /* Deregister from global list - clean up. */
 
-	  _dl_exit(1);
+	  DL_INTERNAL(_dl_exit)(1);
 	}
 
 	/*
@@ -391,7 +391,7 @@ int _dl_parse_relocation_information(struct elf_resolve * tpnt, int rel_addr,
 #endif
       if (symtab_index)
 	_dl_fdprintf(2, "'%s'\n", strtab + symtab[symtab_index].st_name);
-      _dl_exit(1);
+      DL_INTERNAL(_dl_exit)(1);
     }
   }
 

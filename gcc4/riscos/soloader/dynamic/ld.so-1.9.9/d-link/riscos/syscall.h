@@ -1,5 +1,7 @@
 #include <sys/elf.h>
 
+#define DL_INTERNAL(x) x##_internal
+
 #define SOM_SWI_CHUNK_BASE	0x58580
 #define	SWI_X_BIT		0x20000
 #define XSOM_ALLOC		(SOM_SWI_CHUNK_BASE + SWI_X_BIT + 0x0)
@@ -319,12 +321,13 @@ _dl_exit (int status)
 		"	.word	0x58454241\n"
 		"1:\n"
 		"	.word	0\n"
-		"	.asciz	\"Dynamic Loader error\"\n"
+		"	.asciz	\"Dynamic Linker error\"\n"
 		"	.align\n"
 		: /* no outputs */
 		: [status] "r" (status),
 		  [XSOM_DeregisterClient] "i" (XSOM_DEREGISTER_CLIENT),
 		  [OS_Exit] "i" (0x11));
+  __builtin_unreachable();
 }
 
 static inline void
@@ -338,6 +341,7 @@ _dl_generate_error (const os_error *err)
 		  [XSOM_DeregisterClient] "i" (XSOM_DEREGISTER_CLIENT),
 		  [OS_GenerateError] "i" (0x2b)
 		: "r0", "cc");
+  __builtin_unreachable();
 }
 
 static inline void
@@ -625,3 +629,5 @@ get_runtime_data (void *load_addr)
   return (struct som_rt_elem *)client_workspace[rt_workspace_RUNTIME_ARRAY]
 			     + library_workspace[rt_workspace_OBJECT_INDEX];
 }
+
+extern void _dl_exit_internal (int status);
