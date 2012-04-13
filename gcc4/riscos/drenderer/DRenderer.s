@@ -168,8 +168,8 @@ StrFlg_OverBlock	*	4	; block on stream overflow, else truncate
 DMACB_Header		*	192
 
 ; Processor flags
-PFlag_V			*	(1<<28)
-PFlag_C			*	(1<<29)
+PFlag_V                 *       (1<<28)
+PFlag_C                 *       (1<<29)
 PFlag_IRQ		*	(1<<27)
 PFlag_FIRQ		*	(1<<26)
 PMode_User		*	0
@@ -427,10 +427,10 @@ FilingSystemBlock
 
 FSName
 	=	"DRender",0
-	ALIGN
+        ALIGN
 FSStartup
 	=	0
-	ALIGN
+        ALIGN
 FSDfltSaveName
 	=	"DRender:",0
 	ALIGN
@@ -521,13 +521,13 @@ Error_Channels16
 
 TitleString
 	=	"DigitalRenderer",0
-	ALIGN
+        ALIGN
 
 HelpString
-	=	"DigitalRenderer",9,"0.54 GPL (20 Apr 2011)",13,10
+	=	"DigitalRenderer",9,"0.55 GPL (13 Apr 2012)",13,10
 	=	"Provides a means to playback samples from applications."
-	=	" © 1997-2011 Andreas Dehmel (modified by Christopher Martin)",0
-	ALIGN
+	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
+        ALIGN
 
 HelpTable
 	=	"DRenderOff",0
@@ -552,7 +552,7 @@ HelpTable
 
 Help_DRoff
 	=	"Switch off DigitalRenderer",0
-	ALIGN
+        ALIGN
 Help_DRdefault
 	=	"Set the defaults or print the current ones if no parameters given",13,10,9
 	=	"-c #: number of channels (1,2,4,8)",13,10,9
@@ -561,7 +561,7 @@ Help_DRdefault
 	=	"-q #: sample frequency (for 16bit sound, zero to disable)",13,10,9
 	=	"-s #: buffer size",13,10,9
 	=	"-n #: number of buffers ( > 1!)",0
-	ALIGN
+        ALIGN
 Help_DRstatus
 	=	"Show current status",0
 	ALIGN
@@ -700,6 +700,7 @@ SWIJumpTableStart
 	B	SWIActivateAuto
 	B	SWISampleFormat
 SWIJumpTableEnd
+
 SWI_NotSupported
 	ADRL	R0,Error_BadSWI
 	B	ModuleReturnError
@@ -854,7 +855,7 @@ SWIActMemory
 	B	ModuleReturnError
 SWIActInstall
 	ADD	R13,R13,#4
-	LDMIA	R13,{R1-R5,R14}
+        LDMIA   R13!,{R1-R5,R14}
 	ADRL	R0,Error_Install
 	B	ModuleReturnError
 
@@ -2993,7 +2994,7 @@ FSEgbpb_read
 
 LogarithmicTable
 	BIN	$LogTableFileName	; This variable must be defined when the assembler is invoked.
-	ALIGN				; It specifies the name of the file that holds the binary logtable data.
+        ALIGN                           ; It specifies the name of the file that holds the binary logtable data.
 					; A logtable data file can be prepared using utility 'makelogtable'.
 					; Example:
 					; 	gcc -mlibscl -o makelogtable makelogtable.c
