@@ -1,0 +1,11 @@
+
+AB_URL=http://www.libsdl.org/projects/quake/src/sdlquake-1.0.9.tar.gz
+
+ab_package () {
+  ab_create_app SDLQuake Apps/Games
+  ab_makerun $S/sdlquake sdlquake
+
+  cp -av $S/docs $S/README.SDL $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}

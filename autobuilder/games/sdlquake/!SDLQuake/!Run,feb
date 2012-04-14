@@ -1,0 +1,5 @@
+WIMPSLOT
+
+Set SDLQuake$Dir <Obey$Dir>
+
+Run <SDLQuake$Dir>.sdlquake -noudp -nocdaudio -winsize 800 600 -sndspeed 44100 -fullscreen >null: 2><Obey$Dir>.stderr
