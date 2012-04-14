@@ -11,19 +11,29 @@
  #include <sys/stat.h>
  #include <sys/wait.h>
  #include <sys/mman.h>
+@@ -27,7 +27,7 @@
+
+ int noconinput = 0;
+
+-char *basedir = ".";
++char *basedir = "<SDLQuake$Dir>";
+-char *cachedir = "/tmp";
++char *cachedir = "";
+
+ cvar_t  sys_linerefresh = {"sys_linerefresh","0"};// set for entity display
 @@ -374,6 +376,8 @@
  	extern int recording;
  	static int frame;
- 
+
 +	int j;
 +
  	moncontrol(0);
- 
+
  //	signal(SIGFPE, floating_point_exception_handler);
 @@ -383,7 +387,17 @@
          parms.argc = com_argc;
          parms.argv = com_argv;
- 
+
 -	parms.memsize = 8*1024*1024;
 +        j = COM_CheckParm("-mem");
 +        if (j) {
