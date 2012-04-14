@@ -205,7 +205,7 @@ cross-gdb-done: cross-gdb-built
 
 clean: $(GCCSDK_INTERNAL_GETENV)
 clean-done:
-	-rm -rf $(BUILDDIR) $(BUILDSTEPSDIR) $(SRCDIR) $(PREFIX_CROSS) $(PREFIX_RONATIVE)
+	-rm -rf $(BUILDDIR) $(BUILDSTEPSDIR) $(SRCDIR) $(GCCSDK_CROSS_PREFIX) $(GCCSDK_RISCOS_PREFIX)
 	-svn revert -R $(SRCORIGDIR)/gcc-trunk
 	-svn status $(SRCORIGDIR)/gcc-trunk | grep -E "^?" | cut -b 9- | xargs rm -rf
 	-svn status --no-ignore | grep "^I       " | cut -b 9- | grep -v -E "^(gccsdk-params|srcdir\.orig|release-area)$$" | xargs rm -rf
@@ -213,12 +213,12 @@ clean-done:
 # Return to a state for doing a full fresh cross build (using the current binutils/gcc sources).
 clean-cross: $(GCCSDK_INTERNAL_GETENV)
 clean-cross-done:
-	-rm -rf $(BUILDSTEPSDIR)/cross-* $(BUILDDIR)/cross* $(PREFIX_CROSS)
+	-rm -rf $(BUILDSTEPSDIR)/cross-* $(BUILDDIR)/cross* $(GCCSDK_CROSS_PREFIX)
 
 # Return to a state for doing a full fresh ronative build (using the current binutils/gcc sources).
 clean-ronative: $(GCCSDK_INTERNAL_GETENV)
 clean-ronative-done:
-	-rm -rf $(BUILDSTEPSDIR)/ronative-* $(BUILDDIR)/ronative* $(PREFIX_RONATIVE)
+	-rm -rf $(BUILDSTEPSDIR)/ronative-* $(BUILDDIR)/ronative* $(GCCSDK_RISCOS_PREFIX)
 
 distclean: $(GCCSDK_INTERNAL_GETENV)
 distclean-done: clean-done
