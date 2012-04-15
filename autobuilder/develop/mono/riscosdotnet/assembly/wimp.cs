@@ -55,6 +55,19 @@ namespace riscos
 			SaveFP = 1 << 24
 		}
 
+		public enum Furniture :int
+		{
+			Whole,
+			Back,
+			Close,
+			Title,
+			Toggle,
+			VScroll,
+			Size,
+			HScroll,
+			Iconise
+		}
+
 		public static class WindowStackPosition
 		{
 			public const uint Top = 0xffffffff;
@@ -497,12 +510,8 @@ namespace riscos
 		[StructLayout(LayoutKind.Sequential)]
 		public struct WindowBlock
 		{
-			public int VisibleMinX;
-			public int VisibleMinY;
-			public int VisibleMaxX;
-			public int VisibleMaxY;
-			public int ScrollXOffset;
-			public int ScrollYOffset;
+			public NativeOS.Rect Visible;
+			public NativeOS.Coord Scroll;
 			public uint BehindWindow;
 			public uint Flags;
 			public byte TitleFg;
@@ -513,10 +522,7 @@ namespace riscos
 			public byte ScrollBarInnerColour;
 			public byte TitleFocusColour;
 			public byte ExtraFlags;
-			public int WorkAreaMinX;
-			public int WorkAreaMinY;
-			public int WorkAreaMaxX;
-			public int WorkAreaMaxY;
+			public NativeOS.Rect WorkArea;
 			public uint TitleFlags;
 			public uint WorkAreaButtonFlags;
 			public IntPtr SpriteArea;
@@ -529,12 +535,12 @@ namespace riscos
 
 			public WindowBlock (IconBuffer title)
 			{
-				VisibleMinX = 0;
-				VisibleMinY = 0;
-				VisibleMaxX = 0;
-				VisibleMaxY = 0;
-				ScrollXOffset = 0;
-				ScrollYOffset = 0;
+				Visible.MinX = 0;
+				Visible.MinY = 0;
+				Visible.MaxX = 0;
+				Visible.MaxY = 0;
+				Scroll.X = 0;
+				Scroll.Y = 0;
 				BehindWindow = WindowStackPosition.Top;
 				Flags = 0xff000042;
 				TitleFg = 7;
@@ -545,10 +551,10 @@ namespace riscos
 				ScrollBarInnerColour = 1;
 				TitleFocusColour = 12;
 				ExtraFlags = 0;
-				WorkAreaMinX = 0;
-				WorkAreaMinY = 0;
-				WorkAreaMaxX = 1000;
-				WorkAreaMaxY = 1000;
+				WorkArea.MinX = 0;
+				WorkArea.MinY = 0;
+				WorkArea.MaxX = 1000;
+				WorkArea.MaxY = 1000;
 				TitleFlags = 0x13d;
 				WorkAreaButtonFlags = 0;
 				SpriteArea = (IntPtr)1;
@@ -599,6 +605,32 @@ namespace riscos
 		{
 			public uint WindowHandle;
 			public uint IconHandle;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct WindowInfoBlock
+		{
+			public uint WindowHandle;
+			public WindowBlock WindowInfo;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct PointerBlock
+		{
+			public NativeOS.Rect Pos;
+			public uint Buttons;
+			public uint WindowHandle;
+			public uint IconHandle;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct CaretBlock
+		{
+			public uint WindowHandle;
+			public uint IconHandle;
+			public NativeOS.Coord Pos;
+			public int height;
+			public int index;
 		}
 	}
 }

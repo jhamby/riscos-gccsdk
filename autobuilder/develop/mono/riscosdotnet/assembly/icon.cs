@@ -136,7 +136,7 @@ namespace riscos
 										  data);
 				Data = data;
 				OS.ThrowOnError (NativeMethods.Wimp_CreateIcon (ref icon_block,
-										ref Handle));
+										out Handle));
 				Created = true;
 			}
 

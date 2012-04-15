@@ -90,10 +90,7 @@ namespace riscos
 
 				WindowBlock block = new WindowBlock (Title);
 
-				block.WorkAreaMinX = Extent.MinX;
-				block.WorkAreaMinY = Extent.MinY;
-				block.WorkAreaMaxX = Extent.MaxX;
-				block.WorkAreaMaxY = Extent.MaxY;
+				block.WorkArea = new NativeOS.Rect (Extent);
 
 				OS.ThrowOnError (NativeMethods.Wimp_CreateWindow (ref block, ref Handle));
 				WimpTask.AllWindows.Add (Handle, this);
@@ -136,7 +133,7 @@ namespace riscos
 									      scroll,
 									      behindWindow,
 									      windowFlags);
-				OS.ThrowOnError (NativeMethods.Wimp_OpenNestedWindow (ref block,
+				OS.ThrowOnError (NativeMethods.Wimp_OpenWindowNested (ref block,
 										      parentWindow,
 										      nestedFlags));
 			}
@@ -167,9 +164,9 @@ namespace riscos
 						    out uint nested)
 			{
 				block.WindowHandle = Handle;
-				OS.ThrowOnError (NativeMethods.Wimp_GetNestedWindowState (ref block,
-											  out parent,
-											  out nested));
+				OS.ThrowOnError (NativeMethods.Wimp_GetWindowStateAndNesting (ref block,
+											      out parent,
+											      out nested));
 			}
 
 			public Icon CreateIcon (OS.Rect boundingBox,
