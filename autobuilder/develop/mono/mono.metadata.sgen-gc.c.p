@@ -1,5 +1,5 @@
 --- mono/metadata/sgen-gc.c.orig	2011-12-19 21:10:25.000000000 +0000
-+++ mono/metadata/sgen-gc.c	2012-02-16 11:31:09.000000000 +0000
++++ mono/metadata/sgen-gc.c	2012-04-15 17:30:18.000000000 +0100
 @@ -2214,6 +2214,15 @@
  void*
  mono_sgen_alloc_os_memory_aligned (mword size, mword alignment, gboolean activate)
@@ -42,15 +42,16 @@
  	mono_sgen_bridge_processing_finish ();
  }
  
-@@ -3553,6 +3562,15 @@
+@@ -3553,6 +3562,16 @@
  mono_sgen_alloc_os_memory (size_t size, int activate)
  {
  	void *ptr;
 +#ifdef __riscos__
++	size_t alloc_size = (size + (pagesize - 1)) & ~(pagesize - 1);
++
 +	/* FIXME: Should we use a dynamic area? */
-+	size += pagesize - 1;
-+	size &= ~(pagesize - 1);
-+	if ((ptr = malloc (size)) != NULL)
++
++	if ((ptr = mono_riscos_memory_alloc (alloc_size)) != NULL)
 +	  memset (ptr, 0, size);
 +	else
 +	  printf("Warning: mono_sgen_alloc_os_memory returned NULL ptr\n");
@@ -58,7 +59,7 @@
  	unsigned long prot_flags = activate? MONO_MMAP_READ|MONO_MMAP_WRITE: MONO_MMAP_NONE;
  
  	prot_flags |= MONO_MMAP_PRIVATE | MONO_MMAP_ANON;
-@@ -3560,6 +3578,7 @@
+@@ -3560,6 +3579,7 @@
  	size &= ~(pagesize - 1);
  	ptr = mono_valloc (0, size, prot_flags);
  	/* FIXME: CAS */
@@ -66,12 +67,12 @@
  	total_alloc += size;
  	return ptr;
  }
-@@ -3570,11 +3589,15 @@
+@@ -3570,11 +3590,15 @@
  void
  mono_sgen_free_os_memory (void *addr, size_t size)
  {
 +#ifdef __riscos__
-+	free (addr);
++	mono_riscos_memory_free (addr);
 +#else
  	mono_vfree (addr, size);
  
@@ -82,7 +83,7 @@
  	total_alloc -= size;
  }
  
-@@ -5169,6 +5192,7 @@
+@@ -5169,6 +5193,7 @@
  void
  mono_sgen_wait_for_suspend_ack (int count)
  {
@@ -90,7 +91,7 @@
  	int i, result;
  
  	for (i = 0; i < count; ++i) {
-@@ -5178,6 +5202,7 @@
+@@ -5178,6 +5203,7 @@
  			}
  		}
  	}
@@ -98,7 +99,7 @@
  }
  
  static int
-@@ -5186,6 +5211,7 @@
+@@ -5186,6 +5212,7 @@
  	SgenThreadInfo *info;
  	int i, num_threads_died = 0;
  	int sleep_duration = -1;
@@ -106,7 +107,7 @@
  
  	for (;;) {
  		int restart_count = 0, restarted_count = 0;
-@@ -5268,6 +5294,7 @@
+@@ -5268,6 +5295,7 @@
  		mono_sgen_wait_for_suspend_ack (restart_count);
  #endif
  	}
@@ -114,7 +115,7 @@
  
  	return num_threads_died;
  }
-@@ -5378,7 +5405,9 @@
+@@ -5378,7 +5406,9 @@
  	TV_GETTIME (stop_world_time);
  	count = mono_sgen_thread_handshake (suspend_signal_num);
  	count -= restart_threads_until_none_in_managed_allocator ();
