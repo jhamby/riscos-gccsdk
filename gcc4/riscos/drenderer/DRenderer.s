@@ -52,9 +52,9 @@ MiniBufferSize		*	32
 
 			^	0
 Work_MagicWord		#	4
-Work_Channels		#	4
-Work_BuffSize		#	4
-Work_Period		#	4
+Work_Channels		#	4	; DO NOT RE-ORDER
+Work_BuffSize		#	4	; DO NOT RE-ORDER
+Work_Period		#	4	; DO NOT RE-ORDER
 Work_Buffer		#	4
 Work_State		#	4
 Work_OldChannels	#	4
@@ -285,6 +285,28 @@ off		SETA	-&$off
 	MEND
 
 
+; This is the general pattern to be followed when freeing RMA memory
+; RMA_Free
+; 	LDR	R2,[hook]
+; 	MOV	zero,#0
+; 	TEQ	R2,#0
+; 	STRNE	zero,[hook]	; In case of IRQ, ensure memory to be freed won't be used
+; 	MOV	R0,#7
+; 	SWINE	XOS_Module
+
+; This is the general pattern to be followed when allocating RMA memory
+; RMA_Alloc
+; 	LDR	R2,[hook]
+; 	MOV	zero,#0
+; 	TEQ	R2,#0
+; 	STRNE	zero,[hook]	; In case of IRQ, ensure memory to be freed won't be used
+; 	MOV	R0,#7
+; 	SWINE	XOS_Module	; Avoid RMA memory leaks! First, free any old block
+; 	MOV	R0,#6
+; 	SWI	XOS_Module
+; 	STRVC	R2,[hook]
+
+
 	AREA	Module,CODE,READONLY
 
 	ENTRY
@@ -370,11 +392,12 @@ FinalCode
 	BEQ	FCnonfatal		;if fatal free workspace
 	MOV	R12,R4
 	BL	DeregisterFilingSystem
-	MOV	R0,#7
 	LDR	R2,[R4]
-	SWI	XOS_Module
 	MOV	R0,#0
-	STR	R0,[R4]			;clear private word
+	TEQ	R2,#0
+	STRNE	R0,[R4]			;clear private word
+	MOV	R0,#7
+	SWINE	XOS_Module
 FCnonfatal
 	LDR	R14,[R13],#4
 	B	ModuleReturnOK
@@ -524,7 +547,7 @@ TitleString
         ALIGN
 
 HelpString
-	=	"DigitalRenderer",9,"0.55 GPL (13 Apr 2012)",13,10
+	=	"DigitalRenderer",9,"0.56 beta 1 GPL (17 Apr 2012)",13,10
 	=	"Provides a means to playback samples from applications."
 	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
         ALIGN
@@ -588,12 +611,12 @@ DisableRenderer
 	SWI	XOS_Find		;the external handle
 DisRenNoFile
 	LDR	R2,[R12,#Work_Buffer]
-	MOV	R0,#7
-	TEQ	R2,#0
-	SWINE	XOS_Module
 	MOV	R0,#0
-	STR	R0,[R12,#Work_Buffer]
+	TEQ	R2,#0
+	STRNE	R0,[R12,#Work_Buffer]	; In case of IRQ, ensure memory to be freed won't be used
 	STR	R0,[R12,#Work_State]
+	MOV	R0,#7
+	SWINE	XOS_Module
 	LDMIA	R13!,{R0-R3,R14}
 	B	ModuleReturnOK
 
@@ -661,14 +684,10 @@ ROCepilogue
 	LDR	R0,[R12,#Work_OldVolume]
 	SWI	XSound_Volume
 	LDR	R0,[R12,#Work_OldEnable]
-	SWI	XSound_Enable      ;again, enable is the last thing we do... [ Or is it?  -- CPM ]
-	; Debugging by CPM
-	; On RISC OS 5.16, it appears that the rate at which the linear handler is called is determined by
-	; the last setting of the sample rate while sound is enabled. That is, if one changes the sample
-	; rate while sound is turned off, then the linear handler interrupt seems to ignore the change.
-	; So we have to wait until the sound is enabled before setting the sample rate.
-	MOV	R0,#3
+	SWI	XSound_Enable      ;again, enable is the last thing we do ...
+    ;; ... except that on the Iyonix, it is only NOW that setting the sample rate works properly!
 	LDR	R1,[R12,#Work_OldFreqIndex]
+	MOV	R0,#3
 	SWI	XSound_SampleRate
 	LDMIA	R13!,{R0-R5,R14}
 	B	ModuleReturnOK
@@ -744,18 +763,18 @@ SWIActivate ;claim buffer, init channel handler
 	STMIA	R14,{R0-R2}
 	MUL	R14,R0,R1
 	TEQ	R3,#0
-	MOVNE	R2,#0
-	STRNE	R2,[R12,#Work_Buffer]
+	; MOVNE	R2,#0			UNNECESSARY - Given that [R12,#Work_Buffer] must be NULL on entry
+	; STRNE	R2,[R12,#Work_Buffer]	UNNECESSARY - Given that [R12,#Work_Buffer] must be NULL on entry
 	STR	R14,[R12,#Work_TotBuffSize]
 	BNE	SWIActNoBuff		;don't need a buffer in case of callback handler
-	LDR	R3,[R12,#Work_TotBuffSize]
+	MOV	R3,R14
 	MOV	R0,#6
 	SWI	XOS_Module		;get RMA buffer for data
 	BVS	SWIActMemory
-	STR	R2,[R12,#Work_Buffer]
 	MOVS	R0,R2
 	MOV	R1,R3
 	BLNE	MemSet
+	STR	R2,[R12,#Work_Buffer]
 SWIActNoBuff
 	MOV	R0,#0
 	MOV	R1,#0
@@ -773,8 +792,8 @@ SWIActNoBuff
 	ADD	R0,R12,#Work_Channels
 	LDMIA	R0,{R0-R2}
 	; CMP	R0,R3		;did we have more channels configured than we need?
-	; MOVLT   R0,R3		;yes ==> keep number of channels
-	; STRLT   R0,[R12,#Work_Channels]
+	; MOVLT	R0,R3		;yes ==> keep number of channels
+	; STRLT	R0,[R12,#Work_Channels]
 	MOV	R3,#0
 	MOV	R4,#0
 	SWI	XSound_Configure
@@ -802,7 +821,7 @@ SWIActNoBuff
 	MOV	R5,#0
 SWIActVoiceLoop
 	ADD	R0,R5,#1		;first write a pointer to workspace into the SCCB
-	MOV	R1,#SCCB_PrivateOffset;and memorize the old value
+	MOV	R1,#SCCB_PrivateOffset	;and memorize the old value
 	MOV	R2,R12
 	SWI	XSound_WriteControlBlock
 	STR	R2,[R3,#(Work_OldCBWords-Work_OldVoices)]
@@ -843,11 +862,11 @@ SWIActBuffSize
 	B	ModuleReturnError
 SWIActMemory2
 	LDR	R2,[R12,#Work_Buffer]
-	MOV	R0,#7
-	TEQ	R2,#0
-	SWINE	XOS_Module
 	MOV	R0,#0
-	STR	R0,[R12,#Work_Buffer]
+	TEQ	R2,#0
+	STRNE	R0,[R12,#Work_Buffer]	; In case of IRQ, ensure memory to be freed won't be used
+	MOV	R0,#7
+	SWINE	XOS_Module
 SWIActMemory
 	ADD	R13,R13,#4
 	LDMIA	R13!,{R1-R5,R14}
@@ -1061,8 +1080,8 @@ SWINBclearloop
 	SUBS	R3,R3,#4
 	STR	R14,[R2,R3]
 	BGT	SWINBclearloop
-	STR	R2,[R12,#Work_RingBuffer] ;must be safe against IRQ fill code
 	STR	R4,[R12,#Work_NumBuffers]
+	STR	R2,[R12,#Work_RingBuffer] ;must be safe against IRQ fill code
 	MOV	R0,R4
 SWINBexit
 	LDMIA	R13!,{R1-R4,R14}
@@ -1206,70 +1225,63 @@ SWIActivate16
 	TEQNE	R0,#2
 	BNE	SWIAct16Channels
 	STR	R0,[R12,#Work_Channels]
-	MUL	R0,R1,R0
 	STR	R1,[R12,#Work_BuffSize]
 	STR	R2,[R12,#Work_Frequency]
+	MUL	R0,R1,R0
 	TST	R3,#1
-	MOV	R0,R0,LSL #1
-	STR	R0,[R12,#Work_TotBuffSize] ; total buffer size = num channels * buffsize * 2
-	MOVEQ	R0,#0
-	MOVNE	R0,#State_Restore16
-	STR	R0,[R12,#Work_State]
+	MOVEQ	R3,#0
+	MOVNE	R3,#State_Restore16
+	STR	R3,[R12,#Work_State]
+	MOV	R3,R0,LSL #1
+	STR	R3,[R12,#Work_TotBuffSize] 	; total buffer size = num channels * buffsize * 2
+	LDR	R2,[R12,#Work_Buffer]
+	MOV	R7,#0
+	TEQ	R2,#0
+	STRNE	R7,[R12,#Work_Buffer]		; In case of IRQ, ensure memory to be freed won't be used
+	MOV	R0,#7
+	SWINE	XOS_Module			; Avoid RMA memory leaks! First, free any old block
+	MOV	R0,#6
+	SWI	XOS_Module
+	BVS	SWIAct16Memory
+	STR	R2,[R12,#Work_Buffer]
+	MOVS	R0,R2
+	MOV	R1,R3
+	BLNE	MemSet
+	STR	R7,[R12,#Work_BuffersPlayed]
+	STR	R7,[R12,#Work_BuffersGiven]
+	STR	R7,[R12,#Work_RingIsFull]
+	BL	FreeRingBufferBuffers
+	BL	ClaimRingBufferBuffers
+    ;;
+    ;;
 	MOV	R0,#0
 	SWI	XSound_Mode
 	BVS	SWIAct16GenErr
-	TEQ	R0,#0
+	TST	R0,#1
 	BEQ	SWIAct16NotAvailable
+    ;;
+    ;;
+	MOV	R0,#1
+	SWI	XSound_Enable			; switch off sound before reconfiguring
+	STRVC	R0,[R12,#Work_OldEnable]
+    ;;
+    ;;
 	MOV	R0,#0
 	SWI	XSound_Volume
 	STRVC	R0,[R12,#Work_OldVolume]
+    ;;
+    ;; On the BeagleBoard, we must read the current sample rate now ...
 	MOV	R0,#1
-	SWI	XSound_Enable		; switch off sound before reconfiguring
-	STRVC	R0,[R12,#Work_OldEnable]
-	MOV	R0,#0
-	MOV	R2,#0
-	LDR	R1,[R12,#Work_BuffSize]
-	MOV	R3,#0
-	MOV	R4,#0
-	SWI	XSound_Configure		; try to configure the buffer size
+	SWI	XSound_SampleRate
 	BVS	SWIAct16GenErr
-	STR	R1,[R12,#Work_OldSize]
-	MOV	R0,#6
-	LDR	R3,[R12,#Work_TotBuffSize]
-	SWI	XOS_Module
-	BVS	SWIAct16Memory
-	MOVS	R0,R2
-	BEQ	SWIAct16Memory
-	STR	R2,[R12,#Work_Buffer]
-	MOV	R1,R3
-	BL	MemSet
-	MOV	R0,#0
-	STR	R0,[R12,#Work_BuffersPlayed]
-	STR	R0,[R12,#Work_BuffersGiven]
-	STR	R0,[R12,#Work_RingIsFull]
-	BL	FreeRingBufferBuffers
-	BL	ClaimRingBufferBuffers
-	MOV	R0,#1
-	ADRL	R1,LinearHandlerCode
-	MOV	R2,R12
-	SWI	XSound_LinearHandler		; install new linear handler, remember old one
-	BVS	SWIAct16GenErr
-	STR	R1,[R12,#Work_OldLinHandler]
-	STR	R2,[R12,#Work_OldLinParam]
-	; Debugging by CPM
-	; On RISC OS 5.16, it appears that the rate at which the linear handler is called is determined by
-	; the last setting of the sample rate while sound is enabled. That is, if one changes the sample
-	; rate while sound is turned off, then the linear handler interrupt seems to ignore the change.
-	MOV	R0,#2
-	SWI	XSound_Enable		; turn on sound
-	BVS	SWIAct16GenErr
-	; Now the sound is enabled, setting of the sample rate will be noticed by the linear handler.
+	STR	R1,[R12,#Work_OldFreqIndex]	; this is the index, not the actual frequency (r2)!
+    ;;
 	MOV	R0,#0
 	SWI	XSound_SampleRate		; read number of sample rates to r1
 	BVS	SWIAct16GenErr
 	LDR	R6,[R12,#Work_Frequency]
 	MVN	R5,#0				; error so far (unsigned)
-	MVN	R4,#0				; best match so far (signed)
+	MOV	R4,#0				; best match so far
 	MOV	R0,#2
 SWIAct16FindRate ; primitive linear search...
 	SWI	XSound_SampleRate
@@ -1282,14 +1294,43 @@ SWIAct16FindRate ; primitive linear search...
 	MOVLS	R7,R2,LSR #10
 	SUBNES  R1,R1,#1
 	BNE	SWIAct16FindRate		; sample rate indices are 1-based
-	CMP	R4,#0
-	BLT	SWIAct16NoRate
+	TEQ	R4,#0
+	BEQ	SWIAct16NoRate
 	STR	R7,[R12,#Work_Frequency]
 	STR	R4,[R12,#Work_FreqIndex]
-	MOV	R1,R4
-	MOV	R0,#3
-	SWI	XSound_SampleRate		; switch on the new sample rate NOW, after sound is enabled! (RISC OS bug?)
-	STR	R1,[R12,#Work_OldFreqIndex]; this is the index, not the actual frequency (r2)!
+    ;;
+    ;; ... BEFORE configuring the DMA buffer size because this will maximise the sample rate!
+	LDR	R1,[R12,#Work_BuffSize]
+	MOV	R0,#0
+	MOV	R2,#0
+	MOV	R3,#0
+	MOV	R4,#0
+	SWI	XSound_Configure		; try to configure the buffer size
+	BVS	SWIAct16GenErr
+	STR	R1,[R12,#Work_OldSize]
+    ;;
+    ;;
+	MOV	R0,#1
+	ADRL	R1,LinearHandlerCode
+	MOV	R2,R12
+	SWI	XSound_LinearHandler		; install new linear handler, remember old one
+	BVS	SWIAct16GenErr
+	STR	R1,[R12,#Work_OldLinHandler]
+	STR	R2,[R12,#Work_OldLinParam]
+    ;;
+    ;;
+	MOV	R0,#2
+	SWI	XSound_Enable			; turn on sound
+	BVS	SWIAct16GenErr
+    ;;
+    ;; On the Iyonix, it is only NOW that setting the sample rate works properly!
+    ;; Audio must be ON for any changing of the sample rate to have an effect on audio output.
+    ;; Confusingly, if the rate is changed while '*audio off', RISC OS will report the new rate
+    ;; as current while playing sounds at the old rate!
+        LDR     R1,[R12,#Work_FreqIndex]
+        MOV     R0,#3
+        SWI     XSound_SampleRate               ; switch on the new sample rate we calculated above
+    ;;
 	MOV	R0,#Format_16sl
 	STR	R0,[R12,#Work_SampleFormat]
 	LDR	R0,[R12,#Work_State]
@@ -1715,19 +1756,17 @@ FreeRingBuffer
 	BEQ	FRBexit
 	BL	FreeRingBufferBuffers
 	MOV	R0,#0
+	STR	R0,[R12,#Work_NumBuffers]
 	STR	R0,[R12,#Work_RingBuffer] ;must be safe against IRQ fill code!
 	MOV	R0,#7
 	SWI	XOS_Module
-	MOV	R2,#0
-	STR	R2,[R12,#Work_RingBuffer]
-	STR	R2,[R12,#Work_NumBuffers]
 FRBexit
 	LDMIA	R13!,{R0-R2,R14}
 	B	ModuleReturnOK
 
 
 ClaimRingBufferBuffers ;R12 = ^workspace
-	STMDB	R13!,{R1-R5,R14}
+	STMDB	R13!,{R1-R6,R14}
 	LDR	R5,[R12,#Work_NumBuffers]
 	SUBS	R5,R5,#1
 	BLT	CRBexit
@@ -1735,7 +1774,13 @@ ClaimRingBufferBuffers ;R12 = ^workspace
 	TEQ	R4,#0
 	BEQ	CRBexit
 	LDR	R3,[R12,#Work_TotBuffSize]
+	MOV	R6,#0
 CRBloop
+	LDR	R2,[R4,R5,LSL #2]
+	TEQ	R2,#0
+	STRNE	R6,[R4,R5,LSL #2]	; In case of IRQ, ensure memory to be freed won't be used
+	MOV	R0,#7
+	SWINE	XOS_Module
 	MOV	R0,#6
 	SWI	XOS_Module
 	BVS	CRBerror
@@ -1752,11 +1797,11 @@ CRBexit
 	STR	R0,[R12,#Work_WriteBuffer]
 	STR	R0,[R12,#Work_FillLevel]
 	STR	R0,[R12,#Work_ReadLevel]
-	LDMIA	R13!,{R1-R5,R14}
+	LDMIA	R13!,{R1-R6,R14}
 	B	ModuleReturnOK
 CRBerror
 	MVN	R0,#0
-	LDMIA	R13!,{R1-R5,R14}
+	LDMIA	R13!,{R1-R6,R14}
 	B	ModuleReturnOK
 
 
