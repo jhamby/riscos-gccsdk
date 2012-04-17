@@ -1,3 +1,16 @@
+Tue Apr 17 13:49:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Ensured that all RMA memory (de-)allocations follow a consistent
+	pattern to minimise risks of memory leaks and IRQ-related problems.
+	* Re-organised SWIActivate16 to address faults specific to Iyonix and
+	BeagleBoard. On Iyonix, the sample rate is set correctly for playback.
+	On BeagleBoard, the sample rate is restored correctly after playback.
+	* Given that 0.55 has been publicly released, bumped the version to
+	0.56 beta 1.
+	* A known remaining problem on BeagleBoard with RISC OS 5.18 is the
+	presence of a harsh buzz any time playback stops abruptly or is paused
+	while the desktop is busy.
+
 Fri Apr 13 17:15:00 CST 2012  Christopher Martin  <belles@internode.on.net>
 
 	* Corrected a bug that would cause stack corruption should SWI
