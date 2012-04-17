@@ -1,0 +1,22 @@
+                 Visual Basic .net Compiler
+                 --------------------------
+
+This is the Mono Visual Basic .net Compiler. It requires the RISC OS
+Mono runtime which is available in a separate package.
+
+Installation
+------------
+The compiler and its resources are provided in a skeleton !Mono
+application directory that can be dragged over an existing Mono
+installation.
+
+Using the compiler
+------------------
+When installed, the compiler can be invoked at the command line by
+the name 'vbnc'. Source files should have a '.vb' suffix and output
+files '.exe'.
+
+Please see the !ReadMe file within the full !Mono directory for more
+details of how to use RISC OS Mono.
+
+Lee Noar.

@@ -1,0 +1,54 @@
+AB_CATEGORY="Development"
+
+AB_URL=http://download.mono-project.com/sources/mono-basic/mono-basic-2.10.tar.bz2
+
+ab_make() {
+  make install
+}
+
+# $1 = source profile directory
+# $2 = destination profile directory
+# $3 = dll filename
+copy_gac() {
+  mkdir -p $2
+
+  echo Symlinking dll assembly $3 for .net ${1##*/} framework
+
+  # Symlinks from the profile directory to the GAC.
+  if [ -L "$1/$3" ]; then
+    ux_link=$(readlink $1/$3)
+    ro_link=$(echo $(echo $ux_link | sed -e 's|..|^|') | tr /. ./)
+    $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f $ro_link $2/$3,1C8
+  fi
+
+  echo Copying dll assembly $3 for .net ${1##*/} framework
+
+  # Copy assemblies that are symlinked and in the GAC.
+  # Define the start of the path that we need to delete from all filenames found.
+  mono_lib_dir=$GCCSDK_INSTALL_ENV/lib/mono/
+  # Search the gac directory for mono-basic .dll files.
+  for file in `find "$GCCSDK_INSTALL_ENV/lib/mono/gac" -name "$3"`; do
+    # Extract the end of the filename after and including the gac directory.
+    gac_file=$(echo ${file#$mono_lib_dir})
+    mkdir -p $A/lib/mono/`dirname "$gac_file"`
+    cp -T "$file" "$A/lib/mono/$gac_file"
+  done
+}
+
+ab_package() {
+  # Create a directory that can be merged into !Mono
+  ab_create_app Mono Apps/Develop
+
+  # Don't overwrite the existing Mono !Boot file
+  rm $A/!Boot,feb
+
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/2.0" "$A/lib/mono/2.0" "Microsoft.VisualBasic.dll"
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/4.0" "$A/lib/mono/4.0" "Microsoft.VisualBasic.dll"
+  copy_gac "$GCCSDK_INSTALL_ENV/lib/mono/4.0" "$A/lib/mono/4.0" "Mono.Cecil.VB.dll"
+
+  cp -T "$GCCSDK_INSTALL_ENV/lib/mono/4.0/vbnc.exe" "$A/lib/mono/4.0/vbnc.exe,A7D"
+  cp "$GCCSDK_INSTALL_ENV/lib/mono/4.0/vbnc.rsp" "$A/lib/mono/4.0"
+
+  # Copy documentation
+  cp -T $S/LICENSE $A/Docs/vbnc-LICENSE
+}
