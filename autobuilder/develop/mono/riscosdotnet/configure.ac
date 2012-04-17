@@ -12,10 +12,12 @@ LT_INIT
 
 AC_PROG_CC
 AM_PROG_AS
-AC_PROG_RANLIB
+
+AC_PATH_PROG(MCS, mcs, no)
 
 AC_PROG_LIBTOOL
 AC_SUBST(enable_shared)
 AC_SUBST(enable_static)
+AC_SUBST(MCS)
 
-AC_OUTPUT([Makefile src/Makefile])
+AC_OUTPUT([Makefile src/Makefile assembly/Makefile test/Makefile])

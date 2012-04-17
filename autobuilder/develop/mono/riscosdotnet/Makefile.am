@@ -1,1 +1,1 @@
-SUBDIRS = src
+SUBDIRS = assembly src test

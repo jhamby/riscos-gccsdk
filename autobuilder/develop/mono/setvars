@@ -35,14 +35,9 @@ build_riscosdotnet() {
     popd >/dev/null
 
     pushd . >/dev/null
-      echo "Building riscosdotnet shared library..."
+      echo "Building riscosdotnet ..."
       aclocal -I config && autoconf && automake --add-missing
-      cd build && ../configure --enable-shared --host=arm-unknown-riscos --prefix=$GCCSDK_INSTALL_ENV && make
-    popd >/dev/null
-
-    pushd . >/dev/null
-      echo "Building riscos.dll assembly..."
-      cd assembly && ./build.sh
+      cd build && ../configure --enable-shared --host=arm-unknown-riscos --prefix=$GCCSDK_INSTALL_ENV && make install
     popd >/dev/null
 
   popd >/dev/null
@@ -149,7 +144,7 @@ ab_package() {
   cp "$GCCSDK_INSTALL_ENV/etc/mono/config" "$A/etc/mono/"
 
   # Copy the riscos assembly
-  cp -T $S/libriscosdotnet/assembly/riscos.dll $A/lib/riscos.dll
+  cp -T $GCCSDK_INSTALL_ENV/lib/libriscosdotnet/riscos.dll $A/lib/riscos.dll
 
   # Copy documentation
   cp $S/COPYING.LIB $S/AUTHORS $S/LICENSE $A/Docs
@@ -160,6 +155,15 @@ ab_package() {
   mkdir -p $so_lib_installdir
   cp -T "$S/libriscosdotnet/build/src/.libs/libriscosdotnet.1.0.0.so" "$so_lib_installdir/libriscosdotnet.1.0.0.so,E1F"
   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f libriscosdotnet/1/0/0/so $so_lib_installdir/libriscosdotnet.so.1,1C8
+
+  # Create !MonoTestApp
+  test_app_installdir=$D/$package/$section/mono/Apps/Develop/\!MonoTestApp
+  mkdir -p $test_app_installdir
+  cp -T "$S/libriscosdotnet/build/test/test-app.exe" "$test_app_installdir/test-app.exe,A7D"
+
+  echo "Wimpslot 5000k" >> $test_app_installdir/!Run,feb
+  echo "Set MonoTestApp\$Dir <Obey\$Dir>" >> $test_app_installdir/!Run,feb
+  echo "Run <MonoTestApp\$Dir>.test-app/exe" >> $test_app_installdir/!Run,feb
 }
 
 # Regenerate configure from the patched configure.in
