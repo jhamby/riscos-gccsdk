@@ -1,3 +1,8 @@
+Tue Apr 17 17:35:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Changed default stream flags to remove buzzing when the desktop is
+	buzy.
+
 Tue Apr 17 13:49:00 CST 2012  Christopher Martin  <belles@internode.on.net>
 
 	* Ensured that all RMA memory (de-)allocations follow a consistent

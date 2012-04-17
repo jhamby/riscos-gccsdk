@@ -360,7 +360,7 @@ ICreinit
 	MOV	R0,#(22050:AND:&ff00)
 	ORR	R0,R0,#(22050:AND:&ff)
 	STR	R0,[R2,#Work_DfltFrequency]
-	MOV	R0,#StrFlg_IssueUpCall
+        MOV     R0,#(StrFlg_OverrunNull + StrFlg_IssueUpCall)
 	STR	R0,[R2,#Work_StreamFlags]
 	BL	RegisterFilingSystem
 	LDR	R14,[R13],#4
@@ -547,7 +547,7 @@ TitleString
         ALIGN
 
 HelpString
-	=	"DigitalRenderer",9,"0.56 beta 1 GPL (17 Apr 2012)",13,10
+        =       "DigitalRenderer",9,"0.56 beta 2 GPL (17 Apr 2012)",13,10
 	=	"Provides a means to playback samples from applications."
 	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
         ALIGN
@@ -2626,8 +2626,8 @@ FSIssueUpCall
 	LDR	R0,[R12,#Work_StreamFlags]
 	TST	R0,#StrFlg_IssueUpCall
 	BEQ	FSIUCexit
-	MOV	R0,#0
-	STR	R0,[R12,#Work_PollWord]
+        MOV     R0,#0
+        STR     R0,[R12,#Work_PollWord]
 	LDR	R0,[R12,#Work_State]
 	ORR	R0,R0,#State_UpCall
 	STR	R0,[R12,#Work_State]
@@ -2737,27 +2737,28 @@ FSConfigClose ;close and wait until sound is played
 	LDR	R14,[R12,#Work_BuffOffset]
 	TEQ	R14,#0
 	BLNE	FSFlushMiniBuffer
+    ;;
+    ;;
+        LDR     R6,[R12,#Work_ReadBuffer] ;last read buffer
 	SWI	XOS_ReadMonotonicTime
 	MOV	R5,R0				;time stamp of last read buffer
-	LDR	R6,[R12,#Work_ReadBuffer] ;last read buffer
 FSCCwait
+        BL      FSIssueUpCall
 	SWI	XOS_ReadMonotonicTime
 	SUB	R14,R0,R5
 	CMP	R14,#20			;if the read buffer hasn't changed in 20cs
-	BGE	FSCCfinish			;we finish anyway (no infinite loops!!!)
+        BHS     FSCCfinish                      ;we finish anyway (no infinite loops!!!)
 	LDR	R4,[R12,#Work_ReadBuffer]
 	TEQ	R4,R6
 	MOVNE	R6,R4
 	MOVNE	R5,R0				;if changed update timestamp and buffer number
 	LDR	R14,[R12,#Work_WriteBuffer]
 	TEQ	R4,R14
-	BNE	FSCCwaitback
-	LDR	R4,[R12,#Work_RingIsFull]
-	TEQ	R4,#0
-	BEQ	FSCCfinish
-FSCCwaitback
-	BL	FSIssueUpCall
-	B	FSCCwait
+        LDREQ   R4,[R12,#Work_RingIsFull]
+        TEQEQ   R4,#0
+        BNE     FSCCwait
+    ;;
+    ;;
 FSCCfinish
 	MOV	R14,#0				;mark files closed _before_ calling deactivate!
 	STR	R14,[R12,#Work_StreamHandle] ;otherwise deactivate tries to close again
