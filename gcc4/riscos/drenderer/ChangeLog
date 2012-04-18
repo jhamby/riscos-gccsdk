@@ -1,3 +1,15 @@
+Wed Apr 18 15:06:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Ensure that some dynamic branches preserve any 26-bit PSR in
+	the calculated link register. This is vital if flags are to be
+	restored on return. Otherwise, the PC may inadvertently be
+	switched into USR mode and then very bad things happen.
+	* Define and use a new State_Deactivating flag to ensure that
+	SWI XDR_Deactivate doesn't invoke itself again as a result of
+	closing a file being streamed to the DRender: filesystem.
+	* Provide the module's private word in R2 when calling
+	Sound_LinearHandler to remove its 16-bit linear handler.
+
 Tue Apr 17 17:35:00 CST 2012  Christopher Martin  <belles@internode.on.net>
 
 	* Changed default stream flags to remove buzzing when the desktop is

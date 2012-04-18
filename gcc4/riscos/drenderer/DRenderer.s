@@ -118,6 +118,7 @@ State_UpCall		*	8
 State_Paused		*	16
 State_NewSound		*	32
 State_Restore16		*	64
+State_Deactivating      *       128
 
 ; formats (8bit ulaw, 16bit signed linear)
 Format_Undef		*	0
@@ -237,6 +238,20 @@ off		SETA	-&$off
 		SUB     $r,PC,#(&$off:AND:&FFFFF000)
 		LDR     $r,[$r,#-(&$off:AND:&FFF)]
 	]
+	MEND
+
+	MACRO
+	FNlink	$r,$a	; Calculates a link address with 26-bit PSR
+;  This way I think is more comprehensible, but ...
+;	MOV	$r,PC
+;	[ ($a-(.+4)) < &80000000	; ... asasm/objasm fault: this fails if label $a is not yet defined
+;		ADD	$r,$r,#($a-(.+4))
+;	|
+;		SUB	$r,$r,#((.+4)-$a)
+;	]
+	MOV	$r,#($a-(.+12))		; asasm/objasm feature: will convert to MVN if the offset is negative
+	ADD	$r,$r,PC
+;
 	MEND
 
 	MACRO
@@ -360,7 +375,7 @@ ICreinit
 	MOV	R0,#(22050:AND:&ff00)
 	ORR	R0,R0,#(22050:AND:&ff)
 	STR	R0,[R2,#Work_DfltFrequency]
-        MOV     R0,#(StrFlg_OverrunNull + StrFlg_IssueUpCall)
+	MOV	R0,#(StrFlg_OverrunNull + StrFlg_IssueUpCall)
 	STR	R0,[R2,#Work_StreamFlags]
 	BL	RegisterFilingSystem
 	LDR	R14,[R13],#4
@@ -547,7 +562,7 @@ TitleString
         ALIGN
 
 HelpString
-        =       "DigitalRenderer",9,"0.56 beta 2 GPL (17 Apr 2012)",13,10
+        =       "DigitalRenderer",9,"0.56 beta 3 GPL (17 Apr 2012)",13,10
 	=	"Provides a means to playback samples from applications."
 	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
         ALIGN
@@ -606,10 +621,8 @@ DisableRenderer
 	STMDB	R13!,{R0-R3,R14}
 	LDR	R1,[R12,#Work_StrExtHand]
 	TEQ	R1,#0
-	BEQ	DisRenNoFile
-	MOV	R0,#0			;make sure everything is closed correctly by using
-	SWI	XOS_Find		;the external handle
-DisRenNoFile
+        MOVNE   R0,#0                   ;make sure everything is closed correctly by using
+        SWINE   XOS_Find                ;the external handle
 	LDR	R2,[R12,#Work_Buffer]
 	MOV	R0,#0
 	TEQ	R2,#0
@@ -628,6 +641,8 @@ RestoreOldContext
 	LDR	R0,[R12,#Work_State]
 	TST	R0,#State_NewSound
 	BNE	ROCnewsound
+    ;;
+    ;;
 	LDR	R0,[R12,#Work_VoiceSlot]
 	TEQ	R0,#0
 	BEQ	ROCnotinitialized
@@ -656,12 +671,14 @@ ROCnotinitialized
 	MOV	R4,#0
 	SWI	XSound_Configure   ;restore previous sound context
 	B	ROCepilogue
+    ;;
+    ;;
 ROCnewsound
 	TST	R0,#State_Restore16
 	BNE	ROCnewrestore
 	MOV	R0,#1
 	MOV	R1,#0
-	MOV	R2,#0
+        MOV     R2,R12
 	SWI	XSound_LinearHandler
 	MOV	R0,#1
 	STR	R0,[R12,#Work_OldEnable] ;don't enable sound later on either
@@ -679,16 +696,20 @@ ROCnewepilogue
 	MOV	R2,#0
 	MOV	R4,#0
 	SWI	XSound_Configure   ;restore old buffer size
+    ;;
+    ;;
 ROCepilogue
-	BL	DisableRenderer      ;remove channel handler AFTER disabling sound!!!
+        BL      DisableRenderer      ;remove channel handler AFTER disabling sound!!!
 	LDR	R0,[R12,#Work_OldVolume]
 	SWI	XSound_Volume
 	LDR	R0,[R12,#Work_OldEnable]
 	SWI	XSound_Enable      ;again, enable is the last thing we do ...
-    ;; ... except that on the Iyonix, it is only NOW that setting the sample rate works properly!
+    ;; ... except that on the Iyonix, the sample rate must be restored while audio is ON.
+    ;; On the BeagleBoard, be sure to do this AFTER the buffer size is reconfigured.
 	LDR	R1,[R12,#Work_OldFreqIndex]
 	MOV	R0,#3
 	SWI	XSound_SampleRate
+    ;;
 	LDMIA	R13!,{R0-R5,R14}
 	B	ModuleReturnOK
 
@@ -889,8 +910,19 @@ SWIDeactivate ;free buffer, restore channel handler
 	LDR	R14,[R12,#Work_State]
 	TST	R14,#State_Active
 	BEQ	SWIDecInactive
+        TST     R14,#State_Deactivating         ; check that we aren't caught in a deactivation loop
+        BNE     SWIDecExit
+        ORR     R14,R14,#State_Deactivating     ; flag that deactivation has begun
+        STR     R14,[R12,#Work_State]
 	BL	RestoreOldContext
 	BL	FreeRingBuffer
+        ;
+        ; These lines should not be necessary because RestoreOldContext has called DisableRenderer
+        ; which in turn has set [R12,#Work_State] to zero.
+        ;LDR    R14,[R12,#Work_State]
+        ;BIC    R14,R14,#State_Deactivating
+        ;STR    R14,[R12,#Work_State]
+SWIDecExit
 	LDR	R14,[R13],#4
 	B	ModuleReturnOK
 SWIDecInactive
@@ -1533,13 +1565,17 @@ CHFCexit
 	MOV	R0,#(1<<3)		;active (normal fill)
 	LDR	PC,[R13],#4
 
+CHFCovernull
+	MOV	R0,#0
+	STR	R0,[R5,#Work_RingIsFull]
+	MOV	R0,R12
+	FNlink	R1,CHFCexit
+	STR	R1,[R13,#-4]!
+	SUB	R1,R10,R12
+	B	MemStIRQ			;CAN'T USE R14 IN IRQ MODE!
+
 CHFCcallback
-	TEQ	R0,R0
-	TEQ	PC,PC
-	MOVEQ	R1,#0
-	ANDNE	R1,PC,#&fc000003
-	ADR	R2,CHFCDone
-	ORR	R1,R1,R2
+	FNlink	R1,CHFCDone
 	STR	R1,[R13,#-4]!
 	LDR	R1,[R0,#Work_LinToLog]
 	LDR	R3,[R0,#Work_CallBackFill]
@@ -1583,7 +1619,7 @@ CHFCloopstream
 	SUB	R2,R10,R12			;bytes remaining in DMA buffer
 	CMP	R2,R1
 	MOVHS	R2,R1
-	ADR	R1,CHFCcopyreturn		;IRQ CODE STORES RETURN ADDRESS BEFORE CALL!
+	FNlink	R1,CHFCcopyreturn		;IRQ CODE STORES RETURN ADDRESS BEFORE CALL!
 	STR	R1,[R13,#-4]!
 	MOV	R1,R12
 	B	CopyByteBuffIRQ		;CAN'T USE R14 IN IRQ MODE!!!
@@ -1613,14 +1649,6 @@ CHFCnobuffinc
 	CMP	R12,R10
 	BLO	CHFCloopstream
 	B	CHFCexit
-CHFCovernull
-	MOV	R0,#0
-	STR	R0,[R5,#Work_RingIsFull]
-	MOV	R0,R12
-	ADR	R1,CHFCexit
-	STR	R1,[R13,#-4]!
-	SUB	R1,R10,R12
-	B	MemStIRQ			;CAN'T USE R14 IN IRQ MODE!
 
 
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1632,7 +1660,7 @@ LinearHandlerCode
 	MOV	R12,R0
 	LDR	R0,[R12,#Work_State]
 	TST	R0,#State_NeedData
-	ORRNE	R0,R0,#State_Overflow
+        ORRNE   R0,R0,#State_Overflow           ;if data needed flag set, overflow occurred
 	BICEQ	R0,R0,#State_Overflow
 	ORR	R0,R0,#State_NeedData
 	STR	R0,[R12,#Work_State]
@@ -1805,7 +1833,7 @@ CRBerror
 	B	ModuleReturnOK
 
 
-StreamSampleCore ;r9 pointer to copy code, r10 src sample size
+StreamSampleCore ;r9 pointer to copy code (w/out 26-bit PSR), r10 src sample size
 	LDR	R8,[R12,#Work_RingBuffer] ;r11 dest sample size
 	TEQ	R8,#0
 	BEQ	SSCexit
@@ -1832,7 +1860,7 @@ SSCmainloop
 	TEQ	R1,#0
 	BEQ	SSCskipbuffer
 	ADD	R1,R1,R7			;add fill level to dest buffer
-	ADR	R14,SSCskipbuffer		;return address (called code doesn't preserve flags)
+	MOV	R14,PC				;return to SSCskipbuffer (called code doesn't preserve flags)
 	MOV	PC,R9
 SSCskipbuffer
 	MLA	R0,R10,R2,R0			;src = src + src_sample_size * samples
@@ -2626,8 +2654,8 @@ FSIssueUpCall
 	LDR	R0,[R12,#Work_StreamFlags]
 	TST	R0,#StrFlg_IssueUpCall
 	BEQ	FSIUCexit
-        MOV     R0,#0
-        STR     R0,[R12,#Work_PollWord]
+	MOV	R0,#0
+	STR	R0,[R12,#Work_PollWord]
 	LDR	R0,[R12,#Work_State]
 	ORR	R0,R0,#State_UpCall
 	STR	R0,[R12,#Work_State]
@@ -2739,31 +2767,35 @@ FSConfigClose ;close and wait until sound is played
 	BLNE	FSFlushMiniBuffer
     ;;
     ;;
-        LDR     R6,[R12,#Work_ReadBuffer] ;last read buffer
+	LDR	R6,[R12,#Work_ReadBuffer] ;last read buffer
 	SWI	XOS_ReadMonotonicTime
 	MOV	R5,R0				;time stamp of last read buffer
 FSCCwait
-        BL      FSIssueUpCall
+	BL	FSIssueUpCall
 	SWI	XOS_ReadMonotonicTime
 	SUB	R14,R0,R5
 	CMP	R14,#20			;if the read buffer hasn't changed in 20cs
-        BHS     FSCCfinish                      ;we finish anyway (no infinite loops!!!)
+	BHS	FSCCfinish			;we finish anyway (no infinite loops!!!)
 	LDR	R4,[R12,#Work_ReadBuffer]
 	TEQ	R4,R6
 	MOVNE	R6,R4
 	MOVNE	R5,R0				;if changed update timestamp and buffer number
 	LDR	R14,[R12,#Work_WriteBuffer]
 	TEQ	R4,R14
-        LDREQ   R4,[R12,#Work_RingIsFull]
-        TEQEQ   R4,#0
-        BNE     FSCCwait
+	LDREQ	R4,[R12,#Work_RingIsFull]
+	TEQEQ	R4,#0
+	BNE	FSCCwait
     ;;
     ;;
 FSCCfinish
 	MOV	R14,#0				;mark files closed _before_ calling deactivate!
 	STR	R14,[R12,#Work_StreamHandle] ;otherwise deactivate tries to close again
 	STR	R14,[R12,#Work_StrExtHand]
-	SWI	XDR_Deactivate
+    ;;
+        LDR     R14,[R12,#Work_State]
+        TST     R14,#State_Deactivating         ;check that we aren't here because SWI XDR_Deactivate was called
+        SWIEQ   XDR_Deactivate
+    ;;
 	LDR	R0,[R12,#Work_OldStrFlags]
 	STR	R0,[R12,#Work_StreamFlags]
 	LDR	R0,[R12,#Work_OldNumBuff]
