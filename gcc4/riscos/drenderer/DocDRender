@@ -641,7 +641,9 @@ On Entry:
 ---------
 
 R0	number of channels or 0 to read
-R1	format (1: 8bit ulaw, 2 16bit signed linear, 3: 16bit signed linear channel-swapped)
+R1	format (1: 8bit ulaw;
+	        2: 16bit signed linear little-endian right-left;
+	        3: 16bit signed linear little-endian left-right)
 	or 0 to read
 R2	sample period or 0 to read
 R3	buffer size per channel or 0 to read
@@ -697,10 +699,9 @@ Use this SWI to activate the DigitalRenderer using the new 16bit RISC OS sound
 rather than the old 8bit system. All other SWIs automatically adapt to the system
 chosen without needing to worry about internal details. The call will return with
 an error in case no 16bit sound is available.
-In stereo mode, the samples are by default assumed to be in the correct order for
-left/right channel. If this is not the case, you'll have to call the new SWI
-DigitalRenderer_SampleFormat with format 3 (16bit signed linear swapped).
-
+In stereo mode, the samples are by default assumed to be in the correct right-left
+channel order for Acorn's 16-bit sound system. If this is not the case, you'll have
+to call the new SWI DigitalRenderer_SampleFormat with format 3 (left-right).
 
 
 
@@ -808,8 +809,10 @@ DRenderDefaults [-c # -f # -p # -s # -n #]
 	you want to write to the DRender: filing system (see also SWI
 	DigitalRenderer_SetDefaults). Parameters are
 	-c #: set number of channels (1,2,4,8)
-	-f #: set sample format: 1 for ubit ulaw, 2 for 16bit signed linear,
-	      3 for 16 bit signed linear with left/right channel in wrong order
+	-f #: set sample format,
+	      1 for 8 bit ulaw
+	      2 for 16 bit signed linear little-endian right-left
+	      3 for 16 bit signed linear little-endian left-right
 	-p #: set sample period, e.g. 44 for 44kHz, 23 for 22kHz
 	-q #: set sample frequency in Hz. Specifying a positive value automatically
 	      tries 16bit sound first, otherwise the old 8bit sound is used.

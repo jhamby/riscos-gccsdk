@@ -52,8 +52,8 @@ MiniBufferSize		*	32
 
 			^	0
 Work_MagicWord		#	4
-Work_Channels		#	4	; DO NOT RE-ORDER
-Work_BuffSize		#	4	; DO NOT RE-ORDER
+Work_Channels		#	4	; DO NOT RE-ORDER - number of channels
+Work_BuffSize		#	4	; DO NOT RE-ORDER - number of samples per channel buffer
 Work_Period		#	4	; DO NOT RE-ORDER
 Work_Buffer		#	4
 Work_State		#	4
@@ -62,14 +62,14 @@ Work_OldSize		#	4
 Work_OldPeriod		#	4
 Work_OldEnable		#	4
 Work_OldVolume		#	4
-Work_NumBuffers		#	4
-Work_WriteBuffer	#	4
-Work_ReadBuffer		#	4
-Work_RingBuffer		#	4
-Work_FillLevel		#	4
-Work_LastReadBuff	#	4
+Work_NumBuffers		#	4	; number of buffers in the streaming buffer ring, 0 if not streaming
+Work_WriteBuffer	#	4	; index of the next buffer into which samples should be written for later read-out
+Work_ReadBuffer		#	4	; index of the next buffer from which samples should be read-out to the sound system
+Work_RingBuffer		#	4	; address of the array of pointers to streaming buffers, i.e. the buffer ring
+Work_FillLevel		#	4	; byte offset [0..Work_TotBuffSize-1] to the next sample to be written into the current buffer
+Work_LastReadBuff	#	4	; index of the last streaming buffer from which samples were read-out to the sound system
 Work_StreamFlags	#	4
-Work_ReadLevel		#	4
+Work_ReadLevel		#	4	; byte offset [0..Work_TotBuffSize-1] to the next sample to read-out from the current buffer
 Work_CallBackFill	#	4
 Work_BuffersPlayed	#	4
 Work_BuffersGiven	#	4
@@ -78,13 +78,13 @@ Work_OldVoiceName	#	4
 Work_LinToLog		#	4
 Work_LogScale		#	4
 Work_PollWord		#	4
-Work_TotBuffSize	#	4
+Work_TotBuffSize	#	4	; total buffer size (bytes) = #channels * #samples/channel * #bytes/sample
 Work_StreamHandle	#	4
 Work_StrExtHand		#	4
 Work_BuffOffset		#	4
 Work_OldStrFlags	#	4
 Work_OldNumBuff		#	4
-Work_RingIsFull		#	4
+Work_RingIsFull		#	4	; if Work_ReadBuffer==Work_WriteBuffer, 0/1 indicates streaming buffer ring is empty/full
 Work_Frequency		#	4
 Work_FreqIndex		#	4
 Work_OldFreqIndex	#	4
@@ -562,7 +562,7 @@ TitleString
         ALIGN
 
 HelpString
-        =       "DigitalRenderer",9,"0.56 beta 3 GPL (17 Apr 2012)",13,10
+        =       "DigitalRenderer",9,"0.56 beta 4 GPL (19 Apr 2012)",13,10
 	=	"Provides a means to playback samples from applications."
 	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
         ALIGN
@@ -1097,7 +1097,7 @@ SWINumBuffers
 	STMDB	R13!,{R1-R4,R14}
 	MOVS	R4,R0
 	LDR	R0,[R12,#Work_NumBuffers]
-	BLT	SWINBexit
+        BMI     SWINBexit
 	TEQ	R0,R4
 	BEQ	SWINBexit
 	BL	FreeRingBuffer
@@ -1585,6 +1585,7 @@ CHFCcallback
 
 CHFCstreaming ;R4 = num buffers
 	LDR	R3,[R0,#Work_RingBuffer]
+        LDR     R8,[R5,#Work_TotBuffSize]
 	MOV	R5,R0
 	MOV	R0,#1
 	STR	R0,[R5,#Work_PollWord]		;on every buffer refill loop, set poll word
@@ -1611,14 +1612,13 @@ CHFCloopstream
 	TEQ	R0,#0
 	BEQ	CHFCexit
 	LDR	R7,[R5,#Work_ReadLevel]
-	LDR	R8,[R5,#Work_TotBuffSize]
 	CMP	R7,R8
 	MOVHS	R7,#0				;additional security
 	ADD	R0,R0,R7
 	SUB	R1,R8,R7			;bytes remaining in source buffer
 	SUB	R2,R10,R12			;bytes remaining in DMA buffer
 	CMP	R2,R1
-	MOVHS	R2,R1
+	MOVHI	R2,R1
 	FNlink	R1,CHFCcopyreturn		;IRQ CODE STORES RETURN ADDRESS BEFORE CALL!
 	STR	R1,[R13,#-4]!
 	MOV	R1,R12
@@ -1658,6 +1658,7 @@ CHFCnobuffinc
 LinearHandlerCode
 	STMFD	R13!,{R12,R14}
 	MOV	R12,R0
+	MOV	R5,R3				;if (flags in r5 AND 7) == 2 then buffer is preset to silence
 	LDR	R0,[R12,#Work_State]
 	TST	R0,#State_NeedData
         ORRNE   R0,R0,#State_Overflow           ;if data needed flag set, overflow occurred
@@ -1665,36 +1666,36 @@ LinearHandlerCode
 	ORR	R0,R0,#State_NeedData
 	STR	R0,[R12,#Work_State]
 	LDR	R0,[R12,#Work_BuffersPlayed]
-	SUB	R2,R2,R1			;buffer length
+        SUB     R9,R2,R1                        ;number of bytes to fill in r9
 	LDR	R4,[R12,#Work_NumBuffers]
 	ADD	R0,R0,#1
 	STR	R0,[R12,#Work_BuffersPlayed]
-	STR	R2,[R12,#Work_DMABuffSize]
+        STR     R9,[R12,#Work_DMABuffSize]
 	TEQ	R4,#0
 	BNE	LHCstreaming
 	LDR	R0,[R12,#Work_Buffer]
 	TEQ	R0,#0
-	BEQ	LHCexit
+	BEQ	LHCovernull
 	LDR	R3,[R12,#Work_Channels]
 	LDR	R4,[R12,#Work_TotBuffSize]
 	TEQ	R3,#1
 	MOVEQ	R4,R4,LSL #1
-	CMP	R2,R4
+        CMP     R9,R4
 	MOVHS	R2,R4
+        MOVLO   R2,R9
 	BL	CopyLinearBuffer		;does 1->2 channel expansion if necessary
-LHCexit
 	LDMFD	R13!,{R12,R14}
 	B	ModuleReturnOK
 
 LHCstreaming ;streaming interface, similar to Voice handler
 	LDR	R3,[R12,#Work_RingBuffer]
+        LDR     R8,[R12,#Work_TotBuffSize]
 	MOV	R0,#1
 	STR	R0,[R12,#Work_PollWord]
 	TEQ	R3,#0
 	BEQ	LHCovernull
 	LDR	R0,[R12,#Work_WriteBuffer]
 	LDR	R6,[R12,#Work_ReadBuffer]
-	MOV	R9,R2				;number of bytes left in r9
 	LDR	R10,[R12,#Work_Channels]	;number of channels in r10
 	TEQ	R0,R6
 	BNE	LHCloopstream
@@ -1715,15 +1716,14 @@ LHCloopstream
 	TEQ	R0,#0
 	BEQ	LHCovernull
 	LDR	R7,[R12,#Work_ReadLevel]
-	LDR	R8,[R12,#Work_TotBuffSize]
 	CMP	R7,R8
 	MOVHS	R7,#0
 	ADD	R0,R0,R7
 	SUB	R2,R8,R7
 	TEQ	R10,#1
-	MOVEQ	R2,R2,LSL #1			;1 channel ==> pretend twice as many samples
+	MOVEQ	R2,R2,LSL #1			;1 channel ==> pretend twice as much audio data
 	CMP	R2,R9
-	MOVHS	R2,R9
+	MOVHI	R2,R9
 	BL	CopyLinearBuffer
 	ADD	R1,R1,R2
 	SUB	R9,R9,R2
@@ -1747,12 +1747,17 @@ LHCloopstream
 	BNE	LHCnobuffinc
 	MOV	R0,#0
 	STR	R0,[R12,#Work_RingIsFull]
-	CMP	R9,#0
-	BGT	LHCchkoveract
+	TEQ	R9,#0
+	BNE	LHCchkoveract
 LHCnobuffinc
-	CMP	R9,#0
-	BGT	LHCloopstream
+	TEQ	R9,#0
+	BNE	LHCloopstream
 LHCovernull
+	AND	R5,R5,#7
+	TEQ	R5,#2				;only call MemSet if the OS hasn't already cleared the buffer
+	MOVNE	R0,R1
+        MOVNES  R1,R9                           ;and there is still space remaining in the buffer to be filled
+	BLNE	MemSet
 	LDMIA	R13!,{R12,R14}
 	B	ModuleReturnOK
 
@@ -1856,15 +1861,15 @@ SSCmainloop
 	TEQ	R11,#1				;but we need samples!
 	MOVNE	R2,R2,LSR #1			;in case we're using 16bit sound samples = bytes/2
 	CMP	R2,R3
-	MOVGT	R2,R3
+	MOVHI	R2,R3
 	TEQ	R1,#0
 	BEQ	SSCskipbuffer
 	ADD	R1,R1,R7			;add fill level to dest buffer
 	MOV	R14,PC				;return to SSCskipbuffer (called code doesn't preserve flags)
-	MOV	PC,R9
+	MOV	PC,R9				;dynamic BL to the copy code
 SSCskipbuffer
-	MLA	R0,R10,R2,R0			;src = src + src_sample_size * samples
 	MLA	R7,R11,R2,R7			;dest = dest + dest_sample_size * samples
+	MLA	R0,R10,R2,R0			;src = src + src_sample_size * samples
 	STR	R7,[R12,#Work_FillLevel]
 	CMP	R7,R4
 	BLT	SSCexit
@@ -2765,17 +2770,15 @@ FSConfigClose ;close and wait until sound is played
 	LDR	R14,[R12,#Work_BuffOffset]
 	TEQ	R14,#0
 	BLNE	FSFlushMiniBuffer
-    ;;
-    ;;
 	LDR	R6,[R12,#Work_ReadBuffer] ;last read buffer
 	SWI	XOS_ReadMonotonicTime
 	MOV	R5,R0				;time stamp of last read buffer
 FSCCwait
-	BL	FSIssueUpCall
-	SWI	XOS_ReadMonotonicTime
-	SUB	R14,R0,R5
-	CMP	R14,#20			;if the read buffer hasn't changed in 20cs
-	BHS	FSCCfinish			;we finish anyway (no infinite loops!!!)
+        BL      FSIssueUpCall
+        SWI     XOS_ReadMonotonicTime
+        SUB     R14,R0,R5
+        CMP     R14,#20                 ;if the read buffer hasn't changed in 20cs
+        BHS     FSCCfinish                      ;we finish anyway (no infinite loops!!!)
 	LDR	R4,[R12,#Work_ReadBuffer]
 	TEQ	R4,R6
 	MOVNE	R6,R4
@@ -2784,13 +2787,13 @@ FSCCwait
 	TEQ	R4,R14
 	LDREQ	R4,[R12,#Work_RingIsFull]
 	TEQEQ	R4,#0
-	BNE	FSCCwait
+        BNE     FSCCwait
     ;;
     ;;
 FSCCfinish
-	MOV	R14,#0				;mark files closed _before_ calling deactivate!
-	STR	R14,[R12,#Work_StreamHandle] ;otherwise deactivate tries to close again
-	STR	R14,[R12,#Work_StrExtHand]
+        MOV     R14,#0                          ;mark files closed _before_ calling deactivate!
+        STR     R14,[R12,#Work_StreamHandle] ;otherwise deactivate tries to close again
+        STR     R14,[R12,#Work_StrExtHand]
     ;;
         LDR     R14,[R12,#Work_State]
         TST     R14,#State_Deactivating         ;check that we aren't here because SWI XDR_Deactivate was called
