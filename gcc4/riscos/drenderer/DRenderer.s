@@ -120,11 +120,22 @@ State_NewSound		*	32
 State_Restore16		*	64
 State_Deactivating      *       128
 
+; In what seems to me to be a classic design blunder, the Acorn 16-bit sound system requires samples in right-left order,
+; although every other system I have encountered encodes samples in left-right order. This has the weird effect that
+; "correct" left/right channel ordering on any other system is "incorrect" on RISC OS! This has a detrimental effect on
+; software ported from other platforms because the rest of the world considers left-right order to be normal and so files
+; with that ordering will NOT be swapped by the software to cater for the perverse Acorn right-left ordering. In other
+; words, if the software says that the ordering is SWAPPED right-left, then that is in fact CORRECT for Acorn's system and
+; so should NOT be swapped. It is counter-intuitive, but when software says that the order is correct left-right, that is
+; when swapping must be done on Acorn's system. There is potential here for much confusion.
+; --
+; Christopher Martin, Fri 20th April 2012 16:16
+;
 ; formats (8bit ulaw, 16bit signed linear)
 Format_Undef		*	0
 Format_8u		*	1
-Format_16sl		*	2
-Format_16swap		*	3
+Format_16sle_rl		*	2	; right-left order is what the Acorn 16-bit sound system requires
+Format_16sle_lr		*	3	; but AFAIK, left-right order is normal for non-Acorn formats and platforms
 
 ; shift factor for volume (assume 128 rather than 127)
 Volume_Shift		*	7
@@ -364,7 +375,7 @@ InitCode
 ICreinit
 	MOV	R0,#1			;defaults for 1channel 22kHz, 1 second buffer time
 	STR	R0,[R2,#Work_DfltChannels]
-	MOV	R0,#Format_16sl
+	MOV	R0,#Format_16sle_rl
 	STR	R0,[R2,#Work_DfltFormat]
 	MOV	R0,#45
 	STR	R0,[R2,#Work_DfltPeriod]
@@ -562,7 +573,7 @@ TitleString
         ALIGN
 
 HelpString
-        =       "DigitalRenderer",9,"0.56 beta 5 GPL (20 Apr 2012)",13,10
+        =       "DigitalRenderer",9,"0.56 beta 6 GPL (20 Apr 2012)",13,10
 	=	"Provides a means to playback samples from applications."
 	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
         ALIGN
@@ -594,7 +605,7 @@ Help_DRoff
 Help_DRdefault
 	=	"Set the defaults or print the current ones if no parameters given",13,10,9
 	=	"-c #: number of channels (1,2,4,8)",13,10,9
-	=	"-f #: format (1: 8bit ulaw, 2: 16bit sl)",13,10,9
+	=	"-f #: format (1: 8bit ulaw; 2: 16bit sl le r-l; 3: 16bit sl le l-r)",13,10,9
 	=	"-p #: sample period (1e6/frequency)",13,10,9
 	=	"-q #: sample frequency (for 16bit sound, zero to disable)",13,10,9
 	=	"-s #: buffer size",13,10,9
@@ -1363,7 +1374,7 @@ SWIAct16FindRate ; primitive linear search...
         MOV     R0,#3
         SWI     XSound_SampleRate               ; switch on the new sample rate we calculated above
     ;;
-	MOV	R0,#Format_16sl
+	MOV	R0,#Format_16sle_rl
 	STR	R0,[R12,#Work_SampleFormat]
 	LDR	R0,[R12,#Work_State]
 	ORR	R0,R0,#(State_Active + State_NeedData + State_NewSound)
@@ -2316,7 +2327,7 @@ CopyLinearBuffer ;r0 = src, r1 = dest, r2 = num bytes (dest)
 	TEQ	R14,#1
 	BEQ	CLBexpand
 	LDR	R14,[R12,#Work_SampleFormat]
-	TEQ	R14,#Format_16swap
+	TEQ	R14,#Format_16sle_lr
 	BEQ	CLBswaplinear			;2 channels, but wrong order
 	BL	CopyByteBuffer			;2 channels ==> just copy the whole thing
 	LDR	PC,[R13],#4
@@ -2524,10 +2535,10 @@ CDRDprintstate
 	ADR	R0,ConfStr_FmtUndef
 	TEQ	R14,#Format_8u
 	ADREQ	R0,ConfStr_Fmt8u
-	TEQ	R14,#Format_16sl
-	ADREQ	R0,ConfStr_Fmt16sl
-	TEQ	R14,#Format_16swap
-	ADREQ	R0,ConfStr_Fmt16swap
+	TEQ	R14,#Format_16sle_rl
+	ADREQ	R0,ConfStr_Fmt16sle_rl
+	TEQ	R14,#Format_16sle_lr
+	ADREQ	R0,ConfStr_Fmt16sle_lr
 	SWI	XOS_Write0
 	FNPrintConfig	ConfStr_Period,Work_DfltPeriod
 	FNPrintConfig	ConfStr_Frequency,Work_DfltFrequency
@@ -2565,11 +2576,11 @@ ConfStr_FmtUndef
 ConfStr_Fmt8u
 	=	"8bit ulaw",0
 	ALIGN
-ConfStr_Fmt16sl
-	=	"16bit signed linear",0
+ConfStr_Fmt16sle_rl
+	=	"16bit signed linear (little-endian, right-left order)",0
 	ALIGN
-ConfStr_Fmt16swap
-	=	"16bit signed linear swapped",0
+ConfStr_Fmt16sle_lr
+	=	"16bit signed linear (little-endian, left-right order)",0
 	ALIGN
 
 CommandDRstatus
@@ -2768,7 +2779,7 @@ FSCOnewsound
 	MOVVC	R1,#1
 	STRVC	R1,[R12,#Work_StreamHandle]
 	LDR	R1,[R12,#Work_DfltFormat]
-	STR	R1,[R12,#Work_SampleFormat] ;may be 16swap!
+	STR	R1,[R12,#Work_SampleFormat]
 	LDMIA	R13!,{R1-R3,R14}
 	B	ModuleReturnOK
 
@@ -2789,17 +2800,16 @@ FSConfigClose ;close and wait until sound is played
     ;; --
     ;; Christopher Martin, Fri 20th April 2012 03:55
     ;;
-	STR	R1,[R13,#-4]!
-    	LDR	R6,[R12,#Work_TotBuffSize]
-    	MOV	R1,#MiniBufferSize
-    	ADD	R0,R12,#Work_MiniBuffer
-    	BL	MemSet
-    	ADD	R6,R6,R6,LSL #1		;silence for three times the length of a full buffer
-psycho	BL	FSWriteNoBlock
-	SUBS	R6,R6,R1
-	BHI	psycho
-	LDR	R1,[R13],#4
-    ;;
+;	STR	R1,[R13,#-4]!
+;    	LDR	R6,[R12,#Work_TotBuffSize]
+;    	MOV	R1,#MiniBufferSize
+;    	ADD	R0,R12,#Work_MiniBuffer
+;    	BL	MemSet
+;    	ADD	R6,R6,R6,LSL #1		;silence for three times the length of a full buffer
+;psycho	BL	FSWriteNoBlock
+;	SUBS	R6,R6,R1
+;	BHI	psycho
+;	LDR	R1,[R13],#4
     ;;
 	LDR	R6,[R12,#Work_ReadBuffer] ;last read buffer
 	SWI	XOS_ReadMonotonicTime
