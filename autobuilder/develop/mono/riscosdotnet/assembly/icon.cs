@@ -8,11 +8,10 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 using riscos;
-using riscos.Wimp;
 
 namespace riscos
 {
-	namespace Wimp
+	public static partial class Wimp
 	{
 		public class IconBuffer
 		{
@@ -130,10 +129,11 @@ namespace riscos
 					    IconData data,
 					    uint priority)
 			{
-				IconCreateBlock icon_block = new IconCreateBlock (windowHandle,
-										  boundingBox,
-										  flags,
-										  data);
+				NativeWimp.IconCreateBlock icon_block =
+						new NativeWimp.IconCreateBlock (windowHandle,
+										boundingBox,
+										flags,
+										data);
 				Data = data;
 				OS.ThrowOnError (NativeMethods.Wimp_CreateIcon (ref icon_block,
 										out Handle));

@@ -10,51 +10,6 @@ using System.Runtime.InteropServices;
 
 namespace riscos
 {
-	// Structures that need to be laid out so that they match those used
-	// by RISC OS.
-	namespace NativeOS
-	{
-		// The standard os_error structure
-		[StructLayout(LayoutKind.Sequential)]
-		public struct Error
-		{
-			public int errnum;
-
-			[MarshalAs(UnmanagedType.ByValTStr, SizeConst=252)]
-			public string errmess;
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		public struct Rect
-		{
-			public int MinX;
-			public int MinY;
-			public int MaxX;
-			public int MaxY;
-
-			public Rect (OS.Rect rect)
-			{
-				MinX = rect.MinX;
-				MinY = rect.MinY;
-				MaxX = rect.MaxX;
-				MaxY = rect.MaxY;
-			}
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		public struct Coord
-		{
-			public int X;
-			public int Y;
-
-			public Coord (OS.Coord coord)
-			{
-				X = coord.X;
-				Y = coord.Y;
-			}
-		}
-	}
-
 	public static class OS
 	{
 		public enum GCOLAction
@@ -177,6 +132,30 @@ namespace riscos
 			{
 				X = coord.X;
 				Y = coord.Y;
+			}
+		}
+
+		public class Transform
+		{
+			public int a; // x scale factor, or cos(angle) to rotate
+			public int b; // sin(angle) to rotate
+			public int c; // -sin(angle) to rotate
+			public int d; // y scale factor, or cos(angle) to rotate
+			public int e; // x translation
+			public int f; // y translation
+
+			// Array is of the form:
+			// a b
+			// c d
+			// e f
+			public Transform (int [,] trans_array)
+			{
+				a = trans_array [0, 0];
+				b = trans_array [0, 1];
+				c = trans_array [1, 0];
+				d = trans_array [1, 1];
+				e = trans_array [2, 0];
+				f = trans_array [2, 1];
 			}
 		}
 

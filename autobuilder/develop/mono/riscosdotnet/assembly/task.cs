@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using riscos.Wimp;
 
 namespace riscos
 {
@@ -42,77 +41,77 @@ namespace riscos
 			{
 				OS.ThrowOnError (NativeMethods.Wimp_Poll (poll_mask, out PollWord));
 
-				Event event_base = Event.GetEvent ();
+				Wimp.Event event_base = Wimp.Event.GetEvent ();
 
 				switch (event_base.type)
 				{
-				case PollCode.RedrawWindow:
+				case Wimp.PollCode.RedrawWindow:
 					{
-						RedrawWindowEvent event_full = (RedrawWindowEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.RedrawArgs.RedrawWimpBlock.WindowHandle];
+						Wimp.RedrawWindowEvent event_full = (Wimp.RedrawWindowEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.RedrawArgs.RedrawWimpBlock.WindowHandle];
 						event_window.OnRedraw (event_full);
 					}
 					break;
-				case PollCode.OpenWindow:
+				case Wimp.PollCode.OpenWindow:
 					{
-						OpenWindowEvent event_full = (OpenWindowEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.OpenWindowArgs.OpenWimpBlock.WindowHandle];
+						Wimp.OpenWindowEvent event_full = (Wimp.OpenWindowEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.OpenWindowArgs.OpenWimpBlock.WindowHandle];
 						event_window.OnOpen (event_full);
 					}
 					break;
-				case PollCode.CloseWindow:
+				case Wimp.PollCode.CloseWindow:
 					{
-						CloseWindowEvent event_full = (CloseWindowEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.CloseWindowArgs.CloseWimpBlock.WindowHandle];
+						Wimp.CloseWindowEvent event_full = (Wimp.CloseWindowEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.CloseWindowArgs.CloseWimpBlock.WindowHandle];
 						event_window.OnClose (event_full);
 					}
 					break;
-				case PollCode.PointerLeaveWindow:
+				case Wimp.PollCode.PointerLeaveWindow:
 					{
-						PointerLeaveEvent event_full = (PointerLeaveEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.PointerLeaveArgs.PointerLeaveWimpBlock.WindowHandle];
+						Wimp.PointerLeaveEvent event_full = (Wimp.PointerLeaveEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.PointerLeaveArgs.PointerLeaveWimpBlock.WindowHandle];
 						event_window.OnPointerLeave (event_full);
 					}
 					break;
-				case PollCode.PointerEnterWindow:
+				case Wimp.PollCode.PointerEnterWindow:
 					{
-						PointerEnterEvent event_full = (PointerEnterEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.PointerEnterArgs.PointerEnterWimpBlock.WindowHandle];
+						Wimp.PointerEnterEvent event_full = (Wimp.PointerEnterEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.PointerEnterArgs.PointerEnterWimpBlock.WindowHandle];
 						event_window.OnPointerEnter (event_full);
 					}
 					break;
-				case PollCode.MouseClick:
+				case Wimp.PollCode.MouseClick:
 					{
-						MouseClickEvent event_full = (MouseClickEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.MouseClickArgs.MouseClickWimpBlock.WindowHandle];
+						Wimp.MouseClickEvent event_full = (Wimp.MouseClickEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.MouseClickArgs.MouseClickWimpBlock.WindowHandle];
 						event_window.OnMouseClick (event_full);
 					}
 					break;
-				case PollCode.KeyPressed:
+				case Wimp.PollCode.KeyPressed:
 					{
-						KeyPressedEvent event_full = (KeyPressedEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.KeyPressedArgs.KeyPressedWimpBlock.WindowHandle];
+						Wimp.KeyPressedEvent event_full = (Wimp.KeyPressedEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.KeyPressedArgs.KeyPressedWimpBlock.WindowHandle];
 						event_window.OnKeyPressed (event_full);
 					}
 					break;
-				case PollCode.ScrollRequest:
+				case Wimp.PollCode.ScrollRequest:
 					{
-						ScrollRequestEvent event_full = (ScrollRequestEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.ScrollRequestArgs.ScrollRequestWimpBlock.WindowHandle];
+						Wimp.ScrollRequestEvent event_full = (Wimp.ScrollRequestEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.ScrollRequestArgs.ScrollRequestWimpBlock.WindowHandle];
 						event_window.OnScrollRequest (event_full);
 					}
 					break;
-				case PollCode.LoseCaret:
+				case Wimp.PollCode.LoseCaret:
 					{
-						LoseCaretEvent event_full = (LoseCaretEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.LoseCaretArgs.LoseCaretWimpBlock.WindowHandle];
+						Wimp.LoseCaretEvent event_full = (Wimp.LoseCaretEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.LoseCaretArgs.LoseCaretWimpBlock.WindowHandle];
 						event_window.OnLoseCaret (event_full);
 					}
 					break;
-				case PollCode.GainCaret:
+				case Wimp.PollCode.GainCaret:
 					{
-						GainCaretEvent event_full = (GainCaretEvent)event_base;
-						Window event_window = (Window)WimpTask.AllWindows [event_full.GainCaretArgs.GainCaretWimpBlock.WindowHandle];
+						Wimp.GainCaretEvent event_full = (Wimp.GainCaretEvent)event_base;
+						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.GainCaretArgs.GainCaretWimpBlock.WindowHandle];
 						event_window.OnGainCaret (event_full);
 					}
 					break;

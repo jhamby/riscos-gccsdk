@@ -6,10 +6,59 @@
 
 using System;
 using System.Runtime.InteropServices;
+using riscos;
 
 namespace riscos
 {
-	internal static partial class NativeMethods
+	public static class NativeToolbox
+	{
+		[StructLayout(LayoutKind.Sequential)]
+		public struct IDBlock
+		{
+			public uint	ancestor_id;
+			public uint	ancestor_cmp;
+			public uint	parent_id;
+			public uint	parent_cmp;
+			public uint	self_id;
+			public uint	self_cmp;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct ShowObjectFullSpecBlock
+		{
+			public NativeOS.Rect Visible;
+			public NativeOS.Coord Scroll;
+			public uint BehindWindow;
+
+			public uint WindowFlags;
+			public uint ParentWindowHandle;
+			public uint AlignmentFlags;
+
+			public ShowObjectFullSpecBlock (OS.Rect visible,
+							OS.Coord scroll)
+			{
+				Visible = new NativeOS.Rect (visible);
+				Scroll = new NativeOS.Coord (scroll);
+				BehindWindow = Wimp.WindowStackPosition.Top;
+				WindowFlags = 0;
+				ParentWindowHandle = 0;
+				AlignmentFlags = 0;
+			}
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct ShowObjectTopLeftBlock
+		{
+			public NativeOS.Coord TopLeft;
+
+			public ShowObjectTopLeftBlock (OS.Coord topLeft)
+			{
+				TopLeft = new NativeOS.Coord (topLeft);
+			}
+		}
+	}
+
+	static partial class NativeMethods
 	{
 		// Toolbox SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xoolbox_initialise")]
@@ -22,7 +71,7 @@ namespace riscos
 				[In, MarshalAs(UnmanagedType.LPArray, SizeConst=4)]
 					ref uint[] message_file_dec,
 				[In, MarshalAs(UnmanagedType.Struct)]
-					ref riscos.Toolbox.IDBlock idBlock,
+					ref NativeToolbox.IDBlock idBlock,
 				out int versionOut,
 				out uint taskOut,
 				out IntPtr spriteAreaOut);
@@ -53,7 +102,7 @@ namespace riscos
 		internal static extern IntPtr Toolbox_ShowObject (Toolbox.ShowObjectFlags flags,
 								  uint objectID,
 								  Toolbox.ShowObjectType showType,
-								  ref Toolbox.ShowObjectFullSpecBlock type,
+								  ref NativeToolbox.ShowObjectFullSpecBlock type,
 								  uint parentID,
 								  int parentCmp);
 
@@ -61,7 +110,7 @@ namespace riscos
 		internal static extern IntPtr Toolbox_ShowObject (Toolbox.ShowObjectFlags flags,
 								  uint objectID,
 								  Toolbox.ShowObjectType showType,
-								  ref Toolbox.ShowObjectTopLeftBlock type,
+								  ref NativeToolbox.ShowObjectTopLeftBlock type,
 								  uint parentID,
 								  int parentCmp);
 

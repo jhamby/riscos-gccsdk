@@ -75,7 +75,7 @@ namespace riscos
 				Show (0, -1);
 			}
 
-			public void Show (ShowObjectFullSpecBlock block,
+			public void Show (NativeToolbox.ShowObjectFullSpecBlock block,
 					  uint parentID, int parentCmp)
 			{
 				OS.ThrowOnError (NativeMethods.Toolbox_ShowObject (0,
@@ -86,7 +86,7 @@ namespace riscos
 										   parentCmp));				
 			}
 
-			public void Show (ShowObjectTopLeftBlock block,
+			public void Show (NativeToolbox.ShowObjectTopLeftBlock block,
 					  uint parentID, int parentCmp)
 			{
 				OS.ThrowOnError (NativeMethods.Toolbox_ShowObject (0,
@@ -104,7 +104,7 @@ namespace riscos
 
 			uint[] MesstransFD = new uint[4];
 
-			Toolbox.IDBlock IDBlock;
+			NativeToolbox.IDBlock IDBlock;
 
 			public IntPtr SpriteArea;
 
@@ -127,51 +127,6 @@ namespace riscos
 										   out handle,
 										   out SpriteArea));
 				Handle = handle;
-			}
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		public struct IDBlock
-		{
-			public uint	ancestor_id;
-			public uint	ancestor_cmp;
-			public uint	parent_id;
-			public uint	parent_cmp;
-			public uint	self_id;
-			public uint	self_cmp;
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		public struct ShowObjectFullSpecBlock
-		{
-			public NativeOS.Rect Visible;
-			public NativeOS.Coord Scroll;
-			public uint BehindWindow;
-
-			public uint WindowFlags;
-			public uint ParentWindowHandle;
-			public uint AlignmentFlags;
-
-			public ShowObjectFullSpecBlock (OS.Rect visible,
-							OS.Coord scroll)
-			{
-				Visible = new NativeOS.Rect (visible);
-				Scroll = new NativeOS.Coord (scroll);
-				BehindWindow = Wimp.WindowStackPosition.Top;
-				WindowFlags = 0;
-				ParentWindowHandle = 0;
-				AlignmentFlags = 0;
-			}
-		}
-
-		[StructLayout(LayoutKind.Sequential)]
-		public struct ShowObjectTopLeftBlock
-		{
-			public NativeOS.Coord TopLeft;
-
-			public ShowObjectTopLeftBlock (OS.Coord topLeft)
-			{
-				TopLeft = new NativeOS.Coord (topLeft);
 			}
 		}
 	}

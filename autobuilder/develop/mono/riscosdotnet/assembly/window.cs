@@ -3,11 +3,10 @@ using System.Runtime.InteropServices;
 using System.Collections;
 using System.Text;
 using riscos;
-using riscos.Wimp;
 
 namespace riscos
 {
-	namespace Wimp
+	public static partial class Wimp
 	{
 		public class Window
 		{
@@ -88,7 +87,7 @@ namespace riscos
 			{
 				Title = new IconBuffer (title, titleMaxLen);
 
-				WindowBlock block = new WindowBlock (Title);
+				NativeWimp.WindowBlock block = new NativeWimp.WindowBlock (Title);
 
 				block.WorkArea = new NativeOS.Rect (Extent);
 
@@ -102,11 +101,12 @@ namespace riscos
 					  OS.Coord scroll,
 					  uint behind)
 			{
-				WindowStateBlock block = new WindowStateBlock (Handle,
-									       visible,
-									       scroll,
-									       behind,
-									       0); // Flags are ignored on a normal window open
+				NativeWimp.WindowStateBlock block = 
+					new NativeWimp.WindowStateBlock (Handle,
+									 visible,
+									 scroll,
+									 behind,
+									 0); // Flags are ignored on a normal window open
 				OS.ThrowOnError (NativeMethods.Wimp_OpenWindow (ref block));
 			}
 
@@ -128,11 +128,12 @@ namespace riscos
 				else
 					nestedFlags |= 1;
 
-				WindowStateBlock block = new WindowStateBlock(Handle,
-									      visible,
-									      scroll,
-									      behindWindow,
-									      windowFlags);
+				NativeWimp.WindowStateBlock block =
+					new NativeWimp.WindowStateBlock(Handle,
+									visible,
+									scroll,
+									behindWindow,
+									windowFlags);
 				OS.ThrowOnError (NativeMethods.Wimp_OpenWindowNested (ref block,
 										      parentWindow,
 										      nestedFlags));
@@ -153,13 +154,13 @@ namespace riscos
 					    0xffffffff); // Use the window's existing flags.
 			}
 
-			public void GetState (ref WindowStateBlock block)
+			public void GetState (ref NativeWimp.WindowStateBlock block)
 			{
 				block.WindowHandle = Handle;
 				OS.ThrowOnError (NativeMethods.Wimp_GetWindowState (ref block));
 			}
 
-			public void GetNestedState (ref WindowStateBlock block,
+			public void GetNestedState (ref NativeWimp.WindowStateBlock block,
 						    out uint parent,
 						    out uint nested)
 			{
@@ -192,7 +193,7 @@ namespace riscos
 			// Find the origin of the window when we don't have its state.
 			public OS.Coord GetOrigin ()
 			{
-				WindowStateBlock state = new WindowStateBlock ();
+				NativeWimp.WindowStateBlock state = new NativeWimp.WindowStateBlock ();
 				GetState (ref state);
 				return GetOrigin (ref state.Visible, ref state.Scroll);
 			}

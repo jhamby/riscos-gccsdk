@@ -14,12 +14,13 @@
 
 using System;
 using riscos;
-using riscos.Wimp;
 
 public class MyTask : WimpTask
 {
+	public Font.Instance main_font;
+
 	// These are C# 'event' handlers.
-	public void redraw_main_window (object sender, RedrawEventArgs args)
+	public void redraw_main_window (object sender, Wimp.RedrawEventArgs args)
 	{
 		ColourTrans.SetGCOL (OS.GCOLAction.Replace_FG, ColourTrans.FullRed);
 		OS.PlotCircleFill (args.Origin.X + 1000, args.Origin.Y + 1000, 400);
@@ -27,9 +28,15 @@ public class MyTask : WimpTask
 		OS.PlotLine (args.Origin.X, args.Origin.Y, args.Origin.X + 2000, args.Origin.Y + 2000);
 		ColourTrans.SetGCOL (OS.GCOLAction.Replace_FG, ColourTrans.FullBlue);
 		OS.PlotLine (args.Origin.X, args.Origin.Y + 2000, args.Origin.X + 2000, args.Origin.Y);
+
+		main_font.Paint ("CSharp string",
+				 1U << 4, // Coords are in OS units
+				 args.Origin.X + 100,
+				 args.Origin.Y + 1000,
+				 0); // Length ignored (paint whole string) if bit 7 of flags not set
 	}
 
-	public void close_main_window (object sender, CloseEventArgs args)
+	public void close_main_window (object sender, Wimp.CloseEventArgs args)
 	{
 		Quit = true;
 	}
@@ -49,20 +56,22 @@ public class Test
 		{
 			task.Initialise (350, "Test App", mess_list);
 
-			Window window = new Window ();
-			window.RedrawHandler += new RedrawEventHandler (task.redraw_main_window);
-			window.CloseHandler += new CloseEventHandler (task.close_main_window);
+			task.main_font = new Font.Instance ("Trinity.Bold", 24 << 4, 24 << 4);
+
+			Wimp.Window window = new Wimp.Window ();
+			window.RedrawHandler += new Wimp.RedrawEventHandler (task.redraw_main_window);
+			window.CloseHandler += new Wimp.CloseEventHandler (task.close_main_window);
 			window.SetExtent (new OS.Rect (0, 0, 2000, 2000));
 			window.Create ("CSharp Window");
 
 			window.CreateIcon (new OS.Rect (150, 150, 350, 350),
 					   0x2700313fU,					// Iconflags
-					   new IconData (new IconBuffer ("C# Button"),
-							 new IconBuffer ("R5,3")),
+					   new Wimp.IconData (new Wimp.IconBuffer ("C# Button"),
+							      new Wimp.IconBuffer ("R5,3")),
 					   0);
 			window.Open (new OS.Rect (100, 100, 500, 500),			// Visible area
 				     new OS.Coord (0, 0),				// Scroll offsets
-				     WindowStackPosition.Top);
+				     Wimp.WindowStackPosition.Top);
 
 			task.PollLoop ();
 		}
