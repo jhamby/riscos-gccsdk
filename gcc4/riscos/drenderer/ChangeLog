@@ -1,3 +1,38 @@
+Fri Apr 20 19:32:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Addressed a grey area in the documentation concerning which 16-bit
+	channel ordering, left-right or right-left, is "correct" and which is
+	"swapped". The documentation and code now refer explicitly to either
+	left-right or right-left. The default is declared to be right-left.
+	* Added speculative code that adds some silence after a streamed file
+	is closed. It appears on BeagleBoard RISC OS 5.18, a silent tail 3
+	times the buffer length is required in order to avoid a nasty buzz if
+	the file being played does not end in silence. The tail may in fact be
+	smaller than this, depending on the buffer length or sample rate, but
+	I found that 2 buffers worth of silence was not enough; 3 was. Iyonix
+	RISC OS 5.18 exhibits the same problem but to a lesser degree. I
+	haven't experimented enough to determine a precise formulation that is
+	sure to work in all cases. And, of course, this code doesn't help when
+	the DRender: filesystem isn't being used. This speculative code was
+	then commented-out because it may have been responsible for a system
+	crash after the application load caused the desktop to stop
+	multitasking for a couple of seconds. Besides, adding an arbitrary bit
+	of silence to the end of a streamed file is a bodgy solution to what I
+	now suspect is an operating system problem. I discovered that PlayIt
+	suffers from the same problems on RISC OC 5.18, on BeagleBoard and
+	Iyonix, when using its acorn16bit driver.
+	* Added code to the 16-bit streamer so that it transfers to the sound
+	system only as much data has been written into a buffer, rather than
+	the full contents of that buffer which may contain the remnant of a
+	previous buffer-fill operation.
+	* When the 16-bit linear handler is streaming, before finishing it
+	checks for space remaining in the sound system's buffer and writes
+	zeroes into any remainder unless the OS has indicated that the buffer
+	was preset to silence.
+	* Added descriptive comments for some fields in the module work area.
+	* Changed some comparisons from signed to unsigned.
+	* Bumped version to 0.56 beta 6.
+
 Wed Apr 18 15:06:00 CST 2012  Christopher Martin  <belles@internode.on.net>
 
 	* Ensure that some dynamic branches preserve any 26-bit PSR in
