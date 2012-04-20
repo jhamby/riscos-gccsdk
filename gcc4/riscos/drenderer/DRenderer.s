@@ -562,7 +562,7 @@ TitleString
         ALIGN
 
 HelpString
-        =       "DigitalRenderer",9,"0.56 beta 4 GPL (19 Apr 2012)",13,10
+        =       "DigitalRenderer",9,"0.56 beta 5 GPL (20 Apr 2012)",13,10
 	=	"Provides a means to playback samples from applications."
 	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
         ALIGN
@@ -1097,7 +1097,7 @@ SWINumBuffers
 	STMDB	R13!,{R1-R4,R14}
 	MOVS	R4,R0
 	LDR	R0,[R12,#Work_NumBuffers]
-        BMI     SWINBexit
+	BMI	SWINBexit
 	TEQ	R0,R4
 	BEQ	SWINBexit
 	BL	FreeRingBuffer
@@ -1585,7 +1585,7 @@ CHFCcallback
 
 CHFCstreaming ;R4 = num buffers
 	LDR	R3,[R0,#Work_RingBuffer]
-        LDR     R8,[R5,#Work_TotBuffSize]
+	LDR	R8,[R5,#Work_TotBuffSize]
 	MOV	R5,R0
 	MOV	R0,#1
 	STR	R0,[R5,#Work_PollWord]		;on every buffer refill loop, set poll word
@@ -1666,11 +1666,11 @@ LinearHandlerCode
 	ORR	R0,R0,#State_NeedData
 	STR	R0,[R12,#Work_State]
 	LDR	R0,[R12,#Work_BuffersPlayed]
-        SUB     R9,R2,R1                        ;number of bytes to fill in r9
+	SUB	R9,R2,R1			;number of bytes to fill in r9
 	LDR	R4,[R12,#Work_NumBuffers]
 	ADD	R0,R0,#1
 	STR	R0,[R12,#Work_BuffersPlayed]
-        STR     R9,[R12,#Work_DMABuffSize]
+	STR	R9,[R12,#Work_DMABuffSize]
 	TEQ	R4,#0
 	BNE	LHCstreaming
 	LDR	R0,[R12,#Work_Buffer]
@@ -1680,8 +1680,8 @@ LinearHandlerCode
 	LDR	R4,[R12,#Work_TotBuffSize]
 	TEQ	R3,#1
 	MOVEQ	R4,R4,LSL #1
-        CMP     R9,R4
-	MOVHS	R2,R4
+	CMP	R9,R4
+        MOVHS   R2,R4
         MOVLO   R2,R9
 	BL	CopyLinearBuffer		;does 1->2 channel expansion if necessary
 	LDMFD	R13!,{R12,R14}
@@ -1689,7 +1689,7 @@ LinearHandlerCode
 
 LHCstreaming ;streaming interface, similar to Voice handler
 	LDR	R3,[R12,#Work_RingBuffer]
-        LDR     R8,[R12,#Work_TotBuffSize]
+	LDR	R8,[R12,#Work_TotBuffSize]
 	MOV	R0,#1
 	STR	R0,[R12,#Work_PollWord]
 	TEQ	R3,#0
@@ -1712,6 +1712,14 @@ LHCchkoveract
 	MOV	R4,#0
 	STR	R4,[R12,#Work_ReadLevel]
 LHCloopstream
+  ;; vvvv
+  	LDR	R0,[R12,#Work_WriteBuffer]
+  	TEQ	R0,R6
+  	LDREQ	R0,[R12,#Work_FillLevel]
+  	MOVNE	R0,#0
+  	TEQ	R0,#0
+  	MOVNE	R8,R0
+  ;; ^^^^
 	LDR	R0,[R3,R6,LSL #2]
 	TEQ	R0,#0
 	BEQ	LHCovernull
@@ -1747,16 +1755,16 @@ LHCloopstream
 	BNE	LHCnobuffinc
 	MOV	R0,#0
 	STR	R0,[R12,#Work_RingIsFull]
-	TEQ	R9,#0
-	BNE	LHCchkoveract
+	TEQ     R9,#0
+	BNE     LHCchkoveract
 LHCnobuffinc
-	TEQ	R9,#0
-	BNE	LHCloopstream
+        TEQ     R9,#0
+        BNE     LHCloopstream
 LHCovernull
 	AND	R5,R5,#7
 	TEQ	R5,#2				;only call MemSet if the OS hasn't already cleared the buffer
 	MOVNE	R0,R1
-        MOVNES  R1,R9                           ;and there is still space remaining in the buffer to be filled
+	MOVNES	R1,R9				;and there is still space remaining in the buffer to be filled
 	BLNE	MemSet
 	LDMIA	R13!,{R12,R14}
 	B	ModuleReturnOK
@@ -1861,7 +1869,7 @@ SSCmainloop
 	TEQ	R11,#1				;but we need samples!
 	MOVNE	R2,R2,LSR #1			;in case we're using 16bit sound samples = bytes/2
 	CMP	R2,R3
-	MOVHI	R2,R3
+        MOVHI   R2,R3
 	TEQ	R1,#0
 	BEQ	SSCskipbuffer
 	ADD	R1,R1,R7			;add fill level to dest buffer
@@ -2770,6 +2778,29 @@ FSConfigClose ;close and wait until sound is played
 	LDR	R14,[R12,#Work_BuffOffset]
 	TEQ	R14,#0
 	BLNE	FSFlushMiniBuffer
+    ;;
+    ;; It appears on BeagleBoard RISC OS 5.18, a silent tail 3 times the buffer length is required
+    ;; in order to avoid a nasty buzz if the file being played does not end in silence.
+    ;; The tail may in fact be smaller than this, depending on the buffer length or sample rate,
+    ;; but I found that 2 buffers worth of silence was not enough; 3 was.
+    ;; Iyonix RISC OS 5.18 exhibits the same problem but to a lesser degree.
+    ;; I haven't experimented enough to determine a precise formulation that is sure to work in all cases.
+    ;; And, of course, this code doesn't help when the DRender: filesystem isn't being used.
+    ;; --
+    ;; Christopher Martin, Fri 20th April 2012 03:55
+    ;;
+	STR	R1,[R13,#-4]!
+    	LDR	R6,[R12,#Work_TotBuffSize]
+    	MOV	R1,#MiniBufferSize
+    	ADD	R0,R12,#Work_MiniBuffer
+    	BL	MemSet
+    	ADD	R6,R6,R6,LSL #1		;silence for three times the length of a full buffer
+psycho	BL	FSWriteNoBlock
+	SUBS	R6,R6,R1
+	BHI	psycho
+	LDR	R1,[R13],#4
+    ;;
+    ;;
 	LDR	R6,[R12,#Work_ReadBuffer] ;last read buffer
 	SWI	XOS_ReadMonotonicTime
 	MOV	R5,R0				;time stamp of last read buffer
