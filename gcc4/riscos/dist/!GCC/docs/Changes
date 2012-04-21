@@ -68,7 +68,7 @@ Bug fixes and other improvements:
     - client socket handle fix (r4777).
     - use libscl network code instead of its own implementation (r4780).
     - stability fixes and cleanups (r4781, r4783, r4790, r4791, r4806).
-  - DRenderer: Source converted to AsAsm/ObjAsm syntax and upgraded to v0.54
+  - DRenderer: Source converted to AsAsm/ObjAsm syntax and upgraded to v0.55
     (contributed by Christopher Martin).
 
 Cross compile related changes and bug fixes:
