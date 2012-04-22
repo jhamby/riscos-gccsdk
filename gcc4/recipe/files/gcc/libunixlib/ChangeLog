@@ -35,27 +35,6 @@ Sun Mar 04 17:47:47 GMT 2012  Lee Noar  <leenoar@sky.com>
 	__cexp(). __cexp() already calls __sincos() and this would
 	create an infinite loop.
 
-Sat Mar  3 17:37:27 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
-
-	* netlib/get_ro_socket.c: Add.
-	* include/unixlib/local.h (__get_ro_socket): Add.
-	* Makefile.am (netlib_src): Add netlib/get_ro_socket.c.
-
-Fri Mar  2 22:51:55 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
-
-	* unix/features.c (__sfix_default): Remove "a".
-	* common/riscosify.c (__sfix_default): Likewise.
-
-Sat Feb 18 11:44:27 GMT 2012  Lee Noar  <leenoar@sky.com>
-
-	* unistd/symlink.c(symlink): More compact code and better
-	error handling.
-
-Fri Feb 17 20:36:11 GMT 2012  Lee Noar  <leenoar@sky.com>
-
-	* unistd/symlink.c(symlink): Implement writing of symlink
-	files.
-
 Sun Feb 12 14:33:56 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	* signal/post.c: Remove debug code.
@@ -90,31 +69,6 @@ Sun Feb 12 14:16:14 GMT 2012  Lee Noar  <leenoar@sky.com>
 	be used by language interpreters to catch hardware exceptions.
 	* Makefile.am: Add ucontext.h.
 	* pthread/_context.s: Fix comment.
-
-Sat Feb  4 12:04:02 GMT 2012  Lee Noar  <leenoar@sky.com>
-
-	* include/sys/mman.h: Define MADV_FREE (even though we
-	don't support madvise).
-	* pthread/sem.c (sem_timedwait): Dummy function to prevent
-	linker errors in programs that reference it.
-
-Thu Feb  2 22:54:49 GMT 2012  Lee Noar  <leenoar@sky.com>
-
-	* unix/dev.c (__fslseek): File pointer should be set based
-	on the old value of lpos not being 0.
-
-Thu Feb  2 20:39:37 GMT 2012  Lee Noar  <leenoar@sky.com>
-
-	* unix/dev.c (__fslseek): For SEEK_CUR, return the current
-	file pointer even if lpos is 0.
-
-Sat Jan 21 17:39:02 GMT 2012  Lee Noar  <leenoar@sky.com>
-
-	* include/dlfcn.h: Define RTLD_LOCAL.
-
-Tue Jan 10 23:24:55 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
-
-	* include/stdlib.h (realloc): Drop malloc attribute.
 
 Fri Dec 30 02:25:34 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -181,6 +135,178 @@ Fri Dec 30 02:25:34 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 	defined for SCL iso UnixLib.
 	(flockfile, ftrylockfile, funlockfile): Add.
 
+Tue Nov 29 16:34:27 GMT 2011  Lee Noar  <leenoar@sky.com>
+
+	* pthread/_context.s(__pthread_callback): Be more consistent with
+	which register is used for PIC. This is to fix a bug whereby after
+	a jump to skip_contextswitch was made, the wrong register was used
+	to address the GOT.
+	* pthread/pthinit.c(__get_GOT_ptr): Small piece of assembler code
+	to retrieve the GOT pointer. Used by __pthread_prog_init because
+	we don't know which register GCC has used for PIC.
+	* signal/_signal.s(__setup_signalhandler_stack): Load PIC register
+	rather than depend on caller for it.
+
+Sun Nov 27 16:04:02 GMT 2011  Lee Noar  <leenoar@sky.com>
+
+	* pthread/_exit.s(__pthread_exit:): As GCC can now use any register
+	for the PIC register, we have to load it ourselves rather than assume
+	the caller has done it for us.
+
+Wed Sep  7 01:43:43 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (brk.lo,stackalloc.lo,dvsprintf.lo): Update custom
+	targets based on automake 1.11.1 so that parallel builds are
+	again reliable.
+
+Thu Aug 11 23:06:47 2011  Lee Noar <leenoar@sky.com>
+
+	* sys/_syslib.s(__env_riscos,__env_read,__env_unixlib):
+	Avoid having to save the PIC register by using r12.
+	Simplifies the source code because the same stack
+	save/load instructions can be used for both PIC and
+	non PIC versions.
+
+Sat Aug 06 18:23:01 2011  Lee Noar <leenoar@sky.com>
+
+	* pthread/_context.s: Convert to new PIC scheme.
+	* pthread/_yield.s: Likewise.
+	* pthread/_ints.s: Likewise.
+	* signal/_demangle.s: Likewise.
+	* signal/_signal.s: Likewise.
+	* common/_exist.s: Likewise.
+	* common/_riscosify.s: Likewise.
+	* common/_taskhandle.s: Likewise.
+	* gcccompat/_b_return.s: Likewise.
+	* gcccompat/_eh_support.s: Likewise.
+	* sys/_jmp.s: Likewise.
+	* sys/_vfork.s: Likewise.
+	* sys/_syslib.s: Likewise.
+	* include/sys/elf.h: Define DT_RISCOS_PIC.
+
+Sun May 15 19:58:43 2011  Lee Noar <leenoar@sky.com>
+
+	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk):
+	Calls to alloca() makes things awkward in that the alloca
+	implementation uses the frame pointer of the callee of the
+	callee of alloca as a key (note that there are two callees
+	and that this is not a typing error). This means that by
+	the time __gcc_alloca_free has been detected, the frame
+	pointer that would be used as the key to find the correct
+	return address has already passed. To overcome this, the
+	stack unwinder tracks two frame pointers - the current one
+	and the alloca one (the alloca fp actually lags one frame
+	behind the current fp).
+	Use both frame pointers in __ehs_unwind_stack_chunk
+	as required; for UnixLib, the current fp is used only
+	to validate. For SCL, due to the way return addresses are
+	recorded, it may be necessary to return a different fp as
+	the current one.
+
+Sat Feb  5 20:20:02 2011  Lee Noar <leenoar@sky.com>
+
+	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk): Add
+	implementation for SCL. 
+	(UnixLib version): Fix return register list in the case
+	of fp == 0. Change 1st arg to void ** (so the SCL version
+	can return a different frame pointer) and alter code
+	accordingly.
+
+Fri Jan 21 20:40:11 2011  Lee Noar <leenoar@sky.com>
+
+	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk): New
+	function. Used by the ARM stack unwinder to track the
+	current stack chunk and stack limit. UnixLib version only
+	to begin with.
+
+Sat Aug 21 16:55:44 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/unix.c (exit): Revert previous workaround. gcc bug
+	44974 is solved.
+
+Wed Jul 21 14:46:21 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/unix.c (exit): Add temporary workaround for gcc bug
+	http://gcc.gnu.org/bugzilla/show_bug.cgi?id=44974
+
+Sat Jul 17 03:33:14 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* libtool.m4.p: Move away as gcc patch for its common libtool.m4.
+	* libtool-org.m4: Remove.
+	* configure.ac: No longer expect to find a local libtool.m4.
+
+Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac (AC_PREREQ): Require at least Autotools 2.64 (like
+	gcc 4.6); m4_rename -> m4_rename_force
+
+// ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
+
+Thu Mar 22 19:56:15 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* include/sys/elf.h(DT_RISCOS_PIC,DT_RISCOS_ABI_VERSION):
+	Define.
+	* gen-auto.pl: Generate file misc/abi.c.
+	* Makefile.am: Add misc/abi.c to list of files to compile.
+
+Sun Mar 11 18:59:09 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* include/stdio.h: Fix build in 4.1.2 branch. fgets.c
+	defines a strong alias for fgets_unlocked, so this define
+	is no longer required.
+
+Sat Mar  3 17:37:27 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* netlib/get_ro_socket.c: Add.
+	* include/unixlib/local.h (__get_ro_socket): Add.
+	* Makefile.am (netlib_src): Add netlib/get_ro_socket.c.
+
+Fri Mar  2 22:51:55 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/features.c (__sfix_default): Remove "a".
+	* common/riscosify.c (__sfix_default): Likewise.
+
+Thu Mar 01 14:51:32 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* stdio/fpos.c(fseeko64): Fix offset sanity check. This fixes
+	the "Value too large for defined data type" errors in GAS.
+	Already fixed on trunk in r5495.
+
+Sat Feb 18 11:44:27 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* unistd/symlink.c(symlink): More compact code and better
+	error handling.
+
+Fri Feb 17 20:36:11 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* unistd/symlink.c(symlink): Implement writing of symlink
+	files.
+
+Sat Feb  4 12:04:02 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* include/sys/mman.h: Define MADV_FREE (even though we
+	don't support madvise).
+	* pthread/sem.c (sem_timedwait): Dummy function to prevent
+	linker errors in programs that reference it.
+
+Thu Feb  2 22:54:49 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* unix/dev.c (__fslseek): File pointer should be set based
+	on the old value of lpos not being 0.
+
+Thu Feb  2 20:39:37 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* unix/dev.c (__fslseek): For SEEK_CUR, return the current
+	file pointer even if lpos is 0.
+
+Sat Jan 21 17:39:02 GMT 2012  Lee Noar  <leenoar@sky.com>
+
+	* include/dlfcn.h: Define RTLD_LOCAL.
+
+Tue Jan 10 23:24:55 CET 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/stdlib.h (realloc): Drop malloc attribute.
+
 Thu Dec 29 22:01:36 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* debug/dvsprintf.c (UNIXLIB_STDERR): Remove support (causes more
@@ -219,6 +345,11 @@ Mon Dec 26 16:04:12 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/stdio.h (struct __iobuf): Change type of __offset from
 	fpos_t to __off_t.
+
+Fri Dec  9 20:01:02 GMT 2011  Lee Noar  <leenoar@sky.com>
+
+	* pthread/_context.s (__pthread_callback): After a jump to
+	skip_contextswitch, ip is the PIC register, not v4.
 
 Wed Dec  7 00:40:14 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -286,24 +417,6 @@ Sun Dec  4 16:21:58 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 	* README: Moved to...
 	* doc/UnixLib/README: ...here.
 	* doc/SCL/README: Add.  Updated libscl's README.
-
-Tue Nov 29 16:34:27 GMT 2011  Lee Noar  <leenoar@sky.com>
-
-	* pthread/_context.s(__pthread_callback): Be more consistent with
-	which register is used for PIC. This is to fix a bug whereby after
-	a jump to skip_contextswitch was made, the wrong register was used
-	to address the GOT.
-	* pthread/pthinit.c(__get_GOT_ptr): Small piece of assembler code
-	to retrieve the GOT pointer. Used by __pthread_prog_init because
-	we don't know which register GCC has used for PIC.
-	* signal/_signal.s(__setup_signalhandler_stack): Load PIC register
-	rather than depend on caller for it.
-
-Sun Nov 27 16:04:02 GMT 2011  Lee Noar  <leenoar@sky.com>
-
-	* pthread/_exit.s(__pthread_exit:): As GCC can now use any register
-	for the PIC register, we have to load it ourselves rather than assume
-	the caller has done it for us.
 
 Tue Nov 22 02:15:11 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -401,12 +514,6 @@ Thu Sep  8 00:10:25 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 	(get_io_redir): Simplify calls to check_io_redir.
 	Bug #221.
 
-Wed Sep  7 01:43:43 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
-
-	* Makefile.am (brk.lo,stackalloc.lo,dvsprintf.lo): Update custom
-	targets based on automake 1.11.1 so that parallel builds are
-	again reliable.
-
 Wed Sep  7 00:08:02 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdio/fread.c (fread): Set EOF when last byte is read.
@@ -417,30 +524,11 @@ Sat Aug 27 20:34:12 2011  Lee Noar <leenoar@sky.com>
 	* unix/getcwd.c(getcwd): Only free ro_path if it was
 	allocated with malloc in the first place.
 
-Thu Aug 11 23:06:47 2011  Lee Noar <leenoar@sky.com>
+Sat Jul  2 15:14:30 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
-	* sys/_syslib.s(__env_riscos,__env_read,__env_unixlib):
-	Avoid having to save the PIC register by using r12.
-	Simplifies the source code because the same stack
-	save/load instructions can be used for both PIC and
-	non PIC versions.
-
-Sat Aug 06 18:23:01 2011  Lee Noar <leenoar@sky.com>
-
-	* pthread/_context.s: Convert to new PIC scheme.
-	* pthread/_yield.s: Likewise.
-	* pthread/_ints.s: Likewise.
-	* signal/_demangle.s: Likewise.
-	* signal/_signal.s: Likewise.
-	* common/_exist.s: Likewise.
-	* common/_riscosify.s: Likewise.
-	* common/_taskhandle.s: Likewise.
-	* gcccompat/_b_return.s: Likewise.
-	* gcccompat/_eh_support.s: Likewise.
-	* sys/_jmp.s: Likewise.
-	* sys/_vfork.s: Likewise.
-	* sys/_syslib.s: Likewise.
-	* include/sys/elf.h: Define DT_RISCOS_PIC.
+	* include/glob.h: Copy from FreeBSD 8.0.0 with a couple of
+	UnixLib changes.  Solves bug #220.
+	* unix/glob.c: Likewise.
 
 Sun May 29 18:32:56 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
@@ -449,79 +537,15 @@ Sun May 29 18:32:56 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 	(S_ISREG, S_ISFIFO, S_ISLNK): Use S_IFMT mask so that
 	result is 0 or 1.
 
-Sun May 15 19:58:43 2011  Lee Noar <leenoar@sky.com>
+Sun May 29 17:21:43 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
-	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk):
-	Calls to alloca() makes things awkward in that the alloca
-	implementation uses the frame pointer of the callee of the
-	callee of alloca as a key (note that there are two callees
-	and that this is not a typing error). This means that by
-	the time __gcc_alloca_free has been detected, the frame
-	pointer that would be used as the key to find the correct
-	return address has already passed. To overcome this, the
-	stack unwinder tracks two frame pointers - the current one
-	and the alloca one (the alloca fp actually lags one frame
-	behind the current fp).
-	Use both frame pointers in __ehs_unwind_stack_chunk
-	as required; for UnixLib, the current fp is used only
-	to validate. For SCL, due to the way return addresses are
-	recorded, it may be necessary to return a different fp as
-	the current one.
+	* unix/dev.c (__fsopen): Return ENOENT iso EAGAIN when unexisting
+	file is opened without O_CREAT set.
 
 Sun Apr 24 13:16:13 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 	* string/strdup.c (strdup): Don't check on NULL parameter.
 	It's nowhere documented we should.
-
-Sat Feb  5 20:20:02 2011  Lee Noar <leenoar@sky.com>
-
-	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk): Add
-	implementation for SCL. 
-	(UnixLib version): Fix return register list in the case
-	of fp == 0. Change 1st arg to void ** (so the SCL version
-	can return a different frame pointer) and alter code
-	accordingly.
-
-Fri Jan 21 20:40:11 2011  Lee Noar <leenoar@sky.com>
-
-	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk): New
-	function. Used by the ARM stack unwinder to track the
-	current stack chunk and stack limit. UnixLib version only
-	to begin with.
-
-Sat Aug 21 16:55:44 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
-
-	* unix/unix.c (exit): Revert previous workaround. gcc bug
-	44974 is solved.
-
-Wed Jul 21 14:46:21 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
-
-	* unix/unix.c (exit): Add temporary workaround for gcc bug
-	http://gcc.gnu.org/bugzilla/show_bug.cgi?id=44974
-
-Sat Jul 17 03:33:14 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
-
-	* libtool.m4.p: Move away as gcc patch for its common libtool.m4.
-	* libtool-org.m4: Remove.
-	* configure.ac: No longer expect to find a local libtool.m4.
-
-Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
-
-	* configure.ac (AC_PREREQ): Require at least Autotools 2.64 (like
-	gcc 4.6); m4_rename -> m4_rename_force
-
-// ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
-
-Sat Jul  2 15:14:30 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
-
-	* include/glob.h: Copy from FreeBSD 8.0.0 with a couple of
-	UnixLib changes.  Solves bug #220.
-	* unix/glob.c: Likewise.
-
-Sun May 29 17:21:43 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
-
-	* unix/dev.c (__fsopen): Return ENOENT iso EAGAIN when unexisting
-	file is opened without O_CREAT set.
 
 Wed Apr  6 03:27:25 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
