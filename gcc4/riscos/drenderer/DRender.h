@@ -4,7 +4,7 @@
  * Written by
  *  Andreas Dehmel <zarquon@t-online.de>
  *
- * This file is part of wimplib. wimplib is released under the Lesser
+ * This file was part of wimplib. wimplib is released under the Lesser
  * GNU Public License (LGPL). For more information see the License
  * provided with the library release.
  */
@@ -12,15 +12,30 @@
 #ifndef _DIGITAL_RENDERER_H_
 #define _DIGITAL_RENDERER_H_
 
+#ifndef __KERNEL_H
+#  include <kernel.h>
+#endif
+
+#define DRState_Active          (1<<0)
+#define DRState_NeedData        (1<<1)
+#define DRState_Overflow        (1<<2)
+#define DRState_Paused          (1<<4)
+#define DRState_16bit           (1<<5)
+
+#define DRStream_OverrunNull    (1<<0)  /* fill buffer with 0 on an overrun */
+#define DRStream_IssueUpCall    (1<<1)  /* use upcalls for waiting */
+#define DRStream_OverBlock      (1<<2)  /* block on stream overflow, else truncate */
+
+#define DRFORMAT_UNDEF          0
+#define DRFORMAT_8ULAW          1
+#define DRFORMAT_S16RL          2       /* Acorn native: right channel, then left channel */
+#define DRFORMAT_S16LR          3       /* /dev/dsp native: left channel, then right channel */
+
+#define DigiRendChunk           0x6F700 /* X flag set */
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#define DRState_Active		1
-#define DRState_NeedData	2
-#define DRState_Overflow	4
-
 
 /* Digital Renderer SWI calls */
 extern _kernel_oserror *DigitalRenderer_Activate(int Channels, int Length, int SamPeriod);
@@ -50,11 +65,6 @@ extern void DigitalRenderer_Stream16BitSamples(const unsigned short *Sample, int
 extern int  DigitalRenderer_StreamStatistics(void);
 
 extern int  DigitalRenderer_StreamFlags(int eor, int and);
-
-#define DRFORMAT_UNDEF	0
-#define DRFORMAT_8ULAW	1
-#define DRFORMAT_16LIN	2
-#define DRFORMAT_16SWAP	3
 
 extern void DigitalRenderer_SetDefaults(int *channels, int *format, int *period, int *buffsize, int *numbuff, int *freq);
 

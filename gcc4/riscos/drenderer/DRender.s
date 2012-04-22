@@ -11,13 +11,16 @@
 ;*
 ;* Currently part of the GCCSDK project.
 
-	AREA	|Asm$$Code|, CODE, READONLY
 
 DigiRendChunk	EQU	0x6F700		;X flag set
 
+
+        AREA    |Asm$$Code|, CODE, READONLY
+
+
 	ALIGN	4
 |wimplib_return_code|
-	teq	r0, r0
+        teq     r0, r0  ;Ensure that at least one PSR-26 flag is set
 	teq	pc, pc
 	moveq	pc, lr
 	movs	pc, lr
@@ -186,29 +189,30 @@ DigiRendChunk	EQU	0x6F700		;X flag set
 	ALIGN	4
 
 |DigitalRenderer_SetDefaults|
-	stmdb	sp!,{r4-r9,lr}
+        stmfd   sp!,{r4-r10,lr} ;save 8 regs, r12 (ip) can be clobbered
 	mov	r6,r0
 	mov	r7,r1
 	mov	r8,r2
 	mov	r9,r3
-	ldr	r0,[r0, #0]
-	ldr	r1,[r1, #0]
-	ldr	r2,[r2, #0]
-	ldr	r3,[r3, #0]
-	ldr	r4,[sp,#28]		;7 regs on stack
-	ldr	r4,[r4, #0]
-	ldr	r5,[sp,#32]
-	ldr	r5,[r5, #0]
-	swi	DigiRendChunk+14
-	str	r0,[r6, #0]
-	str	r1,[r7, #0]
-	str	r2,[r8, #0]
-	str	r3,[r9, #0]
-	ldr	r0,[sp,#28]
-	str	r4,[r0, #0]
-	ldr	r0,[sp,#32]
-	str	r5,[r0, #0]
-	ldmia	sp!,{r4-r9,lr}
+        ldr     r10,[sp,#8<<2]  ;fetch stached arg #5
+        ldr     r12,[sp,#9<<2]  ;fetch stacked arg #6
+        ldr     r0,[r6]
+        ldr     r1,[r7]
+        ldr     r2,[r8]
+        ldr     r3,[r9]
+        ldr     r4,[r10]
+        ldr     r5,[r12]
+        swi     DigiRendChunk+14 ;will clobber r14 (lr) in SVC mode
+        bvs     SetDefaultsExit
+        str     r0,[r6]
+        str     r1,[r7]
+        str     r2,[r8]
+        str     r3,[r9]
+        str     r4,[r10]
+        str     r5,[r12]
+SetDefaultsExit
+        ldmfd   sp!,{r4-r10,lr}
+        movvc   r0,#0
 	b	|wimplib_return_code|
 
 

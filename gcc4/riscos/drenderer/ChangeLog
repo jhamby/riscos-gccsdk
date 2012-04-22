@@ -1,3 +1,9 @@
+Mon Apr 23 01:18:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Tidied and slightly improved DRender.h and DRender.s based on
+	experience of examining <libunixlib/sound/dsp.c>.
+	* A few corrections to the documentation in DocDRender.
+
 Fri Apr 20 19:32:00 CST 2012  Christopher Martin  <belles@internode.on.net>
 
 	* Addressed a grey area in the documentation concerning which 16-bit

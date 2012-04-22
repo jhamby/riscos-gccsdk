@@ -397,6 +397,7 @@ R0	Digital Renderer State. Bits and their meaning when set:
 	0:	DigitalRenderer active
 	1:	New sample data required
 	2:	Buffer overflow occurred
+	4:	Playback is paused
 	5:	16bit sound hardware used
 
 
@@ -438,7 +439,7 @@ Don't call this SWI if you're using the call-back method or the streaming interf
 this is for single-buffer polling only. Call this when DigitalRenderer_ReadState
 returned with Bit 1 set. The buffer must have the correct size (number of channels
 times Sample length) and contain data that can be sent directly to the VIDC, i.e. 8
-bit logarithmic data, interleafed for multiple channels.
+bit logarithmic data, interleaved for multiple channels.
 
 
 Errors:
@@ -813,7 +814,7 @@ DRenderDefaults [-c # -f # -p # -s # -n #]
 	      1 for 8 bit ulaw
 	      2 for 16 bit signed linear little-endian right-left
 	      3 for 16 bit signed linear little-endian left-right
-	-p #: set sample period, e.g. 44 for 44kHz, 23 for 22kHz
+	-p #: set sample period in usecs, i.e. 1e6 / frequency
 	-q #: set sample frequency in Hz. Specifying a positive value automatically
 	      tries 16bit sound first, otherwise the old 8bit sound is used.
 	-s #: set buffer size per channel (keep it small)
