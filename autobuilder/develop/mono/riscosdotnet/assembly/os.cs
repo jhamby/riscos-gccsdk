@@ -135,28 +135,119 @@ namespace riscos
 			}
 		}
 
-		public class Transform
+		public class Matrix : ICloneable
 		{
-			public int a; // x scale factor, or cos(angle) to rotate
-			public int b; // sin(angle) to rotate
-			public int c; // -sin(angle) to rotate
-			public int d; // y scale factor, or cos(angle) to rotate
-			public int e; // x translation
-			public int f; // y translation
+			public int [,] m;
 
-			// Array is of the form:
-			// a b
-			// c d
-			// e f
-			public Transform (int [,] trans_array)
+			// Create identity matrix
+			public Matrix ()
 			{
-				a = trans_array [0, 0];
-				b = trans_array [0, 1];
-				c = trans_array [1, 0];
-				d = trans_array [1, 1];
-				e = trans_array [2, 0];
-				f = trans_array [2, 1];
+				int x, y;
+
+				m = new int [3, 3];
+
+				for (y = 0; y < 3; y++)
+					for (x = 0; x < 3; x++)
+						m[x,y] = (x == y) ? ToTransformUnits(1.0) : 0;
 			}
+
+			// Create matrix with rotate, scale and translation elements.
+			public Matrix (int m00, int m01, int m10, int m11, int transX, int transY)
+			{
+				m = new int [3, 3];
+
+				Set (m00, m01, m10, m11, transX, transY);
+			}
+
+			// Create matrix with rotate and scale elements - x,y translation set to zero.
+			public Matrix (int m00, int m01, int m10, int m11)
+			{
+				m = new int [3, 3];
+
+				Set (m00, m01, m10, m11, 0, 0);
+			}
+
+			// Create matrix with x,y translation - rotate, scale elements set to identity
+			public Matrix (int transX, int transY)
+			{
+				m = new int [3, 3];
+
+				Set (ToTransformUnits (1.0), 0, 0, ToTransformUnits (1.0), transX, transY);
+			}
+
+			// Create matrix from existing 3x3 array
+			public Matrix (int [,] matrix_array)
+			{
+				m = (int [,])matrix_array.Clone();
+			}
+
+			public Object Clone()
+			{
+				return new Matrix (m);
+			}
+
+			public void Set (int m00, int m01, int m10, int m11, int transX, int transY)
+			{
+				m[0,0] = m00;
+				m[0,1] = m01;
+				m[1,0] = m10;
+				m[1,1] = m11;
+				m[2,0] = transX;
+				m[2,1] = transY;
+			}
+
+			public void Multiply (Matrix m2)
+			{
+				Matrix m1 = (Matrix)Clone ();
+				int sum = 0, i, j, k;
+
+				for (i = 0; i < 3; i++) {
+					for (j = 0; j < 3; j++) {
+						for (k = 0; k < 3; k++) {
+							sum += (int)(Math.BigMul(m1.m[i,k], m2.m[k,j]) >> 16);
+						}
+						m[i,j] = sum;
+						sum = 0;
+					}
+				}
+			}
+
+			public void Translate (int x, int y)
+			{
+				m[2, 0] += ToDrawUnits (x);
+				m[2, 1] += ToDrawUnits (y);
+			}
+
+			public void Scale (double x, double y)
+			{
+				m[0, 0] += ToTransformUnits (x);
+				m[1, 1] += ToTransformUnits (y);
+			}
+
+			public void Rotate (double angle_degrees)
+			{
+				double rads = DegreeToRadian (angle_degrees % 360);
+				Matrix matrix = new Matrix (ToTransformUnits (Math.Cos (rads)),
+							    ToTransformUnits (Math.Sin (rads)),
+							    ToTransformUnits (-Math.Sin (rads)),
+							    ToTransformUnits (Math.Cos (rads)));
+				Multiply (matrix);
+			}
+		}
+
+		public static double DegreeToRadian (double angle)
+		{
+			return Math.PI * angle / 180.0;
+		}
+
+		public static int ToTransformUnits (double value)
+		{
+			return (int)(value * (double)0x10000);
+		}
+
+		public static int ToDrawUnits (double value)
+		{
+			return (int)(value * 256);
 		}
 
 		// Straight through to SWI OS_Plot

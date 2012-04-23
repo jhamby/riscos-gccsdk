@@ -68,13 +68,13 @@ namespace riscos
 					   int xPos,
 					   int yPos,
 					   Font.PaintCoordBlock coordBlock,
-					   OS.Transform transform,
+					   OS.Matrix matrix,
 					   int length)
 			{
 				NativeFont.PaintCoordBlock coordBlockNative =
 						new NativeFont.PaintCoordBlock (coordBlock);
-				NativeOS.Transform transformNative =
-						new NativeOS.Transform (transform);
+				NativeOS.Matrix matrixNative =
+						new NativeOS.Matrix (matrix);
 
 				/* The transformation matrix and coodinate block are being used,
 				 * so make sure the relevant bits are set/clear.  */
@@ -87,7 +87,7 @@ namespace riscos
 							  xPos,
 							  yPos,
 							  ref coordBlockNative,
-							  ref transformNative,
+							  ref matrixNative,
 							  length);
 			}
 
@@ -95,16 +95,16 @@ namespace riscos
 					   uint flags,
 					   int xPos,
 					   int yPos,
-					   OS.Transform transform,
+					   OS.Matrix matrix,
 					   int length)
 			{
-				NativeOS.Transform transformNative =
-						new NativeOS.Transform (transform);
+				NativeOS.Matrix matrixNative =
+						new NativeOS.Matrix (matrix);
 
 				/* The transformation matrix is being used,
 				 * so make sure the relevant bits are set/clear.  */
 				flags |= (1U << 6) | (1U << 8);
-				flags &= ~(1U << 5 | 1U << 4);
+				flags &= ~(1U << 5) | (1U << 4);
 
 				NativeMethods.Font_Paint (Handle,
 							  s,
@@ -112,7 +112,7 @@ namespace riscos
 							  xPos,
 							  yPos,
 							  IntPtr.Zero,
-							  ref transformNative,
+							  ref matrixNative,
 							  length);
 			}
 

@@ -110,7 +110,7 @@ namespace riscos
 							  [In, MarshalAs(UnmanagedType.Struct)]
 							       ref NativeFont.PaintCoordBlock CoordBlock,
 							  [In, MarshalAs(UnmanagedType.Struct)]
-							       ref NativeOS.Transform transform,
+							       ref NativeOS.Matrix matrix,
 							  int length);
 
 		// SWI "XFont_Paint" with transformation matrix, no coord block
@@ -122,7 +122,7 @@ namespace riscos
 							  int yPos,
 							  IntPtr CoordBlock,
 							  [In, MarshalAs(UnmanagedType.Struct)]
-							       ref NativeOS.Transform transform,
+							       ref NativeOS.Matrix matrix,
 							  int length);
 
 		// SWI "XFont_Paint" with coord block, no transformation matrix
@@ -134,7 +134,7 @@ namespace riscos
 							  int yPos,
 							  [In, MarshalAs(UnmanagedType.Struct)]
 							       ref NativeFont.PaintCoordBlock CoordBlock,
-							  IntPtr transform,
+							  IntPtr matrix,
 							  int length);
 
 		// SWI "XFont_Paint" with no transformation matrix, no coord block
@@ -145,7 +145,7 @@ namespace riscos
 							  int xPos,
 							  int yPos,
 							  IntPtr CoordBlock,
-							  IntPtr transform,
+							  IntPtr matrix,
 							  int length);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_caret")]
@@ -309,7 +309,7 @@ namespace riscos
 							       [In, MarshalAs(UnmanagedType.Struct)]
 								    ref NativeFont.ScanBlock block,
 							       [In, MarshalAs(UnmanagedType.Struct)]
-								    ref NativeOS.Transform transform,
+								    ref NativeOS.Matrix matrix,
 							       int length,
 							       // FIXME: This may have to be an index rather than a pointer.
 							       IntPtr splitPoint,

@@ -19,6 +19,14 @@ public class MyTask : WimpTask
 {
 	public Font.Instance main_font;
 
+	public OS.Matrix matrix;
+
+	public MyTask () : base ()
+	{
+		// Initialise to the identity matrix.
+		matrix = new OS.Matrix ();
+	}
+
 	// These are C# 'event' handlers.
 	public void redraw_main_window (object sender, Wimp.RedrawEventArgs args)
 	{
@@ -33,6 +41,14 @@ public class MyTask : WimpTask
 				 1U << 4, // Coords are in OS units
 				 args.Origin.X + 100,
 				 args.Origin.Y + 1000,
+				 0); // Length ignored (paint whole string) if bit 7 of flags not set
+
+
+		main_font.Paint ("CSharp string rotated",
+				 0, // Coords are in millipoints
+				 (args.Origin.X + 1000) * 400,
+				 (args.Origin.Y + 1000) * 400,
+				 matrix,
 				 0); // Length ignored (paint whole string) if bit 7 of flags not set
 	}
 
@@ -72,6 +88,10 @@ public class Test
 			window.Open (new OS.Rect (100, 100, 500, 500),			// Visible area
 				     new OS.Coord (0, 0),				// Scroll offsets
 				     Wimp.WindowStackPosition.Top);
+
+			// Push the text 100 OS units up a 45 degree angle.
+			task.matrix.Translate (100, 0);
+			task.matrix.Rotate (45);
 
 			task.PollLoop ();
 		}

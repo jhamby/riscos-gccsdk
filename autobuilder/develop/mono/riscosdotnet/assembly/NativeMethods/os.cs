@@ -54,7 +54,7 @@ namespace riscos
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		public struct Transform
+		public struct Matrix
 		{
 			// Individual ints are easier to marshal than a 3x2 array and this
 			// is how the PRMs explain it.
@@ -66,14 +66,14 @@ namespace riscos
 			public int f; // y translation
 
 			// Construct a native transformation matrix from a managed one
-			public Transform (OS.Transform t)
+			public Matrix (OS.Matrix matrix)
 			{
-				a = t.a;
-				b = t.b;
-				c = t.c;
-				d = t.d;
-				e = t.e;
-				f = t.f;
+				a = matrix.m[0,0];
+				b = matrix.m[0,1];
+				c = matrix.m[1,0];
+				d = matrix.m[1,1];
+				e = matrix.m[2,0];
+				f = matrix.m[2,1];
 			}
 		}
 	}
