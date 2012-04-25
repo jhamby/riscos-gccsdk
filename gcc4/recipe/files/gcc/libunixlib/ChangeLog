@@ -242,6 +242,11 @@ Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 // ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
 
+Wed Apr 25 20:57:01 BST 2012  Lee Noar  <leenoar@sky.com>
+
+	* time/broken.c(SWI_Territory_ConvertOrdinalsToTime): Add
+	missing return statement. Fix for bug 226.
+
 Thu Mar 22 19:56:15 GMT 2012  Lee Noar  <leenoar@sky.com>
 
 	* include/sys/elf.h(DT_RISCOS_PIC,DT_RISCOS_ABI_VERSION):
