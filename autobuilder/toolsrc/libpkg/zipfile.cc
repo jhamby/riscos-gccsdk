@@ -3,6 +3,10 @@
 // Distribution and use are subject to the GNU Lesser General Public License,
 // a copy of which may be found in the file !LibPkg.Copyright.
 
+// This version was modified by Alan Buckley to open the zipfile in
+// read-only mode to prevent packages being skipped due to file
+// permissions on unix. 
+
 #include <string.h>
 #include "zlib.h"
 
@@ -86,9 +90,10 @@ buffer::~buffer()
 
 }; /* anonymous namespace */
 
+//ARB: Changed to open file read-only to stop permission problems
 zipfile::zipfile(const string& pathname):
 	_pathname(pathname),
-	_zfs(pathname.c_str(),ios::in|ios::out|ios::binary)
+	_zfs(pathname.c_str(),ios::in/*|ios::out*/|ios::binary)
 {
 	_zfs.peek();
 	while (_zfs&&!_zfs.eof())
