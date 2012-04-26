@@ -1,0 +1,23 @@
+HHexen - Port of ID Software's first person shooter game hexen
+---------
+
+This game requires the original hexen WAD files.  You can get the free
+WAD file from http://www.dosgamers.com/downloads/wads/HEXEN.zip.
+Copy the HEXEN.WAD into the !HHexen folder.
+
+See the !Run file in the !HHexen folder for default runtime settings.
+If music is too fast/slow try changing the '-samplerate 44100' option.
+Valid values are 11025, 22050, 44100, 48000.
+Add '-f' if you want to play fullscreen.
+The screen resolution is fixed at 320x200.
+
+This version created by the GCCSDK Autobuilder for details see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+It also requires the SharedUnixLibrary which is available from:
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net

@@ -1,0 +1,18 @@
+
+AB_URL=http://sourceforge.net/projects/hhexen/files/hhexen/1.6.2/hhexen-1.6.2-src.tgz
+
+AB_PVERSION=1.6.2
+
+AB_CONFLAGS='--disable-gl --with-audio=sdlmixer'
+
+ab_package () {
+  ab_create_app HHexen Apps/Games
+  ab_makerun $S/hhexen-sdl hhexen
+  
+  cp -av $S/AUTHORS $S/ChangeLog $S/LICENSE $S/README* $S/RELEASE $S/SAVEGAME $A
+  cp -av $S/WADFILES $S/TODO $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile LICENSE
+}
+
+export LIBS='-lvorbisidec -logg'

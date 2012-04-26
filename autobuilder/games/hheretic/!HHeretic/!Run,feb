@@ -1,0 +1,5 @@
+WIMPSLOT
+
+Set HHeretic$Dir <Obey$Dir>
+
+Run <HHeretic$Dir>.hheretic -waddir /<HHeretic$Dir> -g -samplerate 44100 >null: 2><Obey$Dir>.stderr
