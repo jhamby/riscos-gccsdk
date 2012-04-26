@@ -53,17 +53,23 @@ getcwd (char *buffer, size_t size)
       return NULL;
     }
 
+  if (buffer == NULL && size != 0)
+    {
+      buffer = malloc (size);
+      if (buffer == NULL)
+	return NULL;
+    }
+
   /* Unixify() only checks for buffer overflow for a path that does not require processing.
      As RISC OS itself is providing the path, then we know that processing is required,
      so we check for possible buffer overflow ourselves.
      +1 because unixify() will more than likely add a leading '/'.  */
-  if (strlen (temp_buf) + 1 >= size)
+  if (buffer != NULL && strlen (temp_buf) + 1 >= size)
     {
       (void) __set_errno (ERANGE);
       return NULL;
     }
 
-  return __unixify_std (temp_buf, buffer, size,
-                        __RISCOSIFY_FILETYPE_NOTSPECIFIED);
+  return __unixify_std (temp_buf, buffer, size, __RISCOSIFY_FILETYPE_NOTSPECIFIED);
 }
 

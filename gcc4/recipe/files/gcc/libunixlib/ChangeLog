@@ -242,6 +242,11 @@ Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 // ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
 
+Thu Apr 26 03:32:38 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/getcwd.c (getcwd): Support buffer being NULL.  Fixes bug 227.
+	* test/unix/getcwd.c: Enhance test case.
+
 Wed Apr 25 20:57:01 BST 2012  Lee Noar  <leenoar@sky.com>
 
 	* time/broken.c(SWI_Territory_ConvertOrdinalsToTime): Add
