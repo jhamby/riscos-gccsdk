@@ -242,6 +242,14 @@ Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 // ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
 
+Sat Apr 28 19:02:48 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/dirent.h (struct __dir_stream): Made dd_name_can const
+	pointer.
+	* common/serial.c (__get_file_ino): Fix the directory + filename case.
+	Simplified code.  Made inode calculation unsigned.
+	* test/dirent/tst-dirent-ino.c: Added.
+
 Sat Apr 28 15:37:26 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/glob.c (g_Ctoc): Reimplement and avoid the wcrtomb call.  Fixes

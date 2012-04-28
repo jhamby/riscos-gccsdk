@@ -1,5 +1,5 @@
 /* Internal UnixLib dirent.h
- * Copyright (c) 2000-2008 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 #ifndef __DIRENT_H
@@ -31,7 +31,7 @@ struct __dir_stream
   DIR *suffix; /* used when doing reverse suffix dir mapping.  */
   __off_t dd_suf_off; /* start offset used in suffix dir.  */
 
-  char *dd_name_can; /* canonicalised name (riscos format) */
+  const char *dd_name_can; /* canonicalised name (RISC OS format) */
 
   __off_t dd_off; /* offset of next read (used for seeking) */
   __off_t gbpb_off; /* offset used for os_gbpb */
