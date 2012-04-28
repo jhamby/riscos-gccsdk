@@ -875,6 +875,17 @@ g_strchr(const Char *str, wchar_t ch)
 static int
 g_Ctoc(const Char *str, char *buf, size_t len)
 {
+#if 1 /* UnixLib */
+  while (*str && len)
+    {
+      *buf++ = *str++ & 0xFF;
+      --len;
+    }
+  if (*str != 0 || len == 0)
+    return 1;
+  *buf++ = '\0';
+  return 0;
+#else
 	mbstate_t mbs;
 	size_t clen;
 
@@ -890,6 +901,7 @@ g_Ctoc(const Char *str, char *buf, size_t len)
 		len -= clen;
 	}
 	return (1);
+#endif
 }
 
 #ifdef DEBUG
