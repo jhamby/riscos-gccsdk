@@ -122,6 +122,11 @@ namespace riscos
 			public int X;
 			public int Y;
 
+			public Coord ()
+			{
+				X = Y = 0;
+			}
+
 			public Coord (int X, int Y)
 			{
 				this.X = X;

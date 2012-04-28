@@ -58,15 +58,15 @@ namespace riscos
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_lose_font")]
 		internal static extern IntPtr Font_LoseFont (IntPtr font);
 
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_read_defn")]
-		internal static extern IntPtr Font_ReadDefn (IntPtr font,
-							     StringBuilder fontID,
-							     out int xSize,
-							     out int ySize,
-							     out int xRes,
-							     out int yRes,
-							     out int age,
-							     out int usageCount);
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_read_full_defn")]
+		internal static extern IntPtr Font_ReadFullDefn (IntPtr font,
+								 StringBuilder fontID,
+								 out int xSize,
+								 out int ySize,
+								 out int xRes,
+								 out int yRes,
+								 out int age,
+								 out int usageCount);
 
 		// Allows a buffer to be passed in the 2nd parameter.
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_read_identifier")]
@@ -93,8 +93,10 @@ namespace riscos
 								int ymax,
 								int split,
 								int length,
-								// FIXME: This may have to be an index rather than a pointer.
-								out IntPtr splitPoint,
+								// The returned splitPoint address will be in the unmanaged
+								// buffer, which is useless here, so ignore it - we have the
+								// index below.
+								IntPtr splitPoint,
 								out int x,
 								out int y,
 								out int lengthOut,
@@ -162,7 +164,7 @@ namespace riscos
 		internal static extern IntPtr Font_ConvertToPoints (int y, int y, out int xOut, out int yOut);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_set_font")]
-		internal static extern IntPtr Font_Setont (IntPtr font);
+		internal static extern IntPtr Font_SetFont (IntPtr font);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_current_font")]
 		internal static extern IntPtr Font_CurrentFont (out IntPtr font,

@@ -37,7 +37,10 @@ build_riscosdotnet() {
     pushd . >/dev/null
       echo "Building riscosdotnet ..."
       aclocal -I config && autoconf && automake --add-missing
-      cd build && ../configure --enable-shared --host=arm-unknown-riscos --prefix=$GCCSDK_INSTALL_ENV && make install
+      cd build
+      ../configure --enable-shared --host=arm-unknown-riscos --prefix=$GCCSDK_INSTALL_ENV && make install
+      # Ignore errors incase doxygen isn't installed
+      make -i doxygen-doc
     popd >/dev/null
 
   popd >/dev/null
@@ -149,6 +152,7 @@ ab_package() {
   # Copy documentation
   cp $S/COPYING.LIB $S/AUTHORS $S/LICENSE $A/Docs
   cp -T $S/libriscosdotnet/Copyright $A/Docs/rdn-Copyright
+  cp -R $S/libriscosdotnet/build/doxygen-doc/* $A/Docs/rdn-Manual
 
   # Create a skeleton !SharedLibs directory and copy shared library
   so_lib_installdir=$D/$package/$section/mono/Apps/Develop/\!SharedLibs/lib
@@ -156,14 +160,20 @@ ab_package() {
   cp -T "$S/libriscosdotnet/build/src/.libs/libriscosdotnet.1.0.0.so" "$so_lib_installdir/libriscosdotnet.1.0.0.so,E1F"
   $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s -f libriscosdotnet/1/0/0/so $so_lib_installdir/libriscosdotnet.so.1,1C8
 
+  # Copy tests
+  tests_installdir=$D/$package/$section/mono/Apps/Develop/Tests
+  mkdir -p $tests_installdir
+  cp -T "$S/libriscosdotnet/build/test/test-font.exe" "$tests_installdir/test-font.exe,A7D"
+
   # Create !MonoTestApp
-  test_app_installdir=$D/$package/$section/mono/Apps/Develop/\!MonoTestApp
+  test_app_installdir=$tests_installdir/\!MonoTestApp
   mkdir -p $test_app_installdir
   cp -T "$S/libriscosdotnet/build/test/test-app.exe" "$test_app_installdir/test-app.exe,A7D"
 
   echo "Wimpslot 5000k" >> $test_app_installdir/!Run,feb
   echo "Set MonoTestApp\$Dir <Obey\$Dir>" >> $test_app_installdir/!Run,feb
   echo "Run <MonoTestApp\$Dir>.test-app/exe" >> $test_app_installdir/!Run,feb
+
 }
 
 # Regenerate configure from the patched configure.in
