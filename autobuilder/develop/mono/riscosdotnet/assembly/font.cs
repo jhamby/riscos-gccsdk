@@ -116,7 +116,7 @@ namespace riscos
 				flags &= ~((1U << 4) | (1U << 0));
 
 				OS.ThrowOnError (NativeMethods.Font_Paint (Handle,
-									   s,
+									   str,
 									   flags,
 									   xPos,
 									   yPos,
@@ -152,7 +152,7 @@ namespace riscos
 				flags &= ~((1U << 5) | (1U << 4));
 
 				OS.ThrowOnError (NativeMethods.Font_Paint (Handle,
-									   s,
+									   str,
 									   flags,
 									   xPos,
 									   yPos,
@@ -188,7 +188,7 @@ namespace riscos
 				flags &= ~((1U << 6) | (1U << 4) | (1U << 0));
 
 				OS.ThrowOnError (NativeMethods.Font_Paint (Handle,
-									   s,
+									   str,
 									   flags,
 									   xPos,
 									   yPos,
@@ -216,7 +216,7 @@ namespace riscos
 				flags |= (1U << 8);
 				flags &= ~((1U << 5) | (1U << 6));
 				OS.ThrowOnError (NativeMethods.Font_Paint (Handle,
-									   s,
+									   str,
 									   flags,
 									   xPos,
 									   yPos,
