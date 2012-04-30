@@ -39,7 +39,7 @@ init_object (som_object *object, const som_objinfo *objinfo)
   object->base_addr = objinfo->base_addr;
   object->rw_addr = objinfo->public_rw_ptr;
   object->rw_size = objinfo->rw_size;
-  object->end_addr = object->rw_addr + object->rw_size;
+  object->end_addr = object->rw_addr + object->rw_size - objinfo->bss_size;
   object->got_addr = object->rw_addr + objinfo->got_offset;
   object->bss_addr = object->rw_addr + objinfo->bss_offset;
   object->bss_size = objinfo->bss_size;

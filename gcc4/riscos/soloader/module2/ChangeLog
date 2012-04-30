@@ -1,3 +1,8 @@
+Mon Apr 30 19:24:23 BST 2012  Lee Noar  <leenoar@sky.com>
+
+	* som_register.c(init_object): The end address shouldn't include
+	the .bss section as it only exists in the client copy.
+
 Tue Apr 10 01:59:38 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* som_os_swis.h (ddeutils_get_cl_size): Change return type into size_t.

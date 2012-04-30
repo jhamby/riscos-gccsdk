@@ -572,7 +572,7 @@ _dl_load_elf_shared_library(char * libname, int flag)
       _dl_register_lib(handle,&objinfo);
 
       /*  Copy the r/w segment. */
-      _dl_memcpy(objinfo.private_rw_ptr, objinfo.public_rw_ptr, objinfo.rw_size);
+      _dl_memcpy(objinfo.private_rw_ptr, objinfo.public_rw_ptr, objinfo.rw_size - objinfo.bss_size);
 
       /* zero the bss area */
       for (i = 0; i < objinfo.bss_size; i++)
