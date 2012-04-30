@@ -162,7 +162,7 @@ register_dynamic_loader (runcom_state *state)
     goto error;
 
   /* Copy the R/W segment from the public copy to the private copy.  */
-  memcpy (objinfo.private_rw_ptr, objinfo.public_rw_ptr, objinfo.rw_size);
+  memcpy (objinfo.private_rw_ptr, objinfo.public_rw_ptr, objinfo.rw_size - objinfo.bss_size);
 
   /* Zero the bss area.  */
   memset (objinfo.private_rw_ptr + objinfo.bss_offset, 0, objinfo.bss_size);
