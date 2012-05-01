@@ -1,5 +1,5 @@
 /* Internal UnixLib sys/socket.h
- * Copyright (c) 2008-2011 UnixLib Developers
+ * Copyright (c) 2008-2012 UnixLib Developers
  */
 
 #ifndef _SYS_SOCKET_H
@@ -294,15 +294,17 @@ _sendto (int __fd, __const void *__buf, size_t __len, int __flags,
   register int flags __asm ("r3") = __flags;
   register __CONST_SOCKADDR_ARG addr __asm ("r4") = __addr;
   register socklen_t addrlen __asm ("r5") = __addrlen;
-  register const _kernel_oserror *err;
+  register ssize_t rtrn __asm ("r0");
+  const _kernel_oserror *err;
   __asm__ volatile ("SWI\t%[SWI_XSocket_Sendto]\n\t"
-		    "MOVVC\tr0, #0\n\t"
-		    : [err] "=r" (err)
+		    "MOVVC\t%[err], #0\n\t"
+		    "MOVVS\t%[err], r0\n\t"
+		    : [err] "=r" (err), "=r" (rtrn)
                     : "r" (fd), "r" (buf), "r" (len), "r" (flags),
 		      "r" (addr), "r" (addrlen),
                       [SWI_XSocket_Sendto] "i" (Socket_Sendto | (1<<17))
                     : "r14", "cc");
-  return __net_error (0, err);
+  return __net_error (rtrn, err);
 }
 
 static __inline__ int __attribute__ ((always_inline))
