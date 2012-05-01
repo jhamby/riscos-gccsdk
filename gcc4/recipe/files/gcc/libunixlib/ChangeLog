@@ -242,6 +242,10 @@ Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 // ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
 
+Tue May  1 17:28:14 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unix/glob.c (glob, glob3): Avoid the use of mbrtowc.  Fixes bug 231.
+
 Tue May  1 16:03:56 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* sys/exec.c (execve): Add checks for alias-disabling prefix. Fixes bug

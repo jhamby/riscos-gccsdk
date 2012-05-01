@@ -170,7 +170,7 @@ glob(const char *pattern, int flags, int (*errfunc)(const char *, int), glob_t *
 	const char *patnext;
 	size_t limit;
 	Char *bufnext, *bufend, patbuf[MAXPATHLEN], prot;
-	mbstate_t mbs;
+	/* UnixLib: mbstate_t mbs; */
 	wchar_t wc;
 	size_t clen;
 
@@ -194,6 +194,10 @@ glob(const char *pattern, int flags, int (*errfunc)(const char *, int), glob_t *
 	bufnext = patbuf;
 	bufend = bufnext + MAXPATHLEN - 1;
 	if (flags & GLOB_NOESCAPE) {
+#if 1 /* UnixLib */
+		while (bufend - bufnext >= MB_CUR_MAX != bufend && *patnext)
+		  *bufnext++ = *patnext++;
+#else /* UnixLib */
 		memset(&mbs, 0, sizeof(mbs));
 		while (bufend - bufnext >= MB_CUR_MAX) {
 			clen = mbrtowc(&wc, patnext, MB_LEN_MAX, &mbs);
@@ -204,9 +208,10 @@ glob(const char *pattern, int flags, int (*errfunc)(const char *, int), glob_t *
 			*bufnext++ = wc;
 			patnext += clen;
 		}
+#endif /* UnixLib */
 	} else {
 		/* Protect the quoted characters. */
-		memset(&mbs, 0, sizeof(mbs));
+		/* UnixLib: memset(&mbs, 0, sizeof(mbs)); */
 		while (bufend - bufnext >= MB_CUR_MAX) {
 			if (*patnext == QUOTE) {
 				if (*++patnext == EOS) {
@@ -216,11 +221,21 @@ glob(const char *pattern, int flags, int (*errfunc)(const char *, int), glob_t *
 				prot = M_PROTECT;
 			} else
 				prot = 0;
+#if 1 /* UnixLib */
+			if (*patnext)
+			  {
+			    wc = *patnext;
+			    clen = 1;
+			  }
+			else
+			  break;
+#else /* UnixLib */
 			clen = mbrtowc(&wc, patnext, MB_LEN_MAX, &mbs);
 			if (clen == (size_t)-1 || clen == (size_t)-2)
 				return (GLOB_NOMATCH);
 			else if (clen == 0)
 				break;
+#endif /* UnixLib */
 			*bufnext++ = wc | prot;
 			patnext += clen;
 		}
@@ -646,14 +661,22 @@ glob3(Char *pathbuf, Char *pathend, Char *pathend_last,
 		Char *dc;
 		wchar_t wc;
 		size_t clen;
-		mbstate_t mbs;
+		/* UnixLib: mbstate_t mbs; */
 
 		/* Initial DOT must be matched literally. */
 		if (dp->d_name[0] == DOT && *pattern != DOT)
 			continue;
-		memset(&mbs, 0, sizeof(mbs));
+		/* UnixLib: memset(&mbs, 0, sizeof(mbs)); */
 		dc = pathend;
 		sc = dp->d_name;
+#if 1 /* UnixLib */
+		while (dc < pathend_last)
+		  {
+		    if ((*dc++ = *sc) == EOS)
+		      break;
+		    ++sc;
+		  }
+#else /* UnixLib */
 		while (dc < pathend_last) {
 			clen = mbrtowc(&wc, sc, MB_LEN_MAX, &mbs);
 			if (clen == (size_t)-1 || clen == (size_t)-2) {
@@ -665,6 +688,7 @@ glob3(Char *pathbuf, Char *pathend, Char *pathend_last,
 				break;
 			sc += clen;
 		}
+#endif /* UnixLib */
 		if (!match(pathend, pattern, restpattern)) {
 			*pathend = EOS;
 			continue;
