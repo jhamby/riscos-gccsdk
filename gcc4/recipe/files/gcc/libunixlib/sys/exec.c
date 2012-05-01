@@ -1,5 +1,5 @@
 /* Execute a new program.
-   Copyright (c) 2002-2011 UnixLib Developers.  */
+   Copyright (c) 2002-2012 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -79,10 +79,10 @@ execve (const char *execname, char *const argv[], char *const envp[])
 #ifdef DEBUG
   debug_printf ("-- execve: function arguments\n"
                 "   execname: '%s'\n", execname);
-  for (x = 0; argv[x] != NULL; ++x)
+  for (int x = 0; argv[x] != NULL; ++x)
     debug_printf ("   argv[%d]: %s\n", x, argv[x]);
 
-  for (x = 0; envp[x] != NULL; ++x)
+  for (int x = 0; envp[x] != NULL; ++x)
     debug_printf ("   envp[%d]: %s\n", x, envp[x]);
 
   __debug ("-- execve: process structure");
@@ -115,18 +115,23 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	scenario = 1;
 
       /* Convert the program name into a RISC OS format filename.  */
-      program_name = __riscosify_std (execname, 0, pathname,
-				      sizeof (pathname), NULL);
-      if (program_name == NULL)
+      if (!__riscosify_std (execname, 0, pathname, sizeof (pathname), NULL))
 	return __set_errno (E2BIG);
 
 #if __UNIXLIB_SYMLINKS
-      if (__resolve_symlinks (pathname, respathname,
-			      sizeof (respathname)) != 0)
-	return -1;
-      program_name = respathname; /* This is copied into cli + 1 */
+      /* When pathname starts with a % and is not a current library indicator,
+	 then we consider this as an alias-disabling prefix.  */
+      if (pathname[0] == '%' && pathname[1] != '.')
+	program_name = pathname;
+      else
+	{
+	  if (__resolve_symlinks (pathname, respathname,
+				  sizeof (respathname)) != 0)
+	    return -1;
+	  program_name = respathname;
+	}
 #else
-      program_name = pathname; /* This is copied into cli + 1 */
+      program_name = pathname;
 #endif
       if (!scenario)
 	{
@@ -137,15 +142,16 @@ execve (const char *execname, char *const argv[], char *const envp[])
 					     NULL) == NULL)
 	    {
 	      char ro_arg[MAXPATHLEN];
-	      __riscosify_std (argv[0], 0, ro_arg, sizeof (ro_arg), NULL);
-
-	      /* Canonicalise argv[0]  */
-	      char canon_arg[MAXPATHLEN];
-	      if (SWI_OS_FSControl_Canonicalise (ro_arg, NULL,
-						 canon_arg, sizeof (canon_arg),
-						 NULL) == NULL
-		  && strcmp (canon_exec, canon_arg) == 0)
-		scenario = 1;
+	      if (__riscosify_std (argv[0], 0, ro_arg, sizeof (ro_arg), NULL))
+		{
+		  /* Canonicalise argv[0]  */
+		  char canon_arg[MAXPATHLEN];
+		  if (SWI_OS_FSControl_Canonicalise (ro_arg, NULL,
+						     canon_arg, sizeof (canon_arg),
+						     NULL) == NULL
+		      && strcmp (canon_exec, canon_arg) == 0)
+		    scenario = 1;
+		}
 	    }
 	}
     }
@@ -183,16 +189,21 @@ execve (const char *execname, char *const argv[], char *const envp[])
       debug_printf ("-- execve: pathname: '%s'\n", temp);
 #endif
 
-      program_name = __riscosify_std (temp, 0, pathname,
-				      sizeof (pathname), NULL);
-      if (program_name == NULL)
+      if (!__riscosify_std (temp, 0, pathname, sizeof (pathname), NULL))
 	return __set_errno (E2BIG);
 
 #if __UNIXLIB_SYMLINKS
-      if (__resolve_symlinks (pathname, respathname,
-			      sizeof (respathname)) != 0)
-	return -1;
-      program_name = respathname;	/* This is copied into cli + 1 */
+      /* When pathname starts with a % and is not a current library indicator,
+	 then we consider this as an alias-disabling prefix.  */
+      if (pathname[0] == '%' && pathname[1] != '.')
+	program_name = pathname;
+      else
+	{
+	  if (__resolve_symlinks (pathname, respathname,
+				  sizeof (respathname)) != 0)
+	    return -1;
+	  program_name = respathname;
+	}
 #else
       program_name = pathname;
 #endif
@@ -282,8 +293,7 @@ execve (const char *execname, char *const argv[], char *const envp[])
 	  for ( /* */ ; *p; ++p)
 	    {
 	      /* If character is a " or a ' then preceed with a backslash.  */
-	      if ((!nasty_hack || x != scenario)
-		  && (*p == '\"' || *p == '\''))
+	      if ((!nasty_hack || x != scenario) && (*p == '\"' || *p == '\''))
 		*command_line++ = '\\';
 
 	      if (*p == 127 || *p < 32)

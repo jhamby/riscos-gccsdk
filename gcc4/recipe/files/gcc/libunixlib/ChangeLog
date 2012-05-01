@@ -242,6 +242,13 @@ Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 // ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
 
+Tue May  1 16:03:56 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* sys/exec.c (execve): Add checks for alias-disabling prefix. Fixes bug
+	232.
+	Fix DEBUG build.  Add missing test for __riscosify_std failure.
+	* test/stdlib/system-alias.c: Added.
+
 Sat Apr 28 19:02:48 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* incl-local/dirent.h (struct __dir_stream): Made dd_name_can const
