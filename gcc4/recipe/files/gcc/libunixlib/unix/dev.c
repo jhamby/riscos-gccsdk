@@ -1,5 +1,5 @@
 /* Low-level device handling.
-   Copyright (c) 2002-2011 UnixLib Developers.  */
+   Copyright (c) 2002-2012 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <dirent.h>
@@ -353,19 +353,33 @@ __fsclose (struct __unixlib_fd *file_desc)
   if (file_desc->dflag & FILE_ISDIR)
     return closedir ((DIR *) file_desc->devicehandle->handle);
 
+  /* Check if RISC OS file handle is in use by OS_ChangeRedirection.  If so,
+     detach it.  */
+  const _kernel_oserror *err;
+  int prev_fh_in, prev_fh_out;
+  if ((err = SWI_OS_ChangeRedirection (-1, -1, &prev_fh_in, &prev_fh_out)) != NULL)
+    return __ul_seterr (err, EOPSYS);
+
+  int fhandle = (int) file_desc->devicehandle->handle;
+  if ((fhandle == prev_fh_in || fhandle == prev_fh_out)
+      && (err = SWI_OS_ChangeRedirection (fhandle == prev_fh_in ? 0 : -1,
+					  fhandle == prev_fh_out ? 0 : -1,
+					  NULL, NULL)) != NULL)
+    return __ul_seterr (err, EOPSYS);
+
   char *buffer;
   if (file_desc->fflag & O_UNLINKED)
-    buffer = __canonicalise_handle ((int) file_desc->devicehandle->handle);
+    buffer = __canonicalise_handle (fhandle);
   else
     buffer = NULL;
 
 #ifdef DEBUG
-  debug_printf ("-- __fsclose: ro file handle 0x%x, buffer '%s'\n", file_desc->devicehandle->handle,
+  debug_printf ("-- __fsclose: ro file handle 0x%x, buffer '%s'\n", fhandle,
 		buffer ? buffer : "<NULL>");
 #endif
 
   /* Close file.  */
-  _kernel_oserror *err = __os_fclose ((int) file_desc->devicehandle->handle);
+  err = __os_fclose (fhandle);
   if (!err && buffer)
     {
       err = __os_file (OSFILE_DELETENAMEDOBJECT, buffer, NULL);

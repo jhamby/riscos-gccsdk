@@ -1,5 +1,5 @@
 /* Internal UnixLib structure debugging.
-   Copyright (c) 2002-2011 UnixLib Devlopers.  */
+   Copyright (c) 2002-2012 UnixLib Devlopers.  */
 
 #include <pthread.h>
 #include <string.h>
@@ -57,23 +57,24 @@ __debug (const char *s)
 		  sulproc);
   else
     {
-      for (unsigned int ui = 0; ui < sulproc->maxfd; ++ui)
+      for (unsigned int ui = 0; ui != sulproc->maxfd; ++ui)
         {
-          if (getfd (ui)->devicehandle)
+	  const struct __unixlib_fd *fd = getfd (ui);
+	  const struct __unixlib_fd_handle *fdh = fd->devicehandle;
+          if (fdh != NULL)
 	    {
-	      debug_printf ("f[%d].handle: %p (type %d)\n",
-			    ui, getfd (ui)->devicehandle->handle,
-			    getfd (ui)->devicehandle->type);
+	      debug_printf ("f[%d]: ff 0x%x df 0x%d, handle %p (type %d), ref %u\n",
+			    ui, fd->fflag, fd->dflag, fdh->handle,
+			    fdh->type, fdh->refcount);
 
 	      /* Do not change this to an malloc'ing version. execve can call
 	         this function after it knows no more malloc'ing is done.  */
 	      char fname[_POSIX_PATH_MAX];
-	      if ((int) getfd (ui)->devicehandle->handle != 0
-	          && (getfd (ui)->devicehandle->type == DEV_RISCOS
-		      || getfd (ui)->devicehandle->type == DEV_PIPE)
-	          && SWI_OS_Args_Canonicalise ((int) getfd (ui)->devicehandle->handle,
+	      if ((int) fdh->handle != 0
+	          && (fdh->type == DEV_RISCOS || fdh->type == DEV_PIPE)
+	          && SWI_OS_Args_Canonicalise ((int) fdh->handle,
 					       fname, sizeof (fname), NULL) == NULL)
-	        debug_printf ("filename: %s\n", fname);
+	        debug_printf ("  filename: %s\n", fname);
 	    }
         }
       debug_printf ("pid: %d, ppid: %d\n", sulproc->pid, sulproc->ppid);

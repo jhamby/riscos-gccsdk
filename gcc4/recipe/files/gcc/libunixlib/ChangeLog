@@ -242,6 +242,15 @@ Wed Jun 23 01:08:51 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 // ------------------------------------ ^^^ gcc4.6trunk ^^^ port -----------------
 
+Sat May  5 00:30:08 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* incl-local/internal/fd.h (BADF): Simplify expression.
+	* debug/debug.c (debug_printf): Dump more info on file handles.
+	* unix/dev.c (__fsclose): Detach OS_ChangeRedirection handle we're
+	about to close.  Fixes bug 236.
+	* test/sys/bug236.c: Added.
+	* test/sys/test236.c: Likewise.
+
 Tue May  1 21:33:26 CEST 2012  Chris Gransden  <chrisg@care4free.net>
 
 	* incl-local/sys/socket.h (_sendto): Fix return value.  Fixes bug 233.
