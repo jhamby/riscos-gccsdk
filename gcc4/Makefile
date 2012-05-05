@@ -101,7 +101,11 @@ PREFIX_CROSS := $(GCCSDK_CROSS_PREFIX)
 PREFIX_RONATIVE := $(GCCSDK_RISCOS_PREFIX)/\!GCC
 BUILDDIR := $(GCCSDK_BUILDDIR)
 BUILDSTEPSDIR := buildstepsdir
+# PREFIX_BUILDTOOL_BINUTILS will contain the built autoconf/automake versions used during building binutils.
 PREFIX_BUILDTOOL_BINUTILS := $(BUILDDIR)/installed-buildtools-for-binutils
+# PREFIX_BUILDTOOL_GCC will contain the built autoconf/automake versions used during building gcc.
+# When the autoconf/automake versions needed to build gcc are the same as the autoconf/automake versions
+# needed to build binutils, PREFIX_BUILDTOOL_GCC will be a symlink to PREFIX_BUILDTOOL_BINUTILS.
 PREFIX_BUILDTOOL_GCC := $(BUILDDIR)/installed-buildtools-for-gcc
 PREFIX_CROSSGCC_LIBS := $(BUILDDIR)/installed-libs-for-cross-gcc
 PREFIX_RONATIVEGCC_LIBS := $(BUILDDIR)/installed-libs-for-ronative-gcc
@@ -248,12 +252,19 @@ buildtool-autoconf-for-binutils-built: src-autoconf-for-binutils-copied
 	cd $(BUILDDIR)/buildtool-autoconf-for-binutils && $(SRCDIR)/autoconf-for-binutils/configure --prefix=$(PREFIX_BUILDTOOL_BINUTILS) && $(MAKE) && $(MAKE) install
 	touch $(BUILDSTEPSDIR)/buildtool-autoconf-for-binutils-built
 
+ifneq ($(AUTOCONF_FOR_BINUTILS_VERSION)/$(AUTOMAKE_FOR_BINUTILS_VERSION),$(AUTOCONF_FOR_GCC_VERSION)/$(AUTOMAKE_FOR_GCC_VERSION))
 # Configure & build autoconf-for-gcc tool:
 buildtool-autoconf-for-gcc-built: src-autoconf-for-gcc-copied
 	-rm -rf $(BUILDDIR)/buildtool-autoconf-for-gcc
 	mkdir -p $(BUILDDIR)/buildtool-autoconf-for-gcc
 	cd $(BUILDDIR)/buildtool-autoconf-for-gcc && $(SRCDIR)/autoconf-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
 	touch $(BUILDSTEPSDIR)/buildtool-autoconf-for-gcc-built
+else
+# autoconf-for-gcc and automake-for-gcc are the same as autoconf-for-binutils and automake-for-gcc so we can use PREFIX_BUILDTOOL_GCC as PREFIX_BUILDTOOL_BINUTILS
+buildtool-autoconf-for-gcc-built: buildtool-autoconf-for-binutils-built
+	ln -f -s $(PREFIX_BUILDTOOL_BINUTILS) $(PREFIX_BUILDTOOL_GCC)
+	touch $(BUILDSTEPSDIR)/buildtool-autoconf-for-gcc-built
+endif
 
 # Configure & build automake-for-binutils tool:
 buildtool-automake-for-binutils-built: src-automake-for-binutils-copied buildtool-autoconf-for-binutils-built
@@ -262,12 +273,18 @@ buildtool-automake-for-binutils-built: src-automake-for-binutils-copied buildtoo
 	cd $(BUILDDIR)/buildtool-automake-for-binutils && PATH="$(PREFIX_BUILDTOOL_BINUTILS)/bin:$(PATH)" && $(SRCDIR)/automake-for-binutils/configure --prefix=$(PREFIX_BUILDTOOL_BINUTILS) && $(MAKE) && $(MAKE) install
 	touch $(BUILDSTEPSDIR)/buildtool-automake-for-binutils-built
 
+ifneq ($(AUTOCONF_FOR_BINUTILS_VERSION)/$(AUTOMAKE_FOR_BINUTILS_VERSION),$(AUTOCONF_FOR_GCC_VERSION)/$(AUTOMAKE_FOR_GCC_VERSION))
 # Configure & build automake-for-gcc tool:
 buildtool-automake-for-gcc-built: src-automake-for-gcc-copied buildtool-autoconf-for-gcc-built
 	-rm -rf $(BUILDDIR)/buildtool-automake-for-gcc
 	mkdir -p $(BUILDDIR)/buildtool-automake-for-gcc
 	cd $(BUILDDIR)/buildtool-automake-for-gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SRCDIR)/automake-for-gcc/configure --prefix=$(PREFIX_BUILDTOOL_GCC) && $(MAKE) && $(MAKE) install
 	touch $(BUILDSTEPSDIR)/buildtool-automake-for-gcc-built
+else
+# autoconf-for-gcc and automake-for-gcc are the same as autoconf-for-binutils and automake-for-gcc so we can use PREFIX_BUILDTOOL_GCC as PREFIX_BUILDTOOL_BINUTILS
+buildtool-automake-for-gcc-built: buildtool-autoconf-for-gcc-built
+	touch $(BUILDSTEPSDIR)/buildtool-automake-for-gcc-built
+endif
 
 # Configure binutils cross:
 cross-binutils-configured: src-binutils-copied
@@ -444,6 +461,7 @@ src-autoconf-for-binutils-copied: $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS
 	cp -T -p -r $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION) $(SRCDIR)/autoconf-for-binutils
 	touch $(BUILDSTEPSDIR)/src-autoconf-for-binutils-copied
 
+ifneq ($(AUTOCONF_FOR_BINUTILS_VERSION)/$(AUTOMAKE_FOR_BINUTILS_VERSION),$(AUTOCONF_FOR_GCC_VERSION)/$(AUTOMAKE_FOR_GCC_VERSION))
 # Unpack autoconf-for-gcc source:
 src-autoconf-for-gcc-copied: $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2
 	-rm -rf $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION) $(SRCDIR)/autoconf-for-gcc
@@ -451,6 +469,7 @@ src-autoconf-for-gcc-copied: $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION).
 	-mkdir -p $(SRCDIR)/autoconf-for-gcc
 	cp -T -p -r $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION) $(SRCDIR)/autoconf-for-gcc
 	touch $(BUILDSTEPSDIR)/src-autoconf-for-gcc-copied
+endif
 
 # Unpack automake-for-binutils source:
 src-automake-for-binutils-copied: $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
@@ -460,6 +479,7 @@ src-automake-for-binutils-copied: $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS
 	cp -T -p -r $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION) $(SRCDIR)/automake-for-binutils
 	touch $(BUILDSTEPSDIR)/src-automake-for-binutils-copied
 
+ifneq ($(AUTOCONF_FOR_BINUTILS_VERSION)/$(AUTOMAKE_FOR_BINUTILS_VERSION),$(AUTOCONF_FOR_GCC_VERSION)/$(AUTOMAKE_FOR_GCC_VERSION))
 # Unpack automake-for-gcc source:
 src-automake-for-gcc-copied: $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
 	-rm -rf $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION) $(SRCDIR)/automake-for-gcc
@@ -467,6 +487,7 @@ src-automake-for-gcc-copied: $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).
 	-mkdir -p $(SRCDIR)/automake-for-gcc
 	cp -T -p -r $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION) $(SRCDIR)/automake-for-gcc
 	touch $(BUILDSTEPSDIR)/src-automake-for-gcc-copied
+endif
 
 # Unpack binutils source:
 src-binutils-copied: $(SRCORIGDIR)/binutils-$(BINUTILS_VERSION).tar.bz2 buildtool-autoconf-for-binutils-built buildtool-automake-for-binutils-built
@@ -496,12 +517,10 @@ src-gcc-copied: $(SRCORIGDIR)/gcc-$(GCC_VERSION).tar.bz2
 endif
 ifeq ($(TARGET),arm-unknown-riscos)
 	cd $(SRCDIR)/gcc && PATH="$(PREFIX_BUILDTOOL_GCC)/bin:$(PATH)" && $(SCRIPTSDIR)/do-patch-and-copy $(RECIPEDIR)
-endif
-	rm -f $(SRCDIR)/gcc/gcc/config/arm/riscos-abi.h
-	echo "/* Automatically generated from the value of GCCSDK_RISCOS_ABI_VERSION" >> $(SRCDIR)/gcc/gcc/config/arm/riscos-abi.h
+	echo "/* Automatically generated from the value of GCCSDK_RISCOS_ABI_VERSION" > $(SRCDIR)/gcc/gcc/config/arm/riscos-abi.h
 	echo "   defined in the file setup_gccsdk_params.  */" >> $(SRCDIR)/gcc/gcc/config/arm/riscos-abi.h
 	echo \"$(GCCSDK_RISCOS_ABI_VERSION)\" >> $(SRCDIR)/gcc/gcc/config/arm/riscos-abi.h
-
+endif
 	touch $(BUILDSTEPSDIR)/src-gcc-copied
 
 # Unpack gmp source:
@@ -591,7 +610,7 @@ $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2:
 	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/autoconf/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
 	touch $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_BINUTILS_VERSION).tar.bz2
 
-# Download automake source to be used to build automake:
+# Download automake source to be used to build binutils/autoconf-for-binutils:
 $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2:
 	-mkdir -p $(SRCORIGDIR)
 	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/automake/automake-$(AUTOMAKE_FOR_BINUTILS_VERSION).tar.bz2
@@ -606,7 +625,7 @@ $(SRCORIGDIR)/autoconf-$(AUTOCONF_FOR_GCC_VERSION).tar.bz2:
 endif
 
 ifneq ($(AUTOMAKE_FOR_BINUTILS_VERSION),$(AUTOMAKE_FOR_GCC_VERSION))
-# Download automake source to be used to build gcc:
+# Download automake source to be used to build gcc/autoconf-for-gcc:
 $(SRCORIGDIR)/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2:
 	-mkdir -p $(SRCORIGDIR)
 	cd $(SRCORIGDIR) && wget -c http://ftp.gnu.org/gnu/automake/automake-$(AUTOMAKE_FOR_GCC_VERSION).tar.bz2
