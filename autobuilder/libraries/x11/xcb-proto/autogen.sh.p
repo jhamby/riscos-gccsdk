@@ -5,7 +5,7 @@
  cd $srcdir
 
 -autoreconf -v --install || exit 1
-+autoreconf -v --install || autoreconf2.50 -v --install || exit 1
++autoreconf -v --install || autoreconf2.64 -v --install || exit 1
  cd $ORIGDIR || exit $?
 
  $srcdir/configure --enable-maintainer-mode "$@"
