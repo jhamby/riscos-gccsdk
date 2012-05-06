@@ -362,6 +362,6 @@ if [ "$GCCSDK_DO_PKG" == "YES" ] ; then
 
   cd $GCCSDK_SRCDIR
   echo Creating $SKIT_GCC_NAME.tar.bz2
-  tar --exclude="*.svn*" -cjf $GCCSDK_KITS/$SKIT_GCC_NAME.tar.bz2 .
+  tar --exclude="*.svn*" -chjf $GCCSDK_KITS/$SKIT_GCC_NAME.tar.bz2 .
 fi
 
