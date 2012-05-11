@@ -1,3 +1,7 @@
+Fri May 11 23:40:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Corrected a bug causing catastrophic failure of 8-bit streaming.
+
 Mon Apr 23 01:18:00 CST 2012  Christopher Martin  <belles@internode.on.net>
 
 	* Tidied and slightly improved DRender.h and DRender.s based on

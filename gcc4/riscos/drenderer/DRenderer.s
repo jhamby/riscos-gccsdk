@@ -135,7 +135,7 @@ State_Deactivating      *       128
 Format_Undef		*	0
 Format_8u		*	1
 Format_16sle_rl		*	2	; right-left order is what the Acorn 16-bit sound system requires
-Format_16sle_lr		*	3	; but AFAIK, left-right order is normal for non-Acorn formats and platforms
+Format_16sle_lr		*	3	; but left-right order is normal for non-Acorn formats and platforms
 
 ; shift factor for volume (assume 128 rather than 127)
 Volume_Shift		*	7
@@ -573,7 +573,7 @@ TitleString
         ALIGN
 
 HelpString
-        =       "DigitalRenderer",9,"0.56 beta 6 GPL (20 Apr 2012)",13,10
+        =       "DigitalRenderer",9,"0.56 beta 7 GPL (11 May 2012)",13,10
 	=	"Provides a means to playback samples from applications."
 	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
         ALIGN
@@ -1596,7 +1596,7 @@ CHFCcallback
 
 CHFCstreaming ;R4 = num buffers
 	LDR	R3,[R0,#Work_RingBuffer]
-	LDR	R8,[R5,#Work_TotBuffSize]
+        LDR     R8,[R0,#Work_TotBuffSize]
 	MOV	R5,R0
 	MOV	R0,#1
 	STR	R0,[R5,#Work_PollWord]		;on every buffer refill loop, set poll word
@@ -1692,8 +1692,8 @@ LinearHandlerCode
 	TEQ	R3,#1
 	MOVEQ	R4,R4,LSL #1
 	CMP	R9,R4
-        MOVHS   R2,R4
-        MOVLO   R2,R9
+        MOVHI   R2,R4
+        MOVLS   R2,R9
 	BL	CopyLinearBuffer		;does 1->2 channel expansion if necessary
 	LDMFD	R13!,{R12,R14}
 	B	ModuleReturnOK
