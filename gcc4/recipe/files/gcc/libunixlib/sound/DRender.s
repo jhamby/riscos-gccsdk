@@ -21,30 +21,18 @@
  * On the plus side, they will restore flags when called in 26-bit mode.
  */
 
-#ifdef __ELF__
-#   define ELF
-#else
-#   define ELF @
-#endif
+#include "internal/asm_dec.s"
 
-#define XOS_Module	0x2001E
 #define DigiRendChunk	0x6F700	/* X flag set */
 
 	.text
 
-	.global DRender_SetDefaults
-	.global DRender_LoadModule
-
-	.align	2
-0:	.asciz	"DRender_SetDefaults"
-	.align	2
-	.long	0xFF000000 + (. - 0b)
-ELF	.type	DRender_SetDefaults, %function
-	.func	DRender_SetDefaults
-DRender_SetDefaults:
 	@ const _kernel_oserror * DRender_SetDefaults (int *channels, int *format,
 	@					       int *period, int *buffsize,
 	@					       int *numbuff, int *freq)
+        .global DRender_SetDefaults
+        NAME	DRender_SetDefaults
+DRender_SetDefaults:
 	stmfd	sp!, {r4-r10}		/* save 7 regs, r12 (ip) can be clobbered */
 	mov	r6, r0
 	mov	r7, r1
@@ -71,17 +59,12 @@ DRender_SetDefaults:
 	teq	pc, pc
 	moveq	pc, lr
 	movs	pc, lr
-ELF	.size	DRender_SetDefaults, (. - DRender_SetDefaults)
-	.endfunc
+	DECLARE_FUNCTION DRender_SetDefaults
 
-	.align	2
-0:	.asciz	"DRender_LoadModule"
-	.align	2
-	.long	0xFF000000 + (. - 0b)
-ELF	.type	DRender_LoadModule, %function
-	.func	DRender_LoadModule
+        @ const _kernel_oserror * DRender_LoadModule (const char * path)
+        .global DRender_LoadModule
+        NAME	DRender_LoadModule
 DRender_LoadModule:
-	@ const _kernel_oserror * DRender_LoadModule (const char * path)
 	movs	r1, r0
 	adreq	r1, 9f
 	mov	r0, #1			/* RMLoad */
@@ -91,6 +74,7 @@ DRender_LoadModule:
 	moveq	pc, lr
 	movs	pc, lr
 9:	.asciz	"System:Modules.DRenderer"
-	.align	2
-ELF	.size	DRender_LoadModule, (. - DRender_LoadModule)
-	.endfunc
+        .align
+        DECLARE_FUNCTION DRender_LoadModule
+
+	.end
