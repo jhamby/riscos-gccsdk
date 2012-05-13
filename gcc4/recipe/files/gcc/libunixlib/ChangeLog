@@ -1,3 +1,21 @@
+Mon May 14 03:08:50 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* sound/DRender.h: Added. Having made improvements to
+	DigitalRenderer, imported and adapted the DRender interface
+	included in the DigitalRenderer sources. Substantial use of
+	inline assembly functions to optimise calls to most
+	DigitalRenderer SWIs.
+	* sound/DRender.S (DRender_SetDefaults): Likewise. A function to
+	call SWI DigitalRenderer_SetDefaults is provided here because it
+	uses so many registers that it is not practical to implement in
+	inline assembly.
+	* sound/DRender.S (DRender_LoadModule): Likewise. This function
+	uses SWI OS_Module to load System:Modules.DRenderer which is
+	preferable to using *RMLoad through SWI OS_CLI.
+	* sound/dsp.c: Extensive changes allowed by the new DRender
+	interface allowing /dev/dsp emulation to be made simpler and
+	more efficient.
+
 Wed Apr  4 11:55:56 BST 2012  Lee Noar  <leenoar@sky.com>
 
 	* unix/ul_select.c(select): Set errno to EBADF and return
@@ -206,7 +224,7 @@ Sun May 15 19:58:43 2011  Lee Noar <leenoar@sky.com>
 Sat Feb  5 20:20:02 2011  Lee Noar <leenoar@sky.com>
 
 	* gcccompat/_eh_support.s(__ehs_unwind_stack_chunk): Add
-	implementation for SCL. 
+	implementation for SCL.
 	(UnixLib version): Fix return register list in the case
 	of fp == 0. Change 1st arg to void ** (so the SCL version
 	can return a different frame pointer) and alter code
@@ -538,9 +556,9 @@ Fri Oct 28 04:04:12 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 Thu Oct 27 01:36:00 BST 2011  John-Mark Bell  <jmb@netsurf-browser.org>
 
-	* sys/_syslib.s: Prevent stack extension trampling the signal handler 
-	stack chunk. This is achieved by inserting an 8 byte gap between the 
-	signal handler stack and the initial stack chunk which is then used 
+	* sys/_syslib.s: Prevent stack extension trampling the signal handler
+	stack chunk. This is achieved by inserting an 8 byte gap between the
+	signal handler stack and the initial stack chunk which is then used
 	by the stack allocator for its heap metadata.
 	* sys/stackalloc.c (__stackalloc_init): Reflect above change, and
 	ensure that the signal handler block size/startofcon fields are
@@ -769,12 +787,12 @@ Tue Feb  8 03:17:42 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
 Sat Feb  5 10:55:00 UTC 2011  John-Mark Bell  <jmb@netsurf-browser.org>
 
 	* module/sul.s: Test the existence of the canonicalised	filename on
-	program initialisation, rather than the original sul_exec() argument. 
-	Fixes detection of child application that lives on Run$Path. 
+	program initialisation, rather than the original sul_exec() argument.
+	Fixes detection of child application that lives on Run$Path.
 	Additionally, fix stripping of FS name in process structure search to
-	accept the program name provided by OS_GetEnv having no colons in it 
+	accept the program name provided by OS_GetEnv having no colons in it
 	(e.g. when it resides on RPCEmu's HostFS). Otherwise, it will skip over
-	the first entry in the process list without considering it. 
+	the first entry in the process list without considering it.
 	Bump version number and update copyright years.
 
 Wed Feb  2 00:29:05 CET 2011  John Tytgat  <John.Tytgat@aaug.net>
