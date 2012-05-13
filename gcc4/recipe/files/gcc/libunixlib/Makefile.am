@@ -844,7 +844,7 @@ sound_src =
 else
 sound_src = \
 	sound/dsp.c \
-	sound/DRender.S
+	sound/DRender.s
 endif
 
 if UNIXLIB_BUILDING_SCL
