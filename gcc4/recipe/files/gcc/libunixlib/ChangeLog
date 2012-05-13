@@ -5,11 +5,11 @@ Mon May 14 03:08:50 CST 2012  Christopher Martin  <belles@internode.on.net>
 	included in the DigitalRenderer sources. Substantial use of
 	inline assembly functions to optimise calls to most
 	DigitalRenderer SWIs.
-	* sound/DRender.S (DRender_SetDefaults): Likewise. A function to
+	* sound/DRender.s (DRender_SetDefaults): Likewise. A function to
 	call SWI DigitalRenderer_SetDefaults is provided here because it
 	uses so many registers that it is not practical to implement in
 	inline assembly.
-	* sound/DRender.S (DRender_LoadModule): Likewise. This function
+	* sound/DRender.s (DRender_LoadModule): Likewise. This function
 	uses SWI OS_Module to load System:Modules.DRenderer which is
 	preferable to using *RMLoad through SWI OS_CLI.
 	* sound/dsp.c: Extensive changes allowed by the new DRender
