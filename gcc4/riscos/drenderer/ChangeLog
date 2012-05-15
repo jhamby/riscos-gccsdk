@@ -1,3 +1,10 @@
+
+Fri May 15 20:57:00 CST 2012  Christopher Martin  <belles@internode.on.net>
+
+	* Modified the 16-bit sound handler 'LinearHandlerCode' and support
+	functions so that it is safe to be called in IRQ mode with interrupts
+	enabled.
+
 Fri May 11 23:40:00 CST 2012  Christopher Martin  <belles@internode.on.net>
 
 	* Corrected a bug causing catastrophic failure of 8-bit streaming.
