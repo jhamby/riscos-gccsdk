@@ -573,7 +573,7 @@ TitleString
         ALIGN
 
 HelpString
-        =       "DigitalRenderer",9,"0.56 beta 7 GPL (11 May 2012)",13,10
+        =       "DigitalRenderer",9,"0.56 beta 8 GPL (15 May 2012)",13,10
 	=	"Provides a means to playback samples from applications."
 	=	" © 1997-2012 Andreas Dehmel, Christopher Martin",0
         ALIGN
@@ -1633,7 +1633,7 @@ CHFCloopstream
 	FNlink	R1,CHFCcopyreturn		;IRQ CODE STORES RETURN ADDRESS BEFORE CALL!
 	STR	R1,[R13,#-4]!
 	MOV	R1,R12
-	B	CopyByteBuffIRQ		;CAN'T USE R14 IN IRQ MODE!!!
+	B	CopyByteBuffIRQ			;CAN'T USE R14 IN IRQ MODE!!!
 CHFCcopyreturn
 	ADD	R12,R12,R2
 	STR	R6,[R5,#Work_LastReadBuff]
@@ -1667,10 +1667,10 @@ CHFCnobuffinc
 	;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 LinearHandlerCode
-	STMFD	R13!,{R12,R14}
+	STMFD	R13!,{R11,R12,R14}
 	MOV	R12,R0
-	MOV	R5,R3				;if (flags in r5 AND 7) == 2 then buffer is preset to silence
 	LDR	R0,[R12,#Work_State]
+	MOV	R5,R3				;if (flags in r5 AND 7) == 2 then buffer is preset to silence
 	TST	R0,#State_NeedData
         ORRNE   R0,R0,#State_Overflow           ;if data needed flag set, overflow occurred
 	BICEQ	R0,R0,#State_Overflow
@@ -1694,9 +1694,10 @@ LinearHandlerCode
 	CMP	R9,R4
         MOVHI   R2,R4
         MOVLS   R2,R9
-	BL	CopyLinearBuffer		;does 1->2 channel expansion if necessary
-	LDMFD	R13!,{R12,R14}
-	B	ModuleReturnOK
+        STR	PC,[R13,#-4]!			;return address could be (.+8) or (.+12)
+	B	CopyLinearBuffer		;does 1->2 channel expansion if necessary
+	NOP					;in case stored PC is (.+12)
+	LDMFD	R13!,{R11,R12,PC}		;DOESN'T RESTORE FLAGS! IRQ SAFE!
 
 LHCstreaming ;streaming interface, similar to Voice handler
 	LDR	R3,[R12,#Work_RingBuffer]
@@ -1743,7 +1744,9 @@ LHCloopstream
 	MOVEQ	R2,R2,LSL #1			;1 channel ==> pretend twice as much audio data
 	CMP	R2,R9
 	MOVHI	R2,R9
-	BL	CopyLinearBuffer
+        STR	PC,[R13,#-4]!			;return address could be (.+8) or (.+12)
+	B	CopyLinearBuffer		;does 1->2 channel expansion if necessary
+	NOP					;in case stored PC is (.+12)
 	ADD	R1,R1,R2
 	SUB	R9,R9,R2
 	STR	R6,[R12,#Work_LastReadBuff]
@@ -1772,13 +1775,13 @@ LHCnobuffinc
         TEQ     R9,#0
         BNE     LHCloopstream
 LHCovernull
+	LDMFD	R13!,{R11,R12}			;restore registers that must be preserved but leave return address stacked
 	AND	R5,R5,#7
 	TEQ	R5,#2				;only call MemSet if the OS hasn't already cleared the buffer
 	MOVNE	R0,R1
 	MOVNES	R1,R9				;and there is still space remaining in the buffer to be filled
-	BLNE	MemSet
-	LDMIA	R13!,{R12,R14}
-	B	ModuleReturnOK
+	BNE	MemStIRQ
+	LDR	PC,[R13],#4			;DOESN'T RESTORE FLAGS! IRQ SAFE!
 
 
 FreeRingBufferBuffers ;R12 = ^workspace
@@ -1923,12 +1926,12 @@ SSCexit
 
 
 	; THIS CODE MUST BE IRQ SAFE!
-CopyByteBuffer ;r0 = src, r1 = dest, r2 = size
+CopyByteBuffer	;r0 = src, r1 = dest, r2 = size
 	STR	R14,[R13,#-4]!
 CopyByteBuffIRQ ;in IRQ mode, the caller must store the return address
-	STMDB	R13!,{R0-R7}
 	CMP	R2,#0
-	BLE	CBBexit
+	LDRLE	PC,[R13],#4      ;DON'T RESTORE FLAGS! IRQ SAFE!
+	STMDB	R13!,{R0-R7}
 CBBdoalign
 	TST	R1,#3
 	BEQ	CBBisaligned
@@ -2319,18 +2322,18 @@ ELTexit
 	B	ModuleReturnOK
 
 
+	; THIS CODE MUST BE IRQ SAFE!
 CopyLinearBuffer ;r0 = src, r1 = dest, r2 = num bytes (dest)
+		 ;r11 = scrap, r12 = workspace, return address stacked
 	CMP	R2,#0
-	MOVLE	PC,R14				;doesn't preserve flags
-	STR	R14,[R13,#-4]!			;called by 16bit sound handler only!
-	LDR	R14,[R12,#Work_Channels]
-	TEQ	R14,#1
+	LDRLE	PC,[R13],#4			;DOESN'T RESTORE FLAGS! IRQ SAFE!
+	LDR	R11,[R12,#Work_Channels]
+	TEQ	R11,#1
 	BEQ	CLBexpand
-	LDR	R14,[R12,#Work_SampleFormat]
-	TEQ	R14,#Format_16sle_lr
+	LDR	R11,[R12,#Work_SampleFormat]
+	TEQ	R11,#Format_16sle_lr
 	BEQ	CLBswaplinear			;2 channels, but wrong order
-	BL	CopyByteBuffer			;2 channels ==> just copy the whole thing
-	LDR	PC,[R13],#4
+	B	CopyByteBuffIRQ			;2 channels ==> just copy the whole thing
 
 CLBexpand
 	STMDB	R13!,{R0-R10}
@@ -2339,9 +2342,9 @@ CLBexpand
 	TST	R0,#2
 	BEQ	CLBaligned
 	LDRB	R3,[R0],#1
-	LDRB	R14,[R0],#1
+	LDRB	R11,[R0],#1
 	SUBS	R2,R2,#4
-	ORR	R3,R3,R14,LSL #8
+	ORR	R3,R3,R11,LSL #8
 	ORR	R3,R3,R3,LSL #16
 	STR	R3,[R1],#4
 	BLE	CLBexpdone
@@ -2376,8 +2379,8 @@ CLBexptiny
 	TST	R2,#4
 	BEQ	CLBexpdone
 	LDRB	R3,[R0],#1
-	LDRB	R14,[R0],#1
-	ORR	R3,R3,R14,LSL #8
+	LDRB	R11,[R0],#1
+	ORR	R3,R3,R11,LSL #8
 	ORR	R3,R3,R3,LSL #16
 	STR	R3,[R1],#4
 CLBexpdone
