@@ -109,17 +109,37 @@ extern int clearenv (void) __THROW;
 #  endif
 #endif
 
+#ifndef __TARGET_SCL__
 #if defined __USE_MISC || defined __USE_XOPEN_EXTENDED
-#  ifndef __TARGET_SCL__
-/* Generate a unique temporary file name for temp.  */
+/* Generate a unique temporary file name from TEMPLATE.
+   The last six characters of TEMPLATE must be "XXXXXX";
+   they are replaced with a string that makes the file name unique.
+   Returns TEMPLATE, or a null pointer if it cannot get a unique file name.  */
 extern char *mktemp (char *__template) __THROW __nonnull ((1)) __wur;
 
-/* As for mktemp but returns an open file descriptor on the file.
-   This function is a possible cancellation points and therefore not
+/* Generate a unique temporary file name from TEMPLATE.
+   The last six characters of TEMPLATE must be "XXXXXX";
+   they are replaced with a string that makes the filename unique.
+   Returns a file descriptor open on the file for reading and writing,
+   or -1 if it cannot create a uniquely-named file.
+
+   This function is a possible cancellation point and therefore not
    marked with __THROW.  */
-extern int mkstemp(char *__template) __nonnull ((1)) __wur;
+# ifndef __USE_FILE_OFFSET64
+extern int mkstemp (char *__template) __nonnull ((1)) __wur;
+# else
+#  ifdef __REDIRECT
+extern int __REDIRECT (mkstemp, (char *__template), mkstemp64)
+     __nonnull ((1)) __wur;
+#  else
+#   define mkstemp mkstemp64
 #  endif
+# endif
+# ifdef __USE_LARGEFILE64
+extern int mkstemp64 (char *__template) __nonnull ((1)) __wur;
+# endif
 #endif
+#endif /* __TARGET_SCL__ */
 
 __BEGIN_NAMESPACE_STD
 /* Execute the given line via the CLI. See _kernel_system () in kernel.h.  */
