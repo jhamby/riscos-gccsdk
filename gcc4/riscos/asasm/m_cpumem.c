@@ -759,7 +759,7 @@ dstreglist (ARMWord ir, bool isPushPop)
       /* Switch to LDR/STR.  */
       bool isLoad = ir & L_FLAG;
       int rt = ffs (regList) - 1;
-      assert (regList == (1 << rt));
+      assert (regList == (1U << rt));
       ir = (ir & NV) | (isLoad ? 0x049D0004 : 0x052D0004) | (rt << 12);
       if (rt == 13)
 	error (ErrorWarning, "%s r13 is UNPREDICTABLE", isLoad ? "Loading" : "Saving");

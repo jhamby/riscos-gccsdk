@@ -1,3 +1,7 @@
+Fri May 18 15:47:53 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpumem.c (dstreglist): Fix compiler warning.
+
 Sat Apr  7 15:39:45 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* README: Add v2.00 testers.  Updated contributors list.
