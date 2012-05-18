@@ -1,3 +1,11 @@
+Fri May 18 20:46:41 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* input.c (inputEnvSub): Remove.
+	(Input_ArgSub): No longer call inputEnvSub.  Simplify.
+	* filename.c (FN_AnyToNative): Resolve RISC OS OS variable use in
+	filenames on non-RISC OS platforms.
+	* directive_file.c (c_get, c_lnk): Fix memory leak.
+
 Fri May 18 18:28:20 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* macros.c (c_macro): Prevent dollar expansion between vertical bar

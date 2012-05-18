@@ -329,72 +329,6 @@ Input_NextLine (Level_e level)
 
 
 /**
- * Perform environment variable substitution.
- * \param inPP On entry, pointer to the input pointer to environment variable
- * which is '>', control or space character limited.  On exit, the input pointer
- * will be updated reflecting the characters used.
- * \param outOffset On entry, offset in input_buff buffer.  On exit, offset
- * will be updated reflecting the written charactes in input_buff.
- *
- * Buffer overflow will be detected by the caller when not all the input has
- * been consumed together with *outOffsetP == sizeof (input_buff).
- */
-static void
-inputEnvSub (const char **inPP, size_t *outOffsetP)
-{
-  /* Find end of variable.  */
-  const char *inP = *inPP;
-  while (*inP != '\0' && *inP != '>' && *inP > 32)
-    ++inP;
-  if (*inP != '>' || inP == *inPP)
-    {
-      /* Not a variable, had a lone '<' or "<>".  Only copy '<' to buffer.
-	 Note that <> is an extension which means the same as !=.  */
-      if (*outOffsetP < sizeof (input_buff))
-	input_buff[(*outOffsetP)++] = '<';
-      return;
-    }
-
-  /* Clone variable name into a temporary buffer.  */
-  char *temp = alloca (inP - *inPP + 1);
-  memcpy (temp, *inPP, inP - *inPP);
-  temp[inP - *inPP] = '\0';
-  char *env = getenv (temp);
-#ifndef __riscos__
-  if (env == NULL)
-    {
-      /* Change Lib$Dir into LIB_DIR and re-evaluate.  */
-      for (char *s = temp; *s; ++s)
-	{
-	  if (*s == '$')
-	    *s = '_';
-	  else
-	    *s = toupper (*s);
-	}
-      env = getenv (temp);
-    }
-#endif
-  if (env == NULL)
-    {
-      /* No such variable defined. Warn, though we may want to error.  */
-      error (ErrorWarning, "Unknown environment variable '%s'", temp);
-      if (*outOffsetP < sizeof (input_buff))
-	input_buff[(*outOffsetP)++] = '<';
-      return;
-    }
-
-  /* Substitute variable's value, providing it won't truncate.  */
-  size_t len = strlen (env);
-  if (*outOffsetP + len >= MAX_LINE)
-    len = MAX_LINE - *outOffsetP;
-  memcpy(input_buff + *outOffsetP, env, len);
-  *outOffsetP += len;
-
-  *inPP = inP + 1;
-}
-
-
-/**
  * Perform variable substitution.
  * \param inPP On entry, pointer to the input pointer to '$'.
  * On exit, the input pointer will be updated reflecting the characters used.
@@ -518,17 +452,7 @@ Input_ArgSub (bool warnOnVarSubFail)
   /* Process all characters in the line.  */
   while (*inP && outOffset < sizeof (input_buff))
     {
-      /* Copy each input character, until a special symbol is found.  */
-      while (*inP
-	     && *inP != '"' && *inP != '\''
-	     && *inP != '|' && *inP != '$'
-	     && *inP != ';' && *inP != '<'
-	     && outOffset < sizeof (input_buff))
-	input_buff[outOffset++] = *inP++;
-
-      /* Process special characters.  */
-      char c;
-      switch (c = *inP)
+      switch (*inP)
 	{
 	  case ';':
 	    { /* Comment follows; just copy it all.  */
@@ -540,11 +464,6 @@ Input_ArgSub (bool warnOnVarSubFail)
 	      inP += len;
 	      break;
 	    }
-
-	  case '<': /* Characters enclosed between <...>.  */
-	    ++inP;
-	    inputEnvSub (&inP, &outOffset);
-	    break;
 
 	  case '|': /* Copy "|xxx|" as is.  */
 	    {
@@ -562,27 +481,30 @@ Input_ArgSub (bool warnOnVarSubFail)
 
 	  case '\'':
 	  case '\"':
-	    /* String: variable substitution is warning-less when it it
-	       fails.  */
-	    if (outOffset < sizeof (input_buff))
-	      input_buff[outOffset++] = *inP++;
-	    bool disableVarSubst = false;
-	    while (outOffset < sizeof (input_buff) && *inP)
-	      {
-		if (*inP == '$' && !disableVarSubst)
-		  Input_VarSub (&inP, &outOffset, true, warnOnVarSubFail);
-		else
-		  {
-		    char cc = *inP++;
-		    input_buff[outOffset++] = cc;
-		    if (cc == '|')
-		      disableVarSubst = !disableVarSubst;
-		    if (cc == c)
-		      break;
-		  }
-	      }
-	    /* We don't check on unmatched ' or ".  */
-	    break;
+	    {
+	      /* String: variable substitution is warning-less when it it
+		 fails.  */
+	      char c = *inP;
+	      if (outOffset < sizeof (input_buff))
+		input_buff[outOffset++] = *inP++;
+	      bool disableVarSubst = false;
+	      while (outOffset < sizeof (input_buff) && *inP)
+		{
+		  if (*inP == '$' && !disableVarSubst)
+		    Input_VarSub (&inP, &outOffset, true, warnOnVarSubFail);
+		  else
+		    {
+		      char cc = *inP++;
+		      input_buff[outOffset++] = cc;
+		      if (cc == '|')
+			disableVarSubst = !disableVarSubst;
+		      if (cc == c)
+			break;
+		    }
+		}
+	      /* We don't check on unmatched ' or ".  */
+	      break;
+	    }
 
 	  case '$': /* Do variable substitution - $ */
 	    {
@@ -608,7 +530,11 @@ Input_ArgSub (bool warnOnVarSubFail)
 		      return false;
 		    }
 		}
+	      break;
 	    }
+
+	  default:
+	    input_buff[outOffset++] = *inP++;
 	    break;
 	}
     }

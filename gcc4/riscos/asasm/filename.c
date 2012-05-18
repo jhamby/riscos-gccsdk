@@ -36,6 +36,9 @@
 #include <string.h>
 
 #include "common.h"
+#ifndef TEST
+#  include "error.h"
+#endif
 #include "filename.h"
 
 typedef enum
@@ -176,11 +179,65 @@ const char *
 FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
 		bool *state, FN_eOutputType outtype)
 {
+#ifndef __riscos__
+  /* On non-RISC OS platform, detect '<' + RISC OS OS variable + '>' and if so
+     expand the RISC OS variable (with '$' being substituted by '_' and all
+     in upcased characters) by treating this as an environment variable.  */
+  char *in_exp = NULL; /* Will be expanded input buffer.  */
+  char *lt;
+  while ((lt = strchr (in, '<')) != NULL)
+    {
+      char *gt = strchr (lt, '>');
+      if (gt == NULL)
+	break;
+      char *varbuf = malloc (gt - (lt + 1) + 1);
+#ifndef TEST
+      if (varbuf == NULL)
+	errorOutOfMem ();
+#endif
+      /* Update variable name and substitute '$' by '_'.  */
+      char *o, *i;
+      for (o = varbuf, i = lt + 1; i != gt; ++o, ++i)
+	*o = *i == '$' ? '_' : toupper ((unsigned)*i);
+      *o = '\0';
+      char *vardef = getenv (varbuf);
+      if (vardef == NULL)
+	{
+#ifndef TEST
+	  /* No such variable defined. Warn, though we may want to error.  */
+	  error (ErrorWarning, "Unknown environment variable '%s'", varbuf);
+#endif
+	  free (varbuf);
+	  break;
+	}
+      free (varbuf);
+
+      size_t len_vardef = strlen (vardef);
+      size_t len_new = strlen (in) + len_vardef - (gt + 1 - lt) + 1;
+      char *in_new = malloc (len_new);
+#ifndef TEST
+      if (in_new == NULL)
+	errorOutOfMem ();
+#endif
+      memcpy (in_new, in, lt - in);
+      memcpy (in_new + (lt - in), vardef, len_vardef);
+      strcpy (in_new + (lt - in) + len_vardef, gt + 1);
+
+      free (in_exp);
+      in = in_exp = in_new;
+    }
+#endif
+
   char *out = buf;
   size_t outsize = bufsize;
 
   if (bufsize < 2)
-    return NULL;
+    {
+#ifndef __riscos__
+      free (in_exp);
+#endif
+      return NULL;
+    }
   buf[0] = '\0';
 
   PathStyle pathStyle;
@@ -287,7 +344,12 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
     }
 
   if (pathidx != 0)
-    return NULL;
+    {
+#ifndef __riscos__
+      free (in_exp);
+#endif
+      return NULL;
+    }
 
   /* If we're not sure at this point what the incoming path style is, assume
      Unix and request another iteration (where we will go for RISC OS path
@@ -312,7 +374,12 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
   while (*in)
     {
       if (get_dir (&in, pathStyle, dirPart, sizeof (dirPart)))
-        return NULL; /* Error.  */
+	{
+#ifndef __riscos__
+	  free (in_exp);
+#endif
+	  return NULL; /* Error.  */
+	}
       /* Check on one dot being present, and a non-empty part before and after
          that dot.  */
       char *dot;
@@ -349,7 +416,12 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
     }
 
   if (out == NULL)
-    return NULL;
+    {
+#ifndef __riscos__
+      free (in_exp);
+#endif
+      return NULL;
+    }
 
   /* Strip off trailing directory separator.  */
   if (out != buf && out[-1] == NAT_DIR_CHR)
@@ -365,6 +437,9 @@ FN_AnyToNative (const char *in, unsigned pathidx, char *buf, size_t bufsize,
       buf[1] = '\0';
     }
   
+#ifndef __riscos__
+  free (in_exp);
+#endif
   return buf;
 }
 

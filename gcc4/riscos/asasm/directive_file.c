@@ -59,6 +59,7 @@ c_get (void)
 
   if (!FS_PushFilePObject (fileName) && option_verbose)
     fprintf (stderr, "Including file \"%s\" as \"%s\"\n", fileName, FS_GetCurFileName ());
+  free (fileName);
   return false;
 }
 
@@ -93,6 +94,7 @@ c_lnk (void)
 
   if (!FS_PushFilePObject (fileName) && option_verbose)
     fprintf (stderr, "Linking to file \"%s\" as \"%s\"\n", fileName, FS_GetCurFileName ());
+  free (fileName);
   return false;
 }
 
