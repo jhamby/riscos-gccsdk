@@ -443,18 +443,21 @@ c_macro (void)
       if (isMacroEnd)
 	break;
 
+      bool vbar = false; /* true when there is an unmatched | character.  */
       while (1)
 	{
 	  char c = inputGet ();
-	  const char * const inputMark2 = Input_GetMark ();
-	  if (c == '$')
+	  if (c == '|')
+	    vbar ^= true;
+	  else if (c == '$' && !vbar)
 	    {
+	      const char * const inputMark2 = Input_GetMark ();
 	      if (!Input_Match ('$', false))
 		{
 		  /* Token ? Check list and substitute.  */
-		  bool vbar = Input_Match ('|', false);
+		  bool vbar_symbol = Input_Match ('|', false);
 		  ptr = inputSymbol (&len, '\0');
-		  if (vbar && !Input_Match ('|', false))
+		  if (vbar_symbol && !Input_Match ('|', false))
 		    error (ErrorError, "Missing vertical bar");
 		  (void) Input_Match ('.', false);
 		  int i;

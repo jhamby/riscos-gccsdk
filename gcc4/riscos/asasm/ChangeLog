@@ -1,3 +1,9 @@
+Fri May 18 18:28:20 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* macros.c (c_macro): Prevent dollar expansion between vertical bar
+	characters.
+	* regression/tests_pass/variable_substitution.s: Enhance test.
+
 Fri May 18 15:47:53 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_cpumem.c (dstreglist): Fix compiler warning.

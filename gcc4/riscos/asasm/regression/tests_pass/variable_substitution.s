@@ -78,24 +78,34 @@ var3	SETS	"$$arg3"
 
 	MACRO
 	Test	$arg1, $arg2, $arg3
-	=	"tst1 $bla\n"
-	=	"tst2 $$bla\n"
-	=	"tst3 $$$bla\n"
-	=	"tst4 $var1\n"
-	=	"tst5 $$var1\n"
-	=	"tst6 $$$var1\n"
-	=	"tst7 $var2\n"
-	=	"tst8 $$var2\n"
-	=	"tst9 $$$var2\n"
-	=	"tst10 $var3\n"
-	=	"tst11 $$var3\n"
-	=	"tst12 $$$var3\n"
-	=	"tst13 $arg1\n"
-	=	"tst14 $$arg1\n"
-	=	"tst15 $$$arg1\n"
-	=	"tst16 $arg2\n"
-	=	"tst17 $$arg2\n"
-	=	"tst18 $$$arg2\n"
+	=	"tst1 $bla\n"		; $bla
+	=	"tst2 $$bla\n"		; $bla
+	=	"tst3 $$$bla\n"		; $bla
+
+	=	"tst4 $var1\n"		; vl1
+	=	"tst5 $$var1\n"		; vl1
+	=	"tst6 $$$var1\n"	; $var1
+
+	=	"tst7 $var2\n"		; arg3
+	=	"tst8 $$var2\n"		; arg3
+	=	"tst9 $$$var2\n"	; $var2
+
+	=	"tst10 $var3\n"		; $arg3
+	=	"tst11 $$var3\n"	; $arg3
+	=	"tst12 $$$var3\n"	; $var3
+
+	=	"tst13 $arg1\n"		; mcr1
+	=	"tst14 $$arg1\n"	; $arg1
+	=	"tst15 $$$arg1\n"	; $mcr1
+
+	=	"tst16 $arg2\n"		; var2
+	=	"tst17 $$arg2\n"	; $arg2
+	=	"tst18 $$$arg2\n"	; arg3
+
+	=	"tst19 |$var1|\n"	; |$var1|
+	=	"tst20 |$$var1|\n"	; |$$var1|
+	=	"tst21 |$arg2|\n"	; |$arg2|
+	=	"tst22 |$$arg2|\n"	; |$$arg2|
 	MEND
 
 	Test	"mcr1", "var2", "mcr3"
@@ -103,21 +113,31 @@ var3	SETS	"$$arg3"
 	=	"tst1 $bla\n"
 	=	"tst2 $bla\n"
 	=	"tst3 $bla\n"
+
 	=	"tst4 vl1\n"
 	=	"tst5 vl1\n"
 	=	"tst6 $var1\n"
+
 	=	"tst7 arg3\n"
 	=	"tst8 arg3\n"
 	=	"tst9 $var2\n"
+
 	=	"tst10 $arg3\n"
 	=	"tst11 $arg3\n"
 	=	"tst12 $var3\n"
+
 	=	"tst13 mcr1\n"
 	=	"tst14 $arg1\n"
 	=	"tst15 $mcr1\n"
+
 	=	"tst16 var2\n"
 	=	"tst17 $arg2\n"
 	=	"tst18 arg3\n"
+
+	=	"tst19 |$var1|\n"
+	=	"tst20 |$$var1|\n"
+	=	"tst21 |$arg2|\n"
+	=	"tst22 |$$arg2|\n"
 	]
 
 	[ :LNOT: REFERENCE
