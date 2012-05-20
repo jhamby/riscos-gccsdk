@@ -307,7 +307,6 @@ retry:
             insert(c);
             comma = 0;
             concat = 0;
-            opt.atline++;
           } else if (c == '(') {
             if (!discarding) {
               insert(c);

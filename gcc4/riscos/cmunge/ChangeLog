@@ -1,3 +1,7 @@
+Sun May 20 20:07:10 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* readfile.c (getline): Fix wrong update of options::atline.
+
 Thu Apr  5 01:18:12 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am, VersionNum (GCCSDK_REVISION): Mention svn branch
