@@ -13,9 +13,9 @@ Set Mono$Debug explicit-null-checks
 
 | Mono$CPUArch
 | Set version of CPU architecture targeted by the JIT.
-| Options are armv5, armv6 and armv7.
-| If not set, then armv4 is assumed.
-|
+| Options are armv5, armv6 and armv7, if not set, then armv4 is assumed.
+| Unset for use on Risc PC, rpcemu or any system that does not support
+| half word load/store instructions.
 | Set Mono$CPUArch armv5
 
 | Mono$EnvOptions
