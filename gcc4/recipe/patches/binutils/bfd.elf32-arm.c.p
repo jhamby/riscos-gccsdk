@@ -1,5 +1,5 @@
---- bfd/elf32-arm.c.orig	2012-03-18 20:22:35.000000000 +0000
-+++ bfd/elf32-arm.c	2012-03-18 20:20:59.000000000 +0000
+--- bfd/elf32-arm.c.orig	2012-05-26 23:39:50.602937436 +0200
++++ bfd/elf32-arm.c	2012-05-26 23:40:14.666634914 +0200
 @@ -2024,7 +2024,7 @@ typedef unsigned short int insn16;
  
  /* The name of the dynamic interpreter.  This is put in the .interp
@@ -459,9 +459,9 @@
      addend = signed_addend = rel->r_addend;
 +  
 +  if (info->shared && info->flag_pic == 2
-+   && sym_name[0] == '_' && sym_name[1] == '_'
-+   && (strcmp (sym_name, "__GOTT_INDEX__") == 0
-+   ||  strcmp (sym_name, "__GOTT_BASE__") == 0))
++      && sym_name[0] == '_' && sym_name[1] == '_'
++      && (strcmp (sym_name, "__GOTT_INDEX__") == 0
++	  ||  strcmp (sym_name, "__GOTT_BASE__") == 0))
 +    {
 +      const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset + rel->r_offset;
 +
@@ -482,12 +482,12 @@
 +  ((type) == R_ARM_ABS32 \
 +   && (!strncmp (secname, ".data", sizeof (".data")-1)))
 +      if (ro_module_is_datareloc (r_type, input_section->name)
++	  && eh != NULL
 +	  && (unsigned int)value + (unsigned int)addend >= (unsigned int)globals->ro_module_image_rw_base /* comparison needs to happen in 32-bit space.  */)
 +	{
 +	  /* Relocation inside RW data, i.e. in module RMA workspace.  */
 +	  const bfd_vma osection_addr = input_section->output_section->vma + input_section->output_offset - globals->ro_module_image_rw_base;
 +
-+	  BFD_ASSERT (h != NULL);
 +	  /* Just to make sure our dodgy allocation approach is not underallocating.  */
 +	  BFD_ASSERT (globals->ro_module_relocdata_offset < globals->ro_module_relocdata_size);
 +
@@ -688,13 +688,13 @@
        eh = (struct elf32_arm_link_hash_entry *) h;
  
 +      /* For RISC OS module __RelocCode / __RelocData support.  */
-+      if (ro_module_is_datareloc (r_type, sec->name))
++      if (ro_module_is_datareloc (r_type, sec->name)
++	  && eh != NULL)
 +        {
 +	  /* This can allocate too much but we can only be sure of the
 +	     exact size after linking, e.g. after we know that the relocs
 +	     are in RO RMA space or in RW RMA workspace.  */
-+          if (h != NULL)
-+            htab->ro_module_relocdata_size += 4;
++ 	  htab->ro_module_relocdata_size += 4;
 +        }
 +      if (ro_module_is_codereloc (r_type, sec->name))
 +        htab->ro_module_reloccode_size += 4;
