@@ -1,5 +1,5 @@
---- mono/mini/tramp-arm.c.orig	2011-08-26 02:06:56.000000000 +0100
-+++ mono/mini/tramp-arm.c	2012-02-02 19:29:12.000000000 +0000
+--- mono/mini/tramp-arm.c.orig	2011-12-19 21:10:25.000000000 +0000
++++ mono/mini/tramp-arm.c	2012-05-26 17:33:34.000000000 +0100
 @@ -157,8 +157,11 @@
  	 * regs on the stack (all but PC and SP). The original LR value has been
  	 * saved as sp + LR_OFFSET by the push in the specific trampoline
@@ -92,3 +92,17 @@
  	if (short_branch) {
  		constants = (gpointer*)code;
  		constants [0] = GUINT_TO_POINTER (short_branch | (1 << 24));
+@@ -645,7 +674,13 @@
+ 		mono_marshal_find_bitfield_offset (MonoVTable, initialized, &byte_offset, &bitmask);
+ 
+ 	g_assert (arm_is_imm8 (byte_offset));
++	if (v5_supported) {
+ 	ARM_LDRSB_IMM (code, ARMREG_IP, MONO_ARCH_VTABLE_REG, byte_offset);
++	} else {
++		ARM_LDRB_IMM (code, ARMREG_IP, MONO_ARCH_VTABLE_REG, byte_offset);
++		ARM_SHL_IMM (code, ARMREG_IP, ARMREG_IP, 24);
++		ARM_SAR_IMM (code, ARMREG_IP, ARMREG_IP, 24);
++	}
+ 	imm8 = mono_arm_is_rotated_imm8 (bitmask, &rot_amount);
+ 	g_assert (imm8 >= 0);
+ 	ARM_AND_REG_IMM (code, ARMREG_IP, ARMREG_IP, imm8, rot_amount);

@@ -1,5 +1,14 @@
 --- mono/mini/mini-arm.c.orig	2011-12-19 21:10:25.000000000 +0000
-+++ mono/mini/mini-arm.c	2012-05-26 14:40:33.000000000 +0100
++++ mono/mini/mini-arm.c	2012-05-26 17:27:28.000000000 +0100
+@@ -39,7 +39,7 @@
+ #define mono_mini_arch_unlock() LeaveCriticalSection (&mini_arch_mutex)
+ static CRITICAL_SECTION mini_arch_mutex;
+ 
+-static int v5_supported = 0;
++int v5_supported = 0;
+ static int v6_supported = 0;
+ static int v7_supported = 0;
+ static int thumb_supported = 0;
 @@ -578,7 +578,7 @@
  mono_arch_cpu_optimizazions (guint32 *exclude_mask)
  {

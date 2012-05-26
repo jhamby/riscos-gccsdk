@@ -1,5 +1,5 @@
---- mono/mini/mini-arm.h.orig	2011-08-26 02:06:56.000000000 +0100
-+++ mono/mini/mini-arm.h	2012-01-15 20:16:14.000000000 +0000
+--- mono/mini/mini-arm.h.orig	2011-12-19 21:10:25.000000000 +0000
++++ mono/mini/mini-arm.h	2012-05-26 17:28:21.000000000 +0100
 @@ -131,6 +131,9 @@
  	gpointer seq_point_bp_method_var;
  	gboolean omit_fp, omit_fp_computed;
@@ -23,7 +23,7 @@
  /* First argument reg */
  #define MONO_ARCH_VTABLE_REG ARMREG_R0
  
-@@ -221,5 +229,10 @@
+@@ -221,5 +229,12 @@
  guint8*
  mono_arm_get_thumb_plt_entry (guint8 *code) MONO_INTERNAL;
  
@@ -31,6 +31,8 @@
 +extern void (*__rt_stkovf_split_small)(void);
 +extern void (*__rt_stkovf_split_big)(void);
 +#endif
++
++extern int v5_supported;
 +
  #endif /* __MONO_MINI_ARM_H__ */
  
