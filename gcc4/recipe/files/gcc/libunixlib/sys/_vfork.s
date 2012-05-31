@@ -1,5 +1,5 @@
 @ vfork, fork
-@ Copyright (c) 2000-2008 UnixLib Developers
+@ Copyright (c) 2000-2012 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -37,8 +37,8 @@ fork_common:
 	LDMNEFD	sp!, {pc}
 
 	LDMFD	sp!, {a1-a3, lr}
-	@ a1 = __proc->pid
-	@ a2 = __proc->sul_fork
+	@ a1 = child pid
+	@ a2 = ptr to child's __ul_global.sulproc->sul_fork future value.
 	@ a3 = isfork
 	@ lr = return address fork()/vfork()
 
@@ -69,7 +69,7 @@ fork_common:
 	MOVEQ	a4, #0
 
 	@ Now call sul_fork()
-	@ a1 = pid
+	@ a1 = child pid
 	@ a2 = &__ul_global.sulproc
 	@ a3 = __ul_memory.stack_limit (fork) / 0 (vfork)
 	@ a4 = __ul_memory.stack (fork) / 0 (vfork)

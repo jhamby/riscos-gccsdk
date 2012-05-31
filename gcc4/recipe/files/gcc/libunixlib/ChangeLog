@@ -1,3 +1,11 @@
+Fri Jun  1 00:29:28 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/fcntl.h (O_BINARY, O_TEXT): Assign value 0 as UnixLib won't
+	do anything when set.
+	(O_PIPE, O_UNLINKED): Move too...
+	* incl-local/fcntl.h: ...here.  New file.
+	* sys/_vfork.s: Tuned some comments.
+
 Wed May 16 02:38:43 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* stdlib/mkstemp.c (mkstemp): Change O_TRUNC into O_EXCL.

@@ -1,6 +1,6 @@
 /*
  * POSIX Standard 6.5: File Control Operations <fcntl.h>
- * Copyright (c) 2000-2011 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 #ifndef __FCNTL_H
@@ -78,13 +78,13 @@ __BEGIN_DECLS
 #define O_EXECCL	0x0100
 
 #ifndef _POSIX_SOURCE
-/* Strict POSIX doesn't allow this. */
-#define O_BINARY	0x2000
-#define O_TEXT		0x1000
+/* Strict POSIX doesn't allow this and UnixLib won't do anything special
+   when set.  */
+#define O_BINARY	0
+#define O_TEXT		0
 #endif
 
-#define O_PIPE		0x4000 /* UnixLib specific */
-#define O_UNLINKED	0x8000 /* UnixLib specific - unlink file on close */
+/* Bits 12-15 (incl.) are reserved.  */
 
 /* Don't make terminal device controlling terminal */
 #define O_NOCTTY       0x10000
