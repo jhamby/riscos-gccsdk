@@ -618,7 +618,7 @@ Sun May 29 18:32:56 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
 Sun May 29 17:21:43 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
 
-	* unix/dev.c (__fsopen): Return ENOENT iso EAGAIN when unexisting
+	* unix/dev.c (__fsopen): Return ENOENT iso EAGAIN when non-existing
 	file is opened without O_CREAT set.
 
 Sun Apr 24 13:16:13 CEST 2011  John Tytgat  <John.Tytgat@aaug.net>
@@ -1004,7 +1004,7 @@ Thu Sep  9 00:21:32 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unix/dev.c (__fsopen): Give error EISDIR when directory is opened
 	for O_RDWR.  Reported by John-Mark Bell.
-	* Makefile.am: Removed unexisting sys/netdb.h for install.  Avoid
+	* Makefile.am: Removed non-existing sys/netdb.h for install.  Avoid
 	creating empty resolv include subdirectory.
 
 Thu Aug 26 03:36:17 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
@@ -6216,7 +6216,7 @@ Sat May 01 23:33:35 2004  John Tytgat  <John.Tytgat@aaug.net>
 Wed Apr 21 20:42:11 2004  Alex Waugh  <alex@alexwaugh.com>
 
 	* clib/fcntl.h: Don't define O_BINARY or O_TEXT if _POSIX_SOURCE.
-	* netlib/accept.c: Remove unecessary use of O_BINARY.
+	* netlib/accept.c: Remove unnecessary use of O_BINARY.
 	* netlib/socket.c: Likewise.
 
 Tue Apr 20 21:57:51 2004  John Tytgat  <John.Tytgat@aaug.net>
