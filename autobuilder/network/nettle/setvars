@@ -1,0 +1,148 @@
+#
+#
+# Template for setvars file for autobuilder package
+#
+# The file can set a number of variables, all of which have defaults
+# to perform various actions during the build.  Copy this file to
+# a new package directory and delete uneeded parts.
+
+
+# Where to fetch the souces ?
+#  1. Either via CVS:
+AB_CVS_ROOT=:pserver:anonymous@nettle.cvs.sourceforge.net:/cvsroot/nettle
+AB_CVS_MODULE=nettle
+#AB_CVS_TAGORBRANCH=
+#     Note: consider defining "AB_PVERSION=cvs-$(date +%Y%m%d)" as well.
+#
+#  2. Either via SVN:
+#     For both AOF or ELF based builds:
+#AB_SVN=
+#     For AOF builds needing another branch (if this is not defined AB_SVN is
+#     used instead):
+#AB_SVN_AOF=
+#     Note: consider defining "AB_ZIPNAME=xxx-svn-$(date +%Y%m%d)" as well.
+#
+#  3. Either via git:
+#AB_GIT=
+#
+#  4. Either via Mercurial:
+#AB_HG=
+#
+#  5. Either via an URL:
+#AB_URL=
+#
+#  6. Either somewhere on a filing system:
+#AB_NOREMOTE=yes
+#     Note: consider defining "AB_ZIPNAME=xxx-local-$(date +%Y%m%d)" as well.
+#
+#  And when non of the above is defined, we'll fetch it via apt-get (if
+#  available), or via ftp from one of the Debian FTP servers.
+
+# List of man page files, to be processed by rman to make an HTML helpfile
+# The produced HTML files will automatically be added to the package.
+#AB_MANPAGE=
+
+# RISC OS Version of the package
+#AB_ROVERSION=1
+
+# Command in front of invocation of RISC OS GNU configure wrapper.  If you do
+# not want this to be called, you could set this var to ":"
+#AB_PRECONF=
+
+# Flags to pass to configure in addition to those added by the configure
+# wrapper.
+#AB_CONFLAGS=
+
+# Continue on, even if the program or library fails to fully compile
+# (e.g. example/test apps)
+#AB_COMPILEFAIL=no
+
+# Run "make install" (in fact: make $AB_INSTALLTARGET) after build
+#AB_INSTALL=no
+#   Do not run "ro-make $AB_INSTALLTARGET"
+#AB_INSTALL=env
+#   Only run "ro-make $AB_INSTALLTARGET" placing results in
+#   $GCCSDK_INSTALL_ENV
+#AB_INSTALL=yes
+#   Run "ro-make $AB_INSTALLTARGET" placing results in $GCCSDK_INSTALL_ENV
+#   and do a 2nd "ro-make $AB_INSTALLTARGET" packaging results in a zip/tgz
+#   file.
+
+# Use this target as make target to install after build
+#AB_INSTALLTARGET=install
+
+# RISC OS configuration script
+#AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
+
+# Directory where 'configure' should be looked for (when the build
+# is 'configure' based)
+#RO_CPATH=.
+
+# RISC OS make wrapper.  This can be set to just "make" if setting the
+# path causes problems - e.g., the native compiler is required too
+AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
+
+# Zip name; alternate name for package to be zipped as.  No extension is
+# needed. Useful if tools from a library, etc.
+#AB_ZIPNAME=
+
+# Multiple packages. This specifies the name of the packages
+# to create if multiple packages are to be produced.
+# Each package should be created in a separate subdirectory
+# of the package directory (the $D variable in the package function)
+# with the same name as the package name specified in the variable.
+AB_PACKAGES=Nettle
+
+# Copy sources into library packages or produce a source zip
+# file for other packages "yes" or "no"
+# If left blank it will copy the sources if the file COPYING exists
+#AB_COPYSOURCE=
+
+# Command to clean the distribution before packaging up the source
+# If left blank it defaults to "$AB_MAKE distclean"
+#AB_DISTCLEAN=
+
+# List of documents to copy into the library. Files that do not
+# exist are ignored
+#AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
+
+# Make function
+#
+# Define this if you want special actions for make
+#
+ab_make () {
+	$AB_MAKE -f GNUmakefile
+}
+
+# Package function
+#
+# You will need to define this to do your packaging for RiscPkg. 
+# There are several variables to use here:
+# $S build directory
+# $D top level of destination package directory
+# $H autobuilder directory for package
+# $A RISC OS application (after calling ab_create_app, etc)
+#
+# ab_package () {
+#   ab_create_app MyApp Apps/Graphics     # !MyApp will be copied from $H, and the package section will be Graphics
+#   ab_add_commands $S/myapp${AB_EXEEXT}  # For applications containing command line utilities, this adds aliases to !Boot 
+#
+#   $AB_HOME/add-riscpkg -unixlib         # Last step to complete packaging
+# }
+
+# Source package function
+#
+# By default, the function will be called to package the source.
+# See AB_COPYSOURCE=no to disable
+#
+# Override it if this is not sufficient for a package
+#
+# ab_package_source() {
+#   (see build-program script for default)
+# )
+
+
+# Finally, as this file is executed as a bash script, you can place other
+# commands in here.  These will be executed after unpack of the source
+# and application of any patches, but before any configuration or build.
+
