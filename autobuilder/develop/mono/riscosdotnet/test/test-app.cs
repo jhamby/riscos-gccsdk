@@ -39,7 +39,7 @@ public class MyTask : WimpTask
 
 		ColourTrans.SetFontColours (ColourTrans.White, ColourTrans.FullBlue, 7);
 		main_font.Paint ("CSharp string",
-				 1U << 4, // Coords are in OS units
+				 Font.PlotType.OSUnits,
 				 args.Origin.X + 100,
 				 args.Origin.Y + 1000,
 				 0); // Length ignored (paint whole string) if bit 7 of flags not set

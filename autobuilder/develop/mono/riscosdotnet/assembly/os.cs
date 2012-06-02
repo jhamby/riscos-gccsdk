@@ -100,6 +100,11 @@ namespace riscos
 			public int MaxX { get; set; }
 			public int MaxY { get; set; }
 
+			public Rect ()
+			{
+				MinX = MinY = MaxX = MaxY = 0;
+			}
+
 			public Rect (int MinX, int MinY, int MaxX, int MaxY)
 			{
 				this.MinX = MinX;

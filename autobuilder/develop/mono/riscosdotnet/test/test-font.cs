@@ -112,12 +112,55 @@ public class FontTest
 		OS.Rect bbox;
 
 		Console.WriteLine ("Calling SWI \"Font_CharBBox\" to find bounding box of character 'A'");
-		bbox = font.CharBBox ('A', 1 << 4); // Bit 4 set - return OS units
+		bbox = font.CharBBox ('A', Font.PlotType.OSUnits); // return OS units
 		Console.WriteLine ("Result is:");
 		Console.WriteLine ("Minimum X {0}", bbox.MinX);
 		Console.WriteLine ("Minimum Y {0}", bbox.MinY);
 		Console.WriteLine ("Maximum X {0}", bbox.MaxX);
 		Console.WriteLine ("Maximum Y {0}\n", bbox.MaxY);
+	}
+
+	static void scan_string (Font.Instance font)
+	{
+		OS.Coord result_offset = new OS.Coord ();
+		int result_index, result_count;
+
+		string string_to_scan = "The quick brown fox jumped over the lazy dog.";
+
+		Console.WriteLine ("Calling SWI \"Font_ScanString\" to find caret position using no matrix or coordinate block");
+		Console.WriteLine ("String to scan is \"{0}\"", string_to_scan);
+		Console.WriteLine ("Mouse position is 300, 10 OS units.");
+		result_index = font.ScanString (string_to_scan,
+						Font.PlotType.GivenLength |
+						Font.PlotType.ReturnSplitCount |
+						Font.PlotType.ReturnCaretPos,
+						Font.ConvertToPoints (300, 10),
+						string_to_scan.Length, // Consider all the string
+						result_offset,
+						out result_count);
+		Font.ConvertToOS (result_offset, result_offset);
+		Console.WriteLine ("Result is:");
+		Console.WriteLine ("Caret is at offset {0},{1} OS units", result_offset.X, result_offset.Y);
+		Console.WriteLine ("Caret is at index {0}, character '{1}'\n",
+				   result_index,
+				   string_to_scan[result_index]);
+
+		Console.WriteLine ("Calling SWI \"Font_ScanString\" to find string bounding box using no matrix.");
+		Console.WriteLine ("Coordinate block used for returned results.");
+		Font.ScanCoordBlock coord_block = new Font.ScanCoordBlock ();
+		result_index = font.ScanString (string_to_scan,
+						Font.PlotType.GivenLength |
+						Font.PlotType.ReturnBBox,
+						new OS.Coord (-1, -1),
+						coord_block,
+						string_to_scan.Length, // Consider all the string
+						result_offset,
+						out result_count);
+		Console.WriteLine ("Bounding box (in millipoints) is:");
+		Console.WriteLine ("Minimum X {0}", coord_block.BoundingBox.MinX);
+		Console.WriteLine ("Minimum Y {0}", coord_block.BoundingBox.MinY);
+		Console.WriteLine ("Maximum X {0}", coord_block.BoundingBox.MaxX);
+		Console.WriteLine ("Maximum Y {0}", coord_block.BoundingBox.MaxY);
 	}
 
 	public static void Main (string[] args)
@@ -144,6 +187,8 @@ public class FontTest
 			string_width (myfont);
 
 			char_bbox (myfont);
+
+			scan_string (myfont);
 		}
 		catch (OS.ErrorException ex)
 		{

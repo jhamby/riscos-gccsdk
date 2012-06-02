@@ -22,6 +22,7 @@ libriscosdotnet_la_LDFLAGS = -version-info 1:0:0
 libriscosdotnet_la_SOURCES = \
 	$(BUILT_SOURCES) \
 	wimp-support.s \
+	font-support.s \
 	copyright.s
 
 $(OSLIB_DIR):
