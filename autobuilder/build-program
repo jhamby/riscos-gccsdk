@@ -315,7 +315,7 @@ if true; then
     . $AB_HOME/fetch-program
   fi
 
-  AB_FULLNAME=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut -b 3-)
+  AB_FULLNAME=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | grep -v CVS | cut -b 3-)
 
   if [ "$(wc -w <<<$AB_FULLNAME)" != "1" ] ; then
     if ! [ -e $AB_HOME/$AB_PACKAGEDIR/preprocess ] ; then
@@ -332,7 +332,7 @@ if true; then
     . $AB_HOME/$AB_PACKAGEDIR/preprocess
 
     if [ -z "$AB_FULLNAME" ] ; then
-      AB_FULLNAME=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | cut -b 3-)
+      AB_FULLNAME=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package | grep -v CVS | cut -b 3-)
 
       if [ "$(wc -w <<<$AB_FULLNAME)" != "1" ] ; then
         echo "Autobuilder: Could not determine package name.  Found \"$AB_FULLNAME\"" 1>&2
