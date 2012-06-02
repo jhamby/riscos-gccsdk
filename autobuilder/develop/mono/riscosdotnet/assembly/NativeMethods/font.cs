@@ -317,9 +317,9 @@ namespace riscos
 							       Font.PlotType flags,
 							       int x,
 							       int y,
-							       [In, MarshalAs(UnmanagedType.Struct)]
+							       [In,Out, MarshalAs(UnmanagedType.Struct)]
 								    ref NativeFont.ScanCoordBlock coordBlock,
-							       [In, MarshalAs(UnmanagedType.Struct)]
+							       [In,Out, MarshalAs(UnmanagedType.Struct)]
 								    ref NativeOS.Matrix matrix,
 							       int length,
 							       out int splitIndexOut,
@@ -351,7 +351,7 @@ namespace riscos
 							       int x,
 							       int y,
 							       IntPtr coordBlock,
-							       [In, MarshalAs(UnmanagedType.Struct)]
+							       [In,Out, MarshalAs(UnmanagedType.Struct)]
 								    ref NativeOS.Matrix matrix,
 							       int length,
 							       out int splitIndexOut,
