@@ -682,7 +682,7 @@ namespace riscos
 			 * Automatically:
 			 * \li Sets flag bit 8 to indicate font handle in use.
 			 * \li Clears flag bit 5 & 18 to indicate coordinate block not in use.
-			 * \li Clears flag bits 6 & 19 to indciate matrix not in use.
+			 * \li Clears flag bits 6 & 19 to indicate matrix not in use.
 			 *
 			 * All coordinates must be in millipoints. */
 			public int ScanString (string str,
@@ -922,5 +922,44 @@ namespace riscos
 			return new Instance (handle);
 		}
 
+		/*! \brief Scan for fonts, returning their identifiers one at a time
+		 * \param[out] fontIdentifier A StringBuilder object to receive the font identifier.
+		 * \param[out] fontName A StringBuilder object to receive the font name.
+		 * \param[in] context Counter and flags.
+		 * \li bits 0-15 => counter (0 on first call).
+		 * \li bit 16 set => return font identifier.
+		 * \li bit 17 set => return local font name.
+		 * \li bit 22 set => return list of encodings, rather than list of fonts.
+		 * \return Updated context for use on next call, or -1 if no more to be listed.
+		*/
+		public static int ListFonts (out StringBuilder fontIdentifier,
+					     out StringBuilder fontName,
+					     int context)
+		{
+			int context_return, buffer1_size, buffer2_size;
+
+			OS.ThrowOnError (NativeMethods.Font_ListFonts (IntPtr.Zero,
+								       context,
+								       0,
+								       IntPtr.Zero,
+								       0,
+								       IntPtr.Zero,
+								       out context_return,
+								       out buffer1_size,
+								       out buffer2_size));
+			fontIdentifier = new StringBuilder (buffer1_size);
+			fontName = new StringBuilder (buffer2_size);
+
+			OS.ThrowOnError (NativeMethods.Font_ListFonts (fontIdentifier,
+								       context,
+								       buffer1_size,
+								       fontName,
+								       buffer2_size,
+								       IntPtr.Zero,
+								       out context_return,
+								       out buffer1_size,
+								       out buffer2_size));
+			return context_return;
+		}
 	}
 }

@@ -6,6 +6,7 @@
  */
 
 using System;
+using System.Text;
 using riscos;
 
 public class FontTest
@@ -160,7 +161,20 @@ public class FontTest
 		Console.WriteLine ("Minimum X {0}", coord_block.BoundingBox.MinX);
 		Console.WriteLine ("Minimum Y {0}", coord_block.BoundingBox.MinY);
 		Console.WriteLine ("Maximum X {0}", coord_block.BoundingBox.MaxX);
-		Console.WriteLine ("Maximum Y {0}", coord_block.BoundingBox.MaxY);
+		Console.WriteLine ("Maximum Y {0}\n", coord_block.BoundingBox.MaxY);
+	}
+
+	static void list_fonts ()
+	{
+		Console.WriteLine ("Calling SWI \"Font_ListFonts\"");
+
+		StringBuilder font_id, font_name;
+		int context = Font.ListFonts (out font_id, out font_name, (1 << 16) | (1 <<17));
+		while (context != -1)
+		{
+			Console.WriteLine ("{0}, {1}", font_id, font_name);
+			context = Font.ListFonts (out font_id, out font_name, context);
+		}
 	}
 
 	public static void Main (string[] args)
@@ -189,6 +203,8 @@ public class FontTest
 			char_bbox (myfont);
 
 			scan_string (myfont);
+
+			list_fonts ();
 		}
 		catch (OS.ErrorException ex)
 		{

@@ -12,6 +12,8 @@ namespace riscos
 {
 	public static class OS
 	{
+		/*! \enum GCOLAction
+		 * \brief Graphics colour actions for use with the OS plotting routines. */
 		public enum GCOLAction
 		{
 			Replace_FG,
@@ -32,6 +34,8 @@ namespace riscos
 			ORNOT_BG
 		}
 
+		/*! \class PlotType
+		 * Defines graphics primitives to be used with \e OS.Plot. */
 		public static class PlotType
 		{
 			public const int SolidLine = 0;
@@ -45,7 +49,7 @@ namespace riscos
 			public const int DottedLineExcFirst = 48;
 			public const int DottedLineExcBoth = 56;
 			public const int Point = 64;
-			public const int HFLeftAndRightNonBG = 72; // Horitontal Fill
+			public const int HFLeftAndRightNonBG = 72; // Horizontal Fill
 			public const int TriangleFill = 80;
 			public const int HFToRightToBG = 88;
 			public const int RectangleFill = 96;
@@ -65,6 +69,8 @@ namespace riscos
 			public const int SpritePlot = 232;
 		}
 
+		/*! \class PlotModifier
+		 * Modifies how the graphics primitives are to be drawn \e OS.Plot. */
 		public static class PlotModifier
 		{
 			public const int MoveRelative = 0;
@@ -145,11 +151,14 @@ namespace riscos
 			}
 		}
 
+		/*! \class Matrix
+		 * \brief Used by \e Font.Instance.ScanString and \e Font.Instance.Paint
+		 * to transform, scale and rotate text. */
 		public class Matrix : ICloneable
 		{
 			public int [,] m;
 
-			// Create identity matrix
+			/*! \brief Create the identity matrix. */
 			public Matrix ()
 			{
 				int x, y;
@@ -161,15 +170,35 @@ namespace riscos
 						m[x,y] = (x == y) ? ToTransformUnits(1.0) : 0;
 			}
 
-			// Create matrix with rotate, scale and translation elements.
-			public Matrix (int m00, int m01, int m10, int m11, int transX, int transY)
+			/*! \brief Create matrix with rotate, scale and translation elements.
+			 * \param [in] m00 x scale factor, or cos(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m01 sin(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m10 -sin(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m11 y scale factor, or cos(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m20 x translation.
+			 * \param [in] m21 y translation.
+			 *
+			 * \note
+			 * m00 - m11 are in Transform units i.e. 16.16 fixed point.<br>
+			 * m20, m21 are in internal Draw units i.e. 24.8 fixed point.<br>
+			 * Values are used as is, no conversion is performed. */
+			public Matrix (int m00, int m01, int m10, int m11, int m20, int m21)
 			{
 				m = new int [3, 3];
 
-				Set (m00, m01, m10, m11, transX, transY);
+				Set (m00, m01, m10, m11, m20, m21);
 			}
 
-			// Create matrix with rotate and scale elements - x,y translation set to zero.
+			/*! \brief Create matrix with rotate and scale elements - x,y translation set to zero.
+			 * \param [in] m00 x scale factor, or cos(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m01 sin(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m10 -sin(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m11 y scale factor, or cos(\htmlonly&#952 \endhtmlonly) to rotate.
+			 *
+			 * \note
+			 * m00 - m11 are in Transform units i.e. 16.16 fixed point.<br>
+			 * m20, m21 are set to zero, i.e. no translation.<br>
+			 * Values are used as is, no conversion is performed. */
 			public Matrix (int m00, int m01, int m10, int m11)
 			{
 				m = new int [3, 3];
@@ -177,35 +206,58 @@ namespace riscos
 				Set (m00, m01, m10, m11, 0, 0);
 			}
 
-			// Create matrix with x,y translation - rotate, scale elements set to identity
-			public Matrix (int transX, int transY)
+			/*! \brief Create matrix with x,y translation - rotate and scale elements set to identity.
+			 * \param [in] m20 x translation.
+			 * \param [in] m21 y translation.
+			 *
+			 * \note
+			 * m00 - m11 are set to identity.<br>
+			 * m20, m21 are in internal Draw units i.e. 24.8 fixed point.<br>
+			 * Values are used as is, no conversion is performed. */
+			public Matrix (int m20, int m21)
 			{
 				m = new int [3, 3];
 
-				Set (ToTransformUnits (1.0), 0, 0, ToTransformUnits (1.0), transX, transY);
+				Set (ToTransformUnits (1.0), 0, 0, ToTransformUnits (1.0), m20, m21);
 			}
 
-			// Create matrix from existing 3x3 array
+			/*! \brief Create matrix from existing 3x3 array. */
 			public Matrix (int [,] matrix_array)
 			{
 				m = (int [,])matrix_array.Clone();
 			}
 
+			/*! \brief Copy a matrix. */
 			public Object Clone()
 			{
 				return new Matrix (m);
 			}
 
-			public void Set (int m00, int m01, int m10, int m11, int transX, int transY)
+			/*! \brief Set the individual elements of an existing matrix.
+			 * \param [in] m00 x scale factor, or cos(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m01 sin(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m10 -sin(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m11 y scale factor, or cos(\htmlonly&#952 \endhtmlonly) to rotate.
+			 * \param [in] m20 x translation.
+			 * \param [in] m21 y translation.
+			 *
+			 * \note
+			 * m00 - m11 are in Transform units i.e. 16.16 fixed point.<br>
+			 * m20, m21 are in internal Draw units i.e. 24.8 fixed point.<br>
+			 * Values are used as is, no conversion is performed. */
+			public void Set (int m00, int m01, int m10, int m11, int m20, int m21)
 			{
 				m[0,0] = m00;
 				m[0,1] = m01;
 				m[1,0] = m10;
 				m[1,1] = m11;
-				m[2,0] = transX;
-				m[2,1] = transY;
+				m[2,0] = m20;
+				m[2,1] = m21;
 			}
 
+			/*! \brief Multiply the matrix by another one supplied.
+			 * \param [in] m2 Matrix to multiply with.
+			 * \return Nothing. */
 			public void Multiply (Matrix m2)
 			{
 				Matrix m1 = (Matrix)Clone ();
@@ -222,18 +274,35 @@ namespace riscos
 				}
 			}
 
+			/*! \brief Add a translation to the matrix.
+			 * \param [in] x Number of OS units to translate by on the X axis.
+			 * \param [in] y Number of OS units to translate by on the Y axis.
+			 * \return Nothing.
+			 *
+			 * \note
+			 * Parameters are converted into internal Draw units. */
 			public void Translate (int x, int y)
 			{
 				m[2, 0] += ToDrawUnits (x);
 				m[2, 1] += ToDrawUnits (y);
 			}
 
+			/*! \brief Add a scale to the matrix.
+			 * \param [in] x Scale factor to apply to the X axis.
+			 * \param [in] y Scale factor to apply to the Y axis.
+			 * \return Nothing.
+			 *
+			 * \note
+			 * Parameters are converted into transform units. */
 			public void Scale (double x, double y)
 			{
 				m[0, 0] += ToTransformUnits (x);
 				m[1, 1] += ToTransformUnits (y);
 			}
 
+			/*! \brief Rotate the matrix.
+			 * \param [in] angle_degrees Number of degrees with which to rotate by.
+			 * \return Nothing. */
 			public void Rotate (double angle_degrees)
 			{
 				double rads = DegreeToRadian (angle_degrees % 360);
@@ -245,57 +314,68 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Convert an angle in degrees into radians.
+		 * \param [in] angle Angle in degrees.
+		 * \return Angle in radians. */
 		public static double DegreeToRadian (double angle)
 		{
 			return Math.PI * angle / 180.0;
 		}
 
+		/*! \brief Convert a value into transform units where 1 is equal to &10000 transform units.
+		 * \param value Value to convert.
+		 * \return Converted value. */
 		public static int ToTransformUnits (double value)
 		{
 			return (int)(value * (double)0x10000);
 		}
 
+		/*! \brief Convert a value into internal Draw units where 1 is equal to 256 transform units.
+		 * \param value Value to convert.
+		 * \return Converted value. */
 		public static int ToDrawUnits (double value)
 		{
 			return (int)(value * 256);
 		}
 
-		// Straight through to SWI OS_Plot
+		/*! \brief Straight through to SWI OS_Plot. */
 		public static void Plot (int type, int x, int y)
 		{
 			NativeMethods.OS_Plot (type, x, y);
 		}
 
-		// Equivalent to MOVE in BASIC
+		/*! \brief Equivalent to MOVE in BASIC. */
 		public static void Move (int x, int y)
 		{
 			Plot (PlotType.SolidLine + PlotModifier.MoveAbsolute, x, y);
 		}
 
-		// Equivalent to DRAW in BASIC
+		/*! \brief Equivalent to DRAW in BASIC. */
 		public static void Draw (int x, int y)
 		{
 			Plot (PlotType.SolidLine + PlotModifier.PlotAbsoluteFG, x, y);
 		}
 
-		// Equivalent to MOVE BY in BASIC
+		/*! \brief Equivalent to MOVE BY in BASIC. */
 		public static void MoveBy (int x, int y)
 		{
 			Plot (PlotType.SolidLine + PlotModifier.MoveRelative, x, y);
 		}
 
-		// Equivalent to DRAW BY in BASIC
+		/*! \brief Equivalent to DRAW BY in BASIC. */
 		public static void DrawBy (int x, int y)
 		{
 			Plot (PlotType.SolidLine + PlotModifier.PlotRelativeFG, x, y);
 		}
 
+		/*! \brief Plot a straight line between the given coordinates. */
 		public static void PlotLine (int x1, int y1, int x2, int y2)
 		{
 			Move (x1, y1);
 			Draw (x2, y2);
 		}
 
+		/*! \brief Plot a straight line between the given coordinates. */
 		public static void PlotLine (Coord c1, Coord c2)
 		{
 			Move (c1.X, c1.Y);

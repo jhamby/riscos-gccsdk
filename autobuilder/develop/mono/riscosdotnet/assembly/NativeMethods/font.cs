@@ -212,14 +212,31 @@ namespace riscos
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_set_scale_factor")]
 		internal static extern IntPtr Font_SetScaleFactor (int xFactor, int yFactor);
 
-/*		TODO:
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_list_fonts")]
-		internal static extern IntPtr Font_ListFonts (
-*/
+		internal static extern IntPtr Font_ListFonts (IntPtr buffer1,
+							      int context,
+							      int size1,
+							      IntPtr buffer2,
+							      int size2,
+							      IntPtr tickFont,
+							      out int contextOut,
+							      out int buffer1SizeOut,
+							      out int buffer2SizeOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_list_fonts")]
+		internal static extern IntPtr Font_ListFonts (StringBuilder buffer1,
+							      int context,
+							      int size1,
+							      StringBuilder buffer2,
+							      int size2,
+							      IntPtr tickFont,
+							      out int contextOut,
+							      out int buffer1SizeOut,
+							      out int buffer2SizeOut);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_set_font_colours")]
 		internal static extern IntPtr Font_SetFontColours (IntPtr font,
-								   uint bg_hint,
+								   uint bgHint,
 								   uint fill,
 								   int offset);
 
