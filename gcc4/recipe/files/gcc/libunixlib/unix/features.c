@@ -19,9 +19,6 @@ static const char __sfix_default[] = "c:cc:f:h:i:ii:l:o:p:s:y";
 char *
 __get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
 {
-  char *out;
-  const char *start, *end;
-
   if (fname_buf_len == 0)
     return NULL;
 
@@ -39,7 +36,7 @@ __get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
   /* Find the end of the program name.  Set 'start' to mark the
      beginning of the program name. Use '.', '/' and ':' as separation
      characters to calculate this.  */
-  start = cli;
+  const char *start = cli;
   while (*cli != ' ' && *cli != '\0')
     {
       if (*cli == '/' || *cli == '.' || *cli == ':')
@@ -47,11 +44,11 @@ __get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
 	start = cli + 1;
       cli++;
     }
-  end = cli;
+  const char * const end = cli;
 
   /* Copy the program name into 'out'.  Its bounds should now be
      marked out by 'start' and 'end'.  */
-  out = fname_buf;
+  char *out = fname_buf;
   while (--fname_buf_len && start != end)
     *out++ = *start++;
 

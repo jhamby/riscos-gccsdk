@@ -6,7 +6,7 @@
  * due to having to use identical structs.
  *
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 #ifndef __KERNEL_H
@@ -257,7 +257,7 @@ extern int _kernel_hostos (void);
    _kernel_escape_seen.  */
 extern int _kernel_escape_seen (void);
 
-extern int _kernel_processor_mode(void);
+extern int _kernel_processor_mode (void);
 
 /* Enable IRQ interrupts.  This can only be executed within SVC mode.  */
 extern void _kernel_irqs_on (void);

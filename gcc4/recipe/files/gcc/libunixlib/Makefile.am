@@ -909,6 +909,7 @@ stdio_src = \
 	stdio/vfprintf.c
 endif
 stdio_src += \
+	stdio/err.c \
 	stdio/getdelim.c
 
 if UNIXLIB_BUILDING_SCL

@@ -1,3 +1,11 @@
+Wed Jun  6 00:58:55 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/err.h: Add.
+	* stdio/err.c: Add.
+	* Makefile.am (stdio_src): Add stdio/err.c.
+	* include/kernel.h: Fix whitespace.
+	* unix/features.c (__get_program_name): Shuffle local variables.
+
 Fri Jun  1 00:29:28 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/fcntl.h (O_BINARY, O_TEXT): Assign value 0 as UnixLib won't
