@@ -50,13 +50,10 @@ get_cli (void)
 static void
 output (int code, const char *fmt, va_list ap, int do_code)
 {
-  char namebuf[48];
 #ifndef __TARGET_SCL__
-  const char *progname = __get_program_name (__u->argv[0], namebuf,
-					     sizeof(namebuf));
-  if (progname == NULL)
-    progname = "";
+  const char *progname = program_invocation_short_name;
 #else
+  char namebuf[48];
   const char *cli = get_cli ();
   const char *progname;
   if (cli == NULL)
@@ -138,7 +135,7 @@ vwarnc (int code, const char *fmt, va_list ap)
 void
 vwarnx (const char *fmt, va_list ap)
 {
-  output (0, fmt, ap, 1);
+  output (0, fmt, ap, 0);
 }
 
 void

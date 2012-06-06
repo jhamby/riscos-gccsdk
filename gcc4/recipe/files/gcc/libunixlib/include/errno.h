@@ -1,7 +1,7 @@
 /*
  * ANSI Standard 4.1.3: Errors <errno.h>
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2011 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 /*
@@ -211,6 +211,13 @@ extern int errno;
 
 extern const char *sys_errlist[];
 extern int sys_nerr;
+
+#ifndef __TARGET_SCL__
+#ifdef __USE_GNU
+/* The full and simple forms of the name with which the program was invoked.  */
+extern char *program_invocation_name, *program_invocation_short_name;
+#endif /* __USE_GNU */
+#endif /* !__TARGET_SCL__ */
 
 __END_DECLS
 

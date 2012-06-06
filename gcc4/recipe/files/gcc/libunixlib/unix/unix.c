@@ -54,6 +54,8 @@ extern void __dsp_exit(void);
 static struct proc ___u;
 struct proc *__u = &___u;	/* current process */
 
+char *program_invocation_name, *program_invocation_short_name;
+
 static void
 __badr (void)
 {
@@ -305,6 +307,23 @@ __unixinit (void)
   /* Convert the command line to a argv block.  */
   convert_command_line (__u, cli, cli_size);
   free (cli);
+
+  /* Determine program_invocation_name and program_invocation_short_name.  */
+  program_invocation_name = __u->argv[0];
+  if (&__program_name)
+    program_invocation_short_name = (char *)__program_name;
+  else
+    {
+      /* argv[0] can be a RISC OS or Unix path.  */
+      const int ropath = (__get_riscosify_control () & __RISCOSIFY_NO_PROCESS);
+      char *argv0 = __u->argv[0];
+      for (char *c = argv0; *c; ++c)
+	{
+	  if (ropath && (*c == ':' || *c == '.') || !ropath && *c == '/')
+	    argv0 = c + 1;
+	}
+      program_invocation_short_name = argv0;
+    }
 
   /* The libm code requires strict IEEE double precision arithmetic.
      The compiler generates code assuming that the AC bit is turned on.

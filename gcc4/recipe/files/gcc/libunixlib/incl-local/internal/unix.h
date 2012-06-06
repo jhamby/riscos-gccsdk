@@ -1,5 +1,5 @@
 /* Structures for UnixLib's internal process management.
-   Copyright (c) 2002-2007, 2009, 2010 UnixLib Developers.  */
+   Copyright (c) 2002-2012 UnixLib Developers.  */
 
 #ifndef __UNIXLIB_UNIX_H
 #define __UNIXLIB_UNIX_H 1
@@ -364,12 +364,6 @@ extern int __addenv_to_env (char *string, const char *__name,
 extern char *__getenv_from_os (const char *__name, char *__buf,
 			       size_t __buflen, char **call)
 	__nonnull ((1)) __wur;
-
-/* Get the leaf name from the command line used to run the program
-   or returns __program_name if defined.  */
-extern char *__get_program_name (const char *cli, char *fname_buf,
-                               size_t fname_buf_len)
-	__nonnull ((1, 2)) __wur;
 
 /* Set runtime features according to system variables.  */
 extern void __runtime_features (const char *__cmdline)

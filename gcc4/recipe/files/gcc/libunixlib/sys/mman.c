@@ -1,5 +1,5 @@
 /* Map or unmap memory.
-   Copyright (c) 1996-2010 UnixLib Developers.  */
+   Copyright (c) 1996-2012 UnixLib Developers.  */
 
 /* Definitions for BSD-style memory management.  Generic/4.4 BSD version.  */
 /* sys/mman.c: Written by Peter Burwood, 1 November 1996, June 1997  */
@@ -197,7 +197,7 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
   regs[6] = 0;
   regs[7] = 0;
   /* The DA name could be the same name used in sys/_syslib.s so Virtualise
-     can be enabled/disabled for the area. Using the name with 'X' appended
+     can be enabled/disabled for the area. Using the name with " MMap" appended
      is useful though to separate the areas from the more general purpose
      heap.  */
   char namebuf[128];
@@ -206,9 +206,12 @@ mmap (caddr_t addr, size_t len, int prot, int flags, int fd, off_t offset)
     regs[8] = (int) __dynamic_da_name;
   else
     {
-      regs[8] = (int)__get_program_name (__u->argv[0], namebuf,
-					 sizeof(namebuf) - sizeof(" MMap"));
-      strcat (namebuf, " MMap");
+      size_t name_len = strlen (program_invocation_short_name);
+      if (name_len + sizeof (" MMap") > sizeof (namebuf))
+	name_len -= sizeof (namebuf) - sizeof (" MMap");
+      memcpy (namebuf, program_invocation_short_name, name_len);
+      memcpy (namebuf + name_len, " MMap", sizeof (" MMap"));
+      regs[8] = (int)namebuf;
     }
 
   /* Check whether we're mapping a file or just memory */

@@ -15,31 +15,28 @@
 
 static const char __sfix_default[] = "c:cc:f:h:i:ii:l:o:p:s:y";
 
-/* 'cli' can be an Unix or RISC OS executable path.  */
-char *
-__get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
+/* 'cli' can only be a RISC OS executable path.  */
+static const char *
+get_program_name (const char *cli, char *fname_buf, size_t fname_buf_len)
 {
   if (fname_buf_len == 0)
     return NULL;
 
   /* Did the user specify the program name ?  */
   if (&__program_name)
-    {
-      strncpy (fname_buf, __program_name, fname_buf_len);
-      fname_buf[fname_buf_len - 1] = '\0';
-      return fname_buf;
-    }
+    return __program_name;
+
   /* Skip any initial whitespace.  */
   while (*cli == ' ')
     cli++;
 
   /* Find the end of the program name.  Set 'start' to mark the
-     beginning of the program name. Use '.', '/' and ':' as separation
+     beginning of the program name. Use '.' and ':' as separation
      characters to calculate this.  */
   const char *start = cli;
   while (*cli != ' ' && *cli != '\0')
     {
-      if (*cli == '/' || *cli == '.' || *cli == ':')
+      if (*cli == '.' || *cli == ':')
 	/* Point to the character after the separation char.  */
 	start = cli + 1;
       cli++;
@@ -146,5 +143,5 @@ __runtime_features (const char *cli)
   __sdirinit (); /* Initialise riscosify.  */
 
   features (NULL);
-  features (__get_program_name (cli, program_name, sizeof (program_name)));
+  features (get_program_name (cli, program_name, sizeof (program_name)));
 }

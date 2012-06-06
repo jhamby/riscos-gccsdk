@@ -1,5 +1,5 @@
 /* Perform operations on a directory.
-   Copyright (c) 2002-2011 UnixLib Developers.  */
+   Copyright (c) 2002-2012 UnixLib Developers.  */
 
 #include <dirent.h>
 #include <errno.h>
@@ -109,7 +109,7 @@ newstream (const char *name, __off_t offset)
   stream->dir_cache = malloc (CACHE_SIZE);
   if (stream->dir_cache == NULL)
     {
-      free (stream->dd_name_can);
+      free ((void *)stream->dd_name_can);
       invalidate (stream);
       return NULL;
     }
@@ -656,7 +656,7 @@ closedir (DIR *stream)
   /* Free any memory allocated for the stream, then invalidate
      it ready for re-use.  */
   free (stream->dir_cache);
-  free (stream->dd_name_can);
+  free ((void *)stream->dd_name_can);
   invalidate (stream);
 
   return result;

@@ -1,3 +1,24 @@
+Wed Jun  6 02:33:37 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* include/errno.h (program_invocation_name,
+	program_invocation_short_name): Add.
+	* unix/unix.c (program_invocation_name, program_invocation_short_name):
+	Define.
+	(__unixinit): Setup program_invocation_name and
+	program_invocation_short_name.
+	* incl-local/internal/unix.h (__get_program_name): Remove.
+	* unix/features.c (__get_program_name): Make static and rename to
+	get_program_name.  Simplify in case __program_name is defined.
+	No longer check on Unix directory separators.
+	(__runtime_features): Follow __get_program_name rename.
+	* sys/mman.c (mmap): Use program_invocation_short_name instead of
+	__get_program_name.
+	* stdio/err.c (output): Likewise.
+	(vwarnx): Call output with do_code set to 0.
+	* unix/dirent.c (newstream, closedir): Avoid compiler warning.
+	* include/sys/param.h (howmany,rounddown,roundup,roundup2,powerof2,MIN,
+	MAX): Add.
+
 Wed Jun  6 00:58:55 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/err.h: Add.
