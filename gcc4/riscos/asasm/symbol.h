@@ -49,6 +49,16 @@
 #define SYMBOL_LEAF      0x0800	/* Leaf function, for code symbol only */
 #define SYMBOL_THUMB     0x1000	/* Identifies Thumb code, instead of ARM code */
 
+/* New since DDE Rel 21:
+
+   Symbol attribute bit 13 is meaningful only for function entry point
+   symbols in code areas (or for absolute function entry point symbols).
+   It declares that the function not only receives its floating point
+   arguments in integer registers, but also returns any floating point
+   return value in integer registers. A symbolic reference with this
+   attribute cannot be matched by the linker to a symbol definition which
+   lacks the attribute.  */ 
+
 #define SYMBOL_SUPPORTEDBITS 0x1B7F /** Mask for the symbol bits which are AOF defined symbols bits and can be passed on in the AOF output file.  */
 
 /* The following are 'asasm' internal SYMBOL attribute values only and should

@@ -61,6 +61,23 @@
 #define AREA_RESERVED30		0x40000000
 #define AREA_SOFTFLOAT		0x80000000 /* Avoids FP instructions (GCCSDK extension) Normally reserved bit. */
 
+/* New since DDE Rel 21 (Note this clashes with AREA_SOFTFLOAT !) 
+
+   Area attribute bit 31 is valid for both code and data areas, and when
+   set, indicates:
+   * double-precision floating point data in the area is stored using VFP
+     rules (endianness matches the rest of the file) rather than FPA rules
+     (most-significant word always stored first).
+   * for code areas in little-endian mode, that when functions in the area
+     receive double-precision arguments and/or return a double-precision
+     value in integer registers or on the stack, that the lower register
+     number or lower stack address holds the least significant word
+     (little-endian VFP compatibilty mode). Otherwise (big-endian mode or
+     FPA compatibility mode), the lower register or lower stack address
+     holds the most-significant word.
+   An area with this attribute cannot be linked with an area which lacks
+   the attribute.  */
+
 #define AREA_DEFAULT_ALIGNMENT	0x00000002
 
 struct LITPOOL;

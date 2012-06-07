@@ -1,3 +1,9 @@
+Fri Jun  8 01:09:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	Based on https://www.riscosopen.org/content/sales/dde-changes-20-to-21
+	* area.h: Add info AOF area attribute bit 31
+	* symbol.h: Add info on AOF symbol attribute bit 13.
+
 Fri May 18 20:46:41 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* input.c (inputEnvSub): Remove.
