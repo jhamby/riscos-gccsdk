@@ -1,3 +1,9 @@
+Tue Jun 12 03:09:56 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* regression/tests_pass/builtinvar_pc.s: Rename areas Code4 to Code5
+	and 2nd Code3 to Code4 so that the new Code4 is really testing what
+	it should test.
+
 Tue Jun 12 02:35:24 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* lit.c (Lit_DumpPool): Convert late defined integer symbol value into

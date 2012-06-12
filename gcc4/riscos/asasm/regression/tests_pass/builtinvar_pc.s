@@ -54,65 +54,7 @@
 	]
 
 	; Test {PC} and . via variables (relative area):
-	AREA	Code3, CODE
-
-	[ :LNOT: REFERENCE
-	MOV	r0, #1
-	MOV	r1, #2
-
-Code3Var1	*	{PC} + 20
-Code3Var2	*	{PC}
-
-	MOV	r0, #1
-	MOV	r1, #2
-
-Code3Var3	*	. + 20
-Code3Var4	*	.
-
-	MOV	r0, #1
-	MOV	r1, #2
-	MOV	r0, #1
-	MOV	r1, #2
-	MOV	r0, #1
-	MOV	r1, #2
-
-	LDR	r0, Code3Var1
-	LDR	r1, Code3Var2
-	LDR	r0, Code3Var1
-	LDR	r1, Code3Var2
-	LDR	r2, Code3Var3
-	LDR	r3, Code3Var4
-	LDR	r2, Code3Var3
-	LDR	r3, Code3Var4
-	|
-	MOV	r0, #1
-	MOV	r1, #2
-Code3Var2
-	MOV	r0, #1
-	MOV	r1, #2
-Code3Var4
-	MOV	r0, #1
-	MOV	r1, #2
-	MOV	r0, #1
-Code3Var1
-	MOV	r1, #2
-	MOV	r0, #1
-Code3Var3
-	MOV	r1, #2
-
-	LDR	r0, Code3Var1
-	LDR	r1, Code3Var2
-	LDR	r0, Code3Var1
-	LDR	r1, Code3Var2
-	LDR	r2, Code3Var3
-	LDR	r3, Code3Var4
-	LDR	r2, Code3Var3
-	LDR	r3, Code3Var4
-	]
-
-	; Test {PC} and . via variables (absolute area):
 	AREA	Code4, CODE
-	ORG	&1000
 
 	[ :LNOT: REFERENCE
 	MOV	r0, #1
@@ -121,19 +63,18 @@ Code3Var3
 Code4Var1	*	{PC} + 20
 Code4Var2	*	{PC}
 
-	MOV	r0, #1		; <= Code4Var2 (&1008)
+	MOV	r0, #1
 	MOV	r1, #2
 
 Code4Var3	*	. + 20
 Code4Var4	*	.
 
-	MOV	r0, #1		; <= Code4Var4 (&1010)
+	MOV	r0, #1
 	MOV	r1, #2
-
 	MOV	r0, #1
-	MOV	r1, #2		; <= Code4Var1 (&101c)
+	MOV	r1, #2
 	MOV	r0, #1
-	MOV	r1, #2		; <= Code4Var3 (&1024)
+	MOV	r1, #2
 
 	LDR	r0, Code4Var1
 	LDR	r1, Code4Var2
@@ -146,6 +87,65 @@ Code4Var4	*	.
 	|
 	MOV	r0, #1
 	MOV	r1, #2
+Code4Var2
+	MOV	r0, #1
+	MOV	r1, #2
+Code4Var4
+	MOV	r0, #1
+	MOV	r1, #2
+	MOV	r0, #1
+Code4Var1
+	MOV	r1, #2
+	MOV	r0, #1
+Code4Var3
+	MOV	r1, #2
+
+	LDR	r0, Code4Var1
+	LDR	r1, Code4Var2
+	LDR	r0, Code4Var1
+	LDR	r1, Code4Var2
+	LDR	r2, Code4Var3
+	LDR	r3, Code4Var4
+	LDR	r2, Code4Var3
+	LDR	r3, Code4Var4
+	]
+
+	; Test {PC} and . via variables (absolute area):
+	AREA	Code5, CODE
+	ORG	&1000
+
+	[ :LNOT: REFERENCE
+	MOV	r0, #1
+	MOV	r1, #2
+
+Code5Var1	*	{PC} + 20
+Code5Var2	*	{PC}
+
+	MOV	r0, #1		; <= Code5Var2 (&1008)
+	MOV	r1, #2
+
+Code5Var3	*	. + 20
+Code5Var4	*	.
+
+	MOV	r0, #1		; <= Code5Var4 (&1010)
+	MOV	r1, #2
+
+	MOV	r0, #1
+	MOV	r1, #2		; <= Code5Var1 (&101c)
+	MOV	r0, #1
+	MOV	r1, #2		; <= Code5Var3 (&1024)
+
+	LDR	r0, Code5Var1
+	LDR	r1, Code5Var2
+	LDR	r0, Code5Var1
+	LDR	r1, Code5Var2
+	LDR	r2, Code5Var3
+	LDR	r3, Code5Var4
+	LDR	r2, Code5Var3
+	LDR	r3, Code5Var4
+	|
+	MOV	r0, #1
+	MOV	r1, #2
 	MOV	r0, #1
 	MOV	r1, #2
 	MOV	r0, #1
@@ -155,7 +155,7 @@ Code4Var4	*	.
 	MOV	r0, #1
 	MOV	r1, #2
 
-	LDR	r0, &101c
+	LDR	r0, &101c	; Don't change this into LDR r0, Code4Var1 as we really want to test for int argument here.
 	LDR	r1, &1008
 	LDR	r0, &101c
 	LDR	r1, &1008
