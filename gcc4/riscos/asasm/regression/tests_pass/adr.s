@@ -172,7 +172,7 @@ tstlbl3	#	32
 
 	AREA	Code10, CODE, READONLY
 	ADR	r2, tstlbl2
-	ADRL	r4, tstlbl2	; Generates warning, ADR is used. FIXME: no longer :( - twopass regression
+	ADRL	r4, tstlbl2	; Generates warning, ADR is used.
 	ADR	r5, tstlbl5
 	ADRL	r6, tstlbl5	; Generates warning, ADRL is still used
 
@@ -184,8 +184,7 @@ tstlbl6	#	32
 	|
 	AREA	Code10, CODE, READONLY
 	ADD r2, r3, #20	;ADR
-	ADD r4, r3, #20	;ADRL -> ADR FIXME: no longer :( - twopass regression
-	ADD r4, r4, #0		; FIXME: should go - twopass regression
+	ADD r4, r3, #20	;ADR
 	ADD r5, r7, #20	;ADR
 	ADD r6, r7, #20	;ADRL
 	ADD r6, r6, #0

@@ -1,3 +1,9 @@
+Tue Jun 12 03:51:23 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpuctrl.c (ADR_RelocUpdaterCore): Implement canSwitch parameter.
+	* regression/tests_pass/adr.s: Update testcase.
+	* regression/tests_pass/storagemap_register.s: Likewise.
+
 Tue Jun 12 03:21:03 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* reloc.c, reloc.h, lit.c, symbol.h, m_cpuctrl.c, help_cop.c,

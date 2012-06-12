@@ -346,8 +346,7 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
     }
   assert (bestScore != INT_MAX && "At least a solution of 4 instr should have been found");
 
-  if (bestScore >= 3
-      || (bestScore == 2 && !isADRL /* FIXME: && !canSwitch*/))
+  if (bestScore >= 3 || (bestScore == 2 && !isADRL))
     {
       if (areaCurrentSymbol->area.info->type & AREA_ABS)
 	error (ErrorError, "%s at area offset 0x%x with base address 0x%x can not be used to encode [r%d, #0x%x]",
@@ -360,20 +359,29 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
 
   if (bestScore == 1 && isADRL)
     {
-      if (areaCurrentSymbol->area.info->type & AREA_ABS)
-	error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x with base address 0x%x to encode [r%d, #0x%x]",
-	       offset, areaOffset, baseReg, constant);
+      if (canSwitch)
+	{
+	  if (areaCurrentSymbol->area.info->type & AREA_ABS)
+	    error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x with base address 0x%x to encode [r%d, #0x%x]",
+		   offset, areaOffset, baseReg, constant);
+	  else
+	    error (ErrorWarning, "Using ADR instead of ADRL at area offset 0x%x to encode [r%d, #0x%x]",
+		   offset, baseReg, constant);
+	}
       else
-	error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x to encode [r%d, #0x%x]",
-	       offset, baseReg, constant);
-      /* We could switch to ADR (when canSwitch is true) but I don't think this is always really wanted.  */
-      bestScore = 2;
-      split[bestIndex].try[1] = 0;
+	{
+	  if (areaCurrentSymbol->area.info->type & AREA_ABS)
+	    error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x with base address 0x%x to encode [r%d, #0x%x]",
+		   offset, areaOffset, baseReg, constant);
+	  else
+	    error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x to encode [r%d, #0x%x]",
+		   offset, baseReg, constant);
+	  bestScore = 2;
+	  split[bestIndex].try[1] = 0;
+	}
     }
-  else if (bestScore == 2 && !isADRL)
+  else if (bestScore == 2 && !isADRL && canSwitch)
     {
-      assert (0); /* FIXME: */
-      assert (canSwitch);
       /* We switch from ADR to ADRL because there is no other option.  */
       if (areaCurrentSymbol->area.info->type & AREA_ABS)
 	error (ErrorWarning, "Using ADRL instead of ADR at area offset 0x%x with base address 0x%x to encode [r%d, #0x%x]",
