@@ -50,7 +50,7 @@ Build instructions for cross-compiled asasm:
 
 3. Setup cross-compile environment if necessary.  For GCCSDK (using SCL):
 
-   $ PATH=$GCCSDK_CROSS_PREFIX/bin:$PATH
+   $ PATH=$GCCSDK_INSTALL_CROSSBIN:$PATH
    $ export CFLAGS=-mlibscl
 
 4. Create Makefile in the build output directory (indicating which

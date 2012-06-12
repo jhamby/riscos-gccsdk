@@ -1,3 +1,7 @@
+Tue Jun 12 21:08:20 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* INSTALL: Fix PATH setting for cross-compile case.
+
 Tue Jun 12 20:26:15 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* help_cpu.h (help_cpuImm8s4): Use uint32_t instead of int as
