@@ -65,7 +65,7 @@ const Value *codeEval (ValueTag legal, const ARMWord *instrOffsetP);
 
 Value Code_TakeSnapShot (void);
 
-void Code_Free (Code *code, size_t len);
+void Code_Free (const Code *code, size_t len);
 Code *codeCopy (size_t len, const Code *code);
 bool codeEqual (size_t len, const Code *a, const Code *b);
 

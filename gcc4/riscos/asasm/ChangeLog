@@ -1,3 +1,8 @@
+Tue Jun 12 03:13:01 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* code.c (Code_Free): Make Code ptr argument const.
+	* code.h (Code_Free): Likewise.
+
 Tue Jun 12 03:09:56 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* regression/tests_pass/builtinvar_pc.s: Rename areas Code4 to Code5

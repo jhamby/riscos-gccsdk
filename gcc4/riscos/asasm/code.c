@@ -452,7 +452,7 @@ Code_TakeSnapShot (void)
 }
 
 void
-Code_Free (Code *code, size_t len)
+Code_Free (const Code *code, size_t len)
 {
   for (size_t i = 0; i < len; ++i)
     {
@@ -461,11 +461,11 @@ Code_Free (Code *code, size_t len)
 	  case CodeOperator:
 	    break;
 	  case CodeValue:
-	    valueFree (&code[i].Data.value);
+	    valueFree ((void *)&code[i].Data.value);
 	    break;
 	}
     }
-  free (code);
+  free ((void *)code);
 }
 
 Code *
