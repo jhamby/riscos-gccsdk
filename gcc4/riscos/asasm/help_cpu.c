@@ -1,7 +1,7 @@
 /*
  * AS an assembler for ARM
  * Copyright (c) 1992 Niklas Röjemo
- * Copyright (c) 2001-2010 GCCSDK Developers
+ * Copyright (c) 2001-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,29 +20,37 @@
  * help_cpu.c
  */
 
-#include <assert.h>
-#include <stdbool.h>
+#include "config.h"
 
-#include "error.h"
+#include <assert.h>
+
 #include "help_cpu.h"
 
-static const ARMWord mask[] =
+/**
+ * Encodes given value as immediate constant for ARM instruction.
+ * \param value Value to encode
+ * \return When non-UINT32_MAX, the encoded immediate constant.  When
+ * UINT32_MAX given value can not be encoded.
+ */
+uint32_t
+Help_CPUImm8s4 (uint32_t value)
 {
-  0x000000ff, 0xc000003f, 0xf000000f, 0xfc000003,
-  0xff000000, 0x3fc00000, 0x0ff00000, 0x03fc0000,
-  0x00ff0000, 0x003fc000, 0x000ff000, 0x0003fc00,
-  0x0000ff00, 0x00003fc0, 0x00000ff0, 0x000003fc
-};
-
-int
-help_cpuImm8s4 (int value)
-{
-  for (int i = 0; i < 16; i++)
+  static const uint32_t mask[] =
     {
-      if (((ARMWord) value & mask[i]) == (ARMWord) value)	/* hittat mask */
-	return ((((ARMWord) value >> ((16 - i) * 2)) | value << (i * 2)) & 0xff) | i << 8;
+      0x000000ff, 0xc000003f, 0xf000000f, 0xfc000003,
+      0xff000000, 0x3fc00000, 0x0ff00000, 0x03fc0000,
+      0x00ff0000, 0x003fc000, 0x000ff000, 0x0003fc00,
+      0x0000ff00, 0x00003fc0, 0x00000ff0, 0x000003fc
+    };
+
+  for (unsigned i = 0; i != 16; i++)
+    {
+      /* An UAL assembler must select the encoding with the lowest unsigned
+	 value of the rotation field.  */
+      if ((value & mask[i]) == value)
+	return ((value >> ((16 - i) * 2)) | value << (i * 2)) | i << 8;
     }
-  return -1;
+  return UINT32_MAX;
 }
 
 static unsigned int
@@ -56,8 +64,8 @@ ShiftL (unsigned int val, unsigned int shiftPos)
  * \return Returns the minimal number of Imm8s4 constants needed to represent
  * the given constant.
  */
-int
-Help_SplitByImm8s4 (unsigned int cnst,  unsigned int c[4])
+unsigned
+Help_SplitByImm8s4 (uint32_t cnst, uint32_t c[4])
 {
   /* Check the odd case.  */
   if (cnst == 0)
@@ -68,12 +76,12 @@ Help_SplitByImm8s4 (unsigned int cnst,  unsigned int c[4])
 
   /* Find the first byte with one or more bits set at its bottom 2 bit
      positions.  */
-  int shift;
+  unsigned shift;
   for (shift = 0; (cnst & (0x3<<shift)) == 0; shift += 2)
     /* */;
 
   /* Find the last shift position we never should consider.  */
-  int shiftEnd;
+  unsigned shiftEnd;
   for (shiftEnd = 32; (cnst & (0x3<<(shiftEnd - 2))) == 0; shiftEnd -= 2)
     /* */;
   /* So all shifts used in a solution are between 'shift' (incl) - 'shiftEnd'
@@ -81,8 +89,8 @@ Help_SplitByImm8s4 (unsigned int cnst,  unsigned int c[4])
   
   /* First combination is: 0xFF<<(shift + 0), 0xFF<<(shift + 2),
      0xFF<<(shift + 4) and 0xFF<<(shift + 6).  */
-  int instrNeeded = 5;
-  for (int shift0 = shift; shift0 != shift + 8; shift0 += 2)
+  unsigned instrNeeded = 5;
+  for (unsigned shift0 = shift; shift0 != shift + 8; shift0 += 2)
     {
       /* First mask: */
       unsigned int m0 = ShiftL (0xFF, shift0);
@@ -96,7 +104,7 @@ Help_SplitByImm8s4 (unsigned int cnst,  unsigned int c[4])
          remainer r0.  */
 
       /* Second mask: */
-      int shift1;
+      unsigned shift1;
       for (shift1 = shift0 + 8;
 	   shift1 < shiftEnd && (r0 & (0x3<<shift1)) == 0;
 	   shift1 += 2)
@@ -113,7 +121,7 @@ Help_SplitByImm8s4 (unsigned int cnst,  unsigned int c[4])
        }
 
       /* Third mask: */
-      int shift2;
+      unsigned shift2;
       for (shift2 = shift1 + 8;
 	   shift2 < shiftEnd && (r1 & (0x3<<shift2)) == 0;
 	   shift2 += 2)
@@ -142,6 +150,7 @@ Help_SplitByImm8s4 (unsigned int cnst,  unsigned int c[4])
 	  instrNeeded = 4;
 	}
     }
+  assert (instrNeeded >= 1 && instrNeeded <= 4);
 
   return instrNeeded;
 }

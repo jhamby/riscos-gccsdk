@@ -242,8 +242,8 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 	error (ErrorWarning, "Constant %d has been truncated to %d by the used mnemonic",
 	       valueP->Data.Int.i, truncForUser);
       /* Perhaps representable as MOV/MVN/MOVW:  */
-      if (help_cpuImm8s4 (truncForUser) != -1
-          || help_cpuImm8s4 (~truncForUser) != -1
+      if (Help_CPUImm8s4 (truncForUser) != UINT32_MAX
+          || Help_CPUImm8s4 (~truncForUser) != UINT32_MAX
           || CPUMem_ConstantInMOVW (truncForUser))
 	{
 	  valueFree (&truncValue); /* Not really needed as it is ValueInt.  */
@@ -521,8 +521,8 @@ Lit_DumpPool (void)
 
 	      /* Value representable using MOV or MVN ? */
 	      if (isImmediate
-		  && (help_cpuImm8s4 (constant) != -1
-		      || help_cpuImm8s4 (~constant) != -1
+		  && (Help_CPUImm8s4 (constant) != UINT32_MAX
+		      || Help_CPUImm8s4 (~constant) != UINT32_MAX
 		      || CPUMem_ConstantInMOVW (constant)))
 		{
 		  if (gPhase == ePassOne)

@@ -280,10 +280,10 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  if (movOptAllowed)
 	    {
 	      ir = (ir & NV) | DST_OP (GET_DST_OP (ir));
-	      ARMWord im;
-	      if ((im = help_cpuImm8s4 (valP->Data.Int.i)) != (ARMWord)-1)
+	      uint32_t im;
+	      if ((im = Help_CPUImm8s4 (valP->Data.Int.i)) != UINT32_MAX)
 		ir |= M_MOV | IMM_RHS | im; /* Optimize to MOV.  */
-	      else if ((im = help_cpuImm8s4 (~valP->Data.Int.i)) != (ARMWord)-1)
+	      else if ((im = Help_CPUImm8s4 (~valP->Data.Int.i)) != UINT32_MAX)
 		ir |= M_MVN | IMM_RHS | im; /* Optimize to MVN.  */
 	      else if (CPUMem_ConstantInMOVW (valP->Data.Int.i))
 		ir |= 0x03000000 | ((valP->Data.Int.i & 0xF000) << 4) | (valP->Data.Int.i & 0x0FFF); /* Optimize to MOVW.  */

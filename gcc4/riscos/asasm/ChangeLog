@@ -1,3 +1,12 @@
+Tue Jun 12 20:26:15 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* help_cpu.h (help_cpuImm8s4): Use uint32_t instead of int as
+	parameter type and return value.  Renamed to Help_CPUImm8s4.
+	(Help_SplitByImm8s4): Use uint32_t types as parameter types and
+	unsigned as return value.
+	* help_cpu.c (help_cpuImm8s4, Help_SplitByImm8s4): Likewise.
+	* m_cpuctrl.c, fix.c, lit.c, m_cpumem.c: Follow help_cpu.h changes.
+
 Tue Jun 12 03:51:23 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_cpuctrl.c (ADR_RelocUpdaterCore): Implement canSwitch parameter.

@@ -312,8 +312,8 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
   /* FIXME: Can clever use of an ADD/SUB/ORR/BIC mixture cover more constants ? */
   struct
     {
-      unsigned int try[4];
-      int num;
+      uint32_t try[4];
+      unsigned num;
     } split[4];
   if (baseRegUnspecified
       || (baseReg == 15 && (areaCurrentSymbol->area.info->type & AREA_ABS) != 0))
@@ -423,8 +423,8 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
       if (bestIndex >= 2 /* = when ADD/SUB is used */ || n != 0)
         irs = irs | LHS_OP (n == 0 ? (ARMWord)baseReg : GET_DST_OP(baseInstr));
 
-      int i8s4 = help_cpuImm8s4 (split[bestIndex].try[n]);
-      assert (i8s4 != -1);
+      uint32_t i8s4 = Help_CPUImm8s4 (split[bestIndex].try[n]);
+      assert (i8s4 != UINT32_MAX);
       irs |= i8s4;
 
       Put_Ins (4, irs);

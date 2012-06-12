@@ -80,8 +80,8 @@ fixImm8s4 (unsigned lineNum, ARMWord ir, int im)
   static const char op3[] = "Changing \"%s Rx, Ry, #%d\" to \"%s Rx, Ry, #%d\"";
   static const char op2[] = "Changing \"%s Rx, #%d\" to \"%s Rx, #%d\"";
 
-  int i8s4 = help_cpuImm8s4 (im);
-  if (i8s4 != -1)
+  uint32_t i8s4 = Help_CPUImm8s4 (im);
+  if (i8s4 != UINT32_MAX)
     return ir | i8s4;
 
   ARMWord mnemonic = ir & M_MNEM;
@@ -111,8 +111,8 @@ fixImm8s4 (unsigned lineNum, ARMWord ir, int im)
 	im2 = im;
 	break;
     }
-  i8s4 = help_cpuImm8s4 (im2);
-  if (i8s4 == -1)
+  i8s4 = Help_CPUImm8s4 (im2);
+  if (i8s4 == UINT32_MAX)
     {
       errorLine (NULL, lineNum, ErrorError,
 		 "Illegal immediate constant %d (0x%08x)", im, im);
@@ -184,8 +184,8 @@ Fix_MOV (const char *fileName, unsigned lineNum, ARMWord ir, int im)
     }
   else
     ir |= M_MOV;
-  int i8s4 = help_cpuImm8s4 (im);
-  if (i8s4 == -1)
+  uint32_t i8s4 = Help_CPUImm8s4 (im);
+  if (i8s4 == UINT32_MAX)
     errorLine (fileName, lineNum, ErrorError, "Offset %d (0x%08x) is illegal for ADR", im, im);
   else
     ir |= i8s4;
