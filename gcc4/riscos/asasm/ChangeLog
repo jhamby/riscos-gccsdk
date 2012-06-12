@@ -1,3 +1,9 @@
+Tue Jun 12 21:38:35 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* m_cpuctrl.c (ADR_RelocUpdaterCore): Prefer the ADD/SUB variants over
+	the MOV/MVN ones.  Emit warning when only MOV/MVN can be used.
+	* regression/tests_pass/adr.s: Update and enhance test case.
+
 Tue Jun 12 21:08:20 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* INSTALL: Fix PATH setting for cross-compile case.

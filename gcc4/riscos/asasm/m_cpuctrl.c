@@ -293,6 +293,16 @@ m_bkpt (void)
  * \param isADRL true when the input was ADRL, false for ADR.
  * \param canSwitch true when we still can switch between ADR and ADRL, false
  * otherwise.
+ * 
+ * In an ABS area, there is no distinction between:
+ *   ADR(L) Rx, <integer value>
+ * and
+ *   ADR(L) Rx, <label in ABS area>
+ * In principle both can be implemented using MOV/MVN (followed by ADD/SUB for
+ * ADRL) and ADD/SUB (followed by ADD/SUB for ADRL).
+ * We have a preference for the ADD/SUB as sometimes people use ORG for module
+ * creation and only the ADD/SUB flavour will be correct when they were using
+ * a label in their ABS area.
  */
 static void
 ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
@@ -315,25 +325,25 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
       uint32_t try[4];
       unsigned num;
     } split[4];
+  if (!baseRegUnspecified || (areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
+    {
+      /* ADD/SUB Rx, baseReg, #... [ + ADD/SUB Rx, Rx, #... ] */
+      split[0].num = Help_SplitByImm8s4 (constant, split[0].try); /* ADD [ + ADD ] (all baseReg).  */
+      split[1].num = Help_SplitByImm8s4 (-constant, split[1].try); /* SUB [ + SUB ] (all baseReg).  */
+    }
+  else
+    split[1].num = split[0].num = INT_MAX;
   if (baseRegUnspecified
       || (baseReg == 15 && (areaCurrentSymbol->area.info->type & AREA_ABS) != 0))
     {
       /* MOV/MVN Rx, #... [ + ADD/SUB Rx, Rx, #... ]  */
       int absConstant = constant + (areaOffset + offset + 8);
-      split[0].num = Help_SplitByImm8s4 (absConstant, split[0].try); /* MOV [ + ADD ].  */
-      split[1].num = Help_SplitByImm8s4 (~absConstant, split[1].try); /* MVN [ + SUB ].  */
-    }
-  else
-    split[1].num = split[0].num = INT_MAX;
-  /* FIXME: we can use MOVW as well.  */
-  if (!baseRegUnspecified || (areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
-    {
-      /* ADD/SUB Rx, baseReg, #... [ + ADD/SUB Rx, Rx, #... ] */
-      split[2].num = Help_SplitByImm8s4 (constant, split[2].try); /* ADD [ + ADD ] (all baseReg).  */
-      split[3].num = Help_SplitByImm8s4 (-constant, split[3].try); /* SUB [ + SUB ] (all baseReg).  */
+      split[2].num = Help_SplitByImm8s4 (absConstant, split[2].try); /* MOV [ + ADD ].  */
+      split[3].num = Help_SplitByImm8s4 (~absConstant, split[3].try); /* MVN [ + SUB ].  */
     }
   else
     split[3].num = split[2].num = INT_MAX;
+  /* FIXME: we can use MOVW as well.  */
 
   int bestIndex = 0, bestScore = split[0].num;
   for (int i = 0; i != 4; ++i)
@@ -395,18 +405,18 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
   switch (bestIndex)
     {
       case 0:
+	irop2 = irop1 = M_ADD;
+	break;
+      case 1:
+	irop2 = irop1 = M_SUB;
+	break;
+      case 2:
 	irop1 = M_MOV;
 	irop2 = M_ADD;
 	break;
-      case 1:
+      case 3:
 	irop1 = M_MVN;
 	irop2 = M_SUB;
-	break;
-      case 2:
-	irop2 = irop1 = M_ADD;
-	break;
-      case 3:
-	irop2 = irop1 = M_SUB;
 	break;
       default:
 	assert (0);
@@ -415,12 +425,14 @@ ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
 
   if (bestScore == 2 && GET_DST_OP(baseInstr) == 15)
     error (ErrorError, "ADRL can not be used with register 15 as destination");
+  if (bestIndex >= 2 /* = when MOV/MVN is used.  */)
+    error (ErrorWarning, "%s can only be assembled using MOV/MVN which makes it unrelocatable", isADRL ? "ADRL" : "ADR");
 
   for (int n = 0; n != bestScore; ++n)
     {
       /* Fix up the base register.  */
-      ARMWord irs = baseInstr | (n == 0 ? irop1 : irop2);
-      if (bestIndex >= 2 /* = when ADD/SUB is used */ || n != 0)
+      uint32_t irs = baseInstr | (n == 0 ? irop1 : irop2);
+      if (bestIndex < 2 /* = when ADD/SUB is used */ || n != 0)
         irs = irs | LHS_OP (n == 0 ? (ARMWord)baseReg : GET_DST_OP(baseInstr));
 
       uint32_t i8s4 = Help_CPUImm8s4 (split[bestIndex].try[n]);
