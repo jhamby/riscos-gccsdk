@@ -49,4 +49,18 @@ dump1_double	DCFD	1234.
 		MNFD	F3, #4.
 	]
 
+		; Literals and symbols:
+	[ :LNOT: REFERENCE
+		LDFD	F1, =AFloat
+		LDFD	F2, =AnInt
+AFloat		*	3.14
+AnInt		*	42
+		LTORG
+	|
+		LDFD	F1, lit1
+		LDFD	F2, lit2
+lit1		DCFD	3.14
+lit2		DCFD	42.
+	]
+
 		END

@@ -1,3 +1,9 @@
+Tue Jun 12 02:35:24 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* lit.c (Lit_DumpPool): Convert late defined integer symbol value into
+	floating point value when used as floating point literal.
+	* regression/tests_pass/fpe_literal.s: Enhance test case.
+
 Fri Jun  8 01:09:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	Based on https://www.riscosopen.org/content/sales/dde-changes-20-to-21

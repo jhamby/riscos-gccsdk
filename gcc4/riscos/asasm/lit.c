@@ -168,10 +168,10 @@ Lit_CreateLiteralSymbol (const Value *valueP, Lit_eSize size)
 }
 
 /**
- * Registers a literal integer for the current area and returns either a
- * ValueAddr of a previous (but same) literal integer, or ValueSymbol
- * representing the label where the literal will get assembled.
- * \return You get ownership.
+ * Registers a literal integer for the current area.
+ * \return Either a ValueAddr of a previous (but same) literal integer,
+ * or ValueSymbol representing the label where the literal will get assembled,
+ * or ValueInt when given literal integer is representable via MOV/MVN/MOVW.
  */
 Value
 Lit_RegisterInt (const Value *valueP, Lit_eSize size)
@@ -360,10 +360,10 @@ Lit_RegisterInt (const Value *valueP, Lit_eSize size)
 }
 
 /**
- * Registers a literal float for the current area and returns either a
- * ValueAddr of a previous (but same) literal float, or ValueSymbol
- * representing the label where the literal will get assembled.
- * \return You get ownership.
+ * Registers a literal float for the current area.
+ * \return Either a ValueAddr of a previous (but same) literal float,
+ * or ValueSymbol representing the label where the literal will get assembled.
+ * or ValueFloat when literal float is representable via MVF/MNF.
  */
 Value
 Lit_RegisterFloat (const Value *valueP, Lit_eSize size)
@@ -460,13 +460,15 @@ Lit_DumpPool (void)
 	  codeInit ();
 	  codeValue (&litP->value, true);
 	  const Value *constValueP = codeEval (ValueInt | ValueCode | ValueSymbol | ValueFloat, NULL);
-	  if (constValueP->Tag != ValueIllegal)
-	    Value_Assign (&litP->value, constValueP);
-	  else
+	  if (constValueP->Tag == ValueIllegal)
 	    {
 	      errorLine (litP->file, litP->lineNum, ErrorError, "Unsupported literal case");
 	      continue;
 	    }
+	  /* Upgrade ValueInt to ValueFloat when we have a float/double literal.  */
+          const Value dblValue = (constValueP->Tag == ValueInt
+	                          && (litP->size == eLitFloat || litP->size == eLitDouble)) ? Value_Float ((ARMFloat)constValueP->Data.Int.i) : *constValueP;
+	  Value_Assign (&litP->value, &dblValue);
 	}
 
       Symbol *symP = Lit_GetLitOffsetAsSymbol (litP);
@@ -519,7 +521,8 @@ Lit_DumpPool (void)
 
 	      /* Value representable using MOV or MVN ? */
 	      if (isImmediate
-		  && (help_cpuImm8s4 (constant) != -1 || help_cpuImm8s4 (~constant) != -1
+		  && (help_cpuImm8s4 (constant) != -1
+		      || help_cpuImm8s4 (~constant) != -1
 		      || CPUMem_ConstantInMOVW (constant)))
 		{
 		  if (gPhase == ePassOne)
