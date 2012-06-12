@@ -34,40 +34,6 @@ typedef struct RELOC
   Value value;		/**< ValueSymbol or ValueCode.   */
 } Reloc;
 
-/**
- * Callback for updating instruction/data at given offset in current AREA.
- * Gets called up to two times, the second time only when the first time
- * the return value was true, meaning the valueP could not be used to finalise
- * the mnemonic.
- * The second time calling is happening when the full assembler source got
- * parsed so more ValueSymbol cases seen the first time can be resolved but any
- * remaining ValueSymbol ones need now to be taken into account via a
- * relocation.  When done successful, return false, otherwise return true and
- * this will result in an error.
- * When reporting info/warning/error/abort, always use RelocQueue::file and
- * RelocQueue::lineNum as this can get called after parsing all input files.
- * \param valueP No ownership transfer.
- */
-typedef bool (*RelocUpdater)(const char *file, unsigned lineNum, ARMWord offset,
-			     const Value *valueP, void *privData, bool final);
-
-typedef struct RelocQueue
-{
-  struct RelocQueue *next;
-  const char *file;	/**< Source filename of instruction/data needing a change.  */
-  unsigned lineNum;	/**< Line number of instruction/data needing a change.  */
-
-  void *privData;	/**< Pointer to private data.  */
-  
-  ARMWord offset;	/**< Area content offset value of start instruction/data needing a change.  */
-  Value expr;		/**< Value (Tag: ValueCode) representing the change. */
-  ValueTag legal;	/**< Valid value tags we expect after evaluting 'expr'.  */
-  RelocUpdater callback;/**< Callback to do for doing the instruction/data change.  */
-} RelocQueue;
-
-bool Reloc_QueueExprUpdate (RelocUpdater callback, ARMWord offset, ValueTag legal,
-			    void *privData, size_t sizePrivData);
-
 int relocFix (const Symbol *area);
 void relocAOFOutput (FILE *outfile, const Symbol *area);
 #ifndef NO_ELF_SUPPORT

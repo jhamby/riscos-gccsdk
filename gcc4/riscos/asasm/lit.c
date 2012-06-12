@@ -630,58 +630,70 @@ Lit_DumpPool (void)
 	  case eLitIntSHalfWord:
 	  case eLitIntWord:
 	    {
-	      DefineInt_PrivData_t privData =
-		{
-		  .size = (int) Lit_GetSizeInBytes (litP),
-		  .allowUnaligned = false,
-		  .swapHalfwords = false
-		};
 #ifdef DEBUG_LIT
 	      printf ("  Place at 0x%x value ", litP->offset);
 	      valuePrint (&litP->value);
 	      printf ("\n");
 #endif
+	      size_t litSize = Lit_GetSizeInBytes (litP);
 	      if (gPhase == ePassOne)
-		Put_AlignDataWithOffset (litP->offset, privData.size, 0, 1,
-		                         !privData.allowUnaligned);
+		Put_AlignDataWithOffset (litP->offset, litSize, 0, 1, true);
 	      else
 		{
-		  codeInit ();
-		  codeValue (&litP->value, true);
-		  if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, litP->offset,
-					     ValueInt | ValueString | ValueSymbol | ValueCode,
-					     &privData, sizeof (privData)))
-		    errorLine (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
+		  /* Package our literal value in a ValueCode.  */
+		  const Code codeValueData =
+		    {
+		      .Tag = CodeValue,
+		      .Data.value = litP->value
+		    };
+		  const Value valueCode =
+		    {
+		      .Tag = ValueCode,
+		      .Data.Code =
+			{
+			  .len = 1,
+			  .c = &codeValueData
+			}
+		    };
+		  if (DefineInt_HandleSymbols (litSize, false, false, litP->offset, litP->value.Tag == ValueCode ? &litP->value : &valueCode))
+		    {
+		      errorLine (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
+		      Put_AlignDataWithOffset (litP->offset, litSize, 0, 1, true);
+		    }
 		}
+	      break;
 	    }
-	    break;
 
 	  case eLitFloat:
 	  case eLitDouble:
 	    {
-	      DefineReal_PrivData_t privData =
-		{
-		  .size = (int) Lit_GetSizeInBytes (litP),
-		  .allowUnaligned = false
-		};
 #ifdef DEBUG_LIT
 	      printf ("  Place at 0x%x value ", litP->offset);
 	      valuePrint (&litP->value);
 	      printf ("\n");
 #endif
+	      double litData;
 	      if (gPhase == ePassOne)
-		Put_FloatDataWithOffset (litP->offset, privData.size, 0.,
-					 !privData.allowUnaligned);
+		litData = 0.;
 	      else
 		{
+		  /* Final evaluation.  */
 		  codeInit ();
 		  codeValue (&litP->value, true);
-		  if (Reloc_QueueExprUpdate (DefineReal_RelocUpdater, litP->offset,
-					     ValueFloat | ValueSymbol | ValueCode, &privData, sizeof (privData)))
-		    errorLine (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
+		  const Value *valP = codeEval (ValueFloat | ValueSymbol, NULL);
+
+		  /* FIXME: relocation support for float values ? */
+		  if (valP->Tag == ValueFloat)
+		    litData = valP->Data.Float.f;
+		  else
+		    {
+		      errorLine (litP->file, litP->lineNum, ErrorError, "Illegal %s expression", "literal");
+		      litData = 0.;
+		    }
 		}
+	      Put_FloatDataWithOffset (litP->offset, Lit_GetSizeInBytes (litP), litData, true);
+	      break;
 	    }
-	    break;
 	}
     }
 

@@ -89,7 +89,7 @@ typedef struct
       struct			/* ValueCode */
         {
           size_t len;
-          struct Code *c;
+          const struct Code *c;
         } Code;
       struct			/* ValueAddr, represents address in the form of "[<r>, #<i>]" */
         {

@@ -1153,7 +1153,7 @@ lexGetPrim (void)
       case '"':
 	{
 	  result.tag = LexString;
-	  result.Data.String.str = Input_GetString (&result.Data.String.len);
+	  result.Data.String.str = Input_GetString (&result.Data.String.len); /* FIXME: this leaks memory.  */
 	  break;
 	}
 

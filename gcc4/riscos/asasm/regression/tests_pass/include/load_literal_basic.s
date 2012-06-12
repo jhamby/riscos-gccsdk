@@ -88,7 +88,7 @@ lbl4$areaName	DCW	0x9900
 	ALIGN
 lbl5$areaName	DCD	&FEDC0000
 
-	]
+	]	; End basic tests
 
 	; PC relative tests:
 	[ :LNOT: REFERENCE
@@ -177,7 +177,7 @@ dataw$areaName	DCW	0x3322
 datad$areaName	DCD	0x77665544
 	]
 
-	]
+	]	; End PC relative tests
 	MEND
 
 	; Non-absolute area:

@@ -1,3 +1,16 @@
+Tue Jun 12 03:21:03 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* reloc.c, reloc.h, lit.c, symbol.h, m_cpuctrl.c, help_cop.c,
+	m_cpumem.c, directive_data.c, area.c, directive_data.h, area.h,
+	value.h: Get rid of Reloc_QueueExprUpdate.
+	* lex.c: Add comment.
+	* regression/tests_pass/adr.s: Update as we can now generate MOV/MVN
+	instead of ADD/SUB.
+	* regression/tests_pass/include/load_literal_basic.s: Add comments.
+	* regression/tests_pass/ldr_from_addr.s: Enhance testcase.
+	* regression/tests_pass/operator_string.s: Likewise.
+	* configure.ac: Increase version to 2.01.
+
 Tue Jun 12 03:13:01 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* code.c (Code_Free): Make Code ptr argument const.

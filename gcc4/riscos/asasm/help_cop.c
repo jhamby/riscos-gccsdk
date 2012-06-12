@@ -48,112 +48,6 @@
 #include "reloc.h"
 #include "value.h"
 
-
-/**
- * Reloc updater for help_copAddr() for pre-increment based on symbols.
- *
- * Similar to DestMem_RelocUpdater() @ m_cpumem.c.
- */
-static bool
-DestMem_RelocUpdaterCoPro (const char *fileName, unsigned lineNum, ARMWord offset,
-			   const Value *valueP,
-			   void *privData UNUSED,
-			   bool final UNUSED)
-{
-  ARMWord ir = GetWord (offset);
-
-  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
-
-  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
-    {
-      const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag == CodeOperator)
-	{
-	  if (codeP->Data.op != eOp_Add)
-	    return true;
-	  continue;
-	}
-      assert (codeP->Tag == CodeValue);
-      const Value *valP = &codeP->Data.value;
-
-      switch (valP->Tag)
-	{
-	  case ValueInt:
-	    {
-	      /* This can only happen when the current area is absolute.
-	         The value represents an absolute address.  We translate this
-	         into PC relative one for the current instruction.  */
-	      assert (areaCurrentSymbol->area.info->type & AREA_ABS);
-	      if (valueP->Data.Code.len != 1)
-		return true;
-	      ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
-	      ir |= LHS_OP (15);
-	      ir = Fix_CopOffset (fileName, lineNum, ir, newOffset);
-	      Put_InsWithOffset (offset, 4, ir);
-	      break;
-	    }
-
-	  case ValueFloat:
-	    {
-	      /* This can only happen when "LFD Fx, =<constant>" can be turned
-	         into MVF/MNF Fx, #<constant>.  */
-	      if (valueP->Data.Code.len != 1)
-		return true;
-
-	      ARMWord newIR = ir & NV;
-	      newIR |= DST_OP (GET_DST_OP (ir));
-	      switch (ir & PRECISION_MEM_MASK)
-		{
-		  case PRECISION_MEM_SINGLE:
-		    newIR |= PRECISION_SINGLE;
-		    break;
-
-		  case PRECISION_MEM_DOUBLE:
-		    newIR |= PRECISION_DOUBLE;
-		    break;
-
-		  default:
-		    assert (0 && "Extended/packed are not supported");
-		    break;
-		}
-
-	      ARMWord im;
-	      if ((im = FPE_ConvertImmediate (valP->Data.Float.f)) != (ARMWord)-1)
-	        newIR |= M_MVF | im;
-	      else if ((im = FPE_ConvertImmediate (- valP->Data.Float.f)) != (ARMWord)-1)
-	        newIR |= M_MNF | im;
-	      else
-	        return true;
-	      Put_InsWithOffset (offset, 4, newIR);
-	      break;
-	    }
-
-	  case ValueAddr:
-	    {
-	      ir |= LHS_OP (valP->Data.Addr.r);
-	      ir = Fix_CopOffset (fileName, lineNum, ir, valP->Data.Addr.i);
-	      Put_InsWithOffset (offset, 4, ir);
-	      break;
-	    }
-
-#if 0
-// FIXME: Can floating point be relocatable (especially doubles) ?
-	  case ValueSymbol:
-	    if (!final)
-	      return true;
-	    if (Reloc_Create (HOW2_INIT | HOW2_WORD, offset, valP) == NULL)
-	      return true;
-	    break;
-#endif
-
-	  default:
-	    return true;
-	}
-    }
-
-  return false;
-}
-
 /**
  * Pre-indexed:
  *   ", [Rx]"
@@ -181,7 +75,8 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
     }
 
   const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
-  bool callRelocUpdate = false;
+  Value value;
+  const Value *valP = NULL;
   switch (inputLook ())
     {
       case '[':
@@ -307,19 +202,11 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	    }	  
 	  const Value *literalP = exprBuildAndEval (ValueFloat | ValueSymbol | ValueCode);
 	  if (literalP->Tag == ValueIllegal)
-	    {
-	      error (ErrorError, "Wrong literal type");
-	      callRelocUpdate = false;
-	    }
+	    error (ErrorError, "Wrong literal type");
 	  else
 	    {
-	      /* Translate an integer literal into a floating point one.  */
-	      const Value literalValue = (literalP->Tag == ValueInt) ? Value_Float ((ARMFloat)literalP->Data.Int.i) : *literalP;
-	      Value value = Lit_RegisterFloat (&literalValue, litSize);
-	      codeInit ();
-	      codeValue (&value, true);
-	      valueFree (&value);
-	      callRelocUpdate = true;
+	      value = Lit_RegisterFloat (literalP, litSize);
+	      valP = &value;
 	    }
 	  break;
 	}
@@ -341,9 +228,8 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 
 	  /* Whatever happens, this must be a pre-increment.  */
 	  ir |= P_FLAG;
-	  callRelocUpdate = true;
 
-	  exprBuild ();
+	  valP = exprBuildAndEval (ValueFloat | ValueAddr | ValueSymbol);
 	  break;
 	}
     }
@@ -359,17 +245,78 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
       ir |= 3 * preIndexOffset;
     }
 
-  Put_Ins (4, ir);
-
-  if (gPhase != ePassOne)
+  if (gPhase != ePassOne && valP != NULL)
     {
-      assert ((!callRelocUpdate || (ir & P_FLAG)) && "Calling reloc for non pre-increment instructions ?");
+      switch (valP->Tag)
+	{
+	  case ValueInt:
+	    {
+	      /* This can only happen when the current area is absolute.
+	         The value represents an absolute address.  We translate this
+	         into PC relative one for the current instruction.  */
+	      assert (areaCurrentSymbol->area.info->type & AREA_ABS);
+	      ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
+	      ir |= LHS_OP (15);
+	      ir = Fix_CopOffset (NULL, 0, ir, newOffset);
+	      break;
+	    }
 
-      /* The ValueInt | ValueFLoat | ValueAddr | ValueSymbol | ValueCode tags are
-	 what we support in the coprocessor instruction.  */
-      if (callRelocUpdate
-	  && Reloc_QueueExprUpdate (DestMem_RelocUpdaterCoPro, offset,
-				    ValueInt | ValueFloat | ValueAddr /* FIXME: | ValueSymbol */ | ValueCode, NULL, 0))
-	error (ErrorError, "Illegal expression");
+	  case ValueFloat:
+	    {
+	      /* This can only happen when "LFD Fx, =<constant>" can be turned
+	         into MVF/MNF Fx, #<constant>.  */
+	      ir = (ir & NV) | DST_OP (GET_DST_OP (ir));
+	      switch (ir & PRECISION_MEM_MASK)
+		{
+		  case PRECISION_MEM_SINGLE:
+		    ir |= PRECISION_SINGLE;
+		    break;
+
+		  case PRECISION_MEM_DOUBLE:
+		    ir |= PRECISION_DOUBLE;
+		    break;
+
+		  default:
+		    assert (0 && "Extended/packed are not supported");
+		    break;
+		}
+
+	      ARMWord im;
+	      if ((im = FPE_ConvertImmediate (valP->Data.Float.f)) != (ARMWord)-1)
+	        ir |= M_MVF | im;
+	      else if ((im = FPE_ConvertImmediate (- valP->Data.Float.f)) != (ARMWord)-1)
+	        ir |= M_MNF | im;
+	      else
+	        assert (0);
+	      break;
+	    }
+
+	  case ValueSymbol:
+	    {
+	      if (valP->Data.Symbol.symbol != areaCurrentSymbol)
+		{
+		  assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
+		  if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+		    error (ErrorError, "Relocation failed");
+		  break;
+		}
+	      value = Value_Addr (15, valP->Data.Symbol.offset - (offset + 8));
+	      valP = &value;
+	      /* Fall through.  */
+	    }
+
+	  case ValueAddr:
+	    {
+	      ir |= LHS_OP (valP->Data.Addr.r);
+	      ir = Fix_CopOffset (NULL, 0, ir, valP->Data.Addr.i);
+	      break;
+	    }
+
+	  default:
+	    error (ErrorError, "Illegal expression");
+	    break;
+	}
     }
+    
+  Put_Ins (4, ir);
 }

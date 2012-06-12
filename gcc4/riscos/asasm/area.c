@@ -110,7 +110,6 @@ areaNew (Symbol *sym, uint32_t type)
   res->curIdx = 0;
   res->maxIdx = 0;
 
-  res->relocQueue = NULL;
   res->relocs = NULL;
 
   res->litPool = NULL;

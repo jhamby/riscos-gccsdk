@@ -52,92 +52,6 @@
 #include "targetcpu.h"
 
 /**
- * Reloc updater for dstmem() for pre-increment based on symbols.
- *
- * Similar to DestMem_RelocUpdaterCoPro() @ help_cop.c.
- */
-static bool
-DestMem_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
-		      const Value *valueP,
-		      void *privData UNUSED, bool final)
-{
-  ARMWord ir = GetWord (offset);
-  bool isAddrMode3 = (ir & 0x04000090) == 0x90;
-
-  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
-
-  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
-    {
-      const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag == CodeOperator)
-	{
-	  if (codeP->Data.op != eOp_Add)
-	    return true;
-	  continue;
-	}
-      assert (codeP->Tag == CodeValue);
-      const Value *valP = &codeP->Data.value;
-
-      switch (valP->Tag)
-	{
-	  case ValueInt:
-	    {
-	      /* This can happen when "LDR Rx, =<constant>" can be turned into
-		 MOV/MVN Rx, #<constant>.
-	         Or when the current area is absolute.
-	         Or when LDR Rx, =<label> with label defined in another AREA.  */
-	      ARMWord newIR = ir & NV;
-	      newIR |= DST_OP (GET_DST_OP (ir));
-	      ARMWord im;
-	      if (valueP->Data.Code.len == 1
-	          && (im = help_cpuImm8s4 (valP->Data.Int.i)) != (ARMWord)-1)
-		newIR |= M_MOV | IMM_RHS | im; /* Optimize to MOV.  */
-	      else if (valueP->Data.Code.len == 1
-		       && (im = help_cpuImm8s4 (~valP->Data.Int.i)) != (ARMWord)-1)
-		newIR |= M_MVN | IMM_RHS | im; /* Optimize to MVN.  */
-	      else if (valueP->Data.Code.len == 1
-	               && CPUMem_ConstantInMOVW (valP->Data.Int.i))
-		newIR |= 0x03000000 | ((valP->Data.Int.i & 0xF000) << 4) | (valP->Data.Int.i & 0x0FFF); /* Optimize to MOVW.  */
-	      else if ((areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
-		{
-		  ARMWord newOffset = valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
-		  ir |= LHS_OP (15);
-		  if (isAddrMode3)
-		    ir |= B_FLAG;
-		  newIR = Fix_CPUOffset (fileName, lineNum, ir, newOffset);
-		}
-	      else
-		return true;
-	      Put_InsWithOffset (offset, 4, newIR);
-	      break;
-	    }
-
-	  case ValueAddr:
-	    {
-	      ir |= LHS_OP (valP->Data.Addr.r);
-	      if (isAddrMode3)
-		ir |= B_FLAG;
-	      ir = Fix_CPUOffset (fileName, lineNum, ir, valP->Data.Addr.i);
-	      Put_InsWithOffset (offset, 4, ir);
-	      break;
-	    }
-
-	  case ValueSymbol:
-	    if (!final)
-	      return true;
-	    if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
-	      return true;
-	    break;
-
-	  default:
-	    return true;
-	}
-    }
-
-  return false;
-}
-
-/**
  * Parses Address mode 2 and 3.
  *
  * Similar to help_copAddr() @ help_cop.c.
@@ -183,7 +97,9 @@ dstmem (ARMWord ir, const char *mnemonic)
     }
   
   const ARMWord offset = areaCurrentSymbol->area.info->curIdx;
-  bool callRelocUpdate;
+  Value value;
+  const Value *valP = NULL;
+  bool movOptAllowed = false; /* true when MOV/MVN/MOVW optimisation is allowed.  */
   switch (inputLook ())
     {
       case '[':	/* <reg>, [ */
@@ -193,7 +109,6 @@ dstmem (ARMWord ir, const char *mnemonic)
 	  skipblanks ();
 	  bool pre = !Input_Match (']', true);
 	  bool forcePreIndex;
-	  Value symValue = { .Tag = ValueIllegal };
 	  if (Input_Match (',', true))
 	    {
 	      /* Either [base,XX] (pre = true) or [base],XX (pre = false).  */
@@ -202,36 +117,25 @@ dstmem (ARMWord ir, const char *mnemonic)
 		  if (isAddrMode3)
 		    ir |= B_FLAG;  /* Immediate mode for addr. mode 3.  */
 		  
-		  const Value *valueP = exprBuildAndEval (ValueInt | ValueSymbol | ValueCode);
-		  switch (valueP->Tag)
+		  const Value *valueP = exprBuildAndEval (ValueInt);
+		  if (gPhase != ePassOne)
 		    {
-		      case ValueInt:
-			ir = Fix_CPUOffset (NULL, 0, ir | LHS_OP (baseReg), valueP->Data.Int.i);
-			break;
-
-		      case ValueSymbol:
-		      case ValueCode:
-			/* We need to end up with ValueAddr but *valueP is
-			   going to be ValueInt (or Reloc Imm8s4).  */
-			Value_Assign (&symValue, valueP);
-			codeInit ();
-			codeAddr (baseReg, 0);
-			codeValue (&symValue, false);
-			codeOperator (eOp_Add);
-			Value_Assign (&symValue, codeEval (ValueAddr | ValueSymbol | ValueCode, &offset));
-			if (symValue.Tag != ValueIllegal)
-			  break;
-			/* Fall through.  */
-
-		      default:
-			if (gPhase != ePassOne)
-			  error (ErrorError, "Illegal offset expression");
-			symValue = Value_Addr (baseReg, 0);
-			break;
+		      switch (valueP->Tag)
+			{
+			  case ValueInt:
+			    value = Value_Addr (baseReg, valueP->Data.Int.i);
+			    valP = &value;
+			    break;
+			  default:
+			    error (ErrorError, "Illegal offset expression");
+			    break;
+			}
 		    }
-
-		  forcePreIndex = false;
-		  callRelocUpdate = symValue.Tag != ValueIllegal;
+		  else
+		    {
+		      value = Value_Addr (baseReg, 0);
+		      valP = &value;
+		    }
 		}
 	      else
 		{
@@ -250,9 +154,8 @@ dstmem (ARMWord ir, const char *mnemonic)
 		    }
 		  ir |= isAddrMode3 ? 0 : REG_FLAG;
 		  ir = getRhs (false, !isAddrMode3, ir);
-		  forcePreIndex = false;
-		  callRelocUpdate = false;
 		}
+	      forcePreIndex = false;
 	    }
 	  else
 	    {
@@ -266,8 +169,8 @@ dstmem (ARMWord ir, const char *mnemonic)
 	      /* Pre-index nicer than post-index but don't this when 'T' is
 	         specified as pre-index is not supported (FIXME: ARM only).  */
 	      forcePreIndex = !translate;
-	      callRelocUpdate = false;
 	    }
+
 	  if (pre)
 	    {
 	      if (!Input_Match (']', true))
@@ -298,9 +201,6 @@ dstmem (ARMWord ir, const char *mnemonic)
 	      if (dst == baseReg)
 	        error (ErrorError, "Post increment is not sane where base and destination register are the same");
 	    }
-
-	  codeInit ();
-	  codeValue (&symValue, true);
 	  break;
 	}
 
@@ -333,21 +233,17 @@ dstmem (ARMWord ir, const char *mnemonic)
 	    litSize = eLitIntSHalfWord; /* LDRSH */
 	  else
 	    assert (0);
+
 	  /* The ValueInt | ValueSymbol | ValueCode tags are what we support
 	     as constants from user point of view.  */
 	  const Value *literalP = exprBuildAndEval (ValueInt | ValueSymbol | ValueCode);
 	  if (literalP->Tag == ValueIllegal)
-	    {
-	      error (ErrorError, "Wrong literal type");
-	      callRelocUpdate = false;
-	    }
+	    error (ErrorError, "Wrong literal type");
 	  else
 	    {
-	      Value value = Lit_RegisterInt (literalP, litSize);
-	      codeInit ();
-	      codeValue (&value, true);
-	      valueFree (&value);
-	      callRelocUpdate = true;
+	      value = Lit_RegisterInt (literalP, litSize);
+	      valP = &value;
+	      movOptAllowed = true;
 	    }
 	  break;
 	}
@@ -366,27 +262,83 @@ dstmem (ARMWord ir, const char *mnemonic)
 
 	  /* Whatever happens, this must be a pre-increment.  */
 	  ir |= P_FLAG;
-	  callRelocUpdate = true;
 
-	  exprBuild ();
+	  valP = exprBuildAndEval (ValueInt | ValueAddr | ValueSymbol);
 	  break;
 	}
     }
 
-  Put_Ins (4, ir);
-
-  if (gPhase != ePassOne)
+  if (gPhase != ePassOne && valP != NULL)
     {
-      assert ((!callRelocUpdate || (ir & P_FLAG)) && "Calling reloc for non pre-increment instructions ?");
-    
-      /* The ValueInt | ValueAddr | ValueSymbol | ValueCode tags are what we
-	 support in the LDR/STR/... instruction.  When we have ValueInt it is
-	 guaranteed to be a valid immediate.  */
-      if (callRelocUpdate
-	  && Reloc_QueueExprUpdate (DestMem_RelocUpdater, offset,
-				    ValueInt | ValueAddr | ValueSymbol | ValueCode, NULL, 0))
-	error (ErrorError, "Illegal %s expression", mnemonic);
+      /* ValueInt is special.  When movOptAllowed is true, we have a
+         literal which guaranteed can fit in MOV/MVN/MOVW.
+         If movOptAllowed is false, then we have someone using a direct
+         int value which can only make sense in an absolute AREA so we
+         translate this back into [pc, #...] construction.  */
+      if (valP->Tag == ValueInt)
+	{
+	  if (movOptAllowed)
+	    {
+	      ir = (ir & NV) | DST_OP (GET_DST_OP (ir));
+	      ARMWord im;
+	      if ((im = help_cpuImm8s4 (valP->Data.Int.i)) != (ARMWord)-1)
+		ir |= M_MOV | IMM_RHS | im; /* Optimize to MOV.  */
+	      else if ((im = help_cpuImm8s4 (~valP->Data.Int.i)) != (ARMWord)-1)
+		ir |= M_MVN | IMM_RHS | im; /* Optimize to MVN.  */
+	      else if (CPUMem_ConstantInMOVW (valP->Data.Int.i))
+		ir |= 0x03000000 | ((valP->Data.Int.i & 0xF000) << 4) | (valP->Data.Int.i & 0x0FFF); /* Optimize to MOVW.  */
+	      else
+		assert (0);
+	      valP = NULL;
+	    }
+	  else if ((areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
+	    {
+	      /* FIXME: MOV/MVN/MOVW would be an option too.  */
+	      value = Value_Addr (15, valP->Data.Int.i - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8));
+	      valP = &value;
+	    }
+	  else
+	    {
+	      /* Don't do anything here, we will automatically give an error
+	         further on.  */
+	    }
+	}
+
+      if (valP != NULL)
+	{
+	  switch (valP->Tag)
+	    {
+	      case ValueSymbol:
+		{
+		  if (valP->Data.Symbol.symbol != areaCurrentSymbol)
+		    {
+		      assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
+		      if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+			error (ErrorError, "Relocation failed");
+		      break;
+		    }
+		  value = Value_Addr (15, valP->Data.Symbol.offset - (offset + 8));
+		  valP = &value;
+		  /* Fall through.  */
+		}
+
+	      case ValueAddr:
+		{
+		  ir |= LHS_OP (valP->Data.Addr.r);
+		  if (isAddrMode3)
+		    ir |= B_FLAG;
+		  ir = Fix_CPUOffset (NULL, 0, ir, valP->Data.Addr.i);
+		  break;
+		}
+
+	      default:
+		error (ErrorError, "Illegal %s expression", mnemonic);
+		break;
+	    }
+	}
     }
+    
+  Put_Ins (4, ir);
 
   return false;
 }

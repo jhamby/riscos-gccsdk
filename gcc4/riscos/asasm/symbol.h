@@ -79,7 +79,7 @@ typedef struct Symbol
   struct Symbol *next;  /** Linked symbols all having the same hash value.  */
 
   unsigned int type; /** Cfr. SYMBOL_* bits.  */
-  Value value; /** For AREA symbol, this is its current content size.  */
+  Value value; /** Symbol value.  For ABS area symbol, this is its base address (ValueInt).  For non-ABS area symbol, this is unused.  */
   uint32_t codeSize; /** Size of the code associated with this symbol label (for AREA symbol, this is unused).  */
   union
     {

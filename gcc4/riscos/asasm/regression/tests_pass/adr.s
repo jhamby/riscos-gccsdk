@@ -75,7 +75,7 @@ lbl3
 	GBLA	SymAbs
 SymAbs	SETA	32
 
-	ADR	r0, SymAbs	; MOV r0, #32
+	ADR	r0, SymAbs	; MOV r0, #32, note this is a bit odd.
 	|
 	MOV	r0, #32
 	]
@@ -174,7 +174,7 @@ tstlbl3	#	32
 	ADR	r2, tstlbl2
 	ADRL	r4, tstlbl2	; Generates warning, ADR is used. FIXME: no longer :( - twopass regression
 	ADR	r5, tstlbl5
-	ADRL	r6, tstlbl5	; Generates info in fuzzy mode, ADRL is still used
+	ADRL	r6, tstlbl5	; Generates warning, ADRL is still used
 
 	; First used, then defined.
 	^	16, r7
@@ -242,8 +242,8 @@ tstlbl6	#	32
 	ORG	&200
 	%	16
 	DCD	1
-	ADD	r1, pc, #-8 - 4
-	ADD	r2, pc, #-8 + 8
+	MOV	r1, #&210		; ADD r1, pc, #-8 - 4 would also be possible
+	MOV	r2, #&220		; ADD r2, pc, #-8 + 8
 	ADD	r2, r2, #0
 	DCD	2
 
@@ -257,8 +257,8 @@ tstlbl6	#	32
 	AREA	Code12, CODE, ABS
 	%	16
 	DCD	1
-	ADD	r1, pc, #-8 - 4
-	ADD	r2, pc, #-8 + 4
+	MOV	r1, #&10		; ADD r1, pc, #-8 - 4 would also be possible
+	MOV	r2, #&1C		; ADD r2, pc, #-8 + 4 would also be possible
 	DCD	2
 
 	DCD	3

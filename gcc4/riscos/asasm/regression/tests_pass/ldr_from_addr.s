@@ -109,16 +109,23 @@ tst8_a	%	4
 
 	; Load done in ABS AREA:
 		AREA	CodeABS, CODE
-		ORG	&3800000
+		ORG	&20
 
-		%	&20
+		%	&10
 	[ :LNOT: REFERENCE
 
-EndRel	*	&408
-Start
-		LDR	r1, Start + EndRel
+Offset	*	&8
+Start1
+		LDR	r0, Start1
+		LDR	r1, Start1 + Offset
+		LDR	r2, Start2
+		LDR	r3, Start2 + Offset
+Start2
 	|
-		DCI	&e59F1400	; LDR r1, &3800428
+		DCI	&e51f0008	; LDR      r0,0x30
+		DCI	&e51f1004	; LDR      r1,0x38
+		DCI	&e59f2000	; LDR      r2,0x40
+		DCI	&e59f3004	; LDR      r3,0x48
 	]
 
 		END

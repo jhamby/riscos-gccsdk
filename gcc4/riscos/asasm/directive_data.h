@@ -42,22 +42,7 @@ bool c_dcq (bool doLowerCase);
 bool c_fill (void);
 bool c_reserve (void);
 
-typedef struct
-{
-  int size; /**< Size of the data unit : 1, 2 or 4.  */
-  bool allowUnaligned; /**< Allow unaligned data storage.  */
-  bool swapHalfwords; /**< When size is 4, swap its two halfwords.  */
-} DefineInt_PrivData_t;
-
-typedef struct
-{
-  int size; /**< Size of the data unit : 4 or 8.  */
-  bool allowUnaligned; /**< Allow unaligned data storage.  */
-} DefineReal_PrivData_t;
-
-bool DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
-			     const Value *valueP, void *privData, bool final);
-bool DefineReal_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
-			      const Value *valueP, void *privData, bool final);
+bool DefineInt_HandleSymbols (int size, bool allowUnaligned, bool swapHalfwords,
+			      uint32_t offset, const Value *valueP);
 
 #endif

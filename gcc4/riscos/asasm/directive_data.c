@@ -201,40 +201,15 @@ c_data (void)
   return false;
 }
 
+
 /**
- * Reloc updater for DefineInt().
+ * \return true when error occured.
  */
 bool
-DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
-			const Value *valueP, void *privData, bool final)
+DefineInt_HandleSymbols (int size, bool allowUnaligned, bool swapHalfwords,
+			 uint32_t offset, const Value *valueP)
 {
-  const DefineInt_PrivData_t *privDataP = (const DefineInt_PrivData_t *)privData;
-
-  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
-
-  /* Support for ValueString with data size 1 (i.e. DCB, =) and different
-     data size but string length 1.  */
-  if (valueP->Data.Code.len == 1
-      && valueP->Data.Code.c[0].Tag == CodeValue
-      && valueP->Data.Code.c[0].Data.value.Tag == ValueString
-      && ((!final && privDataP->size == 1) || valueP->Data.Code.c[0].Data.value.Data.String.len == 1))
-    {
-      size_t len = valueP->Data.Code.c[0].Data.value.Data.String.len;
-      const char *str = valueP->Data.Code.c[0].Data.value.Data.String.s;
-      /* Lay out a string.  */
-      for (size_t i = 0; i != len; ++i)
-	Put_AlignDataWithOffset (offset + i, privDataP->size,
-	                         (unsigned char)str[i], 1,
-	                         !privDataP->allowUnaligned);
-      return false;
-    }
-
-  if (!final)
-    {
-      Put_AlignDataWithOffset (offset, privDataP->size, 0, 1,
-                               !privDataP->allowUnaligned);
-      return true;
-    }
+  assert (valueP->Tag == ValueCode);
 
   /* Figure out relocation type(s).
    * relocs : Number of symbol/area relocations.
@@ -266,17 +241,16 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	  assert (codeP->Tag == CodeValue);
 	  const Value *valP = &codeP->Data.value;
 
-	  switch (valP->Tag)
+	  Value value = *valP;
+	  if (Value_ResolveSymbol (&value))
+	    return true;
+	  switch (value.Tag)
 	    {
 	      case ValueInt:
 		break;
 
 	      case ValueSymbol:
 		{
-		  Value value = *valP;
-		  if (Value_ResolveSymbol (&value))
-		    return true;
-		  assert (value.Tag == ValueSymbol);
 		  if (value.Data.Symbol.symbol == areaCurrentSymbol)
 		    {
 		      assert ((value.Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) == 0);
@@ -300,7 +274,7 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
   if (relative < 0 && -relative > relocs)
     return true; /* More PC-rel relocs needed than relocs to be done.  */
 
-  const uint32_t relocOffset = (!privDataP->allowUnaligned) ? (offset + privDataP->size - 1) & -privDataP->size : offset;
+  const uint32_t relocOffset = (!allowUnaligned) ? (offset + size - 1) & -size : offset;
 
   ARMWord armValue = 0;
     {
@@ -324,21 +298,20 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	  assert (codeP->Tag == CodeValue);
 	  const Value *valP = &codeP->Data.value;
 
-	  switch (valP->Tag)
+	  Value value = *valP;
+	  if (Value_ResolveSymbol (&value))
+	    return true;
+	  switch (value.Tag)
 	    {
 	      case ValueInt:
-		armValue += factor * valP->Data.Int.i;
+		armValue += factor * value.Data.Int.i;
 		break;
 
 	      case ValueSymbol:
 		{
-		  Value value = *valP;
-		  if (Value_ResolveSymbol (&value))
-		    return true;
-		  assert (value.Tag == ValueSymbol);
 		  armValue += factor * value.Data.Symbol.offset;
 		  int how;
-		  switch (privDataP->size)
+		  switch (size)
 		    {
 		      case 1:
 			how = HOW2_INIT | HOW2_BYTE;
@@ -391,99 +364,125 @@ DefineInt_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
 	}
       assert (!relocs && !relative);
     }
-  armValue = Fix_Int (fileName, lineNum, privDataP->size, armValue);
-  if (privDataP->size == 4 && privDataP->swapHalfwords)
+  armValue = Fix_Int (NULL, 0, size, armValue);
+  if (size == 4 && swapHalfwords)
     armValue = (armValue >> 16) | (armValue << 16);
-  Put_AlignDataWithOffset (offset, privDataP->size, armValue, 1,
-                           !privDataP->allowUnaligned);
+  Put_AlignDataWithOffset (offset, size, armValue, 1, !allowUnaligned);
   
   return false;
 }
 
+
+/**
+ * Implements core of DCB, =, DCW, DCWU, &, DCD, DCDU, DCQ, DCQU, DCI.
+ */
 static void
 DefineInt (int size, bool allowUnaligned, bool swapHalfwords, const char *mnemonic)
 {
-  DefineInt_PrivData_t privData =
+  ValueTag allowedTypes; /* Types which we accept to see in PassTwo.  */
+  switch (size)
     {
-      .size = size,
-      .allowUnaligned = allowUnaligned,
-      .swapHalfwords = swapHalfwords
-    };
+      case 1:
+      case 2:
+      case 4:
+	allowedTypes = ValueInt | ValueString; /* Only 1 byte long strings for size 2 and 4.  */
+	/* Only during pass two we will emit symbols.  */
+	if (gPhase != ePassOne)
+	  allowedTypes |= ValueSymbol | ValueCode;
+	break;
+
+      case 8:
+	/* DCQ/DCQU only supports literals.  */
+	allowedTypes = ValueInt | ValueInt64;
+	break;
+
+      default:
+	assert (0);
+	break;
+    }
+
   do
     {
-      exprBuild ();
-      ValueTag allowedTypes;
-      switch (size)
+      const uint32_t offset = areaCurrentSymbol->area.info->curIdx;
+      const Value *valP = exprBuildAndEval (allowedTypes);
+
+      bool failed = false;
+      switch (valP->Tag)
 	{
-	  case 1:
-	    allowedTypes = ValueInt | ValueString | ValueSymbol | ValueCode;
-	    break;
-	  case 8:
-	    /* DCQ/DCQU only supports literals.  */
-	    allowedTypes = ValueInt | ValueInt64;
-	    break;
-	  default:
-	    allowedTypes = ValueInt | ValueSymbol | ValueCode;
-	    break;
-	}
-      /* FIXME: test on size being 8 is a hack (Reloc_QueueExprUpdate is
-         not ready for it).  */
-      if (gPhase == ePassOne || size == 8)
-	{
-	  const Value *result = codeEval (allowedTypes, NULL);
-	  switch (result->Tag)
+	  case ValueString:
 	    {
-	      case ValueString:
+	      assert (size == 1 || size == 2 || size == 4);
+	      size_t len = valP->Data.String.len;
+	      if (size != 1 && len != 1)
 		{
-		  size_t len = result->Data.String.len;
-		  const char *str = result->Data.String.s;
-		  /* Lay out a string.  */
+		  error (ErrorError, "Non 1 byte storage can only accept 1 byte long strings");
+		  Put_AlignDataWithOffset (offset, size, 0, 1, !allowUnaligned);
+		}
+	      else
+		{
+		  const char *str = valP->Data.String.s;
 		  for (size_t i = 0; i != len; ++i)
-		    Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
-					     privData.size, (unsigned char)str[i],
-					     1, !privData.allowUnaligned);
-		  break;
+		    Put_AlignDataWithOffset (offset + i, size, (unsigned char)str[i],
+					     1, !allowUnaligned);
 		}
-
-              case ValueInt:
-		Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
-					 privData.size, result->Data.Int.i, 1,
-					 !privData.allowUnaligned);
-		break;
-		
-	      case ValueInt64:
-		{
-		  assert (size == 8);
-		  const uint64_t val = result->Data.Int64.i;
-		  Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
-					   4, (uint32_t)val, 1,
-					   !privData.allowUnaligned);
-		  Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
-					   4, (uint32_t)(val >> 32), 1,
-					   !privData.allowUnaligned);
-		  break;
-		}
-
-	      case ValueIllegal:
-		error (ErrorError, "Illegal %s expression", mnemonic);
-		break;
-		
-	      case ValueSymbol:
-	      case ValueCode:
-		Put_AlignDataWithOffset (areaCurrentSymbol->area.info->curIdx,
-					 privData.size, 0, 1,
-					 !privData.allowUnaligned);
-		break;
-
-	      default:
-		assert (0);
-		break;
+	      break;
 	    }
+
+	  case ValueInt:
+	    {
+	      assert (size == 1 || size == 2 || size == 4 || size == 8);
+	      ARMWord armValue = size != 8 ? Fix_Int (NULL, 0, size, valP->Data.Int.i) : (ARMWord)valP->Data.Int.i;
+	      if (size == 4 && swapHalfwords)
+		armValue = (armValue >> 16) | (armValue << 16);
+	      Put_AlignDataWithOffset (offset, size, armValue,
+				       1, !allowUnaligned);
+	      break;
+	    }
+
+	  case ValueInt64:
+	    {
+	      assert (size == 8);
+	      const uint64_t val = valP->Data.Int64.i;
+	      Put_AlignDataWithOffset (offset + 0, 4, (uint32_t)val, 1, !allowUnaligned);
+	      Put_AlignDataWithOffset (offset + 4, 4, (uint32_t)(val >> 32), 1, !allowUnaligned);
+	      break;
+	    }
+
+	  case ValueSymbol:
+	    {
+	      /* Package ValueSymbol in a ValueCode.  */
+	      const Code codeValueSymbol =
+		{
+		  .Tag = CodeValue,
+		  .Data.value = *valP 
+		};
+	      const Value valueCode =
+		{
+		  .Tag = ValueCode,
+		  .Data.Code =
+		    {
+		      .len = 1,
+		      .c = &codeValueSymbol
+		    }
+		};
+	      failed = DefineInt_HandleSymbols (size, allowUnaligned, swapHalfwords, offset, &valueCode);
+	      break;
+	    }
+
+	  case ValueCode:
+	    failed = DefineInt_HandleSymbols (size, allowUnaligned, swapHalfwords, offset, valP);
+	    break;
+
+	  default:
+	    failed = true;
+	    break;
 	}
-      else if (Reloc_QueueExprUpdate (DefineInt_RelocUpdater, areaCurrentSymbol->area.info->curIdx,
-				      allowedTypes,
-				      &privData, sizeof (privData)))
-	error (ErrorError, "Illegal %s expression", mnemonic);
+      if (failed)
+	{
+	  if (gPhase != ePassOne)
+	    error (ErrorError, "Illegal %s expression", mnemonic);
+	  Put_AlignDataWithOffset (offset, size, 0, 1, !allowUnaligned);
+	}
 
       skipblanks ();
     }
@@ -596,83 +595,36 @@ c_dci (bool doLowerCase)
 
 
 /**
- * Reloc updater for DefineReal().
+ * Used to implement DCFS, DCFSU, DCFD and DCFDU.
  */
-bool
-DefineReal_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
-			 const Value *valueP, void *privData, bool final)
-{
-  const DefineReal_PrivData_t *privDataP = (const DefineReal_PrivData_t *)privData;
-
-  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
-
-  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
-    {
-      const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag == CodeOperator)
-	{
-	  if (codeP->Data.op != eOp_Add)
-	    return true;
-	  continue;
-	}
-      assert (codeP->Tag == CodeValue);
-      const Value *valP = &codeP->Data.value;
-
-      switch (valP->Tag)
-	{
-	  case ValueInt:
-	    Put_FloatDataWithOffset (offset, privDataP->size, valP->Data.Int.i,
-				     !privDataP->allowUnaligned);
-	    break;
-
-	  case ValueFloat:
-	    Put_FloatDataWithOffset (offset, privDataP->size, valP->Data.Float.f,
-				     !privDataP->allowUnaligned);
-	    break;
-
-	  case ValueSymbol:
-	    if (!final)
-	      {
-		Put_FloatDataWithOffset (offset, privDataP->size, 0.,
-					 !privDataP->allowUnaligned);
-		return true;
-	      }
-	    errorLine (fileName, lineNum, ErrorError, "Can't create relocation");
-	    break;
-
-	  default:
-	    return true;
-	}
-    }
-  
-  return false;
-}
-
 static void
 DefineReal (int size, bool allowUnaligned, const char *mnemonic)
 {
-  DefineReal_PrivData_t privData =
-    {
-      .size = size,
-      .allowUnaligned = allowUnaligned
-    };
   do
     {
-      exprBuild ();
-      if (gPhase == ePassOne)
-	Put_FloatDataWithOffset (areaCurrentSymbol->area.info->curIdx,
-				 privData.size, 0., !privData.allowUnaligned);
-      else
+      uint32_t offset = areaCurrentSymbol->area.info->curIdx;
+
+      /* FIXME? Support for ValueInt, ValueInt64 ? */
+      /* FIXME: relocation support for float values ? */
+      const Value *valP = exprBuildAndEval (ValueFloat);
+      switch (valP->Tag)
 	{
-	  if (Reloc_QueueExprUpdate (DefineReal_RelocUpdater, areaCurrentSymbol->area.info->curIdx,
-				     ValueFloat | ValueSymbol | ValueCode, &privData, sizeof (privData)))
-	    error (ErrorError, "Illegal %s expression", mnemonic);
+	  case ValueFloat:
+	    Put_FloatDataWithOffset (offset, size, valP->Data.Float.f, !allowUnaligned);
+	    break;
+
+	  default:
+	    if (gPhase != ePassOne)
+	      error (ErrorError, "Illegal %s expression", mnemonic);
+	    Put_FloatDataWithOffset (offset, size, 0., !allowUnaligned);
+	    break;
 	}
-      
+
       skipblanks ();
     }
   while (Input_Match (',', false));
 }
+
 
 /**
  * Implements DCFS / DCFSU (IEEE Single Precision).

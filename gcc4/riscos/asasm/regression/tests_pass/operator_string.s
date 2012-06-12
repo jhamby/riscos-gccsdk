@@ -109,4 +109,21 @@ EXTENSION SETL	{FALSE}
 
 	]
 
+	; :STR: should work on . and {PC} for ABS areas.
+	AREA	Code2, CODE
+	ORG	&8000
+	[ :LNOT: REFERENCE
+	=	:STR:.
+Snap	*	{PC}
+Snap2	*	2*Snap + &10
+	=	:STR:{PC}
+	=	:STR:Snap
+	=	:STR:Snap2
+	|
+	=	"00008000"
+	=	"00008008"
+	=	"00008008"
+	=	"00010020"
+	]
+
 	END

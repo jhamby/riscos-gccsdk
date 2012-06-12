@@ -23,6 +23,7 @@
 #include "config.h"
 
 #include <assert.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
@@ -52,195 +53,69 @@
 #include "targetcpu.h"
 #include "value.h"
 
-/** CONTROL **/
-
-static bool
-Branch_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
-		     const Value *valueP, void *privData, bool final)
-{
-  bool isBLX = *(bool *)privData;
-  ARMWord ir = GetWord (offset);
-  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
-
-  if (final)
-    return true;
-  
-  int relocs = 0;
-  int relative = 0;
-    {
-      int factor = 1;
-      for (size_t i = 0; i != valueP->Data.Code.len; ++i)
-	{
-	  if (i + 1 != valueP->Data.Code.len
-	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
-	      && valueP->Data.Code.c[i + 1].Data.op == eOp_Sub)
-	    factor = -1;
-	  else
-	    factor = 1;
-
-	  const Code *codeP = &valueP->Data.Code.c[i];
-	  if (codeP->Tag == CodeOperator)
-	    {
-	      if (codeP->Data.op != eOp_Add && codeP->Data.op != eOp_Sub)
-		return true;
-	      continue;
-	    }
-	  assert (codeP->Tag == CodeValue);
-	  const Value *valP = &codeP->Data.value;
-
-	  switch (valP->Tag)
-	    {
-	      case ValueInt:
-		break;
-
-	      case ValueSymbol:
-		{
-		  Value value = *valP;
-		  if (Value_ResolveSymbol (&value))
-		    return true;
-		  assert (value.Tag == ValueSymbol);
-		  if (value.Data.Symbol.symbol == areaCurrentSymbol)
-		    {
-		      assert ((value.Data.Symbol.symbol->type & SYMBOL_ABSOLUTE) == 0);
-		      relative += factor * value.Data.Symbol.factor;
-		    }
-		  else
-		    {
-		      if (factor * value.Data.Symbol.factor < 0)
-			return true;
-		      relocs += factor * value.Data.Symbol.factor;
-		    }
-		  break;
-		}
-
-	      default:
-		return true;
-	    }
-	}
-    }
-  assert (relocs >= 0);
-  
-  /* Branch instruction with value 0 means a branch to {PC} + 8 which is
-     current area base + branch instruction offset + 8.
-     So start to compensate with this value, the result is a value what needs
-     to be added to that branch instruction with value 0.  */
-  int branchInstrValue = -(offset + 8);
-  relative -= 1;
-  if (areaCurrentSymbol->area.info->type & AREA_ABS)
-    {
-      branchInstrValue += relative * Area_GetBaseAddress (areaCurrentSymbol);
-      relative = 0;
-    }
-    {
-      int factor = 1;
-      for (size_t i = 0; i != valueP->Data.Code.len; ++i)
-	{
-	  if (i + 1 != valueP->Data.Code.len
-	      && valueP->Data.Code.c[i + 1].Tag == CodeOperator
-	      && valueP->Data.Code.c[i + 1].Data.op == eOp_Sub)
-	    factor = -1;
-	  else
-	    factor = 1;
-
-	  const Code *codeP = &valueP->Data.Code.c[i];
-	  if (codeP->Tag == CodeOperator)
-	    {
-	      if (codeP->Data.op != eOp_Add && codeP->Data.op != eOp_Sub)
-		return true;
-	      continue;
-	    }
-	  assert (codeP->Tag == CodeValue);
-	  const Value *valP = &codeP->Data.value;
-
-	  switch (valP->Tag)
-	    {
-	      case ValueInt:
-		branchInstrValue += factor * valP->Data.Int.i;
-		break;
-
-	      case ValueSymbol:
-		{
-		  Value value = *valP;
-		  if (Value_ResolveSymbol (&value))
-		    return true;
-		  assert (value.Tag == ValueSymbol);
-		  branchInstrValue += factor * value.Data.Symbol.offset;
-
-		  int numRelocs;
-		  if (valP->Data.Symbol.symbol == areaCurrentSymbol)
-		    {
-		      if (relative > 0)
-			{
-			  numRelocs = relative;
-			  relative = 0;
-			}
-		      else
-			numRelocs = 0; /* Nothing to be done.  */
-		    }
-		  else
-		    {
-		      numRelocs = factor * value.Data.Symbol.factor;
-		      relocs -= numRelocs;
-		    }
-		  while (numRelocs--)
-		    {
-		      int how2;
-		      if (relative < 0)
-			{
-			  ++relative;
-			  how2 = HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE;
-			}
-		      else
-			how2 = HOW2_INIT | HOW2_SIZE;
-		      if (Reloc_Create (how2, offset, &value) == NULL)
-			return true;
-		      /* The R_ARM_PC24 ELF reloc needs to happen for a "B {PC}"
-			 instruction, while in AOF this needs to happen for a
-			 "B -<area origin>" instruction.  */
-		      if (!option_aof)
-			branchInstrValue += offset;
-		    }
-		  break;
-		}
-
-	      default:
-		assert (0);
-		break;
-	    }
-	}
-      while (relative < 0)
-	{
-	  ++relative;
-	  const Value value = Value_Symbol (areaCurrentSymbol, 1, 0);
-	  if (Reloc_Create (HOW2_INIT | HOW2_SIZE, offset, &value) == NULL)
-	    return true;
-	}
-      assert (!relocs && !relative);
-    }
-
-  int mask = isBLX ? 1 : 3;
-  if (branchInstrValue & mask)
-    errorLine (fileName, lineNum, ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
-  ir |= ((branchInstrValue >> 2) & 0xffffff) | (isBLX ? (branchInstrValue & 2) << 23 : 0);
-  Put_InsWithOffset (offset, 4, ir);
-
-  return false;
-}
-
+/**
+ * Shared for B, BL and BLX implementation.
+ */
 static bool
 branch_shared (ARMWord cc, bool isBLX)
 {
   /* At this point the current area index can be unaligned for ARM/Thumb
      instructions, upfront correct this index.  */
-  const ARMWord instrAlign = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
-  const ARMWord offset = (areaCurrentSymbol->area.info->curIdx + instrAlign-1) & -instrAlign;
+  const uint32_t instrAlign = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
+  const uint32_t offset = (areaCurrentSymbol->area.info->curIdx + instrAlign-1) & -instrAlign;
+  const uint32_t areaOffset = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
 
   exprBuild ();
 
-  Put_Ins (4, cc | 0x0A000000);
-  if (gPhase != ePassOne
-      && Reloc_QueueExprUpdate (Branch_RelocUpdater, offset, ValueInt | ValueCode | ValueSymbol, &isBLX, sizeof (isBLX)))
-    error (ErrorError, "Illegal branch expression");
+  if (gPhase == ePassOne)
+    {
+      Put_Ins (4, 0);
+      return false;
+    }
+
+  const Value *valP = exprEval (ValueInt | ValueSymbol); /* FIXME: support ValueAddr  ? */
+  if (valP->Tag == ValueIllegal
+      || (valP->Tag == ValueSymbol && valP->Data.Symbol.factor != 1))
+    {
+      error (ErrorError, "Illegal branch expression");
+      return false;
+    }
+
+  /* Switch to ValueSymbol when possible.  */
+  Value value;
+  if (valP->Tag == ValueInt)
+    {
+      value = Value_Symbol (areaCurrentSymbol, 1, valP->Data.Int.i - areaOffset);
+      valP = &value;
+    }
+
+  /* Branch instruction with value 0 means a branch to {PC} + 8 which is
+     current area base + branch instruction offset + 8.
+     So start to compensate with this value, the result is a value what needs
+     to be added to that branch instruction with value 0.  */
+  int branchInstrValue = -(offset + 8);
+
+  assert (valP->Tag == ValueSymbol);
+  assert (valP->Data.Symbol.factor == 1);
+  if (valP->Data.Symbol.symbol != areaCurrentSymbol)
+    {
+      if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+	error (ErrorError, "Relocation failed");
+
+      /* The R_ARM_PC24 ELF reloc needs to happen for a "B {PC}" instruction,
+  	 while in AOF this needs to happen for a "B -<area origin>"
+	 instruction.  */
+      if (!option_aof)
+	branchInstrValue += offset;
+    }
+  branchInstrValue += valP->Data.Symbol.offset;
+  
+  int mask = isBLX ? 1 : 3;
+  if (branchInstrValue & mask)
+    error (ErrorError, "Branch value is not a multiple of %s", isBLX ? "two" : "four");
+  ARMWord ir = cc | 0x0A000000 | ((branchInstrValue >> 2) & 0xffffff) | (isBLX ? (branchInstrValue & 2) << 23 : 0);
+  Put_Ins (4, ir);
+
   return false;
 }
 
@@ -397,176 +272,155 @@ m_bkpt (void)
 }
 
 /**
- * \param baseReg When >= 0, emit "ADD/SUB Rx, <baseReg>, #xyz" +
- * "ADD/SUB Rx, Rx, #xyz", otherwise emit "MOV/MVN Rx, #xyz" +
- * "ORR/BIC Rx, Rx, #xyz"
- * \param fixedNumInstr When true, we can't change the number of instructions.
- * When ir & 1 is set and fixedNumInstr is false, we can ignore to emit the
- * 2nd instruction.  When it is true, we have to.
+ * \param constant Constant value relative to base register (R0 .. R15), or
+ * absolute when base register is < 0.
+ * \param baseReg Either 0 .. 15 for R0 ... R15 (relative constant).  When < 0,
+ * there is no base register specified and constant is absolute.
+ * When baseReg == 0 .. 14, 15 in non-ABS area :
+ *     ADD/SUB Rx, baseReg, #... + ADD/SUB Rx, Rx, #...
+ * When baseReg == 15 in ABS area :
+ *     ADD/SUB Rx, R15, #... + ADD/SUB Rx, Rx, #...
+ *  or
+ *     MOV/MVN Rx, #... + ADD/SUB Rx, Rx, #...
+ * When baseReg < 0 (non-ABS area) :
+ *     MOV/MVN Rx, #... + ADD/SUB Rx, Rx, #...
+ * When baseReg < 0 (ABS area) :
+ *     ADD/SUB Rx, R15, #... + ADD/SUB Rx, Rx, #...
+ *  or
+ *     MOV/MVN Rx, #... + ADD/SUB Rx, Rx, #...
+ * \param baseInstr Base instruction as returned from optionAdrL with bit 0
+ * cleared.
+ * \param isADRL true when the input was ADRL, false for ADR.
+ * \param canSwitch true when we still can switch between ADR and ADRL, false
+ * otherwise.
  */
 static void
-ADR_RelocUpdaterCore (const char *fileName, unsigned lineNum, size_t offset, int constant,
-		      int baseReg, bool fixedNumInstr, bool isADRL)
+ADR_RelocUpdaterCore (int constant, int baseReg, uint32_t baseInstr,
+		      bool isADRL, bool canSwitch)
 {
-  /* FIXME: Can clever use of ADD/SUB mixture cover more constants ? */
+  uint32_t offset = areaCurrentSymbol->area.info->curIdx;
+  uint32_t areaOffset = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
+
+  bool baseRegUnspecified = baseReg < 0;
+  if (baseRegUnspecified)
+    {
+      /* Make constant relative to {PC} + 8.  */
+      constant -= areaOffset + offset + 8;
+      baseReg = 15;
+    }
+  
+  /* FIXME: Can clever use of an ADD/SUB/ORR/BIC mixture cover more constants ? */
   struct
     {
       unsigned int try[4];
       int num;
-    } split[2];
-  split[0].num = Help_SplitByImm8s4 (constant, split[0].try);
-  split[1].num = Help_SplitByImm8s4 (baseReg >= 0 ? -constant : ~constant, split[1].try);
-  bool bestIndex, getOnes;
-  if (split[0].num < split[1].num)
+    } split[4];
+  if (baseRegUnspecified
+      || (baseReg == 15 && (areaCurrentSymbol->area.info->type & AREA_ABS) != 0))
     {
-      bestIndex = false;
-      getOnes = true;
+      /* MOV/MVN Rx, #... [ + ADD/SUB Rx, Rx, #... ]  */
+      int absConstant = constant + (areaOffset + offset + 8);
+      split[0].num = Help_SplitByImm8s4 (absConstant, split[0].try); /* MOV [ + ADD ].  */
+      split[1].num = Help_SplitByImm8s4 (~absConstant, split[1].try); /* MVN [ + SUB ].  */
     }
   else
+    split[1].num = split[0].num = INT_MAX;
+  /* FIXME: we can use MOVW as well.  */
+  if (!baseRegUnspecified || (areaCurrentSymbol->area.info->type & AREA_ABS) != 0)
     {
-      bestIndex = true;
-      getOnes = false;
+      /* ADD/SUB Rx, baseReg, #... [ + ADD/SUB Rx, Rx, #... ] */
+      split[2].num = Help_SplitByImm8s4 (constant, split[2].try); /* ADD [ + ADD ] (all baseReg).  */
+      split[3].num = Help_SplitByImm8s4 (-constant, split[3].try); /* SUB [ + SUB ] (all baseReg).  */
+    }
+  else
+    split[3].num = split[2].num = INT_MAX;
+
+  int bestIndex = 0, bestScore = split[0].num;
+  for (int i = 0; i != 4; ++i)
+    {
+      if (bestScore > split[i].num)
+	{
+	  bestScore = split[i].num;
+	  bestIndex = i;
+	}
+    }
+  assert (bestScore != INT_MAX && "At least a solution of 4 instr should have been found");
+
+  if (bestScore >= 3
+      || (bestScore == 2 && !isADRL /* FIXME: && !canSwitch*/))
+    {
+      if (areaCurrentSymbol->area.info->type & AREA_ABS)
+	error (ErrorError, "%s at area offset 0x%x with base address 0x%x can not be used to encode [r%d, #0x%x]",
+	       (isADRL) ? "ADRL" : "ADR", offset, areaOffset, baseReg, constant);
+      else
+	error (ErrorError, "%s at area offset 0x%x can not be used to encode [r%d, #0x%x]",
+	       (isADRL) ? "ADRL" : "ADR", offset, baseReg, constant);
+      bestScore = isADRL ? 2 : 1;
     }
 
-  /* When baseReg is not specified and when we're in an absolute area, we can
-     use PC-relative addressing as well in order to increase our options.  */
-  if (baseReg < 0 && (areaCurrentSymbol->area.info->type & AREA_ABS))
+  if (bestScore == 1 && isADRL)
     {
-      const int newConstant = constant - (Area_GetBaseAddress (areaCurrentSymbol) + offset + 8);
-      split[!bestIndex].num = Help_SplitByImm8s4 (-newConstant, split[!bestIndex].try);
-      if (split[bestIndex].num >= split[!bestIndex].num)
-	{
-	  bestIndex = !bestIndex;
-	  getOnes = false;
-	  baseReg = 15;
-	}
-      split[!bestIndex].num = Help_SplitByImm8s4 (newConstant, split[!bestIndex].try);
-      if (split[bestIndex].num >= split[!bestIndex].num)
-	{
-	  bestIndex = !bestIndex;
-	  getOnes = true;
-	  baseReg = 15;
-	}
+      if (areaCurrentSymbol->area.info->type & AREA_ABS)
+	error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x with base address 0x%x to encode [r%d, #0x%x]",
+	       offset, areaOffset, baseReg, constant);
+      else
+	error (ErrorWarning, "ADR instead of ADRL can be used at area offset 0x%x to encode [r%d, #0x%x]",
+	       offset, baseReg, constant);
+      /* We could switch to ADR (when canSwitch is true) but I don't think this is always really wanted.  */
+      bestScore = 2;
+      split[bestIndex].try[1] = 0;
+    }
+  else if (bestScore == 2 && !isADRL)
+    {
+      assert (0); /* FIXME: */
+      assert (canSwitch);
+      /* We switch from ADR to ADRL because there is no other option.  */
+      if (areaCurrentSymbol->area.info->type & AREA_ABS)
+	error (ErrorWarning, "Using ADRL instead of ADR at area offset 0x%x with base address 0x%x to encode [r%d, #0x%x]",
+	       offset, areaOffset, baseReg, constant);
+      else
+	error (ErrorWarning, "Using ADRL instead of ADR at area offset 0x%x to encode [r%d, #0x%x]",
+	       offset, baseReg, constant);
     }
 
   ARMWord irop1, irop2;
-  if (getOnes)
+  switch (bestIndex)
     {
-      irop1 = baseReg >= 0 ? M_ADD : M_MOV;
-      irop2 = M_ADD;
-    }
-  else
-    {
-      irop1 = baseReg >= 0 ? M_SUB : M_MVN;
-      irop2 = M_SUB;
-    }
-
-  if (split[bestIndex].num == 1 && isADRL)
-    {
-      if (fixedNumInstr)
-	{
-	  errorLine (fileName, lineNum, ErrorWarning, "ADRL at area offset 0x%08zx is not required for encoding 0x%08x", offset, constant);
-	  split[bestIndex].try[1] = 0;
-	  split[bestIndex].num = 2;
-	}
-      else
-	errorLine (fileName, lineNum, ErrorInfo, "ADRL at area offset 0x%08zx is not required for encoding 0x%08x, using ADR instead", offset, constant);
-    }
-  else if ((split[bestIndex].num == 2 && !isADRL)
-	   || split[bestIndex].num == 3 || split[bestIndex].num == 4)
-    {
-      if (fixedNumInstr)
-	{
-	  errorLine (fileName, lineNum, ErrorError, "%s at area offset 0x%08zx can not be used to encode 0x%08x", (isADRL) ? "ADRL" : "ADR", offset, constant);
-	  split[bestIndex].num = (isADRL) ? 2 : 1;
-	}
-      else
-	errorLine (fileName, lineNum, ErrorWarning, "%s at area offset 0x%08zx can not be used to encode 0x%08x, using %d instruction sequence instead", (isADRL) ? "ADRL" : "ADR", offset, constant, split[bestIndex].num);
+      case 0:
+	irop1 = M_MOV;
+	irop2 = M_ADD;
+	break;
+      case 1:
+	irop1 = M_MVN;
+	irop2 = M_SUB;
+	break;
+      case 2:
+	irop2 = irop1 = M_ADD;
+	break;
+      case 3:
+	irop2 = irop1 = M_SUB;
+	break;
+      default:
+	assert (0);
+	break;
     }
 
-  ARMWord ir = GetWord (offset);
-  if (split[bestIndex].num == 2 && GET_DST_OP(ir) == 15)
-    errorLine (fileName, lineNum, ErrorError, "ADRL can not be used with register 15 as destination");
+  if (bestScore == 2 && GET_DST_OP(baseInstr) == 15)
+    error (ErrorError, "ADRL can not be used with register 15 as destination");
 
-  for (int n = 0; n < split[bestIndex].num; ++n)
+  for (int n = 0; n != bestScore; ++n)
     {
       /* Fix up the base register.  */
-      ARMWord irs = ir | (n == 0 ? irop1 : irop2);
-      if (baseReg >= 0 || n != 0)
-        irs = irs | LHS_OP (n == 0 ? (ARMWord)baseReg : GET_DST_OP(ir));
+      ARMWord irs = baseInstr | (n == 0 ? irop1 : irop2);
+      if (bestIndex >= 2 /* = when ADD/SUB is used */ || n != 0)
+        irs = irs | LHS_OP (n == 0 ? (ARMWord)baseReg : GET_DST_OP(baseInstr));
 
       int i8s4 = help_cpuImm8s4 (split[bestIndex].try[n]);
       assert (i8s4 != -1);
       irs |= i8s4;
 
-      Put_InsWithOffset (offset + n*4, 4, irs);
+      Put_Ins (4, irs);
     }
-}
-
-typedef struct
-{
-  ARMWord orgInstr;
-  bool userIntendedTwoInstr;
-} ADR_PrivData_t;
-
-/**
- * Shared reloc updater for ADR and ADRL.
- */
-static bool
-ADR_RelocUpdater (const char *fileName, unsigned lineNum, ARMWord offset,
-		  const Value *valueP, void *privData, bool final)
-{
-  const ADR_PrivData_t *privDataP = (const ADR_PrivData_t *)privData;
-
-  Put_InsWithOffset (offset, 4, privDataP->orgInstr);
-
-  assert (valueP->Tag == ValueCode && valueP->Data.Code.len != 0);
-  for (size_t i = 0; i != valueP->Data.Code.len; ++i)
-    {
-      const Code *codeP = &valueP->Data.Code.c[i];
-      if (codeP->Tag == CodeOperator)
-	{
-	  if (codeP->Data.op != eOp_Add)
-	    return true;
-	  continue;
-	}
-      assert (codeP->Tag == CodeValue);
-      const Value *valP = &codeP->Data.value;
-
-      switch (valP->Tag)
-	{
-	  case ValueInt:
-	    /* Absolute value : results in MOV/MVN (followed by ADD/SUB in case of
-	       ADRL).  */
-	    ADR_RelocUpdaterCore (fileName, lineNum, offset, valP->Data.Int.i, -1, true /* final */, privDataP->userIntendedTwoInstr);
-	    break;
-
-	  case ValueAddr:
-	    ADR_RelocUpdaterCore (fileName, lineNum, offset, valP->Data.Addr.i, valP->Data.Addr.r, true /* final */, privDataP->userIntendedTwoInstr);
-	    break;
-
-	  case ValueSymbol:
-	    {
-	      /* Wait until the last (final) round as this avoid emitting unnecessary
-		relocations.  */
-	      if (!final)
-		{
-		  if (privDataP->userIntendedTwoInstr)
-		    Put_InsWithOffset (offset + 4, 4, 0);
-		  return true;
-		}
-	      ADR_RelocUpdaterCore (fileName, lineNum, offset, valP->Data.Symbol.offset - (offset + 8), 15, true /* final */, privDataP->userIntendedTwoInstr);
-	      if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
-		return true;
-	    }
-	    break;
-
-	  default:
-	    return true;
-	}
-    }
-
-  return false;
 }
 
 /**
@@ -585,31 +439,79 @@ m_adr (bool doLowerCase)
   if (!Input_Match (',', false))
     error (ErrorError, "%sdst", InsertCommaAfter);
 
-  exprBuild ();
+  bool isADRL = ir & 1;
+  ir &= ~1;
+  
+  ValueTag tag = (gPhase == ePassOne) ? ValueInt | ValueAddr : ValueInt | ValueAddr | ValueSymbol;
+  const Value *valP = exprBuildAndEval (tag);
 
-  if (gPhase == ePassOne)
+  if (valP->Tag == ValueIllegal
+      || (valP->Tag == ValueSymbol && valP->Data.Symbol.factor != 1))
     {
-      Put_Ins (4, 0);
-      /* When bit 0 is set, we'll emit ADRL (2 instructions).  */
-      if (ir & 1)
-	Put_Ins (4, 0);
+      if (gPhase == ePassOne)
+	{
+	  /* We have unresolved symbols.  Wait until pass two to do the work.
+	     This means also that when ADRL is used, we can't go back to ADR
+	     anymore.  */
+	  Put_Ins (4, 0);
+	  if (isADRL)
+	    Put_Ins (4, 0);
+	}
+      else
+	error (ErrorError, "Illegal %s expression", isADRL ? "ADRL" : "ADR");
       return false;
     }
-  
-  /* When bit 0 is set, we'll emit ADRL (2 instructions).  */
-  ADR_PrivData_t privData =
-    {
-      .orgInstr = (ir | DST_OP (regD) | IMM_RHS) & ~1,
-      .userIntendedTwoInstr = (ir & 1) != 0
-    };
 
-  /* The label will expand to either a field in a based map or a PC-relative 
-     expression.  */
-  if (Reloc_QueueExprUpdate (ADR_RelocUpdater,
-			     areaCurrentSymbol->area.info->curIdx,
-			     ValueAddr | ValueInt | ValueSymbol | ValueCode,
-			     &privData, sizeof (privData)))
-    error (ErrorError, "Illegal %s expression", (privData.userIntendedTwoInstr & 1) ? "ADRL" : "ADR");
+  uint32_t offset = areaCurrentSymbol->area.info->curIdx;
+  uint32_t areaOffset = (areaCurrentSymbol->area.info->type & AREA_ABS) ? Area_GetBaseAddress (areaCurrentSymbol) : 0;
+  /* If we come here during PassOne, we're at liberty to change ADR into ADRL
+   * and/or ADRL into ADR.  When we come here at PassTwo, it might be that this
+   * is the first time (as during PassOne we were unable to resolve the ADR(L)
+   * expression into a ValueInt/ValueAddr) so it is important that for this
+   * case we don't do any ADR vs ADRL swapping but also it is important that
+   * we're making the same choice for 'canSwitch' for the case where we arrived
+   * here during PassOne.
+   * The latter means that the first instruction is no longer 0.
+   */
+  bool canSwitch = gPhase == ePassOne || GetWord (offset) != 0;
+
+  /* Switch from current area symbol to [r15, #...].  */
+  Value value;
+  if (valP->Tag == ValueSymbol && valP->Data.Symbol.symbol == areaCurrentSymbol)
+    {
+      value = Value_Addr (15, valP->Data.Symbol.offset - (offset + 8));
+      valP = &value;
+    }
+
+  int constant, baseReg;
+  switch (valP->Tag)
+    {
+      case ValueInt:
+	/* Absolute value : results in MOV/MVN (followed by ADD/SUB in case of
+	   ADRL).  */
+	constant = valP->Data.Int.i;
+	baseReg = -1;
+	break;
+
+      case ValueAddr:
+	constant = valP->Data.Addr.i;
+	baseReg = valP->Data.Addr.r;
+	break;
+
+      case ValueSymbol:
+	assert (valP->Data.Symbol.factor == 1);
+	if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+	  error (ErrorError, "Relocation failed");
+	constant = valP->Data.Symbol.offset - (areaOffset + offset + 8);
+	baseReg = 15;
+	break;
+
+      default:
+	assert (0);
+	break;
+    }
+  ADR_RelocUpdaterCore (constant, baseReg, ir | DST_OP (regD) | IMM_RHS,
+			isADRL, canSwitch);
 
   return false;
 }

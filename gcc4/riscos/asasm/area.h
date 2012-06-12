@@ -92,7 +92,6 @@ typedef struct AREA
   uint32_t curIdx;
   uint32_t maxIdx;
 
-  RelocQueue *relocQueue;
   Reloc *relocs;
 
   struct LITPOOL *litPool;	/** The current literal pool waiting to be assembled. */
