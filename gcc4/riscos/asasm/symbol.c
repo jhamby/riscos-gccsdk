@@ -286,7 +286,9 @@ NeedToOutputSymbol (const Symbol *sym)
     return true;
 
   bool doOutput = (((oKeepAllSymbols || (sym->type & SYMBOL_KEEP))
-		    && (sym->value.Tag == ValueBool || (sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt)))
+		    && (sym->value.Tag == ValueBool
+		        || (sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt)
+		        || sym->value.Tag == ValueSymbol))
 		   || SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
                    || (SYMBOL_KIND(sym->type) == SYMBOL_REFERENCE && sym->used >= 0)
 		  )

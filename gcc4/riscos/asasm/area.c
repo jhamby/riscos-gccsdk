@@ -729,11 +729,17 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType typ
 			   offset);
       assert ((size_t)size + 1 == mappingSymbolSize);
       const Lex mapSymbolLex = lexTempLabel (mappingSymbol, mappingSymbolSize - 1);
-      Symbol *label = ASM_DefineLabel (&mapSymbolLex, offset);
-      if (type == eData)
-	label->type |= SYMBOL_DATUM;
+      (void) ASM_DefineLabel (&mapSymbolLex, offset);
     }
 }
+
+
+Area_eEntryType
+Area_GetCurrentEntryType (void)
+{
+  return oArea_CurrentEntryType;
+}
+
 
 bool
 Area_IsMappingSymbol (const char *symStr)

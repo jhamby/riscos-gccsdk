@@ -185,11 +185,19 @@ ASM_DefineLabel (const Lex *label, uint32_t offset)
       symbolType = 0;
     }
 
+  /* Data symbol in code area ?
+     Note Area_GetCurrentEntryType() can return eInvalid when we're going
+     to define a label at the start of an area which haven't processed
+     yet any data or ARM/Thumb instruction.  */
+  if ((areaCurrentSymbol->area.info->type & AREA_CODE) != 0
+      && Area_GetCurrentEntryType () == eData)
+    symbolType |= SYMBOL_DATUM;
+
   Symbol *symbol = Symbol_Get (label);
   if (Symbol_Define (symbol, symbolType, &value))
     return NULL;
 
-  if (!(areaCurrentSymbol->area.info->type & AREA_ABS))
+  if ((areaCurrentSymbol->area.info->type & AREA_ABS) == 0)
     symbol->area.rel = areaCurrentSymbol;
 
   return symbol;

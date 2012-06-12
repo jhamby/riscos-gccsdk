@@ -44,7 +44,7 @@
 #define SYMBOL_STRONG    0x0020	/* Complicated ??? */
 #define SYMBOL_COMMON    0x0040
 
-#define SYMBOL_DATUM     0x0100	/* ???, for code symbols only */
+#define SYMBOL_DATUM     0x0100	/* Set for data symbol defined in code area.  */
 #define SYMBOL_FPREGARGS 0x0200 /* FP args in FP regs attribute, for code symbols only */
 #define SYMBOL_LEAF      0x0800	/* Leaf function, for code symbol only */
 #define SYMBOL_THUMB     0x1000	/* Identifies Thumb code, instead of ARM code */

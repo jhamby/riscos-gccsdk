@@ -1,3 +1,13 @@
+Tue Jun 12 23:44:35 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c (decode): Call ASM_DefineLabel after Area_MarkStartAs.
+	* area.c (Area_GetCurrentEntryType): Add. 
+	(Area_MarkStartAs): Move setting of SYMBOL_DATUM to...
+	* asm.c (ASM_DefineLabel): ...here.	
+	* area.h (Area_GetCurrentEntryType): Add.
+	* symbol.h (SYMBOL_DATUM): Tune comment.
+	* symbol.c (NeedToOutputSymbol): Output KEEP'd area labels as well.
+
 Tue Jun 12 22:08:15 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* symbol.c (NeedToOutputSymbol): Only consider outputing integer

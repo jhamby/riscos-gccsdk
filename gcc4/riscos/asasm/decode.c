@@ -573,15 +573,6 @@ decode (const Lex *label)
 	      /* Define the label *after* the mnemonic implementation but
 	         with the current offset *before* processing the mnemonic
 	         (and only when the mnemonic is a valid one).  */
-	      if (!tryAsMacro && label->tag != LexLocalLabel)
-		{
-		  if (IsARMOrThumbInstr (&oDecodeTable[indexFound]))
-		    {
-		      unsigned alignValue = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
-		      startOffset = Area_AlignOffset (startAreaSymbol, startOffset, alignValue, NULL);
-		    }
-		  labelSymbol = tryAsMacro ? NULL : ASM_DefineLabel (label, startOffset);
-		}
 	      break;
 	    }
 
@@ -649,6 +640,12 @@ decode (const Lex *label)
 
       if (!tryAsMacro)
 	{
+	  if (IsARMOrThumbInstr (&oDecodeTable[indexFound]))
+	    {
+	      unsigned alignValue = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
+	      startOffset = Area_AlignOffset (startAreaSymbol, startOffset, alignValue, NULL);
+	    }
+
 	  if (oDecodeTable[indexFound].updateMap)
 	    {
 	      /* Define mapping symbols.  */
@@ -674,6 +671,14 @@ decode (const Lex *label)
 		  return;
 		}
 	    }
+
+	  /* Define label after the Area_MarkStartAs call as otherwise
+	     SYMBOL_DATUM will not be correct.  */
+	  /* FIXME: is it still necessary for LexLocalLabels to have them
+	     defined before the instruction is parsed ? */
+	  if ((oDecodeTable[indexFound].cb_type == eCB_Void || oDecodeTable[indexFound].cb_type == eCB_VoidPMatch)
+	      && label->tag != LexLocalLabel)
+	    labelSymbol = ASM_DefineLabel (label, startOffset);
 
 	  /* When areaCurrentSymbol changed, this can only be using "AREA" and
 	     that means no increase of curIdx.  */

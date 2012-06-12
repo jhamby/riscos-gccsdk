@@ -161,6 +161,7 @@ typedef enum
   eThumb = 2
 } Area_eEntryType;
 void Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType type);
+Area_eEntryType Area_GetCurrentEntryType (void);
 bool Area_IsMappingSymbol (const char *symStr);
 
 #endif
