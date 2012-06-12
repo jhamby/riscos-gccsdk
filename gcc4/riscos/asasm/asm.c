@@ -144,11 +144,14 @@ ASM_Assemble (const char *asmFile)
 
 /**
  * Defines a label being at offset of the current AREA.
+ * \param isMapping true when it is an area mapping symbol (i.e. $a, $d, $t)
+ * This will ensure we make the mapping symbol relative to its area
+ * (even for ABS areas).
  * \return NULL when give Lex object can not be a label or has been defined
  * as label before.
  */
 Symbol *
-ASM_DefineLabel (const Lex *label, uint32_t offset)
+ASM_DefineLabel (const Lex *label, uint32_t offset, bool isMapping)
 {
   if (label->tag == LexNone)
     return NULL;
@@ -173,7 +176,8 @@ ASM_DefineLabel (const Lex *label, uint32_t offset)
       value = Value_Addr (Area_GetBaseReg (areaCurrentSymbol->area.info), offset);
       symbolType = 0;
     }
-  else if (areaCurrentSymbol->area.info->type & AREA_ABS)
+  else if ((areaCurrentSymbol->area.info->type & AREA_ABS) != 0
+           && !isMapping)
     {
       value = Value_Int (Area_GetBaseAddress (areaCurrentSymbol) + offset, eIntType_PureInt);
       symbolType = SYMBOL_ABSOLUTE;
@@ -197,7 +201,8 @@ ASM_DefineLabel (const Lex *label, uint32_t offset)
   if (Symbol_Define (symbol, symbolType, &value))
     return NULL;
 
-  if ((areaCurrentSymbol->area.info->type & AREA_ABS) == 0)
+  if ((areaCurrentSymbol->area.info->type & AREA_ABS) == 0
+      || isMapping)
     symbol->area.rel = areaCurrentSymbol;
 
   return symbol;

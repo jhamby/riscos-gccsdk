@@ -428,7 +428,7 @@ decode (const Lex *label)
   /* Deal with empty line quickly.  */
   if (Input_IsEolOrCommentStart ())
     {
-      (void) ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx);
+      (void) ASM_DefineLabel (label, areaCurrentSymbol->area.info->curIdx, false);
       return;
     }
   
@@ -565,7 +565,7 @@ decode (const Lex *label)
 	  case eCB_VoidPMatch:
 	    {
 	      if (label->tag == LexLocalLabel)
-		labelSymbol = ASM_DefineLabel (label, startOffset);
+		labelSymbol = ASM_DefineLabel (label, startOffset, false);
 	      if (oDecodeTable[indexFound].cb_type == eCB_Void)
 		tryAsMacro = oDecodeTable[indexFound].parse_opcode.vd ();
 	      else
@@ -678,7 +678,7 @@ decode (const Lex *label)
 	     defined before the instruction is parsed ? */
 	  if ((oDecodeTable[indexFound].cb_type == eCB_Void || oDecodeTable[indexFound].cb_type == eCB_VoidPMatch)
 	      && label->tag != LexLocalLabel)
-	    labelSymbol = ASM_DefineLabel (label, startOffset);
+	    labelSymbol = ASM_DefineLabel (label, startOffset, false);
 
 	  /* When areaCurrentSymbol changed, this can only be using "AREA" and
 	     that means no increase of curIdx.  */

@@ -339,7 +339,7 @@ c_rout (const Lex *label)
     {
       unsigned alignValue = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
       size_t curIdx = Area_AlignArea (areaCurrentSymbol, alignValue, "instruction");
-      ASM_DefineLabel (label, curIdx);
+      ASM_DefineLabel (label, curIdx, false);
       newROUTId = strndup (label->Data.Id.str, label->Data.Id.len);
     }
   else

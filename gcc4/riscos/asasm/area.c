@@ -729,7 +729,7 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType typ
 			   offset);
       assert ((size_t)size + 1 == mappingSymbolSize);
       const Lex mapSymbolLex = lexTempLabel (mappingSymbol, mappingSymbolSize - 1);
-      (void) ASM_DefineLabel (&mapSymbolLex, offset);
+      (void) ASM_DefineLabel (&mapSymbolLex, offset, true);
     }
 }
 

@@ -27,6 +27,6 @@
 #include "symbol.h"
 
 void ASM_Assemble (const char *asmFile);
-Symbol *ASM_DefineLabel (const Lex *label, uint32_t offset);
+Symbol *ASM_DefineLabel (const Lex *label, uint32_t offset, bool isMapping);
 
 #endif

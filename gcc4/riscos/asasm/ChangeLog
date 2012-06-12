@@ -1,3 +1,11 @@
+Tue Jun 12 23:59:34 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* asm.c (ASM_DefineLabel): Add isMapping parameter.
+	* asm.h (ASM_DefineLabel): Likewise.
+	* decode.c (decode): Follow ASM_DefineLabel API change.
+	* local.c (c_rout): Likewise.
+	* area.c (Area_MarkStartAs): Likewise.
+
 Tue Jun 12 23:44:35 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (decode): Call ASM_DefineLabel after Area_MarkStartAs.
