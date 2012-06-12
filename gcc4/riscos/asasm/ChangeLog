@@ -1,3 +1,8 @@
+Tue Jun 12 22:08:15 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* symbol.c (NeedToOutputSymbol): Only consider outputing integer
+	values which are pure integers.
+
 Tue Jun 12 21:38:35 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m_cpuctrl.c (ADR_RelocUpdaterCore): Prefer the ADD/SUB variants over
