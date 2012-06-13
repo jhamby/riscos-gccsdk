@@ -59,9 +59,9 @@
 #define AREA_LINKONCE		0x10000000 /* GNU linkonce (GCCSDK extension) Normally a reserved bit. */
 #define AREA_RESERVED29		0x20000000
 #define AREA_RESERVED30		0x40000000
-#define AREA_SOFTFLOAT		0x80000000 /* Avoids FP instructions (GCCSDK extension) Normally reserved bit. */
+#define AREA_RESERVED31		0x80000000
 
-/* New since DDE Rel 21 (Note this clashes with AREA_SOFTFLOAT !) 
+/* New since DDE Rel 21 
 
    Area attribute bit 31 is valid for both code and data areas, and when
    set, indicates:

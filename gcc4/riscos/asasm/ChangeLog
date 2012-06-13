@@ -1,3 +1,13 @@
+Wed Jun 13 02:16:59 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* main.c (option_apcs_softfloat, set_option_apcs_softfloat): Remove.
+	(asasm_help): Remove -soft-float and -hard-float options.
+	* main.h (option_apcs_softfloat): Remove.
+	* area.c (Area_ApplyAPCSOption): Remove option_apcs_softfloat use.
+	* m_fpe.c (CheckFPUsageIsAllowed): Likewise.
+	* output.c (Output_ELF): Likewise.
+	* area.h (AREA_SOFTFLOAT): Change into AREA_RESERVED31.
+
 Tue Jun 12 23:59:34 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* asm.c (ASM_DefineLabel): Add isMapping parameter.

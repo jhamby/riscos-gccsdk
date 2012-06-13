@@ -350,8 +350,6 @@ Area_ApplyAPCSOption (uint32_t areaFlags)
     areaFlags |= AREA_32BITAPCS;
   if (gOptionAPCS & APCS_OPT_FPREGARGS)
     areaFlags |= AREA_EXTFPSET;
-  if (option_apcs_softfloat)
-    areaFlags |= AREA_SOFTFLOAT;
   return areaFlags;
 }
 

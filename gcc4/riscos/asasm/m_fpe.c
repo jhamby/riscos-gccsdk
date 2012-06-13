@@ -63,11 +63,7 @@ static unsigned oFPUsageNOFP_LineNum = 0; /**< Place of NOFP (linenumber).  */
 static bool
 CheckFPUsageIsAllowed (void)
 {
-  if (option_apcs_softfloat)
-    {
-      error (ErrorError, "soft-float code uses hard FP instructions");
-      return false;
-    }
+  /* FIXME: check if softfloat is in use.  */
 
   switch (oFPUsage)
     {

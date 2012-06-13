@@ -68,7 +68,6 @@ int option_verbose = 0;
 int option_pedantic = 0;
 int option_fussy = 0;
 int option_throwback = 0;
-int option_apcs_softfloat = -1; /* -1 = option not specified.  */
 int option_aof = -1; /* -1 = option not specified.  */
 bool option_abs = false;
 bool option_uppercase = false;
@@ -179,8 +178,6 @@ asasm_help (void)
 	   "-To objfile                Destination AOF file (ObjAsm compatibility).\n"
 	   "-ABSolute                  Accept AAsm source code.\n"
 	   "-Apcs <APCS options>       Specifies one or more APCS options.\n"
-	   "-soft-float                Mark code as using -msoft-float (avoids explicit FP instructions).  This is a GCCSDK extension to the AOF file format.\n"
-	   "-hard-float                Mark code as using -mhard-float (uses explicit FP instructions) [default].\n"
 #ifndef NO_ELF_SUPPORT
 	   "-elf                       Output ELF file [default].\n"
 #endif
@@ -202,17 +199,6 @@ atexit_handler (void)
   if (returnExitStatus () != EXIT_SUCCESS
       && gPhase >= ePassOne)
     Output_Remove ();
-}
-
-static void
-set_option_apcs_softfloat(int writesf)
-{
-  if (option_apcs_softfloat != -1 && option_apcs_softfloat != writesf)
-    {
-      fprintf (stderr, PACKAGE_NAME ": Conflicting options -soft-float and -hard-float\n");
-      exit (EXIT_FAILURE);
-    }
-  option_apcs_softfloat = writesf;
 }
 
 static void
@@ -363,10 +349,6 @@ main (int argc, char **argv)
 
 	  apcs = val;
 	}
-      else if (!strcasecmp (arg, "soft-float"))
-	set_option_apcs_softfloat (1);
-      else if (!strcasecmp (arg, "hard-float"))
-	set_option_apcs_softfloat (0);
       else if (arg[0] == 'I' || arg[0] == 'i')
 	{
 	  const char *inclDir = arg + 1;
@@ -477,9 +459,6 @@ main (int argc, char **argv)
 	fprintf (stderr, PACKAGE_NAME ": Unknown option -%s ignored\n", arg);
     }
 
-  /* Fallback on default options ? */
-  if (option_apcs_softfloat == -1)
-    option_apcs_softfloat = 0;
   if (option_aof == -1)
 #ifndef NO_ELF_SUPPORT
     option_aof = 0;

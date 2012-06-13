@@ -380,8 +380,7 @@ Output_ELF (void)
 #else
   elf_head.e_flags = 0;
 #endif
-  if (option_apcs_softfloat)
-    elf_head.e_flags |= 0x200;
+  /* Softfloat:  elf_head.e_flags |= 0x200; */
   if (areaEntrySymbol)
     elf_head.e_flags |= EF_ARM_HASENTRY;
   elf_head.e_ehsize = sizeof (elf_head);
