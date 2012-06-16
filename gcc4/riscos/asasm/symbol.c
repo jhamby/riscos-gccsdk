@@ -304,8 +304,8 @@ SymbolCompare (const void *symPP1, const void *symPP2)
   const Symbol *symP2 = *(const Symbol **)symPP2;
 
   /* Not sure how the mapping symbols for AOF output needs to be sorted.  */
-  bool isMappingSym1 = Area_IsMappingSymbol (symP1->str);
-  bool isMappingSym2 = Area_IsMappingSymbol (symP2->str);
+  bool isMappingSym1 = Area_IsMappingSymbol (symP1->str) != eInvalid;
+  bool isMappingSym2 = Area_IsMappingSymbol (symP2->str) != eInvalid;
   if (!option_aof || (!isMappingSym1 && !isMappingSym2)) 
     return strcasecmp (symP1->str, symP2->str);
 
@@ -450,29 +450,48 @@ Symbol_CreateSymbolOut (void)
 
   /* Assign Symbol::offset.
      We want to limit output the strings of mapping symbol to the first two
-     characters so we can share their string output.
+     characters (for $a, $d and $d) or first 4 characters (for $t.x) so we can
+     share their string output.
      Also collect the final string size needed for our output symbols.  */
   struct
     {
       unsigned offset;
-    } mapSymbols[3] =
+      const unsigned len;
+    } mapSymbols[4] =
     {
-      { UINT_MAX }, /* $a */
-      { UINT_MAX }, /* $d */
-      { UINT_MAX }  /* $t */
+      { UINT_MAX, sizeof ("$a") }, /* $a */
+      { UINT_MAX, sizeof ("$d") }, /* $d */
+      { UINT_MAX, sizeof ("$t") }, /* $t */
+      { UINT_MAX, sizeof ("$t.x") } /* $t.x */
     };
   for (unsigned symbolIndex = 0; symbolIndex != result.numAllSymbols; ++symbolIndex)
     {
       Symbol *sym = result.allSymbolsPP[symbolIndex];
-      if (Area_IsMappingSymbol (sym->str))
+      Area_eEntryType type = Area_IsMappingSymbol (sym->str);
+      if (type != eInvalid)
 	{
 	  assert (!(sym->type & SYMBOL_AREA));
-	  int mappingSymbolindex = sym->str[1] == 'a' ? 0 : sym->str[1] == 'd' ? 1 : 2;
+	  int mappingSymbolindex;
+	  switch (type)
+	    {
+	      case eARM:
+		mappingSymbolindex = 0;
+		break;
+	      case eData:
+		mappingSymbolindex = 1;
+		break;
+	      case eThumb:
+		mappingSymbolindex = 2;
+		break;
+	      case eThumbEE:
+		mappingSymbolindex = 3;
+		break;
+	    }
 	  if (mapSymbols[mappingSymbolindex].offset == UINT_MAX)
 	    {
 	      /* First time we see this particular mapping symbol.  */
 	      mapSymbols[mappingSymbolindex].offset = sym->offset = result.stringSize;
-	      result.stringSize += sizeof ("$d"); /* $d, $a, $t */
+	      result.stringSize += mapSymbols[mappingSymbolindex].len;
 	    }
 	  else
 	    sym->offset = mapSymbols[mappingSymbolindex].offset;
@@ -512,15 +531,21 @@ Symbol_OutputStrings (FILE *outfile, const SymbolOut_t *symOutP)
   for (unsigned i = 0; i != symOutP->numAllSymbols; ++i)
     {
       const Symbol *sym = symOutP->allSymbolsPP[i];
-      if (Area_IsMappingSymbol (sym->str))
+      Area_eEntryType type = Area_IsMappingSymbol (sym->str);
+      if (type != eInvalid)
 	{
 	  if (sym->offset >= count)
 	    {
 	      assert (sym->offset == count);
 	      fputc ('$', outfile);
 	      fputc (sym->str[1], outfile);
+	      if (type == eThumbEE)
+		fputs (".x", outfile);
 	      fputc ('\0', outfile);
-	      count += 3;
+	      if (type == eThumbEE)
+		count += sizeof ("$t.x");
+	      else
+		count += sizeof ("$d"); /* sizeof ("$d") == sizeof ("$a") == sizeof ("$t") */
 	    }
 	}
       else if ((sym->type & SYMBOL_AREA) && !option_aof)
@@ -764,7 +789,6 @@ symFlag (unsigned int flags, const char *err)
  * Implements EXPORT / GLOBAL.
  *   "EXPORT <symbol> [FPREGARGS,DATA,LEAF,WEAK]"
  *   "EXPORT [WEAK]"
- *
  */
 bool
 c_export (void)

@@ -687,7 +687,7 @@ c_require8 (void)
 
 
 /**
- * Mark (parts of) AREA containing data, ARM or Thumb instructions.
+ * Mark (parts of) AREA containing data, ARM, Thumb or ThumbEE instructions.
  * Used to implement mapping symbols.
  */
 void
@@ -704,24 +704,27 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType typ
     {
       oArea_CurrentEntryType = type;
 
-      char baseMappingSymbol;
+      const char *baseMappingSymbol;
       switch (type)
 	{
 	  case eARM:
-	    baseMappingSymbol = 'a';
+	    baseMappingSymbol = "a$$";
 	    break;
 	  case eData:
-	    baseMappingSymbol = 'd';
+	    baseMappingSymbol = "d$$";
 	    break;
 	  case eThumb:
-	    baseMappingSymbol = 't';
+	    baseMappingSymbol = "t$$";
+	    break;
+	  case eThumbEE:
+	    baseMappingSymbol = "t.x";
 	    break;
 	  case eInvalid:
 	    break;
 	}
-      size_t mappingSymbolSize = 2 + 1 + areaSymbol->len + 1 + 8 + 1;
+      size_t mappingSymbolSize = 1 + 3 + 1 + areaSymbol->len + 1 + 8 + 1;
       char *mappingSymbol = alloca (mappingSymbolSize);
-      int size = snprintf (mappingSymbol, mappingSymbolSize, "$%c.%s.%08X",
+      int size = snprintf (mappingSymbol, mappingSymbolSize, "$%s.%s.%08X",
 			   baseMappingSymbol,
 			   areaSymbol->str,
 			   offset);
@@ -739,10 +742,24 @@ Area_GetCurrentEntryType (void)
 }
 
 
-bool
+/**
+ * Checks if given symbol is a mapping symbol (i.e. beginning with "$a",
+ * "$d", "$t" or "$t.x").
+ */
+Area_eEntryType
 Area_IsMappingSymbol (const char *symStr)
 {
-  return symStr[0] == '$'
-	   && (symStr[1] == 'a' || symStr[1] == 'd' || symStr[1] == 't')
-	   && (symStr[2] == '\0' || symStr[2] == '.');
+  if (symStr[0] == '$')
+    {
+      switch (symStr[1])
+	{
+	  case 'a':
+	    return eARM;
+	  case 'd':
+	    return eData;
+	  case 't':
+	    return symStr[2] == '.' ? eThumbEE : eThumb;
+	}
+    }
+  return eInvalid;
 }

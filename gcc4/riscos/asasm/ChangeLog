@@ -1,3 +1,14 @@
+Sat Jun 16 16:07:08 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* area.c (Area_MarkStartAs): Support ThumbEE mapping symbol.
+	(Area_IsMappingSymbol): Return Area_eEntryType instead of bool.
+	* area.h (Area_IsMappingSymbol): Return Area_eEntryType instead of bool.
+	(Area_eEntryType): Renumber enum so that Area_IsMappingSymbol still
+	makes some sense.
+	* symbol.c (Symbol_CreateSymbolOut, Symbol_OutputStrings): Support
+	ThumbEE mapping symbols.
+	* decode.c (decode.c): Likewise. 
+
 Wed Jun 13 02:16:59 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* main.c (option_apcs_softfloat, set_option_apcs_softfloat): Remove.

@@ -155,13 +155,14 @@ bool c_require8 (void);
 
 typedef enum
 {
-  eInvalid = -1,
-  eARM = 0,
-  eData = 1,
-  eThumb = 2
+  eInvalid = 0,
+  eARM = 1,
+  eData = 2,
+  eThumb = 3,
+  eThumbEE = 4
 } Area_eEntryType;
 void Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType type);
 Area_eEntryType Area_GetCurrentEntryType (void);
-bool Area_IsMappingSymbol (const char *symStr);
+Area_eEntryType Area_IsMappingSymbol (const char *symStr);
 
 #endif

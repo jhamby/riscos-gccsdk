@@ -377,8 +377,8 @@ LowerCaseIsOK (const decode_table_t *entry)
 }
 
 /**
- * \return true when we've selected an ARM or Thumb instruction (including
- * the DCI directive).
+ * \return true when we've selected an ARM or Thumb (including ThumbEE)
+ * instruction (including the DCI directive).
  */
 static inline bool
 IsARMOrThumbInstr (const decode_table_t *entry)
@@ -651,7 +651,20 @@ decode (const Lex *label)
 	      /* Define mapping symbols.  */
 	      Area_eEntryType entryType;
 	      if (IsARMOrThumbInstr (&oDecodeTable[indexFound]))
-		entryType = State_GetInstrType () == eInstrType_ARM ? eARM : eThumb;
+		{
+		  switch (State_GetInstrType ())
+		    {
+		      case eInstrType_ARM:
+			entryType = eARM;
+			break;
+		      case eInstrType_Thumb:
+			entryType = eThumb;
+			break;
+		      case eInstrType_ThumbEE:
+			entryType = eThumbEE;
+			break;
+		    }
+		}
 	      else
 		entryType = eData;
 	      Area_MarkStartAs (startAreaSymbol, startOffset, entryType);
