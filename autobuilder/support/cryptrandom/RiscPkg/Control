@@ -1,0 +1,6 @@
+Description: Source of Cryptographically Useful Random Numbers
+ CryptRandom is a module that provides non-deterministic random numbers to
+ applications, typically for cryptographic purposes.  It gathers entropy from
+ sources such as mouse movements and keypresses to ensure that the numbers
+ returned are difficult to guess and differ each time the machine is switched
+ on.
