@@ -1,7 +1,7 @@
-Index: gcc/unwind-pe.h
+Index: libgcc/unwind-pe.h
 ===================================================================
---- gcc/unwind-pe.h	(revision 161055)
-+++ gcc/unwind-pe.h	(working copy)
+--- libgcc/unwind-pe.h	(revision 161055)
++++ libgcc/unwind-pe.h	(working copy)
 @@ -173,6 +173,22 @@
    return p;
  }

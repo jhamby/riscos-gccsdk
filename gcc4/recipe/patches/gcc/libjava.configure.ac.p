@@ -1,14 +1,14 @@
 Index: libjava/configure.ac
 ===================================================================
---- libjava/configure.ac	(revision 184959)
+--- libjava/configure.ac	(revision 184613)
 +++ libjava/configure.ac	(working copy)
-@@ -1052,8 +1052,8 @@
+@@ -1067,8 +1067,8 @@
  case "$THREADS" in
   posix)
      case "$host" in
 -     *-*-cygwin*)
 -	# Don't set THREADLIBS here.  Cygwin doesn't have -lpthread.
-+     *-*-cygwin* | arm*-riscos*)
++     *-*-cygwin* | arm*-*-riscos)
 +	# Don't set THREADLIBS here.  These environments do not have -lpthread.
  	;;
       *-*-freebsd[[34]].*)

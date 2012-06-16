@@ -1,8 +1,8 @@
 Index: gcc/ada/cstreams.c
 ===================================================================
---- gcc/ada/cstreams.c	(revision 162881)
+--- gcc/ada/cstreams.c	(revision 176214)
 +++ gcc/ada/cstreams.c	(working copy)
-@@ -44,6 +44,9 @@
+@@ -48,6 +48,9 @@
  #include "system.h"
  #endif
  

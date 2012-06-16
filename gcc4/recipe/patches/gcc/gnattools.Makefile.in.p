@@ -1,8 +1,8 @@
 Index: gnattools/Makefile.in
 ===================================================================
---- gnattools/Makefile.in	(revision 161055)
+--- gnattools/Makefile.in	(revision 179880)
 +++ gnattools/Makefile.in	(working copy)
-@@ -199,7 +199,11 @@
+@@ -183,7 +183,11 @@
  # put the host RTS dir first in the PATH to hide the default runtime
  # files that are among the sources
  # FIXME: This should be done in configure.

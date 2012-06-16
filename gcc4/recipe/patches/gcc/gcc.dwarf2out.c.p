@@ -1,32 +1,8 @@
 Index: gcc/dwarf2out.c
 ===================================================================
---- gcc/dwarf2out.c	(revision 184287)
+--- gcc/dwarf2out.c	(revision 187669)
 +++ gcc/dwarf2out.c	(working copy)
-@@ -2446,7 +2446,9 @@
- 	      /* Rule 3 */
- 	      /* Either setting the FP from an offset of the SP,
- 		 or adjusting the FP */
-+#ifndef TARGET_RISCOSELF
- 	      gcc_assert (frame_pointer_needed);
-+#endif
- 
- 	      gcc_assert (REG_P (XEXP (src, 0))
- 			  && (unsigned) REGNO (XEXP (src, 0)) == cfa.reg
-@@ -2495,6 +2497,13 @@
- 		  cfa_temp.reg = REGNO (dest);
- 		  cfa_temp.offset = INTVAL (XEXP (src, 1));
- 		}
-+	      /* Rule XX */
-+	      else if (GET_CODE (src) == PLUS
-+		       && GET_CODE (XEXP (src, 1)) == CONST_INT)
-+		{
-+		  cfa_temp.reg = REGNO (dest);
-+		  cfa_temp.offset = INTVAL (XEXP (src, 1));
-+		}
- 	      else
- 		gcc_unreachable ();
- 	    }
-@@ -17523,12 +17532,16 @@
+@@ -15453,12 +15453,16 @@
       this, assume that while we cannot provide a proper value for
       frame_pointer_fb_offset, we won't need one either.  */
    frame_pointer_fb_offset_valid

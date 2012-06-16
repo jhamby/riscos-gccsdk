@@ -1,5 +1,5 @@
 /* Definitions for ARM running RISC OS using ELF
-   Copyright (C) 2005-2010 Free Software Foundation, Inc.
+   Copyright (C) 2005-2011 Free Software Foundation, Inc.
    Contributed by Nick Burrett (nick@sqrt.co.uk>),
    John Tytgat (John.Tytgat@aaug.net) and Lee Noar (leenoar@sky.com).
 
@@ -23,10 +23,6 @@ along with GCC; see the file COPYING3.  If not see
    any conflicting definitions and add any extras.  */
 
 #include <stdarg.h>
-
-/* Run-time Target Specification.  */
-#undef  TARGET_VERSION
-#define TARGET_VERSION fputs (" (ARM RISC OS with ELF)", stderr)
 
 /* Do not assume anything about header files.  */
 #define NO_IMPLICIT_EXTERN_C
@@ -71,7 +67,7 @@ along with GCC; see the file COPYING3.  If not see
      "%{fpic:-fpic} %{mmodule:--ro-module-reloc --target2=rel} "
 #else
 extern const char * riscos_multilib_dir (int argc, const char **argv);
-#  define EXTRA_SPEC_FUNCTIONS \
+#  define SUBTARGET_EXTRA_SPEC_FUNCTIONS \
      { "riscos_multilib_dir", riscos_multilib_dir },
 
 /* When building the native RISC OS compiler, we add an extra library path
@@ -84,7 +80,7 @@ extern const char * riscos_multilib_dir (int argc, const char **argv);
 /* libscl means hard-float only.  Module support means libscl and
    hard-float.  libscl and module support go for static libgcc
    library.  */
-#define DRIVER_SELF_SPECS						\
+#define SUBTARGET_DRIVER_SELF_SPECS					\
   "%{mlibscl:-mlibscl -mhard-float -static} %<mlibscl",			\
   "%{mmodule:-mmodule -mlibscl -mhard-float -static} %<mmodule"		\
 
@@ -185,8 +181,9 @@ extern const char * riscos_multilib_dir (int argc, const char **argv);
 
    Use a 32-bit pc-relative relocation to static data.  Dynamic data is
    accessed indirectly to allow for read only EH sections.  */
+#define ARM_TARGET2_DWARF_FORMAT DW_EH_PE_pcrel
 #define ASM_PREFERRED_EH_DATA_FORMAT(CODE,GLOBAL)       \
-  (((GLOBAL) ? DW_EH_PE_indirect : 0) | DW_EH_PE_pcrel | DW_EH_PE_sdata4)
+  (((GLOBAL) ? DW_EH_PE_indirect : 0) | ARM_TARGET2_DWARF_FORMAT | DW_EH_PE_sdata4)
 
 #define TARGET_OS_CPP_BUILTINS()		\
   do						\
@@ -260,8 +257,8 @@ extern const char * riscos_multilib_dir (int argc, const char **argv);
 /* If we're targeting explicit APCS stack checks, then force calls to
    __builtin_return_address and __builtin_frame_address as library
    function calls.  */
-#define HAVE_BUILTIN_RETURN_ADDR_FUNC (OPTION_APCS_STACK)
-#define HAVE_BUILTIN_FRAME_ADDR_FUNC (OPTION_APCS_STACK)
+#define HAVE_BUILTIN_RETURN_ADDR_FUNC (TARGET_APCS_STACK)
+#define HAVE_BUILTIN_FRAME_ADDR_FUNC (TARGET_APCS_STACK)
 
 #define TARGET_RISCOSELF
 

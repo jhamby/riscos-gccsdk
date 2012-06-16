@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2010 Free Software Foundation, Inc.
+# Copyright (C) 2005-2011 Free Software Foundation, Inc.
 # Contributed by Nick Burrett (nick@sqrt.co.uk>),
 # John Tytgat (John.Tytgat@aaug.net) and Lee Noar (leenoar@sky.com).
 #
@@ -18,22 +18,6 @@
 # along with GCC; see the file COPYING3.  If not see
 # <http://www.gnu.org/licenses/>.
 
-LIB1ASMFUNCS += _udivsi3 _divsi3 _umodsi3 _modsi3 _dvmd_tls _bb_init_func \
-	_call_via_rX _interwork_call_via_rX \
-	_lshrdi3 _ashrdi3 _ashldi3 \
-	_arm_negdf2 _arm_addsubdf3 _arm_muldivdf3 _arm_cmpdf2 _arm_unorddf2 \
-	_arm_fixdfsi _arm_fixunsdfsi \
-	_arm_truncdfsf2 _arm_negsf2 _arm_addsubsf3 _arm_muldivsf3 \
-	_arm_cmpsf2 _arm_unordsf2 _arm_fixsfsi _arm_fixunssfsi \
-	_arm_floatdidf _arm_floatdisf _arm_floatundidf _arm_floatundisf \
-	_clzsi2 _clzdi2 
-
-UNWIND_H = $(srcdir)/config/arm/unwind-arm.h
-LIB2ADDEH = $(srcdir)/config/arm/unwind-arm.c \
-  $(srcdir)/config/arm/libunwind.S \
-  $(srcdir)/config/arm/pr-support.c $(srcdir)/unwind-c.c
-LIB2ADDEHDEP = $(UNWIND_H) $(srcdir)/config/$(LIB1ASMSRC)
-
 # The following multilib configurations are defined:
 #   . : unixlib, soft-float, application
 #   ./scl/fpu : scl, hard-float, application
@@ -43,20 +27,13 @@ MULTILIB_DIRNAMES = scl fpu module
 MULTILIB_MATCHES = mhard-float=mfloat-abi?hard
 MULTILIB_EXCLUSIONS = mlibscl/!mhard-float/!mmodule !mlibscl/mhard-float/!mmodule !mlibscl/!mhard-float/mmodule !mlibscl/mhard-float/mmodule mlibscl/!mhard-float/mmodule
 
-EXTRA_MULTILIB_PARTS = crtbegin.o crtend.o crti.o crtn.o crtbeginS.o crtendS.o
-
-# Compile crtbeginS.o and crtendS.o with pic (but not module versions
-# as that causes a compile error).
-ifeq (,$(findstring mmodule,$(CRTSTUFF_CFLAGS)))
-CRTSTUFF_T_CFLAGS_S = -fPIC
-endif
+# vvv config/arm/t-bpabi
+EXTRA_HEADERS += $(srcdir)/ginclude/unwind-arm-common.h
+# ^^^
 
 # Prevents fixincludes from clobbering our otherwise correct limits.h
 # and therefore allows GCC to build successfully.
 LIMITS_H_TEST = true
-
-LIBGCC = stmp-multilib
-INSTALL_LIBGCC = install-multilib
 
 # Make local_includedir relative to EXEC_PREFIX.  We don't want the RISC OS
 # compiler picking up UNIX system header files.
@@ -66,41 +43,6 @@ local_includedir=$(exec_prefix)/include
 # contained within the application.
 NATIVE_SYSTEM_HEADER_DIR = $(srcdir)/../libunixlib/include
 STANDARD_INCLUDE_DIR = $(srcdir)/../libunixlib/include
-
-TARGET_LIBGCC2_CFLAGS = -Dinhibit_libc
-
-# FIXME: for these SH* entries, why not use t-slibgcc-elf-ver instead ?
-# Build a shared libgcc library.
-SHLIB_EXT = .so
-SHLIB_NAME = @shlib_base_name@.so
-SHLIB_SONAME = @shlib_base_name@.so.1
-SHLIB_OBJS = @shlib_objs@
-
-SHLIB_LINK = $(GCC_FOR_TARGET) $(LIBGCC2_CFLAGS) -fPIC -shared -nodefaultlibs \
-	-Wl,-soname,$(SHLIB_SONAME) \
-	-o @multilib_dir@/$(SHLIB_NAME).tmp @multilib_flags@ $(SHLIB_OBJS) && \
-	rm -f @multilib_dir@/$(SHLIB_SONAME) && \
-	if [ -f @multilib_dir@/$(SHLIB_NAME) ]; then \
-	  mv -f @multilib_dir@/$(SHLIB_NAME) @multilib_dir@/$(SHLIB_NAME).backup; \
-	else true; fi && \
-	mv @multilib_dir@/$(SHLIB_NAME).tmp @multilib_dir@/$(SHLIB_NAME) && \
-	$(LN_S) $(SHLIB_NAME) @multilib_dir@/$(SHLIB_SONAME)
-# $(slibdir) double quoted to protect it from expansion while building
-# libgcc.mk.  We want this delayed until actual install time.
-SHLIB_INSTALL = \
-	$$(mkinstalldirs) $$(DESTDIR)$$(slibdir)/@multilib_dir@; \
-	$(INSTALL_DATA) @multilib_dir@/$(SHLIB_NAME) $$(DESTDIR)$$(slibdir)/@multilib_dir@/$(SHLIB_SONAME); \
-	rm -f $$(DESTDIR)$$(slibdir)/@multilib_dir@/$(SHLIB_NAME); \
-	$(LN_S) $(SHLIB_SONAME) $$(DESTDIR)$$(slibdir)/@multilib_dir@/$(SHLIB_NAME)
-
-# Assemble startup files.
-$(T)crti.o: $(srcdir)/config/arm/crti.asm $(GCC_PASSES)
-	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(MULTILIB_CFLAGS) $(INCLUDES) \
-	-c -o $(T)crti.o -x assembler-with-cpp $(srcdir)/config/arm/crti.asm
-
-$(T)crtn.o: $(srcdir)/config/arm/crtn.asm $(GCC_PASSES)
-	$(GCC_FOR_TARGET) $(GCC_CFLAGS) $(MULTILIB_CFLAGS) $(INCLUDES) \
-	-c -o $(T)crtn.o -x assembler-with-cpp $(srcdir)/config/arm/crtn.asm
 
 riscos.o: $(srcdir)/config/arm/riscos.c $(CONFIG_H)
 	$(CC) -c $(ALL_CFLAGS) $(ALL_CPPFLAGS) $(INCLUDES) $(srcdir)/config/arm/riscos.c

@@ -1,14 +1,14 @@
 Index: gcc/config/arm/arm.opt
 ===================================================================
---- gcc/config/arm/arm.opt	(revision 161061)
+--- gcc/config/arm/arm.opt	(revision 175348)
 +++ gcc/config/arm/arm.opt	(working copy)
-@@ -42,7 +42,8 @@
- Generate re-entrant, PIC code
+@@ -52,6 +52,9 @@
+ Enum(arm_abi_type) String(iwmmxt) Value(ARM_ABI_IWMMXT)
  
- mapcs-stack-check
--Target Report Mask(APCS_STACK) Undocumented
-+Target Report Mask(APCS_STACK) Var(target_apcs_stack_check)
-+Generate code to check the amount of stack space available
+ EnumValue
++Enum(arm_abi_type) String(apcs-32) Value(ARM_ABI_APCS32)
++
++EnumValue
+ Enum(arm_abi_type) String(aapcs-linux) Value(ARM_ABI_AAPCS_LINUX)
  
- march=
- Target RejectNegative Joined
+ mabort-on-noreturn

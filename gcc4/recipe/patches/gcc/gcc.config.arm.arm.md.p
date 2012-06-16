@@ -1,25 +1,25 @@
 Index: gcc/config/arm/arm.md
 ===================================================================
---- gcc/config/arm/arm.md	(revision 184129)
+--- gcc/config/arm/arm.md	(revision 183662)
 +++ gcc/config/arm/arm.md	(working copy)
-@@ -31,6 +31,7 @@
- ;; Register numbers
+@@ -32,6 +32,7 @@
  (define_constants
    [(R0_REGNUM        0)		; First CORE register
+    (R1_REGNUM	     1)		; Second CORE register
 +   (SL_REGNUM	    10)		; Stack limit register (APCS-32 only)
     (IP_REGNUM	    12)		; Scratch register
     (SP_REGNUM	    13)		; Stack pointer
     (LR_REGNUM       14)		; Return address register
-@@ -105,6 +106,8 @@
-                              ; another symbolic address.
-    (UNSPEC_MEMORY_BARRIER 28) ; Represent a memory barrier.
-    (UNSPEC_PIC_UNIFIED 29)  ; Create a common pic addressing form.
-+   (UNSPEC_STK 30)        ; RISC OS port.
-+   (UNSPEC_CALL 31)       ; RISC OS port.
-   ]
- )
+@@ -117,6 +118,8 @@
+ 			; that.
+   UNSPEC_UNALIGNED_STORE ; Same for str/strh.
+   UNSPEC_PIC_UNIFIED    ; Create a common pic addressing form.
++  UNSPEC_STK            ; RISC OS port.
++  UNSPEC_CALL           ; RISC OS port.
+ ])
  
-@@ -5379,7 +5382,7 @@
+ ;; UNSPEC_VOLATILE Usage:
+@@ -5735,7 +5738,7 @@
  	(mem:SI (plus:SI (match_operand:SI 1 "register_operand" "r")
  			 (unspec:SI [(match_operand:SI 2 "" "X")]
  				    UNSPEC_PIC_OFFSET))))]
@@ -28,7 +28,7 @@ Index: gcc/config/arm/arm.md
    "ldr%?\\t%0, [%1,%2]"
    [(set_attr "type" "load1")]
  )
-@@ -7905,7 +7908,7 @@
+@@ -8292,7 +8295,7 @@
        return thumb_call_via_reg (operands[0]);
      else if (operands[1] == const0_rtx)
        return \"bl\\t%__interwork_call_via_%0\";
@@ -37,7 +37,7 @@ Index: gcc/config/arm/arm.md
        return \"bl\\t%__interwork_r7_call_via_%0\";
      else
        return \"bl\\t%__interwork_r11_call_via_%0\";
-@@ -8017,7 +8020,7 @@
+@@ -8404,7 +8407,7 @@
        return thumb_call_via_reg (operands[1]);
      else if (operands[2] == const0_rtx)
        return \"bl\\t%__interwork_call_via_%1\";
@@ -46,7 +46,7 @@ Index: gcc/config/arm/arm.md
        return \"bl\\t%__interwork_r7_call_via_%1\";
      else
        return \"bl\\t%__interwork_r11_call_via_%1\";
-@@ -10730,6 +10733,8 @@
+@@ -11338,6 +11341,8 @@
  (include "ldmstm.md")
  ;; Load the FPA co-processor patterns
  (include "fpa.md")

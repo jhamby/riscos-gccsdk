@@ -18,9 +18,9 @@ export RPKG_SHAREDLIBS_VERSION=2.0-$GCCSDK_RELEASE_NAME-1
 # and libm so use the GCCSDK version, but remember
 # to update the the package version if anything
 # else changes
-export RPKG_SHAREDLIBSC_VERSION=4.6.0-$GCCSDK_RELEASE_NAME-1
+export RPKG_SHAREDLIBSC_VERSION=4.7.2-$GCCSDK_RELEASE_NAME-1
 
-export RPKG_SHAREDLIBSGPP_VERSION=6.0.15-$GCCSDK_RELEASE_NAME-1
+export RPKG_SHAREDLIBSGPP_VERSION=6.0.17-$GCCSDK_RELEASE_NAME-1
 
 # The following two modules, should only be uploaded to the
 # packaging site if they area actually changed and in this

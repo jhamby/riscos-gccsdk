@@ -1,8 +1,8 @@
 Index: gcc/ada/argv.c
 ===================================================================
---- gcc/ada/argv.c	(revision 162881)
+--- gcc/ada/argv.c	(revision 176214)
 +++ gcc/ada/argv.c	(working copy)
-@@ -51,6 +51,8 @@
+@@ -55,6 +55,8 @@
  #include "system.h"
  #endif
  

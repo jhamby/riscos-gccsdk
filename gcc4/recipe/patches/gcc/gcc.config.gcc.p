@@ -1,15 +1,18 @@
 Index: gcc/config.gcc
 ===================================================================
---- gcc/config.gcc	(revision 176416)
+--- gcc/config.gcc	(revision 184782)
 +++ gcc/config.gcc	(working copy)
-@@ -900,6 +900,15 @@
+@@ -916,6 +916,18 @@
+ 	tm_file="dbxelf.h elfos.h arm/unknown-elf.h arm/elf.h arm/aout.h arm/arm.h arm/rtems-elf.h rtems.h newlib-stdint.h"
  	tmake_file="arm/t-arm arm/t-arm-elf t-rtems arm/t-rtems"
- 	tmake_file="${tmake_file} arm/t-arm-softfp soft-fp/t-softfp"
  	;;
-+arm*-*-riscos)	# ARM RISC OS with ELF
++arm*-*-riscos)
 +	tm_file="dbxelf.h elfos.h arm/riscos-elf.h arm/elf.h arm/aout.h arm/arm.h"
-+	tmake_file="arm/t-arm arm/t-arm-riscos-elf"
-+	tmake_file="${tmake_file} arm/t-arm-softfp soft-fp/t-softfp"
++	# FIXME: when --enable-shared option is given, we shouldn't have t-slibgcc
++	# specified.  It's only there to let SHLIB and ENABLE_SHARED_LIBGCC
++	# being defined so REAL_LIBGCC_SPEC is correctly defined for the shared vs
++	# static cases.
++	tmake_file="arm/t-arm arm/t-arm-riscos-elf t-slibgcc"
 +	xm_file="arm/xm-riscos.h"
 +	extra_options="${extra_options} arm/riscos.opt"
 +	extra_objs="riscos.o"

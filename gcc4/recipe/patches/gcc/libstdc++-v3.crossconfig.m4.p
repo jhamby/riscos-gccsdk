@@ -1,12 +1,12 @@
 Index: libstdc++-v3/crossconfig.m4
 ===================================================================
---- libstdc++-v3/crossconfig.m4	(revision 169861)
+--- libstdc++-v3/crossconfig.m4	(revision 176416)
 +++ libstdc++-v3/crossconfig.m4	(working copy)
-@@ -204,6 +204,41 @@
+@@ -196,6 +196,41 @@
      GLIBCXX_CHECK_MATH_SUPPORT
      GLIBCXX_CHECK_STDLIB_SUPPORT
      ;;
-+  arm*-*-riscos*)
++  arm*-*-riscos)
 +    SECTION_FLAGS='-ffunction-sections -fdata-sections'
 +    AC_SUBST(SECTION_FLAGS)
 +

@@ -1,8 +1,8 @@
 Index: gcc/config/arm/elf.h
 ===================================================================
---- gcc/config/arm/elf.h	(revision 161061)
+--- gcc/config/arm/elf.h	(revision 178747)
 +++ gcc/config/arm/elf.h	(working copy)
-@@ -134,8 +134,12 @@
+@@ -128,8 +128,12 @@
  #define TARGET_ASM_DESTRUCTOR arm_elf_asm_destructor
  
  /* For PIC code we need to explicitly specify (PLT) and (GOT) relocs.  */
