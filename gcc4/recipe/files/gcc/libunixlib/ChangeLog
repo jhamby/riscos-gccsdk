@@ -1,3 +1,9 @@
+Sun Jun 17 17:44:12 BST  2012  Lee Noar  <leenoar@sky.com>
+
+	* pwd/getpwuid_r.c(getpwuid_r): If the default values are used
+	because the password file does't exist, then fill the user buffer
+	with these values.
+
 Wed Jun  6 02:33:37 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* include/errno.h (program_invocation_name,
