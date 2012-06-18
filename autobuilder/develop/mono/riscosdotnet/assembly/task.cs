@@ -11,6 +11,9 @@ namespace riscos
 
 		// The actual version number of the WIMP that Wimp_Initialise returned to use.
 		public int wimp_version;
+
+		public virtual void MenuSelection (int [] selection) { }
+		public virtual void KeyPress (int charCode) { }
 	}
 
 	public class WimpTask : Task
@@ -91,7 +94,10 @@ namespace riscos
 					{
 						Wimp.KeyPressedEvent event_full = (Wimp.KeyPressedEvent)event_base;
 						Wimp.Window event_window = (Wimp.Window)WimpTask.AllWindows [event_full.KeyPressedArgs.KeyPressedWimpBlock.WindowHandle];
-						event_window.OnKeyPressed (event_full);
+						if (event_window == null)
+							KeyPress (event_full.KeyPressedArgs.KeyPressedWimpBlock.CharCode);
+						else
+							event_window.OnKeyPressed (event_full);
 					}
 					break;
 				case Wimp.PollCode.ScrollRequest:
@@ -115,8 +121,19 @@ namespace riscos
 						event_window.OnGainCaret (event_full);
 					}
 					break;
+				case Wimp.PollCode.MenuSelection:
+					{
+						Wimp.MenuSelectionEvent event_full = (Wimp.MenuSelectionEvent)event_base;
+						MenuSelection (event_full.MenuSelectionArgs.MenuSelectionWimpBlock.Selection);
+					}
+					break;
 				}
 			}
+		}
+
+		public override void KeyPress (int charCode)
+		{
+			Wimp.ProcessKey (charCode);
 		}
 	}
 }

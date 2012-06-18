@@ -81,8 +81,7 @@ namespace riscos
 		[StructLayout(LayoutKind.Sequential)]
 		public struct MouseClickBlock
 		{
-			public int MouseX;
-			public int MouseY;
+			public NativeOS.Coord Pos;
 			public uint Buttons;
 			public uint WindowHandle;
 			public int IconHandle;
@@ -112,6 +111,10 @@ namespace riscos
 		[StructLayout(LayoutKind.Sequential)]
 		public struct MenuSelectionBlock
 		{
+			// A size of 10 is an arbitary choice, in theory it could be the size of the
+			// WIMP block, however, in practice the depth of menu selections is likely to
+			// be small, so the less data we marshal the better the performance.
+			[MarshalAs(UnmanagedType.ByValArray, SizeConst=10)]
 			public int[] Selection;
 		}
 
@@ -269,7 +272,7 @@ namespace riscos
 		[StructLayout(LayoutKind.Sequential)]
 		public struct PointerBlock
 		{
-			public NativeOS.Rect Pos;
+			public NativeOS.Coord Pos;
 			public uint Buttons;
 			public uint WindowHandle;
 			public uint IconHandle;
@@ -462,11 +465,10 @@ namespace riscos
 				[In, MarshalAs(UnmanagedType.Struct)]
 					ref NativeWimp.CaretBlock block);
 
-/*		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_create_menu")]
-		internal static extern IntPtr Wimp_CreateMenu (
-				IntPtr menu,
-				int x,
-				int y);*/
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_create_menu")]
+		internal static extern IntPtr Wimp_CreateMenu (IntPtr menu,
+							       int x,
+							       int y);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_open_template")]
 		internal static extern IntPtr Wimp_OpenTemplate (string file_name);

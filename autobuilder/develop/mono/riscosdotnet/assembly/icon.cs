@@ -29,7 +29,7 @@ namespace riscos
 			}
 
 			public IconBuffer (string text,
-				    int maxLen)
+					   int maxLen)
 			{
 				Set (text, maxLen);
 			}
@@ -82,8 +82,12 @@ namespace riscos
 
 			public IconData (IconBuffer text, IconBuffer validation)
 			{
-				Text = text;;
+				Text = text;
 				Validation = validation;
+			}
+
+			public IconData (IconBuffer text) : this (text, new IconBuffer (""))
+			{
 			}
 
 			public void SetText (string text, int maxLen)

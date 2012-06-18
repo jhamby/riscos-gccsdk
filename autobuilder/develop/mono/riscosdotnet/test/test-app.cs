@@ -19,7 +19,37 @@ public class MyTask : WimpTask
 {
 	public Font.Instance main_font;
 
+	public Wimp.Menu main_menu, file_menu, edit_menu, rename_menu;
+	public Wimp.MenuItem save_menuitem, rename_menuitem;
+
 	public OS.Matrix matrix;
+
+	enum MainMenu
+	{
+		Root
+	}
+
+	enum MainMenuItem
+	{
+		FileSubMenu,
+		EditSubMenu,
+		Quit
+	}
+
+	enum FileMenuItem
+	{
+		Save
+	}
+
+	enum EditMenuItem
+	{
+		RenameSubMenu
+	}
+
+	enum RenameMenuItem
+	{
+		Rename
+	}
 
 	public MyTask () : base ()
 	{
@@ -58,6 +88,42 @@ public class MyTask : WimpTask
 	{
 		Quit = true;
 	}
+
+	public void mouse_click (object sender, Wimp.MouseClickEventArgs args)
+	{
+		if ((args.MouseClickWimpBlock.Buttons & 2) != 0)
+			main_menu.Show (args.MouseClickWimpBlock.Pos.X - 64,
+					args.MouseClickWimpBlock.Pos.Y);
+	}
+
+	/* Each element of the array gives the index of the selected item of the menu at
+	 * that level. So selection[0] gives the item selected in the first/root menu.
+	 * The last selection is terminated by -1.  */
+	public override void MenuSelection (int [] selection)
+	{
+		if (Wimp.Menu.IsCurrent (main_menu))
+		{
+			switch (selection[(int)MainMenu.Root])
+			{
+				case (int)MainMenuItem.FileSubMenu:
+					if (selection[1] == (int)FileMenuItem.Save)
+						Reporter.WriteLine ("Save menu item selected");
+					break;
+
+				case (int)MainMenuItem.EditSubMenu:
+					if (selection[1] == (int)EditMenuItem.RenameSubMenu &&
+					    selection[2] == (int)RenameMenuItem.Rename)
+						Reporter.WriteLine ("Rename menu item selected - new text is {0}",
+								    rename_menuitem.GetText());
+					break;
+
+				case (int)MainMenuItem.Quit:
+					Reporter.WriteLine ("Quit menu item selected");
+					Quit = true;
+					break;
+			}
+		}
+	}
 }
 
 public class Test
@@ -77,8 +143,12 @@ public class Test
 			task.main_font = new Font.Instance ("Trinity.Bold", 24 << 4, 24 << 4);
 
 			Wimp.Window window = new Wimp.Window ();
+
+			// Register the event handlers for the window.
 			window.RedrawHandler += new Wimp.RedrawEventHandler (task.redraw_main_window);
 			window.CloseHandler += new Wimp.CloseEventHandler (task.close_main_window);
+			window.MouseClickHandler += new Wimp.MouseClickEventHandler (task.mouse_click);
+
 			window.SetExtent (new OS.Rect (0, 0, 2000, 2000));
 			window.Create ("CSharp Window");
 
@@ -91,6 +161,27 @@ public class Test
 				     new OS.Coord (0, 0),				// Scroll offsets
 				     Wimp.WindowStackPosition.Top);
 
+			task.rename_menu = new Wimp.Menu ("New name:");
+			// Rename writable menu item is created with "Default" as its initial
+			// text and a buffer size of 30 characters. The validation string is
+			// set to the command to accept digits and upper/lower case letters of
+			// the alphabet.
+			task.rename_menuitem = task.rename_menu.AddItem ("Default", 30, "A0-9a-zA-Z");
+			task.rename_menuitem.Writable = true;
+
+			task.file_menu = new Wimp.Menu ("File");
+			task.save_menuitem = task.file_menu.AddItem ("Save");
+
+			task.edit_menu = new Wimp.Menu ("Edit");
+			task.edit_menu.AddItem ("Rename").SubMenu = task.rename_menu;
+
+			task.main_menu = new Wimp.Menu ("CSharp Menu");
+			task.main_menu.AddItem ("File").SubMenu = task.file_menu;
+			Wimp.MenuItem item = task.main_menu.AddItem ("Edit");
+			item.SubMenu = task.edit_menu;
+			item.DottedLine = true;
+			task.main_menu.AddItem ("Quit");
+
 			// Push the text 100 OS units up a 45 degree angle.
 			task.matrix.Translate (100, 0);
 			task.matrix.Rotate (45);
@@ -99,7 +190,7 @@ public class Test
 		}
 		catch (OS.ErrorException ex)
 		{
-			Reporter.Output (ex.OSError.errmess);
+			Reporter.WriteLine (ex.OSError.errmess);
 			Console.WriteLine ("error number = {0}, error string = {1}",ex.OSError.errnum,ex.OSError.errmess);
 		}
 		finally

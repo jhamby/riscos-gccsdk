@@ -16,7 +16,8 @@ riscos_dll_sources = \
 	window.cs \
 	colourtrans.cs \
 	reporter.cs \
-	font.cs
+	font.cs \
+	menu.cs
 
 riscos_dll_build_sources = $(addprefix $(srcdir)/, $(riscos_dll_sources))
 

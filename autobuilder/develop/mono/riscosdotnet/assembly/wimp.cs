@@ -200,6 +200,17 @@ namespace riscos
 			}
 		}
 
+		public class MenuSelectionEventArgs : EventArgs
+		{
+			public NativeWimp.MenuSelectionBlock MenuSelectionWimpBlock;
+
+			public MenuSelectionEventArgs (IntPtr unmanaged_event_block)
+			{
+				MenuSelectionWimpBlock = (NativeWimp.MenuSelectionBlock)Marshal.PtrToStructure (
+							    unmanaged_event_block, typeof(NativeWimp.MenuSelectionBlock));
+			}
+		}
+
 		public delegate void RedrawEventHandler (object sender, RedrawEventArgs args);
 		public delegate void OpenEventHandler (object sender, OpenEventArgs args);
 		public delegate void CloseEventHandler (object sender, CloseEventArgs args);
@@ -247,11 +258,18 @@ namespace riscos
 						return new LoseCaretEvent (type, event_ptr);
 					case PollCode.GainCaret:
 						return new GainCaretEvent (type, event_ptr);
+					case PollCode.MenuSelection:
+						return new MenuSelectionEvent (type, event_ptr);
 					case PollCode.Null:
 					default:
 						return new Event (type);
 				}
 			}
+		}
+
+		public static void ProcessKey (int key)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_ProcessKey (key));
 		}
 
 		// Managed versions of the standard WIMP events. These can be passed
@@ -354,6 +372,16 @@ namespace riscos
 			public GainCaretEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
 			{
 				GainCaretArgs = new GainCaretEventArgs (unmanaged_event_block);
+			}
+		}
+
+		public class MenuSelectionEvent : Event
+		{
+			public MenuSelectionEventArgs MenuSelectionArgs;
+
+			public MenuSelectionEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
+			{
+				MenuSelectionArgs = new MenuSelectionEventArgs (unmanaged_event_block);
 			}
 		}
 	}

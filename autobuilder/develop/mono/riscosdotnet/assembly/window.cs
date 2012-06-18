@@ -1,3 +1,9 @@
+//
+// window.cs - a binding of the RISC OS API to C#.
+//
+// Author: Lee Noar (leenoar@sky.com)
+//
+
 using System;
 using System.Runtime.InteropServices;
 using System.Collections;
@@ -8,6 +14,8 @@ namespace riscos
 {
 	public static partial class Wimp
 	{
+		/*! \class Window
+		 * \brief Encapsulates a RISC OS WIMP window. */
 		public class Window
 		{
 			public uint Handle;
@@ -55,17 +63,17 @@ namespace riscos
 				}
 			}
 
-			// Set the title of the window. The title buffer is big enough to hold the
-			// given string and terminator.
-			// Used for a title that will remain constant.
+			/*! \brief Set the title of the window.
+			 * The title buffer is big enough to hold the given string and terminator.
+			 * Used for a title that will remain constant. */
 			public void SetTitle (string title)
 			{
 				SetTitle (title, title.Length + 1);
 			}
 
-			// Set the title of the window. The title buffer size is user defined so that
-			// it can be bigger than the given string.
-			// Used for a title that can be altered.
+			/*! \brief Set the title of the window.
+			 * The title buffer size is user defined so that it can be bigger than the given string.
+			 * Used for a title that can be altered. */
 			public void SetTitle (string title, int maxLen)
 			{
 				// Allow the size of the title buffer to be changed if the window has
@@ -96,7 +104,7 @@ namespace riscos
 				Created = true;
 			}
 
-			// Open a normal window (no nesting)
+			/*! \brief Open a normal window (no nesting) */
 			public void Open (OS.Rect visible,
 					  OS.Coord scroll,
 					  uint behind)
@@ -110,7 +118,7 @@ namespace riscos
 				OS.ThrowOnError (NativeMethods.Wimp_OpenWindow (ref block));
 			}
 
-			// Open nested window.
+			/*! \brief Open nested window. */
 			public void OpenNested (OS.Rect visible,
 						OS.Coord scroll,
 						uint behindWindow,
@@ -139,7 +147,7 @@ namespace riscos
 										      nestedFlags));
 			}
 
-			// Open nested window using the window flags it already has.
+			/*! \brief Open nested window using the window flags it already has. */
 			public void OpenNested (OS.Rect visible,
 						OS.Coord scroll,
 						uint behindWindow,
@@ -182,7 +190,7 @@ namespace riscos
 				return icon;
 			}
 
-			// Find the origin of the window when we already have its state.
+			/*! \brief Find the origin of the window when its state is already known. */
 			public OS.Coord GetOrigin (ref NativeOS.Rect visible,
 						   ref NativeOS.Coord scroll)
 			{
@@ -190,7 +198,7 @@ namespace riscos
 						     visible.MaxY - scroll.Y);
 			}
 
-			// Find the origin of the window when we don't have its state.
+			/*! \brief Find the origin of the window when its state is unknown. */
 			public OS.Coord GetOrigin ()
 			{
 				NativeWimp.WindowStateBlock state = new NativeWimp.WindowStateBlock ();
@@ -198,40 +206,40 @@ namespace riscos
 				return GetOrigin (ref state.Visible, ref state.Scroll);
 			}
 
-			// Convert a coordinate from screen to window when we already know
-			// the window's origin.
+			/*! \brief Convert a coordinate from screen to window when the window's origin
+			 * is already known. */
 			public void PointToWorkArea (OS.Coord point, OS.Coord origin)
 			{
 				point.X -= origin.X;
 				point.Y -= origin.Y;
 			}
 
-			// Convert a coordinate from screen to window when we don't know the
-			// window's origin.
+			/*! \brief Convert a coordinate from screen to window when the window's origin
+			 * is unknown. */
 			public void PointToWorkArea (OS.Coord point)
 			{
 				OS.Coord origin = GetOrigin ();
 				PointToWorkArea (point, origin);
 			}
 
-			// Convert a coordinate from window to screen when we already know
-			// the window's origin.
+			/*! \brief Convert a coordinate from window to screen when the window's origin
+			 * is already known. */
 			public void PointToScreen (OS.Coord point, OS.Coord origin)
 			{
 				point.X += origin.X;
 				point.Y += origin.Y;
 			}
 
-			// Convert a coordinate from window to screen when we don't know the
-			// window's origin.
+			/*! \brief Convert a coordinate from window to screen when the window's origin
+			 * is unknown. */
 			public void PointToScreen (OS.Coord point)
 			{
 				OS.Coord origin = GetOrigin ();
 				PointToScreen (point, origin);
 			}
 
-			// Convert a rectangle from screen to window when we already know
-			// the window's origin.
+			/*! \brief Convert a rectangle from screen to window when the window's origin
+			 * is already known. */
 			public void RectangleToWorkArea (OS.Rect rect, OS.Coord origin)
 			{
 				rect.MinX -= origin.X;
@@ -240,16 +248,16 @@ namespace riscos
 				rect.MaxY -= origin.Y;
 			}
 
-			// Convert a rectangle from screen to window when we don't know the
-			// window's origin.
+			/*! \brief Convert a rectangle from screen to window when the window's origin
+			 * is unknown. */
 			public void RectangleToWorkArea (OS.Rect rect)
 			{
 				OS.Coord origin = GetOrigin ();
 				RectangleToWorkArea (rect, origin);
 			}
 
-			// Convert a rectangle from window to screen when we already know
-			// the window's origin.
+			/*! \brief Convert a rectangle from window to screen when the window's origin
+			 * is already known. */
 			public void RectangleToScreen (OS.Rect rect, OS.Coord origin)
 			{
 				rect.MinX += origin.X;
@@ -258,15 +266,15 @@ namespace riscos
 				rect.MaxY += origin.Y;
 			}
 
-			// Convert a rectangle from window to screen when we already know
-			// the window's origin.
+			/*! \brief Convert a rectangle from window to screen when the window's origin
+			 * is unknown. */
 			public void RectangleToScreen (OS.Rect rect)
 			{
 				OS.Coord origin = GetOrigin ();
 				RectangleToScreen (rect, origin);
 			}
 
-			// Open window in response to an event
+			/*! \brief Open window in response to an event. */
 			public virtual void OnOpen (OpenWindowEvent ev)
 			{
 				OS.ThrowOnError (NativeMethods.Wimp_OpenWindow (ref ev.OpenWindowArgs.OpenWimpBlock));
@@ -274,7 +282,7 @@ namespace riscos
 					OpenHandler (this, ev.OpenWindowArgs);
 			}
 
-			// Close window in response to an event
+			/*! \brief Close window in response to an event. */
 			public virtual void OnClose (CloseWindowEvent ev)
 			{
 				OS.ThrowOnError (NativeMethods.Wimp_CloseWindow (ref ev.CloseWindowArgs.CloseWimpBlock));

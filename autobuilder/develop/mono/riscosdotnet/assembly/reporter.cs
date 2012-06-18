@@ -11,24 +11,29 @@ namespace riscos
 {
 	public static class Reporter
 	{
-		public static void Output (string s)
+		public static void WriteLine (string s)
 		{
 			NativeMethods.Report_Text0 (s);
 		}
 
-		public static void Output (int v)
+		public static void WriteLine (int v)
 		{
-			Output (v.ToString ());
+			WriteLine (v.ToString ());
 		}
 
-		public static void Output (IntPtr v)
+		public static void WriteLine (IntPtr v)
 		{
-			Output (v.ToString ("X8"));
+			WriteLine (v.ToString ("X8"));
 		}
 
-		public static void Output (uint v)
+		public static void WriteLine (uint v)
 		{
-			Output (v.ToString ("X8"));
+			WriteLine (v.ToString ("X8"));
+		}
+
+		public static void WriteLine (string format, params object[] args)
+		{
+			WriteLine (string.Format (format, args));
 		}
 	}
 }
