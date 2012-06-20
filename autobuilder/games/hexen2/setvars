@@ -1,0 +1,17 @@
+
+AB_SVN=https://uhexen2.svn.sourceforge.net/svnroot/uhexen2/trunk
+AB_PVERSION=1.5.4-svn-$(date +%Y%m%d)
+
+cd engine/hexen2
+
+AB_MAKE="$AB_MAKE h2"
+
+ab_package () {
+
+  ab_create_app Hexen2 Apps/Games
+  ab_makerun $S/hexen2 hexen2
+
+  cp -av $S/../../docs $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile ../../docs/COPYING
+}

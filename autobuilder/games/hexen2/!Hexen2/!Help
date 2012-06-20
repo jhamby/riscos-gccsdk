@@ -1,0 +1,55 @@
+Hexen II: Hammer of Thyrion - Cross platform source port of the class based shooter game Hexen II
+---------------------------
+
+This game requires the original Hexen II datafiles. You'll need the full commercial
+release as I don't believe there is a freely available demo version. See
+http://www.steamprices.com/uk/sub/439/heretic-hexen-collection.
+
+Just extract the 'data1' folder and place it the !Hexen2 folder.
+
+Hexen II uses the Quake I engine which makes extensive use of floating point so the
+frame rate is quite low.
+The '!Run' file defaults to fullscreeen 640 x 480 so should be ok on lesser machines.
+At least a Beagleboard is recomended to get playable frame rates.
+If sound is too fast/slow or stuttering try changing '-sndspeed 44100' in the '!Run'
+file. Valid values are 11025, 22050 or 44100.
+To alter the default resolution change the '-width' and '-height' options in the !Run or
+to run in a window change '-f' to '-w'.
+
+Here's the full list of valid options in the !Run file,
+
+Usage: hexen2 [options]
+     [-v | --version]        Display version information
+     [-portals | -h2mp ]     Run the Portal of Praevus mission pack
+     [-w | -window ]         Run the game windowed
+     [-f | -fullscreen]      Run the game fullscreen
+     [-width X [-height Y]]  Select screen size
+     [-s | -nosound]         Run the game without sound
+     [-nomouse]              Disable mouse usage
+     [-listen N]             Enable multiplayer with max N players
+     [-heapsize Bytes]       Heapsize (memory to allocate)
+
+For Beagleboard and Pandaboard owners a VFP/NEON version exists. This gets about
+38fps @ 800 x 600 fullscreen on a Pandaboard ES @ 1500MHz as apposed to 19 fps for
+the default soft-float version.
+By comparison on a Beagleboard Xm @ 1GHz about 24.2fps for VFP/NEON and 16.1fps for
+sof-float @ 640 x 480.
+
+If you want to try this version see the contact details below.
+
+This version created by the GCCSDK Autobuilder for details see:
+
+http://www.riscos.info/index.php/GCCSDK#GCCSDK_Autobuilder
+
+Requirements
+------------
+SharedUnixLibrary which is available from:
+http://www.riscos.info/downloads/gccsdk/sharedunixlib/system.zip
+UnixHome for settings files, available from:
+http://www.riscos.info/packages/arm/Support/unixhome_1.03-1.zip
+DigitalRenderer module for sound, available from:
+http://www.riscos.info/packages/arm/Support/DRenderer_0.55-1.zip
+
+Contact
+-------
+Chris Gransden - chrisg@care4free.net
