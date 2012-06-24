@@ -147,7 +147,8 @@ ab_package() {
   cp "$GCCSDK_INSTALL_ENV/etc/mono/config" "$A/etc/mono/"
 
   # Copy the riscos assembly
-  cp -T $GCCSDK_INSTALL_ENV/lib/libriscosdotnet/riscos.dll $A/lib/riscos.dll
+  cp $S/libriscosdotnet/build/assembly/riscos.dll $A/lib
+  cp $S/libriscosdotnet/build/assembly/riscos.dll.mdb $A/lib
 
   # Copy documentation
   cp $S/COPYING.LIB $S/AUTHORS $S/LICENSE $A/Docs
@@ -164,16 +165,17 @@ ab_package() {
   tests_installdir=$D/$package/$section/mono/Apps/Develop/Tests
   mkdir -p $tests_installdir
   cp -T "$S/libriscosdotnet/build/test/test-font.exe" "$tests_installdir/test-font.exe,A7D"
+  cp -T "$S/libriscosdotnet/build/test/test-font.exe.mdb" "$tests_installdir/test-font.exe.mdb"
 
-  # Create !MonoTestApp
-  test_app_installdir=$tests_installdir/\!MonoTestApp
-  mkdir -p $test_app_installdir
-  cp -T "$S/libriscosdotnet/build/test/test-app.exe" "$test_app_installdir/test-app.exe,A7D"
+  # Copy !MonoTestApp
+  cp -L -R $S/libriscosdotnet/test/\!MonoTestApp $tests_installdir/\!MonoTestApp
+  cp -T $S/libriscosdotnet/build/test/test-app.exe $tests_installdir/\!MonoTestApp/test-app.exe,A7D
+  cp -T $S/libriscosdotnet/build/test/test-app.exe.mdb $tests_installdir/\!MonoTestApp/test-app.exe.mdb
 
-  echo "Wimpslot 5000k" >> $test_app_installdir/!Run,feb
-  echo "Set MonoTestApp\$Dir <Obey\$Dir>" >> $test_app_installdir/!Run,feb
-  echo "Run <MonoTestApp\$Dir>.test-app/exe" >> $test_app_installdir/!Run,feb
-
+  # Copy !MonoTestTB
+  cp -L -R $S/libriscosdotnet/test/\!MonoTestTB $tests_installdir/\!MonoTestTB
+  cp -T $S/libriscosdotnet/build/test/test-toolbox.exe $tests_installdir/\!MonoTestTB/test-toolbox.exe,A7D
+  cp -T $S/libriscosdotnet/build/test/test-toolbox.exe.mdb $tests_installdir/\!MonoTestTB/test-toolbox.exe.mdb
 }
 
 # Regenerate configure from the patched configure.in

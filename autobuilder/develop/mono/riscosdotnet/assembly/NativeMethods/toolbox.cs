@@ -6,6 +6,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 using riscos;
 
 namespace riscos
@@ -13,14 +14,14 @@ namespace riscos
 	public static class NativeToolbox
 	{
 		[StructLayout(LayoutKind.Sequential)]
-		public struct IDBlock
+		public class IDBlock
 		{
-			public uint	ancestor_id;
-			public uint	ancestor_cmp;
-			public uint	parent_id;
-			public uint	parent_cmp;
-			public uint	self_id;
-			public uint	self_cmp;
+			public uint AncestorID { get; private set; }
+			public uint AncestorCmp { get; private set; }
+			public uint ParentID { get; private set; }
+			public uint ParentCmp { get; private set; }
+			public uint SelfID { get; private set; }
+			public uint SelfCmp { get; private set; }
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -56,35 +57,47 @@ namespace riscos
 				TopLeft = new NativeOS.Coord (topLeft);
 			}
 		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct EventHeader
+		{
+			public uint Size;
+			public uint Ref;
+			public uint EventCode;
+			public uint Flags;
+		}
 	}
 
 	static partial class NativeMethods
 	{
 		// Toolbox SWIs
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xoolbox_initialise")]
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Toolbox_Initialise")]
 		internal static extern IntPtr Toolbox_Initialise (
 				uint flags,
 				uint wimp_version,
-				uint[] message_list,	// Zero terminated list
-				uint[] event_list,	// Zero terminated list
+				int[] message_list,	// Zero terminated list
+				int[] event_list,	// Zero terminated list
 				string dir_name,
-				[In, MarshalAs(UnmanagedType.LPArray, SizeConst=4)]
-					ref uint[] message_file_dec,
-				[In, MarshalAs(UnmanagedType.Struct)]
-					ref NativeToolbox.IDBlock idBlock,
 				out int versionOut,
 				out uint taskOut,
 				out IntPtr spriteAreaOut);
 
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_create_object_from_template")]
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Toolbox_GetIDBlock")]
+		internal static extern NativeToolbox.IDBlock Toolbox_GetIDBlock ();
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Toolbox_GetMessTransFD")]
+		[return: MarshalAs(UnmanagedType.LPArray,SizeConst=4)]
+		internal static extern uint[] Toolbox_GetMessTransFD ();
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_create_object")]
 		internal static extern IntPtr Toolbox_CreateObject (Toolbox.CreateObjectFlags flags,
 								    string templateName,
-								    ref uint objectID);
+								    out uint objectID);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_create_object")]
 		internal static extern IntPtr Toolbox_CreateObject (Toolbox.CreateObjectFlags flags,
 								    IntPtr templateBlock,
-								    ref uint objectID);
+								    out uint objectID);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_delete_object")]
 		internal static extern IntPtr Toolbox_DeleteObject (uint flags,
@@ -118,6 +131,76 @@ namespace riscos
 		internal static extern IntPtr Toolbox_SetClientHandle (uint flags,
 								       uint objectID,
 								       IntPtr handle);
+
+		// Window SWIs
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_wimp_handle")]
+		internal static extern IntPtr Window_GetWimpHandle (uint flags, uint WindowID, out uint wimpHandle);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_add_gadget")]
+		internal static extern IntPtr Window_AddGadget (uint flags, uint WindowID, IntPtr gadgetData);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_remove_gadget")]
+		internal static extern IntPtr Window_RemoveGadget (uint flags, uint WindowID, uint cmpID);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_menu")]
+		internal static extern IntPtr Window_SetMenu (uint flags, uint WindowID, uint menuID);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_menu")]
+		internal static extern IntPtr Window_GetMenu (uint flags, uint WindowID, out uint menuID);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_pointer")]
+		internal static extern IntPtr Window_SetPointer (uint flags,
+								 uint WindowID,
+								 string spriteName,
+								 int xHotSpot,
+								 int yHotSpot);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_title")]
+		internal static extern IntPtr Window_SetTitle (uint flags, uint WindowID, string title);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_title")]
+		internal static extern IntPtr Window_GetTitle (uint flags,
+							       uint WindowID,
+							       StringBuilder title,
+							       int size,
+							       out int used);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_title")]
+		internal static extern IntPtr Window_GetTitle (uint flags,
+							       uint WindowID,
+							       IntPtr title,
+							       int size,
+							       out int requiredSize);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_default_focus")]
+		internal static extern IntPtr Window_SetDefaultFocus (uint flags, uint WindowID, uint cmpID);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_default_focus")]
+		internal static extern IntPtr Window_GetDefaultFocus (uint flags, uint WindowID, out uint cmpID);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_extent")]
+		internal static extern IntPtr Window_SetExtent (uint flags, uint WindowID, NativeOS.Rect extent);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_extent")]
+		internal static extern IntPtr Window_GetExtent (uint flags, uint WindowID, out NativeOS.Rect extent);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_force_redraw")]
+		internal static extern IntPtr Window_ForceRedraw (uint flags, uint WindowID, NativeOS.Rect extent);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_pointer_info")]
+		internal static extern IntPtr Window_GetPointerInfo (uint flags,
+								     out int x,
+								     out int y,
+								     out uint buttons,
+								     out uint windowID,
+								     out uint cmpID);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_wimp_to_toolbox")]
+		internal static extern IntPtr Window_WimpToToolbox (uint flags,
+								    uint wimpHandle,
+								    uint wimpIcon,
+								    out uint objectID,
+								    out uint cmpID);
 	}
 }
 

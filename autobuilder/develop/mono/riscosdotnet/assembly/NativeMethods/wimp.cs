@@ -312,7 +312,7 @@ namespace riscos
 		internal static extern IntPtr Wimp_CreateWindow (
 				[In, MarshalAs(UnmanagedType.Struct)]
 					ref NativeWimp.WindowBlock block,
-				ref uint handle);
+				out uint handle);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_delete_window")]
 		internal static extern IntPtr Wimp_DeleteWindow (

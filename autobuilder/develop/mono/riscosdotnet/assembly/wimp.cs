@@ -260,6 +260,8 @@ namespace riscos
 						return new GainCaretEvent (type, event_ptr);
 					case PollCode.MenuSelection:
 						return new MenuSelectionEvent (type, event_ptr);
+					case PollCode.ToolboxEvent:
+						return new Toolbox.ToolboxEvent (type, event_ptr);
 					case PollCode.Null:
 					default:
 						return new Event (type);

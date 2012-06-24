@@ -6,18 +6,19 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Collections.Generic;
 using System.Collections;
 
 namespace riscos
 {
-	namespace Toolbox
+	public static partial class Toolbox
 	{
-		enum CreateObjectFlags : uint
+		public enum CreateObjectFlags : uint
 		{
 			FromMemory = 0x1
 		}
 
-		enum ShowObjectType : uint
+		public enum ShowObjectType : uint
 		{
 			Default,
 			FullSpec,
@@ -26,44 +27,98 @@ namespace riscos
 			AtPointer
 		}
 
-		enum ShowObjectFlags
+		public enum ShowObjectFlags
 		{
 			AsMenu,
 			AsSubMenu,
 			AsNestedWindow
 		}
 
-		public class ToolboxObject
+		public delegate void ToolboxEventHandler (object sender, ToolboxEventArgs args);
+
+		public class Object : IDisposable
 		{
-			uint ObjectID;
+			public uint ID { get; protected set; }
 
-			public ToolboxObject (uint objectID)
+			public Dictionary<uint, ToolboxEventHandler> ToolboxHandlers = new Dictionary<uint, ToolboxEventHandler>();
+//			public event ToolboxEventHandler EventHandler;
+
+			private bool disposed = false;
+
+			protected Object ()
 			{
-				ObjectID = objectID;
+				ID = 0;
 			}
 
-			// Create a toolbox object using the named template.
-			public void Create (string objectName)
+//			/*! \brief Create a toolbox object using the named template.
+//			 * \param [in] resName Name of object in resource file to create.  */
+//			public Object (string resName)
+//			{
+//				Create (resName);
+//			}
+
+			public Object (uint objectID)
 			{
-				OS.ThrowOnError (NativeMethods.Toolbox_CreateObject (0, objectName, ref ObjectID));
+				ID = objectID;
 			}
 
-			// Create a toolbox object using the template pointed to.
-			public void Create (IntPtr template)
+			~Object ()
 			{
+				Dispose (false);
+			}
+
+			public void Dispose ()
+			{
+				Dispose(true);
+				// This object will be cleaned up by the Dispose method.
+				// Call GC.SupressFinalize to take this object off the
+				// finalization queue and prevent finalization code for
+				// this object from executing a second time.
+				GC.SuppressFinalize(this);
+			}
+
+			protected virtual void Dispose (bool disposing)
+			{
+				if (!this.disposed)
+				{
+					Delete ();
+					disposed = true;
+				}
+			}
+
+			/*! \brief Create a toolbox object using the named template.
+			 * \param [in] objectName Name of object in resource file to create.  */
+			protected void Create (string objectName)
+			{
+				uint id;
+				OS.ThrowOnError (NativeMethods.Toolbox_CreateObject (0, objectName, out id));
+				ToolboxTask.AllObjects.Add (id, this);
+				ID = id;
+			}
+
+			/*! \brief Create a toolbox object using the template pointed to.
+			 * \param [in] templateData Pointer to template data to create object from.  */
+			protected void Create (IntPtr templateData)
+			{
+				uint id;
 				OS.ThrowOnError (NativeMethods.Toolbox_CreateObject (CreateObjectFlags.FromMemory,
-										     template, ref ObjectID));
+										     templateData, out id));
+				ToolboxTask.AllObjects.Add (id, this);
+				ID = id;
 			}
 
-			public void Delete ()
+			/*! \brief Delete the object.  */
+			private void Delete ()
 			{
-				OS.ThrowOnError (NativeMethods.Toolbox_DeleteObject (0, ObjectID));
+				ToolboxTask.AllObjects.Remove (ID);
+				OS.ThrowOnError (NativeMethods.Toolbox_DeleteObject (0, ID));
 			}
 
+			/*! \brief Display the object on the screen at its default location.  */
 			public void Show (uint parentID, int parentCmp)
 			{
 				OS.ThrowOnError (NativeMethods.Toolbox_ShowObject (0,
-										   ObjectID,
+										   ID,
 										   ShowObjectType.Default,
 										   IntPtr.Zero,
 										   parentID,
@@ -79,54 +134,147 @@ namespace riscos
 					  uint parentID, int parentCmp)
 			{
 				OS.ThrowOnError (NativeMethods.Toolbox_ShowObject (0,
-										   ObjectID,
+										   ID,
 										   ShowObjectType.FullSpec,
 										   ref block,
 										   parentID,
-										   parentCmp));				
+										   parentCmp));
 			}
 
 			public void Show (NativeToolbox.ShowObjectTopLeftBlock block,
 					  uint parentID, int parentCmp)
 			{
 				OS.ThrowOnError (NativeMethods.Toolbox_ShowObject (0,
-										   ObjectID,
+										   ID,
 										   ShowObjectType.TopLeft,
 										   ref block,
 										   parentID,
-										   parentCmp));				
+										   parentCmp));
+			}
+
+			public void OnEvent (ToolboxEvent ev)
+			{
+				ToolboxEventHandler handler;
+
+				if (ToolboxHandlers.TryGetValue (ev.ToolboxArgs.Header.EventCode, out handler))
+					handler (this, ev.ToolboxArgs);
 			}
 		}
 
-		public class ToolboxTask : Task
+		public class ToolboxEventArgs : EventArgs
 		{
-			public static Hashtable AllObjects = new Hashtable (); // Toolbox objects
+			public NativeToolbox.EventHeader Header;
 
-			uint[] MesstransFD = new uint[4];
-
-			NativeToolbox.IDBlock IDBlock;
-
-			public IntPtr SpriteArea;
-
-			public void Initialise (uint wimp_version,
-						uint[] message_list,
-						uint[] event_list,
-						string dir_name)
+			public ToolboxEventArgs (IntPtr unmanaged_event_block)
 			{
-				uint handle;
-				int version;
+				Header = (NativeToolbox.EventHeader)Marshal.PtrToStructure(
+						unmanaged_event_block, typeof(NativeToolbox.EventHeader));
+			}
+		}
 
-				OS.ThrowOnError (NativeMethods.Toolbox_Initialise (0,
-										   wimp_version,
-										   message_list,
-										   event_list,
-										   dir_name,
-										   ref MesstransFD,
-										   ref IDBlock,
-										   out version,
-										   out handle,
-										   out SpriteArea));
-				Handle = handle;
+		public class ToolboxEvent : Wimp.Event
+		{
+			public ToolboxEventArgs ToolboxArgs;
+
+			public ToolboxEvent (Wimp.PollCode type, IntPtr unmanaged_event_block) : base (type)
+			{
+				ToolboxArgs = new ToolboxEventArgs (unmanaged_event_block);
+			}
+		}
+
+		public class Window : Object
+		{
+			Wimp.WindowHandle Handle;
+
+			public event Wimp.RedrawEventHandler RedrawHandler;
+
+			public Window (string resName)
+			{
+				Create (resName);
+				Handle = new Wimp.WindowHandle (GetWimpHandle ());
+			}
+
+			public Window (IntPtr templateData)
+			{
+				Create (templateData);
+				Handle = new Wimp.WindowHandle (GetWimpHandle ());
+			}
+
+			public uint GetWimpHandle ()
+			{
+				uint wimp_handle;
+
+				OS.ThrowOnError (NativeMethods.Window_GetWimpHandle (0, ID, out wimp_handle));
+
+				return wimp_handle;
+			}
+
+			public virtual void OnRedraw (Wimp.RedrawWindowEvent ev)
+			{
+				int more;
+
+				// Start the redraw. Given the window handle, the OS fills in RedrawWimpBlock
+				// with details of what needs redrawing.
+				NativeMethods.Wimp_RedrawWindow (ref ev.RedrawArgs.RedrawWimpBlock, out more);
+
+				// The origin of the window only needs to be calculated once before entering
+				// the redraw loop.
+				ev.RedrawArgs.Origin = Handle.GetOrigin (ref ev.RedrawArgs.RedrawWimpBlock.Visible,
+									 ref ev.RedrawArgs.RedrawWimpBlock.Scroll);
+				while (more != 0)
+				{
+					if (RedrawHandler != null)
+						RedrawHandler (this, ev.RedrawArgs);
+					NativeMethods.Wimp_GetRectangle (ref ev.RedrawArgs.RedrawWimpBlock, out more);
+				}
+			}
+		}
+	}
+
+	public class ToolboxTask : Task
+	{
+		public static Dictionary<uint, Toolbox.Object> AllObjects = new Dictionary<uint, Toolbox.Object>();
+
+		public IntPtr SpriteArea;
+
+		public void Initialise (uint wimp_version,
+					int[] message_list,
+					int[] event_list,
+					string dir_name)
+		{
+			uint handle;
+
+			OS.ThrowOnError (NativeMethods.Toolbox_Initialise (0,
+									   wimp_version,
+									   message_list,
+									   event_list,
+									   dir_name,
+									   out WimpVersion,
+									   out handle,
+									   out SpriteArea));
+			Handle = handle;
+		}
+
+		public override void Dispatch (Wimp.Event event_base)
+		{
+			NativeToolbox.IDBlock id_block = NativeMethods.Toolbox_GetIDBlock();
+
+			switch (event_base.type)
+			{
+			case Wimp.PollCode.RedrawWindow:
+				{
+					Wimp.RedrawWindowEvent event_full = (Wimp.RedrawWindowEvent)event_base;
+					Toolbox.Window tb_obj = (Toolbox.Window)ToolboxTask.AllObjects[id_block.SelfID];
+					tb_obj.OnRedraw (event_full);
+				}
+				break;
+			case Wimp.PollCode.ToolboxEvent:
+				{
+					Toolbox.ToolboxEvent event_full = (Toolbox.ToolboxEvent)event_base;
+					Toolbox.Window tb_obj = (Toolbox.Window)ToolboxTask.AllObjects[id_block.SelfID];
+					tb_obj.OnEvent (event_full);
+				}
+				break;
 			}
 		}
 	}

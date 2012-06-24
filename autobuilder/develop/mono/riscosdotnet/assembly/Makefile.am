@@ -22,4 +22,4 @@ riscos_dll_sources = \
 riscos_dll_build_sources = $(addprefix $(srcdir)/, $(riscos_dll_sources))
 
 riscos.dll: $(riscos_dll_build_sources)
-	$(MCS) -target:library -out:$@ $(riscos_dll_build_sources)
+	$(MCS) -debug -target:library -out:$@ $(riscos_dll_build_sources)

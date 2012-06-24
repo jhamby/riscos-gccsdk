@@ -12,7 +12,8 @@ BUILT_SOURCES = \
 	colourtrans.s \
 	os.s \
 	reporter.s \
-	toolbox.s
+	toolbox.s \
+	tb-window.s
 
 AM_CCASFLAGS = -xassembler-with-cpp -DASM
 
@@ -23,6 +24,7 @@ libriscosdotnet_la_SOURCES = \
 	$(BUILT_SOURCES) \
 	wimp-support.s \
 	font-support.s \
+	toolbox-support.s \
 	copyright.s
 
 $(OSLIB_DIR):
@@ -59,4 +61,9 @@ $(top_srcdir)/src/reporter.s: $(DEFMOD) $(OSLIB_SRC)/User/oslib/Report.swi
 $(top_srcdir)/src/toolbox.s: $(DEFMOD) $(OSLIB_SRC)/Toolbox/oslib/Toolbox.swi
 	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Toolbox/oslib/Toolbox.swi > temp.s
 	$(STRIP_OSLIB_SCRIPT) temp.s $@ toolbox
+	rm -f temp.s
+
+$(top_srcdir)/src/tb-window.s: $(DEFMOD) $(OSLIB_SRC)/Toolbox/oslib/Window.swi
+	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Toolbox/oslib/Window.swi > temp.s
+	$(STRIP_OSLIB_SCRIPT) temp.s $@ window
 	rm -f temp.s

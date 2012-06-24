@@ -1,0 +1,3 @@
+Wimpslot 5000k
+Set MonoTestApp$Dir <Obey$Dir>
+Run <MonoTestApp$Dir>.test-app/exe
