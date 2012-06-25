@@ -1,7 +1,7 @@
 
 AB_CATEGORY=Command
 
-AB_CONFLAGS="--disable-nls --without-start-stop-daemon"
+AB_CONFLAGS="--disable-nls --disable-start-stop-daemon"
 export dpkg_cv_va_copy=yes
 export dpkg_cv_c99_snprintf=yes
 export LIBS=-lintl
