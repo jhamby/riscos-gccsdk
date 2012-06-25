@@ -8,8 +8,8 @@ riscos_dll_sources = \
 	NativeMethods/misc.cs \
 	NativeMethods/colourtrans.cs \
 	NativeMethods/font.cs \
+	toolbox/toolbox.cs \
 	wimp.cs \
-	toolbox.cs \
 	icon.cs \
 	task.cs \
 	os.cs \
