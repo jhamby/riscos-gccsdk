@@ -28,12 +28,14 @@ public class MyTask : ToolboxTask
 		int[] mess_list = { 0 };
 		int[] event_list = { 0 };
 
-		// The message and event lists are copied by the toolbox, so we don't
-		// have to keep them for the whole lifetime of the task.
+		// The message and event lists are copied by the toolbox, so we can
+		// discard them after initialisation.
 		Initialise (350, mess_list, event_list, "<MonoTestTB$Dir>");
 
 		MainFont = new Font.Instance ("Trinity.Medium", 24 << 4, 24 << 4);
 		MainWindow = new Toolbox.Window ("MainWindow");
+
+		MainWindow.SetTitle ("CSharp Toolbox Window");
 
 		// Register the event handlers for the window.
 		MainWindow.RedrawHandler += new Wimp.RedrawEventHandler (RedrawMainWindow);

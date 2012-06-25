@@ -5,36 +5,71 @@
 //
 
 using System;
+using System.Text;
 
 namespace riscos
 {
 	public static partial class Toolbox
 	{
+		/*! \class Window
+		 * \brief Encapsulates a Toolbox window.  */
 		public class Window : Object
 		{
+			/*! \brief The WIMP handle for this toolbox window.  */
 			Wimp.WindowHandle Handle;
 
 			public event Wimp.RedrawEventHandler RedrawHandler;
 
+			/*! \brief Create a toolbox window from the named template in the
+			 * Resource file.
+			 * \param[in] resName The name of the window template to use.  */
 			public Window (string resName)
 			{
 				Create (resName);
 				Handle = new Wimp.WindowHandle (GetWimpHandle ());
 			}
 
+			/*! \brief Create a toolbox window from the template data given.
+			 * \param[in] templateData Pointer to the window template.  */
 			public Window (IntPtr templateData)
 			{
 				Create (templateData);
 				Handle = new Wimp.WindowHandle (GetWimpHandle ());
 			}
 
-			public virtual uint GetWimpHandle ()
+			/*! \brief Get the WIMP handle of the window from the toolbox.
+			 * \return The WIMP window handle.  */
+			public uint GetWimpHandle ()
 			{
 				uint wimp_handle;
 
 				OS.ThrowOnError (NativeMethods.Window_GetWimpHandle (0, ID, out wimp_handle));
 
 				return wimp_handle;
+			}
+
+			/*! \brief Set the title of the toolbox window.
+			 * \param[in] title The new title string for the window.
+			 * \return Nothing.  */
+			public void SetTitle (string title)
+			{
+				OS.ThrowOnError (NativeMethods.Window_SetTitle (0, ID, title));
+			}
+
+			/*! \brief Get the title of the toolbox window.
+			 * \return The title of the toolbox window as a string object.  */
+			public string GetTitle ()
+			{
+				// Find out how big the buffer needs to be.
+				int buffer_size;
+				OS.ThrowOnError (NativeMethods.Window_GetTitle (0, ID, IntPtr.Zero, 0, out buffer_size));
+
+				// A StringBuilder can be initialised to the right size ready
+				// to receive the title text.
+				StringBuilder buffer = new StringBuilder (buffer_size);
+				OS.ThrowOnError (NativeMethods.Window_GetTitle (0, ID, buffer, buffer_size, out buffer_size));
+
+				return buffer.ToString ();
 			}
 
 			public virtual void OnRedraw (Wimp.RedrawWindowEvent ev)
