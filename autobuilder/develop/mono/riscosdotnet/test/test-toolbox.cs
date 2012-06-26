@@ -35,7 +35,8 @@ public class MyTask : ToolboxTask
 		MainFont = new Font.Instance ("Trinity.Medium", 24 << 4, 24 << 4);
 		MainWindow = new Toolbox.Window ("MainWindow");
 
-		MainWindow.SetTitle ("CSharp Toolbox Window");
+		// Can also use MainWindow.SetTitle ("CSharp Toolbox Window");
+		MainWindow.Title = "CSharp Toolbox Window";
 
 		// Register the event handlers for the window.
 		MainWindow.RedrawHandler += new Wimp.RedrawEventHandler (RedrawMainWindow);

@@ -18,6 +18,14 @@ namespace riscos
 			/*! \brief The WIMP handle for this toolbox window.  */
 			Wimp.WindowHandle Handle;
 
+			/*! \brief Title of the window.
+			 * Can be set/read using, eg, simple assignment.  */
+			public string Title
+			{
+				get { return GetTitle (); }
+				set { SetTitle (value); }
+			}
+
 			public event Wimp.RedrawEventHandler RedrawHandler;
 
 			/*! \brief Create a toolbox window from the named template in the
