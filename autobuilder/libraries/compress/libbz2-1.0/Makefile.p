@@ -2,48 +2,49 @@
 +++ Makefile	2008-01-26 22:54:23.000000000 -0800
 @@ -17,16 +17,16 @@
  SHELL=/bin/sh
- 
+
  # To assist in cross-compiling
 -CC=gcc
 -AR=ar
 +#CC=gcc
 +#AR=ar
  RANLIB=ranlib
--LDFLAGS=
+-LDFLAGS= `dpkg-buildflags --get LDFLAGS`
 +LDFLAGS=-static
- 
+
  BIGFILES=-D_FILE_OFFSET_BITS=64
- CFLAGS=-Wall -Winline -O2 -g $(BIGFILES) $(DEBCFLAGS)
- 
+-CFLAGS=-Wall -Winline $(BIGFILES) $(DEBCFLAGS)
++CFLAGS=-O3 -Wall -Winline $(BIGFILES) $(DEBCFLAGS)
+
  # Where you want it installed when you do 'make install'
 -PREFIX=/usr/local
 +PREFIX=$(GCCSDK_INSTALL_ENV)
- 
- 
+
+
  OBJS= blocksort.o  \
 @@ -37,13 +37,13 @@
        decompress.o \
        bzlib.o
- 
+
 -all: libbz2.a bzip2 bzip2recover # test
 +all: libbz2.a bzip2$(AB_EXEEXT) bzip2recover$(AB_EXEEXT) # test
- 
+
 -bzip2: libbz2.so bzip2.o
 -	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2 bzip2.o -L. -lbz2
 +bzip2$(AB_EXEEXT): libbz2.a bzip2.o
 +	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2$(AB_EXEEXT) bzip2.o -L. -lbz2
- 
+
 -bzip2recover: bzip2recover.o
 -	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2recover bzip2recover.o
 +bzip2recover$(AB_EXEEXT): bzip2recover.o
 +	$(CC) $(CFLAGS) $(LDFLAGS) -o bzip2recover$(AB_EXEEXT) bzip2recover.o
- 
+
  libbz2.a: $(OBJS)
  	rm -f libbz2.a
 @@ -93,47 +93,47 @@
  	cmp sample3.tst sample3.ref
  	@cat words3
- 
+
 -install: bzip2 bzip2recover libbz2.a
 +install: bzip2$(AB_EXEEXT) bzip2recover$(AB_EXEEXT) libbz2.a
  	if ( test ! -d $(PREFIX)/bin ) ; then mkdir -p $(PREFIX)/bin ; fi
@@ -117,6 +118,6 @@
 +	#echo ".so man1/bzgrep.1" > $(PREFIX)/man/man1/bzfgrep.1
 +	#echo ".so man1/bzmore.1" > $(PREFIX)/man/man1/bzless.1
 +	#echo ".so man1/bzdiff.1" > $(PREFIX)/man/man1/bzcmp.1
- 
- clean: 
+
+ clean:
  	rm -f *.o *.sho libbz2.a libbz2.so* bzip2 bzip2recover \
