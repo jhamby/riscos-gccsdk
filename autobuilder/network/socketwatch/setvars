@@ -1,0 +1,23 @@
+AB_CVS_ROOT=:pserver:anonymous@nettle.cvs.sourceforge.net:/cvsroot/nettle
+AB_CVS_MODULE=SocketWatch
+AB_PACKAGE=SocketWatch
+AB_CATEGORY=Network
+AB_LICENCE=Free
+AB_DISTCLEAN="make -f Source/Makefile clean"
+
+ab_make()
+{
+   cd Source
+   make
+}
+
+ab_package()
+{
+   AB_PVERSION=`grep -m 1 "VERSION SETS" $S/Source/SockWatch.s | cut -f 2 -d'"' `
+   mkdir -p $D/SocketWatch/System/310/Modules/Network
+   cp -r $S/Source/SockWatch,ffa $D/SocketWatch/System/310/Modules/Network
+
+   $AB_HOME/add-riscpkg -package SocketWatch -copyrightfile $S/Source/License
+}
+
+
