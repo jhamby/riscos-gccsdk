@@ -10,6 +10,7 @@ riscos_dll_sources = \
 	NativeMethods/font.cs \
 	toolbox/toolbox.cs \
 	toolbox/window.cs \
+	toolbox/iconbar.cs \
 	wimp.cs \
 	icon.cs \
 	task.cs \

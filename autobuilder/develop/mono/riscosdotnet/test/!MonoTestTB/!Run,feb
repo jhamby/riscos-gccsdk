@@ -1,3 +1,11 @@
-Wimpslot 5000k
 Set MonoTestTB$Dir <Obey$Dir>
+
+RMEnsure Toolbox 1.33  RMLoad System:modules.Toolbox.Toolbox
+RMEnsure Toolbox 1.33  Error ResCreate requires ToolBox 1.33 or later
+RMEnsure Window  1.17  RMLoad System:modules.toolbox.window
+RMEnsure Window  1.17  Error ResCreate requires Window 1.17 or later
+RMEnsure IconBar  1.20  RMLoad System:modules.toolbox.IconBar
+RMEnsure IconBar  1.20  Error ResCreate requires IconBar 1.20 or later
+
+Wimpslot 5000k
 <MonoTestTB$Dir>.test-toolbox/exe

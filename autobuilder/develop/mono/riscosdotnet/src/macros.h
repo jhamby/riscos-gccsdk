@@ -89,6 +89,16 @@
 
 	.endm
 
+	.macro REPORT_TEXT0 reg
+	STMFD	sp!, {r0-r3}
+
+	MOV	r0, \reg
+	SWI	0x74c80
+
+	LDMFD	sp!, {r0-r3}
+
+	.endm
+
 	.macro	PRINT_HEX int
 	STMFD	sp!, {r0-r3}
 	MOV	r0,\int

@@ -168,12 +168,12 @@ ab_package() {
   cp -T "$S/libriscosdotnet/build/test/test-font.exe.mdb" "$tests_installdir/test-font.exe.mdb"
 
   # Copy !MonoTestApp
-  cp -L -R $S/libriscosdotnet/test/\!MonoTestApp $tests_installdir/\!MonoTestApp
+  svn export $H/riscosdotnet/test/\!MonoTestApp $tests_installdir/\!MonoTestApp
   cp -T $S/libriscosdotnet/build/test/test-app.exe $tests_installdir/\!MonoTestApp/test-app.exe,A7D
   cp -T $S/libriscosdotnet/build/test/test-app.exe.mdb $tests_installdir/\!MonoTestApp/test-app.exe.mdb
 
   # Copy !MonoTestTB
-  cp -L -R $S/libriscosdotnet/test/\!MonoTestTB $tests_installdir/\!MonoTestTB
+  svn export $H/riscosdotnet/test/\!MonoTestTB $tests_installdir/\!MonoTestTB
   cp -T $S/libriscosdotnet/build/test/test-toolbox.exe $tests_installdir/\!MonoTestTB/test-toolbox.exe,A7D
   cp -T $S/libriscosdotnet/build/test/test-toolbox.exe.mdb $tests_installdir/\!MonoTestTB/test-toolbox.exe.mdb
 }

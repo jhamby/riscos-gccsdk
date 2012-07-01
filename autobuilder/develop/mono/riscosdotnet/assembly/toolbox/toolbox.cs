@@ -50,12 +50,12 @@ namespace riscos
 				ID = 0;
 			}
 
-//			/*! \brief Create a toolbox object using the named template.
-//			 * \param [in] resName Name of object in resource file to create.  */
-//			public Object (string resName)
-//			{
-//				Create (resName);
-//			}
+			/*! \brief Create a toolbox object using the named template.
+			 * \param [in] resName Name of object in resource file to create.  */
+			protected Object (string resName)
+			{
+				Create (resName);
+			}
 
 			public Object (uint objectID)
 			{
@@ -152,6 +152,11 @@ namespace riscos
 										   parentCmp));
 			}
 
+			public void Hide ()
+			{
+				OS.ThrowOnError (NativeMethods.Toolbox_HideObject (0, ID));
+			}
+
 			public void OnEvent (ToolboxEvent ev)
 			{
 				ToolboxEventHandler handler;
@@ -182,6 +187,14 @@ namespace riscos
 			}
 		}
 
+		public static IntPtr TemplateLookup (string resName)
+		{
+			IntPtr template;
+
+			OS.ThrowOnError (NativeMethods.Toolbox_TemplateLookUp (0, resName, out template));
+
+			return template;
+		}
 	}
 
 	public class ToolboxTask : Task
@@ -224,8 +237,11 @@ namespace riscos
 			case Wimp.PollCode.ToolboxEvent:
 				{
 					Toolbox.ToolboxEvent event_full = (Toolbox.ToolboxEvent)event_base;
-					Toolbox.Window tb_obj = (Toolbox.Window)ToolboxTask.AllObjects[id_block.SelfID];
-					tb_obj.OnEvent (event_full);
+					Toolbox.Object tb_obj;
+					if (ToolboxTask.AllObjects.TryGetValue (id_block.SelfID, out tb_obj))
+					{
+						tb_obj.OnEvent (event_full);
+					}
 				}
 				break;
 			}
