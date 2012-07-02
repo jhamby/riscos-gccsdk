@@ -1,5 +1,5 @@
 
-AB_CONFLAGS=--without-ssl
+AB_CONFLAGS=--disable-ipv6
 AB_ROVERISON=2
 
 export gl_cv_func_gettimeofday_clobber=no
@@ -11,7 +11,7 @@ ab_package() {
   ab_docs -h $S/doc/wget.info $S/README $S/AUTHORS $S/COPYING $S/MAILING-LIST
   ab_docs $S/NEWS $S/ChangeLog
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
 }
 
 autoconf
