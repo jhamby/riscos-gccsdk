@@ -11,6 +11,7 @@ riscos_dll_sources = \
 	toolbox/toolbox.cs \
 	toolbox/window.cs \
 	toolbox/iconbar.cs \
+	toolbox/menu.cs \
 	wimp.cs \
 	icon.cs \
 	task.cs \

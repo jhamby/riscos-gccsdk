@@ -14,7 +14,8 @@ BUILT_SOURCES = \
 	reporter.s \
 	toolbox.s \
 	tb-window.s \
-	tb-iconbar.s
+	tb-iconbar.s \
+	tb-menu.s
 
 AM_CCASFLAGS = -xassembler-with-cpp -DASM
 
@@ -72,4 +73,9 @@ $(top_srcdir)/src/tb-window.s: $(DEFMOD) $(OSLIB_SRC)/Toolbox/oslib/Window.swi
 $(top_srcdir)/src/tb-iconbar.s: $(DEFMOD) $(OSLIB_SRC)/Toolbox/oslib/Iconbar.swi
 	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Toolbox/oslib/Iconbar.swi > temp.s
 	$(STRIP_OSLIB_SCRIPT) temp.s $@ iconbar
+	rm -f temp.s
+
+$(top_srcdir)/src/tb-menu.s: $(DEFMOD) $(OSLIB_SRC)/Toolbox/oslib/Menu.swi
+	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Toolbox/oslib/Menu.swi > temp.s
+	$(STRIP_OSLIB_SCRIPT) temp.s $@ menu
 	rm -f temp.s

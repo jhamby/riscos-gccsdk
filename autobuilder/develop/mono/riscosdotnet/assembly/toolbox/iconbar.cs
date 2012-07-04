@@ -39,8 +39,7 @@ namespace riscos
 					return icon_handle;
 				}
 			}
-#if false
-			// TODO: When class Toolbox.Menu is implemented
+
 			/*! \brief Specifies the menu which will be displayed when the Menu button is
 			 * pressed over this Iconbar object.
 			 * \note Set to null to detach the current menu.  */
@@ -48,22 +47,22 @@ namespace riscos
 			{
 				set
 				{
-					OS.ThrowOnError (NativeMethods.Iconbar.SetMenu (0,
+					OS.ThrowOnError (NativeMethods.Iconbar_SetMenu (0,
 											ID,
 											(value == null) ? 0 : value.ID));
 				}
 				get
 				{
 					uint menu_id;
-					OS.ThrowOnError (NativeMethods.Iconbar.GetMenu (0, ID, out menu_id));
+					OS.ThrowOnError (NativeMethods.Iconbar_GetMenu (0, ID, out menu_id));
 
 					Toolbox.Object tb_obj;
 					if (ToolboxTask.AllObjects.TryGetValue (menu_id, out tb_obj))
-						return tb_obj;
+						return (Toolbox.Menu)tb_obj;
 					return null;
 				}
 			}
-#endif
+
 			/*! \brief Specifies a Toolbox event to be raised when the user clicks Select
 			 * on the Iconbar icon.
 			 * \note Set to 0 to raise the default toolbox event instead.  */
