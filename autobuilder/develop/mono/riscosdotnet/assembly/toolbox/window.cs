@@ -27,7 +27,7 @@ namespace riscos
 					int buffer_size;
 					OS.ThrowOnError (NativeMethods.Window_GetTitle (0,
 											ID,
-											IntPtr.Zero,
+											null,
 											0,
 											out buffer_size));
 
