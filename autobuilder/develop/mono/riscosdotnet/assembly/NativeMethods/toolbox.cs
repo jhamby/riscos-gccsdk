@@ -174,13 +174,6 @@ namespace riscos
 							       int size,
 							       out int used);
 
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_title")]
-		internal static extern IntPtr Window_GetTitle (uint flags,
-							       uint WindowID,
-							       IntPtr title,
-							       int size,
-							       out int requiredSize);
-
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_default_focus")]
 		internal static extern IntPtr Window_SetDefaultFocus (uint flags, uint WindowID, uint cmpID);
 
