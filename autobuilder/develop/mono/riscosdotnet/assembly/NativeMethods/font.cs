@@ -82,12 +82,6 @@ namespace riscos
 								   StringBuilder fontID,
 								   out int used);
 
-		// Allows 0 to be passed in the 2nd parameter.
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_read_identifier")]
-		internal static extern IntPtr Font_ReadIdentifier (IntPtr font,
-								   IntPtr fontID,
-								   out int used);
-
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xfont_read_info")]
 		internal static extern IntPtr Font_ReadInfo (IntPtr font,
 							     out int x0,

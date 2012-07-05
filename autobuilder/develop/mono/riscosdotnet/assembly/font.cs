@@ -378,7 +378,7 @@ namespace riscos
 				int buffer_size;
 
 				OS.ThrowOnError (NativeMethods.Font_ReadIdentifier (Handle,
-										    IntPtr.Zero,
+										    null,
 										    out buffer_size));
 
 				StringBuilder buffer = new StringBuilder (buffer_size);
@@ -402,7 +402,7 @@ namespace riscos
 				int buffer_size;
 
 				OS.ThrowOnError (NativeMethods.Font_ReadIdentifier (Handle,
-										    IntPtr.Zero,
+										    null,
 										    out buffer_size));
 
 				StringBuilder buffer = new StringBuilder (buffer_size);
