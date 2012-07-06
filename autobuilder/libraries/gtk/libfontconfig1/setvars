@@ -2,7 +2,7 @@ AB_INSTALL=yes
 
 AB_CONFLAGS="--disable-docs"
 
-for dir in fc-arch fc-cache fc-case fc-glyphname fc-lang fc-list fc-match; do
+for dir in fc-cache fc-case fc-glyphname fc-lang fc-list fc-match; do
   sed < $dir/Makefile.in "s/^LDFLAGS =/#LDFLAGS =/" > $dir/Makefile.in.new
   mv $dir/Makefile.in.new $dir/Makefile.in
 done
