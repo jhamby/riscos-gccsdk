@@ -57,9 +57,10 @@ namespace riscos
 				Create (resName);
 			}
 
-			public Object (uint objectID)
+			protected Object (uint objectID)
 			{
 				ID = objectID;
+				ToolboxTask.AllObjects.Add (objectID, this);
 			}
 
 			~Object ()
@@ -81,6 +82,7 @@ namespace riscos
 			{
 				if (!this.disposed)
 				{
+					ToolboxTask.AllObjects.Remove (ID);
 					Delete ();
 					disposed = true;
 				}

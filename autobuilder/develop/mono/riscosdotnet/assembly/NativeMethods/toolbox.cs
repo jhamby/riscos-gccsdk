@@ -164,6 +164,27 @@ namespace riscos
 								 int xHotSpot,
 								 int yHotSpot);
 
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_pointer")]
+		internal static extern IntPtr Window_GetPointer (uint flags,
+								 uint WindowID,
+								 StringBuilder spriteName,
+								 int buffer_size,
+								 out int used,
+								 out int xHotSpot,
+								 out int yHotSpot);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_help_message")]
+		internal static extern IntPtr Window_SetHelpMessage (uint flags,
+								     uint WindowID,
+								     string messageText);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_help_message")]
+		internal static extern IntPtr Window_GetHelpMessage (uint flags,
+								     uint WindowID,
+								     StringBuilder buffer,
+								     int buffer_size,
+								     out int used);
+
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_title")]
 		internal static extern IntPtr Window_SetTitle (uint flags, uint WindowID, string title);
 
@@ -188,6 +209,22 @@ namespace riscos
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_force_redraw")]
 		internal static extern IntPtr Window_ForceRedraw (uint flags, uint WindowID, NativeOS.Rect extent);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_tool_bars")]
+		internal static extern IntPtr Window_SetToolBars (uint flags,
+								  uint windowID,
+								  uint ibl,
+								  uint itl,
+								  uint ebl,
+								  uint etl);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_tool_bars")]
+		internal static extern IntPtr Window_GetToolBars (uint flags,
+								  uint windowID,
+								  out uint ibl,
+								  out uint itl,
+								  out uint ebl,
+								  out uint etl);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_pointer_info")]
 		internal static extern IntPtr Window_GetPointerInfo (uint flags,
@@ -247,7 +284,7 @@ namespace riscos
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_set_help_message")]
 		internal static extern IntPtr Iconbar_SetHelpMessage (uint flags,
 								      uint iconbarID,
-								      string message_text);
+								      string messageText);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_get_help_message")]
 		internal static extern IntPtr Iconbar_GetHelpMessage (uint flags,
