@@ -131,6 +131,9 @@ namespace riscos
 		internal static extern IntPtr Toolbox_HideObject (uint flags,
 								  uint objectID);
 
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_get_object_info")]
+		internal static extern IntPtr Toolbox_GetObjectState (uint flags, uint objectID, out uint state);
+
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_set_client_handle")]
 		internal static extern IntPtr Toolbox_SetClientHandle (uint flags,
 								       uint objectID,
@@ -399,7 +402,7 @@ namespace riscos
 								 uint menuID,
 								 uint menuEntry,
 								 uint showID,
-								 Toolbox.Menu.ClickShowFlags showFlags);
+								 uint showFlags);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xmenu_get_click_show")]
 		internal static extern IntPtr Menu_GetClickShow (uint flags,
@@ -478,6 +481,73 @@ namespace riscos
 							     StringBuilder title,
 							     int bufferSize,
 							     out int used);
+
+		// Toolbox Gadget SWIs
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
+		internal static extern IntPtr Gadget_SetFocus (uint flags,
+							       uint windowID,
+							       uint componentID,
+							       uint unused);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
+		internal static extern IntPtr Gadget_MoveGadget (uint flags,
+								 uint windowID,
+								 int method,
+								 uint componentID,
+								 ref NativeOS.Rect bbox);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
+		internal static extern IntPtr Gadget_GetBBox (uint flags,
+							      uint windowID,
+							      int method,
+							      uint componentID,
+							      out NativeOS.Rect bbox);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
+		internal static extern IntPtr Component_SetText (uint flags,
+								 uint windowID,
+								 int method,
+								 uint cmpID,
+								 string messageText);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetText")]
+		internal static extern IntPtr Component_GetText (uint flags,
+								 uint windowID,
+								 int method,
+								 uint cmpID,
+								 StringBuilder buffer,
+								 int bufferSize,
+								 out int used);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
+		internal static extern IntPtr Component_SetR4 (uint flags,
+							       uint windowID,
+							       int method,
+							       uint cmpID,
+							       uint r4);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4R5")]
+		internal static extern IntPtr Component_SetR4R5 (uint flags,
+								 uint windowID,
+								 int method,
+								 uint cmpID,
+								 uint r4,
+								 uint r5);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetR0")]
+		internal static extern IntPtr Component_GetR0 (uint flags,
+								    uint windowID,
+								    int method,
+								    uint cmpID,
+								    out uint r0);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetR0R1")]
+		internal static extern IntPtr Component_GetR0R1 (uint flags,
+								    uint windowID,
+								    int method,
+								    uint cmpID,
+								    out uint r0,
+								    out uint r1);
 	}
 }
 

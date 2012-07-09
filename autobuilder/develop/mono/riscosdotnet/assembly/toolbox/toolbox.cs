@@ -34,6 +34,58 @@ namespace riscos
 			AsNestedWindow
 		}
 
+		/*! \exception UnknownObjectException
+		 * \brief Exception thrown by a Toolbox application when an object
+		 * with an ID that is unknown to the application is encountered.  */
+		public class UnknownObjectException : System.Exception
+		{
+			public uint ObjectID;
+
+			public UnknownObjectException (uint objectID) : base ()
+			{
+				ObjectID = objectID;
+			}
+		}
+
+		/*! \class ClickShow
+		 * \brief Used to pass a toolbox object and flags to methods that set/read a click->show
+		 * object.  */
+		public class ClickShow
+		{
+			/*! \brief Bit 0 clear - Show object persistently.  */
+			public const uint Persistent = 0;
+			/*! \brief Bit 0 set - Show object transiently.  */
+			public const uint Transient = 1;
+
+			/*! \brief The object to be shown.  */
+			public Toolbox.Object Object;
+
+			/*! \brief Flags used to indicate whether a component that can show an object when
+			 * clicked should show the object persistently or transiently.  */
+			public uint Flags;
+
+			/*! \brief Create a ClickShow object.
+			 * \param [in] objID The ID of the Toolbox object that will be shown.
+			 * \param [in] flags Set to \e ClickShow.Persistent or \e ClickShow.Transient.
+			 * \exception UnknownObjectException The object ID is not wrapped in a
+			 * class object and is therefore unknown.  */
+			public ClickShow (uint objID, uint flags)
+			{
+				if (!ToolboxTask.AllObjects.TryGetValue (objID, out Object))
+					throw new UnknownObjectException (objID);
+				Flags = flags;
+			}
+
+			/*! \brief Create a ClickShow object.
+			 * \param [in] tbObj The Toolbox object that will be shown.
+			 * \param [in] flags Set to \e ClickShow.Persistent or \e ClickShow.Transient.  */
+			public ClickShow (Object tbObj, uint flags)
+			{
+				Object = tbObj;
+				Flags = flags;
+			}
+		}
+
 		public delegate void ToolboxEventHandler (object sender, ToolboxEventArgs args);
 
 		public class Object : IDisposable
@@ -157,6 +209,16 @@ namespace riscos
 			public void Hide ()
 			{
 				OS.ThrowOnError (NativeMethods.Toolbox_HideObject (0, ID));
+			}
+
+			/*! \brief Return \e true if this object is currently showing on screen.  */
+			public bool IsOnScreen ()
+			{
+				uint state;
+
+				OS.ThrowOnError (NativeMethods.Toolbox_GetObjectState (0, ID, out state));
+
+				return (state & 1) != 0;
 			}
 
 			public void OnEvent (ToolboxEvent ev)

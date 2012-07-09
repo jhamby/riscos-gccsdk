@@ -25,16 +25,6 @@ namespace riscos
 				public const uint Selection = 0x828c3;
 			}
 
-			/*! \brief The flags used by \e Menu.SetClickShow to indicate whether the
-			 * shown object should be peristent or not.  */
-			public enum ClickShowFlags
-			{
-				/*! \brief Bit 0 clear - Show object persistently.  */
-				ShowPersistent,
-				/*! \brief Bit 0 set - Show object transiently.  */
-				ShowTransient
-			}
-
 			/*! \brief Create a Toolbox Menu object from the named resource.
 			 * \param [in] resName The name of the template in the resource file.  */
 			public Menu (string resName) : base (resName)
@@ -212,7 +202,7 @@ namespace riscos
 			 * \param [in] flags Show flags.
 			 * \return Nothing.
 			 * \note Set \e clickObject to null if no object should be shown.  */
-			public void SetClickShow (uint entryCmp, Toolbox.Object clickObject, ClickShowFlags flags)
+			public void SetClickShow (uint entryCmp, Toolbox.Object clickObject, uint flags)
 			{
 				uint click_id = (clickObject == null) ? 0 : clickObject.ID;
 
