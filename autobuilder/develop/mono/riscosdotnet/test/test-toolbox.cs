@@ -102,6 +102,14 @@ public class MyTask : ToolboxTask
 
 		// Display our application icon on the Iconbar.
 		Iconbar.Show ();
+
+		// Make sure that reading the Iconbar properties works.
+		Reporter.WriteLine ("Iconbar");
+		Reporter.WriteLine ("-------");
+		Reporter.WriteLine ("Icon = {0}", Iconbar.IconHandle);
+		Reporter.WriteLine ("Text = '{0}', Sprite = '{1}'", Iconbar.Text, Iconbar.Sprite);
+		Reporter.WriteLine ("SelectEvent = {0:X8}, AdjustEvent = {1:X8}", Iconbar.SelectEvent, Iconbar.AdjustEvent);
+		Reporter.WriteLine ("HelpMessage = '{0}'", Iconbar.HelpMessage);
 	}
 
 	public void Init ()

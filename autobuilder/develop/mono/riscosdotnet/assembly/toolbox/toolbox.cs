@@ -8,6 +8,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Collections.Generic;
 using System.Collections;
+using System.Text;
 
 namespace riscos
 {
@@ -227,6 +228,68 @@ namespace riscos
 
 				if (ToolboxHandlers.TryGetValue (ev.ToolboxArgs.Header.EventCode, out handler))
 					handler (this, ev.ToolboxArgs);
+			}
+
+			//
+			// Generic protected methods that can be tailored to a derived Toolbox object
+			// by passing a Toolbox method number.
+			// 
+
+			protected void SetText (int method, string text)
+			{
+				OS.ThrowOnError (NativeMethods.Object_SetText (0,
+									       ID,
+									       method,
+									       text));
+			}
+
+			protected string GetText (int method)
+			{
+				int buffer_size;
+				OS.ThrowOnError (NativeMethods.Object_GetText (0,
+									       ID,
+									       method,
+									       null,
+									       0,
+									       out buffer_size));
+				StringBuilder buffer = new StringBuilder (buffer_size);
+				OS.ThrowOnError (NativeMethods.Object_GetText (0,
+									       ID,
+									       method,
+									       buffer,
+									       buffer_size,
+									       out buffer_size));
+				return buffer.ToString ();
+			}
+
+			protected uint GetHandle (int method)
+			{
+				uint handle;
+
+				OS.ThrowOnError (NativeMethods.Object_GetR0 (0, ID, method, out handle));
+
+				return handle;
+			}
+
+			protected void SetMenu (int method, Menu menu)
+			{
+				OS.ThrowOnError (NativeMethods.Object_SetR3 (0,
+									     ID,
+									     method,
+									     (menu == null) ? 0 : menu.ID));
+			}
+
+			protected Menu GetMenu (int method)
+			{
+				uint menu_id;
+
+				OS.ThrowOnError (NativeMethods.Object_GetR0 (0, ID, method, out menu_id));
+
+				Toolbox.Object tb_obj;
+				if (!ToolboxTask.AllObjects.TryGetValue (menu_id, out tb_obj))
+					throw new UnknownObjectException (menu_id);
+
+				return (Menu)tb_obj;
 			}
 		}
 

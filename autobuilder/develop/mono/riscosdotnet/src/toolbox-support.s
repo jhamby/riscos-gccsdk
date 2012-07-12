@@ -76,6 +76,14 @@ rdn_Toolbox_GetMessTransFD:
 	WORD	messtrans_fd
 	DECLARE_FUNCTION rdn_Toolbox_GetMessTransFD
 
+
+@---------------------------------------------------------------------------
+@
+@ Generic functions which share common signatures and register input/outputs
+@ with the Toolbox gadget methods.
+@
+@---------------------------------------------------------------------------
+
 	@ IntPtr rdn_Component_SetR4 (uint flags, uint ObjectID, int method, uint CmpID, uint r4)
 	.global rdn_Component_SetR4
 rdn_Component_SetR4:
@@ -149,6 +157,80 @@ rdn_Component_GetText:
 	MOV	r0, #0
 99:	LDMFD	sp!, {v1, v2, pc}
 	DECLARE_FUNCTION rdn_Component_GetText
+
+@---------------------------------------------------------------------------
+@
+@ Generic functions which share common signatures and register input/outputs
+@ with the Toolbox object methods.
+@
+@---------------------------------------------------------------------------
+
+	@ IntPtr rdn_Object_SetR3 (uint flags, uint ObjectID, int method, uint r3)
+	.global rdn_Object_SetR3
+rdn_Object_SetR3:
+	MOV	ip, lr
+
+	SWI	0x64EC6
+	MOVVC	r0, #0
+	MOV	pc, ip
+	DECLARE_FUNCTION rdn_Object_SetR3
+
+	@ IntPtr rdn_Object_GetText (uint flags, uint WindowID, int method,
+	@ 			 	char *buffer, int buffer_size, int *used)
+	.global rdn_Object_GetText
+rdn_Object_GetText:
+	MOV	ip, sp
+	STMFD   sp!, {v1, lr}
+
+	LDR	r4, [ip, #0]
+	SWI	0x64EC6
+	BVS	99f
+	LDR	lr, [sp, #12]
+	STR	r4, [lr]
+	MOV	r0, #0
+99:	LDMFD	sp!, {v1, pc}
+	DECLARE_FUNCTION rdn_Object_GetText
+
+	@ IntPtr rdn_Object_GetR0 (uint flags, uint ObjectID, int method, uint *r0_return)
+	.global rdn_Object_GetR0
+rdn_Object_GetR0:
+	STMFD   sp!, {lr}
+
+	MOV	ip, r3
+	SWI	0x64EC6
+	BVS	99f
+	STR	r0, [ip]
+	MOV	r0, #0
+99:	LDMFD	sp!, {pc}
+	DECLARE_FUNCTION rdn_Object_GetR0
+
+	@ IntPtr rdn_Object_SetR3R4 (uint flags, uint ObjectID, int method, uint r3, uint r4)
+	.global rdn_Object_SetR3R4
+rdn_Object_SetR3R4:
+	MOV	ip, sp
+	STMFD   sp!, {v1, lr}
+
+	LDR	r4, [ip, #0]
+	SWI	0x64EC6
+	MOVVC	r0, #0
+	LDMFD	sp!, {v1, pc}
+	DECLARE_FUNCTION rdn_Object_SetR3R4
+
+	@ IntPtr rdn_Object_GetR0R1 (uint flags, uint ObjectID, int method,
+	@ 				uint *r0_return, uint *r1_return)
+	.global rdn_Object_GetR0R1
+rdn_Object_GetR0R1:
+	MOV	ip, sp
+	STMFD   sp!, {lr}
+
+	SWI	0x64EC6
+	BVS	99f
+	STR	r0, [r3]
+	LDR	lr, [ip, #0]
+	STR	r1, [lr]
+	MOV	r0, #0
+99:	LDMFD	sp!, {pc}
+	DECLARE_FUNCTION rdn_Object_GetR0R1
 
 	.bss
 

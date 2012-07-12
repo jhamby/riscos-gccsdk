@@ -15,6 +15,30 @@ namespace riscos
 		 * \brief Encapsulates a Toolbox window.  */
 		public class Window : Object
 		{
+			class Method
+			{
+				public const int GetWimpHandle = 0;
+				public const int AddGadget = 1;
+				public const int RemoveGadget = 2;
+				public const int SetMenu = 3;
+				public const int GetMenu = 4;
+				public const int SetPointer = 5;
+				public const int GetPointer = 6;
+				public const int SetHelpMessage = 7;
+				public const int GetHelpMessage = 8;
+				public const int AddKeyboardShortcuts = 9;
+				public const int RemoveKeyboardShortcuts = 10;
+				public const int SetTitle = 11;
+				public const int GetTitle = 12;
+				public const int SetDefaultFocus = 13;
+				public const int GetDefaultFocus = 14;
+				public const int SetExtent = 15;
+				public const int GetExtent = 16;
+				public const int ForceRedraw = 17;
+				public const int SetToolBars = 18;
+				public const int GetToolBars = 19;
+			}
+
 			public enum Toolbar
 			{
 				InternalBottomLeft = 1,
@@ -226,68 +250,30 @@ namespace riscos
 			/*! \brief The title of the window.  */
 			public string Title
 			{
-				get
-				{
-					// Find out how big the buffer needs to be.
-					int buffer_size;
-					OS.ThrowOnError (NativeMethods.Window_GetTitle (0,
-											ID,
-											null,
-											0,
-											out buffer_size));
-
-					// A StringBuilder can be initialised to the right size ready
-					// to receive the title text.
-					StringBuilder buffer = new StringBuilder (buffer_size);
-					OS.ThrowOnError (NativeMethods.Window_GetTitle (0,
-											ID,
-											buffer,
-											buffer_size,
-											out buffer_size));
-
-					return buffer.ToString ();
-				}
+				get { return GetText (Method.GetTitle); }
 				set
 				{
-					if (value != null)
-						OS.ThrowOnError (NativeMethods.Window_SetTitle (0, ID, value));
+					if (value == null)
+						throw new ArgumentNullException ("Attempted to set Window title to null");
+					SetText (Method.SetTitle, value);
 				}
 			}
 
 			/*! \brief The WIMP handle of the Toolbox window.  */
 			public uint WimpHandle
 			{
-				get
-				{
-					uint wimp_handle;
-
-					OS.ThrowOnError (NativeMethods.Window_GetWimpHandle (0, ID, out wimp_handle));
-
-					return wimp_handle;
-				}
+				get { return GetHandle (Method.GetWimpHandle); }
 			}
 
 			/*! \brief The Menu which will be displayed when the Menu button is pressed over
 			 * this Window object.
+			 * \exception UnknownObjectException Thrown if the toolbox object ID is unknown when
+			 * reading the property.
 			 * \note Set to null to detach the Menu from the Window.  */
 			public Toolbox.Menu Menu
 			{
-				set
-				{
-					OS.ThrowOnError (NativeMethods.Window_SetMenu (0,
-										       ID,
-										       (value == null) ? 0 : value.ID));
-				}
-				get
-				{
-					uint menu_id;
-					OS.ThrowOnError (NativeMethods.Window_GetMenu (0, ID, out menu_id));
-
-					Toolbox.Object tb_obj;
-					if (ToolboxTask.AllObjects.TryGetValue (menu_id, out tb_obj))
-						return (Toolbox.Menu)tb_obj;
-					return null;
-				}
+				set { SetMenu (Method.SetMenu, value); }
+				get { return GetMenu (Method.GetMenu); }
 			}
 
 			/*! \brief The Pointer shape which will be used when the pointer enters this
@@ -330,21 +316,8 @@ namespace riscos
 			 * \note Set to null to remove the Help Message from this Window.  */
 			public string HelpMessage
 			{
-				set
-				{
-					OS.ThrowOnError (NativeMethods.Window_SetHelpMessage (0, ID, value));
-				}
-				get
-				{
-					int buffer_size;
-					OS.ThrowOnError (NativeMethods.Window_GetHelpMessage (0, ID, null, 0,
-											      out buffer_size));
-					StringBuilder buffer = new StringBuilder (buffer_size);
-					OS.ThrowOnError (NativeMethods.Window_GetHelpMessage (0, ID, buffer,
-											      buffer_size,
-											      out buffer_size));
-					return buffer.ToString ();
-				}
+				set { SetText (Method.SetHelpMessage, value); }
+				get { return GetText (Method.GetHelpMessage); }
 			}
 
 			/*! \brief The default focus component for this window.
@@ -355,14 +328,19 @@ namespace riscos
 			{
 				set
 				{
-					OS.ThrowOnError (NativeMethods.Window_SetDefaultFocus (0, ID, value));
+					OS.ThrowOnError (NativeMethods.Object_SetR3 (0,
+										    ID,
+										    Method.SetDefaultFocus,
+										    value));
 				}
 				get
 				{
 					uint cmp;
 
-					OS.ThrowOnError (NativeMethods.Window_GetDefaultFocus (0, ID, out cmp));
-
+					OS.ThrowOnError (NativeMethods.Object_GetR0 (0,
+										     ID,
+										     Method.GetDefaultFocus,
+										     out cmp));
 					return cmp;
 				}
 			}

@@ -16,6 +16,30 @@ namespace riscos
 		 * \brief Encapsulates a Toolbox iconbar object.  */
 		public class Iconbar : Object
 		{
+			class Method
+			{
+				public const int GetIconHandle = 0;
+				public const int SetMenu = 1;
+				public const int GetMenu = 2;
+				public const int SetEvent = 3;
+				public const int GetEvent = 4;
+				public const int SetShow = 5;
+				public const int GetShow = 6;
+				public const int SetHelpMessage = 7;
+				public const int GetHelpMessage = 8;
+				public const int SetText = 9;
+				public const int GetText = 10;
+				public const int SetSprite = 11;
+				public const int GetSprite = 12;
+			}
+
+			public class EventCode
+			{
+				public const int Clicked = 0x82900;
+				public const int SelectAboutToBeShown = 0x82901;
+				public const int AdjustAboutToBeShown = 0x82902;
+			}
+
 			// Track whether the help message has been set to null in the Toolbox.
 			// If it has, then attempting to set it again will overwrite address 0.
 			private bool null_help_message;
@@ -32,12 +56,7 @@ namespace riscos
 			/*! \brief The WIMP handle of the icon on the iconbar.  */
 			public uint IconHandle
 			{
-				get
-				{
-					uint icon_handle;
-					OS.ThrowOnError (NativeMethods.Iconbar_GetIconHandle (0, ID, out icon_handle));
-					return icon_handle;
-				}
+				get { return GetHandle (Method.GetIconHandle); }
 			}
 
 			/*! \brief Specifies the menu which will be displayed when the Menu button is
@@ -45,22 +64,8 @@ namespace riscos
 			 * \note Set to null to detach the current menu.  */
 			public Toolbox.Menu Menu
 			{
-				set
-				{
-					OS.ThrowOnError (NativeMethods.Iconbar_SetMenu (0,
-											ID,
-											(value == null) ? 0 : value.ID));
-				}
-				get
-				{
-					uint menu_id;
-					OS.ThrowOnError (NativeMethods.Iconbar_GetMenu (0, ID, out menu_id));
-
-					Toolbox.Object tb_obj;
-					if (ToolboxTask.AllObjects.TryGetValue (menu_id, out tb_obj))
-						return (Toolbox.Menu)tb_obj;
-					return null;
-				}
+				set { SetMenu (Method.SetMenu, value); }
+				get { return GetMenu (Method.GetMenu); }
 			}
 
 			/*! \brief Specifies a Toolbox event to be raised when the user clicks Select
@@ -68,18 +73,8 @@ namespace riscos
 			 * \note Set to 0 to raise the default toolbox event instead.  */
 			public uint SelectEvent
 			{
-				set
-				{
-					OS.ThrowOnError (NativeMethods.Iconbar_SetEvent (0x1, ID, value, 0));
-				}
-				get
-				{
-					uint select_event, adjust_event;
-					OS.ThrowOnError (NativeMethods.Iconbar_GetEvent (0x1, ID,
-											 out select_event,
-											 out adjust_event));
-					return select_event;
-				}
+				set { SetSelect (Method.SetEvent, value); }
+				get { return GetSelect (Method.GetEvent); }
 			}
 
 			/*! \brief Specifies a Toolbox event to be raised when the user clicks Adjust
@@ -87,18 +82,8 @@ namespace riscos
 			 * \note Set to 0 to raise the default toolbox event instead.  */
 			public uint AdjustEvent
 			{
-				set
-				{
-					OS.ThrowOnError (NativeMethods.Iconbar_SetEvent (0x2, ID, 0, value));
-				}
-				get
-				{
-					uint select_event, adjust_event;
-					OS.ThrowOnError (NativeMethods.Iconbar_GetEvent (0x2, ID,
-											 out select_event,
-											 out adjust_event));
-					return adjust_event;
-				}
+				set { SetAdjust (Method.SetEvent, value); }
+				get { return GetAdjust (Method.GetEvent); }
 			}
 
 			/*! \brief Specifies an object to be shown when the user clicks Select on
@@ -106,21 +91,11 @@ namespace riscos
 			 * \note Set to null to prevent any object from being shown.  */
 			public Toolbox.Object SelectShow
 			{
-				set
-				{
-					OS.ThrowOnError (NativeMethods.Iconbar_SetShow (0x1,
-											ID,
-											(value == null) ? 0 : value.ID,
-											0));
-				}
+				set { SetSelect (Method.SetShow, (value == null) ? 0 : value.ID); }
 				get
 				{
-					uint select_show, adjust_show;
+					uint select_show = GetSelect (Method.GetShow);
 					Toolbox.Object tb_obj;
-					OS.ThrowOnError (NativeMethods.Iconbar_GetShow (0x1,
-											ID,
-											out select_show,
-											out adjust_show));
 					if (ToolboxTask.AllObjects.TryGetValue (select_show, out tb_obj))
 						return tb_obj;
 					return null;
@@ -133,21 +108,11 @@ namespace riscos
 			 * \note Set to null to prevent any object from being shown.  */
 			public Toolbox.Object AdjustShow
 			{
-				set
-				{
-					OS.ThrowOnError (NativeMethods.Iconbar_SetShow (0x2,
-											ID,
-											0,
-											(value == null) ? 0 : value.ID));
-				}
+				set { SetAdjust (Method.SetShow, (value == null) ? 0 : value.ID); }
 				get
 				{
-					uint select_show, adjust_show;
+					uint adjust_show = GetAdjust (Method.GetShow);
 					Toolbox.Object tb_obj;
-					OS.ThrowOnError (NativeMethods.Iconbar_GetShow (0x2,
-											ID,
-											out select_show,
-											out adjust_show));
 					if (ToolboxTask.AllObjects.TryGetValue (adjust_show, out tb_obj))
 						return tb_obj;
 					return null;
@@ -163,7 +128,7 @@ namespace riscos
 				set
 				{
 					if (!null_help_message)
-						OS.ThrowOnError (NativeMethods.Iconbar_SetHelpMessage (0, ID, value));
+						SetText (Method.SetHelpMessage, value);
 					if (value == null)
 						null_help_message = true;
 				}
@@ -172,18 +137,12 @@ namespace riscos
 					if (null_help_message)
 						return null;
 
-					int buffer_size;
-					OS.ThrowOnError (NativeMethods.Iconbar_GetHelpMessage (0, ID, null, 0,
-											       out buffer_size));
-					StringBuilder buffer = new StringBuilder (buffer_size);
-					OS.ThrowOnError (NativeMethods.Iconbar_GetHelpMessage (0, ID, buffer,
-											       buffer_size,
-											       out buffer_size));
-					return buffer.ToString ();
+					return GetText (Method.GetHelpMessage);
 				}
 			}
 
 			/*! \brief The text which is used in a text and sprite Iconbar object.
+			 * \exception ArgumentNullException Thrown if Iconbar text set to null.
 			 * \note An OS exception is thrown if the text is longer than the maximum size
 			 * specified when the Iconbar icon was created.<br>
 			 * A null value is ignored.  */
@@ -191,51 +150,63 @@ namespace riscos
 			{
 				set
 				{
-					if (value != null)
-						OS.ThrowOnError (NativeMethods.Iconbar_SetText (0, ID, value));
+					if (value == null)
+						throw new ArgumentNullException ("Attempted to set Iconbar text to null");
+					SetText (Method.SetText, value);
 				}
-				get
-				{
-					int buffer_size;
-					OS.ThrowOnError (NativeMethods.Iconbar_GetText (0,
-											ID,
-											null,
-											0,
-											out buffer_size));
-					StringBuilder buffer = new StringBuilder (buffer_size);
-					OS.ThrowOnError (NativeMethods.Iconbar_GetText (0,
-											ID,
-											buffer,
-											buffer_size,
-											out buffer_size));
-					return buffer.ToString ();
-				}
+				get { return GetText (Method.GetText); }
 			}
 
-			/*! \brief The sprite which is used in the Iconbar object.  */
+			/*! \brief The sprite which is used in the Iconbar object.
+			 * \exception ArgumentNullException Thrown if Iconbar sprite set to null.  */
 			public string Sprite
 			{
 				set
 				{
-					if (value != null)
-						OS.ThrowOnError (NativeMethods.Iconbar_SetSprite (0, ID, value));
+					if (value == null)
+						throw new ArgumentNullException ("Attempted to set Iconbar sprite to null");
 				}
-				get
-				{
-					int buffer_size;
-					OS.ThrowOnError (NativeMethods.Iconbar_GetSprite (0,
-											  ID,
-											  null,
-											  0,
-											  out buffer_size));
-					StringBuilder buffer = new StringBuilder (buffer_size);
-					OS.ThrowOnError (NativeMethods.Iconbar_GetSprite (0,
-											  ID,
-											  buffer,
-											  buffer_size,
-											  out buffer_size));
-					return buffer.ToString ();
-				}
+				get { return GetText (Method.GetSprite); }
+			}
+
+			private void SetSelect (int method, uint select)
+			{
+				OS.ThrowOnError (NativeMethods.Object_SetR3R4 (0x1,
+									       ID,
+									       method,
+									       select,
+									       0));
+			}
+
+			private void SetAdjust (int method, uint adjust)
+			{
+				OS.ThrowOnError (NativeMethods.Object_SetR3R4 (0x2,
+									       ID,
+									       method,
+									       0,
+									       adjust));
+			}
+
+			private uint GetSelect (int method)
+			{
+				uint select, adjust;
+				OS.ThrowOnError (NativeMethods.Object_GetR0R1 (0x1,
+									       ID,
+									       method,
+									       out select,
+									       out adjust));
+				return select;
+			}
+
+			private uint GetAdjust (int method)
+			{
+				uint select, adjust;
+				OS.ThrowOnError (NativeMethods.Object_GetR0R1 (0x2,
+									       ID,
+									       method,
+									       out select,
+									       out adjust));
+				return adjust;
 			}
 		}
 	}

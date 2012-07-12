@@ -145,20 +145,11 @@ namespace riscos
 								      out IntPtr templateOut);
 
 		// Toolbox Window SWIs
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_wimp_handle")]
-		internal static extern IntPtr Window_GetWimpHandle (uint flags, uint WindowID, out uint wimpHandle);
-
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_add_gadget")]
 		internal static extern IntPtr Window_AddGadget (uint flags, uint WindowID, IntPtr gadgetData);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_remove_gadget")]
 		internal static extern IntPtr Window_RemoveGadget (uint flags, uint WindowID, uint cmpID);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_menu")]
-		internal static extern IntPtr Window_SetMenu (uint flags, uint WindowID, uint menuID);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_menu")]
-		internal static extern IntPtr Window_GetMenu (uint flags, uint WindowID, out uint menuID);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_pointer")]
 		internal static extern IntPtr Window_SetPointer (uint flags,
@@ -176,41 +167,13 @@ namespace riscos
 								 out int xHotSpot,
 								 out int yHotSpot);
 
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_help_message")]
-		internal static extern IntPtr Window_SetHelpMessage (uint flags,
-								     uint WindowID,
-								     string messageText);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_help_message")]
-		internal static extern IntPtr Window_GetHelpMessage (uint flags,
-								     uint WindowID,
-								     StringBuilder buffer,
-								     int buffer_size,
-								     out int used);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_title")]
-		internal static extern IntPtr Window_SetTitle (uint flags, uint WindowID, string title);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_title")]
-		internal static extern IntPtr Window_GetTitle (uint flags,
-							       uint WindowID,
-							       StringBuilder title,
-							       int size,
-							       out int used);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_default_focus")]
-		internal static extern IntPtr Window_SetDefaultFocus (uint flags, uint WindowID, uint cmpID);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_default_focus")]
-		internal static extern IntPtr Window_GetDefaultFocus (uint flags, uint WindowID, out uint cmpID);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_extent")]
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3")]
 		internal static extern IntPtr Window_SetExtent (uint flags, uint WindowID, NativeOS.Rect extent);
 
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_get_extent")]
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetR0")]
 		internal static extern IntPtr Window_GetExtent (uint flags, uint WindowID, out NativeOS.Rect extent);
 
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_force_redraw")]
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3")]
 		internal static extern IntPtr Window_ForceRedraw (uint flags, uint WindowID, NativeOS.Rect extent);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_tool_bars")]
@@ -243,82 +206,6 @@ namespace riscos
 								    uint wimpIcon,
 								    out uint objectID,
 								    out uint cmpID);
-
-		// Toolbox Iconbar SWIs
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_get_icon_handle")]
-		internal static extern IntPtr Iconbar_GetIconHandle (uint flags,
-								     uint iconbarID,
-								     out uint iconHandleOut);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_set_menu")]
-		internal static extern IntPtr Iconbar_SetMenu (uint flags,
-							       uint iconbarID,
-							       uint menuID);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_get_menu")]
-		internal static extern IntPtr Iconbar_GetMenu (uint flags,
-							       uint iconbarID,
-							       out uint menuID);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_set_action")]
-		internal static extern IntPtr Iconbar_SetEvent (uint flags,
-								uint iconbarID,
-								uint selectEventCode,
-								uint adjustEventCode);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_get_action")]
-		internal static extern IntPtr Iconbar_GetEvent (uint flags,
-								uint iconbarID,
-								out uint selectEventCodeOut,
-								out uint adjustEventCodeOut);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_set_show")]
-		internal static extern IntPtr Iconbar_SetShow (uint flags,
-							       uint iconbarID,
-							       uint selectObjectID,
-							       uint adjustObjectID);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_get_show")]
-		internal static extern IntPtr Iconbar_GetShow (uint flags,
-							       uint iconbarID,
-							       out uint selectObjectIDOut,
-							       out uint adjustObjectIDOut);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_set_help_message")]
-		internal static extern IntPtr Iconbar_SetHelpMessage (uint flags,
-								      uint iconbarID,
-								      string messageText);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_get_help_message")]
-		internal static extern IntPtr Iconbar_GetHelpMessage (uint flags,
-								      uint iconbarID,
-								      StringBuilder buffer,
-								      int bufferSize,
-								      out int used);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_set_text")]
-		internal static extern IntPtr Iconbar_SetText (uint flags,
-							       uint iconbarID,
-							       string text);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_get_text")]
-		internal static extern IntPtr Iconbar_GetText (uint flags,
-							       uint iconbarID,
-							       StringBuilder buffer,
-							       int bufferSize,
-							       out int used);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_set_sprite")]
-		internal static extern IntPtr Iconbar_SetSprite (uint flags,
-								 uint iconbarID,
-								 string spriteName);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="xiconbar_get_sprite")]
-		internal static extern IntPtr Iconbar_GetSprite (uint flags,
-								 uint iconbarID,
-								 StringBuilder buffer,
-								 int bufferSize,
-								 out int used);
 
 		// Toolbox Menu SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xmenu_set_tick")]
@@ -503,6 +390,8 @@ namespace riscos
 							      uint componentID,
 							      out NativeOS.Rect bbox);
 
+		// Generic methods that can be used to call different Toolbox methods that
+		// operate on gadgets/components.
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
 		internal static extern IntPtr Component_SetText (uint flags,
 								 uint windowID,
@@ -536,18 +425,60 @@ namespace riscos
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetR0")]
 		internal static extern IntPtr Component_GetR0 (uint flags,
-								    uint windowID,
-								    int method,
-								    uint cmpID,
-								    out uint r0);
+							       uint windowID,
+							       int method,
+							       uint cmpID,
+							       out uint r0);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetR0R1")]
 		internal static extern IntPtr Component_GetR0R1 (uint flags,
-								    uint windowID,
-								    int method,
-								    uint cmpID,
-								    out uint r0,
-								    out uint r1);
+								 uint windowID,
+								 int method,
+								 uint cmpID,
+								 out uint r0,
+								 out uint r1);
+
+		// Generic methods that can be used to call different Toolbox methods that
+		// operate on Toolbox objects.
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3")]
+		internal static extern IntPtr Object_SetR3 (uint flags,
+							    uint objectID,
+							    int method,
+							    uint r3);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3")]
+		internal static extern IntPtr Object_SetText (uint flags,
+							      uint objectID,
+							      int method,
+							      string messageText);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetText")]
+		internal static extern IntPtr Object_GetText (uint flags,
+							      uint objectID,
+							      int method,
+							      StringBuilder buffer,
+							      int bufferSize,
+							      out int used);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetR0")]
+		internal static extern IntPtr Object_GetR0 (uint flags,
+							    uint objectID,
+							    int method,
+							    out uint r0);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3R4")]
+		internal static extern IntPtr Object_SetR3R4 (uint flags,
+							      uint windowID,
+							      int method,
+							      uint r3,
+							      uint r4);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetR0R1")]
+		internal static extern IntPtr Object_GetR0R1 (uint flags,
+							      uint windowID,
+							      int method,
+							      out uint r0,
+							      out uint r1);
 	}
 }
 
