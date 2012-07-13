@@ -9,6 +9,10 @@ Major changes:
   - GCC 4.7.2
   - Upgraded to Binutils 2.22
 
+Bug fixes and other improvements:
+  - UnixLib: Avoid reading from NULL when SWI DDEUtils_ReadPrefix is not
+    defined, nor Prefix$Dir is set (r5902, bug #241).
+
 GCCSDK GCC 4.1.2 Release 1 (released 21 April 2012)
 ==========================
 
