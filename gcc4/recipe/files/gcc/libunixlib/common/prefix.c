@@ -1,5 +1,5 @@
 /* __get_dde_prefix ()
- * Copyright (c) 2000-2011 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 #include <stdlib.h>
@@ -44,7 +44,7 @@ __get_dde_prefix (void)
       result = __getenv_from_os ("Prefix$Dir", NULL, 0, NULL);
 
       /* Filter out zero length results.  */
-      if (result[0] == '\0')
+      if (result == NULL || result[0] == '\0')
         {
           free (result);
           return NULL;

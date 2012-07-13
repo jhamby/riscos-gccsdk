@@ -1,3 +1,9 @@
+Fri Jul 13 16:16:27 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* common/prefix.c (__get_dde_prefix): Avoid reading from NULL when
+	SWI DDEUtils_ReadPrefix is not defined, nor Prefix$Dir is set.
+	Fixes bug #241.
+
 Sun Jun 17 17:44:12 BST  2012  Lee Noar  <leenoar@sky.com>
 
 	* pwd/getpwuid_r.c(getpwuid_r): If the default values are used
