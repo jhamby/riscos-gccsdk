@@ -128,13 +128,13 @@ ASM_DoPass (const char *asmFile)
  * \param asmFile Filename to assemble.
  */
 void
-ASM_Assemble (const char *asmFile)
+ASM_Assemble (const char *asmFile, bool doOnePassOnly)
 {
   Phase_PrepareFor (ePassOne);
   ASM_DoPass (asmFile);
 
   /* Don't do a next pass if we already have errors now.  */
-  if (returnExitStatus () == EXIT_SUCCESS)
+  if (!doOnePassOnly && returnExitStatus () == EXIT_SUCCESS)
     {
       Phase_PrepareFor (ePassTwo);
       ASM_DoPass (asmFile);

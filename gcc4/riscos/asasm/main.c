@@ -64,39 +64,49 @@ bool asmAbortValid = false;
 
 /* AS options :
  */
-int option_verbose = 0;
-int option_pedantic = 0;
-int option_fussy = 0;
-int option_throwback = 0;
-int option_aof = -1; /* -1 = option not specified.  */
 bool option_abs = false;
-bool option_uppercase = false;
+int option_aof = -1; /* -1 = option not specified.  */
+int option_fussy = 0;
+bool option_no_code_gen = false;
 bool option_nowarn = false;
+int option_pedantic = 0;
+int option_throwback = 0;
+bool option_uppercase = false;
+int option_verbose = 0;
 
 static const char *ObjFileName = NULL;
 const char *SourceFileName = NULL;
 
-bool gIsAPCS = true;
-uint8_t gOptionAPCS = APCS_OPT_32BIT | APCS_OPT_SWSTACKCHECK | APCS_OPT_FRAMEPTR;
+static Syntax_e oOptionInstrSyntax; /* Set via options --16, --32, --arm, --thumb, --thumbx.  */
+static InstrType_e oOptionInstrType; /* Set via options --16, --32, --arm, --thumb, --thumbx.  */
+static const char *oOptionInstrSet; /* Non-NULL when oOptionInstrSyntax and oOptionInstrType are set.  */  
+
+/* Default is "3/noropi/norwpi/32bit/swstackcheck/fp/nointerwork/fpa/fpe2/hardfp/nofpregargs".  */
+APCS_Version_e gOptionVersionAPCS = eAPCS_v3;
+uint32_t gOptionAPCS = APCS_OPT_32BIT | APCS_OPT_SWSTACKCHECK | APCS_OPT_FRAMEPTR | APCS_OPT_FPAENDIAN;
 
 typedef struct
 {
   const char *fullOptName;
   size_t minOptNameLen;
-  uint8_t bitToMask;
-  uint8_t bitToSet;
+  uint32_t bitToMask;
+  uint32_t bitToSet;
 } APCS_Option_t;
 
 static const APCS_Option_t oAPCSOptions[] =
 {
-  { "reentrant", sizeof ("reent")-1, APCS_OPT_REENTRANT, APCS_OPT_REENTRANT },
-  { "nonreentrant", sizeof ("nonreent")-1, APCS_OPT_REENTRANT, 0 },
+  { "reentrant", sizeof ("reent")-1, APCS_OPT_REENTRANT, APCS_OPT_REENTRANT }, /* reentrant, reentr */
+  { "nonreentrant", sizeof ("nonreent")-1, APCS_OPT_REENTRANT, 0 }, /* nonreentrant, nonreentr */
+  { "pid", sizeof ("pid")-1, APCS_OPT_REENTRANT, APCS_OPT_REENTRANT }, /* pid */
+  { "nopid", sizeof ("nopid")-1, APCS_OPT_REENTRANT, 0 }, /* nopid */
+  { "rwpi", sizeof ("rwpi")-1, APCS_OPT_REENTRANT, APCS_OPT_REENTRANT }, /* rwpi */
+  { "norwpi", sizeof ("norwpi")-1, APCS_OPT_REENTRANT, 0 }, /* norwpi */
 
   { "26bit", sizeof ("26")-1, APCS_OPT_32BIT, 0 },
   { "32bit", sizeof ("32")-1, APCS_OPT_32BIT, APCS_OPT_32BIT },
 
   { "swstackcheck", sizeof ("swst")-1, APCS_OPT_SWSTACKCHECK, APCS_OPT_SWSTACKCHECK },
-  { "noswstackcheck", sizeof ("noswst")-1, APCS_OPT_SWSTACKCHECK, 0 },
+  { "noswstackcheck", sizeof ("nosw")-1, APCS_OPT_SWSTACKCHECK, 0 },
 
   { "fpregargs", sizeof ("fpr")-1, APCS_OPT_FPREGARGS, APCS_OPT_FPREGARGS },
   { "nofpregargs", sizeof ("nofpr")-1, APCS_OPT_FPREGARGS, 0 },
@@ -105,24 +115,55 @@ static const APCS_Option_t oAPCSOptions[] =
   { "fpe2", sizeof ("fpe2")-1, APCS_OPT_FPE3, 0 },
 
   { "fp", sizeof ("fp")-1, APCS_OPT_FRAMEPTR, APCS_OPT_FRAMEPTR },
-  { "nofp", sizeof ("nofp")-1, APCS_OPT_FRAMEPTR, 0 }
+  { "nofp", sizeof ("nofp")-1, APCS_OPT_FRAMEPTR, 0 },
+
+  { "pic", sizeof ("pic")-1, APCS_OPT_ROPI, APCS_OPT_ROPI },
+  { "nopic", sizeof ("nopic")-1, APCS_OPT_ROPI, 0 },
+  { "ropi", sizeof ("ropi")-1, APCS_OPT_ROPI, APCS_OPT_ROPI },
+  { "noropi", sizeof ("noropi")-1, APCS_OPT_ROPI, 0 },
+
+  { "softfp", sizeof ("softfp")-1, APCS_OPT_SOFTFP, APCS_OPT_SOFTFP },
+  { "hardfp", sizeof ("hardfp")-1, APCS_OPT_SOFTFP, 0 },
+  
+  { "interwork", sizeof ("inter")-1, APCS_OPT_INTERWORK, APCS_OPT_INTERWORK },
+  { "nointerwork", sizeof ("nointer")-1, APCS_OPT_INTERWORK, 0 },
+
+  { "fpa", sizeof ("fpa")-1, APCS_OPT_FPAENDIAN, APCS_OPT_FPAENDIAN },
+  { "vfp", sizeof ("vfp")-1, APCS_OPT_FPAENDIAN, 0 }
 };
 
+/**
+ * Parses the APCS option.  When no APCS option has been specified, a NULL
+ * value will setup the default APCS value.
+ * \return true When option value couldn't be parsed.
+ */
 static bool
-APCS_ParseOption (const char *opt)
+ParseOption_APCS (const char *opt)
 {
-  if (!strcasecmp (opt, "none"))
-    gIsAPCS = false;
+  if (opt == NULL)
+    return false;
+
+  if (!strncasecmp (opt, "none", sizeof ("none")-1))
+    {
+      gOptionVersionAPCS = eAPCS_None;
+      opt += sizeof ("none")-1;
+    }
   else
     {
-      gIsAPCS = true;
-      if (opt[0] != '3' || (opt[1] != '\0' && opt[1] != '/'))
+      if (opt[0] == '3')
+	{
+	  gOptionVersionAPCS = eAPCS_v3;
+	  ++opt;
+	}
+      else if (opt[0] == '/' || opt[0] == '\0')
+	gOptionVersionAPCS = eAPCS_Empty;
+      else
 	{
 	  fprintf (stderr, PACKAGE_NAME ": Unknown APCS version %s\n", opt);
 	  return true;
 	}
-      ++opt;
-      while (opt[0] == '/' && opt[1] != '\0')
+      uint32_t bitsSet = 0;
+      while (opt[0] == '/')
 	{
 	  ++opt;
 	  const char *slash = strchr (opt, '/');
@@ -131,9 +172,17 @@ APCS_ParseOption (const char *opt)
 	  for (i = 0; i != sizeof (oAPCSOptions)/sizeof (oAPCSOptions[0]); ++i)
 	    {
 	      if (!strncasecmp (opt, oAPCSOptions[i].fullOptName, len)
-	          && len >= oAPCSOptions[i].minOptNameLen)
+		  && len >= oAPCSOptions[i].minOptNameLen)
 		{
 		  /* This option is selected.  */
+		  if ((bitsSet & oAPCSOptions[i].bitToMask) != 0
+		      && (gOptionAPCS & oAPCSOptions[i].bitToMask) != oAPCSOptions[i].bitToSet)
+		    {
+		      fprintf (stderr, PACKAGE_NAME ": Conflicting APCS specifier %.*s with an earlier specifier\n", (int)len, opt);
+		      return true;
+		    }
+		  bitsSet |= oAPCSOptions[i].bitToMask;
+
 		  gOptionAPCS = (gOptionAPCS & ~oAPCSOptions[i].bitToMask) | oAPCSOptions[i].bitToSet;
 		  opt += len;
 		  break;
@@ -146,8 +195,35 @@ APCS_ParseOption (const char *opt)
 	    }
 	}
     }
+  if (opt[0] != '\0')
+    {
+      fprintf (stderr, PACKAGE_NAME ": Failed to parse APCS specifier %s\n", opt);
+      return true;
+    }
   return false;
 }
+
+RegNames_e gOptionRegNames;
+
+/**
+ * Parses the REGNAMES option.
+ */
+static bool
+ParseOption_RegNames (const char *regnames)
+{
+  if (regnames == NULL)
+    regnames = "callstd";
+  if (!strcasecmp (regnames, "none"))
+    gOptionRegNames = eNone;
+  else if (!strcasecmp (regnames, "callstd"))
+    gOptionRegNames = eCallStd;
+  else if (!strcasecmp (regnames, "all"))
+    gOptionRegNames = eAll;
+  else
+    return true;
+  return false;
+}
+
 
 static void
 asasm_help (void)
@@ -160,31 +236,37 @@ asasm_help (void)
 	   "\n"
 	   "Options:\n"
 	   "-o objfile                 Specifies destination AOF/ELF file.\n"
-	   "-I<directory>              Search 'directory' for included assembler files.\n"
-	   "-PreDefine <value>         Predefine a value using SETA/SETS/SETL syntax.\n"
-	   "-UpperCase                 Recognise instruction mnemonics in upper case only.\n"
+	   "-i<directory>              Search 'directory' for included assembler files.\n"
+	   "-PreDefine=<value>         Predefine a value using SETA/SETS/SETL syntax.\n"
+	   "-no_code_gen               No output file generated, nor 2nd assembler pass done.\n"
+	   "-Uppercase                 Recognise instruction mnemonics in upper case only.\n"
 	   "-Pedantic                  Display extra warnings.\n"
 	   "-Verbose                   Display progress information.\n"
 	   "-Fussy                     Display conversion information.\n"
 #ifdef __riscos__
 	   "-ThrowBack                 Throwback errors to a text editor.\n"
 #endif
-	   "-CPU <target-cpu>          Select ARM CPU to target. Use \"list\" to get a full list.\n"
-	   "-Depend <file>             Write 'make' source file dependency information to 'file'.\n"
+	   "-cpu=<target-cpu>          Select ARM CPU to target. Use \"list\" to get a full list.\n"
+	   "-fpu=<target-fpu>          Select the target floating-point unit (FPU) architecture. Use \"list\" to get a full list.\n"
+	   "-device=<target-device>    Select the CPU and FPU. Use \"list\" to get a full list.\n"
+	   "-Depend=<file>             Write 'make' source file dependency information to 'file'.\n"
 	   "-Help                      Display this help.\n"
 	   "-VERsion                   Display the version number.\n"
            "-NOWarn                    Suppress all warnings.\n"
 	   "-From asmfile              Source assembler file (ObjAsm compatibility).\n"
 	   "-To objfile                Destination AOF file (ObjAsm compatibility).\n"
 	   "-ABSolute                  Accept AAsm source code.\n"
-	   "-Apcs <APCS options>       Specifies one or more APCS options.\n"
+	   "-apcs <APCS options>       Specifies one or more APCS options.\n"
+	   "-regnames=none             No predefined registers.\n"
+           "         =callstd          Standard set of predefined registers (depending on --apcs option).\n"
+           "         =all              Full set of predefined registers.\n"
 #ifndef NO_ELF_SUPPORT
 	   "-elf                       Output ELF file [default].\n"
 #endif
 	   "-aof                       Output AOF file.\n"
            "-16                        Start processing Thumb instructions (pre-UAL syntax).\n"
            "-32                        Synonym for -arm.\n"
-           "-arm                       Start processing ARM instructions.\n" 
+           "-arm                       Start processing ARM instructions (UAL syntax).\n" 
            "-thumb                     Start processing Thumb instructions (UAL syntax).\n"
            "-thumbx                    Start processing ThumbEE instructions (UAL syntax).\n"
 	   "\n");
@@ -206,10 +288,43 @@ set_option_aof (int writeaof)
 {
   if (option_aof != -1 && option_aof != writeaof)
     {
-      fprintf (stderr, PACKAGE_NAME ": Conflicting options -aof and -elf\n");
+      fprintf (stderr, PACKAGE_NAME ": Conflicting options aof and elf\n");
       exit (EXIT_FAILURE);
     }
-  option_aof = writeaof;
+  option_aof = writeaof ? true : false;
+}
+
+
+/**
+ * Checks if given argument matches the option and if so, return non-NULL
+ * option value.
+ */
+static const char *
+IsOptGetArg (char ***argv, const char *opt, size_t optSize, int *argcP)
+{
+  const char *arg = **argv;
+  /* Skip single and double '-'.  */
+  if (*arg == '-')
+    {
+      ++arg;
+      if (*arg == '-')
+	++arg;
+    }
+  if (!strncasecmp (arg, opt, optSize))
+    {
+      switch (arg[optSize])
+	{
+	  case '\0':
+	    if (--*argcP)
+	      return *(++*argv);
+	    fprintf (stderr, PACKAGE_NAME ": Missing argument for -%s\n", opt);
+	    exit (EXIT_FAILURE);
+
+	  case '=':
+	    return &arg[optSize + 1];
+	}
+    }
+  return NULL;
 }
 
 
@@ -233,11 +348,15 @@ main (int argc, char **argv)
     }
   /* Analyse the command line */
 
-  int numFileNames = 0;
+  unsigned numFileNames = 0;
   const char *fileNames[2];
-  const char *cpu = NULL;
   const char *apcs = NULL;
-  
+  const char *regnames = NULL;
+  const char *cpu = NULL;
+  const char *fpu = NULL;
+  const char *device = NULL;
+
+  const char *val;
   for (argc--; argc; argv++, argc--)
     {
       const char *arg = *argv;
@@ -258,23 +377,10 @@ main (int argc, char **argv)
       if (arg[0] == '-')
 	++arg;
       
-      if (!strncasecmp (arg, "PD", sizeof ("PD")-1)
-	  || !strncasecmp (arg, "PreDefine", sizeof ("PreDefine")-1))
+      if ((val = IsOptGetArg (&argv, "PD", sizeof ("PD")-1, &argc)) != NULL
+	  || (val = IsOptGetArg (&argv, "PreDefine", sizeof ("PreDefine")-1, &argc)) != NULL)
         {
-	  const char *val;
-	  if (arg[sizeof ("PD")-1] == '=')
-	    val = arg + sizeof ("PD")-1 + 1;
-	  else if (arg[sizeof ("PreDefine")-1] == '=')
-	    val = arg + sizeof ("PreDefine")-1 + 1;
-	  else if (--argc == 0)
-	    {
-              fprintf (stderr, PACKAGE_NAME ": Missing argument after -%s\n", arg);
-	      return EXIT_FAILURE;
-	    }
-	  else
-	    val = *++argv;
-	    
-          if (Input_AddPredefine (val))
+	  if (Input_AddPredefine (val))
             {
 	     fprintf (stderr, PACKAGE_NAME ": Too many predefines\n");
 	     return EXIT_FAILURE;
@@ -297,57 +403,64 @@ main (int argc, char **argv)
 	      return EXIT_FAILURE;
 	    }
 	}
+      else if (!strcasecmp (arg, "no_code_gen"))
+	option_no_code_gen = true;
 #ifdef __riscos__
       else if (!strcasecmp (arg, "throwback") || !strcasecmp (arg, "tb"))
 	option_throwback++;
 #endif
-      else if (!strcasecmp (arg, "uc") || !strcasecmp (arg, "uppercase"))
+      else if (!strcasecmp (arg, "u") || !strcasecmp (arg, "uppercase"))
 	option_uppercase = true;
       else if (!strcasecmp (arg, "pedantic") || !strcasecmp (arg, "p"))
 	option_pedantic++;
-      else if (!strncasecmp (arg, "CPU", sizeof ("CPU")-1)
-	       && (arg[sizeof ("CPU")-1] == '=' || arg[sizeof ("CPU")-1] == '\0'))
+      else if ((val = IsOptGetArg (&argv, "cpu", sizeof ("cpu")-1, &argc)) != NULL)
         {
-	  const char *val;
-	  if (arg[sizeof ("CPU")-1] == '=')
-	    val = arg + sizeof ("CPU")-1 + 1;
-	  else if (--argc == 0)
-	    {
-              fprintf (stderr, PACKAGE_NAME ": Missing argument after -%s\n", arg);
-	      return EXIT_FAILURE;
-	    }
-	  else
-	    val = *++argv;
 	  if (cpu != NULL && strcasecmp (cpu, val))
 	    {
-	      fprintf (stderr, PACKAGE_NAME ": CPU is specified twice: %s and %s\n", cpu, val);
+	      fprintf (stderr, PACKAGE_NAME ": Option %s has already been specified: %s and as %s\n", "cpu", cpu, val);
 	      return EXIT_FAILURE;
 	    }
 	  cpu = val;
+	}
+      else if ((val = IsOptGetArg (&argv, "fpu", sizeof ("fpu")-1, &argc)) != NULL)
+        {
+	  if (fpu != NULL && strcasecmp (fpu, val))
+	    {
+	      fprintf (stderr, PACKAGE_NAME ": Option %s has already been specified: %s and as %s\n", "cpu", fpu, val);
+	      return EXIT_FAILURE;
+	    }
+	  fpu = val;
+	}
+      else if ((val = IsOptGetArg (&argv, "device", sizeof ("device")-1, &argc)) != NULL)
+        {
+	  if (device != NULL && strcasecmp (device, val))
+	    {
+	      fprintf (stderr, PACKAGE_NAME ": Option %s has already been specified: %s and as %s\n", "device", device, val);
+	      return EXIT_FAILURE;
+	    }
+	  device = val;
 	}
       else if (!strcasecmp (arg, "verbose") || !strcasecmp (arg, "v"))
 	option_verbose++;
       else if (!strcasecmp (arg, "fussy") || !strcasecmp (arg, "f"))
 	option_fussy++;
-      else if ((!strncasecmp (arg, "apcs", sizeof ("apcs")-1)
-	        && (arg[sizeof ("apcs")-1] == '=' || arg[sizeof ("apcs")-1] == '\0'))
-		 || ((arg[0] == 'a' || arg[1] == 'A')
-		     && (arg[sizeof ("a")-1] == '=' || arg[sizeof ("A")-1] == '\0')))
+      else if ((val = IsOptGetArg (&argv, "apcs", sizeof ("apcs")-1, &argc)) != NULL)
 	{
-	  const char *val;
-	  if (arg[sizeof ("apcs")-1] == '=')
-	    val = arg + sizeof ("apcs")-1 + 1;
-	  else if (arg[sizeof ("a")-1] == '=')
-	    val = arg + sizeof ("a")-1 + 1;
-	  else if (--argc == 0)
+	  if (apcs != NULL && strcasecmp (apcs, val))
 	    {
-              fprintf (stderr, PACKAGE_NAME ": Missing argument after -%s\n", arg);
+	      fprintf (stderr, PACKAGE_NAME ": Option %s has already been specified: %s and as %s\n", "apcs", apcs, val);
 	      return EXIT_FAILURE;
 	    }
-	  else
-	    val = *++argv;
-
 	  apcs = val;
+	}
+      else if ((val = IsOptGetArg (&argv, "regnames", sizeof ("regnames")-1, &argc)) != NULL)
+	{
+	  if (regnames != NULL && strcasecmp (regnames, val))
+	    {
+	      fprintf (stderr, PACKAGE_NAME ": Option %s has already been specified: %s and as %s\n", "regnames", regnames, val);
+	      return EXIT_FAILURE;
+	    }
+	  regnames = val;
 	}
       else if (arg[0] == 'I' || arg[0] == 'i')
 	{
@@ -405,22 +518,15 @@ main (int argc, char **argv)
 	      return EXIT_FAILURE;
 	    }
 	}
-      else if (!strcasecmp (arg, "depend") || !strcasecmp (arg, "d"))
+      else if ((val = IsOptGetArg (&argv, "d", sizeof ("d")-1, &argc)) != NULL
+	       || (val = IsOptGetArg (&argv, "Depend", sizeof ("Depend")-1, &argc)) != NULL)
 	{
-	  if (--argc)
+	  if (DependFileName != NULL && strcasecmp (DependFileName, val))
 	    {
-	      if (DependFileName != NULL)
-	        {
-	          fprintf (stderr, PACKAGE_NAME ": Only one dependency file allowed (%s & %s specified)\n", DependFileName, *++argv);
-	          return EXIT_FAILURE;
-	        }
-	      DependFileName = *++argv;
-	    }
-	  else
-	    {
-	      fprintf (stderr, PACKAGE_NAME ": Missing filename after -%s\n", arg);
+	      fprintf (stderr, PACKAGE_NAME ": option %s has already been specified: %s and as %s\n", "depend", DependFileName, val);
 	      return EXIT_FAILURE;
 	    }
+	  DependFileName = val;
 	}
       else if (!strcasecmp (arg, "absolute") || !strcasecmp (arg, "abs"))
 	option_abs = true;
@@ -432,23 +538,67 @@ main (int argc, char **argv)
 	set_option_aof (1);
       else if (!strcasecmp (arg, "16"))
 	{
-	  State_SetCmdLineInstrType (eInstrType_Thumb);
-	  State_SetCmdLineSyntax (eSyntax_PreUALOnly);
+	  const InstrType_e wantedType = eInstrType_Thumb;
+	  const Syntax_e wantedSyntax = eSyntax_PreUALOnly;
+	  if (oOptionInstrSet != NULL)
+	    {
+	      if (wantedType != oOptionInstrType || wantedSyntax != oOptionInstrSyntax)
+		{
+		  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionInstrSet);
+		  return EXIT_FAILURE;
+		}
+	    }
+	  oOptionInstrType = wantedType;
+	  oOptionInstrSyntax = wantedSyntax;
+	  oOptionInstrSet = arg;
 	}
       else if (!strcasecmp (arg, "32") || !strcasecmp (arg, "arm"))
 	{
-	  State_SetCmdLineInstrType (eInstrType_ARM);
-	  State_SetCmdLineSyntax (eSyntax_Both);
+	  const InstrType_e wantedType = eInstrType_ARM;
+	  const Syntax_e wantedSyntax = eSyntax_Both;
+	  if (oOptionInstrSet != NULL)
+	    {
+	      if (wantedType != oOptionInstrType || wantedSyntax != oOptionInstrSyntax)
+		{
+		  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionInstrSet);
+		  return EXIT_FAILURE;
+		}
+	    }
+	  oOptionInstrType = wantedType;
+	  oOptionInstrSyntax = wantedSyntax;
+	  oOptionInstrSet = arg;
 	}
       else if (!strcasecmp (arg, "thumb"))
 	{
-	  State_SetCmdLineInstrType (eInstrType_Thumb);
-	  State_SetCmdLineSyntax (eSyntax_UALOnly);
+	  const InstrType_e wantedType = eInstrType_Thumb;
+	  const Syntax_e wantedSyntax = eSyntax_UALOnly;
+	  if (oOptionInstrSet != NULL)
+	    {
+	      if (wantedType != oOptionInstrType || wantedSyntax != oOptionInstrSyntax)
+		{
+		  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionInstrSet);
+		  return EXIT_FAILURE;
+		}
+	    }
+	  oOptionInstrType = wantedType;
+	  oOptionInstrSyntax = wantedSyntax;
+	  oOptionInstrSet = arg;
 	}
       else if (!strcasecmp (arg, "thumbx"))
 	{
-	  State_SetCmdLineInstrType (eInstrType_ThumbEE);
-	  State_SetCmdLineSyntax (eSyntax_UALOnly);
+	  const InstrType_e wantedType = eInstrType_ThumbEE;
+	  const Syntax_e wantedSyntax = eSyntax_UALOnly;
+	  if (oOptionInstrSet != NULL)
+	    {
+	      if (wantedType != oOptionInstrType || wantedSyntax != oOptionInstrSyntax)
+		{
+		  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with previous given option %s\n", arg, oOptionInstrSet);
+		  return EXIT_FAILURE;
+		}
+	    }
+	  oOptionInstrType = wantedType;
+	  oOptionInstrSyntax = wantedSyntax;
+	  oOptionInstrSet = arg;
 	}
       else if (!strcasecmp (arg, "stamp") || !strcasecmp (arg, "quit"))
 	{
@@ -466,11 +616,41 @@ main (int argc, char **argv)
     option_aof = 1;
 #endif
 	    
-  if (Target_SetCPU (cpu ? cpu : "arm7tdmi"))
+  if (Target_SetCPU_FPU_Device (cpu, fpu, device))
     return EXIT_FAILURE;
-  if (apcs != NULL && APCS_ParseOption (apcs))
+  if (ParseOption_APCS (apcs))
     return EXIT_FAILURE;
+  if (ParseOption_RegNames (regnames))
+    return EXIT_FAILURE;
+  /* Sanity check --16, --32, --arm, --thumb, --thumbx options for given
+     cpu/device options.  */
+  InstrType_e wantedType;
+  Syntax_e wantedSyntax;
+  unsigned cpu_features = Target_GetCPUFeatures ();
+  bool canDoARMInstr = (cpu_features & kArchExt_v1) != 0;
+  if (oOptionInstrSet != NULL)
+    {
+      bool canDoThumb = (cpu_features & (kCPUExt_v4T | kCPUExt_v6T2)) != 0;
+      bool canDoThumbEE = (cpu_features & kCPUExt_ThumbEE) != 0;
+      if ((!canDoARMInstr && oOptionInstrType == eInstrType_ARM)
+	  || (!canDoThumb && oOptionInstrType != eInstrType_ARM)
+          || (!canDoThumbEE && oOptionInstrType == eInstrType_ThumbEE))
+	{
+	  fprintf (stderr, PACKAGE_NAME ": option %s conflicts with cpu/device option\n", oOptionInstrSet);
+	  return EXIT_FAILURE;
+	}
 
+      wantedType = oOptionInstrType;
+      wantedSyntax = oOptionInstrSyntax;
+    }
+  else
+    {
+      wantedType = canDoARMInstr ? eInstrType_ARM : eInstrType_Thumb;
+      wantedSyntax = canDoARMInstr ? eSyntax_Both : eSyntax_UALOnly;
+    }
+  State_SetCmdLineInstrType (wantedType);
+  State_SetCmdLineSyntax (wantedSyntax);
+  
   if (ObjFileName == NULL)
     {
       if (numFileNames)
@@ -509,32 +689,37 @@ main (int argc, char **argv)
     {
       asmAbortValid = true;
       PreDefReg_Init ();
-      Output_Init (ObjFileName);
-
-      /* Do the two pass assembly.  */
-      ASM_Assemble (SourceFileName);
-
-      /* Don't try to output anything when we have assemble errors.  */
-      if (returnExitStatus () == EXIT_SUCCESS)
+      if (option_no_code_gen)
+        ASM_Assemble (SourceFileName, true); /* One pass only.  */
+      else
 	{
-	  if (setjmp (asmContinue))
-	    fprintf (stderr, PACKAGE_NAME ": Error when writing object file '%s'.\n", ObjFileName);
-	  else
+	  Output_Init (ObjFileName);
+
+	  /* Do the two pass assembly.  */
+	  ASM_Assemble (SourceFileName, false);
+
+	  /* Don't try to output anything when we have assemble errors.  */
+	  if (returnExitStatus () == EXIT_SUCCESS)
 	    {
-	      asmContinueValid = true;
-	      /* Write the ELF/AOF output.  */
-	      Phase_PrepareFor (eOutput);
-	      if (returnExitStatus () == EXIT_SUCCESS)
+	      if (setjmp (asmContinue))
+		fprintf (stderr, PACKAGE_NAME ": Error when writing object file '%s'.\n", ObjFileName);
+	      else
 		{
+		  asmContinueValid = true;
+		  /* Write the ELF/AOF output.  */
+		  Phase_PrepareFor (eOutput);
+		  if (returnExitStatus () == EXIT_SUCCESS)
+		    {
 #ifndef NO_ELF_SUPPORT
-		  if (!option_aof)
-		    Output_ELF ();
-		  else
+		      if (!option_aof)
+			Output_ELF ();
+		      else
 #endif
-		    Output_AOF ();
+			Output_AOF ();
+		    }
 		}
+	      asmContinueValid = false;
 	    }
-	  asmContinueValid = false;
 	}
     }
   Output_Finish ();

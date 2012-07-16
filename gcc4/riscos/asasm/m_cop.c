@@ -118,7 +118,7 @@ m_cdp (bool doLowerCase)
 bool
 m_cdp2 (void)
 {
-  Target_NeedAtLeastArch (ARCH_ARMv5);
+  Target_CheckCPUFeature (kCPUExt_v5T, true);
   coprocessor (true, 0xfe000000, 15);
   return false;
 }
@@ -144,7 +144,7 @@ m_mcr (bool doLowerCase)
 bool
 m_mcr2 (void)
 {
-  Target_NeedAtLeastArch (ARCH_ARMv5);
+  Target_CheckCPUFeature (kCPUExt_v5T, true);
   coprocessor (false, 0xfe000010, 7);
   return false;
 }
@@ -168,7 +168,7 @@ m_mrc (bool doLowerCase)
 bool
 m_mrc2 (void)
 {
-  Target_NeedAtLeastArch (ARCH_ARMv5);
+  Target_CheckCPUFeature (kCPUExt_v5T, true);
   coprocessor (false, 0xfe100010, 7);
   return false;
 }
@@ -206,7 +206,7 @@ m_mcrr (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv6);
+  Target_CheckCPUFeature (kCPUExt_v5E, true);
   coprocessorr (cc | 0x0C400000);
   return false;
 }
@@ -220,7 +220,7 @@ m_mrrc (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv6);
+  Target_CheckCPUFeature (kCPUExt_v5E, true);
   coprocessorr (cc | 0x0C500000);
   return false;
 }

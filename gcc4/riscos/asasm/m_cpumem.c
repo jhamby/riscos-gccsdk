@@ -62,10 +62,7 @@ dstmem (ARMWord ir, const char *mnemonic)
   bool isAddrMode3;
   if ((ir & 0x04000090) == 0x90)
     {
-      if (ir & S_FLAG)
-	Target_NeedAtLeastArch (ARCH_ARMv5TE);
-      else
-	Target_NeedAtLeastArch (ARCH_ARMv4);
+      Target_CheckCPUFeature (kCPUExt_v4, true);
       isAddrMode3 = true;
     }
   else
@@ -385,7 +382,7 @@ LdrStrEx (bool isLoad, bool doLowerCase)
   else if (inputLook () == (doLowerCase ? 'h' : 'H'))
     {
       /* Small hack needed : 'H' can also be the first condition character
-       of 'HS' or 'HI'.  */
+	 of 'HS' or 'HI'.  */
       if (inputLookN (1) != (doLowerCase ? 'i' : 'I')
           && inputLookN (1) != (doLowerCase ? 's' : 'S'))
 	{
@@ -403,12 +400,9 @@ LdrStrEx (bool isLoad, bool doLowerCase)
     return true;
 
   if (type == wtype)
-    Target_NeedAtLeastArch (ARCH_ARMv6);
+    Target_CheckCPUFeature (kCPUExt_v6, true);
   else
-    {
-      if (Target_GetArch () != ARCH_ARMv6K)
-	Target_NeedAtLeastArch (ARCH_ARMv7);
-    }
+    Target_CheckCPUFeature (kCPUExt_v6K, true);
   
   /* The STREX* versions have an extra Rd register.  */
   ARMWord regD;
@@ -536,8 +530,7 @@ m_strex (bool doLowerCase)
 bool
 m_clrex (void)
 {
-  if (Target_GetArch () != ARCH_ARMv6K)
-    Target_NeedAtLeastArch (ARCH_ARMv7);
+  Target_CheckCPUFeature (kCPUExt_v6K, true);
   Put_Ins (4, 0xF57FF01F);
   return false;
 }
@@ -574,7 +567,7 @@ m_pl (bool doLowerCase)
 
   /* FIXME: we don't check in case of isPLDW that ARMv7 has MP extensions
      enabled.  */
-  Target_NeedAtLeastArch (type == isPLD ? ARCH_ARMv5TE : ARCH_ARMv7);
+  Target_CheckCPUFeature (type == isPLD ? kCPUExt_v5E : kArchExt_v7, true);
 
   skipblanks();
 
@@ -702,7 +695,7 @@ dstreglist (ARMWord ir, bool isPushPop)
     error (ErrorWarning, "Use of PC as Rn is UNPREDICTABLE");
   if (numRegs == 0)
     error (ErrorWarning, "Specifying no registers to %s is UNPREDICTABLE", ir & L_FLAG ? "load" : "save");
-  if ((ir & W_FLAG) && numRegs == 1 && Target_GetArch () >= ARCH_ARMv7)
+  if ((ir & W_FLAG) && numRegs == 1 && Target_CheckCPUFeature (kArchExt_v7, false))
     error (ErrorWarning, "%s one register with writeback is UNPREDICTABLE for ARMv7 onwards, use %s instead",
            (ir & L_FLAG) ? "Loading" : "Saving",
            (ir & L_FLAG) ? "POP" : "PUSH");
@@ -728,7 +721,7 @@ dstreglist (ARMWord ir, bool isPushPop)
 	     deprecated before ARMv7.
 	     Use of such instructions is obsolete in ARMv7.  */
 	  const char *what = isPushPop ? "multi-register POP" : "LDM";
-	  if (Target_GetArch () < ARCH_ARMv7)
+	  if (!Target_CheckCPUFeature (kArchExt_v7, false))
 	    error (ErrorWarning,
 	           "Deprecated before ARMv7 : %s with writeback and base register in register list",
 	           what);
@@ -739,7 +732,8 @@ dstreglist (ARMWord ir, bool isPushPop)
 	}
       ir |= regList;
     }
-  if (option_pedantic && (ir & L_FLAG) && (1 << 15) && Target_GetArch() == ARCH_ARMv4T)
+  if (option_pedantic && (ir & L_FLAG) && (1 << 15)
+      && Target_CheckCPUFeature (kCPUExt_v4T, false) && !Target_CheckCPUFeature (kCPUExt_v5T, false))
     error (ErrorWarning, "ARMv4T does not switch ARM/Thumb state when LDM/POP specifies PC (use BX instead)");
   Put_Ins (4, ir);
 }
@@ -821,8 +815,8 @@ m_swp (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv2a);
-  if (option_pedantic && Target_GetArch () >= ARCH_ARMv6)
+  Target_CheckCPUFeature (kCPUExt_v2a, true);
+  if (option_pedantic && Target_CheckCPUFeature (kCPUExt_v6, false))
     error (ErrorWarning, "The use of SWP/SWPB is deprecated from ARMv6 onwards");
 
   int ir = cc | 0x01000090;
@@ -933,7 +927,7 @@ GetBarrierType (void)
 bool
 m_dmb (void)
 {
-  Target_NeedAtLeastArch (ARCH_ARMv7);
+  Target_CheckCPUFeature (kCPUExt_BARRIER, true);
   Barrier_eType bl = GetBarrierType ();
   Put_Ins (4, 0xF57FF050 | bl);
   return false;
@@ -947,7 +941,7 @@ m_dmb (void)
 bool
 m_dsb (void)
 {
-  Target_NeedAtLeastArch (ARCH_ARMv7);
+  Target_CheckCPUFeature (kCPUExt_BARRIER, true);
   Barrier_eType bl = GetBarrierType ();
   Put_Ins (4, 0xF57FF040 | bl);
   return false;
@@ -961,7 +955,7 @@ m_dsb (void)
 bool
 m_isb (void)
 {
-  Target_NeedAtLeastArch (ARCH_ARMv7);
+  Target_CheckCPUFeature (kCPUExt_BARRIER, true);
   Barrier_eType bl = GetBarrierType ();
   if (option_pedantic && bl != BL_eSY)
     error (ErrorWarning, "Using reserved barrier type");
@@ -981,7 +975,7 @@ m_rfe (bool doLowerCase)
   if (option == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv6);
+  Target_CheckCPUFeature (kCPUExt_v6, true);
 
   ARMWord regN = getCpuReg ();
   if (regN == INVALID_REG)
@@ -1011,7 +1005,7 @@ m_srs (bool doLowerCase)
   if (option == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv6);
+  Target_CheckCPUFeature (kCPUExt_v6, true);
 
   skipblanks ();
   bool isUALSyntax, updateStack;
@@ -1075,5 +1069,5 @@ m_srs (bool doLowerCase)
 bool
 CPUMem_ConstantInMOVW (uint32_t constant)
 {
-  return Target_GetArch () >= ARCH_ARMv6T2 && (constant & 0xFFFF0000U) == 0;
+  return Target_CheckCPUFeature (kCPUExt_v6T2, false) && (constant & 0xFFFF0000U) == 0;
 }

@@ -744,7 +744,7 @@ Lex_GetBinaryOp (Lex *lex)
 
 
 /**
- * Get builtin variable.
+ * Get built-in variable.
  * Built-in variables can be in uppercase, lowercase, or mixed.
  */
 static void
@@ -756,16 +756,16 @@ Lex_GetBuiltinVariable (Lex *lex)
     {
       case 'a':
 	{
-	  if (Input_MatchStringLower ("sasm}")) /* {ASASM} */
+	  if (Input_MatchStringLower ("sasm}")) /* {ASASM} */ /* FIXME: change this into {asasm_version} = |asasm$version| = PVtbbbb (P = major version, V = minor version, t = patch release, bbbb = build number) */
 	    {
 	      lex->tag = LexBool;
-	      lex->Data.Int.value = true;
+	      lex->Data.Bool.value = true;
 	      return;
 	    }
 	  else if (Input_MatchStringLower ("rchitecture}")) /* {ARCHITECTURE} */
 	    {
 	      lex->tag = LexString;
-	      lex->Data.String.str = Target_GetArchAsString ();
+	      lex->Data.String.str = Target_GetArch (true);
 	      lex->Data.String.len = strlen (lex->Data.String.str);
 	      return;
 	    }
@@ -821,11 +821,17 @@ Lex_GetBuiltinVariable (Lex *lex)
 
       case 'f':
 	{
-	  /* FIXME: support FPU */
 	  if (Input_MatchStringLower ("alse}")) /* {FALSE} */
 	    {
 	      lex->tag = LexBool;
 	      lex->Data.Int.value = false;
+	      return;
+	    }
+	  else if (Input_MatchStringLower ("pu}")) /* {FPU} */
+	    {
+	      lex->tag = LexString;
+	      lex->Data.String.str = Target_GetFPU ();
+	      lex->Data.String.len = strlen (lex->Data.String.str);
 	      return;
 	    }
 	  break;
@@ -838,6 +844,12 @@ Lex_GetBuiltinVariable (Lex *lex)
 	      lex->tag = LexString;
 	      lex->Data.String.str = FS_GetCurFileName ();
 	      lex->Data.String.len = strlen (lex->Data.String.str);
+	      return;
+	    }
+	  if (Input_MatchStringLower ("nter}")) /* {INTER} */
+	    {
+	      lex->tag = LexBool;
+	      lex->Data.Bool.value = (gOptionAPCS & APCS_OPT_INTERWORK) != 0;
 	      return;
 	    }
 	  break;
@@ -888,9 +900,334 @@ Lex_GetBuiltinVariable (Lex *lex)
 	  break;
 	}
 
+      case 'r':
+	{
+	  if (Input_MatchStringLower ("opi}")) /* {ROPI} */
+	    {
+	      lex->tag = LexBool;
+	      lex->Data.Bool.value = (gOptionAPCS & APCS_OPT_ROPI) != 0;
+	      return;
+	    }
+	  if (Input_MatchStringLower ("eentrant}") /* {REENTRANT} */
+	      || Input_MatchKeywordLower ("wpi}")) /* {RWPI} */
+	    {
+	      lex->tag = LexBool;
+	      lex->Data.Bool.value = (gOptionAPCS & APCS_OPT_REENTRANT) != 0;
+	      return;
+	    }
+	  break;
+	}
+
       case 't':
 	{
-	  if (Input_MatchStringLower ("rue}")) /* {TRUE} */
+	  if (Input_MatchStringLower ("arget_"))
+	    {
+	      if (Input_MatchStringLower ("arch_"))
+		{
+		  if (Input_MatchStringLower ("arm}")) /* {TARGET_ARCH_ARM} */
+		    {
+		      /* Number ARM architecture, or 0 if Thumb-only ISA.  */
+		      lex->tag = LexInt;
+		      lex->Data.Int.value = Target_GetARMISAVersion ();
+		      return;
+		    }
+		  if (Input_MatchStringLower ("thumb}")) /* {TARGET_ARCH_THUMB} */
+		    {
+		      /* Number Thumb architecture, or 0 if ARM-only ISA.  */
+		      lex->tag = LexInt;
+		      lex->Data.Int.value = Target_GetThumbISAVersion ();
+		      return;
+		    }
+
+		  /* Table mapping the lowercase {TARGET_ARCH_<arch>} suffix
+		     to the normalized <arch> version.  */
+		  static const struct
+		    {
+		      const char *arch_in;
+		      const char *arch_norm;
+		    } oArchs[] =
+		    {
+		      { "1}", "1" },
+      		      { "2}", "2" },
+      		      { "2a}", "2a" },
+      		      { "3}", "3" },
+      		      { "3g}", "3G" },
+      		      { "3m}", "3M" },
+      		      { "4xm}", "4xM" },
+      		      { "4}", "4" },
+      		      { "4txm}", "4TxM" },
+      		      { "4t}", "4T" },
+      		      { "5xm}", "5xM" },
+      		      { "5}", "5" },
+      		      { "5txm}", "5TxM" },
+      		      { "5t}", "5T" },
+      		      { "5texp}", "5TExP" },
+      		      { "5te}", "5TE" },
+      		      { "5tej}", "5TEJ" },
+      		      { "6}", "6" },
+      		      { "6k}", "6K" },
+      		      { "6t2}", "6T2" },
+      		      { "6z}", "6Z" },
+      		      { "6_m}", "6-M" },
+      		      { "6s_m}", "6S-M" },
+      		      { "7}", "7" },
+      		      { "7_a}", "7-A" },
+      		      { "7_r}", "7-R" },
+      		      { "7_m}", "7-M" },
+      		      { "7e_m}", "7E-M" }
+		    };
+		  for (size_t i = 0; i != sizeof (oArchs)/sizeof (oArchs[0]); ++i)
+		    {
+		      if (Input_MatchStringLower (oArchs[i].arch_in)) /* {TARGET_ARCH_<architecture>} */
+			{
+			  lex->tag = LexBool;
+			  lex->Data.Bool.value = !strcmp (Target_GetArch (false), oArchs[i].arch_norm);
+			  return;
+			}
+		    }
+		}
+	      else if (Input_MatchStringLower ("feature_"))
+		{
+		  if (Input_MatchStringLower ("clz}")) /* {TARGET_FEATURE_CLZ} */
+		    {
+		      /* True when CLZ is available in Thumb *or* ARM.
+		          So needs at least v5 architecture (ARM) or Thumb v4 (Thumb).  */
+		      lex->tag = LexBool;
+		      lex->Data.Bool.value = Target_GetARMISAVersion () >= 5
+					       || Target_GetThumbISAVersion () >= 4;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("divide}")) /* {TARGET_FEATURE_DIVIDE} */
+		    {
+		      /* True when SDIV/UDIV is available in Thumb *or* ARM.  */
+		      lex->tag = LexBool;
+		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_Div) != 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("doubleword}")) /* {TARGET_FEATURE_DOUBLEWORD} */
+		    {
+		      /* True when LDRD/STRD is available (P extension).
+			 So needs at least v5E architecture but not for ARMv6-M.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetCPUFeatures ();
+		      lex->Data.Bool.value = (features & kCPUExt_v5E) != 0
+					       && ((features & (kCPUExt_v6M | kCPUExt_v7M)) != kCPUExt_v6M); 
+		      return;
+		    }
+		  if (Input_MatchStringLower ("dspmul}")) /* {TARGET_FEATURE_DSPMUL} */
+		    {
+		      /* True when DSP & saturated math is available (E extension).  */
+		      lex->tag = LexBool;
+		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_v5ExP) != 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("extension_register_count}")) /* {TARGET_FEATURE_EXTENSION_REGISTER_COUNT} */
+		    {
+		      lex->tag = LexInt;
+		      unsigned features = Target_GetFPUFeatures () ;
+		      if ((features & (kFPUExt_VFPv1 | kFPUExt_VFPv2 | kFPUExt_VFPv3)) != 0)
+			lex->Data.Int.value = (features & kFPUExt_D16D32) ? 32 : 16;
+		      else
+			lex->Data.Int.value = 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("multiply}")) /* {TARGET_FEATURE_MULTIPLY} */
+		    {
+		      /* True when long multiply instructions are available in
+			 Thumb *or* ARM (M extension).  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetCPUFeatures ();
+		      lex->Data.Bool.value = (features & (kCPUExt_v3M | kCPUExt_v7M)) != 0
+					       || features == kArchExt_v7;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("multiprocessing}")) /* {TARGET_FEATURE_MULTIPROCESSING} */
+		    {
+		      /* True when multiprocessing extensions are supported.  */
+		      lex->tag = LexBool;
+		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_MP) != 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("neon}")) /* {TARGET_FEATURE_NEON} */
+		    {
+		      /* True when there is NEON support.  */
+		      lex->tag = LexBool;
+		      lex->Data.Bool.value = (Target_GetFPUFeatures () & kFPUExt_NEONv1) != 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("neon_fp16}")) /* {TARGET_FEATURE_NEON_FP16} */
+		    {
+		      /* True when there is half-precision NEON support.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures ();
+		      lex->Data.Bool.value =  (features & (kFPUExt_NEONv1 | kFPUExt_FP16)) == (kFPUExt_NEONv1 | kFPUExt_FP16);
+		      return;
+		    }
+		  if (Input_MatchStringLower ("neon_fp32}")) /* {TARGET_FEATURE_NEON_FP32} */
+		    {
+		      /* True when there is single-precision NEON support.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures ();
+		      lex->Data.Bool.value = (features & kFPUExt_NEONv1) != 0
+					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("neon_integer}")) /* {TARGET_FEATURE_NEON_INTEGER} */
+		    {
+		      /* True when there is NEON integer-only support (i.e. NEON but no VFP at all).  */ 
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures ();
+		      lex->Data.Bool.value = (features & kFPUExt_NEONv1) != 0
+					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("unaligned}")) /* {TARGET_FEATURE_UNALIGNED} */
+		    {
+		      /* True when unaligned access is supported.
+		         From ARMv6 onwards but not for ARMv6-M.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetCPUFeatures ();
+		      lex->Data.Bool.value = (features & kCPUExt_v6) != 0
+					       && (features & (kCPUExt_v6M | kCPUExt_v7M)) != kCPUExt_v6M; 
+		      return;
+		    }
+		}
+	      else if (Input_MatchStringLower ("fpu_"))
+		{
+		  if (Input_MatchStringLower ("fpa}")) /* {TARGET_FPU_FPA} */
+		    {
+		      /* True when FPA FPU is selected.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures () ;
+		      lex->Data.Bool.value = (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == 0
+					       && (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) != 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("softfpa}")) /* {TARGET_FPU_SOFTFPA} */
+		    {
+		      /* True when FPA endian + float-abi == soft.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures () ;
+		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2 | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == kFPUExt_SoftFPA;  
+		      return;
+		    }
+		  if (Input_MatchStringLower ("softfpa_fpa}")) /* {TARGET_FPU_SOFTFPA_FPA} */
+		    {
+		      /* True when FPA endian + float-abi == softfp (using FPA).  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures () ;
+		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == kFPUExt_SoftFPA
+					       && (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) != 0;  
+		      return;
+		    }
+		  if (Input_MatchStringLower ("softfpa_vfp}")) /* {TARGET_FPU_SOFTFPA_VFP} */
+		    {
+		      /* True when FPA endian + float-abi == softfp (using VFP).  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures () ;
+		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2)) == kFPUExt_SoftFPA
+					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0;  
+		      return;
+		    }
+		  if (Input_MatchStringLower ("softvfp}")) /* {TARGET_FPU_SOFTVFP} */
+		    {
+		      /* True when VFP endian + float-abi == soft.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures () ;
+		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2 | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == (kFPUExt_NoEndianMismatch | kFPUExt_SoftVFP);  
+		      return;
+		    }
+		  if (Input_MatchStringLower ("softvfp_fpa}")) /* {TARGET_FPU_SOFTVFP_FPA} */
+		    {
+		      /* True when VFP endian + float-abi == softfp (using FPA).  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures () ;
+		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == (kFPUExt_NoEndianMismatch | kFPUExt_SoftVFP)
+					       && (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) != 0;  
+		      return;
+		    }
+		  if (Input_MatchStringLower ("softvfp_vfp}")) /* {TARGET_FPU_SOFTVFP_VFP} */
+		    {
+		      /* True when VFP endian + float-abi == softfp (using VFP).  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures ();
+		      lex->Data.Bool.value = (features & (kFPUExt_NoEndianMismatch | kFPUExt_SoftFPA | kFPUExt_SoftVFP | kFPUExt_FPAv1 | kFPUExt_FPAv2)) == (kFPUExt_NoEndianMismatch | kFPUExt_SoftVFP)
+			                       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0;  
+		      return;
+		    }
+		  if (Input_MatchStringLower ("vfp}")) /* {TARGET_FPU_VFP} */
+		    {
+		      /* True when VFP FPU is selected.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures ();
+		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("vfpv1}")) /* {TARGET_FPU_VFPV1} */
+		    {
+		      /* True when VFPv1 is selected. AsAsm extension.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures ();
+		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_VFP_FMA)) == kFPUExt_VFPv1xD;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("vfpv2}")) /* {TARGET_FPU_VFPV2} */
+		    {
+		      /* True when VFPv2 is selected.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures ();
+		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_VFP_FMA)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2);
+		      return;
+		    }
+		  if (Input_MatchStringLower ("vfpv3}")) /* {TARGET_FPU_VFPV3} */
+		    {
+		      /* True when VFPv3 is selected.  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures ();
+		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)
+					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA)) != (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA);
+		      return;
+		    }
+		  if (Input_MatchStringLower ("vfpv4}")) /* {TARGET_FPU_VFPV4} */
+		    {
+		      /* True when VFPv4 is selected (i.e. VFPv3 + FP16 + VFP_FMA).  */
+		      lex->tag = LexBool;
+		      unsigned features = Target_GetFPUFeatures ();
+		      lex->Data.Bool.value = (features & (kFPUExt_FPAv1 | kFPUExt_FPAv2)) == 0
+					       && (features & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA)) == (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD | kFPUExt_FP16 | kFPUExt_VFP_FMA);
+		      return;
+		    }
+		}
+	      else if (Input_MatchStringLower ("profile_"))
+		{
+		  if (Input_MatchStringLower ("a}")) /* {TARGET_PROFILE_A} */
+		    {
+		      /* True for ARMv7-A.  */
+		      lex->tag = LexBool;
+		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_v7A) != 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("m}")) /* {TARGET_PROFILE_M} */
+		    {
+		      /* True for ARMv6-M or ARMv7-M.  */
+		      lex->tag = LexBool;
+		      lex->Data.Bool.value = (Target_GetCPUFeatures () & (kCPUExt_v6M | kCPUExt_v7M)) != 0;
+		      return;
+		    }
+		  if (Input_MatchStringLower ("r}")) /* {TARGET_PROFILE_R} */
+		    {
+		      /* True for ARMv7-R.  */
+		      lex->tag = LexBool;
+		      lex->Data.Bool.value = (Target_GetCPUFeatures () & kCPUExt_v7R) != 0;
+		      return;
+		    }
+		}
+	    }
+	  else if (Input_MatchStringLower ("rue}")) /* {TRUE} */
 	    {
 	      lex->tag = LexBool;
 	      lex->Data.Int.value = true;
@@ -899,6 +1236,17 @@ Lex_GetBuiltinVariable (Lex *lex)
 	  break;
 	}
 
+      case 'u':
+	{
+	  if (Input_MatchStringLower ("al}")) /* {UAL} */
+	    {
+	      /* True when we only going to parse UAL.  */
+	      lex->tag = LexBool;
+	      lex->Data.Bool.value = false; /* FIXME: */
+	      return;
+	    }
+	  break;
+	}
       case 'v':
 	{
 	  if (Input_MatchStringLower ("ar}")) /* {VAR} */
@@ -910,12 +1258,12 @@ Lex_GetBuiltinVariable (Lex *lex)
 	}
     }
 
-  /* Try to find the end of the builtin variable name.  */
+  /* Try to find the end of the built-in variable name.  */
   const char *lineRest = Input_Rest ();
   while (*lineRest != '\0' && *lineRest != '\n' && *lineRest != '}')
     ++lineRest;
   if (*lineRest == '}')
-    error (ErrorError, "Unknown builtin variable {%.*s",
+    error (ErrorError, "Unknown built-in variable {%.*s",
 	   (int)(lineRest + 1 - inputMark), inputMark);
   else
     error (ErrorError, "Missing closing bracket");
@@ -923,21 +1271,19 @@ Lex_GetBuiltinVariable (Lex *lex)
 }
 
 
-static bool
-Lex_Char2Int (size_t len, const char *str, ARMWord *result)
+static ARMWord
+Lex_Char2Int (size_t len, const char *str)
 {
-  *result = 0;
+  assert (len <= 4);
 
-  if (len > 4)
-    return true;
-
+  ARMWord result = 0;
   for (size_t i = 0; i != 4; ++i)
     {
-      *result >>= 8;
+      result >>= 8;
       if (i < len)
-	*result |= str[i] << 24;
+	result |= (unsigned)str[i] << 24;
     }
-  return false;
+  return result;
 }
 
 
@@ -950,7 +1296,7 @@ Lex_Char2Int (size_t len, const char *str, ARMWord *result)
 static void
 Lex_GetFloatFloatingPointLiteral (Lex *result)
 {
-  inputSkipN (2); /* Skip "f_" */
+  inputSkipN (sizeof ("f_")-1); /* Skip "f_" */
   uint32_t fltAsInt = 0;
   for (int i = 0; i != 8; inputSkip (), ++i)
     {
@@ -1128,7 +1474,7 @@ lexGetPrim (void)
 	{
 	  char in[4];
 	  int i, ci;
-	  for (i = 0; i < 5 && (ci = (unsigned char)inputGet ()) != '\''; ++i)
+	  for (i = 0; (ci = (unsigned char)inputGet ()) != '\''; ++i)
 	    {
 	      if (ci == '\\')
 		ci = inputGet ();
@@ -1146,7 +1492,7 @@ lexGetPrim (void)
 	    }
 
 	  result.tag = LexInt;
-	  Lex_Char2Int (i, in, (ARMWord *)&result.Data.Int.value);
+	  result.Data.Int.value = Lex_Char2Int (i, in);
 	  break;
 	}
 

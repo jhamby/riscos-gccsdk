@@ -1,3 +1,42 @@
+Mon Jul 16 22:25:13 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* asm.c, asm.h (ASM_Assemble): Support one pass assembling.
+	* lex.c (Lex_GetBuiltinVariable): Add support for {INTER}, {CPU}, {FPU},
+	{ROPI}, {TARGET_ARCH_ARM}, {TARGET_ARCH_THUMB}, {TARGET_ARCH_1},
+	{TARGET_ARCH_2}, {TARGET_ARCH_2A}, {TARGET_ARCH_3}, {TARGET_ARCH_3G},
+	{TARGET_ARCH_3M}, {TARGET_ARCH_4XM}, {TARGET_ARCH_4}, {TARGET_ARCH_4TXM},
+	{TARGET_ARCH_4T}, {TARGET_ARCH_5XM}, {TARGET_ARCH_5},
+	{TARGET_ARCH_5TXM}, {TARGET_ARCH_5T}, {TARGET_ARCH_5TEXP},
+	{TARGET_ARCH_5TE}, {TARGET_ARCH_5TEJ}, {TARGET_ARCH, {TARGET_ARCH_6K},
+	{TARGET_ARCH_6T2}, {TARGET_ARCH_6Z}, {TARGET_ARCH_6_M},
+	{TARGET_ARCH_6S_M}, {TARGET_ARCH_7}, {TARGET_ARCH_7_A},
+	{TARGET_ARCH_7_R}, {TARGET_ARCH_7_M}, {TARGET_ARCH_7E_M},
+	{TARGET_FEATURE_CLZ}, {TARGET_FEATURE_DIVIDE},
+	{TARGET_FEATURE_DOUBLEWORD}, {TARGET_FEATURE_DSPMUL},
+	{TARGET_FEATURE_EXTENSION_REGISTER_COUNT}, {TARGET_FEATURE_MULTIPLY},
+	{TARGET_FEATURE_MULTIPROCESSING}, {TARGET_FEATURE_NEON},
+	{TARGET_FEATURE_NEON_FP16}, {TARGET_FEATURE_NEON_FP32},
+	{TARGET_FEATURE_NEON_INTEGER}, {TARGET_FEATURE_UNALIGNED},
+	{TARGET_FPU_FPA}, {TARGET_FPU_SOFTFPA}, {TARGET_FPU_SOFTFPA_FPA},
+	{TARGET_FPU_SOFTFPA_VFP}, {TARGET_FPU_SOFTVFP}, {TARGET_FPU_SOFTVFP_FPA},
+	{TARGET_FPU_SOFTVFP_VFP}, {TARGET_FPU_VFP}, {TARGET_FPU_VFPV1},
+	{TARGET_FPU_VFPV2}, {TARGET_FPU_VFPV3}, {TARGET_FPU_VFPV4},
+	{TARGET_PROFILE_A}, {TARGET_PROFILE_M}, {TARGET_PROFILE_R}.
+	(Lex_Char2Int): Change API.
+	* targetcpu.c, targetcpu.h: New API for cpu/fpu/device options.
+	* m_copmem.c, m_cpuctrl.c, m_cop.c, m_cpu.c, m_cpumem.c, option.c: Use
+	new Target_*() API.
+	* predef_reg.c (PreDefReg_Init): Fix predefined register definitions.
+	Support regnames option.
+	* main.c, main.h: Better APCS option support.
+	Add cpu/fpu/device/no_code_gen/regnames options.
+	* regression/option_cpu, regression/option_device,
+	regression/option_fpu: Add testcases.
+	* regression/include: Add.
+	* regression/testfiles_pass (apcs*): Move to...
+	* regression/option_apcs: ...here.  Update for new APCS option support.
+	* regression/Makefile: Update for new test subdirectories.
+
 Sat Jun 16 16:07:08 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* area.c (Area_MarkStartAs): Support ThumbEE mapping symbol.

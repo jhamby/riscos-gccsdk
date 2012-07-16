@@ -48,13 +48,29 @@ MKDIR := mkdir
 
 V := @
 
-check_PROGRAMS_PASS := $(wildcard tests_pass/*.s)
-check_PROGRAMS_FAIL := $(wildcard tests_fail/*.s)
-ref_PROGRAMS = $(check_PROGRAMS_PASS:tests_pass/%.s=output_reference/%.o) \
-	$(check_PROGRAMS_FAIL:tests_fail/%.s=output_reference/%.o)
-act_PROGRAMS = $(check_PROGRAMS_PASS:tests_pass/%.s=output_actual/%.o)
+check_PROGRAMS_PASS := \
+	$(wildcard option_apcs/*.s) \
+	$(wildcard option_cpu/*.s) \
+	$(wildcard option_device/*.s) \
+	$(wildcard option_fpu/*.s) \
+	$(wildcard tests_pass/*.s)
+check_PROGRAMS_FAIL := \
+	$(wildcard tests_fail/*.s)
+ref_PROGRAMS = \
+	$(check_PROGRAMS_PASS:option_apcs/%.s=output_reference/%.o) \
+	$(check_PROGRAMS_PASS:option_cpu/%.s=output_reference/%.o) \
+	$(check_PROGRAMS_PASS:option_device/%.s=output_reference/%.o) \
+	$(check_PROGRAMS_PASS:option_fpu/%.s=output_reference/%.o) \
+	$(check_PROGRAMS_FAIL:tests_fail/%.s=output_reference/%.o) \
+	$(check_PROGRAMS_PASS:tests_pass/%.s=output_reference/%.o)
+act_PROGRAMS = \
+	$(check_PROGRAMS_PASS:option_apcs/%.s=output_actual/%.o) \
+	$(check_PROGRAMS_PASS:option_cpu/%.s=output_actual/%.o) \
+	$(check_PROGRAMS_PASS:option_device/%.s=output_actual/%.o) \
+	$(check_PROGRAMS_PASS:option_fpu/%.s=output_actual/%.o) \
+	$(check_PROGRAMS_PASS:tests_pass/%.s=output_actual/%.o)
 
-VPATH = tests_pass:tests_fail
+VPATH = option_apcs:option_cpu:option_device:option_fpu:tests_pass:tests_fail
 
 .PHONY: all clean
 

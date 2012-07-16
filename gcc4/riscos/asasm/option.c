@@ -106,12 +106,11 @@ GetCCodeIfThere (bool doLowerCase)
 	  /* Pre-ARMv4, NV is supported.
 	     ARMv4, NV is UNPREDICTABLE.
 	     ARMv5 and later, used for "Unconditional instruction extension space"  */
-	  ARM_eArchitectures arch = Target_GetArch ();
-	  if (arch >= ARCH_ARMv5)
+	  if (Target_CheckCPUFeature (kCPUExt_v5, false))
 	    {
 	      /* cc already is kOption_NotRecognized.  */
 	    }
-	  else if (arch >= ARCH_ARMv4)
+	  else if (Target_CheckCPUFeature (kCPUExt_v4, false))
 	    {
 	      error (ErrorWarning, "For ARMv4, use of NV condition code is UNPREDICTABLE");
 	      cc = NV;

@@ -141,7 +141,7 @@ m_blx (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5T, true);
 
   ARMWord reg = Get_CPURegNoError ();
   if (reg == INVALID_REG)
@@ -167,7 +167,7 @@ m_bx (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5T, true);
 
   int dst = getCpuReg ();
   if (dst == 15)
@@ -187,7 +187,7 @@ m_bxj (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv5TEJ);
+  Target_CheckCPUFeature (kCPUExt_v5J, true);
 
   int dst = getCpuReg ();
   if (dst == 15)
@@ -251,7 +251,7 @@ m_swi (bool doLowerCase)
 bool
 m_bkpt (void)
 {
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5, true);
 
   if (Input_Match ('#', false))
     error (ErrorInfo, "BKPT is always immediate");
@@ -678,7 +678,7 @@ m_msr (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv3);
+  Target_CheckCPUFeature (kCPUExt_v3, true);
 
   cc |= getpsr (false) | 0x0120F000;
   skipblanks ();
@@ -713,7 +713,7 @@ m_mrs (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv3);
+  Target_CheckCPUFeature (kCPUExt_v3, true);
 
   cc |= getCpuReg () << 12 | 0x01000000;
   skipblanks ();
@@ -736,8 +736,7 @@ m_sev (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  if (Target_GetArch() != ARCH_ARMv6K)
-    Target_NeedAtLeastArch (ARCH_ARMv7);
+  Target_CheckCPUFeature (kCPUExt_v6K, true);
   
   Put_Ins (4, cc | 0x0320F004);
   return false;
@@ -755,8 +754,7 @@ m_wfe (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  if (Target_GetArch() != ARCH_ARMv6K)
-    Target_NeedAtLeastArch (ARCH_ARMv7);
+  Target_CheckCPUFeature (kCPUExt_v6K, true);
   
   Put_Ins (4, cc | 0x0320F002);
   return false;
@@ -774,8 +772,7 @@ m_wfi (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  if (Target_GetArch() != ARCH_ARMv6K)
-    Target_NeedAtLeastArch (ARCH_ARMv7);
+  Target_CheckCPUFeature (kCPUExt_v6K, true);
   
   Put_Ins (4, cc | 0x0320F003);
   return false;
@@ -897,7 +894,7 @@ m_dbg (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  if (Target_NeedAtLeastArch (ARCH_ARMv7))
+  if (!Target_CheckCPUFeature (kArchExt_v7, true))
     return true;
 
   skipblanks ();
@@ -939,8 +936,7 @@ m_smc (bool doLowerCase)
     return true;
 
   /* Note that the security extensions are optional.  */
-  if (Target_NeedAtLeastArch (ARCH_ARMv6K))
-    return true;
+  Target_CheckCPUFeature (kCPUExt_Sec, true);
 
   skipblanks ();
   if (!Input_Match ('#', false))

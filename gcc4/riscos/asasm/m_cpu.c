@@ -55,51 +55,48 @@
 bool
 m_nop (bool doLowerCase)
 {
-  switch (Target_GetArch ())
+  if (Target_CheckCPUFeature (kCPUExt_v6K, false)
+      || Target_CheckCPUFeature (kCPUExt_v6T2, false))
     {
-      case ARCH_ARMv6K:
-      case ARCH_ARMv6T2:
-      case ARCH_ARMv7:
+      ARMWord cc = optionCond (doLowerCase);
+      if (cc == kOption_NotRecognized)
+	return true;
+
+      InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
+      if (instrWidth == eInstrWidth_Unrecognized)
+	return true;
+
+      InstrType_e instrState = State_GetInstrType ();
+      if (instrState == eInstrType_ARM)
 	{
-	  ARMWord cc = optionCond (doLowerCase);
-	  if (cc == kOption_NotRecognized)
-	    return true;
+	  if (instrWidth == eInstrWidth_Enforce16bit)
+	    error (ErrorError, ".N width specifier can't be used in ARM mode");
 
-	  InstrWidth_e instrWidth = Option_GetInstrWidth (doLowerCase);
-	  if (instrWidth == eInstrWidth_Unrecognized)
-	    return true;
-
-	  InstrType_e instrState = State_GetInstrType ();
-	  if (instrState == eInstrType_ARM)
+	  Put_Ins (4, 0x0320F000 | cc);
+	}
+      else
+	{
+	  if (instrWidth == eInstrWidth_Enforce32bit)
 	    {
-	      if (instrWidth == eInstrWidth_Enforce16bit)
-		error (ErrorError, ".N width specifier can't be used in ARM mode");
-
-	      Put_Ins (4, 0x0320F000 | cc);
+	      Target_CheckCPUFeature (kCPUExt_v6T2, true);
+	      Put_Ins (2, 0xF3AF);
+	      Put_Ins (2, 0x8000);
 	    }
 	  else
 	    {
-	      if (instrWidth == eInstrWidth_Enforce32bit)
-		{
-		  Target_CheckFeature (eFeature_Thumb2);
-		  Put_Ins (2, 0xF3AF);
-		  Put_Ins (2, 0x8000);
-		}
-	      else
-		{
-		  Target_CheckFeature (eFeature_Thumb);
-		  Put_Ins (2, 0xBF00);
-		}
+	      Target_CheckCPUFeature (kCPUExt_v4T, true);
+	      Put_Ins (2, 0xBF00);
 	    }
-	  break;
 	}
 
-      default:
-	if (!Input_IsEndOfKeyword ())
-	  return true;
-	Put_Ins (4, 0xE1A00000); /* MOV R0, R0 */
-	break;
     }
+  else
+    {
+      if (!Input_IsEndOfKeyword ())
+	return true;
+      Put_Ins (4, 0xE1A00000); /* MOV R0, R0 */
+    }
+
   return false;
 }
 
@@ -156,12 +153,12 @@ m_und (bool doLowerCase)
     Put_Ins (4, 0x07F000F0 | cc | ((intValue & 0xFFF0)<<4) | (intValue & 0xF));
   else if (instrWidth == eInstrWidth_Enforce32bit)
     {
-      Target_CheckFeature (eFeature_Thumb2);
+      Target_CheckCPUFeature (kCPUExt_v6T2, true);
       Put_Ins (4, 0xF7F0A0F0 | ((intValue & 0xF00)<<8) | ((intValue & 0xF0)<<4) | (intValue & 0xF));
     }
   else
     {
-      Target_CheckFeature (eFeature_Thumb);
+      Target_CheckCPUFeature (kCPUExt_v4T, true);
       Put_Ins (2, 0xDE00 | intValue);
     }
   
@@ -440,7 +437,7 @@ onlyregs (MulFlavour_e mulType, ARMWord ir)
     error (ErrorWarning, "Use of register PC is unpredictable");
   if (mulType != Is_eMLS)
     {
-      if (regD == regN && Target_GetArch () < ARCH_ARMv6)
+      if (regD == regN && !Target_CheckCPUFeature (kCPUExt_v6, false))
 	{
 	  if (regN == regM)
 	    error (ErrorError, "Destination and left operand are the same register %d", regD);
@@ -483,7 +480,7 @@ m_mla (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv2);
+  Target_CheckCPUFeature (kCPUExt_v2, true);
   onlyregs (Is_eMLA, cc | M_MLA);
   return false;
 }
@@ -499,7 +496,7 @@ m_mls (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv6T2);
+  Target_CheckCPUFeature (kCPUExt_v6T2, true);
   onlyregs (Is_eMLS, cc | M_MLS);
   return false;
 }
@@ -515,7 +512,7 @@ m_mul (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv2);
+  Target_CheckCPUFeature (kCPUExt_v2, true);
   onlyregs (Is_eMUL, cc | M_MUL);
   return false;
 }
@@ -536,14 +533,14 @@ l_onlyregs (ARMWord ir, const char *op)
   ARMWord dstl;
   if (issmull)
     {
-      Target_NeedAtLeastArch (ARCH_ARMv4);
+      Target_CheckCPUFeature (kCPUExt_v4, true);
       dstl = getCpuReg ();
       if (!Input_Match (',', true))
         error (ErrorError, "%sdst_h", InsertCommaAfter);
     }
   else
     {
-      Target_NeedAtLeastArch (ARCH_ARMv5TE);
+      Target_CheckCPUFeature (kCPUExt_v5ExP, true);
       if (issmlalxy)
         {
           dstl = getCpuReg ();
@@ -567,7 +564,7 @@ l_onlyregs (ARMWord ir, const char *op)
     {
       if (dstl == dsth)
         error (ErrorError, "Destination high and low are the same register %d", dstl);
-      if ((dstl == lhs || dsth == lhs) && Target_GetArch () < ARCH_ARMv6)
+      if ((dstl == lhs || dsth == lhs) && !Target_CheckCPUFeature (kCPUExt_v6, false))
         {
           if (dstl == rhs || dsth == rhs) 
             error (ErrorError, "Left operand register %d also occurs in destination", lhs);
@@ -608,7 +605,7 @@ m_smull (bool doLowerCase)
   ARMWord cc = optionCondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv3M);
+  Target_CheckCPUFeature (kArchExt_v3M, true);
   l_onlyregs (cc | M_SMULL, "SMULL");
   return false;
 }
@@ -622,7 +619,7 @@ m_smulbb (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMULBB, "SMULBB");
   return false;
 }
@@ -636,7 +633,7 @@ m_smulbt (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMULBT, "SMULBT");
   return false;
 }
@@ -650,7 +647,7 @@ m_smultb (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMULTB, "SMULTB");
   return false;
 }
@@ -664,7 +661,7 @@ m_smultt (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMULTT, "SMULTT");
   return false;
 }
@@ -678,7 +675,7 @@ m_smulwb (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMULWB, "SMULWB");
   return false;
 }
@@ -692,7 +689,7 @@ m_smulwt (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMULWT, "SMULWT");
   return false;
 }
@@ -706,7 +703,7 @@ m_smlal (bool doLowerCase)
   ARMWord cc = optionCondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv3M);
+  Target_CheckCPUFeature (kCPUExt_v3M, true);
   l_onlyregs (cc | M_SMLAL, "SMLAL");
   return false;
 }
@@ -720,7 +717,7 @@ m_smlalbb (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLALBB, "SMLALBB");
   return false;
 }
@@ -734,7 +731,7 @@ m_smlalbt (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLALBT, "SMLALBT");
   return false;
 }
@@ -748,7 +745,7 @@ m_smlaltb (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLALTB, "SMLALTB");
   return false;
 }
@@ -762,7 +759,7 @@ m_smlaltt (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLALTT, "SMLALTT");
   return false;
 }
@@ -776,7 +773,7 @@ m_smlabb (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLABB, "SMLABB");
   return false;
 }
@@ -790,7 +787,7 @@ m_smlabt (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLABT, "SMLABT");
   return false;
 }
@@ -804,7 +801,7 @@ m_smlatb (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLATB, "SMLATB");
   return false;
 }
@@ -818,7 +815,7 @@ m_smlatt (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLATT, "SMLATT");
   return false;
 }
@@ -832,7 +829,7 @@ m_smlawb (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLAWB, "SMLAWB");
   return false;
 }
@@ -846,7 +843,7 @@ m_smlawt (bool doLowerCase)
   ARMWord cc = optionCond (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
   l_onlyregs (cc | M_SMLAWT, "SMLAWT");
   return false;
 }
@@ -860,7 +857,7 @@ m_umull (bool doLowerCase)
   ARMWord cc = optionCondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv3M);
+  Target_CheckCPUFeature (kCPUExt_v3M, true);
   l_onlyregs (cc | M_UMULL, "UMULL");
   return false;
 }
@@ -874,7 +871,7 @@ m_umlal (bool doLowerCase)
   ARMWord cc = optionCondS (doLowerCase);
   if (cc == kOption_NotRecognized)
     return true;
-  Target_NeedAtLeastArch (ARCH_ARMv3M);
+  Target_CheckCPUFeature (kCPUExt_v3M, true);
   l_onlyregs (cc | M_UMLAL, "UMLAL");
   return false;
 }
@@ -890,7 +887,7 @@ m_clz (bool doLowerCase)
   if (cc == kOption_NotRecognized)
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv5);
+  Target_CheckCPUFeature (kCPUExt_v5, true);
 
   ARMWord ir = cc | M_CLZ;
 
@@ -913,7 +910,7 @@ m_clz (bool doLowerCase)
 static void
 q_onlyregs (ARMWord ir, const char *op)
 {
-  Target_NeedAtLeastArch (ARCH_ARMv5TE);
+  Target_CheckCPUFeature (kCPUExt_v5ExP, true);
 
   skipblanks ();
 
@@ -1140,7 +1137,7 @@ core_bitfield_instr (bool doLowerCase, BitFieldType_e bitFieldType)
   if (instrWidth == eInstrWidth_Enforce16bit)
     error (ErrorError, "Narrow instruction qualifier for Thumb is not possible");
     
-  Target_NeedAtLeastArch (ARCH_ARMv6T2); /* Only ARMv6T2 and ARMv7.  */
+  Target_CheckCPUFeature (kCPUExt_v6T2, true); /* Only ARMv6T2 and ARMv7.  */
 
   ARMWord rd = getCpuReg ();
   if (!Input_Match (',', true))

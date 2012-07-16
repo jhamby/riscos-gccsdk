@@ -70,7 +70,7 @@ m_ldc2 (bool doLowerCase)
   if (!Input_IsEndOfKeyword ())
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv5);
+  Target_CheckCPUFeature (kCPUExt_v5T, true);
   return dstmem (cc | 0x0c100000 | NV, true);
 }
 
@@ -98,6 +98,6 @@ m_stc2 (bool doLowerCase)
   if (!Input_IsEndOfKeyword ())
     return true;
 
-  Target_NeedAtLeastArch (ARCH_ARMv5);
+  Target_CheckCPUFeature (kCPUExt_v5T, true);
   return dstmem (cc | 0x0c000000 | NV, false);
 }
