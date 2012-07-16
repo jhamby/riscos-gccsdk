@@ -19,6 +19,7 @@ AB_ROVERSION=1
 AB_PVERSION=0.13
 
 AB_MAINTAINER="Theo Markettos <theo@markettos.org.uk>"
+AB_LICENCE=Free
 
 # Command in front of invocation of RISC OS GNU configure wrapper.  If you do
 # not want this to be called, you could set this var to ":"
@@ -66,7 +67,7 @@ AB_MAINTAINER="Theo Markettos <theo@markettos.org.uk>"
 # Each package should be created in a separate subdirectory
 # of the package directory (the $D variable in the package function)
 # with the same name as the package name specified in the variable.
-AB_PACKAGES=
+AB_PACKAGES=CryptRandom
 
 # Copy sources into library packages or produce a source zip
 # file for other packages "yes" or "no"
@@ -75,7 +76,7 @@ AB_COPYSOURCE=yes
 
 # Command to clean the distribution before packaging up the source
 # If left blank it defaults to "$AB_MAKE distclean"
-#AB_DISTCLEAN=
+AB_DISTCLEAN="$AB_MAKE -C Sources distclean"
 
 # List of documents to copy into the library. Files that do not
 # exist are ignored
@@ -113,8 +114,8 @@ ab_package () {
 #         -nobootvars -depends ttf-dejavu-core -copyrightfile COPYING
 	echo "A=$D"
 	SYSTEM_DIR=System/310/Modules
-	mkdir -p $D/$AB_PACKAGE/$SYSTEM_DIR
-	cp $S/Sources/CryptRand,ffa $D/$AB_PACKAGE/$SYSTEM_DIR/
+	mkdir -p $D/CryptRandom/$SYSTEM_DIR
+	cp $S/Sources/CryptRand,ffa $D/CryptRandom/$SYSTEM_DIR/
 	$AB_HOME/add-riscpkg -section System -package CryptRandom
 }
 
