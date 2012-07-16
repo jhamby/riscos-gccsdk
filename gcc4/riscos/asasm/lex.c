@@ -756,10 +756,10 @@ Lex_GetBuiltinVariable (Lex *lex)
     {
       case 'a':
 	{
-	  if (Input_MatchStringLower ("sasm}")) /* {ASASM} */ /* FIXME: change this into {asasm_version} = |asasm$version| = PVtbbbb (P = major version, V = minor version, t = patch release, bbbb = build number) */
+	  if (Input_MatchStringLower ("sasm_version}")) /* {ASASM_VERSION} */
 	    {
-	      lex->tag = LexBool;
-	      lex->Data.Bool.value = true;
+	      lex->tag = LexInt;
+	      lex->Data.Int.value = ASASM_VERSION;
 	      return;
 	    }
 	  else if (Input_MatchStringLower ("rchitecture}")) /* {ARCHITECTURE} */

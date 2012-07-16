@@ -56,6 +56,9 @@
 //#  define DEBUG_VARIABLES
 #endif
 
+static void Var_PredefineVariables (void);
+static Symbol *Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro);
+
 /**
  * Variables phase preparation.
  */
@@ -64,10 +67,15 @@ Var_PrepareForPhase (Phase_e phase)
 {
   switch (phase)
     {
+      case ePassOne:
+	Var_PredefineVariables ();
+	break;
+
       case ePassTwo:
 	/* Delete all variables so that a :DEF: test returns the same
 	   result as in ePassOne.  */
 	Symbol_RemoveVariables ();
+	Var_PredefineVariables ();
 	break;
 
       default:
@@ -75,6 +83,15 @@ Var_PrepareForPhase (Phase_e phase)
     }
 }
 
+
+static void
+Var_PredefineVariables (void)
+{
+  Symbol *sym = Var_Define ("asasm$version", sizeof ("asasm$version")-1,
+			     ValueInt, false);
+  if (sym != NULL)
+    sym->value.Data.Int.i = ASASM_VERSION;
+}
 
 /**
  * (Re)define local or global variable.
@@ -84,7 +101,7 @@ Var_PrepareForPhase (Phase_e phase)
  * implement :DEF:.
  */
 static Symbol *
-Var_Declare (const char *ptr, size_t len, ValueTag type, bool localMacro)
+Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 {
   const Lex var = lexTempLabel (ptr, len);
   Symbol *sym = Symbol_Find (&var); /* FIXME: use Symbol_Get() and get rid of 'else' */
@@ -106,18 +123,14 @@ Var_Declare (const char *ptr, size_t len, ValueTag type, bool localMacro)
           && (!localMacro || (sym->type & SYMBOL_MACRO_LOCAL) != 0))
 	{
 	  if (sym->value.Tag == ValueIllegal)
-	    error (ErrorError, "'%.*s' is already %s",
-		   (int)len, ptr,
-		   sym->type & SYMBOL_DEFINED ? "defined" : "declared");
+	    error (ErrorError, "'%.*s' is already defined", (int)len, ptr);
 	  else
-	    error (ErrorError, "'%.*s' is already %s as a %s",
-		   (int)len, ptr,
-		   sym->type & SYMBOL_DEFINED ? "defined" : "declared",
-		   valueTagAsString (sym->value.Tag));
+	    error (ErrorError, "'%.*s' is already defined as a %s",
+		   (int)len, ptr, valueTagAsString (sym->value.Tag));
 	  return NULL;
 	}
       if (option_pedantic)
-	error (ErrorWarning, "Redeclaration of %s variable '%.*s'",
+	error (ErrorWarning, "Redefinition of %s variable '%.*s'",
 	       valueTagAsString (sym->value.Tag),
 	       (int)var.Data.Id.len, var.Data.Id.str);
 
@@ -186,7 +199,7 @@ c_gbl (void)
   if ((ptr = Input_Symbol (&len)) == NULL)
     error (ErrorError, "Missing variable name");
   else
-    Var_Declare (ptr, len, type, false);
+    Var_Define (ptr, len, type, false);
   return false;
 }
 
@@ -256,14 +269,14 @@ c_lcl (void)
       if ((p->symbolP = symbolP) != NULL)
 	{
 	  p->symbol = *symbolP;
-	  /* Reset Symbol parts which won't get touched by Var_Declare().  */
+	  /* Reset Symbol parts which won't get touched by Var_Define().  */
 	  symbolP->codeSize = 0;
 	  symbolP->areaDef = areaCurrentSymbol;
 	}
       gCurPObjP->d.macro.varListP = p;
     }
   
-  Var_Declare (ptr, len, type, true);
+  Var_Define (ptr, len, type, true);
   return false;
 }
 
@@ -310,7 +323,6 @@ c_set (const Lex *label)
 	break;
 
       default:
-	sym->type |= SYMBOL_DEFINED;
 	Value_Assign (&sym->value, value);
 	break;
     }

@@ -1,3 +1,19 @@
+Tue Jul 17 00:49:52 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (ASASM_VERSION): Add.
+	* lex.c (Lex_GetBuiltinVariable): Define {ASASM_VERSION} iso {ASASM}.
+	* variables.c (Var_PrepareForPhase): Call Var_PredefineVariables
+	before each pass.
+	(Var_PredefineVariables): Define |asasm$version|.
+	(Var_Declare): Rename to Var_Define and clean up as we don't have
+	any concept of declare vs define anymore.
+	(c_set): No longer set SYMBOL_DEFINED, this should already been set.
+	* regression/tests_pass/version.s: Add.
+	* regression/tests_pass/variable_define.s: Add.
+	* regression/tests_pass/builtinvar_cpu1.s,
+	regression/tests_pass/builtinvar_cpu2.s: Remove (superseded by the
+	option_cpu tests).
+
 Mon Jul 16 22:25:13 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* asm.c, asm.h (ASM_Assemble): Support one pass assembling.

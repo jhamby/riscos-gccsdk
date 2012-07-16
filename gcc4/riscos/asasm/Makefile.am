@@ -4,6 +4,12 @@ SVN_ROOT := $(shell svn info ${srcdir} | grep "^Repository Root: " | sed -e "s/^
 SVN_BRANCH := $(shell svn info ${srcdir} | grep "^URL: " | sed -e "s/^URL: //")
 SVN_REV := r$(shell svnversion -n ${srcdir}) at $(subst $(SVN_ROOT),,$(SVN_BRANCH))
 
+# We want to define the AsAsm version number as PVtbbbb with
+# P = major version, V = minor version, t = patch release, bbbb = build number
+# P, V and t are derived from the PACKAGE_VERSION in config.h (which is derived
+# from AC_INIT in configure.ac) and bbbb is our SVN revision number.
+ASASM_VERSION := $(shell grep PACKAGE_VERSION config.h | sed -e "s/.*\"\([0-9]\)\.\([0-9][0-9]\)\"/\1\2/")$(shell svnversion -n ${srcdir} | sed -e "s/[0-9]*://" -e "s/\([0-9]*\).*/\1/")
+
 # _GNU_SOURCE to make strndup available
 # Add -DDEBUG if you want to enable the debug routines.
 asasm_CFLAGS = -D_GNU_SOURCE -std=c99 \
@@ -13,7 +19,8 @@ asasm_CFLAGS = -D_GNU_SOURCE -std=c99 \
 	-Wchar-subscripts -Winline \
 	-Wmissing-prototypes -Wnested-externs -Wpointer-arith \
 	-Wredundant-decls -Wshadow -Wstrict-prototypes -Wwrite-strings \
-	-DGCCSDK_REVISION="\"$(SVN_REV)\""
+	-DGCCSDK_REVISION="\"$(SVN_REV)\"" \
+	-DASASM_VERSION=$(ASASM_VERSION)
 asasm_LDFLAGS = -lm
 asasm_SOURCES=area.c asm.c code.c decode.c depend.c \
 	directive_data.c directive_file.c directive_misc.c \
