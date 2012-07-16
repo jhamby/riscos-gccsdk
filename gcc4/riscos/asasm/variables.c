@@ -104,8 +104,8 @@ static Symbol *
 Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 {
   const Lex var = lexTempLabel (ptr, len);
-  Symbol *sym = Symbol_Find (&var); /* FIXME: use Symbol_Get() and get rid of 'else' */
-  if (sym != NULL)
+  Symbol *sym = Symbol_Get (&var);
+  if (sym->value.Tag != ValueIllegal)
     {
       if (sym->type & SYMBOL_AREA)
 	{
@@ -138,8 +138,6 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 	 (and :DEF: returns {TRUE} for it).  */
       localMacro = false;
     }
-  else
-    sym = Symbol_Get (&var);
 
   sym->type |= SYMBOL_DEFINED | SYMBOL_ABSOLUTE | SYMBOL_RW;
   if (localMacro)

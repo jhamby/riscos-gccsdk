@@ -1,3 +1,8 @@
+Tue Jul 17 01:05:26 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* variables (Var_Define): Simplify (call Symbol_Get instead of
+	Symbol_Find + Symbol_Get).
+
 Tue Jul 17 00:49:52 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am (ASASM_VERSION): Add.
