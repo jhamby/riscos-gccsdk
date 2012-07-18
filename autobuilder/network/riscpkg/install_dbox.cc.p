@@ -1,7 +1,7 @@
-Index: install_dbox.cc
+Index: !RiscPkg/install_dbox.cc
 ===================================================================
---- install_dbox.cc	(revision 112)
-+++ install_dbox.cc	(working copy)
+--- !RiscPkg/install_dbox.cc	(revision 112)
++++ !RiscPkg/install_dbox.cc	(working copy)
 @@ -3,6 +3,8 @@
  // Distribution and use are subject to the GNU General Public License,
  // a copy of which may be found in the file !RiscPkg.Copyright.
