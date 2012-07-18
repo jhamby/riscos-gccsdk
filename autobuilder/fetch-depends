@@ -6,6 +6,9 @@ PACKAGE=$1
 packindex=Packages.bz2
 
 debarchive=http://ftp.uk.debian.org/debian
+distro="testing"
+#debarchive=http://gb.archive.ubuntu.com/ubuntu
+#distro="precise"
 
 # Use and keep existing Packages.bz2 if it exists and is less
 # than a day old
@@ -13,7 +16,7 @@ debarchive=http://ftp.uk.debian.org/debian
 if ! [ -e $packindex ] ||
      [ $(($(date +"%s") - $(date -r $packindex +"%s"))) -gt $((24 * 60 * 60)) ] ; then
   rm -rf $packindex
-  wget -q $debarchive/dists/testing/main/binary-i386/Packages.bz2 -O $packindex
+  wget -q $debarchive/dists/$distro/main/binary-i386/Packages.bz2 -O $packindex
 fi
 
 if bzgrep -A20 "^Package:.* $PACKAGE$" $packindex > packentry ; then

@@ -72,7 +72,10 @@ else
   else
     # Slower method.  Fetch packages file ourself and parse it.
     debarchive=http://ftp.uk.debian.org/debian
+    distros="testing stable"
     #debarchive=http://mirrors.kernel.org/debian
+    #debarchive=http://gb.archive.ubuntu.com/ubuntu/
+    #distros="precise"
 
     # Old file
     rm -f ../Sources.bz2
@@ -82,7 +85,7 @@ else
 
     rm -f files
 
-    for dist in testing stable; do
+    for dist in ${distros}; do
       for section in main contrib; do
         Sources=../Sources-${dist}-${section}.bz2
 
@@ -102,7 +105,7 @@ else
       done
     done
 
-    for dist in testing stable; do
+    for dist in ${distros}; do
       for section in main contrib; do
         Sources=../Sources-${dist}-${section}.bz2
 
