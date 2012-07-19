@@ -16,6 +16,7 @@
 
 using System;
 using riscos;
+using System.Globalization;
 
 public class MainMenu : Toolbox.Menu
 {
@@ -34,24 +35,81 @@ public class Dialogue : Toolbox.Window
 {
 	public Toolbox.ActionButton OKButton;
 	public Toolbox.ActionButton CancelButton;
+	public Toolbox.DisplayField DisplayField;
+	public Toolbox.WritableField WritableField;
+	public Toolbox.NumberRange NumberRange;
+	public Toolbox.StringSet StringSet;
+	public Toolbox.OptionButton OptionButton;
+	public Toolbox.RadioButton Radio1;
+	public Toolbox.Slider Slider;
+	public Toolbox.Draggable Draggable;
+	public Toolbox.Button Button;
+	public Toolbox.RadioButton Radio2;
 
 	public class CmpID
 	{
 		public const uint CancelButton = 0;
 		public const uint OKButton = 1;
+		public const uint DisplayField = 3;
+		public const uint WritableField = 4;
+		public const uint NumberRange = 5;
+		public const uint StringSet = 6;
+		public const uint OptionButton = 7;
+		public const uint Radio1 = 8;
+		public const uint Slider = 9;
+		public const uint Draggable = 10;
+		public const uint Button = 11;
+		public const uint Radio2 = 12;
 	}
 
 	public Dialogue () : base ("Dialogue")
 	{
+		Title = "C# Dialogue Box";
+
 		OKButton = new Toolbox.ActionButton (this, CmpID.OKButton);
-		CancelButton = new Toolbox.ActionButton (this, CmpID.CancelButton);
-
 		OKButton.Text = "OK";
-		CancelButton.Text = "Cancel";
-
 		OKButton.Faded = true;
 
+		CancelButton = new Toolbox.ActionButton (this, CmpID.CancelButton);
+		CancelButton.Text = "Cancel";
 		CancelButton.HelpMessage = "Help text set in CSharp";
+
+		DisplayField = new Toolbox.DisplayField (this, CmpID.DisplayField);
+		DisplayField.Value = String.Format("{0:D}", DateTime.Now);
+		DisplayField.SetFont ("Trinity.Bold.Italic", 12 << 4, 12 << 4);
+
+		WritableField = new Toolbox.WritableField (this, CmpID.WritableField);
+		WritableField.Value = "CSharp";
+		WritableField.Allowable = "A-Za-z0-9 ";
+		WritableField.SetFont ("Trinity.Medium.Italic", 12 << 4, 12 << 4);
+
+		NumberRange = new Toolbox.NumberRange (this, CmpID.NumberRange);
+		NumberRange.Value = 1999;
+
+		StringSet = new Toolbox.StringSet (this, CmpID.StringSet);
+		StringSet.Available = "One,Two,Three,Four,Five";
+		StringSet.SelectedString = "Three";
+
+		OptionButton = new Toolbox.OptionButton (this, CmpID.OptionButton);
+		OptionButton.Label = "Sugar";
+		OptionButton.CurrentState = Toolbox.OptionButton.State.On;
+
+		Radio1 = new Toolbox.RadioButton (this, CmpID.Radio1);
+		Radio1.Label = "Coffee";
+
+		Radio2 = new Toolbox.RadioButton (this, CmpID.Radio2);
+		Radio2.Label = "Tea";
+		Radio2.CurrentState = Toolbox.RadioButton.State.On;
+
+		Slider = new Toolbox.Slider (this, CmpID.Slider);
+		Slider.Value = 85;
+		Slider.SetColour (OS.DesktopColour.Red, OS.DesktopColour.Cream);
+
+		Draggable = new Toolbox.Draggable (this, CmpID.Draggable);
+		Draggable.Text = "Sprites";
+		Draggable.Sprite = "file_ff9";
+
+		Button = new Toolbox.Button (this, CmpID.Button);
 	}
 }
 
@@ -134,7 +192,6 @@ public class MyTask : ToolboxTask
 		MainWindow.ToolboxHandlers.Add (MyEvent.Quit, QuitHandler);
 
 		dialogue = new Dialogue ();
-		dialogue.Title = "C# Dialogue Box";
 		dialogue.Show ();
 	}
 

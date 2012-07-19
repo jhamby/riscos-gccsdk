@@ -371,12 +371,6 @@ namespace riscos
 
 		// Toolbox Gadget SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
-		internal static extern IntPtr Gadget_SetFocus (uint flags,
-							       uint windowID,
-							       uint componentID,
-							       uint unused);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
 		internal static extern IntPtr Gadget_MoveGadget (uint flags,
 								 uint windowID,
 								 int method,
@@ -422,6 +416,15 @@ namespace riscos
 								 uint cmpID,
 								 uint r4,
 								 uint r5);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4R5R6")]
+		internal static extern IntPtr Component_SetFont (uint flags,
+								 uint windowID,
+								 int method,
+								 uint cmpID,
+								 string fontID,
+								 int width,
+								 int height);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetR0")]
 		internal static extern IntPtr Component_GetR0 (uint flags,

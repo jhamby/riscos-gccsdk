@@ -16,7 +16,7 @@ namespace riscos
 		 * dialogue box (e.g. a Cancel button or an OK button).  */
 		public class ActionButton : Gadget
 		{
-			class Method
+			static class Method
 			{
 				public const int SetText = 128;
 				public const int GetText = 129;
@@ -26,29 +26,34 @@ namespace riscos
 				public const int GetClickShow = 133;
 			}
 
-			class EventCode
+			/*! \brief The default Toolbox event that an action button can raise.  */
+			public static class EventCode
 			{
-				public const int Selected = 0x82881;
+				public const uint Selected = 0x82881;
 			}
 
-			/*! \brief Wrap an existing gadget, e.g., from a Resource file created
+			/*! \brief Wrap an existing action button, e.g., from a Resource file created
 			 * Window.  */
 			public ActionButton (Window window, uint cmpID) : base (window, cmpID)
 			{
 			}
 
+			/*! \brief The text which is displayed in the action button.  */
 			public string Text
 			{
 				set { SetText (Method.SetText, value); }
 				get { return GetText (Method.GetText); }
 			}
 
+			/*! \brief The event which will be raised when the action button is clicked.  */
 			public uint Event
 			{
-				set { SetEvent (Method.SetEvent, value); }
-				get { return GetEvent (Method.GetEvent); }
+				set { CallMethod_SetR4 (Method.SetEvent, value); }
+				get { return CallMethod_GetR0 (Method.GetEvent); }
 			}
 
+			/*! \brief The Toolbox object to show and flags to use when the action
+			 * button is clicked.  */
 			public Toolbox.ClickShow ClickShow
 			{
 				set { SetClickShow (Method.SetClickShow, value); }

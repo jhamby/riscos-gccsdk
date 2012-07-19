@@ -14,6 +14,19 @@ riscos_dll_sources = \
 	toolbox/menu.cs \
 	toolbox/gadget.cs \
 	toolbox/action-button.cs \
+	toolbox/adjuster-arrows.cs \
+	toolbox/button.cs \
+	toolbox/display-field.cs \
+	toolbox/draggable.cs \
+	toolbox/label.cs \
+	toolbox/labelled-box.cs \
+	toolbox/number-range.cs \
+	toolbox/option-button.cs \
+	toolbox/popup-menu.cs \
+	toolbox/radio-button.cs \
+	toolbox/slider.cs \
+	toolbox/string-set.cs \
+	toolbox/writable-field.cs \
 	wimp.cs \
 	icon.cs \
 	task.cs \

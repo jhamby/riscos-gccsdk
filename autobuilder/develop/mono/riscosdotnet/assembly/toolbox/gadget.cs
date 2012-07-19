@@ -15,7 +15,7 @@ namespace riscos
 		 * \brief Base object of all gadget types.  */
 		public class Gadget
 		{
-			class Method
+			static class Method
 			{
 				public const int GetFlags = 64;
 				public const int SetFlags = 65;
@@ -28,9 +28,27 @@ namespace riscos
 				public const int GetBBox = 72;
 			}
 
-			public class Flags
+			public static class Flags
 			{
 				public const uint Faded = ((uint)1 << 31);
+			}
+
+			public static class ComponentType
+			{
+				public const uint ActionButton = 128;
+				public const uint OptionButton = 192;
+				public const uint LabelledBox = 256;
+				public const uint Label = 320;
+				public const uint RadioButton = 384;
+				public const uint DisplayField = 448;
+				public const uint WritableField = 512;
+				public const uint Slider = 576;
+				public const uint Draggable = 640;
+				public const uint PopupMenu = 704;
+				public const uint AdjusterArrow = 768;
+				public const uint NumberRange = 832;
+				public const uint StringSet = 896;
+				public const uint Button = 960;
 			}
 
 			/*! \brief The Toolbox ID of the window containing this gadget.  */
@@ -48,33 +66,15 @@ namespace riscos
 			/*! \brief Determines whether the gadget is faded or not.  */
 			public bool Faded
 			{
-				get
-				{
-					uint flags;
-					OS.ThrowOnError (NativeMethods.Component_GetR0 (0,
-											WindowID,
-											Method.GetFlags,
-											ComponentID,
-											out flags));
-					return (flags & Flags.Faded) != 0;
-				}
+				get { return (CallMethod_GetR0 (Method.GetFlags) & Flags.Faded) != 0; }
 				set
 				{
-					uint flags;
-					OS.ThrowOnError (NativeMethods.Component_GetR0 (0,
-											WindowID,
-											Method.GetFlags,
-											ComponentID,
-											out flags));
+					uint flags = CallMethod_GetR0 (Method.GetFlags);
 					if (value)
 						flags |= Flags.Faded;
 					else
 						flags &= ~Flags.Faded;
-					OS.ThrowOnError (NativeMethods.Component_SetR4 (0,
-											WindowID,
-											Method.SetFlags,
-											ComponentID,
-											flags));
+					CallMethod_SetR4 (Method.SetFlags, flags);
 				}
 			}
 
@@ -89,17 +89,7 @@ namespace riscos
 			/*! \brief The type of this gadget.  */
 			public uint Type
 			{
-				get
-				{
-					uint type;
-
-					OS.ThrowOnError (NativeMethods.Component_GetR0 (0, 
-											WindowID,
-											Method.GetType,
-											ComponentID,
-											out type));
-					return type;
-				}
+				get { return CallMethod_GetR0 (Method.GetType); }
 			}
 
 			/*! \brief The bounding box of the gadget.<br>
@@ -132,7 +122,7 @@ namespace riscos
 			 * includes a writable field such as a number range.  */
 			public void SetFocus ()
 			{
-				OS.ThrowOnError (NativeMethods.Gadget_SetFocus (0, WindowID, ComponentID, 0));
+				CallMethod_SetR4 (Method.SetFocus, 0);
 			}
 /*
 			TODO:
@@ -172,30 +162,11 @@ namespace riscos
 				return buffer.ToString();
 			}
 
-			protected void SetEvent (int method, uint eventCode)
-			{
-				OS.ThrowOnError (NativeMethods.Component_SetR4 (0,
-										WindowID,
-										method,
-										ComponentID,
-										eventCode));
-			}
-
-			protected uint GetEvent (int method)
-			{
-				uint event_code;
-				OS.ThrowOnError (NativeMethods.Component_GetR0 (0,
-										WindowID,
-										method,
-										ComponentID,
-										out event_code));
-				return event_code;
-			}
-
 			// if clickShow is null, object is detached.
 			protected void SetClickShow (int method, Toolbox.ClickShow clickShow)
 			{
-				uint tb_obj_id, flags;
+				uint tb_obj_id;
+				uint flags;
 
 				if (clickShow == null)
 				{
@@ -208,26 +179,69 @@ namespace riscos
 					flags = clickShow.Flags;
 				}
 
-				OS.ThrowOnError (NativeMethods.Component_SetR4R5 (0,
-										  WindowID,
-										  method,
-										  ComponentID,
-										  tb_obj_id,
-										  flags));
+				CallMethod_SetR4R5 (method, tb_obj_id, flags);
 			}
 
 			// If no object attached, then returns null.
 			protected Toolbox.ClickShow GetClickShow (int method)
 			{
-				uint tb_obj_id, flags;
+				uint tb_obj_id;
+				uint flags;
 
+				CallMethod_GetR0R1 (method, out tb_obj_id, out flags);
+
+				return (tb_obj_id == 0) ? null : new Toolbox.ClickShow (tb_obj_id, flags);
+			}
+
+			protected void CallMethod_SetR4 (int method, uint r4)
+			{
+				CallMethod_SetR4 (0, method, r4);
+			}
+
+			protected void CallMethod_SetR4 (uint flags, int method, uint r4)
+			{
+				OS.ThrowOnError (NativeMethods.Component_SetR4 (0,
+										WindowID,
+										method,
+										ComponentID,
+										r4));
+			}
+
+			protected void CallMethod_SetR4R5 (int method, uint r4, uint r5)
+			{
+				OS.ThrowOnError (NativeMethods.Component_SetR4R5 (0,
+										  WindowID,
+										  method,
+										  ComponentID,
+										  r4,
+										  r5));
+			}
+
+			protected void CallMethod_GetR0R1 (int method, out uint r0, out uint r1)
+			{
 				OS.ThrowOnError (NativeMethods.Component_GetR0R1 (0,
 										  WindowID,
 										  method,
 										  ComponentID,
-										  out tb_obj_id,
-										  out flags));
-				return (tb_obj_id == 0) ? null : new Toolbox.ClickShow (tb_obj_id, flags);
+										  out r0,
+										  out r1));
+			}
+
+			protected uint CallMethod_GetR0 (uint flags, int method)
+			{
+				uint value;
+
+				OS.ThrowOnError (NativeMethods.Component_GetR0 (flags,
+										WindowID,
+										method,
+										ComponentID,
+										out value));
+				return value;
+			}
+
+			protected uint CallMethod_GetR0 (int method)
+			{
+				return CallMethod_GetR0 (0, method);
 			}
 		}
 	}

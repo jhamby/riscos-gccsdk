@@ -34,6 +34,26 @@ namespace riscos
 			ORNOT_BG
 		}
 
+		public enum DesktopColour
+		{
+			White,
+			Grey1,
+			Grey2,
+			Grey3,
+			Grey4,
+			Grey5,
+			Grey6,
+			Black,
+			Blue,
+			Yellow,
+			Green,
+			Red,
+			Cream,
+			DarkGreen,
+			Orange,
+			Cyan
+		}
+
 		/*! \class PlotType
 		 * Defines graphics primitives to be used with \e OS.Plot. */
 		public static class PlotType

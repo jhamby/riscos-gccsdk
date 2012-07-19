@@ -109,6 +109,20 @@ rdn_Component_SetR4R5:
 	LDMFD	sp!, {v1, v2, pc}
 	DECLARE_FUNCTION rdn_Component_SetR4R5
 
+	@ IntPtr rdn_Component_SetR4R5R6 (uint flags, uint ObjectID, int method, uint CmpID, uint r4, uint r5, uint r6)
+	.global rdn_Component_SetR4R5R6
+rdn_Component_SetR4R5R6:
+	MOV	ip, sp
+	STMFD   sp!, {v1-v3,lr}
+
+	LDR	r4, [ip, #0]
+	LDR	r5, [ip, #4]
+	LDR	r6, [ip, #8]
+	SWI	0x64EC6
+	MOVVC	r0, #0
+	LDMFD	sp!, {v1-v3, pc}
+	DECLARE_FUNCTION rdn_Component_SetR4R5R6
+
 	@ IntPtr rdn_Component_GetR0 (uint flags, uint ObjectID, int method, uint CmpID,
 	@ 			      uint *r0_return)
 	.global rdn_Component_GetR0
