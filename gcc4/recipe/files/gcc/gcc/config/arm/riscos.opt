@@ -35,11 +35,3 @@ Compile with the RISC OS UnixLib headers (default)
 mmodule
 Target Report RejectNegative Negative(munixlib) Mask(MODULE)
 Target for RISC OS modules
-
-;mapcs-26 and mapcs-32 are directly passed to the assembler.
-mapcs-26
-Target RejectNegative Undocumented
-
-mapcs-32
-Target RejectNegative Undocumented
-
