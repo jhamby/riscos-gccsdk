@@ -9,7 +9,7 @@ Index: libiberty/configure.ac
 +case "${host}" in
 +  arm*-*-riscos)
 +    # Don't build a shared library for SCL:
-+    if [[ -n "`echo $CC | grep -- -mlibscl`" ]]; then
++    if [[ -n "`echo $CC | grep -E "(-mlibscl)|(-mmodule)"`" ]]; then
 +      enable_shared=no
 +    fi
 +    ;;
@@ -26,7 +26,7 @@ Index: libiberty/configure.ac
 +    # If we are being configured for RISC OS, we know which functions
 +    # UnixLib/SCL provides and which ones we will expected to provide.
 +
-+    if [[ -n "`echo $CC | grep -- -mlibscl`" ]]; then
++    if [[ -n "`echo $CC | grep -E "(-mlibscl)|(-mmodule)"`" ]]; then
 +      # SCL support for functions mentioned in $funcs
 +      AC_LIBOBJ([asprintf])
 +      AC_LIBOBJ([basename])

@@ -113,7 +113,7 @@ AC_PROG_INSTALL
 
 dnl Conditional to be used to figure out if we're building SharedCLibrary
 dnl or UnixLib:
-AM_CONDITIONAL([UNIXLIB_BUILDING_SCL], [echo $CC | grep -- -mlibscl])
+AM_CONDITIONAL([UNIXLIB_BUILDING_SCL], [echo $CC | grep -E "(-mlibscl)|(-mmodule)"])
 dnl Conditional to figure out if we want support for chunked stacks or not:
 AM_CONDITIONAL([UNIXLIB_CHUNKED_STACK], [test x"${target}" = xarm-unknown-riscos])
 
@@ -148,7 +148,7 @@ AC_SUBST(toolexecdir)
 AC_SUBST(toolexeclibdir)
 
 # Don't build a shared library for SCL:
-if [[ -n "`echo $CC | grep -- -mlibscl`" ]]; then
+if [[ -n "`echo $CC | grep -E "(-mlibscl)|(-mmodule)"`" ]]; then
   enable_shared=no
 fi
 
