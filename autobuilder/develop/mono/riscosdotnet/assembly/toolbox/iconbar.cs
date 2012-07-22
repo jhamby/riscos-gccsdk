@@ -56,7 +56,7 @@ namespace riscos
 			/*! \brief The WIMP handle of the icon on the iconbar.  */
 			public uint IconHandle
 			{
-				get { return GetHandle (Method.GetIconHandle); }
+				get { return CallMethod_GetR0 (Method.GetIconHandle); }
 			}
 
 			/*! \brief Specifies the menu which will be displayed when the Menu button is
@@ -151,7 +151,7 @@ namespace riscos
 				set
 				{
 					if (value == null)
-						throw new ArgumentNullException ("Attempted to set Iconbar text to null");
+						throw new ArgumentNullException ("value", "Attempted to set Iconbar text to null");
 					SetText (Method.SetText, value);
 				}
 				get { return GetText (Method.GetText); }
@@ -164,7 +164,7 @@ namespace riscos
 				set
 				{
 					if (value == null)
-						throw new ArgumentNullException ("Attempted to set Iconbar sprite to null");
+						throw new ArgumentNullException ("value", "Attempted to set Iconbar sprite to null");
 				}
 				get { return GetText (Method.GetSprite); }
 			}

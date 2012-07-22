@@ -262,34 +262,46 @@ namespace riscos
 				return buffer.ToString ();
 			}
 
-			protected uint GetHandle (int method)
-			{
-				uint handle;
-
-				OS.ThrowOnError (NativeMethods.Object_GetR0 (0, ID, method, out handle));
-
-				return handle;
-			}
-
 			protected void SetMenu (int method, Menu menu)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetR3 (0,
-									     ID,
-									     method,
-									     (menu == null) ? 0 : menu.ID));
+				CallMethod_SetR3 (method, (menu == null) ? 0 : menu.ID);
 			}
 
 			protected Menu GetMenu (int method)
 			{
-				uint menu_id;
-
-				OS.ThrowOnError (NativeMethods.Object_GetR0 (0, ID, method, out menu_id));
+				uint menu_id = CallMethod_GetR0 (method);
 
 				Toolbox.Object tb_obj;
 				if (!ToolboxTask.AllObjects.TryGetValue (menu_id, out tb_obj))
 					throw new UnknownObjectException (menu_id);
 
 				return (Menu)tb_obj;
+			}
+
+			protected void CallMethod_SetR3 (int method, uint r3)
+			{
+				OS.ThrowOnError (NativeMethods.Object_SetR3 (0,
+									     ID,
+									     method,
+									     r3));
+			}
+
+			protected void CallMethod_SetR3R4 (int method, uint r3, uint r4)
+			{
+				OS.ThrowOnError (NativeMethods.Object_SetR3R4 (0,
+									       ID,
+									       method,
+									       r3,
+									       r4));
+			}
+
+			protected uint CallMethod_GetR0 (int method)
+			{
+				uint handle;
+
+				OS.ThrowOnError (NativeMethods.Object_GetR0 (0, ID, method, out handle));
+
+				return handle;
 			}
 		}
 

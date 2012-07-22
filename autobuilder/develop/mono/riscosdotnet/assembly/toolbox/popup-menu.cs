@@ -41,7 +41,7 @@ namespace riscos
 				set
 				{
 					if (value == null)
-						throw new ArgumentNullException ("Attempt to set Popup Menu to null value");
+						throw new ArgumentNullException ("value", "Attempt to set Popup Menu to null value");
 					CallMethod_SetR4 (Method.SetMenu, value.ID);
 				}
 				get

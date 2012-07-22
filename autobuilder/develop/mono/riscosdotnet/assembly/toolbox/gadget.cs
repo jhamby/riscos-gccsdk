@@ -51,20 +51,20 @@ namespace riscos
 				public const uint Button = 960;
 			}
 
-			/*! \brief The Toolbox ID of the window containing this gadget.  */
-			protected uint WindowID;
+			/*! \brief The Toolbox ID of the window/menu containing this gadget.  */
+			protected uint ObjectID;
 			/*! \brief The Toolbox ID of this gadget.  */
 			protected uint ComponentID;
 
 			/*! \brief Wrap an existing gagdet.  */
-			public Gadget (Window window, uint cmpID)
+			public Gadget (Object tbObj, uint cmpID)
 			{
-				WindowID = window.ID;
+				ObjectID = tbObj.ID;
 				ComponentID = cmpID;
 			}
 
 			/*! \brief Determines whether the gadget is faded or not.  */
-			public bool Faded
+			public virtual bool Faded
 			{
 				get { return (CallMethod_GetR0 (Method.GetFlags) & Flags.Faded) != 0; }
 				set
@@ -80,37 +80,37 @@ namespace riscos
 
 			/*! \brief The help message which will be returned when a Help Request
 			 * is received for this gadget.  */
-			public string HelpMessage
+			public virtual string HelpMessage
 			{
-				get { return GetText (Method.GetHelpMessage); }
-				set { SetText (Method.SetHelpMessage, value); }
+				virtual get { return GetText (Method.GetHelpMessage); }
+				virtual set { SetText (Method.SetHelpMessage, value); }
 			}
 
 			/*! \brief The type of this gadget.  */
-			public uint Type
+			public virtual uint Type
 			{
-				get { return CallMethod_GetR0 (Method.GetType); }
+				virtual get { return CallMethod_GetR0 (Method.GetType); }
 			}
 
 			/*! \brief The bounding box of the gadget.<br>
 			 * Setting allows the gadget to be moved/resized within the window.  */
-			public OS.Rect BoundingBox
+			public virtual OS.Rect BoundingBox
 			{
-				get
+				virtual get
 				{
 					NativeOS.Rect extent = new NativeOS.Rect ();
 					OS.ThrowOnError (NativeMethods.Gadget_GetBBox (0,
-										       WindowID,
+										       ObjectID,
 										       Method.GetBBox,
 										       ComponentID,
 										       out extent));
 					return new OS.Rect (extent);
 				}
-				set
+				virtual set
 				{
 					NativeOS.Rect bbox = new NativeOS.Rect (value);
 					OS.ThrowOnError (NativeMethods.Gadget_MoveGadget (0,
-											  WindowID,
+											  ObjectID,
 											  Method.MoveGadget,
 											  ComponentID,
 											  ref bbox));
@@ -120,21 +120,24 @@ namespace riscos
 			/*! \brief Set the input focus to this component.
 			 * \note Component must be a writable field, or a composite gadget which
 			 * includes a writable field such as a number range.  */
-			public void SetFocus ()
+			public virtual void SetFocus ()
 			{
 				CallMethod_SetR4 (Method.SetFocus, 0);
 			}
-/*
-			TODO:
-			void GetIconList();
-*/
+
+			/*! \todo Method to return an array of icons used by the gadget.
+			 * Would be nice if there were a StringBuilder class for integer
+			 * arrays.  */
+			public void GetIconList()
+			{
+			}
 
 			/* Generic functions that implement common methods used by gadgets.
 			 * Gadgets can use these to call their specific methods.  */
 			protected void SetText (int method, string text)
 			{
 				OS.ThrowOnError (NativeMethods.Component_SetText (0,
-										  WindowID,
+										  ObjectID,
 										  method,
 										  ComponentID,
 										  text));
@@ -145,7 +148,7 @@ namespace riscos
 				int buffer_size;
 
 				OS.ThrowOnError (NativeMethods.Component_GetText (0,
-										  WindowID,
+										  ObjectID,
 										  method,
 										  ComponentID,
 										  null,
@@ -153,7 +156,7 @@ namespace riscos
 										  out buffer_size));
 				StringBuilder buffer = new StringBuilder (buffer_size);
 				OS.ThrowOnError (NativeMethods.Component_GetText (0,
-										  WindowID,
+										  ObjectID,
 										  method,
 										  ComponentID,
 										  buffer,
@@ -201,7 +204,7 @@ namespace riscos
 			protected void CallMethod_SetR4 (uint flags, int method, uint r4)
 			{
 				OS.ThrowOnError (NativeMethods.Component_SetR4 (0,
-										WindowID,
+										ObjectID,
 										method,
 										ComponentID,
 										r4));
@@ -210,7 +213,7 @@ namespace riscos
 			protected void CallMethod_SetR4R5 (int method, uint r4, uint r5)
 			{
 				OS.ThrowOnError (NativeMethods.Component_SetR4R5 (0,
-										  WindowID,
+										  ObjectID,
 										  method,
 										  ComponentID,
 										  r4,
@@ -220,7 +223,7 @@ namespace riscos
 			protected void CallMethod_GetR0R1 (int method, out uint r0, out uint r1)
 			{
 				OS.ThrowOnError (NativeMethods.Component_GetR0R1 (0,
-										  WindowID,
+										  ObjectID,
 										  method,
 										  ComponentID,
 										  out r0,
@@ -232,7 +235,7 @@ namespace riscos
 				uint value;
 
 				OS.ThrowOnError (NativeMethods.Component_GetR0 (flags,
-										WindowID,
+										ObjectID,
 										method,
 										ComponentID,
 										out value));

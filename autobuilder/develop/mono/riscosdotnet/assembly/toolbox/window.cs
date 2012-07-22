@@ -254,7 +254,7 @@ namespace riscos
 				set
 				{
 					if (value == null)
-						throw new ArgumentNullException ("Attempted to set Window title to null");
+						throw new ArgumentNullException ("value", "Attempted to set Window title to null");
 					SetText (Method.SetTitle, value);
 				}
 			}
@@ -262,7 +262,7 @@ namespace riscos
 			/*! \brief The WIMP handle of the Toolbox window.  */
 			public uint WimpHandle
 			{
-				get { return GetHandle (Method.GetWimpHandle); }
+				get { return CallMethod_GetR0 (Method.GetWimpHandle); }
 			}
 
 			/*! \brief The Menu which will be displayed when the Menu button is pressed over

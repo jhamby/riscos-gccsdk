@@ -26,8 +26,15 @@ public class MainMenu : Toolbox.Menu
 		public const uint Quit = 0;
 	}
 
+	public Toolbox.MenuEntry QuitEntry;
+
 	public MainMenu () : base ("MainMenu")
 	{
+		Title = "MonoTestTB";
+		QuitEntry = new Toolbox.MenuEntry (this, Cmp.Quit);
+		QuitEntry.Text = "Quit";
+		QuitEntry.ClickEvent = MyTask.MyEvent.Quit;
+		QuitEntry.HelpMessage = "Exits the application";
 	}
 }
 
@@ -123,7 +130,7 @@ public class MyTask : ToolboxTask
 	private MainMenu main_menu;
 
 	// Could use an enum here, but enums require a cast which is ugly.
-	class MyEvent
+	public static class MyEvent
 	{
 		public const uint IconbarSelect = 0x100;
 		public const uint IconbarAdjust = 0x101;
@@ -134,11 +141,6 @@ public class MyTask : ToolboxTask
 	{
 		// Create a menu for the Iconbar icon.
 		main_menu = new MainMenu ();
-		main_menu.Title = "MonoTestTB";
-		// Set the text of the menu component with ID number "MainMenu.Cmp.Quit".
-		main_menu.SetEntryText (MainMenu.Cmp.Quit, "Quit");
-		// Set the event code that will be raised by the Toolbox when the Quit entry is clicked
-		main_menu.SetClickEvent (MainMenu.Cmp.Quit, MyEvent.Quit);
 		// Add a handler that will act on the raised Quit event when it occurs.
 		main_menu.ToolboxHandlers.Add (MyEvent.Quit, QuitHandler);
 	}
