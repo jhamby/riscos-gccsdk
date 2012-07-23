@@ -1,7 +1,8 @@
 /*
- * File taken from glibc.
+ * File taken from glibc 2.15.
  *  - SCL poison added.
  */
+
 #ifdef __TARGET_SCL__
 #  error "SCL build should not use (L)GPL code."
 #endif
@@ -30,6 +31,24 @@
 int
 fesetround (int round)
 {
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+  fpu_control_t temp;
+
+  switch (round)
+  {
+    case FE_TONEAREST:
+    case FE_UPWARD:
+    case FE_DOWNWARD:
+    case FE_TOWARDZERO:
+      _FPU_GETCW (temp);
+      temp = (temp & ~FE_TOWARDZERO) | round;
+      _FPU_SETCW (temp);
+      return 0;
+    default:
+      return 1;
+  }
+#else
   /* We only support FE_TONEAREST, so there is no need for any work.  */
   return (round == FE_TONEAREST)?0:1;
+#endif
 }

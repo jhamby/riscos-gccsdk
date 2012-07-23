@@ -40,6 +40,12 @@ feholdexcept (fenv_t *envp)
 
   /* Now set all exceptions to non-stop.  */
   temp &= ~(FE_ALL_EXCEPT << FE_EXCEPT_SHIFT);
+
+#ifdef __VFP_FP__
+  /* And clear all exception flags.  */
+  temp &= ~FE_ALL_EXCEPT;
+#endif
+
   _FPU_SETCW(temp);
 
 #endif

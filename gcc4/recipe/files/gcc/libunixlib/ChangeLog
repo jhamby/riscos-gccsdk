@@ -1,3 +1,52 @@
+Mon Jul 23 21:36:19 CEST 2012  Jeffrey Lee  <me@phlamethrower.co.uk>
+                               John Tytgat  <John.Tytgat@aaug.net>
+
+	* gdtoa/arith.h: Add support VFP.
+	* sys/_jmp.s: Likewise.
+	* include/setjmp.h: Likewise.
+	* fenv/fraiseexcpt.c: Likewise.
+	* fenv/fesetround.c: Likewise.
+	* fenv/fsetexcptflg.c: Likewise.
+	* fenv/fesetenv.c: Likewise.
+	* fenv/fegetround.c: Likewise.
+	* fenv/feholdexcpt.c: Likewise.
+	* include/fpu_control.h: Likewise.
+	* include/endian.h: Likewise.
+	* include/bits/huge_val.h: Likewise.
+	* include/bits/fenv.h: Likewise.
+	* signal/_signal.s: Add preliminary support for VFP.
+	* pthread/_context.s: Likewise.
+	* incl-local/internal/scl-macros.s (DefSCLFltFnc, DefSCLFltFncS,
+	DefSCLFltFncAlias): Add.
+	* scl/scl_fabsf.s: Disable function export when arguments or return
+	value are float value types.
+	* scl/scl_logf.s: Likewise.
+	* scl/chunkid04.s: Likewise.
+	* scl/chunkid05.s: Likewise.
+	* scl/scl_atanf.s: Likewise.
+	* scl/scl_copysign.s: Likewise.
+	* scl/scl_acosf.s: Likewise.
+	* scl/scl_sinf.s: Likewise.
+	* scl/scl_expf.s: Likewise.
+	* scl/scl_fpclassify.s: Likewise.
+	* scl/scl_hypotf.s: Likewise.
+	* scl/scl_powf.s: Likewise.
+	* scl/scl_ceilf.s: Likewise.
+	* scl/scl_ldexpf.s: Likewise.
+	* scl/scl_floorf.s: Likewise.
+	* scl/scl_log10f.s: Likewise.
+	* scl/scl_tanf.s: Likewise.
+	* scl/scl_cosf.s: Likewise.
+	* scl/scl_modff.s: Likewise.
+	* scl/scl_signbit.s: Likewise.
+	* scl/scl_tanhf.s: Likewise.
+	* scl/scl_asinf.s: Likewise.
+	* scl/scl_copysignf.s: Likewise.
+	* scl/scl_coshf.s: Likewise.
+	* scl/scl_sinhf.s: Likewise.
+	* scl/scl_fpclassifyf.s: Likewise.
+	* scl/scl_atan2f.s: Likewise.
+
 Fri Jul 13 16:16:27 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* common/prefix.c (__get_dde_prefix): Avoid reading from NULL when

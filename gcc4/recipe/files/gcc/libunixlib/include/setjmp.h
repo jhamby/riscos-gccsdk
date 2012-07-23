@@ -1,7 +1,7 @@
 /*
  * ANSI Standard 4.6: Non-Local Jumps <setjmp.h>.
  * Copyright (c) 1997-2005 Nick Burrett
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 #ifndef __SETJMP_H
@@ -24,6 +24,8 @@ __BEGIN_DECLS
 #else
 #  ifdef __SOFTFP__
 #   define __JMP_BUF_SIZE 13
+#  elif defined(__VFP_FP__)
+#    define __JMP_BUF_SIZE 29
 #  else
 #    define __JMP_BUF_SIZE 25
 #  endif

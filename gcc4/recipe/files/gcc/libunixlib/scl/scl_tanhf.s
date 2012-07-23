@@ -1,5 +1,5 @@
 @ Stub routines for linking with the SharedCLibrary
-@ Copyright (c) 2003-2010 UnixLib Developers
+@ Copyright (c) 2003-2012 UnixLib Developers
 
 @ Only suited for APCS-32 linking (SharedCLibrary 5) with code compiled
 @ with GCCSDK 4.x.
@@ -9,6 +9,7 @@
 
 	.text
 
+#if !defined(__SOFTFP__) && !defined(__VFP_FP__)
 	NAME	tanhf
 	DefSCLFncB tanhf
 
@@ -24,5 +25,6 @@
 	MOV	pc, lr
 
 	DefSCLFncE tanhf
+#endif
 
 	.end

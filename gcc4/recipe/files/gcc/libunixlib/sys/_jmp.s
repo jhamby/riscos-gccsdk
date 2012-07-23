@@ -1,11 +1,11 @@
 @ setjmp, longjmp
-@ Copyright (c) 2000-2008 UnixLib Developers
+@ Copyright (c) 2000-2012 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
 	.text
 
-	@ jmp_buf layout (hard-float configuration) :
+	@ jmp_buf layout (hard-float FPA configuration) :
 	@   +   0 ( 4) : __pthread_running_thread->alloca
 	@   +   4 ( 4) : __ul_global.executing_signalhandler
 	@   +   8 ( 4) : __ul_global.pthread_worksemaphore
@@ -16,6 +16,18 @@
 	@   +  92 ( 4) : sp
 	@   +  96 ( 4) : lr
 	@ = 100 bytes (= __JMP_BUF_SIZE * sizeof(int))
+
+	@ jmp_buf layout (hard-float VFP configuration) :
+	@   +   0 ( 4) : __pthread_running_thread->alloca
+	@   +   4 ( 4) : __ul_global.executing_signalhandler
+	@   +   8 ( 4) : __ul_global.pthread_worksemaphore
+	@   +  12 (64) : d8-d15 on entry of setjmp()
+	@   +  76 (24) : v1, v2, v3, v4, v5, v6 on entry of setjmp()
+	@   + 100 ( 4) : sl
+	@   + 104 ( 4) : fp
+	@   + 108 ( 4) : sp
+	@   + 112 ( 4) : lr
+	@ = 116 bytes (= __JMP_BUF_SIZE * sizeof(int))
 
 	@ jmp_buf layout (soft-float configuration) :
 	@   +   0 ( 4) : __pthread_running_thread->alloca
@@ -55,7 +67,11 @@ setjmp:
 	STR	a4, [a1], #4
 
 #ifndef __SOFTFP__
-	SFM	f4, 4, [a1], #4*12
+#ifdef __VFP_FP__
+	VSTMIA	a1!, {d8-d15}
+#else
+ 	SFM	f4, 4, [a1], #4*12
+#endif
 #endif
 	STMIA	a1, {v1, v2, v3, v4, v5, v6, sl, fp, sp, lr}
 
@@ -82,7 +98,11 @@ longjmp:
 
 	@ Restore the stack status at setjmp() time, and free any chunks
 #ifndef __SOFTFP__
+#ifdef __VFP_FP__
+	ADD	sl, v1, #100
+#else
 	ADD	sl, v1, #84
+#endif
 #else
 	ADD	sl, v1, #36
 #endif
@@ -112,7 +132,11 @@ longjmp:
 
 #ifndef __SOFTFP__
 	@ Restore floating point registers
+#ifdef __VFP_FP__
+	VLDMIA	v1!, {d8-d15}
+#else
 	LFM	f4, 4, [v1], #4*12
+#endif
 #endif
 
 	MOVS	a1, v2

@@ -9,6 +9,7 @@
 
 	.text
 
+#if !defined(__SOFTFP__) && !defined(__VFP_FP__)
 	NAME	coshf
 	DefSCLFncB coshf
 
@@ -22,5 +23,6 @@
 	MOV	pc, lr
 
 	DefSCLFncE coshf
+#endif
 
 	.end

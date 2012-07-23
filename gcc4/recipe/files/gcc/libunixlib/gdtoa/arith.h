@@ -5,7 +5,7 @@
  * architecture.  See contrib/gdtoa/gdtoaimp.h for details.
  */
 
-#if __ARM_EABI__
+#if defined(__ARM_EABI__) || (!defined(__SOFTFP__) && defined(__VFP_FP__))
 /* ARM/VFP.  */
 #  define IEEE_8087
 #  define Arith_Kind_ASL 1

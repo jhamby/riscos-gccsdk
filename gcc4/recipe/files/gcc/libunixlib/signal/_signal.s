@@ -1,5 +1,5 @@
 @ Signal exception handling
-@ Copyright (c) 2002-2010 UnixLib Developers
+@ Copyright (c) 2002-2012 UnixLib Developers
 
 @ This file handles all the hairy exceptions that can occur when a
 @ program runs. This includes hardware exceptions like data abort and
@@ -448,7 +448,7 @@ __h_error:
 unrecoverable_error:
 	@ Bit 31-was set, therefore it was a hardware error.
 
-#ifndef __SOFTFP__
+#if !defined(__SOFTFP__)
 	@ Test the type of hardware error.  We currently aren't doing
 	@ much other than saying it was a Floating Point Exception
 	@ or something else.
@@ -464,6 +464,10 @@ unrecoverable_error:
 	@ Store FP registers.
 	LDR	a1, .L6+20	@=__ul_fp_registers
  PICEQ "LDR	a1, [v4, a1]"
+
+#  if defined(__VFP_FP__)
+	@ FIXME: expand this to cope with VFP exceptions
+#  else
 	RFS	a2		@ Read FP status register
 	STR	a2, [a1], #4
 	BIC	a3, a3, #0xFF<<16@ Disable all exceptions to prevent the
@@ -481,6 +485,7 @@ unrecoverable_error:
 	STFD	f7, [a1], #8
 
 	WFS	a2		@ Restore FPE status
+#  endif
 
 	MOV	a2, #SIGFPE	@  A floating point exception
 
@@ -489,7 +494,6 @@ non_fp_exception:
 	MOV	a2, #SIGEMT	@  A RISC OS exception.
 #endif
 	MOV	a1, #0
-
 	BL	__unixlib_raise_signal
 
 	MOV	a1, #EXIT_FAILURE
@@ -1175,6 +1179,7 @@ __ul_errbuf_valid:
 #ifndef __SOFTFP__
 	.global	__ul_fp_registers
 __ul_fp_registers:
+	@ FIXME: Adjust for VFP case
 	.space	68	@ (4 + 8*8)  FPSR and 8 double-precision registers
 	DECLARE_OBJECT __ul_fp_registers
 #endif

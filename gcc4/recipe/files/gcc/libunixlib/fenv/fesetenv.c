@@ -32,6 +32,23 @@ int
 fesetenv (const fenv_t *envp)
 {
 #ifndef __SOFTFP__
+#ifdef __VFP_FP__
+  unsigned int temp;
+
+  _FPU_GETCW (temp);
+  temp &= _FPU_RESERVED;
+
+  if (envp == FE_DFL_ENV)
+    temp |= _FPU_DEFAULT;
+  else if (envp == FE_NOMASK_ENV)
+    temp |= _FPU_IEEE;
+  else
+    temp |= envp->__cw & ~_FPU_RESERVED;
+
+  _FPU_SETCW (temp);
+
+  /* Success.  */
+#else
   if (envp == FE_DFL_ENV)
     _FPU_SETCW (_FPU_DEFAULT);
   else
@@ -41,6 +58,7 @@ fesetenv (const fenv_t *envp)
     }
 
   /* Success.  */
+#endif
 #endif
   return 0;
 }

@@ -1,5 +1,5 @@
 @ SCL stubs specific macros used by all its assembler files.
-@ Copyright (c) 2008-2010 UnixLib Developers
+@ Copyright (c) 2008-2012 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@
 #endif
 	.endm
 
+	@ DefSCLFncB
 	@ Add global labels 'fncname' and '__fncname' whom the former one is
 	@ weak definition.
 	@ Split in two macro's DefSCLFncB and DefSCLFncE, to be put in front
@@ -46,12 +47,14 @@
 __\fncname:
 	.endm
 
+	@ DefSCLFncE
 	.macro	DefSCLFncE fncname
 	.size	__\fncname, . - __\fncname
 	.weak	\fncname
 \fncname = __\fncname
 	.endm
 
+	@ DefSCLFnc
 	@ Add a SCL function stub entry with labels 'fncname' and '__fncname'
 	@ whom the former one is weak definition.
 	@ See DefSCLFncS as well.
@@ -61,6 +64,7 @@ __\fncname:
 	DefSCLFncE \fncname
 	.endm
 
+	@ DefSCLFncS
 	@ Add a SCL function stub entry with label 'fncname'.
 	@ See DefSCLFnc as well.
 	.macro	DefSCLFncS fncname
@@ -71,6 +75,36 @@ __\fncname:
 	.size	\fncname, . - \fncname
 	.endm
 
+	@ DefSCLFltFnc
+	@ Add a SCL float function stub entry with labels 'fncname' and '__fncname'
+	@ whom the former one is weak definition.
+	@ See DefSCLFltFncS as well.
+	.macro	DefSCLFltFnc fncname
+#if !defined(__SOFTFP__) && !defined(__VFP_FP__)
+	DefSCLFncB \fncname
+	MOV	PC, #0
+	DefSCLFncE \fncname
+#else
+	MOV	PC, #0
+#endif
+	.endm
+
+	@ DefSCLFltFncS
+	@ Add a SCL float function stub entry with label 'fncname'.
+	@ See DefSCLFltFnc as well.
+	.macro	DefSCLFltFncS fncname
+#if !defined(__SOFTFP__) && !defined(__VFP_FP__)
+	.global	\fncname
+	.type	\fncname, %function
+\fncname:
+	MOV	PC, #0
+	.size	\fncname, . - \fncname
+#else
+	MOV	PC, #0
+#endif
+	.endm
+
+	@ DefSCLFncAlias
 	@ Create alias set \fncalias and __\fncalias for function routines
 	@ \fncname and __\fncname.
 	.macro	DefSCLFncAlias fncalias fncname
@@ -78,6 +112,18 @@ __\fncname:
 \fncalias = \fncname
 	.global	__\fncalias
 __\fncalias = __\fncname
+	.endm
+
+	@ DefSCLFltFncAlias
+	@ Create alias set \fncalias and __\fncalias for float function routines
+	@ \fncname and __\fncname.
+	.macro	DefSCLFltFncAlias fncalias fncname
+#if !defined(__SOFTFP__) && !defined(__VFP_FP__)
+	.weak	\fncalias
+\fncalias = \fncname
+	.global	__\fncalias
+__\fncalias = __\fncname
+#endif
 	.endm
 
 	@ Same values as in math.h for SCL target:

@@ -30,5 +30,14 @@
 int
 fegetround (void)
 {
+#if !defined(__SOFTFP__) && defined(__VFP_FP__)
+  unsigned int temp;
+
+  /* Get the current environment.  */
+  _FPU_GETCW (temp);
+
+  return temp & FE_TOWARDZERO;
+#else
   return FE_TONEAREST;		/* Easy. :-) */
+#endif
 }

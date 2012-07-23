@@ -1,5 +1,5 @@
 @ Low level context switching code
-@ Copyright (c) 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010 UnixLib Developers
+@ Copyright (c) 2002-2012 UnixLib Developers
 @ Written by Martin Piper and Alex Waugh
 
 @ The context switcher works as follows:
@@ -359,11 +359,15 @@ __pthread_callback:
 	CHGMODE	a3, USR_Mode
 
 #ifndef __SOFTFP__
+#  ifdef __VFP_FP__
+	@ FIXME: Add VFP support
+#  else
 	@ Save floating point regs
 	SFM	f0, 4, [a1], #48
 	SFM	f4, 4, [a1], #48
 	RFS	a2	@ Read floating status
 	STR	a2, [a1]
+#  endif
 #endif
 
 	@ Call the scheduler to switch to another thread
@@ -376,11 +380,15 @@ __pthread_callback:
 	LDR	a2, [a1, #__PTHREAD_CONTEXT_OFFSET]	@ __pthread_running_thread->saved_context
 
 #ifndef __SOFTFP__
+#  ifdef __VFP_FP__
+	@ FIXME: Add VFP support
+#  else
 	ADD	a2, a2, #17*4
 	LFM	f0, 4, [a2], #48
 	LFM	f4, 4, [a2], #48
 	LDR	a1, [a2]
 	WFS	a1	@ Write floating status
+#  endif
 #endif
 
 	SWI	XOS_EnterOS	@ Back to supervisor mode
@@ -453,11 +461,14 @@ skip_contextswitch:
 	NAME	__pthread_init_save_area
 __pthread_init_save_area:
 #ifndef __SOFTFP__
+#  ifdef __VFP_FP__
+#  else
 	ADD	a2, a1, #17*4
 	SFM	f0, 4, [a2], #48
 	SFM	f4, 4, [a2], #48
 	RFS	a1	@ Read floating status
 	STR	a1, [a2], #12
+#  endif
 #endif
 	MOV	pc, lr
 	DECLARE_FUNCTION __pthread_init_save_area

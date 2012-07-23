@@ -1,5 +1,5 @@
 @ Chunk 4 stub routines for linking with the SharedCLibrary
-@ Copyright (c) 2007-2010 UnixLib Developers
+@ Copyright (c) 2007-2012 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -327,42 +327,42 @@ c99low_vectors_begin:
 	@ Entry 42
 	@ double _ll_uto_d (unsigned long long x);
 	@ Converts unsigned 64bit values to double values.
-	DefSCLFncS	_ll_uto_d
+	DefSCLFltFncS	_ll_uto_d
 
 	@ Entry 43
 	@ double _ll_sto_d (signed long long x);
 	@ Converts signed 64bit values to float values.
-	DefSCLFncS	_ll_sto_d
+	DefSCLFltFncS	_ll_sto_d
 
 	@ Entry 44
 	@ float _ll_uto_f (unsigned long long x);
 	@ Converts unsigned 64bit values to double values.
-	DefSCLFncS	_ll_uto_f
+	DefSCLFltFncS	_ll_uto_f
 
 	@ Entry 45
 	@ float _ll_sto_f (signed long long x);
 	@ Converts signed 64bit values to float values.
-	DefSCLFncS	_ll_sto_f
+	DefSCLFltFncS	_ll_sto_f
 
 	@ Entry 46
 	@ unsigned long long _ll_ufrom_d (double x);
 	@ Converts from a double to an unsigned 64bit value.
-	DefSCLFncS	_ll_ufrom_d
+	DefSCLFltFncS	_ll_ufrom_d
 
 	@ Entry 47
 	@ signed long long _ll_sfrom_d (double x);
 	@ Converts from a double to an unsigned 64bit value.
-	DefSCLFncS	_ll_sfrom_d
+	DefSCLFltFncS	_ll_sfrom_d
 
 	@ Entry 48
 	@ unsigned long long _ll_ufrom_f (float x);
 	@ Converts from a double to a signed 64bit value.
-	DefSCLFncS	_ll_ufrom_f
+	DefSCLFltFncS	_ll_ufrom_f
 
 	@ Entry 49
 	@ signed long long _ll_sfrom_f (float x);
 	@ Converts from a double to a signed 64bit value.
-	DefSCLFncS	_ll_sfrom_f
+	DefSCLFltFncS	_ll_sfrom_f
 
 c99low_vectors_end:
 	.space	c99low_vectors_end - c99low_vectors_begin

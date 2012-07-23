@@ -1,5 +1,5 @@
 /* Define byte-sex for the host system.
-   Copyright (c) 2004-2011 UnixLib Developers.  */
+   Copyright (c) 2004-2012 UnixLib Developers.  */
 
 #ifndef	_ENDIAN_H
 #define	_ENDIAN_H	1
@@ -26,18 +26,22 @@
 #  define	PDP_ENDIAN	__PDP_ENDIAN
 #  define	BYTE_ORDER	__BYTE_ORDER
 #endif
- 
+
+/* ARM can be either big or little endian.  */
+#ifdef __ARMEB__
+#define __BYTE_ORDER __BIG_ENDIAN
+#else
+#define __BYTE_ORDER __LITTLE_ENDIAN
+#endif
+
 /* Define the floating-point compatibility macros.  */
 
-#ifdef __ARM_EABI__
-/* ARM/VFP (do not use __VFP_FP__ instead of __ARM_EABI__ as this not set for
-   soft-float builds).  */
-#  define __FLOAT_BIT_ORDER __LITTLE_ENDIAN
-#  define __FLOAT_WORD_ORDER __LITTLE_ENDIAN
+#define __FLOAT_BIT_ORDER __LITTLE_ENDIAN
+#if defined(__ARM_EABI__) || (!defined(__SOFTFP__) && defined(__VFP_FP__))
+/* ARM/VFP format.  */
+#  define __FLOAT_WORD_ORDER __BYTE_ORDER
 #else
-/* ARM/FPA format uses an inconsistent mix of little-endian words,
-   stored in a big endian order.  */
-#  define __FLOAT_BIT_ORDER __LITTLE_ENDIAN
+/* ARM/FPA format (always is in a big-endian order).  */
 #  define __FLOAT_WORD_ORDER __BIG_ENDIAN
 #endif
 

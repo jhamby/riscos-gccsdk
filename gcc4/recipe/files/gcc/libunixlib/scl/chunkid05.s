@@ -1,6 +1,6 @@
 @ Chunk 5 stub routines for linking with the SharedCLibrary
 @ Copyright (c) 1997-2005 Nick Burrett
-@ Copyright (c) 2005-2011 UnixLib Developers
+@ Copyright (c) 2005-2012 UnixLib Developers
 @ All rights reserved.
 
 @ Redistribution and use in source and binary forms, with or without
@@ -107,20 +107,20 @@ extra_vectors_begin:
 	@ Returns a Not-A-Number (NAN) FP value. The value of tag is
 	@ implementation defined. Current implementations ignore the value of
 	@ tag.
-	DefSCLFnc	nan
+	DefSCLFltFnc	nan
 
 	@ Entry 7
 	@ float nanf (const char *tag);
 	@ Returns a Not-A-Number (NAN) FP value. The value of tag is
 	@ implementation defined. Current implementations ignore the value of
 	@ tag.
-	DefSCLFnc	nanf
+	DefSCLFltFnc	nanf
 
 	@ Entry 8
 	@ double nextafter (double x, double y);
 	@ Returns the next representable value in the specified format after
 	@ x in the direction of y.
-	DefSCLFnc	nextafter
+	DefSCLFltFnc	nextafter
 
 	@ Entry 9
 	@ float nextafterf (float x, float y);
@@ -136,7 +136,7 @@ nextafterf_FIXME_float_arg:
 	@ if x <= y, returns +0
 	@ A range error may occur.
 	@ Returns: the positive difference value.
-	DefSCLFnc	fdim
+	DefSCLFltFnc	fdim
 
 	@ Entry 11
 	@ float fdimf (float x, float y);
@@ -151,7 +151,7 @@ fdimf_FIXME_float_arg:
 	@ Entry 12
 	@ double fmax (double x, double y);
 	@ Returns the higher of the two arguments.
-	DefSCLFnc	fmax
+	DefSCLFltFnc	fmax
 
 	@ Entry 13
 	@ float fmaxf (float x, float y);
@@ -162,7 +162,7 @@ fmaxf_FIXME_float_arg:
 	@ Entry 14
 	@ double fmin (double x, double y);
 	@ Returns the lower of the two arguments.
-	DefSCLFnc	fmin
+	DefSCLFltFnc	fmin
 
 	@ Entry 15
 	@ float fminf (float x, float y);
@@ -181,7 +181,7 @@ fminf_FIXME_float_arg:
 	@ Returns the square root of the sum of the squares of x and y,
 	@ without undue overflow or underflow.
 	@ A range error may occur.
-	DefSCLFnc	hypot
+	DefSCLFltFnc	hypot
 
 	@ Entry 18
 	@ float hypotf (float x, float y);
@@ -201,21 +201,21 @@ fminf_FIXME_float_arg:
 	@   bit 2 = Overflow
 	@   bit 3 = Underflow
 	@   bit 4 = Inexact
-	DefSCLFnc	feclearexcept
+	DefSCLFltFnc	feclearexcept
 
 	@ Entry 20
 	@ int fegetexceptflag (unsigned int *flagsp, int exceptions);
 	@ Reads the representation of the FP status flags indicated by the
 	@ exceptions arguments.
 	@ Returns zero if successful, non-zero if failed.
-	DefSCLFnc	fegetexceptflag
+	DefSCLFltFnc	fegetexceptflag
 
 	@ Entry 21
 	@ int feraiseexcept (int exceptions);
 	@ Attempts to raise the floating point exceptions specified within
 	@ the exceptions flags.
 	@ Returns zero if successful, non-zero if failed.
-	DefSCLFnc	feraiseexcept
+	DefSCLFltFnc	feraiseexcept
 
 	@ Entry 22
 	@ int fesetexceptflag (unsigned int *flagsp, int exceptions);
@@ -224,7 +224,7 @@ fminf_FIXME_float_arg:
 	@ This function can be used together with fegetexceptflag () to
 	@ preserve and restore floating point status flags.
 	@ Returns zero if successful, or non-zero if failed.
-	DefSCLFnc	fesetexceptflag
+	DefSCLFltFnc	fesetexceptflag
 
 	@ Entry 23
 	@ int fetestexcept (int exceptions);
@@ -232,7 +232,7 @@ fminf_FIXME_float_arg:
 	@ currently set.
 	@ Returns the exceptions which are currently set, from those
 	@ specified within the argument.
-	DefSCLFnc	fetestexcept
+	DefSCLFltFnc	fetestexcept
 
 	@ Entry 24
 	@ int fegetround (void);
@@ -240,21 +240,21 @@ fminf_FIXME_float_arg:
 	@ Returns 0 indicating 'round to nearest'.
 	@ The current implementation of the ARM FP system cannot change its
 	@ rounding direction at runtime.
-	DefSCLFnc	fegetround
+	DefSCLFltFnc	fegetround
 
 	@ Entry 25
 	@ int fesetround (int direction);
 	@ Changes the rounding direction.
 	@ Returns 0 indicating success if the direction specified was 0, or 1
 	@ indicating a failure otherwise.
-	DefSCLFnc	fesetround
+	DefSCLFltFnc	fesetround
 
 	@ Entry 26
 	@ int fegetenv (const fenv_t *envp);
 	@ Reads the current floating point environment into the structure
 	@ specified. The structure must be 6 words long.
 	@ Returns 0 if successful, or 1 if failed.
-	DefSCLFnc	fegetenv
+	DefSCLFltFnc	fegetenv
 
 	@ Entry 27
 	@ int feholdexcept (const fenv_t *envp);
@@ -262,21 +262,21 @@ fminf_FIXME_float_arg:
 	@ specified, clears any pending exceptions and disables all floating
 	@ point exceptions.
 	@ Returns 0 if successful, or 1 if failed.
-	DefSCLFnc	feholdexcept
+	DefSCLFltFnc	feholdexcept
 
 	@ Entry 28
 	@ int fesetenv (const fenv_t *envp);
 	@ Attempts to set the floating point enviroment to that stored in the
 	@ argument. No exceptions are raised.
 	@ Returns 0 if successful, or 1 if failed.
-	DefSCLFnc	fesetenv
+	DefSCLFltFnc	fesetenv
 
 	@ Entry 29
 	@ int feupdateenv (const fent_t *envp);
 	@ Attempts to set the floating point enviroment to that stored in the
 	@ argument. Exceptions are then raised.
 	@ Returns 0 if successful, or 1 if failed.
-	DefSCLFnc	feupdateenv
+	DefSCLFltFnc	feupdateenv
 
 	@ Entry 30
 	@ int _snprintf (char *output, size_t max, const char *format, ...);
@@ -353,7 +353,7 @@ __gcc_vsscanf = vsscanf
 	@ double nearbyint (double x);
 	@ Rounds its argument to an integer value, using the current rounding
 	@ direction. Does not raise the inexact exception.
-	DefSCLFnc	nearbyint
+	DefSCLFltFnc	nearbyint
 
 	@ Entry 39
 	@ float nearbyintf (float x);
@@ -366,7 +366,7 @@ nearbyintf_FIXME_float_arg:
 	@ double rint (double x);
 	@ Rounds its argument to an integer value, using the current rounding
 	@ direction. Raises "inexact" if the result differs from the argument.
-	DefSCLFnc	rint
+	DefSCLFltFnc	rint
 
 	@ Entry 41
 	@ float rintf (float x);
@@ -379,7 +379,7 @@ rintf_FIXME_float_arg:
 	@ long int lrint (double x);
 	@ Rounds its argument to an integer value, using the current rounding
 	@ direction. Raises "inexact" if the result differs from the argument.
-	DefSCLFnc	lrint
+	DefSCLFltFnc	lrint
 
 	@ Entry 43
 	@ long int lrintf (float x);
@@ -392,7 +392,7 @@ lrintf_FIXME_float_arg:
 	@ double round (double x);
 	@ Rounds its argument to the nearest integer value, rounding halfway
 	@ cases away from zero.
-	DefSCLFnc	round
+	DefSCLFltFnc	round
 
 	@ Entry 45
 	@ float roundf (float x);
@@ -405,7 +405,7 @@ roundf_FIXME_float_arg:
 	@ long int lround (double x);
 	@ Rounds its argument to the nearest integer value, rounding halfway
 	@ cases away from zero.
-	DefSCLFnc	lround
+	DefSCLFltFnc	lround
 
 	@ Entry 47
 	@ long int lroundf (float x);
@@ -418,7 +418,7 @@ lroundf_FIXME_float_arg:
 	@ double trunc (double x);
 	@ Rounds its argument to the integer value, nearest to but no larger
 	@ in magnitude than the argument.
-	DefSCLFnc	trunc
+	DefSCLFltFnc	trunc
 
 	@ Entry 49
 	@ float truncf (float x);
@@ -430,7 +430,7 @@ truncf_FIXME_float_arg:
 	@ Entry 50
 	@ double remainder (double x);
 	@ Computes the remainder x REM y required by IEEE 754
-	DefSCLFnc	remainder
+	DefSCLFltFnc	remainder
 
 	@ Entry 51
 	@ float remainderf (float x);
@@ -565,9 +565,9 @@ remainderf_FIXME_float_arg:
 	@ Entry 70
 	@ Inverse hyperbolic cosine function
 	@ double acosh (double x);
-	DefSCLFnc	acosh
+	DefSCLFltFnc	acosh
 	@ long double acoshl (long double x);
-	DefSCLFncAlias	acoshl acosh
+	DefSCLFltFncAlias	acoshl acosh
 
 	@ Entry 71
 	@ Inverse hyperbolic cosine function
@@ -578,9 +578,9 @@ remainderf_FIXME_float_arg:
 	@ Entry 72
 	@ Inverse hyperbolic sine function
 	@ double asinh (double x);
-	DefSCLFnc	asinh
+	DefSCLFltFnc	asinh
 	@ long double asinhl (long double x);
-	DefSCLFncAlias	asinhl asinh
+	DefSCLFltFncAlias	asinhl asinh
 
 	@ Entry 73
 	@ Inverse hyperbolic sine function
@@ -593,7 +593,7 @@ remainderf_FIXME_float_arg:
 	@ double atanh (double x);
 	DefSCLFnc	atanh
 	@ long double atanhl (long double x);
-	DefSCLFncAlias	atanhl atanh
+	DefSCLFltFncAlias	atanhl atanh
 
 	@ Entry 75
 	@ Inverse hyperbolic tangent function
@@ -609,9 +609,9 @@ remainderf_FIXME_float_arg:
 	@ Entry 77
 	@ Base-2 exponential function
 	@ double exp2 (double x);
-	DefSCLFnc	exp2
+	DefSCLFltFnc	exp2
 	@ long double exp2l (long double x);
-	DefSCLFncAlias	exp2l exp2
+	DefSCLFltFncAlias	exp2l exp2
 
 	@ Entry 78
 	@ Base-2 exponential function
@@ -622,9 +622,9 @@ exp2f_FIXME_float_arg:
 	@ Entry 79
 	@ Exponential minus 1
 	@ double expm1 (double x);
-	DefSCLFnc	expm1
+	DefSCLFltFnc	expm1
 	@ long double expm1l (long double x);
-	DefSCLFncAlias	expm1l expm1
+	DefSCLFltFncAlias	expm1l expm1
 
 	@ Entry 80
 	@ float expm1f (float x);
@@ -640,9 +640,9 @@ frexpf_FIXME_float_arg:
 	@ Entry 82
 	@ Get integer exponent of a floating-point value
 	@ int ilogb (double x);
-	DefSCLFnc	ilogb
+	DefSCLFltFnc	ilogb
 	@ int ilogbl (long double x);
-	DefSCLFncAlias	ilogbl ilogb
+	DefSCLFltFncAlias	ilogbl ilogb
 
 	@ Entry 83
 	@ Get integer exponent of a floating-point value
@@ -671,9 +671,9 @@ ilogbf_FIXME_float_arg:
 	@ Entry 87
 	@ Logarithm of 1 plus argument
 	@ double log1p (double x);
-	DefSCLFnc	log1p
+	DefSCLFltFnc	log1p
 	@ long double log1pl (long double x);
-	DefSCLFncAlias	log1pl log1p
+	DefSCLFltFncAlias	log1pl log1p
 
 	@ Entry 88
 	@ Logarithm of 1 plus argument
@@ -684,9 +684,9 @@ log1pf_FIXME_float_arg:
 	@ Entry 89
 	@ Base-2 logarithmic function
 	@ double log2 (double x);
-	DefSCLFnc	log2
+	DefSCLFltFnc	log2
 	@ long double log2l (long double x);
-	DefSCLFncAlias	log2l log2
+	DefSCLFltFncAlias	log2l log2
 
 	@ Entry 90
 	@ Base-2 logarithmic function
@@ -697,9 +697,9 @@ log2f_FIXME_float_arg:
 	@ Entry 91
 	@ Get exponent of a floating-point value
 	@ double logb (double x);
-	DefSCLFnc	logb
+	DefSCLFltFnc	logb
 	@ long double logbl (long double x);
-	DefSCLFncAlias	logbl logb
+	DefSCLFltFncAlias	logbl logb
 
 	@ Entry 92
 	@ Get exponent of a floating-point value
@@ -722,9 +722,9 @@ fmodf_FIXME_float_arg:
 	@ Entry 95
 	@ Multiply floating-point number by integral power of radix
 	@ double scalbn (double x, int exp);
-	DefSCLFnc	scalbn
+	DefSCLFltFnc	scalbn
 	@ long double scalbnl (long double x, int exp);
-	DefSCLFncAlias	scalbnl scalbn
+	DefSCLFltFncAlias	scalbnl scalbn
 
 	@ Entry 96
 	@ Multiply floating-point number by integral power of radix
@@ -735,9 +735,9 @@ scalbnf_FIXME_float_arg:
 	@ Entry 97
 	@ Multiply floating-point number by integral power of radix
 	@ double scalbln (double x, long int exp);
-	DefSCLFnc	scalbln
+	DefSCLFltFnc	scalbln
 	@ long double scalblnl (long double x, long int exp);
-	DefSCLFncAlias	scalblnl scalbln
+	DefSCLFltFncAlias	scalblnl scalbln
 
 	@ Entry 98
 	@ Multiply floating-point number by integral power of radix
@@ -748,9 +748,9 @@ scalblnf_FIXME_float_arg:
 	@ Entry 99
 	@ Cube root function
 	@ double cbrt (double x);
-	DefSCLFnc	cbrt
+	DefSCLFltFnc	cbrt
 	@ long double cbrtl (long double x);
-	DefSCLFncAlias	cbrtl cbrt
+	DefSCLFltFncAlias	cbrtl cbrt
 
 	@ Entry 100
 	@ Cube root function
@@ -773,9 +773,9 @@ sqrtf_FIXME_float_arg:
 	@ Entry 103
 	@ Error function
 	@ double erf (double x);
-	DefSCLFnc	erf
+	DefSCLFltFnc	erf
 	@ long double erfl (long double x);
-	DefSCLFncAlias	erfl erf
+	DefSCLFltFncAlias	erfl erf
 
 	@ Entry 104
 	@ Error function
@@ -786,9 +786,9 @@ erff_FIXME_float_arg:
 	@ Entry 105
 	@ Complementary error function
 	@ double erfc (double x);
-	DefSCLFnc	erfc
+	DefSCLFltFnc	erfc
 	@ long double erfcl (long double x);
-	DefSCLFncAlias	erfcl erfc
+	DefSCLFltFncAlias	erfcl erfc
 
 	@ Entry 106
 	@ Complementary error function
@@ -799,9 +799,9 @@ erfcf_FIXME_float_arg:
 	@ Entry 107
 	@ Log gamma function
 	@ double lgamma (double x);
-	DefSCLFnc	lgamma
+	DefSCLFltFnc	lgamma
 	@ long double lgammal (long double x);
-	DefSCLFncAlias	lgammal lgamma
+	DefSCLFltFncAlias	lgammal lgamma
 
 	@ Entry 108
 	@ Log gamma function
@@ -812,9 +812,9 @@ lgammaf_FIXME_float_arg:
 	@ Entry 109
 	@ True gamma function
 	@ double tgamma (double x);
-	DefSCLFnc	tgamma
+	DefSCLFltFnc	tgamma
 	@ long double tgammal (long double x);
-	DefSCLFncAlias	tgammal tgamma
+	DefSCLFltFncAlias	tgammal tgamma
 
 	@ Entry 110
 	@ True gamma function
@@ -825,9 +825,9 @@ tgammaf_FIXME_float_arg:
 	@ Entry 111
 	@ Floating-point number manipulation
 	@ double nexttoward (double x, long double y);
-	DefSCLFnc	nexttoward
+	DefSCLFltFnc	nexttoward
 	@ long double nexttowardl (long double x, long double y);
-	DefSCLFncAlias	nexttowardl nexttoward
+	DefSCLFltFncAlias	nexttowardl nexttoward
 
 	@ Entry 112
 	@ Floating-point number manipulation
@@ -845,190 +845,190 @@ fmaf_FIXME_float_arg:
 	DefSCLFnc	isblank
 
 	@ Entry 115
-	MOV	PC, #0	@ FIXME DefSCLFnc	strtof
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	strtof
 
 	@ Entry 116
 	DefSCLFnc	copysign
 
 	@ Entry 117
-	MOV	PC, #0	@ FIXME DefSCLFnc	copysignf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	copysignf
 
 	@ Entry 118
 	@ Floating point multiply and add
 	@ double fma (double x, double y, double z);
-	DefSCLFnc	fma
+	DefSCLFltFnc	fma
 
 	@ Entry 119
 	@ Remainder and part of quotient
 	@ double remquo (double x, double y, int *quo);
-	DefSCLFnc	remquo
+	DefSCLFltFnc	remquo
 
 	@ Entry 120
 	@ Remainder and part of quotient
 	@ float remquo (float x, float y, int *quo);
-	MOV	PC, #0	@ FIXME DefSCLFnc	remquof
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	remquof
 
 	@ Entry 121
-	DefSCLFnc	llrint
+	DefSCLFltFnc	llrint
 
 	@ Entry 122
-	MOV	PC, #0	@ FIXME DefSCLFnc	llrintf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	llrintf
 
 	@ Entry 123
 	DefSCLFnc	llround
 
 	@ Entry 124
-	MOV	PC, #0	@ FIXME DefSCLFnc	llroundf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	llroundf
 
 	@ Entry 125
-	DefSCLFncS	_cxd_mul
+	DefSCLFltFncS	_cxd_mul
 
 	@ Entry 126
-	DefSCLFncS	_cxf_mul
+	DefSCLFltFncS	_cxf_mul
 
 	@ Entry
-	DefSCLFncS	_cxd_div
+	DefSCLFltFncS	_cxd_div
 
 	@ Entry
-	DefSCLFncS	_cxf_div
+	DefSCLFltFncS	_cxf_div
 
 	@ Entry
-	DefSCLFncS	_cxd_rdv
+	DefSCLFltFncS	_cxd_rdv
 
 	@ Entry
-	DefSCLFncS	_cxf_rdv
+	DefSCLFltFncS	_cxf_rdv
 
 	@ Entry
-	DefSCLFnc	cacos
+	DefSCLFltFnc	cacos
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	cacosf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	cacosf
 
 	@ Entry
 	DefSCLFnc	casin
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	casinf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	casinf
 
 	@ Entry
 	DefSCLFnc	catan
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	catanf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	catanf
 
 	@ Entry
 	DefSCLFnc	ccos
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	ccosf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	ccosf
 
 	@ Entry
 	DefSCLFnc	csin
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	csinf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	csinf
 
 	@ Entry
 	DefSCLFnc	ctan
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	ctanf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	ctanf
 
 	@ Entry
 	DefSCLFnc	cacosh
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	cacoshf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	cacoshf
 
 	@ Entry
-	DefSCLFnc	casinh
+	DefSCLFltFnc	casinh
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	casinhf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	casinhf
 
 	@ Entry
 	DefSCLFnc	catanh
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	catanhf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	catanhf
 
 	@ Entry
 	DefSCLFnc	ccosh
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	ccoshf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	ccoshf
 
 	@ Entry
 	DefSCLFnc	csinh
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	csinhf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	csinhf
 
 	@ Entry
 	DefSCLFnc	ctanh
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	ctanhf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	ctanhf
 
 	@ Entry
 	DefSCLFnc	cexp
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	cexpf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	cexpf
 
 	@ Entry
 	DefSCLFnc	clog
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	clogf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	clogf
 
 	@ Entry
 	DefSCLFnc	cabs
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	cabsf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	cabsf
 
 	@ Entry
 	DefSCLFnc	cpow
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	cpowf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	cpowf
 
 	@ Entry
 	DefSCLFnc	csqrt
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	csqrtf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	csqrtf
 
 	@ Entry
 	DefSCLFnc	carg
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	cargf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	cargf
 
 	@ Entry
 	DefSCLFnc	cimag
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	cimagf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	cimagf
 
 	@ Entry
 	DefSCLFnc	conj
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	conjf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	conjf
 
 	@ Entry
 	DefSCLFnc	cproj
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	cprojf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	cprojf
 
 	@ Entry
 	DefSCLFnc	creal
 
 	@ Entry
-	MOV	PC, #0	@ FIXME DefSCLFnc	crealf
+	MOV	PC, #0	@ FIXME DefSCLFltFnc	crealf
 
 	@ Entry
 	@ int fgetpos (FILE *stream, fpos_t *pos);

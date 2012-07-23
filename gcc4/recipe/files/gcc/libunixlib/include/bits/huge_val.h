@@ -1,4 +1,4 @@
-/* Copy from glibc 2.11: merged ARM/FPA and ARM/VFP cases together.  */
+/* Copy from glibc 2.15: merged ARM/FPA and ARM/VFP cases together.  */
 
 /* `HUGE_VAL' constant for IEEE 754 machines (where it is infinity).
    Used by <stdlib.h> and <math.h> functions for overflow.
@@ -34,7 +34,7 @@
 # define HUGE_VAL (__extension__ 0x1.0p2047)
 #elif defined __GNUC__
 
-#if __ARM_EABI__
+#if defined(__ARM_EABI__) || (!defined(__SOFTFP__) && defined(__VFP_FP__))
 /* ARM/VFP.  */
 # define HUGE_VAL \
   (__extension__							      \
@@ -54,7 +54,7 @@
 
 typedef union { unsigned char __c[8]; double __d; } __huge_val_t;
 
-#if __ARM_EABI__
+#if defined(__ARM_EABI__) || (!defined(__SOFTFP__) && defined(__VFP_FP__))
 /* ARM/VFP.  */
 # if __BYTE_ORDER == __BIG_ENDIAN
 #  define __HUGE_VAL_bytes	{ 0x7f, 0xf0, 0, 0, 0, 0, 0, 0 }
