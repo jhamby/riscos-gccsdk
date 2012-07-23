@@ -3,7 +3,7 @@
 # You may look at <URL:http://hard-mofo.dsvr.net/gcc/> for an up-to-date
 # gcc port.
 
-CC   = gcc -mlibscl
+CC   = gcc
 BIND = $(CC)
 AS   = $(CC) -c
 ASM  = $(CC) -mhard-float -xassembler-with-cpp -c
@@ -16,9 +16,9 @@ E    =
 #   LFLAGS2   flags after obj file list (libraries, etc)
 #
 LIB      =
-CFLAGS   = -O2 -mthrowback -DNO_STRNICMP -I.
+CFLAGS   = -O2 -mthrowback -DNO_STRNICMP -I. -mlibscl
 ASMFLAGS = -mthrowback
-LFLAGS1  =
+LFLAGS1  = -mlibscl
 LFLAGS2  = $(LIB)
 SFXFLAGS = -DSFX -DSFX_EXDIR
 FUNZIPFLAGS = -DFUNZIP

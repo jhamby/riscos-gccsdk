@@ -12,7 +12,7 @@ cp $H/swiven.c $S/acorn
 cp $H/swiven.h $S/acorn
 
 ab_package() {
-  ab_create_command_app Zip Apps/Utilities
+  ab_create_command_app Unzip Apps/Utilities
   # We're using SCL so use ,ff8 instead of $AB_EXEEXT
   ab_add_commands $S/*,ff8
 #  test ! -f $S/acorn/unzipsfx || mv $S/acorn/unzipsfx $S/acorn/unzipsfx,feb
