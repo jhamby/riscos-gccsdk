@@ -49,9 +49,11 @@ LIBELF_VERSION=0.8.13
 #      not necessary the gcc version we're building here.
 ifeq ($(TARGET),arm-unknown-riscos)
 # Case GCCSDK arm-unknown-riscos target:
-## FIXME: Consider --enable-__cxa_atexit (but this can require UnixLib changes).
+# Specifying --disable-multilib will significantly reduce build times but then
+# you only end up with UnixLib/softfloat support.
 # Note: --enable-multilib is the default.  Don't specify it unless you want to get hit
-# by PR43328/PR45174
+# by PR43328/PR45174.
+## FIXME: Consider --enable-__cxa_atexit (but this can require UnixLib changes).
 GCC_CONFIG_ARGS := \
 	--enable-threads=posix \
 	--enable-sjlj-exceptions=no \

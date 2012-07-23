@@ -1,6 +1,6 @@
 Index: gcc/config/arm/arm.c
 ===================================================================
---- gcc/config/arm/arm.c	(revision 188152)
+--- gcc/config/arm/arm.c	(revision 189467)
 +++ gcc/config/arm/arm.c	(working copy)
 @@ -128,6 +128,8 @@
  #if TARGET_DLLIMPORT_DECL_ATTRIBUTES
@@ -64,11 +64,11 @@ Index: gcc/config/arm/arm.c
      arm_fpu_attr = FPU_NONE;
  
 +#ifdef TARGET_RISCOSELF
-+  if (TARGET_SOFT_FLOAT && !TARGET_UNIXLIB)
-+    sorry ("-mlibscl and -mfloat-abi=soft");
++  if (TARGET_MODULE)
++    target_flags &= ~MASK_UNIXLIB;
 +
-+  if (TARGET_UNIXLIB && TARGET_MODULE)
-+    sorry ("-munixlib and -mmodule");
++  if (TARGET_SOFT_FLOAT && TARGET_LIBSCL)
++    sorry ("-mlibscl and -mfloat-abi=soft");
 +
 +  if (TARGET_THUMB)
 +    sorry ("arm-unknown-riscos and thumb");

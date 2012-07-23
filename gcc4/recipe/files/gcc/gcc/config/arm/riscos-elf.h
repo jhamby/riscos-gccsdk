@@ -1,5 +1,5 @@
 /* Definitions for ARM running RISC OS using ELF
-   Copyright (C) 2005-2011 Free Software Foundation, Inc.
+   Copyright (C) 2005-2012 Free Software Foundation, Inc.
    Contributed by Nick Burrett (nick@sqrt.co.uk>),
    John Tytgat (John.Tytgat@aaug.net) and Lee Noar (leenoar@sky.com).
 
@@ -49,15 +49,8 @@ along with GCC; see the file COPYING3.  If not see
 #define NEED_PLT_RELOC	(!TARGET_MODULE && flag_pic)
 #define NEED_GOT_RELOC	flag_pic
 
-/* We explicitly specify an -mfpu value when there isn't one specified as
-   otherwise selecting an -march makes the assembler choose an 'appropriate'
-   default fpu value which either clashes with -mfloat-abi option (resulting
-   in e.g. "hard-float conflicts with specified fpu" assembler errors), either
-   result in linker errors when VFP fpu is taken as default fpu not matching
-   -mfloat-abi=soft.  */
 #undef SUBTARGET_EXTRA_ASM_SPEC
 #define SUBTARGET_EXTRA_ASM_SPEC \
-     "%{!mfpu=*:%{mhard-float|mfloat-abi=hard:-mfpu=fpa; :-mfpu=softfpa}}" \
      "%{fpic|fPIC: -k}"
 
 #undef SUBTARGET_EXTRA_LINK_SPEC
@@ -77,12 +70,19 @@ extern const char * riscos_multilib_dir (int argc, const char **argv);
      "%{fpic:-fpic} %{mmodule:--ro-module-reloc --target2=rel} "
 #endif
 
-/* libscl means hard-float only.  Module support means libscl and
-   hard-float.  libscl and module support go for static libgcc
-   library.  */
-#define SUBTARGET_DRIVER_SELF_SPECS					\
-  "%{mlibscl:-mlibscl -mhard-float -static} %<mlibscl",			\
-  "%{mmodule:-mmodule -mlibscl -mhard-float -static} %<mmodule"		\
+/* libscl and module support go for static libgcc library and when -mmodule
+   and -mlibscl are both specified, drop -mlibscl as this will confuse the
+   multilib selection.
+   When libscl or module is selected without float-abi, default to hard and
+   if there isn't an fpu selected, select FPA.
+   When VFPv3-NEON is selected as fpu without any float-abi, default to softfp
+   and select Cortex-A8 as CPU.  */
+#define SUBTARGET_DRIVER_SELF_SPECS						   \
+  " %{mmodule:%<mlibscl -static}"						   \
+  " %{mlibscl:-static}"								   \
+  " %{mlibscl|mmodule:%{!mfloat-abi=*:-mfloat-abi=hard} %{!mfpu=*:-mfpu=fpa}}"	   \
+  " %{mfpu=vfp:%{!mfloat-abi=*:-mfloat-abi=softfp} %{!mcpu=*:-mcpu=arm1176jzf-s}}" \
+  " %{mfpu=neon:%{!mfloat-abi=*:-mfloat-abi=softfp} %{!mcpu=*:-mcpu=cortex-a8}}"
 
 /* Default multilib is UnixLib and soft-float.  */
 #undef  MULTILIB_DEFAULTS

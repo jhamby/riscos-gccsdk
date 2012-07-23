@@ -1,4 +1,4 @@
-# Copyright (C) 2005-2011 Free Software Foundation, Inc.
+# Copyright (C) 2005-2012 Free Software Foundation, Inc.
 # Contributed by Nick Burrett (nick@sqrt.co.uk>),
 # John Tytgat (John.Tytgat@aaug.net) and Lee Noar (leenoar@sky.com).
 #
@@ -19,13 +19,63 @@
 # <http://www.gnu.org/licenses/>.
 
 # The following multilib configurations are defined:
-#   . : unixlib, soft-float, application
-#   ./scl/fpu : scl, hard-float, application
-#   ./scl/fpu/module : scl, hard-float, module
-MULTILIB_OPTIONS = mlibscl mhard-float mmodule
-MULTILIB_DIRNAMES = scl fpu module
-MULTILIB_MATCHES = mhard-float=mfloat-abi?hard
-MULTILIB_EXCLUSIONS = mlibscl/!mhard-float/!mmodule !mlibscl/mhard-float/!mmodule !mlibscl/!mhard-float/mmodule !mlibscl/mhard-float/mmodule mlibscl/!mhard-float/mmodule
+#
+# <runtime library> = "" (UnixLib), "scl" (SCL application), "scl-module" (SCL module)
+# <float abi>  = "" (soft), "softfp", "hard"
+# <fpu> = "" (no hw fpu), "fpa" (FPA), "vfp" (VFPv2), "neon" (VFPv3 + NEON)
+#
+#  . : UnixLib, soft, application
+#  ./softfp/vfp : UnixLib, softfp using VFPv2, application
+#  ./softfp/neon : UnixLib, softfp using VFPv3 + neon, application
+#  ./scl/softfp/vfp : SCL without float API, softfp using VFPv2, application
+#  ./scl/softfp/neon : SCL without float API, softfp using VFPv3 + neon, application
+#  ./scl/hard/fpa : SCL, FPA, application
+#  ./scl-module/softfp/vfp : SCL without float API, softfp using VFPv2, module
+#  ./scl-module/softfp/neon : SCL without float API, softfp using VFPv3 + neon, module
+#  ./scl-module/hard/fpa : SCL, FPA, module
+#
+# Expanded:
+# + "" / "" / ""
+# - "" / "" / "fpa"
+# - "" / "" / "vfp"
+# - "" / "" / "neon"
+# - "" / "softfp" / ""
+# - "" / "softfp" / "fpa"
+# + "" / "softfp" / "vfp"
+# + "" / "softfp" / "neon"
+# - "" / "hard" / ""
+# - "" / "hard" / "fpa"
+# - "" / "hard" / "vfp"
+# - "" / "hard" / "neon"
+# - "scl" / "" / ""
+# - "scl" / "" / "fpa"
+# - "scl" / "" / "vfp"
+# - "scl" / "" / "neon"
+# - "scl" / "softfp" / ""
+# - "scl" / "softfp" / "fpa"
+# + "scl" / "softfp" / "vfp"
+# + "scl" / "softfp" / "neon"
+# - "scl" / "hard" / ""
+# + "scl" / "hard" / "fpa"
+# - "scl" / "hard" / "vfp"
+# - "scl" / "hard" / "neon"
+# - "scl-module" / "" / ""
+# - "scl-module" / "" / "fpa"
+# - "scl-module" / "" / "vfp"
+# - "scl-module" / "" / "neon"
+# - "scl-module" / "softfp" / ""
+# - "scl-module" / "softfp" / "fpa"
+# + "scl-module" / "softfp" / "vfp"
+# + "scl-module" / "softfp" / "neon"
+# - "scl-module" / "hard" / ""
+# + "scl-module" / "hard" / "fpa"
+# - "scl-module" / "hard" / "vfp"
+# - "scl-module" / "hard" / "neon"
+
+MULTILIB_OPTIONS = mlibscl/mmodule mfloat-abi=softfp/mfloat-abi=hard mfpu=fpa/mfpu=vfp/mfpu=neon
+MULTILIB_DIRNAMES = scl scl-module softfp hard fpa vfp neon
+MULTILIB_MATCHES = mfloat-abi?hard=mhard-float
+MULTILIB_EXCEPTIONS = mfpu=fpa mfpu=vfp mfpu=neon mfloat-abi=softfp mfloat-abi=softfp/mfpu=fpa mfloat-abi=hard* mlibscl mlibscl/mfpu* mlibscl/mfloat-abi=softfp mlibscl/mfloat-abi=softfp/mfpu=fpa mlibscl/mfloat-abi=hard mlibscl/mfloat-abi=hard/mfpu=vfp* mlibscl/mfloat-abi=hard/mfpu=neon* mmodule mmodule/mfpu* mmodule/mfloat-abi=softfp mmodule/mfloat-abi=softfp/mfpu=fpa mmodule/mfloat-abi=hard mmodule/mfloat-abi=hard/mfpu=vfp* mmodule/mfloat-abi=hard/mfpu=neon*
 
 # vvv config/arm/t-bpabi
 EXTRA_HEADERS += $(srcdir)/ginclude/unwind-arm-common.h
