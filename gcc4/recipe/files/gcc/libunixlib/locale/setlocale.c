@@ -1,6 +1,6 @@
 /* setlocale ()
  * Written by Nick Burrett, 20 July 1997.
- * Copyright (c) 1997-2008 UnixLib Developers
+ * Copyright (c) 1997-2012 UnixLib Developers
  */
 
 #include <ctype.h>
@@ -21,6 +21,117 @@ static const char * const locale_names[] = {
   "LC_TIME", "LC_ALL"
   };
 
+typedef struct locale_entry
+{
+  const char *territory_name;
+  const char *locale_name;
+} locale_entry;
+
+/* Table of RISC OS territories and the corresponding locale name.  */
+static const locale_entry locale_table[] =
+{
+  { "uk", "en-GB" },
+  { "germany", "de-DE" },
+  { "france", "fr-FR" },
+  { "netherlands", "nl-NL" },
+  { "italy", "it-IT" },
+  { "spain", "es-ES" },
+  { "portugal", "pt-PT" },
+  { "greece", "el-GR" },
+  { "sweden", "sv-SE" },
+  { "finland", "fi-FI" },
+  { "denmark", "da-DK" },
+  { "norway", "no-NO" },
+  { "iceland", "is-IS" },
+  { "canada", "en-CA" },
+  { "turkey", "tr-TR" },
+  { "arabic", "ar-SA" },
+  { "ireland", "en-IE" },
+  { "hong kong", "zh-HK" },
+  { "russia", "ru-RU" },
+  { "israel", "he-IL" },
+  { "mexico", "es-MX" },
+  { "australia", "en-AU" },
+  { "austria", "de-AT" },
+  { "belgium", "nl-BE" },
+  { "japan", "ja-JP" },
+  { "switzerland", "de-CH" }, /* Could also be italian or french */
+  { "usa", "en-US" },
+  { "china", "zh-CN" },
+  { "brazil", "pt-BR" },
+  { "safrica", "af-ZA" },
+  { "korea", "ko-KR" },
+  { "taiwan", "zh-TW" },
+  { "faroe", "fo-FO" },
+  { "albania", "sq-AL" },
+  { "bulgaria", "bg-BG" },
+  { "czech", "cs-CZ" },
+  { "farsi", "fa-IR" },
+  { "gujarati", "gu-IN" },
+  { "estonia", "et-EE" },
+  { "hungary", "hu-HU" },
+  { "latvia", "lv-LV" },
+  { "lithuania", "lt-LT" },
+  { "macedonia", "mk-MK" },
+  { "poland", "pl-PL" },
+  { "punjabi", "pa-IN" },
+  { "romania", "ro-RO" },
+  { "slovak", "sk-SK" },
+  { "slovene", "sl-SL" },
+  { "tamil", "ta-IN" },
+  { "ukraine", "uk-UA" },
+  { "swiss1", "fr-CH" },
+  { "swiss2", "de-CH" },
+  { "swiss3", "it-CH" },
+  { NULL, NULL }
+};
+
+/* Translate a RISC OS territory as listed here:
+
+   <http://www.riscosopen.org/wiki/documentation/show/Territory%20Numbers>
+
+   into a locale of the form "<language>-<region>". For example, in the
+   case of the United Kingdom, the Territory module returns UK which is
+   translated into "en-GB".
+   Return NULL if the lookup failed.  */
+static const char *
+territory_to_locale (const char *territory)
+{
+  const locale_entry *entry = locale_table;
+  for (entry = locale_table;
+       entry->territory_name != NULL && stricmp (entry->territory_name, territory) != 0;
+       entry++)
+    /* Empty Loop */;
+
+  return entry->locale_name; /* NULL if the end of the table reached.  */
+}
+
+/* Translate a locale of the form "<language>-<region>.<character encoding>"
+   into a RISC OS territory. If the character encoding is present, then we
+   ignore it.
+   Note that the lookup is case insensitive, but the territory module for the
+   current locale must be loaded for strnicmp to work correctly.
+   Return NULL if the lookup failed.  */
+static const char *
+locale_to_territory (const char *locale)
+{
+  char *char_enc_dot = strchr (locale, '.');
+
+  /* Ignore any character encoding specification when searching the locale
+     table.  */
+  int locale_len = char_enc_dot ?
+		   (char_enc_dot - locale) :
+		   strlen (locale);
+
+  const locale_entry *entry = locale_table;
+  for (entry = locale_table;
+       entry->locale_name != NULL && strnicmp (entry->locale_name, locale, locale_len) != 0;
+       entry++)
+    /* Empty Loop */;
+
+  return entry->territory_name; /* NULL if the end of the table reached.  */
+}
+
 /* Convert a territory number into a name.  */
 static void
 territory_name (int territory, char *buffer, int size)
@@ -34,11 +145,16 @@ territory_name (int territory, char *buffer, int size)
   else
     {
       int regs[10];
+      const char *locale;
 
       regs[0] = territory;
       regs[1] = (int)buffer;
       regs[2] = size - 1;
       __os_swi (Territory_NumberToName, regs);
+      locale = territory_to_locale (buffer);
+
+      if (locale && strlen (locale) < size - 1)
+	strcpy (buffer, locale);
     }
 }
 
@@ -60,8 +176,18 @@ territory_number (const char *locale)
       || strcmp (locale, "POSIX") == 0)
     return -1;
 
+  const char *territory = locale_to_territory (locale);
+
+  /* Fall back to the original locale name if the lookup fails. This
+     means that RISC OS territory names are still recognised giving
+     some backwards compatibility. However, specifying "UK" will match
+     Ukraine rather than United Kingdom, so "en-GB" should be used in
+     preference.   */
+  if (territory == NULL)
+    territory = locale;
+
   regs[0] = -1;
-  regs[1] = (int)locale;
+  regs[1] = (int)territory;
   /* If we can't find the locale, then this SWI will return zero
      in regs[0].  */
   __os_swi (Territory_NameToNumber, regs);

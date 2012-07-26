@@ -601,14 +601,94 @@ WSSize		:
     <p>This is caused by insufficient memory memory and can be fixed by increasing the wimpslot to similar values as above.
 </ul>
 
-<h3>2. Known issues or unsupported GCCSDK 3.4.6 features</h3>
+<h3>2. UnixLib</h3>
+<h4>2.1. Locales</h4>
+
+<p> Standard locale names in the form language-territory[.codeset], where language is an ISO 639 language code and territory is an ISO 3166 country code, are recognised and returned by setlocale. For example, the United Kingdom is "en-GB". The codeset is ignored, but accepted. The following table lists the locales that are recognised and the corresponding RISC OS territory:
+
+<table border="3">
+  <tr> <th>RISC OS Territory</th> <th>Locale name</th> </tr>
+  <tr> <td>UK</td> <td>en-GB</td> </tr>
+  <tr> <td>Germany</td> <td>de-DE</td> </tr>
+  <tr> <td>France</td> <td>fr-FR</td> </tr>
+  <tr> <td>Netherlands</td> <td>nl-NL</td> </tr>
+  <tr> <td>Italy</td> <td>it-IT</td> </tr>
+  <tr> <td>Spain</td> <td>es-ES</td> </tr>
+  <tr> <td>Portugal</td> <td>pt-PT</td> </tr>
+  <tr> <td>Greece</td> <td>el-GR</td> </tr>
+  <tr> <td>Sweden</td> <td>sv-SE</td> </tr>
+  <tr> <td>Finland</td> <td>fi-FI</td> </tr>
+  <tr> <td>Denmark</td> <td>da-DK</td> </tr>
+  <tr> <td>Norway</td> <td>no-NO</td> </tr>
+  <tr> <td>Iceland</td> <td>is-IS</td> </tr>
+  <tr> <td>Canada</td> <td>en-CA</td> </tr>
+  <tr> <td>Turkey</td> <td>tr-TR</td> </tr>
+  <tr> <td>Arabic</td> <td>ar-SA</td> </tr>
+  <tr> <td>Ireland</td> <td>en-IE</td> </tr>
+  <tr> <td>Hong Kong</td> <td>zh-HK</td> </tr>
+  <tr> <td>Russia</td> <td>ru-RU</td> </tr>
+  <tr> <td>Israel</td> <td>he-IL</td> </tr>
+  <tr> <td>Mexico</td> <td>es-MX</td> </tr>
+  <tr> <td>Australia</td> <td>en-AU</td> </tr>
+  <tr> <td>Austria</td> <td>de-AT</td> </tr>
+  <tr> <td>Belgium</td> <td>nl-BE</td> </tr>
+  <tr> <td>Japan</td> <td>ja-JP</td> </tr>
+  <tr> <td>Switzerland</td> <td>de-CH</td> </tr>
+  <tr> <td>USA</td> <td>en-US</td> </tr>
+  <tr> <td>China</td> <td>zh-CN</td> </tr>
+  <tr> <td>Brazil</td> <td>pt-BR</td> </tr>
+  <tr> <td>SAfrica</td> <td>af-ZA</td> </tr>
+  <tr> <td>Korea</td> <td>ko-KR</td> </tr>
+  <tr> <td>Taiwan</td> <td>zh-TW</td> </tr>
+  <tr> <td>Faroe</td> <td>fo-FO</td> </tr>
+  <tr> <td>Albania</td> <td>sq-AL</td> </tr>
+  <tr> <td>Bulgaria</td> <td>bg-BG</td> </tr>
+  <tr> <td>Czech</td> <td>cs-CZ</td> </tr>
+  <tr> <td>Farsi</td> <td>fa-IR</td> </tr>
+  <tr> <td>Gujarati</td> <td>gu-IN</td> </tr>
+  <tr> <td>Estonia</td> <td>et-EE</td> </tr>
+  <tr> <td>Hungary</td> <td>hu-HU</td> </tr>
+  <tr> <td>Latvia</td> <td>lv-LV</td> </tr>
+  <tr> <td>Lithuania</td> <td>lt-LT</td> </tr>
+  <tr> <td>Macedonia</td> <td>mk-MK</td> </tr>
+  <tr> <td>Poland</td> <td>pl-PL</td> </tr>
+  <tr> <td>Punjabi</td> <td>pa-IN</td> </tr>
+  <tr> <td>Romania</td> <td>ro-RO</td> </tr>
+  <tr> <td>Slovak</td> <td>sk-SK</td> </tr>
+  <tr> <td>Slovene</td> <td>sl-SL</td> </tr>
+  <tr> <td>Tamil</td> <td>ta-IN</td> </tr>
+  <tr> <td>Ukraine</td> <td>uk-UA</td> </tr>
+  <tr> <td>Swiss1</td> <td>fr-CH</td> </tr>
+  <tr> <td>Swiss2</td> <td>de-CH</td> </tr>
+  <tr> <td>Swiss3</td> <td>it-CH</td> </tr>
+</table>
+
+<p>The special locales "C" and the equivalent "POSIX" are also recognised, but obviously have no corresponding territory name.
+
+<h4>2.2. Shared library compatibility</h4>
+
+<p>Sometimes it's necessary to make changes to UnixLib or the way it is compiled that make it incompatible with previous versions of the compiler or programs built with a previous compiler version. For programs that are statically linked this is not a problem as all the code required to run the program is packaged up inside the program itself. However, with dynamic linking problems can arise when trying to run a program built with an older version of the compiler using a newer version of the UnixLib shared library (and other runtime libraries).
+
+<p>To overcome this, we use ABI (Application Binary Interface) versioning. The compiler embeds the current version of the ABI, as a string, into any libraries or programs that it builds. This string is used by the dynamic linker to identify the sub directory within "!SharedLibs.lib" from which to load the correct libraries.
+
+<p>If a change is made in UnixLib or the way it's built that would make it incompatible with previous versions, then we increase the version number of the ABI. This allows different versions of the standard libraries (or in fact any library) to exist at the same time, and the dynamic linker will select the correct one a runtime.
+
+<p>The currently known ABI versions are:
+<li>abi-0.0<br>
+This corresponds to V4.1.1 of GCC. As the ABI system was introduced sometime after the release of this version of the compiler, it was not possible to "retro-fit" ABI versioning, so GCC 4.1.1 is only notionally ABI-0.0. Its libraries are stored in "!SharedLibs.lib" directly rather than in an ABI directory.
+<li>abi-1.0<br>
+This corresponds to V4.1.2 of GCC. This is the first version of GCC that supports the ABI versioning system. Its libraries are stored in "!SharedLibs.lib.abi-1/0".
+<li>abi-2.0<br>
+This is the current ABI version and corresponds to V4.6 and onwards of GCC. Its libraries are stored in "!SharedLibs.lib.abi-2/0".
+
+<h3>3. Known issues or unsupported GCCSDK 3.4.6 features</h3>
 
 <p>List of known problems or missing features compared to GCCSDK 3.4.6:
 <ul>
   <li>native RISC&nbsp;OS build: not all RISC&nbsp;OS specific switches are implemented yet, like -mamu, -mlibrary-static-data-offset, -mclient-static-data-offset.
 </ul>
 
-<h3>3. Changes</h3>
+<h3>4. Changes</h3>
 
 <p>GCCSDK 4 produces ELF object files, libraries and binaries while in GCCSDK 3 this was AOF/AIF based.  Currently there is no support to mix AOF object or library files with ELF object files.
 
@@ -624,7 +704,7 @@ WSSize		:
   <li><a href="mkresfs/ChangeLog">mkresfs ChangeLog</a>
 </ul>
 
-<h3>4. Further documentation</h3>
+<h3>5. Further documentation</h3>
 
 <p>GNU GCC/binutils documentation:
 <ul>
@@ -657,13 +737,13 @@ WSSize		:
   <li><a href="mkresfs">mkresfs</a>: a tool to generate C code that creates and removes files from ResourceFS in your RISC&nbsp;OS modules.
 </ul>
 
-<h3>5. GCCSDK website, bug reporting &amp; mailing list</h3>
+<h3>6. GCCSDK website, bug reporting &amp; mailing list</h3>
 
 <p>The <a href="http://gccsdk.riscos.info/">GCCSDK website</a> contains more information like how you can log bugs, addressing the GCCSDK development itself and related RISC&nbsp;OS development aspects. Currently the GCCSDK website is Wiki based so your input in the form of changes and/or additional input is greatly appreciated.
 
 <p>Most importantly, you can also find details how you can join the GCCSDK mailing which has been setup for discussions on GCCSDK, including its development work. We strongly recommend to join this mailing list.
 
-<h3>6. Licenses and warranty</h3>
+<h3>7. Licenses and warranty</h3>
 
 <p>This port of GCC is:
 <pre>
@@ -686,7 +766,7 @@ Copyright (c) 2002-2012 GCCSDK Developers
 
 <p>As with all GNU programs, THERE IS NO WARRANTY OF ANY SORT.
 
-<h3>7. Credits</h3>
+<h3>8. Credits</h3>
 
 <p>Primary GCCSDK Developers today are:
 <ul>

@@ -1,3 +1,26 @@
+Thu Jul 26 20:04:29 BST  2012  Lee Noar <leenoar@sky.com>
+
+	* locale/setlocale.c: Add support for standard locale names
+	in the form of language-territory[.codeset] where language
+	is an ISO 639 language code and territory is an ISO 3166 country
+	code. For example, the United Kingdom is "en-GB". The codeset is
+	ignored, but accepted. A lookup table is used to convert the
+	locale to a RISC OS territory and back. The table was constructed
+	using the list of territories from here:
+
+	<http://www.riscosopen.org/wiki/documentation/show/Territory%20Numbers>
+
+	The table lookup is not case sensitive, however, the territory module
+	for the current locale must be loaded in order for strnicmp to work
+	correctly (the territory manager can convert between territory numbers
+	and names on its own, but the tolower function requires the ctype tables
+	to be filled in by the territory module for the current locale).
+	The old style country names will still work for backwards compatibility
+	as long as they don't clash with a locale name, for example, calling
+	setlocale (LC_ALL, "France") will work as expected, however,
+	setlocale (LC_ALL, "UK") will set the locale to the Ukraine rather than
+	the United Kingdom.
+
 Mon Jul 23 21:36:19 CEST 2012  Jeffrey Lee  <me@phlamethrower.co.uk>
                                John Tytgat  <John.Tytgat@aaug.net>
 
