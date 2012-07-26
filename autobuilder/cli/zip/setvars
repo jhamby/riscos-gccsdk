@@ -1,7 +1,7 @@
 AB_PRECONF=:
 
 # We're using SCL so extension is always ,ff8.
-AB_MAKE="$AB_MAKE CC=arm-unknown-riscos-gcc E=,ff8"
+AB_MAKE="$AB_MAKE CC=arm-unknown-riscos-gcc E=,ff8 NOASM=1"
 
 cp $S/acorn/GMakefile $S/Makefile
 
