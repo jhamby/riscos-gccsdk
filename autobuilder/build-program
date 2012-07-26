@@ -116,7 +116,7 @@ ab_create_app() {
   if ! [ -e $A/\!Boot,feb ] ; then
     echo -e "| !Boot file for $app\n" > $A/\!Boot,feb
     echo "Set $app\$Dir <Obey\$Dir>" >> $A/\!Boot,feb
-    echo -e "Iconsprites <$app\$Dir>.!Sprites\n" >> $A/\!Boot,feb
+    echo -e "IfThere <$app\$Dir>.!Sprites then Iconsprites <$app\$Dir>.!Sprites\n" >> $A/\!Boot,feb
   fi
 }
 
