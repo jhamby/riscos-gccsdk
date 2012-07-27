@@ -1,5 +1,5 @@
 # Automake style makefile for UnixLib
-# Copyright (c) 2005-2011 UnixLib developers
+# Copyright (c) 2005-2012 UnixLib developers
 # Written by Nick Burrett <nick@sqrt.co.uk>
 
 # Directory where headers will be installed.
@@ -1255,18 +1255,18 @@ libc_headers = \
 	ar.h \
 	arpa/ftp.h \
 	arpa/inet.h \
-	arpa/nameser.h \
 	arpa/nameser_compat.h \
+	arpa/nameser.h \
 	arpa/telnet.h \
 	arpa/tftp.h \
 	assert.h \
 	bits/byteswap.h \
 	bits/cmathcalls.h \
 	bits/fenv.h \
-	bits/huge_val.h \
 	bits/huge_valf.h \
-	bits/in.h \
+	bits/huge_val.h \
 	bits/inf.h \
+	bits/in.h \
 	bits/libc-lock.h \
 	bits/locale.h \
 	bits/mathcalls.h \
@@ -1289,6 +1289,7 @@ libc_headers = \
 	dirent.h \
 	dlfcn.h \
 	endian.h \
+	err.h \
 	errno.h \
 	fcntl.h \
 	fcrypt.h \
@@ -1310,8 +1311,8 @@ libc_headers = \
 	malloc.h \
 	math.h \
 	memory.h \
-	net/if.h \
 	netdb.h \
+	net/if.h \
 	netinet/in.h \
 	netinet/in_systm.h \
 	netinet/ip.h \
@@ -1334,11 +1335,11 @@ libc_headers = \
 	sgtty.h \
 	signal.h \
 	stdint.h \
-	stdio.h \
 	stdio_ext.h \
+	stdio.h \
 	stdlib.h \
-	string.h \
 	string/byteswap.h \
+	string.h \
 	strings.h \
 	swis.h \
 	sys/bitypes.h \
@@ -1347,11 +1348,13 @@ libc_headers = \
 	sys/dir.h \
 	sys/elf.h \
 	sys/errno.h \
+	sysexits.h \
 	sys/fcntl.h \
 	sys/file.h \
 	sys/gmon.h \
 	sys/gmon_out.h \
 	sys/ioctl.h \
+	syslog.h \
 	sys/mman.h \
 	sys/mount.h \
 	sys/param.h \
@@ -1362,13 +1365,13 @@ libc_headers = \
 	sys/signal.h \
 	sys/socket.h \
 	sys/soundcard.h \
-	sys/stat.h \
 	sys/statfs.h \
+	sys/stat.h \
 	sys/syslog.h \
 	sys/sysmacros.h \
 	sys/termios.h \
-	sys/time.h \
 	sys/timeb.h \
+	sys/time.h \
 	sys/times.h \
 	sys/types.h \
 	sys/uio.h \
@@ -1376,8 +1379,6 @@ libc_headers = \
 	sys/utsname.h \
 	sys/vfs.h \
 	sys/wait.h \
-	sysexits.h \
-	syslog.h \
 	termcap.h \
 	termio.h \
 	termios.h \
@@ -1398,6 +1399,7 @@ libc_headers += unixlib/stubs.h
 nobase_noinst_HEADERS = \
 	incl-local/dirent.h \
 	incl-local/errno.h \
+	incl-local/fcntl.h \
 	incl-local/features.h \
 	incl-local/grp.h \
 	incl-local/internal/asm_dec.s \

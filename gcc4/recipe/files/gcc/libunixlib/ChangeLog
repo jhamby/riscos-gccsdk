@@ -1,3 +1,8 @@
+Fri Jul 27 23:21:36 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (libc_headers): Add err.h.
+	(nobase_noinst_HEADERS): Add incl-local/fcntl.h.
+
 Fri Jul 27 18:04:01 BST  2012  Lee Noar <leenoar@sky.com>
 
 	* locale/setlocale.c(territory_name): Fix comparison.
