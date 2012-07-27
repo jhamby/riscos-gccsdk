@@ -1,3 +1,9 @@
+Fri Jul 27 18:04:01 BST  2012  Lee Noar <leenoar@sky.com>
+
+	* locale/setlocale.c(territory_name): Fix comparison.
+	(locale_to_territory): Fix double initialisation of variable.
+	(territory_to_locale): Likewise.
+
 Thu Jul 26 20:04:29 BST  2012  Lee Noar <leenoar@sky.com>
 
 	* locale/setlocale.c: Add support for standard locale names

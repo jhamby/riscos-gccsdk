@@ -97,7 +97,7 @@ static const locale_entry locale_table[] =
 static const char *
 territory_to_locale (const char *territory)
 {
-  const locale_entry *entry = locale_table;
+  const locale_entry *entry;
   for (entry = locale_table;
        entry->territory_name != NULL && stricmp (entry->territory_name, territory) != 0;
        entry++)
@@ -123,7 +123,7 @@ locale_to_territory (const char *locale)
 		   (char_enc_dot - locale) :
 		   strlen (locale);
 
-  const locale_entry *entry = locale_table;
+  const locale_entry *entry;
   for (entry = locale_table;
        entry->locale_name != NULL && strnicmp (entry->locale_name, locale, locale_len) != 0;
        entry++)
@@ -153,7 +153,7 @@ territory_name (int territory, char *buffer, int size)
       __os_swi (Territory_NumberToName, regs);
       locale = territory_to_locale (buffer);
 
-      if (locale && strlen (locale) < size - 1)
+      if (locale && strlen (locale) < size)
 	strcpy (buffer, locale);
     }
 }
