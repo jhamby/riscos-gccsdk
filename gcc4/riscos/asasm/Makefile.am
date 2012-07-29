@@ -8,7 +8,7 @@ SVN_REV := r$(shell svnversion -n ${srcdir}) at $(subst $(SVN_ROOT),,$(SVN_BRANC
 # P = major version, V = minor version, t = patch release, bbbb = build number
 # P, V and t are derived from the PACKAGE_VERSION in config.h (which is derived
 # from AC_INIT in configure.ac) and bbbb is our SVN revision number.
-ASASM_VERSION := $(shell grep PACKAGE_VERSION config.h | sed -e "s/.*\"\([0-9]\)\.\([0-9][0-9]\)\"/\1\2/")$(shell echo -n "0000"`svnversion -n ${srcdir}` | sed -e "s/[0-9]*://" -e "s/\([0-9]*\).*/\1/" | egrep -o "....$$")
+ASASM_VERSION := $(shell echo -n "@VERSION@" | sed -e "s/\([0-9]\)\.\([0-9][0-9]\)/\1\2/")$(shell echo -n "0000"`svnversion -n ${srcdir}` | sed -e "s/[0-9]*://" -e "s/\([0-9]*\).*/\1/" | egrep -o "....$$")
 
 # _GNU_SOURCE to make strndup available
 # Add -DDEBUG if you want to enable the debug routines.
