@@ -1,3 +1,8 @@
+Sun Jul 29 17:27:06 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (ASASM_VERSION): Deal with svn repository numbers having
+	less or more than 4 digits.
+
 Tue Jul 17 01:05:26 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* variables (Var_Define): Simplify (call Symbol_Get instead of
