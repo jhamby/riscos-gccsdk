@@ -11,7 +11,7 @@ namespace riscos
 
 		public uint PollMask { get; set; }
 
-		// The actual version number of the WIMP that Wimp_Initialise returned to use.
+		// The actual version number of the WIMP that Wimp_Initialise returned to us.
 		public int WimpVersion;
 
 		public virtual void MenuSelection (int [] selection) { }

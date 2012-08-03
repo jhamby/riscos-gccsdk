@@ -72,6 +72,7 @@ public class Dialogue : Toolbox.Window
 	public Dialogue () : base ("Dialogue")
 	{
 		Title = "C# Dialogue Box";
+		AboutToBeShown += OnAboutToBeShown;
 
 		OKButton = new Toolbox.ActionButton (this, CmpID.OKButton);
 		OKButton.Text = "OK";
@@ -118,6 +119,11 @@ public class Dialogue : Toolbox.Window
 
 		Button = new Toolbox.Button (this, CmpID.Button);
 	}
+
+	void OnAboutToBeShown (object sender, Toolbox.Window.AboutToBeShownEventArgs e)
+	{
+		Reporter.WriteLine ("Dialogue about to be shown, show type = {0}", e.ShowSpec.Type);
+	}
 }
 
 public class MyTask : ToolboxTask
@@ -151,12 +157,12 @@ public class MyTask : ToolboxTask
 		// Set the text to be displayed under the Iconbar sprite.
 		Iconbar.Text = "MonoTestTB";
 		Iconbar.HelpMessage = "Click SELECT to toggle the main window open/closed|MClick ADJUST to open dialogue";
-		// Set the Iconbar object to return our own events when clicked with SELECT/ADJUST.
+		// Set the Iconbar object to return our own event codes when clicked with SELECT/ADJUST.
 		Iconbar.SelectEvent = MyEvent.IconbarSelect;
 		Iconbar.AdjustEvent = MyEvent.IconbarAdjust;
 		// Add our own event handlers to be called for the events we set above.
-		Iconbar.ToolboxHandlers.Add (MyEvent.IconbarSelect, IconbarSelectHandler);
-		Iconbar.ToolboxHandlers.Add (MyEvent.IconbarAdjust, IconbarAdjustHandler);
+		Iconbar.SelectClicked += IconbarSelectHandler;
+		Iconbar.AdjustClicked += IconbarAdjustHandler;
 		// Link the main menu to the Iconbar icon.
 		Iconbar.Menu = main_menu;
 

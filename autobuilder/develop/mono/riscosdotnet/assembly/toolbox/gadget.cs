@@ -51,16 +51,23 @@ namespace riscos
 				public const uint Button = 960;
 			}
 
-			/*! \brief The Toolbox ID of the window/menu containing this gadget.  */
-			protected uint ObjectID;
+			/*! \brief The window/menu containing this gadget.  */
+			protected Toolbox.Object Object;
 			/*! \brief The Toolbox ID of this gadget.  */
 			protected uint ComponentID;
 
 			/*! \brief Wrap an existing gagdet.  */
 			public Gadget (Object tbObj, uint cmpID)
 			{
-				ObjectID = tbObj.ID;
+				Object = tbObj;
 				ComponentID = cmpID;
+
+				Object.Gadgets.Add (ComponentID, this);
+			}
+
+			~Gadget ()
+			{
+				Object.Gadgets.Remove (ComponentID);
 			}
 
 			/*! \brief Determines whether the gadget is faded or not.  */
@@ -100,7 +107,7 @@ namespace riscos
 				{
 					NativeOS.Rect extent = new NativeOS.Rect ();
 					OS.ThrowOnError (NativeMethods.Gadget_GetBBox (0,
-										       ObjectID,
+										       Object.ID,
 										       Method.GetBBox,
 										       ComponentID,
 										       out extent));
@@ -110,7 +117,7 @@ namespace riscos
 				{
 					NativeOS.Rect bbox = new NativeOS.Rect (value);
 					OS.ThrowOnError (NativeMethods.Gadget_MoveGadget (0,
-											  ObjectID,
+											  Object.ID,
 											  Method.MoveGadget,
 											  ComponentID,
 											  ref bbox));
@@ -137,7 +144,7 @@ namespace riscos
 			protected void SetText (int method, string text)
 			{
 				OS.ThrowOnError (NativeMethods.Component_SetText (0,
-										  ObjectID,
+										  Object.ID,
 										  method,
 										  ComponentID,
 										  text));
@@ -148,7 +155,7 @@ namespace riscos
 				int buffer_size;
 
 				OS.ThrowOnError (NativeMethods.Component_GetText (0,
-										  ObjectID,
+										  Object.ID,
 										  method,
 										  ComponentID,
 										  null,
@@ -156,7 +163,7 @@ namespace riscos
 										  out buffer_size));
 				StringBuilder buffer = new StringBuilder (buffer_size);
 				OS.ThrowOnError (NativeMethods.Component_GetText (0,
-										  ObjectID,
+										  Object.ID,
 										  method,
 										  ComponentID,
 										  buffer,
@@ -204,7 +211,7 @@ namespace riscos
 			protected void CallMethod_SetR4 (uint flags, int method, uint r4)
 			{
 				OS.ThrowOnError (NativeMethods.Component_SetR4 (0,
-										ObjectID,
+										Object.ID,
 										method,
 										ComponentID,
 										r4));
@@ -213,7 +220,7 @@ namespace riscos
 			protected void CallMethod_SetR4R5 (int method, uint r4, uint r5)
 			{
 				OS.ThrowOnError (NativeMethods.Component_SetR4R5 (0,
-										  ObjectID,
+										  Object.ID,
 										  method,
 										  ComponentID,
 										  r4,
@@ -223,7 +230,7 @@ namespace riscos
 			protected void CallMethod_GetR0R1 (int method, out uint r0, out uint r1)
 			{
 				OS.ThrowOnError (NativeMethods.Component_GetR0R1 (0,
-										  ObjectID,
+										  Object.ID,
 										  method,
 										  ComponentID,
 										  out r0,
@@ -235,7 +242,7 @@ namespace riscos
 				uint value;
 
 				OS.ThrowOnError (NativeMethods.Component_GetR0 (flags,
-										ObjectID,
+										Object.ID,
 										method,
 										ComponentID,
 										out value));

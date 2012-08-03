@@ -50,7 +50,7 @@ namespace riscos
 			public void SetFont (string fontID, int width, int height)
 			{
 				OS.ThrowOnError (NativeMethods.Component_SetFont (0,
-										  ObjectID,
+										  Object.ID,
 										  Method.SetFont,
 										  ComponentID,
 										  fontID,
@@ -65,7 +65,7 @@ namespace riscos
 				uint flags;
 
 				OS.ThrowOnError (NativeMethods.Component_GetR0 (0,
-										ObjectID,
+										Object.ID,
 										Method.GetFlags,
 										ComponentID,
 										out flags));
@@ -79,7 +79,7 @@ namespace riscos
 			public void SetFlags (uint clearWord, uint eorWord)
 			{
 				OS.ThrowOnError (NativeMethods.Component_SetR4R5 (0,
-										  ObjectID,
+										  Object.ID,
 										  Method.SetFlags,
 										  ComponentID,
 										  clearWord,

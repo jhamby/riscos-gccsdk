@@ -35,6 +35,41 @@ namespace riscos
 			AsNestedWindow
 		}
 
+		public static class Class
+		{
+			public const int Window = 0x82880;
+			public const int Menu = 0x828c0;
+			public const int Iconbar = 0x82900;
+			public const int ColourMenu = 0x82980;
+			public const int ColourDbox = 0x829c0;
+			public const int FontDbox = 0x82a00;
+			public const int FontMenu = 0x82a40;
+			public const int PrintDbox = 0x82b00;
+			public const int ProgInfo = 0x82b40;
+			public const int SaveAs = 0x82bc0;
+			public const int Scale = 0x82c00;
+			public const int FileDbox = 0x100180;
+		}
+
+		public static class EventHeaderOffset
+		{
+			public const int Size = 0;
+			public const int Ref = 4;
+			public const int EventCode = 8;
+			public const int Flags = 12;
+		}
+
+		public static class TemplateOffset
+		{
+			public const int Class = 0;
+			public const int Flags = 4;
+			public const int Version = 8;
+			public const int Name = 12;
+			public const int Size = 24;
+			public const int BodyOffset = 28;
+			public const int BodySize = 32;
+		}
+
 		/*! \exception UnknownObjectException
 		 * \brief Exception thrown by a Toolbox application when an object
 		 * with an ID that is unknown to the application is encountered.  */
@@ -87,14 +122,101 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Base object for the details of how an object is shown on screen.  */ 
+		public class ShowObjectSpec
+		{
+			public ShowObjectType Type;
+
+			public ShowObjectSpec (ShowObjectType type)
+			{
+				Type = type;
+			}
+		}
+
+		/*! \brief %Object used to specify/receive the full details of how an object is shown on screen.  */
+		public class ShowObjectFull : ShowObjectSpec
+		{
+			/*! \brief The visible area of the object to be shown.  */
+			public OS.Rect Visible;
+			/*! \brief The scroll offsets of the object to be shown.  */
+			public OS.Coord Scroll;
+			/*! \brief The position in the window stack that the object will be shown.  */
+			public uint StackPosition;
+
+			// The following are valid only for nested windows.
+			/*! \brief The window flags to used when nesting the window.  */
+			public uint WindowFlags;
+			/*! \brief The handle of the window in which to nest the one being shown.  */
+			public uint ParentWindowHandle;
+			/*! \brief Flags indicating how the nested window should be aligned with the parent.  */
+			public uint AlignmentFlags;
+
+			/*! \brief Create a full show object specification from the details given.
+			 *
+			 * Allows access to full window nesting parameters.  */
+			public ShowObjectFull (OS.Rect visible,
+					       OS.Coord scroll,
+					       uint stackPosition,
+					       uint windowFlags,
+					       uint parentWindowHandle,
+					       uint alignmentFlags) : base (ShowObjectType.FullSpec)
+			{
+				Visible = visible;
+				Scroll = scroll;
+				StackPosition = stackPosition;
+				WindowFlags = windowFlags;
+				ParentWindowHandle = parentWindowHandle;
+				AlignmentFlags = alignmentFlags;
+			}
+
+			/*! \brief Create a full show object specification from the details given.
+			 *
+			 * Assumes that window nesting is not required, and so assumes default values for
+			 * nesting parameters.  */
+			public ShowObjectFull (OS.Rect visible,
+					       OS.Coord scroll) : base (ShowObjectType.FullSpec)
+			{
+				Visible = visible;
+				Scroll = scroll;
+				StackPosition = Wimp.WindowStackPosition.Top;
+				WindowFlags = 0;
+				ParentWindowHandle = 0;
+				AlignmentFlags = 0;
+			}
+		}
+
+		/*! \brief A show object specification used to specify the top left hand corner of
+		 * an object to be shown on screen.  */
+		public class ShowObjectTopLeft : ShowObjectSpec
+		{
+			/*! \brief The top left hand corner of the object.  */
+			public OS.Coord TopLeft;
+
+			/*! \brief Create a show object specification from the details given.
+			 *
+			 * The top left hand corner of the object will be placed at the coordinate given.  */
+			public ShowObjectTopLeft (OS.Coord topLeft) : base (ShowObjectType.TopLeft)
+			{
+				TopLeft = topLeft;
+			}
+		}
+
 		public delegate void ToolboxEventHandler (object sender, ToolboxEventArgs args);
 
+		/*! \brief The base object of all Toolbox objects.  */
 		public class Object : IDisposable
 		{
 			public uint ID { get; protected set; }
 
+			/*! \brief A list of all event handlers for this Toolbox object.  */
 			public Dictionary<uint, ToolboxEventHandler> ToolboxHandlers = new Dictionary<uint, ToolboxEventHandler>();
 //			public event ToolboxEventHandler EventHandler;
+
+			/*! \brief A list of gadgets that we have an interest in within this Toolbox object.
+			 *
+			 * This doesn't necessarily contain all gadgets, just the ones that have been wrapped
+			 * because they need to be manipulated or have events associated with them.  */
+			public Dictionary<uint, Gadget> Gadgets = new Dictionary<uint, Gadget>();
 
 			private bool disposed = false;
 
@@ -185,9 +307,11 @@ namespace riscos
 				Show (0, -1);
 			}
 
-			public void Show (NativeToolbox.ShowObjectFullSpecBlock block,
-					  uint parentID, int parentCmp)
+			public void Show (ShowObjectFull spec, uint parentID, int parentCmp)
 			{
+				NativeToolbox.ShowObjectFullSpecBlock block =
+						new NativeToolbox.ShowObjectFullSpecBlock (spec);
+
 				OS.ThrowOnError (NativeMethods.Toolbox_ShowObject (0,
 										   ID,
 										   ShowObjectType.FullSpec,
@@ -196,9 +320,11 @@ namespace riscos
 										   parentCmp));
 			}
 
-			public void Show (NativeToolbox.ShowObjectTopLeftBlock block,
-					  uint parentID, int parentCmp)
+			public void Show (ShowObjectTopLeft spec, uint parentID, int parentCmp)
 			{
+				NativeToolbox.ShowObjectTopLeftBlock block =
+						new NativeToolbox.ShowObjectTopLeftBlock (spec);
+
 				OS.ThrowOnError (NativeMethods.Toolbox_ShowObject (0,
 										   ID,
 										   ShowObjectType.TopLeft,
@@ -222,12 +348,79 @@ namespace riscos
 				return (state & 1) != 0;
 			}
 
-			public void OnEvent (ToolboxEvent ev)
+			/*! \brief Query the Toolbox to find the class type of this Toolbox object.
+			 * \return The class type of the object.  */
+			public uint GetClass ()
+			{
+				return GetClass (ID);
+			}
+
+			/*! \brief Get the name of the template that this Toolbox object was created from.  */
+			public string TemplateName
+			{
+				get
+				{
+					int buffer_size;
+
+					OS.ThrowOnError (NativeMethods.Toolbox_GetTemplateName (0,
+												ID,
+												null,
+												0,
+												out buffer_size));
+					StringBuilder buffer = new StringBuilder (buffer_size);
+					OS.ThrowOnError (NativeMethods.Toolbox_GetTemplateName (0,
+												ID,
+												buffer,
+												buffer_size,
+												out buffer_size));
+					return buffer.ToString();
+				}
+			}
+
+			public virtual void Dispatch (ToolboxEvent ev)
 			{
 				ToolboxEventHandler handler;
 
 				if (ToolboxHandlers.TryGetValue (ev.ToolboxArgs.Header.EventCode, out handler))
 					handler (this, ev.ToolboxArgs);
+			}
+
+			/*! \brief Query the Toolbox to find the class type of the Toolbox object
+			 * with the given ID.
+			 * \param [in] ObjectID The Toolbox ID of the object.
+			 * \return The class type of the object.  */
+			public static uint GetClass (uint ObjectID)
+			{
+				uint class_type;
+
+				OS.ThrowOnError (NativeMethods.Toolbox_GetObjectClass (0, ObjectID, out class_type));
+
+				return class_type;
+			}
+
+			/*! \brief Check if the given Toolbox ID is already known to us and return the
+			 * wrapper for it if so. Otherwise, create a new wrapper based on its
+			 * Toolbox class type.
+			 * \param [in] ObjectID The Toolbox ID of the object.
+			 * \return The Object wrapper.
+			 * \exception UnknownObjectException Thrown when an unrecognised object class is
+			 * found.  */
+			public static Object LookupOrWrap (uint ObjectID)
+			{
+				Object obj;
+
+				if (ToolboxTask.AllObjects.TryGetValue (ObjectID, out obj))
+					return obj;
+
+				switch (GetClass (ObjectID))
+				{
+				case Class.Window:
+					return new Window (ObjectID);
+				case Class.Menu:
+					return new Menu (ObjectID);
+				default:
+					throw new UnknownObjectException (ObjectID);
+				}
 			}
 
 			//
@@ -309,8 +502,12 @@ namespace riscos
 		{
 			public NativeToolbox.EventHeader Header;
 
+			public IntPtr RawEventData;
+
 			public ToolboxEventArgs (IntPtr unmanaged_event_block)
 			{
+				RawEventData = unmanaged_event_block;
+
 				Header = (NativeToolbox.EventHeader)Marshal.PtrToStructure(
 						unmanaged_event_block, typeof(NativeToolbox.EventHeader));
 			}
@@ -379,7 +576,7 @@ namespace riscos
 					Toolbox.Object tb_obj;
 					if (ToolboxTask.AllObjects.TryGetValue (id_block.SelfID, out tb_obj))
 					{
-						tb_obj.OnEvent (event_full);
+						tb_obj.Dispatch (event_full);
 					}
 				}
 				break;

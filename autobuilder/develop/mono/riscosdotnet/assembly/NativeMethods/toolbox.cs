@@ -35,15 +35,14 @@ namespace riscos
 			public uint ParentWindowHandle;
 			public uint AlignmentFlags;
 
-			public ShowObjectFullSpecBlock (OS.Rect visible,
-							OS.Coord scroll)
+			public ShowObjectFullSpecBlock (Toolbox.ShowObjectFull spec)
 			{
-				Visible = new NativeOS.Rect (visible);
-				Scroll = new NativeOS.Coord (scroll);
-				BehindWindow = Wimp.WindowStackPosition.Top;
-				WindowFlags = 0;
-				ParentWindowHandle = 0;
-				AlignmentFlags = 0;
+				Visible = new NativeOS.Rect (spec.Visible);
+				Scroll = new NativeOS.Coord (spec.Scroll);
+				BehindWindow = spec.StackPosition;
+				WindowFlags = spec.WindowFlags;
+				ParentWindowHandle = spec.ParentWindowHandle;
+				AlignmentFlags = spec.AlignmentFlags;
 			}
 		}
 
@@ -52,9 +51,9 @@ namespace riscos
 		{
 			public NativeOS.Coord TopLeft;
 
-			public ShowObjectTopLeftBlock (OS.Coord topLeft)
+			public ShowObjectTopLeftBlock (Toolbox.ShowObjectTopLeft spec)
 			{
-				TopLeft = new NativeOS.Coord (topLeft);
+				TopLeft = new NativeOS.Coord (spec.TopLeft);
 			}
 		}
 
@@ -65,6 +64,20 @@ namespace riscos
 			public uint Ref;
 			public uint EventCode;
 			public uint Flags;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct ShowObjectFullSpecEvent
+		{
+			public EventHeader Header;
+			public ShowObjectFullSpecBlock Spec;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct ShowObjectTopLeftEvent
+		{
+			public EventHeader Header;
+			public ShowObjectTopLeftBlock Spec;
 		}
 	}
 
@@ -143,6 +156,16 @@ namespace riscos
 		internal static extern IntPtr Toolbox_TemplateLookUp (uint flags,
 								      string resName,
 								      out IntPtr templateOut);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_get_object_class")]
+		internal static extern IntPtr Toolbox_GetObjectClass (uint flags, uint objectID, out uint class_type);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_get_template_name")]
+		internal static extern IntPtr Toolbox_GetTemplateName (uint flags,
+								       uint ObjectID,
+								       StringBuilder buffer,
+								       int size,
+								       out int used);
 
 		// Toolbox Window SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_add_gadget")]

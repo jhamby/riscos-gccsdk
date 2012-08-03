@@ -58,7 +58,7 @@ namespace riscos
 			public void SetFont (string fontID, int width, int height)
 			{
 				OS.ThrowOnError (NativeMethods.Component_SetFont (0,
-										  ObjectID,
+										  Object.ID,
 										  Method.SetFont,
 										  ComponentID,
 										  fontID,
