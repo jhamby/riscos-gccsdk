@@ -1,3 +1,7 @@
+Fri Aug  3 04:01:08 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* netlib/accept.c (accept): Fix return value for SCL targets.
+
 Fri Jul 27 23:21:36 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am (libc_headers): Add err.h.

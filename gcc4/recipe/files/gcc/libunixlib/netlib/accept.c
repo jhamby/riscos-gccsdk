@@ -23,7 +23,8 @@ accept (int s, struct sockaddr *name, socklen_t *namelen)
 #ifdef __TARGET_SCL__
   if ((unsigned)s < __FD_SOCKET_OFFSET)
     return __set_errno (EBADF);
-  return _accept (s - __FD_SOCKET_OFFSET, name, namelen);
+  int nsd = _accept (s - __FD_SOCKET_OFFSET, name, namelen);
+  return nsd < 0 ? nsd : nsd + __FD_SOCKET_OFFSET;
 #else
   PTHREAD_UNSAFE_CANCELLATION
 
