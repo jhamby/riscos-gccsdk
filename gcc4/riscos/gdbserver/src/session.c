@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include <swis.h>
+#include <unixlib/local.h>
 
 #include "asmutils.h"
 #include "debug.h"
@@ -96,11 +97,11 @@ static session_bkpt *session_find_bkpt (session_ctx *ctx, uint32_t address);
 /* session tcp transport code: */
 static session_ctx *session_tcp_initialise (session_ctx *session);
 static void session_tcp_finalise (session_ctx *session);
-static int session_tcp_process_input (session_ctx *ctx, int socket);
+static int session_tcp_process_input (session_ctx *ctx, int rosocket);
 static void session_tcp_notify_closed (session_ctx *ctx);
 static size_t session_tcp_send_for_gdb (uintptr_t ctx, const uint8_t *data,
 					size_t len);
-static session_ctx *session_tcp_find_by_socket (int socket);
+static session_ctx *session_tcp_find_by_socket (int rosocket);
 
 void
 session_fini (void)
@@ -800,23 +801,24 @@ internet_event_handler (_kernel_swi_regs *r, void *pw __attribute__ ((unused)))
 }
 
 /**
+ * \param rosocket raw RISC OS socket number, not what you get with socket().
  * \return 0 to indicated we did some processing, non-0 to indicate
  * non-processing.
  */
 static int
-session_tcp_process_input (session_ctx *session, int socket)
+session_tcp_process_input (session_ctx *session, int rosocket)
 {
   if (session->type != SESSION_TCP)
     return 1;
 
-  if (socket == session->data.tcp.server)
+  if (rosocket == __get_ro_socket (session->data.tcp.server))
     {
       /* If it's a server socket, accept the connection and
 	 begin a new debug session with the client.  */
       if (session->data.tcp.client >= 0)
 	return 0;
 
-      session->data.tcp.client = socket_accept (socket);
+      session->data.tcp.client = socket_accept (session->data.tcp.server);
       if (session->data.tcp.client == -1)
 	return 0;
 
@@ -829,11 +831,8 @@ session_tcp_process_input (session_ctx *session, int socket)
 				     (uintptr_t) session);
       if (session->gdb == NULL)
 	return 0;
-
-      /* Use client socket for read */
-      socket = session->data.tcp.client;
     }
-  else if (socket != session->data.tcp.client)
+  else if (rosocket != __get_ro_socket (session->data.tcp.client))
     {
       dprintf ("session_tcp_process_input(): assert failed - socket mismatch\n");
       return 1;
@@ -842,7 +841,7 @@ session_tcp_process_input (session_ctx *session, int socket)
   /* If there's data on the socket, drive state machine.  */
   static uint8_t buf[1024];
   ssize_t read;
-  while ((read = socket_recv (socket, buf, sizeof (buf))) > 0)
+  while ((read = socket_recv (session->data.tcp.client, buf, sizeof (buf))) > 0)
     {
       dprintf ("-> %.*s\n", (int) read, (const char *)buf);
 
@@ -916,9 +915,9 @@ session_tcp_send_for_gdb (uintptr_t ctx, const uint8_t *data, size_t len)
 }
 
 static session_ctx *
-session_tcp_find_by_socket (int socket)
+session_tcp_find_by_socket (int rosocket)
 {
-  /* dprintf ("Want socket %d\n", socket); */
+  /* dprintf ("Want RISC OS socket %d\n", rosocket); */
 
   int i;
   for (i = 0; i < MAX_SESSIONS; i++)
@@ -928,8 +927,8 @@ session_tcp_find_by_socket (int socket)
 
       if (sessions[i].in_use
           && sessions[i].type == SESSION_TCP
-	  && (sessions[i].data.tcp.server == socket
-	      || sessions[i].data.tcp.client == socket))
+	  && (__get_ro_socket (sessions[i].data.tcp.server) == rosocket
+	      || __get_ro_socket (sessions[i].data.tcp.client) == rosocket))
 	break;
     }
   if (i == MAX_SESSIONS)

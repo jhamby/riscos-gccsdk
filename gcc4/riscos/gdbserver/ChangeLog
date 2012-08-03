@@ -1,3 +1,9 @@
+Fri Aug  3 04:03:16 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/session.c (session_tcp_process_input): Use __get_ro_socket as
+	required for GCCSDK 4.1.2 and later builds.
+	(session_tcp_find_by_socket): Likewise.
+
 Sun Sep 19 23:46:56 CEST 2010  John Tytgat  <John.Tytgat@aaug.net>
 
 	* TODO: Add item about AddCallBack use during debugee startup.
