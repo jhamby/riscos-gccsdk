@@ -94,7 +94,7 @@ public class Dialogue : Toolbox.Window
 
 		NumberRange = new Toolbox.NumberRange (this, CmpID.NumberRange);
 		NumberRange.Value = 1999;
-		NumberRange.ValueChange += OnValueChange;
+		NumberRange.ValueChange += OnNumberRangeValueChange;
 
 		StringSet = new Toolbox.StringSet (this, CmpID.StringSet);
 		StringSet.Available = "One,Two,Three,Four,Five";
@@ -103,6 +103,7 @@ public class Dialogue : Toolbox.Window
 		OptionButton = new Toolbox.OptionButton (this, CmpID.OptionButton);
 		OptionButton.Label = "Sugar";
 		OptionButton.CurrentState = Toolbox.OptionButton.State.On;
+		OptionButton.StateChange += OnOptionButtonStateChange;
 
 		Radio1 = new Toolbox.RadioButton (this, CmpID.Radio1);
 		Radio1.Label = "Coffee";
@@ -138,10 +139,18 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnValueChange (object sender, Toolbox.NumberRange.ValueChangeEventArgs e)
+	void OnNumberRangeValueChange (object sender, Toolbox.NumberRange.ValueChangeEventArgs e)
 	{
 		Reporter.WriteLine ("NumberRange returned ValueChange event.");
-		Reporter.WriteLine ("New value is {0}", e.NewValue);
+		Reporter.WriteLine ("New value is {0}.", e.NewValue);
+		Reporter.WriteLine ("");
+	}
+
+	void OnOptionButtonStateChange (object sender, Toolbox.OptionButton.StateChangeEventArgs e)
+	{
+		Reporter.WriteLine ("OptionButton returned StateChange event.");
+		Reporter.WriteLine ("New state is {0}.", e.NewState);
+		Reporter.WriteLine ("Mouse {0} button was used to change the state.", e.Select ? "Select" : "Adjust");
 		Reporter.WriteLine ("");
 	}
 }
