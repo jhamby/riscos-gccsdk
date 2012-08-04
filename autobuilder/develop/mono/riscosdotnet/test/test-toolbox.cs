@@ -94,6 +94,7 @@ public class Dialogue : Toolbox.Window
 
 		NumberRange = new Toolbox.NumberRange (this, CmpID.NumberRange);
 		NumberRange.Value = 1999;
+		NumberRange.ValueChange += OnValueChange;
 
 		StringSet = new Toolbox.StringSet (this, CmpID.StringSet);
 		StringSet.Available = "One,Two,Three,Four,Five";
@@ -134,6 +135,13 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("Default button = {0}", e.Default);
 		Reporter.WriteLine ("Cancel button = {0}", e.Cancel);
 		Reporter.WriteLine ("Local button = {0}", e.Local);
+		Reporter.WriteLine ("");
+	}
+
+	void OnValueChange (object sender, Toolbox.NumberRange.ValueChangeEventArgs e)
+	{
+		Reporter.WriteLine ("NumberRange returned ValueChange event.");
+		Reporter.WriteLine ("New value is {0}", e.NewValue);
 		Reporter.WriteLine ("");
 	}
 }
