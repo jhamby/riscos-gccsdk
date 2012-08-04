@@ -139,6 +139,10 @@ namespace riscos
 			{
 			}
 
+			public virtual void Dispatch (ToolboxEvent ev)
+			{
+			}
+
 			/* Generic functions that implement common methods used by gadgets.
 			 * Gadgets can use these to call their specific methods.  */
 			protected void SetText (int method, string text)

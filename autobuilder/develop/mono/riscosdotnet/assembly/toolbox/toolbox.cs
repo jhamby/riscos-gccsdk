@@ -576,6 +576,13 @@ namespace riscos
 					Toolbox.Object tb_obj;
 					if (ToolboxTask.AllObjects.TryGetValue (id_block.SelfID, out tb_obj))
 					{
+						Toolbox.Gadget tb_cmp;
+						if (id_block.SelfCmp != 0xffffffff &&
+						    tb_obj.Gadgets.TryGetValue (id_block.SelfCmp, out tb_cmp))
+						{
+							tb_cmp.Dispatch (event_full);
+						}
+
 						tb_obj.Dispatch (event_full);
 					}
 				}

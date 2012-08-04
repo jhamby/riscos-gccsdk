@@ -81,6 +81,7 @@ public class Dialogue : Toolbox.Window
 		CancelButton = new Toolbox.ActionButton (this, CmpID.CancelButton);
 		CancelButton.Text = "Cancel";
 		CancelButton.HelpMessage = "Help text set in CSharp";
+		CancelButton.Selected += OnCancel;
 
 		DisplayField = new Toolbox.DisplayField (this, CmpID.DisplayField);
 		DisplayField.Value = String.Format("{0:D}", DateTime.Now);
@@ -123,6 +124,17 @@ public class Dialogue : Toolbox.Window
 	void OnAboutToBeShown (object sender, Toolbox.Window.AboutToBeShownEventArgs e)
 	{
 		Reporter.WriteLine ("Dialogue about to be shown, show type = {0}", e.ShowSpec.Type);
+	}
+
+	void OnCancel (object sender, Toolbox.ActionButton.SelectedEventArgs e)
+	{
+		Reporter.WriteLine ("Cancel button was selected.");
+		Reporter.WriteLine ("Select clicked = {0}", e.SelectClicked);
+		Reporter.WriteLine ("Adjust clicked = {0}", e.AdjustClicked);
+		Reporter.WriteLine ("Default button = {0}", e.Default);
+		Reporter.WriteLine ("Cancel button = {0}", e.Cancel);
+		Reporter.WriteLine ("Local button = {0}", e.Local);
+		Reporter.WriteLine ("");
 	}
 }
 
