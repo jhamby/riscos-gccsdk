@@ -52,7 +52,7 @@ namespace riscos
 			}
 
 			/*! \brief The window/menu containing this gadget.  */
-			protected Toolbox.Object Object;
+			public Toolbox.Object Object { get; private set; }
 			/*! \brief The Toolbox ID of this gadget.  */
 			protected uint ComponentID;
 

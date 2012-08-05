@@ -107,10 +107,12 @@ public class Dialogue : Toolbox.Window
 
 		Radio1 = new Toolbox.RadioButton (this, CmpID.Radio1);
 		Radio1.Label = "Coffee";
+		Radio1.StateChange += OnRadioButtonStateChange;
 
 		Radio2 = new Toolbox.RadioButton (this, CmpID.Radio2);
 		Radio2.Label = "Tea";
 		Radio2.CurrentState = Toolbox.RadioButton.State.On;
+		Radio2.StateChange += OnRadioButtonStateChange;
 
 		Slider = new Toolbox.Slider (this, CmpID.Slider);
 		Slider.Value = 85;
@@ -126,6 +128,7 @@ public class Dialogue : Toolbox.Window
 	void OnAboutToBeShown (object sender, Toolbox.Window.AboutToBeShownEventArgs e)
 	{
 		Reporter.WriteLine ("Dialogue about to be shown, show type = {0}", e.ShowSpec.Type);
+		Reporter.WriteLine ("");
 	}
 
 	void OnCancel (object sender, Toolbox.ActionButton.SelectedEventArgs e)
@@ -151,6 +154,19 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("OptionButton returned StateChange event.");
 		Reporter.WriteLine ("New state is {0}.", e.NewState);
 		Reporter.WriteLine ("Mouse {0} button was used to change the state.", e.Select ? "Select" : "Adjust");
+		Reporter.WriteLine ("");
+	}
+
+	void OnRadioButtonStateChange (object sender, Toolbox.RadioButton.StateChangeEventArgs e)
+	{
+		// We're using the same handler for two buttons, so use the sender object to determine which
+		// one we've been called for.
+		Toolbox.RadioButton button = (Toolbox.RadioButton)sender;
+
+		Reporter.WriteLine ("RadioButton {0} returned StateChange event.", button.Label);
+		Reporter.WriteLine ("New state is {0}.", e.NewState);
+		Reporter.WriteLine ("Mouse {0} button was used to change the state.", e.Select ? "Select" : "Adjust");
+		Reporter.WriteLine ("Previously selected radio button was {0}.", e.Previous.Label);
 		Reporter.WriteLine ("");
 	}
 }
@@ -205,6 +221,7 @@ public class MyTask : ToolboxTask
 		Reporter.WriteLine ("Text = '{0}', Sprite = '{1}'", Iconbar.Text, Iconbar.Sprite);
 		Reporter.WriteLine ("SelectEvent = {0:X8}, AdjustEvent = {1:X8}", Iconbar.SelectEvent, Iconbar.AdjustEvent);
 		Reporter.WriteLine ("HelpMessage = '{0}'", Iconbar.HelpMessage);
+		Reporter.WriteLine ("");
 	}
 
 	public void Init ()
@@ -250,6 +267,7 @@ public class MyTask : ToolboxTask
 	private void QuitHandler (object sender, Toolbox.ToolboxEventArgs args)
 	{
 		Reporter.WriteLine ("Quit handler called - Exiting...");
+		Reporter.WriteLine ("");
 		Quit = true;
 	}
 
