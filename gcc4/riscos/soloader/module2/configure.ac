@@ -1,4 +1,4 @@
-AC_PREREQ(2.64)
+AC_PREREQ([2.64])
 AC_INIT([SOManager],[2.10],[http://gccsdk.riscos.info/])
 
 AC_PROG_CC

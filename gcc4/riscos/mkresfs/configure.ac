@@ -1,4 +1,4 @@
-AC_PREREQ(2.64)
+AC_PREREQ([2.64])
 AC_INIT([mkresfs],[1.04],[http://gccsdk.riscos.info/])
 
 AC_CONFIG_HEADERS([config.h])
