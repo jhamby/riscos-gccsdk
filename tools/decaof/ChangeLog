@@ -1,0 +1,113 @@
+2006-03-16 02:17  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c: Made decaof a little bit more robust against minimal AOF
+	files (i.e. not all chunks available).
+
+2005-10-09 21:05  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile: Moved some 'riscos-dist' work to here.
+
+2005-10-08 19:24  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decaof.h, decode.c: Better and more area attribute support.
+
+2005-10-08 12:10  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decaof.h, decode.c: Relocated the SOFTFLOAT AOF area attribute from
+	bit 27 to bit 31 as area bits 24 - 27 (incl) are already used for
+	specifying the 'base register for base area'.
+
+2005-08-10 00:25  John Tytgat  <John.Tytgat@aaug.net>
+
+	* main.c: Use __VERSION__ in version string too so that it is more
+	clear from which GCCSDK release the binaries come from.
+
+2005-07-23 21:33  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile: Move the #define of _GNU_SOURCE to the individual
+	riscos-aof projects which require this.
+
+2005-07-23 02:12  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decode.c, main.c:
+	- Output version string in an uniform way like done in as & drlink.
+	- Output 'fp args in fp regs' and 'thumb' symbol attributes (when
+	defined).
+	- 'fpargs' symbol attribute is 1<<9, not 1<<8.
+
+2005-07-14 22:40  John Tytgat  <John.Tytgat@aaug.net>
+
+	* COPYING, Makefile, README, decaof.h, decode.c, decode.h, error.c,
+	error.h, io.c, io.h, main.c, main.h, misc.c, misc.h:
+	- Andy Duplain relicenced decaof under GPL. Marked this in all source
+	files. Upon his request, also updated his E-mail address and removed
+	BT references.
+	- Added COPYING & README file.
+	- argv[0] has now Unix filename syntax because of a recent change in
+	UnixLib 4.2. Adjusted basename() implementation for this.
+	- io.c (read_aofhdr): was writing outside its allocated buffer.  Also
+	added a couple of sanity checks on AOF hdr contents.
+	- decode.c (decode): was reading outside its allocated buffer (oddly
+	enough at the same wrong places as written in read_aofhdr().
+	- Added missing AREA_ABSADDR value and used a few more AREA_* values in
+	print_area().
+	- Errors will result in EXIT_FAILURE exit value. Changed abort() calls
+	into exit(EXIT_FAILURE).
+	- Enabled inter-module analysis during stage2.
+	- Various smaller code cleanups.
+
+2005-05-31 21:34  John Tytgat  <John.Tytgat@aaug.net>
+
+	* config.h:
+	- Check for stricmp() existence: HAVE_STRICMP
+	- Indicate support cpu_type=POWERPC and os_type=DARWIN
+
+2005-05-13 11:22  Peter Naulls  <peter@chocky.org>
+
+	* decode.c: Support extra symbol flags.
+
+2005-05-11 07:55  Nick Burrett  <nick@sqrt.co.uk>
+
+	* misc.c, misc.h: Use local copy of 'basename' if system does not have
+	it.
+
+2005-05-10 21:24  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decaof.h, decode.c, decode.h, error.c, error.h, io.c, io.h, main.c,
+	main.h, misc.c, misc.h:
+	- Fixed cross build issues on big endian architectures.
+	- Fixed GCC 4.0 warnings.
+	- Add Copyright statement.
+
+2005-05-07 11:50  Nick Burrett  <nick@sqrt.co.uk>
+
+	* config.h: RISC OS local configuration information.
+
+2005-05-07 11:49  Nick Burrett  <nick@sqrt.co.uk>
+
+	* misc.c: Compile basename if not cross-compiling.
+
+2005-05-07 10:46  Nick Burrett  <nick@sqrt.co.uk>
+
+	* Makefile, cproto.h, decaof.h, decode.c, error.c, error.h, io.c, io.h,
+	main.c, misc.c, misc.h, mkendian.c: Portability improvements. Use
+	autoconf.
+
+2005-05-06 18:55  Peter Naulls  <peter@chocky.org>
+
+	* decaof.h: Fix for cygwin.
+
+2005-05-04 12:26  Peter Naulls  <peter@chocky.org>
+
+	* decode.c: Fix precedence.
+
+2005-04-29 21:00  Peter Naulls  <peter@chocky.org>
+
+	* decaof.h, decode.c: Add soft-float support to tools.
+
+2005-04-29 18:16  Peter Naulls  <peter@chocky.org>
+
+	* Makefile, cproto.h, decaof.h, decode.c, error.c, error.h, io.c, io.h,
+	main.c, main.h, misc.c, misc.h, mkendian.c: Build decaof for cross and
+	native.
+
