@@ -2,7 +2,7 @@
  * report errors and warnings
  *
  * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,25 +29,25 @@
 int nrerrs = 0;
 
 void
-error(char *fmt, ...)
+error (const char *fmt, ...)
 {
-	va_list ap;
-	va_start(ap, fmt);
-	fprintf(stderr, "%s error: ", ourname);
-	vfprintf(stderr, fmt, ap);
-	putc('\n', stderr);
-	va_end(ap);
+  va_list ap;
+  va_start (ap, fmt);
+  fprintf (stderr, PACKAGE " error: ");
+  vfprintf (stderr, fmt, ap);
+  putc ('\n', stderr);
+  va_end (ap);
 
-	++nrerrs;
+  ++nrerrs;
 }
 
 void
-warning(char *fmt, ...)
+warning (const char *fmt, ...)
 {
-	va_list ap;
-	va_start(ap, fmt);
-	fprintf(stderr, "%s warning: ", ourname);
-	vfprintf(stderr, fmt, ap);
-	putc('\n', stderr);
-	va_end(ap);
+  va_list ap;
+  va_start (ap, fmt);
+  fprintf (stderr, PACKAGE " warning: ");
+  vfprintf (stderr, fmt, ap);
+  putc ('\n', stderr);
+  va_end (ap);
 }

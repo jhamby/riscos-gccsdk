@@ -2,7 +2,7 @@
  * main function
  *
  * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
 #include "misc.h"
 #include "main.h"
 
-const char *ourname;		/* program name */
 const char **files;		/* list of files to decode */
 int nfiles;			/* number of files in **files */
 
@@ -49,99 +48,102 @@ static int gotarg = 0;		/* non-zero if some flags where entered */
 static void usage (void);
 
 int
-main(int argc, char **argv)
+main (int argc, char **argv)
 {
-	ourname = basename(*argv++);
-	argc--;
+  argv++;
+  argc--;
 
-	/*
-	 * parse args (can't use getopt() 'cos not all C libraries have it)
-	 */
-	while(argc) {
-		int donext = 0;
-		char *arg = *argv;
-		if (*arg == '-') {
-			char c;
-			while (!donext && !isspace(c = *++arg) && c) {
-				switch(c) {
-				case 'b':
-					area_dec++;
-					area_contents = 0;
-					debug = 0;
-					reloc_dir = 0;
-					symtab = 0;
-					strtab = 0;
-					gotarg++;
-					break;
-				case 'a':
-					area_contents++;
-					area_dec++;
-					gotarg++;
-					break;
-				case 'd':
-					area_dec++;
-					gotarg++;
-					break;
-				case 'r':
-					area_dec++;
-					reloc_dir++;
-					gotarg++;
-					break;
-				case 'g':
-					debug++;
-					gotarg++;
-					break;
-				case 's':
-					symtab++;
-					gotarg++;
-					break;
-				case 't':
-					strtab++;
-					gotarg++;
-					break;
-				default:
-					error("unknown option '%c'", c);
-					exit(EXIT_FAILURE);
-				}
-			}
-			argv++;
-			argc--;
-		} else
-			break;
+  /*
+   * parse args (can't use getopt() 'cos not all C libraries have it)
+   */
+  while (argc)
+    {
+      int donext = 0;
+      char *arg = *argv;
+      if (*arg == '-')
+	{
+	  char c;
+	  while (!donext && !isspace (c = *++arg) && c)
+	    {
+	      gotarg++;
+	      switch (c)
+		{
+		  case 'h':
+		    usage ();
+		    break;
+		  case 'b': /* brief */
+		  case 'd': /* full */
+		    area_dec++;
+		    break;
+		  case 'a':
+		    area_contents++;
+		    area_dec++;
+		    break;
+		  case 'r':
+		    reloc_dir++;
+		    area_dec++;
+		    break;
+		  case 'g':
+		    debug++;
+		    break;
+		  case 's':
+		    symtab++;
+		    break;
+		  case 't':
+		    strtab++;
+		    break;
+		  default:
+		    error ("unknown option '%c'", c);
+		    exit (EXIT_FAILURE);
+		}
+	    }
+	  argv++;
+	  argc--;
 	}
+      else
+	break;
+    }
 
-	if (!argc)
-		usage();
+  if (!argc)
+    usage ();
 
-	files = (const char **)argv;
-	nfiles = argc;
+  files = (const char **) argv;
+  nfiles = argc;
 
-	if (!gotarg) {
-		/* set-up default arguments */
-		area_dec++;
-		symtab++;
-		strtab++;
-	}
+  if (!gotarg)
+    {
+      /* Set-up default arguments : full option. */
+      area_contents++;
+      area_dec++;
+      reloc_dir++;
+      debug++;
+      symtab++;
+      strtab++;
+    }
 
-	decode();
-	return (nrerrs) ? EXIT_FAILURE : EXIT_SUCCESS;
+  decode ();
+  return (nrerrs) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 
 /*
  * display program usage and exit
  */
-static void usage(void)
+static void
+usage (void)
 {
-	fprintf(stderr, "Decode AOF files v2.00 (" __DATE__ ") [GCCSDK " __VERSION__ "]\n\n"
-			"Usage: %s [options] file [file...]\n"
-			"       where options are:\n"
-			"       -b print only the area declarations\n"
-			"       -a print area contents in hex\n"
-			"       -d print area declarations\n"
-			"       -r print relocation directives\n"
-			"       -g print debugging areas\n"
-			"       -s print symbol table\n"
-			"       -t print string table\n", ourname);
-	exit(EXIT_FAILURE);
+  fprintf (stderr,
+	   "GCCSDK Decode AOF files " VERSION " (r" GCCSDK_REVISION ", " __DATE__ ")\n"
+	   "\n"
+	   "Usage: " PACKAGE " [options] file [file...]\n"
+	   "\n"
+	   "where options are:\n"
+	   "       -b print only the area declarations\n"
+	   "       -a print area contents in hex\n"
+	   "       -d print area declarations\n"
+	   "       -r print relocation directives\n"
+	   "       -g print debugging areas\n"
+	   "       -s print symbol table\n"
+	   "       -t print string table\n");
+  exit (EXIT_FAILURE);
 }

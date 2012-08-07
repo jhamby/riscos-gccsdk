@@ -2,7 +2,7 @@
  * miscellaneous functions
  *
  * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,42 +22,21 @@
 #include "config.h"
 
 #include <stdio.h>
-#ifdef HAVE_STRING_H
 #include <string.h>
-#elif HAVE_STRINGS_H
-#include <strings.h>
-#endif
 
 #include "decaof.h"
 #include "misc.h"
 
 /*
- * return last element in pathname
- */
-#ifndef HAVE_BASENAME
-char *
-basename(char *s)
-{
-	char *cptr = s + strlen(s);
-	while (cptr > s) {
-		if (*cptr == '/')
-			return(++cptr);
-		cptr--;
-	}
-	return (s);
-}
-#endif
-
-/*
  * locate a chunk entry by chunk ID
  */
 struct chunkent *
-find_ent(struct chunkhdr *hdr, struct chunkent *ents, const char *name)
+find_ent (struct chunkhdr *hdr, struct chunkent *ents, const char *name)
 {
-	int i;
+  int i;
 
-	for (i = 0; i < hdr->numchunks; i++)
-		if (memcmp(ents[i].chunkid, name, 8) == 0)
-			return (&ents[i]);
-	return (NULL);
+  for (i = 0; i < hdr->numchunks; i++)
+    if (memcmp (ents[i].chunkid, name, 8) == 0)
+      return (&ents[i]);
+  return (NULL);
 }

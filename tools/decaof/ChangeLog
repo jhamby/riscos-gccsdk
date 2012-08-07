@@ -1,3 +1,10 @@
+Wed Aug  8 00:51:00 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* error.c, error.h, misc.c, misc.h, io.c, io.h, decode.c, main.c,
+	main.h, decaof.h: Reindent, cleanup.
+	* config.h, Makefile: Remove.
+	* configure.ac, Makefile.am: Add.
+
 2006-03-16 02:17  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c: Made decaof a little bit more robust against minimal AOF

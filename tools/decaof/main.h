@@ -2,7 +2,7 @@
  * global variable declarations
  *
  * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
 #ifndef MAIN_HEADER_INCLUDED
 #define MAIN_HEADER_INCLUDED
 
-extern const char *ourname;
 extern const char **files;
 extern int nfiles;
 extern short area_contents;

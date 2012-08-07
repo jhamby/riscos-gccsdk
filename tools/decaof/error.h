@@ -2,7 +2,7 @@
  * error/warning report function prototypes
  *
  * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,7 +26,9 @@
 
 extern int nrerrs;
 
-extern void error (char *fmt, ...);
-extern void warning (char *fmt, ...);
+extern void error (const char *fmt, ...)
+  __attribute__ ((__format__ (__printf__, 1, 2)));
+extern void warning (const char *fmt, ...)
+  __attribute__ ((__format__ (__printf__, 1, 2)));
 
 #endif

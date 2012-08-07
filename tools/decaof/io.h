@@ -2,7 +2,7 @@
  * file input/output function prototypes
  *
  * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,15 +24,22 @@
 
 #include <stdio.h>
 
-extern Ferror check_stream(FILE *fp);
-extern Byte read_byte(FILE *ifp);
-extern Halfword read_halfword(FILE *ifp);
-extern Word read_word(FILE *ifp);
-extern int free_chunk_memory (void *ptr);
+typedef struct
+{
+  uint32_t size;
+  char str[];
+} aof_obj_strt;
+
+extern Ferror check_stream (FILE *fp);
+extern Byte read_byte (FILE *ifp);
+extern Halfword read_halfword (FILE *ifp);
+extern Word read_word (FILE *ifp);
+extern void free_chunk_memory (const void *ptr);
 extern struct chunkhdr *read_chunkhdr (FILE *ifp);
 extern struct chunkent *read_chunkents (FILE *ifp, struct chunkhdr *hdr);
-extern char *read_stringtab (FILE *ifp, struct chunkent *strent);
-extern struct symbol *read_symboltab (FILE *ifp, struct chunkent *strent, int numsyms);
+extern const aof_obj_strt *read_stringtab (FILE *ifp, struct chunkent *strent);
+extern struct symbol *read_symboltab (FILE *ifp, struct chunkent *strent,
+				      int numsyms);
 extern char *read_ident (FILE *ifp, struct chunkent *ident);
 extern struct aofhdr *read_aofhdr (FILE *ifp, struct chunkent *hdrent);
 extern struct reloc *read_reloc (FILE *ifp);

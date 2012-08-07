@@ -2,7 +2,7 @@
  * miscellaneous function prototypes
  *
  * Copyright (c) 1992 Andy Duplain, andy.duplain@dsl.pipex.com
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,7 @@
 #ifndef MISC_HEADER_INCLUDED
 #define MISC_HEADER_INCLUDED
 
-#ifndef HAVE_BASENAME
-extern char *basename (char *s);
-#endif
-
 extern struct chunkent *find_ent (struct chunkhdr *hdr,
-				  struct chunkent *ents,
-				  const char *name);
+				  struct chunkent *ents, const char *name);
 
 #endif
