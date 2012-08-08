@@ -1,6 +1,6 @@
 # $Id: Makefile 2069 2011-10-26 15:53:48Z jkoshy $
 
-TOP=	..
+TOP=	${.CURDIR}/..
 
 PROG=	findtextrel
 SRCS=	findtextrel.c

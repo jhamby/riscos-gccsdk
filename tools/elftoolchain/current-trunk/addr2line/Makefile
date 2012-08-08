@@ -1,6 +1,6 @@
 # $Id: Makefile 2066 2011-10-26 15:40:28Z jkoshy $
 
-TOP=	..
+TOP=	${.CURDIR}/..
 
 PROG=	addr2line
 SRCS=	addr2line.c

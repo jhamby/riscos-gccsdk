@@ -1,6 +1,6 @@
 # $Id: Makefile 2289 2011-12-04 07:11:47Z jkoshy $
 
-TOP=	..
+TOP=	${.CURDIR}/..
 
 PROG=	elfdump
 WARNS?=	6

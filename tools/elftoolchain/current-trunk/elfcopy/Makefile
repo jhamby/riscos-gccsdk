@@ -1,6 +1,6 @@
 # $Id: Makefile 2290 2011-12-04 07:20:46Z jkoshy $
 
-TOP=	..
+TOP=	${.CURDIR}/..
 
 PROG=	elfcopy
 
