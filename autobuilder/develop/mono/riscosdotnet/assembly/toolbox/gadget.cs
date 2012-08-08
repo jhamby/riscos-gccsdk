@@ -28,9 +28,11 @@ namespace riscos
 				public const int GetBBox = 72;
 			}
 
-			public static class Flags
+			/*! \brief The flags that can be applied to all types of gadget.  */
+			public static class GadgetFlags
 			{
-				public const uint Faded = ((uint)1 << 31);
+				public const uint CreatedFirst = (1 << 30);
+				public const uint Faded = (1U << 31);
 			}
 
 			public static class ComponentType
@@ -70,18 +72,26 @@ namespace riscos
 				Object.Gadgets.Remove (ComponentID);
 			}
 
+			/*! \brief Gets the flags for this gadget. The available flags are
+			 * dependent on the type of gadget.  */
+			public uint Flags
+			{
+				get { return CallMethod_GetR0 (Method.GetFlags); }
+				// Only the faded flag can usefully be changed. Modifying the other
+				// flags is undefined, so allow only the Faded property write access.
+				private set { CallMethod_SetR4 (Method.SetFlags, value); }
+			}
+
 			/*! \brief Determines whether the gadget is faded or not.  */
 			public virtual bool Faded
 			{
-				get { return (CallMethod_GetR0 (Method.GetFlags) & Flags.Faded) != 0; }
+				get { return (Flags & GadgetFlags.Faded) != 0; }
 				set
 				{
-					uint flags = CallMethod_GetR0 (Method.GetFlags);
-					if (value)
-						flags |= Flags.Faded;
-					else
-						flags &= ~Flags.Faded;
-					CallMethod_SetR4 (Method.SetFlags, flags);
+					uint flags = Flags;
+					Flags = value ?
+						flags | GadgetFlags.Faded :
+						flags &= ~GadgetFlags.Faded;
 				}
 			}
 
