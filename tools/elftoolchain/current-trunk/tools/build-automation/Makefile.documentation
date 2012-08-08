@@ -1,0 +1,20 @@
+# $Id: Makefile.documentation 2459 2012-03-10 17:17:35Z jkoshy $
+# -*- mode: makefile -*-
+#
+# Convert a literate program to human-readable documentation.
+
+DOC=		build-system
+SRCS=		${DOC}.tex
+
+CLEANFILES+=	${SRCS}
+
+# By passing the complete literate program as input to 'noweave', we
+# avoid noweb's limitation on chunk names having file scope.
+${DOC}.tex:	 ${DOC}.pre.nw ${NW_SRCS} ${DOC}.post.nw
+	cat ${.ALLSRC} | noweave -delay -index | cpif ${.TARGET}
+
+# Silently ignore the 'test' target.
+test:	.PHONY
+	@true
+
+.include "${TOP}/mk/elftoolchain.tex.mk"

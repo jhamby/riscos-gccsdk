@@ -1,5 +1,9 @@
+Wed Aug  8 02:37:28 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk: Add upstream-trunk r2539 copy.
+
 Wed Aug  8 02:30:42 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
-	* .: Add SF elftoolchain trunk VCS link.
+	* . (upstream-trunk): Add SF elftoolchain trunk VCS link.
 	* ChangeLog, README, Makefile.in: Add.
 

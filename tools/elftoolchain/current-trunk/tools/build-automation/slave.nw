@@ -1,0 +1,16 @@
+% $Id: slave.nw 2461 2012-03-11 10:15:00Z jkoshy $
+%
+% The build slave.
+
+\chapter{The Build Slave}\label{chap.slave}
+
+% ... stub.
+<<slave.c>>=
+int
+main(int argc, char **argv)
+{
+  return (0);
+}
+@ %def main
+
+% End-of-file.
