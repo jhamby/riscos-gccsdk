@@ -15,6 +15,7 @@ SUBDIR += libdwarf
 SUBDIR += libelftc
 
 # Build tools after the libraries.
+.if ! defined(MKTOOLS) || ${MKTOOLS} == "yes"
 SUBDIR += addr2line
 SUBDIR += ar
 SUBDIR += brandelf
@@ -26,6 +27,7 @@ SUBDIR += nm
 SUBDIR += readelf
 SUBDIR += size
 SUBDIR += strings
+.endif
 
 # Build the test suites.
 .if exists(${.CURDIR}/test) && defined(MKTESTS) && ${MKTESTS} == "yes"
