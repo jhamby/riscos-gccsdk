@@ -1,3 +1,8 @@
+Wed Aug  8 02:52:06 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk/common/_elftc.h: Support RISC OS cross-compiler.
+	* current-trunk/libelf/_libelf_config.h: Likewise.
+
 Wed Aug  8 02:48:04 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/addr2line/Makefile (TOP): Use .CURDIR.

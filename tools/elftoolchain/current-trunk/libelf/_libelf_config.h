@@ -145,6 +145,19 @@
 
 #endif
 
+/* LIBELF_* can be determined cross-compile friendly.  */
+#if defined(__arm__)
+
+#define	LIBELF_ARCH		EM_ARM
+#if	defined(__ARMEB__)	/* Big-endian ARM. */
+#define	LIBELF_BYTEORDER	ELFDATA2MSB
+#else
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#endif
+#define	LIBELF_CLASS		ELFCLASS32
+
+#else
+
 /*
  * GNU & Linux compatibility.
  *
@@ -175,3 +188,6 @@
 #endif
 
 #endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
+
+#endif /* defined(__arm__) */
+

@@ -244,6 +244,9 @@ struct name {							\
 #endif	/* __GNUC__ */
 #endif
 
+#if defined(__riscos__)
+#define	ELFTC_VCSID(ID)		__asm__(".ident\t\"" ID "\"")
+#endif /* __riscos__ */
 #endif	/* ELFTC_VCSID */
 
 /*
@@ -262,7 +265,7 @@ struct name {							\
 #endif	/* __DragonFly__ || __FreeBSD__ || __minix || __NetBSD__ */
 
 
-#if defined(__GLIBC__)
+#if defined(__GLIBC__) || defined(__riscos__)
 
 /*
  * GLIBC based systems have a global 'char *' pointer referencing
