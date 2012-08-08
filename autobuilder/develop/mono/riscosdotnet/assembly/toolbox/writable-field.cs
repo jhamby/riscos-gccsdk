@@ -5,6 +5,8 @@
 //
  
 using System;
+using System.Text;
+using System.Runtime.InteropServices;
 
 namespace riscos
 {
@@ -28,6 +30,46 @@ namespace riscos
 			{
 				public const uint ValueChanged = 0x82885;
 			}
+
+			/*! \brief An object that encapsulates the arguments for the event that is raised when the
+			 * value of a WritableField changes.  */
+			public class ValueChangeEventArgs : ToolboxEventArgs
+			{
+				/*! \brief Constant defining event specific data offset after the header.  */
+				public static class EventOffset
+				{
+					public const int NewValue = 16;
+				}
+
+				// FIXME: Using the string type is very inefficient as every single change to
+				// the writable will allocate a new string leaving the GC to collect the old
+				// one. Would be better if a StringBuilder could be used, but there doesn't
+				// seem to be a way to marshal to a StringBuilder except as a function
+				// parameter in a native method.
+				public string NewValue;
+
+				public ValueChangeEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
+				{
+					NewValue = Marshal.PtrToStringAnsi (new IntPtr (unmanagedEventBlock.ToInt32 () +
+											EventOffset.NewValue));
+				}
+			}
+
+			/*! \brief The signature of a ValueChange event handler.  */
+			public delegate void ValueChangeEventHandler (object sender, ValueChangeEventArgs e);
+
+			/*! \brief The event handlers that will be called when the value of this Writable
+			 * changes.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ValueChangeEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * WritableObject.ValueChange += handler_name;
+			 * \endcode  */
+			public event ValueChangeEventHandler ValueChange;
 
 			/*! \brief Wrap an existing writable field, e.g., from a Resource file created
 			 * Window.  */
@@ -64,6 +106,14 @@ namespace riscos
 										  fontID,
 										  width,
 										  height));
+			}
+
+			public override void Dispatch (ToolboxEvent ev)
+			{
+				if (ev.ToolboxArgs.Header.EventCode == EventCode.ValueChanged && ValueChange != null)
+				{
+					ValueChange (this, new ValueChangeEventArgs (ev.ToolboxArgs.RawEventData));
+				}
 			}
 		}
 	}

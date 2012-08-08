@@ -24,17 +24,29 @@ public class MainMenu : Toolbox.Menu
 	public class Cmp
 	{
 		public const uint Quit = 0;
+		public const uint Faded = 1;
+		public const uint SubMenu = 2;
 	}
 
 	public Toolbox.MenuEntry QuitEntry;
+	public Toolbox.MenuEntry FadedEntry;
+	public Toolbox.MenuEntry SubMenuEntry;
 
-	public MainMenu () : base ("MainMenu")
+	public MainMenu (MyTask task) : base ("MainMenu")
 	{
 		Title = "MonoTestTB";
 		QuitEntry = new Toolbox.MenuEntry (this, Cmp.Quit);
 		QuitEntry.Text = "Quit";
-		QuitEntry.ClickEvent = MyTask.MyEvent.Quit;
+		QuitEntry.Selection += task.QuitHandler;
 		QuitEntry.HelpMessage = "Exits the application";
+
+		FadedEntry = new Toolbox.MenuEntry (this, Cmp.Faded);
+		FadedEntry.Text = "Faded";
+		FadedEntry.Faded = true;
+
+		SubMenuEntry = new Toolbox.MenuEntry (this, Cmp.SubMenu);
+		SubMenuEntry.Text = "SubMenu";
+		SubMenuEntry.SubMenu += task.SubMenuHandler;
 	}
 }
 
@@ -91,6 +103,7 @@ public class Dialogue : Toolbox.Window
 		WritableField.Value = "CSharp";
 		WritableField.Allowable = "A-Za-z0-9 ";
 		WritableField.SetFont ("Trinity.Medium.Italic", 12 << 4, 12 << 4);
+		WritableField.ValueChange += OnWritableFieldValueChange;
 
 		NumberRange = new Toolbox.NumberRange (this, CmpID.NumberRange);
 		NumberRange.Value = 1999;
@@ -169,6 +182,13 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("Previously selected radio button was {0}.", e.Previous.Label);
 		Reporter.WriteLine ("");
 	}
+
+	void OnWritableFieldValueChange (object sender, Toolbox.WritableField.ValueChangeEventArgs e)
+	{
+		Reporter.WriteLine ("WritableField returned ValueChange event.");
+		Reporter.WriteLine ("New value is '{0}'.", e.NewValue);
+		Reporter.WriteLine ("");
+	}
 }
 
 public class MyTask : ToolboxTask
@@ -186,14 +206,6 @@ public class MyTask : ToolboxTask
 		public const uint IconbarSelect = 0x100;
 		public const uint IconbarAdjust = 0x101;
 		public const uint Quit = 0x9999;
-	}
-
-	void InitMainMenu ()
-	{
-		// Create a menu for the Iconbar icon.
-		main_menu = new MainMenu ();
-		// Add a handler that will act on the raised Quit event when it occurs.
-		main_menu.ToolboxHandlers.Add (MyEvent.Quit, QuitHandler);
 	}
 
 	void InitIconBar ()
@@ -233,7 +245,8 @@ public class MyTask : ToolboxTask
 		// discard them after initialisation.
 		Initialise (350, mess_list, event_list, "<MonoTestTB$Dir>");
 
-		InitMainMenu ();
+		main_menu = new MainMenu (this);
+
 		InitIconBar();
 
 		MainFont = new Font.Instance ("Trinity.Medium", 24 << 4, 24 << 4);
@@ -264,7 +277,7 @@ public class MyTask : ToolboxTask
 				0); // Length ignored (paint whole string) if bit 7 of flags not set
 	}
 
-	private void QuitHandler (object sender, Toolbox.ToolboxEventArgs args)
+	public void QuitHandler (object sender, Toolbox.ToolboxEventArgs args)
 	{
 		Reporter.WriteLine ("Quit handler called - Exiting...");
 		Reporter.WriteLine ("");
@@ -283,6 +296,13 @@ public class MyTask : ToolboxTask
 	private void IconbarAdjustHandler (object sender, Toolbox.ToolboxEventArgs args)
 	{
 		dialogue.Show ();
+	}
+
+	public void SubMenuHandler (object sender, Toolbox.MenuEntry.SubMenuEventArgs e)
+	{
+		Reporter.WriteLine ("SubMenuEvent received.");
+		Reporter.WriteLine ("Submenu would be opened at coordinate ({0},{1}).", e.Position.X, e.Position.Y);
+		Reporter.WriteLine ("");
 	}
 }
 
