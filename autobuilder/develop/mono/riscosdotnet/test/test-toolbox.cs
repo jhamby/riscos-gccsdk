@@ -186,7 +186,13 @@ public class Dialogue : Toolbox.Window
 	void OnWritableFieldValueChange (object sender, Toolbox.WritableField.ValueChangeEventArgs e)
 	{
 		Reporter.WriteLine ("WritableField returned ValueChange event.");
-		Reporter.WriteLine ("New value is '{0}'.", e.NewValue);
+		if (e.StringTooLong)
+		{
+			// This can't actually happen in this example, but we should still check.
+			Reporter.WriteLine ("Could not read new value, string was too long.");
+		}
+		else
+			Reporter.WriteLine ("New value is '{0}'.", e.NewValue);
 		Reporter.WriteLine ("");
 	}
 }

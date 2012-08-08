@@ -41,15 +41,26 @@ namespace riscos
 					public const int NewValue = 16;
 				}
 
+				public static class Flags
+				{
+					public const int StringTooLong = (1 << 0);
+				}
+
 				// FIXME: Using the string type is very inefficient as every single change to
 				// the writable will allocate a new string leaving the GC to collect the old
 				// one. Would be better if a StringBuilder could be used, but there doesn't
 				// seem to be a way to marshal to a StringBuilder except as a function
 				// parameter in a native method.
-				public string NewValue;
+				public readonly string NewValue;
 
+				/*! \brief \e true if the text string was too long to fit into the WIMP event
+				 * block. */
+				public readonly bool StringTooLong;
+
+				/*! \brief Create the arguments for a ValueChange event from the raw event data.  */
 				public ValueChangeEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 				{
+					StringTooLong = (Header.Flags & Flags.StringTooLong) != 0;
 					NewValue = Marshal.PtrToStringAnsi (new IntPtr (unmanagedEventBlock.ToInt32 () +
 											EventOffset.NewValue));
 				}
