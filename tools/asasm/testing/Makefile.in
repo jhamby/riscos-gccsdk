@@ -33,13 +33,13 @@
 # and RUNOPTREF is used for respectively generate teh actual and refernece output.
 
 # Environment variables needed in one of the tests:
-export HDR_PATH := $(CURDIR)/tests_pass/include/hdr
+export HDR_PATH := @srcdir@/tests_pass/include/hdr
 export APCS := APCS-32
 
 # EXTENSION enables extra tests for functionality ASASM has but ObjAsm hasn't.
 
-AS := asasm
-ASFLAGS := -aof -PD "EXTENSION SETL {TRUE}"
+AS := @top_builddir@/src/asasm
+ASFLAGS := -i @srcdir@ -aof -PD "EXTENSION SETL {TRUE}"
 DIFF := diff
 DIFFFLAGS := -q
 ECHO := echo
@@ -49,45 +49,39 @@ MKDIR := mkdir
 V := @
 
 check_PROGRAMS_PASS := \
-	$(wildcard option_apcs/*.s) \
-	$(wildcard option_cpu/*.s) \
-	$(wildcard option_device/*.s) \
-	$(wildcard option_fpu/*.s) \
-	$(wildcard tests_pass/*.s)
-check_PROGRAMS_FAIL := \
-	$(wildcard tests_fail/*.s)
-ref_PROGRAMS = \
-	$(check_PROGRAMS_PASS:option_apcs/%.s=output_reference/%.o) \
-	$(check_PROGRAMS_PASS:option_cpu/%.s=output_reference/%.o) \
-	$(check_PROGRAMS_PASS:option_device/%.s=output_reference/%.o) \
-	$(check_PROGRAMS_PASS:option_fpu/%.s=output_reference/%.o) \
-	$(check_PROGRAMS_FAIL:tests_fail/%.s=output_reference/%.o) \
-	$(check_PROGRAMS_PASS:tests_pass/%.s=output_reference/%.o)
-act_PROGRAMS = \
-	$(check_PROGRAMS_PASS:option_apcs/%.s=output_actual/%.o) \
-	$(check_PROGRAMS_PASS:option_cpu/%.s=output_actual/%.o) \
-	$(check_PROGRAMS_PASS:option_device/%.s=output_actual/%.o) \
-	$(check_PROGRAMS_PASS:option_fpu/%.s=output_actual/%.o) \
-	$(check_PROGRAMS_PASS:tests_pass/%.s=output_actual/%.o)
+	$(notdir $(wildcard @srcdir@/option_apcs/*.s) \
+		 $(wildcard @srcdir@/option_cpu/*.s) \
+		 $(wildcard @srcdir@/option_device/*.s) \
+		 $(wildcard @srcdir@/option_fpu/*.s) \
+		 $(wildcard @srcdir@/tests_pass/*.s))
+act_PROGRAMS := \
+	$(check_PROGRAMS_PASS:%.s=./output_actual/%.o)
 
-VPATH = option_apcs:option_cpu:option_device:option_fpu:tests_pass:tests_fail
+VPATH = @srcdir@/option_apcs:@srcdir@/option_cpu:@srcdir@/option_device:@srcdir@/option_fpu:@srcdir@/tests_pass
 
-.PHONY: all clean
+.PHONY: all check clean
+.SUFFIXES:
+.SUFFIXES: .o .s
 
-all: $(act_PROGRAMS)
-	@$(ECHO) "*** All tests were OK (do 'make clean' if you want to re-do them)"
+# To avoid these being treated as intermediate files which need to be deleted.
+.SECONDARY: $(act_PROGRAMS:./output_actual/%.o=./output_reference/%.o)
+
+all:
+
+check: $(act_PROGRAMS)
+	@$(ECHO) "*** All tests were OK (do 'make -C @abs_builddir@ clean' first if you want to re-do them)"
 
 clean:
-	-rm -fr output_actual
-	-rm -fr output_reference
+	-rm -fr @builddir@/output_actual
+	-rm -fr @builddir@/output_reference
 
-output_actual/%.o: %.s output_reference/%.o Makefile
+@builddir@/output_actual/%.o: %.s @builddir@/output_reference/%.o
 	@$(ECHO) +++ $< : Assemble actual and compare with reference
 	$(V)$(MKDIR) -p output_actual
 	$(V)$(AS) $(ASFLAGS) $(shell head -5 $< | grep -E "RUNOPT(ACT|):" | sed -r -e "s/^.*RUNOPT(ACT|)://") -PD "REFERENCE SETL {FALSE}" -o $@ $<
 	$(V)$(DIFF) $(DIFFFLAGS) $@ $(@:output_actual/%=output_reference/%) || (mv $@ $(@:%.o=%_failed.o) && false)
 
-output_reference/%.o: %.s Makefile
+@builddir@/output_reference/%.o: %.s
 	@$(ECHO) +++ $< : Create reference $@
 	$(V)$(MKDIR) -p output_reference
 	$(V)$(AS) $(ASFLAGS) $(shell head -5 $< | grep -E "RUNOPT(REF|):" | sed -r -e "s/^.*RUNOPT(REF|)://") -PD "REFERENCE SETL {TRUE}" -o $@ $<

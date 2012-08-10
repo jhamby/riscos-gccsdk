@@ -1,7 +1,9 @@
 AC_PREREQ([2.64])
 AC_INIT([asasm],[2.01],[http://gccsdk.riscos.info/])
 
+AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_SUBDIRS([decaof])
 
 AC_PROG_CC
 
@@ -13,5 +15,5 @@ AC_CHECK_HEADERS([stddef.h stdint.h stdlib.h string.h])
 AC_C_BIGENDIAN
 AC_C_CONST
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile testing/Makefile elftoolchain/Makefile])
 AC_OUTPUT
