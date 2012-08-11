@@ -153,6 +153,22 @@ namespace riscos
 			{
 			}
 
+			/*! \brief Get the type of an unknown gadget.
+			 * \param [in] The Toolbox ID of the object.
+			 * \param [in] The Toolbox ID of the gadget component.
+			 * \return The type of the given gadget.  */
+			public static uint GetType (uint ObjectID, uint cmpID)
+			{
+				uint type;
+
+				OS.ThrowOnError (NativeMethods.Component_GetR0 (0,
+										ObjectID,
+										Method.GetType,
+										cmpID,
+										out type));
+				return type;
+			}
+
 			/* Generic functions that implement common methods used by gadgets.
 			 * Gadgets can use these to call their specific methods.  */
 			protected void SetText (int method, string text)
@@ -224,7 +240,7 @@ namespace riscos
 
 			protected void CallMethod_SetR4 (uint flags, int method, uint r4)
 			{
-				OS.ThrowOnError (NativeMethods.Component_SetR4 (0,
+				OS.ThrowOnError (NativeMethods.Component_SetR4 (flags,
 										Object.ID,
 										method,
 										ComponentID,
@@ -243,7 +259,12 @@ namespace riscos
 
 			protected void CallMethod_GetR0R1 (int method, out uint r0, out uint r1)
 			{
-				OS.ThrowOnError (NativeMethods.Component_GetR0R1 (0,
+				CallMethod_GetR0R1 (0, method, out r0, out r1);
+			}
+
+			protected void CallMethod_GetR0R1 (uint flags, int method, out uint r0, out uint r1)
+			{
+				OS.ThrowOnError (NativeMethods.Component_GetR0R1 (flags,
 										  Object.ID,
 										  method,
 										  ComponentID,
