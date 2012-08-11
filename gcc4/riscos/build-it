@@ -107,8 +107,19 @@ for roapp in asasm cmunge elf2aif ln mkresfs ; do
           ;;
       esac
     fi
+    # Determine make target to build & install.
+    case $roapp in
+      asasm)
+        MAKETARGET=install-minimum
+        ;;
+      *)
+        MAKETARGET=install
+        ;;
+    esac
     $GCCSDK_RISCOS/$roapp/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS
-    make $GCCSDK_MAKE_ARGS install
+    make $GCCSDK_MAKE_ARGS $MAKETARGET
+  else
+    echo +++ NOT building $roapp as it already exists
   fi
 done
 
