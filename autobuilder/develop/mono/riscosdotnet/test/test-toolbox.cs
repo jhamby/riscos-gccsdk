@@ -112,6 +112,8 @@ public class Dialogue : Toolbox.Window
 		StringSet = new Toolbox.StringSet (this, CmpID.StringSet);
 		StringSet.Available = "One,Two,Three,Four,Five";
 		StringSet.SelectedString = "Three";
+		StringSet.ValueChange += OnStringSetValueChange;
+		StringSet.AboutToBeShown += OnStringSetAboutToBeShown;
 
 		OptionButton = new Toolbox.OptionButton (this, CmpID.OptionButton);
 		OptionButton.Label = "Sugar";
@@ -193,6 +195,25 @@ public class Dialogue : Toolbox.Window
 		}
 		else
 			Reporter.WriteLine ("New value is '{0}'.", e.NewValue);
+		Reporter.WriteLine ("");
+	}
+
+	void OnStringSetValueChange (object sender, Toolbox.StringSet.ValueChangeEventArgs e)
+	{
+		Reporter.WriteLine ("StringSet returned ValueChange event.");
+		if (e.StringTooLong)
+		{
+			// This can't actually happen in this example, but we should still check.
+			Reporter.WriteLine ("Could not read new value, string was too long.");
+		}
+		else
+			Reporter.WriteLine ("New value is '{0}'.", e.NewValue);
+		Reporter.WriteLine ("");
+	}
+
+	void OnStringSetAboutToBeShown (object sender, Toolbox.ToolboxEventArgs e)
+	{
+		Reporter.WriteLine ("StringSet returned AboutToBeShown event.");
 		Reporter.WriteLine ("");
 	}
 }
