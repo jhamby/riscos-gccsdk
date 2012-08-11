@@ -1,3 +1,9 @@
+Sat Aug 11 21:56:22 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* main.c, main.h, misc.c, misc.h, io.c, io.h, decode.c, decode.h,
+	error.h: cleanup, constify. Don't output identification string when
+	options are specified.
+
 Wed Aug  8 00:51:00 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* error.c, error.h, misc.c, misc.h, io.c, io.h, decode.c, main.c,

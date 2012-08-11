@@ -22,13 +22,16 @@
 #ifndef MAIN_HEADER_INCLUDED
 #define MAIN_HEADER_INCLUDED
 
+#include <stdbool.h>
+
 extern const char **files;
 extern int nfiles;
-extern short area_contents;
-extern short area_dec;
-extern short reloc_dir;
-extern short debug;
-extern short symtab;
-extern short strtab;
+extern bool opt_print_area_contents;
+extern bool opt_print_area_dec;
+extern bool opt_print_reloc_dir;
+extern bool opt_print_debug;
+extern bool opt_print_symtab;
+extern bool opt_print_strtab;
+extern bool opt_print_ident;
 
 #endif

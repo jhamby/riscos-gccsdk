@@ -42,20 +42,20 @@ check_stream (FILE * fp)
     ret = FRWERR;
   if (ret != FNOERR)
     clearerr (fp);
-  return (ret);
+  return ret;
 }
 
-/*
- * read a byte from the input stream.
+/**
+ * Read a byte from the input stream.
  */
 Byte
 read_byte (FILE * ifp)
 {
-  return ((Byte) getc (ifp));
+  return (Byte) getc (ifp);
 }
 
-/*
- * read a little-endian 2-byte halfword from the input stream.
+/**
+ * Read a little-endian 2-byte halfword from the input stream.
  */
 Halfword
 read_halfword (FILE * ifp)
@@ -66,8 +66,8 @@ read_halfword (FILE * ifp)
   return lowByte + (highByte << 8);
 }
 
-/*
- * read a little-endian 4-byte word from the input stream.
+/**
+ * Read a little-endian 4-byte word from the input stream.
  */
 Word
 read_word (FILE * ifp)
@@ -78,10 +78,10 @@ read_word (FILE * ifp)
   return lowHalfword + (highHalfword << 16);
 }
 
-/*
- * read in the chunk header
+/**
+ * Read in the chunk header
  */
-struct chunkhdr *
+const struct chunkhdr *
 read_chunkhdr (FILE * ifp)
 {
   static struct chunkhdr hdr;
@@ -90,18 +90,17 @@ read_chunkhdr (FILE * ifp)
   hdr.chunkfileid = read_word (ifp);
   hdr.maxchunks = read_word (ifp);
   hdr.numchunks = read_word (ifp);
-  return (check_stream (ifp) != FRWERR ? &hdr : NULL);
+  return check_stream (ifp) != FRWERR ? &hdr : NULL;
 }
 
 /*
  * memory pointers maintained by read_xxx functions
  */
-
-static struct chunkent *ents;	/* chunk file entries */
-static aof_obj_strt *strptr;	/* string table */
-static struct symbol *symptr;	/* symbol table */
-static char *idptr;		/* identification string */
-static struct aofhdr *aofhdr;	/* AOF header */
+static const struct chunkent *oChunkEntries;	/* chunk file entries */
+static const aof_obj_strt *oStringTable;	/* string table */
+static const struct symbol *oSymbolTable;	/* symbol table */
+static char *oIdentString;		/* identification string */
+static const struct aofhdr *oAOFHdr;	/* AOF header */
 
 /**
  * Free the memory used by a chunk
@@ -109,155 +108,146 @@ static struct aofhdr *aofhdr;	/* AOF header */
 void
 free_chunk_memory (const void *ptr)
 {
-  if (!ptr)
-    return;
-
-  if (ptr == (const void *) ents)
+  if (ptr == (const void *) oChunkEntries)
     {
-      free ((void *) ents);
-      ents = NULL;
+      free ((void *) oChunkEntries);
+      oChunkEntries = NULL;
     }
-  else if (ptr == (const void *) strptr)
+  else if (ptr == (const void *) oStringTable)
     {
-      free ((void *) strptr);
-      strptr = NULL;
+      free ((void *) oStringTable);
+      oStringTable = NULL;
     }
-  else if (ptr == (const void *) symptr)
+  else if (ptr == (const void *) oSymbolTable)
     {
-      free ((void *) symptr);
-      symptr = NULL;
+      free ((void *) oSymbolTable);
+      oSymbolTable = NULL;
     }
-  else if (ptr == (const void *) idptr)
+  else if (ptr == (const void *) oIdentString)
     {
-      free ((void *) idptr);
-      idptr = NULL;
+      free ((void *) oIdentString);
+      oIdentString = NULL;
     }
-  else if (ptr == (const void *) aofhdr)
+  else if (ptr == (const void *) oAOFHdr)
     {
-      free ((void *) aofhdr);
-      aofhdr = NULL;
+      free ((void *) oAOFHdr);
+      oAOFHdr = NULL;
     }
 }
 
-/*
- * read in the chunk entries
+/**
+ * Read in the chunk entries
  */
-struct chunkent *
-read_chunkents (FILE * ifp, struct chunkhdr *hdr)
+const struct chunkent *
+read_chunkents (FILE * ifp, const struct chunkhdr *hdr)
 {
-  int i;
-
-  if (ents)
-    free (ents);
-  ents = (struct chunkent *) malloc (sizeof (struct chunkent) * hdr->maxchunks);
-  if (!ents)
+  free ((void *)oChunkEntries);
+  struct chunkent *chunkEntries = (struct chunkent *) malloc (sizeof (struct chunkent) * hdr->maxchunks);
+  if ((oChunkEntries = chunkEntries) == NULL)
     {
       error ("memory exhausted");
       exit (EXIT_FAILURE);
     }
 
   fseek (ifp, sizeof (struct chunkhdr), SEEK_SET);
-  for (i = 0; i < hdr->numchunks; i++)
+  for (uint32_t chunkIdx = 0; chunkIdx != hdr->numchunks; ++chunkIdx)
     {
-      fread (ents[i].chunkid, 1, 8, ifp);
-      ents[i].offset = read_word (ifp);
-      ents[i].size = read_word (ifp);
+      fread (chunkEntries[chunkIdx].chunkid, 1, 8, ifp);
+      chunkEntries[chunkIdx].offset = read_word (ifp);
+      chunkEntries[chunkIdx].size = read_word (ifp);
     }
 
-  return (check_stream (ifp) != FRWERR ? ents : NULL);
+  return check_stream (ifp) != FRWERR ? oChunkEntries : NULL;
 }
 
 /**
  * Read in the string table OBJ_STRT
  */
 const aof_obj_strt *
-read_stringtab (FILE * ifp, struct chunkent *strent)
+read_stringtab (FILE * ifp, const struct chunkent *strent)
 {
-  if (strptr)
-    free (strptr);
-  strptr = malloc (strent->size);
-  if (!strptr)
+  if (strent->size < 4)
+    {
+      error ("String table size is too short");
+      exit (EXIT_FAILURE);
+    }
+
+  free ((void *)oStringTable);
+  aof_obj_strt *stringTable = (aof_obj_strt *) malloc (strent->size);
+  if ((oStringTable = stringTable) == NULL)
     {
       error ("memory exhausted");
       exit (EXIT_FAILURE);
     }
 
   fseek (ifp, strent->offset, SEEK_SET);
-  strptr->size = read_word (ifp);	/* size in 1st word */
-  fread (&strptr->str, 1, strent->size - 4, ifp);
+  stringTable->size = read_word (ifp);	/* size in 1st word */
+  fread (&stringTable->str, 1, strent->size - 4, ifp);
 
-  return check_stream (ifp) != FRWERR ? strptr : NULL;
+  return check_stream (ifp) != FRWERR ? stringTable : NULL;
 }
 
 /*
- * read in the symbol table
+ * Read in the symbol table
  */
-struct symbol *
-read_symboltab (FILE * ifp, struct chunkent *syment, int numsyms)
+const struct symbol *
+read_symboltab (FILE * ifp, const struct chunkent *syment, uint32_t numSyms)
 {
-  int i;
-
-  if (symptr)
-    free (symptr);
-  symptr = (struct symbol *) malloc (numsyms * sizeof (struct symbol));
-  if (!symptr)
+  free ((void *)oSymbolTable);
+  struct symbol *symbolTable = (struct symbol *) malloc (numSyms * sizeof (struct symbol)); 
+  if ((oSymbolTable = symbolTable) == NULL)
     {
       error ("memory exhausted");
       exit (EXIT_FAILURE);
     }
 
   fseek (ifp, syment->offset, SEEK_SET);
-  for (i = 0; i < numsyms; i++)
+  for (uint32_t symIdx = 0; symIdx != numSyms; ++symIdx)
     {
-      symptr[i].name = read_word (ifp);
-      symptr[i].flags = read_word (ifp);
-      symptr[i].value = read_word (ifp);
-      symptr[i].areaname = read_word (ifp);
+      symbolTable[symIdx].name = read_word (ifp);
+      symbolTable[symIdx].flags = read_word (ifp);
+      symbolTable[symIdx].value = read_word (ifp);
+      symbolTable[symIdx].areaname = read_word (ifp);
     }
 
-  return (check_stream (ifp) != FRWERR ? symptr : NULL);
+  return check_stream (ifp) != FRWERR ? symbolTable : NULL;
 }
 
-/*
- * read in the identification chunk
+/**
+ * Read in the identification chunk
  */
-char *
-read_ident (FILE * ifp, struct chunkent *ident)
+const char *
+read_ident (FILE * ifp, const struct chunkent *ident)
 {
-  if (idptr)
-    free (idptr);
-  idptr = malloc (ident->size);
-  if (!idptr)
+  free ((void *)oIdentString);
+  char *identString = (char *) malloc (ident->size);
+  if ((oIdentString = identString) == NULL)
     {
       error ("memory exhausted");
       exit (EXIT_FAILURE);
     }
 
   fseek (ifp, (long) ident->offset, SEEK_SET);
-  fread (idptr, 1, (int) ident->size, ifp);
+  fread (identString, 1, (int) ident->size, ifp);
 
-  return (check_stream (ifp) != FRWERR ? idptr : NULL);
+  return check_stream (ifp) != FRWERR ? identString : NULL;
 }
 
-/*
- * read in the AOF header
+/**
+ * Read in the AOF header
  */
-struct aofhdr *
-read_aofhdr (FILE * ifp, struct chunkent *hdrent)
+const struct aofhdr *
+read_aofhdr (FILE * ifp, const struct chunkent *hdrent)
 {
-  int i;
-  struct areahdr *areahdr;
-
   if (hdrent->size < sizeof (struct aofhdr))
     {
       error ("AOF header size is %d which is smaller than the expected minimum size %zd",
 	     hdrent->size, sizeof (struct aofhdr));
       return NULL;
     }
-  if (aofhdr)
-    free (aofhdr);
-  aofhdr = (struct aofhdr *) malloc (hdrent->size);
-  if (!aofhdr)
+  free ((void *)oAOFHdr);
+  struct aofhdr *aofHdr = (struct aofhdr *) malloc (hdrent->size);
+  if ((oAOFHdr = aofHdr) == NULL)
     {
       error ("memory exhausted");
       exit (EXIT_FAILURE);
@@ -265,40 +255,41 @@ read_aofhdr (FILE * ifp, struct chunkent *hdrent)
 
   /* read-in whole of AOF header */
   fseek (ifp, hdrent->offset, SEEK_SET);
-  aofhdr->filetype = read_word (ifp);
-  aofhdr->version = read_word (ifp);
-  aofhdr->numareas = read_word (ifp);
-  aofhdr->numsyms = read_word (ifp);
-  aofhdr->entryarea = read_word (ifp);
-  aofhdr->entryoffset = read_word (ifp);
-  if (hdrent->size != sizeof (struct aofhdr) + aofhdr->numareas * sizeof (struct areahdr))
+  aofHdr->filetype = read_word (ifp);
+  aofHdr->version = read_word (ifp);
+  aofHdr->numareas = read_word (ifp);
+  aofHdr->numsyms = read_word (ifp);
+  aofHdr->entryarea = read_word (ifp);
+  aofHdr->entryoffset = read_word (ifp);
+  if (hdrent->size != sizeof (struct aofhdr) + aofHdr->numareas * sizeof (struct areahdr))
     {
       error ("Malformed header size : is %d bytes but based on number of declared areas we expect it to be %zd bytes",
 	     hdrent->size,
-	     sizeof (struct aofhdr) + aofhdr->numareas * sizeof (struct areahdr));
+	     sizeof (struct aofhdr) + aofHdr->numareas * sizeof (struct areahdr));
       return NULL;
     }
-  areahdr = (struct areahdr *) &aofhdr[1];
-  for (i = 0; i < aofhdr->numareas; i++)
+  struct areahdr *areaHdr = (struct areahdr *) &aofHdr[1];
+  for (uint32_t areaIdx = 0; areaIdx != aofHdr->numareas; ++areaIdx)
     {
-      areahdr[i].name = read_word (ifp);
-      areahdr[i].flags = read_word (ifp);
-      areahdr[i].size = read_word (ifp);
-      areahdr[i].numrelocs = read_word (ifp);
-      areahdr[i].baseaddr = read_word (ifp);
+      areaHdr[areaIdx].name = read_word (ifp);
+      areaHdr[areaIdx].flags = read_word (ifp);
+      areaHdr[areaIdx].size = read_word (ifp);
+      areaHdr[areaIdx].numrelocs = read_word (ifp);
+      areaHdr[areaIdx].baseaddr = read_word (ifp);
     }
-  return (check_stream (ifp) != FRWERR ? aofhdr : NULL);
+
+  return check_stream (ifp) != FRWERR ? aofHdr : NULL;
 }
 
-/*
- * read in a relocation directive
+/**
+ * Read in a relocation directive
  */
-struct reloc *
+const struct reloc *
 read_reloc (FILE * ifp)
 {
   static struct reloc reloc;
 
   reloc.offset = read_word (ifp);
   reloc.flags = read_word (ifp);
-  return (check_stream (ifp) != FRWERR ? &reloc : NULL);
+  return check_stream (ifp) != FRWERR ? &reloc : NULL;
 }

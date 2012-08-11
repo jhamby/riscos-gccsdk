@@ -30,18 +30,19 @@ typedef struct
   char str[];
 } aof_obj_strt;
 
-extern Ferror check_stream (FILE *fp);
-extern Byte read_byte (FILE *ifp);
-extern Halfword read_halfword (FILE *ifp);
-extern Word read_word (FILE *ifp);
-extern void free_chunk_memory (const void *ptr);
-extern struct chunkhdr *read_chunkhdr (FILE *ifp);
-extern struct chunkent *read_chunkents (FILE *ifp, struct chunkhdr *hdr);
-extern const aof_obj_strt *read_stringtab (FILE *ifp, struct chunkent *strent);
-extern struct symbol *read_symboltab (FILE *ifp, struct chunkent *strent,
-				      int numsyms);
-extern char *read_ident (FILE *ifp, struct chunkent *ident);
-extern struct aofhdr *read_aofhdr (FILE *ifp, struct chunkent *hdrent);
-extern struct reloc *read_reloc (FILE *ifp);
+Ferror check_stream (FILE *fp);
+Byte read_byte (FILE *ifp);
+Halfword read_halfword (FILE *ifp);
+Word read_word (FILE *ifp);
+void free_chunk_memory (const void *ptr);
+
+const struct chunkhdr *read_chunkhdr (FILE *ifp);
+const struct chunkent *read_chunkents (FILE *ifp, const struct chunkhdr *hdr);
+const aof_obj_strt *read_stringtab (FILE *ifp, const struct chunkent *strent);
+const struct symbol *read_symboltab (FILE *ifp, const struct chunkent *strent,
+				     uint32_t numSyms);
+const char *read_ident (FILE *ifp, const struct chunkent *ident);
+const struct aofhdr *read_aofhdr (FILE *ifp, const struct chunkent *hdrent);
+const struct reloc *read_reloc (FILE *ifp);
 
 #endif

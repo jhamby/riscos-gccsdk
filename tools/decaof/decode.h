@@ -1,7 +1,7 @@
 /*
  * decode declarations
  *
- * Copyright (c) 2005 GCCSDK Developers
+ * Copyright (c) 2005-2012 GCCSDK Developers
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,6 @@
 #ifndef DECODE_HEADER_INCLUDED
 #define DECODE_HEADER_INCLUDED
 
-extern void decode (void);
+void decode (void);
 
 #endif

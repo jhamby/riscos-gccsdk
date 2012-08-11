@@ -22,7 +22,8 @@
 #ifndef MISC_HEADER_INCLUDED
 #define MISC_HEADER_INCLUDED
 
-extern struct chunkent *find_ent (struct chunkhdr *hdr,
-				  struct chunkent *ents, const char *name);
+const struct chunkent *find_ent (const struct chunkhdr *hdr,
+				 const struct chunkent *ents,
+				 const char *name);
 
 #endif

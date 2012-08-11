@@ -26,9 +26,9 @@
 
 extern int nrerrs;
 
-extern void error (const char *fmt, ...)
+void error (const char *fmt, ...)
   __attribute__ ((__format__ (__printf__, 1, 2)));
-extern void warning (const char *fmt, ...)
+void warning (const char *fmt, ...)
   __attribute__ ((__format__ (__printf__, 1, 2)));
 
 #endif

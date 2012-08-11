@@ -36,12 +36,13 @@
 const char **files;		/* list of files to decode */
 int nfiles;			/* number of files in **files */
 
-short area_contents = 0;	/* print area contents in hex (-a) */
-short area_dec = 0;		/* print area declarations (-d) */
-short reloc_dir = 0;		/* print relocation directives (-r) */
-short debug = 0;		/* print debugging areas (-g) */
-short symtab = 0;		/* print symbol table (-s) */
-short strtab = 0;		/* print string table (-t) */
+bool opt_print_area_contents = false;	/* print area contents in hex (-a) */
+bool opt_print_area_dec = false;	/* print area declarations (-d) */
+bool opt_print_reloc_dir = false;	/* print relocation directives (-r) */
+bool opt_print_debug = false;		/* print debugging areas (-g) */
+bool opt_print_symtab = false;		/* print symbol table (-s) */
+bool opt_print_strtab = false;		/* print string table (-t) */
+bool opt_print_ident = false;		/* print identification (no user option) */
 
 static int gotarg = 0;		/* non-zero if some flags where entered */
 
@@ -73,24 +74,24 @@ main (int argc, char **argv)
 		    break;
 		  case 'b': /* brief */
 		  case 'd': /* full */
-		    area_dec++;
+		    opt_print_area_dec = true;
 		    break;
 		  case 'a':
-		    area_contents++;
-		    area_dec++;
+		    opt_print_area_contents = true;
+		    opt_print_area_dec = true;
 		    break;
 		  case 'r':
-		    reloc_dir++;
-		    area_dec++;
+		    opt_print_reloc_dir = true;
+		    opt_print_area_dec = true;
 		    break;
 		  case 'g':
-		    debug++;
+		    opt_print_debug = true;
 		    break;
 		  case 's':
-		    symtab++;
+		    opt_print_symtab = true;
 		    break;
 		  case 't':
-		    strtab++;
+		    opt_print_strtab = true;
 		    break;
 		  default:
 		    error ("unknown option '%c'", c);
@@ -113,12 +114,13 @@ main (int argc, char **argv)
   if (!gotarg)
     {
       /* Set-up default arguments : full option. */
-      area_contents++;
-      area_dec++;
-      reloc_dir++;
-      debug++;
-      symtab++;
-      strtab++;
+      opt_print_area_contents = true;
+      opt_print_area_dec = true;
+      opt_print_reloc_dir = true;
+      opt_print_debug = true;
+      opt_print_symtab = true;
+      opt_print_strtab = true;
+      opt_print_ident = true;
     }
 
   decode ();

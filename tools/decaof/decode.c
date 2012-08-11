@@ -33,16 +33,16 @@
 #include "main.h"
 #include "misc.h"
 
-static struct chunkhdr *hdr;
-static struct chunkent *ents, *ent;
-static struct aofhdr *aofhdr;
-static struct areahdr *areahdrs;
-static struct symbol *symboltab;
+static const struct chunkhdr *hdr;
+static const struct chunkent *ents, *ent;
+static const struct aofhdr *aofhdr;
+static const struct areahdr *areahdrs;
+static const struct symbol *symboltab;
 static const aof_obj_strt *stringtab;
-static long area_offset;
+static uint32_t area_offset;
 static Word symboltab_size;
 
-static void print_area (FILE * ifp, struct areahdr *areahdr, Word offset,
+static void print_area (FILE * ifp, const struct areahdr *areahdr, Word offset,
 			Word reloff);
 static const char *string (Word offset);
 static const char *symname (Word offset);
@@ -51,13 +51,10 @@ static const char *areaname (Word offset);
 void
 decode (void)
 {
-  int i;
-  Word offset;
-
   while (nfiles--)
     {
       const char *filename = *files++;
-      FILE *ifp = fopen (filename, "r");
+      FILE *ifp = fopen (filename, "rb");
       if (!ifp)
 	{
 	  error ("unable to open file \"%s\"", filename);
@@ -70,6 +67,8 @@ decode (void)
       areahdrs = NULL;
       stringtab = NULL;
       symboltab = NULL;
+      area_offset = 0;
+      symboltab_size = 0;
 
       /* read chunk header */
       hdr = read_chunkhdr (ifp);
@@ -92,8 +91,6 @@ decode (void)
 	  goto next_file;
 	}
 
-      printf ("** File:\n%s\n", filename);
-
       /* read string table */
       ent = find_ent (hdr, ents, "OBJ_STRT");
       if (ent)
@@ -109,20 +106,23 @@ decode (void)
 	puts ("\n** No String table");
 
       /* read and print identification string */
-      ent = find_ent (hdr, ents, "OBJ_IDFN");
-      if (ent)
+      if (opt_print_ident)
 	{
-	  const char *idstr = read_ident (ifp, ent);
-	  if (!idstr)
+	  ent = find_ent (hdr, ents, "OBJ_IDFN");
+	  if (ent)
 	    {
-	      error ("reading identification for file \"%s\"", filename);
-	      goto next_file;
+	      const char *idstr = read_ident (ifp, ent);
+	      if (!idstr)
+		{
+		  error ("reading identification for file \"%s\"", filename);
+		  goto next_file;
+		}
+	      printf ("\n** Identification (%s):\n\n%s\n", filename, idstr);
+	      free_chunk_memory ((void *)idstr);	/* not needed */
 	    }
-	  printf ("\n** Identification:\n%s\n", idstr);
-	  free_chunk_memory ((void *)idstr);	/* not needed */
+	  else
+	    puts ("\n** No Identification chunk");
 	}
-      else
-	puts ("\n** No Identification chunk");
 
       /* find file offset of OBJ_AREA (for later use) */
       ent = find_ent (hdr, ents, "OBJ_AREA");
@@ -157,16 +157,16 @@ decode (void)
 		cptr = "unknown image type";
 		break;
 	    }
-	  printf ("\n** AOF Header: %s\n\n", cptr);
+	  printf ("\n** AOF Header: %s (%s)\n\n", cptr, filename);
 
 	  /* Version 150 : AOF 1.xx
 	     Version 200 : AOF 2.xx
 	     Version 310/311 : AOF 3.xx */
 	  printf ("AOF version: %d\n", aofhdr->version);
-	  i = aofhdr->numareas;
-	  printf ("%d area%s\n", i, i == 1 ? "" : "s");
-	  i = aofhdr->numsyms;
-	  printf ("%d symbol%s\n", i, i == 1 ? "" : "s");
+	  uint32_t numAreas = aofhdr->numareas;
+	  printf ("%d area%s\n", numAreas, numAreas == 1 ? "" : "s");
+	  uint32_t numSyms = aofhdr->numsyms;
+	  printf ("%d symbol%s\n", numSyms, numSyms == 1 ? "" : "s");
 
 	  /* read in the symbol table, if any */
 	  if (aofhdr->numsyms)
@@ -186,86 +186,93 @@ decode (void)
 	    }
 
 	  /* decode each of the areas */
-	  areahdrs = (struct areahdr *) &aofhdr[1];
-	  offset = 0;
-	  for (i = 0; i < aofhdr->numareas; i++)
+	  areahdrs = (const struct areahdr *) &aofhdr[1];
+	  uint32_t offset = 0;
+	  for (uint32_t areaIdx = 0; areaIdx != aofhdr->numareas; ++areaIdx)
 	    {
-	      print_area (ifp, &areahdrs[i], offset, offset + areahdrs[i].size);
-	      if (!(areahdrs[i].flags & AREA_UDATA))
-		offset += areahdrs[i].size + areahdrs[i].numrelocs*sizeof (struct reloc);
+	      print_area (ifp, &areahdrs[areaIdx], offset, offset + areahdrs[areaIdx].size);
+	      if (!(areahdrs[areaIdx].flags & AREA_UDATA))
+		offset += areahdrs[areaIdx].size + areahdrs[areaIdx].numrelocs*sizeof (struct reloc);
 	    }
 	}
       else
 	puts ("\n** No AOF header");
 
-      if (symtab)
+      if (opt_print_symtab)
 	{
-	  if (aofhdr->numsyms)
-	    puts ("\n** Symbol table:\n");
+	  if (!aofhdr->numsyms)
+	    printf ("\n** No Symbol table (%s)", filename);
 	  else
-	    puts ("\n** No Symbol table");
-	  for (i = 0; i < aofhdr->numsyms; i++)
 	    {
-	      int flags = symboltab[i].flags;
-	      printf ("%-16s (%02x) ", string (symboltab[i].name), flags);
+	      printf ("\n** Symbol table (%s):\n\n", filename);
+	      for (uint32_t symIdx = 0; symIdx != aofhdr->numsyms; ++symIdx)
+		{
+		  uint32_t flags = symboltab[symIdx].flags;
+		  printf ("%-16s (%02x) ", string (symboltab[symIdx].name), flags);
 
-	      switch (flags & 0x3)
-		{
-		  case 0x01:
-		    fputs ("local", stdout);
-		    break;
-		  case 0x02:
-		    fputs ("extern", stdout);
-		    break;
-		  case 0x03:
-		    fputs ("global", stdout);
-		    break;
-		  default:
-		    fputs ("unknown-type", stdout);
-		    break;
+		  switch (flags & 0x3)
+		    {
+		      case 0x01:
+			fputs ("local", stdout);
+			break;
+		      case 0x02:
+			fputs ("extern", stdout);
+			break;
+		      case 0x03:
+			fputs ("global", stdout);
+			break;
+		      default:
+			fputs ("unknown-type", stdout);
+			break;
+		    }
+		  if ((flags & (1 << 2)) && flags & (1 << 0))
+		    fputs (", absolute", stdout);
+		  if ((flags & (1 << 3)) && !(flags & (1 << 0)))
+		    fputs (", case-insensitive", stdout);
+		  if ((flags & (1 << 4)) && ((flags & 0x03) == 0x02))
+		    fputs (", weak", stdout);
+		  if ((flags & (1 << 5)) && ((flags & 0x03) == 0x03))
+		    fputs (", strong", stdout);
+		  if ((flags & (1 << 6)) && ((flags & 0x03) == 0x02))
+		    fputs (", common", stdout);
+		  if (flags & (1 << 8))
+		    fputs (", cadatum", stdout);
+		  if (flags & (1 << 9))
+		    fputs (", fpargs", stdout);
+		  if (flags & (1 << 11))
+		    fputs (", leaf", stdout);
+		  if (flags & (1 << 12))
+		    fputs (", thumb", stdout);
+		  if (flags & ((1 << 0) | (1 << 6)))
+		    {
+		      if (flags & ((1 << 2) | (1 << 6)))
+			printf (" = 0x%08x", symboltab[symIdx].value);
+		      else
+			printf (" at \"%s\" + 0x%06x",
+				string (symboltab[symIdx].areaname),
+				symboltab[symIdx].value);
+		    }
+		  putchar ('\n');
 		}
-	      if ((flags & (1 << 2)) && flags & (1 << 0))
-		fputs (", absolute", stdout);
-	      if ((flags & (1 << 3)) && !(flags & (1 << 0)))
-		fputs (", case-insensitive", stdout);
-	      if ((flags & (1 << 4)) && ((flags & 0x03) == 0x02))
-		fputs (", weak", stdout);
-	      if ((flags & (1 << 5)) && ((flags & 0x03) == 0x03))
-		fputs (", strong", stdout);
-	      if ((flags & (1 << 6)) && ((flags & 0x03) == 0x02))
-		fputs (", common", stdout);
-	      if (flags & (1 << 8))
-		fputs (", cadatum", stdout);
-	      if (flags & (1 << 9))
-		fputs (", fpargs", stdout);
-	      if (flags & (1 << 11))
-		fputs (", leaf", stdout);
-	      if (flags & (1 << 12))
-		fputs (", thumb", stdout);
-	      if (flags & ((1 << 0) | (1 << 6)))
-		{
-		  if (flags & ((1 << 2) | (1 << 6)))
-		    printf (" = 0x%08x", symboltab[i].value);
-		  else
-		    printf (" at \"%s\" + 0x%06x",
-		      string (symboltab[i].areaname),
-		      symboltab[i].value);
-		}
-	      putchar ('\n');
 	    }
 	}
-      
-      if (strtab && stringtab->size)
+
+      if (opt_print_strtab)
 	{
-	  puts ("\n** String table:\n");
-	  offset = 4;
-	  const char *cptr;
-	  while ((cptr = string (offset)) != NULL)
+	  if (!stringtab->size)
+	    printf ("\n** No String table (%s)", filename);
+	  else
 	    {
-	      size_t len = strlen (cptr);
-	      if (len)
-		printf ("%06x: %s\n", offset, cptr);
-	      offset += len + 1;
+	      printf ("\n** String table (%s):\n\n", filename);
+	      uint32_t offset = 4;
+	      const char *cptr;
+	      while ((cptr = string (offset)) != NULL)
+		{
+		  size_t len = strlen (cptr);
+		  if (len)
+		    printf ("%06x: %s\n", offset, cptr);
+		  offset += len + 1;
+		}
 	    }
 	}
 
@@ -282,91 +289,91 @@ decode (void)
  * Print each AOF area...
  */
 static void
-print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
+print_area (FILE * ifp, const struct areahdr *areahdr, Word offset, Word reloff)
 {
-  Word ubits;			/* the unknown bits */
-  int isCode, isData;
-  Word flags = areahdr->flags;
+  const Word areaFlags = areahdr->flags;
 
   printf ("\n** Area (0x%06x) \"%s\", aligned at %d byte%s, ",
-	  areahdr->flags >> 8,
+	  areaFlags >> 8,
 	  string (areahdr->name),
-	  1 << (areahdr->flags & 0xFF), (areahdr->flags & 0xFF) ? "s" : "");
-  if (flags & AREA_DEBUG)
+	  1 << (areaFlags & 0xFF), (areaFlags & 0xFF) ? "s" : "");
+  bool isCode, isData;
+  Word ubits; /* unknown bits */
+  if (areaFlags & AREA_DEBUG)
     {
       fputs ("[debug] ", stdout);
-      isCode = isData = 0;
-      ubits = flags & AREA_CODE;
+      isCode = isData = false;
+      ubits = areaFlags & AREA_CODE;
     }
   else
     {
-      if (flags & AREA_CODE)
+      if (areaFlags & AREA_CODE)
 	{
 	  fputs ("[code] ", stdout);
-	  isCode = 1;
-	  isData = 0;
+	  isCode = true;
+	  isData = false;
 	}
       else
 	{
 	  fputs ("[data] ", stdout);
-	  isData = 1;
-	  isCode = 0;
+	  isData = true;
+	  isCode = false;
 	}
       ubits = 0;
     }
-  if (flags & AREA_ABS)
+  if (areaFlags & AREA_ABS)
     fputs ("[abs] ", stdout);
-  if (flags & AREA_COMMONDEF)
+  if (areaFlags & AREA_COMMONDEF)
     fputs ("[commdef] ", stdout);
-  if (flags & AREA_COMMONREF)
+  if (areaFlags & AREA_COMMONREF)
     fputs ("[commref] ", stdout);
-  if (flags & AREA_UDATA)
+  if (areaFlags & AREA_UDATA)
     fputs ("[noinit] ", stdout);
-  if (flags & AREA_READONLY)
+  if (areaFlags & AREA_READONLY)
     fputs ("[readonly] ", stdout);
-  if (flags & AREA_PIC)
+  if (areaFlags & AREA_PIC)
     fputs ("[pic] ", stdout);
-  if (flags & AREA_32BITAPCS)
+  if (areaFlags & AREA_32BITAPCS)
     {
       if (isCode)
 	fputs ("[32bit] ", stdout);
       else
 	ubits |= AREA_32BITAPCS;
     }
-  if (flags & AREA_REENTRANT)
+  if (areaFlags & AREA_REENTRANT)
     {
       if (isCode)
 	fputs ("[reentrant] ", stdout);
       else
 	ubits |= AREA_REENTRANT;
     }
-  if (flags & AREA_EXTFPSET)
+  if (areaFlags & AREA_EXTFPSET)
     {
       if (isCode)
 	fputs ("[extfpset] ", stdout);
       else
 	ubits |= AREA_EXTFPSET;
     }
-  if (flags & AREA_NOSTACKCHECK)
+  if (areaFlags & AREA_NOSTACKCHECK)
     {
       if (isCode)
 	fputs ("[nostackcheck] ", stdout);
       else
 	ubits |= AREA_NOSTACKCHECK;
     }
-  if (flags & AREA_BASED)
+  if (areaFlags & AREA_BASED)
     {				/* is same test for AREA_THUMB */
       if (isCode)
 	{
 	  fputs ("[thumb] ", stdout);
-	  ubits |= flags & AREA_MASKBASEREGS;
+	  ubits |= areaFlags & AREA_MASKBASEREGS;
 	}
       else if (isData)
-	printf ("[based r%d] ", (flags & AREA_MASKBASEREGS) >> 24);
+	printf ("[based r%d] ", (areaFlags & AREA_MASKBASEREGS) >> 24);
       else
-	ubits |= flags & (AREA_BASED | AREA_MASKBASEREGS);
+	ubits |= areaFlags & (AREA_BASED | AREA_MASKBASEREGS);
     }
-  if (flags & AREA_STUBDATA)
+  if (areaFlags & AREA_STUBDATA)
     {				/* is same test for AREA_HALFWORD */
       if (isCode)
 	fputs ("[halfword] ", stdout);
@@ -375,55 +382,55 @@ print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
       else
 	ubits |= AREA_STUBDATA;
     }
-  if (flags & AREA_INTERWORK)
+  if (areaFlags & AREA_INTERWORK)
     {
       if (isCode)
 	fputs ("[interwork] ", stdout);
       else
 	ubits |= AREA_INTERWORK;
     }
-  if (flags & AREA_SOFTFLOAT)
+  if (areaFlags & AREA_SOFTFLOAT)
     fputs ("[soft-float] ", stdout);
-  if (flags & AREA_LINKONCE)
+  if (areaFlags & AREA_LINKONCE)
     fputs ("[linkonce] ", stdout);
-  ubits |= flags & AREA_UNKNOWNBITS;
+  ubits |= areaFlags & AREA_UNKNOWNBITS;
   if (ubits)
-    printf ("[unknown bits %06x00] ", (flags & AREA_UNKNOWNBITS) >> 8);
+    printf ("[unknown bits %06x00] ", (areaFlags & AREA_UNKNOWNBITS) >> 8);
   printf ("\n");
 
-  if (areahdr->baseaddr || (flags & AREA_ABS))
+  if (areahdr->baseaddr || (areaFlags & AREA_ABS))
     printf ("   Base address 0x%x%s\n",
-	    areahdr->baseaddr, (flags & AREA_ABS) ? "" : " (but area is NOT marked as absolute)");
+	    areahdr->baseaddr, (areaFlags & AREA_ABS) ? "" : " (but area is NOT marked as absolute)");
 
   printf ("   Size %d byte%s, %d relocation%s\n",
 	  areahdr->size,
 	  (areahdr->size == 1) ? "" : "s",
 	  areahdr->numrelocs, (areahdr->numrelocs == 1) ? "" : "s");
 
-  if (area_contents && !(flags & AREA_UDATA))
+  if (opt_print_area_contents && !(areaFlags & AREA_UDATA))
     {
       fseek (ifp, area_offset + offset, SEEK_SET);
       int cols = 0;
-      for (Word area_off = 0; area_off < areahdr->size; area_off += 4)
+      for (uint32_t areaIdx = 0; areaIdx < areahdr->size; areaIdx += 4)
 	{
 	  if ((cols++ & 7) == 0)
-	    printf ("\n%06x: ", areahdr->baseaddr + area_off);
+	    printf ("\n%06x: ", areahdr->baseaddr + areaIdx);
 	  else
 	    putchar (' ');
 	  printf ("%08x", read_word (ifp));
 	}
-      printf ("\n\n");
+      printf ("\n");
     }
 
-  if (reloc_dir && areahdr->numrelocs)
+  if (opt_print_reloc_dir && areahdr->numrelocs)
     {
       fseek (ifp, area_offset + reloff, SEEK_SET);
-      puts ("** Relocations:\n");
+      puts ("\n** Relocations:\n");
       for (Word numrelocs = areahdr->numrelocs; numrelocs; numrelocs--)
 	{
 	  enum { type1, type2, type3 } rtype;
 
-	  struct reloc *reloc = read_reloc (ifp);
+	  const struct reloc *reloc = read_reloc (ifp);
 	  if (!reloc)
 	    {
 	      error ("reading relocation directive");
@@ -442,7 +449,7 @@ print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
 	      continue;
 	    }
 
-	  printf ("At 0x%06x (flags 0x%08x): ", reloc->offset, reloc->flags);
+	  printf ("At 0x%06x (areaFlags 0x%08x): ", reloc->offset, reloc->flags);
 	  bool isWordSize = false;
 	  switch ((reloc->flags >> (rtype == type1 ? 16 : 24)) & 0x3)
 	    {
@@ -492,14 +499,14 @@ print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		    case 1:
 		      /* PC-relative (always symbol) */
 		      printf ("PC-relative to symbol \"%s\"",
-		        symname (reloc->flags & 0xffff));
+			      symname (reloc->flags & 0xffff));
 		      break;
 
 		    case 2:
 		      /* Additive symbol : the value of the given symbol is added
 		         to the field being relocated.  */
 		      printf ("displaced by symbol \"%s\"",
-		        symname (reloc->flags & 0xffff));
+			      symname (reloc->flags & 0xffff));
 		      if (!isWordSize)
 		        fputs ("!!! Relocation data size is not 4 bytes !!!", stdout);
 		      break;
@@ -510,6 +517,7 @@ print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		  }
 		fputs (" (type-1 reloc)\n", stdout);
 		break;
+
 	      case type2:
 		switch ((reloc->flags >> 26) & 3)
 		  {
@@ -518,7 +526,7 @@ print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		         which this relocation directive is associated) is added
 			 into the field to be relocated.  */
 		      printf ("displaced by base of area \"%s\"",
-		        areaname (reloc->flags & 0xffffff));
+			      areaname (reloc->flags & 0xffffff));
 		      if (!isWordSize)
 		        fputs ("!!! Relocation data size is not 4 bytes !!!", stdout);
 		      break;
@@ -526,13 +534,13 @@ print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		    case 1:
 		      /* PC-relative internal */
 		      printf ("PC-relative to base of area \"%s\"",
-		        areaname (reloc->flags & 0xffffff));
+			      areaname (reloc->flags & 0xffffff));
 		      break;
 
 		    case 2:
 		      /* additive symbol */
 		      printf ("displaced by symbol \"%s\"",
-		        symname (reloc->flags & 0xffffff));
+			      symname (reloc->flags & 0xffffff));
 		      if (!isWordSize)
 		        fputs ("!!! Relocation data size is not 4 bytes !!!", stdout);
 		      break;
@@ -540,11 +548,12 @@ print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		    case 3:
 		      /* PC-relative symbol */
 		      printf ("PC-relative to symbol \"%s\"",
-		        symname (reloc->flags & 0xffffff));
+			      symname (reloc->flags & 0xffffff));
 		      break;
 		  }
 		fputs (" (type-2 reloc)\n", stdout);
 		break;
+
 	      case type3:
 		switch (reloc->flags & (5<<26))
 		  {
@@ -573,7 +582,6 @@ print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
 		break;
 	    }
 	}
-      putc ('\n', stdout);
     }
 }
 
@@ -583,10 +591,9 @@ print_area (FILE * ifp, struct areahdr *areahdr, Word offset, Word reloff)
 static const char *
 string (Word offset)
 {
-  offset -= 4;
-  if (!stringtab || offset >= stringtab->size - 4)
+  if (!stringtab || offset < 4 || offset >= stringtab->size)
     return NULL;
-  return &stringtab->str[offset];
+  return &stringtab->str[offset - 4];
 }
 
 /**
@@ -595,7 +602,7 @@ string (Word offset)
 static const char *
 symname (Word offset)
 {
-  if (!symboltab || offset > symboltab_size)
+  if (!symboltab || offset >= symboltab_size)
     return NULL;
   const struct symbol *sym = (const struct symbol *) (symboltab + offset);
   return string (sym->name);

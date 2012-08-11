@@ -27,16 +27,15 @@
 #include "decaof.h"
 #include "misc.h"
 
-/*
- * locate a chunk entry by chunk ID
+/**
+ * Locate a chunk entry by chunk ID
  */
-struct chunkent *
-find_ent (struct chunkhdr *hdr, struct chunkent *ents, const char *name)
+const struct chunkent *
+find_ent (const struct chunkhdr *hdr, const struct chunkent *ents,
+	  const char *name)
 {
-  int i;
-
-  for (i = 0; i < hdr->numchunks; i++)
-    if (memcmp (ents[i].chunkid, name, 8) == 0)
-      return (&ents[i]);
-  return (NULL);
+  for (uint32_t chunkIdx = 0; chunkIdx != hdr->numchunks; ++chunkIdx)
+    if (memcmp (ents[chunkIdx].chunkid, name, 8) == 0)
+      return &ents[chunkIdx];
+  return NULL;
 }
