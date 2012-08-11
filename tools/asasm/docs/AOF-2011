@@ -1,0 +1,26 @@
+Information scraped from
+https://www.riscosopen.org/content/sales/dde-changes-20-to-21:
+
+  * Added definitions for new AOF flags:
+    + Symbol attribute bit 13 is meaningful only for function entry point
+      symbols in code areas (or for absolute function entry point symbols).
+      It declares that the function not only receives its floating point
+      arguments in integer registers, but also returns any floating point
+      return value in integer registers. A symbolic reference with this
+      attribute cannot be matched by the linker to a symbol definition which
+      lacks the attribute.
+    + Area attribute bit 31 is valid for both code and data areas, and when
+      set, indicates:
+      * double-precision floating point data in the area is stored using VFP
+        rules (endianness matches the rest of the file) rather than FPA rules
+        (most-significant word always stored first).
+      * for code areas in little-endian mode, that when functions in the area
+        receive double-precision arguments and/or return a double-precision
+        value in integer registers or on the stack, that the lower register
+        number or lower stack address holds the least significant word
+        (little-endian VFP compatibilty mode). Otherwise (big-endian mode or
+        FPA compatibility mode), the lower register or lower stack address
+        holds the most-significant word.
+      An area with this attribute cannot be linked with an area which lacks
+      the attribute.
+
