@@ -1,9 +1,9 @@
-; RUNOPT: -APCS 3/nonreent/swst/fp
+; RUNOPT: -APCS 3/reent/nosw/nofp
 
 	AREA Data, DATA
 
 	[ :LNOT: REFERENCE
-	GET tests_pass/include/predef_reg_test.s
+	GET include/predef_reg_test.s
 	|
 	= "r0 T 00000000\n"
 	= "R0 T 00000000\n"
@@ -35,14 +35,14 @@
 	= "v5 T 00000008\n"
 	= "ip T 0000000C\n"
 	= "IP F\n"
-	= "v6 T 00000009\n"
-	= "sb F\n"
+	= "v6 T 0000000A\n"
+	= "sb T 00000009\n"
 	= "SB F\n"
 	= "v7 F\n"
-	= "sl T 0000000A\n"
+	= "sl F\n"
 	= "SL F\n"
-	= "v8 F\n"
-	= "fp T 0000000B\n"
+	= "v8 T 0000000B\n"
+	= "fp F\n" ; ObjAsm 3/4 : "fp T 0000000B\n"
 	= "FP F\n"
 	]
 

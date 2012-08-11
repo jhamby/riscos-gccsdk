@@ -189,12 +189,11 @@ ASM_DefineLabel (const Lex *label, uint32_t offset, bool isMapping)
       symbolType = 0;
     }
 
-  /* Data symbol in code area ?
+  /* All Data symbol need SYMBOL_DATUM bit set.
      Note Area_GetCurrentEntryType() can return eInvalid when we're going
      to define a label at the start of an area which haven't processed
      yet any data or ARM/Thumb instruction.  */
-  if ((areaCurrentSymbol->area.info->type & AREA_CODE) != 0
-      && Area_GetCurrentEntryType () == eData)
+  if (Area_GetCurrentEntryType () == eData)
     symbolType |= SYMBOL_DATUM;
 
   Symbol *symbol = Symbol_Get (label);

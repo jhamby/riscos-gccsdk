@@ -1,0 +1,75 @@
+
+** AOF Header: Relocatable object format (out/import_label_aof.o)
+
+AOF version: 310
+3 areas
+15 symbols
+
+** Area (0x000102) "Code1", aligned at 4 bytes, [code] [32bit] 
+   Size 16 bytes, 3 relocations
+
+000000: e3a00000 ebfffffd ebfffffc ebfffffb
+
+** Relocations:
+
+At 0x00000c (areaFlags 0x8f000002): Unlimited number of instructions PC-relative to symbol "Imp13" (type-2 reloc)
+At 0x000008 (areaFlags 0x8f000001): Unlimited number of instructions PC-relative to symbol "Imp12" (type-2 reloc)
+At 0x000004 (areaFlags 0x8f000000): Unlimited number of instructions PC-relative to symbol "Imp11" (type-2 reloc)
+
+** Area (0x000103) "Code2", aligned at 4 bytes, [code] [abs] [32bit] 
+   Base address 0x0
+   Size 16 bytes, 3 relocations
+
+000000: e3a00000 ebfffffd ebfffffc ebfffffb
+
+** Relocations:
+
+At 0x00000c (areaFlags 0x8f000005): Unlimited number of instructions PC-relative to symbol "Imp23" (type-2 reloc)
+At 0x000008 (areaFlags 0x8f000004): Unlimited number of instructions PC-relative to symbol "Imp22" (type-2 reloc)
+At 0x000004 (areaFlags 0x8f000003): Unlimited number of instructions PC-relative to symbol "Imp21" (type-2 reloc)
+
+** Area (0x041000) "Data3", aligned at 4 bytes, [data] [based r4] 
+   Size 16 bytes, 3 relocations
+
+000000: 00000000 00000000 00000000 00000000
+
+** Relocations:
+
+At 0x00000c (areaFlags 0x8a000008): Word displaced by symbol "Imp33" (type-2 reloc)
+At 0x000008 (areaFlags 0x8a000007): Word displaced by symbol "Imp32" (type-2 reloc)
+At 0x000004 (areaFlags 0x8a000006): Word displaced by symbol "Imp31" (type-2 reloc)
+
+** Symbol table (out/import_label_aof.o):
+
+Imp11            (02) extern
+Imp12            (02) extern
+Imp13            (02) extern
+Imp21            (02) extern
+Imp22            (02) extern
+Imp23            (02) extern
+Imp31            (02) extern
+Imp32            (02) extern
+Imp33            (02) extern
+Code1            (01) local at "Code1" + 0x000000
+Code2            (05) local, absolute = 0x00000000
+Data3            (01) local at "Data3" + 0x000000
+$a               (01) local at "Code1" + 0x000000
+$a               (01) local at "Code2" + 0x000000
+$d               (101) local, cadatum at "Data3" + 0x000000
+
+** String table (out/import_label_aof.o):
+
+000004: Imp11
+00000a: Imp12
+000010: Imp13
+000016: Imp21
+00001c: Imp22
+000022: Imp23
+000028: Imp31
+00002e: Imp32
+000034: Imp33
+00003a: Code1
+000040: Code2
+000046: Data3
+00004c: $a
+00004f: $d

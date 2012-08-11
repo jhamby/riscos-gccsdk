@@ -5,11 +5,11 @@
 	[ :LNOT: REFERENCE
 
 	= "abc"
-	BIN tests_pass/include/def.txt
+	BIN include/def.txt
 	= "ghi", 10
 
 	= "abc"
-	INCBIN tests_pass/include/def.txt
+	INCBIN include/def.txt
 	= "ghi", 10
 
 	|

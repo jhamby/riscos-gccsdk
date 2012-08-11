@@ -1,7 +1,7 @@
 ; Test NOP for ARMv6K, ARMv6TE and ARMv7 architectures.
 ; -RUNOPT: -CPU=Cortex-A8
 
-	GET	tests_pass/include/nop.s
+	GET	include/nop.s
 
 	; Test the Thumb variants.
 	THUMB

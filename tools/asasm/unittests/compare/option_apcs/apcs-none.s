@@ -3,7 +3,7 @@
 	AREA Data, DATA
 
 	[ :LNOT: REFERENCE
-	GET tests_pass/include/predef_reg_test.s
+	GET include/predef_reg_test.s
 	|
 	= "r0 T 00000000\n"
 	= "R0 T 00000000\n"

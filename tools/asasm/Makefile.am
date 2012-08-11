@@ -4,5 +4,4 @@ install-minimum:
 	$(MAKE) $(AM_MAKEFLAGS)
 	$(MAKE) $(AM_MAKEFLAGS) install SUBDIRS=src
 
-SUBDIRS = decaof elftoolchain src testing
-
+SUBDIRS = decaof elftoolchain src unittests/compare unittests/reloc

@@ -1,0 +1,59 @@
+
+** AOF Header: Relocatable object format (out/export_label_aof.o)
+
+AOF version: 310
+4 areas
+14 symbols
+
+** Area (0x000102) "Code1", aligned at 4 bytes, [code] [32bit] 
+   Size 12 bytes, 0 relocations
+
+000000: e3a00000 e3a00001 e3a00002
+
+** Area (0x000103) "Code2", aligned at 4 bytes, [code] [abs] [32bit] 
+   Base address 0x0
+   Size 12 bytes, 0 relocations
+
+000000: e3a00000 e3a00001 e3a00002
+
+** Area (0x000102) "Code3", aligned at 4 bytes, [code] [32bit] 
+   Size 4 bytes, 0 relocations
+
+000000: e3a00001
+
+** Area (0x031000) "Data4", aligned at 4 bytes, [data] [based r3] 
+   Size 12 bytes, 0 relocations
+
+000000: 00000000 00000001 00000002
+
+** Symbol table (out/export_label_aof.o):
+
+Exp11            (03) global at "Code1" + 0x000004
+Exp12            (03) global at "Code1" + 0x000008
+Exp21            (07) global, absolute = 0x00000004
+Exp22            (07) global, absolute = 0x00000008
+Exp41            (103) global, cadatum at "Data4" + 0x000004
+Exp42            (103) global, cadatum at "Data4" + 0x000008
+Code1            (01) local at "Code1" + 0x000000
+Code2            (05) local, absolute = 0x00000000
+Code3            (01) local at "Code3" + 0x000000
+Data4            (01) local at "Data4" + 0x000000
+$a               (01) local at "Code1" + 0x000000
+$a               (01) local at "Code2" + 0x000000
+$a               (01) local at "Code3" + 0x000000
+$d               (101) local, cadatum at "Data4" + 0x000000
+
+** String table (out/export_label_aof.o):
+
+000004: Exp11
+00000a: Exp12
+000010: Exp21
+000016: Exp22
+00001c: Exp41
+000022: Exp42
+000028: Code1
+00002e: Code2
+000034: Code3
+00003a: Data4
+000040: $a
+000043: $d

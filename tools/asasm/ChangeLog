@@ -1,3 +1,13 @@
+Sun Aug 12 01:53:13 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* testing/{option_apcs,option_cpu,option_fpu,option_device,Makefile.in,
+	include,tests_pass}: Moved to...
+	* unittests/compare: ...here.
+	* unittests/reloc: Add simple import/export test case.
+	* configure.ac: Update.
+	* Makefile.am: Likewise.
+	* src/asm.c (ASM_DefineLabel): Give all data labels SYMBOL_DATUM bit.
+
 Sat Aug 11 13:35:48 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am (install-minimum): Make sure asasm is fully built (incl.

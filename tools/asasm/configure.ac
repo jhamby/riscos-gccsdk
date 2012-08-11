@@ -15,5 +15,5 @@ AC_CHECK_HEADERS([stddef.h stdint.h stdlib.h string.h])
 AC_C_BIGENDIAN
 AC_C_CONST
 
-AC_CONFIG_FILES([Makefile src/Makefile testing/Makefile elftoolchain/Makefile])
+AC_CONFIG_FILES([Makefile src/Makefile elftoolchain/Makefile unittests/compare/Makefile unittests/reloc/Makefile])
 AC_OUTPUT
