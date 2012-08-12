@@ -136,6 +136,8 @@ public class Dialogue : Toolbox.Window
 		Draggable = new Toolbox.Draggable (this, CmpID.Draggable);
 		Draggable.Text = "Sprites";
 		Draggable.Sprite = "file_ff9";
+		Draggable.DragStart += OnDraggableDragStart;
+		Draggable.DragEnd += OnDraggableDragEnd;
 
 		Button = new Toolbox.Button (this, CmpID.Button);
 	}
@@ -214,6 +216,35 @@ public class Dialogue : Toolbox.Window
 	void OnStringSetAboutToBeShown (object sender, Toolbox.ToolboxEventArgs e)
 	{
 		Reporter.WriteLine ("StringSet returned AboutToBeShown event.");
+		Reporter.WriteLine ("");
+	}
+
+	void OnDraggableDragStart (object sender, Toolbox.Draggable.DragStartEventArgs e)
+	{
+		Reporter.WriteLine ("Draggable returned DragStart event.");
+		Reporter.WriteLine ("Select drag = {0}", e.Select);
+		Reporter.WriteLine ("Adjust drag = {0}", e.Adjust);
+		Reporter.WriteLine ("Drag with Shift = {0}", e.Shift);
+		Reporter.WriteLine ("Drag with Ctrl = {0}", e.Ctrl);
+		Reporter.WriteLine ("");
+	}
+
+	void OnDraggableDragEnd (object sender, Toolbox.Draggable.DragEndEventArgs e)
+	{
+		Reporter.WriteLine ("Draggable returned DragEnd event.");
+		if (e.ToolboxWindow != null)
+		{
+			Reporter.WriteLine ("Drag ended on a Toolbox Window with ID {0:X8}", e.ToolboxWindow.ID);
+			if (e.ToolboxCmpID != 0xffffffff)
+				Reporter.WriteLine ("and gadget with ID {0}", e.ToolboxCmpID);
+		}
+		else
+		{
+			Reporter.WriteLine ("Drag ended on a WIMP window with handle {0:X8}", e.WimpWindowHandle);
+			if (e.WimpIconHandle != -1)
+				Reporter.WriteLine ("and the icon with handle {0}", e.WimpIconHandle);
+		}
+		Reporter.WriteLine ("The mouse pointer was at position {0},{1}", e.MousePosition.X, e.MousePosition.Y);
 		Reporter.WriteLine ("");
 	}
 }
