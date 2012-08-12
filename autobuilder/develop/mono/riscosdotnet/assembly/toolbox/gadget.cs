@@ -6,6 +6,7 @@
  
 using System;
 using System.Text;
+using System.Runtime.InteropServices;
 
 namespace riscos
 {
@@ -142,11 +143,52 @@ namespace riscos
 				CallMethod_SetR4 (Method.SetFocus, 0);
 			}
 
-			/*! \todo Method to return an array of icons used by the gadget.
-			 * Would be nice if there were a StringBuilder class for integer
-			 * arrays.  */
-			public void GetIconList()
+			/*! \brief Returns a list of WIMP icon numbers for the icons used to implement
+			 * this gadget.
+			 * 
+			 * If the gadget is composite (i.e. made up of other gadgets), then \e null is returned.
+			 * \return A mananaged integer array containing the icon numbers or null for a
+			 * composite gadget.  */
+			public int [] GetIconList()
 			{
+				int buffer_size;
+				IntPtr buffer = IntPtr.Zero;
+
+				try
+				{
+					OS.ThrowOnError (NativeMethods.Gadget_GetIconList (0,
+											   Object.ID,
+											   Method.GetIconList,
+											   ComponentID,
+											   IntPtr.Zero,
+											   0,
+											   out buffer_size));
+					if (buffer_size == 0)
+						return null;
+
+					// The returned buffer size is in bytes.
+					buffer = Marshal.AllocHGlobal (buffer_size);
+					OS.ThrowOnError (NativeMethods.Gadget_GetIconList (0,
+											   Object.ID,
+											   Method.GetIconList,
+											   ComponentID,
+											   buffer,
+											   buffer_size,
+											   out buffer_size));
+					int [] icon_list = new int [buffer_size >> 2];
+					Marshal.Copy (buffer, icon_list, 0, buffer_size >> 2);
+					return icon_list;
+				}
+				catch
+				{
+					// Rethrow any exceptions
+					throw;
+				}
+				finally
+				{
+					// Free the temporary unmanaged buffer memory
+					Marshal.FreeHGlobal (buffer);
+				}
 			}
 
 			public virtual void Dispatch (ToolboxEvent ev)
@@ -154,8 +196,8 @@ namespace riscos
 			}
 
 			/*! \brief Get the type of an unknown gadget.
-			 * \param [in] The Toolbox ID of the object.
-			 * \param [in] The Toolbox ID of the gadget component.
+			 * \param [in] ObjectID The Toolbox ID of the object.
+			 * \param [in] cmpID The Toolbox ID of the gadget component.
 			 * \return The type of the given gadget.  */
 			public static uint GetType (uint ObjectID, uint cmpID)
 			{

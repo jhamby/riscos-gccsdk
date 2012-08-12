@@ -245,6 +245,15 @@ namespace riscos
 							      uint componentID,
 							      out NativeOS.Rect bbox);
 
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetBuffer")]
+		internal static extern IntPtr Gadget_GetIconList (uint flags,
+								  uint windowID,
+								  int method,
+								  uint cmpID,
+								  IntPtr buffer,
+								  int bufferSize,
+								  out int used);
+
 		// Generic methods that can be used to call different Toolbox methods that
 		// operate on gadgets/components.
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
@@ -254,7 +263,7 @@ namespace riscos
 								 uint cmpID,
 								 string messageText);
 
-		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetText")]
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetBuffer")]
 		internal static extern IntPtr Component_GetText (uint flags,
 								 uint windowID,
 								 int method,

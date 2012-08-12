@@ -155,10 +155,10 @@ rdn_Component_GetR0R1:
 99:	LDMFD	sp!, {pc}
 	DECLARE_FUNCTION rdn_Component_GetR0R1
 
-	@ IntPtr rdn_Component_GetText (uint flags, uint WindowID, int method, uint cmpID,
-	@ 			 	char *buffer, int buffer_size, int *used)
-	.global rdn_Component_GetText
-rdn_Component_GetText:
+	@ IntPtr rdn_Component_GetBuffer (uint flags, uint WindowID, int method, uint cmpID,
+	@ 			 	  void *buffer, int buffer_size, int *used)
+	.global rdn_Component_GetBuffer
+rdn_Component_GetBuffer:
 	MOV	ip, sp
 	STMFD   sp!, {v1, v2, lr}
 
@@ -170,7 +170,7 @@ rdn_Component_GetText:
 	STR	r5, [lr]
 	MOV	r0, #0
 99:	LDMFD	sp!, {v1, v2, pc}
-	DECLARE_FUNCTION rdn_Component_GetText
+	DECLARE_FUNCTION rdn_Component_GetBuffer
 
 @---------------------------------------------------------------------------
 @
