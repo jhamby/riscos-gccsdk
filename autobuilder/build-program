@@ -20,7 +20,16 @@ AB_INSTALLDOCS="README ChangeLog FAQ AUTHORS CHANGES COPYING LICENSE"
 AB_CONFIG=$GCCSDK_INSTALL_ENV/ro-config
 AB_PATCHOPT="-l -p0"
 
-export AB_MAKE=$GCCSDK_INSTALL_ENV/ro-make
+# if the AB_CPUS variable is set, use that number of parallel processes in
+# our compile (may go wrong if makefiles are poorly written)
+if [ -z "$AB_CPUS" ] ; then
+	echo "Defaulting to one build CPU: set AB_CPUS to use more"
+	export AB_MAKE="$GCCSDK_INSTALL_ENV/ro-make"
+else
+	echo "Building on $AB_CPUS CPUs (set AB_CPUS to adjust)"
+	export AB_MAKE="$GCCSDK_INSTALL_ENV/ro-make -j$AB_CPUS"
+fi
+
 export AB_INSTALLTARGET=install
 
 if [ "$AB_ELFBUILD" != "yes" ] ; then
@@ -36,6 +45,8 @@ rm -f $AB_HOME/last-zips
 # Make $CC, $CXX available
 eval $(grep "export CC=" $GCCSDK_INSTALL_ENV/ro-config)
 eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
+export HOST_CC=$(which cc)
+export HOST_CXX=$(which c++)
 
 addzip() {
   if [ ! -x $GCCSDK_INSTALL_ENV/bin/zip ] ; then

@@ -9,6 +9,7 @@ AB_ALLDEPS=false       # Force build of all dependencies
 export AB_TARGET=      # Name added to packages and logs
 export AB_TRY=no       # Try to build Debian packages not in autobuilder yet
 export AB_ELFBUILD=yes # ELF is default
+export AB_CPUS=1       # Number of CPU cores to use for parallel make
 
 for param in $@ ; do
   case "$param" in
@@ -179,6 +180,8 @@ elif [ ! -d "$GCCSDK_INSTALL_CROSSBIN" ] ; then
   exit 1
 fi
 export GCCSDK_INSTALL_CROSSBIN
+
+export GCCSDK_INSTALL_CROSS=$GCCSDK_INSTALL_CROSSBIN/../
 
 # build location
 AB_TMPDIR=$PWD
