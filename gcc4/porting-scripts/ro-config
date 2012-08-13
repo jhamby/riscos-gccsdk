@@ -95,7 +95,12 @@ else
   adde1f
 fi
 
-
+# Fix up config.guess to match our uname tool
+if [ -e $RO_CPATH/config.guess ]; then
+  sed s/arm:riscos/arm\*:riscos/g -i.orig $RO_CPATH/config.guess  
+  sed s/arm:RISCOS/arm\*:RISCOS/g -i $RO_CPATH/config.guess  
+fi
+  
 # Prevent configure being re-run by make in some circumstances (e.g.
 # Debian patches make changes in configure.in which normally results in
 # recreating aclocal.m4, config.h.in, Makefile.in, etc).  For all clearness,
