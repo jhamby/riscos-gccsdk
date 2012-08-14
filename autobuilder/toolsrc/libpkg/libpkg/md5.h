@@ -9,6 +9,7 @@
 #include <cstddef>
 #include <string>
 #include <iosfwd>
+#include <stdint.h>
 
 namespace pkg {
 
@@ -23,10 +24,10 @@ class md5
 {
 public:
 	/** A type to represent an unsigned 32-bit integer. */
-	typedef unsigned long uint32;
+	typedef uint32_t uint32;
 
 	/** A type to represent an unsigned 64-bit integer. */
-	typedef unsigned long long uint64;
+	typedef uint64_t uint64;
 private:
 	/** The size of the message digest state, in 32-bit words. */
 	static const int state_size=4;
