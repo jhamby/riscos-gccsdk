@@ -64,6 +64,8 @@ public class Dialogue : Toolbox.Window
 	public Toolbox.Draggable Draggable;
 	public Toolbox.Button Button;
 	public Toolbox.RadioButton Radio2;
+	public Toolbox.PopupMenu PopupMenu;
+	public Toolbox.AdjusterArrow AdjusterArrow;
 
 	public class CmpID
 	{
@@ -79,9 +81,11 @@ public class Dialogue : Toolbox.Window
 		public const uint Draggable = 10;
 		public const uint Button = 11;
 		public const uint Radio2 = 12;
+		public const uint PopupMenu = 13;
+		public const uint AdjusterArrow = 14;
 	}
 
-	public Dialogue () : base ("Dialogue")
+	public Dialogue (MyTask task) : base ("Dialogue")
 	{
 		Title = "C# Dialogue Box";
 		AboutToBeShown += OnAboutToBeShown;
@@ -144,6 +148,13 @@ public class Dialogue : Toolbox.Window
 		Draggable.DragEnd += OnDraggableDragEnd;
 
 		Button = new Toolbox.Button (this, CmpID.Button);
+
+		PopupMenu = new Toolbox.PopupMenu (this, CmpID.PopupMenu);
+		PopupMenu.Menu = task.main_menu;
+		PopupMenu.AboutToBeShown += OnPopupMenuAboutToBeShown;
+
+		AdjusterArrow = new Toolbox.AdjusterArrow (this, CmpID.AdjusterArrow);
+		AdjusterArrow.Click += OnAdjusterArrowClick;
 	}
 
 	void OnAboutToBeShown (object sender, Toolbox.Window.AboutToBeShownEventArgs e)
@@ -261,6 +272,20 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("Drag ended = {0}", e.DragEnded);
 		Reporter.WriteLine ("");
 	}
+
+	void OnPopupMenuAboutToBeShown (object sender, Toolbox.PopupMenu.AboutToBeShownEventArgs e)
+	{
+		Reporter.WriteLine ("PopupMenu returned AboutToBeShown event");
+		Reporter.WriteLine ("Menu ID of menu that will be shown is {0:X8}", e.Menu.ID);
+		Reporter.WriteLine ("");
+	}
+
+	void OnAdjusterArrowClick (object sender, Toolbox.AdjusterArrow.ClickEventArgs e)
+	{
+		Reporter.WriteLine ("AdjusterArrow returned Click event");
+		Reporter.WriteLine ("Arrow direction is {0}",e.Direction);
+		Reporter.WriteLine ("");
+	}
 }
 
 public class MyTask : ToolboxTask
@@ -270,7 +295,7 @@ public class MyTask : ToolboxTask
 	private Dialogue dialogue;
 	private Font.Instance MainFont;
 
-	private MainMenu main_menu;
+	public MainMenu main_menu;
 
 	// Could use an enum here, but enums require a cast which is ugly.
 	public static class MyEvent
@@ -330,7 +355,7 @@ public class MyTask : ToolboxTask
 		MainWindow.RedrawHandler += new Wimp.RedrawEventHandler (RedrawMainWindow);
 		MainWindow.ToolboxHandlers.Add (MyEvent.Quit, QuitHandler);
 
-		dialogue = new Dialogue ();
+		dialogue = new Dialogue (this);
 		dialogue.Show ();
 	}
 

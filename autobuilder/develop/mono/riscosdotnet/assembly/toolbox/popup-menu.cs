@@ -5,6 +5,7 @@
 //
  
 using System;
+using System.Runtime.InteropServices;
 
 namespace riscos
 {
@@ -23,11 +24,49 @@ namespace riscos
 				public const int GetMenu = 705;
 			}
 
-			/*! \brief The default Toolbox event that a popup menu button can raise.  */
+			/*! \brief The default Toolbox event that a %PopupMenu button can raise.  */
 			public static class EventCode
 			{
 				public const uint AboutToBeShown = 0x8288b;
 			}
+
+			/*! \brief An object that encapsulates the arguments for the event that is raised when
+			 * the Menu of a %PopupMenu gadget is about to be shown.  */
+			public class AboutToBeShownEventArgs : ToolboxEventArgs
+			{
+				/*! \brief Constant defining event specific data offset after the header.  */
+				public static class EventOffset
+				{
+					public const int MenuID = 16;
+				}
+
+				/*! \brief The Menu that is about to be shown.  */
+				public readonly Toolbox.Menu Menu;
+
+				/*! \brief Create the arguments for an AboutToBeShown event from the raw event data.  */
+				public AboutToBeShownEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
+				{
+					uint menu_id = (uint)Marshal.ReadInt32 (RawEventData, EventOffset.MenuID);
+
+					Menu = (Menu)Object.LookupOrWrap (menu_id);
+				}
+			}
+
+			/*! \brief The signature of an AboutToBeShown event handler.  */
+			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
+
+			/*! \brief The event handlers that will be called when the menu for this %PopupMenu
+			 * is about to be shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * PopupMenuObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
 
 			/*! \brief Wrap an existing popup menu button, e.g., from a Resource file created
 			 * Window.  */
@@ -54,6 +93,14 @@ namespace riscos
 
 					return (Menu)tb_obj;
 				}
+			}
+
+			/*! \brief Check if the given event is relevant to the %PopupMenu gadget and call the
+			 * associated event handlers.  */
+			public override void Dispatch (ToolboxEvent ev)
+			{
+				if (ev.ToolboxArgs.Header.EventCode == EventCode.AboutToBeShown && AboutToBeShown != null)
+					AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
 			}
 		}
 	}
