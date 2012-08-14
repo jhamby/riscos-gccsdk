@@ -314,6 +314,17 @@ namespace riscos
 										  out r1));
 			}
 
+			protected void CallMethod_GetR0R1R2 (uint flags, int method, out int r0, out int r1, out int r2)
+			{
+				OS.ThrowOnError (NativeMethods.Component_GetR0R1R2 (flags,
+										    Object.ID,
+										    method,
+										    ComponentID,
+										    out r0,
+										    out r1,
+										    out r2));
+			}
+
 			protected uint CallMethod_GetR0 (uint flags, int method)
 			{
 				uint value;
@@ -329,6 +340,17 @@ namespace riscos
 			protected uint CallMethod_GetR0 (int method)
 			{
 				return CallMethod_GetR0 (0, method);
+			}
+
+			protected void CallMethod_SetR4R5R6 (uint flags, int method, int r4, int r5, int r6)
+			{
+				OS.ThrowOnError (NativeMethods.Component_SetR4R5R6 (flags,
+										    Object.ID,
+										    method,
+										    ComponentID,
+										    r4,
+										    r5,
+										    r6));
 			}
 		}
 	}

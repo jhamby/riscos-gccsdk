@@ -256,6 +256,15 @@ namespace riscos
 
 		// Generic methods that can be used to call different Toolbox methods that
 		// operate on gadgets/components.
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4R5R6")]
+		internal static extern IntPtr Component_SetR4R5R6 (uint flags,
+								   uint windowID,
+								   int method,
+								   uint cmpID,
+								   int r4,
+								   int r5,
+								   int r6);
+
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_SetR4")]
 		internal static extern IntPtr Component_SetText (uint flags,
 								 uint windowID,
@@ -310,6 +319,15 @@ namespace riscos
 								 uint cmpID,
 								 out uint r0,
 								 out uint r1);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Component_GetR0R1R2")]
+		internal static extern IntPtr Component_GetR0R1R2 (uint flags,
+								   uint windowID,
+								   int method,
+								   uint cmpID,
+								   out int r0,
+								   out int r1,
+								   out int r2);
 
 		// Generic methods that can be used to call different Toolbox methods that
 		// operate on Toolbox objects.

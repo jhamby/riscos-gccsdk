@@ -5,6 +5,7 @@
 //
  
 using System;
+using System.Runtime.InteropServices;
 
 namespace riscos
 {
@@ -25,11 +26,76 @@ namespace riscos
 				public const int GetColour = 581;
 			}
 
-			/*! \brief The default Toolbox event that a slider can raise.  */
+			static class SliderFlags
+			{
+				// Lower & Upper are the wrong way around in the Acorn User
+				// Interface Toolbox manual.
+				public const int LowerBound = (1 << 0);
+				public const int UpperBound = (1 << 1);
+				public const int StepSize = (1 << 2);
+			}
+
+			/*! \brief The default Toolbox event that a %Slider can raise.  */
 			public static class EventCode
 			{
 				public const uint ValueChanged = 0x82886;
 			}
+
+			/*! \brief An object that encapsulates the arguments for the event that is raised when the
+			 * value of a %Slider changes.  */
+			public class ValueChangeEventArgs : ToolboxEventArgs
+			{
+				/*! \brief Constants defining the possible bit flags returned by this event.  */
+				public static class Flags
+				{
+					public const int DragStartClick = (1 << 0);
+					public const int DragInProgress = (1 << 1);
+					public const int DragEnded = (1 << 2);
+				}
+
+				/*! \brief Constant defining event specific data offset after the header.  */
+				public static class EventOffset
+				{
+					public const int NewValue = 16;
+				}
+
+				/*! \brief \e true if this event is the start of the drag or just a click.  */
+				public readonly bool DragStartClick;
+				/*! \brief \e true if the drag of the Slider is still in progress.  */
+				public readonly bool DragInProgress;
+				/*! \brief \e true if this event is the end of the drag on the Slider.  */
+				public readonly bool DragEnded;
+
+				/*! \brief New value of the Slider.  */
+				public readonly int NewValue;
+
+				/*! \brief Create the arguments for a ValueChange event from the raw event data.  */
+				public ValueChangeEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
+				{
+					uint flags = Header.Flags;
+
+					DragStartClick = (flags & Flags.DragStartClick) != 0;
+					DragInProgress = (flags & Flags.DragInProgress) != 0;
+					DragEnded = (flags & Flags.DragEnded) != 0;
+
+					NewValue = Marshal.ReadInt32 (RawEventData, EventOffset.NewValue);
+				}
+			}
+
+			/*! \brief The signature of a ValueChange event handler.  */
+			public delegate void ValueChangeEventHandler (object sender, ValueChangeEventArgs e);
+
+			/*! \brief The event handlers that will be called when the value of a %Slider changes.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ValueChangeEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * SliderObject.ValueChange += handler_name;
+			 * \endcode  */
+			public event ValueChangeEventHandler ValueChange;
 
 			/*! \brief Wrap an existing slider, e.g., from a Resource file created
 			 * Window.  */
@@ -42,6 +108,119 @@ namespace riscos
 			{
 				set { CallMethod_SetR4 (Method.SetValue, (uint)value); }
 				get { return (int)CallMethod_GetR0 (Method.GetValue); }
+			}
+
+			/*! \brief Sets or gets the lower bound of the slider's value.  */
+			public int LowerBound
+			{
+				set
+				{
+					CallMethod_SetR4R5R6 (SliderFlags.LowerBound,
+							      Method.SetBound,
+							      value,
+							      0,
+							      0);
+				}
+				get
+				{
+					int lower;
+					int not_required;
+
+					CallMethod_GetR0R1R2 (SliderFlags.LowerBound,
+							      Method.GetBound,
+							      out lower,
+							      out not_required,
+							      out not_required);
+					return lower;
+				}
+			}
+
+			/*! \brief Sets or gets the upper bound of the slider's value.  */
+			public int UpperBound
+			{
+				set
+				{
+					CallMethod_SetR4R5R6 (SliderFlags.UpperBound,
+							      Method.SetBound,
+							      0,
+							      value,
+							      0);
+				}
+				get
+				{
+					int upper;
+					int not_required;
+
+					CallMethod_GetR0R1R2 (SliderFlags.UpperBound,
+							      Method.GetBound,
+							      out not_required,
+							      out upper,
+							      out not_required);
+					return upper;
+				}
+			}
+
+			/*! \brief Sets or gets the step size of the slider's value.  */
+			public int StepSize
+			{
+				set
+				{
+					CallMethod_SetR4R5R6 (SliderFlags.StepSize,
+							      Method.SetBound,
+							      0,
+							      0,
+							      value);
+				}
+				get
+				{
+					int step;
+					int not_required;
+
+					CallMethod_GetR0R1R2 (SliderFlags.StepSize,
+							      Method.GetBound,
+							      out not_required,
+							      out not_required,
+							      out step);
+					return step;
+				}
+			}
+
+			/*! \brief Set the lower bound, upper bound and step size of the %Slider.
+			 *
+			 * An alternative to using the individual properties that sets all three
+			 * values in one operation.
+			 * \param [in] lower The lower bounds of the %Slider's value.
+			 * \param [in] upper The upper bounds of the %Slider's value.
+			 * \param [in] step The step size of the %Slider.
+			 * \return Nothing.  */
+			public void SetBounds (int lower, int upper, int step)
+			{
+				CallMethod_SetR4R5R6 (SliderFlags.LowerBound |
+							SliderFlags.UpperBound |
+							SliderFlags.StepSize,
+						      Method.SetBound,
+						      lower,
+						      upper,
+						      step);
+			}
+
+			/*! \brief Get the lower bound, upper bound and step size of the %Slider.
+			 *
+			 * An alternative to using the individual properties that gets all three
+			 * values in one operation.
+			 * \param [out] lower The lower bounds of the %Slider's value.
+			 * \param [out] upper The upper bounds of the %Slider's value.
+			 * \param [out] step The step size of the %Slider.
+			 * \return Nothing.  */
+			public void GetBounds (out int lower, out int upper, out int step)
+			{
+				CallMethod_GetR0R1R2 (SliderFlags.LowerBound |
+							SliderFlags.UpperBound |
+							SliderFlags.StepSize,
+						      Method.SetBound,
+						      out lower,
+						      out upper,
+						      out step);
 			}
 
 			/*! \brief Sets the Desktop colour used in the slider.
@@ -68,6 +247,14 @@ namespace riscos
 
 				barColour = (OS.DesktopColour)bar_col;
 				bgColour = (OS.DesktopColour)bg_col;
+			}
+
+			/*! \brief Check if the given event is relevant to the %Slider gadget and call the
+			 * associated event handlers.  */
+			public override void Dispatch (ToolboxEvent ev)
+			{
+				if (ev.ToolboxArgs.Header.EventCode == EventCode.ValueChanged && ValueChange != null)
+					ValueChange (this, new ValueChangeEventArgs (ev.ToolboxArgs.RawEventData));
 			}
 		}
 	}

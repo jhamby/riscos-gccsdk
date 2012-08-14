@@ -155,6 +155,25 @@ rdn_Component_GetR0R1:
 99:	LDMFD	sp!, {pc}
 	DECLARE_FUNCTION rdn_Component_GetR0R1
 
+	@ IntPtr rdn_Component_GetR0R1R2 (uint flags, uint ObjectID, int method, uint CmpID,
+	@ 				  uint *r0_return, uint *r1_return, uint *r2_return)
+	.global rdn_Component_GetR0R1R2
+rdn_Component_GetR0R1R2:
+	MOV	ip, sp
+	STMFD   sp!, {lr}
+
+	SWI	0x64EC6
+	BVS	99f
+	LDR	lr, [ip, #0]
+	STR	r0, [lr]
+	LDR	lr, [ip, #4]
+	STR	r1, [lr]
+	LDR	lr, [ip, #8]
+	STR	r2, [lr]
+	MOV	r0, #0
+99:	LDMFD	sp!, {pc}
+	DECLARE_FUNCTION rdn_Component_GetR0R1R2
+
 	@ IntPtr rdn_Component_GetBuffer (uint flags, uint WindowID, int method, uint cmpID,
 	@ 			 	  void *buffer, int buffer_size, int *used)
 	.global rdn_Component_GetBuffer

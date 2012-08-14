@@ -130,8 +130,12 @@ public class Dialogue : Toolbox.Window
 		Radio2.StateChange += OnRadioButtonStateChange;
 
 		Slider = new Toolbox.Slider (this, CmpID.Slider);
-		Slider.Value = 85;
+		Slider.UpperBound = 1000;
+		Slider.LowerBound = 100;
+		Slider.StepSize = 20;
+		Slider.Value = 200;
 		Slider.SetColour (OS.DesktopColour.Red, OS.DesktopColour.Cream);
+		Slider.ValueChange += OnSliderValueChange;
 
 		Draggable = new Toolbox.Draggable (this, CmpID.Draggable);
 		Draggable.Text = "Sprites";
@@ -245,6 +249,16 @@ public class Dialogue : Toolbox.Window
 				Reporter.WriteLine ("and the icon with handle {0}", e.WimpIconHandle);
 		}
 		Reporter.WriteLine ("The mouse pointer was at position {0},{1}", e.MousePosition.X, e.MousePosition.Y);
+		Reporter.WriteLine ("");
+	}
+
+	void OnSliderValueChange (object sender, Toolbox.Slider.ValueChangeEventArgs e)
+	{
+		Reporter.WriteLine ("Slider returned ValueChange event.");
+		Reporter.WriteLine ("New value is {0}", e.NewValue);
+		Reporter.WriteLine ("Drag start or click = {0}", e.DragStartClick);
+		Reporter.WriteLine ("Drag in progress = {0}", e.DragInProgress);
+		Reporter.WriteLine ("Drag ended = {0}", e.DragEnded);
 		Reporter.WriteLine ("");
 	}
 }
