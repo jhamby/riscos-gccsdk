@@ -250,7 +250,7 @@ Symbol_Remove (const Lex *l)
 	}
     }
 
-  assert (0 && "Not an existing symbol");
+  assert (!"Not an existing symbol");
 }
 
 
@@ -286,13 +286,13 @@ NeedToOutputSymbol (const Symbol *sym)
     return true;
 
   bool doOutput = (((oKeepAllSymbols || (sym->type & SYMBOL_KEEP))
-		    && (sym->value.Tag == ValueBool
-		        || (sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt)
+		    && ((sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt)
 		        || sym->value.Tag == ValueSymbol))
 		   || SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
                    || (SYMBOL_KIND(sym->type) == SYMBOL_REFERENCE && sym->used >= 0)
 		  )
 		  && !Local_IsLocalLabel (sym->str);
+  assert (!doOutput || (sym->type & SYMBOL_RW) == 0);
   return doOutput;
 }
 
@@ -595,8 +595,8 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	      else
 		value = &sym->value;
 
-	      /* We can only have Int, Bool and Symbol here.
-		 Also Addr is possible for an area mapping symbol when base
+	      /* We can only have Addr, Int and Symbol here.
+		 Addr is possible for an area mapping symbol when base
 		 register is specified.  */
 	      int v;
 	      switch (value->Tag)
@@ -609,16 +609,12 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 		    v = value->Data.Int.i;
 		    break;
 
-		  case ValueBool:
-		    v = value->Data.Bool.b;
-		    break;
-
                   case ValueSymbol:
 		    v = value->Data.Symbol.offset;
 		    break;
 
 		  default:
-		    assert (0 && "Wrong value tag selection");
+		    assert (!"Wrong value tag selection");
 		    v = 0;
 		    break;
 		}
@@ -688,8 +684,8 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	      else
 		value = &sym->value;
 
-	      /* We can only have Int, Bool and Symbol here.
-		 Also Addr is possible for an area mapping symbol when base
+	      /* We can only have Addr, Int and Symbol here.
+		 Addr is possible for an area mapping symbol when base
 		 register is specified.  */
 	      int v;
 	      switch (value->Tag)
@@ -702,16 +698,12 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 		    v = value->Data.Int.i;
 		    break;
 
-		  case ValueBool:
-		    v = value->Data.Bool.b;
-		    break;
-
                   case ValueSymbol:
 		    v = value->Data.Symbol.offset;
 		    break;
 
 		  default:
-		    assert (0 && "Wrong value tag selection");
+		    assert (!"Wrong value tag selection");
 		    v = 0;
 		    break;
 		}

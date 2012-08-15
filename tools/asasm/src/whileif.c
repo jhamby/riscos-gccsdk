@@ -474,7 +474,7 @@ c_while (void)
 	    break;
 
 	  default:
-	    assert (0 && "Unexpected parsable object type");
+	    assert (!"Unexpected parsable object type");
 	    break;
 	}
     }
@@ -523,7 +523,7 @@ While_Rewind (void)
 	break;
 
       default:
-	assert (0 && "unrecognised WHILE type");
+	assert (!"unrecognised WHILE type");
 	break;
     }
 
@@ -585,7 +585,7 @@ FS_PopIfWhile (bool noCheck)
 	    break;
 
 	  default:
-	    assert (0 && "Unknown while/if type");
+	    assert (!"Unknown while/if type");
 	    break;
 	}
     }

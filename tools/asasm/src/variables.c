@@ -105,6 +105,14 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 {
   const Lex var = lexTempLabel (ptr, len);
   Symbol *sym = Symbol_Get (&var);
+
+  if (sym->type & (SYMBOL_REFERENCE | SYMBOL_STRONG | SYMBOL_KEEP))
+    {
+      error (ErrorError, "'%.*s' is already in use as symbol and can not be used as %s variable",
+	     (int)len, ptr, localMacro ? "local" : "global");
+      return NULL;
+    }
+  
   if (sym->value.Tag != ValueIllegal)
     {
       if (sym->type & SYMBOL_AREA)
@@ -113,6 +121,7 @@ Var_Define (const char *ptr, size_t len, ValueTag type, bool localMacro)
 		 (int)len, ptr);
 	  return NULL;
 	}
+
       /* A local variable can have a different type than a similar named
 	 global variable.  */
       /* FIXME: this is not 100% bullet proof: a local variable with same

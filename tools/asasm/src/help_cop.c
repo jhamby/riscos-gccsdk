@@ -277,7 +277,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 		    break;
 
 		  default:
-		    assert (0 && "Extended/packed are not supported");
+		    assert (!"Extended/packed are not supported");
 		    break;
 		}
 
