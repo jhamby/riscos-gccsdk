@@ -53,3 +53,5 @@ Symbol table (.symtab) contains 15 entries:
     12: 0000000000000008     0 NOTYPE  GLOBAL DEFAULT  ABS Exp22
     13: 0000000000000004     0 NOTYPE  GLOBAL DEFAULT    6 Exp41
     14: 0000000000000008     0 NOTYPE  GLOBAL DEFAULT    6 Exp42
+
+elf checksum: 0xa9f

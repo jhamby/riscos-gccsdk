@@ -12,9 +12,9 @@ AOF version: 310
 
 ** Relocations:
 
-At 0x00000c (areaFlags 0x8f000002): Unlimited number of instructions PC-relative to symbol "Imp13" (type-2 reloc)
-At 0x000008 (areaFlags 0x8f000001): Unlimited number of instructions PC-relative to symbol "Imp12" (type-2 reloc)
-At 0x000004 (areaFlags 0x8f000000): Unlimited number of instructions PC-relative to symbol "Imp11" (type-2 reloc)
+At 0x00000c (flags 0x8f000002): Unlimited number of instructions PC-relative to symbol "Imp13" (type-2 reloc)
+At 0x000008 (flags 0x8f000001): Unlimited number of instructions PC-relative to symbol "Imp12" (type-2 reloc)
+At 0x000004 (flags 0x8f000000): Unlimited number of instructions PC-relative to symbol "Imp11" (type-2 reloc)
 
 ** Area (0x000103) "Code2", aligned at 4 bytes, [code] [abs] [32bit] 
    Base address 0x0
@@ -24,9 +24,9 @@ At 0x000004 (areaFlags 0x8f000000): Unlimited number of instructions PC-relative
 
 ** Relocations:
 
-At 0x00000c (areaFlags 0x8f000005): Unlimited number of instructions PC-relative to symbol "Imp23" (type-2 reloc)
-At 0x000008 (areaFlags 0x8f000004): Unlimited number of instructions PC-relative to symbol "Imp22" (type-2 reloc)
-At 0x000004 (areaFlags 0x8f000003): Unlimited number of instructions PC-relative to symbol "Imp21" (type-2 reloc)
+At 0x00000c (flags 0x8f000005): Unlimited number of instructions PC-relative to symbol "Imp23" (type-2 reloc)
+At 0x000008 (flags 0x8f000004): Unlimited number of instructions PC-relative to symbol "Imp22" (type-2 reloc)
+At 0x000004 (flags 0x8f000003): Unlimited number of instructions PC-relative to symbol "Imp21" (type-2 reloc)
 
 ** Area (0x041000) "Data3", aligned at 4 bytes, [data] [based r4] 
    Size 16 bytes, 3 relocations
@@ -35,9 +35,9 @@ At 0x000004 (areaFlags 0x8f000003): Unlimited number of instructions PC-relative
 
 ** Relocations:
 
-At 0x00000c (areaFlags 0x8a000008): Word displaced by symbol "Imp33" (type-2 reloc)
-At 0x000008 (areaFlags 0x8a000007): Word displaced by symbol "Imp32" (type-2 reloc)
-At 0x000004 (areaFlags 0x8a000006): Word displaced by symbol "Imp31" (type-2 reloc)
+At 0x00000c (flags 0x8a000008): Word displaced by symbol "Imp33" (type-2 reloc)
+At 0x000008 (flags 0x8a000007): Word displaced by symbol "Imp32" (type-2 reloc)
+At 0x000004 (flags 0x8a000006): Word displaced by symbol "Imp31" (type-2 reloc)
 
 ** Symbol table (out/import_label_aof.o):
 

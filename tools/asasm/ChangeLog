@@ -1,3 +1,13 @@
+Wed Aug 15 14:27:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/reloc/Makefile.in: Use ELFDUMP as well so we're having
+	a checksum of section contents.
+	* unittests/reloc/ref/export_label_elf.txt: Update with ELFDUMP
+	checksum.
+	* unittests/reloc/ref/import_label_elf.txt: Likewise.
+	* unittests/reloc/ref/import_label_aof.txt: Likewise.  Update after
+	decaof output change.
+
 Sun Aug 12 01:53:13 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* testing/{option_apcs,option_cpu,option_fpu,option_device,Makefile.in,

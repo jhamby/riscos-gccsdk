@@ -2,12 +2,16 @@
 
 ASASM := @top_builddir@/src/asasm
 DECAOF := @top_builddir@/decaof/decaof
+# FIXME: as soon as it is available, we should use objdump instaed of
+# readelf and elfdump so we can properly dump ELF details with one command
 READELF := @top_builddir@/elftoolchain/readelf
+ELFDUMP := @top_builddir@/elftoolchain/elfdump
 
 ASASMFLAGS_AOF := -aof
 ASASMFLAGS_ELF := -elf
 DECAOFFLAGS := -a -d -r -s -t
 READELFFLAGS := -a
+ELFDUMPFLAGS := -k
 
 ECHO := echo
 MKDIR := mkdir
@@ -39,7 +43,7 @@ out/%_elf.o: %.s @srcdir@/ref/%_elf.txt
 	@$(ECHO) +++ Checking ELF relocations for $<
 	$(V)$(MKDIR) -p out
 	$(V)$(ASASM) $(ASASMFLAGS_ELF) -o $@ $<
-	$(V)$(READELF) $(READELFFLAGS) $@ | $(DIFF) $(DIFFFLAGS) $(@:out/%_elf.o=@srcdir@/ref/%_elf.txt) - || (mv $@ $(@:%_elf.o=%_elf_failed.o) && false)
+	$(V)($(READELF) $(READELFFLAGS) $@ && $(ELFDUMP) $(ELFDUMPFLAGS) $@) | $(DIFF) $(DIFFFLAGS) $(@:out/%_elf.o=@srcdir@/ref/%_elf.txt) - || (mv $@ $(@:%_elf.o=%_elf_failed.o) && false)
 
 out/%_aof.o: %.s @srcdir@/ref/%_aof.txt
 	@$(ECHO) +++ Checking AOF relocations for $<
