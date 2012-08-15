@@ -157,6 +157,9 @@ else
     if [ -z "$orig" ] ; then
       orig=$(grep \.orig\.tar\.xz files | cut -d ' ' -f 4)
     fi
+    if [ -z "$orig" ] ; then
+      orig=$(grep \.orig\.tar\.gz files | cut -d ' ' -f 4)
+    fi
     if [ -n "$orig" ] ; then
       wget -nv $debdir/$orig
 
@@ -174,7 +177,7 @@ else
 
       wget -nv $debdir/$deb
 
-      tar xfj *.orig.tar.bz2 || tar xfJ *.orig.tar.xz
+      tar xfj *.orig.tar.bz2 || tar xfJ *.orig.tar.xz || tar xfz *.orig.tar.gz
       subdir=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package)
       tar xfz $deb -C $subdir || tar xfj $deb -C $subdir || tar xfJ $deb -C $subdir
 
