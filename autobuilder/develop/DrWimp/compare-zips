@@ -1,0 +1,34 @@
+#!/bin/bash
+
+LIB=../../autobuilder_packages/Library/
+PROG=../../autobuilder_packages/Programming/
+PATH_OLD=tmp/
+VO=4.60-0
+VN=5.00-1
+
+compare()
+{
+	echo "Comparing $1:"
+	zipinfo -1 $PATH_OLD/$1_$2 | sort > /tmp/oldpkg
+	zipinfo -1 $4/$1_$3 | sort > /tmp/newpkg
+	diff -u /tmp/oldpkg /tmp/newpkg
+}
+
+comparecore()
+{
+	echo "Comparing $1/$5:"
+	zipinfo -1 $PATH_OLD/$1_$2 | sort > /tmp/oldpkg
+	zipinfo -1 $4/$5_$3 | sort > /tmp/newpkg
+	diff -u /tmp/oldpkg /tmp/newpkg
+}
+
+compare DrWimp-CodeTemps 1.30-0 1.41-1 $PROG
+compare DrWimp-Common $VO $VN $LIB
+compare DrWimp-Doc $VO $VN $LIB
+compare DrWimp-Elixirs $VO $VN $LIB
+compare DrWimp-Example $VO $VN $LIB
+compare DrWimp-Fabricate 2.62-0 2.63-1 $PROG
+compare DrWimp-Skeleton $VO $VN $LIB
+compare DrWimp-Tutorial $VO $VN $LIB
+compare Linker 2.60-0 2.60-1 $PROG
+comparecore DrWimp-4.60 $VO 5.02-1 $LIB DrWimp-5.00

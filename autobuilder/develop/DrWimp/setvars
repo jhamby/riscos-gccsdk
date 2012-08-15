@@ -1,0 +1,303 @@
+# Generate DrWimp and associated packages
+
+# Note that previously Graham had the DrWimp library living in a centralised
+# application called !DrWimpLib as !DrWimpLib.DrWimp-4.60
+# This enables installing of multiple versions and avoids duplication since
+# traditionally each app contains its own copy of DrWimp.
+# Unfortunately this means altering all the example applications to suit
+# This is awkward because we'd need to recompute the tokenised BASIC line
+# numbers, which we can't easily do from Linux.  We also can't symlink
+# !DrWimpLib.DrWimp-4.60 to !DrWimpLib.DrWimp so apps can always pick up the
+# latest version.  So we have an evil hack - just copy it to both places :(
+
+DRWIMP_VER_MAIN=5.00
+DRWIMP_VER_CORE=5.02
+DRWIMP_VER_CODETEMPS=1.41
+DRWIMP_VER_FAB=2.63
+DRWIMP_VER_LINKER=2.60
+
+DRWIMP_PKG_REV_MAIN=1
+# remove the point from the version number
+DRWIMP_ZIP_VERSION=$(echo "$DRWIMP_VER_MAIN" | sed 's/\.//')
+DRWIMP_ZIP_VERSION_CORE=$(echo "$DRWIMP_VER_CORE" | sed 's/\.//')
+DRWIMP_PKG_VERSION="$DRWIMP_VER_MAIN-$DRWIMP_PKG_REV"
+DRWIMP_VAR_VERSION_MAIN=$(echo "$DRWIMP_VER_MAIN" | sed 's/\./_/')
+
+DRWIMP_SRC_CORE=DW$DRWIMP_ZIP_VERSION_CORE
+DRWIMP_SRC_DOCS=Docs$DRWIMP_ZIP_VERSION
+DRWIMP_SRC_UTILS=Utils
+DRWIMP_SRC_ELIX=Elixirs
+# note Zip is 'Examples' and package is 'Example'
+DRWIMP_SRC_EX=Examples
+
+# we provide a package of DrWimp-n.nn, but based on major ver not minor ver
+# so incremental upgrades work automatically
+DRWIMP_PKG_CORE=DrWimp-$DRWIMP_VER_MAIN
+DRWIMP_PKG_TUT=DrWimp-Tutorial
+DRWIMP_PKG_COMMON=DrWimp-Common
+DRWIMP_PKG_DOC=DrWimp-Doc
+DRWIMP_PKG_FAB=DrWimp-Fabricate
+DRWIMP_PKG_CODETEMPS=DrWimp-CodeTemps
+DRWIMP_PKG_LINKER=Linker
+DRWIMP_PKG_EX=DrWimp-Example
+DRWIMP_PKG_ELIX=DrWimp-Elixirs
+DRWIMP_PKG_SKEL=DrWimp-Skeleton
+DRWIMP_PKG_META=DrWimp
+
+
+DRWIMP_TUT_DIR="$DRWIMP_PKG_TUT"
+DRWIMP_DOC_DIR="$DRWIMP_PKG_DOC"
+DRWIMP_COMMON_DIR="$DRWIMP_PKG_COMMON"
+DRWIMP_FAB_DIR="$DRWIMP_PKG_FAB"
+DRWIMP_CODETEMPS_DIR="$DRWIMP_PKG_CODETEMPS"
+DRWIMP_LINKER_DIR="$DRWIMP_PKG_LINKER"
+DRWIMP_CORE_DIR="$DRWIMP_PKG_CORE"
+DRWIMP_ELIX_DIR="$DRWIMP_PKG_ELIX"
+DRWIMP_EX_DIR="$DRWIMP_PKG_EX"
+DRWIMP_SKEL_DIR="$DRWIMP_PKG_SKEL"
+DRWIMP_META_DIR="$DRWIMP_PKG_META"
+
+DRWIMP_UPSTREAM="http://www.rayfavre.me.uk/Downloads/Package"
+
+DRWIMP_SRC_CORE_URL=$DRWIMP_UPSTREAM/$DRWIMP_SRC_CORE.zip
+DRWIMP_SRC_DOCS_URL=$DRWIMP_UPSTREAM/$DRWIMP_SRC_DOCS.zip
+DRWIMP_SRC_UTILS_URL=$DRWIMP_UPSTREAM/$DRWIMP_SRC_UTILS.zip
+DRWIMP_SRC_ELIX_URL=$DRWIMP_UPSTREAM/$DRWIMP_SRC_ELIX.zip
+DRWIMP_SRC_EX_URL=$DRWIMP_UPSTREAM/$DRWIMP_SRC_EX.zip
+
+# Multiple packages. This specifies the name of the packages
+# to create if multiple packages are to be produced.
+# Each package should be created in a separate subdirectory
+# of the package directory (the $D variable in the package function)
+# with the same name as the package name specified in the variable.
+AB_PACKAGES="$DRWIMP_PKG_TUT $DRWIMP_PKG_DOC $DRWIMP_PKG_FAB \
+	$DRWIMP_PKG_CODETEMPS $DRWIMP_PKG_LINKER $DRWIMP_PKG_CORE \
+	$DRWIMP_PKG_COMMON $DRWIMP_PKG_ELIX $DRWIMP_PKG_EX \
+	$DRWIMP_PKG_SKEL $DRWIMP_PKG_META"
+
+#  6. Either somewhere on a filing system:
+AB_NOREMOTE=yes
+
+# RISC OS Version of the packages.  Some use the global DrWimp version,
+AB_PVERSION=$DRWIMP_VER_MAIN
+AB_ROVERSION=$DRWIMP_PKG_REV_MAIN
+
+# while others need different version numbers
+AB_PVERSION_Linker=$DRWIMP_VER_LINKER
+AB_PVERSION_DrWimp_Fabricate=$DRWIMP_VER_FAB
+AB_PVERSION_DrWimp_CodeTemps=$DRWIMP_VER_CODETEMPS
+# AB_PV_5_00 = 5.02
+eval AB_PVERSION_DrWimp_$DRWIMP_VAR_VERSION_MAIN=$DRWIMP_VER_CORE
+
+# Command in front of invocation of RISC OS GNU configure wrapper.  If you do
+# not want this to be called, you could set this var to ":"
+AB_PRECONF=":"
+
+# Continue on, even if the program or library fails to fully compile
+# (e.g. example/test apps)
+AB_COMPILEFAIL=yes
+
+# Run "make install" (in fact: make $AB_INSTALLTARGET) after build
+AB_INSTALL=no
+
+# RISC OS configuration script
+AB_CONFIG=
+
+# RISC OS make wrapper.  This can be set to just "make" if setting the
+# path causes problems - e.g., the native compiler is required too
+AB_MAKE=
+
+# Zip name; alternate name for package to be zipped as.  No extension is
+# needed. Useful if tools from a library, etc.
+#AB_ZIPNAME=
+
+AB_LICENCE=Non-free
+
+# Make function
+#
+# Define this if you want special actions for make
+#
+ab_make () {
+  :
+}
+
+# Package function
+#
+# You will need to define this to do your packaging for RiscPkg. 
+# There are several variables to use here:
+# $S build directory
+# $D top level of destination package directory
+# $H autobuilder directory for package
+# $A RISC OS application (after calling ab_create_app, etc)
+#
+AB_CATEGORY=Library
+
+
+ab_package () {
+#   ab_create_app MyApp Apps/Graphics     # !MyApp will be copied from $H, and the package section will be Graphics
+#   ab_add_commands $S/myapp${AB_EXEEXT}  # For applications containing command line utilities, this adds aliases to !Boot 
+#
+#    $AB_HOME/add-riscpkg -unixlib         # Last step to complete packaging
+
+    # fix up link to this version's package info
+    # allows to have pkg called DrWimp-5.00
+    rm -f $H/DrWimp-$DRWIMP_VER_MAIN
+    ln -f -s $H/DrWimp-DRWIMP_VERSION $H/DrWimp-$DRWIMP_VER_MAIN
+
+# docs - download
+    wget $DRWIMP_SRC_DOCS_URL
+    mkdir -p $DRWIMP_SRC_DOCS
+    $GCCSDK_UNZIP -d $DRWIMP_SRC_DOCS $DRWIMP_SRC_DOCS.zip
+
+# tutorials
+    mkdir -p $D/$DRWIMP_TUT_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_TUT_DIR/RiscPkg/
+    mkdir -p $D/$DRWIMP_TUT_DIR/Apps/Library/\!DrWimpLib/
+    cp -a $DRWIMP_SRC_DOCS/Tutorials/ $D/$DRWIMP_TUT_DIR/Apps/Library/\!DrWimpLib
+#    cp $H/Control-Tutorial $D/$DRWIMP_TUT_DIR/RiscPkg/
+#    $AB_HOME/add-riscpkg -name $DRWIMP_PKG_TUT -depends $DRWIMP_PKG_COMMON         # Last step to complete packaging
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_TUT -section Library \
+	-depends $DRWIMP_PKG_COMMON -depends $DRWIMP_PKG_CORE \
+	-suggests $DRWIMP_PKG_META
+
+
+# documents
+    mkdir -p $D/$DRWIMP_DOC_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_DOC_DIR/RiscPkg/
+    mkdir -p $D/$DRWIMP_DOC_DIR/Apps/Library/\!DrWimpLib/
+    cp -a $DRWIMP_SRC_DOCS/Documents/ $D/$DRWIMP_DOC_DIR/Apps/Library/\!DrWimpLib
+    rm  $D/$DRWIMP_DOC_DIR/Apps/Library/\!DrWimpLib/Documents/Addr+Cred,fff
+    rm  $D/$DRWIMP_DOC_DIR/Apps/Library/\!DrWimpLib/Documents/Conditions,faf
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_DOC -section Library \
+	-depends $DRWIMP_PKG_COMMON -recommends $DRWIMP_PKG_SKEL \
+	-suggests $DRWIMP_PKG_META
+
+# utils - download
+    wget $DRWIMP_SRC_UTILS_URL
+    mkdir -p $DRWIMP_SRC_UTILS
+	# already comes in a Utils directory
+    $GCCSDK_UNZIP $DRWIMP_SRC_UTILS.zip
+
+# fabricate
+#DRWIMP_VER_FAB
+    mkdir -p $D/$DRWIMP_FAB_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_FAB_DIR/RiscPkg/
+    mkdir -p $D/$DRWIMP_FAB_DIR/Apps/Programming/
+    cp -a $DRWIMP_SRC_UTILS/\!Fabricate $D/$DRWIMP_FAB_DIR/Apps/Programming/
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_FAB -pversion $AB_PVERSION_DrWimp_Fabricate \
+      -section Programming -recommends $DRWIMP_PKG_CORE -suggests $DRWIMP_PKG_META
+
+# codetemps
+#DRWIMP_VER_CODETEMPS
+    mkdir -p $D/$DRWIMP_CODETEMPS_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_CODETEMPS_DIR/RiscPkg/
+    mkdir -p $D/$DRWIMP_CODETEMPS_DIR/Apps/Programming/
+    cp -a $DRWIMP_SRC_UTILS/\!CodeTemps $D/$DRWIMP_CODETEMPS_DIR/Apps/Programming/
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_CODETEMPS -section Programming
+
+# linker
+    mkdir -p $D/$DRWIMP_LINKER_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_LINKER_DIR/RiscPkg/
+    mkdir -p $D/$DRWIMP_LINKER_DIR/Apps/Programming/
+    cp -a $DRWIMP_SRC_UTILS/\!Linker $D/$DRWIMP_LINKER_DIR/Apps/Programming/
+    $AB_HOME/add-riscpkg -package Linker -pversion $AB_PVERSION_Linker \
+	-roversion $AB_ROVERSION -section Programming \
+	-appname Linker
+
+# elixirs - download
+    wget $DRWIMP_SRC_ELIX_URL
+    mkdir -p $DRWIMP_SRC_ELIX
+	# already comes in a Elixirs directory
+    $GCCSDK_UNZIP -d $DRWIMP_SRC_ELIX $DRWIMP_SRC_ELIX.zip
+
+# elixirs
+    mkdir -p $D/$DRWIMP_ELIX_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_ELIX_DIR/RiscPkg/
+    mkdir -p $D/$DRWIMP_ELIX_DIR/Apps/Library/\!DrWimpLib/
+    cp -a $DRWIMP_SRC_ELIX/Elixirs $D/$DRWIMP_ELIX_DIR/Apps/Library/\!DrWimpLib/
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_ELIX -section Library \
+	-depends $DRWIMP_PKG_COMMON -depends $DRWIMP_PKG_CORE \
+	-recommends $DRWIMP_PKG_SKEL -suggests $DRWIMP_PKG_META
+
+# example - download
+    wget $DRWIMP_SRC_EX_URL
+    mkdir -p $DRWIMP_SRC_EX
+	# already comes in a Examples directory
+    $GCCSDK_UNZIP -d $DRWIMP_SRC_EX $DRWIMP_SRC_EX.zip
+
+# example
+    mkdir -p $D/$DRWIMP_EX_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_EX_DIR/RiscPkg/
+    mkdir -p $D/$DRWIMP_EX_DIR/Apps/Library/\!DrWimpLib/
+    cp -a $DRWIMP_SRC_EX/Examples $D/$DRWIMP_EX_DIR/Apps/Library/\!DrWimpLib/
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_EX -section Library \
+	-depends $DRWIMP_PKG_COMMON -depends $DRWIMP_PKG_CORE \
+	-recommends $DRWIMP_PKG_META
+
+# core - download
+    wget $DRWIMP_SRC_CORE_URL
+    mkdir -p $DRWIMP_SRC_CORE
+    $GCCSDK_UNZIP -d $DRWIMP_SRC_CORE $DRWIMP_SRC_CORE.zip
+
+# common
+    mkdir -p $D/$DRWIMP_COMMON_DIR/RiscPkg
+    mkdir -p $D/$DRWIMP_COMMON_DIR/Apps/Library
+    cp $H/Copyright $D/$DRWIMP_COMMON_DIR/RiscPkg/
+    mv $D/$DRWIMP_EX_DIR/Apps/Library/\!DrWimpLib/Examples/\!DrWimpLib/ \
+	$D/$DRWIMP_COMMON_DIR/Apps/Library/
+#    cp -a $DRWIMP_SRC_EX/Examples/\!DrWimpLib $D/$DRWIMP_COMMON_DIR/Apps/Library/
+    # the actual library lives in a separate package so remove it from here
+    rm $D/$DRWIMP_COMMON_DIR/Apps/Library/\!DrWimpLib/DrWimp,ffb
+    mkdir -p $D/$DRWIMP_COMMON_DIR/Apps/Library/\!DrWimpLib/Documents
+    cp -a $DRWIMP_SRC_CORE/Addr+Cred,fff  $DRWIMP_SRC_DOCS/Documents/Conditions,faf\
+	 $D/$DRWIMP_COMMON_DIR/Apps/Library/\!DrWimpLib/Documents/
+    cp -a $H/README.RiscPkg $D/$DRWIMP_COMMON_DIR/Apps/Library/\!DrWimpLib/Documents/
+	# !Run file needs to know what version we're installing
+    sed -i s/DRWIMP_VERSION/$DRWIMP_VER_MAIN/ $D/$DRWIMP_COMMON_DIR/Apps/Library/\!DrWimpLib/\!Run,feb
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_COMMON -section Library -suggests $DRWIMP_PKG_META
+
+# core
+    mkdir -p $D/$DRWIMP_CORE_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_CORE_DIR/RiscPkg/
+#    cp -a $DRWIMP_SRC_EX/Examples/\!DrWimpLib $D/$DRWIMP_COMMON_DIR/Apps/Library/
+    mkdir -p $D/$DRWIMP_CORE_DIR/Apps/Library/\!DrWimpLib/
+    # note that upstream sources have two copies - one in !MyApp in DW502.zip
+    # and one in Examples.  We assume DW502 is the current one
+    cp -a $DRWIMP_SRC_CORE/\!MyApp/DrWimp,ffb $D/$DRWIMP_CORE_DIR/Apps/Library/\!DrWimpLib/DrWimp-$DRWIMP_VER_MAIN,ffb
+    # programs are hardcoded to use <DrWimpLib$Dir>.DrWimp - this should
+    # be a symlink except we can't do that on RISC OS
+    cp -a $DRWIMP_SRC_CORE/\!MyApp/DrWimp,ffb $D/$DRWIMP_CORE_DIR/Apps/Library/\!DrWimpLib/DrWimp,ffb
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_CORE -section Library \
+	-depends $DRWIMP_PKG_COMMON -suggests $DRWIMP_PKG_META \
+
+# skeleton
+    mkdir -p $D/$DRWIMP_SKEL_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_SKEL_DIR/RiscPkg/
+    mkdir -p $D/$DRWIMP_SKEL_DIR/Apps/Library/\!DrWimpLib/
+    cp -a $DRWIMP_SRC_CORE/\!MyApp $D/$DRWIMP_SKEL_DIR/Apps/Library/\!DrWimpLib/
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_SKEL -section Library \
+	-depends $DRWIMP_PKG_COMMON -depends $DRWIMP_PKG_CORE \
+	-recommends $DRWIMP_PKG_META
+
+# metapackage - install this to get everything
+    mkdir -p $D/$DRWIMP_META_DIR/RiscPkg
+    cp $H/Copyright $D/$DRWIMP_META_DIR/RiscPkg/
+    $AB_HOME/add-riscpkg -package $DRWIMP_PKG_META \
+	-depends $DRWIMP_PKG_COMMON \
+	-depends $DRWIMP_PKG_DOC \
+	-depends $DRWIMP_PKG_SKEL \
+	-depends $DRWIMP_PKG_ELIX \
+    	-depends $DRWIMP_PKG_EX \
+    	-depends $DRWIMP_PKG_TUT \
+    	-depends $DRWIMP_PKG_CODETEMPS \
+    	-depends $DRWIMP_PKG_FAB \
+    	-depends $DRWIMP_PKG_LINKER \
+    	-depends $DRWIMP_PKG_CORE -section Library
+
+
+}
+
+# Source package function
+#
+# By default, the function will be called to package the source.
+AB_COPYSOURCE=no

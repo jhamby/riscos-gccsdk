@@ -1,0 +1,71 @@
+This file is part of the RISC OS Packaging Project distribution of DrWimp.
+
+DrWimp was originally written by Andrew Ayre.  Since 1st May 1999 it has been maintained and developed by Ray Favre.  A list of other contributors can be found in the file "<DrWimpLib$Dir>.Documents.Addr+Cred".
+
+The upstream sources were downloaded from the URLs:
+
+http://www.rayfavre.me.uk/Downloads/Package/DW460.zip
+http://www.rayfavre.me.uk/Downloads/Package/Docs460.zip
+http://www.rayfavre.me.uk/Downloads/Package/Utils.zip
+http://www.rayfavre.me.uk/Downloads/Package/Examples.zip
+
+on 19th October 2006.  There is a homepage at the URL:
+
+http://www.rayfavre.me.uk/drwimp.html
+
+DrWimp is subject to the following licence (from the file DrWimp, which has been renamed in this package to include the version number):
+
+== begin ==
+© Andrew Ayre 1995-98
+Major updates and additions by Guy Bartle
+© Ray Favre - additions/changes 1999-2006
+Version 4.60 (01-Oct-06)
+
+*** CONDITIONS OF USE ***
+--------------------------------------------------------------------
+The Dr Wimp package is distributed on an ”As Is• basis, without
+warranty. No liability can be accepted for any consequential loss or
+damage, however caused, arising from the use of this package.
+
+The Dr Wimp package (apart from the 3rd party utilities as detailed in
+the !!ReadMe!! file) may only be distributed as a whole. For
+conditions of use of these 3rd party applications see their own !Help
+files.
+
+Distribution of the Dr Wimp package (and programs constructed using
+the DrWimp library) by third parties:
+
+Freeware. The DrWimp library may be distributed for free and without
+the documentation, examples, utilities, etc. if it is being used as
+part of a freeware product. (It would be nice if your documentation
+acknowledged Dr Wimp - and don't forget that my web-site has a page
+for links to your Dr Wimp applications, if you let me know .....)
+
+Shareware. Those using Dr Wimp to produce Shareware products must
+donate 10% of the received income from these products to a charity of
+their choice within 6 months of receiving the income. The Shareware
+user-documentation must state prominently that this charity donation
+is being made and also that Dr Wimp was used to produce the product.
+The application's name and author should be notified to the Dr Wimp
+copyright holder but no prior permission or further contact is needed.
+
+Commercial. If you wish to distribute the Dr Wimp package with a
+commercial product (or distribute commercially a program that uses Dr
+Wimp) then a specific licence is needed from the Dr Wimp copyright
+holder.
+
+Public Domain libraries may make a reasonable charge for materials,
+handling, etc. as long as this does not exceed £2.00 (UK) net for the
+Dr Wimp package.
+
+The DrWimp library may be reproduced in part if crunching and mangling
+utilities such as !BSquasher are used, otherwise it must be reproduced
+in whole, complete with its opening REMs containing the Conditions of
+Use and the copyright banner.
+
+If the DrWimp library is being reproduced in full then it may be added
+to the !RunImage (or similar) file, and does not have to be separate.
+
+The author retains copyright of Dr Wimp, documentation and examples at
+all times.
+== end ==

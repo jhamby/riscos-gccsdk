@@ -1,0 +1,53 @@
+This is the RISC OS Packaging Project distribution of DrWimp.
+
+It differs from the stand-alone distribution of DrWimp in two important
+respects:
+
+1. There is no need for programs to individually include a copy of the
+   DrWimp library, as they can refer to a single shared copy.
+
+2. The distribution has been split into those packages needed to support
+   programs at run time and those needed for development.
+
+Consequently this folder may not contain a complete copy of DrWimp
+suitable for writing new programs.  If you want a complete copy then
+please install the package 'DrWimp' which will pull in anything that
+is missing.
+
+If you have written a DrWimp program and wish to distribute it as a
+package suitable for installation using RiscPkg then you should first
+become familiar with the generic procedure for creating package files.
+Information about this can be obtained from http://www.riscpkg.org/
+and by joining the RiscPkg mailing list.
+
+(At the time of writing much of the documentation for package
+maintainers is yet to be written, therefore joining the mailing list
+is strongly recommended.)
+
+Packages which need DrWimp in order to run should declare a dependency
+on the package 'DrWimp-x.yz', where x.yz is the required version of the
+library.  This will cause the library to be automatically installed by
+RiscPkg without any further action by the end user.  For example, a
+package that used version 4.60 of DrWimp might include the following
+line in its control file:
+
+Depends: DrWimp-4.60
+
+Once this has been done, programs within the package can assume that
+a copy of the requested version of DrWimp will be accessible though
+the pathname '<DrWimpLib$Dir>.DrWimp-x/yz'.  That copy of the library
+can then be used by any BASIC program which needs it.  In the above
+example this might be done by placing the following line at the start
+of the program:
+
+LIBRARY "<DrWimpLib$Dir>.DrWimp-4/60"
+
+(The dot in the version number appears as a slash in the pathname,
+because a dot would be interpreted as a directory separator by RISC OS.)
+
+Note that packaged programs will not work if copied to another machine
+unless !DrWimpLib is also copied.  For this reason you will almost
+certainly want to continue issuing copies of your program that have
+been constructed in the normal way using !Linker (or a verbatim copy
+of the DrWimp library file) for users who either cannot or do not wish
+to make use of a package manager.
