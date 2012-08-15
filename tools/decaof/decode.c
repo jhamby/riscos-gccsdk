@@ -74,7 +74,7 @@ decode (void)
       hdr = read_chunkhdr (ifp);
       if (!hdr)
 	{
-	  error ("reading file \"%s\"", filename);
+	  error ("reading file \"%s\" (", filename);
 	  goto next_file;
 	}
       if (hdr->chunkfileid != 0xc3cbc6c5)
@@ -124,80 +124,86 @@ decode (void)
 	    puts ("\n** No Identification chunk");
 	}
 
-      /* find file offset of OBJ_AREA (for later use) */
+      /* Read area header (must be present).  */
       ent = find_ent (hdr, ents, "OBJ_AREA");
+      if (!ent)
+	{
+	  error ("reading file \"%s\" (no OBJ_AREA found)", filename);
+	  goto next_file;
+	}
+
+      /* File offset of OBJ_AREA (for later use).  */
       area_offset = ent->offset;
 
-      /* read-in AOF header */
+      /* Read AOF header (must be present).  */
       ent = find_ent (hdr, ents, "OBJ_HEAD");
-      if (ent)
+      if (!ent)
 	{
-	  aofhdr = read_aofhdr (ifp, ent);
-	  if (!aofhdr)
-	    {
-	      error ("reading AOF header for file \"%s\"", filename);
-	      goto next_file;
-	    }
-	  const char *cptr;
-	  switch (aofhdr->filetype)
-	    {
-	      case 0xc5e2d080:
-		cptr = "Relocatable object format";
-		break;
-	      case 0xc5e2d081:
-		cptr = "AOF image type 1";
-		break;
-	      case 0xc5e2d083:
-		cptr = "AOF image type 2";
-		break;
-	      case 0xc5e2d087:
-		cptr = "AOF image type 3";
-		break;
-	      default:
-		cptr = "unknown image type";
-		break;
-	    }
-	  printf ("\n** AOF Header: %s (%s)\n\n", cptr, filename);
+	  error ("reading file \"%s\" (no OBJ_HEAD found)", filename);
+	  goto next_file;
+	}
+      aofhdr = read_aofhdr (ifp, ent);
+      if (!aofhdr)
+	{
+	  error ("reading AOF header for file \"%s\"", filename);
+	  goto next_file;
+	}
+      const char *cptr;
+      switch (aofhdr->filetype)
+	{
+	  case 0xc5e2d080:
+	    cptr = "Relocatable object format";
+	    break;
+	  case 0xc5e2d081:
+	    cptr = "AOF image type 1";
+	    break;
+	  case 0xc5e2d083:
+	    cptr = "AOF image type 2";
+	    break;
+	  case 0xc5e2d087:
+	    cptr = "AOF image type 3";
+	    break;
+	  default:
+	    cptr = "unknown image type";
+	    break;
+	}
+      printf ("\n** AOF Header: %s (%s)\n\n", cptr, filename);
 
-	  /* Version 150 : AOF 1.xx
-	     Version 200 : AOF 2.xx
-	     Version 310/311 : AOF 3.xx */
-	  printf ("AOF version: %d\n", aofhdr->version);
-	  uint32_t numAreas = aofhdr->numareas;
-	  printf ("%d area%s\n", numAreas, numAreas == 1 ? "" : "s");
-	  uint32_t numSyms = aofhdr->numsyms;
-	  printf ("%d symbol%s\n", numSyms, numSyms == 1 ? "" : "s");
+      /* Version 150 : AOF 1.xx
+	 Version 200 : AOF 2.xx
+	 Version 310/311 : AOF 3.xx */
+      printf ("AOF version: %d\n", aofhdr->version);
+      uint32_t numAreas = aofhdr->numareas;
+      printf ("%d area%s\n", numAreas, numAreas == 1 ? "" : "s");
+      uint32_t numSyms = aofhdr->numsyms;
+      printf ("%d symbol%s\n", numSyms, numSyms == 1 ? "" : "s");
 
-	  /* read in the symbol table, if any */
-	  if (aofhdr->numsyms)
+      /* Read in the symbol table, if any.  */
+      if (aofhdr->numsyms)
+	{
+	  ent = find_ent (hdr, ents, "OBJ_SYMT");
+	  if (ent)
 	    {
-	      ent = find_ent (hdr, ents, "OBJ_SYMT");
-	      if (ent)
+	      symboltab = read_symboltab (ifp, ent, aofhdr->numsyms);
+	      if (!symboltab)
 		{
-		  symboltab = read_symboltab (ifp, ent, aofhdr->numsyms);
-		  if (!symboltab)
-		    {
-		      error ("reading symbol table for file \"%s\"",
-			     filename);
-		      goto next_file;
-		    }
-		  symboltab_size = ent->size;
+		  error ("reading symbol table for file \"%s\"", filename);
+		  goto next_file;
 		}
-	    }
-
-	  /* decode each of the areas */
-	  areahdrs = (const struct areahdr *) &aofhdr[1];
-	  uint32_t offset = 0;
-	  for (uint32_t areaIdx = 0; areaIdx != aofhdr->numareas; ++areaIdx)
-	    {
-	      print_area (ifp, &areahdrs[areaIdx], offset, offset + areahdrs[areaIdx].size);
-	      if (!(areahdrs[areaIdx].flags & AREA_UDATA))
-		offset += areahdrs[areaIdx].size + areahdrs[areaIdx].numrelocs*sizeof (struct reloc);
+	      symboltab_size = ent->size;
 	    }
 	}
-      else
-	puts ("\n** No AOF header");
 
+      /* Decode each of the areas.  */
+      areahdrs = (const struct areahdr *) &aofhdr[1];
+
+      for (uint32_t areaIdx = 0, offset = 0; areaIdx != aofhdr->numareas; ++areaIdx)
+	{
+	  print_area (ifp, &areahdrs[areaIdx], offset, offset + areahdrs[areaIdx].size);
+	  if (!(areahdrs[areaIdx].flags & AREA_UDATA))
+	    offset += areahdrs[areaIdx].size + areahdrs[areaIdx].numrelocs*sizeof (struct reloc);
+	}
+  
       if (opt_print_symtab)
 	{
 	  if (!aofhdr->numsyms)
@@ -225,7 +231,7 @@ decode (void)
 			fputs ("unknown-type", stdout);
 			break;
 		    }
-		  if ((flags & (1 << 2)) && flags & (1 << 0))
+		  if ((flags & (1 << 2)) && (flags & (1 << 0)))
 		    fputs (", absolute", stdout);
 		  if ((flags & (1 << 3)) && !(flags & (1 << 0)))
 		    fputs (", case-insensitive", stdout);
@@ -265,12 +271,12 @@ decode (void)
 	    {
 	      printf ("\n** String table (%s):\n\n", filename);
 	      uint32_t offset = 4;
-	      const char *cptr;
-	      while ((cptr = string (offset)) != NULL)
+	      const char *str;
+	      while ((str = string (offset)) != NULL)
 		{
-		  size_t len = strlen (cptr);
+		  size_t len = strlen (str);
 		  if (len)
-		    printf ("%06x: %s\n", offset, cptr);
+		    printf ("%06x: %s\n", offset, str);
 		  offset += len + 1;
 		}
 	    }
@@ -428,8 +434,6 @@ print_area (FILE * ifp, const struct areahdr *areahdr, Word offset, Word reloff)
       puts ("\n** Relocations:\n");
       for (Word numrelocs = areahdr->numrelocs; numrelocs; numrelocs--)
 	{
-	  enum { type1, type2, type3 } rtype;
-
 	  const struct reloc *reloc = read_reloc (ifp);
 	  if (!reloc)
 	    {
@@ -437,33 +441,47 @@ print_area (FILE * ifp, const struct areahdr *areahdr, Word offset, Word reloff)
 	      return;
 	    }
 
+	  enum { type1, type2 } rtype;
 	  if ((reloc->flags & 0xfff00000) == 0x00000000)
 	    rtype = type1;
-	  else if ((reloc->flags & 0xf0000000) == 0x80000000)
-	    rtype = type2;
 	  else if ((reloc->flags & 0x80000000) == 0x80000000)
-	    rtype = type3;
+	    rtype = type2;
 	  else
 	    {
-	      puts ("** unknown relocation type");
+	      puts ("** Unknown relocation type");
 	      continue;
 	    }
 
-	  printf ("At 0x%06x (areaFlags 0x%08x): ", reloc->offset, reloc->flags);
-	  bool isWordSize = false;
+	  printf ("At 0x%06x (flags 0x%08x): ", reloc->offset, reloc->flags);
+
+	  bool isWordSize; /**< Will be used to detect : bytes and halfwords
+	    may only be relocated by constant values of suitably small size.
+	    They may not be relocated by an area's base address.  */
 	  switch ((reloc->flags >> (rtype == type1 ? 16 : 24)) & 0x3)
 	    {
 	      case 0x0:
+		isWordSize = false;
 		printf ("Byte ");
 		break;
+
 	      case 0x1:
-		printf ("Halfword ");
+		isWordSize = false;
+		printf ("Short ");
 		break;
+
 	      case 0x2:
-		printf ("Word ");
 		isWordSize = true;
+		printf ("Word ");
 		break;
+
 	      case 0x3:
+		isWordSize = true;
+		/* Only from AOF 3 onwards.  */
+		if (aofhdr->version < 310)
+		  {
+		    puts ("** Undefined field type");
+		    continue;
+		  }
 		switch (reloc->flags & (0x3 << 29))
 		  {
 		    case 0x0 << 29:
@@ -488,98 +506,107 @@ print_area (FILE * ifp, const struct areahdr *areahdr, Word offset, Word reloff)
 		switch ((reloc->flags >> 18) & 3)
 		  {
 		    case 0:
-		      /* Additive internal : the base address of the area (with
+		      /* A = 0, R = 0
+		         Additive internal : the base address of the area (with
 		         which this relocation directive is associated) is added
-			 into the field to be relocated.  */
+			 into the field to be relocated.
+			 SID field is ignored.  */
 		      fputs ("displaced by base of this area", stdout);
+		      /* As relocation is based on area.  */
 		      if (!isWordSize)
 		        fputs ("!!! Relocation data size is not 4 bytes !!!", stdout);
 		      break;
 
 		    case 1:
-		      /* PC-relative (always symbol) */
+		      /* A = 0, R = 1
+		         PC-relative (always symbol).  */
 		      printf ("PC-relative to symbol \"%s\"",
 			      symname (reloc->flags & 0xffff));
+		      /* As PC-relative works on instructions... */
+		      if (!isWordSize)
+		        fputs ("!!! Relocation data size is not 4 bytes !!!", stdout);
 		      break;
 
 		    case 2:
-		      /* Additive symbol : the value of the given symbol is added
+		      /* A = 1, R = 0
+		         Additive symbol : the value of the given symbol is added
 		         to the field being relocated.  */
 		      printf ("displaced by symbol \"%s\"",
 			      symname (reloc->flags & 0xffff));
-		      if (!isWordSize)
-		        fputs ("!!! Relocation data size is not 4 bytes !!!", stdout);
 		      break;
 
 		    case 3:
+		      /* A = 1, R = 1 */
 		      fputs ("UNDEFINED", stdout);
 		      break;
 		  }
-		fputs (" (type-1 reloc)\n", stdout);
+		puts (" (type-1 reloc)\n");
 		break;
 
 	      case type2:
-		switch ((reloc->flags >> 26) & 3)
-		  {
-		    case 0:
-		      /* Additive internal : the base address of the area (with
-		         which this relocation directive is associated) is added
-			 into the field to be relocated.  */
-		      printf ("displaced by base of area \"%s\"",
-			      areaname (reloc->flags & 0xffffff));
-		      if (!isWordSize)
-		        fputs ("!!! Relocation data size is not 4 bytes !!!", stdout);
-		      break;
+		{
+		  /* bits B & R */
+		  const char *relocHow;
+		  switch (reloc->flags & 0x14<<24)
+		    {
+		      case 0x00<<24: /* B = 0, R = 0 */
+			/* Additive relocation: the relocation value is added
+			   to the subject field.
 
-		    case 1:
-		      /* PC-relative internal */
-		      printf ("PC-relative to base of area \"%s\"",
-			      areaname (reloc->flags & 0xffffff));
-		      break;
+			     subject_field = subject_field + relocation_value
+			 */
+			relocHow = "displaced by";
+		        break;
 
-		    case 2:
-		      /* additive symbol */
-		      printf ("displaced by symbol \"%s\"",
-			      symname (reloc->flags & 0xffffff));
-		      if (!isWordSize)
-		        fputs ("!!! Relocation data size is not 4 bytes !!!", stdout);
-		      break;
+		      case 0x04<<24: /* B = 0, R = 1 */
+			/* PC-relative relocation: to the subject field is
+			   added the difference between the relocation value
+			   and the base of the area containing the subject
+			   field.
 
-		    case 3:
-		      /* PC-relative symbol */
-		      printf ("PC-relative to symbol \"%s\"",
-			      symname (reloc->flags & 0xffffff));
-		      break;
-		  }
-		fputs (" (type-2 reloc)\n", stdout);
-		break;
+			     subject_field = subject_field + (relocation_value -
+					 		      base_of_area_containing(subject_field))
 
-	      case type3:
-		switch (reloc->flags & (5<<26))
-		  {
-		    case 0<<26: /* R = 0, B = 0 */
-		      printf ("displaced by ");
-		      if (reloc->flags & (1<<27))
-			printf ("symbol \"%s\"", symname (reloc->flags & 0xffffff));
-		      else
-			printf ("base of area \"%s\"", areaname (reloc->flags & 0xffffff));
-		      break;
-		    case 1<<26: /* R = 1, B = 0 : intra-link-unit value branch is used */
-		    case 5<<26: /* R = 1, B = 1 : inter-link-unit value branch is used */
-		      if (reloc->flags & (1<<27))
-			printf ("PC-relative to base of area \"%s\"", areaname (reloc->flags & 0xffffff));
-		      else
-			printf ("absolute PC"); /* FIXME: correct ??? */
-		      if (reloc->flags & (4<<26))
-		        printf ("  using inter-link-unit value");
-		      break;
-		    case 4<<26: /* R = 0, B = 1 */
-		      /* FIXME: meaning of A here ? */
-		      printf ("displaced by data base of area \"%s\"", areaname (reloc->flags & 0xffffff));
-		      break;
-		  }
-		fputs (" (type-3 reloc)\n", stdout);
-		break;
+			   As a special case, if <A> is 0, and the relocation 								 value is specified as the 
+			   base of the area containing the subject field, then
+			   it is not added and:
+
+			     subject_field = subject_field - base_of_area_containing(subject_field)
+
+			  This caters for relocatable PC-relative branches to
+			  fixed target addresses.  */
+			relocHow = "PC-relative to";
+		        break;
+
+		      case 0x10<<24: /* B = 1, R = 0 */
+			/* Based area relocation. The relocation value must be
+			   an address within a based data area. The subject
+			   field is incremented by the difference between this
+			   value and the base address of the consolidated based
+			   area group (the linker consolidates all areas based
+			   on the same base register into a single, contiguous
+			   region of the output image).
+
+			     subject_field = subject_field + (relocation_value -
+							      base_of_area_group_containing(relocation_value))
+			 */
+			relocHow = "base-relative to";
+		        break;
+
+		      case 0x14<<24: /* B = 1, R = 1 */
+			/* Used to denote that the inter-link-unit value of a
+			   branch destination is to be used, rather than the 
+			   more usual intra-link-unit value.  */ 
+			relocHow = "tailcall to";
+			break;
+		    }
+		  const char *relocValType = (reloc->flags & (1<<27)) ? "symbol" : "base of area"; /* bit A */
+		  const char *relocVal = (reloc->flags & (1<<27)) ? symname (reloc->flags & 0xFFFFFF) : areaname (reloc->flags & 0xFFFFFF); /* bit A */
+		  printf ("%s %s \"%s\" (type-2 reloc)\n", relocHow, relocValType, relocVal);
+		  if ((reloc->flags & (1<<27)) == 0 && !isWordSize)
+		    puts ("!!! Relocation data size is not 4 bytes !!!");
+		  break;
+	        }
 	    }
 	}
     }

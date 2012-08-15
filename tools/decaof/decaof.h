@@ -34,17 +34,6 @@ typedef uint16_t Halfword;
 typedef uint8_t Byte;
 
 /*
- * define maximum filename and pathname length
- */
-#ifdef CROSS_COMPILE
-#define FILENAMELEN	256
-#define PATHNAMELEN	1024
-#else
-#define FILENAMELEN	256
-#define PATHNAMELEN	256
-#endif
-
-/*
  * stream error enumeration
  */
 typedef enum
@@ -53,19 +42,6 @@ typedef enum
   FEND,
   FRWERR
 } Ferror;
-
-/*
- * universal date structure
- */
-typedef struct
-{
-  int second;
-  int minute;
-  int hour;
-  int day;
-  int month;
-  int year;
-} Date;
 
 /*
  * Chunk file / AOF structures

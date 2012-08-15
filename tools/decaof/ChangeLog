@@ -1,3 +1,8 @@
+Wed Aug 15 14:22:46 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decaof.h (FILENAMELEN, PATHNAMELEN, Date): Remove.
+	* decode.c (print_area): Merge type 2 and 3 reloc together.
+
 Sat Aug 11 21:56:22 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* main.c, main.h, misc.c, misc.h, io.c, io.h, decode.c, decode.h,
