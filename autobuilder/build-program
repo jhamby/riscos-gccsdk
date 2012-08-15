@@ -48,13 +48,20 @@ eval $(grep "export CXX=" $GCCSDK_INSTALL_ENV/ro-config)
 export HOST_CC=$(which cc)
 export HOST_CXX=$(which c++)
 
+if [ -x $GCCSDK_INSTALL_ENV/bin/unzip ] ; then
+  export GCCSDK_UNZIP="$GCCSDK_INSTALL_ENV/bin/unzip -F "
+else
+  export GCCSDK_UNZIP="echo \"Autobuilder: unzip binary not found (build native-unzip package first). Called with arguments \" "
+fi
+
 addzip() {
   if [ ! -x $GCCSDK_INSTALL_ENV/bin/zip ] ; then
     echo "Autobuilder: zip binary not found (build native-zip package first)"
     exit 1
   fi
+  export GCCSDK_ZIP="$GCCSDK_INSTALL_ENV/bin/zip -, -9"
   result=$($GCCSDK_INSTALL_ENV/bin/zip -, -9 $@ -x "*/CVS/*" -x "*/\.svn/*" -x "*~" -x "*~,fff" 2>&1)
-  echo $result
+  #echo $result
   if echo $result | grep -q "zip warning"; then
     exit 1
   fi
@@ -224,6 +231,35 @@ ab_package_source() {
   rm -f $S/riscos/last-success
 }
 
+ab_subpackage_versions() {
+  # look up a version for the specific subpackage based on a
+  # variable with the package name- eg AB_PVERSION_libglib2_0
+  
+  # inherit variable 'package' with current subpackage
+  # illegal characters in package names are replaced by underlines
+  subpkg_clean=$(echo ${package} | sed s/\[-.,\]/_/g )
+  subpkg_varname=AB_PVERSION_${subpkg_clean}
+  eval subpkg_version=\$${subpkg_varname}
+  if [ -z "$subpkg_version" ] ; then
+    pkgversion=$AB_PVERSION
+  else
+    pkgversion=$subpkg_version
+  fi
+
+  subpkg_rovarname=AB_ROVERSION_${subpkg_clean}
+  eval subpkg_roversion=\$${subpkg_rovarname}
+  if [ -z "$subpkg_roversion" ] ; then
+     pkgroversion=$AB_ROVERSION
+  else
+    pkgroversion=$subpkg_roversion
+  fi
+  
+  #echo "AB_SUBPACKAGE=$AB_SUBPACKAGE"
+  #echo "subpkg_clean=$subpkg_clean"
+  #echo "subpkg_varname=$subpkg_varname"
+  #echo "pkgver=$pkgversion"
+  #echo "rover=$pkgroversion"
+}
 
 # Override 'cp' to ensure we look for extension and no-extension during
 # packaging.  This is similar code to that in ro-install
@@ -612,10 +648,15 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
       if [ -e "$package/RiscPkg/Control,fff" ] ; then
         section=`grep "Section: " $package/RiscPkg/Control,fff | cut -d ' ' -f 2`
       fi
+      if [ -e "$package/RiscPkg/Control" ] ; then
+        section=`grep "Section: " $package/RiscPkg/Control | cut -d ' ' -f 2`
+      fi
       if [ -z "$section" ] ; then
         section="$AB_CATEGORY"
       fi
-      AB_PZIP=${AB_DIR}/${package}_${AB_PVERSION}${AB_TARGET}-${AB_ROVERSION}.zip
+      ab_subpackage_versions
+
+      AB_PZIP=${AB_DIR}/${package}_${pkgversion}${AB_TARGET}-${pkgroversion}.zip
 
       # Used for source zip name
       if [ -z "$AB_ZIP" ] ; then
@@ -624,10 +665,12 @@ if [ "$AB_NOPACKAGE" == "" ] ; then
 
       # Remove an existing ZIP file (otherwise the old contents will be merged with the new one)
       if [ -e $AB_PZIP ] ; then
+	echo "Removing old $AB_PZIP"
         rm $AB_PZIP
       fi
       cd $package
       addzip -r $AB_PZIP *
+      #echo "Making directory !!$AB_OUTPUTPACK/$section !!"
       mkdir -p $AB_OUTPUTPACK/$section
       mv $AB_PZIP $AB_OUTPUTPACK/$section
       ls -l $AB_OUTPUTPACK/$section/$(basename $AB_PZIP)

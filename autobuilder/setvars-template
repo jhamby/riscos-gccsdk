@@ -91,7 +91,22 @@
 # Each package should be created in a separate subdirectory
 # of the package directory (the $D variable in the package function)
 # with the same name as the package name specified in the variable.
+# If you have separate packaging files for them (for example, RiscPkg package
+# descriptions), provide them in a subdirectory of the autobuilder tree
+# named after the subpackage
+# eg autobuilder/libraries/libsomething/setvars
+# and autobuilder/libraries/libsomething/libsomething-debug/RiscPkg/Control
 #AB_PACKAGES=
+
+# If you have multiple packages you can have different versions for them
+# using variables named after the subpackages, with illegal characters
+# replaced by underscores.  For example:
+# libsomething_debug
+#AB_PVERSION_libsomething_debug = 2.0.1
+# libart-2.0-2
+#AB_ROVERSION_libart_2_0_2 = 9
+# If you do this, don't forget to specify the versions as -pversion and
+# -roversion flags to add-riscpkg
 
 # Copy sources into library packages or produce a source zip
 # file for other packages "yes" or "no"

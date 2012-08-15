@@ -8,19 +8,54 @@
 #
 echo "add-riscpkg: Adding files for the RISC OS Packaging Project"
 
+# we look for Control files etc in the autobuilder's directory for this package
 H=$AB_HOME/$AB_PACKAGEDIR
+# but if we have a subdirectory with the subpackage name, look there
+# (so we can have different descriptions etc for subpackages)
+#if [ -e "$H/$AB_SUBPACKAGE" ] ; then
+#  H=$H/$AB_SUBPACKAGE
+#fi
 if [ -z "$AB_DIR" ] ; then
   AB_DIR=.
 fi
 
 D=$AB_DIR/package/${AB_SUBPACKAGE}
 
+#echo "add-riscpkg: AB_SUBPACKAGE=$AB_SUBPACKAGE"
+#echo "add-riscpkg: H=$H\nD=$D"
+
 # Parse parameters
 
 depends=""
+suggests=""
+recommends=""
 package="$AB_SUBPACKAGE"
 section="$AB_CATEGORY"
 pkgname=""
+
+# look up a version for the specific subpackage based on a
+# variable with the package name- eg AB_PVERSION_zip
+# illegal characters in package names are replaced by underlines
+subpkg_clean=$(echo ${AB_SUBPACKAGE} | sed s/\[-.,]/_/g )
+subpkg_varname=AB_PVERSION_${subpkg_clean}
+eval subpkg_version=\$${subpkg_varname}
+if [ -z "$subpkg_version" ] ; then
+ pkgversion=$AB_PVERSION
+else
+ #echo found
+ pkgversion=$subpkg_version
+fi
+
+subpkg_rovarname=AB_ROVERSION_${subpkg_clean}
+eval subpkg_roversion=\$${subpkg_rovarname}
+if [ -z "$subpkg_roversion" ] ; then
+ pkgroversion=$AB_ROVERSION
+else
+ #echo found
+ pkgroversion=$subpkg_roversion
+fi
+
+#echo "Category $category package $package version $pkgversion-$pkgroversion"
 
 # Scan the boot file for variables etc,
 scan_boot_file() {
@@ -84,6 +119,12 @@ for param in $@ ; do
      -depends)
          depends="$depends, $param"
          ;;
+     -suggests)
+         suggests="$suggests, $param"
+         ;;
+     -recommends)
+         recommends="$recommends, $param"
+         ;;
      -depver)
          depends="$depends (>=$param)"
          ;;
@@ -101,12 +142,23 @@ for param in $@ ; do
            D="$D/$package"
            scan_boot_file
          fi
+         # also check for a package specific directory in the
+         # autobuilder, so we pick up packaging info from there
+         if [ -d "$H/$package" ] ; then
+           H="$H/$package"
+         fi
          ;;
      -section)
          section="$param"
          ;;
      -name)
          pkgname="$param"
+         ;;
+     -pversion)
+         pkgversion="$param"
+         ;;
+     -roversion)
+         pkgroversion="$param"
          ;;
      *)
        echo "add-riscpkg: Invalid parameter $last_param"
@@ -168,15 +220,19 @@ fi
 has_description=""
 has_licence=""
 has_depends=""
+has_suggests=""
+has_recommends=""
 
 if [ -e "$H/RiscPkg/Control" ] ; then
   has_description=`grep "^Description:" $H/RiscPkg/Control` || true
   has_licence=`grep "^Licence:" $H/RiscPkg/Control` || true
   has_depends=`grep "^Depends:" $H/RiscPkg/Control` || true
+  has_suggests=`grep "^Suggests:" $H/RiscPkg/Control` || true
+  has_recommends=`grep "^Recommends:" $H/RiscPkg/Control` || true
 fi
 
 echo "Package: $pkgname" > $D/RiscPkg/Control
-echo "Version: $AB_PVERSION-$AB_ROVERSION" >> $D/RiscPkg/Control
+echo "Version: $pkgversion-$pkgroversion" >> $D/RiscPkg/Control
 echo "Section: $section" >> $D/RiscPkg/Control
 echo "Priority: Optional" >> $D/RiscPkg/Control
 
@@ -199,6 +255,16 @@ echo "Standards-Version: 0.1.0" >> $D/RiscPkg/Control
 if [ -z "$has_depends" ] && [ ! -z "$depends" ] ; then
   depends=`echo "$depends" | cut -b 2-`
   echo "Depends:$depends" >> $D/RiscPkg/Control
+fi
+
+if [ -z "$has_suggests" ] && [ ! -z "$suggests" ] ; then
+  suggests=`echo "$suggests" | cut -b 2-`
+  echo "Suggests:$suggests" >> $D/RiscPkg/Control
+fi
+
+if [ -z "$has_recommends" ] && [ ! -z "$recommends" ] ; then
+  recommends=`echo "$recommends" | cut -b 2-`
+  echo "Recommends:$recommends" >> $D/RiscPkg/Control
 fi
 
 if [ -e "$H/RiscPkg/Control" ] ; then
