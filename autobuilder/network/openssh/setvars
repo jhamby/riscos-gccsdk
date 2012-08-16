@@ -1,5 +1,5 @@
 
-AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp"
+AB_CONFLAGS="--disable-libutil --without-lastlog --disable-utmp --disable-wtmp --with-maildir=~/Mail --disable-utmpx --disable-wtmpx"
 
 # FIXME: Following man pages doesn't give great HTML output.
 #AB_MANPAGE="scp.1 sftp.1 ssh.1 ssh-keygen.1 ssh-keyscan.1"
@@ -13,5 +13,5 @@ ab_package () {
 
   cp -av $S/LICENCE $A
 
-  $AB_HOME/add-riscpkg -unixlib
+  $AB_HOME/add-riscpkg -unixlib -depends CryptRandom
 }
