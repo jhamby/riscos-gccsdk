@@ -1,3 +1,8 @@
+Thu Aug 16 01:29:21 CEST 2012  Theo Markettos  <theo@markettos.org.uk>
+
+	* include/sys/socket.h: Avoid include bits/socket2.h when in
+	FORTIFY mode.
+
 Fri Aug  3 04:01:08 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* netlib/accept.c (accept): Fix return value for SCL targets.
@@ -7,13 +12,13 @@ Fri Jul 27 23:21:36 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 	* Makefile.am (libc_headers): Add err.h.
 	(nobase_noinst_HEADERS): Add incl-local/fcntl.h.
 
-Fri Jul 27 18:04:01 BST  2012  Lee Noar <leenoar@sky.com>
+Fri Jul 27 18:04:01 BST  2012  Lee Noar  <leenoar@sky.com>
 
 	* locale/setlocale.c(territory_name): Fix comparison.
 	(locale_to_territory): Fix double initialisation of variable.
 	(territory_to_locale): Likewise.
 
-Thu Jul 26 20:04:29 BST  2012  Lee Noar <leenoar@sky.com>
+Thu Jul 26 20:04:29 BST  2012  Lee Noar  <leenoar@sky.com>
 
 	* locale/setlocale.c: Add support for standard locale names
 	in the form of language-territory[.codeset] where language
@@ -2182,7 +2187,7 @@ Tue Dec 23 02:25:46 CET 2008  John Tytgat  <John.Tytgat@aaug.net>
 	system variables.  Based on a test program written and posted
 	in ML by Peter Naulls.
 
-Sat Dec 20 14:34:20 CET 2008  Theo Markettos <theo@markettos.org.uk>
+Sat Dec 20 14:34:20 CET 2008  Theo Markettos  <theo@markettos.org.uk>
 
 	* grp/getgrouplist.c(getgrouplist): Added.
 	* test/grp/getgrouplist.c,test/grp/test.group: Added test application
