@@ -1,0 +1,84 @@
+# Patch up Sunfish package
+
+AB_PVERSION=2.05
+AB_ROVERSION=2
+
+UPSTREAM_ZIP=Sunfish_${AB_PVERSION}
+UPSTREAM_URL=http://www.riscpkg.org/arm/Sunfish/${UPSTREAM_ZIP}
+PATCH_ZIP=sunfish.zip
+PATCH_URL=http://www.cgransden.co.uk/${PATCH_ZIP}
+
+#  6. Either somewhere on a filing system:
+AB_NOREMOTE=yes
+
+# Command in front of invocation of RISC OS GNU configure wrapper.  If you do
+# not want this to be called, you could set this var to ":"
+AB_PRECONF=":"
+
+# Continue on, even if the program or library fails to fully compile
+# (e.g. example/test apps)
+AB_COMPILEFAIL=yes
+
+# Run "make install" (in fact: make $AB_INSTALLTARGET) after build
+AB_INSTALL=no
+
+# RISC OS configuration script
+AB_CONFIG=
+
+# RISC OS make wrapper.  This can be set to just "make" if setting the
+# path causes problems - e.g., the native compiler is required too
+AB_MAKE=
+
+# Zip name; alternate name for package to be zipped as.  No extension is
+# needed. Useful if tools from a library, etc.
+#AB_ZIPNAME=
+
+AB_LICENCE=Non-free
+
+# Make function
+#
+# Define this if you want special actions for make
+#
+ab_make () {
+  :
+}
+
+# Package function
+#
+# You will need to define this to do your packaging for RiscPkg. 
+# There are several variables to use here:
+# $S build directory
+# $D top level of destination package directory
+# $H autobuilder directory for package
+# $A RISC OS application (after calling ab_create_app, etc)
+#
+AB_CATEGORY=Library
+
+
+ab_package () {
+#   ab_create_app MyApp Apps/Graphics     # !MyApp will be copied from $H, and the package section will be Graphics
+#   ab_add_commands $S/myapp${AB_EXEEXT}  # For applications containing command line utilities, this adds aliases to !Boot 
+#
+#    $AB_HOME/add-riscpkg -unixlib         # Last step to complete packaging
+
+    wget $UPSTREAM_URL
+    mkdir -p $S/Sunfish
+    $GCCSDK_UNZIP -d $S/Sunfish $UPSTREAM_ZIP
+
+    wget $PATCH_URL
+    mkdir -p $S/patch
+    $GCCSDK_UNZIP -d $S/patch $PATCH_ZIP
+
+    cp $S/patch/* $S/Sunfish/Apps/Disc/\!Sunfish/
+
+    sed -i "s/^Maintainer.*$/Maintainer: GCCSDK Developers \<gcc\@gccsdk\.riscos\.info\>/" $S/Sunfish/RiscPkg/Control,fff
+    sed -i "s/^Version.*$/Version: $AB_PVERSION-$AB_ROVERSION/" $S/Sunfish/RiscPkg/Control,fff
+
+    mv $S/Sunfish $D/
+
+}
+
+# Source package function
+#
+# By default, the function will be called to package the source.
+AB_COPYSOURCE=no
