@@ -1,5 +1,13 @@
 #!/bin/bash -e
 
+function zip_tidy ()
+{
+# unzip -F when enabled preserves RISC OS filetypes.  However, it sometimes preserves too many.
+# Here we throw away filetypes that are awkward for us like Makefile,fff
+#  rename 's/,fff//' *  # 'rename isn't in all unix distros
+	find . -name '*,fff' -exec sh -c 'mv "$0" "${0%,fff}"' {} \;
+}
+
 AB_CVS_ROOT=$(grep ^AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 AB_CVS_MODULE=$(grep ^AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 AB_CVS_TAGORBRANCH=$(grep ^AB_CVS_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
@@ -55,6 +63,7 @@ elif [ "$AB_URL" != "" ] ; then
   # zip archive?)
     if [ -e $GCCSDK_INSTALL_ENV/bin/unzip ] ; then
       $GCCSDK_INSTALL_ENV/bin/unzip -F $base
+      zip_tidy
     else
       echo "Autobuilder warning: using system unzip to unpack sources.  RISC OS filetypes may be lost"
       unzip $base
