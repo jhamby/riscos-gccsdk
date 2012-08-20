@@ -1,21 +1,21 @@
 #!/bin/bash -e
 
-AB_CVS_ROOT=$(grep ^AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
-AB_CVS_MODULE=$(grep ^AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
-AB_CVS_TAGORBRANCH=$(grep ^AB_CVS_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
+AB_CVS_ROOT=$(grep ^AB_CVS_ROOT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_CVS_MODULE=$(grep ^AB_CVS_MODULE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_CVS_TAGORBRANCH=$(grep ^AB_CVS_TAGORBRANCH $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 if [ "$AB_ELFBUILD" == "yes" ] ; then
-  AB_SVN=$(grep ^AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | grep -v AOF | cut -d = -f 2)
+  AB_SVN=$(grep ^AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | grep -v AOF | cut -d = -f 2-)
 else
   # AB_SVN_AOF support is only temporary.
-  AB_SVN=$(grep ^AB_SVN_AOF $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+  AB_SVN=$(grep ^AB_SVN_AOF $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2-)
   if [ -z "$AB_SVN" ] ; then
-    AB_SVN=$(grep ^AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2)
+    AB_SVN=$(grep ^AB_SVN $AB_HOME/$AB_PACKAGEDIR/setvars | cut -d = -f 2-)
   fi
 fi
-AB_GIT=$(grep ^AB_GIT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
-AB_URL=$(grep ^AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
-AB_HG=$(grep ^AB_HG $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
-AB_NOREMOTE=$(grep ^AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2)
+AB_GIT=$(grep ^AB_GIT $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_URL=$(grep ^AB_URL $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_HG=$(grep ^AB_HG $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
+AB_NOREMOTE=$(grep ^AB_NOREMOTE $AB_HOME/$AB_PACKAGEDIR/setvars 2>/dev/null | cut -d = -f 2-)
 
 if [ "$AB_CVS_ROOT" != "" ] ; then
   if [ "$AB_CVS_MODULE" == "" ] ; then
@@ -47,7 +47,8 @@ elif [ "$AB_URL" != "" ] ; then
     tar xfj $base
   elif echo $base | grep -q "\.xz$" ; then
     tar xfJ $base
-  elif echo $base | grep -q "\.zip$" ; then
+  # zip archives might not always end in .zip
+  elif file $base | grep -q "Zip archive" ; then
   # the system unzip may or may not support the -F argument for unpacking
   # sources with RISC OS filetypes.  We build our own, but must allow fallback
   # to the system unzip if necessary (what if the sources for 'unzip' come in a
