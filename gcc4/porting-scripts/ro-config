@@ -480,6 +480,9 @@ export ac_cv_path_db_cv_path_strip=:
 
 export ac_cv_path_install=$INSTALL
 
+export ac_cv_snprintf_returns_bogus=no
+export ac_cv_fread_reads_directories=no
+
 export db_cv_alignp_t=int
 export db_cv_fcntl_f_setfd=yes
 export db_cv_sprintf_count=yes
