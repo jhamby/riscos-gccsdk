@@ -1,0 +1,36 @@
+echo "ERROR: **** AUTOBUILDER ERROR *****" 1>&2
+echo "ERROR: This port of git is currently broken due to filename issues" 1>&2
+echo "ERROR: Remove this error in autobuilder/develop/git/setvars to build anyway" 1>&2
+exit 1
+
+# Make function
+#
+# Define this if you want special actions for make
+#
+ab_make () {
+
+	# need to patch configure.ac, autoconf2.59, configure before make
+#	patch -p1 < $H/configure.ac.patch 
+#	autoconf2.59	
+#	$GCCSDK_INSTALL_ENV/ro-config
+
+	# RISC OS doesn't support nanosecond timestamps
+	$GCCSDK_INSTALL_ENV/ro-make NO_NSEC=YesPlease NO_PREAD=Yes
+}
+
+# Package function
+#
+# You will need to define this to do your packaging for RiscPkg. 
+# There are several variables to use here:
+# $S build directory
+# $D top level of destination package directory
+# $H autobuilder directory for package
+# $A RISC OS application (after calling ab_create_app, etc)
+#
+#ab_package () {
+#   ab_create_app MyApp Apps/Graphics     # !MyApp will be copied from $H, and the package section will be Graphics
+#   ab_add_commands $S/myapp${AB_EXEEXT}  # For applications containing command line utilities, this adds aliases to !Boot 
+
+#   $AB_HOME/add-riscpkg -unixlib         # Last step to complete packaging
+#}
+
