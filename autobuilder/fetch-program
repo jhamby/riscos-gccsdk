@@ -182,11 +182,11 @@ else
         if [ -z "$deb" ] ; then
           echo "Autobuilder: could not find Debian additional files to download" 1>&2
           #exit 1
-        else
-          wget -nv $debdir/$deb
         fi
       fi
-
+      if [ ! -z "$deb" ] ; then
+        wget -nv $debdir/$deb
+      fi
 
       tar xfj *.orig.tar.bz2 || tar xfJ *.orig.tar.xz || tar xfz *.orig.tar.gz
       subdir=$(find . -mindepth 1 -maxdepth 1 -type d | grep -v unpack | grep -v package)
