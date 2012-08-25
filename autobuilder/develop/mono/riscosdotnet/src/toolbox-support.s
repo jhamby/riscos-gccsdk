@@ -33,11 +33,11 @@ rdn_Toolbox_Initialise:
 
 	SWI	0x64ECF
 	BVS	99f
-	LDR	lr, [sp, #28]
+	LDR	lr, [sp, #20]
 	STR	r0, [lr]
-	LDR	lr, [sp, #32]
+	LDR	lr, [sp, #24]
 	STR	r1, [lr]
-	LDR	lr, [sp, #36]
+	LDR	lr, [sp, #28]
 	STR	r2, [lr]
 	MOV	r0, #0
 99:
@@ -248,6 +248,10 @@ rdn_Object_SetR3R4:
 	MOVVC	r0, #0
 	LDMFD	sp!, {v1, pc}
 	DECLARE_FUNCTION rdn_Object_SetR3R4
+
+	@ IntPtr rdn_Object_SetR3R4R5R6 (uint flags, uint ObjectID, int method, uint r3, uint r4, uint r5, uint r6)
+	.global rdn_Object_SetR3R4R5R6
+rdn_Object_SetR3R4R5R6 = rdn_Component_SetR4R5R6
 
 	@ IntPtr rdn_Object_GetR0R1 (uint flags, uint ObjectID, int method,
 	@ 				uint *r0_return, uint *r1_return)
