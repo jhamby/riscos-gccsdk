@@ -171,11 +171,7 @@ namespace riscos
 					if (show_id == 0)
 						return null;
 
-					Toolbox.Object tb_obj;
-					if (!ToolboxTask.AllObjects.TryGetValue (show_id, out tb_obj))
-						throw new UnknownObjectException (show_id);
-
-					return tb_obj;
+					return Object.LookupOrWrap (show_id);
 				}
 				set
 				{
