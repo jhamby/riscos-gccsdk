@@ -1,3 +1,22 @@
+Sun Sep  2 16:03:22 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/variables.c (c_set): Add check presence of LexId label.  Fixes
+	bug #242.
+	* src/directive_storagemap.c (c_alloc): Check presence of
+	LexLocalLabel.
+	* src/local.c (c_rout): Likewise.
+
+Thu Aug 16 00:31:43 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/variables.c (Var_Define): Don't allow EXPORT/IMPORT/KEEP/STRONG
+	marked symbols being (re)used as variables (like variables can not
+	be reused as symbols in symFlag()).
+	* src/symbol.c (NeedToOutputSymbol): Add assert we're never going
+	to output variables as symbols.
+	(Symbol_OutputForAOF): Remove bool support.
+	(Symbol_OutputForELF): Likewise.
+	* src/whileif.c, src/help_cop.c: Tune assert syntax.
+
 Wed Aug 15 14:27:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/reloc/Makefile.in: Use ELFDUMP as well so we're having

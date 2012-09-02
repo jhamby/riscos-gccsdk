@@ -295,6 +295,24 @@ c_lcl (void)
 bool
 c_set (const Lex *label)
 {
+  switch (label->tag)
+    {
+      case LexNone:
+	error (ErrorError, "Label missing");
+	return false;
+
+      case LexId:
+	break;
+
+      case LexLocalLabel:
+	error (ErrorError, "Local label is not allowed here");
+        return false;
+
+      default:
+	assert (0);
+	break;
+    }
+
   ValueTag type;
   const char c  = inputLook ();
   if (c == 'L')

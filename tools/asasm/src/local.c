@@ -335,15 +335,30 @@ c_rout (const Lex *label)
   Local_ResetLabels ();
 
   char *newROUTId;
-  if (label->tag == LexId)
+  switch (label->tag)
     {
-      unsigned alignValue = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
-      size_t curIdx = Area_AlignArea (areaCurrentSymbol, alignValue, "instruction");
-      ASM_DefineLabel (label, curIdx, false);
-      newROUTId = strndup (label->Data.Id.str, label->Data.Id.len);
+      case LexNone:
+	newROUTId = NULL;
+	break;
+
+      case LexId:
+	{
+	  unsigned alignValue = State_GetInstrType () == eInstrType_ARM ? 4 : 2;
+	  size_t curIdx = Area_AlignArea (areaCurrentSymbol, alignValue, "instruction");
+	  ASM_DefineLabel (label, curIdx, false);
+	  newROUTId = strndup (label->Data.Id.str, label->Data.Id.len);
+	  break;
+	}
+
+      case LexLocalLabel:
+	error (ErrorError, "Local label is not allowed here");
+	return false;
+
+      default:
+	assert (0);
+	break;
     }
-  else
-    newROUTId = NULL;
+
   free ((void *)oLocal_CurROUT.id);
   oLocal_CurROUT.id = newROUTId;
   oLocal_CurROUT.counter++;

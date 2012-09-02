@@ -91,12 +91,25 @@ c_record (void)
 bool
 c_alloc (const Lex *lex)
 {
-  if (lex->tag == LexId)
+  switch (lex->tag)
     {
-      if (Symbol_Define (Symbol_Get (lex), SYMBOL_ABSOLUTE, StorageMap_Value ()))
+      case LexNone:
+	break;
+
+      case LexId:
+	if (Symbol_Define (Symbol_Get (lex), SYMBOL_ABSOLUTE, StorageMap_Value ()))
+	  return false;
+	break;
+
+      case LexLocalLabel:
+	error (ErrorError, "Local label is not allowed here");
 	return false;
+
+      default:
+	assert (0);
+	break;
     }
-  
+
   /* Determine how much we should allocate.  */
   const Value *value = exprBuildAndEval (ValueInt);
   switch (value->Tag)
