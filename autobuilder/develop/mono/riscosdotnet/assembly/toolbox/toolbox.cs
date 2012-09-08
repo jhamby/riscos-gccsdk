@@ -430,7 +430,12 @@ namespace riscos
 
 			protected void SetText (int method, string text)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetText (0,
+				SetText (0, method, text);
+			}
+
+			protected void SetText (uint flags, int method, string text)
+			{
+				OS.ThrowOnError (NativeMethods.Object_SetText (flags,
 									       ID,
 									       method,
 									       text));
@@ -486,6 +491,17 @@ namespace riscos
 									       method,
 									       r3,
 									       r4));
+			}
+
+			protected void CallMethod_SetR3R4R5R6 (int method, int r3, int r4, int r5, int r6)
+			{
+				OS.ThrowOnError (NativeMethods.Object_SetR3R4R5R6 (0,
+										   ID,
+										   method,
+										   r3,
+										   r4,
+										   r5,
+										   r6));
 			}
 
 			protected uint CallMethod_GetR0 (int method)
@@ -557,9 +573,17 @@ namespace riscos
 			Handle = handle;
 		}
 
+		public NativeToolbox.IDBlock GetIDBlock ()
+		{
+			IntPtr idblock_ptr = NativeMethods.Toolbox_GetIDBlock();
+
+			return (NativeToolbox.IDBlock)Marshal.PtrToStructure (idblock_ptr,
+									     typeof (NativeToolbox.IDBlock));
+		}
+
 		public override void Dispatch (Wimp.Event event_base)
 		{
-			NativeToolbox.IDBlock id_block = NativeMethods.Toolbox_GetIDBlock();
+			NativeToolbox.IDBlock id_block = GetIDBlock();
 
 			switch (event_base.type)
 			{

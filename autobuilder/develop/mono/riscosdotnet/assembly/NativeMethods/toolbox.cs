@@ -96,7 +96,7 @@ namespace riscos
 				out IntPtr spriteAreaOut);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Toolbox_GetIDBlock")]
-		internal static extern NativeToolbox.IDBlock Toolbox_GetIDBlock ();
+		internal static extern IntPtr Toolbox_GetIDBlock ();
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Toolbox_GetMessTransFD")]
 		[return: MarshalAs(UnmanagedType.LPArray,SizeConst=4)]
@@ -359,14 +359,23 @@ namespace riscos
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3R4")]
 		internal static extern IntPtr Object_SetR3R4 (uint flags,
-							      uint windowID,
+							      uint objectID,
 							      int method,
 							      uint r3,
 							      uint r4);
 
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3R4R5R6")]
+		internal static extern IntPtr Object_SetR3R4R5R6 (uint flags,
+								  uint objectID,
+								  int method,
+								  int r3,
+								  int r4,
+								  int r5,
+								  int r6);
+
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetR0R1")]
 		internal static extern IntPtr Object_GetR0R1 (uint flags,
-							      uint windowID,
+							      uint objectID,
 							      int method,
 							      out uint r0,
 							      out uint r1);
