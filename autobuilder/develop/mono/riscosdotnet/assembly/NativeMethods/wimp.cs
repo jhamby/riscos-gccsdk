@@ -485,6 +485,12 @@ namespace riscos
 								string name,
 								out int click);
 
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_report_error")]
+		internal static extern IntPtr Wimp_ReportError (ref NativeOS.Error error,
+								Wimp.ErrorBoxFlags flags,
+								string name,
+								out int click);
+
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_plot_icon")]
 		internal static extern IntPtr Wimp_PlotIcon ([In, MarshalAs(UnmanagedType.Struct)]
 								  ref NativeWimp.IconBlock block);

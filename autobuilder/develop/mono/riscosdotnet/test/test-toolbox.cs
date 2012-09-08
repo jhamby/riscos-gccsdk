@@ -17,6 +17,9 @@
 using System;
 using riscos;
 using System.Globalization;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
 
 public class MainMenu : Toolbox.Menu
 {
@@ -28,6 +31,7 @@ public class MainMenu : Toolbox.Menu
 		public const uint SubMenu = 2;
 	}
 
+	// These are the entries that we wish to manipulate.
 	public Toolbox.MenuEntry QuitEntry;
 	public Toolbox.MenuEntry FadedEntry;
 	public Toolbox.MenuEntry SubMenuEntry;
@@ -52,6 +56,8 @@ public class MainMenu : Toolbox.Menu
 
 public class Dialogue : Toolbox.Window
 {
+	// These are the C# objects that we use to "wrap" a Toolbox gadget
+	// and use to access/manipulate that gadget.
 	public Toolbox.ActionButton OKButton;
 	public Toolbox.ActionButton CancelButton;
 	public Toolbox.DisplayField DisplayField;
@@ -67,6 +73,7 @@ public class Dialogue : Toolbox.Window
 	public Toolbox.PopupMenu PopupMenu;
 	public Toolbox.AdjusterArrow AdjusterArrow;
 
+	// The Toolbox component IDs of the gadgets that we are interested in.
 	public class CmpID
 	{
 		public const uint CancelButton = 0;
@@ -290,10 +297,151 @@ public class Dialogue : Toolbox.Window
 
 public class MyTask : ToolboxTask
 {
+	// A sample data type that might be used to represent a file in an editor.
+	public class TextFile : Toolbox.Window
+	{
+		// We derive a new object from the SaveAs dialogue so that we can add some extra
+		// data that is to be associated with it.
+		public class TextFileSaveAs : Toolbox.SaveAs
+		{
+			// The size of the buffer we're going to use for RAM transfer. We could
+			// do the transfer in one go, but that wouldn't be much of a test, so we
+			// divide it up into chunks of 10 bytes.
+			public const int RamTransBufferSize = 10;
+
+			// The memory used to buffer the RAM transfer. We need some memory with
+			// a fixed address, i.e., something that the GC wont move. There are number
+			// of ways to do this, e.g., Marshal.AllocHGlobal, but that is unmanaged memory.
+			// Here we use managed memory, but tell the GC to keep its hands off.
+			public byte [] RamTransBuffer;
+			public GCHandle RamTransBufferHandle;
+
+			// Keep track of the position in the data to transfer.
+			public int RamTransBufferIndex;
+
+			public TextFileSaveAs () : base ("SaveAs")
+			{
+				AboutToBeShown += OnAboutToBeShown;
+				DialogueComplete += OnDialogueComplete;
+			}
+
+			void OnAboutToBeShown (object o, Toolbox.SaveAs.AboutToBeShownEventArgs e)
+			{
+				// Allocate some managed memory.
+				RamTransBuffer = new byte [RamTransBufferSize];
+				// Tell the GC not to move it. This is a burden to the GC, so as soon as
+				// the SaveAs is closed, we give back control of this memory to the GC.
+				RamTransBufferHandle = GCHandle.Alloc(RamTransBuffer, GCHandleType.Pinned);
+				RamTransBufferIndex = 0;
+				// Tell the SaveAs dialogue box how big the file is.
+				FileSize = 45;
+			}
+
+			void OnDialogueComplete (object o, Toolbox.SaveAs.DialogueCompleteEventArgs e)
+			{
+				// Give back control of the memory we allocated to the GC.
+				RamTransBufferHandle.Free();
+			}
+		}
+
+		// We derive a new object from the Toolbox menu so that we can add some extra
+		// data that is to be associated with it.
+		public class TextFileMenu : Toolbox.Menu
+		{
+			public static class Cmp
+			{
+				public const uint SaveAs = 0;
+			}
+
+			public Toolbox.MenuEntry SaveAsEntry;
+			public TextFileSaveAs SaveAsDBox;
+
+			public TextFileMenu () : base ("WindowMenu")
+			{
+				SaveAsEntry = new Toolbox.MenuEntry (this, Cmp.SaveAs);
+				SaveAsDBox = new TextFileSaveAs ();
+				SaveAsEntry.SubMenuShow = SaveAsDBox;
+			}
+		}
+
+		public TextFileMenu WindowMenu;
+
+		private Font.Instance font;
+
+		// The text to be displayed in this window.
+		public string Text;
+
+		public TextFile (string text) : base ("MainWindow")
+		{
+			Text = text;
+			WindowMenu = new TextFileMenu ();
+			// Attach the menu to the window.
+			Menu = WindowMenu;
+			RedrawHandler += OnRedraw;
+
+			font = new Font.Instance ("Trinity.Medium", 24 << 4, 24 << 4);
+
+			WindowMenu.SaveAsDBox.FileType = 0xfff;
+			WindowMenu.SaveAsDBox.SelectionAvailable = false;
+			WindowMenu.SaveAsDBox.SaveToFile += save_data;
+			WindowMenu.SaveAsDBox.FillBuffer += fill_buffer;
+		}
+
+		private void OnRedraw (object sender, Wimp.RedrawEventArgs args)
+		{
+			ColourTrans.SetFontColours (ColourTrans.White, ColourTrans.Black, 7);
+			font.Paint (Text,
+				    Font.PlotType.OSUnits,
+				    args.Origin.X + 10,
+				    args.Origin.Y - 100,
+				    0); // Length ignored (paint whole string) if bit 7 of flags not set
+		}
+
+		// Type 2 client
+		// Client participates in disc save.
+		void save_data (object sender, Toolbox.SaveAs.SaveToFileEventArgs e)
+		{
+			try
+			{
+				TextFileSaveAs saveas = (TextFileSaveAs)sender;
+				System.IO.File.WriteAllText(e.Filename, Text);
+				saveas.FileSaveCompleted (e.Filename, true);
+			}
+			catch (Exception ex)
+			{
+				Wimp.ReportError (Wimp.ErrorBoxFlags.OKIcon,
+						  "MonoTestTB",
+						  0,
+						  ex.Message);
+			}
+		}
+
+		// Type 3 client
+		// Client participates in RAM transfer.
+		// 
+		// FIXME: This doesn't quite work yet - only the first buffer fill is being sent.
+		// I suspect this is due to me misunderstanding the Toolbox SaveAs object, but I
+		// guess it could be a C# issue.
+		void fill_buffer (object sender, Toolbox.SaveAs.FillBufferEventArgs e)
+		{
+			TextFileSaveAs saveas = (TextFileSaveAs)sender;
+			if (saveas.RamTransBufferIndex < Text.Length)
+			{
+				ASCIIEncoding ascii = new ASCIIEncoding();
+				int amount_to_transfer = Math.Min (TextFileSaveAs.RamTransBufferSize,
+								   Text.Length - saveas.RamTransBufferIndex);
+				ascii.GetBytes (Text, saveas.RamTransBufferIndex, amount_to_transfer, saveas.RamTransBuffer, 0);
+				saveas.RamTransBufferIndex += amount_to_transfer;
+				IntPtr address = saveas.RamTransBufferHandle.AddrOfPinnedObject ();
+				saveas.BufferFilled (address, amount_to_transfer);
+			}
+		}
+	}
+
 	private Toolbox.Iconbar Iconbar;
-	private Toolbox.Window MainWindow;
 	private Dialogue dialogue;
-	private Font.Instance MainFont;
+
+	public TextFile CurrentFile;
 
 	public MainMenu main_menu;
 
@@ -346,14 +494,8 @@ public class MyTask : ToolboxTask
 
 		InitIconBar();
 
-		MainFont = new Font.Instance ("Trinity.Medium", 24 << 4, 24 << 4);
-		MainWindow = new Toolbox.Window ("MainWindow");
-
-		MainWindow.Title = "CSharp Toolbox Window";
-
-		// Register the event handlers for the window.
-		MainWindow.RedrawHandler += new Wimp.RedrawEventHandler (RedrawMainWindow);
-		MainWindow.ToolboxHandlers.Add (MyEvent.Quit, QuitHandler);
+		CurrentFile = new TextFile ("The quick brown fox jumped over the lazy dog.");
+		CurrentFile.Title = "CSharp Toolbox Window";
 
 		dialogue = new Dialogue (this);
 		dialogue.Show ();
@@ -362,16 +504,6 @@ public class MyTask : ToolboxTask
 	public void Run ()
 	{
 		PollLoop ();
-	}
-
-	private void RedrawMainWindow (object sender, Wimp.RedrawEventArgs args)
-	{
-		ColourTrans.SetFontColours (ColourTrans.White, ColourTrans.Black, 7);
-		MainFont.Paint ("CSharp Toolbox Task",
-				Font.PlotType.OSUnits,
-				args.Origin.X + 10,
-				args.Origin.Y - 100,
-				0); // Length ignored (paint whole string) if bit 7 of flags not set
 	}
 
 	public void QuitHandler (object sender, Toolbox.ToolboxEventArgs args)
@@ -383,11 +515,7 @@ public class MyTask : ToolboxTask
 
 	private void IconbarSelectHandler (object sender, Toolbox.ToolboxEventArgs args)
 	{
-		// Toggle the main window open/closed when SELECT clicked on the Iconbar icon.
-		if (MainWindow.IsOnScreen ())
-			MainWindow.Hide ();
-		else
-			MainWindow.Show ();
+		CurrentFile.Show();
 	}
 
 	private void IconbarAdjustHandler (object sender, Toolbox.ToolboxEventArgs args)
@@ -418,7 +546,7 @@ public class Test
 		}
 		catch (OS.ErrorException ex)
 		{
-			Reporter.WriteLine ("error number = {0:X8}, error string = {1}",ex.OSError.errnum,ex.OSError.errmess);
+			Reporter.WriteLine ("error number = {0:X8}, error string = {1}",ex.OSError.ErrNum,ex.OSError.ErrMess);
 			Reporter.WriteLine ("StackTrace: {0}", Environment.StackTrace);
 		}
 		finally

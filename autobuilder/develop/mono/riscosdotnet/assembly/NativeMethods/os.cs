@@ -10,17 +10,26 @@ using System.Runtime.InteropServices;
 namespace riscos
 {
 	// Structures that need to be laid out so that they match those used
-	// by RISC OS.
+	// by RISC OS and may need to be embedded in other objects.
+	// Embedded objects have to be structs as classes are reference objects.
+	// Embedding a reference object means we embed a pointer to it rather
+	// than the object itself.
 	public static class NativeOS
 	{
 		// The standard os_error structure
 		[StructLayout(LayoutKind.Sequential)]
 		public struct Error
 		{
-			public int errnum;
+			public int ErrNum;
 
 			[MarshalAs(UnmanagedType.ByValTStr, SizeConst=252)]
-			public string errmess;
+			public string ErrMess;
+
+			public Error (int errNum, string errMess)
+			{
+				ErrNum = errNum;
+				ErrMess = errMess;
+			}
 		}
 
 		[StructLayout(LayoutKind.Sequential)]

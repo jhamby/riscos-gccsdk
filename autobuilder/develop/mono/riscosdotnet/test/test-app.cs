@@ -190,8 +190,8 @@ public class Test
 		}
 		catch (OS.ErrorException ex)
 		{
-			Reporter.WriteLine (ex.OSError.errmess);
-			Console.WriteLine ("error number = {0}, error string = {1}",ex.OSError.errnum,ex.OSError.errmess);
+			Reporter.WriteLine (ex.OSError.ErrMess);
+			Console.WriteLine ("error number = {0}, error string = {1}",ex.OSError.ErrNum,ex.OSError.ErrMess);
 		}
 		finally
 		{

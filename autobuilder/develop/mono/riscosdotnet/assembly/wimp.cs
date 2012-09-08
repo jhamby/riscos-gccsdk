@@ -67,6 +67,18 @@ namespace riscos
 			Iconise
 		}
 
+		public enum ErrorBoxFlags
+		{
+			OKIcon = (1 << 0),
+			CancelIcon = (1 << 1),
+			HighlightCancel = (1 << 2),
+			NoPrompt = (1 << 3),
+			ShortTitle = (1 << 4),
+			LeaveOpen = (1 << 5),
+			Close = (1 << 6),
+			NoBeep = (1 << 7)
+		}
+
 		public static class WindowStackPosition
 		{
 			public const uint Top = 0xffffffff;
@@ -272,6 +284,20 @@ namespace riscos
 		public static void ProcessKey (int key)
 		{
 			OS.ThrowOnError (NativeMethods.Wimp_ProcessKey (key));
+		}
+
+		public static int ReportError (ErrorBoxFlags flags, string name, int errno, string message)
+		{
+			int result;
+			NativeOS.Error err = new NativeOS.Error (errno, message);
+
+			// Don't throw an exception if Wimp_ReportError fails. The exception
+			// handler may also call Wimp_ReportError.
+			NativeMethods.Wimp_ReportError (ref err,
+							flags,
+							name,
+							out result);
+			return result;
 		}
 
 		// Managed versions of the standard WIMP events. These can be passed
