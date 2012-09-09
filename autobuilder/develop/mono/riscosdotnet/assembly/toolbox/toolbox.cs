@@ -418,6 +418,10 @@ namespace riscos
 					return new Window (ObjectID);
 				case Class.Menu:
 					return new Menu (ObjectID);
+				case Class.SaveAs:
+					return new SaveAs (ObjectID);
+				case Class.ProgInfo:
+					return new ProgInfo (ObjectID);
 				default:
 					throw new UnknownObjectException (ObjectID);
 				}

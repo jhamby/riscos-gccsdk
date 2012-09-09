@@ -29,12 +29,14 @@ public class MainMenu : Toolbox.Menu
 		public const uint Quit = 0;
 		public const uint Faded = 1;
 		public const uint SubMenu = 2;
+		public const uint ProgInfo = 3;
 	}
 
 	// These are the entries that we wish to manipulate.
 	public Toolbox.MenuEntry QuitEntry;
 	public Toolbox.MenuEntry FadedEntry;
 	public Toolbox.MenuEntry SubMenuEntry;
+	public Toolbox.MenuEntry ProgInfoEntry;
 
 	public MainMenu (MyTask task) : base ("MainMenu")
 	{
@@ -51,6 +53,8 @@ public class MainMenu : Toolbox.Menu
 		SubMenuEntry = new Toolbox.MenuEntry (this, Cmp.SubMenu);
 		SubMenuEntry.Text = "SubMenu";
 		SubMenuEntry.SubMenu += task.SubMenuHandler;
+
+		ProgInfoEntry = new Toolbox.MenuEntry (this, Cmp.ProgInfo);
 	}
 }
 
@@ -444,6 +448,9 @@ public class MyTask : ToolboxTask
 	public TextFile CurrentFile;
 
 	public MainMenu main_menu;
+	public Toolbox.ProgInfo ProgInfo;
+
+	const string Version = "V1.0 (9th September 2012)";
 
 	// Could use an enum here, but enums require a cast which is ugly.
 	public static class MyEvent
@@ -491,6 +498,10 @@ public class MyTask : ToolboxTask
 		Initialise (350, mess_list, event_list, "<MonoTestTB$Dir>");
 
 		main_menu = new MainMenu (this);
+		// Reading the SubMenuShow property of a menu entry automatically finds the object for us,
+		// or wraps it up in a C# object if it hasn't been seen before.
+		ProgInfo = (Toolbox.ProgInfo)main_menu.ProgInfoEntry.SubMenuShow;
+		ProgInfo.Version = Version;
 
 		InitIconBar();
 

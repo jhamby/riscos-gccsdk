@@ -81,7 +81,8 @@ namespace riscos
 				}
 			}
 
-			public delegate void AboutToBeShownHandler (object sender, AboutToBeShownEventArgs e);
+			/*! \brief The signature of a AboutToBeShown event handler.  */
+			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
 
 			/*! \brief The event handlers that will be called just before this %SaveAs is shown.
 			 *
@@ -93,7 +94,7 @@ namespace riscos
 			 * \code
 			 * SaveAsObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownHandler AboutToBeShown;
+			public event AboutToBeShownEventHandler AboutToBeShown;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * after the %SaveAs dialogue has been hidden.  */

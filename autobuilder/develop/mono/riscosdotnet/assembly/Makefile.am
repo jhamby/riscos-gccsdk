@@ -28,6 +28,7 @@ riscos_dll_sources = \
 	toolbox/string-set.cs \
 	toolbox/writable-field.cs \
 	toolbox/saveas-dialogue.cs \
+	toolbox/proginfo-dialogue.cs \
 	wimp.cs \
 	icon.cs \
 	task.cs \
