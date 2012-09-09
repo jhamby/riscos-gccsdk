@@ -333,6 +333,17 @@ namespace riscos
 										   parentCmp));
 			}
 
+			/*! \brief Display the object in the centre of the screen.  */
+			public void ShowCentred ()
+			{
+				OS.ThrowOnError (NativeMethods.Toolbox_ShowObject (0,
+										   ID,
+										   ShowObjectType.Centre,
+										   IntPtr.Zero,
+										   0,
+										   -1));
+			}
+
 			public void Hide ()
 			{
 				OS.ThrowOnError (NativeMethods.Toolbox_HideObject (0, ID));

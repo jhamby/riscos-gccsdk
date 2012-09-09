@@ -517,11 +517,34 @@ public class MyTask : ToolboxTask
 		PollLoop ();
 	}
 
-	public void QuitHandler (object sender, Toolbox.ToolboxEventArgs args)
+	public void QuitDialogueQuitHandler (object sender, Toolbox.ToolboxEventArgs args)
 	{
 		Reporter.WriteLine ("Quit handler called - Exiting...");
 		Reporter.WriteLine ("");
 		Quit = true;
+
+		Toolbox.QuitDialogue quit_dialogue = (Toolbox.QuitDialogue)sender;
+		quit_dialogue.Dispose();
+	}
+
+	public void QuitDialogueCancelHandler (object sender, Toolbox.ToolboxEventArgs args)
+	{
+		Reporter.WriteLine ("Quit cancelled.");
+		Reporter.WriteLine ("");
+
+		Toolbox.QuitDialogue quit_dialogue = (Toolbox.QuitDialogue)sender;
+		quit_dialogue.Dispose();
+	}
+
+	public void QuitHandler (object sender, Toolbox.ToolboxEventArgs args)
+	{
+		Toolbox.QuitDialogue quit_dialogue;
+
+		quit_dialogue = new Toolbox.QuitDialogue ("Quit");
+		quit_dialogue.Message = "Quit handler called, really quit?";
+		quit_dialogue.Quit += QuitDialogueQuitHandler;
+		quit_dialogue.Cancel += QuitDialogueCancelHandler;
+		quit_dialogue.ShowCentred ();
 	}
 
 	private void IconbarSelectHandler (object sender, Toolbox.ToolboxEventArgs args)
