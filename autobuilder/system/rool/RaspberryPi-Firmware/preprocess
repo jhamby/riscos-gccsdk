@@ -1,0 +1,14 @@
+#!/bin/sh
+
+GIT_LOCAL_TREE=/local/scratch/atm26/riscos/firmware
+echo "Using pre-checked-out tree in $GIT_LOCAL_TREE"
+echo "If missing, checkout with"
+echo "git clone --depth=1 git://github.com/raspberrypi/firmware.git"
+
+pushd $GIT_LOCAL_TREE
+git pull
+GIT_UNIX_TIMESTAMP=$(git rev-list --timestamp HEAD | head -1 | cut -d\  -f1)
+GIT_TEXT_TIMESTAMP=$(date -u -d @$GIT_UNIX_TIMESTAMP +%Y%m%d.%H%M%S)
+AB_PVERSION="0.02.$GIT_TEXT_TIMESTAMP"
+AB_ROVERSION=1
+popd

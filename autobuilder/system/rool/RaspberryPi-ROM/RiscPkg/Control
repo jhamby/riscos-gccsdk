@@ -1,0 +1,4 @@
+Description: Main system ROM image for the Raspberry Pi
+ The core of the RISC OS system, suitable for the Raspberry Pi only 
+ Note: upgrade with care.
+ GETTING THIS WRONG MAY RENDER YOUR MACHINE UNBOOTABLE

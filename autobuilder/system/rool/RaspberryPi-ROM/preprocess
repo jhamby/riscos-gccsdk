@@ -1,0 +1,12 @@
+#!/bin/sh
+
+eval `python $H/parse.py`
+ROOL_ROM_VERSION=5.19
+#ROOL_ROM_UNIXSTAMP=1346224993
+#ROOL_ROM_ARCHIVE=BCM2835Dev.${ROOL_ROM_VERSION}.zip?${ROOL_ROM_UNIXSTAMP}
+#ROOL_URL="https://www.riscosopen.org/zipfiles/misc/${ROOL_ROM_ARCHIVE}"
+ROOL_ROM_DATESTAMP=$(date --date=@${ROOL_ROM_UNIXSTAMP} -u +%Y%m%d.%H%M%S)
+
+# versions of the autobuilder package
+AB_PVERSION=$ROOL_ROM_VERSION.$ROOL_ROM_DATESTAMP
+AB_ROVERSION=1
