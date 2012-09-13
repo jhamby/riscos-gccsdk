@@ -9,7 +9,12 @@ export glib_cv_monotonic_clock=yes
 export ac_cv_func_posix_getgrgid_r=no
 export glib_cv_have_qsort_r=yes
 
-AB_CONFLAGS=--with-pcre=system
+AB_CONFLAGS="--with-pcre=system --with-threads=posix"
+
+# build for local system to build local tools
+CC=$HOST_CC CXX=$HOST_CXX ./configure --prefix=$GCCSDK_INSTALL_CROSS
+make -j$AB_CPUS install
+make clean
 
 mkdir -p $D/bin
 
