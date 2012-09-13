@@ -1,0 +1,22 @@
+
+AB_URL=http://downloads.xiph.org/releases/opus/opus-tools-0.1.5.tar.gz
+
+ab_package() {
+  ab_create_command_app Opus-Tools Apps/Audio
+  ab_add_commands \
+    $S/opus*$AB_EXEEXT 
+
+  # Copy documentation:
+  mkdir $A/docs
+  rman -f HTML $S/man/opusdec.1 > $A/docs/opusdec,faf
+  rman -f HTML $S/man/opusenc.1 > $A/docs/opusenc,faf
+  rman -f HTML $S/man/opusinfo.1 > $A/docs/opusinfo,faf
+  rman -f HTML $S/man/opusrtp.1 > $A/docs/opusrtp,faf
+
+  cp -av $S/COPYING $A
+
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile COPYING
+}
+
+
+

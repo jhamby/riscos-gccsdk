@@ -1,0 +1,6 @@
+| Run file for LibVorbis
+
+IconSprites <Obey$Dir>.!Sprites
+
+Set LibVorbis$Dir <Obey$Dir>
+Set LibVorbis$Path <Obey$Dir>.

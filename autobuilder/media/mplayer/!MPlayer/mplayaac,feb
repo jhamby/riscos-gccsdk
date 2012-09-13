@@ -1,0 +1,3 @@
+| Listen to BBC Radio 1
+set mplayer$heap ""
+taskwindow "<Mplayer$Dir>.mplayer -quiet -v -vo none -ao oss http://www.bbc.co.uk/radio/listen/live/r1_aaclca.pls"
