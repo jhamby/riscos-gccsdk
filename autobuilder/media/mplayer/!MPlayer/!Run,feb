@@ -1,0 +1,7 @@
+| !Run file for MPlayer
+
+WimpSlot -min 28312k -max 28312k
+
+Set Mplayer$Dir <Obey$Dir>
+if "%*0" = "" then Filer_Run <Mplayer$Dir>.!Help
+Run <Mplayer$Dir>.mplayer -ao sdl -quiet -af resample=44100 -framedrop -noaspect %*0 ><Obey$Dir>.stdout 2><Obey$Dir>.stderr
