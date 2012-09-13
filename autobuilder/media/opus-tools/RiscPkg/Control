@@ -1,0 +1,6 @@
+License: Free
+Description: Opus codec command line tools
+ This package provides the reference implementations of encoder
+ and decoder utilities for libopus. People implementing their own
+ support for Opus are encouraged to check their code for interoperability
+ with these tools.
