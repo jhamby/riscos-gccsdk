@@ -1,6 +1,6 @@
-| Run file for LibVorbis
+| Run file for LibOpus
 
 IconSprites <Obey$Dir>.!Sprites
 
-Set LibVorbis$Dir <Obey$Dir>
-Set LibVorbis$Path <Obey$Dir>.
+Set LibOpus$Dir <Obey$Dir>
+Set LibOpus$Path <Obey$Dir>.
