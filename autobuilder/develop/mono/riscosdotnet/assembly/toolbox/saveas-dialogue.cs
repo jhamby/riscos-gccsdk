@@ -6,7 +6,7 @@ namespace riscos
 	public static partial class Toolbox
 	{
 		/*! \brief Encapsulates a Toolbox %SaveAs Dialogue Box.  */
-		public class SaveAs : Object
+		public class SaveAsDialogue : Object
 		{
 			static class Method
 			{
@@ -182,20 +182,20 @@ namespace riscos
 			/*! \brief Create a %Toolbox %SaveAs Dialogue from the named template in the
 			 * Resource file.
 			 * \param[in] resName The name of the %SaveAs template to use.  */
-			public SaveAs (string resName) : base (resName)
+			public SaveAsDialogue (string resName) : base (resName)
 			{
 			}
 
 			/*! \brief Create a %Toolbox %SaveAs from the template data given.
 			 * \param[in] templateData Pointer to the window template.  */
-			public SaveAs (IntPtr templateData)
+			public SaveAsDialogue (IntPtr templateData)
 			{
 				Create (templateData);
 			}
 
 			/*! \brief Create a %Toolbox %SaveAs from an object that already exists.
 			 * \param [in] objectID The Toolbox ID of the existing object.  */
-			public SaveAs (uint objectID) : base (objectID)
+			public SaveAsDialogue (uint objectID) : base (objectID)
 			{
 			}
 

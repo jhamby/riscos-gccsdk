@@ -314,7 +314,7 @@ public class MyTask : ToolboxTask
 	{
 		// We derive a new object from the SaveAs dialogue so that we can add some extra
 		// data that is to be associated with it.
-		public class TextFileSaveAs : Toolbox.SaveAs
+		public class TextFileSaveAs : Toolbox.SaveAsDialogue
 		{
 			// The size of the buffer we're going to use for RAM transfer. We could
 			// do the transfer in one go, but that wouldn't be much of a test, so we
@@ -337,7 +337,7 @@ public class MyTask : ToolboxTask
 				DialogueComplete += OnDialogueComplete;
 			}
 
-			void OnAboutToBeShown (object o, Toolbox.SaveAs.AboutToBeShownEventArgs e)
+			void OnAboutToBeShown (object o, Toolbox.SaveAsDialogue.AboutToBeShownEventArgs e)
 			{
 				// Allocate some managed memory.
 				RamTransBuffer = new byte [RamTransBufferSize];
@@ -349,7 +349,7 @@ public class MyTask : ToolboxTask
 				FileSize = 45;
 			}
 
-			void OnDialogueComplete (object o, Toolbox.SaveAs.DialogueCompleteEventArgs e)
+			void OnDialogueComplete (object o, Toolbox.SaveAsDialogue.DialogueCompleteEventArgs e)
 			{
 				// Give back control of the memory we allocated to the GC.
 				RamTransBufferHandle.Free();
@@ -431,7 +431,7 @@ public class MyTask : ToolboxTask
 
 		// Type 2 client
 		// Client participates in disc save.
-		void save_data (object sender, Toolbox.SaveAs.SaveToFileEventArgs e)
+		void save_data (object sender, Toolbox.SaveAsDialogue.SaveToFileEventArgs e)
 		{
 			try
 			{
@@ -455,7 +455,7 @@ public class MyTask : ToolboxTask
 		// FIXME: This doesn't quite work yet - only the first buffer fill is being sent.
 		// I suspect this is due to me misunderstanding the Toolbox SaveAs object, but I
 		// guess it could be a C# issue.
-		void fill_buffer (object sender, Toolbox.SaveAs.FillBufferEventArgs e)
+		void fill_buffer (object sender, Toolbox.SaveAsDialogue.FillBufferEventArgs e)
 		{
 			TextFileSaveAs saveas = (TextFileSaveAs)sender;
 			if (saveas.RamTransBufferIndex < Text.Length)
@@ -477,7 +477,7 @@ public class MyTask : ToolboxTask
 	public TextFile CurrentFile;
 
 	public MainMenu main_menu;
-	public Toolbox.ProgInfo ProgInfo;
+	public Toolbox.ProgInfoDialogue ProgInfo;
 
 	const string Version = "V1.0 (9th September 2012)";
 
@@ -529,7 +529,7 @@ public class MyTask : ToolboxTask
 		main_menu = new MainMenu (this);
 		// Reading the SubMenuShow property of a menu entry automatically finds the object for us,
 		// or wraps it up in a C# object if it hasn't been seen before.
-		ProgInfo = (Toolbox.ProgInfo)main_menu.ProgInfoEntry.SubMenuShow;
+		ProgInfo = (Toolbox.ProgInfoDialogue)main_menu.ProgInfoEntry.SubMenuShow;
 		ProgInfo.Version = Version;
 
 		InitIconBar();

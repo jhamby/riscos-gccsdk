@@ -12,7 +12,7 @@ namespace riscos
 	public static partial class Toolbox
 	{
 		/*! \brief Encapsulates a Toolbox %ProgInfo Dialogue Box.  */
-		public class ProgInfo : Object
+		public class ProgInfoDialogue : Object
 		{
 			static class Method
 			{
@@ -76,20 +76,20 @@ namespace riscos
 			/*! \brief Create a %Toolbox %ProgInfo Dialogue from the named template in the
 			 * Resource file.
 			 * \param[in] resName The name of the %ProgInfo template to use.  */
-			public ProgInfo (string resName) : base (resName)
+			public ProgInfoDialogue (string resName) : base (resName)
 			{
 			}
 
 			/*! \brief Create a %Toolbox %ProgInfo from the template data given.
 			 * \param[in] templateData Pointer to the window template.  */
-			public ProgInfo (IntPtr templateData)
+			public ProgInfoDialogue (IntPtr templateData)
 			{
 				Create (templateData);
 			}
 
 			/*! \brief Create a %Toolbox %ProgInfo from an object that already exists.
 			 * \param [in] objectID The Toolbox ID of the existing object.  */
-			public ProgInfo (uint objectID) : base (objectID)
+			public ProgInfoDialogue (uint objectID) : base (objectID)
 			{
 			}
 

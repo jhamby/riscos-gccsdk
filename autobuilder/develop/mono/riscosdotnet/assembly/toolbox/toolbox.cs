@@ -430,9 +430,9 @@ namespace riscos
 				case Class.Menu:
 					return new Menu (ObjectID);
 				case Class.SaveAs:
-					return new SaveAs (ObjectID);
+					return new SaveAsDialogue (ObjectID);
 				case Class.ProgInfo:
-					return new ProgInfo (ObjectID);
+					return new ProgInfoDialogue (ObjectID);
 				case Class.FileInfo:
 					return new FileInfoDialogue (ObjectID);
 				default:
