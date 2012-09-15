@@ -4,17 +4,19 @@ AB_NOREMOTE=yes
 AB_PVERSION=1.40
 AB_ROVERSION=2
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
-AB_PACKAGES=Decor
 
-cp -av $H/\!Decor $S/$'!D\xE9cor/'
+cp -av $H/\!Decor $S/$'!Decor/'
 cp -av $H/Decor.c $H/Makefile $S
 
 ab_package() {
   # Because of the top bit set name we insist on, it's tricky to call ab_create_app
+  # (sadly this doesn't work on a UTF8 build machine, so we revert to omitting
+  # the accent)
 
-  mkdir -p $D/$AB_PACKAGES/Apps/$AB_CATEGORY
-  cp -av $S/$'!D\xE9cor/' $D/$AB_PACKAGES/Apps/$AB_CATEGORY/
-  cp -av $H/RiscPkg $D/$AB_PACKAGES/
+#  mkdir -p $D/$AB_PACKAGES/Apps/$AB_CATEGORY
+#  cp -av $S/$'!D\xE9cor/' $D/$AB_PACKAGES/Apps/$AB_CATEGORY/
+#  cp -av $H/RiscPkg $D/$AB_PACKAGES/
+  ab_create_app Decor Apps/Graphics
 
   $AB_HOME/add-riscpkg
 }
