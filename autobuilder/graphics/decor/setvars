@@ -2,6 +2,7 @@
 AB_CATEGORY=Graphics
 AB_NOREMOTE=yes
 AB_PVERSION=1.40
+AB_ROVERSION=2
 AB_MAINTAINER="Peter Naulls <peter@chocky.org>"
 AB_PACKAGES=Decor
 
