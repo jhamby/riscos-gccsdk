@@ -32,43 +32,6 @@ namespace riscos
 				public const int QuitCancel = 0x82a93;
 			}
 
-			/*! \brief An object that encapsulates the arguments for the event that is raised
-			 * just before the Quit Dialogue object is shown on screen.  */
-			public class AboutToBeShownEventArgs : ToolboxEventArgs
-			{
-				/*! \brief Gives details of where the Quit Dialogue will be displayed.  */
-				public readonly ShowObjectSpec ShowSpec;
-
-				public AboutToBeShownEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
-				{
-					switch (Header.Flags)
-					{
-					case (uint)Toolbox.ShowObjectType.FullSpec:
-						{
-							var ev = (NativeToolbox.ShowObjectFullSpecEvent)
-									Marshal.PtrToStructure (RawEventData,
-												typeof (NativeToolbox.ShowObjectFullSpecEvent));
-							ShowSpec = new ShowObjectFull (new OS.Rect (ev.Spec.Visible),
-										       new OS.Coord (ev.Spec.Scroll),
-										       ev.Spec.BehindWindow,
-										       0, 0, 0);
-							break;
-						}
-					case (uint)Toolbox.ShowObjectType.TopLeft:
-						{
-							var ev = (NativeToolbox.ShowObjectTopLeftEvent)
-									Marshal.PtrToStructure (RawEventData,
-												typeof (NativeToolbox.ShowObjectTopLeftEvent));
-							ShowSpec = new ShowObjectTopLeft (new OS.Coord (ev.Spec.TopLeft));
-							break;
-						}
-					default:
-						ShowSpec = null;
-						break;
-					}
-				}
-			}
-
 			/*! \brief The signature of a AboutToBeShown event handler.  */
 			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
 

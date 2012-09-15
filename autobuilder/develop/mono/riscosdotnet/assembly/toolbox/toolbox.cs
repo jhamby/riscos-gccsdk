@@ -44,11 +44,11 @@ namespace riscos
 			public const int ColourDbox = 0x829c0;
 			public const int FontDbox = 0x82a00;
 			public const int FontMenu = 0x82a40;
+			public const int FileInfo = 0x82ac0;
 			public const int PrintDbox = 0x82b00;
 			public const int ProgInfo = 0x82b40;
 			public const int SaveAs = 0x82bc0;
 			public const int Scale = 0x82c00;
-			public const int FileDbox = 0x100180;
 		}
 
 		public static class EventHeaderOffset
@@ -433,6 +433,8 @@ namespace riscos
 					return new SaveAs (ObjectID);
 				case Class.ProgInfo:
 					return new ProgInfo (ObjectID);
+				case Class.FileInfo:
+					return new FileInfoDialogue (ObjectID);
 				default:
 					throw new UnknownObjectException (ObjectID);
 				}
@@ -499,6 +501,14 @@ namespace riscos
 									     r3));
 			}
 
+			protected void CallMethod_SetR3 (int method, byte [] r3)
+			{
+				OS.ThrowOnError (NativeMethods.Object_SetR3 (0,
+									     ID,
+									     method,
+									     r3));
+			}
+
 			protected void CallMethod_SetR3R4 (int method, uint r3, uint r4)
 			{
 				OS.ThrowOnError (NativeMethods.Object_SetR3R4 (0,
@@ -526,6 +536,57 @@ namespace riscos
 				OS.ThrowOnError (NativeMethods.Object_GetR0 (0, ID, method, out handle));
 
 				return handle;
+			}
+
+			/*! \brief An object that encapsulates the arguments for the event that is raised
+			 * just before an object is shown on screen.  */
+			public class AboutToBeShownEventArgs : ToolboxEventArgs
+			{
+				/*! \brief Constants defining event specific data offsets after the header.  */
+				public static class EventOffset
+				{
+					public const int ShowType = 16;
+					public const int Buffer = 20;
+				}
+
+				/*! \brief Gives details of where the object will be displayed.  */
+				public readonly ShowObjectSpec ShowSpec;
+
+				public AboutToBeShownEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+				{
+					ShowObjectType show_type = (ShowObjectType)Marshal.ReadInt32 (RawEventData,
+												      EventOffset.ShowType);
+					switch (show_type)
+					{
+					case Toolbox.ShowObjectType.FullSpec:
+						{
+							var ev = (NativeToolbox.ShowObjectFullSpecEvent)
+									Marshal.PtrToStructure (RawEventData,
+												typeof (NativeToolbox.ShowObjectFullSpecEvent));
+							ShowSpec = new ShowObjectFull (new OS.Rect (ev.Spec.Visible),
+										       new OS.Coord (ev.Spec.Scroll),
+										       ev.Spec.BehindWindow,
+										       0, 0, 0);
+							break;
+						}
+					case Toolbox.ShowObjectType.TopLeft:
+						{
+							var ev = (NativeToolbox.ShowObjectTopLeftEvent)
+									Marshal.PtrToStructure (RawEventData,
+												typeof (NativeToolbox.ShowObjectTopLeftEvent));
+							ShowSpec = new ShowObjectTopLeft (new OS.Coord (ev.Spec.TopLeft));
+							break;
+						}
+					case Toolbox.ShowObjectType.Default:
+					case Toolbox.ShowObjectType.Centre:
+					case Toolbox.ShowObjectType.AtPointer:
+						ShowSpec = new ShowObjectSpec (show_type);
+						break;
+					default:
+						ShowSpec = null;
+						break;
+					}
+				}
 			}
 		}
 

@@ -92,5 +92,9 @@ namespace riscos
 		// OS SWIs
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xos_plot")]
 		internal static extern void OS_Plot (int command, int x, int y);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xoswordreadclock_utc")]
+		internal static extern void OSWordReadClockUtc ([In,Out,MarshalAs(UnmanagedType.LPArray, SizeConst=5)]
+								    byte [] utc);
 	}
 }

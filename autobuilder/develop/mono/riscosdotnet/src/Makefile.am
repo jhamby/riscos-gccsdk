@@ -13,7 +13,8 @@ BUILT_SOURCES = \
 	os.s \
 	reporter.s \
 	toolbox.s \
-	tb-window.s
+	tb-window.s \
+	osword.s
 
 AM_CCASFLAGS = -xassembler-with-cpp -DASM
 
@@ -66,4 +67,9 @@ $(top_srcdir)/src/toolbox.s: $(DEFMOD) $(OSLIB_SRC)/Toolbox/oslib/Toolbox.swi
 $(top_srcdir)/src/tb-window.s: $(DEFMOD) $(OSLIB_SRC)/Toolbox/oslib/Window.swi
 	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Toolbox/oslib/Window.swi > temp.s
 	$(STRIP_OSLIB_SCRIPT) temp.s $@ window
+	rm -f temp.s
+
+$(top_srcdir)/src/osword.s: $(DEFMOD) $(OSLIB_SRC)/Core/oslib/OSWord.swi
+	$(DEFMOD) $(DEFMOD_FLAGS) < $(OSLIB_SRC)/Core/oslib/OSWord.swi > temp.s
+	$(STRIP_OSLIB_SCRIPT) temp.s $@ osword
 	rm -f temp.s

@@ -91,53 +91,6 @@ namespace riscos
 				public const int Data = 200;
 			}
 
-			/*! \class AboutToBeShownEventArgs
-			 * \brief An object that encapsulates the arguments for the event that is raised
-			 * just before the Window object is shown on screen.  */
-			public class AboutToBeShownEventArgs : ToolboxEventArgs
-			{
-				/*! \brief Gives details of where the window will be displayed.  */
-				public ShowObjectSpec ShowSpec;
-
-				public AboutToBeShownEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
-				{
-					switch (Header.Flags)
-					{
-					case (uint)Toolbox.ShowObjectType.FullSpec:
-						{
-							var ev = (NativeToolbox.ShowObjectFullSpecEvent)
-									Marshal.PtrToStructure (RawEventData,
-												typeof (NativeToolbox.ShowObjectFullSpecEvent));
-							ShowSpec = new ShowObjectFull (new OS.Rect (ev.Spec.Visible),
-										       new OS.Coord (ev.Spec.Scroll),
-										       ev.Spec.BehindWindow,
-										       0, 0, 0);
-							break;
-						}
-					case (uint)Toolbox.ShowObjectType.TopLeft:
-						{
-							var ev = (NativeToolbox.ShowObjectTopLeftEvent)
-									Marshal.PtrToStructure (RawEventData,
-												typeof (NativeToolbox.ShowObjectTopLeftEvent));
-							ShowSpec = new ShowObjectTopLeft (new OS.Coord (ev.Spec.TopLeft));
-							break;
-						}
-					case (uint)Toolbox.ShowObjectType.Default:
-						ShowSpec = new ShowObjectSpec (Toolbox.ShowObjectType.Default);
-						break;
-					case (uint)Toolbox.ShowObjectType.Centre:
-						ShowSpec = new ShowObjectSpec (Toolbox.ShowObjectType.Centre);
-						break;
-					case (uint)Toolbox.ShowObjectType.AtPointer:
-						ShowSpec = new ShowObjectSpec (Toolbox.ShowObjectType.AtPointer);
-						break;
-					default:
-						ShowSpec = null;
-						break;
-					}
-				}
-			}
-
 			public delegate void AboutToBeShownHandler (object sender, AboutToBeShownEventArgs e);
 
 			/*! \brief The event handlers that will be called just before this window is shown.

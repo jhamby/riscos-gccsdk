@@ -334,6 +334,31 @@ namespace riscos
 			}
 		}
 
+		public class DateTime
+		{
+			public byte [] Utc = new byte [5];
+
+			public DateTime ()
+			{
+			}
+
+			public void GetNow ()
+			{
+				Utc[0] = 3;
+				NativeMethods.OSWordReadClockUtc (Utc);
+			}
+
+			public static DateTime Now
+			{
+				get
+				{
+					DateTime date = new DateTime ();
+					date.GetNow ();
+					return date;
+				}
+			}
+		}
+
 		/*! \brief Convert an angle in degrees into radians.
 		 * \param [in] angle Angle in degrees.
 		 * \return Angle in radians. */

@@ -62,7 +62,7 @@ namespace riscos
 
 			/*! \class AboutToBeShownEventArgs
 			 * \brief An object that encapsulates the arguments for an AboutTobeShown event.  */
-			public class AboutToBeShownEventArgs : ToolboxEventArgs
+			new public class AboutToBeShownEventArgs : ToolboxEventArgs
 			{
 				public static class EventOffset
 				{

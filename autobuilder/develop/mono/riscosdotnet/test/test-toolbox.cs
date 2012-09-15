@@ -41,6 +41,8 @@ public class MainMenu : Toolbox.Menu
 	public MainMenu (MyTask task) : base ("MainMenu")
 	{
 		Title = "MonoTestTB";
+		AboutToBeShown += OnAboutToBeShown;
+
 		QuitEntry = new Toolbox.MenuEntry (this, Cmp.Quit);
 		QuitEntry.Text = "Quit";
 		QuitEntry.Selection += task.QuitHandler;
@@ -55,6 +57,12 @@ public class MainMenu : Toolbox.Menu
 		SubMenuEntry.SubMenu += task.SubMenuHandler;
 
 		ProgInfoEntry = new Toolbox.MenuEntry (this, Cmp.ProgInfo);
+	}
+
+	public void OnAboutToBeShown (object sender, Toolbox.Menu.AboutToBeShownEventArgs e)
+	{
+		Reporter.WriteLine ("Menu about to be shown, show type = {0}", e.ShowSpec.Type);
+		Reporter.WriteLine ("");
 	}
 }
 
@@ -355,13 +363,16 @@ public class MyTask : ToolboxTask
 			public static class Cmp
 			{
 				public const uint SaveAs = 0;
+				public const uint FileInfo = 1;
 			}
 
+			public Toolbox.MenuEntry FileInfoEntry;
 			public Toolbox.MenuEntry SaveAsEntry;
 			public TextFileSaveAs SaveAsDBox;
 
 			public TextFileMenu () : base ("WindowMenu")
 			{
+				FileInfoEntry = new Toolbox.MenuEntry (this, Cmp.FileInfo);
 				SaveAsEntry = new Toolbox.MenuEntry (this, Cmp.SaveAs);
 				SaveAsDBox = new TextFileSaveAs ();
 				SaveAsEntry.SubMenuShow = SaveAsDBox;
@@ -374,6 +385,8 @@ public class MyTask : ToolboxTask
 
 		// The text to be displayed in this window.
 		public string Text;
+
+		public string FileName = null;
 
 		public TextFile (string text) : base ("MainWindow")
 		{
@@ -389,6 +402,21 @@ public class MyTask : ToolboxTask
 			WindowMenu.SaveAsDBox.SelectionAvailable = false;
 			WindowMenu.SaveAsDBox.SaveToFile += save_data;
 			WindowMenu.SaveAsDBox.FillBuffer += fill_buffer;
+
+			Toolbox.FileInfoDialogue file_info_dbox =
+				(Toolbox.FileInfoDialogue)WindowMenu.FileInfoEntry.SubMenuShow;
+			file_info_dbox.AboutToBeShown += OnFileInfoAboutToBeShown;
+		}
+
+		private void OnFileInfoAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
+		{
+			Toolbox.FileInfoDialogue file_info_dbox = (Toolbox.FileInfoDialogue)sender;
+
+			file_info_dbox.Date = OS.DateTime.Now;
+			file_info_dbox.FileSize = Text.Length;
+			file_info_dbox.Modified = false;
+			file_info_dbox.FileType = 0xfff;
+			file_info_dbox.FileName = (FileName != null) ? FileName : "<Untitled>";
 		}
 
 		private void OnRedraw (object sender, Wimp.RedrawEventArgs args)
@@ -408,6 +436,7 @@ public class MyTask : ToolboxTask
 			try
 			{
 				TextFileSaveAs saveas = (TextFileSaveAs)sender;
+				FileName = e.Filename;
 				System.IO.File.WriteAllText(e.Filename, Text);
 				saveas.FileSaveCompleted (e.Filename, true);
 			}
@@ -536,6 +565,12 @@ public class MyTask : ToolboxTask
 		quit_dialogue.Dispose();
 	}
 
+	public void QuitDialogueAboutToBeShownHandler (object sender, Toolbox.Object.AboutToBeShownEventArgs e)
+	{
+		Reporter.WriteLine ("Quit Dialogue about to be shown, show type = {0}", e.ShowSpec.Type);
+		Reporter.WriteLine ("");
+	}
+
 	public void QuitHandler (object sender, Toolbox.ToolboxEventArgs args)
 	{
 		Toolbox.QuitDialogue quit_dialogue;
@@ -544,6 +579,7 @@ public class MyTask : ToolboxTask
 		quit_dialogue.Message = "Quit handler called, really quit?";
 		quit_dialogue.Quit += QuitDialogueQuitHandler;
 		quit_dialogue.Cancel += QuitDialogueCancelHandler;
+		quit_dialogue.AboutToBeShown += QuitDialogueAboutToBeShownHandler;
 		quit_dialogue.ShowCentred ();
 	}
 

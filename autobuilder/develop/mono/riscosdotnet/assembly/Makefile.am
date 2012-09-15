@@ -30,6 +30,7 @@ riscos_dll_sources = \
 	toolbox/saveas-dialogue.cs \
 	toolbox/proginfo-dialogue.cs \
 	toolbox/quit-dialogue.cs \
+	toolbox/fileinfo-dialogue.cs \
 	wimp.cs \
 	icon.cs \
 	task.cs \

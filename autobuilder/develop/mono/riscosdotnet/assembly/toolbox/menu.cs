@@ -329,26 +329,35 @@ namespace riscos
 			/*! \class AboutToBeShownEventArgs
 			 * \brief An object that encapsulates the arguments for the event that is raised
 			 * just before the Menu object is shown on screen.  */
-			public class AboutToBeShownEventArgs : ToolboxEventArgs
+			new public class AboutToBeShownEventArgs : ToolboxEventArgs
 			{
+				/*! \brief Constants defining event specific data offsets after the header.  */
+				public static class EventOffset
+				{
+					public const int ShowType = 16;
+					public const int Buffer = 20;
+				}
+
 				/*! \brief Gives details of where the menu will be displayed.
 				 * \note FullSpec is the same as TopLeft in the case of a Menu. DefaultSpec
 				 * means that the menu will open 64 OS units to the left of the mouse pointer.  */
-				public ShowObjectSpec ShowSpec;
+				public readonly ShowObjectSpec ShowSpec;
 
 				/*! \brief Create the event arguments from the raw event data.  */
 				public AboutToBeShownEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
 				{
-					switch (Header.Flags)
+					ShowObjectType show_type = (ShowObjectType)Marshal.ReadInt32 (RawEventData,
+												      EventOffset.ShowType);
+					switch (show_type)
 					{
-					case (uint)Toolbox.ShowObjectType.FullSpec:
-					case (uint)Toolbox.ShowObjectType.TopLeft:
+					case Toolbox.ShowObjectType.FullSpec:
+					case Toolbox.ShowObjectType.TopLeft:
 						var ev = (NativeToolbox.ShowObjectTopLeftEvent)
 								Marshal.PtrToStructure (RawEventData,
 											typeof (NativeToolbox.ShowObjectTopLeftEvent));
 						ShowSpec = new ShowObjectTopLeft (new OS.Coord (ev.Spec.TopLeft));
 						break;
-					case (uint)Toolbox.ShowObjectType.Default:
+					case Toolbox.ShowObjectType.Default:
 						ShowSpec = new ShowObjectSpec (Toolbox.ShowObjectType.Default);
 						break;
 					default:
@@ -358,7 +367,7 @@ namespace riscos
 				}
 			}
 
-			public delegate void AboutToBeShownHandler (object sender, AboutToBeShownEventArgs e);
+			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
 
 			/*! \brief The event handlers that will be called just before this Menu is shown.
 			 *
@@ -370,7 +379,7 @@ namespace riscos
 			 * \code
 			 * MenuObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownHandler AboutToBeShown;
+			public event AboutToBeShownEventHandler AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this Menu has been hidden.
 			 *
@@ -477,12 +486,15 @@ namespace riscos
 
 			private void RetrieveEventCodes (IntPtr template)
 			{
+				// The Acorn User Interface Toolbox Manual states that these event codes are
+				// -1 in the template if the default events are to be raised, however, it would
+				// seem that they are actually 0.
 				int flags = Marshal.ReadInt32 (template, TemplateOffset.Flags);
 				if ((flags & Flags.GenerateAboutToBeShown) != 0)
 				{
 					var show_event = Marshal.ReadInt32 (template,
 									    TemplateOffset.ShowEvent);
-					AboutToBeShownEventCode = (show_event != -1) ?
+					AboutToBeShownEventCode = (show_event != 0) ?
 								   show_event :
 								   EventCode.AboutToBeShown;
 				}
@@ -490,7 +502,7 @@ namespace riscos
 				{
 					var hide_event = Marshal.ReadInt32 (template,
 									    TemplateOffset.HideEvent);
-					HasBeenHiddenEventCode = (hide_event != -1) ?
+					HasBeenHiddenEventCode = (hide_event != 0) ?
 								  hide_event :
 								  EventCode.HasBeenHidden;
 				}
