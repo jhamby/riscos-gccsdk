@@ -22,12 +22,22 @@ AB_PATCHOPT="-l -p0"
 
 # if the AB_CPUS variable is set, use that number of parallel processes in
 # our compile (may go wrong if makefiles are poorly written)
-if [ -z "$AB_CPUS" ] ; then
-	echo "Defaulting to one build CPU: set AB_CPUS to use more"
-	export AB_MAKE="$GCCSDK_INSTALL_ENV/ro-make"
+if [ -z "$AB_CPUS" ] || [ "$AB_CPUS"=="X" ] ; then
+	KERNEL=$(uname)
+	if [ "$KERNEL"=="Linux" ] ; then
+		NUMCPUS=$(grep -c '^processor' /proc/cpuinfo)
+		CPUMESSAGE="Detected $NUMCPUS CPUs"
+	else
+		CPUMESSAGE="Can't detect number of CPUs, using 1"
+		NUMCPUS=1
+	fi
+	export MAKEFLAGS="-j$NUMCPUS"
+	echo "$CPUMESSAGE: set AB_CPUS to use more or fewer (eg in case build breaks)"
+	export AB_MAKE="MAKEFLAGS=\"$MAKEFLAGS\" $GCCSDK_INSTALL_ENV/ro-make"
 else
-	echo "Building on $AB_CPUS CPUs (set AB_CPUS to adjust)"
-	export AB_MAKE="$GCCSDK_INSTALL_ENV/ro-make -j$AB_CPUS"
+	export MAKEFLAGS="-j$AB_CPUS"
+	echo "Using $AB_CPUS CPUs"
+	export AB_MAKE="MAKEFLAGS=\"$MAKEFLAGS\" $GCCSDK_INSTALL_ENV/ro-make"
 fi
 
 export AB_INSTALLTARGET=install
