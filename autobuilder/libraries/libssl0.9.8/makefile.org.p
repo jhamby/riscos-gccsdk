@@ -4,7 +4,7 @@
  
  MAKEFILE= Makefile
  
--MANDIR=$(OPENSSLDIR)/man
+-MANDIR=/usr/share/man
 +MANDIR=$(GCCSDK_INSTALL_ENV)/man
  MAN1=1
  MAN3=3
