@@ -1,3 +1,4 @@
 libssh2
 libgcrypt11
 libgpg-error0
+zlib1g
