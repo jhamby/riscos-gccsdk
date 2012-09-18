@@ -1,0 +1,20 @@
+AB_NOREMOTE=yes
+
+AB_PVERSION=0.01
+AB_ROVERSION=1
+AB_CATEGORY=Admin
+
+AB_PRECONF=:
+
+AB_COMPILEFAIL=yes
+
+AB_INSTALL=no
+AB_CONFIG=:
+
+AB_MAKE=:
+
+ab_package () {
+
+   mkdir -p $D/RaspberryPi-Distro/
+   $AB_HOME/add-riscpkg -section Admin -package RaspberryPi-Distro       # Last step to complete packaging
+ }
