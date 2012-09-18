@@ -1,3 +1,8 @@
+Tue Sep 18 22:49:50 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* locale/iconv.c (iconv_mod_checked_ok): Add.
+	(iconv_open): Do at most one successful RMEnsure Iconv.
+
 Thu Aug 16 01:29:21 CEST 2012  Theo Markettos  <theo@markettos.org.uk>
 
 	* include/sys/socket.h: Avoid include bits/socket2.h when in

@@ -1,6 +1,6 @@
 /* iconv_open (), iconv (), iconv_close ()
  * Written by Peter Naulls
- * Copyright (c) 2004-2011 UnixLib Developers
+ * Copyright (c) 2004-2012 UnixLib Developers
  */
 
 #include <errno.h>
@@ -8,6 +8,7 @@
 #ifndef __TARGET_SCL__
 #  include <pthread.h>
 #endif
+#include <stdbool.h>
 #include <stdlib.h>
 #include <swis.h>
 
@@ -21,6 +22,8 @@
 #define ICONV_INVAL (ERROR_BASE+1)
 #define ICONV_2BIG  (ERROR_BASE+2)
 #define ICONV_ILSEQ (ERROR_BASE+3)
+
+static bool iconv_mod_checked_ok = false;
 
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_Iconv_Open (const char *__tocode, const char *__fromcode, iconv_t *resultp)
@@ -115,13 +118,18 @@ iconv_open (const char *tocode, const char *fromcode)
 #endif
 
   const _kernel_oserror *err;
-  err = SWI_OS_CLI ("RMEnsure Iconv 0.04 RMload System:Modules.Iconv");
-  if (err)
-    return (iconv_t) __ul_seterr (err, EOPSYS);
+  if (!iconv_mod_checked_ok)
+    {
+      err = SWI_OS_CLI ("RMEnsure Iconv 0.04 RMload System:Modules.Iconv");
+      if (err)
+	return (iconv_t) __ul_seterr (err, EOPSYS);
 
-  err = SWI_OS_CLI ("RMEnsure Iconv 0.04 Error 16_10F iconv support requires the Iconv module 0.04 or newer");
-  if (err)
-    return (iconv_t) __ul_seterr (err, EOPSYS);
+      err = SWI_OS_CLI ("RMEnsure Iconv 0.04 Error 16_10F iconv support requires the Iconv module 0.04 or newer");
+      if (err)
+	return (iconv_t) __ul_seterr (err, EOPSYS);
+
+      iconv_mod_checked_ok = true;
+    }
 
   iconv_t result;
   if ((err = SWI_Iconv_Open (tocode, fromcode, &result)) != NULL)
