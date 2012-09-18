@@ -1,8 +1,8 @@
 Index: gcc/config.gcc
 ===================================================================
---- gcc/config.gcc	(revision 189467)
+--- gcc/config.gcc	(revision 191443)
 +++ gcc/config.gcc	(working copy)
-@@ -923,6 +923,18 @@
+@@ -924,6 +924,18 @@
  	tm_file="dbxelf.h elfos.h arm/unknown-elf.h arm/elf.h arm/aout.h arm/arm.h arm/rtems-elf.h rtems.h newlib-stdint.h"
  	tmake_file="arm/t-arm arm/t-arm-elf t-rtems arm/t-rtems"
  	;;
