@@ -20,8 +20,11 @@ ab_package()
   mv include/h h
   rm -rf include
 
+
   # Copy shared libs to shared libs package
-  mv lib/*.so.* $slibdir
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    mv lib/*.so.* $slibdir
+  fi
 
   # Move static libs to correct place in static package
   mv lib/*.a .
@@ -35,21 +38,23 @@ ab_package()
   cd ../man
   find . -maxdepth 1 -type f -execdir mv {} {},faf \;
 
-  cd $slibdir
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    cd $slibdir
 
-  # Create soft links
-  SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
-  for SLIB in $SLIBS ; do
-     ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
-     LNAME=`echo $SLIB | cut -d '.' -f 1-2`
-     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-     LNAME=`echo $SLIB | cut -d '.' -f 1-3`
-     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-     LNAME=`echo $SLIB | cut -d '.' -f 1-4`
-     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-  done
+    # Create soft links
+    SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
+    for SLIB in $SLIBS ; do
+      ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
+      LNAME=`echo $SLIB | cut -d '.' -f 1-2`
+      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+      LNAME=`echo $SLIB | cut -d '.' -f 1-3`
+      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+      LNAME=`echo $SLIB | cut -d '.' -f 1-4`
+      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+    done
 
-  cd $HERE
+    cd $HERE
+  fi
 
   $AB_HOME/add-riscpkg -package libpcre3-dev -unixlib
   $AB_HOME/add-riscpkg -package libpcre3 -unixlib \
