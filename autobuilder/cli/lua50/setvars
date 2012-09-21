@@ -1,4 +1,4 @@
 AB_INSTALL=yes
 
-ln -s ../../trunk/src/lib/compat-5.1r5/ src/lib/compat-5.1r5
+ln -s ../../lua50-5.0.3/src/lib/compat-5.1r5 src/lib/compat-5.1r5
 
