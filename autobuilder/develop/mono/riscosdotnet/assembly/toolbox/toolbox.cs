@@ -501,12 +501,17 @@ namespace riscos
 									     r3));
 			}
 
-			protected void CallMethod_SetR3 (int method, byte [] r3)
+			protected void CallMethod_SetR3 (uint flags, int method, IntPtr r3)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetR3 (0,
+				OS.ThrowOnError (NativeMethods.Object_SetR3 (flags,
 									     ID,
 									     method,
 									     r3));
+			}
+
+			protected void CallMethod_SetR3 (int method, IntPtr r3)
+			{
+				CallMethod_SetR3 (0, method, r3);
 			}
 
 			protected void CallMethod_SetR3R4 (int method, uint r3, uint r4)

@@ -337,12 +337,12 @@ namespace riscos
 							    int method,
 							    uint r3);
 
-		// Overload so that we can pass a byte pointer in R3.
+		// Overload so that we can pass a pointer in R3.
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3")]
 		internal static extern IntPtr Object_SetR3 (uint flags,
 							    uint objectID,
 							    int method,
-							    byte [] r3);
+							    IntPtr r3);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3")]
 		internal static extern IntPtr Object_SetText (uint flags,

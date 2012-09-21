@@ -128,12 +128,36 @@ namespace riscos
 			 * the current UTC time used to set the date string.  */
 			public OS.DateTime Date
 			{
-				set { CallMethod_SetR3 (Method.SetDate, value.Utc); }
-				get
-				{
+				set {
+					GCHandle pinned_array;
+					try {
+						// Prevent the GC from moving the memory while we use its address.
+						pinned_array = GCHandle.Alloc (value.Utc, GCHandleType.Pinned);
+						CallMethod_SetR3 (Method.SetDate, pinned_array.AddrOfPinnedObject());
+					}
+					catch {
+						throw;
+					}
+					finally {
+						// The GC can have control of this back now.
+						pinned_array.Free ();
+					}
+				}
+				get {
 					OS.DateTime date = new OS.DateTime ();
-
-					CallMethod_SetR3 (Method.GetDate, date.Utc);
+					GCHandle pinned_array;
+					try {
+						// Prevent the GC from moving the memory while we use its address.
+						pinned_array = GCHandle.Alloc (date.Utc, GCHandleType.Pinned);
+						CallMethod_SetR3 (Method.GetDate, pinned_array.AddrOfPinnedObject());
+					}
+					catch {
+						throw;
+					}
+					finally {
+						// The GC can have control of this back now.
+						pinned_array.Free ();
+					}
 
 					return date;
 				}
