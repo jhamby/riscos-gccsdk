@@ -10,7 +10,7 @@ export ac_cv_func_posix_getgrgid_r=no
 export glib_cv_have_qsort_r=yes
 
 AB_CONFLAGS="--with-pcre=system --with-threads=posix"
-
+ 
 # build for local system to build local tools
 CC=$HOST_CC CXX=$HOST_CXX ./configure --prefix=$GCCSDK_INSTALL_CROSS
 make -j$AB_CPUS install
@@ -54,8 +54,10 @@ ab_package() {
   # Need to put glibconfig.h in headers
   cp $S/glib/glibconfig.h glib-2.0/h/glibconfig
 
-  # Copy shared libs to shared libs package
-  mv lib/*.so.* $slibdir
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    # Copy shared libs to shared libs package
+    mv lib/*.so.* $slibdir
+  fi
 
   # Copy static libs to static package
   mv lib/*.a .
@@ -66,20 +68,22 @@ ab_package() {
   mv $tdocdir/* .
   rm -rf $tdocdir
 
-  cd $HERE
-  cd $slibdir
+  if [ "$RO_SHAREDLIBS" == "yes" ] ; then
+    cd $HERE
+    cd $slibdir
 
-  # Create soft links
-  SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
-  for SLIB in $SLIBS ; do
-     ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
-     LNAME=`echo $SLIB | cut -d '.' -f 1-3`
-     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-     LNAME=`echo $SLIB | cut -d '.' -f 1-4`
-     $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
-  done
+    # Create soft links
+    SLIBS=`find . -iname "*\.so\.*" -printf "%f\n"`
+    for SLIB in $SLIBS ; do
+      ROSLIB=`echo $SLIB | sed -e "s#\.#/#g"`
+      LNAME=`echo $SLIB | cut -d '.' -f 1-3`
+      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+      LNAME=`echo $SLIB | cut -d '.' -f 1-4`
+      $GCCSDK_INSTALL_CROSSBIN/arm-unknown-riscos-ln -s $ROSLIB $LNAME,1c8
+    done
 
-  cd $HERE
+    cd $HERE
+  fi
 
   # Copy HTML docs to docs package
   mkdir -p $docdir/glib
