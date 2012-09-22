@@ -1,8 +1,10 @@
 AB_INSTALL=yes
 
-AB_CONFLAGS="--disable-tls --enable-elf-shlibs"
+AB_CONFLAGS="--disable-tls"
 
 ab_make() {
- cd $S/shlibs/uuid/src/
+ cd libuuid/src/
  $AB_MAKE
 }
+
+export scanf_cv_type_modifier=no
