@@ -1,3 +1,19 @@
+Tue Sep 25 00:28:45 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (time_src): Build utimes.c for SCL.
+	(unix_src): Build utime.c for SCL.
+	* incl-local/internal/os.h (SWI_OS_File_WriteCatLoadExecAttr): Add.
+	* unix/utime.c (utime): Add support for SCL build.
+	* time/utimes.c (utimes): Likewise.
+	* common/objattr.c (__object_get_attrs, __object_get_lattrs): Use
+	SWI_OS_File_ReadCatInfo iso __os_file OSFILE_READCATINFO_NOPATH.
+	* common/riscosify.c (OSFILE_READCATINFO_NOPATH): Drop define.
+	(translate_or_null): Use SWI_OS_File_ReadCatInfo iso __os_file
+	OSFILE_READCATINFO_NOPATH.
+	* incl-local/internal/swiparams.h (OSFILE_READCATINFO_NOPATH): Drop
+	define.
+	(OSFILE_WRITECATINFO_ALL): Likewise.
+
 Tue Sep 18 22:49:50 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* locale/iconv.c (iconv_mod_checked_ok): Add.

@@ -1070,8 +1070,7 @@ time_src = \
 	time/mktime.c \
 	time/setitmr.c \
 	time/strftime.c \
-	time/time.c \
-	time/utimes.c
+	time/time.c
 endif
 time_src += \
 	time/asctime_r.c \
@@ -1090,7 +1089,8 @@ time_src += \
 	time/stdtime.c \
 	time/timegm.c \
 	time/times.c \
-	time/tzset.c
+	time/tzset.c \
+	time/utimes.c
 
 if UNIXLIB_BUILDING_SCL
 unistd_src =
@@ -1185,7 +1185,6 @@ unix_src = \
 	unix/uname.c \
 	unix/unix.c \
 	unix/unlink.c \
-	unix/utime.c \
 	unix/wait.c \
 	unix/wait3.c \
 	unix/wait4.c \
@@ -1199,7 +1198,8 @@ unix_src += \
 	unix/gethostnam.c \
 	unix/setdomain.c \
 	unix/seterr.c \
-	unix/sethostnam.c
+	unix/sethostnam.c \
+	unix/utime.c
 
 if UNIXLIB_BUILDING_SCL
 wchar_src =

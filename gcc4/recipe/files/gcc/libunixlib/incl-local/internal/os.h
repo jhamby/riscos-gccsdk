@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000-2011 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 #ifndef __INTERNAL_OS_H
@@ -131,6 +131,26 @@ SWI_OS_File_ReadCatInfo (const char *__filename, unsigned *__objtype,
       if (__attr)
 	*__attr = attr;
     }
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_File_WriteCatLoadExecAttr (const char *__filename, unsigned __loadaddr,
+				  unsigned __execaddr, unsigned __attr)
+{
+  register const char *filename __asm ("r1") = __filename;
+  register const _kernel_oserror *err;
+  register unsigned loadaddr __asm ("r2") = __loadaddr;
+  register unsigned execaddr __asm ("r3") = __execaddr;
+  register unsigned attr __asm ("r5") = __attr;
+  __asm__ volatile ("MOV\tr0, #1\n\t"
+		    "SWI\t%[SWI_XOS_File]\n\t"
+		    "MOVVS\t%[err], r0\n\t"
+		    "MOVVC\t%[err], #0\n\t"
+		    : [err] "=r" (err)
+		    : "r" (filename), "r" (loadaddr), "r" (execaddr),
+		      "r" (attr), [SWI_XOS_File] "i" (OS_File | (1<<17))
+		    : "r14", "cc");
   return err;
 }
 

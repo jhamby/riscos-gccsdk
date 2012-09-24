@@ -1,8 +1,9 @@
 /* utimes ()
- * Copyright (c) 2000-2010 UnixLib Developers
+ * Copyright (c) 2000-2012 UnixLib Developers
  */
 
 #include <utime.h>
+#include <stddef.h>
 #include <sys/time.h>
 
 /* The utimes function is like utime, but also lets you specify the
@@ -15,8 +16,16 @@
 int
 utimes (const char *file, const struct timeval tvp[2])
 {
-  /* We must convert the micro-seconds to seconds.  */
+  const struct utimbuf *times;
   struct utimbuf time_buf;
-  time_buf.modtime = (tvp[1].tv_usec / 1000) + tvp[1].tv_sec;
-  return utime (file, &time_buf);
+  if (tvp != NULL)
+    {
+      /* We must convert the micro-seconds to seconds.  */
+      time_buf.modtime = ((tvp[1].tv_usec + 500000) / 1000000) + tvp[1].tv_sec;
+      times = &time_buf;
+    }
+  else
+    times = NULL;
+
+  return utime (file, times);
 }

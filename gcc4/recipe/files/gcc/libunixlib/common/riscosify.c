@@ -18,11 +18,10 @@
 #  define MMM_TYPE_MIME                 2
 #  define MMM_TYPE_DOT_EXTN             3
 
-#  define OSFILE_READCATINFO_NOPATH   17
-
 #  define stricmp strcmp
 
 #  include <kernel.h>
+#  include <internal/os.h>
 
 #else
 
@@ -586,17 +585,15 @@ translate_or_null (int create_dir, int flags,
 #ifndef __TARGET_SOLOADER__
       if (create_dir)
 	{
-	  _kernel_swi_regs regs;
-
 	  /* Terminate the output buffer */
 	  *out = '\0';
 
-	  regs.r[0] = OSFILE_READCATINFO_NOPATH;
-	  regs.r[1] = (int) buffer;
-
 	  /* Create the directory if it doesn't exist.  */
-	  if (!_kernel_swi (OS_File, &regs, &regs) && !regs.r[0])
+	  int objtype;
+	  if (!SWI_OS_File_ReadCatInfo (buffer, &objtype, NULL, NULL, NULL, NULL)
+	      && !objtype)
 	    {
+	      _kernel_swi_regs regs;
 	      regs.r[0] = 8;
 	      regs.r[1] = (int) buffer;
 	      regs.r[4] = 0;	/* Default number of entries in dir.  */
