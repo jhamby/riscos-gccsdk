@@ -122,30 +122,30 @@ typedef struct gx_device_spr_s gx_device_spr;
 }
 
 /* For all but spr1, we need our own color mapping and alpha procedures. */
-private dev_proc_map_rgb_color(spr8m_map_rgb_color);
-private dev_proc_map_rgb_color(spr8c_map_rgb_color);
-private dev_proc_map_color_rgb(spr8m_map_color_rgb);
-private dev_proc_map_color_rgb(spr8c_map_color_rgb);
-private dev_proc_map_cmyk_color(sprk_map_cmyk_color);
-private dev_proc_map_color_rgb(sprk_map_color_rgb);
-private dev_proc_put_params(spr8c_put_params);
-private dev_proc_get_alpha_bits(spr8c_get_alpha_bits);
-private dev_proc_copy_alpha(spr_copy_alpha);
+static dev_proc_map_rgb_color(spr8m_map_rgb_color);
+static dev_proc_map_rgb_color(spr8c_map_rgb_color);
+static dev_proc_map_color_rgb(spr8m_map_color_rgb);
+static dev_proc_map_color_rgb(spr8c_map_color_rgb);
+static dev_proc_map_cmyk_color(sprk_map_cmyk_color);
+static dev_proc_map_color_rgb(sprk_map_color_rgb);
+static dev_proc_put_params(spr8c_put_params);
+static dev_proc_get_alpha_bits(spr8c_get_alpha_bits);
+static dev_proc_copy_alpha(spr_copy_alpha);
 
 /* We need to initialize uses_color when opening the device, */
 /* and after each showpage. */
-private dev_proc_open_device(spr_open);
-private dev_proc_output_page(spr_output_page);
+static dev_proc_open_device(spr_open);
+static dev_proc_output_page(spr_output_page);
 
 /* And of course we need our own print-page routines. */
-private dev_proc_print_page(spr1_print_page);
-private dev_proc_print_page(spr8m_print_page);
-private dev_proc_print_page(spr8c_print_page);
-private dev_proc_print_page(sprk_print_page);
+static dev_proc_print_page(spr1_print_page);
+static dev_proc_print_page(spr8m_print_page);
+static dev_proc_print_page(spr8c_print_page);
+static dev_proc_print_page(sprk_print_page);
 
 /* The device procedures */
 
-private const gx_device_procs spr1_procs =
+static const gx_device_procs spr1_procs =
 prn_procs(gdev_prn_open, spr_output_page, gdev_prn_close);
 
 /* See gdevprn.h for the template for the following. */
@@ -157,11 +157,11 @@ prn_procs(gdev_prn_open, spr_output_page, gdev_prn_close);
 	spr8c_get_alpha_bits\
 }
 
-private const gx_device_procs spr8m_procs =
+static const gx_device_procs spr8m_procs =
 pgpm_procs(spr8m_map_rgb_color, spr8m_map_color_rgb, NULL);
-private const gx_device_procs spr8c_procs =
+static const gx_device_procs spr8c_procs =
 pgpm_procs(spr8c_map_rgb_color, spr8c_map_color_rgb, NULL);
-private const gx_device_procs sprk_procs =
+static const gx_device_procs sprk_procs =
 pgpm_procs(NULL, sprk_map_color_rgb, sprk_map_cmyk_color);
 
 /* The device descriptors themselves */
@@ -205,7 +205,7 @@ spr1_prn_device(sprk_procs, "sprkraw", '6', 1, 4, 4, 1, 1, 0,
 /* ------ Initialization ------ */
 
 /* Set the copy_alpha procedure if necessary. */
-private void
+static void
 spr8c_set_copy_alpha(gx_device * pdev)
 {
     if (dev_proc(pdev, copy_alpha) != spr_copy_alpha) {
@@ -215,7 +215,7 @@ spr8c_set_copy_alpha(gx_device * pdev)
     }
 }
 
-private int
+static int
 spr_open(gx_device * pdev)
 {
     int code = gdev_prn_open(pdev);
@@ -228,7 +228,7 @@ spr_open(gx_device * pdev)
 }
 
 /* Print a page, and reset uses_color if this is a showpage. */
-private int
+static int
 spr_output_page(gx_device * pdev, int num_copies, int flush)
 {
     int code = gdev_prn_output_page(pdev, num_copies, flush);
@@ -244,7 +244,7 @@ spr_output_page(gx_device * pdev, int num_copies, int flush)
 
 /* Map an RGB color to a spr8m gray value. */
 /* Keep track of whether the image is black-and-white or gray. */
-private gx_color_index
+static gx_color_index
 spr8m_map_rgb_color(gx_device * pdev, const gx_color_value cv[])
 {				/* We round the value rather than truncating it. */
 	gx_color_value r, g, b;
@@ -262,7 +262,7 @@ spr8m_map_rgb_color(gx_device * pdev, const gx_color_value cv[])
 }
 
 /* Map a spr8m gray value back to an RGB color. */
-private int
+static int
 spr8m_map_color_rgb(gx_device * dev, gx_color_index color, ushort prgb[3])
 {
     gx_color_value gray =
@@ -276,7 +276,7 @@ spr8m_map_color_rgb(gx_device * dev, gx_color_index color, ushort prgb[3])
 
 /* Map an RGB color to a spr8c color tuple. */
 /* Keep track of whether the image is black-and-white, gray, or colored. */
-private gx_color_index
+static gx_color_index
 spr8c_map_rgb_color(gx_device * pdev, const gx_color_value cv[])
 {
     uint bitspercolor = pdev->color_info.depth / 3;
@@ -296,7 +296,7 @@ spr8c_map_rgb_color(gx_device * pdev, const gx_color_value cv[])
 }
 
 /* Map a spr8c color tuple back to an RGB color. */
-private int
+static int
 spr8c_map_color_rgb(gx_device * dev, gx_color_index color, ushort prgb[3])
 {
     uint bitspercolor = dev->color_info.depth / 3;
@@ -313,7 +313,7 @@ spr8c_map_color_rgb(gx_device * dev, gx_color_index color, ushort prgb[3])
 }
 
 /* Map a CMYK color to a pixel value. */
-private gx_color_index
+static gx_color_index
 sprk_map_cmyk_color(gx_device * pdev, const gx_color_value cv[])
 {
     uint bpc = pdev->color_info.depth >> 2;
@@ -339,7 +339,7 @@ sprk_map_cmyk_color(gx_device * pdev, const gx_color_value cv[])
 }
 
 /* Map a CMYK pixel value to RGB. */
-private int
+static int
 sprk_map_color_rgb(gx_device * dev, gx_color_index color, gx_color_value rgb[3])
 {
     int bpc = dev->color_info.depth >> 2;
@@ -377,7 +377,7 @@ sprk_map_color_rgb(gx_device * dev, gx_color_index color, gx_color_value rgb[3])
 /* ------ Alpha capability ------ */
 
 /* Put parameters. */
-private int
+static int
 spr8c_put_alpha_param(gs_param_list * plist, gs_param_name param_name, int *pa,
 		    bool alpha_ok)
 {
@@ -402,7 +402,7 @@ spr8c_put_alpha_param(gs_param_list * plist, gs_param_name param_name, int *pa,
     }
     return code;
 }
-private int
+static int
 spr8c_put_params(gx_device * pdev, gs_param_list * plist)
 {
     gx_device_color_info save_info;
@@ -470,7 +470,7 @@ spr8c_put_params(gx_device * pdev, gs_param_list * plist)
 }
 
 /* Get the number of alpha bits. */
-private int
+static int
 spr8c_get_alpha_bits(gx_device * pdev, graphics_object_type type)
 {
     return (type == go_text ? bdev->alpha_text : bdev->alpha_graphics);
@@ -478,7 +478,7 @@ spr8c_get_alpha_bits(gx_device * pdev, graphics_object_type type)
 
 /* Copy an alpha map, noting whether we may generate some non-black/white */
 /* colors through blending. */
-private int
+static int
 spr_copy_alpha(gx_device * pdev, const byte * data, int data_x,
 	   int raster, gx_bitmap_id id, int x, int y, int width, int height,
 	       gx_color_index color, int depth)
@@ -496,7 +496,7 @@ spr_copy_alpha(gx_device * pdev, const byte * data, int data_x,
 /* ------ Internal routines ------ */
 
 /* Print a page using a given row printing routine. */
-private int
+static int
 spr_print_page_loop(gx_device_printer * pdev, char magic, FILE * pstream,
 	     int (*row_proc) (gx_device_printer *, byte *, int, FILE *))
 {
@@ -618,7 +618,7 @@ spr_print_page_loop(gx_device_printer * pdev, char magic, FILE * pstream,
 /* ------ Individual page printing routines ------ */
 
 /* Print a monobit page. */
-private int
+static int
 spr1_print_row(gx_device_printer * pdev, byte * data, int depth,
 	      FILE * pstream)
 {
@@ -659,14 +659,14 @@ spr1_print_row(gx_device_printer * pdev, byte * data, int depth,
 
     return 0;
 }
-private int
+static int
 spr1_print_page(gx_device_printer * pdev, FILE * pstream)
 {
     return spr_print_page_loop(pdev, bdev->magic, pstream, spr1_print_row);
 }
 
 /* Print a gray-mapped page. */
-private int
+static int
 spr8m_print_row(gx_device_printer * pdev, byte * data, int depth,
 	      FILE * pstream)
 {				/* Note that bpp <= 8 for raw format, bpp <= 16 for plain. */
@@ -707,7 +707,7 @@ spr8m_print_row(gx_device_printer * pdev, byte * data, int depth,
     }
     return 0;
 }
-private int
+static int
 xspr_spr1_print_row(gx_device_printer * pdev, byte * data, int depth,
 		  FILE * pstream)
 {				/* Compress a spr8m or spr8c row to a spr1 row. */
@@ -751,7 +751,7 @@ xspr_spr1_print_row(gx_device_printer * pdev, byte * data, int depth,
 	*dest = out;
     return spr1_print_row(pdev, data, 1, pstream);
 }
-private int
+static int
 spr8m_print_page(gx_device_printer * pdev, FILE * pstream)
 {
     return (bdev->uses_color == 0 && bdev->optimize ?
@@ -762,7 +762,7 @@ spr8m_print_page(gx_device_printer * pdev, FILE * pstream)
 }
 
 /* Print a color-mapped page. */
-private int
+static int
 mspr8m_print_row(gx_device_printer * pdev, byte * data, int depth,
 	       FILE * pstream, bool color)
 {   /* If color=false, write only one value per pixel; */
@@ -843,19 +843,19 @@ mspr8m_print_row(gx_device_printer * pdev, byte * data, int depth,
 
     return 0;
 }
-private int
+static int
 spr8c_print_row(gx_device_printer * pdev, byte * data, int depth,
 	      FILE * pstream)
 {
     return mspr8m_print_row(pdev, data, depth, pstream, true);
 }
-private int
+static int
 spr8c_spr8m_print_row(gx_device_printer * pdev, byte * data, int depth,
 		  FILE * pstream)
 {
     return mspr8m_print_row(pdev, data, depth, pstream, false);
 }
-private int
+static int
 spr8c_print_page(gx_device_printer * pdev, FILE * pstream)
 {
     return (bdev->uses_color >= 2 || !bdev->optimize ?
@@ -871,7 +871,7 @@ spr8c_print_page(gx_device_printer * pdev, FILE * pstream)
 /* Print a faux CMYK page. */
 /* Print a row where each pixel occupies 4 bits (depth == 4). */
 /* In this case, we also know pdev->color_info.max_color == 1. */
-private int
+static int
 sprk_print_row_4(gx_device_printer * pdev, byte * data, int depth,
 		FILE * pstream)
 {
@@ -909,7 +909,7 @@ sprk_print_row_4(gx_device_printer * pdev, byte * data, int depth,
     return 0;
 }
 /* Print a row where each pixel occupies 1 or more bytes (depth >= 8). */
-private int
+static int
 sprk_print_row(gx_device_printer * pdev, byte * data, int depth,
 	      FILE * pstream)
 {
@@ -956,7 +956,7 @@ sprk_print_row(gx_device_printer * pdev, byte * data, int depth,
     }
     return 0;
 }
-private int
+static int
 sprk_print_page(gx_device_printer * pdev, FILE * pstream)
 {
     return spr_print_page_loop(pdev, bdev->magic, pstream,

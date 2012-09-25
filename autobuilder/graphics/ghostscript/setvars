@@ -1,18 +1,18 @@
 AB_URL=http://ghostscript.com/releases/ghostscript-8.64.tar.bz2
 
 # Get Ghostscript fonts:
-if [ ! -e fonts/ghostscript-fonts-std-6.0.tar.gz ] ; then
+if [ ! -e fonts/ghostscript-fonts-std-8.11.tar.gz ] ; then
   mkdir -p fonts
-  wget -nv -O fonts/ghostscript-fonts-std-6.0.tar.gz ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/fonts/ghostscript-fonts-std-6.0.tar.gz
+  wget -nv -O fonts/ghostscript-fonts-std-8.11.tar.gz http://ftp.de.debian.org/debian/pool/main/g/gsfonts/gsfonts_8.11+urwcyr1.0.7~pre44.orig.tar.gz
 fi
 if [ ! -e fonts/ghostscript-fonts-other-6.0.tar.gz ] ; then
   mkdir -p fonts
-  wget -nv -O fonts/ghostscript-fonts-other-6.0.tar.gz ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/fonts/ghostscript-fonts-other-6.0.tar.gz
+  wget -nv -O fonts/ghostscript-fonts-other-6.0.tar.gz http://ftp.de.debian.org/debian/pool/non-free/g/gsfonts-other/gsfonts-other_6.0.orig.tar.gz
 fi
 
 # Copy src code sprite and gdi device:
-cp $H/gdevspr.c src
-cp $H/gdevgdi.c src
+cp $H/gdevspr.c contrib
+cp $H/gdevgdi.c contrib
 
 # Generate makefiles (including Makefile.in)
 rm -f configure.ac Makefile.in
@@ -20,18 +20,25 @@ ln -s base/configure.ac .
 ln -s base/Makefile.in .
 autoconf
 
+mkdir -p src/library/source
+
+AB_CONFLAGS='--without-jasper --without-omni --disable-cups --disable-fontconfig --with-drivers=APPLE,BMP,CANON,EPSON,FAX,JPEG,PNG,TIFF,PCLXL,PCX,PBM,SPRITE,HP,LEXMARK,BROTHER,OKI,IBM,JAPAN,PS,WTS,ETS --disable-gtk'
+
 ab_package () {
   ab_create_app GhostScr Apps/Graphics
   ab_makerun $S/bin/gs$AB_EXEEXT
 
   cp $S/LICENSE $A
 
-  mkdir -p $AB/8_64
+  mkdir -p $A/8_64
   cp -r $S/doc $A/8_64
   cp -r $S/Resource $A/8_64
   cp -r $S/lib $A/8_64
   rm $A/8_64/lib/*.bat
   rm $A/8_64/lib/*.pl
-  ( cd $A ; tar -xzf $S/fonts/ghostscript-fonts-std-6.0.tar.gz )
+  mkdir -p $A/fonts
+  ( cd $A/fonts ; tar --strip-components=1 -xzf $S/fonts/ghostscript-fonts-std-8.11.tar.gz )
   ( cd $A ; tar -xzf $S/fonts/ghostscript-fonts-other-6.0.tar.gz )
+  
+  $AB_HOME/add-riscpkg -unixlib -copyrightfile doc/COPYING
 }

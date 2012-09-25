@@ -1,7 +1,7 @@
 Set GhostScript$Dir <Obey$Dir>
-Set GhostScript$Version "8.50"
+Set GhostScript$Version "8.64"
 
-Set GhostScr$Version "8.50"
+Set GhostScr$Version "8.64"
 Set GhostScr$Help <Obey$Dir>.!Help
 Set GhostScr$Web "http://www.mw-software.com/software/ghostscript/ghostscript.html"
 Set GhostScr$Title "GhostScript"
@@ -14,7 +14,7 @@ cdir <Wimp$ScrapDir>.GhostScript
 Set GhostScript$ScrapDir <Wimp$ScrapDir>.GhostScript
 
 set alias$gsalias set alias$%%0 /<GhostScript$Dir>.bin.%%0 %%%%*0
-set alias$gs wimpslot -min 3500K |M /<GhostScript$Dir>.gs %%*0
+set alias$gs wimpslot -min 15124K |M /<GhostScript$Dir>.gs %%*0
 
 | The first few convert ps to something useful, args are
 | ps2thingy inputfile.ps outputfile.ps any other gs command line args

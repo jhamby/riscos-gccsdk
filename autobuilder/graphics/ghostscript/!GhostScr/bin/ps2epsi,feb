@@ -2,7 +2,7 @@
 
 if "%1" = "" then Error "ps2epsi: Please give an output filename"
 
-wimpslot -min 3500K
+wimpslot -min 15124K
 
 |set tmpfile <Wimp$Scrap>
 

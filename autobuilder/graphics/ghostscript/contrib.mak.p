@@ -2,8 +2,8 @@
 +++ contrib/contrib.mak	2009-12-07 19:27:49.000000000 -0800
 @@ -256,6 +256,28 @@
  	$(GLCC) $(GLO_)gdevgdi.$(OBJ) $(C_) $(CONTRIBSRC)gdevgdi.c
- 
- 
+
+
 +### ---------------- RISC OS Sprite files ---------------- ###
 +
 +spr_=$(GLOBJ)gdevspr.$(OBJ)
@@ -23,8 +23,8 @@
 +$(DD)sprm.dev : $(spr_) $(DD)page.dev
 +	$(SETPDEV) $(DD)sprm $(spr_)
 +
-+$(GLOBJ)gdevspr.$(OBJ) : $(GLSRC)gdevspr.c $(PDEVH)
-+	$(GLCC) $(GLO_)gdevspr.$(OBJ) $(C_) $(GLSRC)gdevspr.c
++$(GLOBJ)gdevspr.$(OBJ) : $(CONTRIBSRC)gdevspr.c $(PDEVH)
++	$(GLCC) $(GLO_)gdevspr.$(OBJ) $(C_) $(CONTRIBSRC)gdevspr.c
 +
  ### ---------------- The Brother HL-1240/HL-1250 printers --------------- ###
  ### These printers are ljet4-compatible, plus support for source tray     ###

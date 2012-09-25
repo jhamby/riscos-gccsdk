@@ -1,4 +1,4 @@
 | Wimpslot should be set by the alias calling this file ...
-wimpslot -min 3500K
+wimpslot -min 15124K
 gs -q -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pswrite -sOutputFile=%1 %*2 -c save pop -f %0
 if "%1" <> "" then ifthere %1 then settype %1 ff5

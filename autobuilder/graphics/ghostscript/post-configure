@@ -5,4 +5,6 @@ cp $H/genarch_output obj/arch.h
 echo echo Fake genarch > obj/genarch
 chmod 755 obj/genarch
 
-make CC=gcc CCLD=gcc obj/echogs obj/genconf obj/geninit
+make CC=/usr/bin/gcc CCLD=/usr/bin/gcc obj/echogs obj/genconf obj/mkromfs
+rm obj/*.o
+mv obj/mkromfs obj/host-mkromfs
