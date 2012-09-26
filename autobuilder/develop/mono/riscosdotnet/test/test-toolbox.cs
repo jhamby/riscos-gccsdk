@@ -364,11 +364,13 @@ public class MyTask : ToolboxTask
 			{
 				public const uint SaveAs = 0;
 				public const uint FileInfo = 1;
+				public const uint Colour = 2;
 			}
 
 			public Toolbox.MenuEntry FileInfoEntry;
 			public Toolbox.MenuEntry SaveAsEntry;
 			public TextFileSaveAs SaveAsDBox;
+			public Toolbox.MenuEntry ColourDBoxEntry;
 
 			public TextFileMenu () : base ("WindowMenu")
 			{
@@ -376,12 +378,15 @@ public class MyTask : ToolboxTask
 				SaveAsEntry = new Toolbox.MenuEntry (this, Cmp.SaveAs);
 				SaveAsDBox = new TextFileSaveAs ();
 				SaveAsEntry.SubMenuShow = SaveAsDBox;
+				ColourDBoxEntry = new Toolbox.MenuEntry (this, Cmp.Colour);
 			}
 		}
 
 		public TextFileMenu WindowMenu;
 
 		private Font.Instance font;
+		// In RGB format
+		private uint font_colour;
 
 		// The text to be displayed in this window.
 		public string Text;
@@ -397,6 +402,7 @@ public class MyTask : ToolboxTask
 			RedrawHandler += OnRedraw;
 
 			font = new Font.Instance ("Trinity.Medium", 24 << 4, 24 << 4);
+			font_colour = ColourTrans.Black;
 
 			WindowMenu.SaveAsDBox.FileType = 0xfff;
 			WindowMenu.SaveAsDBox.SelectionAvailable = false;
@@ -406,6 +412,11 @@ public class MyTask : ToolboxTask
 			Toolbox.FileInfoDialogue file_info_dbox =
 				(Toolbox.FileInfoDialogue)WindowMenu.FileInfoEntry.SubMenuShow;
 			file_info_dbox.AboutToBeShown += OnFileInfoAboutToBeShown;
+
+			Toolbox.ColourDialogue colour_dbox =
+				(Toolbox.ColourDialogue)WindowMenu.ColourDBoxEntry.SubMenuShow;
+			colour_dbox.AboutToBeShown += OnColourDBoxAboutToBeShown;
+			colour_dbox.ColourSelected += OnNewColourSelected;
 		}
 
 		private void OnFileInfoAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
@@ -419,9 +430,25 @@ public class MyTask : ToolboxTask
 			file_info_dbox.FileName = (FileName != null) ? FileName : "<Untitled>";
 		}
 
+		private void OnColourDBoxAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
+		{
+			// The ColourDialogue is the sender.
+			Toolbox.ColourDialogue colour_dbox = (Toolbox.ColourDialogue)sender;
+
+			// Create the necessary colour block from the font colour
+			int [] colour_block = Toolbox.ColourDialogue.AllocStandardColourBlock (font_colour, Toolbox.ColourDialogue.ColourModel.RGB);
+			colour_dbox.SetColour (colour_block, false);
+		}
+
+		private void OnNewColourSelected (object sender, Toolbox.ColourDialogue.ColourSelectedEventArgs args)
+		{
+			font_colour = Toolbox.ColourDialogue.ColourFromColourBlock (args.ColourBlock);
+			ForceRedraw (Extent);
+		}
+
 		private void OnRedraw (object sender, Wimp.RedrawEventArgs args)
 		{
-			ColourTrans.SetFontColours (ColourTrans.White, ColourTrans.Black, 7);
+			ColourTrans.SetFontColours (ColourTrans.White, font_colour, 7);
 			font.Paint (Text,
 				    Font.PlotType.OSUnits,
 				    args.Origin.X + 10,

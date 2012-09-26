@@ -208,10 +208,10 @@ rdn_Object_SetR3:
 	MOV	pc, ip
 	DECLARE_FUNCTION rdn_Object_SetR3
 
-	@ IntPtr rdn_Object_GetText (uint flags, uint WindowID, int method,
+	@ IntPtr rdn_Object_GetBuffer (uint flags, uint WindowID, int method,
 	@ 			 	char *buffer, int buffer_size, int *used)
-	.global rdn_Object_GetText
-rdn_Object_GetText:
+	.global rdn_Object_GetBuffer
+rdn_Object_GetBuffer:
 	MOV	ip, sp
 	STMFD   sp!, {v1, lr}
 
@@ -222,7 +222,26 @@ rdn_Object_GetText:
 	STR	r4, [lr]
 	MOV	r0, #0
 99:	LDMFD	sp!, {v1, pc}
-	DECLARE_FUNCTION rdn_Object_GetText
+	DECLARE_FUNCTION rdn_Object_GetBuffer
+
+	@ IntPtr rdn_Object_GetBufferWithR0 (uint flags, uint WindowID, int method,
+	@ 			 	    char *buffer, int buffer_size,
+	@ 			 	    int *r0, int *used)
+	.global rdn_Object_GetBufferWithR0
+rdn_Object_GetBufferWithR0:
+	MOV	ip, sp
+	STMFD   sp!, {v1, lr}
+
+	LDR	r4, [ip, #0]
+	SWI	0x64EC6
+	BVS	99f
+	LDR	lr, [ip, #4]
+	STR	r0, [lr]
+	LDR	lr, [ip, #8]
+	STR	r4, [lr]
+	MOV	r0, #0
+99:	LDMFD	sp!, {v1, pc}
+	DECLARE_FUNCTION rdn_Object_GetBufferWithR0
 
 	@ IntPtr rdn_Object_GetR0 (uint flags, uint ObjectID, int method, uint *r0_return)
 	.global rdn_Object_GetR0

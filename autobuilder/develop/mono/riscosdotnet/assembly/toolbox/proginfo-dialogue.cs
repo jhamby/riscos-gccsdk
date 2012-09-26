@@ -43,9 +43,6 @@ namespace riscos
 				public const int DialogueCompleted = 0x82b41;
 			}
 
-			/*! \brief The signature of a AboutToBeShown event handler.  */
-			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this %ProgInfo is shown.
 			 *
 			 * Handlers should have the signature:

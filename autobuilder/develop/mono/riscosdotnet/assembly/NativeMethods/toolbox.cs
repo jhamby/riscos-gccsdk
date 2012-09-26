@@ -191,13 +191,22 @@ namespace riscos
 								 out int yHotSpot);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3")]
-		internal static extern IntPtr Window_SetExtent (uint flags, uint WindowID, NativeOS.Rect extent);
-
-		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetR0")]
-		internal static extern IntPtr Window_GetExtent (uint flags, uint WindowID, out NativeOS.Rect extent);
+		internal static extern IntPtr Window_SetExtent (uint flags,
+								uint WindowID,
+								int method,
+								NativeOS.Rect extent);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3")]
-		internal static extern IntPtr Window_ForceRedraw (uint flags, uint WindowID, NativeOS.Rect extent);
+		internal static extern IntPtr Window_GetExtent (uint flags,
+								uint WindowID,
+								int method,
+								out NativeOS.Rect extent);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_SetR3")]
+		internal static extern IntPtr Window_ForceRedraw (uint flags,
+								  uint WindowID,
+								  int method,
+								  ref NativeOS.Rect extent);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwindow_set_tool_bars")]
 		internal static extern IntPtr Window_SetToolBars (uint flags,
@@ -350,13 +359,30 @@ namespace riscos
 							      int method,
 							      string messageText);
 
-		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetText")]
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetBuffer")]
 		internal static extern IntPtr Object_GetText (uint flags,
 							      uint objectID,
 							      int method,
 							      StringBuilder buffer,
 							      int bufferSize,
 							      out int used);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetBuffer")]
+		internal static extern IntPtr Object_GetBuffer (uint flags,
+								uint objectID,
+								int method,
+								IntPtr buffer,
+								int bufferSize,
+								out int used);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetBufferWithR0")]
+		internal static extern IntPtr Object_GetBufferWithR0 (uint flags,
+								      uint objectID,
+								      int method,
+								      IntPtr buffer,
+								      int bufferSize,
+								      out int r0,
+								      out int used);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Object_GetR0")]
 		internal static extern IntPtr Object_GetR0 (uint flags,

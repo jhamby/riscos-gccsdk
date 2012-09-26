@@ -435,6 +435,8 @@ namespace riscos
 					return new ProgInfoDialogue (ObjectID);
 				case Class.FileInfo:
 					return new FileInfoDialogue (ObjectID);
+				case Class.ColourDbox:
+					return new ColourDialogue (ObjectID);
 				default:
 					throw new UnknownObjectException (ObjectID);
 				}
@@ -593,6 +595,9 @@ namespace riscos
 					}
 				}
 			}
+
+			/*! \brief The signature of a normal AboutToBeShown event handler.  */
+			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
 		}
 
 		public class ToolboxEventArgs : EventArgs

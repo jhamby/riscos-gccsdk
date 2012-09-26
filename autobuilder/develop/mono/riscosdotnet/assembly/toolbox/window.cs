@@ -91,8 +91,6 @@ namespace riscos
 				public const int Data = 200;
 			}
 
-			public delegate void AboutToBeShownHandler (object sender, AboutToBeShownEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this window is shown.
 			 *
 			 * Handlers should have the signature:
@@ -103,7 +101,7 @@ namespace riscos
 			 * \code
 			 * WindowObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownHandler AboutToBeShown;
+			public event AboutToBeShownEventHandler AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this window has been hidden.
 			 *
@@ -178,7 +176,7 @@ namespace riscos
 			public const uint DefaultFocusWindow = 0xfffffffe;
 
 			/*! \brief The WIMP handle for this toolbox window.  */
-			Wimp.WindowHandle Handle;
+			public Wimp.WindowHandle Handle;
 
 			private int AboutToBeShownEventCode = 0;
 			private int HasBeenHiddenEventCode = 0;
@@ -217,9 +215,11 @@ namespace riscos
 			 * \return Nothing.  */
 			public void ForceRedraw (OS.Rect area)
 			{
+				NativeOS.Rect rect = new NativeOS.Rect (area);
 				OS.ThrowOnError (NativeMethods.Window_ForceRedraw (0,
 										   ID,
-										   new NativeOS.Rect (area)));
+										   Method.ForceRedraw,
+										   ref rect));
 			}
 
 			/*! \brief Attach toolbars to this Window object. If the object is showing then
@@ -428,6 +428,7 @@ namespace riscos
 				{
 					OS.ThrowOnError (NativeMethods.Window_SetExtent (0,
 											 ID,
+											 Method.SetExtent,
 											 new NativeOS.Rect (value)));
 				}
 				get
@@ -435,6 +436,7 @@ namespace riscos
 					NativeOS.Rect extent = new NativeOS.Rect ();
 					OS.ThrowOnError (NativeMethods.Window_GetExtent (0,
 											 ID,
+											 Method.GetExtent,
 											 out extent));
 					return new OS.Rect (extent);
 				}

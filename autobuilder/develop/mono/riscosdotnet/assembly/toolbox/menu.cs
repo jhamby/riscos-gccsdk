@@ -367,7 +367,7 @@ namespace riscos
 				}
 			}
 
-			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
+			new public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
 
 			/*! \brief The event handlers that will be called just before this Menu is shown.
 			 *

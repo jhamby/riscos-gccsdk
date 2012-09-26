@@ -11,8 +11,11 @@ namespace riscos
 	public static class ColourTrans
 	{
 		public const uint FullRed = 0x0000ff00U;
+		public const int RedShift = 8;
 		public const uint FullGreen = 0x00ff0000U;
+		public const int GreenShift = 16;
 		public const uint FullBlue = 0xff000000U;
+		public const int BlueShift = 24;
 		public const uint Black = 0U;
 		public const uint White = 0xffffff00U;
 
