@@ -360,7 +360,7 @@ namespace riscos
 				return (uint)colourBlock[0];
 			}
 
-			/*! \brief Check if the given event is relevant to the %SaveAs dialogue and call the
+			/*! \brief Check if the given event is relevant to the Colour Dialogue and call the
 			 * associated event handlers.  */
 			public override void Dispatch (ToolboxEvent ev)
 			{

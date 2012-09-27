@@ -30,12 +30,9 @@ public class MainMenu : Toolbox.Menu
 		public const uint Faded = 1;
 		public const uint SubMenu = 2;
 		public const uint ProgInfo = 3;
+		public const uint GCMemory = 4;
 	}
 
-	// These are the entries that we wish to manipulate.
-	public Toolbox.MenuEntry QuitEntry;
-	public Toolbox.MenuEntry FadedEntry;
-	public Toolbox.MenuEntry SubMenuEntry;
 	public Toolbox.MenuEntry ProgInfoEntry;
 
 	public MainMenu (MyTask task) : base ("MainMenu")
@@ -43,20 +40,33 @@ public class MainMenu : Toolbox.Menu
 		Title = "MonoTestTB";
 		AboutToBeShown += OnAboutToBeShown;
 
-		QuitEntry = new Toolbox.MenuEntry (this, Cmp.Quit);
-		QuitEntry.Text = "Quit";
-		QuitEntry.Selection += task.QuitHandler;
-		QuitEntry.HelpMessage = "Exits the application";
+		Toolbox.MenuEntry entry;
 
-		FadedEntry = new Toolbox.MenuEntry (this, Cmp.Faded);
-		FadedEntry.Text = "Faded";
-		FadedEntry.Faded = true;
+		entry = new Toolbox.MenuEntry (this, Cmp.Quit);
+		entry.Text = "Quit";
+		entry.Selection += task.QuitHandler;
+		entry.HelpMessage = "Exits the application";
 
-		SubMenuEntry = new Toolbox.MenuEntry (this, Cmp.SubMenu);
-		SubMenuEntry.Text = "SubMenu";
-		SubMenuEntry.SubMenu += task.SubMenuHandler;
+		entry = new Toolbox.MenuEntry (this, Cmp.Faded);
+		entry.Text = "Faded";
+		entry.Faded = true;
+
+		entry = new Toolbox.MenuEntry (this, Cmp.SubMenu);
+		entry.Text = "SubMenu";
+		entry.SubMenu += task.SubMenuHandler;
+
+		entry = new Toolbox.MenuEntry (this, Cmp.GCMemory);
+		entry.Selection += DumpGCStats;
 
 		ProgInfoEntry = new Toolbox.MenuEntry (this, Cmp.ProgInfo);
+	}
+
+	public void DumpGCStats (object sender, Toolbox.ToolboxEventArgs args)
+	{
+		long memory = GC.GetTotalMemory(true);
+
+		Reporter.WriteLine ("Approximate number of bytes allocated to managed memory = {0}", memory);
+		Reporter.WriteLine ("");
 	}
 
 	public void OnAboutToBeShown (object sender, Toolbox.Menu.AboutToBeShownEventArgs e)
