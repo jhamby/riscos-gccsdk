@@ -2,11 +2,11 @@ Noteworthy changes to the RISC OS GCCSDK releases made.
 
 For specific UnixLib changes, see !GCC.docs.UnixLib.Changes too.
 
-GCCSDK GCC 4.7.2 Release 1 (released xxx)
+GCCSDK GCC 4.7.3 Release 1 (released xxx)
 ==========================
 
 Major changes:
-  - GCC 4.7.2
+  - GCC 4.7.3
   - Upgraded to Binutils 2.22
 
 Bug fixes and other improvements:
