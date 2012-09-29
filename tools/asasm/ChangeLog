@@ -1,3 +1,10 @@
+Sat Sep 29 17:16:44 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/COPYING: Move to...
+	* COPYING: ...here.
+	* src/README: Move to...
+	* README: ...here.
+
 Sun Sep  2 16:03:22 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/variables.c (c_set): Add check presence of LexId label.  Fixes
