@@ -1,5 +1,5 @@
 /* Create a directory.
-   Copyright (c) 2005-2010 UnixLib Developers.  */
+   Copyright (c) 2005-2012 UnixLib Developers.  */
 
 #include <errno.h>
 #include <limits.h>
@@ -41,10 +41,8 @@ mkdir (const char *ux_path, __mode_t mode)
     return __set_errno (EEXIST);
 
   /* Create the directory, with default number of entries per directory.  */
-  int regs[6];
-  regs[4] = 0;
-  const _kernel_oserror *err = __os_file (OSFILE_CREATEDIRECTORY, path, regs);
-  if (err)
+  const _kernel_oserror *err;
+  if ((err = SWI_OS_File_CreateDirectory (path)) != NULL)
     {
       /* Match with "Not found" RISC OS error */
       if (err->errnum == 0x108d6 || strcasecmp(err->errmess, "Not found") == 0
@@ -55,9 +53,8 @@ mkdir (const char *ux_path, __mode_t mode)
     }
 
   /* Set the file access permission bits.  */
-  regs[5] = __set_protection (mode);
-  err = __os_file (OSFILE_WRITECATINFO_ATTR, path, regs);
-  if (err)
+  int attr = __set_protection (mode);
+  if ((err = SWI_OS_File_WriteCatInfoAttr (path, attr)) != NULL)
     return  __ul_seterr (err, EOPSYS);
 
   return 0;

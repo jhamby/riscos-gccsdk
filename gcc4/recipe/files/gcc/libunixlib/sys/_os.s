@@ -1,5 +1,5 @@
 @ __os_*
-@ Copyright (c) 2000-2011 UnixLib Developers
+@ Copyright (c) 2000-2012 UnixLib Developers
 
 #include "internal/asm_dec.s"
 
@@ -208,21 +208,6 @@ __os_nl:
 	MOV	pc, lr
 	DECLARE_FUNCTION __os_nl
 
-	.global	__os_file
-	NAME	__os_file
-__os_file:
-	STMFD	sp!, {v1, v2, lr}
-	MOVS	ip, a3
-	ADDNE	a3, a3, #8
-	LDMNEIA a3, {a3, a4, v1, v2}
-	SWI	XOS_File
-	LDMVSFD	sp!, {v1, v2, pc}
-	TEQ	ip, #0
-	STMNEIA ip, {a1, a2, a3, a4, v1, v2}
-	MOV	a1, #0
-	LDMFD	sp!, {v1, v2, pc}
-	DECLARE_FUNCTION __os_file
-
 	.global	__os_fopen
 	NAME	__os_fopen
 __os_fopen:
@@ -276,25 +261,6 @@ __os_fwrite:
 	MOV	a1, #0
 	LDMFD	sp!, {v1, pc}
 	DECLARE_FUNCTION __os_fwrite
-
-	.global	__os_fsctrl
-	NAME	__os_fsctrl
-__os_fsctrl:
-	SWI	XOS_FSControl
-	MOVVC	a1, #0
-	MOV	pc, lr
-	DECLARE_FUNCTION __os_fsctrl
-
-	.global	__os_setfiletype
-	@ _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
-__os_setfiletype:
-	MOV	a3, a2
-	MOV	a2, a1
-	MOV	a1, #18
-	SWI	XOS_File
-	MOVVC	a1, #0
-	MOV	pc, lr
-	DECLARE_FUNCTION __os_setfiletype
 
 	.global	__os_swi
 	NAME	__os_swi

@@ -71,10 +71,6 @@ __init_coredump (const char *dir)
 _kernel_oserror *
 __unixlib_write_coredump (const char *dir)
 {
-  int regs[6];
-  _kernel_oserror *roerr;
-  struct ul_memory *mem = &__ul_memory;
-
   if (dir != NULL)
     __init_coredump (dir);
 
@@ -87,28 +83,25 @@ __unixlib_write_coredump (const char *dir)
     coredump_dir[--dirlen] = '\0';
   
   /* Create the coredump directory, with default number of entries.  */
-  regs[4] = 0;
-  if ((roerr = __os_file (OSFILE_CREATEDIRECTORY, coredump_dir, regs)) != NULL)
+  const _kernel_oserror *roerr;
+  if ((roerr = SWI_OS_File_CreateDirectory (coredump_dir)) != NULL)
     return roerr;
 
   /* Write application space data.  */
   strcpy (coredump_dir + dirlen, ".app");
-  regs[2] = 0x8000; /* Load address: start application memory.  */
-  regs[3] = mem->rwlomem; /* Exec address.  */
-  regs[4] = 0x8000; /* Start address in memory of data (incl).  */
-  regs[5] = mem->appspace_limit; /* End address in memory of data (excl).  */
-  roerr = __os_file (OSFILE_SAVEBLOCK_LOADNEXEC, coredump_dir, regs);
+  const struct ul_memory *mem = &__ul_memory;
+  roerr = SWI_OS_File_SaveBlockLoadExec (coredump_dir, 0x8000 /* load */,
+					 mem->rwlomem /* exec */, 0x8000 /* start */,
+					 mem->appspace_limit /* end */);
 
   /* Write main DA block (if there is one).  */
   if (__ul_global.dynamic_num != -1)
     {
       strcpy (coredump_dir + dirlen, ".da_main");
-      regs[2] = mem->dalomem;
-      regs[3] = mem->dabreak; /* Exec address = dabreak.  */
-      regs[4] = mem->dalomem;
-      regs[5] = mem->dalimit;
       if (roerr == NULL)
-	roerr = __os_file (OSFILE_SAVEBLOCK_LOADNEXEC, coredump_dir, regs);
+	roerr = SWI_OS_File_SaveBlockLoadExec (coredump_dir, mem->dalomem /* load */,
+					       mem->dabreak /* exec */, mem->dalomem /* start */,
+					       mem->dalimit /* end */);
     }
 
   /* Write all mmap DA blocks (when there).  */
@@ -118,10 +111,10 @@ __unixlib_write_coredump (const char *dir)
       if (mmaps[i].number != -1)
 	{
 	  coredump_dir[dirlen + sizeof (".da_")-1] = '0' + i;
-	  regs[4] = regs[3] = regs[2] = (int) mmaps[i].addr;
-	  regs[5] = (int) mmaps[i].addr + mmaps[i].len;
 	  if (roerr == NULL)
-	    roerr = __os_file (OSFILE_SAVEBLOCK_LOADNEXEC, coredump_dir, regs);
+	    roerr = SWI_OS_File_SaveBlockLoadExec (coredump_dir, (int) mmaps[i].addr,
+						   (int) mmaps[i].addr, (int) mmaps[i].addr,
+						   (int) mmaps[i].addr + mmaps[i].len);
 	}
     }
 

@@ -32,25 +32,22 @@ int
 symlink (const char *ux_targetfile, const char *ux_newfile)
 {
 #if __UNIXLIB_SYMLINKS
-  _kernel_oserror *err;
-  const unsigned int symlink_id = SYMLINK_ID;
-  char *paths = NULL, *ro_targetfile, *ro_newfile;
-  int fd = -1, result = 0;
-  int regs[10];
-
 #ifdef DEBUG
   debug_printf("-- Symlinking %s --> %s\n", ux_newfile, ux_targetfile);
 #endif
 
+  int fd = -1, result = 0;
+
   /* Use one buffer for both paths.  */
+  char *paths = NULL;
   if ((paths = malloc (MAXPATHLEN * 2)) == NULL)
     {
       result = __set_errno (ENOMEM);
       goto exit;
     }
 
-  ro_newfile = paths;
-  ro_targetfile = paths + MAXPATHLEN;
+  char *ro_newfile = paths;
+  char *ro_targetfile = paths + MAXPATHLEN;
 
   if (__riscosify_std (ux_newfile, 0,
 		       ro_newfile, MAXPATHLEN, NULL) == NULL)
@@ -74,7 +71,10 @@ symlink (const char *ux_targetfile, const char *ux_newfile)
       goto exit;
     }
 
-  int link_len = strlen (ro_targetfile);
+  const unsigned int symlink_id = SYMLINK_ID;
+  unsigned link_len = strlen (ro_targetfile);
+  const _kernel_oserror *err;
+  int regs[5];
   if ((err = __os_fopen (OSFILE_OPENOUT, ro_newfile, &fd)) == NULL
       /* Write the symlink file ID - ASCII representation of LINK.  */
    && (err = __os_fwrite (fd, &symlink_id, 4, regs)) == NULL
@@ -84,8 +84,7 @@ symlink (const char *ux_targetfile, const char *ux_newfile)
    && (err = __os_fwrite (fd, ro_targetfile, link_len, regs)) == NULL)
     {
       /* Set the filetype of the symlink file.  */
-      regs[2] = SYMLINK_FILETYPE;
-      if ((err = __os_file (OSFILE_WRITECATINFO_FILETYPE, ro_newfile, regs)) != NULL)
+      if ((err = SWI_OS_File_WriteCatInfoFileType (ro_newfile, SYMLINK_FILETYPE)) != NULL)
 	result = __ul_seterr (err, EIO);
     }
   else

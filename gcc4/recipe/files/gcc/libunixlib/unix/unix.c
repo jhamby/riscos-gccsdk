@@ -1,5 +1,5 @@
 /* UnixLib process initialisation and finalisation.
-   Copyright (c) 2002-2011 UnixLib Developers.  */
+   Copyright (c) 2002-2012 UnixLib Developers.  */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1068,9 +1068,10 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
 
   const char *input_argv0;
   int filetype;
-  int regs[10];
-  if (__os_file (OSFILE_READCATINFO, canon_argv0, regs) != NULL
-      || regs[0] != 1)
+  int objtype, loadaddr;
+  if (SWI_OS_File_ReadCatInfo (canon_argv0, &objtype, &loadaddr, NULL, NULL,
+			       NULL) != NULL
+      || objtype != 1)
     {
 #ifdef DEBUG
       __os_print ("WARNING: cannot stat() process filename\r\nDid you use a temporary FS used to startup? If so, better use '*run' instead.\r\n");
@@ -1081,7 +1082,7 @@ convert_command_line (struct proc *process, const char *cli, int cli_size)
     }
   else
     {
-      filetype = (regs[2] & 0xfff00000U) == 0xfff00000U ? (regs[2] >> 8) & 0xfff : __RISCOSIFY_FILETYPE_NOTFOUND;
+      filetype = (loadaddr & 0xfff00000U) == 0xfff00000U ? (loadaddr >> 8) & 0xfff : __RISCOSIFY_FILETYPE_NOTFOUND;
       input_argv0 = canon_argv0;
     }
 

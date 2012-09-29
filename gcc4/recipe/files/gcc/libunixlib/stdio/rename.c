@@ -1,5 +1,5 @@
 /* Rename a file.
-   Copyright (c) 2005-2010 UnixLib Developers.  */
+   Copyright (c) 2005-2012 UnixLib Developers.  */
 
 #include <ctype.h>
 #include <errno.h>
@@ -20,19 +20,19 @@
 int
 rename (const char *old_name, const char *new_name)
 {
-  _kernel_oserror *err;
-  int regs[10], oftype, oftype_a, nftype, nftype_a;
-  char ofile[MAXPATHLEN], nfile[MAXPATHLEN];
+  const _kernel_oserror *err;
 
   PTHREAD_UNSAFE
 
   if (old_name == NULL || new_name == NULL)
     return __set_errno (EINVAL);
 
+  int oftype;
+  char ofile[MAXPATHLEN];
   if (!__riscosify_std (old_name, 0, ofile, sizeof (ofile), &oftype))
     return __set_errno (ENAMETOOLONG);
 
-  oftype_a = (oftype == __RISCOSIFY_FILETYPE_NOTFOUND) ? 0xfff : oftype;
+  int oftype_a = (oftype == __RISCOSIFY_FILETYPE_NOTFOUND) ? 0xfff : oftype;
 
   /* Does the old file exist ?  */
   if (!__object_exists_raw (ofile))
@@ -40,10 +40,12 @@ rename (const char *old_name, const char *new_name)
 
   /* Let __riscosify_std () create the directory if necessary. This is so
      rename ("foo", "foo.c") works when "c" does not exist.  */
+  int nftype;
+  char nfile[MAXPATHLEN];
   if (!__riscosify_std (new_name, 1, nfile, sizeof (nfile), &nftype))
     return __set_errno (ENAMETOOLONG);
 
-  nftype_a = (nftype == __RISCOSIFY_FILETYPE_NOTFOUND) ? 0xfff : nftype;
+  int nftype_a = (nftype == __RISCOSIFY_FILETYPE_NOTFOUND) ? 0xfff : nftype;
 
   /* If old and new are existing links to the same file, rename() immediately
      returns zero (success) and does nothing else.
@@ -69,17 +71,10 @@ rename (const char *old_name, const char *new_name)
       if (__object_exists_raw (nfile))
 	{
 	  if (__isdir_raw (nfile))
-	    {
-	      regs[0] = 6;
-	      regs[1] = (int) nfile;
-
-	      /* Attempt to delete the directory.  */
-	      err = __os_swi (OS_File, regs);
-	      if (err)
-		return __set_errno (ENOTEMPTY);
-	    }
-	  else
 	    return __set_errno (EISDIR);
+	  /* Attempt to delete the directory.  */
+	  if ((err = SWI_OS_File_DeleteObject (nfile)) != NULL)
+	    return __set_errno (ENOTEMPTY);
 	}
     }
   else
@@ -92,8 +87,7 @@ rename (const char *old_name, const char *new_name)
 	  if (__isdir_raw (nfile))
 	    return __set_errno (EISDIR);
 	  /* We can't use unlink() as it might delete the suffix dir */
-	  err = __os_file (OSFILE_DELETENAMEDOBJECT, nfile, regs);
-	  if (err)
+	  if ((err = SWI_OS_File_DeleteObject (nfile)) != NULL)
 	    return __ul_seterr (err, EOPSYS);
 	}
     }
@@ -103,6 +97,7 @@ rename (const char *old_name, const char *new_name)
      Ideally st_dev needs fixing in stat().  */
 
   /* Perform the rename.  */
+  int regs[10];
   regs[0] = 25;
   regs[1] = (int)ofile;
   regs[2] = (int)nfile;
@@ -119,11 +114,7 @@ try_filetyping:
   if (oftype_a != nftype_a)
     {
       /* We need to set the filetype of the file.  */
-      regs[0] = 18;
-      regs[1] = (int) nfile;
-      regs[2] = nftype_a;
-      err = __os_swi (OS_File, regs);
-      if (err)
+      if ((err = SWI_OS_File_WriteCatInfoFileType (nfile, nftype_a)) != NULL)
         return __ul_seterr (err, EOPSYS);
     }
 

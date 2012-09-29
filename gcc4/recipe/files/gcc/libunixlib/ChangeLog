@@ -1,3 +1,54 @@
+Sat Sep 29 18:02:53 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (common_src): Add common/attrib.c,
+	common/canonicalise_handle.c and common/__stat.c to SCL build.
+	(unix_src): Add unix/scl_fstat.c.
+	* sys/_os.s (__os_file, __os_fsctrl, __os_setfiletype): Remove.
+	* incl-local/internal/os.h (__os_file, __os_fsctrl,
+	__os_setfiletype): Remove.
+	(SWI_OS_File_SaveBlockLoadExec, SWI_OS_FSControl_SetCurDir,
+	SWI_OS_File_WriteCatInfoAttr, SWI_OS_File_DeleteObject,
+	SWI_OS_File_CreateDirectory, SWI_OS_File_CreateFileWithFileType,
+	SWI_OS_File_WriteCatInfoFileType): Add.
+	* incl-local/internal/swiparams.h (OSFILE_SAVEBLOCK_LOADNEXEC,
+	OSFILE_SAVEBLOCK_FILETYPE, OSFILE_READCATINFO_FILEPATH,
+	OSFILE_READCATINFO_PATH, OSFILE_READCATINFO_PATHVAR,
+	OSFILE_WRITECATINFO_ATTR, OSFILE_WRITECATINFO_FILETYPE,
+	OSFILE_DELETENAMEDOBJECT, OSFILE_CREATEDIRECTORY,
+	OSFILE_CREATEEMPTYFILE_FILETYPE): Add.
+	* stdio/rename.c (rename): Use SWI_OS_File_DeleteObject instead of
+	__os_swi, __os_file.  Use SWI_OS_File_WriteCatInfoFileType instead of
+	__os_swi.
+	* unix/unlink.c (__unlinksuffix, unlink): Use SWI_OS_File_DeleteObject
+	instead of __os_file.
+	* unix/chmod.c (chmod): Use SWI_OS_File_WriteCatIntoAttr instead of
+	__os_file.
+	* unix/fchmod.c (fchmod): Likewise.
+	* unix/unix.c (convert_command_line): Use SWI_OS_File_ReadCatInfo
+	instead of __os_file.
+	* unix/mkdir.c (mkdir): Use SWI_OS_File_CreateDirectory,
+	SWI_OS_File_WriteCatInfoAttr instead of __os_file.
+	* unix/dev.c (__fsopen): Use SWI_OS_File_ReadCatInfo,
+	SWI_OS_File_CreateFileWithFileType, SWI_OS_File_WriteCatInfoAttr,
+	SWI_OS_Args_GetFileHandleStatus and SWI_OS_File_DeleteObject instead
+	of __os_file and __os_swi.
+	(__fsstat): Make use of __stat return value.
+	(__fsfstat): Use SWI_OS_File_ReadCatInfo instead of __os_file.
+	Make use of __stat return value.
+	(__fslstat, __nullfstate): Minor change.
+	* unix/chdir.c (chdir): Use SWI_OS_FSControl_SetCurDir instead of
+	__os_fsctrl.
+	* unistd/symlink.c (symlink): Use SWI_OS_File_WriteCatInfoFileType
+	instead of __os_file.
+	* sys/mman.c (__unixlib_write_coredump): Use
+	SWI_OS_File_CreateDirectory, SWI_OS_File_SaveBlockLoadExec instead of
+	__os_file.
+	* incl-local/sys/stat.h (__stat): Change return type from void to int.
+	* common/__stat.c: Change return type from void to int.  Tune it to be
+	used for SCL build.
+	* unix/scl_fstat.c: Add.
+	* unix/scl_open.c (open): Make IO unbuffered.
+
 Tue Sep 25 00:28:45 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am (time_src): Build utimes.c for SCL.

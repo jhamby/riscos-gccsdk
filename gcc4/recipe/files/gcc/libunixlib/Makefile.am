@@ -60,8 +60,6 @@ if UNIXLIB_BUILDING_SCL
 common_src =
 else
 common_src = \
-	common/attrib.c \
-	common/canonicalise_handle.c \
 	common/canonicalise_path.c \
 	common/exist.c \
 	common/funcallerr.c \
@@ -76,12 +74,14 @@ common_src = \
 	common/_atomic.s \
 	common/_exist.s \
 	common/_riscosify.s \
-	common/_taskhandle.s \
-	common/__stat.c
+	common/_taskhandle.s
 endif
 common_src += \
+	common/attrib.c \
+	common/canonicalise_handle.c \
 	common/cvttime.c \
-	common/env.c
+	common/env.c \
+	common/__stat.c
 
 if UNIXLIB_BUILDING_SCL
 crypt_src =
@@ -1112,6 +1112,7 @@ endif
 if UNIXLIB_BUILDING_SCL
 unix_src = \
 	unix/scl_close.c \
+	unix/scl_fstat.c \
 	unix/scl_ioctl.c \
 	unix/scl_isatty.c \
 	unix/scl_lseek.c \

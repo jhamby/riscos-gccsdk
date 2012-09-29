@@ -147,16 +147,17 @@ __getdevtype (const char *filename, int ro_control)
 }
 
 void *
-__fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
+__fsopen (struct __unixlib_fd *file_desc, const char *ux_filename, int mode)
 {
-  int regs[10], sftype, fflag = file_desc->fflag;
+  int sftype, fflag = file_desc->fflag;
   char file[MAXPATHLEN + 2];	/* Want two chars for ".^" below.  */
-  char *end_of_filename = __riscosify_std (filename,
+  char *end_of_filename = __riscosify_std (ux_filename,
 					   fflag & (O_CREAT | O_WRONLY | O_RDWR),
 					   file, sizeof (file) - 2, &sftype);
   if (end_of_filename == NULL)
     return (void *) __set_errno (ENAMETOOLONG);
 
+  const char *ro_filename;
 #if __UNIXLIB_SYMLINKS
   {
     char target[MAXPATHLEN + 2];
@@ -164,16 +165,19 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
     if (__resolve_symlinks (file, target, MAXPATHLEN) != 0)
       return (void *) -1;
 
-    strcpy (file, target);
+    ro_filename = target;
   }
+#else
+  ro_filename = file;
 #endif
 
   /* Get file vital statistics.  */
-  _kernel_oserror *err;
-  if ((err = __os_file (OSFILE_READCATINFO, file, regs)) != NULL)
+  const _kernel_oserror *err;
+  int objtype, attr;
+  if ((err = SWI_OS_File_ReadCatInfo (ro_filename, &objtype, NULL, NULL,
+				      NULL, &attr)) != NULL)
     goto os_err;
-
-  if (regs[0])
+  if (objtype)
     {
       /* Some sort of object exists.  */
       if ((fflag & (O_EXCL | O_CREAT)) == (O_EXCL | O_CREAT))
@@ -182,8 +186,8 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
       /* Check for permission to access the file in the mode we
          requested.  */
-      if (regs[0] == 2
-	  || (regs[0] == 3 && !__get_feature_imagefs_is_file ()))
+      if (objtype == 2
+	  || (objtype == 3 && !__get_feature_imagefs_is_file ()))
 	{
 	  /* Directory or image file.  Set errno if the user specified write
 	     access.  */
@@ -193,9 +197,9 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	  file_desc->dflag |= FILE_ISDIR;
 
 #ifdef DEBUG
-	  debug_printf ("open directory (read only): file=%s\n", file);
+	  debug_printf ("open directory (read only): file=%s\n", ro_file);
 #endif
-	  DIR *dir = opendir (filename);
+	  DIR *dir = opendir (ux_filename);
 	  /* When dir is NULL, errno is already set so no need to set it again.  */
 	  return (dir == NULL) ? (void *) -1 : (void *) dir;
 	}
@@ -203,7 +207,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
       /* Remove creation bits.  */
       fflag &= ~O_CREAT;
 
-      __mode_t access_mode = __get_protection (regs[5]);
+      __mode_t access_mode = __get_protection (attr);
       if (((fflag & O_ACCMODE) == O_RDONLY && !(access_mode & S_IRUSR))
 	  || ((fflag & O_ACCMODE) == O_WRONLY && !(access_mode & S_IWUSR))
 	  || ((fflag & O_ACCMODE) == O_RDWR
@@ -223,7 +227,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	 PipeFS though a proper device ioctl.  So SWI call always generates
 	 an error which we ignore.  */
       char temp[16];
-      SWI_OS_FSControl_Canonicalise (filename, NULL, temp, sizeof (temp), NULL);
+      SWI_OS_FSControl_Canonicalise (ro_filename, NULL, temp, sizeof (temp), NULL);
       if (!(tolower (temp[0]) == 'p'
 	    && tolower (temp[1]) == 'i'
 	    && tolower (temp[2]) == 'p'
@@ -239,19 +243,18 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 
   if (fflag & O_CREAT)
     {
-      /* If the O_CREAT flag has been set, then create an
-         empty file. Strict POSIX says that there is no
-         difference between text and binary files. */
-      regs[2] = (sftype == __RISCOSIFY_FILETYPE_NOTFOUND) ? 0xfff : sftype;
-      regs[4] = regs[5] = 0;
-      if ((err = __os_file (OSFILE_CREATEEMPTYFILE_FILETYPE, file, regs)) != NULL)
+      /* If the O_CREAT flag has been set, then create an empty file. Strict
+	 POSIX says that there is no difference between text and binary
+	 files. */
+      if ((err = SWI_OS_File_CreateFileWithFileType (ro_filename,
+						     (sftype == __RISCOSIFY_FILETYPE_NOTFOUND) ? 0xfff : sftype,
+						     0)) != NULL)
 	{
 	  /* Could not create.  Cannot assume component of name does not
 	     exist, as errors such as "directory full" end up here.  */
-	  char *where = file;
+	  char *where = ro_filename;
 	  int leafonly = 1;
 	  char ch;
-
 	  while ((ch = *where++))
 	    if (ch == '.' || ch == ':')
 	      {
@@ -274,8 +277,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 		return (void *) __set_errno (ENOENT);
 	      /* No parent directory - throw Unix error.  */
 	    }
-	  /* Parent directory exists - implies OS problem creating
-	     file.  */
+	  /* Parent directory exists - implies OS problem creating file.  */
 	  goto os_err;
 	}
     }
@@ -300,7 +302,7 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
 	}
     }
   int fd;
-  if ((err = __os_fopen (openmode, file, &fd)) != NULL)
+  if ((err = __os_fopen (openmode, ro_filename, &fd)) != NULL)
     goto os_err;
 
   /* Now set the protection. This must be done after the file is opened,
@@ -311,31 +313,32 @@ __fsopen (struct __unixlib_fd *file_desc, const char *filename, int mode)
   if (fflag & O_CREAT)
     {
       mode &= ~(__ul_global.sulproc->umask & 0777);
-      regs[5] = __set_protection (mode);
+      int attr = __set_protection (mode);
 
       /* Write the object attributes.  */
-      if (__os_file (OSFILE_WRITECATINFO_ATTR, file, regs))
+      if (SWI_OS_File_WriteCatInfoAttr (ro_filename, attr))
 	{
 	  /* Now try closing it first if that failed */
 	  __os_fclose (fd);
 
-	  regs[5] = __set_protection (mode);
-	  if ((err = __os_file (OSFILE_WRITECATINFO_ATTR, file, regs)) != NULL)
+	  if ((err = SWI_OS_File_WriteCatInfoAttr (ro_filename, attr)) != NULL)
 	    goto os_err;
 
-	  if ((err = __os_fopen (openmode, file, &fd)) != NULL)
+	  if ((err = __os_fopen (openmode, ro_filename, &fd)) != NULL)
 	    goto os_err;
 	}
     }
 
-  regs[0] = 254;
-  regs[1] = (int) fd;
-  __os_swi (OS_Args, regs);
   /* Check the 'stream is unallocated' bit.  Probably caused
      by us trying to open a file that is already open.  */
-  if (regs[0] & (1 << 11))
-    /* Trying again *might* fix the problem.  */
-    return (void *) __set_errno (EAGAIN);
+  int status;
+  if ((err = SWI_OS_Args_GetFileHandleStatus (fd, &status)) != NULL
+      || (status & (1 << 11)) != 0)
+    {
+      __os_fclose (fd);
+      /* Trying again *might* fix the problem.  */
+      return (void *) __set_errno (EAGAIN);
+    }
 
   return (void *) fd;
 
@@ -382,7 +385,7 @@ __fsclose (struct __unixlib_fd *file_desc)
   err = __os_fclose (fhandle);
   if (!err && buffer)
     {
-      err = __os_file (OSFILE_DELETENAMEDOBJECT, buffer, NULL);
+      err = SWI_OS_File_DeleteObject (buffer);
       /* Delete the suffix swap dir if it is now empty */
       __unlinksuffix (buffer);	/* buffer is corrupted by this call */
     }
@@ -482,16 +485,13 @@ __fslseek (struct __unixlib_fd * file_desc, __off_t lpos, int whence)
 int
 __fsstat (const char *ux_filename, struct stat *buf)
 {
-  char filename[_POSIX_PATH_MAX];
-  int objtype, load, exec, length, attr;
-  int riscosify_control, rtrn_get_attrs, dir_suffix_check;
-
   if (buf == NULL)
     return __set_errno (EINVAL);
 
   /* When we have suffix swapping defined, the directory names are not
      suffix swapped so check first without suffix swapping if we can't
      find a directory.  */
+  int riscosify_control, dir_suffix_check;
   if (((riscosify_control = __get_riscosify_control ())
        & __RISCOSIFY_NO_SUFFIX) == 0)
     {
@@ -502,9 +502,11 @@ __fsstat (const char *ux_filename, struct stat *buf)
   else
     dir_suffix_check = 0;
 
-  rtrn_get_attrs =
-    __object_get_attrs (ux_filename, filename, sizeof (filename), &objtype,
-			NULL, &load, &exec, &length, &attr);
+  char filename[_POSIX_PATH_MAX];
+  int objtype, load, exec, length, attr;
+  int rtrn_get_attrs = __object_get_attrs (ux_filename, filename,
+					   sizeof (filename), &objtype,
+					   NULL, &load, &exec, &length, &attr);
 
   if (dir_suffix_check)
     {
@@ -523,15 +525,13 @@ __fsstat (const char *ux_filename, struct stat *buf)
 
   buf->st_ino = __get_file_ino (NULL, filename);
 
-  __stat (objtype, load, exec, length, attr, buf);
-
-  return 0;
+  return __stat (objtype, load, exec, length, attr, buf);
 }
 
 int
 __fsfstat (int fd, struct stat *buf)
 {
-  struct __unixlib_fd *file_desc = getfd (fd);
+  const struct __unixlib_fd *file_desc = getfd (fd);
 
   char *buffer;
   if (file_desc->dflag & FILE_ISDIR)
@@ -542,10 +542,11 @@ __fsfstat (int fd, struct stat *buf)
   if (buffer == NULL)
     return __set_errno (EBADF);
 
-  /* Get vital file statistics and use File$Path.  */
-  int regs[10];
-  const _kernel_oserror *err = __os_file (OSFILE_READCATINFO, buffer, regs);
-  if (err)
+  /* Get vital file statistics.  */
+  const _kernel_oserror *err;
+  unsigned objtype, loadaddr, execaddr, objlen, attr;
+  if ((err = SWI_OS_File_ReadCatInfo (buffer, &objtype, &loadaddr,
+				      &execaddr, &objlen, &attr)) != NULL)
     {
       free (buffer);
       return __ul_seterr (err, EIO);
@@ -555,33 +556,26 @@ __fsfstat (int fd, struct stat *buf)
 
   if (!(file_desc->dflag & FILE_ISDIR))
     {
-      /* __os_file returns the allocated size of the file,
+      /* OS_File ReadCatInfo returns the allocated size of the file,
          but we want the current extent of the file */
-      int extent;
       if ((err = SWI_OS_Args_GetExtent ((int) file_desc->devicehandle->handle,
-					&extent)) != NULL)
+					&objlen)) != NULL)
 	return __ul_seterr (err, EIO);
-      regs[4] = extent;
     }
 
-  __stat (regs[0], regs[2], regs[3], regs[4], regs[5], buf);
-
-  return 0;
+  return __stat (objtype, loadaddr, execaddr, objlen, attr, buf);
 }
 
 int
 __fslstat (const char *ux_filename, struct stat *buf)
 {
-  char filename[_POSIX_PATH_MAX];
-  int objtype, load, exec, length, attr, ftype;
-  int riscosify_control, rtrn_get_attrs, dir_suffix_check;
-
   if (buf == NULL)
     return __set_errno (EINVAL);
 
   /* When we have suffix swapping defined, the directory names are not
      suffix swapped so check first without suffix swapping if we can't
      find a directory.  */
+  int riscosify_control, dir_suffix_check;
   if (((riscosify_control = __get_riscosify_control ())
        & __RISCOSIFY_NO_SUFFIX) == 0)
     {
@@ -592,9 +586,11 @@ __fslstat (const char *ux_filename, struct stat *buf)
   else
     dir_suffix_check = 0;
 
-  rtrn_get_attrs =
-    __object_get_lattrs (ux_filename, filename, sizeof (filename), &objtype,
-			 &ftype, &load, &exec, &length, &attr);
+  char filename[_POSIX_PATH_MAX];
+  int objtype, load, exec, length, attr, ftype;
+  int rtrn_get_attrs = __object_get_lattrs (ux_filename, filename,
+					    sizeof (filename), &objtype,
+					    &ftype, &load, &exec, &length, &attr);
 
   if (dir_suffix_check)
     {
@@ -619,7 +615,7 @@ __fslstat (const char *ux_filename, struct stat *buf)
   if (ftype == SYMLINK_FILETYPE)
     {
       buf->st_mode |= S_IFLNK;
-      buf->st_mode &= (~S_IFREG);
+      buf->st_mode &= ~S_IFREG;
     }
 #endif
 
@@ -788,18 +784,14 @@ __nullstat (const char *filename, struct stat *buf)
 int
 __nullfstat (int fd, struct stat *buf)
 {
-  struct __unixlib_fd *file_desc;
-  int fflag;
-  __mode_t mode = 0;
-
-  file_desc = getfd (fd);
-
   buf->st_ino = 0;
 
   __stat (0, 0, 0, 0, 0, buf);
 
-  fflag = file_desc->fflag;
+  const struct __unixlib_fd *file_desc = getfd (fd);
+  int fflag = file_desc->fflag;
 
+  __mode_t mode = 0;
   if (fflag & O_RDONLY)
     mode |= S_IRUSR;
   if (fflag & O_WRONLY)

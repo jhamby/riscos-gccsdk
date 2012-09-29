@@ -1,7 +1,7 @@
 /* Unix-style file-descriptor based I/O for the SCL
    Copyright (c) 1997 Peter Burwood
    Copyright (c) 1998-2005 Nick Burrett
-   Copyright (c) 2011 UnixLib Developers.  */
+   Copyright (c) 2011-2012 UnixLib Developers.  */
 
 #include <errno.h>
 #include <fcntl.h>
@@ -82,6 +82,15 @@ open (const char *file, int oflag, ...)
   FILE *fp = fopen (file, cmode);
   if (fp == NULL)
     return -1;
+
+  /* Make IO unbuffered.  */
+  if (setvbuf (fp, NULL, _IONBF, 0) < 0)
+    {
+      int save = errno;
+      fclose (fp);
+      return __set_errno (save);
+    }
+
   return fp - &__iob[0];
 }
 

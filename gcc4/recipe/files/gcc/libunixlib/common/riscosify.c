@@ -21,7 +21,9 @@
 #  define stricmp strcmp
 
 #  include <kernel.h>
-#  include <internal/os.h>
+#  ifndef __TARGET_SOLOADER__
+#    include <internal/os.h>
+#  endif
 
 #else
 

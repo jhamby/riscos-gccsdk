@@ -1,14 +1,18 @@
 /* Common stat operation.
-   Copyright (c) 2002-2010 UnixLib Developers.  */
+   Copyright (c) 2002-2012 UnixLib Developers.  */
 
 #include <time.h>
 #include <sys/stat.h>
 
 #include <unixlib/types.h>
 #include <internal/local.h>
-#include <internal/dev.h>
+#ifndef __TARGET_SCL__
+#  include <internal/dev.h>
+#endif
 
-void
+/* struct stat's st_dev is filled in at stat(), fstat() and lstat() time.
+   struct stat's st_ino is filled in by the __stat callers in dev.c.  */
+int
 __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct stat *buf)
 {
   /* Calculate the file mode.  */
@@ -59,6 +63,7 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
       case 3: /* Image directory (RISC OS 3 and above).  */
 	/* Get round a filing system bug (as above).  */
 	mode |= S_IRWXU;
+#ifndef __TARGET_SCL__
         if (__get_feature_imagefs_is_file ())
 	  {
 	    mode |= S_IFREG;
@@ -66,6 +71,7 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
 	    buf->st_nlink = 1;
 	  }
         else
+#endif
           {
 	    mode |= S_IFDIR;
 	    buf->st_nlink = 2;
@@ -76,6 +82,7 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
 	break;
     }
 
+#ifndef __TARGET_SCL__
   switch (buf->st_dev)
     {
       case DEV_TTY:
@@ -91,6 +98,7 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
 	mode |= S_IFSOCK;
 	break;
     }
+#endif
 
   buf->st_mode = mode;
 
@@ -121,4 +129,6 @@ __stat (int objtype, int loadaddr, int execaddr, int length, int attr, struct st
 
   /* Fractional parts of the file access times. Not supported on RISC OS.  */
   buf->st_atime_usec = buf->st_mtime_usec = buf->st_ctime_usec = 0;
+
+  return 0;
 }

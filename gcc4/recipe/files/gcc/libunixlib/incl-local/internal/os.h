@@ -48,6 +48,29 @@ extern int __os_423break (int) __THROW;
 extern _kernel_oserror *__os_swi (int swinum, int *regs /* 10 reg */ )
      __THROW __nonnull ((2));
 
+extern _kernel_oserror *__os_fopen (int, const char *, int * /* 1 reg */ )
+     __THROW __nonnull ((2, 3)) __wur;
+
+extern _kernel_oserror *__os_fclose (int) __THROW;
+
+extern _kernel_oserror *__os_fread (int, void *, int, int * /* 5 reg */ )
+     __THROW __nonnull ((2)) __wur;
+
+extern _kernel_oserror *__os_fwrite (int, const void *, int,
+                                     int * /* 5 reg */ )
+     __THROW __nonnull ((2)) __wur;
+
+extern _kernel_oserror *__os_word (int, void *)
+     __THROW __nonnull ((2)) __wur;
+
+extern _kernel_oserror *__os_prhex (int); 	/* %8x format hex output */
+extern _kernel_oserror *__os_prdec (int);
+
+extern _kernel_oserror *__os_print (const char *) __nonnull ((1));
+extern _kernel_oserror *__os_write (const char *, int) __nonnull ((1));
+
+extern _kernel_oserror *__os_nl (void);		/* newline */
+
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_OS_Byte (int __a, int __xin, int __yin, int *__xoutp, int *__youtp)
 {
@@ -70,17 +93,6 @@ SWI_OS_Byte (int __a, int __xin, int __yin, int *__xoutp, int *__youtp)
   return err;
 }
 
-extern _kernel_oserror *__os_word (int, void *)
-     __THROW __nonnull ((2)) __wur;
-
-extern _kernel_oserror *__os_prhex (int); 	/* %8x format hex output */
-extern _kernel_oserror *__os_prdec (int);
-
-extern _kernel_oserror *__os_print (const char *) __nonnull ((1));
-extern _kernel_oserror *__os_write (const char *, int) __nonnull ((1));
-
-extern _kernel_oserror *__os_nl (void);		/* newline */
-
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_OS_CLI (const char *__cmd)
 {
@@ -95,8 +107,111 @@ SWI_OS_CLI (const char *__cmd)
   return err;
 }
 
-extern _kernel_oserror *__os_file (int, const char *, int * /* 6 reg */ )
-     __THROW __nonnull ((2)) __wur;
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_File_SaveBlockLoadExec (const char *__filename, unsigned __loadaddr,
+			       unsigned __execaddr, unsigned __start,
+			       unsigned __end)
+{
+  register const char *filename __asm ("r1") = __filename;
+  register unsigned loadaddr __asm ("r2") = __loadaddr;
+  register unsigned execaddr __asm ("r3") = __execaddr;
+  register unsigned start __asm ("r4") = __start;
+  register unsigned end __asm ("r5") = __end;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #0\n\t"
+		    "SWI\t%[SWI_XOS_File]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (filename), "r" (loadaddr), "r" (execaddr),
+		      "r" (start), "r" (end), [SWI_XOS_File] "i" (OS_File | (1<<17))
+		    : "r14", "cc");
+
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_File_WriteCatLoadExecAttr (const char *__filename, unsigned __loadaddr,
+				  unsigned __execaddr, unsigned __attr)
+{
+  register const char *filename __asm ("r1") = __filename;
+  register unsigned loadaddr __asm ("r2") = __loadaddr;
+  register unsigned execaddr __asm ("r3") = __execaddr;
+  register unsigned attr __asm ("r5") = __attr;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #1\n\t"
+		    "SWI\t%[SWI_XOS_File]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (filename), "r" (loadaddr), "r" (execaddr),
+		      "r" (attr), [SWI_XOS_File] "i" (OS_File | (1<<17))
+		    : "r14", "cc");
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_File_WriteCatInfoAttr (const char *__filename, unsigned __attr)
+{
+  register const char *filename __asm ("r1") = __filename;
+  register unsigned attr __asm ("r5") = __attr;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #4\n\t"
+		    "SWI\t%[SWI_XOS_File]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (filename), "r" (attr),
+		      [SWI_XOS_File] "i" (OS_File | (1<<17))
+		    : "r14", "cc");
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_File_DeleteObject (const char *__objectname)
+{
+  register const char *objectname __asm ("r1") = __objectname;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #6\n\t"
+		    "SWI\t%[SWI_XOS_File]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (objectname), [SWI_XOS_File] "i" (OS_File | (1<<17))
+		    : "r2", "r3", "r4", "r5", "r14", "cc");
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_File_CreateDirectory (const char *__dirname)
+{
+  register const char *dirname __asm ("r1") = __dirname;
+  register unsigned numentries __asm ("r4") = 0;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #8\n\t"
+		    "SWI\t%[SWI_XOS_File]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (dirname), "r" (numentries),
+		      [SWI_XOS_File] "i" (OS_File | (1<<17))
+		    : "r14", "cc");
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_File_CreateFileWithFileType (const char *__filename,
+				    unsigned __filetype, unsigned __length)
+{
+  register const char *filename __asm ("r1") = __filename;
+  register unsigned filetype __asm ("r2") = __filetype;
+  register unsigned start __asm ("r4") = 0;
+  register unsigned end __asm ("r5") = __length;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #11\n\t"
+		    "SWI\t%[SWI_XOS_File]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (filename), "r" (filetype), "r" (start), "r" (end),
+		      [SWI_XOS_File] "i" (OS_File | (1<<17))
+		    : "r14", "cc");
+  return err;
+}
 
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_OS_File_ReadCatInfo (const char *__filename, unsigned *__objtype,
@@ -135,42 +250,20 @@ SWI_OS_File_ReadCatInfo (const char *__filename, unsigned *__objtype,
 }
 
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
-SWI_OS_File_WriteCatLoadExecAttr (const char *__filename, unsigned __loadaddr,
-				  unsigned __execaddr, unsigned __attr)
+SWI_OS_File_WriteCatInfoFileType (const char *__filename, unsigned __filetype)
 {
   register const char *filename __asm ("r1") = __filename;
-  register const _kernel_oserror *err;
-  register unsigned loadaddr __asm ("r2") = __loadaddr;
-  register unsigned execaddr __asm ("r3") = __execaddr;
-  register unsigned attr __asm ("r5") = __attr;
-  __asm__ volatile ("MOV\tr0, #1\n\t"
+  register unsigned filetype __asm ("r2") = __filetype;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #18\n\t"
 		    "SWI\t%[SWI_XOS_File]\n\t"
-		    "MOVVS\t%[err], r0\n\t"
-		    "MOVVC\t%[err], #0\n\t"
-		    : [err] "=r" (err)
-		    : "r" (filename), "r" (loadaddr), "r" (execaddr),
-		      "r" (attr), [SWI_XOS_File] "i" (OS_File | (1<<17))
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (filename), "r" (filetype),
+		      [SWI_XOS_File] "i" (OS_File | (1<<17))
 		    : "r14", "cc");
   return err;
 }
-
-extern _kernel_oserror *__os_fopen (int, const char *, int * /* 1 reg */ )
-     __THROW __nonnull ((2, 3)) __wur;
-
-extern _kernel_oserror *__os_fclose (int) __THROW;
-
-extern _kernel_oserror *__os_fread (int, void *, int, int * /* 5 reg */ )
-     __THROW __nonnull ((2)) __wur;
-
-extern _kernel_oserror *__os_fwrite (int, const void *, int,
-                                     int * /* 5 reg */ )
-     __THROW __nonnull ((2)) __wur;
-
-extern _kernel_oserror *__os_fsctrl (int, const char *, int, int)
-     __THROW __nonnull ((2)) __wur;
-
-extern _kernel_oserror *__os_setfiletype (const char *fname, int filetype)
-     __THROW __nonnull ((1)) __wur;
 
 static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
 SWI_OS_ChangeRedirection (int __fh_in, int __fh_out,
@@ -280,6 +373,21 @@ SWI_DDEUtils_ReadPrefix (int __ao, const char **__prefix)
 		    : "r14", "cc");
   if (__prefix && !err)
     *__prefix = prefix;
+  return err;
+}
+
+static __inline__ const _kernel_oserror * __attribute__ ((always_inline))
+SWI_OS_FSControl_SetCurDir (const char *__dirname)
+{
+  register const char *dirname __asm ("r1") = __dirname;
+  register const _kernel_oserror *err __asm ("r0");
+  __asm__ volatile ("MOV\tr0, #0\n\t"
+		    "SWI\t%[SWI_XOS_FSControl]\n\t"
+		    "MOVVC\tr0, #0\n\t"
+		    : "=r" (err)
+		    : "r" (dirname),
+		      [SWI_XOS_FSControl] "i" (OS_FSControl | (1<<17))
+		    : "r14", "cc");
   return err;
 }
 

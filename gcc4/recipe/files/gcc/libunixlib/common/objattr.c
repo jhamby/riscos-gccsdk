@@ -153,12 +153,10 @@ int
 __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
 		    int ftype, int attr)
 {
-  _kernel_oserror *err;
-  int regs[10], sftype;
-
   if (ux_file == NULL)
     return __set_errno (EINVAL);
 
+  int sftype;
   if (!__riscosify_std (ux_file, 0, buffer, buf_len, &sftype))
     return __set_errno (ENAMETOOLONG);
 
@@ -179,9 +177,8 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
   /* Set catalogue information.  */
   if (ftype != __ATTR_NOTSPECIFIED)
     {
-      regs[2] = ftype;
-      err = __os_file (OSFILE_WRITECATINFO_FILETYPE, buffer, regs);
-      if (err)
+      const _kernel_oserror *err;
+      if ((err = SWI_OS_File_WriteCatInfoFileType (buffer, ftype)) != NULL)
 	{
 #if __UNIXLIB_SYMLINKS
 	  free (target);
@@ -192,9 +189,8 @@ __object_set_attrs (const char *ux_file, char *buffer, size_t buf_len,
 
   if (attr != __ATTR_NOTSPECIFIED)
     {
-      regs[5] = attr;
-      err = __os_file (OSFILE_WRITECATINFO_ATTR, buffer, regs);
-      if (err)
+      const _kernel_oserror *err;
+      if ((err = SWI_OS_File_WriteCatInfoAttr (buffer, attr)) != NULL)
 	{
 #if __UNIXLIB_SYMLINKS
 	  free (target);
