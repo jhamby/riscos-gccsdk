@@ -567,9 +567,9 @@ print_area (FILE * ifp, const struct areahdr *areahdr, Word offset, Word reloff)
 			     subject_field = subject_field + (relocation_value -
 					 		      base_of_area_containing(subject_field))
 
-			   As a special case, if <A> is 0, and the relocation 								 value is specified as the 
-			   base of the area containing the subject field, then
-			   it is not added and:
+			   As a special case, if <A> is 0, and the relocation
+			   value is specified as the base of the area
+			   containing the subject field, then it is not added and:
 
 			     subject_field = subject_field - base_of_area_containing(subject_field)
 
