@@ -199,14 +199,14 @@ namespace riscos
 			/*! \brief Get the ID of the underlying Window object.  */
 			public uint WindowID
 			{
-				get { return CallMethod_GetR0 (Method.GetWindowID); }
+				get { return MiscOp_GetR0 (0, Method.GetWindowID); }
 			}
 
 			/*! \brief Gets or sets the text which is to be used in the title bar
 			 * of this %SaveAs dialogue.  */
 			public string Title
 			{
-				set { SetText (Method.SetTitle, value); }
+				set { SetText (0, Method.SetTitle, value); }
 				get { return GetText (Method.GetTitle); }
 			}
 
@@ -214,7 +214,7 @@ namespace riscos
 			 * field of the %SaveAs dialogue.  */
 			public string FileName
 			{
-				set { SetText (Method.SetFileName, value); }
+				set { SetText (0, Method.SetFileName, value); }
 				get { return GetText (Method.GetFileName); }
 			}
 
@@ -222,41 +222,41 @@ namespace riscos
 			 * the sprite which will be displayed.  */
 			public int FileType
 			{
-				set { CallMethod_SetR3 (Method.SetFileType, (uint)value); }
-				get { return (int)CallMethod_GetR0 (Method.GetFileType); }
+				set { MiscOp_SetR3 (0, Method.SetFileType, (uint)value); }
+				get { return (int)MiscOp_GetR0 (0, Method.GetFileType); }
 			}
 
 			/*! \brief Gets or sets the estimated file size in bytes for this %SaveAs dialogue.  */
 			public int FileSize
 			{
-				set { CallMethod_SetR3 (Method.SetFileSize, (uint)value); }
-				get { return (int)CallMethod_GetR0 (Method.GetFileSize); }
+				set { MiscOp_SetR3 (0, Method.SetFileSize, (uint)value); }
+				get { return (int)MiscOp_GetR0 (0, Method.GetFileSize); }
 			}
 
 			/*! \brief Indicate whether there is a current selection in existence.  */
 			public bool SelectionAvailable
 			{
-				set { CallMethod_SetR3 (Method.SelectionAvailable, value ? 1U : 0); }
+				set { MiscOp_SetR3 (0, Method.SelectionAvailable, value ? 1U : 0); }
 			}
 
 			public void SetDataAddress (IntPtr data, int dataSize,
-							   IntPtr selection, int selectionSize)
+						    IntPtr selection, int selectionSize)
 			{
-				CallMethod_SetR3R4R5R6 (Method.SetDataAddress,
-							data.ToInt32 (),
-							dataSize,
-							selection.ToInt32 (),
-							selectionSize);
+				MiscOp_SetR3R4R5R6 (0, Method.SetDataAddress,
+						    (uint)data.ToInt32 (),
+						    dataSize,
+						    selection.ToInt32 (),
+						    selectionSize);
 			}
 
 			public void BufferFilled (IntPtr buffer, int bytesWritten)
 			{
-				CallMethod_SetR3R4 (Method.BufferFilled, (uint)buffer.ToInt32(), (uint)bytesWritten);
+				MiscOp_SetR3R4 (0, Method.BufferFilled, (uint)buffer.ToInt32(), (uint)bytesWritten);
 			}
 
 			public void FileSaveCompleted (string filename, bool wasSuccessful)
 			{
-				SetText (wasSuccessful ? 1U : 0, Method.FileSaveCompleted, filename);
+				MiscOp_SetR3 (wasSuccessful ? 1U : 0, Method.FileSaveCompleted, filename);
 			}
 
 			/*! \brief Check if the given event is relevant to the %SaveAs dialogue and call the

@@ -443,50 +443,58 @@ namespace riscos
 			}
 
 			//
-			// Generic protected methods that can be tailored to a derived Toolbox object
-			// by passing a Toolbox method number.
-			// 
+			// SWI Toolbox_ObjectMiscOp methods with various register input/output
+			// and type combinations.
+			//
 
-			protected void SetText (int method, string text)
+			public void SetText (uint flags, int method, string text)
 			{
-				SetText (0, method, text);
+				MiscOp_SetR3 (flags, method, text);
 			}
 
-			protected void SetText (uint flags, int method, string text)
+			public int GetBuffer (uint flags, int method, IntPtr buffer, int buffer_size, out int r0_out)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetText (flags,
-									       ID,
-									       method,
-									       text));
+				int used_out;
+
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3R4GetR0R4 (flags,
+												    ID,
+												    method,
+												    buffer,
+												    buffer_size,
+												    out r0_out,
+												    out used_out));
+				return used_out;
 			}
 
-			protected string GetText (int method)
+			public int GetBuffer (uint flags, int method, StringBuilder buffer, int buffer_size)
 			{
-				int buffer_size;
-				OS.ThrowOnError (NativeMethods.Object_GetText (0,
-									       ID,
-									       method,
-									       null,
-									       0,
-									       out buffer_size));
+				int used_out;
+
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3R4GetR4 (flags,
+												  ID,
+												  method,
+												  buffer,
+												  buffer_size,
+												  out used_out));
+				return used_out;
+			}
+
+			public string GetText (int method)
+			{
+				int buffer_size = GetBuffer (0, method, null, 0);
 				StringBuilder buffer = new StringBuilder (buffer_size);
-				OS.ThrowOnError (NativeMethods.Object_GetText (0,
-									       ID,
-									       method,
-									       buffer,
-									       buffer_size,
-									       out buffer_size));
+				GetBuffer (0, method, buffer, buffer_size);
 				return buffer.ToString ();
 			}
 
 			protected void SetMenu (int method, Menu menu)
 			{
-				CallMethod_SetR3 (method, (menu == null) ? 0 : menu.ID);
+				MiscOp_SetR3 (0, method, (menu == null) ? 0 : menu.ID);
 			}
 
 			protected Menu GetMenu (int method)
 			{
-				uint menu_id = CallMethod_GetR0 (method);
+				uint menu_id = MiscOp_GetR0 (0, method);
 
 				Toolbox.Object tb_obj;
 				if (!ToolboxTask.AllObjects.TryGetValue (menu_id, out tb_obj))
@@ -495,54 +503,121 @@ namespace riscos
 				return (Menu)tb_obj;
 			}
 
-			protected void CallMethod_SetR3 (int method, uint r3)
+			public void MiscOp_SetR3 (uint flags, int method, uint r3)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetR3 (0,
-									     ID,
-									     method,
-									     r3));
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3 (flags,
+											   ID,
+											   method,
+											   r3));
 			}
 
-			protected void CallMethod_SetR3 (uint flags, int method, IntPtr r3)
+			public void MiscOp_SetR3 (uint flags, int method, IntPtr r3)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetR3 (flags,
-									     ID,
-									     method,
-									     r3));
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3 (flags,
+											   ID,
+											   method,
+											   r3));
 			}
 
-			protected void CallMethod_SetR3 (int method, IntPtr r3)
+			public void MiscOp_SetR3 (uint flags, int method, string r3)
 			{
-				CallMethod_SetR3 (0, method, r3);
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3 (flags,
+											   ID,
+											   method,
+											   r3));
 			}
 
-			protected void CallMethod_SetR3R4 (int method, uint r3, uint r4)
+			public void MiscOp_SetR3R4 (uint flags, int method, uint r3, uint r4)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetR3R4 (0,
-									       ID,
-									       method,
-									       r3,
-									       r4));
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3R4 (flags,
+											     ID,
+											     method,
+											     r3,
+											     r4));
 			}
 
-			protected void CallMethod_SetR3R4R5R6 (int method, int r3, int r4, int r5, int r6)
+			public void MiscOp_SetR3R4 (uint flags, int method, uint r3, string r4)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetR3R4R5R6 (0,
-										   ID,
-										   method,
-										   r3,
-										   r4,
-										   r5,
-										   r6));
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3R4 (flags,
+											     ID,
+											     method,
+											     r3,
+											     r4));
 			}
 
-			protected uint CallMethod_GetR0 (int method)
+			public void MiscOp_SetR3R4R5 (uint flags, int method, uint r3, uint r4, uint r5)
 			{
-				uint handle;
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3R4R5 (flags,
+											       ID,
+											       method,
+											       r3,
+											       r4,
+											       r5));
+			}
 
-				OS.ThrowOnError (NativeMethods.Object_GetR0 (0, ID, method, out handle));
+			public void MiscOp_SetR3R4R5R6 (uint flags, int method, uint r3, int r4, int r5, int r6)
+			{
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3R4R5R6 (flags,
+												 ID,
+												 method,
+												 r3,
+												 r4,
+												 r5,
+												 r6));
+			}
 
-				return handle;
+			public uint MiscOp_GetR0 (uint flags, int method)
+			{
+				uint r0;
+
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_GetR0 (flags,
+											   ID,
+											   method,
+											   out r0));
+				return r0;
+			}
+
+			public void MiscOp_GetR0R1 (uint flags, int method, out uint r0, out uint r1)
+			{
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_GetR0R1 (flags,
+											     ID,
+											     method,
+											     out r0,
+											     out r1));
+			}
+
+			public uint MiscOp_SetR3GetR0 (uint flags, int method, uint r3)
+			{
+				uint r0;
+
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3GetR0 (flags,
+												ID,
+												method,
+												r3,
+												out r0));
+				return r0;
+			}
+
+			public void MiscOp_SetR3GetR0R1 (uint flags, int method, uint r3, out uint r0, out uint r1)
+			{
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3GetR0R1 (flags,
+												  ID,
+												  method,
+												  r3,
+												  out r0,
+												  out r1));
+			}
+
+			public void MiscOp_SetR3GetR0R1R2 (uint flags, int method, uint r3,
+							   out int r0, out int r1, out int r2)
+			{
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3GetR0R1R2 (flags,
+												    ID,
+												    method,
+												    r3,
+												    out r0,
+												    out r1,
+												    out r2));
 			}
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised

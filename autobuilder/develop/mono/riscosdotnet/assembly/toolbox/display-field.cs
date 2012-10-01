@@ -38,13 +38,13 @@ namespace riscos
 			 * is null, then the system font is used.  */
 			public void SetFont (string fontID, int width, int height)
 			{
-				OS.ThrowOnError (NativeMethods.Component_SetFont (0,
-										  Object.ID,
-										  Method.SetFont,
-										  ComponentID,
-										  fontID,
-										  width,
-										  height));
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetFont (0,
+											     Object.ID,
+											     Method.SetFont,
+											     ComponentID,
+											     fontID,
+											     width,
+											     height));
 			}
 		}
 	}

@@ -105,8 +105,8 @@ namespace riscos
 			/*! \brief The event which will be raised when the action button is clicked.  */
 			public uint Event
 			{
-				set { CallMethod_SetR4 (Method.SetEvent, value); }
-				get { return CallMethod_GetR0 (Method.GetEvent); }
+				set { Object.MiscOp_SetR3R4 (0, Method.SetEvent, ComponentID, value); }
+				get { return Object.MiscOp_SetR3GetR0 (0, Method.GetEvent, ComponentID); }
 			}
 
 			/*! \brief The Toolbox object to show and flags to use when the action

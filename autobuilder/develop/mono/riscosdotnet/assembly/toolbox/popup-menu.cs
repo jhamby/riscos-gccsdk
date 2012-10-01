@@ -77,15 +77,13 @@ namespace riscos
 			/*! \brief The Toolbox Menu to show when the button is clicked.  */
 			public Toolbox.Menu Menu
 			{
-				set
-				{
+				set {
 					if (value == null)
 						throw new ArgumentNullException ("value", "Attempt to set Popup Menu to null value");
-					CallMethod_SetR4 (Method.SetMenu, value.ID);
+					Object.MiscOp_SetR3R4 (0, Method.SetMenu, ComponentID, value.ID);
 				}
-				get
-				{
-					uint menu_id = CallMethod_GetR0 (Method.GetMenu);
+				get {
+					uint menu_id = Object.MiscOp_SetR3GetR0 (0, Method.GetMenu, ComponentID);
 
 					Toolbox.Object tb_obj;
 					if (!ToolboxTask.AllObjects.TryGetValue (menu_id, out tb_obj))

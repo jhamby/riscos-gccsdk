@@ -75,8 +75,8 @@ namespace riscos
 			/*! \brief The value of the number range as an integer.  */
 			public int Value
 			{
-				set { CallMethod_SetR4 (Method.SetValue, (uint)value); }
-				get { return (int)CallMethod_GetR0 (Method.GetValue); }
+				set { Object.MiscOp_SetR3R4 (0, Method.SetValue, ComponentID, (uint)value); }
+				get { return (int)Object.MiscOp_SetR3GetR0 (0, Method.GetValue, ComponentID); }
 			}
 
 /* TODO:

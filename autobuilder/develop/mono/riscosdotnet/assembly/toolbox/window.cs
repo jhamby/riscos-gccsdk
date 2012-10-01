@@ -331,14 +331,14 @@ namespace riscos
 				{
 					if (value == null)
 						throw new ArgumentNullException ("value", "Attempted to set Window title to null");
-					SetText (Method.SetTitle, value);
+					SetText (0, Method.SetTitle, value);
 				}
 			}
 
 			/*! \brief The WIMP handle of the Toolbox window.  */
 			public uint WimpHandle
 			{
-				get { return CallMethod_GetR0 (Method.GetWimpHandle); }
+				get { return MiscOp_GetR0 (0, Method.GetWimpHandle); }
 			}
 
 			/*! \brief The Menu which will be displayed when the Menu button is pressed over
@@ -392,7 +392,7 @@ namespace riscos
 			 * \note Set to null to remove the Help Message from this Window.  */
 			public string HelpMessage
 			{
-				set { SetText (Method.SetHelpMessage, value); }
+				set { SetText (0, Method.SetHelpMessage, value); }
 				get { return GetText (Method.GetHelpMessage); }
 			}
 
@@ -402,23 +402,8 @@ namespace riscos
 			 * Setting takes effect when next shown.  */
 			public uint DefaultFocus
 			{
-				set
-				{
-					OS.ThrowOnError (NativeMethods.Object_SetR3 (0,
-										    ID,
-										    Method.SetDefaultFocus,
-										    value));
-				}
-				get
-				{
-					uint cmp;
-
-					OS.ThrowOnError (NativeMethods.Object_GetR0 (0,
-										     ID,
-										     Method.GetDefaultFocus,
-										     out cmp));
-					return cmp;
-				}
+				set { MiscOp_SetR3 (0, Method.SetDefaultFocus, value); }
+				get { return MiscOp_GetR0 (0, Method.GetDefaultFocus); }
 			}
 
 			/*! \brief The extent of the underlying WIMP Window.  */

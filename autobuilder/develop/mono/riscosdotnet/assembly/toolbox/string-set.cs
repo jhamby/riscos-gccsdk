@@ -131,15 +131,16 @@ namespace riscos
 			/*! \brief The selected string as an index into the available strings.  */
 			public int SelectedIndex
 			{
-				set
-				{
-					CallMethod_SetR4 ((uint)SelectedFlag.SelectedIsIndex,
-							  Method.SetSelected, (uint)value);
+				set {
+					Object.MiscOp_SetR3R4 ((uint)SelectedFlag.SelectedIsIndex,
+							       Method.SetSelected,
+							       ComponentID,
+							       (uint)value);
 				}
-				get
-				{
-					return (int)CallMethod_GetR0 ((uint)SelectedFlag.SelectedIsIndex,
-								      Method.GetSelected);
+				get {
+					return (int)Object.MiscOp_SetR3GetR0 ((uint)SelectedFlag.SelectedIsIndex,
+									      Method.GetSelected,
+									      ComponentID);
 				}
 			}
 
@@ -166,10 +167,11 @@ namespace riscos
 				uint alphaNumericID;
 				uint popupMenuID;
 
-				CallMethod_GetR0R1 (3, // Return both component IDs
-						    Method.GetComponents,
-						    out alphaNumericID,
-						    out popupMenuID);
+				Object.MiscOp_SetR3GetR0R1 (3, // Return both component IDs
+							    Method.GetComponents,
+							    ComponentID,
+							    out alphaNumericID,
+							    out popupMenuID);
 
 				if (GetType (Object.ID, alphaNumericID) != ComponentType.DisplayField)
 					throw new ArgumentException ("alphaNumeric", "Component is not a DisplayField");
@@ -191,10 +193,11 @@ namespace riscos
 				uint alphaNumericID;
 				uint popupMenuID;
 
-				CallMethod_GetR0R1 (3, // Return both component IDs
-						    Method.GetComponents,
-						    out alphaNumericID,
-						    out popupMenuID);
+				Object.MiscOp_SetR3GetR0R1 (3, // Return both component IDs
+							    Method.GetComponents,
+							    ComponentID,
+							    out alphaNumericID,
+							    out popupMenuID);
 
 				if (GetType (Object.ID, alphaNumericID) != ComponentType.WritableField)
 					throw new ArgumentException ("alphaNumeric", "Component is not a WritableField");

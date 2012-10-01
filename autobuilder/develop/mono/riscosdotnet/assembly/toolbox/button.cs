@@ -49,27 +49,20 @@ namespace riscos
 			 * is null, then the system font is used.  */
 			public void SetFont (string fontID, int width, int height)
 			{
-				OS.ThrowOnError (NativeMethods.Component_SetFont (0,
-										  Object.ID,
-										  Method.SetFont,
-										  ComponentID,
-										  fontID,
-										  width,
-										  height));
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetFont (0,
+											     Object.ID,
+											     Method.SetFont,
+											     ComponentID,
+											     fontID,
+											     width,
+											     height));
 			}
 
 			/*! \brief Return the WIMP icon flags of this Button.
 			 * \return The icon flags.  */
 			public uint GetFlags ()
 			{
-				uint flags;
-
-				OS.ThrowOnError (NativeMethods.Component_GetR0 (0,
-										Object.ID,
-										Method.GetFlags,
-										ComponentID,
-										out flags));
-				return flags;
+				return Object.MiscOp_SetR3GetR0 (0, Method.GetFlags, ComponentID);
 			}
 
 			/*! \brief Sets the WIMP icon flags of the Button.
@@ -78,12 +71,11 @@ namespace riscos
 			 * of \e Wimp.Icon.SetIconState, except not all combinations are settable.  */
 			public void SetFlags (uint clearWord, uint eorWord)
 			{
-				OS.ThrowOnError (NativeMethods.Component_SetR4R5 (0,
-										  Object.ID,
-										  Method.SetFlags,
-										  ComponentID,
-										  clearWord,
-										  eorWord));
+				Object.MiscOp_SetR3R4R5 (0,
+							 Method.SetFlags,
+							 ComponentID,
+							 clearWord,
+							 eorWord);
 			}
 		}
 	}

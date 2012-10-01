@@ -184,8 +184,16 @@ namespace riscos
 			 * deselected.  */
 			public bool Selected
 			{
-				set { CallMethod_SetR4 (Method.SetState, (uint)(value ? 1 : 0)); }
-				get { return (CallMethod_GetR0 (Method.GetState) & 1) != 0; }
+				set {
+					Object.MiscOp_SetR3R4 (0,
+							       Method.SetState,
+							       ComponentID, (uint)(value ? 1 : 0));
+				}
+				get {
+					return (Object.MiscOp_SetR3GetR0 (0,
+									  Method.GetState,
+									  ComponentID) & 1) != 0;
+				}
 			}
 
 			/*! \brief Check if the given event is relevant to the %Draggable gadget and call the

@@ -115,15 +115,33 @@ namespace riscos
 			/*! \brief Gets or sets the tick state of this MenuEntry.  */
 			public bool Ticked
 			{
-				get { return CallMethod_GetR0 (Method.GetTick) != 0; }
-				set { CallMethod_SetR4 (Method.SetTick, value ? 1U : 0U); }
+				get {
+					return Object.MiscOp_SetR3GetR0 (0,
+									 Method.GetTick,
+									 ComponentID) != 0;
+				}
+				set {
+					Object.MiscOp_SetR3R4 (0,
+							       Method.SetTick,
+							       ComponentID,
+							       value ? 1U : 0U);
+				}
 			}
 
 			/*! \brief Gets or sets the fade state of this MenuEntry.  */
 			public override bool Faded
 			{
-				get { return CallMethod_GetR0 (Method.GetFade) != 0; }
-				set { CallMethod_SetR4 (Method.SetFade, value ? 1U : 0U); }
+				get {
+					return Object.MiscOp_SetR3GetR0 (0,
+									 Method.GetFade,
+									 ComponentID) != 0;
+				}
+				set {
+					Object.MiscOp_SetR3R4 (0,
+							       Method.SetFade,
+							       ComponentID,
+							       value ? 1U : 0U);
+				}
 			}
 
 			/*! \brief Gets or sets the text used in this MenuEntry.
@@ -164,18 +182,20 @@ namespace riscos
 			 * If set to null, then no object will be shown.  */
 			public Object SubMenuShow
 			{
-				get
-				{
-					uint show_id = CallMethod_GetR0 (Method.GetSubMenuShow);
-
+				get {
+					uint show_id = Object.MiscOp_SetR3GetR0 (0,
+										 Method.GetSubMenuShow,
+										 ComponentID);
 					if (show_id == 0)
 						return null;
 
 					return Object.LookupOrWrap (show_id);
 				}
-				set
-				{
-					CallMethod_SetR4 (Method.SetSubMenuShow, (value == null) ? 0 : value.ID);
+				set {
+					Object.MiscOp_SetR3R4 (0,
+							       Method.SetSubMenuShow,
+							       ComponentID,
+							       (value == null) ? 0 : value.ID);
 				}
 			}
 
@@ -185,8 +205,17 @@ namespace riscos
 			 * If set to null, then default Toolbox event, Menu_SubMenu will be raised.  */
 			public uint SubMenuEvent
 			{
-				get { return CallMethod_GetR0 (Method.GetSubMenuEvent); }
-				set { CallMethod_SetR4 (Method.SetSubMenuEvent, value); }
+				get {
+					return Object.MiscOp_SetR3GetR0 (0,
+									 Method.GetSubMenuEvent,
+									 ComponentID);
+				}
+				set {
+					Object.MiscOp_SetR3R4 (0,
+							       Method.SetSubMenuEvent,
+							       ComponentID,
+							       value);
+				}
 			}
 
 			/*! \brief Gets or sets the Toolbox object that will be shown when the user
@@ -205,8 +234,17 @@ namespace riscos
 			 * If set to 0, then default Toolbox event Menu_Selection will be raised.  */
 			public uint ClickEvent
 			{
-				get { return CallMethod_GetR0 (Method.GetClickEvent); }
-				set { CallMethod_SetR4 (Method.SetClickEvent, value); }
+				get {
+					return Object.MiscOp_SetR3GetR0 (0,
+									 Method.GetClickEvent,
+									 ComponentID);
+				}
+				set {
+					Object.MiscOp_SetR3R4 (0,
+							       Method.SetClickEvent,
+							       ComponentID,
+							       value);
+				}
 			}
 
 			/*! \brief Gets or set the help message which will be returned when a Help
@@ -440,7 +478,7 @@ namespace riscos
 				{
 					if (value == null)
 						throw new ArgumentNullException ("value", "Attempt to set Menu Title property to null");
-					SetText (Method.SetTitle, value);
+					SetText (0, Method.SetTitle, value);
 				}
 				get { return GetText (Method.GetTitle); }
 			}
@@ -449,20 +487,20 @@ namespace riscos
 			 * received.  */
 			public string HelpMessage
 			{
-				set { SetText (Method.SetHelpMessage, value); }
+				set { SetText (0, Method.SetHelpMessage, value); }
 				get { return GetText (Method.GetHelpMessage); }
 			}
 
 			/*! \brief The height of the work area of the Menu in OS units.  */
 			public int Height
 			{
-				get { return (int)CallMethod_GetR0 (Method.GetHeight); }
+				get { return (int)MiscOp_GetR0 (0, Method.GetHeight); }
 			}
 
 			/*! \brief The width of the work area on the Menu in OS units.  */
 			public int Width
 			{
-				get { return (int)CallMethod_GetR0 (Method.GetWidth); }
+				get { return (int)MiscOp_GetR0 (0, Method.GetWidth); }
 			}
 
 			public override void Dispatch (ToolboxEvent ev)

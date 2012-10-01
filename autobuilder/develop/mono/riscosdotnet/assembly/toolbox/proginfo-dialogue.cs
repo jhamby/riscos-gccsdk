@@ -93,13 +93,13 @@ namespace riscos
 			/*! \brief Get the ID of the underlying Window object.  */
 			public uint WindowID
 			{
-				get { return CallMethod_GetR0 (Method.GetWindowID); }
+				get { return MiscOp_GetR0 (0, Method.GetWindowID); }
 			}
 
 			/*! \brief Gets or sets the version string used in the %ProgInfo Dialogue's Window.  */
 			public string Version
 			{
-				set { SetText (Method.SetVersion, value); }
+				set { SetText (0, Method.SetVersion, value); }
 				get { return GetText (Method.GetVersion); }
 			}
 
@@ -107,15 +107,15 @@ namespace riscos
 			 * of this %ProgInfo dialogue.  */
 			public string Title
 			{
-				set { SetText (Method.SetTitle, value); }
+				set { SetText (0, Method.SetTitle, value); }
 				get { return GetText (Method.GetTitle); }
 			}
 
 			/*! \brief Gets or sets the licence type used in this %ProgInfo Dialogue's Window.  */
 			public LicenceType Licence
 			{
-				set { CallMethod_SetR3 (Method.SetLicenceType, (uint)value); }
-				get { return (LicenceType)CallMethod_GetR0 (Method.GetLicenceType); }
+				set { MiscOp_SetR3 (0, Method.SetLicenceType, (uint)value); }
+				get { return (LicenceType)MiscOp_GetR0 (0, Method.GetLicenceType); }
 			}
 
 			/*! \brief Check if the given event is relevant to the %ProgInfo dialogue and call the

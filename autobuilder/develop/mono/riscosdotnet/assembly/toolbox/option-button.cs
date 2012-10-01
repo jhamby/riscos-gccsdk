@@ -107,20 +107,23 @@ namespace riscos
 			 * button changes.  */
 			public uint Event
 			{
-				set { CallMethod_SetR4 (Method.SetEvent, value); }
-				get { return CallMethod_GetR0 (Method.GetEvent); }
+				set { Object.MiscOp_SetR3R4 (0, Method.SetEvent, ComponentID, value); }
+				get { return Object.MiscOp_SetR3GetR0 (0, Method.GetEvent, ComponentID); }
 			}
 
 			/*! \brief Sets/reads the state of the option button, i.e., either on or off.  */
 			public State CurrentState
 			{
-				set
-				{
-					CallMethod_SetR4 (Method.SetState, (uint)((value == State.On) ? 1 : 0));
+				set {
+					Object.MiscOp_SetR3R4 (0,
+							       Method.SetState,
+							       ComponentID,
+							       (uint)((value == State.On) ? 1 : 0));
 				}
-				get
-				{
-					return (CallMethod_GetR0 (Method.GetState) == 0) ? State.Off : State.On;
+				get {
+					return (Object.MiscOp_SetR3GetR0 (0,
+									  Method.GetState,
+									  ComponentID) == 0) ? State.Off : State.On;
 				}
 			}
 

@@ -77,10 +77,12 @@ namespace riscos
 			 * dependent on the type of gadget.  */
 			public uint Flags
 			{
-				get { return CallMethod_GetR0 (Method.GetFlags); }
+				get { return Object.MiscOp_SetR3GetR0 (0, Method.GetFlags, ComponentID); }
 				// Only the faded flag can usefully be changed. Modifying the other
 				// flags is undefined, so allow only the Faded property write access.
-				private set { CallMethod_SetR4 (Method.SetFlags, value); }
+				private set {
+					Object.MiscOp_SetR3R4 (0, Method.SetFlags, ComponentID, value);
+				}
 			}
 
 			/*! \brief Determines whether the gadget is faded or not.  */
@@ -107,7 +109,7 @@ namespace riscos
 			/*! \brief The type of this gadget.  */
 			public virtual uint Type
 			{
-				virtual get { return CallMethod_GetR0 (Method.GetType); }
+				virtual get { return Object.MiscOp_SetR3GetR0 (0, Method.GetType, ComponentID); }
 			}
 
 			/*! \brief The bounding box of the gadget.<br>
@@ -140,7 +142,7 @@ namespace riscos
 			 * includes a writable field such as a number range.  */
 			public virtual void SetFocus ()
 			{
-				CallMethod_SetR4 (Method.SetFocus, 0);
+				Object.MiscOp_SetR3R4 (0, Method.SetFocus, ComponentID, 0);
 			}
 
 			/*! \brief Returns a list of WIMP icon numbers for the icons used to implement
@@ -203,11 +205,11 @@ namespace riscos
 			{
 				uint type;
 
-				OS.ThrowOnError (NativeMethods.Component_GetR0 (0,
-										ObjectID,
-										Method.GetType,
-										cmpID,
-										out type));
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3GetR0 (0,
+												ObjectID,
+												Method.GetType,
+												cmpID,
+												out type));
 				return type;
 			}
 
@@ -215,33 +217,29 @@ namespace riscos
 			 * Gadgets can use these to call their specific methods.  */
 			protected void SetText (int method, string text)
 			{
-				OS.ThrowOnError (NativeMethods.Component_SetText (0,
-										  Object.ID,
-										  method,
-										  ComponentID,
-										  text));
+				Object.MiscOp_SetR3R4 (0, method, ComponentID, text);
+			}
+
+			protected int GetTextBuffer (uint flags, int method, StringBuilder buffer, int buffer_size)
+			{
+				int used_out;
+
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_SetR3R4R5GetR5 (flags,
+												    Object.ID,
+												    method,
+												    ComponentID,
+												    buffer,
+												    buffer_size,
+												    out used_out));
+				return used_out;
 			}
 
 			protected string GetText (int method)
 			{
-				int buffer_size;
-
-				OS.ThrowOnError (NativeMethods.Component_GetText (0,
-										  Object.ID,
-										  method,
-										  ComponentID,
-										  null,
-										  0,
-										  out buffer_size));
+				int buffer_size = GetTextBuffer (0, method, null, 0);
 				StringBuilder buffer = new StringBuilder (buffer_size);
-				OS.ThrowOnError (NativeMethods.Component_GetText (0,
-										  Object.ID,
-										  method,
-										  ComponentID,
-										  buffer,
-										  buffer_size,
-										  out buffer_size));
-				return buffer.ToString();
+				GetTextBuffer (0, method, buffer, buffer_size);
+				return buffer.ToString ();
 			}
 
 			// if clickShow is null, object is detached.
@@ -261,7 +259,7 @@ namespace riscos
 					flags = clickShow.Flags;
 				}
 
-				CallMethod_SetR4R5 (method, tb_obj_id, flags);
+				Object.MiscOp_SetR3R4R5 (0, method, ComponentID, tb_obj_id, flags);
 			}
 
 			// If no object attached, then returns null.
@@ -270,87 +268,9 @@ namespace riscos
 				uint tb_obj_id;
 				uint flags;
 
-				CallMethod_GetR0R1 (method, out tb_obj_id, out flags);
+				Object.MiscOp_SetR3GetR0R1 (0, method, ComponentID, out tb_obj_id, out flags);
 
 				return (tb_obj_id == 0) ? null : new Toolbox.ClickShow (tb_obj_id, flags);
-			}
-
-			protected void CallMethod_SetR4 (int method, uint r4)
-			{
-				CallMethod_SetR4 (0, method, r4);
-			}
-
-			protected void CallMethod_SetR4 (uint flags, int method, uint r4)
-			{
-				OS.ThrowOnError (NativeMethods.Component_SetR4 (flags,
-										Object.ID,
-										method,
-										ComponentID,
-										r4));
-			}
-
-			protected void CallMethod_SetR4R5 (int method, uint r4, uint r5)
-			{
-				OS.ThrowOnError (NativeMethods.Component_SetR4R5 (0,
-										  Object.ID,
-										  method,
-										  ComponentID,
-										  r4,
-										  r5));
-			}
-
-			protected void CallMethod_GetR0R1 (int method, out uint r0, out uint r1)
-			{
-				CallMethod_GetR0R1 (0, method, out r0, out r1);
-			}
-
-			protected void CallMethod_GetR0R1 (uint flags, int method, out uint r0, out uint r1)
-			{
-				OS.ThrowOnError (NativeMethods.Component_GetR0R1 (flags,
-										  Object.ID,
-										  method,
-										  ComponentID,
-										  out r0,
-										  out r1));
-			}
-
-			protected void CallMethod_GetR0R1R2 (uint flags, int method, out int r0, out int r1, out int r2)
-			{
-				OS.ThrowOnError (NativeMethods.Component_GetR0R1R2 (flags,
-										    Object.ID,
-										    method,
-										    ComponentID,
-										    out r0,
-										    out r1,
-										    out r2));
-			}
-
-			protected uint CallMethod_GetR0 (uint flags, int method)
-			{
-				uint value;
-
-				OS.ThrowOnError (NativeMethods.Component_GetR0 (flags,
-										Object.ID,
-										method,
-										ComponentID,
-										out value));
-				return value;
-			}
-
-			protected uint CallMethod_GetR0 (int method)
-			{
-				return CallMethod_GetR0 (0, method);
-			}
-
-			protected void CallMethod_SetR4R5R6 (uint flags, int method, int r4, int r5, int r6)
-			{
-				OS.ThrowOnError (NativeMethods.Component_SetR4R5R6 (flags,
-										    Object.ID,
-										    method,
-										    ComponentID,
-										    r4,
-										    r5,
-										    r6));
 			}
 		}
 	}

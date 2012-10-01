@@ -112,13 +112,13 @@ namespace riscos
 			/*! \brief Get the ID of the underlying Window object.  */
 			public uint WindowID
 			{
-				get { return CallMethod_GetR0 (Method.GetWindowID); }
+				get { return MiscOp_GetR0 (0, Method.GetWindowID); }
 			}
 
 			/*! \brief Gets or sets the message used in the Quit Dialogue's Window.  */
 			public string Message
 			{
-				set { SetText (Method.SetMessage, value); }
+				set { SetText (0, Method.SetMessage, value); }
 				get { return GetText (Method.GetMessage); }
 			}
 
@@ -126,7 +126,7 @@ namespace riscos
 			 * of this Quit Dialogue's Window.  */
 			public string Title
 			{
-				set { SetText (Method.SetTitle, value); }
+				set { SetText (0, Method.SetTitle, value); }
 				get { return GetText (Method.GetTitle); }
 			}
 

@@ -167,7 +167,7 @@ namespace riscos
 			 * Only valid when the Colour Dialogue box is showing.  */
 			public uint WimpHandle
 			{
-				get { return CallMethod_GetR0 (Method.GetWimpHandle); }
+				get { return MiscOp_GetR0 (0, Method.GetWimpHandle); }
 			}
 
 			/*! \brief The handle of the dialogue box used by the underlying Colour
@@ -176,19 +176,17 @@ namespace riscos
 			 * Only valid when the Colour Dialogue box is showing.  */
 			public uint DialogueHandle
 			{
-				get { return CallMethod_GetR0 (Method.GetDialogueHandle); }
+				get { return MiscOp_GetR0 (0, Method.GetDialogueHandle); }
 			}
 
 			/*! \brief Determines whether a \b None option appears in the Colour Dialogue.  */
 			public bool NoneAvailable
 			{
-				get
-				{
-					return (CallMethod_GetR0 (Method.GetNoneAvailable) & 1) != 0;
+				get {
+					return (MiscOp_GetR0 (0, Method.GetNoneAvailable) & 1) != 0;
 				}
-				set
-				{
-					CallMethod_SetR3 (Method.SetNoneAvailable, value ? 1U : 0U);
+				set {
+					MiscOp_SetR3 (0, Method.SetNoneAvailable, value ? 1U : 0U);
 				}
 			}
 
@@ -198,23 +196,21 @@ namespace riscos
 				get
 				{
 					GCHandle pinned_array;
-					int buffer_size;
+					int buffer_size, flags_out;
 					try {
-						OS.ThrowOnError (NativeMethods.Object_GetBuffer (0,
-												 ID,
-												 Method.GetColourModel,
-												 IntPtr.Zero,
-												 0,
-												 out buffer_size));
+						buffer_size = GetBuffer (0,
+									 Method.GetColourModel,
+									 IntPtr.Zero,
+									 0,
+									 out flags_out);
 						int [] model_block = new int [buffer_size >> 2];
 						// Prevent the GC from moving the memory while we use its address
 						pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
-						OS.ThrowOnError (NativeMethods.Object_GetBuffer (0,
-												 ID,
-												 Method.GetColourModel,
-												 pinned_array.AddrOfPinnedObject(),
-												 buffer_size,
-												 out buffer_size));
+						GetBuffer (0,
+							   Method.GetColourModel,
+							   pinned_array.AddrOfPinnedObject(),
+							   buffer_size,
+							   out flags_out);
 						return (ColourModel)model_block [1];
 					}
 					catch {
@@ -233,9 +229,9 @@ namespace riscos
 						model_block[1] = (int)value;
 						// Prevent the GC from moving the memory while we use its address
 						pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
-						CallMethod_SetR3 (0,
-								  Method.SetColourModel,
-								  pinned_array.AddrOfPinnedObject());
+						MiscOp_SetR3 (0,
+							      Method.SetColourModel,
+							      pinned_array.AddrOfPinnedObject());
 					}
 					catch {
 						throw;
@@ -260,9 +256,9 @@ namespace riscos
 				try {
 					// Prevent the GC from moving the memory while we use its address
 					pinned_array = GCHandle.Alloc (colourBlock, GCHandleType.Pinned);
-					CallMethod_SetR3 (noneSelected ? 1U : 0,
-							  Method.SetColour,
-							  pinned_array.AddrOfPinnedObject());
+					MiscOp_SetR3 (noneSelected ? 1U : 0,
+						      Method.SetColour,
+						      pinned_array.AddrOfPinnedObject());
 				}
 				catch {
 					throw;
@@ -287,25 +283,21 @@ namespace riscos
 				int buffer_size;
 
 				try {
-					OS.ThrowOnError (NativeMethods.Object_GetBufferWithR0 (0,
-											       ID,
-											       Method.GetColour,
-											       IntPtr.Zero,
-											       0,
-											       out none_selected,
-											       out buffer_size));
+					buffer_size = GetBuffer (0,
+								 Method.GetColour,
+								 IntPtr.Zero,
+								 0,
+								 out none_selected);
 					if (buffer_size == 0)
 						return null;
 
 					colour_block = new int [buffer_size >> 2];
 					pinned_array = GCHandle.Alloc (colour_block, GCHandleType.Pinned);
-					OS.ThrowOnError (NativeMethods.Object_GetBufferWithR0 (0,
-											       ID,
-											       Method.GetColour,
-											       pinned_array.AddrOfPinnedObject(),
-											       buffer_size,
-											       out none_selected,
-											       out buffer_size));
+					GetBuffer (0,
+						   Method.GetColour,
+						   pinned_array.AddrOfPinnedObject(),
+						   buffer_size,
+						   out none_selected);
 					return colour_block;
 				}
 				catch {

@@ -106,31 +106,31 @@ namespace riscos
 			/*! \brief The value of the slider.  */
 			public int Value
 			{
-				set { CallMethod_SetR4 (Method.SetValue, (uint)value); }
-				get { return (int)CallMethod_GetR0 (Method.GetValue); }
+				set { Object.MiscOp_SetR3R4 (0, Method.SetValue, ComponentID, (uint)value); }
+				get { return (int)Object.MiscOp_SetR3GetR0 (0, Method.GetValue, ComponentID); }
 			}
 
 			/*! \brief Sets or gets the lower bound of the slider's value.  */
 			public int LowerBound
 			{
-				set
-				{
-					CallMethod_SetR4R5R6 (SliderFlags.LowerBound,
-							      Method.SetBound,
-							      value,
-							      0,
-							      0);
+				set {
+					Object.MiscOp_SetR3R4R5R6 (SliderFlags.LowerBound,
+								   Method.SetBound,
+								   ComponentID,
+								   value,
+								   0,
+								   0);
 				}
-				get
-				{
+				get {
 					int lower;
 					int not_required;
 
-					CallMethod_GetR0R1R2 (SliderFlags.LowerBound,
-							      Method.GetBound,
-							      out lower,
-							      out not_required,
-							      out not_required);
+					Object.MiscOp_SetR3GetR0R1R2 (SliderFlags.LowerBound,
+								      Method.GetBound,
+								      ComponentID,
+								      out lower,
+								      out not_required,
+								      out not_required);
 					return lower;
 				}
 			}
@@ -138,24 +138,24 @@ namespace riscos
 			/*! \brief Sets or gets the upper bound of the slider's value.  */
 			public int UpperBound
 			{
-				set
-				{
-					CallMethod_SetR4R5R6 (SliderFlags.UpperBound,
-							      Method.SetBound,
-							      0,
-							      value,
-							      0);
+				set {
+					Object.MiscOp_SetR3R4R5R6 (SliderFlags.UpperBound,
+								   Method.SetBound,
+								   ComponentID,
+								   0,
+								   value,
+								   0);
 				}
-				get
-				{
+				get {
 					int upper;
 					int not_required;
 
-					CallMethod_GetR0R1R2 (SliderFlags.UpperBound,
-							      Method.GetBound,
-							      out not_required,
-							      out upper,
-							      out not_required);
+					Object.MiscOp_SetR3GetR0R1R2 (SliderFlags.UpperBound,
+								      Method.GetBound,
+								      ComponentID,
+								      out not_required,
+								      out upper,
+								      out not_required);
 					return upper;
 				}
 			}
@@ -163,24 +163,24 @@ namespace riscos
 			/*! \brief Sets or gets the step size of the slider's value.  */
 			public int StepSize
 			{
-				set
-				{
-					CallMethod_SetR4R5R6 (SliderFlags.StepSize,
-							      Method.SetBound,
-							      0,
-							      0,
-							      value);
+				set {
+					Object.MiscOp_SetR3R4R5R6 (SliderFlags.StepSize,
+								   Method.SetBound,
+								   ComponentID,
+								   0,
+								   0,
+								   value);
 				}
-				get
-				{
+				get {
 					int step;
 					int not_required;
 
-					CallMethod_GetR0R1R2 (SliderFlags.StepSize,
-							      Method.GetBound,
-							      out not_required,
-							      out not_required,
-							      out step);
+					Object.MiscOp_SetR3GetR0R1R2 (SliderFlags.StepSize,
+								      Method.GetBound,
+								      ComponentID,
+								      out not_required,
+								      out not_required,
+								      out step);
 					return step;
 				}
 			}
@@ -195,13 +195,14 @@ namespace riscos
 			 * \return Nothing.  */
 			public void SetBounds (int lower, int upper, int step)
 			{
-				CallMethod_SetR4R5R6 (SliderFlags.LowerBound |
-							SliderFlags.UpperBound |
-							SliderFlags.StepSize,
-						      Method.SetBound,
-						      lower,
-						      upper,
-						      step);
+				Object.MiscOp_SetR3R4R5R6 (SliderFlags.LowerBound |
+							    SliderFlags.UpperBound |
+							    SliderFlags.StepSize,
+							   Method.SetBound,
+							   ComponentID,
+							   lower,
+							   upper,
+							   step);
 			}
 
 			/*! \brief Get the lower bound, upper bound and step size of the %Slider.
@@ -214,13 +215,14 @@ namespace riscos
 			 * \return Nothing.  */
 			public void GetBounds (out int lower, out int upper, out int step)
 			{
-				CallMethod_GetR0R1R2 (SliderFlags.LowerBound |
-							SliderFlags.UpperBound |
-							SliderFlags.StepSize,
-						      Method.SetBound,
-						      out lower,
-						      out upper,
-						      out step);
+				Object.MiscOp_SetR3GetR0R1R2 (SliderFlags.LowerBound |
+							      SliderFlags.UpperBound |
+							      SliderFlags.StepSize,
+							      Method.SetBound,
+							      ComponentID,
+							      out lower,
+							      out upper,
+							      out step);
 			}
 
 			/*! \brief Sets the Desktop colour used in the slider.
@@ -230,7 +232,11 @@ namespace riscos
 			public void SetColour (OS.DesktopColour barColour,
 					       OS.DesktopColour bgColour)
 			{
-				CallMethod_SetR4R5 (Method.SetColour, (uint)barColour, (uint)bgColour);
+				Object.MiscOp_SetR3R4R5 (0,
+							 Method.SetColour,
+							 ComponentID,
+							 (uint)barColour,
+							 (uint)bgColour);
 			}
 
 			/*! \brief Returns the Desktop colour used in the slider.
@@ -243,7 +249,11 @@ namespace riscos
 				uint bar_col;
 				uint bg_col;
 
-				CallMethod_GetR0R1 (Method.GetColour, out bar_col, out bg_col);
+				Object.MiscOp_SetR3GetR0R1 (0,
+							    Method.GetColour,
+							    ComponentID,
+							    out bar_col,
+							    out bg_col);
 
 				barColour = (OS.DesktopColour)bar_col;
 				bgColour = (OS.DesktopColour)bg_col;

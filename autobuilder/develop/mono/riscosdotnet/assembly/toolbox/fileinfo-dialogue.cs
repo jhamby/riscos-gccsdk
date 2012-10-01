@@ -88,21 +88,21 @@ namespace riscos
 			/*! \brief Get the ID of the underlying Window object.  */
 			public uint WindowID
 			{
-				get { return CallMethod_GetR0 (Method.GetWindowID); }
+				get { return MiscOp_GetR0 (0, Method.GetWindowID); }
 			}
 
 			/*! \brief Gets or sets whether the file is to be indicated as modified or not.  */
 			public bool Modified
 			{
-				set { CallMethod_SetR3 (Method.SetModified, value ? 1U : 0); }
-				get { return CallMethod_GetR0 (Method.GetModified) == 0 ? false : true; }
+				set { MiscOp_SetR3 (0, Method.SetModified, value ? 1U : 0); }
+				get { return MiscOp_GetR0 (0, Method.GetModified) == 0 ? false : true; }
 			}
 
 			/*! \brief Gets or sets the file type to be indicated in the dialogue box.  */
 			public int FileType
 			{
-				set { CallMethod_SetR3 (Method.SetFileType, (uint)value); }
-				get { return (int)CallMethod_GetR0 (Method.GetFileType); }
+				set { MiscOp_SetR3 (0, Method.SetFileType, (uint)value); }
+				get { return (int)MiscOp_GetR0 (0, Method.GetFileType); }
 			}
 
 			/*! \brief Gets or sets the filename used in the FileInfo Dialogue box.
@@ -110,15 +110,15 @@ namespace riscos
 			 * There is a limit of 256 characters on the filename length.  */
 			public string FileName
 			{
-				set { SetText (Method.SetFileName, value); }
+				set { SetText (0, Method.SetFileName, value); }
 				get { return GetText (Method.GetFileName); }
 			}
 
 			/*! \brief Gets or sets the file size to be indicated in the dialogue box.  */
 			public int FileSize
 			{
-				set { CallMethod_SetR3 (Method.SetFileSize, (uint)value); }
-				get { return (int)CallMethod_GetR0 (Method.GetFileSize); }
+				set { MiscOp_SetR3 (0, Method.SetFileSize, (uint)value); }
+				get { return (int)MiscOp_GetR0 (0, Method.GetFileSize); }
 			}
 
 			/*! \brief Sets the date string used in the FileInfo dialogue's window or gets
@@ -130,7 +130,7 @@ namespace riscos
 					try {
 						// Prevent the GC from moving the memory while we use its address.
 						pinned_array = GCHandle.Alloc (value.Utc, GCHandleType.Pinned);
-						CallMethod_SetR3 (Method.SetDate, pinned_array.AddrOfPinnedObject());
+						MiscOp_SetR3 (0, Method.SetDate, pinned_array.AddrOfPinnedObject());
 					}
 					catch {
 						throw;
@@ -146,7 +146,7 @@ namespace riscos
 					try {
 						// Prevent the GC from moving the memory while we use its address.
 						pinned_array = GCHandle.Alloc (date.Utc, GCHandleType.Pinned);
-						CallMethod_SetR3 (Method.GetDate, pinned_array.AddrOfPinnedObject());
+						MiscOp_SetR3 (0, Method.GetDate, pinned_array.AddrOfPinnedObject());
 					}
 					catch {
 						throw;
@@ -164,7 +164,7 @@ namespace riscos
 			 * of this FileInfo Dialogue.  */
 			public string Title
 			{
-				set { SetText (Method.SetTitle, value); }
+				set { SetText (0, Method.SetTitle, value); }
 				get { return GetText (Method.GetTitle); }
 			}
 

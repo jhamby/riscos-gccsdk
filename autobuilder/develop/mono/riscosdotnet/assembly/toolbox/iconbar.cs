@@ -144,7 +144,7 @@ namespace riscos
 			/*! \brief The WIMP handle of the icon on the iconbar.  */
 			public uint IconHandle
 			{
-				get { return CallMethod_GetR0 (Method.GetIconHandle); }
+				get { return MiscOp_GetR0 (0, Method.GetIconHandle); }
 			}
 
 			/*! \brief Specifies the menu which will be displayed when the Menu button is
@@ -216,7 +216,7 @@ namespace riscos
 				set
 				{
 					if (!null_help_message)
-						SetText (Method.SetHelpMessage, value);
+						SetText (0, Method.SetHelpMessage, value);
 					if (value == null)
 						null_help_message = true;
 				}
@@ -240,7 +240,7 @@ namespace riscos
 				{
 					if (value == null)
 						throw new ArgumentNullException ("value", "Attempted to set Iconbar text to null");
-					SetText (Method.SetText, value);
+					SetText (0, Method.SetText, value);
 				}
 				get { return GetText (Method.GetText); }
 			}
@@ -259,41 +259,29 @@ namespace riscos
 
 			private void SetSelect (int method, uint select)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetR3R4 (0x1,
-									       ID,
-									       method,
-									       select,
-									       0));
+				MiscOp_SetR3R4 (0x1, method, select, 0);
 			}
 
 			private void SetAdjust (int method, uint adjust)
 			{
-				OS.ThrowOnError (NativeMethods.Object_SetR3R4 (0x2,
-									       ID,
-									       method,
-									       0,
-									       adjust));
+				MiscOp_SetR3R4 (0x2, method, 0, adjust);
 			}
 
 			private uint GetSelect (int method)
 			{
 				uint select, adjust;
-				OS.ThrowOnError (NativeMethods.Object_GetR0R1 (0x1,
-									       ID,
-									       method,
-									       out select,
-									       out adjust));
+
+				MiscOp_GetR0R1 (0x1, method, out select, out adjust);
+
 				return select;
 			}
 
 			private uint GetAdjust (int method)
 			{
 				uint select, adjust;
-				OS.ThrowOnError (NativeMethods.Object_GetR0R1 (0x2,
-									       ID,
-									       method,
-									       out select,
-									       out adjust));
+
+				MiscOp_GetR0R1 (0x2, method, out select, out adjust);
+
 				return adjust;
 			}
 
