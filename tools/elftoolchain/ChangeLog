@@ -1,3 +1,9 @@
+Tue Oct  2 23:30:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Replace this svn:externals copy with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2600
+	* Makefile.in: Removed.
+
 Wed Aug  8 02:55:01 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/Makefile (MKTOOLS): Add (to surpress building of the

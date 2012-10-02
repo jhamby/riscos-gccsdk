@@ -5,11 +5,10 @@ This is a snapshot of SourceForge elftoolchain project
 (http://sourceforge.net/projects/elftoolchain/) and a couple of patches + thin
 wrapper for autotools based buildsystem.
 
-upstream-trunk : Follows trunk of SF elftoolchain VCS.
+upstream-trunk : Snapshot made from
+  http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk
 current-trunk : Copy of upstream-trunk (made at regular times) + patches so
   it can be built using autotools and RISC OS cross-compiler.
-Makefile.in : Thin wrapper Makefile which can be transformed to a regular
-  Makefile using autoconf.
 ChangeLog : Classic ChangeLog.
 README : This file.
 
