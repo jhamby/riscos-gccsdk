@@ -1,0 +1,8 @@
+bin_PROGRAMS = strings
+strings_SOURCES = strings.c
+strings_CFLAGS = -I${top_srcdir}/common \
+		 -I${top_srcdir}/libelftc \
+		 -I${top_srcdir}/libelf
+strings_LDADD = ../libelftc/libelftc.la \
+	../libelf/libelf.la
+

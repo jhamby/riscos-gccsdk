@@ -37,6 +37,34 @@ ELFTC_VCSID("$Id$");
  * stat'.
  */
 
+#ifdef HAVE_CONFIG_H
+#  if HAVE_UTIME
+#    define LIBELFTC_HAVE_UTIME	1
+#  else
+#    define LIBELFTC_HAVE_UTIME	0
+#  endif
+#  if HAVE_UTIMES \
+	&& (HAVE_STRUCT_STAT_ST_ATIM || HAVE_STRUCT_STAT_ST_ATIMESPEC) \
+	&& (HAVE_STRUCT_STAT_ST_MTIM || HAVE_STRUCT_STAT_ST_MTIMESPEC)
+#    define LIBELFTC_HAVE_UTIMES	1
+#    if HAVE_STRUCT_STAT_ST_ATIM
+#      define ATIME st_atim
+#    elif HAVE_STRUCT_STAT_ST_ATIMESPEC
+#      define ATIME st_atimespec
+#    endif
+#    if HAVE_STRUCT_STAT_ST_MTIM
+#      define MTIME st_mtim
+#    elif HAVE_STRUCT_STAT_ST_MTIMESPEC
+#      define MTIME st_mtimespec
+#    endif
+#  else
+#    define LIBELFTC_HAVE_UTIMES	0
+#  endif
+
+#else
+
+#define LIBELFTC_HAVE_UTIME	1
+
 #if	defined(__FreeBSD__) || defined(__NetBSD__)
 #define	ATIME	st_atimespec
 #define	MTIME	st_mtimespec
@@ -49,9 +77,11 @@ ELFTC_VCSID("$Id$");
 #define	LIBELFTC_HAVE_UTIMES	1
 #endif
 
+#endif /* !HAVE_CONFIG_H */
+
 #if	LIBELFTC_HAVE_UTIMES
 #include <sys/time.h>
-#else
+#elif	LIBELFTC_HAVE_UTIME
 #include <utime.h>
 #endif
 
@@ -71,7 +101,7 @@ elftc_set_timestamps(const char *fn, struct stat *sb)
 	tv[1].tv_usec = sb->MTIME.tv_nsec / 1000;
 
 	return (utimes(fn, tv));
-#else
+#elif	LIBELFTC_HAVE_UTIME
 	/*
 	 * On OSes without utimes(), fall back to the POSIX utime()
 	 * call, which offers 1-second granularity.
@@ -81,5 +111,7 @@ elftc_set_timestamps(const char *fn, struct stat *sb)
 	utb.actime = sb->st_atime;
 	utb.modtime = sb->st_mtime;
 	return (utime(fn, &utb));
+#else
+#error	"Need utime or utimes"
 #endif
 }

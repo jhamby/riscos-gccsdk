@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <err.h>
@@ -36,8 +38,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: findtextrel.c 2185 2011-11-19 16:07:16Z jkoshy $");
 

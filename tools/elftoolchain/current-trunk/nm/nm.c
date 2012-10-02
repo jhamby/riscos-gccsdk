@@ -24,6 +24,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -45,8 +47,6 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: nm.c 2484 2012-04-07 15:52:05Z kaiwang27 $");
 

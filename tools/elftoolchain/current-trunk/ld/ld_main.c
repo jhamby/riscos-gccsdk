@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include "ld.h"
 #include "ld_arch.h"
 #include "ld_options.h"

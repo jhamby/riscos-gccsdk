@@ -1,0 +1,10 @@
+bin_PROGRAMS = c++filt
+c__filt_SOURCES = cxxfilt.c
+c__filt_CFLAGS = -I${top_srcdir}/common \
+		 -I${top_srcdir}/libelftc \
+		 -I${top_srcdir}/libelf
+c__filt_LDADD = ../libelftc/libelftc.la \
+		../libelf/libelf.la
+
+dist_man1_MANS = c++filt.1
+

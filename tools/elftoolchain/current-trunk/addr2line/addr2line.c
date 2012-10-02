@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <dwarf.h>
@@ -37,8 +39,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: addr2line.c 2185 2011-11-19 16:07:16Z jkoshy $");
 

@@ -1,0 +1,11 @@
+bin_PROGRAMS = elfdump
+elfdump_SOURCES = elfdump.c
+elfdump_CFLAGS = -I${top_srcdir}/common \
+		 -I${top_srcdir}/libelftc \
+		 -I${top_srcdir}/libelf
+elfdump_LDADD = ../libelftc/libelftc.la \
+	../libelf/libelf.la
+
+elfdump_CFLAGS += ${LIBARCHIVE_CFLAGS}
+elfdump_LDADD += ${LIBARCHIVE_LIBS}
+

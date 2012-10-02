@@ -24,6 +24,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <ctype.h>
@@ -33,8 +35,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: cxxfilt.c 2185 2011-11-19 16:07:16Z jkoshy $");
 

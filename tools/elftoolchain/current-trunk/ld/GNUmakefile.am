@@ -1,0 +1,38 @@
+bin_PROGRAMS = ld
+GENSRCS=	amd64_script.c i386_script.c
+BUILT_SOURCES = ${GENSRCS} \
+	ld_script_lexer.c ld_script_parser.c ld_script_parser.h
+ld_SOURCES = \
+	amd64.c			\
+	i386.c			\
+	ld_arch.c		\
+	ld_error.c 		\
+	ld_exp.c		\
+	ld_file.c		\
+	ld_input.c		\
+	ld_layout.c		\
+	ld_main.c 		\
+	ld_options.c		\
+	ld_output.c		\
+	ld_path.c		\
+	ld_reloc.c		\
+	ld_script.c		\
+	ld_script_lexer.l	\
+	ld_script_parser.y	\
+	ld_strtab.c		\
+	ld_symbols.c		\
+	${GENSRCS}
+
+ld_CFLAGS = -I${top_srcdir}/common \
+	    -I${top_srcdir}/libelftc \
+	    -I${top_srcdir}/libelf
+
+AM_YFLAGS = -d
+
+ld_LDADD =  ../libelftc/libelftc.la \
+	    ../libelf/libelf.la
+
+SUFFIXES = .ld
+.ld.c: ${srcdir}/ld_script.awk
+	awk -f ${srcdir}/ld_script.awk $< > $@
+

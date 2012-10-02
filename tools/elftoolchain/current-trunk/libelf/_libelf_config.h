@@ -26,6 +26,14 @@
  * $Id: _libelf_config.h 2287 2011-12-04 06:45:47Z jkoshy $
  */
 
+#ifdef HAVE_CONFIG_H
+/* Include config.h for the LIBELF_ARCH, LIBELF_BYTEORDER and LIBELF_CLASS
+   defines.  */
+#  include "config.h"
+#endif
+
+#if	!defined(LIBELF_ARCH) || !defined(LIBELF_BYTEORDER) || !defined(LIBELF_CLASS)
+
 #ifdef	__DragonFly__
 
 #if	defined(__amd64__)
@@ -175,3 +183,6 @@
 #endif
 
 #endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
+
+#endif /* !defined(LIBELF_ARCH) || !defined(LIBELF_BYTEORDER) || !defined(LIBELF_CLASS) */
+

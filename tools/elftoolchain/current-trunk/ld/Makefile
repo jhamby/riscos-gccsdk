@@ -21,11 +21,11 @@ SRCS=	amd64.c			\
 	ld_path.c		\
 	ld_reloc.c		\
 	ld_script.c		\
-	ld_script_lexer.l	\
-	ld_script_parser.y	\
 	ld_strtab.c		\
 	ld_symbols.c		\
 	y.tab.h
+LSRC=	ld_script_lexer.l
+YSRC=	ld_script_parser.y
 
 .SUFFIXES:	.ld .c
 .ld.c:
@@ -33,7 +33,7 @@ SRCS=	amd64.c			\
 
 GENSRCS=	amd64_script.c i386_script.c
 
-CLEANFILES+=	y.tab.h ${GENSRCS}
+CLEANFILES+=	${GENSRCS}
 
 DPADD=	${LIBELFTC} ${LIBELF}
 LDADD=	-lelftc -lelf

@@ -1,0 +1,8 @@
+SUBDIRS = common libelf libdwarf libelftc
+if BUILDING_TOOLS
+  SUBDIRS += addr2line ar \
+	  brandelf cxxfilt elfcopy elfdump findtextrel \
+	  ld nm readelf size strings
+endif
+
+ACLOCAL_AMFLAGS = -I m4

@@ -202,6 +202,67 @@ struct name {							\
 
 /* ]] --QUEUE-MACROS-- */
 
+#ifdef HAVE_CONFIG_H
+#  include "config.h"
+
+#if defined(HAVE_RCSID)
+#  define ELFTC_VCSID(ID)	__RCSID(ID)
+#elif defined(HAVE_FBSDID)
+#  define ELFTC_VCSID(ID)	__FBSDID(ID)
+#elif defined(HAVE_ASMIDENT)
+#  define ELFTC_VCSID(ID)	__asm__(".ident\t\"" ID "\"")
+#else
+#  define ELFTC_VCSID(ID)	/**/
+#endif
+#if defined(HAVE_GETPROGNAME)
+#  include <stdlib.h>
+#  define ELFTC_GETPROGNAME()	getprogname()
+#elif defined(HAVE_PROGRAM_INVOCATION_SHORT_NAME)
+#  define _GNU_SOURCE
+#  include <errno.h>
+#  define ELFTC_GETPROGNAME()	program_invocation_short_name
+#elif defined(HAVE___PROGNAME)
+extern const char *__progname;
+#  define ELFTC_GETPROGNAME()	__progname
+#else
+#  error "No getprogname() equivalent."
+#endif
+#  if defined(HAVE__BYTE_ORDER)
+#    include <sys/endian.h>
+#    define ELFTC_BYTE_ORDER			_BYTE_ORDER
+#    define ELFTC_BYTE_ORDER_LITTLE_ENDIAN	_LITTLE_ENDIAN
+#    define ELFTC_BYTE_ORDER_BIG_ENDIAN		_BIG_ENDIAN
+#  elif defined(HAVE___BYTE_ORDER)
+#    include <endian.h>
+#    define ELFTC_BYTE_ORDER			__BYTE_ORDER
+#    define ELFTC_BYTE_ORDER_LITTLE_ENDIAN	__LITTLE_ENDIAN
+#    define ELFTC_BYTE_ORDER_BIG_ENDIAN		__BIG_ENDIAN
+#  else
+#    error "Need _BYTE_ORDER, _LITTLE_ENDIAN and _BIG_ENDIAN equivalent."
+#  endif
+#  ifdef HAVE_HTOBE32
+#    include <endian.h>
+#  else
+#    include <arpa/inet.h>
+#    define htobe32 htonl
+#  endif
+#  ifdef HAVE_MMAP
+#    define ELFTC_HAVE_MMAP 1
+#  endif
+#  ifdef HAVE_STRMODE
+#    define ELFTC_HAVE_STRMODE 1
+#  endif
+#  if defined(HAVE_BYTEORDER_EXTENSIONS)
+#    include <sys/endian.h>
+#  else
+#    define ELFTC_NEED_BYTEORDER_EXTENSIONS 1
+#  endif
+#  ifndef HAVE_ROUNDUP2
+#    define roundup2(x,y) roundup(x,y)
+#  endif
+
+#else
+
 /*
  * VCS Ids.
  */
@@ -383,5 +444,7 @@ extern const char *__progname;
 #define	roundup2	roundup
 
 #endif	/* __OpenBSD__ */
+
+#endif /* HAVE_CONFIG_H */
 
 #endif	/* _ELFTC_H */

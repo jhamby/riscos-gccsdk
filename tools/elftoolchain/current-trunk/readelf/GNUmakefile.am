@@ -1,0 +1,12 @@
+bin_PROGRAMS = readelf
+readelf_SOURCES = readelf.c
+readelf_CFLAGS = -I${top_srcdir}/common \
+	         -I${top_srcdir}/libdwarf \
+	         -I${top_srcdir}/libelftc \
+	         -I${top_srcdir}/libelf
+readelf_LDADD = ../libdwarf/libdwarf.la \
+	        ../libelftc/libelftc.la \
+	        ../libelf/libelf.la
+
+dist_man1_MANS = readelf.1
+

@@ -58,6 +58,8 @@
  * SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 
 #include <sys/queue.h>

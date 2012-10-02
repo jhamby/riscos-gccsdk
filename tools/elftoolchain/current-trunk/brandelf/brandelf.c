@@ -28,6 +28,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 
 #include <sys/types.h>
@@ -43,8 +45,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: brandelf.c 2324 2011-12-12 06:36:27Z jkoshy $");
 

@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/queue.h>
@@ -43,8 +45,6 @@
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: readelf.c 2593 2012-09-16 18:53:33Z kaiwang27 $");
 

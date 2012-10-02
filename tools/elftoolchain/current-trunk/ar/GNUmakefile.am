@@ -1,0 +1,26 @@
+bin_PROGRAMS = ar ranlib
+
+AM_CFLAGS = -I${top_srcdir}/common \
+	    -I${top_srcdir}/libelf \
+	    -I${top_srcdir}/libelftc \
+	    ${LIBARCHIVE_CFLAGS} \
+	    -I. 
+
+BUILT_SOURCES = acplex.c acpyacc.c acpyacc.h
+AM_YFLAGS = -d
+
+ar_SOURCES = ar.c read.c util.c write.c acplex.l acpyacc.y
+ranlib_SOURCES = ar.c read.c util.c write.c acplex.l acpyacc.y
+
+LDADD = ${LIBARCHIVE_LIBS} \
+	   ../libelftc/libelftc.la \
+	   ../libelf/libelf.la
+
+dist_man1_MANS = ar.1 
+dist_man5_MANS = ar.5
+
+man1_MANS = ranlib.1
+
+ranlib.1: ar.1
+	cp $< $@
+

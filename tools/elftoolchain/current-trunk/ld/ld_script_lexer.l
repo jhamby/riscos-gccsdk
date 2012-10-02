@@ -26,7 +26,7 @@
  */
 
 #include "ld.h"
-#include "y.tab.h"
+#include "ld_script_parser.h"
 
 ELFTC_VCSID("$Id: ld_script_lexer.l 2472 2012-03-25 15:34:48Z kaiwang27 $");
 

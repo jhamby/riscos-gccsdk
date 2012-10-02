@@ -26,6 +26,8 @@
  * SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/queue.h>
@@ -48,8 +50,6 @@
 #include <archive.h>
 #include <archive_entry.h>
 #endif
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: elfdump.c 2355 2011-12-19 16:42:26Z jkoshy $");
 

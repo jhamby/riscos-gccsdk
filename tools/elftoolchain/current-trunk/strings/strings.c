@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -43,8 +45,6 @@
 #include <libelf.h>
 #include <libelftc.h>
 #include <gelf.h>
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: strings.c 2351 2011-12-19 11:20:37Z jkoshy $");
 

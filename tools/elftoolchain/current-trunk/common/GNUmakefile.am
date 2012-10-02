@@ -1,0 +1,7 @@
+BUILT_SOURCES = native-elf-format.h
+CLEANFILES = native-elf-format.h
+
+native-elf-format.h: native-elf-format
+	${top_srcdir}/common/native-elf-format > $@
+
+include_HEADERS = elfdefinitions.h

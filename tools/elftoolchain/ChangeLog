@@ -1,3 +1,8 @@
+Tue Oct  2 23:45:16 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* current-trunk: Fresh copy of upstream-trunk with autotools patches
+	(cfr. http://sourceforge.net/apps/trac/elftoolchain/ticket/321).
+
 Tue Oct  2 23:30:17 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* upstream-trunk: Replace this svn:externals copy with

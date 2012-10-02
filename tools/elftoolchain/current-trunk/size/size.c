@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+#include "_elftc.h"
+
 #include <sys/cdefs.h>
 #include <assert.h>
 #include <err.h>
@@ -36,8 +38,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "_elftc.h"
 
 ELFTC_VCSID("$Id: size.c 2350 2011-12-19 10:20:06Z jkoshy $");
 
