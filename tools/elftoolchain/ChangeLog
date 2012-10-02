@@ -1,3 +1,7 @@
+Wed Oct  3 01:45:12 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac: Take as minimal version 2.64 iso 2.68.
+
 Tue Oct  2 23:45:16 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk: Fresh copy of upstream-trunk with autotools patches

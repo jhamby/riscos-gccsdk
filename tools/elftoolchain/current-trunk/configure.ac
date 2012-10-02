@@ -1,7 +1,7 @@
 #                                               -*- Autoconf -*-
 # Process this file with autoconf to produce a configure script.
 
-AC_PREREQ([2.68])
+AC_PREREQ([2.64])
 AC_INIT([elftoolchain], [1.0], [http://sourceforge.net/projects/elftoolchain/])
 
 AC_CANONICAL_HOST
