@@ -93,9 +93,6 @@ fi
 for roapp in asasm cmunge elf2aif ln mkresfs ; do
   if [ ! -f $GCCSDK_PREFIX/bin/$roapp -a ! -f $GCCSDK_PREFIX/bin/$roapp,ff8 -a ! -f $GCCSDK_PREFIX/bin/$roapp,e1f ] ; then
     echo +++ Building $roapp
-    test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && autoreconf --install )
-    create_empty_dir $GCCSDK_BUILDDIR/$roapp
-    cd $GCCSDK_BUILDDIR/$roapp
     if [ "$GCCSDK_BUILD_ACTION" == "riscos" ] ; then
       # These apps are using SCL as runtime library:
       case $roapp in
@@ -116,7 +113,22 @@ for roapp in asasm cmunge elf2aif ln mkresfs ; do
         MAKETARGET=install
         ;;
     esac
-    $GCCSDK_RISCOS/$roapp/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS
+    # Extra configure arguments.
+    case $roapp in
+      asasm)
+        # Don't build the elftoolchain tools.  They are only needed for
+        # testing asasm and not for the gccsdk build.
+        EXTRA_CONFIGURE_ARGS=--disable-building-tools
+       test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && ACLOCAL='aclocal -I $GCCSDK_RISCOS/asasm/m4' autoreconf --install )
+        ;;
+      *)
+        EXTRA_CONFIGURE_ARGS=
+       test -f $GCCSDK_RISCOS/$roapp/configure || ( cd $GCCSDK_RISCOS/$roapp && autoreconf --install )
+        ;;
+    esac
+    create_empty_dir $GCCSDK_BUILDDIR/$roapp
+    cd $GCCSDK_BUILDDIR/$roapp
+    $GCCSDK_RISCOS/$roapp/configure --prefix=$GCCSDK_PREFIX $GCCSDK_CONFIGURE_ARGS $EXTRA_CONFIGURE_ARGS
     make $GCCSDK_MAKE_ARGS $MAKETARGET
   else
     echo +++ NOT building $roapp as it already exists
