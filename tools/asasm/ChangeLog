@@ -1,3 +1,12 @@
+Tue Oct  2 23:57:00 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* .: Use ../elftoolchain/current-trunk as elftoolchain.
+	Add svn:ignore for autotool generated files.
+	* unittests/reloc/ref/import_label_elf.txt: Update after elftoolchain
+	tools output changed.
+	* unittests/reloc/ref/export_label_elf.txt: Likewise.
+	* configure.ac: Update, elftoolchain can now be built using autotools.
+
 Sat Sep 29 17:16:44 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/COPYING: Move to...

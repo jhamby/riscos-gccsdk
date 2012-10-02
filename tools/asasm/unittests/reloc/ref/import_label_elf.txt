@@ -39,6 +39,8 @@ Key to Flags:
   I (info), L (link order), G (group), x (unknown)
   O (extra OS processing required) o (OS specific), p (processor specific)
 
+There is no dynamic section in this file.
+
 Relocation section (.rel.Code1):
 r_offset r_info   r_type              st_value st_name
 0000000c 900000001 R_ARM_PC24          00000000 Imp13
