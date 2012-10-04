@@ -50,16 +50,23 @@ struct ld_input_section {
 
 STAILQ_HEAD(ld_input_section_head, ld_input_section);
 
+enum ld_input_type {
+	LIT_UNKNOWN,
+	LIT_RELOCATABLE,
+	LIT_DSO,
+};
+
 struct ld_input {
 	char *li_name;			/* input object name */
 	char *li_fullname;		/* input object and archive name */
 	Elf *li_elf;			/* input object ELF descriptor */
+	enum ld_input_type li_type;	/* input object kind */
 	struct ld_file *li_file;	/* containing file */
 	size_t li_shnum;		/* num of sections in ELF object */
 	struct ld_input_section *li_is;	/* input section list */
 	struct ld_archive_member *li_lam; /* archive member */
-	struct ld_symbol_head *li_local; /* local symbol list */
-	struct ld_symbol_head *li_nonlocal; /* non-local symbol list */
+	struct ld_symbol *li_local;	/* local symbol hash table */
+	struct ld_symbol *li_nonlocal;	/* non-local symbol hash table */
 	char **li_vername;		/* version name array */
 	size_t li_vername_sz;		/* version name array size */
 	uint16_t *li_versym;		/* symbol version array */

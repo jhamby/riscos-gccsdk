@@ -1,3 +1,8 @@
+Thu Oct  4 22:46:55 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2608
+
 Wed Oct  3 01:45:12 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac: Take as minimal version 2.64 iso 2.68.
