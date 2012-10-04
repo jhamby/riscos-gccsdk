@@ -72,21 +72,22 @@ ld_input_alloc(struct ld *ld, struct ld_file *lf, const char *name)
 	if ((li->li_name = strdup(name)) == NULL)
 		ld_fatal_std(ld, "strdup");
 
-	/*
-	 * TODO: Do not allocate memory for symbo lists if ld(1) is
-	 * going to strip the symbol table.
-	 */
-
-	if ((li->li_local = malloc(sizeof(*li->li_local))) == NULL)
-		ld_fatal_std(ld, "malloc");
-
-	if ((li->li_nonlocal = malloc(sizeof(*li->li_nonlocal))) == NULL)
-		ld_fatal_std(ld, "malloc");
-
-	STAILQ_INIT(li->li_local);
-	STAILQ_INIT(li->li_nonlocal);
-
 	li->li_file = lf;
+
+	switch (lf->lf_type) {
+	case LFT_ARCHIVE:
+	case LFT_RELOCATABLE:
+		li->li_type = LIT_RELOCATABLE;
+		break;
+	case LFT_DSO:
+		li->li_type = LIT_DSO;
+		break;
+	case LFT_BINARY:
+	case LFT_UNKNOWN:
+	default:
+		li->li_type = LIT_UNKNOWN;
+		break;
+	}
 
 	return (li);
 }
