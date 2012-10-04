@@ -184,5 +184,11 @@
 
 #endif /* defined(__linux__) || defined(__GNU__) || defined(__GLIBC__) */
 
+#ifdef __riscos__
+#define	LIBELF_ARCH		EM_ARM
+#define	LIBELF_BYTEORDER	ELFDATA2LSB
+#define	LIBELF_CLASS		ELFCLASS32
+#endif
+
 #endif /* !defined(LIBELF_ARCH) || !defined(LIBELF_BYTEORDER) || !defined(LIBELF_CLASS) */
 
