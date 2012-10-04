@@ -2,10 +2,10 @@
 
 ASASM := @top_builddir@/src/asasm
 DECAOF := @top_builddir@/decaof/decaof
-# FIXME: as soon as it is available, we should use objdump instaed of
-# readelf and elfdump so we can properly dump ELF details with one command
-READELF := @top_builddir@/elftoolchain/readelf
-ELFDUMP := @top_builddir@/elftoolchain/elfdump
+# FIXME: as soon as it is available, we should use objdump instead of
+# readelf and elfdump, so we can properly dump all ELF details with one command
+READELF := @top_builddir@/elftoolchain/readelf/readelf
+ELFDUMP := @top_builddir@/elftoolchain/elfdump/elfdump
 
 ASASMFLAGS_AOF := -aof
 ASASMFLAGS_ELF := -elf

@@ -1,3 +1,8 @@
+Thu Oct  4 23:27:47 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/reloc/Makefile.in (READELF,ELFDUMP): Fix elftoolchain
+	binary paths.
+
 Wed Oct  3 03:13:40 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* m4/ltdl.m4, m4/ltsugar.m4, m4/argz.m4, m4/ltversion.m4,
