@@ -1,3 +1,7 @@
+Thu Oct  4 23:36:08 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* Makefile.am (check-minimum): Add.
+
 Thu Oct  4 23:27:47 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/reloc/Makefile.in (READELF,ELFDUMP): Fix elftoolchain
