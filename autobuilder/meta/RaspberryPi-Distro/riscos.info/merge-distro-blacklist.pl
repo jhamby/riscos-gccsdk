@@ -16,7 +16,8 @@ my @blacklist = ( 'firefox-riscpc', 'GCC', 'CPP-2.95', 'GCC-2.95', 'G++',
   'StrongED-Modes-Internet', 'StrongED-Modes-Misc', 'StrongED-Modes-Program',
   'StrongED-Modes-RISCOS', 'StrongED-Modes-Scripting',
   'RiscTerm',
-  'MagicMush', 'FTPc'
+  'MagicMush', 'FTPc',
+  'bison', 'flex', 'm4'
   );
 
 # fetch the packages file
@@ -25,7 +26,7 @@ my $riscosinfo_content = get $riscosinfo;
 
 # turn content relative URLs into absolute paths
 $riscpkg_content =~ s/URL: \.\.\//URL: http:\/\/www\.riscpkg\.org\//g;
-#$riscosinfo_content =~ s/URL: \.\.\//URL: http:\/\/www\.riscos\.info\/packages\//g;
+$riscosinfo_content =~ s/URL: \.\.\//URL: http:\/\/www\.riscos\.info\/packages\//g;
 
 # split into individual package entries
 
