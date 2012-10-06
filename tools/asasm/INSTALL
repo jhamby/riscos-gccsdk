@@ -1,4 +1,4 @@
-Build instructions for native asasm:
+*** Build instructions for native asasm:
 
 1. Generate the configuration files.
    This should only be done once for a freshly checked output source tree.
@@ -14,7 +14,14 @@ Build instructions for native asasm:
 
 3. Create Makefile in the build output directory:
 
-   $ ../asasm/configure
+   $ ../asasm/configure --target=arm-unknown-riscos
+
+   If you're not interested to run the asasm tests, you don't need to
+   build the elftoolchain tools, so you can additionally specify
+   --disable-building-tools
+
+   Also you can specify --prefix=<installdir> with <installdir> a full path
+   of the intended installation directory (used when 'make install' is done).
 
 4. Compile and link asasm:
 
@@ -23,7 +30,7 @@ Build instructions for native asasm:
 5. Test:
 
    $ cd ../asasm/regression
-   $ make AS=../../build-output/asasm
+   $ make check
 
    When all the tests are successful, you should see at the near end:
 
@@ -34,7 +41,7 @@ Build instructions for native asasm:
    $ cd ../../build-output/asasm
    $ sudo make install
 
-Build instructions for cross-compiled asasm:
+*** Build instructions for cross-compiled asasm:
 
 1. Generate the configuration files:
    This should only be done once for a freshly checked output source tree.
@@ -56,7 +63,11 @@ Build instructions for cross-compiled asasm:
 4. Create Makefile in the build output directory (indicating which
    cross-compiler needs to be used):
 
-   $ ../asasm/configure --host=arm-unknown-riscos
+   $ ../asasm/configure --host=arm-unknown-riscos --target=arm-unknown-riscos \
+   --disable-building-tools
+
+   Also you can specify --prefix=<installdir> with <installdir> a full path
+   of the intended installation directory (used when 'make install' is done).
 
 5. Cross-compile and link asasm:
 
