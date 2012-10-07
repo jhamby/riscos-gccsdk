@@ -43,104 +43,6 @@ namespace riscos
 				public const uint ColourSelected = 0x829c2;
 			}
 
-			/*! \brief The event handlers that will be called just before this Colour Dialogue is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ColourDialogueObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief An object that encapsulates the arguments for the event that is raised
-			 * after the Colour Dialogue has been hidden.  */
-			public class DialogueCompleteEventArgs : ToolboxEventArgs
-			{
-				/*! \brief Constant defining the possible bit flag returned by this event.  */
-				public static class Flags
-				{
-					public const int SelectionWasMade = (1 << 0);
-				}
-
-				/*! \brief \e true if a colour selection was made during this dialogue.  */
-				public readonly bool SelectionWasMade;
-
-				public DialogueCompleteEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
-				{
-					SelectionWasMade = (Header.Flags & Flags.SelectionWasMade) != 0;
-				}
-			}
-
-			/*! \brief The signature of a DialogueComplete event handler.  */
-			public delegate void DialogueCompleteEventHandler (object sender, DialogueCompleteEventArgs e);
-
-			/*! \brief The event handlers that will be called when this dialogue is hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, DialogueCompleteEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ColourDialogueObject.DialogueComplete += handler_name;
-			 * \endcode  */
-			public event DialogueCompleteEventHandler DialogueComplete;
-
-			/*! \brief An object that encapsulates the arguments for the event that is raised
-			 * when the user clicks \e OK in the dialogue box.
-			 * 
-			 * \note If th \e None button is set, a colour value is still returned, reflecting the
-			 * current state of the dialogue box.  */
-			public class ColourSelectedEventArgs : ToolboxEventArgs
-			{
-				/*! \brief Constant defining event specific data offset after the header.  */
-				public static class EventOffset
-				{
-					public const int ColourBlock = 16;
-				}
-
-				/*! \brief Constant defining the possible bit flag returned by this event.  */
-				public static class Flags
-				{
-					public const int NoneSelected = (1 << 0);
-				}
-
-				public readonly int [] ColourBlock;
-
-				/*! \brief \e true if the \e None button was selected.  */
-				public readonly bool NoneSelected;
-
-				public ColourSelectedEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
-				{
-					NoneSelected = (Header.Flags & Flags.NoneSelected) != 0;
-
-					ColourBlock = new int [212 / 4];
-					Marshal.Copy (new IntPtr (RawEventData.ToInt32() + EventOffset.ColourBlock),
-						      ColourBlock,
-						      0,
-						      212 / 4);
-				}
-			}
-
-			/*! \brief The signature of a ColourSelected event handler.  */
-			public delegate void ColourSelectedEventHandler (object sender, ColourSelectedEventArgs e);
-
-			/*! \brief The event handlers that will be called when the use clicks \e OK in the
-			 * dialogue box.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ColourSelectedEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ColourDialogueObject.ColourSelected += handler_name;
-			 * \endcode  */
-			public event ColourSelectedEventHandler ColourSelected;
-
 			/*! \brief Create a %Toolbox Colour Dialogue from the named template in the
 			 * Resource file.
 			 * \param[in] resName The name of the Colour Dialogue template to use.  */
@@ -160,6 +62,49 @@ namespace riscos
 			public ColourDialogue (uint objectID) : base (objectID)
 			{
 			}
+
+			/*! \brief The signature of a DialogueComplete event handler.  */
+			public delegate void DialogueCompleteEventHandler (object sender, DialogueCompleteEventArgs e);
+
+			/*! \brief The signature of a ColourSelected event handler.  */
+			public delegate void ColourSelectedEventHandler (object sender, ColourSelectedEventArgs e);
+
+			/*! \brief The event handlers that will be called just before this Colour Dialogue is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ColourDialogueObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this dialogue is hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, DialogueCompleteEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ColourDialogueObject.DialogueComplete += handler_name;
+			 * \endcode  */
+			public event DialogueCompleteEventHandler DialogueComplete;
+
+			/*! \brief The event handlers that will be called when the use clicks \e OK in the
+			 * dialogue box.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ColourSelectedEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ColourDialogueObject.ColourSelected += handler_name;
+			 * \endcode  */
+			public event ColourSelectedEventHandler ColourSelected;
 
 			/*! \brief The handle of the WIMP window used by the underlying Colour
 			 * Picker module.
@@ -256,9 +201,12 @@ namespace riscos
 				try {
 					// Prevent the GC from moving the memory while we use its address
 					pinned_array = GCHandle.Alloc (colourBlock, GCHandleType.Pinned);
-					MiscOp_SetR3 (noneSelected ? 1U : 0,
-						      Method.SetColour,
-						      pinned_array.AddrOfPinnedObject());
+					if (noneSelected)
+						MiscOp_SetR3 (1U, Method.SetColour, IntPtr.Zero);
+					else
+						MiscOp_SetR3 (0,
+							      Method.SetColour,
+							      pinned_array.AddrOfPinnedObject());
 				}
 				catch {
 					throw;
@@ -370,6 +318,61 @@ namespace riscos
 					if (ColourSelected != null)
 						ColourSelected (this, new ColourSelectedEventArgs (ev.ToolboxArgs.RawEventData));
 					break;
+				}
+			}
+
+			/*! \brief An object that encapsulates the arguments for the event that is raised
+			 * after the Colour Dialogue has been hidden.  */
+			public class DialogueCompleteEventArgs : ToolboxEventArgs
+			{
+				/*! \brief Constant defining the possible bit flag returned by this event.  */
+				public static class Flags
+				{
+					public const int SelectionWasMade = (1 << 0);
+				}
+
+				/*! \brief \e true if a colour selection was made during this dialogue.  */
+				public readonly bool SelectionWasMade;
+
+				public DialogueCompleteEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+				{
+					SelectionWasMade = (Header.Flags & Flags.SelectionWasMade) != 0;
+				}
+			}
+
+			/*! \brief An object that encapsulates the arguments for the event that is raised
+			 * when the user clicks \e OK in the dialogue box.
+			 * 
+			 * \note If th \e None button is set, a colour value is still returned, reflecting the
+			 * current state of the dialogue box.  */
+			public class ColourSelectedEventArgs : ToolboxEventArgs
+			{
+				/*! \brief Constant defining event specific data offset after the header.  */
+				public static class EventOffset
+				{
+					public const int ColourBlock = 16;
+				}
+
+				/*! \brief Constant defining the possible bit flag returned by this event.  */
+				public static class Flags
+				{
+					public const int NoneSelected = (1 << 0);
+				}
+
+				public readonly int [] ColourBlock;
+
+				/*! \brief \e true if the \e None button was selected.  */
+				public readonly bool NoneSelected;
+
+				public ColourSelectedEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+				{
+					NoneSelected = (Header.Flags & Flags.NoneSelected) != 0;
+
+					ColourBlock = new int [212 / 4];
+					Marshal.Copy (new IntPtr (RawEventData.ToInt32() + EventOffset.ColourBlock),
+						      ColourBlock,
+						      0,
+						      212 / 4);
 				}
 			}
 		}
