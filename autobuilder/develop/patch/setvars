@@ -1,6 +1,8 @@
 
 AB_MANPAGE=patch.man
 
+export ac_cv_func_strnlen_working=yes
+
 ab_package() {
   ab_create_command_app Patch Apps/Development
   ab_add_commands $S/src/patch$AB_EXEEXT
