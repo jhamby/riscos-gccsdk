@@ -285,14 +285,26 @@ NeedToOutputSymbol (const Symbol *sym)
   if (Area_IsMappingSymbol (sym->str))
     return true;
 
+  /* Give a warning for a symbol which got explicitly marked as 'KEEP'
+     but as a valuetype which does not allow us to 'keep' it.  */
+  if ((sym->type & SYMBOL_KEEP)
+      && !((sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt)
+		        || sym->value.Tag == ValueSymbol))
+    {
+      if (sym->value.Tag == ValueIllegal)
+	errorLine (NULL, 0, ErrorError, "Symbol %s is marked with KEEP but has not been defined", sym->str);
+      else
+	errorLine (NULL, 0, ErrorWarning, "Symbol %s is marked with KEEP but has unsuitable value for export", sym->str);
+    }
+
   bool doOutput = (((oKeepAllSymbols || (sym->type & SYMBOL_KEEP))
+                    && (sym->type & SYMBOL_RW) == 0
 		    && ((sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt)
 		        || sym->value.Tag == ValueSymbol))
 		   || SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
                    || (SYMBOL_KIND(sym->type) == SYMBOL_REFERENCE && sym->used >= 0)
 		  )
 		  && !Local_IsLocalLabel (sym->str);
-  assert (!doOutput || (sym->type & SYMBOL_RW) == 0);
   return doOutput;
 }
 
@@ -618,7 +630,7 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 		    v = 0;
 		    break;
 		}
-	      asym.Type = armword (sym->type & SYMBOL_SUPPORTEDBITS);
+	      asym.Type = armword (sym->type & SYMBOL_SUPPORTED_AOF_BITS);
 	      asym.Value = armword (v);
 	      /* When it is a non-absolute symbol, we need to specify the
 	         area name to which this symbol is relative to.  */
@@ -626,7 +638,7 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	    }
 	  else
 	    {
-	      asym.Type = armword ((sym->type | TYPE_REFERENCE) & SYMBOL_SUPPORTEDBITS);
+	      asym.Type = armword ((sym->type | TYPE_REFERENCE) & SYMBOL_SUPPORTED_AOF_BITS);
 	      asym.Value = armword ((sym->type & SYMBOL_COMMON) ? sym->value.Data.Int.i : 0);
 	      asym.AreaName = armword (0);
 	    }
@@ -757,7 +769,7 @@ Symbol_FreeSymbolOut (SymbolOut_t *symOutP)
  * non-NULL otherwise (even when symbol is not yet known).
  */
 static Symbol *
-symFlag (unsigned int flags, const char *err)
+ParseSymbolAndAdjustFlag (unsigned int flags, const char *err)
 {
   const Lex lex = lexGetIdNoError ();
   if (lex.tag != LexId)
@@ -789,7 +801,7 @@ c_export (void)
   if (option_abs)
     return true;
 
-  Symbol *sym = symFlag (SYMBOL_REFERENCE, "exported");
+  Symbol *sym = ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE, "exported");
   skipblanks ();
   if (Input_Match ('[', true))
     {
@@ -838,7 +850,7 @@ c_strong (void)
   if (option_abs)
     return true;
 
-  if (symFlag (SYMBOL_STRONG, "marked as 'strong'") == NULL)
+  if (ParseSymbolAndAdjustFlag (SYMBOL_STRONG, "marked as 'strong'") == NULL)
     error (ErrorError, "Missing symbol to mark as 'strong'");
   return false;
 }
@@ -855,7 +867,7 @@ c_keep (void)
   if (option_abs)
     return true;
 
-  if (symFlag (SYMBOL_KEEP, "marked to 'keep'") == NULL)
+  if (ParseSymbolAndAdjustFlag (SYMBOL_KEEP, "marked to 'keep'") == NULL)
     oKeepAllSymbols = true;
   return false;
 }
@@ -883,7 +895,7 @@ c_import (void)
   if (option_abs)
     return true;
 
-  Symbol *sym = symFlag (SYMBOL_REFERENCE, "imported");
+  Symbol *sym = ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE, "imported");
   if (sym == NULL)
     {
       error (ErrorError, "Missing symbol for import");

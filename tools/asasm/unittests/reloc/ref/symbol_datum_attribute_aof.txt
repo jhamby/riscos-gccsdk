@@ -1,0 +1,81 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+4 areas
+27 symbols
+
+** Area (0x000102) "Code", aligned at 4 bytes, [code] [32bit] 
+   Size 44 bytes, 0 relocations
+
+000000: e3a00000 e3a00001 e3a00002 00000004 00000005 e3a00006 e3a00007 00000008
+000020: 00000009 0000000a e3a0000b
+
+** Area (0x000102) "Code2", aligned at 4 bytes, [code] [32bit] 
+   Size 4 bytes, 0 relocations
+
+000000: e3a00000
+
+** Area (0x000000) "Data1", aligned at 4 bytes, [data] 
+   Size 8 bytes, 0 relocations
+
+000000: 00000001 00000002
+
+** Area (0x000000) "Data2", aligned at 4 bytes, [data] 
+   Size 4 bytes, 0 relocations
+
+000000: 00000001
+
+** Symbol table:
+
+Code             (01) local at "Code" + 0x000000
+Code1Sym01       (01) local at "Code" + 0x000000
+Code1Sym02       (01) local at "Code" + 0x000004
+Code1Sym03       (01) local at "Code" + 0x000008
+Code1Sym04       (01) local at "Code" + 0x00000c
+Code1Sym05       (101) local, cadatum at "Code" + 0x000010
+Code1Sym06       (01) local at "Code" + 0x000014
+Code1Sym07       (01) local at "Code" + 0x000018
+Code1Sym08       (01) local at "Code" + 0x00001c
+Code1Sym09       (01) local at "Code" + 0x000020
+Code1Sym10       (101) local, cadatum at "Code" + 0x000024
+Code1Sym11       (101) local, cadatum at "Code" + 0x000028
+Code2            (01) local at "Code2" + 0x000000
+Code2Sym01       (01) local at "Code2" + 0x000000
+Data1            (01) local at "Data1" + 0x000000
+Data1Sym01       (01) local at "Data1" + 0x000000
+Data1Sym02       (01) local at "Data1" + 0x000004
+Data2            (01) local at "Data2" + 0x000000
+Data2Sym01       (01) local at "Data2" + 0x000000
+$a               (01) local at "Code" + 0x000000
+$d               (101) local, cadatum at "Code" + 0x00000c
+$a               (01) local at "Code" + 0x000014
+$d               (101) local, cadatum at "Code" + 0x000024
+$a               (01) local at "Code" + 0x000028
+$a               (01) local at "Code2" + 0x000000
+$d               (01) local at "Data1" + 0x000000
+$d               (01) local at "Data2" + 0x000000
+
+** String table:
+
+000004: Code
+000009: Code1Sym01
+000014: Code1Sym02
+00001f: Code1Sym03
+00002a: Code1Sym04
+000035: Code1Sym05
+000040: Code1Sym06
+00004b: Code1Sym07
+000056: Code1Sym08
+000061: Code1Sym09
+00006c: Code1Sym10
+000077: Code1Sym11
+000082: Code2
+000088: Code2Sym01
+000093: Data1
+000099: Data1Sym01
+0000a4: Data1Sym02
+0000af: Data2
+0000b5: Data2Sym01
+0000c0: $a
+0000c3: $d

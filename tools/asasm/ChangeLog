@@ -1,3 +1,41 @@
+Sun Oct  7 13:40:42 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* aoffile.h (HOW3_*): Remove.
+	(HOW2_SIZE): Remove.
+	(HOW2_INSTR_UNLIM, HOW2_INSTR_MAX1, HOW2_INSTR_MAX2, HOW2_INSTR_MAX3):
+	Add.
+	* help_cop.c: Follow HOW2_SIZE rename to HOW2_INSTR_UNLIM.
+	* m_cpuctrl.c: Likewise.
+	* m_cpumem.c: Likewise.
+	* symbol.h (SYMBOL_SUPPORTEDBITS): Rename to SYMBOL_SUPPORTED_AOF_BITS.
+	* symbol.c (NeedToOutputSymbol): Add warning when symbol got marked
+	with KEEP but its value does not allow it to be exported.
+	Add check on writable variables, remove assert on this.
+	(Symbol_OutputForAOF, Symbol_OutputForELF): Follow SYMBOL_SUPPORTEDBITS
+	to SYMBOL_SUPPORTED_AOF_BITS rename.
+	(symFlag): Rename to ParseSymbolAndAdjustFlag.
+	* asm.c (ASM_DefineLabel): Only add SYMBOL_DATUM to labels when they
+	are set in code	areas.
+	* reloc.c (relocAOFOutput, relocELFOutput): Add assert on the ValueCode
+	cases.
+	* reloc.h (Reloc): Adjust comment.
+
+	unittests/reloc/src:
+	* symbol_datum_attribute.s, keep_all_before.s, keep_all_after.s,
+	keep_one_symbol.s: Add.
+
+	unittests/reloc/ref:
+	* import_label_aof.txt, export_label_aof.txt: Update after decaof
+	update.
+	* keep_one_symbol_aof.txt, keep_one_symbol_elf.txt,
+	keep_all_after_aof.txt, keep_all_after_elf.txt, keep_all_before_aof.txt,
+	keep_all_before_elf.txt, symbol_datum_attribute_aof.txt,
+	symbol_datum_attribute_elf.txt: Add.
+
+	* unittests/reloc/Makefile.in: Leave the current decaof/readelf/
+	elfdump output as text file.
+
 Sat Oct  6 13:05:36 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/INSTALL: Move to...

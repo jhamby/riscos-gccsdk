@@ -48,36 +48,27 @@ typedef struct
 } AofHeader;
 
 /* Type 1 relocation directive.  */
-#define HOW1_INIT     0x00000000
-#define HOW1_BYTE     0x00000000
-#define HOW1_HALF     0x00010000
-#define HOW1_WORD     0x00020000
-#define HOW1_SIZE     0x00030000
-#define HOW1_RELATIVE 0x00040000
-#define HOW1_SYMBOL   0x00080000 /* Only used if not HOW1_RELATIVE */
-#define HOW1_SIDMASK  0x0000ffff /* Only used if HOW1_SYMBOL */
+#define HOW1_INIT     0x00000000u /* Top 12 bits are 0.  */
+#define HOW1_BYTE     0x00000000u /* Field to be relocated is a byte.  */
+#define HOW1_HALF     0x00010000u /* Field to be relocated is a half word.  */
+#define HOW1_WORD     0x00020000u /* Field to be relocated is a word.  */
+#define HOW1_RELATIVE 0x00040000u
+#define HOW1_SYMBOL   0x00080000u /* Only used if not HOW1_RELATIVE */
+#define HOW1_SIDMASK  0x0000ffffu /* Only used if HOW1_SYMBOL */
 
 /* Type 2 relocation directive.  */
-#define HOW2_INIT     0x80000000
-#define HOW2_BYTE     0x00000000
-#define HOW2_HALF     0x01000000
-#define HOW2_WORD     0x02000000
-#define HOW2_SIZE     0x03000000
-#define HOW2_RELATIVE 0x04000000
-#define HOW2_SYMBOL   0x08000000 /* Only used if not HOW2_RELATIVE */
-#define HOW2_SIDMASK  0x00ffffff /* Symbol offset if HOW2_SYMBOL, otherwise area number */
-
-/* Type 3 relocation directive.  */
-#define HOW3_INIT     (1U << 31)
-#define HOW3_BYTE     (0 << 24) /* Field to be relocated is a byte.  */
-#define HOW3_HALF     (1 << 24) /* Field to be relocated is a half word.  */
-#define HOW3_WORD     (2 << 24)	/* Field to be relocated is a word.  */
-#define HOW3_INSTR    (3 << 24) /* Field to be relocated is an instruction sequence.  */
-#define HOW3_SIZE     0x03000000
-#define HOW3_RELATIVE (1 << 26) /* PC-relative.  */
-#define HOW3_BASED    (1 << 28) /* Based area.  */
-#define HOW3_SYMBOL   (1 << 27) /* The 'A' bit. Determines SID type.  */
-#define HOW3_SIDMASK  0x00ffffff /* Symbol offset if HOW3_SYMBOL, otherwise area number */
+#define HOW2_INIT         0x80000000u
+#define HOW2_BYTE         0x00000000u /* Field to be relocated is a byte.  */
+#define HOW2_HALF         0x01000000u /* Field to be relocated is a half word.  */
+#define HOW2_WORD         0x02000000u /* Field to be relocated is a word.  */
+#define HOW2_INSTR_UNLIM  (0x03000000u | 0x00000000u) /* Field to be relocated is an unlimited instruction sequence.  */
+#define HOW2_INSTR_MAX1   (0x03000000u | 0x20000000u) /* Field to be relocated is one instruction.  */
+#define HOW2_INSTR_MAX2   (0x03000000u | 0x40000000u) /* Field to be relocated is an at most 2 instruction sequence.  */
+#define HOW2_INSTR_MAX3   (0x03000000u | 0x60000000u) /* Field to be relocated is an at most 3 instruction sequence.  */
+#define HOW2_RELATIVE     0x04000000u /* PC-relative.  */
+#define HOW2_SYMBOL       0x08000000 /* The 'A' bit. Determines SID type. */
+#define HOW2_BASED        0x10000000 /* Based area.  */
+#define HOW2_SIDMASK      0x00ffffff /* Symbol offset if HOW2_SYMBOL, otherwise area number */
 
 typedef struct
 {

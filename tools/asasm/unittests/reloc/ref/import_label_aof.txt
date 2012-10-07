@@ -1,5 +1,5 @@
 
-** AOF Header: Relocatable object format (out/import_label_aof.o)
+** AOF Header: Relocatable object format:
 
 AOF version: 310
 3 areas
@@ -39,7 +39,7 @@ At 0x00000c (flags 0x8a000008): Word displaced by symbol "Imp33" (type-2 reloc)
 At 0x000008 (flags 0x8a000007): Word displaced by symbol "Imp32" (type-2 reloc)
 At 0x000004 (flags 0x8a000006): Word displaced by symbol "Imp31" (type-2 reloc)
 
-** Symbol table (out/import_label_aof.o):
+** Symbol table:
 
 Imp11            (02) extern
 Imp12            (02) extern
@@ -55,9 +55,9 @@ Code2            (05) local, absolute = 0x00000000
 Data3            (01) local at "Data3" + 0x000000
 $a               (01) local at "Code1" + 0x000000
 $a               (01) local at "Code2" + 0x000000
-$d               (101) local, cadatum at "Data3" + 0x000000
+$d               (01) local at "Data3" + 0x000000
 
-** String table (out/import_label_aof.o):
+** String table:
 
 000004: Imp11
 00000a: Imp12

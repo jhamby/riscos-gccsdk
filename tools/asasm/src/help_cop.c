@@ -296,7 +296,7 @@ help_copAddr (ARMWord ir, bool literal, bool stack)
 	      if (valP->Data.Symbol.symbol != areaCurrentSymbol)
 		{
 		  assert ((ir & P_FLAG) && "Calling reloc for non pre-increment instructions ?");
-		  if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+		  if (Reloc_Create (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP) == NULL)
 		    error (ErrorError, "Relocation failed");
 		  break;
 		}

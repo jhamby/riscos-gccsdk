@@ -45,9 +45,9 @@
 #define SYMBOL_COMMON    0x0040
 
 #define SYMBOL_DATUM     0x0100	/* Set for data symbol defined in code area.  */
-#define SYMBOL_FPREGARGS 0x0200 /* FP args in FP regs attribute, for code symbols only */
-#define SYMBOL_LEAF      0x0800	/* Leaf function, for code symbol only */
-#define SYMBOL_THUMB     0x1000	/* Identifies Thumb code, instead of ARM code */
+#define SYMBOL_FPREGARGS 0x0200	/* FP args in FP regs attribute, for code symbols only.  */
+#define SYMBOL_LEAF      0x0800	/* Leaf function, for code symbol only.  */
+#define SYMBOL_THUMB     0x1000	/* Identifies Thumb code, instead of ARM code. For code symbol only.  */
 
 /* New since DDE Rel 21:
 
@@ -57,9 +57,9 @@
    arguments in integer registers, but also returns any floating point
    return value in integer registers. A symbolic reference with this
    attribute cannot be matched by the linker to a symbol definition which
-   lacks the attribute.  */ 
+   lacks the attribute.  */
 
-#define SYMBOL_SUPPORTEDBITS 0x1B7F /** Mask for the symbol bits which are AOF defined symbols bits and can be passed on in the AOF output file.  */
+#define SYMBOL_SUPPORTED_AOF_BITS 0x1B7F /** Mask for the symbol bits which are AOF defined symbols bits and can be passed on in the AOF output file.  */
 
 /* The following are 'asasm' internal SYMBOL attribute values only and should
    not be used in the AOF output file.  */

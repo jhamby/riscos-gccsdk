@@ -99,7 +99,7 @@ branch_shared (ARMWord cc, bool isBLX)
   assert (valP->Data.Symbol.factor == 1);
   if (valP->Data.Symbol.symbol != areaCurrentSymbol)
     {
-      if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+      if (Reloc_Create (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP) == NULL)
 	error (ErrorError, "Relocation failed");
 
       /* The R_ARM_PC24 ELF reloc needs to happen for a "B {PC}" instruction,
@@ -520,7 +520,7 @@ m_adr (bool doLowerCase)
 
       case ValueSymbol:
 	assert (valP->Data.Symbol.factor == 1);
-	if (Reloc_Create (HOW2_INIT | HOW2_SIZE | HOW2_RELATIVE, offset, valP) == NULL)
+	if (Reloc_Create (HOW2_INIT | HOW2_INSTR_UNLIM | HOW2_RELATIVE, offset, valP) == NULL)
 	  error (ErrorError, "Relocation failed");
 	constant = valP->Data.Symbol.offset - (areaOffset + offset + 8);
 	baseReg = 15;

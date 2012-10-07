@@ -95,6 +95,7 @@ relocFix (const Symbol *area)
 	norelocs += relocs->value.Data.Symbol.factor;
       else
 	{
+assert (0); /* FIXME: this code can be removed.  */
 	  assert (relocs->value.Tag == ValueCode);
 	  size_t len = relocs->value.Data.Code.len;
 	  const Code *code = relocs->value.Data.Code.c;
@@ -137,6 +138,7 @@ relocAOFOutput (FILE *outfile, const Symbol *area)
 	}
       else
 	{
+assert (0); /* FIXME: this code can be removed.  */
 	  assert (relocs->value.Tag == ValueCode);
 	  size_t len = relocs->value.Data.Code.len;
 	  const Code *code = relocs->value.Data.Code.c;
@@ -181,7 +183,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	  assert (value->Data.Symbol.symbol->used >= 0);
 	  int symbol = value->Data.Symbol.symbol->used;
 	  int type;
-	  if (relocs->reloc.How & HOW3_RELATIVE)
+	  if (relocs->reloc.How & HOW2_RELATIVE)
 	    type = R_ARM_PC24; /* FIXME: for EABI (when ELF_EABI defined), this should be R_ARM_CALL or R_ARM_JUMP24.  */
 	  else
 	    type = R_ARM_ABS32;
@@ -193,6 +195,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 	}
       else
 	{
+assert (0); /* FIXME: this code can be removed.  */
 	  assert (relocs->value.Tag == ValueCode);
 	  size_t len = relocs->value.Data.Code.len;
 	  const Code *code = relocs->value.Data.Code.c;
@@ -206,7 +209,7 @@ relocELFOutput (FILE *outfile, const Symbol *area)
 		  assert (value->Data.Symbol.symbol->used >= 0);
 		  int symbol = value->Data.Symbol.symbol->used;
 		  int type;
-		  if (relocs->reloc.How & HOW3_RELATIVE)
+		  if (relocs->reloc.How & HOW2_RELATIVE)
 		    type = R_ARM_PC24; /* FIXME: for EABI (when ELF_EABI defined), this should be R_ARM_CALL or R_ARM_JUMP24.  */
 		  else
 		    type = R_ARM_ABS32;
