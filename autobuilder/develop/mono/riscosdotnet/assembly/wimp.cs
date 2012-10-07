@@ -281,6 +281,15 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Sets the anti-aliased font colours from the two Wimp colours specified.
+		 * \param [in] bg The Wimp colour to use for the font background (0-15).
+		 * \param [in] fg The Wimp colour to use for the font foreground (0-15).
+		 * \return Nothing.  */
+		public static void SetFontColours (int bg, int fg)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_SetFontColours (bg, fg));
+		}
+
 		public static void ProcessKey (int key)
 		{
 			OS.ThrowOnError (NativeMethods.Wimp_ProcessKey (key));

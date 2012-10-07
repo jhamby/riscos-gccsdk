@@ -503,6 +503,10 @@ namespace riscos
 							       int x1,
 							       int y1);
 
+		// Note that the OSLib veneer has fg and bg the wrong way around
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_set_font_colours")]
+		internal static extern IntPtr Wimp_SetFontColours (int bg, int fg);
+
 		// WIMP Support
 		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Wimp_GetEventType")]
 		internal static extern Wimp.PollCode wimp_get_event_type ();
