@@ -1,3 +1,15 @@
+Sun Oct  7 13:18:31 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* configure.ac (AC_INIT): Increase version to 2.01.
+	* Makefile.am (GCCSDK_VERSION): Add svn branch (SVN_ROOT, SVN_BRANCH,
+	SVN_REV).
+	* decode.c (decode): Don't print filename when there is only one
+	given.  Use opt_print_area_dec.
+	* main.c (gotarg): Make local.
+	(donext): Remove.
+	(main): Add option -i.
+	(usage): Update output.
+
 Sun Sep 30 21:51:35 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* decode.c (print_area): Fix comment.

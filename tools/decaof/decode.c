@@ -51,6 +51,7 @@ static const char *areaname (Word offset);
 void
 decode (void)
 {
+  const bool only_one_file = nfiles == 1;
   while (nfiles--)
     {
       const char *filename = *files++;
@@ -167,7 +168,10 @@ decode (void)
 	    cptr = "unknown image type";
 	    break;
 	}
-      printf ("\n** AOF Header: %s (%s)\n\n", cptr, filename);
+      printf ("\n** AOF Header: %s", cptr);
+      if (!only_one_file)
+	printf (" (%s)", filename);
+      printf (":\n\n");
 
       /* Version 150 : AOF 1.xx
 	 Version 200 : AOF 2.xx
@@ -194,23 +198,33 @@ decode (void)
 	    }
 	}
 
-      /* Decode each of the areas.  */
       areahdrs = (const struct areahdr *) &aofhdr[1];
 
-      for (uint32_t areaIdx = 0, offset = 0; areaIdx != aofhdr->numareas; ++areaIdx)
+      /* Decode each of the areas.  */
+      if (opt_print_area_dec)
 	{
-	  print_area (ifp, &areahdrs[areaIdx], offset, offset + areahdrs[areaIdx].size);
-	  if (!(areahdrs[areaIdx].flags & AREA_UDATA))
-	    offset += areahdrs[areaIdx].size + areahdrs[areaIdx].numrelocs*sizeof (struct reloc);
+	  for (uint32_t areaIdx = 0, offset = 0; areaIdx != aofhdr->numareas; ++areaIdx)
+	    {
+	      print_area (ifp, &areahdrs[areaIdx], offset, offset + areahdrs[areaIdx].size);
+	      if (!(areahdrs[areaIdx].flags & AREA_UDATA))
+		offset += areahdrs[areaIdx].size + areahdrs[areaIdx].numrelocs*sizeof (struct reloc);
+	    }
 	}
-  
+      
       if (opt_print_symtab)
 	{
 	  if (!aofhdr->numsyms)
-	    printf ("\n** No Symbol table (%s)", filename);
+	    {
+	      printf ("\n** No Symbol table");
+	      if (!only_one_file)
+		printf (" (%s)", filename);
+	    }
 	  else
 	    {
-	      printf ("\n** Symbol table (%s):\n\n", filename);
+	      printf ("\n** Symbol table");
+	      if (!only_one_file)
+		printf (" (%s)", filename);
+	      printf (":\n\n");
 	      for (uint32_t symIdx = 0; symIdx != aofhdr->numsyms; ++symIdx)
 		{
 		  uint32_t flags = symboltab[symIdx].flags;
@@ -266,10 +280,17 @@ decode (void)
       if (opt_print_strtab)
 	{
 	  if (!stringtab->size)
-	    printf ("\n** No String table (%s)", filename);
+	    {
+	      printf ("\n** No String table");
+	      if (!only_one_file)
+		printf (" (%s)", filename);
+	    }
 	  else
 	    {
-	      printf ("\n** String table (%s):\n\n", filename);
+	      printf ("\n** String table");
+	      if (!only_one_file)
+		printf (" (%s)", filename);
+	      printf (":\n\n");
 	      uint32_t offset = 4;
 	      const char *str;
 	      while ((str = string (offset)) != NULL)

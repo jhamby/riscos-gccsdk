@@ -1,5 +1,5 @@
 AC_PREREQ([2.64])
-AC_INIT([decaof],[2.00],[http://gccsdk.riscos.info/])
+AC_INIT([decaof],[2.01],[http://gccsdk.riscos.info/])
 
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_HEADERS([config.h])

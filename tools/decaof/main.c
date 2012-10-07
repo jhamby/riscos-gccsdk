@@ -36,15 +36,13 @@
 const char **files;		/* list of files to decode */
 int nfiles;			/* number of files in **files */
 
+bool opt_print_ident = false;		/* print identification (-i) */
 bool opt_print_area_contents = false;	/* print area contents in hex (-a) */
 bool opt_print_area_dec = false;	/* print area declarations (-d) */
 bool opt_print_reloc_dir = false;	/* print relocation directives (-r) */
 bool opt_print_debug = false;		/* print debugging areas (-g) */
 bool opt_print_symtab = false;		/* print symbol table (-s) */
 bool opt_print_strtab = false;		/* print string table (-t) */
-bool opt_print_ident = false;		/* print identification (no user option) */
-
-static int gotarg = 0;		/* non-zero if some flags where entered */
 
 static void usage (void);
 
@@ -54,23 +52,24 @@ main (int argc, char **argv)
   argv++;
   argc--;
 
-  /*
-   * parse args (can't use getopt() 'cos not all C libraries have it)
-   */
+  /* Parse args (can't use getopt() 'cos not all C libraries have it).  */
+  bool gotarg = false;
   while (argc)
     {
-      int donext = 0;
       char *arg = *argv;
       if (*arg == '-')
 	{
 	  char c;
-	  while (!donext && !isspace (c = *++arg) && c)
+	  while (!isspace (c = *++arg) && c)
 	    {
-	      gotarg++;
+	      gotarg = true;
 	      switch (c)
 		{
 		  case 'h':
 		    usage ();
+		    break;
+		  case 'i':
+		    opt_print_ident = true;
 		    break;
 		  case 'b': /* brief */
 		  case 'd': /* full */
@@ -114,13 +113,13 @@ main (int argc, char **argv)
   if (!gotarg)
     {
       /* Set-up default arguments : full option. */
-      opt_print_area_contents = true;
+      opt_print_ident = true;
       opt_print_area_dec = true;
+      opt_print_area_contents = true;
       opt_print_reloc_dir = true;
       opt_print_debug = true;
       opt_print_symtab = true;
       opt_print_strtab = true;
-      opt_print_ident = true;
     }
 
   decode ();
@@ -128,22 +127,23 @@ main (int argc, char **argv)
 }
 
 
-/*
- * display program usage and exit
+/**
+ * Display program usage and exit
  */
 static void
 usage (void)
 {
   fprintf (stderr,
-	   "GCCSDK Decode AOF files " VERSION " (r" GCCSDK_REVISION ", " __DATE__ ")\n"
+	   "GCCSDK Decode AOF files " VERSION " (" GCCSDK_REVISION ", " __DATE__ ")\n"
 	   "\n"
 	   "Usage: " PACKAGE " [options] file [file...]\n"
 	   "\n"
 	   "where options are:\n"
+	   "       -i print identification\n"
 	   "       -b print only the area declarations\n"
-	   "       -a print area contents in hex\n"
+	   "       -a print area contents in hex (=> -d)\n"
 	   "       -d print area declarations\n"
-	   "       -r print relocation directives\n"
+	   "       -r print relocation directives (=> -r)\n"
 	   "       -g print debugging areas\n"
 	   "       -s print symbol table\n"
 	   "       -t print string table\n");
