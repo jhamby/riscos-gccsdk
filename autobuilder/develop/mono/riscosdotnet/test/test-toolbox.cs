@@ -374,13 +374,15 @@ public class MyTask : ToolboxTask
 			{
 				public const uint SaveAs = 0;
 				public const uint FileInfo = 1;
-				public const uint Colour = 2;
+				public const uint ColourDBox = 2;
+				public const uint ColourMenu = 3;
 			}
 
 			public Toolbox.MenuEntry FileInfoEntry;
 			public Toolbox.MenuEntry SaveAsEntry;
 			public TextFileSaveAs SaveAsDBox;
 			public Toolbox.MenuEntry ColourDBoxEntry;
+			public Toolbox.MenuEntry ColourMenuEntry;
 
 			public TextFileMenu () : base ("WindowMenu")
 			{
@@ -388,15 +390,25 @@ public class MyTask : ToolboxTask
 				SaveAsEntry = new Toolbox.MenuEntry (this, Cmp.SaveAs);
 				SaveAsDBox = new TextFileSaveAs ();
 				SaveAsEntry.SubMenuShow = SaveAsDBox;
-				ColourDBoxEntry = new Toolbox.MenuEntry (this, Cmp.Colour);
+				ColourDBoxEntry = new Toolbox.MenuEntry (this, Cmp.ColourDBox);
+				ColourMenuEntry = new Toolbox.MenuEntry (this, Cmp.ColourMenu);
 			}
 		}
 
 		public TextFileMenu WindowMenu;
 
 		private Font.Instance font;
-		// In RGB format
-		private uint font_colour;
+		// A palette entry
+		private uint font_palette_colour = ColourTrans.Black;
+		private Toolbox.ColourMenu.WimpColour font_wimp_colour;
+
+		enum ColourSetter
+		{
+			Dialogue,
+			Menu
+		}
+
+		ColourSetter ColourSetBy = ColourSetter.Dialogue;
 
 		// The text to be displayed in this window.
 		public string Text;
@@ -412,7 +424,6 @@ public class MyTask : ToolboxTask
 			RedrawHandler += OnRedraw;
 
 			font = new Font.Instance ("Trinity.Medium", 24 << 4, 24 << 4);
-			font_colour = ColourTrans.Black;
 
 			WindowMenu.SaveAsDBox.FileType = 0xfff;
 			WindowMenu.SaveAsDBox.SelectionAvailable = false;
@@ -423,10 +434,61 @@ public class MyTask : ToolboxTask
 				(Toolbox.FileInfoDialogue)WindowMenu.FileInfoEntry.SubMenuShow;
 			file_info_dbox.AboutToBeShown += OnFileInfoAboutToBeShown;
 
+			// The AboutToBeShown events for ColourMenu and ColourDialogue don't seem to
+			// be reliable, so use the SubMenuShow events instead. This is a Toolbox issue,
+			// not a Mono/C# issue.
+			WindowMenu.ColourDBoxEntry.SubMenu += OnColourDBoxSubMenuShow;
+			WindowMenu.ColourMenuEntry.SubMenu += OnColourMenuSubMenuShow;
+
 			Toolbox.ColourDialogue colour_dbox =
 				(Toolbox.ColourDialogue)WindowMenu.ColourDBoxEntry.SubMenuShow;
-			colour_dbox.AboutToBeShown += OnColourDBoxAboutToBeShown;
-			colour_dbox.ColourSelected += OnNewColourSelected;
+			colour_dbox.ColourSelected += OnColourDBoxSelected;
+
+			Toolbox.ColourMenu colour_menu =
+				(Toolbox.ColourMenu)WindowMenu.ColourMenuEntry.SubMenuShow;
+			colour_menu.Selection += OnColourMenuSelected;
+
+		}
+
+		private void OnColourMenuSubMenuShow (object sender, Toolbox.MenuEntry.SubMenuEventArgs args)
+		{
+			// The MenuEntry is the sender.
+			Toolbox.MenuEntry menu_entry = (Toolbox.MenuEntry)sender;
+			Toolbox.ColourMenu colour_menu = (Toolbox.ColourMenu)menu_entry.SubMenuShow;
+
+			// If the ColourDialogue was the last to set the colour then we leave the
+			// menu unselected.
+			colour_menu.Colour = (ColourSetBy != ColourSetter.Menu) ?
+						Toolbox.ColourMenu.WimpColour.Unselected :
+						font_wimp_colour;
+		}
+
+		private void OnColourMenuSelected (object sender, Toolbox.ColourMenu.SelectionEventArgs args)
+		{
+			font_wimp_colour = args.Colour;
+			ColourSetBy = ColourSetter.Menu;
+			ForceRedraw (Extent);
+		}
+
+		private void OnColourDBoxSubMenuShow (object sender, Toolbox.MenuEntry.SubMenuEventArgs args)
+		{
+			// The MenuEntry is the sender.
+			Toolbox.MenuEntry menu_entry = (Toolbox.MenuEntry)sender;
+			Toolbox.ColourDialogue colour_dbox = (Toolbox.ColourDialogue)menu_entry.SubMenuShow;
+
+			// Create the necessary colour block from the font colour
+			int [] colour_block = Toolbox.ColourDialogue.AllocStandardColourBlock (font_palette_colour, Toolbox.ColourDialogue.ColourModel.RGB);
+			// If the ColourMenu was the last to set the colour, then we set the current
+			// colour to None.
+			colour_dbox.SetColour (colour_block, ColourSetBy != ColourSetter.Dialogue);
+		}
+
+		private void OnColourDBoxSelected (object sender, Toolbox.ColourDialogue.ColourSelectedEventArgs args)
+		{
+			// We use the colour regardless of whether 'None' was selected.
+			font_palette_colour = Toolbox.ColourDialogue.ColourFromColourBlock (args.ColourBlock);
+			ColourSetBy = ColourSetter.Dialogue;
+			ForceRedraw (Extent);
 		}
 
 		private void OnFileInfoAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
@@ -440,25 +502,12 @@ public class MyTask : ToolboxTask
 			file_info_dbox.FileName = (FileName != null) ? FileName : "<Untitled>";
 		}
 
-		private void OnColourDBoxAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
-		{
-			// The ColourDialogue is the sender.
-			Toolbox.ColourDialogue colour_dbox = (Toolbox.ColourDialogue)sender;
-
-			// Create the necessary colour block from the font colour
-			int [] colour_block = Toolbox.ColourDialogue.AllocStandardColourBlock (font_colour, Toolbox.ColourDialogue.ColourModel.RGB);
-			colour_dbox.SetColour (colour_block, false);
-		}
-
-		private void OnNewColourSelected (object sender, Toolbox.ColourDialogue.ColourSelectedEventArgs args)
-		{
-			font_colour = Toolbox.ColourDialogue.ColourFromColourBlock (args.ColourBlock);
-			ForceRedraw (Extent);
-		}
-
 		private void OnRedraw (object sender, Wimp.RedrawEventArgs args)
 		{
-			ColourTrans.SetFontColours (ColourTrans.White, font_colour, 7);
+			if (ColourSetBy == ColourSetter.Dialogue)
+				ColourTrans.SetFontColours (ColourTrans.White, font_palette_colour, 7);
+			else if (ColourSetBy == ColourSetter.Menu)
+				Wimp.SetFontColours ((int)OS.DesktopColour.White, (int)font_wimp_colour);
 			font.Paint (Text,
 				    Font.PlotType.OSUnits,
 				    args.Origin.X + 10,

@@ -437,6 +437,8 @@ namespace riscos
 					return new FileInfoDialogue (ObjectID);
 				case Class.ColourDbox:
 					return new ColourDialogue (ObjectID);
+				case Class.ColourMenu:
+					return new ColourMenu (ObjectID);
 				default:
 					throw new UnknownObjectException (ObjectID);
 				}
