@@ -376,6 +376,7 @@ public class MyTask : ToolboxTask
 				public const uint FileInfo = 1;
 				public const uint ColourDBox = 2;
 				public const uint ColourMenu = 3;
+				public const uint FontDBox = 4;
 			}
 
 			public Toolbox.MenuEntry FileInfoEntry;
@@ -383,6 +384,7 @@ public class MyTask : ToolboxTask
 			public TextFileSaveAs SaveAsDBox;
 			public Toolbox.MenuEntry ColourDBoxEntry;
 			public Toolbox.MenuEntry ColourMenuEntry;
+			public Toolbox.MenuEntry FontDBoxEntry;
 
 			public TextFileMenu () : base ("WindowMenu")
 			{
@@ -392,11 +394,15 @@ public class MyTask : ToolboxTask
 				SaveAsEntry.SubMenuShow = SaveAsDBox;
 				ColourDBoxEntry = new Toolbox.MenuEntry (this, Cmp.ColourDBox);
 				ColourMenuEntry = new Toolbox.MenuEntry (this, Cmp.ColourMenu);
+				FontDBoxEntry = new Toolbox.MenuEntry (this, Cmp.FontDBox);
 			}
 		}
 
 		public TextFileMenu WindowMenu;
 
+		private string FontID = "Trinity.Medium";
+		private int FontHeight = 24;
+		private int FontAspectRatio = 100;
 		private Font.Instance font;
 		// A palette entry
 		private uint font_palette_colour = ColourTrans.Black;
@@ -423,7 +429,9 @@ public class MyTask : ToolboxTask
 			Menu = WindowMenu;
 			RedrawHandler += OnRedraw;
 
-			font = new Font.Instance ("Trinity.Medium", 24 << 4, 24 << 4);
+			font = new Font.Instance (FontID,
+						  ((FontHeight * FontAspectRatio) / 100) << 4,
+						  FontHeight << 4);
 
 			WindowMenu.SaveAsDBox.FileType = 0xfff;
 			WindowMenu.SaveAsDBox.SelectionAvailable = false;
@@ -448,6 +456,34 @@ public class MyTask : ToolboxTask
 				(Toolbox.ColourMenu)WindowMenu.ColourMenuEntry.SubMenuShow;
 			colour_menu.Selection += OnColourMenuSelected;
 
+			Toolbox.FontDialogue font_dbox =
+				(Toolbox.FontDialogue)WindowMenu.FontDBoxEntry.ClickShow.Object;
+			font_dbox.AboutToBeShown += OnFontDBoxAboutToBeShown;
+			font_dbox.ApplyFont += OnFontDBoxApplyFont;
+		}
+
+		private void OnFontDBoxAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
+		{
+			// The FontDialogue is the sender
+			Toolbox.FontDialogue font_dbox = (Toolbox.FontDialogue)sender;
+
+			font_dbox.Font = FontID;
+			font_dbox.Height = FontHeight;
+			font_dbox.AspectRatio = FontAspectRatio;
+		}
+
+		private void OnFontDBoxApplyFont (object sender, Toolbox.FontDialogue.ApplyFontEventArgs args)
+		{
+			font.Lose ();
+
+			FontID = args.FontID;
+			FontHeight = args.FontHeight;
+			FontAspectRatio = args.AspectRatio;
+
+			font.Find (FontID,
+				   ((FontHeight * FontAspectRatio) / 100) << 4,
+				   FontHeight << 4, 0, 0);
+			ForceRedraw (Extent);
 		}
 
 		private void OnColourMenuSubMenuShow (object sender, Toolbox.MenuEntry.SubMenuEventArgs args)

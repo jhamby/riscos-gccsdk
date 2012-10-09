@@ -103,12 +103,10 @@ namespace riscos
 			/*! \brief Create a ClickShow object.
 			 * \param [in] objID The ID of the Toolbox object that will be shown.
 			 * \param [in] flags Set to \e ClickShow.Persistent or \e ClickShow.Transient.
-			 * \exception UnknownObjectException The object ID is not wrapped in a
-			 * class object and is therefore unknown.  */
+			 * \exception UnknownObjectException Thrown if the class of the given object is not known.  */
 			public ClickShow (uint objID, uint flags)
 			{
-				if (!ToolboxTask.AllObjects.TryGetValue (objID, out Object))
-					throw new UnknownObjectException (objID);
+				Object = Object.LookupOrWrap (objID);
 				Flags = flags;
 			}
 
@@ -439,6 +437,8 @@ namespace riscos
 					return new ColourDialogue (ObjectID);
 				case Class.ColourMenu:
 					return new ColourMenu (ObjectID);
+				case Class.FontDbox:
+					return new FontDialogue (ObjectID);
 				default:
 					throw new UnknownObjectException (ObjectID);
 				}
