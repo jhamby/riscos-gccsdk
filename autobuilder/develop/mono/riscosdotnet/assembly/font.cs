@@ -134,11 +134,13 @@ namespace riscos
 		// new Font.Instance ("Trinity.Medium") sounds right anyway.
 		/*! \class Instance
 		 * \brief Encapsulates a RISC OS font handle. */
-		public class Instance
+		public class Instance : IDisposable
 		{
 			/*! A RISC OS font handle */
 			public IntPtr Handle;
 			bool owner;
+
+			private bool disposed = false;
 
 			/*! \brief Create an instance of the named font.
 			 * \param[in] name Font identifier
@@ -175,8 +177,27 @@ namespace riscos
 			/*! \brief Release the font resource. */
 			~Instance ()
 			{
-				if (owner)
-					Lose ();
+				Dispose (false);
+			}
+
+			public void Dispose ()
+			{
+				Dispose(true);
+				// This object will be cleaned up by the Dispose method.
+				// Call GC.SupressFinalize to take this object off the
+				// finalization queue and prevent finalization code for
+				// this object from executing a second time.
+				GC.SuppressFinalize(this);
+			}
+
+			protected virtual void Dispose (bool disposing)
+			{
+				if (!this.disposed)
+				{
+					if (owner)
+						Lose ();
+					disposed = true;
+				}
 			}
 
 			/*! \brief Get the handle for a font.
