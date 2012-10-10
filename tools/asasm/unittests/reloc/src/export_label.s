@@ -1,5 +1,4 @@
 	; FIXME: GLOBAL
-	; FIXME: test EXPORT attributes
 
 	; Export symbols from a normal code area.
 	AREA	Code1, CODE
@@ -39,5 +38,11 @@ Exp41	DCD	1
 Exp42	DCD	2
 	EXPORT	Exp42
 
-	END
+	AREA	Code5, CODE
+	; Export multiple labels in one go
+	EXPORT	Exp51,Exp52  ,  Exp53     ; Comment
+Exp51
+Exp52
+Exp53
 
+	END

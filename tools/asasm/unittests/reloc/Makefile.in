@@ -7,8 +7,8 @@ DECAOF := @top_builddir@/decaof/decaof
 READELF := @top_builddir@/elftoolchain/readelf/readelf
 ELFDUMP := @top_builddir@/elftoolchain/elfdump/elfdump
 
-ASASMFLAGS_AOF := -aof
-ASASMFLAGS_ELF := -elf
+ASASMFLAGS_AOF := -aof -i@srcdir@/src
+ASASMFLAGS_ELF := -elf -i@srcdir@/src
 DECAOFFLAGS := -a -d -r -s -t
 READELFFLAGS := -a
 ELFDUMPFLAGS := -k

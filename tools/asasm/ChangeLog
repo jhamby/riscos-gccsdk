@@ -1,3 +1,36 @@
+Wed Oct 10 22:52:48 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* symbol.c (oExportAllSymbols): Add.
+	(NeedToOutputSymbol): Tune return value.
+	(Symbol_OutputForAOF): Add support for oExportAllSymbols.
+	(Symbol_OutputForELF): Add support for oExportAllSymbols and
+	oAllExportSymbolsAreWeak.
+	(QualifierResult_t, ParseQualifierBASED, ParseQualifierCOMMON,
+	oQualifiers, GetQualifierList): Add.
+	(c_export): Reimplement using GetQualifierList.
+	(c_import): Likewise.
+	(c_leaf): Add.
+	* symbol.h (SYMBOL_*): Update comments.
+	(SYMBOL_USESSB, SYMBOL_SOFTFP, SYMBOL_READONLY): Add.
+	(SYMBOL_MACRO_LOCAL, SYMBOL_RW, SYMBOL_KEEP, SYMBOL_AREA): Reassign
+	value.
+	(c_leaf): Add.
+	* decode.c (oDecodeTable): Add LEAF entry.
+
+	unittests/reloc:
+	* src/export_label.s: Add multiple symbol export test.
+	* src/export_all.s, src/export_qualifiers.template,
+	src/export_weak_all.s, src/import_qualifiers.s,
+	src/import_qualifiers.template: Add.
+	* ref/export_label_aof.txt, ref/export_label_elf.txt: Update.
+	* ref/export_weak_all_aof.txt, ref/export_weak_all_elf.txt,
+	ref/export_weak_all_elf.txt, ref/export_qualifiers_aof.txt,
+	ref/export_qualifiers_elf.txt, ref/export_all_aof.txt,
+	ref/export_all_elf.txt, ref/import_qualifiers_aof.txt,
+	ref/import_qualifiers_elf.txt: Add.
+	* Makefile.in (ASASMFLAGS_AOF, ASASMFLAGS_ELF): Add include dir.
+
 Sun Oct  7 13:40:42 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

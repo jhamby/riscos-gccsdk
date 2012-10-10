@@ -1,0 +1,13 @@
+	MACRO
+	DoImport $qualifier
+	AREA	Code, CODE
+
+	IMPORT	ImpWith$qualifier [$qualifier]
+	BL	ImpWith$qualifier
+	[ "$qualifier" != "NOWEAK"
+	IMPORT	ImpWith$qualifier._WEAK [$qualifier] ,  WEAK
+	BL	ImpWith$qualifier._WEAK
+	]
+	MEND
+
+	END

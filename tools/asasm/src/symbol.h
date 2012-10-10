@@ -40,12 +40,20 @@
 
 #define SYMBOL_ABSOLUTE  0x0004	/* This is an absolute value (e.g. constant) and only valid when SYMBOL_DEFINED is set.  Otherwise its value is relative to the base AREA where it is defined. */
 #define SYMBOL_NOCASE    0x0008	/* Only if SYMBOL_REFERENCE, case insensitive */
-#define SYMBOL_WEAK      0x0010	/* Only if SYMBOL_REFERENCE, must not be resolved */
-#define SYMBOL_STRONG    0x0020	/* Complicated ??? */
-#define SYMBOL_COMMON    0x0040
+#define SYMBOL_WEAK      0x0010	/* Only if SYMBOL_REFERENCE, must not be resolved (AOF).  For ELF, can be on SYMBOL_LOCAL/SYMBOL_GLOBAL.  */
+#define SYMBOL_STRONG    0x0020	/* Only if SYMBOL_GLOBAL.  This attribute 
+  only has meaning if there is a non-strong, external definition of the same 
+  symbol in another object file. In this case, references to the symbol from 
+  outside of the file containing the strong definition, resolve to the strong 
+  definition, while those within the file containing the strong definition 
+  resolve to the non-strong definition.  */
+#define SYMBOL_COMMON    0x0040 /* Only if SYMBOL_REFERENCE.  If set, the
+  symbol is a reference to a common area with the symbol's name. The length of
+  the common area is given by the symbol's <Value> field (see above).  */
 
 #define SYMBOL_DATUM     0x0100	/* Set for data symbol defined in code area.  */
 #define SYMBOL_FPREGARGS 0x0200	/* FP args in FP regs attribute, for code symbols only.  */
+#define SYMBOL_USESSB    0x0400
 #define SYMBOL_LEAF      0x0800	/* Leaf function, for code symbol only.  */
 #define SYMBOL_THUMB     0x1000	/* Identifies Thumb code, instead of ARM code. For code symbol only.  */
 
@@ -58,18 +66,21 @@
    return value in integer registers. A symbolic reference with this
    attribute cannot be matched by the linker to a symbol definition which
    lacks the attribute.  */
+#define SYMBOL_SOFTFP    0x2000
 
-#define SYMBOL_SUPPORTED_AOF_BITS 0x1B7F /** Mask for the symbol bits which are AOF defined symbols bits and can be passed on in the AOF output file.  */
+#define SYMBOL_SUPPORTED_AOF_BITS 0x3F7F /** Mask for the symbol bits which are AOF defined symbols bits and can be passed on in the AOF output file.  */
 
 /* The following are 'asasm' internal SYMBOL attribute values only and should
-   not be used in the AOF output file.  */
+   not be output in the AOF output file.  */
 
-#define SYMBOL_MACRO_LOCAL	0x00010000 /** Set when symbol is only known as
+#define SYMBOL_READONLY		0x08000000 /* Imported symbol from a READONLY
+  area.  */
+#define SYMBOL_MACRO_LOCAL	0x10000000 /** Set when symbol is only known as
   a local macro variable.  */
-#define SYMBOL_RW		0x00020000 /** GBLL, GBLA, GBLS, LBLL, LBLA or LBLS, i.e. a read-write symbol.  */
-
-#define SYMBOL_KEEP		0x01000000
-#define SYMBOL_AREA		0x02000000 /* Symbol is an area name.  */
+#define SYMBOL_RW		0x20000000 /** GBLL, GBLA, GBLS, LBLL, LBLA or LBLS, i.e. a read-write symbol.  */
+#define SYMBOL_KEEP		0x40000000 /* Symbol needs to come in output,
+  even if it is local.  Not when its value does not allow it.  */
+#define SYMBOL_AREA		0x80000000 /* Symbol is an area name.  */
 
 #define SYMBOL_TABLESIZE 1024
 
@@ -139,6 +150,7 @@ void Symbol_FreeSymbolOut (SymbolOut_t *symOutP);
 bool c_export (void);
 bool c_import (void);
 bool c_keep (void);
+bool c_leaf (void);
 bool c_strong (void);
 
 #ifdef DEBUG

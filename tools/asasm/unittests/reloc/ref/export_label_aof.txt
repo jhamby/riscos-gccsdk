@@ -2,8 +2,8 @@
 ** AOF Header: Relocatable object format:
 
 AOF version: 310
-4 areas
-14 symbols
+5 areas
+18 symbols
 
 ** Area (0x000102) "Code1", aligned at 4 bytes, [code] [32bit] 
    Size 12 bytes, 0 relocations
@@ -26,6 +26,10 @@ AOF version: 310
 
 000000: 00000000 00000001 00000002
 
+** Area (0x000102) "Code5", aligned at 4 bytes, [code] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
 ** Symbol table:
 
 Exp11            (03) global at "Code1" + 0x000004
@@ -34,9 +38,13 @@ Exp21            (07) global, absolute = 0x00000004
 Exp22            (07) global, absolute = 0x00000008
 Exp41            (03) global at "Data4" + 0x000004
 Exp42            (03) global at "Data4" + 0x000008
+Exp51            (03) global at "Code5" + 0x000000
+Exp52            (03) global at "Code5" + 0x000000
+Exp53            (03) global at "Code5" + 0x000000
 Code1            (01) local at "Code1" + 0x000000
 Code2            (05) local, absolute = 0x00000000
 Code3            (01) local at "Code3" + 0x000000
+Code5            (01) local at "Code5" + 0x000000
 Data4            (01) local at "Data4" + 0x000000
 $a               (01) local at "Code1" + 0x000000
 $a               (01) local at "Code2" + 0x000000
@@ -51,9 +59,13 @@ $d               (01) local at "Data4" + 0x000000
 000016: Exp22
 00001c: Exp41
 000022: Exp42
-000028: Code1
-00002e: Code2
-000034: Code3
-00003a: Data4
-000040: $a
-000043: $d
+000028: Exp51
+00002e: Exp52
+000034: Exp53
+00003a: Code1
+000040: Code2
+000046: Code3
+00004c: Code5
+000052: Data4
+000058: $a
+00005b: $d

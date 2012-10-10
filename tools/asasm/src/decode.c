@@ -200,6 +200,7 @@ static const decode_table_t oDecodeTable[] =
   { "LDM", eCB_VoidPMatch, 1, 1, {.vdpm = m_ldm } }, /* LDM CC TYPE */
   { "LDR", eCB_VoidPMatch, 1, 1, {.vdpm = m_ldr } }, /* LDR CC BYTE */
   { "LDREX", eCB_VoidPMatch, 1, 1, {.vdpm = m_ldrex } }, /* LDREX / LDREXB / LDREXD / LDREXH */
+  { "LEAF", eCB_NoLex, 0, 0, {.nolex = c_leaf } }, /* LEAF */
   { "LFM", eCB_VoidPMatch, 1, 1, {.vdpm = m_lfm } }, /* LFM CC (TYPE) */
   { "LGN", eCB_VoidPMatch, 1, 1, {.vdpm = m_lgn } }, /* LGN CC P R */
   { "LNK", eCB_NoLex, 0, 0, {.nolex = c_lnk } }, /* LNK */

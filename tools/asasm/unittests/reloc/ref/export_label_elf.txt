@@ -16,29 +16,30 @@ ELF Header:
   Size of program headers:           0 (bytes)
   Number of program headers:         0
   Size of section headers:           40 (bytes)
-  Number of section headers:         8
-  Section header string table index: 7
+  Number of section headers:         9
+  Section header string table index: 8
 
 There are no program headers in this file.
-There are 8 section headers, starting at offset 0x34:
+There are 9 section headers, starting at offset 0x34:
 
 Section Headers:
   [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
   [ 0] (null)            NULL            00000000 000000 000000 00      0   0  0
-  [ 1] .symtab           SYMTAB          00000000 000174 0000f0 10      2   9  4
-  [ 2] .strtab           STRTAB          00000000 000264 00002b 00      0   0  1
-  [ 3] Code1             PROGBITS        00000000 000290 00000c 00 WAX  0   0  4
-  [ 4] Code2             PROGBITS        00000000 00029c 00000c 00 WAX  0   0  4
-  [ 5] Code3             PROGBITS        00000000 0002a8 000004 00 WAX  0   0  4
-  [ 6] Data4             PROGBITS        00000000 0002ac 00000c 00  WA  0   0  4
-  [ 7] .shstrtab         STRTAB          00000000 0002b8 000033 00      0   0  1
+  [ 1] .symtab           SYMTAB          00000000 00019c 000130 10      2  10  4
+  [ 2] .strtab           STRTAB          00000000 0002cc 00003d 00      0   0  1
+  [ 3] Code1             PROGBITS        00000000 00030c 00000c 00 WAX  0   0  4
+  [ 4] Code2             PROGBITS        00000000 000318 00000c 00 WAX  0   0  4
+  [ 5] Code3             PROGBITS        00000000 000324 000004 00 WAX  0   0  4
+  [ 6] Data4             PROGBITS        00000000 000328 00000c 00  WA  0   0  4
+  [ 7] Code5             PROGBITS        00000000 000334 000000 00 WAX  0   0  4
+  [ 8] .shstrtab         STRTAB          00000000 000334 000039 00      0   0  1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
   I (info), L (link order), G (group), x (unknown)
   O (extra OS processing required) o (OS specific), p (processor specific)
 
 There is no dynamic section in this file.
-Symbol table (.symtab) contains 15 entries:
+Symbol table (.symtab) contains 19 entries:
    Num:    Value          Size Type    Bind   Vis      Ndx Name
      0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
      1: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT    3 $a
@@ -48,12 +49,16 @@ Symbol table (.symtab) contains 15 entries:
      5: 0000000000000000     0 SECTION LOCAL  DEFAULT    3 
      6: 0000000000000000     0 SECTION LOCAL  DEFAULT    4 
      7: 0000000000000000     0 SECTION LOCAL  DEFAULT    5 
-     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    6 
-     9: 0000000000000004     0 NOTYPE  GLOBAL DEFAULT    3 Exp11
-    10: 0000000000000008     0 NOTYPE  GLOBAL DEFAULT    3 Exp12
-    11: 0000000000000004     0 NOTYPE  GLOBAL DEFAULT  ABS Exp21
-    12: 0000000000000008     0 NOTYPE  GLOBAL DEFAULT  ABS Exp22
-    13: 0000000000000004     0 NOTYPE  GLOBAL DEFAULT    6 Exp41
-    14: 0000000000000008     0 NOTYPE  GLOBAL DEFAULT    6 Exp42
+     8: 0000000000000000     0 SECTION LOCAL  DEFAULT    7 
+     9: 0000000000000000     0 SECTION LOCAL  DEFAULT    6 
+    10: 0000000000000004     0 NOTYPE  GLOBAL DEFAULT    3 Exp11
+    11: 0000000000000008     0 NOTYPE  GLOBAL DEFAULT    3 Exp12
+    12: 0000000000000004     0 NOTYPE  GLOBAL DEFAULT  ABS Exp21
+    13: 0000000000000008     0 NOTYPE  GLOBAL DEFAULT  ABS Exp22
+    14: 0000000000000004     0 NOTYPE  GLOBAL DEFAULT    6 Exp41
+    15: 0000000000000008     0 NOTYPE  GLOBAL DEFAULT    6 Exp42
+    16: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT    7 Exp51
+    17: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT    7 Exp52
+    18: 0000000000000000     0 NOTYPE  GLOBAL DEFAULT    7 Exp53
 
 elf checksum: 0xa9f

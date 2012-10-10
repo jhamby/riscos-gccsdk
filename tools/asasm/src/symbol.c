@@ -41,6 +41,7 @@
 #include "elf.h"
 #include "error.h"
 #include "expr.h"
+#include "get.h"
 #include "global.h"
 #include "input.h"
 #include "local.h"
@@ -54,7 +55,8 @@
 
 static Symbol *symbolTable[SYMBOL_TABLESIZE];
 static bool oKeepAllSymbols;
-static bool oAllExportSymbolsAreWeak; /* FIXME: support this.  */
+static bool oExportAllSymbols;
+static bool oAllExportSymbolsAreWeak;
 
 static Symbol *
 Symbol_New (const char *str, size_t len)
@@ -297,13 +299,11 @@ NeedToOutputSymbol (const Symbol *sym)
 	errorLine (NULL, 0, ErrorWarning, "Symbol %s is marked with KEEP but has unsuitable value for export", sym->str);
     }
 
-  bool doOutput = (((oKeepAllSymbols || (sym->type & SYMBOL_KEEP))
-                    && (sym->type & SYMBOL_RW) == 0
-		    && ((sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt)
-		        || sym->value.Tag == ValueSymbol))
-		   || SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
-                   || (SYMBOL_KIND(sym->type) == SYMBOL_REFERENCE && sym->used >= 0)
-		  )
+  bool doOutput = (((SYMBOL_KIND(sym->type) == SYMBOL_GLOBAL
+		    || (SYMBOL_KIND(sym->type) == SYMBOL_LOCAL && (oKeepAllSymbols || (sym->type & SYMBOL_KEEP) != 0 || oExportAllSymbols)))
+		   && ((sym->value.Tag == ValueInt && sym->value.Data.Int.type == eIntType_PureInt) || sym->value.Tag == ValueAddr || sym->value.Tag == ValueSymbol))
+                  || (SYMBOL_KIND(sym->type) == SYMBOL_REFERENCE && sym->used == 0))
+		  && (sym->type & SYMBOL_RW) == 0
 		  && !Local_IsLocalLabel (sym->str);
   return doOutput;
 }
@@ -630,7 +630,12 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 		    v = 0;
 		    break;
 		}
-	      asym.Type = armword (sym->type & SYMBOL_SUPPORTED_AOF_BITS);
+	      /* Note, no support for oAllExportSymbolsAreWeak as this is
+		 not possible for AOF.  */
+	      uint32_t type = sym->type & SYMBOL_SUPPORTED_AOF_BITS;
+	      if (oExportAllSymbols && !Area_IsMappingSymbol (sym->str))
+		type |= SYMBOL_EXPORT;
+	      asym.Type = armword (type);
 	      asym.Value = armword (v);
 	      /* When it is a non-absolute symbol, we need to specify the
 	         area name to which this symbol is relative to.  */
@@ -638,7 +643,8 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 	    }
 	  else
 	    {
-	      asym.Type = armword ((sym->type | TYPE_REFERENCE) & SYMBOL_SUPPORTED_AOF_BITS);
+	      /* SYMBOL_REFERENCE */
+	      asym.Type = armword ((sym->type | SYMBOL_REFERENCE) & SYMBOL_SUPPORTED_AOF_BITS);
 	      asym.Value = armword ((sym->type & SYMBOL_COMMON) ? sym->value.Data.Int.i : 0);
 	      asym.AreaName = armword (0);
 	    }
@@ -724,26 +730,33 @@ Symbol_OutputForELF (FILE *outfile, const SymbolOut_t *symOutP)
 	    }
 	  else
 	    {
+	      /* SYMBOL_REFERENCE */
 	      asym.st_value = 0;
 	      asym.st_shndx = SHN_UNDEF;
 	    }
 	  /* FIXME: support for SYMBOL_COMMON ? */
 
 	  int bind;
-	  switch (SYMBOL_KIND (sym->type))
+	  if (((sym->type & SYMBOL_WEAK) != 0 || oAllExportSymbolsAreWeak) && !Area_IsMappingSymbol (sym->str))
+	    bind = STB_WEAK;
+	  else
 	    {
-	      case SYMBOL_LOCAL:
-		bind = STB_LOCAL;
-		break;
-	      case SYMBOL_REFERENCE:
-		bind = (sym->type & TYPE_WEAK) ? STB_WEAK : STB_GLOBAL;
-		break;
-	      case SYMBOL_GLOBAL:
-		bind = STB_GLOBAL;
-		break;
-	      default:
-		assert (0);
-		break;
+	      uint32_t type = oExportAllSymbols && !Area_IsMappingSymbol (sym->str) ? SYMBOL_GLOBAL : SYMBOL_KIND (sym->type);
+	      switch (type)
+		{
+		  default:
+		    assert (0);
+		    /* Fall through.  */
+		  case SYMBOL_LOCAL:
+		    bind = STB_LOCAL;
+		    break;
+		  case SYMBOL_REFERENCE:
+		    bind = STB_GLOBAL;
+		    break;
+		  case SYMBOL_GLOBAL:
+		    bind = STB_GLOBAL;
+		    break;
+		}
 	    }
 	  asym.st_info = ELF32_ST_INFO (bind, STT_NOTYPE);
 	  if (asym.st_shndx == (Elf32_Half)-1)
@@ -789,11 +802,221 @@ ParseSymbolAndAdjustFlag (unsigned int flags, const char *err)
   return sym;
 }
 
+/* Result of parsing IMPORT/EXPORT qualifier list.  */ 
+typedef struct
+{
+  uint32_t flagValue;
+  uint32_t flagSet;
+  int basedRegNum; /* Valid when != -1.  */
+  uint32_t commonSize; /* Valid when SYMBOL_COMMON is set in flagValue.  */
+} QualifierResult_t;
+
+/**
+ * Parse the BASED qualifier for IMPORT.
+ *   "BASED Rn"
+ * \return true for error, false for success.
+ */
+static bool
+ParseQualifierBASED (QualifierResult_t *result)
+{
+  ARMWord cpuReg = getCpuReg ();
+  if (cpuReg == INVALID_REG)
+    return true;
+
+  /* When BASED is specified twice, we expect the same value.
+     BASED and COMMON can not be specified together.  */
+  if ((result->basedRegNum != -1 && (uint32_t)result->basedRegNum != cpuReg)
+      || (result->flagValue & SYMBOL_COMMON) != 0)
+    {
+      error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
+	     (int)sizeof ("BASED")-1, "BASED");
+      return true;
+    }
+  result->basedRegNum = cpuReg;
+
+  return false;
+}
+
+/**
+ * Parse the COMMON qualifier for IMPORT.
+ *   "COMMON = <size>"
+ * \return true for error, false for success.
+ */
+static bool
+ParseQualifierCOMMON (QualifierResult_t *result)
+{
+  skipblanks ();
+  if (!Input_Match ('=', false))
+    {
+      error (ErrorError, "COMMON attribute needs size specification");
+      return true;
+    }
+
+  const Value *size = exprBuildAndEval (ValueInt);
+  switch (size->Tag)
+    {
+      case ValueInt:
+	if (size->Data.Int.type == eIntType_PureInt)
+	  break;
+	/* Fall through.  */
+
+      default:
+	error (ErrorError, "Illegal COMMON attribute expression");
+	return true;
+    }
+  /* Qualifier BASED and COMMON can not specified together.  */
+  if (result->basedRegNum != -1
+      || ((result->flagValue & SYMBOL_COMMON) != 0 && result->commonSize != (uint32_t)size->Data.Int.i))
+    {
+      error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
+	     (int)sizeof ("COMMON")-1, "COMMON");
+      return true;
+    }
+  result->flagValue |= SYMBOL_COMMON;
+  result->flagSet |= SYMBOL_COMMON;
+  result->commonSize = (uint32_t)size->Data.Int.i;
+
+  return false;
+}
+
+enum { eForImport, eForExport, eForBoth };
+#define WEAK_ENTRY 12
+static const struct QKeyword
+{
+  const char *keyword;
+  size_t size;
+  int applicable;
+  uint32_t flagValue;
+  uint32_t flagSet;
+  bool (*parser)(QualifierResult_t *);
+} oQualifiers [] =
+{
+  { "FPREGARGS", sizeof ("FPREGARGS")-1, eForBoth, SYMBOL_FPREGARGS, SYMBOL_FPREGARGS, NULL },
+  { "NOFPREGARGS", sizeof ("NOFPREGARGS")-1, eForBoth, 0, SYMBOL_FPREGARGS, NULL },
+  { "SOFTFP", sizeof ("SOFTFP")-1, eForBoth, SYMBOL_SOFTFP, SYMBOL_SOFTFP, NULL },
+  { "HARDFP", sizeof ("HARDFP")-1, eForBoth, 0, SYMBOL_SOFTFP, NULL },
+  { "DATA", sizeof ("DATA")-1, eForBoth, SYMBOL_DATUM, SYMBOL_DATUM, NULL },
+  { "CODE", sizeof ("CODE")-1, eForBoth, 0, SYMBOL_DATUM, NULL },
+  { "ARM", sizeof ("ARM")-1, eForExport, 0, SYMBOL_THUMB, NULL },
+  { "THUMB", sizeof ("THUMB")-1, eForExport, SYMBOL_THUMB, SYMBOL_THUMB, NULL },
+  { "LEAF", sizeof ("LEAF")-1, eForExport, SYMBOL_LEAF, SYMBOL_LEAF, NULL },
+  { "NOLEAF", sizeof ("NOLEAF")-1, eForExport, 0, SYMBOL_LEAF, NULL },
+  { "USESSB", sizeof ("USESSB")-1, eForExport, SYMBOL_USESSB, SYMBOL_USESSB, NULL },
+  { "NOUSESSB", sizeof ("NOUSESSB")-1, eForExport, 0, SYMBOL_USESSB, NULL },
+  { "WEAK", sizeof ("WEAK")-1, eForImport, SYMBOL_WEAK, SYMBOL_WEAK, NULL }, 
+  { "NOWEAK", sizeof ("NOWEAK")-1, eForImport, 0, SYMBOL_WEAK, NULL },
+  { "READONLY", sizeof ("READONLY")-1, eForImport, SYMBOL_READONLY, SYMBOL_READONLY, NULL },
+  { "READWRITE", sizeof ("READWRITE")-1, eForImport, 0, SYMBOL_READONLY, NULL },
+  { "NOCASE", sizeof ("NOCASE")-1, eForImport, SYMBOL_NOCASE, SYMBOL_NOCASE, NULL },
+  { "CASE", sizeof ("CASE")-1, eForImport, 0, SYMBOL_NOCASE, NULL },
+  { "BASED", sizeof ("BASED")-1, eForImport, 0, 0, ParseQualifierBASED },
+  { "COMMON", sizeof ("COMMON")-1, eForImport, 0, 0, ParseQualifierCOMMON }
+};
+
+/**
+ * Parses the qualifier list used as argument for EXPORT/IMPORT
+ * (or GLOBAL/EXTERN).
+ * Qualifier list starts with '[' but that's already parsed.  It ends with ']'.
+ */
+static QualifierResult_t
+GetQualifierList (bool forExport, bool weakOnly)
+{
+  QualifierResult_t result =
+    {
+      .flagValue = 0,
+      .flagSet = 0,
+      .basedRegNum = -1,
+      .commonSize = 0
+    };
+
+  if (!Input_Match (']', true))
+    {
+      do
+	{
+	  Lex qualifier = lexGetIdNoError ();
+	  if (qualifier.tag != LexId)
+	    {
+	      error (ErrorError, "Missing or wrong type of %s qualifier", forExport ? "EXPORT" : "IMPORT");
+	      break;
+	    }
+
+	  const struct QKeyword *keyword = NULL;
+	  if (weakOnly)
+	    {
+	      assert (forExport);
+	      if (qualifier.Data.Id.len == oQualifiers[WEAK_ENTRY].size
+	          && !memcmp (qualifier.Data.Id.str, oQualifiers[WEAK_ENTRY].keyword, oQualifiers[WEAK_ENTRY].size))
+		keyword = &oQualifiers[WEAK_ENTRY];
+	    }
+	  else
+	    {
+	      for (size_t i = 0; i != sizeof (oQualifiers) / sizeof (oQualifiers[0]); ++i)
+		{
+		  if ((oQualifiers[i].applicable == eForBoth
+		       || oQualifiers[i].applicable == (forExport ? eForExport : eForImport))
+		      && qualifier.Data.Id.len == oQualifiers[i].size
+		      && !memcmp (qualifier.Data.Id.str, oQualifiers[i].keyword, oQualifiers[i].size))
+		    {
+		      keyword = &oQualifiers[i];
+		      break;
+		    }
+		}
+	    }
+	  if (keyword == NULL)
+	    {
+	      error (ErrorError, "Qualifier %.*s is not known",
+		     (int)qualifier.Data.Id.len, qualifier.Data.Id.str);
+	    }
+	  else
+	    {
+	      /* If there is a extra parser, use that.  */
+	      if (keyword->parser != NULL)
+		{
+		  if (keyword->parser(&result))
+		    break;
+		}
+	      else if ((keyword->flagSet & result.flagSet) != 0)
+		{
+		  /* Keyword has already been set.  Verify consistency.  */
+		  if ((keyword->flagValue & result.flagValue) != 0)
+		    error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
+			   (int)qualifier.Data.Id.len, qualifier.Data.Id.str);
+		}
+	      else
+		{
+		  result.flagValue |= keyword->flagValue;
+		  result.flagSet |= keyword->flagSet;
+		}
+	    }
+
+	  skipblanks ();
+	  if (Input_Match (']', true))
+	    break;
+	  if (Input_IsEolOrCommentStart ())
+	    {
+	      error (ErrorError, "Missing ]");
+	      break;
+	    }
+	  if (!Input_Match (',', true))
+	    {
+	      error (ErrorError, "Missing ,");
+	      break;
+	    }
+	} while (1);
+    }
+
+  return result;
+}
+
 /**
  * Implements EXPORT / GLOBAL.
- *   "EXPORT <symbol> [FPREGARGS,DATA,LEAF,WEAK]"
- *   "EXPORT [WEAK]"
+ *   "EXPORT" <symbol> { "[" <qualifier list> "]" }
+ *   "EXPORT" <symbol> { "," <symbol> }*
+ *   "EXPORT" { "[WEAK]" }
+ *
+ * "EXPORT [WEAK]" is only supported for ELF.
  */
+/* FIXME: ELF support missing.  */
 bool
 c_export (void)
 {
@@ -803,40 +1026,54 @@ c_export (void)
 
   Symbol *sym = ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE, "exported");
   skipblanks ();
-  if (Input_Match ('[', true))
+  if (sym == NULL)
     {
-      do
+      oExportAllSymbols = true;
+      if (!Input_IsEolOrCommentStart ())
 	{
-	  Lex attribute = lexGetId ();
-	  if (sym != NULL
-	      && attribute.Data.Id.len == sizeof ("FPREGARGS")-1
-	      && !memcmp ("FPREGARGS", attribute.Data.Id.str, attribute.Data.Id.len))
-	    sym->type |= SYMBOL_FPREGARGS;
-	  else if (sym != NULL
-		   && attribute.Data.Id.len == sizeof ("DATA")-1
-		   && !memcmp ("DATA", attribute.Data.Id.str, attribute.Data.Id.len))
-	    sym->type |= SYMBOL_DATUM;
-	  else if (sym != NULL
-		   && attribute.Data.Id.len == sizeof ("LEAF")-1
-		   && !memcmp ("LEAF", attribute.Data.Id.str, attribute.Data.Id.len))
-	    sym->type |= SYMBOL_LEAF;
-	  else if (attribute.Data.Id.len == sizeof ("WEAK")-1
-		   && !memcmp ("WEAK", attribute.Data.Id.str, attribute.Data.Id.len))
-	    {
-	      if (sym != NULL)
-		sym->type |= SYMBOL_WEAK;
-	      else
-		oAllExportSymbolsAreWeak = true;
-	    }
+	  if (!Input_Match ('[', true))
+	    error (ErrorError, "Missing [");
 	  else
-	    error (ErrorError, "Illegal EXPORT attribute %s", attribute.Data.Id.str);
-	  skipblanks ();
-	} while (Input_Match (',', true));
-      if (!Input_Match (']', false))
-        error (ErrorError, "Missing ]");
+	    {
+	      const QualifierResult_t result = GetQualifierList (true, true);
+	      if ((result.flagValue & SYMBOL_WEAK) != 0)
+		{
+		  if (option_aof)
+		    error (ErrorWarning, "Making EXPORT symbols WEAK is not supported for AOF output");
+		  else
+		    oAllExportSymbolsAreWeak = true;
+		}
+	    }
+	}
     }
-  else if (sym == NULL)
-    error (ErrorError, "Missing symbol to export");
+  else if (!Input_IsEolOrCommentStart ())
+    {
+      if (Input_Match (',', true))
+	{
+	  /* More than one symbol is exported.  */
+	  do
+	    {
+	      if (ParseSymbolAndAdjustFlag (SYMBOL_REFERENCE, "exported") == NULL)
+		error (ErrorError, "Missing symbol to export");
+	      skipblanks ();
+	    } while (Input_Match (',', true));
+	}
+      else if (Input_Match ('[', true))
+	{
+	  QualifierResult_t result = GetQualifierList (true, false);
+	  if (option_aof && (result.flagValue & SYMBOL_WEAK) != 0)
+	    {
+	      error (ErrorWarning, "Making EXPORT symbol %s WEAK is not supported for AOF output", sym->str);
+	      result.flagValue &= ~SYMBOL_WEAK;
+	    }
+	  sym->type |= result.flagValue;
+	  assert (result.basedRegNum == -1);
+	  assert (result.commonSize == 0 && (result.flagValue & SYMBOL_COMMON) == 0);
+	}
+      else
+	error (ErrorError, "Missing [");
+    }
+
   return false;
 }
 
@@ -850,8 +1087,8 @@ c_strong (void)
   if (option_abs)
     return true;
 
-  if (ParseSymbolAndAdjustFlag (SYMBOL_STRONG, "marked as 'strong'") == NULL)
-    error (ErrorError, "Missing symbol to mark as 'strong'");
+  if (ParseSymbolAndAdjustFlag (SYMBOL_STRONG, "marked as STRONG") == NULL)
+    error (ErrorError, "Missing symbol to mark as STRONG");
   return false;
 }
 
@@ -867,25 +1104,30 @@ c_keep (void)
   if (option_abs)
     return true;
 
-  if (ParseSymbolAndAdjustFlag (SYMBOL_KEEP, "marked to 'keep'") == NULL)
+  if (ParseSymbolAndAdjustFlag (SYMBOL_KEEP, "marked to KEEP") == NULL)
     oKeepAllSymbols = true;
   return false;
 }
 
 /**
+ * Implements LEAF.
+ */
+bool
+c_leaf (void)
+{
+  /* 'LEAF' is not supported when in AAsm compatibility mode.  */
+  if (option_abs)
+    return true;
+
+  if (ParseSymbolAndAdjustFlag (SYMBOL_LEAF, "marked as LEAF") == NULL)
+    error (ErrorError, "Missing symbol to mark as LEAF");
+  return false;
+}
+
+/**
  * Implements IMPORT / EXTERN.
- * Not clear which syntax really should be supported.  Hence, go for a liberal
- * implementation:
- *   IMPORT <symbol> [ <attrs-list-main> ]
- *     <attrs-list-main> := "," <attr> [ <attrs-list> ]
- *                       := "[" <attrs-comma> ] "]"
- *     <attrs-list>      := "," <attrs> [ <attrs-list> ]
- *                       := "," "[" <attrs-comma> ] "]"
- *     <attrs-comma> := <attr> [ "," <attrs-comma> ]
- *     <attr> := "NOCASE"
- *            := "WEAK"
- *            := "COMMON=" <size>
- *            := "FPREGARGS"
+ *   IMPORT <symbol> { "[" <qualifier list> "]" } { ", WEAK" }
+ *   IMPORT <symbol> { ", FPREGARGS" } { ", WEAK" }
  * FIXME: support ELF attributes
  */
 bool
@@ -905,55 +1147,62 @@ c_import (void)
   skipblanks ();
   if (!Input_IsEolOrCommentStart ())
     {
-      bool start = true;
-      bool bracket = false;
-      while (Input_Match (',', true) || start)
+      QualifierResult_t result;
+      if (Input_Match ('[', true))
+	result = GetQualifierList (false, false);
+      else
 	{
-	  start = false;
-	  if (!bracket)
-	    bracket = Input_Match ('[', true);
-
-	  Lex attribute = lexGetId ();
-	  if (attribute.Data.Id.len == sizeof ("NOCASE")-1
-	      && !memcmp ("NOCASE", attribute.Data.Id.str, attribute.Data.Id.len))
-	    sym->type |= SYMBOL_NOCASE;
-	  else if (attribute.Data.Id.len == sizeof ("WEAK")-1
-	           && !memcmp ("WEAK", attribute.Data.Id.str, attribute.Data.Id.len))
-	    sym->type |= SYMBOL_WEAK;
-	  else if (attribute.Data.Id.len == sizeof ("COMMON")-1
-	           && !memcmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len))
-	    {
-	      skipblanks ();
-	      if (!Input_Match ('=', false))
-		error (ErrorError, "COMMON attribute needs size specification");
-	      else
-		{
-		  const Value *size = exprBuildAndEval (ValueInt);
-		  switch (size->Tag)
-		    {
-		      case ValueInt:
-			Value_Assign (&sym->value, size);
-			sym->type |= SYMBOL_COMMON;
-			break;
-		      default:
-			error (ErrorError, "Illegal COMMON attribute expression");
-			break;
-		    }
-		}
-	    }
-	  else if (attribute.Data.Id.len == sizeof ("FPREGARGS")-1
-	           && !memcmp ("FPREGARGS", attribute.Data.Id.str, attribute.Data.Id.len))
-	    sym->type |= SYMBOL_FPREGARGS;
-	  else
-	    error (ErrorError, "Illegal IMPORT attribute %s", attribute.Data.Id.str);
-
-	  skipblanks ();
-	  if (bracket && Input_Match (']', true))
-	    bracket = false;
+	  result.flagSet = result.flagValue = 0;
+	  result.basedRegNum = -1;
+	  result.commonSize = 0;
 	}
-      if (bracket && !Input_Match (']', false))
-	error (ErrorError, "Missing ]");
+      /* Additionally parse "FPREGARGS" and/or "WEAK".  */
+      skipblanks ();
+      uint32_t flagValue = 0;
+      while (Input_Match (',', true))
+	{
+	  Lex qualifier = lexGetIdNoError ();
+	  if (qualifier.tag != LexId)
+	    {
+	      error (ErrorError, "Missing or wrong type of %s qualifier", "IMPORT");
+	      break;
+	    }
+	  if (qualifier.Data.Id.len == sizeof ("FPREGARGS")-1
+	      && !memcmp (qualifier.Data.Id.str, "FPREGARGS", sizeof ("FPREGARGS")-1))
+	    flagValue |= SYMBOL_FPREGARGS;
+	  else if (qualifier.Data.Id.len == sizeof ("WEAK")-1
+		   && !memcmp (qualifier.Data.Id.str, "WEAK", sizeof ("WEAK")-1))
+	    flagValue |= SYMBOL_WEAK;
+	  else
+	    {
+	      error (ErrorError, "Qualifier %.*s is not known",
+		     (int)qualifier.Data.Id.len, qualifier.Data.Id.str);
+	      break;
+	    }
+	  skipblanks ();
+	}
+      /* Check for conflicting FPREGARGS and/or WEAK values when one or both
+         are specified twice.  */
+      if ((result.flagValue & result.flagSet & flagValue) != (result.flagSet & flagValue))
+	error (ErrorError, "Conflicting qualifier");
+      result.flagValue |= flagValue;
+      result.flagSet |= flagValue;
+
+      sym->type |= result.flagValue;
+      /* Extra for BASED and COMMON qualifiers.  */
+      if ((sym->type & SYMBOL_COMMON) != 0)
+	{
+	  const Value value = Value_Int(result.commonSize, eIntType_PureInt);
+	  Value_Assign (&sym->value, &value);
+	}
+      else if (result.basedRegNum != -1)
+	{
+	  sym->type |= SYMBOL_ABSOLUTE; /* FIXME: Correct ? See c_alloc implementation. */
+	  const Value value = Value_Addr (result.basedRegNum, 0);
+	  Value_Assign (&sym->value, &value);
+	}
     }
+
   return false;
 }
 
