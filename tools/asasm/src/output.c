@@ -50,9 +50,10 @@
 #include "elf.h"
 #include "error.h"
 #include "filename.h"
+#include "main.h"
 #include "output.h"
 #include "os.h"
-#include "main.h"
+#include "reloc.h"
 #include "symbol.h"
 
 static FILE *objfile;

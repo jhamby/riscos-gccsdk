@@ -3,7 +3,7 @@
 
 AOF version: 310
 1 area
-44 symbols
+33 symbols
 
 ** Area (0x000102) "Code", aligned at 4 bytes, [code] [32bit] 
    Size 116 bytes, 29 relocations
@@ -78,17 +78,6 @@ ImpWithWEAK      (12) extern, weak
 ImpWithWEAK_WEAK (12) extern, weak
 Code             (01) local at "Code" + 0x000000
 $a               (01) local at "Code" + 0x000000
-$a               (01) local at "Code" + 0x000008
-$a               (01) local at "Code" + 0x000010
-$a               (01) local at "Code" + 0x000018
-$a               (01) local at "Code" + 0x000020
-$a               (01) local at "Code" + 0x000028
-$a               (01) local at "Code" + 0x000030
-$a               (01) local at "Code" + 0x000038
-$a               (01) local at "Code" + 0x00003c
-$a               (01) local at "Code" + 0x000044
-$a               (01) local at "Code" + 0x00004c
-$a               (01) local at "Code" + 0x000054
 $d               (101) local, cadatum at "Code" + 0x000060
 $a               (01) local at "Code" + 0x000064
 

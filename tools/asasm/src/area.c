@@ -57,7 +57,6 @@ static void Area_Ensure (void);
 #define GROWSIZE      (16*1024)
 
 Symbol *areaCurrentSymbol = NULL;
-static Area_eEntryType oArea_CurrentEntryType = eInvalid;
 Symbol *areaEntrySymbol = NULL;
 static const char *oArea_EntrySymbolFileName = NULL;
 static unsigned oArea_EntrySymbolLineNum = 0;
@@ -81,7 +80,6 @@ static void
 Area_ResetPrivateVars (void)
 {
   areaCurrentSymbol = NULL;
-  oArea_CurrentEntryType = eInvalid;
   areaEntrySymbol = NULL;
   oArea_EntrySymbolFileName = NULL;
   oArea_EntrySymbolLineNum = 0;
@@ -110,6 +108,8 @@ areaNew (Symbol *sym, uint32_t type)
   res->curIdx = 0;
   res->maxIdx = 0;
 
+  res->entryType = eInvalid;
+  
   res->relocs = NULL;
 
   res->litPool = NULL;
@@ -391,7 +391,6 @@ Area_Ensure (void)
       sym->area.info = areaNew (sym, areaType);
     }
   areaCurrentSymbol = sym;
-  oArea_CurrentEntryType = eInvalid;
 }
 
 
@@ -595,7 +594,6 @@ c_area (void)
     sym->area.info->type |= newAreaType;
 
   areaCurrentSymbol = sym;
-  oArea_CurrentEntryType = eInvalid;
 
   return false;
 }
@@ -700,9 +698,9 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType typ
   if (areaSymbol == NULL || Area_IsImplicit (areaSymbol))
     return;
 
-  if (oArea_CurrentEntryType != type)
+  if (areaSymbol->area.info->entryType != type)
     {
-      oArea_CurrentEntryType = type;
+      areaSymbol->area.info->entryType = type;
 
       const char *baseMappingSymbol;
       switch (type)
@@ -738,7 +736,7 @@ Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType typ
 Area_eEntryType
 Area_GetCurrentEntryType (void)
 {
-  return oArea_CurrentEntryType;
+  return areaCurrentSymbol->area.info->entryType;
 }
 
 
@@ -761,5 +759,6 @@ Area_IsMappingSymbol (const char *symStr)
 	    return symStr[2] == '.' ? eThumbEE : eThumb;
 	}
     }
+
   return eInvalid;
 }

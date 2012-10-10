@@ -1,3 +1,20 @@
+Wed Oct 10 23:15:56 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* area.h (Area): Add entryType.
+	(reloc.h): Remove include and forward declare struct RELOC.
+	* area.c (oArea_CurrentEntryType): Remove.
+	(areaNew): Initialize entryType.
+	(Area_Ensure, c_area): Follow oArea_CurrentEntryType removal.
+	(Area_MarkStartAs): Use current area entryType instead of
+	oArea_CurrentEntryType.
+	(Area_GetCurrentEntryType): Likewise.
+	* output.c: Add include reloc.h.
+
+	unittests/reloc:
+	* ref/import_qualifiers_aof.txt, ref/import_qualifiers_elf.txt:
+	Update.
+
 Wed Oct 10 22:52:48 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

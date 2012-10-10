@@ -30,7 +30,6 @@
 #include "decode.h"
 #include "lit.h"
 #include "phase.h"
-#include "reloc.h"
 #include "symbol.h"
 
 /* Lowest 8 bits encode the alignment of the start of the area as a power
@@ -80,6 +79,16 @@
 
 #define AREA_DEFAULT_ALIGNMENT	0x00000002
 
+typedef enum
+{
+  eInvalid = 0,
+  eARM = 1,
+  eData = 2,
+  eThumb = 3,
+  eThumbEE = 4
+} Area_eEntryType;
+
+struct RELOC;
 struct LITPOOL;
 
 typedef struct AREA
@@ -92,7 +101,9 @@ typedef struct AREA
   uint32_t curIdx;
   uint32_t maxIdx;
 
-  Reloc *relocs;
+  Area_eEntryType entryType;
+  
+  struct RELOC *relocs;
 
   struct LITPOOL *litPool;	/** The current literal pool waiting to be assembled. */
 
@@ -153,14 +164,6 @@ extern bool gArea_Preserve8Guessed;
 bool c_preserve8 (void);
 bool c_require8 (void);
 
-typedef enum
-{
-  eInvalid = 0,
-  eARM = 1,
-  eData = 2,
-  eThumb = 3,
-  eThumbEE = 4
-} Area_eEntryType;
 void Area_MarkStartAs (const Symbol *areaSymbol, uint32_t offset, Area_eEntryType type);
 Area_eEntryType Area_GetCurrentEntryType (void);
 Area_eEntryType Area_IsMappingSymbol (const char *symStr);
