@@ -345,7 +345,7 @@ namespace riscos
 			public void GetNow ()
 			{
 				Utc[0] = 3;
-				NativeMethods.OSWordReadClockUtc (Utc);
+				NativeMethods.OSWord_ReadClockUtc (Utc);
 			}
 
 			public static DateTime Now
@@ -449,6 +449,16 @@ namespace riscos
 		{
 			Move (rect.MinX, rect.MinY);
 			Plot (PlotType.RectangleFill + PlotModifier.PlotAbsoluteFG, rect.MaxX, rect.MaxY);
+		}
+
+		/*! \brief Return the number of centi-seconds since the last hard reset.  */
+		public static uint ReadMonotonicTime ()
+		{
+			uint time;
+
+			NativeMethods.OS_ReadMonotonicTime (out time);
+
+			return time;
 		}
 	}
 }
