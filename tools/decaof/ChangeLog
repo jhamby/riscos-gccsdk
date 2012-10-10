@@ -1,3 +1,9 @@
+Wed Oct 10 22:32:08 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decaof.h (SYMBOL_*): Copied SYMBOL_* definitions from asasm.
+	* decode.c (decode): Use SYMBOL_* definition instead of magic constants.
+	Add missing symbol bit checking.
+
 Sun Oct  7 13:18:31 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* configure.ac (AC_INIT): Increase version to 2.01.

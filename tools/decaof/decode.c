@@ -230,42 +230,48 @@ decode (void)
 		  uint32_t flags = symboltab[symIdx].flags;
 		  printf ("%-16s (%02x) ", string (symboltab[symIdx].name), flags);
 
-		  switch (flags & 0x3)
+		  switch (SYMBOL_KIND (flags))
 		    {
-		      case 0x01:
+		      case SYMBOL_LOCAL:
 			fputs ("local", stdout);
 			break;
-		      case 0x02:
+		      case SYMBOL_REFERENCE:
 			fputs ("extern", stdout);
 			break;
-		      case 0x03:
+		      case SYMBOL_GLOBAL:
 			fputs ("global", stdout);
 			break;
 		      default:
-			fputs ("unknown-type", stdout);
+			fputs ("unknown-type 0", stdout);
 			break;
 		    }
-		  if ((flags & (1 << 2)) && (flags & (1 << 0)))
-		    fputs (", absolute", stdout);
-		  if ((flags & (1 << 3)) && !(flags & (1 << 0)))
-		    fputs (", case-insensitive", stdout);
-		  if ((flags & (1 << 4)) && ((flags & 0x03) == 0x02))
-		    fputs (", weak", stdout);
-		  if ((flags & (1 << 5)) && ((flags & 0x03) == 0x03))
-		    fputs (", strong", stdout);
-		  if ((flags & (1 << 6)) && ((flags & 0x03) == 0x02))
-		    fputs (", common", stdout);
-		  if (flags & (1 << 8))
+		  if ((flags & SYMBOL_ABSOLUTE) != 0)
+		    fputs ((flags & SYMBOL_DEFINED) ? ", absolute" : ", bit 2 ???", stdout);
+		  if ((flags & SYMBOL_NOCASE) != 0)
+		    fputs (SYMBOL_KIND (flags) == SYMBOL_REFERENCE ? ", case-insensitive" : ", bit 3 ???", stdout);
+		  if ((flags & SYMBOL_WEAK) != 0)
+		    fputs (SYMBOL_KIND (flags) == SYMBOL_REFERENCE ? ", weak" : ", bit 4 ???", stdout);
+		  if ((flags & SYMBOL_STRONG) != 0)
+		    fputs (SYMBOL_KIND (flags) == SYMBOL_GLOBAL ? ", strong" : ", bit 5 ???", stdout);
+		  if ((flags & SYMBOL_COMMON) != 0)
+		    fputs (SYMBOL_KIND (flags) == SYMBOL_REFERENCE ? ", common" : ", bit 6 ???", stdout);
+		  if ((flags & SYMBOL_DATUM) != 0)
 		    fputs (", cadatum", stdout);
-		  if (flags & (1 << 9))
-		    fputs (", fpargs", stdout);
-		  if (flags & (1 << 11))
+		  if ((flags & SYMBOL_FPREGARGS) != 0)
+		    fputs (", fpregargs", stdout);
+		  if ((flags & SYMBOL_USESSB) != 0)
+		    fputs (", usessb", stdout);
+		  if ((flags & SYMBOL_LEAF) != 0)
 		    fputs (", leaf", stdout);
-		  if (flags & (1 << 12))
+		  if ((flags & SYMBOL_THUMB) != 0)
 		    fputs (", thumb", stdout);
-		  if (flags & ((1 << 0) | (1 << 6)))
+		  if ((flags & SYMBOL_SOFTFP) != 0)
+		    fputs (", softfp", stdout);
+		  if ((flags & ~SYMBOL_SUPPORTED_AOF_BITS) != 0)
+		    printf (", set bits 0x%x ???", flags & ~SYMBOL_SUPPORTED_AOF_BITS);
+		  if (flags & (SYMBOL_DEFINED | SYMBOL_COMMON))
 		    {
-		      if (flags & ((1 << 2) | (1 << 6)))
+		      if (flags & (SYMBOL_ABSOLUTE | SYMBOL_COMMON))
 			printf (" = 0x%08x", symboltab[symIdx].value);
 		      else
 			printf (" at \"%s\" + 0x%06x",
