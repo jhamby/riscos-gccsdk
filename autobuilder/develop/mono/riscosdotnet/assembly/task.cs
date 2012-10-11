@@ -18,13 +18,16 @@ namespace riscos
 		public virtual void KeyPress (int charCode) { }
 		public virtual void Dispatch (Wimp.Event event_base) { }
 
-		public void PollLoop ()
+		public void Poll ()
 		{
-			while (Quit == false)
-			{
-				OS.ThrowOnError (NativeMethods.Wimp_Poll (PollMask, out PollWord));
-				Dispatch (Wimp.Event.GetEvent ());
-			}
+			Dispatch (Wimp.Poll (PollMask, out PollWord));
+		}
+
+		// I could overload Poll() above, but PollIdle is probably a better indication of
+		// what it does.
+		public void PollIdle (uint time)
+		{
+			Dispatch (Wimp.PollIdle (PollMask, time, out PollWord));
 		}
 	}
 

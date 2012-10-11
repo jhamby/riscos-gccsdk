@@ -26,7 +26,7 @@ namespace riscos
 				public const int GetTitle = 5;
 			}
 
-			/*! \brief The default Toolbox events that this ColourDialogue object can
+			/*! \brief The default Toolbox events that this Colour Menu object can
 			 * raise.  */
 			public class EventCode
 			{

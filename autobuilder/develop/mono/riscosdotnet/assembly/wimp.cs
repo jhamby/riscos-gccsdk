@@ -295,6 +295,18 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Wimp_ProcessKey (key));
 		}
 
+		public static Wimp.Event Poll (uint pollMask, out uint pollWord)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_Poll (pollMask, out pollWord));
+			return Event.GetEvent ();
+		}
+
+		public static Wimp.Event PollIdle (uint pollMask, uint time, out uint pollWord)
+		{
+			OS.ThrowOnError (NativeMethods.Wimp_PollIdle (pollMask, time, out pollWord));
+			return Event.GetEvent ();
+		}
+
 		public static int ReportError (ErrorBoxFlags flags, string name, int errno, string message)
 		{
 			int result;

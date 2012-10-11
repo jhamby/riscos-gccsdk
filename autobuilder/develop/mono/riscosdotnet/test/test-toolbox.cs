@@ -377,6 +377,7 @@ public class MyTask : ToolboxTask
 				public const uint ColourDBox = 2;
 				public const uint ColourMenu = 3;
 				public const uint FontDBox = 4;
+				public const uint FontMenu = 5;
 			}
 
 			public Toolbox.MenuEntry FileInfoEntry;
@@ -385,6 +386,8 @@ public class MyTask : ToolboxTask
 			public Toolbox.MenuEntry ColourDBoxEntry;
 			public Toolbox.MenuEntry ColourMenuEntry;
 			public Toolbox.MenuEntry FontDBoxEntry;
+
+			public Toolbox.FontMenu FontMenu;
 
 			public TextFileMenu () : base ("WindowMenu")
 			{
@@ -395,6 +398,9 @@ public class MyTask : ToolboxTask
 				ColourDBoxEntry = new Toolbox.MenuEntry (this, Cmp.ColourDBox);
 				ColourMenuEntry = new Toolbox.MenuEntry (this, Cmp.ColourMenu);
 				FontDBoxEntry = new Toolbox.MenuEntry (this, Cmp.FontDBox);
+
+				Toolbox.MenuEntry entry = new Toolbox.MenuEntry (this, Cmp.FontMenu);
+				FontMenu = (Toolbox.FontMenu)entry.SubMenuShow;
 			}
 		}
 
@@ -460,6 +466,33 @@ public class MyTask : ToolboxTask
 				(Toolbox.FontDialogue)WindowMenu.FontDBoxEntry.ClickShow.Object;
 			font_dbox.AboutToBeShown += OnFontDBoxAboutToBeShown;
 			font_dbox.ApplyFont += OnFontDBoxApplyFont;
+
+			WindowMenu.FontMenu.AboutToBeShown += OnFontMenuAboutToBeShown;
+			WindowMenu.FontMenu.FontSelection += OnFontMenuFontSelection;
+		}
+
+		private void OnFontMenuAboutToBeShown (object sender, Toolbox.FontMenu.AboutToBeShownEventArgs args)
+		{
+			// The FontMenu is the sender
+			Toolbox.FontMenu font_menu = (Toolbox.FontMenu)sender;
+
+			font_menu.Font = FontID;
+		}
+
+		private void OnFontMenuFontSelection (object sender, Toolbox.FontMenu.FontSelectionEventArgs args)
+		{
+			font.Lose ();
+
+			// The FontMenu returns a full font ID, i.e., one where the name begins with "\F".
+			// The FontDialogue doesn't recognise names like this, so strip the "\F" off.
+			FontID = args.FontID.StartsWith ("\\F") ?
+				 args.FontID.Remove (0, 2) :
+				 args.FontID;
+
+			font.Find (FontID,
+				   ((FontHeight * FontAspectRatio) / 100) << 4,
+				   FontHeight << 4, 0, 0);
+			ForceRedraw (Extent);
 		}
 
 		private void OnFontDBoxAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
@@ -601,7 +634,7 @@ public class MyTask : ToolboxTask
 	public MainMenu main_menu;
 	public Toolbox.ProgInfoDialogue ProgInfo;
 
-	const string Version = "V1.0 (9th September 2012)";
+	const string Version = "V1.0 (10th October 2012)";
 
 	// Could use an enum here, but enums require a cast which is ugly.
 	public static class MyEvent
@@ -665,7 +698,19 @@ public class MyTask : ToolboxTask
 
 	public void Run ()
 	{
-		PollLoop ();
+		while (Quit == false)
+		{
+			try {
+				PollIdle (OS.ReadMonotonicTime() + 100);
+			}
+			catch (OS.ErrorException ex)
+			{
+				Wimp.ReportError (Wimp.ErrorBoxFlags.OKIcon,
+						  "MonoTestTB",
+						  ex.OSError.ErrNum,
+						  ex.OSError.ErrMess);
+			}
+		}
 	}
 
 	public void QuitDialogueQuitHandler (object sender, Toolbox.ToolboxEventArgs args)

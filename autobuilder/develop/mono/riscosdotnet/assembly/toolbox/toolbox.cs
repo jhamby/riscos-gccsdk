@@ -439,6 +439,8 @@ namespace riscos
 					return new ColourMenu (ObjectID);
 				case Class.FontDbox:
 					return new FontDialogue (ObjectID);
+				case Class.FontMenu:
+					return new FontMenu (ObjectID);
 				default:
 					throw new UnknownObjectException (ObjectID);
 				}

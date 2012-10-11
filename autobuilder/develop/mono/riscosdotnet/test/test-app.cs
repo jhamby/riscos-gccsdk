@@ -124,6 +124,23 @@ public class MyTask : WimpTask
 			}
 		}
 	}
+
+	public void Run ()
+	{
+		while (Quit == false)
+		{
+			try {
+				PollIdle (OS.ReadMonotonicTime() + 100);
+			}
+			catch (OS.ErrorException ex)
+			{
+				Wimp.ReportError (Wimp.ErrorBoxFlags.OKIcon,
+						  "MonoTestApp",
+						  ex.OSError.ErrNum,
+						  ex.OSError.ErrMess);
+			}
+		}
+	}
 }
 
 public class Test
@@ -186,7 +203,7 @@ public class Test
 			task.matrix.Translate (100, 0);
 			task.matrix.Rotate (45);
 
-			task.PollLoop ();
+			task.Run ();
 		}
 		catch (OS.ErrorException ex)
 		{
