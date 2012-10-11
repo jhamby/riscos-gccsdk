@@ -11,7 +11,7 @@ namespace riscos
 {
 	public static partial class Toolbox
 	{
-		/*! \class ColourMenu
+		/*! \class FontMenu
 		 * \brief A menu which shows the currently selected font, and allows the user to
 		 * set this from a list of font names.  */
 		public class FontMenu : Object
