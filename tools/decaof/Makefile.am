@@ -4,8 +4,6 @@ SVN_ROOT := $(shell svn info ${srcdir} | grep "^Repository Root: " | sed -e "s/^
 SVN_BRANCH := $(shell svn info ${srcdir} | grep "^URL: " | sed -e "s/^URL: //")
 SVN_REV := r$(shell svnversion -n ${srcdir}) at $(subst $(SVN_ROOT),,$(SVN_BRANCH))
 
-###### _GNU_SOURCE to make strndup available
-###### Add -DDEBUG if you want to enable the debug routines.
 decaof_CFLAGS = -std=c99 \
 	-W -Wall -pedantic -Wbad-function-cast -Wcast-align \
 	-Wchar-subscripts -Winline \
