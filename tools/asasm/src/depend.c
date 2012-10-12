@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 1997 Darren Salt
- * Copyright (c) 2004-2010 GCCSDK Developers
+ * Copyright (c) 2004-2012 GCCSDK Developers
  * 
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -18,6 +18,8 @@
  *
  * depend.c
  */
+
+#include "config.h"
 
 #include <stdio.h>
 

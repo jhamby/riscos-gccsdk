@@ -10,9 +10,8 @@ SVN_REV := r$(shell svnversion -n ${srcdir}) at $(subst $(SVN_ROOT),,$(SVN_BRANC
 # from AC_INIT in configure.ac) and bbbb is our SVN revision number.
 ASASM_VERSION := $(shell echo -n "@VERSION@" | sed -e "s/\([0-9]\)\.\([0-9][0-9]\)/\1\2/")$(shell echo -n "0000"`svnversion -n ${srcdir}` | sed -e "s/[0-9]*://" -e "s/\([0-9]*\).*/\1/" | egrep -o "....$$")
 
-# _GNU_SOURCE to make strndup available
 # Add -DDEBUG if you want to enable the debug routines.
-asasm_CFLAGS = -D_GNU_SOURCE -std=c99 \
+asasm_CFLAGS = -std=c99 \
 	-D_LARGEFILE_SOURCE \
 	-fstrict-aliasing -Wstrict-aliasing \
 	-W -Wall -pedantic -Wbad-function-cast -Wcast-align \

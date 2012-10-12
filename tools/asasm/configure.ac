@@ -6,6 +6,7 @@ AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SUBDIRS([elftoolchain decaof])
 
 AC_PROG_CC
+AC_GNU_SOURCE
 
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
