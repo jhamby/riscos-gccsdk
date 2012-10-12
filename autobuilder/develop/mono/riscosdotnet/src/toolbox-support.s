@@ -265,6 +265,24 @@ rdn_Toolbox_ObjectMiscOp_GetR0R1:
 99:	LDR	pc, [sp], #4
 	DECLARE_FUNCTION rdn_Toolbox_ObjectMiscOp_GetR0R1
 
+	@ IntPtr rdn_Toolbox_ObjectMiscOp_GetR0R1R2 (uint flags, uint ObjectID, int method,
+	@ 					   int *r0_return, int *r1_return, int *r2_return)
+	.global rdn_Toolbox_ObjectMiscOp_GetR0R1R2
+rdn_Toolbox_ObjectMiscOp_GetR0R1R2:
+	MOV	ip, sp
+	STR	lr, [sp, #-4]!
+
+	SWI	0x64EC6
+	BVS	99f
+	STR	r0, [r3]
+	LDR	lr, [ip, #0]
+	STR	r1, [lr]
+	LDR	lr, [ip, #4]
+	STR	r2, [lr]
+	MOV	r0, #0
+99:	LDR	pc, [sp], #4
+	DECLARE_FUNCTION rdn_Toolbox_ObjectMiscOp_GetR0R1R2
+
 	.bss
 
 id_block:

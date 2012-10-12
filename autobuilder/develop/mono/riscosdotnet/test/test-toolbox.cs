@@ -378,6 +378,7 @@ public class MyTask : ToolboxTask
 				public const uint ColourMenu = 3;
 				public const uint FontDBox = 4;
 				public const uint FontMenu = 5;
+				public const uint ScaleDBox = 6;
 			}
 
 			public Toolbox.MenuEntry FileInfoEntry;
@@ -388,6 +389,7 @@ public class MyTask : ToolboxTask
 			public Toolbox.MenuEntry FontDBoxEntry;
 
 			public Toolbox.FontMenu FontMenu;
+			public Toolbox.ScaleDialogue ScaleDBox;
 
 			public TextFileMenu () : base ("WindowMenu")
 			{
@@ -399,8 +401,13 @@ public class MyTask : ToolboxTask
 				ColourMenuEntry = new Toolbox.MenuEntry (this, Cmp.ColourMenu);
 				FontDBoxEntry = new Toolbox.MenuEntry (this, Cmp.FontDBox);
 
-				Toolbox.MenuEntry entry = new Toolbox.MenuEntry (this, Cmp.FontMenu);
+				Toolbox.MenuEntry entry;
+
+				entry = new Toolbox.MenuEntry (this, Cmp.FontMenu);
 				FontMenu = (Toolbox.FontMenu)entry.SubMenuShow;
+
+				entry = new Toolbox.MenuEntry (this, Cmp.ScaleDBox);
+				ScaleDBox = (Toolbox.ScaleDialogue)entry.SubMenuShow;
 			}
 		}
 
@@ -422,6 +429,9 @@ public class MyTask : ToolboxTask
 
 		ColourSetter ColourSetBy = ColourSetter.Dialogue;
 
+		// Scale is a percentage.
+		private uint Scale = 100;
+
 		// The text to be displayed in this window.
 		public string Text;
 
@@ -429,6 +439,9 @@ public class MyTask : ToolboxTask
 
 		public TextFile (string text) : base ("MainWindow")
 		{
+			// Set the window title via its Title property.
+			Title = "CSharp Toolbox Window - Scale: " + Scale + "%";
+
 			Text = text;
 			WindowMenu = new TextFileMenu ();
 			// Attach the menu to the window.
@@ -469,6 +482,34 @@ public class MyTask : ToolboxTask
 
 			WindowMenu.FontMenu.AboutToBeShown += OnFontMenuAboutToBeShown;
 			WindowMenu.FontMenu.FontSelection += OnFontMenuFontSelection;
+
+			WindowMenu.ScaleDBox.AboutToBeShown += OnScaleDBoxAboutToBeShown;
+			WindowMenu.ScaleDBox.ApplyFactor += OnScaleDBoxApplyFactor;
+		}
+
+		private void OnScaleDBoxAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
+		{
+			// The ScaleDialogue is the sender
+			Toolbox.ScaleDialogue scale_dbox = (Toolbox.ScaleDialogue)sender;
+
+			scale_dbox.Value = (int)Scale;
+		}
+
+		private void OnScaleDBoxApplyFactor (object sender, Toolbox.ScaleDialogue.ApplyFactorEventArgs args)
+		{
+			Scale = args.Factor;
+
+			font.Lose ();
+
+			int scaled_height = (FontHeight * (int)Scale) / 100;
+
+			font.Find (FontID,
+				   ((scaled_height * FontAspectRatio) / 100) << 4,
+				   scaled_height << 4, 0, 0);
+			ForceRedraw (Extent);
+
+			// Set the window title via its Title property.
+			Title = "CSharp Toolbox Window - Scale: " + Scale + "%";
 		}
 
 		private void OnFontMenuAboutToBeShown (object sender, Toolbox.FontMenu.AboutToBeShownEventArgs args)
@@ -634,7 +675,7 @@ public class MyTask : ToolboxTask
 	public MainMenu main_menu;
 	public Toolbox.ProgInfoDialogue ProgInfo;
 
-	const string Version = "V1.0 (10th October 2012)";
+	const string Version = "V1.0 (12th October 2012)";
 
 	// Could use an enum here, but enums require a cast which is ugly.
 	public static class MyEvent
@@ -690,7 +731,6 @@ public class MyTask : ToolboxTask
 		InitIconBar();
 
 		CurrentFile = new TextFile ("The quick brown fox jumped over the lazy dog.");
-		CurrentFile.Title = "CSharp Toolbox Window";
 
 		dialogue = new Dialogue (this);
 		dialogue.Show ();

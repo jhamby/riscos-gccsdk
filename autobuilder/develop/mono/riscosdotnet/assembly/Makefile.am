@@ -35,6 +35,7 @@ riscos_dll_sources = \
 	toolbox/colour-menu.cs \
 	toolbox/font-dialogue.cs \
 	toolbox/font-menu.cs \
+	toolbox/scale-dialogue.cs \
 	wimp.cs \
 	icon.cs \
 	task.cs \

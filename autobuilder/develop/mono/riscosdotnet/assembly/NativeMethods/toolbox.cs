@@ -387,6 +387,14 @@ namespace riscos
 									    int method,
 									    out uint r0,
 									    out uint r1);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="rdn_Toolbox_ObjectMiscOp_GetR0R1R2")]
+		internal static extern IntPtr Toolbox_ObjectMiscOp_GetR0R1R2 (uint flags,
+									      uint objectID,
+									      int method,
+									      out int r0,
+									      out int r1,
+									      out int r2);
 	}
 }
 

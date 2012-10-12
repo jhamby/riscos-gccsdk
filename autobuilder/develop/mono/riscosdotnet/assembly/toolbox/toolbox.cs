@@ -48,7 +48,7 @@ namespace riscos
 			public const int PrintDbox = 0x82b00;
 			public const int ProgInfo = 0x82b40;
 			public const int SaveAs = 0x82bc0;
-			public const int Scale = 0x82c00;
+			public const int ScaleDbox = 0x82c00;
 		}
 
 		public static class EventHeaderOffset
@@ -441,6 +441,8 @@ namespace riscos
 					return new FontDialogue (ObjectID);
 				case Class.FontMenu:
 					return new FontMenu (ObjectID);
+				case Class.ScaleDbox:
+					return new ScaleDialogue (ObjectID);
 				default:
 					throw new UnknownObjectException (ObjectID);
 				}
@@ -588,6 +590,16 @@ namespace riscos
 											     method,
 											     out r0,
 											     out r1));
+			}
+
+			public void MiscOp_GetR0R1R2 (uint flags, int method, out int r0, out int r1, out int r2)
+			{
+				OS.ThrowOnError (NativeMethods.Toolbox_ObjectMiscOp_GetR0R1R2 (flags,
+											     ID,
+											     method,
+											     out r0,
+											     out r1,
+											     out r2));
 			}
 
 			public uint MiscOp_SetR3GetR0 (uint flags, int method, uint r3)
