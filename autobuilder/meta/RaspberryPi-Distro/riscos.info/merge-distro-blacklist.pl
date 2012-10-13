@@ -16,8 +16,15 @@ my @blacklist = ( 'firefox-riscpc', 'GCC', 'CPP-2.95', 'GCC-2.95', 'G++',
   'StrongED-Modes-Internet', 'StrongED-Modes-Misc', 'StrongED-Modes-Program',
   'StrongED-Modes-RISCOS', 'StrongED-Modes-Scripting',
   'RiscTerm',
-  'MagicMush', 'FTPc',
-  'bison', 'flex', 'm4'
+  'MagicMush', 'FTPc', # not armv7
+  'bison', 'flex', 'm4', # package name clash
+  'RiscPkg',  # won't handle firmware updates correctly
+  'Manuals', # Misc v Miscellaneous sections - tidies the index (ROOL version in Miscellaenous)
+  'BumpRace',  # sprite file issue
+  'AlienBlaster', 'Anagramarama', 'Flobopuyo', 'Defendguin', # crashes
+  'Arcem', # missing UnixHome dependency
+  'Bc', # missing description
+  'Fillets-Ng', 'Fillets-Ng-Data' # huge, install breaks
   );
 
 # fetch the packages file
