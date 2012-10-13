@@ -38,33 +38,6 @@ namespace riscos
 				public const int DialogueCompleted = 0x82ac1;
 			}
 
-			/*! \brief The event handlers that will be called just before this FileInfo Dialogue is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * FileInfoDialogueObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The signature of a DialogueComplete event handler.  */
-			public delegate void DialogueCompleteEventHandler (object sender, ToolboxEventArgs e);
-
-			/*! \brief The event handlers that will be called when this dialogue is hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * FileInfoDialogueObject.DialogueComplete += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler DialogueComplete;
-
 			/*! \brief Create a %Toolbox FileInfo Dialogue from the named template in the
 			 * Resource file.
 			 * \param[in] resName The name of the FileInfo template to use.  */
@@ -88,21 +61,21 @@ namespace riscos
 			/*! \brief Get the ID of the underlying Window object.  */
 			public uint WindowID
 			{
-				get { return MiscOp_GetR0 (0, Method.GetWindowID); }
+				get { return GetWindowID(); }
 			}
 
 			/*! \brief Gets or sets whether the file is to be indicated as modified or not.  */
 			public bool Modified
 			{
-				set { MiscOp_SetR3 (0, Method.SetModified, value ? 1U : 0); }
-				get { return MiscOp_GetR0 (0, Method.GetModified) == 0 ? false : true; }
+				set { SetModified (value); }
+				get { return GetModified(); }
 			}
 
 			/*! \brief Gets or sets the file type to be indicated in the dialogue box.  */
 			public int FileType
 			{
-				set { MiscOp_SetR3 (0, Method.SetFileType, (uint)value); }
-				get { return (int)MiscOp_GetR0 (0, Method.GetFileType); }
+				set { SetFileType (value); }
+				get { return GetFileType(); }
 			}
 
 			/*! \brief Gets or sets the filename used in the FileInfo Dialogue box.
@@ -110,80 +83,197 @@ namespace riscos
 			 * There is a limit of 256 characters on the filename length.  */
 			public string FileName
 			{
-				set { SetText (0, Method.SetFileName, value); }
-				get { return GetText (Method.GetFileName); }
+				set { SetFileName (value); }
+				get { return GetFileName(); }
 			}
 
 			/*! \brief Gets or sets the file size to be indicated in the dialogue box.  */
 			public int FileSize
 			{
-				set { MiscOp_SetR3 (0, Method.SetFileSize, (uint)value); }
-				get { return (int)MiscOp_GetR0 (0, Method.GetFileSize); }
+				set { SetFileSize (value); }
+				get { return GetFileSize (); }
 			}
 
 			/*! \brief Sets the date string used in the FileInfo dialogue's window or gets
 			 * the current UTC time used to set the date string.  */
 			public OS.DateTime Date
 			{
-				set {
-					GCHandle pinned_array;
-					try {
-						// Prevent the GC from moving the memory while we use its address.
-						pinned_array = GCHandle.Alloc (value.Utc, GCHandleType.Pinned);
-						MiscOp_SetR3 (0, Method.SetDate, pinned_array.AddrOfPinnedObject());
-					}
-					catch {
-						throw;
-					}
-					finally {
-						// The GC can have control of this back now.
-						pinned_array.Free ();
-					}
-				}
-				get {
-					OS.DateTime date = new OS.DateTime ();
-					GCHandle pinned_array;
-					try {
-						// Prevent the GC from moving the memory while we use its address.
-						pinned_array = GCHandle.Alloc (date.Utc, GCHandleType.Pinned);
-						MiscOp_SetR3 (0, Method.GetDate, pinned_array.AddrOfPinnedObject());
-					}
-					catch {
-						throw;
-					}
-					finally {
-						// The GC can have control of this back now.
-						pinned_array.Free ();
-					}
-
-					return date;
-				}
+				set { SetDate (value); }
+				get { return GetDate (); }
 			}
 
 			/*! \brief Gets or sets the text which is to be used in the title bar
 			 * of this FileInfo Dialogue.  */
 			public string Title
 			{
-				set { SetText (0, Method.SetTitle, value); }
-				get { return GetText (Method.GetTitle); }
+				set { SetTitle (value); }
+				get { return GetTitle (); }
+			}
+
+			/*! \brief Return the ID of the underlying Window object used to implement this
+			 * FileInfo Dialogue.
+			 * \return The ID of the Window Object.
+			 * \note The \e WindowID property can be used for the same purpose.  */
+			public uint GetWindowID ()
+			{
+				return MiscOp_GetR0 (0, Method.GetWindowID);
+			}
+
+			/*! \brief Indicate in the dialogue whether the file is modified or not.
+			 * \param [in] modified \e true if the file is modified, otherwise \e false.
+			 * \return Nothing.  */
+			public void SetModified (bool modified)
+			{
+				MiscOp_SetR3 (0, Method.SetModified, modified ? 1U : 0);
+			}
+
+			/*! \brief Return whether the file is marked as modified in the FileInfo dialogue.
+			 * \return \e true if the file is marked as modified, otherwise \e false.  */
+			public bool GetModified ()
+			{
+				return MiscOp_GetR0 (0, Method.GetModified) == 0 ? false : true;
+			}
+
+			/*! \brief Set the filetype of the file in the FileInfo dialogue.  */
+			public void SetFileType (int filetype)
+			{
+				MiscOp_SetR3 (0, Method.SetFileType, (uint)filetype);
+			}
+
+			/*! \brief Return the filetype of the file as indicated in the FileInfo dialogue.  */
+			public int GetFileType ()
+			{
+				return (int)MiscOp_GetR0 (0, Method.GetFileType);
+			}
+
+			/*! \brief Set the filename to display in the FileInfo dialogue.  */
+			public void SetFileName (string filename)
+			{
+				SetText (0, Method.SetFileName, filename);
+			}
+
+			/*! \brief Return the filename that is displayed in the FileInfo dialogue. */
+			public string GetFileName ()
+			{
+				return GetText (Method.GetFileName);
+			}
+
+			/*! \brief Set the file size display in the FileInfo dialogue.  */
+			public void SetFileSize (int size)
+			{
+				MiscOp_SetR3 (0, Method.SetFileSize, (uint)size);
+			}
+
+			/*! \brief Return the file size that is displayed in the FileInfo dialogue.  */
+			public int GetFileSize ()
+			{
+				return (int)MiscOp_GetR0 (0, Method.GetFileSize);
+			}
+
+			/*! \brief Set the date and time displayed in the FileInfo dialogue.  */
+			public void SetDate (OS.DateTime date)
+			{
+				GCHandle pinned_array;
+				try {
+					// Prevent the GC from moving the memory while we use its address.
+					pinned_array = GCHandle.Alloc (date.Utc, GCHandleType.Pinned);
+					MiscOp_SetR3 (0, Method.SetDate, pinned_array.AddrOfPinnedObject());
+				}
+				catch {
+					throw;
+				}
+				finally {
+					// The GC can have control of this back now.
+					pinned_array.Free ();
+				}
+			}
+
+			/*! \brief Get the date and time that is displayed in the FileInfo dialogue.  */
+			public OS.DateTime GetDate ()
+			{
+				OS.DateTime date = new OS.DateTime ();
+				GCHandle pinned_array;
+				try {
+					// Prevent the GC from moving the memory while we use its address.
+					pinned_array = GCHandle.Alloc (date.Utc, GCHandleType.Pinned);
+					MiscOp_SetR3 (0, Method.GetDate, pinned_array.AddrOfPinnedObject());
+				}
+				catch {
+					throw;
+				}
+				finally {
+					// The GC can have control of this back now.
+					pinned_array.Free ();
+				}
+
+				return date;
+			}
+
+			/*! \brief Set the text string which is used in the title bar of the FileInfo dialogue.  */
+			public void SetTitle (string title)
+			{
+				SetText (0, Method.SetTitle, title);
+			}
+
+			/*! \brief Return the text string which is used in the title bar of the FileInfo dialogue.  */
+			public string GetTitle ()
+			{
+				return GetText (Method.GetTitle);
+			}
+
+			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			{
+				if (DialogueCompleted != null)
+					DialogueCompleted (this, e.ToolboxArgs);
 			}
 
 			/*! \brief Check if the given event is relevant to the FileInfo Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEvent e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				switch (e.ToolboxArgs.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					if (AboutToBeShown != null)
-						AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+					OnAboutToBeShown (e);
 					break;
 				case EventCode.DialogueCompleted:
-					if (DialogueComplete != null)
-						DialogueComplete (this, ev.ToolboxArgs);
+					OnDialogueCompleted (e);
 					break;
 				}
 			}
+
+			/*! \brief The signature of a DialoguedCompleted event handler.  */
+			public delegate void DialogueCompletedEventHandler (object sender, ToolboxEventArgs e);
+
+			/*! \brief The event handlers that will be called just before this FileInfo Dialogue is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * FileInfoDialogueObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this dialogue is hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * FileInfoDialogueObject.DialogueCompleted += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler DialogueCompleted;
 		}
 	}
 }
