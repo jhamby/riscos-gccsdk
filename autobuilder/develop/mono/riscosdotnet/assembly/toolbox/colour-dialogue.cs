@@ -63,56 +63,13 @@ namespace riscos
 			{
 			}
 
-			/*! \brief The signature of a DialogueComplete event handler.  */
-			public delegate void DialogueCompleteEventHandler (object sender, DialogueCompleteEventArgs e);
-
-			/*! \brief The signature of a ColourSelected event handler.  */
-			public delegate void ColourSelectedEventHandler (object sender, ColourSelectedEventArgs e);
-
-			/*! \brief The event handlers that will be called just before this Colour Dialogue is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ColourDialogueObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The event handlers that will be called when this dialogue is hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, DialogueCompleteEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ColourDialogueObject.DialogueComplete += handler_name;
-			 * \endcode  */
-			public event DialogueCompleteEventHandler DialogueComplete;
-
-			/*! \brief The event handlers that will be called when the use clicks \e OK in the
-			 * dialogue box.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ColourSelectedEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ColourDialogueObject.ColourSelected += handler_name;
-			 * \endcode  */
-			public event ColourSelectedEventHandler ColourSelected;
-
 			/*! \brief The handle of the WIMP window used by the underlying Colour
 			 * Picker module.
 			 * 
 			 * Only valid when the Colour Dialogue box is showing.  */
 			public uint WimpHandle
 			{
-				get { return MiscOp_GetR0 (0, Method.GetWimpHandle); }
+				get { return GetWimpHandle(); }
 			}
 
 			/*! \brief The handle of the dialogue box used by the underlying Colour
@@ -121,70 +78,43 @@ namespace riscos
 			 * Only valid when the Colour Dialogue box is showing.  */
 			public uint DialogueHandle
 			{
-				get { return MiscOp_GetR0 (0, Method.GetDialogueHandle); }
+				get { return GetDialogueHandle(); }
 			}
 
 			/*! \brief Determines whether a \b None option appears in the Colour Dialogue.  */
 			public bool NoneAvailable
 			{
-				get {
-					return (MiscOp_GetR0 (0, Method.GetNoneAvailable) & 1) != 0;
-				}
-				set {
-					MiscOp_SetR3 (0, Method.SetNoneAvailable, value ? 1U : 0U);
-				}
+				set { SetNoneAvailable (value); }
+				get { return GetNoneAvailable (); }
 			}
 
 			/*! \brief Gets or sets the colour model used in the Colour Dialogue.  */
 			public ColourModel Model
 			{
-				get
-				{
-					GCHandle pinned_array;
-					int buffer_size, flags_out;
-					try {
-						buffer_size = GetBuffer (0,
-									 Method.GetColourModel,
-									 IntPtr.Zero,
-									 0,
-									 out flags_out);
-						int [] model_block = new int [buffer_size >> 2];
-						// Prevent the GC from moving the memory while we use its address
-						pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
-						GetBuffer (0,
-							   Method.GetColourModel,
-							   pinned_array.AddrOfPinnedObject(),
-							   buffer_size,
-							   out flags_out);
-						return (ColourModel)model_block [1];
-					}
-					catch {
-						throw;
-					}
-					finally {
-						pinned_array.Free ();
-					}
-				}
-				set
-				{
-					GCHandle pinned_array;
-					try {
-						int [] model_block = new int [2];
-						model_block[0] = 4;
-						model_block[1] = (int)value;
-						// Prevent the GC from moving the memory while we use its address
-						pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
-						MiscOp_SetR3 (0,
-							      Method.SetColourModel,
-							      pinned_array.AddrOfPinnedObject());
-					}
-					catch {
-						throw;
-					}
-					finally {
-						pinned_array.Free ();
-					}
-				}
+				set { SetColourModel (value); }
+				get { return GetColourModel (); }
+			}
+
+			/*! \brief Return the handle of the WIMP window used by the underlying Colour Picker
+			 * module.
+			 * 
+			 * Only valid when the Colour Dialogue box is showing.
+			 * 
+			 * \note The WimpHandle property can be used for the same purpose.  */
+			public uint GetWimpHandle ()
+			{
+				return MiscOp_GetR0 (0, Method.GetWimpHandle);
+			}
+
+			/*! \brief Return the handle of the dialogue box used by the underlying Colour Picker
+			 * module.
+			 * 
+			 * Only valid when the Colour Dialogue box is showing.
+			 * 
+			 * \note The DialogueHandle property can be used for the same purpose.  */
+			public uint GetDialogueHandle ()
+			{
+				return MiscOp_GetR0 (0, Method.GetDialogueHandle);
 			}
 
 			/*! \brief Sets the colour currently being display in the Colour Dialogue.
@@ -258,6 +188,75 @@ namespace riscos
 				}
 			}
 
+			/*! \brief Set the colour model used by the Colour Dialogue.
+			 * \param [in] colourModel Can be RGB, CMYK or HSV.
+			 * \return Nothing.  */
+			public void SetColourModel (ColourModel colourModel)
+			{
+				GCHandle pinned_array;
+				try {
+					int [] model_block = new int [2];
+					model_block[0] = 4;
+					model_block[1] = (int)colourModel;
+					// Prevent the GC from moving the memory while we use its address
+					pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
+					MiscOp_SetR3 (0,
+						      Method.SetColourModel,
+						      pinned_array.AddrOfPinnedObject());
+				}
+				catch {
+					throw;
+				}
+				finally {
+					pinned_array.Free ();
+				}
+			}
+
+			/*! \brief Return the colour model used by the Colour Dialogue.
+			 * \return A value indicating either RGB, CMYK or HSV colour models.  */
+			public ColourModel GetColourModel ()
+			{
+				GCHandle pinned_array;
+				int buffer_size, flags_out;
+				try {
+					buffer_size = GetBuffer (0,
+								 Method.GetColourModel,
+								 IntPtr.Zero,
+								 0,
+								 out flags_out);
+					int [] model_block = new int [buffer_size >> 2];
+					// Prevent the GC from moving the memory while we use its address
+					pinned_array = GCHandle.Alloc (model_block, GCHandleType.Pinned);
+					GetBuffer (0,
+						   Method.GetColourModel,
+						   pinned_array.AddrOfPinnedObject(),
+						   buffer_size,
+						   out flags_out);
+					return (ColourModel)model_block [1];
+				}
+				catch {
+					throw;
+				}
+				finally {
+					pinned_array.Free ();
+				}
+			}
+
+			/*! \brief Set whether a \b None option appears in the Colour Dialogue.
+			 * \param [in] noneAvailable \e true if a \b None option should appear in the dialogue.
+			 * \return Nothing.  */
+			public void SetNoneAvailable (bool noneAvailable)
+			{
+				MiscOp_SetR3 (0, Method.SetNoneAvailable, noneAvailable ? 1U : 0U);
+			}
+
+			/*! \brief Return whether a \b None option appears in the Colour Dialogue.
+			 * \return \e true if a \b None option appears in the dialogue, otherwise \e false.  */
+			public bool GetNoneAvailable ()
+			{
+				return (MiscOp_GetR0 (0, Method.GetNoneAvailable) & 1) != 0;
+			}
+
 			/*! \brief Create a colour block from the individual red, green and blue values of
 			 * a colour.
 			 * \param [in] r The Red component.
@@ -300,30 +299,88 @@ namespace riscos
 				return (uint)colourBlock[0];
 			}
 
+			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			{
+				if (DialogueCompleted != null)
+					DialogueCompleted (this, new DialogueCompletedEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnColourSelected (ToolboxEvent e)
+			{
+				if (ColourSelected != null)
+					ColourSelected (this, new ColourSelectedEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
 			/*! \brief Check if the given event is relevant to the Colour Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEvent e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				switch (e.ToolboxArgs.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					if (AboutToBeShown != null)
-						AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+					OnAboutToBeShown (e);
 					break;
 				case EventCode.DialogueCompleted:
-					if (DialogueComplete != null)
-						DialogueComplete (this, new DialogueCompleteEventArgs (ev.ToolboxArgs.RawEventData));
+					OnDialogueCompleted (e);
 					break;
 				case EventCode.ColourSelected:
-					if (ColourSelected != null)
-						ColourSelected (this, new ColourSelectedEventArgs (ev.ToolboxArgs.RawEventData));
+					OnColourSelected (e);
 					break;
 				}
 			}
 
+			/*! \brief The signature of a DialogueCompleted event handler.  */
+			public delegate void DialogueCompletedEventHandler (object sender, DialogueCompletedEventArgs e);
+
+			/*! \brief The signature of a ColourSelected event handler.  */
+			public delegate void ColourSelectedEventHandler (object sender, ColourSelectedEventArgs e);
+
+			/*! \brief The event handlers that will be called just before this Colour Dialogue is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ColourDialogue.AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ColourDialogueObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this dialogue is hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ColourDialogue.DialoguedCompletedEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ColourDialogueObject.DialogueCompleted += handler_name;
+			 * \endcode  */
+			public event DialogueCompletedEventHandler DialogueCompleted;
+
+			/*! \brief The event handlers that will be called when the use clicks \e OK in the
+			 * dialogue box.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ColourDialogue.ColourSelectedEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ColourDialogueObject.ColourSelected += handler_name;
+			 * \endcode  */
+			public event ColourSelectedEventHandler ColourSelected;
+
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * after the Colour Dialogue has been hidden.  */
-			public class DialogueCompleteEventArgs : ToolboxEventArgs
+			public class DialogueCompletedEventArgs : ToolboxEventArgs
 			{
 				/*! \brief Constant defining the possible bit flag returned by this event.  */
 				public static class Flags
@@ -334,7 +391,7 @@ namespace riscos
 				/*! \brief \e true if a colour selection was made during this dialogue.  */
 				public readonly bool SelectionWasMade;
 
-				public DialogueCompleteEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+				public DialogueCompletedEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
 				{
 					SelectionWasMade = (Header.Flags & Flags.SelectionWasMade) != 0;
 				}
@@ -343,7 +400,7 @@ namespace riscos
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * when the user clicks \e OK in the dialogue box.
 			 * 
-			 * \note If th \e None button is set, a colour value is still returned, reflecting the
+			 * \note If the \e None button is set, a colour value is still returned, reflecting the
 			 * current state of the dialogue box.  */
 			public class ColourSelectedEventArgs : ToolboxEventArgs
 			{
