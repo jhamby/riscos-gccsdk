@@ -379,6 +379,7 @@ public class MyTask : ToolboxTask
 				public const uint FontDBox = 4;
 				public const uint FontMenu = 5;
 				public const uint ScaleDBox = 6;
+				public const uint PrintDBox = 7;
 			}
 
 			public Toolbox.MenuEntry FileInfoEntry;
@@ -390,6 +391,7 @@ public class MyTask : ToolboxTask
 
 			public Toolbox.FontMenu FontMenu;
 			public Toolbox.ScaleDialogue ScaleDBox;
+			public Toolbox.PrintDialogue PrintDBox;
 
 			public TextFileMenu () : base ("WindowMenu")
 			{
@@ -408,6 +410,9 @@ public class MyTask : ToolboxTask
 
 				entry = new Toolbox.MenuEntry (this, Cmp.ScaleDBox);
 				ScaleDBox = (Toolbox.ScaleDialogue)entry.SubMenuShow;
+
+				entry = new Toolbox.MenuEntry (this, Cmp.PrintDBox);
+				PrintDBox = (Toolbox.PrintDialogue)entry.ClickShow.Object;
 			}
 		}
 
@@ -485,6 +490,22 @@ public class MyTask : ToolboxTask
 
 			WindowMenu.ScaleDBox.AboutToBeShown += OnScaleDBoxAboutToBeShown;
 			WindowMenu.ScaleDBox.ApplyFactor += OnScaleDBoxApplyFactor;
+
+			WindowMenu.PrintDBox.ClickSave += PrintDialogueSavePrintHandler;
+			WindowMenu.PrintDBox.ClickPrint += PrintDialogueSavePrintHandler;
+		}
+
+		void PrintDialogueSavePrintHandler (object sender, Toolbox.PrintDialogue.PrintSaveEventArgs e)
+		{
+			Reporter.WriteLine ("Print Dialogue Save/Print button clicked:");
+			if (e.PageRangeStart == -1)
+				Reporter.WriteLine ("  Print all pages");
+			else
+				Reporter.WriteLine ("  Print pages from {0} to {1}", e.PageRangeStart, e.PageRangeEnd);
+			Reporter.WriteLine ("  Print {0} copies to a scale of {1}%", e.NumberOfCopies, e.Scale);
+			Reporter.WriteLine ("  Draft printing = {0}",e.Draft);
+			Reporter.WriteLine ("  Print sideways = {0}", e.Orientation);
+			Reporter.WriteLine ("");
 		}
 
 		private void OnScaleDBoxAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)

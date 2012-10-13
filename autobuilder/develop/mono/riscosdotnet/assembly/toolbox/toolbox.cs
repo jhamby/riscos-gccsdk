@@ -443,6 +443,8 @@ namespace riscos
 					return new FontMenu (ObjectID);
 				case Class.ScaleDbox:
 					return new ScaleDialogue (ObjectID);
+				case Class.PrintDbox:
+					return new PrintDialogue (ObjectID);
 				default:
 					throw new UnknownObjectException (ObjectID);
 				}

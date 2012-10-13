@@ -103,11 +103,11 @@ namespace riscos
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, ColourSelectedEventArgs e);
+			 * void handler_name (object sender, ScaleDialogue.ApplyFactorEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
-			 * ScaleDialogueObject.ColourSelected += handler_name;
+			 * ScaleDialogueObject.ApplyFactor += handler_name;
 			 * \endcode  */
 			public event ApplyFactorEventHandler ApplyFactor;
 
