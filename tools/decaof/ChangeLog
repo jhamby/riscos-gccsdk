@@ -1,3 +1,8 @@
+Sun Oct 14 00:20:38 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* decaof.h (AREA_*): Copied AREA_* definitions from asasm.
+	* decode.c (decode): Update for new AREA_* definitions.
+
 Fri Oct 12 22:46:08 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* Makefile.am: Remove bogus comments.

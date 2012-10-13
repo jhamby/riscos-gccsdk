@@ -387,24 +387,24 @@ print_area (FILE * ifp, const struct areahdr *areahdr, Word offset, Word reloff)
       else
 	ubits |= AREA_EXTFPSET;
     }
-  if (areaFlags & AREA_NOSTACKCHECK)
+  if (areaFlags & AREA_NOSWSTACKCHECK)
     {
       if (isCode)
-	fputs ("[nostackcheck] ", stdout);
+	fputs ("[noswstackcheck] ", stdout);
       else
-	ubits |= AREA_NOSTACKCHECK;
+	ubits |= AREA_NOSWSTACKCHECK;
     }
   if (areaFlags & AREA_BASED)
     {				/* is same test for AREA_THUMB */
       if (isCode)
 	{
 	  fputs ("[thumb] ", stdout);
-	  ubits |= areaFlags & AREA_MASKBASEREGS;
+	  ubits |= areaFlags & AREA_MASKBASEREG;
 	}
       else if (isData)
-	printf ("[based r%d] ", (areaFlags & AREA_MASKBASEREGS) >> 24);
+	printf ("[based r%d] ", (areaFlags & AREA_MASKBASEREG) >> 24);
       else
-	ubits |= areaFlags & (AREA_BASED | AREA_MASKBASEREGS);
+	ubits |= areaFlags & (AREA_BASED | AREA_MASKBASEREG);
     }
   if (areaFlags & AREA_STUBDATA)
     {				/* is same test for AREA_HALFWORD */
@@ -422,13 +422,11 @@ print_area (FILE * ifp, const struct areahdr *areahdr, Word offset, Word reloff)
       else
 	ubits |= AREA_INTERWORK;
     }
-  if (areaFlags & AREA_SOFTFLOAT)
-    fputs ("[soft-float] ", stdout);
-  if (areaFlags & AREA_LINKONCE)
-    fputs ("[linkonce] ", stdout);
-  ubits |= areaFlags & AREA_UNKNOWNBITS;
+  if (areaFlags & AREA_VFP)
+    fputs ("[vfp] ", stdout);
+  ubits |= areaFlags & ~(isCode ? AREA_INT_CODEMASK : AREA_INT_DATAMASK);
   if (ubits)
-    printf ("[unknown bits %06x00] ", (areaFlags & AREA_UNKNOWNBITS) >> 8);
+    printf ("[unknown bits %06x00] ", ubits & ~AREA_ALIGN_MASK);
   printf ("\n");
 
   if (areahdr->baseaddr || (areaFlags & AREA_ABS))

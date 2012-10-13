@@ -96,32 +96,52 @@ struct areahdr
 };
 
 /* Area attributes.  */
+/* Lowest 8 bits encode the alignment of the start of the area as a power
+   of 2 and has a value between 2 and 32.  */
+#define AREA_ALIGN_MASK		0x000000FF
 #define AREA_ABS		0x00000100
 #define AREA_CODE		0x00000200
-#define AREA_COMMONDEF		0x00000400	/* Common block definition */
-#define AREA_COMMONREF		0x00000800	/* Common block reference */
-#define AREA_UDATA		0x00001000	/* Uninitialised (0-initialised) */
+#define AREA_COMMONDEF		0x00000400 /* Common block definition */
+#define AREA_COMMONREF		0x00000800 /* Common block reference */
+#define AREA_UDATA		0x00001000 /* Uninitialised (0-initialised) */
 #define AREA_READONLY		0x00002000
 #define AREA_PIC		0x00004000
 #define AREA_DEBUG		0x00008000
-#define AREA_32BITAPCS		0x00010000	/* Code area only */
-#define AREA_REENTRANT		0x00020000	/* Code area only */
-#define AREA_EXTFPSET		0x00040000	/* Code area only */
-#define AREA_NOSTACKCHECK	0x00080000	/* Code area only */
-#define AREA_THUMB		0x00100000	/* Code area only */
-#define AREA_HALFWORD		0x00200000	/* Code area only */
-#define AREA_INTERWORK		0x00400000	/* Code area only */
-#define AREA_BASED		0x00100000	/* Data area only */
-#define AREA_STUBDATA		0x00200000	/* Data area only */
-#define AREA_RESERVED22		0x00400000
+#define AREA_32BITAPCS		0x00010000 /* Code area only */
+#define AREA_REENTRANT		0x00020000 /* Code area only */
+#define AREA_EXTFPSET		0x00040000 /* Code area only */
+#define AREA_NOSWSTACKCHECK	0x00080000 /* Code area only */
+#define AREA_THUMB		0x00100000 /* Code area only, same value as AREA_BASED.  */
+#define AREA_HALFWORD		0x00200000 /* Code area only, same value as AREA_STUBDATA.  */
+#define AREA_INTERWORK		0x00400000 /* Code area only */
+#define AREA_BASED		0x00100000 /* Data area only, same value as AREA_THUMB.  */
+#define AREA_STUBDATA		0x00200000 /* Data area only, same value as AREA_HALFWORD.  */
 #define AREA_RESERVED23		0x00800000
-#define AREA_MASKBASEREGS	0x0F000000	/* Base regs, data area only */
-#define AREA_LINKONCE		0x10000000	/* GNU linkonce (GCCSDK extension) Normally a reserved bit. */
+#define AREA_MASKBASEREG	0x0F000000 /* Base reg, data area only */
+#define AREA_RESERVED28		0x10000000
 #define AREA_RESERVED29		0x20000000
 #define AREA_RESERVED30		0x40000000
-#define AREA_SOFTFLOAT		0x80000000	/* Avoids FP instructions (GCCSDK extension) Normally reserved bit. */
+#define AREA_VFP		0x80000000
 
-#define AREA_UNKNOWNBITS	0x60E00000
+/* New since DDE Rel 21 
+
+   Area attribute bit 31 is valid for both code and data areas, and when
+   set, indicates:
+   * double-precision floating point data in the area is stored using VFP
+     rules (endianness matches the rest of the file) rather than FPA rules
+     (most-significant word always stored first).
+   * for code areas in little-endian mode, that when functions in the area
+     receive double-precision arguments and/or return a double-precision
+     value in integer registers or on the stack, that the lower register
+     number or lower stack address holds the least significant word
+     (little-endian VFP compatibilty mode). Otherwise (big-endian mode or
+     FPA compatibility mode), the lower register or lower stack address
+     holds the most-significant word.
+   An area with this attribute cannot be linked with an area which lacks
+   the attribute.  */
+
+#define AREA_INT_DATAMASK	0x8F30FFFF /* Mask for DATA areas.  */
+#define AREA_INT_CODEMASK	0xC7FFFFFF /* Mask for CODE areas.  */
 
 /* Symbol attributes.  */
 #define SYMBOL_LOCAL     0x0001	/* Defined with local scope */
