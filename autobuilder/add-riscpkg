@@ -271,6 +271,11 @@ if [ -e "$H/RiscPkg/Control" ] ; then
   cat $H/RiscPkg/Control >> $D/RiscPkg/Control
 fi
 
+has_copyright="no"
+if [ -e "$H/RiscPkg/Copyright" ] ; then
+   has_copyright="yes"
+   cat $H/RiscPkg/Copyright > $D/RiscPkg/Copyright
+else
 # Standard header for copyright
 echo "$package" > $D/RiscPkg/Copyright
 echo "" >> $D/RiscPkg/Copyright
@@ -318,10 +323,6 @@ if [ ! -d debian ] ; then
   echo "" >> $D/RiscPkg/Copyright
 fi
 
-has_copyright="no"
-if [ -e "$H/RiscPkg/Copyright" ] ; then
-   has_copyright="yes"
-   cat $H/RiscPkg/Copyright >> $D/RiscPkg/Copyright
 fi
 
 # Use Debian descpription and copyright
