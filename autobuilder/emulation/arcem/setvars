@@ -22,7 +22,7 @@ ab_package() {
   cp -av $S/support_modules/support/support,ffa $A/extnrom
   cp -av $S/support_modules/modes/ArcemModes,ffa $A/extnrom
   
-  $AB_HOME/add-riscpkg -unixlib -copyrightfile docs/COPYING
+  $AB_HOME/add-riscpkg -unixlib -unixhome -copyrightfile docs/COPYING
 }
 
   
