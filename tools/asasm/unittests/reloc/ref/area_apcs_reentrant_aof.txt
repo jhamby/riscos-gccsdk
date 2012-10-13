@@ -1,0 +1,18 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+1 area
+1 symbol
+
+** Area (0x000302) "CodeREENTRANT", aligned at 4 bytes, [code] [32bit] [reentrant] 
+   Size 0 bytes, 0 relocations
+
+
+** Symbol table:
+
+CodeREENTRANT    (01) local at "CodeREENTRANT" + 0x000000
+
+** String table:
+
+000004: CodeREENTRANT

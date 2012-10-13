@@ -1,0 +1,18 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+1 area
+1 symbol
+
+** Area (0x000002) "Code26bit", aligned at 4 bytes, [code] 
+   Size 0 bytes, 0 relocations
+
+
+** Symbol table:
+
+Code26bit        (01) local at "Code26bit" + 0x000000
+
+** String table:
+
+000004: Code26bit

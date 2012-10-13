@@ -1,3 +1,57 @@
+Sun Oct 14 00:59:54 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* main.h (APCS_OPT_VFPENDIAN): Renamed from APC_OPT_FPAENDIAN.
+	* main.c (gOptionVersionAPCS, gOptionAPCS): Initialize at
+	ParseOption_APCS.
+	(ParseOption_APCS): Make gOptionAPCS default follow the FPU choice.
+	Add sanity check on softfp and (no)fpregargs.
+	* symbol.c (ApplyDefaultSymbolTypeForExportOrImport): Add.
+	(Symbol_OutputForAOF, c_export, c_import): Use
+	ApplyDefaultSymbolTypeForExportOrImport.
+	(GetQualifierList): Flush rest of line after parser failed.
+	* area.c: Add include lit.h.
+	(Area_PrepareForPhase): Add NOINIT suggestion.
+	(Area_ApplyAPCSOption): Fix AREA_EXTFPSET test. Add support for
+	APCS_OPT_ROPI, APCS_OPT_REENTRANT, APCS_OPT_SWSTACKCHECK,
+	APCS_OPT_INTERWORK, APCS_OPT_VFPENDIAN.
+	(FlagCat_e, AttribResult_t, ParseAttributeBASED, ParseAttributeALIGN,
+	oAttributes, AttributesAsName, GetAreaAttributes): Add.
+	(c_area): Reimplement using GetAreaAttributes.
+	(c_org): Enhance test on ValueInt.
+	* area.h: Remove include decode.h, lit.h.
+	(AREA_NOSWSTACKCHECK): Renamed from AREA_NOSTACKCHECK.
+	(AREA_LINKONCE): Remove, replace it by AREA_RESERVED28.
+	(AREA_VFP, AREA_INT_CODEALIGN, AREA_INT_AOFMASK, AREA_INT_DATAMASK,
+	AREA_INT_CODEMASK): Add.
+	* put.c (Put_FloatDataWithOffset): Add test on AREA_VFP.
+	* decode.c: Add include lit.h.
+
+	unittests/reloc:
+	* Makefile.in: Add RUNOPT support.  Create empty reference files when
+	needed.
+
+	* src/area_26bit.s, src/area_apcs_interwork.s, src/area_apcs_vfp.s,
+	src/area_apcs_fpe2.s, src/area_apcs_fpe3.s, src/area_apcs_softfp.s,
+	src/area_apcs_reentrant.s, src/area_apcs_hardfp.s, src/area_apcs_fpa.s,
+	src/area.s, src/area_apcs_noswstackcheck.s, src/area_apcs_pic.s: Add.
+	* ref/area_apcs_vfp_aof.txt, ref/area_apcs_fpe2_elf.txt,
+	ref/area_apcs_fpe3_elf.txt, ref/area_apcs_softfp_aof.txt,
+	ref/area_apcs_reentrant_elf.txt, ref/area_apcs_hardfp_aof.txt,
+	ref/area_apcs_fpa_elf.txt, ref/area_apcs_noswstackcheck_aof.txt,
+	ref/area_elf.txt, ref/area_apcs_pic_aof.txt, ref/area_26bit_elf.txt,
+	ref/area_apcs_interwork_aof.txt, ref/area_apcs_fpe2_aof.txt,
+	ref/area_apcs_vfp_elf.txt, ref/area_apcs_fpe3_aof.txt,
+	ref/area_apcs_reentrant_aof.txt, ref/area_apcs_softfp_elf.txt,
+	ref/area_apcs_hardfp_elf.txt, ref/area_apcs_fpa_aof.txt,
+	ref/area_aof.txt, ref/area_apcs_noswstackcheck_elf.txt,
+	ref/area_apcs_pic_elf.txt, ref/area_26bit_aof.txt,
+	ref/area_apcs_interwork_elf.txt: Add.
+
+	unittests/compare:
+	* Makefile.in: Fix comment.  Tune final check target output.
+	* core/area.s: Add a couple more area tests.
+
 Fri Oct 12 23:04:06 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:

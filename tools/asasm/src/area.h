@@ -27,8 +27,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "decode.h"
-#include "lit.h"
 #include "phase.h"
 #include "symbol.h"
 
@@ -46,19 +44,18 @@
 #define AREA_32BITAPCS		0x00010000 /* Code area only */
 #define AREA_REENTRANT		0x00020000 /* Code area only */
 #define AREA_EXTFPSET		0x00040000 /* Code area only */
-#define AREA_NOSTACKCHECK	0x00080000 /* Code area only */
-#define AREA_THUMB		0x00100000 /* Code area only */
-#define AREA_HALFWORD		0x00200000 /* Code area only */
+#define AREA_NOSWSTACKCHECK	0x00080000 /* Code area only */
+#define AREA_THUMB		0x00100000 /* Code area only, same value as AREA_BASED.  */
+#define AREA_HALFWORD		0x00200000 /* Code area only, same value as AREA_STUBDATA.  */
 #define AREA_INTERWORK		0x00400000 /* Code area only */
-#define AREA_BASED		0x00100000 /* Data area only */
-#define AREA_STUBDATA		0x00200000 /* Data area only */
-#define AREA_RESERVED22		0x00400000
+#define AREA_BASED		0x00100000 /* Data area only, same value as AREA_THUMB.  */
+#define AREA_STUBDATA		0x00200000 /* Data area only, same value as AREA_HALFWORD.  */
 #define AREA_RESERVED23		0x00800000
 #define AREA_MASKBASEREG	0x0F000000 /* Base reg, data area only */
-#define AREA_LINKONCE		0x10000000 /* GNU linkonce (GCCSDK extension) Normally a reserved bit. */
+#define AREA_RESERVED28		0x10000000
 #define AREA_RESERVED29		0x20000000
 #define AREA_RESERVED30		0x40000000
-#define AREA_RESERVED31		0x80000000
+#define AREA_VFP		0x80000000
 
 /* New since DDE Rel 21 
 
@@ -76,6 +73,12 @@
      holds the most-significant word.
    An area with this attribute cannot be linked with an area which lacks
    the attribute.  */
+
+/* Internal area flags: */
+#define AREA_INT_CODEALIGN	0x40000000
+#define AREA_INT_AOFMASK	0x8F7FFFFF /* Mask for the area attributes which need to written in AOF file format.  */
+#define AREA_INT_DATAMASK	0x8F30FFFF /* Mask for DATA areas.  */
+#define AREA_INT_CODEMASK	0xC7FFFFFF /* Mask for CODE areas.  */
 
 #define AREA_DEFAULT_ALIGNMENT	0x00000002
 

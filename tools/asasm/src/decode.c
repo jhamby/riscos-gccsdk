@@ -44,6 +44,7 @@
 #include "error.h"
 #include "frame.h"
 #include "input.h"
+#include "lit.h"
 #include "local.h"
 #include "macros.h"
 #include "m_cop.h"

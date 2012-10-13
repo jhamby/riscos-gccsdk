@@ -1,0 +1,101 @@
+ELF Header:
+  Magic:   7f 45 4c 46 01 01 01 61 00 00 00 00 00 00 00 00 
+  Class:                             ELF32
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            ARM
+  ABI Version:                       0
+  Type:                              REL (Relocatable file)
+  Machine:                           ARM
+  Version:                           0x1
+  Entry point address:               0
+  Start of program headers:          0 (bytes into file)
+  Start of section headers:          52 (bytes into file)
+  Flags:                             0, GNU EABI
+  Size of this header:               52 (bytes)
+  Size of program headers:           0 (bytes)
+  Number of program headers:         0
+  Size of section headers:           40 (bytes)
+  Number of section headers:         34
+  Section header string table index: 33
+
+There are no program headers in this file.
+There are 34 section headers, starting at offset 0x34:
+
+Section Headers:
+  [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
+  [ 0] (null)            NULL            00000000 000000 000000 00      0   0  0
+  [ 1] .symtab           SYMTAB          00000000 000584 0001f0 10      2  31  4
+  [ 2] .strtab           STRTAB          00000000 000774 000001 00      0   0  1
+  [ 3] Code01_DefaultAtt PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [ 4] Code02_ABS        PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [ 5] Code03_REL        PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [ 6] Code04_PIC        PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [ 7] Code05_READONLY   PROGBITS        00000000 000778 000000 00  AX  0   0  4
+  [ 8] Code06_READWRITE  PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [ 9] Code07_COMDEF     PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [10] Code08_COMMON     PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [11] Code09_NOINIT     NOBITS          00000000 000778 000000 00 WAX  0   0  4
+  [12] Code10_ALIGN5     PROGBITS        00000000 000778 000000 00 WAX  0   0 32
+  [13] Code11_VFP        PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [14] Code12_REENTRANT  PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [15] Code13_INTERWORK  PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [16] Code14_HALFWORD   PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [17] Code15_NOSWSTACKC PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [18] Code16_CODEALIGN  PROGBITS        00000000 000778 000000 00 WAX  0   0  4
+  [19] Data01_DefaultAtt PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [20] Data02_DATA       PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [21] Data03_ABS        PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [22] Data04_REL        PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [23] Data05_PIC        PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [24] Data06_READONLY   PROGBITS        00000000 000778 000000 00   A  0   0  4
+  [25] Data07_READWRITE  PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [26] Data08_COMDEF     PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [27] Data09_COMMON     PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [28] Data10_NOINIT     NOBITS          00000000 000778 000000 00  WA  0   0  4
+  [29] Data11_ALIGN7     PROGBITS        00000000 000778 000000 00  WA  0   0 128
+  [30] Data12_VFP        PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [31] Data13_DEBUG      PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [32] Data14_BASEDR7    PROGBITS        00000000 000778 000000 00  WA  0   0  4
+  [33] .shstrtab         STRTAB          00000000 000778 0001d6 00      0   0  1
+Key to Flags:
+  W (write), A (alloc), X (execute), M (merge), S (strings)
+  I (info), L (link order), G (group), x (unknown)
+  O (extra OS processing required) o (OS specific), p (processor specific)
+
+There is no dynamic section in this file.
+Symbol table (.symtab) contains 31 entries:
+   Num:    Value          Size Type    Bind   Vis      Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT  UND 
+     1: 0000000000000000     0 SECTION LOCAL  DEFAULT    3 
+     2: 0000000000000000     0 SECTION LOCAL  DEFAULT    4 
+     3: 0000000000000000     0 SECTION LOCAL  DEFAULT    5 
+     4: 0000000000000000     0 SECTION LOCAL  DEFAULT    6 
+     5: 0000000000000000     0 SECTION LOCAL  DEFAULT    7 
+     6: 0000000000000000     0 SECTION LOCAL  DEFAULT    8 
+     7: 0000000000000000     0 SECTION LOCAL  DEFAULT    9 
+     8: 0000000000000000     0 SECTION LOCAL  DEFAULT   10 
+     9: 0000000000000000     0 SECTION LOCAL  DEFAULT   11 
+    10: 0000000000000000     0 SECTION LOCAL  DEFAULT   12 
+    11: 0000000000000000     0 SECTION LOCAL  DEFAULT   13 
+    12: 0000000000000000     0 SECTION LOCAL  DEFAULT   14 
+    13: 0000000000000000     0 SECTION LOCAL  DEFAULT   15 
+    14: 0000000000000000     0 SECTION LOCAL  DEFAULT   16 
+    15: 0000000000000000     0 SECTION LOCAL  DEFAULT   17 
+    16: 0000000000000000     0 SECTION LOCAL  DEFAULT   18 
+    17: 0000000000000000     0 SECTION LOCAL  DEFAULT   19 
+    18: 0000000000000000     0 SECTION LOCAL  DEFAULT   20 
+    19: 0000000000000000     0 SECTION LOCAL  DEFAULT   21 
+    20: 0000000000000000     0 SECTION LOCAL  DEFAULT   22 
+    21: 0000000000000000     0 SECTION LOCAL  DEFAULT   23 
+    22: 0000000000000000     0 SECTION LOCAL  DEFAULT   24 
+    23: 0000000000000000     0 SECTION LOCAL  DEFAULT   25 
+    24: 0000000000000000     0 SECTION LOCAL  DEFAULT   26 
+    25: 0000000000000000     0 SECTION LOCAL  DEFAULT   27 
+    26: 0000000000000000     0 SECTION LOCAL  DEFAULT   28 
+    27: 0000000000000000     0 SECTION LOCAL  DEFAULT   29 
+    28: 0000000000000000     0 SECTION LOCAL  DEFAULT   30 
+    29: 0000000000000000     0 SECTION LOCAL  DEFAULT   31 
+    30: 0000000000000000     0 SECTION LOCAL  DEFAULT   32 
+
+elf checksum: 0

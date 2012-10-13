@@ -176,7 +176,7 @@ Put_FloatDataWithOffset (uint32_t offset, unsigned size, ARMFloat data, bool ali
 	    offset = Area_AlignTo (offset, 4 /* yes, 4, not 8 */, "float double");
 
 	  const union ieee754_double dbl = { .d = data };
-	  if (1 /* FIXME: VFP support test missing */)
+	  if ((areaCurrentSymbol->area.info->type & AREA_VFP) == 0)
 	    {
 	      /* double : ARM/FPA.  */
 	      const union arm_double_fpa armdbl_fpa =

@@ -26,7 +26,7 @@
 # E.g.:
 #   ; RUNOPT: -APCS 3
 # RUNOPT is used for both generating the actual and reference output.  RUNOPTACT
-# and RUNOPTREF is used for respectively generate teh actual and refernece output.
+# and RUNOPTREF is used for respectively generate the actual and reference output.
 
 # Environment variables needed in one of the tests:
 export HDR_PATH := @srcdir@/include/hdr
@@ -61,7 +61,7 @@ VPATH = @srcdir@/core:@srcdir@/option_apcs:@srcdir@/option_cpu:@srcdir@/option_d
 all:
 
 check: $(act_PROGRAMS)
-	@$(ECHO) "*** All tests were OK (do 'make -C @abs_builddir@ clean' first if you want to re-do them)"
+	@$(ECHO) "*** All 'compare' tests were OK (do 'make -C @abs_builddir@ clean' first if you want to re-do them)"
 
 clean:
 	-rm -fr output_actual

@@ -81,9 +81,10 @@ static Syntax_e oOptionInstrSyntax; /* Set via options --16, --32, --arm, --thum
 static InstrType_e oOptionInstrType; /* Set via options --16, --32, --arm, --thumb, --thumbx.  */
 static const char *oOptionInstrSet; /* Non-NULL when oOptionInstrSyntax and oOptionInstrType are set.  */  
 
-/* Default is "3/noropi/norwpi/32bit/swstackcheck/fp/nointerwork/fpa/fpe2/hardfp/nofpregargs".  */
-APCS_Version_e gOptionVersionAPCS = eAPCS_v3;
-uint32_t gOptionAPCS = APCS_OPT_32BIT | APCS_OPT_SWSTACKCHECK | APCS_OPT_FRAMEPTR | APCS_OPT_FPAENDIAN;
+/* Default value of gOptionAPCS depends on chosen FPU.  We will set it at
+   ParseOption_APCS() after having determined the FPU.  */
+APCS_Version_e gOptionVersionAPCS;
+uint32_t gOptionAPCS;
 
 typedef struct
 {
@@ -128,8 +129,8 @@ static const APCS_Option_t oAPCSOptions[] =
   { "interwork", sizeof ("inter")-1, APCS_OPT_INTERWORK, APCS_OPT_INTERWORK },
   { "nointerwork", sizeof ("nointer")-1, APCS_OPT_INTERWORK, 0 },
 
-  { "fpa", sizeof ("fpa")-1, APCS_OPT_FPAENDIAN, APCS_OPT_FPAENDIAN },
-  { "vfp", sizeof ("vfp")-1, APCS_OPT_FPAENDIAN, 0 }
+  { "fpa", sizeof ("fpa")-1, APCS_OPT_VFPENDIAN, 0 },
+  { "vfp", sizeof ("vfp")-1, APCS_OPT_VFPENDIAN, APCS_OPT_VFPENDIAN }
 };
 
 /**
@@ -140,8 +141,24 @@ static const APCS_Option_t oAPCSOptions[] =
 static bool
 ParseOption_APCS (const char *opt)
 {
+  /* Default is "3/noropi/norwpi/32bit/swstackcheck/fp/nointerwork/hardfp".
+   * with either /fpa or /vfp and either /fpe2 or /fpe3 depending on chosen FPU.
+   * When /vfp is selected or default, /fpregargs is default.
+   */
+  gOptionAPCS = APCS_OPT_32BIT | APCS_OPT_SWSTACKCHECK | APCS_OPT_FRAMEPTR;
+  unsigned fpuFeatures = Target_GetFPUFeatures ();
+  if ((fpuFeatures & (kFPUExt_VFPv1xD | kFPUExt_VFPv2 | kFPUExt_VFPv3xD)) != 0)
+    gOptionAPCS |= APCS_OPT_VFPENDIAN;
+  if ((fpuFeatures & kFPUExt_FPAv2) != 0)
+    gOptionAPCS |= APCS_OPT_FPE3;
+  if (gOptionAPCS & APCS_OPT_VFPENDIAN)
+    gOptionAPCS |= APCS_OPT_FPREGARGS;
+
   if (opt == NULL)
-    return false;
+    {
+      gOptionVersionAPCS = eAPCS_v3;
+      return false;
+    }
 
   if (!strncasecmp (opt, "none", sizeof ("none")-1))
     {
@@ -194,6 +211,17 @@ ParseOption_APCS (const char *opt)
 	      return true;
 	    }
 	}
+      /* Option VFP influences the default for FPREGARGS.  */
+      if ((bitsSet & (APCS_OPT_VFPENDIAN | APCS_OPT_FPREGARGS)) == APCS_OPT_VFPENDIAN)
+	{
+	  gOptionAPCS &= ~APCS_OPT_FPREGARGS;
+	  if ((gOptionAPCS & (APCS_OPT_VFPENDIAN | APCS_OPT_SOFTFP)) == APCS_OPT_VFPENDIAN) 
+	    gOptionAPCS |= APCS_OPT_FPREGARGS;
+	}
+      /* Specifying /softfp with /(no)fpregargs does not make much sense.  */
+      if ((bitsSet & (APCS_OPT_SOFTFP | APCS_OPT_FPREGARGS)) == (APCS_OPT_SOFTFP | APCS_OPT_FPREGARGS)
+          && (gOptionAPCS & APCS_OPT_SOFTFP) != 0)
+	fprintf (stderr, PACKAGE_NAME ": APCS combination /softfp with /(no)fpregargs is bizar\n");
     }
   if (opt[0] != '\0')
     {
@@ -618,6 +646,9 @@ main (int argc, char **argv)
 	    
   if (Target_SetCPU_FPU_Device (cpu, fpu, device))
     return EXIT_FAILURE;
+  /* The FPU option needs to be processed first before we can process apcs
+     as the FPU will determine the default APCS value /fpa vs /vfp and
+     /fpe2 vs /fpe3.  */
   if (ParseOption_APCS (apcs))
     return EXIT_FAILURE;
   if (ParseOption_RegNames (regnames))

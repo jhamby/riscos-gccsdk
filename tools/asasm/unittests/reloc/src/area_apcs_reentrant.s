@@ -1,0 +1,5 @@
+; RUNOPT: --apcs=/reentrant
+	AREA	CodeREENTRANT, CODE
+	ASSERT	{REENTRANT}
+	ASSERT	{RWPI}
+	END

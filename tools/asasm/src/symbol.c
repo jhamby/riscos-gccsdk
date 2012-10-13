@@ -572,6 +572,20 @@ Symbol_OutputStrings (FILE *outfile, const SymbolOut_t *symOutP)
 }
 
 
+static unsigned
+ApplyDefaultSymbolTypeForExportOrImport (unsigned type, unsigned mask)
+{
+  /* If FPREGARGS nor NOFPREGARGS are specified, take the default.  */
+  if ((mask & SYMBOL_FPREGARGS) == 0
+      && (gOptionAPCS & APCS_OPT_FPREGARGS) != 0)
+    type |= SYMBOL_FPREGARGS;
+  if ((mask & SYMBOL_SOFTFP) == 0
+      && (gOptionAPCS & APCS_OPT_SOFTFP) != 0)
+    type |= SYMBOL_SOFTFP;
+  return type;
+}
+
+
 void
 Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 {
@@ -634,7 +648,7 @@ Symbol_OutputForAOF (FILE *outfile, const SymbolOut_t *symOutP)
 		 not possible for AOF.  */
 	      uint32_t type = sym->type & SYMBOL_SUPPORTED_AOF_BITS;
 	      if (oExportAllSymbols && !Area_IsMappingSymbol (sym->str))
-		type |= SYMBOL_EXPORT;
+		type = ApplyDefaultSymbolTypeForExportOrImport (type | SYMBOL_EXPORT, 0);
 	      asym.Type = armword (type);
 	      asym.Value = armword (v);
 	      /* When it is a non-absolute symbol, we need to specify the
@@ -978,9 +992,12 @@ GetQualifierList (bool forExport, bool weakOnly)
 	      else if ((keyword->flagSet & result.flagSet) != 0)
 		{
 		  /* Keyword has already been set.  Verify consistency.  */
-		  if ((keyword->flagValue & result.flagValue) != 0)
-		    error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
-			   (int)qualifier.Data.Id.len, qualifier.Data.Id.str);
+		  if ((keyword->flagSet & result.flagValue) != keyword->flagValue)
+		    {
+		      error (ErrorError, "Qualifier %.*s conflicts with a previously given qualifier",
+			     (int)qualifier.Data.Id.len, qualifier.Data.Id.str);
+		      break;
+		    }
 		}
 	      else
 		{
@@ -1066,16 +1083,19 @@ c_export (void)
 	      error (ErrorWarning, "Making EXPORT symbol %s WEAK is not supported for AOF output", sym->str);
 	      result.flagValue &= ~SYMBOL_WEAK;
 	    }
-	  sym->type |= result.flagValue;
+	  sym->type = ApplyDefaultSymbolTypeForExportOrImport (sym->type | result.flagValue, result.flagSet);
 	  assert (result.basedRegNum == -1);
 	  assert (result.commonSize == 0 && (result.flagValue & SYMBOL_COMMON) == 0);
 	}
       else
 	error (ErrorError, "Missing [");
     }
+  else
+    sym->type = ApplyDefaultSymbolTypeForExportOrImport (sym->type, 0);
 
   return false;
 }
+
 
 /**
  * Implements STRONG.
@@ -1188,7 +1208,7 @@ c_import (void)
       result.flagValue |= flagValue;
       result.flagSet |= flagValue;
 
-      sym->type |= result.flagValue;
+      sym->type = ApplyDefaultSymbolTypeForExportOrImport (sym->type | result.flagValue, result.flagSet);
       /* Extra for BASED and COMMON qualifiers.  */
       if ((sym->type & SYMBOL_COMMON) != 0)
 	{
@@ -1202,6 +1222,8 @@ c_import (void)
 	  Value_Assign (&sym->value, &value);
 	}
     }
+  else
+    sym->type = ApplyDefaultSymbolTypeForExportOrImport (sym->type, 0);
 
   return false;
 }

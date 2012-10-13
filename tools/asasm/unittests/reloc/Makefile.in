@@ -1,4 +1,9 @@
 # Checks ELF/AOF relocation. FIXME: this tests more than just relocations !
+#
+# To specify extra ASASM command line parameters (like "-APCS"), define them
+# in one of the first 5 lines of the assembler input file using keyword RUNOPT:
+# E.g.:
+#   ; RUNOPT: -APCS 3
 
 ASASM := @top_builddir@/src/asasm
 DECAOF := @top_builddir@/decaof/decaof
@@ -32,7 +37,7 @@ VPATH = @srcdir@/src
 all:
 
 check: $(check_OUT_ELF_FILES) $(check_OUT_AOF_FILES)
-	@$(ECHO) "*** All tests were OK (do 'make -C @abs_builddir@ clean' first if you want to re-do them)"
+	@$(ECHO) "*** All 'reloc' tests were OK (do 'make -C @abs_builddir@ clean' first if you want to re-do them)"
 
 clean:
 	-rm -rf out
@@ -42,16 +47,26 @@ distclean: clean
 out/%_elf.o: %.s @srcdir@/ref/%_elf.txt
 	@$(ECHO) +++ Checking ELF relocations for $<
 	$(V)$(MKDIR) -p out
-	$(V)$(ASASM) $(ASASMFLAGS_ELF) -o $@ $<
+	$(V)$(ASASM) $(ASASMFLAGS_ELF) $(shell head -5 $< | grep -E "RUNOPT:" | sed -r -e "s/^.*RUNOPT://") -o $@ $<
 	$(V)($(READELF) $(READELFFLAGS) $@ && $(ELFDUMP) $(ELFDUMPFLAGS) $@) > $(@:%.o=%.txt)
 	$(V)$(DIFF) $(DIFFFLAGS) $(@:out/%_elf.o=@srcdir@/ref/%_elf.txt) $(@:%.o=%.txt) || (mv $@ $(@:%_elf.o=%_elf_failed.o) && false)
+
+# When there is no reference file, create an empty one.  Needs to be overwritten
+# by a real reference file afterwards.
+@srcdir@/ref/%_elf.txt:
+	$(V)touch $@
 
 out/%_aof.o: %.s @srcdir@/ref/%_aof.txt
 	@$(ECHO) +++ Checking AOF relocations for $<
 	$(V)$(MKDIR) -p out
-	$(V)$(ASASM) $(ASASMFLAGS_AOF) -o $@ $<
+	$(V)$(ASASM) $(ASASMFLAGS_AOF) $(shell head -5 $< | grep -E "RUNOPT:" | sed -r -e "s/^.*RUNOPT://") -o $@ $<
 	$(V)$(DECAOF) $(DECAOFFLAGS) $@ > $(@:%.o=%.txt)
 	$(V)$(DIFF) $(DIFFFLAGS) $(@:out/%_aof.o=@srcdir@/ref/%_aof.txt) $(@:%.o=%.txt) || (mv $@ $(@:%_aof.o=%_aof_failed.o) && false)
+
+# When there is no reference file, create an empty one.  Needs to be overwritten
+# by a real reference file afterwards.
+@srcdir@/ref/%_aof.txt:
+	$(V)touch $@
 
 .PHONY: all check clean distclean
 .SUFFIXES:

@@ -1,0 +1,18 @@
+
+** AOF Header: Relocatable object format:
+
+AOF version: 310
+1 area
+1 symbol
+
+** Area (0x000102) "CodeFPE2", aligned at 4 bytes, [code] [32bit] 
+   Size 0 bytes, 0 relocations
+
+
+** Symbol table:
+
+CodeFPE2         (01) local at "CodeFPE2" + 0x000000
+
+** String table:
+
+000004: CodeFPE2

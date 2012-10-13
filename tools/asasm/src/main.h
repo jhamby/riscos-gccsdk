@@ -35,7 +35,7 @@
 #define APCS_OPT_ROPI		(1<<6) /* APCS PIC attribute.  */
 #define APCS_OPT_SOFTFP		(1<<7) /* APCS soft fp attribute.  */
 #define APCS_OPT_INTERWORK	(1<<8) /* APCS interwork attribute.  */
-#define APCS_OPT_FPAENDIAN	(1<<9) /* Use FPA instead of VFP endian.  */
+#define APCS_OPT_VFPENDIAN	(1<<9) /* VFP endian instead of FPA endian.  */
 
 typedef enum
 {

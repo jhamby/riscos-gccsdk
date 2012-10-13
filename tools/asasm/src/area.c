@@ -42,6 +42,7 @@
 #include "filestack.h"
 #include "get.h"
 #include "input.h"
+#include "lit.h"
 #include "lex.h"
 #include "main.h"
 #include "phase.h"
@@ -231,6 +232,26 @@ Area_PrepareForPhase (Phase_e phase)
 	      assert (areaCurrentSymbol->area.info->curIdx == areaCurrentSymbol->area.info->maxIdx);
 	    }
 
+	  /* Suggest NOINIT ? */
+	  for (const Symbol *areaSymP = areaHeadSymbol; areaSymP != NULL; areaSymP = areaSymP->area.info->next)
+	    {
+	      const Area *areaP = areaSymP->area.info;
+	      /* Skip suggestion when:
+	          - READONLY area, as NOINIT can not be combined with READONLY.
+	          - zero size area
+	          - non-zero data is in area.
+	       */
+	      if ((areaP->type & (AREA_READONLY | AREA_UDATA)) == 0
+	          && areaP->maxIdx != 0)
+		{
+		  uint32_t i;
+		  for (i = 0; i != areaP->maxIdx && areaP->image[i] == 0; ++i)
+		    /* */;
+		  if (i == areaP->maxIdx)
+		    error (ErrorInfo, "Area %s only contains zero bytes, use NOINIT area attribute ?", areaSymP->str);
+		}
+	    }
+	  
 	  /* Revert sort the area's so they become listed chronologically.  */
 	  Symbol *aSymP = areaHeadSymbol;
 	  assert (aSymP != NULL); /* There is always at least one area.  */
@@ -339,17 +360,30 @@ Area_AlignArea (Symbol *areaSym, unsigned alignValue, const char *msg)
 
 
 /**
- * Transforms AREA flags for code area according to the -APCS and -soft-float
- * option.
+ * Transforms AREA flags for code area according to the --APCS option.
  */
 static uint32_t
 Area_ApplyAPCSOption (uint32_t areaFlags)
 {
   /* 32-bit and FPv3 flags should only be set on CODE areas.  */
-  if (gOptionAPCS & APCS_OPT_32BIT)
+  assert ((areaFlags & AREA_CODE) != 0);
+
+  if ((gOptionAPCS & APCS_OPT_32BIT) != 0)
     areaFlags |= AREA_32BITAPCS;
-  if (gOptionAPCS & APCS_OPT_FPREGARGS)
+  if ((gOptionAPCS & APCS_OPT_FPE3) != 0)
     areaFlags |= AREA_EXTFPSET;
+  if ((gOptionAPCS & APCS_OPT_ROPI) != 0)
+    areaFlags |= AREA_PIC;
+  if ((gOptionAPCS & APCS_OPT_REENTRANT) != 0)
+    areaFlags |= AREA_REENTRANT;
+  if ((gOptionAPCS & APCS_OPT_SWSTACKCHECK) == 0)
+    areaFlags |= AREA_NOSWSTACKCHECK;
+  if ((gOptionAPCS & APCS_OPT_INTERWORK) != 0)
+    areaFlags |= AREA_INTERWORK;
+
+  if ((gOptionAPCS & APCS_OPT_VFPENDIAN) != 0)
+    areaFlags |= AREA_VFP;
+
   return areaFlags;
 }
 
@@ -400,6 +434,214 @@ Area_IsImplicit (const Symbol *sym)
   return !strcmp (sym->str, IMPLICIT_AREA_NAME);
 }
 
+typedef enum
+{
+  eBothCodeAndData = 0,
+  eForCodeAreaOnly = 1,
+  eForDataAreaOnly = 2
+} FlagCat_e;
+
+typedef struct
+{
+  unsigned flagValues[3]; /**< '3' because FlagCat_e goes from 0 .. 2 (incl.).  */
+  unsigned flagSets[3]; /**< '3' because FlagCat_e goes from 0 .. 2 (incl.).  */
+} AttribResult_t;
+
+/**
+ * Parses the AREA BASED attribute.
+ */
+static bool
+ParseAttributeBASED(AttribResult_t *result)
+{
+  skipblanks ();
+  ARMWord reg = getCpuReg ();
+  if (reg == INVALID_REG)
+    return true;
+
+  result->flagValues[eForDataAreaOnly] |= AREA_BASED | (reg << 24);
+  result->flagSets[eForDataAreaOnly] |= AREA_BASED | (0xF << 24);
+  return false;
+}
+
+/**
+ * Parses the AREA ALIGN attribute.
+ */
+static bool
+ParseAttributeALIGN(AttribResult_t *result)
+{
+  skipblanks ();
+  if (!Input_Match ('=', false))
+    {
+      error (ErrorError, "Malformed ALIGN attribute specification");
+      return true;
+    }
+  const Value *value = exprBuildAndEval (ValueInt);
+  if (value->Tag != ValueInt || value->Data.Int.type != eIntType_PureInt)
+    {
+      error (ErrorError, "Unrecognized ALIGN attribute value");
+      return true;
+    }
+  if (value->Data.Int.i < 2 || value->Data.Int.i > 31)
+    {
+      error (ErrorError, "ALIGN attribute value must be between 2 (incl) and 31 (incl)");
+      return true;
+    }
+
+  result->flagValues[eBothCodeAndData] |= value->Data.Int.i;
+  result->flagSets[eBothCodeAndData] |= AREA_ALIGN_MASK;
+  return false;
+}
+
+static const struct AKeyword
+{
+  const char *keyword;
+  size_t size;
+  FlagCat_e category;
+  unsigned flagValue;
+  unsigned flagSet;
+  bool (*parser)(AttribResult_t *result);
+} oAttributes[] =
+{
+  { "CODE", sizeof ("CODE")-1, eBothCodeAndData, AREA_CODE, AREA_CODE, NULL }, 
+  { "DATA", sizeof ("DATA")-1, eBothCodeAndData, 0, AREA_CODE, NULL },
+
+  /* Attributes for both CODE and DATA areas.  */
+  { "ABS", sizeof ("ABS")-1, eBothCodeAndData, AREA_ABS, AREA_ABS, NULL },
+  { "REL", sizeof ("REL")-1, eBothCodeAndData, 0, AREA_ABS, NULL },
+  { "PIC", sizeof ("PIC")-1, eBothCodeAndData, AREA_PIC, AREA_PIC, NULL },
+  { "READONLY", sizeof ("READONLY")-1, eBothCodeAndData, AREA_READONLY, AREA_READONLY, NULL },
+  { "READWRITE", sizeof ("READWRITE")-1, eBothCodeAndData, 0, AREA_READONLY, NULL },
+  { "COMDEF", sizeof ("COMDEF")-1, eBothCodeAndData, AREA_COMMONDEF, AREA_COMMONDEF, NULL },
+  { "COMMON", sizeof ("COMMON")-1, eBothCodeAndData, AREA_COMMONREF, AREA_COMMONREF, NULL },
+  { "NOINIT", sizeof ("NOINIT")-1, eBothCodeAndData, AREA_UDATA, AREA_UDATA, NULL },
+  { "ALIGN", sizeof ("ALIGN")-1, eBothCodeAndData, 0, AREA_ALIGN_MASK, ParseAttributeALIGN },
+  { "VFP", sizeof ("VFP")-1, eBothCodeAndData, AREA_VFP, AREA_VFP, NULL },
+
+  /* Attributes for DATA areas only.  */
+  { "DEBUG", sizeof ("DEBUG")-1, eForDataAreaOnly, AREA_DEBUG, AREA_DEBUG, NULL },
+  { "BASED", sizeof ("BASED")-1, eForDataAreaOnly, AREA_BASED, AREA_BASED | (0xF<<24), ParseAttributeBASED },
+
+  /* Attributes for CODE areas only.  */
+  { "REENTRANT", sizeof ("REENTRANT")-1, eForCodeAreaOnly, AREA_REENTRANT, AREA_REENTRANT, NULL },
+  { "INTERWORK", sizeof ("INTERWORK")-1, eForCodeAreaOnly, AREA_INTERWORK, AREA_INTERWORK, NULL },
+  { "HALFWORD", sizeof ("HALFWORD")-1, eForCodeAreaOnly, AREA_HALFWORD, AREA_HALFWORD, NULL },
+  { "NOSWSTACKCHECK", sizeof ("NOSWSTACKCHECK")-1, eForCodeAreaOnly, AREA_NOSWSTACKCHECK, AREA_NOSWSTACKCHECK, NULL },
+  { "CODEALIGN", sizeof ("CODEALIGN")-1, eForCodeAreaOnly, AREA_INT_CODEALIGN, AREA_INT_CODEALIGN, NULL }
+};
+
+/**
+ * \return allocated in heap a string describing all the given area attribute
+ * bits.
+ */
+static const char *
+AttributesAsName (unsigned attributes)
+{
+  if (!attributes)
+    return NULL;
+  size_t len = 0;
+  unsigned attributesCp = attributes;
+  for (unsigned i = 0; i != sizeof (attributes)*8; ++i)
+    {
+      unsigned attribute = 1U << i;
+      if (attributesCp & attribute)
+	{
+	  if (len)
+	    len += sizeof (", ");
+	  unsigned j;
+	  for (j = 0; j != sizeof (oAttributes)/sizeof (oAttributes[0]); ++j)
+	    {
+	      if (attributesCp & attribute & oAttributes[j].flagSet)
+		{
+		  len += strlen (oAttributes[j].keyword);
+		  attributesCp &= ~oAttributes[j].flagSet; /* To deal with multiple bits set in flagSet for one area attribute (like BASED).  */
+		  break;
+		}
+	    }
+	  if (j == sizeof (oAttributes)/sizeof (oAttributes[0]))
+	    len += snprintf (NULL, 0, "attribute bit %d", i);
+	}
+    }
+  char *result = malloc (len + 1);
+  if (result == NULL)
+    errorOutOfMem ();
+  result[0] = '\0';
+  bool first = true;
+  for (unsigned i = 0; i != sizeof (attributes)*8; ++i)
+    {
+      unsigned attribute = 1U << i;
+      if (attributes & attribute)
+	{
+	  if (!first)
+	    strcat (result, ", ");
+	  else
+	    first = false;
+	  unsigned j;
+	  for (j = 0; j != sizeof (oAttributes)/sizeof (oAttributes[0]); ++j)
+	    {
+	      if (attributes & attribute & oAttributes[j].flagSet)
+		{
+		  strcat (result, oAttributes[j].keyword); 
+		  attributes &= ~oAttributes[j].flagSet; /* To deal with multiple bits set in flagSet for one area attribute (like BASED).  */
+		  break;
+		}
+	    }
+	  if (j == sizeof (oAttributes)/sizeof (oAttributes[0]))
+	    sprintf (result + strlen (result), "attribute bit %d", i);
+	}
+    }
+  return result;
+}
+
+static AttribResult_t
+GetAreaAttributes (void)
+{
+  AttribResult_t result;
+  memset (&result, 0, sizeof (result));
+  while (Input_Match (',', true))
+    {
+      Lex attribute = lexGetId ();
+      const struct AKeyword *keyword = NULL;
+      for (size_t i = 0; i != sizeof (oAttributes)/sizeof (oAttributes[0]); ++i)
+	{
+	  if (attribute.Data.Id.len == oAttributes[i].size
+	      && !memcmp (attribute.Data.Id.str, oAttributes[i].keyword, oAttributes[i].size))
+	    {
+	      keyword = &oAttributes[i];
+	      break;
+	    }
+	}
+      if (keyword == NULL)
+	error (ErrorError, "AREA attribute %.*s is not known",
+	       (int)attribute.Data.Id.len, attribute.Data.Id.str);
+      else
+	{
+	  if (keyword->parser)
+	    {
+	      if (keyword->parser (&result))
+		break;
+	    }
+	  else if ((keyword->flagSet & result.flagSets[keyword->category]) != 0)
+	    {
+	      /* Attribute has already been set.  Verify consistency.  */
+	      if ((keyword->flagSet & result.flagValues[keyword->category]) != keyword->flagValue)
+		{
+		  error (ErrorError, "AREA attribute %.*s conflicts with a previously given attribute",
+			 (int)attribute.Data.Id.len, attribute.Data.Id.str);
+		  break;
+		}
+	    }
+	  else
+	    {
+	      result.flagValues[keyword->category] |= keyword->flagValue;
+	      result.flagSets[keyword->category] |= keyword->flagSet;
+	    }
+	}
+
+      skipblanks ();
+    }
+
+  return result;
+}
 
 /**
  * Implements AREA.
@@ -422,176 +664,111 @@ c_area (void)
       Input_Rest ();
       return false;
     }
-  unsigned int oldAreaType;  
+  unsigned int prevAreaAttrib;  
   if (sym->type & SYMBOL_AREA)
-    oldAreaType = sym->area.info->type;
+    {
+      prevAreaAttrib = sym->area.info->type;
+      assert (prevAreaAttrib);
+    }
   else
     {
-      oldAreaType = 0;
+      prevAreaAttrib = 0;
       sym->type = SYMBOL_AREA;
       sym->value = Value_Int (0, eIntType_PureInt);
       sym->area.info = areaNew (sym, 0);
     }
   skipblanks ();
 
-  unsigned int newAreaType = 0;
-  bool rel_specified = false, data_specified = false;
-  while (Input_Match (',', true))
+  AttribResult_t result = GetAreaAttributes ();
+
+  /* Check if there are code area attributes set for a data area, or if there
+     are data area attributes set for a code area.  */
+  const char *areaType;
+  unsigned wrongAreaAttributes;
+  if ((result.flagValues[eBothCodeAndData] & AREA_CODE) != 0)
     {
-      Lex attribute = lexGetId ();
-      if (attribute.Data.Id.len == sizeof ("ABS")-1
-	  && !memcmp ("ABS", attribute.Data.Id.str, attribute.Data.Id.len))
-	{
-	  if (rel_specified)
-	    error (ErrorError, "Conflicting area attributes ABS vs REL");
-	  newAreaType |= AREA_ABS;
-	}
-      else if (attribute.Data.Id.len == sizeof ("REL")-1
-	       && !memcmp ("REL", attribute.Data.Id.str, attribute.Data.Id.len))
-	{
-	  if (newAreaType & AREA_ABS)
-	    error (ErrorError, "Conflicting area attributes ABS vs REL");
-	  rel_specified = true;
-	}
-      else if (attribute.Data.Id.len == sizeof ("CODE")-1
-	       && !memcmp ("CODE", attribute.Data.Id.str, attribute.Data.Id.len))
-	{
-	  if (data_specified)
-	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
-	  newAreaType |= AREA_CODE;
-	}
-      else if (attribute.Data.Id.len == sizeof ("DATA")-1
-	       && !memcmp ("DATA", attribute.Data.Id.str, attribute.Data.Id.len))
-	{
-	  if (newAreaType & AREA_CODE)
-	    error (ErrorError, "Conflicting area attributes CODE vs DATA");
-	  data_specified = true;
-	}
-      else if (attribute.Data.Id.len == sizeof ("COMDEF")-1
-	       && !memcmp ("COMDEF", attribute.Data.Id.str, attribute.Data.Id.len))
-	newAreaType |= AREA_COMMONDEF;
-      else if (attribute.Data.Id.len == sizeof ("COMMON")-1 /* == sizeof ("COMREF")-1 */
-	       && (!memcmp ("COMMON", attribute.Data.Id.str, attribute.Data.Id.len)
-		   || !memcmp ("COMREF", attribute.Data.Id.str, attribute.Data.Id.len)))
-	newAreaType |= AREA_COMMONREF | AREA_UDATA;
-      else if (attribute.Data.Id.len == sizeof ("NOINIT")-1
-	       && !memcmp ("NOINIT", attribute.Data.Id.str, attribute.Data.Id.len))
-	newAreaType |= AREA_UDATA;
-      else if (attribute.Data.Id.len == sizeof ("READONLY")-1
-	       && !memcmp ("READONLY", attribute.Data.Id.str, attribute.Data.Id.len))
-	newAreaType |= AREA_READONLY;
-      else if (attribute.Data.Id.len == sizeof ("PIC")-1
-	       && !memcmp ("PIC", attribute.Data.Id.str, attribute.Data.Id.len))
-	newAreaType |= AREA_PIC;
-      else if (attribute.Data.Id.len == sizeof ("DEBUG")-1
-	       && !memcmp ("DEBUG", attribute.Data.Id.str, attribute.Data.Id.len))
-	newAreaType |= AREA_DEBUG;
-      else if (attribute.Data.Id.len == sizeof ("REENTRANT")-1
-	       && !memcmp ("REENTRANT", attribute.Data.Id.str, attribute.Data.Id.len))
-	newAreaType |= AREA_REENTRANT;
-      else if (attribute.Data.Id.len == sizeof ("BASED")-1
-	       && !memcmp ("BASED", attribute.Data.Id.str, attribute.Data.Id.len))
-	{
-	  skipblanks ();
-	  ARMWord reg = getCpuReg ();
-	  newAreaType |= AREA_BASED | (reg << 24);
-	}
-      else if (attribute.Data.Id.len == sizeof ("LINKONCE")-1
-	       && !memcmp ("LINKONCE", attribute.Data.Id.str, attribute.Data.Id.len))
-	newAreaType |= AREA_LINKONCE;
-      else if (attribute.Data.Id.len == sizeof ("ALIGN")-1
-	       && !memcmp ("ALIGN", attribute.Data.Id.str, attribute.Data.Id.len))
-	{
-	  if (newAreaType & AREA_ALIGN_MASK)
-	    error (ErrorError, "You can't specify ALIGN attribute more than once");
-	  skipblanks ();
-	  if (!Input_Match ('=', false))
-	    error (ErrorError, "Malformed ALIGN attribute specification");
-	  const Value *value = exprBuildAndEval (ValueInt);
-	  if (value->Tag == ValueInt)
-	    {
-	      if (value->Data.Int.i < 2 || value->Data.Int.i > 31)
-		error (ErrorError, "ALIGN attribute value must be between 2 (incl) and 31 (incl)");
-	      else
-		newAreaType |= value->Data.Int.i;
-	    }
-	  else
-	    error (ErrorError, "Unrecognized ALIGN attribute value");
-	}
-      else
-	error (ErrorError, "Illegal area attribute %.*s",
-	       (int)attribute.Data.Id.len, attribute.Data.Id.str);
-      skipblanks ();
+      areaType = "CODE";
+      result.flagValues[eBothCodeAndData] |= result.flagValues[eForCodeAreaOnly];
+      result.flagSets[eBothCodeAndData] |= result.flagSets[eForCodeAreaOnly];
+      wrongAreaAttributes = result.flagSets[eForDataAreaOnly];
+    }
+  else
+    {
+      areaType = "DATA";
+      result.flagValues[eBothCodeAndData] |= result.flagValues[eForDataAreaOnly];
+      result.flagSets[eBothCodeAndData] |= result.flagSets[eForDataAreaOnly];
+      wrongAreaAttributes = result.flagSets[eForCodeAreaOnly];
+    }
+  if (wrongAreaAttributes)
+    {
+      const char *attrAsName = AttributesAsName (wrongAreaAttributes);
+      error (ErrorError, "A %s AREA can not have %s set", areaType, attrAsName);
+      free ((void *)attrAsName);
     }
 
-  /* Any alignment specified ? No, take default alignment (2) */
-  if ((newAreaType & AREA_ALIGN_MASK) == 0)
-    newAreaType |= AREA_DEFAULT_ALIGNMENT;
+  /* When there is no alignment specified, take default alignment for new area
+     definitions, or inherit from its previous definition.  */
+  if ((result.flagValues[eBothCodeAndData] & AREA_ALIGN_MASK) == 0)
+    result.flagValues[eBothCodeAndData] |= (prevAreaAttrib) ? (prevAreaAttrib & AREA_ALIGN_MASK) : AREA_DEFAULT_ALIGNMENT;
 
   /* Pending ORG to be taken into account ? */
   if (oPendingORG.isValid)
     {
-      newAreaType |= AREA_ABS;
-      sym->value = Value_Int (ValidateORGValue (1U << (newAreaType & AREA_ALIGN_MASK), oPendingORG.value), eIntType_PureInt);
+      result.flagValues[eBothCodeAndData] |= AREA_ABS;
+      uint32_t alignValue = 1U << (result.flagValues[eBothCodeAndData] & AREA_ALIGN_MASK);
+      sym->value = Value_Int (ValidateORGValue (alignValue, oPendingORG.value), eIntType_PureInt);
       oPendingORG.isValid = false;
     }
 
   /* AREA_COMMONDEF + AREA_COMMONREF => AREA_COMMONDEF */
-  if (newAreaType & AREA_COMMONDEF)
-    newAreaType &= ~AREA_COMMONREF;
+  if ((result.flagValues[eBothCodeAndData] & AREA_COMMONDEF) != 0)
+    result.flagValues[eBothCodeAndData] &= ~AREA_COMMONREF;
 
   /* AREA_COMMONDEF + AREA_UDATA => AREA_COMMONREF */
-  if ((newAreaType & AREA_COMMONDEF) && (newAreaType & AREA_UDATA))
+  if ((result.flagValues[eBothCodeAndData] & (AREA_COMMONDEF | AREA_UDATA)) == (AREA_COMMONDEF | AREA_UDATA))
     {
-      newAreaType &= ~(AREA_COMMONDEF | AREA_UDATA);
-      newAreaType |= AREA_COMMONREF;
+      result.flagValues[eBothCodeAndData] &= ~(AREA_COMMONDEF | AREA_UDATA);
+      result.flagValues[eBothCodeAndData] |= AREA_COMMONREF;
     }
 
-  /* Debug area ? Ignore code attribute */
-  if (newAreaType & AREA_DEBUG)
-    newAreaType &= ~AREA_CODE;
-
-  if (newAreaType & AREA_CODE)
-    {
-      /* CODE area.  */
-      newAreaType = Area_ApplyAPCSOption (newAreaType);
-
-      if (newAreaType & AREA_BASED)
-	{
-	  newAreaType &= ~AREA_BASED;
-	  error (ErrorError, "Attribute BASED may not be set for CODE area");
-	}
-    }
-  else
-    {
-      /* DATA area.  */
-      assert (!(newAreaType & (AREA_32BITAPCS | AREA_EXTFPSET | AREA_NOSTACKCHECK)));
-      if (newAreaType & AREA_REENTRANT)
-	{
-	  newAreaType &= ~AREA_REENTRANT;
-	  error (ErrorError, "Attribute REENTRANT may not be set for a DATA area");
-	}
-    }
-  
-  if ((newAreaType & AREA_READONLY) && (newAreaType & AREA_UDATA))
+  /* AREA_READONLY and AREA_UDATA can not be combined.  */
+  if ((result.flagValues[eBothCodeAndData] & AREA_READONLY) != 0
+      && (result.flagValues[eBothCodeAndData] & AREA_UDATA) != 0)
     error (ErrorError, "Attributes READONLY and NOINIT are mutually exclusive");
 
-  if ((newAreaType & AREA_LINKONCE) && !(newAreaType & AREA_COMMONDEF))
-    error (ErrorError, "Attribute LINKONCE must appear as part of a COMDEF");
+  /* Apply APCS options on code area.  */
+  if ((result.flagValues[eBothCodeAndData] & AREA_CODE) != 0)
+    result.flagValues[eBothCodeAndData] = Area_ApplyAPCSOption (result.flagValues[eBothCodeAndData]);
 
   /* When an area is made absolute, ensure its symbol is also absolute.  */
-  if (newAreaType & AREA_ABS)
+  if ((result.flagValues[eBothCodeAndData] & AREA_ABS) != 0)
     sym->type |= SYMBOL_ABSOLUTE;
-  
-  /* We ignore any ABS difference as we like this to work:
-	AREA Code, CODE
-	ORG &xxx
-	AREA Code, CODE  */
-  if (newAreaType && oldAreaType
-      && (newAreaType & ~AREA_ABS) != (oldAreaType & ~AREA_ABS))
-    error (ErrorWarning, "Change in attribute of area %s will be ignored", sym->str);
+
+  /* When an area is re-defined, make sure its attributes are the same.  */
+  if (prevAreaAttrib != 0)
+    {
+      unsigned changedAttr = result.flagValues[eBothCodeAndData] ^ prevAreaAttrib;
+      /* We ignore any ABS difference as we like this to work without warning.
+	   AREA Code, CODE
+	   ORG &xxx
+	   AREA Code, CODE
+         Also ignore any area attribute bits which can only be set via
+         Area_ApplyAPCSOption(), i.e. AREA_32BITAPCS and AREA_EXTFPSET.  */
+      changedAttr &= ~(AREA_ABS | AREA_32BITAPCS | AREA_EXTFPSET);
+      if (changedAttr)
+	{
+	  const char *attrAsName = AttributesAsName (changedAttr);
+	  error (ErrorWarning, "Change in attribute(s) %s for area %s will be ignored", attrAsName, sym->str);
+	  free ((void *)attrAsName);
+	}
+    }
   else
-    sym->area.info->type |= newAreaType;
+    {
+      /* Only set the area attribute bits when the area gets defined for the
+         first time.  */
+      sym->area.info->type |= result.flagValues[eBothCodeAndData];
+      assert ((sym->area.info->type & ~((sym->area.info->type & AREA_CODE) ? AREA_INT_CODEMASK : AREA_INT_DATAMASK)) == 0);
+    }
 
   areaCurrentSymbol = sym;
 
@@ -605,7 +782,7 @@ bool
 c_org (void)
 {
   const Value *value = exprBuildAndEval (ValueInt);
-  if (value->Tag == ValueInt)
+  if (value->Tag == ValueInt && value->Data.Int.type == eIntType_PureInt)
     {
       if (Area_IsImplicit (areaCurrentSymbol))
 	{
