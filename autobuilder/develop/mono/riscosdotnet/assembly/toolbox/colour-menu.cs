@@ -76,46 +76,6 @@ namespace riscos
 			{
 			}
 
-			new public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
-			public delegate void SelectionEventHandler (object sender, SelectionEventArgs e);
-
-			/*! \brief The event handlers that will be called just before this %ColourMenu is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ColourMenuObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The event handlers that will be called when this %ColourMenu has been hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ColourMenuObject.HasBeenHidden += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler HasBeenHidden;
-
-			/*! \brief The event handlers that will be called when the user has clicked on one of the
-			 * colour entries in the %ColourMenu.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ColourMenuObject.Selection += handler_name;
-			 * \endcode  */
-			public event SelectionEventHandler Selection;
-
 			/*! \brief Gets or sets the Wimp colour which is currently selected for this
 			 * %ColourMenu.
 			 * The value should be 0-15 for a Wimp colour, or 16 for \b None, or -1 for
@@ -196,26 +156,81 @@ namespace riscos
 				return GetText (Method.GetTitle);
 			}
 
-			/*! \brief Check if the given event is relevant to the %ColourMenu and call the
-			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			protected virtual void OnAboutToBeShown (ToolboxEvent e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnHasBeenHidden (ToolboxEvent e)
+			{
+				if (HasBeenHidden != null)
+					HasBeenHidden (this, e.ToolboxArgs);
+			}
+
+			protected virtual void OnSelection (ToolboxEvent e)
+			{
+				if (Selection != null)
+					Selection (this, new SelectionEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			/*! \brief Check if the given event is relevant to the Colour Menu and call the
+			 * associated event handlers.  */
+			public override void Dispatch (ToolboxEvent e)
+			{
+				switch (e.ToolboxArgs.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					if (AboutToBeShown != null)
-						AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+					OnAboutToBeShown (e);
 					break;
 				case EventCode.HasBeenHidden:
-					if (HasBeenHidden != null)
-						HasBeenHidden (this, ev.ToolboxArgs);
+					OnHasBeenHidden (e);
 					break;
 				case EventCode.Selection:
-					if (Selection != null)
-						Selection (this, new SelectionEventArgs (ev.ToolboxArgs.RawEventData));
+					OnSelection (e);
 					break;
 				}
 			}
+
+			new public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
+			public delegate void SelectionEventHandler (object sender, SelectionEventArgs e);
+
+			/*! \brief The event handlers that will be called just before this %ColourMenu is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ColourMenu.AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ColourMenuObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this %ColourMenu has been hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ColourMenuObject.HasBeenHidden += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler HasBeenHidden;
+
+			/*! \brief The event handlers that will be called when the user has clicked on one of the
+			 * colour entries in the %ColourMenu.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ColourMenuObject.Selection += handler_name;
+			 * \endcode  */
+			public event SelectionEventHandler Selection;
 
 			/*! \class AboutToBeShownEventArgs
 			 * \brief An object that encapsulates the arguments for the event that is raised
