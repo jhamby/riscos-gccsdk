@@ -711,13 +711,13 @@ public class MyTask : ToolboxTask
 		Iconbar = new Toolbox.Iconbar ("AppIcon");
 		// Set the text to be displayed under the Iconbar sprite.
 		Iconbar.Text = "MonoTestTB";
-		Iconbar.HelpMessage = "Click SELECT to toggle the main window open/closed|MClick ADJUST to open dialogue";
+		Iconbar.HelpMessage = "Click SELECT to open the main window|MClick ADJUST to open the test dialogue";
 		// Set the Iconbar object to return our own event codes when clicked with SELECT/ADJUST.
-		Iconbar.SelectEvent = MyEvent.IconbarSelect;
-		Iconbar.AdjustEvent = MyEvent.IconbarAdjust;
+		Iconbar.SelectClickEvent = MyEvent.IconbarSelect;
+		Iconbar.AdjustClickEvent = MyEvent.IconbarAdjust;
 		// Add our own event handlers to be called for the events we set above.
-		Iconbar.SelectClicked += IconbarSelectHandler;
-		Iconbar.AdjustClicked += IconbarAdjustHandler;
+		Iconbar.SelectClick += IconbarSelectHandler;
+		Iconbar.AdjustClick += IconbarAdjustHandler;
 		// Link the main menu to the Iconbar icon.
 		Iconbar.Menu = main_menu;
 
@@ -729,7 +729,7 @@ public class MyTask : ToolboxTask
 		Reporter.WriteLine ("-------");
 		Reporter.WriteLine ("Icon = {0}", Iconbar.IconHandle);
 		Reporter.WriteLine ("Text = '{0}', Sprite = '{1}'", Iconbar.Text, Iconbar.Sprite);
-		Reporter.WriteLine ("SelectEvent = {0:X8}, AdjustEvent = {1:X8}", Iconbar.SelectEvent, Iconbar.AdjustEvent);
+		Reporter.WriteLine ("SelectEvent = {0:X8}, AdjustEvent = {1:X8}", Iconbar.SelectClickEvent, Iconbar.AdjustClickEvent);
 		Reporter.WriteLine ("HelpMessage = '{0}'", Iconbar.HelpMessage);
 		Reporter.WriteLine ("");
 	}
