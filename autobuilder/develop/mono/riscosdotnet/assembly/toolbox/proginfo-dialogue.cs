@@ -43,33 +43,6 @@ namespace riscos
 				public const int DialogueCompleted = 0x82b41;
 			}
 
-			/*! \brief The event handlers that will be called just before this %ProgInfo is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ProgInfoObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The signature of a DialogueComplete event handler.  */
-			public delegate void DialogueCompleteEventHandler (object sender, ToolboxEventArgs e);
-
-			/*! \brief The event handlers that will be called when this dialogue is hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ProgInfoObject.DialogueComplete += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler DialogueComplete;
-
 			/*! \brief Create a %Toolbox %ProgInfo Dialogue from the named template in the
 			 * Resource file.
 			 * \param[in] resName The name of the %ProgInfo template to use.  */
@@ -93,47 +66,135 @@ namespace riscos
 			/*! \brief Get the ID of the underlying Window object.  */
 			public uint WindowID
 			{
-				get { return MiscOp_GetR0 (0, Method.GetWindowID); }
+				get { return GetWindowID (); }
 			}
 
 			/*! \brief Gets or sets the version string used in the %ProgInfo Dialogue's Window.  */
 			public string Version
 			{
-				set { SetText (0, Method.SetVersion, value); }
-				get { return GetText (Method.GetVersion); }
+				set { SetVersion (value); }
+				get { return GetVersion (); }
 			}
 
 			/*! \brief Gets or sets the text which is to be used in the title bar
 			 * of this %ProgInfo dialogue.  */
 			public string Title
 			{
-				set { SetText (0, Method.SetTitle, value); }
-				get { return GetText (Method.GetTitle); }
+				set { SetTitle (value); }
+				get { return GetTitle (); }
 			}
 
 			/*! \brief Gets or sets the licence type used in this %ProgInfo Dialogue's Window.  */
 			public LicenceType Licence
 			{
-				set { MiscOp_SetR3 (0, Method.SetLicenceType, (uint)value); }
-				get { return (LicenceType)MiscOp_GetR0 (0, Method.GetLicenceType); }
+				set { SetLicence (value); }
+				get { return GetLicence (); }
+			}
+
+			/*! \brief Return the ID of the underlying Window object used to implement this
+			 * %ProgInfo Dialogue.
+			 * \return The ID of the Window Object.
+			 * \note The \e WindowID property can be used for the same purpose.  */
+			public uint GetWindowID ()
+			{
+				return MiscOp_GetR0 (0, Method.GetWindowID);
+			}
+
+			/*! \brief Set the version string used in the %ProgInfo Dialogue's Window.
+			 * \note The \e Version property can be used for the same purpose.  */
+			public void SetVersion (string text)
+			{
+				SetText (0, Method.SetVersion, text);
+			}
+
+			/*! \brief Read the version string used in the %ProgInfo Dialogue's Window.
+			 * \note The \e Version property can be used for the same purpose.  */
+			public string GetVersion ()
+			{
+				return GetText (Method.GetVersion);
+			}
+
+			/*! \brief Set the text string used in the %ProgInfo Dialogue's title bar.
+			 * \note The \e Title property can be used for the same purpose.  */
+			public void SetTitle (string text)
+			{
+				SetText (0, Method.SetTitle, text);
+			}
+
+			/*! \brief Read the text string used in the %ProgInfo Dialogue's title bar.
+			 * \note The \e Title property can be used for the same purpose.  */
+			public string GetTitle ()
+			{
+				return GetText (Method.GetTitle);
+			}
+
+			/*! \brief Set the licence type used in the %ProgInfo Dialogue.
+			 * \note The \e LicenceType property can be used for the same purpose.  */
+			public void SetLicence (LicenceType type)
+			{
+				MiscOp_SetR3 (0, Method.SetLicenceType, (uint)type);
+			}
+
+			/*! \brief Return the licence type used in the %ProgInfo Dialogue.
+			 * \note The \e LicenceType property can be used for the same purpose.  */
+			public LicenceType GetLicence ()
+			{
+				return (LicenceType)MiscOp_GetR0 (0, Method.GetLicenceType);
+			}
+
+			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			{
+				if (DialogueCompleted != null)
+					DialogueCompleted (this, e.ToolboxArgs);
 			}
 
 			/*! \brief Check if the given event is relevant to the %ProgInfo dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEvent e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				switch (e.ToolboxArgs.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					if (AboutToBeShown != null)
-						AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+					OnAboutToBeShown (e);
 					break;
 				case EventCode.DialogueCompleted:
-					if (DialogueComplete != null)
-						DialogueComplete (this, ev.ToolboxArgs);
+					OnDialogueCompleted (e);
 					break;
 				}
 			}
+
+			/*! \brief The event handlers that will be called just before this %ProgInfo is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, Object.AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ProgInfoObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The signature of a DialogueCompleted event handler.  */
+			public delegate void DialogueCompletedEventHandler (object sender, ToolboxEventArgs e);
+
+			/*! \brief The event handlers that will be called when this dialogue is hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ProgInfoObject.DialogueCompleted += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler DialogueCompleted;
 		}
 	}
 }
