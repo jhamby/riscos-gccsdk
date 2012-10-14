@@ -63,46 +63,6 @@ namespace riscos
 			{
 			}
 
-			/*! \brief The signature of a DialogueComplete event handler.  */
-			public delegate void ApplyFontEventHandler (object sender, ApplyFontEventArgs e);
-
-			/*! \brief The event handlers that will be called just before this Font Dialogue is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * FontDialogueObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The event handlers that will be called when this dialogue is hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, DialogueCompleteEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * FontDialogueObject.DialogueComplete += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler DialogueComplete;
-
-			/*! \brief The event handlers that will be called when a selection has been made
-			 * in the Font Dialogue.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ApplyFontEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * FontDialogueObject.ApplyFont += handler_name;
-			 * \endcode  */
-			public event ApplyFontEventHandler ApplyFont;
-
 			/*! \brief Gets the ID of the underlying window object.  */
 			public uint WindowID
 			{
@@ -251,26 +211,81 @@ namespace riscos
 				return GetText (Method.GetTitle);
 			}
 
+			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			{
+				if (DialogueCompleted != null)
+					DialogueCompleted (this, e.ToolboxArgs);
+			}
+
+			protected virtual void OnApplyFont (ToolboxEvent e)
+			{
+				if (ApplyFont != null)
+					ApplyFont (this, new ApplyFontEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
 			/*! \brief Check if the given event is relevant to the Font Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEvent e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				switch (e.ToolboxArgs.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					if (AboutToBeShown != null)
-						AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+					OnAboutToBeShown (e);
 					break;
 				case EventCode.DialogueCompleted:
-					if (DialogueComplete != null)
-						DialogueComplete (this, ev.ToolboxArgs);
+					OnDialogueCompleted (e);
 					break;
 				case EventCode.ApplyFont:
-					if (ApplyFont != null)
-						ApplyFont (this, new ApplyFontEventArgs (ev.ToolboxArgs.RawEventData));
+					OnApplyFont (e);
 					break;
 				}
 			}
+
+			/*! \brief The signature of a ApplyFont event handler.  */
+			public delegate void ApplyFontEventHandler (object sender, ApplyFontEventArgs e);
+
+			/*! \brief The event handlers that will be called just before this Font Dialogue is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, Object.AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * FontDialogueObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this dialogue is hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * FontDialogueObject.DialogueCompleted += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler DialogueCompleted;
+
+			/*! \brief The event handlers that will be called when a selection has been made
+			 * in the Font Dialogue.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, FontDialogue.ApplyFontEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * FontDialogueObject.ApplyFont += handler_name;
+			 * \endcode  */
+			public event ApplyFontEventHandler ApplyFont;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * when a Font Dialogue box selection has been made.  */

@@ -50,46 +50,6 @@ namespace riscos
 			{
 			}
 
-			new public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
-			public delegate void FontSelectionEventHandler (object sender, FontSelectionEventArgs e);
-
-			/*! \brief The event handlers that will be called just before this %FontMenu is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * FontMenuObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The event handlers that will be called when this %FontMenu has been hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * FontMenuObject.HasBeenHidden += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler HasBeenHidden;
-
-			/*! \brief The event handlers that will be called when the user has clicked on one of the
-			 * font entries in the %FontMenu.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * FontMenuObject.Selection += handler_name;
-			 * \endcode  */
-			public event FontSelectionEventHandler FontSelection;
-
 			/*! \brief Gets or sets the font id of the font which is currently selected.  */
 			public string Font
 			{
@@ -119,26 +79,81 @@ namespace riscos
 				return GetText (Method.GetFont);
 			}
 
+			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnHasBeenHidden (ToolboxEvent e)
+			{
+				if (HasBeenHidden != null)
+					HasBeenHidden (this, e.ToolboxArgs);
+			}
+
+			protected virtual void OnFontSelection (ToolboxEvent e)
+			{
+				if (FontSelection != null)
+					FontSelection (this, new FontSelectionEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
 			/*! \brief Check if the given event is relevant to the Font Menu and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEvent e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				switch (e.ToolboxArgs.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					if (AboutToBeShown != null)
-						AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+					OnAboutToBeShown (e);
 					break;
 				case EventCode.HasBeenHidden:
-					if (HasBeenHidden != null)
-						HasBeenHidden (this, ev.ToolboxArgs);
+					OnHasBeenHidden (e);
 					break;
 				case EventCode.FontSelection:
-					if (FontSelection != null)
-						FontSelection (this, new FontSelectionEventArgs (ev.ToolboxArgs.RawEventData));
+					OnFontSelection (e);
 					break;
 				}
 			}
+
+			new public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
+			public delegate void FontSelectionEventHandler (object sender, FontSelectionEventArgs e);
+
+			/*! \brief The event handlers that will be called just before this %FontMenu is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, FontMenu.AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * FontMenuObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this %FontMenu has been hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * FontMenuObject.HasBeenHidden += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler HasBeenHidden;
+
+			/*! \brief The event handlers that will be called when the user has clicked on one of the
+			 * font entries in the %FontMenu.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, FontMenu.FontSelectionEventHandler e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * FontMenuObject.Selection += handler_name;
+			 * \endcode  */
+			public event FontSelectionEventHandler FontSelection;
 
 			/*! \class AboutToBeShownEventArgs
 			 * \brief An object that encapsulates the arguments for the event that is raised
