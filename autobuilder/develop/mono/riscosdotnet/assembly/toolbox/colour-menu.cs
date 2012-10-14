@@ -159,7 +159,7 @@ namespace riscos
 			protected virtual void OnAboutToBeShown (ToolboxEvent e)
 			{
 				if (AboutToBeShown != null)
-					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, new MenuAboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
 			}
 
 			protected virtual void OnHasBeenHidden (ToolboxEvent e)
@@ -192,20 +192,19 @@ namespace riscos
 				}
 			}
 
-			new public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
 			public delegate void SelectionEventHandler (object sender, SelectionEventArgs e);
 
 			/*! \brief The event handlers that will be called just before this %ColourMenu is shown.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, ColourMenu.AboutToBeShownEventArgs e);
+			 * void handler_name (object sender, Object.MenuAboutToBeShownEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * ColourMenuObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event MenuAboutToBeShownEventHandler AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this %ColourMenu has been hidden.
 			 *
@@ -231,47 +230,6 @@ namespace riscos
 			 * ColourMenuObject.Selection += handler_name;
 			 * \endcode  */
 			public event SelectionEventHandler Selection;
-
-			/*! \class AboutToBeShownEventArgs
-			 * \brief An object that encapsulates the arguments for the event that is raised
-			 * just before the %ColourMenu object is shown on screen.  */
-			new public class AboutToBeShownEventArgs : ToolboxEventArgs
-			{
-				/*! \brief Constants defining event specific data offsets after the header.  */
-				public static class EventOffset
-				{
-					public const int ShowType = 16;
-					public const int Buffer = 20;
-				}
-
-				/*! \brief Gives details of where the menu will be displayed.
-				 * \note FullSpec is the same as TopLeft in the case of a %ColourMenu. DefaultSpec
-				 * means that the menu will open 64 OS units to the left of the mouse pointer.  */
-				public readonly ShowObjectSpec ShowSpec;
-
-				/*! \brief Create the event arguments from the raw event data.  */
-				public AboutToBeShownEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
-				{
-					ShowObjectType show_type = (ShowObjectType)Marshal.ReadInt32 (RawEventData,
-												      EventOffset.ShowType);
-					switch (show_type)
-					{
-					case Toolbox.ShowObjectType.FullSpec:
-					case Toolbox.ShowObjectType.TopLeft:
-						var ev = (NativeToolbox.ShowObjectTopLeftEvent)
-								Marshal.PtrToStructure (RawEventData,
-											typeof (NativeToolbox.ShowObjectTopLeftEvent));
-						ShowSpec = new ShowObjectTopLeft (new OS.Coord (ev.Spec.TopLeft));
-						break;
-					case Toolbox.ShowObjectType.Default:
-						ShowSpec = new ShowObjectSpec (Toolbox.ShowObjectType.Default);
-						break;
-					default:
-						ShowSpec = null;
-						break;
-					}
-				}
-			}
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * when a colour selection is made by the user.  */

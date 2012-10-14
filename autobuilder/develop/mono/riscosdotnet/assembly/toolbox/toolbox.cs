@@ -638,6 +638,13 @@ namespace riscos
 												    out r2));
 			}
 
+			/*! \brief The signature of an AboutToBeShown event handler for a Window based object.  */
+			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
+
+
+			/*! \brief The signature of an AboutToBeShown event handler for a Menu based object.  */
+			public delegate void MenuAboutToBeShownEventHandler (object sender, MenuAboutToBeShownEventArgs e);
+
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * just before an object is shown on screen.  */
 			public class AboutToBeShownEventArgs : ToolboxEventArgs
@@ -689,8 +696,45 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a normal AboutToBeShown event handler.  */
-			public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
+			/*! \brief An object that encapsulates the arguments for the event that is raised
+			 * just before the Menu object is shown on screen.  */
+			public class MenuAboutToBeShownEventArgs : ToolboxEventArgs
+			{
+				/*! \brief Constants defining event specific data offsets after the header.  */
+				public static class EventOffset
+				{
+					public const int ShowType = 16;
+					public const int Buffer = 20;
+				}
+
+				/*! \brief Gives details of where the menu will be displayed.
+				 * \note FullSpec is the same as TopLeft in the case of a Menu. DefaultSpec
+				 * means that the menu will open 64 OS units to the left of the mouse pointer.  */
+				public readonly ShowObjectSpec ShowSpec;
+
+				/*! \brief Create the event arguments from the raw event data.  */
+				public MenuAboutToBeShownEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
+				{
+					ShowObjectType show_type = (ShowObjectType)Marshal.ReadInt32 (RawEventData,
+												      EventOffset.ShowType);
+					switch (show_type)
+					{
+					case Toolbox.ShowObjectType.FullSpec:
+					case Toolbox.ShowObjectType.TopLeft:
+						var ev = (NativeToolbox.ShowObjectTopLeftEvent)
+								Marshal.PtrToStructure (RawEventData,
+											typeof (NativeToolbox.ShowObjectTopLeftEvent));
+						ShowSpec = new ShowObjectTopLeft (new OS.Coord (ev.Spec.TopLeft));
+						break;
+					case Toolbox.ShowObjectType.Default:
+						ShowSpec = new ShowObjectSpec (Toolbox.ShowObjectType.Default);
+						break;
+					default:
+						ShowSpec = null;
+						break;
+					}
+				}
+			}
 		}
 
 		public class ToolboxEventArgs : EventArgs

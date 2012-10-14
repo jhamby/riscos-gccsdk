@@ -69,7 +69,7 @@ public class MainMenu : Toolbox.Menu
 		Reporter.WriteLine ("");
 	}
 
-	public void OnAboutToBeShown (object sender, Toolbox.Menu.AboutToBeShownEventArgs e)
+	public void OnAboutToBeShown (object sender, Toolbox.Object.MenuAboutToBeShownEventArgs e)
 	{
 		Reporter.WriteLine ("Menu about to be shown, show type = {0}", e.ShowSpec.Type);
 		Reporter.WriteLine ("");
@@ -533,7 +533,7 @@ public class MyTask : ToolboxTask
 			Title = "CSharp Toolbox Window - Scale: " + Scale + "%";
 		}
 
-		private void OnFontMenuAboutToBeShown (object sender, Toolbox.FontMenu.AboutToBeShownEventArgs args)
+		private void OnFontMenuAboutToBeShown (object sender, Toolbox.Object.MenuAboutToBeShownEventArgs args)
 		{
 			// The FontMenu is the sender
 			Toolbox.FontMenu font_menu = (Toolbox.FontMenu)sender;
@@ -696,7 +696,7 @@ public class MyTask : ToolboxTask
 	public MainMenu main_menu;
 	public Toolbox.ProgInfoDialogue ProgInfo;
 
-	const string Version = "V1.0 (12th October 2012)";
+	const string Version = "V1.0 (14th October 2012)";
 
 	// Could use an enum here, but enums require a cast which is ugly.
 	public static class MyEvent

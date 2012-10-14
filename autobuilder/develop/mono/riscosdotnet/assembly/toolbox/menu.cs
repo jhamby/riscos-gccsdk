@@ -364,60 +364,17 @@ namespace riscos
 				public const int HasBeenHidden = 0x828c1;
 			}
 
-			/*! \class AboutToBeShownEventArgs
-			 * \brief An object that encapsulates the arguments for the event that is raised
-			 * just before the Menu object is shown on screen.  */
-			new public class AboutToBeShownEventArgs : ToolboxEventArgs
-			{
-				/*! \brief Constants defining event specific data offsets after the header.  */
-				public static class EventOffset
-				{
-					public const int ShowType = 16;
-					public const int Buffer = 20;
-				}
-
-				/*! \brief Gives details of where the menu will be displayed.
-				 * \note FullSpec is the same as TopLeft in the case of a Menu. DefaultSpec
-				 * means that the menu will open 64 OS units to the left of the mouse pointer.  */
-				public readonly ShowObjectSpec ShowSpec;
-
-				/*! \brief Create the event arguments from the raw event data.  */
-				public AboutToBeShownEventArgs (IntPtr unmanagedEventData) : base (unmanagedEventData)
-				{
-					ShowObjectType show_type = (ShowObjectType)Marshal.ReadInt32 (RawEventData,
-												      EventOffset.ShowType);
-					switch (show_type)
-					{
-					case Toolbox.ShowObjectType.FullSpec:
-					case Toolbox.ShowObjectType.TopLeft:
-						var ev = (NativeToolbox.ShowObjectTopLeftEvent)
-								Marshal.PtrToStructure (RawEventData,
-											typeof (NativeToolbox.ShowObjectTopLeftEvent));
-						ShowSpec = new ShowObjectTopLeft (new OS.Coord (ev.Spec.TopLeft));
-						break;
-					case Toolbox.ShowObjectType.Default:
-						ShowSpec = new ShowObjectSpec (Toolbox.ShowObjectType.Default);
-						break;
-					default:
-						ShowSpec = null;
-						break;
-					}
-				}
-			}
-
-			new public delegate void AboutToBeShownEventHandler (object sender, AboutToBeShownEventArgs e);
-
 			/*! \brief The event handlers that will be called just before this Menu is shown.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
+			 * void handler_name (object sender, Object.MenuAboutToBeShownEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
 			 * MenuObject.AboutToBeShown += handler_name;
 			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
+			public event MenuAboutToBeShownEventHandler AboutToBeShown;
 
 			/*! \brief The event handlers that will be called when this Menu has been hidden.
 			 *
@@ -512,7 +469,7 @@ namespace riscos
 				if (ev.ToolboxArgs.Header.EventCode == AboutToBeShownEventCode &&
 				    AboutToBeShown != null)
 				{
-					AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, new MenuAboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
 				}
 				else if (ev.ToolboxArgs.Header.EventCode == HasBeenHiddenEventCode &&
 					 HasBeenHidden != null)
