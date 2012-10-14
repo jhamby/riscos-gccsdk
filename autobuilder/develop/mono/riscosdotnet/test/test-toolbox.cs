@@ -344,7 +344,7 @@ public class MyTask : ToolboxTask
 			public TextFileSaveAs () : base ("SaveAs")
 			{
 				AboutToBeShown += OnAboutToBeShown;
-				DialogueComplete += OnDialogueComplete;
+				DialogueCompleted += OnDialogueCompleted;
 			}
 
 			void OnAboutToBeShown (object o, Toolbox.SaveAsDialogue.AboutToBeShownEventArgs e)
@@ -359,7 +359,7 @@ public class MyTask : ToolboxTask
 				FileSize = 45;
 			}
 
-			void OnDialogueComplete (object o, Toolbox.SaveAsDialogue.DialogueCompleteEventArgs e)
+			void OnDialogueCompleted (object o, Toolbox.SaveAsDialogue.DialogueCompletedEventArgs e)
 			{
 				// Give back control of the memory we allocated to the GC.
 				RamTransBufferHandle.Free();
@@ -805,8 +805,8 @@ public class MyTask : ToolboxTask
 
 		quit_dialogue = new Toolbox.QuitDialogue ("Quit");
 		quit_dialogue.Message = "Quit handler called, really quit?";
-		quit_dialogue.Quit += QuitDialogueQuitHandler;
-		quit_dialogue.Cancel += QuitDialogueCancelHandler;
+		quit_dialogue.ClickQuit += QuitDialogueQuitHandler;
+		quit_dialogue.ClickCancel += QuitDialogueCancelHandler;
 		quit_dialogue.AboutToBeShown += QuitDialogueAboutToBeShownHandler;
 		quit_dialogue.ShowCentred ();
 	}
