@@ -55,17 +55,17 @@ namespace riscos
 				public const int Selection = 0x828c3;
 			}
 
-			/*! \brief Constants defining event specific data offsets after the header.  */
-			public static class EventOffset
-			{
-				public const int SubMenuX = 16;
-				public const int SubMenuY = 20;
-			}
-
 			/*! \brief An object that encapsulates the arguments for the event that is raised when 
 			 * the user moves the pointer over a submenu arrow.  */
 			public class SubMenuEventArgs : ToolboxEventArgs
 			{
+				/*! \brief Constants defining event specific data offsets after the header.  */
+				public static class EventOffset
+				{
+					public const int SubMenuX = 16;
+					public const int SubMenuY = 20;
+				}
+
 				/*! \brief The coordinate where the submenu will be shown.  */
 				public OS.Coord Position;
 
@@ -76,37 +76,6 @@ namespace riscos
 					Position = new OS.Coord (x, y);
 				}
 			}
-
-			/*! \brief The signature of a SubMenu event handler.  */
-			public delegate void SubMenuEventHandler (object sender, SubMenuEventArgs e);
-
-			/*! \brief The event handlers that will be called when the pointer if moved.
-			 * over the submenu arrow of the menu entry.
-			 * 
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, SubMenuEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * MenuEntryObject.SubMenu += handler_name;
-			 * \endcode  */
-			public event SubMenuEventHandler SubMenu;
-
-			/*! \brief The signature of a Selection event handler.  */
-			public delegate void SelectionEventHandler (object sender, ToolboxEventArgs e);
-
-			/*! \brief The event handlers that will be called when this MenuEntry is selected.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * MenuEntryObject.Selection += handler_name;
-			 * \endcode  */
-			public event SelectionEventHandler Selection;
 
 			public MenuEntry (Menu menu, uint cmpID) : base (menu, cmpID)
 			{
@@ -293,38 +262,77 @@ namespace riscos
 				throw new InvalidOperationException ("You cannot set the input focus to a Menu Entry");
 			}
 
-			public override void Dispatch (ToolboxEvent ev)
+			protected virtual void OnSubMenu (ToolboxEvent e)
+			{
+				if (SubMenu != null)
+					SubMenu (this, new SubMenuEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnSelection (ToolboxEvent e)
+			{
+				if (Selection != null)
+					Selection (this, e.ToolboxArgs);
+			}
+
+			public override void Dispatch (ToolboxEvent e)
 			{
 				uint selection_event_code = ClickEvent;
 
-				if (selection_event_code == 0)
-				{
+				if (selection_event_code == 0) {
 					selection_event_code = EventCode.Selection;
 				}
 
 				uint submenu_event_code = SubMenuEvent;
 
-				if (submenu_event_code == 0)
-				{
+				if (submenu_event_code == 0) {
 					submenu_event_code = EventCode.SubMenu;
 				}
 
-				if (ev.ToolboxArgs.Header.EventCode == selection_event_code && Selection != null)
-				{
-					Selection (this, ev.ToolboxArgs);
+				if (e.ToolboxArgs.Header.EventCode == selection_event_code) {
+					OnSelection (e);
 				}
-				else if (ev.ToolboxArgs.Header.EventCode == submenu_event_code && SubMenu != null)
-				{
-					SubMenu (this, new SubMenuEventArgs (ev.ToolboxArgs.RawEventData));
+				else if (e.ToolboxArgs.Header.EventCode == submenu_event_code) {
+					OnSubMenu (e);
 				}
 			}
+
+			/*! \brief The signature of a SubMenu event handler.  */
+			public delegate void SubMenuEventHandler (object sender, SubMenuEventArgs e);
+
+			/*! \brief The signature of a Selection event handler.  */
+			public delegate void SelectionEventHandler (object sender, ToolboxEventArgs e);
+
+			/*! \brief The event handlers that will be called when the pointer if moved.
+			 * over the submenu arrow of the menu entry.
+			 * 
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, MenuEntry.SubMenuEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * MenuEntryObject.SubMenu += handler_name;
+			 * \endcode  */
+			public event SubMenuEventHandler SubMenu;
+
+			/*! \brief The event handlers that will be called when this menu entry is selected.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * MenuEntryObject.Selection += handler_name;
+			 * \endcode  */
+			public event SelectionEventHandler Selection;
 		}
 
 		/*! \class Menu
-		 * \brief Encapsulates a Toolbox Menu object.  */
+		 * \brief Encapsulates a Toolbox %Menu object.  */
 		public class Menu : Object
 		{
-			/*! \brief The Toolbox methods associated with the Toolbox Menu class.  */
+			/*! \brief The Toolbox methods associated with the Toolbox %Menu class.  */
 			static class Method
 			{
 				public const int SetHelpMessage = 16;
@@ -337,7 +345,7 @@ namespace riscos
 				public const int GetTitle = 25;
 			}
 
-			/*! \brief %Flags used in a %Menu %Toolbox template.  */
+			/*! \brief %Flags used in a %Menu Toolbox template.  */
 			public static class Flags
 			{
 				public const int GenerateAboutToBeShown = (1 << 0);
@@ -357,41 +365,17 @@ namespace riscos
 			}
 
 			/*! \class EventCode
-			 * \brief Toolbox events that can be generated by the Toolbox Menu object.  */
+			 * \brief Toolbox events that can be generated by the Toolbox %Menu object.  */
 			public static class EventCode
 			{
 				public const int AboutToBeShown = 0x828c0;
 				public const int HasBeenHidden = 0x828c1;
 			}
 
-			/*! \brief The event handlers that will be called just before this Menu is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, Object.MenuAboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * MenuObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event MenuAboutToBeShownEventHandler AboutToBeShown;
+			int AboutToBeShownEventCode = 0;
+			int HasBeenHiddenEventCode = 0;
 
-			/*! \brief The event handlers that will be called when this Menu has been hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * MenuObject.HasBeenHidden += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler HasBeenHidden;
-
-			private int AboutToBeShownEventCode = 0;
-			private int HasBeenHiddenEventCode = 0;
-
-			/*! \brief Create a Toolbox Menu object from the named resource.
+			/*! \brief Create a Toolbox %Menu object from the named resource.
 			 * \param [in] resName The name of the template in the resource file.  */
 			public Menu (string resName) : base (resName)
 			{
@@ -399,7 +383,7 @@ namespace riscos
 				RetrieveEventCodes (template);
 			}
 
-			/*! \brief Create a Toolbox Menu from the template data given.
+			/*! \brief Create a Toolbox %Menu from the template data given.
 			 * \param[in] templateData Pointer to the menu template.  */
 			public Menu (IntPtr templateData)
 			{
@@ -407,12 +391,86 @@ namespace riscos
 				RetrieveEventCodes (templateData);
 			}
 
-			/*! \brief Create a Menu from a Toolbox object that already exists.
+			/*! \brief Create a %Menu from a Toolbox object that already exists.
 			 * \param [in] objectID The Toolbox ID of the existing object.  */
 			public Menu (uint ObjectID) : base (ObjectID)
 			{
 				IntPtr template = Toolbox.TemplateLookup (TemplateName);
 				RetrieveEventCodes (template);
+			}
+
+			/*! \brief Sets or gets the title of the %Menu.
+			 * \throw ArgumentNullException Thrown if the Title property is set to null.  */
+			public string Title
+			{
+				set { SetTitle (value); }
+				get { return GetTitle (); }
+			}
+
+			/*! \brief Sets or gets the help message which will be returned when a Help Message
+			 * Request is received.  */
+			public string HelpMessage
+			{
+				set { SetHelpMessage (value); }
+				get { return GetHelpMessage (); }
+			}
+
+			/*! \brief Gets the height of the work area of the Menu in OS units.  */
+			public int Height
+			{
+				get { return GetHeight (); }
+			}
+
+			/*! \brief Gets the width of the work area on the Menu in OS units.  */
+			public int Width
+			{
+				get { return GetWidth (); }
+			}
+
+			/*! \brief Set the text string used in the %Menu title bar.
+			 * \note If the %Menu is being displayed, the effect is not immediate.
+			 * \note The \e Title property can be used for the same purpose.
+			 * \throw ArgumentNullException Thrown if the Title property is set to null.  */
+			public void SetTitle (string text)
+			{
+				if (text == null)
+					throw new ArgumentNullException ("text", "Attempt to set Menu Title to null");
+				SetText (0, Method.SetTitle, text);
+			}
+
+			/*! \brief Return the text string used in the title bar of this %Menu.
+			 * \note The \e Title property can be used for the same purpose.  */
+			public string GetTitle ()
+			{
+				return GetText (Method.GetTitle);
+			}
+
+			/*! \brief Set the text string which will be returned when a Help Request is received.
+			 * \note The \e HelpMessage property can be used for the same purpose.  */
+			public void SetHelpMessage (string text)
+			{
+				SetText (0, Method.SetHelpMessage, text);
+			}
+
+			/*! \brief Read the text string which will be returned when a Help Request is received.
+			 * \note The \e HelpMessage property can be used for the same purpose.  */
+			public string GetHelpMessage ()
+			{
+				return GetText (Method.GetHelpMessage);
+			}
+
+			/*! \brief Return the width of the %Menu work area in OS units.
+			 * \note The \e Width property can be used for the same purpose.  */
+			public int GetWidth ()
+			{
+				return (int)MiscOp_GetR0 (0, Method.GetWidth);
+			}
+
+			/*! \brief Return the height of the %Menu work area in OS units.
+			 * \note The \e Height property can be used for the same purpose.  */
+			public int GetHeight ()
+			{
+				return (int)MiscOp_GetR0 (0, Method.GetHeight);
 			}
 
 			/*! \todo Method to add a Menu Entry to a menu. Requires
@@ -427,59 +485,31 @@ namespace riscos
 			{
 			}
 
-			/*! \brief The title of the Menu.
-			 * \exception ArgumentNullException Thrown if the Title property is set to null.  */
-			public string Title
+			protected virtual void OnAboutToBeShown (ToolboxEvent e)
 			{
-				set
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, new MenuAboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnHasBeenHidden (ToolboxEvent e)
+			{
+				if (HasBeenHidden != null)
+					HasBeenHidden (this, e.ToolboxArgs);
+			}
+
+			public override void Dispatch (ToolboxEvent e)
+			{
+				if (e.ToolboxArgs.Header.EventCode == AboutToBeShownEventCode)
 				{
-					if (value == null)
-						throw new ArgumentNullException ("value", "Attempt to set Menu Title property to null");
-					SetText (0, Method.SetTitle, value);
+					OnAboutToBeShown (e);
 				}
-				get { return GetText (Method.GetTitle); }
-			}
-
-			/*! \brief The help message which will be returned when a Help Message is
-			 * received.  */
-			public string HelpMessage
-			{
-				set { SetText (0, Method.SetHelpMessage, value); }
-				get { return GetText (Method.GetHelpMessage); }
-			}
-
-			/*! \brief The height of the work area of the Menu in OS units.  */
-			public int Height
-			{
-				get { return (int)MiscOp_GetR0 (0, Method.GetHeight); }
-			}
-
-			/*! \brief The width of the work area on the Menu in OS units.  */
-			public int Width
-			{
-				get { return (int)MiscOp_GetR0 (0, Method.GetWidth); }
-			}
-
-			public override void Dispatch (ToolboxEvent ev)
-			{
-				// This call is likely to be temporary until events are also dispatched to
-				// gadgets as well. Need this now for the Quit event.
-//				base.Dispatch (ev);
-
-				if (ev.ToolboxArgs.Header.EventCode == AboutToBeShownEventCode &&
-				    AboutToBeShown != null)
+				else if (e.ToolboxArgs.Header.EventCode == HasBeenHiddenEventCode)
 				{
-					AboutToBeShown (this, new MenuAboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
-				}
-				else if (ev.ToolboxArgs.Header.EventCode == HasBeenHiddenEventCode &&
-					 HasBeenHidden != null)
-				{
-					// There is no additional data after the event header.
-					HasBeenHidden (this, ev.ToolboxArgs);
+					OnHasBeenHidden (e);
 				}
 			}
 
-			private void RetrieveEventCodes (IntPtr template)
+			void RetrieveEventCodes (IntPtr template)
 			{
 				// The Acorn User Interface Toolbox Manual states that these event codes are
 				// -1 in the template if the default events are to be raised, however, it would
@@ -502,6 +532,30 @@ namespace riscos
 								  EventCode.HasBeenHidden;
 				}
 			}
+
+			/*! \brief The event handlers that will be called just before this %Menu is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, Object.MenuAboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * MenuObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event MenuAboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this %Menu has been hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * MenuObject.HasBeenHidden += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler HasBeenHidden;
 		}
 	}
 }
