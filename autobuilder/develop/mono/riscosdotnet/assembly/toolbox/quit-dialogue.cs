@@ -32,63 +32,6 @@ namespace riscos
 				public const int QuitCancel = 0x82a93;
 			}
 
-			/*! \brief The event handlers that will be called just before this %QuitDialogue is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * QuitDialogueObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The signature of a DialogueComplete event handler.  */
-			public delegate void DialogueCompleteEventHandler (object sender, ToolboxEventArgs e);
-
-			/*! \brief The event handlers that will be called when this dialogue is hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * QuitDialogueObject.DialogueComplete += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler DialogueComplete;
-
-			/*! \brief The signature of a Quit event handler.  */
-			public delegate void QuitEventHandler (object sender, ToolboxEventArgs e);
-
-			/*! \brief The event handlers that will be called when a Quit event is raised.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * QuitDialogueObject.Quit += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler Quit;
-
-			/*! \brief The signature of a Cancel event handler.  */
-			public delegate void CancelEventHandler (object sender, ToolboxEventArgs e);
-
-			/*! \brief The event handlers that will be called when a Cancel event is raised.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * QuitDialogueObject.Cancel += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler Cancel;
-
 			/*! \brief Create a %Toolbox Quit Dialogue from the named template in the
 			 * Resource file.
 			 * \param[in] resName The name of the Quit Dialogue template to use.  */
@@ -112,48 +55,162 @@ namespace riscos
 			/*! \brief Get the ID of the underlying Window object.  */
 			public uint WindowID
 			{
-				get { return MiscOp_GetR0 (0, Method.GetWindowID); }
+				get { return GetWindowID (); }
 			}
 
 			/*! \brief Gets or sets the message used in the Quit Dialogue's Window.  */
 			public string Message
 			{
-				set { SetText (0, Method.SetMessage, value); }
-				get { return GetText (Method.GetMessage); }
+				set { SetMessage (value); }
+				get { return GetMessage (); }
 			}
 
 			/*! \brief Gets or sets the text which is to be used in the title bar
 			 * of this Quit Dialogue's Window.  */
 			public string Title
 			{
-				set { SetText (0, Method.SetTitle, value); }
-				get { return GetText (Method.GetTitle); }
+				set { SetTitle (value); }
+				get { return GetTitle (); }
+			}
+
+			/*! \brief Return the ID of the underlying Window object used to implement this
+			 * Quit Dialogue.
+			 * \return The ID of the Window Object.
+			 * \note The \e WindowID property can be used for the same purpose.  */
+			public uint GetWindowID ()
+			{
+				return MiscOp_GetR0 (0, Method.GetWindowID);
+			}
+
+			/*! \brief Set the text string which is used in the title bar of the Quit dialogue.
+			 * \note The \e Title property can be used for the same purpose.  */
+			public void SetTitle (string title)
+			{
+				SetText (0, Method.SetTitle, title);
+			}
+
+			/*! \brief Return the text string which is used in the title bar of the Quit dialogue.
+			 * \note The \e Title property can be used for the same purpose.  */
+			public string GetTitle ()
+			{
+				return GetText (Method.GetTitle);
+			}
+
+			/*! \brief Set the text string which is used as the message in the Quit dialogue.
+			 * \note The \e Message property can be used for the same purpose.  */
+			public void SetMessage (string message)
+			{
+				SetText (0, Method.SetMessage, message);
+			}
+
+			/*! \brief Return the text string which is used as the message in the Quit dialogue.
+			 * \note The \e Message property can be used for the same purpose.  */
+			public string GetMessage ()
+			{
+				return GetText (Method.GetMessage);
+			}
+
+			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+			}
+
+			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			{
+				if (DialogueCompleted != null)
+					DialogueCompleted (this, e.ToolboxArgs);
+			}
+
+			protected virtual void OnClickQuit (ToolboxEvent e)
+			{
+				if (ClickQuit != null)
+					ClickQuit (this, e.ToolboxArgs);
+			}
+
+			protected virtual void OnClickCancel (ToolboxEvent e)
+			{
+				if (ClickCancel != null)
+					ClickCancel (this, e.ToolboxArgs);
 			}
 
 			/*! \brief Check if the given event is relevant to the Quit Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEvent e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				switch (e.ToolboxArgs.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					if (AboutToBeShown != null)
-						AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+					OnAboutToBeShown (e);
 					break;
 				case EventCode.DialogueCompleted:
-					if (DialogueComplete != null)
-						DialogueComplete (this, ev.ToolboxArgs);
+					OnDialogueCompleted (e);
 					break;
 				case EventCode.QuitQuit:
-					if (Quit != null)
-						Quit (this, ev.ToolboxArgs);
+					OnClickQuit (e);
 					break;
 				case EventCode.QuitCancel:
-					if (Cancel != null)
-						Cancel (this, ev.ToolboxArgs);
+					OnClickCancel (e);
 					break;
 				}
 			}
+
+			/*! \brief The signature of a DialogueCompleted event handler.  */
+			public delegate void DialogueCompletedEventHandler (object sender, ToolboxEventArgs e);
+
+			/*! \brief The signature of a ClickQuit event handler.  */
+			public delegate void ClickQuitEventHandler (object sender, ToolboxEventArgs e);
+
+			/*! \brief The signature of a ClickCancel event handler.  */
+			public delegate void ClickCancelEventHandler (object sender, ToolboxEventArgs e);
+
+			/*! \brief The event handlers that will be called just before this %QuitDialogue is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, Object.AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * QuitDialogueObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this dialogue is hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * QuitDialogueObject.DialogueCompleted += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler DialogueCompleted;
+
+			/*! \brief The event handlers that will be called when a Quit event is raised.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * QuitDialogueObject.ClickQuit += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler ClickQuit;
+
+			/*! \brief The event handlers that will be called when a Cancel event is raised.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * QuitDialogueObject.ClickCancel += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler ClickCancel;
 		}
 	}
 }
