@@ -1,6 +1,6 @@
-Description: Terminal emulator and telnet client
- Nettle is *the* terminal emulator and telnet client for the
- RISC OS operating system. It utilises the ZapRedraw module
+Description: Terminal emulator and telnet/SSH client
+ Nettle is *the* terminal emulator, telnet and SSH 2 client for
+ the RISC OS operating system. It utilises the ZapRedraw module
  for speedy display and is a fast, clean native implementation.
  .
  It supports a range of terminal emulation options,
