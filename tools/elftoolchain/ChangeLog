@@ -1,3 +1,8 @@
+Tue Oct 16 23:34:18 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* upstream-trunk: Sync'd with
+	http://elftoolchain.svn.sourceforge.net/svnroot/elftoolchain/trunk@r2611
+
 Fri Oct  5 00:24:26 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* current-trunk/libelf/_libelf_config.h: Add __riscos__ section (used
