@@ -199,6 +199,8 @@ namespace riscos
 			}
 		}
 
+		/*! \brief The signature of a Toolbox Event handler that does not contain any data
+		 * other than the event header.  */
 		public delegate void ToolboxEventHandler (object sender, ToolboxEventArgs args);
 
 		/*! \brief The base object of all Toolbox objects.  */
