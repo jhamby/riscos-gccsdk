@@ -71,46 +71,6 @@ namespace riscos
 			{
 			}
 
-			/*! \brief The signature of a ApplyFactor event handler.  */
-			public delegate void ApplyFactorEventHandler (object sender, ApplyFactorEventArgs e);
-
-			/*! \brief The event handlers that will be called just before this Scale Dialogue is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ScaleDialogueObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The event handlers that will be called when this dialogue is hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, DialogueCompleteEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ScaleDialogueObject.DialogueComplete += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler DialogueComplete;
-
-			/*! \brief The event handlers that will be called when the use clicks \e OK in the
-			 * dialogue box.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ScaleDialogue.ApplyFactorEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * ScaleDialogueObject.ApplyFactor += handler_name;
-			 * \endcode  */
-			public event ApplyFactorEventHandler ApplyFactor;
-
 			/*! \brief Gets the ID of the underlying window object.  */
 			public uint WindowID
 			{
@@ -295,8 +255,8 @@ namespace riscos
 						AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
 					break;
 				case EventCode.DialogueCompleted:
-					if (DialogueComplete != null)
-						DialogueComplete (this, ev.ToolboxArgs);
+					if (DialogueCompleted != null)
+						DialogueCompleted (this, ev.ToolboxArgs);
 					break;
 				case EventCode.ApplyFactor:
 					if (ApplyFactor != null)
@@ -304,6 +264,46 @@ namespace riscos
 					break;
 				}
 			}
+
+			/*! \brief The signature of a ApplyFactor event handler.  */
+			public delegate void ApplyFactorEventHandler (object sender, ApplyFactorEventArgs e);
+
+			/*! \brief The event handlers that will be called just before this Scale Dialogue is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ScaleDialogueObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this dialogue is hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, Object.ToolboxEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ScaleDialogueObject.DialogueCompleted += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler DialogueCompleted;
+
+			/*! \brief The event handlers that will be called when the use clicks \e OK in the
+			 * dialogue box.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ScaleDialogue.ApplyFactorEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * ScaleDialogueObject.ApplyFactor += handler_name;
+			 * \endcode  */
+			public event ApplyFactorEventHandler ApplyFactor;
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised
 			 * when the user clicks on the \b Scale button or the \b Scale \b To \b Fit button
