@@ -24,7 +24,8 @@ my @blacklist = ( 'firefox-riscpc', 'GCC', 'CPP-2.95', 'GCC-2.95', 'G++',
   'AlienBlaster', 'Anagramarama', 'Flobopuyo', 'Defendguin', # crashes
   'Arcem', # missing UnixHome dependency
   'Bc', # missing description
-  'Fillets-Ng', 'Fillets-Ng-Data' # huge, install breaks
+  'Fillets-Ng', 'Fillets-Ng-Data', # huge, install breaks
+  'GCC4','GCC4-C++' # thrashes SD until it crashes
   );
 
 # fetch the packages file
@@ -34,6 +35,9 @@ my $riscosinfo_content = get $riscosinfo;
 # turn content relative URLs into absolute paths
 $riscpkg_content =~ s/URL: \.\.\//URL: http:\/\/www\.riscpkg\.org\//g;
 $riscosinfo_content =~ s/URL: \.\.\//URL: http:\/\/www\.riscos\.info\/packages\//g;
+
+# fix up description for Nettle to mention SSH 2
+$riscosinfo_content =~ s|and telnet client|and telnet/SSH2 client|g;
 
 # split into individual package entries
 
