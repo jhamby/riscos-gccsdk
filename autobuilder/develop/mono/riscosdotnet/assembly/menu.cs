@@ -231,7 +231,7 @@ namespace riscos
 					if (item.SubMenu != null)
 						Marshal.WriteInt32 (RawMenuData, offset + 4, item.SubMenu.Generate ().ToInt32 ());
 					else if (item.SubWindow != null)
-						Marshal.WriteInt32 (RawMenuData, offset + 4, (int)item.SubWindow.Handle.Handle);
+						Marshal.WriteInt32 (RawMenuData, offset + 4, (int)item.SubWindow.WimpWindow.Handle);
 					else
 						Marshal.WriteInt32 (RawMenuData, offset + 4, -1);
 					// Write menu icon flags

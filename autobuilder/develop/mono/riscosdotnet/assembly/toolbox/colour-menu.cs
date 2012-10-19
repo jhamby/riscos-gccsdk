@@ -156,38 +156,62 @@ namespace riscos
 				return GetText (Method.GetTitle);
 			}
 
-			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAboutToBeShown (MenuAboutToBeShownEventArgs e)
 			{
 				if (AboutToBeShown != null)
-					AboutToBeShown (this, new MenuAboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, e);
 			}
 
-			protected virtual void OnHasBeenHidden (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnHasBeenHidden method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnHasBeenHidden in a derived class, be sure to
+			 * call the base class's \b OnHasBeenHidden method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnHasBeenHidden (ToolboxEventArgs e)
 			{
 				if (HasBeenHidden != null)
-					HasBeenHidden (this, e.ToolboxArgs);
+					HasBeenHidden (this, e);
 			}
 
-			protected virtual void OnSelection (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnSelection method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnSelection in a derived class, be sure to
+			 * call the base class's \b OnSelection method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnSelection (SelectionEventArgs e)
 			{
 				if (Selection != null)
-					Selection (this, new SelectionEventArgs (e.ToolboxArgs.RawEventData));
+					Selection (this, e);
 			}
 
 			/*! \brief Check if the given event is relevant to the Colour Menu and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (e.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					OnAboutToBeShown (e);
+					OnAboutToBeShown (new MenuAboutToBeShownEventArgs (e.RawEventData));
 					break;
 				case EventCode.HasBeenHidden:
 					OnHasBeenHidden (e);
 					break;
 				case EventCode.Selection:
-					OnSelection (e);
+					OnSelection (new SelectionEventArgs (e.RawEventData));
 					break;
 				}
 			}

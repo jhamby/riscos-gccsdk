@@ -355,58 +355,96 @@ namespace riscos
 				return GetText (Method.GetSprite);
 			}
 
-			protected virtual void OnClick (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnClick method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnClick in a derived class, be sure to
+			 * call the base class's \b OnClick method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnClick (ClickEventArgs e)
 			{
 				if (Click != null)
-					Click (this, new ClickEventArgs (e.ToolboxArgs.RawEventData));
+					Click (this, e);
 			}
 
-			protected virtual void OnSelectClickAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnSelectClickAboutToBeShown method also allows derived classes to
+			 * handle the event without attaching a delegate. This is the preferred technique
+			 * for handling the event in a derived class.
+			 * \note  When overriding \b OnSelectClickAboutToBeShown in a derived class, be
+			 * sure to call the base class's \b OnSelectClickAboutToBeShown method so that
+			 * registered delegates receive the event.  */
+			protected virtual void OnSelectClickAboutToBeShown (AboutToBeShownEventArgs e)
 			{
 				if (SelectClickAboutToBeShown != null)
-					SelectClickAboutToBeShown (this,
-								   new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					SelectClickAboutToBeShown (this, e);
 			}
 
-			protected virtual void OnAdjustClickAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAdjustClickAboutToBeShown method also allows derived classes to
+			 * handle the event without attaching a delegate. This is the preferred technique
+			 * for handling the event in a derived class.
+			 * \note  When overriding \b OnAdjustClickAboutToBeShown in a derived class, be
+			 * sure to call the base class's \b OnAdjustClickAboutToBeShown method so that
+			 * registered delegates receive the event.  */
+			protected virtual void OnAdjustClickAboutToBeShown (AboutToBeShownEventArgs e)
 			{
 				if (AdjustClickAboutToBeShown != null)
-					AdjustClickAboutToBeShown (this,
-								   new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AdjustClickAboutToBeShown (this, e);
 			}
 
-			protected virtual void OnSelectClick (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnSelectClick method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnSelectClick in a derived class, be sure to
+			 * call the base class's \b OnSelectClick method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnSelectClick (ToolboxEventArgs e)
 			{
 				if (SelectClick != null)
-					SelectClick (this, e.ToolboxArgs);
+					SelectClick (this, e);
 			}
 
-			protected virtual void OnAdjustClick (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAdjustClick method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAdjustClick in a derived class, be sure to
+			 * call the base class's \b OnAdjustClick method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAdjustClick (ToolboxEventArgs e)
 			{
 				if (AdjustClick != null)
-					AdjustClick (this, e.ToolboxArgs);
+					AdjustClick (this, e);
 			}
 
 			/*! \brief Check if the given event is relevant to the %Iconbar object and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				if (e.ToolboxArgs.Header.EventCode == SelectClickEvent)
+				if (e.Header.EventCode == SelectClickEvent)
 					OnSelectClick (e);
-				else if (e.ToolboxArgs.Header.EventCode == AdjustClickEvent)
+				else if (e.Header.EventCode == AdjustClickEvent)
 					OnAdjustClick (e);
 				else
 				{
-					switch (e.ToolboxArgs.Header.EventCode)
+					switch (e.Header.EventCode)
 					{
 					case EventCode.Clicked:
-						OnClick (e);
+						OnClick (new ClickEventArgs (e.RawEventData));
 						break;
 					case EventCode.SelectAboutToBeShown:
-						OnSelectClickAboutToBeShown (e);
+						OnSelectClickAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 						break;
 					case EventCode.AdjustAboutToBeShown:
-						OnAdjustClickAboutToBeShown (e);
+						OnAdjustClickAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 						break;
 					}
 				}

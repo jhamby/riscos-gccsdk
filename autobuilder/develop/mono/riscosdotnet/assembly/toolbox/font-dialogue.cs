@@ -211,38 +211,62 @@ namespace riscos
 				return GetText (Method.GetTitle);
 			}
 
-			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAboutToBeShown (AboutToBeShownEventArgs e)
 			{
 				if (AboutToBeShown != null)
-					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, e);
 			}
 
-			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnDialogueCompleted method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnDialogueCompleted in a derived class, be sure to
+			 * call the base class's \b OnDialogueCompleted method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnDialogueCompleted (ToolboxEventArgs e)
 			{
 				if (DialogueCompleted != null)
-					DialogueCompleted (this, e.ToolboxArgs);
+					DialogueCompleted (this, e);
 			}
 
-			protected virtual void OnApplyFont (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnApplyFont method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnApplyFont in a derived class, be sure to
+			 * call the base class's \b OnApplyFont method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnApplyFont (ApplyFontEventArgs e)
 			{
 				if (ApplyFont != null)
-					ApplyFont (this, new ApplyFontEventArgs (e.ToolboxArgs.RawEventData));
+					ApplyFont (this, e);
 			}
 
 			/*! \brief Check if the given event is relevant to the Font Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (e.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					OnAboutToBeShown (e);
+					OnAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 					break;
 				case EventCode.DialogueCompleted:
 					OnDialogueCompleted (e);
 					break;
 				case EventCode.ApplyFont:
-					OnApplyFont (e);
+					OnApplyFont (new ApplyFontEventArgs (e.RawEventData));
 					break;
 				}
 			}

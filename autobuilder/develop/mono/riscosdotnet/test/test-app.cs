@@ -58,51 +58,52 @@ public class MyTask : WimpTask
 	}
 
 	// These are C# 'event' handlers.
-	public void redraw_main_window (object sender, Wimp.RedrawEventArgs args)
+	public void redraw_main_window (object sender, Wimp.RedrawEventArgs e)
 	{
 		ColourTrans.SetGCOL (OS.GCOLAction.Replace_FG, ColourTrans.FullRed);
-		OS.PlotCircleFill (args.Origin.X + 1000, args.Origin.Y + 1000, 400);
+		OS.PlotCircleFill (e.Origin.X + 1000, e.Origin.Y + 1000, 400);
 		ColourTrans.SetGCOL (OS.GCOLAction.Replace_FG, ColourTrans.FullGreen);
-		OS.PlotLine (args.Origin.X, args.Origin.Y, args.Origin.X + 2000, args.Origin.Y + 2000);
+		OS.PlotLine (e.Origin.X, e.Origin.Y, e.Origin.X + 2000, e.Origin.Y + 2000);
 		ColourTrans.SetGCOL (OS.GCOLAction.Replace_FG, ColourTrans.FullBlue);
-		OS.PlotLine (args.Origin.X, args.Origin.Y + 2000, args.Origin.X + 2000, args.Origin.Y);
+		OS.PlotLine (e.Origin.X, e.Origin.Y + 2000, e.Origin.X + 2000, e.Origin.Y);
 
 		ColourTrans.SetFontColours (ColourTrans.White, ColourTrans.FullBlue, 7);
 		main_font.Paint ("CSharp string",
 				 Font.PlotType.OSUnits,
-				 args.Origin.X + 100,
-				 args.Origin.Y + 1000,
+				 e.Origin.X + 100,
+				 e.Origin.Y + 1000,
 				 0); // Length ignored (paint whole string) if bit 7 of flags not set
 
 
 		ColourTrans.SetFontColours (ColourTrans.White, ColourTrans.Black, 7);
 		main_font.Paint ("CSharp string rotated",
 				 0, // Coords are in millipoints
-				 (args.Origin.X + 1000) * 400,
-				 (args.Origin.Y + 1000) * 400,
+				 (e.Origin.X + 1000) * 400,
+				 (e.Origin.Y + 1000) * 400,
 				 matrix,
 				 0); // Length ignored (paint whole string) if bit 7 of flags not set
 	}
 
-	public void close_main_window (object sender, Wimp.CloseEventArgs args)
+	public void close_main_window (object sender, Wimp.CloseEventArgs e)
 	{
 		Quit = true;
 	}
 
-	public void mouse_click (object sender, Wimp.MouseClickEventArgs args)
+	public void mouse_click (object sender, Wimp.MouseClickEventArgs e)
 	{
-		if ((args.MouseClickWimpBlock.Buttons & 2) != 0)
-			main_menu.Show (args.MouseClickWimpBlock.Pos.X - 64,
-					args.MouseClickWimpBlock.Pos.Y);
+		if ((e.MouseClickWimpBlock.Buttons & 2) != 0)
+			main_menu.Show (e.MouseClickWimpBlock.Pos.X - 64,
+					e.MouseClickWimpBlock.Pos.Y);
 	}
 
-	/* Each element of the array gives the index of the selected item of the menu at
-	 * that level. So selection[0] gives the item selected in the first/root menu.
-	 * The last selection is terminated by -1.  */
-	public override void MenuSelection (int [] selection)
+	protected override void OnMenuSelection (Wimp.MenuSelectionEventArgs e)
 	{
 		if (Wimp.Menu.IsCurrent (main_menu))
 		{
+			int[] selection = e.MenuSelectionWimpBlock.Selection;
+			/* Each element of the array gives the index of the selected item of the menu at
+			 * that level. So selection[0] gives the item selected in the first/root menu.
+			 * The last selection is terminated by -1.  */
 			switch (selection[(int)MainMenu.Root])
 			{
 				case (int)MainMenuItem.FileSubMenu:
@@ -162,9 +163,9 @@ public class Test
 			Wimp.Window window = new Wimp.Window ();
 
 			// Register the event handlers for the window.
-			window.RedrawHandler += new Wimp.RedrawEventHandler (task.redraw_main_window);
-			window.CloseHandler += new Wimp.CloseEventHandler (task.close_main_window);
-			window.MouseClickHandler += new Wimp.MouseClickEventHandler (task.mouse_click);
+			window.Paint += task.redraw_main_window;
+			window.Closed += task.close_main_window;
+			window.MouseClick += task.mouse_click;
 
 			window.SetExtent (new OS.Rect (0, 0, 2000, 2000));
 			window.Create ("CSharp Window");
@@ -208,7 +209,7 @@ public class Test
 		catch (OS.ErrorException ex)
 		{
 			Reporter.WriteLine (ex.OSError.ErrMess);
-			Console.WriteLine ("error number = {0}, error string = {1}",ex.OSError.ErrNum,ex.OSError.ErrMess);
+			Console.WriteLine ("error number = {0}, error string = {1}", ex.OSError.ErrNum, ex.OSError.ErrMess);
 		}
 		finally
 		{

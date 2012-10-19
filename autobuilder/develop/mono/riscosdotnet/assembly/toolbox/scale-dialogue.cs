@@ -244,23 +244,63 @@ namespace riscos
 				return GetText (Method.GetTitle);
 			}
 
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAboutToBeShown (AboutToBeShownEventArgs e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, e);
+			}
+
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnDialogueCompleted method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnDialogueCompleted in a derived class, be sure to
+			 * call the base class's \b OnDialogueCompleted method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnDialogueCompleted (ToolboxEventArgs e)
+			{
+				if (DialogueCompleted != null)
+					DialogueCompleted (this, e);
+			}
+
+
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnApplyFactor method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnApplyFactor in a derived class, be sure to
+			 * call the base class's \b OnApplyFactor method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnApplyFactor (ApplyFactorEventArgs e)
+			{
+				if (ApplyFactor != null)
+					ApplyFactor (this, e);
+			}
+
 			/*! \brief Check if the given event is relevant to the Scale Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					if (AboutToBeShown != null)
-						AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+					OnAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 					break;
 				case EventCode.DialogueCompleted:
-					if (DialogueCompleted != null)
-						DialogueCompleted (this, ev.ToolboxArgs);
+					OnDialogueCompleted (e);
 					break;
 				case EventCode.ApplyFactor:
-					if (ApplyFactor != null)
-						ApplyFactor (this, new ApplyFactorEventArgs (ev.ToolboxArgs.RawEventData));
+					OnApplyFactor (new ApplyFactorEventArgs (e.RawEventData));
 					break;
 				}
 			}

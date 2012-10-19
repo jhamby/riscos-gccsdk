@@ -299,38 +299,62 @@ namespace riscos
 				return (uint)colourBlock[0];
 			}
 
-			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAboutToBeShown (AboutToBeShownEventArgs e)
 			{
 				if (AboutToBeShown != null)
-					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, e);
 			}
 
-			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnDialogueCompleted method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnDialogueCompleted in a derived class, be sure to
+			 * call the base class's \b OnDialogueCompleted method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnDialogueCompleted (DialogueCompletedEventArgs e)
 			{
 				if (DialogueCompleted != null)
-					DialogueCompleted (this, new DialogueCompletedEventArgs (e.ToolboxArgs.RawEventData));
+					DialogueCompleted (this, e);
 			}
 
-			protected virtual void OnColourSelected (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnColourSelected method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnColourSelected in a derived class, be sure to
+			 * call the base class's \b OnColourSelected method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnColourSelected (ColourSelectedEventArgs e)
 			{
 				if (ColourSelected != null)
-					ColourSelected (this, new ColourSelectedEventArgs (e.ToolboxArgs.RawEventData));
+					ColourSelected (this, e);
 			}
 
 			/*! \brief Check if the given event is relevant to the Colour Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (e.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					OnAboutToBeShown (e);
+					OnAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 					break;
 				case EventCode.DialogueCompleted:
-					OnDialogueCompleted (e);
+					OnDialogueCompleted (new DialogueCompletedEventArgs (e.RawEventData));
 					break;
 				case EventCode.ColourSelected:
-					OnColourSelected (e);
+					OnColourSelected (new ColourSelectedEventArgs (e.RawEventData));
 					break;
 				}
 			}

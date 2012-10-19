@@ -126,7 +126,7 @@ public class Dialogue : Toolbox.Window
 		CancelButton = new Toolbox.ActionButton (this, CmpID.CancelButton);
 		CancelButton.Text = "Cancel";
 		CancelButton.HelpMessage = "Help text set in CSharp";
-		CancelButton.Selected += OnCancel;
+		CancelButton.Click += OnCancel;
 
 		DisplayField = new Toolbox.DisplayField (this, CmpID.DisplayField);
 		DisplayField.Value = String.Format("{0:D}", DateTime.Now);
@@ -192,7 +192,7 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnCancel (object sender, Toolbox.ActionButton.SelectedEventArgs e)
+	void OnCancel (object sender, Toolbox.ActionButton.ClickEventArgs e)
 	{
 		Reporter.WriteLine ("Cancel button was selected.");
 		Reporter.WriteLine ("Select clicked = {0}", e.SelectClicked);
@@ -451,7 +451,7 @@ public class MyTask : ToolboxTask
 			WindowMenu = new TextFileMenu ();
 			// Attach the menu to the window.
 			Menu = WindowMenu;
-			RedrawHandler += OnRedraw;
+			Paint += OnRedraw;
 
 			font = new Font.Instance (FontID,
 						  ((FontHeight * FontAspectRatio) / 100) << 4,
@@ -770,6 +770,13 @@ public class MyTask : ToolboxTask
 						  "MonoTestTB",
 						  ex.OSError.ErrNum,
 						  ex.OSError.ErrMess);
+			}
+			catch (Exception ex)
+			{
+				Reporter.WriteLine ("{0}", ex.Message);
+				string[] lines = ex.StackTrace.Split (new char[]{'\n'});
+				foreach (string s in lines)
+					Reporter.WriteLine ("{0}", s);
 			}
 		}
 	}

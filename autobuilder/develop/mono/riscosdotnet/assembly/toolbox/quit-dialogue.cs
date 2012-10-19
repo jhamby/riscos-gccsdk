@@ -110,38 +110,38 @@ namespace riscos
 				return GetText (Method.GetMessage);
 			}
 
-			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			protected virtual void OnAboutToBeShown (AboutToBeShownEventArgs e)
 			{
 				if (AboutToBeShown != null)
-					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, e);
 			}
 
-			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			protected virtual void OnDialogueCompleted (ToolboxEventArgs e)
 			{
 				if (DialogueCompleted != null)
-					DialogueCompleted (this, e.ToolboxArgs);
+					DialogueCompleted (this, e);
 			}
 
-			protected virtual void OnClickQuit (ToolboxEvent e)
+			protected virtual void OnClickQuit (ToolboxEventArgs e)
 			{
 				if (ClickQuit != null)
-					ClickQuit (this, e.ToolboxArgs);
+					ClickQuit (this, e);
 			}
 
-			protected virtual void OnClickCancel (ToolboxEvent e)
+			protected virtual void OnClickCancel (ToolboxEventArgs e)
 			{
 				if (ClickCancel != null)
-					ClickCancel (this, e.ToolboxArgs);
+					ClickCancel (this, e);
 			}
 
 			/*! \brief Check if the given event is relevant to the Quit Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (e.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					OnAboutToBeShown (e);
+					OnAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 					break;
 				case EventCode.DialogueCompleted:
 					OnDialogueCompleted (e);

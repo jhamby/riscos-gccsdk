@@ -196,19 +196,29 @@ namespace riscos
 				}
 			}
 
+			protected virtual void OnDragStart (DragStartEventArgs e)
+			{
+				if (DragStart != null)
+					DragStart (this, e);
+			}
+
+			protected virtual void OnDragEnd (DragEndEventArgs e)
+			{
+				if (DragEnd != null)
+					DragEnd (this, e);
+			}
+
 			/*! \brief Check if the given event is relevant to the %Draggable gadget and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.DragStarted:
-					if (DragStart != null)
-						DragStart (this, new DragStartEventArgs (ev.ToolboxArgs.RawEventData));
+					OnDragStart (new DragStartEventArgs (e.RawEventData));
 					break;
 				case EventCode.DragEnded:
-					if (DragEnd != null)
-						DragEnd (this, new DragEndEventArgs (ev.ToolboxArgs.RawEventData));
+					OnDragEnd (new DragEndEventArgs (e.RawEventData));
 					break;
 				}
 			}

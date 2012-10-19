@@ -76,12 +76,16 @@ namespace riscos
 			{
 			}
 
-			public override void Dispatch (ToolboxEvent ev)
+			protected virtual void OnClick (ClickEventArgs e)
 			{
-				if (ev.ToolboxArgs.Header.EventCode == EventCode.AdjusterClicked && Click != null)
-				{
-					Click (this, new ClickEventArgs (ev.ToolboxArgs.RawEventData));
-				}
+				if (Click != null)
+					Click (this, e);
+			}
+
+			public override void Dispatch (ToolboxEventArgs e)
+			{
+				if (e.Header.EventCode == EventCode.AdjusterClicked)
+					OnClick (new ClickEventArgs (e.RawEventData));
 			}
 		}
 	}

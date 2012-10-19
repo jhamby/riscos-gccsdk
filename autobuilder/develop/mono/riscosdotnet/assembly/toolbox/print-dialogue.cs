@@ -202,62 +202,110 @@ namespace riscos
 				return MiscOp_GetR0 (0, Method.GetDraft) == 0 ? false : true;
 			}
 
-			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAboutToBeShown (AboutToBeShownEventArgs e)
 			{
 				if (AboutToBeShown != null)
-					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, e);
 			}
 
-			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnDialogueCompleted method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnDialogueCompleted in a derived class, be sure to
+			 * call the base class's \b OnDialogueCompleted method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnDialogueCompleted (ToolboxEventArgs e)
 			{
 				if (DialogueCompleted != null)
-					DialogueCompleted (this, e.ToolboxArgs);
+					DialogueCompleted (this, e);
 			}
 
-			protected virtual void OnSetUpAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnSetUpAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnSetUpAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnSetUpAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnSetUpAboutToBeShown (SetUpAboutToBeShownEventArgs e)
 			{
 				if (SetUpAboutToBeShown != null)
-					SetUpAboutToBeShown (this, new SetUpAboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					SetUpAboutToBeShown (this, e);
 			}
 
-			protected virtual void OnClickSave (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnClickSave method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnClickSave in a derived class, be sure to
+			 * call the base class's \b OnClickSave method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnClickSave (PrintSaveEventArgs e)
 			{
 				if (ClickSave != null)
-					ClickSave (this, new PrintSaveEventArgs (e.ToolboxArgs.RawEventData));
+					ClickSave (this, e);
 			}
 
-			protected virtual void OnClickPrint (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnClickPrint method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnClickPrint in a derived class, be sure to
+			 * call the base class's \b OnClickPrint method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnClickPrint (PrintSaveEventArgs e)
 			{
 				if (ClickPrint != null)
-					ClickPrint (this, new PrintSaveEventArgs (e.ToolboxArgs.RawEventData));
+					ClickPrint (this, e);
 			}
 
-			protected virtual void OnClickSetUp (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnClickSetUp method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnClickSetUp in a derived class, be sure to
+			 * call the base class's \b OnClickSetUp method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnClickSetUp (ToolboxEventArgs e)
 			{
-				if (DialogueCompleted != null)
-					ClickSetUp (this, e.ToolboxArgs);
+				if (ClickSetUp != null)
+					ClickSetUp (this, e);
 			}
 
 			/*! \brief Check if the given event is relevant to the Print Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (e.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					OnAboutToBeShown (e);
+					OnAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 					break;
 				case EventCode.DialogueCompleted:
 					OnDialogueCompleted (e);
 					break;
 				case EventCode.SetUpAboutToBeShown:
-					OnSetUpAboutToBeShown (e);
+					OnSetUpAboutToBeShown (new SetUpAboutToBeShownEventArgs (e.RawEventData));
 					break;
 				case EventCode.Save:
-					OnClickSave (e);
+					OnClickSave (new PrintSaveEventArgs (e.RawEventData));
 					break;
 				case EventCode.Print:
-					OnClickPrint (e);
+					OnClickPrint (new PrintSaveEventArgs (e.RawEventData));
 					break;
 				case EventCode.SetUp:
 					OnClickSetUp (e);

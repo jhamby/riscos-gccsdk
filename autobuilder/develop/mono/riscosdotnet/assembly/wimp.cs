@@ -98,7 +98,7 @@ namespace riscos
 			public const uint RightHigh = 0xfffffff8;
 		}
 	
-		public class RedrawEventArgs : EventArgs
+		public class RedrawEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.RedrawWindowBlock RedrawWimpBlock;
 
@@ -106,144 +106,204 @@ namespace riscos
 			//  SWI "WIMP_RedrawWindow" has been called.
 			public OS.Coord Origin;
 
-			public RedrawEventArgs (IntPtr unmanaged_event_block)
+			public RedrawEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				RedrawWimpBlock = (NativeWimp.RedrawWindowBlock)Marshal.PtrToStructure (
-							unmanaged_event_block, typeof(NativeWimp.RedrawWindowBlock));
+							unmanagedEventBlock, typeof(NativeWimp.RedrawWindowBlock));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, 0);
 			}
 		}
 
-		public class OpenEventArgs : EventArgs
+		public class OpenEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.WindowStateBlock OpenWimpBlock;
 
-			public OpenEventArgs (IntPtr unmanaged_event_block)
+			public OpenEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				OpenWimpBlock = (NativeWimp.WindowStateBlock)Marshal.PtrToStructure(
-							unmanaged_event_block, typeof(NativeWimp.WindowStateBlock));
+							unmanagedEventBlock, typeof(NativeWimp.WindowStateBlock));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, 0);
 			}
 		}
 
-		public class CloseEventArgs : EventArgs
+		public class CloseEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.WindowHandleBlock CloseWimpBlock;
 
-			public CloseEventArgs (IntPtr unmanaged_event_block)
+			public CloseEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				CloseWimpBlock = (NativeWimp.WindowHandleBlock)Marshal.PtrToStructure (
-							unmanaged_event_block, typeof(NativeWimp.WindowHandleBlock));
+							unmanagedEventBlock, typeof(NativeWimp.WindowHandleBlock));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, 0);
 			}
 		}
 
-		public class PointerLeaveEventArgs : EventArgs
+		public class PointerLeaveEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.WindowHandleBlock PointerLeaveWimpBlock;
 
-			public PointerLeaveEventArgs (IntPtr unmanaged_event_block)
+			public PointerLeaveEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				PointerLeaveWimpBlock = (NativeWimp.WindowHandleBlock)Marshal.PtrToStructure (
-							unmanaged_event_block, typeof(NativeWimp.WindowHandleBlock));
+							unmanagedEventBlock, typeof(NativeWimp.WindowHandleBlock));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, 0);
 			}
 		}
 
-		public class PointerEnterEventArgs : EventArgs
+		public class PointerEnterEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.WindowHandleBlock PointerEnterWimpBlock;
 
-			public PointerEnterEventArgs (IntPtr unmanaged_event_block)
+			public PointerEnterEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				PointerEnterWimpBlock = (NativeWimp.WindowHandleBlock)Marshal.PtrToStructure (
-							unmanaged_event_block, typeof(NativeWimp.WindowHandleBlock));
+							unmanagedEventBlock, typeof(NativeWimp.WindowHandleBlock));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, 0);
 			}
 		}
 
-		public class MouseClickEventArgs : EventArgs
+		public class MouseClickEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.MouseClickBlock MouseClickWimpBlock;
 
-			public MouseClickEventArgs (IntPtr unmanaged_event_block)
+			public MouseClickEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				MouseClickWimpBlock = (NativeWimp.MouseClickBlock)Marshal.PtrToStructure (
-							unmanaged_event_block, typeof(NativeWimp.MouseClickBlock));
+							unmanagedEventBlock, typeof(NativeWimp.MouseClickBlock));
 			}
-		}
 
-		public class KeyPressedEventArgs : EventArgs
-		{
-			public NativeWimp.KeyPressedBlock KeyPressedWimpBlock;
-
-			public KeyPressedEventArgs (IntPtr unmanaged_event_block)
+			public override uint GetWindowHandle ()
 			{
-				KeyPressedWimpBlock = (NativeWimp.KeyPressedBlock)Marshal.PtrToStructure (
-							unmanaged_event_block, typeof(NativeWimp.KeyPressedBlock));
+				return (uint)Marshal.ReadInt32 (RawEventData, 12);
 			}
 		}
 
-		public class ScrollRequestEventArgs : EventArgs
+		public class KeyPressEventArgs : Wimp.EventArgs
+		{
+			public NativeWimp.KeyPressBlock KeyPressWimpBlock;
+
+			public KeyPressEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
+			{
+				KeyPressWimpBlock = (NativeWimp.KeyPressBlock)Marshal.PtrToStructure (
+							unmanagedEventBlock, typeof(NativeWimp.KeyPressBlock));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, 0);
+			}
+		}
+
+		public class ScrollRequestEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.ScrollRequestBlock ScrollRequestWimpBlock;
 
-			public ScrollRequestEventArgs (IntPtr unmanaged_event_block)
+			public ScrollRequestEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				ScrollRequestWimpBlock = (NativeWimp.ScrollRequestBlock)Marshal.PtrToStructure (
-							unmanaged_event_block, typeof(NativeWimp.ScrollRequestBlock));
+							unmanagedEventBlock, typeof(NativeWimp.ScrollRequestBlock));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, 0);
 			}
 		}
 
-		public class LoseCaretEventArgs : EventArgs
+		public class LoseCaretEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.LoseCaretBlock LoseCaretWimpBlock;
 
-			public LoseCaretEventArgs (IntPtr unmanaged_event_block)
+			public LoseCaretEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				LoseCaretWimpBlock = (NativeWimp.LoseCaretBlock)Marshal.PtrToStructure (
-							unmanaged_event_block, typeof(NativeWimp.LoseCaretBlock));
+							unmanagedEventBlock, typeof(NativeWimp.LoseCaretBlock));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, 0);
 			}
 		}
 
-		public class GainCaretEventArgs : EventArgs
+		public class GainCaretEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.GainCaretBlock GainCaretWimpBlock;
 
-			public GainCaretEventArgs (IntPtr unmanaged_event_block)
+			public GainCaretEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				GainCaretWimpBlock = (NativeWimp.GainCaretBlock)Marshal.PtrToStructure (
-							unmanaged_event_block, typeof(NativeWimp.GainCaretBlock));
+							unmanagedEventBlock, typeof(NativeWimp.GainCaretBlock));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, 0);
 			}
 		}
 
-		public class MenuSelectionEventArgs : EventArgs
+		public class MenuSelectionEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.MenuSelectionBlock MenuSelectionWimpBlock;
 
-			public MenuSelectionEventArgs (IntPtr unmanaged_event_block)
+			public MenuSelectionEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
 				MenuSelectionWimpBlock = (NativeWimp.MenuSelectionBlock)Marshal.PtrToStructure (
-							    unmanaged_event_block, typeof(NativeWimp.MenuSelectionBlock));
+							    unmanagedEventBlock, typeof(NativeWimp.MenuSelectionBlock));
 			}
 		}
 
-		public delegate void RedrawEventHandler (object sender, RedrawEventArgs args);
-		public delegate void OpenEventHandler (object sender, OpenEventArgs args);
-		public delegate void CloseEventHandler (object sender, CloseEventArgs args);
-		public delegate void PointerLeaveEventHandler (object sender, PointerLeaveEventArgs args);
-		public delegate void PointerEnterEventHandler (object sender, PointerEnterEventArgs args);
-		public delegate void MouseClickEventHandler (object sender, MouseClickEventArgs args);
-		public delegate void KeyPressedEventHandler (object sender, KeyPressedEventArgs args);
-		public delegate void ScrollRequestEventHandler (object sender, ScrollRequestEventArgs args);
-		public delegate void LoseCaretEventHandler (object sender, LoseCaretEventArgs args);
-		public delegate void GainCaretEventHandler (object sender, GainCaretEventArgs args);
+		public delegate void RedrawEventHandler (object sender, RedrawEventArgs e);
+		public delegate void OpenEventHandler (object sender, OpenEventArgs e);
+		public delegate void CloseEventHandler (object sender, CloseEventArgs e);
+		public delegate void PointerLeaveEventHandler (object sender, PointerLeaveEventArgs e);
+		public delegate void PointerEnterEventHandler (object sender, PointerEnterEventArgs e);
+		public delegate void MouseClickEventHandler (object sender, MouseClickEventArgs e);
+		public delegate void KeyPressEventHandler (object sender, KeyPressEventArgs e);
+		public delegate void ScrollRequestEventHandler (object sender, ScrollRequestEventArgs e);
+		public delegate void LoseCaretEventHandler (object sender, LoseCaretEventArgs e);
+		public delegate void GainCaretEventHandler (object sender, GainCaretEventArgs e);
+		public delegate void MenuSelectionEventHandler (object sender, MenuSelectionEventArgs e);
 
-		public class Event
+		public class EventArgs : System.EventArgs
 		{
-			public PollCode type;
+			public PollCode Type;
+			public IntPtr RawEventData;
 
-			public Event (PollCode type)
+			public EventArgs (IntPtr unmanagedEventBlock)
 			{
-				this.type = type;
+				Type = NativeMethods.wimp_get_event_type ();
+				RawEventData = unmanagedEventBlock;
 			}
 
-			public static Event GetEvent ()
+			/*! \brief Return the handle of the window that the current event is for.
+			 * \return 0 if the event is not specific to a particular window.  */
+			public virtual uint GetWindowHandle ()
+			{
+				return 0;
+			}
+
+			public static Wimp.EventArgs GetEvent ()
 			{
 				PollCode type = NativeMethods.wimp_get_event_type ();
 				IntPtr event_ptr = NativeMethods.wimp_get_event ();
@@ -251,32 +311,32 @@ namespace riscos
 				switch (type)
 				{
 					case PollCode.RedrawWindow:
-						return new RedrawWindowEvent (type, event_ptr);
+						return new RedrawEventArgs (event_ptr);
 					case PollCode.OpenWindow:
-						return new OpenWindowEvent (type, event_ptr);
+						return new OpenEventArgs (event_ptr);
 					case PollCode.CloseWindow:
-						return new CloseWindowEvent (type, event_ptr);
+						return new CloseEventArgs (event_ptr);
 					case PollCode.PointerLeaveWindow:
-						return new PointerLeaveEvent (type, event_ptr);
+						return new PointerLeaveEventArgs (event_ptr);
 					case PollCode.PointerEnterWindow:
-						return new PointerEnterEvent (type, event_ptr);
+						return new PointerEnterEventArgs (event_ptr);
 					case PollCode.MouseClick:
-						return new MouseClickEvent (type, event_ptr);
+						return new MouseClickEventArgs (event_ptr);
 					case PollCode.KeyPressed:
-						return new KeyPressedEvent (type, event_ptr);
+						return new KeyPressEventArgs (event_ptr);
 					case PollCode.ScrollRequest:
-						return new ScrollRequestEvent (type, event_ptr);
+						return new ScrollRequestEventArgs (event_ptr);
 					case PollCode.LoseCaret:
-						return new LoseCaretEvent (type, event_ptr);
+						return new LoseCaretEventArgs (event_ptr);
 					case PollCode.GainCaret:
-						return new GainCaretEvent (type, event_ptr);
+						return new GainCaretEventArgs (event_ptr);
 					case PollCode.MenuSelection:
-						return new MenuSelectionEvent (type, event_ptr);
+						return new MenuSelectionEventArgs (event_ptr);
 					case PollCode.ToolboxEvent:
-						return new Toolbox.ToolboxEvent (type, event_ptr);
+						return new Toolbox.ToolboxEventArgs (event_ptr);
 					case PollCode.Null:
 					default:
-						return new Event (type);
+						return new Wimp.EventArgs (event_ptr);
 				}
 			}
 		}
@@ -295,16 +355,16 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Wimp_ProcessKey (key));
 		}
 
-		public static Wimp.Event Poll (uint pollMask, out uint pollWord)
+		public static Wimp.EventArgs Poll (uint pollMask, out uint pollWord)
 		{
 			OS.ThrowOnError (NativeMethods.Wimp_Poll (pollMask, out pollWord));
-			return Event.GetEvent ();
+			return EventArgs.GetEvent ();
 		}
 
-		public static Wimp.Event PollIdle (uint pollMask, uint time, out uint pollWord)
+		public static Wimp.EventArgs PollIdle (uint pollMask, uint time, out uint pollWord)
 		{
 			OS.ThrowOnError (NativeMethods.Wimp_PollIdle (pollMask, time, out pollWord));
-			return Event.GetEvent ();
+			return EventArgs.GetEvent ();
 		}
 
 		public static int ReportError (ErrorBoxFlags flags, string name, int errno, string message)
@@ -319,119 +379,6 @@ namespace riscos
 							name,
 							out result);
 			return result;
-		}
-
-		// Managed versions of the standard WIMP events. These can be passed
-		// by reference and contain an unmanaged version that can be passed
-		// directly to SWIs.
-		public class OpenWindowEvent : Event
-		{
-			public OpenEventArgs OpenWindowArgs;
-
-			public OpenWindowEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				OpenWindowArgs = new OpenEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class CloseWindowEvent : Event
-		{
-			public CloseEventArgs CloseWindowArgs;
-
-			public CloseWindowEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				CloseWindowArgs = new CloseEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class RedrawWindowEvent : Event
-		{
-			public RedrawEventArgs RedrawArgs;
-
-			public RedrawWindowEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				RedrawArgs = new RedrawEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class PointerLeaveEvent : Event
-		{
-			public PointerLeaveEventArgs PointerLeaveArgs;
-
-			public PointerLeaveEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				PointerLeaveArgs = new PointerLeaveEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class PointerEnterEvent : Event
-		{
-			public PointerEnterEventArgs PointerEnterArgs;
-
-			public PointerEnterEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				PointerEnterArgs = new PointerEnterEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class MouseClickEvent : Event
-		{
-			public MouseClickEventArgs MouseClickArgs;
-
-			public MouseClickEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				MouseClickArgs = new MouseClickEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class KeyPressedEvent : Event
-		{
-			public KeyPressedEventArgs KeyPressedArgs;
-
-			public KeyPressedEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				KeyPressedArgs = new KeyPressedEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class ScrollRequestEvent : Event
-		{
-			public ScrollRequestEventArgs ScrollRequestArgs;
-
-			public ScrollRequestEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				ScrollRequestArgs = new ScrollRequestEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class LoseCaretEvent : Event
-		{
-			public LoseCaretEventArgs LoseCaretArgs;
-
-			public LoseCaretEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				LoseCaretArgs = new LoseCaretEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class GainCaretEvent : Event
-		{
-			public GainCaretEventArgs GainCaretArgs;
-
-			public GainCaretEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				GainCaretArgs = new GainCaretEventArgs (unmanaged_event_block);
-			}
-		}
-
-		public class MenuSelectionEvent : Event
-		{
-			public MenuSelectionEventArgs MenuSelectionArgs;
-
-			public MenuSelectionEvent (PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				MenuSelectionArgs = new MenuSelectionEventArgs (unmanaged_event_block);
-			}
 		}
 	}
 }

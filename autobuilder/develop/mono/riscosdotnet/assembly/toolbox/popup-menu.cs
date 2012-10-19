@@ -93,12 +93,18 @@ namespace riscos
 				}
 			}
 
+			protected virtual void OnAboutToBeShown (AboutToBeShownEventArgs e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, e);
+			}
+
 			/*! \brief Check if the given event is relevant to the %PopupMenu gadget and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				if (ev.ToolboxArgs.Header.EventCode == EventCode.AboutToBeShown && AboutToBeShown != null)
-					AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+				if (e.Header.EventCode == EventCode.AboutToBeShown)
+					OnAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 			}
 		}
 	}

@@ -209,8 +209,8 @@ namespace riscos
 			public uint ID { get; protected set; }
 
 			/*! \brief A list of all event handlers for this Toolbox object.  */
-			public Dictionary<uint, ToolboxEventHandler> ToolboxHandlers = new Dictionary<uint, ToolboxEventHandler>();
-//			public event ToolboxEventHandler EventHandler;
+			public Dictionary<uint, ToolboxEventHandler> ToolboxHandlers =
+								new Dictionary<uint, ToolboxEventHandler>();
 
 			/*! \brief A list of gadgets that we have an interest in within this Toolbox object.
 			 *
@@ -388,12 +388,20 @@ namespace riscos
 				}
 			}
 
-			public virtual void Dispatch (ToolboxEvent ev)
+			public virtual void Dispatch (Wimp.EventArgs e)
 			{
-				ToolboxEventHandler handler;
+			}
 
-				if (ToolboxHandlers.TryGetValue (ev.ToolboxArgs.Header.EventCode, out handler))
-					handler (this, ev.ToolboxArgs);
+			public virtual void Dispatch (ToolboxEventArgs e)
+			{
+				NativeToolbox.IDBlock id_block = ToolboxTask.GetIDBlock();
+				Toolbox.Gadget tb_cmp;
+
+				if (id_block.SelfCmp != 0xffffffff &&
+					Gadgets.TryGetValue (id_block.SelfCmp, out tb_cmp))
+				{
+					tb_cmp.Dispatch (e);
+				}
 			}
 
 			/*! \brief Query the Toolbox to find the class type of the Toolbox object
@@ -739,28 +747,14 @@ namespace riscos
 			}
 		}
 
-		public class ToolboxEventArgs : EventArgs
+		public class ToolboxEventArgs : Wimp.EventArgs
 		{
 			public NativeToolbox.EventHeader Header;
 
-			public IntPtr RawEventData;
-
-			public ToolboxEventArgs (IntPtr unmanaged_event_block)
+			public ToolboxEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 			{
-				RawEventData = unmanaged_event_block;
-
 				Header = (NativeToolbox.EventHeader)Marshal.PtrToStructure(
-						unmanaged_event_block, typeof(NativeToolbox.EventHeader));
-			}
-		}
-
-		public class ToolboxEvent : Wimp.Event
-		{
-			public ToolboxEventArgs ToolboxArgs;
-
-			public ToolboxEvent (Wimp.PollCode type, IntPtr unmanaged_event_block) : base (type)
-			{
-				ToolboxArgs = new ToolboxEventArgs (unmanaged_event_block);
+						unmanagedEventBlock, typeof(NativeToolbox.EventHeader));
 			}
 		}
 
@@ -798,7 +792,7 @@ namespace riscos
 			Handle = handle;
 		}
 
-		public NativeToolbox.IDBlock GetIDBlock ()
+		public static NativeToolbox.IDBlock GetIDBlock ()
 		{
 			IntPtr idblock_ptr = NativeMethods.Toolbox_GetIDBlock();
 
@@ -806,36 +800,29 @@ namespace riscos
 									     typeof (NativeToolbox.IDBlock));
 		}
 
-		public override void Dispatch (Wimp.Event event_base)
+		public override void Dispatch (Wimp.EventArgs e)
 		{
 			NativeToolbox.IDBlock id_block = GetIDBlock();
+			Toolbox.Object tb_obj;
 
-			switch (event_base.type)
+			if (ToolboxTask.AllObjects.TryGetValue (id_block.SelfID, out tb_obj))
 			{
-			case Wimp.PollCode.RedrawWindow:
+				if (e.Type == Wimp.PollCode.ToolboxEvent)
 				{
-					Wimp.RedrawWindowEvent event_full = (Wimp.RedrawWindowEvent)event_base;
-					Toolbox.Window tb_obj = (Toolbox.Window)ToolboxTask.AllObjects[id_block.SelfID];
-					tb_obj.OnRedraw (event_full);
+					// A Toolbox event for a specific object, so dispatch it to that object.
+					tb_obj.Dispatch ((Toolbox.ToolboxEventArgs)e);
 				}
-				break;
-			case Wimp.PollCode.ToolboxEvent:
+				else
 				{
-					Toolbox.ToolboxEvent event_full = (Toolbox.ToolboxEvent)event_base;
-					Toolbox.Object tb_obj;
-					if (ToolboxTask.AllObjects.TryGetValue (id_block.SelfID, out tb_obj))
-					{
-						Toolbox.Gadget tb_cmp;
-						if (id_block.SelfCmp != 0xffffffff &&
-						    tb_obj.Gadgets.TryGetValue (id_block.SelfCmp, out tb_cmp))
-						{
-							tb_cmp.Dispatch (event_full);
-						}
-
-						tb_obj.Dispatch (event_full);
-					}
+					// A Wimp event for a specific object, so dispatch it to that object.
+					tb_obj.Dispatch (e);
 				}
-				break;
+			}
+			else if (e.Type != Wimp.PollCode.ToolboxEvent)
+			{
+				// A Wimp event that is not specific to an object, so let
+				// Task.Dispatch deal with it.
+				base.Dispatch (e);
 			}
 		}
 	}

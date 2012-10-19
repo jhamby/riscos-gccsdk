@@ -91,83 +91,6 @@ namespace riscos
 				public const int Data = 200;
 			}
 
-			/*! \brief The event handlers that will be called just before this window is shown.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, AboutToBeShownEventArgs e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * WindowObject.AboutToBeShown += handler_name;
-			 * \endcode  */
-			public event AboutToBeShownEventHandler AboutToBeShown;
-
-			/*! \brief The event handlers that will be called when this window has been hidden.
-			 *
-			 * Handlers should have the signature:
-			 * \code
-			 * void handler_name (object sender, ToolboxEventHandler e);
-			 * \endcode
-			 * and can be added to the list with:
-			 * \code
-			 * WindowObject.HasBeenHidden += handler_name;
-			 * \endcode  */
-			public event ToolboxEventHandler HasBeenHidden;
-
-			/*! \brief The event handler that will be called to redraw this window.
-			 *
-			 * The necessary WIMP calls will be made for you, these handlers are called
-			 * from within a redraw loop. The origin of the window in OS units is passed
-			 * in the event's arguments.  */
-			public event Wimp.RedrawEventHandler RedrawHandler;
-
-			/*! \class PointerShape
-			 * \brief Used to set/read the Pointer property of the Window.  */
-			public class PointerShape
-			{
-				/*! \brief The sprite name of the pointer shape.  */
-				public string SpriteName;
-				/*! \brief The x coordinate of the active point in the sprite.  */
-				public int xHotSpot;
-				/*! \brief The y coordinate of the active point in the sprite.  */
-				public int yHotSpot;
-
-				public PointerShape (string spriteName, int x, int y)
-				{
-					SpriteName = spriteName;
-					xHotSpot = x;
-					yHotSpot = y;
-				}
-			}
-
-			/*! \class PointerInfo
-			 * \brief Used as a buffer to retrieve information about the pointer using
-			 * method Window.GetPointerInfo.  */
-			public class PointerInfo
-			{
-				/*! \brief Current position of the mouse pointer in OS units.  */
-				public OS.Coord Pos;
-				/*! \brief Current state of the mouse buttons. See \e PointerInfo.ButtonState. */
-				public uint Buttons;
-				/*! \brief Window ID, or WIMP window handle if \e Buttons
-				 * bit \e NotToolboxWindow is set.  */
-				public uint ObjectID;
-				/*! \brief Component ID, or WIMP icon handle if \e Buttons
-				 * bit \e NotToolboxWindow is set.  */
-				public uint CmpID;
-
-				/*! \class ButtonState
-				 * \brief Possible bit states for \e PointerInfo.Buttons  */
-				public class ButtonState
-				{
-					public const uint Adjust = (1 << 0);
-					public const uint Menu = (1 << 1);
-					public const uint Select = (1 << 2);
-					public const uint NotToolboxWindow = (1 << 8);
-				}
-			}
-
 			/*! \brief Used when setting the \e DefaultFocus property of the Window to
 			 * remove the default focus.  */
 			public const uint DefaultFocusNone = 0xffffffff;
@@ -176,7 +99,7 @@ namespace riscos
 			public const uint DefaultFocusWindow = 0xfffffffe;
 
 			/*! \brief The WIMP handle for this toolbox window.  */
-			public Wimp.WindowHandle Handle;
+			public Wimp.WindowHandle WimpWindow;
 
 			private int AboutToBeShownEventCode = 0;
 			private int HasBeenHiddenEventCode = 0;
@@ -186,7 +109,7 @@ namespace riscos
 			 * \param[in] resName The name of the window template to use.  */
 			public Window (string resName) : base (resName)
 			{
-				Handle = new Wimp.WindowHandle (WimpHandle);
+				WimpWindow = new Wimp.WindowHandle (WimpHandle);
 
 				IntPtr template = Toolbox.TemplateLookup (resName);
 				RetrieveEventCodes (template);
@@ -197,7 +120,7 @@ namespace riscos
 			public Window (IntPtr templateData)
 			{
 				Create (templateData);
-				Handle = new Wimp.WindowHandle (WimpHandle);
+				WimpWindow = new Wimp.WindowHandle (WimpHandle);
 				RetrieveEventCodes (templateData);
 			}
 
@@ -205,7 +128,7 @@ namespace riscos
 			 * \param [in] objectID The Toolbox ID of the existing object.  */
 			public Window (uint objectID) : base (objectID)
 			{
-				Handle = new Wimp.WindowHandle (WimpHandle);
+				WimpWindow = new Wimp.WindowHandle (WimpHandle);
 				IntPtr template = Toolbox.TemplateLookup (TemplateName);
 				RetrieveEventCodes (template);
 			}
@@ -488,39 +411,80 @@ namespace riscos
 			void RemoveKeyboardShortcuts();
 			void ExtractGadgetInfo();
 */
-			public virtual void OnRedraw (Wimp.RedrawWindowEvent ev)
+			protected virtual void OnPaint (Wimp.RedrawEventArgs e)
+			{
+				if (Paint != null)
+					Paint (this, e);
+			}
+
+			protected virtual void OnRedraw (Wimp.RedrawEventArgs e)
 			{
 				int more;
 
 				// Start the redraw. Given the window handle, the OS fills in RedrawWimpBlock
 				// with details of what needs redrawing.
-				NativeMethods.Wimp_RedrawWindow (ref ev.RedrawArgs.RedrawWimpBlock, out more);
+				NativeMethods.Wimp_RedrawWindow (ref e.RedrawWimpBlock, out more);
 
 				// The origin of the window only needs to be calculated once before entering
 				// the redraw loop.
-				ev.RedrawArgs.Origin = Handle.GetOrigin (ref ev.RedrawArgs.RedrawWimpBlock.Visible,
-									 ref ev.RedrawArgs.RedrawWimpBlock.Scroll);
+				e.Origin = WimpWindow.GetOrigin (ref e.RedrawWimpBlock.Visible,
+								 ref e.RedrawWimpBlock.Scroll);
 				while (more != 0)
 				{
-					if (RedrawHandler != null)
-						RedrawHandler (this, ev.RedrawArgs);
-					NativeMethods.Wimp_GetRectangle (ref ev.RedrawArgs.RedrawWimpBlock, out more);
+					OnPaint (e);
+					NativeMethods.Wimp_GetRectangle (ref e.RedrawWimpBlock, out more);
 				}
 			}
 
-			public override void Dispatch (ToolboxEvent ev)
+
+			public override void Dispatch (Wimp.EventArgs e)
 			{
-				if (ev.ToolboxArgs.Header.EventCode == AboutToBeShownEventCode &&
-				    AboutToBeShown != null)
+				switch (e.Type)
 				{
-					AboutToBeShown (this, new AboutToBeShownEventArgs (ev.ToolboxArgs.RawEventData));
+				case Wimp.PollCode.RedrawWindow:
+					OnRedraw ((Wimp.RedrawEventArgs)e);
+					break;
 				}
-				else if (ev.ToolboxArgs.Header.EventCode == HasBeenHiddenEventCode &&
-					 HasBeenHidden != null)
-				{
-					// There is no additional data after the event header.
-					HasBeenHidden (this, ev.ToolboxArgs);
+			}
+
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAboutToBeShown (AboutToBeShownEventArgs e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, e);
+			}
+
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnHasBeenHidden method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnHasBeenHidden in a derived class, be sure to
+			 * call the base class's \b OnHasBeenHidden method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnHasBeenHidden (ToolboxEventArgs e)
+			{
+				if (HasBeenHidden != null)
+					HasBeenHidden (this, e);
+			}
+
+			public override void Dispatch (ToolboxEventArgs e)
+			{
+				if (e.Header.EventCode == AboutToBeShownEventCode) {
+					OnAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 				}
+				else if (e.Header.EventCode == HasBeenHiddenEventCode) {
+					OnHasBeenHidden (e);
+				}
+				else
+					base.Dispatch (e);
 			}
 
 			private void RetrieveEventCodes (IntPtr template)
@@ -541,6 +505,83 @@ namespace riscos
 					HasBeenHiddenEventCode = (hide_event != 0) ?
 								  hide_event :
 								  EventCode.HasBeenHidden;
+				}
+			}
+
+			/*! \brief The event handlers that will be called just before this window is shown.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, AboutToBeShownEventArgs e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * WindowObject.AboutToBeShown += handler_name;
+			 * \endcode  */
+			public event AboutToBeShownEventHandler AboutToBeShown;
+
+			/*! \brief The event handlers that will be called when this window has been hidden.
+			 *
+			 * Handlers should have the signature:
+			 * \code
+			 * void handler_name (object sender, ToolboxEventHandler e);
+			 * \endcode
+			 * and can be added to the list with:
+			 * \code
+			 * WindowObject.HasBeenHidden += handler_name;
+			 * \endcode  */
+			public event ToolboxEventHandler HasBeenHidden;
+
+			/*! \brief The event handlers that will be called to redraw this window.
+			 *
+			 * The necessary WIMP calls will be made for you, these handlers are called
+			 * from within a redraw loop. The origin of the window in OS units is passed
+			 * in the event's arguments.  */
+			public event Wimp.RedrawEventHandler Paint;
+
+			/*! \class PointerShape
+			 * \brief Used to set/read the Pointer property of the Window.  */
+			public class PointerShape
+			{
+				/*! \brief The sprite name of the pointer shape.  */
+				public string SpriteName;
+				/*! \brief The x coordinate of the active point in the sprite.  */
+				public int xHotSpot;
+				/*! \brief The y coordinate of the active point in the sprite.  */
+				public int yHotSpot;
+
+				public PointerShape (string spriteName, int x, int y)
+				{
+					SpriteName = spriteName;
+					xHotSpot = x;
+					yHotSpot = y;
+				}
+			}
+
+			/*! \class PointerInfo
+			 * \brief Used as a buffer to retrieve information about the pointer using
+			 * method Window.GetPointerInfo.  */
+			public class PointerInfo
+			{
+				/*! \brief Current position of the mouse pointer in OS units.  */
+				public OS.Coord Pos;
+				/*! \brief Current state of the mouse buttons. See \e PointerInfo.ButtonState. */
+				public uint Buttons;
+				/*! \brief Window ID, or WIMP window handle if \e Buttons
+				 * bit \e NotToolboxWindow is set.  */
+				public uint ObjectID;
+				/*! \brief Component ID, or WIMP icon handle if \e Buttons
+				 * bit \e NotToolboxWindow is set.  */
+				public uint CmpID;
+
+				/*! \class ButtonState
+				 * \brief Possible bit states for \e PointerInfo.Buttons  */
+				public class ButtonState
+				{
+					public const uint Adjust = (1 << 0);
+					public const uint Menu = (1 << 1);
+					public const uint Select = (1 << 2);
+					public const uint NotToolboxWindow = (1 << 8);
 				}
 			}
 		}

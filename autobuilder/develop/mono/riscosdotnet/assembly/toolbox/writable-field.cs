@@ -119,12 +119,16 @@ namespace riscos
 											     height));
 			}
 
-			public override void Dispatch (ToolboxEvent ev)
+			protected virtual void OnValueChange (ValueChangeEventArgs e)
 			{
-				if (ev.ToolboxArgs.Header.EventCode == EventCode.ValueChanged && ValueChange != null)
-				{
-					ValueChange (this, new ValueChangeEventArgs (ev.ToolboxArgs.RawEventData));
-				}
+				if (ValueChange != null)
+					ValueChange (this, e);
+			}
+
+			public override void Dispatch (ToolboxEventArgs e)
+			{
+				if (e.Header.EventCode == EventCode.ValueChanged)
+					OnValueChange (new ValueChangeEventArgs (e.RawEventData));
 			}
 		}
 	}

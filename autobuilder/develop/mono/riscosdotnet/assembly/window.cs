@@ -128,7 +128,7 @@ namespace riscos
 		 * \brief Encapsulates a RISC OS WIMP window. */
 		public class Window
 		{
-			public WindowHandle Handle;
+			public WindowHandle WimpWindow;
 
 			public IconBuffer Title;
 
@@ -140,16 +140,17 @@ namespace riscos
 
 			public Hashtable MyIcons;
 
-			public event RedrawEventHandler RedrawHandler;
-			public event OpenEventHandler OpenHandler;
-			public event CloseEventHandler CloseHandler;
-			public event PointerLeaveEventHandler PointerLeaveHandler;
-			public event PointerEnterEventHandler PointerEnterHandler;
-			public event MouseClickEventHandler MouseClickHandler;
-			public event KeyPressedEventHandler KeyPressedHandler;
-			public event ScrollRequestEventHandler ScrollRequestHandler;
-			public event LoseCaretEventHandler LoseCaretHandler;
-			public event GainCaretEventHandler GainCaretHandler;
+			public event RedrawEventHandler Paint;
+			public event OpenEventHandler Opening;
+			public event CloseEventHandler Closing;
+			public event CloseEventHandler Closed;
+			public event PointerLeaveEventHandler PointerLeave;
+			public event PointerEnterEventHandler PointerEnter;
+			public event MouseClickEventHandler MouseClick;
+			public event KeyPressEventHandler KeyPress;
+			public event ScrollRequestEventHandler ScrollRequest;
+			public event LoseCaretEventHandler LoseCaret;
+			public event GainCaretEventHandler GainCaret;
 
 			public Window ()
 			{
@@ -159,7 +160,7 @@ namespace riscos
 			~Window ()
 			{
 				MyIcons.Clear ();
-				WimpTask.AllWindows.Remove (Handle.Handle);
+				WimpTask.AllWindows.Remove (WimpWindow.Handle);
 				Title.Clear ();
 			}
 
@@ -169,7 +170,7 @@ namespace riscos
 				if (Created)
 				{
 					NativeOS.Rect native_extent = new NativeOS.Rect (extent);
-					OS.ThrowOnError (NativeMethods.Wimp_SetExtent (Handle.Handle, ref native_extent));
+					OS.ThrowOnError (NativeMethods.Wimp_SetExtent (WimpWindow.Handle, ref native_extent));
 				}
 			}
 
@@ -212,7 +213,7 @@ namespace riscos
 				block.WorkArea = new NativeOS.Rect (Extent);
 
 				OS.ThrowOnError (NativeMethods.Wimp_CreateWindow (ref block, out handle));
-				Handle = new WindowHandle (handle);
+				WimpWindow = new WindowHandle (handle);
 				WimpTask.AllWindows.Add (handle, this);
 				Created = true;
 			}
@@ -223,7 +224,7 @@ namespace riscos
 					  uint behind)
 			{
 				NativeWimp.WindowStateBlock block = 
-					new NativeWimp.WindowStateBlock (Handle.Handle,
+					new NativeWimp.WindowStateBlock (WimpWindow.Handle,
 									 visible,
 									 scroll,
 									 behind,
@@ -250,7 +251,7 @@ namespace riscos
 					nestedFlags |= 1;
 
 				NativeWimp.WindowStateBlock block =
-					new NativeWimp.WindowStateBlock(Handle.Handle,
+					new NativeWimp.WindowStateBlock(WimpWindow.Handle,
 									visible,
 									scroll,
 									behindWindow,
@@ -281,87 +282,132 @@ namespace riscos
 						uint priority)
 			{
 				Icon icon = new Icon ();
-				icon.Create (Handle.Handle, boundingBox, flags, data, priority);
+				icon.Create (WimpWindow.Handle, boundingBox, flags, data, priority);
 				MyIcons.Add (icon.Handle, icon);
 
 				return icon;
 			}
 
 			/*! \brief Open window in response to an event. */
-			public virtual void OnOpen (OpenWindowEvent ev)
+			protected virtual void OnOpen (OpenEventArgs e)
 			{
-				OS.ThrowOnError (NativeMethods.Wimp_OpenWindow (ref ev.OpenWindowArgs.OpenWimpBlock));
-				if (OpenHandler != null)
-					OpenHandler (this, ev.OpenWindowArgs);
+				if (Opening != null)
+					Opening (this, e);
+				OS.ThrowOnError (NativeMethods.Wimp_OpenWindow (ref e.OpenWimpBlock));
 			}
 
 			/*! \brief Close window in response to an event. */
-			public virtual void OnClose (CloseWindowEvent ev)
+			protected virtual void OnClose (CloseEventArgs e)
 			{
-				OS.ThrowOnError (NativeMethods.Wimp_CloseWindow (ref ev.CloseWindowArgs.CloseWimpBlock));
-				if (CloseHandler != null)
-					CloseHandler (this, ev.CloseWindowArgs);
+				if (Closing != null)
+					Closing (this, e);
+				OS.ThrowOnError (NativeMethods.
+						 Wimp_CloseWindow (e.CloseWimpBlock.WindowHandle));
+				if (Closed != null)
+					Closed (this, e);
 			}
 
-			public virtual void OnPointerLeave (PointerLeaveEvent ev)
+			protected virtual void OnPointerLeave (PointerLeaveEventArgs e)
 			{
-				if (PointerLeaveHandler != null)
-					PointerLeaveHandler (this, ev.PointerLeaveArgs);
+				if (PointerLeave != null)
+					PointerLeave (this, e);
 			}
 
-			public virtual void OnPointerEnter (PointerEnterEvent ev)
+			protected virtual void OnPointerEnter (PointerEnterEventArgs e)
 			{
-				if (PointerEnterHandler != null)
-					PointerEnterHandler (this, ev.PointerEnterArgs);
+				if (PointerEnter != null)
+					PointerEnter (this, e);
 			}
 
-			public virtual void OnMouseClick (MouseClickEvent ev)
+			protected virtual void OnClick (MouseClickEventArgs e)
 			{
-				if (MouseClickHandler != null)
-					MouseClickHandler (this, ev.MouseClickArgs);
+				if (MouseClick != null)
+					MouseClick (this, e);
 			}
 
-			public virtual void OnKeyPressed (KeyPressedEvent ev)
+			protected virtual void OnKeyPress (KeyPressEventArgs e)
 			{
-				if (KeyPressedHandler != null)
-					KeyPressedHandler (this, ev.KeyPressedArgs);
+				if (KeyPress != null)
+					KeyPress (this, e);
 			}
 
-			public virtual void OnLoseCaret (LoseCaretEvent ev)
+			protected virtual void OnLoseCaret (LoseCaretEventArgs e)
 			{
-				if (LoseCaretHandler != null)
-					LoseCaretHandler (this, ev.LoseCaretArgs);
+				if (LoseCaret != null)
+					LoseCaret (this, e);
 			}
 
-			public virtual void OnGainCaret (GainCaretEvent ev)
+			protected virtual void OnGainCaret (GainCaretEventArgs e)
 			{
-				if (GainCaretHandler != null)
-					GainCaretHandler (this, ev.GainCaretArgs);
+				if (GainCaret != null)
+					GainCaret (this, e);
 			}
 
-			public virtual void OnScrollRequest (ScrollRequestEvent ev)
+			protected virtual void OnScrollRequest (ScrollRequestEventArgs e)
 			{
-				if (ScrollRequestHandler != null)
-					ScrollRequestHandler (this, ev.ScrollRequestArgs);
+				if (ScrollRequest != null)
+					ScrollRequest (this, e);
 			}
 
-			public virtual void OnRedraw (RedrawWindowEvent ev)
+			protected virtual void OnPaint (RedrawEventArgs e)
+			{
+				if (Paint != null)
+					Paint (this, e);
+			}
+
+			protected virtual void OnRedraw (RedrawEventArgs e)
 			{
 				int more;
 
 				// Start the redraw. Given the window handle, the OS fills in RedrawWimpBlock
 				// with details of what needs redrawing.
-				NativeMethods.Wimp_RedrawWindow (ref ev.RedrawArgs.RedrawWimpBlock, out more);
+				NativeMethods.Wimp_RedrawWindow (ref e.RedrawWimpBlock, out more);
 
 				// The origin of the window only needs to be calculated once before entering
 				// the redraw loop.
-				ev.RedrawArgs.Origin = Handle.GetOrigin (ref ev.RedrawArgs.RedrawWimpBlock.Visible,
-									   ref ev.RedrawArgs.RedrawWimpBlock.Scroll);
+				e.Origin = WimpWindow.GetOrigin (ref e.RedrawWimpBlock.Visible,
+								 ref e.RedrawWimpBlock.Scroll);
 				while (more != 0)
 				{
-					if (RedrawHandler != null)
-						RedrawHandler (this, ev.RedrawArgs);
-					NativeMethods.Wimp_GetRectangle (ref ev.RedrawArgs.RedrawWimpBlock, out more);
+					OnPaint (e);
+					NativeMethods.Wimp_GetRectangle (ref e.RedrawWimpBlock, out more);
+				}
+			}
+
+			public virtual void Dispatch (Wimp.EventArgs e)
+			{
+				switch (e.Type)
+				{
+				case PollCode.RedrawWindow:
+					OnRedraw ((RedrawEventArgs) e);
+					break;
+				case PollCode.OpenWindow:
+					OnOpen ((OpenEventArgs) e);
+					break;
+				case PollCode.CloseWindow:
+					OnClose ((CloseEventArgs) e);
+					break;
+				case PollCode.PointerLeaveWindow:
+					OnPointerLeave ((PointerLeaveEventArgs) e);
+					break;
+				case PollCode.PointerEnterWindow:
+					OnPointerEnter ((PointerEnterEventArgs) e);
+					break;
+				case PollCode.MouseClick:
+					OnClick ((MouseClickEventArgs) e);
+					break;
+				case PollCode.KeyPressed:
+					OnKeyPress ((KeyPressEventArgs) e);
+					break;
+				case PollCode.ScrollRequest:
+					OnScrollRequest ((ScrollRequestEventArgs) e);
+					break;
+				case PollCode.LoseCaret:
+					OnLoseCaret ((LoseCaretEventArgs) e);
+					break;
+				case PollCode.GainCaret:
+					OnGainCaret ((GainCaretEventArgs) e);
+					break;
 				}
 			}
 		}

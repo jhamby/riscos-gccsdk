@@ -206,19 +206,29 @@ namespace riscos
 				popupMenu = new PopupMenu ((Window)Object, popupMenuID);
 			}
 
+			protected virtual void OnValueChange (ValueChangeEventArgs e)
+			{
+				if (ValueChange != null)
+					ValueChange (this, e);
+			}
+
+			protected virtual void OnAboutToBeShown (ToolboxEventArgs e)
+			{
+				if (AboutToBeShown != null)
+					AboutToBeShown (this, e);
+			}
+
 			/*! \brief Check if the given event is relevant to the StringSet and call the associated
 			 * event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (ev.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.ValueChanged:
-					if (ValueChange != null)
-						ValueChange (this, new ValueChangeEventArgs (ev.ToolboxArgs.RawEventData));
+					OnValueChange (new ValueChangeEventArgs (e.RawEventData));
 					break;
 				case EventCode.AboutToBeShown:
-					if (AboutToBeShown != null)
-						AboutToBeShown (this, ev.ToolboxArgs);
+					OnAboutToBeShown (e);
 					break;
 				}
 			}

@@ -127,12 +127,16 @@ namespace riscos
 				}
 			}
 
-			public override void Dispatch (ToolboxEvent ev)
+			protected virtual void OnStateChange (StateChangeEventArgs e)
 			{
-				if (ev.ToolboxArgs.Header.EventCode == EventCode.StateChanged && StateChange != null)
-				{
-					StateChange (this, new StateChangeEventArgs (ev.ToolboxArgs.RawEventData));
-				}
+				if (StateChange != null)
+					StateChange (this, e);
+			}
+
+			public override void Dispatch (ToolboxEventArgs e)
+			{
+				if (e.Header.EventCode == EventCode.StateChanged)
+					OnStateChange (new StateChangeEventArgs (e.RawEventData));
 			}
 		}
 	}

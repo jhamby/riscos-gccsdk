@@ -111,44 +111,84 @@ namespace riscos
 				return GetText (Method.GetMessage);
 			}
 
-			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAboutToBeShown (AboutToBeShownEventArgs e)
 			{
 				if (AboutToBeShown != null)
-					AboutToBeShown (this, new AboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, e);
 			}
 
-			protected virtual void OnDialogueCompleted (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnDialogueCompleted method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnDialogueCompleted in a derived class, be sure to
+			 * call the base class's \b OnDialogueCompleted method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnDialogueCompleted (ToolboxEventArgs e)
 			{
 				if (DialogueCompleted != null)
-					DialogueCompleted (this, e.ToolboxArgs);
+					DialogueCompleted (this, e);
 			}
 
-			protected virtual void OnClickSave (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnClickSave method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnClickSave in a derived class, be sure to
+			 * call the base class's \b OnClickSave method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnClickSave (ToolboxEventArgs e)
 			{
 				if (ClickSave != null)
-					ClickSave (this, e.ToolboxArgs);
+					ClickSave (this, e);
 			}
 
-			protected virtual void OnClickCancel (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnClickCancel method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnClickCancel in a derived class, be sure to
+			 * call the base class's \b OnClickCancel method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnClickCancel (ToolboxEventArgs e)
 			{
 				if (ClickCancel != null)
-					ClickCancel (this, e.ToolboxArgs);
+					ClickCancel (this, e);
 			}
 
-			protected virtual void OnClickDiscard (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnClickDiscard method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnClickDiscard in a derived class, be sure to
+			 * call the base class's \b OnClickDiscard method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnClickDiscard (ToolboxEventArgs e)
 			{
 				if (ClickDiscard != null)
-					ClickDiscard (this, e.ToolboxArgs);
+					ClickDiscard (this, e);
 			}
 
 			/*! \brief Check if the given event is relevant to the DCS Dialogue and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (e.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					OnAboutToBeShown (e);
+					OnAboutToBeShown (new AboutToBeShownEventArgs (e.RawEventData));
 					break;
 				case EventCode.DialogueCompleted:
 					OnDialogueCompleted (e);

@@ -34,7 +34,7 @@ namespace riscos
 
 			/*! \brief An object that encapsulates the arguments for the event that is raised when an
 			 * action button is selected.  */
-			public class SelectedEventArgs : ToolboxEventArgs
+			public class ClickEventArgs : ToolboxEventArgs
 			{
 				/*! \brief \e true if the event was caused by an Adjust click.  */
 				public bool AdjustClicked;
@@ -57,8 +57,8 @@ namespace riscos
 					public const int Local = (1 << 5);
 				}
 
-				/*! \brief Create the arguments for a Selected event from the raw event data.  */
-				public SelectedEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
+				/*! \brief Create the arguments for a Click event from the raw event data.  */
+				public ClickEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
 				{
 					uint flags = Header.Flags;
 
@@ -70,24 +70,23 @@ namespace riscos
 				}
 			}
 
-			/*! \brief The signature of a Selected event handler.  */
-			public delegate void SelectedHandler(object sender, SelectedEventArgs e);
+			/*! \brief The signature of a Click event handler.  */
+			public delegate void ClickEventHandler(object sender, ClickEventArgs e);
 
 			/*! \brief The event handlers that will be called when this ActionButton is selected.
 			 *
-			 * \note The event name is \b Selected rather than than \b Clicked as the event
-			 * can be raised as the result of, for example, a keyboard action and not just
-			 * a mouse button.
+			 * \note Although the event name is \b Click the event can be raised as the result of,
+			 * for example, a keyboard action and not just a mouse button.
 			 *
 			 * Handlers should have the signature:
 			 * \code
-			 * void handler_name (object sender, SelectedEventArgs e);
+			 * void handler_name (object sender, ClickEventArgs e);
 			 * \endcode
 			 * and can be added to the list with:
 			 * \code
-			 * ActionButtonObject.Selected += handler_name;
+			 * ActionButtonObject.Click += handler_name;
 			 * \endcode  */
-			public event SelectedHandler Selected;
+			public event ClickEventHandler Click;
 
 			/*! \brief Wrap an existing action button, e.g., from a Resource file created
 			 * Window.  */
@@ -117,11 +116,16 @@ namespace riscos
 				get { return GetClickShow (Method.GetClickShow); }
 			}
 
-			public override void Dispatch (ToolboxEvent ev)
+			protected virtual void OnClick (ClickEventArgs e)
 			{
-				if (ev.ToolboxArgs.Header.EventCode == Event && Selected != null)
-				{
-					Selected (this, new SelectedEventArgs (ev.ToolboxArgs.RawEventData));
+				if (Click != null)
+					Click (this, e);
+			}
+
+			public override void Dispatch (ToolboxEventArgs e)
+			{
+				if (e.Header.EventCode == Event) {
+					OnClick (new ClickEventArgs (e.RawEventData));
 				}
 			}
 		}

@@ -97,7 +97,7 @@ namespace riscos
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
-		public struct KeyPressedBlock
+		public struct KeyPressBlock
 		{
 			public uint WindowHandle;
 			public int IconHandle;
@@ -320,9 +320,7 @@ namespace riscos
 					ref NativeWimp.WindowHandleBlock block);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_close_window")]
-		internal static extern IntPtr Wimp_CloseWindow (
-				[In, MarshalAs(UnmanagedType.Struct)]
-					ref NativeWimp.WindowHandleBlock block);
+		internal static extern IntPtr Wimp_CloseWindow (uint windowHandle);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xwimp_redraw_window")]
 		internal static extern IntPtr Wimp_RedrawWindow (

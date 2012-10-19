@@ -79,38 +79,62 @@ namespace riscos
 				return GetText (Method.GetFont);
 			}
 
-			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAboutToBeShown (MenuAboutToBeShownEventArgs e)
 			{
 				if (AboutToBeShown != null)
-					AboutToBeShown (this, new MenuAboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, e);
 			}
 
-			protected virtual void OnHasBeenHidden (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b HasBeenHidden method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b HasBeenHidden in a derived class, be sure to
+			 * call the base class's \b HasBeenHidden method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnHasBeenHidden (ToolboxEventArgs e)
 			{
 				if (HasBeenHidden != null)
-					HasBeenHidden (this, e.ToolboxArgs);
+					HasBeenHidden (this, e);
 			}
 
-			protected virtual void OnFontSelection (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnFontSelection method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnFontSelection in a derived class, be sure to
+			 * call the base class's \b OnFontSelection method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnFontSelection (FontSelectionEventArgs e)
 			{
 				if (FontSelection != null)
-					FontSelection (this, new FontSelectionEventArgs (e.ToolboxArgs.RawEventData));
+					FontSelection (this, e);
 			}
 
 			/*! \brief Check if the given event is relevant to the Font Menu and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				switch (e.ToolboxArgs.Header.EventCode)
+				switch (e.Header.EventCode)
 				{
 				case EventCode.AboutToBeShown:
-					OnAboutToBeShown (e);
+					OnAboutToBeShown (new MenuAboutToBeShownEventArgs (e.RawEventData));
 					break;
 				case EventCode.HasBeenHidden:
 					OnHasBeenHidden (e);
 					break;
 				case EventCode.FontSelection:
-					OnFontSelection (e);
+					OnFontSelection (new FontSelectionEventArgs (e.RawEventData));
 					break;
 				}
 			}

@@ -193,7 +193,7 @@ namespace riscos
 				}
 			}
 
-			public virtual void Dispatch (ToolboxEvent ev)
+			public virtual void Dispatch (ToolboxEventArgs e)
 			{
 			}
 

@@ -259,12 +259,18 @@ namespace riscos
 				bgColour = (OS.DesktopColour)bg_col;
 			}
 
+			protected virtual void OnValueChange (ValueChangeEventArgs e)
+			{
+				if (ValueChange != null)
+					ValueChange (this, e);
+			}
+
 			/*! \brief Check if the given event is relevant to the %Slider gadget and call the
 			 * associated event handlers.  */
-			public override void Dispatch (ToolboxEvent ev)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				if (ev.ToolboxArgs.Header.EventCode == EventCode.ValueChanged && ValueChange != null)
-					ValueChange (this, new ValueChangeEventArgs (ev.ToolboxArgs.RawEventData));
+				if (e.Header.EventCode == EventCode.ValueChanged)
+					OnValueChange (new ValueChangeEventArgs (e.RawEventData));
 			}
 		}
 	}

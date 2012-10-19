@@ -262,19 +262,19 @@ namespace riscos
 				throw new InvalidOperationException ("You cannot set the input focus to a Menu Entry");
 			}
 
-			protected virtual void OnSubMenu (ToolboxEvent e)
+			protected virtual void OnSubMenu (SubMenuEventArgs e)
 			{
 				if (SubMenu != null)
-					SubMenu (this, new SubMenuEventArgs (e.ToolboxArgs.RawEventData));
+					SubMenu (this, e);
 			}
 
-			protected virtual void OnSelection (ToolboxEvent e)
+			protected virtual void OnSelection (ToolboxEventArgs e)
 			{
 				if (Selection != null)
-					Selection (this, e.ToolboxArgs);
+					Selection (this, e);
 			}
 
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
 				uint selection_event_code = ClickEvent;
 
@@ -288,19 +288,16 @@ namespace riscos
 					submenu_event_code = EventCode.SubMenu;
 				}
 
-				if (e.ToolboxArgs.Header.EventCode == selection_event_code) {
+				if (e.Header.EventCode == selection_event_code) {
 					OnSelection (e);
 				}
-				else if (e.ToolboxArgs.Header.EventCode == submenu_event_code) {
-					OnSubMenu (e);
+				else if (e.Header.EventCode == submenu_event_code) {
+					OnSubMenu (new SubMenuEventArgs (e.RawEventData));
 				}
 			}
 
 			/*! \brief The signature of a SubMenu event handler.  */
 			public delegate void SubMenuEventHandler (object sender, SubMenuEventArgs e);
-
-			/*! \brief The signature of a Selection event handler.  */
-			public delegate void SelectionEventHandler (object sender, ToolboxEventArgs e);
 
 			/*! \brief The event handlers that will be called when the pointer if moved.
 			 * over the submenu arrow of the menu entry.
@@ -325,7 +322,7 @@ namespace riscos
 			 * \code
 			 * MenuEntryObject.Selection += handler_name;
 			 * \endcode  */
-			public event SelectionEventHandler Selection;
+			public event ToolboxEventHandler Selection;
 		}
 
 		/*! \class Menu
@@ -485,28 +482,44 @@ namespace riscos
 			{
 			}
 
-			protected virtual void OnAboutToBeShown (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnAboutToBeShown method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnAboutToBeShown in a derived class, be sure to
+			 * call the base class's \b OnAboutToBeShown method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnAboutToBeShown (MenuAboutToBeShownEventArgs e)
 			{
 				if (AboutToBeShown != null)
-					AboutToBeShown (this, new MenuAboutToBeShownEventArgs (e.ToolboxArgs.RawEventData));
+					AboutToBeShown (this, e);
 			}
 
-			protected virtual void OnHasBeenHidden (ToolboxEvent e)
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnHasBeenHidden method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnHasBeenHidden in a derived class, be sure to
+			 * call the base class's \b OnHasBeenHidden method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnHasBeenHidden (ToolboxEventArgs e)
 			{
 				if (HasBeenHidden != null)
-					HasBeenHidden (this, e.ToolboxArgs);
+					HasBeenHidden (this, e);
 			}
 
-			public override void Dispatch (ToolboxEvent e)
+			public override void Dispatch (ToolboxEventArgs e)
 			{
-				if (e.ToolboxArgs.Header.EventCode == AboutToBeShownEventCode)
-				{
-					OnAboutToBeShown (e);
+				if (e.Header.EventCode == AboutToBeShownEventCode) {
+					OnAboutToBeShown (new MenuAboutToBeShownEventArgs (e.RawEventData));
 				}
-				else if (e.ToolboxArgs.Header.EventCode == HasBeenHiddenEventCode)
-				{
+				else if (e.Header.EventCode == HasBeenHiddenEventCode) {
 					OnHasBeenHidden (e);
 				}
+				else
+					base.Dispatch (e);
 			}
 
 			void RetrieveEventCodes (IntPtr template)
