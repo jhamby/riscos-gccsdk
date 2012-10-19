@@ -14,24 +14,10 @@ namespace riscos
 		// The actual version number of the WIMP that Wimp_Initialise returned to us.
 		public int WimpVersion;
 
-		public event Wimp.MenuSelectionEventHandler MenuSelection;
-
-		protected virtual void OnMenuSelection (Wimp.MenuSelectionEventArgs e)
-		{
-			if (MenuSelection != null)
-				MenuSelection (this, e);
-		}
-
 		public virtual void KeyPress (int charCode) { }
 
 		public virtual void Dispatch (Wimp.EventArgs e)
 		{
-			switch (e.Type)
-			{
-			case Wimp.PollCode.MenuSelection:
-				OnMenuSelection ((Wimp.MenuSelectionEventArgs) e);
-				break;
-			}
 		}
 
 		public void Poll ()
@@ -67,15 +53,29 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Wimp_CloseDown (Handle));
 		}
 
+		protected virtual void OnMenuSelection (Wimp.MenuSelectionEventArgs e)
+		{
+			if (MenuSelection != null)
+				MenuSelection (this, e);
+		}
+
 		public override void Dispatch (Wimp.EventArgs e)
 		{
 			uint window_handle = e.GetWindowHandle ();
 
 			if (window_handle <= 0)
 			{
-				// A Wimp event that is not specific to a window, so let Task.Dispatch
-				// deal with it.
-				base.Dispatch (e);
+				switch (e.Type)
+				{
+				case Wimp.PollCode.MenuSelection:
+					OnMenuSelection ((Wimp.MenuSelectionEventArgs) e);
+					break;
+				default:
+					// A Wimp event that is not specific to a window, so let Task.Dispatch
+					// deal with it.
+					base.Dispatch (e);
+					break;
+				}
 			}
 			else
 			{
@@ -88,5 +88,7 @@ namespace riscos
 		{
 			Wimp.ProcessKey (charCode);
 		}
+
+		public event Wimp.MenuSelectionEventHandler MenuSelection;
 	}
 }
