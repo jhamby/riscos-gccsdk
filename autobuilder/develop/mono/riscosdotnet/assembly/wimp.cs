@@ -459,7 +459,7 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Wimp_ProcessKey (key));
 		}
 
-		/*! \brief Poll the Wimp to see whether certain certain events have occurred.
+		/*! \brief Poll the Wimp to see whether certain events have occurred.
 		 * \param [in] pollMask Bit-mask indicating which events should not be returned.
 		 * \param [out] pollWord Pollword associated with Wimp event 13.
 		 * \return The current event returned by SWI Wimp_Poll.  */

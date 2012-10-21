@@ -38,7 +38,6 @@ public class MainMenu : Toolbox.Menu
 	public MainMenu (MyTask task) : base ("MainMenu")
 	{
 		Title = "MonoTestTB";
-		AboutToBeShown += OnAboutToBeShown;
 
 		Toolbox.MenuEntry entry;
 
@@ -69,7 +68,7 @@ public class MainMenu : Toolbox.Menu
 		Reporter.WriteLine ("");
 	}
 
-	public void OnAboutToBeShown (object sender, Toolbox.Object.MenuAboutToBeShownEventArgs e)
+	protected override void OnAboutToBeShown (Toolbox.Object.MenuAboutToBeShownEventArgs e)
 	{
 		Reporter.WriteLine ("Menu about to be shown, show type = {0}", e.ShowSpec.Type);
 		Reporter.WriteLine ("");
@@ -96,7 +95,7 @@ public class Dialogue : Toolbox.Window
 	public Toolbox.AdjusterArrow AdjusterArrow;
 
 	// The Toolbox component IDs of the gadgets that we are interested in.
-	public class CmpID
+	public static class CmpID
 	{
 		public const uint CancelButton = 0;
 		public const uint OKButton = 1;
@@ -117,7 +116,6 @@ public class Dialogue : Toolbox.Window
 	public Dialogue (MyTask task) : base ("Dialogue")
 	{
 		Title = "C# Dialogue Box";
-		AboutToBeShown += dialogue_Show;
 
 		OKButton = new Toolbox.ActionButton (this, CmpID.OKButton);
 		OKButton.Text = "OK";
@@ -186,7 +184,7 @@ public class Dialogue : Toolbox.Window
 		AdjusterArrow.Click += adjusterarrow_Click;
 	}
 
-	void dialogue_Show (object sender, Toolbox.Window.AboutToBeShownEventArgs e)
+	protected override void OnAboutToBeShown (Toolbox.Window.AboutToBeShownEventArgs e)
 	{
 		Reporter.WriteLine ("Dialogue about to be shown, show type = {0}", e.ShowSpec.Type);
 		Reporter.WriteLine ("");
@@ -343,11 +341,11 @@ public class MyTask : ToolboxTask
 
 			public TextFileSaveAs () : base ("SaveAs")
 			{
-				AboutToBeShown += OnAboutToBeShown;
-				DialogueCompleted += OnDialogueCompleted;
 			}
 
-			void OnAboutToBeShown (object o, Toolbox.SaveAsDialogue.AboutToBeShownEventArgs e)
+			// As a derived object, it's recommended to override the event notifier rather
+			// than subscribe to the event.
+			protected override void OnAboutToBeShown (Toolbox.SaveAsDialogue.AboutToBeShownEventArgs e)
 			{
 				// Allocate some managed memory.
 				RamTransBuffer = new byte [RamTransBufferSize];
@@ -357,12 +355,26 @@ public class MyTask : ToolboxTask
 				RamTransBufferIndex = 0;
 				// Tell the SaveAs dialogue box how big the file is.
 				FileSize = 45;
+
+				// Technically, we should call the base method to ensure that event subscribers
+				// are also notified of this event, but I don't think that's necessary in this
+				// case.
+
+				// base.OnAboutToBeShown (e);
 			}
 
-			void OnDialogueCompleted (object o, Toolbox.SaveAsDialogue.DialogueCompletedEventArgs e)
+			// As a derived object, it's recommended to override the event notifier rather
+			// than subscribe to the event.
+			protected override void OnDialogueCompleted (Toolbox.SaveAsDialogue.DialogueCompletedEventArgs e)
 			{
 				// Give back control of the memory we allocated to the GC.
 				RamTransBufferHandle.Free();
+
+				// Technically, we should call the base method to ensure that event subscribers
+				// are also notified of this event, but I don't think that's necessary in this
+				// case.
+
+				// base.OnDialogueCompleted (e);
 			}
 		}
 
@@ -451,7 +463,6 @@ public class MyTask : ToolboxTask
 			WindowMenu = new TextFileMenu ();
 			// Attach the menu to the window.
 			Menu = WindowMenu;
-			Paint += mainwindow_Paint;
 
 			font = new Font.Instance (FontID,
 						  ((FontHeight * FontAspectRatio) / 100) << 4,
@@ -650,7 +661,9 @@ public class MyTask : ToolboxTask
 			file_info_dbox.FileName = (FileName != null) ? FileName : "<Untitled>";
 		}
 
-		void mainwindow_Paint (object sender, Wimp.RedrawEventArgs args)
+		// For a derived class, it is recommended to override the event notifier rather
+		// than subscribe to the event.
+		protected override void OnPaint (Wimp.RedrawEventArgs e)
 		{
 			if (ColourSetBy == ColourSetter.Dialogue)
 				ColourTrans.SetFontColours (ColourTrans.White, font_palette_colour, 7);
@@ -658,9 +671,15 @@ public class MyTask : ToolboxTask
 				Wimp.SetFontColours ((int)OS.DesktopColour.White, (int)font_wimp_colour);
 			font.Paint (Text,
 				    Font.PlotType.OSUnits,
-				    args.Origin.X + 10,
-				    args.Origin.Y - 100,
+				    e.Origin.X + 10,
+				    e.Origin.Y - 100,
 				    0); // Length ignored (paint whole string) if bit 7 of flags not set
+
+			// Technically, we should call the base method to ensure that event subscribers
+			// are also notified of this event, but I don't think that's necessary in this
+			// case.
+
+			// base.OnPaint (e);
 		}
 
 		// Type 2 client
@@ -713,7 +732,7 @@ public class MyTask : ToolboxTask
 	public MainMenu main_menu;
 	public Toolbox.ProgInfoDialogue ProgInfo;
 
-	const string Version = "V1.0 (21th October 2012)";
+	const string Version = "V1.0 (21st October 2012)";
 
 	// Could use an enum here, but enums require a cast which is ugly.
 	public static class MyEvent
