@@ -140,18 +140,6 @@ namespace riscos
 
 			public Hashtable MyIcons;
 
-			public event RedrawEventHandler Paint;
-			public event OpenEventHandler Opening;
-			public event CloseEventHandler Closing;
-			public event CloseEventHandler Closed;
-			public event PointerLeaveEventHandler PointerLeave;
-			public event PointerEnterEventHandler PointerEnter;
-			public event MouseClickEventHandler MouseClick;
-			public event KeyPressEventHandler KeyPress;
-			public event ScrollRequestEventHandler ScrollRequest;
-			public event LoseCaretEventHandler LoseCaret;
-			public event GainCaretEventHandler GainCaret;
-
 			public Window ()
 			{
 				MyIcons = new Hashtable ();
@@ -374,6 +362,30 @@ namespace riscos
 				}
 			}
 
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnMsgDataLoad method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnMsgDataLoad in a derived class, be sure to
+			 * call the base class's \b OnMsgDataLoad method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnMsgDataLoad (Wimp.DataLoadMessageEventArgs e)
+			{
+				if (MsgDataLoad != null)
+					MsgDataLoad (this, e);
+			}
+
+			protected virtual void OnMessage (Wimp.MessageEventArgs e)
+			{
+				switch (e.MessageType)
+				{
+				case Wimp.MessageAction.DataLoad:
+					OnMsgDataLoad ((Wimp.DataLoadMessageEventArgs) e);
+					break;
+				}
+			}
+
 			public virtual void Dispatch (Wimp.EventArgs e)
 			{
 				switch (e.Type)
@@ -408,8 +420,28 @@ namespace riscos
 				case PollCode.GainCaret:
 					OnGainCaret ((GainCaretEventArgs) e);
 					break;
+				case PollCode.UserMessage:
+				case PollCode.UserMessageRecorded:
+					OnMessage ((Wimp.MessageEventArgs)e);
+					break;
 				}
 			}
+
+			public event RedrawEventHandler Paint;
+			public event OpenEventHandler Opening;
+			public event CloseEventHandler Closing;
+			public event CloseEventHandler Closed;
+			public event PointerLeaveEventHandler PointerLeave;
+			public event PointerEnterEventHandler PointerEnter;
+			public event MouseClickEventHandler MouseClick;
+			public event KeyPressEventHandler KeyPress;
+			public event ScrollRequestEventHandler ScrollRequest;
+			public event LoseCaretEventHandler LoseCaret;
+			public event GainCaretEventHandler GainCaret;
+
+			/*! \brief The event handlers that will be called when a Wimp Data Load message is received.
+			 * for this Wimp window.  */
+			public event DataLoadMessageEventHandler MsgDataLoad;
 		}
 	}
 }

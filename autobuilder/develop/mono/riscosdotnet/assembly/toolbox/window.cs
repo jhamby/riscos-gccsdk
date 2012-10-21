@@ -395,14 +395,7 @@ namespace riscos
 				if (tb_obj_id == 0)
 					return null;
 
-				Toolbox.Object tb_obj;
-				if (ToolboxTask.AllObjects.TryGetValue (tb_obj_id, out tb_obj))
-					return (Toolbox.Window)tb_obj;
-
-				// FIXME: It's a toolbox window, but we're not aware of it,
-				// should we create a new window object here? It may have been
-				// auto created.
-				return null;
+				return (Window)LookupOrWrap (tb_obj_id);
 			}
 /*
 			TODO:
@@ -436,6 +429,29 @@ namespace riscos
 				}
 			}
 
+			/*! \brief Raising an event invokes the event handler through a delegate.
+			 *
+			 * The \b OnMsgDataLoad method also allows derived classes to handle the
+			 * event without attaching a delegate. This is the preferred technique for
+			 * handling the event in a derived class.
+			 * \note  When overriding \b OnMsgDataLoad in a derived class, be sure to
+			 * call the base class's \b OnMsgDataLoad method so that registered delegates
+			 * receive the event.  */
+			protected virtual void OnMsgDataLoad (Wimp.DataLoadMessageEventArgs e)
+			{
+				if (MsgDataLoad != null)
+					MsgDataLoad (this, e);
+			}
+
+			protected virtual void OnMessage (Wimp.MessageEventArgs e)
+			{
+				switch (e.MessageType)
+				{
+				case Wimp.MessageAction.DataLoad:
+					OnMsgDataLoad ((Wimp.DataLoadMessageEventArgs) e);
+					break;
+				}
+			}
 
 			public override void Dispatch (Wimp.EventArgs e)
 			{
@@ -443,6 +459,10 @@ namespace riscos
 				{
 				case Wimp.PollCode.RedrawWindow:
 					OnRedraw ((Wimp.RedrawEventArgs)e);
+					break;
+				case Wimp.PollCode.UserMessage:
+				case Wimp.PollCode.UserMessageRecorded:
+					OnMessage ((Wimp.MessageEventArgs)e);
 					break;
 				}
 			}
@@ -531,6 +551,10 @@ namespace riscos
 			 * WindowObject.HasBeenHidden += handler_name;
 			 * \endcode  */
 			public event ToolboxEventHandler HasBeenHidden;
+
+			/*! \brief The event handlers that will be called when a Wimp Data Load message is
+			 * received for this Wimp window.  */
+			public event Wimp.DataLoadMessageEventHandler MsgDataLoad;
 
 			/*! \brief The event handlers that will be called to redraw this window.
 			 *

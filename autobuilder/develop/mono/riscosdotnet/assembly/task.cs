@@ -16,10 +16,9 @@ namespace riscos
 
 		public virtual void KeyPress (int charCode) { }
 
-		public virtual void Dispatch (Wimp.EventArgs e)
-		{
-		}
-
+		/*! \brief Poll the Wimp and dispatch the event returned to the rest of the system.
+		 * Calls Wimp.Poll.
+		 * \return Nothing.  */
 		public void Poll ()
 		{
 			Dispatch (Wimp.Poll (PollMask, out PollWord));
@@ -27,10 +26,93 @@ namespace riscos
 
 		// I could overload Poll() above, but PollIdle is probably a better indication of
 		// what it does.
+		/*! \brief Poll the Wimp and dispatch the event returned to the rest of the system.
+		 * Calls Wimp.PollIdle using the time supplied.
+		 * \param [in] time The number of centi-seconds to sleep for.
+		 * \return Nothing.  */
 		public void PollIdle (uint time)
 		{
 			Dispatch (Wimp.PollIdle (PollMask, time, out PollWord));
 		}
+
+		/*! \brief Raising an event invokes the event handler through a delegate.
+		 *
+		 * The \b OnMsgQuit method also allows derived classes to handle the
+		 * event without attaching a delegate. This is the preferred technique for
+		 * handling the event in a derived class.
+		 * \note  When overriding \b OnMsgQuit in a derived class, be sure to
+		 * call the base class's \b OnMsgQuit method so that registered delegates
+		 * receive the event.  */
+		protected virtual void OnMsgQuit (Wimp.MessageEventArgs e)
+		{
+			if (MsgQuit != null)
+				MsgQuit (this, e);
+			Quit = true;
+		}
+
+		/*! \brief Raising an event invokes the event handler through a delegate.
+		 *
+		 * The \b OnMsgPreQuit method also allows derived classes to handle the
+		 * event without attaching a delegate. This is the preferred technique for
+		 * handling the event in a derived class.
+		 * \note  When overriding \b OnMsgPreQuit in a derived class, be sure to
+		 * call the base class's \b OnMsgPreQuit method so that registered delegates
+		 * receive the event.  */
+		protected virtual void OnMsgPreQuit (Wimp.MessageEventArgs e)
+		{
+			if (MsgPreQuit != null)
+				MsgPreQuit (this, e);
+		}
+
+		/*! \brief Raising an event invokes the event handler through a delegate.
+		 *
+		 * The \b OnMsgDataLoad method also allows derived classes to handle the
+		 * event without attaching a delegate. This is the preferred technique for
+		 * handling the event in a derived class.
+		 * \note  When overriding \b OnMsgDataLoad in a derived class, be sure to
+		 * call the base class's \b OnMsgDataLoad method so that registered delegates
+		 * receive the event.  */
+		protected virtual void OnMsgDataLoad (Wimp.DataLoadMessageEventArgs e)
+		{
+			if (MsgDataLoad != null)
+				MsgDataLoad (this, e);
+		}
+
+		protected virtual void OnMessage (Wimp.MessageEventArgs e)
+		{
+			switch (e.MessageType)
+			{
+			case Wimp.MessageAction.Quit:
+				OnMsgQuit (e);
+				break;
+			case Wimp.MessageAction.PreQuit:
+				OnMsgPreQuit (e);
+				break;
+			case Wimp.MessageAction.DataLoad:
+				OnMsgDataLoad ((Wimp.DataLoadMessageEventArgs)e);
+				break;
+			}
+		}
+
+		public virtual void Dispatch (Wimp.EventArgs e)
+		{
+			switch (e.Type)
+			{
+			case Wimp.PollCode.UserMessage:
+			case Wimp.PollCode.UserMessageRecorded:
+				OnMessage ((Wimp.MessageEventArgs)e);
+				break;
+			}
+		}
+
+		/*! \brief The event handlers that will be called when a Wimp Quit message is received.  */
+		public event Wimp.MessageEventHandler MsgQuit;
+
+		/*! \brief The event handlers that will be called when a Wimp PreQuit message is received.  */
+		public event Wimp.MessageEventHandler MsgPreQuit;
+
+		/*! \brief The event handlers that will be called when a Wimp DataLoad message is received.  */
+		public event Wimp.DataLoadMessageEventHandler MsgDataLoad;
 	}
 
 	public class WimpTask : Task
@@ -89,6 +171,7 @@ namespace riscos
 			Wimp.ProcessKey (charCode);
 		}
 
+		/*! \brief The event handlers that will be called when a menu selection is made.  */
 		public event Wimp.MenuSelectionEventHandler MenuSelection;
 	}
 }

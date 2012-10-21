@@ -495,6 +495,23 @@ public class MyTask : ToolboxTask
 			WindowMenu.PrintDBox.ClickPrint += PrintDialogueSavePrintHandler;
 		}
 
+		// For a derived class, it is recommended to override the event notifier rather
+		// than subscribe to the event.
+		protected override void OnMsgDataLoad (Wimp.DataLoadMessageEventArgs e)
+		{
+			Reporter.WriteLine ("Received DataLoad Wimp message:");
+			Reporter.WriteLine ("  Window handle: {0:X8}", e.DataLoad.WindowHandle);
+			Reporter.WriteLine ("  Icon handle: {0}", (int)e.DataLoad.IconHandle);
+			Reporter.WriteLine ("  Position: {0},{1}", e.DataLoad.Position.X, e.DataLoad.Position.Y);
+			Reporter.WriteLine ("  Estimated file size: {0}", e.DataLoad.EstimatedSize);
+			Reporter.WriteLine ("  File type: {0:X3}", e.DataLoad.FileType);
+			Reporter.WriteLine ("  Filename: {0}",e.DataLoad.FileName);
+			Reporter.WriteLine ("");
+
+			// Make sure that other subscribers receive the event (not that there are any).
+			base.OnMsgDataLoad (e);
+		}
+
 		void PrintDialogueSavePrintHandler (object sender, Toolbox.PrintDialogue.PrintSaveEventArgs e)
 		{
 			Reporter.WriteLine ("Print Dialogue Save/Print button clicked:");
@@ -696,7 +713,7 @@ public class MyTask : ToolboxTask
 	public MainMenu main_menu;
 	public Toolbox.ProgInfoDialogue ProgInfo;
 
-	const string Version = "V1.0 (14th October 2012)";
+	const string Version = "V1.0 (21th October 2012)";
 
 	// Could use an enum here, but enums require a cast which is ugly.
 	public static class MyEvent
@@ -732,6 +749,23 @@ public class MyTask : ToolboxTask
 		Reporter.WriteLine ("SelectEvent = {0:X8}, AdjustEvent = {1:X8}", Iconbar.SelectClickEvent, Iconbar.AdjustClickEvent);
 		Reporter.WriteLine ("HelpMessage = '{0}'", Iconbar.HelpMessage);
 		Reporter.WriteLine ("");
+	}
+
+	// For a derived class, it is recommended to override the event notifier rather
+	// than subscribe to the event.
+	protected override void OnMsgDataLoad (Wimp.DataLoadMessageEventArgs e)
+	{
+		Reporter.WriteLine ("Received DataLoad Wimp message for the Iconbar icon:");
+		Reporter.WriteLine ("  Window handle: {0:X8}", e.DataLoad.WindowHandle);
+		Reporter.WriteLine ("  Icon handle: {0}", (int)e.DataLoad.IconHandle);
+		Reporter.WriteLine ("  Position: {0},{1}", e.DataLoad.Position.X, e.DataLoad.Position.Y);
+		Reporter.WriteLine ("  Estimated file size: {0}", e.DataLoad.EstimatedSize);
+		Reporter.WriteLine ("  File type: {0:X3}", e.DataLoad.FileType);
+		Reporter.WriteLine ("  Filename: {0}",e.DataLoad.FileName);
+		Reporter.WriteLine ("");
+
+		// Make sure that other subscribers receive the event (not that there are any).
+		base.OnMsgDataLoad (e);
 	}
 
 	public void Init ()

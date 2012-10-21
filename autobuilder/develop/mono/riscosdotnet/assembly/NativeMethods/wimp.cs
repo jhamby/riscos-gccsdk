@@ -287,6 +287,29 @@ namespace riscos
 			public int height;
 			public int index;
 		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct MessageHeader
+		{
+			public int Size;
+			public uint TaskHandle;
+			public int MyRef;
+			public int YourRef;
+			public int MessageType;
+		}
+
+		[StructLayout(LayoutKind.Sequential)]
+		public struct MessageDataLoad
+		{
+			public MessageHeader Header;
+			public uint WindowHandle;
+			public uint IconHandle;
+			public NativeOS.Coord Position;
+			public int EstimatedSize;
+			public int FileType;
+			[MarshalAs(UnmanagedType.ByValTStr, SizeConst=212)]
+			public string FileName;
+		}
 	}
 
 	static partial class NativeMethods

@@ -96,6 +96,8 @@ public class MyTask : WimpTask
 					e.MouseClickWimpBlock.Pos.Y);
 	}
 
+	// Because we're a derived object, override the method in the WimpTask base class
+	// rather than subscribe to the events.
 	protected override void OnMenuSelection (Wimp.MenuSelectionEventArgs e)
 	{
 		if (Wimp.Menu.IsCurrent (main_menu))
@@ -126,6 +128,19 @@ public class MyTask : WimpTask
 		}
 	}
 
+	public void window_DataLoad (object sender, Wimp.DataLoadMessageEventArgs e)
+	{
+		// The sender is the Wimp.Window object.
+		Reporter.WriteLine ("Received DataLoad Wimp message:");
+		Reporter.WriteLine ("  Window handle: {0:X8}", e.DataLoad.WindowHandle);
+		Reporter.WriteLine ("  Icon handle: {0}", (int)e.DataLoad.IconHandle);
+		Reporter.WriteLine ("  Position: {0},{1}", e.DataLoad.Position.X, e.DataLoad.Position.Y);
+		Reporter.WriteLine ("  Estimated file size: {0}", e.DataLoad.EstimatedSize);
+		Reporter.WriteLine ("  File type: {0:X3}", e.DataLoad.FileType);
+		Reporter.WriteLine ("  Filename: {0}",e.DataLoad.FileName);
+		Reporter.WriteLine ("");
+	}
+
 	public void Run ()
 	{
 		while (Quit == false)
@@ -139,6 +154,15 @@ public class MyTask : WimpTask
 						  "MonoTestApp",
 						  ex.OSError.ErrNum,
 						  ex.OSError.ErrMess);
+			}
+			catch (Exception ex)
+			{
+				Reporter.WriteLine ("{0}", ex.Message);
+				// Split the stacktrace into individual lines and feed each one to
+				// Reporter.
+				string[] lines = ex.StackTrace.Split (new char[]{'\n'});
+				foreach (string s in lines)
+					Reporter.WriteLine ("{0}", s);
 			}
 		}
 	}
@@ -166,6 +190,7 @@ public class Test
 			window.Paint += task.redraw_main_window;
 			window.Closed += task.close_main_window;
 			window.MouseClick += task.mouse_click;
+			window.MsgDataLoad += task.window_DataLoad;
 
 			window.SetExtent (new OS.Rect (0, 0, 2000, 2000));
 			window.Create ("CSharp Window");

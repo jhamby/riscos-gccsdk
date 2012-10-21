@@ -820,9 +820,33 @@ namespace riscos
 			}
 			else if (e.Type != Wimp.PollCode.ToolboxEvent)
 			{
-				// A Wimp event that is not specific to an object, so let
-				// Task.Dispatch deal with it.
-				base.Dispatch (e);
+				if (e.Type == Wimp.PollCode.UserMessage ||
+				    e.Type == Wimp.PollCode.UserMessageRecorded)
+				{
+					// Some messages are window specific, but the Toolbox ID Block
+					// isn't updated. In this case, we use the Wimp handle to find the
+					// Toolbox object.
+					uint cmp_id;
+
+					tb_obj = Toolbox.Window.WimpToToolbox (e.GetWindowHandle (),
+									       0xffffffff,
+									       out cmp_id);
+					if (tb_obj != null)
+						tb_obj.Dispatch (e);
+					else
+					{
+						// The destination of the DataLoad could be the Iconbar, in
+						// which case WimpToToolbox will return null, so let
+						// Task.Dispatch deal with it.
+						base.Dispatch (e);
+					}
+				}
+				else
+				{
+					// A Wimp event that is not specific to an object, so let
+					// Task.Dispatch deal with it.
+					base.Dispatch (e);
+				}
 			}
 		}
 	}

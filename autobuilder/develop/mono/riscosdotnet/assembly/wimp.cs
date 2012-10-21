@@ -13,6 +13,7 @@ namespace riscos
 {
 	public static partial class Wimp
 	{
+		/*! \brief The poll codes returned by the Wimp from Wimp.Poll and Wimp.PollIdle.  */
 		public enum PollCode
 		{
 			Null,
@@ -33,6 +34,22 @@ namespace riscos
 			UserMessageRecorded,
 			UserMessageAck,
 			ToolboxEvent=512
+		}
+
+		/*! \brief The message action numbers that can be sent and received.  */
+		public enum MessageAction
+		{
+			Quit,
+			DataSave,
+			DataSaveAck,
+			DataLoad,
+			DataLoadAck,
+			DataOpen,
+			RAMFetch,
+			RAMTransmit,
+			PreQuit,
+			DataSaved = 13,
+			Shutdown
 		}
 
 		public enum PollMasks :uint
@@ -98,6 +115,7 @@ namespace riscos
 			public const uint RightHigh = 0xfffffff8;
 		}
 	
+		/*! \brief Provides data for the event raised when a window's contents need updating.  */
 		public class RedrawEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.RedrawWindowBlock RedrawWimpBlock;
@@ -118,6 +136,8 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the event raised when a window's position requires updating,
+		 * or it needs opening for the first time.  */
 		public class OpenEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.WindowStateBlock OpenWimpBlock;
@@ -134,6 +154,7 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the event raised when a window is closed by the user.  */
 		public class CloseEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.WindowHandleBlock CloseWimpBlock;
@@ -150,6 +171,8 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the event raised when the pointer is moved out of the work area
+		 * of a window.  */
 		public class PointerLeaveEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.WindowHandleBlock PointerLeaveWimpBlock;
@@ -166,6 +189,8 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the event raised when the pointer is moved into the work area
+		 * of a window.  */
 		public class PointerEnterEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.WindowHandleBlock PointerEnterWimpBlock;
@@ -182,6 +207,7 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the event raised when a mouse button is clicked.  */
 		public class MouseClickEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.MouseClickBlock MouseClickWimpBlock;
@@ -198,6 +224,7 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the event raised when a key is pressed.  */
 		public class KeyPressEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.KeyPressBlock KeyPressWimpBlock;
@@ -214,6 +241,7 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the event raised when a window requires scrolling manually.  */
 		public class ScrollRequestEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.ScrollRequestBlock ScrollRequestWimpBlock;
@@ -230,6 +258,7 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the event raised when a window loses the caret (input focus).  */
 		public class LoseCaretEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.LoseCaretBlock LoseCaretWimpBlock;
@@ -246,6 +275,7 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the event raised when a window gain the caret (input focus).  */
 		public class GainCaretEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.GainCaretBlock GainCaretWimpBlock;
@@ -262,6 +292,7 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Provides data for the Wimp Menu Selection event.  */
 		public class MenuSelectionEventArgs : Wimp.EventArgs
 		{
 			public NativeWimp.MenuSelectionBlock MenuSelectionWimpBlock;
@@ -270,6 +301,56 @@ namespace riscos
 			{
 				MenuSelectionWimpBlock = (NativeWimp.MenuSelectionBlock)Marshal.PtrToStructure (
 							    unmanagedEventBlock, typeof(NativeWimp.MenuSelectionBlock));
+			}
+		}
+
+		public class MessageEventArgs : Wimp.EventArgs
+		{
+			public MessageAction MessageType;
+
+			public MessageEventArgs (IntPtr unmanagedEventBlock) : base (unmanagedEventBlock)
+			{
+				MessageType = (MessageAction)Marshal.ReadInt32 (RawEventData,
+										EventHeaderOffset.MessageType);
+			}
+
+			public static class EventHeaderOffset
+			{
+				public const int Size = 0;
+				public const int TaskHandle = 4;
+				public const int MyRef = 8;
+				public const int YourRef = 12;
+				public const int MessageType = 16;
+			}
+		}
+
+		/*! \brief Provides data for the DataLoad Wimp message.  */
+		public class DataLoadMessageEventArgs : MessageEventArgs
+		{
+			public NativeWimp.MessageDataLoad DataLoad;
+
+			public DataLoadMessageEventArgs (IntPtr unmanagedEventBlock) :
+							      base (unmanagedEventBlock)
+			{
+				DataLoad = (NativeWimp.MessageDataLoad)Marshal.PtrToStructure (
+								unmanagedEventBlock,
+								typeof (NativeWimp.MessageDataLoad));
+			}
+
+			public override uint GetWindowHandle ()
+			{
+				return (uint)Marshal.ReadInt32 (RawEventData, EventOffset.WindowHandle);
+			}
+
+			public static class EventOffset
+			{
+				public const int WindowHandle = 20;
+				public const int IconHandle = 24;
+				public const int CoordX = 28;
+				public const int CoordY = 32;
+				public const int EstimatedSize = 36;
+				public const int FileType = 40;
+				public const int FileName = 44;
 			}
 		}
 
@@ -284,6 +365,12 @@ namespace riscos
 		public delegate void LoseCaretEventHandler (object sender, LoseCaretEventArgs e);
 		public delegate void GainCaretEventHandler (object sender, GainCaretEventArgs e);
 		public delegate void MenuSelectionEventHandler (object sender, MenuSelectionEventArgs e);
+
+		/*! \brief The signature of a DataLoad Message event handler.  */
+		public delegate void DataLoadMessageEventHandler (object sender, DataLoadMessageEventArgs e);
+
+		/*! \brief The signature of any Wimp Message where only the message header is present.  */
+		public delegate void MessageEventHandler (object sender, MessageEventArgs e);
 
 		public class EventArgs : System.EventArgs
 		{
@@ -332,11 +419,28 @@ namespace riscos
 						return new GainCaretEventArgs (event_ptr);
 					case PollCode.MenuSelection:
 						return new MenuSelectionEventArgs (event_ptr);
+					case PollCode.UserMessage:
+					case PollCode.UserMessageRecorded:
+						return GetMessage (event_ptr);
 					case PollCode.ToolboxEvent:
 						return new Toolbox.ToolboxEventArgs (event_ptr);
 					case PollCode.Null:
 					default:
 						return new Wimp.EventArgs (event_ptr);
+				}
+			}
+
+			static Wimp.EventArgs GetMessage (IntPtr unmanagedEventBlock)
+			{
+				MessageAction type = (MessageAction)Marshal.
+							ReadInt32 (unmanagedEventBlock,
+								   MessageEventArgs.EventHeaderOffset.MessageType);
+				switch (type)
+				{
+				case MessageAction.DataLoad:
+					return new DataLoadMessageEventArgs (unmanagedEventBlock);
+				default:
+					return new MessageEventArgs (unmanagedEventBlock);
 				}
 			}
 		}
@@ -355,12 +459,22 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Wimp_ProcessKey (key));
 		}
 
+		/*! \brief Poll the Wimp to see whether certain certain events have occurred.
+		 * \param [in] pollMask Bit-mask indicating which events should not be returned.
+		 * \param [out] pollWord Pollword associated with Wimp event 13.
+		 * \return The current event returned by SWI Wimp_Poll.  */
 		public static Wimp.EventArgs Poll (uint pollMask, out uint pollWord)
 		{
 			OS.ThrowOnError (NativeMethods.Wimp_Poll (pollMask, out pollWord));
 			return EventArgs.GetEvent ();
 		}
 
+		/*! \brief Poll the Wimp, sleeping for the specified time unless certain events
+		 * occur.
+		 * \param [in] pollMask Bit-mask indicating which events should not be returned.
+		 * \param [in] time The number of centi-seconds to sleep for.
+		 * \param [out] pollWord Pollword associated with Wimp event 13.
+		 * \return The current event returned by SWI Wimp_PollIdle.  */
 		public static Wimp.EventArgs PollIdle (uint pollMask, uint time, out uint pollWord)
 		{
 			OS.ThrowOnError (NativeMethods.Wimp_PollIdle (pollMask, time, out pollWord));
