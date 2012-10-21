@@ -24,7 +24,7 @@ using System.Text;
 public class MainMenu : Toolbox.Menu
 {
 	// Could use an enum here, but enums require a cast which is ugly.
-	public class Cmp
+	public static class Cmp
 	{
 		public const uint Quit = 0;
 		public const uint Faded = 1;
@@ -117,7 +117,7 @@ public class Dialogue : Toolbox.Window
 	public Dialogue (MyTask task) : base ("Dialogue")
 	{
 		Title = "C# Dialogue Box";
-		AboutToBeShown += OnAboutToBeShown;
+		AboutToBeShown += dialogue_Show;
 
 		OKButton = new Toolbox.ActionButton (this, CmpID.OKButton);
 		OKButton.Text = "OK";
@@ -126,7 +126,7 @@ public class Dialogue : Toolbox.Window
 		CancelButton = new Toolbox.ActionButton (this, CmpID.CancelButton);
 		CancelButton.Text = "Cancel";
 		CancelButton.HelpMessage = "Help text set in CSharp";
-		CancelButton.Click += OnCancel;
+		CancelButton.Click += cancelbtn_Click;
 
 		DisplayField = new Toolbox.DisplayField (this, CmpID.DisplayField);
 		DisplayField.Value = String.Format("{0:D}", DateTime.Now);
@@ -136,31 +136,31 @@ public class Dialogue : Toolbox.Window
 		WritableField.Value = "CSharp";
 		WritableField.Allowable = "A-Za-z0-9 ";
 		WritableField.SetFont ("Trinity.Medium.Italic", 12 << 4, 12 << 4);
-		WritableField.ValueChange += OnWritableFieldValueChange;
+		WritableField.ValueChange += writable_ValueChange;
 
 		NumberRange = new Toolbox.NumberRange (this, CmpID.NumberRange);
 		NumberRange.Value = 1999;
-		NumberRange.ValueChange += OnNumberRangeValueChange;
+		NumberRange.ValueChange += numberrange_ValueChange;
 
 		StringSet = new Toolbox.StringSet (this, CmpID.StringSet);
 		StringSet.Available = "One,Two,Three,Four,Five";
 		StringSet.SelectedString = "Three";
-		StringSet.ValueChange += OnStringSetValueChange;
-		StringSet.AboutToBeShown += OnStringSetAboutToBeShown;
+		StringSet.ValueChange += stringset_ValueChange;
+		StringSet.AboutToBeShown += stringset_AboutToBeShown;
 
 		OptionButton = new Toolbox.OptionButton (this, CmpID.OptionButton);
 		OptionButton.Label = "Sugar";
 		OptionButton.CurrentState = Toolbox.OptionButton.State.On;
-		OptionButton.StateChange += OnOptionButtonStateChange;
+		OptionButton.StateChange += optionbutton_StateChange;
 
 		Radio1 = new Toolbox.RadioButton (this, CmpID.Radio1);
 		Radio1.Label = "Coffee";
-		Radio1.StateChange += OnRadioButtonStateChange;
+		Radio1.StateChange += radiobutton_StateChange;
 
 		Radio2 = new Toolbox.RadioButton (this, CmpID.Radio2);
 		Radio2.Label = "Tea";
 		Radio2.CurrentState = Toolbox.RadioButton.State.On;
-		Radio2.StateChange += OnRadioButtonStateChange;
+		Radio2.StateChange += radiobutton_StateChange;
 
 		Slider = new Toolbox.Slider (this, CmpID.Slider);
 		Slider.UpperBound = 1000;
@@ -168,31 +168,31 @@ public class Dialogue : Toolbox.Window
 		Slider.StepSize = 20;
 		Slider.Value = 200;
 		Slider.SetColour (OS.DesktopColour.Red, OS.DesktopColour.Cream);
-		Slider.ValueChange += OnSliderValueChange;
+		Slider.ValueChange += slider_ValueChange;
 
 		Draggable = new Toolbox.Draggable (this, CmpID.Draggable);
 		Draggable.Text = "Sprites";
 		Draggable.Sprite = "file_ff9";
-		Draggable.DragStart += OnDraggableDragStart;
-		Draggable.DragEnd += OnDraggableDragEnd;
+		Draggable.DragStart += draggable_DragStart;
+		Draggable.DragEnd += draggable_DragEnd;
 
 		Button = new Toolbox.Button (this, CmpID.Button);
 
 		PopupMenu = new Toolbox.PopupMenu (this, CmpID.PopupMenu);
 		PopupMenu.Menu = task.main_menu;
-		PopupMenu.AboutToBeShown += OnPopupMenuAboutToBeShown;
+		PopupMenu.AboutToBeShown += popupmenu_Show;
 
 		AdjusterArrow = new Toolbox.AdjusterArrow (this, CmpID.AdjusterArrow);
-		AdjusterArrow.Click += OnAdjusterArrowClick;
+		AdjusterArrow.Click += adjusterarrow_Click;
 	}
 
-	void OnAboutToBeShown (object sender, Toolbox.Window.AboutToBeShownEventArgs e)
+	void dialogue_Show (object sender, Toolbox.Window.AboutToBeShownEventArgs e)
 	{
 		Reporter.WriteLine ("Dialogue about to be shown, show type = {0}", e.ShowSpec.Type);
 		Reporter.WriteLine ("");
 	}
 
-	void OnCancel (object sender, Toolbox.ActionButton.ClickEventArgs e)
+	void cancelbtn_Click (object sender, Toolbox.ActionButton.ClickEventArgs e)
 	{
 		Reporter.WriteLine ("Cancel button was selected.");
 		Reporter.WriteLine ("Select clicked = {0}", e.SelectClicked);
@@ -203,14 +203,14 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnNumberRangeValueChange (object sender, Toolbox.NumberRange.ValueChangeEventArgs e)
+	void numberrange_ValueChange (object sender, Toolbox.NumberRange.ValueChangeEventArgs e)
 	{
 		Reporter.WriteLine ("NumberRange returned ValueChange event.");
 		Reporter.WriteLine ("New value is {0}.", e.NewValue);
 		Reporter.WriteLine ("");
 	}
 
-	void OnOptionButtonStateChange (object sender, Toolbox.OptionButton.StateChangeEventArgs e)
+	void optionbutton_StateChange (object sender, Toolbox.OptionButton.StateChangeEventArgs e)
 	{
 		Reporter.WriteLine ("OptionButton returned StateChange event.");
 		Reporter.WriteLine ("New state is {0}.", e.NewState);
@@ -218,7 +218,7 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnRadioButtonStateChange (object sender, Toolbox.RadioButton.StateChangeEventArgs e)
+	void radiobutton_StateChange (object sender, Toolbox.RadioButton.StateChangeEventArgs e)
 	{
 		// We're using the same handler for two buttons, so use the sender object to determine which
 		// one we've been called for.
@@ -231,7 +231,7 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnWritableFieldValueChange (object sender, Toolbox.WritableField.ValueChangeEventArgs e)
+	void writable_ValueChange (object sender, Toolbox.WritableField.ValueChangeEventArgs e)
 	{
 		Reporter.WriteLine ("WritableField returned ValueChange event.");
 		if (e.StringTooLong)
@@ -244,7 +244,7 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnStringSetValueChange (object sender, Toolbox.StringSet.ValueChangeEventArgs e)
+	void stringset_ValueChange (object sender, Toolbox.StringSet.ValueChangeEventArgs e)
 	{
 		Reporter.WriteLine ("StringSet returned ValueChange event.");
 		if (e.StringTooLong)
@@ -257,13 +257,13 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnStringSetAboutToBeShown (object sender, Toolbox.ToolboxEventArgs e)
+	void stringset_AboutToBeShown (object sender, Toolbox.ToolboxEventArgs e)
 	{
 		Reporter.WriteLine ("StringSet returned AboutToBeShown event.");
 		Reporter.WriteLine ("");
 	}
 
-	void OnDraggableDragStart (object sender, Toolbox.Draggable.DragStartEventArgs e)
+	void draggable_DragStart (object sender, Toolbox.Draggable.DragStartEventArgs e)
 	{
 		Reporter.WriteLine ("Draggable returned DragStart event.");
 		Reporter.WriteLine ("Select drag = {0}", e.Select);
@@ -273,7 +273,7 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnDraggableDragEnd (object sender, Toolbox.Draggable.DragEndEventArgs e)
+	void draggable_DragEnd (object sender, Toolbox.Draggable.DragEndEventArgs e)
 	{
 		Reporter.WriteLine ("Draggable returned DragEnd event.");
 		if (e.ToolboxWindow != null)
@@ -292,7 +292,7 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnSliderValueChange (object sender, Toolbox.Slider.ValueChangeEventArgs e)
+	void slider_ValueChange (object sender, Toolbox.Slider.ValueChangeEventArgs e)
 	{
 		Reporter.WriteLine ("Slider returned ValueChange event.");
 		Reporter.WriteLine ("New value is {0}", e.NewValue);
@@ -302,14 +302,14 @@ public class Dialogue : Toolbox.Window
 		Reporter.WriteLine ("");
 	}
 
-	void OnPopupMenuAboutToBeShown (object sender, Toolbox.PopupMenu.AboutToBeShownEventArgs e)
+	void popupmenu_Show (object sender, Toolbox.PopupMenu.AboutToBeShownEventArgs e)
 	{
 		Reporter.WriteLine ("PopupMenu returned AboutToBeShown event");
 		Reporter.WriteLine ("Menu ID of menu that will be shown is {0:X8}", e.Menu.ID);
 		Reporter.WriteLine ("");
 	}
 
-	void OnAdjusterArrowClick (object sender, Toolbox.AdjusterArrow.ClickEventArgs e)
+	void adjusterarrow_Click (object sender, Toolbox.AdjusterArrow.ClickEventArgs e)
 	{
 		Reporter.WriteLine ("AdjusterArrow returned Click event");
 		Reporter.WriteLine ("Arrow direction is {0}",e.Direction);
@@ -451,7 +451,7 @@ public class MyTask : ToolboxTask
 			WindowMenu = new TextFileMenu ();
 			// Attach the menu to the window.
 			Menu = WindowMenu;
-			Paint += OnRedraw;
+			Paint += mainwindow_Paint;
 
 			font = new Font.Instance (FontID,
 						  ((FontHeight * FontAspectRatio) / 100) << 4,
@@ -464,35 +464,35 @@ public class MyTask : ToolboxTask
 
 			Toolbox.FileInfoDialogue file_info_dbox =
 				(Toolbox.FileInfoDialogue)WindowMenu.FileInfoEntry.SubMenuShow;
-			file_info_dbox.AboutToBeShown += OnFileInfoAboutToBeShown;
+			file_info_dbox.AboutToBeShown += fileinfo_Show;
 
 			// The AboutToBeShown events for ColourMenu and ColourDialogue don't seem to
 			// be reliable, so use the SubMenuShow events instead. This is a Toolbox issue,
 			// not a Mono/C# issue.
-			WindowMenu.ColourDBoxEntry.SubMenu += OnColourDBoxSubMenuShow;
-			WindowMenu.ColourMenuEntry.SubMenu += OnColourMenuSubMenuShow;
+			WindowMenu.ColourDBoxEntry.SubMenu += colourdbox_SubMenuShow;
+			WindowMenu.ColourMenuEntry.SubMenu += colourmenu_SubMenuShow;
 
 			Toolbox.ColourDialogue colour_dbox =
 				(Toolbox.ColourDialogue)WindowMenu.ColourDBoxEntry.SubMenuShow;
-			colour_dbox.ColourSelected += OnColourDBoxSelected;
+			colour_dbox.ColourSelected += colourdbox_Selected;
 
 			Toolbox.ColourMenu colour_menu =
 				(Toolbox.ColourMenu)WindowMenu.ColourMenuEntry.SubMenuShow;
-			colour_menu.Selection += OnColourMenuSelected;
+			colour_menu.Selection += colourmenu_Selected;
 
 			Toolbox.FontDialogue font_dbox =
 				(Toolbox.FontDialogue)WindowMenu.FontDBoxEntry.ClickShow.Object;
-			font_dbox.AboutToBeShown += OnFontDBoxAboutToBeShown;
-			font_dbox.ApplyFont += OnFontDBoxApplyFont;
+			font_dbox.AboutToBeShown += fontdbox_Show;
+			font_dbox.ApplyFont += fontdbox_ApplyFont;
 
-			WindowMenu.FontMenu.AboutToBeShown += OnFontMenuAboutToBeShown;
-			WindowMenu.FontMenu.FontSelection += OnFontMenuFontSelection;
+			WindowMenu.FontMenu.AboutToBeShown += fontmenu_Show;
+			WindowMenu.FontMenu.FontSelection += fontmenu_Selection;
 
-			WindowMenu.ScaleDBox.AboutToBeShown += OnScaleDBoxAboutToBeShown;
-			WindowMenu.ScaleDBox.ApplyFactor += OnScaleDBoxApplyFactor;
+			WindowMenu.ScaleDBox.AboutToBeShown += scaledbox_Shown;
+			WindowMenu.ScaleDBox.ApplyFactor += scaledbox_ApplyFactor;
 
-			WindowMenu.PrintDBox.ClickSave += PrintDialogueSavePrintHandler;
-			WindowMenu.PrintDBox.ClickPrint += PrintDialogueSavePrintHandler;
+			WindowMenu.PrintDBox.ClickSave += printdbox_SavePrint;
+			WindowMenu.PrintDBox.ClickPrint += printdbox_SavePrint;
 		}
 
 		// For a derived class, it is recommended to override the event notifier rather
@@ -512,7 +512,7 @@ public class MyTask : ToolboxTask
 			base.OnMsgDataLoad (e);
 		}
 
-		void PrintDialogueSavePrintHandler (object sender, Toolbox.PrintDialogue.PrintSaveEventArgs e)
+		void printdbox_SavePrint (object sender, Toolbox.PrintDialogue.PrintSaveEventArgs e)
 		{
 			Reporter.WriteLine ("Print Dialogue Save/Print button clicked:");
 			if (e.PageRangeStart == -1)
@@ -525,7 +525,7 @@ public class MyTask : ToolboxTask
 			Reporter.WriteLine ("");
 		}
 
-		private void OnScaleDBoxAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
+		void scaledbox_Shown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
 		{
 			// The ScaleDialogue is the sender
 			Toolbox.ScaleDialogue scale_dbox = (Toolbox.ScaleDialogue)sender;
@@ -533,7 +533,7 @@ public class MyTask : ToolboxTask
 			scale_dbox.Value = (int)Scale;
 		}
 
-		private void OnScaleDBoxApplyFactor (object sender, Toolbox.ScaleDialogue.ApplyFactorEventArgs args)
+		void scaledbox_ApplyFactor (object sender, Toolbox.ScaleDialogue.ApplyFactorEventArgs args)
 		{
 			Scale = args.Factor;
 
@@ -550,7 +550,7 @@ public class MyTask : ToolboxTask
 			Title = "CSharp Toolbox Window - Scale: " + Scale + "%";
 		}
 
-		private void OnFontMenuAboutToBeShown (object sender, Toolbox.Object.MenuAboutToBeShownEventArgs args)
+		void fontmenu_Show (object sender, Toolbox.Object.MenuAboutToBeShownEventArgs args)
 		{
 			// The FontMenu is the sender
 			Toolbox.FontMenu font_menu = (Toolbox.FontMenu)sender;
@@ -558,7 +558,7 @@ public class MyTask : ToolboxTask
 			font_menu.Font = FontID;
 		}
 
-		private void OnFontMenuFontSelection (object sender, Toolbox.FontMenu.FontSelectionEventArgs args)
+		void fontmenu_Selection (object sender, Toolbox.FontMenu.FontSelectionEventArgs args)
 		{
 			font.Lose ();
 
@@ -574,7 +574,7 @@ public class MyTask : ToolboxTask
 			ForceRedraw (Extent);
 		}
 
-		private void OnFontDBoxAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
+		void fontdbox_Show (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
 		{
 			// The FontDialogue is the sender
 			Toolbox.FontDialogue font_dbox = (Toolbox.FontDialogue)sender;
@@ -584,7 +584,7 @@ public class MyTask : ToolboxTask
 			font_dbox.AspectRatio = FontAspectRatio;
 		}
 
-		private void OnFontDBoxApplyFont (object sender, Toolbox.FontDialogue.ApplyFontEventArgs args)
+		void fontdbox_ApplyFont (object sender, Toolbox.FontDialogue.ApplyFontEventArgs args)
 		{
 			font.Lose ();
 
@@ -598,7 +598,7 @@ public class MyTask : ToolboxTask
 			ForceRedraw (Extent);
 		}
 
-		private void OnColourMenuSubMenuShow (object sender, Toolbox.MenuEntry.SubMenuEventArgs args)
+		void colourmenu_SubMenuShow (object sender, Toolbox.MenuEntry.SubMenuEventArgs args)
 		{
 			// The MenuEntry is the sender.
 			Toolbox.MenuEntry menu_entry = (Toolbox.MenuEntry)sender;
@@ -611,14 +611,14 @@ public class MyTask : ToolboxTask
 						font_wimp_colour;
 		}
 
-		private void OnColourMenuSelected (object sender, Toolbox.ColourMenu.SelectionEventArgs args)
+		void colourmenu_Selected (object sender, Toolbox.ColourMenu.SelectionEventArgs args)
 		{
 			font_wimp_colour = args.Colour;
 			ColourSetBy = ColourSetter.Menu;
 			ForceRedraw (Extent);
 		}
 
-		private void OnColourDBoxSubMenuShow (object sender, Toolbox.MenuEntry.SubMenuEventArgs args)
+		void colourdbox_SubMenuShow (object sender, Toolbox.MenuEntry.SubMenuEventArgs args)
 		{
 			// The MenuEntry is the sender.
 			Toolbox.MenuEntry menu_entry = (Toolbox.MenuEntry)sender;
@@ -631,7 +631,7 @@ public class MyTask : ToolboxTask
 			colour_dbox.SetColour (colour_block, ColourSetBy != ColourSetter.Dialogue);
 		}
 
-		private void OnColourDBoxSelected (object sender, Toolbox.ColourDialogue.ColourSelectedEventArgs args)
+		void colourdbox_Selected (object sender, Toolbox.ColourDialogue.ColourSelectedEventArgs args)
 		{
 			// We use the colour regardless of whether 'None' was selected.
 			font_palette_colour = Toolbox.ColourDialogue.ColourFromColourBlock (args.ColourBlock);
@@ -639,7 +639,7 @@ public class MyTask : ToolboxTask
 			ForceRedraw (Extent);
 		}
 
-		private void OnFileInfoAboutToBeShown (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
+		void fileinfo_Show (object sender, Toolbox.Object.AboutToBeShownEventArgs args)
 		{
 			Toolbox.FileInfoDialogue file_info_dbox = (Toolbox.FileInfoDialogue)sender;
 
@@ -650,7 +650,7 @@ public class MyTask : ToolboxTask
 			file_info_dbox.FileName = (FileName != null) ? FileName : "<Untitled>";
 		}
 
-		private void OnRedraw (object sender, Wimp.RedrawEventArgs args)
+		void mainwindow_Paint (object sender, Wimp.RedrawEventArgs args)
 		{
 			if (ColourSetBy == ColourSetter.Dialogue)
 				ColourTrans.SetFontColours (ColourTrans.White, font_palette_colour, 7);
@@ -733,8 +733,8 @@ public class MyTask : ToolboxTask
 		Iconbar.SelectClickEvent = MyEvent.IconbarSelect;
 		Iconbar.AdjustClickEvent = MyEvent.IconbarAdjust;
 		// Add our own event handlers to be called for the events we set above.
-		Iconbar.SelectClick += IconbarSelectHandler;
-		Iconbar.AdjustClick += IconbarAdjustHandler;
+		Iconbar.SelectClick += iconbar_Select;
+		Iconbar.AdjustClick += iconbar_Adjust;
 		// Link the main menu to the Iconbar icon.
 		Iconbar.Menu = main_menu;
 
@@ -815,7 +815,7 @@ public class MyTask : ToolboxTask
 		}
 	}
 
-	public void QuitDialogueQuitHandler (object sender, Toolbox.ToolboxEventArgs args)
+	void quitdbox_Quit (object sender, Toolbox.ToolboxEventArgs args)
 	{
 		Reporter.WriteLine ("Quit handler called - Exiting...");
 		Reporter.WriteLine ("");
@@ -825,7 +825,7 @@ public class MyTask : ToolboxTask
 		quit_dialogue.Dispose();
 	}
 
-	public void QuitDialogueCancelHandler (object sender, Toolbox.ToolboxEventArgs args)
+	void quitdbox_Cancel (object sender, Toolbox.ToolboxEventArgs args)
 	{
 		Reporter.WriteLine ("Quit cancelled.");
 		Reporter.WriteLine ("");
@@ -834,7 +834,7 @@ public class MyTask : ToolboxTask
 		quit_dialogue.Dispose();
 	}
 
-	public void QuitDialogueAboutToBeShownHandler (object sender, Toolbox.Object.AboutToBeShownEventArgs e)
+	void quitdbox_Show (object sender, Toolbox.Object.AboutToBeShownEventArgs e)
 	{
 		Reporter.WriteLine ("Quit Dialogue about to be shown, show type = {0}", e.ShowSpec.Type);
 		Reporter.WriteLine ("");
@@ -846,18 +846,18 @@ public class MyTask : ToolboxTask
 
 		quit_dialogue = new Toolbox.QuitDialogue ("Quit");
 		quit_dialogue.Message = "Quit handler called, really quit?";
-		quit_dialogue.ClickQuit += QuitDialogueQuitHandler;
-		quit_dialogue.ClickCancel += QuitDialogueCancelHandler;
-		quit_dialogue.AboutToBeShown += QuitDialogueAboutToBeShownHandler;
+		quit_dialogue.ClickQuit += quitdbox_Quit;
+		quit_dialogue.ClickCancel += quitdbox_Cancel;
+		quit_dialogue.AboutToBeShown += quitdbox_Show;
 		quit_dialogue.ShowCentred ();
 	}
 
-	private void IconbarSelectHandler (object sender, Toolbox.ToolboxEventArgs args)
+	void iconbar_Select (object sender, Toolbox.ToolboxEventArgs args)
 	{
 		CurrentFile.Show();
 	}
 
-	private void IconbarAdjustHandler (object sender, Toolbox.ToolboxEventArgs args)
+	void iconbar_Adjust (object sender, Toolbox.ToolboxEventArgs args)
 	{
 		dialogue.Show ();
 	}
