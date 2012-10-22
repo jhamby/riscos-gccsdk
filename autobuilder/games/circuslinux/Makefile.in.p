@@ -1,6 +1,6 @@
---- Makefile.in.old	2003-04-27 20:52:08.000000000 +0100
-+++ Makefile.in	2003-04-27 19:52:20.000000000 +0100
-@@ -81,10 +81,11 @@
+--- Makefile.in.orig	2001-04-29 07:53:31.000000000 +0100
++++ Makefile.in	2012-10-12 12:49:41.000000000 +0100
+@@ -81,11 +81,12 @@
  
  # User-definable stuff:
  CC = @CC@
@@ -14,3 +14,4 @@
 -CFLAGS = @CFLAGS@ -Wall -O2 -DDATA_PREFIX=\"$(DATA_PREFIX)\" 	  -D$(TARGET_DEF) -DJOY_$(JOY)
 +CFLAGS = @CFLAGS@ -Wall -O2 -DDATA_PREFIX=\"$(DATA_PREFIX)\" 	  -D$(TARGET_DEF) -DJOY_$(JOY) -DSHARED_SCOREFILE_NO
  
+ LIBS = @LIBS@ 
