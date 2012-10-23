@@ -1,3 +1,8 @@
+Wed Oct 24 00:34:31 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* unittests/reloc/Makefile.in: Fix comments and check target output.
+	* unittests/compare/Makefile.in: Likewise.
+
 Wed Oct 24 00:31:42 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* src/output.c (Output_AOF): Use AREA_INT_AOFMASK to filter out
