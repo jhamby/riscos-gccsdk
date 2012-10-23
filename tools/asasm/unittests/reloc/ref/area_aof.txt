@@ -65,7 +65,7 @@ AOF version: 310
    Size 0 bytes, 0 relocations
 
 
-** Area (0x400102) "Code16_CODEALIGN", aligned at 4 bytes, [code] [32bit] 
+** Area (0x000102) "Code16_CODEALIGN", aligned at 4 bytes, [code] [32bit] 
    Size 0 bytes, 0 relocations
 
 

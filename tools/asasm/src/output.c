@@ -252,7 +252,7 @@ Output_AOF (void)
       const AofEntry aof_entry =
 	{
 	  .Name = armword (ap->offset + 4), /* +4 because of extra length entry */
-          .Type = armword (ap->area.info->type),
+          .Type = armword (ap->area.info->type & AREA_INT_AOFMASK),
           .Size = armword (FIX (ap->area.info->maxIdx)),
           .noRelocations = armword (ap->area.info->numRelocs),
           .BaseAddr = armword ((ap->area.info->type & AREA_ABS) ? Area_GetBaseAddress (ap) : 0)

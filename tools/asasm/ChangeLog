@@ -1,3 +1,9 @@
+Wed Oct 24 00:31:42 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	* src/output.c (Output_AOF): Use AREA_INT_AOFMASK to filter out
+	internal implementation bits.
+	* unittests/reloc/ref/area_aof.txt: Update reference file.
+
 Sun Oct 14 00:59:54 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	src:
