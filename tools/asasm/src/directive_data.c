@@ -42,6 +42,7 @@
 #include "phase.h"
 #include "put.h"
 #include "state.h"
+#include "targetcpu.h"
 
 
 /**
@@ -68,102 +69,101 @@ bool
 c_align (void)
 {
   /* Determine alignment value.  */
-  uint32_t alignValue;
   skipblanks ();
+  bool alignValueProvided = false;
+  uint32_t alignValue;
   if (Input_IsEolOrCommentStart ())
-    alignValue = 1<<2;
+    {
+    }
   else
     {
       /* Determine align value */
-      const Value *value = exprBuildAndEval (ValueInt);
-      if (value->Tag == ValueInt)
+      const Value *valueA = exprBuildAndEval (ValueInt);
+      if (valueA->Tag == ValueInt && valueA->Data.Int.type == eIntType_PureInt)
 	{
-	  alignValue = value->Data.Int.i;
-	  if (alignValue <= 0 || (alignValue & (alignValue - 1)))
-	    {
-	      error (ErrorError, "ALIGN value is not a power of two");
-	      alignValue = 1<<0;
-	    }
+	  alignValue = valueA->Data.Int.i;
+	  if (alignValue != 0 && (alignValue & (alignValue - 1)) == 0)
+	    alignValueProvided = true;
+	  else
+	    error (ErrorError, "ALIGN value is not a power of two");
 	}
       else
-	{
-	  error (ErrorError, "Unrecognized ALIGN value");
-	  alignValue = 1<<0;
-	}
+	error (ErrorError, "Unrecognized ALIGN value");
     }
+  if (!alignValueProvided)
+    alignValue = 1<<2;
 
   /* Determine offset value.  */
-  uint32_t offsetValue;
   skipblanks ();
+  bool offsetValueProvided = false;
+  uint32_t offsetValue;
   if (Input_IsEolOrCommentStart ())
-    offsetValue = 0;
+    {
+    }
   else if (Input_Match (',', false))
     {
       const Value *valueO = exprBuildAndEval (ValueInt);
-      if (valueO->Tag == ValueInt)
-	offsetValue = ((uint32_t)valueO->Data.Int.i) % alignValue;
-      else
+      if (valueO->Tag == ValueInt && valueO->Data.Int.type == eIntType_PureInt)
 	{
-	  error (ErrorError, "Unrecognized ALIGN offset value");
-	  offsetValue = 0;
+	  offsetValue = ((uint32_t)valueO->Data.Int.i) % alignValue;
+	  offsetValueProvided = true;
 	}
+      else
+	error (ErrorError, "Unrecognized ALIGN offset value");
     }
   else
-    {
-      error (ErrorError, "Unrecognized ALIGN offset value");
-      offsetValue = 0;
-    }
+    error (ErrorError, "Unrecognized ALIGN offset value");
+  if (!offsetValueProvided)
+    offsetValue = 0;
 
   /* Determine fill value.  */
-  uint32_t fillValue;
   skipblanks ();
+  bool fillValueProvided = false;
+  uint32_t fillValue;
   if (Input_IsEolOrCommentStart ())
-    fillValue = 0;
+    {
+    }
   else if (Input_Match (',', false))
     {
       const Value *valueF = exprBuildAndEval (ValueInt);
-      if (valueF->Tag == ValueInt)
-	fillValue = (uint32_t)valueF->Data.Int.i;
-      else
+      if (valueF->Tag == ValueInt && valueF->Data.Int.type == eIntType_PureInt)
 	{
-	  error (ErrorError, "Unrecognized ALIGN fill value");
-	  fillValue = 0;
+	  fillValue = (uint32_t)valueF->Data.Int.i;
+	  fillValueProvided = true;
 	}
+      else
+	error (ErrorError, "Unrecognized ALIGN fill value");
     }
   else
-    {
-      error (ErrorError, "Unrecognized ALIGN fill value");
-      fillValue = 0;
-    }      
+    error (ErrorError, "Unrecognized ALIGN fill value");
+  if (!fillValueProvided)
+    fillValue = 0;
 
   /* Determine fill value size.  */
-  uint32_t fillValueSize;
   skipblanks ();
+  bool fillValueSizeProvided = false;
+  uint32_t fillValueSize;
   if (Input_IsEolOrCommentStart ())
-    fillValueSize = GetDefaultAlignValueSize ();
+    {
+    }
   else if (Input_Match (',', false))
     {
       const Value *valueS = exprBuildAndEval (ValueInt);
-      if (valueS->Tag == ValueInt)
+      if (valueS->Tag == ValueInt && valueS->Data.Int.type == eIntType_PureInt)
 	{
 	  fillValueSize = valueS->Data.Int.i;
-	  if (fillValueSize != 1 && fillValueSize != 2 && fillValueSize != 4)
-	    {
-	      error (ErrorError, "ALIGN value size needs to be 1, 2 or 4");
-	      fillValueSize = GetDefaultAlignValueSize ();
-	    }
+	  if (fillValueSize == 1 || fillValueSize == 2 || fillValueSize == 4)
+	    fillValueSizeProvided = true;
+	  else
+	    error (ErrorError, "ALIGN value size needs to be 1, 2 or 4");
 	}
       else
-	{
-	  error (ErrorError, "Unrecognized ALIGN value size");
-	  fillValueSize = GetDefaultAlignValueSize ();
-	}
+	error (ErrorError, "Unrecognized ALIGN value size");
     }
   else
-    {
-      error (ErrorError, "Unrecognized ALIGN value size");
-      fillValueSize = GetDefaultAlignValueSize ();
-    }
+    error (ErrorError, "Unrecognized ALIGN value size");
+  if (!fillValueSizeProvided)
+    fillValueSize = GetDefaultAlignValueSize ();
 
   /* Check if given fill value requires more bits than specified (or implied)
      fill value size.  */
@@ -180,15 +180,42 @@ c_align (void)
 
   Area_EnsureExtraSize (areaCurrentSymbol, bytesToStuff);
 
-  uint32_t curFillValue = fillValue >> 8*(curPos & (fillValueSize - 1));
-  for (/* */; curPos != newPos; ++curPos)
+  /* When area has CODEALIGN attribute, and <value> + <value size> are not
+     specified, and ALIGN is following an instruction, and offset is multiple
+     of current instruction size, then pad with NOP instructions.  */
+  if ((areaCurrentSymbol->area.info->type & AREA_INT_CODEALIGN) != 0
+      && !fillValueProvided
+      && (offsetValue % fillValueSize) == 0
+      && Area_GetCurrentEntryType () != eData) 
     {
-      if ((curPos & (fillValueSize - 1)) == 0)
-	curFillValue = fillValue;
-      areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = curFillValue;
-      curFillValue >>= 8;
+      assert (((curPos - newPos) % fillValueSize) == 0);
+      if (State_GetInstrType () == eInstrType_ARM)
+	{
+	  uint32_t instr = (Target_CheckCPUFeature (kCPUExt_v6K, false)
+			    || Target_CheckCPUFeature (kCPUExt_v6T2, false)) ? 0xe320f000 : 0xE1A00000;
+	  for (/* */; curPos != newPos; curPos += 4)
+	    Put_Ins (4, instr);
+	}
+      else
+	{
+	  uint32_t instr = (Target_CheckCPUFeature (kCPUExt_v6K, false)
+			    || Target_CheckCPUFeature (kCPUExt_v6T2, false)) ? 0xBF00 : 0x46c0;
+	  for (/* */; curPos != newPos; curPos += 2)
+	    Put_Ins (2, instr);
+	}
     }
-  
+  else
+    {
+      uint32_t curFillValue = fillValue >> 8*(curPos & (fillValueSize - 1));
+      for (/* */; curPos != newPos; ++curPos)
+	{
+	  if ((curPos & (fillValueSize - 1)) == 0)
+	    curFillValue = fillValue;
+	  areaCurrentSymbol->area.info->image[areaCurrentSymbol->area.info->curIdx++] = curFillValue;
+	  curFillValue >>= 8;
+	}
+    }
+
   return false;
 }
 

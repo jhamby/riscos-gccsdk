@@ -808,13 +808,14 @@ ParseSymbolAndAdjustFlag (unsigned int flags, const char *err)
     error (ErrorError, "Local labels cannot be %s", err);
   else if (Area_IsMappingSymbol (sym->str))
     error (ErrorError, "Mapping symbols cannot be %s", err);
-  else if (sym->type & SYMBOL_RW)
+  else if ((sym->type & SYMBOL_RW) != 0)
     error (ErrorError, "%s symbols cannot be %s",
            sym->type & SYMBOL_MACRO_LOCAL ? "Local" : "Global", err);
   else
     sym->type |= flags;
   return sym;
 }
+
 
 /* Result of parsing IMPORT/EXPORT qualifier list.  */ 
 typedef struct

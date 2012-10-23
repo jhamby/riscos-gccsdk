@@ -94,7 +94,11 @@ m_nop (bool doLowerCase)
     {
       if (!Input_IsEndOfKeyword ())
 	return true;
-      Put_Ins (4, 0xE1A00000); /* MOV R0, R0 */
+      InstrType_e instrState = State_GetInstrType ();
+      if (instrState == eInstrType_ARM)
+	Put_Ins (4, 0xE1A00000); /* MOV R0, R0 */
+      else
+	Put_Ins (2, 0x46c0); /* MOV R8, R8 */
     }
 
   return false;

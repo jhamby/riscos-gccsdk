@@ -16,31 +16,44 @@ NewEnc	EQU	{ARCHITECTURE} = "6K" \
 		IF NewEnc
 			INFO 0, "Testing new style NOP encoding"
 
-			NOPEQ
-			NOPNE
-			NOPCS
-			NOPHS
-			NOPCC
-			NOPLO
-			NOPMI
-			NOPPL
-			NOPVS
-			NOPVC
-			NOPHI
-			NOPLS
-			NOPGE
-			NOPLT
-			NOPGT
-			NOPLE
-			NOPAL
-			NOP
+			MACRO
+			NopTest	$suffix
+			NOPEQ$suffix
+			NOPNE$suffix
+			NOPCS$suffix
+			NOPHS$suffix
+			NOPCC$suffix
+			NOPLO$suffix
+			NOPMI$suffix
+			NOPPL$suffix
+			NOPVS$suffix
+			NOPVC$suffix
+			NOPHI$suffix
+			NOPLS$suffix
+			NOPGE$suffix
+			NOPLT$suffix
+			NOPGT$suffix
+			NOPLE$suffix
+			NOPAL$suffix
+			NOP$suffix
+			MEND
+
+			NopTest		; ARM
+			NopTest	.W	; ARM
+			THUMB
+			NopTest		; T
+			NopTest	.N	; T
+			NopTest	.W	; T2
 		ELSE
 			INFO 0, "Testing old style NOP encoding"
 
 			NOP
+			THUMB
+			NOP
 		ENDIF
 	|
 		IF NewEnc
+			; ARM
 			DCI &0320f000 	; nopeq
 			DCI &1320f000 	; nopne
 			DCI &2320f000 	; nopcs
@@ -57,10 +70,94 @@ NewEnc	EQU	{ARCHITECTURE} = "6K" \
 			DCI &b320f000 	; noplt
 			DCI &c320f000 	; nopgt
 			DCI &d320f000 	; nople
+			DCI &e320f000 	; nopal
 			DCI &e320f000 	; nop
+
+			; ARM
+			DCI &0320f000 	; nopeq
+			DCI &1320f000 	; nopne
+			DCI &2320f000 	; nopcs
+			DCI &2320f000 	; nopcs
+			DCI &3320f000 	; nopcc
+			DCI &3320f000 	; nopcc
+			DCI &4320f000 	; nopmi
+			DCI &5320f000 	; noppl
+			DCI &6320f000 	; nopvs
+			DCI &7320f000 	; nopvc
+			DCI &8320f000 	; nophi
+			DCI &9320f000 	; nopls
+			DCI &a320f000 	; nopge
+			DCI &b320f000 	; noplt
+			DCI &c320f000 	; nopgt
+			DCI &d320f000 	; nople
+			DCI &e320f000 	; nopal
 			DCI &e320f000 	; nop
+
+			THUMB
+			; Thumb
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+
+			; Thumb
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+			DCI.N &bf00
+
+			; Thumb-2
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
+			DCI.W &f3af8000
 		ELSE
 			DCI &E1A00000
+
+			THUMB
+			DCI.N &46c0
 		ENDIF
 	]
 

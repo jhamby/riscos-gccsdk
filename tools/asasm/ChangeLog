@@ -1,3 +1,15 @@
+Wed Oct 24 00:39:47 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
+
+	src:
+	* m_cpu.c (m_nop): Add Thumb support.
+	* symbol.c (ParseSymbolAndAdjustFlag): Code style fix.
+	* directive_data.c (c_align): Rework and add CODEALIGN support.
+
+	unittests/compare:
+	* core/align.s: Add CODEALIGN test case.
+	* core/instr_nop_new_style.s: Move Thumb test case to...
+	* include/nop.s: ...here and enhance it.
+
 Wed Oct 24 00:34:31 CEST 2012  John Tytgat  <John.Tytgat@aaug.net>
 
 	* unittests/reloc/Makefile.in: Fix comments and check target output.

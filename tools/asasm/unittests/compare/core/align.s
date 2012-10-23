@@ -1,4 +1,5 @@
 ; Tests ALIGN
+; RUNOPT: -cpu=7-A
 
 	MACRO
 	TestCase $val
@@ -204,6 +205,46 @@
 	DCW	0xDD22
 	DCW	0xDDCC
 
+	]
+
+	; Test align for CODE areas with CODEALIGN attribute.
+	[ :LNOT: REFERENCE
+	AREA	CodeAlign, CODE, CODEALIGN
+
+	ARM
+	UND
+	ALIGN	16
+
+	THUMB
+	UND
+	ALIGN	8
+
+	ARM
+	DCD	&44332211
+	ALIGN	16		; No NOP (as it is not following ARM/Thumb instruction)
+
+	THUMB
+	DCW	&6655
+	ALIGN	8		; No NOP (as it is not following ARM/Thumb instruction)
+	|
+	AREA	CodeAlign, CODE		; No CODEALIGN necessary.
+
+	ARM
+	UND
+	NOP
+	NOP
+	NOP
+
+	THUMB
+	UND
+	NOP
+	NOP
+	NOP
+
+	DCD	&44332211
+	DCD	0
+	DCD	&00006655
+	DCD	0
 	]
 
 	END
