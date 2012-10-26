@@ -208,10 +208,6 @@ namespace riscos
 		{
 			public uint ID { get; protected set; }
 
-			/*! \brief A list of all event handlers for this Toolbox object.  */
-			public Dictionary<uint, ToolboxEventHandler> ToolboxHandlers =
-								new Dictionary<uint, ToolboxEventHandler>();
-
 			/*! \brief A list of gadgets that we have an interest in within this Toolbox object.
 			 *
 			 * This doesn't necessarily contain all gadgets, just the ones that have been wrapped
@@ -267,28 +263,23 @@ namespace riscos
 			 * \param [in] objectName Name of object in resource file to create.  */
 			protected void Create (string objectName)
 			{
-				uint id;
-				OS.ThrowOnError (NativeMethods.Toolbox_CreateObject (0, objectName, out id));
-				ToolboxTask.AllObjects.Add (id, this);
-				ID = id;
+				ID = Toolbox.CreateObject (objectName);
+				ToolboxTask.AllObjects.Add (ID, this);
 			}
 
 			/*! \brief Create a toolbox object using the template pointed to.
 			 * \param [in] templateData Pointer to template data to create object from.  */
 			protected void Create (IntPtr templateData)
 			{
-				uint id;
-				OS.ThrowOnError (NativeMethods.Toolbox_CreateObject (CreateObjectFlags.FromMemory,
-										     templateData, out id));
-				ToolboxTask.AllObjects.Add (id, this);
-				ID = id;
+				ID = Toolbox.CreateObject (templateData);
+				ToolboxTask.AllObjects.Add (ID, this);
 			}
 
 			/*! \brief Delete the object.  */
 			private void Delete ()
 			{
 				ToolboxTask.AllObjects.Remove (ID);
-				OS.ThrowOnError (NativeMethods.Toolbox_DeleteObject (0, ID));
+				Toolbox.DeleteObject (0, ID);
 			}
 
 			/*! \brief Display the object on the screen at its default location.  */
@@ -758,6 +749,44 @@ namespace riscos
 			}
 		}
 
+		/*! \brief Create the named Toolbox object.
+		 * \param resName The name of the template in the Resource file.
+		 * \return The Toolbox id of the created object.  */
+		public static uint CreateObject (string resName)
+		{
+			uint id;
+
+			OS.ThrowOnError (NativeMethods.Toolbox_CreateObject (0, resName, out id));
+
+			return id;
+		}
+
+		/*! \brief Create a Toolbox object a template held in memory.
+		 * \param resData Pointer to the data required to create the object.
+		 * \return The Toolbox id of the created object.  */
+		public static uint CreateObject (IntPtr resData)
+		{
+			uint id;
+
+			OS.ThrowOnError (NativeMethods.Toolbox_CreateObject (CreateObjectFlags.FromMemory,
+									     resData, out id));
+			return id;
+
+		}
+
+		/*! \brief Delete the Toolbox object whose ID is given.
+		 * \param [in] flags Bit 0 set means do not delete recursively.
+		 * \param [in] objectID The Toolbox id of the object.
+		 * \return Nothing.  */
+		public static void DeleteObject (uint flags, uint objectID)
+		{
+			OS.ThrowOnError (NativeMethods.Toolbox_DeleteObject (flags, objectID));
+		}
+
+		/*! \brief Given a template name within  the Resource file, return a pointer to
+		 * a block suitable to create an object from.
+		 * \param [in] resName The name of the resource template to look up.
+		 * \return A pointer to a block that represents the object.  */
 		public static IntPtr TemplateLookup (string resName)
 		{
 			IntPtr template;
@@ -765,6 +794,66 @@ namespace riscos
 			OS.ThrowOnError (NativeMethods.Toolbox_TemplateLookUp (0, resName, out template));
 
 			return template;
+		}
+
+		/*! \brief Return the object id which was passed as the parent to a Show method (even
+		 * if the parent has been deleted since).
+		 * An object that has not yet been shown will have a parent object id of 0 and a
+		 * component id of 0xffffffff (-1).
+		 * \param [in] objectID The id of the object to return the parent of.
+		 * \param [out] parentCmp The id of the parent component.
+		 * \return The object id of the parent object.  */
+		public static uint GetParent (uint objectID, out uint parentCmp)
+		{
+			uint parent_id;
+
+			OS.ThrowOnError (NativeMethods.Toolbox_GetParent (0,
+									  objectID,
+									  out parent_id,
+									  out parentCmp));
+			return parent_id;
+		}
+
+		/*! \brief Return the object id which was passed as the parent to a Show method (even
+		 * if the parent has been deleted since).
+		 * An object that has not yet been shown will have a parent object id of 0.
+		 * \param [in] objectID The id of the object to return the parent of.
+		 * \return The object id of the parent object.  */
+		public static uint GetParent (uint objectID)
+		{
+			uint parent_cmp;
+
+			return GetParent (objectID, out parent_cmp);
+		}
+
+		/*! \brief Return the id of the Ancestor of the given object.
+		 * An object which has not yet been shown will have an ancestor object id of 0 and
+		 * component id of 0xffffffff (-1).
+		 * \note The Ancestor may have been deleted since this object was shown.
+		 * \param [in] objectID The id of the object to return the ancestor of.
+		 * \param [out] ancestorCmp The id of the ancestor component.
+		 * \return The object id of the ancestor object.  */
+		public static uint GetAncestor (uint objectID, out uint ancestorCmp)
+		{
+			uint ancestor_id;
+
+			OS.ThrowOnError (NativeMethods.Toolbox_GetAncestor (0,
+									  objectID,
+									  out ancestor_id,
+									  out ancestorCmp));
+			return ancestor_id;
+		}
+
+		/*! \brief Return the id of the Ancestor of the given object.
+		 * An object which has not yet been shown will have an ancestor object id of 0.
+		 * \note The Ancestor may have been deleted since this object was shown.
+		 * \param [in] objectID The id of the object to return the ancestor of.
+		 * \return The object id of the ancestor object.  */
+		public static uint GetAncestor (uint objectID)
+		{
+			uint ancestor_cmp;
+
+			return GetAncestor (objectID, out ancestor_cmp);
 		}
 	}
 

@@ -16,12 +16,12 @@ namespace riscos
 		[StructLayout(LayoutKind.Sequential)]
 		public class IDBlock
 		{
-			public uint AncestorID { get; private set; }
-			public uint AncestorCmp { get; private set; }
-			public uint ParentID { get; private set; }
-			public uint ParentCmp { get; private set; }
-			public uint SelfID { get; private set; }
-			public uint SelfCmp { get; private set; }
+			public readonly uint AncestorID;
+			public readonly uint AncestorCmp;
+			public readonly uint ParentID;
+			public readonly uint ParentCmp;
+			public readonly uint SelfID;
+			public readonly uint SelfCmp;
 		}
 
 		[StructLayout(LayoutKind.Sequential)]
@@ -159,6 +159,18 @@ namespace riscos
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_get_object_class")]
 		internal static extern IntPtr Toolbox_GetObjectClass (uint flags, uint objectID, out uint class_type);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_get_parent")]
+		internal static extern IntPtr Toolbox_GetParent (uint flags,
+								 uint objectID,
+								 out uint ParentID,
+								 out uint ParentCmp);
+
+		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_get_ancestor")]
+		internal static extern IntPtr Toolbox_GetAncestor (uint flags,
+								   uint objectID,
+								   out uint AncestorID,
+								   out uint AncestorCmp);
 
 		[DllImport("libriscosdotnet.so.1", EntryPoint="xtoolbox_get_template_name")]
 		internal static extern IntPtr Toolbox_GetTemplateName (uint flags,
